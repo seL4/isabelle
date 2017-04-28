@@ -28,9 +28,12 @@ object Build_Log
   {
     val separator = '\u000b'
 
+    def cat_multiple(args: List[String]): String =
+      args.mkString(separator.toString)
+
     def multiple(name: String, args: List[String]): Properties.T =
       if (args.isEmpty) Nil
-      else List(name -> args.mkString(separator.toString))
+      else List(name -> cat_multiple(args))
 
     def multiple_lines(s: String): String =
       cat_lines(Library.space_explode(separator, s))
@@ -688,6 +691,28 @@ object Build_Log
       }
     }
 
+    def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] =
+    {
+      val cs = Meta_Info.table.columns.tail
+      using(db.select(Meta_Info.table, cs, Meta_Info.log_name.sql_where_equal(log_name)))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) None
+        else {
+          val results =
+            cs.map(c => c.name ->
+              (if (c.T == SQL.Type.Date)
+                db.get(rs, c, db.date _).map(Log_File.Date_Format(_))
+               else
+                db.get(rs, c, db.string _).map(s => Prop.cat_multiple(split_lines(s)))))
+          val n = Prop.all_props.length
+          val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
+          val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
+          Some(Meta_Info(props, settings))
+        }
+      })
+    }
+
     def write_build_info(db: SQL.Database, files: List[JFile])
     {
       for (file_group <- filter_files(db, Build_Info.table, files).grouped(100)) {
@@ -721,6 +746,44 @@ object Build_Log
           }
         }
       }
+    }
+
+    def read_build_info(
+      db: SQL.Database, log_name: String, session_names: List[String] = Nil): Build_Info =
+    {
+      val where_log_name = Meta_Info.log_name.sql_where_equal(log_name)
+      val where =
+        if (session_names.isEmpty) where_log_name
+        else
+          where_log_name + " AND " +
+          session_names.map(a => Build_Info.session_name.sql_name + " = " + SQL.quote_string(a)).
+            mkString("(", " OR ", ")")
+      val sessions =
+        using(db.select(Build_Info.table, Build_Info.table.columns.tail, where))(stmt =>
+        {
+          SQL.iterator(stmt.executeQuery)(rs =>
+          {
+            val session_name = db.string(rs, Build_Info.session_name)
+            val chapter = db.string(rs, Build_Info.chapter)
+            val groups = split_lines(db.string(rs, Build_Info.groups))
+            val threads = db.get(rs, Build_Info.threads, db.int _)
+            val timing_elapsed = Time.ms(db.long(rs, Build_Info.timing_elapsed))
+            val timing_cpu = Time.ms(db.long(rs, Build_Info.timing_cpu))
+            val timing_gc = Time.ms(db.long(rs, Build_Info.timing_gc))
+            val ml_timing_elapsed = Time.ms(db.long(rs, Build_Info.ml_timing_elapsed))
+            val ml_timing_cpu = Time.ms(db.long(rs, Build_Info.ml_timing_cpu))
+            val ml_timing_gc = Time.ms(db.long(rs, Build_Info.ml_timing_gc))
+            val ml_statistics = uncompress_properties(db.bytes(rs, Build_Info.ml_statistics))
+            val heap_size = db.get(rs, Build_Info.heap_size, db.long _)
+            val status = Session_Status.withName(db.string(rs, Build_Info.status))
+
+            session_name ->
+              Session_Entry(chapter, groups, threads, Timing(timing_elapsed, timing_cpu, timing_gc),
+                Timing(ml_timing_elapsed, ml_timing_cpu, ml_timing_gc), ml_statistics,
+                heap_size, status)
+          }).toMap
+        })
+      Build_Info(sessions)
     }
   }
 }
