@@ -32,6 +32,9 @@ object Build_Log
       if (args.isEmpty) Nil
       else List(name -> args.mkString(separator.toString))
 
+    def multiple_lines(s: String): String =
+      cat_lines(Library.space_explode(separator, s))
+
     val build_tags = SQL.Column.string("build_tags")  // multiple
     val build_args = SQL.Column.string("build_args")  // multiple
     val build_group_id = SQL.Column.string("build_group_id")
@@ -689,7 +692,7 @@ object Build_Log
               if (c.T == SQL.Type.Date)
                 db.set_date(stmt, i + 2, meta_info.get_date(c).orNull)
               else
-                db.set_string(stmt, i + 2, meta_info.get(c).orNull)
+                db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)).orNull)
             }
 
             val n = Info.table.columns.length
