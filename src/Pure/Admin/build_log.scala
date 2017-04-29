@@ -763,8 +763,15 @@ object Build_Log
     }
 
     def read_build_info(
-      db: SQL.Database, log_name: String, session_names: List[String] = Nil): Build_Info =
+      db: SQL.Database,
+      log_name: String,
+      session_names: List[String] = Nil,
+      ml_statistics: Boolean = false): Build_Info =
     {
+      val columns =
+        Build_Info.table.columns.filter(c =>
+          c != Meta_Info.log_name && (ml_statistics || c != Build_Info.ml_statistics))
+
       val where0 =
         Meta_Info.log_name.sql_where_equal(log_name) + " AND " +
           Build_Info.session_name.sql_name + " <> ''"
@@ -774,8 +781,9 @@ object Build_Log
           where0 + " AND " +
           session_names.map(a => Build_Info.session_name.sql_name + " = " + SQL.quote_string(a)).
             mkString("(", " OR ", ")")
+
       val sessions =
-        using(db.select(Build_Info.table, Build_Info.table.columns.tail, where))(stmt =>
+        using(db.select(Build_Info.table, columns, where))(stmt =>
         {
           SQL.iterator(stmt.executeQuery)(rs =>
           {
@@ -795,7 +803,9 @@ object Build_Log
                     Time.ms(db.long(rs, Build_Info.ml_timing_gc))),
                 heap_size = db.get(rs, Build_Info.heap_size, db.long _),
                 status = Session_Status.withName(db.string(rs, Build_Info.status)),
-                ml_statistics = uncompress_properties(db.bytes(rs, Build_Info.ml_statistics)))
+                ml_statistics =
+                  if (ml_statistics) uncompress_properties(db.bytes(rs, Build_Info.ml_statistics))
+                  else Nil)
             session_name -> session_entry
           }).toMap
         })
