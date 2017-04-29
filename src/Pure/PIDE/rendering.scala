@@ -15,63 +15,28 @@ object Rendering
   object Color extends Enumeration
   {
     // background
-    val unprocessed1 = Value("unprocessed1")
-    val running1 = Value("running1")
-    val bad = Value("bad")
-    val intensify = Value("intensify")
-    val entity = Value("entity")
-    val active = Value("active")
-    val active_result = Value("active_result")
-    val markdown_item1 = Value("markdown_item1")
-    val markdown_item2 = Value("markdown_item2")
-    val markdown_item3 = Value("markdown_item3")
-    val markdown_item4 = Value("markdown_item4")
+    val unprocessed1, running1, bad, intensify, entity, active, active_result,
+      markdown_item1, markdown_item2, markdown_item3, markdown_item4 = Value
     val background_colors = values
 
     // foreground
-    val quoted = Value("quoted")
-    val antiquoted = Value("antiquoted")
+    val quoted, antiquoted = Value
     val foreground_colors = values -- background_colors
 
     // message underline
-    val writeln = Value("writeln")
-    val information = Value("information")
-    val warning = Value("warning")
-    val legacy = Value("legacy")
-    val error = Value("error")
+    val writeln, information, warning, legacy, error = Value
     val message_underline_colors = values -- background_colors -- foreground_colors
 
     // message background
-    val writeln_message = Value("writeln_message")
-    val information_message = Value("information_message")
-    val tracing_message = Value("tracing_message")
-    val warning_message = Value("warning_message")
-    val legacy_message = Value("legacy_message")
-    val error_message = Value("error_message")
+    val writeln_message, information_message, tracing_message,
+      warning_message, legacy_message, error_message = Value
     val message_background_colors =
       values -- background_colors -- foreground_colors -- message_underline_colors
 
     // text
-    val main = Value("main")
-    val keyword1 = Value("keyword1")
-    val keyword2 = Value("keyword2")
-    val keyword3 = Value("keyword3")
-    val quasi_keyword = Value("quasi_keyword")
-    val improper = Value("improper")
-    val operator = Value("operator")
-    val tfree = Value("tfree")
-    val tvar = Value("tvar")
-    val free = Value("free")
-    val skolem = Value("skolem")
-    val bound = Value("bound")
-    val var_ = Value("var")
-    val inner_numeral = Value("inner_numeral")
-    val inner_quoted = Value("inner_quoted")
-    val inner_cartouche = Value("inner_cartouche")
-    val inner_comment = Value("inner_comment")
-    val dynamic = Value("dynamic")
-    val class_parameter = Value("class_parameter")
-    val antiquote = Value("antiquote")
+    val main, keyword1, keyword2, keyword3, quasi_keyword, improper, operator,
+      tfree, tvar, free, skolem, bound, `var`, inner_numeral, inner_quoted,
+      inner_cartouche, inner_comment, dynamic, class_parameter, antiquote = Value
     val text_colors =
       values -- background_colors -- foreground_colors -- message_underline_colors --
       message_background_colors
@@ -149,7 +114,7 @@ object Rendering
     Markup.FREE -> Color.free,
     Markup.SKOLEM -> Color.skolem,
     Markup.BOUND -> Color.bound,
-    Markup.VAR -> Color.var_,
+    Markup.VAR -> Color.`var`,
     Markup.INNER_STRING -> Color.inner_quoted,
     Markup.INNER_CARTOUCHE -> Color.inner_cartouche,
     Markup.INNER_COMMENT -> Color.inner_comment,
