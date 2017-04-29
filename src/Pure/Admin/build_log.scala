@@ -651,6 +651,12 @@ object Build_Log
           else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)))
     }
 
+    def write_info(db: SQL.Database, files: List[JFile])
+    {
+      write_meta_info(db, files)
+      write_build_info(db, files)
+    }
+
     def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
     {
       db.transaction {
