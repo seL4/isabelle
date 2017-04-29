@@ -134,7 +134,7 @@ object Build_Log
 
     def is_log(file: JFile,
       prefixes: List[String] =
-        List(Build_History.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
+        List(Build_History.log_prefix, Identify.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
       suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
     {
       val name = file.getName
@@ -302,6 +302,16 @@ object Build_Log
       get(c).map(Log_File.Date_Format.parse(_))
   }
 
+  object Identify
+  {
+    val log_prefix = "isabelle_identify_"
+    val engine = "identify"
+    val Start = new Regex("""^isabelle_identify: (.+)$""")
+    val No_End = new Regex("""$.""")
+    val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
+    val AFP_Version = new Regex("""^AFP version: (\S+)$""")
+  }
+
   object Isatest
   {
     val log_prefix = "isatest-makeall-"
@@ -372,6 +382,10 @@ object Build_Log
       case line :: _ if line.startsWith(Build_History.META_INFO_MARKER) =>
         Meta_Info(log_file.find_props(Build_History.META_INFO_MARKER).get,
           log_file.get_all_settings)
+
+      case Identify.Start(log_file.Strict_Date(start)) :: _ =>
+        parse(Identify.engine, "", start, Identify.No_End,
+          Identify.Isabelle_Version, Identify.AFP_Version)
 
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
         parse(Isatest.engine, host, start, Isatest.End,
