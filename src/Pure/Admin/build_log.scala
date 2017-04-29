@@ -427,10 +427,7 @@ object Build_Log
 
   object Session_Status extends Enumeration
   {
-    val EXISTING = Value("existing")
-    val FINISHED = Value("finished")
-    val FAILED = Value("failed")
-    val CANCELLED = Value("cancelled")
+    val existing, finished, failed, cancelled = Value
   }
 
   sealed case class Session_Entry(
@@ -445,7 +442,7 @@ object Build_Log
   {
     def proper_chapter: Option[String] = if (chapter == "") None else Some(chapter)
     def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
-    def finished: Boolean = status == Session_Status.FINISHED
+    def finished: Boolean = status == Session_Status.finished
   }
 
   object Build_Info
@@ -582,12 +579,12 @@ object Build_Log
       Map(
         (for (name <- all_sessions.toList) yield {
           val status =
-            if (failed(name)) Session_Status.FAILED
-            else if (cancelled(name)) Session_Status.CANCELLED
+            if (failed(name)) Session_Status.failed
+            else if (cancelled(name)) Session_Status.cancelled
             else if (timing.isDefinedAt(name) || ml_timing.isDefinedAt(name))
-              Session_Status.FINISHED
-            else if (started(name)) Session_Status.FAILED
-            else Session_Status.EXISTING
+              Session_Status.finished
+            else if (started(name)) Session_Status.failed
+            else Session_Status.existing
           val entry =
             Session_Entry(
               chapter.getOrElse(name, ""),
