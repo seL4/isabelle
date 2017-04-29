@@ -121,6 +121,9 @@ final class Bytes private(
 
   def isEmpty: Boolean = length == 0
 
+  def proper: Option[Bytes] = if (isEmpty) None else Some(this)
+  def proper_text: Option[String] = if (isEmpty) None else Some(text)
+
   def +(other: Bytes): Bytes =
     if (other.isEmpty) this
     else if (isEmpty) other
