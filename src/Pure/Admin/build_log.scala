@@ -780,23 +780,23 @@ object Build_Log
           SQL.iterator(stmt.executeQuery)(rs =>
           {
             val session_name = db.string(rs, Build_Info.session_name)
-            val chapter = db.string(rs, Build_Info.chapter)
-            val groups = split_lines(db.string(rs, Build_Info.groups))
-            val threads = db.get(rs, Build_Info.threads, db.int _)
-            val timing_elapsed = Time.ms(db.long(rs, Build_Info.timing_elapsed))
-            val timing_cpu = Time.ms(db.long(rs, Build_Info.timing_cpu))
-            val timing_gc = Time.ms(db.long(rs, Build_Info.timing_gc))
-            val ml_timing_elapsed = Time.ms(db.long(rs, Build_Info.ml_timing_elapsed))
-            val ml_timing_cpu = Time.ms(db.long(rs, Build_Info.ml_timing_cpu))
-            val ml_timing_gc = Time.ms(db.long(rs, Build_Info.ml_timing_gc))
-            val ml_statistics = uncompress_properties(db.bytes(rs, Build_Info.ml_statistics))
-            val heap_size = db.get(rs, Build_Info.heap_size, db.long _)
-            val status = Session_Status.withName(db.string(rs, Build_Info.status))
-
-            session_name ->
-              Session_Entry(chapter, groups, threads, Timing(timing_elapsed, timing_cpu, timing_gc),
-                Timing(ml_timing_elapsed, ml_timing_cpu, ml_timing_gc), ml_statistics,
-                heap_size, status)
+            val session_entry =
+              Session_Entry(
+                chapter = db.string(rs, Build_Info.chapter),
+                groups = split_lines(db.string(rs, Build_Info.groups)),
+                threads = db.get(rs, Build_Info.threads, db.int _),
+                timing =
+                  Timing(Time.ms(db.long(rs, Build_Info.timing_elapsed)),
+                    Time.ms(db.long(rs, Build_Info.timing_cpu)),
+                    Time.ms(db.long(rs, Build_Info.timing_gc))),
+                ml_timing =
+                  Timing(Time.ms(db.long(rs, Build_Info.ml_timing_elapsed)),
+                    Time.ms(db.long(rs, Build_Info.ml_timing_cpu)),
+                    Time.ms(db.long(rs, Build_Info.ml_timing_gc))),
+                ml_statistics = uncompress_properties(db.bytes(rs, Build_Info.ml_statistics)),
+                heap_size = db.get(rs, Build_Info.heap_size, db.long _),
+                status = Session_Status.withName(db.string(rs, Build_Info.status)))
+            session_name -> session_entry
           }).toMap
         })
       Build_Info(sessions)
