@@ -439,9 +439,9 @@ object Build_Log
     threads: Option[Int],
     timing: Timing,
     ml_timing: Timing,
-    ml_statistics: List[Properties.T],
     heap_size: Option[Long],
-    status: Session_Status.Value)
+    status: Session_Status.Value,
+    ml_statistics: List[Properties.T])
   {
     def finished: Boolean = status == Session_Status.FINISHED
   }
@@ -458,13 +458,13 @@ object Build_Log
     val ml_timing_elapsed = SQL.Column.long("ml_timing_elapsed")
     val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
     val ml_timing_gc = SQL.Column.long("ml_timing_gc")
-    val ml_statistics = SQL.Column.bytes("ml_statistics")
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
 
     val table = SQL.Table("isabelle_build_log_build_info",
       List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
-        timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_statistics, heap_size, status))
+        timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, heap_size, status, ml_statistics))
 
     val table0 = table.copy(columns = table.columns.take(2))
   }
@@ -520,12 +520,12 @@ object Build_Log
     var started = Set.empty[String]
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
-    var ml_statistics = Map.empty[String, List[Properties.T]]
     var heap_sizes = Map.empty[String, Long]
+    var ml_statistics = Map.empty[String, List[Properties.T]]
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
-      failed ++ cancelled ++ started ++ ml_statistics.keySet ++ heap_sizes.keySet
+      failed ++ cancelled ++ started ++ heap_sizes.keySet ++ ml_statistics.keySet
 
 
     for (line <- log_file.lines) {
@@ -593,9 +593,9 @@ object Build_Log
               threads.get(name),
               timing.getOrElse(name, Timing.zero),
               ml_timing.getOrElse(name, Timing.zero),
-              ml_statistics.getOrElse(name, Nil).reverse,
               heap_sizes.get(name),
-              status)
+              status,
+              ml_statistics.getOrElse(name, Nil).reverse)
           (name -> entry)
         }):_*)
     Build_Info(sessions)
@@ -750,9 +750,9 @@ object Build_Log
                   db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
                   db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
                   db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
-                  db.set_bytes(stmt, 12, compress_properties(session.ml_statistics))
-                  db.set_long(stmt, 13, session.heap_size)
-                  db.set_string(stmt, 14, session.status.toString)
+                  db.set_long(stmt, 12, session.heap_size)
+                  db.set_string(stmt, 13, session.status.toString)
+                  db.set_bytes(stmt, 14, compress_properties(session.ml_statistics))
                   stmt.execute()
                 }
               })
@@ -793,9 +793,9 @@ object Build_Log
                   Timing(Time.ms(db.long(rs, Build_Info.ml_timing_elapsed)),
                     Time.ms(db.long(rs, Build_Info.ml_timing_cpu)),
                     Time.ms(db.long(rs, Build_Info.ml_timing_gc))),
-                ml_statistics = uncompress_properties(db.bytes(rs, Build_Info.ml_statistics)),
                 heap_size = db.get(rs, Build_Info.heap_size, db.long _),
-                status = Session_Status.withName(db.string(rs, Build_Info.status)))
+                status = Session_Status.withName(db.string(rs, Build_Info.status)),
+                ml_statistics = uncompress_properties(db.bytes(rs, Build_Info.ml_statistics)))
             session_name -> session_entry
           }).toMap
         })
