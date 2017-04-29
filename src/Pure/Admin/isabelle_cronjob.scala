@@ -142,6 +142,19 @@ object Isabelle_Cronjob
   }
 
 
+  /* maintain build_log database */
+
+  val database_dirs =
+    List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
+
+  def database_update(options: Options)
+  {
+    val store = Build_Log.store(options)
+    using(store.open_database())(db =>
+      store.write_info(db, Build_Log.Log_File.find_files(database_dirs)))
+  }
+
+
 
   /** task logging **/
 
@@ -198,6 +211,7 @@ object Isabelle_Cronjob
     val log_service: Log_Service, val start_date: Date, val task_name: String)
   {
     def ssh_context: SSH.Context = log_service.ssh_context
+    def options: Options = ssh_context.options
 
     def log(date: Date, msg: String): Unit = log_service.log(date, task_name, msg)
 
@@ -285,7 +299,8 @@ object Isabelle_Cronjob
       Logger_Task("isabelle_cronjob", _ =>
         run_now(
           SEQ(List(build_release, build_history_base,
-            PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))))))))
+            PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))),
+            Logger_Task("build_log_database", logger => database_update(logger.options)))))))
 
     log_service.shutdown()
 
