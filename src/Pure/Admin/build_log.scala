@@ -138,8 +138,12 @@ object Build_Log
       suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
     {
       val name = file.getName
+
       prefixes.exists(name.startsWith(_)) &&
-      suffixes.exists(name.endsWith(_))
+      suffixes.exists(name.endsWith(_)) &&
+      name != "isatest.log" &&
+      name != "afp-test.log" &&
+      name != "main.log"
     }
 
     def find_files(dirs: Iterable[Path]): List[JFile] =
