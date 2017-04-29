@@ -46,11 +46,7 @@ object Invoke_Scala
 
   object Tag extends Enumeration
   {
-    val NULL = Value("0")
-    val OK = Value("1")
-    val ERROR = Value("2")
-    val FAIL = Value("3")
-    val INTERRUPT = Value("4")
+    val NULL, OK, ERROR, FAIL, INTERRUPT = Value
   }
 
   def method(name: String, arg: String): (Tag.Value, String) =
@@ -87,7 +83,7 @@ class Invoke_Scala extends Session.Protocol_Handler
     synchronized
     {
       if (futures.isDefinedAt(id)) {
-        session.protocol_command("Invoke_Scala.fulfill", id, tag.toString, res)
+        session.protocol_command("Invoke_Scala.fulfill", id, tag.id.toString, res)
         futures -= id
       }
     }
