@@ -26,20 +26,8 @@ object Build_Log
 
   object Prop
   {
-    val separator = '\u000b'
-
-    def cat_multiple(args: List[String]): String =
-      args.mkString(separator.toString)
-
-    def multiple(name: String, args: List[String]): Properties.T =
-      if (args.isEmpty) Nil
-      else List(name -> cat_multiple(args))
-
-    def multiple_lines(s: String): String =
-      cat_lines(Library.space_explode(separator, s))
-
-    val build_tags = SQL.Column.string("build_tags")  // multiple
-    val build_args = SQL.Column.string("build_args")  // multiple
+    val build_tags = SQL.Column.string("build_tags")  // lines
+    val build_args = SQL.Column.string("build_args")  // lines
     val build_group_id = SQL.Column.string("build_group_id")
     val build_id = SQL.Column.string("build_id")
     val build_engine = SQL.Column.string("build_engine")
@@ -204,7 +192,7 @@ object Build_Log
     /* inlined content */
 
     def print_props(marker: String, props: Properties.T): String =
-      marker + YXML.string_of_body(XML.Encode.properties(props))
+      marker + YXML.string_of_body(XML.Encode.properties(Properties.encode_lines(props)))
   }
 
   class Log_File private(val name: String, val lines: List[String])
@@ -260,7 +248,7 @@ object Build_Log
     val xml_cache = new XML.Cache()
 
     def parse_props(text: String): Properties.T =
-      xml_cache.props(XML.Decode.properties(YXML.parse_body(text)))
+      xml_cache.props(Properties.decode_lines(XML.Decode.properties(YXML.parse_body(text))))
 
     def filter_props(marker: String): List[Properties.T] =
       for {
@@ -684,7 +672,7 @@ object Build_Log
                 if (c.T == SQL.Type.Date)
                   db.set_date(stmt, i + 2, meta_info.get_date(c))
                 else
-                  db.set_string(stmt, i + 2, meta_info.get(c).map(Prop.multiple_lines(_)))
+                  db.set_string(stmt, i + 2, meta_info.get(c))
               }
               stmt.execute()
             })
@@ -706,7 +694,7 @@ object Build_Log
               (if (c.T == SQL.Type.Date)
                 db.get(rs, c, db.date _).map(Log_File.Date_Format(_))
                else
-                db.get(rs, c, db.string _).map(s => Prop.cat_multiple(split_lines(s)))))
+                db.get(rs, c, db.string _)))
           val n = Prop.all_props.length
           val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)

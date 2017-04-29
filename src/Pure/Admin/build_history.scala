@@ -211,8 +211,8 @@ object Build_History
       val store = Sessions.store()
 
       val meta_info =
-        Build_Log.Prop.multiple(Build_Log.Prop.build_tags.name, build_tags) :::
-        Build_Log.Prop.multiple(Build_Log.Prop.build_args.name, build_args1) :::
+        Properties.lines_nonempty(Build_Log.Prop.build_tags.name, build_tags) :::
+        Properties.lines_nonempty(Build_Log.Prop.build_args.name, build_args1) :::
         List(
           Build_Log.Prop.build_group_id.name -> build_group_id,
           Build_Log.Prop.build_id.name -> (build_host + ":" + build_start.time.ms),

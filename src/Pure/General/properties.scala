@@ -9,6 +9,8 @@ package isabelle
 
 object Properties
 {
+  /* entries */
+
   type Entry = (java.lang.String, java.lang.String)
   type T = List[Entry]
 
@@ -31,7 +33,21 @@ object Properties
   }
 
 
-  /* named entries */
+  /* multi-line entries */
+
+  val separator = '\u000b'
+
+  def encode_lines(s: java.lang.String): java.lang.String = s.replace('\n', separator)
+  def decode_lines(s: java.lang.String): java.lang.String = s.replace(separator, '\n')
+
+  def encode_lines(props: T): T = props.map({ case (a, b) => (a, encode_lines(b)) })
+  def decode_lines(props: T): T = props.map({ case (a, b) => (a, decode_lines(b)) })
+
+  def lines_nonempty(x: java.lang.String, ys: List[java.lang.String]): Properties.T =
+    if (ys.isEmpty) Nil else List((x, cat_lines(ys)))
+
+
+  /* entry types */
 
   class String(val name: java.lang.String)
   {
