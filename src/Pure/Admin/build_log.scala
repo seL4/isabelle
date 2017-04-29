@@ -766,7 +766,7 @@ object Build_Log
       db: SQL.Database, log_name: String, session_names: List[String] = Nil): Build_Info =
     {
       val where0 =
-        Meta_Info.log_name.sql_where_equal(log_name) + " AND "
+        Meta_Info.log_name.sql_where_equal(log_name) + " AND " +
           Build_Info.session_name.sql_name + " <> ''"
       val where =
         if (session_names.isEmpty) where0
