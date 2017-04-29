@@ -74,7 +74,7 @@ object Isabelle_Tool
       file_name <- File.read_dir(dir) if is_external(dir, file_name)
     } yield {
       val source = File.read(dir + Path.explode(file_name))
-      val name = Library.try_unsuffix(".scala", file_name) getOrElse file_name
+      val name = Library.perhaps_unsuffix(".scala", file_name)
       val description =
         split_lines(source).collectFirst({ case Description(s) => s }) getOrElse ""
       (name, description)

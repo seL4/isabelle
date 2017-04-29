@@ -154,7 +154,7 @@ object File
 
   /* read */
 
-  def read(file: JFile): String = Bytes.read(file).toString
+  def read(file: JFile): String = Bytes.read(file).text
   def read(path: Path): String = read(path.file)
 
 

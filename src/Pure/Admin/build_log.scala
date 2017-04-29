@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_log.scala
     Author:     Makarius
 
-Build log parsing for current and historic formats.
+Management of build log files and database storage.
 */
 
 package isabelle
@@ -11,7 +11,9 @@ import java.io.{File => JFile}
 import java.time.ZoneId
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
+import java.sql.PreparedStatement
 
+import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -24,22 +26,20 @@ object Build_Log
 
   object Prop
   {
-    val separator = '\u000b'
+    val build_tags = SQL.Column.string("build_tags")  // lines
+    val build_args = SQL.Column.string("build_args")  // lines
+    val build_group_id = SQL.Column.string("build_group_id")
+    val build_id = SQL.Column.string("build_id")
+    val build_engine = SQL.Column.string("build_engine")
+    val build_host = SQL.Column.string("build_host")
+    val build_start = SQL.Column.date("build_start")
+    val build_end = SQL.Column.date("build_end")
+    val isabelle_version = SQL.Column.string("isabelle_version")
+    val afp_version = SQL.Column.string("afp_version")
 
-    def multiple(name: String, args: List[String]): Properties.T =
-      if (args.isEmpty) Nil
-      else List(name -> args.mkString(separator.toString))
-
-    val build_tags = "build_tags"  // multiple
-    val build_args = "build_args"  // multiple
-    val build_group_id = "build_group_id"
-    val build_id = "build_id"
-    val build_engine = "build_engine"
-    val build_host = "build_host"
-    val build_start = "build_start"
-    val build_end = "build_end"
-    val isabelle_version = "isabelle_version"
-    val afp_version = "afp_version"
+    val all_props: List[SQL.Column] =
+      List(build_tags, build_args, build_group_id, build_id, build_engine,
+        build_host, build_start, build_end, isabelle_version, afp_version)
   }
 
 
@@ -47,9 +47,14 @@ object Build_Log
 
   object Settings
   {
-    val build_settings = List("ISABELLE_BUILD_OPTIONS")
-    val ml_settings = List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS")
-    val all_settings = build_settings ::: ml_settings
+    val ISABELLE_BUILD_OPTIONS = SQL.Column.string("ISABELLE_BUILD_OPTIONS")
+    val ML_PLATFORM = SQL.Column.string("ML_PLATFORM")
+    val ML_HOME = SQL.Column.string("ML_HOME")
+    val ML_SYSTEM = SQL.Column.string("ML_SYSTEM")
+    val ML_OPTIONS = SQL.Column.string("ML_OPTIONS")
+
+    val ml_settings = List(ML_PLATFORM, ML_HOME, ML_SYSTEM, ML_OPTIONS)
+    val all_settings = ISABELLE_BUILD_OPTIONS :: ml_settings
 
     type Entry = (String, String)
     type T = List[Entry]
@@ -70,7 +75,8 @@ object Build_Log
 
     def show(): String =
       cat_lines(
-        build_settings.map(Entry.getenv(_)) ::: List("") ::: ml_settings.map(Entry.getenv(_)))
+        List(Entry.getenv(ISABELLE_BUILD_OPTIONS.name), "") :::
+        ml_settings.map(c => Entry.getenv(c.name)))
   }
 
 
@@ -88,18 +94,6 @@ object Build_Log
     Path.explode((engine :: log_date(date) :: more).mkString("", "_", ".log"))
 
 
-  /* log file collections */
-
-  def is_log(file: JFile): Boolean =
-    List(".log", ".log.gz", ".log.xz").exists(ext => file.getName.endsWith(ext))
-
-  def isatest_files(dir: Path): List[JFile] =
-    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("isatest-makeall-"))
-
-  def afp_test_files(dir: Path): List[JFile] =
-    File.find_files(dir.file, file => is_log(file) && file.getName.startsWith("afp-test-devel-"))
-
-
 
   /** log file **/
 
@@ -107,8 +101,18 @@ object Build_Log
 
   object Log_File
   {
+    /* log file */
+
+    def plain_name(name: String): String =
+    {
+      List(".log", ".log.gz", ".log.xz", ".gz", ".xz").find(name.endsWith(_)) match {
+        case Some(s) => Library.try_unsuffix(s, name).get
+        case None => name
+      }
+    }
+
     def apply(name: String, lines: List[String]): Log_File =
-      new Log_File(name, lines)
+      new Log_File(plain_name(name), lines)
 
     def apply(name: String, text: String): Log_File =
       Log_File(name, Library.trim_split_lines(text))
@@ -116,19 +120,30 @@ object Build_Log
     def apply(file: JFile): Log_File =
     {
       val name = file.getName
-      val (base_name, text) =
-        Library.try_unsuffix(".gz", name) match {
-          case Some(base_name) => (base_name, File.read_gzip(file))
-          case None =>
-            Library.try_unsuffix(".xz", name) match {
-              case Some(base_name) => (base_name, File.read_xz(file))
-              case None => (name, File.read(file))
-            }
-          }
-      apply(base_name, text)
+      val text =
+        if (name.endsWith(".gz")) File.read_gzip(file)
+        else if (name.endsWith(".xz")) File.read_xz(file)
+        else File.read(file)
+      apply(name, text)
     }
 
     def apply(path: Path): Log_File = apply(path.file)
+
+
+    /* log file collections */
+
+    def is_log(file: JFile,
+      prefixes: List[String] =
+        List(Build_History.log_prefix, Identify.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
+      suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
+    {
+      val name = file.getName
+      prefixes.exists(name.startsWith(_)) &&
+      suffixes.exists(name.endsWith(_))
+    }
+
+    def find_files(dirs: Iterable[Path]): List[JFile] =
+      dirs.iterator.flatMap(dir => File.find_files(dir.file, is_log(_))).toList
 
 
     /* date format */
@@ -177,7 +192,7 @@ object Build_Log
     /* inlined content */
 
     def print_props(marker: String, props: Properties.T): String =
-      marker + YXML.string_of_body(XML.Encode.properties(props))
+      marker + YXML.string_of_body(XML.Encode.properties(Properties.encode_lines(props)))
   }
 
   class Log_File private(val name: String, val lines: List[String])
@@ -223,8 +238,9 @@ object Build_Log
         case None => None
       }
 
-    def get_settings(as: List[String]): Settings.T =
-      for { a <- as; entry <- get_setting(a) } yield entry
+    def get_all_settings: Settings.T =
+      for { c <- Settings.all_settings; entry <- get_setting(c.name) }
+      yield entry
 
 
     /* properties (YXML) */
@@ -232,7 +248,7 @@ object Build_Log
     val xml_cache = new XML.Cache()
 
     def parse_props(text: String): Properties.T =
-      xml_cache.props(XML.Decode.properties(YXML.parse_body(text)))
+      xml_cache.props(Properties.decode_lines(XML.Decode.properties(YXML.parse_body(text))))
 
     def filter_props(marker: String): List[Properties.T] =
       for {
@@ -268,15 +284,37 @@ object Build_Log
   object Meta_Info
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
+
+    val log_name = SQL.Column.string("log_name", primary_key = true)
+    val table =
+      SQL.Table("isabelle_build_log_meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
   }
 
-  sealed case class Meta_Info(props: Properties.T, settings: List[(String, String)])
+  sealed case class Meta_Info(props: Properties.T, settings: Settings.T)
   {
     def is_empty: Boolean = props.isEmpty && settings.isEmpty
+
+    def get(c: SQL.Column): Option[String] =
+      Properties.get(props, c.name) orElse
+      Properties.get(settings, c.name)
+
+    def get_date(c: SQL.Column): Option[Date] =
+      get(c).map(Log_File.Date_Format.parse(_))
+  }
+
+  object Identify
+  {
+    val log_prefix = "isabelle_identify_"
+    val engine = "identify"
+    val Start = new Regex("""^isabelle_identify: (.+)$""")
+    val No_End = new Regex("""$.""")
+    val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
+    val AFP_Version = new Regex("""^AFP version: (\S+)$""")
   }
 
   object Isatest
   {
+    val log_prefix = "isatest-makeall-"
     val engine = "isatest"
     val Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
     val End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
@@ -286,6 +324,7 @@ object Build_Log
 
   object AFP_Test
   {
+    val log_prefix = "afp-test-devel-"
     val engine = "afp-test"
     val Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
     val Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
@@ -318,31 +357,35 @@ object Build_Log
         val prefix = if (host != "") host else if (engine != "") engine else ""
         (if (prefix == "") "build" else prefix) + ":" + start.time.ms
       }
-      val build_engine = if (engine == "") Nil else List(Prop.build_engine -> engine)
-      val build_host = if (host == "") Nil else List(Prop.build_host -> host)
+      val build_engine = if (engine == "") Nil else List(Prop.build_engine.name -> engine)
+      val build_host = if (host == "") Nil else List(Prop.build_host.name -> host)
 
-      val start_date = List(Prop.build_start -> start.toString)
+      val start_date = List(Prop.build_start.name -> print_date(start))
       val end_date =
         log_file.lines.last match {
           case End(log_file.Strict_Date(end_date)) =>
-            List(Prop.build_end -> end_date.toString)
+            List(Prop.build_end.name -> print_date(end_date))
           case _ => Nil
         }
 
       val isabelle_version =
-        log_file.find_match(Isabelle_Version).map(Prop.isabelle_version -> _)
+        log_file.find_match(Isabelle_Version).map(Prop.isabelle_version.name -> _)
       val afp_version =
-        log_file.find_match(AFP_Version).map(Prop.afp_version -> _)
+        log_file.find_match(AFP_Version).map(Prop.afp_version.name -> _)
 
-      Meta_Info((Prop.build_id -> build_id) :: build_engine ::: build_host :::
+      Meta_Info((Prop.build_id.name -> build_id) :: build_engine ::: build_host :::
           start_date ::: end_date ::: isabelle_version.toList ::: afp_version.toList,
-        log_file.get_settings(Settings.all_settings))
+        log_file.get_all_settings)
     }
 
     log_file.lines match {
       case line :: _ if line.startsWith(Build_History.META_INFO_MARKER) =>
         Meta_Info(log_file.find_props(Build_History.META_INFO_MARKER).get,
-          log_file.get_settings(Settings.all_settings))
+          log_file.get_all_settings)
+
+      case Identify.Start(log_file.Strict_Date(start)) :: _ =>
+        parse(Identify.engine, "", start, Identify.No_End,
+          Identify.Isabelle_Version, Identify.AFP_Version)
 
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
         parse(Isatest.engine, host, start, Isatest.End,
@@ -384,10 +427,7 @@ object Build_Log
 
   object Session_Status extends Enumeration
   {
-    val EXISTING = Value("existing")
-    val FINISHED = Value("finished")
-    val FAILED = Value("failed")
-    val CANCELLED = Value("cancelled")
+    val existing, finished, failed, cancelled = Value
   }
 
   sealed case class Session_Entry(
@@ -396,11 +436,36 @@ object Build_Log
     threads: Option[Int],
     timing: Timing,
     ml_timing: Timing,
-    ml_statistics: List[Properties.T],
     heap_size: Option[Long],
-    status: Session_Status.Value)
+    status: Session_Status.Value,
+    ml_statistics: List[Properties.T])
   {
-    def finished: Boolean = status == Session_Status.FINISHED
+    def proper_chapter: Option[String] = if (chapter == "") None else Some(chapter)
+    def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
+    def finished: Boolean = status == Session_Status.finished
+  }
+
+  object Build_Info
+  {
+    val session_name = SQL.Column.string("session_name", primary_key = true)
+    val chapter = SQL.Column.string("chapter")
+    val groups = SQL.Column.string("groups")
+    val threads = SQL.Column.int("threads")
+    val timing_elapsed = SQL.Column.long("timing_elapsed")
+    val timing_cpu = SQL.Column.long("timing_cpu")
+    val timing_gc = SQL.Column.long("timing_gc")
+    val ml_timing_elapsed = SQL.Column.long("ml_timing_elapsed")
+    val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
+    val ml_timing_gc = SQL.Column.long("ml_timing_gc")
+    val heap_size = SQL.Column.long("heap_size")
+    val status = SQL.Column.string("status")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
+
+    val table = SQL.Table("isabelle_build_log_build_info",
+      List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
+        timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, heap_size, status, ml_statistics))
+
+    val table0 = table.copy(columns = table.columns.take(2))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -454,12 +519,12 @@ object Build_Log
     var started = Set.empty[String]
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
-    var ml_statistics = Map.empty[String, List[Properties.T]]
     var heap_sizes = Map.empty[String, Long]
+    var ml_statistics = Map.empty[String, List[Properties.T]]
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
-      failed ++ cancelled ++ started ++ ml_statistics.keySet ++ heap_sizes.keySet
+      failed ++ cancelled ++ started ++ heap_sizes.keySet ++ ml_statistics.keySet
 
 
     for (line <- log_file.lines) {
@@ -498,7 +563,7 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
-        case _ if line.startsWith(ML_STATISTICS_MARKER) =>
+        case _ if line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
           val (name, props) =
             Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
               case Some((SESSION_NAME, session_name) :: props) => (session_name, props)
@@ -514,12 +579,12 @@ object Build_Log
       Map(
         (for (name <- all_sessions.toList) yield {
           val status =
-            if (failed(name)) Session_Status.FAILED
-            else if (cancelled(name)) Session_Status.CANCELLED
+            if (failed(name)) Session_Status.failed
+            else if (cancelled(name)) Session_Status.cancelled
             else if (timing.isDefinedAt(name) || ml_timing.isDefinedAt(name))
-              Session_Status.FINISHED
-            else if (started(name)) Session_Status.FAILED
-            else Session_Status.EXISTING
+              Session_Status.finished
+            else if (started(name)) Session_Status.failed
+            else Session_Status.existing
           val entry =
             Session_Entry(
               chapter.getOrElse(name, ""),
@@ -527,9 +592,9 @@ object Build_Log
               threads.get(name),
               timing.getOrElse(name, Timing.zero),
               ml_timing.getOrElse(name, Timing.zero),
-              ml_statistics.getOrElse(name, Nil).reverse,
               heap_sizes.get(name),
-              status)
+              status,
+              ml_statistics.getOrElse(name, Nil).reverse)
           (name -> entry)
         }):_*)
     Build_Info(sessions)
@@ -556,5 +621,200 @@ object Build_Log
       command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
       ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
       task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil)
+  }
+
+
+
+  /** persistent store **/
+
+  def store(options: Options): Store = new Store(options)
+
+  class Store private[Build_Log](options: Options) extends Properties.Store
+  {
+    def open_database(
+      user: String = options.string("build_log_database_user"),
+      password: String = options.string("build_log_database_password"),
+      database: String = options.string("build_log_database_name"),
+      host: String = options.string("build_log_database_host"),
+      port: Int = options.int("build_log_database_port"),
+      ssh_host: String = options.string("build_log_ssh_host"),
+      ssh_user: String = options.string("build_log_ssh_user"),
+      ssh_port: Int = options.int("build_log_ssh_port")): PostgreSQL.Database =
+    {
+      PostgreSQL.open_database(
+        user = user, password = password, database = database, host = host, port = port,
+        ssh =
+          if (ssh_host == "") None
+          else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)))
+    }
+
+    def write_info(db: SQL.Database, files: List[JFile])
+    {
+      write_meta_info(db, files)
+      write_build_info(db, files)
+    }
+
+    def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
+    {
+      db.transaction {
+        db.create_table(table)
+
+        val key = Meta_Info.log_name
+        val known_files =
+          using(db.select(table, List(key), distinct = true))(stmt =>
+            SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
+
+        val unique_files =
+          (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
+            val name = Log_File.plain_name(file.getName)
+            if (known_files(name)) m else m + (name -> file)
+          })
+
+        unique_files.iterator.map(_._2).toList
+      }
+    }
+
+    def write_meta_info(db: SQL.Database, files: List[JFile])
+    {
+      for (file_group <- filter_files(db, Meta_Info.table, files).grouped(1000)) {
+        db.transaction {
+          for (file <- file_group) {
+            val log_file = Log_File(file)
+            val meta_info = log_file.parse_meta_info()
+
+            using(db.delete(Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
+              _.execute)
+            using(db.insert(Meta_Info.table))(stmt =>
+            {
+              db.set_string(stmt, 1, log_file.name)
+              for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
+                if (c.T == SQL.Type.Date)
+                  db.set_date(stmt, i + 2, meta_info.get_date(c))
+                else
+                  db.set_string(stmt, i + 2, meta_info.get(c))
+              }
+              stmt.execute()
+            })
+          }
+        }
+      }
+    }
+
+    def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] =
+    {
+      val cs = Meta_Info.table.columns.tail
+      using(db.select(Meta_Info.table, cs, Meta_Info.log_name.sql_where_equal(log_name)))(stmt =>
+      {
+        val rs = stmt.executeQuery
+        if (!rs.next) None
+        else {
+          val results =
+            cs.map(c => c.name ->
+              (if (c.T == SQL.Type.Date)
+                db.get(rs, c, db.date _).map(Log_File.Date_Format(_))
+               else
+                db.get(rs, c, db.string _)))
+          val n = Prop.all_props.length
+          val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
+          val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
+          Some(Meta_Info(props, settings))
+        }
+      })
+    }
+
+    def write_build_info(db: SQL.Database, files: List[JFile])
+    {
+      for (file_group <- filter_files(db, Build_Info.table, files).grouped(100)) {
+        db.transaction {
+          for (file <- file_group) {
+            val log_file = Log_File(file)
+            val build_info = log_file.parse_build_info()
+
+            using(db.delete(Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
+              _.execute)
+            if (build_info.sessions.isEmpty) {
+              using(db.insert(Build_Info.table0))(stmt =>
+              {
+                db.set_string(stmt, 1, log_file.name)
+                db.set_string(stmt, 2, "")
+                stmt.execute()
+              })
+            }
+            else {
+              using(db.insert(Build_Info.table))(stmt =>
+              {
+                for ((session_name, session) <- build_info.sessions.iterator) {
+                  db.set_string(stmt, 1, log_file.name)
+                  db.set_string(stmt, 2, session_name)
+                  db.set_string(stmt, 3, session.proper_chapter)
+                  db.set_string(stmt, 4, session.proper_groups)
+                  db.set_int(stmt, 5, session.threads)
+                  db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+                  db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+                  db.set_long(stmt, 8, session.timing.gc.proper_ms)
+                  db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
+                  db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
+                  db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
+                  db.set_long(stmt, 12, session.heap_size)
+                  db.set_string(stmt, 13, session.status.toString)
+                  db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
+                  stmt.execute()
+                }
+              })
+            }
+          }
+        }
+      }
+    }
+
+    def read_build_info(
+      db: SQL.Database,
+      log_name: String,
+      session_names: List[String] = Nil,
+      ml_statistics: Boolean = false): Build_Info =
+    {
+      val columns =
+        Build_Info.table.columns.filter(c =>
+          c != Meta_Info.log_name && (ml_statistics || c != Build_Info.ml_statistics))
+
+      val where0 =
+        Meta_Info.log_name.sql_where_equal(log_name) + " AND " +
+          Build_Info.session_name.sql_name + " <> ''"
+      val where =
+        if (session_names.isEmpty) where0
+        else
+          where0 + " AND " +
+          session_names.map(a => Build_Info.session_name.sql_name + " = " + SQL.quote_string(a)).
+            mkString("(", " OR ", ")")
+
+      val sessions =
+        using(db.select(Build_Info.table, columns, where))(stmt =>
+        {
+          SQL.iterator(stmt.executeQuery)(rs =>
+          {
+            val session_name = db.string(rs, Build_Info.session_name)
+            val session_entry =
+              Session_Entry(
+                chapter = db.string(rs, Build_Info.chapter),
+                groups = split_lines(db.string(rs, Build_Info.groups)),
+                threads = db.get(rs, Build_Info.threads, db.int _),
+                timing =
+                  Timing(Time.ms(db.long(rs, Build_Info.timing_elapsed)),
+                    Time.ms(db.long(rs, Build_Info.timing_cpu)),
+                    Time.ms(db.long(rs, Build_Info.timing_gc))),
+                ml_timing =
+                  Timing(Time.ms(db.long(rs, Build_Info.ml_timing_elapsed)),
+                    Time.ms(db.long(rs, Build_Info.ml_timing_cpu)),
+                    Time.ms(db.long(rs, Build_Info.ml_timing_gc))),
+                heap_size = db.get(rs, Build_Info.heap_size, db.long _),
+                status = Session_Status.withName(db.string(rs, Build_Info.status)),
+                ml_statistics =
+                  if (ml_statistics) uncompress_properties(db.bytes(rs, Build_Info.ml_statistics))
+                  else Nil)
+            session_name -> session_entry
+          }).toMap
+        })
+      Build_Info(sessions)
+    }
   }
 }

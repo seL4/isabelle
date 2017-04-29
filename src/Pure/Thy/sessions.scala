@@ -747,21 +747,11 @@ object Sessions
     val build_columns = List(sources, input_heaps, output_heap, return_code)
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
-
-    def where_session_name(name: String): String =
-      "WHERE " + session_name.sql_name + " = " + SQL.quote_string(name)
-
-    def select_statement(db: SQL.Database, name: String, columns: List[SQL.Column])
-        : PreparedStatement =
-      db.select_statement(table, columns, where_session_name(name))
-
-    def delete_statement(db: SQL.Database, name: String): PreparedStatement =
-      db.delete_statement(table, where_session_name(name))
   }
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
 
-  class Store private[Sessions](system_mode: Boolean)
+  class Store private[Sessions](system_mode: Boolean) extends Properties.Store
   {
     /* file names */
 
@@ -772,30 +762,9 @@ object Sessions
 
     /* SQL database content */
 
-    val xml_cache: XML.Cache = new XML.Cache()
-
-    def encode_properties(ps: Properties.T): Bytes =
-      Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
-
-    def decode_properties(bs: Bytes): Properties.T =
-      xml_cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
-
-    def compress_properties(ps: List[Properties.T], options: XZ.Options = XZ.options()): Bytes =
-    {
-      if (ps.isEmpty) Bytes.empty
-      else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
-    }
-
-    def uncompress_properties(bs: Bytes): List[Properties.T] =
-    {
-      if (bs.isEmpty) Nil
-      else
-        XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text)).
-          map(xml_cache.props(_))
-    }
-
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
-      using(Session_Info.select_statement(db, name, List(column)))(stmt =>
+      using(db.select(Session_Info.table, List(column),
+        Session_Info.session_name.sql_where_equal(name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) Bytes.empty else db.bytes(rs, column)
@@ -852,8 +821,9 @@ object Sessions
     {
       db.transaction {
         db.create_table(Session_Info.table)
-        using(Session_Info.delete_statement(db, name))(_.execute)
-        using(db.insert_statement(Session_Info.table))(stmt =>
+        using(db.delete(Session_Info.table, Session_Info.session_name.sql_where_equal(name)))(
+          _.execute)
+        using(db.insert(Session_Info.table))(stmt =>
         {
           db.set_string(stmt, 1, name)
           db.set_bytes(stmt, 2, encode_properties(build_log.session_timing))
@@ -894,7 +864,8 @@ object Sessions
     }
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
-      using(Session_Info.select_statement(db, name, Session_Info.build_columns))(stmt =>
+      using(db.select(Session_Info.table, Session_Info.build_columns,
+        Session_Info.session_name.sql_where_equal(name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None

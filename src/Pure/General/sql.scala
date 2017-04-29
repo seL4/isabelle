@@ -91,6 +91,9 @@ object SQL
     def sql_decl(sql_type: Type.Value => String): String =
       sql_name + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
+    def sql_where_eq: String = "WHERE " + sql_name + " = "
+    def sql_where_equal(s: String): String = sql_where_eq + quote_string(s)
+
     override def toString: String = sql_decl(sql_type_default)
   }
 
@@ -195,57 +198,84 @@ object SQL
 
     def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
 
-    def insert_statement(table: Table): PreparedStatement = statement(table.sql_insert)
+    def insert(table: Table): PreparedStatement = statement(table.sql_insert)
 
-    def delete_statement(table: Table, sql: String = ""): PreparedStatement =
+    def delete(table: Table, sql: String = ""): PreparedStatement =
       statement(table.sql_delete + (if (sql == "") "" else " " + sql))
 
-    def select_statement(table: Table, columns: List[Column],
-        sql: String = "", distinct: Boolean = false): PreparedStatement =
+    def select(table: Table, columns: List[Column], sql: String = "", distinct: Boolean = false)
+        : PreparedStatement =
       statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
 
 
     /* input */
 
     def set_bool(stmt: PreparedStatement, i: Int, x: Boolean) { stmt.setBoolean(i, x) }
+    def set_bool(stmt: PreparedStatement, i: Int, x: Option[Boolean])
+    {
+      if (x.isDefined) set_bool(stmt, i, x.get)
+      else stmt.setNull(i, java.sql.Types.BOOLEAN)
+    }
+
     def set_int(stmt: PreparedStatement, i: Int, x: Int) { stmt.setInt(i, x) }
+    def set_int(stmt: PreparedStatement, i: Int, x: Option[Int])
+    {
+      if (x.isDefined) set_int(stmt, i, x.get)
+      else stmt.setNull(i, java.sql.Types.INTEGER)
+    }
+
     def set_long(stmt: PreparedStatement, i: Int, x: Long) { stmt.setLong(i, x) }
+    def set_long(stmt: PreparedStatement, i: Int, x: Option[Long])
+    {
+      if (x.isDefined) set_long(stmt, i, x.get)
+      else stmt.setNull(i, java.sql.Types.BIGINT)
+    }
+
     def set_double(stmt: PreparedStatement, i: Int, x: Double) { stmt.setDouble(i, x) }
+    def set_double(stmt: PreparedStatement, i: Int, x: Option[Double])
+    {
+      if (x.isDefined) set_double(stmt, i, x.get)
+      else stmt.setNull(i, java.sql.Types.DOUBLE)
+    }
+
     def set_string(stmt: PreparedStatement, i: Int, x: String) { stmt.setString(i, x) }
+    def set_string(stmt: PreparedStatement, i: Int, x: Option[String]): Unit =
+      set_string(stmt, i, x.orNull)
+
     def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
-    { stmt.setBinaryStream(i, bytes.stream(), bytes.length) }
-    def set_date(stmt: PreparedStatement, i: Int, date: Date)
+    {
+      if (bytes == null) stmt.setBytes(i, null)
+      else stmt.setBinaryStream(i, bytes.stream(), bytes.length)
+    }
+    def set_bytes(stmt: PreparedStatement, i: Int, bytes: Option[Bytes]): Unit =
+      set_bytes(stmt, i, bytes.orNull)
+
+    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit
+    def set_date(stmt: PreparedStatement, i: Int, date: Option[Date]): Unit =
+      set_date(stmt, i, date.orNull)
 
 
     /* output */
 
-    def bool(rs: ResultSet, name: String): Boolean = rs.getBoolean(name)
-    def int(rs: ResultSet, name: String): Int = rs.getInt(name)
-    def long(rs: ResultSet, name: String): Long = rs.getLong(name)
-    def double(rs: ResultSet, name: String): Double = rs.getDouble(name)
-    def string(rs: ResultSet, name: String): String =
+    def bool(rs: ResultSet, column: Column): Boolean = rs.getBoolean(column.name)
+    def int(rs: ResultSet, column: Column): Int = rs.getInt(column.name)
+    def long(rs: ResultSet, column: Column): Long = rs.getLong(column.name)
+    def double(rs: ResultSet, column: Column): Double = rs.getDouble(column.name)
+    def string(rs: ResultSet, column: Column): String =
     {
-      val s = rs.getString(name)
+      val s = rs.getString(column.name)
       if (s == null) "" else s
     }
-    def bytes(rs: ResultSet, name: String): Bytes =
+    def bytes(rs: ResultSet, column: Column): Bytes =
     {
-      val bs = rs.getBytes(name)
+      val bs = rs.getBytes(column.name)
       if (bs == null) Bytes.empty else Bytes(bs)
     }
-    def date(rs: ResultSet, name: String): Date
+    def date(rs: ResultSet, column: Column): Date
 
-    def bool(rs: ResultSet, column: Column): Boolean = bool(rs, column.name)
-    def int(rs: ResultSet, column: Column): Int = int(rs, column.name)
-    def long(rs: ResultSet, column: Column): Long = long(rs, column.name)
-    def double(rs: ResultSet, column: Column): Double = double(rs, column.name)
-    def string(rs: ResultSet, column: Column): String = string(rs, column.name)
-    def bytes(rs: ResultSet, column: Column): Bytes = bytes(rs, column.name)
-    def date(rs: ResultSet, column: Column): Date = date(rs, column.name)
-
-    def get[A, B](rs: ResultSet, a: A, f: (ResultSet, A) => B): Option[B] =
+    def get[A](rs: ResultSet, column: Column, f: (ResultSet, Column) => A): Option[A] =
     {
-      val x = f(rs, a)
+      val x = f(rs, column)
       if (rs.wasNull) None else Some(x)
     }
 
@@ -299,9 +329,11 @@ object SQLite
     def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
 
     def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      set_string(stmt, i, date_format(date))
-    def date(rs: ResultSet, name: String): Date =
-      date_format.parse(string(rs, name))
+      if (date == null) set_string(stmt, i, null: String)
+      else set_string(stmt, i, date_format(date))
+
+    def date(rs: ResultSet, column: SQL.Column): Date =
+      date_format.parse(string(rs, column))
 
     def rebuild { using(statement("VACUUM"))(_.execute()) }
   }
@@ -322,7 +354,7 @@ object PostgreSQL
     password: String,
     database: String = "",
     host: String = "",
-    port: Int = default_port,
+    port: Int = 0,
     ssh: Option[SSH.Session] = None): Database =
   {
     init_jdbc
@@ -330,7 +362,7 @@ object PostgreSQL
     require(user != "")
 
     val db_host = if (host != "") host else "localhost"
-    val db_port = if (port != default_port) ":" + port else ""
+    val db_port = if (port > 0 && port != default_port) ":" + port else ""
     val db_name = "/" + (if (database != "") database else user)
 
     val (url, name, port_forwarding) =
@@ -341,7 +373,9 @@ object PostgreSQL
           val name = user + "@" + spec
           (url, name, None)
         case Some(ssh) =>
-          val fw = ssh.port_forwarding(remote_host = db_host, remote_port = port)
+          val fw =
+            ssh.port_forwarding(remote_host = db_host,
+              remote_port = if (port > 0) port else default_port)
           val url = "jdbc:postgresql://localhost:" + fw.local_port + db_name
           val name = user + "@" + fw + db_name + " via ssh " + ssh
           (url, name, Some(fw))
@@ -363,9 +397,11 @@ object PostgreSQL
 
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
     def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
-    def date(rs: ResultSet, name: String): Date =
-      Date.instant(rs.getObject(name, classOf[OffsetDateTime]).toInstant)
+      if (date == null) stmt.setObject(i, null)
+      else stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+
+    def date(rs: ResultSet, column: SQL.Column): Date =
+      Date.instant(rs.getObject(column.name, classOf[OffsetDateTime]).toInstant)
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }

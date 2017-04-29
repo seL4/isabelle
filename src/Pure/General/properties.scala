@@ -9,6 +9,8 @@ package isabelle
 
 object Properties
 {
+  /* entries */
+
   type Entry = (java.lang.String, java.lang.String)
   type T = List[Entry]
 
@@ -31,7 +33,21 @@ object Properties
   }
 
 
-  /* named entries */
+  /* multi-line entries */
+
+  val separator = '\u000b'
+
+  def encode_lines(s: java.lang.String): java.lang.String = s.replace('\n', separator)
+  def decode_lines(s: java.lang.String): java.lang.String = s.replace(separator, '\n')
+
+  def encode_lines(props: T): T = props.map({ case (a, b) => (a, encode_lines(b)) })
+  def decode_lines(props: T): T = props.map({ case (a, b) => (a, decode_lines(b)) })
+
+  def lines_nonempty(x: java.lang.String, ys: List[java.lang.String]): Properties.T =
+    if (ys.isEmpty) Nil else List((x, cat_lines(ys)))
+
+
+  /* entry types */
 
   class String(val name: java.lang.String)
   {
@@ -79,5 +95,32 @@ object Properties
         case Some((_, value)) => Value.Double.unapply(value)
       }
   }
-}
 
+
+  /* cached store */
+
+  trait Store
+  {
+    val xml_cache: XML.Cache = new XML.Cache()
+
+    def encode_properties(ps: T): Bytes =
+      Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+
+    def decode_properties(bs: Bytes): T =
+      xml_cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
+
+    def compress_properties(ps: List[T], options: XZ.Options = XZ.options()): Bytes =
+    {
+      if (ps.isEmpty) Bytes.empty
+      else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
+    }
+
+    def uncompress_properties(bs: Bytes): List[T] =
+    {
+      if (bs.isEmpty) Nil
+      else
+        XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text)).
+          map(xml_cache.props(_))
+    }
+  }
+}

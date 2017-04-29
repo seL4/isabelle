@@ -31,6 +31,8 @@ object Time
 
 final class Time private(val ms: Long) extends AnyVal
 {
+  def proper_ms: Option[Long] = if (ms == 0) None else Some(ms)
+
   def seconds: Double = ms / 1000.0
   def minutes: Double = ms / 60000.0
 
