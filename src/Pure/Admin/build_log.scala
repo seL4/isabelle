@@ -645,7 +645,8 @@ object Build_Log
         user = user, password = password, database = database, host = host, port = port,
         ssh =
           if (ssh_host == "") None
-          else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)))
+          else Some(SSH.init_context(options).open_session(ssh_host, ssh_user, port)),
+        ssh_close = true)
     }
 
     def write_info(db: SQL.Database, files: List[JFile])

@@ -355,7 +355,8 @@ object PostgreSQL
     database: String = "",
     host: String = "",
     port: Int = 0,
-    ssh: Option[SSH.Session] = None): Database =
+    ssh: Option[SSH.Session] = None,
+    ssh_close: Boolean = false): Database =
   {
     init_jdbc
 
@@ -375,7 +376,8 @@ object PostgreSQL
         case Some(ssh) =>
           val fw =
             ssh.port_forwarding(remote_host = db_host,
-              remote_port = if (port > 0) port else default_port)
+              remote_port = if (port > 0) port else default_port,
+              ssh_close = ssh_close)
           val url = "jdbc:postgresql://localhost:" + fw.local_port + db_name
           val name = user + "@" + fw + db_name + " via ssh " + ssh
           (url, name, Some(fw))
