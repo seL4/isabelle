@@ -443,6 +443,8 @@ object Build_Log
     status: Session_Status.Value,
     ml_statistics: List[Properties.T])
   {
+    def proper_chapter: Option[String] = if (chapter == "") None else Some(chapter)
+    def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
     def finished: Boolean = status == Session_Status.FINISHED
   }
 
@@ -741,8 +743,8 @@ object Build_Log
                 for ((session_name, session) <- build_info.sessions.iterator) {
                   db.set_string(stmt, 1, log_file.name)
                   db.set_string(stmt, 2, session_name)
-                  db.set_string(stmt, 3, session.chapter)
-                  db.set_string(stmt, 4, cat_lines(session.groups))
+                  db.set_string(stmt, 3, session.proper_chapter)
+                  db.set_string(stmt, 4, session.proper_groups)
                   db.set_int(stmt, 5, session.threads)
                   db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
                   db.set_long(stmt, 7, session.timing.cpu.proper_ms)
@@ -752,7 +754,7 @@ object Build_Log
                   db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
                   db.set_long(stmt, 12, session.heap_size)
                   db.set_string(stmt, 13, session.status.toString)
-                  db.set_bytes(stmt, 14, compress_properties(session.ml_statistics))
+                  db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
                   stmt.execute()
                 }
               })
