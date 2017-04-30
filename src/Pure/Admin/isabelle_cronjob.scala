@@ -30,6 +30,8 @@ object Isabelle_Cronjob
 
   val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
+  val build_log_snapshot = Path.explode("~/html-data/build_log.db")
+
 
 
   /** particular tasks **/
@@ -150,8 +152,9 @@ object Isabelle_Cronjob
   def database_update(options: Options)
   {
     val store = Build_Log.store(options)
-    using(store.open_database())(db =>
-      store.write_info(db, Build_Log.Log_File.find_files(database_dirs)))
+    val files = Build_Log.Log_File.find_files(database_dirs)
+    using(store.open_database())(db => store.write_info(db, files, ml_statistics = true))
+    using(SQLite.open_database(build_log_snapshot))(db => store.write_info(db, files))
   }
 
 
