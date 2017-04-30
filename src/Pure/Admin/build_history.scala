@@ -202,8 +202,9 @@ object Build_History
           Build_Log.log_filename(Build_History.engine, build_history_date,
             List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
-      val build_info =
-        Build_Log.Log_File(log_path.base.implode, build_result.out_lines).parse_build_info()
+      val build_info: Build_Log.Build_Info =
+        Build_Log.Log_File(log_path.base.implode, build_result.out_lines).
+          parse_build_info(ml_statistics = true)
 
 
       /* output log */

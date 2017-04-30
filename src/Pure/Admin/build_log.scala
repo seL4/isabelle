@@ -272,7 +272,8 @@ object Build_Log
 
     def parse_meta_info(): Meta_Info = Build_Log.parse_meta_info(log_file)
 
-    def parse_build_info(): Build_Info = Build_Log.parse_build_info(log_file)
+    def parse_build_info(ml_statistics: Boolean = false): Build_Info =
+      Build_Log.parse_build_info(log_file, ml_statistics)
 
     def parse_session_info(
         command_timings: Boolean = false,
@@ -498,7 +499,7 @@ object Build_Log
       get_default(name, entry => ML_Statistics(name, entry.ml_statistics), ML_Statistics.empty)
   }
 
-  private def parse_build_info(log_file: Log_File): Build_Info =
+  private def parse_build_info(log_file: Log_File, parse_ml_statistics: Boolean): Build_Info =
   {
     object Chapter_Name
     {
@@ -574,7 +575,8 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
-        case _ if line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
+        case _
+        if parse_ml_statistics && line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
           val (name, props) =
             Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
               case Some((SESSION_NAME, session_name) :: props) => (session_name, props)
@@ -715,7 +717,7 @@ object Build_Log
 
     def update_ml_statistics(db: SQL.Database, log_file: Log_File)
     {
-      val build_info = log_file.parse_build_info()
+      val build_info = log_file.parse_build_info(ml_statistics = true)
       val table = Build_Info.ml_statistics_table
 
       db.transaction {
