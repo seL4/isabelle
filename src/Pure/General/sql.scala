@@ -30,10 +30,10 @@ object SQL
       case _ => c.toString
     }
 
-  def quote_string(s: String): String =
+  def string(s: String): String =
     "'" + s.map(escape_char(_)).mkString + "'"
 
-  def quote_ident(s: String): String =
+  def ident(s: String): String =
     if (Long_Name.is_qualified(s)) s
     else quote(s.replace("\"", "\"\""))
 
@@ -94,12 +94,12 @@ object SQL
     def apply(table: Table): Column =
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
-    def sql_name: String = quote_ident(name)
+    def sql_name: String = ident(name)
     def sql_decl(sql_type: Type.Value => String): String =
       sql_name + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
     def sql_where_eq: String = "WHERE " + sql_name + " = "
-    def sql_where_equal(s: String): String = sql_where_eq + quote_string(s)
+    def sql_where_equal(s: String): String = sql_where_eq + string(s)
 
     override def toString: String = sql_decl(sql_type_default)
   }
@@ -129,32 +129,32 @@ object SQL
 
     def sql_create(strict: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        quote_ident(name) + " " + sql_columns(sql_type)
+        ident(name) + " " + sql_columns(sql_type)
 
     def sql_drop(strict: Boolean): String =
-      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + quote_ident(name)
+      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + ident(name)
 
     def sql_create_index(
         index_name: String, index_columns: List[Column],
         strict: Boolean, unique: Boolean): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
-        (if (strict) "" else "IF NOT EXISTS ") + quote_ident(index_name) + " ON " +
-        quote_ident(name) + " " + enclosure(index_columns.map(_.name))
+        (if (strict) "" else "IF NOT EXISTS ") + ident(index_name) + " ON " +
+        ident(name) + " " + enclosure(index_columns.map(_.name))
 
     def sql_drop_index(index_name: String, strict: Boolean): String =
-      "DROP INDEX " + (if (strict) "" else "IF EXISTS ") + quote_ident(index_name)
+      "DROP INDEX " + (if (strict) "" else "IF EXISTS ") + ident(index_name)
 
     def sql_insert: String =
-      "INSERT INTO " + quote_ident(name) + " VALUES " + enclosure(columns.map(_ => "?"))
+      "INSERT INTO " + ident(name) + " VALUES " + enclosure(columns.map(_ => "?"))
 
     def sql_delete: String =
-      "DELETE FROM " + quote_ident(name)
+      "DELETE FROM " + ident(name)
 
     def sql_select(select_columns: List[Column], distinct: Boolean = false): String =
-      select(select_columns, distinct = distinct) + quote_ident(name)
+      select(select_columns, distinct = distinct) + ident(name)
 
     override def toString: String =
-      "TABLE " + quote_ident(name) + " " + sql_columns(sql_type_default)
+      "TABLE " + ident(name) + " " + sql_columns(sql_type_default)
   }
 
 

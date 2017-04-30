@@ -812,8 +812,7 @@ object Build_Log
         if (session_names.isEmpty) where_log_name
         else
           where_log_name + " AND " +
-          session_names.map(a =>
-              Build_Info.session_name(table1).sql_name + " = " + SQL.quote_string(a)).
+          session_names.map(a => Build_Info.session_name(table1).sql_name + " = " + SQL.string(a)).
             mkString("(", " OR ", ")")
 
       val columns1 = table1.columns.tail.map(_.apply(table1))
@@ -822,8 +821,8 @@ object Build_Log
           val columns = columns1 ::: List(Build_Info.ml_statistics(table2))
           val from =
             "(" +
-              SQL.quote_ident(table1.name) + " LEFT JOIN " +
-              SQL.quote_ident(table2.name) + " ON " +
+              SQL.ident(table1.name) + " LEFT JOIN " +
+              SQL.ident(table2.name) + " ON " +
               Meta_Info.log_name(table1).sql_name + " = " +
               Meta_Info.log_name(table2).sql_name + " AND " +
               Build_Info.session_name(table1).sql_name + " = " +
@@ -831,7 +830,7 @@ object Build_Log
             ")"
           (columns, from)
         }
-        else (columns1, SQL.quote_ident(table1.name))
+        else (columns1, SQL.ident(table1.name))
 
       val sessions =
         using(db.statement(SQL.select(columns) + from + " " + where))(stmt =>
