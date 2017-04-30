@@ -55,9 +55,10 @@ object Jenkins
     val Log_Session = new Regex("""^.*/log/([^/]+)\.gz$""")
 
     for {
-      build <- JSON.array(
-          invoke(root() + "/job/" + job_name, "tree=builds[number,timestamp,artifacts[*]]"), "builds")
-        .getOrElse(Nil)
+      build <-
+        JSON.array(
+          invoke(root() + "/job/" + job_name, "tree=allBuilds[number,timestamp,artifacts[*]]"),
+          "allBuilds").getOrElse(Nil)
       number <- JSON.int(build, "number")
       timestamp <- JSON.long(build, "timestamp")
     } yield {
