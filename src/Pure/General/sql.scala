@@ -40,7 +40,7 @@ object SQL
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
 
   def select(columns: List[Column], distinct: Boolean = false): String =
-    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.sql_name)) + " FROM "
+    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.sql)) + " FROM "
 
 
   /* types */
@@ -94,11 +94,11 @@ object SQL
     def apply(table: Table): Column =
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
-    def sql_name: String = ident(name)
+    def sql: String = ident(name)
     def sql_decl(sql_type: Type.Value => String): String =
-      sql_name + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
+      sql + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
-    def sql_where_eq: String = "WHERE " + sql_name + " = "
+    def sql_where_eq: String = "WHERE " + sql + " = "
     def sql_where_equal(s: String): String = sql_where_eq + string(s)
 
     override def toString: String = sql_decl(sql_type_default)
@@ -116,6 +116,8 @@ object SQL
       case Nil =>
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
+
+    def sql: String = ident(name)
 
     def sql_columns(sql_type: Type.Value => String): String =
     {
