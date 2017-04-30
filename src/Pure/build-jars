@@ -19,9 +19,9 @@ declare -a SOURCES=(
   Admin/build_release.scala
   Admin/build_stats.scala
   Admin/check_sources.scala
-  Admin/ci_api.scala
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
+  Admin/jenkins.scala
   Admin/news.scala
   Admin/other_isabelle.scala
   Admin/remote_dmg.scala

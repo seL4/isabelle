@@ -1,7 +1,7 @@
-/*  Title:      Pure/Admin/ci_api.scala
+/*  Title:      Pure/Admin/jenkins.scala
     Author:     Makarius
 
-API for Isabelle Jenkins continuous integration services.
+Support for Jenkins continuous integration service.
 */
 
 package isabelle
@@ -12,7 +12,7 @@ import java.net.URL
 import scala.util.matching.Regex
 
 
-object CI_API
+object Jenkins
 {
   /* CI service */
 

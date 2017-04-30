@@ -24,11 +24,11 @@ object Build_Stats
     elapsed_threshold: Time = default_elapsed_threshold,
     ml_timing: Option[Boolean] = default_ml_timing): List[String] =
   {
-    val job_infos = CI_API.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
+    val job_infos = Jenkins.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
     if (job_infos.isEmpty) error("No build infos for job " + quote(job))
 
     val all_infos =
-      Par_List.map((job_info: CI_API.Job_Info) =>
+      Par_List.map((job_info: Jenkins.Job_Info) =>
         (job_info.timestamp / 1000, job_info.read_main_log.parse_build_info()), job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
@@ -157,7 +157,7 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
           }))
 
       val jobs = getopts(args)
-      val all_jobs = CI_API.build_jobs()
+      val all_jobs = Jenkins.build_jobs()
       val bad_jobs = jobs.filterNot(all_jobs.contains(_)).sorted
 
       if (jobs.isEmpty)
