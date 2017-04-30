@@ -470,9 +470,13 @@ object Build_Log
     val status = SQL.Column.string("status")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
 
-    val table = SQL.Table("isabelle_build_log_build_info",
-      List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
-        timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, heap_size, status, ml_statistics))
+    val sessions_table =
+      SQL.Table("isabelle_build_log_sessions",
+        List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
+          timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, heap_size, status))
+    val ml_statistics_table =
+      SQL.Table("isabelle_build_log_ml_statistics",
+        List(Meta_Info.log_name, session_name, ml_statistics))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -677,19 +681,19 @@ object Build_Log
       }
     }
 
-    def update_build_info(db: SQL.Database, log_file: Log_File)
+    def update_sessions(db: SQL.Database, log_file: Log_File)
     {
       val build_info = log_file.parse_build_info()
-      val table = Build_Info.table
+      val table = Build_Info.sessions_table
 
       db.transaction {
         using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
         using(db.insert(table))(stmt =>
         {
-          val iterator =
+          val entries_iterator =
             if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
             else build_info.sessions.iterator
-          for ((session_name, session) <- iterator) {
+          for ((session_name, session) <- entries_iterator) {
             db.set_string(stmt, 1, log_file.name)
             db.set_string(stmt, 2, session_name)
             db.set_string(stmt, 3, session.proper_chapter)
@@ -703,14 +707,37 @@ object Build_Log
             db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
             db.set_long(stmt, 12, session.heap_size)
             db.set_string(stmt, 13, session.status.map(_.toString))
-            db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
             stmt.execute()
           }
         })
       }
     }
 
-    def write_info(db: SQL.Database, files: List[JFile], group: Int = 100)
+    def update_ml_statistics(db: SQL.Database, log_file: Log_File)
+    {
+      val build_info = log_file.parse_build_info()
+      val table = Build_Info.ml_statistics_table
+
+      db.transaction {
+        using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+        using(db.insert(table))(stmt =>
+        {
+          val ml_stats: List[(String, Option[Bytes])] =
+            Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
+              { case (a, b) => (a, compress_properties(b.ml_statistics).proper) },
+              build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
+          val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
+          for ((session_name, ml_statistics) <- entries) {
+            db.set_string(stmt, 1, log_file.name)
+            db.set_string(stmt, 2, session_name)
+            db.set_bytes(stmt, 3, ml_statistics)
+            stmt.execute()
+          }
+        })
+      }
+    }
+
+    def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false)
     {
       class Table_Status(table: SQL.Table, update_db: (SQL.Database, Log_File) => Unit)
       {
@@ -733,9 +760,12 @@ object Build_Log
       val status =
         List(
           new Table_Status(Meta_Info.table, update_meta_info _),
-          new Table_Status(Build_Info.table, update_build_info _))
+          new Table_Status(Build_Info.sessions_table, update_sessions _),
+          new Table_Status(Build_Info.ml_statistics_table,
+            if (ml_statistics) update_ml_statistics _
+            else (_: SQL.Database, _: Log_File) => ()))
 
-      for (file_group <- files.filter(file => status.exists(_.required(file))).grouped(group)) {
+      for (file_group <- files.filter(file => status.exists(_.required(file))).grouped(100)) {
         val log_files = Par_List.map[JFile, Log_File](Log_File.apply _, file_group)
         db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
       }
@@ -770,23 +800,39 @@ object Build_Log
       session_names: List[String] = Nil,
       ml_statistics: Boolean = false): Build_Info =
     {
-      val table = Build_Info.table
-      val columns =
-        table.columns.filter(c =>
-          c != Meta_Info.log_name && (ml_statistics || c != Build_Info.ml_statistics))
+      val table1 = Build_Info.sessions_table
+      val table2 = Build_Info.ml_statistics_table
 
-      val where0 =
-        Meta_Info.log_name.sql_where_equal(log_name) + " AND " +
-          Build_Info.session_name.sql_name + " <> ''"
+      val where_log_name =
+        Meta_Info.log_name(table1).sql_where_equal(log_name) + " AND " +
+          Build_Info.session_name(table1).sql_name + " <> ''"
       val where =
-        if (session_names.isEmpty) where0
+        if (session_names.isEmpty) where_log_name
         else
-          where0 + " AND " +
-          session_names.map(a => Build_Info.session_name.sql_name + " = " + SQL.quote_string(a)).
+          where_log_name + " AND " +
+          session_names.map(a =>
+              Build_Info.session_name(table1).sql_name + " = " + SQL.quote_string(a)).
             mkString("(", " OR ", ")")
 
+      val columns1 = table1.columns.tail.map(_.apply(table1))
+      val (columns, from) =
+        if (ml_statistics) {
+          val columns = columns1 ::: List(Build_Info.ml_statistics(table2))
+          val from =
+            "(" +
+              SQL.quote_ident(table1.name) + " LEFT JOIN " +
+              SQL.quote_ident(table2.name) + " ON " +
+              Meta_Info.log_name(table1).sql_name + " = " +
+              Meta_Info.log_name(table2).sql_name + " AND " +
+              Build_Info.session_name(table1).sql_name + " = " +
+              Build_Info.session_name(table2).sql_name +
+            ")"
+          (columns, from)
+        }
+        else (columns1, SQL.quote_ident(table1.name))
+
       val sessions =
-        using(db.select(table, columns, where))(stmt =>
+        using(db.statement(SQL.select(columns) + from + " " + where))(stmt =>
         {
           SQL.iterator(stmt.executeQuery)(rs =>
           {
