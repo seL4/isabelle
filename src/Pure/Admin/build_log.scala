@@ -653,68 +653,110 @@ object Build_Log
         ssh_close = true)
     }
 
-    def write_info(db: SQL.Database, files: List[JFile])
+    def update_meta_info(db: SQL.Database, log_file: Log_File)
     {
-      write_meta_info(db, files)
-      write_build_info(db, files)
-    }
+      val meta_info = log_file.parse_meta_info()
+      val table = Meta_Info.table
 
-    def filter_files(db: SQL.Database, table: SQL.Table, files: List[JFile]): List[JFile] =
-    {
       db.transaction {
-        db.create_table(table)
-
-        val key = Meta_Info.log_name
-        val known_files =
-          using(db.select(table, List(key), distinct = true))(stmt =>
-            SQL.iterator(stmt.executeQuery)(rs => db.string(rs, key)).toSet)
-
-        val unique_files =
-          (Map.empty[String, JFile] /: files.iterator)({ case (m, file) =>
-            val name = Log_File.plain_name(file.getName)
-            if (known_files(name)) m else m + (name -> file)
-          })
-
-        unique_files.iterator.map(_._2).toList
+        using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+        using(db.insert(table))(stmt =>
+        {
+          db.set_string(stmt, 1, log_file.name)
+          for ((c, i) <- table.columns.tail.zipWithIndex) {
+            if (c.T == SQL.Type.Date)
+              db.set_date(stmt, i + 2, meta_info.get_date(c))
+            else
+              db.set_string(stmt, i + 2, meta_info.get(c))
+          }
+          stmt.execute()
+        })
       }
     }
 
-    def write_meta_info(db: SQL.Database, files: List[JFile])
+    def update_build_info(db: SQL.Database, log_file: Log_File)
     {
-      for (file_group <- filter_files(db, Meta_Info.table, files).grouped(1000)) {
-        db.transaction {
-          for (file <- file_group) {
-            val log_file = Log_File(file)
-            val meta_info = log_file.parse_meta_info()
+      val build_info = log_file.parse_build_info()
+      val table = Build_Info.table
 
-            using(db.delete(Meta_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
-              _.execute)
-            using(db.insert(Meta_Info.table))(stmt =>
-            {
+      db.transaction {
+        using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
+
+        if (build_info.sessions.isEmpty) {
+          using(db.insert(Build_Info.table0))(stmt =>
+          {
+            db.set_string(stmt, 1, log_file.name)
+            db.set_string(stmt, 2, "")
+            stmt.execute()
+          })
+        }
+        else {
+          using(db.insert(table))(stmt =>
+          {
+            for ((session_name, session) <- build_info.sessions.iterator) {
               db.set_string(stmt, 1, log_file.name)
-              for ((c, i) <- Meta_Info.table.columns.tail.zipWithIndex) {
-                if (c.T == SQL.Type.Date)
-                  db.set_date(stmt, i + 2, meta_info.get_date(c))
-                else
-                  db.set_string(stmt, i + 2, meta_info.get(c))
-              }
+              db.set_string(stmt, 2, session_name)
+              db.set_string(stmt, 3, session.proper_chapter)
+              db.set_string(stmt, 4, session.proper_groups)
+              db.set_int(stmt, 5, session.threads)
+              db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+              db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+              db.set_long(stmt, 8, session.timing.gc.proper_ms)
+              db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
+              db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
+              db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
+              db.set_long(stmt, 12, session.heap_size)
+              db.set_string(stmt, 13, session.status.toString)
+              db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
               stmt.execute()
-            })
+            }
+          })
+        }
+      }
+    }
+
+    def write_info(db: SQL.Database, files: List[JFile], group: Int = 100)
+    {
+      class Table_Status(table: SQL.Table, update_db: (SQL.Database, Log_File) => Unit)
+      {
+        private var known: Set[String] =
+        {
+          db.create_table(table)
+          val key = Meta_Info.log_name
+          using(db.select(table, List(key), distinct = true))(
+            stmt => SQL.iterator(stmt.executeQuery)(db.string(_, key)).toSet)
+        }
+        def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
+        def update(log_file: Log_File)
+        {
+          if (!known(log_file.name)) {
+            update_db(db, log_file)
+            known += log_file.name
           }
         }
+      }
+      val status =
+        List(
+          new Table_Status(Meta_Info.table, update_meta_info _),
+          new Table_Status(Build_Info.table, update_build_info _))
+
+      for (file_group <- files.filter(file => status.exists(_.required(file))).grouped(group)) {
+        val log_files = Par_List.map[JFile, Log_File](Log_File.apply _, file_group)
+        db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
       }
     }
 
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] =
     {
-      val cs = Meta_Info.table.columns.tail
-      using(db.select(Meta_Info.table, cs, Meta_Info.log_name.sql_where_equal(log_name)))(stmt =>
+      val table = Meta_Info.table
+      val columns = table.columns.tail
+      using(db.select(table, columns, Meta_Info.log_name.sql_where_equal(log_name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
         else {
           val results =
-            cs.map(c => c.name ->
+            columns.map(c => c.name ->
               (if (c.T == SQL.Type.Date)
                 db.get(rs, c, db.date _).map(Log_File.Date_Format(_))
                else
@@ -727,59 +769,15 @@ object Build_Log
       })
     }
 
-    def write_build_info(db: SQL.Database, files: List[JFile])
-    {
-      for (file_group <- filter_files(db, Build_Info.table, files).grouped(100)) {
-        db.transaction {
-          for (file <- file_group) {
-            val log_file = Log_File(file)
-            val build_info = log_file.parse_build_info()
-
-            using(db.delete(Build_Info.table, Meta_Info.log_name.sql_where_equal(log_file.name)))(
-              _.execute)
-            if (build_info.sessions.isEmpty) {
-              using(db.insert(Build_Info.table0))(stmt =>
-              {
-                db.set_string(stmt, 1, log_file.name)
-                db.set_string(stmt, 2, "")
-                stmt.execute()
-              })
-            }
-            else {
-              using(db.insert(Build_Info.table))(stmt =>
-              {
-                for ((session_name, session) <- build_info.sessions.iterator) {
-                  db.set_string(stmt, 1, log_file.name)
-                  db.set_string(stmt, 2, session_name)
-                  db.set_string(stmt, 3, session.proper_chapter)
-                  db.set_string(stmt, 4, session.proper_groups)
-                  db.set_int(stmt, 5, session.threads)
-                  db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-                  db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-                  db.set_long(stmt, 8, session.timing.gc.proper_ms)
-                  db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
-                  db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
-                  db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
-                  db.set_long(stmt, 12, session.heap_size)
-                  db.set_string(stmt, 13, session.status.toString)
-                  db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
-                  stmt.execute()
-                }
-              })
-            }
-          }
-        }
-      }
-    }
-
     def read_build_info(
       db: SQL.Database,
       log_name: String,
       session_names: List[String] = Nil,
       ml_statistics: Boolean = false): Build_Info =
     {
+      val table = Build_Info.table
       val columns =
-        Build_Info.table.columns.filter(c =>
+        table.columns.filter(c =>
           c != Meta_Info.log_name && (ml_statistics || c != Build_Info.ml_statistics))
 
       val where0 =
@@ -793,7 +791,7 @@ object Build_Log
             mkString("(", " OR ", ")")
 
       val sessions =
-        using(db.select(Build_Info.table, columns, where))(stmt =>
+        using(db.select(table, columns, where))(stmt =>
         {
           SQL.iterator(stmt.executeQuery)(rs =>
           {
