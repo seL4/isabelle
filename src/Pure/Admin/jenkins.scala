@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.net.URL
+import java.time.ZoneId
 
 import scala.util.matching.Regex
 
@@ -44,7 +45,11 @@ object Jenkins
     output: URL,
     session_logs: List[(String, URL)])
   {
-    def read_main_log(): Build_Log.Log_File = Build_Log.Log_File(job_name, Url.read(output))
+    def date: Date = Date(Time.ms(timestamp), ZoneId.of("Europe/Berlin"))
+    def log_filename: Path =
+      Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
+    def read_main_log(): Build_Log.Log_File =
+      Build_Log.Log_File(log_filename.implode, Url.read(output))
     def read_session_log(name: String): Build_Log.Log_File =
       Build_Log.Log_File(name,
         session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse "")
