@@ -434,19 +434,24 @@ object Build_Log
     val existing, finished, failed, cancelled = Value
   }
 
+  object Session_Entry
+  {
+    val empty: Session_Entry = Session_Entry()
+  }
+
   sealed case class Session_Entry(
-    chapter: String,
-    groups: List[String],
-    threads: Option[Int],
-    timing: Timing,
-    ml_timing: Timing,
-    heap_size: Option[Long],
-    status: Session_Status.Value,
-    ml_statistics: List[Properties.T])
+    chapter: String = "",
+    groups: List[String] = Nil,
+    threads: Option[Int] = None,
+    timing: Timing = Timing.zero,
+    ml_timing: Timing = Timing.zero,
+    heap_size: Option[Long] = None,
+    status: Option[Session_Status.Value] = None,
+    ml_statistics: List[Properties.T] = Nil)
   {
     def proper_chapter: Option[String] = if (chapter == "") None else Some(chapter)
     def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
-    def finished: Boolean = status == Session_Status.finished
+    def finished: Boolean = status == Some(Session_Status.finished)
   }
 
   object Build_Info
@@ -468,8 +473,6 @@ object Build_Log
     val table = SQL.Table("isabelle_build_log_build_info",
       List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
         timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, heap_size, status, ml_statistics))
-
-    val table0 = table.copy(columns = table.columns.take(2))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -591,14 +594,14 @@ object Build_Log
             else Session_Status.existing
           val entry =
             Session_Entry(
-              chapter.getOrElse(name, ""),
-              groups.getOrElse(name, Nil),
-              threads.get(name),
-              timing.getOrElse(name, Timing.zero),
-              ml_timing.getOrElse(name, Timing.zero),
-              heap_sizes.get(name),
-              status,
-              ml_statistics.getOrElse(name, Nil).reverse)
+              chapter = chapter.getOrElse(name, ""),
+              groups = groups.getOrElse(name, Nil),
+              threads = threads.get(name),
+              timing = timing.getOrElse(name, Timing.zero),
+              ml_timing = ml_timing.getOrElse(name, Timing.zero),
+              heap_size = heap_sizes.get(name),
+              status = Some(status),
+              ml_statistics = ml_statistics.getOrElse(name, Nil).reverse)
           (name -> entry)
         }):_*)
     Build_Info(sessions)
@@ -681,37 +684,29 @@ object Build_Log
 
       db.transaction {
         using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-
-        if (build_info.sessions.isEmpty) {
-          using(db.insert(Build_Info.table0))(stmt =>
-          {
+        using(db.insert(table))(stmt =>
+        {
+          val iterator =
+            if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
+            else build_info.sessions.iterator
+          for ((session_name, session) <- iterator) {
             db.set_string(stmt, 1, log_file.name)
-            db.set_string(stmt, 2, "")
+            db.set_string(stmt, 2, session_name)
+            db.set_string(stmt, 3, session.proper_chapter)
+            db.set_string(stmt, 4, session.proper_groups)
+            db.set_int(stmt, 5, session.threads)
+            db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+            db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+            db.set_long(stmt, 8, session.timing.gc.proper_ms)
+            db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
+            db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
+            db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
+            db.set_long(stmt, 12, session.heap_size)
+            db.set_string(stmt, 13, session.status.map(_.toString))
+            db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
             stmt.execute()
-          })
-        }
-        else {
-          using(db.insert(table))(stmt =>
-          {
-            for ((session_name, session) <- build_info.sessions.iterator) {
-              db.set_string(stmt, 1, log_file.name)
-              db.set_string(stmt, 2, session_name)
-              db.set_string(stmt, 3, session.proper_chapter)
-              db.set_string(stmt, 4, session.proper_groups)
-              db.set_int(stmt, 5, session.threads)
-              db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-              db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-              db.set_long(stmt, 8, session.timing.gc.proper_ms)
-              db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
-              db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
-              db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
-              db.set_long(stmt, 12, session.heap_size)
-              db.set_string(stmt, 13, session.status.toString)
-              db.set_bytes(stmt, 14, compress_properties(session.ml_statistics).proper)
-              stmt.execute()
-            }
-          })
-        }
+          }
+        })
       }
     }
 
@@ -810,7 +805,9 @@ object Build_Log
                     Time.ms(db.long(rs, Build_Info.ml_timing_cpu)),
                     Time.ms(db.long(rs, Build_Info.ml_timing_gc))),
                 heap_size = db.get(rs, Build_Info.heap_size, db.long _),
-                status = Session_Status.withName(db.string(rs, Build_Info.status)),
+                status =
+                  db.get(rs, Build_Info.status, db.string _).
+                    map(Session_Status.withName(_)),
                 ml_statistics =
                   if (ml_statistics) uncompress_properties(db.bytes(rs, Build_Info.ml_statistics))
                   else Nil)
