@@ -34,9 +34,13 @@ object SQL
     "'" + s.map(escape_char(_)).mkString + "'"
 
   def quote_ident(s: String): String =
-    quote(s.replace("\"", "\"\""))
+    if (Long_Name.is_qualified(s)) s
+    else quote(s.replace("\"", "\"\""))
 
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
+
+  def select(columns: List[Column], distinct: Boolean = false): String =
+    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.sql_name)) + " FROM "
 
 
   /* types */
@@ -87,6 +91,9 @@ object SQL
   sealed case class Column(
     name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false)
   {
+    def apply(table: Table): Column =
+      Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
+
     def sql_name: String = quote_ident(name)
     def sql_decl(sql_type: Type.Value => String): String =
       sql_name + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
@@ -143,9 +150,8 @@ object SQL
     def sql_delete: String =
       "DELETE FROM " + quote_ident(name)
 
-    def sql_select(select_columns: List[Column], distinct: Boolean): String =
-      "SELECT " + (if (distinct) "DISTINCT " else "") +
-      commas(select_columns.map(_.sql_name)) + " FROM " + quote_ident(name)
+    def sql_select(select_columns: List[Column], distinct: Boolean = false): String =
+      select(select_columns, distinct = distinct) + quote_ident(name)
 
     override def toString: String =
       "TABLE " + quote_ident(name) + " " + sql_columns(sql_type_default)
@@ -205,7 +211,7 @@ object SQL
 
     def select(table: Table, columns: List[Column], sql: String = "", distinct: Boolean = false)
         : PreparedStatement =
-      statement(table.sql_select(columns, distinct) + (if (sql == "") "" else " " + sql))
+      statement(table.sql_select(columns, distinct = distinct) + (if (sql == "") "" else " " + sql))
 
 
     /* input */
