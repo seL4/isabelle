@@ -360,7 +360,7 @@ object PostgreSQL
   {
     init_jdbc
 
-    require(user != "")
+    if (user == "") error("Undefined database user")
 
     val db_host = if (host != "") host else "localhost"
     val db_port = if (port > 0 && port != default_port) ":" + port else ""
