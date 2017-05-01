@@ -342,6 +342,7 @@ object Build_Log
   object Jenkins
   {
     val engine = "jenkins"
+    val Host = new Regex("""^Building remotely on (\S+) \((\S+)\).*$""")
     val Start = new Regex("""^Started .*$""")
     val Start_Date = new Regex("""^Build started at (.+)$""")
     val No_End = new Regex("""$.""")
@@ -409,7 +410,11 @@ object Build_Log
          log_file.lines.last.startsWith(Jenkins.FINISHED) =>
         log_file.lines.dropWhile(_ != Jenkins.BUILD) match {
           case Jenkins.BUILD :: _ :: Jenkins.Start_Date(log_file.Strict_Date(start)) :: _ =>
-            parse(Jenkins.engine, "", start.to(ZoneId.of("Europe/Berlin")), Jenkins.No_End,
+            val host =
+              log_file.lines.takeWhile(_ != Jenkins.CONFIGURATION).collectFirst({
+                case Jenkins.Host(a, b) => a + "." + b
+              }).getOrElse("")
+            parse(Jenkins.engine, host, start.to(ZoneId.of("Europe/Berlin")), Jenkins.No_End,
               Jenkins.Isabelle_Version, Jenkins.AFP_Version)
           case _ => Meta_Info.empty
         }
