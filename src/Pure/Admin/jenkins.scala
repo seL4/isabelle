@@ -63,9 +63,6 @@ object Jenkins
     def log_filename: Path =
       Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
 
-    def read_log_file(): Build_Log.Log_File =
-      Build_Log.Log_File(log_filename.implode, Url.read(main_log))
-
     def read_ml_statistics(store: Sessions.Store, session_name: String): List[Properties.T] =
     {
       def get_log(ext: String): Option[URL] =

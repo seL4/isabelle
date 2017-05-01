@@ -28,8 +28,12 @@ object Build_Stats
     if (job_infos.isEmpty) error("No build infos for job " + quote(job))
 
     val all_infos =
-      Par_List.map((job_info: Jenkins.Job_Info) =>
-        (job_info.timestamp / 1000, job_info.read_log_file.parse_build_info()), job_infos)
+      Par_List.map((info: Jenkins.Job_Info) =>
+        {
+          val t = info.timestamp / 1000
+          val log_file = Build_Log.Log_File(info.log_filename.implode, Url.read(info.main_log))
+          (t, log_file.parse_build_info())
+        }, job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
         { case (s, (_, info)) => s ++ info.sessions.keySet })
