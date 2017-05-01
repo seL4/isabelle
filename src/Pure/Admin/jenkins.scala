@@ -40,13 +40,13 @@ object Jenkins
     } yield name
 
 
-  def download_logs(job_names: List[String], dir: Path)
+  def download_logs(job_names: List[String], dir: Path, progress: Progress = No_Progress)
   {
     val store = Sessions.store()
     for {
       job_name <- job_names.iterator
       info <- build_job_infos(job_name).iterator
-    } info.download_log(store, dir)
+    } info.download_log(store, dir, progress)
   }
 
 
@@ -88,19 +88,21 @@ object Jenkins
       }
     }
 
-    def download_log(store: Sessions.Store, dir: Path)
+    def download_log(store: Sessions.Store, dir: Path, progress: Progress = No_Progress)
     {
       val log_dir = dir + Build_Log.log_subdir(date)
-      val log_path = log_dir + log_filename
+      val log_path = log_dir + log_filename.ext("xz")
 
       if (!log_path.is_file) {
+        progress.echo(log_path.expand.implode)
+
         val ml_statistics =
           session_logs.map(_._1).toSet.toList.sorted.flatMap(session_name =>
             read_ml_statistics(store, session_name).
               map(props => (Build_Log.SESSION_NAME -> session_name) :: props))
 
         Isabelle_System.mkdirs(log_dir)
-        File.write_xz(log_path.ext("xz"),
+        File.write_xz(log_path,
           terminate_lines(Url.read(main_log) ::
             ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))),
           XZ.options(6))
