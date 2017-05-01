@@ -15,7 +15,7 @@ import scala.util.matching.Regex
 
 object Jenkins
 {
-  /* CI service */
+  /* server API */
 
   def root(): String =
     Isabelle_System.getenv_strict("ISABELLE_JENKINS_ROOT")
@@ -43,21 +43,41 @@ object Jenkins
     job_name: String,
     timestamp: Long,
     output: URL,
-    session_logs: List[(String, URL)])
+    session_logs: List[(String, String, URL)])
   {
     def date: Date = Date(Time.ms(timestamp), ZoneId.of("Europe/Berlin"))
     def log_filename: Path =
       Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
+
     def read_main_log(): Build_Log.Log_File =
       Build_Log.Log_File(log_filename.implode, Url.read(output))
-    def read_session_log(name: String): Build_Log.Log_File =
-      Build_Log.Log_File(name,
-        session_logs.collectFirst({ case (a, b) if a == name => Url.read_gzip(b) }) getOrElse "")
+
+    def session_log(name: String, ext: String): Option[URL] =
+      session_logs.collectFirst({ case (a, b, url) if a == name && b == ext => url })
+
+    def read_ml_statistics(store: Sessions.Store, session_name: String): List[Properties.T] =
+    {
+      session_log(session_name, "db") match {
+        case Some(url) =>
+          Isabelle_System.with_tmp_file(session_name, "db") { database =>
+            Bytes.write(database, Bytes.read(url))
+            using(SQLite.open_database(database))(db =>
+              store.read_build_log(db, session_name, ml_statistics = true)).ml_statistics
+          }
+        case None =>
+          session_log(session_name, "gz") match {
+            case Some(url) =>
+              val log_file = Build_Log.Log_File(session_name, Url.read_gzip(url))
+              log_file.parse_session_info(ml_statistics = true).ml_statistics
+            case None => Nil
+          }
+      }
+    }
   }
 
   def build_job_builds(job_name: String): List[Job_Info] =
   {
-    val Log_Session = new Regex("""^.*/log/([^/]+)\.gz$""")
+    val Session_Log = new Regex("""^.*/log/([^/]+)\.(db|gz)$""")
 
     for {
       build <-
@@ -73,8 +93,8 @@ object Jenkins
         for {
           artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
           log_path <- JSON.string(artifact, "relativePath")
-          session <- (log_path match { case Log_Session(name) => Some(name) case _ => None })
-        } yield (session -> Url(job_prefix + "/artifact/" + log_path))
+          (name, ext) <- (log_path match { case Session_Log(a, b) => Some((a, b)) case _ => None })
+        } yield (name, ext, Url(job_prefix + "/artifact/" + log_path))
       Job_Info(job_name, timestamp, output, session_logs)
     }
   }
