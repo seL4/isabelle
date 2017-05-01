@@ -156,7 +156,11 @@ object Isabelle_Cronjob
     val store = Build_Log.store(options)
     val files = Build_Log.Log_File.find_files(database_dirs)
     using(store.open_database())(db => store.write_info(db, files, ml_statistics = true))
-    using(SQLite.open_database(build_log_snapshot))(db => store.write_info(db, files))
+    using(SQLite.open_database(build_log_snapshot))(db =>
+      {
+        store.write_info(db, files)
+        db.rebuild
+      })
   }
 
 
