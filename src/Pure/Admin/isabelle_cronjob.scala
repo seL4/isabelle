@@ -30,6 +30,8 @@ object Isabelle_Cronjob
 
   val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
+  val jenkins_jobs = List("isabelle-nightly-benchmark")
+
   val build_log_snapshot = Path.explode("~/html-data/build_log.db")
 
 
@@ -303,6 +305,7 @@ object Isabelle_Cronjob
         run_now(
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))),
+            Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database", logger => database_update(logger.options)))))))
 
     log_service.shutdown()
