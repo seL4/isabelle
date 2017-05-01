@@ -34,8 +34,7 @@ object SQL
     "'" + s.map(escape_char(_)).mkString + "'"
 
   def ident(s: String): String =
-    if (Long_Name.is_qualified(s)) s
-    else quote(s.replace("\"", "\"\""))
+    Long_Name.implode(Long_Name.explode(s).map(_.replace("\"", "\"\"")))
 
   def enclose(s: String): String = "(" + s + ")"
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
