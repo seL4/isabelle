@@ -112,23 +112,26 @@ object Jenkins
   {
     val Session_Log = new Regex("""^.*/log/([^/]+)\.(db|gz)$""")
 
-    for {
-      build <-
-        JSON.array(
-          invoke(root() + "/job/" + job_name, "tree=allBuilds[number,timestamp,artifacts[*]]"),
-          "allBuilds").getOrElse(Nil)
-      number <- JSON.int(build, "number")
-      timestamp <- JSON.long(build, "timestamp")
-    } yield {
-      val job_prefix = root() + "/job/" + job_name + "/" + number
-      val main_log = Url(job_prefix + "/consoleText")
-      val session_logs =
-        for {
-          artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
-          log_path <- JSON.string(artifact, "relativePath")
-          (name, ext) <- (log_path match { case Session_Log(a, b) => Some((a, b)) case _ => None })
-        } yield (name, ext, Url(job_prefix + "/artifact/" + log_path))
-      Job_Info(job_name, timestamp, main_log, session_logs)
-    }
+    val infos =
+      for {
+        build <-
+          JSON.array(
+            invoke(root() + "/job/" + job_name, "tree=allBuilds[number,timestamp,artifacts[*]]"),
+            "allBuilds").getOrElse(Nil)
+        number <- JSON.int(build, "number")
+        timestamp <- JSON.long(build, "timestamp")
+      } yield {
+        val job_prefix = root() + "/job/" + job_name + "/" + number
+        val main_log = Url(job_prefix + "/consoleText")
+        val session_logs =
+          for {
+            artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
+            log_path <- JSON.string(artifact, "relativePath")
+            (name, ext) <- (log_path match { case Session_Log(a, b) => Some((a, b)) case _ => None })
+          } yield (name, ext, Url(job_prefix + "/artifact/" + log_path))
+        Job_Info(job_name, timestamp, main_log, session_logs)
+      }
+
+    infos.sortBy(info => - info.timestamp)
   }
 }
