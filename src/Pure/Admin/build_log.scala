@@ -345,14 +345,13 @@ object Build_Log
     val log_prefix = "jenkins_"
     val engine = "jenkins"
     val Host = new Regex("""^Building remotely on (\S+) \((\S+)\).*$""")
-    val Start = new Regex("""^Started .*$""")
+    val Start = new Regex("""^(?:Started by an SCM change|Started from command line by admin|).*$""")
     val Start_Date = new Regex("""^Build started at (.+)$""")
     val No_End = new Regex("""$.""")
     val Isabelle_Version = new Regex("""^Isabelle id (\S+)$""")
     val AFP_Version = new Regex("""^AFP id (\S+)$""")
     val CONFIGURATION = "=== CONFIGURATION ==="
     val BUILD = "=== BUILD ==="
-    val FINISHED = "Finished: "
   }
 
   private def parse_meta_info(log_file: Log_File): Meta_Info =
@@ -407,9 +406,7 @@ object Build_Log
         parse(AFP_Test.engine, "", start, AFP_Test.End,
           AFP_Test.Isabelle_Version, AFP_Test.AFP_Version)
 
-      case Jenkins.Start() :: _
-      if log_file.lines.contains(Jenkins.CONFIGURATION) ||
-         log_file.lines.last.startsWith(Jenkins.FINISHED) =>
+      case Jenkins.Start() :: _ =>
         log_file.lines.dropWhile(_ != Jenkins.BUILD) match {
           case Jenkins.BUILD :: _ :: Jenkins.Start_Date(log_file.Strict_Date(start)) :: _ =>
             val host =
