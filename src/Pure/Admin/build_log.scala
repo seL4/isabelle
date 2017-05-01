@@ -134,7 +134,8 @@ object Build_Log
 
     def is_log(file: JFile,
       prefixes: List[String] =
-        List(Build_History.log_prefix, Identify.log_prefix, Isatest.log_prefix, AFP_Test.log_prefix),
+        List(Build_History.log_prefix, Identify.log_prefix, Isatest.log_prefix,
+          AFP_Test.log_prefix, Jenkins.log_prefix),
       suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
     {
       val name = file.getName
@@ -341,6 +342,7 @@ object Build_Log
 
   object Jenkins
   {
+    val log_prefix = "jenkins_"
     val engine = "jenkins"
     val Host = new Regex("""^Building remotely on (\S+) \((\S+)\).*$""")
     val Start = new Regex("""^Started .*$""")
