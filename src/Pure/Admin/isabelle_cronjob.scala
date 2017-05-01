@@ -30,7 +30,7 @@ object Isabelle_Cronjob
 
   val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
-  val jenkins_jobs = List("isabelle-nightly-benchmark")
+  val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
 
   val build_log_snapshot = Path.explode("~/html-data/build_log.db")
 
