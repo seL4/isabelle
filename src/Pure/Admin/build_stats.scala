@@ -24,7 +24,7 @@ object Build_Stats
     elapsed_threshold: Time = default_elapsed_threshold,
     ml_timing: Option[Boolean] = default_ml_timing): List[String] =
   {
-    val job_infos = Jenkins.build_job_builds(job).sortBy(_.timestamp).reverse.take(history_length)
+    val job_infos = Jenkins.build_job_infos(job).sortBy(_.timestamp).reverse.take(history_length)
     if (job_infos.isEmpty) error("No build infos for job " + quote(job))
 
     val all_infos =

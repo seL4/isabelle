@@ -75,7 +75,7 @@ object Jenkins
     }
   }
 
-  def build_job_builds(job_name: String): List[Job_Info] =
+  def build_job_infos(job_name: String): List[Job_Info] =
   {
     val Session_Log = new Regex("""^.*/log/([^/]+)\.(db|gz)$""")
 
