@@ -42,22 +42,21 @@ object Jenkins
   sealed case class Job_Info(
     job_name: String,
     timestamp: Long,
-    output: URL,
+    main_log: URL,
     session_logs: List[(String, String, URL)])
   {
-    def date: Date = Date(Time.ms(timestamp), ZoneId.of("Europe/Berlin"))
-    def log_filename: Path =
-      Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
+    val date: Date = Date(Time.ms(timestamp), ZoneId.of("Europe/Berlin"))
+    val log_filename: Path = Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
 
-    def read_main_log(): Build_Log.Log_File =
-      Build_Log.Log_File(log_filename.implode, Url.read(output))
-
-    def session_log(name: String, ext: String): Option[URL] =
-      session_logs.collectFirst({ case (a, b, url) if a == name && b == ext => url })
+    def read_log_file(): Build_Log.Log_File =
+      Build_Log.Log_File(log_filename.implode, Url.read(main_log))
 
     def read_ml_statistics(store: Sessions.Store, session_name: String): List[Properties.T] =
     {
-      session_log(session_name, "db") match {
+      def get_log(ext: String): Option[URL] =
+        session_logs.collectFirst({ case (a, b, url) if a == session_name && b == ext => url })
+
+      get_log("db") match {
         case Some(url) =>
           Isabelle_System.with_tmp_file(session_name, "db") { database =>
             Bytes.write(database, Bytes.read(url))
@@ -65,7 +64,7 @@ object Jenkins
               store.read_build_log(db, session_name, ml_statistics = true)).ml_statistics
           }
         case None =>
-          session_log(session_name, "gz") match {
+          get_log("gz") match {
             case Some(url) =>
               val log_file = Build_Log.Log_File(session_name, Url.read_gzip(url))
               log_file.parse_session_info(ml_statistics = true).ml_statistics
@@ -88,14 +87,14 @@ object Jenkins
       timestamp <- JSON.long(build, "timestamp")
     } yield {
       val job_prefix = root() + "/job/" + job_name + "/" + number
-      val output = Url(job_prefix + "/consoleText")
+      val main_log = Url(job_prefix + "/consoleText")
       val session_logs =
         for {
           artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
           log_path <- JSON.string(artifact, "relativePath")
           (name, ext) <- (log_path match { case Session_Log(a, b) => Some((a, b)) case _ => None })
         } yield (name, ext, Url(job_prefix + "/artifact/" + log_path))
-      Job_Info(job_name, timestamp, output, session_logs)
+      Job_Info(job_name, timestamp, main_log, session_logs)
     }
   }
 }

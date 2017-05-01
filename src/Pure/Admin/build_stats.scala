@@ -29,7 +29,7 @@ object Build_Stats
 
     val all_infos =
       Par_List.map((job_info: Jenkins.Job_Info) =>
-        (job_info.timestamp / 1000, job_info.read_main_log.parse_build_info()), job_infos)
+        (job_info.timestamp / 1000, job_info.read_log_file.parse_build_info()), job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
         { case (s, (_, info)) => s ++ info.sessions.keySet })
