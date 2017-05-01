@@ -46,7 +46,9 @@ object Jenkins
     session_logs: List[(String, String, URL)])
   {
     val date: Date = Date(Time.ms(timestamp), ZoneId.of("Europe/Berlin"))
-    val log_filename: Path = Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
+
+    def log_filename: Path =
+      Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))
 
     def read_log_file(): Build_Log.Log_File =
       Build_Log.Log_File(log_filename.implode, Url.read(main_log))
