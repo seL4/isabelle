@@ -78,6 +78,11 @@ object SQL
 
   /* columns */
 
+  trait Qualifier
+  {
+    def name: String
+  }
+
   object Column
   {
     def bool(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
@@ -99,8 +104,8 @@ object SQL
   sealed case class Column(
     name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false)
   {
-    def apply(table: Table): Column =
-      Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
+    def apply(qual: Qualifier): Column =
+      Column(Long_Name.qualify(qual.name, name), T, strict = strict, primary_key = primary_key)
 
     def sql: String = ident(name)
     def sql_decl(sql_type: Type.Value => String): String =
@@ -115,7 +120,7 @@ object SQL
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column])
+  sealed case class Table(name: String, columns: List[Column]) extends Qualifier
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -167,6 +172,16 @@ object SQL
       "TABLE " + ident(name) + " " + sql_columns(sql_type_default)
   }
 
+
+  /* views */
+
+  sealed case class View(name: String, columns: List[Column]) extends Qualifier
+  {
+    def sql: String = ident(name)
+    def sql_create(query: String): String = "CREATE VIEW " + ident(name) + " AS " + query
+    override def toString: String =
+      "VIEW " + ident(name) + " " + enclosure(columns.map(_.sql_decl(sql_type_default)))
+  }
 
 
   /** SQL database operations **/
@@ -296,7 +311,7 @@ object SQL
     }
 
 
-    /* tables */
+    /* tables and views */
 
     def tables: List[String] =
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
@@ -314,6 +329,9 @@ object SQL
 
     def drop_index(table: Table, name: String, strict: Boolean = false): Unit =
       using(statement(table.sql_drop_index(name, strict)))(_.execute())
+
+    def create_view(view: View, query: String): Unit =
+      using(statement(view.sql_create(query)))(_.execute())
   }
 }
 
