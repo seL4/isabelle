@@ -157,7 +157,7 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
           }))
 
       val jobs = getopts(args)
-      val all_jobs = Jenkins.build_jobs()
+      val all_jobs = Jenkins.build_job_names()
       val bad_jobs = jobs.filterNot(all_jobs.contains(_)).sorted
 
       if (jobs.isEmpty)

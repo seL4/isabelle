@@ -31,7 +31,7 @@ object Jenkins
 
   /* build jobs */
 
-  def build_jobs(): List[String] =
+  def build_job_names(): List[String] =
     for {
       job <- JSON.array(invoke(root()), "jobs").getOrElse(Nil)
       _class <- JSON.string(job, "_class")
