@@ -43,10 +43,8 @@ object Jenkins
   def download_logs(job_names: List[String], dir: Path, progress: Progress = No_Progress)
   {
     val store = Sessions.store()
-    for {
-      job_name <- job_names.iterator
-      info <- build_job_infos(job_name).iterator
-    } info.download_log(store, dir, progress)
+    val infos = job_names.flatMap(build_job_infos(_))
+    Par_List.map((info: Job_Info) => info.download_log(store, dir, progress), infos)
   }
 
 
