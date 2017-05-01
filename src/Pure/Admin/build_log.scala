@@ -311,7 +311,17 @@ object Build_Log
   object Identify
   {
     val log_prefix = "isabelle_identify_"
-    val engine = "identify"
+
+    def engine(log_file: Log_File): String =
+      if (log_file.name.startsWith(Jenkins.log_prefix)) "jenkins_identify"
+      else "identify"
+
+    def content(date: Date, isabelle_version: Option[String], afp_version: Option[String]): String =
+      terminate_lines(
+        List("isabelle_identify: " + Build_Log.print_date(date), "") :::
+        isabelle_version.map("Isabelle version: " + _).toList :::
+        afp_version.map("AFP version: " + _).toList)
+
     val Start = new Regex("""^isabelle_identify: (.+)$""")
     val No_End = new Regex("""$.""")
     val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
@@ -348,8 +358,10 @@ object Build_Log
     val Start = new Regex("""^(?:Started by an SCM change|Started from command line by admin|).*$""")
     val Start_Date = new Regex("""^Build started at (.+)$""")
     val No_End = new Regex("""$.""")
-    val Isabelle_Version = new Regex("""^Isabelle id (\S+)$""")
-    val AFP_Version = new Regex("""^AFP id (\S+)$""")
+    val Isabelle_Version =
+      new Regex("""^(?:Build for Isabelle id |Isabelle id |ISABELLE_CI_REPO_ID=")(\w+).*$""")
+    val AFP_Version =
+      new Regex("""^(?:Build for AFP id |AFP id |ISABELLE_CI_AFP_ID=")(\w+).*$""")
     val CONFIGURATION = "=== CONFIGURATION ==="
     val BUILD = "=== BUILD ==="
   }
@@ -391,7 +403,7 @@ object Build_Log
           log_file.get_all_settings)
 
       case Identify.Start(log_file.Strict_Date(start)) :: _ =>
-        parse(Identify.engine, "", start, Identify.No_End,
+        parse(Identify.engine(log_file), "", start, Identify.No_End,
           Identify.Isabelle_Version, Identify.AFP_Version)
 
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>

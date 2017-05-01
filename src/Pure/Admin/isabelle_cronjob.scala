@@ -48,11 +48,7 @@ object Isabelle_Cronjob
           val afp_rev = Mercurial.setup_repository(afp_source, afp_repos).id()
 
           File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
-            terminate_lines(
-              List("isabelle_identify: " + Build_Log.print_date(logger.start_date),
-                "",
-                "Isabelle version: " + rev,
-                "AFP version: " + afp_rev)))
+            Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
 
           val new_snapshot = release_snapshot.ext("new")
           val old_snapshot = release_snapshot.ext("old")
