@@ -33,7 +33,7 @@ object SQL
   def string(s: String): String =
     "'" + s.map(escape_char(_)).mkString + "'"
 
-  def ident(s: String): String =
+  def identifer(s: String): String =
     Long_Name.implode(Long_Name.explode(s).map(_.replace("\"", "\"\"")))
 
   def enclose(s: String): String = "(" + s + ")"
@@ -106,7 +106,7 @@ object SQL
     def apply(qual: Qualifier): Column =
       Column(Long_Name.qualify(qual.name, name), T, strict = strict, primary_key = primary_key)
 
-    def sql: String = ident(name)
+    def sql: String = identifer(name)
     def sql_decl(sql_type: Type.Value => String): String =
       sql + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
@@ -129,7 +129,7 @@ object SQL
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
 
-    def sql: String = ident(name)
+    def sql: String = identifer(name)
 
     def sql_columns(sql_type: Type.Value => String): String =
     {
@@ -143,32 +143,32 @@ object SQL
 
     def sql_create(strict: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        ident(name) + " " + sql_columns(sql_type)
+        identifer(name) + " " + sql_columns(sql_type)
 
     def sql_drop(strict: Boolean): String =
-      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + ident(name)
+      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + identifer(name)
 
     def sql_create_index(
         index_name: String, index_columns: List[Column],
         strict: Boolean, unique: Boolean): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
-        (if (strict) "" else "IF NOT EXISTS ") + ident(index_name) + " ON " +
-        ident(name) + " " + enclosure(index_columns.map(_.name))
+        (if (strict) "" else "IF NOT EXISTS ") + identifer(index_name) + " ON " +
+        identifer(name) + " " + enclosure(index_columns.map(_.name))
 
     def sql_drop_index(index_name: String, strict: Boolean): String =
-      "DROP INDEX " + (if (strict) "" else "IF EXISTS ") + ident(index_name)
+      "DROP INDEX " + (if (strict) "" else "IF EXISTS ") + identifer(index_name)
 
     def sql_insert: String =
-      "INSERT INTO " + ident(name) + " VALUES " + enclosure(columns.map(_ => "?"))
+      "INSERT INTO " + identifer(name) + " VALUES " + enclosure(columns.map(_ => "?"))
 
     def sql_delete: String =
-      "DELETE FROM " + ident(name)
+      "DELETE FROM " + identifer(name)
 
     def sql_select(select_columns: List[Column], distinct: Boolean = false): String =
-      select(select_columns, distinct = distinct) + ident(name)
+      select(select_columns, distinct = distinct) + identifer(name)
 
     override def toString: String =
-      "TABLE " + ident(name) + " " + sql_columns(sql_type_default)
+      "TABLE " + identifer(name) + " " + sql_columns(sql_type_default)
   }
 
 
@@ -176,10 +176,10 @@ object SQL
 
   sealed case class View(name: String, columns: List[Column]) extends Qualifier
   {
-    def sql: String = ident(name)
-    def sql_create(query: String): String = "CREATE VIEW " + ident(name) + " AS " + query
+    def sql: String = identifer(name)
+    def sql_create(query: String): String = "CREATE VIEW " + identifer(name) + " AS " + query
     override def toString: String =
-      "VIEW " + ident(name) + " " + enclosure(columns.map(_.sql_decl(sql_type_default)))
+      "VIEW " + identifer(name) + " " + enclosure(columns.map(_.sql_decl(sql_type_default)))
   }
 
 
