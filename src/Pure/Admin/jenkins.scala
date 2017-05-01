@@ -39,6 +39,19 @@ object Jenkins
       name <- JSON.string(job, "name")
     } yield name
 
+
+  def download_logs(job_names: List[String], dir: Path)
+  {
+    val store = Sessions.store()
+    for {
+      job_name <- job_names.iterator
+      info <- build_job_infos(job_name).iterator
+    } info.download_log(store, dir)
+  }
+
+
+  /* job info */
+
   sealed case class Job_Info(
     job_name: String,
     timestamp: Long,
@@ -72,6 +85,25 @@ object Jenkins
               log_file.parse_session_info(ml_statistics = true).ml_statistics
             case None => Nil
           }
+      }
+    }
+
+    def download_log(store: Sessions.Store, dir: Path)
+    {
+      val log_dir = dir + Build_Log.log_subdir(date)
+      val log_path = log_dir + log_filename
+
+      if (!log_path.is_file) {
+        val ml_statistics =
+          session_logs.map(_._1).toSet.toList.sorted.flatMap(session_name =>
+            read_ml_statistics(store, session_name).
+              map(props => (Build_Log.SESSION_NAME -> session_name) :: props))
+
+        Isabelle_System.mkdirs(log_dir)
+        File.write_xz(log_path.ext("xz"),
+          terminate_lines(Url.read(main_log) ::
+            ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))),
+          XZ.options(6))
       }
     }
   }
