@@ -823,13 +823,13 @@ object Build_Log
       val (columns, from) =
         if (ml_statistics) {
           val columns = columns1 ::: List(Build_Info.ml_statistics(table2))
-          val from =
-            "(" + table1.sql + " LEFT JOIN " + table2.sql + " ON " +
+          val join =
+            SQL.join_outer(table1, table2,
               Meta_Info.log_name(table1).sql + " = " +
               Meta_Info.log_name(table2).sql + " AND " +
               Build_Info.session_name(table1).sql + " = " +
-              Build_Info.session_name(table2).sql + ")"
-          (columns, from)
+              Build_Info.session_name(table2).sql)
+          (columns, SQL.enclose(join))
         }
         else (columns1, table1.sql)
 

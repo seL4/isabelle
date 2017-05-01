@@ -37,10 +37,18 @@ object SQL
     if (Long_Name.is_qualified(s)) s
     else quote(s.replace("\"", "\"\""))
 
+  def enclose(s: String): String = "(" + s + ")"
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
 
   def select(columns: List[Column], distinct: Boolean = false): String =
     "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.sql)) + " FROM "
+
+  def join(table1: Table, table2: Table, sql: String = "", outer: Boolean = false): String =
+    table1.sql + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2.sql +
+      (if (sql == "") "" else " ON " + sql)
+
+  def join_outer(table1: Table, table2: Table, sql: String = ""): String =
+    join(table1, table2, sql, outer = true)
 
 
   /* types */
