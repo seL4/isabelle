@@ -108,9 +108,9 @@ object SQL
 
     def sql: String = identifer(name)
     def sql_decl(sql_type: Type.Value => String): String =
-      sql + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
+      identifer(name) + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
-    def sql_where_eq: String = "WHERE " + sql + " = "
+    def sql_where_eq: String = "WHERE " + identifer(name) + " = "
     def sql_where_equal(s: String): String = sql_where_eq + string(s)
 
     override def toString: String = sql_decl(sql_type_default)
