@@ -149,7 +149,7 @@ object Isabelle_Cronjob
   {
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
-      Build_Log.Database.update(store, db, database_dirs, ml_statistics = true, full_view = true))
+      Build_Log.Database.update(store, db, database_dirs, ml_statistics = true))
   }
 
 

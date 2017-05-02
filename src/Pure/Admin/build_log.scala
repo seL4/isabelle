@@ -897,7 +897,7 @@ object Build_Log
     /* full view on build_log data */
 
     // WARNING: This may cause performance problems, e.g. with sqlitebrowser
-    val full_view: SQL.Table =
+    val full_table: SQL.Table =
     {
       val columns =
         Meta_Info.table.columns :::
@@ -914,14 +914,32 @@ object Build_Log
     }
 
 
+    /* earliest pull date for repository version */
+
+    val pull_date = SQL.Column.date("pull_date")
+
+    def pull_date_table(column: SQL.Column): SQL.Table =
+      SQL.Table("isabelle_build_log_" + column.name, List(column, pull_date),
+        view = // for PostgreSQL
+          "SELECT " + column.sql + ", min(" + Prop.build_start.sql + ") AS " + pull_date.sql +
+          " FROM " + Meta_Info.table.sql +
+          " WHERE " + column.sql + " IS NOT NULL AND " + Prop.build_start.sql + "IS NOT NULL" +
+          " GROUP BY " + column.sql)
+
+    val isabelle_version_table = pull_date_table(Prop.isabelle_version)
+    val afp_version_table = pull_date_table(Prop.afp_version)
+
+
     /* main operations */
 
-    def update(store: Store, db: SQL.Database, dirs: List[Path],
-      ml_statistics: Boolean = false, full_view: Boolean = false)
+    def update(store: Store, db: SQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
     {
-      val files = Log_File.find_files(dirs)
-      store.write_info(db, files, ml_statistics = ml_statistics)
-      if (full_view) db.create_view(Database.full_view)
+      store.write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
+
+      if (db.isInstanceOf[PostgreSQL.Database]) {
+        List(full_table, isabelle_version_table, afp_version_table)
+          .foreach(db.create_view(_))
+      }
     }
   }
 }
