@@ -687,6 +687,10 @@ object Build_Log
         ssh_close = true)
     }
 
+    def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
+      using(db.select(table, List(column), distinct = true))(stmt =>
+        SQL.iterator(stmt.executeQuery)(db.string(_, column)).toSet)
+
     def update_meta_info(db: SQL.Database, log_file: Log_File)
     {
       val meta_info = log_file.parse_meta_info()
@@ -770,13 +774,9 @@ object Build_Log
     {
       class Table_Status(table: SQL.Table, update_db: (SQL.Database, Log_File) => Unit)
       {
-        private var known: Set[String] =
-        {
-          db.create_table(table)
-          val key = Meta_Info.log_name
-          using(db.select(table, List(key), distinct = true))(
-            stmt => SQL.iterator(stmt.executeQuery)(db.string(_, key)).toSet)
-        }
+        db.create_table(table)
+        private var known: Set[String] = domain(db, table, Meta_Info.log_name)
+
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
         def update(log_file: Log_File)
         {
