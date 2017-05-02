@@ -1969,23 +1969,7 @@ proof (clarify, goal_cases)
       qed auto
     qed
     note p'= tagged_division_ofD[OF p[THEN conjunct1]] and p''=division_of_tagged_division[OF p[THEN conjunct1]]
-    show "norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) - 0) < e"
-      unfolding diff_0_right *
-      unfolding real_scaleR_def real_norm_def
-      apply (subst abs_of_nonneg)
-      apply (rule sum_nonneg)
-      apply rule
-      unfolding split_paired_all split_conv
-      apply (rule mult_nonneg_nonneg)
-      apply (drule p'(4))
-      apply (erule exE)+
-      apply(rule_tac b=b in back_subst)
-      prefer 2
-      apply (subst(asm) eq_commute)
-      apply assumption
-      apply (subst interval_doublesplit[OF k])
-      apply (rule content_pos_le)
-      apply (rule indicator_pos_le)
+    have "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * indicator {x. x \<bullet> k = c} x) < e"
     proof -
       have "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) \<le>
         (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}))"
@@ -2037,9 +2021,12 @@ proof (clarify, goal_cases)
       qed
       finally show "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) < e" .
     qed
+    then show "norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) - 0) < e"
+      unfolding * real_norm_def
+      apply (subst abs_of_nonneg)
+      using measure_nonneg  by (force simp add: indicator_def intro: sum_nonneg)+
   qed
 qed
-
 
 
 subsection \<open>Hence the main theorem about negligible sets.\<close>
@@ -3876,26 +3863,17 @@ proof -
       have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
         by auto
       case 2
-      show ?case
-        apply (rule *)
-        apply (rule sum_nonneg)
-        apply rule
-        apply (unfold split_paired_all split_conv)
-        defer
-        unfolding sum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
-        unfolding sum_distrib_left[symmetric]
-        apply (subst additive_tagged_division_1[OF _ as(1)])
-        apply (rule assms)
+      have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}}" for x k
       proof -
-        fix x k
-        assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}}"
-        note xk=IntD1[OF this]
-        from p(4)[OF this] guess u v by (elim exE) note uv=this
-        with p(2)[OF xk] have "cbox u v \<noteq> {}"
-          by auto
+        obtain u v where uv: "k = cbox u v"
+          by (meson Int_iff xkp p(4))
+        with p(2) that uv have "cbox u v \<noteq> {}"
+          by blast
         then show "0 \<le> e * ((Sup k) - (Inf k))"
           unfolding uv using e by (auto simp add: field_simps)
-      next
+      qed
+      have **: "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b - a) / 2"
+      proof -
         have *: "\<And>s f t e. sum f s = sum f t \<Longrightarrow> norm (sum f t) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
           by auto
         show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
@@ -4122,6 +4100,15 @@ proof -
           qed (insert p(1) ab e, auto simp add: field_simps)
         qed auto
       qed
+      show ?case
+        apply (rule * [OF sum_nonneg])
+        using ge0 apply (force simp add: )
+        unfolding sum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
+        unfolding sum_distrib_left[symmetric]
+        apply (subst additive_tagged_division_1[OF _ as(1)])
+         apply (rule assms)
+        apply (rule **)
+        done
     qed
   qed
 qed

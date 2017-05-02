@@ -281,7 +281,7 @@ next
     also have "... = (\<Sum>i\<in>S. F (r i) - F (l i)) + epsilon"
       by auto
     also have "... \<le> (\<Sum>i\<le>n. F (r i) - F (l i)) + epsilon"
-      using finS Sbound Sprop by (auto intro!: add_right_mono sum_mono3)
+      using finS Sbound Sprop by (auto intro!: add_right_mono sum_mono2)
     finally have "ennreal (F b - F a) \<le> (\<Sum>i\<le>n. ennreal (F (r i) - F (l i))) + epsilon"
       using egt0 by (simp add: ennreal_plus[symmetric] sum_nonneg del: ennreal_plus)
     then show "ennreal (F b - F a) \<le> (\<Sum>i. ennreal (F (r i) - F (l i))) + (epsilon :: real)"

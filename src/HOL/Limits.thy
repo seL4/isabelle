@@ -824,6 +824,10 @@ lemma tendsto_power [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longright
   for f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
   by (induct n) (simp_all add: tendsto_mult)
 
+lemma tendsto_null_power: "\<lbrakk>(f \<longlongrightarrow> 0) F; 0 < n\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ^ n) \<longlongrightarrow> 0) F"
+    for f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra_1}"
+  using tendsto_power [of f 0 F n] by (simp add: power_0_left)
+
 lemma continuous_power [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. (f x)^n)"
   for f :: "'a::t2_space \<Rightarrow> 'b::{power,real_normed_algebra}"
   unfolding continuous_def by (rule tendsto_power)

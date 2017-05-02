@@ -223,7 +223,7 @@ lemma sum_le_suminf:
 lemma suminf_eq_SUP_real:
   assumes X: "summable X" "\<And>i. 0 \<le> X i" shows "suminf X = (SUP i. \<Sum>n<i. X n::real)"
   by (intro LIMSEQ_unique[OF summable_LIMSEQ] X LIMSEQ_incseq_SUP)
-     (auto intro!: bdd_aboveI2[where M="\<Sum>i. X i"] sum_le_suminf X monoI sum_mono3)
+     (auto intro!: bdd_aboveI2[where M="\<Sum>i. X i"] sum_le_suminf X monoI sum_mono2)
 
 subsection \<open>Defining the extended non-negative reals\<close>
 
