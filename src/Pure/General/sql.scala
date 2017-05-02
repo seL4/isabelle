@@ -174,10 +174,11 @@ object SQL
 
   /* views */
 
-  sealed case class View(name: String, columns: List[Column]) extends Qualifier
+  sealed case class View(name: String, columns: List[Column], query: String) extends Qualifier
   {
     def sql: String = identifer(name)
-    def sql_create(query: String): String = "CREATE VIEW " + identifer(name) + " AS " + query
+    def sql_create: String = "CREATE VIEW " + identifer(name) + " AS " + query
+
     override def toString: String =
       "VIEW " + identifer(name) + " " + enclosure(columns.map(_.sql_decl(sql_type_default)))
   }
@@ -329,8 +330,10 @@ object SQL
     def drop_index(table: Table, name: String, strict: Boolean = false): Unit =
       using(statement(table.sql_drop_index(name, strict)))(_.execute())
 
-    def create_view(view: View, query: String): Unit =
-      using(statement(view.sql_create(query)))(_.execute())
+    def create_view(view: View, strict: Boolean = false): Unit =
+      if (strict || !tables.contains(view.name)) {
+        using(statement(view.sql_create))(_.execute())
+      }
   }
 }
 
