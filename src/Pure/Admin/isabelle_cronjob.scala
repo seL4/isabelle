@@ -148,14 +148,8 @@ object Isabelle_Cronjob
   def database_update(options: Options)
   {
     val store = Build_Log.store(options)
-    val files = Build_Log.Log_File.find_files(database_dirs)
-
-    // PostgreSQL server
     using(store.open_database())(db =>
-      {
-        store.write_info(db, files, ml_statistics = true)
-        Build_Log.create_full_view(db)
-      })
+      Build_Log.database_update(store, db, database_dirs, ml_statistics = true, full_view = true))
   }
 
 
