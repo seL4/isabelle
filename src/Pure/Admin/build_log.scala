@@ -533,7 +533,7 @@ object Build_Log
     val Session_Finished2 =
       new Regex("""^Finished (\S+) \((\d+):(\d+):(\d+) elapsed time.*$""")
     val Session_Timing =
-      new Regex("""^Timing (\S+) \((\d) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
+      new Regex("""^Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time.*$""")
     val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
     val Session_Failed = new Regex("""^(\S+) FAILED""")
     val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
