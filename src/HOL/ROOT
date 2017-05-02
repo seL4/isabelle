@@ -71,7 +71,7 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
     Approximations
     Circle_Area
 
-session "HOL-Computational_Algebra" in "Computational_Algebra" = "HOL-Library" +
+session "HOL-Computational_Algebra" (timing) in "Computational_Algebra" = "HOL-Library" +
   theories
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
@@ -562,7 +562,7 @@ session "HOL-Lattice" in Lattice = HOL +
   theories CompleteLattice
   document_files "root.tex"
 
-session "HOL-ex" in ex = "HOL-Library" +
+session "HOL-ex" (timing) in ex = "HOL-Library" +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
