@@ -363,7 +363,8 @@ object Build_Log
     val No_End = new Regex("""$.""")
     val Isabelle_Version =
       List(new Regex("""^(?:Build for Isabelle id|Isabelle id) (\w+).*$"""),
-        new Regex("""^ISABELLE_CI_REPO_ID="(\w+)".*$"""))
+        new Regex("""^ISABELLE_CI_REPO_ID="(\w+)".*$"""),
+        new Regex("""^(\w{12}) tip.*$"""))
     val AFP_Version =
       List(new Regex("""^(?:Build for AFP id|AFP id) (\w+).*$"""),
         new Regex("""^ISABELLE_CI_AFP_ID="(\w+)".*$"""))
