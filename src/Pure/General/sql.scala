@@ -77,11 +77,6 @@ object SQL
 
   /* columns */
 
-  trait Qualifier
-  {
-    def name: String
-  }
-
   object Column
   {
     def bool(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
@@ -103,8 +98,8 @@ object SQL
   sealed case class Column(
     name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false)
   {
-    def apply(qual: Qualifier): Column =
-      Column(Long_Name.qualify(qual.name, name), T, strict = strict, primary_key = primary_key)
+    def apply(table: Table): Column =
+      Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
     def sql: String = identifer(name)
     def sql_decl(sql_type: Type.Value => String): String =
@@ -119,7 +114,7 @@ object SQL
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column]) extends Qualifier
+  sealed case class Table(name: String, columns: List[Column], view: String = "")
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -128,6 +123,8 @@ object SQL
       case Nil =>
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
+
+    def is_view: Boolean = view != ""
 
     def sql: String = identifer(name)
 
@@ -145,18 +142,12 @@ object SQL
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
         identifer(name) + " " + sql_columns(sql_type)
 
-    def sql_drop(strict: Boolean): String =
-      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + identifer(name)
-
     def sql_create_index(
         index_name: String, index_columns: List[Column],
         strict: Boolean, unique: Boolean): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
         (if (strict) "" else "IF NOT EXISTS ") + identifer(index_name) + " ON " +
         identifer(name) + " " + enclosure(index_columns.map(_.name))
-
-    def sql_drop_index(index_name: String, strict: Boolean): String =
-      "DROP INDEX " + (if (strict) "" else "IF EXISTS ") + identifer(index_name)
 
     def sql_insert: String =
       "INSERT INTO " + identifer(name) + " VALUES " + enclosure(columns.map(_ => "?"))
@@ -171,17 +162,6 @@ object SQL
       "TABLE " + identifer(name) + " " + sql_columns(sql_type_default)
   }
 
-
-  /* views */
-
-  sealed case class View(name: String, columns: List[Column], query: String) extends Qualifier
-  {
-    def sql: String = identifer(name)
-    def sql_create: String = "CREATE VIEW " + identifer(name) + " AS " + query
-
-    override def toString: String =
-      "VIEW " + identifer(name) + " " + enclosure(columns.map(_.sql_decl(sql_type_default)))
-  }
 
 
   /** SQL database operations **/
@@ -320,20 +300,18 @@ object SQL
       using(statement(table.sql_create(strict, sql_type) + (if (sql == "") "" else " " + sql)))(
         _.execute())
 
-    def drop_table(table: Table, strict: Boolean = false): Unit =
-      using(statement(table.sql_drop(strict)))(_.execute())
-
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
       using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
 
-    def drop_index(table: Table, name: String, strict: Boolean = false): Unit =
-      using(statement(table.sql_drop_index(name, strict)))(_.execute())
-
-    def create_view(view: View, strict: Boolean = false): Unit =
-      if (strict || !tables.contains(view.name)) {
-        using(statement(view.sql_create))(_.execute())
+    def create_view(table: Table, strict: Boolean = false): Unit =
+    {
+      require(table.is_view)
+      if (strict || !tables.contains(table.name)) {
+        val sql = "CREATE VIEW " + identifer(table.name) + " AS " + table.view
+        using(statement(sql))(_.execute())
       }
+    }
   }
 }
 

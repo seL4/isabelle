@@ -897,17 +897,21 @@ object Build_Log
     /* full view on build_log data */
 
     // WARNING: This may cause performance problems, e.g. with sqlitebrowser
-    val full_view: SQL.View =
-      SQL.View("isabelle_build_log",
+    val full_view: SQL.Table =
+    {
+      val columns =
         Meta_Info.table.columns :::
-          Build_Info.sessions_table.columns.tail.map(_.copy(primary_key = false)),
-        {
-          val table1 = Meta_Info.table
-          val table2 = Build_Info.sessions_table
-          SQL.select(Meta_Info.log_name(table1) :: full_view.columns.tail) +
-          SQL.join(table1, table2,
-            Meta_Info.log_name(table1).sql + " = " + Meta_Info.log_name(table2).sql)
-        })
+          Build_Info.sessions_table.columns.tail.map(_.copy(primary_key = false))
+      SQL.Table("isabelle_build_log", columns,
+        view =
+          {
+            val table1 = Meta_Info.table
+            val table2 = Build_Info.sessions_table
+            SQL.select(Meta_Info.log_name(table1) :: columns.tail) +
+            SQL.join(table1, table2,
+              Meta_Info.log_name(table1).sql + " = " + Meta_Info.log_name(table2).sql)
+          })
+    }
 
 
     /* main operations */
