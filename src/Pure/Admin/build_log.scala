@@ -230,9 +230,13 @@ object Build_Log
     def find_line(marker: String): Option[String] =
       find(Library.try_unprefix(marker, _))
 
-    def find_match(regex: Regex): Option[String] =
-      lines.iterator.map(regex.unapplySeq(_)).find(res => res.isDefined && res.get.length == 1).
-        map(res => res.get.head)
+    def find_match(regexes: List[Regex]): Option[String] =
+      regexes match {
+        case Nil => None
+        case regex :: rest =>
+          lines.iterator.map(regex.unapplySeq(_)).find(res => res.isDefined && res.get.length == 1).
+            map(res => res.get.head) orElse find_match(rest)
+      }
 
 
     /* settings */
@@ -324,8 +328,8 @@ object Build_Log
 
     val Start = new Regex("""^isabelle_identify: (.+)$""")
     val No_End = new Regex("""$.""")
-    val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
-    val AFP_Version = new Regex("""^AFP version: (\S+)$""")
+    val Isabelle_Version = List(new Regex("""^Isabelle version: (\S+)$"""))
+    val AFP_Version = List(new Regex("""^AFP version: (\S+)$"""))
   }
 
   object Isatest
@@ -334,8 +338,7 @@ object Build_Log
     val engine = "isatest"
     val Start = new Regex("""^------------------- starting test --- (.+) --- (.+)$""")
     val End = new Regex("""^------------------- test (?:successful|FAILED) --- (.+) --- .*$""")
-    val Isabelle_Version = new Regex("""^Isabelle version: (\S+)$""")
-    val No_AFP_Version = new Regex("""$.""")
+    val Isabelle_Version = List(new Regex("""^Isabelle version: (\S+)$"""))
   }
 
   object AFP_Test
@@ -345,8 +348,8 @@ object Build_Log
     val Start = new Regex("""^Start test(?: for .+)? at ([^,]+), (.*)$""")
     val Start_Old = new Regex("""^Start test(?: for .+)? at ([^,]+)$""")
     val End = new Regex("""^End test on (.+), .+, elapsed time:.*$""")
-    val Isabelle_Version = new Regex("""^Isabelle version: .* -- hg id (\S+)$""")
-    val AFP_Version = new Regex("""^AFP version: .* -- hg id (\S+)$""")
+    val Isabelle_Version = List(new Regex("""^Isabelle version: .* -- hg id (\S+)$"""))
+    val AFP_Version = List(new Regex("""^AFP version: .* -- hg id (\S+)$"""))
     val Bad_Init = new Regex("""^cp:.*: Disc quota exceeded$""")
   }
 
@@ -359,9 +362,11 @@ object Build_Log
     val Start_Date = new Regex("""^Build started at (.+)$""")
     val No_End = new Regex("""$.""")
     val Isabelle_Version =
-      new Regex("""^(?:Build for Isabelle id |Isabelle id |ISABELLE_CI_REPO_ID=")(\w+).*$""")
+      List(new Regex("""^(?:Build for Isabelle id|Isabelle id) (\w+).*$"""),
+        new Regex("""^ISABELLE_CI_REPO_ID="(\w+)".*$"""))
     val AFP_Version =
-      new Regex("""^(?:Build for AFP id |AFP id |ISABELLE_CI_AFP_ID=")(\w+).*$""")
+      List(new Regex("""^(?:Build for AFP id|AFP id) (\w+).*$"""),
+        new Regex("""^ISABELLE_CI_AFP_ID="(\w+)".*$"""))
     val CONFIGURATION = "=== CONFIGURATION ==="
     val BUILD = "=== BUILD ==="
   }
@@ -369,7 +374,7 @@ object Build_Log
   private def parse_meta_info(log_file: Log_File): Meta_Info =
   {
     def parse(engine: String, host: String, start: Date,
-      End: Regex, Isabelle_Version: Regex, AFP_Version: Regex): Meta_Info =
+      End: Regex, Isabelle_Version: List[Regex], AFP_Version: List[Regex]): Meta_Info =
     {
       val build_id =
       {
@@ -408,7 +413,7 @@ object Build_Log
 
       case Isatest.Start(log_file.Strict_Date(start), host) :: _ =>
         parse(Isatest.engine, host, start, Isatest.End,
-          Isatest.Isabelle_Version, Isatest.No_AFP_Version)
+          Isatest.Isabelle_Version, Nil)
 
       case AFP_Test.Start(log_file.Strict_Date(start), host) :: _ =>
         parse(AFP_Test.engine, host, start, AFP_Test.End,
