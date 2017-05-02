@@ -899,4 +899,15 @@ object Build_Log
           Meta_Info.log_name(table1).sql + " = " + Meta_Info.log_name(table2).sql))
     }
   }
+
+
+  /* main operations */
+
+  def database_update(store: Store, db: SQL.Database, dirs: List[Path],
+    ml_statistics: Boolean = false, full_view: Boolean = false)
+  {
+    val files = Log_File.find_files(dirs)
+    store.write_info(db, files, ml_statistics = ml_statistics)
+    if (full_view) Build_Log.create_full_view(db)
+  }
 }
