@@ -890,35 +890,40 @@ object Build_Log
   }
 
 
-  /* full view on build_log data */
+  /** high-level database structure **/
 
-  // WARNING: This may cause performance problems, e.g. with sqlitebrowser
-
-  val full_view: SQL.View =
-    SQL.View("isabelle_build_log",
-      Meta_Info.table.columns :::
-        Build_Info.sessions_table.columns.tail.map(_.copy(primary_key = false)))
-
-  def create_full_view(db: SQL.Database)
+  object Database
   {
-    if (!db.tables.contains(full_view.name)) {
-      val table1 = Meta_Info.table
-      val table2 = Build_Info.sessions_table
-      db.create_view(full_view,
-        SQL.select(Meta_Info.log_name(table1) :: full_view.columns.tail) +
-        SQL.join(table1, table2,
-          Meta_Info.log_name(table1).sql + " = " + Meta_Info.log_name(table2).sql))
+    /* full view on build_log data */
+
+    // WARNING: This may cause performance problems, e.g. with sqlitebrowser
+
+    val full_view: SQL.View =
+      SQL.View("isabelle_build_log",
+        Meta_Info.table.columns :::
+          Build_Info.sessions_table.columns.tail.map(_.copy(primary_key = false)))
+
+    def create_full_view(db: SQL.Database)
+    {
+      if (!db.tables.contains(full_view.name)) {
+        val table1 = Meta_Info.table
+        val table2 = Build_Info.sessions_table
+        db.create_view(full_view,
+          SQL.select(Meta_Info.log_name(table1) :: full_view.columns.tail) +
+          SQL.join(table1, table2,
+            Meta_Info.log_name(table1).sql + " = " + Meta_Info.log_name(table2).sql))
+      }
     }
-  }
 
 
-  /* main operations */
+    /* main operations */
 
-  def database_update(store: Store, db: SQL.Database, dirs: List[Path],
-    ml_statistics: Boolean = false, full_view: Boolean = false)
-  {
-    val files = Log_File.find_files(dirs)
-    store.write_info(db, files, ml_statistics = ml_statistics)
-    if (full_view) Build_Log.create_full_view(db)
+    def update(store: Store, db: SQL.Database, dirs: List[Path],
+      ml_statistics: Boolean = false, full_view: Boolean = false)
+    {
+      val files = Log_File.find_files(dirs)
+      store.write_info(db, files, ml_statistics = ml_statistics)
+      if (full_view) create_full_view(db)
+    }
   }
 }
