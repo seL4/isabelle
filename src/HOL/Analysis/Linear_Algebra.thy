@@ -1480,12 +1480,6 @@ lemma sum_clauses:
     and "finite S \<Longrightarrow> sum f (insert x S) = (if x \<in> S then sum f S else f x + sum f S)"
   by (auto simp add: insert_absorb)
 
-lemma sum_norm_le:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fg: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> g x"
-  shows "norm (sum f S) \<le> sum g S"
-  by (rule order_trans [OF norm_sum sum_mono]) (simp add: fg)
-
 lemma sum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes K: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> K"

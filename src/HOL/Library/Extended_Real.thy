@@ -3394,7 +3394,7 @@ proof -
     also have "\<dots> = (\<Sum>i\<in>(\<lambda>i. i + k) ` {..<n}. f i)"
       by (subst sum.reindex) auto
     also have "\<dots> \<le> sum f {..<n + k}"
-      by (intro sum_mono3) (auto simp: f)
+      by (intro sum_mono2) (auto simp: f)
     finally show "(\<Sum>i<n. f (i + k)) \<le> sum f {..<n + k}" .
   qed
 qed

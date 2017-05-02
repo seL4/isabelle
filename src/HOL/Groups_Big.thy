@@ -675,7 +675,7 @@ lemma sum_subtractf_nat:
 context ordered_comm_monoid_add
 begin
 
-lemma sum_nonneg: "\<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> 0 \<le> sum f A"
+lemma sum_nonneg: "(\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> 0 \<le> sum f A"
 proof (induct A rule: infinite_finite_induct)
   case infinite
   then show ?case by simp
@@ -688,7 +688,7 @@ next
   with insert show ?case by simp
 qed
 
-lemma sum_nonpos: "\<forall>x\<in>A. f x \<le> 0 \<Longrightarrow> sum f A \<le> 0"
+lemma sum_nonpos: "(\<And>x. x \<in> A \<Longrightarrow> f x \<le> 0) \<Longrightarrow> sum f A \<le> 0"
 proof (induct A rule: infinite_finite_induct)
   case infinite
   then show ?case by simp
@@ -702,7 +702,7 @@ next
 qed
 
 lemma sum_nonneg_eq_0_iff:
-  "finite A \<Longrightarrow> \<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> sum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
+  "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> sum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
   by (induct set: finite) (simp_all add: add_nonneg_eq_0_iff sum_nonneg)
 
 lemma sum_nonneg_0:
@@ -727,7 +727,7 @@ lemma sum_mono2:
   shows "sum f A \<le> sum f B"
 proof -
   have "sum f A \<le> sum f A + sum f (B-A)"
-    by(simp add: add_increasing2[OF sum_nonneg] nn Ball_def)
+    by (auto intro: add_increasing2 [OF sum_nonneg] nn)
   also from fin finite_subset[OF sub fin] have "\<dots> = sum f (A \<union> (B-A))"
     by (simp add: sum.union_disjoint del: Un_Diff_cancel)
   also from sub have "A \<union> (B-A) = B" by blast
@@ -754,9 +754,6 @@ proof -
     using assms by (auto simp: sum_image_gen[symmetric])
   finally show ?thesis .
 qed
-
-lemma sum_mono3: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> \<forall>x\<in>B - A. 0 \<le> f x \<Longrightarrow> sum f A \<le> sum f B"
-  by (rule sum_mono2) auto
 
 end
 
@@ -1210,12 +1207,19 @@ lemma sum_zero_power' [simp]:
   for c :: "nat \<Rightarrow> 'a::field"
   using sum_zero_power [of "\<lambda>i. c i / d i" A] by auto
 
-lemma (in field) prod_inversef:
-  "finite A \<Longrightarrow> prod (inverse \<circ> f) A = inverse (prod f A)"
-  by (induct A rule: finite_induct) simp_all
+lemma (in field) prod_inversef: "prod (inverse \<circ> f) A = inverse (prod f A)"
+ proof (cases "finite A")
+   case True
+   then show ?thesis
+     by (induct A rule: finite_induct) simp_all
+ next
+   case False
+   then show ?thesis
+     by auto
+ qed
 
-lemma (in field) prod_dividef: "finite A \<Longrightarrow> (\<Prod>x\<in>A. f x / g x) = prod f A / prod g A"
-  using prod_inversef [of A g] by (simp add: divide_inverse prod.distrib)
+lemma (in field) prod_dividef: "(\<Prod>x\<in>A. f x / g x) = prod f A / prod g A"
+  using prod_inversef [of g A] by (simp add: divide_inverse prod.distrib)
 
 lemma prod_Un:
   fixes f :: "'b \<Rightarrow> 'a :: field"

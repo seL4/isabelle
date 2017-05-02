@@ -444,7 +444,7 @@ qed
 lemma simple_bochner_integral_nonneg[simp]:
   fixes f :: "'a \<Rightarrow> real"
   shows "(\<And>x. 0 \<le> f x) \<Longrightarrow> 0 \<le> simple_bochner_integral M f"
-  by (simp add: sum_nonneg simple_bochner_integral_def)
+  by (force simp add: simple_bochner_integral_def intro: sum_nonneg)
 
 lemma simple_bochner_integral_eq_nn_integral:
   assumes f: "simple_bochner_integrable M f" "\<And>x. 0 \<le> f x"

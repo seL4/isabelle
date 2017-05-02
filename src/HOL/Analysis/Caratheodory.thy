@@ -30,7 +30,7 @@ proof -
       then have "a < ?M fst" "b < ?M snd"
         by (auto intro!: Max_ge le_imp_less_Suc image_eqI) }
     then have "sum f (prod_decode ` {..<n}) \<le> sum f ({..<?M fst} \<times> {..<?M snd})"
-      by (auto intro!: sum_mono3)
+      by (auto intro!: sum_mono2)
     then show "\<exists>a b. sum f (prod_decode ` {..<n}) \<le> sum f ({..<a} \<times> {..<b})" by auto
   next
     fix a b
@@ -38,7 +38,7 @@ proof -
     { fix a' b' assume "a' < a" "b' < b" then have "(a', b') \<in> ?M"
         by (auto intro!: Max_ge le_imp_less_Suc image_eqI[where x="prod_encode (a', b')"]) }
     then have "sum f ({..<a} \<times> {..<b}) \<le> sum f ?M"
-      by (auto intro!: sum_mono3)
+      by (auto intro!: sum_mono2)
     then show "\<exists>n. sum f ({..<a} \<times> {..<b}) \<le> sum f (prod_decode ` {..<n})"
       by auto
   qed

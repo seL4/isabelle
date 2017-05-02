@@ -197,7 +197,7 @@ proof -
   also have "(\<Sum>k\<in>{0,2*n}. (2*n) choose k) \<le> (\<Sum>k\<le>1. (n choose k)\<^sup>2)"
     by (cases n) simp_all
   also from assms have "\<dots> \<le> (\<Sum>k\<le>n. (n choose k)\<^sup>2)"
-    by (intro sum_mono3) auto
+    by (intro sum_mono2) auto
   also have "\<dots> = (2*n) choose n" by (rule choose_square_sum)
   also have "(\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) \<le> (\<Sum>k\<in>{0<..<2*n}. (2*n) choose n)"
     by (intro sum_mono binomial_maximum')
@@ -1774,13 +1774,13 @@ lemma ln_inj_iff [simp]: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x =
   for x :: real
   by (simp add: order_eq_iff)
 
-lemma ln_add_one_self_le_self [simp]: "0 \<le> x \<Longrightarrow> ln (1 + x) \<le> x"
+lemma ln_add_one_self_le_self: "0 \<le> x \<Longrightarrow> ln (1 + x) \<le> x"
   for x :: real
   by (rule exp_le_cancel_iff [THEN iffD1]) (simp add: exp_ge_add_one_self_aux)
 
 lemma ln_less_self [simp]: "0 < x \<Longrightarrow> ln x < x"
   for x :: real
-  by (rule order_less_le_trans [where y = "ln (1 + x)"]) simp_all
+  by (rule order_less_le_trans [where y = "ln (1 + x)"]) (simp_all add: ln_add_one_self_le_self)
 
 lemma ln_ge_iff: "\<And>x::real. 0 < x \<Longrightarrow> y \<le> ln x \<longleftrightarrow> exp y \<le> x"
   using exp_le_cancel_iff exp_total by force

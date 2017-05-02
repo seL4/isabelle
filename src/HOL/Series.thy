@@ -1062,7 +1062,7 @@ proof -
     have "(\<Sum>i<n. f (g i)) = sum f (g ` {..<n})"
       by (simp add: sum.reindex)
     also have "\<dots> \<le> (\<Sum>i<m. f i)"
-      by (rule sum_mono3) (auto simp add: pos n[rule_format])
+      by (rule sum_mono2) (auto simp add: pos n[rule_format])
     also have "\<dots> \<le> suminf f"
       using \<open>summable f\<close> by (rule sum_le_suminf) (simp add: pos)
     finally show "(\<Sum>i<n. (f \<circ>  g) i) \<le> suminf f"
@@ -1097,7 +1097,7 @@ proof -
     also have "\<dots> = (\<Sum>i\<in>g -` {..<n}. (f \<circ> g) i)"
       by (rule sum.reindex_cong[where l=g])(auto)
     also have "\<dots> \<le> (\<Sum>i<m. (f \<circ> g) i)"
-      by (rule sum_mono3)(auto simp add: pos n)
+      by (rule sum_mono2)(auto simp add: pos n)
     also have "\<dots> \<le> suminf (f \<circ> g)"
       using \<open>summable (f \<circ> g)\<close> by (rule sum_le_suminf) (simp add: pos)
     finally show "sum f {..<n} \<le> suminf (f \<circ> g)" .

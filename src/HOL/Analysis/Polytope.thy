@@ -311,7 +311,7 @@ proof -
     proof (cases "sum c (S - T) = 0")
       case True
       have ci0: "\<And>i. i \<in> (S - T) \<Longrightarrow> c i = 0"
-        using True cge0 by (simp add: \<open>finite S\<close> sum_nonneg_eq_0_iff)
+        using True cge0 fin(2) sum_nonneg_eq_0_iff by auto
       have a0: "a i = 0" if "i \<in> (S - T)" for i
         using ci0 [OF that] u01 a [of i] b [of i] that
         by (simp add: c_def Groups.ordered_comm_monoid_add_class.add_nonneg_eq_0_iff)
@@ -2775,7 +2775,7 @@ proof -
         by (simp add: \<open>0 < e\<close>)
       finally show ?thesis .
     qed
-  qed (auto simp: eq poly aff face  \<open>finite \<F>'\<close>)
+  qed (auto simp: eq poly aff face \<open>finite \<F>'\<close>)
 qed
 
 end

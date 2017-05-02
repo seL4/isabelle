@@ -871,7 +871,7 @@ lemma norm_sum:
 
 lemma sum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
+  assumes fg: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> g x"
   shows "norm (sum f S) \<le> sum g S"
   by (rule order_trans [OF norm_sum sum_mono]) (simp add: fg)
 
