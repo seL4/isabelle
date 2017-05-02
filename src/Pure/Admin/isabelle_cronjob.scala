@@ -32,8 +32,6 @@ object Isabelle_Cronjob
 
   val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
 
-  val build_log_snapshot = Path.explode("~/html-data/build_log.db")
-
 
 
   /** particular tasks **/
@@ -157,13 +155,6 @@ object Isabelle_Cronjob
       {
         store.write_info(db, files, ml_statistics = true)
         Build_Log.create_full_view(db)
-      })
-
-    // SQLite file
-    using(SQLite.open_database(build_log_snapshot))(db =>
-      {
-        store.write_info(db, files)
-        db.rebuild
       })
   }
 
