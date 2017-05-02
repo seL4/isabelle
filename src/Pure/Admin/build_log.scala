@@ -480,9 +480,11 @@ object Build_Log
     val timing_elapsed = SQL.Column.long("timing_elapsed")
     val timing_cpu = SQL.Column.long("timing_cpu")
     val timing_gc = SQL.Column.long("timing_gc")
+    val timing_factor = SQL.Column.double("timing_factor")
     val ml_timing_elapsed = SQL.Column.long("ml_timing_elapsed")
     val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
     val ml_timing_gc = SQL.Column.long("ml_timing_gc")
+    val ml_timing_factor = SQL.Column.double("ml_timing_factor")
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
@@ -490,7 +492,8 @@ object Build_Log
     val sessions_table =
       SQL.Table("isabelle_build_log_sessions",
         List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
-          timing_gc, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, heap_size, status))
+          timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
+          heap_size, status))
     val ml_statistics_table =
       SQL.Table("isabelle_build_log_ml_statistics",
         List(Meta_Info.log_name, session_name, ml_statistics))
@@ -720,11 +723,13 @@ object Build_Log
             db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
             db.set_long(stmt, 7, session.timing.cpu.proper_ms)
             db.set_long(stmt, 8, session.timing.gc.proper_ms)
-            db.set_long(stmt, 9, session.ml_timing.elapsed.proper_ms)
-            db.set_long(stmt, 10, session.ml_timing.cpu.proper_ms)
-            db.set_long(stmt, 11, session.ml_timing.gc.proper_ms)
-            db.set_long(stmt, 12, session.heap_size)
-            db.set_string(stmt, 13, session.status.map(_.toString))
+            db.set_double(stmt, 9, session.timing.factor)
+            db.set_long(stmt, 10, session.ml_timing.elapsed.proper_ms)
+            db.set_long(stmt, 11, session.ml_timing.cpu.proper_ms)
+            db.set_long(stmt, 12, session.ml_timing.gc.proper_ms)
+            db.set_double(stmt, 13, session.ml_timing.factor)
+            db.set_long(stmt, 14, session.heap_size)
+            db.set_string(stmt, 15, session.status.map(_.toString))
             stmt.execute()
           }
         })
