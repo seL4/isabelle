@@ -691,8 +691,7 @@ object Build_Log
     }
 
 
-    /* earliest pull date for repository version */
-    // query expressions for PostgreSQL
+    /* earliest pull date for repository version (PostgreSQL queries) */
 
     val pull_date = SQL.Column.date("pull_date")
 
@@ -713,10 +712,12 @@ object Build_Log
         " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
     }
 
-    def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int): String =
+    def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int,
+      distinct: Boolean = false, pull_date: Boolean = false): String =
     {
       val recent = recent_table(isabelle_pull_date_table, days, "recent")
-      table.select(columns) + " INNER JOIN " + recent.query_alias() +
+      val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
+      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_alias() +
       " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
     }
   }
@@ -756,7 +757,8 @@ object Build_Log
       }
     }
 
-    def snapshot(db: PostgreSQL.Database, sqlite_database: Path, days: Int = 100)
+    def snapshot(db: PostgreSQL.Database, sqlite_database: Path,
+      days: Int = 100, ml_statistics: Boolean = false)
     {
       Isabelle_System.mkdirs(sqlite_database.dir)
       sqlite_database.file.delete
@@ -765,7 +767,28 @@ object Build_Log
       {
         db.transaction {
           db2.transaction {
-            // pull_date tables
+            // main content
+            db2.create_table(Data.meta_info_table)
+            db2.create_table(Data.sessions_table)
+            db2.create_table(Data.ml_statistics_table)
+
+            val recent_log_names =
+              db.using_statement(
+                Data.select_recent(
+                  Data.meta_info_table, List(Data.log_name), days, distinct = true))(
+                    stmt => SQL.iterator(stmt.executeQuery)(db.string(_, Data.log_name)).toList)
+
+            for (log_name <- recent_log_names) {
+              read_meta_info(db, log_name).foreach(meta_info =>
+                update_meta_info(db2, log_name, meta_info))
+
+              update_sessions(db2, log_name, read_build_info(db, log_name))
+
+              if (ml_statistics)
+                update_ml_statistics(db2, log_name, read_build_info(db, log_name))
+            }
+
+            // pull_date
             List(Data.isabelle_pull_date_table, Data.afp_pull_date_table).foreach(table =>
             {
               db2.create_table(table)
@@ -782,6 +805,9 @@ object Build_Log
                 })
               })
             })
+
+            // full view
+            // FIXME db2.create_view(Data.full_table)
           }
         }
       })
@@ -791,14 +817,12 @@ object Build_Log
       db.using_statement(table.select(List(column), distinct = true))(stmt =>
         SQL.iterator(stmt.executeQuery)(db.string(_, column)).toSet)
 
-    def update_meta_info(db: SQL.Database, log_file: Log_File)
+    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info)
     {
-      val meta_info = log_file.parse_meta_info()
       val table = Data.meta_info_table
-
       db.using_statement(db.insert_permissive(table))(stmt =>
       {
-        db.set_string(stmt, 1, log_file.name)
+        db.set_string(stmt, 1, log_name)
         for ((c, i) <- table.columns.tail.zipWithIndex) {
           if (c.T == SQL.Type.Date)
             db.set_date(stmt, i + 2, meta_info.get_date(c))
@@ -809,18 +833,16 @@ object Build_Log
       })
     }
 
-    def update_sessions(db: SQL.Database, log_file: Log_File)
+    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info)
     {
-      val build_info = log_file.parse_build_info()
       val table = Data.sessions_table
-
       db.using_statement(db.insert_permissive(table))(stmt =>
       {
         val entries_iterator =
           if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
           else build_info.sessions.iterator
         for ((session_name, session) <- entries_iterator) {
-          db.set_string(stmt, 1, log_file.name)
+          db.set_string(stmt, 1, log_name)
           db.set_string(stmt, 2, session_name)
           db.set_string(stmt, 3, session.proper_chapter)
           db.set_string(stmt, 4, session.proper_groups)
@@ -840,11 +862,9 @@ object Build_Log
       })
     }
 
-    def update_ml_statistics(db: SQL.Database, log_file: Log_File)
+    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info)
     {
-      val build_info = log_file.parse_build_info(ml_statistics = true)
       val table = Data.ml_statistics_table
-
       db.using_statement(db.insert_permissive(table))(stmt =>
       {
         val ml_stats: List[(String, Option[Bytes])] =
@@ -853,7 +873,7 @@ object Build_Log
             build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
         val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
         for ((session_name, ml_statistics) <- entries) {
-          db.set_string(stmt, 1, log_file.name)
+          db.set_string(stmt, 1, log_name)
           db.set_string(stmt, 2, session_name)
           db.set_bytes(stmt, 3, ml_statistics)
           stmt.execute()
@@ -863,12 +883,14 @@ object Build_Log
 
     def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false)
     {
-      class Table_Status(table: SQL.Table, update_db: (SQL.Database, Log_File) => Unit)
+      abstract class Table_Status(table: SQL.Table)
       {
         db.create_table(table)
         private var known: Set[String] = domain(db, table, Data.log_name)
 
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
+
+        def update_db(db: SQL.Database, log_file: Log_File): Unit
         def update(log_file: Log_File)
         {
           if (!known(log_file.name)) {
@@ -879,11 +901,21 @@ object Build_Log
       }
       val status =
         List(
-          new Table_Status(Data.meta_info_table, update_meta_info _),
-          new Table_Status(Data.sessions_table, update_sessions _),
-          new Table_Status(Data.ml_statistics_table,
-            if (ml_statistics) update_ml_statistics _
-            else (_: SQL.Database, _: Log_File) => ()))
+          new Table_Status(Data.meta_info_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+              update_meta_info(db, log_file.name, log_file.parse_meta_info())
+          },
+          new Table_Status(Data.sessions_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+              update_sessions(db, log_file.name, log_file.parse_build_info())
+          },
+          new Table_Status(Data.ml_statistics_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+            if (ml_statistics) {
+              update_ml_statistics(db, log_file.name,
+                log_file.parse_build_info(ml_statistics = true))
+            }
+          })
 
       for (file_group <- files.filter(file => status.exists(_.required(file))).grouped(100)) {
         val log_files = Par_List.map[JFile, Log_File](Log_File.apply _, file_group)
