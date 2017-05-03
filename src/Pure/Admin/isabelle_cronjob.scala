@@ -30,6 +30,8 @@ object Isabelle_Cronjob
 
   val release_snapshot = Path.explode("~/html-data/release_snapshot")
 
+  val build_log_snapshot = Path.explode("~/html-data/build_log.db")
+
   val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
 
 
@@ -149,7 +151,10 @@ object Isabelle_Cronjob
   {
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
-      store.update_database(db, database_dirs, ml_statistics = true))
+    {
+      store.update_database(db, database_dirs, ml_statistics = true)
+      store.snapshot(db, build_log_snapshot)
+    })
   }
 
 
