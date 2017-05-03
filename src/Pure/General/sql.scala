@@ -106,8 +106,7 @@ object SQL
     def sql_decl(sql_type: Type.Value => String): String =
       ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
-    def sql_where_eq: String = "WHERE " + ident + " = "
-    def sql_where_equal(s: String): String = sql_where_eq + string(s)
+    def where_equal(s: String): String = "WHERE " + ident + " = " + string(s)
 
     override def toString: String = sql_decl(sql_type_default)
   }

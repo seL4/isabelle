@@ -789,7 +789,7 @@ object Build_Log
       val table = Data.meta_info_table
 
       db.transaction {
-        db.using_statement(table.delete(Data.log_name.sql_where_equal(log_file.name)))(_.execute)
+        db.using_statement(table.delete(Data.log_name.where_equal(log_file.name)))(_.execute)
         db.using_statement(table.insert())(stmt =>
         {
           db.set_string(stmt, 1, log_file.name)
@@ -810,7 +810,7 @@ object Build_Log
       val table = Data.sessions_table
 
       db.transaction {
-        db.using_statement(table.delete(Data.log_name.sql_where_equal(log_file.name)))(_.execute)
+        db.using_statement(table.delete(Data.log_name.where_equal(log_file.name)))(_.execute)
         db.using_statement(table.insert())(stmt =>
         {
           val entries_iterator =
@@ -844,7 +844,7 @@ object Build_Log
       val table = Data.ml_statistics_table
 
       db.transaction {
-        db.using_statement(table.delete(Data.log_name.sql_where_equal(log_file.name)))(_.execute)
+        db.using_statement(table.delete(Data.log_name.where_equal(log_file.name)))(_.execute)
         db.using_statement(table.insert())(stmt =>
         {
           val ml_stats: List[(String, Option[Bytes])] =
@@ -896,7 +896,7 @@ object Build_Log
     {
       val table = Data.meta_info_table
       val columns = table.columns.tail
-      db.using_statement(table.select(columns, Data.log_name.sql_where_equal(log_name)))(stmt =>
+      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
@@ -925,7 +925,7 @@ object Build_Log
       val table2 = Data.ml_statistics_table
 
       val where_log_name =
-        Data.log_name(table1).sql_where_equal(log_name) + " AND " +
+        Data.log_name(table1).where_equal(log_name) + " AND " +
           Data.session_name(table1).ident + " <> ''"
       val where =
         if (session_names.isEmpty) where_log_name

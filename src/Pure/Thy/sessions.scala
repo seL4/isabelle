@@ -764,7 +764,7 @@ object Sessions
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
       db.using_statement(Session_Info.table.select(List(column),
-        Session_Info.session_name.sql_where_equal(name)))(stmt =>
+        Session_Info.session_name.where_equal(name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) Bytes.empty else db.bytes(rs, column)
@@ -822,7 +822,7 @@ object Sessions
       db.transaction {
         db.create_table(Session_Info.table)
         db.using_statement(
-          Session_Info.table.delete(Session_Info.session_name.sql_where_equal(name)))(_.execute)
+          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
         db.using_statement(Session_Info.table.insert())(stmt =>
         {
           db.set_string(stmt, 1, name)
@@ -865,7 +865,7 @@ object Sessions
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
       db.using_statement(Session_Info.table.select(Session_Info.build_columns,
-        Session_Info.session_name.sql_where_equal(name)))(stmt =>
+        Session_Info.session_name.where_equal(name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
