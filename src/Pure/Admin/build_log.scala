@@ -637,7 +637,7 @@ object Build_Log
 
   object Data
   {
-    def table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
+    def build_log_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
       SQL.Table("isabelle_build_log_" + name, columns, body)
 
 
@@ -661,16 +661,16 @@ object Build_Log
     val ml_statistics = SQL.Column.bytes("ml_statistics")
 
     val meta_info_table =
-      table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
+      build_log_table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
 
     val sessions_table =
-      table("sessions",
+      build_log_table("sessions",
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
           heap_size, status))
 
     val ml_statistics_table =
-      table("ml_statistics", List(log_name, session_name, ml_statistics))
+      build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
 
 
     /* full view on build_log data */
@@ -692,12 +692,12 @@ object Build_Log
 
 
     /* earliest pull date for repository version */
+    // query expressions for PostgreSQL
 
     val pull_date = SQL.Column.date("pull_date")
 
     def pull_date_table(name: String, version: SQL.Column): SQL.Table =
-      table(name, List(version.copy(primary_key = true), pull_date),
-        // PostgreSQL
+      build_log_table(name, List(version.copy(primary_key = true), pull_date),
         "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
         " FROM " + meta_info_table +
         " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
@@ -706,14 +706,19 @@ object Build_Log
     val isabelle_pull_date_table = pull_date_table("isabelle_pull_date", Prop.isabelle_version)
     val afp_pull_date_table = pull_date_table("afp_pull_date", Prop.afp_version)
 
-    def recent(table: SQL.Table, days: Int): String =
-      table.select(table.columns) +
-      " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'"
+    def recent_table(table: SQL.Table, days: Int, alias: String = ""): SQL.Table =
+    {
+      SQL.Table(if (alias == "") table.name else alias, table.columns,
+        table.select(table.columns) +
+        " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
+    }
 
     def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int): String =
-      table.select(columns) +
-      " INNER JOIN (" + recent(isabelle_pull_date_table, days) + ") AS recent" +
-      " ON " + Prop.isabelle_version(table) + " = recent." + Prop.isabelle_version
+    {
+      val recent = recent_table(isabelle_pull_date_table, days, "recent")
+      table.select(columns) + " INNER JOIN " + recent.query_alias() +
+      " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
+    }
   }
 
 
@@ -766,7 +771,7 @@ object Build_Log
               db2.create_table(table)
               db2.using_statement(table.insert())(stmt2 =>
               {
-                db.using_statement(Data.recent(table, days))(stmt =>
+                db.using_statement(Data.recent_table(table, days).query)(stmt =>
                 {
                   val rs = stmt.executeQuery
                   while (rs.next()) {
