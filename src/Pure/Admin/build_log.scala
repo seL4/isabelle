@@ -810,6 +810,7 @@ object Build_Log
             db2.create_view(Data.full_table)
           }
         }
+        db2.rebuild
       })
     }
 
