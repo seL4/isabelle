@@ -918,16 +918,25 @@ object Build_Log
 
     val pull_date = SQL.Column.date("pull_date")
 
-    def pull_date_table(column: SQL.Column): SQL.Table =
-      SQL.Table("isabelle_build_log_" + column.name, List(column, pull_date),
-        view = // for PostgreSQL
-          "SELECT " + column.sql + ", min(" + Prop.build_start.sql + ") AS " + pull_date.sql +
+    def pull_date_table(name: String, version: SQL.Column): SQL.Table =
+      SQL.Table("isabelle_build_log_" + name, List(version.copy(primary_key = true), pull_date),
+        view = // PostgreSQL
+          "SELECT " + version.sql + ", min(" + Prop.build_start.sql + ") AS " + pull_date.sql +
           " FROM " + Meta_Info.table.sql +
-          " WHERE " + column.sql + " IS NOT NULL AND " + Prop.build_start.sql + "IS NOT NULL" +
-          " GROUP BY " + column.sql)
+          " WHERE " + version.sql + " IS NOT NULL AND" + Prop.build_start.sql + " IS NOT NULL" +
+          " GROUP BY " + version.sql)
 
-    val isabelle_version_table = pull_date_table(Prop.isabelle_version)
-    val afp_version_table = pull_date_table(Prop.afp_version)
+    val isabelle_pull_date_table = pull_date_table("isabelle_pull_date", Prop.isabelle_version)
+    val afp_pull_date_table = pull_date_table("afp_pull_date", Prop.afp_version)
+
+    def recent(table: SQL.Table, days: Int): String =
+      table.sql_select(table.columns) +
+      " WHERE " + pull_date(table).sql + " > now() - INTERVAL '" + days.max(0) + " days'"
+
+    def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int): String =
+      table.sql_select(columns) +
+      " INNER JOIN (" + recent(isabelle_pull_date_table, days) + ") AS recent" +
+      " ON " + Prop.isabelle_version(table).sql + " = recent." + Prop.isabelle_version.sql
 
 
     /* main operations */
@@ -937,9 +946,40 @@ object Build_Log
       store.write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
       if (db.isInstanceOf[PostgreSQL.Database]) {
-        List(full_table, isabelle_version_table, afp_version_table)
+        List(full_table, isabelle_pull_date_table, afp_pull_date_table)
           .foreach(db.create_view(_))
       }
+    }
+
+    def snapshot(store: Store, db: PostgreSQL.Database, sqlite_database: Path, days: Int = 100)
+    {
+      Isabelle_System.mkdirs(sqlite_database.dir)
+      sqlite_database.file.delete
+
+      using(SQLite.open_database(sqlite_database))(db2 =>
+      {
+        db.transaction {
+          db2.transaction {
+            // pull_date tables
+            List(isabelle_pull_date_table, afp_pull_date_table).foreach(table =>
+            {
+              db2.create_table(table)
+              using(db2.insert(table))(stmt2 =>
+              {
+                using(db.statement(recent(table, days)))(stmt =>
+                {
+                  val rs = stmt.executeQuery
+                  while (rs.next()) {
+                    for ((c, i) <- table.columns.zipWithIndex)
+                      db2.set_string(stmt2, i + 1, db.get(rs, c, db.string _))
+                    stmt2.execute
+                  }
+                })
+              })
+            })
+          }
+        }
+      })
     }
   }
 }
