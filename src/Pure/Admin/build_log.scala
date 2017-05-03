@@ -637,6 +637,10 @@ object Build_Log
 
   object Data
   {
+    def table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
+      SQL.Table("isabelle_build_log_" + name, columns, body)
+
+
     /* main content */
 
     val log_name = SQL.Column.string("log_name", primary_key = true)
@@ -657,17 +661,16 @@ object Build_Log
     val ml_statistics = SQL.Column.bytes("ml_statistics")
 
     val meta_info_table =
-      SQL.Table("isabelle_build_log_meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
+      table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
 
     val sessions_table =
-      SQL.Table("isabelle_build_log_sessions",
+      table("sessions",
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
           heap_size, status))
 
     val ml_statistics_table =
-      SQL.Table("isabelle_build_log_ml_statistics",
-        List(log_name, session_name, ml_statistics))
+      table("ml_statistics", List(log_name, session_name, ml_statistics))
 
 
     /* full view on build_log data */
@@ -693,7 +696,7 @@ object Build_Log
     val pull_date = SQL.Column.date("pull_date")
 
     def pull_date_table(name: String, version: SQL.Column): SQL.Table =
-      SQL.Table("isabelle_build_log_" + name, List(version.copy(primary_key = true), pull_date),
+      table(name, List(version.copy(primary_key = true), pull_date),
         // PostgreSQL
         "SELECT " + version.ident + ", min(" + Prop.build_start.ident + ") AS " + pull_date.ident +
         " FROM " + meta_info_table.ident +
