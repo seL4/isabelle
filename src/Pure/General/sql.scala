@@ -290,6 +290,13 @@ object SQL
       val x = f(rs, column)
       if (rs.wasNull) None else Some(x)
     }
+    def get_bool(rs: ResultSet, column: Column): Option[Boolean] = get(rs, column, bool _)
+    def get_int(rs: ResultSet, column: Column): Option[Int] = get(rs, column, int _)
+    def get_long(rs: ResultSet, column: Column): Option[Long] = get(rs, column, long _)
+    def get_double(rs: ResultSet, column: Column): Option[Double] = get(rs, column, double _)
+    def get_string(rs: ResultSet, column: Column): Option[String] = get(rs, column, string _)
+    def get_bytes(rs: ResultSet, column: Column): Option[Bytes] = get(rs, column, bytes _)
+    def get_date(rs: ResultSet, column: Column): Option[Date] = get(rs, column, date _)
 
 
     /* tables and views */

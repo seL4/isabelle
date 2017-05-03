@@ -768,7 +768,7 @@ object Build_Log
                   val rs = stmt.executeQuery
                   while (rs.next()) {
                     for ((c, i) <- table.columns.zipWithIndex)
-                      db2.set_string(stmt2, i + 1, db.get(rs, c, db.string _))
+                      db2.set_string(stmt2, i + 1, db.get_string(rs, c))
                     stmt2.execute
                   }
                 })
@@ -904,9 +904,9 @@ object Build_Log
           val results =
             columns.map(c => c.name ->
               (if (c.T == SQL.Type.Date)
-                db.get(rs, c, db.date _).map(Log_File.Date_Format(_))
+                db.get_date(rs, c).map(Log_File.Date_Format(_))
                else
-                db.get(rs, c, db.string _)))
+                db.get_string(rs, c)))
           val n = Prop.all_props.length
           val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
@@ -958,7 +958,7 @@ object Build_Log
               Session_Entry(
                 chapter = db.string(rs, Data.chapter),
                 groups = split_lines(db.string(rs, Data.groups)),
-                threads = db.get(rs, Data.threads, db.int _),
+                threads = db.get_int(rs, Data.threads),
                 timing =
                   Timing(Time.ms(db.long(rs, Data.timing_elapsed)),
                     Time.ms(db.long(rs, Data.timing_cpu)),
@@ -967,10 +967,8 @@ object Build_Log
                   Timing(Time.ms(db.long(rs, Data.ml_timing_elapsed)),
                     Time.ms(db.long(rs, Data.ml_timing_cpu)),
                     Time.ms(db.long(rs, Data.ml_timing_gc))),
-                heap_size = db.get(rs, Data.heap_size, db.long _),
-                status =
-                  db.get(rs, Data.status, db.string _).
-                    map(Session_Status.withName(_)),
+                heap_size = db.get_long(rs, Data.heap_size),
+                status = db.get_string(rs, Data.status).map(Session_Status.withName(_)),
                 ml_statistics =
                   if (ml_statistics) uncompress_properties(db.bytes(rs, Data.ml_statistics))
                   else Nil)
