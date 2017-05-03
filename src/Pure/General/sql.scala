@@ -428,7 +428,10 @@ object PostgreSQL
       else stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
 
     def date(rs: ResultSet, column: SQL.Column): Date =
-      Date.instant(rs.getObject(column.name, classOf[OffsetDateTime]).toInstant)
+    {
+      val obj = rs.getObject(column.name, classOf[OffsetDateTime])
+      if (obj == null) null else Date.instant(obj.toInstant)
+    }
 
     def insert_permissive(table: SQL.Table, sql: String = ""): String =
       table.insert_cmd("INSERT",
