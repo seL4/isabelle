@@ -115,7 +115,7 @@ object SQL
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column], view: String = "")
+  sealed case class Table(name: String, columns: List[Column], body: String = "")
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -125,9 +125,11 @@ object SQL
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
 
-    def is_view: Boolean = view != ""
-
     def ident: String = SQL.ident(name)
+
+    def expr: String =
+      if (body == "") error("Missing SQL body for table " + quote(name))
+      else SQL.enclose(body)
 
     def sql_columns(sql_type: Type.Value => String): String =
     {
@@ -305,9 +307,8 @@ object SQL
 
     def create_view(table: Table, strict: Boolean = false): Unit =
     {
-      require(table.is_view)
       if (strict || !tables.contains(table.name)) {
-        val sql = "CREATE VIEW " + ident(table.name) + " AS " + table.view
+        val sql = "CREATE VIEW " + table.ident + " AS " + table.expr
         using(statement(sql))(_.execute())
       }
     }

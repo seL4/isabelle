@@ -679,13 +679,12 @@ object Build_Log
         meta_info_table.columns :::
           sessions_table.columns.tail.map(_.copy(primary_key = false))
       SQL.Table("isabelle_build_log", columns,
-        view =
-          {
-            val table1 = meta_info_table
-            val table2 = sessions_table
-            SQL.select(log_name(table1) :: columns.tail) +
-            SQL.join(table1, table2, log_name(table1).ident + " = " + log_name(table2).ident)
-          })
+        {
+          val table1 = meta_info_table
+          val table2 = sessions_table
+          SQL.select(log_name(table1) :: columns.tail) +
+          SQL.join(table1, table2, log_name(table1).ident + " = " + log_name(table2).ident)
+        })
     }
 
 
@@ -695,11 +694,11 @@ object Build_Log
 
     def pull_date_table(name: String, version: SQL.Column): SQL.Table =
       SQL.Table("isabelle_build_log_" + name, List(version.copy(primary_key = true), pull_date),
-        view = // PostgreSQL
-          "SELECT " + version.ident + ", min(" + Prop.build_start.ident + ") AS " + pull_date.ident +
-          " FROM " + meta_info_table.ident +
-          " WHERE " + version.ident + " IS NOT NULL AND" + Prop.build_start.ident + " IS NOT NULL" +
-          " GROUP BY " + version.ident)
+        // PostgreSQL
+        "SELECT " + version.ident + ", min(" + Prop.build_start.ident + ") AS " + pull_date.ident +
+        " FROM " + meta_info_table.ident +
+        " WHERE " + version.ident + " IS NOT NULL AND" + Prop.build_start.ident + " IS NOT NULL" +
+        " GROUP BY " + version.ident)
 
     val isabelle_pull_date_table = pull_date_table("isabelle_pull_date", Prop.isabelle_version)
     val afp_pull_date_table = pull_date_table("afp_pull_date", Prop.afp_version)
