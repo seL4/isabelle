@@ -796,20 +796,17 @@ object Build_Log
       val meta_info = log_file.parse_meta_info()
       val table = Data.meta_info_table
 
-      db.transaction {
-        db.using_statement(table.delete(Data.log_name.where_equal(log_file.name)))(_.execute)
-        db.using_statement(table.insert())(stmt =>
-        {
-          db.set_string(stmt, 1, log_file.name)
-          for ((c, i) <- table.columns.tail.zipWithIndex) {
-            if (c.T == SQL.Type.Date)
-              db.set_date(stmt, i + 2, meta_info.get_date(c))
-            else
-              db.set_string(stmt, i + 2, meta_info.get(c))
-          }
-          stmt.execute()
-        })
-      }
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        db.set_string(stmt, 1, log_file.name)
+        for ((c, i) <- table.columns.tail.zipWithIndex) {
+          if (c.T == SQL.Type.Date)
+            db.set_date(stmt, i + 2, meta_info.get_date(c))
+          else
+            db.set_string(stmt, i + 2, meta_info.get(c))
+        }
+        stmt.execute()
+      })
     }
 
     def update_sessions(db: SQL.Database, log_file: Log_File)
@@ -817,33 +814,30 @@ object Build_Log
       val build_info = log_file.parse_build_info()
       val table = Data.sessions_table
 
-      db.transaction {
-        db.using_statement(table.delete(Data.log_name.where_equal(log_file.name)))(_.execute)
-        db.using_statement(table.insert())(stmt =>
-        {
-          val entries_iterator =
-            if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
-            else build_info.sessions.iterator
-          for ((session_name, session) <- entries_iterator) {
-            db.set_string(stmt, 1, log_file.name)
-            db.set_string(stmt, 2, session_name)
-            db.set_string(stmt, 3, session.proper_chapter)
-            db.set_string(stmt, 4, session.proper_groups)
-            db.set_int(stmt, 5, session.threads)
-            db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-            db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-            db.set_long(stmt, 8, session.timing.gc.proper_ms)
-            db.set_double(stmt, 9, session.timing.factor)
-            db.set_long(stmt, 10, session.ml_timing.elapsed.proper_ms)
-            db.set_long(stmt, 11, session.ml_timing.cpu.proper_ms)
-            db.set_long(stmt, 12, session.ml_timing.gc.proper_ms)
-            db.set_double(stmt, 13, session.ml_timing.factor)
-            db.set_long(stmt, 14, session.heap_size)
-            db.set_string(stmt, 15, session.status.map(_.toString))
-            stmt.execute()
-          }
-        })
-      }
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        val entries_iterator =
+          if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
+          else build_info.sessions.iterator
+        for ((session_name, session) <- entries_iterator) {
+          db.set_string(stmt, 1, log_file.name)
+          db.set_string(stmt, 2, session_name)
+          db.set_string(stmt, 3, session.proper_chapter)
+          db.set_string(stmt, 4, session.proper_groups)
+          db.set_int(stmt, 5, session.threads)
+          db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+          db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+          db.set_long(stmt, 8, session.timing.gc.proper_ms)
+          db.set_double(stmt, 9, session.timing.factor)
+          db.set_long(stmt, 10, session.ml_timing.elapsed.proper_ms)
+          db.set_long(stmt, 11, session.ml_timing.cpu.proper_ms)
+          db.set_long(stmt, 12, session.ml_timing.gc.proper_ms)
+          db.set_double(stmt, 13, session.ml_timing.factor)
+          db.set_long(stmt, 14, session.heap_size)
+          db.set_string(stmt, 15, session.status.map(_.toString))
+          stmt.execute()
+        }
+      })
     }
 
     def update_ml_statistics(db: SQL.Database, log_file: Log_File)
@@ -851,23 +845,20 @@ object Build_Log
       val build_info = log_file.parse_build_info(ml_statistics = true)
       val table = Data.ml_statistics_table
 
-      db.transaction {
-        db.using_statement(table.delete(Data.log_name.where_equal(log_file.name)))(_.execute)
-        db.using_statement(table.insert())(stmt =>
-        {
-          val ml_stats: List[(String, Option[Bytes])] =
-            Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-              { case (a, b) => (a, compress_properties(b.ml_statistics).proper) },
-              build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
-          val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
-          for ((session_name, ml_statistics) <- entries) {
-            db.set_string(stmt, 1, log_file.name)
-            db.set_string(stmt, 2, session_name)
-            db.set_bytes(stmt, 3, ml_statistics)
-            stmt.execute()
-          }
-        })
-      }
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        val ml_stats: List[(String, Option[Bytes])] =
+          Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
+            { case (a, b) => (a, compress_properties(b.ml_statistics).proper) },
+            build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
+        val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
+        for ((session_name, ml_statistics) <- entries) {
+          db.set_string(stmt, 1, log_file.name)
+          db.set_string(stmt, 2, session_name)
+          db.set_bytes(stmt, 3, ml_statistics)
+          stmt.execute()
+        }
+      })
     }
 
     def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false)

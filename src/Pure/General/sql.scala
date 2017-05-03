@@ -150,9 +150,11 @@ object SQL
         (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
         ident + " " + enclosure(index_columns.map(_.name))
 
-    def insert(sql: String = ""): String =
-      "INSERT INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
+    def insert_cmd(cmd: String, sql: String = ""): String =
+      cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
         (if (sql == "") "" else " " + sql)
+
+    def insert(sql: String = ""): String = insert_cmd("INSERT", sql)
 
     def delete(sql: String = ""): String =
       "DELETE FROM " + ident +
@@ -215,6 +217,8 @@ object SQL
 
     def using_statement[A](sql: String)(f: PreparedStatement => A): A =
       using(statement(sql))(f)
+
+    def insert_permissive(table: Table, sql: String = ""): String
 
 
     /* input */
@@ -353,6 +357,9 @@ object SQLite
     def date(rs: ResultSet, column: SQL.Column): Date =
       date_format.parse(string(rs, column))
 
+    def insert_permissive(table: SQL.Table, sql: String = ""): String =
+      table.insert_cmd("INSERT OR IGNORE", sql = sql)
+
     def rebuild { using_statement("VACUUM")(_.execute()) }
   }
 }
@@ -422,6 +429,10 @@ object PostgreSQL
 
     def date(rs: ResultSet, column: SQL.Column): Date =
       Date.instant(rs.getObject(column.name, classOf[OffsetDateTime]).toInstant)
+
+    def insert_permissive(table: SQL.Table, sql: String = ""): String =
+      table.insert_cmd("INSERT",
+        sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
