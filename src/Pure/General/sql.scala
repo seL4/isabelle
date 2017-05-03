@@ -141,23 +141,27 @@ object SQL
       enclosure(columns.map(_.sql_decl(sql_type)) ::: primary_key)
     }
 
-    def sql_create(strict: Boolean, sql_type: Type.Value => String): String =
+    def create(strict: Boolean = false, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
         ident + " " + sql_columns(sql_type)
 
-    def sql_create_index(
-        index_name: String, index_columns: List[Column],
-        strict: Boolean, unique: Boolean): String =
+    def create_index(index_name: String, index_columns: List[Column],
+        strict: Boolean = false, unique: Boolean = false): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
         (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
         ident + " " + enclosure(index_columns.map(_.name))
 
-    def sql_insert: String = "INSERT INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?"))
+    def insert(sql: String = ""): String =
+      "INSERT INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
+        (if (sql == "") "" else " " + sql)
 
-    def sql_delete: String = "DELETE FROM " + ident
+    def delete(sql: String = ""): String =
+      "DELETE FROM " + ident +
+        (if (sql == "") "" else " " + sql)
 
-    def sql_select(select_columns: List[Column], distinct: Boolean = false): String =
-      select(select_columns, distinct = distinct) + ident
+    def select(select_columns: List[Column], sql: String = "", distinct: Boolean = false): String =
+      SQL.select(select_columns, distinct = distinct) + ident +
+        (if (sql == "") "" else " " + sql)
 
     override def toString: String =
       "TABLE " + ident + " " + sql_columns(sql_type_default)
@@ -208,16 +212,11 @@ object SQL
 
     /* statements */
 
-    def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
+    def statement(sql: String): PreparedStatement =
+      connection.prepareStatement(sql)
 
-    def insert(table: Table): PreparedStatement = statement(table.sql_insert)
-
-    def delete(table: Table, sql: String = ""): PreparedStatement =
-      statement(table.sql_delete + (if (sql == "") "" else " " + sql))
-
-    def select(table: Table, columns: List[Column], sql: String = "", distinct: Boolean = false)
-        : PreparedStatement =
-      statement(table.sql_select(columns, distinct = distinct) + (if (sql == "") "" else " " + sql))
+    def using_statement[A](sql: String)(f: PreparedStatement => A): A =
+      using(statement(sql))(f)
 
 
     /* input */
@@ -305,18 +304,18 @@ object SQL
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
 
     def create_table(table: Table, strict: Boolean = false, sql: String = ""): Unit =
-      using(statement(table.sql_create(strict, sql_type) + (if (sql == "") "" else " " + sql)))(
-        _.execute())
+      using_statement(
+        table.create(strict, sql_type) + (if (sql == "") "" else " " + sql))(_.execute())
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
-      using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
+      using_statement(table.create_index(name, columns, strict, unique))(_.execute())
 
     def create_view(table: Table, strict: Boolean = false): Unit =
     {
       if (strict || !tables.contains(table.name)) {
         val sql = "CREATE VIEW " + table.ident + " AS " + table.expr
-        using(statement(sql))(_.execute())
+        using_statement(sql)(_.execute())
       }
     }
   }
@@ -356,7 +355,7 @@ object SQLite
     def date(rs: ResultSet, column: SQL.Column): Date =
       date_format.parse(string(rs, column))
 
-    def rebuild { using(statement("VACUUM"))(_.execute()) }
+    def rebuild { using_statement("VACUUM")(_.execute()) }
   }
 }
 

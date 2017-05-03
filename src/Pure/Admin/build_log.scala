@@ -704,11 +704,11 @@ object Build_Log
     val afp_pull_date_table = pull_date_table("afp_pull_date", Prop.afp_version)
 
     def recent(table: SQL.Table, days: Int): String =
-      table.sql_select(table.columns) +
+      table.select(table.columns) +
       " WHERE " + pull_date(table).ident + " > now() - INTERVAL '" + days.max(0) + " days'"
 
     def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int): String =
-      table.sql_select(columns) +
+      table.select(columns) +
       " INNER JOIN (" + recent(isabelle_pull_date_table, days) + ") AS recent" +
       " ON " + Prop.isabelle_version(table).ident + " = recent." + Prop.isabelle_version.ident
   }
@@ -761,9 +761,9 @@ object Build_Log
             List(Data.isabelle_pull_date_table, Data.afp_pull_date_table).foreach(table =>
             {
               db2.create_table(table)
-              using(db2.insert(table))(stmt2 =>
+              db2.using_statement(table.insert())(stmt2 =>
               {
-                using(db.statement(Data.recent(table, days)))(stmt =>
+                db.using_statement(Data.recent(table, days))(stmt =>
                 {
                   val rs = stmt.executeQuery
                   while (rs.next()) {
@@ -780,7 +780,7 @@ object Build_Log
     }
 
     def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
-      using(db.select(table, List(column), distinct = true))(stmt =>
+      db.using_statement(table.select(List(column), distinct = true))(stmt =>
         SQL.iterator(stmt.executeQuery)(db.string(_, column)).toSet)
 
     def update_meta_info(db: SQL.Database, log_file: Log_File)
@@ -789,8 +789,8 @@ object Build_Log
       val table = Data.meta_info_table
 
       db.transaction {
-        using(db.delete(table, Data.log_name.sql_where_equal(log_file.name)))(_.execute)
-        using(db.insert(table))(stmt =>
+        db.using_statement(table.delete(Data.log_name.sql_where_equal(log_file.name)))(_.execute)
+        db.using_statement(table.insert())(stmt =>
         {
           db.set_string(stmt, 1, log_file.name)
           for ((c, i) <- table.columns.tail.zipWithIndex) {
@@ -810,8 +810,8 @@ object Build_Log
       val table = Data.sessions_table
 
       db.transaction {
-        using(db.delete(table, Data.log_name.sql_where_equal(log_file.name)))(_.execute)
-        using(db.insert(table))(stmt =>
+        db.using_statement(table.delete(Data.log_name.sql_where_equal(log_file.name)))(_.execute)
+        db.using_statement(table.insert())(stmt =>
         {
           val entries_iterator =
             if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
@@ -844,8 +844,8 @@ object Build_Log
       val table = Data.ml_statistics_table
 
       db.transaction {
-        using(db.delete(table, Data.log_name.sql_where_equal(log_file.name)))(_.execute)
-        using(db.insert(table))(stmt =>
+        db.using_statement(table.delete(Data.log_name.sql_where_equal(log_file.name)))(_.execute)
+        db.using_statement(table.insert())(stmt =>
         {
           val ml_stats: List[(String, Option[Bytes])] =
             Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
@@ -896,7 +896,7 @@ object Build_Log
     {
       val table = Data.meta_info_table
       val columns = table.columns.tail
-      using(db.select(table, columns, Data.log_name.sql_where_equal(log_name)))(stmt =>
+      db.using_statement(table.select(columns, Data.log_name.sql_where_equal(log_name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
@@ -949,7 +949,7 @@ object Build_Log
         else (columns1, table1.ident)
 
       val sessions =
-        using(db.statement(SQL.select(columns) + from + " " + where))(stmt =>
+        db.using_statement(SQL.select(columns) + from + " " + where)(stmt =>
         {
           SQL.iterator(stmt.executeQuery)(rs =>
           {
