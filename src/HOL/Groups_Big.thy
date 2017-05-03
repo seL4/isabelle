@@ -1116,6 +1116,41 @@ end
 
 subsubsection \<open>Properties in more restricted classes of structures\<close>
 
+context linordered_nonzero_semiring
+begin
+  
+lemma prod_ge_1: "(\<And>x. x \<in> A \<Longrightarrow> 1 \<le> f x) \<Longrightarrow> 1 \<le> prod f A"
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
+next
+  case empty
+  then show ?case by simp
+next
+  case (insert x F)
+  have "1 * 1 \<le> f x * prod f F"
+    by (rule mult_mono') (use insert in auto)
+  with insert show ?case by simp
+qed
+
+lemma prod_le_1:
+  fixes f :: "'b \<Rightarrow> 'a"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x \<and> f x \<le> 1"
+  shows "prod f A \<le> 1"
+    using assms
+proof (induct A rule: infinite_finite_induct)
+  case infinite
+  then show ?case by simp
+next
+  case empty
+  then show ?case by simp
+next
+  case (insert x F)
+  then show ?case by (force simp: mult.commute intro: dest: mult_le_one)
+qed
+
+end
+
 context comm_semiring_1
 begin
 

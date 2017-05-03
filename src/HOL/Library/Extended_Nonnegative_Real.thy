@@ -181,16 +181,17 @@ proof (intro antisym)
     by (intro cSUP_upper bdd_above_image_mono assms) (auto simp: mono_def)
 qed
 
+(*These generalise their counterparts in Nat.linordered_semidom_class*)
 lemma of_nat_less[simp]:
-  "i < j \<Longrightarrow> of_nat i < (of_nat j::'a::{linordered_nonzero_semiring, semiring_char_0})"
+  "m < n \<Longrightarrow> of_nat m < (of_nat n::'a::{linordered_nonzero_semiring, semiring_char_0})"
   by (auto simp: less_le)
 
 lemma of_nat_le_iff[simp]:
-  "of_nat i \<le> (of_nat j::'a::{linordered_nonzero_semiring, semiring_char_0}) \<longleftrightarrow> i \<le> j"
+  "of_nat m \<le> (of_nat n::'a::{linordered_nonzero_semiring, semiring_char_0}) \<longleftrightarrow> m \<le> n"
 proof (safe intro!: of_nat_mono)
-  assume "of_nat i \<le> (of_nat j::'a)" then show "i \<le> j"
+  assume "of_nat m \<le> (of_nat n::'a)" then show "m \<le> n"
   proof (intro leI notI)
-    assume "j < i" from less_le_trans[OF of_nat_less[OF this] \<open>of_nat i \<le> of_nat j\<close>] show False
+    assume "n < m" from less_le_trans[OF of_nat_less[OF this] \<open>of_nat m \<le> of_nat n\<close>] show False
       by blast
   qed
 qed
