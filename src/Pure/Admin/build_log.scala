@@ -807,7 +807,7 @@ object Build_Log
             })
 
             // full view
-            // FIXME db2.create_view(Data.full_table)
+            db2.create_view(Data.full_table)
           }
         }
       })

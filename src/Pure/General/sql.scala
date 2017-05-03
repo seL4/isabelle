@@ -316,7 +316,7 @@ object SQL
     def create_view(table: Table, strict: Boolean = false): Unit =
     {
       if (strict || !tables.contains(table.name)) {
-        val sql = "CREATE VIEW " + table.ident + " AS " + table.query
+        val sql = "CREATE VIEW " + table.ident + " AS " + { table.query; table.body }
         using_statement(sql)(_.execute())
       }
     }
