@@ -103,12 +103,12 @@ object SQL
 
     def ident: String = SQL.ident(name)
 
-    def sql_decl(sql_type: Type.Value => String): String =
+    def decl(sql_type: Type.Value => String): String =
       ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
     def where_equal(s: String): String = "WHERE " + ident + " = " + string(s)
 
-    override def toString: String = sql_decl(sql_type_default)
+    override def toString: String = ident
   }
 
 
@@ -130,19 +130,16 @@ object SQL
       if (body == "") error("Missing SQL body for table " + quote(name))
       else SQL.enclose(body)
 
-    def sql_columns(sql_type: Type.Value => String): String =
+    def create(strict: Boolean = false, sql_type: Type.Value => String): String =
     {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
           case keys => List("PRIMARY KEY " + enclosure(keys))
         }
-      enclosure(columns.map(_.sql_decl(sql_type)) ::: primary_key)
-    }
-
-    def create(strict: Boolean = false, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        ident + " " + sql_columns(sql_type)
+        ident + " " + enclosure(columns.map(_.decl(sql_type)) ::: primary_key)
+    }
 
     def create_index(index_name: String, index_columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): String =
@@ -162,8 +159,7 @@ object SQL
       SQL.select(select_columns, distinct = distinct) + ident +
         (if (sql == "") "" else " " + sql)
 
-    override def toString: String =
-      "TABLE " + ident + " " + sql_columns(sql_type_default)
+    override def toString: String = ident
   }
 
 
