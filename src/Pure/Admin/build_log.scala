@@ -684,7 +684,7 @@ object Build_Log
             val table1 = meta_info_table
             val table2 = sessions_table
             SQL.select(log_name(table1) :: columns.tail) +
-            SQL.join(table1, table2, log_name(table1).sql + " = " + log_name(table2).sql)
+            SQL.join(table1, table2, log_name(table1).ident + " = " + log_name(table2).ident)
           })
     }
 
@@ -696,22 +696,22 @@ object Build_Log
     def pull_date_table(name: String, version: SQL.Column): SQL.Table =
       SQL.Table("isabelle_build_log_" + name, List(version.copy(primary_key = true), pull_date),
         view = // PostgreSQL
-          "SELECT " + version.sql + ", min(" + Prop.build_start.sql + ") AS " + pull_date.sql +
-          " FROM " + meta_info_table.sql +
-          " WHERE " + version.sql + " IS NOT NULL AND" + Prop.build_start.sql + " IS NOT NULL" +
-          " GROUP BY " + version.sql)
+          "SELECT " + version.ident + ", min(" + Prop.build_start.ident + ") AS " + pull_date.ident +
+          " FROM " + meta_info_table.ident +
+          " WHERE " + version.ident + " IS NOT NULL AND" + Prop.build_start.ident + " IS NOT NULL" +
+          " GROUP BY " + version.ident)
 
     val isabelle_pull_date_table = pull_date_table("isabelle_pull_date", Prop.isabelle_version)
     val afp_pull_date_table = pull_date_table("afp_pull_date", Prop.afp_version)
 
     def recent(table: SQL.Table, days: Int): String =
       table.sql_select(table.columns) +
-      " WHERE " + pull_date(table).sql + " > now() - INTERVAL '" + days.max(0) + " days'"
+      " WHERE " + pull_date(table).ident + " > now() - INTERVAL '" + days.max(0) + " days'"
 
     def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int): String =
       table.sql_select(columns) +
       " INNER JOIN (" + recent(isabelle_pull_date_table, days) + ") AS recent" +
-      " ON " + Prop.isabelle_version(table).sql + " = recent." + Prop.isabelle_version.sql
+      " ON " + Prop.isabelle_version(table).ident + " = recent." + Prop.isabelle_version.ident
   }
 
 
@@ -927,12 +927,12 @@ object Build_Log
 
       val where_log_name =
         Data.log_name(table1).sql_where_equal(log_name) + " AND " +
-          Data.session_name(table1).sql + " <> ''"
+          Data.session_name(table1).ident + " <> ''"
       val where =
         if (session_names.isEmpty) where_log_name
         else
           where_log_name + " AND " +
-          session_names.map(a => Data.session_name(table1).sql + " = " + SQL.string(a)).
+          session_names.map(a => Data.session_name(table1).ident + " = " + SQL.string(a)).
             mkString("(", " OR ", ")")
 
       val columns1 = table1.columns.tail.map(_.apply(table1))
@@ -941,13 +941,13 @@ object Build_Log
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
             SQL.join_outer(table1, table2,
-              Data.log_name(table1).sql + " = " +
-              Data.log_name(table2).sql + " AND " +
-              Data.session_name(table1).sql + " = " +
-              Data.session_name(table2).sql)
+              Data.log_name(table1).ident + " = " +
+              Data.log_name(table2).ident + " AND " +
+              Data.session_name(table1).ident + " = " +
+              Data.session_name(table2).ident)
           (columns, SQL.enclose(join))
         }
-        else (columns1, table1.sql)
+        else (columns1, table1.ident)
 
       val sessions =
         using(db.statement(SQL.select(columns) + from + " " + where))(stmt =>

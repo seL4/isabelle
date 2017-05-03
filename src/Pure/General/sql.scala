@@ -33,17 +33,17 @@ object SQL
   def string(s: String): String =
     "'" + s.map(escape_char(_)).mkString + "'"
 
-  def identifer(s: String): String =
+  def ident(s: String): String =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
 
   def enclose(s: String): String = "(" + s + ")"
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
 
   def select(columns: List[Column], distinct: Boolean = false): String =
-    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.sql)) + " FROM "
+    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.ident)) + " FROM "
 
   def join(table1: Table, table2: Table, sql: String = "", outer: Boolean = false): String =
-    table1.sql + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2.sql +
+    table1.ident + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2.ident +
       (if (sql == "") "" else " ON " + sql)
 
   def join_outer(table1: Table, table2: Table, sql: String = ""): String =
@@ -101,11 +101,12 @@ object SQL
     def apply(table: Table): Column =
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
-    def sql: String = identifer(name)
-    def sql_decl(sql_type: Type.Value => String): String =
-      identifer(name) + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
+    def ident: String = SQL.ident(name)
 
-    def sql_where_eq: String = "WHERE " + identifer(name) + " = "
+    def sql_decl(sql_type: Type.Value => String): String =
+      ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
+
+    def sql_where_eq: String = "WHERE " + ident + " = "
     def sql_where_equal(s: String): String = sql_where_eq + string(s)
 
     override def toString: String = sql_decl(sql_type_default)
@@ -126,7 +127,7 @@ object SQL
 
     def is_view: Boolean = view != ""
 
-    def sql: String = identifer(name)
+    def ident: String = SQL.ident(name)
 
     def sql_columns(sql_type: Type.Value => String): String =
     {
@@ -140,26 +141,24 @@ object SQL
 
     def sql_create(strict: Boolean, sql_type: Type.Value => String): String =
       "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        identifer(name) + " " + sql_columns(sql_type)
+        ident + " " + sql_columns(sql_type)
 
     def sql_create_index(
         index_name: String, index_columns: List[Column],
         strict: Boolean, unique: Boolean): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
-        (if (strict) "" else "IF NOT EXISTS ") + identifer(index_name) + " ON " +
-        identifer(name) + " " + enclosure(index_columns.map(_.name))
+        (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
+        ident + " " + enclosure(index_columns.map(_.name))
 
-    def sql_insert: String =
-      "INSERT INTO " + identifer(name) + " VALUES " + enclosure(columns.map(_ => "?"))
+    def sql_insert: String = "INSERT INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?"))
 
-    def sql_delete: String =
-      "DELETE FROM " + identifer(name)
+    def sql_delete: String = "DELETE FROM " + ident
 
     def sql_select(select_columns: List[Column], distinct: Boolean = false): String =
-      select(select_columns, distinct = distinct) + identifer(name)
+      select(select_columns, distinct = distinct) + ident
 
     override def toString: String =
-      "TABLE " + identifer(name) + " " + sql_columns(sql_type_default)
+      "TABLE " + ident + " " + sql_columns(sql_type_default)
   }
 
 
@@ -308,7 +307,7 @@ object SQL
     {
       require(table.is_view)
       if (strict || !tables.contains(table.name)) {
-        val sql = "CREATE VIEW " + identifer(table.name) + " AS " + table.view
+        val sql = "CREATE VIEW " + ident(table.name) + " AS " + table.view
         using(statement(sql))(_.execute())
       }
     }
