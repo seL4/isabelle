@@ -28,7 +28,9 @@ object Isabelle_Cronjob
   val isabelle_release_source = "http://bitbucket.org/isabelle_project/isabelle-release"
   val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
 
-  val release_snapshot = Path.explode("~/html-data/release_snapshot")
+  val devel_dir = Path.explode("~/html-data/devel")
+  val release_snapshot = devel_dir + Path.explode("release_snapshot")
+  val build_log_snapshot = devel_dir + Path.explode("build_log.db")
 
   val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
 
@@ -149,7 +151,10 @@ object Isabelle_Cronjob
   {
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
-      Build_Log.database_update(store, db, database_dirs, ml_statistics = true, full_view = true))
+    {
+      store.update_database(db, database_dirs, ml_statistics = true)
+      store.snapshot(db, build_log_snapshot)
+    })
   }
 
 

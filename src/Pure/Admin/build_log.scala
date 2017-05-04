@@ -294,10 +294,6 @@ object Build_Log
   object Meta_Info
   {
     val empty: Meta_Info = Meta_Info(Nil, Nil)
-
-    val log_name = SQL.Column.string("log_name", primary_key = true)
-    val table =
-      SQL.Table("isabelle_build_log_meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
   }
 
   sealed case class Meta_Info(props: Properties.T, settings: Settings.T)
@@ -477,34 +473,6 @@ object Build_Log
     def finished: Boolean = status == Some(Session_Status.finished)
   }
 
-  object Build_Info
-  {
-    val session_name = SQL.Column.string("session_name", primary_key = true)
-    val chapter = SQL.Column.string("chapter")
-    val groups = SQL.Column.string("groups")
-    val threads = SQL.Column.int("threads")
-    val timing_elapsed = SQL.Column.long("timing_elapsed")
-    val timing_cpu = SQL.Column.long("timing_cpu")
-    val timing_gc = SQL.Column.long("timing_gc")
-    val timing_factor = SQL.Column.double("timing_factor")
-    val ml_timing_elapsed = SQL.Column.long("ml_timing_elapsed")
-    val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
-    val ml_timing_gc = SQL.Column.long("ml_timing_gc")
-    val ml_timing_factor = SQL.Column.double("ml_timing_factor")
-    val heap_size = SQL.Column.long("heap_size")
-    val status = SQL.Column.string("status")
-    val ml_statistics = SQL.Column.bytes("ml_statistics")
-
-    val sessions_table =
-      SQL.Table("isabelle_build_log_sessions",
-        List(Meta_Info.log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
-          timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
-          heap_size, status))
-    val ml_statistics_table =
-      SQL.Table("isabelle_build_log_ml_statistics",
-        List(Meta_Info.log_name, session_name, ml_statistics))
-  }
-
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
   {
     def session(name: String): Session_Entry = sessions(name)
@@ -665,6 +633,99 @@ object Build_Log
 
   /** persistent store **/
 
+  /* SQL data model */
+
+  object Data
+  {
+    def build_log_table(name: String, columns: List[SQL.Column], body: String = ""): SQL.Table =
+      SQL.Table("isabelle_build_log_" + name, columns, body)
+
+
+    /* main content */
+
+    val log_name = SQL.Column.string("log_name", primary_key = true)
+    val session_name = SQL.Column.string("session_name", primary_key = true)
+    val chapter = SQL.Column.string("chapter")
+    val groups = SQL.Column.string("groups")
+    val threads = SQL.Column.int("threads")
+    val timing_elapsed = SQL.Column.long("timing_elapsed")
+    val timing_cpu = SQL.Column.long("timing_cpu")
+    val timing_gc = SQL.Column.long("timing_gc")
+    val timing_factor = SQL.Column.double("timing_factor")
+    val ml_timing_elapsed = SQL.Column.long("ml_timing_elapsed")
+    val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
+    val ml_timing_gc = SQL.Column.long("ml_timing_gc")
+    val ml_timing_factor = SQL.Column.double("ml_timing_factor")
+    val heap_size = SQL.Column.long("heap_size")
+    val status = SQL.Column.string("status")
+    val ml_statistics = SQL.Column.bytes("ml_statistics")
+
+    val meta_info_table =
+      build_log_table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
+
+    val sessions_table =
+      build_log_table("sessions",
+        List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
+          timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
+          heap_size, status))
+
+    val ml_statistics_table =
+      build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
+
+
+    /* full view on build_log data */
+
+    // WARNING: This may cause performance problems, e.g. with sqlitebrowser
+    val full_table: SQL.Table =
+    {
+      val columns =
+        meta_info_table.columns :::
+          sessions_table.columns.tail.map(_.copy(primary_key = false))
+      SQL.Table("isabelle_build_log", columns,
+        {
+          val table1 = meta_info_table
+          val table2 = sessions_table
+          SQL.select(log_name(table1) :: columns.tail) +
+          SQL.join(table1, table2, log_name(table1) + " = " + log_name(table2))
+        })
+    }
+
+
+    /* earliest pull date for repository version (PostgreSQL queries) */
+
+    val pull_date = SQL.Column.date("pull_date")
+
+    val isabelle_pull_date_table: SQL.Table =
+    {
+      val version = Prop.isabelle_version
+      build_log_table("isabelle_pull_date", List(version.copy(primary_key = true), pull_date),
+        "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
+        " FROM " + meta_info_table +
+        " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
+        " GROUP BY " + version)
+    }
+
+    def recent_table(days: Int): SQL.Table =
+    {
+      val table = isabelle_pull_date_table
+      SQL.Table("recent", table.columns,
+        table.select(table.columns) +
+        " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
+    }
+
+    def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int,
+      distinct: Boolean = false, pull_date: Boolean = false): String =
+    {
+      val recent = recent_table(days)
+      val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
+      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_alias() +
+      " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
+    }
+  }
+
+
+  /* database access */
+
   def store(options: Options): Store = new Store(options)
 
   class Store private[Build_Log](options: Options) extends Properties.Store
@@ -687,97 +748,151 @@ object Build_Log
         ssh_close = true)
     }
 
-    def update_meta_info(db: SQL.Database, log_file: Log_File)
+    def update_database(db: SQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
     {
-      val meta_info = log_file.parse_meta_info()
-      val table = Meta_Info.table
+      write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
-      db.transaction {
-        using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-        using(db.insert(table))(stmt =>
-        {
-          db.set_string(stmt, 1, log_file.name)
-          for ((c, i) <- table.columns.tail.zipWithIndex) {
-            if (c.T == SQL.Type.Date)
-              db.set_date(stmt, i + 2, meta_info.get_date(c))
-            else
-              db.set_string(stmt, i + 2, meta_info.get(c))
+      if (db.isInstanceOf[PostgreSQL.Database]) {
+        List(Data.full_table, Data.isabelle_pull_date_table)
+          .foreach(db.create_view(_))
+      }
+    }
+
+    def snapshot(db: PostgreSQL.Database, sqlite_database: Path,
+      days: Int = 100, ml_statistics: Boolean = false)
+    {
+      Isabelle_System.mkdirs(sqlite_database.dir)
+      sqlite_database.file.delete
+
+      using(SQLite.open_database(sqlite_database))(db2 =>
+      {
+        db.transaction {
+          db2.transaction {
+            // main content
+            db2.create_table(Data.meta_info_table)
+            db2.create_table(Data.sessions_table)
+            db2.create_table(Data.ml_statistics_table)
+
+            val recent_log_names =
+              db.using_statement(
+                Data.select_recent(
+                  Data.meta_info_table, List(Data.log_name), days, distinct = true))(
+                    stmt => SQL.iterator(stmt.executeQuery)(db.string(_, Data.log_name)).toList)
+
+            for (log_name <- recent_log_names) {
+              read_meta_info(db, log_name).foreach(meta_info =>
+                update_meta_info(db2, log_name, meta_info))
+
+              update_sessions(db2, log_name, read_build_info(db, log_name))
+
+              if (ml_statistics)
+                update_ml_statistics(db2, log_name, read_build_info(db, log_name))
+            }
+
+            // pull_date
+            {
+              val table = Data.isabelle_pull_date_table
+              db2.create_table(table)
+              db2.using_statement(table.insert())(stmt2 =>
+              {
+                db.using_statement(Data.recent_table(days).query)(stmt =>
+                {
+                  val rs = stmt.executeQuery
+                  while (rs.next()) {
+                    for ((c, i) <- table.columns.zipWithIndex)
+                      db2.set_string(stmt2, i + 1, db.get_string(rs, c))
+                    stmt2.execute
+                  }
+                })
+              })
+            }
+
+            // full view
+            db2.create_view(Data.full_table)
           }
+        }
+        db2.rebuild
+      })
+    }
+
+    def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
+      db.using_statement(table.select(List(column), distinct = true))(stmt =>
+        SQL.iterator(stmt.executeQuery)(db.string(_, column)).toSet)
+
+    def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info)
+    {
+      val table = Data.meta_info_table
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        db.set_string(stmt, 1, log_name)
+        for ((c, i) <- table.columns.tail.zipWithIndex) {
+          if (c.T == SQL.Type.Date)
+            db.set_date(stmt, i + 2, meta_info.get_date(c))
+          else
+            db.set_string(stmt, i + 2, meta_info.get(c))
+        }
+        stmt.execute()
+      })
+    }
+
+    def update_sessions(db: SQL.Database, log_name: String, build_info: Build_Info)
+    {
+      val table = Data.sessions_table
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        val entries_iterator =
+          if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
+          else build_info.sessions.iterator
+        for ((session_name, session) <- entries_iterator) {
+          db.set_string(stmt, 1, log_name)
+          db.set_string(stmt, 2, session_name)
+          db.set_string(stmt, 3, session.proper_chapter)
+          db.set_string(stmt, 4, session.proper_groups)
+          db.set_int(stmt, 5, session.threads)
+          db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
+          db.set_long(stmt, 7, session.timing.cpu.proper_ms)
+          db.set_long(stmt, 8, session.timing.gc.proper_ms)
+          db.set_double(stmt, 9, session.timing.factor)
+          db.set_long(stmt, 10, session.ml_timing.elapsed.proper_ms)
+          db.set_long(stmt, 11, session.ml_timing.cpu.proper_ms)
+          db.set_long(stmt, 12, session.ml_timing.gc.proper_ms)
+          db.set_double(stmt, 13, session.ml_timing.factor)
+          db.set_long(stmt, 14, session.heap_size)
+          db.set_string(stmt, 15, session.status.map(_.toString))
           stmt.execute()
-        })
-      }
+        }
+      })
     }
 
-    def update_sessions(db: SQL.Database, log_file: Log_File)
+    def update_ml_statistics(db: SQL.Database, log_name: String, build_info: Build_Info)
     {
-      val build_info = log_file.parse_build_info()
-      val table = Build_Info.sessions_table
-
-      db.transaction {
-        using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-        using(db.insert(table))(stmt =>
-        {
-          val entries_iterator =
-            if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
-            else build_info.sessions.iterator
-          for ((session_name, session) <- entries_iterator) {
-            db.set_string(stmt, 1, log_file.name)
-            db.set_string(stmt, 2, session_name)
-            db.set_string(stmt, 3, session.proper_chapter)
-            db.set_string(stmt, 4, session.proper_groups)
-            db.set_int(stmt, 5, session.threads)
-            db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-            db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-            db.set_long(stmt, 8, session.timing.gc.proper_ms)
-            db.set_double(stmt, 9, session.timing.factor)
-            db.set_long(stmt, 10, session.ml_timing.elapsed.proper_ms)
-            db.set_long(stmt, 11, session.ml_timing.cpu.proper_ms)
-            db.set_long(stmt, 12, session.ml_timing.gc.proper_ms)
-            db.set_double(stmt, 13, session.ml_timing.factor)
-            db.set_long(stmt, 14, session.heap_size)
-            db.set_string(stmt, 15, session.status.map(_.toString))
-            stmt.execute()
-          }
-        })
-      }
-    }
-
-    def update_ml_statistics(db: SQL.Database, log_file: Log_File)
-    {
-      val build_info = log_file.parse_build_info(ml_statistics = true)
-      val table = Build_Info.ml_statistics_table
-
-      db.transaction {
-        using(db.delete(table, Meta_Info.log_name.sql_where_equal(log_file.name)))(_.execute)
-        using(db.insert(table))(stmt =>
-        {
-          val ml_stats: List[(String, Option[Bytes])] =
-            Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-              { case (a, b) => (a, compress_properties(b.ml_statistics).proper) },
-              build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
-          val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
-          for ((session_name, ml_statistics) <- entries) {
-            db.set_string(stmt, 1, log_file.name)
-            db.set_string(stmt, 2, session_name)
-            db.set_bytes(stmt, 3, ml_statistics)
-            stmt.execute()
-          }
-        })
-      }
+      val table = Data.ml_statistics_table
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        val ml_stats: List[(String, Option[Bytes])] =
+          Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
+            { case (a, b) => (a, compress_properties(b.ml_statistics).proper) },
+            build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
+        val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
+        for ((session_name, ml_statistics) <- entries) {
+          db.set_string(stmt, 1, log_name)
+          db.set_string(stmt, 2, session_name)
+          db.set_bytes(stmt, 3, ml_statistics)
+          stmt.execute()
+        }
+      })
     }
 
     def write_info(db: SQL.Database, files: List[JFile], ml_statistics: Boolean = false)
     {
-      class Table_Status(table: SQL.Table, update_db: (SQL.Database, Log_File) => Unit)
+      abstract class Table_Status(table: SQL.Table)
       {
-        private var known: Set[String] =
-        {
-          db.create_table(table)
-          val key = Meta_Info.log_name
-          using(db.select(table, List(key), distinct = true))(
-            stmt => SQL.iterator(stmt.executeQuery)(db.string(_, key)).toSet)
-        }
+        db.create_table(table)
+        private var known: Set[String] = domain(db, table, Data.log_name)
+
         def required(file: JFile): Boolean = !known(Log_File.plain_name(file.getName))
+
+        def update_db(db: SQL.Database, log_file: Log_File): Unit
         def update(log_file: Log_File)
         {
           if (!known(log_file.name)) {
@@ -788,11 +903,21 @@ object Build_Log
       }
       val status =
         List(
-          new Table_Status(Meta_Info.table, update_meta_info _),
-          new Table_Status(Build_Info.sessions_table, update_sessions _),
-          new Table_Status(Build_Info.ml_statistics_table,
-            if (ml_statistics) update_ml_statistics _
-            else (_: SQL.Database, _: Log_File) => ()))
+          new Table_Status(Data.meta_info_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+              update_meta_info(db, log_file.name, log_file.parse_meta_info())
+          },
+          new Table_Status(Data.sessions_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+              update_sessions(db, log_file.name, log_file.parse_build_info())
+          },
+          new Table_Status(Data.ml_statistics_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+            if (ml_statistics) {
+              update_ml_statistics(db, log_file.name,
+                log_file.parse_build_info(ml_statistics = true))
+            }
+          })
 
       for (file_group <- files.filter(file => status.exists(_.required(file))).grouped(100)) {
         val log_files = Par_List.map[JFile, Log_File](Log_File.apply _, file_group)
@@ -802,9 +927,9 @@ object Build_Log
 
     def read_meta_info(db: SQL.Database, log_name: String): Option[Meta_Info] =
     {
-      val table = Meta_Info.table
+      val table = Data.meta_info_table
       val columns = table.columns.tail
-      using(db.select(table, columns, Meta_Info.log_name.sql_where_equal(log_name)))(stmt =>
+      db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt =>
       {
         val rs = stmt.executeQuery
         if (!rs.next) None
@@ -812,9 +937,9 @@ object Build_Log
           val results =
             columns.map(c => c.name ->
               (if (c.T == SQL.Type.Date)
-                db.get(rs, c, db.date _).map(Log_File.Date_Format(_))
+                db.get_date(rs, c).map(Log_File.Date_Format(_))
                else
-                db.get(rs, c, db.string _)))
+                db.get_string(rs, c)))
           val n = Prop.all_props.length
           val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
@@ -829,96 +954,59 @@ object Build_Log
       session_names: List[String] = Nil,
       ml_statistics: Boolean = false): Build_Info =
     {
-      val table1 = Build_Info.sessions_table
-      val table2 = Build_Info.ml_statistics_table
+      val table1 = Data.sessions_table
+      val table2 = Data.ml_statistics_table
 
       val where_log_name =
-        Meta_Info.log_name(table1).sql_where_equal(log_name) + " AND " +
-          Build_Info.session_name(table1).sql + " <> ''"
+        Data.log_name(table1).where_equal(log_name) + " AND " +
+        Data.session_name(table1) + " <> ''"
       val where =
         if (session_names.isEmpty) where_log_name
         else
           where_log_name + " AND " +
-          session_names.map(a => Build_Info.session_name(table1).sql + " = " + SQL.string(a)).
+          session_names.map(a => Data.session_name(table1) + " = " + SQL.string(a)).
             mkString("(", " OR ", ")")
 
       val columns1 = table1.columns.tail.map(_.apply(table1))
       val (columns, from) =
         if (ml_statistics) {
-          val columns = columns1 ::: List(Build_Info.ml_statistics(table2))
+          val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
             SQL.join_outer(table1, table2,
-              Meta_Info.log_name(table1).sql + " = " +
-              Meta_Info.log_name(table2).sql + " AND " +
-              Build_Info.session_name(table1).sql + " = " +
-              Build_Info.session_name(table2).sql)
+              Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
+              Data.session_name(table1) + " = " + Data.session_name(table2))
           (columns, SQL.enclose(join))
         }
-        else (columns1, table1.sql)
+        else (columns1, table1.ident)
 
       val sessions =
-        using(db.statement(SQL.select(columns) + from + " " + where))(stmt =>
+        db.using_statement(SQL.select(columns) + from + " " + where)(stmt =>
         {
           SQL.iterator(stmt.executeQuery)(rs =>
           {
-            val session_name = db.string(rs, Build_Info.session_name)
+            val session_name = db.string(rs, Data.session_name)
             val session_entry =
               Session_Entry(
-                chapter = db.string(rs, Build_Info.chapter),
-                groups = split_lines(db.string(rs, Build_Info.groups)),
-                threads = db.get(rs, Build_Info.threads, db.int _),
+                chapter = db.string(rs, Data.chapter),
+                groups = split_lines(db.string(rs, Data.groups)),
+                threads = db.get_int(rs, Data.threads),
                 timing =
-                  Timing(Time.ms(db.long(rs, Build_Info.timing_elapsed)),
-                    Time.ms(db.long(rs, Build_Info.timing_cpu)),
-                    Time.ms(db.long(rs, Build_Info.timing_gc))),
+                  Timing(Time.ms(db.long(rs, Data.timing_elapsed)),
+                    Time.ms(db.long(rs, Data.timing_cpu)),
+                    Time.ms(db.long(rs, Data.timing_gc))),
                 ml_timing =
-                  Timing(Time.ms(db.long(rs, Build_Info.ml_timing_elapsed)),
-                    Time.ms(db.long(rs, Build_Info.ml_timing_cpu)),
-                    Time.ms(db.long(rs, Build_Info.ml_timing_gc))),
-                heap_size = db.get(rs, Build_Info.heap_size, db.long _),
-                status =
-                  db.get(rs, Build_Info.status, db.string _).
-                    map(Session_Status.withName(_)),
+                  Timing(Time.ms(db.long(rs, Data.ml_timing_elapsed)),
+                    Time.ms(db.long(rs, Data.ml_timing_cpu)),
+                    Time.ms(db.long(rs, Data.ml_timing_gc))),
+                heap_size = db.get_long(rs, Data.heap_size),
+                status = db.get_string(rs, Data.status).map(Session_Status.withName(_)),
                 ml_statistics =
-                  if (ml_statistics) uncompress_properties(db.bytes(rs, Build_Info.ml_statistics))
+                  if (ml_statistics) uncompress_properties(db.bytes(rs, Data.ml_statistics))
                   else Nil)
             session_name -> session_entry
           }).toMap
         })
       Build_Info(sessions)
     }
-  }
-
-
-  /* full view on build_log data */
-
-  // WARNING: This may cause performance problems, e.g. with sqlitebrowser
-
-  val full_view: SQL.View =
-    SQL.View("isabelle_build_log",
-      Meta_Info.table.columns :::
-        Build_Info.sessions_table.columns.tail.map(_.copy(primary_key = false)))
-
-  def create_full_view(db: SQL.Database)
-  {
-    if (!db.tables.contains(full_view.name)) {
-      val table1 = Meta_Info.table
-      val table2 = Build_Info.sessions_table
-      db.create_view(full_view,
-        SQL.select(Meta_Info.log_name(table1) :: full_view.columns.tail) +
-        SQL.join(table1, table2,
-          Meta_Info.log_name(table1).sql + " = " + Meta_Info.log_name(table2).sql))
-    }
-  }
-
-
-  /* main operations */
-
-  def database_update(store: Store, db: SQL.Database, dirs: List[Path],
-    ml_statistics: Boolean = false, full_view: Boolean = false)
-  {
-    val files = Log_File.find_files(dirs)
-    store.write_info(db, files, ml_statistics = ml_statistics)
-    if (full_view) Build_Log.create_full_view(db)
   }
 }

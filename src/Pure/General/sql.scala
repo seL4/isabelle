@@ -33,17 +33,17 @@ object SQL
   def string(s: String): String =
     "'" + s.map(escape_char(_)).mkString + "'"
 
-  def identifer(s: String): String =
+  def ident(s: String): String =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
 
   def enclose(s: String): String = "(" + s + ")"
   def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
 
   def select(columns: List[Column], distinct: Boolean = false): String =
-    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.sql)) + " FROM "
+    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.ident)) + " FROM "
 
   def join(table1: Table, table2: Table, sql: String = "", outer: Boolean = false): String =
-    table1.sql + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2.sql +
+    table1.ident + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2.ident +
       (if (sql == "") "" else " ON " + sql)
 
   def join_outer(table1: Table, table2: Table, sql: String = ""): String =
@@ -77,11 +77,6 @@ object SQL
 
   /* columns */
 
-  trait Qualifier
-  {
-    def name: String
-  }
-
   object Column
   {
     def bool(name: String, strict: Boolean = false, primary_key: Boolean = false): Column =
@@ -103,23 +98,23 @@ object SQL
   sealed case class Column(
     name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false)
   {
-    def apply(qual: Qualifier): Column =
-      Column(Long_Name.qualify(qual.name, name), T, strict = strict, primary_key = primary_key)
+    def apply(table: Table): Column =
+      Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
-    def sql: String = identifer(name)
-    def sql_decl(sql_type: Type.Value => String): String =
-      identifer(name) + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
+    def ident: String = SQL.ident(name)
 
-    def sql_where_eq: String = "WHERE " + identifer(name) + " = "
-    def sql_where_equal(s: String): String = sql_where_eq + string(s)
+    def decl(sql_type: Type.Value => String): String =
+      ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
-    override def toString: String = sql_decl(sql_type_default)
+    def where_equal(s: String): String = "WHERE " + ident + " = " + string(s)
+
+    override def toString: String = ident
   }
 
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column]) extends Qualifier
+  sealed case class Table(name: String, columns: List[Column], body: String = "")
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -129,58 +124,49 @@ object SQL
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
 
-    def sql: String = identifer(name)
+    def ident: String = SQL.ident(name)
 
-    def sql_columns(sql_type: Type.Value => String): String =
+    def query: String =
+      if (body == "") error("Missing SQL body for table " + quote(name))
+      else SQL.enclose(body)
+
+    def query_alias(alias: String = name): String =
+      query + " AS " + SQL.ident(alias)
+
+    def create(strict: Boolean = false, sql_type: Type.Value => String): String =
     {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
           case Nil => Nil
           case keys => List("PRIMARY KEY " + enclosure(keys))
         }
-      enclosure(columns.map(_.sql_decl(sql_type)) ::: primary_key)
+      "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
+        ident + " " + enclosure(columns.map(_.decl(sql_type)) ::: primary_key)
     }
 
-    def sql_create(strict: Boolean, sql_type: Type.Value => String): String =
-      "CREATE TABLE " + (if (strict) "" else "IF NOT EXISTS ") +
-        identifer(name) + " " + sql_columns(sql_type)
-
-    def sql_drop(strict: Boolean): String =
-      "DROP TABLE " + (if (strict) "" else "IF EXISTS ") + identifer(name)
-
-    def sql_create_index(
-        index_name: String, index_columns: List[Column],
-        strict: Boolean, unique: Boolean): String =
+    def create_index(index_name: String, index_columns: List[Column],
+        strict: Boolean = false, unique: Boolean = false): String =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
-        (if (strict) "" else "IF NOT EXISTS ") + identifer(index_name) + " ON " +
-        identifer(name) + " " + enclosure(index_columns.map(_.name))
+        (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
+        ident + " " + enclosure(index_columns.map(_.name))
 
-    def sql_drop_index(index_name: String, strict: Boolean): String =
-      "DROP INDEX " + (if (strict) "" else "IF EXISTS ") + identifer(index_name)
+    def insert_cmd(cmd: String, sql: String = ""): String =
+      cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
+        (if (sql == "") "" else " " + sql)
 
-    def sql_insert: String =
-      "INSERT INTO " + identifer(name) + " VALUES " + enclosure(columns.map(_ => "?"))
+    def insert(sql: String = ""): String = insert_cmd("INSERT", sql)
 
-    def sql_delete: String =
-      "DELETE FROM " + identifer(name)
+    def delete(sql: String = ""): String =
+      "DELETE FROM " + ident +
+        (if (sql == "") "" else " " + sql)
 
-    def sql_select(select_columns: List[Column], distinct: Boolean = false): String =
-      select(select_columns, distinct = distinct) + identifer(name)
+    def select(select_columns: List[Column], sql: String = "", distinct: Boolean = false): String =
+      SQL.select(select_columns, distinct = distinct) + ident +
+        (if (sql == "") "" else " " + sql)
 
-    override def toString: String =
-      "TABLE " + identifer(name) + " " + sql_columns(sql_type_default)
+    override def toString: String = ident
   }
 
-
-  /* views */
-
-  sealed case class View(name: String, columns: List[Column]) extends Qualifier
-  {
-    def sql: String = identifer(name)
-    def sql_create(query: String): String = "CREATE VIEW " + identifer(name) + " AS " + query
-    override def toString: String =
-      "VIEW " + identifer(name) + " " + enclosure(columns.map(_.sql_decl(sql_type_default)))
-  }
 
 
   /** SQL database operations **/
@@ -226,16 +212,13 @@ object SQL
 
     /* statements */
 
-    def statement(sql: String): PreparedStatement = connection.prepareStatement(sql)
+    def statement(sql: String): PreparedStatement =
+      connection.prepareStatement(sql)
 
-    def insert(table: Table): PreparedStatement = statement(table.sql_insert)
+    def using_statement[A](sql: String)(f: PreparedStatement => A): A =
+      using(statement(sql))(f)
 
-    def delete(table: Table, sql: String = ""): PreparedStatement =
-      statement(table.sql_delete + (if (sql == "") "" else " " + sql))
-
-    def select(table: Table, columns: List[Column], sql: String = "", distinct: Boolean = false)
-        : PreparedStatement =
-      statement(table.sql_select(columns, distinct = distinct) + (if (sql == "") "" else " " + sql))
+    def insert_permissive(table: Table, sql: String = ""): String
 
 
     /* input */
@@ -308,6 +291,13 @@ object SQL
       val x = f(rs, column)
       if (rs.wasNull) None else Some(x)
     }
+    def get_bool(rs: ResultSet, column: Column): Option[Boolean] = get(rs, column, bool _)
+    def get_int(rs: ResultSet, column: Column): Option[Int] = get(rs, column, int _)
+    def get_long(rs: ResultSet, column: Column): Option[Long] = get(rs, column, long _)
+    def get_double(rs: ResultSet, column: Column): Option[Double] = get(rs, column, double _)
+    def get_string(rs: ResultSet, column: Column): Option[String] = get(rs, column, string _)
+    def get_bytes(rs: ResultSet, column: Column): Option[Bytes] = get(rs, column, bytes _)
+    def get_date(rs: ResultSet, column: Column): Option[Date] = get(rs, column, date _)
 
 
     /* tables and views */
@@ -316,21 +306,20 @@ object SQL
       iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
 
     def create_table(table: Table, strict: Boolean = false, sql: String = ""): Unit =
-      using(statement(table.sql_create(strict, sql_type) + (if (sql == "") "" else " " + sql)))(
-        _.execute())
-
-    def drop_table(table: Table, strict: Boolean = false): Unit =
-      using(statement(table.sql_drop(strict)))(_.execute())
+      using_statement(
+        table.create(strict, sql_type) + (if (sql == "") "" else " " + sql))(_.execute())
 
     def create_index(table: Table, name: String, columns: List[Column],
         strict: Boolean = false, unique: Boolean = false): Unit =
-      using(statement(table.sql_create_index(name, columns, strict, unique)))(_.execute())
+      using_statement(table.create_index(name, columns, strict, unique))(_.execute())
 
-    def drop_index(table: Table, name: String, strict: Boolean = false): Unit =
-      using(statement(table.sql_drop_index(name, strict)))(_.execute())
-
-    def create_view(view: View, query: String): Unit =
-      using(statement(view.sql_create(query)))(_.execute())
+    def create_view(table: Table, strict: Boolean = false): Unit =
+    {
+      if (strict || !tables.contains(table.name)) {
+        val sql = "CREATE VIEW " + table.ident + " AS " + { table.query; table.body }
+        using_statement(sql)(_.execute())
+      }
+    }
   }
 }
 
@@ -368,7 +357,10 @@ object SQLite
     def date(rs: ResultSet, column: SQL.Column): Date =
       date_format.parse(string(rs, column))
 
-    def rebuild { using(statement("VACUUM"))(_.execute()) }
+    def insert_permissive(table: SQL.Table, sql: String = ""): String =
+      table.insert_cmd("INSERT OR IGNORE", sql = sql)
+
+    def rebuild { using_statement("VACUUM")(_.execute()) }
   }
 }
 
@@ -436,7 +428,14 @@ object PostgreSQL
       else stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
 
     def date(rs: ResultSet, column: SQL.Column): Date =
-      Date.instant(rs.getObject(column.name, classOf[OffsetDateTime]).toInstant)
+    {
+      val obj = rs.getObject(column.name, classOf[OffsetDateTime])
+      if (obj == null) null else Date.instant(obj.toInstant)
+    }
+
+    def insert_permissive(table: SQL.Table, sql: String = ""): String =
+      table.insert_cmd("INSERT",
+        sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
 
     override def close() { super.close; port_forwarding.foreach(_.close) }
   }
