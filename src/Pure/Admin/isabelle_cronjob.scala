@@ -153,7 +153,7 @@ object Isabelle_Cronjob
     using(store.open_database())(db =>
     {
       store.update_database(db, database_dirs, ml_statistics = true)
-      store.snapshot(db, build_log_snapshot)
+      store.snapshot_database(db, build_log_snapshot)
     })
   }
 

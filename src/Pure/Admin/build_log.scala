@@ -675,7 +675,6 @@ object Build_Log
 
     /* full view on build_log data */
 
-    // WARNING: This may cause performance problems, e.g. with sqlitebrowser
     val full_table: SQL.Table =
     {
       val columns = meta_info_table.columns ::: sessions_table.columns.tail
@@ -746,17 +745,15 @@ object Build_Log
         ssh_close = true)
     }
 
-    def update_database(db: SQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
+    def update_database(db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
     {
       write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
-      if (db.isInstanceOf[PostgreSQL.Database]) {
-        List(Data.full_table, Data.pull_date_table)
-          .foreach(db.create_view(_))
-      }
+      db.create_view(Data.full_table)
+      db.create_view(Data.pull_date_table)
     }
 
-    def snapshot(db: PostgreSQL.Database, sqlite_database: Path,
+    def snapshot_database(db: PostgreSQL.Database, sqlite_database: Path,
       days: Int = 100, ml_statistics: Boolean = false)
     {
       Isabelle_System.mkdirs(sqlite_database.dir)
