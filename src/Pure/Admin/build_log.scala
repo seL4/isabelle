@@ -695,19 +695,20 @@ object Build_Log
 
     val pull_date = SQL.Column.date("pull_date")
 
-    def pull_date_table(name: String, version: SQL.Column): SQL.Table =
-      build_log_table(name, List(version.copy(primary_key = true), pull_date),
+    val isabelle_pull_date_table: SQL.Table =
+    {
+      val version = Prop.isabelle_version
+      build_log_table("isabelle_pull_date", List(version.copy(primary_key = true), pull_date),
         "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
         " FROM " + meta_info_table +
         " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
         " GROUP BY " + version)
+    }
 
-    val isabelle_pull_date_table = pull_date_table("isabelle_pull_date", Prop.isabelle_version)
-    val afp_pull_date_table = pull_date_table("afp_pull_date", Prop.afp_version)
-
-    def recent_table(table: SQL.Table, days: Int, alias: String = ""): SQL.Table =
+    def recent_table(days: Int): SQL.Table =
     {
-      SQL.Table(if (alias == "") table.name else alias, table.columns,
+      val table = isabelle_pull_date_table
+      SQL.Table("recent", table.columns,
         table.select(table.columns) +
         " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
     }
@@ -715,7 +716,7 @@ object Build_Log
     def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int,
       distinct: Boolean = false, pull_date: Boolean = false): String =
     {
-      val recent = recent_table(isabelle_pull_date_table, days, "recent")
+      val recent = recent_table(days)
       val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
       table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_alias() +
       " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
@@ -752,7 +753,7 @@ object Build_Log
       write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
       if (db.isInstanceOf[PostgreSQL.Database]) {
-        List(Data.full_table, Data.isabelle_pull_date_table, Data.afp_pull_date_table)
+        List(Data.full_table, Data.isabelle_pull_date_table)
           .foreach(db.create_view(_))
       }
     }
@@ -789,12 +790,12 @@ object Build_Log
             }
 
             // pull_date
-            List(Data.isabelle_pull_date_table, Data.afp_pull_date_table).foreach(table =>
             {
+              val table = Data.isabelle_pull_date_table
               db2.create_table(table)
               db2.using_statement(table.insert())(stmt2 =>
               {
-                db.using_statement(Data.recent_table(table, days).query)(stmt =>
+                db.using_statement(Data.recent_table(days).query)(stmt =>
                 {
                   val rs = stmt.executeQuery
                   while (rs.next()) {
@@ -804,7 +805,7 @@ object Build_Log
                   }
                 })
               })
-            })
+            }
 
             // full view
             db2.create_view(Data.full_table)
