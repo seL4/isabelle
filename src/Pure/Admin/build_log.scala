@@ -678,9 +678,7 @@ object Build_Log
     // WARNING: This may cause performance problems, e.g. with sqlitebrowser
     val full_table: SQL.Table =
     {
-      val columns =
-        meta_info_table.columns :::
-          sessions_table.columns.tail.map(_.copy(primary_key = false))
+      val columns = meta_info_table.columns ::: sessions_table.columns.tail
       SQL.Table("isabelle_build_log", columns,
         {
           val table1 = meta_info_table
