@@ -28,9 +28,9 @@ object Isabelle_Cronjob
   val isabelle_release_source = "http://bitbucket.org/isabelle_project/isabelle-release"
   val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
 
-  val release_snapshot = Path.explode("~/html-data/release_snapshot")
-
-  val build_log_snapshot = Path.explode("~/html-data/build_log.db")
+  val devel_dir = Path.explode("~/html-data/devel")
+  val release_snapshot = devel_dir + Path.explode("release_snapshot")
+  val build_log_snapshot = devel_dir + Path.explode("build_log.db")
 
   val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
 
