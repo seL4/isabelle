@@ -19,5 +19,4 @@ package object isabelle
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
   val proper_string = Library.proper_string _
-  val proper_string_default = Library.proper_string_default _
 }

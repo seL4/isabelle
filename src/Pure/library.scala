@@ -147,9 +147,6 @@ object Library
   def proper_string(s: String): Option[String] =
     if (s == "") None else Some(s)
 
-  def proper_string_default(s: String, default: => String): String =
-    if (s == "") default else s
-
 
   /* quote */
 
