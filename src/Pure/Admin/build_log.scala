@@ -693,10 +693,10 @@ object Build_Log
 
     val pull_date = SQL.Column.date("pull_date")
 
-    val isabelle_pull_date_table: SQL.Table =
+    val pull_date_table: SQL.Table =
     {
       val version = Prop.isabelle_version
-      build_log_table("isabelle_pull_date", List(version.copy(primary_key = true), pull_date),
+      build_log_table("pull_date", List(version.copy(primary_key = true), pull_date),
         "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
         " FROM " + meta_info_table +
         " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
@@ -705,7 +705,7 @@ object Build_Log
 
     def recent_table(days: Int): SQL.Table =
     {
-      val table = isabelle_pull_date_table
+      val table = pull_date_table
       SQL.Table("recent", table.columns,
         table.select(table.columns) +
         " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
@@ -751,7 +751,7 @@ object Build_Log
       write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
       if (db.isInstanceOf[PostgreSQL.Database]) {
-        List(Data.full_table, Data.isabelle_pull_date_table)
+        List(Data.full_table, Data.pull_date_table)
           .foreach(db.create_view(_))
       }
     }
@@ -789,7 +789,7 @@ object Build_Log
 
             // pull_date
             {
-              val table = Data.isabelle_pull_date_table
+              val table = Data.pull_date_table
               db2.create_table(table)
               db2.using_statement(table.insert())(stmt2 =>
               {
