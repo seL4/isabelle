@@ -375,8 +375,8 @@ object Build_Log
     {
       val build_id =
       {
-        val prefix = if (host != "") host else if (engine != "") engine else ""
-        (if (prefix == "") "build" else prefix) + ":" + start.time.ms
+        val prefix = proper_string(host) orElse proper_string(engine) getOrElse "build"
+        prefix + ":" + start.time.ms
       }
       val build_engine = if (engine == "") Nil else List(Prop.build_engine.name -> engine)
       val build_host = if (host == "") Nil else List(Prop.build_host.name -> host)
