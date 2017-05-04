@@ -120,13 +120,11 @@ object Exn
     if (exn.getClass == classOf[RuntimeException] ||
         exn.getClass == classOf[User_Error])
     {
-      val msg = exn.getMessage
-      Some(if (msg == null || msg == "") "Error" else msg)
+      Some(proper_string(exn.getMessage) getOrElse "Error")
     }
     else if (exn.isInstanceOf[java.sql.SQLException])
     {
-      val msg = exn.getMessage
-      Some(if (msg == null || msg == "") "SQL error" else msg)
+      Some(proper_string(exn.getMessage) getOrElse "SQL error")
     }
     else if (exn.isInstanceOf[java.io.IOException])
     {
