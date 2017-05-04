@@ -139,11 +139,8 @@ object Isabelle_System
     env.getOrElse(name, "")
 
   def getenv_strict(name: String, env: Map[String, String] = settings()): String =
-  {
-    val value = getenv(name, env)
-    if (value != "") value
-    else error("Undefined Isabelle environment variable: " + quote(name))
-  }
+    proper_string(getenv(name, env)) getOrElse
+      error("Undefined Isabelle environment variable: " + quote(name))
 
   def cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
 

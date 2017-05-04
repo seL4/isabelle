@@ -387,9 +387,9 @@ object PostgreSQL
 
     if (user == "") error("Undefined database user")
 
-    val db_host = if (host != "") host else "localhost"
+    val db_host = proper_string(host) getOrElse "localhost"
     val db_port = if (port > 0 && port != default_port) ":" + port else ""
-    val db_name = "/" + (if (database != "") database else user)
+    val db_name = "/" + (proper_string(database) getOrElse user)
 
     val (url, name, port_forwarding) =
       ssh match {

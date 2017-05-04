@@ -15,7 +15,7 @@ object Command_Span
   sealed abstract class Kind {
     override def toString: String =
       this match {
-        case Command_Span(name, _) => if (name != "") name else "<command>"
+        case Command_Span(name, _) => proper_string(name) getOrElse "<command>"
         case Ignored_Span => "<ignored>"
         case Malformed_Span => "<malformed>"
       }

@@ -77,7 +77,8 @@ object SSH
     def open_session(host: String, user: String = "", port: Int = 0): Session =
     {
       val session =
-        jsch.getSession(if (user == "") null else user, host, if (port > 0) port else default_port)
+        jsch.getSession(proper_string(user) getOrElse null, host,
+          if (port > 0) port else default_port)
 
       session.setUserInfo(No_User_Info)
       session.setServerAliveInterval(alive_interval(options))
