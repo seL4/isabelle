@@ -709,14 +709,16 @@ lemma e_approx_32: "\<bar>exp(1) - 5837465777 / 2147483648\<bar> \<le> (inverse(
   apply (simp only: pos_le_divide_eq [symmetric], linarith)
   done
 
-text\<open>An odd contrast with the much more easily proved @{thm exp_le}\<close>
-lemma e_less_3: "exp 1 < (3::real)"
+lemma e_less_272: "exp 1 < (272/100::real)"
   using e_approx_32
   by (simp add: abs_if split: if_split_asm)
 
-lemma ln3_gt_1: "ln 3 > (1::real)"
-  by (metis e_less_3 exp_less_cancel_iff exp_ln_iff less_trans ln_exp)
+lemma ln_272_gt_1: "ln (272/100) > (1::real)"
+  by (metis e_less_272 exp_less_cancel_iff exp_ln_iff less_trans ln_exp)
 
+text\<open>Apparently redundant. But many arguments involve integers.\<close>
+lemma ln3_gt_1: "ln 3 > (1::real)"
+  by (simp add: less_trans [OF ln_272_gt_1])
 
 subsection\<open>The argument of a complex number\<close>
 
@@ -1071,6 +1073,9 @@ corollary Im_Ln_of_real [simp]: "r > 0 \<Longrightarrow> Im (ln (of_real r)) = 0
 lemma cmod_Ln_Reals [simp]: "z \<in> \<real> \<Longrightarrow> 0 < Re z \<Longrightarrow> cmod (ln z) = norm (ln (Re z))"
   using Ln_of_real by force
 
+lemma Ln_Reals_eq: "\<lbrakk>x \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> ln x = of_real (ln (Re x))"
+  using Ln_of_real by force
+
 lemma Ln_1 [simp]: "ln 1 = (0::complex)"
 proof -
   have "ln (exp 0) = (0::complex)"
@@ -1185,6 +1190,28 @@ lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarro
 lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on s"
   by (simp add: field_differentiable_within_Ln holomorphic_on_def)
 
+lemma divide_ln_mono:
+  fixes x y::real
+  assumes "3 \<le> x" "x \<le> y"
+  shows "x / ln x \<le> y / ln y"
+proof (rule exE [OF complex_mvt_line [of x y "\<lambda>z. z / Ln z" "\<lambda>z. 1/(Ln z) - 1/(Ln z)^2"]];
+    clarsimp simp add: closed_segment_Reals closed_segment_eq_real_ivl assms)
+  show "\<And>u. \<lbrakk>x \<le> u; u \<le> y\<rbrakk> \<Longrightarrow> ((\<lambda>z. z / Ln z) has_field_derivative 1 / Ln u - 1 / (Ln u)\<^sup>2) (at u)"
+    using \<open>3 \<le> x\<close> apply -
+    apply (rule derivative_eq_intros | simp)+
+    apply (force simp: field_simps power_eq_if)
+    done
+  show "x / ln x \<le> y / ln y"
+    if "Re (y / Ln y) - Re (x / Ln x) = (Re (1 / Ln u) - Re (1 / (Ln u)\<^sup>2)) * (y - x)"
+    and x: "x \<le> u" "u \<le> y" for u
+  proof -
+    have eq: "y / ln y = (1 / ln u - 1 / (ln u)\<^sup>2) * (y - x) + x / ln x"
+      using that \<open>3 \<le> x\<close> by (auto simp: Ln_Reals_eq in_Reals_norm group_add_class.diff_eq_eq)
+    show ?thesis
+      using exp_le \<open>3 \<le> x\<close> x by (simp add: eq) (simp add: power_eq_if divide_simps ln_ge_iff)
+  qed
+qed
+    
 
 subsection\<open>Quadrant-type results for Ln\<close>
 
@@ -1717,6 +1744,9 @@ lemma powr_of_real:
   shows "0 \<le> x \<Longrightarrow> of_real x powr (of_real y::complex) = of_real (x powr y)"
   by (simp_all add: powr_def exp_eq_polar)
 
+lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
+  by (metis linear not_le of_real_Re powr_of_real)
+
 lemma norm_powr_real_mono:
     "\<lbrakk>w \<in> \<real>; 1 < Re w\<rbrakk>
      \<Longrightarrow> cmod(w powr z1) \<le> cmod(w powr z2) \<longleftrightarrow> Re z1 \<le> Re z2"
@@ -1726,6 +1756,15 @@ lemma powr_times_real:
     "\<lbrakk>x \<in> \<real>; y \<in> \<real>; 0 \<le> Re x; 0 \<le> Re y\<rbrakk>
            \<Longrightarrow> (x * y) powr z = x powr z * y powr z"
   by (auto simp: Reals_def powr_def Ln_times exp_add algebra_simps less_eq_real_def Ln_of_real)
+
+lemma Re_powr_le: "r \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> Re (r powr z) \<le> Re r powr Re z"
+  by (auto simp: powr_def nonneg_Reals_def order_trans [OF complex_Re_le_cmod])
+
+lemma
+  fixes w::complex
+  shows Reals_powr [simp]: "\<lbrakk>w \<in> \<real>\<^sub>\<ge>\<^sub>0; z \<in> \<real>\<rbrakk> \<Longrightarrow> w powr z \<in> \<real>"
+  and nonneg_Reals_powr [simp]: "\<lbrakk>w \<in> \<real>\<^sub>\<ge>\<^sub>0; z \<in> \<real>\<rbrakk> \<Longrightarrow> w powr z \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (auto simp: nonneg_Reals_def Reals_def powr_of_real)
 
 lemma powr_neg_real_complex:
   shows   "(- of_real x) powr a = (-1) powr (of_real (sgn x) * a) * of_real x powr (a :: complex)"
@@ -1938,12 +1977,6 @@ qed
 lemma lim_Ln_over_n: "((\<lambda>n. Ln(of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
   using lim_Ln_over_power [of 1] by simp
 
-lemma Ln_Reals_eq: "\<lbrakk>x \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> Ln x = of_real (ln (Re x))"
-  using Ln_of_real by force
-
-lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
-  by (metis linear not_le of_real_Re powr_of_real)
-
 lemma lim_ln_over_power:
   fixes s :: real
   assumes "0 < s"
@@ -1965,8 +1998,8 @@ lemma lim_1_over_complex_power:
     shows "((\<lambda>n. 1 / (of_nat n powr s)) \<longlongrightarrow> 0) sequentially"
 proof -
   have "\<forall>n>0. 3 \<le> n \<longrightarrow> 1 \<le> ln (real_of_nat n)"
-    using ln3_gt_1
-    by (force intro: order_trans [of _ "ln 3"] ln3_gt_1)
+    using ln_272_gt_1
+    by (force intro: order_trans [of _ "ln (272/100)"])
   moreover have "(\<lambda>n. cmod (Ln (of_nat n) / of_nat n powr s)) \<longlonglongrightarrow> 0"
     using lim_Ln_over_power [OF assms]
     by (metis tendsto_norm_zero_iff)
@@ -2017,6 +2050,42 @@ lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) \<longlongrightarrow>
   apply (simp add: lim_sequentially dist_norm)
   apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
+
+lemma lim_ln1_over_ln: "(\<lambda>n. ln(Suc n) / ln n) \<longlonglongrightarrow> 1"
+proof (rule Lim_transform_eventually)
+  have "(\<lambda>n. ln(1 + 1/n) / ln n) \<longlonglongrightarrow> 0"
+  proof (rule Lim_transform_bound)
+    show "(inverse o real) \<longlonglongrightarrow> 0"
+      by (metis comp_def seq_harmonic tendsto_explicit)
+    show "\<forall>\<^sub>F n in sequentially. norm (ln (1 + 1 / n) / ln n) \<le> norm ((inverse \<circ> real) n)"
+    proof
+      fix n::nat
+      assume n: "3 \<le> n"
+      then have "ln 3 \<le> ln n" and ln0: "0 \<le> ln n"
+        by auto
+      with ln3_gt_1 have "1/ ln n \<le> 1"
+        by (simp add: divide_simps)
+      moreover have "ln (1 + 1 / real n) \<le> 1/n"
+        by (simp add: ln_add_one_self_le_self)
+      ultimately have "ln (1 + 1 / real n) * (1 / ln n) \<le> (1/n) * 1"
+        by (intro mult_mono) (use n in auto)
+      then show "norm (ln (1 + 1 / n) / ln n) \<le> norm ((inverse \<circ> real) n)"
+        by (simp add: field_simps ln0)
+      qed
+  qed
+  then show "(\<lambda>n. 1 + ln(1 + 1/n) / ln n) \<longlonglongrightarrow> 1"
+    by (metis (full_types) add.right_neutral tendsto_add_const_iff)
+  show "\<forall>\<^sub>F k in sequentially. 1 + ln (1 + 1 / k) / ln k = ln(Suc k) / ln k"
+    by (simp add: divide_simps ln_div eventually_sequentiallyI [of 2])
+qed
+
+lemma lim_ln_over_ln1: "(\<lambda>n. ln n / ln(Suc n)) \<longlonglongrightarrow> 1"
+proof -
+  have "(\<lambda>n. inverse (ln(Suc n) / ln n)) \<longlonglongrightarrow> inverse 1"
+    by (rule tendsto_inverse [OF lim_ln1_over_ln]) auto
+  then show ?thesis
+    by simp
+qed
 
 
 subsection\<open>Relation between Square Root and exp/ln, hence its derivative\<close>
