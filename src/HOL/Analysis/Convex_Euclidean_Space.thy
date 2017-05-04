@@ -7273,6 +7273,28 @@ lemma open_segment_translation:
     "open_segment (c + a) (c + b) = image (\<lambda>x. c + x) (open_segment a b)"
 by (simp add: open_segment_def closed_segment_translation translation_diff)
 
+lemma closed_segment_of_real:
+    "closed_segment (of_real x) (of_real y) = of_real ` closed_segment x y"
+  apply (auto simp: image_iff in_segment scaleR_conv_of_real)
+    apply (rule_tac x="(1-u)*x + u*y" in bexI)
+  apply (auto simp: in_segment)
+  done
+
+lemma open_segment_of_real:
+    "open_segment (of_real x) (of_real y) = of_real ` open_segment x y"
+  apply (auto simp: image_iff in_segment scaleR_conv_of_real)
+    apply (rule_tac x="(1-u)*x + u*y" in bexI)
+  apply (auto simp: in_segment)
+  done
+
+lemma closed_segment_Reals:
+    "\<lbrakk>x \<in> Reals; y \<in> Reals\<rbrakk> \<Longrightarrow> closed_segment x y = of_real ` closed_segment (Re x) (Re y)"
+  by (metis closed_segment_of_real of_real_Re)
+
+lemma open_segment_Reals:
+    "\<lbrakk>x \<in> Reals; y \<in> Reals\<rbrakk> \<Longrightarrow> open_segment x y = of_real ` open_segment (Re x) (Re y)"
+  by (metis open_segment_of_real of_real_Re)
+
 lemma open_segment_PairD:
     "(x, x') \<in> open_segment (a, a') (b, b')
      \<Longrightarrow> (x \<in> open_segment a b \<or> a = b) \<and> (x' \<in> open_segment a' b' \<or> a' = b')"
