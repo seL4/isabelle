@@ -31,7 +31,7 @@ definition residue_ring :: "int \<Rightarrow> int ring"
 where
   "residue_ring m =
     \<lparr>carrier = {0..m - 1},
-     mult = \<lambda>x y. (x * y) mod m,
+     monoid.mult = \<lambda>x y. (x * y) mod m,
      one = 1,
      zero = 0,
      add = \<lambda>x y. (x + y) mod m\<rparr>"
@@ -247,18 +247,22 @@ subsection \<open>Euler's theorem\<close>
 
 lemma (in residues) totient_eq:
   "totient (nat m) = card (Units R)"
+  thm R_def
 proof -
   have *: "inj_on nat (Units R)"
     by (rule inj_onI) (auto simp add: res_units_eq)
-  have "totatives (nat m) = nat ` Units R"
-    by (auto simp add: res_units_eq totatives_def transfer_nat_int_gcd(1))
-      (smt One_nat_def image_def mem_Collect_eq nat_0 nat_eq_iff nat_less_iff of_nat_1 transfer_int_nat_gcd(1))
+  define m' where "m' = nat m"
+  from m_gt_one have m: "m = int m'" "m' > 1" by (simp_all add: m'_def)
+  from m have "x \<in> Units R \<longleftrightarrow> x \<in> int ` totatives m'" for x
+    unfolding res_units_eq
+    by (cases x; cases "x = m") (auto simp: totatives_def transfer_int_nat_gcd)
+  hence "Units R = int ` totatives m'" by blast
+  hence "totatives m' = nat ` Units R" by (simp add: image_image)
   then have "card (totatives (nat m)) = card (nat ` Units R)"
-    by simp
+    by (simp add: m'_def)
   also have "\<dots> = card (Units R)"
     using * card_image [of nat "Units R"] by auto
-  finally show ?thesis
-    by simp
+  finally show ?thesis by (simp add: totient_def)
 qed
 
 lemma (in residues_prime) totient_eq: "totient p = p - 1"
@@ -298,7 +302,7 @@ proof -
   then have "[a ^ totient p = 1] (mod p)"
      by (rule euler_theorem)
   also have "totient p = p - 1"
-    by (rule prime_totient) (rule assms)
+    by (rule totient_prime) (rule assms)
   finally show ?thesis .
 qed
 

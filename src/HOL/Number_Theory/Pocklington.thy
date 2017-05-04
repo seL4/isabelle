@@ -144,7 +144,7 @@ lemma lucas_weak:
   assumes n: "n \<ge> 2" and an: "[a ^ (n - 1) = 1] (mod n)"
   and nm: "\<forall>m. 0 < m \<and> m < n - 1 \<longrightarrow> \<not> [a ^ m = 1] (mod n)"
   shows "prime n"
-using \<open>n \<ge> 2\<close> proof (rule totient_prime)
+proof (rule totient_imp_prime)
   show "totient n = n - 1"
   proof (rule ccontr)
     have "[a ^ totient n = 1] (mod n)"
@@ -152,11 +152,11 @@ using \<open>n \<ge> 2\<close> proof (rule totient_prime)
         (use n an in auto)
     moreover assume "totient n \<noteq> n - 1"
     then have "totient n > 0 \<and> totient n < n - 1"
-      using \<open>n \<ge> 2\<close> by (simp add: order_less_le)
+      using \<open>n \<ge> 2\<close> and totient_less[of n] by simp
     ultimately show False
       using nm by auto
   qed
-qed
+qed (insert n, auto)
 
 lemma nat_exists_least_iff: "(\<exists>(n::nat). P n) \<longleftrightarrow> (\<exists>n. P n \<and> (\<forall>m < n. \<not> P m))"
   by (metis ex_least_nat_le not_less0)
@@ -527,7 +527,7 @@ proof -
       by auto}
   hence d1: "d = 1" by blast
   hence o: "ord p (a^r) = q" using d by simp
-  from pp prime_totient [of p]
+  from pp totient_prime [of p]
   have totient_eq: "totient p = p - 1" by simp
   {fix d assume d: "d dvd p" "d dvd a" "d \<noteq> 1"
     from pp[unfolded prime_nat_iff] d have dp: "d = p" by blast
