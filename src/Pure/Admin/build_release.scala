@@ -55,7 +55,7 @@ object Build_Release
     val release_info =
     {
       val date = Date.now()
-      val name = if (release_name != "") release_name else "Isabelle_" + Date.Format.date(date)
+      val name = proper_string_default(release_name, "Isabelle_" + Date.Format.date(date))
       val dist_dir = base_dir + Path.explode("dist-" + name)
       val dist_archive = dist_dir + Path.explode(name + ".tar.gz")
       val dist_library_archive = dist_dir + Path.explode(name + "_library.tar.gz")
