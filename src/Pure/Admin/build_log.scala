@@ -673,32 +673,14 @@ object Build_Log
       build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
 
 
-    /* full view on build_log data */
-
-    // WARNING: This may cause performance problems, e.g. with sqlitebrowser
-    val full_table: SQL.Table =
-    {
-      val columns =
-        meta_info_table.columns :::
-          sessions_table.columns.tail.map(_.copy(primary_key = false))
-      SQL.Table("isabelle_build_log", columns,
-        {
-          val table1 = meta_info_table
-          val table2 = sessions_table
-          SQL.select(log_name(table1) :: columns.tail) +
-          SQL.join(table1, table2, log_name(table1) + " = " + log_name(table2))
-        })
-    }
-
-
     /* earliest pull date for repository version (PostgreSQL queries) */
 
     val pull_date = SQL.Column.date("pull_date")
 
-    val isabelle_pull_date_table: SQL.Table =
+    val pull_date_table: SQL.Table =
     {
       val version = Prop.isabelle_version
-      build_log_table("isabelle_pull_date", List(version.copy(primary_key = true), pull_date),
+      build_log_table("pull_date", List(version.copy(primary_key = true), pull_date),
         "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
         " FROM " + meta_info_table +
         " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
@@ -707,7 +689,7 @@ object Build_Log
 
     def recent_table(days: Int): SQL.Table =
     {
-      val table = isabelle_pull_date_table
+      val table = pull_date_table
       SQL.Table("recent", table.columns,
         table.select(table.columns) +
         " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
@@ -720,6 +702,29 @@ object Build_Log
       val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
       table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_alias() +
       " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
+    }
+
+
+    /* universal view on main data */
+
+    val universal_table: SQL.Table =
+    {
+      val table1 = meta_info_table
+      val table2 = pull_date_table
+      val table3 = sessions_table
+
+      val aux_columns = log_name :: pull_date :: meta_info_table.columns.tail
+      val aux_table = SQL.Table("aux", aux_columns,
+        SQL.select(aux_columns.take(2) ::: aux_columns.drop(2). map(_.apply(table1))) +
+          table1 + " LEFT OUTER JOIN " + table2 + " ON " +
+          Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
+
+      val columns = aux_columns ::: sessions_table.columns.tail
+      SQL.Table("isabelle_build_log", columns,
+        {
+          SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_alias() +
+          " INNER JOIN " + table3 + " ON " + log_name(aux_table) + " = " + log_name(table3)
+        })
     }
   }
 
@@ -748,17 +753,15 @@ object Build_Log
         ssh_close = true)
     }
 
-    def update_database(db: SQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
+    def update_database(db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
     {
       write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
-      if (db.isInstanceOf[PostgreSQL.Database]) {
-        List(Data.full_table, Data.isabelle_pull_date_table)
-          .foreach(db.create_view(_))
-      }
+      db.create_view(Data.pull_date_table)
+      db.create_view(Data.universal_table)
     }
 
-    def snapshot(db: PostgreSQL.Database, sqlite_database: Path,
+    def snapshot_database(db: PostgreSQL.Database, sqlite_database: Path,
       days: Int = 100, ml_statistics: Boolean = false)
     {
       Isabelle_System.mkdirs(sqlite_database.dir)
@@ -791,7 +794,7 @@ object Build_Log
 
             // pull_date
             {
-              val table = Data.isabelle_pull_date_table
+              val table = Data.pull_date_table
               db2.create_table(table)
               db2.using_statement(table.insert())(stmt2 =>
               {
@@ -808,7 +811,7 @@ object Build_Log
             }
 
             // full view
-            db2.create_view(Data.full_table)
+            db2.create_view(Data.universal_table)
           }
         }
         db2.rebuild
