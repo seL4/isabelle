@@ -97,13 +97,12 @@ object Isabelle_Cronjob
     detect: SQL.Source = "")
   {
     def sql: SQL.Source =
-      SQL.enclose(
-        Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
-        Build_Log.Prop.build_host + " = " + SQL.string(host)) +
-        (if (detect == "") "" else " AND " + SQL.enclose(detect))
+      Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
+      Build_Log.Prop.build_host + " = " + SQL.string(host) +
+      (if (detect == "") "" else " AND " + SQL.enclose(detect))
   }
 
-  val remote_builds =
+  val remote_builds: List[List[Remote_Build]] =
   {
     List(
       List(Remote_Build("polyml-test", "lxbroy8",
