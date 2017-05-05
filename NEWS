@@ -82,7 +82,8 @@ INCOMPATIBILITY.
 
 * Theory Totient in session Number_Theory introduces basic notions
 about Euler's totient function previously hidden as solitary example
-in theory Residues.  Minor INCOMPATIBILITY.
+in theory Residues. Definition changed so that "totient 1 = 1" in
+agreement with the literature.  Minor INCOMPATIBILITY.
 
 * Session "Computional_Algebra" covers many previously scattered
 theories, notably Euclidean_Algorithm, Factorial_Ring, Formal_Power_Series,
