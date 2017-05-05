@@ -87,29 +87,52 @@ object Isabelle_Cronjob
   /* remote build_history */
 
   sealed case class Remote_Build(
+    name: String,
     host: String,
     user: String = "",
     port: Int = 0,
     shared_home: Boolean = true,
     options: String = "",
-    args: String = "")
+    args: String = "",
+    detect: SQL.Source = "")
+  {
+    def sql: SQL.Source =
+      SQL.enclose(
+        Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
+        Build_Log.Prop.build_host + " = " + SQL.string(host)) +
+        (if (detect == "") "" else " AND " + SQL.enclose(detect))
+  }
 
-  private val remote_builds =
+  val remote_builds =
+  {
     List(
-      List(Remote_Build("lxbroy8",
+      List(Remote_Build("polyml-test", "lxbroy8",
         options = "-m32 -B -M1x2,2 -t polyml-test -e 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
-        args = "-N -g timing")),
-      List(Remote_Build("lxbroy9", options = "-m32 -B -M1x2,2", args = "-N -g timing")),
-      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
+        args = "-N -g timing",
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test"))),
+      List(Remote_Build("linux1", "lxbroy9",
+        options = "-m32 -B -M1x2,2", args = "-N -g timing")),
+      List(Remote_Build("linux2", "lxbroy10",
+        options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
-        Remote_Build("macbroy2", options = "-m32 -M8", args = "-a"),
-        Remote_Build("macbroy2", options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty"),
-        Remote_Build("macbroy2", options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs")),
-      List(Remote_Build("macbroy30", options = "-m32 -M2", args = "-a")),
-      List(Remote_Build("macbroy31", options = "-m32 -M2", args = "-a")),
+        Remote_Build("macos1", "macbroy2", options = "-m32 -M8", args = "-a",
+          detect = Build_Log.Prop.build_tags + " IS NULL"),
+        Remote_Build("macos1_quick_and_dirty", "macbroy2",
+          options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
+        Remote_Build("macos1_skip_proofs", "macbroy2",
+          options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
+      List(Remote_Build("macos2", "macbroy30", options = "-m32 -M2", args = "-a")),
+      List(Remote_Build("macos3", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
-        Remote_Build("vmnipkow9", shared_home = false, options = "-m32 -M4", args = "-a"),
-        Remote_Build("vmnipkow9", shared_home = false, options = "-m64 -M4", args = "-a")))
+        Remote_Build("windows", "vmnipkow9", shared_home = false,
+          options = "-m32 -M4", args = "-a",
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
+        Remote_Build("windows", "vmnipkow9", shared_home = false,
+          options = "-m64 -M4", args = "-a",
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
+  }
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
   {
