@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_stats.scala
     Author:     Makarius
 
-Statistics from session build output.
+Performance statistics from build log database.
 */
 
 package isabelle
@@ -9,112 +9,126 @@ package isabelle
 
 object Build_Stats
 {
-  /* presentation */
+  private val default_target_dir = Path.explode("stats")
+  private val default_history_length = 30
+  private val default_image_size = (800, 600)
 
-  private val default_history_length = 100
-  private val default_size = (800, 600)
-  private val default_only_sessions = Set.empty[String]
-  private val default_elapsed_threshold = Time.zero
-  private val default_ml_timing: Option[Boolean] = None
 
-  def present_job(job: String, dir: Path,
-    history_length: Int = default_history_length,
-    size: (Int, Int) = default_size,
-    only_sessions: Set[String] = default_only_sessions,
-    elapsed_threshold: Time = default_elapsed_threshold,
-    ml_timing: Option[Boolean] = default_ml_timing): List[String] =
+  /* data profiles */
+
+  sealed case class Profile(name: String, sql: String)
   {
-    val job_infos = Jenkins.build_job_infos(job).take(history_length)
-    if (job_infos.isEmpty) error("No build infos for job " + quote(job))
-
-    val all_infos =
-      Par_List.map((info: Jenkins.Job_Info) =>
-        {
-          val log_file = Build_Log.Log_File(info.log_filename.implode, Url.read(info.main_log))
-          (info.date, log_file.parse_build_info())
-        }, job_infos)
-    val all_sessions =
-      (Set.empty[String] /: all_infos)(
-        { case (s, (_, info)) => s ++ info.sessions.keySet })
-
-    def check_threshold(info: Build_Log.Build_Info, session: String): Boolean =
+    def select(columns: List[SQL.Column], days: Int, only_sessions: Set[String]): SQL.Source =
     {
-      val t = info.timing(session)
-      !t.is_zero && t.elapsed >= elapsed_threshold
+      val sql_sessions =
+        if (only_sessions.isEmpty) ""
+        else
+          only_sessions.iterator.map(a => Build_Log.Data.session_name + " = " + SQL.string(a))
+            .mkString("(", " OR ", ") AND ")
+
+      Build_Log.Data.universal_table.select(columns, distinct = true,
+        sql = "WHERE " +
+          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days) + " AND " +
+          Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
+          " AND " + sql_sessions + SQL.enclose(sql) +
+          " ORDER BY " + Build_Log.Data.pull_date + " DESC")
     }
+  }
 
-    val sessions =
-      for {
-        session <- (if (only_sessions.isEmpty) all_sessions else all_sessions & only_sessions)
-        if all_infos.filter({ case (_, info) => check_threshold(info, session) }).length >= 3
-      } yield session
+  val standard_profiles: List[Profile] =
+    Jenkins.build_log_profiles :::
+    Isabelle_Cronjob.remote_builds.flatten.toList.map(r => Profile(r.name, r.sql))
 
-    Isabelle_System.mkdirs(dir)
-    for (session <- sessions) {
-      Isabelle_System.with_tmp_file(session, "png") { data_file =>
-        Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
-          val data =
-            for { (date, info) <- all_infos if info.finished(session) }
-            yield {
-              val timing1 = info.timing(session)
-              val timing2 = info.ml_timing(session)
-              List(date.unix_epoch.toString,
-                timing1.elapsed.minutes,
-                timing1.cpu.minutes,
-                timing2.elapsed.minutes,
-                timing2.cpu.minutes,
-                timing2.gc.minutes).mkString(" ")
-            }
-          File.write(data_file, cat_lines(data))
+  sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing)
+  {
+    def check(elapsed_threshold: Time): Boolean =
+      !timing.is_zero && timing.elapsed >= elapsed_threshold
+  }
 
-          val plots1 =
-            List(
-              """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-              """ using 1:3 smooth csplines title "cpu time" """,
-              """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-              """ using 1:2 smooth csplines title "elapsed time" """)
-          val plots2 =
-            List(
-              """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-              """ using 1:5 smooth csplines title "ML cpu time" """,
-              """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-              """ using 1:4 smooth csplines title "ML elapsed time" """,
-              """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
-              """ using 1:6 smooth csplines title "ML gc time" """)
-          val plots =
-            ml_timing match {
-              case None => plots1
-              case Some(false) => plots1 ::: plots2
-              case Some(true) => plots2
-            }
+  type Data = Map[String, Map[String, List[Entry]]]
 
-          File.write(plot_file, """
-set terminal png size """ + size._1 + "," + size._2 + """
-set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
-set xdata time
-set timefmt "%s"
-set format x "%d-%b"
-set xlabel """ + quote(session) + """ noenhanced
-set key left top
-plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
-          val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(plot_file))
-          if (result.rc != 0) {
-            Output.error_message("Session " + session + ": gnuplot error")
-            result.print
+
+  /* read data */
+
+  def read_data(options: Options,
+    profiles: List[Profile] = standard_profiles,
+    progress: Progress = No_Progress,
+    history_length: Int = default_history_length,
+    only_sessions: Set[String] = Set.empty,
+    elapsed_threshold: Time = Time.zero): Data =
+  {
+    var data: Data = Map.empty
+
+    val store = Build_Log.store(options)
+    using(store.open_database())(db =>
+    {
+      for (profile <- profiles) {
+        progress.echo("database query " + profile.name)
+        val columns =
+          List(
+            Build_Log.Data.pull_date,
+            Build_Log.Settings.ML_PLATFORM,
+            Build_Log.Data.session_name,
+            Build_Log.Data.threads,
+            Build_Log.Data.timing_elapsed,
+            Build_Log.Data.timing_cpu,
+            Build_Log.Data.timing_gc,
+            Build_Log.Data.ml_timing_elapsed,
+            Build_Log.Data.ml_timing_cpu,
+            Build_Log.Data.ml_timing_gc)
+
+        db.using_statement(profile.select(columns, history_length, only_sessions))(stmt =>
+        {
+          val rs = stmt.executeQuery
+          while (rs.next) {
+            val ml_platform = db.string(rs, Build_Log.Settings.ML_PLATFORM)
+            val threads = db.get_int(rs, Build_Log.Data.threads)
+            val name =
+              profile.name +
+                "_m" + (if (ml_platform.startsWith("x86_64")) "64" else "32") +
+                "_M" + threads.getOrElse(1)
+
+            val session = db.string(rs, Build_Log.Data.session_name)
+            val entry =
+              Entry(db.date(rs, Build_Log.Data.pull_date),
+                Timing(
+                  Time.ms(db.long(rs, Build_Log.Data.timing_elapsed)),
+                  Time.ms(db.long(rs, Build_Log.Data.timing_cpu)),
+                  Time.ms(db.long(rs, Build_Log.Data.timing_gc))),
+                Timing(
+                  Time.ms(db.long(rs, Build_Log.Data.ml_timing_elapsed)),
+                  Time.ms(db.long(rs, Build_Log.Data.ml_timing_cpu)),
+                  Time.ms(db.long(rs, Build_Log.Data.ml_timing_gc))))
+
+            val session_entries = data.getOrElse(name, Map.empty)
+            val entries = session_entries.getOrElse(session, Nil)
+            data += (name -> (session_entries + (session -> (entry :: entries))))
           }
-        }
+        })
       }
-    }
+    })
 
-    sessions.toList.sorted
+    for {
+      (name, session_entries) <- data
+      session_entries1 <-
+        {
+          val session_entries1 =
+            for {
+              (session, entries) <- session_entries
+              if entries.filter(_.check(elapsed_threshold)).length >= 3
+            } yield (session, entries)
+          if (session_entries1.isEmpty) None
+          else Some(session_entries1)
+        }
+    } yield (name, session_entries1)
   }
 
 
-  /* Isabelle tool wrapper */
+  /* present data */
 
   private val html_header = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
-<head><title>Performance statistics from session build output</title></head>
+<head><title>Performance statistics from build log database</title></head>
 <body>
 """
   private val html_footer = """
@@ -122,30 +136,117 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
 </html>
 """
 
+  def present_data(data: Data,
+    progress: Progress = No_Progress,
+    target_dir: Path = default_target_dir,
+    image_size: (Int, Int) = default_image_size,
+    ml_timing: Option[Boolean] = None)
+  {
+    val data_entries = data.toList.sortBy(_._1)
+    for ((name, session_entries) <- data_entries) {
+      val dir = target_dir + Path.explode(name)
+      progress.echo("directory " + dir)
+      Isabelle_System.mkdirs(dir)
+
+      for ((session, entries) <- session_entries) {
+        Isabelle_System.with_tmp_file(session, "data") { data_file =>
+          Isabelle_System.with_tmp_file(session, "gnuplot") { gnuplot_file =>
+
+            File.write(data_file,
+              cat_lines(
+                entries.map(entry =>
+                  List(entry.date.unix_epoch.toString,
+                    entry.timing.elapsed.minutes,
+                    entry.timing.cpu.minutes,
+                    entry.ml_timing.elapsed.minutes,
+                    entry.ml_timing.cpu.minutes,
+                    entry.ml_timing.gc.minutes).mkString(" "))))
+
+            val plots1 =
+              List(
+                """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                """ using 1:3 smooth csplines title "cpu time" """,
+                """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                """ using 1:2 smooth csplines title "elapsed time" """)
+            val plots2 =
+              List(
+                """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                """ using 1:5 smooth csplines title "ML cpu time" """,
+                """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+                """ using 1:4 smooth csplines title "ML elapsed time" """,
+                """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
+                """ using 1:6 smooth csplines title "ML gc time" """)
+            val plots =
+              ml_timing match {
+                case None => plots1
+                case Some(false) => plots1 ::: plots2
+                case Some(true) => plots2
+              }
+
+            File.write(gnuplot_file, """
+set terminal png size """ + image_size._1 + "," + image_size._2 + """
+set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
+set xdata time
+set timefmt "%s"
+set format x "%d-%b"
+set xlabel """ + quote(session) + """ noenhanced
+set key left top
+plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
+
+            val result =
+              Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
+            if (result.rc != 0)
+              result.error("Gnuplot error in " + name + "/" + session).check
+          }
+        }
+      }
+
+      File.write(dir + Path.basic("index.html"),
+        html_header + "\n<h1>" + HTML.output(name) + "</h1>\n" +
+        cat_lines(
+          session_entries.toList.map(_._1).sorted.map(session =>
+            """<br/><img src=""" + quote(HTML.output(session + ".png")) + """><br/>""")) +
+        "\n" + html_footer)
+    }
+
+    File.write(target_dir + Path.basic("index.html"),
+      html_header + "\n<ul>\n" +
+      cat_lines(
+        data_entries.map(_._1).map(name =>
+          """<li> <a href=""" + quote(HTML.output(name + "/index.html")) + """>""" +
+            HTML.output(name) + """</a> </li>""")) +
+      "\n</ul>\n" + html_footer)
+  }
+
+
+  /* Isabelle tool wrapper */
+
   val isabelle_tool =
-    Isabelle_Tool("build_stats", "present statistics from session build output", args =>
+    Isabelle_Tool("build_stats", "present statistics from build log database", args =>
     {
-      var target_dir = Path.explode("stats")
-      var ml_timing = default_ml_timing
-      var only_sessions = default_only_sessions
-      var elapsed_threshold = default_elapsed_threshold
+      var target_dir = default_target_dir
+      var ml_timing: Option[Boolean] = None
+      var only_sessions = Set.empty[String]
+      var elapsed_threshold = Time.zero
       var history_length = default_history_length
-      var size = default_size
+      var options = Options.init()
+      var image_size = default_image_size
 
       val getopts = Getopts("""
-Usage: isabelle build_stats [OPTIONS] [JOBS ...]
+Usage: isabelle build_stats [OPTIONS]
 
   Options are:
-    -D DIR       target directory (default "stats")
+    -D DIR       target directory (default " + default_target_dir + ")
     -M           only ML timing
     -S SESSIONS  only given SESSIONS (comma separated)
     -T THRESHOLD only sessions with elapsed time >= THRESHOLD (minutes)
     -l LENGTH    length of history (default 100)
     -m           include ML timing
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s WxH       size of PNG image (default 800x600)
 
-  Present statistics from session build output of the given JOBS, from Jenkins
-  continuous build service specified as URL via ISABELLE_JENKINS_ROOT.
+  Present performance statistics from build log database, which is specified
+  via system options build_log_database_host, build_log_database_user etc.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "M" -> (_ => ml_timing = Some(true)),
@@ -153,41 +254,25 @@ Usage: isabelle build_stats [OPTIONS] [JOBS ...]
         "T:" -> (arg => elapsed_threshold = Time.minutes(Value.Double.parse(arg))),
         "l:" -> (arg => history_length = Value.Int.parse(arg)),
         "m" -> (_ => ml_timing = Some(false)),
+        "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
           space_explode('x', arg).map(Value.Int.parse(_)) match {
-            case List(w, h) if w > 0 && h > 0 => size = (w, h)
+            case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
             case _ => error("Error bad PNG image size: " + quote(arg))
           }))
 
-      val jobs = getopts(args)
-      val all_jobs = Jenkins.build_job_names()
-      val bad_jobs = jobs.filterNot(all_jobs.contains(_)).sorted
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
 
-      if (jobs.isEmpty)
-        error("No build jobs given. Available jobs: " + all_jobs.sorted.mkString(" "))
+      val progress = new Console_Progress
 
-      if (bad_jobs.nonEmpty)
-        error("Unknown build jobs: " + bad_jobs.mkString(" ") +
-          "\nAvailable jobs: " + all_jobs.sorted.mkString(" "))
+      val data =
+        read_data(options, profiles = standard_profiles, progress = progress,
+          history_length = history_length, only_sessions = only_sessions,
+          elapsed_threshold = elapsed_threshold)
 
-      for (job <- jobs) {
-        val dir = target_dir + Path.basic(job)
-        Output.writeln(dir.implode)
-        val sessions =
-          present_job(job, dir, history_length, size, only_sessions, elapsed_threshold, ml_timing)
-        File.write(dir + Path.basic("index.html"),
-          html_header + "\n<h1>" + HTML.output(job) + "</h1>\n" +
-          cat_lines(
-            sessions.map(session =>
-              """<br/><img src=""" + quote(HTML.output(session + ".png")) + """><br/>""")) +
-          "\n" + html_footer)
-      }
+      present_data(data, progress = progress, target_dir = target_dir,
+        image_size = image_size, ml_timing = ml_timing)
 
-      File.write(target_dir + Path.basic("index.html"),
-        html_header + "\n<ul>\n" +
-        cat_lines(
-          jobs.map(job => """<li> <a href=""" + quote(HTML.output(job + "/index.html")) + """>""" +
-            HTML.output(job) + """</a> </li>""")) +
-        "\n</ul>\n" + html_footer)
   }, admin = true)
 }

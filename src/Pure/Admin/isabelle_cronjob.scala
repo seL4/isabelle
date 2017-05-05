@@ -32,7 +32,7 @@ object Isabelle_Cronjob
   val release_snapshot = devel_dir + Path.explode("release_snapshot")
   val build_log_snapshot = devel_dir + Path.explode("build_log.db")
 
-  val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
+  val jenkins_jobs = "identify" :: Jenkins.build_log_jobs
 
 
 

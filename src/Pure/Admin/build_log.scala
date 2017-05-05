@@ -687,16 +687,18 @@ object Build_Log
         " GROUP BY " + version)
     }
 
+    def recent_time(days: Int): SQL.Source =
+      "now() - INTERVAL '" + days.max(0) + " days'"
+
     def recent_table(days: Int): SQL.Table =
     {
       val table = pull_date_table
       SQL.Table("recent", table.columns,
-        table.select(table.columns) +
-        " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
+        table.select(table.columns, "WHERE " + pull_date(table) + " > " + recent_time(days)))
     }
 
     def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int,
-      distinct: Boolean = false, pull_date: Boolean = false): String =
+      distinct: Boolean = false, pull_date: Boolean = false): SQL.Source =
     {
       val recent = recent_table(days)
       val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
