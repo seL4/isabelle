@@ -30,9 +30,8 @@ object Build_Stats
     val all_infos =
       Par_List.map((info: Jenkins.Job_Info) =>
         {
-          val t = info.timestamp / 1000
           val log_file = Build_Log.Log_File(info.log_filename.implode, Url.read(info.main_log))
-          (t, log_file.parse_build_info())
+          (info.date, log_file.parse_build_info())
         }, job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
@@ -55,11 +54,11 @@ object Build_Stats
       Isabelle_System.with_tmp_file(session, "png") { data_file =>
         Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
           val data =
-            for { (t, info) <- all_infos if info.finished(session) }
+            for { (date, info) <- all_infos if info.finished(session) }
             yield {
               val timing1 = info.timing(session)
               val timing2 = info.ml_timing(session)
-              List(t.toString,
+              List(date.unix_epoch.toString,
                 timing1.elapsed.minutes,
                 timing1.cpu.minutes,
                 timing2.elapsed.minutes,
