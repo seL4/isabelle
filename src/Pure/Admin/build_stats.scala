@@ -63,7 +63,7 @@ object Build_Stats
     using(store.open_database())(db =>
     {
       for (profile <- profiles) {
-        progress.echo("database query " + profile.name)
+        progress.echo("database query " + quote(profile.name))
         val columns =
           List(
             Build_Log.Data.pull_date,
@@ -236,14 +236,14 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
 Usage: isabelle build_stats [OPTIONS]
 
   Options are:
-    -D DIR       target directory (default " + default_target_dir + ")
+    -D DIR       target directory (default """ + default_target_dir + """)
     -M           only ML timing
     -S SESSIONS  only given SESSIONS (comma separated)
     -T THRESHOLD only sessions with elapsed time >= THRESHOLD (minutes)
-    -l LENGTH    length of history (default 100)
+    -l LENGTH    length of history (default """ + default_history_length + """)
     -m           include ML timing
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s WxH       size of PNG image (default 800x600)
+    -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
 
   Present performance statistics from build log database, which is specified
   via system options build_log_database_host, build_log_database_user etc.
