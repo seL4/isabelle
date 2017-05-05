@@ -130,8 +130,7 @@ object SQL
       if (body == "") error("Missing SQL body for table " + quote(name))
       else SQL.enclose(body)
 
-    def query_alias(alias: String = name): String =
-      query + " AS " + SQL.ident(alias)
+    def query_name: String = query + " AS " + SQL.ident(name)
 
     def create(strict: Boolean = false, sql_type: Type.Value => String): String =
     {

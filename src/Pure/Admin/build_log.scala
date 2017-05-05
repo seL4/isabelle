@@ -700,7 +700,7 @@ object Build_Log
     {
       val recent = recent_table(days)
       val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
-      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_alias() +
+      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_name +
       " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
     }
 
@@ -722,7 +722,7 @@ object Build_Log
       val columns = aux_columns ::: sessions_table.columns.tail
       SQL.Table("isabelle_build_log", columns,
         {
-          SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_alias() +
+          SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_name +
           " INNER JOIN " + table3 + " ON " + log_name(aux_table) + " = " + log_name(table3)
         })
     }
