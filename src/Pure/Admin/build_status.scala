@@ -1,15 +1,15 @@
-/*  Title:      Pure/Admin/build_stats.scala
+/*  Title:      Pure/Admin/build_status.scala
     Author:     Makarius
 
-Performance statistics from build log database.
+Present recent build status information from database.
 */
 
 package isabelle
 
 
-object Build_Stats
+object Build_Status
 {
-  private val default_target_dir = Path.explode("stats")
+  private val default_target_dir = Path.explode("build_status")
   private val default_history_length = 30
   private val default_image_size = (800, 600)
 
@@ -128,7 +128,7 @@ object Build_Stats
 
   private val html_header = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
-<head><title>Performance statistics from build log database</title></head>
+<head><title>Build status</title></head>
 <body>
 """
   private val html_footer = """
@@ -222,7 +222,7 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("build_stats", "present statistics from build log database", args =>
+    Isabelle_Tool("build_status", "present recent build status information from database", args =>
     {
       var target_dir = default_target_dir
       var ml_timing: Option[Boolean] = None
@@ -233,7 +233,7 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
       var image_size = default_image_size
 
       val getopts = Getopts("""
-Usage: isabelle build_stats [OPTIONS]
+Usage: isabelle build_status [OPTIONS]
 
   Options are:
     -D DIR       target directory (default """ + default_target_dir + """)

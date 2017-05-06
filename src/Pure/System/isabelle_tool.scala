@@ -105,7 +105,7 @@ object Isabelle_Tool
       Build_Docker.isabelle_tool,
       Build_JDK.isabelle_tool,
       Build_PolyML.isabelle_tool,
-      Build_Stats.isabelle_tool,
+      Build_Status.isabelle_tool,
       Check_Sources.isabelle_tool,
       Doc.isabelle_tool,
       Imports.isabelle_tool,
