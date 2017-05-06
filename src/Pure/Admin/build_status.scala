@@ -267,9 +267,8 @@ Usage: isabelle build_status [OPTIONS]
       val progress = new Console_Progress
 
       val data =
-        read_data(options, profiles = standard_profiles, progress = progress,
-          history_length = history_length, only_sessions = only_sessions,
-          elapsed_threshold = elapsed_threshold)
+        read_data(options, progress = progress, history_length = history_length,
+          only_sessions = only_sessions, elapsed_threshold = elapsed_threshold)
 
       present_data(data, progress = progress, target_dir = target_dir,
         image_size = image_size, ml_timing = ml_timing)
