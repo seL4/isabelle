@@ -54,7 +54,8 @@ object Build_Status
     progress: Progress = No_Progress,
     history_length: Int = default_history_length,
     only_sessions: Set[String] = Set.empty,
-    elapsed_threshold: Time = Time.zero): Data =
+    elapsed_threshold: Time = Time.zero,
+    verbose: Boolean = false): Data =
   {
     var data: Data = Map.empty
 
@@ -76,7 +77,10 @@ object Build_Status
             Build_Log.Data.ml_timing_cpu,
             Build_Log.Data.ml_timing_gc)
 
-        db.using_statement(profile.select(columns, history_length, only_sessions))(stmt =>
+        val sql = profile.select(columns, history_length, only_sessions)
+        if (verbose) progress.echo(sql)
+
+        db.using_statement(sql)(stmt =>
         {
           val res = stmt.execute_query()
           while (res.next()) {
@@ -230,6 +234,7 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
       var history_length = default_history_length
       var options = Options.init()
       var image_size = default_image_size
+      var verbose = false
 
       val getopts = Getopts("""
 Usage: isabelle build_status [OPTIONS]
@@ -243,6 +248,7 @@ Usage: isabelle build_status [OPTIONS]
     -m           include ML timing
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
+    -v           verbose
 
   Present performance statistics from build log database, which is specified
   via system options build_log_database_host, build_log_database_user etc.
@@ -258,7 +264,8 @@ Usage: isabelle build_status [OPTIONS]
           space_explode('x', arg).map(Value.Int.parse(_)) match {
             case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
             case _ => error("Error bad PNG image size: " + quote(arg))
-          }))
+          }),
+        "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -267,7 +274,7 @@ Usage: isabelle build_status [OPTIONS]
 
       val data =
         read_data(options, progress = progress, history_length = history_length,
-          only_sessions = only_sessions, elapsed_threshold = elapsed_threshold)
+          only_sessions = only_sessions, elapsed_threshold = elapsed_threshold, verbose = verbose)
 
       present_data(data, progress = progress, target_dir = target_dir,
         image_size = image_size, ml_timing = ml_timing)
