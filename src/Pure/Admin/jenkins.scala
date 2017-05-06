@@ -48,6 +48,17 @@ object Jenkins
   }
 
 
+  /* build log status */
+
+  val build_log_jobs = List("isabelle-nightly-benchmark")
+
+  val build_status_profiles: List[Build_Status.Profile] =
+    build_log_jobs.map(job_name =>
+      Build_Status.Profile("jenkins_" + job_name,
+        Build_Log.Prop.build_engine + " = " + SQL.string(Build_Log.Jenkins.engine) + " AND " +
+        Build_Log.Data.log_name + " LIKE " + SQL.string("%" + job_name)))
+
+
   /* job info */
 
   sealed case class Job_Info(

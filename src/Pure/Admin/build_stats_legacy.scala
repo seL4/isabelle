@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_stats.scala
+/*  Title:      Pure/Admin/build_stats_legacy.scala
     Author:     Makarius
 
 Statistics from session build output.
@@ -7,7 +7,7 @@ Statistics from session build output.
 package isabelle
 
 
-object Build_Stats
+object Build_Stats_Legacy
 {
   /* presentation */
 
@@ -30,9 +30,8 @@ object Build_Stats
     val all_infos =
       Par_List.map((info: Jenkins.Job_Info) =>
         {
-          val t = info.timestamp / 1000
           val log_file = Build_Log.Log_File(info.log_filename.implode, Url.read(info.main_log))
-          (t, log_file.parse_build_info())
+          (info.date, log_file.parse_build_info())
         }, job_infos)
     val all_sessions =
       (Set.empty[String] /: all_infos)(
@@ -55,11 +54,11 @@ object Build_Stats
       Isabelle_System.with_tmp_file(session, "png") { data_file =>
         Isabelle_System.with_tmp_file(session, "gnuplot") { plot_file =>
           val data =
-            for { (t, info) <- all_infos if info.finished(session) }
+            for { (date, info) <- all_infos if info.finished(session) }
             yield {
               val timing1 = info.timing(session)
               val timing2 = info.ml_timing(session)
-              List(t.toString,
+              List(date.unix_epoch.toString,
                 timing1.elapsed.minutes,
                 timing1.cpu.minutes,
                 timing2.elapsed.minutes,
@@ -109,86 +108,4 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
 
     sessions.toList.sorted
   }
-
-
-  /* Isabelle tool wrapper */
-
-  private val html_header = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<html>
-<head><title>Performance statistics from session build output</title></head>
-<body>
-"""
-  private val html_footer = """
-</body>
-</html>
-"""
-
-  val isabelle_tool =
-    Isabelle_Tool("build_stats", "present statistics from session build output", args =>
-    {
-      var target_dir = Path.explode("stats")
-      var ml_timing = default_ml_timing
-      var only_sessions = default_only_sessions
-      var elapsed_threshold = default_elapsed_threshold
-      var history_length = default_history_length
-      var size = default_size
-
-      val getopts = Getopts("""
-Usage: isabelle build_stats [OPTIONS] [JOBS ...]
-
-  Options are:
-    -D DIR       target directory (default "stats")
-    -M           only ML timing
-    -S SESSIONS  only given SESSIONS (comma separated)
-    -T THRESHOLD only sessions with elapsed time >= THRESHOLD (minutes)
-    -l LENGTH    length of history (default 100)
-    -m           include ML timing
-    -s WxH       size of PNG image (default 800x600)
-
-  Present statistics from session build output of the given JOBS, from Jenkins
-  continuous build service specified as URL via ISABELLE_JENKINS_ROOT.
-""",
-        "D:" -> (arg => target_dir = Path.explode(arg)),
-        "M" -> (_ => ml_timing = Some(true)),
-        "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
-        "T:" -> (arg => elapsed_threshold = Time.minutes(Value.Double.parse(arg))),
-        "l:" -> (arg => history_length = Value.Int.parse(arg)),
-        "m" -> (_ => ml_timing = Some(false)),
-        "s:" -> (arg =>
-          space_explode('x', arg).map(Value.Int.parse(_)) match {
-            case List(w, h) if w > 0 && h > 0 => size = (w, h)
-            case _ => error("Error bad PNG image size: " + quote(arg))
-          }))
-
-      val jobs = getopts(args)
-      val all_jobs = Jenkins.build_job_names()
-      val bad_jobs = jobs.filterNot(all_jobs.contains(_)).sorted
-
-      if (jobs.isEmpty)
-        error("No build jobs given. Available jobs: " + all_jobs.sorted.mkString(" "))
-
-      if (bad_jobs.nonEmpty)
-        error("Unknown build jobs: " + bad_jobs.mkString(" ") +
-          "\nAvailable jobs: " + all_jobs.sorted.mkString(" "))
-
-      for (job <- jobs) {
-        val dir = target_dir + Path.basic(job)
-        Output.writeln(dir.implode)
-        val sessions =
-          present_job(job, dir, history_length, size, only_sessions, elapsed_threshold, ml_timing)
-        File.write(dir + Path.basic("index.html"),
-          html_header + "\n<h1>" + HTML.output(job) + "</h1>\n" +
-          cat_lines(
-            sessions.map(session =>
-              """<br/><img src=""" + quote(HTML.output(session + ".png")) + """><br/>""")) +
-          "\n" + html_footer)
-      }
-
-      File.write(target_dir + Path.basic("index.html"),
-        html_header + "\n<ul>\n" +
-        cat_lines(
-          jobs.map(job => """<li> <a href=""" + quote(HTML.output(job + "/index.html")) + """>""" +
-            HTML.output(job) + """</a> </li>""")) +
-        "\n</ul>\n" + html_footer)
-  }, admin = true)
 }

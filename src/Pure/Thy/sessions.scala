@@ -10,7 +10,6 @@ import java.io.{File => JFile}
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
-import java.sql.PreparedStatement
 
 import scala.collection.SortedSet
 import scala.collection.mutable
@@ -766,8 +765,8 @@ object Sessions
       db.using_statement(Session_Info.table.select(List(column),
         Session_Info.session_name.where_equal(name)))(stmt =>
       {
-        val rs = stmt.executeQuery
-        if (!rs.next) Bytes.empty else db.bytes(rs, column)
+        val res = stmt.execute_query()
+        if (!res.next()) Bytes.empty else res.bytes(column)
       })
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
@@ -825,15 +824,15 @@ object Sessions
           Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
         db.using_statement(Session_Info.table.insert())(stmt =>
         {
-          db.set_string(stmt, 1, name)
-          db.set_bytes(stmt, 2, encode_properties(build_log.session_timing))
-          db.set_bytes(stmt, 3, compress_properties(build_log.command_timings))
-          db.set_bytes(stmt, 4, compress_properties(build_log.ml_statistics))
-          db.set_bytes(stmt, 5, compress_properties(build_log.task_statistics))
-          db.set_string(stmt, 6, cat_lines(build.sources))
-          db.set_string(stmt, 7, cat_lines(build.input_heaps))
-          db.set_string(stmt, 8, build.output_heap getOrElse "")
-          db.set_int(stmt, 9, build.return_code)
+          stmt.string(1) = name
+          stmt.bytes(2) = encode_properties(build_log.session_timing)
+          stmt.bytes(3) = compress_properties(build_log.command_timings)
+          stmt.bytes(4) = compress_properties(build_log.ml_statistics)
+          stmt.bytes(5) = compress_properties(build_log.task_statistics)
+          stmt.string(6) = cat_lines(build.sources)
+          stmt.string(7) = cat_lines(build.input_heaps)
+          stmt.string(8) = build.output_heap getOrElse ""
+          stmt.int(9) = build.return_code
           stmt.execute()
         })
       }
@@ -867,15 +866,15 @@ object Sessions
       db.using_statement(Session_Info.table.select(Session_Info.build_columns,
         Session_Info.session_name.where_equal(name)))(stmt =>
       {
-        val rs = stmt.executeQuery
-        if (!rs.next) None
+        val res = stmt.execute_query()
+        if (!res.next()) None
         else {
           Some(
             Build.Session_Info(
-              split_lines(db.string(rs, Session_Info.sources)),
-              split_lines(db.string(rs, Session_Info.input_heaps)),
-              db.string(rs, Session_Info.output_heap) match { case "" => None case s => Some(s) },
-              db.int(rs, Session_Info.return_code)))
+              split_lines(res.string(Session_Info.sources)),
+              split_lines(res.string(Session_Info.input_heaps)),
+              res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
+              res.int(Session_Info.return_code)))
         }
       })
   }

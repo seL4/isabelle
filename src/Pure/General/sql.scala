@@ -9,10 +9,15 @@ package isabelle
 import java.time.OffsetDateTime
 import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 
+import scala.collection.mutable
+
 
 object SQL
 {
   /** SQL language **/
+
+  type Source = String
+
 
   /* concrete syntax */
 
@@ -30,24 +35,17 @@ object SQL
       case _ => c.toString
     }
 
-  def string(s: String): String =
+  def string(s: String): Source =
     "'" + s.map(escape_char(_)).mkString + "'"
 
-  def ident(s: String): String =
+  def ident(s: String): Source =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
 
-  def enclose(s: String): String = "(" + s + ")"
-  def enclosure(ss: Iterable[String]): String = ss.mkString("(", ", ", ")")
+  def enclose(s: Source): Source = "(" + s + ")"
+  def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
 
-  def select(columns: List[Column], distinct: Boolean = false): String =
+  def select(columns: List[Column], distinct: Boolean = false): Source =
     "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.ident)) + " FROM "
-
-  def join(table1: Table, table2: Table, sql: String = "", outer: Boolean = false): String =
-    table1.ident + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2.ident +
-      (if (sql == "") "" else " ON " + sql)
-
-  def join_outer(table1: Table, table2: Table, sql: String = ""): String =
-    join(table1, table2, sql, outer = true)
 
 
   /* types */
@@ -63,14 +61,14 @@ object SQL
     val Date = Value("TIMESTAMP WITH TIME ZONE")
   }
 
-  def sql_type_default(T: Type.Value): String = T.toString
+  def sql_type_default(T: Type.Value): Source = T.toString
 
-  def sql_type_sqlite(T: Type.Value): String =
+  def sql_type_sqlite(T: Type.Value): Source =
     if (T == Type.Boolean) "INTEGER"
     else if (T == Type.Date) "TEXT"
     else sql_type_default(T)
 
-  def sql_type_postgresql(T: Type.Value): String =
+  def sql_type_postgresql(T: Type.Value): Source =
     if (T == Type.Bytes) "BYTEA"
     else sql_type_default(T)
 
@@ -101,20 +99,20 @@ object SQL
     def apply(table: Table): Column =
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
-    def ident: String = SQL.ident(name)
+    def ident: Source = SQL.ident(name)
 
-    def decl(sql_type: Type.Value => String): String =
+    def decl(sql_type: Type.Value => Source): Source =
       ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
-    def where_equal(s: String): String = "WHERE " + ident + " = " + string(s)
+    def where_equal(s: String): Source = "WHERE " + ident + " = " + string(s)
 
-    override def toString: String = ident
+    override def toString: Source = ident
   }
 
 
   /* tables */
 
-  sealed case class Table(name: String, columns: List[Column], body: String = "")
+  sealed case class Table(name: String, columns: List[Column], body: Source = "")
   {
     private val columns_index: Map[String, Int] =
       columns.iterator.map(_.name).zipWithIndex.toMap
@@ -124,16 +122,15 @@ object SQL
       case bad => error("Duplicate column names " + commas_quote(bad) + " for table " + quote(name))
     }
 
-    def ident: String = SQL.ident(name)
+    def ident: Source = SQL.ident(name)
 
-    def query: String =
+    def query: Source =
       if (body == "") error("Missing SQL body for table " + quote(name))
       else SQL.enclose(body)
 
-    def query_alias(alias: String = name): String =
-      query + " AS " + SQL.ident(alias)
+    def query_name: Source = query + " AS " + SQL.ident(name)
 
-    def create(strict: Boolean = false, sql_type: Type.Value => String): String =
+    def create(strict: Boolean = false, sql_type: Type.Value => Source): Source =
     {
       val primary_key =
         columns.filter(_.primary_key).map(_.name) match {
@@ -145,46 +142,160 @@ object SQL
     }
 
     def create_index(index_name: String, index_columns: List[Column],
-        strict: Boolean = false, unique: Boolean = false): String =
+        strict: Boolean = false, unique: Boolean = false): Source =
       "CREATE " + (if (unique) "UNIQUE " else "") + "INDEX " +
         (if (strict) "" else "IF NOT EXISTS ") + SQL.ident(index_name) + " ON " +
         ident + " " + enclosure(index_columns.map(_.name))
 
-    def insert_cmd(cmd: String, sql: String = ""): String =
+    def insert_cmd(cmd: Source, sql: Source = ""): Source =
       cmd + " INTO " + ident + " VALUES " + enclosure(columns.map(_ => "?")) +
         (if (sql == "") "" else " " + sql)
 
-    def insert(sql: String = ""): String = insert_cmd("INSERT", sql)
+    def insert(sql: Source = ""): Source = insert_cmd("INSERT", sql)
 
-    def delete(sql: String = ""): String =
+    def delete(sql: Source = ""): Source =
       "DELETE FROM " + ident +
         (if (sql == "") "" else " " + sql)
 
-    def select(select_columns: List[Column], sql: String = "", distinct: Boolean = false): String =
+    def select(select_columns: List[Column], sql: Source = "", distinct: Boolean = false): Source =
       SQL.select(select_columns, distinct = distinct) + ident +
         (if (sql == "") "" else " " + sql)
 
-    override def toString: String = ident
+    override def toString: Source = ident
   }
 
 
 
   /** SQL database operations **/
 
+  /* statements */
+
+  class Statement private[SQL](val db: Database, val rep: PreparedStatement)
+  {
+    stmt =>
+
+    object bool
+    {
+      def update(i: Int, x: Boolean) { rep.setBoolean(i, x) }
+      def update(i: Int, x: Option[Boolean])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.BOOLEAN)
+      }
+    }
+    object int
+    {
+      def update(i: Int, x: Int) { rep.setInt(i, x) }
+      def update(i: Int, x: Option[Int])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.INTEGER)
+      }
+    }
+    object long
+    {
+      def update(i: Int, x: Long) { rep.setLong(i, x) }
+      def update(i: Int, x: Option[Long])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.BIGINT)
+      }
+    }
+    object double
+    {
+      def update(i: Int, x: Double) { rep.setDouble(i, x) }
+      def update(i: Int, x: Option[Double])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.DOUBLE)
+      }
+    }
+    object string
+    {
+      def update(i: Int, x: String) { rep.setString(i, x) }
+      def update(i: Int, x: Option[String]): Unit = update(i, x.orNull)
+    }
+    object bytes
+    {
+      def update(i: Int, bytes: Bytes)
+      {
+        if (bytes == null) rep.setBytes(i, null)
+        else rep.setBinaryStream(i, bytes.stream(), bytes.length)
+      }
+      def update(i: Int, bytes: Option[Bytes]): Unit = update(i, bytes.orNull)
+    }
+    object date
+    {
+      def update(i: Int, date: Date): Unit = db.update_date(stmt, i, date)
+      def update(i: Int, date: Option[Date]): Unit = update(i, date.orNull)
+    }
+
+    def execute(): Boolean = rep.execute()
+    def execute_query(): Result = new Result(this, rep.executeQuery())
+
+    def close(): Unit = rep.close
+  }
+
+
   /* results */
 
-  def iterator[A](rs: ResultSet)(get: ResultSet => A): Iterator[A] = new Iterator[A]
+  class Result private[SQL](val stmt: Statement, val rep: ResultSet)
   {
-    private var _next: Boolean = rs.next()
-    def hasNext: Boolean = _next
-    def next: A = { val x = get(rs); _next = rs.next(); x }
+    res =>
+
+    def next(): Boolean = rep.next()
+
+    def iterator[A](get: Result => A): Iterator[A] = new Iterator[A]
+    {
+      private var _next: Boolean = res.next()
+      def hasNext: Boolean = _next
+      def next: A = { val x = get(res); _next = res.next(); x }
+    }
+
+    def bool(column: Column): Boolean = rep.getBoolean(column.name)
+    def int(column: Column): Int = rep.getInt(column.name)
+    def long(column: Column): Long = rep.getLong(column.name)
+    def double(column: Column): Double = rep.getDouble(column.name)
+    def string(column: Column): String =
+    {
+      val s = rep.getString(column.name)
+      if (s == null) "" else s
+    }
+    def bytes(column: Column): Bytes =
+    {
+      val bs = rep.getBytes(column.name)
+      if (bs == null) Bytes.empty else Bytes(bs)
+    }
+    def date(column: Column): Date = stmt.db.date(res, column)
+
+    def timing(c1: Column, c2: Column, c3: Column) =
+      Timing(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
+
+    def get[A](column: Column, f: Column => A): Option[A] =
+    {
+      val x = f(column)
+      if (rep.wasNull) None else Some(x)
+    }
+    def get_bool(column: Column): Option[Boolean] = get(column, bool _)
+    def get_int(column: Column): Option[Int] = get(column, int _)
+    def get_long(column: Column): Option[Long] = get(column, long _)
+    def get_double(column: Column): Option[Double] = get(column, double _)
+    def get_string(column: Column): Option[String] = get(column, string _)
+    def get_bytes(column: Column): Option[Bytes] = get(column, bytes _)
+    def get_date(column: Column): Option[Date] = get(column, date _)
   }
+
+
+  /* database */
 
   trait Database
   {
+    db =>
+
+
     /* types */
 
-    def sql_type(T: Type.Value): String
+    def sql_type(T: Type.Value): Source
 
 
     /* connection */
@@ -210,102 +321,31 @@ object SQL
     }
 
 
-    /* statements */
+    /* statements and results */
 
-    def statement(sql: String): PreparedStatement =
-      connection.prepareStatement(sql)
+    def statement(sql: Source): Statement =
+      new Statement(db, connection.prepareStatement(sql))
 
-    def using_statement[A](sql: String)(f: PreparedStatement => A): A =
+    def using_statement[A](sql: Source)(f: Statement => A): A =
       using(statement(sql))(f)
 
-    def insert_permissive(table: Table, sql: String = ""): String
+    def update_date(stmt: Statement, i: Int, date: Date): Unit
+    def date(res: Result, column: Column): Date
 
-
-    /* input */
-
-    def set_bool(stmt: PreparedStatement, i: Int, x: Boolean) { stmt.setBoolean(i, x) }
-    def set_bool(stmt: PreparedStatement, i: Int, x: Option[Boolean])
-    {
-      if (x.isDefined) set_bool(stmt, i, x.get)
-      else stmt.setNull(i, java.sql.Types.BOOLEAN)
-    }
-
-    def set_int(stmt: PreparedStatement, i: Int, x: Int) { stmt.setInt(i, x) }
-    def set_int(stmt: PreparedStatement, i: Int, x: Option[Int])
-    {
-      if (x.isDefined) set_int(stmt, i, x.get)
-      else stmt.setNull(i, java.sql.Types.INTEGER)
-    }
-
-    def set_long(stmt: PreparedStatement, i: Int, x: Long) { stmt.setLong(i, x) }
-    def set_long(stmt: PreparedStatement, i: Int, x: Option[Long])
-    {
-      if (x.isDefined) set_long(stmt, i, x.get)
-      else stmt.setNull(i, java.sql.Types.BIGINT)
-    }
-
-    def set_double(stmt: PreparedStatement, i: Int, x: Double) { stmt.setDouble(i, x) }
-    def set_double(stmt: PreparedStatement, i: Int, x: Option[Double])
-    {
-      if (x.isDefined) set_double(stmt, i, x.get)
-      else stmt.setNull(i, java.sql.Types.DOUBLE)
-    }
-
-    def set_string(stmt: PreparedStatement, i: Int, x: String) { stmt.setString(i, x) }
-    def set_string(stmt: PreparedStatement, i: Int, x: Option[String]): Unit =
-      set_string(stmt, i, x.orNull)
-
-    def set_bytes(stmt: PreparedStatement, i: Int, bytes: Bytes)
-    {
-      if (bytes == null) stmt.setBytes(i, null)
-      else stmt.setBinaryStream(i, bytes.stream(), bytes.length)
-    }
-    def set_bytes(stmt: PreparedStatement, i: Int, bytes: Option[Bytes]): Unit =
-      set_bytes(stmt, i, bytes.orNull)
-
-    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit
-    def set_date(stmt: PreparedStatement, i: Int, date: Option[Date]): Unit =
-      set_date(stmt, i, date.orNull)
-
-
-    /* output */
-
-    def bool(rs: ResultSet, column: Column): Boolean = rs.getBoolean(column.name)
-    def int(rs: ResultSet, column: Column): Int = rs.getInt(column.name)
-    def long(rs: ResultSet, column: Column): Long = rs.getLong(column.name)
-    def double(rs: ResultSet, column: Column): Double = rs.getDouble(column.name)
-    def string(rs: ResultSet, column: Column): String =
-    {
-      val s = rs.getString(column.name)
-      if (s == null) "" else s
-    }
-    def bytes(rs: ResultSet, column: Column): Bytes =
-    {
-      val bs = rs.getBytes(column.name)
-      if (bs == null) Bytes.empty else Bytes(bs)
-    }
-    def date(rs: ResultSet, column: Column): Date
-
-    def get[A](rs: ResultSet, column: Column, f: (ResultSet, Column) => A): Option[A] =
-    {
-      val x = f(rs, column)
-      if (rs.wasNull) None else Some(x)
-    }
-    def get_bool(rs: ResultSet, column: Column): Option[Boolean] = get(rs, column, bool _)
-    def get_int(rs: ResultSet, column: Column): Option[Int] = get(rs, column, int _)
-    def get_long(rs: ResultSet, column: Column): Option[Long] = get(rs, column, long _)
-    def get_double(rs: ResultSet, column: Column): Option[Double] = get(rs, column, double _)
-    def get_string(rs: ResultSet, column: Column): Option[String] = get(rs, column, string _)
-    def get_bytes(rs: ResultSet, column: Column): Option[Bytes] = get(rs, column, bytes _)
-    def get_date(rs: ResultSet, column: Column): Option[Date] = get(rs, column, date _)
+    def insert_permissive(table: Table, sql: Source = ""): Source
 
 
     /* tables and views */
 
     def tables: List[String] =
-      iterator(connection.getMetaData.getTables(null, null, "%", null))(_.getString(3)).toList
+    {
+      val result = new mutable.ListBuffer[String]
+      val rs = connection.getMetaData.getTables(null, null, "%", null)
+      while (rs.next) { result += rs.getString(3) }
+      result.toList
+    }
 
-    def create_table(table: Table, strict: Boolean = false, sql: String = ""): Unit =
+    def create_table(table: Table, strict: Boolean = false, sql: Source = ""): Unit =
       using_statement(
         table.create(strict, sql_type) + (if (sql == "") "" else " " + sql))(_.execute())
 
@@ -316,7 +356,7 @@ object SQL
     def create_view(table: Table, strict: Boolean = false): Unit =
     {
       if (strict || !tables.contains(table.name)) {
-        val sql = "CREATE VIEW " + table.ident + " AS " + { table.query; table.body }
+        val sql = "CREATE VIEW " + table + " AS " + { table.query; table.body }
         using_statement(sql)(_.execute())
       }
     }
@@ -348,16 +388,16 @@ object SQLite
   {
     override def toString: String = name
 
-    def sql_type(T: SQL.Type.Value): String = SQL.sql_type_sqlite(T)
+    def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
 
-    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      if (date == null) set_string(stmt, i, null: String)
-      else set_string(stmt, i, date_format(date))
+    def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
+      if (date == null) stmt.string(i) = (null: String)
+      else stmt.string(i) = date_format(date)
 
-    def date(rs: ResultSet, column: SQL.Column): Date =
-      date_format.parse(string(rs, column))
+    def date(res: SQL.Result, column: SQL.Column): Date =
+      date_format.parse(res.string(column))
 
-    def insert_permissive(table: SQL.Table, sql: String = ""): String =
+    def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT OR IGNORE", sql = sql)
 
     def rebuild { using_statement("VACUUM")(_.execute()) }
@@ -420,20 +460,20 @@ object PostgreSQL
   {
     override def toString: String = name
 
-    def sql_type(T: SQL.Type.Value): String = SQL.sql_type_postgresql(T)
+    def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)
 
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
-    def set_date(stmt: PreparedStatement, i: Int, date: Date): Unit =
-      if (date == null) stmt.setObject(i, null)
-      else stmt.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+    def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
+      if (date == null) stmt.rep.setObject(i, null)
+      else stmt.rep.setObject(i, OffsetDateTime.from(date.to_utc.rep))
 
-    def date(rs: ResultSet, column: SQL.Column): Date =
+    def date(res: SQL.Result, column: SQL.Column): Date =
     {
-      val obj = rs.getObject(column.name, classOf[OffsetDateTime])
+      val obj = res.rep.getObject(column.name, classOf[OffsetDateTime])
       if (obj == null) null else Date.instant(obj.toInstant)
     }
 
-    def insert_permissive(table: SQL.Table, sql: String = ""): String =
+    def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd("INSERT",
         sql = sql + (if (sql == "") "" else " ") + "ON CONFLICT DO NOTHING")
 

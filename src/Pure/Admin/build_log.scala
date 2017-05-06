@@ -11,7 +11,6 @@ import java.io.{File => JFile}
 import java.time.ZoneId
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
-import java.sql.PreparedStatement
 
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
@@ -687,20 +686,22 @@ object Build_Log
         " GROUP BY " + version)
     }
 
+    def recent_time(days: Int): SQL.Source =
+      "now() - INTERVAL '" + days.max(0) + " days'"
+
     def recent_table(days: Int): SQL.Table =
     {
       val table = pull_date_table
       SQL.Table("recent", table.columns,
-        table.select(table.columns) +
-        " WHERE " + pull_date(table) + " > now() - INTERVAL '" + days.max(0) + " days'")
+        table.select(table.columns, "WHERE " + pull_date(table) + " > " + recent_time(days)))
     }
 
     def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int,
-      distinct: Boolean = false, pull_date: Boolean = false): String =
+      distinct: Boolean = false, pull_date: Boolean = false): SQL.Source =
     {
       val recent = recent_table(days)
       val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
-      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_alias() +
+      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_name +
       " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
     }
 
@@ -722,7 +723,7 @@ object Build_Log
       val columns = aux_columns ::: sessions_table.columns.tail
       SQL.Table("isabelle_build_log", columns,
         {
-          SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_alias() +
+          SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_name +
           " INNER JOIN " + table3 + " ON " + log_name(aux_table) + " = " + log_name(table3)
         })
     }
@@ -779,8 +780,8 @@ object Build_Log
             val recent_log_names =
               db.using_statement(
                 Data.select_recent(
-                  Data.meta_info_table, List(Data.log_name), days, distinct = true))(
-                    stmt => SQL.iterator(stmt.executeQuery)(db.string(_, Data.log_name)).toList)
+                  Data.meta_info_table, List(Data.log_name), days, distinct = true))(stmt =>
+                    stmt.execute_query().iterator(_.string(Data.log_name)).toList)
 
             for (log_name <- recent_log_names) {
               read_meta_info(db, log_name).foreach(meta_info =>
@@ -800,11 +801,12 @@ object Build_Log
               {
                 db.using_statement(Data.recent_table(days).query)(stmt =>
                 {
-                  val rs = stmt.executeQuery
-                  while (rs.next()) {
-                    for ((c, i) <- table.columns.zipWithIndex)
-                      db2.set_string(stmt2, i + 1, db.get_string(rs, c))
-                    stmt2.execute
+                  val res = stmt.execute_query()
+                  while (res.next()) {
+                    for ((c, i) <- table.columns.zipWithIndex) {
+                      stmt2.string(i + 1) = res.get_string(c)
+                    }
+                    stmt2.execute()
                   }
                 })
               })
@@ -820,19 +822,19 @@ object Build_Log
 
     def domain(db: SQL.Database, table: SQL.Table, column: SQL.Column): Set[String] =
       db.using_statement(table.select(List(column), distinct = true))(stmt =>
-        SQL.iterator(stmt.executeQuery)(db.string(_, column)).toSet)
+        stmt.execute_query().iterator(_.string(column)).toSet)
 
     def update_meta_info(db: SQL.Database, log_name: String, meta_info: Meta_Info)
     {
       val table = Data.meta_info_table
       db.using_statement(db.insert_permissive(table))(stmt =>
       {
-        db.set_string(stmt, 1, log_name)
+        stmt.string(1) = log_name
         for ((c, i) <- table.columns.tail.zipWithIndex) {
           if (c.T == SQL.Type.Date)
-            db.set_date(stmt, i + 2, meta_info.get_date(c))
+            stmt.date(i + 2) = meta_info.get_date(c)
           else
-            db.set_string(stmt, i + 2, meta_info.get(c))
+            stmt.string(i + 2) = meta_info.get(c)
         }
         stmt.execute()
       })
@@ -847,21 +849,21 @@ object Build_Log
           if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
           else build_info.sessions.iterator
         for ((session_name, session) <- entries_iterator) {
-          db.set_string(stmt, 1, log_name)
-          db.set_string(stmt, 2, session_name)
-          db.set_string(stmt, 3, session.proper_chapter)
-          db.set_string(stmt, 4, session.proper_groups)
-          db.set_int(stmt, 5, session.threads)
-          db.set_long(stmt, 6, session.timing.elapsed.proper_ms)
-          db.set_long(stmt, 7, session.timing.cpu.proper_ms)
-          db.set_long(stmt, 8, session.timing.gc.proper_ms)
-          db.set_double(stmt, 9, session.timing.factor)
-          db.set_long(stmt, 10, session.ml_timing.elapsed.proper_ms)
-          db.set_long(stmt, 11, session.ml_timing.cpu.proper_ms)
-          db.set_long(stmt, 12, session.ml_timing.gc.proper_ms)
-          db.set_double(stmt, 13, session.ml_timing.factor)
-          db.set_long(stmt, 14, session.heap_size)
-          db.set_string(stmt, 15, session.status.map(_.toString))
+          stmt.string(1) = log_name
+          stmt.string(2) = session_name
+          stmt.string(3) = session.proper_chapter
+          stmt.string(4) = session.proper_groups
+          stmt.int(5) = session.threads
+          stmt.long(6) = session.timing.elapsed.proper_ms
+          stmt.long(7) = session.timing.cpu.proper_ms
+          stmt.long(8) = session.timing.gc.proper_ms
+          stmt.double(9) = session.timing.factor
+          stmt.long(10) = session.ml_timing.elapsed.proper_ms
+          stmt.long(11) = session.ml_timing.cpu.proper_ms
+          stmt.long(12) = session.ml_timing.gc.proper_ms
+          stmt.double(13) = session.ml_timing.factor
+          stmt.long(14) = session.heap_size
+          stmt.string(15) = session.status.map(_.toString)
           stmt.execute()
         }
       })
@@ -878,9 +880,9 @@ object Build_Log
             build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
         val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
         for ((session_name, ml_statistics) <- entries) {
-          db.set_string(stmt, 1, log_name)
-          db.set_string(stmt, 2, session_name)
-          db.set_bytes(stmt, 3, ml_statistics)
+          stmt.string(1) = log_name
+          stmt.string(2) = session_name
+          stmt.bytes(3) = ml_statistics
           stmt.execute()
         }
       })
@@ -934,15 +936,15 @@ object Build_Log
       val columns = table.columns.tail
       db.using_statement(table.select(columns, Data.log_name.where_equal(log_name)))(stmt =>
       {
-        val rs = stmt.executeQuery
-        if (!rs.next) None
+        val res = stmt.execute_query()
+        if (!res.next) None
         else {
           val results =
             columns.map(c => c.name ->
               (if (c.T == SQL.Type.Date)
-                db.get_date(rs, c).map(Log_File.Date_Format(_))
+                res.get_date(c).map(Log_File.Date_Format(_))
                else
-                db.get_string(rs, c)))
+                res.get_string(c)))
           val n = Prop.all_props.length
           val props = for ((x, Some(y)) <- results.take(n)) yield (x, y)
           val settings = for ((x, Some(y)) <- results.drop(n)) yield (x, y)
@@ -975,9 +977,9 @@ object Build_Log
         if (ml_statistics) {
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
-            SQL.join_outer(table1, table2,
-              Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
-              Data.session_name(table1) + " = " + Data.session_name(table2))
+            table1 + " LEFT OUTER JOIN " + table2 + " ON " +
+            Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
+            Data.session_name(table1) + " = " + Data.session_name(table2)
           (columns, SQL.enclose(join))
         }
         else (columns1, table1.ident)
@@ -985,26 +987,21 @@ object Build_Log
       val sessions =
         db.using_statement(SQL.select(columns) + from + " " + where)(stmt =>
         {
-          SQL.iterator(stmt.executeQuery)(rs =>
+          stmt.execute_query().iterator(res =>
           {
-            val session_name = db.string(rs, Data.session_name)
+            val session_name = res.string(Data.session_name)
             val session_entry =
               Session_Entry(
-                chapter = db.string(rs, Data.chapter),
-                groups = split_lines(db.string(rs, Data.groups)),
-                threads = db.get_int(rs, Data.threads),
-                timing =
-                  Timing(Time.ms(db.long(rs, Data.timing_elapsed)),
-                    Time.ms(db.long(rs, Data.timing_cpu)),
-                    Time.ms(db.long(rs, Data.timing_gc))),
+                chapter = res.string(Data.chapter),
+                groups = split_lines(res.string(Data.groups)),
+                threads = res.get_int(Data.threads),
+                timing = res.timing(Data.timing_elapsed, Data.timing_cpu, Data.timing_gc),
                 ml_timing =
-                  Timing(Time.ms(db.long(rs, Data.ml_timing_elapsed)),
-                    Time.ms(db.long(rs, Data.ml_timing_cpu)),
-                    Time.ms(db.long(rs, Data.ml_timing_gc))),
-                heap_size = db.get_long(rs, Data.heap_size),
-                status = db.get_string(rs, Data.status).map(Session_Status.withName(_)),
+                  res.timing(Data.ml_timing_elapsed, Data.ml_timing_cpu, Data.ml_timing_gc),
+                heap_size = res.get_long(Data.heap_size),
+                status = res.get_string(Data.status).map(Session_Status.withName(_)),
                 ml_statistics =
-                  if (ml_statistics) uncompress_properties(db.bytes(rs, Data.ml_statistics))
+                  if (ml_statistics) uncompress_properties(res.bytes(Data.ml_statistics))
                   else Nil)
             session_name -> session_entry
           }).toMap

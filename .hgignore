@@ -15,13 +15,9 @@ syntax: regexp
 ^contrib
 ^heaps/
 ^browser_info/
-^doc/.*\.dvi
-^doc/.*\.eps
 ^doc/.*\.pdf
-^doc/.*\.ps
 ^src/Tools/jEdit/dist/
 ^src/Tools/VSCode/out/
 ^src/Tools/VSCode/extension/node_modules/
 ^src/Tools/VSCode/extension/protocol.log
 ^Admin/jenkins/ci-extras/target/
-^stats/

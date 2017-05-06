@@ -29,10 +29,11 @@ object Isabelle_Cronjob
   val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
 
   val devel_dir = Path.explode("~/html-data/devel")
-  val release_snapshot = devel_dir + Path.explode("release_snapshot")
-  val build_log_snapshot = devel_dir + Path.explode("build_log.db")
+  val release_snapshot_dir = devel_dir + Path.explode("release_snapshot")
+  val build_log_db = devel_dir + Path.explode("build_log.db")
+  val build_status_dir = devel_dir + Path.explode("build_status")
 
-  val jenkins_jobs = List("isabelle-nightly-benchmark", "identify")
+  val jenkins_jobs = "identify" :: Jenkins.build_log_jobs
 
 
 
@@ -50,8 +51,8 @@ object Isabelle_Cronjob
           File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
             Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
 
-          val new_snapshot = release_snapshot.ext("new")
-          val old_snapshot = release_snapshot.ext("old")
+          val new_snapshot = release_snapshot_dir.ext("new")
+          val old_snapshot = release_snapshot_dir.ext("old")
 
           Isabelle_System.rm_tree(new_snapshot)
           Isabelle_System.rm_tree(old_snapshot)
@@ -59,8 +60,8 @@ object Isabelle_Cronjob
           Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
             parallel_jobs = 4, remote_mac = "macbroy31", website = Some(new_snapshot))
 
-          if (release_snapshot.is_dir) File.move(release_snapshot, old_snapshot)
-          File.move(new_snapshot, release_snapshot)
+          if (release_snapshot_dir.is_dir) File.move(release_snapshot_dir, old_snapshot)
+          File.move(new_snapshot, release_snapshot_dir)
           Isabelle_System.rm_tree(old_snapshot)
         }))
 
@@ -87,29 +88,55 @@ object Isabelle_Cronjob
   /* remote build_history */
 
   sealed case class Remote_Build(
+    name: String,
     host: String,
     user: String = "",
     port: Int = 0,
     shared_home: Boolean = true,
     options: String = "",
-    args: String = "")
+    args: String = "",
+    detect: SQL.Source = "")
+  {
+    def profile: Build_Status.Profile =
+    {
+      val sql =
+        Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
+        Build_Log.Prop.build_host + " = " + SQL.string(host) +
+        (if (detect == "") "" else " AND " + SQL.enclose(detect))
+      Build_Status.Profile(name, sql)
+    }
+  }
 
-  private val remote_builds =
+  private val remote_builds: List[List[Remote_Build]] =
+  {
     List(
-      List(Remote_Build("lxbroy8",
+      List(Remote_Build("polyml-test", "lxbroy8",
         options = "-m32 -B -M1x2,2 -t polyml-test -e 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
-        args = "-N -g timing")),
-      List(Remote_Build("lxbroy9", options = "-m32 -B -M1x2,2", args = "-N -g timing")),
-      List(Remote_Build("lxbroy10", options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
+        args = "-N -g timing",
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test"))),
+      List(Remote_Build("linux1", "lxbroy9",
+        options = "-m32 -B -M1x2,2", args = "-N -g timing")),
+      List(Remote_Build("linux2", "lxbroy10",
+        options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
-        Remote_Build("macbroy2", options = "-m32 -M8", args = "-a"),
-        Remote_Build("macbroy2", options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty"),
-        Remote_Build("macbroy2", options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs")),
-      List(Remote_Build("macbroy30", options = "-m32 -M2", args = "-a")),
-      List(Remote_Build("macbroy31", options = "-m32 -M2", args = "-a")),
+        Remote_Build("macos1", "macbroy2", options = "-m32 -M8", args = "-a",
+          detect = Build_Log.Prop.build_tags + " IS NULL"),
+        Remote_Build("macos1_quick_and_dirty", "macbroy2",
+          options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
+        Remote_Build("macos1_skip_proofs", "macbroy2",
+          options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
+      List(Remote_Build("macos2", "macbroy30", options = "-m32 -M2", args = "-a")),
+      List(Remote_Build("macos3", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
-        Remote_Build("vmnipkow9", shared_home = false, options = "-m32 -M4", args = "-a"),
-        Remote_Build("vmnipkow9", shared_home = false, options = "-m64 -M4", args = "-a")))
+        Remote_Build("windows", "vmnipkow9", shared_home = false,
+          options = "-m32 -M4", args = "-a",
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
+        Remote_Build("windows", "vmnipkow9", shared_home = false,
+          options = "-m64 -M4", args = "-a",
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
+  }
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
   {
@@ -153,8 +180,19 @@ object Isabelle_Cronjob
     using(store.open_database())(db =>
     {
       store.update_database(db, database_dirs, ml_statistics = true)
-      store.snapshot_database(db, build_log_snapshot)
+      store.snapshot_database(db, build_log_db)
     })
+  }
+
+
+  /* present build status */
+
+  val build_status_profiles: List[Build_Status.Profile] =
+    remote_builds.flatten.map(_.profile)
+
+  def build_status(options: Options)
+  {
+    Build_Status.present_data(Build_Status.read_data(options), target_dir = build_status_dir)
   }
 
 
@@ -304,7 +342,8 @@ object Isabelle_Cronjob
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
-            Logger_Task("build_log_database", logger => database_update(logger.options)))))))
+            Logger_Task("build_log_database", logger => database_update(logger.options)),
+            Logger_Task("build_status", logger => build_status(logger.options)))))))
 
     log_service.shutdown()
 
