@@ -63,7 +63,7 @@ object Build_Stats
     using(store.open_database())(db =>
     {
       for (profile <- profiles) {
-        progress.echo("database query " + quote(profile.name))
+        progress.echo("input " + quote(profile.name))
         val columns =
           List(
             Build_Log.Data.pull_date,
@@ -145,7 +145,7 @@ object Build_Stats
     val data_entries = data.toList.sortBy(_._1)
     for ((name, session_entries) <- data_entries) {
       val dir = target_dir + Path.explode(name)
-      progress.echo("directory " + dir)
+      progress.echo("output " + dir)
       Isabelle_System.mkdirs(dir)
 
       for ((session, entries) <- session_entries) {
@@ -196,7 +196,7 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
             val result =
               Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
             if (result.rc != 0)
-              result.error("Gnuplot error in " + name + "/" + session).check
+              result.error("Gnuplot failed for " + name + "/" + session).check
           }
         }
       }
