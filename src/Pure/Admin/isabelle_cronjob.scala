@@ -97,13 +97,17 @@ object Isabelle_Cronjob
     args: String = "",
     detect: SQL.Source = "")
   {
-    def sql: SQL.Source =
-      Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
-      Build_Log.Prop.build_host + " = " + SQL.string(host) +
-      (if (detect == "") "" else " AND " + SQL.enclose(detect))
+    def profile: Build_Status.Profile =
+    {
+      val sql =
+        Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
+        Build_Log.Prop.build_host + " = " + SQL.string(host) +
+        (if (detect == "") "" else " AND " + SQL.enclose(detect))
+      Build_Status.Profile(name, sql)
+    }
   }
 
-  val remote_builds: List[List[Remote_Build]] =
+  private val remote_builds: List[List[Remote_Build]] =
   {
     List(
       List(Remote_Build("polyml-test", "lxbroy8",
@@ -182,6 +186,9 @@ object Isabelle_Cronjob
 
 
   /* present build status */
+
+  val build_status_profiles: List[Build_Status.Profile] =
+    remote_builds.flatten.map(_.profile)
 
   def build_status(options: Options)
   {

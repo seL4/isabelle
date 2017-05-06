@@ -36,8 +36,7 @@ object Build_Status
   }
 
   val standard_profiles: List[Profile] =
-    Jenkins.build_log_profiles :::
-    Isabelle_Cronjob.remote_builds.flatten.toList.map(r => Profile(r.name, r.sql))
+    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
 
   sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing)
   {
