@@ -803,8 +803,9 @@ object Build_Log
                 {
                   val res = stmt.execute_query()
                   while (res.next()) {
-                    for ((c, i) <- table.columns.zipWithIndex)
-                      stmt2.set_string(i + 1, res.get_string(c))
+                    for ((c, i) <- table.columns.zipWithIndex) {
+                      stmt2.string(i + 1) = res.get_string(c)
+                    }
                     stmt2.execute()
                   }
                 })
@@ -828,12 +829,12 @@ object Build_Log
       val table = Data.meta_info_table
       db.using_statement(db.insert_permissive(table))(stmt =>
       {
-        stmt.set_string(1, log_name)
+        stmt.string(1) = log_name
         for ((c, i) <- table.columns.tail.zipWithIndex) {
           if (c.T == SQL.Type.Date)
-            stmt.set_date(i + 2, meta_info.get_date(c))
+            stmt.date(i + 2) = meta_info.get_date(c)
           else
-            stmt.set_string(i + 2, meta_info.get(c))
+            stmt.string(i + 2) = meta_info.get(c)
         }
         stmt.execute()
       })
@@ -848,21 +849,21 @@ object Build_Log
           if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
           else build_info.sessions.iterator
         for ((session_name, session) <- entries_iterator) {
-          stmt.set_string(1, log_name)
-          stmt.set_string(2, session_name)
-          stmt.set_string(3, session.proper_chapter)
-          stmt.set_string(4, session.proper_groups)
-          stmt.set_int(5, session.threads)
-          stmt.set_long(6, session.timing.elapsed.proper_ms)
-          stmt.set_long(7, session.timing.cpu.proper_ms)
-          stmt.set_long(8, session.timing.gc.proper_ms)
-          stmt.set_double(9, session.timing.factor)
-          stmt.set_long(10, session.ml_timing.elapsed.proper_ms)
-          stmt.set_long(11, session.ml_timing.cpu.proper_ms)
-          stmt.set_long(12, session.ml_timing.gc.proper_ms)
-          stmt.set_double(13, session.ml_timing.factor)
-          stmt.set_long(14, session.heap_size)
-          stmt.set_string(15, session.status.map(_.toString))
+          stmt.string(1) = log_name
+          stmt.string(2) = session_name
+          stmt.string(3) = session.proper_chapter
+          stmt.string(4) = session.proper_groups
+          stmt.int(5) = session.threads
+          stmt.long(6) = session.timing.elapsed.proper_ms
+          stmt.long(7) = session.timing.cpu.proper_ms
+          stmt.long(8) = session.timing.gc.proper_ms
+          stmt.double(9) = session.timing.factor
+          stmt.long(10) = session.ml_timing.elapsed.proper_ms
+          stmt.long(11) = session.ml_timing.cpu.proper_ms
+          stmt.long(12) = session.ml_timing.gc.proper_ms
+          stmt.double(13) = session.ml_timing.factor
+          stmt.long(14) = session.heap_size
+          stmt.string(15) = session.status.map(_.toString)
           stmt.execute()
         }
       })
@@ -879,9 +880,9 @@ object Build_Log
             build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
         val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
         for ((session_name, ml_statistics) <- entries) {
-          stmt.set_string(1, log_name)
-          stmt.set_string(2, session_name)
-          stmt.set_bytes(3, ml_statistics)
+          stmt.string(1) = log_name
+          stmt.string(2) = session_name
+          stmt.bytes(3) = ml_statistics
           stmt.execute()
         }
       })

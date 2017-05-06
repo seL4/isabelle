@@ -174,47 +174,61 @@ object SQL
   {
     stmt =>
 
-    def set_bool(i: Int, x: Boolean) { rep.setBoolean(i, x) }
-    def set_bool(i: Int, x: Option[Boolean])
+    object bool
     {
-      if (x.isDefined) set_bool(i, x.get)
-      else rep.setNull(i, java.sql.Types.BOOLEAN)
+      def update(i: Int, x: Boolean) { rep.setBoolean(i, x) }
+      def update(i: Int, x: Option[Boolean])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.BOOLEAN)
+      }
     }
-
-    def set_int(i: Int, x: Int) { rep.setInt(i, x) }
-    def set_int(i: Int, x: Option[Int])
+    object int
     {
-      if (x.isDefined) set_int(i, x.get)
-      else rep.setNull(i, java.sql.Types.INTEGER)
+      def update(i: Int, x: Int) { rep.setInt(i, x) }
+      def update(i: Int, x: Option[Int])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.INTEGER)
+      }
     }
-
-    def set_long(i: Int, x: Long) { rep.setLong(i, x) }
-    def set_long(i: Int, x: Option[Long])
+    object long
     {
-      if (x.isDefined) set_long(i, x.get)
-      else rep.setNull(i, java.sql.Types.BIGINT)
+      def update(i: Int, x: Long) { rep.setLong(i, x) }
+      def update(i: Int, x: Option[Long])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.BIGINT)
+      }
     }
-
-    def set_double(i: Int, x: Double) { rep.setDouble(i, x) }
-    def set_double(i: Int, x: Option[Double])
+    object double
     {
-      if (x.isDefined) set_double(i, x.get)
-      else rep.setNull(i, java.sql.Types.DOUBLE)
+      def update(i: Int, x: Double) { rep.setDouble(i, x) }
+      def update(i: Int, x: Option[Double])
+      {
+        if (x.isDefined) update(i, x.get)
+        else rep.setNull(i, java.sql.Types.DOUBLE)
+      }
     }
-
-    def set_string(i: Int, x: String) { rep.setString(i, x) }
-    def set_string(i: Int, x: Option[String]): Unit = set_string(i, x.orNull)
-
-    def set_bytes(i: Int, bytes: Bytes)
+    object string
     {
-      if (bytes == null) rep.setBytes(i, null)
-      else rep.setBinaryStream(i, bytes.stream(), bytes.length)
+      def update(i: Int, x: String) { rep.setString(i, x) }
+      def update(i: Int, x: Option[String]): Unit = update(i, x.orNull)
     }
-    def set_bytes(i: Int, bytes: Option[Bytes]): Unit = set_bytes(i, bytes.orNull)
-
-    def set_date(i: Int, date: Date): Unit = db.set_date(stmt, i, date)
-    def set_date(i: Int, date: Option[Date]): Unit = set_date(i, date.orNull)
-
+    object bytes
+    {
+      def update(i: Int, bytes: Bytes)
+      {
+        if (bytes == null) rep.setBytes(i, null)
+        else rep.setBinaryStream(i, bytes.stream(), bytes.length)
+      }
+      def update(i: Int, bytes: Option[Bytes]): Unit = update(i, bytes.orNull)
+    }
+    object date
+    {
+      def update(i: Int, date: Date): Unit = db.update_date(stmt, i, date)
+      def update(i: Int, date: Option[Date]): Unit = update(i, date.orNull)
+    }
 
     def execute(): Boolean = rep.execute()
     def execute_query(): Result = new Result(this, rep.executeQuery())
@@ -315,7 +329,7 @@ object SQL
     def using_statement[A](sql: Source)(f: Statement => A): A =
       using(statement(sql))(f)
 
-    def set_date(stmt: Statement, i: Int, date: Date): Unit
+    def update_date(stmt: Statement, i: Int, date: Date): Unit
     def date(res: Result, column: Column): Date
 
     def insert_permissive(table: Table, sql: Source = ""): Source
@@ -376,9 +390,9 @@ object SQLite
 
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_sqlite(T)
 
-    def set_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
-      if (date == null) stmt.set_string(i, null: String)
-      else stmt.set_string(i, date_format(date))
+    def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
+      if (date == null) stmt.string(i) = (null: String)
+      else stmt.string(i) = date_format(date)
 
     def date(res: SQL.Result, column: SQL.Column): Date =
       date_format.parse(res.string(column))
@@ -449,7 +463,7 @@ object PostgreSQL
     def sql_type(T: SQL.Type.Value): SQL.Source = SQL.sql_type_postgresql(T)
 
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
-    def set_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
+    def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
       if (date == null) stmt.rep.setObject(i, null)
       else stmt.rep.setObject(i, OffsetDateTime.from(date.to_utc.rep))
 

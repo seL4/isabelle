@@ -824,15 +824,15 @@ object Sessions
           Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
         db.using_statement(Session_Info.table.insert())(stmt =>
         {
-          stmt.set_string(1, name)
-          stmt.set_bytes(2, encode_properties(build_log.session_timing))
-          stmt.set_bytes(3, compress_properties(build_log.command_timings))
-          stmt.set_bytes(4, compress_properties(build_log.ml_statistics))
-          stmt.set_bytes(5, compress_properties(build_log.task_statistics))
-          stmt.set_string(6, cat_lines(build.sources))
-          stmt.set_string(7, cat_lines(build.input_heaps))
-          stmt.set_string(8, build.output_heap getOrElse "")
-          stmt.set_int(9, build.return_code)
+          stmt.string(1) = name
+          stmt.bytes(2) = encode_properties(build_log.session_timing)
+          stmt.bytes(3) = compress_properties(build_log.command_timings)
+          stmt.bytes(4) = compress_properties(build_log.ml_statistics)
+          stmt.bytes(5) = compress_properties(build_log.task_statistics)
+          stmt.string(6) = cat_lines(build.sources)
+          stmt.string(7) = cat_lines(build.input_heaps)
+          stmt.string(8) = build.output_heap getOrElse ""
+          stmt.int(9) = build.return_code
           stmt.execute()
         })
       }
