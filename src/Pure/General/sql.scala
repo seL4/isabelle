@@ -45,13 +45,6 @@ object SQL
   def select(columns: List[Column], distinct: Boolean = false): Source =
     "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.ident)) + " FROM "
 
-  def join(table1: Table, table2: Table, sql: Source = "", outer: Boolean = false): Source =
-    table1 + (if (outer) " LEFT OUTER JOIN " else " INNER JOIN ") + table2 +
-      (if (sql == "") "" else " ON " + sql)
-
-  def join_outer(table1: Table, table2: Table, sql: Source = ""): Source =
-    join(table1, table2, sql, outer = true)
-
 
   /* types */
 
