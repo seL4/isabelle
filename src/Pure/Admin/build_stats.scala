@@ -91,14 +91,14 @@ object Build_Stats
             val session = res.string(Build_Log.Data.session_name)
             val entry =
               Entry(res.date(Build_Log.Data.pull_date),
-                Timing(
-                  Time.ms(res.long(Build_Log.Data.timing_elapsed)),
-                  Time.ms(res.long(Build_Log.Data.timing_cpu)),
-                  Time.ms(res.long(Build_Log.Data.timing_gc))),
-                Timing(
-                  Time.ms(res.long(Build_Log.Data.ml_timing_elapsed)),
-                  Time.ms(res.long(Build_Log.Data.ml_timing_cpu)),
-                  Time.ms(res.long(Build_Log.Data.ml_timing_gc))))
+                res.timing(
+                  Build_Log.Data.timing_elapsed,
+                  Build_Log.Data.timing_cpu,
+                  Build_Log.Data.timing_gc),
+                res.timing(
+                  Build_Log.Data.ml_timing_elapsed,
+                  Build_Log.Data.ml_timing_cpu,
+                  Build_Log.Data.ml_timing_gc))
 
             val session_entries = data.getOrElse(name, Map.empty)
             val entries = session_entries.getOrElse(session, Nil)

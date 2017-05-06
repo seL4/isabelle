@@ -994,16 +994,9 @@ object Build_Log
                 chapter = res.string(Data.chapter),
                 groups = split_lines(res.string(Data.groups)),
                 threads = res.get_int(Data.threads),
-                timing =
-                  Timing(
-                    Time.ms(res.long(Data.timing_elapsed)),
-                    Time.ms(res.long(Data.timing_cpu)),
-                    Time.ms(res.long(Data.timing_gc))),
+                timing = res.timing(Data.timing_elapsed, Data.timing_cpu, Data.timing_gc),
                 ml_timing =
-                  Timing(
-                    Time.ms(res.long(Data.ml_timing_elapsed)),
-                    Time.ms(res.long(Data.ml_timing_cpu)),
-                    Time.ms(res.long(Data.ml_timing_gc))),
+                  res.timing(Data.ml_timing_elapsed, Data.ml_timing_cpu, Data.ml_timing_gc),
                 heap_size = res.get_long(Data.heap_size),
                 status = res.get_string(Data.status).map(Session_Status.withName(_)),
                 ml_statistics =
