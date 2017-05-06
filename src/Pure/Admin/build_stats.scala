@@ -79,26 +79,26 @@ object Build_Stats
 
         db.using_statement(profile.select(columns, history_length, only_sessions))(stmt =>
         {
-          val rs = stmt.executeQuery
-          while (rs.next) {
-            val ml_platform = db.string(rs, Build_Log.Settings.ML_PLATFORM)
-            val threads = db.get_int(rs, Build_Log.Data.threads)
+          val res = stmt.execute_query()
+          while (res.next()) {
+            val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
+            val threads = res.get_int(Build_Log.Data.threads)
             val name =
               profile.name +
                 "_m" + (if (ml_platform.startsWith("x86_64")) "64" else "32") +
                 "_M" + threads.getOrElse(1)
 
-            val session = db.string(rs, Build_Log.Data.session_name)
+            val session = res.string(Build_Log.Data.session_name)
             val entry =
-              Entry(db.date(rs, Build_Log.Data.pull_date),
+              Entry(res.date(Build_Log.Data.pull_date),
                 Timing(
-                  Time.ms(db.long(rs, Build_Log.Data.timing_elapsed)),
-                  Time.ms(db.long(rs, Build_Log.Data.timing_cpu)),
-                  Time.ms(db.long(rs, Build_Log.Data.timing_gc))),
+                  Time.ms(res.long(Build_Log.Data.timing_elapsed)),
+                  Time.ms(res.long(Build_Log.Data.timing_cpu)),
+                  Time.ms(res.long(Build_Log.Data.timing_gc))),
                 Timing(
-                  Time.ms(db.long(rs, Build_Log.Data.ml_timing_elapsed)),
-                  Time.ms(db.long(rs, Build_Log.Data.ml_timing_cpu)),
-                  Time.ms(db.long(rs, Build_Log.Data.ml_timing_gc))))
+                  Time.ms(res.long(Build_Log.Data.ml_timing_elapsed)),
+                  Time.ms(res.long(Build_Log.Data.ml_timing_cpu)),
+                  Time.ms(res.long(Build_Log.Data.ml_timing_gc))))
 
             val session_entries = data.getOrElse(name, Map.empty)
             val entries = session_entries.getOrElse(session, Nil)
