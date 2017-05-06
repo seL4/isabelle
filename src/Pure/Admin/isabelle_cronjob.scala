@@ -29,8 +29,9 @@ object Isabelle_Cronjob
   val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
 
   val devel_dir = Path.explode("~/html-data/devel")
-  val release_snapshot = devel_dir + Path.explode("release_snapshot")
-  val build_log_snapshot = devel_dir + Path.explode("build_log.db")
+  val release_snapshot_dir = devel_dir + Path.explode("release_snapshot")
+  val build_log_db = devel_dir + Path.explode("build_log.db")
+  val build_status_dir = devel_dir + Path.explode("build_status")
 
   val jenkins_jobs = "identify" :: Jenkins.build_log_jobs
 
@@ -50,8 +51,8 @@ object Isabelle_Cronjob
           File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
             Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
 
-          val new_snapshot = release_snapshot.ext("new")
-          val old_snapshot = release_snapshot.ext("old")
+          val new_snapshot = release_snapshot_dir.ext("new")
+          val old_snapshot = release_snapshot_dir.ext("old")
 
           Isabelle_System.rm_tree(new_snapshot)
           Isabelle_System.rm_tree(old_snapshot)
@@ -59,8 +60,8 @@ object Isabelle_Cronjob
           Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
             parallel_jobs = 4, remote_mac = "macbroy31", website = Some(new_snapshot))
 
-          if (release_snapshot.is_dir) File.move(release_snapshot, old_snapshot)
-          File.move(new_snapshot, release_snapshot)
+          if (release_snapshot_dir.is_dir) File.move(release_snapshot_dir, old_snapshot)
+          File.move(new_snapshot, release_snapshot_dir)
           Isabelle_System.rm_tree(old_snapshot)
         }))
 
@@ -175,8 +176,16 @@ object Isabelle_Cronjob
     using(store.open_database())(db =>
     {
       store.update_database(db, database_dirs, ml_statistics = true)
-      store.snapshot_database(db, build_log_snapshot)
+      store.snapshot_database(db, build_log_db)
     })
+  }
+
+
+  /* present build status */
+
+  def build_status(options: Options)
+  {
+    Build_Status.present_data(Build_Status.read_data(options), target_dir = build_status_dir)
   }
 
 
@@ -326,7 +335,8 @@ object Isabelle_Cronjob
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
-            Logger_Task("build_log_database", logger => database_update(logger.options)))))))
+            Logger_Task("build_log_database", logger => database_update(logger.options)),
+            Logger_Task("build_status", logger => build_status(logger.options)))))))
 
     log_service.shutdown()
 
