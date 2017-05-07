@@ -62,7 +62,7 @@ object Build_Status
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
     {
-      for (profile <- profiles) {
+      for (profile <- profiles.sortBy(_.name)) {
         progress.echo("input " + quote(profile.name))
         val columns =
           List(
