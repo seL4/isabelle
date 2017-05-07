@@ -144,9 +144,6 @@ object Library
 
   def trim_substring(s: String): String = new String(s.toCharArray)
 
-  def proper_string(s: String): Option[String] =
-    if (s == null || s == "") None else Some(s)
-
 
   /* quote */
 
@@ -247,4 +244,16 @@ object Library
     dups(lst)
     result.toList
   }
+
+
+  /* proper values */
+
+  def proper[A](x: A): Option[A] =
+    if (x == null) None else Some(x)
+
+  def proper_string(s: String): Option[String] =
+    if (s == null || s == "") None else Some(s)
+
+  def proper_list[A](list: List[A]): Option[List[A]] =
+    if (list == null || list.isEmpty) None else Some(list)
 }

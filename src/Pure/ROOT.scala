@@ -18,5 +18,7 @@ package object isabelle
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
+  def proper[A](x: A): Option[A] = Library.proper(x)
   val proper_string = Library.proper_string _
+  def proper_list[A](list: List[A]): Option[List[A]] = Library.proper_list(list)
 }
