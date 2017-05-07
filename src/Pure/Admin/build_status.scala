@@ -142,8 +142,7 @@ object Build_Status
   def present_data(data: Data,
     progress: Progress = No_Progress,
     target_dir: Path = default_target_dir,
-    image_size: (Int, Int) = default_image_size,
-    ml_timing: Option[Boolean] = None)
+    image_size: (Int, Int) = default_image_size)
   {
     val data_entries = data.sorted_entries
 
@@ -152,7 +151,7 @@ object Build_Status
       progress.echo("output " + dir)
       Isabelle_System.mkdirs(dir)
 
-      Par_List.map[(String, List[isabelle.Build_Status.Entry]), Process_Result](
+      Par_List.map[(String, List[isabelle.Build_Status.Entry]), List[Process_Result]](
         { case (session, entries) =>
           Isabelle_System.with_tmp_file(session, "data") { data_file =>
             Isabelle_System.with_tmp_file(session, "gnuplot") { gnuplot_file =>
@@ -167,30 +166,12 @@ object Build_Status
                       entry.ml_timing.cpu.minutes,
                       entry.ml_timing.gc.minutes).mkString(" "))))
 
-              val plots1 =
-                List(
-                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                  """ using 1:3 smooth csplines title "cpu time" """,
-                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-                  """ using 1:2 smooth csplines title "elapsed time" """)
-              val plots2 =
-                List(
-                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-                  """ using 1:5 smooth csplines title "ML cpu time" """,
-                  """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                  """ using 1:4 smooth csplines title "ML elapsed time" """,
-                  """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
-                  """ using 1:6 smooth csplines title "ML gc time" """)
-              val plots =
-                ml_timing match {
-                  case None => plots1
-                  case Some(false) => plots1 ::: plots2
-                  case Some(true) => plots2
-                }
-
-              File.write(gnuplot_file, """
+              def gnuplot(plots: List[String], kind: String): Process_Result =
+              {
+                val name = session + "_" + kind
+                File.write(gnuplot_file, """
 set terminal png size """ + image_size._1 + "," + image_size._2 + """
-set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
+set output """ + quote(File.standard_path(dir + Path.basic(name + ".png"))) + """
 set xdata time
 set timefmt "%s"
 set format x "%d-%b"
@@ -198,13 +179,31 @@ set xlabel """ + quote(session) + """ noenhanced
 set key left top
 plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
 
-              val result =
-                Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
-              if (result.ok) result
-              else result.error("Gnuplot failed for " + data_name + "/" + session)
+                val result =
+                  Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
+                if (result.ok) result
+                else result.error("Gnuplot failed for " + data_name + "/" + name)
+              }
+
+              val timing_plots =
+                List(
+                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                  """ using 1:3 smooth csplines title "cpu time" """,
+                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                  """ using 1:2 smooth csplines title "elapsed time" """)
+              val ml_timing_plots =
+                List(
+                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                  """ using 1:5 smooth csplines title "ML cpu time" """,
+                  """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+                  """ using 1:4 smooth csplines title "ML elapsed time" """,
+                  """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
+                  """ using 1:6 smooth csplines title "ML gc time" """)
+
+              List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
             }
           }
-        }, session_entries).foreach(_.check)
+        }, session_entries).flatten.foreach(_.check)
 
       val sessions = session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse
       val heading = "Build status for " + data_name + " (" + data.date + ")"
@@ -227,7 +226,8 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
                       HTML.text(entries.head.timing.message_resources),
                     HTML.bold(HTML.text("ML timing: ")) ::
                       HTML.text(entries.head.ml_timing.message_resources))),
-                  HTML.image(name + ".png")))) })))
+                  HTML.image(name + "_timing.png"),
+                  HTML.image(name + "_ml_timing.png")))) })))
     }
 
     val heading = "Build status (" + data.date + ")"
@@ -247,7 +247,6 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
     Isabelle_Tool("build_status", "present recent build status information from database", args =>
     {
       var target_dir = default_target_dir
-      var ml_timing: Option[Boolean] = None
       var only_sessions = Set.empty[String]
       var history_length = default_history_length
       var options = Options.init()
@@ -259,10 +258,8 @@ Usage: isabelle build_status [OPTIONS]
 
   Options are:
     -D DIR       target directory (default """ + default_target_dir + """)
-    -M           only ML timing
     -S SESSIONS  only given SESSIONS (comma separated)
     -l LENGTH    length of history (default """ + default_history_length + """)
-    -m           include ML timing
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
     -v           verbose
@@ -271,10 +268,8 @@ Usage: isabelle build_status [OPTIONS]
   via system options build_log_database_host, build_log_database_user etc.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
-        "M" -> (_ => ml_timing = Some(true)),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
         "l:" -> (arg => history_length = Value.Int.parse(arg)),
-        "m" -> (_ => ml_timing = Some(false)),
         "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
           space_explode('x', arg).map(Value.Int.parse(_)) match {
@@ -292,8 +287,7 @@ Usage: isabelle build_status [OPTIONS]
         read_data(options, progress = progress, history_length = history_length,
           only_sessions = only_sessions, verbose = verbose)
 
-      present_data(data, progress = progress, target_dir = target_dir,
-        image_size = image_size, ml_timing = ml_timing)
+      present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
 
   }, admin = true)
 }
