@@ -18,6 +18,7 @@ object XML
 
   /* datatype representation */
 
+  type Attribute = Properties.Entry
   type Attributes = Properties.T
 
   sealed abstract class Tree { override def toString: String = string_of_tree(this) }
@@ -25,9 +26,12 @@ object XML
   case class Elem(markup: Markup, body: Body) extends Tree
   {
     def name: String = markup.name
+
     def update_attributes(more_attributes: Attributes): Elem =
       if (more_attributes.isEmpty) this
       else Elem(markup.update_properties(more_attributes), body)
+
+    def + (att: Attribute): Tree = Elem(markup + att, body)
   }
   case class Text(content: String) extends Tree
 

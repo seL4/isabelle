@@ -81,9 +81,15 @@ object HTML
   def output(tree: XML.Tree): String = output(List(tree))
 
 
+  /* attributes */
+
+  def id(s: String): Properties.Entry = ("id" -> s)
+
+
   /* structured markup operators */
 
   def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
+  val break: XML.Body = List(XML.elem("br"))
 
   class Operator(name: String)
   { def apply(body: XML.Body): XML.Elem = XML.elem(name, body) }
@@ -93,6 +99,7 @@ object HTML
 
   val div = new Operator("div")
   val span = new Operator("span")
+  val pre = new Operator("pre")
   val par = new Operator("p")
   val emph = new Operator("em")
   val bold = new Operator("b")
@@ -116,6 +123,9 @@ object HTML
 
   def link(href: String, body: XML.Body = Nil): XML.Elem =
     XML.Elem(Markup("a", List("href" -> href)), if (body.isEmpty) text(href) else body)
+
+  def image(src: String, alt: String = ""): XML.Elem =
+    XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
 
 
   /* document */
@@ -157,9 +167,7 @@ object HTML
   private def session_entry(entry: (String, String)): String =
   {
     val (name, description) = entry
-    val descr =
-      if (description == "") Nil
-      else List(XML.elem("br"), XML.elem("pre", List(XML.Text(description))))
+    val descr = if (description == "") Nil else break ::: List(pre(text(description)))
     XML.string_of_tree(
       XML.elem("li",
         List(XML.Elem(Markup("a", List(("href", name + "/index.html"))),
