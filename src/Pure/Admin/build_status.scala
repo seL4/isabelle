@@ -161,10 +161,9 @@ object Build_Status
                   entries.map(entry =>
                     List(entry.date.unix_epoch.toString,
                       entry.timing.elapsed.minutes,
-                      entry.timing.cpu.minutes,
+                      entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
-                      entry.ml_timing.cpu.minutes,
-                      entry.ml_timing.gc.minutes).mkString(" "))))
+                      entry.ml_timing.resources.minutes).mkString(" "))))
 
               def gnuplot(plots: List[String], kind: String): Process_Result =
               {
@@ -196,9 +195,7 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
                   """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
                   """ using 1:5 smooth csplines title "ML cpu time" """,
                   """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                  """ using 1:4 smooth csplines title "ML elapsed time" """,
-                  """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
-                  """ using 1:6 smooth csplines title "ML gc time" """)
+                  """ using 1:4 smooth csplines title "ML elapsed time" """)
 
               List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
             }
@@ -206,12 +203,11 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
         }, session_entries).flatten.foreach(_.check)
 
       val sessions = session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse
-      val heading = "Build status for " + data_name + " (" + data.date + ")"
 
       File.write(dir + Path.basic("index.html"),
         HTML.output_document(
-          List(HTML.title(heading)),
-          HTML.chapter(heading) ::
+          List(HTML.title("Isabelle build status for " + data_name)),
+          HTML.chapter("Isabelle build status for " + data_name + " (" + data.date + ")") ::
           HTML.itemize(
             sessions.map({ case (name, entries) =>
               HTML.link("#session_" + name, HTML.text(name)) ::
@@ -230,12 +226,10 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
                   HTML.image(name + "_ml_timing.png")))) })))
     }
 
-    val heading = "Build status (" + data.date + ")"
-
     File.write(target_dir + Path.basic("index.html"),
       HTML.output_document(
-        List(HTML.title(heading)),
-        List(HTML.chapter(heading),
+        List(HTML.title("Isabelle build status")),
+        List(HTML.chapter("Isabelle build status (" + data.date + ")"),
           HTML.itemize(data_entries.map({ case (name, _) =>
             List(HTML.link(name + "/index.html", HTML.text(name))) })))))
   }
