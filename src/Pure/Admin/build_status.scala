@@ -225,9 +225,15 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
               HTML.text(" (" + entries.head.timing.message_resources + ")") })) ::
           sessions.flatMap({ case (name, entries) =>
             List(
-              HTML.section(name + " (" + entries.head.timing.message_resources + ")") +
-                HTML.id("session_" + name),
-              HTML.par(List(HTML.image(name + ".png")))) })))
+              HTML.section(name) + HTML.id("session_" + name),
+              HTML.par(
+                List(
+                  HTML.itemize(List(
+                    HTML.bold(HTML.text("last timing: ")) ::
+                      HTML.text(entries.head.timing.message_resources),
+                    HTML.bold(HTML.text("last ML timing: ")) ::
+                      HTML.text(entries.head.ml_timing.message_resources))),
+                  HTML.image(name + ".png")))) })))
     }
 
     val heading = "Build status (" + data.date + ")"
