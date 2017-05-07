@@ -44,7 +44,12 @@ object Build_Status
       !timing.is_zero && timing.elapsed >= elapsed_threshold
   }
 
-  type Data = Map[String, Map[String, List[Entry]]]
+  sealed case class Data(date: Date, entries: Map[String, Map[String, List[Entry]]])
+  {
+    def sorted_entries: List[(String, List[(String, List[Entry])])] =
+      entries.toList.sortBy(_._1).map({ case (name, session_entries) =>
+        (name, session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse) })
+  }
 
 
   /* read data */
@@ -57,7 +62,8 @@ object Build_Status
     elapsed_threshold: Time = Time.zero,
     verbose: Boolean = false): Data =
   {
-    var data: Data = Map.empty
+    val date = Date.now()
+    var data_entries = Map.empty[String, Map[String, List[Entry]]]
 
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
@@ -113,41 +119,32 @@ object Build_Status
                   Build_Log.Data.ml_timing_cpu,
                   Build_Log.Data.ml_timing_gc))
 
-            val session_entries = data.getOrElse(name, Map.empty)
+            val session_entries = data_entries.getOrElse(name, Map.empty)
             val entries = session_entries.getOrElse(session, Nil)
-            data += (name -> (session_entries + (session -> (entry :: entries))))
+            data_entries += (name -> (session_entries + (session -> (entry :: entries))))
           }
         })
       }
     })
 
-    for {
-      (name, session_entries) <- data
-      session_entries1 <-
-        {
-          val session_entries1 =
-            for {
-              (session, entries) <- session_entries
-              if entries.filter(_.check(elapsed_threshold)).length >= 3
-            } yield (session, entries)
-          if (session_entries1.isEmpty) None
-          else Some(session_entries1)
-        }
-    } yield (name, session_entries1)
+    Data(date,
+      for {
+        (name, session_entries) <- data_entries
+        session_entries1 <-
+          {
+            val session_entries1 =
+              for {
+                (session, entries) <- session_entries
+                if entries.filter(_.check(elapsed_threshold)).length >= 3
+              } yield (session, entries)
+            if (session_entries1.isEmpty) None
+            else Some(session_entries1)
+          }
+      } yield (name, session_entries1))
   }
 
 
   /* present data */
-
-  private val html_header = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<html>
-<head><title>Build status</title></head>
-<body>
-"""
-  private val html_footer = """
-</body>
-</html>
-"""
 
   def present_data(data: Data,
     progress: Progress = No_Progress,
@@ -155,9 +152,10 @@ object Build_Status
     image_size: (Int, Int) = default_image_size,
     ml_timing: Option[Boolean] = None)
   {
-    val data_entries = data.toList.sortBy(_._1)
-    for ((name, session_entries) <- data_entries) {
-      val dir = target_dir + Path.explode(name)
+    val data_entries = data.sorted_entries
+
+    for ((data_name, session_entries) <- data_entries) {
+      val dir = target_dir + Path.explode(data_name)
       progress.echo("output " + dir)
       Isabelle_System.mkdirs(dir)
 
@@ -209,26 +207,37 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
             val result =
               Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
             if (result.rc != 0)
-              result.error("Gnuplot failed for " + name + "/" + session).check
+              result.error("Gnuplot failed for " + data_name + "/" + session).check
           }
         }
       }
 
+      val sessions = session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse
+      val heading = "Build status for " + data_name + " (" + data.date + ")"
+
       File.write(dir + Path.basic("index.html"),
-        html_header + "\n<h1>" + HTML.output(name) + "</h1>\n" +
-        cat_lines(
-          session_entries.toList.map(_._1).sorted.map(session =>
-            """<br/><img src=""" + quote(HTML.output(session + ".png")) + """><br/>""")) +
-        "\n" + html_footer)
+        HTML.output_document(
+          List(HTML.title(heading)),
+          HTML.chapter(heading) ::
+          HTML.itemize(
+            sessions.map({ case (name, entries) =>
+              HTML.link("#session_" + name, HTML.text(name)) ::
+              HTML.text(" (" + entries.head.timing.message_resources + ")") })) ::
+          sessions.flatMap({ case (name, entries) =>
+            List(
+              HTML.section(name + " (" + entries.head.timing.message_resources + ")") +
+                HTML.id("session_" + name),
+              HTML.par(List(HTML.image(name + ".png")))) })))
     }
 
+    val heading = "Build status (" + data.date + ")"
+
     File.write(target_dir + Path.basic("index.html"),
-      html_header + "\n<ul>\n" +
-      cat_lines(
-        data_entries.map(_._1).map(name =>
-          """<li> <a href=""" + quote(HTML.output(name + "/index.html")) + """>""" +
-            HTML.output(name) + """</a> </li>""")) +
-      "\n</ul>\n" + html_footer)
+      HTML.output_document(
+        List(HTML.title(heading)),
+        List(HTML.chapter(heading),
+          HTML.itemize(data_entries.map({ case (name, _) =>
+            List(HTML.link(name + "/index.html", HTML.text(name))) })))))
   }
 
 
