@@ -67,6 +67,7 @@ object Build_Status
         val columns =
           List(
             Build_Log.Data.pull_date,
+            Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
             Build_Log.Settings.ML_PLATFORM,
             Build_Log.Data.session_name,
             Build_Log.Data.threads,
@@ -77,6 +78,8 @@ object Build_Status
             Build_Log.Data.ml_timing_cpu,
             Build_Log.Data.ml_timing_gc)
 
+        val Threads_Option = """threads\s*=\s*(\d+)""".r
+
         val sql = profile.select(columns, history_length, only_sessions)
         if (verbose) progress.echo(sql)
 
@@ -85,11 +88,18 @@ object Build_Status
           val res = stmt.execute_query()
           while (res.next()) {
             val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
-            val threads = res.get_int(Build_Log.Data.threads)
+
+            val threads_option =
+              res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
+                case Threads_Option(Value.Int(i)) => i
+                case _ => 1
+              }
+            val threads = res.get_int(Build_Log.Data.threads).getOrElse(1)
+
             val name =
               profile.name +
                 "_m" + (if (ml_platform.startsWith("x86_64")) "64" else "32") +
-                "_M" + threads.getOrElse(1)
+                "_M" + (threads_option max threads)
 
             val session = res.string(Build_Log.Data.session_name)
             val entry =
