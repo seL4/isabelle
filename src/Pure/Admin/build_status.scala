@@ -38,14 +38,16 @@ object Build_Status
   val standard_profiles: List[Profile] =
     Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
 
-  sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing)
 
-  sealed case class Data(date: Date, entries: Map[String, Map[String, List[Entry]]])
+  sealed case class Data(date: Date, entries: List[(String, List[Session])])
+  sealed case class Session(name: String, entries: List[Entry])
   {
-    def sorted_entries: List[(String, List[(String, List[Entry])])] =
-      entries.toList.sortBy(_._1).map({ case (name, session_entries) =>
-        (name, session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse) })
+    def timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.timing
+    def ml_timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.ml_timing
+    def order: Long = - timing.elapsed.ms
+    def check: Boolean = entries.length >= 3
   }
+  sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing)
 
 
   /* read data */
@@ -58,7 +60,7 @@ object Build_Status
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
-    var data_entries = Map.empty[String, Map[String, List[Entry]]]
+    var data_entries = Map.empty[String, Map[String, Session]]
 
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
@@ -97,12 +99,12 @@ object Build_Status
               }
             val threads = res.get_int(Build_Log.Data.threads).getOrElse(1)
 
-            val name =
+            val data_name =
               profile.name +
                 "_m" + (if (ml_platform.startsWith("x86_64")) "64" else "32") +
                 "_M" + (threads_option max threads)
 
-            val session = res.string(Build_Log.Data.session_name)
+            val name = res.string(Build_Log.Data.session_name)
             val entry =
               Entry(res.date(Build_Log.Data.pull_date),
                 res.timing(
@@ -114,26 +116,19 @@ object Build_Status
                   Build_Log.Data.ml_timing_cpu,
                   Build_Log.Data.ml_timing_gc))
 
-            val session_entries = data_entries.getOrElse(name, Map.empty)
-            val entries = session_entries.getOrElse(session, Nil)
-            data_entries += (name -> (session_entries + (session -> (entry :: entries))))
+            val sessions = data_entries.getOrElse(data_name, Map.empty)
+            val entries = sessions.get(name).map(_.entries) getOrElse Nil
+            data_entries += (data_name -> (sessions + (name -> Session(name, entry :: entries))))
           }
         })
       }
     })
 
     Data(date,
-      for {
-        (name, session_entries) <- data_entries
-        session_entries1 <-
-          {
-            val session_entries1 =
-              for { (session, entries) <- session_entries if entries.length >= 3 }
-              yield (session, entries)
-            if (session_entries1.isEmpty) None
-            else Some(session_entries1)
-          }
-      } yield (name, session_entries1))
+      (for {
+        (data_name, sessions) <- data_entries.toList
+        sorted_sessions <- proper_list(sessions.toList.map(_._2).filter(_.check).sortBy(_.order))
+      } yield (data_name, sorted_sessions)).sortBy(_._1))
   }
 
 
@@ -144,93 +139,86 @@ object Build_Status
     target_dir: Path = default_target_dir,
     image_size: (Int, Int) = default_image_size)
   {
-    val data_entries = data.sorted_entries
-
-    for ((data_name, session_entries) <- data_entries) {
+    for ((data_name, sessions) <- data.entries) {
       val dir = target_dir + Path.explode(data_name)
       progress.echo("output " + dir)
       Isabelle_System.mkdirs(dir)
 
-      Par_List.map[(String, List[isabelle.Build_Status.Entry]), List[Process_Result]](
-        { case (session, entries) =>
-          Isabelle_System.with_tmp_file(session, "data") { data_file =>
-            Isabelle_System.with_tmp_file(session, "gnuplot") { gnuplot_file =>
+      Par_List.map[Session, List[Process_Result]]((session: Session) =>
+        Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
+          Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
 
-              File.write(data_file,
-                cat_lines(
-                  entries.map(entry =>
-                    List(entry.date.unix_epoch.toString,
-                      entry.timing.elapsed.minutes,
-                      entry.timing.resources.minutes,
-                      entry.ml_timing.elapsed.minutes,
-                      entry.ml_timing.resources.minutes).mkString(" "))))
+            File.write(data_file,
+              cat_lines(
+                session.entries.map(entry =>
+                  List(entry.date.unix_epoch.toString,
+                    entry.timing.elapsed.minutes,
+                    entry.timing.resources.minutes,
+                    entry.ml_timing.elapsed.minutes,
+                    entry.ml_timing.resources.minutes).mkString(" "))))
 
-              def gnuplot(plots: List[String], kind: String): Process_Result =
-              {
-                val name = session + "_" + kind
-                File.write(gnuplot_file, """
+            def gnuplot(plots: List[String], kind: String): Process_Result =
+            {
+              val name = session.name + "_" + kind
+              File.write(gnuplot_file, """
 set terminal png size """ + image_size._1 + "," + image_size._2 + """
 set output """ + quote(File.standard_path(dir + Path.basic(name + ".png"))) + """
 set xdata time
 set timefmt "%s"
 set format x "%d-%b"
-set xlabel """ + quote(session) + """ noenhanced
+set xlabel """ + quote(session.name) + """ noenhanced
 set key left top
 plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
 
-                val result =
-                  Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
-                if (result.ok) result
-                else result.error("Gnuplot failed for " + data_name + "/" + name)
-              }
-
-              val timing_plots =
-                List(
-                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                  """ using 1:3 smooth csplines title "cpu time" """,
-                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-                  """ using 1:2 smooth csplines title "elapsed time" """)
-              val ml_timing_plots =
-                List(
-                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-                  """ using 1:5 smooth csplines title "ML cpu time" """,
-                  """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                  """ using 1:4 smooth csplines title "ML elapsed time" """)
-
-              List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
+              val result =
+                Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
+              if (result.ok) result
+              else result.error("Gnuplot failed for " + data_name + "/" + name)
             }
-          }
-        }, session_entries).flatten.foreach(_.check)
 
-      val sessions = session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse
+            val timing_plots =
+              List(
+                """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                """ using 1:3 smooth csplines title "cpu time" """,
+                """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                """ using 1:2 smooth csplines title "elapsed time" """)
+            val ml_timing_plots =
+              List(
+                """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                """ using 1:5 smooth csplines title "ML cpu time" """,
+                """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+                """ using 1:4 smooth csplines title "ML elapsed time" """)
+
+            List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
+          }
+        }, sessions).flatten.foreach(_.check)
 
       File.write(dir + Path.basic("index.html"),
         HTML.output_document(
           List(HTML.title("Isabelle build status for " + data_name)),
           HTML.chapter("Isabelle build status for " + data_name + " (" + data.date + ")") ::
           HTML.itemize(
-            sessions.map({ case (name, entries) =>
-              HTML.link("#session_" + name, HTML.text(name)) ::
-              HTML.text(" (" + entries.head.timing.message_resources + ")") })) ::
-          sessions.flatMap({ case (name, entries) =>
+            sessions.map(session =>
+              HTML.link("#session_" + session.name, HTML.text(session.name)) ::
+              HTML.text(" (" + session.timing.message_resources + ")"))) ::
+          sessions.flatMap(session =>
             List(
-              HTML.section(name) + HTML.id("session_" + name),
+              HTML.section(session.name) + HTML.id("session_" + session.name),
               HTML.par(
                 List(
                   HTML.itemize(List(
-                    HTML.bold(HTML.text("timing: ")) ::
-                      HTML.text(entries.head.timing.message_resources),
+                    HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
                     HTML.bold(HTML.text("ML timing: ")) ::
-                      HTML.text(entries.head.ml_timing.message_resources))),
-                  HTML.image(name + "_timing.png"),
-                  HTML.image(name + "_ml_timing.png")))) })))
+                      HTML.text(session.ml_timing.message_resources))),
+                  HTML.image(session.name + "_timing.png"),
+                  HTML.image(session.name + "_ml_timing.png")))))))
     }
 
     File.write(target_dir + Path.basic("index.html"),
       HTML.output_document(
         List(HTML.title("Isabelle build status")),
         List(HTML.chapter("Isabelle build status (" + data.date + ")"),
-          HTML.itemize(data_entries.map({ case (name, _) =>
+          HTML.itemize(data.entries.map({ case (name, _) =>
             List(HTML.link(name + "/index.html", HTML.text(name))) })))))
   }
 
