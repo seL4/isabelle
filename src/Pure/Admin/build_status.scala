@@ -11,7 +11,7 @@ object Build_Status
 {
   private val default_target_dir = Path.explode("build_status")
   private val default_history_length = 30
-  private val default_image_size = (800, 600)
+  private val default_image_size = (640, 480)
 
 
   /* data profiles */
@@ -230,9 +230,9 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
               HTML.par(
                 List(
                   HTML.itemize(List(
-                    HTML.bold(HTML.text("last timing: ")) ::
+                    HTML.bold(HTML.text("timing: ")) ::
                       HTML.text(entries.head.timing.message_resources),
-                    HTML.bold(HTML.text("last ML timing: ")) ::
+                    HTML.bold(HTML.text("ML timing: ")) ::
                       HTML.text(entries.head.ml_timing.message_resources))),
                   HTML.image(name + ".png")))) })))
     }
