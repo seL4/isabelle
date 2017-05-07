@@ -43,7 +43,7 @@ object Build_Status
 
 
   sealed case class Data(date: Date, entries: List[(String, List[Session])])
-  sealed case class Session(name: String, entries: List[Entry])
+  sealed case class Session(name: String, threads: Int, entries: List[Entry])
   {
     def timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.timing
     def ml_timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.ml_timing
@@ -125,7 +125,8 @@ object Build_Status
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(name).map(_.entries) getOrElse Nil
-            data_entries += (data_name -> (sessions + (name -> Session(name, entry :: entries))))
+            val session = Session(name, threads, entry :: entries)
+            data_entries += (data_name -> (sessions + (name -> session)))
           }
         })
       }
@@ -196,18 +197,24 @@ plot [] [0:""" + max_time + "] " +
                 plot_name
               }
 
-              val timing_plots =
+              val timing_plots1 =
                 List(
-                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                  """ using 1:3 smooth csplines title "cpu time" """,
                   """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
                   """ using 1:2 smooth csplines title "elapsed time" """)
+              val timing_plots2 =
+                List(
+                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                  """ using 1:3 smooth csplines title "cpu time" """)
+              val timing_plots =
+                if (session.threads == 1) timing_plots1
+                else timing_plots1 ::: timing_plots2
+
               val ml_timing_plots =
                 List(
-                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-                  """ using 1:5 smooth csplines title "ML cpu time" """,
                   """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                  """ using 1:4 smooth csplines title "ML elapsed time" """)
+                  """ using 1:4 smooth csplines title "ML elapsed time" """,
+                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                  """ using 1:5 smooth csplines title "ML cpu time" """)
 
               session.name ->
                 List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
