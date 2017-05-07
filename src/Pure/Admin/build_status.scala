@@ -159,42 +159,43 @@ object Build_Status
       progress.echo("output " + dir)
       Isabelle_System.mkdirs(dir)
 
-      for ((session, entries) <- session_entries) {
-        Isabelle_System.with_tmp_file(session, "data") { data_file =>
-          Isabelle_System.with_tmp_file(session, "gnuplot") { gnuplot_file =>
+      Par_List.map[(String, List[isabelle.Build_Status.Entry]), Process_Result](
+        { case (session, entries) =>
+          Isabelle_System.with_tmp_file(session, "data") { data_file =>
+            Isabelle_System.with_tmp_file(session, "gnuplot") { gnuplot_file =>
 
-            File.write(data_file,
-              cat_lines(
-                entries.map(entry =>
-                  List(entry.date.unix_epoch.toString,
-                    entry.timing.elapsed.minutes,
-                    entry.timing.cpu.minutes,
-                    entry.ml_timing.elapsed.minutes,
-                    entry.ml_timing.cpu.minutes,
-                    entry.ml_timing.gc.minutes).mkString(" "))))
+              File.write(data_file,
+                cat_lines(
+                  entries.map(entry =>
+                    List(entry.date.unix_epoch.toString,
+                      entry.timing.elapsed.minutes,
+                      entry.timing.cpu.minutes,
+                      entry.ml_timing.elapsed.minutes,
+                      entry.ml_timing.cpu.minutes,
+                      entry.ml_timing.gc.minutes).mkString(" "))))
 
-            val plots1 =
-              List(
-                """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                """ using 1:3 smooth csplines title "cpu time" """,
-                """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-                """ using 1:2 smooth csplines title "elapsed time" """)
-            val plots2 =
-              List(
-                """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-                """ using 1:5 smooth csplines title "ML cpu time" """,
-                """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                """ using 1:4 smooth csplines title "ML elapsed time" """,
-                """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
-                """ using 1:6 smooth csplines title "ML gc time" """)
-            val plots =
-              ml_timing match {
-                case None => plots1
-                case Some(false) => plots1 ::: plots2
-                case Some(true) => plots2
-              }
+              val plots1 =
+                List(
+                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                  """ using 1:3 smooth csplines title "cpu time" """,
+                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                  """ using 1:2 smooth csplines title "elapsed time" """)
+              val plots2 =
+                List(
+                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                  """ using 1:5 smooth csplines title "ML cpu time" """,
+                  """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+                  """ using 1:4 smooth csplines title "ML elapsed time" """,
+                  """ using 1:6 smooth sbezier title "ML gc time (smooth)" """,
+                  """ using 1:6 smooth csplines title "ML gc time" """)
+              val plots =
+                ml_timing match {
+                  case None => plots1
+                  case Some(false) => plots1 ::: plots2
+                  case Some(true) => plots2
+                }
 
-            File.write(gnuplot_file, """
+              File.write(gnuplot_file, """
 set terminal png size """ + image_size._1 + "," + image_size._2 + """
 set output """ + quote(File.standard_path(dir + Path.basic(session + ".png"))) + """
 set xdata time
@@ -204,13 +205,13 @@ set xlabel """ + quote(session) + """ noenhanced
 set key left top
 plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
 
-            val result =
-              Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
-            if (result.rc != 0)
-              result.error("Gnuplot failed for " + data_name + "/" + session).check
+              val result =
+                Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
+              if (result.ok) result
+              else result.error("Gnuplot failed for " + data_name + "/" + session)
+            }
           }
-        }
-      }
+        }, session_entries).foreach(_.check)
 
       val sessions = session_entries.toList.sortBy(_._2.head.timing.elapsed.ms).reverse
       val heading = "Build status for " + data_name + " (" + data.date + ")"
