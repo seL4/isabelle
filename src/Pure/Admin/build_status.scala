@@ -16,7 +16,10 @@ object Build_Status
 
   /* data profiles */
 
-  sealed case class Profile(name: String, sql: String)
+  def clean_name(name: String): String =
+    name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
+
+  sealed case class Profile(description: String, sql: String)
   {
     def select(columns: List[SQL.Column], days: Int, only_sessions: Set[String]): SQL.Source =
     {
@@ -65,8 +68,8 @@ object Build_Status
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
     {
-      for (profile <- profiles.sortBy(_.name)) {
-        progress.echo("input " + quote(profile.name))
+      for (profile <- profiles.sortBy(_.description)) {
+        progress.echo("input " + quote(profile.description))
         val columns =
           List(
             Build_Log.Data.pull_date,
@@ -92,17 +95,21 @@ object Build_Status
           while (res.next()) {
             val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
 
-            val threads_option =
-              res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
-                case Threads_Option(Value.Int(i)) => i
-                case _ => 1
-              }
-            val threads = res.get_int(Build_Log.Data.threads).getOrElse(1)
+            val threads =
+            {
+              val threads1 =
+                res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
+                  case Threads_Option(Value.Int(i)) => i
+                  case _ => 1
+                }
+              val threads2 = res.get_int(Build_Log.Data.threads).getOrElse(1)
+              threads1 max threads2
+            }
 
             val data_name =
-              profile.name +
-                "_m" + (if (ml_platform.startsWith("x86_64")) "64" else "32") +
-                "_M" + (threads_option max threads)
+              profile.description +
+                (if (ml_platform.startsWith("x86_64")) ", 64bit" else "") +
+                (if (threads == 1) "" else ", " + threads + " threads")
 
             val name = res.string(Build_Log.Data.session_name)
             val entry =
@@ -140,66 +147,72 @@ object Build_Status
     image_size: (Int, Int) = default_image_size)
   {
     for ((data_name, sessions) <- data.entries) {
-      val dir = target_dir + Path.explode(data_name)
+      val dir = target_dir + Path.basic(clean_name(data_name))
+
       progress.echo("output " + dir)
       Isabelle_System.mkdirs(dir)
 
-      Par_List.map[Session, List[Process_Result]]((session: Session) =>
-        Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
-          Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
+      val session_plots =
+        Par_List.map((session: Session) =>
+          Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
+            Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
 
-            File.write(data_file,
-              cat_lines(
-                session.entries.map(entry =>
-                  List(entry.date.unix_epoch.toString,
-                    entry.timing.elapsed.minutes,
-                    entry.timing.resources.minutes,
-                    entry.ml_timing.elapsed.minutes,
-                    entry.ml_timing.resources.minutes).mkString(" "))))
+              File.write(data_file,
+                cat_lines(
+                  session.entries.map(entry =>
+                    List(entry.date.unix_epoch.toString,
+                      entry.timing.elapsed.minutes,
+                      entry.timing.resources.minutes,
+                      entry.ml_timing.elapsed.minutes,
+                      entry.ml_timing.resources.minutes).mkString(" "))))
 
-            val max_time =
-              ((0.0 /: session.entries){ case (m, entry) =>
-                m.max(entry.timing.elapsed.minutes).
-                  max(entry.timing.resources.minutes).
-                  max(entry.ml_timing.elapsed.minutes).
-                  max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
+              val max_time =
+                ((0.0 /: session.entries){ case (m, entry) =>
+                  m.max(entry.timing.elapsed.minutes).
+                    max(entry.timing.resources.minutes).
+                    max(entry.ml_timing.elapsed.minutes).
+                    max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
 
-            def gnuplot(plots: List[String], kind: String): Process_Result =
-            {
-              val name = session.name + "_" + kind
-              File.write(gnuplot_file, """
+              def gnuplot(plots: List[String], kind: String): String =
+              {
+                val plot_name = session.name + "_" + kind + ".png"
+
+                File.write(gnuplot_file, """
 set terminal png size """ + image_size._1 + "," + image_size._2 + """
-set output """ + quote(File.standard_path(dir + Path.basic(name + ".png"))) + """
+set output """ + quote(File.standard_path(dir + Path.basic(plot_name))) + """
 set xdata time
 set timefmt "%s"
 set format x "%d-%b"
 set xlabel """ + quote(session.name) + """ noenhanced
 set key left bottom
 plot [] [0:""" + max_time + "] " +
-                plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
+                  plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
 
-              val result =
-                Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
-              if (result.ok) result
-              else result.error("Gnuplot failed for " + data_name + "/" + name)
+                val result =
+                  Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
+                if (!result.ok)
+                  result.error("Gnuplot failed for " + data_name + "/" + plot_name).check
+
+                plot_name
+              }
+
+              val timing_plots =
+                List(
+                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                  """ using 1:3 smooth csplines title "cpu time" """,
+                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                  """ using 1:2 smooth csplines title "elapsed time" """)
+              val ml_timing_plots =
+                List(
+                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                  """ using 1:5 smooth csplines title "ML cpu time" """,
+                  """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+                  """ using 1:4 smooth csplines title "ML elapsed time" """)
+
+              session.name ->
+                List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
             }
-
-            val timing_plots =
-              List(
-                """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                """ using 1:3 smooth csplines title "cpu time" """,
-                """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-                """ using 1:2 smooth csplines title "elapsed time" """)
-            val ml_timing_plots =
-              List(
-                """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-                """ using 1:5 smooth csplines title "ML cpu time" """,
-                """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                """ using 1:4 smooth csplines title "ML elapsed time" """)
-
-            List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
-          }
-        }, sessions).flatten.foreach(_.check)
+          }, sessions).toMap
 
       File.write(dir + Path.basic("index.html"),
         HTML.output_document(
@@ -213,21 +226,19 @@ plot [] [0:""" + max_time + "] " +
             List(
               HTML.section(session.name) + HTML.id("session_" + session.name),
               HTML.par(
-                List(
-                  HTML.itemize(List(
-                    HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
-                    HTML.bold(HTML.text("ML timing: ")) ::
-                      HTML.text(session.ml_timing.message_resources))),
-                  HTML.image(session.name + "_timing.png"),
-                  HTML.image(session.name + "_ml_timing.png")))))))
+                HTML.itemize(List(
+                  HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
+                  HTML.bold(HTML.text("ML timing: ")) ::
+                    HTML.text(session.ml_timing.message_resources))) ::
+                session_plots.getOrElse(session.name, Nil).map(HTML.image(_)))))))
     }
 
     File.write(target_dir + Path.basic("index.html"),
       HTML.output_document(
         List(HTML.title("Isabelle build status")),
         List(HTML.chapter("Isabelle build status (" + data.date + ")"),
-          HTML.itemize(data.entries.map({ case (name, _) =>
-            List(HTML.link(name + "/index.html", HTML.text(name))) })))))
+          HTML.itemize(data.entries.map({ case (data_name, _) =>
+            List(HTML.link(clean_name(data_name) + "/index.html", HTML.text(data_name))) })))))
   }
 
 
