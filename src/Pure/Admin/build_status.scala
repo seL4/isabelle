@@ -157,6 +157,13 @@ object Build_Status
                     entry.ml_timing.elapsed.minutes,
                     entry.ml_timing.resources.minutes).mkString(" "))))
 
+            val max_time =
+              ((0.0 /: session.entries){ case (m, entry) =>
+                m.max(entry.timing.elapsed.minutes).
+                  max(entry.timing.resources.minutes).
+                  max(entry.ml_timing.elapsed.minutes).
+                  max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
+
             def gnuplot(plots: List[String], kind: String): Process_Result =
             {
               val name = session.name + "_" + kind
@@ -167,8 +174,9 @@ set xdata time
 set timefmt "%s"
 set format x "%d-%b"
 set xlabel """ + quote(session.name) + """ noenhanced
-set key left top
-plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
+set key left bottom
+plot [] [0:""" + max_time + "] " +
+                plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
 
               val result =
                 Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
