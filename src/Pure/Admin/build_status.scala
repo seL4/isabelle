@@ -39,10 +39,6 @@ object Build_Status
     Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
 
   sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing)
-  {
-    def check(elapsed_threshold: Time): Boolean =
-      !timing.is_zero && timing.elapsed >= elapsed_threshold
-  }
 
   sealed case class Data(date: Date, entries: Map[String, Map[String, List[Entry]]])
   {
@@ -59,7 +55,6 @@ object Build_Status
     progress: Progress = No_Progress,
     history_length: Int = default_history_length,
     only_sessions: Set[String] = Set.empty,
-    elapsed_threshold: Time = Time.zero,
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
@@ -133,10 +128,8 @@ object Build_Status
         session_entries1 <-
           {
             val session_entries1 =
-              for {
-                (session, entries) <- session_entries
-                if entries.filter(_.check(elapsed_threshold)).length >= 3
-              } yield (session, entries)
+              for { (session, entries) <- session_entries if entries.length >= 3 }
+              yield (session, entries)
             if (session_entries1.isEmpty) None
             else Some(session_entries1)
           }
@@ -256,7 +249,6 @@ plot [] [0:] """ + plots.map(s => quote(data_file.implode) + " " + s).mkString("
       var target_dir = default_target_dir
       var ml_timing: Option[Boolean] = None
       var only_sessions = Set.empty[String]
-      var elapsed_threshold = Time.zero
       var history_length = default_history_length
       var options = Options.init()
       var image_size = default_image_size
@@ -269,7 +261,6 @@ Usage: isabelle build_status [OPTIONS]
     -D DIR       target directory (default """ + default_target_dir + """)
     -M           only ML timing
     -S SESSIONS  only given SESSIONS (comma separated)
-    -T THRESHOLD only sessions with elapsed time >= THRESHOLD (minutes)
     -l LENGTH    length of history (default """ + default_history_length + """)
     -m           include ML timing
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -282,7 +273,6 @@ Usage: isabelle build_status [OPTIONS]
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "M" -> (_ => ml_timing = Some(true)),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
-        "T:" -> (arg => elapsed_threshold = Time.minutes(Value.Double.parse(arg))),
         "l:" -> (arg => history_length = Value.Int.parse(arg)),
         "m" -> (_ => ml_timing = Some(false)),
         "o:" -> (arg => options = options + arg),
@@ -300,7 +290,7 @@ Usage: isabelle build_status [OPTIONS]
 
       val data =
         read_data(options, progress = progress, history_length = history_length,
-          only_sessions = only_sessions, elapsed_threshold = elapsed_threshold, verbose = verbose)
+          only_sessions = only_sessions, verbose = verbose)
 
       present_data(data, progress = progress, target_dir = target_dir,
         image_size = image_size, ml_timing = ml_timing)
