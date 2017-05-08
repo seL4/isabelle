@@ -44,8 +44,9 @@ object SQL
   def enclose(s: Source): Source = "(" + s + ")"
   def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
 
-  def select(columns: List[Column], distinct: Boolean = false): Source =
-    "SELECT " + (if (distinct) "DISTINCT " else "") + commas(columns.map(_.ident)) + " FROM "
+  def select(columns: List[Column] = Nil, distinct: Boolean = false): Source =
+    "SELECT " + (if (distinct) "DISTINCT " else "") +
+    (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM "
 
 
   /* types */
@@ -157,7 +158,8 @@ object SQL
       "DELETE FROM " + ident +
         (if (sql == "") "" else " " + sql)
 
-    def select(select_columns: List[Column], sql: Source = "", distinct: Boolean = false): Source =
+    def select(
+        select_columns: List[Column] = Nil, sql: Source = "", distinct: Boolean = false): Source =
       SQL.select(select_columns, distinct = distinct) + ident +
         (if (sql == "") "" else " " + sql)
 
