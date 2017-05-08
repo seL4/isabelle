@@ -10,7 +10,6 @@ package isabelle
 object Build_Status
 {
   private val default_target_dir = Path.explode("build_status")
-  private val default_history_length = 30
   private val default_image_size = (800, 600)
 
 
@@ -60,7 +59,6 @@ object Build_Status
   def read_data(options: Options,
     profiles: List[Profile] = standard_profiles,
     progress: Progress = No_Progress,
-    history_length: Int = default_history_length,
     only_sessions: Set[String] = Set.empty,
     verbose: Boolean = false): Data =
   {
@@ -89,7 +87,7 @@ object Build_Status
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
-        val sql = profile.select(columns, history_length, only_sessions)
+        val sql = profile.select(columns, options.int("build_log_history"), only_sessions)
         if (verbose) progress.echo(sql)
 
         db.using_statement(sql)(stmt =>
@@ -275,7 +273,6 @@ plot [] """ + range + " " +
     {
       var target_dir = default_target_dir
       var only_sessions = Set.empty[String]
-      var history_length = default_history_length
       var options = Options.init()
       var image_size = default_image_size
       var verbose = false
@@ -286,17 +283,16 @@ Usage: isabelle build_status [OPTIONS]
   Options are:
     -D DIR       target directory (default """ + default_target_dir + """)
     -S SESSIONS  only given SESSIONS (comma separated)
-    -l LENGTH    length of history (default """ + default_history_length + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
     -v           verbose
 
   Present performance statistics from build log database, which is specified
-  via system options build_log_database_host, build_log_database_user etc.
+  via system options build_log_database_host, build_log_database_user,
+  build_log_history etc.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
-        "l:" -> (arg => history_length = Value.Int.parse(arg)),
         "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
           space_explode('x', arg).map(Value.Int.parse(_)) match {
@@ -311,8 +307,7 @@ Usage: isabelle build_status [OPTIONS]
       val progress = new Console_Progress
 
       val data =
-        read_data(options, progress = progress, history_length = history_length,
-          only_sessions = only_sessions, verbose = verbose)
+        read_data(options, progress = progress, only_sessions = only_sessions, verbose = verbose)
 
       present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
 

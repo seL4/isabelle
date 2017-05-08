@@ -244,3 +244,4 @@ option build_log_database_port : int = 0
 option build_log_ssh_host : string = ""
 option build_log_ssh_user : string = ""
 option build_log_ssh_port : int = 0
+option build_log_history : int = 30  -- "length of relevant history (in days)"
