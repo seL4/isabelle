@@ -99,12 +99,15 @@ object SQL
   }
 
   sealed case class Column(
-    name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false)
+    name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false,
+    expr: SQL.Source = "")
   {
     def apply(table: Table): Column =
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
-    def ident: Source = SQL.ident(name)
+    def ident: Source =
+      if (expr == "") SQL.ident(name)
+      else enclose(expr) + " AS " + SQL.ident(name)
 
     def decl(sql_type: Type.Value => Source): Source =
       ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
