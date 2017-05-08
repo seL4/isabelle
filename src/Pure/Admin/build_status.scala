@@ -93,25 +93,23 @@ object Build_Status
         {
           val res = stmt.execute_query()
           while (res.next()) {
-            val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
-
+            val session_name = res.string(Build_Log.Data.session_name)
             val threads =
             {
               val threads1 =
                 res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
-                  case Threads_Option(Value.Int(i)) => i
+                  case Threads_Option(Value.Int(i)) if session_name == "Pure" => i
                   case _ => 1
                 }
               val threads2 = res.get_int(Build_Log.Data.threads).getOrElse(1)
               threads1 max threads2
             }
-
+            val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
             val data_name =
               profile.description +
                 (if (ml_platform.startsWith("x86_64")) ", 64bit" else "") +
                 (if (threads == 1) "" else ", " + threads + " threads")
 
-            val name = res.string(Build_Log.Data.session_name)
             val entry =
               Entry(res.date(Build_Log.Data.pull_date),
                 res.timing(
@@ -124,9 +122,9 @@ object Build_Status
                   Build_Log.Data.ml_timing_gc))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
-            val entries = sessions.get(name).map(_.entries) getOrElse Nil
-            val session = Session(name, threads, entry :: entries)
-            data_entries += (data_name -> (sessions + (name -> session)))
+            val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
+            val session = Session(session_name, threads, entry :: entries)
+            data_entries += (data_name -> (sessions + (session_name -> session)))
           }
         })
       }
