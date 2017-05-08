@@ -686,6 +686,9 @@ object Build_Log
         " GROUP BY " + version)
     }
 
+
+    /* recent pull_date entries */
+
     def recent_time(days: Int): SQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
 
@@ -701,7 +704,7 @@ object Build_Log
     {
       val recent = recent_table(days)
       val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
-      table.select(columns1, distinct = distinct) + " INNER JOIN " + recent.query_name +
+      table.select(columns1, distinct = distinct) + SQL.join_inner + recent.query_name +
       " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
     }
 
@@ -716,15 +719,15 @@ object Build_Log
 
       val aux_columns = log_name :: pull_date :: meta_info_table.columns.tail
       val aux_table = SQL.Table("aux", aux_columns,
-        SQL.select(aux_columns.take(2) ::: aux_columns.drop(2). map(_.apply(table1))) +
-          table1 + " LEFT OUTER JOIN " + table2 + " ON " +
+        SQL.select(aux_columns.take(2) ::: aux_columns.drop(2).map(_.apply(table1))) +
+          table1 + SQL.join_outer + table2 + " ON " +
           Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
 
       val columns = aux_columns ::: sessions_table.columns.tail
       SQL.Table("isabelle_build_log", columns,
         {
           SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_name +
-          " INNER JOIN " + table3 + " ON " + log_name(aux_table) + " = " + log_name(table3)
+          SQL.join_inner + table3 + " ON " + log_name(aux_table) + " = " + log_name(table3)
         })
     }
   }
@@ -977,7 +980,7 @@ object Build_Log
         if (ml_statistics) {
           val columns = columns1 ::: List(Data.ml_statistics(table2))
           val join =
-            table1 + " LEFT OUTER JOIN " + table2 + " ON " +
+            table1 + SQL.join_outer + table2 + " ON " +
             Data.log_name(table1) + " = " + Data.log_name(table2) + " AND " +
             Data.session_name(table1) + " = " + Data.session_name(table2)
           (columns, SQL.enclose(join))

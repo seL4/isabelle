@@ -48,6 +48,10 @@ object SQL
     "SELECT " + (if (distinct) "DISTINCT " else "") +
     (if (columns.isEmpty) "*" else commas(columns.map(_.ident))) + " FROM "
 
+  val join_outer: Source = " LEFT OUTER JOIN "
+  val join_inner: Source = " INNER JOIN "
+  def join(outer: Boolean = false): Source = if (outer) join_outer else join_inner
+
 
   /* types */
 
