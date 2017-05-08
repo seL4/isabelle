@@ -83,7 +83,9 @@ object HTML
 
   /* attributes */
 
-  def id(s: String): Properties.Entry = ("id" -> s)
+  def id(s: String): XML.Attribute = ("id" -> s)
+  def width(w: Int): XML.Attribute = ("width" -> w.toString)
+  def height(h: Int): XML.Attribute = ("height" -> h.toString)
 
 
   /* structured markup operators */

@@ -11,7 +11,7 @@ object Build_Status
 {
   private val default_target_dir = Path.explode("build_status")
   private val default_history_length = 30
-  private val default_image_size = (640, 480)
+  private val default_image_size = (800, 600)
 
 
   /* data profiles */
@@ -253,7 +253,10 @@ plot [] """ + range + " " +
                   HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
                   HTML.bold(HTML.text("ML timing: ")) ::
                     HTML.text(session.ml_timing.message_resources))) ::
-                session_plots.getOrElse(session.name, Nil).map(HTML.image(_)))))))
+                session_plots.getOrElse(session.name, Nil).map(plot_name =>
+                  HTML.image(plot_name) +
+                    HTML.width(image_size._1 / 2) +
+                    HTML.height(image_size._2 / 2)))))))
     }
 
     File.write(target_dir + Path.basic("index.html"),
