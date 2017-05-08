@@ -692,20 +692,19 @@ object Build_Log
     def recent_time(days: Int): SQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
 
-    def recent_table(days: Int): SQL.Table =
+    def recent_pull_date_table(days: Int): SQL.Table =
     {
       val table = pull_date_table
-      SQL.Table("recent", table.columns,
+      SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns, "WHERE " + pull_date(table) + " > " + recent_time(days)))
     }
 
-    def select_recent(table: SQL.Table, columns: List[SQL.Column], days: Int,
-      distinct: Boolean = false, pull_date: Boolean = false): SQL.Source =
+    def recent_pull_date_select(table1: SQL.Table, columns: List[SQL.Column], days: Int,
+      distinct: Boolean = false): SQL.Source =
     {
-      val recent = recent_table(days)
-      val columns1 = if (pull_date) columns ::: List(Data.pull_date(recent)) else columns
-      table.select(columns1, distinct = distinct) + SQL.join_inner + recent.query_name +
-      " ON " + Prop.isabelle_version(table) + " = " + Prop.isabelle_version(recent)
+      val table2 = recent_pull_date_table(days)
+      table1.select(columns, distinct = distinct) + SQL.join_inner + table2.query_name +
+      " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
     }
 
 
@@ -782,7 +781,7 @@ object Build_Log
 
             val recent_log_names =
               db.using_statement(
-                Data.select_recent(
+                Data.recent_pull_date_select(
                   Data.meta_info_table, List(Data.log_name), days, distinct = true))(stmt =>
                     stmt.execute_query().iterator(_.string(Data.log_name)).toList)
 
@@ -802,7 +801,7 @@ object Build_Log
               db2.create_table(table)
               db2.using_statement(table.insert())(stmt2 =>
               {
-                db.using_statement(Data.recent_table(days).query)(stmt =>
+                db.using_statement(Data.recent_pull_date_table(days).query)(stmt =>
                 {
                   val res = stmt.execute_query()
                   while (res.next()) {
