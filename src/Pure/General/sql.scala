@@ -133,7 +133,7 @@ object SQL
       if (body == "") error("Missing SQL body for table " + quote(name))
       else SQL.enclose(body)
 
-    def query_name: Source = query + " AS " + SQL.ident(name)
+    def query_named: Source = query + " AS " + SQL.ident(name)
 
     def create(strict: Boolean = false, sql_type: Type.Value => Source): Source =
     {
