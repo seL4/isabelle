@@ -151,7 +151,7 @@ object Build_Status
     for ((data_name, sessions) <- data.entries) {
       val dir = target_dir + Path.basic(clean_name(data_name))
 
-      progress.echo("output " + dir)
+      progress.echo("output " + quote(data_name))
       Isabelle_System.mkdirs(dir)
 
       val session_plots =
