@@ -696,6 +696,14 @@ object Build_Log
         table.select(table.columns, "WHERE " + pull_date(table) + " > " + recent_time(days)))
     }
 
+    def select_recent_log_names(days: Int): SQL.Source =
+    {
+      val table1 = meta_info_table
+      val table2 = recent_pull_date_table(days)
+      table1.select(List(log_name), distinct = true) + SQL.join_inner + table2.query_named +
+        " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
+    }
+
 
     /* universal view on main data */
 
@@ -759,14 +767,6 @@ object Build_Log
       Isabelle_System.mkdirs(sqlite_database.dir)
       sqlite_database.file.delete
 
-      val select_recent_log_names =
-      {
-        val table1 = Data.meta_info_table
-        val table2 = Data.recent_pull_date_table(days)
-        table1.select(List(Data.log_name), distinct = true) + SQL.join_inner + table2.query_named +
-          " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
-      }
-
       using(SQLite.open_database(sqlite_database))(db2 =>
       {
         db.transaction {
@@ -777,7 +777,7 @@ object Build_Log
             db2.create_table(Data.ml_statistics_table)
 
             val recent_log_names =
-              db.using_statement(select_recent_log_names)(stmt =>
+              db.using_statement(Data.select_recent_log_names(days))(stmt =>
                 stmt.execute_query().iterator(_.string(Data.log_name)).toList)
 
             for (log_name <- recent_log_names) {
