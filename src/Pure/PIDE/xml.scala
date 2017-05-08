@@ -31,7 +31,7 @@ object XML
       if (more_attributes.isEmpty) this
       else Elem(markup.update_properties(more_attributes), body)
 
-    def + (att: Attribute): Tree = Elem(markup + att, body)
+    def + (att: Attribute): Elem = Elem(markup + att, body)
   }
   case class Text(content: String) extends Tree
 
