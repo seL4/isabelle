@@ -9,14 +9,43 @@ package isabelle
 
 object Isabelle_Devel
 {
-  val root_dir = Path.explode("~/html-data/devel")
+  val root = Path.explode("~/html-data/devel")
 
-  val release_snapshot_dir = root_dir + Path.explode("release_snapshot")
-  val build_log_db = root_dir + Path.explode("build_log.db")
-  val build_status_dir = root_dir + Path.explode("build_status")
+  val RELEASE_SNAPSHOT = "release_snapshot"
+  val BUILD_LOG_DB = "build_log.db"
+  val BUILD_STATUS = "build_status"
 
-  val log_dirs =
+  val standard_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
+
+
+  /* index */
+
+  def make_index()
+  {
+    val header = "Isabelle Development Resources"
+
+    Isabelle_System.mkdirs(root)
+    File.write(root + Path.explode("index.html"),
+      HTML.output_document(
+        List(HTML.title(header)),
+        List(HTML.chapter(header),
+          HTML.itemize(
+            List(
+              HTML.text("Isabelle nightly ") :::
+              List(HTML.link(RELEASE_SNAPSHOT, HTML.text("release snapshot"))) :::
+              HTML.text(" (for all platforms)"),
+
+              HTML.text("Isabelle ") :::
+              List(HTML.link(BUILD_STATUS + "/index.html", HTML.text("build status"))) :::
+              HTML.text(" information"),
+
+              HTML.text("Database with recent ") :::
+              List(HTML.link(BUILD_LOG_DB, HTML.text("build log"))) :::
+              HTML.text(" information (e.g. for ") :::
+              List(HTML.link("http://sqlitebrowser.org",
+                List(HTML.code(HTML.text("sqlitebrowser"))))))))))
+  }
 
 
   /* release snapshot */
@@ -29,6 +58,8 @@ object Isabelle_Devel
   {
     Isabelle_System.with_tmp_dir("isadist")(base_dir =>
       {
+        val release_snapshot_dir = root + Path.explode(RELEASE_SNAPSHOT)
+
         val new_snapshot = release_snapshot_dir.ext("new")
         val old_snapshot = release_snapshot_dir.ext("old")
 
@@ -47,13 +78,13 @@ object Isabelle_Devel
 
   /* maintain build_log database */
 
-  def build_log_database(options: Options)
+  def build_log_database(options: Options, log_dirs: List[Path] = standard_log_dirs)
   {
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
     {
       store.update_database(db, log_dirs, ml_statistics = true)
-      store.snapshot_database(db, build_log_db)
+      store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))
     })
   }
 
@@ -63,6 +94,6 @@ object Isabelle_Devel
   def build_status(options: Options)
   {
     val data = Build_Status.read_data(options)
-    Build_Status.present_data(data, target_dir = build_status_dir)
+    Build_Status.present_data(data, target_dir = root + Path.explode(BUILD_STATUS))
   }
 }

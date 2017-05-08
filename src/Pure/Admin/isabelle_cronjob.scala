@@ -39,6 +39,8 @@ object Isabelle_Cronjob
   private val build_release =
     Logger_Task("build_release", logger =>
         {
+          Isabelle_Devel.make_index()
+
           val rev = Mercurial.repository(isabelle_repos).id()
           val afp_rev = Mercurial.setup_repository(afp_source, afp_repos).id()
 

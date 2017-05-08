@@ -103,6 +103,7 @@ object HTML
   val par = new Operator("p")
   val emph = new Operator("em")
   val bold = new Operator("b")
+  val code = new Operator("code")
 
   val title = new Heading("title")
   val chapter = new Heading("h1")
