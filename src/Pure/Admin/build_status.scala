@@ -48,9 +48,11 @@ object Build_Status
     def timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.timing
     def ml_timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.ml_timing
     def order: Long = - timing.elapsed.ms
-    def check: Boolean = entries.length >= 3
+
+    def check_timing: Boolean = entries.length >= 3
+    def check_heap: Boolean = entries.forall(_.heap_size > 0)
   }
-  sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing)
+  sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing, heap_size: Long)
 
 
   /* read data */
@@ -82,7 +84,8 @@ object Build_Status
             Build_Log.Data.timing_gc,
             Build_Log.Data.ml_timing_elapsed,
             Build_Log.Data.ml_timing_cpu,
-            Build_Log.Data.ml_timing_gc)
+            Build_Log.Data.ml_timing_gc,
+            Build_Log.Data.heap_size)
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
@@ -119,7 +122,8 @@ object Build_Status
                 res.timing(
                   Build_Log.Data.ml_timing_elapsed,
                   Build_Log.Data.ml_timing_cpu,
-                  Build_Log.Data.ml_timing_gc))
+                  Build_Log.Data.ml_timing_gc),
+                heap_size = res.long(Build_Log.Data.heap_size))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
@@ -133,7 +137,8 @@ object Build_Status
     Data(date,
       (for {
         (data_name, sessions) <- data_entries.toList
-        sorted_sessions <- proper_list(sessions.toList.map(_._2).filter(_.check).sortBy(_.order))
+        sorted_sessions <-
+          proper_list(sessions.toList.map(_._2).filter(_.check_timing).sortBy(_.order))
       } yield (data_name, sorted_sessions)).sortBy(_._1))
   }
 
@@ -163,7 +168,8 @@ object Build_Status
                       entry.timing.elapsed.minutes,
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
-                      entry.ml_timing.resources.minutes).mkString(" "))))
+                      entry.ml_timing.resources.minutes,
+                      (entry.heap_size.toDouble / (1024 * 1024)).toString).mkString(" "))))
 
               val max_time =
                 ((0.0 /: session.entries){ case (m, entry) =>
@@ -171,8 +177,9 @@ object Build_Status
                     max(entry.timing.resources.minutes).
                     max(entry.ml_timing.elapsed.minutes).
                     max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
+              val timing_range = "[0:" + max_time + "]"
 
-              def gnuplot(plots: List[String], kind: String): String =
+              def gnuplot(plots: List[String], kind: String, range: String): String =
               {
                 val plot_name = session.name + "_" + kind + ".png"
 
@@ -184,8 +191,8 @@ set timefmt "%s"
 set format x "%d-%b"
 set xlabel """ + quote(session.name) + """ noenhanced
 set key left bottom
-plot [] [0:""" + max_time + "] " +
-                  plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
+plot [] """ + range + " " +
+                plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
 
                 val result =
                   Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
@@ -195,17 +202,18 @@ plot [] [0:""" + max_time + "] " +
                 plot_name
               }
 
-              val timing_plots1 =
-                List(
-                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-                  """ using 1:2 smooth csplines title "elapsed time" """)
-              val timing_plots2 =
-                List(
-                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                  """ using 1:3 smooth csplines title "cpu time" """)
               val timing_plots =
-                if (session.threads == 1) timing_plots1
-                else timing_plots1 ::: timing_plots2
+              {
+                val plots1 =
+                  List(
+                    """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                    """ using 1:2 smooth csplines title "elapsed time" """)
+                val plots2 =
+                  List(
+                    """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                    """ using 1:3 smooth csplines title "cpu time" """)
+                if (session.threads == 1) plots1 else plots1 ::: plots2
+              }
 
               val ml_timing_plots =
                 List(
@@ -214,8 +222,18 @@ plot [] [0:""" + max_time + "] " +
                   """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
                   """ using 1:5 smooth csplines title "ML cpu time" """)
 
-              session.name ->
-                List(gnuplot(timing_plots, "timing"), gnuplot(ml_timing_plots, "ml_timing"))
+              val heap_plots =
+                List(
+                  """ using 1:6 smooth sbezier title "heap (smooth)" """,
+                  """ using 1:6 smooth csplines title "heap" """)
+
+              val plot_names =
+                List(
+                  gnuplot(timing_plots, "timing", timing_range),
+                  gnuplot(ml_timing_plots, "ml_timing", timing_range)) :::
+                (if (session.check_heap) List(gnuplot(heap_plots, "heap", "[0:]")) else Nil)
+
+              session.name -> plot_names
             }
           }, sessions).toMap
 
