@@ -50,7 +50,7 @@ object SQL
 
   val join_outer: Source = " LEFT OUTER JOIN "
   val join_inner: Source = " INNER JOIN "
-  def join(outer: Boolean = false): Source = if (outer) join_outer else join_inner
+  def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
 
   /* types */
