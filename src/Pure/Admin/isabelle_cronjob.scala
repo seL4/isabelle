@@ -119,16 +119,18 @@ object Isabelle_Cronjob
       List(Remote_Build("Linux B", "lxbroy10",
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
-        Remote_Build("Mac OS X Mavericks", "macbroy2", options = "-m32 -M8", args = "-a",
+        Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2", options = "-m32 -M8", args = "-a",
           detect = Build_Log.Prop.build_tags + " IS NULL"),
-        Remote_Build("Mac OS X Mavericks, quick_and_dirty", "macbroy2",
+        Remote_Build("Mac OS X 10.9 Mavericks, quick_and_dirty", "macbroy2",
           options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
-        Remote_Build("Mac OS X Mavericks, skip_proofs", "macbroy2",
+        Remote_Build("Mac OS X 10.9 Mavericks, skip_proofs", "macbroy2",
           options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
-      List(Remote_Build("Mac OS X Yosemite", "macbroy30", options = "-m32 -M2", args = "-a")),
-      List(Remote_Build("Mac OS X Sierra", "macbroy31", options = "-m32 -M2", args = "-a")),
+      List(
+        Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
+          detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
+      List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
         Remote_Build("Windows", "vmnipkow9", shared_home = false,
           options = "-m32 -M4", args = "-a",
@@ -137,6 +139,11 @@ object Isabelle_Cronjob
           options = "-m64 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
+
+  private val remote_builds_old: List[Remote_Build] =
+    List(
+      Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
+        detect = Build_Log.Prop.build_start + " < date '2017-03-03'"))
 
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
   {
@@ -188,7 +195,7 @@ object Isabelle_Cronjob
   /* present build status */
 
   val build_status_profiles: List[Build_Status.Profile] =
-    remote_builds.flatten.map(_.profile)
+    (remote_builds_old :: remote_builds).flatten.map(_.profile)
 
   def build_status(options: Options)
   {
