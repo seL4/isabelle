@@ -28,11 +28,6 @@ object Isabelle_Cronjob
   val isabelle_release_source = "http://bitbucket.org/isabelle_project/isabelle-release"
   val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
 
-  val devel_dir = Path.explode("~/html-data/devel")
-  val release_snapshot_dir = devel_dir + Path.explode("release_snapshot")
-  val build_log_db = devel_dir + Path.explode("build_log.db")
-  val build_status_dir = devel_dir + Path.explode("build_status")
-
   val jenkins_jobs = "identify" :: Jenkins.build_log_jobs
 
 
@@ -43,7 +38,6 @@ object Isabelle_Cronjob
 
   private val build_release =
     Logger_Task("build_release", logger =>
-      Isabelle_System.with_tmp_dir("isadist")(base_dir =>
         {
           val rev = Mercurial.repository(isabelle_repos).id()
           val afp_rev = Mercurial.setup_repository(afp_source, afp_repos).id()
@@ -51,19 +45,9 @@ object Isabelle_Cronjob
           File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
             Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
 
-          val new_snapshot = release_snapshot_dir.ext("new")
-          val old_snapshot = release_snapshot_dir.ext("old")
-
-          Isabelle_System.rm_tree(new_snapshot)
-          Isabelle_System.rm_tree(old_snapshot)
-
-          Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
-            parallel_jobs = 4, remote_mac = "macbroy31", website = Some(new_snapshot))
-
-          if (release_snapshot_dir.is_dir) File.move(release_snapshot_dir, old_snapshot)
-          File.move(new_snapshot, release_snapshot_dir)
-          Isabelle_System.rm_tree(old_snapshot)
-        }))
+          Isabelle_Devel.release_snapshot(rev = rev, afp_rev = afp_rev,
+            parallel_jobs = 4, remote_mac = "macbroy31")
+        })
 
 
   /* integrity test of build_history vs. build_history_base */
@@ -175,32 +159,8 @@ object Isabelle_Cronjob
       })
   }
 
-
-  /* maintain build_log database */
-
-  val database_dirs =
-    List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
-
-  def database_update(options: Options)
-  {
-    val store = Build_Log.store(options)
-    using(store.open_database())(db =>
-    {
-      store.update_database(db, database_dirs, ml_statistics = true)
-      store.snapshot_database(db, build_log_db)
-    })
-  }
-
-
-  /* present build status */
-
   val build_status_profiles: List[Build_Status.Profile] =
     (remote_builds_old :: remote_builds).flatten.map(_.profile)
-
-  def build_status(options: Options)
-  {
-    Build_Status.present_data(Build_Status.read_data(options), target_dir = build_status_dir)
-  }
 
 
 
@@ -349,8 +309,10 @@ object Isabelle_Cronjob
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
-            Logger_Task("build_log_database", logger => database_update(logger.options)),
-            Logger_Task("build_status", logger => build_status(logger.options)))))))
+            Logger_Task("build_log_database",
+              logger => Isabelle_Devel.build_log_database(logger.options)),
+            Logger_Task("build_status",
+              logger => Isabelle_Devel.build_status(logger.options)))))))
 
     log_service.shutdown()
 

@@ -22,6 +22,7 @@ declare -a SOURCES=(
   Admin/check_sources.scala
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
+  Admin/isabelle_devel.scala
   Admin/jenkins.scala
   Admin/news.scala
   Admin/other_isabelle.scala
