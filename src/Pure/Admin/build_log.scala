@@ -658,6 +658,7 @@ object Build_Log
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
+    val known = SQL.Column.bool("known")
 
     val meta_info_table =
       build_log_table("meta_info", log_name :: Prop.all_props ::: Settings.all_settings)
@@ -689,11 +690,13 @@ object Build_Log
     def recent_time(days: Int): SQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
 
-    def recent_pull_date_table(days: Int): SQL.Table =
+    def recent_pull_date_table(days: Int, rev: String = ""): SQL.Table =
     {
       val table = pull_date_table
       SQL.Table("recent_pull_date", table.columns,
-        table.select(table.columns, "WHERE " + pull_date(table) + " > " + recent_time(days)))
+        table.select(table.columns,
+          "WHERE " + pull_date(table) + " > " + recent_time(days) +
+          (if (rev == "") "" else " OR " + Prop.isabelle_version(table) + " = " + SQL.string(rev))))
     }
 
     def select_recent_log_names(days: Int): SQL.Source =
@@ -702,6 +705,22 @@ object Build_Log
       val table2 = recent_pull_date_table(days)
       table1.select(List(log_name), distinct = true) + SQL.join_inner + table2.query_named +
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
+    }
+
+    def select_recent_isabelle_versions(days: Int, rev: String = "", sql: SQL.Source = "")
+      : SQL.Source =
+    {
+      val table1 = recent_pull_date_table(days, rev = rev)
+      val table2 = meta_info_table
+      val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = sql))
+
+      val columns =
+        List(Prop.isabelle_version(table1), pull_date(table1),
+          known.copy(expr = log_name(aux_table) + " IS NOT NULL"))
+      SQL.select(columns, distinct = true) +
+        table1.query_named + SQL.join_outer + aux_table.query_named +
+        " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(aux_table) +
+        " ORDER BY " + pull_date(table1) + " DESC"
     }
 
 

@@ -73,6 +73,11 @@ object Isabelle_Cronjob
 
   /* remote build_history */
 
+  sealed case class Item(known: Boolean, isabelle_version: String, pull_date: Date)
+  {
+    def unknown: Boolean = !known
+  }
+
   sealed case class Remote_Build(
     description: String,
     host: String,
@@ -83,13 +88,47 @@ object Isabelle_Cronjob
     args: String = "",
     detect: SQL.Source = "")
   {
+    def sql: SQL.Source =
+      Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
+      Build_Log.Prop.build_host + " = " + SQL.string(host) +
+      (if (detect == "") "" else " AND " + SQL.enclose(detect))
+
     def profile: Build_Status.Profile =
-    {
-      val sql =
-        Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
-        Build_Log.Prop.build_host + " = " + SQL.string(host) +
-        (if (detect == "") "" else " AND " + SQL.enclose(detect))
       Build_Status.Profile(description, sql)
+
+    def pick(options: Options, rev: String = ""): Option[String] =
+    {
+      val store = Build_Log.store(options)
+      using(store.open_database())(db =>
+      {
+        val select =
+          Build_Log.Data.select_recent_isabelle_versions(
+            days = options.int("build_log_history"), rev = rev, sql = "WHERE " + sql)
+
+        val recent_items =
+          db.using_statement(select)(stmt =>
+            stmt.execute_query().iterator(res =>
+            {
+              val known = res.bool(Build_Log.Data.known)
+              val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
+              val pull_date = res.date(Build_Log.Data.pull_date)
+              Item(known, isabelle_version, pull_date)
+            }).toList)
+
+        def unknown_runs(items: List[Item]): List[List[Item]] =
+        {
+          val (run, rest) = Library.take_prefix[Item](_.unknown, items.dropWhile(_.known))
+          if (run.nonEmpty) run :: unknown_runs(rest) else Nil
+        }
+
+        if (rev == "" || recent_items.exists(item => item.known && item.isabelle_version == rev)) {
+          unknown_runs(recent_items).sortBy(_.length).reverse match {
+            case longest_run :: _ => Some(longest_run(longest_run.length / 2).isabelle_version)
+            case _ => None
+          }
+        }
+        else Some(rev)
+      })
     }
   }
 
@@ -306,10 +345,11 @@ object Isabelle_Cronjob
     val rev = Mercurial.repository(isabelle_repos).id()
 
     run(main_start_date,
-      Logger_Task("isabelle_cronjob", _ =>
+      Logger_Task("isabelle_cronjob", logger =>
         run_now(
           SEQ(List(build_release, build_history_base,
-            PAR(remote_builds.map(seq => SEQ(seq.map(remote_build_history(rev, _))))),
+            PAR(remote_builds.map(seq =>
+              SEQ(seq.flatMap(r => r.pick(logger.options, rev).map(remote_build_history(_, r)))))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
               logger => Isabelle_Devel.build_log_database(logger.options)),
