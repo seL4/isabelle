@@ -56,6 +56,7 @@ object Jenkins
     build_log_jobs.map(job_name =>
       Build_Status.Profile("Jenkins " + job_name,
         Build_Log.Prop.build_engine + " = " + SQL.string(Build_Log.Jenkins.engine) + " AND " +
+        Build_Log.Data.session_name + " <> " + SQL.string("Pure") + " AND " +
         Build_Log.Data.log_name + " LIKE " + SQL.string("%" + job_name)))
 
 
