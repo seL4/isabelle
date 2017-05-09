@@ -57,7 +57,8 @@ object Build_Status
 
   /* read data */
 
-  sealed case class Data(date: Date, entries: List[(String, List[Session])])
+  sealed case class Data(date: Date, entries: List[Data_Entry])
+  sealed case class Data_Entry(name: String, hosts: List[String], sessions: List[Session])
   sealed case class Session(name: String, threads: Int, entries: List[Entry])
   {
     def timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.timing
@@ -76,7 +77,11 @@ object Build_Status
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
+    var data_hosts = Map.empty[String, Set[String]]
     var data_entries = Map.empty[String, Map[String, Session]]
+
+    def get_hosts(data_name: String): Set[String] =
+      data_hosts.getOrElse(data_name, Set.empty)
 
     val store = Build_Log.store(options)
     using(store.open_database())(db =>
@@ -86,6 +91,7 @@ object Build_Status
         val columns =
           List(
             Build_Log.Data.pull_date,
+            Build_Log.Prop.build_host,
             Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
             Build_Log.Settings.ML_PLATFORM,
             Build_Log.Data.session_name,
@@ -136,6 +142,9 @@ object Build_Status
                   Build_Log.Data.ml_timing_gc),
                 heap_size = res.long(Build_Log.Data.heap_size))
 
+            res.get_string(Build_Log.Prop.build_host).foreach(host =>
+              data_hosts += (data_name -> (get_hosts(data_name) + host)))
+
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
             val session = Session(session_name, threads, entry :: entries)
@@ -145,12 +154,14 @@ object Build_Status
       }
     })
 
-    Data(date,
+    val sorted_entries =
       (for {
-        (data_name, sessions) <- data_entries.toList
+        (name, sessions) <- data_entries.toList
         sorted_sessions <-
           proper_list(sessions.toList.map(_._2).filter(_.check_timing).sortBy(_.order))
-      } yield (data_name, sorted_sessions)).sortBy(_._1))
+      } yield Data_Entry(name, get_hosts(name).toList.sorted, sorted_sessions)).sortBy(_.name)
+
+    Data(date, sorted_entries)
   }
 
 
@@ -168,11 +179,14 @@ object Build_Status
     File.write(target_dir + Path.basic("index.html"),
       HTML.output_document(
         List(HTML.title("Isabelle build status")),
-        List(HTML.chapter("Isabelle build status (" + data.date + ")"),
-          HTML.itemize(data.entries.map({ case (data_name, _) =>
-            List(HTML.link(clean_name(data_name) + "/index.html", HTML.text(data_name))) })))))
+        List(HTML.chapter("Isabelle build status"),
+          HTML.itemize(data.entries.map({ case data_entry =>
+            List(HTML.link(clean_name(data_entry.name) + "/index.html", HTML.text(data_entry.name)))
+          })))))
 
-    for ((data_name, sessions) <- data.entries) {
+    for (data_entry <- data.entries) {
+      val data_name = data_entry.name
+
       progress.echo("output " + quote(data_name))
 
       val dir = target_dir + Path.basic(clean_name(data_name))
@@ -257,17 +271,23 @@ plot [] """ + range + " " +
 
               session.name -> plot_names
             }
-          }, sessions).toMap
+          }, data_entry.sessions).toMap
 
       File.write(dir + Path.basic("index.html"),
         HTML.output_document(
           List(HTML.title("Isabelle build status for " + data_name)),
-          HTML.chapter("Isabelle build status for " + data_name + " (" + data.date + ")") ::
-          HTML.itemize(
-            sessions.map(session =>
-              HTML.link("#session_" + session.name, HTML.text(session.name)) ::
-              HTML.text(" (" + session.timing.message_resources + ")"))) ::
-          sessions.flatMap(session =>
+          HTML.chapter("Isabelle build status for " + data_name) ::
+          HTML.par(
+            List(HTML.itemize(
+              List(
+                HTML.bold(HTML.text("build host: ")) :: HTML.text(commas(data_entry.hosts)),
+                HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString))))) ::
+          HTML.par(
+            List(HTML.itemize(
+              data_entry.sessions.map(session =>
+                HTML.link("#session_" + session.name, HTML.text(session.name)) ::
+                HTML.text(" (" + session.timing.message_resources + ")"))))) ::
+          data_entry.sessions.flatMap(session =>
             List(
               HTML.section(session.name) + HTML.id("session_" + session.name),
               HTML.par(
