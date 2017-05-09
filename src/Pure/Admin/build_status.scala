@@ -165,10 +165,18 @@ object Build_Status
     target_dir: Path = default_target_dir,
     image_size: (Int, Int) = default_image_size)
   {
-    for ((data_name, sessions) <- data.entries) {
-      val dir = target_dir + Path.basic(clean_name(data_name))
+    Isabelle_System.mkdirs(target_dir)
+    File.write(target_dir + Path.basic("index.html"),
+      HTML.output_document(
+        List(HTML.title("Isabelle build status")),
+        List(HTML.chapter("Isabelle build status (" + data.date + ")"),
+          HTML.itemize(data.entries.map({ case (data_name, _) =>
+            List(HTML.link(clean_name(data_name) + "/index.html", HTML.text(data_name))) })))))
 
+    for ((data_name, sessions) <- data.entries) {
       progress.echo("output " + quote(data_name))
+
+      val dir = target_dir + Path.basic(clean_name(data_name))
       Isabelle_System.mkdirs(dir)
 
       val session_plots =
@@ -273,13 +281,6 @@ plot [] """ + range + " " +
                     HTML.width(image_size._1 / 2) +
                     HTML.height(image_size._2 / 2)))))))
     }
-
-    File.write(target_dir + Path.basic("index.html"),
-      HTML.output_document(
-        List(HTML.title("Isabelle build status")),
-        List(HTML.chapter("Isabelle build status (" + data.date + ")"),
-          HTML.itemize(data.entries.map({ case (data_name, _) =>
-            List(HTML.link(clean_name(data_name) + "/index.html", HTML.text(data_name))) })))))
   }
 
 
