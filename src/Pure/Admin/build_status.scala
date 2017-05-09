@@ -180,9 +180,13 @@ object Build_Status
       HTML.output_document(
         List(HTML.title("Isabelle build status")),
         List(HTML.chapter("Isabelle build status"),
-          HTML.itemize(data.entries.map({ case data_entry =>
-            List(HTML.link(clean_name(data_entry.name) + "/index.html", HTML.text(data_entry.name)))
-          })))))
+          HTML.par(
+            List(HTML.itemize(
+              List(HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString))))),
+          HTML.par(
+            List(HTML.itemize(data.entries.map({ case data_entry =>
+              List(HTML.link(clean_name(data_entry.name) + "/index.html",
+                HTML.text(data_entry.name))) })))))))
 
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
@@ -280,8 +284,8 @@ plot [] """ + range + " " +
           HTML.par(
             List(HTML.itemize(
               List(
-                HTML.bold(HTML.text("build host: ")) :: HTML.text(commas(data_entry.hosts)),
-                HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString))))) ::
+                HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString),
+                HTML.bold(HTML.text("build host: ")) :: HTML.text(commas(data_entry.hosts)))))) ::
           HTML.par(
             List(HTML.itemize(
               data_entry.sessions.map(session =>
@@ -292,6 +296,8 @@ plot [] """ + range + " " +
               HTML.section(session.name) + HTML.id("session_" + session.name),
               HTML.par(
                 HTML.itemize(List(
+                  HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString),
+                  HTML.bold(HTML.text("build host: ")) :: HTML.text(commas(data_entry.hosts)),
                   HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
                   HTML.bold(HTML.text("ML timing: ")) ::
                     HTML.text(session.ml_timing.message_resources))) ::
