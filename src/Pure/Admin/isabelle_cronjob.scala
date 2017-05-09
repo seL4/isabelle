@@ -360,9 +360,7 @@ object Isabelle_Cronjob
             Logger_Task("build_log_database",
               logger => Isabelle_Devel.build_log_database(logger.options)),
             Logger_Task("build_status",
-              logger =>
-                Build_Status.build_status(logger.options,
-                  target_dir = Isabelle_Devel.build_status_dir)))))))
+              logger => Isabelle_Devel.build_status(logger.options)))))))
 
     log_service.shutdown()
 

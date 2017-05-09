@@ -18,8 +18,6 @@ object Isabelle_Devel
   val standard_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
 
-  val build_status_dir = root + Path.explode(BUILD_STATUS)
-
 
   /* index */
 
@@ -60,20 +58,10 @@ object Isabelle_Devel
   {
     Isabelle_System.with_tmp_dir("isadist")(base_dir =>
       {
-        val release_snapshot_dir = root + Path.explode(RELEASE_SNAPSHOT)
-
-        val new_snapshot = release_snapshot_dir.ext("new")
-        val old_snapshot = release_snapshot_dir.ext("old")
-
-        Isabelle_System.rm_tree(new_snapshot)
-        Isabelle_System.rm_tree(old_snapshot)
-
-        Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
-          parallel_jobs = parallel_jobs, remote_mac = remote_mac, website = Some(new_snapshot))
-
-        if (release_snapshot_dir.is_dir) File.move(release_snapshot_dir, old_snapshot)
-        File.move(new_snapshot, release_snapshot_dir)
-        Isabelle_System.rm_tree(old_snapshot)
+        Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
+          website_dir =>
+            Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
+              parallel_jobs = parallel_jobs, remote_mac = remote_mac, website = Some(website_dir)))
       })
   }
 
@@ -88,5 +76,14 @@ object Isabelle_Devel
       store.update_database(db, log_dirs, ml_statistics = true)
       store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))
     })
+  }
+
+
+  /* present build status */
+
+  def build_status(options: Options)
+  {
+    Isabelle_System.update_directory(root + Path.explode(BUILD_STATUS),
+      dir => Build_Status.build_status(options, target_dir = dir))
   }
 }

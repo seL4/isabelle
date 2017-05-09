@@ -237,6 +237,24 @@ object Isabelle_System
   }
 
 
+  /* quasi-atomic update of directory */
+
+  def update_directory(dir: Path, f: Path => Unit)
+  {
+    val new_dir = dir.ext("new")
+    val old_dir = dir.ext("old")
+
+    rm_tree(new_dir)
+    rm_tree(old_dir)
+
+    f(new_dir)
+
+    if (dir.is_dir) File.move(dir, old_dir)
+    File.move(new_dir, dir)
+    rm_tree(old_dir)
+  }
+
+
 
   /** external processes **/
 
