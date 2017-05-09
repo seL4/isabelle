@@ -61,8 +61,10 @@ object Build_Status
   sealed case class Data_Entry(name: String, hosts: List[String], sessions: List[Session])
   sealed case class Session(name: String, threads: Int, entries: List[Entry])
   {
-    def timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.timing
-    def ml_timing: Timing = if (entries.isEmpty) Timing.zero else entries.head.ml_timing
+    require(entries.nonEmpty)
+
+    def timing: Timing = entries.head.timing
+    def ml_timing: Timing = entries.head.ml_timing
     def order: Long = - timing.elapsed.ms
 
     def check_timing: Boolean = entries.length >= 3
