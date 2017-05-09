@@ -9,8 +9,28 @@ package isabelle
 
 object Build_Status
 {
-  private val default_target_dir = Path.explode("build_status")
-  private val default_image_size = (800, 600)
+  /* build status */
+
+  val default_target_dir = Path.explode("build_status")
+  val default_image_size = (800, 600)
+
+  def default_profiles: List[Profile] =
+    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
+
+  def build_status(options: Options,
+    progress: Progress = No_Progress,
+    profiles: List[Profile] = default_profiles,
+    only_sessions: Set[String] = Set.empty,
+    verbose: Boolean = false,
+    target_dir: Path = default_target_dir,
+    image_size: (Int, Int) = default_image_size)
+  {
+    val data =
+      read_data(options, progress = progress, profiles = profiles,
+        only_sessions = only_sessions, verbose = verbose)
+
+    present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
+  }
 
 
   /* data profiles */
@@ -37,9 +57,6 @@ object Build_Status
     }
   }
 
-  val standard_profiles: List[Profile] =
-    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
-
 
   sealed case class Data(date: Date, entries: List[(String, List[Session])])
   sealed case class Session(name: String, threads: Int, entries: List[Entry])
@@ -57,8 +74,8 @@ object Build_Status
   /* read data */
 
   def read_data(options: Options,
-    profiles: List[Profile] = standard_profiles,
     progress: Progress = No_Progress,
+    profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     verbose: Boolean = false): Data =
   {
@@ -306,10 +323,8 @@ Usage: isabelle build_status [OPTIONS]
 
       val progress = new Console_Progress
 
-      val data =
-        read_data(options, progress = progress, only_sessions = only_sessions, verbose = verbose)
-
-      present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
+      build_status(options, progress = progress, only_sessions = only_sessions, verbose = verbose,
+        target_dir = target_dir, image_size = image_size)
 
   }, admin = true)
 }

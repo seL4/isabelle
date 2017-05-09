@@ -18,6 +18,8 @@ object Isabelle_Devel
   val standard_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
 
+  val build_status_dir = root + Path.explode(BUILD_STATUS)
+
 
   /* index */
 
@@ -86,14 +88,5 @@ object Isabelle_Devel
       store.update_database(db, log_dirs, ml_statistics = true)
       store.snapshot_database(db, root + Path.explode(BUILD_LOG_DB))
     })
-  }
-
-
-  /* present build status */
-
-  def build_status(options: Options)
-  {
-    val data = Build_Status.read_data(options)
-    Build_Status.present_data(data, target_dir = root + Path.explode(BUILD_STATUS))
   }
 }

@@ -354,7 +354,9 @@ object Isabelle_Cronjob
             Logger_Task("build_log_database",
               logger => Isabelle_Devel.build_log_database(logger.options)),
             Logger_Task("build_status",
-              logger => Isabelle_Devel.build_status(logger.options)))))))
+              logger =>
+                Build_Status.build_status(logger.options,
+                  target_dir = Isabelle_Devel.build_status_dir)))))))
 
     log_service.shutdown()
 
