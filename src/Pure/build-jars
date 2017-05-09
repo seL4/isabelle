@@ -17,7 +17,6 @@ declare -a SOURCES=(
   Admin/build_log.scala
   Admin/build_polyml.scala
   Admin/build_release.scala
-  Admin/build_stats_legacy.scala
   Admin/build_status.scala
   Admin/check_sources.scala
   Admin/ci_profile.scala

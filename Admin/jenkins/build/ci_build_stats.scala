@@ -1,3 +1,5 @@
+// FIXME obsolete
+
 object stats extends isabelle.Isabelle_Tool.Body {
 
   import isabelle._
@@ -26,7 +28,7 @@ object stats extends isabelle.Isabelle_Tool.Body {
     println(s"=== $job ===")
 
     val dir = target_dir + Path.basic(job)
-    val sessions = Build_Stats_Legacy.present_job(job, dir)
+    val sessions: List[String] = Nil
 
     val sections =
       cat_lines(
