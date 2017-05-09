@@ -63,6 +63,10 @@ object Build_Status
   {
     require(entries.nonEmpty)
 
+    def pull_date: Date = entries.head.pull_date
+    def isabelle_version: String = entries.head.isabelle_version
+    def afp_version: String = entries.head.afp_version
+
     def timing: Timing = entries.head.timing
     def ml_timing: Timing = entries.head.ml_timing
     def order: Long = - timing.elapsed.ms
@@ -70,7 +74,8 @@ object Build_Status
     def check_timing: Boolean = entries.length >= 3
     def check_heap: Boolean = entries.forall(_.heap_size > 0)
   }
-  sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing, heap_size: Long)
+  sealed case class Entry(pull_date: Date, isabelle_version: String, afp_version: String,
+    timing: Timing, ml_timing: Timing, heap_size: Long)
 
   def read_data(options: Options,
     progress: Progress = No_Progress,
@@ -94,6 +99,8 @@ object Build_Status
           List(
             Build_Log.Data.pull_date,
             Build_Log.Prop.build_host,
+            Build_Log.Prop.isabelle_version,
+            Build_Log.Prop.afp_version,
             Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
             Build_Log.Settings.ML_PLATFORM,
             Build_Log.Data.session_name,
@@ -133,15 +140,20 @@ object Build_Status
                 (if (threads == 1) "" else ", " + threads + " threads")
 
             val entry =
-              Entry(res.date(Build_Log.Data.pull_date),
-                res.timing(
-                  Build_Log.Data.timing_elapsed,
-                  Build_Log.Data.timing_cpu,
-                  Build_Log.Data.timing_gc),
-                res.timing(
-                  Build_Log.Data.ml_timing_elapsed,
-                  Build_Log.Data.ml_timing_cpu,
-                  Build_Log.Data.ml_timing_gc),
+              Entry(
+                pull_date = res.date(Build_Log.Data.pull_date),
+                isabelle_version = res.string(Build_Log.Prop.isabelle_version),
+                afp_version = res.string(Build_Log.Prop.afp_version),
+                timing =
+                  res.timing(
+                    Build_Log.Data.timing_elapsed,
+                    Build_Log.Data.timing_cpu,
+                    Build_Log.Data.timing_gc),
+                ml_timing =
+                  res.timing(
+                    Build_Log.Data.ml_timing_elapsed,
+                    Build_Log.Data.ml_timing_cpu,
+                    Build_Log.Data.ml_timing_gc),
                 heap_size = res.long(Build_Log.Data.heap_size))
 
             res.get_string(Build_Log.Prop.build_host).foreach(host =>
@@ -206,7 +218,7 @@ object Build_Status
               File.write(data_file,
                 cat_lines(
                   session.entries.map(entry =>
-                    List(entry.date.unix_epoch.toString,
+                    List(entry.pull_date.unix_epoch.toString,
                       entry.timing.elapsed.minutes,
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
@@ -298,11 +310,13 @@ plot [] """ + range + " " +
               HTML.section(session.name) + HTML.id("session_" + session.name),
               HTML.par(
                 HTML.itemize(List(
-                  HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString),
-                  HTML.bold(HTML.text("build host: ")) :: HTML.text(commas(data_entry.hosts)),
                   HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
                   HTML.bold(HTML.text("ML timing: ")) ::
-                    HTML.text(session.ml_timing.message_resources))) ::
+                    HTML.text(session.ml_timing.message_resources)) :::
+                  proper_string(session.isabelle_version).map(s =>
+                    HTML.bold(HTML.text("Isabelle version: ")) :: HTML.text(s)).toList :::
+                  proper_string(session.afp_version).map(s =>
+                    HTML.bold(HTML.text("AFP version: ")) :: HTML.text(s)).toList) ::
                 session_plots.getOrElse(session.name, Nil).map(plot_name =>
                   HTML.image(plot_name) +
                     HTML.width(image_size._1 / 2) +
