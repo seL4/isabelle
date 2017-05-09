@@ -50,7 +50,7 @@ object Jenkins
 
   /* build log status */
 
-  val build_log_jobs = List("isabelle-nightly-benchmark")
+  val build_log_jobs = List("isabelle-nightly-benchmark", "isabelle-nightly-slow")
 
   val build_status_profiles: List[Build_Status.Profile] =
     build_log_jobs.map(job_name =>
