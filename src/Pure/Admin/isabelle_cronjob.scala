@@ -84,6 +84,7 @@ object Isabelle_Cronjob
     user: String = "",
     port: Int = 0,
     shared_home: Boolean = true,
+    history: Int = 0,
     options: String = "",
     args: String = "",
     detect: SQL.Source = "")
@@ -103,7 +104,7 @@ object Isabelle_Cronjob
       {
         val select =
           Build_Log.Data.select_recent_isabelle_versions(
-            days = options.int("build_log_history"), rev = rev, sql = "WHERE " + sql)
+            days = options.int("build_log_history") max history, rev = rev, sql = "WHERE " + sql)
 
         val recent_items =
           db.using_statement(select)(stmt =>
@@ -121,11 +122,16 @@ object Isabelle_Cronjob
           if (run.nonEmpty) run :: unknown_runs(rest) else Nil
         }
 
-        if (rev == "" || recent_items.exists(item => item.known && item.isabelle_version == rev)) {
-          unknown_runs(recent_items).sortBy(_.length).reverse match {
-            case longest_run :: _ => Some(longest_run(longest_run.length / 2).isabelle_version)
-            case _ => None
-          }
+        val known_rev =
+          rev != "" && recent_items.exists(item => item.known && item.isabelle_version == rev)
+
+        if (history > 0 || known_rev) {
+          val longest_run =
+            (List.empty[Item] /: unknown_runs(recent_items))({ case (item1, item2) =>
+              if (item1.length >= item2.length) item1 else item2
+            })
+          if (longest_run.isEmpty) None
+          else Some(longest_run(longest_run.length / 2).isabelle_version)
         }
         else Some(rev)
       })
@@ -141,7 +147,7 @@ object Isabelle_Cronjob
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
-      List(Remote_Build("Linux B", "lxbroy10",
+      List(Remote_Build("Linux B", "lxbroy10", history = 100,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2", options = "-m32 -M8", args = "-a",
@@ -157,10 +163,10 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
-        Remote_Build("Windows", "vmnipkow9", shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", history = 100, shared_home = false,
           options = "-m32 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
-        Remote_Build("Windows", "vmnipkow9", shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", history = 100, shared_home = false,
           options = "-m64 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
