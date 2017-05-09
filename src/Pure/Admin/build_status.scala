@@ -9,6 +9,28 @@ package isabelle
 
 object Build_Status
 {
+  /* data profiles */
+
+  sealed case class Profile(description: String, sql: String)
+  {
+    def select(columns: List[SQL.Column], days: Int, only_sessions: Set[String]): SQL.Source =
+    {
+      val sql_sessions =
+        if (only_sessions.isEmpty) ""
+        else
+          only_sessions.iterator.map(a => Build_Log.Data.session_name + " = " + SQL.string(a))
+            .mkString("(", " OR ", ") AND ")
+
+      Build_Log.Data.universal_table.select(columns, distinct = true,
+        sql = "WHERE " +
+          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days) + " AND " +
+          Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
+          " AND " + sql_sessions + SQL.enclose(sql) +
+          " ORDER BY " + Build_Log.Data.pull_date + " DESC")
+    }
+  }
+
+
   /* build status */
 
   val default_target_dir = Path.explode("build_status")
@@ -33,30 +55,7 @@ object Build_Status
   }
 
 
-  /* data profiles */
-
-  def clean_name(name: String): String =
-    name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
-
-  sealed case class Profile(description: String, sql: String)
-  {
-    def select(columns: List[SQL.Column], days: Int, only_sessions: Set[String]): SQL.Source =
-    {
-      val sql_sessions =
-        if (only_sessions.isEmpty) ""
-        else
-          only_sessions.iterator.map(a => Build_Log.Data.session_name + " = " + SQL.string(a))
-            .mkString("(", " OR ", ") AND ")
-
-      Build_Log.Data.universal_table.select(columns, distinct = true,
-        sql = "WHERE " +
-          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days) + " AND " +
-          Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
-          " AND " + sql_sessions + SQL.enclose(sql) +
-          " ORDER BY " + Build_Log.Data.pull_date + " DESC")
-    }
-  }
-
+  /* read data */
 
   sealed case class Data(date: Date, entries: List[(String, List[Session])])
   sealed case class Session(name: String, threads: Int, entries: List[Entry])
@@ -69,9 +68,6 @@ object Build_Status
     def check_heap: Boolean = entries.forall(_.heap_size > 0)
   }
   sealed case class Entry(date: Date, timing: Timing, ml_timing: Timing, heap_size: Long)
-
-
-  /* read data */
 
   def read_data(options: Options,
     progress: Progress = No_Progress,
@@ -165,6 +161,9 @@ object Build_Status
     target_dir: Path = default_target_dir,
     image_size: (Int, Int) = default_image_size)
   {
+    def clean_name(name: String): String =
+      name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
+
     Isabelle_System.mkdirs(target_dir)
     File.write(target_dir + Path.basic("index.html"),
       HTML.output_document(
