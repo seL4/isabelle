@@ -323,11 +323,16 @@ val cong_dest_rules = @{lemma
   "(P | ~ Q) & (~ P | Q) ==> P = Q"
   by fast+}
 
+fun cong_full_core_tac ctxt =
+  eresolve_tac ctxt @{thms subst}
+  THEN' resolve_tac ctxt @{thms refl}
+  ORELSE' Classical.fast_tac ctxt
+
 fun cong_full ctxt thms t = prove ctxt t (fn ctxt' =>
   Method.insert_tac ctxt thms
-  THEN' (Classical.fast_tac ctxt'
+  THEN' (cong_full_core_tac ctxt'
     ORELSE' dresolve_tac ctxt cong_dest_rules
-    THEN' Classical.fast_tac ctxt'))
+    THEN' cong_full_core_tac ctxt'))
 
 fun cong ctxt thms = try_provers ctxt Z3_Proof.Monotonicity [
   ("basic", cong_basic ctxt thms),
