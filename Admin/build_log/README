@@ -31,3 +31,21 @@ Build Log Database Server
   ALTER USER isatest with encrypted password '***';
 
   $ createdb -E UTF8 -T template0 --locale=en_US.utf8 -U postgres -O isatest isatest
+
+
+Presentation
+============
+
+- gnuplot from original source, since Linux packages (like Gentoo)
+  often produce bad data interpolation
+
+  http://gnuplot.sourceforge.net/
+  https://sourceforge.net/projects/gnuplot/files/gnuplot/5.0.6/
+
+  $ cd gnuplot-5.0.6
+  $ ./configure
+  $ make
+
+  edit $ISABELLE_HOME_USER/etc/settings
+
+  ISABELLE_GNUPLOT=".../src/gnuplot"
