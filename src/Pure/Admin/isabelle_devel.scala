@@ -44,7 +44,8 @@ object Isabelle_Devel
               List(HTML.link(BUILD_LOG_DB, HTML.text("build log"))) :::
               HTML.text(" information (e.g. for ") :::
               List(HTML.link("http://sqlitebrowser.org",
-                List(HTML.code(HTML.text("sqlitebrowser"))))))))))
+                List(HTML.code(HTML.text("sqlitebrowser"))))) :::
+              HTML.text(")"))))))
   }
 
 
