@@ -9,11 +9,26 @@ package isabelle
 
 object Build_Status
 {
+  /* defaults */
+
+  val default_target_dir = Path.explode("build_status")
+  val default_image_size = (800, 600)
+  val default_history = 30
+
+  def default_profiles: List[Profile] =
+    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
+
+
   /* data profiles */
 
   sealed case class Profile(description: String, history: Int, sql: String)
   {
-    def select(columns: List[SQL.Column], days: Int, only_sessions: Set[String]): SQL.Source =
+    def days(options: Options): Int = options.int("build_log_history") max history
+
+    def stretch(options: Options): Double =
+      (days(options) max default_history min (default_history * 5)).toDouble / default_history
+
+    def select(options: Options, columns: List[SQL.Column], only_sessions: Set[String]): SQL.Source =
     {
       val sql_sessions =
         if (only_sessions.isEmpty) ""
@@ -23,7 +38,7 @@ object Build_Status
 
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
-          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days max history) + " AND " +
+          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days(options)) + " AND " +
           Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
           " AND " + sql_sessions + SQL.enclose(sql) +
           " ORDER BY " + Build_Log.Data.pull_date + " DESC")
@@ -32,12 +47,6 @@ object Build_Status
 
 
   /* build status */
-
-  val default_target_dir = Path.explode("build_status")
-  val default_image_size = (800, 600)
-
-  def default_profiles: List[Profile] =
-    Jenkins.build_status_profiles ::: Isabelle_Cronjob.build_status_profiles
 
   def build_status(options: Options,
     progress: Progress = No_Progress,
@@ -58,7 +67,8 @@ object Build_Status
   /* read data */
 
   sealed case class Data(date: Date, entries: List[Data_Entry])
-  sealed case class Data_Entry(name: String, hosts: List[String], sessions: List[Session])
+  sealed case class Data_Entry(
+    name: String, hosts: List[String], stretch: Double, sessions: List[Session])
   sealed case class Session(name: String, threads: Int, entries: List[Entry])
   {
     require(entries.nonEmpty)
@@ -85,6 +95,7 @@ object Build_Status
   {
     val date = Date.now()
     var data_hosts = Map.empty[String, Set[String]]
+    var data_stretch = Map.empty[String, Double]
     var data_entries = Map.empty[String, Map[String, Session]]
 
     def get_hosts(data_name: String): Set[String] =
@@ -115,7 +126,7 @@ object Build_Status
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
-        val sql = profile.select(columns, options.int("build_log_history"), only_sessions)
+        val sql = profile.select(options, columns, only_sessions)
         if (verbose) progress.echo(sql)
 
         db.using_statement(sql)(stmt =>
@@ -139,6 +150,11 @@ object Build_Status
                 (if (ml_platform.startsWith("x86_64")) ", 64bit" else "") +
                 (if (threads == 1) "" else ", " + threads + " threads")
 
+            res.get_string(Build_Log.Prop.build_host).foreach(host =>
+              data_hosts += (data_name -> (get_hosts(data_name) + host)))
+
+            data_stretch += (data_name -> profile.stretch(options))
+
             val entry =
               Entry(
                 pull_date = res.date(Build_Log.Data.pull_date),
@@ -156,9 +172,6 @@ object Build_Status
                     Build_Log.Data.ml_timing_gc),
                 heap_size = res.long(Build_Log.Data.heap_size))
 
-            res.get_string(Build_Log.Prop.build_host).foreach(host =>
-              data_hosts += (data_name -> (get_hosts(data_name) + host)))
-
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
             val session = Session(session_name, threads, entry :: entries)
@@ -173,7 +186,12 @@ object Build_Status
         (name, sessions) <- data_entries.toList
         sorted_sessions <-
           proper_list(sessions.toList.map(_._2).filter(_.check_timing).sortBy(_.order))
-      } yield Data_Entry(name, get_hosts(name).toList.sorted, sorted_sessions)).sortBy(_.name)
+      }
+      yield {
+        val hosts = get_hosts(name).toList.sorted
+        val stretch = data_stretch(name)
+        Data_Entry(name, hosts, stretch, sorted_sessions)
+      }).sortBy(_.name)
 
     Data(date, sorted_entries)
   }
@@ -204,6 +222,9 @@ object Build_Status
 
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
+
+      val image_width = (image_size._1 * data_entry.stretch).toInt
+      val image_height = image_size._2
 
       progress.echo("output " + quote(data_name))
 
@@ -238,7 +259,7 @@ object Build_Status
                 val plot_name = session.name + "_" + kind + ".png"
 
                 File.write(gnuplot_file, """
-set terminal png size """ + image_size._1 + "," + image_size._2 + """
+set terminal png size """ + image_width + "," + image_height + """
 set output """ + quote(File.standard_path(dir + Path.basic(plot_name))) + """
 set xdata time
 set timefmt "%s"
@@ -319,8 +340,8 @@ plot [] """ + range + " " +
                     HTML.bold(HTML.text("AFP version: ")) :: HTML.text(s)).toList) ::
                 session_plots.getOrElse(session.name, Nil).map(plot_name =>
                   HTML.image(plot_name) +
-                    HTML.width(image_size._1 / 2) +
-                    HTML.height(image_size._2 / 2)))))))
+                    HTML.width(image_width / 2) +
+                    HTML.height(image_height / 2)))))))
     }
   }
 
