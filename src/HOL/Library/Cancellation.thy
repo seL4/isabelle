@@ -39,7 +39,7 @@ lemma iterate_add_Numeral1: \<open>iterate_add n Numeral1 = of_nat n\<close>
   by (induction n) auto
 
 lemma iterate_add_1: \<open>iterate_add n 1 = of_nat n\<close>
-  by (induction n) auto
+  using iterate_add_Numeral1 by auto
 
 lemma iterate_add_eq_add_iff1:
   \<open>i \<le> j \<Longrightarrow> (iterate_add j u + m = iterate_add i u + n) = (iterate_add (j - i) u + m = n)\<close>
