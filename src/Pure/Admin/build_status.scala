@@ -11,7 +11,7 @@ object Build_Status
 {
   /* data profiles */
 
-  sealed case class Profile(description: String, sql: String)
+  sealed case class Profile(description: String, history: Int, sql: String)
   {
     def select(columns: List[SQL.Column], days: Int, only_sessions: Set[String]): SQL.Source =
     {
@@ -23,7 +23,7 @@ object Build_Status
 
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
-          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days) + " AND " +
+          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days max history) + " AND " +
           Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
           " AND " + sql_sessions + SQL.enclose(sql) +
           " ORDER BY " + Build_Log.Data.pull_date + " DESC")

@@ -95,7 +95,7 @@ object Isabelle_Cronjob
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
 
     def profile: Build_Status.Profile =
-      Build_Status.Profile(description, sql)
+      Build_Status.Profile(description, history, sql)
 
     def pick(options: Options, rev: String = ""): Option[String] =
     {
