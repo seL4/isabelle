@@ -147,7 +147,7 @@ object Isabelle_Cronjob
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
-      List(Remote_Build("Linux B", "lxbroy10", history = 100,
+      List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2", options = "-m32 -M8", args = "-a",
@@ -163,10 +163,10 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
-        Remote_Build("Windows", "vmnipkow9", history = 100, shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
           options = "-m32 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
-        Remote_Build("Windows", "vmnipkow9", history = 100, shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
           options = "-m64 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
