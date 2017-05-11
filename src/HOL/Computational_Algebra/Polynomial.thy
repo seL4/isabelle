@@ -425,6 +425,19 @@ lemma [code abstract]: "coeffs 0 = []"
 lemma [code abstract]: "coeffs (pCons a p) = a ## coeffs p"
   by (fact coeffs_pCons_eq_cCons)
 
+lemma set_coeffs_subset_singleton_0_iff [simp]:
+  "set (coeffs p) \<subseteq> {0} \<longleftrightarrow> p = 0"
+  by (auto simp add: coeffs_def intro: classical)
+
+lemma set_coeffs_not_only_0 [simp]:
+  "set (coeffs p) \<noteq> {0}"
+  by (auto simp add: set_eq_subset)
+
+lemma forall_coeffs_conv:
+  "(\<forall>n. P (coeff p n)) \<longleftrightarrow> (\<forall>c \<in> set (coeffs p). P c)" if "P 0"
+  using that by (auto simp add: coeffs_def)
+    (metis atLeastLessThan_iff coeff_eq_0 not_less_iff_gr_or_eq zero_le)
+
 instantiation poly :: ("{zero, equal}") equal
 begin
 

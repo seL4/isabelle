@@ -1644,6 +1644,34 @@ next
   qed
 qed
 
+lemma unit_factor_Gcd_fin:
+  "unit_factor (Gcd\<^sub>f\<^sub>i\<^sub>n A) = of_bool (Gcd\<^sub>f\<^sub>i\<^sub>n A \<noteq> 0)"
+  by (rule normalize_idem_imp_unit_factor_eq) simp
+
+lemma unit_factor_Lcm_fin:
+  "unit_factor (Lcm\<^sub>f\<^sub>i\<^sub>n A) = of_bool (Lcm\<^sub>f\<^sub>i\<^sub>n A \<noteq> 0)"
+  by (rule normalize_idem_imp_unit_factor_eq) simp
+
+lemma is_unit_Gcd_fin_iff [simp]:
+  "is_unit (Gcd\<^sub>f\<^sub>i\<^sub>n A) \<longleftrightarrow> Gcd\<^sub>f\<^sub>i\<^sub>n A = 1"
+  by (rule normalize_idem_imp_is_unit_iff) simp
+
+lemma is_unit_Lcm_fin_iff [simp]:
+  "is_unit (Lcm\<^sub>f\<^sub>i\<^sub>n A) \<longleftrightarrow> Lcm\<^sub>f\<^sub>i\<^sub>n A = 1"
+  by (rule normalize_idem_imp_is_unit_iff) simp
+ 
+lemma Gcd_fin_0_iff:
+  "Gcd\<^sub>f\<^sub>i\<^sub>n A = 0 \<longleftrightarrow> A \<subseteq> {0} \<and> finite A"
+  by (induct A rule: infinite_finite_induct) simp_all
+
+lemma Lcm_fin_0_iff:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n A = 0 \<longleftrightarrow> 0 \<in> A" if "finite A"
+  using that by (induct A) (auto simp add: lcm_eq_0_iff)
+
+lemma Lcm_fin_1_iff:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n A = 1 \<longleftrightarrow> (\<forall>a\<in>A. is_unit a) \<and> finite A"
+  by (induct A rule: infinite_finite_induct) simp_all
+
 end
 
 context semiring_Gcd

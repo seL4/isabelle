@@ -1405,6 +1405,24 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma normalize_idem_imp_unit_factor_eq:
+  assumes "normalize a = a"
+  shows "unit_factor a = of_bool (a \<noteq> 0)"
+proof (cases "a = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then show ?thesis
+    using assms unit_factor_normalize [of a] by simp
+qed
+
+lemma normalize_idem_imp_is_unit_iff:
+  assumes "normalize a = a"
+  shows "is_unit a \<longleftrightarrow> a = 1"
+  using assms by (cases "a = 0") (auto dest: is_unit_normalize)
+
 text \<open>
   We avoid an explicit definition of associated elements but prefer explicit
   normalisation instead. In theory we could define an abbreviation like @{prop
