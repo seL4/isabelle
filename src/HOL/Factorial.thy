@@ -9,7 +9,7 @@
 section \<open>Factorial Function, Rising Factorials\<close>
 
 theory Factorial
-  imports Pre_Main
+  imports Groups_List
 begin
 
 subsection \<open>Factorial Function\<close>

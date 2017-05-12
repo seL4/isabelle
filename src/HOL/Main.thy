@@ -6,7 +6,7 @@ text \<open>
 \<close>
 
 theory Main
-imports Pre_Main GCD Binomial
+imports Pre_Main
 begin
 
 end

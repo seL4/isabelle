@@ -9,7 +9,7 @@
 section \<open>Binomial Coefficients and Binomial Theorem\<close>
 
 theory Binomial
-  imports Factorial
+  imports Presburger Factorial
 begin
 
 subsection \<open>Binomial coefficients\<close>
