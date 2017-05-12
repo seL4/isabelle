@@ -983,10 +983,7 @@ object Build_Log
         Data.session_name(table1) + " <> ''"
       val where =
         if (session_names.isEmpty) where_log_name
-        else
-          where_log_name + " AND " +
-          session_names.map(a => Data.session_name(table1) + " = " + SQL.string(a)).
-            mkString("(", " OR ", ")")
+        else where_log_name + " AND " + SQL.member(Data.session_name(table1).ident, session_names)
 
       val columns1 = table1.columns.tail.map(_.apply(table1))
       val (columns, from) =

@@ -30,17 +30,13 @@ object Build_Status
 
     def select(options: Options, columns: List[SQL.Column], only_sessions: Set[String]): SQL.Source =
     {
-      val sql_sessions =
-        if (only_sessions.isEmpty) ""
-        else
-          only_sessions.iterator.map(a => Build_Log.Data.session_name + " = " + SQL.string(a))
-            .mkString("(", " OR ", ") AND ")
-
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
           Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days(options)) + " AND " +
           Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
-          " AND " + sql_sessions + SQL.enclose(sql) +
+          (if (only_sessions.isEmpty) ""
+           else " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
+          " AND " + SQL.enclose(sql) +
           " ORDER BY " + Build_Log.Data.pull_date + " DESC")
     }
   }

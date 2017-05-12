@@ -52,6 +52,9 @@ object SQL
   val join_inner: Source = " INNER JOIN "
   def join(outer: Boolean): Source = if (outer) join_outer else join_inner
 
+  def member(x: Source, set: Iterable[String]): Source =
+    set.iterator.map(a => x + " = " + SQL.string(a)).mkString("(", " OR ", ")")
+
 
   /* types */
 
