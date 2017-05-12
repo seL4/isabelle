@@ -141,10 +141,10 @@ object Isabelle_Cronjob
   private val remote_builds: List[List[Remote_Build]] =
   {
     List(
-      List(Remote_Build("Poly/ML test", "lxbroy8",
-        options = "-m32 -B -M1x2,2 -t polyml-test -e 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
+      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
+        options = "-m32 -B -M1x2,2 -t polyml-5.7 -e 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-N -g timing",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test"))),
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
@@ -173,9 +173,14 @@ object Isabelle_Cronjob
 
   private val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("Poly/ML test", "lxbroy8",
+        options = "-m32 -B -M1x2,2 -t polyml-test -e 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
+        args = "-N -g timing",
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test")),
       Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
         detect = Build_Log.Prop.build_start + " < date '2017-03-03'"))
 
+                      
   private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
   {
     val task_name = "build_history-" + r.host
