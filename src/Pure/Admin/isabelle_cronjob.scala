@@ -125,19 +125,21 @@ object Isabelle_Cronjob
       {
         val days = options.int("build_log_history") max history
         val items = recent_items(db, days = days, rev = rev, sql = sql)
+        def runs = unknown_runs(items)
 
         val known_rev =
           rev != "" && items.exists(item => item.known && item.isabelle_version == rev)
 
         if (history > 0 || known_rev) {
           val longest_run =
-            (List.empty[Item] /: unknown_runs(items))({ case (item1, item2) =>
+            (List.empty[Item] /: runs)({ case (item1, item2) =>
               if (item1.length >= item2.length) item1 else item2
             })
           if (longest_run.isEmpty) None
           else Some(longest_run(longest_run.length / 2).isabelle_version)
         }
-        else Some(rev)
+        else if (rev != "") Some(rev)
+        else runs.flatten.headOption.map(_.isabelle_version)
       })
     }
   }
