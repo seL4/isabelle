@@ -78,6 +78,27 @@ object Isabelle_Cronjob
     def unknown: Boolean = !known
   }
 
+  def recent_items(db: SQL.Database, days: Int, rev: String, sql: SQL.Source): List[Item] =
+  {
+    val select =
+      Build_Log.Data.select_recent_isabelle_versions(days = days, rev = rev, sql = "WHERE " + sql)
+
+    db.using_statement(select)(stmt =>
+      stmt.execute_query().iterator(res =>
+      {
+        val known = res.bool(Build_Log.Data.known)
+        val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
+        val pull_date = res.date(Build_Log.Data.pull_date)
+        Item(known, isabelle_version, pull_date)
+      }).toList)
+  }
+
+  def unknown_runs(items: List[Item]): List[List[Item]] =
+  {
+    val (run, rest) = Library.take_prefix[Item](_.unknown, items.dropWhile(_.known))
+    if (run.nonEmpty) run :: unknown_runs(rest) else Nil
+  }
+
   sealed case class Remote_Build(
     description: String,
     host: String,
@@ -102,32 +123,15 @@ object Isabelle_Cronjob
       val store = Build_Log.store(options)
       using(store.open_database())(db =>
       {
-        val select =
-          Build_Log.Data.select_recent_isabelle_versions(
-            days = options.int("build_log_history") max history, rev = rev, sql = "WHERE " + sql)
-
-        val recent_items =
-          db.using_statement(select)(stmt =>
-            stmt.execute_query().iterator(res =>
-            {
-              val known = res.bool(Build_Log.Data.known)
-              val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
-              val pull_date = res.date(Build_Log.Data.pull_date)
-              Item(known, isabelle_version, pull_date)
-            }).toList)
-
-        def unknown_runs(items: List[Item]): List[List[Item]] =
-        {
-          val (run, rest) = Library.take_prefix[Item](_.unknown, items.dropWhile(_.known))
-          if (run.nonEmpty) run :: unknown_runs(rest) else Nil
-        }
+        val days = options.int("build_log_history") max history
+        val items = recent_items(db, days = days, rev = rev, sql = sql)
 
         val known_rev =
-          rev != "" && recent_items.exists(item => item.known && item.isabelle_version == rev)
+          rev != "" && items.exists(item => item.known && item.isabelle_version == rev)
 
         if (history > 0 || known_rev) {
           val longest_run =
-            (List.empty[Item] /: unknown_runs(recent_items))({ case (item1, item2) =>
+            (List.empty[Item] /: unknown_runs(items))({ case (item1, item2) =>
               if (item1.length >= item2.length) item1 else item2
             })
           if (longest_run.isEmpty) None
