@@ -106,6 +106,7 @@ object Isabelle_Cronjob
     port: Int = 0,
     shared_home: Boolean = true,
     history: Int = 0,
+    historic: Boolean = false,
     options: String = "",
     args: String = "",
     detect: SQL.Source = "")
@@ -130,7 +131,7 @@ object Isabelle_Cronjob
         val known_rev =
           rev != "" && items.exists(item => item.known && item.isabelle_version == rev)
 
-        if (history > 0 || known_rev) {
+        if (historic || known_rev) {
           val longest_run =
             (List.empty[Item] /: runs)({ case (item1, item2) =>
               if (item1.length >= item2.length) item1 else item2
@@ -157,13 +158,13 @@ object Isabelle_Cronjob
   val remote_builds: List[List[Remote_Build]] =
   {
     List(
-      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
+      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8", history = 90, historic = true,
         options = "-m32 -B -M1x2,2 -t polyml-5.7 -e 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-N -g timing",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
-      List(Remote_Build("Linux B", "lxbroy10", history = 90,
+      List(Remote_Build("Linux B", "lxbroy10", history = 90, historic = true,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2", options = "-m32 -M8", args = "-a",
