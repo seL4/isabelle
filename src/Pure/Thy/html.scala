@@ -58,6 +58,10 @@ object HTML
 
   /* output XML as HTML */
 
+  private val structural_elements =
+    Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
+      "ul", "ol", "dl", "li", "dt", "dd")
+
   def output(body: XML.Body, s: StringBuilder)
   {
     def attrib(p: (String, String)): Unit =
@@ -69,9 +73,11 @@ object HTML
         case XML.Elem(markup, Nil) =>
           s ++= "<"; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
-          s ++= "\n<"; elem(markup); s ++= ">"
+          if (structural_elements(markup.name)) s += '\n'
+          s ++= "<"; elem(markup); s ++= ">"
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s ++= ">\n"
+          s ++= "</"; s ++= markup.name; s ++= ">"
+          if (structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) => output(txt, s)
       }
     body.foreach(tree)
