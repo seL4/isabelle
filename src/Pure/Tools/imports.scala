@@ -12,9 +12,9 @@ import java.io.{File => JFile}
 
 object Imports
 {
-  /* manifest */
+  /* repository files */
 
-  def manifest_files(start: Path, pred: JFile => Boolean = _ => true): List[JFile] =
+  def repository_files(start: Path, pred: JFile => Boolean = _ => true): List[JFile] =
     Mercurial.find_repository(start) match {
       case None =>
         Output.warning("Ignoring directory " + start + " (no Mercurial repository)")
@@ -22,7 +22,7 @@ object Imports
       case Some(hg) =>
         val start_path = start.file.getCanonicalFile.toPath
         for {
-          name <- hg.manifest()
+          name <- hg.known_files()
           file = (hg.root + Path.explode(name)).file
           if pred(file) && file.getCanonicalFile.toPath.startsWith(start_path)
         } yield file
@@ -72,7 +72,7 @@ object Imports
   def imports(
     options: Options,
     operation_imports: Boolean = false,
-    operation_manifest: Boolean = false,
+    operation_repository_files: Boolean = false,
     operation_update: Boolean = false,
     progress: Progress = No_Progress,
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -116,12 +116,12 @@ object Imports
       })
     }
 
-    if (operation_manifest) {
-      progress.echo("\nManifest check:")
+    if (operation_repository_files) {
+      progress.echo("\nMercurial files check:")
       val unused_files =
         for {
           (_, dir) <- Sessions.directories(dirs, select_dirs)
-          file <- manifest_files(dir, file => file.getName.endsWith(".thy"))
+          file <- repository_files(dir, file => file.getName.endsWith(".thy"))
           if deps.all_known.get_file(file).isEmpty
         } yield file
       unused_files.foreach(file => progress.echo("unused file " + quote(file.toString)))
@@ -211,7 +211,7 @@ object Imports
     {
       var select_dirs: List[Path] = Nil
       var operation_imports = false
-      var operation_manifest = false
+      var operation_repository_files = false
       var requirements = false
       var operation_update = false
       var exclude_session_groups: List[String] = Nil
@@ -228,7 +228,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
   Options are:
     -D DIR       include session directory and select its sessions
     -I           operation: report potential session imports
-    -M           operation: Mercurial manifest check for imported theory files
+    -M           operation: Mercurial files check for imported theory files
     -R           operate on requirements of selected sessions
     -U           operation: update theory imports to use session qualifiers
     -X NAME      exclude sessions from group NAME and all descendants
@@ -244,7 +244,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 """,
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "I" -> (_ => operation_imports = true),
-      "M" -> (_ => operation_manifest = true),
+      "M" -> (_ => operation_repository_files = true),
       "R" -> (_ => requirements = true),
       "U" -> (_ => operation_update = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -256,7 +256,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
       val sessions = getopts(args)
-      if (args.isEmpty || !(operation_imports || operation_manifest || operation_update))
+      if (args.isEmpty || !(operation_imports || operation_repository_files || operation_update))
         getopts.usage()
 
       val selection =
@@ -266,7 +266,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       val progress = new Console_Progress(verbose = verbose)
 
       imports(options, operation_imports = operation_imports,
-        operation_manifest = operation_manifest, operation_update = operation_update,
+        operation_repository_files = operation_repository_files, operation_update = operation_update,
         progress = progress, selection = selection, dirs = dirs, select_dirs = select_dirs,
         verbose = verbose)
     })
