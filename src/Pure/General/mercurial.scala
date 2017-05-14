@@ -137,5 +137,26 @@ object Mercurial
       hg.command("update",
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
     }
+
+    def length(): Int =
+      identify(options = "-n") match {
+        case Value.Int(n) => n + 1
+        case s => error("Cannot determine repository length from " + quote(s))
+      }
+
+    def graph(): Graph[String, Unit] =
+    {
+      val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
+      val log_result =
+        log(template = """node: {node|short} {p1node|short} {p2node|short}\n""",
+          options = "-l " + length())
+      (Graph.string[Unit] /: split_lines(log_result)) {
+        case (graph, Node(x, y, z)) =>
+          val deps = List(y, z).filterNot(s => s.forall(_ == '0'))
+          val graph1 = (graph /: (x :: deps))(_.default_node(_, ()))
+          (graph1 /: deps)({ case (g, dep) => g.add_edge(dep, x) })
+        case (graph, _) => graph
+      }
+    }
   }
 }
