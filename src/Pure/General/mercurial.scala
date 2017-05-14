@@ -10,6 +10,9 @@ package isabelle
 
 import java.io.{File => JFile}
 
+import scala.annotation.tailrec
+import scala.collection.mutable
+
 
 object Mercurial
 {
@@ -154,5 +157,33 @@ object Mercurial
         case (graph, _) => graph
       }
     }
+  }
+
+
+  /* unknown files */
+
+  def unknown_files(files: List[Path], ssh: Option[SSH.Session] = None): List[Path] =
+  {
+    val unknown = new mutable.ListBuffer[Path]
+
+    @tailrec def check(paths: List[Path])
+    {
+      paths match {
+        case path :: rest =>
+          find_repository(path, ssh) match {
+            case None => unknown += path; check(rest)
+            case Some(hg) =>
+              val known =
+                hg.known_files().iterator.map(name =>
+                  (hg.root + Path.explode(name)).file.getCanonicalFile).toSet
+              if (!known(path.file.getCanonicalFile)) unknown += path
+              check(rest.filterNot(p => known(p.file.getCanonicalFile)))
+          }
+        case Nil =>
+      }
+    }
+
+    check(files)
+    unknown.toList
   }
 }

@@ -338,6 +338,7 @@ object Build
   def build(
     options: Options,
     progress: Progress = No_Progress,
+    check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
@@ -376,6 +377,19 @@ object Build
 
     def sources_stamp(name: String): List[String] =
       (selected_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
+
+    if (check_unknown_files) {
+      val source_files =
+        (for {
+          (_, base) <- deps.session_bases.iterator
+          (path, _) <- base.sources.iterator
+        } yield path).toList
+      val unknown_files = Mercurial.unknown_files(source_files)
+      if (unknown_files.nonEmpty) {
+        progress.echo_warning("Unknown files (not part of a Mercurial repository):" +
+          unknown_files.map(path => path.expand.implode).sorted.mkString("\n  ", "\n  ", ""))
+      }
+    }
 
 
     /* main build process */
@@ -680,6 +694,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val results =
       progress.interrupt_handler {
         build(options, progress,
+          check_unknown_files = Mercurial.is_repository(Path.explode("~~")),
           build_heap = build_heap,
           clean_build = clean_build,
           dirs = dirs,
