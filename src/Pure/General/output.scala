@@ -14,8 +14,12 @@ object Output
     catch { case ERROR(_) => msg }
 
   def writeln_text(msg: String): String = clean_yxml(msg)
-  def warning_text(msg: String): String = cat_lines(split_lines(clean_yxml(msg)).map("### " + _))
-  def error_text(msg: String): String = cat_lines(split_lines(clean_yxml(msg)).map("*** " + _))
+
+  def warning_text(msg: String): String =
+    cat_lines(split_lines(clean_yxml(msg)).map("### " + _))
+
+  def error_message_text(msg: String): String =
+    cat_lines(split_lines(clean_yxml(msg)).map("*** " + _))
 
   def writeln(msg: String, stdout: Boolean = false)
   {
@@ -36,8 +40,8 @@ object Output
   def error_message(msg: String, stdout: Boolean = false)
   {
     if (msg != "") {
-      if (stdout) Console.println(error_text(msg))
-      else Console.err.println(error_text(msg))
+      if (stdout) Console.println(error_message_text(msg))
+      else Console.err.println(error_message_text(msg))
     }
   }
 }

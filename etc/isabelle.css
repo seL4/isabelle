@@ -16,6 +16,16 @@
   src: url('fonts/Vacuous.ttf') format('truetype');
 }
 
+
+/* standard document markup */
+
+dt {
+  float: left;
+  clear: left;
+  padding-right: 0.5em;
+  font-weight: bold;
+}
+
 body { background-color: #FFFFFF; }
 
 .head     { background-color: #FFFFFF; }
@@ -65,4 +75,3 @@ body { background-color: #FFFFFF; }
 .comment        { color: #CC0000; }
 .improper       { color: #FF5050; }
 .bad            { background-color: #FF6A6A; }
-

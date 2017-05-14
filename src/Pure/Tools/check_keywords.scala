@@ -46,9 +46,8 @@ object Check_Keywords
       }, parallel_args).flatten
 
     for ((tok, pos) <- bad) {
-      progress.echo(Output.warning_text(
-        "keyword conflict: " + tok.kind.toString + " " + quote(tok.content) +
-          Position.here(pos)))
+      progress.echo_warning(
+        "keyword conflict: " + tok.kind.toString + " " + quote(tok.content) + Position.here(pos))
     }
   }
 }

@@ -211,4 +211,6 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
   def file: JFile = File.platform_file(this)
   def is_file: Boolean = file.isFile
   def is_dir: Boolean = file.isDirectory
+
+  def canonical_file: JFile = file.getCanonicalFile
 }

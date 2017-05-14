@@ -10,6 +10,9 @@ package isabelle
 
 import java.io.{File => JFile}
 
+import scala.annotation.tailrec
+import scala.collection.mutable
+
 
 object Mercurial
 {
@@ -68,7 +71,7 @@ object Mercurial
         case Some(ssh) => ssh.is_dir(root)
       }
     if (present) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
-    else clone_repository(source, root, options = "--noupdate", ssh = ssh)
+    else clone_repository(source, root, options = "--pull --noupdate", ssh = ssh)
   }
 
   class Repository private[Mercurial](root_path: Path, ssh: Option[SSH.Session])
@@ -96,7 +99,7 @@ object Mercurial
     def command(name: String, args: String = "", options: String = ""): Process_Result =
     {
       val cmdline =
-        "\"${HG:-hg}\"" +
+        "\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
           (if (name == "clone") "" else " --repository " + File.bash_path(root)) +
           " --noninteractive " + name + " " + options + " " + args
       ssh match {
@@ -137,5 +140,50 @@ object Mercurial
       hg.command("update",
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
     }
+
+    def known_files(): List[String] =
+      hg.command("status", options = "--modified --added --clean --no-status").check.out_lines
+
+    def graph(): Graph[String, Unit] =
+    {
+      val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
+      val log_result =
+        log(template = """node: {node|short} {p1node|short} {p2node|short}\n""")
+      (Graph.string[Unit] /: split_lines(log_result)) {
+        case (graph, Node(x, y, z)) =>
+          val deps = List(y, z).filterNot(s => s.forall(_ == '0'))
+          val graph1 = (graph /: (x :: deps))(_.default_node(_, ()))
+          (graph1 /: deps)({ case (g, dep) => g.add_edge(dep, x) })
+        case (graph, _) => graph
+      }
+    }
+  }
+
+
+  /* unknown files */
+
+  def unknown_files(files: List[Path], ssh: Option[SSH.Session] = None): List[Path] =
+  {
+    val unknown = new mutable.ListBuffer[Path]
+
+    @tailrec def check(paths: List[Path])
+    {
+      paths match {
+        case path :: rest =>
+          find_repository(path, ssh) match {
+            case None => unknown += path; check(rest)
+            case Some(hg) =>
+              val known =
+                hg.known_files().iterator.map(name =>
+                  (hg.root + Path.explode(name)).canonical_file).toSet
+              if (!known(path.canonical_file)) unknown += path
+              check(rest.filterNot(p => known(p.canonical_file)))
+          }
+        case Nil =>
+      }
+    }
+
+    check(files)
+    unknown.toList
   }
 }

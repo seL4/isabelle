@@ -37,9 +37,9 @@ object Sessions
 
       def local_theories_iterator =
       {
-        val local_path = local_dir.file.getCanonicalFile.toPath
+        val local_path = local_dir.canonical_file.toPath
         theories.iterator.filter(name =>
-          Path.explode(name.node).file.getCanonicalFile.toPath.startsWith(local_path))
+          Path.explode(name.node).canonical_file.toPath.startsWith(local_path))
       }
 
       val known_theories =
@@ -60,7 +60,7 @@ object Sessions
         (Map.empty[JFile, List[Document.Node.Name]] /:
             (bases_iterator(true) ++ bases_iterator(false) ++ theories.iterator))({
           case (known, name) =>
-            val file = Path.explode(name.node).file.getCanonicalFile
+            val file = Path.explode(name.node).canonical_file
             val theories1 = known.getOrElse(file, Nil)
             if (theories1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
               known

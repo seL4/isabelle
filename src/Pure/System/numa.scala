@@ -42,7 +42,7 @@ object NUMA
 
   /* shuffling of CPU nodes */
 
-  def enabled_warning(enabled: Boolean): Boolean =
+  def enabled_warning(progress: Progress, enabled: Boolean): Boolean =
   {
     def warning =
       if (nodes().length < 2) Some("no NUMA nodes available")
@@ -51,7 +51,7 @@ object NUMA
 
     enabled &&
       (warning match {
-        case Some(s) => Output.warning("Shuffling of CPU nodes is disabled: " + s); false
+        case Some(s) => progress.echo_warning("Shuffling of CPU nodes is disabled: " + s); false
         case _ => true
       })
   }

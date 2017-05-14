@@ -34,7 +34,8 @@ object Build
 
   private object Queue
   {
-    def load_timings(store: Sessions.Store, name: String): (List[Properties.T], Double) =
+    def load_timings(progress: Progress, store: Sessions.Store, name: String)
+      : (List[Properties.T], Double) =
     {
       val no_timings: (List[Properties.T], Double) = (Nil, 0.0)
 
@@ -43,7 +44,7 @@ object Build
         case Some(database) =>
           def ignore_error(msg: String) =
           {
-            Output.warning("Ignoring bad database: " +
+            progress.echo_warning("Ignoring bad database: " +
               database.expand + (if (msg == "") "" else "\n" + msg))
             no_timings
           }
@@ -63,12 +64,12 @@ object Build
       }
     }
 
-    def apply(sessions: Sessions.T, store: Sessions.Store): Queue =
+    def apply(progress: Progress, sessions: Sessions.T, store: Sessions.Store): Queue =
     {
       val graph = sessions.build_graph
       val names = graph.keys
 
-      val timings = names.map(name => (name, load_timings(store, name)))
+      val timings = names.map(name => (name, load_timings(progress, store, name)))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -245,7 +246,7 @@ object Build
             case msg =>
               result.copy(
                 rc = result.rc max 1,
-                out_lines = result.out_lines ::: split_lines(Output.error_text(msg)))
+                out_lines = result.out_lines ::: split_lines(Output.error_message_text(msg)))
           }
         }
         else {
@@ -309,8 +310,8 @@ object Build
       timeout_request.foreach(_.cancel)
 
       if (result.interrupted) {
-        if (was_timeout) result.error(Output.error_text("Timeout")).was_timeout
-        else result.error(Output.error_text("Interrupt"))
+        if (was_timeout) result.error(Output.error_message_text("Timeout")).was_timeout
+        else result.error(Output.error_message_text("Interrupt"))
       }
       else result
     }
@@ -337,6 +338,7 @@ object Build
   def build(
     options: Options,
     progress: Progress = No_Progress,
+    check_unknown_files: Boolean = false,
     build_heap: Boolean = false,
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
@@ -376,11 +378,24 @@ object Build
     def sources_stamp(name: String): List[String] =
       (selected_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
 
+    if (check_unknown_files) {
+      val source_files =
+        (for {
+          (_, base) <- deps.session_bases.iterator
+          (path, _) <- base.sources.iterator
+        } yield path).toList
+      val unknown_files = Mercurial.unknown_files(source_files)
+      if (unknown_files.nonEmpty) {
+        progress.echo_warning("Unknown files (not part of a Mercurial repository):" +
+          unknown_files.map(path => path.expand.implode).sorted.mkString("\n  ", "\n  ", ""))
+      }
+    }
+
 
     /* main build process */
 
     val store = Sessions.store(system_mode)
-    val queue = Queue(selected_sessions, store)
+    val queue = Queue(progress, selected_sessions, store)
 
     store.prepare_output()
 
@@ -551,7 +566,7 @@ object Build
 
     val results0 =
       if (deps.is_empty) {
-        progress.echo(Output.warning_text("Nothing to build"))
+        progress.echo_warning("Nothing to build")
         Map.empty[String, Result]
       }
       else loop(queue, Map.empty, Map.empty)
@@ -679,11 +694,12 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     val results =
       progress.interrupt_handler {
         build(options, progress,
+          check_unknown_files = Mercurial.is_repository(Path.explode("~~")),
           build_heap = build_heap,
           clean_build = clean_build,
           dirs = dirs,
           select_dirs = select_dirs,
-          numa_shuffling = NUMA.enabled_warning(numa_shuffling),
+          numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
           max_jobs = max_jobs,
           list_files = list_files,
           check_keywords = check_keywords,

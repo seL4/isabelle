@@ -25,27 +25,25 @@ object Isabelle_Devel
   {
     val header = "Isabelle Development Resources"
 
-    Isabelle_System.mkdirs(root)
-    File.write(root + Path.explode("index.html"),
-      HTML.output_document(
-        List(HTML.title(header)),
-        List(HTML.chapter(header),
-          HTML.itemize(
-            List(
-              HTML.text("Isabelle nightly ") :::
-              List(HTML.link(RELEASE_SNAPSHOT, HTML.text("release snapshot"))) :::
-              HTML.text(" (for all platforms)"),
+    HTML.write_document(root, "index.html",
+      List(HTML.title(header)),
+      List(HTML.chapter(header),
+        HTML.itemize(
+          List(
+            HTML.text("Isabelle nightly ") :::
+            List(HTML.link(RELEASE_SNAPSHOT, HTML.text("release snapshot"))) :::
+            HTML.text(" (for all platforms)"),
 
-              HTML.text("Isabelle ") :::
-              List(HTML.link(BUILD_STATUS + "/index.html", HTML.text("build status"))) :::
-              HTML.text(" information"),
+            HTML.text("Isabelle ") :::
+            List(HTML.link(BUILD_STATUS + "/index.html", HTML.text("build status"))) :::
+            HTML.text(" information"),
 
-              HTML.text("Database with recent ") :::
-              List(HTML.link(BUILD_LOG_DB, HTML.text("build log"))) :::
-              HTML.text(" information (e.g. for ") :::
-              List(HTML.link("http://sqlitebrowser.org",
-                List(HTML.code(HTML.text("sqlitebrowser"))))) :::
-              HTML.text(")"))))))
+            HTML.text("Database with recent ") :::
+            List(HTML.link(BUILD_LOG_DB, HTML.text("build log"))) :::
+            HTML.text(" information (e.g. for ") :::
+            List(HTML.link("http://sqlitebrowser.org",
+              List(HTML.code(HTML.text("sqlitebrowser"))))) :::
+            HTML.text(")")))))
   }
 
 

@@ -20,7 +20,7 @@ object Exn
       }
     override def hashCode: Int = message.hashCode
 
-    override def toString: String = "\n" + Output.error_text(message)
+    override def toString: String = "\n" + Output.error_message_text(message)
   }
 
   object ERROR

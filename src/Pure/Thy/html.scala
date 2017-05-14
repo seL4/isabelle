@@ -58,6 +58,10 @@ object HTML
 
   /* output XML as HTML */
 
+  private val structural_elements =
+    Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
+      "ul", "ol", "dl", "li", "dt", "dd")
+
   def output(body: XML.Body, s: StringBuilder)
   {
     def attrib(p: (String, String)): Unit =
@@ -69,9 +73,11 @@ object HTML
         case XML.Elem(markup, Nil) =>
           s ++= "<"; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
-          s ++= "\n<"; elem(markup); s ++= ">"
+          if (structural_elements(markup.name)) s += '\n'
+          s ++= "<"; elem(markup); s ++= ">"
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s ++= ">\n"
+          s ++= "</"; s ++= markup.name; s ++= ">"
+          if (structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) => output(txt, s)
       }
     body.foreach(tree)
@@ -142,11 +148,30 @@ object HTML
     XML.Elem(Markup("meta",
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
 
-  def output_document(head: XML.Body, body: XML.Body): String =
+  def head_css(css: String): XML.Elem =
+    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> css)), Nil)
+
+  def output_document(head: XML.Body, body: XML.Body, css: String = "isabelle.css"): String =
     cat_lines(
       List(header,
-        output(XML.elem("head", head_meta :: head)),
+        output(XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head)),
         output(XML.elem("body", body))))
+
+
+  /* document directory */
+
+  def init_dir(dir: Path)
+  {
+    Isabelle_System.mkdirs(dir)
+    File.copy(Path.explode("~~/etc/isabelle.css"), dir)
+  }
+
+  def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
+    css: String = "isabelle.css")
+  {
+    init_dir(dir)
+    File.write(dir + Path.basic(name), output_document(head, body, css))
+  }
 
 
   /* Isabelle document */
