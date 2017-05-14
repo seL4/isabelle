@@ -245,7 +245,7 @@ object Build
             case msg =>
               result.copy(
                 rc = result.rc max 1,
-                out_lines = result.out_lines ::: split_lines(Output.error_text(msg)))
+                out_lines = result.out_lines ::: split_lines(Output.error_message_text(msg)))
           }
         }
         else {
@@ -309,8 +309,8 @@ object Build
       timeout_request.foreach(_.cancel)
 
       if (result.interrupted) {
-        if (was_timeout) result.error(Output.error_text("Timeout")).was_timeout
-        else result.error(Output.error_text("Interrupt"))
+        if (was_timeout) result.error(Output.error_message_text("Timeout")).was_timeout
+        else result.error(Output.error_message_text("Interrupt"))
       }
       else result
     }

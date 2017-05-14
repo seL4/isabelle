@@ -77,7 +77,7 @@ object HTTP
             case Exn.Res(None) =>
               http.write_response(404, Response.empty)
             case Exn.Exn(ERROR(msg)) =>
-              http.write_response(500, Response.text(Output.error_text(msg)))
+              http.write_response(500, Response.text(Output.error_message_text(msg)))
             case Exn.Exn(exn) => throw exn
           }
         else http.write_response(400, Response.empty)
