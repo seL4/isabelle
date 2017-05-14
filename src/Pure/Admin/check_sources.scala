@@ -49,7 +49,7 @@ object Check_Sources
     Output.writeln("Checking " + root + " ...")
     val hg = Mercurial.repository(root)
     for {
-      file <- hg.manifest()
+      file <- hg.known_files()
       if file.endsWith(".thy") || file.endsWith(".ML") || file.endsWith("/ROOT")
     } check_file(root + Path.explode(file))
   }
@@ -63,7 +63,7 @@ object Check_Sources
       val getopts = Getopts("""
 Usage: isabelle check_sources [ROOT_DIRS...]
 
-  Check .thy, .ML, ROOT files from manifest of Mercurial ROOT_DIRS.
+  Check .thy, .ML, ROOT against known files of Mercurial ROOT_DIRS.
 """)
 
       val specs = getopts(args)

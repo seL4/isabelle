@@ -138,6 +138,10 @@ object Mercurial
         opt_rev(rev) + opt_flag("--clean", clean) + opt_flag("--check", check), options).check
     }
 
+    def known_files(): List[String] =
+      hg.command("status", options = "--modified --added --clean --no-status --color=never").
+        check.out_lines
+
     def length(): Int =
       identify(options = "-n") match {
         case Value.Int(n) => n + 1
