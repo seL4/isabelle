@@ -551,7 +551,7 @@ object Build
 
     val results0 =
       if (deps.is_empty) {
-        progress.echo(Output.warning_text("Nothing to build"))
+        progress.echo_warning("Nothing to build")
         Map.empty[String, Result]
       }
       else loop(queue, Map.empty, Map.empty)
