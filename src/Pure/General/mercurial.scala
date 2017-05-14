@@ -96,7 +96,7 @@ object Mercurial
     def command(name: String, args: String = "", options: String = ""): Process_Result =
     {
       val cmdline =
-        "\"${HG:-hg}\"" +
+        "\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
           (if (name == "clone") "" else " --repository " + File.bash_path(root)) +
           " --noninteractive " + name + " " + options + " " + args
       ssh match {
@@ -139,21 +139,13 @@ object Mercurial
     }
 
     def known_files(): List[String] =
-      hg.command("status", options = "--modified --added --clean --no-status --color=never").
-        check.out_lines
-
-    def length(): Int =
-      identify(options = "-n") match {
-        case Value.Int(n) => n + 1
-        case s => error("Cannot determine repository length from " + quote(s))
-      }
+      hg.command("status", options = "--modified --added --clean --no-status").check.out_lines
 
     def graph(): Graph[String, Unit] =
     {
       val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
       val log_result =
-        log(template = """node: {node|short} {p1node|short} {p2node|short}\n""",
-          options = "-l " + length())
+        log(template = """node: {node|short} {p1node|short} {p2node|short}\n""")
       (Graph.string[Unit] /: split_lines(log_result)) {
         case (graph, Node(x, y, z)) =>
           val deps = List(y, z).filterNot(s => s.forall(_ == '0'))
