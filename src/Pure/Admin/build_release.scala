@@ -123,12 +123,11 @@ object Build_Release
             info.all_bundles.find(name => (release_info.dist_dir + Path.explode(name)).is_file)
         } yield (bundle, info)
 
-      Isabelle_System.mkdirs(dir)
-
       val afp_link =
         HTML.link("https://bitbucket.org/isa-afp/afp-devel/commits/" + afp_rev,
           HTML.text("AFP/" + afp_rev))
 
+      HTML.init_dir(dir)
       File.write(dir + Path.explode("index.html"),
         HTML.output_document(
           List(HTML.title(release_info.name)),

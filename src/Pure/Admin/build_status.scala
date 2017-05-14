@@ -203,7 +203,7 @@ object Build_Status
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
-    Isabelle_System.mkdirs(target_dir)
+    HTML.init_dir(target_dir)
     File.write(target_dir + Path.basic("index.html"),
       HTML.output_document(
         List(HTML.title("Isabelle build status")),
@@ -308,6 +308,7 @@ plot [] """ + range + " " +
             }
           }, data_entry.sessions).toMap
 
+      HTML.init_dir(dir)
       File.write(dir + Path.basic("index.html"),
         HTML.output_document(
           List(HTML.title("Isabelle build status for " + data_name)),

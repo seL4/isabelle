@@ -25,7 +25,7 @@ object Isabelle_Devel
   {
     val header = "Isabelle Development Resources"
 
-    Isabelle_System.mkdirs(root)
+    HTML.init_dir(root)
     File.write(root + Path.explode("index.html"),
       HTML.output_document(
         List(HTML.title(header)),

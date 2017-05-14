@@ -148,11 +148,20 @@ object HTML
     XML.Elem(Markup("meta",
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
 
-  def output_document(head: XML.Body, body: XML.Body): String =
+  def head_css(css: String): XML.Elem =
+    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> css)), Nil)
+
+  def output_document(head: XML.Body, body: XML.Body, css: String = "isabelle.css"): String =
     cat_lines(
       List(header,
-        output(XML.elem("head", head_meta :: head)),
+        output(XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head)),
         output(XML.elem("body", body))))
+
+  def init_dir(dir: Path)
+  {
+    Isabelle_System.mkdirs(dir)
+    File.copy(Path.explode("~~/etc/isabelle.css"), dir)
+  }
 
 
   /* Isabelle document */
