@@ -30,11 +30,14 @@ print_translation \<open>
       in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
-definition inv_into :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"
-  where "inv_into A f \<equiv> \<lambda>x. SOME y. y \<in> A \<and> f y = x"
+definition inv_into :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" where
+"inv_into A f = (\<lambda>x. SOME y. y \<in> A \<and> f y = x)"
 
-abbreviation inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"
-  where "inv \<equiv> inv_into UNIV"
+lemma inv_into_def2: "inv_into A f x = (SOME y. y \<in> A \<and> f y = x)"
+by(simp add: inv_into_def)
+
+abbreviation inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" where
+"inv \<equiv> inv_into UNIV"
 
 
 subsection \<open>Hilbert's Epsilon-operator\<close>
