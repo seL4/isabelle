@@ -209,8 +209,8 @@ object Build_Status
         List(HTML.title("Isabelle build status")),
         List(HTML.chapter("Isabelle build status"),
           HTML.par(
-            List(HTML.itemize(
-              List(HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString))))),
+            List(HTML.description(
+              List(HTML.text("status date:") -> HTML.text(data.date.toString))))),
           HTML.par(
             List(HTML.itemize(data.entries.map({ case data_entry =>
               List(HTML.link(clean_name(data_entry.name) + "/index.html",
@@ -313,10 +313,10 @@ plot [] """ + range + " " +
           List(HTML.title("Isabelle build status for " + data_name)),
           HTML.chapter("Isabelle build status for " + data_name) ::
           HTML.par(
-            List(HTML.itemize(
+            List(HTML.description(
               List(
-                HTML.bold(HTML.text("status date: ")) :: HTML.text(data.date.toString),
-                HTML.bold(HTML.text("build host: ")) :: HTML.text(commas(data_entry.hosts)))))) ::
+                HTML.text("status date:") -> HTML.text(data.date.toString),
+                HTML.text("build host:") -> HTML.text(commas(data_entry.hosts)))))) ::
           HTML.par(
             List(HTML.itemize(
               data_entry.sessions.map(session =>
@@ -326,14 +326,14 @@ plot [] """ + range + " " +
             List(
               HTML.section(session.name) + HTML.id("session_" + session.name),
               HTML.par(
-                HTML.itemize(List(
-                  HTML.bold(HTML.text("timing: ")) :: HTML.text(session.timing.message_resources),
-                  HTML.bold(HTML.text("ML timing: ")) ::
-                    HTML.text(session.ml_timing.message_resources)) :::
+                HTML.description(
+                  List(
+                    HTML.text("timing:") -> HTML.text(session.timing.message_resources),
+                    HTML.text("ML timing:") -> HTML.text(session.ml_timing.message_resources)) :::
                   proper_string(session.isabelle_version).map(s =>
-                    HTML.bold(HTML.text("Isabelle version: ")) :: HTML.text(s)).toList :::
+                    HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
                   proper_string(session.afp_version).map(s =>
-                    HTML.bold(HTML.text("AFP version: ")) :: HTML.text(s)).toList) ::
+                    HTML.text("AFP version:") -> HTML.text(s)).toList) ::
                 session_plots.getOrElse(session.name, Nil).map(plot_name =>
                   HTML.image(plot_name) +
                     HTML.width(image_width / 2) +
