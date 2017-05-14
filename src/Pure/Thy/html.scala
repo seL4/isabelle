@@ -157,10 +157,20 @@ object HTML
         output(XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head)),
         output(XML.elem("body", body))))
 
+
+  /* document directory */
+
   def init_dir(dir: Path)
   {
     Isabelle_System.mkdirs(dir)
     File.copy(Path.explode("~~/etc/isabelle.css"), dir)
+  }
+
+  def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
+    css: String = "isabelle.css")
+  {
+    init_dir(dir)
+    File.write(dir + Path.basic(name), output_document(head, body, css))
   }
 
 

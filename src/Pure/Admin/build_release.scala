@@ -127,16 +127,14 @@ object Build_Release
         HTML.link("https://bitbucket.org/isa-afp/afp-devel/commits/" + afp_rev,
           HTML.text("AFP/" + afp_rev))
 
-      HTML.init_dir(dir)
-      File.write(dir + Path.explode("index.html"),
-        HTML.output_document(
-          List(HTML.title(release_info.name)),
-          List(
-            HTML.chapter(release_info.name + " (" + release_id + ")"),
-            HTML.itemize(
-              website_platform_bundles.map({ case (bundle, info) =>
-                List(HTML.link(bundle, HTML.text(info.platform_description))) }))) :::
-          (if (afp_rev == "") Nil else List(HTML.par(HTML.text("See also ") ::: List(afp_link))))))
+      HTML.write_document(dir, "index.html",
+        List(HTML.title(release_info.name)),
+        List(
+          HTML.chapter(release_info.name + " (" + release_id + ")"),
+          HTML.itemize(
+            website_platform_bundles.map({ case (bundle, info) =>
+              List(HTML.link(bundle, HTML.text(info.platform_description))) }))) :::
+        (if (afp_rev == "") Nil else List(HTML.par(HTML.text("See also ") ::: List(afp_link)))))
 
       for ((bundle, _) <- website_platform_bundles)
         File.copy(release_info.dist_dir + Path.explode(bundle), dir)

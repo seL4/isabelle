@@ -203,18 +203,16 @@ object Build_Status
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
-    HTML.init_dir(target_dir)
-    File.write(target_dir + Path.basic("index.html"),
-      HTML.output_document(
-        List(HTML.title("Isabelle build status")),
-        List(HTML.chapter("Isabelle build status"),
-          HTML.par(
-            List(HTML.description(
-              List(HTML.text("status date:") -> HTML.text(data.date.toString))))),
-          HTML.par(
-            List(HTML.itemize(data.entries.map({ case data_entry =>
-              List(HTML.link(clean_name(data_entry.name) + "/index.html",
-                HTML.text(data_entry.name))) })))))))
+    HTML.write_document(target_dir, "index.html",
+      List(HTML.title("Isabelle build status")),
+      List(HTML.chapter("Isabelle build status"),
+        HTML.par(
+          List(HTML.description(
+            List(HTML.text("status date:") -> HTML.text(data.date.toString))))),
+        HTML.par(
+          List(HTML.itemize(data.entries.map({ case data_entry =>
+            List(HTML.link(clean_name(data_entry.name) + "/index.html",
+              HTML.text(data_entry.name))) }))))))
 
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
@@ -308,37 +306,35 @@ plot [] """ + range + " " +
             }
           }, data_entry.sessions).toMap
 
-      HTML.init_dir(dir)
-      File.write(dir + Path.basic("index.html"),
-        HTML.output_document(
-          List(HTML.title("Isabelle build status for " + data_name)),
-          HTML.chapter("Isabelle build status for " + data_name) ::
-          HTML.par(
-            List(HTML.description(
-              List(
-                HTML.text("status date:") -> HTML.text(data.date.toString),
-                HTML.text("build host:") -> HTML.text(commas(data_entry.hosts)))))) ::
-          HTML.par(
-            List(HTML.itemize(
-              data_entry.sessions.map(session =>
-                HTML.link("#session_" + session.name, HTML.text(session.name)) ::
-                HTML.text(" (" + session.timing.message_resources + ")"))))) ::
-          data_entry.sessions.flatMap(session =>
+      HTML.write_document(dir, "index.html",
+        List(HTML.title("Isabelle build status for " + data_name)),
+        HTML.chapter("Isabelle build status for " + data_name) ::
+        HTML.par(
+          List(HTML.description(
             List(
-              HTML.section(session.name) + HTML.id("session_" + session.name),
-              HTML.par(
-                HTML.description(
-                  List(
-                    HTML.text("timing:") -> HTML.text(session.timing.message_resources),
-                    HTML.text("ML timing:") -> HTML.text(session.ml_timing.message_resources)) :::
-                  proper_string(session.isabelle_version).map(s =>
-                    HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
-                  proper_string(session.afp_version).map(s =>
-                    HTML.text("AFP version:") -> HTML.text(s)).toList) ::
-                session_plots.getOrElse(session.name, Nil).map(plot_name =>
-                  HTML.image(plot_name) +
-                    HTML.width(image_width / 2) +
-                    HTML.height(image_height / 2)))))))
+              HTML.text("status date:") -> HTML.text(data.date.toString),
+              HTML.text("build host:") -> HTML.text(commas(data_entry.hosts)))))) ::
+        HTML.par(
+          List(HTML.itemize(
+            data_entry.sessions.map(session =>
+              HTML.link("#session_" + session.name, HTML.text(session.name)) ::
+              HTML.text(" (" + session.timing.message_resources + ")"))))) ::
+        data_entry.sessions.flatMap(session =>
+          List(
+            HTML.section(session.name) + HTML.id("session_" + session.name),
+            HTML.par(
+              HTML.description(
+                List(
+                  HTML.text("timing:") -> HTML.text(session.timing.message_resources),
+                  HTML.text("ML timing:") -> HTML.text(session.ml_timing.message_resources)) :::
+                proper_string(session.isabelle_version).map(s =>
+                  HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
+                proper_string(session.afp_version).map(s =>
+                  HTML.text("AFP version:") -> HTML.text(s)).toList) ::
+              session_plots.getOrElse(session.name, Nil).map(plot_name =>
+                HTML.image(plot_name) +
+                  HTML.width(image_width / 2) +
+                  HTML.height(image_height / 2))))))
     }
   }
 
