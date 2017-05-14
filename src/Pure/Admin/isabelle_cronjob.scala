@@ -105,8 +105,9 @@ object Isabelle_Cronjob
     user: String = "",
     port: Int = 0,
     shared_home: Boolean = true,
-    history: Int = 0,
     historic: Boolean = false,
+    history: Int = 0,
+    history_base: String = "build_history_base",
     options: String = "",
     args: String = "",
     detect: SQL.Source = "")
@@ -119,14 +120,24 @@ object Isabelle_Cronjob
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history, sql)
 
-    def pick(options: Options, rev: String = ""): Option[String] =
+    def history_base_filter(hg: Mercurial.Repository): Set[String] =
+    {
+      val rev0 = hg.id(history_base)
+      val graph = hg.graph()
+      (rev0 :: graph.all_succs(List(rev0))).toSet
+    }
+
+    def pick(options: Options, rev: String = "", filter: String => Boolean = (_: String) => true)
+      : Option[String] =
     {
       val store = Build_Log.store(options)
       using(store.open_database())(db =>
       {
         def pick_days(days: Int): Option[String] =
         {
-          val items = recent_items(db, days = days, rev = rev, sql = sql)
+          val items =
+            recent_items(db, days = days, rev = rev, sql = sql).
+              filter(item => filter(item.isabelle_version))
           def runs = unknown_runs(items)
 
           val known_rev =
@@ -164,13 +175,14 @@ object Isabelle_Cronjob
   val remote_builds: List[List[Remote_Build]] =
   {
     List(
-      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8", history = 90, historic = true,
+      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8", historic = true, history = 90,
+        history_base = "37074e22e8be",
         options = "-m32 -B -M1x2,2 -t polyml-5.7 -e 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-N -g timing",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
-      List(Remote_Build("Linux B", "lxbroy10", history = 90, historic = true,
+      List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2", options = "-m32 -M8", args = "-a",
@@ -366,14 +378,17 @@ object Isabelle_Cronjob
     val main_start_date = Date.now()
     File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
-    val rev = Mercurial.repository(isabelle_repos).id()
+    val hg = Mercurial.repository(isabelle_repos)
+    val rev = hg.id()
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
         run_now(
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq =>
-              SEQ(seq.flatMap(r => r.pick(logger.options, rev).map(remote_build_history(_, r)))))),
+              SEQ(seq.flatMap(r =>
+                r.pick(logger.options, rev, r.history_base_filter(hg)).
+                  map(remote_build_history(_, r)))))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
               logger => Isabelle_Devel.build_log_database(logger.options)),
