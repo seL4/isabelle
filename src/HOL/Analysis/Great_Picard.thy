@@ -614,7 +614,7 @@ proof -
 qed
 
 
-subsection\<open>The Arzelà–Ascoli theorem\<close>
+subsection\<open>The Arzelà--Ascoli theorem\<close>
 
 lemma subsequence_diagonalization_lemma:
   fixes P :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool"
