@@ -14,10 +14,11 @@ object Imports
 {
   /* repository files */
 
-  def repository_files(start: Path, pred: JFile => Boolean = _ => true): List[JFile] =
+  def repository_files(progress: Progress, start: Path, pred: JFile => Boolean = _ => true)
+      : List[JFile] =
     Mercurial.find_repository(start) match {
       case None =>
-        Output.warning("Ignoring directory " + start + " (no Mercurial repository)")
+        progress.echo_warning("Ignoring directory " + start + " (no Mercurial repository)")
         Nil
       case Some(hg) =>
         val start_path = start.file.getCanonicalFile.toPath
@@ -121,7 +122,7 @@ object Imports
       val unused_files =
         for {
           (_, dir) <- Sessions.directories(dirs, select_dirs)
-          file <- repository_files(dir, file => file.getName.endsWith(".thy"))
+          file <- repository_files(progress, dir, file => file.getName.endsWith(".thy"))
           if deps.all_known.get_file(file).isEmpty
         } yield file
       unused_files.foreach(file => progress.echo("unused file " + quote(file.toString)))
