@@ -807,4 +807,39 @@ qed
 
 end
 
+
+subsection \<open>Arg Min\<close>
+
+definition args_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+"args_min f S = {x \<in> S. \<not>(\<exists>y \<in> S. f y < f x)}"
+
+definition arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"arg_min f S = (SOME x. x \<in> args_min f S)"
+
+lemma args_min_linorder: fixes f :: "'a \<Rightarrow> 'b :: linorder"
+shows "args_min f S = {x \<in> S. \<forall>y \<in> S. f x \<le> f y}"
+by(auto simp add: args_min_def)
+
+lemma arg_min_SOME_Min:
+  "finite S \<Longrightarrow> arg_min f S = (SOME y. y \<in> S \<and> f y = Min(f ` S))"
+unfolding arg_min_def args_min_linorder
+apply(rule arg_cong[where f = Eps])
+apply (auto simp: fun_eq_iff intro: Min_eqI[symmetric])
+done
+
+lemma arg_min_in: fixes f :: "'a \<Rightarrow> 'b :: linorder"
+shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> arg_min f S \<in> S"
+by(simp add: arg_min_SOME_Min inv_into_def2[symmetric] inv_into_into)
+
+lemma arg_min_least: fixes f :: "'a \<Rightarrow> 'b :: linorder"
+shows "\<lbrakk> finite S;  S \<noteq> {};  y \<in> S \<rbrakk> \<Longrightarrow> f(arg_min f S) \<le> f y"
+by(simp add: arg_min_SOME_Min inv_into_def2[symmetric] f_inv_into_f)
+
+lemma arg_min_inj_eq: fixes f :: "'a \<Rightarrow> 'b :: order"
+shows "\<lbrakk> inj_on f S; a \<in> S; \<forall>y \<in> S. f a \<le> f y \<rbrakk> \<Longrightarrow> arg_min f S = a"
+apply(simp add: arg_min_def args_min_def)
+apply(rule someI2[of _ a])
+ apply (simp add: less_le_not_le)
+by (metis inj_on_eq_iff less_le)
+
 end
