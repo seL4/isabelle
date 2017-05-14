@@ -156,8 +156,8 @@ object Isabelle_Cronjob
         }
 
         pick_days(options.int("build_log_history") max history) orElse
-        pick_days(100) orElse
-        pick_days(1000)
+        pick_days(200) orElse
+        pick_days(2000)
       })
     }
   }
