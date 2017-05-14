@@ -34,7 +34,8 @@ object Build
 
   private object Queue
   {
-    def load_timings(store: Sessions.Store, name: String): (List[Properties.T], Double) =
+    def load_timings(progress: Progress, store: Sessions.Store, name: String)
+      : (List[Properties.T], Double) =
     {
       val no_timings: (List[Properties.T], Double) = (Nil, 0.0)
 
@@ -43,7 +44,7 @@ object Build
         case Some(database) =>
           def ignore_error(msg: String) =
           {
-            Output.warning("Ignoring bad database: " +
+            progress.echo_warning("Ignoring bad database: " +
               database.expand + (if (msg == "") "" else "\n" + msg))
             no_timings
           }
@@ -63,12 +64,12 @@ object Build
       }
     }
 
-    def apply(sessions: Sessions.T, store: Sessions.Store): Queue =
+    def apply(progress: Progress, sessions: Sessions.T, store: Sessions.Store): Queue =
     {
       val graph = sessions.build_graph
       val names = graph.keys
 
-      val timings = names.map(name => (name, load_timings(store, name)))
+      val timings = names.map(name => (name, load_timings(progress, store, name)))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -380,7 +381,7 @@ object Build
     /* main build process */
 
     val store = Sessions.store(system_mode)
-    val queue = Queue(selected_sessions, store)
+    val queue = Queue(progress, selected_sessions, store)
 
     store.prepare_output()
 
@@ -683,7 +684,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           clean_build = clean_build,
           dirs = dirs,
           select_dirs = select_dirs,
-          numa_shuffling = NUMA.enabled_warning(numa_shuffling),
+          numa_shuffling = NUMA.enabled_warning(progress, numa_shuffling),
           max_jobs = max_jobs,
           list_files = list_files,
           check_keywords = check_keywords,
