@@ -175,9 +175,9 @@ object Mercurial
             case Some(hg) =>
               val known =
                 hg.known_files().iterator.map(name =>
-                  (hg.root + Path.explode(name)).file.getCanonicalFile).toSet
-              if (!known(path.file.getCanonicalFile)) unknown += path
-              check(rest.filterNot(p => known(p.file.getCanonicalFile)))
+                  (hg.root + Path.explode(name)).canonical_file).toSet
+              if (!known(path.canonical_file)) unknown += path
+              check(rest.filterNot(p => known(p.canonical_file)))
           }
         case Nil =>
       }

@@ -21,7 +21,7 @@ object Imports
         progress.echo_warning("Ignoring directory " + start + " (no Mercurial repository)")
         Nil
       case Some(hg) =>
-        val start_path = start.file.getCanonicalFile.toPath
+        val start_path = start.canonical_file.toPath
         for {
           name <- hg.known_files()
           file = (hg.root + Path.explode(name)).file
@@ -46,7 +46,7 @@ object Imports
   {
     val file =
       pos match {
-        case Position.File(file) => Path.explode(file).file.getCanonicalFile
+        case Position.File(file) => Path.explode(file).canonical_file
         case _ => error("Missing file in position" + Position.here(pos))
       }
 
