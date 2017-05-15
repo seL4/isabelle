@@ -175,7 +175,7 @@ object Isabelle_Cronjob
   val remote_builds: List[List[Remote_Build]] =
   {
     List(
-      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8", historic = true, history = 90,
+      List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
         history_base = "37074e22e8be",
         options = "-m32 -B -M1x2,2 -t polyml-5.7 -e 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-N -g timing",
