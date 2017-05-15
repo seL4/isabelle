@@ -210,6 +210,14 @@ wrt. session structure. Examples:
   isabelle imports -U -a
   isabelle imports -M -a -d '~~/src/Benchmarks'
 
+* Isabelle/Scala: the SQL module supports access to relational
+databases, either as plain file (SQLite) or full-scale server
+(PostgreSQL via local port or remote ssh connection).
+
+* Results of "isabelle build" are recorded as SQLite database (i.e.
+"Application File Format" in the sense of
+https://www.sqlite.org/appfileformat.html). This allows systematic
+access via operations from module Sessions.Store in Isabelle/Scala.
 
 
 New in Isabelle2016-1 (December 2016)
