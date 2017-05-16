@@ -305,6 +305,7 @@ object Build_History
       var init_settings: List[String] = Nil
       var arch_64 = false
       var nonfree = false
+      var output_file = ""
       var rev = default_rev
       var build_tags = List.empty[String]
       var verbose = false
@@ -325,6 +326,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -i TEXT      initial text for generated etc/settings
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -n           include nonfree components
+    -o FILE      output file for log names (default: stdout)
     -r REV       update to revision (default: """ + default_rev + """)
     -t TAG       free-form build tag (multiple occurrences possible)
     -v           verbose
@@ -351,6 +353,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
             case bad => error("Bad processor architecture: " + quote(bad))
           },
         "n" -> (_ => nonfree = true),
+        "o:" -> (arg => output_file = arg),
         "r:" -> (arg => rev = arg),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
         "v" -> (_ => verbose = true))
@@ -373,7 +376,14 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
           verbose = verbose, build_tags = build_tags, build_args = build_args)
 
-      for ((_, log_path) <- results) Output.writeln(log_path.implode, stdout = true)
+      if (output_file == "") {
+        for ((_, log_path) <- results)
+          Output.writeln(log_path.implode, stdout = true)
+      }
+      else {
+        File.write(Path.explode(output_file),
+          cat_lines(for ((_, log_path) <- results) yield log_path.implode))
+      }
 
       val rc = (0 /: results) { case (rc, (res, _)) => rc max res.rc }
       if (rc != 0) sys.exit(rc)
