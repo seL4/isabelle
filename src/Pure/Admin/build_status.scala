@@ -180,8 +180,7 @@ object Build_Status
     val sorted_entries =
       (for {
         (name, sessions) <- data_entries.toList
-        sorted_sessions <-
-          proper_list(sessions.toList.map(_._2).filter(_.check_timing).sortBy(_.order))
+        sorted_sessions <- proper_list(sessions.toList.map(_._2).sortBy(_.order))
       }
       yield {
         val hosts = get_hosts(name).toList.sorted
@@ -297,9 +296,11 @@ plot [] """ + range + " " +
                   """ using 1:6 smooth csplines title "heap" """)
 
               val plot_names =
-                List(
-                  gnuplot(timing_plots, "timing", timing_range),
-                  gnuplot(ml_timing_plots, "ml_timing", timing_range)) :::
+                (if (session.check_timing)
+                  List(
+                    gnuplot(timing_plots, "timing", timing_range),
+                    gnuplot(ml_timing_plots, "ml_timing", timing_range))
+                 else Nil) :::
                 (if (session.check_heap) List(gnuplot(heap_plots, "heap", "[0:]")) else Nil)
 
               session.name -> plot_names
