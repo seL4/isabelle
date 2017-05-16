@@ -810,36 +810,65 @@ end
 
 subsection \<open>Arg Min\<close>
 
-definition args_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-"args_min f S = {x \<in> S. \<not>(\<exists>y \<in> S. f y < f x)}"
+definition is_arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where
+"is_arg_min f P x = (P x \<and> \<not>(\<exists>y. P y \<and> f y < f x))"
 
-definition arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
-"arg_min f S = (SOME x. x \<in> args_min f S)"
+definition arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+"arg_min f P = (SOME x. is_arg_min f P x)"
 
-lemma args_min_linorder: fixes f :: "'a \<Rightarrow> 'b :: linorder"
-shows "args_min f S = {x \<in> S. \<forall>y \<in> S. f x \<le> f y}"
-by(auto simp add: args_min_def)
+abbreviation arg_min_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"arg_min_on f S \<equiv> arg_min f (\<lambda>x. x \<in> S)"
+
+lemma is_arg_min_linorder: fixes f :: "'a \<Rightarrow> 'b :: linorder"
+shows "is_arg_min f P x = (P x \<and> (\<forall>y. P y \<longrightarrow> f x \<le> f y))"
+by(auto simp add: is_arg_min_def)
+
+lemma arg_min_nat_lemma: "P k \<Longrightarrow> P(arg_min m P) \<and> (\<forall>y. P y \<longrightarrow> m (arg_min m P) \<le> m y)"
+  for m :: "'a \<Rightarrow> nat"
+apply (simp add: arg_min_def is_arg_min_linorder)
+apply (rule someI_ex)
+apply (erule ex_has_least_nat)
+done
+
+lemmas arg_min_natI = arg_min_nat_lemma [THEN conjunct1]
+
+lemma arg_min_nat_le: "P x \<Longrightarrow> m (arg_min m P) \<le> m x"
+  for m :: "'a \<Rightarrow> nat"
+by (rule arg_min_nat_lemma [THEN conjunct2, THEN spec, THEN mp])
+
+lemma ex_min_if_finite:
+  "\<lbrakk> finite S; S \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists>m\<in>S. \<not>(\<exists>x\<in>S. x < (m::'a::order))"
+by(induction rule: finite.induct) (auto intro: order.strict_trans)
+
+lemma ex_is_arg_min_if_finite: fixes f :: "'a \<Rightarrow> 'b :: order"
+shows "\<lbrakk> finite S; S \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists>x. is_arg_min f (\<lambda>x. x : S) x"
+unfolding is_arg_min_def
+using ex_min_if_finite[of "f ` S"]
+by auto
 
 lemma arg_min_SOME_Min:
-  "finite S \<Longrightarrow> arg_min f S = (SOME y. y \<in> S \<and> f y = Min(f ` S))"
-unfolding arg_min_def args_min_linorder
+  "finite S \<Longrightarrow> arg_min_on f S = (SOME y. y \<in> S \<and> f y = Min(f ` S))"
+unfolding arg_min_def is_arg_min_linorder
 apply(rule arg_cong[where f = Eps])
 apply (auto simp: fun_eq_iff intro: Min_eqI[symmetric])
 done
 
-lemma arg_min_in: fixes f :: "'a \<Rightarrow> 'b :: linorder"
-shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> arg_min f S \<in> S"
-by(simp add: arg_min_SOME_Min inv_into_def2[symmetric] inv_into_into)
+lemma arg_min_if_finite: fixes f :: "'a \<Rightarrow> 'b :: order"
+assumes "finite S" "S \<noteq> {}"
+shows  "arg_min_on f S \<in> S" and "\<not>(\<exists>x\<in>S. f x < f (arg_min_on f S))"
+using ex_is_arg_min_if_finite[OF assms, of f]
+unfolding arg_min_def is_arg_min_def
+by(auto dest!: someI_ex)
 
 lemma arg_min_least: fixes f :: "'a \<Rightarrow> 'b :: linorder"
-shows "\<lbrakk> finite S;  S \<noteq> {};  y \<in> S \<rbrakk> \<Longrightarrow> f(arg_min f S) \<le> f y"
+shows "\<lbrakk> finite S;  S \<noteq> {};  y \<in> S \<rbrakk> \<Longrightarrow> f(arg_min_on f S) \<le> f y"
 by(simp add: arg_min_SOME_Min inv_into_def2[symmetric] f_inv_into_f)
 
 lemma arg_min_inj_eq: fixes f :: "'a \<Rightarrow> 'b :: order"
-shows "\<lbrakk> inj_on f S; a \<in> S; \<forall>y \<in> S. f a \<le> f y \<rbrakk> \<Longrightarrow> arg_min f S = a"
-apply(simp add: arg_min_def args_min_def)
+shows "\<lbrakk> inj_on f {x. P x}; P a; \<forall>y. P y \<longrightarrow> f a \<le> f y \<rbrakk> \<Longrightarrow> arg_min f P = a"
+apply(simp add: arg_min_def is_arg_min_def)
 apply(rule someI2[of _ a])
  apply (simp add: less_le_not_le)
-by (metis inj_on_eq_iff less_le)
+by (metis inj_on_eq_iff less_le mem_Collect_eq)
 
 end
