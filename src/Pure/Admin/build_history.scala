@@ -441,23 +441,29 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     /* Admin/build_history */
 
-    val process_result =
-      ssh.execute(
-        ssh.bash_path(isabelle_admin + Path.explode("build_history")) + " " + options + " " +
-          ssh.bash_path(isabelle_repos_other) + " " + args,
-        progress_stdout = progress.echo(_),
-        progress_stderr = progress.echo(_),
-        strict = false)
+    ssh.with_tmp_dir(tmp_dir =>
+    {
+      val output_file = tmp_dir + Path.explode("output")
 
-    val result =
-      for (line <- process_result.out_lines)
-      yield {
-        val log = Path.explode(line)
-        val bytes = ssh.read_bytes(log)
-        ssh.rm(log)
-        (log.base.implode, bytes)
-      }
+      val process_result =
+        ssh.execute(
+          ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
+            " -o " + ssh.bash_path(output_file) + " " + options + " " +
+            ssh.bash_path(isabelle_repos_other) + " " + args,
+          progress_stdout = progress.echo(_),
+          progress_stderr = progress.echo(_),
+          strict = false)
 
-    (result, process_result)
+      val result =
+        for (line <- split_lines(ssh.read(output_file)))
+        yield {
+          val log = Path.explode(line)
+          val bytes = ssh.read_bytes(log)
+          ssh.rm(log)
+          (log.base.implode, bytes)
+        }
+
+      (result, process_result)
+    })
   }
 }
