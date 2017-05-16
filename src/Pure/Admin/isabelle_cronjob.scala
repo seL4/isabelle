@@ -165,7 +165,7 @@ object Isabelle_Cronjob
   val remote_builds_old: List[Remote_Build] =
     List(
       Remote_Build("Poly/ML test", "lxbroy8",
-        options = "-m32 -B -M1x2,2 -t polyml-test -e 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
+        options = "-m32 -B -M1x2,2 -t polyml-test -i 'init_component /home/isabelle/contrib/polyml-5.7-20170217'",
         args = "-N -g timing",
         detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-test")),
       Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
@@ -177,9 +177,10 @@ object Isabelle_Cronjob
     List(
       List(Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
         history_base = "37074e22e8be",
-        options = "-m32 -B -M1x2,2 -t polyml-5.7 -e 'init_component /home/isabelle/contrib/polyml-5.7'",
+        options = "-m32 -B -M1x2,2 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
         args = "-N -g timing",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7"))),
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7") + " AND " +
+          Build_Log.Settings.ML_OPTIONS + " <> " + SQL.string("-H 500"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,

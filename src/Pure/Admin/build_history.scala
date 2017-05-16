@@ -26,9 +26,10 @@ object Build_History
   def augment_settings(
     other_isabelle: Other_Isabelle,
     threads: Int,
-    arch_64: Boolean = false,
-    heap: Int = default_heap,
-    max_heap: Option[Int] = None,
+    arch_64: Boolean,
+    heap: Int,
+    max_heap: Option[Int],
+    init_settings: List[String],
     more_settings: List[String]): String =
   {
     val (ml_platform, ml_settings) =
@@ -84,8 +85,9 @@ object Build_History
         "ISABELLE_BUILD_OPTIONS=\"threads=" + threads + "\"")
 
     val settings =
+      (if (init_settings.isEmpty) Nil else List(init_settings)) :::
       List(ml_settings, thread_settings) :::
-        (if (more_settings.isEmpty) Nil else List(more_settings))
+      (if (more_settings.isEmpty) Nil else List(more_settings))
 
     File.append(other_isabelle.etc_settings, "\n" + cat_lines(settings.map(terminate_lines(_))))
 
@@ -114,6 +116,7 @@ object Build_History
     arch_64: Boolean = false,
     heap: Int = default_heap,
     max_heap: Option[Int] = None,
+    init_settings: List[String] = Nil,
     more_settings: List[String] = Nil,
     verbose: Boolean = false,
     build_tags: List[String] = Nil,
@@ -163,7 +166,8 @@ object Build_History
       other_isabelle.init_settings(components_base, nonfree)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
-        augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
+        augment_settings(other_isabelle, threads, arch_64, heap, max_heap,
+          init_settings, more_settings)
 
       val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
       val isabelle_output_log = isabelle_output + Path.explode("log")
@@ -298,6 +302,7 @@ object Build_History
       var isabelle_identifier = default_isabelle_identifier
       var more_settings: List[String] = Nil
       var fresh = false
+      var init_settings: List[String] = Nil
       var arch_64 = false
       var nonfree = false
       var rev = default_rev
@@ -310,12 +315,14 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   Options are:
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
-    -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ + default_heap * 2 + """ for x86_64)
+    -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
+      default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)
+    -i TEXT      initial text for generated etc/settings
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -n           include nonfree components
     -r REV       update to revision (default: """ + default_rev + """)
@@ -336,6 +343,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
+        "i:" -> (arg => init_settings = init_settings ::: List(arg)),
         "m:" ->
           {
             case "32" | "x86" => arch_64 = false
@@ -362,8 +370,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           components_base = components_base, fresh = fresh, nonfree = nonfree,
           multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
-          max_heap = max_heap, more_settings = more_settings, verbose = verbose,
-          build_tags = build_tags, build_args = build_args)
+          max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
+          verbose = verbose, build_tags = build_tags, build_args = build_args)
 
       for ((_, log_path) <- results) Output.writeln(log_path.implode, stdout = true)
 
