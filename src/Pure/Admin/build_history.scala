@@ -29,7 +29,6 @@ object Build_History
     arch_64: Boolean,
     heap: Int,
     max_heap: Option[Int],
-    init_settings: List[String],
     more_settings: List[String]): String =
   {
     val (ml_platform, ml_settings) =
@@ -85,7 +84,6 @@ object Build_History
         "ISABELLE_BUILD_OPTIONS=\"threads=" + threads + "\"")
 
     val settings =
-      (if (init_settings.isEmpty) Nil else List(init_settings)) :::
       List(ml_settings, thread_settings) :::
       (if (more_settings.isEmpty) Nil else List(more_settings))
 
@@ -163,11 +161,10 @@ object Build_History
     {
       /* init settings */
 
-      other_isabelle.init_settings(components_base, nonfree)
+      other_isabelle.init_settings(components_base, nonfree, init_settings)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
-        augment_settings(other_isabelle, threads, arch_64, heap, max_heap,
-          init_settings, more_settings)
+        augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
 
       val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
       val isabelle_output_log = isabelle_output + Path.explode("log")
