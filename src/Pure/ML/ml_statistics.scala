@@ -7,6 +7,7 @@ ML runtime statistics.
 package isabelle
 
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.swing.{Frame, Component}
@@ -26,6 +27,8 @@ object ML_Statistics
 
   /* standard fields */
 
+  val HEAP_SIZE = "size_heap"
+
   type Fields = (String, Iterable[String])
 
   val tasks_fields: Fields =
@@ -39,7 +42,7 @@ object ML_Statistics
     ("GCs", List("partial_GCs", "full_GCs"))
 
   val heap_fields: Fields =
-    ("Heap", List("size_heap", "size_allocation", "size_allocation_free",
+    ("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
       "size_heap_free_last_full_GC", "size_heap_free_last_GC"))
 
   val threads_fields: Fields =
@@ -65,7 +68,7 @@ object ML_Statistics
 
   final case class Entry(time: Double, data: Map[String, Double])
   {
-    def heap_size: Long = data.getOrElse("size_heap", 0.0).toLong
+    def get(field: String): Double = data.getOrElse(field, 0.0)
   }
 
   val empty: ML_Statistics = apply(Nil)
@@ -123,8 +126,29 @@ final class ML_Statistics private(
   val time_start: Double,
   val duration: Double)
 {
-  def heap_size_max: Long =
-    (0L /: content)({ case (m, entry) => m max entry.heap_size })
+  /* content */
+
+  def maximum(field: String): Double =
+    (0.0 /: content)({ case (m, e) => m max e.get(field) })
+
+  def average(field: String): Double =
+  {
+    @tailrec def sum(t0: Double, list: List[ML_Statistics.Entry], acc: Double): Double =
+      list match {
+        case Nil => acc
+        case e :: es =>
+          val t = e.time
+          sum(t, es, (t - t0) * e.get(field) + acc)
+      }
+    content match {
+      case Nil => 0.0
+      case List(e) => e.get(field)
+      case e :: es => sum(e.time, es, 0.0) / duration
+    }
+  }
+
+  def maximum_heap_size: Long = maximum(ML_Statistics.HEAP_SIZE).toLong
+  def average_heap_size: Long = average(ML_Statistics.HEAP_SIZE).toLong
 
 
   /* charts */
