@@ -800,8 +800,10 @@ object Build_Log
 
               update_sessions(db2, log_name, read_build_info(db, log_name))
 
-              if (ml_statistics)
-                update_ml_statistics(db2, log_name, read_build_info(db, log_name))
+              if (ml_statistics) {
+                update_ml_statistics(db2, log_name,
+                  read_build_info(db, log_name, ml_statistics = true))
+              }
             }
 
             // pull_date
