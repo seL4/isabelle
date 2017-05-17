@@ -731,18 +731,27 @@ object Build_Log
       val table1 = meta_info_table
       val table2 = pull_date_table
       val table3 = sessions_table
+      val table4 = ml_statistics_table
 
-      val aux_columns = log_name :: pull_date :: meta_info_table.columns.tail
-      val aux_table = SQL.Table("aux", aux_columns,
-        SQL.select(aux_columns.take(2) ::: aux_columns.drop(2).map(_.apply(table1))) +
-          table1 + SQL.join_outer + table2 + " ON " +
-          Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
+      val a_columns = log_name :: pull_date :: meta_info_table.columns.tail
+      val a_table =
+        SQL.Table("a", a_columns,
+          SQL.select(a_columns.take(2) ::: a_columns.drop(2).map(_.apply(table1))) +
+            table1 + SQL.join_outer + table2 + " ON " +
+            Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2))
 
-      val columns = aux_columns ::: sessions_table.columns.tail
-      SQL.Table("isabelle_build_log", columns,
+      val b_columns = a_columns ::: sessions_table.columns.tail
+      val b_table =
+        SQL.Table("b", b_columns,
+          SQL.select(log_name(a_table) :: b_columns.tail) + a_table.query_named +
+          SQL.join_inner + table3 + " ON " + log_name(a_table) + " = " + log_name(table3))
+
+      SQL.Table("isabelle_build_log", b_columns ::: List(ml_statistics),
         {
-          SQL.select(log_name(aux_table) :: columns.tail) + aux_table.query_named +
-          SQL.join_inner + table3 + " ON " + log_name(aux_table) + " = " + log_name(table3)
+          SQL.select(b_columns.map(_.apply(b_table)) ::: List(ml_statistics)) +
+            b_table.query_named + SQL.join_outer + table4 + " ON " +
+            log_name(b_table) + " = " + log_name(table4) + " AND " +
+            session_name(b_table) + " = " + session_name(table4)
         })
     }
   }
