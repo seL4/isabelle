@@ -54,7 +54,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private def update_chart: Unit =
     ML_Statistics.all_fields.find(_._1 == data_name) match {
       case None =>
-      case Some((_, fields)) => ML_Statistics("", statistics.toList).update_data(data, fields)
+      case Some((_, fields)) => ML_Statistics(statistics.toList).update_data(data, fields)
     }
 
   private val input_delay =

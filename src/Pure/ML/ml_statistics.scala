@@ -22,10 +22,10 @@ object ML_Statistics
 
   final case class Entry(time: Double, data: Map[String, Double])
 
-  def apply(session_name: String, ml_statistics: List[Properties.T]): ML_Statistics =
-    new ML_Statistics(session_name, ml_statistics)
+  def apply(ml_statistics: List[Properties.T], heading: String = ""): ML_Statistics =
+    new ML_Statistics(ml_statistics, heading)
 
-  val empty = apply("", Nil)
+  val empty = apply(Nil)
 
 
   /* standard fields */
@@ -65,7 +65,7 @@ object ML_Statistics
     List(tasks_fields, workers_fields, heap_fields)
 }
 
-final class ML_Statistics private(val session_name: String, val ml_statistics: List[Properties.T])
+final class ML_Statistics private(val ml_statistics: List[Properties.T], val heading: String)
 {
   val Now = new Properties.Double("now")
   def now(props: Properties.T): Double = Now.unapply(props).get
@@ -142,7 +142,7 @@ final class ML_Statistics private(val session_name: String, val ml_statistics: L
       GUI_Thread.later {
         new Frame {
           iconImage = GUI.isabelle_image()
-          title = session_name
+          title = heading
           contents = Component.wrap(new ChartPanel(c))
           visible = true
         }

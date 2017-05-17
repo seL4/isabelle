@@ -488,7 +488,7 @@ object Build_Log
     def timing(name: String): Timing = get_default(name, _.timing, Timing.zero)
     def ml_timing(name: String): Timing = get_default(name, _.ml_timing, Timing.zero)
     def ml_statistics(name: String): ML_Statistics =
-      get_default(name, entry => ML_Statistics(name, entry.ml_statistics), ML_Statistics.empty)
+      get_default(name, entry => ML_Statistics(entry.ml_statistics, name), ML_Statistics.empty)
   }
 
   private def parse_build_info(log_file: Log_File, parse_ml_statistics: Boolean): Build_Info =
