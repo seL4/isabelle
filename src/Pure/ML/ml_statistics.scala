@@ -18,17 +18,10 @@ import org.jfree.chart.plot.PlotOrientation
 
 object ML_Statistics
 {
-  /* content interpretation */
+  /* properties */
 
-  final case class Entry(time: Double, data: Map[String, Double])
-  {
-    def heap_size: Long = data.getOrElse("size_heap", 0.0).toLong
-  }
-
-  def apply(ml_statistics: List[Properties.T], heading: String = ""): ML_Statistics =
-    new ML_Statistics(ml_statistics, heading)
-
-  val empty = apply(Nil)
+  val Now = new Properties.Double("now")
+  def now(props: Properties.T): Double = Now.unapply(props).get
 
 
   /* standard fields */
@@ -66,53 +59,70 @@ object ML_Statistics
 
   val main_fields: List[Fields] =
     List(tasks_fields, workers_fields, heap_fields)
-}
 
-final class ML_Statistics private(val ml_statistics: List[Properties.T], val heading: String)
-{
-  val Now = new Properties.Double("now")
-  def now(props: Properties.T): Double = Now.unapply(props).get
 
-  require(ml_statistics.forall(props => Now.unapply(props).isDefined))
+  /* content interpretation */
 
-  val time_start = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.head)
-  val duration = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last) - time_start
-
-  val fields: Set[String] =
-    SortedSet.empty[String] ++
-      (for (props <- ml_statistics.iterator; (x, _) <- props.iterator if x != Now.name)
-        yield x)
-
-  val content: List[ML_Statistics.Entry] =
+  final case class Entry(time: Double, data: Map[String, Double])
   {
-    var last_edge = Map.empty[String, (Double, Double, Double)]
-    val result = new mutable.ListBuffer[ML_Statistics.Entry]
-    for (props <- ml_statistics) {
-      val time = now(props) - time_start
-      require(time >= 0.0)
-
-      // rising edges -- relative speed
-      val speeds =
-        for ((key, value) <- props; a <- Library.try_unprefix("time", key)) yield {
-          val (x0, y0, s0) = last_edge.getOrElse(a, (0.0, 0.0, 0.0))
-
-          val x1 = time
-          val y1 = java.lang.Double.parseDouble(value)
-          val s1 = if (x1 == x0) 0.0 else (y1 - y0) / (x1 - x0)
-
-          val b = ("speed" + a).intern
-          if (y1 > y0) { last_edge += (a -> (x1, y1, s1)); (b, s1) } else (b, s0)
-        }
-
-      val data =
-        SortedMap.empty[String, Double] ++ speeds ++
-          (for ((x, y) <- props.iterator if x != Now.name)
-            yield (x, java.lang.Double.parseDouble(y)))
-      result += ML_Statistics.Entry(time, data)
-    }
-    result.toList
+    def heap_size: Long = data.getOrElse("size_heap", 0.0).toLong
   }
 
+  val empty: ML_Statistics = apply(Nil)
+
+  def apply(ml_statistics: List[Properties.T], heading: String = ""): ML_Statistics =
+  {
+    require(ml_statistics.forall(props => Now.unapply(props).isDefined))
+
+    val time_start = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.head)
+    val duration = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last) - time_start
+
+    val fields =
+      SortedSet.empty[String] ++
+        (for (props <- ml_statistics.iterator; (x, _) <- props.iterator if x != Now.name)
+          yield x)
+
+    val content =
+    {
+      var last_edge = Map.empty[String, (Double, Double, Double)]
+      val result = new mutable.ListBuffer[ML_Statistics.Entry]
+      for (props <- ml_statistics) {
+        val time = now(props) - time_start
+        require(time >= 0.0)
+
+        // rising edges -- relative speed
+        val speeds =
+          for ((key, value) <- props; a <- Library.try_unprefix("time", key)) yield {
+            val (x0, y0, s0) = last_edge.getOrElse(a, (0.0, 0.0, 0.0))
+
+            val x1 = time
+            val y1 = java.lang.Double.parseDouble(value)
+            val s1 = if (x1 == x0) 0.0 else (y1 - y0) / (x1 - x0)
+
+            val b = ("speed" + a).intern
+            if (y1 > y0) { last_edge += (a -> (x1, y1, s1)); (b, s1) } else (b, s0)
+          }
+
+        val data =
+          SortedMap.empty[String, Double] ++ speeds ++
+            (for ((x, y) <- props.iterator if x != Now.name)
+              yield (x.intern, java.lang.Double.parseDouble(y)))
+        result += ML_Statistics.Entry(time, data)
+      }
+      result.toList
+    }
+
+    new ML_Statistics(heading, fields, content, time_start, duration)
+  }
+}
+
+final class ML_Statistics private(
+  val heading: String,
+  val fields: Set[String],
+  val content: List[ML_Statistics.Entry],
+  val time_start: Double,
+  val duration: Double)
+{
   def heap_size_max: Long =
     (0L /: content)({ case (m, entry) => m max entry.heap_size })
 
@@ -154,4 +164,3 @@ final class ML_Statistics private(val ml_statistics: List[Properties.T], val hea
         }
       })
 }
-
