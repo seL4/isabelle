@@ -78,6 +78,10 @@ object Build_Status
     def ml_timing: Timing = entries.head.ml_timing
     def order: Long = - timing.elapsed.ms
 
+    def maximum_heap: Long = entries.head.maximum_heap
+    def average_heap: Long = entries.head.average_heap
+    def final_heap: Long = entries.head.final_heap
+
     def check_timing: Boolean = entries.length >= 3
     def check_heap: Boolean =
       entries.length >= 3 &&
@@ -230,7 +234,13 @@ object Build_Status
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
-    def heap_scale(x: Long): Double = x.toDouble / (1024 * 1024)
+    def heap_scale(x: Long): Long = x / 1024 / 1024
+
+    def print_heap(x: Long): Option[String] =
+    {
+      val y = heap_scale(x)
+      if (y == 0L) None else Some(y.toString + " M")
+    }
 
     HTML.write_document(target_dir, "index.html",
       List(HTML.title("Isabelle build status")),
@@ -364,6 +374,12 @@ plot [] """ + range + " " +
                 List(
                   HTML.text("timing:") -> HTML.text(session.timing.message_resources),
                   HTML.text("ML timing:") -> HTML.text(session.ml_timing.message_resources)) :::
+                print_heap(session.maximum_heap).map(s =>
+                  HTML.text("maximum heap:") -> HTML.text(s)).toList :::
+                print_heap(session.average_heap).map(s =>
+                  HTML.text("average heap:") -> HTML.text(s)).toList :::
+                print_heap(session.final_heap).map(s =>
+                  HTML.text("final heap:") -> HTML.text(s)).toList :::
                 proper_string(session.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
                 proper_string(session.afp_version).map(s =>
