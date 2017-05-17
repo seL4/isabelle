@@ -37,7 +37,7 @@ object Build_Status
           (if (only_sessions.isEmpty) ""
            else " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
           " AND " + SQL.enclose(sql) +
-          " ORDER BY " + Build_Log.Data.pull_date + " DESC")
+          " ORDER BY " + Build_Log.Data.pull_date)
     }
   }
 
