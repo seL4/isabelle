@@ -750,7 +750,7 @@ object Sessions
 
   def store(system_mode: Boolean = false): Store = new Store(system_mode)
 
-  class Store private[Sessions](system_mode: Boolean) extends Properties.Store
+  class Store private[Sessions](system_mode: Boolean)
   {
     /* file names */
 
@@ -761,6 +761,8 @@ object Sessions
 
     /* SQL database content */
 
+    val xml_cache = new XML.Cache()
+
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
       db.using_statement(Session_Info.table.select(List(column),
         Session_Info.session_name.where_equal(name)))(stmt =>
@@ -770,7 +772,7 @@ object Sessions
       })
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
-      uncompress_properties(read_bytes(db, name, column))
+      Properties.uncompress(read_bytes(db, name, column), Some(xml_cache))
 
 
     /* output */
@@ -825,10 +827,10 @@ object Sessions
         db.using_statement(Session_Info.table.insert())(stmt =>
         {
           stmt.string(1) = name
-          stmt.bytes(2) = encode_properties(build_log.session_timing)
-          stmt.bytes(3) = compress_properties(build_log.command_timings)
-          stmt.bytes(4) = compress_properties(build_log.ml_statistics)
-          stmt.bytes(5) = compress_properties(build_log.task_statistics)
+          stmt.bytes(2) = Properties.encode(build_log.session_timing)
+          stmt.bytes(3) = Properties.compress(build_log.command_timings)
+          stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
+          stmt.bytes(5) = Properties.compress(build_log.task_statistics)
           stmt.string(6) = cat_lines(build.sources)
           stmt.string(7) = cat_lines(build.input_heaps)
           stmt.string(8) = build.output_heap getOrElse ""
@@ -839,7 +841,7 @@ object Sessions
     }
 
     def read_session_timing(db: SQL.Database, name: String): Properties.T =
-      decode_properties(read_bytes(db, name, Session_Info.session_timing))
+      Properties.decode(read_bytes(db, name, Session_Info.session_timing), Some(xml_cache))
 
     def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.command_timings)

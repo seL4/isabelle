@@ -747,8 +747,10 @@ object Build_Log
 
   def store(options: Options): Store = new Store(options)
 
-  class Store private[Build_Log](options: Options) extends Properties.Store
+  class Store private[Build_Log](options: Options)
   {
+    val xml_cache: XML.Cache = new XML.Cache()
+
     def open_database(
       user: String = options.string("build_log_database_user"),
       password: String = options.string("build_log_database_password"),
@@ -889,7 +891,7 @@ object Build_Log
       {
         val ml_stats: List[(String, Option[Bytes])] =
           Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-            { case (a, b) => (a, compress_properties(b.ml_statistics).proper) },
+            { case (a, b) => (a, Properties.compress(b.ml_statistics).proper) },
             build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
         val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
         for ((session_name, ml_statistics) <- entries) {
@@ -1011,7 +1013,8 @@ object Build_Log
                 heap_size = res.get_long(Data.heap_size),
                 status = res.get_string(Data.status).map(Session_Status.withName(_)),
                 ml_statistics =
-                  if (ml_statistics) uncompress_properties(res.bytes(Data.ml_statistics))
+                  if (ml_statistics)
+                    Properties.uncompress(res.bytes(Data.ml_statistics), Some(xml_cache))
                   else Nil)
             session_name -> session_entry
           }).toMap

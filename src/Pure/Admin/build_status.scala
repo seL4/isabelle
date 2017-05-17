@@ -169,7 +169,7 @@ object Build_Status
             val ml_stats =
               ML_Statistics(
                 if (ml_statistics)
-                    store.uncompress_properties(res.bytes(Build_Log.Data.ml_statistics))
+                  Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
                 else Nil, heading = session_name + " (Isabelle/ " + isabelle_version + ")")
 
             val entry =

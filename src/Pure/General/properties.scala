@@ -33,6 +33,38 @@ object Properties
   }
 
 
+  /* external storage */
+
+  def encode(ps: T): Bytes = Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
+
+  def decode(bs: Bytes, xml_cache: Option[XML.Cache] = None): T =
+  {
+    val ps = XML.Decode.properties(YXML.parse_body(bs.text))
+    xml_cache match {
+      case None => ps
+      case Some(cache) => cache.props(ps)
+    }
+  }
+
+  def compress(ps: List[T], options: XZ.Options = XZ.options()): Bytes =
+  {
+    if (ps.isEmpty) Bytes.empty
+    else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
+  }
+
+  def uncompress(bs: Bytes, xml_cache: Option[XML.Cache] = None): List[T] =
+  {
+    if (bs.isEmpty) Nil
+    else {
+      val ps = XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text))
+      xml_cache match {
+        case None => ps
+        case Some(cache) => ps.map(cache.props(_))
+      }
+    }
+  }
+
+
   /* multi-line entries */
 
   val separator = '\u000b'
@@ -94,33 +126,5 @@ object Properties
         case None => None
         case Some((_, value)) => Value.Double.unapply(value)
       }
-  }
-
-
-  /* cached store */
-
-  trait Store
-  {
-    val xml_cache: XML.Cache = new XML.Cache()
-
-    def encode_properties(ps: T): Bytes =
-      Bytes(YXML.string_of_body(XML.Encode.properties(ps)))
-
-    def decode_properties(bs: Bytes): T =
-      xml_cache.props(XML.Decode.properties(YXML.parse_body(bs.text)))
-
-    def compress_properties(ps: List[T], options: XZ.Options = XZ.options()): Bytes =
-    {
-      if (ps.isEmpty) Bytes.empty
-      else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
-    }
-
-    def uncompress_properties(bs: Bytes): List[T] =
-    {
-      if (bs.isEmpty) Nil
-      else
-        XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text)).
-          map(xml_cache.props(_))
-    }
   }
 }
