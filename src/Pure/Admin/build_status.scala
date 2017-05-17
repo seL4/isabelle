@@ -98,8 +98,7 @@ object Build_Status
     ml_timing: Timing,
     maximum_heap: Long,
     average_heap: Long,
-    final_heap: Long,
-    ml_statistics: ML_Statistics)
+    final_heap: Long)
 
   def read_data(options: Options,
     progress: Progress = No_Progress,
@@ -197,8 +196,7 @@ object Build_Status
                     Build_Log.Data.ml_timing_gc),
                 maximum_heap = ml_stats.maximum_heap_size,
                 average_heap = ml_stats.average_heap_size,
-                final_heap = res.long(Build_Log.Data.heap_size),
-                ml_statistics = ml_stats)
+                final_heap = res.long(Build_Log.Data.heap_size))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
