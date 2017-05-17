@@ -50,11 +50,12 @@ object Build_Status
     only_sessions: Set[String] = Set.empty,
     verbose: Boolean = false,
     target_dir: Path = default_target_dir,
+    ml_statistics: Boolean = false,
     image_size: (Int, Int) = default_image_size)
   {
     val data =
       read_data(options, progress = progress, profiles = profiles,
-        only_sessions = only_sessions, verbose = verbose)
+        only_sessions = only_sessions, ml_statistics = ml_statistics, verbose = verbose)
 
     present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
   }
@@ -78,15 +79,25 @@ object Build_Status
     def order: Long = - timing.elapsed.ms
 
     def check_timing: Boolean = entries.length >= 3
-    def check_heap: Boolean = entries.length >= 3 && entries.forall(_.heap_size > 0)
+    def check_heap: Boolean =
+      entries.length >= 3 &&
+      entries.forall(entry => entry.heap_size > 0 || entry.heap_size_max > 0)
   }
-  sealed case class Entry(pull_date: Date, isabelle_version: String, afp_version: String,
-    timing: Timing, ml_timing: Timing, heap_size: Long)
+  sealed case class Entry(
+    pull_date: Date,
+    isabelle_version: String,
+    afp_version: String,
+    timing: Timing,
+    ml_timing: Timing,
+    heap_size: Long,
+    heap_size_max: Long,
+    ml_statistics: ML_Statistics)
 
   def read_data(options: Options,
     progress: Progress = No_Progress,
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
+    ml_statistics: Boolean = false,
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
@@ -102,6 +113,7 @@ object Build_Status
     {
       for (profile <- profiles.sortBy(_.description)) {
         progress.echo("input " + quote(profile.description))
+
         val columns =
           List(
             Build_Log.Data.pull_date,
@@ -118,7 +130,8 @@ object Build_Status
             Build_Log.Data.ml_timing_elapsed,
             Build_Log.Data.ml_timing_cpu,
             Build_Log.Data.ml_timing_gc,
-            Build_Log.Data.heap_size)
+            Build_Log.Data.heap_size) :::
+          (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
 
@@ -151,10 +164,18 @@ object Build_Status
 
             data_stretch += (data_name -> profile.stretch(options))
 
+            val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
+
+            val ml_stats =
+              ML_Statistics(
+                if (ml_statistics)
+                    store.uncompress_properties(res.bytes(Build_Log.Data.ml_statistics))
+                else Nil, heading = session_name + " (Isabelle/ " + isabelle_version + ")")
+
             val entry =
               Entry(
                 pull_date = res.date(Build_Log.Data.pull_date),
-                isabelle_version = res.string(Build_Log.Prop.isabelle_version),
+                isabelle_version = isabelle_version,
                 afp_version = res.string(Build_Log.Prop.afp_version),
                 timing =
                   res.timing(
@@ -166,7 +187,9 @@ object Build_Status
                     Build_Log.Data.ml_timing_elapsed,
                     Build_Log.Data.ml_timing_cpu,
                     Build_Log.Data.ml_timing_gc),
-                heap_size = res.long(Build_Log.Data.heap_size))
+                heap_size = res.long(Build_Log.Data.heap_size),
+                heap_size_max = ml_stats.heap_size_max,
+                ml_statistics = ml_stats)
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
@@ -202,6 +225,8 @@ object Build_Status
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
+    def heap_scale(x: Long): Double = x.toDouble / (1024 * 1024)
+
     HTML.write_document(target_dir, "index.html",
       List(HTML.title("Isabelle build status")),
       List(HTML.chapter("Isabelle build status"),
@@ -232,12 +257,13 @@ object Build_Status
               File.write(data_file,
                 cat_lines(
                   session.entries.map(entry =>
-                    List(entry.pull_date.unix_epoch.toString,
+                    List(entry.pull_date.unix_epoch,
                       entry.timing.elapsed.minutes,
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
                       entry.ml_timing.resources.minutes,
-                      (entry.heap_size.toDouble / (1024 * 1024)).toString).mkString(" "))))
+                      heap_scale(entry.heap_size),
+                      heap_scale(entry.heap_size_max)).mkString(" "))))
 
               val max_time =
                 ((0.0 /: session.entries){ case (m, entry) =>
@@ -292,8 +318,10 @@ plot [] """ + range + " " +
 
               val heap_plots =
                 List(
-                  """ using 1:6 smooth sbezier title "heap (smooth)" """,
-                  """ using 1:6 smooth csplines title "heap" """)
+                  """ using 1:6 smooth sbezier title "final heap (smooth)" """,
+                  """ using 1:6 smooth csplines title "final heap" """,
+                  """ using 1:7 smooth sbezier title "max heap (smooth)" """,
+                  """ using 1:7 smooth csplines title "max heap" """)
 
               val plot_names =
                 (if (session.check_timing)
@@ -346,6 +374,7 @@ plot [] """ + range + " " +
     Isabelle_Tool("build_status", "present recent build status information from database", args =>
     {
       var target_dir = default_target_dir
+      var ml_statistics = false
       var only_sessions = Set.empty[String]
       var options = Options.init()
       var image_size = default_image_size
@@ -356,6 +385,7 @@ Usage: isabelle build_status [OPTIONS]
 
   Options are:
     -D DIR       target directory (default """ + default_target_dir + """)
+    -M           include full ML statistics
     -S SESSIONS  only given SESSIONS (comma separated)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
@@ -366,6 +396,7 @@ Usage: isabelle build_status [OPTIONS]
   build_log_history etc.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
+        "M" -> (_ => ml_statistics = true),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
         "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
@@ -381,7 +412,7 @@ Usage: isabelle build_status [OPTIONS]
       val progress = new Console_Progress
 
       build_status(options, progress = progress, only_sessions = only_sessions, verbose = verbose,
-        target_dir = target_dir, image_size = image_size)
+        target_dir = target_dir, ml_statistics = ml_statistics, image_size = image_size)
 
   }, admin = true)
 }

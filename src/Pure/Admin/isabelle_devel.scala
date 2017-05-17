@@ -83,6 +83,6 @@ object Isabelle_Devel
   def build_status(options: Options)
   {
     Isabelle_System.update_directory(root + Path.explode(BUILD_STATUS),
-      dir => Build_Status.build_status(options, target_dir = dir))
+      dir => Build_Status.build_status(options, target_dir = dir, ml_statistics = true))
   }
 }

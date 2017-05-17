@@ -21,6 +21,9 @@ object ML_Statistics
   /* content interpretation */
 
   final case class Entry(time: Double, data: Map[String, Double])
+  {
+    def heap_size: Long = data.getOrElse("size_heap", 0.0).toLong
+  }
 
   def apply(ml_statistics: List[Properties.T], heading: String = ""): ML_Statistics =
     new ML_Statistics(ml_statistics, heading)
@@ -109,6 +112,9 @@ final class ML_Statistics private(val ml_statistics: List[Properties.T], val hea
     }
     result.toList
   }
+
+  def heap_size_max: Long =
+    (0L /: content)({ case (m, entry) => m max entry.heap_size })
 
 
   /* charts */
