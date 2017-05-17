@@ -467,7 +467,6 @@ object Build_Log
     status: Option[Session_Status.Value] = None,
     ml_statistics: List[Properties.T] = Nil)
   {
-    def proper_chapter: Option[String] = if (chapter == "") None else Some(chapter)
     def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
     def finished: Boolean = status == Some(Session_Status.finished)
   }
@@ -863,7 +862,7 @@ object Build_Log
         for ((session_name, session) <- entries_iterator) {
           stmt.string(1) = log_name
           stmt.string(2) = session_name
-          stmt.string(3) = session.proper_chapter
+          stmt.string(3) = proper_string(session.chapter)
           stmt.string(4) = session.proper_groups
           stmt.int(5) = session.threads
           stmt.long(6) = session.timing.elapsed.proper_ms
