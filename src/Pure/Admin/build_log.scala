@@ -474,21 +474,8 @@ object Build_Log
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
   {
-    def session(name: String): Session_Entry = sessions(name)
-    def get_session(name: String): Option[Session_Entry] = sessions.get(name)
-
-    def get_default[A](name: String, f: Session_Entry => A, x: A): A =
-      get_session(name) match {
-        case Some(entry) => f(entry)
-        case None => x
-      }
-
-    def finished_sessions: List[String] = sessions.keySet.iterator.filter(finished(_)).toList
-    def finished(name: String): Boolean = get_default(name, _.finished, false)
-    def timing(name: String): Timing = get_default(name, _.timing, Timing.zero)
-    def ml_timing(name: String): Timing = get_default(name, _.ml_timing, Timing.zero)
-    def ml_statistics(name: String): ML_Statistics =
-      get_default(name, entry => ML_Statistics(entry.ml_statistics, name), ML_Statistics.empty)
+    def finished_sessions: List[String] =
+      for ((name, entry) <- sessions.toList if entry.finished) yield name
   }
 
   private def parse_build_info(log_file: Log_File, parse_ml_statistics: Boolean): Build_Info =
