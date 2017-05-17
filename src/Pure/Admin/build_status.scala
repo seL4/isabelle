@@ -78,7 +78,7 @@ object Build_Status
     def order: Long = - timing.elapsed.ms
 
     def check_timing: Boolean = entries.length >= 3
-    def check_heap: Boolean = entries.forall(_.heap_size > 0)
+    def check_heap: Boolean = entries.length >= 3 && entries.forall(_.heap_size > 0)
   }
   sealed case class Entry(pull_date: Date, isabelle_version: String, afp_version: String,
     timing: Timing, ml_timing: Timing, heap_size: Long)
