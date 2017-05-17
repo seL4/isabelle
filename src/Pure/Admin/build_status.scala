@@ -81,7 +81,10 @@ object Build_Status
     def check_timing: Boolean = entries.length >= 3
     def check_heap: Boolean =
       entries.length >= 3 &&
-      entries.forall(entry => entry.heap_size > 0 || entry.heap_size_max > 0)
+      entries.forall(entry =>
+        entry.maximum_heap > 0 ||
+        entry.average_heap > 0 ||
+        entry.final_heap > 0)
   }
   sealed case class Entry(
     pull_date: Date,
@@ -89,8 +92,9 @@ object Build_Status
     afp_version: String,
     timing: Timing,
     ml_timing: Timing,
-    heap_size: Long,
-    heap_size_max: Long,
+    maximum_heap: Long,
+    average_heap: Long,
+    final_heap: Long,
     ml_statistics: ML_Statistics)
 
   def read_data(options: Options,
@@ -187,8 +191,9 @@ object Build_Status
                     Build_Log.Data.ml_timing_elapsed,
                     Build_Log.Data.ml_timing_cpu,
                     Build_Log.Data.ml_timing_gc),
-                heap_size = res.long(Build_Log.Data.heap_size),
-                heap_size_max = ml_stats.heap_size_max,
+                maximum_heap = ml_stats.maximum_heap_size,
+                average_heap = ml_stats.average_heap_size,
+                final_heap = res.long(Build_Log.Data.heap_size),
                 ml_statistics = ml_stats)
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
@@ -262,8 +267,9 @@ object Build_Status
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
                       entry.ml_timing.resources.minutes,
-                      heap_scale(entry.heap_size),
-                      heap_scale(entry.heap_size_max)).mkString(" "))))
+                      heap_scale(entry.maximum_heap),
+                      heap_scale(entry.average_heap),
+                      heap_scale(entry.final_heap)).mkString(" "))))
 
               val max_time =
                 ((0.0 /: session.entries){ case (m, entry) =>
@@ -318,10 +324,12 @@ plot [] """ + range + " " +
 
               val heap_plots =
                 List(
-                  """ using 1:6 smooth sbezier title "final heap (smooth)" """,
-                  """ using 1:6 smooth csplines title "final heap" """,
-                  """ using 1:7 smooth sbezier title "max heap (smooth)" """,
-                  """ using 1:7 smooth csplines title "max heap" """)
+                  """ using 1:6 smooth sbezier title "maximum heap (smooth)" """,
+                  """ using 1:6 smooth csplines title "maximum heap" """,
+                  """ using 1:7 smooth sbezier title "average heap (smooth)" """,
+                  """ using 1:7 smooth csplines title "average heap" """,
+                  """ using 1:8 smooth sbezier title "final heap (smooth)" """,
+                  """ using 1:8 smooth csplines title "final heap" """)
 
               val plot_names =
                 (if (session.check_timing)
