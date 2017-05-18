@@ -35,9 +35,9 @@ proof
   show "xs \<le> xs"
     by (simp add: less_eq_list_def)
   show "xs = ys" if "xs \<le> ys" and "ys \<le> xs"
-    using that unfolding less_eq_list_def by (rule sublisteq_antisym)
+    using that unfolding less_eq_list_def by (rule sublist_order.antisym)
   show "xs \<le> zs" if "xs \<le> ys" and "ys \<le> zs"
-    using that unfolding less_eq_list_def by (rule sublisteq_trans)
+    using that unfolding less_eq_list_def by (rule sublist_order.order_trans)
 qed
 
 lemmas less_eq_list_induct [consumes 1, case_names empty drop take] =
