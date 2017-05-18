@@ -70,17 +70,8 @@ object Build_Status
   {
     require(entries.nonEmpty)
 
-    def pull_date: Date = entries.head.pull_date
-    def isabelle_version: String = entries.head.isabelle_version
-    def afp_version: String = entries.head.afp_version
-
-    def timing: Timing = entries.head.timing
-    def ml_timing: Timing = entries.head.ml_timing
-    def order: Long = - timing.elapsed.ms
-
-    def maximum_heap: Long = entries.head.maximum_heap
-    def average_heap: Long = entries.head.average_heap
-    def final_heap: Long = entries.head.final_heap
+    def head: Entry = entries.head
+    def order: Long = - head.timing.elapsed.ms
 
     def check_timing: Boolean = entries.length >= 3
     def check_heap: Boolean =
@@ -363,24 +354,24 @@ plot [] """ + range + " " +
           List(HTML.itemize(
             data_entry.sessions.map(session =>
               HTML.link("#session_" + session.name, HTML.text(session.name)) ::
-              HTML.text(" (" + session.timing.message_resources + ")"))))) ::
+              HTML.text(" (" + session.head.timing.message_resources + ")"))))) ::
         data_entry.sessions.flatMap(session =>
           List(
             HTML.section(session.name) + HTML.id("session_" + session.name),
             HTML.par(
               HTML.description(
                 List(
-                  HTML.text("timing:") -> HTML.text(session.timing.message_resources),
-                  HTML.text("ML timing:") -> HTML.text(session.ml_timing.message_resources)) :::
-                print_heap(session.maximum_heap).map(s =>
+                  HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
+                  HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
+                print_heap(session.head.maximum_heap).map(s =>
                   HTML.text("maximum heap:") -> HTML.text(s)).toList :::
-                print_heap(session.average_heap).map(s =>
+                print_heap(session.head.average_heap).map(s =>
                   HTML.text("average heap:") -> HTML.text(s)).toList :::
-                print_heap(session.final_heap).map(s =>
+                print_heap(session.head.final_heap).map(s =>
                   HTML.text("final heap:") -> HTML.text(s)).toList :::
-                proper_string(session.isabelle_version).map(s =>
+                proper_string(session.head.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
-                proper_string(session.afp_version).map(s =>
+                proper_string(session.head.afp_version).map(s =>
                   HTML.text("AFP version:") -> HTML.text(s)).toList) ::
               session_plots.getOrElse(session.name, Nil).map(plot_name =>
                 HTML.image(plot_name) +
