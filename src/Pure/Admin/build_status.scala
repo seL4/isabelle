@@ -66,21 +66,13 @@ object Build_Status
   sealed case class Data(date: Date, entries: List[Data_Entry])
   sealed case class Data_Entry(
     name: String, hosts: List[String], stretch: Double, sessions: List[Session])
-  sealed case class Session(name: String, threads: Int, entries: List[Entry])
+  sealed case class Session(
+    name: String, threads: Int, entries: List[Entry], ml_statistics: ML_Statistics)
   {
     require(entries.nonEmpty)
 
-    def pull_date: Date = entries.head.pull_date
-    def isabelle_version: String = entries.head.isabelle_version
-    def afp_version: String = entries.head.afp_version
-
-    def timing: Timing = entries.head.timing
-    def ml_timing: Timing = entries.head.ml_timing
-    def order: Long = - timing.elapsed.ms
-
-    def maximum_heap: Long = entries.head.maximum_heap
-    def average_heap: Long = entries.head.average_heap
-    def final_heap: Long = entries.head.final_heap
+    def head: Entry = entries.head
+    def order: Long = - head.timing.elapsed.ms
 
     def check_timing: Boolean = entries.length >= 3
     def check_heap: Boolean =
@@ -88,7 +80,7 @@ object Build_Status
       entries.forall(entry =>
         entry.maximum_heap > 0 ||
         entry.average_heap > 0 ||
-        entry.final_heap > 0)
+        entry.stored_heap > 0)
   }
   sealed case class Entry(
     pull_date: Date,
@@ -98,7 +90,12 @@ object Build_Status
     ml_timing: Timing,
     maximum_heap: Long,
     average_heap: Long,
-    final_heap: Long)
+    stored_heap: Long)
+
+  sealed case class Image(name: String, width: Int, height: Int)
+  {
+    def path: Path = Path.basic(name)
+  }
 
   def read_data(options: Options,
     progress: Progress = No_Progress,
@@ -177,7 +174,7 @@ object Build_Status
               ML_Statistics(
                 if (ml_statistics)
                   Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
-                else Nil, heading = session_name + " (Isabelle/ " + isabelle_version + ")")
+                else Nil, heading = session_name + " (Isabelle/" + isabelle_version + ")")
 
             val entry =
               Entry(
@@ -196,11 +193,11 @@ object Build_Status
                     Build_Log.Data.ml_timing_gc),
                 maximum_heap = ml_stats.maximum_heap_size,
                 average_heap = ml_stats.average_heap_size,
-                final_heap = res.long(Build_Log.Data.heap_size))
+                stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
-            val session = Session(session_name, threads, entry :: entries)
+            val session = Session(session_name, threads, entry :: entries, ml_stats)
             data_entries += (data_name -> (sessions + (session_name -> session)))
           }
         })
@@ -232,13 +229,8 @@ object Build_Status
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
-    def heap_scale(x: Long): Long = x / 1024 / 1024
-
     def print_heap(x: Long): Option[String] =
-    {
-      val y = heap_scale(x)
-      if (y == 0L) None else Some(y.toString + " M")
-    }
+      if (x == 0L) None else Some(x.toString + " M")
 
     HTML.write_document(target_dir, "index.html",
       List(HTML.title("Isabelle build status")),
@@ -254,8 +246,8 @@ object Build_Status
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
 
-      val image_width = (image_size._1 * data_entry.stretch).toInt
-      val image_height = image_size._2
+      val (image_width, image_height) = image_size
+      val image_width_stretch = (image_width * data_entry.stretch).toInt
 
       progress.echo("output " + quote(data_name))
 
@@ -267,6 +259,8 @@ object Build_Status
           Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
             Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
 
+              def plot_name(kind: String): String = session.name + "_" + kind + ".png"
+
               File.write(data_file,
                 cat_lines(
                   session.entries.map(entry =>
@@ -275,9 +269,9 @@ object Build_Status
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
                       entry.ml_timing.resources.minutes,
-                      heap_scale(entry.maximum_heap),
-                      heap_scale(entry.average_heap),
-                      heap_scale(entry.final_heap)).mkString(" "))))
+                      entry.maximum_heap,
+                      entry.average_heap,
+                      entry.stored_heap).mkString(" "))))
 
               val max_time =
                 ((0.0 /: session.entries){ case (m, entry) =>
@@ -287,13 +281,13 @@ object Build_Status
                     max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
               val timing_range = "[0:" + max_time + "]"
 
-              def gnuplot(plots: List[String], kind: String, range: String): String =
+              def gnuplot(plot_name: String, plots: List[String], range: String): Image =
               {
-                val plot_name = session.name + "_" + kind + ".png"
+                val image = Image(plot_name, image_width_stretch, image_height)
 
                 File.write(gnuplot_file, """
-set terminal png size """ + image_width + "," + image_height + """
-set output """ + quote(File.standard_path(dir + Path.basic(plot_name))) + """
+set terminal png size """ + image.width + "," + image.height + """
+set output """ + quote(File.standard_path(dir + image.path)) + """
 set xdata time
 set timefmt "%s"
 set format x "%d-%b"
@@ -307,7 +301,7 @@ plot [] """ + range + " " +
                 if (!result.ok)
                   result.error("Gnuplot failed for " + data_name + "/" + plot_name).check
 
-                plot_name
+                image
               }
 
               val timing_plots =
@@ -336,18 +330,39 @@ plot [] """ + range + " " +
                   """ using 1:6 smooth csplines title "maximum heap" """,
                   """ using 1:7 smooth sbezier title "average heap (smooth)" """,
                   """ using 1:7 smooth csplines title "average heap" """,
-                  """ using 1:8 smooth sbezier title "final heap (smooth)" """,
-                  """ using 1:8 smooth csplines title "final heap" """)
+                  """ using 1:8 smooth sbezier title "stored heap (smooth)" """,
+                  """ using 1:8 smooth csplines title "stored heap" """)
 
-              val plot_names =
+              def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image =
+              {
+                val image = Image(plot_name, image_width, image_height)
+                val chart =
+                  session.ml_statistics.chart(
+                    fields._1 + ": " + session.ml_statistics.heading, fields._2)
+                Graphics_File.write_chart_png(
+                  (dir + image.path).file, chart, image.width, image.height)
+                image
+              }
+
+              val images =
                 (if (session.check_timing)
                   List(
-                    gnuplot(timing_plots, "timing", timing_range),
-                    gnuplot(ml_timing_plots, "ml_timing", timing_range))
+                    gnuplot(plot_name("timing"), timing_plots, timing_range),
+                    gnuplot(plot_name("ml_timing"), ml_timing_plots, timing_range))
                  else Nil) :::
-                (if (session.check_heap) List(gnuplot(heap_plots, "heap", "[0:]")) else Nil)
+                (if (session.check_heap)
+                  List(gnuplot(plot_name("heap"), heap_plots, "[0:]"))
+                 else Nil) :::
+                (if (session.ml_statistics.content.nonEmpty)
+                  List(jfreechart(plot_name("heap_chart"), ML_Statistics.heap_fields)) :::
+                  (if (session.threads > 1)
+                    List(
+                      jfreechart(plot_name("tasks_chart"), ML_Statistics.tasks_fields),
+                      jfreechart(plot_name("workers_chart"), ML_Statistics.workers_fields))
+                   else Nil)
+                 else Nil)
 
-              session.name -> plot_names
+              session.name -> images
             }
           }, data_entry.sessions).toMap
 
@@ -363,29 +378,29 @@ plot [] """ + range + " " +
           List(HTML.itemize(
             data_entry.sessions.map(session =>
               HTML.link("#session_" + session.name, HTML.text(session.name)) ::
-              HTML.text(" (" + session.timing.message_resources + ")"))))) ::
+              HTML.text(" (" + session.head.timing.message_resources + ")"))))) ::
         data_entry.sessions.flatMap(session =>
           List(
             HTML.section(session.name) + HTML.id("session_" + session.name),
             HTML.par(
               HTML.description(
                 List(
-                  HTML.text("timing:") -> HTML.text(session.timing.message_resources),
-                  HTML.text("ML timing:") -> HTML.text(session.ml_timing.message_resources)) :::
-                print_heap(session.maximum_heap).map(s =>
+                  HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
+                  HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
+                print_heap(session.head.maximum_heap).map(s =>
                   HTML.text("maximum heap:") -> HTML.text(s)).toList :::
-                print_heap(session.average_heap).map(s =>
+                print_heap(session.head.average_heap).map(s =>
                   HTML.text("average heap:") -> HTML.text(s)).toList :::
-                print_heap(session.final_heap).map(s =>
-                  HTML.text("final heap:") -> HTML.text(s)).toList :::
-                proper_string(session.isabelle_version).map(s =>
+                print_heap(session.head.stored_heap).map(s =>
+                  HTML.text("stored heap:") -> HTML.text(s)).toList :::
+                proper_string(session.head.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
-                proper_string(session.afp_version).map(s =>
+                proper_string(session.head.afp_version).map(s =>
                   HTML.text("AFP version:") -> HTML.text(s)).toList) ::
-              session_plots.getOrElse(session.name, Nil).map(plot_name =>
-                HTML.image(plot_name) +
-                  HTML.width(image_width / 2) +
-                  HTML.height(image_height / 2))))))
+              session_plots.getOrElse(session.name, Nil).map(image =>
+                HTML.image(image.name) +
+                  HTML.width(image.width / 2) +
+                  HTML.height(image.height / 2))))))
     }
   }
 

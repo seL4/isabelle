@@ -25,11 +25,17 @@ object ML_Statistics
   def now(props: Properties.T): Double = Now.unapply(props).get
 
 
-  /* standard fields */
+  /* heap */
 
   val HEAP_SIZE = "size_heap"
 
-  type Fields = (String, Iterable[String])
+  def heap_scale(x: Long): Long = x / 1024 / 1024
+  def heap_scale(x: Double): Double = heap_scale(x.toLong).toLong
+
+
+  /* standard fields */
+
+  type Fields = (String, List[String])
 
   val tasks_fields: Fields =
     ("Future tasks",
@@ -109,7 +115,11 @@ object ML_Statistics
         val data =
           SortedMap.empty[String, Double] ++ speeds ++
             (for ((x, y) <- props.iterator if x != Now.name)
-              yield (x.intern, java.lang.Double.parseDouble(y)))
+             yield {
+               val z = java.lang.Double.parseDouble(y)
+              (x.intern, if (heap_fields._2.contains(x)) heap_scale(z) else z)
+            })
+
         result += ML_Statistics.Entry(time, data)
       }
       result.toList
@@ -153,7 +163,7 @@ final class ML_Statistics private(
 
   /* charts */
 
-  def update_data(data: XYSeriesCollection, selected_fields: Iterable[String])
+  def update_data(data: XYSeriesCollection, selected_fields: List[String])
   {
     data.removeAllSeries
     for {
@@ -165,7 +175,7 @@ final class ML_Statistics private(
     }
   }
 
-  def chart(title: String, selected_fields: Iterable[String]): JFreeChart =
+  def chart(title: String, selected_fields: List[String]): JFreeChart =
   {
     val data = new XYSeriesCollection
     update_data(data, selected_fields)

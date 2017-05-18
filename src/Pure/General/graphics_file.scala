@@ -55,8 +55,7 @@ object Graphics_File
     mapper
   }
 
-  def write_pdf(
-    file: JFile, paint: Graphics2D => Unit, width: Int, height: Int)
+  def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int)
   {
     import com.lowagie.text.{Document, Rectangle}
 
@@ -82,15 +81,15 @@ object Graphics_File
     finally { out.close }
   }
 
-  def write_pdf(path: Path, paint: Graphics2D => Unit, width: Int, height: Int): Unit =
-    write_pdf(path.file, paint, width, height)
 
-  def write_pdf(file: JFile, chart: JFreeChart, width: Int, height: Int)
-  {
-    def paint(gfx: Graphics2D) = chart.draw(gfx, new Rectangle2D.Double(0, 0, width, height))
-    write_pdf(file, paint _, width, height)
-  }
+  /* JFreeChart */
 
-  def write_pdf(path: Path, chart: JFreeChart, width: Int, height: Int): Unit =
-    write_pdf(path.file, chart, width, height)
+  def paint_chart(gfx: Graphics2D, chart: JFreeChart, width: Int, height: Int): Unit =
+    chart.draw(gfx, new Rectangle2D.Double(0, 0, width, height))
+
+  def write_chart_png(file: JFile, chart: JFreeChart, width: Int, height: Int): Unit =
+    write_png(file, paint_chart(_, chart, width, height), width, height)
+
+  def write_chart_pdf(file: JFile, chart: JFreeChart, width: Int, height: Int): Unit =
+    write_pdf(file, paint_chart(_, chart, width, height), width, height)
 }
