@@ -29,7 +29,7 @@ object ML_Statistics
 
   val HEAP_SIZE = "size_heap"
 
-  type Fields = (String, Iterable[String])
+  type Fields = (String, List[String])
 
   val tasks_fields: Fields =
     ("Future tasks",
@@ -153,7 +153,7 @@ final class ML_Statistics private(
 
   /* charts */
 
-  def update_data(data: XYSeriesCollection, selected_fields: Iterable[String])
+  def update_data(data: XYSeriesCollection, selected_fields: List[String])
   {
     data.removeAllSeries
     for {
@@ -165,7 +165,7 @@ final class ML_Statistics private(
     }
   }
 
-  def chart(title: String, selected_fields: Iterable[String]): JFreeChart =
+  def chart(title: String, selected_fields: List[String]): JFreeChart =
   {
     val data = new XYSeriesCollection
     update_data(data, selected_fields)
