@@ -330,8 +330,8 @@ plot [] """ + range + " " +
                   """ using 1:6 smooth csplines title "maximum heap" """,
                   """ using 1:7 smooth sbezier title "average heap (smooth)" """,
                   """ using 1:7 smooth csplines title "average heap" """,
-                  """ using 1:8 smooth sbezier title "final heap (smooth)" """,
-                  """ using 1:8 smooth csplines title "final heap" """)
+                  """ using 1:8 smooth sbezier title "stored heap (smooth)" """,
+                  """ using 1:8 smooth csplines title "stored heap" """)
 
               def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image =
               {
