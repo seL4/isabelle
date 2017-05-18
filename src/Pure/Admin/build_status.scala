@@ -356,7 +356,9 @@ plot [] """ + range + " " +
                 (if (session.ml_statistics.content.nonEmpty)
                   List(jfreechart(plot_name("heap_chart"), ML_Statistics.heap_fields)) :::
                   (if (session.threads > 1)
-                    List(jfreechart(plot_name("tasks_chart"), ML_Statistics.tasks_fields))
+                    List(
+                      jfreechart(plot_name("tasks_chart"), ML_Statistics.tasks_fields),
+                      jfreechart(plot_name("workers_chart"), ML_Statistics.workers_fields))
                    else Nil)
                  else Nil)
 
