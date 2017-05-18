@@ -66,7 +66,8 @@ object Build_Status
   sealed case class Data(date: Date, entries: List[Data_Entry])
   sealed case class Data_Entry(
     name: String, hosts: List[String], stretch: Double, sessions: List[Session])
-  sealed case class Session(name: String, threads: Int, entries: List[Entry])
+  sealed case class Session(
+    name: String, threads: Int, entries: List[Entry], ml_statistics: ML_Statistics)
   {
     require(entries.nonEmpty)
 
@@ -90,6 +91,11 @@ object Build_Status
     maximum_heap: Long,
     average_heap: Long,
     final_heap: Long)
+
+  sealed case class Image(name: String, width: Int, height: Int)
+  {
+    def path: Path = Path.basic(name)
+  }
 
   def read_data(options: Options,
     progress: Progress = No_Progress,
@@ -191,7 +197,7 @@ object Build_Status
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
-            val session = Session(session_name, threads, entry :: entries)
+            val session = Session(session_name, threads, entry :: entries, ml_stats)
             data_entries += (data_name -> (sessions + (session_name -> session)))
           }
         })
@@ -245,8 +251,8 @@ object Build_Status
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
 
-      val image_width = (image_size._1 * data_entry.stretch).toInt
-      val image_height = image_size._2
+      val (image_width, image_height) = image_size
+      val image_width_stretch = (image_width * data_entry.stretch).toInt
 
       progress.echo("output " + quote(data_name))
 
@@ -257,6 +263,8 @@ object Build_Status
         Par_List.map((session: Session) =>
           Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
             Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
+
+              def plot_name(kind: String): String = session.name + "_" + kind + ".png"
 
               File.write(data_file,
                 cat_lines(
@@ -278,13 +286,13 @@ object Build_Status
                     max(entry.ml_timing.resources.minutes) } max 0.1) * 1.1
               val timing_range = "[0:" + max_time + "]"
 
-              def gnuplot(plots: List[String], kind: String, range: String): String =
+              def gnuplot(plot_name: String, plots: List[String], range: String): Image =
               {
-                val plot_name = session.name + "_" + kind + ".png"
+                val image = Image(plot_name, image_width_stretch, image_height)
 
                 File.write(gnuplot_file, """
-set terminal png size """ + image_width + "," + image_height + """
-set output """ + quote(File.standard_path(dir + Path.basic(plot_name))) + """
+set terminal png size """ + image.width + "," + image.height + """
+set output """ + quote(File.standard_path(dir + image.path)) + """
 set xdata time
 set timefmt "%s"
 set format x "%d-%b"
@@ -298,7 +306,7 @@ plot [] """ + range + " " +
                 if (!result.ok)
                   result.error("Gnuplot failed for " + data_name + "/" + plot_name).check
 
-                plot_name
+                image
               }
 
               val timing_plots =
@@ -330,15 +338,34 @@ plot [] """ + range + " " +
                   """ using 1:8 smooth sbezier title "final heap (smooth)" """,
                   """ using 1:8 smooth csplines title "final heap" """)
 
-              val plot_names =
+              def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image =
+              {
+                val image = Image(plot_name, image_width, image_height)
+                val chart =
+                  session.ml_statistics.chart(
+                    fields._1 + ": " + session.ml_statistics.heading, fields._2)
+                Graphics_File.write_chart_png(
+                  (dir + image.path).file, chart, image.width, image.height)
+                image
+              }
+
+              val images =
                 (if (session.check_timing)
                   List(
-                    gnuplot(timing_plots, "timing", timing_range),
-                    gnuplot(ml_timing_plots, "ml_timing", timing_range))
+                    gnuplot(plot_name("timing"), timing_plots, timing_range),
+                    gnuplot(plot_name("ml_timing"), ml_timing_plots, timing_range))
                  else Nil) :::
-                (if (session.check_heap) List(gnuplot(heap_plots, "heap", "[0:]")) else Nil)
+                (if (session.check_heap)
+                  List(gnuplot(plot_name("heap"), heap_plots, "[0:]"))
+                 else Nil) :::
+                (if (session.ml_statistics.content.nonEmpty)
+                  List(jfreechart(plot_name("heap_chart"), ML_Statistics.heap_fields)) :::
+                  (if (session.threads > 1)
+                    List(jfreechart(plot_name("tasks_chart"), ML_Statistics.tasks_fields))
+                   else Nil)
+                 else Nil)
 
-              session.name -> plot_names
+              session.name -> images
             }
           }, data_entry.sessions).toMap
 
@@ -373,10 +400,10 @@ plot [] """ + range + " " +
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
                 proper_string(session.head.afp_version).map(s =>
                   HTML.text("AFP version:") -> HTML.text(s)).toList) ::
-              session_plots.getOrElse(session.name, Nil).map(plot_name =>
-                HTML.image(plot_name) +
-                  HTML.width(image_width / 2) +
-                  HTML.height(image_height / 2))))))
+              session_plots.getOrElse(session.name, Nil).map(image =>
+                HTML.image(image.name) +
+                  HTML.width(image.width / 2) +
+                  HTML.height(image.height / 2))))))
     }
   }
 
