@@ -80,7 +80,7 @@ object Build_Status
       entries.forall(entry =>
         entry.maximum_heap > 0 ||
         entry.average_heap > 0 ||
-        entry.final_heap > 0)
+        entry.stored_heap > 0)
   }
   sealed case class Entry(
     pull_date: Date,
@@ -90,7 +90,7 @@ object Build_Status
     ml_timing: Timing,
     maximum_heap: Long,
     average_heap: Long,
-    final_heap: Long)
+    stored_heap: Long)
 
   sealed case class Image(name: String, width: Int, height: Int)
   {
@@ -174,7 +174,7 @@ object Build_Status
               ML_Statistics(
                 if (ml_statistics)
                   Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
-                else Nil, heading = session_name + " (Isabelle/ " + isabelle_version + ")")
+                else Nil, heading = session_name + " (Isabelle/" + isabelle_version + ")")
 
             val entry =
               Entry(
@@ -193,7 +193,7 @@ object Build_Status
                     Build_Log.Data.ml_timing_gc),
                 maximum_heap = ml_stats.maximum_heap_size,
                 average_heap = ml_stats.average_heap_size,
-                final_heap = res.long(Build_Log.Data.heap_size))
+                stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
@@ -229,13 +229,8 @@ object Build_Status
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
 
-    def heap_scale(x: Long): Long = x / 1024 / 1024
-
     def print_heap(x: Long): Option[String] =
-    {
-      val y = heap_scale(x)
-      if (y == 0L) None else Some(y.toString + " M")
-    }
+      if (x == 0L) None else Some(x.toString + " M")
 
     HTML.write_document(target_dir, "index.html",
       List(HTML.title("Isabelle build status")),
@@ -274,9 +269,9 @@ object Build_Status
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
                       entry.ml_timing.resources.minutes,
-                      heap_scale(entry.maximum_heap),
-                      heap_scale(entry.average_heap),
-                      heap_scale(entry.final_heap)).mkString(" "))))
+                      entry.maximum_heap,
+                      entry.average_heap,
+                      entry.stored_heap).mkString(" "))))
 
               val max_time =
                 ((0.0 /: session.entries){ case (m, entry) =>
@@ -394,8 +389,8 @@ plot [] """ + range + " " +
                   HTML.text("maximum heap:") -> HTML.text(s)).toList :::
                 print_heap(session.head.average_heap).map(s =>
                   HTML.text("average heap:") -> HTML.text(s)).toList :::
-                print_heap(session.head.final_heap).map(s =>
-                  HTML.text("final heap:") -> HTML.text(s)).toList :::
+                print_heap(session.head.stored_heap).map(s =>
+                  HTML.text("stored heap:") -> HTML.text(s)).toList :::
                 proper_string(session.head.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
                 proper_string(session.head.afp_version).map(s =>
