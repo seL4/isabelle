@@ -219,7 +219,7 @@ esac
       var target_dir = Path.current
 
       val getopts = Getopts("""
-Usage: Admin/build_jdk [OPTIONS] ARCHIVES...
+Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
 
   Options are:
     -D DIR       target directory (default ".")
