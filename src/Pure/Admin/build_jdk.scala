@@ -197,7 +197,7 @@ esac
         } {
           val path2 = dir2.resolve(main_dir.relativize(path1))
           val file2 = path2.toFile
-          if (file2.isFile && File.eq_content(file1, file2)) {
+          if (!Files.isSymbolicLink(path2) && file2.isFile && File.eq_content(file1, file2)) {
             file2.delete
             Files.createLink(path2, path1)
           }
