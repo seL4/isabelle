@@ -79,18 +79,14 @@ class Scala_Console extends Shell("Scala")
 
   private val console_writer = new Writer
   {
-    def flush() {}
-    def close() {}
+    def flush() { console_stream.flush() }
+    def close() { console_stream.flush() }
 
     def write(cbuf: Array[Char], off: Int, len: Int)
     {
-      if (len > 0) write(new String(cbuf.slice(off, off + len)))
-    }
-
-    override def write(str: String)
-    {
-      if (global_out == null) System.out.println(str)
-      else global_out.print(null, str)
+      if (len > 0) {
+        UTF8.bytes(new String(cbuf.slice(off, off + len))).foreach(console_stream.write(_))
+      }
     }
   }
 
