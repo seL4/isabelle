@@ -9,7 +9,7 @@ package isabelle
 
 object Build_PolyML
 {
-  /** build_polyml **/
+  /** platform-specific build **/
 
   sealed case class Platform_Info(
     options: List[String] = Nil,
@@ -66,8 +66,7 @@ object Build_PolyML
     progress: Progress = No_Progress,
     arch_64: Boolean = false,
     options: List[String] = Nil,
-    msys_root: Option[Path] = None,
-    component_root: Option[Path] = None)
+    msys_root: Option[Path] = None)
   {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
@@ -101,18 +100,6 @@ object Build_PolyML
             File.bash_path(msys + Path.explode("usr/bin/bash")) + " -c " + Bash.string(script)
         }
       progress.bash(script1, cwd = cwd.file, redirect = redirect, echo = echo)
-    }
-
-
-    /* component setup */
-
-    component_root match {
-      case None =>
-      case Some(component) =>
-        val etc = component + Path.explode("etc")
-        Isabelle_System.mkdirs(etc)
-        File.copy(Path.explode("~~/Admin/polyml/settings"), etc)
-        File.copy(Path.explode("~~/Admin/polyml/README"), component)
     }
 
 
@@ -150,10 +137,6 @@ object Build_PolyML
         val dir1 = sha1_root.get
         bash(dir1, "./build " + platform, redirect = true, echo = true).check
 
-        if (component_root.isDefined)
-          Mercurial.repository(dir1).
-            archive(File.standard_path(component_root.get + Path.explode("sha1")))
-
         val dir2 = dir1 + Path.explode(platform)
         File.read_dir(dir2).map(entry => dir2.implode + "/" + entry)
       }
@@ -162,7 +145,7 @@ object Build_PolyML
 
     /* target */
 
-    val target = component_root.getOrElse(Path.current) + Path.explode(platform)
+    val target = Path.explode(platform)
     Isabelle_System.rm_tree(target)
     Isabelle_System.mkdirs(target)
 
@@ -178,12 +161,33 @@ object Build_PolyML
 
 
 
-  /** Isabelle tool wrapper **/
+  /** skeleton for component **/
 
-  val isabelle_tool = Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
+  def build_polyml_component(component: Path, sha1_root: Option[Path] = None)
+  {
+    if (component.is_dir) error("Directory already exists: " + component)
+
+    val etc = component + Path.explode("etc")
+    Isabelle_System.mkdirs(etc)
+    File.copy(Path.explode("~~/Admin/polyml/settings"), etc)
+    File.copy(Path.explode("~~/Admin/polyml/README"), component)
+
+    sha1_root match {
+      case Some(dir) =>
+        Mercurial.repository(dir).
+          archive(File.standard_path(component + dir + Path.explode("sha1")))
+      case None =>
+    }
+  }
+
+
+
+  /** Isabelle tool wrappers **/
+
+  val isabelle_tool1 =
+    Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
     {
       Command_Line.tool0 {
-        var component_root: Option[Path] = None
         var msys_root: Option[Path] = None
         var arch_64 = false
         var sha1_root: Option[Path] = None
@@ -192,7 +196,6 @@ object Build_PolyML
 Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
-    -C DIR       Isabelle component root directory (for etc/settings ...)
     -M DIR       msys root directory (for Windows)
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
     -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
@@ -200,7 +203,6 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --with-gmp).
 """,
-          "C:" -> (arg => component_root = Some(Path.explode(arg))),
           "M:" -> (arg => msys_root = Some(Path.explode(arg))),
           "m:" ->
             {
@@ -217,8 +219,33 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
             case Nil => getopts.usage()
           }
         build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
-          arch_64 = arch_64, options = options, component_root = component_root,
-          msys_root = msys_root)
+          arch_64 = arch_64, options = options, msys_root = msys_root)
+      }
+    }, admin = true)
+
+  val isabelle_tool2 =
+    Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component", args =>
+    {
+      Command_Line.tool0 {
+        var sha1_root: Option[Path] = None
+
+        val getopts = Getopts("""
+Usage: isabelle build_polyml_component [OPTIONS] TARGET
+
+  Options are:
+    -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
+
+  Make skeleton for Poly/ML component in directory TARGET.
+""",
+          "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
+
+        val more_args = getopts(args)
+        val component =
+          more_args match {
+            case List(arg) => Path.explode(arg)
+            case _ => getopts.usage()
+          }
+        build_polyml_component(component, sha1_root = sha1_root)
       }
     }, admin = true)
 }
