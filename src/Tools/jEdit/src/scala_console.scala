@@ -54,7 +54,8 @@ class Scala_Console extends Shell("Scala")
 
   private val console_stream = new OutputStream
   {
-    val buf = new StringBuilder
+    val buf = new StringBuilder(100)
+
     override def flush()
     {
       val s = buf.synchronized { val s = buf.toString; buf.clear; s }
@@ -65,8 +66,11 @@ class Scala_Console extends Shell("Scala")
       }
       Thread.sleep(10)  // FIXME adhoc delay to avoid loosing output
     }
+
     override def close() { flush () }
-    def write(byte: Int) {
+
+    def write(byte: Int)
+    {
       val c = byte.toChar
       buf.synchronized { buf.append(c) }
       if (c == '\n') flush()
