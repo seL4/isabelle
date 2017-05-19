@@ -55,4 +55,3 @@ object Antiquote
     }
   }
 }
-
