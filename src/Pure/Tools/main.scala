@@ -73,6 +73,7 @@ object Main
 
         System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME/dist")))
         System.setProperty("scala.home", File.platform_path(Path.explode("$SCALA_HOME")))
+        System.setProperty("scala.color", "false")
 
         val jedit =
           Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
