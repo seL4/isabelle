@@ -200,10 +200,10 @@ object Isabelle_Cronjob
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
         Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
-          options = "-m32 -M4", args = "-a",
+          options = "-m32 -M4 -N build_history_32", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
         Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
-          options = "-m64 -M4", args = "-a",
+          options = "-m64 -M4 -N build_history_64", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
 
