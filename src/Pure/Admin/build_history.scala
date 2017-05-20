@@ -203,6 +203,9 @@ object Build_History
           Build_Log.log_filename(Build_History.engine, build_history_date,
             List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
+      Isabelle_System.mkdirs(isabelle_output_log)
+      File.write(isabelle_output_log + Path.explode("build.log"), build_result.out)
+
       val build_info: Build_Log.Build_Info =
         Build_Log.Log_File(log_path.base.implode, build_result.out_lines).
           parse_build_info(ml_statistics = true)
