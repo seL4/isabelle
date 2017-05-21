@@ -65,7 +65,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
     class Renderer extends ListView.Renderer[Entry]
     {
-      def componentFor(list: ListView[_ <: Timing_Dockable.this.Entry],
+      def componentFor(list: ListView[_],
         isSelected: Boolean, focused: Boolean, entry: Entry, index: Int): Component =
       {
         val component = Renderer_Component
