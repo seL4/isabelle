@@ -105,6 +105,9 @@ object HTML
   class Heading(name: String) extends Operator(name)
   { def apply(txt: String): XML.Elem = super.apply(text(txt)) }
 
+  class Span(class_name: String)
+  { def apply(body: XML.Body): XML.Elem = XML.elem("span", body) + ("class" -> class_name) }
+
   val div = new Operator("div")
   val span = new Operator("span")
   val pre = new Operator("pre")
@@ -120,6 +123,13 @@ object HTML
   val subsubsection = new Heading("h4")
   val paragraph = new Heading("h5")
   val subparagraph = new Heading("h6")
+
+  val writeln_message = new Span("writeln_message")
+  val information_message = new Span("information_message")
+  val tracing_message = new Span("tracing_message")
+  val warning_message = new Span("warning_message")
+  val legacy_message = new Span("legacy_message")
+  val error_message = new Span("error_message")
 
   def itemize(items: List[XML.Body]): XML.Elem =
     XML.elem("ul", items.map(XML.elem("li", _)))

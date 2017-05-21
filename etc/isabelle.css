@@ -75,3 +75,13 @@ body { background-color: #FFFFFF; }
 .comment        { color: #CC0000; }
 .improper       { color: #FF5050; }
 .bad            { background-color: #FF6A6A; }
+
+
+/* message background */
+
+.writeln_message      { background-color: #F0F0F0; }
+.information_message  { background-color: #DCEAF3; }
+.tracing_message      { background-color: #F0F8FF; }
+.warning_message      { background-color: #EEE8AA; }
+.legacy_message       { background-color: #EEE8AA; }
+.error_message        { background-color: #FFC1C1; }
