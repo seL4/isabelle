@@ -33,7 +33,10 @@ object Build_Status
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
           Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days(options)) + " AND " +
-          Build_Log.Data.status + " = " + SQL.string(Build_Log.Session_Status.finished.toString) +
+          SQL.member(Build_Log.Data.status.ident,
+            List(
+              Build_Log.Session_Status.finished.toString,
+              Build_Log.Session_Status.failed.toString)) +
           (if (only_sessions.isEmpty) ""
            else " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
           " AND " + SQL.enclose(sql) +
@@ -66,6 +69,10 @@ object Build_Status
   sealed case class Data(date: Date, entries: List[Data_Entry])
   sealed case class Data_Entry(
     name: String, hosts: List[String], stretch: Double, sessions: List[Session])
+  {
+    def failed_sessions: List[Session] =
+      sessions.filter(_.head.failed).sortBy(_.name)
+  }
   sealed case class Session(
     name: String, threads: Int, entries: List[Entry], ml_statistics: ML_Statistics)
   {
@@ -74,10 +81,12 @@ object Build_Status
     def head: Entry = entries.head
     def order: Long = - head.timing.elapsed.ms
 
-    def check_timing: Boolean = entries.length >= 3
+    def finished_entries: List[Entry] = entries.filter(_.finished)
+
+    def check_timing: Boolean = finished_entries.length >= 3
     def check_heap: Boolean =
-      entries.length >= 3 &&
-      entries.forall(entry =>
+      finished_entries.length >= 3 &&
+      finished_entries.forall(entry =>
         entry.maximum_heap > 0 ||
         entry.average_heap > 0 ||
         entry.stored_heap > 0)
@@ -90,7 +99,12 @@ object Build_Status
     ml_timing: Timing,
     maximum_heap: Long,
     average_heap: Long,
-    stored_heap: Long)
+    stored_heap: Long,
+    status: Build_Log.Session_Status.Value)
+  {
+    def finished: Boolean = status == Build_Log.Session_Status.finished
+    def failed: Boolean = status == Build_Log.Session_Status.failed
+  }
 
   sealed case class Image(name: String, width: Int, height: Int)
   {
@@ -134,7 +148,8 @@ object Build_Status
             Build_Log.Data.ml_timing_elapsed,
             Build_Log.Data.ml_timing_cpu,
             Build_Log.Data.ml_timing_gc,
-            Build_Log.Data.heap_size) :::
+            Build_Log.Data.heap_size,
+            Build_Log.Data.status) :::
           (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
@@ -193,7 +208,8 @@ object Build_Status
                     Build_Log.Data.ml_timing_gc),
                 maximum_heap = ml_stats.maximum_heap_size,
                 average_heap = ml_stats.average_heap_size,
-                stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)))
+                stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)),
+                status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
@@ -240,8 +256,17 @@ object Build_Status
             List(HTML.text("status date:") -> HTML.text(data.date.toString))))),
         HTML.par(
           List(HTML.itemize(data.entries.map({ case data_entry =>
-            List(HTML.link(clean_name(data_entry.name) + "/index.html",
-              HTML.text(data_entry.name))) }))))))
+            List(
+              HTML.link(clean_name(data_entry.name) + "/index.html",
+                HTML.text(data_entry.name))) :::
+            (data_entry.failed_sessions match {
+              case Nil => Nil
+              case sessions =>
+                HTML.break ::: List(HTML.error_message_span("Failed:")) :::
+                HTML.text(" " +
+                  commas(sessions.map(s => s.name + " (" + s.head.isabelle_version + ")")))
+            })
+          }))))))
 
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
@@ -263,7 +288,7 @@ object Build_Status
 
               File.write(data_file,
                 cat_lines(
-                  session.entries.map(entry =>
+                  session.finished_entries.map(entry =>
                     List(entry.pull_date.unix_epoch,
                       entry.timing.elapsed.minutes,
                       entry.timing.resources.minutes,
@@ -274,7 +299,7 @@ object Build_Status
                       entry.stored_heap).mkString(" "))))
 
               val max_time =
-                ((0.0 /: session.entries){ case (m, entry) =>
+                ((0.0 /: session.finished_entries){ case (m, entry) =>
                   m.max(entry.timing.elapsed.minutes).
                     max(entry.timing.resources.minutes).
                     max(entry.ml_timing.elapsed.minutes).
