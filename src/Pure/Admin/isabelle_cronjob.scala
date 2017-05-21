@@ -200,15 +200,16 @@ object Isabelle_Cronjob
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
         Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
-          options = "-m32 -M4 -N build_history_32", args = "-a",
+          options = "-m32 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
         Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
-          options = "-m64 -M4 -N build_history_64", args = "-a",
+          options = "-m64 -M4", args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
 
-  private def remote_build_history(rev: String, r: Remote_Build): Logger_Task =
+  private def remote_build_history(arg: (String, Int), r: Remote_Build): Logger_Task =
   {
+    val (rev, index) = arg
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
       {
@@ -226,7 +227,9 @@ object Isabelle_Cronjob
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
                   options =
-                    "-r " + Bash.string(rev) + " -N " + Bash.string(task_name) + " -f " + r.options,
+                    "-r " + Bash.string(rev) +
+                    " -N " + Bash.string(task_name) + (index + 1).toString +
+                    " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
 
               for ((log_name, bytes) <- results) {
@@ -388,7 +391,7 @@ object Isabelle_Cronjob
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq =>
               SEQ(seq.flatMap(r =>
-                r.pick(logger.options, rev, r.history_base_filter(hg)).
+                r.pick(logger.options, rev, r.history_base_filter(hg)).zipWithIndex.
                   map(remote_build_history(_, r)))))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
