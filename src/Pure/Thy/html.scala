@@ -92,6 +92,7 @@ object HTML
   def id(s: String): XML.Attribute = ("id" -> s)
   def width(w: Int): XML.Attribute = ("width" -> w.toString)
   def height(h: Int): XML.Attribute = ("height" -> h.toString)
+  def css_class(name: String): XML.Attribute = ("class" -> name)
 
 
   /* structured markup operators */
@@ -135,6 +136,21 @@ object HTML
 
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
+
+
+  /* messages */
+
+  val writeln_message_class: XML.Attribute = css_class("writeln_message")
+  val warning_message_class: XML.Attribute = css_class("warning_message")
+  val error_message_class: XML.Attribute = css_class("error_message")
+
+  def writeln_message(msg: String): XML.Elem = par(text(msg)) + writeln_message_class
+  def warning_message(msg: String): XML.Elem = par(text(msg)) + warning_message_class
+  def error_message(msg: String): XML.Elem = par(text(msg)) + error_message_class
+
+  def writeln_message_span(msg: String): XML.Elem = span(text(msg)) + writeln_message_class
+  def warning_message_span(msg: String): XML.Elem = span(text(msg)) + warning_message_class
+  def error_message_span(msg: String): XML.Elem = span(text(msg)) + error_message_class
 
 
   /* document */

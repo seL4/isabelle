@@ -54,3 +54,29 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
     is_stopped
   }
 }
+
+class File_Progress(path: Path, verbose: Boolean = false) extends Progress
+{
+  override def echo(msg: String): Unit =
+    File.append(path, msg + "\n")
+
+  override def theory(session: String, theory: String): Unit =
+    if (verbose) echo(session + ": theory " + theory)
+
+  override def toString: String = path.toString
+}
+
+class Seq_Progress(progress1: Progress, progress2: Progress) extends Progress
+{
+  override def echo(msg: String)
+  {
+    progress1.echo(msg)
+    progress2.echo(msg)
+  }
+
+  override def theory(session: String, theory: String)
+  {
+    progress1.theory(session, theory)
+    progress2.theory(session, theory)
+  }
+}

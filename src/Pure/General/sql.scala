@@ -384,7 +384,19 @@ object SQLite
   // see https://www.sqlite.org/lang_datefunc.html
   val date_format: Date.Format = Date.Format("uuuu-MM-dd HH:mm:ss.SSS x")
 
-  lazy val init_jdbc: Unit = Class.forName("org.sqlite.JDBC")
+  lazy val init_jdbc: Unit =
+  {
+    val lib_path = Path.explode("$ISABELLE_SQLITE_HOME/" + Platform.jvm_platform)
+    val lib_name =
+      File.find_files(lib_path.file) match {
+        case List(file) => file.getName
+        case _ => error("Exactly file expected in directory " + lib_path.expand)
+      }
+    System.setProperty("org.sqlite.lib.path", File.platform_path(lib_path))
+    System.setProperty("org.sqlite.lib.name", lib_name)
+
+    Class.forName("org.sqlite.JDBC")
+  }
 
   def open_database(path: Path): Database =
   {

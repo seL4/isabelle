@@ -169,6 +169,7 @@ object Build_History
       val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
+      val build_out = isabelle_output_log + Path.explode("build.out")
 
       if (first_build) {
         other_isabelle.resolve_components(verbose)
@@ -194,7 +195,11 @@ object Build_History
       val build_start = Date.now()
       val build_args1 = List("-v", "-j" + processes) ::: build_args
       val build_result =
-        other_isabelle("build " + Bash.strings(build_args1), redirect = true, echo = verbose)
+      {
+        val progress1 = new Seq_Progress(progress, new File_Progress(build_out))
+        val other_isabelle1 = new Other_Isabelle(progress1, hg.root, isabelle_identifier)
+        other_isabelle1("build " + Bash.strings(build_args1), redirect = true, echo = verbose)
+      }
       val build_end = Date.now()
 
       val log_path =
@@ -202,9 +207,6 @@ object Build_History
           Build_Log.log_subdir(build_history_date) +
           Build_Log.log_filename(Build_History.engine, build_history_date,
             List(build_host, ml_platform, "M" + threads) ::: build_tags)
-
-      Isabelle_System.mkdirs(isabelle_output_log)
-      File.write(isabelle_output_log + Path.explode("build.log"), build_result.out)
 
       val build_info: Build_Log.Build_Info =
         Build_Log.Log_File(log_path.base.implode, build_result.out_lines).
@@ -263,6 +265,8 @@ object Build_History
 
 
       /* next build */
+
+      build_out.file.delete
 
       if (multicore_base && first_build && isabelle_output_log.is_dir)
         Isabelle_System.copy_dir(isabelle_output_log, isabelle_base_log)
