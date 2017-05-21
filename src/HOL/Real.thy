@@ -1803,6 +1803,7 @@ lemma [z3_rule]:
   "x + 0 = x"
   "0 * x = 0"
   "1 * x = x"
+  "-x = -1 * x"
   "x + y = y + x"
   for x y :: real
   by auto
