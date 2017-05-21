@@ -166,7 +166,7 @@ object Build_Status
             {
               val threads1 =
                 res.string(Build_Log.Settings.ISABELLE_BUILD_OPTIONS) match {
-                  case Threads_Option(Value.Int(i)) if session_name == "Pure" => i
+                  case Threads_Option(Value.Int(i)) => i
                   case _ => 1
                 }
               val threads2 = res.get_int(Build_Log.Data.threads).getOrElse(1)
