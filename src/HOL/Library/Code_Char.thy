@@ -16,7 +16,7 @@ code_printing
     and (Scala) "Char"
 
 setup \<open>
-  fold String_Code.add_literal_char ["SML", "OCaml", "Haskell", "Scala"] 
+  fold String_Code.add_literal_char ["SML", "OCaml", "Haskell", "Scala"]
   #> String_Code.add_literal_list_string "Haskell"
 \<close>
 
@@ -30,7 +30,7 @@ code_printing
     (SML) "!(Char.chr o IntInf.toInt)"
     and (OCaml) "Char.chr (Big'_int.int'_of'_big'_int _)"
     and (Haskell) "!(let chr k | (0 <= k && k < 256) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
-    and (Scala) "!((k: BigInt) => if (BigInt(0) <= k && k < BigInt(256)) k.charValue else error(\"character value out of range\"))"
+    and (Scala) "!((k: BigInt) => if (BigInt(0) <= k && k < BigInt(256)) k.charValue else sys.error(\"character value out of range\"))"
 | class_instance char :: equal \<rightharpoonup>
     (Haskell) -
 | constant "HOL.equal :: char \<Rightarrow> char \<Rightarrow> bool" \<rightharpoonup>
@@ -80,7 +80,7 @@ code_printing
 |  constant "Orderings.less_eq :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : string) <= _)"
     and (OCaml) "!((_ : string) <= _)"
-    \<comment> \<open>Order operations for @{typ String.literal} work in Haskell only 
+    \<comment> \<open>Order operations for @{typ String.literal} work in Haskell only
           if no type class instance needs to be generated, because String = [Char] in Haskell
           and @{typ "char list"} need not have the same order as @{typ String.literal}.\<close>
     and (Haskell) infix 4 "<="
