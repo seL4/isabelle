@@ -92,6 +92,7 @@ object HTML
   def id(s: String): XML.Attribute = ("id" -> s)
   def width(w: Int): XML.Attribute = ("width" -> w.toString)
   def height(h: Int): XML.Attribute = ("height" -> h.toString)
+  def css_class(name: String): XML.Attribute = ("class" -> name)
 
 
   /* structured markup operators */
@@ -104,9 +105,6 @@ object HTML
 
   class Heading(name: String) extends Operator(name)
   { def apply(txt: String): XML.Elem = super.apply(text(txt)) }
-
-  class Span(class_name: String)
-  { def apply(body: XML.Body): XML.Elem = XML.elem("span", body) + ("class" -> class_name) }
 
   val div = new Operator("div")
   val span = new Operator("span")
@@ -124,13 +122,6 @@ object HTML
   val paragraph = new Heading("h5")
   val subparagraph = new Heading("h6")
 
-  val writeln_message = new Span("writeln_message")
-  val information_message = new Span("information_message")
-  val tracing_message = new Span("tracing_message")
-  val warning_message = new Span("warning_message")
-  val legacy_message = new Span("legacy_message")
-  val error_message = new Span("error_message")
-
   def itemize(items: List[XML.Body]): XML.Elem =
     XML.elem("ul", items.map(XML.elem("li", _)))
 
@@ -145,6 +136,21 @@ object HTML
 
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
+
+
+  /* messages */
+
+  val writeln_message_class: XML.Attribute = css_class("writeln_message")
+  val warning_message_class: XML.Attribute = css_class("warning_message")
+  val error_message_class: XML.Attribute = css_class("error_message")
+
+  def writeln_message(msg: String): XML.Elem = par(text(msg)) + writeln_message_class
+  def warning_message(msg: String): XML.Elem = par(text(msg)) + warning_message_class
+  def error_message(msg: String): XML.Elem = par(text(msg)) + error_message_class
+
+  def writeln_message_span(msg: String): XML.Elem = span(text(msg)) + writeln_message_class
+  def warning_message_span(msg: String): XML.Elem = span(text(msg)) + warning_message_class
+  def error_message_span(msg: String): XML.Elem = span(text(msg)) + error_message_class
 
 
   /* document */
