@@ -552,11 +552,12 @@ fun mk_driver_scala _ path _ value_name =
       "}\n"
 
     val compile_cmd =
-      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ File.bash_path path ^
-      " -classpath " ^ File.bash_path path ^ " " ^
-      File.bash_path code_path ^ " " ^ File.bash_path driver_path
+      "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d " ^ Bash.string (File.platform_path path) ^
+      " -classpath " ^ Bash.string (File.platform_path path) ^ " " ^
+      Bash.string (File.platform_path code_path) ^ " " ^
+      Bash.string (File.platform_path driver_path)
 
-    val run_cmd = "isabelle_scala scala -cp " ^ File.bash_path path ^ " Test"
+    val run_cmd = "isabelle_scala scala -cp " ^ Bash.string (File.platform_path path) ^ " Test"
   in
     {files = [(driver_path, driver)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
