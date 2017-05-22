@@ -421,10 +421,12 @@ fun mk_driver_smlnj _ path _ value_name =
       "    0\n" ^
       "  end;\n" ^
       "end;"
-    val cmd =
-      "echo \"Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
-      "use \\\"" ^ Path.implode code_path ^ "\\\"; use \\\"" ^ Path.implode driver_path ^ "\\\";" ^
-      "Test.main ();\" | " ^ Path.implode (Path.variable ISABELLE_SMLNJ)
+    val ml_source =
+      "Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
+      "use " ^ ML_Syntax.print_string (Path.implode (Path.expand code_path)) ^
+      "; use " ^ ML_Syntax.print_string (Path.implode (Path.expand driver_path)) ^
+      "; Test.main ();"
+    val cmd = "echo " ^ Bash.string ml_source ^ " | \"$ISABELLE_SMLNJ\""
   in
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
@@ -461,9 +463,9 @@ fun mk_driver_ocaml _ path _ value_name =
 
     val compiled_path = Path.append path (Path.basic "test")
     val compile_cmd =
-      Path.implode (Path.variable ISABELLE_OCAMLC) ^ " -w pu -o " ^ Path.implode compiled_path ^
-      " -I " ^ Path.implode path ^
-      " nums.cma " ^ Path.implode code_path ^ " " ^ Path.implode driver_path
+      "\"$ISABELLE_OCAMLC\" -w pu -o " ^ File.bash_path compiled_path ^
+      " -I " ^ File.bash_path path ^
+      " nums.cma " ^ File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
     val run_cmd = File.bash_path compiled_path
   in
@@ -507,9 +509,9 @@ fun mk_driver_ghc ctxt path modules value_name =
 
     val compiled_path = Path.append path (Path.basic "test")
     val compile_cmd =
-      Path.implode (Path.variable ISABELLE_GHC) ^ " " ^ Code_Haskell.language_params ^ " " ^
-      Config.get ctxt ghc_options ^ " -o " ^ Path.implode compiled_path ^ " " ^
-      Path.implode driver_path ^ " -i" ^ Path.implode path
+      "\"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
+      Config.get ctxt ghc_options ^ " -o " ^ File.bash_path compiled_path ^ " " ^
+      File.bash_path driver_path ^ " -i" ^ File.bash_path path
 
     val run_cmd = File.bash_path compiled_path
   in
