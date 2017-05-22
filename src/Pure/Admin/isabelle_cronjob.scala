@@ -187,7 +187,9 @@ object Isabelle_Cronjob
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2",
-          options = "-m32 -M8 -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
+          options = "-m32 -M8" +
+            " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
+            " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
           args = "-a",
           detect = Build_Log.Prop.build_tags + " IS NULL"),
         Remote_Build("Mac OS X 10.9 Mavericks, quick_and_dirty", "macbroy2",
@@ -202,11 +204,17 @@ object Isabelle_Cronjob
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
         Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
-          options = "-m32 -M4 -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc",
+          options = "-m32 -M4" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
+            " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
+            " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
         Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
-          options = "-m64 -M4 -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc",
+          options = "-m64 -M4" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
+            " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
+            " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
