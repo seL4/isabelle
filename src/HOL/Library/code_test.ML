@@ -341,8 +341,9 @@ fun mk_driver_polyml _ path _ value_name =
       "    ()\n" ^
       "  end;\n"
     val cmd =
-      "echo \"use \\\"" ^ Path.implode code_path ^ "\\\"; use \\\"" ^
-      Path.implode driver_path ^ "\\\"; main ();\" | \"$ML_HOME/poly\""
+      "\"$ML_HOME/poly\" --use " ^ Bash.string (File.platform_path code_path) ^
+      " --use " ^ Bash.string (File.platform_path driver_path) ^
+      " --eval " ^ Bash.string "main ()"
   in
     {files = [(driver_path, driver)], compile_cmd = NONE, run_cmd = cmd, mk_code_file = K code_path}
   end
