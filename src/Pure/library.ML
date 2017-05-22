@@ -144,6 +144,7 @@ sig
   val unprefix: string -> string -> string
   val unsuffix: string -> string -> string
   val trim_line: string -> string
+  val trim_split_lines: string -> string list
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
   val align_right: string -> int -> string -> string
@@ -711,7 +712,14 @@ fun unsuffix sffx s =
   if String.isSuffix sffx s then String.substring (s, 0, size s - size sffx)
   else raise Fail "unsuffix";
 
-val trim_line = perhaps (try (unsuffix "\n"));
+fun trim_line s =
+  if String.isSuffix "\r\n" s
+  then String.substring (s, 0, size s - 2)
+  else if String.isSuffix "\r" s orelse String.isSuffix "\n" s
+  then String.substring (s, 0, size s - 1)
+  else s;
+
+val trim_split_lines = trim_line #> split_lines #> map trim_line;
 
 fun replicate_string (0: int) _ = ""
   | replicate_string 1 a = a

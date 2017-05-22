@@ -119,7 +119,7 @@ fun parse_line line =
 fun parse_result target out =
   (case split_first_last start_markerN end_markerN out of
     NONE => error ("Evaluation failed for " ^ target ^ "!\nBash output:\n" ^ out)
-  | SOME (_, middle, _) => middle |> trim_line |> split_lines |> map parse_line)
+  | SOME (_, middle, _) => middle |> trim_split_lines |> map parse_line)
 
 
 (* pretty printing of test results *)
