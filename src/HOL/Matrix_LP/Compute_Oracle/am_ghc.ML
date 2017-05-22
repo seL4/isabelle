@@ -7,7 +7,7 @@ struct
 
 open AbstractMachine;
 
-type program = string * string * (int Inttab.table)
+type program = string * Path.T * (int Inttab.table)
 
 fun count_patternvars PVar = 1
   | count_patternvars (PConst (_, ps)) =
@@ -210,11 +210,7 @@ fun get_guid () =
         string_of_int (Time.toMicroseconds (Time.now ())) ^ string_of_int c
     end
 
-fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.basic s)));
-
-fun writeTextFile name s = File.write (Path.explode name) s
-
-fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
+fun tmp_file s = Path.expand (File.tmp_path (Path.basic s));
 
 fun compile eqs = 
     let
@@ -225,17 +221,17 @@ fun compile eqs =
         val (arity, source) = haskell_prog module eqs
         val module_file = tmp_file (module^".hs")
         val object_file = tmp_file (module^".o")
-        val _ = writeTextFile module_file source
-        val _ = Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -c " ^ module_file)
+        val _ = File.write module_file source
         val _ =
-          if not (fileExists object_file) then
+          Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -c " ^
+            Bash.string (File.platform_path module_file))
+        val _ =
+          if not (File.exists object_file) then
             raise Compile ("Failure compiling haskell code (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
           else ()
     in
         (guid, module_file, arity)      
     end
-
-fun readResultFile name = File.read (Path.explode name) 
 
 fun parse_result arity_of result =
     let
@@ -308,14 +304,19 @@ fun run (guid, module_file, arity) t =
         val result_file = tmp_file (module^"_Result_"^callguid^".txt")
         val call_file = tmp_file (call^".hs")
         val term = print_term arity_of 0 t
-        val call_source = "module "^call^" where\n\nimport "^module^"\n\ncall = "^module^".calc \""^result_file^"\" ("^term^")"
-        val _ = writeTextFile call_file call_source
-        val _ = Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -e \""^call^".call\" "^module_file^" "^call_file)
-        val result = readResultFile result_file handle IO.Io _ =>
+        val call_source =
+          "module "^call^" where\n\nimport "^module^"\n\ncall = "^module^".calc \""^
+            File.platform_path result_file^"\" ("^term^")"
+        val _ = File.write call_file call_source
+        val _ =
+          Isabelle_System.bash ("exec \"$ISABELLE_GHC\" -e \""^call^".call\" "^
+            Bash.string (File.platform_path module_file) ^ " " ^
+            Bash.string (File.platform_path call_file))
+        val result = File.read result_file handle IO.Io _ =>
           raise Run ("Failure running haskell compiler (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
         val t' = parse_result arity_of result
-        val _ = OS.FileSys.remove call_file
-        val _ = OS.FileSys.remove result_file
+        val _ = File.rm call_file
+        val _ = File.rm result_file
     in
         t'
     end

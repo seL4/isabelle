@@ -510,8 +510,8 @@ fun mk_driver_ghc ctxt path modules value_name =
     val compiled_path = Path.append path (Path.basic "test")
     val compile_cmd =
       "\"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
-      Config.get ctxt ghc_options ^ " -o " ^ File.bash_path compiled_path ^ " " ^
-      File.bash_path driver_path ^ " -i" ^ File.bash_path path
+      Config.get ctxt ghc_options ^ " -o " ^ Bash.string (File.platform_path compiled_path) ^ " " ^
+      Bash.string (File.platform_path driver_path) ^ " -i" ^ Bash.string (File.platform_path path)
 
     val run_cmd = File.bash_path compiled_path
   in
