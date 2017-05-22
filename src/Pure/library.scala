@@ -142,7 +142,7 @@ object Library
   def trim_split_lines(s: String): List[String] =
     split_lines(trim_line(s)).map(trim_line(_))
 
-  def trim_substring(s: String): String = new String(s.toCharArray)
+  def isolate_substring(s: String): String = new String(s.toCharArray)
 
 
   /* quote */

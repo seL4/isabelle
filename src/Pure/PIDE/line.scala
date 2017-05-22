@@ -95,7 +95,7 @@ object Line
   object Document
   {
     def apply(text: String): Document =
-      Document(logical_lines(text).map(s => Line(Library.trim_substring(s))))
+      Document(logical_lines(text).map(s => Line(Library.isolate_substring(s))))
 
     val empty: Document = apply("")
 
