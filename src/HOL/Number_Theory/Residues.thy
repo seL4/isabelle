@@ -57,7 +57,7 @@ proof -
   qed
   with m_gt_one show ?thesis
     by (fastforce simp add: R_def residue_ring_def mod_add_right_eq ac_simps  intro!: abelian_groupI)
-qed    
+qed
 
 lemma comm_monoid: "comm_monoid R"
   unfolding R_def residue_ring_def
@@ -247,7 +247,6 @@ subsection \<open>Euler's theorem\<close>
 
 lemma (in residues) totient_eq:
   "totient (nat m) = card (Units R)"
-  thm R_def
 proof -
   have *: "inj_on nat (Units R)"
     by (rule inj_onI) (auto simp add: res_units_eq)
