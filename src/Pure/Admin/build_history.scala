@@ -205,9 +205,9 @@ object Build_History
       val build_args1 = List("-v", "-j" + processes) ::: build_args
       val build_result =
       {
-        val progress1 = new Seq_Progress(progress, new File_Progress(build_out))
-        val other_isabelle1 = new Other_Isabelle(progress1, hg.root, isabelle_identifier)
-        other_isabelle1("build " + Bash.strings(build_args1), redirect = true, echo = verbose)
+        val other_isabelle1 =
+          new Other_Isabelle(new File_Progress(build_out), hg.root, isabelle_identifier)
+        other_isabelle1("build " + Bash.strings(build_args1), redirect = true, echo = true)
       }
       val build_end = Date.now()
 

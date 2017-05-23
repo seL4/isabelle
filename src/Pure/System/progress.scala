@@ -65,18 +65,3 @@ class File_Progress(path: Path, verbose: Boolean = false) extends Progress
 
   override def toString: String = path.toString
 }
-
-class Seq_Progress(progress1: Progress, progress2: Progress) extends Progress
-{
-  override def echo(msg: String)
-  {
-    progress1.echo(msg)
-    progress2.echo(msg)
-  }
-
-  override def theory(session: String, theory: String)
-  {
-    progress1.theory(session, theory)
-    progress2.theory(session, theory)
-  }
-}
