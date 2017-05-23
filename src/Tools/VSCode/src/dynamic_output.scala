@@ -12,7 +12,7 @@ import isabelle._
 
 object Dynamic_Output
 {
-  case class State(do_update: Boolean = true, output: List[XML.Tree] = Nil)
+  sealed case class State(do_update: Boolean = true, output: List[XML.Tree] = Nil)
   {
     def handle_update(
       resources: VSCode_Resources, channel: Channel, restriction: Option[Set[Command]]): State =
