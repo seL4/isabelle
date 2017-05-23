@@ -219,7 +219,8 @@ class Pretty_Text_Area(
       text_area.getPainter.repaint()
     }
     text_field.setForeground(
-      if (ok) search_field_foreground else current_rendering.error_color)
+      if (ok) search_field_foreground
+      else current_rendering.color(Rendering.Color.error))
   }
 
 

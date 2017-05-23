@@ -40,6 +40,10 @@ object Rendering
     val text_colors =
       values -- background_colors -- foreground_colors -- message_underline_colors --
       message_background_colors
+
+    // overview
+    val unprocessed, running = Value
+    val overview_colors = Set(unprocessed, running, error, warning)
   }
 
 
@@ -469,6 +473,31 @@ abstract class Rendering(
         results.flatMap(res => res.infos(true)) :::
         results.flatMap(res => res.infos(false)).lastOption.toList
       if (all_tips.isEmpty) None else Some(Text.Info(r, all_tips))
+    }
+  }
+
+
+  /* command status overview */
+
+  def overview_color(range: Text.Range): Option[Rendering.Color.Value] =
+  {
+    if (snapshot.is_outdated) None
+    else {
+      val results =
+        snapshot.cumulate[List[Markup]](range, Nil, Protocol.liberal_status_elements, _ =>
+          {
+            case (status, Text.Info(_, elem)) => Some(elem.markup :: status)
+          }, status = true)
+      if (results.isEmpty) None
+      else {
+        val status = Protocol.Status.make(results.iterator.flatMap(_.info))
+
+        if (status.is_running) Some(Rendering.Color.running)
+        else if (status.is_failed) Some(Rendering.Color.error)
+        else if (status.is_warned) Some(Rendering.Color.warning)
+        else if (status.is_unprocessed) Some(Rendering.Color.unprocessed)
+        else None
+      }
     }
   }
 }

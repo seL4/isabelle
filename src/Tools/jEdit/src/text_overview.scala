@@ -69,8 +69,10 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   /* synchronous painting */
 
+  type Color_Info = (Rendering.Color.Value, Int, Int)
+
+  private var current_colors: List[Color_Info] = Nil
   private var current_overview = Overview()
-  private var current_colors: List[(Color, Int, Int)] = Nil
 
   private val delay_repaint =
     GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { repaint() }
@@ -96,7 +98,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
           gfx.setColor(getBackground)
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
           for ((color, h, h1) <- current_colors) {
-            gfx.setColor(color)
+            gfx.setColor(rendering.color(color))
             gfx.fillRect(0, h, getWidth, h1 - h)
           }
         }
@@ -138,8 +140,8 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                 val L = overview.L
                 val H = overview.H
 
-                @tailrec def loop(l: Int, h: Int, p: Int, q: Int, colors: List[(Color, Int, Int)])
-                  : List[(Color, Int, Int)] =
+                @tailrec def loop(l: Int, h: Int, p: Int, q: Int, colors: List[Color_Info])
+                  : List[Color_Info] =
                 {
                   Exn.Interrupt.expose()
 

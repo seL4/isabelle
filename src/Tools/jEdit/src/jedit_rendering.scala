@@ -174,12 +174,8 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
   val main_color = jEdit.getColorProperty("view.fgColor")
 
   val outdated_color = color("outdated_color")
-  val unprocessed_color = color("unprocessed_color")
-  val running_color = color("running_color")
   val bullet_color = color("bullet_color")
   val tooltip_color = color("tooltip_color")
-  val warning_color = color("warning_color")
-  val error_color = color("error_color")
   val spell_checker_color = color("spell_checker_color")
   val entity_ref_color = color("entity_ref_color")
   val breakpoint_disabled_color = color("breakpoint_disabled_color")
@@ -249,31 +245,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
             }
           case _ => None
         }).headOption.map(_.info)
-
-
-  /* command status overview */
-
-  def overview_color(range: Text.Range): Option[Color] =
-  {
-    if (snapshot.is_outdated) None
-    else {
-      val results =
-        snapshot.cumulate[List[Markup]](range, Nil, Protocol.liberal_status_elements, _ =>
-          {
-            case (status, Text.Info(_, elem)) => Some(elem.markup :: status)
-          }, status = true)
-      if (results.isEmpty) None
-      else {
-        val status = Protocol.Status.make(results.iterator.flatMap(_.info))
-
-        if (status.is_running) Some(running_color)
-        else if (status.is_failed) Some(error_color)
-        else if (status.is_warned) Some(warning_color)
-        else if (status.is_unprocessed) Some(unprocessed_color)
-        else None
-      }
-    }
-  }
 
 
   /* caret focus */
