@@ -57,6 +57,13 @@ const text_colors = [
   "antiquote"
 ]
 
+const text_overview_colors = [
+  "unprocessed",
+  "running",
+  "error",
+  "warning"
+]
+
 
 /* init */
 
@@ -83,6 +90,14 @@ export function init(context: ExtensionContext)
     return decoration(
       { light: { color: get_color(color, true) },
         dark: { color: get_color(color, false) } })
+  }
+
+  function text_overview_color(color: string): TextEditorDecorationType
+  {
+    return decoration(
+      { overviewRulerLane: vscode.OverviewRulerLane.Right,
+        light: { overviewRulerColor: get_color(color, true) },
+        dark: { overviewRulerColor: get_color(color, false) } })
   }
 
   function bottom_border(width: string, style: string, color: string): TextEditorDecorationType
@@ -121,6 +136,9 @@ export function init(context: ExtensionContext)
   }
   for (const color of text_colors) {
     types.set("text_" + color, text_color(color))
+  }
+  for (const color of text_overview_colors) {
+    types.set("text_overview_" + color, text_overview_color(color))
   }
   types.set("spell_checker", bottom_border("1px", "solid", "spell_checker"))
 

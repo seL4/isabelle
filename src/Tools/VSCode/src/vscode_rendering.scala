@@ -12,6 +12,8 @@ import isabelle._
 
 import java.io.{File => JFile}
 
+import scala.annotation.tailrec
+
 
 object VSCode_Rendering
 {
@@ -128,6 +130,37 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
   }
 
 
+  /* text overview color */
+
+  private sealed case class Color_Info(
+    color: Rendering.Color.Value, offset: Text.Offset, end_offset: Text.Offset, end_line: Int)
+
+  def text_overview_color: List[Text.Info[Rendering.Color.Value]] =
+  {
+    @tailrec def loop(offset: Text.Offset, line: Int, lines: List[Line], colors: List[Color_Info])
+      : List[Text.Info[Rendering.Color.Value]] =
+    {
+      if (lines.nonEmpty) {
+        val end_offset = offset + lines.head.text.length
+        val colors1 =
+          (overview_color(Text.Range(offset, end_offset)), colors) match {
+            case (Some(color), old :: rest) if color == old.color && line == old.end_line =>
+              old.copy(end_offset = end_offset, end_line = line + 1) :: rest
+            case (Some(color), _) =>
+              Color_Info(color, offset, end_offset, line + 1) :: colors
+            case (None, _) => colors
+          }
+        loop(end_offset + 1, line + 1, lines.tail, colors1)
+      }
+      else {
+        colors.reverse.map(info =>
+          Text.Info(Text.Range(info.offset, info.end_offset), info.color))
+      }
+    }
+    loop(0, 0, model.content.doc.lines, Nil)
+  }
+
+
   /* dotted underline */
 
   def dotted(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
@@ -158,6 +191,8 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
       text_color(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
+      text_overview_color) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
       dotted(model.content.text_range)) :::
     List(spell_checker)

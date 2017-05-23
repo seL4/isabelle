@@ -41,9 +41,9 @@ object Rendering
       values -- background_colors -- foreground_colors -- message_underline_colors --
       message_background_colors
 
-    // overview
+    // text overview
     val unprocessed, running = Value
-    val overview_colors = Set(unprocessed, running, error, warning)
+    val text_overview_colors = Set(unprocessed, running, error, warning)
   }
 
 
