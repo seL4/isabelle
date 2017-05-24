@@ -335,6 +335,10 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" " + File.bash_path(arg) + " >/dev/null 2>/dev/null &")
 
+  def export_isabelle_identifier(isabelle_identifier: String): String =
+    if (isabelle_identifier == "") ""
+    else "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n"
+
 
 
   /** Isabelle resources **/

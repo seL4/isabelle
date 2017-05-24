@@ -15,8 +15,7 @@ class Other_Isabelle(progress: Progress, val isabelle_home: Path, val isabelle_i
   /* static system */
 
   def bash(script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
-    progress.bash(
-      "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n" + script,
+    progress.bash(Isabelle_System.export_isabelle_identifier(isabelle_identifier) + script,
       env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo)
 
   def apply(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
