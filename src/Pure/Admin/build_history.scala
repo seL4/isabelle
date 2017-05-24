@@ -403,6 +403,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     isabelle_repos_self: Path,
     isabelle_repos_other: Path,
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
+    isabelle_identifier: String = default_isabelle_identifier,
     self_update: Boolean = false,
     push_isabelle_home: Boolean = false,
     progress: Progress = No_Progress,
@@ -454,6 +455,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       val process_result =
         ssh.execute(
+          Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
           ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
             " -o " + ssh.bash_path(output_file) + " " + options + " " +
             ssh.bash_path(isabelle_repos_other) + " " + args,

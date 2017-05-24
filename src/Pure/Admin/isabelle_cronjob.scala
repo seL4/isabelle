@@ -235,6 +235,7 @@ object Isabelle_Cronjob
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
                   isabelle_repos_source = isabelle_dev_source,
+                  isabelle_identifier = "cronjob_build_history",
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
                   options =
