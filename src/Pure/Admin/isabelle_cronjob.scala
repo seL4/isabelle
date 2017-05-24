@@ -219,9 +219,8 @@ object Isabelle_Cronjob
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
   }
 
-  private def remote_build_history(arg: (String, Int), r: Remote_Build): Logger_Task =
+  private def remote_build_history(rev: String, i: Int, r: Remote_Build): Logger_Task =
   {
-    val (rev, index) = arg
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
       {
@@ -240,7 +239,7 @@ object Isabelle_Cronjob
                   push_isabelle_home = push_isabelle_home,
                   options =
                     "-r " + Bash.string(rev) +
-                    " -N " + Bash.string(task_name) + "_" + (index + 1).toString +
+                    " -N " + Bash.string(task_name) + "_" + (if (i < 0) "" else (i + 1).toString) +
                     " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
 
@@ -402,9 +401,11 @@ object Isabelle_Cronjob
         run_now(
           SEQ(List(build_release, build_history_base,
             PAR(remote_builds.map(seq =>
-              SEQ(seq.flatMap(r =>
-                r.pick(logger.options, rev, r.history_base_filter(hg)).zipWithIndex.
-                  map(remote_build_history(_, r)))))),
+              SEQ(
+                for {
+                  (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
+                  rev <- r.pick(logger.options, rev, r.history_base_filter(hg))
+                } yield remote_build_history(rev, i, r)))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
               logger => Isabelle_Devel.build_log_database(logger.options)),
