@@ -172,6 +172,7 @@ class Server(
   {
     resources.update_caret(caret)
     delay_caret_update.invoke()
+    delay_input.invoke()
   }
 
 

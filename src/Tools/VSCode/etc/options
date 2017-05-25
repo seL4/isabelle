@@ -23,3 +23,6 @@ option vscode_pide_extensions : bool = false
 
 option vscode_unicode_symbols : bool = false
   -- "output Isabelle symbols via Unicode (according to etc/symbols)"
+
+option vscode_caret_perspective : int = 50
+  -- "number of visible lines above and below the caret (0: unrestricted)"

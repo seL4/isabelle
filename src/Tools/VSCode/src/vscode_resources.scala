@@ -20,15 +20,28 @@ object VSCode_Resources
 
   sealed case class State(
     models: Map[JFile, Document_Model] = Map.empty,
+    caret: Option[(JFile, Line.Position)] = None,
     pending_input: Set[JFile] = Set.empty,
-    pending_output: Set[JFile] = Set.empty,
-    caret: Option[(JFile, Line.Position)] = None)
+    pending_output: Set[JFile] = Set.empty)
   {
     def update_models(changed: Traversable[(JFile, Document_Model)]): State =
       copy(
         models = models ++ changed,
         pending_input = (pending_input /: changed) { case (set, (file, _)) => set + file },
         pending_output = (pending_output /: changed) { case (set, (file, _)) => set + file })
+
+    def update_caret(new_caret: Option[(JFile, Line.Position)]): State =
+      if (caret == new_caret) this
+      else
+        copy(
+          caret = new_caret,
+          pending_input = pending_input ++ caret.map(_._1) ++ new_caret.map(_._1))
+
+    def get_caret(file: JFile): Option[Line.Position] =
+      caret match {
+        case Some((caret_file, caret_pos)) if caret_file == file => Some(caret_pos)
+        case _ => None
+      }
 
     lazy val document_blobs: Document.Blobs =
       Document.Blobs(
@@ -219,7 +232,7 @@ class VSCode_Resources(
           (for {
             file <- st.pending_input.iterator
             model <- st.models.get(file)
-            (edits, model1) <- model.flush_edits(st.document_blobs)
+            (edits, model1) <- model.flush_edits(st.document_blobs, st.get_caret(file))
           } yield (edits, (file, model1))).toList
 
         session.update(st.document_blobs, changed_models.flatMap(_._1))
@@ -287,7 +300,7 @@ class VSCode_Resources(
   /* caret handling */
 
   def update_caret(caret: Option[(JFile, Line.Position)])
-  { state.change(_.copy(caret = caret)) }
+  { state.change(_.update_caret(caret)) }
 
   def caret_offset(): Option[(Document_Model, Text.Offset)] =
   {

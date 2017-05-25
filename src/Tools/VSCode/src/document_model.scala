@@ -79,15 +79,35 @@ sealed case class Document_Model(
 
   /* perspective */
 
-  def node_perspective(doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
+  def node_perspective(doc_blobs: Document.Blobs, caret: Option[Line.Position])
+    : (Boolean, Document.Node.Perspective_Text) =
   {
     if (is_theory) {
       val snapshot = this.snapshot()
 
+      val caret_perspective = resources.options.int("vscode_caret_perspective") max 0
+      val caret_range =
+        if (caret_perspective != 0) {
+          caret match {
+            case Some(pos) =>
+              val doc = content.doc
+              val pos1 = Line.Position((pos.line - caret_perspective) max 0)
+              val pos2 = Line.Position((pos.line + caret_perspective + 1) min doc.lines.length)
+              Text.Range(doc.offset(pos1).get, doc.offset(pos2).get)
+            case None => Text.Range.offside
+          }
+        }
+        else if (node_visible) content.text_range
+        else Text.Range.offside
+
       val text_perspective =
-        if (node_visible || snapshot.commands_loading_ranges(resources.visible_node(_)).nonEmpty)
+        if (snapshot.commands_loading_ranges(resources.visible_node(_)).nonEmpty)
           Text.Perspective.full
-        else Text.Perspective.empty
+        else
+          content.text_range.try_restrict(caret_range) match {
+            case Some(range) => Text.Perspective(List(range))
+            case None => Text.Perspective.empty
+          }
 
       (snapshot.node.load_commands_changed(doc_blobs),
         Document.Node.Perspective(node_required, text_perspective, Document.Node.Overlays.empty))
@@ -127,9 +147,10 @@ sealed case class Document_Model(
     }
   }
 
-  def flush_edits(doc_blobs: Document.Blobs): Option[(List[Document.Edit_Text], Document_Model)] =
+  def flush_edits(doc_blobs: Document.Blobs, caret: Option[Line.Position])
+    : Option[(List[Document.Edit_Text], Document_Model)] =
   {
-    val (reparse, perspective) = node_perspective(doc_blobs)
+    val (reparse, perspective) = node_perspective(doc_blobs, caret)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
       val edits = node_edits(node_header, pending_edits, perspective)
       Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
