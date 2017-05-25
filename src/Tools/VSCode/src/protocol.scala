@@ -20,6 +20,22 @@ object Protocol
   object Message
   {
     val empty: Map[String, JSON.T] = Map("jsonrpc" -> "2.0")
+
+    def log(prefix: String, json: JSON.T, logger: Logger, verbose: Boolean)
+    {
+      val header: Map[String, Any] =
+        json match {
+          case obj: Map[Any, Any] =>
+            (obj.get("method"), obj.get("id")) match {
+              case (Some(method), Some(id)) => Map("method" -> method, "id" -> id)
+              case (Some(method), None) => Map("method" -> method)
+              case _ => Map.empty
+            }
+          case _ => Map.empty
+        }
+      if (verbose || header.isEmpty) logger(prefix + "\n" + JSON.Format(json))
+      else logger(prefix + " " + JSON.Format(header))
+    }
   }
 
 

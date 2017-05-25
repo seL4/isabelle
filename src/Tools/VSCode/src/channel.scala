@@ -14,7 +14,7 @@ import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStre
 import scala.collection.mutable
 
 
-class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
+class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbose: Boolean = false)
 {
   /* read message */
 
@@ -59,8 +59,9 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
         s match {
           case Value.Int(n) if n >= 0 =>
             val msg = read_content(n)
-            log("IN: " + n + "\n" + msg)
-            Some(JSON.parse(msg))
+            val json = JSON.parse(msg)
+            Protocol.Message.log("IN: " + n, json, log, verbose)
+            Some(json)
           case _ => error("Bad Content-Length: " + s)
         }
       case header => error(cat_lines("Malformed header:" :: header))
@@ -77,7 +78,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger)
     val n = content.length
     val header = UTF8.bytes("Content-Length: " + n + "\r\n\r\n")
 
-    log("OUT: " + n + "\n" + msg)
+    Protocol.Message.log("OUT: " + n, json, log, verbose)
     out.synchronized {
       out.write(header)
       out.write(content)

@@ -34,6 +34,7 @@ object Server
       var modes: List[String] = Nil
       var options = Options.init()
       var system_mode = false
+      var verbose = false
 
       val getopts = Getopts("""
 Usage: isabelle vscode_server [OPTIONS]
@@ -45,6 +46,7 @@ Usage: isabelle vscode_server [OPTIONS]
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode for session image
+    -v           verbose logging
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
@@ -53,13 +55,14 @@ Usage: isabelle vscode_server [OPTIONS]
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg),
-        "s" -> (_ => system_mode = true))
+        "s" -> (_ => system_mode = true),
+        "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val log = Logger.make(log_file)
-      val channel = new Channel(System.in, System.out, log)
+      val channel = new Channel(System.in, System.out, log, verbose)
       val server = new Server(channel, options, logic, dirs, modes, system_mode, log)
 
       // prevent spurious garbage on the main protocol channel
