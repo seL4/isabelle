@@ -16,6 +16,9 @@ object Logger
 trait Logger
 {
   def apply(msg: => String): Unit
+
+  def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
+    Timing.timeit(message, enabled, apply(_))(e)
 }
 
 object No_Logger extends Logger
