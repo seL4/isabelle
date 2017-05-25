@@ -55,20 +55,6 @@ declare [[code drop:
   or implemented for RBT trees.
 *)
 
-export_code _ checking SML OCaml? Haskell?
-
-(* Extra setup to make Scala happy *)
-(* If the compilation fails with an error "ambiguous implicit values",
-   read \<section>7.1 in the Code Generation Manual *)
-
-lemma [code]:
-  "(gfp :: ('a :: complete_linorder \<Rightarrow> 'a) \<Rightarrow> 'a) f = Sup {u. u \<le> f u}"
-unfolding gfp_def by blast
-
-lemma [code]:
-  "(lfp :: ('a :: complete_linorder \<Rightarrow> 'a) \<Rightarrow> 'a) f = Inf {u. f u \<le> u}"
-unfolding lfp_def by blast
-
-export_code _ checking Scala?
+export_code _ checking SML OCaml? Haskell? Scala
 
 end
