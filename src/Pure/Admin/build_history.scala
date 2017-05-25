@@ -169,7 +169,6 @@ object Build_History
       val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
-      val build_out = other_isabelle.isabelle_home_user + Path.explode("log/build.out")
 
       if (first_build) {
         other_isabelle.resolve_components(verbose)
@@ -193,6 +192,9 @@ object Build_History
             List(build_host, ml_platform, "M" + threads) ::: build_tags)
 
       Isabelle_System.mkdirs(log_path.dir)
+
+      val build_out = other_isabelle.isabelle_home_user + Path.explode("log/build.out")
+      val build_out_progress = new File_Progress(build_out)
       build_out.file.delete
 
 
@@ -204,11 +206,8 @@ object Build_History
       val build_start = Date.now()
       val build_args1 = List("-v", "-j" + processes) ::: build_args
       val build_result =
-      {
-        val other_isabelle1 =
-          new Other_Isabelle(new File_Progress(build_out), hg.root, isabelle_identifier)
-        other_isabelle1("build " + Bash.strings(build_args1), redirect = true, echo = true)
-      }
+        (new Other_Isabelle(build_out_progress, hg.root, isabelle_identifier))(
+          "build " + Bash.strings(build_args1), redirect = true, echo = true)
       val build_end = Date.now()
 
       val build_info: Build_Log.Build_Info =
@@ -232,6 +231,7 @@ object Build_History
           Build_Log.Prop.build_end.name -> Build_Log.print_date(build_end),
           Build_Log.Prop.isabelle_version.name -> isabelle_version)
 
+      build_out_progress.echo("Reading ML statistics ...")
       val ml_statistics =
         build_info.finished_sessions.flatMap(session_name =>
           {
@@ -250,6 +250,7 @@ object Build_History
             properties.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
           })
 
+      build_out_progress.echo("Reading heap sizes ...")
       val heap_sizes =
         build_info.finished_sessions.flatMap(session_name =>
           {
@@ -259,6 +260,7 @@ object Build_History
             else None
           })
 
+      build_out_progress.echo("Writing log file " + log_path.ext("xz") + " ...")
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
