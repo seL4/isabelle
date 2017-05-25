@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/timing.scala
     Author:     Makarius
 
-Basic support for time measurement.
+Support for time measurement.
 */
 
 package isabelle
@@ -12,23 +12,29 @@ import java.util.Locale
 
 object Timing
 {
-  val zero = Timing(Time.zero, Time.zero, Time.zero)
+  val zero: Timing = Timing(Time.zero, Time.zero, Time.zero)
 
-  def timeit[A](message: String, enabled: Boolean = true)(e: => A) =
+  def timeit[A](
+    message: String = "",
+    enabled: Boolean = true,
+    output: String => Unit = Output.warning(_))(e: => A): A =
+  {
     if (enabled) {
       val start = Time.now()
       val result = Exn.capture(e)
       val stop = Time.now()
 
       val timing = stop - start
-      if (timing.is_relevant)
-        Output.warning(
-          (if (message == null || message.isEmpty) "" else message + ": ") +
+      if (timing.is_relevant) {
+        output(
+          (if (message == null || message == "") "" else message + ": ") +
             timing.message + " elapsed time")
+      }
 
       Exn.release(result)
     }
     else e
+  }
 }
 
 sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
