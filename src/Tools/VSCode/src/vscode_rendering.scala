@@ -185,16 +185,23 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
-    VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
-      background(VSCode_Rendering.background_elements, model.content.text_range, Set.empty)) :::
-    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
-      foreground(model.content.text_range)) :::
-    VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
-      text_color(model.content.text_range)) :::
-    VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
-      text_overview_color) :::
-    VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
-      dotted(model.content.text_range)) :::
+    Par_List.map((f: () => List[Document_Model.Decoration]) => f(),
+      List(
+        () =>
+          VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
+            background(VSCode_Rendering.background_elements, model.content.text_range, Set.empty)),
+        () =>
+          VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
+            foreground(model.content.text_range)),
+        () =>
+          VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
+            text_color(model.content.text_range)),
+        () =>
+          VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
+            text_overview_color),
+        () =>
+          VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
+            dotted(model.content.text_range)))).flatten :::
     List(spell_checker)
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
