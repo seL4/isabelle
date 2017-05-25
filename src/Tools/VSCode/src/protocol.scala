@@ -25,12 +25,9 @@ object Protocol
     {
       val header: Map[String, Any] =
         json match {
-          case obj: Map[Any, Any] =>
-            (obj.get("method"), obj.get("id")) match {
-              case (Some(method), Some(id)) => Map("method" -> method, "id" -> id)
-              case (Some(method), None) => Map("method" -> method)
-              case _ => Map.empty
-            }
+          case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
+            val obj = m.asInstanceOf[Map[String, JSON.T]]
+            obj -- (obj.keySet - "method" - "id")
           case _ => Map.empty
         }
       if (verbose || header.isEmpty) logger(prefix + "\n" + JSON.Format(json))
