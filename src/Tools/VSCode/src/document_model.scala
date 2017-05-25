@@ -28,6 +28,11 @@ object Document_Model
 
   /* content */
 
+  object Content
+  {
+    val empty: Content = Content(Line.Document.empty)
+  }
+
   sealed case class Content(doc: Line.Document)
   {
     override def toString: String = doc.toString
@@ -44,11 +49,7 @@ object Document_Model
   }
 
   def init(session: Session, node_name: Document.Node.Name): Document_Model =
-  {
-    val resources = session.resources.asInstanceOf[VSCode_Resources]
-    val content = Content(Line.Document.empty)
-    Document_Model(session, node_name, content)
-  }
+    Document_Model(session, node_name, Content.empty)
 }
 
 sealed case class Document_Model(
