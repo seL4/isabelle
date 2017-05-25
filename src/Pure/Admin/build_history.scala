@@ -405,7 +405,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     isabelle_repos_self: Path,
     isabelle_repos_other: Path,
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
-    isabelle_identifier: String = default_isabelle_identifier,
+    isabelle_identifier: String = "remote_build_history",
     self_update: Boolean = false,
     push_isabelle_home: Boolean = false,
     progress: Progress = No_Progress,
