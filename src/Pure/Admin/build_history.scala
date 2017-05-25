@@ -410,7 +410,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     push_isabelle_home: Boolean = false,
     progress: Progress = No_Progress,
     options: String = "",
-    args: String = ""): (List[(String, Bytes)], Process_Result) =
+    args: String = ""): List[(String, Bytes)] =
   {
     val isabelle_admin = isabelle_repos_self + Path.explode("Admin")
 
@@ -455,26 +455,22 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     {
       val output_file = tmp_dir + Path.explode("output")
 
-      val process_result =
-        ssh.execute(
-          Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-          ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
-            " -o " + ssh.bash_path(output_file) + " " + options + " " +
-            ssh.bash_path(isabelle_repos_other) + " " + args,
-          progress_stdout = progress.echo(_),
-          progress_stderr = progress.echo(_),
-          strict = false)
+      ssh.execute(
+        Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
+        ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
+          " -o " + ssh.bash_path(output_file) + " " + options + " " +
+          ssh.bash_path(isabelle_repos_other) + " " + args,
+        progress_stdout = progress.echo(_),
+        progress_stderr = progress.echo(_),
+        strict = false).check
 
-      val result =
-        for (line <- split_lines(ssh.read(output_file)))
-        yield {
-          val log = Path.explode(line)
-          val bytes = ssh.read_bytes(log)
-          ssh.rm(log)
-          (log.base.implode, bytes)
-        }
-
-      (result, process_result)
+      for (line <- split_lines(ssh.read(output_file)))
+      yield {
+        val log = Path.explode(line)
+        val bytes = ssh.read_bytes(log)
+        ssh.rm(log)
+        (log.base.implode, bytes)
+      }
     })
   }
 }

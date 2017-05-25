@@ -230,7 +230,7 @@ object Isabelle_Cronjob
               val self_update = !r.shared_home
               val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
 
-              val (results, _) =
+              val results =
                 Build_History.remote_build_history(ssh,
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
