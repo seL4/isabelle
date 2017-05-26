@@ -29,11 +29,13 @@ class Progress
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
-    echo: Boolean = false): Process_Result =
+    echo: Boolean = false,
+    strict: Boolean = true): Process_Result =
   {
     Isabelle_System.bash(script, cwd = cwd, env = env, redirect = redirect,
       progress_stdout = echo_if(echo, _),
-      progress_stderr = echo_if(echo, _))
+      progress_stderr = echo_if(echo, _),
+      strict = strict)
   }
 }
 

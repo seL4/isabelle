@@ -14,12 +14,20 @@ class Other_Isabelle(progress: Progress, val isabelle_home: Path, val isabelle_i
 
   /* static system */
 
-  def bash(script: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
+  def bash(
+      script: String,
+      redirect: Boolean = false,
+      echo: Boolean = false,
+      strict: Boolean = true): Process_Result =
     progress.bash(Isabelle_System.export_isabelle_identifier(isabelle_identifier) + script,
-      env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo)
+      env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo, strict = strict)
 
-  def apply(cmdline: String, redirect: Boolean = false, echo: Boolean = false): Process_Result =
-    bash("bin/isabelle " + cmdline, redirect, echo)
+  def apply(
+      cmdline: String,
+      redirect: Boolean = false,
+      echo: Boolean = false,
+      strict: Boolean = true): Process_Result =
+    bash("bin/isabelle " + cmdline, redirect = redirect, echo = echo, strict = strict)
 
   def resolve_components(echo: Boolean): Unit =
     other_isabelle("components -a", redirect = true, echo = echo).check
