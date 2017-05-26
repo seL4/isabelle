@@ -115,6 +115,9 @@ object Library
     else ""
   }
 
+  def encode_lines(s: String): String = s.replace('\n', '\u000b')
+  def decode_lines(s: String): String = s.replace('\u000b', '\n')
+
 
   /* strings */
 
