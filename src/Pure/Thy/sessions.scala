@@ -857,19 +857,6 @@ object Sessions
     def read_errors(db: SQL.Database, name: String): List[String] =
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors))
 
-    def read_build_log(db: SQL.Database, name: String,
-      command_timings: Boolean = false,
-      ml_statistics: Boolean = false,
-      task_statistics: Boolean = false): Build_Log.Session_Info =
-    {
-      Build_Log.Session_Info(
-        session_timing = read_session_timing(db, name),
-        command_timings = if (command_timings) read_command_timings(db, name) else Nil,
-        ml_statistics = if (ml_statistics) read_ml_statistics(db, name) else Nil,
-        task_statistics = if (task_statistics) read_task_statistics(db, name) else Nil,
-        errors = read_errors(db, name).map(Library.decode_lines(_)))
-    }
-
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
       db.using_statement(Session_Info.table.select(Session_Info.build_columns,
         Session_Info.session_name.where_equal(name)))(stmt =>
