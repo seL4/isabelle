@@ -100,10 +100,21 @@ object Build_Status
     maximum_heap: Long,
     average_heap: Long,
     stored_heap: Long,
-    status: Build_Log.Session_Status.Value)
+    status: Build_Log.Session_Status.Value,
+    errors: List[String])
   {
     def finished: Boolean = status == Build_Log.Session_Status.finished
     def failed: Boolean = status == Build_Log.Session_Status.failed
+
+    def present_errors(name: String): XML.Body =
+      if (errors.isEmpty) HTML.text(name + " (" + isabelle_version + ")")
+      else {
+        val tooltip_errors =
+          errors.map(msg => HTML.pre(HTML.text(Symbol.decode(msg))) + HTML.error_message_class)
+        val tooltip = List(HTML.div(tooltip_errors) + HTML.tooltip_class)
+        HTML.span(HTML.text(name) ::: tooltip) + HTML.error_class ::
+        HTML.text(" (" + isabelle_version + ")")
+      }
   }
 
   sealed case class Image(name: String, width: Int, height: Int)
@@ -149,7 +160,8 @@ object Build_Status
             Build_Log.Data.ml_timing_cpu,
             Build_Log.Data.ml_timing_gc,
             Build_Log.Data.heap_size,
-            Build_Log.Data.status) :::
+            Build_Log.Data.status,
+            Build_Log.Data.errors) :::
           (if (ml_statistics) List(Build_Log.Data.ml_statistics) else Nil)
 
         val Threads_Option = """threads\s*=\s*(\d+)""".r
@@ -209,7 +221,8 @@ object Build_Status
                 maximum_heap = ml_stats.maximum_heap_size,
                 average_heap = ml_stats.average_heap_size,
                 stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)),
-                status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)))
+                status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
+                errors = Build_Log.uncompress_errors(res.bytes(Build_Log.Data.errors)))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
@@ -262,9 +275,9 @@ object Build_Status
             (data_entry.failed_sessions match {
               case Nil => Nil
               case sessions =>
-                HTML.break ::: List(HTML.span(HTML.text("Failed:")) + HTML.error_message_class) :::
-                HTML.text(" " +
-                  commas(sessions.map(s => s.name + " (" + s.head.isabelle_version + ")")))
+                HTML.break :::
+                List(HTML.span(HTML.text("Failed sessions:")) + HTML.error_message_class) :::
+                List(HTML.itemize(sessions.map(s => s.head.present_errors(s.name))))
             })
           }))))))
 
