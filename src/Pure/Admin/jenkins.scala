@@ -84,8 +84,7 @@ object Jenkins
         case Some(url) =>
           Isabelle_System.with_tmp_file(session_name, "db") { database =>
             Bytes.write(database, Bytes.read(url))
-            using(SQLite.open_database(database))(db =>
-              store.read_build_log(db, session_name, ml_statistics = true)).ml_statistics
+            using(SQLite.open_database(database))(db => store.read_ml_statistics(db, session_name))
           }
         case None =>
           get_log("gz") match {

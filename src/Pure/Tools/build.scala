@@ -51,9 +51,13 @@ object Build
           try {
             using(SQLite.open_database(database))(db =>
             {
-              val build_log = store.read_build_log(db, name, command_timings = true)
-              val session_timing = Markup.Elapsed.unapply(build_log.session_timing) getOrElse 0.0
-              (build_log.command_timings, session_timing)
+              val command_timings = store.read_command_timings(db, name)
+              val session_timing =
+                store.read_session_timing(db, name) match {
+                  case Markup.Elapsed(t) => t
+                  case _ => 0.0
+                }
+              (command_timings, session_timing)
             })
           }
           catch {
