@@ -137,6 +137,8 @@ object HTML
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
 
+  def style(s: String): XML.Elem = XML.elem("style", text(s))
+
 
   /* messages */
 
