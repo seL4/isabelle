@@ -815,14 +815,6 @@ object Sessions
 
     /* session info */
 
-    def compress_errors(errors: List[String]): Option[Bytes] =
-      if (errors.isEmpty) None
-      else Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).compress())
-
-    def uncompress_errors(bytes: Bytes): List[String] =
-      if (bytes.isEmpty) Nil
-      else XML.Decode.list(YXML.string_of_body(_))(YXML.parse_body(bytes.uncompress().text))
-
     def write_session_info(
       db: SQL.Database,
       name: String,
@@ -840,7 +832,7 @@ object Sessions
           stmt.bytes(3) = Properties.compress(build_log.command_timings)
           stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
           stmt.bytes(5) = Properties.compress(build_log.task_statistics)
-          stmt.bytes(6) = compress_errors(build_log.errors)
+          stmt.bytes(6) = Build_Log.compress_errors(build_log.errors)
           stmt.string(7) = cat_lines(build.sources)
           stmt.string(8) = cat_lines(build.input_heaps)
           stmt.string(9) = build.output_heap getOrElse ""
@@ -862,6 +854,9 @@ object Sessions
     def read_task_statistics(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.task_statistics)
 
+    def read_errors(db: SQL.Database, name: String): List[String] =
+      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors))
+
     def read_build_log(db: SQL.Database, name: String,
       command_timings: Boolean = false,
       ml_statistics: Boolean = false,
@@ -872,7 +867,7 @@ object Sessions
         command_timings = if (command_timings) read_command_timings(db, name) else Nil,
         ml_statistics = if (ml_statistics) read_ml_statistics(db, name) else Nil,
         task_statistics = if (task_statistics) read_task_statistics(db, name) else Nil,
-        errors = uncompress_errors(read_bytes(db, name, Session_Info.errors)))
+        errors = read_errors(db, name).map(Library.decode_lines(_)))
     }
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =

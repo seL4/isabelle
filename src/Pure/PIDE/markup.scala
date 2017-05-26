@@ -43,6 +43,9 @@ object Markup
   val KIND = "kind"
   val Kind = new Properties.String(KIND)
 
+  val CONTENT = "content"
+  val Content = new Properties.String(CONTENT)
+
   val SERIAL = "serial"
   val Serial = new Properties.Long(SERIAL)
 

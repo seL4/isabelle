@@ -444,6 +444,7 @@ object Build_Log
   /** build info: toplevel output of isabelle build or Admin/build_history **/
 
   val ML_STATISTICS_MARKER = "\fML_statistics = "
+  val ERROR_MESSAGE_MARKER = "\ferror_message = "
   val SESSION_NAME = "session_name"
 
   object Session_Status extends Enumeration
@@ -464,16 +465,18 @@ object Build_Log
     ml_timing: Timing = Timing.zero,
     heap_size: Option[Long] = None,
     status: Option[Session_Status.Value] = None,
+    errors: List[String] = Nil,
     ml_statistics: List[Properties.T] = Nil)
   {
     def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
     def finished: Boolean = status == Some(Session_Status.finished)
+    def failed: Boolean = status == Some(Session_Status.failed)
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
   {
-    def finished_sessions: List[String] =
-      for ((name, entry) <- sessions.toList if entry.finished) yield name
+    def finished_sessions: List[String] = for ((a, b) <- sessions.toList if b.finished) yield a
+    def failed_sessions: List[String] = for ((a, b) <- sessions.toList if b.failed) yield a
   }
 
   private def parse_build_info(log_file: Log_File, parse_ml_statistics: Boolean): Build_Info =
@@ -510,6 +513,7 @@ object Build_Log
     var cancelled = Set.empty[String]
     var heap_sizes = Map.empty[String, Long]
     var ml_statistics = Map.empty[String, List[Properties.T]]
+    var errors = Map.empty[String, List[String]]
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
@@ -552,14 +556,21 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
-        case _
-        if parse_ml_statistics && line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
+        case _ if parse_ml_statistics && line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
           val (name, props) =
             Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
-              case Some((SESSION_NAME, session_name) :: props) => (session_name, props)
+              case Some((SESSION_NAME, name) :: props) => (name, props)
               case _ => log_file.err("malformed ML_statistics " + quote(line))
             }
           ml_statistics += (name -> (props :: ml_statistics.getOrElse(name, Nil)))
+
+        case _ if line.startsWith(ERROR_MESSAGE_MARKER) && YXML.detect(line) =>
+          val (name, msg) =
+            Library.try_unprefix(ERROR_MESSAGE_MARKER, line).map(log_file.parse_props(_)) match {
+              case Some(List((SESSION_NAME, name), (Markup.CONTENT, msg))) => (name, msg)
+              case _ => log_file.err("malformed error message " + quote(line))
+            }
+          errors += (name -> (Library.decode_lines(msg) :: errors.getOrElse(name, Nil)))
 
         case _ =>
       }
@@ -584,6 +595,7 @@ object Build_Log
               ml_timing = ml_timing.getOrElse(name, Timing.zero),
               heap_size = heap_sizes.get(name),
               status = Some(status),
+              errors = errors.getOrElse(name, Nil).reverse,
               ml_statistics = ml_statistics.getOrElse(name, Nil).reverse)
           (name -> entry)
         }):_*)
@@ -612,8 +624,16 @@ object Build_Log
       command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
       ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
       task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil,
-      errors = log_file.filter_lines("\ferror_message = ").map(Library.decode_lines(_)))
+      errors = log_file.filter_lines(ERROR_MESSAGE_MARKER).map(Library.decode_lines(_)))
   }
+
+  def compress_errors(errors: List[String]): Option[Bytes] =
+    if (errors.isEmpty) None
+    else Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).compress())
+
+  def uncompress_errors(bytes: Bytes): List[String] =
+    if (bytes.isEmpty) Nil
+    else XML.Decode.list(YXML.string_of_body(_))(YXML.parse_body(bytes.uncompress().text))
 
 
 
@@ -644,6 +664,7 @@ object Build_Log
     val ml_timing_factor = SQL.Column.double("ml_timing_factor")
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
+    val errors = SQL.Column.bytes("errors")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
     val known = SQL.Column.bool("known")
 
@@ -654,7 +675,7 @@ object Build_Log
       build_log_table("sessions",
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
-          heap_size, status))
+          heap_size, status, errors))
 
     val ml_statistics_table =
       build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
@@ -880,6 +901,7 @@ object Build_Log
           stmt.double(13) = session.ml_timing.factor
           stmt.long(14) = session.heap_size
           stmt.string(15) = session.status.map(_.toString)
+          stmt.bytes(16) = compress_errors(session.errors)
           stmt.execute()
         }
       })
@@ -1013,6 +1035,7 @@ object Build_Log
                   res.timing(Data.ml_timing_elapsed, Data.ml_timing_cpu, Data.ml_timing_gc),
                 heap_size = res.get_long(Data.heap_size),
                 status = res.get_string(Data.status).map(Session_Status.withName(_)),
+                errors = uncompress_errors(res.bytes(Data.errors)),
                 ml_statistics =
                   if (ml_statistics)
                     Properties.uncompress(res.bytes(Data.ml_statistics), Some(xml_cache))

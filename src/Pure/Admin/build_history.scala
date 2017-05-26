@@ -250,6 +250,22 @@ object Build_History
             properties.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
           })
 
+      build_out_progress.echo("Reading error messages ...")
+      val session_errors =
+        build_info.failed_sessions.flatMap(session_name =>
+          {
+            val database = isabelle_output + store.database(session_name)
+            val errors =
+              if (database.is_file) {
+                try {
+                  using(SQLite.open_database(database))(db => store.read_errors(db, session_name))
+                } // column "errors" could be missing
+                catch { case _: java.sql.SQLException => Nil }
+              }
+              else Nil
+            errors.map(msg => List(Build_Log.SESSION_NAME -> session_name, Markup.CONTENT -> msg))
+          })
+
       build_out_progress.echo("Reading heap sizes ...")
       val heap_sizes =
         build_info.finished_sessions.flatMap(session_name =>
@@ -265,6 +281,7 @@ object Build_History
         terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
+          session_errors.map(Build_Log.Log_File.print_props(Build_Log.ERROR_MESSAGE_MARKER, _)) :::
           heap_sizes), XZ.options(6))
 
 
