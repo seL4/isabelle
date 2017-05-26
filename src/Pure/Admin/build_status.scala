@@ -262,7 +262,7 @@ object Build_Status
             (data_entry.failed_sessions match {
               case Nil => Nil
               case sessions =>
-                HTML.break ::: List(HTML.error_message_span("Failed:")) :::
+                HTML.break ::: List(HTML.span(HTML.text("Failed:")) + HTML.error_message_class) :::
                 HTML.text(" " +
                   commas(sessions.map(s => s.name + " (" + s.head.isabelle_version + ")")))
             })

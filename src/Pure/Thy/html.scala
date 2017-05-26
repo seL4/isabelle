@@ -140,17 +140,18 @@ object HTML
 
   /* messages */
 
+  // background
   val writeln_message_class: XML.Attribute = css_class("writeln_message")
   val warning_message_class: XML.Attribute = css_class("warning_message")
   val error_message_class: XML.Attribute = css_class("error_message")
 
-  def writeln_message(msg: String): XML.Elem = par(text(msg)) + writeln_message_class
-  def warning_message(msg: String): XML.Elem = par(text(msg)) + warning_message_class
-  def error_message(msg: String): XML.Elem = par(text(msg)) + error_message_class
+  // underline
+  val writeln_class: XML.Attribute = css_class("writeln")
+  val warning_class: XML.Attribute = css_class("warning")
+  val error_class: XML.Attribute = css_class("error")
 
-  def writeln_message_span(msg: String): XML.Elem = span(text(msg)) + writeln_message_class
-  def warning_message_span(msg: String): XML.Elem = span(text(msg)) + warning_message_class
-  def error_message_span(msg: String): XML.Elem = span(text(msg)) + error_message_class
+  // tooltips
+  val tooltip_class: XML.Attribute = css_class("tooltip")
 
 
   /* document */
