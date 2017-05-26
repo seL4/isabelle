@@ -220,10 +220,12 @@ fun build args_file =
     val _ = SHA1.test_samples ();
     val _ = Options.load_default ();
     val _ = Isabelle_Process.init_options ();
-    val args = decode_args (File.read (Path.explode args_file));
+    val args as Args {name, ...} = decode_args (File.read (Path.explode args_file));
+    fun error_message msg = writeln ("\ferror_message = " ^ encode_lines msg);
     val _ =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
-        build_session args;
+        build_session args
+      handle exn => (List.app (error_message o #2) (Runtime.exn_messages exn); Exn.reraise exn);
     val _ = Options.reset_default ();
   in () end;
 

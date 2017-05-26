@@ -735,8 +735,9 @@ object Sessions
     val command_timings = SQL.Column.bytes("command_timings")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
     val task_statistics = SQL.Column.bytes("task_statistics")
+    val errors = SQL.Column.bytes("errors")
     val build_log_columns =
-      List(session_name, session_timing, command_timings, ml_statistics, task_statistics)
+      List(session_name, session_timing, command_timings, ml_statistics, task_statistics, errors)
 
     // Build.Session_Info
     val sources = SQL.Column.string("sources")
@@ -814,6 +815,14 @@ object Sessions
 
     /* session info */
 
+    def compress_errors(errors: List[String]): Option[Bytes] =
+      if (errors.isEmpty) None
+      else Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).compress())
+
+    def uncompress_errors(bytes: Bytes): List[String] =
+      if (bytes.isEmpty) Nil
+      else XML.Decode.list(YXML.string_of_body(_))(YXML.parse_body(bytes.uncompress().text))
+
     def write_session_info(
       db: SQL.Database,
       name: String,
@@ -831,10 +840,11 @@ object Sessions
           stmt.bytes(3) = Properties.compress(build_log.command_timings)
           stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
           stmt.bytes(5) = Properties.compress(build_log.task_statistics)
-          stmt.string(6) = cat_lines(build.sources)
-          stmt.string(7) = cat_lines(build.input_heaps)
-          stmt.string(8) = build.output_heap getOrElse ""
-          stmt.int(9) = build.return_code
+          stmt.bytes(6) = compress_errors(build_log.errors)
+          stmt.string(7) = cat_lines(build.sources)
+          stmt.string(8) = cat_lines(build.input_heaps)
+          stmt.string(9) = build.output_heap getOrElse ""
+          stmt.int(10) = build.return_code
           stmt.execute()
         })
       }
@@ -861,7 +871,8 @@ object Sessions
         session_timing = read_session_timing(db, name),
         command_timings = if (command_timings) read_command_timings(db, name) else Nil,
         ml_statistics = if (ml_statistics) read_ml_statistics(db, name) else Nil,
-        task_statistics = if (task_statistics) read_task_statistics(db, name) else Nil)
+        task_statistics = if (task_statistics) read_task_statistics(db, name) else Nil,
+        errors = uncompress_errors(read_bytes(db, name, Session_Info.errors)))
     }
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =

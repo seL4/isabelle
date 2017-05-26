@@ -258,12 +258,11 @@ object Build_Log
     def parse_props(text: String): Properties.T =
       xml_cache.props(Properties.decode_lines(XML.Decode.properties(YXML.parse_body(text))))
 
+    def filter_lines(marker: String): List[String] =
+      for (line <- lines; s <- Library.try_unprefix(marker, line)) yield s
+
     def filter_props(marker: String): List[Properties.T] =
-      for {
-        line <- lines
-        s <- Library.try_unprefix(marker, line)
-        if YXML.detect(s)
-      } yield parse_props(s)
+      for (s <- filter_lines(marker) if YXML.detect(s)) yield parse_props(s)
 
     def find_props(marker: String): Option[Properties.T] =
       find_line(marker) match {
@@ -599,7 +598,8 @@ object Build_Log
     session_timing: Properties.T,
     command_timings: List[Properties.T],
     ml_statistics: List[Properties.T],
-    task_statistics: List[Properties.T])
+    task_statistics: List[Properties.T],
+    errors: List[String])
 
   private def parse_session_info(
     log_file: Log_File,
@@ -611,7 +611,8 @@ object Build_Log
       session_timing = log_file.find_props("\fTiming = ") getOrElse Nil,
       command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
       ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
-      task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil)
+      task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil,
+      errors = log_file.filter_lines("\ferror_message = ").map(Library.decode_lines(_)))
   }
 
 
