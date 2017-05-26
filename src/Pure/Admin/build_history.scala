@@ -207,7 +207,7 @@ object Build_History
       val build_args1 = List("-v", "-j" + processes) ::: build_args
       val build_result =
         (new Other_Isabelle(build_out_progress, hg.root, isabelle_identifier))(
-          "build " + Bash.strings(build_args1), redirect = true, echo = true)
+          "build " + Bash.strings(build_args1), redirect = true, echo = true, strict = false)
       val build_end = Date.now()
 
       val build_info: Build_Log.Build_Info =
