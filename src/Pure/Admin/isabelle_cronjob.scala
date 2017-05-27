@@ -240,7 +240,7 @@ object Isabelle_Cronjob
                   push_isabelle_home = push_isabelle_home,
                   options =
                     "-r " + Bash.string(rev) +
-                    " -N " + Bash.string(task_name) + "_" + (if (i < 0) "" else (i + 1).toString) +
+                    " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                     " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
 
