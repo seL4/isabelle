@@ -89,10 +89,13 @@ object HTML
 
   /* attributes */
 
-  def id(s: String): XML.Attribute = ("id" -> s)
-  def width(w: Int): XML.Attribute = ("width" -> w.toString)
-  def height(h: Int): XML.Attribute = ("height" -> h.toString)
-  def css_class(name: String): XML.Attribute = ("class" -> name)
+  class Attribute(name: String, value: String)
+  { def apply(elem: XML.Elem): XML.Elem = elem + (name -> value) }
+
+  def id(s: String) = new Attribute("id", s)
+  def width(w: Int) = new Attribute("width", w.toString)
+  def height(h: Int) = new Attribute("height", h.toString)
+  def css_class(name: String) = new Attribute("class", name)
 
 
   /* structured markup operators */
@@ -143,17 +146,17 @@ object HTML
   /* messages */
 
   // background
-  val writeln_message_class: XML.Attribute = css_class("writeln_message")
-  val warning_message_class: XML.Attribute = css_class("warning_message")
-  val error_message_class: XML.Attribute = css_class("error_message")
+  val writeln_message_class: Attribute = css_class("writeln_message")
+  val warning_message_class: Attribute = css_class("warning_message")
+  val error_message_class: Attribute = css_class("error_message")
 
   // underline
-  val writeln_class: XML.Attribute = css_class("writeln")
-  val warning_class: XML.Attribute = css_class("warning")
-  val error_class: XML.Attribute = css_class("error")
+  val writeln_class: Attribute = css_class("writeln")
+  val warning_class: Attribute = css_class("warning")
+  val error_class: Attribute = css_class("error")
 
   // tooltips
-  val tooltip_class: XML.Attribute = css_class("tooltip")
+  val tooltip_class: Attribute = css_class("tooltip")
 
 
   /* document */

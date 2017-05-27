@@ -110,9 +110,9 @@ object Build_Status
       if (errors.isEmpty) HTML.text(name + " (" + isabelle_version + ")")
       else {
         val tooltip_errors =
-          errors.map(msg => HTML.pre(HTML.text(Symbol.decode(msg))) + HTML.error_message_class)
-        val tooltip = List(HTML.div(tooltip_errors) + HTML.tooltip_class)
-        HTML.span(HTML.text(name) ::: tooltip) + HTML.error_class ::
+          errors.map(msg => HTML.error_message_class(HTML.pre(HTML.text(Symbol.decode(msg)))))
+        val tooltip = List(HTML.tooltip_class(HTML.div(tooltip_errors)))
+        HTML.error_class(HTML.span(HTML.text(name) ::: tooltip)) ::
         HTML.text(" (" + isabelle_version + ")")
       }
   }
@@ -277,7 +277,7 @@ object Build_Status
               case Nil => Nil
               case sessions =>
                 HTML.break :::
-                List(HTML.span(HTML.text("Failed sessions:")) + HTML.error_message_class) :::
+                List(HTML.error_message_class(HTML.span(HTML.text("Failed sessions:")))) :::
                 List(HTML.itemize(sessions.map(s => s.head.present_errors(s.name))))
             })
           }))))))
@@ -420,7 +420,7 @@ plot [] """ + range + " " +
               HTML.text(" (" + session.head.timing.message_resources + ")"))))) ::
         data_entry.sessions.flatMap(session =>
           List(
-            HTML.section(session.name) + HTML.id("session_" + session.name),
+            HTML.id("session_" + session.name)(HTML.section(session.name)),
             HTML.par(
               HTML.description(
                 List(
@@ -437,9 +437,8 @@ plot [] """ + range + " " +
                 proper_string(session.head.afp_version).map(s =>
                   HTML.text("AFP version:") -> HTML.text(s)).toList) ::
               session_plots.getOrElse(session.name, Nil).map(image =>
-                HTML.image(image.name) +
-                  HTML.width(image.width / 2) +
-                  HTML.height(image.height / 2))))))
+                HTML.width(image.width / 2)(HTML.height(image.height / 2)(
+                  HTML.image(image.name))))))))
     }
   }
 
