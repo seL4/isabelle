@@ -155,8 +155,14 @@ object HTML
   val warning: Attribute = css_class("warning")
   val error: Attribute = css_class("error")
 
-  // tooltips
-  val tooltip_class: Attribute = css_class("tooltip")
+
+  /* tooltips */
+
+  def tooltip(item: XML.Body, tip: XML.Body): XML.Elem =
+    span(item ::: List(css_class("tooltip")(div(tip))))
+
+  def tooltip_errors(item: XML.Body, msgs: List[XML.Body]): XML.Elem =
+    HTML.error(tooltip(item, msgs.map(msg => error_message(pre(msg)))))
 
 
   /* document */

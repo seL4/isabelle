@@ -109,11 +109,8 @@ object Build_Status
     def present_errors(name: String): XML.Body =
       if (errors.isEmpty) HTML.text(name + " (" + isabelle_version + ")")
       else {
-        val tooltip_errors =
-          errors.map(msg => HTML.error_message(HTML.pre(HTML.text(Symbol.decode(msg)))))
-        val tooltip = List(HTML.tooltip_class(HTML.div(tooltip_errors)))
-        HTML.error(HTML.span(HTML.text(name) ::: tooltip)) ::
-        HTML.text(" (" + isabelle_version + ")")
+        HTML.tooltip_errors(HTML.text(name), errors.map(s => HTML.text(Symbol.decode(s)))) ::
+          HTML.text(" (" + isabelle_version + ")")
       }
   }
 
