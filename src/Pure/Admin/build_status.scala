@@ -110,9 +110,9 @@ object Build_Status
       if (errors.isEmpty) HTML.text(name + " (" + isabelle_version + ")")
       else {
         val tooltip_errors =
-          errors.map(msg => HTML.error_message_class(HTML.pre(HTML.text(Symbol.decode(msg)))))
+          errors.map(msg => HTML.error_message(HTML.pre(HTML.text(Symbol.decode(msg)))))
         val tooltip = List(HTML.tooltip_class(HTML.div(tooltip_errors)))
-        HTML.error_class(HTML.span(HTML.text(name) ::: tooltip)) ::
+        HTML.error(HTML.span(HTML.text(name) ::: tooltip)) ::
         HTML.text(" (" + isabelle_version + ")")
       }
   }
@@ -277,7 +277,7 @@ object Build_Status
               case Nil => Nil
               case sessions =>
                 HTML.break :::
-                List(HTML.error_message_class(HTML.span(HTML.text("Failed sessions:")))) :::
+                List(HTML.error_message(HTML.span(HTML.text("Failed sessions:")))) :::
                 List(HTML.itemize(sessions.map(s => s.head.present_errors(s.name))))
             })
           }))))))

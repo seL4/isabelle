@@ -146,14 +146,14 @@ object HTML
   /* messages */
 
   // background
-  val writeln_message_class: Attribute = css_class("writeln_message")
-  val warning_message_class: Attribute = css_class("warning_message")
-  val error_message_class: Attribute = css_class("error_message")
+  val writeln_message: Attribute = css_class("writeln_message")
+  val warning_message: Attribute = css_class("warning_message")
+  val error_message: Attribute = css_class("error_message")
 
   // underline
-  val writeln_class: Attribute = css_class("writeln")
-  val warning_class: Attribute = css_class("warning")
-  val error_class: Attribute = css_class("error")
+  val writeln: Attribute = css_class("writeln")
+  val warning: Attribute = css_class("warning")
+  val error: Attribute = css_class("error")
 
   // tooltips
   val tooltip_class: Attribute = css_class("tooltip")
