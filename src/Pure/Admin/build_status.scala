@@ -433,8 +433,7 @@ plot [] """ + range + " " +
                 proper_string(session.head.afp_version).map(s =>
                   HTML.text("AFP version:") -> HTML.text(s)).toList) ::
               session_plots.getOrElse(session.name, Nil).map(image =>
-                HTML.width(image.width / 2)(HTML.height(image.height / 2)(
-                  HTML.image(image.name))))))))
+                HTML.size(image.width / 2, image.height / 2)(HTML.image(image.name)))))))
     }
   }
 

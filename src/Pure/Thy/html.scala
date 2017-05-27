@@ -93,9 +93,11 @@ object HTML
   { def apply(elem: XML.Elem): XML.Elem = elem + (name -> value) }
 
   def id(s: String) = new Attribute("id", s)
+  def css_class(name: String) = new Attribute("class", name)
+
   def width(w: Int) = new Attribute("width", w.toString)
   def height(h: Int) = new Attribute("height", h.toString)
-  def css_class(name: String) = new Attribute("class", name)
+  def size(w: Int, h: Int)(elem: XML.Elem): XML.Elem = width(w)(height(h)(elem))
 
 
   /* structured markup operators */
