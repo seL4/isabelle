@@ -119,3 +119,5 @@ body { background-color: #FFFFFF; }
   position: absolute;
   z-index: 1;
 }
+
+.tooltip pre { margin: 1px; white-space: pre-wrap; }

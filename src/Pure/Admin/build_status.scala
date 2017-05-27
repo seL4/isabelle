@@ -259,8 +259,7 @@ object Build_Status
       if (x == 0L) None else Some(x.toString + " M")
 
     HTML.write_document(target_dir, "index.html",
-      List(HTML.title("Isabelle build status"),
-        HTML.style("pre { margin: 1px; white-space: pre-wrap; }")),
+      List(HTML.title("Isabelle build status")),
       List(HTML.chapter("Isabelle build status"),
         HTML.par(
           List(HTML.description(
