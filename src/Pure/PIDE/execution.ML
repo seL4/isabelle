@@ -118,7 +118,7 @@ fun fork ({name, pos, pri}: params) e =
                     status task [Markup.finished];
                     Output.report [Markup.markup_only (Markup.bad ())];
                     if exec_id = 0 then ()
-                    else List.app (Future.error_message pos) (Runtime.exn_messages_ids exn))
+                    else List.app (Future.error_message pos) (Runtime.exn_messages exn))
                 | Exn.Res _ =>
                     status task [Markup.finished])
             in Exn.release result end);

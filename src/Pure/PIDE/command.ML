@@ -201,7 +201,7 @@ fun check_cmts span tr st' =
         (Thy_Output.output_text st' {markdown = false} (Token.input_of cmt); [])
           handle exn =>
             if Exn.is_interrupt exn then Exn.reraise exn
-            else Runtime.exn_messages_ids exn)) ();
+            else Runtime.exn_messages exn)) ();
 
 fun report tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) ();
@@ -293,7 +293,7 @@ fun print_error tr opt_context e =
   (Toplevel.setmp_thread_position tr o Runtime.controlled_execution opt_context) e ()
     handle exn =>
       if Exn.is_interrupt exn then Exn.reraise exn
-      else List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages_ids exn);
+      else List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages exn);
 
 fun print_finished (Print {print_process, ...}) = Lazy.is_finished print_process;
 

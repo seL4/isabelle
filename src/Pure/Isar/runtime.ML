@@ -13,8 +13,8 @@ sig
   val exn_context: Proof.context option -> exn -> exn
   val thread_context: exn -> exn
   type error = ((serial * string) * string option)
-  val exn_messages_ids: exn -> error list
-  val exn_messages: exn -> (serial * string) list
+  val exn_messages: exn -> error list
+  val exn_message_list: exn -> string list
   val exn_message: exn -> string
   val exn_error_message: exn -> unit
   val exn_system_message: exn -> unit
@@ -91,7 +91,7 @@ val print_thy = Pretty.unformatted_string_of o Context.pretty_abbrev_thy;
 
 in
 
-fun exn_messages_ids e =
+fun exn_messages e =
   let
     fun raised exn name msgs =
       let val pos = Position.here (Exn_Properties.position exn) in
@@ -141,12 +141,12 @@ fun exn_messages_ids e =
 
 end;
 
-fun exn_messages exn = map #1 (exn_messages_ids exn);
-
-fun exn_message exn =
+fun exn_message_list exn =
   (case exn_messages exn of
-    [] => "Interrupt"
-  | msgs => cat_lines (map snd msgs));
+    [] => ["Interrupt"]
+  | msgs => map (#2 o #1) msgs);
+
+val exn_message = cat_lines o exn_message_list;
 
 val exn_error_message = Output.error_message o exn_message;
 val exn_system_message = Output.system_message o exn_message;

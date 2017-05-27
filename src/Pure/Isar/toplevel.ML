@@ -593,7 +593,7 @@ end;
 fun command_errors int tr st =
   (case transition int tr st of
     (st', NONE) => ([], SOME st')
-  | (_, SOME (exn, _)) => (Runtime.exn_messages_ids exn, NONE));
+  | (_, SOME (exn, _)) => (Runtime.exn_messages exn, NONE));
 
 fun command_exception int tr st =
   (case transition int tr st of

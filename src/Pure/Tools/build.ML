@@ -225,7 +225,7 @@ fun build args_file =
     val _ =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
         build_session args
-      handle exn => (List.app (error_message o #2) (Runtime.exn_messages exn); Exn.reraise exn);
+      handle exn => (List.app error_message (Runtime.exn_message_list exn); Exn.reraise exn);
     val _ = Options.reset_default ();
   in () end;
 
