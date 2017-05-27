@@ -332,6 +332,7 @@ object Build_History
       var rev = default_rev
       var build_tags = List.empty[String]
       var verbose = false
+      var exit_code = false
 
       val getopts = Getopts("""
 Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
@@ -353,6 +354,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -r REV       update to revision (default: """ + default_rev + """)
     -t TAG       free-form build tag (multiple occurrences possible)
     -v           verbose
+    -x           return overall exit code from build processes
 
   Build Isabelle sessions from the history of another REPOSITORY clone,
   passing ARGS directly to its isabelle build tool.
@@ -379,7 +381,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         "o:" -> (arg => output_file = arg),
         "r:" -> (arg => rev = arg),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
-        "v" -> (_ => verbose = true))
+        "v" -> (_ => verbose = true),
+        "x" -> (_ => exit_code = true))
 
       val more_args = getopts(args)
       val (root, build_args) =
@@ -409,7 +412,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       }
 
       val rc = (0 /: results) { case (rc, (res, _)) => rc max res.rc }
-      if (rc != 0) sys.exit(rc)
+      if (rc != 0 && exit_code) sys.exit(rc)
     }
   }
 
