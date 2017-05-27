@@ -819,11 +819,37 @@ definition arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow
 abbreviation arg_min_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
 "arg_min_on f S \<equiv> arg_min f (\<lambda>x. x \<in> S)"
 
+syntax
+  "_arg_min" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
+    ("(3ARG'_MIN _ _./ _)" [0, 0, 10] 10)
+translations
+  "ARG_MIN f x. P" \<rightleftharpoons> "CONST arg_min f (\<lambda>x. P)"
+
 lemma is_arg_min_linorder: fixes f :: "'a \<Rightarrow> 'b :: linorder"
 shows "is_arg_min f P x = (P x \<and> (\<forall>y. P y \<longrightarrow> f x \<le> f y))"
 by(auto simp add: is_arg_min_def)
 
-lemma arg_min_nat_lemma: "P k \<Longrightarrow> P(arg_min m P) \<and> (\<forall>y. P y \<longrightarrow> m (arg_min m P) \<le> m y)"
+lemma arg_minI:
+  "\<lbrakk> P x;
+    \<And>y. P y \<Longrightarrow> \<not> f y < f x;
+    \<And>x. \<lbrakk> P x; \<forall>y. P y \<longrightarrow> \<not> f y < f x \<rbrakk> \<Longrightarrow> Q x \<rbrakk>
+  \<Longrightarrow> Q (arg_min f P)"
+apply (simp add: arg_min_def is_arg_min_def)
+apply (rule someI2_ex)
+ apply blast
+apply blast
+done
+
+lemma arg_min_equality:
+  "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> f k \<le> f x) \<Longrightarrow> f (arg_min f P) = f k"
+  for f :: "_ \<Rightarrow> 'a::order"
+apply (rule arg_minI)
+  apply assumption
+ apply (simp add: less_le_not_le)
+by (metis le_less)
+
+lemma arg_min_nat_lemma:
+  "P k \<Longrightarrow> P(arg_min m P) \<and> (\<forall>y. P y \<longrightarrow> m (arg_min m P) \<le> m y)"
   for m :: "'a \<Rightarrow> nat"
 apply (simp add: arg_min_def is_arg_min_linorder)
 apply (rule someI_ex)
@@ -831,6 +857,10 @@ apply (erule ex_has_least_nat)
 done
 
 lemmas arg_min_natI = arg_min_nat_lemma [THEN conjunct1]
+
+lemma is_arg_min_arg_min_nat: fixes m :: "'a \<Rightarrow> nat"
+shows "P x \<Longrightarrow> is_arg_min m P (arg_min m P)"
+by (metis arg_min_nat_lemma is_arg_min_linorder)
 
 lemma arg_min_nat_le: "P x \<Longrightarrow> m (arg_min m P) \<le> m x"
   for m :: "'a \<Rightarrow> nat"
