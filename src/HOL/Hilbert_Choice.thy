@@ -523,64 +523,6 @@ lemma tfl_some: "\<forall>P x. P x \<longrightarrow> P (Eps P)"
   by (blast intro: someI)
 
 
-subsection \<open>Least value operator\<close>
-
-definition LeastM :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a"
-  where "LeastM m P \<equiv> (SOME x. P x \<and> (\<forall>y. P y \<longrightarrow> m x \<le> m y))"
-
-syntax
-  "_LeastM" :: "pttrn \<Rightarrow> ('a \<Rightarrow> 'b::ord) \<Rightarrow> bool \<Rightarrow> 'a"  ("LEAST _ WRT _. _" [0, 4, 10] 10)
-translations
-  "LEAST x WRT m. P" \<rightleftharpoons> "CONST LeastM m (\<lambda>x. P)"
-
-lemma LeastMI2:
-  "P x \<Longrightarrow>
-    (\<And>y. P y \<Longrightarrow> m x \<le> m y) \<Longrightarrow>
-    (\<And>x. P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> m x \<le> m y \<Longrightarrow> Q x) \<Longrightarrow>
-    Q (LeastM m P)"
-  apply (simp add: LeastM_def)
-  apply (rule someI2_ex)
-   apply blast
-  apply blast
-  done
-
-lemma LeastM_equality: "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> m k \<le> m x) \<Longrightarrow> m (LEAST x WRT m. P x) = m k"
-  for m :: "_ \<Rightarrow> 'a::order"
-  apply (rule LeastMI2)
-    apply assumption
-   apply blast
-  apply (blast intro!: order_antisym)
-  done
-
-lemma wf_linord_ex_has_least:
-  "wf r \<Longrightarrow> \<forall>x y. (x, y) \<in> r\<^sup>+ \<longleftrightarrow> (y, x) \<notin> r\<^sup>* \<Longrightarrow> P k \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> (m x, m y) \<in> r\<^sup>*)"
-  apply (drule wf_trancl [THEN wf_eq_minimal [THEN iffD1]])
-  apply (drule_tac x = "m ` Collect P" in spec)
-  apply force
-  done
-
-lemma ex_has_least_nat: "P k \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> m x \<le> m y)"
-  for m :: "'a \<Rightarrow> nat"
-  apply (simp only: pred_nat_trancl_eq_le [symmetric])
-  apply (rule wf_pred_nat [THEN wf_linord_ex_has_least])
-   apply (simp add: less_eq linorder_not_le pred_nat_trancl_eq_le)
-  apply assumption
-  done
-
-lemma LeastM_nat_lemma: "P k \<Longrightarrow> P (LeastM m P) \<and> (\<forall>y. P y \<longrightarrow> m (LeastM m P) \<le> m y)"
-  for m :: "'a \<Rightarrow> nat"
-  apply (simp add: LeastM_def)
-  apply (rule someI_ex)
-  apply (erule ex_has_least_nat)
-  done
-
-lemmas LeastM_natI = LeastM_nat_lemma [THEN conjunct1]
-
-lemma LeastM_nat_le: "P x \<Longrightarrow> m (LeastM m P) \<le> m x"
-  for m :: "'a \<Rightarrow> nat"
-  by (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp])
-
-
 subsection \<open>Greatest value operator\<close>
 
 definition GreatestM :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a"

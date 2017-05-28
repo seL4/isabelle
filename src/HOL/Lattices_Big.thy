@@ -841,12 +841,26 @@ apply blast
 done
 
 lemma arg_min_equality:
-  "P k \<Longrightarrow> (\<And>x. P x \<Longrightarrow> f k \<le> f x) \<Longrightarrow> f (arg_min f P) = f k"
+  "\<lbrakk> P k; \<And>x. P x \<Longrightarrow> f k \<le> f x \<rbrakk> \<Longrightarrow> f (arg_min f P) = f k"
   for f :: "_ \<Rightarrow> 'a::order"
 apply (rule arg_minI)
   apply assumption
  apply (simp add: less_le_not_le)
 by (metis le_less)
+
+lemma wf_linord_ex_has_least:
+  "\<lbrakk> wf r; \<forall>x y. (x, y) \<in> r\<^sup>+ \<longleftrightarrow> (y, x) \<notin> r\<^sup>*; P k \<rbrakk>
+   \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> (m x, m y) \<in> r\<^sup>*)"
+apply (drule wf_trancl [THEN wf_eq_minimal [THEN iffD1]])
+apply (drule_tac x = "m ` Collect P" in spec)
+by force
+
+lemma ex_has_least_nat: "P k \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> m x \<le> m y)"
+  for m :: "'a \<Rightarrow> nat"
+apply (simp only: pred_nat_trancl_eq_le [symmetric])
+apply (rule wf_pred_nat [THEN wf_linord_ex_has_least])
+ apply (simp add: less_eq linorder_not_le pred_nat_trancl_eq_le)
+by assumption
 
 lemma arg_min_nat_lemma:
   "P k \<Longrightarrow> P(arg_min m P) \<and> (\<forall>y. P y \<longrightarrow> m (arg_min m P) \<le> m y)"

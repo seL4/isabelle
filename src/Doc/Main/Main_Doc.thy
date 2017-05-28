@@ -63,6 +63,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 @{const Orderings.Least} & @{typeof Orderings.Least}\\
 @{const Orderings.min} & @{typeof Orderings.min}\\
 @{const Orderings.max} & @{typeof Orderings.max}\\
+@{const Lattices_Big.arg_min} & @{typeof Lattices_Big.arg_min}\\
 @{const[source] top} & @{typeof Orderings.top}\\
 @{const[source] bot} & @{typeof Orderings.bot}\\
 @{const Orderings.mono} & @{typeof Orderings.mono}\\
@@ -78,6 +79,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 @{term "\<exists>x\<le>y. P"} & @{term[source]"\<exists>x. x \<le> y \<and> P"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$}\\
 @{term "LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
+@{term "ARG_MIN f x. P"} & @{term[source]"arg_min f (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
@@ -407,6 +409,21 @@ Type @{typ int}
 @{const Finite_Set.finite} & @{term_type_only Finite_Set.finite "'a set\<Rightarrow>bool"}\\
 @{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set \<Rightarrow> nat"}\\
 @{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
+\end{supertabular}
+
+
+\section*{Lattices\_Big}
+
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+@{const Lattices_Big.Min} & @{typeof Lattices_Big.Min}\\
+@{const Lattices_Big.Max} & @{typeof Lattices_Big.Max}\\
+@{const Lattices_Big.arg_min} & @{typeof Lattices_Big.arg_min}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+@{term "ARG_MIN f x. P"} & @{term[source]"arg_min f (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
