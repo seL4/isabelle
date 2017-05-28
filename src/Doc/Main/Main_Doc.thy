@@ -418,6 +418,7 @@ Type @{typ int}
 @{const Lattices_Big.Min} & @{typeof Lattices_Big.Min}\\
 @{const Lattices_Big.Max} & @{typeof Lattices_Big.Max}\\
 @{const Lattices_Big.arg_min} & @{typeof Lattices_Big.arg_min}\\
+@{const Lattices_Big.is_arg_min} & @{typeof Lattices_Big.is_arg_min}\\
 \end{supertabular}
 
 \subsubsection*{Syntax}

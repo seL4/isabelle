@@ -378,8 +378,8 @@ by (rule someI)
 
 (*both can be done by blast, which however hasn't been introduced yet*)
 lemma "[| P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x |] ==> (LEAST x. P(x)) = k"
-apply (simp add: Least_def LeastM_def)
-by (blast intro: some_equality order_antisym)
+apply (simp add: Least_def)
+by (blast intro: order_antisym)
 
 theorem axiom_of_choice': "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
 apply (rule exI [of _  "\<lambda>x. SOME y. P x y"])
