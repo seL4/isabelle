@@ -284,7 +284,7 @@ lemma set_prefixes_append:
 subsection \<open>Longest Common Prefix\<close>
 
 definition Longest_common_prefix :: "'a list set \<Rightarrow> 'a list" where
-"Longest_common_prefix L = (GREATEST ps WRT length. \<forall>xs \<in> L. prefix ps xs)"
+"Longest_common_prefix L = (ARG_MAX length ps. \<forall>xs \<in> L. prefix ps xs)"
 
 lemma Longest_common_prefix_ex: "L \<noteq> {} \<Longrightarrow>
   \<exists>ps. (\<forall>xs \<in> L. prefix ps xs) \<and> (\<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps)"
@@ -339,17 +339,17 @@ lemma Longest_common_prefix_eq:
  "\<lbrakk> L \<noteq> {};  \<forall>xs \<in> L. prefix ps xs;
     \<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps \<rbrakk>
   \<Longrightarrow> Longest_common_prefix L = ps"
-unfolding Longest_common_prefix_def GreatestM_def
+unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
 by(rule some1_equality[OF Longest_common_prefix_unique]) auto
 
 lemma Longest_common_prefix_prefix:
   "xs \<in> L \<Longrightarrow> prefix (Longest_common_prefix L) xs"
-unfolding Longest_common_prefix_def GreatestM_def
+unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
 by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
 
 lemma Longest_common_prefix_longest:
   "L \<noteq> {} \<Longrightarrow> \<forall>xs\<in>L. prefix ps xs \<Longrightarrow> length ps \<le> length(Longest_common_prefix L)"
-unfolding Longest_common_prefix_def GreatestM_def
+unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
 by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
 
 lemma Longest_common_prefix_max_prefix:

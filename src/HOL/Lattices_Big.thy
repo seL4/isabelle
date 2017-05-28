@@ -915,4 +915,102 @@ apply(rule someI2[of _ a])
  apply (simp add: less_le_not_le)
 by (metis inj_on_eq_iff less_le mem_Collect_eq)
 
+
+subsection \<open>Arg Max\<close>
+
+definition is_arg_max :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where
+"is_arg_max f P x = (P x \<and> \<not>(\<exists>y. P y \<and> f y > f x))"
+
+definition arg_max :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+"arg_max f P = (SOME x. is_arg_max f P x)"
+
+abbreviation arg_max_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"arg_max_on f S \<equiv> arg_max f (\<lambda>x. x \<in> S)"
+
+syntax
+  "_arg_max" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
+    ("(3ARG'_MAX _ _./ _)" [0, 0, 10] 10)
+translations
+  "ARG_MAX f x. P" \<rightleftharpoons> "CONST arg_max f (\<lambda>x. P)"
+
+lemma is_arg_max_linorder: fixes f :: "'a \<Rightarrow> 'b :: linorder"
+shows "is_arg_max f P x = (P x \<and> (\<forall>y. P y \<longrightarrow> f x \<ge> f y))"
+by(auto simp add: is_arg_max_def)
+
+lemma arg_maxI:
+  "P x \<Longrightarrow>
+    (\<And>y. P y \<Longrightarrow> \<not> f y > f x) \<Longrightarrow>
+    (\<And>x. P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> \<not> f y > f x \<Longrightarrow> Q x) \<Longrightarrow>
+    Q (arg_max f P)"
+apply (simp add: arg_max_def is_arg_max_def)
+apply (rule someI2_ex)
+ apply blast
+apply blast
+done
+
+lemma arg_max_equality:
+  "\<lbrakk> P k; \<And>x. P x \<Longrightarrow> f x \<le> f k \<rbrakk> \<Longrightarrow> f (arg_max f P) = f k"
+  for f :: "_ \<Rightarrow> 'a::order"
+apply (rule arg_maxI [where f = f])
+  apply assumption
+ apply (simp add: less_le_not_le)
+by (metis le_less)
+
+lemma ex_has_greatest_nat_lemma:
+  "P k \<Longrightarrow> \<forall>x. P x \<longrightarrow> (\<exists>y. P y \<and> \<not> f y \<le> f x) \<Longrightarrow> \<exists>y. P y \<and> \<not> f y < f k + n"
+  for f :: "'a \<Rightarrow> nat"
+by (induct n) (force simp: le_Suc_eq)+
+
+lemma ex_has_greatest_nat:
+  "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> f y < b \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> f y \<le> f x)"
+  for f :: "'a \<Rightarrow> nat"
+apply (rule ccontr)
+apply (cut_tac P = P and n = "b - f k" in ex_has_greatest_nat_lemma)
+  apply (subgoal_tac [3] "f k \<le> b")
+   apply auto
+done
+
+lemma arg_max_nat_lemma:
+  "\<lbrakk> P k;  \<forall>y. P y \<longrightarrow> f y < b \<rbrakk>
+  \<Longrightarrow> P (arg_max f P) \<and> (\<forall>y. P y \<longrightarrow> f y \<le> f (arg_max f P))"
+  for f :: "'a \<Rightarrow> nat"
+apply (simp add: arg_max_def is_arg_max_linorder)
+apply (rule someI_ex)
+apply (erule (1) ex_has_greatest_nat)
+done
+
+lemmas arg_max_natI = arg_max_nat_lemma [THEN conjunct1]
+
+lemma arg_max_nat_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> f y < b \<Longrightarrow> f x \<le> f (arg_max f P)"
+  for f :: "'a \<Rightarrow> nat"
+by (blast dest: arg_max_nat_lemma [THEN conjunct2, THEN spec, of P])
+
+
+text \<open>\<^medskip> Specialization to \<open>GREATEST\<close>.\<close>
+
+(* LEAST ? *)
+definition Greatest :: "('a::ord \<Rightarrow> bool) \<Rightarrow> 'a"  (binder "GREATEST " 10)
+where "Greatest \<equiv> arg_max (\<lambda>x. x)"
+
+lemma Greatest_equality:
+  "\<lbrakk> P k;  \<And>x. P x \<Longrightarrow> x \<le> k \<rbrakk> \<Longrightarrow> (Greatest P) = k"
+  for k :: "'a::order"
+apply (simp add: Greatest_def)
+apply (erule arg_max_equality)
+apply blast
+done
+
+lemma GreatestI: "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> P (Greatest P)"
+  for k :: nat
+unfolding Greatest_def by (rule arg_max_natI) auto
+
+lemma Greatest_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> x \<le> (Greatest P)"
+  for x :: nat
+unfolding Greatest_def by (rule arg_max_nat_le) auto
+
+lemma GreatestI_ex: "\<exists>k::nat. P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> P (Greatest P)"
+apply (erule exE)
+apply (erule (1) GreatestI)
+done
+
 end

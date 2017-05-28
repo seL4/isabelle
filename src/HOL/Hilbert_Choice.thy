@@ -522,7 +522,7 @@ text \<open>A dynamically-scoped fact for TFL\<close>
 lemma tfl_some: "\<forall>P x. P x \<longrightarrow> P (Eps P)"
   by (blast intro: someI)
 
-
+(*
 subsection \<open>Greatest value operator\<close>
 
 definition GreatestM :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a"
@@ -607,7 +607,7 @@ lemma GreatestI_ex: "\<exists>k::nat. P k \<Longrightarrow> \<forall>y. P y \<lo
   apply (rule GreatestI)
    apply assumption+
   done
-
+*)
 
 subsection \<open>An aside: bounded accessible part\<close>
 

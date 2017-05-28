@@ -79,7 +79,6 @@ preorder, partial order, linear order, dense linear order and wellorder.
 @{term "\<exists>x\<le>y. P"} & @{term[source]"\<exists>x. x \<le> y \<and> P"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$}\\
 @{term "LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
-@{term "ARG_MIN f x. P"} & @{term[source]"arg_min f (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
@@ -419,12 +418,17 @@ Type @{typ int}
 @{const Lattices_Big.Max} & @{typeof Lattices_Big.Max}\\
 @{const Lattices_Big.arg_min} & @{typeof Lattices_Big.arg_min}\\
 @{const Lattices_Big.is_arg_min} & @{typeof Lattices_Big.is_arg_min}\\
+@{const Lattices_Big.arg_max} & @{typeof Lattices_Big.arg_max}\\
+@{const Lattices_Big.is_arg_max} & @{typeof Lattices_Big.is_arg_max}\\
+@{const Lattices_Big.Greatest} & @{typeof Lattices_Big.Greatest}\\
 \end{supertabular}
 
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 @{term "ARG_MIN f x. P"} & @{term[source]"arg_min f (\<lambda>x. P)"}\\
+@{term "ARG_MAX f x. P"} & @{term[source]"arg_max f (\<lambda>x. P)"}\\
+@{term "GREATEST x. P"} & @{term[source]"Greatest (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
