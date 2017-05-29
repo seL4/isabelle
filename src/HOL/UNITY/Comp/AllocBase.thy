@@ -48,39 +48,38 @@ done
 
 declare sum.cong [cong]
 
-lemma bag_of_sublist_lemma:
+lemma bag_of_nths_lemma:
      "(\<Sum>i\<in> A Int lessThan k. {#if i<k then f i else g i#}) =  
       (\<Sum>i\<in> A Int lessThan k. {#f i#})"
 by (rule sum.cong, auto)
 
-lemma bag_of_sublist:
-     "bag_of (sublist l A) =  
+lemma bag_of_nths:
+     "bag_of (nths l A) =  
       (\<Sum>i\<in> A Int lessThan (length l). {# l!i #})"
-apply (rule_tac xs = l in rev_induct, simp)
-apply (simp add: sublist_append Int_insert_right lessThan_Suc nth_append 
-                 bag_of_sublist_lemma ac_simps)
-done
+  by (rule_tac xs = l in rev_induct)
+     (simp_all add: nths_append Int_insert_right lessThan_Suc nth_append 
+                    bag_of_nths_lemma ac_simps)
 
 
-lemma bag_of_sublist_Un_Int:
-     "bag_of (sublist l (A Un B)) + bag_of (sublist l (A Int B)) =  
-      bag_of (sublist l A) + bag_of (sublist l B)"
+lemma bag_of_nths_Un_Int:
+     "bag_of (nths l (A Un B)) + bag_of (nths l (A Int B)) =  
+      bag_of (nths l A) + bag_of (nths l B)"
 apply (subgoal_tac "A Int B Int {..<length l} =
                     (A Int {..<length l}) Int (B Int {..<length l}) ")
-apply (simp add: bag_of_sublist Int_Un_distrib2 sum.union_inter, blast)
+apply (simp add: bag_of_nths Int_Un_distrib2 sum.union_inter, blast)
 done
 
-lemma bag_of_sublist_Un_disjoint:
+lemma bag_of_nths_Un_disjoint:
      "A Int B = {}  
-      ==> bag_of (sublist l (A Un B)) =  
-          bag_of (sublist l A) + bag_of (sublist l B)"
-by (simp add: bag_of_sublist_Un_Int [symmetric])
+      ==> bag_of (nths l (A Un B)) =  
+          bag_of (nths l A) + bag_of (nths l B)"
+by (simp add: bag_of_nths_Un_Int [symmetric])
 
-lemma bag_of_sublist_UN_disjoint [rule_format]:
+lemma bag_of_nths_UN_disjoint [rule_format]:
      "[| finite I; ALL i:I. ALL j:I. i~=j --> A i Int A j = {} |]  
-      ==> bag_of (sublist l (UNION I A)) =   
-          (\<Sum>i\<in>I. bag_of (sublist l (A i)))"
-apply (auto simp add: bag_of_sublist)
+      ==> bag_of (nths l (UNION I A)) =   
+          (\<Sum>i\<in>I. bag_of (nths l (A i)))"
+apply (auto simp add: bag_of_nths)
 unfolding UN_simps [symmetric]
 apply (subst sum.UNION_disjoint)
 apply auto

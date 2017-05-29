@@ -1,6 +1,7 @@
 (*  Title:      HOL/Library/Sublist.thy
-    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Tobias Nipkow and Markus Wenzel, TU München
     Author:     Christian Sternagel, JAIST
+    Author:     Manuel Eberl, TU München
 *)
 
 section \<open>List prefixes, suffixes, and homeomorphic embedding\<close>
@@ -214,7 +215,7 @@ qed
 
 subsection \<open>Prefixes\<close>
 
-fun prefixes where
+primrec prefixes where
 "prefixes [] = [[]]" |
 "prefixes (x#xs) = [] # map (op # x) (prefixes xs)"
 
@@ -700,7 +701,7 @@ qed
 
 subsection \<open>Suffixes\<close>
 
-fun suffixes where
+primrec suffixes where
   "suffixes [] = [[]]"
 | "suffixes (x#xs) = suffixes xs @ [x # xs]"
 
@@ -919,49 +920,48 @@ lemma list_emb_code [code]:
   "list_emb P (x#xs) [] \<longleftrightarrow> False"
   "list_emb P (x#xs) (y#ys) \<longleftrightarrow> (if P x y then list_emb P xs ys else list_emb P (x#xs) ys)"
   by simp_all
+    
+
+subsection \<open>Subsequences (special case of homeomorphic embedding)\<close>
+
+abbreviation subseq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+  where "subseq xs ys \<equiv> list_emb (op =) xs ys"
   
+definition strict_subseq where "strict_subseq xs ys \<longleftrightarrow> xs \<noteq> ys \<and> subseq xs ys"
 
+lemma subseq_Cons2: "subseq xs ys \<Longrightarrow> subseq (x#xs) (x#ys)" by auto
 
-subsection \<open>Sublists (special case of homeomorphic embedding)\<close>
-
-abbreviation sublisteq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  where "sublisteq xs ys \<equiv> list_emb (op =) xs ys"
-  
-definition strict_sublist where "strict_sublist xs ys \<longleftrightarrow> xs \<noteq> ys \<and> sublisteq xs ys"
-
-lemma sublisteq_Cons2: "sublisteq xs ys \<Longrightarrow> sublisteq (x#xs) (x#ys)" by auto
-
-lemma sublisteq_same_length:
-  assumes "sublisteq xs ys" and "length xs = length ys" shows "xs = ys"
+lemma subseq_same_length:
+  assumes "subseq xs ys" and "length xs = length ys" shows "xs = ys"
   using assms by (induct) (auto dest: list_emb_length)
 
-lemma not_sublisteq_length [simp]: "length ys < length xs \<Longrightarrow> \<not> sublisteq xs ys"
+lemma not_subseq_length [simp]: "length ys < length xs \<Longrightarrow> \<not> subseq xs ys"
   by (metis list_emb_length linorder_not_less)
 
-lemma sublisteq_Cons': "sublisteq (x#xs) ys \<Longrightarrow> sublisteq xs ys"
+lemma subseq_Cons': "subseq (x#xs) ys \<Longrightarrow> subseq xs ys"
   by (induct xs, simp, blast dest: list_emb_ConsD)
 
-lemma sublisteq_Cons2':
-  assumes "sublisteq (x#xs) (x#ys)" shows "sublisteq xs ys"
-  using assms by (cases) (rule sublisteq_Cons')
+lemma subseq_Cons2':
+  assumes "subseq (x#xs) (x#ys)" shows "subseq xs ys"
+  using assms by (cases) (rule subseq_Cons')
 
-lemma sublisteq_Cons2_neq:
-  assumes "sublisteq (x#xs) (y#ys)"
-  shows "x \<noteq> y \<Longrightarrow> sublisteq (x#xs) ys"
+lemma subseq_Cons2_neq:
+  assumes "subseq (x#xs) (y#ys)"
+  shows "x \<noteq> y \<Longrightarrow> subseq (x#xs) ys"
   using assms by (cases) auto
 
-lemma sublisteq_Cons2_iff [simp]:
-  "sublisteq (x#xs) (y#ys) = (if x = y then sublisteq xs ys else sublisteq (x#xs) ys)"
+lemma subseq_Cons2_iff [simp]:
+  "subseq (x#xs) (y#ys) = (if x = y then subseq xs ys else subseq (x#xs) ys)"
   by simp
 
-lemma sublisteq_append': "sublisteq (zs @ xs) (zs @ ys) \<longleftrightarrow> sublisteq xs ys"
+lemma subseq_append': "subseq (zs @ xs) (zs @ ys) \<longleftrightarrow> subseq xs ys"
   by (induct zs) simp_all
     
-interpretation sublist_order: order sublisteq strict_sublist
+interpretation subseq_order: order subseq strict_subseq
 proof
   fix xs ys :: "'a list"
   {
-    assume "sublisteq xs ys" and "sublisteq ys xs"
+    assume "subseq xs ys" and "subseq ys xs"
     thus "xs = ys"
     proof (induct)
       case list_emb_Nil
@@ -971,34 +971,34 @@ proof
       thus ?case by simp
     next
       case list_emb_Cons
-      hence False using sublisteq_Cons' by fastforce
+      hence False using subseq_Cons' by fastforce
       thus ?case ..
     qed
   }
-  thus "strict_sublist xs ys \<longleftrightarrow> (sublisteq xs ys \<and> \<not>sublisteq ys xs)"
-    by (auto simp: strict_sublist_def)
+  thus "strict_subseq xs ys \<longleftrightarrow> (subseq xs ys \<and> \<not>subseq ys xs)"
+    by (auto simp: strict_subseq_def)
 qed (auto simp: list_emb_refl intro: list_emb_trans)
 
-lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublisteq xs ys"
+lemma in_set_subseqs [simp]: "xs \<in> set (subseqs ys) \<longleftrightarrow> subseq xs ys"
 proof
-  assume "xs \<in> set (sublists ys)"
-  thus "sublisteq xs ys"
+  assume "xs \<in> set (subseqs ys)"
+  thus "subseq xs ys"
     by (induction ys arbitrary: xs) (auto simp: Let_def)
 next
-  have [simp]: "[] \<in> set (sublists ys)" for ys :: "'a list" 
+  have [simp]: "[] \<in> set (subseqs ys)" for ys :: "'a list" 
     by (induction ys) (auto simp: Let_def)
-  assume "sublisteq xs ys"
-  thus "xs \<in> set (sublists ys)"
+  assume "subseq xs ys"
+  thus "xs \<in> set (subseqs ys)"
     by (induction xs ys rule: list_emb.induct) (auto simp: Let_def)
 qed
 
-lemma set_sublists_eq: "set (sublists ys) = {xs. sublisteq xs ys}"
+lemma set_subseqs_eq: "set (subseqs ys) = {xs. subseq xs ys}"
   by auto
 
-lemma sublisteq_append_le_same_iff: "sublisteq (xs @ ys) ys \<longleftrightarrow> xs = []"
+lemma subseq_append_le_same_iff: "subseq (xs @ ys) ys \<longleftrightarrow> xs = []"
   by (auto dest: list_emb_length)
 
-lemma sublisteq_singleton_left: "sublisteq [x] ys \<longleftrightarrow> x \<in> set ys"
+lemma subseq_singleton_left: "subseq [x] ys \<longleftrightarrow> x \<in> set ys"
   by (fastforce dest: list_emb_ConsD split_list_last)
 
 lemma list_emb_append_mono:
@@ -1012,11 +1012,11 @@ lemma list_emb_append_mono:
 
 subsection \<open>Appending elements\<close>
 
-lemma sublisteq_append [simp]:
-  "sublisteq (xs @ zs) (ys @ zs) \<longleftrightarrow> sublisteq xs ys" (is "?l = ?r")
+lemma subseq_append [simp]:
+  "subseq (xs @ zs) (ys @ zs) \<longleftrightarrow> subseq xs ys" (is "?l = ?r")
 proof
-  { fix xs' ys' xs ys zs :: "'a list" assume "sublisteq xs' ys'"
-    then have "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> sublisteq xs ys"
+  { fix xs' ys' xs ys zs :: "'a list" assume "subseq xs' ys'"
+    then have "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> subseq xs ys"
     proof (induct arbitrary: xs ys zs)
       case list_emb_Nil show ?case by simp
     next
@@ -1038,11 +1038,11 @@ proof
   moreover assume ?l
   ultimately show ?r by blast
 next
-  assume ?r then show ?l by (metis list_emb_append_mono sublist_order.order_refl)
+  assume ?r then show ?l by (metis list_emb_append_mono subseq_order.order_refl)
 qed
 
-lemma sublisteq_append_iff: 
-  "sublisteq xs (ys @ zs) \<longleftrightarrow> (\<exists>xs1 xs2. xs = xs1 @ xs2 \<and> sublisteq xs1 ys \<and> sublisteq xs2 zs)"
+lemma subseq_append_iff: 
+  "subseq xs (ys @ zs) \<longleftrightarrow> (\<exists>xs1 xs2. xs = xs1 @ xs2 \<and> subseq xs1 ys \<and> subseq xs2 zs)"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs
@@ -1058,61 +1058,315 @@ proof
   qed auto
 qed (auto intro: list_emb_append_mono)
 
-lemma sublisteq_appendE [case_names append]: 
-  assumes "sublisteq xs (ys @ zs)"
-  obtains xs1 xs2 where "xs = xs1 @ xs2" "sublisteq xs1 ys" "sublisteq xs2 zs"
-  using assms by (subst (asm) sublisteq_append_iff) auto
+lemma subseq_appendE [case_names append]: 
+  assumes "subseq xs (ys @ zs)"
+  obtains xs1 xs2 where "xs = xs1 @ xs2" "subseq xs1 ys" "subseq xs2 zs"
+  using assms by (subst (asm) subseq_append_iff) auto
 
-lemma sublisteq_drop_many: "sublisteq xs ys \<Longrightarrow> sublisteq xs (zs @ ys)"
+lemma subseq_drop_many: "subseq xs ys \<Longrightarrow> subseq xs (zs @ ys)"
   by (induct zs) auto
 
-lemma sublisteq_rev_drop_many: "sublisteq xs ys \<Longrightarrow> sublisteq xs (ys @ zs)"
+lemma subseq_rev_drop_many: "subseq xs ys \<Longrightarrow> subseq xs (ys @ zs)"
   by (metis append_Nil2 list_emb_Nil list_emb_append_mono)
 
 
 subsection \<open>Relation to standard list operations\<close>
 
-lemma sublisteq_map:
-  assumes "sublisteq xs ys" shows "sublisteq (map f xs) (map f ys)"
+lemma subseq_map:
+  assumes "subseq xs ys" shows "subseq (map f xs) (map f ys)"
   using assms by (induct) auto
 
-lemma sublisteq_filter_left [simp]: "sublisteq (filter P xs) xs"
+lemma subseq_filter_left [simp]: "subseq (filter P xs) xs"
   by (induct xs) auto
 
-lemma sublisteq_filter [simp]:
-  assumes "sublisteq xs ys" shows "sublisteq (filter P xs) (filter P ys)"
+lemma subseq_filter [simp]:
+  assumes "subseq xs ys" shows "subseq (filter P xs) (filter P ys)"
   using assms by induct auto
 
-lemma "sublisteq xs ys \<longleftrightarrow> (\<exists>N. xs = sublist ys N)" (is "?L = ?R")
+lemma subseq_conv_nths: 
+  "subseq xs ys \<longleftrightarrow> (\<exists>N. xs = nths ys N)" (is "?L = ?R")
 proof
   assume ?L
   then show ?R
   proof (induct)
-    case list_emb_Nil show ?case by (metis sublist_empty)
+    case list_emb_Nil show ?case by (metis nths_empty)
   next
     case (list_emb_Cons xs ys x)
-    then obtain N where "xs = sublist ys N" by blast
-    then have "xs = sublist (x#ys) (Suc ` N)"
-      by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
+    then obtain N where "xs = nths ys N" by blast
+    then have "xs = nths (x#ys) (Suc ` N)"
+      by (clarsimp simp add: nths_Cons inj_image_mem_iff)
     then show ?case by blast
   next
     case (list_emb_Cons2 x y xs ys)
-    then obtain N where "xs = sublist ys N" by blast
-    then have "x#xs = sublist (x#ys) (insert 0 (Suc ` N))"
-      by (clarsimp simp add:sublist_Cons inj_image_mem_iff)
+    then obtain N where "xs = nths ys N" by blast
+    then have "x#xs = nths (x#ys) (insert 0 (Suc ` N))"
+      by (clarsimp simp add: nths_Cons inj_image_mem_iff)
     moreover from list_emb_Cons2 have "x = y" by simp
     ultimately show ?case by blast
   qed
 next
   assume ?R
-  then obtain N where "xs = sublist ys N" ..
-  moreover have "sublisteq (sublist ys N) ys"
+  then obtain N where "xs = nths ys N" ..
+  moreover have "subseq (nths ys N) ys"
   proof (induct ys arbitrary: N)
     case Nil show ?case by simp
   next
-    case Cons then show ?case by (auto simp: sublist_Cons)
+    case Cons then show ?case by (auto simp: nths_Cons)
   qed
   ultimately show ?L by simp
 qed
+  
+  
+subsection \<open>Contiguous sublists\<close>
+
+definition sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where 
+  "sublist xs ys = (\<exists>ps ss. ys = ps @ xs @ ss)"
+  
+definition strict_sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where 
+  "strict_sublist xs ys \<longleftrightarrow> sublist xs ys \<and> xs \<noteq> ys"
+
+interpretation sublist_order: order sublist strict_sublist
+proof
+  fix xs ys zs :: "'a list"
+  assume "sublist xs ys" "sublist ys zs"
+  then obtain xs1 xs2 ys1 ys2 where "ys = xs1 @ xs @ xs2" "zs = ys1 @ ys @ ys2"
+    by (auto simp: sublist_def)
+  hence "zs = (ys1 @ xs1) @ xs @ (xs2 @ ys2)" by simp
+  thus "sublist xs zs" unfolding sublist_def by blast
+next
+  fix xs ys :: "'a list"
+  {
+    assume "sublist xs ys" "sublist ys xs"
+    then obtain as bs cs ds 
+      where xs: "xs = as @ ys @ bs" and ys: "ys = cs @ xs @ ds" 
+      by (auto simp: sublist_def)
+    have "xs = as @ cs @ xs @ ds @ bs" by (subst xs, subst ys) auto
+    also have "length \<dots> = length as + length cs + length xs + length bs + length ds" 
+      by simp
+    finally have "as = []" "bs = []" by simp_all
+    with xs show "xs = ys" by simp
+  }
+  thus "strict_sublist xs ys \<longleftrightarrow> (sublist xs ys \<and> \<not>sublist ys xs)"
+    by (auto simp: strict_sublist_def)
+qed (auto simp: strict_sublist_def sublist_def intro: exI[of _ "[]"])
+  
+lemma sublist_Nil_left [simp, intro]: "sublist [] ys"
+  by (auto simp: sublist_def)
+    
+lemma sublist_Cons_Nil [simp]: "\<not>sublist (x#xs) []"
+  by (auto simp: sublist_def)
+    
+lemma sublist_Nil_right [simp]: "sublist xs [] \<longleftrightarrow> xs = []"
+  by (cases xs) auto
+    
+lemma sublist_appendI [simp, intro]: "sublist xs (ps @ xs @ ss)"
+  by (auto simp: sublist_def)
+    
+lemma sublist_append_leftI [simp, intro]: "sublist xs (ps @ xs)"
+  by (auto simp: sublist_def intro: exI[of _ "[]"])
+    
+lemma sublist_append_rightI [simp, intro]: "sublist xs (xs @ ss)"
+  by (auto simp: sublist_def intro: exI[of _ "[]"]) 
+
+lemma sublist_altdef: "sublist xs ys \<longleftrightarrow> (\<exists>ys'. prefix ys' ys \<and> suffix xs ys')"
+proof safe
+  assume "sublist xs ys"
+  then obtain ps ss where "ys = ps @ xs @ ss" by (auto simp: sublist_def)
+  thus "\<exists>ys'. prefix ys' ys \<and> suffix xs ys'"
+    by (intro exI[of _ "ps @ xs"] conjI suffix_appendI) auto
+next
+  fix ys'
+  assume "prefix ys' ys" "suffix xs ys'"
+  thus "sublist xs ys" by (auto simp: prefix_def suffix_def)
+qed
+  
+lemma sublist_altdef': "sublist xs ys \<longleftrightarrow> (\<exists>ys'. suffix ys' ys \<and> prefix xs ys')"
+proof safe
+  assume "sublist xs ys"
+  then obtain ps ss where "ys = ps @ xs @ ss" by (auto simp: sublist_def)
+  thus "\<exists>ys'. suffix ys' ys \<and> prefix xs ys'"
+    by (intro exI[of _ "xs @ ss"] conjI suffixI) auto
+next
+  fix ys'
+  assume "suffix ys' ys" "prefix xs ys'"
+  thus "sublist xs ys" by (auto simp: prefix_def suffix_def)
+qed
+
+lemma sublist_Cons_right: "sublist xs (y # ys) \<longleftrightarrow> prefix xs (y # ys) \<or> sublist xs ys"
+  by (auto simp: sublist_def prefix_def Cons_eq_append_conv)
+    
+lemma sublist_code [code]:
+  "sublist [] ys \<longleftrightarrow> True"
+  "sublist (x # xs) [] \<longleftrightarrow> False"
+  "sublist (x # xs) (y # ys) \<longleftrightarrow> prefix (x # xs) (y # ys) \<or> sublist (x # xs) ys"
+  by (simp_all add: sublist_Cons_right)
+
+
+lemma sublist_append:
+  "sublist xs (ys @ zs) \<longleftrightarrow> 
+     sublist xs ys \<or> sublist xs zs \<or> (\<exists>xs1 xs2. xs = xs1 @ xs2 \<and> suffix xs1 ys \<and> prefix xs2 zs)"
+  by (auto simp: sublist_altdef prefix_append suffix_append)
+
+primrec sublists :: "'a list \<Rightarrow> 'a list list" where
+  "sublists [] = [[]]"
+| "sublists (x # xs) = sublists xs @ map (op # x) (prefixes xs)"
+
+lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublist xs ys" 
+  by (induction ys arbitrary: xs) (auto simp: sublist_Cons_right prefix_Cons)
+
+lemma set_sublists_eq: "set (sublists xs) = {ys. sublist ys xs}"
+  by auto
+
+lemma length_sublists [simp]: "length (sublists xs) = Suc (length xs * Suc (length xs) div 2)"
+  by (induction xs) simp_all
+
+lemma sublist_length_le: "sublist xs ys \<Longrightarrow> length xs \<le> length ys"
+  by (auto simp add: sublist_def)
+
+lemma set_mono_sublist: "sublist xs ys \<Longrightarrow> set xs \<subseteq> set ys"
+  by (auto simp add: sublist_def)
+    
+lemma prefix_imp_sublist [simp, intro]: "prefix xs ys \<Longrightarrow> sublist xs ys"
+  by (auto simp: sublist_def prefix_def intro: exI[of _ "[]"])
+    
+lemma suffix_imp_sublist [simp, intro]: "suffix xs ys \<Longrightarrow> sublist xs ys"
+  by (auto simp: sublist_def suffix_def intro: exI[of _ "[]"])
+
+lemma sublist_take [simp, intro]: "sublist (take n xs) xs"
+  by (rule prefix_imp_sublist) (simp_all add: take_is_prefix)
+
+lemma sublist_drop [simp, intro]: "sublist (drop n xs) xs"
+  by (rule suffix_imp_sublist) (simp_all add: suffix_drop)
+    
+lemma sublist_tl [simp, intro]: "sublist (tl xs) xs"
+  by (rule suffix_imp_sublist) (simp_all add: suffix_drop)
+    
+lemma sublist_butlast [simp, intro]: "sublist (butlast xs) xs"
+  by (rule prefix_imp_sublist) (simp_all add: prefixeq_butlast)
+    
+lemma sublist_rev [simp]: "sublist (rev xs) (rev ys) = sublist xs ys"
+proof
+  assume "sublist (rev xs) (rev ys)"
+  then obtain as bs where "rev ys = as @ rev xs @ bs"
+    by (auto simp: sublist_def)
+  also have "rev \<dots> = rev bs @ xs @ rev as" by simp
+  finally show "sublist xs ys" by simp
+next
+  assume "sublist xs ys"
+  then obtain as bs where "ys = as @ xs @ bs"
+    by (auto simp: sublist_def)
+  also have "rev \<dots> = rev bs @ rev xs @ rev as" by simp
+  finally show "sublist (rev xs) (rev ys)" by simp
+qed
+    
+lemma sublist_rev_left: "sublist (rev xs) ys = sublist xs (rev ys)"
+  by (subst sublist_rev [symmetric]) (simp only: rev_rev_ident)
+    
+lemma sublist_rev_right: "sublist xs (rev ys) = sublist (rev xs) ys"
+  by (subst sublist_rev [symmetric]) (simp only: rev_rev_ident)
+
+lemma snoc_sublist_snoc: 
+  "sublist (xs @ [x]) (ys @ [y]) \<longleftrightarrow> 
+     (x = y \<and> suffix xs ys \<or> sublist (xs @ [x]) ys) "
+  by (subst (1 2) sublist_rev [symmetric])
+     (simp del: sublist_rev add: sublist_Cons_right suffix_to_prefix)
+
+lemma sublist_snoc:
+  "sublist xs (ys @ [y]) \<longleftrightarrow> suffix xs (ys @ [y]) \<or> sublist xs ys"
+  by (subst (1 2) sublist_rev [symmetric])
+     (simp del: sublist_rev add: sublist_Cons_right suffix_to_prefix)     
+
+subsection \<open>Parametricity\<close>
+
+context includes lifting_syntax
+begin    
+  
+private lemma prefix_primrec:
+  "prefix = rec_list (\<lambda>xs. True) (\<lambda>x xs xsa ys.
+              case ys of [] \<Rightarrow> False | y # ys \<Rightarrow> x = y \<and> xsa ys)"
+proof (intro ext, goal_cases)
+  case (1 xs ys)
+  show ?case by (induction xs arbitrary: ys) (auto simp: prefix_Cons split: list.splits)
+qed
+
+private lemma sublist_primrec:
+  "sublist = (\<lambda>xs ys. rec_list (\<lambda>xs. xs = []) (\<lambda>y ys ysa xs. prefix xs (y # ys) \<or> ysa xs) ys xs)"
+proof (intro ext, goal_cases)
+  case (1 xs ys)
+  show ?case by (induction ys) (auto simp: sublist_Cons_right)
+qed
+
+private lemma list_emb_primrec:
+  "list_emb = (\<lambda>uu uua uuaa. rec_list (\<lambda>P xs. List.null xs) (\<lambda>y ys ysa P xs. case xs of [] \<Rightarrow> True 
+     | x # xs \<Rightarrow> if P x y then ysa P xs else ysa P (x # xs)) uuaa uu uua)"
+proof (intro ext, goal_cases)
+  case (1 P xs ys)
+  show ?case
+    by (induction ys arbitrary: xs)
+       (auto simp: list_emb_code List.null_def split: list.splits)
+qed
+
+lemma prefix_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) prefix prefix"  
+  unfolding prefix_primrec by transfer_prover
+    
+lemma suffix_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) suffix suffix"  
+  unfolding suffix_to_prefix [abs_def] by transfer_prover
+
+lemma sublist_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) sublist sublist"
+  unfolding sublist_primrec by transfer_prover
+
+lemma parallel_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) parallel parallel"
+  unfolding parallel_def by transfer_prover
+    
+
+
+lemma list_emb_transfer [transfer_rule]:
+  "((A ===> A ===> op =) ===> list_all2 A ===> list_all2 A ===> op =) list_emb list_emb"
+  unfolding list_emb_primrec by transfer_prover
+
+lemma strict_prefix_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_prefix strict_prefix"  
+  unfolding strict_prefix_def by transfer_prover
+    
+lemma strict_suffix_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_suffix strict_suffix"  
+  unfolding strict_suffix_def by transfer_prover
+    
+lemma strict_subseq_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_subseq strict_subseq"  
+  unfolding strict_subseq_def by transfer_prover
+    
+lemma strict_sublist_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_sublist strict_sublist"  
+  unfolding strict_sublist_def by transfer_prover
+
+lemma prefixes_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 (list_all2 A)) prefixes prefixes"
+  unfolding prefixes_def by transfer_prover
+    
+lemma suffixes_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 (list_all2 A)) suffixes suffixes"
+  unfolding suffixes_def by transfer_prover
+    
+lemma sublists_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows   "(list_all2 A ===> list_all2 (list_all2 A)) sublists sublists"
+  unfolding sublists_def by transfer_prover
+
+end
 
 end

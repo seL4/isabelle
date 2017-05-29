@@ -242,12 +242,12 @@ primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
 definition rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "rotate n = rotate1 ^^ n"
 
-definition sublist :: "'a list => nat set => 'a list" where
-"sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
+definition nths :: "'a list => nat set => 'a list" where
+"nths xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
-primrec sublists :: "'a list \<Rightarrow> 'a list list" where
-"sublists [] = [[]]" |
-"sublists (x#xs) = (let xss = sublists xs in map (Cons x) xss @ xss)"
+primrec subseqs :: "'a list \<Rightarrow> 'a list list" where
+"subseqs [] = [[]]" |
+"subseqs (x#xs) = (let xss = subseqs xs in map (Cons x) xss @ xss)"
 
 primrec n_lists :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list list" where
 "n_lists 0 xs = [[]]" |
@@ -315,8 +315,8 @@ text\<open>
 @{lemma "removeAll 2 [2,0,2,1::nat,2] = [0,1]" by simp}\\
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
 @{lemma "[a,b,c,d][2 := x] = [a,b,x,d]" by simp}\\
-@{lemma "sublist [a,b,c,d,e] {0,2,3} = [a,c,d]" by (simp add:sublist_def)}\\
-@{lemma "sublists [a,b] = [[a, b], [a], [b], []]" by simp}\\
+@{lemma "nths [a,b,c,d,e] {0,2,3} = [a,c,d]" by (simp add:nths_def)}\\
+@{lemma "subseqs [a,b] = [[a, b], [a], [b], []]" by simp}\\
 @{lemma "List.n_lists 2 [a,b,c] = [[a, a], [b, a], [c, a], [a, b], [b, b], [c, b], [a, c], [b, c], [c, c]]" by (simp add: eval_nat_numeral)}\\
 @{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by simp}\\
 @{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate_def eval_nat_numeral)}\\
@@ -4333,19 +4333,19 @@ apply(subgoal_tac "length xs \<noteq> 0")
 using mod_less_divisor[of "length xs" n] by arith
 
 
-subsubsection \<open>@{const sublist} --- a generalization of @{const nth} to sets\<close>
+subsubsection \<open>@{const nths} --- a generalization of @{const nth} to sets\<close>
 
-lemma sublist_empty [simp]: "sublist xs {} = []"
-by (auto simp add: sublist_def)
+lemma nths_empty [simp]: "nths xs {} = []"
+by (auto simp add: nths_def)
 
-lemma sublist_nil [simp]: "sublist [] A = []"
-by (auto simp add: sublist_def)
+lemma nths_nil [simp]: "nths [] A = []"
+by (auto simp add: nths_def)
 
-lemma length_sublist:
-  "length(sublist xs I) = card{i. i < length xs \<and> i : I}"
-by(simp add: sublist_def length_filter_conv_card cong:conj_cong)
+lemma length_nths:
+  "length (nths xs I) = card{i. i < length xs \<and> i : I}"
+by(simp add: nths_def length_filter_conv_card cong:conj_cong)
 
-lemma sublist_shift_lemma_Suc:
+lemma nths_shift_lemma_Suc:
   "map fst (filter (%p. P(Suc(snd p))) (zip xs is)) =
    map fst (filter (%p. P(snd p)) (zip xs (map Suc is)))"
 apply(induct xs arbitrary: "is")
@@ -4355,92 +4355,88 @@ apply (case_tac "is")
 apply simp
 done
 
-lemma sublist_shift_lemma:
+lemma nths_shift_lemma:
      "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
       map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
 by (induct xs rule: rev_induct) (simp_all add: add.commute)
 
-lemma sublist_append:
-     "sublist (l @ l') A = sublist l A @ sublist l' {j. j + length l : A}"
-apply (unfold sublist_def)
+lemma nths_append:
+     "nths (l @ l') A = nths l A @ nths l' {j. j + length l : A}"
+apply (unfold nths_def)
 apply (induct l' rule: rev_induct, simp)
-apply (simp add: upt_add_eq_append[of 0] sublist_shift_lemma)
+apply (simp add: upt_add_eq_append[of 0] nths_shift_lemma)
 apply (simp add: add.commute)
 done
 
-lemma sublist_Cons:
-"sublist (x # l) A = (if 0:A then [x] else []) @ sublist l {j. Suc j : A}"
+lemma nths_Cons:
+"nths (x # l) A = (if 0:A then [x] else []) @ nths l {j. Suc j : A}"
 apply (induct l rule: rev_induct)
- apply (simp add: sublist_def)
-apply (simp del: append_Cons add: append_Cons[symmetric] sublist_append)
+ apply (simp add: nths_def)
+apply (simp del: append_Cons add: append_Cons[symmetric] nths_append)
 done
 
-lemma set_sublist: "set(sublist xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
+lemma set_nths: "set(nths xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
 apply(induct xs arbitrary: I)
-apply(auto simp: sublist_Cons nth_Cons split:nat.split dest!: gr0_implies_Suc)
+apply(auto simp: nths_Cons nth_Cons split:nat.split dest!: gr0_implies_Suc)
 done
 
-lemma set_sublist_subset: "set(sublist xs I) \<subseteq> set xs"
-by(auto simp add:set_sublist)
+lemma set_nths_subset: "set(nths xs I) \<subseteq> set xs"
+by(auto simp add:set_nths)
 
-lemma notin_set_sublistI[simp]: "x \<notin> set xs \<Longrightarrow> x \<notin> set(sublist xs I)"
-by(auto simp add:set_sublist)
+lemma notin_set_nthsI[simp]: "x \<notin> set xs \<Longrightarrow> x \<notin> set(nths xs I)"
+by(auto simp add:set_nths)
 
-lemma in_set_sublistD: "x \<in> set(sublist xs I) \<Longrightarrow> x \<in> set xs"
-by(auto simp add:set_sublist)
+lemma in_set_nthsD: "x \<in> set(nths xs I) \<Longrightarrow> x \<in> set xs"
+by(auto simp add:set_nths)
 
-lemma sublist_singleton [simp]: "sublist [x] A = (if 0 : A then [x] else [])"
-by (simp add: sublist_Cons)
-
-
-lemma distinct_sublistI[simp]: "distinct xs \<Longrightarrow> distinct(sublist xs I)"
-apply(induct xs arbitrary: I)
- apply simp
-apply(auto simp add:sublist_Cons)
-done
+lemma nths_singleton [simp]: "nths [x] A = (if 0 : A then [x] else [])"
+by (simp add: nths_Cons)
 
 
-lemma sublist_upt_eq_take [simp]: "sublist l {..<n} = take n l"
-apply (induct l rule: rev_induct, simp)
-apply (simp split: nat_diff_split add: sublist_append)
-done
+lemma distinct_nthsI[simp]: "distinct xs \<Longrightarrow> distinct (nths xs I)"
+  by (induct xs arbitrary: I) (auto simp: nths_Cons)
 
-lemma filter_in_sublist:
- "distinct xs \<Longrightarrow> filter (%x. x \<in> set(sublist xs s)) xs = sublist xs s"
+
+lemma nths_upt_eq_take [simp]: "nths l {..<n} = take n l"
+  by (induct l rule: rev_induct)
+     (simp_all split: nat_diff_split add: nths_append)
+
+lemma filter_in_nths:
+ "distinct xs \<Longrightarrow> filter (%x. x \<in> set (nths xs s)) xs = nths xs s"
 proof (induct xs arbitrary: s)
   case Nil thus ?case by simp
 next
   case (Cons a xs)
   then have "!x. x: set xs \<longrightarrow> x \<noteq> a" by auto
-  with Cons show ?case by(simp add: sublist_Cons cong:filter_cong)
+  with Cons show ?case by(simp add: nths_Cons cong:filter_cong)
 qed
 
 
-subsubsection \<open>@{const sublists} and @{const List.n_lists}\<close>
+subsubsection \<open>@{const subseqs} and @{const List.n_lists}\<close>
 
-lemma length_sublists: "length (sublists xs) = 2 ^ length xs"
+lemma length_subseqs: "length (subseqs xs) = 2 ^ length xs"
   by (induct xs) (simp_all add: Let_def)
 
-lemma sublists_powset: "set ` set (sublists xs) = Pow (set xs)"
+lemma subseqs_powset: "set ` set (subseqs xs) = Pow (set xs)"
 proof -
   have aux: "\<And>x A. set ` Cons x ` A = insert x ` set ` A"
     by (auto simp add: image_def)
-  have "set (map set (sublists xs)) = Pow (set xs)"
+  have "set (map set (subseqs xs)) = Pow (set xs)"
     by (induct xs) (simp_all add: aux Let_def Pow_insert Un_commute comp_def del: map_map)
   then show ?thesis by simp
 qed
 
-lemma distinct_set_sublists:
+lemma distinct_set_subseqs:
   assumes "distinct xs"
-  shows "distinct (map set (sublists xs))"
+  shows "distinct (map set (subseqs xs))"
 proof (rule card_distinct)
   have "finite (set xs)" ..
   then have "card (Pow (set xs)) = 2 ^ card (set xs)"
     by (rule card_Pow)
   with assms distinct_card [of xs] have "card (Pow (set xs)) = 2 ^ length xs"
     by simp
-  then show "card (set (map set (sublists xs))) = length (map set (sublists xs))"
-    by (simp add: sublists_powset length_sublists)
+  then show "card (set (map set (subseqs xs))) = length (map set (subseqs xs))"
+    by (simp add: subseqs_powset length_subseqs)
 qed
 
 lemma n_lists_Nil [simp]: "List.n_lists n [] = (if n = 0 then [[]] else [])"
@@ -4464,20 +4460,20 @@ proof (rule set_eqI)
   qed
 qed
 
-lemma sublists_refl: "xs \<in> set (sublists xs)"
+lemma subseqs_refl: "xs \<in> set (subseqs xs)"
   by (induct xs) (simp_all add: Let_def)
 
-lemma subset_sublists: "X \<subseteq> set xs \<Longrightarrow> X \<in> set ` set (sublists xs)"
-  unfolding sublists_powset by simp
+lemma subset_subseqs: "X \<subseteq> set xs \<Longrightarrow> X \<in> set ` set (subseqs xs)"
+  unfolding subseqs_powset by simp
 
-lemma Cons_in_sublistsD: "y # ys \<in> set (sublists xs) \<Longrightarrow> ys \<in> set (sublists xs)"
+lemma Cons_in_subseqsD: "y # ys \<in> set (subseqs xs) \<Longrightarrow> ys \<in> set (subseqs xs)"
   by (induct xs) (auto simp: Let_def)
 
-lemma sublists_distinctD: "\<lbrakk> ys \<in> set (sublists xs); distinct xs \<rbrakk> \<Longrightarrow> distinct ys"
+lemma subseqs_distinctD: "\<lbrakk> ys \<in> set (subseqs xs); distinct xs \<rbrakk> \<Longrightarrow> distinct ys"
 proof (induct xs arbitrary: ys)
   case (Cons x xs ys)
   then show ?case
-    by (auto simp: Let_def) (metis Pow_iff contra_subsetD image_eqI sublists_powset)
+    by (auto simp: Let_def) (metis Pow_iff contra_subsetD image_eqI subseqs_powset)
 qed simp
 
 
@@ -7147,9 +7143,13 @@ lemma rotate_transfer [transfer_rule]:
   "(op = ===> list_all2 A ===> list_all2 A) rotate rotate"
   unfolding rotate_def [abs_def] by transfer_prover
 
-lemma sublist_transfer [transfer_rule]:
-  "(list_all2 A ===> rel_set (op =) ===> list_all2 A) sublist sublist"
-  unfolding sublist_def [abs_def] by transfer_prover
+lemma nths_transfer [transfer_rule]:
+  "(list_all2 A ===> rel_set (op =) ===> list_all2 A) nths nths"
+  unfolding nths_def [abs_def] by transfer_prover
+    
+lemma subseqs_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 (list_all2 A)) subseqs subseqs"
+  unfolding subseqs_def [abs_def] by transfer_prover
 
 lemma partition_transfer [transfer_rule]:
   "((A ===> op =) ===> list_all2 A ===> rel_prod (list_all2 A) (list_all2 A))

@@ -388,7 +388,7 @@ definition
 
 definition enum_term_of_set :: "'a set itself \<Rightarrow> unit \<Rightarrow> term list"
   where "enum_term_of_set _ _ =
-    map (setify (TYPE('a))) (sublists (Quickcheck_Exhaustive.enum_term_of (TYPE('a)) ()))"
+    map (setify (TYPE('a))) (subseqs (Quickcheck_Exhaustive.enum_term_of (TYPE('a)) ()))"
 
 instance ..
 

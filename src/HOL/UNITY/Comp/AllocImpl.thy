@@ -78,7 +78,7 @@ definition
          (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
          guarantees
          (\<Inter>i \<in> lessThan Nclients.
-          (%s. sublist (merge.Out s)
+          (%s. nths (merge.Out s)
                        {k. k < size(merge.iOut s) & merge.iOut s! k = i})
           Fols (sub i o merge.In))"
 
@@ -110,7 +110,7 @@ definition
          guarantees
          (\<Inter>i \<in> lessThan Nclients.
           (sub i o distr.Out) Fols
-          (%s. sublist (distr.In s)
+          (%s. nths (distr.In s)
                        {k. k < size(distr.iIn s) & distr.iIn s ! k = i}))"
 
 definition
@@ -273,13 +273,13 @@ done
 lemma Merge_Bag_Follows_lemma:
      "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
   ==> M \<squnion> G \<in> Always
-          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (merge.Out s)
+          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (nths (merge.Out s)
                                   {k. k < length (iOut s) & iOut s ! k = i})) =
               (bag_of o merge.Out) s}"
 apply (rule Always_Compl_Un_eq [THEN iffD1])
 apply (blast intro: Always_Int_I [OF Merge_Always_Out_eq_iOut Merge_Bounded])
 apply (rule UNIV_AlwaysI, clarify)
-apply (subst bag_of_sublist_UN_disjoint [symmetric])
+apply (subst bag_of_nths_UN_disjoint [symmetric])
   apply (simp)
  apply blast
 apply (simp add: set_conv_nth)
@@ -327,12 +327,12 @@ lemma Distr_Bag_Follows_lemma:
      "[| G \<in> preserves distr.Out;
          D \<squnion> G \<in> Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients} |]
   ==> D \<squnion> G \<in> Always
-          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (distr.In s)
+          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (nths (distr.In s)
                                   {k. k < length (iIn s) & iIn s ! k = i})) =
-              bag_of (sublist (distr.In s) (lessThan (length (iIn s))))}"
+              bag_of (nths (distr.In s) (lessThan (length (iIn s))))}"
 apply (erule Always_Compl_Un_eq [THEN iffD1])
 apply (rule UNIV_AlwaysI, clarify)
-apply (subst bag_of_sublist_UN_disjoint [symmetric])
+apply (subst bag_of_nths_UN_disjoint [symmetric])
   apply (simp (no_asm))
  apply blast
 apply (simp add: set_conv_nth)
@@ -357,7 +357,7 @@ lemma Distr_Bag_Follows:
        (\<Inter>i \<in> lessThan Nclients.
         (%s. \<Sum>i \<in> lessThan Nclients. (bag_of o sub i o distr.Out) s)
         Fols
-        (%s. bag_of (sublist (distr.In s) (lessThan (length(distr.iIn s))))))"
+        (%s. bag_of (nths (distr.In s) (lessThan (length(distr.iIn s))))))"
 apply (rule guaranteesI, clarify)
 apply (rule Distr_Bag_Follows_lemma [THEN Always_Follows2], auto)
 apply (rule Follows_sum)

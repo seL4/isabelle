@@ -40,7 +40,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     Prefix_Order
     Product_Lexorder
     Product_Order
-    Sublist_Order
+    Subseq_Order
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat

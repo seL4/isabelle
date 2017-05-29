@@ -533,7 +533,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
         and part_conds2: "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h1) \<longrightarrow> Array.get h1 a ! p \<le> j"
         by (auto simp add: all_in_set_subarray_conv)
       from quicksort_outer_remains [OF qs1] quicksort_permutes [OF qs1] True
-        length_remains 1(5) pivot mset_sublist [of l p "Array.get h1 a" "Array.get h2 a"]
+        length_remains 1(5) pivot mset_nths [of l p "Array.get h1 a" "Array.get h2 a"]
       have multiset_partconds1: "mset (subarray l p a h2) = mset (subarray l p a h1)"
         unfolding Array.length_def subarray_def by (cases p, auto)
       with left_subarray_remains part_conds1 pivot_unchanged
@@ -544,7 +544,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       have right_subarray_remains: "subarray (p + 1) (r + 1) a h1 = subarray (p + 1) (r + 1) a h2"
         by (auto simp add: subarray_eq_samelength_iff)
       from quicksort_outer_remains [OF qs2] quicksort_permutes [OF qs2] True
-        length_remains 1(5) pivot mset_sublist [of "p + 1" "r + 1" "Array.get h2 a" "Array.get h' a"]
+        length_remains 1(5) pivot mset_nths [of "p + 1" "r + 1" "Array.get h2 a" "Array.get h' a"]
       have multiset_partconds2: "mset (subarray (p + 1) (r + 1) a h') = mset (subarray (p + 1) (r + 1) a h2)"
         unfolding Array.length_def subarray_def by auto
       with right_subarray_remains part_conds2 pivot_unchanged
@@ -556,8 +556,8 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
         by (simp add: subarray_nth_array_Cons, cases "l < p") (auto simp add: subarray_append subarray_Nil)
       with IH1' IH2 part_conds1' part_conds2' pivot have ?thesis
         unfolding subarray_def
-        apply (auto simp add: sorted_append sorted_Cons all_in_set_sublist'_conv)
-        by (auto simp add: set_sublist' dest: order.trans [of _ "Array.get h' a ! p"])
+        apply (auto simp add: sorted_append sorted_Cons all_in_set_nths'_conv)
+        by (auto simp add: set_nths' dest: order.trans [of _ "Array.get h' a ! p"])
     }
     with True cr show ?thesis
       unfolding quicksort.simps [of a l r]
@@ -575,7 +575,7 @@ proof (cases "Array.get h a = []")
   unfolding Array.length_def by simp
 next
   case False
-  from quicksort_sorts [OF effect] False have "sorted (sublist' 0 (List.length (Array.get h a)) (Array.get h' a))"
+  from quicksort_sorts [OF effect] False have "sorted (nths' 0 (List.length (Array.get h a)) (Array.get h' a))"
     unfolding Array.length_def subarray_def by auto
   with length_remains[OF effect] have "sorted (Array.get h' a)"
     unfolding Array.length_def by simp

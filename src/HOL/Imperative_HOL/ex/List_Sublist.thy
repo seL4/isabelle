@@ -8,10 +8,10 @@ theory List_Sublist
 imports "~~/src/HOL/Library/Multiset"
 begin
 
-lemma sublist_split: "i \<le> j \<and> j \<le> k \<Longrightarrow> sublist xs {i..<j} @ sublist xs {j..<k} = sublist xs {i..<k}" 
+lemma nths_split: "i \<le> j \<and> j \<le> k \<Longrightarrow> nths xs {i..<j} @ nths xs {j..<k} = nths xs {i..<k}" 
 apply (induct xs arbitrary: i j k)
 apply simp
-apply (simp only: sublist_Cons)
+apply (simp only: nths_Cons)
 apply simp
 apply safe
 apply simp
@@ -42,27 +42,27 @@ apply fastforce
 apply fastforce
 done
 
-lemma sublist_update1: "i \<notin> inds \<Longrightarrow> sublist (xs[i := v]) inds = sublist xs inds"
+lemma nths_update1: "i \<notin> inds \<Longrightarrow> nths (xs[i := v]) inds = nths xs inds"
 apply (induct xs arbitrary: i inds)
 apply simp
 apply (case_tac i)
-apply (simp add: sublist_Cons)
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
+apply (simp add: nths_Cons)
 done
 
-lemma sublist_update2: "i \<in> inds \<Longrightarrow> sublist (xs[i := v]) inds = (sublist xs inds)[(card {k \<in> inds. k < i}):= v]"
+lemma nths_update2: "i \<in> inds \<Longrightarrow> nths (xs[i := v]) inds = (nths xs inds)[(card {k \<in> inds. k < i}):= v]"
 proof (induct xs arbitrary: i inds)
   case Nil thus ?case by simp
 next
   case (Cons x xs)
   thus ?case
   proof (cases i)
-    case 0 with Cons show ?thesis by (simp add: sublist_Cons)
+    case 0 with Cons show ?thesis by (simp add: nths_Cons)
   next
     case (Suc i')
     with Cons show ?thesis
       apply simp
-      apply (simp add: sublist_Cons)
+      apply (simp add: nths_Cons)
       apply auto
       apply (auto simp add: nat.split)
       apply (simp add: card_less_Suc[symmetric])
@@ -71,82 +71,82 @@ next
   qed
 qed
 
-lemma sublist_update: "sublist (xs[i := v]) inds = (if i \<in> inds then (sublist xs inds)[(card {k \<in> inds. k < i}) := v] else sublist xs inds)"
-by (simp add: sublist_update1 sublist_update2)
+lemma nths_update: "nths (xs[i := v]) inds = (if i \<in> inds then (nths xs inds)[(card {k \<in> inds. k < i}) := v] else nths xs inds)"
+by (simp add: nths_update1 nths_update2)
 
-lemma sublist_take: "sublist xs {j. j < m} = take m xs"
+lemma nths_take: "nths xs {j. j < m} = take m xs"
 apply (induct xs arbitrary: m)
 apply simp
 apply (case_tac m)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 done
 
-lemma sublist_take': "sublist xs {0..<m} = take m xs"
+lemma nths_take': "nths xs {0..<m} = take m xs"
 apply (induct xs arbitrary: m)
 apply simp
 apply (case_tac m)
 apply simp
-apply (simp add: sublist_Cons sublist_take)
+apply (simp add: nths_Cons nths_take)
 done
 
-lemma sublist_all[simp]: "sublist xs {j. j < length xs} = xs"
+lemma nths_all[simp]: "nths xs {j. j < length xs} = xs"
 apply (induct xs)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 done
 
-lemma sublist_all'[simp]: "sublist xs {0..<length xs} = xs"
+lemma nths_all'[simp]: "nths xs {0..<length xs} = xs"
 apply (induct xs)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 done
 
-lemma sublist_single: "a < length xs \<Longrightarrow> sublist xs {a} = [xs ! a]"
+lemma nths_single: "a < length xs \<Longrightarrow> nths xs {a} = [xs ! a]"
 apply (induct xs arbitrary: a)
 apply simp
 apply(case_tac aa)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 done
 
-lemma sublist_is_Nil: "\<forall>i \<in> inds. i \<ge> length xs \<Longrightarrow> sublist xs inds = []" 
+lemma nths_is_Nil: "\<forall>i \<in> inds. i \<ge> length xs \<Longrightarrow> nths xs inds = []" 
 apply (induct xs arbitrary: inds)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 apply auto
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply auto
 done
 
-lemma sublist_Nil': "sublist xs inds = [] \<Longrightarrow> \<forall>i \<in> inds. i \<ge> length xs"
+lemma nths_Nil': "nths xs inds = [] \<Longrightarrow> \<forall>i \<in> inds. i \<ge> length xs"
 apply (induct xs arbitrary: inds)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 apply (auto split: if_splits)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply (case_tac x, auto)
 done
 
-lemma sublist_Nil[simp]: "(sublist xs inds = []) = (\<forall>i \<in> inds. i \<ge> length xs)"
+lemma nths_Nil[simp]: "(nths xs inds = []) = (\<forall>i \<in> inds. i \<ge> length xs)"
 apply (induct xs arbitrary: inds)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 apply auto
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply (case_tac x, auto)
 done
 
-lemma sublist_eq_subseteq: " \<lbrakk> inds' \<subseteq> inds; sublist xs inds = sublist ys inds \<rbrakk> \<Longrightarrow> sublist xs inds' = sublist ys inds'"
+lemma nths_eq_subseteq: " \<lbrakk> inds' \<subseteq> inds; nths xs inds = nths ys inds \<rbrakk> \<Longrightarrow> nths xs inds' = nths ys inds'"
 apply (induct xs arbitrary: ys inds inds')
 apply simp
 apply (drule sym, rule sym)
-apply (simp add: sublist_Nil, fastforce)
+apply (simp add: nths_Nil, fastforce)
 apply (case_tac ys)
-apply (simp add: sublist_Nil, fastforce)
-apply (auto simp add: sublist_Cons)
+apply (simp add: nths_Nil, fastforce)
+apply (auto simp add: nths_Cons)
 apply (erule_tac x="list" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds'}" in meta_allE)
@@ -157,13 +157,13 @@ apply (erule_tac x="{j. Suc j \<in> inds'}" in meta_allE)
 apply fastforce
 done
 
-lemma sublist_eq: "\<lbrakk> \<forall>i \<in> inds. ((i < length xs) \<and> (i < length ys)) \<or> ((i \<ge> length xs ) \<and> (i \<ge> length ys)); \<forall>i \<in> inds. xs ! i = ys ! i \<rbrakk> \<Longrightarrow> sublist xs inds = sublist ys inds"
+lemma nths_eq: "\<lbrakk> \<forall>i \<in> inds. ((i < length xs) \<and> (i < length ys)) \<or> ((i \<ge> length xs ) \<and> (i \<ge> length ys)); \<forall>i \<in> inds. xs ! i = ys ! i \<rbrakk> \<Longrightarrow> nths xs inds = nths ys inds"
 apply (induct xs arbitrary: ys inds)
 apply simp
-apply (rule sym, simp add: sublist_Nil)
+apply (rule sym, simp add: nths_Nil)
 apply (case_tac ys)
-apply (simp add: sublist_Nil)
-apply (auto simp add: sublist_Cons)
+apply (simp add: nths_Nil)
+apply (auto simp add: nths_Cons)
 apply (erule_tac x="list" in meta_allE)
 apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply fastforce
@@ -172,64 +172,64 @@ apply (erule_tac x="{j. Suc j \<in> inds}" in meta_allE)
 apply fastforce
 done
 
-lemma sublist_eq_samelength: "\<lbrakk> length xs = length ys; \<forall>i \<in> inds. xs ! i = ys ! i \<rbrakk> \<Longrightarrow> sublist xs inds = sublist ys inds"
-by (rule sublist_eq, auto)
+lemma nths_eq_samelength: "\<lbrakk> length xs = length ys; \<forall>i \<in> inds. xs ! i = ys ! i \<rbrakk> \<Longrightarrow> nths xs inds = nths ys inds"
+by (rule nths_eq, auto)
 
-lemma sublist_eq_samelength_iff: "length xs = length ys \<Longrightarrow> (sublist xs inds = sublist ys inds) = (\<forall>i \<in> inds. xs ! i = ys ! i)"
+lemma nths_eq_samelength_iff: "length xs = length ys \<Longrightarrow> (nths xs inds = nths ys inds) = (\<forall>i \<in> inds. xs ! i = ys ! i)"
 apply (induct xs arbitrary: ys inds)
 apply simp
-apply (rule sym, simp add: sublist_Nil)
+apply (rule sym, simp add: nths_Nil)
 apply (case_tac ys)
-apply (simp add: sublist_Nil)
-apply (auto simp add: sublist_Cons)
+apply (simp add: nths_Nil)
+apply (auto simp add: nths_Cons)
 apply (case_tac i)
 apply auto
 apply (case_tac i)
 apply auto
 done
 
-section \<open>Another sublist function\<close>
+section \<open>Another nths function\<close>
 
-function sublist' :: "nat \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+function nths' :: "nat \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  "sublist' n m [] = []"
-| "sublist' n 0 xs = []"
-| "sublist' 0 (Suc m) (x#xs) = (x#sublist' 0 m xs)"
-| "sublist' (Suc n) (Suc m) (x#xs) = sublist' n m xs"
+  "nths' n m [] = []"
+| "nths' n 0 xs = []"
+| "nths' 0 (Suc m) (x#xs) = (x#nths' 0 m xs)"
+| "nths' (Suc n) (Suc m) (x#xs) = nths' n m xs"
 by pat_completeness auto
 termination by lexicographic_order
 
-subsection \<open>Proving equivalence to the other sublist command\<close>
+subsection \<open>Proving equivalence to the other nths command\<close>
 
-lemma sublist'_sublist: "sublist' n m xs = sublist xs {j. n \<le> j \<and> j < m}"
+lemma nths'_nths: "nths' n m xs = nths xs {j. n \<le> j \<and> j < m}"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac n)
 apply (case_tac m)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 apply (case_tac m)
 apply simp
-apply (simp add: sublist_Cons)
+apply (simp add: nths_Cons)
 done
 
 
-lemma "sublist' n m xs = sublist xs {n..<m}"
+lemma "nths' n m xs = nths xs {n..<m}"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac n, case_tac m)
 apply simp
 apply simp
-apply (simp add: sublist_take')
+apply (simp add: nths_take')
 apply (case_tac m)
 apply simp
-apply (simp add: sublist_Cons sublist'_sublist)
+apply (simp add: nths_Cons nths'_nths)
 done
 
 
 subsection \<open>Showing equivalence to use of drop and take for definition\<close>
 
-lemma "sublist' n m xs = take (m - n) (drop n xs)"
+lemma "nths' n m xs = take (m - n) (drop n xs)"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac m)
@@ -239,25 +239,25 @@ apply simp
 apply simp
 done
 
-subsection \<open>General lemma about sublist\<close>
+subsection \<open>General lemma about nths\<close>
 
-lemma sublist'_Nil[simp]: "sublist' i j [] = []"
+lemma nths'_Nil[simp]: "nths' i j [] = []"
 by simp
 
-lemma sublist'_Cons[simp]: "sublist' i (Suc j) (x#xs) = (case i of 0 \<Rightarrow> (x # sublist' 0 j xs) | Suc i' \<Rightarrow>  sublist' i' j xs)"
+lemma nths'_Cons[simp]: "nths' i (Suc j) (x#xs) = (case i of 0 \<Rightarrow> (x # nths' 0 j xs) | Suc i' \<Rightarrow>  nths' i' j xs)"
 by (cases i) auto
 
-lemma sublist'_Cons2[simp]: "sublist' i j (x#xs) = (if (j = 0) then [] else ((if (i = 0) then [x] else []) @ sublist' (i - 1) (j - 1) xs))"
+lemma nths'_Cons2[simp]: "nths' i j (x#xs) = (if (j = 0) then [] else ((if (i = 0) then [x] else []) @ nths' (i - 1) (j - 1) xs))"
 apply (cases j)
 apply auto
 apply (cases i)
 apply auto
 done
 
-lemma sublist_n_0: "sublist' n 0 xs = []"
+lemma nths_n_0: "nths' n 0 xs = []"
 by (induct xs, auto)
 
-lemma sublist'_Nil': "n \<ge> m \<Longrightarrow> sublist' n m xs = []"
+lemma nths'_Nil': "n \<ge> m \<Longrightarrow> nths' n m xs = []"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac m)
@@ -267,7 +267,7 @@ apply simp
 apply simp
 done
 
-lemma sublist'_Nil2: "n \<ge> length xs \<Longrightarrow> sublist' n m xs = []"
+lemma nths'_Nil2: "n \<ge> length xs \<Longrightarrow> nths' n m xs = []"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac m)
@@ -277,7 +277,7 @@ apply simp
 apply simp
 done
 
-lemma sublist'_Nil3: "(sublist' n m xs = []) = ((n \<ge> m) \<or> (n \<ge> length xs))"
+lemma nths'_Nil3: "(nths' n m xs = []) = ((n \<ge> m) \<or> (n \<ge> length xs))"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac m)
@@ -287,7 +287,7 @@ apply simp
 apply simp
 done
 
-lemma sublist'_notNil: "\<lbrakk> n < length xs; n < m \<rbrakk> \<Longrightarrow> sublist' n m xs \<noteq> []"
+lemma nths'_notNil: "\<lbrakk> n < length xs; n < m \<rbrakk> \<Longrightarrow> nths' n m xs \<noteq> []"
 apply (induct xs arbitrary: n m)
 apply simp
 apply (case_tac m)
@@ -297,16 +297,16 @@ apply simp
 apply simp
 done
 
-lemma sublist'_single: "n < length xs \<Longrightarrow> sublist' n (Suc n) xs = [xs ! n]"
+lemma nths'_single: "n < length xs \<Longrightarrow> nths' n (Suc n) xs = [xs ! n]"
 apply (induct xs arbitrary: n)
 apply simp
 apply simp
 apply (case_tac n)
-apply (simp add: sublist_n_0)
+apply (simp add: nths_n_0)
 apply simp
 done
 
-lemma sublist'_update1: "i \<ge> m \<Longrightarrow> sublist' n m (xs[i:=v]) = sublist' n m xs"
+lemma nths'_update1: "i \<ge> m \<Longrightarrow> nths' n m (xs[i:=v]) = nths' n m xs"
 apply (induct xs arbitrary: n m i)
 apply simp
 apply simp
@@ -315,7 +315,7 @@ apply simp
 apply simp
 done
 
-lemma sublist'_update2: "i < n \<Longrightarrow> sublist' n m (xs[i:=v]) = sublist' n m xs"
+lemma nths'_update2: "i < n \<Longrightarrow> nths' n m (xs[i:=v]) = nths' n m xs"
 apply (induct xs arbitrary: n m i)
 apply simp
 apply simp
@@ -324,7 +324,7 @@ apply simp
 apply simp
 done
 
-lemma sublist'_update3: "\<lbrakk>n \<le> i; i < m\<rbrakk> \<Longrightarrow> sublist' n m (xs[i := v]) = (sublist' n m xs)[i - n := v]"
+lemma nths'_update3: "\<lbrakk>n \<le> i; i < m\<rbrakk> \<Longrightarrow> nths' n m (xs[i := v]) = (nths' n m xs)[i - n := v]"
 proof (induct xs arbitrary: n m i)
   case Nil thus ?case by auto
 next
@@ -339,14 +339,14 @@ next
     done
 qed
 
-lemma "\<lbrakk> sublist' i j xs = sublist' i j ys; n \<ge> i; m \<le> j \<rbrakk> \<Longrightarrow> sublist' n m xs = sublist' n m ys"
+lemma "\<lbrakk> nths' i j xs = nths' i j ys; n \<ge> i; m \<le> j \<rbrakk> \<Longrightarrow> nths' n m xs = nths' n m ys"
 proof (induct xs arbitrary: i j ys n m)
   case Nil
   thus ?case
     apply -
     apply (rule sym, drule sym)
-    apply (simp add: sublist'_Nil)
-    apply (simp add: sublist'_Nil3)
+    apply (simp add: nths'_Nil)
+    apply (simp add: nths'_Nil3)
     apply arith
     done
 next
@@ -354,7 +354,7 @@ next
   note c = this
   thus ?case
   proof (cases m)
-    case 0 thus ?thesis by (simp add: sublist_n_0)
+    case 0 thus ?thesis by (simp add: nths_n_0)
   next
     case (Suc m')
     note a = this
@@ -363,7 +363,7 @@ next
       case 0 note b = this
       show ?thesis
       proof (cases ys)
-        case Nil  with a b Cons.prems show ?thesis by (simp add: sublist'_Nil3)
+        case Nil  with a b Cons.prems show ?thesis by (simp add: nths'_Nil3)
       next
         case (Cons y ys)
         show ?thesis
@@ -380,7 +380,7 @@ next
       case (Suc n')
       show ?thesis
       proof (cases ys)
-        case Nil with Suc a Cons.prems show ?thesis by (auto simp add: sublist'_Nil3)
+        case Nil with Suc a Cons.prems show ?thesis by (auto simp add: nths'_Nil3)
       next
         case (Cons y ys) with Suc a Cons.prems show ?thesis
           apply -
@@ -404,10 +404,10 @@ next
   qed
 qed
 
-lemma length_sublist': "j \<le> length xs \<Longrightarrow> length (sublist' i j xs) = j - i"
+lemma length_nths': "j \<le> length xs \<Longrightarrow> length (nths' i j xs) = j - i"
 by (induct xs arbitrary: i j, auto)
 
-lemma sublist'_front: "\<lbrakk> i < j; i < length xs \<rbrakk> \<Longrightarrow> sublist' i j xs = xs ! i # sublist' (Suc i) j xs"
+lemma nths'_front: "\<lbrakk> i < j; i < length xs \<rbrakk> \<Longrightarrow> nths' i j xs = xs ! i # nths' (Suc i) j xs"
 apply (induct xs arbitrary: i j)
 apply simp
 apply (case_tac j)
@@ -417,14 +417,14 @@ apply simp
 apply simp
 done
 
-lemma sublist'_back: "\<lbrakk> i < j; j \<le> length xs \<rbrakk> \<Longrightarrow> sublist' i j xs = sublist' i (j - 1) xs @ [xs ! (j - 1)]"
+lemma nths'_back: "\<lbrakk> i < j; j \<le> length xs \<rbrakk> \<Longrightarrow> nths' i j xs = nths' i (j - 1) xs @ [xs ! (j - 1)]"
 apply (induct xs arbitrary: i j)
 apply simp
 apply simp
 done
 
 (* suffices that j \<le> length xs and length ys *) 
-lemma sublist'_eq_samelength_iff: "length xs = length ys \<Longrightarrow> (sublist' i j xs  = sublist' i j ys) = (\<forall>i'. i \<le> i' \<and> i' < j \<longrightarrow> xs ! i' = ys ! i')"
+lemma nths'_eq_samelength_iff: "length xs = length ys \<Longrightarrow> (nths' i j xs  = nths' i j ys) = (\<forall>i'. i \<le> i' \<and> i' < j \<longrightarrow> xs ! i' = ys ! i')"
 proof (induct xs arbitrary: ys i j)
   case Nil thus ?case by simp
 next
@@ -442,54 +442,54 @@ next
     done
 qed
 
-lemma sublist'_all[simp]: "sublist' 0 (length xs) xs = xs"
+lemma nths'_all[simp]: "nths' 0 (length xs) xs = xs"
 by (induct xs, auto)
 
-lemma sublist'_sublist': "sublist' n m (sublist' i j xs) = sublist' (i + n) (min (i + m) j) xs" 
+lemma nths'_nths': "nths' n m (nths' i j xs) = nths' (i + n) (min (i + m) j) xs" 
 by (induct xs arbitrary: i j n m) (auto simp add: min_diff)
 
-lemma sublist'_append: "\<lbrakk> i \<le> j; j \<le> k \<rbrakk> \<Longrightarrow>(sublist' i j xs) @ (sublist' j k xs) = sublist' i k xs"
+lemma nths'_append: "\<lbrakk> i \<le> j; j \<le> k \<rbrakk> \<Longrightarrow>(nths' i j xs) @ (nths' j k xs) = nths' i k xs"
 by (induct xs arbitrary: i j k) auto
 
-lemma nth_sublist': "\<lbrakk> k < j - i; j \<le> length xs \<rbrakk> \<Longrightarrow> (sublist' i j xs) ! k = xs ! (i + k)"
+lemma nth_nths': "\<lbrakk> k < j - i; j \<le> length xs \<rbrakk> \<Longrightarrow> (nths' i j xs) ! k = xs ! (i + k)"
 apply (induct xs arbitrary: i j k)
 apply simp
 apply (case_tac k)
 apply auto
 done
 
-lemma set_sublist': "set (sublist' i j xs) = {x. \<exists>k. i \<le> k \<and> k < j \<and> k < List.length xs \<and> x = xs ! k}"
-apply (simp add: sublist'_sublist)
-apply (simp add: set_sublist)
+lemma set_nths': "set (nths' i j xs) = {x. \<exists>k. i \<le> k \<and> k < j \<and> k < List.length xs \<and> x = xs ! k}"
+apply (simp add: nths'_nths)
+apply (simp add: set_nths)
 apply auto
 done
 
-lemma all_in_set_sublist'_conv: "(\<forall>j. j \<in> set (sublist' l r xs) \<longrightarrow> P j) = (\<forall>k. l \<le> k \<and> k < r \<and> k < List.length xs \<longrightarrow> P (xs ! k))"
-unfolding set_sublist' by blast
+lemma all_in_set_nths'_conv: "(\<forall>j. j \<in> set (nths' l r xs) \<longrightarrow> P j) = (\<forall>k. l \<le> k \<and> k < r \<and> k < List.length xs \<longrightarrow> P (xs ! k))"
+unfolding set_nths' by blast
 
-lemma ball_in_set_sublist'_conv: "(\<forall>j \<in> set (sublist' l r xs). P j) = (\<forall>k. l \<le> k \<and> k < r \<and> k < List.length xs \<longrightarrow> P (xs ! k))"
-unfolding set_sublist' by blast
+lemma ball_in_set_nths'_conv: "(\<forall>j \<in> set (nths' l r xs). P j) = (\<forall>k. l \<le> k \<and> k < r \<and> k < List.length xs \<longrightarrow> P (xs ! k))"
+unfolding set_nths' by blast
 
 
-lemma mset_sublist:
+lemma mset_nths:
 assumes l_r: "l \<le> r \<and> r \<le> List.length xs"
 assumes left: "\<forall> i. i < l \<longrightarrow> (xs::'a list) ! i = ys ! i"
 assumes right: "\<forall> i. i \<ge> r \<longrightarrow> (xs::'a list) ! i = ys ! i"
 assumes multiset: "mset xs = mset ys"
-  shows "mset (sublist' l r xs) = mset (sublist' l r ys)"
+  shows "mset (nths' l r xs) = mset (nths' l r ys)"
 proof -
-  from l_r have xs_def: "xs = (sublist' 0 l xs) @ (sublist' l r xs) @ (sublist' r (List.length xs) xs)" (is "_ = ?xs_long") 
-    by (simp add: sublist'_append)
+  from l_r have xs_def: "xs = (nths' 0 l xs) @ (nths' l r xs) @ (nths' r (List.length xs) xs)" (is "_ = ?xs_long") 
+    by (simp add: nths'_append)
   from multiset have length_eq: "List.length xs = List.length ys" by (rule mset_eq_length)
-  with l_r have ys_def: "ys = (sublist' 0 l ys) @ (sublist' l r ys) @ (sublist' r (List.length ys) ys)" (is "_ = ?ys_long") 
-    by (simp add: sublist'_append)
+  with l_r have ys_def: "ys = (nths' 0 l ys) @ (nths' l r ys) @ (nths' r (List.length ys) ys)" (is "_ = ?ys_long") 
+    by (simp add: nths'_append)
   from xs_def ys_def multiset have "mset ?xs_long = mset ?ys_long" by simp
   moreover
-  from left l_r length_eq have "sublist' 0 l xs = sublist' 0 l ys"
-    by (auto simp add: length_sublist' nth_sublist' intro!: nth_equalityI)
+  from left l_r length_eq have "nths' 0 l xs = nths' 0 l ys"
+    by (auto simp add: length_nths' nth_nths' intro!: nth_equalityI)
   moreover
-  from right l_r length_eq have "sublist' r (List.length xs) xs = sublist' r (List.length ys) ys"
-    by (auto simp add: length_sublist' nth_sublist' intro!: nth_equalityI)
+  from right l_r length_eq have "nths' r (List.length xs) xs = nths' r (List.length ys) ys"
+    by (auto simp add: length_nths' nth_nths' intro!: nth_equalityI)
   ultimately show ?thesis by (simp add: mset_append)
 qed
 

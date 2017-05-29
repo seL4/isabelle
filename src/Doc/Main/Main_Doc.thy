@@ -552,6 +552,7 @@ Type @{typ int}
 @{const List.map} & @{typeof List.map}\\
 @{const List.measures} & @{term_type_only List.measures "('a\<Rightarrow>nat)list\<Rightarrow>('a*'a)set"}\\
 @{const List.nth} & @{typeof List.nth}\\
+@{const List.nths} & @{typeof List.nths}\\
 @{const List.remdups} & @{typeof List.remdups}\\
 @{const List.removeAll} & @{typeof List.removeAll}\\
 @{const List.remove1} & @{typeof List.remove1}\\
@@ -560,10 +561,10 @@ Type @{typ int}
 @{const List.rotate} & @{typeof List.rotate}\\
 @{const List.rotate1} & @{typeof List.rotate1}\\
 @{const List.set} & @{term_type_only List.set "'a list \<Rightarrow> 'a set"}\\
+@{const List.shuffle} & @{typeof List.shuffle}\\
 @{const List.sort} & @{typeof List.sort}\\
 @{const List.sorted} & @{typeof List.sorted}\\
 @{const List.splice} & @{typeof List.splice}\\
-@{const List.sublist} & @{typeof List.sublist}\\
 @{const List.take} & @{typeof List.take}\\
 @{const List.takeWhile} & @{typeof List.takeWhile}\\
 @{const List.tl} & @{typeof List.tl}\\

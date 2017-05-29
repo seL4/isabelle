@@ -73,6 +73,9 @@ buffers.
 
 *** HOL ***
 
+* "sublist" from theory List renamed to "nths" in analogy with "nth".
+"sublisteq" renamed to "subseq".  Minor INCOMPATIBILITY.
+
 * Theories "GCD" and "Binomial" are already included in "Main" (instead
 of "Complex_Main").
 

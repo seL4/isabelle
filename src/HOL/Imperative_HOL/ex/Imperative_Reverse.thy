@@ -99,7 +99,7 @@ proof -
   } 
   with assms(2) rev_length[OF assms(1)] show ?thesis
   unfolding subarray_def Array.length_def
-  by (auto simp add: length_sublist' rev_nth min_def nth_sublist' intro!: nth_equalityI)
+  by (auto simp add: length_nths' rev_nth min_def nth_nths' intro!: nth_equalityI)
 qed
 
 lemma rev2_rev: 

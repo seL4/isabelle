@@ -385,7 +385,7 @@ instantiation set :: (enum) enum
 begin
 
 definition
-  "enum = map set (sublists enum)"
+  "enum = map set (subseqs enum)"
 
 definition
   "enum_all P \<longleftrightarrow> (\<forall>A\<in>set enum. P (A::'a set))"
@@ -394,7 +394,7 @@ definition
   "enum_ex P \<longleftrightarrow> (\<exists>A\<in>set enum. P (A::'a set))"
 
 instance proof
-qed (simp_all add: enum_set_def enum_all_set_def enum_ex_set_def sublists_powset distinct_set_sublists
+qed (simp_all add: enum_set_def enum_all_set_def enum_ex_set_def subseqs_powset distinct_set_subseqs
   enum_distinct enum_UNIV)
 
 end

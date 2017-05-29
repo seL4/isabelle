@@ -7,7 +7,7 @@ theory Candidates
 imports
   Complex_Main
   "~~/src/HOL/Library/Library"
-  "~~/src/HOL/Library/Sublist_Order"
+  "~~/src/HOL/Library/Subseq_Order"
   "~~/src/HOL/Data_Structures/Tree_Map"
   "~~/src/HOL/Data_Structures/Tree_Set"
   "~~/src/HOL/Computational_Algebra/Computational_Algebra"

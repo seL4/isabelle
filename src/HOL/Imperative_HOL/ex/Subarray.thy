@@ -9,63 +9,63 @@ imports "~~/src/HOL/Imperative_HOL/Array" List_Sublist
 begin
 
 definition subarray :: "nat \<Rightarrow> nat \<Rightarrow> ('a::heap) array \<Rightarrow> heap \<Rightarrow> 'a list" where
-  "subarray n m a h \<equiv> sublist' n m (Array.get h a)"
+  "subarray n m a h \<equiv> nths' n m (Array.get h a)"
 
 lemma subarray_upd: "i \<ge> m \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h"
 apply (simp add: subarray_def Array.update_def)
-apply (simp add: sublist'_update1)
+apply (simp add: nths'_update1)
 done
 
 lemma subarray_upd2: " i < n  \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h"
 apply (simp add: subarray_def Array.update_def)
-apply (subst sublist'_update2)
+apply (subst nths'_update2)
 apply fastforce
 apply simp
 done
 
 lemma subarray_upd3: "\<lbrakk> n \<le> i; i < m\<rbrakk> \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h[i - n := v]"
 unfolding subarray_def Array.update_def
-by (simp add: sublist'_update3)
+by (simp add: nths'_update3)
 
 lemma subarray_Nil: "n \<ge> m \<Longrightarrow> subarray n m a h = []"
-by (simp add: subarray_def sublist'_Nil')
+by (simp add: subarray_def nths'_Nil')
 
 lemma subarray_single: "\<lbrakk> n < Array.length h a \<rbrakk> \<Longrightarrow> subarray n (Suc n) a h = [Array.get h a ! n]" 
-by (simp add: subarray_def length_def sublist'_single)
+by (simp add: subarray_def length_def nths'_single)
 
 lemma length_subarray: "m \<le> Array.length h a \<Longrightarrow> List.length (subarray n m a h) = m - n"
-by (simp add: subarray_def length_def length_sublist')
+by (simp add: subarray_def length_def length_nths')
 
 lemma length_subarray_0: "m \<le> Array.length h a \<Longrightarrow> List.length (subarray 0 m a h) = m"
 by (simp add: length_subarray)
 
 lemma subarray_nth_array_Cons: "\<lbrakk> i < Array.length h a; i < j \<rbrakk> \<Longrightarrow> (Array.get h a ! i) # subarray (Suc i) j a h = subarray i j a h"
 unfolding Array.length_def subarray_def
-by (simp add: sublist'_front)
+by (simp add: nths'_front)
 
 lemma subarray_nth_array_back: "\<lbrakk> i < j; j \<le> Array.length h a\<rbrakk> \<Longrightarrow> subarray i j a h = subarray i (j - 1) a h @ [Array.get h a ! (j - 1)]"
 unfolding Array.length_def subarray_def
-by (simp add: sublist'_back)
+by (simp add: nths'_back)
 
 lemma subarray_append: "\<lbrakk> i \<le> j; j \<le> k \<rbrakk> \<Longrightarrow> subarray i j a h @ subarray j k a h = subarray i k a h"
 unfolding subarray_def
-by (simp add: sublist'_append)
+by (simp add: nths'_append)
 
 lemma subarray_all: "subarray 0 (Array.length h a) a h = Array.get h a"
 unfolding Array.length_def subarray_def
-by (simp add: sublist'_all)
+by (simp add: nths'_all)
 
 lemma nth_subarray: "\<lbrakk> k < j - i; j \<le> Array.length h a \<rbrakk> \<Longrightarrow> subarray i j a h ! k = Array.get h a ! (i + k)"
 unfolding Array.length_def subarray_def
-by (simp add: nth_sublist')
+by (simp add: nth_nths')
 
 lemma subarray_eq_samelength_iff: "Array.length h a = Array.length h' a \<Longrightarrow> (subarray i j a h = subarray i j a h') = (\<forall>i'. i \<le> i' \<and> i' < j \<longrightarrow> Array.get h a ! i' = Array.get h' a ! i')"
-unfolding Array.length_def subarray_def by (rule sublist'_eq_samelength_iff)
+unfolding Array.length_def subarray_def by (rule nths'_eq_samelength_iff)
 
 lemma all_in_set_subarray_conv: "(\<forall>j. j \<in> set (subarray l r a h) \<longrightarrow> P j) = (\<forall>k. l \<le> k \<and> k < r \<and> k < Array.length h a \<longrightarrow> P (Array.get h a ! k))"
-unfolding subarray_def Array.length_def by (rule all_in_set_sublist'_conv)
+unfolding subarray_def Array.length_def by (rule all_in_set_nths'_conv)
 
 lemma ball_in_set_subarray_conv: "(\<forall>j \<in> set (subarray l r a h). P j) = (\<forall>k. l \<le> k \<and> k < r \<and> k < Array.length h a \<longrightarrow> P (Array.get h a ! k))"
-unfolding subarray_def Array.length_def by (rule ball_in_set_sublist'_conv)
+unfolding subarray_def Array.length_def by (rule ball_in_set_nths'_conv)
 
 end
