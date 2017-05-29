@@ -22,6 +22,12 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
+        "commands": [
+            {
+                "command": "isabelle.preview",
+                "title": "Isabelle Document Preview"
+            }
+        ],
         "languages": [
             {
                 "id": "isabelle",

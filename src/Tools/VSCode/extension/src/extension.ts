@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as decorations from './decorations';
+import * as preview from './preview';
 import * as protocol from './protocol';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
@@ -104,6 +105,11 @@ export function activate(context: vscode.ExtensionContext)
       vscode.window.onDidChangeTextEditorSelection(_ => update_caret())
       update_caret()
     })
+
+
+    /* preview */
+
+    preview.init(context)
 
 
     /* start server */
