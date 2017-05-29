@@ -492,7 +492,7 @@ lemma suffixE [elim?]:
   assumes "suffix xs ys"
   obtains zs where "ys = zs @ xs"
   using assms unfolding suffix_def by blast
-
+    
 lemma suffix_tl [simp]: "suffix (tl xs) xs"
   by (induct xs) (auto simp: suffix_def)
 
@@ -1003,11 +1003,13 @@ lemma subseq_singleton_left: "subseq [x] ys \<longleftrightarrow> x \<in> set ys
 
 lemma list_emb_append_mono:
   "\<lbrakk> list_emb P xs xs'; list_emb P ys ys' \<rbrakk> \<Longrightarrow> list_emb P (xs@ys) (xs'@ys')"
-  apply (induct rule: list_emb.induct)
-    apply (metis eq_Nil_appendI list_emb_append2)
-   apply (metis append_Cons list_emb_Cons)
-  apply (metis append_Cons list_emb_Cons2)
-  done
+  by (induct rule: list_emb.induct) auto
+
+lemma prefix_imp_subseq [intro]: "prefix xs ys \<Longrightarrow> subseq xs ys"
+  by (auto simp: prefix_def)
+
+lemma suffix_imp_subseq [intro]: "suffix xs ys \<Longrightarrow> subseq xs ys"
+  by (auto simp: suffix_def)
 
 
 subsection \<open>Appending elements\<close>
@@ -1275,6 +1277,9 @@ lemma sublist_snoc:
   "sublist xs (ys @ [y]) \<longleftrightarrow> suffix xs (ys @ [y]) \<or> sublist xs ys"
   by (subst (1 2) sublist_rev [symmetric])
      (simp del: sublist_rev add: sublist_Cons_right suffix_to_prefix)     
+     
+lemma sublist_imp_subseq [intro]: "sublist xs ys \<Longrightarrow> subseq xs ys"
+  by (auto simp: sublist_def)
 
 subsection \<open>Parametricity\<close>
 
