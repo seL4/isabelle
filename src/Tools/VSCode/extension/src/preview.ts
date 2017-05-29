@@ -1,7 +1,7 @@
 'use strict';
 
-import { TextDocumentContentProvider, ExtensionContext, Uri, Position, ViewColumn,
-  workspace, window, commands } from 'vscode'
+import { TextDocumentContentProvider, ExtensionContext, Event, EventEmitter, Uri, Position,
+  ViewColumn, workspace, window, commands } from 'vscode'
 
 
 const uri_scheme = 'isabelle-preview';
@@ -9,12 +9,31 @@ const uri_scheme = 'isabelle-preview';
 class Provider implements TextDocumentContentProvider
 {
   constructor() { }
-
   dispose() { }
 
-  provideTextDocumentContent(uri: Uri): string | Thenable<string>
+  private emitter = new EventEmitter<Uri>()
+  private waiting: boolean = false;
+
+  get onDidChange(): Event<Uri> { return this.emitter.event }
+
+  public update(document_uri: Uri)
   {
-    const [name, pos] = decode_location(uri)
+    if (!this.waiting) {
+      this.waiting = true
+      setTimeout(() =>
+      {
+        this.waiting = false
+        this.emitter.fire(encode_name(document_uri))
+      }, 300)
+    }
+  }
+
+  provideTextDocumentContent(preview_uri: Uri): string | Thenable<string>
+  {
+    const document_uri = decode_name(preview_uri)
+    const editor =
+      window.visibleTextEditors.find(editor =>
+        document_uri.toString() === editor.document.uri.toString())
     return `
       <html>
       <head>
@@ -22,49 +41,53 @@ class Provider implements TextDocumentContentProvider
       </head>
       <body>
         <h1>Isabelle Preview</h1>
-        <p>${JSON.stringify([name, pos])}</p>
+        <ul>
+        <li><b>file</b> = <code>${document_uri.fsPath}</code></li>` +
+        (editor ? `<li><b>line count</b> = ${editor.document.lineCount}</li>` : "") +
+        `</ul>
       </body>
       </html>`
   }
 }
 
-export function encode_location(uri: Uri, pos: Position): Uri
+export function encode_name(document_uri: Uri): Uri
 {
-  const query = JSON.stringify([uri.toString(), pos.line, pos.character])
-  return Uri.parse(uri_scheme + ":Preview?" + query)
+  return Uri.parse(uri_scheme + ":Preview?" + JSON.stringify([document_uri.toString()]))
 }
 
-export function decode_location(uri: Uri): [Uri, Position]
+export function decode_name(preview_uri: Uri): Uri
 {
-  let [name, line, character] = <[string, number, number]>JSON.parse(uri.query)
-  return [Uri.parse(name), new Position(line, character)]
+  const [name] = <[string]>JSON.parse(preview_uri.query)
+  return Uri.parse(name)
 }
 
-function view_column(side_by_side: boolean = true): ViewColumn | undefined
+function other_column(): ViewColumn
 {
   const active = window.activeTextEditor
-  if (!active) { return ViewColumn.One }
-  if (!side_by_side) { return active.viewColumn }
-
-  if (active.viewColumn == ViewColumn.One) return ViewColumn.Two
-  else if (active.viewColumn == ViewColumn.Two) return ViewColumn.Three
-  else return ViewColumn.One
+  if (!active || active.viewColumn === ViewColumn.Three) return ViewColumn.One
+  else if (active.viewColumn === ViewColumn.One) return ViewColumn.Two
+  else return ViewColumn.Three
 }
 
 export function init(context: ExtensionContext)
 {
   const provider = new Provider()
+  context.subscriptions.push(workspace.registerTextDocumentContentProvider(uri_scheme, provider))
+  context.subscriptions.push(provider)
 
-  const provider_registration =
-    workspace.registerTextDocumentContentProvider(uri_scheme, provider)
-
-  const command_registration =
+  context.subscriptions.push(
     commands.registerTextEditorCommand("isabelle.preview", editor =>
     {
-      const uri = encode_location(editor.document.uri, editor.selection.active)
-      return workspace.openTextDocument(uri).then(doc =>
-        commands.executeCommand("vscode.previewHtml", uri, view_column(), "Isabelle Preview"))
-    })
+      const preview_uri = encode_name(editor.document.uri)
+      return workspace.openTextDocument(preview_uri).then(doc =>
+        commands.executeCommand("vscode.previewHtml", preview_uri, other_column(), "Isabelle Preview"))
+    }))
 
-  context.subscriptions.push(provider, provider_registration, command_registration)
+  context.subscriptions.push(
+    workspace.onDidChangeTextDocument(event =>
+    {
+      if (event.document.languageId === 'isabelle') {
+        provider.update(event.document.uri)
+      }
+    }))
 }
