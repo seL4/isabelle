@@ -15,7 +15,16 @@ class Provider implements TextDocumentContentProvider
   provideTextDocumentContent(uri: Uri): string | Thenable<string>
   {
     const [name, pos] = decode_location(uri)
-    return "Isabelle Preview: " + JSON.stringify([name, pos])
+    return `
+      <html>
+      <head>
+        <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+      </head>
+      <body>
+        <h1>Isabelle Preview</h1>
+        <p>${JSON.stringify([name, pos])}</p>
+      </body>
+      </html>`
   }
 }
 
@@ -53,7 +62,8 @@ export function init(context: ExtensionContext)
     commands.registerTextEditorCommand("isabelle.preview", editor =>
     {
       const uri = encode_location(editor.document.uri, editor.selection.active)
-      return workspace.openTextDocument(uri).then(doc => window.showTextDocument(doc, view_column()))
+      return workspace.openTextDocument(uri).then(doc =>
+        commands.executeCommand("vscode.previewHtml", uri, view_column(), "Isabelle Preview"))
     })
 
   context.subscriptions.push(provider, provider_registration, command_registration)
