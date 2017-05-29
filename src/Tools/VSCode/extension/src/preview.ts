@@ -1,6 +1,6 @@
 'use strict';
 
-import { TextDocumentContentProvider, ExtensionContext, Uri, Position,
+import { TextDocumentContentProvider, ExtensionContext, Uri, Position, ViewColumn,
   workspace, window, commands } from 'vscode'
 
 
@@ -8,7 +8,7 @@ const uri_scheme = 'isabelle-preview';
 
 class Provider implements TextDocumentContentProvider
 {
-	constructor() { }
+  constructor() { }
 
   dispose() { }
 
@@ -27,8 +27,19 @@ export function encode_location(uri: Uri, pos: Position): Uri
 
 export function decode_location(uri: Uri): [Uri, Position]
 {
-	let [name, line, character] = <[string, number, number]>JSON.parse(uri.query)
-	return [Uri.parse(name), new Position(line, character)]
+  let [name, line, character] = <[string, number, number]>JSON.parse(uri.query)
+  return [Uri.parse(name), new Position(line, character)]
+}
+
+function view_column(side_by_side: boolean = true): ViewColumn | undefined
+{
+  const active = window.activeTextEditor
+  if (!active) { return ViewColumn.One }
+  if (!side_by_side) { return active.viewColumn }
+
+  if (active.viewColumn == ViewColumn.One) return ViewColumn.Two
+  else if (active.viewColumn == ViewColumn.Two) return ViewColumn.Three
+  else return ViewColumn.One
 }
 
 export function init(context: ExtensionContext)
@@ -38,12 +49,12 @@ export function init(context: ExtensionContext)
   const provider_registration =
     workspace.registerTextDocumentContentProvider(uri_scheme, provider)
 
- 	const command_registration =
+  const command_registration =
     commands.registerTextEditorCommand("isabelle.preview", editor =>
     {
       const uri = encode_location(editor.document.uri, editor.selection.active)
-      return workspace.openTextDocument(uri).then(doc => window.showTextDocument(doc, editor.viewColumn + 1))
-  	})
+      return workspace.openTextDocument(uri).then(doc => window.showTextDocument(doc, view_column()))
+    })
 
   context.subscriptions.push(provider, provider_registration, command_registration)
 }
