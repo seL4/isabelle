@@ -1,6 +1,6 @@
 'use strict';
 
-import * as timers from 'timers';
+import * as timers from 'timers'
 import { window, OverviewRulerLane } from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
@@ -200,7 +200,7 @@ export function update_editor(editor: TextEditor)
 }
 
 
-/* decorations vs. document changes */
+/* handle document changes */
 
 const touched_documents = new Set<TextDocument>()
 
