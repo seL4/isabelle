@@ -463,4 +463,13 @@ object Protocol
     def apply(body: String): JSON.T =
       Notification("PIDE/dynamic_output", Map("body" -> body))
   }
+
+
+  /* dynamic preview */
+
+  object Dynamic_Preview
+  {
+    def apply(content: String): JSON.T =
+      Notification("PIDE/dynamic_preview", Map("content" -> content))
+  }
 }

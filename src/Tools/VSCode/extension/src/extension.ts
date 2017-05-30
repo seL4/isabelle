@@ -91,11 +91,11 @@ export function activate(context: ExtensionContext)
     })
 
 
-    /* preview */
+    /* dynamic preview */
 
     preview.init(context)
-    context.subscriptions.push(
-      workspace.onDidChangeTextDocument(event => preview.touch_document(event.document)))
+    client.onReady().then(() =>
+      client.onNotification(protocol.dynamic_preview_type, params => preview.update(params.content)))
 
 
     /* start server */

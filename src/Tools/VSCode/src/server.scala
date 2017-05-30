@@ -105,6 +105,7 @@ class Server(
     } yield (rendering, offset)
 
   private val dynamic_output = Dynamic_Output(this)
+  private val dynamic_preview = Dynamic_Preview(this)
 
 
   /* input from client or file-system */
@@ -250,6 +251,7 @@ class Server(
       session.all_messages += syslog
 
       dynamic_output.init()
+      dynamic_preview.init()
 
       var session_phase: Session.Consumer[Session.Phase] = null
       session_phase =
@@ -279,6 +281,7 @@ class Server(
         session.all_messages -= syslog
 
         dynamic_output.exit()
+        dynamic_preview.exit()
 
         delay_load.revoke()
         file_watcher.shutdown()
