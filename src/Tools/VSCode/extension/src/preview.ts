@@ -1,7 +1,9 @@
 'use strict';
 
 import { TextDocumentContentProvider, ExtensionContext, Event, EventEmitter, Uri, Position,
-  ViewColumn, workspace, window, commands } from 'vscode'
+  workspace, window, commands } from 'vscode'
+
+import * as library from './library'
 
 
 const uri_scheme = 'isabelle-preview';
@@ -61,14 +63,6 @@ export function decode_name(preview_uri: Uri): Uri
   return Uri.parse(name)
 }
 
-function other_column(): ViewColumn
-{
-  const active = window.activeTextEditor
-  if (!active || active.viewColumn === ViewColumn.Three) return ViewColumn.One
-  else if (active.viewColumn === ViewColumn.One) return ViewColumn.Two
-  else return ViewColumn.Three
-}
-
 export function init(context: ExtensionContext)
 {
   const provider = new Provider()
@@ -80,7 +74,8 @@ export function init(context: ExtensionContext)
     {
       const preview_uri = encode_name(editor.document.uri)
       return workspace.openTextDocument(preview_uri).then(doc =>
-        commands.executeCommand("vscode.previewHtml", preview_uri, other_column(), "Isabelle Preview"))
+        commands.executeCommand("vscode.previewHtml", preview_uri,
+          library.other_column(), "Isabelle Preview"))
     }))
 
   context.subscriptions.push(
