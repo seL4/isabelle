@@ -203,6 +203,7 @@ export function update_editor(editor: TextEditor)
 /* handle document changes */
 
 const touched_documents = new Set<TextDocument>()
+let touched_timer: NodeJS.Timer
 
 function update_touched_documents()
 {
@@ -215,8 +216,6 @@ function update_touched_documents()
   touched_documents.clear
   touched_editors.forEach(update_editor)
 }
-
-let touched_timer: NodeJS.Timer
 
 export function touch_document(document: TextDocument)
 {

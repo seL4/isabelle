@@ -92,6 +92,7 @@ export function activate(context: ExtensionContext)
     /* preview */
 
     preview.init(context)
+    workspace.onDidChangeTextDocument(event => preview.touch_document(event.document))
 
 
     /* start server */
