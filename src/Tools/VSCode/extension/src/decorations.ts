@@ -4,8 +4,8 @@ import * as timers from 'timers';
 import * as vscode from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
-import { get_color } from './extension'
 import { Decoration } from './protocol'
+import * as library from './library'
 
 
 /* known decoration types */
@@ -81,31 +81,31 @@ export function init(context: ExtensionContext)
   function background(color: string): TextEditorDecorationType
   {
     return decoration(
-      { light: { backgroundColor: get_color(color, true) },
-        dark: { backgroundColor: get_color(color, false) } })
+      { light: { backgroundColor: library.get_color(color, true) },
+        dark: { backgroundColor: library.get_color(color, false) } })
   }
 
   function text_color(color: string): TextEditorDecorationType
   {
     return decoration(
-      { light: { color: get_color(color, true) },
-        dark: { color: get_color(color, false) } })
+      { light: { color: library.get_color(color, true) },
+        dark: { color: library.get_color(color, false) } })
   }
 
   function text_overview_color(color: string): TextEditorDecorationType
   {
     return decoration(
       { overviewRulerLane: vscode.OverviewRulerLane.Right,
-        light: { overviewRulerColor: get_color(color, true) },
-        dark: { overviewRulerColor: get_color(color, false) } })
+        light: { overviewRulerColor: library.get_color(color, true) },
+        dark: { overviewRulerColor: library.get_color(color, false) } })
   }
 
   function bottom_border(width: string, style: string, color: string): TextEditorDecorationType
   {
     const border = `${width} none; border-bottom-style: ${style}; border-color: `
     return decoration(
-      { light: { border: border + get_color(color, true) },
-        dark: { border: border + get_color(color, false) } })
+      { light: { border: border + library.get_color(color, true) },
+        dark: { border: border + library.get_color(color, false) } })
   }
 
 

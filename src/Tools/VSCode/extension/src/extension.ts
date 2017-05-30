@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import * as library from './library'
 import * as decorations from './decorations';
 import * as preview from './preview';
 import * as protocol from './protocol';
@@ -11,31 +12,15 @@ import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, T
   from 'vscode-languageclient';
 
 
-/* Isabelle configuration */
-
-export function get_configuration<T>(name: string): T
-{
-  return vscode.workspace.getConfiguration("isabelle").get<T>(name)
-}
-
-export function get_color(color: string, light: boolean): string
-{
-  const config = color + (light ? "_light" : "_dark") + "_color"
-  return get_configuration<string>(config)
-}
-
-
-/* activate extension */
-
 let last_caret_update: protocol.Caret_Update = {}
 
 export function activate(context: vscode.ExtensionContext)
 {
   const is_windows = os.type().startsWith("Windows")
 
-  const isabelle_home = get_configuration<string>("home")
-  const isabelle_args = get_configuration<Array<string>>("args")
-  const cygwin_root = get_configuration<string>("cygwin_root")
+  const isabelle_home = library.get_configuration<string>("home")
+  const isabelle_args = library.get_configuration<Array<string>>("args")
+  const cygwin_root = library.get_configuration<string>("cygwin_root")
 
 
   /* server */
