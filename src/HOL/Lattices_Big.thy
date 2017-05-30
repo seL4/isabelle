@@ -985,32 +985,4 @@ lemma arg_max_nat_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> f
   for f :: "'a \<Rightarrow> nat"
 by (blast dest: arg_max_nat_lemma [THEN conjunct2, THEN spec, of P])
 
-(*
-text \<open>\<^medskip> Specialization to \<open>GREATEST\<close>.\<close>
-
-(* LEAST ? *)
-definition Greatest :: "('a::ord \<Rightarrow> bool) \<Rightarrow> 'a"  (binder "GREATEST " 10)
-where "Greatest \<equiv> arg_max (\<lambda>x. x)"
-
-lemma Greatest_equality:
-  "\<lbrakk> P k;  \<And>x. P x \<Longrightarrow> x \<le> k \<rbrakk> \<Longrightarrow> (Greatest P) = k"
-  for k :: "'a::order"
-apply (simp add: Greatest_def)
-apply (erule arg_max_equality)
-apply blast
-done
-
-lemma GreatestI: "P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> P (Greatest P)"
-  for k :: nat
-unfolding Greatest_def by (rule arg_max_natI) auto
-
-lemma Greatest_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> x \<le> (Greatest P)"
-  for x :: nat
-unfolding Greatest_def by (rule arg_max_nat_le) auto
-
-lemma GreatestI_ex: "\<exists>k::nat. P k \<Longrightarrow> \<forall>y. P y \<longrightarrow> y < b \<Longrightarrow> P (Greatest P)"
-apply (erule exE)
-apply (erule (1) GreatestI)
-done
-*)
 end

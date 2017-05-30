@@ -325,9 +325,9 @@ proof (rule prime_elemI)
     hence A: "\<exists>i. \<not>c dvd coeff b i" by (subst (asm) const_poly_dvd_iff) blast
     have B: "\<forall>i. \<not>c dvd coeff b i \<longrightarrow> i \<le> degree b"
       by (auto intro: le_degree)
-    have coeff_m: "\<not>c dvd coeff b m" unfolding m_def by (rule GreatestI_ex[OF A B])
+    have coeff_m: "\<not>c dvd coeff b m" unfolding m_def by (rule GreatestI_ex_nat[OF A B])
     have "i \<le> m" if "\<not>c dvd coeff b i" for i
-      unfolding m_def by (rule Greatest_le[OF that B])
+      unfolding m_def by (rule Greatest_le_nat[OF that B])
     hence dvd_b: "c dvd coeff b i" if "i > m" for i using that by force
 
     have "c dvd coeff a i" for i

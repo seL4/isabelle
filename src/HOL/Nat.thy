@@ -2166,17 +2166,20 @@ proof (induction "b-k" arbitrary: b k rule: less_induct)
   qed
 qed
 
-lemma GreatestI: "\<lbrakk> P(k::nat); \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
+lemma GreatestI_nat:
+  "\<lbrakk> P(k::nat); \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
 apply(drule (1) ex_has_greatest_nat)
 using GreatestI2_order by auto
 
-lemma Greatest_le: "\<lbrakk> P(k::nat);  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> k \<le> (Greatest P)"
+lemma Greatest_le_nat:
+  "\<lbrakk> P(k::nat);  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> k \<le> (Greatest P)"
 apply(frule (1) ex_has_greatest_nat)
 using GreatestI2_order[where P=P and Q=\<open>\<lambda>x. k \<le> x\<close>] by auto
 
-lemma GreatestI_ex: "\<lbrakk> \<exists>k::nat. P k;  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
+lemma GreatestI_ex_nat:
+  "\<lbrakk> \<exists>k::nat. P k;  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
 apply (erule exE)
-apply (erule (1) GreatestI)
+apply (erule (1) GreatestI_nat)
 done
 
 
