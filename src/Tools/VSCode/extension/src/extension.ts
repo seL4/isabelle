@@ -46,10 +46,11 @@ export function activate(context: ExtensionContext)
     /* decorations */
 
     decorations.init(context)
-    workspace.onDidChangeConfiguration(() => decorations.init(context))
-    workspace.onDidChangeTextDocument(event => decorations.touch_document(event.document))
-    window.onDidChangeActiveTextEditor(decorations.update_editor)
-    workspace.onDidCloseTextDocument(decorations.close_document)
+    context.subscriptions.push(
+      workspace.onDidChangeConfiguration(() => decorations.init(context)),
+      workspace.onDidChangeTextDocument(event => decorations.touch_document(event.document)),
+      window.onDidChangeActiveTextEditor(decorations.update_editor),
+      workspace.onDidCloseTextDocument(decorations.close_document))
 
     client.onReady().then(() =>
       client.onNotification(protocol.decoration_type, decorations.apply_decoration))
@@ -83,8 +84,9 @@ export function activate(context: ExtensionContext)
     {
       client.onNotification(protocol.dynamic_output_type,
         params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
-      window.onDidChangeActiveTextEditor(_ => update_caret())
-      window.onDidChangeTextEditorSelection(_ => update_caret())
+      context.subscriptions.push(
+        window.onDidChangeActiveTextEditor(_ => update_caret()),
+        window.onDidChangeTextEditorSelection(_ => update_caret()))
       update_caret()
     })
 
@@ -92,7 +94,8 @@ export function activate(context: ExtensionContext)
     /* preview */
 
     preview.init(context)
-    workspace.onDidChangeTextDocument(event => preview.touch_document(event.document))
+    context.subscriptions.push(
+      workspace.onDidChangeTextDocument(event => preview.touch_document(event.document)))
 
 
     /* start server */
