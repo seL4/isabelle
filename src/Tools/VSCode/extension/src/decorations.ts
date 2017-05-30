@@ -1,7 +1,7 @@
 'use strict';
 
 import * as timers from 'timers';
-import * as vscode from 'vscode'
+import { window, OverviewRulerLane } from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
 import { Decoration } from './protocol'
@@ -73,7 +73,7 @@ export function init(context: ExtensionContext)
 {
   function decoration(options: DecorationRenderOptions): TextEditorDecorationType
   {
-    const typ = vscode.window.createTextEditorDecorationType(options)
+    const typ = window.createTextEditorDecorationType(options)
     context.subscriptions.push(typ)
     return typ
   }
@@ -95,7 +95,7 @@ export function init(context: ExtensionContext)
   function text_overview_color(color: string): TextEditorDecorationType
   {
     return decoration(
-      { overviewRulerLane: vscode.OverviewRulerLane.Right,
+      { overviewRulerLane: OverviewRulerLane.Right,
         light: { overviewRulerColor: library.get_color(color, true) },
         dark: { overviewRulerColor: library.get_color(color, false) } })
   }
@@ -113,7 +113,7 @@ export function init(context: ExtensionContext)
 
   types.forEach(typ =>
   {
-    for (const editor of vscode.window.visibleTextEditors) {
+    for (const editor of window.visibleTextEditors) {
       editor.setDecorations(typ, [])
     }
     const i = context.subscriptions.indexOf(typ)
@@ -145,7 +145,7 @@ export function init(context: ExtensionContext)
 
   /* update editors */
 
-  for (const editor of vscode.window.visibleTextEditors) {
+  for (const editor of window.visibleTextEditors) {
     update_editor(editor)
   }
 }
@@ -179,7 +179,7 @@ export function apply_decoration(decoration: Decoration)
     document.set(decoration.type, content)
     document_decorations.set(uri, document)
 
-    for (const editor of vscode.window.visibleTextEditors) {
+    for (const editor of window.visibleTextEditors) {
       if (uri === editor.document.uri.toString()) {
         editor.setDecorations(typ, content)
       }
@@ -207,7 +207,7 @@ const touched_documents = new Set<TextDocument>()
 function update_touched_documents()
 {
   const touched_editors: TextEditor[] = []
-  for (const editor of vscode.window.visibleTextEditors) {
+  for (const editor of window.visibleTextEditors) {
     if (touched_documents.has(editor.document)) {
       touched_editors.push(editor)
     }

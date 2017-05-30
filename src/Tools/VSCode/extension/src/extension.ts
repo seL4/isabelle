@@ -1,6 +1,6 @@
 'use strict';
 
-import * as vscode from 'vscode';
+import { ExtensionContext, workspace, window } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -14,7 +14,7 @@ import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, T
 
 let last_caret_update: protocol.Caret_Update = {}
 
-export function activate(context: vscode.ExtensionContext)
+export function activate(context: ExtensionContext)
 {
   const is_windows = os.type().startsWith("Windows")
 
@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext)
   /* server */
 
   if (isabelle_home === "")
-    vscode.window.showErrorMessage("Missing user settings: isabelle.home")
+    window.showErrorMessage("Missing user settings: isabelle.home")
   else {
     const isabelle_tool = isabelle_home + "/bin/isabelle"
     const standard_args = ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
@@ -49,10 +49,10 @@ export function activate(context: vscode.ExtensionContext)
     /* decorations */
 
     decorations.init(context)
-    vscode.workspace.onDidChangeConfiguration(() => decorations.init(context))
-    vscode.workspace.onDidChangeTextDocument(event => decorations.touch_document(event.document))
-    vscode.window.onDidChangeActiveTextEditor(decorations.update_editor)
-    vscode.workspace.onDidCloseTextDocument(decorations.close_document)
+    workspace.onDidChangeConfiguration(() => decorations.init(context))
+    workspace.onDidChangeTextDocument(event => decorations.touch_document(event.document))
+    window.onDidChangeActiveTextEditor(decorations.update_editor)
+    workspace.onDidCloseTextDocument(decorations.close_document)
 
     client.onReady().then(() =>
       client.onNotification(protocol.decoration_type, decorations.apply_decoration))
@@ -60,14 +60,14 @@ export function activate(context: vscode.ExtensionContext)
 
     /* caret handling and dynamic output */
 
-    const dynamic_output = vscode.window.createOutputChannel("Isabelle Output")
+    const dynamic_output = window.createOutputChannel("Isabelle Output")
     context.subscriptions.push(dynamic_output)
     dynamic_output.show(true)
     dynamic_output.hide()
 
     function update_caret()
     {
-      const editor = vscode.window.activeTextEditor
+      const editor = window.activeTextEditor
       let caret_update: protocol.Caret_Update = {}
       if (editor) {
         const uri = editor.document.uri
@@ -86,8 +86,8 @@ export function activate(context: vscode.ExtensionContext)
     {
       client.onNotification(protocol.dynamic_output_type,
         params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
-      vscode.window.onDidChangeActiveTextEditor(_ => update_caret())
-      vscode.window.onDidChangeTextEditorSelection(_ => update_caret())
+      window.onDidChangeActiveTextEditor(_ => update_caret())
+      window.onDidChangeTextEditorSelection(_ => update_caret())
       update_caret()
     })
 
