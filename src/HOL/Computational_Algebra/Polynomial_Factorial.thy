@@ -323,8 +323,8 @@ proof (rule prime_elemI)
     define m where "m = (GREATEST m. \<not>c dvd coeff b m)"
     assume "\<not>[:c:] dvd b"
     hence A: "\<exists>i. \<not>c dvd coeff b i" by (subst (asm) const_poly_dvd_iff) blast
-    have B: "\<forall>i. \<not>c dvd coeff b i \<longrightarrow> i < Suc (degree b)"
-      by (auto intro: le_degree simp: less_Suc_eq_le)
+    have B: "\<forall>i. \<not>c dvd coeff b i \<longrightarrow> i \<le> degree b"
+      by (auto intro: le_degree)
     have coeff_m: "\<not>c dvd coeff b m" unfolding m_def by (rule GreatestI_ex[OF A B])
     have "i \<le> m" if "\<not>c dvd coeff b i" for i
       unfolding m_def by (rule Greatest_le[OF that B])

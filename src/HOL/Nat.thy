@@ -2144,6 +2144,42 @@ next
 qed
 
 
+subsubsection \<open>Greatest operator\<close>
+
+lemma ex_has_greatest_nat:
+  "P (k::nat) \<Longrightarrow> \<forall>y. P y \<longrightarrow> y \<le> b \<Longrightarrow> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> y \<le> x)"
+proof (induction "b-k" arbitrary: b k rule: less_induct)
+  case less
+  show ?case
+  proof cases
+    assume "\<exists>n>k. P n"
+    then obtain n where "n>k" "P n" by blast
+    have "n \<le> b" using \<open>P n\<close> less.prems(2) by auto
+    hence "b-n < b-k"
+      by(rule diff_less_mono2[OF \<open>k<n\<close> less_le_trans[OF \<open>k<n\<close>]])
+    from less.hyps[OF this \<open>P n\<close> less.prems(2)]
+    show ?thesis .
+  next
+    assume "\<not> (\<exists>n>k. P n)"
+    hence "\<forall>y. P y \<longrightarrow> y \<le> k" by (auto simp: not_less)
+    thus ?thesis using less.prems(1) by auto
+  qed
+qed
+
+lemma GreatestI: "\<lbrakk> P(k::nat); \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
+apply(drule (1) ex_has_greatest_nat)
+using GreatestI2_order by auto
+
+lemma Greatest_le: "\<lbrakk> P(k::nat);  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> k \<le> (Greatest P)"
+apply(frule (1) ex_has_greatest_nat)
+using GreatestI2_order[where P=P and Q=\<open>\<lambda>x. k \<le> x\<close>] by auto
+
+lemma GreatestI_ex: "\<lbrakk> \<exists>k::nat. P k;  \<forall>y. P y \<longrightarrow> y \<le> b \<rbrakk> \<Longrightarrow> P (Greatest P)"
+apply (erule exE)
+apply (erule (1) GreatestI)
+done
+
+
 subsection \<open>Monotonicity of \<open>funpow\<close>\<close>
 
 lemma funpow_increasing: "m \<le> n \<Longrightarrow> mono f \<Longrightarrow> (f ^^ n) \<top> \<le> (f ^^ m) \<top>"

@@ -1061,15 +1061,15 @@ proof
     define m where "m = (GREATEST k. k\<le>n \<and> a k \<noteq> 0)"
     have m: "m\<le>n \<and> a m \<noteq> 0"
       unfolding m_def
-      apply (rule GreatestI [where b = "Suc n"])
+      apply (rule GreatestI [where b = n])
       using k apply auto
       done
     have [simp]: "a i = 0" if "m < i" "i \<le> n" for i
-      using Greatest_le [where b = "Suc n" and P = "\<lambda>k. k\<le>n \<and> a k \<noteq> 0"]
+      using Greatest_le [where b = "n" and P = "\<lambda>k. k\<le>n \<and> a k \<noteq> 0"]
       using m_def not_le that by auto
     have "k \<le> m"
       unfolding m_def
-      apply (rule Greatest_le [where b = "Suc n"])
+      apply (rule Greatest_le [where b = "n"])
       using k apply auto
       done
     with k m show ?thesis

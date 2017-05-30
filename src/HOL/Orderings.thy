@@ -301,6 +301,24 @@ lemma LeastI2_order:
 unfolding Least_def by (rule theI2)
   (blast intro: assms antisym)+
 
+text \<open>Greatest value operator\<close>
+
+definition Greatest :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "GREATEST " 10) where
+"Greatest P = (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<ge> y))"
+
+lemma GreatestI2_order:
+  "\<lbrakk> P x;
+    \<And>y. P y \<Longrightarrow> x \<ge> y;
+    \<And>x. \<lbrakk> P x; \<forall>y. P y \<longrightarrow> x \<ge> y \<rbrakk> \<Longrightarrow> Q x \<rbrakk>
+  \<Longrightarrow> Q (Greatest P)"
+unfolding Greatest_def
+by (rule theI2) (blast intro: antisym)+
+
+lemma Greatest_equality:
+  "\<lbrakk> P x;  \<And>y. P y \<Longrightarrow> x \<ge> y \<rbrakk> \<Longrightarrow> Greatest P = x"
+unfolding Greatest_def
+by (rule the_equality) (blast intro: antisym)+
+
 end
 
 lemma ordering_orderI:

@@ -985,7 +985,7 @@ lemma arg_max_nat_le: "P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> f
   for f :: "'a \<Rightarrow> nat"
 by (blast dest: arg_max_nat_lemma [THEN conjunct2, THEN spec, of P])
 
-
+(*
 text \<open>\<^medskip> Specialization to \<open>GREATEST\<close>.\<close>
 
 (* LEAST ? *)
@@ -1012,5 +1012,5 @@ lemma GreatestI_ex: "\<exists>k::nat. P k \<Longrightarrow> \<forall>y. P y \<lo
 apply (erule exE)
 apply (erule (1) GreatestI)
 done
-
+*)
 end
