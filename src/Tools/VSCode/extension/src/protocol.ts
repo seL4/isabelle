@@ -39,8 +39,19 @@ export const caret_update_type =
 
 export interface Dynamic_Output
 {
-  body: string
+  content: string
 }
 
 export const dynamic_output_type =
   new NotificationType<Dynamic_Output, void>("PIDE/dynamic_output")
+
+
+/* dynamic preview */
+
+export interface Dynamic_Preview
+{
+  content: string
+}
+
+export const dynamic_preview_type =
+  new NotificationType<Dynamic_Preview, void>("PIDE/dynamic_preview")

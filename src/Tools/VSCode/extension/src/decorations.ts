@@ -1,11 +1,11 @@
 'use strict';
 
-import * as timers from 'timers';
-import * as vscode from 'vscode'
+import * as timers from 'timers'
+import { window, OverviewRulerLane } from 'vscode'
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext, Uri } from 'vscode'
-import { get_color } from './extension'
 import { Decoration } from './protocol'
+import * as library from './library'
 
 
 /* known decoration types */
@@ -73,7 +73,7 @@ export function init(context: ExtensionContext)
 {
   function decoration(options: DecorationRenderOptions): TextEditorDecorationType
   {
-    const typ = vscode.window.createTextEditorDecorationType(options)
+    const typ = window.createTextEditorDecorationType(options)
     context.subscriptions.push(typ)
     return typ
   }
@@ -81,31 +81,31 @@ export function init(context: ExtensionContext)
   function background(color: string): TextEditorDecorationType
   {
     return decoration(
-      { light: { backgroundColor: get_color(color, true) },
-        dark: { backgroundColor: get_color(color, false) } })
+      { light: { backgroundColor: library.get_color(color, true) },
+        dark: { backgroundColor: library.get_color(color, false) } })
   }
 
   function text_color(color: string): TextEditorDecorationType
   {
     return decoration(
-      { light: { color: get_color(color, true) },
-        dark: { color: get_color(color, false) } })
+      { light: { color: library.get_color(color, true) },
+        dark: { color: library.get_color(color, false) } })
   }
 
   function text_overview_color(color: string): TextEditorDecorationType
   {
     return decoration(
-      { overviewRulerLane: vscode.OverviewRulerLane.Right,
-        light: { overviewRulerColor: get_color(color, true) },
-        dark: { overviewRulerColor: get_color(color, false) } })
+      { overviewRulerLane: OverviewRulerLane.Right,
+        light: { overviewRulerColor: library.get_color(color, true) },
+        dark: { overviewRulerColor: library.get_color(color, false) } })
   }
 
   function bottom_border(width: string, style: string, color: string): TextEditorDecorationType
   {
     const border = `${width} none; border-bottom-style: ${style}; border-color: `
     return decoration(
-      { light: { border: border + get_color(color, true) },
-        dark: { border: border + get_color(color, false) } })
+      { light: { border: border + library.get_color(color, true) },
+        dark: { border: border + library.get_color(color, false) } })
   }
 
 
@@ -113,7 +113,7 @@ export function init(context: ExtensionContext)
 
   types.forEach(typ =>
   {
-    for (const editor of vscode.window.visibleTextEditors) {
+    for (const editor of window.visibleTextEditors) {
       editor.setDecorations(typ, [])
     }
     const i = context.subscriptions.indexOf(typ)
@@ -145,7 +145,7 @@ export function init(context: ExtensionContext)
 
   /* update editors */
 
-  for (const editor of vscode.window.visibleTextEditors) {
+  for (const editor of window.visibleTextEditors) {
     update_editor(editor)
   }
 }
@@ -179,7 +179,7 @@ export function apply_decoration(decoration: Decoration)
     document.set(decoration.type, content)
     document_decorations.set(uri, document)
 
-    for (const editor of vscode.window.visibleTextEditors) {
+    for (const editor of window.visibleTextEditors) {
       if (uri === editor.document.uri.toString()) {
         editor.setDecorations(typ, content)
       }
@@ -200,14 +200,15 @@ export function update_editor(editor: TextEditor)
 }
 
 
-/* decorations vs. document changes */
+/* handle document changes */
 
 const touched_documents = new Set<TextDocument>()
+let touched_timer: NodeJS.Timer
 
 function update_touched_documents()
 {
   const touched_editors: TextEditor[] = []
-  for (const editor of vscode.window.visibleTextEditors) {
+  for (const editor of window.visibleTextEditors) {
     if (touched_documents.has(editor.document)) {
       touched_editors.push(editor)
     }
@@ -215,8 +216,6 @@ function update_touched_documents()
   touched_documents.clear
   touched_editors.forEach(update_editor)
 }
-
-let touched_timer: NodeJS.Timer
 
 export function touch_document(document: TextDocument)
 {

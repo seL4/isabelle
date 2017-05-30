@@ -302,7 +302,7 @@ class VSCode_Resources(
   def update_caret(caret: Option[(JFile, Line.Position)])
   { state.change(_.update_caret(caret)) }
 
-  def caret_offset(): Option[(Document_Model, Text.Offset)] =
+  def get_caret(): Option[(JFile, Document_Model, Text.Offset)] =
   {
     val st = state.value
     for {
@@ -310,7 +310,7 @@ class VSCode_Resources(
       model <- st.models.get(file)
       offset <- model.content.doc.offset(pos)
     }
-    yield (model, offset)
+    yield (file, model, offset)
   }
 
 

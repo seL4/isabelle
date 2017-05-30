@@ -167,6 +167,7 @@ declare -a SOURCES=(
   ../Tools/VSCode/src/channel.scala
   ../Tools/VSCode/src/document_model.scala
   ../Tools/VSCode/src/dynamic_output.scala
+  ../Tools/VSCode/src/dynamic_preview.scala
   ../Tools/VSCode/src/grammar.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala

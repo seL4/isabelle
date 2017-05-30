@@ -18,9 +18,9 @@ object Dynamic_Output
       resources: VSCode_Resources, channel: Channel, restriction: Option[Set[Command]]): State =
     {
       val st1 =
-        resources.caret_offset() match {
+        resources.get_caret() match {
           case None => copy(output = Nil)
-          case Some((model, caret_offset)) =>
+          case Some((_, model, caret_offset)) =>
             val snapshot = model.snapshot()
             if (do_update && !snapshot.is_outdated) {
               snapshot.current_command(model.node_name, caret_offset) match {
