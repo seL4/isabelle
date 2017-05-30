@@ -75,7 +75,7 @@ export function init(context: ExtensionContext)
       const preview_uri = encode_name(editor.document.uri)
       return workspace.openTextDocument(preview_uri).then(doc =>
         commands.executeCommand("vscode.previewHtml", preview_uri,
-          library.other_column(), "Isabelle Preview"))
+          library.other_column(window.activeTextEditor), "Isabelle Preview"))
     }))
 
   context.subscriptions.push(
