@@ -39,7 +39,7 @@ export const caret_update_type =
 
 export interface Dynamic_Output
 {
-  body: string
+  content: string
 }
 
 export const dynamic_output_type =

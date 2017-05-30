@@ -94,7 +94,7 @@ export function activate(context: ExtensionContext)
     client.onReady().then(() =>
     {
       client.onNotification(protocol.dynamic_output_type,
-        params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
+        params => { dynamic_output.clear(); dynamic_output.appendLine(params.content) })
     })
 
 
