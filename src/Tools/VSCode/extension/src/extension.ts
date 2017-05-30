@@ -3,7 +3,6 @@
 import { ExtensionContext, workspace, window } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as library from './library'
 import * as decorations from './decorations';
 import * as preview from './preview';
@@ -16,8 +15,6 @@ let last_caret_update: protocol.Caret_Update = {}
 
 export function activate(context: ExtensionContext)
 {
-  const is_windows = os.type().startsWith("Windows")
-
   const isabelle_home = library.get_configuration<string>("home")
   const isabelle_args = library.get_configuration<Array<string>>("args")
   const cygwin_root = library.get_configuration<string>("cygwin_root")
@@ -32,7 +29,7 @@ export function activate(context: ExtensionContext)
     const standard_args = ["-o", "vscode_unicode_symbols", "-o", "vscode_pide_extensions"]
 
     const server_options: ServerOptions =
-      is_windows ?
+      library.platform_is_windows() ?
         { command:
             (cygwin_root === "" ? path.join(isabelle_home, "contrib", "cygwin") : cygwin_root) +
             "/bin/bash",

@@ -1,6 +1,15 @@
 'use strict';
 
+import * as os from 'os';
 import { ViewColumn, TextEditor, workspace } from 'vscode'
+
+
+/* platform information */
+
+export function platform_is_windows(): boolean
+{
+  return os.type().startsWith("Windows")
+}
 
 
 /* Isabelle configuration */
