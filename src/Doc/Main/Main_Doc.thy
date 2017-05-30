@@ -61,9 +61,9 @@ preorder, partial order, linear order, dense linear order and wellorder.
 @{const Orderings.less_eq} & @{typeof Orderings.less_eq} & (\<^verbatim>\<open><=\<close>)\\
 @{const Orderings.less} & @{typeof Orderings.less}\\
 @{const Orderings.Least} & @{typeof Orderings.Least}\\
+@{const Orderings.Greatest} & @{typeof Orderings.Greatest}\\
 @{const Orderings.min} & @{typeof Orderings.min}\\
 @{const Orderings.max} & @{typeof Orderings.max}\\
-@{const Lattices_Big.arg_min} & @{typeof Lattices_Big.arg_min}\\
 @{const[source] top} & @{typeof Orderings.top}\\
 @{const[source] bot} & @{typeof Orderings.bot}\\
 @{const Orderings.mono} & @{typeof Orderings.mono}\\
@@ -79,6 +79,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 @{term "\<exists>x\<le>y. P"} & @{term[source]"\<exists>x. x \<le> y \<and> P"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$}\\
 @{term "LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
+@{term "GREATEST x. P"} & @{term[source]"Greatest (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
@@ -420,7 +421,6 @@ Type @{typ int}
 @{const Lattices_Big.is_arg_min} & @{typeof Lattices_Big.is_arg_min}\\
 @{const Lattices_Big.arg_max} & @{typeof Lattices_Big.arg_max}\\
 @{const Lattices_Big.is_arg_max} & @{typeof Lattices_Big.is_arg_max}\\
-@{const Lattices_Big.Greatest} & @{typeof Lattices_Big.Greatest}\\
 \end{supertabular}
 
 \subsubsection*{Syntax}
@@ -428,7 +428,6 @@ Type @{typ int}
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 @{term "ARG_MIN f x. P"} & @{term[source]"arg_min f (\<lambda>x. P)"}\\
 @{term "ARG_MAX f x. P"} & @{term[source]"arg_max f (\<lambda>x. P)"}\\
-@{term "GREATEST x. P"} & @{term[source]"Greatest (\<lambda>x. P)"}\\
 \end{supertabular}
 
 
