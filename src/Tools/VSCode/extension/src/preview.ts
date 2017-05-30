@@ -6,11 +6,23 @@ import { TextDocumentContentProvider, ExtensionContext, Event, EventEmitter, Uri
 import * as library from './library'
 
 
+/* generated content */
+
 const uri_scheme = 'isabelle-preview';
+
+export function encode_name(document_uri: Uri): Uri
+{
+  return Uri.parse(uri_scheme + ":Preview?" + JSON.stringify([document_uri.toString()]))
+}
+
+export function decode_name(preview_uri: Uri): Uri
+{
+  const [name] = <[string]>JSON.parse(preview_uri.query)
+  return Uri.parse(name)
+}
 
 class Provider implements TextDocumentContentProvider
 {
-  constructor() { }
   dispose() { }
 
   private emitter = new EventEmitter<Uri>()
@@ -52,16 +64,8 @@ class Provider implements TextDocumentContentProvider
   }
 }
 
-export function encode_name(document_uri: Uri): Uri
-{
-  return Uri.parse(uri_scheme + ":Preview?" + JSON.stringify([document_uri.toString()]))
-}
 
-export function decode_name(preview_uri: Uri): Uri
-{
-  const [name] = <[string]>JSON.parse(preview_uri.query)
-  return Uri.parse(name)
-}
+/* init */
 
 export function init(context: ExtensionContext)
 {
