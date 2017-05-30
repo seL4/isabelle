@@ -56,12 +56,7 @@ export function activate(context: ExtensionContext)
       client.onNotification(protocol.decoration_type, decorations.apply_decoration))
 
 
-    /* caret handling and dynamic output */
-
-    const dynamic_output = window.createOutputChannel("Isabelle Output")
-    context.subscriptions.push(dynamic_output)
-    dynamic_output.show(true)
-    dynamic_output.hide()
+    /* caret handling */
 
     function update_caret()
     {
@@ -82,12 +77,24 @@ export function activate(context: ExtensionContext)
 
     client.onReady().then(() =>
     {
-      client.onNotification(protocol.dynamic_output_type,
-        params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
       context.subscriptions.push(
         window.onDidChangeActiveTextEditor(_ => update_caret()),
         window.onDidChangeTextEditorSelection(_ => update_caret()))
       update_caret()
+    })
+
+
+    /* dynamic output */
+
+    const dynamic_output = window.createOutputChannel("Isabelle Output")
+    context.subscriptions.push(dynamic_output)
+    dynamic_output.show(true)
+    dynamic_output.hide()
+
+    client.onReady().then(() =>
+    {
+      client.onNotification(protocol.dynamic_output_type,
+        params => { dynamic_output.clear(); dynamic_output.appendLine(params.body) })
     })
 
 
