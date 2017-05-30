@@ -69,7 +69,7 @@ export function activate(context: ExtensionContext)
       if (editor) {
         const uri = editor.document.uri
         const cursor = editor.selection.active
-        if (uri.scheme === "file" && cursor)
+        if (library.is_file(uri) && cursor)
           caret_update = { uri: uri.toString(), line: cursor.line, character: cursor.character }
       }
       if (last_caret_update !== caret_update) {

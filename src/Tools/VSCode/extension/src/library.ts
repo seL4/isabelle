@@ -1,7 +1,7 @@
 'use strict';
 
 import * as os from 'os';
-import { ViewColumn, TextEditor, workspace } from 'vscode'
+import { ViewColumn, TextEditor, Uri, workspace } from 'vscode'
 
 
 /* platform information */
@@ -9,6 +9,14 @@ import { ViewColumn, TextEditor, workspace } from 'vscode'
 export function platform_is_windows(): boolean
 {
   return os.type().startsWith("Windows")
+}
+
+
+/* file URIs */
+
+export function is_file(uri: Uri): boolean
+{
+  return uri.scheme === "file"
 }
 
 
