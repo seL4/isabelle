@@ -465,11 +465,30 @@ object Protocol
   }
 
 
-  /* dynamic preview */
+  /* preview */
 
-  object Dynamic_Preview
+  object Preview_Request
   {
-    def apply(content: String): JSON.T =
-      Notification("PIDE/dynamic_preview", Map("content" -> content))
+    def unapply(json: JSON.T): Option[(JFile, Int)] =
+      json match {
+        case Notification("PIDE/preview_request", Some(params)) =>
+          for {
+            uri <- JSON.string(params, "uri")
+            if Url.is_wellformed_file(uri)
+            column <- JSON.int(params, "column")
+          } yield (Url.canonical_file(uri), column)
+        case _ => None
+      }
+  }
+
+  object Preview_Response
+  {
+    def apply(file: JFile, column: Int, label: String, content: String): JSON.T =
+      Notification("PIDE/preview_response",
+        Map(
+          "uri" -> Url.print_file(file),
+          "column" -> column,
+          "label" -> label,
+          "content" -> content))
   }
 }

@@ -105,7 +105,6 @@ class Server(
     } yield (rendering, offset)
 
   private val dynamic_output = Dynamic_Output(this)
-  private val dynamic_preview = Dynamic_Preview(this)
 
 
   /* input from client or file-system */
@@ -174,6 +173,23 @@ class Server(
     resources.update_caret(caret)
     delay_caret_update.invoke()
     delay_input.invoke()
+  }
+
+
+  /* preview */
+
+  private lazy val preview = new Preview(resources)
+
+  private lazy val delay_preview: Standard_Thread.Delay =
+    Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
+    {
+      if (preview.flush(channel)) delay_preview.invoke()
+    }
+
+  private def request_preview(file: JFile, column: Int)
+  {
+    preview.request(file, column)
+    delay_preview.invoke()
   }
 
 
@@ -251,7 +267,6 @@ class Server(
       session.all_messages += syslog
 
       dynamic_output.init()
-      dynamic_preview.init()
 
       var session_phase: Session.Consumer[Session.Phase] = null
       session_phase =
@@ -281,13 +296,13 @@ class Server(
         session.all_messages -= syslog
 
         dynamic_output.exit()
-        dynamic_preview.exit()
 
         delay_load.revoke()
         file_watcher.shutdown()
         delay_input.revoke()
         delay_output.revoke()
         delay_caret_update.revoke()
+        delay_preview.revoke()
 
         val rc = session.stop()
         if (rc == 0) reply("") else reply("Prover shutdown failed: return code " + rc)
@@ -382,6 +397,7 @@ class Server(
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case Protocol.Caret_Update(caret) => update_caret(caret)
+          case Protocol.Preview_Request(file, column) => request_preview(file, column)
           case _ => log("### IGNORED")
         }
       }

@@ -36,11 +36,12 @@ export function activate(context: ExtensionContext)
           args: ["-l", isabelle_tool, "vscode_server"].concat(standard_args, isabelle_args) } :
         { command: isabelle_tool,
           args: ["vscode_server"].concat(standard_args, isabelle_args) };
-    const client_options: LanguageClientOptions = {
+    const language_client_options: LanguageClientOptions = {
       documentSelector: ["isabelle", "isabelle-ml", "bibtex"]
     };
 
-    const client = new LanguageClient("Isabelle", server_options, client_options, false)
+    const language_client =
+      new LanguageClient("Isabelle", server_options, language_client_options, false)
 
 
     /* decorations */
@@ -52,8 +53,8 @@ export function activate(context: ExtensionContext)
       window.onDidChangeActiveTextEditor(decorations.update_editor),
       workspace.onDidCloseTextDocument(decorations.close_document))
 
-    client.onReady().then(() =>
-      client.onNotification(protocol.decoration_type, decorations.apply_decoration))
+    language_client.onReady().then(() =>
+      language_client.onNotification(protocol.decoration_type, decorations.apply_decoration))
 
 
     /* caret handling */
@@ -70,12 +71,12 @@ export function activate(context: ExtensionContext)
       }
       if (last_caret_update !== caret_update) {
         if (caret_update.uri)
-          client.sendNotification(protocol.caret_update_type, caret_update)
+          language_client.sendNotification(protocol.caret_update_type, caret_update)
         last_caret_update = caret_update
       }
     }
 
-    client.onReady().then(() =>
+    language_client.onReady().then(() =>
     {
       context.subscriptions.push(
         window.onDidChangeActiveTextEditor(_ => update_caret()),
@@ -91,23 +92,21 @@ export function activate(context: ExtensionContext)
     dynamic_output.show(true)
     dynamic_output.hide()
 
-    client.onReady().then(() =>
+    language_client.onReady().then(() =>
     {
-      client.onNotification(protocol.dynamic_output_type,
+      language_client.onNotification(protocol.dynamic_output_type,
         params => { dynamic_output.clear(); dynamic_output.appendLine(params.content) })
     })
 
 
-    /* dynamic preview */
+    /* preview */
 
-    preview.init(context)
-    client.onReady().then(() =>
-      client.onNotification(protocol.dynamic_preview_type, params => preview.update(params.content)))
+    language_client.onReady().then(() => preview.init(context, language_client))
 
 
     /* start server */
 
-    context.subscriptions.push(client.start());
+    context.subscriptions.push(language_client.start());
   }
 }
 

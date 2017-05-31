@@ -46,12 +46,24 @@ export const dynamic_output_type =
   new NotificationType<Dynamic_Output, void>("PIDE/dynamic_output")
 
 
-/* dynamic preview */
+/* preview */
 
-export interface Dynamic_Preview
+export interface Preview_Request
 {
+  uri: string
+  column: number
+}
+
+export interface Preview_Response
+{
+  uri: string
+  column: number
+  label: string
   content: string
 }
 
-export const dynamic_preview_type =
-  new NotificationType<Dynamic_Preview, void>("PIDE/dynamic_preview")
+export const preview_request_type =
+  new NotificationType<Preview_Request, void>("PIDE/preview_request")
+
+export const preview_response_type =
+  new NotificationType<Preview_Response, void>("PIDE/preview_response")
