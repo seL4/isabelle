@@ -40,8 +40,6 @@ body { background-color: #FFFFFF; }
 .theories { background-color: #FFFFFF; padding: 10px; }
 .sessions { background-color: #FFFFFF; padding: 10px; }
 
-.sessions pre { margin: 0px; }
-
 .name     { font-style: italic; }
 .filename { font-family: fixed; }
 

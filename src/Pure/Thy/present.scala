@@ -53,10 +53,10 @@ object Present
        (if (sessions.isEmpty) Nil
         else
           List(HTML.css_class("sessions")(HTML.div(List(
-            HTML.itemize(
+            HTML.description(
               sessions.map({ case (name, description) =>
-                HTML.link(name + "/index.html", HTML.text(name)) ::
-                 (if (description == "") Nil
+                (List(HTML.link(name + "/index.html", HTML.text(name))),
+                  if (description == "") Nil
                   else List(HTML.pre(HTML.text(description)))) }))))))))
   }
 
