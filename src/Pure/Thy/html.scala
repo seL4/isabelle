@@ -142,6 +142,8 @@ object HTML
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
 
+  def source(src: String): XML.Elem = css_class("source")(div(List(pre(text(src)))))
+
   def style(s: String): XML.Elem = XML.elem("style", text(s))
 
 
@@ -201,42 +203,5 @@ object HTML
   {
     init_dir(dir)
     File.write(dir + Path.basic(name), output_document(head, body, css))
-  }
-
-
-  /* Isabelle document */
-
-  def begin_document(title: String): String =
-    header + "\n" +
-    "<head>\n" + output(head_meta) + "\n" +
-    "<title>" + output(title + " (" + Distribution.version + ")") + "</title>\n" +
-    "<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n" +
-    "</head>\n" +
-    "\n" +
-    "<body>\n" +
-    "<div class=\"head\">" +
-    "<h1>" + output(title) + "</h1>\n"
-
-  val end_document = "\n</div>\n</body>\n</html>\n"
-
-
-  /* common markup elements */
-
-  private def session_entry(entry: (String, String)): String =
-  {
-    val (name, description) = entry
-    val descr = if (description == "") Nil else break ::: List(pre(text(description)))
-    XML.string_of_tree(
-      XML.elem("li",
-        List(XML.Elem(Markup("a", List(("href", name + "/index.html"))),
-          List(XML.Text(name)))) ::: descr)) + "\n"
-  }
-
-  def chapter_index(chapter: String, sessions: List[(String, String)]): String =
-  {
-    begin_document("Isabelle/" + chapter + " sessions") +
-      (if (sessions.isEmpty) ""
-       else "<div class=\"sessions\"><ul>\n" + sessions.map(session_entry(_)).mkString + "</ul>") +
-    end_document
   }
 }

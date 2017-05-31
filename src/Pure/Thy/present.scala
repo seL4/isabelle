@@ -16,7 +16,6 @@ object Present
 {
   /* maintain chapter index -- NOT thread-safe */
 
-  private val index_path = Path.basic("index.html")
   private val sessions_path = Path.basic(".sessions")
 
   private def read_sessions(dir: Path): List[(String, String)] =
@@ -45,9 +44,20 @@ object Present
       catch { case _: XML.Error => Nil }
 
     val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
-
     write_sessions(dir, sessions)
-    File.write(dir + index_path, HTML.chapter_index(chapter, sessions))
+
+    val title = "Isabelle/" + chapter + " sessions"
+    HTML.write_document(dir, "index.html",
+      List(HTML.title(title + " (" + Distribution.version + ")")),
+      HTML.chapter(title) ::
+       (if (sessions.isEmpty) Nil
+        else
+          List(HTML.css_class("sessions")(HTML.div(List(
+            HTML.itemize(
+              sessions.map({ case (name, description) =>
+                HTML.link(name + "/index.html", HTML.text(name)) ::
+                 (if (description == "") Nil
+                  else List(HTML.pre(HTML.text(description)))) }))))))))
   }
 
   def make_global_index(browser_info: Path)

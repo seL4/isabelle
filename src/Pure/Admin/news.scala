@@ -17,18 +17,14 @@ object NEWS
     val target_fonts = target + Path.explode("fonts")
     Isabelle_System.mkdirs(target_fonts)
 
-    File.write(target + Path.explode("NEWS.html"),
-      HTML.begin_document("NEWS") +
-      "\n<div class=\"source\">\n<pre class=\"source\">" +
-      HTML.output(Symbol.decode(File.read(Path.explode("~~/NEWS")))) +
-      "</pre>\n" +
-      HTML.end_document)
-
-
     for (font <- Isabelle_System.fonts(html = true))
       File.copy(font, target_fonts)
 
-    File.copy(Path.explode("~~/etc/isabelle.css"), target)
+    HTML.write_document(target, "NEWS.html",
+      List(HTML.title("NEWS (" + Distribution.version + ")")),
+      List(
+        HTML.chapter("NEWS"),
+        HTML.source(Symbol.decode(File.read(Path.explode("~~/NEWS"))))))
   }
 
 
