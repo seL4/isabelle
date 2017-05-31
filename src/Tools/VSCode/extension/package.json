@@ -36,6 +36,15 @@
                 }
             },
             {
+                "command": "isabelle.preview-update",
+                "title": "Update Preview",
+                "category": "Isabelle",
+                "icon": {
+                    "light": "./media/Preview.svg",
+                    "dark": "./media/Preview_inverse.svg"
+                }
+            },
+            {
                 "command": "isabelle.preview-split",
                 "title": "Open Preview (Split Editor)",
                 "category": "Isabelle",
@@ -60,6 +69,11 @@
                     "when": "editorLangId == isabelle",
                     "command": "isabelle.preview-split",
                     "alt": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceScheme == isabelle-preview",
+                    "command": "isabelle.preview-update",
                     "group": "navigation"
                 },
                 {

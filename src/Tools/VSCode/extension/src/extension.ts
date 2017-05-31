@@ -104,14 +104,15 @@ export function activate(context: ExtensionContext)
     context.subscriptions.push(
       commands.registerCommand("isabelle.preview", uri => preview.request_preview(uri, false)),
       commands.registerCommand("isabelle.preview-split", uri => preview.request_preview(uri, true)),
-      commands.registerCommand("isabelle.preview-source", preview.show_source))
+      commands.registerCommand("isabelle.preview-source", preview.show_source),
+      commands.registerCommand("isabelle.preview-update", preview.update_preview))
 
     language_client.onReady().then(() => preview.init(context, language_client))
 
 
     /* start server */
 
-    context.subscriptions.push(language_client.start());
+    context.subscriptions.push(language_client.start())
   }
 }
 

@@ -91,22 +91,32 @@ function preview_column(split: boolean): ViewColumn
   else return ViewColumn.Three
 }
 
+export function update_preview(preview_uri: Uri)
+{
+  const document_uri = decode_preview(preview_uri)
+  if (document_uri && language_client) {
+    language_client.sendNotification(protocol.preview_request_type,
+      { uri: document_uri.toString(), column: 0 })
+  }
+}
+
 export function request_preview(uri?: Uri, split: boolean = false)
 {
   const document_uri = uri || window.activeTextEditor.document.uri
   const preview_uri = encode_preview(document_uri)
   if (preview_uri && language_client) {
     language_client.sendNotification(protocol.preview_request_type,
-      {uri: document_uri.toString(), column: preview_column(split) })
+      { uri: document_uri.toString(), column: preview_column(split) })
   }
 }
 
-export function show_preview(document_uri: Uri, column: ViewColumn, label: string, content: string)
+export function show_preview(document_uri: Uri, column: number, label: string, content: string)
 {
   const preview_uri = encode_preview(document_uri)
   if (preview_uri && content_provider) {
     preview_content.set(preview_uri.toString(), content)
-    commands.executeCommand("vscode.previewHtml", preview_uri, column, label)
+    if (column == 0) content_provider.update(preview_uri)
+    else commands.executeCommand("vscode.previewHtml", preview_uri, column, label)
   }
 }
 
