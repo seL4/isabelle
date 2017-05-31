@@ -102,10 +102,10 @@ export function activate(context: ExtensionContext)
     /* preview */
 
     context.subscriptions.push(
-      commands.registerCommand("isabelle.preview", uri => preview.request_preview(uri, false)),
-      commands.registerCommand("isabelle.preview-split", uri => preview.request_preview(uri, true)),
-      commands.registerCommand("isabelle.preview-source", preview.show_source),
-      commands.registerCommand("isabelle.preview-update", preview.update_preview))
+      commands.registerCommand("isabelle.preview", uri => preview.request(uri, false)),
+      commands.registerCommand("isabelle.preview-split", uri => preview.request(uri, true)),
+      commands.registerCommand("isabelle.preview-source", preview.source),
+      commands.registerCommand("isabelle.preview-update", preview.update))
 
     language_client.onReady().then(() => preview.init(context, language_client))
 

@@ -74,8 +74,15 @@ export function init(context: ExtensionContext, client: LanguageClient)
     workspace.registerTextDocumentContentProvider(preview_uri_scheme, content_provider),
     content_provider)
 
-  language_client.onNotification(protocol.preview_response_type,
-    params => show_preview(Uri.parse(params.uri), params.column, params.label, params.content))
+  language_client.onNotification(protocol.preview_response_type, params =>
+    {
+      const preview_uri = encode_preview(Uri.parse(params.uri))
+      if (preview_uri) {
+        preview_content.set(preview_uri.toString(), params.content)
+        if (params.column == 0) content_provider.update(preview_uri)
+        else commands.executeCommand("vscode.previewHtml", preview_uri, params.column, params.label)
+      }
+    })
 }
 
 
@@ -91,16 +98,7 @@ function preview_column(split: boolean): ViewColumn
   else return ViewColumn.Three
 }
 
-export function update_preview(preview_uri: Uri)
-{
-  const document_uri = decode_preview(preview_uri)
-  if (document_uri && language_client) {
-    language_client.sendNotification(protocol.preview_request_type,
-      { uri: document_uri.toString(), column: 0 })
-  }
-}
-
-export function request_preview(uri?: Uri, split: boolean = false)
+export function request(uri?: Uri, split: boolean = false)
 {
   const document_uri = uri || window.activeTextEditor.document.uri
   const preview_uri = encode_preview(document_uri)
@@ -110,17 +108,16 @@ export function request_preview(uri?: Uri, split: boolean = false)
   }
 }
 
-export function show_preview(document_uri: Uri, column: number, label: string, content: string)
+export function update(preview_uri: Uri)
 {
-  const preview_uri = encode_preview(document_uri)
-  if (preview_uri && content_provider) {
-    preview_content.set(preview_uri.toString(), content)
-    if (column == 0) content_provider.update(preview_uri)
-    else commands.executeCommand("vscode.previewHtml", preview_uri, column, label)
+  const document_uri = decode_preview(preview_uri)
+  if (document_uri && language_client) {
+    language_client.sendNotification(protocol.preview_request_type,
+      { uri: document_uri.toString(), column: 0 })
   }
 }
 
-export function show_source(preview_uri: Uri)
+export function source(preview_uri: Uri)
 {
   const document_uri = decode_preview(preview_uri)
   if (document_uri) {
