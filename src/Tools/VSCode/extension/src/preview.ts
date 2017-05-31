@@ -45,7 +45,7 @@ const default_preview_content =
   </body>
   </html>`
 
-class Provider implements TextDocumentContentProvider
+class Content_Provider implements TextDocumentContentProvider
 {
   dispose() { }
 
@@ -63,21 +63,16 @@ class Provider implements TextDocumentContentProvider
 /* init */
 
 let language_client: LanguageClient
-let provider: Provider
+let content_provider: Content_Provider
 
 export function init(context: ExtensionContext, client: LanguageClient)
 {
   language_client = client
 
-  provider = new Provider()
+  content_provider = new Content_Provider()
   context.subscriptions.push(
-    workspace.registerTextDocumentContentProvider(preview_uri_scheme, provider),
-    provider)
-
-  context.subscriptions.push(
-    commands.registerCommand("isabelle.preview", uri => request_preview(uri, false)),
-    commands.registerCommand("isabelle.preview-side", uri => request_preview(uri, true)),
-    commands.registerCommand("isabelle.preview-source", show_source))
+    workspace.registerTextDocumentContentProvider(preview_uri_scheme, content_provider),
+    content_provider)
 
   language_client.onNotification(protocol.preview_response_type,
     params => show_preview(Uri.parse(params.uri), params.column, params.label, params.content))
@@ -96,26 +91,26 @@ function preview_column(side: boolean): ViewColumn
   else return ViewColumn.Three
 }
 
-function request_preview(uri?: Uri, side: boolean = false)
+export function request_preview(uri?: Uri, side: boolean = false)
 {
   const document_uri = uri || window.activeTextEditor.document.uri
   const preview_uri = encode_preview(document_uri)
-  if (preview_uri) {
+  if (preview_uri && language_client) {
     language_client.sendNotification(protocol.preview_request_type,
       {uri: document_uri.toString(), column: preview_column(side) })
   }
 }
 
-function show_preview(document_uri: Uri, column: ViewColumn, label: string, content: string)
+export function show_preview(document_uri: Uri, column: ViewColumn, label: string, content: string)
 {
   const preview_uri = encode_preview(document_uri)
-  if (preview_uri) {
+  if (preview_uri && content_provider) {
     preview_content.set(preview_uri.toString(), content)
     commands.executeCommand("vscode.previewHtml", preview_uri, column, label)
   }
 }
 
-function show_source(preview_uri: Uri)
+export function show_source(preview_uri: Uri)
 {
   const document_uri = decode_preview(preview_uri)
   if (document_uri) {

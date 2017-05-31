@@ -1,12 +1,12 @@
 'use strict';
 
-import { ExtensionContext, workspace, window } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as library from './library'
 import * as decorations from './decorations';
 import * as preview from './preview';
 import * as protocol from './protocol';
+import { ExtensionContext, workspace, window, commands } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
 
@@ -100,6 +100,11 @@ export function activate(context: ExtensionContext)
 
 
     /* preview */
+
+    context.subscriptions.push(
+      commands.registerCommand("isabelle.preview", uri => preview.request_preview(uri, false)),
+      commands.registerCommand("isabelle.preview-side", uri => preview.request_preview(uri, true)),
+      commands.registerCommand("isabelle.preview-source", preview.show_source))
 
     language_client.onReady().then(() => preview.init(context, language_client))
 
