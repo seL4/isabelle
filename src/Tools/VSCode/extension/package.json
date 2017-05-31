@@ -20,62 +20,62 @@
         "onLanguage:isabelle",
         "onLanguage:isabelle-ml",
         "onCommand:isabelle.preview",
-        "onCommand:isabelle.preview-side",
+        "onCommand:isabelle.preview-split",
         "onCommand:isabelle.preview-source"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "commands": [
             {
-				"command": "isabelle.preview",
-				"title": "Open Preview",
-				"category": "Isabelle",
-				"icon": {
-					"light": "./media/Preview.svg",
-					"dark": "./media/Preview_inverse.svg"
-				}
-			},
-			{
-				"command": "isabelle.preview-side",
-				"title": "Open Preview to the Side",
-				"category": "Isabelle",
-				"icon": {
-					"light": "./media/PreviewOnRightPane_16x.svg",
-					"dark": "./media/PreviewOnRightPane_16x_dark.svg"
-				}
-			},
-   			{
-				"command": "isabelle.preview-source",
-				"title": "Show Source",
-				"category": "Isabelle",
-				"icon": {
-					"light": "./media/ViewSource.svg",
-					"dark": "./media/ViewSource_inverse.svg"
-			    }
+                "command": "isabelle.preview",
+                "title": "Open Preview",
+                "category": "Isabelle",
+                "icon": {
+                    "light": "./media/Preview.svg",
+                    "dark": "./media/Preview_inverse.svg"
+                }
+            },
+            {
+                "command": "isabelle.preview-split",
+                "title": "Open Preview (Split Editor)",
+                "category": "Isabelle",
+                "icon": {
+                    "light": "./media/PreviewOnRightPane_16x.svg",
+                    "dark": "./media/PreviewOnRightPane_16x_dark.svg"
+                }
+            },
+            {
+                "command": "isabelle.preview-source",
+                "title": "Show Source",
+                "category": "Isabelle",
+                "icon": {
+                    "light": "./media/ViewSource.svg",
+                    "dark": "./media/ViewSource_inverse.svg"
+                }
             }
         ],
         "menus": {
-			"editor/title": [
-				{
-					"when": "editorLangId == isabelle",
-					"command": "isabelle.preview-side",
-					"alt": "isabelle.preview",
-					"group": "navigation"
-				},
-				{
-					"when": "resourceScheme == isabelle-preview",
-					"command": "isabelle.preview-source",
-					"group": "navigation"
-				}
-			],
-			"explorer/context": [
-				{
-					"when": "resourceLangId == isabelle",
-					"command": "isabelle.preview",
-					"group": "navigation"
-				}
-			]
-		},
+            "editor/title": [
+                {
+                    "when": "editorLangId == isabelle",
+                    "command": "isabelle.preview-split",
+                    "alt": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceScheme == isabelle-preview",
+                    "command": "isabelle.preview-source",
+                    "group": "navigation"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "when": "resourceLangId == isabelle",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                }
+            ]
+        },
         "languages": [
             {
                 "id": "isabelle",

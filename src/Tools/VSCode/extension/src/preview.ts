@@ -81,23 +81,23 @@ export function init(context: ExtensionContext, client: LanguageClient)
 
 /* commands */
 
-function preview_column(side: boolean): ViewColumn
+function preview_column(split: boolean): ViewColumn
 {
   const active_editor = window.activeTextEditor
 
   if (!active_editor) return ViewColumn.One
-  else if (!side) return active_editor.viewColumn
+  else if (!split) return active_editor.viewColumn
   else if (active_editor.viewColumn === ViewColumn.One) return ViewColumn.Two
   else return ViewColumn.Three
 }
 
-export function request_preview(uri?: Uri, side: boolean = false)
+export function request_preview(uri?: Uri, split: boolean = false)
 {
   const document_uri = uri || window.activeTextEditor.document.uri
   const preview_uri = encode_preview(document_uri)
   if (preview_uri && language_client) {
     language_client.sendNotification(protocol.preview_request_type,
-      {uri: document_uri.toString(), column: preview_column(side) })
+      {uri: document_uri.toString(), column: preview_column(split) })
   }
 }
 
