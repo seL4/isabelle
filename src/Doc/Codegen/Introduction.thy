@@ -70,7 +70,7 @@ lemma %invisible dequeue_nonempty_Nil [simp]:
 text \<open>\noindent Then we can generate code e.g.~for @{text SML} as follows:\<close>
 
 export_code %quote empty dequeue enqueue in SML
-  module_name Example file "$ISABELLE_TMP/examples/example.ML"
+  module_name Example file "$ISABELLE_TMP/example.ML"
 
 text \<open>\noindent resulting in the following code:\<close>
 
