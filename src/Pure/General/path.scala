@@ -149,6 +149,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
 
   def dir: Path = split_path._1
   def base: Path = new Path(List(Path.Basic(split_path._2)))
+  def base_name: String = base.implode
 
   def ext(e: String): Path =
     if (e == "") this

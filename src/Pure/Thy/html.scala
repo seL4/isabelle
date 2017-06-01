@@ -234,7 +234,7 @@ object HTML
   }
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    css: String = isabelle_css.base.implode, hidden: Boolean = true)
+    css: String = isabelle_css.base_name, hidden: Boolean = true)
   {
     init_dir(dir)
     File.write(dir + Path.basic(name), output_document(head, body, css = css, hidden = hidden))

@@ -574,7 +574,7 @@ object Sessions
           val global_theories =
             for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
             yield {
-              val thy_name = Path.explode(thy).expand.base.implode
+              val thy_name = Path.explode(thy).expand.base_name
               if (Long_Name.is_qualified(thy_name))
                 error("Bad qualified name for global theory " +
                   quote(thy_name) + Position.here(pos))

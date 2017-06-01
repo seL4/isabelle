@@ -193,7 +193,7 @@ object Completion_Popup
           val path = Path.explode(text)
           val (dir, base_name) =
             if (text == "" || text.endsWith("/")) (path, "")
-            else (path.dir, path.base.implode)
+            else (path.dir, path.base_name)
 
           val directory = new JFile(PIDE.resources.append(rendering.snapshot.node_name, dir))
           val files = directory.listFiles
