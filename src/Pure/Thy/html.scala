@@ -22,17 +22,7 @@ object HTML
 
   def output(text: String, s: StringBuilder)
   {
-    def output_char(c: Char) =
-      c match {
-        case '<' => s ++= "&lt;"
-        case '>' => s ++= "&gt;"
-        case '&' => s ++= "&amp;"
-        case '"' => s ++= "&quot;"
-        case '\'' => s ++= "&#39;"
-        case '\n' => s ++= "<br/>"
-        case _ => s += c
-      }
-    def output_chars(str: String) = str.iterator.foreach(output_char(_))
+    def output_string(str: String) = XML.output_string(str, s)
 
     var ctrl = ""
     for (sym <- Symbol.iterator(text)) {
@@ -41,16 +31,16 @@ object HTML
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
             s ++= ("<" + elem + ">")
-            output_chars(sym)
+            output_string(sym)
             s ++= ("</" + elem + ">")
           case _ =>
-            output_chars(ctrl)
-            output_chars(sym)
+            output_string(ctrl)
+            output_string(sym)
         }
         ctrl = ""
       }
     }
-    output_chars(ctrl)
+    output_string(ctrl)
   }
 
   def output(text: String): String = Library.make_string(output(text, _))

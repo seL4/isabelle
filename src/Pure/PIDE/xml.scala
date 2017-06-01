@@ -93,23 +93,29 @@ object XML
 
   /** string representation **/
 
+  def output_char(c: Char, s: StringBuilder)
+  {
+    c match {
+      case '<' => s ++= "&lt;"
+      case '>' => s ++= "&gt;"
+      case '&' => s ++= "&amp;"
+      case '"' => s ++= "&quot;"
+      case '\'' => s ++= "&apos;"
+      case _ => s += c
+    }
+  }
+
+  def output_string(str: String, s: StringBuilder)
+  {
+    if (str == null) s ++= str
+    else str.iterator.foreach(c => output_char(c, s))
+  }
+
   def string_of_body(body: Body): String =
   {
     val s = new StringBuilder
 
-    def text(txt: String) {
-      if (txt == null) s ++= txt
-      else {
-        for (c <- txt.iterator) c match {
-          case '<' => s ++= "&lt;"
-          case '>' => s ++= "&gt;"
-          case '&' => s ++= "&amp;"
-          case '"' => s ++= "&quot;"
-          case '\'' => s ++= "&apos;"
-          case _ => s += c
-        }
-      }
-    }
+    def text(txt: String) { output_string(txt, s) }
     def attrib(p: (String, String)) { s ++= " "; s ++= p._1; s ++= "=\""; text(p._2); s ++= "\"" }
     def elem(markup: Markup) { s ++= markup.name; markup.properties.foreach(attrib) }
     def tree(t: Tree): Unit =
