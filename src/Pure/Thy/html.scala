@@ -174,6 +174,9 @@ object HTML
 
   def style(s: String): XML.Elem = XML.elem("style", text(s))
 
+  def style_file(href: String): XML.Elem =
+    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
+
 
   /* messages */
 
@@ -208,18 +211,43 @@ object HTML
     XML.Elem(Markup("meta",
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
 
-  def head_css(css: String): XML.Elem =
-    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> css)), Nil)
-
   def output_document(head: XML.Body, body: XML.Body,
     css: String = "isabelle.css", hidden: Boolean = true): String =
   {
     cat_lines(
       List(header,
         output(
-          XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head),
+          XML.elem("head", head_meta :: (if (css == "") Nil else List(style_file(css))) ::: head),
           hidden = hidden),
         output(XML.elem("body", body), hidden = hidden)))
+  }
+
+
+  /* fonts */
+
+  def fonts_url(): String => String =
+    (for (font <- Isabelle_System.fonts(html = true))
+     yield (font.base_name -> Url.print_file(font.file))).toMap
+
+  def fonts_dir(prefix: String)(ttf_name: String): String =
+    prefix + "/" + ttf_name
+
+  def fonts_css(make_url: String => String = fonts_url()): String =
+  {
+    def font_face(name: String, ttf_name: String, bold: Boolean = false): String =
+      cat_lines(
+        List(
+          "@font-face {",
+          "  font-family: '" + name + "';",
+          "  src: url('" + make_url(ttf_name) + "') format('truetype');") :::
+        (if (bold) List("  font-weight: bold;") else Nil) :::
+        List("}"))
+
+    List(
+      "/* Isabelle fonts */",
+      font_face("IsabelleText", "IsabelleText.ttf"),
+      font_face("IsabelleText", "IsabelleTextBold.ttf", bold = true),
+      font_face("Vacuous", "Vacuous.ttf")).mkString("\n\n")
   }
 
 
@@ -227,10 +255,16 @@ object HTML
 
   def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
 
+  def write_isabelle_css(dir: Path, make_url: String => String = fonts_dir("fonts"))
+  {
+    File.write(dir + isabelle_css.base,
+      fonts_css(make_url) + "\n\n\n" + File.read(isabelle_css))
+  }
+
   def init_dir(dir: Path)
   {
     Isabelle_System.mkdirs(dir)
-    File.copy(isabelle_css, dir)
+    write_isabelle_css(dir)
   }
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,

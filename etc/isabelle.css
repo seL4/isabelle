@@ -1,22 +1,3 @@
-/* style file for Isabelle XHTML/XML output */
-
-@font-face {
-  font-family: 'IsabelleText';
-  src: url('fonts/IsabelleText.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'IsabelleText';
-  src: url('fonts/IsabelleTextBold.ttf') format('truetype');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: 'Vacuous';
-  src: url('fonts/Vacuous.ttf') format('truetype');
-}
-
-
 /* standard document markup */
 
 dt {

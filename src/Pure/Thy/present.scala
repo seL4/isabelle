@@ -93,7 +93,7 @@ object Present
       File.copy(graph_file, session_graph.file)
       Isabelle_System.bash("chmod a+r " + File.bash_path(session_graph))
 
-      File.copy(HTML.isabelle_css, session_prefix)
+      HTML.write_isabelle_css(session_prefix)
 
       for (font <- Isabelle_System.fonts(html = true))
         File.copy(font, session_fonts)
