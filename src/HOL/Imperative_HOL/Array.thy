@@ -443,14 +443,14 @@ text \<open>SML\<close>
 
 code_printing type_constructor array \<rightharpoonup> (SML) "_/ array"
 code_printing constant Array \<rightharpoonup> (SML) "raise/ (Fail/ \"bare Array\")"
-code_printing constant Array.new' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.array/ ((_),/ (_)))"
+code_printing constant Array.new' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.array/ (IntInf.toInt _,/ (_)))"
 code_printing constant Array.of_list \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.fromList/ _)"
-code_printing constant Array.make' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.tabulate/ ((_),/ (_)))"
-code_printing constant Array.len' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.length/ _)"
-code_printing constant Array.nth' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.sub/ ((_),/ (_)))"
-code_printing constant Array.upd' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.update/ ((_),/ (_),/ (_)))"
+code_printing constant Array.make' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.tabulate/ (IntInf.toInt _,/ _ o IntInf.fromInt))"
+code_printing constant Array.len' \<rightharpoonup> (SML) "(fn/ ()/ =>/ IntInf.fromInt (Array.length/ _))"
+code_printing constant Array.nth' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.sub/ ((_),/ IntInf.toInt _))"
+code_printing constant Array.upd' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.update/ ((_),/ IntInf.toInt _,/ (_)))"
 code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (SML) infixl 6 "="
-
+  
 code_reserved SML Array
 
 
