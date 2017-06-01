@@ -116,16 +116,21 @@ object XML
     val s = new StringBuilder
 
     def text(txt: String) { output_string(txt, s) }
-    def attrib(p: (String, String)) { s ++= " "; s ++= p._1; s ++= "=\""; text(p._2); s ++= "\"" }
-    def elem(markup: Markup) { s ++= markup.name; markup.properties.foreach(attrib) }
+    def elem(markup: Markup)
+    {
+      s ++= markup.name
+      for ((a, b) <- markup.properties) {
+        s += ' '; s ++= a; s += '='; s += '"'; text(b); s += '"'
+      }
+    }
     def tree(t: Tree): Unit =
       t match {
         case XML.Elem(markup, Nil) =>
-          s ++= "<"; elem(markup); s ++= "/>"
+          s += '<'; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
-          s ++= "<"; elem(markup); s ++= ">"
+          s += '<'; elem(markup); s += '>'
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s ++= ">"
+          s ++= "</"; s ++= markup.name; s += '>'
         case XML.Text(txt) => text(txt)
       }
     body.foreach(tree)

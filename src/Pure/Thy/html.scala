@@ -30,9 +30,9 @@ object HTML
       else {
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
-            s ++= ("<" + elem + ">")
+            s += '<'; s ++= elem; s += '>'
             output_string(sym)
-            s ++= ("</" + elem + ">")
+            s ++= "</"; s ++= elem; s += '>'
           case _ =>
             output_string(ctrl)
             output_string(sym)
@@ -54,19 +54,22 @@ object HTML
 
   def output(body: XML.Body, s: StringBuilder)
   {
-    def attrib(p: (String, String)): Unit =
-      { s ++= " "; s ++= p._1; s ++= "=\""; output(p._2, s); s ++= "\"" }
-    def elem(markup: Markup): Unit =
-      { s ++= markup.name; markup.properties.foreach(attrib) }
+    def elem(markup: Markup)
+    {
+      s ++= markup.name
+      for ((a, b) <- markup.properties) {
+        s += ' '; s ++= a; s += '='; s += '"'; output(b, s); s += '"'
+      }
+    }
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(markup, Nil) =>
-          s ++= "<"; elem(markup); s ++= "/>"
+          s += '<'; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
           if (structural_elements(markup.name)) s += '\n'
-          s ++= "<"; elem(markup); s ++= ">"
+          s += '<'; elem(markup); s += '>'
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s ++= ">"
+          s ++= "</"; s ++= markup.name; s += '>'
           if (structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) => output(txt, s)
       }
