@@ -89,7 +89,7 @@ object HTML
   }
 
   def id(s: String): Attribute = new Attribute("id", s)
-  def css_class(name: String): Attribute = new Attribute("class", name)
+  def class_(name: String): Attribute = new Attribute("class", name)
 
   def width(w: Int): Attribute = new Attribute("width", w.toString)
   def height(h: Int): Attribute = new Attribute("height", h.toString)
@@ -105,7 +105,7 @@ object HTML
   {
     def apply(body: XML.Body): XML.Elem = XML.elem(name, body)
     def apply(att: Attribute, body: XML.Body): XML.Elem = att(apply(body))
-    def apply(c: String, body: XML.Body): XML.Elem = apply(css_class(c), body)
+    def apply(c: String, body: XML.Body): XML.Elem = apply(class_(c), body)
   }
 
   class Heading(name: String) extends Operator(name)
@@ -154,14 +154,14 @@ object HTML
   /* messages */
 
   // background
-  val writeln_message: Attribute = css_class("writeln_message")
-  val warning_message: Attribute = css_class("warning_message")
-  val error_message: Attribute = css_class("error_message")
+  val writeln_message: Attribute = class_("writeln_message")
+  val warning_message: Attribute = class_("warning_message")
+  val error_message: Attribute = class_("error_message")
 
   // underline
-  val writeln: Attribute = css_class("writeln")
-  val warning: Attribute = css_class("warning")
-  val error: Attribute = css_class("error")
+  val writeln: Attribute = class_("writeln")
+  val warning: Attribute = class_("warning")
+  val error: Attribute = class_("error")
 
 
   /* tooltips */
