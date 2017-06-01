@@ -170,7 +170,7 @@ object HTML
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
 
-  def source(src: String): XML.Elem = div("source", List(pre(text(src))))
+  def source(src: String): XML.Elem = pre("source", text(src))
 
   def style(s: String): XML.Elem = XML.elem("style", text(s))
 
