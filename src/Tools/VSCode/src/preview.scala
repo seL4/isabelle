@@ -45,10 +45,11 @@ class Preview(resources: VSCode_Resources)
   {
     val label = "Preview " + quote(model.node_name.toString)
     val content =
-      HTML.output_document(head = Nil, css = "", body =
+      HTML.output_document(Nil,
         List(
           HTML.chapter("Theory " + quote(model.node_name.theory_base_name)),
-          HTML.source(Symbol.decode(snapshot.node.commands.iterator.map(_.source).mkString))))
+          HTML.source(Symbol.decode(snapshot.node.commands.iterator.map(_.source).mkString))),
+        css = Url.print_file(Path.explode("~~/etc/isabelle.css").file))
     (label, content)
   }
 }
