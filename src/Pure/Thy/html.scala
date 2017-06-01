@@ -9,41 +9,61 @@ package isabelle
 
 object HTML
 {
-  /* encode text with control symbols */
+  /* output text with control symbols */
 
-  val control =
+  private val control =
     Map(
-      Symbol.sub -> "sub",
-      Symbol.sub_decoded -> "sub",
-      Symbol.sup -> "sup",
-      Symbol.sup_decoded -> "sup",
-      Symbol.bold -> "b",
-      Symbol.bold_decoded -> "b")
+      Symbol.sub -> "sub", Symbol.sub_decoded -> "sub",
+      Symbol.sup -> "sup", Symbol.sup_decoded -> "sup",
+      Symbol.bold -> "b", Symbol.bold_decoded -> "b")
 
-  def output(text: String, s: StringBuilder)
+  private val control_block =
+    Map(
+      Symbol.bsub -> "<sub>", Symbol.bsub_decoded -> "<sub>",
+      Symbol.esub -> "</sub>", Symbol.esub_decoded -> "</sub>",
+      Symbol.bsup -> "<sup>", Symbol.bsup_decoded -> "<sup>",
+      Symbol.esup -> "</sup>", Symbol.esup_decoded -> "</sup>")
+
+  def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
+
+  def output(text: String, s: StringBuilder, hidden: Boolean)
   {
-    def output_string(str: String) = XML.output_string(str, s)
+    def output_hidden(body: => Unit): Unit =
+      if (hidden) { s ++= "<span class=\"hidden\">"; body; s ++= "</span>" }
+
+    def output_symbol(sym: Symbol.Symbol): Unit =
+      if (sym != "") {
+        control_block.get(sym) match {
+          case Some(html) if html.startsWith("</") =>
+            s ++= html; output_hidden(XML.output_string(sym, s))
+          case Some(html) =>
+            output_hidden(XML.output_string(sym, s)); s ++= html
+          case None =>
+            XML.output_string(sym, s)
+        }
+      }
 
     var ctrl = ""
     for (sym <- Symbol.iterator(text)) {
-      if (control.isDefinedAt(sym)) ctrl = sym
+      if (is_control(sym)) { output_symbol(ctrl); ctrl = sym }
       else {
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
+            output_hidden(output_symbol(ctrl))
             s += '<'; s ++= elem; s += '>'
-            output_string(sym)
+            output_symbol(sym)
             s ++= "</"; s ++= elem; s += '>'
           case _ =>
-            output_string(ctrl)
-            output_string(sym)
+            output_symbol(ctrl)
+            output_symbol(sym)
         }
         ctrl = ""
       }
     }
-    output_string(ctrl)
+    output_symbol(ctrl)
   }
 
-  def output(text: String): String = Library.make_string(output(text, _))
+  def output(text: String): String = Library.make_string(output(text, _, hidden = false))
 
 
   /* output XML as HTML */
@@ -52,13 +72,13 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(body: XML.Body, s: StringBuilder)
+  def output(body: XML.Body, s: StringBuilder, hidden: Boolean)
   {
     def elem(markup: Markup)
     {
       s ++= markup.name
       for ((a, b) <- markup.properties) {
-        s += ' '; s ++= a; s += '='; s += '"'; output(b, s); s += '"'
+        s += ' '; s ++= a; s += '='; s += '"'; output(b, s, hidden); s += '"'
       }
     }
     def tree(t: XML.Tree): Unit =
@@ -71,13 +91,17 @@ object HTML
           ts.foreach(tree)
           s ++= "</"; s ++= markup.name; s += '>'
           if (structural_elements(markup.name)) s += '\n'
-        case XML.Text(txt) => output(txt, s)
+        case XML.Text(txt) =>
+          output(txt, s, hidden)
       }
     body.foreach(tree)
   }
 
-  def output(body: XML.Body): String = Library.make_string(output(body, _))
-  def output(tree: XML.Tree): String = output(List(tree))
+  def output(body: XML.Body, hidden: Boolean): String =
+    Library.make_string(output(body, _, hidden))
+
+  def output(tree: XML.Tree, hidden: Boolean): String =
+    output(List(tree), hidden)
 
 
   /* attributes */
@@ -187,11 +211,16 @@ object HTML
   def head_css(css: String): XML.Elem =
     XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> css)), Nil)
 
-  def output_document(head: XML.Body, body: XML.Body, css: String = "isabelle.css"): String =
+  def output_document(head: XML.Body, body: XML.Body,
+    css: String = "isabelle.css", hidden: Boolean = true): String =
+  {
     cat_lines(
       List(header,
-        output(XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head)),
-        output(XML.elem("body", body))))
+        output(
+          XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head),
+          hidden = hidden),
+        output(XML.elem("body", body), hidden = hidden)))
+  }
 
 
   /* document directory */
@@ -203,9 +232,9 @@ object HTML
   }
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    css: String = "isabelle.css")
+    css: String = "isabelle.css", hidden: Boolean = true)
   {
     init_dir(dir)
-    File.write(dir + Path.basic(name), output_document(head, body, css))
+    File.write(dir + Path.basic(name), output_document(head, body, css = css, hidden = hidden))
   }
 }

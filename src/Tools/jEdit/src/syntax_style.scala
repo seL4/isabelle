@@ -138,7 +138,7 @@ object Syntax_Style
     def update_style(text: String): String =
     {
       val result = new StringBuilder
-      for (sym <- Symbol.iterator(text) if !HTML.control.isDefinedAt(sym)) {
+      for (sym <- Symbol.iterator(text) if !HTML.is_control(sym)) {
         if (Symbol.is_controllable(sym)) result ++= control_decoded
         result ++= sym
       }
@@ -148,7 +148,7 @@ object Syntax_Style
     text_area.getSelection.foreach(sel => {
       val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
       JEdit_Lib.try_get_text(buffer, before) match {
-        case Some(s) if HTML.control.isDefinedAt(s) =>
+        case Some(s) if HTML.is_control(s) =>
           text_area.extendSelection(before.start, before.stop)
         case _ =>
       }

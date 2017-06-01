@@ -96,7 +96,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     action =
       Action(Symbol.decode(symbol)) {
         val text_area = view.getTextArea
-        if (is_control && HTML.control.isDefinedAt(symbol))
+        if (is_control && HTML.is_control(symbol))
           Syntax_Style.edit_control_style(text_area, symbol)
         else
           text_area.setSelectedText(Isabelle_Encoding.maybe_decode(text_area.getBuffer, symbol))
