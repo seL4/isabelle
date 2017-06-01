@@ -79,8 +79,10 @@ export function init(context: ExtensionContext, client: LanguageClient)
       const preview_uri = encode_preview(Uri.parse(params.uri))
       if (preview_uri) {
         preview_content.set(preview_uri.toString(), params.content)
-        if (params.column == 0) content_provider.update(preview_uri)
-        else commands.executeCommand("vscode.previewHtml", preview_uri, params.column, params.label)
+        content_provider.update(preview_uri)
+        if (params.column != 0) {
+          commands.executeCommand("vscode.previewHtml", preview_uri, params.column, params.label)
+        }
       }
     })
 }
