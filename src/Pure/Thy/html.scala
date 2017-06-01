@@ -82,14 +82,17 @@ object HTML
 
   /* attributes */
 
-  class Attribute(name: String, value: String)
-  { def apply(elem: XML.Elem): XML.Elem = elem + (name -> value) }
+  class Attribute(val name: String, value: String)
+  {
+    def xml: XML.Attribute = name -> value
+    def apply(elem: XML.Elem): XML.Elem = elem + xml
+  }
 
-  def id(s: String) = new Attribute("id", s)
-  def css_class(name: String) = new Attribute("class", name)
+  def id(s: String): Attribute = new Attribute("id", s)
+  def css_class(name: String): Attribute = new Attribute("class", name)
 
-  def width(w: Int) = new Attribute("width", w.toString)
-  def height(h: Int) = new Attribute("height", h.toString)
+  def width(w: Int): Attribute = new Attribute("width", w.toString)
+  def height(h: Int): Attribute = new Attribute("height", h.toString)
   def size(w: Int, h: Int)(elem: XML.Elem): XML.Elem = width(w)(height(h)(elem))
 
 
@@ -98,11 +101,19 @@ object HTML
   def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
   val break: XML.Body = List(XML.elem("br"))
 
-  class Operator(name: String)
-  { def apply(body: XML.Body): XML.Elem = XML.elem(name, body) }
+  class Operator(val name: String)
+  {
+    def apply(body: XML.Body): XML.Elem = XML.elem(name, body)
+    def apply(att: Attribute, body: XML.Body): XML.Elem = att(apply(body))
+    def apply(c: String, body: XML.Body): XML.Elem = apply(css_class(c), body)
+  }
 
   class Heading(name: String) extends Operator(name)
-  { def apply(txt: String): XML.Elem = super.apply(text(txt)) }
+  {
+    def apply(txt: String): XML.Elem = super.apply(text(txt))
+    def apply(att: Attribute, txt: String): XML.Elem = super.apply(att, text(txt))
+    def apply(c: String, txt: String): XML.Elem = super.apply(c, text(txt))
+  }
 
   val div = new Operator("div")
   val span = new Operator("span")
@@ -135,7 +146,7 @@ object HTML
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
 
-  def source(src: String): XML.Elem = css_class("source")(div(List(pre(text(src)))))
+  def source(src: String): XML.Elem = div("source", List(pre(text(src))))
 
   def style(s: String): XML.Elem = XML.elem("style", text(s))
 
@@ -156,7 +167,7 @@ object HTML
   /* tooltips */
 
   def tooltip(item: XML.Body, tip: XML.Body): XML.Elem =
-    span(item ::: List(css_class("tooltip")(div(tip))))
+    span(item ::: List(div("tooltip", tip)))
 
   def tooltip_errors(item: XML.Body, msgs: List[XML.Body]): XML.Elem =
     HTML.error(tooltip(item, msgs.map(msg => error_message(pre(msg)))))

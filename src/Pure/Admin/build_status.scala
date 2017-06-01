@@ -273,7 +273,7 @@ object Build_Status
               case Nil => Nil
               case sessions =>
                 HTML.break :::
-                List(HTML.error_message(HTML.span(HTML.text("Failed sessions:")))) :::
+                List(HTML.span(HTML.error_message, HTML.text("Failed sessions:"))) :::
                 List(HTML.itemize(sessions.map(s => s.head.present_errors(s.name))))
             })
           }))))))
@@ -416,7 +416,7 @@ plot [] """ + range + " " +
               HTML.text(" (" + session.head.timing.message_resources + ")"))))) ::
         data_entry.sessions.flatMap(session =>
           List(
-            HTML.id("session_" + session.name)(HTML.section(session.name)),
+            HTML.section(HTML.id("session_" + session.name), session.name),
             HTML.par(
               HTML.description(
                 List(
