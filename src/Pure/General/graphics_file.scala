@@ -46,7 +46,7 @@ object Graphics_File
     val mapper = new DefaultFontMapper
     for {
       font <- Isabelle_System.fonts()
-      name <- Library.try_unsuffix(".ttf", font.base.implode)
+      name <- Library.try_unsuffix(".ttf", font.base_name)
     } {
       val parameters = new DefaultFontMapper.BaseFontParameters(File.platform_path(font))
       parameters.encoding = BaseFont.IDENTITY_H

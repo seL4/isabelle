@@ -52,12 +52,12 @@ object Present
       HTML.chapter(title) ::
        (if (sessions.isEmpty) Nil
         else
-          List(HTML.css_class("sessions")(HTML.div(List(
-            HTML.description(
+          List(HTML.div("sessions",
+            List(HTML.description(
               sessions.map({ case (name, description) =>
                 (List(HTML.link(name + "/index.html", HTML.text(name))),
                   if (description == "") Nil
-                  else List(HTML.pre(HTML.text(description)))) }))))))))
+                  else List(HTML.pre(HTML.text(description)))) })))))))
   }
 
   def make_global_index(browser_info: Path)
@@ -93,7 +93,7 @@ object Present
       File.copy(graph_file, session_graph.file)
       Isabelle_System.bash("chmod a+r " + File.bash_path(session_graph))
 
-      File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
+      HTML.write_isabelle_css(session_prefix)
 
       for (font <- Isabelle_System.fonts(html = true))
         File.copy(font, session_fonts)

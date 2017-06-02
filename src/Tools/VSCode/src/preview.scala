@@ -45,14 +45,12 @@ class Preview(resources: VSCode_Resources)
   {
     val label = "Preview " + quote(model.node_name.toString)
     val content =
-      HTML.output_document(head = Nil, css = "", body =
+      HTML.output_document(
+        List(HTML.style(HTML.fonts_css()), HTML.style_file(Url.print_file(HTML.isabelle_css.file))),
         List(
-          HTML.chapter(label),
-          HTML.itemize(
-            snapshot.node.commands.toList.flatMap(
-              command =>
-                if (command.span.name == "") None
-                else Some(HTML.text(command.span.name))))))
+          HTML.chapter("Theory " + quote(model.node_name.theory_base_name)),
+          HTML.source(Symbol.decode(snapshot.node.commands.iterator.map(_.source).mkString))),
+        css = "")
     (label, content)
   }
 }

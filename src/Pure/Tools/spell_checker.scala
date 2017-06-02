@@ -57,7 +57,7 @@ object Spell_Checker
 
   class Dictionary private[Spell_Checker](val path: Path)
   {
-    val lang = path.split_ext._1.base.implode
+    val lang = path.split_ext._1.base_name
     val user_path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
     override def toString: String = lang
   }

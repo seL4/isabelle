@@ -9,51 +9,61 @@ package isabelle
 
 object HTML
 {
-  /* encode text with control symbols */
+  /* output text with control symbols */
 
-  val control =
+  private val control =
     Map(
-      Symbol.sub -> "sub",
-      Symbol.sub_decoded -> "sub",
-      Symbol.sup -> "sup",
-      Symbol.sup_decoded -> "sup",
-      Symbol.bold -> "b",
-      Symbol.bold_decoded -> "b")
+      Symbol.sub -> "sub", Symbol.sub_decoded -> "sub",
+      Symbol.sup -> "sup", Symbol.sup_decoded -> "sup",
+      Symbol.bold -> "b", Symbol.bold_decoded -> "b")
 
-  def output(text: String, s: StringBuilder)
+  private val control_block =
+    Map(
+      Symbol.bsub -> "<sub>", Symbol.bsub_decoded -> "<sub>",
+      Symbol.esub -> "</sub>", Symbol.esub_decoded -> "</sub>",
+      Symbol.bsup -> "<sup>", Symbol.bsup_decoded -> "<sup>",
+      Symbol.esup -> "</sup>", Symbol.esup_decoded -> "</sup>")
+
+  def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
+
+  def output(text: String, s: StringBuilder, hidden: Boolean)
   {
-    def output_char(c: Char) =
-      c match {
-        case '<' => s ++= "&lt;"
-        case '>' => s ++= "&gt;"
-        case '&' => s ++= "&amp;"
-        case '"' => s ++= "&quot;"
-        case '\'' => s ++= "&#39;"
-        case '\n' => s ++= "<br/>"
-        case _ => s += c
+    def output_hidden(body: => Unit): Unit =
+      if (hidden) { s ++= "<span class=\"hidden\">"; body; s ++= "</span>" }
+
+    def output_symbol(sym: Symbol.Symbol): Unit =
+      if (sym != "") {
+        control_block.get(sym) match {
+          case Some(html) if html.startsWith("</") =>
+            s ++= html; output_hidden(XML.output_string(sym, s))
+          case Some(html) =>
+            output_hidden(XML.output_string(sym, s)); s ++= html
+          case None =>
+            XML.output_string(sym, s)
+        }
       }
-    def output_chars(str: String) = str.iterator.foreach(output_char(_))
 
     var ctrl = ""
     for (sym <- Symbol.iterator(text)) {
-      if (control.isDefinedAt(sym)) ctrl = sym
+      if (is_control(sym)) { output_symbol(ctrl); ctrl = sym }
       else {
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
-            s ++= ("<" + elem + ">")
-            output_chars(sym)
-            s ++= ("</" + elem + ">")
+            output_hidden(output_symbol(ctrl))
+            s += '<'; s ++= elem; s += '>'
+            output_symbol(sym)
+            s ++= "</"; s ++= elem; s += '>'
           case _ =>
-            output_chars(ctrl)
-            output_chars(sym)
+            output_symbol(ctrl)
+            output_symbol(sym)
         }
         ctrl = ""
       }
     }
-    output_chars(ctrl)
+    output_symbol(ctrl)
   }
 
-  def output(text: String): String = Library.make_string(output(text, _))
+  def output(text: String): String = Library.make_string(output(text, _, hidden = false))
 
 
   /* output XML as HTML */
@@ -62,41 +72,51 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(body: XML.Body, s: StringBuilder)
+  def output(body: XML.Body, s: StringBuilder, hidden: Boolean)
   {
-    def attrib(p: (String, String)): Unit =
-      { s ++= " "; s ++= p._1; s ++= "=\""; output(p._2, s); s ++= "\"" }
-    def elem(markup: Markup): Unit =
-      { s ++= markup.name; markup.properties.foreach(attrib) }
+    def elem(markup: Markup)
+    {
+      s ++= markup.name
+      for ((a, b) <- markup.properties) {
+        s += ' '; s ++= a; s += '='; s += '"'; output(b, s, hidden); s += '"'
+      }
+    }
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(markup, Nil) =>
-          s ++= "<"; elem(markup); s ++= "/>"
+          s += '<'; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
           if (structural_elements(markup.name)) s += '\n'
-          s ++= "<"; elem(markup); s ++= ">"
+          s += '<'; elem(markup); s += '>'
           ts.foreach(tree)
-          s ++= "</"; s ++= markup.name; s ++= ">"
+          s ++= "</"; s ++= markup.name; s += '>'
           if (structural_elements(markup.name)) s += '\n'
-        case XML.Text(txt) => output(txt, s)
+        case XML.Text(txt) =>
+          output(txt, s, hidden)
       }
     body.foreach(tree)
   }
 
-  def output(body: XML.Body): String = Library.make_string(output(body, _))
-  def output(tree: XML.Tree): String = output(List(tree))
+  def output(body: XML.Body, hidden: Boolean): String =
+    Library.make_string(output(body, _, hidden))
+
+  def output(tree: XML.Tree, hidden: Boolean): String =
+    output(List(tree), hidden)
 
 
   /* attributes */
 
-  class Attribute(name: String, value: String)
-  { def apply(elem: XML.Elem): XML.Elem = elem + (name -> value) }
+  class Attribute(val name: String, value: String)
+  {
+    def xml: XML.Attribute = name -> value
+    def apply(elem: XML.Elem): XML.Elem = elem + xml
+  }
 
-  def id(s: String) = new Attribute("id", s)
-  def css_class(name: String) = new Attribute("class", name)
+  def id(s: String): Attribute = new Attribute("id", s)
+  def class_(name: String): Attribute = new Attribute("class", name)
 
-  def width(w: Int) = new Attribute("width", w.toString)
-  def height(h: Int) = new Attribute("height", h.toString)
+  def width(w: Int): Attribute = new Attribute("width", w.toString)
+  def height(h: Int): Attribute = new Attribute("height", h.toString)
   def size(w: Int, h: Int)(elem: XML.Elem): XML.Elem = width(w)(height(h)(elem))
 
 
@@ -105,11 +125,19 @@ object HTML
   def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
   val break: XML.Body = List(XML.elem("br"))
 
-  class Operator(name: String)
-  { def apply(body: XML.Body): XML.Elem = XML.elem(name, body) }
+  class Operator(val name: String)
+  {
+    def apply(body: XML.Body): XML.Elem = XML.elem(name, body)
+    def apply(att: Attribute, body: XML.Body): XML.Elem = att(apply(body))
+    def apply(c: String, body: XML.Body): XML.Elem = apply(class_(c), body)
+  }
 
   class Heading(name: String) extends Operator(name)
-  { def apply(txt: String): XML.Elem = super.apply(text(txt)) }
+  {
+    def apply(txt: String): XML.Elem = super.apply(text(txt))
+    def apply(att: Attribute, txt: String): XML.Elem = super.apply(att, text(txt))
+    def apply(c: String, txt: String): XML.Elem = super.apply(c, text(txt))
+  }
 
   val div = new Operator("div")
   val span = new Operator("span")
@@ -142,28 +170,31 @@ object HTML
   def image(src: String, alt: String = ""): XML.Elem =
     XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
 
-  def source(src: String): XML.Elem = css_class("source")(div(List(pre(text(src)))))
+  def source(src: String): XML.Elem = pre("source", text(src))
 
   def style(s: String): XML.Elem = XML.elem("style", text(s))
+
+  def style_file(href: String): XML.Elem =
+    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
 
 
   /* messages */
 
   // background
-  val writeln_message: Attribute = css_class("writeln_message")
-  val warning_message: Attribute = css_class("warning_message")
-  val error_message: Attribute = css_class("error_message")
+  val writeln_message: Attribute = class_("writeln_message")
+  val warning_message: Attribute = class_("warning_message")
+  val error_message: Attribute = class_("error_message")
 
   // underline
-  val writeln: Attribute = css_class("writeln")
-  val warning: Attribute = css_class("warning")
-  val error: Attribute = css_class("error")
+  val writeln: Attribute = class_("writeln")
+  val warning: Attribute = class_("warning")
+  val error: Attribute = class_("error")
 
 
   /* tooltips */
 
   def tooltip(item: XML.Body, tip: XML.Body): XML.Elem =
-    span(item ::: List(css_class("tooltip")(div(tip))))
+    span(item ::: List(div("tooltip", tip)))
 
   def tooltip_errors(item: XML.Body, msgs: List[XML.Body]): XML.Elem =
     HTML.error(tooltip(item, msgs.map(msg => error_message(pre(msg)))))
@@ -180,28 +211,66 @@ object HTML
     XML.Elem(Markup("meta",
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
 
-  def head_css(css: String): XML.Elem =
-    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> css)), Nil)
-
-  def output_document(head: XML.Body, body: XML.Body, css: String = "isabelle.css"): String =
+  def output_document(head: XML.Body, body: XML.Body,
+    css: String = "isabelle.css", hidden: Boolean = true): String =
+  {
     cat_lines(
       List(header,
-        output(XML.elem("head", head_meta :: (if (css == "") Nil else List(head_css(css))) ::: head)),
-        output(XML.elem("body", body))))
+        output(
+          XML.elem("head", head_meta :: (if (css == "") Nil else List(style_file(css))) ::: head),
+          hidden = hidden),
+        output(XML.elem("body", body), hidden = hidden)))
+  }
+
+
+  /* fonts */
+
+  def fonts_url(): String => String =
+    (for (font <- Isabelle_System.fonts(html = true))
+     yield (font.base_name -> Url.print_file(font.file))).toMap
+
+  def fonts_dir(prefix: String)(ttf_name: String): String =
+    prefix + "/" + ttf_name
+
+  def fonts_css(make_url: String => String = fonts_url()): String =
+  {
+    def font_face(name: String, ttf_name: String, bold: Boolean = false): String =
+      cat_lines(
+        List(
+          "@font-face {",
+          "  font-family: '" + name + "';",
+          "  src: url('" + make_url(ttf_name) + "') format('truetype');") :::
+        (if (bold) List("  font-weight: bold;") else Nil) :::
+        List("}"))
+
+    List(
+      "/* Isabelle fonts */",
+      font_face("IsabelleText", "IsabelleText.ttf"),
+      font_face("IsabelleText", "IsabelleTextBold.ttf", bold = true),
+      font_face("Vacuous", "Vacuous.ttf")).mkString("\n\n")
+  }
 
 
   /* document directory */
 
+  def isabelle_css: Path = Path.explode("~~/etc/isabelle.css")
+
+  def write_isabelle_css(dir: Path, make_url: String => String = fonts_dir("fonts"))
+  {
+    File.write(dir + isabelle_css.base,
+      fonts_css(make_url) + "\n\n\n" + File.read(isabelle_css))
+  }
+
   def init_dir(dir: Path)
   {
     Isabelle_System.mkdirs(dir)
-    File.copy(Path.explode("~~/etc/isabelle.css"), dir)
+    write_isabelle_css(dir)
   }
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    css: String = "isabelle.css")
+    css: String = isabelle_css.base_name, hidden: Boolean = true)
   {
     init_dir(dir)
-    File.write(dir + Path.basic(name), output_document(head, body, css))
+    File.write(dir + Path.basic(name), output_document(head, body, css = css, hidden = hidden))
   }
 }

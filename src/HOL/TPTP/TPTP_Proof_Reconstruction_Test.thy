@@ -58,7 +58,7 @@ val probs =
 
 val prob_names =
   probs
-  |> map (Path.base #> Path.implode #> TPTP_Problem_Name.Nonstandard)
+  |> map (Path.base_name #> TPTP_Problem_Name.Nonstandard)
 \<close>
 
 setup \<open>
@@ -575,7 +575,9 @@ ML \<open>
 fun test_partial_reconstruction thy prob_file =
   let
     val prob_name =
-      (Path.base #> Path.implode #> TPTP_Problem_Name.Nonstandard) prob_file
+      prob_file
+      |> Path.base_name
+      |> TPTP_Problem_Name.Nonstandard
 
     val thy' =
       try
@@ -658,8 +660,7 @@ ML \<open>
       val ctxt = Proof_Context.init_global thy' (*FIXME pass ctxt instead of thy*)
       val prob_name =
         file
-        |> Path.base
-        |> Path.implode
+        |> Path.base_name
         |> TPTP_Problem_Name.Nonstandard
     in
       Timeout.apply (Time.fromSeconds (if timeout = 0 then 60 else timeout))

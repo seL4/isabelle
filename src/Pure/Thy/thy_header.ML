@@ -114,7 +114,7 @@ val ml_bootstrapN = "ML_Bootstrap";
 val ml_roots = ["ML_Root0", "ML_Root"];
 val bootstrap_thys = ["Bootstrap_Pure", "Bootstrap_ML_Bootstrap"];
 
-val import_name = Path.implode o Path.base o Path.explode;
+val import_name = Path.base_name o Path.explode;
 
 
 (* header args *)

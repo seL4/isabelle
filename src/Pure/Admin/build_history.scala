@@ -211,7 +211,7 @@ object Build_History
       val build_end = Date.now()
 
       val build_info: Build_Log.Build_Info =
-        Build_Log.Log_File(log_path.base.implode, build_result.out_lines).
+        Build_Log.Log_File(log_path.base_name, build_result.out_lines).
           parse_build_info(ml_statistics = true)
 
 
@@ -489,7 +489,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         val log = Path.explode(line)
         val bytes = ssh.read_bytes(log)
         ssh.rm(log)
-        (log.base.implode, bytes)
+        (log.base_name, bytes)
       }
     })
   }
