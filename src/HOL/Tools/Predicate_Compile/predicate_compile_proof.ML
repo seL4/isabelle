@@ -61,7 +61,7 @@ fun prove_param options ctxt nargs t deriv =
     val f_tac =
       (case f of
         Const (name, _) => simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-           [@{thm eval_pred}, Core_Data.predfun_definition_of ctxt name mode,
+           [@{thm pred.sel}, Core_Data.predfun_definition_of ctxt name mode,
            @{thm case_prod_eta}, @{thm case_prod_beta}, @{thm fst_conv},
            @{thm snd_conv}, @{thm prod.collapse}, @{thm Product_Type.split_conv}]) 1
       | Free _ =>
@@ -180,7 +180,7 @@ fun prove_sidecond ctxt t =
         preds
   in
     simp_tac (put_simpset HOL_basic_ss ctxt
-      addsimps (@{thms HOL.simp_thms eval_pred} @ defs)) 1
+      addsimps (@{thms HOL.simp_thms pred.sel} @ defs)) 1
     (* need better control here! *)
   end
 
@@ -339,7 +339,7 @@ fun prove_param2 options ctxt t deriv =
     val f_tac =
       (case f of
         Const (name, _) => full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-           [@{thm eval_pred}, Core_Data.predfun_definition_of ctxt name mode,
+           [@{thm pred.sel}, Core_Data.predfun_definition_of ctxt name mode,
             @{thm Product_Type.split_conv}]) 1
       | Free _ => all_tac
       | _ => error "prove_param2: illegal parameter term")
@@ -383,7 +383,7 @@ fun prove_sidecond2 options ctxt t =
         preds
   in
     (* only simplify the one assumption *)
-    full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps @{thm eval_pred} :: defs) 1
+    full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps @{thm pred.sel} :: defs) 1
     (* need better control here! *)
     THEN trace_tac ctxt options "after sidecond2 simplification"
   end

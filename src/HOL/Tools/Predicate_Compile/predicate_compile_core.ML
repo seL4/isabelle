@@ -1085,7 +1085,7 @@ fun create_intro_elim_rule ctxt mode defthm mode_id funT pred =
                      HOLogic.mk_tuple outargs))
     val introtrm = Logic.list_implies (predpropI :: param_eqs, funpropI)
     val simprules =
-      [defthm, @{thm eval_pred},
+      [defthm, @{thm pred.sel},
         @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm prod.collapse}]
     val unfolddef_tac =
       Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simprules) 1
@@ -1347,7 +1347,7 @@ fun add_code_equations ctxt preds result_thmss =
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
             val def = Core_Data.predfun_definition_of ctxt predname full_mode
             val tac = fn _ => Simplifier.simp_tac
-              (put_simpset HOL_basic_ss ctxt addsimps [def, @{thm holds_eq}, @{thm eval_pred}]) 1
+              (put_simpset HOL_basic_ss ctxt addsimps [def, @{thm holds_eq}, @{thm pred.sel}]) 1
             val eq = Goal.prove ctxt arg_names [] eq_term tac
           in
             (pred, result_thms @ [eq])

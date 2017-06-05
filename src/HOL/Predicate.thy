@@ -10,14 +10,7 @@ begin
 
 subsection \<open>The type of predicate enumerations (a monad)\<close>
 
-datatype (plugins only: code extraction) (dead 'a) pred = Pred "'a \<Rightarrow> bool"
-
-primrec eval :: "'a pred \<Rightarrow> 'a \<Rightarrow> bool" where
-  eval_pred: "eval (Pred f) = f"
-
-lemma Pred_eval [simp]:
-  "Pred (eval x) = x"
-  by (cases x) simp
+datatype (plugins only: extraction) (dead 'a) pred = Pred (eval: "'a \<Rightarrow> bool")
 
 lemma pred_eqI:
   "(\<And>w. eval P w \<longleftrightarrow> eval Q w) \<Longrightarrow> P = Q"
@@ -339,7 +332,7 @@ lemma if_predE: "eval (if_pred b) x \<Longrightarrow> (b \<Longrightarrow> x = (
   unfolding if_pred_eq by (cases b) (auto elim: botE)
 
 lemma not_predI: "\<not> P \<Longrightarrow> eval (not_pred (Pred (\<lambda>u. P))) ()"
-  unfolding not_pred_eq eval_pred by (auto intro: singleI)
+  unfolding not_pred_eq by (auto intro: singleI)
 
 lemma not_predI': "\<not> eval P () \<Longrightarrow> eval (not_pred P) ()"
   unfolding not_pred_eq by (auto intro: singleI)
@@ -529,18 +522,27 @@ lemma less_eq_pred_code [code]:
   by (cases "f ()")
     (simp_all add: Seq_def single_less_eq_eval contained_less_eq)
 
-lemma eq_pred_code [code]:
-  fixes P Q :: "'a pred"
-  shows "HOL.equal P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P"
-  by (auto simp add: equal)
+instantiation pred :: (type) equal
+begin
+
+definition equal_pred
+  where [simp]: "HOL.equal P Q \<longleftrightarrow> P = (Q :: 'a pred)"
+
+instance by standard simp
+
+end
+    
+lemma [code]:
+  "HOL.equal P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P" for P Q :: "'a pred"
+  by auto
 
 lemma [code nbe]:
-  "HOL.equal (x :: 'a pred) x \<longleftrightarrow> True"
+  "HOL.equal P P \<longleftrightarrow> True" for P :: "'a pred"
   by (fact equal_refl)
 
 lemma [code]:
   "case_pred f P = f (eval P)"
-  by (cases P) simp
+  by (fact pred.case_eq_if)
 
 lemma [code]:
   "rec_pred f P = f (eval P)"
