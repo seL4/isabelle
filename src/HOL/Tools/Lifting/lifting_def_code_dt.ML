@@ -146,8 +146,10 @@ val all_code_dt_of = all_code_dt_of_generic o Context.Proof;
 val all_code_dt_of_global = all_code_dt_of_generic o Context.Theory;
 
 fun update_code_dt code_dt =
-  Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Item_Net.update (morph_code_dt phi code_dt)));
+  Local_Theory.open_target #> snd
+  #> Local_Theory.declaration {syntax = false, pervasive = true}
+    (fn phi => Data.map (Item_Net.update (morph_code_dt phi code_dt)))
+  #> Local_Theory.close_target
 
 fun mk_match_of_code_dt qty code_dt = Vartab.empty |> Type.raw_match (qty_of_code_dt code_dt, qty)
   |> Vartab.dest |> map (fn (x, (S, T)) => (TVar (x, S), T));
@@ -211,7 +213,7 @@ fun lift qty (quot_thm, (lthy, rel_eq_onps)) =
           handle THM _ => error ("code_dt: " ^ quote (Tname qty) ^ " was not defined as a subtype."))
         val code_dt = mk_code_dt rty qty wit wit_thm NONE
       in
-        (quot_thm, (update_code_dt code_dt lthy |> Local_Theory.reset, rel_eq_onps))
+        (quot_thm, (update_code_dt code_dt lthy, rel_eq_onps))
       end
     else
       (quot_thm, (lthy, rel_eq_onps))
@@ -327,13 +329,16 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
       THEN' (rtac ctxt @{thm id_transfer}));
 
     val (rep_isom_lift_def, lthy) =
-      lift_def ld_no_notes (Binding.qualify_name true uTname "Rep_isom", NoSyn)
-      (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac [] lthy
-      |> apfst (inst_of_lift_def lthy (qty_isom --> qty));
+      lthy
+      |> Local_Theory.open_target |> snd
+      |> lift_def ld_no_notes (Binding.qualify_name true uTname "Rep_isom", NoSyn)
+        (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac []
+      |>> inst_of_lift_def lthy (qty_isom --> qty);
     val (abs_isom, lthy) =
-      lift_def ld_no_notes (Binding.qualify_name true uTname "Abs_isom", NoSyn)
-      (qty --> qty_isom) (HOLogic.id_const rty) lift_isom_tac [] lthy
-      |> apfst (mk_lift_const_of_lift_def (qty --> qty_isom));
+      lthy
+      |> lift_def ld_no_notes (Binding.qualify_name true uTname "Abs_isom", NoSyn)
+        (qty --> qty_isom) (HOLogic.id_const rty) lift_isom_tac []
+      |>> mk_lift_const_of_lift_def (qty --> qty_isom);
     val rep_isom = lift_const_of_lift_def rep_isom_lift_def
 
     val pointer = Lifting_Setup.pointer_of_bundle_binding lthy qty_isom_bundle
@@ -343,7 +348,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val lthy = lthy  
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
-      |> Local_Theory.reset
+      |> Local_Theory.close_target
 
     (* in order to make the qty qty_isom isomorphism executable we have to define discriminators 
       and selectors for qty_isom *)
@@ -404,7 +409,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
 
     val (diss, lthy) = @{fold_map 2} (fn b => fn rhs => fn lthy =>
       lift_def ld_no_notes (b, NoSyn) dis_qty rhs (K all_tac) [] lthy
-      |> apfst (mk_lift_const_of_lift_def dis_qty)) dis_names dis_rhs lthy
+      |>> mk_lift_const_of_lift_def dis_qty) dis_names dis_rhs lthy
 
     val unfold_lift_sel_rsp = @{lemma "(\<And>x. P1 x \<Longrightarrow> P2 (f x)) \<Longrightarrow> (rel_fun (eq_onp P1) (eq_onp P2)) f f"
       by (simp add: eq_onp_same_args rel_fun_eq_onp_rel)}
@@ -426,7 +431,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val (selss, lthy) = @{fold_map 2} (@{fold_map 2} (fn b => fn (qty_ret, wits, rhs) => fn lthy =>
         lift_def_code_dt { code_dt = true, lift_config = ld_no_notes }
         (b, NoSyn) (qty_isom --> qty_ret) rhs (HEADGOAL o sel_tac wits) [] lthy
-      |> apfst (mk_lift_const_of_lift_def (qty_isom --> qty_ret)))) sel_names sel_rhs lthy
+      |>> mk_lift_const_of_lift_def (qty_isom --> qty_ret))) sel_names sel_rhs lthy
 
     (* now we can execute the qty qty_isom isomorphism *)
     fun mk_type_definition newT oldT RepC AbsC A =
@@ -561,7 +566,10 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
       let
         val non_empty_pred = quot_thm RS @{thm type_definition_Quotient_not_empty}
         val pred = quot_thm_rel quot_thm |> dest_comb |> snd;
-        val (pred, lthy) = yield_singleton (Variable.import_terms true) pred lthy;
+        val (pred, lthy) =
+          lthy
+          |> Local_Theory.open_target |> snd
+          |> yield_singleton (Variable.import_terms true) pred;
         val TFrees = Term.add_tfreesT qty []
 
         fun non_empty_typedef_tac non_empty_pred ctxt i =
@@ -574,15 +582,15 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
         val type_definition_thm = tcode_dt |> snd |> #type_definition;
         val qty_isom = tcode_dt |> fst |> #abs_type;
 
-        val config = { notes = false}
-        val (binding, lthy) = conceal_naming_result (Lifting_Setup.setup_by_typedef_thm
-          config type_definition_thm) lthy
-        val lthy = Local_Theory.reset lthy
+        val (binding, lthy) =
+          lthy
+          |> conceal_naming_result (Lifting_Setup.setup_by_typedef_thm
+              { notes = false } type_definition_thm)
+          ||> Local_Theory.close_target
         val (wit, wit_thm) = mk_witness quot_thm;
         val code_dt = mk_code_dt rty qty wit wit_thm NONE;
         val lthy = lthy
           |> update_code_dt code_dt
-          |> Local_Theory.reset
           |> mk_rep_isom binding (rty, qty, qty_isom) |> snd
       in
         (quot_thm, (lthy, rel_eq_onps))
