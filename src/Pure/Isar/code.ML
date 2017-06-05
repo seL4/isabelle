@@ -883,7 +883,7 @@ fun equations_of_cert thy (cert as Nothing _) =
       end;
 
 fun pretty_cert thy (cert as Nothing _) =
-      [Pretty.str "(not implemented)"]
+      [Pretty.str "(no equations)"]
   | pretty_cert thy (cert as Equations _) =
       (map_filter
         (Option.map (Thm.pretty_thm_global thy o
