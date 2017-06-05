@@ -13,7 +13,7 @@ subsection \<open>Term representation\<close>
 
 subsubsection \<open>Terms and class \<open>term_of\<close>\<close>
 
-datatype (plugins only: code extraction) "term" = dummy_term
+datatype (plugins only: extraction) "term" = dummy_term
 
 definition Const :: "String.literal \<Rightarrow> typerep \<Rightarrow> term" where
   "Const _ _ = dummy_term"
@@ -115,7 +115,7 @@ instance ..
 
 end
 
-declare [[code drop: rec_term case_term "HOL.equal :: term \<Rightarrow> _"
+declare [[code drop: rec_term case_term
   "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
   "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
 
@@ -172,4 +172,3 @@ hide_const dummy_term valapp
 hide_const (open) Const App Abs Free termify valtermify term_of tracing
 
 end
-
