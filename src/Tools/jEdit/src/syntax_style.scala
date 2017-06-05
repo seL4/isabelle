@@ -109,7 +109,7 @@ object Syntax_Style
     for (sym <- Symbol.iterator(text)) {
       if (control_style(sym).isDefined) control = sym
       else if (control != "") {
-        if (Symbol.is_controllable(sym) && sym != "\"" && !Symbol.fonts.isDefinedAt(sym)) {
+        if (Symbol.is_controllable(sym) && !Symbol.fonts.isDefinedAt(sym)) {
           mark(offset - control.length, offset, _ => hidden)
           mark(offset, offset + sym.length, control_style(control).get)
         }

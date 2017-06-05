@@ -579,7 +579,8 @@ object Symbol
     (sym.startsWith("\\<^") && sym.endsWith(">")) || symbols.control_decoded.contains(sym)
 
   def is_controllable(sym: Symbol): Boolean =
-    !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) && !is_malformed(sym)
+    !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) &&
+    !is_malformed(sym) && sym != "\""
 
   val sub = "\\<^sub>"
   val sup = "\\<^sup>"

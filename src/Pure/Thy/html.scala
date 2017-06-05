@@ -48,7 +48,7 @@ object HTML
       if (is_control(sym)) { output_symbol(ctrl); ctrl = sym }
       else {
         control.get(ctrl) match {
-          case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
+          case Some(elem) if Symbol.is_controllable(sym) =>
             output_hidden(output_symbol(ctrl))
             s += '<'; s ++= elem; s += '>'
             output_symbol(sym)
