@@ -17,8 +17,8 @@ text \<open>
 \<close>
 
 declare [[code drop:
-  Sup_pred_inst.Sup_pred
-  Inf_pred_inst.Inf_pred
+  "Inf :: _ Predicate.pred set \<Rightarrow> _"
+  "Sup :: _ Predicate.pred set \<Rightarrow> _"
   pred_of_set
   Wellfounded.acc
   Cardinality.card'
@@ -27,25 +27,25 @@ declare [[code drop:
   Cardinality.eq_set
   Gcd_fin
   Lcm_fin
+  Euclidean_Algorithm.Gcd
+  Euclidean_Algorithm.Lcm
   "Gcd :: nat set \<Rightarrow> nat"
   "Lcm :: nat set \<Rightarrow> nat"
   "Gcd :: int set \<Rightarrow> int"
   "Lcm :: int set \<Rightarrow> int"
   "Gcd :: _ poly set \<Rightarrow> _"
   "Lcm :: _ poly set \<Rightarrow> _"
-  Euclidean_Algorithm.Gcd
-  Euclidean_Algorithm.Lcm
   permutations_of_set
   permutations_of_multiset
 ]]
 
-(*
-  If the code generation ends with an exception with the following message:
-  '"List.set" is not a constructor, on left hand side of equation: ...',
-  the code equation in question has to be either deleted (like many others in this file) 
-  or implemented for RBT trees.
-*)
-
+text \<open>
+  If code generation fails with a message like
+  @{text \<open>"List.set" is not a constructor, on left hand side of equation: ...\<close>},
+  feel free to add an RBT implementation for the corrsponding operation
+  of delete that code equation (see above).
+\<close>
+ 
 export_code _ checking SML OCaml? Haskell? Scala
 
 end
