@@ -152,6 +152,11 @@
 	    isabelle.jedit.Isabelle.plugin_options(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.preview">
+	  <CODE>
+	    isabelle.jedit.Document_Model.open_preview(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.keymap-merge">
 	  <CODE>
 	    isabelle.jedit.Keymap_Merge.check_dialog(view);

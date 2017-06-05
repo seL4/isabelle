@@ -52,6 +52,9 @@ tutorial on code generation.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Action "isabelle.preview" opens an HTML preview of the current theory
+document in the default web browser.
+
 * Command-line invocation "isabelle jedit -R -l SESSION" uses the parent
 image of the SESSION, with qualified theory imports restricted to that
 portion of the session graph. Moreover, the ROOT entry of the SESSION is

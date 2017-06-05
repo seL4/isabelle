@@ -12,6 +12,7 @@ import isabelle._
 import javax.swing.JOptionPane
 
 import java.io.{File => JFile}
+import java.util.UUID
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
 import org.gjt.sp.jedit.textarea.JEditTextArea
@@ -393,6 +394,13 @@ class Plugin extends EBPlugin
   }
 
 
+  /* HTTP server */
+
+  val http_root: String = "/" + UUID.randomUUID().toString
+
+  val http_server: HTTP.Server = HTTP.server(Document_Model.http_handlers(http_root))
+
+
   /* start and stop */
 
   override def start()
@@ -418,6 +426,8 @@ class Plugin extends EBPlugin
       init_mode_provider()
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
+      http_server.start
+
       startup_failure = None
     }
     catch {
@@ -430,6 +440,8 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
+    http_server.stop
+
     exit_mode_provider()
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 

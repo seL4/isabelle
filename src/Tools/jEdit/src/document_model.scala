@@ -14,6 +14,7 @@ import isabelle._
 import java.io.{File => JFile}
 
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.jedit.Buffer
@@ -264,6 +265,36 @@ object Document_Model
       try { Bibtex.document_entries(text) }
       catch { case ERROR(msg) => Output.warning(msg); Nil }
   }
+
+
+  /* HTTP preview */
+
+  def open_preview(view: View)
+  {
+    Document_Model.get(view.getBuffer) match {
+      case Some(model) =>
+        JEdit_Editor.hyperlink_url(
+          PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview/" +
+            model.node_name.theory).follow(view)
+      case None =>
+    }
+  }
+
+  def http_handlers(http_root: String): List[HTTP.Handler] =
+  {
+    val preview_root = http_root + "/preview"
+    val preview =
+      HTTP.get(preview_root, uri =>
+        for {
+          theory <- Library.try_unprefix(preview_root + "/", uri.toString)
+          model <-
+            get_models().iterator.collectFirst(
+              { case (node_name, model) if node_name.theory == theory => model })
+        }
+        yield HTTP.Response.html(model.preview("../fonts")))
+
+    List(HTTP.fonts(http_root + "/fonts"), preview)
+  }
 }
 
 sealed abstract class Document_Model extends Document.Model
@@ -271,6 +302,18 @@ sealed abstract class Document_Model extends Document.Model
   /* content */
 
   def bibtex_entries: List[Text.Info[String]]
+
+  def preview(fonts_dir: String): String =
+  {
+    val snapshot = await_stable_snapshot()
+
+    HTML.output_document(
+      List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
+      List(
+        HTML.chapter("Theory " + quote(node_name.theory_base_name)),
+        HTML.source(snapshot.node.commands.iterator.map(_.source).mkString)),
+      css = "")
+  }
 
 
   /* perspective */
@@ -298,6 +341,19 @@ sealed abstract class Document_Model extends Document.Model
       (reparse, Document.Node.Perspective(node_required, perspective, overlays))
     }
     else (false, Document.Node.no_perspective_text)
+  }
+
+
+  /* snapshot */
+
+  @tailrec final def await_stable_snapshot(): Document.Snapshot =
+  {
+    val snapshot = this.snapshot()
+    if (snapshot.is_outdated) {
+      Thread.sleep(PIDE.options.seconds("editor_output_delay").ms)
+      await_stable_snapshot()
+    }
+    else snapshot
   }
 }
 
