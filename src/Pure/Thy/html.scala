@@ -26,8 +26,25 @@ object HTML
 
   def is_control(sym: Symbol.Symbol): Boolean = control.isDefinedAt(sym)
 
-  def output(text: String, s: StringBuilder, hidden: Boolean)
+  def output_char_permissive(c: Char, s: StringBuilder)
   {
+    c match {
+      case '<' => s ++= "&lt;"
+      case '>' => s ++= "&gt;"
+      case '&' => s ++= "&amp;"
+      case _ => s += c
+    }
+  }
+
+  def output(text: String, s: StringBuilder, hidden: Boolean, permissive: Boolean)
+  {
+    def output_char(c: Char): Unit =
+      if (permissive) output_char_permissive(c, s)
+      else XML.output_char(c, s)
+
+    def output_string(str: String): Unit =
+      str.iterator.foreach(output_char)
+
     def output_hidden(body: => Unit): Unit =
       if (hidden) { s ++= "<span class=\"hidden\">"; body; s ++= "</span>" }
 
@@ -35,11 +52,11 @@ object HTML
       if (sym != "") {
         control_block.get(sym) match {
           case Some(html) if html.startsWith("</") =>
-            s ++= html; output_hidden(XML.output_string(sym, s))
+            s ++= html; output_hidden(output_string(sym))
           case Some(html) =>
-            output_hidden(XML.output_string(sym, s)); s ++= html
+            output_hidden(output_string(sym)); s ++= html
           case None =>
-            XML.output_string(sym, s)
+            output_string(sym)
         }
       }
 
@@ -63,7 +80,8 @@ object HTML
     output_symbol(ctrl)
   }
 
-  def output(text: String): String = Library.make_string(output(text, _, hidden = false))
+  def output(text: String): String =
+    Library.make_string(output(text, _, hidden = false, permissive = true))
 
 
   /* output XML as HTML */
@@ -78,7 +96,12 @@ object HTML
     {
       s ++= markup.name
       for ((a, b) <- markup.properties) {
-        s += ' '; s ++= a; s += '='; s += '"'; output(b, s, hidden); s += '"'
+        s += ' '
+        s ++= a
+        s += '='
+        s += '"'
+        output(b, s, hidden = hidden, permissive = false)
+        s += '"'
       }
     }
     def tree(t: XML.Tree): Unit =
@@ -92,7 +115,7 @@ object HTML
           s ++= "</"; s ++= markup.name; s += '>'
           if (structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
-          output(txt, s, hidden)
+          output(txt, s, hidden = hidden, permissive = true)
       }
     body.foreach(tree)
   }
