@@ -194,18 +194,20 @@ datatype spec = Spec of {
     (*with explicit history*),
   types: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
     (*with explicit history*),
-  cases: ((int * (int * string option list)) * thm) Symtab.table * unit Symtab.table
+  cases: ((int * (int * string option list)) * thm) Symtab.table,
+  undefineds: unit Symtab.table
 };
 
-fun make_spec (history_concluded, (functions, (types, cases))) =
-  Spec { history_concluded = history_concluded, functions = functions, types = types, cases = cases };
+fun make_spec (history_concluded, (functions, (types, (cases, undefineds)))) =
+  Spec { history_concluded = history_concluded, functions = functions, types = types,
+    cases = cases, undefineds = undefineds };
 fun map_spec f (Spec { history_concluded = history_concluded,
-  functions = functions, types = types, cases = cases }) =
-  make_spec (f (history_concluded, (functions, (types, cases))));
+  functions = functions, types = types, cases = cases, undefineds = undefineds }) =
+  make_spec (f (history_concluded, (functions, (types, (cases, undefineds)))));
 fun merge_spec (Spec { history_concluded = _, functions = functions1,
-    types = types1, cases = (cases1, undefs1) },
+    types = types1, cases = cases1, undefineds = undefineds1 },
   Spec { history_concluded = _, functions = functions2,
-    types = types2, cases = (cases2, undefs2) }) =
+    types = types2, cases = cases2, undefineds = undefineds2 }) =
   let
     val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
     val case_consts_of' = (maps case_consts_of o map (snd o snd o hd o snd) o Symtab.dest);
@@ -223,18 +225,21 @@ fun merge_spec (Spec { history_concluded = _, functions = functions1,
       |> subtract (op =) (maps case_consts_of all_datatype_specs)
     val functions = Symtab.join (K merge_functions) (functions1, functions2)
       |> fold (fn c => Symtab.map_entry c (apfst (K (true, initial_fun_spec)))) all_constructors;
-    val cases = (Symtab.merge (K true) (cases1, cases2)
-      |> fold Symtab.delete invalidated_case_consts, Symtab.merge (K true) (undefs1, undefs2));
-  in make_spec (false, (functions, (types, cases))) end;
+    val cases = Symtab.merge (K true) (cases1, cases2)
+      |> fold Symtab.delete invalidated_case_consts;
+    val undefineds = Symtab.merge (K true) (undefineds1, undefineds2);
+  in make_spec (false, (functions, (types, (cases, undefineds)))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
 fun the_functions (Spec { functions, ... }) = functions;
 fun the_types (Spec { types, ... }) = types;
 fun the_cases (Spec { cases, ... }) = cases;
+fun the_undefineds (Spec { undefineds, ... }) = undefineds;
 val map_history_concluded = map_spec o apfst;
 val map_functions = map_spec o apsnd o apfst;
 val map_typs = map_spec o apsnd o apsnd o apfst;
-val map_cases = map_spec o apsnd o apsnd o apsnd;
+val map_cases = map_spec o apsnd o apsnd o apsnd o apfst;
+val map_undefineds = map_spec o apsnd o apsnd o apsnd o apsnd;
 
 
 (* data slots dependent on executable code *)
@@ -992,10 +997,12 @@ fun case_cert thm = case_certificate thm
   handle Bind => error "bad case certificate"
        | TERM _ => error "bad case certificate";
 
-fun get_case_scheme thy = Option.map fst o Symtab.lookup ((fst o the_cases o the_exec) thy);
-fun get_case_cong thy = Option.map snd o Symtab.lookup ((fst o the_cases o the_exec) thy);
+fun get_case_scheme thy =
+  Option.map fst o (Symtab.lookup o the_cases o the_exec) thy;
+fun get_case_cong thy =
+  Option.map snd o (Symtab.lookup o the_cases o the_exec) thy;
 
-val undefineds = Symtab.keys o snd o the_cases o the_exec;
+val undefineds = Symtab.keys o the_undefineds o the_exec;
 
 
 (* diagnostic *)
@@ -1044,8 +1051,8 @@ fun print_codesetup thy =
       |> map (fn (tyco, (_, (vs, spec)) :: _) =>
           ((tyco, vs), constructors_of spec))
       |> sort (string_ord o apply2 (fst o fst));
-    val cases = Symtab.dest ((fst o the_cases o the_exec) thy);
-    val undefineds = Symtab.keys ((snd o the_cases o the_exec) thy);
+    val cases = Symtab.dest ((the_cases o the_exec) thy);
+    val undefineds = Symtab.keys ((the_undefineds o the_exec) thy);
   in
     Pretty.writeln_chunks [
       Pretty.block (
@@ -1216,7 +1223,7 @@ fun add_case thm thy =
      of [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
     val entry = (1 + Int.max (1, length cos), (k, cos));
-    fun register_case cong = (map_cases o apfst)
+    fun register_case cong = map_cases
       (Symtab.update (case_const, (entry, cong)));
     fun register_for_constructors (Constructors (cos', cases)) =
          Constructors (cos',
@@ -1233,7 +1240,7 @@ fun add_case thm thy =
   end;
 
 fun add_undefined c thy =
-  (map_exec_purge o map_cases o apsnd) (Symtab.update (c, ())) thy;
+  (map_exec_purge o map_undefineds) (Symtab.update (c, ())) thy;
 
 
 (* types *)
@@ -1262,7 +1269,7 @@ fun register_type (tyco, vs_spec) thy =
     |> fold del_eqns (outdated_funs1 @ outdated_funs2)
     |> map_exec_purge
         ((map_typs o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
-        #> (map_cases o apfst) drop_outdated_cases)
+        #> map_cases drop_outdated_cases)
   end;
 
 structure Datatype_Plugin = Plugin(type T = string);
