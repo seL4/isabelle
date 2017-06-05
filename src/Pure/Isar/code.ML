@@ -1265,8 +1265,6 @@ fun register_type (tyco, vs_spec) thy =
         #> (map_cases o apfst) drop_outdated_cases)
   end;
 
-fun unoverload_const_typ thy (c, ty) = (Axclass.unoverload_const thy (c, ty), ty);
-
 structure Datatype_Plugin = Plugin(type T = string);
 
 val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
@@ -1282,7 +1280,9 @@ fun datatype_interpretation f =
 
 fun add_datatype proto_constrs thy =
   let
-    val constrs = map (unoverload_const_typ thy) proto_constrs;
+    fun unoverload_const_typ (c, ty) =
+      (Axclass.unoverload_const thy (c, ty), ty);
+    val constrs = map unoverload_const_typ proto_constrs;
     val (tyco, (vs, cos)) = constrset_of_consts thy constrs;
   in
     thy
