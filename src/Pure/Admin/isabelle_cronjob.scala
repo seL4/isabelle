@@ -197,7 +197,12 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
         Remote_Build("Mac OS X 10.9 Mavericks, skip_proofs", "macbroy2",
           options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs")),
+        Remote_Build("Poly/ML 5.7 Mac OS X", "macbroy2",
+          history_base = "37074e22e8be",
+          options = "-m32 -B -M1x4,4 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
+          args = "-a",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7"))),
       List(
         Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
