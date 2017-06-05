@@ -485,7 +485,7 @@ lemma domI: "m a = Some b \<Longrightarrow> a \<in> dom m"
 lemma domD: "a \<in> dom m \<Longrightarrow> \<exists>b. m a = Some b"
   by (cases "m a") (auto simp add: dom_def)
 
-lemma domIff [iff, simp del]: "a \<in> dom m \<longleftrightarrow> m a \<noteq> None"
+lemma domIff [iff, simp del, code_unfold]: "a \<in> dom m \<longleftrightarrow> m a \<noteq> None"
   by (simp add: dom_def)
 
 lemma dom_empty [simp]: "dom empty = {}"
