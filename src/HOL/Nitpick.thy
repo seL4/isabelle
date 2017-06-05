@@ -119,36 +119,25 @@ Auxiliary definitions used to provide an alternative representation for
 \<open>rat\<close> and \<open>real\<close>.
 \<close>
 
-function nat_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+fun nat_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_gcd x y = (if y = 0 then x else nat_gcd y (x mod y))"
-  by auto
-termination
-  apply (relation "measure (\<lambda>(x, y). x + y + (if y > x then 1 else 0))")
-   apply auto
-   apply (metis mod_less_divisor xt1(9))
-  apply (metis mod_mod_trivial mod_self nat_neq_iff xt1(10))
-  done
-
+  
 declare nat_gcd.simps [simp del]
 
 definition nat_lcm :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_lcm x y = x * y div (nat_gcd x y)"
 
-definition int_gcd :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "int_gcd x y = int (nat_gcd (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
-
-definition int_lcm :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "int_lcm x y = int (nat_lcm (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
-
-lemma gcd_eq_nitpick_gcd [nitpick_unfold]: "gcd x y = Nitpick.nat_gcd x y"
+lemma gcd_eq_nitpick_gcd [nitpick_unfold]:
+  "gcd x y = Nitpick.nat_gcd x y"
   by (induct x y rule: nat_gcd.induct)
     (simp add: gcd_nat.simps Nitpick.nat_gcd.simps)
 
-lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
+lemma lcm_eq_nitpick_lcm [nitpick_unfold]:
+  "lcm x y = Nitpick.nat_lcm x y"
   by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 definition Frac :: "int \<times> int \<Rightarrow> bool" where
-  "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> int_gcd a b = 1"
+  "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> gcd a b = 1"
 
 consts
   Abs_Frac :: "int \<times> int \<Rightarrow> 'a"
@@ -170,7 +159,7 @@ function norm_frac :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" whe
   "norm_frac a b =
     (if b < 0 then norm_frac (- a) (- b)
      else if a = 0 \<or> b = 0 then (0, 1)
-     else let c = int_gcd a b in (a div c, b div c))"
+     else let c = gcd a b in (a div c, b div c))"
   by pat_completeness auto
   termination by (relation "measure (\<lambda>(_, b). if b < 0 then 1 else 0)") auto
 
@@ -180,7 +169,7 @@ definition frac :: "int \<Rightarrow> int \<Rightarrow> 'a" where
   "frac a b \<equiv> Abs_Frac (norm_frac a b)"
 
 definition plus_frac :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [nitpick_simp]: "plus_frac q r = (let d = int_lcm (denom q) (denom r) in
+  [nitpick_simp]: "plus_frac q r = (let d = lcm (denom q) (denom r) in
     frac (num q * (d div denom q) + num r * (d div denom r)) d)"
 
 definition times_frac :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -239,7 +228,7 @@ setup \<open>
 \<close>
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The FunBox PairBox Word prod
-  refl' wf' card' sum' fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac
+  refl' wf' card' sum' fold_graph' nat_gcd nat_lcm Frac Abs_Frac Rep_Frac
   zero_frac one_frac num denom norm_frac frac plus_frac times_frac uminus_frac number_of_frac
   inverse_frac less_frac less_eq_frac of_frac wf_wfrec wf_wfrec wfrec'
 
@@ -247,7 +236,7 @@ hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold prod_def refl'_def wf'_def
   card'_def sum'_def The_psimp Eps_psimp case_unit_unfold case_nat_unfold
-  size_list_simp nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def one_frac_def
+  size_list_simp nat_lcm_def Frac_def zero_frac_def one_frac_def
   num_def denom_def frac_def plus_frac_def times_frac_def uminus_frac_def
   number_of_frac_def inverse_frac_def less_frac_def less_eq_frac_def of_frac_def wf_wfrec'_def
   wfrec'_def
