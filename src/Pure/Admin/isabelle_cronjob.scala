@@ -133,12 +133,12 @@ object Isabelle_Cronjob
       val store = Build_Log.store(options)
       using(store.open_database())(db =>
       {
-        def pick_days(days: Int): Option[String] =
+        def pick_days(days: Int, gap: Int): Option[String] =
         {
           val items =
             recent_items(db, days = days, rev = rev, sql = sql).
               filter(item => filter(item.isabelle_version))
-          def runs = unknown_runs(items)
+          def runs = unknown_runs(items).filter(run => run.length >= gap)
 
           val known_rev =
             rev != "" && items.exists(item => item.known && item.isabelle_version == rev)
@@ -155,9 +155,9 @@ object Isabelle_Cronjob
           else runs.flatten.headOption.map(_.isabelle_version)
         }
 
-        pick_days(options.int("build_log_history") max history) orElse
-        pick_days(200) orElse
-        pick_days(2000)
+        pick_days(options.int("build_log_history") max history, 2) orElse
+        pick_days(200, 5) orElse
+        pick_days(2000, 1)
       })
     }
   }
