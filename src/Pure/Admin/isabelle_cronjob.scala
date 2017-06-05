@@ -203,14 +203,14 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
-        Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, shared_home = false,
           options = "-m32 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
-        Remote_Build("Windows", "vmnipkow9", history = 90, shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, shared_home = false,
           options = "-m64 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
