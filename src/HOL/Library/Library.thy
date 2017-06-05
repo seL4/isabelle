@@ -48,7 +48,6 @@ imports
   Nonpos_Ints
   Numeral_Type
   Omega_Words_Fun
-  OptionalSugar
   Option_ord
   Order_Continuity
   Parallel

@@ -52,6 +52,8 @@ session "HOL-Library" (main timing) in Library = HOL +
     DAList_Multiset
     RBT_Mapping
     RBT_Set
+    (*printing modifications*)
+    OptionalSugar
     (*prototypic tools*)
     Predicate_Compile_Quickcheck
     (*legacy tools*)
