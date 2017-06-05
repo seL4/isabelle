@@ -11,15 +11,6 @@ imports
   "~~/src/HOL/Library/RBT_Set"
 begin
 
-setup \<open>
-fn thy =>
-let
-  val tycos = Sign.logical_types thy;
-  val consts = map_filter (try (curry (Axclass.param_of_inst thy)
-    @{const_name "Quickcheck_Narrowing.partial_term_of"})) tycos;
-in fold Code.del_eqns consts thy end
-\<close> \<comment> \<open>drop technical stuff from \<open>Quickcheck_Narrowing\<close> which is tailored towards Haskell\<close>
-
 text \<open>
   The following code equations have to be deleted because they use 
   lists to implement sets in the code generetor. 
