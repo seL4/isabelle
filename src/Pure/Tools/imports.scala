@@ -141,14 +141,16 @@ object Imports
           def standard_import(qualifier: String, dir: String, s: String): String =
           {
             val name = imports_resources.import_name(qualifier, dir, s)
-            val file = Path.explode(name.node).file
             val s1 =
-              imports_resources.session_base.known.get_file(file) match {
-                case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
-                  name1.theory
-                case Some(name1) if Thy_Header.is_base_name(s) =>
-                  name1.theory_base_name
-                case _ => s
+              if (session_base.loaded_theory(name)) name.theory
+              else {
+                imports_resources.session_base.known.get_file(Path.explode(name.node).file) match {
+                  case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+                    name1.theory
+                  case Some(name1) if Thy_Header.is_base_name(s) =>
+                    name1.theory_base_name
+                  case _ => s
+                }
               }
             val name2 = imports_resources.import_name(qualifier, dir, s1)
             if (name.node == name2.node) s1 else s
