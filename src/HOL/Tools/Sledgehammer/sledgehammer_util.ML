@@ -22,7 +22,6 @@ sig
   val thms_of_name : Proof.context -> string -> thm list
   val one_day : Time.time
   val one_year : Time.time
-  val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
   val hackish_string_of_term : Proof.context -> term -> string
   val spying : bool -> (unit -> Proof.state * int * string * string) -> unit
 end;
@@ -138,12 +137,9 @@ fun thms_of_name ctxt name =
 val one_day = seconds (24.0 * 60.0 * 60.0)
 val one_year = seconds (365.0 * 24.0 * 60.0 * 60.0)
 
-fun with_vanilla_print_mode f x =
-  Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ())) f x
-
 fun hackish_string_of_term ctxt =
   (* FIXME: map_aterms (fn Free (s, T) => Free (if Name.is_internal s then "_" else s, T) | t => t)
-  #> *) with_vanilla_print_mode (Syntax.string_of_term ctxt)
+  #> *) Print_Mode.setmp [] (Syntax.string_of_term ctxt)
   #> YXML.content_of
   #> simplify_spaces
 

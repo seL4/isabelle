@@ -188,7 +188,7 @@ end;
 (* init protocol *)
 
 val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
-val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
+val default_modes2 = [isabelle_processN, Pretty.symbolicN];
 
 val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
   let

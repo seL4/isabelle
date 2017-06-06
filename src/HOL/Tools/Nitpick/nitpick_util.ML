@@ -236,7 +236,7 @@ val string_of_time = ATP_Util.string_of_time
 val subscript = implode o map (prefix "\<^sub>") o Symbol.explode
 
 fun nat_subscript n =
-  n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
+  n |> signed_string_of_int |> not (print_mode_active Print_Mode.ASCII) ? subscript
 
 fun flip_polarity Pos = Neg
   | flip_polarity Neg = Pos

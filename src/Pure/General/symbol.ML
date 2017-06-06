@@ -64,7 +64,6 @@ sig
   val bump_init: string -> string
   val bump_string: string -> string
   val length: symbol list -> int
-  val xsymbolsN: string
   val output: string -> Output.output * int
 end;
 
@@ -465,11 +464,6 @@ fun sym_len s =
   else 1;
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
-
-
-(* print mode *)
-
-val xsymbolsN = "xsymbols";
 
 fun output s = (s, sym_length (Symbol.explode s));
 

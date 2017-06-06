@@ -300,7 +300,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       (s ^ (term
             |> singleton (Syntax.uncheck_terms ctxt)
             |> annotate_types_in_term ctxt
-            |> with_vanilla_print_mode (Syntax.unparse_term ctxt #> Pretty.string_of)
+            |> Print_Mode.setmp [] (Syntax.unparse_term ctxt #> Pretty.string_of)
             |> simplify_spaces
             |> maybe_quote keywords),
        ctxt |> perhaps (try (Variable.auto_fixes term)))
@@ -320,7 +320,7 @@ fun string_of_isar_proof ctxt0 i n proof =
 
     fun of_free (s, T) =
       maybe_quote keywords s ^ " :: " ^
-      maybe_quote keywords (simplify_spaces (with_vanilla_print_mode (Syntax.string_of_typ ctxt) T))
+      maybe_quote keywords (simplify_spaces (Print_Mode.setmp [] (Syntax.string_of_typ ctxt) T))
 
     fun add_frees xs (s, ctxt) =
       (s ^ space_implode " and " (map of_free xs), ctxt |> fold Variable.auto_fixes (map Free xs))

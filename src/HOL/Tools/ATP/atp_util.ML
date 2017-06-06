@@ -126,7 +126,7 @@ fun find_enclosed left right s =
 
 val subscript = implode o map (prefix "\<^sub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =
-  n |> string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
+  n |> string_of_int |> not (print_mode_active Print_Mode.ASCII) ? subscript
 
 val unquote_tvar = perhaps (try (unprefix "'"))
 val unquery_var = perhaps (try (unprefix "?"))

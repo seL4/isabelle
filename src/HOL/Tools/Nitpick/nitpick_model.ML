@@ -69,7 +69,7 @@ structure Data = Generic_Data
   fun merge data = AList.merge (op =) (K true) data
 )
 
-fun xsym s s' () = if print_mode_active Symbol.xsymbolsN then s else s'
+fun xsym s s' () = if not (print_mode_active Print_Mode.ASCII) then s else s'
 
 val irrelevant = "_"
 val unknown = "?"
