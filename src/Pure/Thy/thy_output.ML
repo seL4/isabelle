@@ -169,7 +169,7 @@ fun eval_antiq state (opts, src) =
 
     fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
     val _ = cmd preview_ctxt;
-    val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
+    val print_modes = space_explode "," (Config.get print_ctxt modes) @ [Latex.latexN];
   in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
 
 in

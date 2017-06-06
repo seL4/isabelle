@@ -24,7 +24,7 @@ sig
   val symbol_source: (string -> bool) * (string -> bool) ->
     string -> Symbol.symbol list -> string
   val theory_entry: string -> string
-  val modes: string list
+  val latexN: string
 end;
 
 structure Latex: LATEX =
@@ -206,7 +206,6 @@ fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 (* print mode *)
 
 val latexN = "latex";
-val modes = [latexN];
 
 fun latex_output str =
   let val syms = Symbol.explode str
