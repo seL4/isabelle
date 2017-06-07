@@ -44,8 +44,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)
-        if (index >= 0 && in_checkbox(peer.indexToLocation(index), point))
+        val index_location = peer.indexToLocation(index)
+        if (index >= 0 && in_checkbox(index_location, point))
           tooltip = "Mark as required for continuous checking"
+        if (index >= 0 && in_label(index_location, point))
+          tooltip = "theory " + quote(listData(index).theory)
         else
           tooltip = null
     }
@@ -91,14 +94,20 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
   private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
 
+  private def in(geometry: Option[(Point, Dimension)], loc0: Point, p: Point): Boolean =
+    geometry match {
+      case Some((loc, size)) =>
+        loc0.x + loc.x <= p.x && p.x < loc0.x + size.width &&
+        loc0.y + loc.y <= p.y && p.y < loc0.y + size.height
+      case None => false
+    }
+
   private def in_checkbox(loc0: Point, p: Point): Boolean =
-    Node_Renderer_Component != null &&
-      (Node_Renderer_Component.checkbox_geometry match {
-        case Some((loc, size)) =>
-          loc0.x + loc.x <= p.x && p.x < loc0.x + size.width &&
-          loc0.y + loc.y <= p.y && p.y < loc0.y + size.height
-        case None => false
-      })
+    Node_Renderer_Component != null && in(Node_Renderer_Component.checkbox_geometry, loc0, p)
+
+  private def in_label(loc0: Point, p: Point): Boolean =
+    Node_Renderer_Component != null && in(Node_Renderer_Component.label_geometry, loc0, p)
+
 
   private object Node_Renderer_Component extends BorderPanel
   {
@@ -118,6 +127,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
+    var label_geometry: Option[(Point, Dimension)] = None
     val label = new Label {
       background = view.getTextArea.getPainter.getBackground
       foreground = view.getTextArea.getPainter.getForeground
@@ -157,6 +167,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             paint_segment(0, size.width, PIDE.options.color_value("unprocessed1_color"))
         }
         super.paintComponent(gfx)
+
+        if (location != null && size != null)
+          label_geometry = Some((location, size))
       }
     }
 
