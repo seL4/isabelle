@@ -11,6 +11,7 @@ imports
   Random_Permutations
   SPMF
   Stream_Space
+  Tree_Space
   Conditional_Expectation
   Essential_Supremum
   Stopping_Time
