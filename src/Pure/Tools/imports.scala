@@ -94,7 +94,7 @@ object Imports
 
     if (operation_imports) {
       progress.echo("\nPotential session imports:")
-      selected.sorted.foreach(session_name =>
+      selected.flatMap(session_name =>
       {
         val info = full_sessions(session_name)
         val session_resources = new Resources(deps(session_name))
@@ -110,10 +110,11 @@ object Imports
             if !declared_imports.contains(qualifier)
           } yield qualifier).toSet
 
-        if (extra_imports.nonEmpty) {
-          progress.echo("session " + Token.quote_name(root_keywords, session_name) + ": " +
-            extra_imports.toList.sorted.map(Token.quote_name(root_keywords, _)).mkString(" "))
-        }
+        if (extra_imports.isEmpty) None
+        else Some((session_name, extra_imports.toList.sorted, declared_imports.size))
+      }).sortBy(_._3).foreach({ case (session_name, extra_imports, _) =>
+        progress.echo("session " + Token.quote_name(root_keywords, session_name) + ": " +
+          extra_imports.map(Token.quote_name(root_keywords, _)).mkString(" "))
       })
     }
 
@@ -136,15 +137,16 @@ object Imports
           val info = full_sessions(session_name)
           val session_base = deps(session_name)
           val session_resources = new Resources(session_base)
-          val imports_resources = new Resources(session_base.get_imports)
+          val imports_base = session_base.get_imports
+          val imports_resources = new Resources(imports_base)
 
           def standard_import(qualifier: String, dir: String, s: String): String =
           {
             val name = imports_resources.import_name(qualifier, dir, s)
             val s1 =
-              if (session_base.loaded_theory(name)) name.theory
+              if (imports_base.loaded_theory(name)) name.theory
               else {
-                imports_resources.session_base.known.get_file(Path.explode(name.node).file) match {
+                imports_base.known.get_file(Path.explode(name.node).file) match {
                   case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
                     name1.theory
                   case Some(name1) if Thy_Header.is_base_name(s) =>
@@ -166,6 +168,7 @@ object Imports
           val updates_theories =
             for {
               (_, name) <- session_base.known.theories_local.toList
+              if session_resources.theory_qualifier(name) == info.theory_qualifier
               (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
               upd <- update_name(session_base.syntax.keywords, pos,
                 standard_import(session_resources.theory_qualifier(name), name.master_dir, _))

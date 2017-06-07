@@ -80,7 +80,12 @@ export function init(context: ExtensionContext, client: LanguageClient)
       if (preview_uri) {
         preview_content.set(preview_uri.toString(), params.content)
         content_provider.update(preview_uri)
-        if (params.column != 0) {
+
+        const existing_document =
+          workspace.textDocuments.find(document =>
+            document.uri.scheme === preview_uri.scheme &&
+            document.uri.query === preview_uri.query)
+        if (!existing_document && params.column != 0) {
           commands.executeCommand("vscode.previewHtml", preview_uri, params.column, params.label)
         }
       }
