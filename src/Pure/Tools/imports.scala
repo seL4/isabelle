@@ -94,7 +94,7 @@ object Imports
 
     if (operation_imports) {
       progress.echo("\nPotential session imports:")
-      selected.sorted.foreach(session_name =>
+      selected.flatMap(session_name =>
       {
         val info = full_sessions(session_name)
         val session_resources = new Resources(deps(session_name))
@@ -110,10 +110,11 @@ object Imports
             if !declared_imports.contains(qualifier)
           } yield qualifier).toSet
 
-        if (extra_imports.nonEmpty) {
-          progress.echo("session " + Token.quote_name(root_keywords, session_name) + ": " +
-            extra_imports.toList.sorted.map(Token.quote_name(root_keywords, _)).mkString(" "))
-        }
+        if (extra_imports.isEmpty) None
+        else Some((session_name, extra_imports.toList.sorted, declared_imports.size))
+      }).sortBy(_._3).foreach({ case (session_name, extra_imports, _) =>
+        progress.echo("session " + Token.quote_name(root_keywords, session_name) + ": " +
+          extra_imports.map(Token.quote_name(root_keywords, _)).mkString(" "))
       })
     }
 
