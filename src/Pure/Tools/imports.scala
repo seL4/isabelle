@@ -167,6 +167,7 @@ object Imports
           val updates_theories =
             for {
               (_, name) <- session_base.known.theories_local.toList
+              if session_resources.theory_qualifier(name) == info.theory_qualifier
               (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
               upd <- update_name(session_base.syntax.keywords, pos,
                 standard_import(session_resources.theory_qualifier(name), name.master_dir, _))
