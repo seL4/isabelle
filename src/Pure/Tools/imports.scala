@@ -136,7 +136,8 @@ object Imports
           val info = full_sessions(session_name)
           val session_base = deps(session_name)
           val session_resources = new Resources(session_base)
-          val imports_resources = new Resources(session_base.get_imports)
+          val imports_base = session_base.get_imports
+          val imports_resources = new Resources(imports_base)
 
           def standard_import(qualifier: String, dir: String, s: String): String =
           {
@@ -144,7 +145,7 @@ object Imports
             val s1 =
               if (session_base.loaded_theory(name)) name.theory
               else {
-                imports_resources.session_base.known.get_file(Path.explode(name.node).file) match {
+                imports_base.known.get_file(Path.explode(name.node).file) match {
                   case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
                     name1.theory
                   case Some(name1) if Thy_Header.is_base_name(s) =>
