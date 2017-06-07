@@ -143,7 +143,7 @@ object Imports
           {
             val name = imports_resources.import_name(qualifier, dir, s)
             val s1 =
-              if (session_base.loaded_theory(name)) name.theory
+              if (imports_base.loaded_theory(name)) name.theory
               else {
                 imports_base.known.get_file(Path.explode(name.node).file) match {
                   case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
