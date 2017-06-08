@@ -235,7 +235,7 @@ object Document
         (blocks.toArray, Text.Range(0, last_stop))
       }
 
-      def full_range: Text.Range = full_index._2
+      private def full_range: Text.Range = full_index._2
 
       def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       {
@@ -302,8 +302,6 @@ object Document
       else
         new Node(get_blob, header, syntax, text_perspective, perspective,
           Node.Commands(new_commands))
-
-    def commands_range: Text.Range = _commands.full_range
 
     def command_iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.iterator(i)
@@ -459,7 +457,7 @@ object Document
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
-    def markup_to_XML(restriction: Option[Text.Range], elements: Markup.Elements): XML.Body
+    def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -777,10 +775,9 @@ object Document
     def markup_to_XML(
       version: Version,
       node: Node,
-      restriction: Option[Text.Range],
+      range: Text.Range,
       elements: Markup.Elements): XML.Body =
     {
-      val range = restriction.getOrElse(node.commands_range)
       (for {
         command <- node.commands.iterator
         command_range <- command.range.try_restrict(range).iterator
@@ -858,8 +855,8 @@ object Document
           }
           else version.nodes.commands_loading(other_node_name).headOption
 
-        def markup_to_XML(restriction: Option[Text.Range], elements: Markup.Elements): XML.Body =
-          state.markup_to_XML(version, node, restriction, elements)
+        def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body =
+          state.markup_to_XML(version, node, range, elements)
 
 
         /* find command */
