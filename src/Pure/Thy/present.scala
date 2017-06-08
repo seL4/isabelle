@@ -104,19 +104,28 @@ object Present
   /* theory document */
 
   private val document_span_elements =
-    Markup.Elements(Markup.TFREE, Markup.TVAR, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
-      Markup.NUMERAL, Markup.LITERAL, Markup.DELIMITER, Markup.INNER_STRING, Markup.INNER_CARTOUCHE,
-      Markup.INNER_COMMENT, Markup.COMMAND, Markup.KEYWORD1, Markup.KEYWORD2, Markup.KEYWORD3,
-      Markup.QUASI_KEYWORD, Markup.IMPROPER, Markup.OPERATOR, Markup.STRING, Markup.ALT_STRING,
-      Markup.VERBATIM, Markup.CARTOUCHE, Markup.COMMENT)
+    Markup.Elements(Rendering.text_color.keySet + Markup.NUMERAL + Markup.COMMENT)
 
   def make_html(xml: XML.Body): XML.Body =
     xml map {
       case XML.Wrapped_Elem(markup, body1, body2) =>
         XML.Wrapped_Elem(markup, make_html(body1), make_html(body2))
       case XML.Elem(markup, body) =>
-        if (document_span_elements(markup.name)) HTML.span(markup.name, make_html(body))
-        else XML.Elem(markup, make_html(body))
+        val name = markup.name
+        val html =
+          markup.properties match {
+            case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
+              List(HTML.span(kind, make_html(body)))
+            case _ =>
+              make_html(body)
+          }
+        Rendering.text_color.get(name) match {
+          case Some(c) =>
+            HTML.span(c.toString, html)
+          case None =>
+            if (document_span_elements(name)) HTML.span(name, html)
+            else XML.Elem(markup, html)
+        }
       case XML.Text(text) =>
         XML.Text(Symbol.decode(text))
     }

@@ -25,8 +25,9 @@ struct
 (* common markup *)
 
 fun span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
+val enclose_span = uncurry enclose o span;
 
-val hidden = span Markup.hiddenN |-> enclose;
+val hidden = enclose_span Markup.hiddenN;
 
 
 (* symbol output *)
@@ -85,9 +86,14 @@ end;
 
 fun present_span symbols keywords =
   let
+    fun present_markup (name, props) =
+      (case Properties.get props Markup.kindN of
+        SOME kind =>
+          if kind = Markup.commandN orelse kind = Markup.keywordN then enclose_span kind else I
+      | NONE => I) #> enclose_span name;
     fun present_token tok =
-      fold_rev (uncurry enclose o span o #1)
-        (Token.markups keywords tok) (output symbols (Token.unparse tok));
+      fold_rev present_markup (Token.markups keywords tok)
+        (output symbols (Token.unparse tok));
   in implode o map present_token o Command_Span.content end;
 
 

@@ -35,23 +35,30 @@ body {
 .binding        { color: #336655; }
 .tfree          { color: #A020F0; }
 .tvar           { color: #A020F0; }
-.free           { color: blue; }
+.free           { color: #0000FF; }
 .skolem         { color: #D2691E; }
-.bound          { color: green; }
+.bound          { color: #008000; }
 .var            { color: #00009B; }
 .numeral        { }
 .literal        { font-weight: bold; }
 .delimiter      { }
-.inner_string   { color: #FF00CC; }
+.inner_numeral  { color: #FF0000; }
+.inner_quoted   { color: #FF00CC; }
 .inner_cartouche { color: #CC6600; }
 .inner_comment  { color: #CC0000; }
+.dynamic        { color: #7BA428; }
+.class_parameter_color { color: #D2691E; }
 
 .bold           { font-weight: bold; }
 
-.keyword1       { color: #006699; font-weight: bold; }
-.keyword2       { color: #009966; font-weight: bold; }
-.keyword3       { color: #0099FF; font-weight: bold; }
-.operator       { }
+.main           { color: #000000; }
+.command        { font-weight: bold; }
+.keyword        { font-weight: bold; }
+.keyword1       { color: #006699; }
+.keyword2       { color: #009966; }
+.keyword3       { color: #0099FF; }
+.quasi_keyword  { color: #9966FF; }
+.operator       { color: #323232; }
 .string         { color: #FF00CC; }
 .alt_string     { color: #CC00CC; }
 .verbatim       { color: #6600CC; }
