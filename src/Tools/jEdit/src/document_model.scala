@@ -311,7 +311,7 @@ sealed abstract class Document_Model extends Document.Model
       List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
       List(
         HTML.chapter("Theory " + quote(node_name.theory_base_name)),
-        HTML.source(snapshot.node.commands.iterator.map(_.source).mkString)),
+        HTML.source(Present.theory_document(snapshot))),
       css = "")
   }
 

@@ -452,9 +452,12 @@ object Document
 
     def node_name: Node.Name
     def node: Node
+
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
+
+    def markup_to_XML(elements: Markup.Elements): XML.Body
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -844,6 +847,9 @@ object Document
             else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
           }
           else version.nodes.commands_loading(other_node_name).headOption
+
+        def markup_to_XML(elements: Markup.Elements): XML.Body =
+          state.markup_to_XML(version, node, elements)
 
 
         /* find command */

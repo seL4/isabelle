@@ -49,7 +49,7 @@ class Preview(resources: VSCode_Resources)
         List(HTML.style(HTML.fonts_css()), HTML.style_file(Url.print_file(HTML.isabelle_css.file))),
         List(
           HTML.chapter("Theory " + quote(model.node_name.theory_base_name)),
-          HTML.source(Symbol.decode(snapshot.node.commands.iterator.map(_.source).mkString))),
+          HTML.source(Present.theory_document(snapshot))),
         css = "")
     (label, content)
   }

@@ -99,4 +99,30 @@ object Present
         File.copy(font, session_fonts)
     }
   }
+
+
+  /* theory document */
+
+  private val document_span_elements =
+    Markup.Elements(Markup.TFREE, Markup.TVAR, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
+      Markup.NUMERAL, Markup.LITERAL, Markup.DELIMITER, Markup.INNER_STRING, Markup.INNER_CARTOUCHE,
+      Markup.INNER_COMMENT, Markup.COMMAND, Markup.KEYWORD1, Markup.KEYWORD2, Markup.KEYWORD3,
+      Markup.QUASI_KEYWORD, Markup.IMPROPER, Markup.OPERATOR, Markup.STRING, Markup.ALT_STRING,
+      Markup.VERBATIM, Markup.CARTOUCHE, Markup.COMMENT)
+
+  def make_html(xml: XML.Body): XML.Body =
+    xml map {
+      case XML.Wrapped_Elem(markup, body1, body2) =>
+        XML.Wrapped_Elem(markup, make_html(body1), make_html(body2))
+      case XML.Elem(markup, body) =>
+        if (document_span_elements(markup.name)) HTML.span(markup.name, make_html(body))
+        else XML.Elem(markup, make_html(body))
+      case XML.Text(text) =>
+        XML.Text(Symbol.decode(text))
+    }
+
+  def theory_document(snapshot: Document.Snapshot): XML.Body =
+  {
+    make_html(snapshot.markup_to_XML(document_span_elements))
+  }
 }
