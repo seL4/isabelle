@@ -123,6 +123,6 @@ object Present
 
   def theory_document(snapshot: Document.Snapshot): XML.Body =
   {
-    make_html(snapshot.markup_to_XML(document_span_elements))
+    make_html(snapshot.markup_to_XML(None, document_span_elements))
   }
 }

@@ -235,7 +235,7 @@ object Document
         (blocks.toArray, Text.Range(0, last_stop))
       }
 
-      private def full_range: Text.Range = full_index._2
+      def full_range: Text.Range = full_index._2
 
       def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       {
@@ -302,6 +302,8 @@ object Document
       else
         new Node(get_blob, header, syntax, text_perspective, perspective,
           Node.Commands(new_commands))
+
+    def commands_range: Text.Range = _commands.full_range
 
     def command_iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.iterator(i)
@@ -457,7 +459,7 @@ object Document
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
 
-    def markup_to_XML(elements: Markup.Elements): XML.Body
+    def markup_to_XML(restriction: Option[Text.Range], elements: Markup.Elements): XML.Body
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -772,13 +774,21 @@ object Document
         range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Command.State.merge_markup(command_states(version, command), index, range, elements)
 
-    def markup_to_XML(version: Version, node: Node, elements: Markup.Elements): XML.Body =
+    def markup_to_XML(
+      version: Version,
+      node: Node,
+      restriction: Option[Text.Range],
+      elements: Markup.Elements): XML.Body =
+    {
+      val range = restriction.getOrElse(node.commands_range)
       (for {
         command <- node.commands.iterator
+        command_range <- command.range.try_restrict(range).iterator
         markup =
-          command_markup(version, command, Command.Markup_Index.markup, command.range, elements)
-        tree <- markup.to_XML(command.range, command.source, elements)
+          command_markup(version, command, Command.Markup_Index.markup, command_range, elements)
+        tree <- markup.to_XML(command_range, command.source, elements).iterator
       } yield tree).toList
+    }
 
     // persistent user-view
     def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)
@@ -848,8 +858,8 @@ object Document
           }
           else version.nodes.commands_loading(other_node_name).headOption
 
-        def markup_to_XML(elements: Markup.Elements): XML.Body =
-          state.markup_to_XML(version, node, elements)
+        def markup_to_XML(restriction: Option[Text.Range], elements: Markup.Elements): XML.Body =
+          state.markup_to_XML(version, node, restriction, elements)
 
 
         /* find command */
