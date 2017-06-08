@@ -29,7 +29,7 @@ fun thm_deps thy thms =
                 a :: _ =>
                   (case try (Context.get_theory thy) a of
                     SOME thy =>
-                      (case Present.session_name thy of
+                      (case Present.theory_qualifier thy of
                         "" => []
                       | session => [session])
                   | NONE => [])
