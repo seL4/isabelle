@@ -57,7 +57,7 @@ object Present
               sessions.map({ case (name, description) =>
                 (List(HTML.link(name + "/index.html", HTML.text(name))),
                   if (description == "") Nil
-                  else List(HTML.pre(HTML.text(description)))) })))))))
+                  else HTML.break ::: List(HTML.pre(HTML.text(description)))) })))))))
   }
 
   def make_global_index(browser_info: Path)
