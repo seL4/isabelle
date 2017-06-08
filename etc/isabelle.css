@@ -7,7 +7,10 @@ dt {
   font-weight: bold;
 }
 
-body { background-color: #FFFFFF; }
+body {
+  color: #000000;
+  background-color: #FFFFFF;
+}
 
 .head     { background-color: #FFFFFF; }
 .source   {
