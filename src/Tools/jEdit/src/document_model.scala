@@ -272,11 +272,11 @@ object Document_Model
   def open_preview(view: View)
   {
     Document_Model.get(view.getBuffer) match {
-      case Some(model) =>
+      case Some(model) if model.is_theory =>
         JEdit_Editor.hyperlink_url(
           PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview/" +
             model.node_name.theory).follow(view)
-      case None =>
+      case _ =>
     }
   }
 
