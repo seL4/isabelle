@@ -243,7 +243,7 @@ fun of_lin_arith_sort thy U =
 fun allows_lin_arith thy (discrete : string list) (U as Type (D, [])) : bool * bool =
       if of_lin_arith_sort thy U then (true, member (op =) discrete D)
       else if member (op =) discrete D then (true, true) else (false, false)
-  | allows_lin_arith sg discrete U = (of_lin_arith_sort sg U, false);
+  | allows_lin_arith sg _ U = (of_lin_arith_sort sg U, false);
 
 fun decomp_typecheck thy (discrete, inj_consts) (T : typ, xxx) : decomp option =
   case T of
@@ -266,7 +266,7 @@ fun decomp_negation thy data
   | decomp_negation thy data
       ((Const (@{const_name Trueprop}, _)) $ (Const (@{const_name Not}, _) $ (Const (rel, T) $ lhs $ rhs))) =
       negate (decomp_typecheck thy data (T, (rel, lhs, rhs)))
-  | decomp_negation thy data _ =
+  | decomp_negation _ _ _ =
       NONE;
 
 fun decomp ctxt : term -> decomp option =
@@ -278,6 +278,75 @@ fun decomp ctxt : term -> decomp option =
 fun domain_is_nat (_ $ (Const (_, T) $ _ $ _)) = nT T
   | domain_is_nat (_ $ (Const (@{const_name Not}, _) $ (Const (_, T) $ _ $ _))) = nT T
   | domain_is_nat _ = false;
+
+
+(* Abstraction of terms *)
+
+(*
+  Abstract terms contain only arithmetic operators and relations.
+
+  When constructing an abstract term for an arbitrary term, non-arithmetic sub-terms
+  are replaced by fresh variables which are declared in the context. Constructing
+  an abstract term from an arbitrary term follows the strategy of decomp.
+*)
+
+fun apply t u = t $ u
+
+fun with2 f c t u cx = f t cx ||>> f u |>> (fn (t, u) => c $ t $ u)
+
+fun abstract_atom (t as Free _) cx = (t, cx)
+  | abstract_atom (t as Const _) cx = (t, cx)
+  | abstract_atom t (cx as (terms, ctxt)) =
+      (case AList.lookup Envir.aeconv terms t of
+        SOME u => (u, cx)
+      | NONE =>
+          let
+            val (n, ctxt') = yield_singleton Variable.variant_fixes "" ctxt
+            val u = Free (n, fastype_of t)
+          in (u, ((t, u) :: terms, ctxt')) end)
+
+fun abstract_num t cx = if can HOLogic.dest_number t then (t, cx) else abstract_atom t cx
+
+fun is_field_sort (_, ctxt) T = of_field_sort (Proof_Context.theory_of ctxt) (domain_type T)
+
+fun is_inj_const (_, ctxt) f =
+  let val {inj_consts, ...} = get_arith_data ctxt
+  in member (op =) inj_consts f end
+
+fun abstract_arith ((c as Const (@{const_name Groups.plus}, _)) $ u1 $ u2) cx =
+      with2 abstract_arith c u1 u2 cx
+  | abstract_arith (t as (c as Const (@{const_name Groups.minus}, T)) $ u1 $ u2) cx =
+      if nT T then abstract_atom t cx else with2 abstract_arith c u1 u2 cx
+  | abstract_arith (t as (c as Const (@{const_name Groups.uminus}, T)) $ u) cx =
+      if nT T then abstract_atom t cx else abstract_arith u cx |>> apply c
+  | abstract_arith ((c as Const (@{const_name Suc}, _)) $ u) cx = abstract_arith u cx |>> apply c
+  | abstract_arith ((c as Const (@{const_name Groups.times}, _)) $ u1 $ u2) cx =
+      with2 abstract_arith c u1 u2 cx
+  | abstract_arith (t as (c as Const (@{const_name Rings.divide}, T)) $ u1 $ u2) cx =
+      if is_field_sort cx T then with2 abstract_arith c u1 u2 cx else abstract_atom t cx
+  | abstract_arith (t as (c as Const f) $ u) cx =
+      if is_inj_const cx f then abstract_arith u cx |>> apply c else abstract_num t cx
+  | abstract_arith t cx = abstract_num t cx
+
+fun is_lin_arith_rel @{const_name Orderings.less} = true
+  | is_lin_arith_rel @{const_name Orderings.less_eq} = true
+  | is_lin_arith_rel @{const_name HOL.eq} = true
+  | is_lin_arith_rel _ = false
+
+fun is_lin_arith_type (_, ctxt) T =
+  let val {discrete, ...} = get_arith_data ctxt
+  in fst (allows_lin_arith (Proof_Context.theory_of ctxt) discrete T) end
+
+fun abstract_rel (t as (r as Const (rel, Type ("fun", [U, _]))) $ lhs $ rhs) cx =
+      if is_lin_arith_rel rel andalso is_lin_arith_type cx U then with2 abstract_arith r lhs rhs cx
+      else abstract_atom t cx
+  | abstract_rel t cx = abstract_atom t cx
+
+fun abstract_neg ((c as Const (@{const_name Not}, _)) $ t) cx = abstract_rel t cx |>> apply c
+  | abstract_neg t cx = abstract_rel t cx
+
+fun abstract ((c as Const (@{const_name Trueprop}, _)) $ t) cx = abstract_neg t cx |>> apply c
+  | abstract t cx = abstract_atom t cx
 
 
 (*---------------------------------------------------------------------------*)

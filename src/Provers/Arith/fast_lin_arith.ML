@@ -49,6 +49,12 @@ sig
   val decomp: Proof.context -> term -> decomp option
   val domain_is_nat: term -> bool
 
+  (*abstraction for proof replay*)
+  val abstract_arith: term -> (term * term) list * Proof.context ->
+    term * ((term * term) list * Proof.context)
+  val abstract: term -> (term * term) list * Proof.context ->
+    term * ((term * term) list * Proof.context)
+
   (*preprocessing, performed on a representation of subgoals as list of premises:*)
   val pre_decomp: Proof.context -> typ list * term list -> (typ list * term list) list
 
@@ -288,7 +294,7 @@ fun calc_blowup l =
 fun extract_first p =
   let
     fun extract xs (y::ys) = if p y then (y, xs @ ys) else extract (y::xs) ys
-      | extract xs [] = raise List.Empty
+      | extract _ [] = raise List.Empty
   in extract [] end;
 
 fun print_ineqs ctxt ineqs =
@@ -373,7 +379,7 @@ information: n+1 <= 0 is simplified to False and does not need to be crossed
 with 0 <= n.
 *)
 local
-  exception FalseE of thm
+  exception FalseE of thm * (int * cterm) list * Proof.context
 in
 
 fun mkthm ctxt asms (just: injust) =
@@ -439,29 +445,53 @@ fun mkthm ctxt asms (just: injust) =
                  | THM _ => mult_by_add n thm
           end);
 
-    fun mult_thm (n, thm) =
+    fun mult_thm n thm =
       if n = ~1 then thm RS LA_Logic.sym
       else if n < 0 then mult (~n) thm RS LA_Logic.sym
       else mult n thm;
 
-    fun simp thm =
+    fun simp thm (cx as (_, hyps, ctxt')) =
       let val thm' = trace_thm ctxt ["Simplified:"] (full_simplify simpset_ctxt thm)
-      in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end;
+      in if LA_Logic.is_False thm' then raise FalseE (thm', hyps, ctxt') else (thm', cx) end;
 
-    fun mk (Asm i) = trace_thm ctxt ["Asm " ^ string_of_int i] (nth asms i)
-      | mk (Nat i) = trace_thm ctxt ["Nat " ^ string_of_int i] (LA_Logic.mk_nat_thm thy (nth atoms i))
-      | mk (LessD j) = trace_thm ctxt ["L"] (hd ([mk j] RL lessD))
-      | mk (NotLeD j) = trace_thm ctxt ["NLe"] (mk j RS LA_Logic.not_leD)
-      | mk (NotLeDD j) = trace_thm ctxt ["NLeD"] (hd ([mk j RS LA_Logic.not_leD] RL lessD))
-      | mk (NotLessD j) = trace_thm ctxt ["NL"] (mk j RS LA_Logic.not_lessD)
-      | mk (Added (j1, j2)) = simp (trace_thm ctxt ["+"] (add_thms (mk j1) (mk j2)))
-      | mk (Multiplied (n, j)) =
-          (trace_msg ctxt ("*" ^ string_of_int n); trace_thm ctxt ["*"] (mult_thm (n, mk j)))
+    fun abs_thm i (cx as (terms, hyps, ctxt)) =
+      (case AList.lookup (op =) hyps i of
+        SOME ct => (Thm.assume ct, cx)
+      | NONE =>
+          let
+            val thm = nth asms i
+            val (t, (terms', ctxt')) = LA_Data.abstract (Thm.prop_of thm) (terms, ctxt)
+            val ct = Thm.cterm_of ctxt' t
+          in (Thm.assume ct, (terms', (i, ct) :: hyps, ctxt')) end);
 
+    fun nat_thm t (terms, hyps, ctxt) =
+      let val (t', (terms', ctxt')) = LA_Data.abstract_arith t (terms, ctxt)
+      in (LA_Logic.mk_nat_thm thy t', (terms', hyps, ctxt')) end;
+
+    fun step0 msg (thm, cx) = (trace_thm ctxt [msg] thm, cx)
+    fun step1 msg j f cx = mk j cx |>> f |>> trace_thm ctxt [msg]
+    and step2 msg j1 j2 f cx = mk j1 cx ||>> mk j2 |>> f |>> trace_thm ctxt [msg]
+
+    and mk (Asm i) cx = step0 ("Asm " ^ string_of_int i) (abs_thm i cx)
+      | mk (Nat i) cx = step0 ("Nat " ^ string_of_int i) (nat_thm (nth atoms i) cx)
+      | mk (LessD j) cx = step1 "L" j (fn thm => hd ([thm] RL lessD)) cx
+      | mk (NotLeD j) cx = step1 "NLe" j (fn thm => thm RS LA_Logic.not_leD) cx
+      | mk (NotLeDD j) cx = step1 "NLeD" j (fn thm => hd ([thm RS LA_Logic.not_leD] RL lessD)) cx
+      | mk (NotLessD j) cx = step1 "NL" j (fn thm => thm RS LA_Logic.not_lessD) cx
+      | mk (Added (j1, j2)) cx = step2 "+" j1 j2 (uncurry add_thms) cx |-> simp
+      | mk (Multiplied (n, j)) cx =
+          (trace_msg ctxt ("*" ^ string_of_int n); step1 "*" j (mult_thm n) cx)
+
+    fun finish ctxt' hyps thm =
+      thm
+      |> fold_rev (Thm.implies_intr o snd) hyps
+      |> singleton (Variable.export ctxt' ctxt)
+      |> fold (fn (i, _) => fn thm => nth asms i RS thm) hyps
   in
     let
       val _ = trace_msg ctxt "mkthm";
-      val thm = trace_thm ctxt ["Final thm:"] (mk just);
+      val (thm, (_, hyps, ctxt')) = mk just ([], [], ctxt);
+      val _ = trace_thm ctxt ["Final thm:"] thm;
       val fls = simplify simpset_ctxt thm;
       val _ = trace_thm ctxt ["After simplification:"] fls;
       val _ =
@@ -472,8 +502,9 @@ fun mkthm ctxt asms (just: injust) =
             ["Proved:", Thm.string_of_thm ctxt fls, ""]));
           warning "Linear arithmetic should have refuted the assumptions.\n\
             \Please inform Tobias Nipkow.")
-    in fls end
-    handle FalseE thm => trace_thm ctxt ["False reached early:"] thm
+    in finish ctxt' hyps fls end
+    handle FalseE (thm, hyps, ctxt') =>
+      trace_thm ctxt ["False reached early:"] (finish ctxt' hyps thm)
   end;
 
 end;
@@ -555,7 +586,7 @@ let
   fun elim_neq (ineqs : (LA_Data.decomp option * bool) list) :
                (LA_Data.decomp option * bool) list list =
   let
-    fun elim_neq' nat_only ([] : (LA_Data.decomp option * bool) list) :
+    fun elim_neq' _ ([] : (LA_Data.decomp option * bool) list) :
                   (LA_Data.decomp option * bool) list list =
           [[]]
       | elim_neq' nat_only ((NONE, is_nat) :: ineqs) =

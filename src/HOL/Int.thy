@@ -1713,11 +1713,7 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) (Num.Bit1 n) = dup (sub m n)"
   "sub (Num.Bit1 m) (Num.Bit0 n) = dup (sub m n) + 1"
   "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
-          apply (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def numeral_BitM)
-        apply (simp_all only: algebra_simps minus_diff_eq)
-  apply (simp_all only: add.commute [of _ "- (numeral n + numeral n)"])
-  apply (simp_all only: minus_add add.assoc left_minus)
-  done
+  by (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def numeral_BitM)
 
 text \<open>Implementations.\<close>
 
