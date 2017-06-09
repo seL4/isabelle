@@ -256,7 +256,10 @@ object Build_Log
     val xml_cache = new XML.Cache()
 
     def parse_props(text: String): Properties.T =
-      xml_cache.props(Properties.decode_lines(XML.Decode.properties(YXML.parse_body(text))))
+      try {
+        xml_cache.props(Properties.decode_lines(XML.Decode.properties(YXML.parse_body(text))))
+      }
+      catch { case _: XML.Error => log_file.err("malformed properties") }
 
     def filter_lines(marker: String): List[String] =
       for (line <- lines; s <- Library.try_unprefix(marker, line)) yield s
