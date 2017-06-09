@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, CMU *)
 
 theory Tree_Space
-  imports Analysis
+  imports Analysis "~~/src/HOL/Library/Tree"
 begin
 
 lemma countable_lfp:
@@ -22,12 +22,20 @@ proof -
   thus ?thesis using cont by(simp add: sup_continuous_lfp)
 qed
 
-datatype 'a tree = Leaf
-  | Node (left: "'a tree") (val: 'a) (right: "'a tree")
-  where
-    "left Leaf = Leaf"
-  | "right Leaf = Leaf"
-  | "val Leaf = undefined"
+primrec left :: "'a tree \<Rightarrow> 'a tree"
+where
+  "left (Node l v r) = l"
+| "left Leaf = Leaf"
+
+primrec right :: "'a tree \<Rightarrow> 'a tree"
+where
+  "right (Node l v r) = r"
+| "right Leaf = Leaf"
+
+primrec val :: "'a tree \<Rightarrow> 'a"
+where
+  "val (Node l v r) = v"
+| "val Leaf = undefined"
 
 inductive_set trees :: "'a set \<Rightarrow> 'a tree set" for S :: "'a set" where
   [intro!]: "Leaf \<in> trees S"
@@ -339,5 +347,9 @@ proof (rule measurable_piecewise_restrict)
     qed
   qed
 qed
+
+hide_const (open) val
+hide_const (open) left
+hide_const (open) right
 
 end
