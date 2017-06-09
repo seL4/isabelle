@@ -32,11 +32,6 @@ where
   "right (Node l v r) = r"
 | "right Leaf = Leaf"
 
-primrec val :: "'a tree \<Rightarrow> 'a"
-where
-  "val (Node l v r) = v"
-| "val Leaf = undefined"
-
 inductive_set trees :: "'a set \<Rightarrow> 'a tree set" for S :: "'a set" where
   [intro!]: "Leaf \<in> trees S"
 | "l \<in> trees S \<Longrightarrow> r \<in> trees S \<Longrightarrow> v \<in> S \<Longrightarrow> Node l v r \<in> trees S"
@@ -59,17 +54,19 @@ proof
 qed
 
 lemma countable_trees: "countable A \<Longrightarrow> countable (trees A)"
-  apply (rule countable_subset[OF trees_sub_lfp])
-  apply (rule countable_lfp)
-  subgoal by auto
-  apply (intro sup_continuous_sup sup_continuous_const)
-    subgoal by (simp add: sup_continuous_def)
-    subgoal apply (auto simp add: sup_continuous_def)
-      subgoal premises prems for M x c a y d
-      using prems(3,5) prems(2)[THEN incseqD, of x "max x y"] prems(2)[THEN incseqD, of y "max x y"]
-      by (intro exI[of _ "max x y"]) auto
-    done
-  done
+proof (intro countable_subset[OF trees_sub_lfp] countable_lfp
+         sup_continuous_sup sup_continuous_const sup_continuous_id)
+  show "sup_continuous (\<lambda>T. (\<Union>l\<in>T. \<Union>v\<in>A. \<Union>r\<in>T. {\<langle>l, v, r\<rangle>}))"
+    unfolding sup_continuous_def
+  proof (intro allI impI equalityI subsetI, goal_cases)
+    case (1 M t)
+    then obtain i j :: nat and l x r  where "t = Node l x r" "x \<in> A" "l \<in> M i" "r \<in> M j"
+      by auto
+    hence "l \<in> M (max i j)" "r \<in> M (max i j)"
+      using incseqD[OF \<open>incseq M\<close>, of i "max i j"] incseqD[OF \<open>incseq M\<close>, of j "max i j"] by auto
+    with \<open>t = Node l x r\<close> and \<open>x \<in> A\<close> show ?case by auto
+  qed auto
+qed auto
 
 lemma trees_UNIV[simp]: "trees UNIV = UNIV"
 proof -
@@ -175,21 +172,16 @@ proof -
       by auto
   qed (insert 4, auto simp: space_pair_measure space_tree_sigma set_eq_iff)
   also have "\<dots> = sigma_sets (space M \<times> trees (space M) \<times> trees (space M))
-    {A \<times> trees_cyl B \<times> trees_cyl C | A B C. A \<in> sets M \<and> B \<in> trees (sets M) \<and> C \<in> trees (sets M) }"
-    apply (subst sets_measure_of)
-    subgoal
-      using sets.space_closed[of M] trees_cyl_sets_in_space[of M]
-      by (clarsimp simp: space_pair_measure space_tree_sigma) blast
-    apply (rule arg_cong2[where f=sigma_sets])
-    apply (auto simp: space_pair_measure space_tree_sigma)
-      subgoal premises prems for A B C
-      apply (rule exI conjI refl prems)+
-      using trees_cyl_sets_in_space[of M] prems
-      by auto
-    done
+                    {A \<times> BC |A BC. A \<in> sets M \<and> BC \<in> {A \<times> B |A B.
+                       A \<in> trees_cyl ` trees (sets M) \<and> B \<in> trees_cyl ` trees (sets M)}}"
+    (is "_ = sigma_sets ?X ?Y") using sets.space_closed[of M] trees_cyl_sub_trees[of _ "sets M" "space M"]
+    by (subst sets_measure_of) 
+       (auto simp: space_pair_measure space_tree_sigma)
+  also have "?Y = {A \<times> trees_cyl B \<times> trees_cyl C | A B C. A \<in> sets M \<and> 
+                     B \<in> trees (sets M) \<and> C \<in> trees (sets M)}" by blast
   finally have "X \<in> sigma_sets (space M \<times> trees (space M) \<times> trees (space M))
     {A \<times> trees_cyl B \<times> trees_cyl C | A B C. A \<in> sets M \<and> B \<in> trees (sets M) \<and> C \<in> trees (sets M) }"
-    using assms by auto
+    using assms by blast
   then show ?thesis
   proof induction
     case (Basic A')
@@ -206,10 +198,7 @@ proof -
     case (Compl A)
     have "{Node l v r |l v r. (v, l, r) \<in> space M \<times> trees (space M) \<times> trees (space M) - A} =
       (space (tree_sigma M) - {Node l v r |l v r. (v, l, r) \<in> A}) - {Leaf}"
-      apply (auto simp: space_tree_sigma)
-      subgoal for t
-        by (cases t) auto
-      done
+      by (auto simp: space_tree_sigma elim: trees.cases)
     also have "\<dots> \<in> sets (tree_sigma M)"
       by (intro sets.Diff Compl) auto
     finally show ?case .
@@ -249,18 +238,18 @@ proof (rule measurableI)
     unfolding * using A by (intro sets.Un Node_in_tree_sigma pair_measureI) auto
 qed
 
-lemma measurable_val': "val \<in> restrict_space (tree_sigma M) (-{Leaf}) \<rightarrow>\<^sub>M M"
+lemma measurable_root_val': "root_val \<in> restrict_space (tree_sigma M) (-{Leaf}) \<rightarrow>\<^sub>M M"
 proof (rule measurableI)
-  show "t \<in> space (restrict_space (tree_sigma M) (- {Leaf})) \<Longrightarrow> val t \<in> space M" for t
+  show "t \<in> space (restrict_space (tree_sigma M) (- {Leaf})) \<Longrightarrow> root_val t \<in> space M" for t
     by (cases t) (auto simp: space_restrict_space space_tree_sigma)
   fix A assume A: "A \<in> sets M"
   from sets.sets_into_space[OF this]
-  have "val -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) =
+  have "root_val -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) =
     {Node l a r | l a r. (a, l, r) \<in> A \<times> space (tree_sigma M) \<times> space (tree_sigma M)}"
     by (auto simp: space_tree_sigma space_restrict_space elim: trees.cases)
   also have "\<dots> \<in> sets (tree_sigma M)"
     using A by (intro sets.Un Node_in_tree_sigma pair_measureI) auto
-  finally show "val -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) \<in>
+  finally show "root_val -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) \<in>
       sets (restrict_space (tree_sigma M) (- {Leaf}))"
     by (auto simp: sets_restrict_space_iff space_restrict_space)
 qed
@@ -271,13 +260,16 @@ lemma measurable_restrict_mono:
 by (rule measurable_compose[OF measurable_restrict_space3 f])
    (insert \<open>B \<subseteq> A\<close>, auto)
 
-(*
-lemma measurable_val[measurable (raw)]:
+
+lemma measurable_root_val[measurable (raw)]:
   assumes "f \<in> X \<rightarrow>\<^sub>M tree_sigma M"
     and "\<And>x. x \<in> space X \<Longrightarrow> f x \<noteq> Leaf"
-  shows "(\<lambda>\<omega>. val (f \<omega>)) \<in> X \<rightarrow>\<^sub>M M"
-  sorry
-*)
+  shows "(\<lambda>\<omega>. root_val (f \<omega>)) \<in> X \<rightarrow>\<^sub>M M"
+proof -
+  from assms have "f \<in> X \<rightarrow>\<^sub>M restrict_space (tree_sigma M) (- {Leaf})"
+    by (intro measurable_restrict_space2) auto
+  from this and measurable_root_val' show ?thesis by (rule measurable_compose)
+qed
 
 lemma measurable_rec_tree[measurable (raw)]:
   assumes t: "t \<in> B \<rightarrow>\<^sub>M tree_sigma M"
@@ -315,7 +307,7 @@ proof (rule measurable_piecewise_restrict)
     qed
   next
     case (Node ls u rs)
-    let ?F = "\<lambda>\<omega>. ?N (\<omega>, left (t \<omega>), val (t \<omega>), right (t \<omega>),
+    let ?F = "\<lambda>\<omega>. ?N (\<omega>, left (t \<omega>), root_val (t \<omega>), right (t \<omega>),
         rec_tree (l \<omega>) (n \<omega>) (left (t \<omega>)), rec_tree (l \<omega>) (n \<omega>) (right (t \<omega>)))"
     show ?case
     proof (rule measurable_cong[THEN iffD2])
@@ -337,7 +329,7 @@ proof (rule measurable_piecewise_restrict)
           by (rule measurable_restrict_space1)
              (rule measurable_compose[OF Node(3) measurable_right])
         subgoal
-          apply (rule measurable_compose[OF _ measurable_val'])
+          apply (rule measurable_compose[OF _ measurable_root_val'])
           apply (rule measurable_restrict_space3[OF Node(3)])
           by auto
         subgoal
@@ -348,7 +340,36 @@ proof (rule measurable_piecewise_restrict)
   qed
 qed
 
-hide_const (open) val
+lemma measurable_Node [measurable]:
+  "(\<lambda>(l,x,r). Node l x r) \<in> tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M \<rightarrow>\<^sub>M tree_sigma M"
+proof (rule measurable_sigma_sets)
+  show "sets (tree_sigma M) = sigma_sets (trees (space M)) (trees_cyl ` trees (sets M))"
+    by (simp add: sets_tree_sigma_eq)
+  show "trees_cyl ` trees (sets M) \<subseteq> Pow (trees (space M))"
+    by (rule trees_cyl_sets_in_space)
+  show "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) \<in> space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M) \<rightarrow> trees (space M)"
+    by (auto simp: space_pair_measure space_tree_sigma)
+  fix A assume t: "A \<in> trees_cyl ` trees (sets M)"
+  then obtain t where t: "t \<in> trees (sets M)" "A = trees_cyl t" by auto
+  show "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` A \<inter>
+         space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M)
+         \<in> sets (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M)"
+  proof (cases t)
+    case Leaf
+    have "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` {Leaf :: 'a tree} = {}" by auto
+    with Leaf show ?thesis using t by simp
+  next
+    case (Node l B r)
+    hence "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` A \<inter> space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M) = 
+             trees_cyl l \<times> B \<times> trees_cyl r" 
+      using t and Node and trees_cyl_sub_trees[of _ "sets M" "space M"]
+      by (auto simp: space_pair_measure space_tree_sigma 
+               dest: sets.sets_into_space[of _ M])
+    thus ?thesis using t and Node
+      by (auto intro!: pair_measureI simp: sets_tree_sigma_eq)
+  qed    
+qed
+
 hide_const (open) left
 hide_const (open) right
 
