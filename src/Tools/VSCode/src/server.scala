@@ -398,6 +398,7 @@ class Server(
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case Protocol.Caret_Update(caret) => update_caret(caret)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
+          case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
           case _ => log("### IGNORED")
         }
       }

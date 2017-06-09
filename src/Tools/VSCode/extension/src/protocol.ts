@@ -2,6 +2,7 @@
 
 import { Position, Range, MarkedString, DecorationOptions, DecorationRenderOptions } from 'vscode'
 import { NotificationType } from 'vscode-languageclient';
+import * as symbol from './symbol'
 
 
 /* decorations */
@@ -67,3 +68,17 @@ export const preview_request_type =
 
 export const preview_response_type =
   new NotificationType<Preview_Response, void>("PIDE/preview_response")
+
+
+/* Isabelle symbols */
+
+export interface Symbols
+{
+  entries: [symbol.Entry]
+}
+
+export const symbols_type =
+  new NotificationType<Symbols, void>("PIDE/symbols")
+
+export const symbols_request_type =
+  new NotificationType<void, void>("PIDE/symbols_request")
