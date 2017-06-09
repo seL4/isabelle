@@ -81,40 +81,36 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
 
   def completion(caret_pos: Line.Position, caret: Text.Offset): List[Protocol.CompletionItem] =
   {
-    val caret_range = before_caret_range(caret)
-
-    val history = Completion.History.empty
     val doc = model.content.doc
+    val line = caret_pos.line
+    doc.offset(Line.Position(line)) match {
+      case None => Nil
+      case Some(line_start) =>
+        val history = Completion.History.empty
+        val caret_range = before_caret_range(caret)
 
-    val syntax_completion =
-    {
-      val syntax = model.syntax()
-      val context = language_context(caret_range) getOrElse syntax.language_context
-
-      val line = caret_pos.line
-      doc.offset(Line.Position(line)) match {
-        case Some(line_start) =>
+        val syntax = model.syntax()
+        val syntax_completion =
           syntax.completion.complete(history, unicode = false, explicit = true,
-            line_start, doc.lines(line).text, caret - line_start, context)
-        case None => None
-      }
-    }
+            line_start, doc.lines(line).text, caret - line_start,
+            language_context(caret_range) getOrElse syntax.language_context)
 
-    val (no_completion, semantic_completion) =
-      rendering.semantic_completion_result(
-        history, false, syntax_completion.map(_.range), caret_range, doc.try_get_text(_))
+        val (no_completion, semantic_completion) =
+          rendering.semantic_completion_result(
+            history, false, syntax_completion.map(_.range), caret_range, doc.try_get_text(_))
 
-    if (no_completion) Nil
-    else {
-      Completion.Result.merge(history, semantic_completion, syntax_completion) match {
-        case None => Nil
-        case Some(result) =>
-          result.items.map(item =>
-            Protocol.CompletionItem(
-              label = item.replacement,
-              detail = Some(item.description.mkString(" ")),
-              range = Some(doc.range(item.range))))
-      }
+        if (no_completion) Nil
+        else {
+          Completion.Result.merge(history, semantic_completion, syntax_completion) match {
+            case None => Nil
+            case Some(result) =>
+              result.items.map(item =>
+                Protocol.CompletionItem(
+                  label = item.replacement,
+                  detail = Some(item.description.mkString(" ")),
+                  range = Some(doc.range(item.range))))
+          }
+        }
     }
   }
 
