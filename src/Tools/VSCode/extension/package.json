@@ -67,8 +67,12 @@
             "editor/title": [
                 {
                     "when": "editorLangId == isabelle",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle",
                     "command": "isabelle.preview-split",
-                    "alt": "isabelle.preview",
                     "group": "navigation"
                 },
                 {

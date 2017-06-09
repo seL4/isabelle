@@ -452,9 +452,12 @@ object Document
 
     def node_name: Node.Name
     def node: Node
+
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command]
+
+    def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -769,13 +772,20 @@ object Document
         range: Text.Range, elements: Markup.Elements): Markup_Tree =
       Command.State.merge_markup(command_states(version, command), index, range, elements)
 
-    def markup_to_XML(version: Version, node: Node, elements: Markup.Elements): XML.Body =
+    def markup_to_XML(
+      version: Version,
+      node: Node,
+      range: Text.Range,
+      elements: Markup.Elements): XML.Body =
+    {
       (for {
         command <- node.commands.iterator
+        command_range <- command.range.try_restrict(range).iterator
         markup =
-          command_markup(version, command, Command.Markup_Index.markup, command.range, elements)
-        tree <- markup.to_XML(command.range, command.source, elements)
+          command_markup(version, command, Command.Markup_Index.markup, command_range, elements)
+        tree <- markup.to_XML(command_range, command.source, elements).iterator
       } yield tree).toList
+    }
 
     // persistent user-view
     def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)
@@ -844,6 +854,9 @@ object Document
             else other_node.commands.reverse.iterator.find(command => !command.is_ignored)
           }
           else version.nodes.commands_loading(other_node_name).headOption
+
+        def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body =
+          state.markup_to_XML(version, node, range, elements)
 
 
         /* find command */

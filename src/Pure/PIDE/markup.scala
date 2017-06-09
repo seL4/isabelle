@@ -325,6 +325,7 @@ object Markup
   /* outer syntax */
 
   val COMMAND = "command"
+  val KEYWORD = "keyword"
   val KEYWORD1 = "keyword1"
   val KEYWORD2 = "keyword2"
   val KEYWORD3 = "keyword3"

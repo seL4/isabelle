@@ -125,7 +125,8 @@ sig
   val markdown_itemN: string val markdown_item: int -> T
   val inputN: string val input: bool -> Properties.T -> T
   val command_keywordN: string val command_keyword: T
-  val commandN: string val command: T
+  val commandN: string
+  val keywordN: string
   val stringN: string val string: T
   val alt_stringN: string val alt_string: T
   val verbatimN: string val verbatim: T
@@ -304,7 +305,7 @@ fun entity kind name =
     (if name = "" then [] else [(nameN, name)]) @ (if kind = "" then [] else [(kindN, kind)]));
 
 fun get_entity_kind (name, props) =
-  if name = entityN then AList.lookup (op =) props kindN
+  if name = entityN then Properties.get props kindN
   else NONE;
 
 val defN = "def";
@@ -480,7 +481,9 @@ fun input delimited props = (inputN, (delimitedN, Value.print_bool delimited) ::
 (* outer syntax *)
 
 val (command_keywordN, command_keyword) = markup_elem "command_keyword";
-val (commandN, command) = markup_elem "command";
+
+val commandN = "command";
+val keywordN = "keyword";
 val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";
 val (keyword3N, keyword3) = markup_elem "keyword3";

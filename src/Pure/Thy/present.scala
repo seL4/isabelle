@@ -57,7 +57,7 @@ object Present
               sessions.map({ case (name, description) =>
                 (List(HTML.link(name + "/index.html", HTML.text(name))),
                   if (description == "") Nil
-                  else List(HTML.pre(HTML.text(description)))) })))))))
+                  else HTML.break ::: List(HTML.pre(HTML.text(description)))) })))))))
   }
 
   def make_global_index(browser_info: Path)
@@ -98,5 +98,40 @@ object Present
       for (font <- Isabelle_System.fonts(html = true))
         File.copy(font, session_fonts)
     }
+  }
+
+
+  /* theory document */
+
+  private val document_span_elements =
+    Markup.Elements(Rendering.text_color.keySet + Markup.NUMERAL + Markup.COMMENT)
+
+  def make_html(xml: XML.Body): XML.Body =
+    xml map {
+      case XML.Wrapped_Elem(markup, body1, body2) =>
+        XML.Wrapped_Elem(markup, make_html(body1), make_html(body2))
+      case XML.Elem(markup, body) =>
+        val name = markup.name
+        val html =
+          markup.properties match {
+            case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
+              List(HTML.span(kind, make_html(body)))
+            case _ =>
+              make_html(body)
+          }
+        Rendering.text_color.get(name) match {
+          case Some(c) =>
+            HTML.span(c.toString, html)
+          case None =>
+            if (document_span_elements(name)) HTML.span(name, html)
+            else XML.Elem(markup, html)
+        }
+      case XML.Text(text) =>
+        XML.Text(Symbol.decode(text))
+    }
+
+  def theory_document(snapshot: Document.Snapshot): XML.Body =
+  {
+    make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
   }
 }

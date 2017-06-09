@@ -6,7 +6,7 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
-  val session_name: theory -> string
+  val theory_qualifier: theory -> string
   val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
@@ -50,8 +50,6 @@ structure Browser_Info = Theory_Data
 
 val _ = Theory.setup
   (Browser_Info.put {chapter = Context.PureN, name = Context.PureN});
-
-val session_name = #name o Browser_Info.get;
 
 
 
@@ -133,10 +131,12 @@ val session_info = Unsynchronized.ref (NONE: session_info option);
 
 fun with_session_info x f = (case ! session_info of NONE => x | SOME info => f info);
 
+val theory_qualifier = Resources.theory_qualifier o Context.theory_long_name;
+
 fun is_session_theory thy =
   (case ! session_info of
     NONE => false
-  | SOME {name, ...} => name = Resources.theory_qualifier (Context.theory_long_name thy));
+  | SOME {name, ...} => name = theory_qualifier thy);
 
 
 (** document preparation **)
