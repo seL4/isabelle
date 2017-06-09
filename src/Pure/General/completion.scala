@@ -415,7 +415,6 @@ final class Completion private(
     caret: Int,
     language_context: Completion.Language_Context): Option[Completion.Result] =
   {
-    def decode(s: String): String = if (unicode) Symbol.decode(s) else s
     val length = text.length
 
     val abbrevs_result =
@@ -477,17 +476,21 @@ final class Completion private(
               Character.codePointCount(original, 0, original.length) > 1)
         val unique = completions.length == 1
 
+        def decode1(s: String): String = if (unicode) Symbol.decode(s) else s
+        def decode2(s: String): String = if (unicode) s else Symbol.decode(s)
+
         val items =
           for {
             (complete_word, name0) <- completions
-            name1 = decode(name0)
+            name1 = decode1(name0)
+            name2 = decode2(name0)
             if name1 != original
             (s1, s2) = Completion.split_template(name1)
             move = - s2.length
             description =
               if (is_symbol(name0)) {
-                if (name0 == name1) List(name0)
-                else List(name1, "(symbol " + quote(name0) + ")")
+                if (name1 == name2) List(name1)
+                else List(name1, "(symbol " + quote(name2) + ")")
               }
               else if (is_keyword_template(complete_word, true))
                 List(name1, "(template " + quote(complete_word) + ")")
