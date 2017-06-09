@@ -206,11 +206,11 @@ abstract class Rendering(
 
   /* completion */
 
-  def semantic_completion(completed_range: Option[Text.Range], range: Text.Range)
+  def semantic_completion(completed_range: Option[Text.Range], caret_range: Text.Range)
       : Option[Text.Info[Completion.Semantic]] =
     if (snapshot.is_outdated) None
     else {
-      snapshot.select(range, Rendering.semantic_completion_elements, _ =>
+      snapshot.select(caret_range, Rendering.semantic_completion_elements, _ =>
         {
           case Completion.Semantic.Info(info) =>
             completed_range match {
@@ -220,6 +220,24 @@ abstract class Rendering(
           case _ => None
         }).headOption.map(_.info)
     }
+
+  def semantic_completion_result(
+    history: Completion.History,
+    decode: Boolean,
+    completed_range: Option[Text.Range],
+    caret_range: Text.Range,
+    try_get_text: Text.Range => Option[String]): (Boolean, Option[Completion.Result]) =
+  {
+    semantic_completion(completed_range, caret_range) match {
+      case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
+      case Some(Text.Info(range, names: Completion.Names)) =>
+        try_get_text(range) match {
+          case Some(original) => (false, names.complete(range, history, decode, original))
+          case None => (false, None)
+        }
+      case None => (false, None)
+    }
+  }
 
   def language_context(range: Text.Range): Option[Completion.Language_Context] =
     snapshot.select(range, Rendering.language_context_elements, _ =>

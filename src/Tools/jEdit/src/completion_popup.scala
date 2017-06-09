@@ -164,8 +164,8 @@ object Completion_Popup
             (for {
               rendering <- opt_rendering
               if PIDE.options.bool("jedit_completion_context")
-              range = JEdit_Lib.before_caret_range(text_area, rendering)
-              context <- rendering.language_context(range)
+              caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
+              context <- rendering.language_context(caret_range)
             } yield context) getOrElse syntax.language_context
 
           val caret = text_area.getCaretPosition
@@ -355,16 +355,9 @@ object Completion_Popup
         {
           opt_rendering match {
             case Some(rendering) =>
-              val caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
-              rendering.semantic_completion(result0.map(_.range), caret_range) match {
-                case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
-                case Some(Text.Info(range, names: Completion.Names)) =>
-                  JEdit_Lib.try_get_text(buffer, range) match {
-                    case Some(original) => (false, names.complete(range, history, decode, original))
-                    case None => (false, None)
-                  }
-                case None => (false, None)
-              }
+              rendering.semantic_completion_result(history, decode, result0.map(_.range),
+                JEdit_Lib.before_caret_range(text_area, rendering),
+                JEdit_Lib.try_get_text(buffer, _))
             case None => (false, None)
           }
         }
