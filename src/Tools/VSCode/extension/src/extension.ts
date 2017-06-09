@@ -6,6 +6,7 @@ import * as library from './library'
 import * as decorations from './decorations';
 import * as preview from './preview';
 import * as protocol from './protocol';
+import * as symbol from './symbol';
 import { ExtensionContext, workspace, window, commands } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
@@ -108,6 +109,16 @@ export function activate(context: ExtensionContext)
       commands.registerCommand("isabelle.preview-update", preview.update))
 
     language_client.onReady().then(() => preview.init(context, language_client))
+
+
+    /* Isabelle symbols */
+
+    language_client.onReady().then(() =>
+    {
+      language_client.onNotification(protocol.symbols_type,
+        params => symbol.update(params.entries))
+      language_client.sendNotification(protocol.symbols_request_type)
+    })
 
 
     /* start server */

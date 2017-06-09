@@ -325,7 +325,7 @@ class Server(
   {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
-        yield rendering.completion(Text.Range(offset - 1, offset))) getOrElse Nil
+        yield rendering.completion(node_pos.pos, offset)) getOrElse Nil
     channel.write(Protocol.Completion.reply(id, result))
   }
 
@@ -398,6 +398,7 @@ class Server(
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case Protocol.Caret_Update(caret) => update_caret(caret)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
+          case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
           case _ => log("### IGNORED")
         }
       }

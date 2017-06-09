@@ -153,6 +153,18 @@ object Rendering
 
   /* markup elements */
 
+  val semantic_completion_elements =
+    Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
+
+  val language_context_elements =
+    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
+      Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
+      Markup.ML_STRING, Markup.ML_COMMENT)
+
+  val language_elements = Markup.Elements(Markup.LANGUAGE)
+
+  val citation_elements = Markup.Elements(Markup.CITATION)
+
   val active_elements =
     Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
       Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
@@ -168,9 +180,6 @@ object Rendering
   val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.ANTIQUOTED)
-
-  val semantic_completion_elements =
-    Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
   val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
@@ -197,11 +206,11 @@ abstract class Rendering(
 
   /* completion */
 
-  def semantic_completion(completed_range: Option[Text.Range], range: Text.Range)
+  def semantic_completion(completed_range: Option[Text.Range], caret_range: Text.Range)
       : Option[Text.Info[Completion.Semantic]] =
     if (snapshot.is_outdated) None
     else {
-      snapshot.select(range, Rendering.semantic_completion_elements, _ =>
+      snapshot.select(caret_range, Rendering.semantic_completion_elements, _ =>
         {
           case Completion.Semantic.Info(info) =>
             completed_range match {
@@ -211,6 +220,53 @@ abstract class Rendering(
           case _ => None
         }).headOption.map(_.info)
     }
+
+  def semantic_completion_result(
+    history: Completion.History,
+    unicode: Boolean,
+    completed_range: Option[Text.Range],
+    caret_range: Text.Range,
+    try_get_text: Text.Range => Option[String]): (Boolean, Option[Completion.Result]) =
+  {
+    semantic_completion(completed_range, caret_range) match {
+      case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
+      case Some(Text.Info(range, names: Completion.Names)) =>
+        try_get_text(range) match {
+          case Some(original) => (false, names.complete(range, history, unicode, original))
+          case None => (false, None)
+        }
+      case None => (false, None)
+    }
+  }
+
+  def language_context(range: Text.Range): Option[Completion.Language_Context] =
+    snapshot.select(range, Rendering.language_context_elements, _ =>
+      {
+        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
+          if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
+          else None
+        case Text.Info(_, elem)
+        if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
+          Some(Completion.Language_Context.ML_inner)
+        case Text.Info(_, _) =>
+          Some(Completion.Language_Context.inner)
+      }).headOption.map(_.info)
+
+  def language_path(range: Text.Range): Option[Text.Range] =
+    snapshot.select(range, Rendering.language_elements, _ =>
+      {
+        case Text.Info(info_range, XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), _)) =>
+          Some(snapshot.convert(info_range))
+        case _ => None
+      }).headOption.map(_.info)
+
+  def citation(range: Text.Range): Option[Text.Info[String]] =
+    snapshot.select(range, Rendering.citation_elements, _ =>
+      {
+        case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
+          Some(Text.Info(snapshot.convert(info_range), name))
+        case _ => None
+      }).headOption.map(_.info)
 
 
   /* spell checker */

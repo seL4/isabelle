@@ -191,4 +191,12 @@ sealed case class Document_Model(
   def rendering(snapshot: Document.Snapshot): VSCode_Rendering =
     new VSCode_Rendering(this, snapshot)
   def rendering(): VSCode_Rendering = rendering(snapshot())
+
+
+  /* syntax */
+
+  lazy private val syntax0 = Outer_Syntax.init()
+
+  def syntax(): Outer_Syntax =
+    if (is_theory) session.recent_syntax(node_name) else syntax0
 }

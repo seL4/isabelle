@@ -491,4 +491,20 @@ object Protocol
           "label" -> label,
           "content" -> content))
   }
+
+
+  /* Isabelle symbols */
+
+  object Symbols_Request extends Notification0("PIDE/symbols_request")
+
+  object Symbols
+  {
+    def apply(): JSON.T =
+    {
+      val entries =
+        for ((sym, code) <- Symbol.codes)
+        yield Map("symbol" -> sym, "name" -> Symbol.names(sym), "code" -> code)
+      Notification("PIDE/symbols", Map("entries" -> entries))
+    }
+  }
 }

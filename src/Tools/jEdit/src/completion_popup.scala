@@ -156,7 +156,7 @@ object Completion_Popup
       opt_rendering: Option[JEdit_Rendering]): Option[Completion.Result] =
     {
       val buffer = text_area.getBuffer
-      val decode = Isabelle_Encoding.is_active(buffer)
+      val unicode = Isabelle_Encoding.is_active(buffer)
 
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
@@ -164,8 +164,8 @@ object Completion_Popup
             (for {
               rendering <- opt_rendering
               if PIDE.options.bool("jedit_completion_context")
-              range = JEdit_Lib.before_caret_range(text_area, rendering)
-              context <- rendering.language_context(range)
+              caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
+              context <- rendering.language_context(caret_range)
             } yield context) getOrElse syntax.language_context
 
           val caret = text_area.getCaretPosition
@@ -175,7 +175,7 @@ object Completion_Popup
             line_text <- JEdit_Lib.try_get_text(buffer, line_range)
             result <-
               syntax.completion.complete(
-                history, decode, explicit, line_start, line_text, caret - line_start, context)
+                history, unicode, explicit, line_start, line_text, caret - line_start, context)
           } yield result
 
         case None => None
@@ -294,7 +294,7 @@ object Completion_Popup
       val painter = text_area.getPainter
 
       val history = PIDE.plugin.completion_history.value
-      val decode = Isabelle_Encoding.is_active(buffer)
+      val unicode = Isabelle_Encoding.is_active(buffer)
 
       def open_popup(result: Completion.Result)
       {
@@ -355,16 +355,9 @@ object Completion_Popup
         {
           opt_rendering match {
             case Some(rendering) =>
-              val caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
-              rendering.semantic_completion(result0.map(_.range), caret_range) match {
-                case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
-                case Some(Text.Info(range, names: Completion.Names)) =>
-                  JEdit_Lib.try_get_text(buffer, range) match {
-                    case Some(original) => (false, names.complete(range, history, decode, original))
-                    case None => (false, None)
-                  }
-                case None => (false, None)
-              }
+              rendering.semantic_completion_result(history, unicode, result0.map(_.range),
+                JEdit_Lib.before_caret_range(text_area, rendering),
+                JEdit_Lib.try_get_text(buffer, _))
             case None => (false, None)
           }
         }

@@ -113,15 +113,6 @@ object JEdit_Rendering
   private val indentation_elements =
     Markup.Elements(Markup.Command_Indent.name)
 
-  private val language_context_elements =
-    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
-      Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
-      Markup.ML_STRING, Markup.ML_COMMENT)
-
-  private val language_elements = Markup.Elements(Markup.LANGUAGE)
-
-  private val citation_elements = Markup.Elements(Markup.CITATION)
-
   private val breakpoint_elements = Markup.Elements(Markup.ML_BREAKPOINT)
 
   private val highlight_elements =
@@ -197,38 +188,6 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
         case Text.Info(_, XML.Elem(Markup.Command_Indent(i), _)) => Some(i)
         case _ => None
       }).headOption.map(_.info).getOrElse(0)
-
-
-  /* completion */
-
-  def language_context(range: Text.Range): Option[Completion.Language_Context] =
-    snapshot.select(range, JEdit_Rendering.language_context_elements, _ =>
-      {
-        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
-          if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
-          else None
-        case Text.Info(_, elem)
-        if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
-          Some(Completion.Language_Context.ML_inner)
-        case Text.Info(_, _) =>
-          Some(Completion.Language_Context.inner)
-      }).headOption.map(_.info)
-
-  def language_path(range: Text.Range): Option[Text.Range] =
-    snapshot.select(range, JEdit_Rendering.language_elements, _ =>
-      {
-        case Text.Info(info_range, XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), _)) =>
-          Some(snapshot.convert(info_range))
-        case _ => None
-      }).headOption.map(_.info)
-
-  def citation(range: Text.Range): Option[Text.Info[String]] =
-    snapshot.select(range, JEdit_Rendering.citation_elements, _ =>
-      {
-        case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
-          Some(Text.Info(snapshot.convert(info_range), name))
-        case _ => None
-      }).headOption.map(_.info)
 
 
   /* breakpoints */

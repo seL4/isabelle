@@ -369,7 +369,7 @@ object Symbol
           ("abbrev", a) <- props.reverse
         } yield sym -> a): _*)
 
-    val codes: List[(String, Int)] =
+    val codes: List[(Symbol, Int)] =
     {
       val Code = new Properties.String("code")
       for {
@@ -500,7 +500,7 @@ object Symbol
   def names: Map[Symbol, String] = symbols.names
   def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
-  def codes: List[(String, Int)] = symbols.codes
+  def codes: List[(Symbol, Int)] = symbols.codes
 
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
