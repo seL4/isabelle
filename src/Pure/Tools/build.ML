@@ -221,7 +221,7 @@ fun build args_file =
     val _ = Options.load_default ();
     val _ = Isabelle_Process.init_options ();
     val args = decode_args (File.read (Path.explode args_file));
-    fun error_message msg = writeln ("\ferror_message = " ^ encode_lines msg);
+    fun error_message msg = writeln ("\ferror_message = " ^ encode_lines (YXML.content_of msg));
     val _ =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
         build_session args
