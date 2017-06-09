@@ -156,7 +156,7 @@ object Completion_Popup
       opt_rendering: Option[JEdit_Rendering]): Option[Completion.Result] =
     {
       val buffer = text_area.getBuffer
-      val decode = Isabelle_Encoding.is_active(buffer)
+      val unicode = Isabelle_Encoding.is_active(buffer)
 
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
@@ -175,7 +175,7 @@ object Completion_Popup
             line_text <- JEdit_Lib.try_get_text(buffer, line_range)
             result <-
               syntax.completion.complete(
-                history, decode, explicit, line_start, line_text, caret - line_start, context)
+                history, unicode, explicit, line_start, line_text, caret - line_start, context)
           } yield result
 
         case None => None
@@ -294,7 +294,7 @@ object Completion_Popup
       val painter = text_area.getPainter
 
       val history = PIDE.plugin.completion_history.value
-      val decode = Isabelle_Encoding.is_active(buffer)
+      val unicode = Isabelle_Encoding.is_active(buffer)
 
       def open_popup(result: Completion.Result)
       {
@@ -355,7 +355,7 @@ object Completion_Popup
         {
           opt_rendering match {
             case Some(rendering) =>
-              rendering.semantic_completion_result(history, decode, result0.map(_.range),
+              rendering.semantic_completion_result(history, unicode, result0.map(_.range),
                 JEdit_Lib.before_caret_range(text_area, rendering),
                 JEdit_Lib.try_get_text(buffer, _))
             case None => (false, None)

@@ -94,7 +94,7 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
       val line = caret_pos.line
       doc.offset(Line.Position(line)) match {
         case Some(line_start) =>
-          syntax.completion.complete(history, false, true,
+          syntax.completion.complete(history, unicode = false, explicit = true,
             line_start, doc.lines(line).text, caret - line_start, context)
         case None => None
       }

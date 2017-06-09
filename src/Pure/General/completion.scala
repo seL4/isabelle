@@ -189,10 +189,10 @@ object Completion
     def complete(
       range: Text.Range,
       history: Completion.History,
-      do_decode: Boolean,
+      unicode: Boolean,
       original: String): Option[Completion.Result] =
     {
-      def decode(s: String): String = if (do_decode) Symbol.decode(s) else s
+      def decode(s: String): String = if (unicode) Symbol.decode(s) else s
       val items =
         for {
           (xname, (kind, name)) <- names
@@ -408,14 +408,14 @@ final class Completion private(
 
   def complete(
     history: Completion.History,
-    do_decode: Boolean,
+    unicode: Boolean,
     explicit: Boolean,
     start: Text.Offset,
     text: CharSequence,
     caret: Int,
     language_context: Completion.Language_Context): Option[Completion.Result] =
   {
-    def decode(s: String): String = if (do_decode) Symbol.decode(s) else s
+    def decode(s: String): String = if (unicode) Symbol.decode(s) else s
     val length = text.length
 
     val abbrevs_result =
