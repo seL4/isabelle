@@ -326,12 +326,12 @@ object Protocol
     range: Option[Line.Range] = None)
   {
     def json: JSON.T =
-      Message.empty + ("label" -> label) ++
-        JSON.optional("kind" -> kind) ++
-        JSON.optional("detail" -> detail) ++
-        JSON.optional("documentation" -> documentation) ++
-        JSON.optional("insertText" -> insertText) ++
-        JSON.optional("range" -> range.map(Range(_)))
+      Map("label" -> label) ++
+      JSON.optional("kind" -> kind) ++
+      JSON.optional("detail" -> detail) ++
+      JSON.optional("documentation" -> documentation) ++
+      JSON.optional("insertText" -> insertText) ++
+      JSON.optional("range" -> range.map(Range(_)))
   }
 
   object Completion extends RequestTextDocumentPosition("textDocument/completion")
