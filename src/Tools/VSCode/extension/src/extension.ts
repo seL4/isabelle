@@ -123,13 +123,14 @@ export function activate(context: ExtensionContext)
 
 
     /* completion */
+/* FIXME unused
 
     const completion_provider = new completion.Completion_Provider
     for (const mode of ["isabelle", "isabelle-ml"]) {
       context.subscriptions.push(
         languages.registerCompletionItemProvider(mode, completion_provider))
     }
-
+*/
 
     /* start server */
 
