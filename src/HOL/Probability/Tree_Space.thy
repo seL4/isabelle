@@ -115,7 +115,10 @@ lemma space_tree_sigma: "space (tree_sigma M) = trees (space M)"
 lemma sets_tree_sigma_eq: "sets (tree_sigma M) = sigma_sets (trees (space M)) (trees_cyl ` trees (sets M))"
   unfolding tree_sigma_def by (rule sets_measure_of) (rule trees_cyl_sets_in_space)
 
-lemma Leaf_in_tree_sigma[measurable]: "{Leaf} \<in> sets (tree_sigma M)"
+lemma Leaf_in_space_tree_sigma [measurable, simp, intro]: "Leaf \<in> space (tree_sigma M)"
+  by (auto simp: space_tree_sigma)
+
+lemma Leaf_in_tree_sigma [measurable, simp, intro]: "{Leaf} \<in> sets (tree_sigma M)"
   unfolding sets_tree_sigma_eq
   by (rule sigma_sets.Basic) (auto intro: trees.intros(2) image_eqI[where x=Leaf])
 
@@ -271,6 +274,50 @@ proof -
   from this and measurable_root_val' show ?thesis by (rule measurable_compose)
 qed
 
+
+lemma measurable_Node [measurable]:
+  "(\<lambda>(l,x,r). Node l x r) \<in> tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M \<rightarrow>\<^sub>M tree_sigma M"
+proof (rule measurable_sigma_sets)
+  show "sets (tree_sigma M) = sigma_sets (trees (space M)) (trees_cyl ` trees (sets M))"
+    by (simp add: sets_tree_sigma_eq)
+  show "trees_cyl ` trees (sets M) \<subseteq> Pow (trees (space M))"
+    by (rule trees_cyl_sets_in_space)
+  show "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) \<in> space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M) \<rightarrow> trees (space M)"
+    by (auto simp: space_pair_measure space_tree_sigma)
+  fix A assume t: "A \<in> trees_cyl ` trees (sets M)"
+  then obtain t where t: "t \<in> trees (sets M)" "A = trees_cyl t" by auto
+  show "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` A \<inter>
+         space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M)
+         \<in> sets (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M)"
+  proof (cases t)
+    case Leaf
+    have "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` {Leaf :: 'a tree} = {}" by auto
+    with Leaf show ?thesis using t by simp
+  next
+    case (Node l B r)
+    hence "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` A \<inter> space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M) = 
+             trees_cyl l \<times> B \<times> trees_cyl r" 
+      using t and Node and trees_cyl_sub_trees[of _ "sets M" "space M"]
+      by (auto simp: space_pair_measure space_tree_sigma 
+               dest: sets.sets_into_space[of _ M])
+    thus ?thesis using t and Node
+      by (auto intro!: pair_measureI simp: sets_tree_sigma_eq)
+  qed    
+qed
+
+lemma measurable_Node' [measurable (raw)]:
+  assumes [measurable]: "l \<in> B \<rightarrow>\<^sub>M tree_sigma A"
+  assumes [measurable]: "x \<in> B \<rightarrow>\<^sub>M A"
+  assumes [measurable]: "r \<in> B \<rightarrow>\<^sub>M tree_sigma A"
+  shows   "(\<lambda>y. Node (l y) (x y) (r y)) \<in> B \<rightarrow>\<^sub>M tree_sigma A"
+proof -
+  have "(\<lambda>y. Node (l y) (x y) (r y)) = (\<lambda>(a,b,c). Node a b c) \<circ> (\<lambda>y. (l y, x y, r y))"
+    by (simp add: o_def)
+  also have "\<dots> \<in> B \<rightarrow>\<^sub>M tree_sigma A"
+    by (intro measurable_comp[OF _ measurable_Node]) simp_all
+  finally show ?thesis .
+qed  
+
 lemma measurable_rec_tree[measurable (raw)]:
   assumes t: "t \<in> B \<rightarrow>\<^sub>M tree_sigma M"
   assumes l: "l \<in> B \<rightarrow>\<^sub>M A"
@@ -340,34 +387,26 @@ proof (rule measurable_piecewise_restrict)
   qed
 qed
 
-lemma measurable_Node [measurable]:
-  "(\<lambda>(l,x,r). Node l x r) \<in> tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M \<rightarrow>\<^sub>M tree_sigma M"
-proof (rule measurable_sigma_sets)
-  show "sets (tree_sigma M) = sigma_sets (trees (space M)) (trees_cyl ` trees (sets M))"
-    by (simp add: sets_tree_sigma_eq)
-  show "trees_cyl ` trees (sets M) \<subseteq> Pow (trees (space M))"
-    by (rule trees_cyl_sets_in_space)
-  show "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) \<in> space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M) \<rightarrow> trees (space M)"
-    by (auto simp: space_pair_measure space_tree_sigma)
-  fix A assume t: "A \<in> trees_cyl ` trees (sets M)"
-  then obtain t where t: "t \<in> trees (sets M)" "A = trees_cyl t" by auto
-  show "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` A \<inter>
-         space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M)
-         \<in> sets (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M)"
-  proof (cases t)
-    case Leaf
-    have "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` {Leaf :: 'a tree} = {}" by auto
-    with Leaf show ?thesis using t by simp
-  next
-    case (Node l B r)
-    hence "(\<lambda>(l, x, r). \<langle>l, x, r\<rangle>) -` A \<inter> space (tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M) = 
-             trees_cyl l \<times> B \<times> trees_cyl r" 
-      using t and Node and trees_cyl_sub_trees[of _ "sets M" "space M"]
-      by (auto simp: space_pair_measure space_tree_sigma 
-               dest: sets.sets_into_space[of _ M])
-    thus ?thesis using t and Node
-      by (auto intro!: pair_measureI simp: sets_tree_sigma_eq)
-  qed    
+lemma measurable_case_tree [measurable (raw)]:
+  assumes "t \<in> B \<rightarrow>\<^sub>M tree_sigma M"
+  assumes "l \<in> B \<rightarrow>\<^sub>M A"
+  assumes "(\<lambda>(x, l, v, r). n x l v r)
+             \<in> B \<Otimes>\<^sub>M tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M \<rightarrow>\<^sub>M A"
+  shows   "(\<lambda>x. case_tree (l x) (n x) (t x)) \<in> B \<rightarrow>\<^sub>M (A :: 'a measure)"
+proof -
+  define n' where "n' = (\<lambda>x l v r (_::'a) (_::'a). n x l v r)"
+  have "(\<lambda>x. case_tree (l x) (n x) (t x)) = (\<lambda>x. rec_tree (l x) (n' x) (t x))"
+    (is "_ = (\<lambda>x. rec_tree _ (?n' x) _)") by (rule ext) (auto split: tree.splits simp: n'_def)
+  also have "\<dots> \<in> B \<rightarrow>\<^sub>M A"
+  proof (rule measurable_rec_tree)
+    have "(\<lambda>(x, l, v, r, al, ar). n' x l v r al ar) = 
+            (\<lambda>(x,l,v,r). n x l v r) \<circ> (\<lambda>(x,l,v,r,al,ar). (x,l,v,r))" 
+      by (simp add: n'_def o_def case_prod_unfold)
+    also have "\<dots> \<in> B \<Otimes>\<^sub>M tree_sigma M \<Otimes>\<^sub>M M \<Otimes>\<^sub>M tree_sigma M \<Otimes>\<^sub>M A \<Otimes>\<^sub>M A \<rightarrow>\<^sub>M A"
+      using assms(3) by measurable
+    finally show "(\<lambda>(x, l, v, r, al, ar). n' x l v r al ar) \<in> \<dots>" .
+  qed (insert assms, simp_all)
+  finally show ?thesis .
 qed
 
 hide_const (open) left
