@@ -7,7 +7,8 @@ import * as decorations from './decorations';
 import * as preview from './preview';
 import * as protocol from './protocol';
 import * as symbol from './symbol';
-import { ExtensionContext, workspace, window, commands } from 'vscode';
+import * as completion from './completion';
+import { ExtensionContext, workspace, window, commands, languages } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
   from 'vscode-languageclient';
 
@@ -119,6 +120,15 @@ export function activate(context: ExtensionContext)
         params => symbol.update(params.entries))
       language_client.sendNotification(protocol.symbols_request_type)
     })
+
+
+    /* completion */
+
+    const completion_provider = new completion.Completion_Provider
+    for (const mode of ["isabelle", "isabelle-ml"]) {
+      context.subscriptions.push(
+        languages.registerCompletionItemProvider(mode, completion_provider))
+    }
 
 
     /* start server */
