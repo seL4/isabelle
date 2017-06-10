@@ -331,7 +331,9 @@ object Protocol
       JSON.optional("detail" -> detail) ++
       JSON.optional("documentation" -> documentation) ++
       JSON.optional("insertText" -> insertText) ++
-      JSON.optional("range" -> range.map(Range(_)))
+      JSON.optional("range" -> range.map(Range(_))) ++
+      JSON.optional("textEdit" ->
+        range.map(r => Map("range" -> Range(r), "newText" -> insertText.getOrElse(label))))
   }
 
   object Completion extends RequestTextDocumentPosition("textDocument/completion")
