@@ -103,8 +103,6 @@ interface Substitution
 interface LanguageEntry
 {
   language: DocumentSelector
-  revealOn: string
-  adjustCursorMovement: boolean
   substitutions: Substitution[]
 }
 
@@ -138,8 +136,6 @@ export function init(context: ExtensionContext, entries: [Entry])
           prettify_symbols_mode.exports.registerSubstitutions(
             {
               language: language,
-              revealOn: "none",
-              adjustCursorMovement: true,
               substitutions: substitutions
             }))
       }
