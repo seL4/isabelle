@@ -35,16 +35,6 @@ function decode_preview(preview_uri: Uri | undefined): Uri | undefined
 
 const preview_content = new Map<string, string>()
 
-const default_preview_content =
-  `<html>
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-  </head>
-  <body>
-    <h1>Isabelle Preview</h1>
-  </body>
-  </html>`
-
 class Content_Provider implements TextDocumentContentProvider
 {
   dispose() { }
@@ -55,7 +45,7 @@ class Content_Provider implements TextDocumentContentProvider
 
   provideTextDocumentContent(preview_uri: Uri): string
   {
-    return preview_content.get(preview_uri.toString()) || default_preview_content
+    return preview_content.get(preview_uri.toString()) || ""
   }
 }
 
