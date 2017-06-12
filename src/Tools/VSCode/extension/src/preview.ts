@@ -11,7 +11,7 @@ import * as protocol from './protocol';
 
 /* Uri information */
 
-const preview_uri_template = Uri.parse("isabelle-preview:Preview")
+const preview_uri_template = Uri.parse("isabelle-preview:")
 const preview_uri_scheme = preview_uri_template.scheme
 
 function encode_preview(document_uri: Uri | undefined): Uri | undefined
