@@ -1,7 +1,7 @@
 'use strict';
 
 import * as library from './library'
-import { Disposable, DocumentSelector, ExtensionContext, extensions } from 'vscode';
+import { Disposable, DocumentSelector, ExtensionContext, extensions, window } from 'vscode'
 
 
 /* ASCII characters */
@@ -144,5 +144,8 @@ export function init(context: ExtensionContext, entries: [Entry])
             }))
       }
     })
+  }
+  else {
+    window.showWarningMessage("Please install extension \"Prettify Symbols Model\" and restart!")
   }
 }
