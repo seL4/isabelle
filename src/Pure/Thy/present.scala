@@ -104,9 +104,9 @@ object Present
   /* theory document */
 
   private val document_span_elements =
-    Markup.Elements(Rendering.text_color.keySet + Markup.NUMERAL + Markup.COMMENT)
+    Rendering.foreground_elements ++ Rendering.text_color_elements + Markup.NUMERAL + Markup.COMMENT
 
-  def make_html(xml: XML.Body): XML.Body =
+  private def make_html(xml: XML.Body): XML.Body =
     xml map {
       case XML.Wrapped_Elem(markup, body1, body2) =>
         XML.Wrapped_Elem(markup, make_html(body1), make_html(body2))
@@ -119,12 +119,9 @@ object Present
             case _ =>
               make_html(body)
           }
-        Rendering.text_color.get(name) match {
-          case Some(c) =>
-            HTML.span(c.toString, html)
-          case None =>
-            if (document_span_elements(name)) HTML.span(name, html)
-            else XML.Elem(markup, html)
+        Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
+          case Some(c) => HTML.span(c.toString, html)
+          case None => HTML.span(name, html)
         }
       case XML.Text(text) =>
         XML.Text(Symbol.decode(text))

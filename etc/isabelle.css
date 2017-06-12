@@ -66,6 +66,8 @@ body {
 .comment        { color: #CC0000; }
 .improper       { color: #FF5050; }
 .bad            { background-color: #FF6A6A; }
+.quoted         { background-color: rgba(139,139,139,0.05); }
+.antiquoted     { background-color: rgba(255,200,50,0.1); }
 
 
 /* message background */
