@@ -286,14 +286,12 @@ fun command_markups keywords x =
     (if Keyword.is_proof_asm keywords x then [Markup.keyword3]
      else if Keyword.is_improper keywords x then [Markup.keyword1, Markup.improper]
      else [Markup.keyword1])
-    |> map (Markup.properties [(Markup.kindN, Markup.commandN)]);
+    |> map Markup.command_properties;
 
 in
 
 fun keyword_markup (important, keyword) x =
   if important orelse Symbol.is_ascii_identifier x then keyword else Markup.delimiter;
-
-val keyword_properties = Markup.properties [(Markup.kindN, Markup.keywordN)];
 
 fun completion_report tok =
   if is_kind Keyword tok
@@ -305,7 +303,7 @@ fun reports keywords tok =
     keyword_reports tok (command_markups keywords (content_of tok))
   else if is_kind Keyword tok then
     keyword_reports tok
-      [keyword_markup (false, keyword_properties Markup.keyword2) (content_of tok)]
+      [keyword_markup (false, Markup.keyword_properties Markup.keyword2) (content_of tok)]
   else
     let val (m, text) = token_kind_markup (kind_of tok)
     in [((pos_of tok, m), text)] end;

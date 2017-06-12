@@ -125,8 +125,8 @@ sig
   val markdown_itemN: string val markdown_item: int -> T
   val inputN: string val input: bool -> Properties.T -> T
   val command_keywordN: string val command_keyword: T
-  val commandN: string
-  val keywordN: string
+  val commandN: string val command_properties: T -> T
+  val keywordN: string val keyword_properties: T -> T
   val stringN: string val string: T
   val alt_stringN: string val alt_string: T
   val verbatimN: string val verbatim: T
@@ -482,8 +482,9 @@ fun input delimited props = (inputN, (delimitedN, Value.print_bool delimited) ::
 
 val (command_keywordN, command_keyword) = markup_elem "command_keyword";
 
-val commandN = "command";
-val keywordN = "keyword";
+val commandN = "command"; val command_properties = properties [(kindN, commandN)];
+val keywordN = "keyword"; val keyword_properties = properties [(kindN, keywordN)];
+
 val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";
 val (keyword3N, keyword3) = markup_elem "keyword3";
