@@ -117,7 +117,7 @@ export function activate(context: ExtensionContext)
     language_client.onReady().then(() =>
     {
       language_client.onNotification(protocol.symbols_type,
-        params => symbol.update(params.entries))
+        params => symbol.init(context, params.entries))
       language_client.sendNotification(protocol.symbols_request_type)
     })
 

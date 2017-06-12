@@ -1,5 +1,9 @@
 'use strict';
 
+import * as library from './library'
+import { Disposable, DocumentSelector, ExtensionContext, extensions } from 'vscode';
+
+
 export type Symbol = string
 
 
@@ -60,7 +64,7 @@ export function get_unicode(sym: Symbol): string
   return code ? String.fromCharCode(code) : ""
 }
 
-export function update(entries: [Entry])
+function update_entries(entries: [Entry])
 {
   symbol_entries = entries
   names.clear
@@ -81,4 +85,77 @@ export function complete_name(prefix: string): [string]
     if (entry[1].startsWith(prefix)) { result.push(entry[0]) }
   }
   return result.sort()
+}
+
+
+/* prettify symbols mode */
+
+interface PrettyStyleProperties
+{
+  border?: string
+  textDecoration?: string
+  color?: string
+  backgroundColor?: string
+}
+
+interface PrettyStyle extends PrettyStyleProperties
+{
+  dark?: PrettyStyleProperties
+  light?: PrettyStyleProperties
+}
+
+interface Substitution
+{
+  ugly: string
+  pretty: string
+  pre?: string
+  post?: string
+  style?: PrettyStyle
+}
+
+interface LanguageEntry
+{
+  language: DocumentSelector
+  revealOn: string
+  adjustCursorMovement: boolean
+  substitutions: Substitution[]
+}
+
+interface PrettifySymbolsMode
+{
+  onDidEnabledChange: (handler: (enabled: boolean) => void) => Disposable
+  isEnabled: () => boolean,
+  registerSubstitutions: (substitutions: LanguageEntry) => Disposable
+}
+
+export function init(context: ExtensionContext, entries: [Entry])
+{
+  update_entries(entries)
+
+  const prettify_symbols_mode =
+    extensions.getExtension<PrettifySymbolsMode>("siegebell.prettify-symbols-mode")
+  if (prettify_symbols_mode) {
+    prettify_symbols_mode.activate().then(() =>
+    {
+      const substitutions = [] as [Substitution]
+      for (const entry of names) {
+        const sym = entry[0]
+        substitutions.push(
+          {
+            ugly: library.escape_regex(sym),
+            pretty: library.escape_regex(get_unicode(sym))
+          })
+      }
+      for (const language of ["isabelle", "isabelle-ml", "isabelle-output"]) {
+        context.subscriptions.push(
+          prettify_symbols_mode.exports.registerSubstitutions(
+            {
+              language: language,
+              revealOn: "none",
+              adjustCursorMovement: true,
+              substitutions: substitutions
+            }))
+      }
+    })
+  }
 }

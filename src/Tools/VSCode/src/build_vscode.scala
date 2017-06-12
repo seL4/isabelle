@@ -15,35 +15,6 @@ object Build_VSCode
   val extension_dir = Path.explode("~~/src/Tools/VSCode/extension")
 
 
-  /* Prettify Symbols Mode */
-
-  def prettify_config: String =
-    """{
-  "prettifySymbolsMode.substitutions": [
-      {
-        "language": "isabelle",
-        "revealOn": "none",
-        "adjustCursorMovement": true,
-        "substitutions": [""" +
-          (for ((s, c) <- Symbol.codes)
-           yield
-            JSON.Format(
-              Map("ugly" -> Library.escape_regex(s),
-                "pretty" -> Library.escape_regex(Codepoint.string(c)))))
-            .mkString("\n          ", ",\n          ", "") +
-        """]
-      }
-    ]
-}"""
-
-  def build_symbols(progress: Progress = No_Progress)
-  {
-    val output_path = extension_dir + Path.explode("isabelle-symbols.json")
-    progress.echo(output_path.implode)
-    File.write_backup(output_path, prettify_config)
-  }
-
-
   /* grammar */
 
   def build_grammar(options: Options, progress: Progress = No_Progress)
@@ -97,7 +68,6 @@ https://code.visualstudio.com/docs/tools/vscecli
       val options = Options.init()
       val progress = new Console_Progress()
 
-      build_symbols(progress)
       build_grammar(options, progress)
       build_extension(progress, publish = publish)
     }, admin = true)

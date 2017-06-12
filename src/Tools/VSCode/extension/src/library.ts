@@ -4,6 +4,14 @@ import * as os from 'os';
 import { TextEditor, Uri, workspace } from 'vscode'
 
 
+/* regular expressions */
+
+export function escape_regex(s: string): string
+{
+  return s.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")
+}
+
+
 /* platform information */
 
 export function platform_is_windows(): boolean
