@@ -75,18 +75,6 @@ function update_entries(entries: [Entry])
 }
 
 
-/* completion */
-
-export function complete_name(prefix: string): [string]
-{
-  let result = [] as [string]
-  for (const entry of names) {
-    if (entry[1].startsWith(prefix)) { result.push(entry[0]) }
-  }
-  return result.sort()
-}
-
-
 /* prettify symbols mode */
 
 interface PrettyStyleProperties
