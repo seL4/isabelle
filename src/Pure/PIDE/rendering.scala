@@ -136,6 +136,14 @@ object Rendering
     Markup.SML_STRING -> Color.inner_quoted,
     Markup.SML_COMMENT -> Color.inner_comment)
 
+  val foreground =
+    Map(
+      Markup.STRING -> Color.quoted,
+      Markup.ALT_STRING -> Color.quoted,
+      Markup.VERBATIM -> Color.quoted,
+      Markup.CARTOUCHE -> Color.quoted,
+      Markup.ANTIQUOTED -> Color.antiquoted)
+
 
   /* tooltips */
 
@@ -177,9 +185,9 @@ object Rendering
       Markup.BAD + Markup.INTENSIFY + Markup.ENTITY +
       Markup.Markdown_Item.name ++ active_elements
 
-  val foreground_elements =
-    Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
-      Markup.CARTOUCHE, Markup.ANTIQUOTED)
+  val foreground_elements = Markup.Elements(foreground.keySet)
+
+  val text_color_elements = Markup.Elements(text_color.keySet)
 
   val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
@@ -192,8 +200,6 @@ object Rendering
       Markup.BAD)
 
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
-
-  val text_color_elements = Markup.Elements(text_color.keySet)
 }
 
 abstract class Rendering(
@@ -349,9 +355,7 @@ abstract class Rendering(
   def foreground(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     snapshot.select(range, Rendering.foreground_elements, _ =>
       {
-        case Text.Info(_, elem) =>
-          if (elem.name == Markup.ANTIQUOTED) Some(Rendering.Color.antiquoted)
-          else Some(Rendering.Color.quoted)
+        case info => Some(Rendering.foreground(info.info.name))
       })
 
 
