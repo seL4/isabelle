@@ -85,7 +85,9 @@ val _ = Theory.setup
       (Parse.position by -- Method.parse -- Scan.option Method.parse)))
     (fn _ => fn ((is_open, raw_propss), (((_, by_pos), m1), m2)) => fn ctxt =>
       let
-        val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
+        val reports =
+          (by_pos, Markup.keyword1 |> Markup.keyword_properties) ::
+            maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;
 
         val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;

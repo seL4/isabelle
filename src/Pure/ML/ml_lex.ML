@@ -157,9 +157,9 @@ fun token_report SML (tok as Token ((pos, _), (kind, x))) =
     val (markup, txt) =
       if not (is_keyword tok) then token_kind_markup SML kind
       else if is_delimiter tok then (Markup.ML_delimiter, "")
-      else if member (op =) keywords2 x then (Markup.ML_keyword2, "")
-      else if member (op =) keywords3 x then (Markup.ML_keyword3, "")
-      else (Markup.ML_keyword1, "");
+      else if member (op =) keywords2 x then (Markup.ML_keyword2 |> Markup.keyword_properties, "")
+      else if member (op =) keywords3 x then (Markup.ML_keyword3 |> Markup.keyword_properties, "")
+      else (Markup.ML_keyword1 |> Markup.keyword_properties, "");
   in ((pos, markup), txt) end;
 
 end;

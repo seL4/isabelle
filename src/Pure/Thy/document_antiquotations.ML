@@ -136,7 +136,9 @@ val _ = Theory.setup
       Scan.lift (Parse.position (Parse.reserved "by") -- Method.parse -- Scan.option Method.parse))
     (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
       let
-        val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
+        val reports =
+          (by_pos, Markup.keyword1 |> Markup.keyword_properties) ::
+            maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;
 
         (* FIXME check proof!? *)
