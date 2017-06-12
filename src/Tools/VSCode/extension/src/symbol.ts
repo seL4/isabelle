@@ -4,27 +4,26 @@ import * as library from './library'
 import { Disposable, DocumentSelector, ExtensionContext, extensions } from 'vscode';
 
 
-export type Symbol = string
-
-
 /* ASCII characters */
 
-export function is_char(s: string): boolean
+export type Symbol = string
+
+export function is_char(s: Symbol): boolean
 { return s.length == 1 }
 
-export function is_ascii_letter(s: string): boolean
+export function is_ascii_letter(s: Symbol): boolean
 { return is_char(s) && "A" <= s && s <= "Z" || "a" <= s && s <= "z" }
 
-export function is_ascii_digit(s: string): boolean
+export function is_ascii_digit(s: Symbol): boolean
 { return is_char(s) && "0" <= s && s <= "9" }
 
-export function is_ascii_quasi(s: string): boolean
+export function is_ascii_quasi(s: Symbol): boolean
 { return s == "_" || s == "'" }
 
-export function is_ascii_letdig(s: string): boolean
+export function is_ascii_letdig(s: Symbol): boolean
 { return is_ascii_letter(s) || is_ascii_digit(s) || is_ascii_quasi(s) }
 
-export function is_ascii_identifier(s: String): boolean
+export function is_ascii_identifier(s: Symbol): boolean
 {
   const n = s.length
 
