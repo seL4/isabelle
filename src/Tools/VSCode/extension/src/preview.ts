@@ -91,7 +91,8 @@ function preview_column(split: boolean): ViewColumn
 
   if (!active_editor) return ViewColumn.One
   else if (!split) return active_editor.viewColumn
-  else if (active_editor.viewColumn === ViewColumn.One) return ViewColumn.Two
+  else if (active_editor.viewColumn === ViewColumn.One ||
+    active_editor.viewColumn === ViewColumn.Three) return ViewColumn.Two
   else return ViewColumn.Three
 }
 
