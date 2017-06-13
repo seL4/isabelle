@@ -91,6 +91,9 @@ class Server(
   system_mode: Boolean = false,
   log: Logger = No_Logger)
 {
+  server =>
+
+
   /* prover session */
 
   private val session_ = Synchronized(None: Option[Session])
@@ -104,7 +107,7 @@ class Server(
       offset <- model.content.doc.offset(node_pos.pos)
     } yield (rendering, offset)
 
-  private val dynamic_output = Dynamic_Output(this)
+  private val dynamic_output = Dynamic_Output(server)
 
 
   /* input from client or file-system */
@@ -418,5 +421,42 @@ class Server(
       }
     }
     loop()
+  }
+
+
+  /* abstract editor operations */
+
+  object editor extends Editor[Unit]
+  {
+    override def session: Session = server.session
+    override def flush(): Unit = resources.flush_input(session)
+    override def invoke(): Unit = delay_input.invoke()
+
+    override def current_node(context: Unit): Option[Document.Node.Name] =
+      resources.get_caret().map(_._2.node_name)
+    override def current_node_snapshot(context: Unit): Option[Document.Snapshot] =
+      resources.get_caret().map(_._2.snapshot())
+    override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
+    {
+      resources.get_model(name) match {
+        case Some(model) => model.snapshot()
+        case None => session.snapshot(name)
+      }
+    }
+
+    def current_command(snapshot: Document.Snapshot): Option[Command] =
+    {
+      resources.get_caret() match {
+        case Some((_, model, caret_offset)) =>
+          snapshot.current_command(model.node_name, caret_offset)
+        case None => None
+      }
+    }
+    override def current_command(context: Unit, snapshot: Document.Snapshot): Option[Command] =
+      current_command(snapshot)
+
+    override def hyperlink_command(
+      focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
+        : Option[Hyperlink] = None
   }
 }
