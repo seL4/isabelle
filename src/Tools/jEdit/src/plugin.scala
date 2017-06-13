@@ -56,7 +56,7 @@ object PIDE
   def resources: JEdit_Resources = plugin.resources
   def session: Session = plugin.session
 
-  val editor = JEdit_Editor
+  object editor extends JEdit_Editor
 }
 
 class Plugin extends EBPlugin

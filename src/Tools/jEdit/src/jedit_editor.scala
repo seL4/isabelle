@@ -16,7 +16,7 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
 
 
-object JEdit_Editor extends Editor[View]
+class JEdit_Editor extends Editor[View]
 {
   /* session */
 
