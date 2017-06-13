@@ -1,7 +1,7 @@
 'use strict';
 
 import * as os from 'os';
-import { TextEditor, Uri, workspace } from 'vscode'
+import { TextEditor, Uri, ViewColumn, workspace } from 'vscode'
 
 
 /* regular expressions */
@@ -39,4 +39,16 @@ export function get_color(color: string, light: boolean): string
 {
   const config = color + (light ? "_light" : "_dark") + "_color"
   return get_configuration<string>(config)
+}
+
+
+/* GUI */
+
+export function adjacent_editor_column(editor: TextEditor, split: boolean): ViewColumn
+{
+  if (!editor) return ViewColumn.One
+  else if (!split) return editor.viewColumn
+  else if (editor.viewColumn === ViewColumn.One || editor.viewColumn === ViewColumn.Three)
+    return ViewColumn.Two
+  else return ViewColumn.Three
 }
