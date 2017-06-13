@@ -48,9 +48,6 @@ object JEdit_Editor extends Editor[View]
 
   /* current situation */
 
-  override def current_context: View =
-    GUI_Thread.require { jEdit.getActiveView() }
-
   override def current_node(view: View): Option[Document.Node.Name] =
     GUI_Thread.require { Document_Model.get(view.getBuffer).map(_.node_name) }
 
@@ -84,20 +81,6 @@ object JEdit_Editor extends Editor[View]
         }
     }
   }
-
-
-  /* overlays */
-
-  private val overlays = Synchronized(Document.Overlays.empty)
-
-  override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
-    overlays.value(name)
-
-  override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
-    overlays.change(_.insert(command, fn, args))
-
-  override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
-    overlays.change(_.remove(command, fn, args))
 
 
   /* navigation */

@@ -55,6 +55,8 @@ object PIDE
   def options: JEdit_Options = plugin.options
   def resources: JEdit_Resources = plugin.resources
   def session: Session = plugin.session
+
+  val editor = JEdit_Editor
 }
 
 class Plugin extends EBPlugin
@@ -172,7 +174,7 @@ class Plugin extends EBPlugin
     GUI_Thread.delay_last(options.seconds("editor_load_delay")) { delay_load_action() }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
-    if (Document_Model.sync_files(changed)) JEdit_Editor.invoke_generated()
+    if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()
 
   lazy val file_watcher: File_Watcher =
     File_Watcher(file_watcher_action _, options.seconds("editor_load_delay"))
@@ -210,7 +212,7 @@ class Plugin extends EBPlugin
       GUI_Thread.later {
         delay_load.revoke()
         delay_init.revoke()
-        JEdit_Editor.flush()
+        PIDE.editor.flush()
         exit_models(JEdit_Lib.jedit_buffers().toList)
       }
 
@@ -234,7 +236,7 @@ class Plugin extends EBPlugin
   def init_models()
   {
     GUI_Thread.now {
-      JEdit_Editor.flush()
+      PIDE.editor.flush()
 
       for {
         buffer <- JEdit_Lib.jedit_buffers()
@@ -253,7 +255,7 @@ class Plugin extends EBPlugin
         else delay_init.invoke()
       }
 
-      JEdit_Editor.invoke_generated()
+      PIDE.editor.invoke_generated()
     }
   }
 
@@ -310,14 +312,14 @@ class Plugin extends EBPlugin
 
           Keymap_Merge.check_dialog(view)
 
-          JEdit_Editor.hyperlink_position(true, Document.Snapshot.init,
+          PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
             JEdit_Sessions.session_info(options.value).open_root).foreach(_.follow(view))
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
           if (msg.getBuffer != null) {
             exit_models(List(msg.getBuffer))
-            JEdit_Editor.invoke_generated()
+            PIDE.editor.invoke_generated()
           }
 
         case msg: BufferUpdate

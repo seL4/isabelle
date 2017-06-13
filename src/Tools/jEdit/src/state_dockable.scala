@@ -31,7 +31,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   override def detach_operation = pretty_text_area.detach_operation
 
   private val print_state =
-    new Query_Operation(JEdit_Editor, view, "print_state", _ => (),
+    new Query_Operation(PIDE.editor, view, "print_state", _ => (),
       (snapshot, results, body) =>
         pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
@@ -66,7 +66,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
     Document_Model.get(view.getBuffer).map(_.snapshot()) match {
       case Some(snapshot) =>
-        (JEdit_Editor.current_command(view, snapshot), print_state.get_location) match {
+        (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
           case (Some(command1), Some(command2)) if command1.id == command2.id =>
           case _ => update_request()
         }

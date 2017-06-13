@@ -88,7 +88,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     def print: String =
       Time.print_seconds(timing) + "s theory " + quote(name.theory)
-    def follow(snapshot: Document.Snapshot) { JEdit_Editor.goto_file(true, view, name.node) }
+    def follow(snapshot: Document.Snapshot) { PIDE.editor.goto_file(true, view, name.node) }
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry
@@ -96,7 +96,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     def print: String =
       "  " + Time.print_seconds(timing) + "s command " + quote(command.span.name)
     def follow(snapshot: Document.Snapshot)
-    { JEdit_Editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view)) }
+    { PIDE.editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view)) }
   }
 
 

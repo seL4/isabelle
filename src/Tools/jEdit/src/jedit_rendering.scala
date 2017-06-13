@@ -228,37 +228,37 @@ class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
 
   /* hyperlinks */
 
-  def hyperlink(range: Text.Range): Option[Text.Info[JEdit_Editor.Hyperlink]] =
+  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
-    snapshot.cumulate[Vector[Text.Info[JEdit_Editor.Hyperlink]]](
+    snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
-            val link = JEdit_Editor.hyperlink_file(true, file)
+            val link = PIDE.editor.hyperlink_file(true, file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
-            JEdit_Editor.hyperlink_doc(name).map(link =>
+            PIDE.editor.hyperlink_doc(name).map(link =>
               (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
-            val link = JEdit_Editor.hyperlink_url(name)
+            val link = PIDE.editor.hyperlink_url(name)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            val opt_link = JEdit_Editor.hyperlink_def_position(true, snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link = JEdit_Editor.hyperlink_position(true, snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val opt_link =
               Document_Model.bibtex_entries_iterator.collectFirst(
                 { case Text.Info(entry_range, (entry, model)) if entry == name =>
-                    JEdit_Editor.hyperlink_model(true, model, entry_range.start) })
+                    PIDE.editor.hyperlink_model(true, model, entry_range.start) })
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None
