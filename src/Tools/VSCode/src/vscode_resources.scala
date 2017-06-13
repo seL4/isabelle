@@ -50,6 +50,14 @@ object VSCode_Resources
           blob <- model.get_blob
         } yield (model.node_name -> blob)).toMap)
   }
+
+
+  /* caret */
+
+  sealed case class Caret(file: JFile, model: Document_Model, offset: Text.Offset)
+  {
+    def node_name: Document.Node.Name = model.node_name
+  }
 }
 
 class VSCode_Resources(
@@ -302,7 +310,7 @@ class VSCode_Resources(
   def update_caret(caret: Option[(JFile, Line.Position)])
   { state.change(_.update_caret(caret)) }
 
-  def get_caret(): Option[(JFile, Document_Model, Text.Offset)] =
+  def get_caret(): Option[VSCode_Resources.Caret] =
   {
     val st = state.value
     for {
@@ -310,7 +318,7 @@ class VSCode_Resources(
       model <- st.models.get(file)
       offset <- model.content.doc.offset(pos)
     }
-    yield (file, model, offset)
+    yield VSCode_Resources.Caret(file, model, offset)
   }
 
 

@@ -433,9 +433,10 @@ class Server(
     override def invoke(): Unit = delay_input.invoke()
 
     override def current_node(context: Unit): Option[Document.Node.Name] =
-      resources.get_caret().map(_._2.node_name)
+      resources.get_caret().map(_.model.node_name)
     override def current_node_snapshot(context: Unit): Option[Document.Snapshot] =
-      resources.get_caret().map(_._2.snapshot())
+      resources.get_caret().map(_.model.snapshot())
+
     override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
     {
       resources.get_model(name) match {
@@ -447,8 +448,7 @@ class Server(
     def current_command(snapshot: Document.Snapshot): Option[Command] =
     {
       resources.get_caret() match {
-        case Some((_, model, caret_offset)) =>
-          snapshot.current_command(model.node_name, caret_offset)
+        case Some(caret) => snapshot.current_command(caret.node_name, caret.offset)
         case None => None
       }
     }
