@@ -22,13 +22,13 @@ class JEdit_Editor extends Editor[View]
 
   override def session: Session = PIDE.session
 
-  override def flush(hidden: Boolean = false, purge: Boolean = false): Unit =
+  def flush_edits(hidden: Boolean = false, purge: Boolean = false): Unit =
     GUI_Thread.require {
       val (doc_blobs, edits) = Document_Model.flush_edits(hidden, purge)
       session.update(doc_blobs, edits)
     }
-
-  def purge() { flush(purge = true) }
+  override def flush(): Unit = flush_edits()
+  def purge() { flush_edits(purge = true) }
 
   private val delay1_flush =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }

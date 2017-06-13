@@ -12,7 +12,7 @@ abstract class Editor[Context]
   /* session */
 
   def session: Session
-  def flush(hidden: Boolean = false, purge: Boolean = false): Unit
+  def flush(): Unit
   def invoke(): Unit
   def current_node(context: Context): Option[Document.Node.Name]
   def current_node_snapshot(context: Context): Option[Document.Snapshot]
@@ -36,12 +36,13 @@ abstract class Editor[Context]
 
   /* hyperlinks */
 
-  abstract class Hyperlink {
+  abstract class Hyperlink
+  {
     def external: Boolean = false
     def follow(context: Context): Unit
   }
+
   def hyperlink_command(
     focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
       : Option[Hyperlink]
 }
-

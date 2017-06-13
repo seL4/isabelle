@@ -77,7 +77,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     if (output_state != b) {
       PIDE.options.bool("editor_output_state") = b
       PIDE.session.update_options(PIDE.options.value)
-      PIDE.editor.flush(hidden = true)
+      PIDE.editor.flush_edits(hidden = true)
       PIDE.editor.flush()
     }
   }
