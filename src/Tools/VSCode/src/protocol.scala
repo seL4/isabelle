@@ -462,8 +462,8 @@ object Protocol
 
   object Dynamic_Output
   {
-    def apply(body: String): JSON.T =
-      Notification("PIDE/dynamic_output", Map("content" -> body))
+    def apply(content: String): JSON.T =
+      Notification("PIDE/dynamic_output", Map("content" -> content))
   }
 
 
