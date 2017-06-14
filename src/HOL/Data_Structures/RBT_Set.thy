@@ -26,20 +26,19 @@ fun ins :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 definition insert :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "insert x t = paint Black (ins x t)"
 
-fun del :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
-and delL :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
-and delR :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
-where
+fun color :: "'a rbt \<Rightarrow> color" where
+"color Leaf = Black" |
+"color (Node c _ _ _) = c"
+
+fun del :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "del x Leaf = Leaf" |
 "del x (Node _ l a r) =
   (case cmp x a of
-     LT \<Rightarrow> delL x l a r |
-     GT \<Rightarrow> delR x l a r |
-     EQ \<Rightarrow> combine l r)" |
-"delL x (B t1 a t2) b t3 = baldL (del x (B t1 a t2)) b t3" |
-"delL x l a r = R (del x l) a r" |
-"delR x t1 a (B t2 b t3) = baldR t1 a (del x (B t2 b t3))" | 
-"delR x l a r = R l a (del x r)"
+     LT \<Rightarrow> if l \<noteq> Leaf \<and> color l = Black
+           then baldL (del x l) a r else R (del x l) a r |
+     GT \<Rightarrow> if r \<noteq> Leaf\<and> color r = Black
+           then baldR l a (del x r) else R l a (del x r) |
+     EQ \<Rightarrow> combine l r)"
 
 definition delete :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "delete x t = paint Black (del x t)"
@@ -84,11 +83,7 @@ by(induction l r rule: combine.induct)
 
 lemma inorder_del:
  "sorted(inorder t) \<Longrightarrow>  inorder(del x t) = del_list x (inorder t)"
- "sorted(inorder l) \<Longrightarrow>  inorder(delL x l a r) =
-    del_list x (inorder l) @ a # inorder r"
- "sorted(inorder r) \<Longrightarrow>  inorder(delR x l a r) =
-    inorder l @ a # del_list x (inorder r)"
-by(induction x t and x l a r and x l a r rule: del_delL_delR.induct)
+by(induction x t rule: del.induct)
   (auto simp: del_list_simps inorder_combine inorder_baldL inorder_baldR)
 
 lemma inorder_delete:
@@ -99,10 +94,6 @@ by (auto simp: delete_def inorder_del inorder_paint)
 subsection \<open>Structural invariants\<close>
 
 text\<open>The proofs are due to Markus Reiter and Alexander Krauss.\<close>
-
-fun color :: "'a rbt \<Rightarrow> color" where
-"color Leaf = Black" |
-"color (Node c _ _ _) = c"
 
 fun bheight :: "'a rbt \<Rightarrow> nat" where
 "bheight Leaf = 0" |
@@ -181,7 +172,7 @@ by(induct x t rule: ins.induct)
   (auto simp: invh_baliL invh_baliR bheight_baliL bheight_baliR)
 
 theorem rbt_insert: "rbt t \<Longrightarrow> rbt (insert x t)"
-by (simp add: invc_ins invh_ins color_paint_Black invc_paint_Black invh_paint
+by (simp add: invc_ins(2) invh_ins(1) color_paint_Black invc_paint_Black invh_paint
   rbt_def insert_def)
 
 
@@ -191,30 +182,26 @@ lemma bheight_paint_Red:
   "color t = Black \<Longrightarrow> bheight (paint Red t) = bheight t - 1"
 by (cases t) auto
 
-lemma baldL_invh_with_invc:
-  assumes "invh l" "invh r" "bheight l + 1 = bheight r" "invc r"
-  shows "bheight (baldL l a r) = bheight l + 1"  "invh (baldL l a r)"
-using assms 
+lemma invh_baldL_invc:
+  "\<lbrakk> invh l;  invh r;  bheight l + 1 = bheight r;  invc r \<rbrakk>
+   \<Longrightarrow> invh (baldL l a r) \<and> bheight (baldL l a r) = bheight l + 1"
 by (induct l a r rule: baldL.induct)
    (auto simp: invh_baliR invh_paint bheight_baliR bheight_paint_Red)
 
-lemma baldL_invh_app: 
-  assumes "invh l" "invh r" "bheight l + 1 = bheight r" "color r = Black"
-  shows "invh (baldL l a r)" 
-        "bheight (baldL l a r) = bheight r"
-using assms 
+lemma invh_baldL_Black: 
+  "\<lbrakk> invh l;  invh r;  bheight l + 1 = bheight r;  color r = Black \<rbrakk>
+   \<Longrightarrow> invh (baldL l a r) \<and> bheight (baldL l a r) = bheight r"
 by (induct l a r rule: baldL.induct) (auto simp add: invh_baliR bheight_baliR) 
 
-lemma baldL_invc: "\<lbrakk>invc2 l; invc r; color r = Black\<rbrakk> \<Longrightarrow> invc (baldL l a r)"
+lemma invc_baldL: "\<lbrakk>invc2 l; invc r; color r = Black\<rbrakk> \<Longrightarrow> invc (baldL l a r)"
 by (induct l a r rule: baldL.induct) (simp_all add: invc_baliR)
 
-lemma baldL_invc2: "\<lbrakk> invc2 l; invc r \<rbrakk> \<Longrightarrow> invc2 (baldL l a r)"
+lemma invc2_baldL: "\<lbrakk> invc2 l; invc r \<rbrakk> \<Longrightarrow> invc2 (baldL l a r)"
 by (induct l a r rule: baldL.induct) (auto simp: invc_baliR paint_invc2 invc2I)
 
-lemma baldR_invh_with_invc:
-  assumes "invh l" "invh r" "bheight l = bheight r + 1" "invc l"
-  shows "invh (baldR l a r) \<and> bheight (baldR l a r) = bheight l"
-using assms
+lemma invh_baldR_invc:
+  "\<lbrakk> invh l;  invh r;  bheight l = bheight r + 1;  invc l \<rbrakk>
+  \<Longrightarrow> invh (baldR l a r) \<and> bheight (baldR l a r) = bheight l"
 by(induct l a r rule: baldR.induct)
   (auto simp: invh_baliL bheight_baliL invh_paint bheight_paint_Red)
 
@@ -225,11 +212,10 @@ lemma invc2_baldR: "\<lbrakk> invc l; invc2 r \<rbrakk> \<Longrightarrow>invc2 (
 by (induct l x r rule: baldR.induct) (auto simp: invc_baliL paint_invc2 invc2I)
 
 lemma invh_combine:
-  assumes "invh l" "invh r" "bheight l = bheight r"
-  shows "bheight (combine l r) = bheight l" "invh (combine l r)"
-using assms 
+  "\<lbrakk> invh l; invh r; bheight l = bheight r \<rbrakk>
+  \<Longrightarrow> invh (combine l r) \<and> bheight (combine l r) = bheight l"
 by (induct l r rule: combine.induct) 
-   (auto simp: baldL_invh_app split: tree.splits color.splits)
+   (auto simp: invh_baldL_Black split: tree.splits color.splits)
 
 lemma invc_combine: 
   assumes "invc l" "invc r"
@@ -237,27 +223,16 @@ lemma invc_combine:
          "invc2 (combine l r)"
 using assms 
 by (induct l r rule: combine.induct)
-   (auto simp: baldL_invc invc2I split: tree.splits color.splits)
+   (auto simp: invc_baldL invc2I split: tree.splits color.splits)
 
+lemma neq_LeafD: "t \<noteq> Leaf \<Longrightarrow> \<exists>c l x r. t = Node c l x r"
+by(cases t) auto
 
-lemma assumes "invh l" "invc l"
-  shows del_invc_invh:
-   "invh (del x l) \<and>
+lemma del_invc_invh: "invh l \<Longrightarrow> invc l \<Longrightarrow> invh (del x l) \<and>
    (color l = Red \<and> bheight (del x l) = bheight l \<and> invc (del x l) \<or>
     color l = Black \<and> bheight (del x l) = bheight l - 1 \<and> invc2 (del x l))"
-and  "\<lbrakk>invh r; bheight l = bheight r; invc r\<rbrakk> \<Longrightarrow>
-   invh (delL x l k r) \<and> 
-   bheight (delL x l k r) = bheight l \<and> 
-   (color l = Black \<and> color r = Black \<and> invc (delL x l k r) \<or> 
-    (color l \<noteq> Black \<or> color r \<noteq> Black) \<and> invc2 (delL x l k r))"
-  and "\<lbrakk>invh r; bheight l = bheight r; invc r\<rbrakk> \<Longrightarrow>
-  invh (delR x l k r) \<and> 
-  bheight (delR x l k r) = bheight l \<and> 
-  (color l = Black \<and> color r = Black \<and> invc (delR x l k r) \<or> 
-   (color l \<noteq> Black \<or> color r \<noteq> Black) \<and> invc2 (delR x l k r))"
-using assms
-proof (induct x l and x l k r and x l k r rule: del_delL_delR.induct)
-case (2 y c _ y')
+proof (induct x l rule: del.induct)
+case (2 y c _ y' W)
   have "y = y' \<or> y < y' \<or> y > y'" by auto
   thus ?case proof (elim disjE)
     assume "y = y'"
@@ -265,19 +240,15 @@ case (2 y c _ y')
     by (cases c) (simp_all add: invh_combine invc_combine)
   next
     assume "y < y'"
-    with 2 show ?thesis by (cases c) (auto simp: invc2I)
+    with 2 show ?thesis
+      by(cases c)
+        (auto simp: invh_baldL_invc invc_baldL invc2_baldL dest: neq_LeafD)
   next
     assume "y' < y"
-    with 2 show ?thesis by (cases c) (auto simp: invc2I)
+    with 2 show ?thesis
+      by(cases c)
+        (auto simp: invh_baldR_invc invc_baldR invc2_baldR dest: neq_LeafD)
   qed
-next
-  case (3 y l z ra y' bb)
-  thus ?case by (cases "color (Node Black l z ra) = Black \<and> color bb = Black") (simp add: baldL_invh_with_invc baldL_invc baldL_invc2)+
-next
-  case (5 y a y' l z ra)
-  thus ?case by (cases "color a = Black \<and> color (Node Black l z ra) = Black") (simp add: baldR_invh_with_invc invc_baldR invc2_baldR)+
-next
-  case ("6_1" y a y') thus ?case by (cases "color a = Black \<and> color Leaf = Black") simp+
 qed auto
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete k t)"
