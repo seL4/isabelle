@@ -6,69 +6,46 @@ import { ViewColumn, TextDocument, TextEditor, TextDocumentContentProvider,
   window, commands } from 'vscode'
 import { LanguageClient } from 'vscode-languageclient';
 import * as library from './library'
-import * as protocol from './protocol';
+import * as protocol from './protocol'
+import { Content_Provider } from './content_provider'
 
 
-/* Uri information */
+/* HTML content */
 
-const preview_uri_template = Uri.parse("isabelle-preview:")
-const preview_uri_scheme = preview_uri_template.scheme
+const content_provider = new Content_Provider("isabelle-preview")
 
 function encode_preview(document_uri: Uri | undefined): Uri | undefined
 {
   if (document_uri && library.is_file(document_uri)) {
-    return preview_uri_template.with({ query: document_uri.fsPath })
+    return content_provider.uri_template.with({ query: document_uri.fsPath })
   }
   else undefined
 }
 
 function decode_preview(preview_uri: Uri | undefined): Uri | undefined
 {
-  if (preview_uri && preview_uri.scheme === preview_uri_scheme) {
+  if (preview_uri && preview_uri.scheme === content_provider.uri_scheme) {
     return Uri.file(preview_uri.query)
   }
   else undefined
 }
 
 
-/* HTML content */
-
-const preview_content = new Map<string, string>()
-
-class Content_Provider implements TextDocumentContentProvider
-{
-  dispose() { }
-
-  private emitter = new EventEmitter<Uri>()
-  public update(preview_uri: Uri) { this.emitter.fire(preview_uri) }
-  get onDidChange(): Event<Uri> { return this.emitter.event }
-
-  provideTextDocumentContent(preview_uri: Uri): string
-  {
-    return preview_content.get(preview_uri.toString()) || ""
-  }
-}
-
-
 /* init */
 
 let language_client: LanguageClient
-let content_provider: Content_Provider
 
 export function init(context: ExtensionContext, client: LanguageClient)
 {
   language_client = client
 
-  content_provider = new Content_Provider()
-  context.subscriptions.push(
-    workspace.registerTextDocumentContentProvider(preview_uri_scheme, content_provider),
-    content_provider)
+  context.subscriptions.push(content_provider.register())
 
   language_client.onNotification(protocol.preview_response_type, params =>
     {
       const preview_uri = encode_preview(Uri.parse(params.uri))
       if (preview_uri) {
-        preview_content.set(preview_uri.toString(), params.content)
+        content_provider.set_content(preview_uri, params.content)
         content_provider.update(preview_uri)
 
         const existing_document =
