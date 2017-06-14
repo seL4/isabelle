@@ -37,10 +37,9 @@ let language_client: LanguageClient
 
 export function init(context: ExtensionContext, client: LanguageClient)
 {
-  language_client = client
-
   context.subscriptions.push(content_provider.register())
 
+  language_client = client
   language_client.onNotification(protocol.preview_response_type, params =>
     {
       const preview_uri = encode_preview(Uri.parse(params.uri))
