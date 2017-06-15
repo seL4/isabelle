@@ -228,23 +228,23 @@ by (induct l r rule: combine.induct)
 lemma neq_LeafD: "t \<noteq> Leaf \<Longrightarrow> \<exists>c l x r. t = Node c l x r"
 by(cases t) auto
 
-lemma del_invc_invh: "invh l \<Longrightarrow> invc l \<Longrightarrow> invh (del x l) \<and>
-   (color l = Red \<and> bheight (del x l) = bheight l \<and> invc (del x l) \<or>
-    color l = Black \<and> bheight (del x l) = bheight l - 1 \<and> invc2 (del x l))"
-proof (induct x l rule: del.induct)
-case (2 y c _ y' W)
-  have "y = y' \<or> y < y' \<or> y > y'" by auto
+lemma del_invc_invh: "invh t \<Longrightarrow> invc t \<Longrightarrow> invh (del x t) \<and>
+   (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>
+    color t = Black \<and> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
+proof (induct x t rule: del.induct)
+case (2 x c _ y)
+  have "x = y \<or> x < y \<or> x > y" by auto
   thus ?case proof (elim disjE)
-    assume "y = y'"
+    assume "x = y"
     with 2 show ?thesis
     by (cases c) (simp_all add: invh_combine invc_combine)
   next
-    assume "y < y'"
+    assume "x < y"
     with 2 show ?thesis
       by(cases c)
         (auto simp: invh_baldL_invc invc_baldL invc2_baldL dest: neq_LeafD)
   next
-    assume "y' < y"
+    assume "y < x"
     with 2 show ?thesis
       by(cases c)
         (auto simp: invh_baldR_invc invc_baldR invc2_baldR dest: neq_LeafD)
