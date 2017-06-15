@@ -332,7 +332,7 @@ proof -
     by (intro reindex_bij_betw_not_neutral[OF _ _ bij]) auto
 qed
 
-lemma delta:
+lemma delta [simp]:
   assumes fS: "finite S"
   shows "F (\<lambda>k. if k = a then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
 proof -
@@ -355,7 +355,7 @@ proof -
   qed
 qed
 
-lemma delta':
+lemma delta' [simp]:
   assumes fin: "finite S"
   shows "F (\<lambda>k. if a = k then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
   using delta [OF fin, of a b, symmetric] by (auto intro: cong)

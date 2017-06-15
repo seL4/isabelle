@@ -55,7 +55,7 @@ lemma content_singleton: "content {a} = 0"
 lemma content_unit[iff]: "content (cbox 0 (One::'a::euclidean_space)) = 1"
   by simp
 
-lemma content_pos_le[intro]: "0 \<le> content (cbox a b)"
+lemma content_pos_le [iff]: "0 \<le> content X"
   by simp
 
 corollary content_nonneg [simp]: "~ content (cbox a b) < 0"
@@ -157,20 +157,18 @@ lemma division_of_content_0:
 lemma sum_content_null:
   assumes "content (cbox a b) = 0"
     and "p tagged_division_of (cbox a b)"
-  shows "sum (\<lambda>(x,k). content k *\<^sub>R f x) p = (0::'a::real_normed_vector)"
+  shows "(\<Sum>(x,k)\<in>p. content k *\<^sub>R f x) = (0::'a::real_normed_vector)"
 proof (rule sum.neutral, rule)
   fix y
   assume y: "y \<in> p"
   obtain x k where xk: "y = (x, k)"
     using surj_pair[of y] by blast
-  note assm = tagged_division_ofD(3-4)[OF assms(2) y[unfolded xk]]
-  from this(2) obtain c d where k: "k = cbox c d" by blast
+  then obtain c d where k: "k = cbox c d" "k \<subseteq> cbox a b"
+    by (metis assms(2) tagged_division_ofD(3) tagged_division_ofD(4) y)
   have "(\<lambda>(x, k). content k *\<^sub>R f x) y = content k *\<^sub>R f x"
     unfolding xk by auto
   also have "\<dots> = 0"
-    using content_subset[OF assm(1)[unfolded k]] content_pos_le[of c d]
-    unfolding assms(1) k
-    by auto
+    using assms(1) content_0_subset k(2) by auto
   finally show "(\<lambda>(x, k). content k *\<^sub>R f x) y = 0" .
 qed
 
@@ -446,6 +444,11 @@ lemma has_integral_scaleR_left:
   "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x *\<^sub>R c) has_integral (y *\<^sub>R c)) s"
   using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
 
+lemma integrable_on_scaleR_left:
+  assumes "f integrable_on A" 
+  shows "(\<lambda>x. f x *\<^sub>R y) integrable_on A" 
+  using assms has_integral_scaleR_left unfolding integrable_on_def by blast
+
 lemma has_integral_mult_left:
   fixes c :: "_ :: real_normed_algebra"
   shows "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) s"
@@ -670,12 +673,8 @@ lemma integral_sum:
   by (auto intro: has_integral_sum integrable_integral)
 
 lemma integrable_sum:
-  "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow> (\<lambda>x. sum (\<lambda>a. f a x) t) integrable_on s"
-  unfolding integrable_on_def
-  apply (drule bchoice)
-  using has_integral_sum[of t]
-  apply auto
-  done
+  "\<lbrakk>finite I;  \<And>a. a \<in> I \<Longrightarrow> f a integrable_on S\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>a\<in>I. f a x) integrable_on S"
+  unfolding integrable_on_def using has_integral_sum[of I] by metis
 
 lemma has_integral_eq:
   assumes "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
@@ -5493,32 +5492,10 @@ proof (subst integrable_cauchy, safe, goal_cases)
       apply (rule_tac[!] sum_nonneg)
       apply safe
       unfolding real_scaleR_def right_diff_distrib[symmetric]
-      apply (rule_tac[!] mult_nonneg_nonneg)
-    proof -
-      fix a b
-      assume ab: "(a, b) \<in> p1"
-      show "0 \<le> content b"
-        using *(3)[OF ab]
-        apply safe
-        apply (rule content_pos_le)
+         apply (rule_tac[!] mult_nonneg_nonneg)
+        apply simp_all
+      using obt(4) prems(1) prems(4) apply (blast intro:  elim: dest!: bspec)+
         done
-      then show "0 \<le> content b" .
-      show "0 \<le> f a - g a" "0 \<le> h a - f a"
-        using *(1-2)[OF ab]
-        using obt(4)[rule_format,of a]
-        by auto
-    next
-      fix a b
-      assume ab: "(a, b) \<in> p2"
-      show "0 \<le> content b"
-        using *(6)[OF ab]
-        apply safe
-        apply (rule content_pos_le)
-        done
-      then show "0 \<le> content b" .
-      show "0 \<le> f a - g a" and "0 \<le> h a - f a"
-        using *(4-5)[OF ab] using obt(4)[rule_format,of a] by auto
-    qed
     then show ?case
       apply -
       unfolding real_norm_def
@@ -6317,7 +6294,7 @@ next
     proof (rule, goal_cases)
       case prems: (1 x)
       have "e / (4 * content (cbox a b)) > 0"
-        using \<open>e>0\<close> False content_pos_le[of a b] by (simp add: less_le)
+        by (simp add: False content_lt_nz e)
       from assms(3)[rule_format, OF prems, THEN LIMSEQ_D, OF this]
       guess n .. note n=this
       then show ?case
@@ -7094,9 +7071,10 @@ proof cases
       also have "\<dots> = content (cbox a b) * e * norm (x - x0)"
         by simp
       also have "\<dots> < e' * norm (x - x0)"
-        using \<open>e' > 0\<close> content_pos_le[of a b]
-        by (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])
-           (auto simp: divide_simps e_def simp del: measure_nonneg)
+        using \<open>e' > 0\<close>
+        apply (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])  
+        apply  (auto simp: divide_simps e_def)
+        by (metis \<open>0 < e\<close> e_def order.asym zero_less_divide_iff)
       finally have "norm (?F x - ?F x0 - ?dF (x - x0)) < e' * norm (x - x0)" .
       then show ?case
         by (auto simp: divide_simps)
@@ -7207,8 +7185,7 @@ proof -
       define e' where "e' = e / 2"
       with \<open>e > 0\<close> have "e' > 0" by simp
       then have "\<forall>\<^sub>F n in F. \<forall>x\<in>cbox a b. norm (f n x - g x) < e' / content (cbox a b)"
-        using u content_nonzero content_pos_le[of a b]
-        by (auto simp: uniform_limit_iff dist_norm simp del: measure_nonneg)
+        using u content_nonzero by (auto simp: uniform_limit_iff dist_norm zero_less_measure_iff)
       then show "\<forall>\<^sub>F n in F. dist (I n) J < e"
       proof eventually_elim
         case (elim n)

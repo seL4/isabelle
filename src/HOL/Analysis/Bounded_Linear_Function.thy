@@ -387,7 +387,7 @@ proof (transfer, rule,  rule euclidean_eqI)
   have "(\<Sum>j\<in>Basis. \<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j)) *\<^sub>R j) \<bullet> b
     = (\<Sum>j\<in>Basis. if j = b then (\<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> j))) else 0)"
     using b
-    by (auto simp add: algebra_simps inner_sum_left inner_Basis split: if_split intro!: sum.cong)
+    by (simp add: inner_sum_left inner_Basis if_distrib cong: if_cong) (simp add: sum.commute)
   also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i * (f i \<bullet> b)))"
     using b by (simp add: sum.delta)
   also have "\<dots> = f x \<bullet> b"

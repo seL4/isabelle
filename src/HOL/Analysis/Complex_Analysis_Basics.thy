@@ -919,7 +919,6 @@ lemma has_complex_derivative_inverse_basic:
   apply (auto simp:  bounded_linear_mult_right)
   done
 
-(*Used only once, in Multivariate/cauchy.ml. *)
 lemma has_complex_derivative_inverse_strong:
   fixes f :: "complex \<Rightarrow> complex"
   shows "DERIV f x :> f' \<Longrightarrow>

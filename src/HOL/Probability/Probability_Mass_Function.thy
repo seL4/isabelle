@@ -2111,7 +2111,7 @@ proof -
     by (rule sum.commute)
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then
                      (\<Sum>x\<in>set (map fst xs). if x = fst (xs ! xa) then snd (xs ! xa) else 0) else 0)"
-    by (auto intro!: sum.cong sum.neutral)
+    by (auto intro!: sum.cong sum.neutral simp del: sum.delta)
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then snd (xs ! xa) else 0)"
     by (intro sum.cong refl) (simp_all add: sum.delta)
   also have "\<dots> = sum_list (map snd (filter (\<lambda>x. fst x \<in> A) xs))"

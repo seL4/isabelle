@@ -1665,8 +1665,8 @@ text \<open>Intervals in general, including infinite and mixtures of open and cl
 definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
 
-lemma is_interval_cbox: "is_interval (cbox a (b::'a::euclidean_space))" (is ?th1)
-  and is_interval_box: "is_interval (box a b)" (is ?th2)
+lemma is_interval_cbox [simp]: "is_interval (cbox a (b::'a::euclidean_space))" (is ?th1)
+  and is_interval_box [simp]: "is_interval (box a b)" (is ?th2)
   unfolding is_interval_def mem_box Ball_def atLeastAtMost_iff
   by (meson order_trans le_less_trans less_le_trans less_trans)+
 
@@ -1726,12 +1726,28 @@ lemma cbox01_nonempty [simp]: "cbox 0 One \<noteq> {}"
   by (simp add: box_ne_empty inner_Basis inner_sum_left sum_nonneg)
 
 lemma box01_nonempty [simp]: "box 0 One \<noteq> {}"
-  by (simp add: box_ne_empty inner_Basis inner_sum_left) (simp add: sum.remove)
+  by (simp add: box_ne_empty inner_Basis inner_sum_left)
 
 lemma empty_as_interval: "{} = cbox One (0::'a::euclidean_space)"
   using nonempty_Basis box01_nonempty box_eq_empty(1) box_ne_empty(1) by blast
 
+lemma interval_subset_is_interval:
+  assumes "is_interval S"
+  shows "cbox a b \<subseteq> S \<longleftrightarrow> cbox a b = {} \<or> a \<in> S \<and> b \<in> S" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs  using box_ne_empty(1) mem_box(2) by fastforce
+next
+  assume ?rhs
+  have "cbox a b \<subseteq> S" if "a \<in> S" "b \<in> S"
+    using assms unfolding is_interval_def
+    apply (clarsimp simp add: mem_box)
+    using that by blast
+  with \<open>?rhs\<close> show ?lhs
+    by blast
+qed
 
+  
 subsection \<open>Connectedness\<close>
 
 lemma connected_local:
@@ -5641,35 +5657,6 @@ proof
   qed
 qed (metis compact_imp_complete compact_imp_seq_compact seq_compact_imp_totally_bounded)
 
-lemma cauchy: "Cauchy s \<longleftrightarrow> (\<forall>e>0.\<exists> N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
-proof -
-  {
-    assume ?rhs
-    {
-      fix e::real
-      assume "e>0"
-      with \<open>?rhs\<close> obtain N where N:"\<forall>n\<ge>N. dist (s n) (s N) < e/2"
-        by (erule_tac x="e/2" in allE) auto
-      {
-        fix n m
-        assume nm:"N \<le> m \<and> N \<le> n"
-        then have "dist (s m) (s n) < e" using N
-          using dist_triangle_half_l[of "s m" "s N" "e" "s n"]
-          by blast
-      }
-      then have "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < e"
-        by blast
-    }
-    then have ?lhs
-      unfolding cauchy_def
-      by blast
-  }
-  then show ?thesis
-    unfolding cauchy_def
-    using dist_triangle_half_l
-    by blast
-qed
-
 lemma cauchy_imp_bounded:
   assumes "Cauchy s"
   shows "bounded (range s)"
@@ -6978,6 +6965,11 @@ proof -
   ultimately show ?thesis ..
 qed
 
+lemma bounded_uniformly_continuous_image:
+  fixes f :: "'a :: heine_borel \<Rightarrow> 'b :: heine_borel"
+  assumes "uniformly_continuous_on S f" "bounded S"
+  shows "bounded(image f S)"
+  by (metis (no_types, lifting) assms bounded_closure_image compact_closure compact_continuous_image compact_eq_bounded_closed image_cong uniformly_continuous_imp_continuous uniformly_continuous_on_extension_on_closure)
 
 subsection\<open>Quotient maps\<close>
 
@@ -9521,7 +9513,7 @@ proof -
   have "\<exists>N. \<forall>n\<ge>N. norm (x n - x N) < d" if "d > 0" for d :: real
   proof -
     from that obtain N where N: "\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
-      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] e
+      using cf[unfolded Cauchy_def o_def dist_norm, THEN spec[where x="e*d"]] e
       by auto
     have "norm (x n - x N) < d" if "n \<ge> N" for n
     proof -
@@ -9538,7 +9530,7 @@ proof -
     then show ?thesis by auto
   qed
   then show ?thesis
-    by (simp add: cauchy dist_norm)
+    by (simp add: Cauchy_altdef2 dist_norm)
 qed
 
 lemma complete_isometric_image:

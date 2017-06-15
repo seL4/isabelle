@@ -923,9 +923,7 @@ qed
 
 lemma fps_sum_rep_nth: "(sum (\<lambda>i. fps_const(a$i)*X^i) {0..m})$n =
     (if n \<le> m then a$n else 0::'a::comm_ring_1)"
-  apply (auto simp add: fps_sum_nth cond_value_iff cong del: if_weak_cong)
-  apply (simp add: sum.delta')
-  done
+  by (auto simp add: fps_sum_nth cond_value_iff cong del: if_weak_cong)
 
 lemma fps_notation: "(\<lambda>n. sum (\<lambda>i. fps_const(a$i) * X^i) {0..n}) \<longlonglongrightarrow> a"
   (is "?s \<longlonglongrightarrow> a")

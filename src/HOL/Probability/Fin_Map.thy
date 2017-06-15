@@ -474,7 +474,7 @@ proof
   fix P::"nat \<Rightarrow> 'a \<Rightarrow>\<^sub>F 'b"
   assume "Cauchy P"
   then obtain Nd where Nd: "\<And>n. n \<ge> Nd \<Longrightarrow> dist (P n) (P Nd) < 1"
-    by (force simp: cauchy)
+    by (force simp: Cauchy_altdef2)
   define d where "d = domain (P Nd)"
   with Nd have dim: "\<And>n. n \<ge> Nd \<Longrightarrow> domain (P n) = d" using dist_le_1_imp_domain_eq by auto
   have [simp]: "finite d" unfolding d_def by simp
@@ -484,11 +484,11 @@ proof
   have q: "\<And>i. i \<in> d \<Longrightarrow> q i = Q i" by (auto simp add: Q_def Abs_fmap_inverse)
   {
     fix i assume "i \<in> d"
-    have "Cauchy (p i)" unfolding cauchy p_def
+    have "Cauchy (p i)" unfolding Cauchy_altdef2 p_def
     proof safe
       fix e::real assume "0 < e"
       with \<open>Cauchy P\<close> obtain N where N: "\<And>n. n\<ge>N \<Longrightarrow> dist (P n) (P N) < min e 1"
-        by (force simp: cauchy min_def)
+        by (force simp: Cauchy_altdef2 min_def)
       hence "\<And>n. n \<ge> N \<Longrightarrow> domain (P n) = domain (P N)" using dist_le_1_imp_domain_eq by auto
       with dim have dim: "\<And>n. n \<ge> N \<Longrightarrow> domain (P n) = d" by (metis nat_le_linear)
       show "\<exists>N. \<forall>n\<ge>N. dist ((P n) i) ((P N) i) < e"

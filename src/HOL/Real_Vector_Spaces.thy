@@ -1949,6 +1949,33 @@ next
   qed
 qed
 
+lemma (in metric_space) Cauchy_altdef2: "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
+proof 
+  assume "Cauchy s"
+  then show ?rhs by (force simp add: Cauchy_def)
+next
+    assume ?rhs
+    {
+      fix e::real
+      assume "e>0"
+      with \<open>?rhs\<close> obtain N where N: "\<forall>n\<ge>N. dist (s n) (s N) < e/2"
+        by (erule_tac x="e/2" in allE) auto
+      {
+        fix n m
+        assume nm: "N \<le> m \<and> N \<le> n"
+        then have "dist (s m) (s n) < e" using N
+          using dist_triangle_half_l[of "s m" "s N" "e" "s n"]
+          by blast
+      }
+      then have "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < e"
+        by blast
+    }
+    then have ?lhs
+      unfolding Cauchy_def by blast
+  then show ?lhs
+    by blast
+qed
+
 lemma (in metric_space) metric_CauchyI:
   "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
   by (simp add: Cauchy_def)
