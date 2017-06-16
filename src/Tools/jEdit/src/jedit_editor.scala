@@ -284,4 +284,12 @@ class JEdit_Editor extends Editor[View]
         hyperlink_command(focus, snapshot, id, range.start)
       case _ => None
     }
+
+
+  /* dispatcher thread */
+
+  override def assert_dispatcher[A](body: => A): A = GUI_Thread.assert(body)
+  override def require_dispatcher[A](body: => A): A = GUI_Thread.require(body)
+  override def send_dispatcher(body: => Unit): Unit = GUI_Thread.later(body)
+  override def send_wait_dispatcher(body: => Unit): Unit = GUI_Thread.now(body)
 }

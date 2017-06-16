@@ -48,7 +48,7 @@ class Query_Operation[Editor_Context](
   private val print_function = operation_name + "_query"
 
 
-  /* implicit state -- owned by GUI thread */
+  /* implicit state -- owned by editor thread */
 
   private val current_state = Synchronized(Query_Operation.State.empty)
 
@@ -67,7 +67,7 @@ class Query_Operation[Editor_Context](
 
   private def content_update()
   {
-    GUI_Thread.require {}
+    editor.require_dispatcher {}
 
 
     /* snapshot */
@@ -174,11 +174,11 @@ class Query_Operation[Editor_Context](
   /* query operations */
 
   def cancel_query(): Unit =
-    GUI_Thread.require { editor.session.cancel_exec(current_state.value.exec_id) }
+    editor.require_dispatcher { editor.session.cancel_exec(current_state.value.exec_id) }
 
   def apply_query(query: List[String])
   {
-    GUI_Thread.require {}
+    editor.require_dispatcher {}
 
     editor.current_node_snapshot(editor_context) match {
       case Some(snapshot) =>
@@ -202,7 +202,7 @@ class Query_Operation[Editor_Context](
 
   def locate_query()
   {
-    GUI_Thread.require {}
+    editor.require_dispatcher {}
 
     val state = current_state.value
     for {
@@ -224,7 +224,7 @@ class Query_Operation[Editor_Context](
           if state.update_pending ||
             (state.status != Query_Operation.Status.FINISHED &&
               changed.commands.contains(command)) =>
-            GUI_Thread.later { content_update() }
+            editor.send_dispatcher { content_update() }
           case _ =>
         }
     }

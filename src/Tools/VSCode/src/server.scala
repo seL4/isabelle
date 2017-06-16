@@ -458,5 +458,10 @@ class Server(
     override def hyperlink_command(
       focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
         : Option[Hyperlink] = None
+
+    override def assert_dispatcher[A](body: => A): A = session.assert_dispatcher(body)
+    override def require_dispatcher[A](body: => A): A = session.require_dispatcher(body)
+    override def send_dispatcher(body: => Unit): Unit = session.send_dispatcher(body)
+    override def send_wait_dispatcher(body: => Unit): Unit = session.send_wait_dispatcher(body)
   }
 }

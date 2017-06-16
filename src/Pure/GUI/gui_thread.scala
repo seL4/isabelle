@@ -14,13 +14,13 @@ object GUI_Thread
 {
   /* context check */
 
-  def assert[A](body: => A) =
+  def assert[A](body: => A): A =
   {
     Predef.assert(SwingUtilities.isEventDispatchThread())
     body
   }
 
-  def require[A](body: => A) =
+  def require[A](body: => A): A =
   {
     Predef.require(SwingUtilities.isEventDispatchThread())
     body

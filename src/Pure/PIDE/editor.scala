@@ -45,4 +45,12 @@ abstract class Editor[Context]
   def hyperlink_command(
     focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
       : Option[Hyperlink]
+
+
+  /* dispatcher thread */
+
+  def assert_dispatcher[A](body: => A): A
+  def require_dispatcher[A](body: => A): A
+  def send_dispatcher(body: => Unit): Unit
+  def send_wait_dispatcher(body: => Unit): Unit
 }
