@@ -48,12 +48,13 @@ object Document_Model
       catch { case ERROR(_) => Nil }
   }
 
-  def init(session: Session, node_name: Document.Node.Name): Document_Model =
-    Document_Model(session, node_name, Content.empty)
+  def init(session: Session, editor: Server.Editor, node_name: Document.Node.Name): Document_Model =
+    Document_Model(session, editor, node_name, Content.empty)
 }
 
 sealed case class Document_Model(
   session: Session,
+  editor: Server.Editor,
   node_name: Document.Node.Name,
   content: Document_Model.Content,
   external_file: Boolean = false,
@@ -109,8 +110,10 @@ sealed case class Document_Model(
             case None => Text.Perspective.empty
           }
 
+      val overlays = editor.node_overlays(node_name)
+
       (snapshot.node.load_commands_changed(doc_blobs),
-        Document.Node.Perspective(node_required, text_perspective, Document.Node.Overlays.empty))
+        Document.Node.Perspective(node_required, text_perspective, overlays))
     }
     else (false, Document.Node.no_perspective_text)
   }

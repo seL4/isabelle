@@ -21,6 +21,9 @@ import scala.collection.mutable
 
 object Server
 {
+  type Editor = isabelle.Editor[Unit]
+
+
   /* Isabelle tool wrapper */
 
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -118,7 +121,8 @@ class Server(
 
   private val delay_load: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
-      val (invoke_input, invoke_load) = resources.resolve_dependencies(session, file_watcher)
+      val (invoke_input, invoke_load) =
+        resources.resolve_dependencies(session, editor, file_watcher)
       if (invoke_input) delay_input.invoke()
       if (invoke_load) delay_load.invoke
     }
@@ -158,7 +162,7 @@ class Server(
     }
     norm(changes)
     norm_changes.foreach(change =>
-      resources.change_model(session, file, change.text, change.range))
+      resources.change_model(session, editor, file, change.text, change.range))
 
     delay_input.invoke()
     delay_output.invoke()
@@ -430,7 +434,7 @@ class Server(
 
   /* abstract editor operations */
 
-  object editor extends Editor[Unit]
+  object editor extends Server.Editor
   {
     override def session: Session = server.session
     override def flush(): Unit = resources.flush_input(session)

@@ -147,11 +147,16 @@ class VSCode_Resources(
       case None => false
     }
 
-  def change_model(session: Session, file: JFile, text: String, range: Option[Line.Range] = None)
+  def change_model(
+    session: Session,
+    editor: Server.Editor,
+    file: JFile,
+    text: String,
+    range: Option[Line.Range] = None)
   {
     state.change(st =>
       {
-        val model = st.models.getOrElse(file, Document_Model.init(session, node_name(file)))
+        val model = st.models.getOrElse(file, Document_Model.init(session, editor, node_name(file)))
         val model1 = (model.change_text(text, range) getOrElse model).external(false)
         st.update_models(Some(file -> model1))
       })
@@ -180,7 +185,10 @@ class VSCode_Resources(
 
   /* resolve dependencies */
 
-  def resolve_dependencies(session: Session, file_watcher: File_Watcher): (Boolean, Boolean) =
+  def resolve_dependencies(
+    session: Session,
+    editor: Server.Editor,
+    file_watcher: File_Watcher): (Boolean, Boolean) =
   {
     state.change_result(st =>
       {
@@ -217,7 +225,7 @@ class VSCode_Resources(
             text <- { file_watcher.register_parent(file); read_file_content(file) }
           }
           yield {
-            val model = Document_Model.init(session, node_name)
+            val model = Document_Model.init(session, editor, node_name)
             val model1 = (model.change_text(text) getOrElse model).external(true)
             (file, model1)
           }).toList
