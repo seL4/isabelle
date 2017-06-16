@@ -467,6 +467,29 @@ object Protocol
   }
 
 
+  /* state output */
+
+  object State_Output
+  {
+    def apply(id: Counter.ID, content: String): JSON.T =
+      Notification("PIDE/state_output", Map("id" -> id, "content" -> content))
+  }
+
+  class State_Id_Notification(name: String)
+  {
+    def unapply(json: JSON.T): Option[Counter.ID] =
+      json match {
+        case Notification(method, Some(params)) if method == name => JSON.long(params, "id")
+        case _ => None
+      }
+  }
+
+  object State_Init extends Notification0("PIDE/state_init")
+  object State_Exit extends State_Id_Notification("PIDE/state_exit")
+  object State_Locate extends State_Id_Notification("PIDE/state_locate")
+  object State_Update extends State_Id_Notification("PIDE/state_update")
+
+
   /* preview */
 
   object Preview_Request

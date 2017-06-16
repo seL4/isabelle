@@ -6,6 +6,7 @@ import * as library from './library'
 import * as decorations from './decorations';
 import * as preview from './preview';
 import * as protocol from './protocol';
+import * as state from './state';
 import * as symbol from './symbol';
 import * as completion from './completion';
 import { ExtensionContext, workspace, window, commands, languages } from 'vscode';
@@ -99,6 +100,16 @@ export function activate(context: ExtensionContext)
       language_client.onNotification(protocol.dynamic_output_type,
         params => { dynamic_output.clear(); dynamic_output.appendLine(params.content) })
     })
+
+
+    /* state */
+
+    context.subscriptions.push(
+      commands.registerCommand("isabelle.state", uri => state.init(uri)),
+      commands.registerCommand("_isabelle.state-locate", state.locate),
+      commands.registerCommand("_isabelle.state-update", state.update))
+
+    language_client.onReady().then(() => state.setup(context, language_client))
 
 
     /* preview */

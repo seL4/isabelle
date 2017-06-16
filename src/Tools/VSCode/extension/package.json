@@ -33,6 +33,11 @@
     "contributes": {
         "commands": [
             {
+                "command": "isabelle.state",
+                "title": "Show Proof State",
+                "category": "Isabelle"
+            },
+            {
                 "command": "isabelle.preview",
                 "title": "Open Preview",
                 "category": "Isabelle",

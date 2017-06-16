@@ -47,6 +47,28 @@ export const dynamic_output_type =
   new NotificationType<Dynamic_Output, void>("PIDE/dynamic_output")
 
 
+/* state */
+
+export interface State_Output
+{
+  id: number
+  content: string
+}
+
+export const state_output_type =
+  new NotificationType<State_Output, void>("PIDE/state_output")
+
+export interface State_Id
+{
+  id: number
+}
+
+export const state_init_type = new NotificationType<void, void>("PIDE/state_init")
+export const state_exit_type = new NotificationType<State_Id, void>("PIDE/state_exit")
+export const state_locate_type = new NotificationType<State_Id, void>("PIDE/state_locate")
+export const state_update_type = new NotificationType<State_Id, void>("PIDE/state_update")
+
+
 /* preview */
 
 export interface Preview_Request
