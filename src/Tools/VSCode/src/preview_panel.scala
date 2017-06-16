@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/preview.scala
+/*  Title:      Tools/VSCode/src/preview_panel.scala
     Author:     Makarius
 
 HTML document preview.
@@ -12,7 +12,7 @@ import isabelle._
 import java.io.{File => JFile}
 
 
-class Preview(resources: VSCode_Resources)
+class Preview_Panel(resources: VSCode_Resources)
 {
   private val pending = Synchronized(Map.empty[JFile, Int])
 

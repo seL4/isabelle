@@ -4,9 +4,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as library from './library'
 import * as decorations from './decorations';
-import * as preview from './preview';
+import * as preview_panel from './preview_panel';
 import * as protocol from './protocol';
-import * as state from './state';
+import * as state_panel from './state_panel';
 import * as symbol from './symbol';
 import * as completion from './completion';
 import { ExtensionContext, workspace, window, commands, languages } from 'vscode';
@@ -102,25 +102,25 @@ export function activate(context: ExtensionContext)
     })
 
 
-    /* state */
+    /* state panel */
 
     context.subscriptions.push(
-      commands.registerCommand("isabelle.state", uri => state.init(uri)),
-      commands.registerCommand("_isabelle.state-locate", state.locate),
-      commands.registerCommand("_isabelle.state-update", state.update))
+      commands.registerCommand("isabelle.state", uri => state_panel.init(uri)),
+      commands.registerCommand("_isabelle.state-locate", state_panel.locate),
+      commands.registerCommand("_isabelle.state-update", state_panel.update))
 
-    language_client.onReady().then(() => state.setup(context, language_client))
+    language_client.onReady().then(() => state_panel.setup(context, language_client))
 
 
-    /* preview */
+    /* preview panel */
 
     context.subscriptions.push(
-      commands.registerCommand("isabelle.preview", uri => preview.request(uri, false)),
-      commands.registerCommand("isabelle.preview-split", uri => preview.request(uri, true)),
-      commands.registerCommand("isabelle.preview-source", preview.source),
-      commands.registerCommand("isabelle.preview-update", preview.update))
+      commands.registerCommand("isabelle.preview", uri => preview_panel.request(uri, false)),
+      commands.registerCommand("isabelle.preview-split", uri => preview_panel.request(uri, true)),
+      commands.registerCommand("isabelle.preview-source", preview_panel.source),
+      commands.registerCommand("isabelle.preview-update", preview_panel.update))
 
-    language_client.onReady().then(() => preview.setup(context, language_client))
+    language_client.onReady().then(() => preview_panel.setup(context, language_client))
 
 
     /* Isabelle symbols */

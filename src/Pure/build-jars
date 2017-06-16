@@ -168,10 +168,10 @@ declare -a SOURCES=(
   ../Tools/VSCode/src/document_model.scala
   ../Tools/VSCode/src/dynamic_output.scala
   ../Tools/VSCode/src/grammar.scala
-  ../Tools/VSCode/src/preview.scala
+  ../Tools/VSCode/src/preview_panel.scala
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
-  ../Tools/VSCode/src/state.scala
+  ../Tools/VSCode/src/state_panel.scala
   ../Tools/VSCode/src/vscode_rendering.scala
   ../Tools/VSCode/src/vscode_resources.scala
 )

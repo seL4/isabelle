@@ -181,17 +181,17 @@ class Server(
 
   /* preview */
 
-  private lazy val preview = new Preview(resources)
+  private lazy val preview_panel = new Preview_Panel(resources)
 
   private lazy val delay_preview: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
-      if (preview.flush(channel)) delay_preview.invoke()
+      if (preview_panel.flush(channel)) delay_preview.invoke()
     }
 
   private def request_preview(file: JFile, column: Int)
   {
-    preview.request(file, column)
+    preview_panel.request(file, column)
     delay_preview.invoke()
   }
 
@@ -400,10 +400,10 @@ class Server(
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case Protocol.Caret_Update(caret) => update_caret(caret)
-          case Protocol.State_Init(()) => State.init(server)
-          case Protocol.State_Exit(id) => State.exit(id)
-          case Protocol.State_Locate(id) => State.locate(id)
-          case Protocol.State_Update(id) => State.update(id)
+          case Protocol.State_Init(()) => State_Panel.init(server)
+          case Protocol.State_Exit(id) => State_Panel.exit(id)
+          case Protocol.State_Locate(id) => State_Panel.locate(id)
+          case Protocol.State_Update(id) => State_Panel.update(id)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
           case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
           case _ => log("### IGNORED")
