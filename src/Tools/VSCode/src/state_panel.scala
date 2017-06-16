@@ -90,15 +90,18 @@ class State_Panel private(val server: Server)
 
   def set_auto_update(b: Boolean) { auto_update_enabled.change(_ => b); if (b) update() }
 
-  def auto_update(): Unit = if (auto_update_enabled.value) update()
+  def auto_update() { if (auto_update_enabled.value) update() }
 
 
   /* main */
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
-      case changed: Session.Commands_Changed => if (changed.assignment) auto_update()
-      case Session.Caret_Focus => auto_update()
+      case changed: Session.Commands_Changed =>
+        if (changed.assignment) auto_update()
+
+      case Session.Caret_Focus =>
+        auto_update()
     }
 
   def init()
