@@ -31,11 +31,11 @@ function decode_preview(preview_uri: Uri | undefined): Uri | undefined
 }
 
 
-/* init */
+/* setup */
 
 let language_client: LanguageClient
 
-export function init(context: ExtensionContext, client: LanguageClient)
+export function setup(context: ExtensionContext, client: LanguageClient)
 {
   context.subscriptions.push(content_provider.register())
 

@@ -65,11 +65,11 @@ const text_overview_colors = [
 ]
 
 
-/* init */
+/* setup */
 
 const types = new Map<string, TextEditorDecorationType>()
 
-export function init(context: ExtensionContext)
+export function setup(context: ExtensionContext)
 {
   function decoration(options: DecorationRenderOptions): TextEditorDecorationType
   {
