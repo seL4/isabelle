@@ -72,7 +72,7 @@ object Mercurial
         case Some(ssh) => ssh.is_dir(root)
       }
     if (present) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
-    else clone_repository(source, root, options = "--pull --noupdate", ssh = ssh)
+    else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
 
   class Repository private[Mercurial](root_path: Path, ssh: Option[SSH.Session])
