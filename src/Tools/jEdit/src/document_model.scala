@@ -27,7 +27,8 @@ object Document_Model
 
   sealed case class State(
     models: Map[Document.Node.Name, Document_Model] = Map.empty,
-    buffer_models: Map[JEditBuffer, Buffer_Model] = Map.empty)
+    buffer_models: Map[JEditBuffer, Buffer_Model] = Map.empty,
+    overlays: Document.Overlays = Document.Overlays.empty)
   {
     def file_models_iterator: Iterator[(Document.Node.Name, File_Model)] =
       for {
@@ -81,6 +82,18 @@ object Document_Model
       (_, model) <- state.value.models.iterator
       info <- model.bibtex_entries.iterator
     } yield info.map((_, model))
+
+
+  /* overlays */
+
+  def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+    state.value.overlays(name)
+
+  def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+    state.change(st => st.copy(overlays = st.overlays.insert(command, fn, args)))
+
+  def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+    state.change(st => st.copy(overlays = st.overlays.remove(command, fn, args)))
 
 
   /* sync external files */

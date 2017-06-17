@@ -21,6 +21,7 @@ object VSCode_Resources
   sealed case class State(
     models: Map[JFile, Document_Model] = Map.empty,
     caret: Option[(JFile, Line.Position)] = None,
+    overlays: Document.Overlays = Document.Overlays.empty,
     pending_input: Set[JFile] = Set.empty,
     pending_output: Set[JFile] = Set.empty)
   {
@@ -49,6 +50,14 @@ object VSCode_Resources
           (_, model) <- models.iterator
           blob <- model.get_blob
         } yield (model.node_name -> blob)).toMap)
+
+    def change_overlay(insert: Boolean, file: JFile,
+        command: Command, fn: String, args: List[String]): State =
+      copy(
+        overlays =
+          if (insert) overlays.insert(command, fn, args)
+          else overlays.remove(command, fn, args),
+        pending_input = pending_input + file)
   }
 
 
@@ -181,6 +190,18 @@ class VSCode_Resources(
           } yield (file, model1)).toList
         st.update_models(changed_models)
       })
+
+
+  /* overlays */
+
+  def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+    state.value.overlays(name)
+
+  def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+    state.change(_.change_overlay(true, node_file(command.node_name), command, fn, args))
+
+  def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+    state.change(_.change_overlay(false, node_file(command.node_name), command, fn, args))
 
 
   /* resolve dependencies */

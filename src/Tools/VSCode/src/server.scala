@@ -436,9 +436,14 @@ class Server(
 
   object editor extends Server.Editor
   {
+    /* session */
+
     override def session: Session = server.session
     override def flush(): Unit = resources.flush_input(session)
     override def invoke(): Unit = delay_input.invoke()
+
+
+    /* current situation */
 
     override def current_node(context: Unit): Option[Document.Node.Name] =
       resources.get_caret().map(_.model.node_name)
@@ -463,9 +468,27 @@ class Server(
     override def current_command(context: Unit, snapshot: Document.Snapshot): Option[Command] =
       current_command(snapshot)
 
+
+    /* overlays */
+
+    override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+      resources.node_overlays(name)
+
+    override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+      resources.insert_overlay(command, fn, args)
+
+    override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+      resources.remove_overlay(command, fn, args)
+
+
+    /* hyperlinks */
+
     override def hyperlink_command(
       focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
         : Option[Hyperlink] = None
+
+
+    /* dispatcher thread */
 
     override def assert_dispatcher[A](body: => A): A = session.assert_dispatcher(body)
     override def require_dispatcher[A](body: => A): A = session.require_dispatcher(body)
