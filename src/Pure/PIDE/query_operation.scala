@@ -185,15 +185,15 @@ class Query_Operation[Editor_Context](
         remove_overlay()
         current_state.change(_ => Query_Operation.State.empty)
         consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
-        if (!snapshot.is_outdated) {
-          editor.current_command(editor_context, snapshot) match {
-            case Some(command) =>
-              val state = Query_Operation.State.make(command, query)
-              current_state.change(_ => state)
-              editor.insert_overlay(command, print_function, state.instance :: query)
-            case None =>
-          }
+
+        editor.current_command(editor_context, snapshot) match {
+          case Some(command) =>
+            val state = Query_Operation.State.make(command, query)
+            current_state.change(_ => state)
+            editor.insert_overlay(command, print_function, state.instance :: query)
+          case None =>
         }
+
         consume_status(current_state.value.status)
         editor.flush()
       case None =>
