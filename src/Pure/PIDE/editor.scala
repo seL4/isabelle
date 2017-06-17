@@ -14,6 +14,10 @@ abstract class Editor[Context]
   def session: Session
   def flush(): Unit
   def invoke(): Unit
+
+
+  /* current situation */
+
   def current_node(context: Context): Option[Document.Node.Name]
   def current_node_snapshot(context: Context): Option[Document.Snapshot]
   def node_snapshot(name: Document.Node.Name): Document.Snapshot
@@ -22,16 +26,9 @@ abstract class Editor[Context]
 
   /* overlays */
 
-  private val overlays = Synchronized(Document.Overlays.empty)
-
-  def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
-    overlays.value(name)
-
-  def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
-    overlays.change(_.insert(command, fn, args))
-
-  def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
-    overlays.change(_.remove(command, fn, args))
+  def node_overlays(name: Document.Node.Name): Document.Node.Overlays
+  def insert_overlay(command: Command, fn: String, args: List[String])
+  def remove_overlay(command: Command, fn: String, args: List[String])
 
 
   /* hyperlinks */
@@ -45,4 +42,12 @@ abstract class Editor[Context]
   def hyperlink_command(
     focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
       : Option[Hyperlink]
+
+
+  /* dispatcher thread */
+
+  def assert_dispatcher[A](body: => A): A
+  def require_dispatcher[A](body: => A): A
+  def send_dispatcher(body: => Unit): Unit
+  def send_wait_dispatcher(body: => Unit): Unit
 }

@@ -136,10 +136,37 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   def reparse_limit: Int = session_options.int("editor_reparse_limit")
 
 
-  /* outlets */
+  /* dispatcher */
 
   private val dispatcher =
     Consumer_Thread.fork[() => Unit]("Session.dispatcher", daemon = true) { case e => e(); true }
+
+  def assert_dispatcher[A](body: => A): A =
+  {
+    assert(dispatcher.check_thread)
+    body
+  }
+
+  def require_dispatcher[A](body: => A): A =
+  {
+    require(dispatcher.check_thread)
+    body
+  }
+
+  def send_dispatcher(body: => Unit): Unit =
+  {
+    if (dispatcher.check_thread) body
+    else dispatcher.send(() => body)
+  }
+
+  def send_wait_dispatcher(body: => Unit): Unit =
+  {
+    if (dispatcher.check_thread) body
+    else dispatcher.send_wait(() => body)
+  }
+
+
+  /* outlets */
 
   val statistics = new Session.Outlet[Session.Statistics](dispatcher)
   val global_options = new Session.Outlet[Session.Global_Options](dispatcher)

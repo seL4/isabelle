@@ -113,7 +113,7 @@ interface PrettifySymbolsMode
   registerSubstitutions: (substitutions: LanguageEntry) => Disposable
 }
 
-export function init(context: ExtensionContext, entries: [Entry])
+export function setup(context: ExtensionContext, entries: [Entry])
 {
   update_entries(entries)
 

@@ -83,6 +83,18 @@ class JEdit_Editor extends Editor[View]
   }
 
 
+  /* overlays */
+
+  override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+    Document_Model.node_overlays(name)
+
+  override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+    Document_Model.insert_overlay(command, fn, args)
+
+  override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+    Document_Model.remove_overlay(command, fn, args)
+
+
   /* navigation */
 
   def push_position(view: View)
@@ -284,4 +296,12 @@ class JEdit_Editor extends Editor[View]
         hyperlink_command(focus, snapshot, id, range.start)
       case _ => None
     }
+
+
+  /* dispatcher thread */
+
+  override def assert_dispatcher[A](body: => A): A = GUI_Thread.assert(body)
+  override def require_dispatcher[A](body: => A): A = GUI_Thread.require(body)
+  override def send_dispatcher(body: => Unit): Unit = GUI_Thread.later(body)
+  override def send_wait_dispatcher(body: => Unit): Unit = GUI_Thread.now(body)
 }

@@ -21,6 +21,7 @@ object VSCode_Resources
   sealed case class State(
     models: Map[JFile, Document_Model] = Map.empty,
     caret: Option[(JFile, Line.Position)] = None,
+    overlays: Document.Overlays = Document.Overlays.empty,
     pending_input: Set[JFile] = Set.empty,
     pending_output: Set[JFile] = Set.empty)
   {
@@ -49,6 +50,14 @@ object VSCode_Resources
           (_, model) <- models.iterator
           blob <- model.get_blob
         } yield (model.node_name -> blob)).toMap)
+
+    def change_overlay(insert: Boolean, file: JFile,
+        command: Command, fn: String, args: List[String]): State =
+      copy(
+        overlays =
+          if (insert) overlays.insert(command, fn, args)
+          else overlays.remove(command, fn, args),
+        pending_input = pending_input + file)
   }
 
 
@@ -147,11 +156,16 @@ class VSCode_Resources(
       case None => false
     }
 
-  def change_model(session: Session, file: JFile, text: String, range: Option[Line.Range] = None)
+  def change_model(
+    session: Session,
+    editor: Server.Editor,
+    file: JFile,
+    text: String,
+    range: Option[Line.Range] = None)
   {
     state.change(st =>
       {
-        val model = st.models.getOrElse(file, Document_Model.init(session, node_name(file)))
+        val model = st.models.getOrElse(file, Document_Model.init(session, editor, node_name(file)))
         val model1 = (model.change_text(text, range) getOrElse model).external(false)
         st.update_models(Some(file -> model1))
       })
@@ -178,9 +192,24 @@ class VSCode_Resources(
       })
 
 
+  /* overlays */
+
+  def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+    state.value.overlays(name)
+
+  def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+    state.change(_.change_overlay(true, node_file(command.node_name), command, fn, args))
+
+  def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+    state.change(_.change_overlay(false, node_file(command.node_name), command, fn, args))
+
+
   /* resolve dependencies */
 
-  def resolve_dependencies(session: Session, file_watcher: File_Watcher): (Boolean, Boolean) =
+  def resolve_dependencies(
+    session: Session,
+    editor: Server.Editor,
+    file_watcher: File_Watcher): (Boolean, Boolean) =
   {
     state.change_result(st =>
       {
@@ -217,7 +246,7 @@ class VSCode_Resources(
             text <- { file_watcher.register_parent(file); read_file_content(file) }
           }
           yield {
-            val model = Document_Model.init(session, node_name)
+            val model = Document_Model.init(session, editor, node_name)
             val model1 = (model.change_text(text) getOrElse model).external(true)
             (file, model1)
           }).toList

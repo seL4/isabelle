@@ -21,6 +21,9 @@ import scala.collection.mutable
 
 object Server
 {
+  type Editor = isabelle.Editor[Unit]
+
+
   /* Isabelle tool wrapper */
 
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -118,7 +121,8 @@ class Server(
 
   private val delay_load: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
-      val (invoke_input, invoke_load) = resources.resolve_dependencies(session, file_watcher)
+      val (invoke_input, invoke_load) =
+        resources.resolve_dependencies(session, editor, file_watcher)
       if (invoke_input) delay_input.invoke()
       if (invoke_load) delay_load.invoke
     }
@@ -158,7 +162,7 @@ class Server(
     }
     norm(changes)
     norm_changes.foreach(change =>
-      resources.change_model(session, file, change.text, change.range))
+      resources.change_model(session, editor, file, change.text, change.range))
 
     delay_input.invoke()
     delay_output.invoke()
@@ -181,17 +185,17 @@ class Server(
 
   /* preview */
 
-  private lazy val preview = new Preview(resources)
+  private lazy val preview_panel = new Preview_Panel(resources)
 
   private lazy val delay_preview: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_output_delay"), channel.Error_Logger)
     {
-      if (preview.flush(channel)) delay_preview.invoke()
+      if (preview_panel.flush(channel)) delay_preview.invoke()
     }
 
   private def request_preview(file: JFile, column: Int)
   {
-    preview.request(file, column)
+    preview_panel.request(file, column)
     delay_preview.invoke()
   }
 
@@ -400,6 +404,10 @@ class Server(
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case Protocol.Caret_Update(caret) => update_caret(caret)
+          case Protocol.State_Init(()) => State_Panel.init(server)
+          case Protocol.State_Exit(id) => State_Panel.exit(id)
+          case Protocol.State_Locate(id) => State_Panel.locate(id)
+          case Protocol.State_Update(id) => State_Panel.update(id)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
           case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
           case _ => log("### IGNORED")
@@ -426,11 +434,16 @@ class Server(
 
   /* abstract editor operations */
 
-  object editor extends Editor[Unit]
+  object editor extends Server.Editor
   {
+    /* session */
+
     override def session: Session = server.session
     override def flush(): Unit = resources.flush_input(session)
     override def invoke(): Unit = delay_input.invoke()
+
+
+    /* current situation */
 
     override def current_node(context: Unit): Option[Document.Node.Name] =
       resources.get_caret().map(_.model.node_name)
@@ -455,8 +468,31 @@ class Server(
     override def current_command(context: Unit, snapshot: Document.Snapshot): Option[Command] =
       current_command(snapshot)
 
+
+    /* overlays */
+
+    override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+      resources.node_overlays(name)
+
+    override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+      resources.insert_overlay(command, fn, args)
+
+    override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+      resources.remove_overlay(command, fn, args)
+
+
+    /* hyperlinks */
+
     override def hyperlink_command(
       focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
         : Option[Hyperlink] = None
+
+
+    /* dispatcher thread */
+
+    override def assert_dispatcher[A](body: => A): A = session.assert_dispatcher(body)
+    override def require_dispatcher[A](body: => A): A = session.require_dispatcher(body)
+    override def send_dispatcher(body: => Unit): Unit = session.send_dispatcher(body)
+    override def send_wait_dispatcher(body: => Unit): Unit = session.send_wait_dispatcher(body)
   }
 }

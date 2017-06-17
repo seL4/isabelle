@@ -33,6 +33,7 @@ final class Consumer_Thread[A] private(
 
   private val thread = Standard_Thread.fork(name, daemon) { main_loop(Nil) }
   def is_active: Boolean = active && thread.isAlive
+  def check_thread: Boolean = Thread.currentThread == thread
 
   private def failure(exn: Throwable): Unit =
     Output.error_message(
