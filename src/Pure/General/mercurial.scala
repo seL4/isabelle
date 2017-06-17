@@ -51,15 +51,16 @@ object Mercurial
     }
   }
 
-  def clone_repository(
-    source: String, root: Path, options: String = "", ssh: Option[SSH.Session] = None): Repository =
+  def clone_repository(source: String, root: Path, rev: String = "", options: String = "",
+    ssh: Option[SSH.Session] = None): Repository =
   {
     val hg = new Repository(root, ssh)
     ssh match {
       case None => Isabelle_System.mkdirs(hg.root.dir)
       case Some(ssh) => ssh.mkdirs(hg.root.dir)
     }
-    hg.command("clone", Bash.string(source) + " " + File.bash_path(hg.root), options).check
+    hg.command("clone", Bash.string(source) + " " + File.bash_path(hg.root) + opt_rev(rev), options)
+      .check
     hg
   }
 
