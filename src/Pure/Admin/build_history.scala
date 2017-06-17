@@ -429,6 +429,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     self_update: Boolean = false,
     push_isabelle_home: Boolean = false,
     progress: Progress = No_Progress,
+    rev: String = "",
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
@@ -440,33 +441,29 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     val isabelle_hg =
       Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = Some(ssh))
 
-    val rev =
-      if (self_update) {
-        val rev =
-          if (push_isabelle_home) {
-            val isabelle_home_hg = Mercurial.repository(Path.explode("~~"))
-            val rev = isabelle_home_hg.id()
-            isabelle_home_hg.push(isabelle_hg.root_url, rev = rev, force = true)
-            rev
-          }
-          else {
-            isabelle_hg.pull()
-            isabelle_hg.id()
-          }
-        isabelle_hg.update(rev = rev, clean = true)
-        ssh.execute(
-          ssh.bash_path(isabelle_repos_self + Path.explode("bin/isabelle"))
-            + " components -a").check
-        ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
-        rev
-      }
-      else "tip"
+    if (self_update) {
+      val self_rev =
+        if (push_isabelle_home) {
+          val isabelle_home_hg = Mercurial.repository(Path.explode("~~"))
+          val self_rev = isabelle_home_hg.id()
+          isabelle_home_hg.push(isabelle_hg.root_url, rev = self_rev, force = true)
+          self_rev
+        }
+        else {
+          isabelle_hg.pull()
+          isabelle_hg.id()
+        }
+      isabelle_hg.update(rev = self_rev, clean = true)
+      ssh.execute(
+        ssh.bash_path(isabelle_repos_self + Path.explode("bin/isabelle"))
+          + " components -a").check
+      ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
+    }
 
+    ssh.rm_tree(isabelle_repos_other)
     val other_hg =
-      Mercurial.setup_repository(
-        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, ssh = Some(ssh))
-    other_hg.pull(isabelle_hg.root.implode)
-    other_hg.update(rev = rev, clean = true)
+      Mercurial.clone_repository(
+        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev, ssh = Some(ssh))
 
 
     /* Admin/build_history */
@@ -478,8 +475,9 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       ssh.execute(
         Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
         ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
-          " -o " + ssh.bash_path(output_file) + " " + options + " " +
-          ssh.bash_path(isabelle_repos_other) + " " + args,
+          " -o " + ssh.bash_path(output_file) +
+          (if (rev == "") "" else " -r " + Bash.string(rev)) + " " +
+          options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
         progress_stdout = progress.echo(_),
         progress_stderr = progress.echo(_),
         strict = false).check

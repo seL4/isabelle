@@ -243,8 +243,8 @@ object Isabelle_Cronjob
                   isabelle_identifier = "cronjob_build_history",
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
+                  rev = rev,
                   options =
-                    "-r " + Bash.string(rev) +
                     " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                     " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
