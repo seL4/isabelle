@@ -45,7 +45,7 @@ lemma mset_bubble_min: "mset (bubble_min xs) = mset xs"
 apply(induction xs rule: bubble_min.induct)
   apply simp
  apply simp
-apply (auto simp: add_eq_conv_ex split: list.split)
+apply (auto split: list.split)
 done
 
 lemma bubble_minD_mset:

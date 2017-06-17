@@ -191,7 +191,6 @@ apply (case_tac "T")
 defer 
 apply (case_tac "a' = Null")
 apply  simp_all
-apply iprover
 done
 
 definition

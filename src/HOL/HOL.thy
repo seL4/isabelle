@@ -927,6 +927,7 @@ lemma simp_thms:
     "\<And>P. (\<exists>x. t = x \<and> P x) = P t"
     "\<And>P. (\<forall>x. x = t \<longrightarrow> P x) = P t"
     "\<And>P. (\<forall>x. t = x \<longrightarrow> P x) = P t"
+    "(\<forall>x. x \<noteq> t) = False"  "(\<forall>x. t \<noteq> x) = False"
   by (blast, blast, blast, blast, blast, iprover+)
 
 lemma disj_absorb: "A \<or> A \<longleftrightarrow> A"
