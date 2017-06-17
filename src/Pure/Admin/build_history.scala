@@ -460,7 +460,9 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
     }
 
-    ssh.rm_tree(isabelle_repos_other)
+    if (Mercurial.is_repository(isabelle_repos_other, ssh = Some(ssh))) {
+      ssh.rm_tree(isabelle_repos_other)
+    }
     val other_hg =
       Mercurial.clone_repository(
         ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev, ssh = Some(ssh))
