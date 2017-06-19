@@ -75,12 +75,6 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
   /* completion */
 
-  def before_caret_range(caret: Text.Offset): Text.Range =
-  {
-    val former_caret = snapshot.revert(caret)
-    snapshot.convert(Text.Range(former_caret - 1, former_caret))
-  }
-
   def completion(caret_pos: Line.Position, caret: Text.Offset): List[Protocol.CompletionItem] =
   {
     val doc = model.content.doc

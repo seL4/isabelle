@@ -21,20 +21,14 @@ object JEdit_Spell_Checker
 {
   /* completion */
 
-  def completion(text_area: TextArea, explicit: Boolean, rendering: JEdit_Rendering)
+  def completion(rendering: JEdit_Rendering, explicit: Boolean, caret: Text.Offset)
       : Option[Completion.Result] =
   {
     for {
       spell_checker <- PIDE.plugin.spell_checker.get
       if explicit
-      range = JEdit_Lib.before_caret_range(text_area, rendering)
-      word <- Spell_Checker.current_word(rendering, range)
-      words = spell_checker.complete(word.info)
-      if words.nonEmpty
-      descr = "(from dictionary " + quote(spell_checker.toString) + ")"
-      items =
-        words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
-    } yield Completion.Result(word.range, word.info, false, items)
+      res <- spell_checker.completion(rendering, caret)
+    } yield res
   }
 
 

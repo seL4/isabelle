@@ -207,13 +207,6 @@ object JEdit_Lib
   def caret_range(text_area: TextArea): Text.Range =
     point_range(text_area.getBuffer, text_area.getCaretPosition)
 
-  def before_caret_range(text_area: TextArea, rendering: JEdit_Rendering): Text.Range =
-  {
-    val snapshot = rendering.snapshot
-    val former_caret = snapshot.revert(text_area.getCaretPosition)
-    snapshot.convert(Text.Range(former_caret - 1, former_caret))
-  }
-
   def visible_range(text_area: TextArea): Option[Text.Range] =
   {
     val buffer = text_area.getBuffer

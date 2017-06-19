@@ -125,15 +125,16 @@ object Completion_Popup
       active_range match {
         case Some(range) => range.try_restrict(line_range)
         case None =>
-          if (line_range.contains(text_area.getCaretPosition)) {
-            JEdit_Lib.before_caret_range(text_area, rendering).try_restrict(line_range) match {
+          val caret = text_area.getCaretPosition
+          if (line_range.contains(caret)) {
+            rendering.before_caret_range(caret).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
                 val range0 =
                   Completion.Result.merge(Completion.History.empty,
                     syntax_completion(Completion.History.empty, true, Some(rendering)),
                     Completion.Result.merge(Completion.History.empty,
                       path_completion(rendering),
-                      Bibtex_JEdit.completion(Completion.History.empty, text_area, rendering)))
+                      Bibtex_JEdit.completion(Completion.History.empty, rendering, caret)))
                   .map(_.range)
                 rendering.semantic_completion(range0, range) match {
                   case None => range0
@@ -164,7 +165,7 @@ object Completion_Popup
             (for {
               rendering <- opt_rendering
               if PIDE.options.bool("jedit_completion_context")
-              caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
+              caret_range = rendering.before_caret_range(text_area.getCaretPosition)
               context <- rendering.language_context(caret_range)
             } yield context) getOrElse syntax.language_context
 
@@ -226,7 +227,7 @@ object Completion_Popup
         s.startsWith(Symbol.open_decoded) && s.endsWith(Symbol.close_decoded)
 
       for {
-        r1 <- rendering.language_path(JEdit_Lib.before_caret_range(text_area, rendering))
+        r1 <- rendering.language_path(rendering.before_caret_range(text_area.getCaretPosition))
         s1 <- JEdit_Lib.try_get_text(text_area.getBuffer, r1)
         if is_wrapped(s1)
         r2 = Text.Range(r1.start + 1, r1.stop - 1)
@@ -349,6 +350,7 @@ object Completion_Popup
       }
 
       if (buffer.isEditable) {
+        val caret = text_area.getCaretPosition
         val opt_rendering = Document_View.get(text_area).map(_.get_rendering())
         val result0 = syntax_completion(history, explicit, opt_rendering)
         val (no_completion, semantic_completion) =
@@ -356,7 +358,7 @@ object Completion_Popup
           opt_rendering match {
             case Some(rendering) =>
               rendering.semantic_completion_result(history, unicode, result0.map(_.range),
-                JEdit_Lib.before_caret_range(text_area, rendering))
+                rendering.before_caret_range(caret))
             case None => (false, None)
           }
         }
@@ -372,10 +374,10 @@ object Completion_Popup
               case Some(rendering) =>
                 Completion.Result.merge(history, result1,
                   Completion.Result.merge(history,
-                    JEdit_Spell_Checker.completion(text_area, explicit, rendering),
+                    JEdit_Spell_Checker.completion(rendering, explicit, caret),
                     Completion.Result.merge(history,
                       path_completion(rendering),
-                      Bibtex_JEdit.completion(history, text_area, rendering))))
+                      Bibtex_JEdit.completion(history, rendering, caret))))
             }
           }
           result match {

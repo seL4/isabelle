@@ -212,6 +212,15 @@ abstract class Rendering(
   def model: Document.Model
 
 
+  /* caret */
+
+  def before_caret_range(caret: Text.Offset): Text.Range =
+  {
+    val former_caret = snapshot.revert(caret)
+    snapshot.convert(Text.Range(former_caret - 1, former_caret))
+  }
+
+
   /* completion */
 
   def semantic_completion(completed_range: Option[Text.Range], caret_range: Text.Range)

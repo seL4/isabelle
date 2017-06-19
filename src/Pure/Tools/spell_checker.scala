@@ -219,7 +219,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     Spell_Checker.marked_words(base, text, info => !check(info.info))
 
 
-  /* suggestions for unknown words */
+  /* completion: suggestions for unknown words */
 
   private def suggestions(word: String): Option[List[String]] =
   {
@@ -249,6 +249,19 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     }
 
   def complete_enabled(word: String): Boolean = complete(word).nonEmpty
+
+  def completion(rendering: Rendering, caret: Text.Offset): Option[Completion.Result] =
+  {
+    val caret_range = rendering.before_caret_range(caret)
+    for {
+      word <- Spell_Checker.current_word(rendering, caret_range)
+      words = complete(word.info)
+      if words.nonEmpty
+      descr = "(from dictionary " + quote(dictionary.toString) + ")"
+      items =
+        words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
+    } yield Completion.Result(word.range, word.info, false, items)
+  }
 }
 
 
