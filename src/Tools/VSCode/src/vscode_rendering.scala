@@ -97,7 +97,11 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
         if (no_completion) Nil
         else {
-          Completion.Result.merge(history, semantic_completion, syntax_completion) match {
+          val results =
+            Completion.Result.merge(history,
+              Completion.Result.merge(history, semantic_completion, syntax_completion),
+              spell_checker_completion(caret))
+          results match {
             case None => Nil
             case Some(result) =>
               result.items.map(item =>
@@ -200,6 +204,9 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
       } yield info.range).toList
     Document_Model.Decoration.ranges("spell_checker", ranges)
   }
+
+  def spell_checker_completion(caret: Text.Offset): Option[Completion.Result] =
+    model.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
 
 
   /* decorations */
