@@ -385,7 +385,7 @@ proof -
       moreover have "((\<lambda>x. if x \<in> A \<inter> box a b then 1 else 0) has_integral ?M A) (box a b)"
         by (subst has_integral_restrict) (auto intro: compl)
       ultimately have "((\<lambda>x. 1 - (if x \<in> A \<inter> box a b then 1 else 0)) has_integral ?M (box a b) - ?M A) (box a b)"
-        by (rule has_integral_sub)
+        by (rule has_integral_diff)
       then have "((\<lambda>x. (if x \<in> (UNIV - A) \<inter> box a b then 1 else 0)) has_integral ?M (box a b) - ?M A) (box a b)"
         by (rule has_integral_cong[THEN iffD1, rotated 1]) auto
       then have "((\<lambda>x. 1) has_integral ?M (box a b) - ?M A) ((UNIV - A) \<inter> box a b)"
@@ -633,7 +633,7 @@ proof (cases "emeasure lborel A = \<infinity>")
   proof
     assume int: "(\<lambda>x. 1::real) integrable_on A"
     then have "(indicator A::'a \<Rightarrow> real) integrable_on UNIV"
-      unfolding indicator_def[abs_def] integrable_restrict_univ .
+      unfolding indicator_def[abs_def] integrable_restrict_UNIV .
     then obtain r where "((indicator A::'a\<Rightarrow>real) has_integral r) UNIV"
       by auto
     from nn_integral_has_integral_lborel[OF _ _ this] emeasure_A show False
@@ -665,7 +665,7 @@ proof -
     unfolding ennreal_max_0 by auto
   then have "((\<lambda>x. max 0 (f x)) has_integral r) UNIV" "((\<lambda>x. max 0 (- f x)) has_integral q) UNIV"
     using nn_integral_has_integral[OF _ _ r] nn_integral_has_integral[OF _ _ q] by auto
-  note has_integral_sub[OF this]
+  note has_integral_diff[OF this]
   moreover have "(\<lambda>x. max 0 (f x) - max 0 (- f x)) = f"
     by auto
   ultimately show ?thesis
@@ -696,7 +696,7 @@ proof -
       ultimately have "(?F has_integral 0) UNIV"
         using has_integral_integral_real[of ?F] by simp
       then show "(indicator N has_integral (0::real)) (cbox a b)"
-        unfolding has_integral_restrict_univ .
+        unfolding has_integral_restrict_UNIV .
     qed
   qed
 qed
@@ -874,7 +874,7 @@ proof -
   have "(?f has_integral LINT x : S | lborel. f x) UNIV"
     by (rule has_integral_integral_lborel) fact
   hence 1: "(f has_integral (set_lebesgue_integral lborel S f)) S"
-    apply (subst has_integral_restrict_univ [symmetric])
+    apply (subst has_integral_restrict_UNIV [symmetric])
     apply (rule has_integral_eq)
     by auto
   thus "f integrable_on S"
@@ -890,7 +890,7 @@ lemma has_integral_set_lebesgue:
   assumes f: "set_integrable lebesgue S f"
   shows "(f has_integral (LINT x:S|lebesgue. f x)) S"
   using has_integral_integral_lebesgue[OF f]
-  by (simp_all add: indicator_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] has_integral_restrict_univ cong: if_cong)
+  by (simp_all add: indicator_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] has_integral_restrict_UNIV cong: if_cong)
 
 lemma set_lebesgue_integral_eq_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -921,7 +921,7 @@ proof safe
     "(\<lambda>x. norm (indicator s x *\<^sub>R f x)) = (\<lambda>x. if x \<in> s then norm (f x) else 0)"
     by auto
   ultimately show "f integrable_on s" "(\<lambda>x. norm (f x)) integrable_on s"
-    by (simp_all add: integrable_restrict_univ)
+    by (simp_all add: integrable_restrict_UNIV)
 next
   assume f: "f integrable_on s" and nf: "(\<lambda>x. norm (f x)) integrable_on s"
   show "f absolutely_integrable_on s"
@@ -934,20 +934,37 @@ next
   qed
 qed
 
-lemma absolutely_integrable_on_iff_nonneg:
-  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
-  assumes "\<And>x. 0 \<le> f x" shows "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s"
-proof -
-  from assms have "(\<lambda>x. \<bar>f x\<bar>) = f"
-    by (intro ext) auto
-  then show ?thesis
-    unfolding absolutely_integrable_on_def by simp
-qed
+lemma absolutely_integrable_restrict_UNIV:
+  "(\<lambda>x. if x \<in> s then f x else 0) absolutely_integrable_on UNIV \<longleftrightarrow> f absolutely_integrable_on s"
+  by (intro arg_cong2[where f=integrable]) auto
 
 lemma absolutely_integrable_onI:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f integrable_on s \<Longrightarrow> (\<lambda>x. norm (f x)) integrable_on s \<Longrightarrow> f absolutely_integrable_on s"
   unfolding absolutely_integrable_on_def by auto
+
+lemma nonnegative_absolutely_integrable_1:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes f: "f integrable_on A" and "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x"
+  shows "f absolutely_integrable_on A"
+  apply (rule absolutely_integrable_onI [OF f])
+  using assms by (simp add: integrable_eq)
+
+lemma absolutely_integrable_on_iff_nonneg:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f x" shows "f absolutely_integrable_on S \<longleftrightarrow> f integrable_on S"
+proof -
+  { assume "f integrable_on S"
+    then have "(\<lambda>x. if x \<in> S then f x else 0) integrable_on UNIV"
+      by (simp add: integrable_restrict_UNIV)
+    then have "(\<lambda>x. if x \<in> S then f x else 0) absolutely_integrable_on UNIV"
+      using \<open>f integrable_on S\<close> absolutely_integrable_restrict_UNIV assms nonnegative_absolutely_integrable_1 by blast
+    then have "f absolutely_integrable_on S"
+      using absolutely_integrable_restrict_UNIV by blast
+  }
+  then show ?thesis        
+    unfolding absolutely_integrable_on_def by auto
+qed
 
 lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
   by (subst absolutely_integrable_on_iff_nonneg[symmetric])
@@ -994,7 +1011,7 @@ next
   show "negligible S"
     unfolding negligible_def
   proof (safe intro!: has_integral_iff_nn_integral_lebesgue[THEN iffD2]
-                      has_integral_restrict_univ[where s="cbox _ _", THEN iffD1])
+                      has_integral_restrict_UNIV[where s="cbox _ _", THEN iffD1])
     fix a b
     show "(\<lambda>x. if x \<in> cbox a b then indicator S x else 0) \<in> lebesgue \<rightarrow>\<^sub>M borel"
       using S by (auto intro!: measurable_If)
@@ -2209,16 +2226,12 @@ proof (rule absolutely_integrable_onI, fact, rule)
   qed
 qed
 
-lemma absolutely_integrable_restrict_univ:
-  "(\<lambda>x. if x \<in> s then f x else 0) absolutely_integrable_on UNIV \<longleftrightarrow> f absolutely_integrable_on s"
-  by (intro arg_cong2[where f=integrable]) auto
-
 lemma absolutely_integrable_add[intro]:
   fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) absolutely_integrable_on s"
   by (rule set_integral_add)
 
-lemma absolutely_integrable_sub[intro]:
+lemma absolutely_integrable_diff[intro]:
   fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) absolutely_integrable_on s"
   by (rule set_integral_diff)

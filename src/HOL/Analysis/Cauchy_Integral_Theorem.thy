@@ -1518,7 +1518,7 @@ lemma has_contour_integral_add:
 lemma has_contour_integral_diff:
   "\<lbrakk>(f1 has_contour_integral i1) g; (f2 has_contour_integral i2) g\<rbrakk>
          \<Longrightarrow> ((\<lambda>x. f1 x - f2 x) has_contour_integral (i1 - i2)) g"
-  by (simp add: has_integral_sub has_contour_integral_def algebra_simps)
+  by (simp add: has_integral_diff has_contour_integral_def algebra_simps)
 
 lemma has_contour_integral_lmul:
   "(f has_contour_integral i) g \<Longrightarrow> ((\<lambda>x. c * (f x)) has_contour_integral (c*i)) g"
@@ -2486,7 +2486,7 @@ proof -
                         _ 0 1 ])
             using ynz \<open>0 < B\<close> \<open>0 < C\<close>
             apply (simp_all del: le_divide_eq_numeral1)
-            apply (simp add: has_integral_sub has_contour_integral_linepath [symmetric] has_contour_integral_integral
+            apply (simp add: has_integral_diff has_contour_integral_linepath [symmetric] has_contour_integral_integral
                              fpi_uv f_uv contour_integrable_continuous_linepath, clarify)
             apply (simp only: **)
             apply (simp add: norm_triangle_le norm_mult cmod_diff_le del: le_divide_eq_numeral1)

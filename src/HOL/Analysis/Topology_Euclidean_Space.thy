@@ -1438,8 +1438,8 @@ lemma box_ne_empty:
 
 lemma
   fixes a :: "'a::euclidean_space"
-  shows cbox_sing: "cbox a a = {a}"
-    and box_sing: "box a a = {}"
+  shows cbox_sing [simp]: "cbox a a = {a}"
+    and box_sing [simp]: "box a a = {}"
   unfolding set_eq_iff mem_box eq_iff [symmetric]
   by (auto intro!: euclidean_eqI[where 'a='a])
      (metis all_not_in_conv nonempty_Basis)

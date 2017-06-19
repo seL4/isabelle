@@ -643,8 +643,8 @@ qed
 
 lemma member_le_sum:
   fixes f :: "_ \<Rightarrow> 'b::{semiring_1, ordered_comm_monoid_add}"
-  assumes le: "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x"
-    and "i \<in> A"
+  assumes "i \<in> A"
+    and le: "\<And>x. x \<in> A - {i} \<Longrightarrow> 0 \<le> f x"
     and "finite A"
   shows "f i \<le> sum f A"
 proof -

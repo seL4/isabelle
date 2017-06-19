@@ -1496,7 +1496,7 @@ proof -
     apply (erule disjE)
     apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI, force simp add: *)
     apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI, force simp add: *)
-    done
+    done           
   moreover have "?D1 \<subseteq> ?D"
     by (auto simp add: assms division_points_subset)
   ultimately show "?D1 \<subset> ?D"
@@ -1521,47 +1521,33 @@ proof -
 qed
 
 lemma division_split_left_inj:
-  fixes type :: "'a::euclidean_space"
-  assumes "d division_of i"
-    and "k1 \<in> d"
-    and "k2 \<in> d"
-    and "k1 \<noteq> k2"
-    and "k1 \<inter> {x::'a. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
-    and k: "k\<in>Basis"
-  shows "interior (k1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
+  fixes S :: "'a::euclidean_space set"
+  assumes div: "\<D> division_of S"
+    and eq: "K1 \<inter> {x::'a. x\<bullet>k \<le> c} = K2 \<inter> {x. x\<bullet>k \<le> c}"
+    and "K1 \<in> \<D>" "K2 \<in> \<D>" "K1 \<noteq> K2"
+  shows "interior (K1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
 proof -
-  note d=division_ofD[OF assms(1)]
-  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
-  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
-  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
-    by auto
-  show ?thesis
-    unfolding uv1 uv2
-    apply (rule **[OF d(5)[OF assms(2-4)]])
-    apply (simp add: uv1)
-    using assms(5) uv1 by auto
+  have "interior K2 \<inter> interior {a. a \<bullet> k \<le> c} = interior K1 \<inter> interior {a. a \<bullet> k \<le> c}"
+    by (metis (no_types) eq interior_Int)
+  moreover have "\<And>A. interior A \<inter> interior K2 = {} \<or> A = K2 \<or> A \<notin> \<D>"
+    by (meson div \<open>K2 \<in> \<D>\<close> division_of_def)
+  ultimately show ?thesis
+    using \<open>K1 \<in> \<D>\<close> \<open>K1 \<noteq> K2\<close> by auto
 qed
 
 lemma division_split_right_inj:
-  fixes type :: "'a::euclidean_space"
-  assumes "d division_of i"
-    and "k1 \<in> d"
-    and "k2 \<in> d"
-    and "k1 \<noteq> k2"
-    and "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
-    and k: "k \<in> Basis"
-  shows "interior (k1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
+  fixes S :: "'a::euclidean_space set"
+  assumes div: "\<D> division_of S"
+    and eq: "K1 \<inter> {x::'a. x\<bullet>k \<ge> c} = K2 \<inter> {x. x\<bullet>k \<ge> c}"
+    and "K1 \<in> \<D>" "K2 \<in> \<D>" "K1 \<noteq> K2"
+  shows "interior (K1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
 proof -
-  note d=division_ofD[OF assms(1)]
-  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
-  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
-  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
-    by auto
-  show ?thesis
-    unfolding uv1 uv2
-    apply (rule **[OF d(5)[OF assms(2-4)]])
-    apply (simp add: uv1)
-    using assms(5) uv1 by auto
+  have "interior K2 \<inter> interior {a. a \<bullet> k \<ge> c} = interior K1 \<inter> interior {a. a \<bullet> k \<ge> c}"
+    by (metis (no_types) eq interior_Int)
+  moreover have "\<And>A. interior A \<inter> interior K2 = {} \<or> A = K2 \<or> A \<notin> \<D>"
+    by (meson div \<open>K2 \<in> \<D>\<close> division_of_def)
+  ultimately show ?thesis
+    using \<open>K1 \<in> \<D>\<close> \<open>K1 \<noteq> K2\<close> by auto
 qed
 
 lemma interval_doublesplit:
@@ -1912,18 +1898,30 @@ lemma tagged_division_union_interval_real:
   by (rule tagged_division_union_interval)
 
 lemma tagged_division_split_left_inj:
-  "d tagged_division_of i \<Longrightarrow> (x1, k1) \<in> d \<Longrightarrow> (x2, k2) \<in> d \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow>
-    k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c} \<Longrightarrow> k \<in> Basis \<Longrightarrow>
-    interior (k1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
-  by (intro division_split_left_inj[of "snd`d" i k1 k2, OF division_of_tagged_division])
-     (auto simp add: snd_def[abs_def] image_iff split: prod.split )
+  assumes d: "d tagged_division_of i"
+  and "k1 \<noteq> k2"
+  and tags: "(x1, k1) \<in> d" "(x2, k2) \<in> d"
+  and eq: "k1 \<inter> {x. x \<bullet> k \<le> c} = k2 \<inter> {x. x \<bullet> k \<le> c}"
+    shows "interior (k1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
+proof -
+  have "interior (k1 \<inter> k2) = {} \<or> (x2, k2) = (x1, k1)"
+    using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
+  then show ?thesis
+    using eq \<open>k1 \<noteq> k2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
+qed
 
 lemma tagged_division_split_right_inj:
-  "d tagged_division_of i \<Longrightarrow> (x1, k1) \<in> d \<Longrightarrow> (x2, k2) \<in> d \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow>
-    k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c} \<Longrightarrow> k \<in> Basis \<Longrightarrow>
-    interior (k1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
-  by (intro division_split_right_inj[of "snd`d" i k1 k2, OF division_of_tagged_division])
-     (auto simp add: snd_def[abs_def] image_iff split: prod.split )
+  assumes d: "d tagged_division_of i"
+  and "k1 \<noteq> k2"
+  and tags: "(x1, k1) \<in> d" "(x2, k2) \<in> d"
+  and eq: "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+    shows "interior (k1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
+proof -
+  have "interior (k1 \<inter> k2) = {} \<or> (x2, k2) = (x1, k1)"
+    using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
+  then show ?thesis
+    using eq \<open>k1 \<noteq> k2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
+qed
 
 subsection \<open>Special case of additivity we need for the FTC.\<close>
 
@@ -1934,22 +1932,21 @@ lemma additive_tagged_division_1:
   shows "sum (\<lambda>(x,k). f(Sup k) - f(Inf k)) p = f b - f a"
 proof -
   let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
-  have ***: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-    using assms by auto
+  have p_td: "p tagged_division_of cbox a b"
+    using assms(2) box_real(2) by presburger
   have *: "add.operative ?f"
-    unfolding add.operative_1_lt box_eq_empty
-    by auto
+    unfolding add.operative_1_lt box_eq_empty by auto
   have **: "cbox a b \<noteq> {}"
     using assms(1) by auto
-  note sum.operative_tagged_division[OF * assms(2)[simplified box_real[symmetric]]]
-  note * = this[unfolded if_not_P[OF **] interval_bounds[OF ***],symmetric]
-  show ?thesis
-    unfolding *
-    apply (rule sum.cong)
-    unfolding split_paired_all split_conv
-    using assms(2)
-    apply auto
-    done
+  then have "f b - f a = (\<Sum>(x, l)\<in>p. if l = {} then 0 else f (interval_upperbound l) - f (interval_lowerbound l))"
+    proof -
+      have "(if cbox a b = {} then 0 else f (interval_upperbound (cbox a b)) - f (interval_lowerbound (cbox a b))) = f b - f a"
+        using assms by auto
+      then show ?thesis
+        using p_td assms by (simp add: "*" sum.operative_tagged_division)
+    qed 
+  then show ?thesis
+    using assms by (auto intro!: sum.cong)
 qed
 
 lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)"
