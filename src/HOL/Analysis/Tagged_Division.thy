@@ -311,26 +311,26 @@ definition division_of (infixl "division'_of" 40)
 where
   "s division_of i \<longleftrightarrow>
     finite s \<and>
-    (\<forall>k\<in>s. k \<subseteq> i \<and> k \<noteq> {} \<and> (\<exists>a b. k = cbox a b)) \<and>
-    (\<forall>k1\<in>s. \<forall>k2\<in>s. k1 \<noteq> k2 \<longrightarrow> interior(k1) \<inter> interior(k2) = {}) \<and>
+    (\<forall>K\<in>s. K \<subseteq> i \<and> K \<noteq> {} \<and> (\<exists>a b. K = cbox a b)) \<and>
+    (\<forall>K1\<in>s. \<forall>K2\<in>s. K1 \<noteq> K2 \<longrightarrow> interior(K1) \<inter> interior(K2) = {}) \<and>
     (\<Union>s = i)"
 
 lemma division_ofD[dest]:
   assumes "s division_of i"
   shows "finite s"
-    and "\<And>k. k \<in> s \<Longrightarrow> k \<subseteq> i"
-    and "\<And>k. k \<in> s \<Longrightarrow> k \<noteq> {}"
-    and "\<And>k. k \<in> s \<Longrightarrow> \<exists>a b. k = cbox a b"
-    and "\<And>k1 k2. k1 \<in> s \<Longrightarrow> k2 \<in> s \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> interior(k1) \<inter> interior(k2) = {}"
+    and "\<And>K. K \<in> s \<Longrightarrow> K \<subseteq> i"
+    and "\<And>K. K \<in> s \<Longrightarrow> K \<noteq> {}"
+    and "\<And>K. K \<in> s \<Longrightarrow> \<exists>a b. K = cbox a b"
+    and "\<And>K1 K2. K1 \<in> s \<Longrightarrow> K2 \<in> s \<Longrightarrow> K1 \<noteq> K2 \<Longrightarrow> interior(K1) \<inter> interior(K2) = {}"
     and "\<Union>s = i"
   using assms unfolding division_of_def by auto
 
 lemma division_ofI:
   assumes "finite s"
-    and "\<And>k. k \<in> s \<Longrightarrow> k \<subseteq> i"
-    and "\<And>k. k \<in> s \<Longrightarrow> k \<noteq> {}"
-    and "\<And>k. k \<in> s \<Longrightarrow> \<exists>a b. k = cbox a b"
-    and "\<And>k1 k2. k1 \<in> s \<Longrightarrow> k2 \<in> s \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> interior k1 \<inter> interior k2 = {}"
+    and "\<And>K. K \<in> s \<Longrightarrow> K \<subseteq> i"
+    and "\<And>K. K \<in> s \<Longrightarrow> K \<noteq> {}"
+    and "\<And>K. K \<in> s \<Longrightarrow> \<exists>a b. K = cbox a b"
+    and "\<And>K1 K2. K1 \<in> s \<Longrightarrow> K2 \<in> s \<Longrightarrow> K1 \<noteq> K2 \<Longrightarrow> interior K1 \<inter> interior K2 = {}"
     and "\<Union>s = i"
   shows "s division_of i"
   using assms unfolding division_of_def by auto
@@ -350,9 +350,9 @@ lemma division_of_sing[simp]:
 proof
   assume ?r
   moreover
-  { fix k
-    assume "s = {{a}}" "k\<in>s"
-    then have "\<exists>x y. k = cbox x y"
+  { fix K
+    assume "s = {{a}}" "K\<in>s"
+    then have "\<exists>x y. K = cbox x y"
       apply (rule_tac x=a in exI)+
       apply (force simp: cbox_sing)
       done
@@ -1106,22 +1106,22 @@ subsection \<open>Tagged (partial) divisions.\<close>
 definition tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
   where "s tagged_partial_division_of i \<longleftrightarrow>
     finite s \<and>
-    (\<forall>x k. (x, k) \<in> s \<longrightarrow> x \<in> k \<and> k \<subseteq> i \<and> (\<exists>a b. k = cbox a b)) \<and>
-    (\<forall>x1 k1 x2 k2. (x1, k1) \<in> s \<and> (x2, k2) \<in> s \<and> (x1, k1) \<noteq> (x2, k2) \<longrightarrow>
-      interior k1 \<inter> interior k2 = {})"
+    (\<forall>x K. (x, K) \<in> s \<longrightarrow> x \<in> K \<and> K \<subseteq> i \<and> (\<exists>a b. K = cbox a b)) \<and>
+    (\<forall>x1 K1 x2 K2. (x1, K1) \<in> s \<and> (x2, K2) \<in> s \<and> (x1, K1) \<noteq> (x2, K2) \<longrightarrow>
+      interior K1 \<inter> interior K2 = {})"
 
 lemma tagged_partial_division_ofD[dest]:
   assumes "s tagged_partial_division_of i"
   shows "finite s"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> x \<in> k"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> k \<subseteq> i"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> \<exists>a b. k = cbox a b"
-    and "\<And>x1 k1 x2 k2. (x1,k1) \<in> s \<Longrightarrow>
-      (x2, k2) \<in> s \<Longrightarrow> (x1, k1) \<noteq> (x2, k2) \<Longrightarrow> interior k1 \<inter> interior k2 = {}"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> x \<in> K"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> K \<subseteq> i"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> \<exists>a b. K = cbox a b"
+    and "\<And>x1 K1 x2 K2. (x1,K1) \<in> s \<Longrightarrow>
+      (x2, K2) \<in> s \<Longrightarrow> (x1, K1) \<noteq> (x2, K2) \<Longrightarrow> interior K1 \<inter> interior K2 = {}"
   using assms unfolding tagged_partial_division_of_def by blast+
 
 definition tagged_division_of (infixr "tagged'_division'_of" 40)
-  where "s tagged_division_of i \<longleftrightarrow> s tagged_partial_division_of i \<and> (\<Union>{k. \<exists>x. (x,k) \<in> s} = i)"
+  where "s tagged_division_of i \<longleftrightarrow> s tagged_partial_division_of i \<and> (\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
 
 lemma tagged_division_of_finite: "s tagged_division_of i \<Longrightarrow> finite s"
   unfolding tagged_division_of_def tagged_partial_division_of_def by auto
@@ -1129,20 +1129,20 @@ lemma tagged_division_of_finite: "s tagged_division_of i \<Longrightarrow> finit
 lemma tagged_division_of:
   "s tagged_division_of i \<longleftrightarrow>
     finite s \<and>
-    (\<forall>x k. (x, k) \<in> s \<longrightarrow> x \<in> k \<and> k \<subseteq> i \<and> (\<exists>a b. k = cbox a b)) \<and>
-    (\<forall>x1 k1 x2 k2. (x1, k1) \<in> s \<and> (x2, k2) \<in> s \<and> (x1, k1) \<noteq> (x2, k2) \<longrightarrow>
-      interior k1 \<inter> interior k2 = {}) \<and>
-    (\<Union>{k. \<exists>x. (x,k) \<in> s} = i)"
+    (\<forall>x K. (x, K) \<in> s \<longrightarrow> x \<in> K \<and> K \<subseteq> i \<and> (\<exists>a b. K = cbox a b)) \<and>
+    (\<forall>x1 K1 x2 K2. (x1, K1) \<in> s \<and> (x2, K2) \<in> s \<and> (x1, K1) \<noteq> (x2, K2) \<longrightarrow>
+      interior K1 \<inter> interior K2 = {}) \<and>
+    (\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
   unfolding tagged_division_of_def tagged_partial_division_of_def by auto
 
 lemma tagged_division_ofI:
   assumes "finite s"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> x \<in> k"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> k \<subseteq> i"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> \<exists>a b. k = cbox a b"
-    and "\<And>x1 k1 x2 k2. (x1,k1) \<in> s \<Longrightarrow> (x2, k2) \<in> s \<Longrightarrow> (x1, k1) \<noteq> (x2, k2) \<Longrightarrow>
-      interior k1 \<inter> interior k2 = {}"
-    and "(\<Union>{k. \<exists>x. (x,k) \<in> s} = i)"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> x \<in> K"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> K \<subseteq> i"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> \<exists>a b. K = cbox a b"
+    and "\<And>x1 K1 x2 K2. (x1,K1) \<in> s \<Longrightarrow> (x2, K2) \<in> s \<Longrightarrow> (x1, K1) \<noteq> (x2, K2) \<Longrightarrow>
+      interior K1 \<inter> interior K2 = {}"
+    and "(\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
   shows "s tagged_division_of i"
   unfolding tagged_division_of
   using assms
@@ -1153,12 +1153,12 @@ lemma tagged_division_ofI:
 lemma tagged_division_ofD[dest]:  (*FIXME USE A LOCALE*)
   assumes "s tagged_division_of i"
   shows "finite s"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> x \<in> k"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> k \<subseteq> i"
-    and "\<And>x k. (x,k) \<in> s \<Longrightarrow> \<exists>a b. k = cbox a b"
-    and "\<And>x1 k1 x2 k2. (x1, k1) \<in> s \<Longrightarrow> (x2, k2) \<in> s \<Longrightarrow> (x1, k1) \<noteq> (x2, k2) \<Longrightarrow>
-      interior k1 \<inter> interior k2 = {}"
-    and "(\<Union>{k. \<exists>x. (x,k) \<in> s} = i)"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> x \<in> K"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> K \<subseteq> i"
+    and "\<And>x K. (x,K) \<in> s \<Longrightarrow> \<exists>a b. K = cbox a b"
+    and "\<And>x1 K1 x2 K2. (x1, K1) \<in> s \<Longrightarrow> (x2, K2) \<in> s \<Longrightarrow> (x1, K1) \<noteq> (x2, K2) \<Longrightarrow>
+      interior K1 \<inter> interior K2 = {}"
+    and "(\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
   using assms unfolding tagged_division_of by blast+
 
 lemma division_of_tagged_division:
@@ -1899,28 +1899,28 @@ lemma tagged_division_union_interval_real:
 
 lemma tagged_division_split_left_inj:
   assumes d: "d tagged_division_of i"
-  and "k1 \<noteq> k2"
-  and tags: "(x1, k1) \<in> d" "(x2, k2) \<in> d"
-  and eq: "k1 \<inter> {x. x \<bullet> k \<le> c} = k2 \<inter> {x. x \<bullet> k \<le> c}"
-    shows "interior (k1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
+  and tags: "(x1, K1) \<in> d" "(x2, K2) \<in> d"
+  and "K1 \<noteq> K2"
+  and eq: "K1 \<inter> {x. x \<bullet> k \<le> c} = K2 \<inter> {x. x \<bullet> k \<le> c}"
+    shows "interior (K1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
 proof -
-  have "interior (k1 \<inter> k2) = {} \<or> (x2, k2) = (x1, k1)"
+  have "interior (K1 \<inter> K2) = {} \<or> (x2, K2) = (x1, K1)"
     using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
   then show ?thesis
-    using eq \<open>k1 \<noteq> k2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
+    using eq \<open>K1 \<noteq> K2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
 qed
 
 lemma tagged_division_split_right_inj:
   assumes d: "d tagged_division_of i"
-  and "k1 \<noteq> k2"
-  and tags: "(x1, k1) \<in> d" "(x2, k2) \<in> d"
-  and eq: "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
-    shows "interior (k1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
+  and tags: "(x1, K1) \<in> d" "(x2, K2) \<in> d"
+  and "K1 \<noteq> K2"
+  and eq: "K1 \<inter> {x. x\<bullet>k \<ge> c} = K2 \<inter> {x. x\<bullet>k \<ge> c}"
+    shows "interior (K1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
 proof -
-  have "interior (k1 \<inter> k2) = {} \<or> (x2, k2) = (x1, k1)"
+  have "interior (K1 \<inter> K2) = {} \<or> (x2, K2) = (x1, K1)"
     using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
   then show ?thesis
-    using eq \<open>k1 \<noteq> k2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
+    using eq \<open>K1 \<noteq> K2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
 qed
 
 subsection \<open>Special case of additivity we need for the FTC.\<close>
