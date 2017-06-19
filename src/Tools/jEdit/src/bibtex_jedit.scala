@@ -44,7 +44,7 @@ object Bibtex_JEdit
       Text.Info(r, name) <- rendering.citation(JEdit_Lib.before_caret_range(text_area, rendering))
       name1 <- Completion.clean_name(name)
 
-      original <- JEdit_Lib.try_get_text(text_area.getBuffer, r)
+      original <- rendering.model.try_get_text(r)
       original1 <- Completion.clean_name(Library.perhaps_unquote(original))
 
       entries = complete(name1).filter(_ != original1)
