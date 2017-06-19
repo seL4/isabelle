@@ -35,7 +35,7 @@ class Context_Menu extends DynamicContextMenuService
         }
         else Nil
 
-      val items2 = Bibtex_JEdit.context_menu(text_area)
+      val items2 = JEdit_Bibtex.context_menu(text_area)
 
       val items = items1 ::: items2
       if (items.isEmpty) null else items.toArray

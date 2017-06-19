@@ -73,6 +73,10 @@ object Text
       else Some(Range(this.start min that.start, this.stop max that.stop))
 
     def substring(text: String): String = text.substring(start, stop)
+
+    def try_substring(text: String): Option[String] =
+      try { Some(substring(text)) }
+      catch { case _: IndexOutOfBoundsException => None }
   }
 
 

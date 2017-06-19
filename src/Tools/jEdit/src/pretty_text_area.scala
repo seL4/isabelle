@@ -57,7 +57,8 @@ object Pretty_Text_Area
     formatted_body: XML.Body): (String, JEdit_Rendering) =
   {
     val (text, state) = document_state(base_snapshot, base_results, formatted_body)
-    val rendering = JEdit_Rendering(state.snapshot(), PIDE.options.value)
+    val model = File_Model.empty(PIDE.session)
+    val rendering = JEdit_Rendering(state.snapshot(), model, PIDE.options.value)
     (text, rendering)
   }
 }

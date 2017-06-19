@@ -74,7 +74,7 @@ object Isabelle
 
   private val mode_markers: Map[String, TokenMarker] =
     Map(modes.map(mode => (mode, new Token_Markup.Marker(mode, None))): _*) +
-      ("bibtex" -> new Bibtex_JEdit.Token_Marker)
+      ("bibtex" -> new JEdit_Bibtex.Token_Marker)
 
   def mode_token_marker(mode: String): Option[TokenMarker] = mode_markers.get(mode)
 
@@ -419,7 +419,7 @@ object Isabelle
       doc_view <- Document_View.get(text_area)
       rendering = doc_view.get_rendering()
       range = JEdit_Lib.caret_range(text_area)
-      Text.Info(_, word) <- JEdit_Spell_Checker.current_word(text_area, rendering, range)
+      Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
     } {
       spell_checker.update(word, include, permanent)
       JEdit_Lib.jedit_views().foreach(_.repaint())

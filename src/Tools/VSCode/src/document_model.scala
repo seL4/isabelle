@@ -39,7 +39,6 @@ object Document_Model
     def text_length: Text.Offset = doc.text_length
     def text_range: Text.Range = doc.text_range
     def text: String = doc.text
-    def try_get_text(range: Text.Range): Option[String] = doc.try_get_text(range)
 
     lazy val bytes: Bytes = Bytes(text)
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
@@ -64,6 +63,14 @@ sealed case class Document_Model(
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
   published_decorations: List[Document_Model.Decoration] = Nil) extends Document.Model
 {
+  model =>
+
+
+  /* text */
+
+  def try_get_text(range: Text.Range): Option[String] = content.doc.try_get_text(range)
+
+
   /* external file */
 
   def external(b: Boolean): Document_Model = copy(external_file = b)
@@ -84,7 +91,7 @@ sealed case class Document_Model(
     : (Boolean, Document.Node.Perspective_Text) =
   {
     if (is_theory) {
-      val snapshot = this.snapshot()
+      val snapshot = model.snapshot()
 
       val caret_perspective = resources.options.int("vscode_caret_perspective") max 0
       val caret_range =
@@ -192,7 +199,7 @@ sealed case class Document_Model(
   def snapshot(): Document.Snapshot = session.snapshot(node_name, pending_edits)
 
   def rendering(snapshot: Document.Snapshot): VSCode_Rendering =
-    new VSCode_Rendering(this, snapshot)
+    new VSCode_Rendering(snapshot, model)
   def rendering(): VSCode_Rendering = rendering(snapshot())
 
 

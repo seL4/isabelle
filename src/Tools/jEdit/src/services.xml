@@ -39,7 +39,7 @@
     new isabelle.jedit.Isabelle_Sidekick_Root();
   </SERVICE>
   <SERVICE NAME="bibtex" CLASS="sidekick.SideKickParser">
-    new isabelle.jedit.Bibtex_JEdit.Sidekick_Parser();
+    new isabelle.jedit.JEdit_Bibtex.Sidekick_Parser();
   </SERVICE>
   <SERVICE CLASS="console.Shell" NAME="Scala">
     new isabelle.jedit.Scala_Console();

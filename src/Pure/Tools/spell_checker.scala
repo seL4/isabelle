@@ -52,6 +52,15 @@ object Spell_Checker
     result.toList
   }
 
+  def current_word(rendering: Rendering, range: Text.Range): Option[Text.Info[String]] =
+  {
+    for {
+      spell_range <- rendering.spell_checker_point(range)
+      text <- rendering.model.try_get_text(spell_range)
+      info <- marked_words(spell_range.start, text, info => info.range.overlaps(range)).headOption
+    } yield info
+  }
+
 
   /* dictionaries */
 
@@ -210,7 +219,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     Spell_Checker.marked_words(base, text, info => !check(info.info))
 
 
-  /* suggestions for unknown words */
+  /* completion: suggestions for unknown words */
 
   private def suggestions(word: String): Option[List[String]] =
   {
@@ -240,6 +249,19 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     }
 
   def complete_enabled(word: String): Boolean = complete(word).nonEmpty
+
+  def completion(rendering: Rendering, caret: Text.Offset): Option[Completion.Result] =
+  {
+    val caret_range = rendering.before_caret_range(caret)
+    for {
+      word <- Spell_Checker.current_word(rendering, caret_range)
+      words = complete(word.info)
+      if words.nonEmpty
+      descr = "(from dictionary " + quote(dictionary.toString) + ")"
+      items =
+        words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
+    } yield Completion.Result(word.range, word.info, false, items)
+  }
 }
 
 

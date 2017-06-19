@@ -60,7 +60,8 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 {
   private val session = model.session
 
-  def get_rendering(): JEdit_Rendering = JEdit_Rendering(model.snapshot(), PIDE.options.value)
+  def get_rendering(): JEdit_Rendering =
+    JEdit_Rendering(model.snapshot(), model, PIDE.options.value)
 
   val rich_text_area =
     new Rich_Text_Area(text_area.getView, text_area, get_rendering _, () => (), () => None,

@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/bibtex_jedit.scala
+/*  Title:      Tools/jEdit/src/jedit_bibtex.scala
     Author:     Makarius
 
 BibTeX support in Isabelle/jEdit.
@@ -25,7 +25,7 @@ import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, 
 import sidekick.{SideKickParser, SideKickParsedData}
 
 
-object Bibtex_JEdit
+object JEdit_Bibtex
 {
   /** completion **/
 
@@ -35,31 +35,8 @@ object Bibtex_JEdit
       if entry.toLowerCase.containsSlice(name.toLowerCase)
     } yield entry).toList
 
-  def completion(
-    history: Completion.History,
-    text_area: JEditTextArea,
-    rendering: JEdit_Rendering): Option[Completion.Result] =
-  {
-    for {
-      Text.Info(r, name) <- rendering.citation(JEdit_Lib.before_caret_range(text_area, rendering))
-      name1 <- Completion.clean_name(name)
-
-      original <- JEdit_Lib.try_get_text(text_area.getBuffer, r)
-      original1 <- Completion.clean_name(Library.perhaps_unquote(original))
-
-      entries = complete(name1).filter(_ != original1)
-      if entries.nonEmpty
-
-      items =
-        entries.sorted.map({
-          case entry =>
-            val full_name = Long_Name.qualify(Markup.CITATION, entry)
-            val description = List(entry, "(BibTeX entry)")
-            val replacement = quote(entry)
-          Completion.Item(r, original, full_name, description, replacement, 0, false)
-        }).sorted(history.ordering).take(PIDE.options.int("completion_limit"))
-    } yield Completion.Result(r, original, false, items)
-  }
+  def completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
+    : Option[Completion.Result] = Bibtex.completion(history, rendering, caret, complete _)
 
 
 
@@ -231,4 +208,3 @@ object Bibtex_JEdit
     }
   }
 }
-

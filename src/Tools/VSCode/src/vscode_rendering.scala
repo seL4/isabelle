@@ -65,19 +65,15 @@ object VSCode_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
-class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
-  extends Rendering(snapshot, model.resources.options, model.session)
+class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
+  extends Rendering(snapshot, _model.resources.options, _model.session)
 {
   rendering =>
 
+  def model: Document_Model = _model
+
 
   /* completion */
-
-  def before_caret_range(caret: Text.Offset): Text.Range =
-  {
-    val former_caret = snapshot.revert(caret)
-    snapshot.convert(Text.Range(former_caret - 1, former_caret))
-  }
 
   def completion(caret_pos: Line.Position, caret: Text.Offset): List[Protocol.CompletionItem] =
   {
@@ -97,11 +93,15 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
 
         val (no_completion, semantic_completion) =
           rendering.semantic_completion_result(
-            history, false, syntax_completion.map(_.range), caret_range, doc.try_get_text(_))
+            history, false, syntax_completion.map(_.range), caret_range)
 
         if (no_completion) Nil
         else {
-          Completion.Result.merge(history, semantic_completion, syntax_completion) match {
+          val results =
+            Completion.Result.merge(history,
+              Completion.Result.merge(history, semantic_completion, syntax_completion),
+              spell_checker_completion(caret))
+          results match {
             case None => Nil
             case Some(result) =>
               result.items.map(item =>
@@ -199,11 +199,14 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
       (for {
         spell_checker <- model.resources.spell_checker.get.iterator
         spell_range <- spell_checker_ranges(model.content.text_range).iterator
-        text <- model.content.try_get_text(spell_range).iterator
+        text <- model.try_get_text(spell_range).iterator
         info <- spell_checker.marked_words(spell_range.start, text).iterator
       } yield info.range).toList
     Document_Model.Decoration.ranges("spell_checker", ranges)
   }
+
+  def spell_checker_completion(caret: Text.Offset): Option[Completion.Result] =
+    model.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
 
 
   /* decorations */

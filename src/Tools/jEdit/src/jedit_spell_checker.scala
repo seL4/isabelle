@@ -19,36 +19,16 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 object JEdit_Spell_Checker
 {
-  /* words within text */
-
-  def current_word(text_area: TextArea, rendering: JEdit_Rendering, range: Text.Range)
-    : Option[Text.Info[String]] =
-  {
-    for {
-      spell_range <- rendering.spell_checker_point(range)
-      text <- JEdit_Lib.try_get_text(text_area.getBuffer, spell_range)
-      info <- Spell_Checker.marked_words(
-        spell_range.start, text, info => info.range.overlaps(range)).headOption
-    } yield info
-  }
-
-
   /* completion */
 
-  def completion(text_area: TextArea, explicit: Boolean, rendering: JEdit_Rendering)
-      : Option[Completion.Result] =
+  def completion(
+    rendering: JEdit_Rendering, explicit: Boolean, caret: Text.Offset): Option[Completion.Result] =
   {
-    for {
-      spell_checker <- PIDE.plugin.spell_checker.get
-      if explicit
-      range = JEdit_Lib.before_caret_range(text_area, rendering)
-      word <- current_word(text_area, rendering, range)
-      words = spell_checker.complete(word.info)
-      if words.nonEmpty
-      descr = "(from dictionary " + quote(spell_checker.toString) + ")"
-      items =
-        words.map(w => Completion.Item(word.range, word.info, "", List(w, descr), w, 0, false))
-    } yield Completion.Result(word.range, word.info, false, items)
+    PIDE.plugin.spell_checker.get match {
+      case Some(spell_checker) if explicit =>
+        spell_checker.completion(rendering, caret)
+      case _ => None
+    }
   }
 
 
@@ -62,7 +42,7 @@ object JEdit_Spell_Checker
         doc_view <- Document_View.get(text_area)
         rendering = doc_view.get_rendering()
         range = JEdit_Lib.point_range(text_area.getBuffer, offset)
-        Text.Info(_, word) <- current_word(text_area, rendering, range)
+        Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
       } yield (spell_checker, word)
 
     result match {
