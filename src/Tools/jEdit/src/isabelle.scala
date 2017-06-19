@@ -74,7 +74,7 @@ object Isabelle
 
   private val mode_markers: Map[String, TokenMarker] =
     Map(modes.map(mode => (mode, new Token_Markup.Marker(mode, None))): _*) +
-      ("bibtex" -> new Bibtex_JEdit.Token_Marker)
+      ("bibtex" -> new JEdit_Bibtex.Token_Marker)
 
   def mode_token_marker(mode: String): Option[TokenMarker] = mode_markers.get(mode)
 

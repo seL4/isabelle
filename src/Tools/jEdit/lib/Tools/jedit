@@ -21,7 +21,6 @@ esac
 
 declare -a SOURCES=(
   "src/active.scala"
-  "src/bibtex_jedit.scala"
   "src/completion_popup.scala"
   "src/context_menu.scala"
   "src/debugger_dockable.scala"
@@ -37,6 +36,7 @@ declare -a SOURCES=(
   "src/isabelle_encoding.scala"
   "src/isabelle_options.scala"
   "src/isabelle_sidekick.scala"
+  "src/jedit_bibtex.scala"
   "src/jedit_editor.scala"
   "src/jedit_lib.scala"
   "src/jedit_options.scala"

@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/bibtex_jedit.scala
+/*  Title:      Tools/jEdit/src/jedit_bibtex.scala
     Author:     Makarius
 
 BibTeX support in Isabelle/jEdit.
@@ -25,7 +25,7 @@ import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, 
 import sidekick.{SideKickParser, SideKickParsedData}
 
 
-object Bibtex_JEdit
+object JEdit_Bibtex
 {
   /** completion **/
 
