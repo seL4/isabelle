@@ -52,6 +52,15 @@ object Spell_Checker
     result.toList
   }
 
+  def current_word(rendering: Rendering, range: Text.Range): Option[Text.Info[String]] =
+  {
+    for {
+      spell_range <- rendering.spell_checker_point(range)
+      text <- rendering.model.try_get_text(spell_range)
+      info <- marked_words(spell_range.start, text, info => info.range.overlaps(range)).headOption
+    } yield info
+  }
+
 
   /* dictionaries */
 
