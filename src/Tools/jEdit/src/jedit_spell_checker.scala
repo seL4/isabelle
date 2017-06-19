@@ -21,14 +21,14 @@ object JEdit_Spell_Checker
 {
   /* completion */
 
-  def completion(rendering: JEdit_Rendering, explicit: Boolean, caret: Text.Offset)
-      : Option[Completion.Result] =
+  def completion(
+    rendering: JEdit_Rendering, explicit: Boolean, caret: Text.Offset): Option[Completion.Result] =
   {
-    for {
-      spell_checker <- PIDE.plugin.spell_checker.get
-      if explicit
-      res <- spell_checker.completion(rendering, caret)
-    } yield res
+    PIDE.plugin.spell_checker.get match {
+      case Some(spell_checker) if explicit =>
+        spell_checker.completion(rendering, caret)
+      case _ => None
+    }
   }
 
 
