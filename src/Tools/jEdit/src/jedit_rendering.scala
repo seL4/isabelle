@@ -21,8 +21,8 @@ import scala.collection.immutable.SortedMap
 
 object JEdit_Rendering
 {
-  def apply(snapshot: Document.Snapshot, options: Options): JEdit_Rendering =
-    new JEdit_Rendering(snapshot, options)
+  def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
+    new JEdit_Rendering(snapshot, model, options)
 
 
   /* popup window bounds */
@@ -148,9 +148,12 @@ object JEdit_Rendering
 }
 
 
-class JEdit_Rendering(snapshot: Document.Snapshot, options: Options)
+class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, options: Options)
   extends Rendering(snapshot, options, PIDE.session)
 {
+  def model: Document_Model = _model
+
+
   /* colors */
 
   def color(s: String): Color =

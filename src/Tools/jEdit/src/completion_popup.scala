@@ -356,8 +356,7 @@ object Completion_Popup
           opt_rendering match {
             case Some(rendering) =>
               rendering.semantic_completion_result(history, unicode, result0.map(_.range),
-                JEdit_Lib.before_caret_range(text_area, rendering),
-                JEdit_Lib.try_get_text(buffer, _))
+                JEdit_Lib.before_caret_range(text_area, rendering))
             case None => (false, None)
           }
         }
@@ -509,7 +508,7 @@ object Completion_Popup
       val range = item.range
       if (text_field.isEditable) {
         val content = text_field.getText
-        JEdit_Lib.try_get_text(content, range) match {
+        range.try_substring(content) match {
           case Some(text) if text == item.original =>
             text_field.setText(
               content.substring(0, range.start) +

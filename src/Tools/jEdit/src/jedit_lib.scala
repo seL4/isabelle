@@ -175,10 +175,6 @@ object JEdit_Lib
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
-  def try_get_text(text: String, range: Text.Range): Option[String] =
-    try { Some(range.substring(text)) }
-    catch { case _: IndexOutOfBoundsException => None }
-
 
   /* point range */
 

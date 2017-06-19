@@ -65,10 +65,12 @@ object VSCode_Rendering
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION)
 }
 
-class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
-  extends Rendering(snapshot, model.resources.options, model.session)
+class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
+  extends Rendering(snapshot, _model.resources.options, _model.session)
 {
   rendering =>
+
+  def model: Document_Model = _model
 
 
   /* completion */
@@ -97,7 +99,7 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
 
         val (no_completion, semantic_completion) =
           rendering.semantic_completion_result(
-            history, false, syntax_completion.map(_.range), caret_range, doc.try_get_text(_))
+            history, false, syntax_completion.map(_.range), caret_range)
 
         if (no_completion) Nil
         else {
@@ -199,7 +201,7 @@ class VSCode_Rendering(val model: Document_Model, snapshot: Document.Snapshot)
       (for {
         spell_checker <- model.resources.spell_checker.get.iterator
         spell_range <- spell_checker_ranges(model.content.text_range).iterator
-        text <- model.content.try_get_text(spell_range).iterator
+        text <- model.try_get_text(spell_range).iterator
         info <- spell_checker.marked_words(spell_range.start, text).iterator
       } yield info.range).toList
     Document_Model.Decoration.ranges("spell_checker", ranges)

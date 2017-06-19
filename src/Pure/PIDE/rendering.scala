@@ -209,6 +209,8 @@ abstract class Rendering(
 {
   override def toString: String = "Rendering(" + snapshot.toString + ")"
 
+  def model: Document.Model
+
 
   /* completion */
 
@@ -231,13 +233,12 @@ abstract class Rendering(
     history: Completion.History,
     unicode: Boolean,
     completed_range: Option[Text.Range],
-    caret_range: Text.Range,
-    try_get_text: Text.Range => Option[String]): (Boolean, Option[Completion.Result]) =
+    caret_range: Text.Range): (Boolean, Option[Completion.Result]) =
   {
     semantic_completion(completed_range, caret_range) match {
       case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
       case Some(Text.Info(range, names: Completion.Names)) =>
-        try_get_text(range) match {
+        model.try_get_text(range) match {
           case Some(original) => (false, names.complete(range, history, unicode, original))
           case None => (false, None)
         }

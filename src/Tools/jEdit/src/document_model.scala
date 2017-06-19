@@ -372,6 +372,10 @@ sealed abstract class Document_Model extends Document.Model
 
 object File_Model
 {
+  def empty(session: Session): File_Model =
+    File_Model(session, Document.Node.Name.empty, None, Document_Model.File_Content(""),
+      false, Document.Node.no_perspective_text, Nil)
+
   def init(session: Session,
     node_name: Document.Node.Name,
     text: String,
@@ -396,6 +400,12 @@ case class File_Model(
   last_perspective: Document.Node.Perspective_Text,
   pending_edits: List[Text.Edit]) extends Document_Model
 {
+  /* text */
+
+  def try_get_text(range: Text.Range): Option[String] =
+    range.try_substring(content.text)
+
+
   /* header */
 
   def node_header: Document.Node.Header =
@@ -457,6 +467,12 @@ case class File_Model(
 case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer: Buffer)
   extends Document_Model
 {
+  /* text */
+
+  def try_get_text(range: Text.Range): Option[String] =
+    JEdit_Lib.try_get_text(buffer, range)
+
+
   /* header */
 
   def node_header(): Document.Node.Header =

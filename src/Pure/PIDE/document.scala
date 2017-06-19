@@ -498,6 +498,8 @@ object Document
     def is_theory: Boolean = node_name.is_theory
     override def toString: String = node_name.toString
 
+    def try_get_text(range: Text.Range): Option[String]
+
     def node_required: Boolean
     def get_blob: Option[Blob]
 
