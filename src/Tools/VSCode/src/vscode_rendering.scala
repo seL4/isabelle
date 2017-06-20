@@ -71,6 +71,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
   rendering =>
 
   def model: Document_Model = _model
+  def resources: VSCode_Resources = model.resources
 
 
   /* completion */
@@ -136,7 +137,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
       range = model.content.doc.range(text_range)
       (_, XML.Elem(Markup(name, _), body)) <- res.iterator
     } yield {
-      val message = model.resources.output_pretty_message(body)
+      val message = resources.output_pretty_message(body)
       val severity = VSCode_Rendering.message_severity.get(name)
       Protocol.Diagnostic(range, message, severity = severity)
     }).toList
@@ -222,7 +223,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
       yield {
         val range = model.content.doc.range(text_range)
         Protocol.DecorationOpts(range,
-          msgs.map(msg => Protocol.MarkedString(model.resources.output_pretty_tooltip(msg))))
+          msgs.map(msg => Protocol.MarkedString(resources.output_pretty_tooltip(msg))))
       }
     Protocol.Decoration(decoration.typ, content)
   }
@@ -239,7 +240,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
     : Option[Line.Node_Range] =
   {
     for {
-      platform_path <- model.resources.source_file(source_name)
+      platform_path <- resources.source_file(source_name)
       file <-
         (try { Some(new JFile(platform_path).getCanonicalFile) }
          catch { case ERROR(_) => None })
@@ -247,7 +248,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
     yield {
       Line.Node_Range(file.getPath,
         if (range.start > 0) {
-          model.resources.get_file_content(file) match {
+          resources.get_file_content(file) match {
             case Some(text) =>
               val chunk = Symbol.Text_Chunk(text)
               val doc = Line.Document(text)
@@ -302,7 +303,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val iterator =
               for {
-                Text.Info(entry_range, (entry, model)) <- model.resources.bibtex_entries_iterator
+                Text.Info(entry_range, (entry, model)) <- resources.bibtex_entries_iterator
                 if entry == name
               } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
             if (iterator.isEmpty) None else Some((links /: iterator)(_ :+ _))

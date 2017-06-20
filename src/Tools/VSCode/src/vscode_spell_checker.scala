@@ -17,7 +17,7 @@ object VSCode_Spell_Checker
     val model = rendering.model
     val ranges =
       (for {
-        spell_checker <- model.resources.spell_checker.get.iterator
+        spell_checker <- rendering.resources.spell_checker.get.iterator
         spell_range <- rendering.spell_checker_ranges(model.content.text_range).iterator
         text <- model.try_get_text(spell_range).iterator
         info <- spell_checker.marked_words(spell_range.start, text).iterator
@@ -26,14 +26,13 @@ object VSCode_Spell_Checker
   }
 
   def completion(rendering: VSCode_Rendering, caret: Text.Offset): Option[Completion.Result] =
-    rendering.model.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
+    rendering.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
 
   def menu_items(rendering: VSCode_Rendering, caret: Text.Offset): List[Protocol.CompletionItem] =
   {
-    val model = rendering.model
     val result =
       for {
-        spell_checker <- model.resources.spell_checker.get
+        spell_checker <- rendering.resources.spell_checker.get
         range = rendering.before_caret_range(caret)
         Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
       } yield (spell_checker, word)
@@ -45,7 +44,7 @@ object VSCode_Spell_Checker
           Protocol.CompletionItem(
             label = command.title,
             text = Some(""),
-            range = Some(model.content.doc.range(Text.Range(caret))),
+            range = Some(rendering.model.content.doc.range(Text.Range(caret))),
             command = Some(command))
 
         val update_items =
