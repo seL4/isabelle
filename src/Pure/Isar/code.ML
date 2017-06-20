@@ -963,8 +963,8 @@ fun raw_case_cert thm =
   let
     val ((head, raw_case_expr), cases) = (apfst Logic.dest_equals
       o apsnd Logic.dest_conjunctions o Logic.dest_implies o Thm.plain_prop_of) thm;
-    val _ = case head of Free _ => true
-      | Var _ => true
+    val _ = case head of Free _ => ()
+      | Var _ => ()
       | _ => raise TERM ("case_cert", []);
     val ([(case_var, _)], case_expr) = Term.strip_abs_eta 1 raw_case_expr;
     val (Const (case_const, _), raw_params) = strip_comb case_expr;
