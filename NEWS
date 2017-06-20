@@ -162,7 +162,9 @@ INCOMPATIBILITY.
 * Session HOL-Algebra extended by additional lattice theory: the
 Knaster-Tarski fixed point theorem and Galois Connections.
 
-* SMT module: The legacy module 'src/HOL/Library/Old_SMT.thy' has been removed.
+* SMT module:
+  - The legacy module 'src/HOL/Library/Old_SMT.thy' has been removed.
+  - Several small issues have been rectified in the 'smt' command.
 
 * Session HOL-Analysis: more material involving arcs, paths, covering
 spaces, innessential maps, retracts. Major results include the Jordan
