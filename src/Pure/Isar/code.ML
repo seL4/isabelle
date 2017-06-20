@@ -172,7 +172,7 @@ datatype fun_spec = Eqns_Default of (thm * bool) list * (thm * bool) list lazy
       (* (cache for default equations, lazy computation of default equations)
          -- helps to restore natural order of default equations *)
   | Eqns of (thm * bool) list
-  | None
+  | Unimplemented
   | Proj of (term * string) * bool
   | Abstr of (thm * string) * bool;
 
@@ -909,7 +909,7 @@ end;
 fun retrieve_raw thy c =
   Symtab.lookup ((the_functions o the_exec) thy) c
   |> Option.map (snd o fst)
-  |> the_default None
+  |> the_default Unimplemented
 
 fun eqn_conv conv ct =
   let
@@ -948,7 +948,7 @@ fun get_cert ctxt functrans c =
         |> cert_of_eqns_preprocess ctxt functrans c
     | Eqns eqns => eqns
         |> cert_of_eqns_preprocess ctxt functrans c
-    | None => nothing_cert ctxt c
+    | Unimplemented => nothing_cert ctxt c
     | Proj ((_, tyco), _) => cert_of_proj thy c tyco
     | Abstr ((abs_thm, tyco), _) => abs_thm
        |> preprocess Conv.arg_conv ctxt
@@ -1018,7 +1018,7 @@ fun print_codesetup thy =
     fun pretty_function (const, Eqns_Default (_, eqns_lazy)) =
           pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
-      | pretty_function (const, None) = pretty_equations const []
+      | pretty_function (const, Unimplemented) = pretty_equations const []
       | pretty_function (const, Proj ((proj, _), _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
       | pretty_function (const, Abstr ((thm, _), _)) = pretty_equations const [thm];
@@ -1121,7 +1121,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
       (eqns, Lazy.lazy (fn () => fold (update_subsume false) eqns []))
     fun add_eqn' true (Eqns_Default (eqns, _)) = Eqns_Default (natural_order ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
-      | add_eqn' true None = Eqns_Default (natural_order [(thm, proper)])
+      | add_eqn' true Unimplemented = Eqns_Default (natural_order [(thm, proper)])
       | add_eqn' true fun_spec = fun_spec
       | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
@@ -1184,7 +1184,7 @@ fun generic_del_eqn strictness thm thy = case mk_eqn strictness thy (thm, true)
           | del_eqn' (Eqns eqns) =
               let
                 val eqns' = filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns
-              in if null eqns' then None else Eqns eqns' end
+              in if null eqns' then Unimplemented else Eqns eqns' end
           | del_eqn' spec = spec
       in change_fun_spec (const_eqn thy thm) del_eqn' thy end
   | NONE => thy;
@@ -1192,7 +1192,7 @@ fun generic_del_eqn strictness thm thy = case mk_eqn strictness thy (thm, true)
 val del_eqn_silent = generic_del_eqn Silent;
 val del_eqn = generic_del_eqn Liberal;
 
-fun del_eqns c = change_fun_spec c (K None);
+fun del_eqns c = change_fun_spec c (K Unimplemented);
 
 fun del_exception c = change_fun_spec c (K (Eqns []));
 
