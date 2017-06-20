@@ -176,7 +176,7 @@ datatype fun_spec = Eqns_Default of (thm * bool) list * (thm * bool) list lazy
   | Proj of (term * string) * bool
   | Abstr of (thm * string) * bool;
 
-val initial_fun_spec = Eqns_Default ([], Lazy.value []);
+val default_fun_spec = Eqns_Default ([], Lazy.value []);
 
 fun is_default (Eqns_Default _) = true
   | is_default (Proj (_, default)) = default
@@ -202,6 +202,8 @@ datatype spec = Spec of {
 fun make_spec (history_concluded, (functions, (types, (cases, undefineds)))) =
   Spec { history_concluded = history_concluded, functions = functions, types = types,
     cases = cases, undefineds = undefineds };
+val empty_spec =
+  make_spec (false, (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty))));
 fun map_spec f (Spec { history_concluded = history_concluded,
   functions = functions, types = types, cases = cases, undefineds = undefineds }) =
   make_spec (f (history_concluded, (functions, (types, (cases, undefineds)))));
@@ -225,7 +227,7 @@ fun merge_spec (Spec { history_concluded = _, functions = functions1,
     val invalidated_case_consts = union (op =) (case_consts_of' types1) (case_consts_of' types2)
       |> subtract (op =) (maps case_consts_of all_datatype_specs)
     val functions = Symtab.join (K merge_functions) (functions1, functions2)
-      |> fold (fn c => Symtab.map_entry c (apfst (K (true, initial_fun_spec)))) all_constructors;
+      |> fold (fn c => Symtab.map_entry c (apfst (K (true, default_fun_spec)))) all_constructors;
     val cases = Symtab.merge (K true) (cases1, cases2)
       |> fold Symtab.delete invalidated_case_consts;
     val undefineds = Symtab.merge (K true) (undefineds1, undefineds2);
@@ -238,7 +240,7 @@ fun cases_of (Spec { cases, ... }) = cases;
 fun undefineds_of (Spec { undefineds, ... }) = undefineds;
 val map_history_concluded = map_spec o apfst;
 val map_functions = map_spec o apsnd o apfst;
-val map_typs = map_spec o apsnd o apsnd o apfst;
+val map_types = map_spec o apsnd o apsnd o apfst;
 val map_cases = map_spec o apsnd o apsnd o apsnd o apfst;
 val map_undefineds = map_spec o apsnd o apsnd o apsnd o apsnd;
 
@@ -283,8 +285,7 @@ fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory) opti
 structure Code_Data = Theory_Data
 (
   type T = spec * (data * theory) option Synchronized.var;
-  val empty = (make_spec (false, (Symtab.empty,
-    (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_dataref ());
+  val empty = (empty_spec, empty_dataref ());
   val extend : T -> T = apsnd (K (empty_dataref ()));
   fun merge ((spec1, _), (spec2, _)) =
     (merge_spec (spec1, spec2), empty_dataref ());
@@ -297,10 +298,10 @@ in
 
 val spec_of : theory -> spec = fst o Code_Data.get;
 
-fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
+fun map_spec_purge f = Code_Data.map (fn (spec, _) => (f spec, empty_dataref ()));
 
-fun change_fun_spec c f = (map_exec_purge o map_functions
-  o (Symtab.map_default (c, ((false, initial_fun_spec), [])))
+fun change_fun_spec c f = (map_spec_purge o map_functions
+  o (Symtab.map_default (c, ((false, default_fun_spec), [])))
     o apfst) (fn (_, spec) => (true, f spec));
 
 
@@ -705,7 +706,7 @@ fun constrain_thm thy vs sorts thm =
       (v, Sorts.inter_sort (Sign.classes_of thy) (sort, sort'))) vs sorts;
     val inst = map2 (fn (v, sort) => fn (_, sort') =>
       (((v, 0), sort), Thm.global_ctyp_of thy (TFree (v, sort')))) vs mapping;
-    val subst = (map_types o map_type_tfree)
+    val subst = (Term.map_types o map_type_tfree)
       (fn (v, _) => TFree (v, the (AList.lookup (op =) mapping v)));
   in
     thm
@@ -1015,7 +1016,7 @@ val undefineds = Symtab.keys o undefineds_of o spec_of;
 fun print_codesetup thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val exec = spec_of thy;
+    val spec = spec_of thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
@@ -1047,11 +1048,11 @@ fun print_codesetup thy =
       | pretty_case (const, ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
           Pretty.str (string_of_const thy const), Pretty.str "with",
           (Pretty.block o Pretty.commas o map (Pretty.str o pretty_caseparam)) cos];
-    val functions = functions_of exec
+    val functions = functions_of spec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
       |> sort (string_ord o apply2 fst);
-    val datatypes = types_of exec
+    val datatypes = types_of spec
       |> Symtab.dest
       |> map (fn (tyco, (_, (vs, spec)) :: _) =>
           ((tyco, vs), constructors_of spec))
@@ -1105,7 +1106,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
     fun update_subsume verbose (thm, proper) eqns = 
       let
         val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
-          o map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
+          o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
         val args = args_of thm;
         val incr_idx = Logic.incr_indexes ([], [], Thm.maxidx_of thm + 1);
         fun matches_args args' =
@@ -1184,7 +1185,7 @@ fun add_maybe_abs_eqn_liberal thm thy =
 fun generic_del_eqn strictness thm thy = case mk_eqn strictness thy (thm, true)
  of SOME (thm, _) =>
       let
-        fun del_eqn' (Eqns_Default _) = initial_fun_spec
+        fun del_eqn' (Eqns_Default _) = default_fun_spec
           | del_eqn' (Eqns eqns) =
               let
                 val eqns' = filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns
@@ -1236,16 +1237,16 @@ fun add_case thm thy =
            then insert (op =) case_const cases
            else cases)
       | register_for_constructors (x as Abstractor _) = x;
-    val register_type = (map_typs o Symtab.map)
+    val register_type = (map_types o Symtab.map)
       (K ((map o apsnd o apsnd) register_for_constructors));
   in
     thy
     |> `(fn thy => case_cong thy case_const entry)
-    |-> (fn cong => map_exec_purge (register_case cong #> register_type))
+    |-> (fn cong => map_spec_purge (register_case cong #> register_type))
   end;
 
 fun add_undefined c thy =
-  (map_exec_purge o map_undefineds) (Symtab.update (c, ())) thy;
+  (map_spec_purge o map_undefineds) (Symtab.update (c, ())) thy;
 
 
 (* types *)
@@ -1272,8 +1273,8 @@ fun register_type (tyco, vs_spec) thy =
   in
     thy
     |> fold del_eqns (outdated_funs1 @ outdated_funs2)
-    |> map_exec_purge
-        ((map_typs o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
+    |> map_spec_purge
+        ((map_types o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
         #> map_cases drop_outdated_cases)
   end;
 
