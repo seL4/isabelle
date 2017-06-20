@@ -789,35 +789,45 @@ fun extract thm_vss thy =
       fold (fn (thm, vs) => snd o (extr 0 vs [] [] [] o prep_thm vs) thm)
         thm_vss [];
 
-    fun add_def (s, (vs, ((t, u), (prf, _)))) thy =
-      (case Sign.const_type thy (extr_name s vs) of
-         NONE =>
-           let
-             val corr_prop = Reconstruct.prop_of prf;
-             val ft = Type.legacy_freeze t;
-             val fu = Type.legacy_freeze u;
-             val (def_thms, thy') = if t = nullt then ([], thy) else
-               thy
-               |> Sign.add_consts [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
-               |> Global_Theory.add_defs false
-                  [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
-                    Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
-           in
-             thy'
-             |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),
-                  Thm.varifyT_global (funpow (length (vars_of corr_prop))
-                    (Thm.forall_elim_var 0) (Thm.forall_intr_frees
-                      (Proof_Checker.thm_of_proof thy'
-                       (fst (Proofterm.freeze_thaw_prf prf))))))
-             |> snd
-             |> fold (Code.add_eqn (Code.Equation, true)) def_thms
-           end
-       | SOME _ => thy);
+    fun add_def (s, (vs, ((t, u)))) thy =
+      let
+        val ft = Type.legacy_freeze t;
+        val fu = Type.legacy_freeze u;
+      in
+        thy
+        |> Sign.add_consts [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
+        |> Global_Theory.add_defs false
+           [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
+             Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
+        |-> (fn [def_thm] => Code.add_eqn (Code.Equation, true) def_thm)
+      end;
+
+    fun add_corr (s, (vs, prf)) thy =
+      let
+        val corr_prop = Reconstruct.prop_of prf;
+      in
+        thy
+        |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),
+            Thm.varifyT_global (funpow (length (vars_of corr_prop))
+              (Thm.forall_elim_var 0) (Thm.forall_intr_frees
+                (Proof_Checker.thm_of_proof thy
+                  (fst (Proofterm.freeze_thaw_prf prf))))))
+        |> snd
+      end;
+
+    fun add_def_and_corr (s, (vs, ((t, u), (prf, _)))) thy =
+      if is_none (Sign.const_type thy (extr_name s vs))
+      then
+        thy
+        |> not (t = nullt) ? add_def (s, (vs, ((t, u))))
+        |> add_corr (s, (vs, prf))
+      else
+        thy;
 
   in
     thy
     |> Sign.root_path
-    |> fold_rev add_def defs
+    |> fold_rev add_def_and_corr defs
     |> Sign.restore_naming thy
   end;
 
