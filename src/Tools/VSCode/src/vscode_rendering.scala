@@ -224,7 +224,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
         def item(command: Protocol.Command): Protocol.CompletionItem =
           Protocol.CompletionItem(
             label = command.title,
-            insertText = Some(""),
+            text = Some(""),
             range = Some(model.content.doc.range(Text.Range(caret))),
             command = Some(command))
 

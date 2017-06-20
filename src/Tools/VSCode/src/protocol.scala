@@ -331,7 +331,7 @@ object Protocol
     kind: Option[Int] = None,
     detail: Option[String] = None,
     documentation: Option[String] = None,
-    insertText: Option[String] = None,
+    text: Option[String] = None,
     range: Option[Line.Range] = None,
     command: Option[Command] = None)
   {
@@ -340,10 +340,10 @@ object Protocol
       JSON.optional("kind" -> kind) ++
       JSON.optional("detail" -> detail) ++
       JSON.optional("documentation" -> documentation) ++
-      JSON.optional("insertText" -> insertText) ++
+      JSON.optional("insertText" -> text) ++
       JSON.optional("range" -> range.map(Range(_))) ++
       JSON.optional("textEdit" ->
-        range.map(r => Map("range" -> Range(r), "newText" -> insertText.getOrElse(label)))) ++
+        range.map(r => Map("range" -> Range(r), "newText" -> text.getOrElse(label)))) ++
       JSON.optional("command" -> command.map(_.json))
   }
 
