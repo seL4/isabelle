@@ -100,7 +100,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
           val results =
             Completion.Result.merge(history,
               Completion.Result.merge(history, semantic_completion, syntax_completion),
-              spell_checker_completion(caret))
+              VSCode_Spell_Checker.completion(rendering, caret))
           results match {
             case None => Nil
             case Some(result) =>
@@ -109,7 +109,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
                   label = item.replacement,
                   detail = Some(item.description.mkString(" ")),
                   range = Some(doc.range(item.range)))) :::
-              spell_checker_menu(caret)
+              VSCode_Spell_Checker.menu_items(rendering, caret)
           }
         }
     }
@@ -192,67 +192,6 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
     message_underline_color(VSCode_Rendering.dotted_elements, range)
 
 
-  /* spell checker */
-
-  def spell_checker: Document_Model.Decoration =
-  {
-    val ranges =
-      (for {
-        spell_checker <- model.resources.spell_checker.get.iterator
-        spell_range <- spell_checker_ranges(model.content.text_range).iterator
-        text <- model.try_get_text(spell_range).iterator
-        info <- spell_checker.marked_words(spell_range.start, text).iterator
-      } yield info.range).toList
-    Document_Model.Decoration.ranges("spell_checker", ranges)
-  }
-
-  def spell_checker_completion(caret: Text.Offset): Option[Completion.Result] =
-    model.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
-
-  def spell_checker_menu(caret: Text.Offset): List[Protocol.CompletionItem] =
-  {
-    val result =
-      for {
-        spell_checker <- model.resources.spell_checker.get
-        range = before_caret_range(caret)
-        Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
-      } yield (spell_checker, word)
-
-    result match {
-      case Some((spell_checker, word)) =>
-
-        def item(command: Protocol.Command): Protocol.CompletionItem =
-          Protocol.CompletionItem(
-            label = command.title,
-            text = Some(""),
-            range = Some(model.content.doc.range(Text.Range(caret))),
-            command = Some(command))
-
-        val update_items =
-          if (spell_checker.check(word))
-            List(
-              item(Protocol.Exclude_Word.command),
-              item(Protocol.Exclude_Word_Permanently.command))
-          else
-            List(
-              item(Protocol.Include_Word.command),
-              item(Protocol.Include_Word_Permanently.command))
-
-        val reset_items =
-          spell_checker.reset_enabled() match {
-            case 0 => Nil
-            case n =>
-              val command = Protocol.Reset_Words.command
-              List(item(command).copy(label = command.title + " (" + n + ")"))
-          }
-
-        update_items ::: reset_items
-
-      case None => Nil
-    }
-  }
-
-
   /* decorations */
 
   def decorations: List[Document_Model.Decoration] = // list of canonical length and order
@@ -273,7 +212,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
         () =>
           VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
             dotted(model.content.text_range)))).flatten :::
-    List(spell_checker)
+    List(VSCode_Spell_Checker.decoration(rendering))
 
   def decoration_output(decoration: Document_Model.Decoration): Protocol.Decoration =
   {
