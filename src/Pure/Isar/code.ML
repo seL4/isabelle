@@ -168,11 +168,11 @@ fun case_consts_of (Constructors (_, case_consts)) = case_consts
 
 (* functions *)
 
-datatype fun_spec = Eqns_Default of (thm * bool) list * (thm * bool) list lazy
+datatype fun_spec = Unimplemented
+  | Eqns_Default of (thm * bool) list * (thm * bool) list lazy
       (* (cache for default equations, lazy computation of default equations)
          -- helps to restore natural order of default equations *)
   | Eqns of (thm * bool) list
-  | Unimplemented
   | Proj of (term * string) * bool
   | Abstr of (thm * string) * bool;
 
@@ -944,11 +944,11 @@ fun cert_of_eqns_preprocess ctxt functrans c =
 
 fun get_cert ctxt functrans c =
   case retrieve_raw (Proof_Context.theory_of ctxt) c of
-    Eqns_Default (_, eqns_lazy) => Lazy.force eqns_lazy
+    Unimplemented => nothing_cert ctxt c
+  | Eqns_Default (_, eqns_lazy) => Lazy.force eqns_lazy
       |> cert_of_eqns_preprocess ctxt functrans c
   | Eqns eqns => eqns
       |> cert_of_eqns_preprocess ctxt functrans c
-  | Unimplemented => nothing_cert ctxt c
   | Proj ((_, tyco), _) => cert_of_proj ctxt c tyco
   | Abstr ((abs_thm, tyco), _) => abs_thm
      |> preprocess Conv.arg_conv ctxt
@@ -1020,10 +1020,12 @@ fun print_codesetup thy =
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
-    fun pretty_function (const, Eqns_Default (_, eqns_lazy)) =
+    fun pretty_function (const, Unimplemented) =
+          pretty_equations const []
+      | pretty_function (const, Eqns_Default (_, eqns_lazy)) =
           pretty_equations const (map fst (Lazy.force eqns_lazy))
-      | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
-      | pretty_function (const, Unimplemented) = pretty_equations const []
+      | pretty_function (const, Eqns eqns) =
+          pretty_equations const (map fst eqns)
       | pretty_function (const, Proj ((proj, _), _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
       | pretty_function (const, Abstr ((thm, _), _)) = pretty_equations const [thm];
@@ -1124,9 +1126,9 @@ fun gen_add_eqn default (raw_thm, proper) thy =
       in (thm, proper) :: filter_out drop eqns end;
     fun natural_order eqns =
       (eqns, Lazy.lazy (fn () => fold (update_subsume false) eqns []))
-    fun add_eqn' true (Eqns_Default (eqns, _)) = Eqns_Default (natural_order ((thm, proper) :: eqns))
+    fun add_eqn' true Unimplemented = Eqns_Default (natural_order [(thm, proper)])
+      | add_eqn' true (Eqns_Default (eqns, _)) = Eqns_Default (natural_order ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
-      | add_eqn' true Unimplemented = Eqns_Default (natural_order [(thm, proper)])
       | add_eqn' true fun_spec = fun_spec
       | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
