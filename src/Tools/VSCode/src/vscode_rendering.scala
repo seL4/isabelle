@@ -101,16 +101,17 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
             Completion.Result.merge(history,
               Completion.Result.merge(history, semantic_completion, syntax_completion),
               VSCode_Spell_Checker.completion(rendering, caret))
-          results match {
-            case None => Nil
-            case Some(result) =>
-              result.items.map(item =>
-                Protocol.CompletionItem(
-                  label = item.replacement,
-                  detail = Some(item.description.mkString(" ")),
-                  range = Some(doc.range(item.range)))) :::
-              VSCode_Spell_Checker.menu_items(rendering, caret)
-          }
+          val items =
+            results match {
+              case None => Nil
+              case Some(result) =>
+                result.items.map(item =>
+                  Protocol.CompletionItem(
+                    label = item.replacement,
+                    detail = Some(item.description.mkString(" ")),
+                    range = Some(doc.range(item.range))))
+            }
+          items ::: VSCode_Spell_Checker.menu_items(rendering, caret)
         }
     }
   }
