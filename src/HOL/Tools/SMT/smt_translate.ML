@@ -212,7 +212,7 @@ fun eta_expand ctxt funcs =
       | expand t =
           (case Term.strip_comb t of
             (Const (@{const_name Let}, _), t1 :: t2 :: ts) =>
-            betapplys (Term.betapply (expand t2, expand t1), map expand ts)
+            Term.betapplys (Term.betapply (expand t2, expand t1), map expand ts)
           | (u as Const (c as (_, T)), ts) =>
               (case SMT_Builtin.dest_builtin ctxt c ts of
                 SOME (_, k, us, mk) =>
