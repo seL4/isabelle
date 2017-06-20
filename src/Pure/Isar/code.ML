@@ -191,9 +191,9 @@ fun associated_abstype (Abstr ((_, tyco), _)) = SOME tyco
 
 datatype spec = Spec of {
   history_concluded: bool,
-  functions: ((bool * fun_spec) * (serial * fun_spec) list) Symtab.table
-    (*with explicit history*),
   types: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
+    (*with explicit history*),
+  functions: ((bool * fun_spec) * (serial * fun_spec) list) Symtab.table
     (*with explicit history*),
   cases: ((int * (int * string option list)) * thm) Symtab.table,
   undefineds: unit Symtab.table
@@ -350,7 +350,7 @@ end; (*local*)
 
 (** foundation **)
 
-(* datatypes *)
+(* types *)
 
 fun no_constr thy s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of_const thy c
   ^ " :: " ^ string_of_typ thy ty ^ "\n" ^ enclose "(" ")" s);
@@ -954,9 +954,11 @@ fun get_cert ctxt functrans c =
      |> cert_of_abs ctxt tyco c;
 
 
-(* cases *)
+(* case certificates *)
 
-fun case_certificate thm =
+local
+
+fun raw_case_cert thm =
   let
     val ((head, raw_case_expr), cases) = (apfst Logic.dest_equals
       o apsnd Logic.dest_conjunctions o Logic.dest_implies o Thm.plain_prop_of) thm;
@@ -992,9 +994,13 @@ fun case_certificate thm =
       | analyze cases = analyze_cases cases;
   in (case_const, (n, analyze cases)) end;
 
-fun case_cert thm = case_certificate thm
+in
+
+fun case_cert thm = raw_case_cert thm
   handle Bind => error "bad case certificate"
        | TERM _ => error "bad case certificate";
+
+end;
 
 fun get_case_scheme thy =
   Option.map fst o (Symtab.lookup o the_cases o the_exec) thy;
