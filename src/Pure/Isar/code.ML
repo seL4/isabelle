@@ -165,6 +165,7 @@ fun constructors_of (Constructors (cos, _)) = (cos, false)
 fun case_consts_of (Constructors (_, case_consts)) = case_consts
   | case_consts_of (Abstractor _) = [];
 
+
 (* functions *)
 
 datatype fun_spec = Eqns_Default of (thm * bool) list * (thm * bool) list lazy
