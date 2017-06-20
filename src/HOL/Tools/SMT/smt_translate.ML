@@ -12,7 +12,6 @@ sig
   datatype sterm =
     SVar of int |
     SApp of string * sterm list |
-    SLet of string * sterm * sterm |
     SQua of squant * string list * sterm spattern list * sterm
 
   (*translation configuration*)
@@ -47,12 +46,12 @@ struct
 
 datatype squant = SForall | SExists
 
-datatype 'a spattern = SPat of 'a list | SNoPat of 'a list
+datatype 'a spattern =
+  SPat of 'a list | SNoPat of 'a list
 
 datatype sterm =
   SVar of int |
   SApp of string * sterm list |
-  SLet of string * sterm * sterm |
   SQua of squant * string list * sterm spattern list * sterm
 
 
@@ -204,7 +203,6 @@ fun eta_expand ctxt funcs =
       | expand ((q as Const (@{const_name Ex}, _)) $ Abs a) = q $ abs_expand a
       | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp expand T t
       | expand (q as Const (@{const_name Ex}, T)) = exp2 T q
-      | expand (Const (@{const_name Let}, _) $ t $ u) = expand (Term.betapply (u, t))
       | expand (Const (@{const_name Let}, T) $ t) =
           let val U = Term.domain_type (Term.range_type T)
           in Abs (Name.uu, U, Bound 0 $ Term.incr_boundvars 1 t) end
@@ -213,7 +211,9 @@ fun eta_expand ctxt funcs =
           in Abs (Name.uu, Term.domain_type T, Abs (Name.uu, U, Bound 0 $ Bound 1)) end
       | expand t =
           (case Term.strip_comb t of
-            (u as Const (c as (_, T)), ts) =>
+            (Const (@{const_name Let}, _), t1 :: t2 :: ts) =>
+            betapplys (Term.betapply (expand t2, expand t1), map expand ts)
+          | (u as Const (c as (_, T)), ts) =>
               (case SMT_Builtin.dest_builtin ctxt c ts of
                 SOME (_, k, us, mk) =>
                   if k = length us then mk (map expand us)
@@ -438,8 +438,6 @@ fun intermediate logic dtyps builtin ctxt ts trx =
               fold_map transT Ts ##>> fold_map (fold_map_pat trans) ps ##>>
               trans b #>> (fn ((Ts', ps'), b') => SQua (q, Ts', ps', b'))
           | NONE => raise TERM ("unsupported quantifier", [t]))
-      | (Const (@{const_name Let}, _), [t1, Abs (_, T, t2)]) =>
-          transT T ##>> trans t1 ##>> trans t2 #>> (fn ((U, u1), u2) => SLet (U, u1, u2))
       | (u as Const (c as (_, T)), ts) =>
           (case builtin ctxt c ts of
             SOME (n, _, us, _) => fold_map trans us #>> app n
@@ -516,7 +514,6 @@ fun translate ctxt smt_options comments ithms =
 
     val ((rewrite_rules, builtin), ts4) = folify ctxt2 ts3
       |>> apfst (cons fun_app_eq)
-val _ = dtyps : (BNF_Util.fp_kind * (string * (string * (string * string) list) list)) list (*###*)
   in
     (ts4, tr_context)
     |-> intermediate logic dtyps (builtin SMT_Builtin.dest_builtin) ctxt2

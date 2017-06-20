@@ -94,8 +94,6 @@ fun tree_of_sterm l (SMT_Translate.SVar i) = SMTLIB.Sym (var (l - i - 1))
   | tree_of_sterm _ (SMT_Translate.SApp (n, [])) = SMTLIB.Sym n
   | tree_of_sterm l (SMT_Translate.SApp (n, ts)) =
       SMTLIB.S (SMTLIB.Sym n :: map (tree_of_sterm l) ts)
-  | tree_of_sterm _ (SMT_Translate.SLet _) =
-      raise Fail "SMT-LIB: unsupported let expression"
   | tree_of_sterm l (SMT_Translate.SQua (q, ss, pats, t)) =
       let
         val l' = l + length ss
