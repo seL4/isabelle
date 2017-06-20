@@ -784,15 +784,17 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val cert_thm = Conjunction.intr_balanced (map rewrite_head thms');
       in Equations (cert_thm, propers) end;
 
-fun cert_of_proj thy c tyco =
+fun cert_of_proj ctxt c tyco =
   let
+    val thy = Proof_Context.theory_of ctxt
     val (vs, ((abs, (_, ty)), (rep, _))) = get_abstype_spec thy tyco;
     val _ = if c = rep then () else
       error ("Wrong head of projection,\nexpected constant " ^ string_of_const thy rep);
   in Projection (mk_proj tyco vs ty abs rep, tyco) end;
 
-fun cert_of_abs thy tyco c raw_abs_thm =
+fun cert_of_abs ctxt tyco c raw_abs_thm =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val abs_thm = singleton (canonize_thms thy) raw_abs_thm;
     val _ = assert_abs_eqn thy (SOME tyco) abs_thm;
     val _ = if c = const_abs_eqn thy abs_thm then ()
@@ -940,20 +942,16 @@ fun cert_of_eqns_preprocess ctxt functrans c =
   end;
 
 fun get_cert ctxt functrans c =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-  in
-    case retrieve_raw thy c of
-      Eqns_Default (_, eqns_lazy) => Lazy.force eqns_lazy
-        |> cert_of_eqns_preprocess ctxt functrans c
-    | Eqns eqns => eqns
-        |> cert_of_eqns_preprocess ctxt functrans c
-    | Unimplemented => nothing_cert ctxt c
-    | Proj ((_, tyco), _) => cert_of_proj thy c tyco
-    | Abstr ((abs_thm, tyco), _) => abs_thm
-       |> preprocess Conv.arg_conv ctxt
-       |> cert_of_abs thy tyco c
-  end;
+  case retrieve_raw (Proof_Context.theory_of ctxt) c of
+    Eqns_Default (_, eqns_lazy) => Lazy.force eqns_lazy
+      |> cert_of_eqns_preprocess ctxt functrans c
+  | Eqns eqns => eqns
+      |> cert_of_eqns_preprocess ctxt functrans c
+  | Unimplemented => nothing_cert ctxt c
+  | Proj ((_, tyco), _) => cert_of_proj ctxt c tyco
+  | Abstr ((abs_thm, tyco), _) => abs_thm
+     |> preprocess Conv.arg_conv ctxt
+     |> cert_of_abs ctxt tyco c;
 
 
 (* cases *)
