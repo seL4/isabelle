@@ -285,6 +285,10 @@ class VSCode_Resources(
   def update_output(changed_nodes: Traversable[JFile]): Unit =
     state.change(st => st.copy(pending_output = st.pending_output ++ changed_nodes))
 
+  def update_output_visible(): Unit =
+    state.change(st => st.copy(pending_output = st.pending_output ++
+      (for ((file, model) <- st.models.iterator if model.node_visible) yield file)))
+
   def flush_output(channel: Channel): Boolean =
   {
     state.change_result(st =>

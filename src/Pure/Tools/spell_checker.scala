@@ -248,8 +248,6 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       result.getOrElse(Nil).map(recover_case)
     }
 
-  def complete_enabled(word: String): Boolean = complete(word).nonEmpty
-
   def completion(rendering: Rendering, caret: Text.Offset): Option[Completion.Result] =
   {
     val caret_range = rendering.before_caret_range(caret)
@@ -263,7 +261,6 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     } yield Completion.Result(word.range, word.info, false, items)
   }
 }
-
 
 class Spell_Checker_Variable
 {

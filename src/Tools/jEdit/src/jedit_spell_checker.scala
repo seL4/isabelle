@@ -53,7 +53,7 @@ object JEdit_Spell_Checker
           new EnhancedMenuItem(context.getAction(name).getLabel, name, context)
 
         val complete_items =
-          if (spell_checker.complete_enabled(word)) List(item("isabelle.complete-word"))
+          if (spell_checker.complete(word).nonEmpty) List(item("isabelle.complete-word"))
           else Nil
 
         val update_items =

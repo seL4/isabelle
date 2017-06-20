@@ -258,6 +258,15 @@ object Protocol
   }
 
 
+  /* commands */
+
+  sealed case class Command(title: String, command: String, arguments: List[JSON.T] = Nil)
+  {
+    def json: JSON.T =
+      Map("title" -> title, "command" -> command, "arguments" -> arguments)
+  }
+
+
   /* document edits */
 
   object DidOpenTextDocument
@@ -322,24 +331,54 @@ object Protocol
     kind: Option[Int] = None,
     detail: Option[String] = None,
     documentation: Option[String] = None,
-    insertText: Option[String] = None,
-    range: Option[Line.Range] = None)
+    text: Option[String] = None,
+    range: Option[Line.Range] = None,
+    command: Option[Command] = None)
   {
     def json: JSON.T =
       Map("label" -> label) ++
       JSON.optional("kind" -> kind) ++
       JSON.optional("detail" -> detail) ++
       JSON.optional("documentation" -> documentation) ++
-      JSON.optional("insertText" -> insertText) ++
+      JSON.optional("insertText" -> text) ++
       JSON.optional("range" -> range.map(Range(_))) ++
       JSON.optional("textEdit" ->
-        range.map(r => Map("range" -> Range(r), "newText" -> insertText.getOrElse(label))))
+        range.map(r => Map("range" -> Range(r), "newText" -> text.getOrElse(label)))) ++
+      JSON.optional("command" -> command.map(_.json))
   }
 
   object Completion extends RequestTextDocumentPosition("textDocument/completion")
   {
     def reply(id: Id, result: List[CompletionItem]): JSON.T =
       ResponseMessage(id, Some(result.map(_.json)))
+  }
+
+
+  /* spell checker */
+
+  object Include_Word extends Notification0("PIDE/include_word")
+  {
+    val command = Command("Include word", "isabelle.include-word")
+  }
+
+  object Include_Word_Permanently extends Notification0("PIDE/include_word_permanently")
+  {
+    val command = Command("Include word permanently", "isabelle.include-word-permanently")
+  }
+
+  object Exclude_Word extends Notification0("PIDE/exclude_word")
+  {
+    val command = Command("Exclude word", "isabelle.exclude-word")
+  }
+
+  object Exclude_Word_Permanently extends Notification0("PIDE/exclude_word_permanently")
+  {
+    val command = Command("Exclude word permanently", "isabelle.exclude-word-permanently")
+  }
+
+  object Reset_Words extends Notification0("PIDE/reset_words")
+  {
+    val command = Command("Reset non-permanent words", "isabelle.reset-words")
   }
 
 

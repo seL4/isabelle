@@ -104,3 +104,21 @@ export const symbols_type =
 
 export const symbols_request_type =
   new NotificationType<void, void>("PIDE/symbols_request")
+
+
+/* spell checker */
+
+export const include_word_type =
+  new NotificationType<void, void>("PIDE/include_word")
+
+export const include_word_permanently_type =
+  new NotificationType<void, void>("PIDE/include_word_permanently")
+
+export const exclude_word_type =
+  new NotificationType<void, void>("PIDE/exclude_word")
+
+export const exclude_word_permanently_type =
+  new NotificationType<void, void>("PIDE/exclude_word_permanently")
+
+export const reset_words_type =
+  new NotificationType<void, void>("PIDE/reset_words")
