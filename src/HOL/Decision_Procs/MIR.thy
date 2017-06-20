@@ -2239,7 +2239,7 @@ qed
 lemma dvd1_eq1: "x >0 \<Longrightarrow> (x::int) dvd 1 = (x = 1)" by auto
 
 consts
-  a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm" (* adjusts the coeffitients of a formula *)
+  a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm" (* adjusts the coefficients of a formula *)
   d_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* tests if all coeffs c of c divide a given l*)
   \<zeta>  :: "fm \<Rightarrow> int" (* computes the lcm of all coefficients of x*)
   \<beta> :: "fm \<Rightarrow> num list"
