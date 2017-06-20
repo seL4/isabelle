@@ -258,6 +258,15 @@ object Protocol
   }
 
 
+  /* commands */
+
+  sealed case class Command(title: String, command: String, arguments: List[JSON.T] = Nil)
+  {
+    def json: JSON.T =
+      Map("title" -> title, "command" -> command, "arguments" -> arguments)
+  }
+
+
   /* document edits */
 
   object DidOpenTextDocument
@@ -323,7 +332,8 @@ object Protocol
     detail: Option[String] = None,
     documentation: Option[String] = None,
     insertText: Option[String] = None,
-    range: Option[Line.Range] = None)
+    range: Option[Line.Range] = None,
+    command: Option[Command] = None)
   {
     def json: JSON.T =
       Map("label" -> label) ++
@@ -333,7 +343,8 @@ object Protocol
       JSON.optional("insertText" -> insertText) ++
       JSON.optional("range" -> range.map(Range(_))) ++
       JSON.optional("textEdit" ->
-        range.map(r => Map("range" -> Range(r), "newText" -> insertText.getOrElse(label))))
+        range.map(r => Map("range" -> Range(r), "newText" -> insertText.getOrElse(label)))) ++
+      JSON.optional("command" -> command.map(_.json))
   }
 
   object Completion extends RequestTextDocumentPosition("textDocument/completion")
@@ -341,6 +352,15 @@ object Protocol
     def reply(id: Id, result: List[CompletionItem]): JSON.T =
       ResponseMessage(id, Some(result.map(_.json)))
   }
+
+
+  /* spell checker */
+
+  object Include_Word extends Notification0("PIDE/include_word")
+  object Include_Word_Permanently extends Notification0("PIDE/include_word_permanently")
+  object Exclude_Word extends Notification0("PIDE/exclude_word")
+  object Exclude_Word_Permanently extends Notification0("PIDE/exclude_word_permanently")
+  object Reset_Words extends Notification0("PIDE/reset_words")
 
 
   /* hover request */

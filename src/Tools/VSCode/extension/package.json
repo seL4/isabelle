@@ -72,6 +72,31 @@
                     "light": "./media/ViewSource.svg",
                     "dark": "./media/ViewSource_inverse.svg"
                 }
+            },
+            {
+                "command": "isabelle.include-word",
+                "title": "Include word",
+                "category": "Isabelle"
+            },
+            {
+                "command": "isabelle.include-word-permanently",
+                "title": "Include word permanently",
+                "category": "Isabelle"
+            },
+            {
+                "command": "isabelle.exclude-word",
+                "title": "Exclude word",
+                "category": "Isabelle"
+            },
+            {
+                "command": "isabelle.exclude-word-permanently",
+                "title": "Exclude word permanently",
+                "category": "Isabelle"
+            },
+            {
+                "command": "isabelle.reset-words",
+                "title": "Reset non-permanent words",
+                "category": "Isabelle"
             }
         ],
         "menus": {

@@ -141,6 +141,25 @@ export function activate(context: ExtensionContext)
         languages.registerCompletionItemProvider(mode, completion_provider))
     }
 
+
+    /* spell checker */
+
+    language_client.onReady().then(() =>
+    {
+      context.subscriptions.push(
+        commands.registerCommand("isabelle.include-word", uri =>
+          language_client.sendNotification(protocol.include_word_type)),
+        commands.registerCommand("isabelle.include-word-permanently", uri =>
+          language_client.sendNotification(protocol.include_word_permanently_type)),
+        commands.registerCommand("isabelle.exclude-word", uri =>
+          language_client.sendNotification(protocol.exclude_word_type)),
+        commands.registerCommand("isabelle.exclude-word-permanently", uri =>
+          language_client.sendNotification(protocol.exclude_word_permanently_type)),
+        commands.registerCommand("isabelle.reset-words", uri =>
+          language_client.sendNotification(protocol.reset_words_type)))
+    })
+
+
     /* start server */
 
     context.subscriptions.push(language_client.start())

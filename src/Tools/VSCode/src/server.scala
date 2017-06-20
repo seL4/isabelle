@@ -208,11 +208,22 @@ class Server(
       if (resources.flush_output(channel)) delay_output.invoke()
     }
 
+  def update_output(changed_nodes: Traversable[JFile])
+  {
+    resources.update_output(changed_nodes)
+    delay_output.invoke()
+  }
+
+  def update_output_visible()
+  {
+    resources.update_output_visible()
+    delay_output.invoke()
+  }
+
   private val prover_output =
     Session.Consumer[Session.Commands_Changed](getClass.getName) {
       case changed =>
-        resources.update_output(changed.nodes.toList.map(resources.node_file(_)))
-        delay_output.invoke()
+        update_output(changed.nodes.toList.map(resources.node_file(_)))
     }
 
   private val syslog =
@@ -337,6 +348,32 @@ class Server(
   }
 
 
+  /* spell-checker dictionary */
+
+  def update_dictionary(include: Boolean, permanent: Boolean)
+  {
+    for {
+      spell_checker <- resources.spell_checker.get
+      caret <- resources.get_caret()
+      rendering = caret.model.rendering()
+      range = rendering.before_caret_range(caret.offset)
+      Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
+    } {
+      spell_checker.update(word, include, permanent)
+      update_output_visible()
+    }
+  }
+
+  def reset_dictionary()
+  {
+    for (spell_checker <- resources.spell_checker.get)
+    {
+      spell_checker.reset()
+      update_output_visible()
+    }
+  }
+
+
   /* hover */
 
   def hover(id: Protocol.Id, node_pos: Line.Node_Position)
@@ -400,6 +437,11 @@ class Server(
           case Protocol.DidChangeTextDocument(file, _, changes) => change_document(file, changes)
           case Protocol.DidCloseTextDocument(file) => close_document(file)
           case Protocol.Completion(id, node_pos) => completion(id, node_pos)
+          case Protocol.Include_Word(()) => update_dictionary(true, false)
+          case Protocol.Include_Word_Permanently(()) => update_dictionary(true, true)
+          case Protocol.Exclude_Word(()) => update_dictionary(false, false)
+          case Protocol.Exclude_Word_Permanently(()) => update_dictionary(false, true)
+          case Protocol.Reset_Words(()) => reset_dictionary()
           case Protocol.Hover(id, node_pos) => hover(id, node_pos)
           case Protocol.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case Protocol.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
