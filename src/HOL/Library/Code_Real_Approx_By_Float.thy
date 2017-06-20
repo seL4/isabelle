@@ -33,13 +33,11 @@ code_printing
   constant "0 :: real" \<rightharpoonup>
     (SML) "0.0"
     and (OCaml) "0.0"
-declare zero_real_code[code_unfold del]
 
 code_printing
   constant "1 :: real" \<rightharpoonup>
     (SML) "1.0"
     and (OCaml) "1.0"
-declare one_real_code[code_unfold del]
 
 code_printing
   constant "HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool" \<rightharpoonup>
