@@ -27,122 +27,16 @@ definition Coset :: "('a::linorder, unit) rbt \<Rightarrow> 'a set"
 
 section \<open>Deletion of already existing code equations\<close>
 
-lemma [code, code del]:
-  "Set.empty = Set.empty" ..
+declare [[code drop: Set.empty Set.is_empty uminus_set_inst.uminus_set
+  Set.member Set.insert Set.remove UNIV Set.filter image
+  Set.subset_eq Ball Bex can_select Set.union minus_set_inst.minus_set Set.inter
+  card the_elem Pow sum prod Product_Type.product Id_on
+  Image trancl relcomp wf Min Inf_fin Max Sup_fin
+  "(Inf :: 'a set set \<Rightarrow> 'a set)" "(Sup :: 'a set set \<Rightarrow> 'a set)"
+  sorted_list_of_set List.map_project List.Bleast]]
 
-lemma [code, code del]:
-  "Set.is_empty = Set.is_empty" ..
-
-lemma [code, code del]:
-  "uminus_set_inst.uminus_set = uminus_set_inst.uminus_set" ..
-
-lemma [code, code del]:
-  "Set.member = Set.member" ..
-
-lemma [code, code del]:
-  "Set.insert = Set.insert" ..
-
-lemma [code, code del]:
-  "Set.remove = Set.remove" ..
-
-lemma [code, code del]:
-  "UNIV = UNIV" ..
-
-lemma [code, code del]:
-  "Set.filter = Set.filter" ..
-
-lemma [code, code del]:
-  "image = image" ..
-
-lemma [code, code del]:
-  "Set.subset_eq = Set.subset_eq" ..
-
-lemma [code, code del]:
-  "Ball = Ball" ..
-
-lemma [code, code del]:
-  "Bex = Bex" ..
-
-lemma [code, code del]:
-  "can_select = can_select" ..
-
-lemma [code, code del]:
-  "Set.union = Set.union" ..
-
-lemma [code, code del]:
-  "minus_set_inst.minus_set = minus_set_inst.minus_set" ..
-
-lemma [code, code del]:
-  "Set.inter = Set.inter" ..
-
-lemma [code, code del]:
-  "card = card" ..
-
-lemma [code, code del]:
-  "the_elem = the_elem" ..
-
-lemma [code, code del]:
-  "Pow = Pow" ..
-
-lemma [code, code del]:
-  "sum = sum" ..
-
-lemma [code, code del]:
-  "prod = prod" ..
-
-lemma [code, code del]:
-  "Product_Type.product = Product_Type.product"  ..
-
-lemma [code, code del]:
-  "Id_on = Id_on" ..
-
-lemma [code, code del]:
-  "Image = Image" ..
-
-lemma [code, code del]:
-  "trancl = trancl" ..
-
-lemma [code, code del]:
-  "relcomp = relcomp" ..
-
-lemma [code, code del]:
-  "wf = wf" ..
-
-lemma [code, code del]:
-  "Min = Min" ..
-
-lemma [code, code del]:
-  "Inf_fin = Inf_fin" ..
-
-lemma [code, code del]:
-  "INFIMUM = INFIMUM" ..
-
-lemma [code, code del]:
-  "Max = Max" ..
-
-lemma [code, code del]:
-  "Sup_fin = Sup_fin" ..
-
-lemma [code, code del]:
-  "SUPREMUM = SUPREMUM" ..
-
-lemma [code, code del]:
-  "(Inf :: 'a set set \<Rightarrow> 'a set) = Inf" ..
-
-lemma [code, code del]:
-  "(Sup :: 'a set set \<Rightarrow> 'a set) = Sup" ..
-
-lemma [code, code del]:
-  "sorted_list_of_set = sorted_list_of_set" ..
-
-lemma [code, code del]: 
-  "List.map_project = List.map_project" ..
-
-lemma [code, code del]: 
-  "List.Bleast = List.Bleast" ..
 
 section \<open>Lemmas\<close>
-
 
 subsection \<open>Auxiliary lemmas\<close>
 

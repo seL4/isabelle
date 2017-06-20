@@ -43,8 +43,7 @@ subsection \<open>Basic arithmetic\<close>
 context
 begin
 
-lemma [code, code del]:
-  "(plus :: nat \<Rightarrow> _) = plus" ..
+declare [[code drop: "plus :: nat \<Rightarrow> _"]]  
 
 lemma plus_nat_code [code]:
   "nat_of_num k + nat_of_num l = nat_of_num (k + l)"
@@ -83,8 +82,7 @@ lemma sub_code [code]:
   apply (simp_all add: sub_non_negative [symmetric, where ?'a = int])
   done
 
-lemma [code, code del]:
-  "(minus :: nat \<Rightarrow> _) = minus" ..
+declare [[code drop: "minus :: nat \<Rightarrow> _"]]
 
 lemma minus_nat_code [code]:
   "nat_of_num k - nat_of_num l = (case sub k l of None \<Rightarrow> 0 | Some j \<Rightarrow> j)"
@@ -92,8 +90,7 @@ lemma minus_nat_code [code]:
   "0 - n = (0::nat)"
   by (simp_all add: nat_of_num_numeral sub_non_positive sub_def)
 
-lemma [code, code del]:
-  "(times :: nat \<Rightarrow> _) = times" ..
+declare [[code drop: "times :: nat \<Rightarrow> _"]]
 
 lemma times_nat_code [code]:
   "nat_of_num k * nat_of_num l = nat_of_num (k * l)"
@@ -101,8 +98,7 @@ lemma times_nat_code [code]:
   "0 * n = (0::nat)"
   by (simp_all add: nat_of_num_numeral)
 
-lemma [code, code del]:
-  "(HOL.equal :: nat \<Rightarrow> _) = HOL.equal" ..
+declare [[code drop: "HOL.equal :: nat \<Rightarrow> _"]]
 
 lemma equal_nat_code [code]:
   "HOL.equal 0 (0::nat) \<longleftrightarrow> True"
@@ -115,8 +111,7 @@ lemma equal_nat_refl [code nbe]:
   "HOL.equal (n::nat) n \<longleftrightarrow> True"
   by (rule equal_refl)
 
-lemma [code, code del]:
-  "(less_eq :: nat \<Rightarrow> _) = less_eq" ..
+declare [[code drop: "less_eq :: nat \<Rightarrow> _"]]
 
 lemma less_eq_nat_code [code]:
   "0 \<le> (n::nat) \<longleftrightarrow> True"
@@ -124,8 +119,7 @@ lemma less_eq_nat_code [code]:
   "nat_of_num k \<le> nat_of_num l \<longleftrightarrow> k \<le> l"
   by (simp_all add: nat_of_num_numeral)
 
-lemma [code, code del]:
-  "(less :: nat \<Rightarrow> _) = less" ..
+declare [[code drop: "less :: nat \<Rightarrow> _"]]
 
 lemma less_nat_code [code]:
   "(m::nat) < 0 \<longleftrightarrow> False"
@@ -133,8 +127,7 @@ lemma less_nat_code [code]:
   "nat_of_num k < nat_of_num l \<longleftrightarrow> k < l"
   by (simp_all add: nat_of_num_numeral)
 
-lemma [code, code del]:
-  "Divides.divmod_nat = Divides.divmod_nat" ..
+declare [[code drop: Divides.divmod_nat]]
   
 lemma divmod_nat_code [code]:
   "Divides.divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
@@ -147,8 +140,7 @@ end
 
 subsection \<open>Conversions\<close>
 
-lemma [code, code del]:
-  "of_nat = of_nat" ..
+declare [[code drop: of_nat]]
 
 lemma of_nat_code [code]:
   "of_nat 0 = 0"

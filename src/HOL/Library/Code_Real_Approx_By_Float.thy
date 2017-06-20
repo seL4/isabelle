@@ -194,23 +194,12 @@ code_printing
 lemma [code]: "Ratreal r = case_prod Realfract (quotient_of r)"
   by (cases r) (simp add: Realfract_def quotient_of_Fract of_rat_rat)
 
-lemma [code, code del]: "(HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool) = (HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool)"
-  ..
-
-lemma [code, code del]: "(plus :: real \<Rightarrow> real \<Rightarrow> real) = plus"
-  ..
-
-lemma [code, code del]: "(uminus :: real \<Rightarrow> real) = uminus"
-  ..
-
-lemma [code, code del]: "(minus :: real \<Rightarrow> real \<Rightarrow> real) = minus"
-  ..
-
-lemma [code, code del]: "(times :: real \<Rightarrow> real \<Rightarrow> real) = times"
-  ..
-
-lemma [code, code del]: "(divide :: real \<Rightarrow> real \<Rightarrow> real) = divide"
-  ..
+declare [[code drop: "HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool"
+  "plus :: real \<Rightarrow> real \<Rightarrow> real"
+  "uminus :: real \<Rightarrow> real"
+  "minus :: real \<Rightarrow> real \<Rightarrow> real"
+  "times :: real \<Rightarrow> real \<Rightarrow> real"
+  "divide :: real \<Rightarrow> real \<Rightarrow> real"]]
 
 lemma [code]: "inverse r = 1 / r" for r :: real
   by (fact inverse_eq_divide)

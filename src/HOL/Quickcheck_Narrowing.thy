@@ -260,8 +260,7 @@ instance ..
 
 end
 
-lemma [code, code del]: "partial_term_of (ty :: int itself) t \<equiv> undefined"
-  by (rule partial_term_of_anything)+
+declare [[code drop: "partial_term_of :: int itself \<Rightarrow> _"]]
 
 lemma [code]:
   "partial_term_of (ty :: int itself) (Narrowing_variable p t) \<equiv>
@@ -283,8 +282,7 @@ instance ..
 
 end
 
-lemma [code, code del]: "partial_term_of (ty :: integer itself) t \<equiv> undefined"
-  by (rule partial_term_of_anything)+
+declare [[code drop: "partial_term_of :: integer itself \<Rightarrow> _"]]  
 
 lemma [code]:
   "partial_term_of (ty :: integer itself) (Narrowing_variable p t) \<equiv>

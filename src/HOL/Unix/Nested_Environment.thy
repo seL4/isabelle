@@ -522,9 +522,6 @@ qed
 
 subsection \<open>Code generation\<close>
 
-lemma [code, code del]:
-  "(HOL.equal :: (_, _, _) env \<Rightarrow> _) = HOL.equal" ..
-
 lemma equal_env_code [code]:
   fixes x y :: "'a::equal"
     and f g :: "'c::{equal, finite} \<Rightarrow> ('b::equal, 'a, 'c) env option"

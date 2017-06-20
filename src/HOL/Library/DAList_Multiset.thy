@@ -10,42 +10,13 @@ begin
 
 text \<open>Delete prexisting code equations\<close>
 
-lemma [code, code del]: "{#} = {#}" ..
-
-lemma [code, code del]: "Multiset.is_empty = Multiset.is_empty" ..
-
-lemma [code, code del]: "add_mset = add_mset" ..
-
-lemma [code, code del]: "plus = (plus :: 'a multiset \<Rightarrow> _)" ..
-
-lemma [code, code del]: "minus = (minus :: 'a multiset \<Rightarrow> _)" ..
-
-lemma [code, code del]: "inf_subset_mset = (inf_subset_mset :: 'a multiset \<Rightarrow> _)" ..
-
-lemma [code, code del]: "sup_subset_mset = (sup_subset_mset :: 'a multiset \<Rightarrow> _)" ..
-
-lemma [code, code del]: "image_mset = image_mset" ..
-
-lemma [code, code del]: "filter_mset = filter_mset" ..
-
-lemma [code, code del]: "count = count" ..
-
-lemma [code, code del]: "size = (size :: _ multiset \<Rightarrow> nat)" ..
-
-lemma [code, code del]: "sum_mset = sum_mset" ..
-
-lemma [code, code del]: "prod_mset = prod_mset" ..
-
-lemma [code, code del]: "set_mset = set_mset" ..
-
-lemma [code, code del]: "sorted_list_of_multiset = sorted_list_of_multiset" ..
-
-lemma [code, code del]: "subset_mset = subset_mset" ..
-
-lemma [code, code del]: "subseteq_mset = subseteq_mset" ..
-
-lemma [code, code del]: "equal_multiset_inst.equal_multiset = equal_multiset_inst.equal_multiset" ..
-
+declare [[code drop: "{#}" Multiset.is_empty add_mset
+  "plus :: 'a multiset \<Rightarrow> _" "minus :: 'a multiset \<Rightarrow> _"
+  inf_subset_mset sup_subset_mset image_mset filter_mset count
+  "size :: _ multiset \<Rightarrow> nat" sum_mset prod_mset
+  set_mset sorted_list_of_multiset subset_mset subseteq_mset
+  equal_multiset_inst.equal_multiset]]
+    
 
 text \<open>Raw operations on lists\<close>
 
