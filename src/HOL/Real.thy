@@ -1319,11 +1319,6 @@ lemma of_rat_dense:
 
 subsection \<open>Numerals and Arithmetic\<close>
 
-lemma [code_abbrev]:   (*FIXME*)
-  "real_of_int (numeral k) = numeral k"
-  "real_of_int (- numeral k) = - numeral k"
-  by simp_all
-
 declaration \<open>
   K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
     (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
@@ -1634,38 +1629,28 @@ subsection \<open>Implementation of rational real numbers\<close>
 text \<open>Formal constructor\<close>
 
 definition Ratreal :: "rat \<Rightarrow> real"
-  where [code_abbrev, simp]: "Ratreal = of_rat"
+  where [code_abbrev, simp]: "Ratreal = real_of_rat"
 
 code_datatype Ratreal
 
 
-text \<open>Numerals\<close>
+text \<open>Quasi-Numerals\<close>
 
-lemma [code_abbrev]: "(of_rat (of_int a) :: real) = of_int a"
-  by simp
-
-lemma [code_abbrev]: "(of_rat 0 :: real) = 0"
-  by simp
-
-lemma [code_abbrev]: "(of_rat 1 :: real) = 1"
-  by simp
-
-lemma [code_abbrev]: "(of_rat (- 1) :: real) = - 1"
-  by simp
-
-lemma [code_abbrev]: "(of_rat (numeral k) :: real) = numeral k"
-  by simp
-
-lemma [code_abbrev]: "(of_rat (- numeral k) :: real) = - numeral k"
-  by simp
+lemma [code_abbrev]:
+  "real_of_rat (numeral k) = numeral k"
+  "real_of_rat (- numeral k) = - numeral k"
+  "real_of_rat (rat_of_int a) = real_of_int a"
+  by simp_all
 
 lemma [code_post]:
-  "(of_rat (1 / numeral k) :: real) = 1 / numeral k"
-  "(of_rat (numeral k / numeral l) :: real) = numeral k / numeral l"
-  "(of_rat (- (1 / numeral k)) :: real) = - (1 / numeral k)"
-  "(of_rat (- (numeral k / numeral l)) :: real) = - (numeral k / numeral l)"
+  "real_of_rat 0 = 0"
+  "real_of_rat 1 = 1"
+  "real_of_rat (- 1) = - 1"
+  "real_of_rat (1 / numeral k) = 1 / numeral k"
+  "real_of_rat (numeral k / numeral l) = numeral k / numeral l"
+  "real_of_rat (- (1 / numeral k)) = - (1 / numeral k)"
+  "real_of_rat (- (numeral k / numeral l)) = - (numeral k / numeral l)"
   by (simp_all add: of_rat_divide of_rat_minus)
-
 
 text \<open>Operations\<close>
 
