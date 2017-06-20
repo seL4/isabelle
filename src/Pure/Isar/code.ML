@@ -232,10 +232,10 @@ fun merge_spec (Spec { history_concluded = _, functions = functions1,
   in make_spec (false, (functions, (types, (cases, undefineds)))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
-fun the_functions (Spec { functions, ... }) = functions;
-fun the_types (Spec { types, ... }) = types;
-fun the_cases (Spec { cases, ... }) = cases;
-fun the_undefineds (Spec { undefineds, ... }) = undefineds;
+fun types_of (Spec { types, ... }) = types;
+fun functions_of (Spec { functions, ... }) = functions;
+fun cases_of (Spec { cases, ... }) = cases;
+fun undefineds_of (Spec { undefineds, ... }) = undefineds;
 val map_history_concluded = map_spec o apfst;
 val map_functions = map_spec o apsnd o apfst;
 val map_typs = map_spec o apsnd o apsnd o apfst;
@@ -295,7 +295,7 @@ in
 
 (* access to executable code *)
 
-val the_exec : theory -> spec = fst o Code_Data.get;
+val spec_of : theory -> spec = fst o Code_Data.get;
 
 fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
 
@@ -306,13 +306,13 @@ fun change_fun_spec c f = (map_exec_purge o map_functions
 
 (* tackling equation history *)
 
-fun continue_history thy = if (history_concluded o the_exec) thy
+fun continue_history thy = if (history_concluded o spec_of) thy
   then thy
     |> (Code_Data.map o apfst o map_history_concluded) (K false)
     |> SOME
   else NONE;
 
-fun conclude_history thy = if (history_concluded o the_exec) thy
+fun conclude_history thy = if (history_concluded o spec_of) thy
   then NONE
   else thy
     |> (Code_Data.map o apfst)
@@ -395,7 +395,7 @@ fun constrset_of_consts thy consts =
     val constructors = map (inst vs o snd) raw_constructors;
   in (tyco, (map (rpair []) vs, constructors)) end;
 
-fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
+fun get_type_entry thy tyco = case these (Symtab.lookup ((types_of o spec_of) thy) tyco)
  of (_, entry) :: _ => SOME entry
   | _ => NONE;
 
@@ -909,7 +909,7 @@ end;
 (* code certificate access with preprocessing *)
 
 fun retrieve_raw thy c =
-  Symtab.lookup ((the_functions o the_exec) thy) c
+  Symtab.lookup ((functions_of o spec_of) thy) c
   |> Option.map (snd o fst)
   |> the_default Unimplemented
 
@@ -1003,11 +1003,11 @@ fun case_cert thm = raw_case_cert thm
 end;
 
 fun get_case_scheme thy =
-  Option.map fst o (Symtab.lookup o the_cases o the_exec) thy;
+  Option.map fst o (Symtab.lookup o cases_of o spec_of) thy;
 fun get_case_cong thy =
-  Option.map snd o (Symtab.lookup o the_cases o the_exec) thy;
+  Option.map snd o (Symtab.lookup o cases_of o spec_of) thy;
 
-val undefineds = Symtab.keys o the_undefineds o the_exec;
+val undefineds = Symtab.keys o undefineds_of o spec_of;
 
 
 (* diagnostic *)
@@ -1015,7 +1015,7 @@ val undefineds = Symtab.keys o the_undefineds o the_exec;
 fun print_codesetup thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val exec = the_exec thy;
+    val exec = spec_of thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
@@ -1047,17 +1047,17 @@ fun print_codesetup thy =
       | pretty_case (const, ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
           Pretty.str (string_of_const thy const), Pretty.str "with",
           (Pretty.block o Pretty.commas o map (Pretty.str o pretty_caseparam)) cos];
-    val functions = the_functions exec
+    val functions = functions_of exec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
       |> sort (string_ord o apply2 fst);
-    val datatypes = the_types exec
+    val datatypes = types_of exec
       |> Symtab.dest
       |> map (fn (tyco, (_, (vs, spec)) :: _) =>
           ((tyco, vs), constructors_of spec))
       |> sort (string_ord o apply2 (fst o fst));
-    val cases = Symtab.dest ((the_cases o the_exec) thy);
-    val undefineds = Symtab.keys ((the_undefineds o the_exec) thy);
+    val cases = Symtab.dest ((cases_of o spec_of) thy);
+    val undefineds = Symtab.keys ((undefineds_of o spec_of) thy);
   in
     Pretty.writeln_chunks [
       Pretty.block (
@@ -1253,7 +1253,7 @@ fun add_undefined c thy =
 fun register_type (tyco, vs_spec) thy =
   let
     val (old_constrs, some_old_proj) =
-      case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
+      case these (Symtab.lookup ((types_of o spec_of) thy) tyco)
        of (_, (_, Constructors (cos, _))) :: _ => (map fst cos, NONE)
         | (_, (_, Abstractor ((co, _), (proj, _)))) :: _ => ([co], SOME proj)
         | [] => ([], NONE);
@@ -1264,7 +1264,7 @@ fun register_type (tyco, vs_spec) thy =
           (fn (c, ((_, spec), _)) =>
             if member (op =) (the_list (associated_abstype spec)) tyco
             then insert (op =) c else I)
-            ((the_functions o the_exec) thy) [old_proj];
+            ((functions_of o spec_of) thy) [old_proj];
     fun drop_outdated_cases cases = fold Symtab.delete_safe
       (Symtab.fold (fn (c, ((_, (_, cos)), _)) =>
         if exists (member (op =) old_constrs) (map_filter I cos)
