@@ -1020,9 +1020,7 @@ fun print_codesetup thy =
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
-    fun pretty_function (const, Unimplemented) =
-          pretty_equations const []
-      | pretty_function (const, Eqns_Default (_, eqns_lazy)) =
+    fun pretty_function (const, Eqns_Default (_, eqns_lazy)) =
           pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) =
           pretty_equations const (map fst eqns)
@@ -1053,6 +1051,7 @@ fun print_codesetup thy =
     val functions = functions_of spec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
+      |> filter (fn (_, Unimplemented) => false | _ => true)
       |> sort (string_ord o apply2 fst);
     val datatypes = types_of spec
       |> Symtab.dest
