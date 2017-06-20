@@ -1188,9 +1188,7 @@ fun generic_del_eqn strictness thm thy = case mk_eqn strictness thy (thm, true)
       let
         fun del_eqn' (Eqns_Default _) = default_fun_spec
           | del_eqn' (Eqns eqns) =
-              let
-                val eqns' = filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns
-              in if null eqns' then Unimplemented else Eqns eqns' end
+              Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
           | del_eqn' spec = spec
       in change_fun_spec (const_eqn thy thm) del_eqn' thy end
   | NONE => thy;

@@ -74,6 +74,14 @@ buffers.
 * Update to jedit-5.4.0.
 
 
+*** Pure ***
+
+* Deleting the last code equations for a particular function using
+[code del] results in function with no equations (runtime abort) rather
+than an unimplemented function (generate time abort).  Use explicit
+[[code drop:]] to enforce the latter.  Minor INCOMPATIBILTIY.
+
+
 *** HOL ***
 
 * "sublist" from theory List renamed to "nths" in analogy with "nth".
