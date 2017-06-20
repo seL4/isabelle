@@ -793,13 +793,16 @@ fun extract thm_vss thy =
       let
         val ft = Type.legacy_freeze t;
         val fu = Type.legacy_freeze u;
+        val head = head_of (strip_abs_body fu);
       in
         thy
         |> Sign.add_consts [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
         |> Global_Theory.add_defs false
            [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
-             Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
-        |-> (fn [def_thm] => Code.add_eqn (Code.Equation, true) def_thm)
+             Logic.mk_equals (head, ft)), [])]
+        |-> (fn [def_thm] =>
+           Spec_Rules.add_global Spec_Rules.Equational ([head], [def_thm])
+           #> Code.add_eqn (Code.Equation, true) def_thm)
       end;
 
     fun add_corr (s, (vs, prf)) thy =
