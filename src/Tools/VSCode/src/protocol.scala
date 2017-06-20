@@ -357,10 +357,29 @@ object Protocol
   /* spell checker */
 
   object Include_Word extends Notification0("PIDE/include_word")
+  {
+    val command = Command("Include word", "isabelle.include-word")
+  }
+
   object Include_Word_Permanently extends Notification0("PIDE/include_word_permanently")
+  {
+    val command = Command("Include word permanently", "isabelle.include-word-permanently")
+  }
+
   object Exclude_Word extends Notification0("PIDE/exclude_word")
+  {
+    val command = Command("Exclude word", "isabelle.exclude-word")
+  }
+
   object Exclude_Word_Permanently extends Notification0("PIDE/exclude_word_permanently")
+  {
+    val command = Command("Exclude word permanently", "isabelle.exclude-word-permanently")
+  }
+
   object Reset_Words extends Notification0("PIDE/reset_words")
+  {
+    val command = Command("Reset non-permanent words", "isabelle.reset-words")
+  }
 
 
   /* hover request */

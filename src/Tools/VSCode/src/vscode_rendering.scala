@@ -108,7 +108,8 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
                 Protocol.CompletionItem(
                   label = item.replacement,
                   detail = Some(item.description.mkString(" ")),
-                  range = Some(doc.range(item.range))))
+                  range = Some(doc.range(item.range)))) :::
+              spell_checker_menu(caret)
           }
         }
     }
@@ -207,6 +208,49 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
   def spell_checker_completion(caret: Text.Offset): Option[Completion.Result] =
     model.resources.spell_checker.get.flatMap(_.completion(rendering, caret))
+
+  def spell_checker_menu(caret: Text.Offset): List[Protocol.CompletionItem] =
+  {
+    val result =
+      for {
+        spell_checker <- model.resources.spell_checker.get
+        range = before_caret_range(caret)
+        Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
+      } yield (spell_checker, word)
+
+    result match {
+      case Some((spell_checker, word)) =>
+
+        def item(command: Protocol.Command): Protocol.CompletionItem =
+          Protocol.CompletionItem(
+            label = command.title,
+            insertText = Some(""),
+            range = Some(model.content.doc.range(Text.Range(caret))),
+            command = Some(command))
+
+        val update_items =
+          if (spell_checker.check(word))
+            List(
+              item(Protocol.Exclude_Word.command),
+              item(Protocol.Exclude_Word_Permanently.command))
+          else
+            List(
+              item(Protocol.Include_Word.command),
+              item(Protocol.Include_Word_Permanently.command))
+
+        val reset_items =
+          spell_checker.reset_enabled() match {
+            case 0 => Nil
+            case n =>
+              val command = Protocol.Reset_Words.command
+              List(item(command).copy(label = command.title + " (" + n + ")"))
+          }
+
+        update_items ::: reset_items
+
+      case None => Nil
+    }
+  }
 
 
   /* decorations */
