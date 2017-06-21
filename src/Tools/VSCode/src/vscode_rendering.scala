@@ -111,7 +111,8 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
             Completion.Result.merges(history,
               semantic_completion,
               syntax_completion,
-              VSCode_Spell_Checker.completion(rendering, caret))
+              VSCode_Spell_Checker.completion(rendering, caret),
+              bibtex_completion(history, caret))
           val items =
             results match {
               case None => Nil
