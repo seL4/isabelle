@@ -122,7 +122,7 @@ proof (rule cld_measure.borel_measurable_cld)
       by (auto intro: less_le_trans)
     define d' where "d' x = d x \<inter> ball x (1 / (3 * Suc m))" for x
     have "gauge d'"
-      unfolding d'_def by (intro gauge_inter \<open>gauge d\<close> gauge_ball) auto
+      unfolding d'_def by (intro gauge_Int \<open>gauge d\<close> gauge_ball) auto
     then obtain p where p: "p tagged_division_of cbox x y" "d' fine p"
       by (rule fine_division_exists)
     then have "d fine p"
@@ -2184,7 +2184,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
             (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2" .
          obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
-          by (rule fine_division_exists [OF gauge_inter [OF d1(1) d2(1)], of a b])
+          by (rule fine_division_exists [OF gauge_Int [OF d1(1) d2(1)], of a b])
             (auto simp add: fine_inter)
         have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e / 2 \<longrightarrow>
           \<bar>sf' - di\<bar> < e / 2 \<longrightarrow> di < ?S + e"

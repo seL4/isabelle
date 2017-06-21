@@ -1374,6 +1374,128 @@ proof -
   then show ?thesis by (auto simp: I_def)
 qed
 
+corollary open_countable_Union_open_box:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S"
+  obtains \<D> where "countable \<D>" "\<D> \<subseteq> Pow S" "\<And>X. X \<in> \<D> \<Longrightarrow> \<exists>a b. X = box a b" "\<Union>\<D> = S"
+proof -
+  let ?a = "\<lambda>f. (\<Sum>(i::'a)\<in>Basis. fst (f i) *\<^sub>R i)"
+  let ?b = "\<lambda>f. (\<Sum>(i::'a)\<in>Basis. snd (f i) *\<^sub>R i)"
+  let ?I = "{f\<in>Basis \<rightarrow>\<^sub>E \<rat> \<times> \<rat>. box (?a f) (?b f) \<subseteq> S}"
+  let ?\<D> = "(\<lambda>f. box (?a f) (?b f)) ` ?I"
+  show ?thesis
+  proof
+    have "countable ?I"
+      by (simp add: countable_PiE countable_rat)
+    then show "countable ?\<D>"
+      by blast
+    show "\<Union>?\<D> = S"
+      using open_UNION_box [OF assms] by metis
+  qed auto
+qed
+
+lemma rational_cboxes:
+  fixes x :: "'a::euclidean_space"
+  assumes "e > 0"
+  shows "\<exists>a b. (\<forall>i\<in>Basis. a \<bullet> i \<in> \<rat> \<and> b \<bullet> i \<in> \<rat>) \<and> x \<in> cbox a b \<and> cbox a b \<subseteq> ball x e"
+proof -
+  define e' where "e' = e / (2 * sqrt (real (DIM ('a))))"
+  then have e: "e' > 0"
+    using assms by auto
+  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
+  proof
+    fix i
+    from Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e
+    show "?th i" by auto
+  qed
+  from choice[OF this] obtain a where
+    a: "\<forall>u. a u \<in> \<rat> \<and> a u < x \<bullet> u \<and> x \<bullet> u - a u < e'" ..
+  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" (is "\<forall>i. ?th i")
+  proof
+    fix i
+    from Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e
+    show "?th i" by auto
+  qed
+  from choice[OF this] obtain b where
+    b: "\<forall>u. b u \<in> \<rat> \<and> x \<bullet> u < b u \<and> b u - x \<bullet> u < e'" ..
+  let ?a = "\<Sum>i\<in>Basis. a i *\<^sub>R i" and ?b = "\<Sum>i\<in>Basis. b i *\<^sub>R i"
+  show ?thesis
+  proof (rule exI[of _ ?a], rule exI[of _ ?b], safe)
+    fix y :: 'a
+    assume *: "y \<in> cbox ?a ?b"
+    have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2)"
+      unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
+    also have "\<dots> < sqrt (\<Sum>(i::'a)\<in>Basis. e^2 / real (DIM('a)))"
+    proof (rule real_sqrt_less_mono, rule sum_strict_mono)
+      fix i :: "'a"
+      assume i: "i \<in> Basis"
+      have "a i \<le> y\<bullet>i \<and> y\<bullet>i \<le> b i"
+        using * i by (auto simp: cbox_def)
+      moreover have "a i < x\<bullet>i" "x\<bullet>i - a i < e'"
+        using a by auto
+      moreover have "x\<bullet>i < b i" "b i - x\<bullet>i < e'"
+        using b by auto
+      ultimately have "\<bar>x\<bullet>i - y\<bullet>i\<bar> < 2 * e'"
+        by auto
+      then have "dist (x \<bullet> i) (y \<bullet> i) < e/sqrt (real (DIM('a)))"
+        unfolding e'_def by (auto simp: dist_real_def)
+      then have "(dist (x \<bullet> i) (y \<bullet> i))\<^sup>2 < (e/sqrt (real (DIM('a))))\<^sup>2"
+        by (rule power_strict_mono) auto
+      then show "(dist (x \<bullet> i) (y \<bullet> i))\<^sup>2 < e\<^sup>2 / real DIM('a)"
+        by (simp add: power_divide)
+    qed auto
+    also have "\<dots> = e"
+      using \<open>0 < e\<close> by simp
+    finally show "y \<in> ball x e"
+      by (auto simp: ball_def)
+  next
+    show "x \<in> cbox (\<Sum>i\<in>Basis. a i *\<^sub>R i) (\<Sum>i\<in>Basis. b i *\<^sub>R i)"
+      using a b less_imp_le by (auto simp: cbox_def)
+  qed (use a b cbox_def in auto)
+qed
+
+lemma open_UNION_cbox:
+  fixes M :: "'a::euclidean_space set"
+  assumes "open M"
+  defines "a' \<equiv> \<lambda>f. (\<Sum>(i::'a)\<in>Basis. fst (f i) *\<^sub>R i)"
+  defines "b' \<equiv> \<lambda>f. (\<Sum>(i::'a)\<in>Basis. snd (f i) *\<^sub>R i)"
+  defines "I \<equiv> {f\<in>Basis \<rightarrow>\<^sub>E \<rat> \<times> \<rat>. cbox (a' f) (b' f) \<subseteq> M}"
+  shows "M = (\<Union>f\<in>I. cbox (a' f) (b' f))"
+proof -
+  have "x \<in> (\<Union>f\<in>I. cbox (a' f) (b' f))" if "x \<in> M" for x
+  proof -
+    obtain e where e: "e > 0" "ball x e \<subseteq> M"
+      using openE[OF \<open>open M\<close> \<open>x \<in> M\<close>] by auto
+    moreover obtain a b where ab: "x \<in> cbox a b" "\<forall>i \<in> Basis. a \<bullet> i \<in> \<rat>"
+                                  "\<forall>i \<in> Basis. b \<bullet> i \<in> \<rat>" "cbox a b \<subseteq> ball x e"
+      using rational_cboxes[OF e(1)] by metis
+    ultimately show ?thesis
+       by (intro UN_I[of "\<lambda>i\<in>Basis. (a \<bullet> i, b \<bullet> i)"])
+          (auto simp: euclidean_representation I_def a'_def b'_def)
+  qed
+  then show ?thesis by (auto simp: I_def)
+qed
+
+corollary open_countable_Union_open_cbox:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S"
+  obtains \<D> where "countable \<D>" "\<D> \<subseteq> Pow S" "\<And>X. X \<in> \<D> \<Longrightarrow> \<exists>a b. X = cbox a b" "\<Union>\<D> = S"
+proof -
+  let ?a = "\<lambda>f. (\<Sum>(i::'a)\<in>Basis. fst (f i) *\<^sub>R i)"
+  let ?b = "\<lambda>f. (\<Sum>(i::'a)\<in>Basis. snd (f i) *\<^sub>R i)"
+  let ?I = "{f\<in>Basis \<rightarrow>\<^sub>E \<rat> \<times> \<rat>. cbox (?a f) (?b f) \<subseteq> S}"
+  let ?\<D> = "(\<lambda>f. cbox (?a f) (?b f)) ` ?I"
+  show ?thesis
+  proof
+    have "countable ?I"
+      by (simp add: countable_PiE countable_rat)
+    then show "countable ?\<D>"
+      by blast
+    show "\<Union>?\<D> = S"
+      using open_UNION_cbox [OF assms] by metis
+  qed auto
+qed
+
 lemma box_eq_empty:
   fixes a :: "'a::euclidean_space"
   shows "(box a b = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i))" (is ?th1)
@@ -7396,6 +7518,24 @@ next
   assume "open A"
   then show "open(f ` A)"
     by (simp add: assms bij_is_surj open_surjective_linear_image)
+qed
+
+corollary interior_bijective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "bij f"
+  shows "interior (f ` S) = f ` interior S"  (is "?lhs = ?rhs")
+proof safe
+  fix x
+  assume x: "x \<in> ?lhs"
+  then obtain T where "open T" and "x \<in> T" and "T \<subseteq> f ` S"
+    by (metis interiorE)
+  then show "x \<in> ?rhs"
+    by (metis (no_types, hide_lams) assms subsetD interior_maximal open_bijective_linear_image_eq subset_image_iff)
+next
+  fix x
+  assume x: "x \<in> interior S"
+  then show "f x \<in> interior (f ` S)"
+    by (meson assms imageI image_mono interiorI interior_subset open_bijective_linear_image_eq open_interior)
 qed
 
 text \<open>Also bilinear functions, in composition form.\<close>

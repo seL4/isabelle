@@ -182,6 +182,21 @@ lemma additive_content_tagged_division:
   "d tagged_division_of (cbox a b) \<Longrightarrow> sum (\<lambda>(x,l). content l) d = content (cbox a b)"
   unfolding sum.operative_tagged_division[OF operative_content, symmetric] by blast
 
+lemma subadditive_content_division:
+  assumes "\<D> division_of S" "S \<subseteq> cbox a b"
+  shows "sum content \<D> \<le> content(cbox a b)"
+proof -
+  have "\<D> division_of \<Union>\<D>" "\<Union>\<D> \<subseteq> cbox a b"
+    using assms by auto
+  then obtain \<D>' where "\<D> \<subseteq> \<D>'" "\<D>' division_of cbox a b"
+    using partial_division_extend_interval by metis
+  then have "sum content \<D> \<le> sum content \<D>'"
+    using sum_mono2 by blast
+  also have "... \<le> content(cbox a b)"
+    by (simp add: \<open>\<D>' division_of cbox a b\<close> additive_content_division less_eq_real_def)
+  finally show ?thesis .
+qed
+
 lemma content_real_eq_0: "content {a .. b::real} = 0 \<longleftrightarrow> a \<ge> b"
   by (metis atLeastatMost_empty_iff2 content_empty content_real diff_self eq_iff le_cases le_iff_diff_le_0)
 
@@ -451,8 +466,8 @@ lemma has_integral_scaleR_left:
   using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
 
 lemma integrable_on_scaleR_left:
-  assumes "f integrable_on A" 
-  shows "(\<lambda>x. f x *\<^sub>R y) integrable_on A" 
+  assumes "f integrable_on A"
+  shows "(\<lambda>x. f x *\<^sub>R y) integrable_on A"
   using assms has_integral_scaleR_left unfolding integrable_on_def by blast
 
 lemma has_integral_mult_left:
@@ -1294,59 +1309,81 @@ proof -
     by (auto intro: that[of d] d elim: )
 qed
 
-lemma integrable_split[intro]:
+lemma integrable_split [intro]:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{real_normed_vector,complete_space}"
-  assumes "f integrable_on cbox a b"
-    and k: "k \<in> Basis"
-  shows "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<le> c})" (is ?t1)
-    and "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<ge> c})" (is ?t2)
+  assumes f: "f integrable_on cbox a b"
+      and k: "k \<in> Basis"
+    shows "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<le> c})" (is ?thesis1)
+    and   "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"   (is ?thesis2)
 proof -
-  guess y using assms(1) unfolding integrable_on_def .. note y=this
-  define b' where "b' = (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i)*\<^sub>R i)"
+  obtain y where y: "(f has_integral y) (cbox a b)"
+    using f by blast
   define a' where "a' = (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i)*\<^sub>R i)"
-  show ?t1 ?t2
-    unfolding interval_split[OF k] integrable_cauchy
-    unfolding interval_split[symmetric,OF k]
-  proof (rule_tac[!] allI impI)+
-    fix e :: real
-    assume "e > 0"
-    then have "e/2>0"
-      by auto
-    from has_integral_separate_sides[OF y this k,of c] guess d . note d=this[rule_format]
-    let ?P = "\<lambda>A. \<exists>d. gauge d \<and> (\<forall>p1 p2. p1 tagged_division_of (cbox a b) \<inter> A \<and> d fine p1 \<and>
-      p2 tagged_division_of (cbox a b) \<inter> A \<and> d fine p2 \<longrightarrow>
-      norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e)"
-    show "?P {x. x \<bullet> k \<le> c}"
-    proof (rule_tac x=d in exI, clarsimp simp add: d)
+  define b' where "b' = (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i)*\<^sub>R i)"
+  have "\<exists>d. gauge d \<and>
+            (\<forall>p1 p2. p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c} \<and> d fine p1 \<and>
+                     p2 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c} \<and> d fine p2 \<longrightarrow>
+                     norm ((\<Sum>(x,K) \<in> p1. content K *\<^sub>R f x) - (\<Sum>(x,K) \<in> p2. content K *\<^sub>R f x)) < e)"
+    if "e > 0" for e
+  proof -
+    have "e/2 > 0" using that by auto
+  with has_integral_separate_sides[OF y this k, of c] 
+  obtain d 
+    where "gauge d"
+         and d: "\<And>p1 p2. \<lbrakk>p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c}; d fine p1; 
+                          p2 tagged_division_of cbox a b \<inter> {x. c \<le> x \<bullet> k}; d fine p2\<rbrakk> 
+                  \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) + (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x) - y) < e/2" 
+    by metis
+  show ?thesis
+    proof (rule_tac x=d in exI, clarsimp simp add: \<open>gauge d\<close>)
       fix p1 p2
       assume as: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" "d fine p1"
                  "p2 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
-      proof (rule fine_division_exists[OF d(1), of a' b] )
+      proof (rule fine_division_exists[OF \<open>gauge d\<close>, of a' b])
         fix p
         assume "p tagged_division_of cbox a' b" "d fine p"
         then show ?thesis
-          using as norm_triangle_half_l[OF d(2)[of p1 p] d(2)[of p2 p]]
+          using as norm_triangle_half_l[OF d[of p1 p] d[of p2 p]]
           unfolding interval_split[OF k] b'_def[symmetric] a'_def[symmetric]
           by (auto simp add: algebra_simps)
       qed
     qed
-    show "?P {x. x \<bullet> k \<ge> c}"
-    proof (rule_tac x=d in exI, clarsimp simp add: d)
+  qed    
+  with f show ?thesis1
+    by (simp add: interval_split[OF k] integrable_cauchy)
+  have "\<exists>d. gauge d \<and>
+            (\<forall>p1 p2. p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<ge> c} \<and> d fine p1 \<and>
+                     p2 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<ge> c} \<and> d fine p2 \<longrightarrow>
+                     norm ((\<Sum>(x,K) \<in> p1. content K *\<^sub>R f x) - (\<Sum>(x,K) \<in> p2. content K *\<^sub>R f x)) < e)"
+    if "e > 0" for e
+  proof -
+    have "e/2 > 0" using that by auto
+  with has_integral_separate_sides[OF y this k, of c] 
+  obtain d 
+    where "gauge d"
+         and d: "\<And>p1 p2. \<lbrakk>p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c}; d fine p1; 
+                          p2 tagged_division_of cbox a b \<inter> {x. c \<le> x \<bullet> k}; d fine p2\<rbrakk> 
+                  \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) + (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x) - y) < e/2" 
+    by metis
+  show ?thesis
+    proof (rule_tac x=d in exI, clarsimp simp add: \<open>gauge d\<close>)
       fix p1 p2
       assume as: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<ge> c}" "d fine p1"
                  "p2 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<ge> c}" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
-      proof (rule fine_division_exists[OF d(1), of a b'] )
+      proof (rule fine_division_exists[OF \<open>gauge d\<close>, of a b'])
         fix p
         assume "p tagged_division_of cbox a b'" "d fine p"
         then show ?thesis
-          using as norm_triangle_half_l[OF d(2)[of p p1] d(2)[of p p2]]
+          using as norm_triangle_half_l[OF d[of p p1] d[of p p2]]
           unfolding interval_split[OF k] b'_def[symmetric] a'_def[symmetric]
           by (auto simp add: algebra_simps)
       qed
     qed
-  qed
+  qed    
+  with f show ?thesis2
+    by (simp add: interval_split[OF k] integrable_cauchy)
 qed
 
 lemma operative_integral:
@@ -1544,7 +1581,7 @@ proof -
     guess d1 using f_i[unfolded has_integral,rule_format,OF *] by (elim exE conjE) note d1=this[rule_format]
     guess d2 using g_j[unfolded has_integral,rule_format,OF *] by (elim exE conjE) note d2=this[rule_format]
     obtain p where p: "p tagged_division_of cbox a b" "d1 fine p" "d2 fine p"
-       using fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] unfolding fine_inter
+       using fine_division_exists[OF gauge_Int[OF d1(1) d2(1)], of a b] unfolding fine_inter
        by metis
     note le_less_trans[OF Basis_le_norm[OF k]]
     then have "\<bar>((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
@@ -1733,7 +1770,7 @@ next
       note * = i[unfolded has_integral,rule_format,OF this]
       from *[of m] guess gm by (elim conjE exE) note gm=this[rule_format]
       from *[of n] guess gn by (elim conjE exE) note gn=this[rule_format]
-      from fine_division_exists[OF gauge_inter[OF gm(1) gn(1)], of a b]
+      from fine_division_exists[OF gauge_Int[OF gm(1) gn(1)], of a b]
       obtain p where p: "p tagged_division_of cbox a b" "(\<lambda>x. gm x \<inter> gn x) fine p"
         by auto
       { fix s1 s2 i1 and i2::'b
@@ -5454,67 +5491,74 @@ subsection \<open>A straddling criterion for integrability\<close>
 
 lemma integrable_straddle_interval:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
-  assumes "\<forall>e>0. \<exists>g  h i j. (g has_integral i) (cbox a b) \<and> (h has_integral j) (cbox a b) \<and>
-    norm (i - j) < e \<and> (\<forall>x\<in>cbox a b. (g x) \<le> f x \<and> f x \<le> h x)"
+  assumes "\<And>e. e>0 \<Longrightarrow> \<exists>g h i j. (g has_integral i) (cbox a b) \<and> (h has_integral j) (cbox a b) \<and>
+                            \<bar>i - j\<bar> < e \<and> (\<forall>x\<in>cbox a b. (g x) \<le> f x \<and> f x \<le> h x)"
   shows "f integrable_on cbox a b"
-proof (subst integrable_cauchy, safe, goal_cases)
-  case (1 e)
-  then have e: "e/3 > 0"
-    by auto
-  note assms[rule_format,OF this]
-  then guess g h i j by (elim exE conjE) note obt = this
-  from obt(1)[unfolded has_integral[of g], rule_format, OF e] guess d1 .. note d1=conjunctD2[OF this,rule_format]
-  from obt(2)[unfolded has_integral[of h], rule_format, OF e] guess d2 .. note d2=conjunctD2[OF this,rule_format]
-  show ?case
-    apply (rule_tac x="\<lambda>x. d1 x \<inter> d2 x" in exI)
-    apply (rule conjI gauge_inter d1 d2)+
-    unfolding fine_inter
-  proof (safe, goal_cases)
-    have **: "\<And>i j g1 g2 h1 h2 f1 f2. g1 - h2 \<le> f1 - f2 \<Longrightarrow> f1 - f2 \<le> h1 - g2 \<Longrightarrow>
-      \<bar>i - j\<bar> < e / 3 \<Longrightarrow> \<bar>g2 - i\<bar> < e / 3 \<Longrightarrow> \<bar>g1 - i\<bar> < e / 3 \<Longrightarrow>
-      \<bar>h2 - j\<bar> < e / 3 \<Longrightarrow> \<bar>h1 - j\<bar> < e / 3 \<Longrightarrow> \<bar>f1 - f2\<bar> < e"
-    using \<open>e > 0\<close> by arith
-    case prems: (1 p1 p2)
-    note tagged_division_ofD(2-4) note * = this[OF prems(1)] this[OF prems(4)]
-
-    have "(\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R g x) \<ge> 0"
-      and "0 \<le> (\<Sum>(x, k)\<in>p2. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)"
-      and "(\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R g x) \<ge> 0"
-      and "0 \<le> (\<Sum>(x, k)\<in>p1. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x)"
-      unfolding sum_subtractf[symmetric]
-      apply -
-      apply (rule_tac[!] sum_nonneg)
-      apply safe
-      unfolding real_scaleR_def right_diff_distrib[symmetric]
-         apply (rule_tac[!] mult_nonneg_nonneg)
-        apply simp_all
-      using obt(4) prems(1) prems(4) apply (blast intro:  elim: dest!: bspec)+
+proof -
+  have "\<exists>d. gauge d \<and>
+            (\<forall>p1 p2. p1 tagged_division_of cbox a b \<and> d fine p1 \<and>
+                     p2 tagged_division_of cbox a b \<and> d fine p2 \<longrightarrow>
+                     \<bar>(\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) - (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x)\<bar> < e)"
+    if "e > 0" for e
+  proof -
+    have e: "e/3 > 0"
+      using that by auto
+    then obtain g h i j where ij: "\<bar>i - j\<bar> < e/3"
+            and "(g has_integral i) (cbox a b)" 
+            and "(h has_integral j) (cbox a b)" 
+            and fgh: "\<And>x. x \<in> cbox a b \<Longrightarrow> g x \<le> f x \<and> f x \<le> h x"
+      using assms real_norm_def by metis 
+    then obtain d1 d2 where "gauge d1" "gauge d2"
+            and d1: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; d1 fine p\<rbrakk> \<Longrightarrow>
+                          \<bar>(\<Sum>(x,K)\<in>p. content K *\<^sub>R g x) - i\<bar> < e/3"
+            and d2: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; d2 fine p\<rbrakk> \<Longrightarrow>
+                          \<bar>(\<Sum>(x,K) \<in> p. content K *\<^sub>R h x) - j\<bar> < e/3"
+      by (metis e has_integral real_norm_def)
+    have "\<bar>(\<Sum>(x,K) \<in> p1. content K *\<^sub>R f x) - (\<Sum>(x,K) \<in> p2. content K *\<^sub>R f x)\<bar> < e"
+      if p1: "p1 tagged_division_of cbox a b" and 11: "d1 fine p1" and 21: "d2 fine p1" 
+       and p2: "p2 tagged_division_of cbox a b" and 12: "d1 fine p2" and 22: "d2 fine p2" for p1 p2
+    proof -
+      have *: "\<And>g1 g2 h1 h2 f1 f2. 
+                  \<lbrakk>\<bar>g2 - i\<bar> < e/3; \<bar>g1 - i\<bar> < e/3; \<bar>h2 - j\<bar> < e/3; \<bar>h1 - j\<bar> < e/3;
+                   g1 - h2 \<le> f1 - f2; f1 - f2 \<le> h1 - g2\<rbrakk>
+                  \<Longrightarrow> \<bar>f1 - f2\<bar> < e"
+        using \<open>e > 0\<close> ij by arith
+      have 0: "(\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R g x) \<ge> 0"
+              "0 \<le> (\<Sum>(x, k)\<in>p2. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)"
+              "(\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R g x) \<ge> 0"
+              "0 \<le> (\<Sum>(x, k)\<in>p1. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x)"
+        unfolding sum_subtractf[symmetric]
+           apply (auto intro!: sum_nonneg)
+           apply (meson fgh measure_nonneg mult_left_mono tag_in_interval that sum_nonneg)+
         done
-    then show ?case
-      apply -
-      unfolding real_norm_def
-      apply (rule **)
-      defer
-      defer
-      unfolding real_norm_def[symmetric]
-      apply (rule obt(3))
-      apply (rule d1(2)[OF conjI[OF prems(4,5)]])
-      apply (rule d1(2)[OF conjI[OF prems(1,2)]])
-      apply (rule d2(2)[OF conjI[OF prems(4,6)]])
-      apply (rule d2(2)[OF conjI[OF prems(1,3)]])
-      apply auto
-      done
+      show ?thesis
+      proof (rule *)
+        show "\<bar>(\<Sum>(x,K) \<in> p2. content K *\<^sub>R g x) - i\<bar> < e/3"
+          by (rule d1[OF p2 12])
+        show "\<bar>(\<Sum>(x,K) \<in> p1. content K *\<^sub>R g x) - i\<bar> < e/3"
+          by (rule d1[OF p1 11])
+        show "\<bar>(\<Sum>(x,K) \<in> p2. content K *\<^sub>R h x) - j\<bar> < e/3"
+          by (rule d2[OF p2 22])
+        show "\<bar>(\<Sum>(x,K) \<in> p1. content K *\<^sub>R h x) - j\<bar> < e/3"
+          by (rule d2[OF p1 21])
+      qed (use 0 in auto)
+    qed
+    then show ?thesis
+      by (rule_tac x="\<lambda>x. d1 x \<inter> d2 x" in exI)
+        (auto simp: fine_inter intro: \<open>gauge d1\<close> \<open>gauge d2\<close> d1 d2)
   qed
+  then show ?thesis
+    by (simp add: integrable_cauchy)
 qed
 
 lemma integrable_straddle:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
-  assumes "\<forall>e>0. \<exists>g h i j. (g has_integral i) s \<and> (h has_integral j) s \<and>
-    norm (i - j) < e \<and> (\<forall>x\<in>s. g x \<le> f x \<and> f x \<le> h x)"
+  assumes "\<And>e. e>0 \<Longrightarrow> \<exists>g h i j. (g has_integral i) s \<and> (h has_integral j) s \<and>
+                     \<bar>i - j\<bar> < e \<and> (\<forall>x\<in>s. g x \<le> f x \<and> f x \<le> h x)"
   shows "f integrable_on s"
 proof -
   have "\<And>a b. (\<lambda>x. if x \<in> s then f x else 0) integrable_on cbox a b"
-  proof (rule integrable_straddle_interval, safe, goal_cases)
+  proof (rule integrable_straddle_interval, goal_cases)
     case (1 a b e)
     then have *: "e/4 > 0"
       by auto
@@ -5543,7 +5587,7 @@ proof -
         unfolding c_def d_def by auto
     qed
     have **: "\<And>ch cg ag ah::real. norm (ah - ag) \<le> norm (ch - cg) \<Longrightarrow> norm (cg - i) < e / 4 \<Longrightarrow>
-      norm (ch - j) < e / 4 \<Longrightarrow> norm (ag - ah) < e"
+      norm (ch - j) < e / 4 \<Longrightarrow> abs (ag - ah) < e"
       using obt(3)
       unfolding real_norm_def
       by arith
@@ -5554,7 +5598,7 @@ proof -
       apply (rule_tac x="integral (cbox a b) (\<lambda>x. if x \<in> s then h x else 0)" in exI)
       apply safe
       apply (rule_tac[1-2] integrable_integral,rule g)
-      apply (rule h)
+         apply (rule h)
       apply (rule **[OF _ B1(2)[OF *(1)] B2(2)[OF *(2)]])
     proof -
       have *: "\<And>x f g. (if x \<in> s then f x else 0) - (if x \<in> s then g x else 0) =
@@ -5642,7 +5686,7 @@ proof -
         apply (rule order_trans)
         apply (rule **)
         apply (rule as(2))
-        apply (rule obt)
+        using obt(3) apply auto[1]
         apply (rule_tac[!] integral_le)
         using obt
         apply (auto intro!: h g interv)
@@ -5946,7 +5990,7 @@ proof -
       done
     note integrable_integral[OF this, unfolded has_integral[of f]]
     from this[rule_format,OF *] guess dd .. note dd=conjunctD2[OF this,rule_format]
-    note gauge_inter[OF \<open>gauge d\<close> dd(1)]
+    note gauge_Int[OF \<open>gauge d\<close> dd(1)]
     from fine_division_exists[OF this,of u v] guess qq .
     then show ?case
       apply (rule_tac x=qq in exI)
@@ -6838,7 +6882,7 @@ proof -
     guess d1 .. note d1 = conjunctD2[OF this,rule_format]
     from integrable_integral[OF that(2),unfolded has_integral[of g],rule_format,OF *]
     guess d2 .. note d2 = conjunctD2[OF this,rule_format]
-    note gauge_inter[OF d1(1) d2(1)]
+    note gauge_Int[OF d1(1) d2(1)]
     from fine_division_exists[OF this, of a b] guess p . note p=this
     show "norm (integral (cbox a b) f) < integral (cbox a b) g + e"
       apply (rule norm)
@@ -7066,7 +7110,7 @@ proof cases
         by simp
       also have "\<dots> < e' * norm (x - x0)"
         using \<open>e' > 0\<close>
-        apply (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])  
+        apply (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])
         apply  (auto simp: divide_simps e_def)
         by (metis \<open>0 < e\<close> e_def order.asym zero_less_divide_iff)
       finally have "norm (?F x - ?F x0 - ?dF (x - x0)) < e' * norm (x - x0)" .

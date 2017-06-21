@@ -339,6 +339,11 @@ lemma floor_less_numeral [simp]: "\<lfloor>x\<rfloor> < numeral v \<longleftrigh
 lemma floor_less_neg_numeral [simp]: "\<lfloor>x\<rfloor> < - numeral v \<longleftrightarrow> x < - numeral v"
   by (simp add: floor_less_iff)
 
+lemma le_mult_floor_Ints:
+  assumes "0 \<le> a" "a \<in> Ints"
+  shows "of_int (\<lfloor>a\<rfloor> * \<lfloor>b\<rfloor>) \<le> (of_int\<lfloor>a * b\<rfloor> :: 'a :: linordered_idom)"
+  by (metis Ints_cases assms floor_less_iff floor_of_int linorder_not_less mult_left_mono of_int_floor_le of_int_less_iff of_int_mult)
+
 
 text \<open>Addition and subtraction of integers.\<close>
 
@@ -492,6 +497,16 @@ lemma ceiling_of_nat [simp]: "\<lceil>of_nat n\<rceil> = int n"
 lemma ceiling_add_le: "\<lceil>x + y\<rceil> \<le> \<lceil>x\<rceil> + \<lceil>y\<rceil>"
   by (simp only: ceiling_le_iff of_int_add add_mono le_of_int_ceiling)
 
+lemma mult_ceiling_le:
+  assumes "0 \<le> a" and "0 \<le> b"
+  shows "\<lceil>a * b\<rceil> \<le> \<lceil>a\<rceil> * \<lceil>b\<rceil>"
+  by (metis assms ceiling_le_iff ceiling_mono le_of_int_ceiling mult_mono of_int_mult)
+
+lemma mult_ceiling_le_Ints:
+  assumes "0 \<le> a" "a \<in> Ints"
+  shows "(of_int \<lceil>a * b\<rceil> :: 'a :: linordered_idom) \<le> of_int(\<lceil>a\<rceil> * \<lceil>b\<rceil>)"
+  by (metis Ints_cases assms ceiling_le_iff ceiling_of_int le_of_int_ceiling mult_left_mono of_int_le_iff of_int_mult)
+
 lemma finite_int_segment:
   fixes a :: "'a::floor_ceiling"
   shows "finite {x \<in> \<int>. a \<le> x \<and> x \<le> b}"
@@ -504,6 +519,10 @@ proof -
     by simp
 qed
 
+corollary finite_abs_int_segment:
+  fixes a :: "'a::floor_ceiling"
+  shows "finite {k \<in> \<int>. \<bar>k\<bar> \<le> a}" 
+  using finite_int_segment [of "-a" a] by (auto simp add: abs_le_iff conj_commute minus_le_iff)
 
 text \<open>Ceiling with numerals.\<close>
 

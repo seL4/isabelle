@@ -129,6 +129,25 @@ lemma sum_inner_Basis_eq [simp]:
   by (simp add: comm_monoid_add_class.sum.remove [OF finite_Basis assms]
          assms inner_not_same_Basis comm_monoid_add_class.sum.neutral)
 
+lemma sum_if_inner [simp]:
+  assumes "i \<in> Basis" "j \<in> Basis"
+    shows "inner (\<Sum>k\<in>Basis. if k = i then f i *\<^sub>R i else g k *\<^sub>R k) j = (if j=i then f j else g j)"
+proof (cases "i=j")
+  case True
+  with assms show ?thesis
+    by (auto simp: inner_sum_left if_distrib [of "\<lambda>x. inner x j"] inner_Basis cong: if_cong)
+next
+  case False
+  have "(\<Sum>k\<in>Basis. inner (if k = i then f i *\<^sub>R i else g k *\<^sub>R k) j) =
+        (\<Sum>k\<in>Basis. if k = j then g k else 0)"
+    apply (rule sum.cong)
+    using False assms by (auto simp: inner_Basis)
+  also have "... = g j"
+    using assms by auto
+  finally show ?thesis
+    using False by (auto simp: inner_sum_left)
+qed
+
 subsection \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space

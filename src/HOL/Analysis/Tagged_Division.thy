@@ -272,7 +272,7 @@ lemma gauge_ball[intro]: "0 < e \<Longrightarrow> gauge (\<lambda>x. ball x e)"
 lemma gauge_trivial[intro!]: "gauge (\<lambda>x. ball x 1)"
   by (rule gauge_ball) auto
 
-lemma gauge_inter[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> gauge (\<lambda>x. d1 x \<inter> d2 x)"
+lemma gauge_Int[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> gauge (\<lambda>x. d1 x \<inter> d2 x)"
   unfolding gauge_def by auto
 
 lemma gauge_inters:
@@ -667,7 +667,7 @@ proof
   qed
 qed
 
-lemma partial_division_extend_interval:
+proposition partial_division_extend_interval:
   assumes "p division_of (\<Union>p)" "(\<Union>p) \<subseteq> cbox a b"
   obtains q where "p \<subseteq> q" "q division_of cbox a (b::'a::euclidean_space)"
 proof (cases "p = {}")
