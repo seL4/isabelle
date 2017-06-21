@@ -303,7 +303,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val iterator =
               for {
-                Text.Info(entry_range, (entry, model)) <- resources.bibtex_entries_iterator
+                Text.Info(entry_range, (entry, model)) <- resources.bibtex_entries_iterator()
                 if entry == name
               } yield Line.Node_Range(model.node_name.node, model.content.doc.range(entry_range))
             if (iterator.isEmpty) None else Some((links /: iterator)(_ :+ _))

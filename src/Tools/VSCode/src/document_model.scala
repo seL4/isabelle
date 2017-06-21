@@ -43,7 +43,7 @@ object Document_Model
     lazy val bytes: Bytes = Bytes(text)
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val bibtex_entries: List[Text.Info[String]] =
-      try { Bibtex.document_entries(text) }
+      try { Bibtex.entries(text) }
       catch { case ERROR(_) => Nil }
   }
 
@@ -131,6 +131,12 @@ sealed case class Document_Model(
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
     else Some((Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty)))
+
+
+  /* bibtex entries */
+
+  def bibtex_entries: List[Text.Info[String]] =
+    model.content.bibtex_entries
 
 
   /* edits */

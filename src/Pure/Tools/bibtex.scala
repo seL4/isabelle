@@ -19,7 +19,7 @@ object Bibtex
   def check_name(name: String): Boolean = name.endsWith(".bib")
   def check_name(name: Document.Node.Name): Boolean = check_name(name.node)
 
-  def document_entries(text: String): List[Text.Info[String]] =
+  def entries(text: String): List[Text.Info[String]] =
   {
     val result = new mutable.ListBuffer[Text.Info[String]]
     var offset = 0
@@ -30,6 +30,15 @@ object Bibtex
       offset = end_offset
     }
     result.toList
+  }
+
+  def entries_iterator[A, B <: Document.Model](models: Map[A, B])
+    : Iterator[Text.Info[(String, B)]] =
+  {
+    for {
+      (_, model) <- models.iterator
+      info <- model.bibtex_entries.iterator
+    } yield info.map((_, model))
   }
 
 
@@ -69,7 +78,7 @@ object Bibtex
       "@" + kind + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
   }
 
-  val entries: List[Entry] =
+  val known_entries: List[Entry] =
     List(
       Entry("Article",
         List("author", "title"),
@@ -128,7 +137,7 @@ object Bibtex
         List("author", "title", "howpublished", "month", "year", "note")))
 
   def get_entry(kind: String): Option[Entry] =
-    entries.find(entry => entry.kind.toLowerCase == kind.toLowerCase)
+    known_entries.find(entry => entry.kind.toLowerCase == kind.toLowerCase)
 
   def is_entry(kind: String): Boolean = get_entry(kind).isDefined
 

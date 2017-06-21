@@ -50,7 +50,7 @@ object JEdit_Bibtex
           case buffer: Buffer
           if (Bibtex.check_name(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable) =>
             val menu = new JMenu("BibTeX entries")
-            for (entry <- Bibtex.entries) {
+            for (entry <- Bibtex.known_entries) {
               val item = new JMenuItem(entry.kind)
               item.addActionListener(new ActionListener {
                 def actionPerformed(evt: ActionEvent): Unit =

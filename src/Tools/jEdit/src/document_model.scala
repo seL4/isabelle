@@ -78,10 +78,7 @@ object Document_Model
   def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
 
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
-    for {
-      (_, model) <- state.value.models.iterator
-      info <- model.bibtex_entries.iterator
-    } yield info.map((_, model))
+    Bibtex.entries_iterator(state.value.models)
 
 
   /* overlays */
@@ -275,7 +272,7 @@ object Document_Model
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val bibtex_entries: List[Text.Info[String]] =
-      try { Bibtex.document_entries(text) }
+      try { Bibtex.entries(text) }
       catch { case ERROR(msg) => Output.warning(msg); Nil }
   }
 
@@ -551,7 +548,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
           case None =>
             val text = JEdit_Lib.buffer_text(buffer)
             val entries =
-              try { Bibtex.document_entries(text) }
+              try { Bibtex.entries(text) }
               catch { case ERROR(msg) => Output.warning(msg); Nil }
             _bibtex_entries = Some(entries)
             entries
