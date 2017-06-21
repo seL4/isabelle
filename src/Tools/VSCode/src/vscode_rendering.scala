@@ -108,7 +108,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
         if (no_completion) Nil
         else {
           val results =
-            Completion.Result.merges(history,
+            Completion.Result.merge(history,
               semantic_completion,
               syntax_completion,
               VSCode_Spell_Checker.completion(rendering, caret),

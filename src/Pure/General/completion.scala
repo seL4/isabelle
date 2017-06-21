@@ -31,19 +31,17 @@ object Completion
   object Result
   {
     def empty(range: Text.Range): Result = Result(range, "", false, Nil)
-    def merge(history: History, result1: Option[Result], result2: Option[Result]): Option[Result] =
-      (result1, result2) match {
-        case (_, None) => result1
-        case (None, _) => result2
-        case (Some(res1), Some(res2)) =>
+    def merge(history: History, results: Option[Result]*): Option[Result] =
+      ((None: Option[Result]) /: results)({
+        case (result1, None) => result1
+        case (None, result2) => result2
+        case (result1 @ Some(res1), Some(res2)) =>
           if (res1.range != res2.range || res1.original != res2.original) result1
           else {
             val items = (res1.items ::: res2.items).sorted(history.ordering)
             Some(Result(res1.range, res1.original, false, items))
           }
-      }
-    def merges(history: History, results: Option[Result]*): Option[Result] =
-      ((None: Option[Result]) /: results)(merge(history, _, _))
+      })
   }
 
   sealed case class Result(
