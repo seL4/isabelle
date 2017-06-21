@@ -12,7 +12,6 @@ import isabelle._
 import java.awt.{Color, Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import java.io.{File => JFile}
-import java.util.regex.Pattern
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
 import javax.swing.text.DefaultCaret
@@ -132,7 +131,7 @@ object Completion_Popup
                 val range0 =
                   Completion.Result.merge(Completion.History.empty,
                     syntax_completion(Completion.History.empty, true, Some(rendering)),
-                    path_completion(rendering),
+                    rendering.path_completion(caret),
                     Document_Model.bibtex_completion(Completion.History.empty, rendering, caret))
                   .map(_.range)
                 rendering.semantic_completion(range0, range) match {
@@ -180,62 +179,6 @@ object Completion_Popup
 
         case None => None
       }
-    }
-
-
-    /* path completion */
-
-    def path_completion(rendering: JEdit_Rendering): Option[Completion.Result] =
-    {
-      def complete(text: String): List[(String, List[String])] =
-      {
-        try {
-          val path = Path.explode(text)
-          val (dir, base_name) =
-            if (text == "" || text.endsWith("/")) (path, "")
-            else (path.dir, path.base_name)
-
-          val directory = new JFile(PIDE.resources.append(rendering.snapshot.node_name, dir))
-          val files = directory.listFiles
-          if (files == null) Nil
-          else {
-            val ignore =
-              Library.space_explode(':', PIDE.options.string("jedit_completion_path_ignore")).
-                map(s => Pattern.compile(StandardUtilities.globToRE(s)))
-            (for {
-              file <- files.iterator
-
-              name = file.getName
-              if name.startsWith(base_name)
-              if !ignore.exists(pat => pat.matcher(name).matches)
-
-              text1 = (dir + Path.basic(name)).implode_short
-              if text != text1
-
-              is_dir = new JFile(directory, name).isDirectory
-              replacement = text1 + (if (is_dir) "/" else "")
-              descr = List(text1, if (is_dir) "(directory)" else "(file)")
-            } yield (replacement, descr)).take(PIDE.options.int("completion_limit")).toList
-          }
-        }
-        catch { case ERROR(_) => Nil }
-      }
-
-      def is_wrapped(s: String): Boolean =
-        s.startsWith("\"") && s.endsWith("\"") ||
-        s.startsWith(Symbol.open_decoded) && s.endsWith(Symbol.close_decoded)
-
-      for {
-        r1 <- rendering.language_path(rendering.before_caret_range(text_area.getCaretPosition))
-        s1 <- JEdit_Lib.try_get_text(text_area.getBuffer, r1)
-        if is_wrapped(s1)
-        r2 = Text.Range(r1.start + 1, r1.stop - 1)
-        s2 = s1.substring(1, s1.length - 1)
-        if Path.is_valid(s2)
-        paths = complete(s2)
-        if paths.nonEmpty
-        items = paths.map(p => Completion.Item(r2, s2, "", p._2, p._1, 0, false))
-      } yield Completion.Result(r2, s2, false, items)
     }
 
 
@@ -374,7 +317,7 @@ object Completion_Popup
                 Completion.Result.merge(history,
                   result1,
                   JEdit_Spell_Checker.completion(rendering, explicit, caret),
-                  path_completion(rendering),
+                  rendering.path_completion(caret),
                   Document_Model.bibtex_completion(history, rendering, caret))
             }
           }
