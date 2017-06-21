@@ -1633,7 +1633,7 @@ text \<open>
   but @{system_option jedit_completion_immediate}~\<^verbatim>\<open>= true\<close> means that
   abbreviations of Isabelle symbols are handled nonetheless.
 
-  \<^item> @{system_option_def jedit_completion_path_ignore} specifies ``glob''
+  \<^item> @{system_option_def completion_path_ignore} specifies ``glob''
   patterns to ignore in file-system path completion (separated by colons),
   e.g.\ backup files ending with tilde.
 

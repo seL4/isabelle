@@ -8,6 +8,10 @@ markup interpretation.
 package isabelle
 
 
+import java.io.{File => JFile}
+import java.nio.file.FileSystems
+
+
 object Rendering
 {
   /* color */
@@ -268,6 +272,17 @@ abstract class Rendering(
           Some(Completion.Language_Context.inner)
       }).headOption.map(_.info)
 
+  def citation(range: Text.Range): Option[Text.Info[String]] =
+    snapshot.select(range, Rendering.citation_elements, _ =>
+      {
+        case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
+          Some(Text.Info(snapshot.convert(info_range), name))
+        case _ => None
+      }).headOption.map(_.info)
+
+
+  /* file-system path completion */
+
   def language_path(range: Text.Range): Option[Text.Range] =
     snapshot.select(range, Rendering.language_elements, _ =>
       {
@@ -276,13 +291,59 @@ abstract class Rendering(
         case _ => None
       }).headOption.map(_.info)
 
-  def citation(range: Text.Range): Option[Text.Info[String]] =
-    snapshot.select(range, Rendering.citation_elements, _ =>
-      {
-        case Text.Info(info_range, XML.Elem(Markup.Citation(name), _)) =>
-          Some(Text.Info(snapshot.convert(info_range), name))
-        case _ => None
-      }).headOption.map(_.info)
+  def path_completion(caret: Text.Offset): Option[Completion.Result] =
+  {
+    def complete(text: String): List[(String, List[String])] =
+    {
+      try {
+        val path = Path.explode(text)
+        val (dir, base_name) =
+          if (text == "" || text.endsWith("/")) (path, "")
+          else (path.dir, path.base_name)
+
+        val directory = new JFile(session.resources.append(snapshot.node_name, dir))
+        val files = directory.listFiles
+        if (files == null) Nil
+        else {
+          val ignore =
+            Library.space_explode(':', options.string("completion_path_ignore")).
+              map(s => FileSystems.getDefault.getPathMatcher("glob:" + s))
+          (for {
+            file <- files.iterator
+
+            name = file.getName
+            if name.startsWith(base_name)
+            path_name = new JFile(name).toPath
+            if !ignore.exists(matcher => matcher.matches(path_name))
+
+            text1 = (dir + Path.basic(name)).implode_short
+            if text != text1
+
+            is_dir = new JFile(directory, name).isDirectory
+            replacement = text1 + (if (is_dir) "/" else "")
+            descr = List(text1, if (is_dir) "(directory)" else "(file)")
+          } yield (replacement, descr)).take(options.int("completion_limit")).toList
+        }
+      }
+      catch { case ERROR(_) => Nil }
+    }
+
+    def is_wrapped(s: String): Boolean =
+      s.startsWith("\"") && s.endsWith("\"") ||
+      s.startsWith(Symbol.open_decoded) && s.endsWith(Symbol.close_decoded)
+
+    for {
+      r1 <- language_path(before_caret_range(caret))
+      s1 <- model.try_get_text(r1)
+      if is_wrapped(s1)
+      r2 = Text.Range(r1.start + 1, r1.stop - 1)
+      s2 = s1.substring(1, s1.length - 1)
+      if Path.is_valid(s2)
+      paths = complete(s2)
+      if paths.nonEmpty
+      items = paths.map(p => Completion.Item(r2, s2, "", p._2, p._1, 0, false))
+    } yield Completion.Result(r2, s2, false, items)
+  }
 
 
   /* spell checker */
