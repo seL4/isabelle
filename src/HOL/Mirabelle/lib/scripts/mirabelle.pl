@@ -10,6 +10,7 @@ use File::Basename;
 
 my $isabelle_home = $ENV{'ISABELLE_HOME'};
 my $mirabelle_home = $ENV{'MIRABELLE_HOME'};
+my $mirabelle_dir = $ENV{'MIRABELLE_DIR'};
 my $mirabelle_logic = $ENV{'MIRABELLE_LOGIC'};
 my $mirabelle_theory = $ENV{'MIRABELLE_THEORY'};
 my $output_path = $ENV{'MIRABELLE_OUTPUT_PATH'};
@@ -160,7 +161,9 @@ if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $cmd =
   "isabelle process -o quick_and_dirty -o threads=1" .
-  " -T \"$path/$new_thy_name\" -l $mirabelle_logic" . $quiet;
+  " -T \"$path/$new_thy_name\" " .
+  ($mirabelle_dir ? "-d " . $mirabelle_dir . " " : "") .
+  "-l $mirabelle_logic" . $quiet;
 my $result = system "bash", "-c", $cmd;
 
 if ($output_log) {

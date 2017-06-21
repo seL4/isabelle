@@ -28,11 +28,12 @@ function usage() {
   echo
   echo "  Options are:"
   echo "    -L LOGIC     parent logic to use (default $MIRABELLE_LOGIC)"
-  echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
   echo "    -O DIR       output directory for test data (default $out)"
-  echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
-  echo "    -q           be quiet (suppress output of Isabelle process)"
   echo "    -S FILE      user-provided setup file (no actions required)"
+  echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
+  echo "    -d DIR       include session directory"
+  echo "    -q           be quiet (suppress output of Isabelle process)"
+  echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
   echo
   echo "  Apply the given actions (i.e., automated proof tools)"
   echo "  at all proof steps in the given theory files."
@@ -64,9 +65,10 @@ function fail()
 
 [ $# -eq 0 ] && usage
 
+MIRABELLE_DIR=
 MIRABELLE_SETUP_FILE=
 
-while getopts "L:T:O:t:S:q?" OPT
+while getopts "L:T:O:d:t:S:q?" OPT
 do
   case "$OPT" in
     L)
@@ -77,6 +79,9 @@ do
       ;;
     O)
       MIRABELLE_OUTPUT_PATH="$OPTARG"
+      ;;
+    d)
+      MIRABELLE_DIR="$OPTARG"
       ;;
     t)
       MIRABELLE_TIMEOUT="$OPTARG"
@@ -93,6 +98,7 @@ do
   esac
 done
 
+export MIRABELLE_DIR
 export MIRABELLE_SETUP_FILE
 export MIRABELLE_QUIET
 
