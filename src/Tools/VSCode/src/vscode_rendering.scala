@@ -112,6 +112,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
               semantic_completion,
               syntax_completion,
               VSCode_Spell_Checker.completion(rendering, caret),
+              path_completion(caret),
               bibtex_completion(history, caret))
           val items =
             results match {
