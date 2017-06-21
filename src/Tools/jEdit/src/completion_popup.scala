@@ -130,11 +130,10 @@ object Completion_Popup
             rendering.before_caret_range(caret).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
                 val range0 =
-                  Completion.Result.merge(Completion.History.empty,
+                  Completion.Result.merges(Completion.History.empty,
                     syntax_completion(Completion.History.empty, true, Some(rendering)),
-                    Completion.Result.merge(Completion.History.empty,
-                      path_completion(rendering),
-                      JEdit_Bibtex.completion(Completion.History.empty, rendering, caret)))
+                    path_completion(rendering),
+                    JEdit_Bibtex.completion(Completion.History.empty, rendering, caret))
                   .map(_.range)
                 rendering.semantic_completion(range0, range) match {
                   case None => range0
@@ -372,12 +371,11 @@ object Completion_Popup
             opt_rendering match {
               case None => result1
               case Some(rendering) =>
-                Completion.Result.merge(history, result1,
-                  Completion.Result.merge(history,
-                    JEdit_Spell_Checker.completion(rendering, explicit, caret),
-                    Completion.Result.merge(history,
-                      path_completion(rendering),
-                      JEdit_Bibtex.completion(history, rendering, caret))))
+                Completion.Result.merges(history,
+                  result1,
+                  JEdit_Spell_Checker.completion(rendering, explicit, caret),
+                  path_completion(rendering),
+                  JEdit_Bibtex.completion(history, rendering, caret))
             }
           }
           result match {

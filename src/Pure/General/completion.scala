@@ -42,6 +42,8 @@ object Completion
             Some(Result(res1.range, res1.original, false, items))
           }
       }
+    def merges(history: History, results: Option[Result]*): Option[Result] =
+      ((None: Option[Result]) /: results)(merge(history, _, _))
   }
 
   sealed case class Result(
