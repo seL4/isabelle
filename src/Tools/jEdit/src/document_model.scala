@@ -77,8 +77,15 @@ object Document_Model
   def get(name: Document.Node.Name): Option[Document_Model] = get_models.get(name)
   def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
 
+
+  /* bibtex */
+
   def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
     Bibtex.entries_iterator(state.value.models)
+
+  def bibtex_completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
+      : Option[Completion.Result] =
+    Bibtex.completion(history, rendering, caret, state.value.models)
 
 
   /* overlays */

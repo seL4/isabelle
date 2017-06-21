@@ -42,6 +42,38 @@ object Bibtex
   }
 
 
+  /* completion */
+
+  def completion[A, B <: Document.Model](
+    history: Completion.History, rendering: Rendering, caret: Text.Offset,
+    models: Map[A, B]): Option[Completion.Result] =
+  {
+    for {
+      Text.Info(r, name) <- rendering.citation(rendering.before_caret_range(caret))
+      name1 <- Completion.clean_name(name)
+
+      original <- rendering.model.try_get_text(r)
+      original1 <- Completion.clean_name(Library.perhaps_unquote(original))
+
+      entries =
+        (for {
+          Text.Info(_, (entry, _)) <- entries_iterator(models)
+          if entry.toLowerCase.containsSlice(name1.toLowerCase) && entry != original1
+        } yield entry).toList
+      if entries.nonEmpty
+
+      items =
+        entries.sorted.map({
+          case entry =>
+            val full_name = Long_Name.qualify(Markup.CITATION, entry)
+            val description = List(entry, "(BibTeX entry)")
+            val replacement = quote(entry)
+          Completion.Item(r, original, full_name, description, replacement, 0, false)
+        }).sorted(history.ordering).take(rendering.options.int("completion_limit"))
+    } yield Completion.Result(r, original, false, items)
+  }
+
+
 
   /** content **/
 
@@ -430,32 +462,5 @@ object Bibtex
       }
     }
     (chunks.toList, ctxt)
-  }
-
-
-  /* completion */
-
-  def completion(history: Completion.History, rendering: Rendering, caret: Text.Offset,
-    complete: String => List[String]): Option[Completion.Result] =
-  {
-    for {
-      Text.Info(r, name) <- rendering.citation(rendering.before_caret_range(caret))
-      name1 <- Completion.clean_name(name)
-
-      original <- rendering.model.try_get_text(r)
-      original1 <- Completion.clean_name(Library.perhaps_unquote(original))
-
-      entries = complete(name1).filter(_ != original1)
-      if entries.nonEmpty
-
-      items =
-        entries.sorted.map({
-          case entry =>
-            val full_name = Long_Name.qualify(Markup.CITATION, entry)
-            val description = List(entry, "(BibTeX entry)")
-            val replacement = quote(entry)
-          Completion.Item(r, original, full_name, description, replacement, 0, false)
-        }).sorted(history.ordering).take(rendering.options.int("completion_limit"))
-    } yield Completion.Result(r, original, false, items)
   }
 }

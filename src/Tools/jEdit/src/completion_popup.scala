@@ -133,7 +133,7 @@ object Completion_Popup
                   Completion.Result.merges(Completion.History.empty,
                     syntax_completion(Completion.History.empty, true, Some(rendering)),
                     path_completion(rendering),
-                    JEdit_Bibtex.completion(Completion.History.empty, rendering, caret))
+                    Document_Model.bibtex_completion(Completion.History.empty, rendering, caret))
                   .map(_.range)
                 rendering.semantic_completion(range0, range) match {
                   case None => range0
@@ -375,7 +375,7 @@ object Completion_Popup
                   result1,
                   JEdit_Spell_Checker.completion(rendering, explicit, caret),
                   path_completion(rendering),
-                  JEdit_Bibtex.completion(history, rendering, caret))
+                  Document_Model.bibtex_completion(history, rendering, caret))
             }
           }
           result match {

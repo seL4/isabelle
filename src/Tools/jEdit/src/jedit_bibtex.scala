@@ -27,19 +27,6 @@ import sidekick.{SideKickParser, SideKickParsedData}
 
 object JEdit_Bibtex
 {
-  /** completion **/
-
-  def complete(name: String): List[String] =
-    (for {
-      Text.Info(_, (entry, _)) <- Document_Model.bibtex_entries_iterator()
-      if entry.toLowerCase.containsSlice(name.toLowerCase)
-    } yield entry).toList
-
-  def completion(history: Completion.History, rendering: Rendering, caret: Text.Offset)
-    : Option[Completion.Result] = Bibtex.completion(history, rendering, caret, complete _)
-
-
-
   /** context menu **/
 
   def context_menu(text_area0: JEditTextArea): List[JMenuItem] =

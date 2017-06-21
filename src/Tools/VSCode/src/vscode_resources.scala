@@ -112,7 +112,8 @@ class VSCode_Resources(
     else new JFile(dir + JFile.separator + File.platform_path(path)).getCanonicalPath
   }
 
-  def get_model(file: JFile): Option[Document_Model] = state.value.models.get(file)
+  def get_models: Map[JFile, Document_Model] = state.value.models
+  def get_model(file: JFile): Option[Document_Model] = get_models.get(file)
   def get_model(name: Document.Node.Name): Option[Document_Model] = get_model(node_file(name))
 
 
@@ -127,9 +128,6 @@ class VSCode_Resources(
       case Some(model) => Some(model.content.text)
       case None => read_file_content(file)
     }
-
-  def bibtex_entries_iterator(): Iterator[Text.Info[(String, Document_Model)]] =
-    Bibtex.entries_iterator(state.value.models)
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
