@@ -11,7 +11,7 @@ being actively developed. The sources are available at
 
 The "$NUNCHAKU_HOME" environment variable must be set to the absolute path to
 the directory containing the "nunchaku" executable. The Isabelle components
-for CVC4 and Kodkodi are necessary to use these backends.
+for CVC4 and Kodkodi are necessary to use these backend solvers.
 *)
 
 theory Nunchaku

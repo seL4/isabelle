@@ -12,7 +12,8 @@ sig
   datatype mode = Auto_Try | Try | Normal
 
   type mode_of_operation_params =
-    {falsify: bool,
+    {solvers: string list,
+     falsify: bool,
      assms: bool,
      spy: bool,
      overlord: bool,
@@ -74,7 +75,8 @@ open Nunchaku_Tool;
 datatype mode = Auto_Try | Try | Normal;
 
 type mode_of_operation_params =
-  {falsify: bool,
+  {solvers: string list,
+   falsify: bool,
    assms: bool,
    spy: bool,
    overlord: bool,
@@ -138,7 +140,7 @@ val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort);
 val timeout_slack = seconds 1.0;
 
 fun run_chaku_on_prop state
-    ({mode_of_operation_params = {falsify, assms, spy, overlord, expect},
+    ({mode_of_operation_params = {solvers, falsify, assms, spy, overlord, expect},
       scope_of_search_params = {wfs, whacks, cards, monos},
       output_format_params = {verbose, debug, evals, atomss, ...},
       optimization_params = {specialize, ...},
@@ -157,8 +159,9 @@ fun run_chaku_on_prop state
     val das_wort_Model = if falsify then "Countermodel" else "Model";
     val das_wort_model = if falsify then "countermodel" else "model";
 
-    val tool_params = {overlord = overlord, debug = debug, specialize = specialize,
-      timeout = timeout};
+    val tool_params =
+      {solvers = solvers, overlord = overlord, debug = debug, specialize = specialize,
+       timeout = timeout};
 
     fun run () =
       let

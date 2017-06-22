@@ -556,6 +556,116 @@ proof -
     by (subst (1 2) eventually_INF) auto
 qed
 
+
+subsubsection \<open>Contravariant map function for filters\<close>
+
+definition filtercomap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter" where
+  "filtercomap f F = Abs_filter (\<lambda>P. \<exists>Q. eventually Q F \<and> (\<forall>x. Q (f x) \<longrightarrow> P x))"
+
+lemma eventually_filtercomap:
+  "eventually P (filtercomap f F) \<longleftrightarrow> (\<exists>Q. eventually Q F \<and> (\<forall>x. Q (f x) \<longrightarrow> P x))"
+  unfolding filtercomap_def
+proof (intro eventually_Abs_filter, unfold_locales, goal_cases)
+  case 1
+  show ?case by (auto intro!: exI[of _ "\<lambda>_. True"])
+next
+  case (2 P Q)
+  from 2(1) guess P' by (elim exE conjE) note P' = this
+  from 2(2) guess Q' by (elim exE conjE) note Q' = this
+  show ?case
+    by (rule exI[of _ "\<lambda>x. P' x \<and> Q' x"])
+       (insert P' Q', auto intro!: eventually_conj)
+next
+  case (3 P Q)
+  thus ?case by blast
+qed
+
+lemma filtercomap_ident: "filtercomap (\<lambda>x. x) F = F"
+  by (auto simp: filter_eq_iff eventually_filtercomap elim!: eventually_mono)
+
+lemma filtercomap_filtercomap: "filtercomap f (filtercomap g F) = filtercomap (\<lambda>x. g (f x)) F"
+  unfolding filter_eq_iff by (auto simp: eventually_filtercomap)
+  
+lemma filtercomap_mono: "F \<le> F' \<Longrightarrow> filtercomap f F \<le> filtercomap f F'"
+  by (auto simp: eventually_filtercomap le_filter_def)
+
+lemma filtercomap_bot [simp]: "filtercomap f bot = bot"
+  by (auto simp: filter_eq_iff eventually_filtercomap)
+
+lemma filtercomap_top [simp]: "filtercomap f top = top"
+  by (auto simp: filter_eq_iff eventually_filtercomap)
+
+lemma filtercomap_inf: "filtercomap f (inf F1 F2) = inf (filtercomap f F1) (filtercomap f F2)"
+  unfolding filter_eq_iff
+proof safe
+  fix P
+  assume "eventually P (filtercomap f (F1 \<sqinter> F2))"
+  then obtain Q R S where *:
+    "eventually Q F1" "eventually R F2" "\<And>x. Q x \<Longrightarrow> R x \<Longrightarrow> S x" "\<And>x. S (f x) \<Longrightarrow> P x"
+    unfolding eventually_filtercomap eventually_inf by blast
+  from * have "eventually (\<lambda>x. Q (f x)) (filtercomap f F1)" 
+              "eventually (\<lambda>x. R (f x)) (filtercomap f F2)"
+    by (auto simp: eventually_filtercomap)
+  with * show "eventually P (filtercomap f F1 \<sqinter> filtercomap f F2)"
+    unfolding eventually_inf by blast
+next
+  fix P
+  assume "eventually P (inf (filtercomap f F1) (filtercomap f F2))"
+  then obtain Q Q' R R' where *:
+    "eventually Q F1" "eventually R F2" "\<And>x. Q (f x) \<Longrightarrow> Q' x" "\<And>x. R (f x) \<Longrightarrow> R' x" 
+    "\<And>x. Q' x \<Longrightarrow> R' x \<Longrightarrow> P x"
+    unfolding eventually_filtercomap eventually_inf by blast
+  from * have "eventually (\<lambda>x. Q x \<and> R x) (F1 \<sqinter> F2)" by (auto simp: eventually_inf)
+  with * show "eventually P (filtercomap f (F1 \<sqinter> F2))"
+    by (auto simp: eventually_filtercomap)
+qed
+
+lemma filtercomap_sup: "filtercomap f (sup F1 F2) \<ge> sup (filtercomap f F1) (filtercomap f F2)"
+  unfolding le_filter_def
+proof safe
+  fix P
+  assume "eventually P (filtercomap f (sup F1 F2))"
+  thus "eventually P (sup (filtercomap f F1) (filtercomap f F2))"
+    by (auto simp: filter_eq_iff eventually_filtercomap eventually_sup)
+qed
+
+lemma filtercomap_INF: "filtercomap f (INF b:B. F b) = (INF b:B. filtercomap f (F b))"
+proof -
+  have *: "filtercomap f (INF b:B. F b) = (INF b:B. filtercomap f (F b))" if "finite B" for B
+    using that by induction (simp_all add: filtercomap_inf)
+  show ?thesis unfolding filter_eq_iff
+  proof
+    fix P
+    have "eventually P (INF b:B. filtercomap f (F b)) \<longleftrightarrow> 
+            (\<exists>X. (X \<subseteq> B \<and> finite X) \<and> eventually P (\<Sqinter>b\<in>X. filtercomap f (F b)))"
+      by (subst eventually_INF) blast
+    also have "\<dots> \<longleftrightarrow> (\<exists>X. (X \<subseteq> B \<and> finite X) \<and> eventually P (filtercomap f (INF b:X. F b)))"
+      by (rule ex_cong) (simp add: *)
+    also have "\<dots> \<longleftrightarrow> eventually P (filtercomap f (INFIMUM B F))"
+      unfolding eventually_filtercomap by (subst eventually_INF) blast
+    finally show "eventually P (filtercomap f (INFIMUM B F)) = 
+                    eventually P (\<Sqinter>b\<in>B. filtercomap f (F b))" ..
+  qed
+qed
+
+lemma filtercomap_SUP_finite: 
+  "finite B \<Longrightarrow> filtercomap f (SUP b:B. F b) \<ge> (SUP b:B. filtercomap f (F b))"
+  by (induction B rule: finite_induct)
+     (auto intro: order_trans[OF _ order_trans[OF _ filtercomap_sup]] filtercomap_mono)
+     
+lemma eventually_filtercomapI [intro]:
+  assumes "eventually P F"
+  shows   "eventually (\<lambda>x. P (f x)) (filtercomap f F)"
+  using assms by (auto simp: eventually_filtercomap)
+
+lemma filtermap_filtercomap: "filtermap f (filtercomap f F) \<le> F"
+  by (auto simp: le_filter_def eventually_filtermap eventually_filtercomap)
+    
+lemma filtercomap_filtermap: "filtercomap f (filtermap f F) \<ge> F"
+  unfolding le_filter_def eventually_filtermap eventually_filtercomap
+  by (auto elim!: eventually_mono)
+
+
 subsubsection \<open>Standard filters\<close>
 
 definition principal :: "'a set \<Rightarrow> 'a filter" where
@@ -605,6 +715,9 @@ lemma INF_principal_finite: "finite X \<Longrightarrow> (INF x:X. principal (f x
 
 lemma filtermap_principal[simp]: "filtermap f (principal A) = principal (f ` A)"
   unfolding filter_eq_iff eventually_filtermap eventually_principal by simp
+    
+lemma filtercomap_principal[simp]: "filtercomap f (principal A) = principal (f -` A)"
+  unfolding filter_eq_iff eventually_filtercomap eventually_principal by fast
 
 subsubsection \<open>Order filters\<close>
 
@@ -617,6 +730,10 @@ lemma at_top_sub: "at_top = (INF k:{c::'a::linorder..}. principal {k ..})"
 lemma eventually_at_top_linorder: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>n\<ge>N. P n)"
   unfolding at_top_def
   by (subst eventually_INF_base) (auto simp: eventually_principal intro: max.cobounded1 max.cobounded2)
+
+lemma eventually_filtercomap_at_top_linorder: 
+  "eventually P (filtercomap f at_top) \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>x. f x \<ge> N \<longrightarrow> P x)"
+  by (auto simp: eventually_filtercomap eventually_at_top_linorder)
 
 lemma eventually_at_top_linorderI:
   fixes c::"'a::linorder"
@@ -637,6 +754,10 @@ proof -
     by (intro INF_eq) (auto intro: less_imp_le simp: Ici_subset_Ioi_iff gt_ex)
   finally show ?thesis .
 qed
+  
+lemma eventually_filtercomap_at_top_dense: 
+  "eventually P (filtercomap f at_top) \<longleftrightarrow> (\<exists>N::'a::{no_top, linorder}. \<forall>x. f x > N \<longrightarrow> P x)"
+  by (auto simp: eventually_filtercomap eventually_at_top_dense)
 
 lemma eventually_at_top_not_equal [simp]: "eventually (\<lambda>x::'a::{no_top, linorder}. x \<noteq> c) at_top"
   unfolding eventually_at_top_dense by auto
@@ -664,6 +785,10 @@ lemma eventually_at_bot_linorder:
   unfolding at_bot_def
   by (subst eventually_INF_base) (auto simp: eventually_principal intro: min.cobounded1 min.cobounded2)
 
+lemma eventually_filtercomap_at_bot_linorder: 
+  "eventually P (filtercomap f at_bot) \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>x. f x \<le> N \<longrightarrow> P x)"
+  by (auto simp: eventually_filtercomap eventually_at_bot_linorder)
+
 lemma eventually_le_at_bot [simp]:
   "eventually (\<lambda>x. x \<le> (c::_::linorder)) at_bot"
   unfolding eventually_at_bot_linorder by auto
@@ -677,6 +802,10 @@ proof -
     by (intro INF_eq) (auto intro: less_imp_le simp: Iic_subset_Iio_iff lt_ex)
   finally show ?thesis .
 qed
+
+lemma eventually_filtercomap_at_bot_dense: 
+  "eventually P (filtercomap f at_bot) \<longleftrightarrow> (\<exists>N::'a::{no_bot, linorder}. \<forall>x. f x < N \<longrightarrow> P x)"
+  by (auto simp: eventually_filtercomap eventually_at_bot_dense)
 
 lemma eventually_at_bot_not_equal [simp]: "eventually (\<lambda>x::'a::{no_bot, linorder}. x \<noteq> c) at_bot"
   unfolding eventually_at_bot_dense by auto
@@ -1201,6 +1330,9 @@ lemma filterlim_at_bot_lt:
   fixes f :: "'a \<Rightarrow> ('b::unbounded_dense_linorder)" and c :: "'b"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z<c. eventually (\<lambda>x. Z \<ge> f x) F)"
   by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
+    
+lemma filterlim_filtercomap [intro]: "filterlim f F (filtercomap f F)"
+  unfolding filterlim_def by (rule filtermap_filtercomap)
 
 
 subsection \<open>Setup @{typ "'a filter"} for lifting and transfer\<close>
@@ -1390,6 +1522,25 @@ proof(rule rel_funI)
   show "rel_filter A (principal S) (principal S')"
     by(simp add: rel_filter_eventually eventually_principal) transfer_prover
 qed
+  
+lemma filtermap_parametric [transfer_rule]:
+  "((A ===> B) ===> rel_filter A ===> rel_filter B) filtermap filtermap"
+proof (intro rel_funI)
+  fix f g F G assume [transfer_rule]: "(A ===> B) f g" "rel_filter A F G"
+  show "rel_filter B (filtermap f F) (filtermap g G)"
+    unfolding rel_filter_eventually eventually_filtermap by transfer_prover
+qed
+
+(* TODO: Are those assumptions needed? *)
+lemma filtercomap_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique B" "bi_total A"
+  shows   "((A ===> B) ===> rel_filter B ===> rel_filter A) filtercomap filtercomap"
+proof (intro rel_funI)
+  fix f g F G assume [transfer_rule]: "(A ===> B) f g" "rel_filter B F G"
+  show "rel_filter A (filtercomap f F) (filtercomap g G)"
+    unfolding rel_filter_eventually eventually_filtercomap by transfer_prover
+qed
+    
 
 context
   fixes A :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
@@ -1443,6 +1594,7 @@ declare [[code drop: filterlim prod_filter filtermap eventually
 declare filterlim_principal [code]
 declare principal_prod_principal [code]
 declare filtermap_principal [code]
+declare filtercomap_principal [code]
 declare eventually_principal [code]
 declare inf_principal [code]
 declare sup_principal [code]
