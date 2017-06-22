@@ -43,7 +43,7 @@ sig
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms: ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
-  val consolidate: proof_body -> unit
+  val consolidate: proof_body list -> unit
   val peek_status: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
@@ -197,15 +197,16 @@ val thm_node_consolidate = #consolidate o rep_thm_node;
 fun join_thms (thms: pthm list) =
   Future.joins (map (thm_node_body o #2) thms);
 
-fun consolidate (PBody {thms, ...}) =
-  List.app (Lazy.force o thm_node_consolidate o #2) thms;
+val consolidate =
+  maps (fn PBody {thms, ...} => map (thm_node_consolidate o #2) thms)
+  #> Lazy.force_list #> ignore;
 
 fun make_thm_node name prop body =
   Thm_Node {name = name, prop = prop, body = body,
     consolidate =
       Lazy.lazy_name "Proofterm.make_thm_node" (fn () =>
         let val PBody {thms, ...} = Future.join body
-        in List.app consolidate (join_thms thms) end)};
+        in consolidate (join_thms thms) end)};
 
 
 (***** proof atoms *****)
@@ -1530,8 +1531,7 @@ fun promise_proof thy i prop =
 
 fun fulfill_norm_proof thy ps body0 =
   let
-    val _ = List.app (consolidate o #2) ps;
-    val _ = consolidate body0;
+    val _ = consolidate (map #2 ps @ [body0]);
     val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
     val oracles =
       unions_oracles

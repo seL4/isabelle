@@ -17,6 +17,7 @@ sig
   val is_finished: 'a lazy -> bool
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
+  val force_list: 'a lazy list -> 'a list
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
   val future: Future.params -> 'a lazy -> 'a future
 end;
@@ -41,6 +42,12 @@ fun peek (Lazy var) =
   (case Synchronized.value var of
     Expr _ => NONE
   | Result res => Future.peek res);
+
+fun pending (Lazy var) =
+  (case Synchronized.value var of
+    Expr _ => true
+  | Result _ => false);
+
 
 
 (* status *)
@@ -91,7 +98,12 @@ fun force_result (Lazy var) =
 
 end;
 
-fun force r = Exn.release (force_result r);
+fun force x = Exn.release (force_result x);
+
+fun force_list xs =
+  (List.app (fn x => if pending x then ignore (force_result x) else ()) xs;
+   map force xs);
+
 fun map f x = lazy_name "Lazy.map" (fn () => f (force x));
 
 

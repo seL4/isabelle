@@ -645,7 +645,7 @@ fun register_proofs more_thms =
   Proofs.map (fold (cons o Thm.trim_context) more_thms);
 
 fun consolidate_theory thy =
-  List.app (Thm.consolidate o Thm.transfer thy) (rev (Proofs.get thy));
+  Thm.consolidate (map (Thm.transfer thy) (rev (Proofs.get thy)));
 
 
 

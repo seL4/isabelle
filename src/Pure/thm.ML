@@ -86,7 +86,7 @@ sig
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
-  val consolidate: thm -> unit
+  val consolidate: thm list -> unit
   val peek_status: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val derivation_closed: thm -> bool
@@ -598,7 +598,7 @@ fun proof_bodies_of thms = (join_promises_of thms; map fulfill_body thms);
 val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
-val consolidate = ignore o proof_bodies_of o single;
+val consolidate = ignore o proof_bodies_of;
 
 
 (* derivation status *)
