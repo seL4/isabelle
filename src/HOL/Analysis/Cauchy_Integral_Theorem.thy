@@ -1341,9 +1341,6 @@ lemma contour_integrable_subpath:
   using assms apply (blast intro: has_contour_integral_subpath)
   done
 
-lemma has_integral_integrable_integral: "(f has_integral i) s \<longleftrightarrow> f integrable_on s \<and> integral s f = i"
-  by blast
-
 lemma has_integral_contour_integral_subpath:
   assumes "f contour_integrable_on g" "valid_path g" "u \<in> {0..1}" "v \<in> {0..1}" "u \<le> v"
     shows "(((\<lambda>x. f(g x) * vector_derivative g (at x)))

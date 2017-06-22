@@ -1379,6 +1379,13 @@ lemma borel_measurable_scaleR[measurable (raw)]:
   shows "(\<lambda>x. f x *\<^sub>R g x) \<in> borel_measurable M"
   using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
+lemma borel_measurable_uminus_eq [simp]:
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
+  shows "(\<lambda>x. - f x) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M" (is "?l = ?r")
+proof
+  assume ?l from borel_measurable_uminus[OF this] show ?r by simp
+qed auto
+
 lemma affine_borel_measurable_vector:
   fixes f :: "'a \<Rightarrow> 'x::real_normed_vector"
   assumes "f \<in> borel_measurable M"

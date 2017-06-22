@@ -860,7 +860,7 @@ proof -
   then have "(?f has_integral F b - F a) {a .. b}"
     by (subst has_integral_cong[where g=f]) auto
   then have "(?f has_integral F b - F a) UNIV"
-    by (intro has_integral_on_superset[where t=UNIV and s="{a..b}"]) auto
+    by (intro has_integral_on_superset[where T=UNIV and S="{a..b}"]) auto
   ultimately show "integral\<^sup>L lborel ?f = F b - F a"
     by (rule has_integral_unique)
 qed
@@ -908,6 +908,7 @@ abbreviation
   (infixr "absolutely'_integrable'_on" 46)
   where "f absolutely_integrable_on s \<equiv> set_integrable lebesgue s f"
 
+
 lemma absolutely_integrable_on_def:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s \<and> (\<lambda>x. norm (f x)) integrable_on s"
@@ -933,6 +934,17 @@ next
       by (auto simp: integrable_on_def nn_integral_completion)
   qed
 qed
+  
+lemma absolutely_integrable_on_null [intro]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "content (cbox a b) = 0 \<Longrightarrow> f absolutely_integrable_on (cbox a b)"
+  by (auto simp: absolutely_integrable_on_def)
+
+lemma absolutely_integrable_on_open_interval:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  shows "f absolutely_integrable_on box a b \<longleftrightarrow>
+         f absolutely_integrable_on cbox a b"
+  by (auto simp: integrable_on_open_interval absolutely_integrable_on_def)
 
 lemma absolutely_integrable_restrict_UNIV:
   "(\<lambda>x. if x \<in> s then f x else 0) absolutely_integrable_on UNIV \<longleftrightarrow> f absolutely_integrable_on s"
@@ -2075,7 +2087,7 @@ lemma bounded_variation_absolutely_integrable:
   assumes "f integrable_on UNIV"
     and "\<forall>d. d division_of (\<Union>d) \<longrightarrow> sum (\<lambda>k. norm (integral k f)) d \<le> B"
   shows "f absolutely_integrable_on UNIV"
-proof (rule absolutely_integrable_onI, fact, rule)
+proof (rule absolutely_integrable_onI, fact)
   let ?f = "\<lambda>d. \<Sum>k\<in>d. norm (integral k f)" and ?D = "{d. d division_of  (\<Union>d)}"
   have D_1: "?D \<noteq> {}"
     by (rule elementary_interval) auto
@@ -2091,7 +2103,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
     apply (rule assms(2)[rule_format])
     apply auto
     done
-  show "((\<lambda>x. norm (f x)) has_integral ?S) UNIV"
+  have "((\<lambda>x. norm (f x)) has_integral ?S) UNIV"
     apply (subst has_integral_alt')
     apply safe
   proof goal_cases
@@ -2224,6 +2236,8 @@ proof (rule absolutely_integrable_onI, fact, rule)
       qed
     qed (insert K, auto)
   qed
+  then show "(\<lambda>x. norm (f x)) integrable_on UNIV"
+    by blast
 qed
 
 lemma absolutely_integrable_add[intro]:

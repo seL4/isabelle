@@ -275,9 +275,15 @@ lemma gauge_trivial[intro!]: "gauge (\<lambda>x. ball x 1)"
 lemma gauge_Int[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> gauge (\<lambda>x. d1 x \<inter> d2 x)"
   unfolding gauge_def by auto
 
-lemma gauge_inters:
+lemma gauge_reflect:
+  fixes \<D> :: "'a::euclidean_space \<Rightarrow> 'a set"
+  shows "gauge \<D> \<Longrightarrow> gauge (\<lambda>x. uminus ` \<D> (- x))"
+  using equation_minus_iff
+  by (auto simp: gauge_def surj_def intro!: open_surjective_linear_image linear_uminus)
+
+lemma gauge_Inter:
   assumes "finite s"
-    and "\<forall>d\<in>s. gauge (f d)"
+    and "\<And>d. d\<in>s \<Longrightarrow> gauge (f d)"
   shows "gauge (\<lambda>x. \<Inter>{f d x | d. d \<in> s})"
 proof -
   have *: "\<And>x. {f d x |d. d \<in> s} = (\<lambda>d. f d x) ` s"

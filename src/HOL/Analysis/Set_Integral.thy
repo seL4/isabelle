@@ -1840,22 +1840,10 @@ syntax
 translations
 "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
 
-lemma set_borel_measurable_continuous:
-  fixes f :: "_ \<Rightarrow> _::real_normed_vector"
-  assumes "S \<in> sets borel" "continuous_on S f"
-  shows "set_borel_measurable borel S f"
-proof -
-  have "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable borel"
-    by (intro assms borel_measurable_continuous_on_if continuous_on_const)
-  also have "(\<lambda>x. if x \<in> S then f x else 0) = (\<lambda>x. indicator S x *\<^sub>R f x)"
-    by auto
-  finally show ?thesis .
-qed
-
 lemma set_measurable_continuous_on_ivl:
   assumes "continuous_on {a..b} (f :: real \<Rightarrow> real)"
   shows "set_borel_measurable borel {a..b} f"
-  by (rule set_borel_measurable_continuous[OF _ assms]) simp
+  by (rule borel_measurable_continuous_on_indicator[OF _ assms]) simp
 
 
 text\<open>This notation is from Sébastien Gouëzel: His use is not directly in line with the
