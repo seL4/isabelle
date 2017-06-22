@@ -662,6 +662,17 @@ lemma (in order_topology) eventually_at_rightI:
   shows   "eventually P (at_right a)"
   using assms unfolding eventually_at_topological by (intro exI[of _ "{..<b}"]) auto
 
+lemma eventually_filtercomap_nhds:
+  "eventually P (filtercomap f (nhds x)) \<longleftrightarrow> (\<exists>S. open S \<and> x \<in> S \<and> (\<forall>x. f x \<in> S \<longrightarrow> P x))"
+  unfolding eventually_filtercomap eventually_nhds by auto
+
+lemma eventually_filtercomap_at_topological:
+  "eventually P (filtercomap f (at A within B)) \<longleftrightarrow> 
+     (\<exists>S. open S \<and> A \<in> S \<and> (\<forall>x. f x \<in> S \<inter> B - {A} \<longrightarrow> P x))" (is "?lhs = ?rhs")
+  unfolding at_within_def filtercomap_inf eventually_inf_principal filtercomap_principal 
+          eventually_filtercomap_nhds eventually_principal by blast
+    
+
 
 subsubsection \<open>Tendsto\<close>
 
