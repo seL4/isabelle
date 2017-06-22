@@ -203,7 +203,7 @@ fun consolidate (PBody {thms, ...}) =
 fun make_thm_node name prop body =
   Thm_Node {name = name, prop = prop, body = body,
     consolidate =
-      Lazy.lazy (fn () =>
+      Lazy.lazy_name "Proofterm.make_thm_node" (fn () =>
         let val PBody {thms, ...} = Future.join body
         in List.app consolidate (join_thms thms) end)};
 

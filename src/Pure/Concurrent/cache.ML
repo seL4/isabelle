@@ -23,7 +23,7 @@ fun create empty lookup update f =
           (case lookup tab x of
             SOME y => (y, tab)
           | NONE =>
-              let val y = Lazy.lazy (fn () => f x)
+              let val y = Lazy.lazy_name "cache" (fn () => f x)
               in (y, update (x, y) tab) end))
       |> Lazy.force;
   in apply end;
