@@ -66,7 +66,7 @@ fun force_result (Lazy var) =
           val (expr, x) =
             Synchronized.change_result var
               (fn Expr e =>
-                    let val x = Future.promise I
+                    let val x = Future.promise_name "lazy" I
                     in ((SOME e, x), Result x) end
                 | Result x => ((NONE, x), Result x));
         in

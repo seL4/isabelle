@@ -37,7 +37,7 @@ sig
   val value: 'a -> 'a future
   val cond_forks: params -> (unit -> 'a) list -> 'a future list
   val map: ('a -> 'b) -> 'a future -> 'b future
-  val promise_group: group -> (unit -> unit) -> 'a future
+  val promise_name: string -> (unit -> unit) -> 'a future
   val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
@@ -599,8 +599,9 @@ fun map_future f x =
 
 (* promised futures -- fulfilled by external means *)
 
-fun promise_group group abort : 'a future =
+fun promise_name name abort : 'a future =
   let
+    val group = worker_subgroup ();
     val result = Single_Assignment.var "promise" : 'a result;
     fun assign () = assign_result group result Exn.interrupt_exn
       handle Fail _ => true
@@ -612,10 +613,10 @@ fun promise_group group abort : 'a future =
       Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
         (fn _ => Exn.release (Exn.capture assign () before abort ()));
     val task = SYNCHRONIZED "enqueue_passive" (fn () =>
-      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group job));
+      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group name job));
   in Future {promised = true, task = task, result = result} end;
 
-fun promise abort = promise_group (worker_subgroup ()) abort;
+fun promise abort = promise_name "passive" abort;
 
 fun fulfill_result (Future {promised, task, result}) res =
   if not promised then raise Fail "Not a promised future"

@@ -31,7 +31,7 @@ fun promise_method name arg =
   let
     val id = new_id ();
     fun abort () = Output.protocol_message (Markup.cancel_scala id) [];
-    val promise = Future.promise abort : string future;
+    val promise = Future.promise_name "invoke_scala" abort : string future;
     val _ = Synchronized.change promises (Symtab.update (id, promise));
     val _ = Output.protocol_message (Markup.invoke_scala name id) [arg];
   in promise end;
