@@ -648,13 +648,9 @@ structure Result = Proof_Data
 val get_result = Result.get o Proof.context_of;
 val put_result = Proof.map_context o Result.put;
 
-fun timing_estimate include_head elem =
-  let val trs = Thy_Syntax.flat_element elem |> not include_head ? tl
+fun timing_estimate elem =
+  let val trs = tl (Thy_Syntax.flat_element elem)
   in fold (fn tr => fn t => get_timing tr + t) trs Time.zeroTime end;
-
-fun priority estimate =
-  if estimate = Time.zeroTime then ~1
-  else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
 
 fun proof_future_enabled estimate st =
   (case try proof_of st of
@@ -670,8 +666,7 @@ fun atom_result keywords tr st =
     val st' =
       if Goal.future_enabled 1 andalso Keyword.is_diag keywords (name_of tr) then
         (Execution.fork
-          {name = "Toplevel.diag", pos = pos_of tr,
-            pri = priority (timing_estimate true (Thy_Syntax.atom tr))}
+          {name = "Toplevel.diag", pos = pos_of tr, pri = ~1}
           (fn () => command tr st); st)
       else command tr st;
   in (Result (tr, st'), st') end;
@@ -683,7 +678,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
       let
         val (head_result, st') = atom_result keywords head_tr st;
         val (body_elems, end_tr) = element_rest;
-        val estimate = timing_estimate false elem;
+        val estimate = timing_estimate elem;
       in
         if not (proof_future_enabled estimate st')
         then
@@ -698,7 +693,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
             val future_proof =
               Proof.future_proof (fn state =>
                 Execution.fork
-                  {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = priority estimate}
+                  {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = ~1}
                   (fn () =>
                     let
                       val State (SOME (Proof (prf, (_, orig_gthy))), prev) = st';

@@ -371,7 +371,7 @@ fun define_command command_id name blobs_digests blobs_index toks =
     let
       val id = Document_ID.print command_id;
       val span =
-        Lazy.lazy (fn () =>
+        Lazy.lazy_name "Document.define_command" (fn () =>
           Position.setmp_thread_data (Position.id_only id)
             (fn () =>
               let
