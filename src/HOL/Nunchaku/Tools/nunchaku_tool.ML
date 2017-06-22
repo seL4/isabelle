@@ -12,7 +12,8 @@ sig
   type nun_problem = Nunchaku_Problem.nun_problem
 
   type tool_params =
-    {overlord: bool,
+    {solvers: string list,
+     overlord: bool,
      debug: bool,
      specialize: bool,
      timeout: Time.time}
@@ -45,7 +46,8 @@ open Nunchaku_Util;
 open Nunchaku_Problem;
 
 type tool_params =
-  {overlord: bool,
+  {solvers: string list,
+   overlord: bool,
    debug: bool,
    specialize: bool,
    timeout: Time.time};
@@ -73,10 +75,10 @@ fun bash_output_error s =
 
 val nunchaku_home_env_var = "NUNCHAKU_HOME";
 
-val cached_outcome =
-  Synchronized.var "Nunchaku_Tool.cached_outcome" (NONE : (nun_problem * nun_outcome) option);
+val cached_outcome = Synchronized.var "Nunchaku_Tool.cached_outcome"
+  (NONE : ((string list * nun_problem) * nun_outcome) option);
 
-fun uncached_solve_nun_problem ({overlord, specialize, timeout, ...} : tool_params)
+fun uncached_solve_nun_problem ({solvers, overlord, specialize, timeout, ...} : tool_params)
     (problem as {sound, complete, ...}) =
   with_tmp_or_overlord_file overlord "nunchaku" "nun" (fn prob_path =>
     if getenv nunchaku_home_env_var = "" then
@@ -87,6 +89,7 @@ fun uncached_solve_nun_problem ({overlord, specialize, timeout, ...} : tool_para
           "PATH=\"$CVC4_HOME:$KODKODI/bin:$PATH\" \"$" ^
           nunchaku_home_env_var ^ "\"/nunchaku --skolems-in-model --no-color " ^
           (if specialize then "" else "--no-specialize ") ^
+          "--solvers \"" ^ Bash_Syntax.string (space_implode " " solvers) ^ "\" " ^
           "--timeout " ^ string_of_int (Time.toSeconds timeout) ^ " " ^
           File.bash_path prob_path;
         val comments =
@@ -114,23 +117,25 @@ fun uncached_solve_nun_problem ({overlord, specialize, timeout, ...} : tool_para
             simplify_spaces (elide_string 1000 (if error <> "" then error else output)))
       end);
 
-fun solve_nun_problem (params as {overlord, debug, ...}) problem =
-  (case (overlord orelse debug,
-      AList.lookup (op =) (the_list (Synchronized.value cached_outcome)) problem) of
-    (false, SOME outcome) => outcome
-  | _ =>
-    let
-      val outcome = uncached_solve_nun_problem params problem;
+fun solve_nun_problem (params as {solvers, overlord, debug, ...}) problem =
+  let val key = (solvers, problem) in
+    (case (overlord orelse debug,
+        AList.lookup (op =) (the_list (Synchronized.value cached_outcome)) key) of
+      (false, SOME outcome) => outcome
+    | _ =>
+      let
+        val outcome = uncached_solve_nun_problem params problem;
 
-      fun update_cache () =
-        Synchronized.change cached_outcome (K (SOME (problem, outcome)));
-    in
-      (case outcome of
-        Unsat => update_cache ()
-      | Sat _ => update_cache ()
-      | Unknown _ => update_cache ()
-      | _ => ());
-      outcome
-    end);
+        fun update_cache () =
+          Synchronized.change cached_outcome (K (SOME (key, outcome)));
+      in
+        (case outcome of
+          Unsat => update_cache ()
+        | Sat _ => update_cache ()
+        | Unknown _ => update_cache ()
+        | _ => ());
+        outcome
+      end)
+  end;
 
 end;

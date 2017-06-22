@@ -27,6 +27,7 @@ val default_default_params =
    ("max_genuine", "1"),
    ("max_potential", "1"),
    ("overlord", "false"),
+   ("solvers", "cvc4 kodkod paradox smbc"),
    ("specialize", "true"),
    ("spy", "false"),
    ("timeout", "30"),
@@ -100,6 +101,7 @@ fun extract_params ctxt mode default_params override_params =
     val raw_lookup = AList.lookup (op =) raw_params;
     val lookup = Option.map stringify_raw_param_value o raw_lookup;
     val lookup_string = the_default "" o lookup;
+    val lookup_strings = these o Option.map (space_explode " ") o lookup;
 
     fun general_lookup_bool option default_value name =
       (case lookup name of
@@ -161,28 +163,33 @@ fun extract_params ctxt mode default_params override_params =
         Const x => x
       | t => error ("Not a constant: " ^ Syntax.string_of_term ctxt t));
 
+    val solvers = lookup_strings "solvers";
+    val falsify = lookup_bool "falsify";
+    val assms = lookup_bool "assms";
+    val spy = getenv "NUNCHAKU_SPY" = "yes" orelse lookup_bool "spy";
+    val overlord = lookup_bool "overlord";
+    val expect = lookup_string "expect";
+
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf";
     val whacks = lookup_bool_assigns read_term_polymorphic "whack";
     val cards = lookup_int_range_assigns read_type_polymorphic "card";
     val monos = lookup_bool_option_assigns read_type_polymorphic "mono";
-    val falsify = lookup_bool "falsify";
+
     val debug = (mode <> Auto_Try andalso lookup_bool "debug");
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose");
-    val overlord = lookup_bool "overlord";
-    val spy = getenv "NUNCHAKU_SPY" = "yes" orelse lookup_bool "spy";
-    val assms = lookup_bool "assms";
-    val specialize = lookup_bool "specialize";
-    val timeout = lookup_time "timeout";
-    val wf_timeout = lookup_time "wf_timeout";
-    val multithread = mode = Normal andalso lookup_bool "multithread";
-    val evals = these (lookup_term_list_option_polymorphic "eval");
-    val atomss = lookup_strings_assigns read_type_polymorphic "atoms";
     val max_potential = if mode = Normal then Int.max (0, lookup_int "max_potential") else 0;
     val max_genuine = Int.max (0, lookup_int "max_genuine");
-    val expect = lookup_string "expect";
+    val evals = these (lookup_term_list_option_polymorphic "eval");
+    val atomss = lookup_strings_assigns read_type_polymorphic "atoms";
+
+    val specialize = lookup_bool "specialize";
+    val multithread = mode = Normal andalso lookup_bool "multithread";
+
+    val timeout = lookup_time "timeout";
+    val wf_timeout = lookup_time "wf_timeout";
 
     val mode_of_operation_params =
-      {falsify = falsify, assms = assms, spy = spy, overlord = overlord,
+      {solvers = solvers, falsify = falsify, assms = assms, spy = spy, overlord = overlord,
        expect = expect};
 
     val scope_of_search_params =
