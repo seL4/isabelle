@@ -218,6 +218,7 @@ object Completion_Popup
                   buffer.remove(range.start, range.length)
                   buffer.insert(range.start, item.replacement)
                   text_area.moveCaretPosition(range.start + item.replacement.length + item.move)
+                  Isabelle.indent_input(text_area)
               }
             case _ =>
           }
@@ -346,11 +347,13 @@ object Completion_Popup
     {
       GUI_Thread.require {}
 
-      if (PIDE.options.bool("jedit_completion")) {
-        if (!evt.isConsumed) {
+      if (!evt.isConsumed) {
+        val backspace = evt.getKeyChar == '\b'
+        val special = JEdit_Lib.special_key(evt)
+
+        if (PIDE.options.bool("jedit_completion")) {
           dismissed()
-          if (evt.getKeyChar != '\b') {
-            val special = JEdit_Lib.special_key(evt)
+          if (!backspace) {
             val immediate = PIDE.options.bool("jedit_completion_immediate")
             if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
               input_delay.revoke()
@@ -364,6 +367,8 @@ object Completion_Popup
             }
           }
         }
+
+        if (!backspace && !special) Isabelle.indent_input(text_area)
       }
     }
 

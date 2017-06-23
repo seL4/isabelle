@@ -244,6 +244,32 @@ object Isabelle
 
   /* structured edits */
 
+  def indent_enabled(buffer: JEditBuffer, option: String): Boolean =
+    indent_rule(JEdit_Lib.buffer_mode(buffer)).isDefined &&
+    buffer.getStringProperty("autoIndent") == "full" &&
+    PIDE.options.bool(option)
+
+  def indent_input(text_area: TextArea)
+  {
+    val buffer = text_area.getBuffer
+    val line = text_area.getCaretLine
+    val caret = text_area.getCaretPosition
+
+    if (text_area.isEditable && indent_enabled(buffer, "jedit_indent_input")) {
+      buffer_syntax(buffer) match {
+        case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+          val nav = new Text_Structure.Navigator(syntax, buffer.asInstanceOf[Buffer], true)
+          nav.iterator(line, 1).toStream.headOption match {
+            case Some(Text.Info(range, tok))
+            if range.stop == caret && syntax.keywords.is_indent_command(tok) =>
+              buffer.indentLine(line, true)
+            case _ =>
+          }
+        case _ =>
+      }
+    }
+  }
+
   def newline(text_area: TextArea)
   {
     if (!text_area.isEditable()) text_area.getToolkit().beep()
@@ -251,11 +277,8 @@ object Isabelle
       val buffer = text_area.getBuffer
       def nl { text_area.userInput('\n') }
 
-      if (indent_rule(JEdit_Lib.buffer_mode(buffer)).isDefined &&
-          buffer.getStringProperty("autoIndent") == "full" &&
-          PIDE.options.bool("jedit_indent_newline"))
-      {
-        Isabelle.buffer_syntax(buffer) match {
+      if (indent_enabled(buffer, "jedit_indent_newline")) {
+        buffer_syntax(buffer) match {
           case Some(syntax) if buffer.isInstanceOf[Buffer] =>
             val keywords = syntax.keywords
 
