@@ -263,8 +263,8 @@ object Isabelle
             val caret = text_area.getCaretPosition
             val (toks1, toks2) = Text_Structure.split_line_content(buffer, keywords, line, caret)
 
-            if (toks1.nonEmpty && keywords.is_indent_command(toks1.head))
-              buffer.indentLine(line, true)
+            if (toks1.isEmpty) buffer.removeTrailingWhiteSpace(Array(line))
+            else if (keywords.is_indent_command(toks1.head)) buffer.indentLine(line, true)
 
             if (toks2.isEmpty || keywords.is_indent_command(toks2.head))
               JEdit_Lib.buffer_edit(buffer) {
