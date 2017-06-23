@@ -7537,6 +7537,23 @@ next
   then show "f x \<in> interior (f ` S)"
     by (meson assms imageI image_mono interiorI interior_subset open_bijective_linear_image_eq open_interior)
 qed
+  
+lemma interior_injective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  assumes "linear f" "inj f"
+   shows "interior(f ` S) = f ` (interior S)"
+  by (simp add: linear_injective_imp_surjective assms bijI interior_bijective_linear_image)
+
+lemma interior_surjective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  assumes "linear f" "surj f"
+   shows "interior(f ` S) = f ` (interior S)"
+  by (simp add: assms interior_injective_linear_image linear_surjective_imp_injective)
+
+lemma interior_negations:
+  fixes S :: "'a::euclidean_space set"
+  shows "interior(uminus ` S) = image uminus (interior S)"
+  by (simp add: bij_uminus interior_bijective_linear_image linear_uminus)
 
 text \<open>Also bilinear functions, in composition form.\<close>
 

@@ -540,7 +540,7 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
           else
             let
               val input' = new_xprods2 @ input1;
-              val gram' = Lazy.lazy (fn () => Parser.make_gram input');
+              val gram' = Lazy.lazy_name "Syntax.merge_syntax" (fn () => Parser.make_gram input');
             in (input', gram') end);
   in
     Syntax

@@ -387,6 +387,12 @@ lemma
     and measurable_lborel2[simp]: "measurable lborel M = measurable borel M"
   by (simp_all add: lborel_def)
 
+lemma sets_lebesgue_on_refl [iff]: "S \<in> sets (lebesgue_on S)"
+    by (metis inf_top.right_neutral sets.top space_borel space_completion space_lborel space_restrict_space)
+
+lemma Compl_in_sets_lebesgue: "-A \<in> sets lebesgue \<longleftrightarrow> A  \<in> sets lebesgue"
+  by (metis Compl_eq_Diff_UNIV double_compl space_borel space_completion space_lborel Sigma_Algebra.sets.compl_sets)
+
 context
 begin
 
@@ -495,7 +501,11 @@ lemma emeasure_lborel_box_eq:
 
 lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
   using emeasure_lborel_cbox[of x x] nonempty_Basis
-  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: cbox_sing prod_constant)
+  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: prod_constant)
+
+lemma fmeasurable_cbox [iff]: "cbox a b \<in> fmeasurable lborel"
+  and fmeasurable_box [iff]: "box a b \<in> fmeasurable lborel"
+  by (auto simp: fmeasurable_def emeasure_lborel_box_eq emeasure_lborel_cbox_eq)
 
 lemma
   fixes l u :: real

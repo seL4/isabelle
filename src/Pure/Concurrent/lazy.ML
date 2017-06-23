@@ -9,6 +9,7 @@ multiple evaluation (unless interrupted).
 signature LAZY =
 sig
   type 'a lazy
+  val lazy_name: string -> (unit -> 'a) -> 'a lazy
   val lazy: (unit -> 'a) -> 'a lazy
   val value: 'a -> 'a lazy
   val peek: 'a lazy -> 'a Exn.result option
@@ -16,6 +17,7 @@ sig
   val is_finished: 'a lazy -> bool
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
+  val force_list: 'a lazy list -> 'a list
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
   val future: Future.params -> 'a lazy -> 'a future
 end;
@@ -26,19 +28,26 @@ struct
 (* datatype *)
 
 datatype 'a expr =
-  Expr of unit -> 'a |
+  Expr of string * (unit -> 'a) |
   Result of 'a future;
 
 abstype 'a lazy = Lazy of 'a expr Synchronized.var
 with
 
-fun lazy e = Lazy (Synchronized.var "lazy" (Expr e));
+fun lazy_name name e = Lazy (Synchronized.var "lazy" (Expr (name, e)));
+fun lazy e = lazy_name "lazy" e;
 fun value a = Lazy (Synchronized.var "lazy" (Result (Future.value a)));
 
 fun peek (Lazy var) =
   (case Synchronized.value var of
     Expr _ => NONE
   | Result res => Future.peek res);
+
+fun pending (Lazy var) =
+  (case Synchronized.value var of
+    Expr _ => true
+  | Result _ => false);
+
 
 
 (* status *)
@@ -65,13 +74,13 @@ fun force_result (Lazy var) =
         let
           val (expr, x) =
             Synchronized.change_result var
-              (fn Expr e =>
-                    let val x = Future.promise I
-                    in ((SOME e, x), Result x) end
+              (fn Expr (name, e) =>
+                    let val x = Future.promise_name name I
+                    in ((SOME (name, e), x), Result x) end
                 | Result x => ((NONE, x), Result x));
         in
           (case expr of
-            SOME e =>
+            SOME (name, e) =>
               let
                 val res0 = Exn.capture (restore_attributes e) ();
                 val _ = Exn.capture (fn () => Future.fulfill_result x res0) ();
@@ -80,7 +89,7 @@ fun force_result (Lazy var) =
                   interrupt, until there is a fresh start*)
                 val _ =
                   if Exn.is_interrupt_exn res then
-                    Synchronized.change var (fn _ => Expr e)
+                    Synchronized.change var (fn _ => Expr (name, e))
                   else ();
               in res end
           | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
@@ -89,8 +98,13 @@ fun force_result (Lazy var) =
 
 end;
 
-fun force r = Exn.release (force_result r);
-fun map f x = lazy (fn () => f (force x));
+fun force x = Exn.release (force_result x);
+
+fun force_list xs =
+  (List.app (fn x => if pending x then ignore (force_result x) else ()) xs;
+   map force xs);
+
+fun map f x = lazy_name "Lazy.map" (fn () => f (force x));
 
 
 (* future evaluation *)

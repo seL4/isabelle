@@ -264,7 +264,7 @@ fun eval keywords master_dir init blobs_info span eval0 =
             (fn () =>
               read keywords thy master_dir init blobs_info span |> Toplevel.exec_id exec_id) ();
       in eval_state keywords span tr eval_state0 end;
-  in Eval {exec_id = exec_id, eval_process = Lazy.lazy process} end;
+  in Eval {exec_id = exec_id, eval_process = Lazy.lazy_name "Command.eval" process} end;
 
 end;
 
@@ -322,7 +322,7 @@ fun print command_visible command_overlays keywords command_name eval old_prints
       in
         Print {
           name = name, args = args, delay = delay, pri = pri, persistent = persistent,
-          exec_id = exec_id, print_process = Lazy.lazy process}
+          exec_id = exec_id, print_process = Lazy.lazy_name "Command.print" process}
       end;
 
     fun bad_print name args exn =

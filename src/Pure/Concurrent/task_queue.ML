@@ -37,7 +37,7 @@ sig
   val cancel_all: queue -> group list * Thread.thread list
   val finish: task -> queue -> bool * queue
   val enroll: Thread.thread -> string -> group -> queue -> task * queue
-  val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
+  val enqueue_passive: group -> string -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue_passive: Thread.thread -> task -> queue -> bool option * queue
@@ -312,9 +312,9 @@ fun enroll thread name group (Queue {groups, jobs, urgent}) =
 
 (* enqueue *)
 
-fun enqueue_passive group abort (Queue {groups, jobs, urgent}) =
+fun enqueue_passive group name abort (Queue {groups, jobs, urgent}) =
   let
-    val task = new_task group "passive" NONE;
+    val task = new_task group name NONE;
     val groups' = fold_groups (fn g => add_task (group_id g, task)) group groups;
     val jobs' = jobs |> Task_Graph.new_node (task, Passive abort);
   in (task, make_queue groups' jobs' urgent) end;

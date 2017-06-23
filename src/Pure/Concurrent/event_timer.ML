@@ -148,7 +148,7 @@ val future = Thread_Attributes.uninterruptible (fn _ => fn time =>
   let
     val req: request Single_Assignment.var = Single_Assignment.var "request";
     fun abort () = ignore (cancel (Single_Assignment.await req));
-    val promise: unit future = Future.promise abort;
+    val promise: unit future = Future.promise_name "event_timer" abort;
     val _ = Single_Assignment.assign req (request time (Future.fulfill promise));
   in promise end);
 

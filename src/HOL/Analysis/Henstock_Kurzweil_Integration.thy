@@ -273,13 +273,13 @@ definition integrable_on (infixr "integrable'_on" 46)
 
 definition "integral i f = (SOME y. (f has_integral y) i \<or> ~ f integrable_on i \<and> y=0)"
 
-lemma integrable_integral[dest]: "f integrable_on i \<Longrightarrow> (f has_integral (integral i f)) i"
+lemma integrable_integral[intro]: "f integrable_on i \<Longrightarrow> (f has_integral (integral i f)) i"
   unfolding integrable_on_def integral_def by (metis (mono_tags, lifting) someI_ex)
 
 lemma not_integrable_integral: "~ f integrable_on i \<Longrightarrow> integral i f = 0"
   unfolding integrable_on_def integral_def by blast
 
-lemma has_integral_integrable[intro]: "(f has_integral i) s \<Longrightarrow> f integrable_on s"
+lemma has_integral_integrable[dest]: "(f has_integral i) s \<Longrightarrow> f integrable_on s"
   unfolding integrable_on_def by auto
 
 lemma has_integral_integral: "f integrable_on s \<longleftrightarrow> (f has_integral (integral s f)) s"
@@ -358,7 +358,6 @@ lemma eq_integralD: "integral k f = y \<Longrightarrow> (f has_integral y) k \<o
   apply (rule someI_ex)
   by blast
 
-
 lemma has_integral_const [intro]:
   fixes a b :: "'a::euclidean_space"
   shows "((\<lambda>x. c) has_integral (content (cbox a b) *\<^sub>R c)) (cbox a b)"
@@ -371,6 +370,9 @@ lemma has_integral_const_real [intro]:
   fixes a b :: real
   shows "((\<lambda>x. c) has_integral (content {a .. b} *\<^sub>R c)) {a .. b}"
   by (metis box_real(2) has_integral_const)
+
+lemma has_integral_integrable_integral: "(f has_integral i) s \<longleftrightarrow> f integrable_on s \<and> integral s f = i"
+  by blast
 
 lemma integral_const [simp]:
   fixes a b :: "'a::euclidean_space"
@@ -408,17 +410,17 @@ proof -
     by (subst has_integral_alt) (force simp add: *)
 qed
 
-lemma has_integral_0[simp]: "((\<lambda>x::'n::euclidean_space. 0) has_integral 0) s"
+lemma has_integral_0[simp]: "((\<lambda>x::'n::euclidean_space. 0) has_integral 0) S"
   by (rule has_integral_is_0) auto
 
-lemma has_integral_0_eq[simp]: "((\<lambda>x. 0) has_integral i) s \<longleftrightarrow> i = 0"
+lemma has_integral_0_eq[simp]: "((\<lambda>x. 0) has_integral i) S \<longleftrightarrow> i = 0"
   using has_integral_unique[OF has_integral_0] by auto
 
 lemma has_integral_linear:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral y) s"
+  assumes "(f has_integral y) S"
     and "bounded_linear h"
-  shows "((h \<circ> f) has_integral ((h y))) s"
+  shows "((h \<circ> f) has_integral ((h y))) S"
 proof -
   interpret bounded_linear h
     using assms(2) .
@@ -427,11 +429,11 @@ proof -
   have lem: "\<And>a b y f::'n\<Rightarrow>'a. (f has_integral y) (cbox a b) \<Longrightarrow> ((h \<circ> f) has_integral h y) (cbox a b)"
     unfolding has_integral_cbox by (drule tendsto) (simp add: sum scaleR split_beta')
   {
-    presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
+    presume "\<not> (\<exists>a b. S = cbox a b) \<Longrightarrow> ?thesis"
     then show ?thesis
       using assms(1) lem by blast
   }
-  assume as: "\<not> (\<exists>a b. s = cbox a b)"
+  assume as: "\<not> (\<exists>a b. S = cbox a b)"
   then show ?thesis
   proof (subst has_integral_alt, clarsimp)
     fix e :: real
@@ -440,17 +442,17 @@ proof -
     obtain M where M:
       "M > 0"
       "\<And>a b. ball 0 M \<subseteq> cbox a b \<Longrightarrow>
-        \<exists>z. ((\<lambda>x. if x \<in> s then f x else 0) has_integral z) (cbox a b) \<and> norm (z - y) < e / B"
+        \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - y) < e / B"
       using has_integral_altD[OF assms(1) as *] by blast
     show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
-      (\<exists>z. ((\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) has_integral z) (cbox a b) \<and> norm (z - h y) < e)"
+      (\<exists>z. ((\<lambda>x. if x \<in> S then (h \<circ> f) x else 0) has_integral z) (cbox a b) \<and> norm (z - h y) < e)"
     proof (rule_tac x=M in exI, clarsimp simp add: M, goal_cases)
       case prems: (1 a b)
       obtain z where z:
-        "((\<lambda>x. if x \<in> s then f x else 0) has_integral z) (cbox a b)"
+        "((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b)"
         "norm (z - y) < e / B"
         using M(2)[OF prems(1)] by blast
-      have *: "(\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> s then f x else 0)"
+      have *: "(\<lambda>x. if x \<in> S then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> S then f x else 0)"
         using zero by auto
       show ?case
         apply (rule_tac x="h z" in exI)
@@ -462,7 +464,7 @@ proof -
 qed
 
 lemma has_integral_scaleR_left:
-  "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x *\<^sub>R c) has_integral (y *\<^sub>R c)) s"
+  "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x *\<^sub>R c) has_integral (y *\<^sub>R c)) S"
   using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
 
 lemma integrable_on_scaleR_left:
@@ -472,27 +474,27 @@ lemma integrable_on_scaleR_left:
 
 lemma has_integral_mult_left:
   fixes c :: "_ :: real_normed_algebra"
-  shows "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) s"
+  shows "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) S"
   using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
-text\<open>The case analysis eliminates the condition @{term "f integrable_on s"} at the cost
+text\<open>The case analysis eliminates the condition @{term "f integrable_on S"} at the cost
      of the type class constraint \<open>division_ring\<close>\<close>
 corollary integral_mult_left [simp]:
   fixes c:: "'a::{real_normed_algebra,division_ring}"
-  shows "integral s (\<lambda>x. f x * c) = integral s f * c"
-proof (cases "f integrable_on s \<or> c = 0")
+  shows "integral S (\<lambda>x. f x * c) = integral S f * c"
+proof (cases "f integrable_on S \<or> c = 0")
   case True then show ?thesis
     by (force intro: has_integral_mult_left)
 next
-  case False then have "~ (\<lambda>x. f x * c) integrable_on s"
-    using has_integral_mult_left [of "(\<lambda>x. f x * c)" _ s "inverse c"]
-    by (force simp add: mult.assoc)
+  case False then have "~ (\<lambda>x. f x * c) integrable_on S"
+    using has_integral_mult_left [of "(\<lambda>x. f x * c)" _ S "inverse c"]
+    by (auto simp add: mult.assoc)
   with False show ?thesis by (simp add: not_integrable_integral)
 qed
 
 corollary integral_mult_right [simp]:
   fixes c:: "'a::{real_normed_field}"
-  shows "integral s (\<lambda>x. c * f x) = c * integral s f"
+  shows "integral S (\<lambda>x. c * f x) = c * integral S f"
 by (simp add: mult.commute [of c])
 
 corollary integral_divide [simp]:
@@ -506,7 +508,7 @@ lemma has_integral_mult_right:
   shows "(f has_integral y) i \<Longrightarrow> ((\<lambda>x. c * f x) has_integral (c * y)) i"
   using has_integral_linear[OF _ bounded_linear_mult_right] by (simp add: comp_def)
 
-lemma has_integral_cmul: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
+lemma has_integral_cmul: "(f has_integral k) S \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) S"
   unfolding o_def[symmetric]
   by (metis has_integral_linear bounded_linear_scaleR_right)
 
@@ -523,17 +525,17 @@ next
     unfolding real_scaleR_def .
 qed
 
-lemma has_integral_neg: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral -k) s"
+lemma has_integral_neg: "(f has_integral k) S \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral -k) S"
   by (drule_tac c="-1" in has_integral_cmul) auto
 
-lemma has_integral_neg_iff: "((\<lambda>x. - f x) has_integral k) s \<longleftrightarrow> (f has_integral - k) s"
+lemma has_integral_neg_iff: "((\<lambda>x. - f x) has_integral k) S \<longleftrightarrow> (f has_integral - k) S"
   using has_integral_neg[of f "- k"] has_integral_neg[of "\<lambda>x. - f x" k] by auto
 
 lemma has_integral_add:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral k) s"
-    and "(g has_integral l) s"
-  shows "((\<lambda>x. f x + g x) has_integral (k + l)) s"
+  assumes "(f has_integral k) S"
+    and "(g has_integral l) S"
+  shows "((\<lambda>x. f x + g x) has_integral (k + l)) S"
 proof -
   have lem: "(f has_integral k) (cbox a b) \<Longrightarrow> (g has_integral l) (cbox a b) \<Longrightarrow>
     ((\<lambda>x. f x + g x) has_integral (k + l)) (cbox a b)"
@@ -541,11 +543,11 @@ proof -
     unfolding has_integral_cbox
     by (simp add: split_beta' scaleR_add_right sum.distrib[abs_def] tendsto_add)
   {
-    presume "\<not> (\<exists>a b. s = cbox a b) \<Longrightarrow> ?thesis"
+    presume "\<not> (\<exists>a b. S = cbox a b) \<Longrightarrow> ?thesis"
     then show ?thesis
       using assms lem by force
   }
-  assume as: "\<not> (\<exists>a b. s = cbox a b)"
+  assume as: "\<not> (\<exists>a b. S = cbox a b)"
   then show ?thesis
   proof (subst has_integral_alt, clarsimp, goal_cases)
     case (1 e)
@@ -555,13 +557,13 @@ proof -
     obtain B1 where B1:
         "0 < B1"
         "\<And>a b. ball 0 B1 \<subseteq> cbox a b \<Longrightarrow>
-          \<exists>z. ((\<lambda>x. if x \<in> s then f x else 0) has_integral z) (cbox a b) \<and> norm (z - k) < e / 2"
+          \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - k) < e / 2"
       by blast
     from has_integral_altD[OF assms(2) as *]
     obtain B2 where B2:
         "0 < B2"
         "\<And>a b. ball 0 B2 \<subseteq> (cbox a b) \<Longrightarrow>
-          \<exists>z. ((\<lambda>x. if x \<in> s then g x else 0) has_integral z) (cbox a b) \<and> norm (z - l) < e / 2"
+          \<exists>z. ((\<lambda>x. if x \<in> S then g x else 0) has_integral z) (cbox a b) \<and> norm (z - l) < e / 2"
       by blast
     show ?case
     proof (rule_tac x="max B1 B2" in exI, clarsimp simp add: max.strict_coboundedI1 B1)
@@ -570,17 +572,17 @@ proof -
       then have *: "ball 0 B1 \<subseteq> cbox a (b::'n)" "ball 0 B2 \<subseteq> cbox a (b::'n)"
         by auto
       obtain w where w:
-        "((\<lambda>x. if x \<in> s then f x else 0) has_integral w) (cbox a b)"
+        "((\<lambda>x. if x \<in> S then f x else 0) has_integral w) (cbox a b)"
         "norm (w - k) < e / 2"
         using B1(2)[OF *(1)] by blast
       obtain z where z:
-        "((\<lambda>x. if x \<in> s then g x else 0) has_integral z) (cbox a b)"
+        "((\<lambda>x. if x \<in> S then g x else 0) has_integral z) (cbox a b)"
         "norm (z - l) < e / 2"
         using B2(2)[OF *(2)] by blast
-      have *: "\<And>x. (if x \<in> s then f x + g x else 0) =
-        (if x \<in> s then f x else 0) + (if x \<in> s then g x else 0)"
+      have *: "\<And>x. (if x \<in> S then f x + g x else 0) =
+        (if x \<in> S then f x else 0) + (if x \<in> S then g x else 0)"
         by auto
-      show "\<exists>z. ((\<lambda>x. if x \<in> s then f x + g x else 0) has_integral z) (cbox a b) \<and> norm (z - (k + l)) < e"
+      show "\<exists>z. ((\<lambda>x. if x \<in> S then f x + g x else 0) has_integral z) (cbox a b) \<and> norm (z - (k + l)) < e"
         apply (rule_tac x="w + z" in exI)
         apply (simp add: lem[OF w(1) z(1), unfolded *[symmetric]])
         using norm_triangle_ineq[of "w - k" "z - l"] w(2) z(2)
@@ -591,93 +593,92 @@ proof -
 qed
 
 lemma has_integral_diff:
-  "(f has_integral k) s \<Longrightarrow> (g has_integral l) s \<Longrightarrow>
-    ((\<lambda>x. f x - g x) has_integral (k - l)) s"
-  using has_integral_add[OF _ has_integral_neg, of f k s g l]
+  "(f has_integral k) S \<Longrightarrow> (g has_integral l) S \<Longrightarrow>
+    ((\<lambda>x. f x - g x) has_integral (k - l)) S"
+  using has_integral_add[OF _ has_integral_neg, of f k S g l]
   by (auto simp: algebra_simps)
 
 lemma integral_0 [simp]:
-  "integral s (\<lambda>x::'n::euclidean_space. 0::'m::real_normed_vector) = 0"
+  "integral S (\<lambda>x::'n::euclidean_space. 0::'m::real_normed_vector) = 0"
   by (rule integral_unique has_integral_0)+
 
-lemma integral_add: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
-    integral s (\<lambda>x. f x + g x) = integral s f + integral s g"
+lemma integral_add: "f integrable_on S \<Longrightarrow> g integrable_on S \<Longrightarrow>
+    integral S (\<lambda>x. f x + g x) = integral S f + integral S g"
   by (rule integral_unique) (metis integrable_integral has_integral_add)
 
-lemma integral_cmul [simp]: "integral s (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral s f"
-proof (cases "f integrable_on s \<or> c = 0")
-  case True with has_integral_cmul show ?thesis by force
+lemma integral_cmul [simp]: "integral S (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral S f"
+proof (cases "f integrable_on S \<or> c = 0")
+  case True with has_integral_cmul integrable_integral show ?thesis
+    by fastforce
 next
-  case False then have "~ (\<lambda>x. c *\<^sub>R f x) integrable_on s"
-    using has_integral_cmul [of "(\<lambda>x. c *\<^sub>R f x)" _ s "inverse c"]
-    by force
+  case False then have "~ (\<lambda>x. c *\<^sub>R f x) integrable_on S"
+    using has_integral_cmul [of "(\<lambda>x. c *\<^sub>R f x)" _ S "inverse c"] by auto
   with False show ?thesis by (simp add: not_integrable_integral)
 qed
 
-lemma integral_neg [simp]: "integral s (\<lambda>x. - f x) = - integral s f"
-proof (cases "f integrable_on s")
+lemma integral_neg [simp]: "integral S (\<lambda>x. - f x) = - integral S f"
+proof (cases "f integrable_on S")
   case True then show ?thesis
     by (simp add: has_integral_neg integrable_integral integral_unique)
 next
-  case False then have "~ (\<lambda>x. - f x) integrable_on s"
-    using has_integral_neg [of "(\<lambda>x. - f x)" _ s ]
-    by force
+  case False then have "~ (\<lambda>x. - f x) integrable_on S"
+    using has_integral_neg [of "(\<lambda>x. - f x)" _ S ] by auto
   with False show ?thesis by (simp add: not_integrable_integral)
 qed
 
-lemma integral_diff: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
-    integral s (\<lambda>x. f x - g x) = integral s f - integral s g"
+lemma integral_diff: "f integrable_on S \<Longrightarrow> g integrable_on S \<Longrightarrow>
+    integral S (\<lambda>x. f x - g x) = integral S f - integral S g"
   by (rule integral_unique) (metis integrable_integral has_integral_diff)
 
-lemma integrable_0: "(\<lambda>x. 0) integrable_on s"
+lemma integrable_0: "(\<lambda>x. 0) integrable_on S"
   unfolding integrable_on_def using has_integral_0 by auto
 
-lemma integrable_add: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) integrable_on s"
+lemma integrable_add: "f integrable_on S \<Longrightarrow> g integrable_on S \<Longrightarrow> (\<lambda>x. f x + g x) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_add)
 
-lemma integrable_cmul: "f integrable_on s \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) integrable_on s"
+lemma integrable_cmul: "f integrable_on S \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_cmul)
 
 lemma integrable_on_cmult_iff:
   fixes c :: real
   assumes "c \<noteq> 0"
-  shows "(\<lambda>x. c * f x) integrable_on s \<longleftrightarrow> f integrable_on s"
-  using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] \<open>c \<noteq> 0\<close>
+  shows "(\<lambda>x. c * f x) integrable_on S \<longleftrightarrow> f integrable_on S"
+  using integrable_cmul[of "\<lambda>x. c * f x" S "1 / c"] integrable_cmul[of f S c] \<open>c \<noteq> 0\<close>
   by auto
 
 lemma integrable_on_cmult_left:
-  assumes "f integrable_on s"
-  shows "(\<lambda>x. of_real c * f x) integrable_on s"
-    using integrable_cmul[of f s "of_real c"] assms
+  assumes "f integrable_on S"
+  shows "(\<lambda>x. of_real c * f x) integrable_on S"
+    using integrable_cmul[of f S "of_real c"] assms
     by (simp add: scaleR_conv_of_real)
 
-lemma integrable_neg: "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
+lemma integrable_neg: "f integrable_on S \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_neg)
 
 lemma integrable_diff:
-  "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) integrable_on s"
+  "f integrable_on S \<Longrightarrow> g integrable_on S \<Longrightarrow> (\<lambda>x. f x - g x) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_diff)
 
 lemma integrable_linear:
-  "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> (h \<circ> f) integrable_on s"
+  "f integrable_on S \<Longrightarrow> bounded_linear h \<Longrightarrow> (h \<circ> f) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_linear)
 
 lemma integral_linear:
-  "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> integral s (h \<circ> f) = h (integral s f)"
-  apply (rule has_integral_unique [where i=s and f = "h \<circ> f"])
+  "f integrable_on S \<Longrightarrow> bounded_linear h \<Longrightarrow> integral S (h \<circ> f) = h (integral S f)"
+  apply (rule has_integral_unique [where i=S and f = "h \<circ> f"])
   apply (simp_all add: integrable_integral integrable_linear has_integral_linear )
   done
 
 lemma integral_component_eq[simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes "f integrable_on s"
-  shows "integral s (\<lambda>x. f x \<bullet> k) = integral s f \<bullet> k"
+  assumes "f integrable_on S"
+  shows "integral S (\<lambda>x. f x \<bullet> k) = integral S f \<bullet> k"
   unfolding integral_linear[OF assms(1) bounded_linear_inner_left,unfolded o_def] ..
 
 lemma has_integral_sum:
   assumes "finite t"
-    and "\<forall>a\<in>t. ((f a) has_integral (i a)) s"
-  shows "((\<lambda>x. sum (\<lambda>a. f a x) t) has_integral (sum i t)) s"
+    and "\<forall>a\<in>t. ((f a) has_integral (i a)) S"
+  shows "((\<lambda>x. sum (\<lambda>a. f a x) t) has_integral (sum i t)) S"
   using assms(1) subset_refl[of t]
 proof (induct rule: finite_subset_induct)
   case empty
@@ -689,9 +690,9 @@ next
 qed
 
 lemma integral_sum:
-  "\<lbrakk>finite t;  \<forall>a\<in>t. (f a) integrable_on s\<rbrakk> \<Longrightarrow>
-   integral s (\<lambda>x. sum (\<lambda>a. f a x) t) = sum (\<lambda>a. integral s (f a)) t"
-  by (auto intro: has_integral_sum integrable_integral)
+  "\<lbrakk>finite I;  \<And>a. a \<in> I \<Longrightarrow> f a integrable_on S\<rbrakk> \<Longrightarrow>
+   integral S (\<lambda>x. \<Sum>a\<in>I. f a x) = (\<Sum>a\<in>I. integral S (f a))"
+  by (simp add: has_integral_sum integrable_integral integral_unique)
 
 lemma integrable_sum:
   "\<lbrakk>finite I;  \<And>a. a \<in> I \<Longrightarrow> f a integrable_on S\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>a\<in>I. f a x) integrable_on S"
@@ -927,7 +928,7 @@ next
     by auto
   from choice[OF this] guess d .. note d=conjunctD2[OF this[rule_format],rule_format]
   have "\<And>n. gauge (\<lambda>x. \<Inter>{d i x |i. i \<in> {0..n}})"
-    apply (rule gauge_inters)
+    apply (rule gauge_Inter)
     using d(1)
     apply auto
     done
@@ -993,32 +994,32 @@ qed
 subsection \<open>Additivity of integral on abutting intervals.\<close>
 
 lemma tagged_division_split_left_inj_content:
-  assumes d: "d tagged_division_of i"
-    and "(x1, k1) \<in> d" "(x2, k2) \<in> d" "k1 \<noteq> k2" "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}" "k \<in> Basis"
-  shows "content (k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
+  assumes \<D>: "\<D> tagged_division_of S"
+    and "(x1, K1) \<in> \<D>" "(x2, K2) \<in> \<D>" "K1 \<noteq> K2" "K1 \<inter> {x. x\<bullet>k \<le> c} = K2 \<inter> {x. x\<bullet>k \<le> c}" "k \<in> Basis"
+  shows "content (K1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
 proof -
-  from tagged_division_ofD(4)[OF d \<open>(x1, k1) \<in> d\<close>] obtain a b where k1: "k1 = cbox a b"
+  from tagged_division_ofD(4)[OF \<D> \<open>(x1, K1) \<in> \<D>\<close>] obtain a b where K1: "K1 = cbox a b"
     by auto
-  show ?thesis
-    unfolding k1 interval_split[OF \<open>k \<in> Basis\<close>]
-    unfolding content_eq_0_interior
-    unfolding interval_split[OF \<open>k \<in> Basis\<close>, symmetric] k1[symmetric]
+  then have "interior (K1 \<inter> {x. x \<bullet> k \<le> c}) = {}"
     by (metis tagged_division_split_left_inj assms)
+  then show ?thesis
+    unfolding K1 interval_split[OF \<open>k \<in> Basis\<close>] by (auto simp: content_eq_0_interior)
 qed
 
 lemma tagged_division_split_right_inj_content:
-  assumes d: "d tagged_division_of i"
-    and "(x1, k1) \<in> d" "(x2, k2) \<in> d" "k1 \<noteq> k2" "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}" "k \<in> Basis"
-  shows "content (k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
+  assumes \<D>: "\<D> tagged_division_of S"
+    and "(x1, K1) \<in> \<D>" "(x2, K2) \<in> \<D>" "K1 \<noteq> K2" "K1 \<inter> {x. x\<bullet>k \<ge> c} = K2 \<inter> {x. x\<bullet>k \<ge> c}" "k \<in> Basis"
+  shows "content (K1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
 proof -
-  from tagged_division_ofD(4)[OF d \<open>(x1, k1) \<in> d\<close>] obtain a b where k1: "k1 = cbox a b"
+  from tagged_division_ofD(4)[OF \<D> \<open>(x1, K1) \<in> \<D>\<close>] obtain a b where K1: "K1 = cbox a b"
     by auto
-  show ?thesis
-    unfolding k1 interval_split[OF \<open>k \<in> Basis\<close>]
-    unfolding content_eq_0_interior
-    unfolding interval_split[OF \<open>k \<in> Basis\<close>, symmetric] k1[symmetric]
+  then have "interior (K1 \<inter> {x. c \<le> x \<bullet> k}) = {}"
     by (metis tagged_division_split_right_inj assms)
+  then show ?thesis
+    unfolding K1 interval_split[OF \<open>k \<in> Basis\<close>]
+    by (auto simp: content_eq_0_interior)
 qed
+
 
 lemma has_integral_split:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -1313,7 +1314,7 @@ lemma integrable_split [intro]:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{real_normed_vector,complete_space}"
   assumes f: "f integrable_on cbox a b"
       and k: "k \<in> Basis"
-    shows "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<le> c})" (is ?thesis1)
+    shows "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<le> c})"   (is ?thesis1)
     and   "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"   (is ?thesis2)
 proof -
   obtain y where y: "(f has_integral y) (cbox a b)"
@@ -1327,12 +1328,12 @@ proof -
     if "e > 0" for e
   proof -
     have "e/2 > 0" using that by auto
-  with has_integral_separate_sides[OF y this k, of c] 
-  obtain d 
+  with has_integral_separate_sides[OF y this k, of c]
+  obtain d
     where "gauge d"
-         and d: "\<And>p1 p2. \<lbrakk>p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c}; d fine p1; 
-                          p2 tagged_division_of cbox a b \<inter> {x. c \<le> x \<bullet> k}; d fine p2\<rbrakk> 
-                  \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) + (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x) - y) < e/2" 
+         and d: "\<And>p1 p2. \<lbrakk>p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c}; d fine p1;
+                          p2 tagged_division_of cbox a b \<inter> {x. c \<le> x \<bullet> k}; d fine p2\<rbrakk>
+                  \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) + (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x) - y) < e/2"
     by metis
   show ?thesis
     proof (rule_tac x=d in exI, clarsimp simp add: \<open>gauge d\<close>)
@@ -1349,7 +1350,7 @@ proof -
           by (auto simp add: algebra_simps)
       qed
     qed
-  qed    
+  qed
   with f show ?thesis1
     by (simp add: interval_split[OF k] integrable_cauchy)
   have "\<exists>d. gauge d \<and>
@@ -1359,12 +1360,12 @@ proof -
     if "e > 0" for e
   proof -
     have "e/2 > 0" using that by auto
-  with has_integral_separate_sides[OF y this k, of c] 
-  obtain d 
+  with has_integral_separate_sides[OF y this k, of c]
+  obtain d
     where "gauge d"
-         and d: "\<And>p1 p2. \<lbrakk>p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c}; d fine p1; 
-                          p2 tagged_division_of cbox a b \<inter> {x. c \<le> x \<bullet> k}; d fine p2\<rbrakk> 
-                  \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) + (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x) - y) < e/2" 
+         and d: "\<And>p1 p2. \<lbrakk>p1 tagged_division_of cbox a b \<inter> {x. x \<bullet> k \<le> c}; d fine p1;
+                          p2 tagged_division_of cbox a b \<inter> {x. c \<le> x \<bullet> k}; d fine p2\<rbrakk>
+                  \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p1. content K *\<^sub>R f x) + (\<Sum>(x,K)\<in>p2. content K *\<^sub>R f x) - y) < e/2"
     by metis
   show ?thesis
     proof (rule_tac x=d in exI, clarsimp simp add: \<open>gauge d\<close>)
@@ -1381,7 +1382,7 @@ proof -
           by (auto simp add: algebra_simps)
       qed
     qed
-  qed    
+  qed
   with f show ?thesis2
     by (simp add: interval_split[OF k] integrable_cauchy)
 qed
@@ -2272,10 +2273,11 @@ proof -
     using fint gf
     apply (subst has_integral_alt)
     apply (subst (asm) has_integral_alt)
-    apply (simp add: split: if_split_asm)
-      apply (blast dest: *)
-    apply (elim all_forward imp_forward ex_forward)
-    apply (force dest: *[where f="\<lambda>x. if x\<in>T then f x else 0" and g="\<lambda>x. if x \<in> T then g x else 0"])+
+    apply (simp split: if_split_asm)
+     apply (blast dest: *)
+      apply (erule_tac V = "\<forall>a b. T \<noteq> cbox a b" in thin_rl)
+    apply (elim all_forward imp_forward ex_forward all_forward conj_forward asm_rl)
+     apply (auto dest!: *[where f="\<lambda>x. if x\<in>T then f x else 0" and g="\<lambda>x. if x \<in> T then g x else 0"])
     done
 qed
 
@@ -2764,7 +2766,7 @@ lemma integral_ident [simp]:
   fixes a::real
   assumes "a \<le> b"
   shows "integral {a..b} (\<lambda>x. x) = (if a \<le> b then (b\<^sup>2 - a\<^sup>2) / 2 else 0)"
-using ident_has_integral integral_unique by fastforce
+  by (metis assms ident_has_integral integral_unique)
 
 lemma ident_integrable_on:
   fixes a::real
@@ -2881,7 +2883,8 @@ proof goal_cases
   have "?sum a = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)"
     by (rule sum.reindex_cong) (auto simp add: inj_on_def Dg_def one)
   finally show c: ?case .
-  case 2 show ?case using c integral_unique by force
+  case 2 show ?case using c integral_unique
+    by (metis (lifting) add.commute diff_eq_eq integral_unique)
   case 3 show ?case using c by force
 qed
 
@@ -3111,7 +3114,7 @@ lemma integrable_combine:
   shows "f integrable_on {a .. b}"
   using assms
   unfolding integrable_on_def
-  by (fastforce intro!:has_integral_combine)
+  by (auto intro!:has_integral_combine)
 
 
 subsection \<open>Reduce integrability to "local" integrability.\<close>
@@ -3181,7 +3184,7 @@ proof -
         using False x by (simp add: algebra_simps integral_combine)
       have fux_int: "((\<lambda>u. f u - f x) has_integral integral {x..y} f - (y - x) *\<^sub>R f x) {x..y}"
         apply (rule has_integral_diff)
-        using x y apply (force intro: integrable_integral [OF integrable_subinterval_real [OF f]])
+        using x y apply (auto intro: integrable_integral [OF integrable_subinterval_real [OF f]])
         using has_integral_const_real [of "f x" x y] False
         apply (simp add: )
         done
@@ -3199,7 +3202,7 @@ proof -
         using True x y by (simp add: algebra_simps integral_combine)
       have fux_int: "((\<lambda>u. f u - f x) has_integral integral {y..x} f - (x - y) *\<^sub>R f x) {y..x}"
         apply (rule has_integral_diff)
-        using x y apply (force intro: integrable_integral [OF integrable_subinterval_real [OF f]])
+        using x y apply (auto intro: integrable_integral [OF integrable_subinterval_real [OF f]])
         using has_integral_const_real [of "f x" y x] True
         apply (simp add: )
         done
@@ -5086,43 +5089,57 @@ lemma integral_nonneg:
 
 text \<open>Hence a general restriction property.\<close>
 
-lemma has_integral_restrict[simp]:
-  assumes "s \<subseteq> t"
-  shows "((\<lambda>x. if x \<in> s then f x else (0::'a::banach)) has_integral i) t \<longleftrightarrow> (f has_integral i) s"
+lemma has_integral_restrict [simp]:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  assumes "S \<subseteq> T"
+  shows "((\<lambda>x. if x \<in> S then f x else 0) has_integral i) T \<longleftrightarrow> (f has_integral i) S"
 proof -
-  have *: "\<And>x. (if x \<in> t then if x \<in> s then f x else 0 else 0) =  (if x\<in>s then f x else 0)"
+  have *: "\<And>x. (if x \<in> T then if x \<in> S then f x else 0 else 0) =  (if x\<in>S then f x else 0)"
     using assms by auto
   show ?thesis
     apply (subst(2) has_integral')
     apply (subst has_integral')
-    unfolding *
-    apply rule
+      apply (simp add: *)
     done
 qed
 
-lemma has_integral_restrict_UNIV:
+corollary has_integral_restrict_UNIV:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   shows "((\<lambda>x. if x \<in> s then f x else 0) has_integral i) UNIV \<longleftrightarrow> (f has_integral i) s"
   by auto
 
+lemma has_integral_restrict_Int:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "((\<lambda>x. if x \<in> S then f x else 0) has_integral i) T \<longleftrightarrow> (f has_integral i) (S \<inter> T)"
+proof -
+  have "((\<lambda>x. if x \<in> T then if x \<in> S then f x else 0 else 0) has_integral i) UNIV =
+        ((\<lambda>x. if x \<in> S \<inter> T then f x else 0) has_integral i) UNIV"
+    by (rule has_integral_cong) auto
+  then show ?thesis
+    using has_integral_restrict_UNIV by fastforce
+qed
+
+lemma integral_restrict_Int:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "integral T (\<lambda>x. if x \<in> S then f x else 0) = integral (S \<inter> T) f"
+  by (metis (no_types, lifting) has_integral_cong has_integral_restrict_Int integrable_integral integral_unique not_integrable_integral)
+
+lemma integrable_restrict_Int:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "(\<lambda>x. if x \<in> S then f x else 0) integrable_on T \<longleftrightarrow> f integrable_on (S \<inter> T)"
+  using has_integral_restrict_Int by fastforce
+
 lemma has_integral_on_superset:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "\<forall>x. x \<notin> s \<longrightarrow> f x = 0"
-    and "s \<subseteq> t"
-    and "(f has_integral i) s"
-  shows "(f has_integral i) t"
+  assumes f: "(f has_integral i) S"
+      and "\<And>x. x \<notin> S \<Longrightarrow> f x = 0"
+      and "S \<subseteq> T"
+    shows "(f has_integral i) T"
 proof -
-  have "(\<lambda>x. if x \<in> s then f x else 0) = (\<lambda>x. if x \<in> t then f x else 0)"
-    apply rule
-    using assms(1-2)
-    apply auto
-    done
-  then show ?thesis
-    using assms(3)
-    apply (subst has_integral_restrict_UNIV[symmetric])
-    apply (subst(asm) has_integral_restrict_UNIV[symmetric])
-    apply auto
-    done
+  have "(\<lambda>x. if x \<in> S then f x else 0) = (\<lambda>x. if x \<in> T then f x else 0)"
+    using assms by fastforce
+  with f show ?thesis
+    by (simp only: has_integral_restrict_UNIV [symmetric, of f])
 qed
 
 lemma integrable_on_superset:
@@ -5135,7 +5152,7 @@ lemma integrable_on_superset:
   unfolding integrable_on_def
   by (auto intro:has_integral_on_superset)
 
-lemma integral_restrict_univ[intro]:
+lemma integral_restrict_UNIV [intro]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   shows "f integrable_on s \<Longrightarrow> integral UNIV (\<lambda>x. if x \<in> s then f x else 0) = integral s f"
   apply (rule integral_unique)
@@ -5148,6 +5165,20 @@ lemma integrable_restrict_UNIV:
   shows "(\<lambda>x. if x \<in> s then f x else 0) integrable_on UNIV \<longleftrightarrow> f integrable_on s"
   unfolding integrable_on_def
   by auto
+
+lemma has_integral_subset_component_le:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes k: "k \<in> Basis"
+    and as: "S \<subseteq> T" "(f has_integral i) S" "(f has_integral j) T" "\<And>x. x\<in>T \<Longrightarrow> 0 \<le> f(x)\<bullet>k"
+  shows "i\<bullet>k \<le> j\<bullet>k"
+proof -
+  have "((\<lambda>x. if x \<in> S then f x else 0) has_integral i) UNIV"
+        "((\<lambda>x. if x \<in> T then f x else 0) has_integral j) UNIV"
+    by (simp_all add: assms)
+  then show ?thesis
+    apply (rule has_integral_component_le[OF k])
+    using as by auto
+qed
 
 lemma negligible_on_intervals: "negligible s \<longleftrightarrow> (\<forall>a b. negligible(s \<inter> cbox a b))" (is "?l \<longleftrightarrow> ?r")
 proof
@@ -5193,47 +5224,64 @@ by (metis negligible_translation [OF assms, of "-c"] translation_galois)
 
 lemma has_integral_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "negligible ((s - t) \<union> (t - s))"
-  shows "(f has_integral y) s \<longleftrightarrow> (f has_integral y) t"
+  assumes "negligible ((S - T) \<union> (T - S))"
+  shows "(f has_integral y) S \<longleftrightarrow> (f has_integral y) T"
   unfolding has_integral_restrict_UNIV[symmetric,of f]
   apply (rule has_integral_spike_eq[OF assms])
   by (auto split: if_split_asm)
 
 lemma has_integral_spike_set:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "(f has_integral y) s" "negligible ((s - t) \<union> (t - s))"
-  shows "(f has_integral y) t"
+  assumes "(f has_integral y) S" "negligible ((S - T) \<union> (T - S))"
+  shows "(f has_integral y) T"
   using assms has_integral_spike_set_eq
   by auto
 
 lemma integrable_spike_set:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on s" and "negligible ((s - t) \<union> (t - s))"
-    shows "f integrable_on t"
+  assumes "f integrable_on S" and "negligible ((S - T) \<union> (T - S))"
+    shows "f integrable_on T"
   using assms by (simp add: integrable_on_def has_integral_spike_set_eq)
 
 lemma integrable_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "negligible ((s - t) \<union> (t - s))"
-  shows "f integrable_on s \<longleftrightarrow> f integrable_on t"
-by (blast intro: integrable_spike_set assms negligible_subset)
+  assumes "negligible ((S - T) \<union> (T - S))"
+  shows "f integrable_on S \<longleftrightarrow> f integrable_on T"
+  by (blast intro: integrable_spike_set assms negligible_subset)
+    
+lemma has_integral_interior:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "negligible(frontier S) \<Longrightarrow> (f has_integral y) (interior S) \<longleftrightarrow> (f has_integral y) S"
+  apply (rule has_integral_spike_set_eq)
+  apply (auto simp: frontier_def Un_Diff closure_def)
+  apply (metis Diff_eq_empty_iff interior_subset negligible_empty)
+  done
+    
+lemma has_integral_closure:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "negligible(frontier S) \<Longrightarrow> (f has_integral y) (closure S) \<longleftrightarrow> (f has_integral y) S"
+  apply (rule has_integral_spike_set_eq)
+  apply (auto simp: Un_Diff closure_Un_frontier negligible_diff)
+  by (simp add: Diff_eq closure_Un_frontier)
+
+lemma has_integral_open_interval:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "(f has_integral y) (box a b) \<longleftrightarrow> (f has_integral y) (cbox a b)"
+  unfolding interior_cbox [symmetric]
+  by (metis frontier_cbox has_integral_interior negligible_frontier_interval)
+
+lemma integrable_on_open_interval:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "f integrable_on box a b \<longleftrightarrow> f integrable_on cbox a b"
+  by (simp add: has_integral_open_interval integrable_on_def)
+
+lemma integral_open_interval:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
+  shows "integral(box a b) f = integral(cbox a b) f"
+  by (metis has_integral_integrable_integral has_integral_open_interval not_integrable_integral)
+
 
 subsection \<open>More lemmas that are useful later\<close>
-
-lemma has_integral_subset_component_le:
-  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes k: "k \<in> Basis"
-    and as: "s \<subseteq> t" "(f has_integral i) s" "(f has_integral j) t" "\<forall>x\<in>t. 0 \<le> f(x)\<bullet>k"
-  shows "i\<bullet>k \<le> j\<bullet>k"
-proof -
-  note has_integral_restrict_UNIV[symmetric, of f]
-  note as(2-3)[unfolded this] note * = has_integral_component_le[OF k this]
-  show ?thesis
-    apply (rule *)
-    using as(1,4)
-    apply auto
-    done
-qed
 
 lemma has_integral_subset_le:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
@@ -5504,10 +5552,10 @@ proof -
     have e: "e/3 > 0"
       using that by auto
     then obtain g h i j where ij: "\<bar>i - j\<bar> < e/3"
-            and "(g has_integral i) (cbox a b)" 
-            and "(h has_integral j) (cbox a b)" 
+            and "(g has_integral i) (cbox a b)"
+            and "(h has_integral j) (cbox a b)"
             and fgh: "\<And>x. x \<in> cbox a b \<Longrightarrow> g x \<le> f x \<and> f x \<le> h x"
-      using assms real_norm_def by metis 
+      using assms real_norm_def by metis
     then obtain d1 d2 where "gauge d1" "gauge d2"
             and d1: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; d1 fine p\<rbrakk> \<Longrightarrow>
                           \<bar>(\<Sum>(x,K)\<in>p. content K *\<^sub>R g x) - i\<bar> < e/3"
@@ -5515,10 +5563,10 @@ proof -
                           \<bar>(\<Sum>(x,K) \<in> p. content K *\<^sub>R h x) - j\<bar> < e/3"
       by (metis e has_integral real_norm_def)
     have "\<bar>(\<Sum>(x,K) \<in> p1. content K *\<^sub>R f x) - (\<Sum>(x,K) \<in> p2. content K *\<^sub>R f x)\<bar> < e"
-      if p1: "p1 tagged_division_of cbox a b" and 11: "d1 fine p1" and 21: "d2 fine p1" 
+      if p1: "p1 tagged_division_of cbox a b" and 11: "d1 fine p1" and 21: "d2 fine p1"
        and p2: "p2 tagged_division_of cbox a b" and 12: "d1 fine p2" and 22: "d2 fine p2" for p1 p2
     proof -
-      have *: "\<And>g1 g2 h1 h2 f1 f2. 
+      have *: "\<And>g1 g2 h1 h2 f1 f2.
                   \<lbrakk>\<bar>g2 - i\<bar> < e/3; \<bar>g1 - i\<bar> < e/3; \<bar>h2 - j\<bar> < e/3; \<bar>h1 - j\<bar> < e/3;
                    g1 - h2 \<le> f1 - f2; f1 - f2 \<le> h1 - g2\<rbrakk>
                   \<Longrightarrow> \<bar>f1 - f2\<bar> < e"
@@ -6617,9 +6665,9 @@ proof -
         prefer 3
         apply (subst abs_of_nonneg)
         apply (rule *[OF assms(2) that(1)[THEN spec]])
-        apply (subst integral_restrict_univ[symmetric,OF int])
+        apply (subst integral_restrict_UNIV[symmetric,OF int])
         unfolding ifif
-        unfolding integral_restrict_univ[OF int']
+        unfolding integral_restrict_UNIV[OF int']
         apply (rule integral_subset_le[OF _ int' assms(2)])
         using assms(1)
         apply auto
@@ -6692,8 +6740,8 @@ proof -
         next
           case 1
           show ?case
-            apply (subst integral_restrict_univ[symmetric,OF int])
-            unfolding ifif integral_restrict_univ[OF int']
+            apply (subst integral_restrict_UNIV[symmetric,OF int])
+            unfolding ifif integral_restrict_UNIV[OF int']
             apply (rule integral_subset_le[OF _ int'])
             using assms
             apply auto
@@ -6795,7 +6843,7 @@ proof -
   proof (intro monotone_convergence_increasing allI ballI assms)
     show "bounded {integral s (f k) |k. True}"
       unfolding x by (rule convergent_imp_bounded) fact
-  qed (auto intro: f)
+  qed (use f in auto)
   then have "integral s g = x'"
     by (intro LIMSEQ_unique[OF _ \<open>x \<longlonglongrightarrow> x'\<close>]) (simp add: x_eq)
   with * show ?thesis
@@ -7924,7 +7972,7 @@ proof -
     hence "(f n has_integral (F n - F a)) {a..n}"
       by (rule has_integral_eq [rotated]) (simp add: f_def)
     thus "(f n has_integral (F n - F a)) {a..}"
-      by (rule has_integral_on_superset [rotated 2]) (auto simp: f_def)
+      by (rule has_integral_on_superset) (auto simp: f_def)
   qed
   have integral_f: "integral {a..} (f n) = (if n \<ge> a then F n - F a else 0)" for n :: nat
   proof (cases "n \<ge> a")
@@ -7934,7 +7982,7 @@ proof -
     case False
     have "(f n has_integral 0) {a}" by (rule has_integral_refl)
     hence "(f n has_integral 0) {a..}"
-      by (rule has_integral_on_superset [rotated 2]) (insert False, simp_all add: f_def)
+      by (rule has_integral_on_superset) (insert False, simp_all add: f_def)
     with False show ?thesis by (simp add: integral_unique)
   qed
 

@@ -142,7 +142,7 @@ fun check_unoverload thy (c, ty) =
         "\nof constant " ^ quote c ^
         "\nis too specific compared to declared type\n" ^
         string_of_typ thy ty_decl)
-  end; 
+  end;
 
 fun check_const thy = check_unoverload thy o check_bare_const thy;
 
@@ -411,7 +411,7 @@ fun get_type thy tyco = case get_type_entry thy tyco
 fun get_abstype_spec thy tyco = case get_type_entry thy tyco
  of SOME (vs, Abstractor spec) => (vs, spec)
   | _ => error ("Not an abstract type: " ^ tyco);
- 
+
 fun get_type_of_constr_or_abstr thy c =
   case (body_type o const_typ thy) c
    of Type (tyco, _) => let val ((_, cos), abstract) = get_type thy tyco
@@ -463,7 +463,7 @@ fun check_decl_ty thy (c, ty) =
       ^ "\nof constant " ^ quote c
       ^ "\nis too specific compared to declared type\n"
       ^ string_of_typ thy ty_decl)
-  end; 
+  end;
 
 fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
   let
@@ -760,7 +760,7 @@ fun dummy_thm ctxt c =
 fun nothing_cert ctxt c = Nothing (dummy_thm ctxt c);
 
 fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
-  | cert_of_eqns ctxt c raw_eqns = 
+  | cert_of_eqns ctxt c raw_eqns =
       let
         val thy = Proof_Context.theory_of ctxt;
         val eqns = burrow_fst (canonize_thms thy) raw_eqns;
@@ -1104,7 +1104,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
   let
     val thm = Thm.close_derivation raw_thm;
     val c = const_eqn thy thm;
-    fun update_subsume verbose (thm, proper) eqns = 
+    fun update_subsume verbose (thm, proper) eqns =
       let
         val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
           o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
@@ -1118,13 +1118,13 @@ fun gen_add_eqn default (raw_thm, proper) thy =
             else false
           end;
         fun drop (thm', proper') = if (proper orelse not proper')
-          andalso matches_args (args_of thm') then 
+          andalso matches_args (args_of thm') then
             (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
                 Thm.string_of_thm_global thy thm') else (); true)
           else false;
       in (thm, proper) :: filter_out drop eqns end;
     fun natural_order eqns =
-      (eqns, Lazy.lazy (fn () => fold (update_subsume false) eqns []))
+      (eqns, Lazy.lazy_name "code" (fn () => fold (update_subsume false) eqns []))
     fun add_eqn' true Unimplemented = Eqns_Default (natural_order [(thm, proper)])
       | add_eqn' true (Eqns_Default (eqns, _)) = Eqns_Default (natural_order ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)

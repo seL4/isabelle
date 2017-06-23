@@ -660,7 +660,7 @@ proof -
          (auto simp del: ereal_less_eq simp add: ereal_less_eq(3)[symmetric])
   qed
   have 2: "set_borel_measurable lborel (einterval a b) f"
-    by (auto simp del: real_scaleR_def intro!: set_borel_measurable_continuous
+    by (auto simp del: real_scaleR_def intro!: borel_measurable_continuous_on_indicator
              simp: continuous_on_eq_continuous_at einterval_iff f)
   have 3: "(\<lambda>i. LBINT x=l i..u i. f x) \<longlonglongrightarrow> B - A"
     apply (subst FTCi)

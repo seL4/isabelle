@@ -49,7 +49,7 @@ fun dialog () =
   let
     val i = serial ();
     fun abort () = Synchronized.change dialogs (Inttab.delete_safe i);
-    val promise = Future.promise abort : string future;
+    val promise = Future.promise_name "dialog" abort : string future;
     val _ = Synchronized.change dialogs (Inttab.update_new (i, promise));
     fun result_markup result = Markup.properties (explicit_id ()) (Markup.dialog i result);
   in (result_markup, promise) end;
