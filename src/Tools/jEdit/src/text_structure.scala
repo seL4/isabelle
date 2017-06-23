@@ -71,7 +71,8 @@ object Text_Structure
           val prev_line: Int =
             Range.inclusive(current_line - 1, 0, -1).find(line =>
               Token_Markup.Line_Context.before(buffer, line).get_context == Scan.Finished &&
-              !Token_Markup.Line_Context.after(buffer, line).structure.improper) getOrElse -1
+              (!Token_Markup.Line_Context.after(buffer, line).structure.improper ||
+                Token_Markup.Line_Context.after(buffer, line).structure.blank)) getOrElse -1
 
           def prev_line_command: Option[Token] =
             nav.reverse_iterator(prev_line, 1).
