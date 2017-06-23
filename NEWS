@@ -52,6 +52,10 @@ tutorial on code generation.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Automatic indentation is more careful to avoid redundant spaces in
+intermediate situations. Keywords are indented after input (via typed
+characters or completion); see also option "jedit_indent_input".
+
 * Action "isabelle.preview" opens an HTML preview of the current theory
 document in the default web browser.
 
