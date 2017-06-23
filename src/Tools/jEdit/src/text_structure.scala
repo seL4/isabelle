@@ -19,7 +19,7 @@ object Text_Structure
 {
   /* token navigator */
 
-  class Navigator(syntax: Outer_Syntax, buffer: Buffer, comments: Boolean)
+  class Navigator(syntax: Outer_Syntax, buffer: JEditBuffer, comments: Boolean)
   {
     val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
@@ -48,9 +48,9 @@ object Text_Structure
       actions: java.util.List[IndentAction])
     {
       Isabelle.buffer_syntax(buffer) match {
-        case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+        case Some(syntax) =>
           val keywords = syntax.keywords
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], true)
+          val nav = new Navigator(syntax, buffer, true)
 
           val indent_size = buffer.getIndentSize
 
@@ -184,7 +184,7 @@ object Text_Structure
 
           actions.clear()
           actions.add(new IndentAction.AlignOffset(indent max 0))
-        case _ =>
+        case None =>
       }
     }
   }
@@ -238,10 +238,10 @@ object Text_Structure
       val caret = text_area.getCaretPosition
 
       Isabelle.buffer_syntax(text_area.getBuffer) match {
-        case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+        case Some(syntax) =>
           val keywords = syntax.keywords
 
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], false)
+          val nav = new Navigator(syntax, buffer, false)
 
           def caret_iterator(): Iterator[Text.Info[Token]] =
             nav.iterator(caret_line).dropWhile(info => !info.range.touches(caret))
@@ -314,7 +314,7 @@ object Text_Structure
 
             case _ => None
           }
-        case _ => None
+        case None => None
       }
     }
 

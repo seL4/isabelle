@@ -257,15 +257,15 @@ object Isabelle
 
     if (text_area.isEditable && indent_enabled(buffer, "jedit_indent_input")) {
       buffer_syntax(buffer) match {
-        case Some(syntax) if buffer.isInstanceOf[Buffer] =>
-          val nav = new Text_Structure.Navigator(syntax, buffer.asInstanceOf[Buffer], true)
+        case Some(syntax) =>
+          val nav = new Text_Structure.Navigator(syntax, buffer, true)
           nav.iterator(line, 1).toStream.headOption match {
             case Some(Text.Info(range, tok))
             if range.stop == caret && syntax.keywords.is_indent_command(tok) =>
               buffer.indentLine(line, true)
             case _ =>
           }
-        case _ =>
+        case None =>
       }
     }
   }
