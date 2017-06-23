@@ -141,8 +141,10 @@ object Text_Structure
             else 0
 
           val indent =
-            if (Token_Markup.Line_Context.before(buffer, current_line).get_context == Scan.Finished)
-            {
+            if (Token_Markup.Line_Context.before(buffer, current_line).get_context != Scan.Finished)
+              line_indent(current_line)
+            else if (Token_Markup.Line_Context.after(buffer, current_line).structure.blank) 0
+            else {
               line_head(current_line) match {
                 case Some(info @ Text.Info(range, tok)) =>
                   if (tok.is_begin ||
@@ -179,7 +181,6 @@ object Text_Structure
                   }
               }
             }
-            else line_indent(current_line)
 
           actions.clear()
           actions.add(new IndentAction.AlignOffset(indent max 0))
