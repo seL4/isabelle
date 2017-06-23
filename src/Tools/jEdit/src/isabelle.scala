@@ -275,15 +275,16 @@ object Isabelle
     if (!text_area.isEditable()) text_area.getToolkit().beep()
     else {
       val buffer = text_area.getBuffer
+      val line = text_area.getCaretLine
+      val caret = text_area.getCaretPosition
+
       def nl { text_area.userInput('\n') }
 
       if (indent_enabled(buffer, "jedit_indent_newline")) {
         buffer_syntax(buffer) match {
-          case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+          case Some(syntax) =>
             val keywords = syntax.keywords
 
-            val line = text_area.getCaretLine
-            val caret = text_area.getCaretPosition
             val (toks1, toks2) = Text_Structure.split_line_content(buffer, keywords, line, caret)
 
             if (toks1.isEmpty) buffer.removeTrailingWhiteSpace(Array(line))
@@ -295,7 +296,7 @@ object Isabelle
                 if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
               }
             else nl
-          case _ => nl
+          case None => nl
         }
       }
       else nl
