@@ -14,6 +14,7 @@ object Line_Structure
 
 sealed case class Line_Structure(
   improper: Boolean = true,
+  blank: Boolean = true,
   command: Boolean = false,
   depth: Int = 0,
   span_depth: Int = 0,
@@ -23,6 +24,7 @@ sealed case class Line_Structure(
   def update(keywords: Keyword.Keywords, tokens: List[Token]): Line_Structure =
   {
     val improper1 = tokens.forall(_.is_improper)
+    val blank1 = tokens.forall(_.is_space)
     val command1 = tokens.exists(_.is_begin_or_command)
 
     val command_depth =
@@ -62,6 +64,7 @@ sealed case class Line_Structure(
           else depths
       }
 
-    Line_Structure(improper1, command1, depth1, span_depth1, after_span_depth1, element_depth1)
+    Line_Structure(
+      improper1, blank1, command1, depth1, span_depth1, after_span_depth1, element_depth1)
   }
 }

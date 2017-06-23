@@ -29,11 +29,11 @@ object Token_Markup
     def init(mode: String): Line_Context =
       new Line_Context(mode, Some(Scan.Finished), Line_Structure.init)
 
-    def prev(buffer: JEditBuffer, line: Int): Line_Context =
+    def before(buffer: JEditBuffer, line: Int): Line_Context =
       if (line == 0) init(JEdit_Lib.buffer_mode(buffer))
-      else next(buffer, line - 1)
+      else after(buffer, line - 1)
 
-    def next(buffer: JEditBuffer, line: Int): Line_Context =
+    def after(buffer: JEditBuffer, line: Int): Line_Context =
     {
       val line_mgr = JEdit_Lib.buffer_line_manager(buffer)
       def context =
@@ -71,7 +71,7 @@ object Token_Markup
   private def try_line_tokens(syntax: Outer_Syntax, buffer: JEditBuffer, line: Int)
     : Option[List[Token]] =
   {
-    val line_context = Line_Context.prev(buffer, line)
+    val line_context = Line_Context.before(buffer, line)
     for {
       ctxt <- line_context.context
       text <- JEdit_Lib.try_get_text(buffer, JEdit_Lib.line_range(buffer, line))

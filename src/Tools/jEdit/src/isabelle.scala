@@ -244,48 +244,59 @@ object Isabelle
 
   /* structured edits */
 
+  def indent_enabled(buffer: JEditBuffer, option: String): Boolean =
+    indent_rule(JEdit_Lib.buffer_mode(buffer)).isDefined &&
+    buffer.getStringProperty("autoIndent") == "full" &&
+    PIDE.options.bool(option)
+
+  def indent_input(text_area: TextArea)
+  {
+    val buffer = text_area.getBuffer
+    val line = text_area.getCaretLine
+    val caret = text_area.getCaretPosition
+
+    if (text_area.isEditable && indent_enabled(buffer, "jedit_indent_input")) {
+      buffer_syntax(buffer) match {
+        case Some(syntax) =>
+          val nav = new Text_Structure.Navigator(syntax, buffer, true)
+          nav.iterator(line, 1).toStream.headOption match {
+            case Some(Text.Info(range, tok))
+            if range.stop == caret && syntax.keywords.is_indent_command(tok) =>
+              buffer.indentLine(line, true)
+            case _ =>
+          }
+        case None =>
+      }
+    }
+  }
+
   def newline(text_area: TextArea)
   {
     if (!text_area.isEditable()) text_area.getToolkit().beep()
     else {
       val buffer = text_area.getBuffer
+      val line = text_area.getCaretLine
+      val caret = text_area.getCaretPosition
+
       def nl { text_area.userInput('\n') }
 
-      if (indent_rule(JEdit_Lib.buffer_mode(buffer)).isDefined &&
-          buffer.getStringProperty("autoIndent") == "full" &&
-          PIDE.options.bool("jedit_indent_newline"))
-      {
-        Isabelle.buffer_syntax(buffer) match {
-          case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+      if (indent_enabled(buffer, "jedit_indent_newline")) {
+        buffer_syntax(buffer) match {
+          case Some(syntax) =>
             val keywords = syntax.keywords
 
-            val caret = text_area.getCaretPosition
-            val line = text_area.getCaretLine
-            val line_range = JEdit_Lib.line_range(buffer, line)
+            val (toks1, toks2) = Text_Structure.split_line_content(buffer, keywords, line, caret)
 
-            def line_content(start: Text.Offset, stop: Text.Offset, context: Scan.Line_Context)
-              : (List[Token], Scan.Line_Context) =
-            {
-              val text = JEdit_Lib.try_get_text(buffer, Text.Range(start, stop)).getOrElse("")
-              val (toks, context1) = Token.explode_line(keywords, text, context)
-              val toks1 = toks.filterNot(_.is_space)
-              (toks1, context1)
-            }
+            if (toks1.isEmpty) buffer.removeTrailingWhiteSpace(Array(line))
+            else if (keywords.is_indent_command(toks1.head)) buffer.indentLine(line, true)
 
-            val context0 = Token_Markup.Line_Context.prev(buffer, line).get_context
-            val (tokens1, context1) = line_content(line_range.start, caret, context0)
-            val (tokens2, _) = line_content(caret, line_range.stop, context1)
-
-            if (tokens1.nonEmpty && keywords.is_indent_command(tokens1.head))
-              buffer.indentLine(line, true)
-
-            if (tokens2.isEmpty || keywords.is_indent_command(tokens2.head))
+            if (toks2.isEmpty || keywords.is_indent_command(toks2.head))
               JEdit_Lib.buffer_edit(buffer) {
                 text_area.setSelectedText("\n")
                 if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
               }
             else nl
-          case _ => nl
+          case None => nl
         }
       }
       else nl

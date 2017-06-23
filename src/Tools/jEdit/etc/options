@@ -39,6 +39,9 @@ public option jedit_timing_threshold : real = 0.1
 
 section "Indentation"
 
+public option jedit_indent_input : bool = true
+  -- "indentation of Isabelle keywords after input (typed character or completion)"
+
 public option jedit_indent_newline : bool = true
   -- "indentation of Isabelle keywords on ENTER (action isabelle.newline)"
 

@@ -19,7 +19,7 @@ object Text_Structure
 {
   /* token navigator */
 
-  class Navigator(syntax: Outer_Syntax, buffer: Buffer, comments: Boolean)
+  class Navigator(syntax: Outer_Syntax, buffer: JEditBuffer, comments: Boolean)
   {
     val limit = PIDE.options.value.int("jedit_structure_limit") max 0
 
@@ -48,9 +48,9 @@ object Text_Structure
       actions: java.util.List[IndentAction])
     {
       Isabelle.buffer_syntax(buffer) match {
-        case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+        case Some(syntax) =>
           val keywords = syntax.keywords
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], true)
+          val nav = new Navigator(syntax, buffer, true)
 
           val indent_size = buffer.getIndentSize
 
@@ -70,8 +70,9 @@ object Text_Structure
 
           val prev_line: Int =
             Range.inclusive(current_line - 1, 0, -1).find(line =>
-              Token_Markup.Line_Context.prev(buffer, line).get_context == Scan.Finished &&
-              !Token_Markup.Line_Context.next(buffer, line).structure.improper) getOrElse -1
+              Token_Markup.Line_Context.before(buffer, line).get_context == Scan.Finished &&
+              (!Token_Markup.Line_Context.after(buffer, line).structure.improper ||
+                Token_Markup.Line_Context.after(buffer, line).structure.blank)) getOrElse -1
 
           def prev_line_command: Option[Token] =
             nav.reverse_iterator(prev_line, 1).
@@ -140,7 +141,10 @@ object Text_Structure
             else 0
 
           val indent =
-            if (Token_Markup.Line_Context.prev(buffer, current_line).get_context == Scan.Finished) {
+            if (Token_Markup.Line_Context.before(buffer, current_line).get_context != Scan.Finished)
+              line_indent(current_line)
+            else if (Token_Markup.Line_Context.after(buffer, current_line).structure.blank) 0
+            else {
               line_head(current_line) match {
                 case Some(info @ Text.Info(range, tok)) =>
                   if (tok.is_begin ||
@@ -177,13 +181,31 @@ object Text_Structure
                   }
               }
             }
-            else line_indent(current_line)
 
           actions.clear()
           actions.add(new IndentAction.AlignOffset(indent max 0))
-        case _ =>
+        case None =>
       }
     }
+  }
+
+  def line_content(buffer: JEditBuffer, keywords: Keyword.Keywords,
+    range: Text.Range, ctxt: Scan.Line_Context): (List[Token], Scan.Line_Context) =
+  {
+    val text = JEdit_Lib.try_get_text(buffer, range).getOrElse("")
+    val (toks, ctxt1) = Token.explode_line(keywords, text, ctxt)
+    val toks1 = toks.filterNot(_.is_space)
+    (toks1, ctxt1)
+  }
+
+  def split_line_content(buffer: JEditBuffer, keywords: Keyword.Keywords, line: Int, caret: Int)
+    : (List[Token], List[Token]) =
+  {
+    val line_range = JEdit_Lib.line_range(buffer, line)
+    val ctxt0 = Token_Markup.Line_Context.before(buffer, line).get_context
+    val (toks1, ctxt1) = line_content(buffer, keywords, Text.Range(line_range.start, caret), ctxt0)
+    val (toks2, _) = line_content(buffer, keywords, Text.Range(caret, line_range.stop), ctxt1)
+    (toks1, toks2)
   }
 
 
@@ -216,10 +238,10 @@ object Text_Structure
       val caret = text_area.getCaretPosition
 
       Isabelle.buffer_syntax(text_area.getBuffer) match {
-        case Some(syntax) if buffer.isInstanceOf[Buffer] =>
+        case Some(syntax) =>
           val keywords = syntax.keywords
 
-          val nav = new Navigator(syntax, buffer.asInstanceOf[Buffer], false)
+          val nav = new Navigator(syntax, buffer, false)
 
           def caret_iterator(): Iterator[Text.Info[Token]] =
             nav.iterator(caret_line).dropWhile(info => !info.range.touches(caret))
@@ -292,7 +314,7 @@ object Text_Structure
 
             case _ => None
           }
-        case _ => None
+        case None => None
       }
     }
 
