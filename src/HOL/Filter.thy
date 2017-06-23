@@ -354,6 +354,37 @@ qed
 
 end
 
+instance filter :: (type) distrib_lattice
+proof
+  fix F G H :: "'a filter"
+  show "sup F (inf G H) = inf (sup F G) (sup F H)"
+  proof (rule order.antisym)
+    show "inf (sup F G) (sup F H) \<le> sup F (inf G H)" 
+      unfolding le_filter_def eventually_sup
+    proof safe
+      fix P assume 1: "eventually P F" and 2: "eventually P (inf G H)"
+      from 2 obtain Q R 
+        where QR: "eventually Q G" "eventually R H" "\<And>x. Q x \<Longrightarrow> R x \<Longrightarrow> P x"
+        by (auto simp: eventually_inf)
+      define Q' where "Q' = (\<lambda>x. Q x \<or> P x)"
+      define R' where "R' = (\<lambda>x. R x \<or> P x)"
+      from 1 have "eventually Q' F" 
+        by (elim eventually_mono) (auto simp: Q'_def)
+      moreover from 1 have "eventually R' F" 
+        by (elim eventually_mono) (auto simp: R'_def)
+      moreover from QR(1) have "eventually Q' G" 
+        by (elim eventually_mono) (auto simp: Q'_def)
+      moreover from QR(2) have "eventually R' H" 
+        by (elim eventually_mono)(auto simp: R'_def)
+      moreover from QR have "P x" if "Q' x" "R' x" for x 
+        using that by (auto simp: Q'_def R'_def)
+      ultimately show "eventually P (inf (sup F G) (sup F H))"
+        by (auto simp: eventually_inf eventually_sup)
+    qed
+  qed (auto intro: inf.coboundedI1 inf.coboundedI2)
+qed
+
+
 lemma filter_leD:
   "F \<le> F' \<Longrightarrow> eventually P F' \<Longrightarrow> eventually P F"
   unfolding le_filter_def by simp
