@@ -187,24 +187,21 @@ object Text_Structure
   }
 
   def line_content(buffer: JEditBuffer, keywords: Keyword.Keywords,
-    range: Text.Range, context: Scan.Line_Context): (List[Token], Scan.Line_Context) =
+    range: Text.Range, ctxt: Scan.Line_Context): (List[Token], Scan.Line_Context) =
   {
     val text = JEdit_Lib.try_get_text(buffer, range).getOrElse("")
-    val (toks, context1) = Token.explode_line(keywords, text, context)
+    val (toks, ctxt1) = Token.explode_line(keywords, text, ctxt)
     val toks1 = toks.filterNot(_.is_space)
-    (toks1, context1)
+    (toks1, ctxt1)
   }
 
   def split_line_content(buffer: JEditBuffer, keywords: Keyword.Keywords, line: Int, caret: Int)
     : (List[Token], List[Token]) =
   {
     val line_range = JEdit_Lib.line_range(buffer, line)
-    val context0 = Token_Markup.Line_Context.prev(buffer, line).get_context
-
-    val (toks1, context1) =
-      line_content(buffer, keywords, Text.Range(line_range.start, caret), context0)
-    val (toks2, _) =
-      line_content(buffer, keywords, Text.Range(caret, line_range.stop), context1)
+    val ctxt0 = Token_Markup.Line_Context.prev(buffer, line).get_context
+    val (toks1, ctxt1) = line_content(buffer, keywords, Text.Range(line_range.start, caret), ctxt0)
+    val (toks2, _) = line_content(buffer, keywords, Text.Range(caret, line_range.stop), ctxt1)
     (toks1, toks2)
   }
 
