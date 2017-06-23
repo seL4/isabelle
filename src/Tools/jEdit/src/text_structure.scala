@@ -70,8 +70,8 @@ object Text_Structure
 
           val prev_line: Int =
             Range.inclusive(current_line - 1, 0, -1).find(line =>
-              Token_Markup.Line_Context.prev(buffer, line).get_context == Scan.Finished &&
-              !Token_Markup.Line_Context.next(buffer, line).structure.improper) getOrElse -1
+              Token_Markup.Line_Context.before(buffer, line).get_context == Scan.Finished &&
+              !Token_Markup.Line_Context.after(buffer, line).structure.improper) getOrElse -1
 
           def prev_line_command: Option[Token] =
             nav.reverse_iterator(prev_line, 1).
@@ -140,7 +140,8 @@ object Text_Structure
             else 0
 
           val indent =
-            if (Token_Markup.Line_Context.prev(buffer, current_line).get_context == Scan.Finished) {
+            if (Token_Markup.Line_Context.before(buffer, current_line).get_context == Scan.Finished)
+            {
               line_head(current_line) match {
                 case Some(info @ Text.Info(range, tok)) =>
                   if (tok.is_begin ||
@@ -199,7 +200,7 @@ object Text_Structure
     : (List[Token], List[Token]) =
   {
     val line_range = JEdit_Lib.line_range(buffer, line)
-    val ctxt0 = Token_Markup.Line_Context.prev(buffer, line).get_context
+    val ctxt0 = Token_Markup.Line_Context.before(buffer, line).get_context
     val (toks1, ctxt1) = line_content(buffer, keywords, Text.Range(line_range.start, caret), ctxt0)
     val (toks2, _) = line_content(buffer, keywords, Text.Range(caret, line_range.stop), ctxt1)
     (toks1, toks2)
