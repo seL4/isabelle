@@ -677,7 +677,6 @@ and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_a
 and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val undefineds = Code.undefineds thy;
     fun arg_types num_args ty = fst (chop num_args (binder_types ty));
     val tys = arg_types num_args (snd c_ty);
     val ty = nth tys t_pos;
@@ -702,7 +701,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
       end;
     fun collapse_clause vs_map ts body =
       case body
-       of IConst { sym = Constant c, ... } => if member (op =) undefineds c
+       of IConst { sym = Constant c, ... } => if Code.is_undefined thy c
             then []
             else [(ts, body)]
         | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
@@ -742,7 +741,7 @@ and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_
     #>> (fn (((t, constrs), ty), ts) =>
       casify constrs ty t ts)
   end
-and translate_app_case ctxt algbr eqngr permissive some_thm (case_scheme as (num_args, _)) ((c, ty), ts) =
+and translate_app_case ctxt algbr eqngr permissive some_thm (case_schema as (num_args, _)) ((c, ty), ts) =
   if length ts < num_args then
     let
       val k = length ts;
@@ -751,18 +750,18 @@ and translate_app_case ctxt algbr eqngr permissive some_thm (case_scheme as (num
       val vs = Name.invent_names names "a" tys;
     in
       fold_map (translate_typ ctxt algbr eqngr permissive) tys
-      ##>> translate_case ctxt algbr eqngr permissive some_thm case_scheme ((c, ty), ts @ map Free vs)
+      ##>> translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), ts @ map Free vs)
       #>> (fn (tys, t) => map2 (fn (v, _) => pair (SOME v)) vs tys `|==> t)
     end
   else if length ts > num_args then
-    translate_case ctxt algbr eqngr permissive some_thm case_scheme ((c, ty), take num_args ts)
+    translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), take num_args ts)
     ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) (drop num_args ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
-    translate_case ctxt algbr eqngr permissive some_thm case_scheme ((c, ty), ts)
+    translate_case ctxt algbr eqngr permissive some_thm case_schema ((c, ty), ts)
 and translate_app ctxt algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), some_abs) =
-  case Code.get_case_scheme (Proof_Context.theory_of ctxt) c
-   of SOME case_scheme => translate_app_case ctxt algbr eqngr permissive some_thm case_scheme c_ty_ts
+  case Code.get_case_schema (Proof_Context.theory_of ctxt) c
+   of SOME case_schema => translate_app_case ctxt algbr eqngr permissive some_thm case_schema c_ty_ts
     | NONE => translate_app_const ctxt algbr eqngr permissive some_thm (c_ty_ts, some_abs)
 and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
   fold_map (ensure_class ctxt algbr eqngr permissive) (proj_sort sort)

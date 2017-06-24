@@ -60,9 +60,9 @@ sig
   val is_abstr: theory -> string -> bool
   val get_cert: Proof.context -> ((thm * bool) list -> (thm * bool) list option) list
     -> string -> cert
-  val get_case_scheme: theory -> string -> (int * (int * string option list)) option
+  val get_case_schema: theory -> string -> (int * (int * string option list)) option
   val get_case_cong: theory -> string -> thm option
-  val undefineds: theory -> string list
+  val is_undefined: theory -> string -> bool
   val print_codesetup: theory -> unit
 end;
 
@@ -187,6 +187,12 @@ fun associated_abstype (Abstr ((_, tyco), _)) = SOME tyco
   | associated_abstype _ = NONE;
 
 
+(* cases *)
+
+datatype case_spec = Case of ((int * (int * string option list)) * thm)
+  | Undefined;
+
+
 (* executable code data *)
 
 datatype spec = Spec of {
@@ -195,22 +201,21 @@ datatype spec = Spec of {
     (*with explicit history*),
   functions: ((bool * fun_spec) * (serial * fun_spec) list) Symtab.table
     (*with explicit history*),
-  cases: ((int * (int * string option list)) * thm) Symtab.table,
-  undefineds: unit Symtab.table
+  cases: case_spec Symtab.table
 };
 
-fun make_spec (history_concluded, (functions, (types, (cases, undefineds)))) =
-  Spec { history_concluded = history_concluded, functions = functions, types = types,
-    cases = cases, undefineds = undefineds };
+fun make_spec (history_concluded, (types, (functions, cases))) =
+  Spec { history_concluded = history_concluded, types = types,
+    functions = functions,  cases = cases };
 val empty_spec =
-  make_spec (false, (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty))));
+  make_spec (false, (Symtab.empty, (Symtab.empty, Symtab.empty)));
 fun map_spec f (Spec { history_concluded = history_concluded,
-  functions = functions, types = types, cases = cases, undefineds = undefineds }) =
-  make_spec (f (history_concluded, (functions, (types, (cases, undefineds)))));
-fun merge_spec (Spec { history_concluded = _, functions = functions1,
-    types = types1, cases = cases1, undefineds = undefineds1 },
-  Spec { history_concluded = _, functions = functions2,
-    types = types2, cases = cases2, undefineds = undefineds2 }) =
+  types = types, functions = functions, cases = cases }) =
+  make_spec (f (history_concluded, (types, (functions, cases))));
+fun merge_spec (Spec { history_concluded = _, types = types1,
+    functions = functions1, cases = cases1 },
+  Spec { history_concluded = _, types = types2,
+    functions = functions2, cases = cases2 }) =
   let
     val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
     val case_consts_of' = (maps case_consts_of o map (snd o snd o hd o snd) o Symtab.dest);
@@ -230,19 +235,16 @@ fun merge_spec (Spec { history_concluded = _, functions = functions1,
       |> fold (fn c => Symtab.map_entry c (apfst (K (true, default_fun_spec)))) all_constructors;
     val cases = Symtab.merge (K true) (cases1, cases2)
       |> fold Symtab.delete invalidated_case_consts;
-    val undefineds = Symtab.merge (K true) (undefineds1, undefineds2);
-  in make_spec (false, (functions, (types, (cases, undefineds)))) end;
+  in make_spec (false, (types, (functions, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
 fun types_of (Spec { types, ... }) = types;
 fun functions_of (Spec { functions, ... }) = functions;
 fun cases_of (Spec { cases, ... }) = cases;
-fun undefineds_of (Spec { undefineds, ... }) = undefineds;
 val map_history_concluded = map_spec o apfst;
-val map_functions = map_spec o apsnd o apfst;
-val map_types = map_spec o apsnd o apsnd o apfst;
-val map_cases = map_spec o apsnd o apsnd o apsnd o apfst;
-val map_undefineds = map_spec o apsnd o apsnd o apsnd o apsnd;
+val map_types = map_spec o apsnd o apfst;
+val map_functions = map_spec o apsnd o apsnd o apfst;
+val map_cases = map_spec o apsnd o apsnd o apsnd;
 
 
 (* data slots dependent on executable code *)
@@ -1003,12 +1005,17 @@ fun case_cert thm = raw_case_cert thm
 
 end;
 
-fun get_case_scheme thy =
-  Option.map fst o (Symtab.lookup o cases_of o spec_of) thy;
-fun get_case_cong thy =
-  Option.map snd o (Symtab.lookup o cases_of o spec_of) thy;
+fun get_case_schema thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
+    SOME (Case (schema, _)) => SOME schema
+  | _ => NONE;
 
-val undefineds = Symtab.keys o undefineds_of o spec_of;
+fun get_case_cong thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
+    SOME (Case (_, cong)) => SOME cong
+  | _ => NONE;
+
+fun is_undefined thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
+    SOME Undefined => true
+  | _ => false;
 
 
 (* diagnostic *)
@@ -1044,10 +1051,10 @@ fun print_codesetup thy =
       );
     fun pretty_caseparam NONE = "<ignored>"
       | pretty_caseparam (SOME c) = string_of_const thy c
-    fun pretty_case (const, ((_, (_, [])), _)) = Pretty.str (string_of_const thy const)
-      | pretty_case (const, ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
+    fun pretty_case (const, Case ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
           Pretty.str (string_of_const thy const), Pretty.str "with",
-          (Pretty.block o Pretty.commas o map (Pretty.str o pretty_caseparam)) cos];
+          (Pretty.block o Pretty.commas o map (Pretty.str o pretty_caseparam)) cos]
+      | pretty_case (const, _) = Pretty.str (string_of_const thy const)
     val functions = functions_of spec
       |> Symtab.dest
       |> (map o apsnd) (snd o fst)
@@ -1059,7 +1066,6 @@ fun print_codesetup thy =
           ((tyco, vs), constructors_of spec))
       |> sort (string_ord o apply2 (fst o fst));
     val cases = Symtab.dest ((cases_of o spec_of) thy);
-    val undefineds = Symtab.keys ((undefineds_of o spec_of) thy);
   in
     Pretty.writeln_chunks [
       Pretty.block (
@@ -1073,10 +1079,6 @@ fun print_codesetup thy =
       Pretty.block (
         Pretty.str "cases:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_case) cases
-      ),
-      Pretty.block (
-        Pretty.str "undefined:" :: Pretty.fbrk
-        :: (Pretty.commas o map (Pretty.str o string_of_const thy)) undefineds
       )
     ]
   end;
@@ -1229,7 +1231,7 @@ fun add_case thm thy =
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
     val entry = (1 + Int.max (1, length cos), (k, cos));
     fun register_case cong = map_cases
-      (Symtab.update (case_const, (entry, cong)));
+      (Symtab.update (case_const, Case (entry, cong)));
     fun register_for_constructors (Constructors (cos', cases)) =
          Constructors (cos',
            if exists (fn (co, _) => member (op =) cos (SOME co)) cos'
@@ -1244,8 +1246,8 @@ fun add_case thm thy =
     |-> (fn cong => map_spec_purge (register_case cong #> register_type))
   end;
 
-fun add_undefined c thy =
-  (map_spec_purge o map_undefineds) (Symtab.update (c, ())) thy;
+fun add_undefined c =
+  (map_spec_purge o map_cases) (Symtab.update (c, Undefined));
 
 
 (* types *)
@@ -1266,9 +1268,9 @@ fun register_type (tyco, vs_spec) thy =
             then insert (op =) c else I)
             ((functions_of o spec_of) thy) [old_proj];
     fun drop_outdated_cases cases = fold Symtab.delete_safe
-      (Symtab.fold (fn (c, ((_, (_, cos)), _)) =>
+      (Symtab.fold (fn (c, Case ((_, (_, cos)), _)) =>
         if exists (member (op =) old_constrs) (map_filter I cos)
-          then insert (op =) c else I) cases []) cases;
+          then insert (op =) c else I | _ => I) cases []) cases;
   in
     thy
     |> fold del_eqns (outdated_funs1 @ outdated_funs2)
