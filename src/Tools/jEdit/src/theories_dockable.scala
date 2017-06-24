@@ -179,7 +179,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private class Node_Renderer extends ListView.Renderer[Document.Node.Name]
   {
-    def componentFor(list: ListView[_], isSelected: Boolean,
+    def componentFor(list: ListView[_ <: isabelle.Document.Node.Name], isSelected: Boolean,
       focused: Boolean, name: Document.Node.Name, index: Int): Component =
     {
       val component = Node_Renderer_Component
