@@ -367,7 +367,9 @@ object Completion_Popup
           }
         }
 
-        if (!special) Isabelle.indent_input(text_area)
+        val selection = text_area.getSelection()
+        if (!special && (selection == null || selection.length == 0))
+          Isabelle.indent_input(text_area)
       }
     }
 
