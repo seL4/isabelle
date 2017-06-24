@@ -432,8 +432,10 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
       grouped 100 Par_List.map
         (Element.transform_ctxt morph' o Notes o #1) (#notes (the_locale thy name));
   in
-    fold_rev (fn elem => fn res => activ_elem (Element.transform_ctxt (transfer res) elem) res)
-      notes' input
+    input
+    |> fold_rev
+        (fn elem => fn res => activ_elem (Element.transform_ctxt (transfer res) elem) res) notes'
+      handle ERROR msg => activate_err msg (name, morph) context
   end;
 
 fun activate_all name thy activ_elem transfer (marked, input) =
