@@ -1115,6 +1115,56 @@ proof -
   qed
 qed
 
+theorem Knaster_Tarski_idem_inf_eq:
+  assumes "weak_complete_lattice L" "isotone L L f" "idempotent L f" "f \<in> carrier L \<rightarrow> carrier L"
+          "A \<subseteq> fps L f"
+  shows "\<Sqinter>\<^bsub>fpl L f\<^esub> A .=\<^bsub>L\<^esub> f (\<Sqinter>\<^bsub>L\<^esub> A)"
+proof -
+  interpret L: weak_complete_lattice "L"
+    by (simp_all add: assms)
+  interpret L': weak_complete_lattice "fpl L f"
+    by (rule Knaster_Tarski, simp_all add: assms)
+  have FA: "fps L f \<subseteq> carrier L"
+    by (auto simp add: fps_def)
+  have A: "A \<subseteq> carrier L"
+    using FA assms(5) by blast
+  have fA: "f (\<Sqinter>\<^bsub>L\<^esub>A) \<in> fps L f"
+    by (metis (no_types, lifting) A L.idempotent L.inf_closed PiE assms(3) assms(4) fps_def mem_Collect_eq)
+  have infA: "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<in> fps L f"
+    by (rule L'.inf_closed[simplified], simp add: assms)
+  show ?thesis
+  proof (rule L.weak_le_antisym)
+    show ic: "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<in> carrier L"
+      using FA infA by blast
+    show fc: "f (\<Sqinter>\<^bsub>L\<^esub>A) \<in> carrier L"
+      using FA fA by blast
+    show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>fpl L f\<^esub>A"
+    proof -
+      have "\<And>x. x \<in> A \<Longrightarrow> f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> x"
+        by (meson A FA L.inf_closed L.inf_lower L.le_trans L.weak_sup_post_fixed_point assms(2) assms(4) assms(5) fA subsetCE)
+      hence "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>fpl L f\<^esub> \<Sqinter>\<^bsub>fpl L f\<^esub>A"
+        by (rule_tac L'.inf_greatest, simp_all add: fA assms(3,5))
+      thus ?thesis
+        by (simp)
+    qed
+    show "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f (\<Sqinter>\<^bsub>L\<^esub>A)"
+    proof -
+      have "\<And>x. x \<in> A \<Longrightarrow> \<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>fpl L f\<^esub> x"
+        by (rule L'.inf_lower, simp_all add: assms)
+      hence "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> (\<Sqinter>\<^bsub>L\<^esub>A)"
+        apply (rule_tac L.inf_greatest, simp_all add: A)
+        using FA infA apply blast
+        done
+      hence 1:"f(\<Sqinter>\<^bsub>fpl L f\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> f(\<Sqinter>\<^bsub>L\<^esub>A)"
+        by (metis (no_types, lifting) A FA L.inf_closed assms(2) infA subsetCE use_iso1)
+      have 2:"\<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f (\<Sqinter>\<^bsub>fpl L f\<^esub>A)"
+        by (metis (no_types, lifting) FA L.sym L.use_fps L.weak_complete_lattice_axioms PiE assms(4) infA subsetCE weak_complete_lattice_def weak_partial_order.weak_refl)
+        
+      show ?thesis  
+        using FA fA infA by (auto intro!: L.le_trans[OF 2 1] ic fc, metis FA PiE assms(4) subsetCE)
+    qed
+  qed
+qed  
 
 subsection \<open>Examples\<close>
 
