@@ -149,24 +149,19 @@ lemma int_of_integer_sub [simp]:
   "int_of_integer (Num.sub k l) = Num.sub k l"
   by transfer rule
 
-lift_definition integer_of_num :: "num \<Rightarrow> integer"
-  is "numeral :: num \<Rightarrow> int"
-  .
+definition integer_of_num :: "num \<Rightarrow> integer"
+  where [simp]: "integer_of_num = numeral"
 
 lemma integer_of_num [code]:
-  "integer_of_num num.One = 1"
-  "integer_of_num (num.Bit0 n) = (let k = integer_of_num n in k + k)"
-  "integer_of_num (num.Bit1 n) = (let k = integer_of_num n in k + k + 1)"
-  by (transfer, simp only: numeral.simps Let_def)+
-
-lemma numeral_unfold_integer_of_num:
-  "numeral = integer_of_num"
-  by (simp add: integer_of_num_def map_fun_def fun_eq_iff)
+  "integer_of_num Num.One = 1"
+  "integer_of_num (Num.Bit0 n) = (let k = integer_of_num n in k + k)"
+  "integer_of_num (Num.Bit1 n) = (let k = integer_of_num n in k + k + 1)"
+  by (simp_all only: integer_of_num_def numeral.simps Let_def)
 
 lemma integer_of_num_triv:
   "integer_of_num Num.One = 1"
   "integer_of_num (Num.Bit0 Num.One) = 2"
-  by (transfer, simp)+
+  by simp_all
 
 instantiation integer :: "{linordered_idom, equal}"
 begin
@@ -301,7 +296,7 @@ qed (transfer,
 end
 
 declare divmod_algorithm_code [where ?'a = integer,
-  unfolded numeral_unfold_integer_of_num, unfolded integer_of_num_triv, 
+  folded integer_of_num_def, unfolded integer_of_num_triv, 
   code]
 
 lemma integer_of_nat_0: "integer_of_nat 0 = 0"

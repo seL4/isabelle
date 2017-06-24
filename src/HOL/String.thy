@@ -160,35 +160,10 @@ lemma integer_of_char_Char [simp]:
   by (simp only: integer_of_char_def integer_of_nat_def comp_apply nat_of_char_Char map_fun_def
     id_apply zmod_int modulo_integer.abs_eq [symmetric]) simp
 
-lemma less_256_integer_of_char_Char:
-  assumes "numeral k < (256 :: integer)"
-  shows "integer_of_char (Char k) = numeral k"
-proof -
-  have "numeral k mod 256 = (numeral k :: integer)"
-    by (rule semiring_numeral_div_class.mod_less) (insert assms, simp_all)
-  then show ?thesis using integer_of_char_Char [of k]
-    by (simp only:)
-qed
-
-setup \<open>
-let
-  val chars = map_range (Thm.cterm_of @{context} o HOLogic.mk_numeral o curry (op +) 1) 255;
-  val simpset =
-    put_simpset HOL_ss @{context}
-      addsimps @{thms numeral_less_iff less_num_simps};
-  fun mk_code_eqn ct =
-    Thm.instantiate' [] [SOME ct] @{thm less_256_integer_of_char_Char}
-    |> full_simplify simpset;
-  val code_eqns = map mk_code_eqn chars;
-in
-  Global_Theory.note_thmss ""
-    [((@{binding integer_of_char_simps}, []), [(code_eqns, [])])]
-  #> snd
-end
-\<close>
-
-declare integer_of_char_simps [code]
-
+lemma integer_of_char_Char_code [code]:
+  "integer_of_char (Char k) = integer_of_num k mod 256"
+  by simp
+  
 lemma nat_of_char_code [code]:
   "nat_of_char = nat_of_integer \<circ> integer_of_char"
   by (simp add: integer_of_char_def fun_eq_iff)

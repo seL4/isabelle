@@ -59,7 +59,7 @@ end
 
 lemma [code abstract]:
   "integer_of_nat (nat_of_num n) = integer_of_num n"
-  by transfer (simp add: nat_of_num_numeral)
+  by (simp add: nat_of_num_numeral integer_of_nat_numeral)
 
 lemma [code abstract]:
   "integer_of_nat 0 = 0"
