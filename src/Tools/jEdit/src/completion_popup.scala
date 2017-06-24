@@ -348,12 +348,11 @@ object Completion_Popup
       GUI_Thread.require {}
 
       if (!evt.isConsumed) {
-        val backspace = evt.getKeyChar == '\b'
         val special = JEdit_Lib.special_key(evt)
 
         if (PIDE.options.bool("jedit_completion")) {
           dismissed()
-          if (!backspace) {
+          if (evt.getKeyChar != '\b') {
             val immediate = PIDE.options.bool("jedit_completion_immediate")
             if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
               input_delay.revoke()
@@ -368,7 +367,7 @@ object Completion_Popup
           }
         }
 
-        if (!backspace && !special) Isabelle.indent_input(text_area)
+        if (!special) Isabelle.indent_input(text_area)
       }
     }
 
