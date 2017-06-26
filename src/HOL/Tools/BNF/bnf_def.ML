@@ -1230,10 +1230,14 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
     val (bnf_b, key) =
       if Binding.is_empty bnf_b then
         (case T_rhs of
-          Type (C, Ts) => if forall (can dest_TFree) Ts
-            then (Binding.qualified_name C, C) else err T_rhs
+          Type (C, Ts) =>
+          if forall (can dest_TFree) Ts andalso not (has_duplicates (op =) Ts) then
+            (Binding.qualified_name C, C)
+          else
+            err T_rhs
         | T => err T)
-      else (bnf_b, Local_Theory.full_name no_defs_lthy bnf_b);
+      else
+        (bnf_b, Local_Theory.full_name no_defs_lthy bnf_b);
 
     val (((alphas, betas, deads, Calpha),
      (bnf_map, bnf_sets, bnf_bd, bnf_wits, bnf_rel, bnf_pred),

@@ -82,7 +82,7 @@ definition vimage2p where
   "vimage2p f g R = (\<lambda>x y. R (f x) (g y))"
 
 lemma collect_comp: "collect F \<circ> g = collect ((\<lambda>f. f \<circ> g) ` F)"
-  by (rule ext) (auto simp only: comp_apply collect_def)
+  by (rule ext) (simp add: collect_def)
 
 definition convol ("\<langle>(_,/ _)\<rangle>") where
   "\<langle>f, g\<rangle> \<equiv> \<lambda>a. (f a, g a)"
