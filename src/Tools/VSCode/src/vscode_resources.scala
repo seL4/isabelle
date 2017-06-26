@@ -91,7 +91,7 @@ class VSCode_Resources(
   def node_file(name: Document.Node.Name): JFile = new JFile(name.node)
 
   def node_name(file: JFile): Document.Node.Name =
-    session_base.known.get_file(file) getOrElse {
+    session_base.known.get_file(file, bootstrap = true) getOrElse {
       val node = file.getPath
       theory_name(Sessions.DRAFT, Thy_Header.theory_name(node)) match {
         case (true, theory) => Document.Node.Name.loaded_theory(theory)
