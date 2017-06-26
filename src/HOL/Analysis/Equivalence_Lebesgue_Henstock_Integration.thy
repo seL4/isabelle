@@ -1673,7 +1673,7 @@ proof -
         assume "(x, k) \<in> p'"
         then have "\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l"
           unfolding p'_def by auto
-        then guess i l by (elim exE) note il=conjunctD4[OF this]
+        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "k = i \<inter> l" by blast
         show "x \<in> k" and "k \<subseteq> cbox a b"
           using p'(2-3)[OF il(3)] il by auto
         show "\<exists>a b. k = cbox a b"
@@ -1687,12 +1687,12 @@ proof -
         assume "(x1, k1) \<in> p'"
         then have "\<exists>i l. x1 \<in> i \<and> i \<in> d \<and> (x1, l) \<in> p \<and> k1 = i \<inter> l"
           unfolding p'_def by auto
-        then guess i1 l1 by (elim exE) note il1=conjunctD4[OF this]
+        then obtain i1 l1 where il1: "x1 \<in> i1" "i1 \<in> d" "(x1, l1) \<in> p" "k1 = i1 \<inter> l1" by blast
         fix x2 k2
         assume "(x2,k2)\<in>p'"
         then have "\<exists>i l. x2 \<in> i \<and> i \<in> d \<and> (x2, l) \<in> p \<and> k2 = i \<inter> l"
           unfolding p'_def by auto
-        then guess i2 l2 by (elim exE) note il2=conjunctD4[OF this]
+        then obtain i2 l2 where il2: "x2 \<in> i2" "i2 \<in> d" "(x2, l2) \<in> p" "k2 = i2 \<inter> l2" by blast
         assume "(x1, k1) \<noteq> (x2, k2)"
         then have "interior i1 \<inter> interior i2 = {} \<or> interior l1 \<inter> interior l2 = {}"
           using d'(5)[OF il1(2) il2(2)] p'(5)[OF il1(3) il2(3)]
@@ -1768,7 +1768,7 @@ proof -
         assume "(x, k) \<in> p'"
         then have "\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l"
           unfolding p'_def by auto
-        then guess i l by (elim exE) note il=conjunctD4[OF this]
+        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "k = i \<inter> l" by blast
         then show "\<exists>y i l. (x, k) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
           apply (rule_tac x=x in exI)
           apply (rule_tac x=i in exI)

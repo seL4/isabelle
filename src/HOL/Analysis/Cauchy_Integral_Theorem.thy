@@ -2224,8 +2224,8 @@ proof -
     have "\<exists>x. \<forall>n. x \<in> convex hull {fa n, fb n, fc n}"
       apply (rule bounded_closed_nest)
       apply (simp_all add: compact_imp_closed finite_imp_compact_convex_hull finite_imp_bounded_convex_hull)
-      apply (rule allI)
-      apply (rule transitive_stepwise_le)
+      apply (intro allI impI)
+      apply (erule transitive_stepwise_le)
       apply (auto simp: conv_le)
       done
     then obtain x where x: "\<And>n. x \<in> convex hull {fa n, fb n, fc n}" by auto

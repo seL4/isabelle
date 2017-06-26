@@ -87,23 +87,13 @@ proof -
     by (simp add: field_simps)
 qed
 
-lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
-lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
-lemma conjunctD4: assumes "a \<and> b \<and> c \<and> d" shows a b c d using assms by auto
-
-lemma cond_cases: "(P \<Longrightarrow> Q x) \<Longrightarrow> (\<not> P \<Longrightarrow> Q y) \<Longrightarrow> Q (if P then x else y)"
-  by auto
-
 declare norm_triangle_ineq4[intro]
 
 lemma transitive_stepwise_le:
-  assumes "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" and "\<And>n. R n (Suc n)"
-  shows "\<forall>n\<ge>m. R m n"
-proof (intro allI impI)
-  show "m \<le> n \<Longrightarrow> R m n" for n
-    by (induction rule: dec_induct)
-       (use assms in blast)+
-qed
+  assumes "m \<le> n" "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" and "\<And>n. R n (Suc n)"
+  shows "R m n"
+using \<open>m \<le> n\<close>  
+  by (induction rule: dec_induct) (use assms in blast)+
 
 subsection \<open>Some useful lemmas about intervals.\<close>
 
@@ -367,14 +357,13 @@ proof
     unfolding division_of_def cbox_sing by auto
 next
   assume ?l
-  note * = conjunctD4[OF this[unfolded division_of_def cbox_sing]]
   {
     fix x
     assume x: "x \<in> s" have "x = {a}"
-      using *(2)[rule_format,OF x] by auto
+      by (metis \<open>s division_of cbox a a\<close> cbox_sing division_ofD(2) division_ofD(3) subset_singletonD x)
   }
   moreover have "s \<noteq> {}"
-    using *(4) by auto
+    using \<open>s division_of cbox a a\<close> by auto
   ultimately show ?r
     unfolding cbox_sing by auto
 qed
@@ -2235,7 +2224,7 @@ proof -
     apply blast
     done
   define AB A B where ab_def: "AB n = (f ^^ n) (a,b)" "A n = fst(AB n)" "B n = snd(AB n)" for n
-  have "A 0 = a" "B 0 = b" "\<And>n. \<not> P (cbox (A(Suc n)) (B(Suc n))) \<and>
+  have [simp]: "A 0 = a" "B 0 = b" and ABRAW: "\<And>n. \<not> P (cbox (A(Suc n)) (B(Suc n))) \<and>
     (\<forall>i\<in>Basis. A(n)\<bullet>i \<le> A(Suc n)\<bullet>i \<and> A(Suc n)\<bullet>i \<le> B(Suc n)\<bullet>i \<and> B(Suc n)\<bullet>i \<le> B(n)\<bullet>i \<and>
     2 * (B(Suc n)\<bullet>i - A(Suc n)\<bullet>i) \<le> B(n)\<bullet>i - A(n)\<bullet>i)" (is "\<And>n. ?P n")
   proof -
@@ -2261,8 +2250,12 @@ proof -
         done
     qed
   qed
-  note AB = this(1-2) conjunctD2[OF this(3),rule_format]
-
+  then have AB: "A(n)\<bullet>i \<le> A(Suc n)\<bullet>i" "A(Suc n)\<bullet>i \<le> B(Suc n)\<bullet>i" 
+                 "B(Suc n)\<bullet>i \<le> B(n)\<bullet>i" "2 * (B(Suc n)\<bullet>i - A(Suc n)\<bullet>i) \<le> B(n)\<bullet>i - A(n)\<bullet>i" 
+                if "i\<in>Basis" for i n
+    using that by blast+
+  have notPAB: "\<not> P (cbox (A(Suc n)) (B(Suc n)))" for n
+    using ABRAW by blast
   have interv: "\<exists>n. \<forall>x\<in>cbox (A n) (B n). \<forall>y\<in>cbox (A n) (B n). dist x y < e"
     if e: "0 < e" for e
   proof -
@@ -2293,6 +2286,7 @@ proof -
         next
           case (Suc n)
           have "B (Suc n) \<bullet> i - A (Suc n) \<bullet> i \<le> (B n \<bullet> i - A n \<bullet> i) / 2"
+            using AB(3) that
             using AB(4)[of i n] using i by auto
           also have "\<dots> \<le> (b \<bullet> i - a \<bullet> i) / 2 ^ Suc n"
             using Suc by (auto simp add: field_simps)
@@ -2310,31 +2304,38 @@ proof -
     proof (induction rule: inc_induct)
       case (step i)
       show ?case
-        using AB(4) by (intro order_trans[OF step.IH] subset_box_imp) auto
+        using AB by (intro order_trans[OF step.IH] subset_box_imp) auto
     qed simp
   } note ABsubset = this
   have "\<exists>a. \<forall>n. a\<in> cbox (A n) (B n)"
-    by (rule decreasing_closed_nest[rule_format,OF closed_cbox _ ABsubset interv])
-      (metis nat.exhaust AB(1-3) assms(1,3))
+  proof (rule decreasing_closed_nest)
+    show "\<forall>n. closed (cbox (A n) (B n))"
+      by (simp add: closed_cbox)
+    show "\<forall>n. cbox (A n) (B n) \<noteq> {}"
+      by (meson AB dual_order.trans interval_not_empty)
+  qed (use ABsubset interv in auto)
   then obtain x0 where x0: "\<And>n. x0 \<in> cbox (A n) (B n)"
     by blast
   show thesis
   proof (rule that[rule_format, of x0])
     show "x0\<in>cbox a b"
-      using x0[of 0] unfolding AB .
+      using \<open>A 0 = a\<close> \<open>B 0 = b\<close> x0 by blast
     fix e :: real
     assume "e > 0"
     from interv[OF this] obtain n
       where n: "\<forall>x\<in>cbox (A n) (B n). \<forall>y\<in>cbox (A n) (B n). dist x y < e" ..
     have "\<not> P (cbox (A n) (B n))"
-      apply (cases "0 < n")
-      using AB(3)[of "n - 1"] assms(3) AB(1-2)
-      apply auto
-      done
+    proof (cases "0 < n")
+      case True then show ?thesis 
+        by (metis Suc_pred' notPAB) 
+    next
+      case False then show ?thesis
+        using \<open>A 0 = a\<close> \<open>B 0 = b\<close> \<open>\<not> P (cbox a b)\<close> by blast
+    qed
     moreover have "cbox (A n) (B n) \<subseteq> ball x0 e"
       using n using x0[of n] by auto
     moreover have "cbox (A n) (B n) \<subseteq> cbox a b"
-      unfolding AB(1-2)[symmetric] by (rule ABsubset) auto
+      using ABsubset \<open>A 0 = a\<close> \<open>B 0 = b\<close> by blast
     ultimately show "\<exists>c d. x0 \<in> cbox c d \<and> cbox c d \<subseteq> ball x0 e \<and> cbox c d \<subseteq> cbox a b \<and> \<not> P (cbox c d)"
       apply (rule_tac x="A n" in exI)
       apply (rule_tac x="B n" in exI)
@@ -2434,7 +2435,11 @@ proof -
     case (insert xk p)
     guess x k using surj_pair[of xk] by (elim exE) note xk=this
     note tagged_partial_division_subset[OF insert(4) subset_insertI]
-    from insert(3)[OF this insert(5)] guess q1 .. note q1 = conjunctD3[OF this]
+    from insert(3)[OF this insert(5)] 
+    obtain q1 where q1: "q1 tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> p}"
+                and "d fine q1"
+                and q1I: "\<And>x k. \<lbrakk>(x, k)\<in>p;  k \<subseteq> d x\<rbrakk> \<Longrightarrow> (x, k) \<in> q1"
+      by (force simp add: )
     have *: "\<Union>{l. \<exists>y. (y,l) \<in> insert xk p} = k \<union> \<Union>{l. \<exists>y. (y,l) \<in> p}"
       unfolding xk by auto
     note p = tagged_partial_division_ofD[OF insert(4)]
@@ -2479,19 +2484,7 @@ proof -
         apply rule
         apply (rule fine_Un)
         apply (subst fine_def)
-        defer
-        apply (rule q1)
-        unfolding Ball_def split_paired_All split_conv
-        apply rule
-        apply rule
-        apply rule
-        apply rule
-        apply (erule insertE)
-        apply (simp add: uv xk)
-        apply (rule UnI2)
-        apply (drule q1(3)[rule_format])
-        unfolding xk uv
-        apply auto
+         apply (auto simp add:  \<open>d fine q1\<close> q1I uv xk)
         done
     next
       case False
@@ -2501,21 +2494,7 @@ proof -
         apply rule
         unfolding * uv
         apply (rule tagged_division_union q2 q1 int fine_Un)+
-        unfolding Ball_def split_paired_All split_conv
-        apply rule
-        apply (rule fine_Un)
-        apply (rule q1 q2)+
-        apply rule
-        apply rule
-        apply rule
-        apply rule
-        apply (erule insertE)
-        apply (rule UnI2)
-        apply (simp add: False uv xk)
-        apply (drule q1(3)[rule_format])
-        using False
-        unfolding xk uv
-        apply auto
+          apply (auto intro: q1 q2 fine_Un \<open>d fine q1\<close> simp add: False q1I uv xk)
         done
     qed
   qed

@@ -9,6 +9,10 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
+(*FIXME DELETE*)
+lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
+lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
+
 (* try instead structured proofs below *)
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
   \<Longrightarrow> norm(y - x) \<le> e"
@@ -1611,7 +1615,8 @@ proof -
       have "bounded (ball 0 B1 \<union> ball (0::'a) B2)"
         unfolding bounded_Un by(rule conjI bounded_ball)+
       from bounded_subset_cbox[OF this] guess a b by (elim exE)
-      note ab = conjunctD2[OF this[unfolded Un_subset_iff]]
+      then have ab: "ball 0 B1 \<subseteq> cbox a b" "ball 0 B2 \<subseteq> cbox a b"
+        by blast+
       guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
       guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
       have *: "\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False"
@@ -6267,7 +6272,7 @@ next
       apply (rule *)
       unfolding eventually_sequentially
       apply (rule_tac x=k in exI)
-      apply -
+      apply clarify
       apply (rule transitive_stepwise_le)
       using assms(2)[rule_format, OF x]
       apply auto
@@ -6290,7 +6295,8 @@ next
     apply (rule trivial_limit_sequentially)
     unfolding eventually_sequentially
     apply (rule_tac x=k in exI)
-    apply (rule transitive_stepwise_le)
+    apply clarify
+    apply (erule transitive_stepwise_le)
     prefer 3
     unfolding inner_simps real_inner_1_right
     apply (rule integral_le)
@@ -6490,11 +6496,7 @@ next
           then have "y \<in> cbox a b"
             using p'(3)[OF xk] by auto
           then have *: "\<And>m. \<forall>n\<ge>m. f m y \<le> f n y"
-            apply -
-            apply (rule transitive_stepwise_le)
-            using assms(2)
-            apply auto
-            done
+            using assms(2) by (auto intro: transitive_stepwise_le)
           show "f r y \<le> f (m x) y" and "f (m x) y \<le> f s y"
             apply (rule_tac[!] *[rule_format])
             using s[rule_format,OF xk] m(1)[of x] p'(2-3)[OF xk]
@@ -6536,10 +6538,7 @@ proof -
       apply (rule trivial_limit_sequentially)
       unfolding eventually_sequentially
       apply (rule_tac x=k in exI)
-      apply (rule transitive_stepwise_le)
-      using that(3)
-      apply auto
-      done
+      using assms(3) by (force intro: transitive_stepwise_le)
     note fg=this[rule_format]
 
     have "\<exists>i. ((\<lambda>k. integral s (f k)) \<longlongrightarrow> i) sequentially"
@@ -6553,11 +6552,7 @@ proof -
       done
     then guess i .. note i=this
     have "\<And>k. \<forall>x\<in>s. \<forall>n\<ge>k. f k x \<le> f n x"
-      apply rule
-      apply (rule transitive_stepwise_le)
-      using that(3)
-      apply auto
-      done
+      using assms(3) by (force intro: transitive_stepwise_le)
     then have i': "\<forall>k. (integral s (f k))\<bullet>1 \<le> i\<bullet>1"
       apply -
       apply rule
@@ -6682,10 +6677,7 @@ proof -
         proof (safe, goal_cases)
           case (2 x)
           have "\<And>m. x \<in> s \<Longrightarrow> \<forall>n\<ge>m. (f m x)\<bullet>1 \<le> (f n x)\<bullet>1"
-            apply (rule transitive_stepwise_le)
-            using assms(3)
-            apply auto
-            done
+            using assms(3) by (force intro: transitive_stepwise_le)
           then show ?case
             by auto
         next
@@ -6715,10 +6707,7 @@ proof -
     apply rule
     done
   have "\<And>x m. x \<in> s \<Longrightarrow> \<forall>n\<ge>m. f m x \<le> f n x"
-    apply (rule transitive_stepwise_le)
-    using assms(2)
-    apply auto
-    done
+    using assms(2) by (force intro: transitive_stepwise_le)
   note * = this[rule_format]
   have "(\<lambda>x. g x - f 0 x) integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. f (Suc k) x - f 0 x)) \<longlongrightarrow>
     integral s (\<lambda>x. g x - f 0 x)) sequentially"
