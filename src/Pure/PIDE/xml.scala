@@ -35,6 +35,7 @@ object XML
   }
   case class Text(content: String) extends Tree
 
+  def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
   def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
   def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
 

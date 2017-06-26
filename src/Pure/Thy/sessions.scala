@@ -81,8 +81,11 @@ object Sessions
         theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.platform_path(_))),
         files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.platform_path(_)))))
 
-    def get_file(file: JFile): Option[Document.Node.Name] =
-      files.getOrElse(file.getCanonicalFile, Nil).headOption
+    def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
+    {
+      val res = files.getOrElse(file.getCanonicalFile, Nil).headOption
+      if (bootstrap) res.map(_.map_theory(Thy_Header.bootstrap_name(_))) else res
+    }
   }
 
   object Base

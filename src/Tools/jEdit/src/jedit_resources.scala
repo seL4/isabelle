@@ -26,7 +26,7 @@ class JEdit_Resources(session_base: Sessions.Base) extends Resources(session_bas
   /* document node name */
 
   def known_file(path: String): Option[Document.Node.Name] =
-    JEdit_Lib.check_file(path).flatMap(session_base.known.get_file(_))
+    JEdit_Lib.check_file(path).flatMap(session_base.known.get_file(_, bootstrap = true))
 
   def node_name(path: String): Document.Node.Name =
     known_file(path) getOrElse {

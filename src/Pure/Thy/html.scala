@@ -224,6 +224,61 @@ object HTML
     HTML.error(tooltip(item, msgs.map(msg => error_message(pre(msg)))))
 
 
+  /* GUI elements */
+
+  object GUI
+  {
+    private def optional_value(text: String): XML.Attributes =
+      proper_string(text).map(a => "value" -> a).toList
+
+    private def optional_name(name: String): XML.Attributes =
+      proper_string(name).map(a => "name" -> a).toList
+
+    private def optional_title(tooltip: String): XML.Attributes =
+      proper_string(tooltip).map(a => "title" -> a).toList
+
+    private def optional_submit(submit: Boolean): XML.Attributes =
+      if (submit) List("onChange" -> "this.form.submit()") else Nil
+
+    private def optional_checked(selected: Boolean): XML.Attributes =
+      if (selected) List("checked" -> "") else Nil
+
+    private def optional_action(action: String): XML.Attributes =
+      proper_string(action).map(a => "action" -> a).toList
+
+    def button(body: XML.Body, name: String = "", tooltip: String = "", submit: Boolean = false)
+        : XML.Elem =
+      XML.Elem(
+        Markup("button",
+          List("type" -> (if (submit) "submit" else "button"), "value" -> "true") :::
+          optional_name(name) ::: optional_title(tooltip)), body)
+
+    def checkbox(body: XML.Body, name: String = "", tooltip: String = "", submit: Boolean = false,
+        selected: Boolean = false): XML.Elem =
+      XML.elem("label",
+        XML.elem(
+          Markup("input",
+            List("type" -> "checkbox", "value" -> "true") ::: optional_name(name) :::
+              optional_title(tooltip) ::: optional_submit(submit) :::
+              optional_checked(selected))) :: body)
+
+    def text_field(columns: Int = 0, text: String = "", name: String = "", tooltip: String = "",
+        submit: Boolean = false): XML.Elem =
+      XML.elem(Markup("input",
+        List("type" -> "text") :::
+          (if (columns > 0) List("size" -> columns.toString) else Nil) :::
+          optional_value(text) ::: optional_name(name) :::
+          optional_title(tooltip) ::: optional_submit(submit)))
+
+    def parameter(text: String = "", name: String = ""): XML.Elem =
+      XML.elem(
+        Markup("input", List("type" -> "hidden") ::: optional_value(text) ::: optional_name(name)))
+
+    def form(body: XML.Body, name: String = "", action: String = ""): XML.Elem =
+      XML.Elem(Markup("form", optional_name(name) ::: optional_action(action)), body)
+  }
+
+
   /* document */
 
   val header: String =

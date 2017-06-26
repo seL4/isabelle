@@ -89,8 +89,7 @@ object Thy_Header extends Parse.Parser
 
   def theory_name(s: String): String =
     s match {
-      case Thy_File_Name(name) =>
-        bootstrap_thys.collectFirst({ case (a, b) if a == name => b }).getOrElse(name)
+      case Thy_File_Name(name) => bootstrap_name(name)
       case Import_Name(name) =>
         ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
       case _ => ""
@@ -101,6 +100,9 @@ object Thy_Header extends Parse.Parser
 
   def is_bootstrap(theory: String): Boolean =
     bootstrap_thys.exists({ case (_, b) => b == theory })
+
+  def bootstrap_name(theory: String): String =
+    bootstrap_thys.collectFirst({ case (a, b) if a == theory => b }).getOrElse(theory)
 
 
   /* header */
