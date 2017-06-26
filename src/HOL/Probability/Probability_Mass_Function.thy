@@ -850,7 +850,7 @@ lemma continuous_on_LBINT:
 proof (subst set_borel_integral_eq_integral)
   { fix b :: real assume "a \<le> b"
     from f[OF this] have "continuous_on {a..b} (\<lambda>b. integral {a..b} f)"
-      by (intro indefinite_integral_continuous set_borel_integral_eq_integral) }
+      by (intro indefinite_integral_continuous_1 set_borel_integral_eq_integral) }
   note * = this
 
   have "continuous_on (\<Union>b\<in>{a..}. {a <..< b}) (\<lambda>b. integral {a..b} f)"

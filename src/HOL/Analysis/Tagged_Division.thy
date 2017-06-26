@@ -1982,17 +1982,17 @@ lemma fineD[dest]:
   shows "\<And>x k. (x,k) \<in> s \<Longrightarrow> k \<subseteq> d x"
   using assms unfolding fine_def by auto
 
-lemma fine_inter: "(\<lambda>x. d1 x \<inter> d2 x) fine p \<longleftrightarrow> d1 fine p \<and> d2 fine p"
+lemma fine_Int: "(\<lambda>x. d1 x \<inter> d2 x) fine p \<longleftrightarrow> d1 fine p \<and> d2 fine p"
   unfolding fine_def by auto
 
-lemma fine_inters:
+lemma fine_Inter:
  "(\<lambda>x. \<Inter>{f d x | d.  d \<in> s}) fine p \<longleftrightarrow> (\<forall>d\<in>s. (f d) fine p)"
   unfolding fine_def by blast
 
-lemma fine_union: "d fine p1 \<Longrightarrow> d fine p2 \<Longrightarrow> d fine (p1 \<union> p2)"
+lemma fine_Un: "d fine p1 \<Longrightarrow> d fine p2 \<Longrightarrow> d fine (p1 \<union> p2)"
   unfolding fine_def by blast
 
-lemma fine_unions: "(\<And>p. p \<in> ps \<Longrightarrow> d fine p) \<Longrightarrow> d fine (\<Union>ps)"
+lemma fine_Union: "(\<And>p. p \<in> ps \<Longrightarrow> d fine p) \<Longrightarrow> d fine (\<Union>ps)"
   unfolding fine_def by auto
 
 lemma fine_subset: "p \<subseteq> q \<Longrightarrow> d fine q \<Longrightarrow> d fine p"
@@ -2000,7 +2000,7 @@ lemma fine_subset: "p \<subseteq> q \<Longrightarrow> d fine q \<Longrightarrow>
 
 subsection \<open>Some basic combining lemmas.\<close>
 
-lemma tagged_division_unions_exists:
+lemma tagged_division_Union_exists:
   assumes "finite iset"
     and "\<forall>i\<in>iset. \<exists>p. p tagged_division_of i \<and> d fine p"
     and "\<forall>i1\<in>iset. \<forall>i2\<in>iset. i1 \<noteq> i2 \<longrightarrow> interior i1 \<inter> interior i2 = {}"
@@ -2014,7 +2014,7 @@ proof -
   show thesis
     apply (rule_tac p="\<Union>(pfn ` iset)" in that)
     using assms(1) assms(3) assms(4) pfn(1) tagged_division_unions apply force
-    by (metis (mono_tags, lifting) fine_unions imageE pfn(2))
+    by (metis (mono_tags, lifting) fine_Union imageE pfn(2))
 qed
 
 
@@ -2367,7 +2367,7 @@ next
           \<not> (\<exists>p. p tagged_division_of cbox c d \<and> g fine p)"
     apply (rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p", OF _ _ as])
     apply (simp add: fine_def)
-    apply (metis tagged_division_union fine_union)
+    apply (metis tagged_division_union fine_Un)
     apply (auto simp: )
     done
   obtain e where e: "e > 0" "ball x e \<subseteq> g x"
@@ -2477,7 +2477,7 @@ proof -
         apply (rule q1)
         apply (rule int)
         apply rule
-        apply (rule fine_union)
+        apply (rule fine_Un)
         apply (subst fine_def)
         defer
         apply (rule q1)
@@ -2500,10 +2500,10 @@ proof -
         apply (rule_tac x="q2 \<union> q1" in exI)
         apply rule
         unfolding * uv
-        apply (rule tagged_division_union q2 q1 int fine_union)+
+        apply (rule tagged_division_union q2 q1 int fine_Un)+
         unfolding Ball_def split_paired_All split_conv
         apply rule
-        apply (rule fine_union)
+        apply (rule fine_Un)
         apply (rule q1 q2)+
         apply rule
         apply rule
@@ -2806,7 +2806,7 @@ proof (subst eventually_INF_base; clarsimp)
   fix g1 g2 :: "'a \<Rightarrow> 'a set" show "gauge g1 \<Longrightarrow> gauge g2 \<Longrightarrow> \<exists>x. gauge x \<and>
     {p. p tagged_division_of s \<and> x fine p} \<subseteq> {p. p tagged_division_of s \<and> g1 fine p} \<and>
     {p. p tagged_division_of s \<and> x fine p} \<subseteq> {p. p tagged_division_of s \<and> g2 fine p}"
-    by (intro exI[of _ "\<lambda>x. g1 x \<inter> g2 x"]) (auto simp: fine_inter)
+    by (intro exI[of _ "\<lambda>x. g1 x \<inter> g2 x"]) (auto simp: fine_Int)
 qed (auto simp: eventually_principal)
 
 lemma division_filter_not_empty: "division_filter (cbox a b) \<noteq> bot"

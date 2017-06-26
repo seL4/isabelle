@@ -3790,7 +3790,7 @@ proof -
     have "exp (- (integral {a..t} (\<lambda>x. ?D\<gamma> x / (\<gamma> x - z)))) * (\<gamma> t - z) =\<gamma> a - z"
       apply (rule has_derivative_zero_unique_strong_interval [of "{a,b} \<union> k" a b])
       using t
-      apply (auto intro!: * continuous_intros fink cong indefinite_integral_continuous [OF vg_int]  simp add: ab)+
+      apply (auto intro!: * continuous_intros fink cong indefinite_integral_continuous_1 [OF vg_int]  simp add: ab)+
       done
    }
   with ab show ?thesis2
@@ -3865,7 +3865,7 @@ proof -
     apply (simp add:)
     apply (rule IVT')
     apply (simp_all add: Arg_ge_0)
-    apply (intro continuous_intros indefinite_integral_continuous winding_number_exp_integral [OF gpd]; simp)
+    apply (intro continuous_intros indefinite_integral_continuous_1 winding_number_exp_integral [OF gpd]; simp)
     done
   then obtain t where t:     "t \<in> {0..1}"
                   and eqArg: "Im (integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
@@ -4271,7 +4271,7 @@ proof -
                  [where f = "\<lambda>x. 1 / (2*pi*\<i>) *
                                  integral {0..x} (\<lambda>t. 1/(\<gamma> t - z) * vector_derivative \<gamma> (at t))"])
     apply (rule continuous_intros)+
-    apply (rule indefinite_integral_continuous)
+    apply (rule indefinite_integral_continuous_1)
     apply (rule contour_integrable_inversediff [OF assms, unfolded contour_integrable_on])
       using assms
     apply (simp add: *)

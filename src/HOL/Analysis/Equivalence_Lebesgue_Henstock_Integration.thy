@@ -1648,7 +1648,7 @@ proof -
         by auto
       fix p
       assume "p tagged_division_of (cbox a b)" and "?g fine p"
-      note p = this(1) conjunctD2[OF this(2)[unfolded fine_inter]]
+      note p = this(1) conjunctD2[OF this(2)[unfolded fine_Int]]
       note p' = tagged_division_ofD[OF p(1)]
       define p' where "p' = {(x,k) | x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x,l) \<in> p \<and> k = i \<inter> l}"
       have gp': "g fine p'"
@@ -2197,7 +2197,7 @@ proof (rule absolutely_integrable_onI, fact)
          obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
           by (rule fine_division_exists [OF gauge_Int [OF d1(1) d2(1)], of a b])
-            (auto simp add: fine_inter)
+            (auto simp add: fine_Int)
         have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e / 2 \<longrightarrow>
           \<bar>sf' - di\<bar> < e / 2 \<longrightarrow> di < ?S + e"
           by arith
@@ -2280,6 +2280,264 @@ proof (rule Bochner_Integration.integrable_bound)
     using f by (auto intro: has_integral_implies_lebesgue_measurable simp: integrable_on_def)
 qed (use le in \<open>auto intro!: always_eventually split: split_indicator\<close>)
 
+subsection \<open>Componentwise\<close>
+
+proposition absolutely_integrable_componentwise_iff:
+  shows "f absolutely_integrable_on A \<longleftrightarrow> (\<forall>b\<in>Basis. (\<lambda>x. f x \<bullet> b) absolutely_integrable_on A)"
+proof -
+  have *: "(\<lambda>x. norm (f x)) integrable_on A \<longleftrightarrow> (\<forall>b\<in>Basis. (\<lambda>x. norm (f x \<bullet> b)) integrable_on A)"
+          if "f integrable_on A"
+  proof -
+    have 1: "\<And>i. \<lbrakk>(\<lambda>x. norm (f x)) integrable_on A; i \<in> Basis\<rbrakk>
+                 \<Longrightarrow> (\<lambda>x. f x \<bullet> i) absolutely_integrable_on A"
+      apply (rule absolutely_integrable_integrable_bound [where g = "\<lambda>x. norm(f x)"])
+      using Basis_le_norm integrable_component that apply fastforce+
+      done
+    have 2: "\<forall>i\<in>Basis. (\<lambda>x. \<bar>f x \<bullet> i\<bar>) integrable_on A \<Longrightarrow> f absolutely_integrable_on A"
+      apply (rule absolutely_integrable_integrable_bound [where g = "\<lambda>x. \<Sum>i\<in>Basis. norm (f x \<bullet> i)"])
+      using norm_le_l1 that apply (force intro: integrable_sum)+
+      done
+    show ?thesis
+      apply auto
+       apply (metis (full_types) absolutely_integrable_on_def set_integrable_abs 1)
+      apply (metis (full_types) absolutely_integrable_on_def 2)
+      done
+  qed
+  show ?thesis
+    unfolding absolutely_integrable_on_def
+    by (simp add:  integrable_componentwise_iff [symmetric] ball_conj_distrib * cong: conj_cong)
+qed
+
+lemma absolutely_integrable_componentwise:
+  shows "(\<And>b. b \<in> Basis \<Longrightarrow> (\<lambda>x. f x \<bullet> b) absolutely_integrable_on A) \<Longrightarrow> f absolutely_integrable_on A"
+  by (simp add: absolutely_integrable_componentwise_iff)
+
+lemma absolutely_integrable_component:
+  "f absolutely_integrable_on A \<Longrightarrow> (\<lambda>x. f x \<bullet> (b :: 'b :: euclidean_space)) absolutely_integrable_on A"
+  by (drule absolutely_integrable_linear[OF _ bounded_linear_inner_left[of b]]) (simp add: o_def)
+
+
+lemma absolutely_integrable_scaleR_left:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+    assumes "f absolutely_integrable_on S"
+  shows "(\<lambda>x. c *\<^sub>R f x) absolutely_integrable_on S"
+proof -
+  have "(\<lambda>x. c *\<^sub>R x) o f absolutely_integrable_on S"
+    apply (rule absolutely_integrable_linear [OF assms])
+    by (simp add: bounded_linear_scaleR_right)
+  then show ?thesis by simp
+qed
+
+lemma absolutely_integrable_scaleR_right:
+  assumes "f absolutely_integrable_on S"
+  shows "(\<lambda>x. f x *\<^sub>R c) absolutely_integrable_on S"
+  using assms by blast
+
+lemma absolutely_integrable_norm:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes "f absolutely_integrable_on S"
+  shows "(norm o f) absolutely_integrable_on S"
+  using assms unfolding absolutely_integrable_on_def by auto
+    
+lemma absolutely_integrable_abs:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes "f absolutely_integrable_on S"
+  shows "(\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i) absolutely_integrable_on S"
+        (is "?g absolutely_integrable_on S")
+proof -
+  have eq: "?g =
+        (\<lambda>x. \<Sum>i\<in>Basis. ((\<lambda>y. \<Sum>j\<in>Basis. if j = i then y *\<^sub>R j else 0) \<circ>
+               (\<lambda>x. norm(\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f) x)"
+    by (simp add: sum.delta)
+  have *: "(\<lambda>y. \<Sum>j\<in>Basis. if j = i then y *\<^sub>R j else 0) \<circ>
+           (\<lambda>x. norm (\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f 
+           absolutely_integrable_on S" 
+        if "i \<in> Basis" for i
+  proof -
+    have "bounded_linear (\<lambda>y. \<Sum>j\<in>Basis. if j = i then y *\<^sub>R j else 0)"
+      by (simp add: linear_linear algebra_simps linearI)
+    moreover have "(\<lambda>x. norm (\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f 
+                   absolutely_integrable_on S"
+      unfolding o_def
+      apply (rule absolutely_integrable_norm [unfolded o_def])
+      using assms \<open>i \<in> Basis\<close>
+      apply (auto simp: algebra_simps dest: absolutely_integrable_component[where b=i])
+      done
+    ultimately show ?thesis
+      by (subst comp_assoc) (blast intro: absolutely_integrable_linear)
+  qed
+  show ?thesis
+    apply (rule ssubst [OF eq])
+    apply (rule absolutely_integrable_sum)
+     apply (force simp: intro!: *)+
+    done
+qed
+
+lemma abs_absolutely_integrableI_1:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> real"
+  assumes f: "f integrable_on A" and "(\<lambda>x. \<bar>f x\<bar>) integrable_on A"
+  shows "f absolutely_integrable_on A"
+  by (rule absolutely_integrable_integrable_bound [OF _ assms]) auto
+
+  
+lemma abs_absolutely_integrableI:
+  assumes f: "f integrable_on S" and fcomp: "(\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i) integrable_on S"
+  shows "f absolutely_integrable_on S"
+proof -
+  have "(\<lambda>x. (f x \<bullet> i) *\<^sub>R i) absolutely_integrable_on S" if "i \<in> Basis" for i
+  proof -
+    have "(\<lambda>x. \<bar>f x \<bullet> i\<bar>) integrable_on S" 
+      using assms integrable_component [OF fcomp, where y=i] that by simp
+    then have "(\<lambda>x. f x \<bullet> i) absolutely_integrable_on S"
+      apply -
+      apply (rule abs_absolutely_integrableI_1, auto)
+      by (simp add: f integrable_component)
+    then show ?thesis
+      by (rule absolutely_integrable_scaleR_right)
+  qed
+  then have "(\<lambda>x. \<Sum>i\<in>Basis. (f x \<bullet> i) *\<^sub>R i) absolutely_integrable_on S"
+    by (simp add: absolutely_integrable_sum)
+  then show ?thesis
+    by (simp add: euclidean_representation)
+qed
+
+    
+lemma absolutely_integrable_abs_iff:
+   "f absolutely_integrable_on S \<longleftrightarrow>
+    f integrable_on S \<and> (\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i) integrable_on S"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using absolutely_integrable_abs absolutely_integrable_on_def by blast
+next
+  assume ?rhs 
+  moreover
+  have "(\<lambda>x. if x \<in> S then \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i else 0) = (\<lambda>x. \<Sum>i\<in>Basis. \<bar>(if x \<in> S then f x else 0) \<bullet> i\<bar> *\<^sub>R i)"
+    by force
+  ultimately show ?lhs
+    by (simp only: absolutely_integrable_restrict_UNIV [of S, symmetric] integrable_restrict_UNIV [of S, symmetric] abs_absolutely_integrableI)
+qed
+
+lemma absolutely_integrable_max:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
+   shows "(\<lambda>x. \<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)
+            absolutely_integrable_on S"
+proof -
+  have "(\<lambda>x. \<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = 
+        (\<lambda>x. (1/2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))"
+  proof (rule ext)
+    fix x
+    have "(\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. ((f x \<bullet> i + g x \<bullet> i + \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) / 2) *\<^sub>R i)"
+      by (force intro: sum.cong)
+    also have "... = (1 / 2) *\<^sub>R (\<Sum>i\<in>Basis. (f x \<bullet> i + g x \<bullet> i + \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) *\<^sub>R i)"
+      by (simp add: scaleR_right.sum)
+    also have "... = (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))"
+      by (simp add: sum.distrib algebra_simps euclidean_representation)
+    finally
+    show "(\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
+         (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
+  qed
+  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))) 
+                 absolutely_integrable_on S"
+    apply (intro absolutely_integrable_add absolutely_integrable_scaleR_left assms)
+    using absolutely_integrable_abs [OF absolutely_integrable_diff [OF assms]]
+    apply (simp add: algebra_simps)
+    done
+  ultimately show ?thesis by metis
+qed
+  
+corollary absolutely_integrable_max_1:
+  fixes f :: "'n::euclidean_space \<Rightarrow> real"
+  assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
+   shows "(\<lambda>x. max (f x) (g x)) absolutely_integrable_on S"
+  using absolutely_integrable_max [OF assms] by simp
+
+lemma absolutely_integrable_min:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
+   shows "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)
+            absolutely_integrable_on S"
+proof -
+  have "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = 
+        (\<lambda>x. (1/2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))"
+  proof (rule ext)
+    fix x
+    have "(\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. ((f x \<bullet> i + g x \<bullet> i - \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) / 2) *\<^sub>R i)"
+      by (force intro: sum.cong)
+    also have "... = (1 / 2) *\<^sub>R (\<Sum>i\<in>Basis. (f x \<bullet> i + g x \<bullet> i - \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) *\<^sub>R i)"
+      by (simp add: scaleR_right.sum)
+    also have "... = (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))"
+      by (simp add: sum.distrib sum_subtractf algebra_simps euclidean_representation)
+    finally
+    show "(\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
+         (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
+  qed
+  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))) 
+                 absolutely_integrable_on S"
+    apply (intro absolutely_integrable_add absolutely_integrable_diff absolutely_integrable_scaleR_left assms)
+    using absolutely_integrable_abs [OF absolutely_integrable_diff [OF assms]]
+    apply (simp add: algebra_simps)
+    done
+  ultimately show ?thesis by metis
+qed
+  
+corollary absolutely_integrable_min_1:
+  fixes f :: "'n::euclidean_space \<Rightarrow> real"
+  assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
+   shows "(\<lambda>x. min (f x) (g x)) absolutely_integrable_on S"
+  using absolutely_integrable_min [OF assms] by simp
+
+lemma nonnegative_absolutely_integrable:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes "f integrable_on A" and comp: "\<And>x b. \<lbrakk>x \<in> A; b \<in> Basis\<rbrakk> \<Longrightarrow> 0 \<le> f x \<bullet> b"
+  shows "f absolutely_integrable_on A"
+proof -
+  have "(\<lambda>x. (f x \<bullet> i) *\<^sub>R i) absolutely_integrable_on A" if "i \<in> Basis" for i
+  proof -
+    have "(\<lambda>x. f x \<bullet> i) integrable_on A" 
+      by (simp add: assms(1) integrable_component)
+    then have "(\<lambda>x. f x \<bullet> i) absolutely_integrable_on A"
+      by (metis that comp nonnegative_absolutely_integrable_1)
+    then show ?thesis
+      by (rule absolutely_integrable_scaleR_right)
+  qed
+  then have "(\<lambda>x. \<Sum>i\<in>Basis. (f x \<bullet> i) *\<^sub>R i) absolutely_integrable_on A"
+    by (simp add: absolutely_integrable_sum)
+  then show ?thesis
+    by (simp add: euclidean_representation)
+qed
+
+  
+lemma absolutely_integrable_component_ubound:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes f: "f integrable_on A" and g: "g absolutely_integrable_on A"
+      and comp: "\<And>x b. \<lbrakk>x \<in> A; b \<in> Basis\<rbrakk> \<Longrightarrow> f x \<bullet> b \<le> g x \<bullet> b"
+  shows "f absolutely_integrable_on A"
+proof -
+  have "(\<lambda>x. g x - (g x - f x)) absolutely_integrable_on A"
+    apply (rule absolutely_integrable_diff [OF g nonnegative_absolutely_integrable])
+    using Henstock_Kurzweil_Integration.integrable_diff absolutely_integrable_on_def f g apply blast
+    by (simp add: comp inner_diff_left)
+  then show ?thesis
+    by simp
+qed
+
+
+lemma absolutely_integrable_component_lbound:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes f: "f absolutely_integrable_on A" and g: "g integrable_on A"
+      and comp: "\<And>x b. \<lbrakk>x \<in> A; b \<in> Basis\<rbrakk> \<Longrightarrow> f x \<bullet> b \<le> g x \<bullet> b"
+  shows "g absolutely_integrable_on A"
+proof -
+  have "(\<lambda>x. f x + (g x - f x)) absolutely_integrable_on A"
+    apply (rule absolutely_integrable_add [OF f nonnegative_absolutely_integrable])
+    using Henstock_Kurzweil_Integration.integrable_diff absolutely_integrable_on_def f g apply blast
+    by (simp add: comp inner_diff_left)
+  then show ?thesis
+    by simp
+qed
+
 subsection \<open>Dominated convergence\<close>
 
 lemma dominated_convergence:
@@ -2347,7 +2605,7 @@ For the positive integral we replace continuity with Borel-measurability.
 
 \<close>
 
-lemma
+lemma                                                                                          
   fixes f :: "real \<Rightarrow> real"
   assumes [measurable]: "f \<in> borel_measurable borel"
   assumes f: "\<And>x. x \<in> {a..b} \<Longrightarrow> DERIV F x :> f x" "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x" and "a \<le> b"
