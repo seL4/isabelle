@@ -137,9 +137,10 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      provers_label, Component.wrap(provers), isar_proofs, try0,
-      process_indicator.component, apply_query, cancel_query, locate_query, zoom)
+    Wrap_Panel(
+      List(provers_label, Component.wrap(provers), isar_proofs, try0,
+        process_indicator.component, apply_query, cancel_query, locate_query, zoom))
+
   add(controls.peer, BorderLayout.NORTH)
 
   override def focusOnDefaultComponent { provers.requestFocus }

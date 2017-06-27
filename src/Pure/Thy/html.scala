@@ -279,6 +279,25 @@ object HTML
   }
 
 
+  /* GUI layout */
+
+  object Wrap_Panel
+  {
+    object Alignment extends Enumeration
+    {
+      val left, right, center = Value
+    }
+
+    def apply(contents: List[XML.Elem], name: String = "", action: String = "",
+      alignment: Alignment.Value = Alignment.right): XML.Elem =
+    {
+      val body = Library.separate(XML.Text(" "), contents)
+      GUI.form(List(div(body) + ("style" -> ("text-align: " + alignment))),
+        name = name, action = action)
+    }
+  }
+
+
   /* document */
 
   val header: String =

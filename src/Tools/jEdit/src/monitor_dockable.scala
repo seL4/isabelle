@@ -94,8 +94,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     reactions += { case ValueChanged(_) => input_delay.invoke() }
   }
 
-  private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(ml_stats, select_data, reset_data, limit_data)
+  private val controls = Wrap_Panel(List(ml_stats, select_data, reset_data, limit_data))
 
 
   /* layout */

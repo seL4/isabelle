@@ -104,8 +104,10 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update_button, update_button,
-      locate_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom)
+    Wrap_Panel(
+      List(auto_update_button, update_button,
+        locate_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+
   add(controls.peer, BorderLayout.NORTH)
 
 

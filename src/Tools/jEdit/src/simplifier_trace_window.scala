@@ -192,10 +192,8 @@ class Simplifier_Trace_Window(
 
   /* controls */
 
-  private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    pretty_text_area.search_label,
-    pretty_text_area.search_field,
-    zoom)
+  private val controls =
+    Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom))
 
   peer.add(controls.peer, BorderLayout.NORTH)
 }

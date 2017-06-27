@@ -100,17 +100,18 @@ object Wrap_Panel
       }
     }
   }
+
+  def apply(contents: List[Component] = Nil,
+      alignment: Alignment.Value = Alignment.Right): Wrap_Panel =
+    new Wrap_Panel(contents, alignment)
 }
 
-
-class Wrap_Panel(alignment: Wrap_Panel.Alignment.Value)(contents0: Component*)
+class Wrap_Panel(contents0: List[Component] = Nil,
+    alignment: Wrap_Panel.Alignment.Value = Wrap_Panel.Alignment.Right)
   extends Panel with SequentialContainer.Wrapper
 {
   override lazy val peer: JPanel =
     new JPanel(new Wrap_Panel.Layout(alignment.id)) with SuperMixin
-
-  def this(contents0: Component*) = this(Wrap_Panel.Alignment.Center)(contents0: _*)
-  def this() = this(Wrap_Panel.Alignment.Center)()
 
   contents ++= contents0
 

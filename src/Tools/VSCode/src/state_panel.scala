@@ -62,9 +62,7 @@ class State_Panel private(val server: Server)
             HTML.output_document(
               List(HTML.style(HTML.fonts_css()),
                 HTML.style_file(Url.print_file(HTML.isabelle_css.file))),
-              List(
-                HTML.chapter("Proof state"),
-                HTML.source(text)),
+              List(controls, HTML.source(text)),
               css = "")
           output(content)
         })
@@ -91,6 +89,34 @@ class State_Panel private(val server: Server)
   def set_auto_update(b: Boolean) { auto_update_enabled.change(_ => b); if (b) update() }
 
   def auto_update() { if (auto_update_enabled.value) update() }
+
+
+  /* controls */
+
+  private def id_parameter: XML.Elem =
+    HTML.GUI.parameter(id.toString, name = "id")
+
+  private def auto_update_button: XML.Elem =
+    HTML.GUI.checkbox(HTML.text("Auto update"),
+      name = "auto_update",
+      tooltip = "Indicate automatic update following cursor movement",
+      submit = true,
+      selected = auto_update_enabled.value)
+
+  private def update_button: XML.Elem =
+    HTML.GUI.button(List(HTML.bold(HTML.text("Update"))),
+      name = "update",
+      tooltip = "Update display according to the command at cursor position",
+      submit = true)
+
+  private def locate_button: XML.Elem =
+    HTML.GUI.button(HTML.text("Locate"),
+      name = "locate",
+      tooltip = "Locate printed command within source text",
+      submit = true)
+
+  private val controls: XML.Elem =
+    HTML.Wrap_Panel(List(id_parameter, auto_update_button, update_button, locate_button))
 
 
   /* main */

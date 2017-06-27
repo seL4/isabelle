@@ -284,11 +284,13 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      break_button, continue_button, step_button, step_over_button, step_out_button,
-      context_label, Component.wrap(context_field),
-      expression_label, Component.wrap(expression_field), eval_button, sml_button,
-      pretty_text_area.search_label, pretty_text_area.search_field, zoom)
+    Wrap_Panel(
+      List(
+        break_button, continue_button, step_button, step_over_button, step_out_button,
+        context_label, Component.wrap(context_field),
+        expression_label, Component.wrap(expression_field), eval_button, sml_button,
+        pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+
   add(controls.peer, BorderLayout.NORTH)
 
 

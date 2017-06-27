@@ -47,7 +47,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     tooltip = GUI.tooltip_lines(cat_lines(txt :: abbrs.map(a => "abbrev: " + a)))
   }
 
-  private class Abbrevs_Panel extends Wrap_Panel
+  private class Abbrevs_Panel extends Wrap_Panel(Nil, Wrap_Panel.Alignment.Center)
   {
     private var abbrevs: Thy_Header.Abbrevs = Nil
 
@@ -122,7 +122,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private class Search_Panel extends BorderPanel {
     val search_field = new TextField(10)
-    val results_panel = new Wrap_Panel
+    val results_panel = Wrap_Panel(Nil, Wrap_Panel.Alignment.Center)
     layout(search_field) = BorderPanel.Position.North
     layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
 
@@ -155,12 +155,12 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
     pages ++=
       Symbol.groups.map({ case (group, symbols) =>
+        val control = group == "control"
         new TabbedPane.Page(group,
-          new ScrollPane(new Wrap_Panel {
-            val control = group == "control"
-            contents ++= symbols.map(new Symbol_Component(_, control))
-            if (control) contents += new Reset_Component
-          }), null)
+          new ScrollPane(Wrap_Panel(
+            symbols.map(new Symbol_Component(_, control)) :::
+            (if (control) List(new Reset_Component) else Nil),
+            Wrap_Panel.Alignment.Center)), null)
       })
 
     val search_panel = new Search_Panel

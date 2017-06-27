@@ -119,10 +119,10 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     }
 
     private val control_panel =
-      new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-        query_label, Component.wrap(query), limit, allow_dups,
-        process_indicator.component, apply_button,
-        pretty_text_area.search_label, pretty_text_area.search_field)
+      Wrap_Panel(
+        List(query_label, Component.wrap(query), limit, allow_dups,
+          process_indicator.component, apply_button,
+          pretty_text_area.search_label, pretty_text_area.search_field))
 
     def select { control_panel.contents += zoom }
 
@@ -169,9 +169,10 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     }
 
     private val control_panel =
-      new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-        query_label, Component.wrap(query), process_indicator.component, apply_button,
-        pretty_text_area.search_label, pretty_text_area.search_field)
+      Wrap_Panel(
+        List(
+          query_label, Component.wrap(query), process_indicator.component, apply_button,
+          pretty_text_area.search_label, pretty_text_area.search_field))
 
     def select { control_panel.contents += zoom }
 
@@ -255,7 +256,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       }
     }
 
-    private val control_panel = new Wrap_Panel(Wrap_Panel.Alignment.Right)()
+    private val control_panel = Wrap_Panel()
 
     def select
     {
