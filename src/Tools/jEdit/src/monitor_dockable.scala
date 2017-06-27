@@ -95,7 +95,8 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(ml_stats, select_data, reset_data, limit_data)
+    Wrap_Panel(List(ml_stats, select_data, reset_data, limit_data),
+      Wrap_Panel.Alignment.Right)
 
 
   /* layout */

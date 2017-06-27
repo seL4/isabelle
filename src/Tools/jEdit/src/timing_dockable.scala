@@ -143,7 +143,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(threshold_label, threshold_value)
+    Wrap_Panel(List(threshold_label, threshold_value), Wrap_Panel.Alignment.Right)
   add(controls.peer, BorderLayout.NORTH)
 
 

@@ -153,37 +153,38 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   /* controls */
 
-  private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-    new CheckBox("Auto update") {
-      selected = do_update
-      reactions += {
-        case ButtonClicked(_) =>
-          do_update = this.selected
-          handle_update(do_update)
-      }
-    },
-    new Button("Update") {
-      reactions += {
-        case ButtonClicked(_) =>
-          handle_update(true)
-      }
-    },
-    new Separator(Orientation.Vertical),
-    new Button("Show trace") {
-      reactions += {
-        case ButtonClicked(_) =>
-          show_trace()
-      }
-    },
-    new Button("Clear memory") {
-      reactions += {
-        case ButtonClicked(_) =>
-          Simplifier_Trace.clear_memory()
-      }
-    }
-  )
+  private val controls =
+    Wrap_Panel(alignment = Wrap_Panel.Alignment.Right, contents =
+      List(
+        new CheckBox("Auto update") {
+          selected = do_update
+          reactions += {
+            case ButtonClicked(_) =>
+              do_update = this.selected
+              handle_update(do_update)
+          }
+        },
+        new Button("Update") {
+          reactions += {
+            case ButtonClicked(_) =>
+              handle_update(true)
+          }
+        },
+        new Separator(Orientation.Vertical),
+        new Button("Show trace") {
+          reactions += {
+            case ButtonClicked(_) =>
+              show_trace()
+          }
+        },
+        new Button("Clear memory") {
+          reactions += {
+            case ButtonClicked(_) =>
+              Simplifier_Trace.clear_memory()
+          }
+        }))
 
-  private val answers = new Wrap_Panel(Wrap_Panel.Alignment.Left)()
+  private val answers = Wrap_Panel(alignment = Wrap_Panel.Alignment.Left)
 
   add(controls.peer, BorderLayout.NORTH)
   add(answers.peer, BorderLayout.SOUTH)
