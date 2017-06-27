@@ -106,8 +106,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val controls =
     Wrap_Panel(
       List(output_state_button, auto_update_button,
-        update_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom),
-      Wrap_Panel.Alignment.Right)
+        update_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 

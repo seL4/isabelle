@@ -106,8 +106,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val controls =
     Wrap_Panel(
       List(auto_update_button, update_button,
-        locate_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom),
-      Wrap_Panel.Alignment.Right)
+        locate_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 

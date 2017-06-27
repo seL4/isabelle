@@ -154,7 +154,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   /* controls */
 
   private val controls =
-    Wrap_Panel(alignment = Wrap_Panel.Alignment.Right, contents =
+    Wrap_Panel(
       List(
         new CheckBox("Auto update") {
           selected = do_update
@@ -184,7 +184,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
           }
         }))
 
-  private val answers = Wrap_Panel(alignment = Wrap_Panel.Alignment.Left)
+  private val answers = Wrap_Panel(Nil, Wrap_Panel.Alignment.Left)
 
   add(controls.peer, BorderLayout.NORTH)
   add(answers.peer, BorderLayout.SOUTH)

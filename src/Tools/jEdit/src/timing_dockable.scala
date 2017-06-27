@@ -142,8 +142,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       s match { case Value.Double(x) => x >= 0.0 case _ => false })
   }
 
-  private val controls =
-    Wrap_Panel(List(threshold_label, threshold_value), Wrap_Panel.Alignment.Right)
+  private val controls = Wrap_Panel(List(threshold_label, threshold_value))
+
   add(controls.peer, BorderLayout.NORTH)
 
 

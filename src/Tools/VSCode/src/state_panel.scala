@@ -116,9 +116,7 @@ class State_Panel private(val server: Server)
       submit = true)
 
   private val controls: XML.Elem =
-    HTML.Wrap_Panel(
-      contents = List(id_parameter, auto_update_button, update_button, locate_button),
-      alignment = HTML.Wrap_Panel.Alignment.right)
+    HTML.Wrap_Panel(List(id_parameter, auto_update_button, update_button, locate_button))
 
 
   /* main */

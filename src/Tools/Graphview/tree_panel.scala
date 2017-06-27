@@ -143,8 +143,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
   }
 
   private val controls =
-    Wrap_Panel(List(selection_label, selection_field, selection_apply),
-      Wrap_Panel.Alignment.Right)
+    Wrap_Panel(List(selection_label, selection_field, selection_apply))
 
 
   /* main layout */

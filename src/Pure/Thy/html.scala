@@ -289,7 +289,7 @@ object HTML
     }
 
     def apply(contents: List[XML.Elem], name: String = "", action: String = "",
-      alignment: Alignment.Value = Alignment.center): XML.Elem =
+      alignment: Alignment.Value = Alignment.right): XML.Elem =
     {
       val body = Library.separate(XML.Text(" "), contents)
       GUI.form(List(div(body) + ("style" -> ("text-align: " + alignment))),

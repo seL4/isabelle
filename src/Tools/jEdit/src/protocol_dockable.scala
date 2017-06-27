@@ -22,7 +22,7 @@ class Protocol_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val ml_stats = new Isabelle.ML_Stats
 
-  private val controls = Wrap_Panel(List(ml_stats), Wrap_Panel.Alignment.Right)
+  private val controls = Wrap_Panel(List(ml_stats))
 
 
   /* text area */

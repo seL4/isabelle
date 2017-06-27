@@ -347,8 +347,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
   private val controls =
     Wrap_Panel(
       List(show_content, show_arrow_heads, show_dummies,
-        save_image, zoom, fit_window, update_layout, editor_style), // FIXME colorations, filters
-      Wrap_Panel.Alignment.Right)
+        save_image, zoom, fit_window, update_layout, editor_style)) // FIXME colorations, filters
 
 
 

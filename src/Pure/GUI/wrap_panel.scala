@@ -102,12 +102,12 @@ object Wrap_Panel
   }
 
   def apply(contents: List[Component] = Nil,
-      alignment: Wrap_Panel.Alignment.Value = Wrap_Panel.Alignment.Center): Wrap_Panel =
+      alignment: Alignment.Value = Alignment.Right): Wrap_Panel =
     new Wrap_Panel(contents, alignment)
 }
 
 class Wrap_Panel(contents0: List[Component] = Nil,
-    alignment: Wrap_Panel.Alignment.Value = Wrap_Panel.Alignment.Center)
+    alignment: Wrap_Panel.Alignment.Value = Wrap_Panel.Alignment.Right)
   extends Panel with SequentialContainer.Wrapper
 {
   override lazy val peer: JPanel =

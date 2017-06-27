@@ -85,8 +85,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val logic = JEdit_Sessions.logic_selector(PIDE.options.value, true)
 
   private val controls =
-    Wrap_Panel(List(purge, continuous_checking, session_phase, logic),
-      Wrap_Panel.Alignment.Right)
+    Wrap_Panel(List(purge, continuous_checking, session_phase, logic))
 
   add(controls.peer, BorderLayout.NORTH)
 

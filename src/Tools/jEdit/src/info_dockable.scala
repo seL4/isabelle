@@ -87,8 +87,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   })
 
   private val controls =
-    Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom),
-      Wrap_Panel.Alignment.Right)
+    Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 
