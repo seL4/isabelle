@@ -7,7 +7,7 @@ HTTP server support.
 package isabelle
 
 
-import java.net.{InetAddress, InetSocketAddress, URI}
+import java.net.{InetAddress, InetSocketAddress, URI, URLDecoder}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 import scala.collection.immutable.SortedMap
@@ -66,12 +66,28 @@ object HTTP
   def handler(root: String, body: Exchange => Unit): Handler =
     new Handler(root, new HttpHandler { def handle(x: HttpExchange) { body(new Exchange(x)) } })
 
-  def get(root: String, body: URI => Option[Response]): Handler =
+
+  /* particular methods */
+
+  sealed case class Arg(method: String, uri: URI, request: Bytes)
+  {
+    def decode_properties: Properties.T =
+      Library.space_explode('&', request.text).map(s =>
+        Library.space_explode('=', s) match {
+          case List(a, b) =>
+            URLDecoder.decode(a, UTF8.charset_name) ->
+            URLDecoder.decode(b, UTF8.charset_name)
+          case _ => error("Malformed key-value pair in HTTP/POST: " + quote(s))
+        })
+  }
+
+  def method(name: String, root: String, body: Arg => Option[Response]): Handler =
     handler(root, http =>
       {
-        http.read_request()
-        if (http.request_method == "GET")
-          Exn.capture(body(http.request_uri)) match {
+        val request = http.read_request()
+        if (http.request_method == name) {
+          val arg = Arg(name, http.request_uri, request)
+          Exn.capture(body(arg)) match {
             case Exn.Res(Some(response)) =>
               http.write_response(200, response)
             case Exn.Res(None) =>
@@ -80,8 +96,12 @@ object HTTP
               http.write_response(500, Response.text(Output.error_message_text(msg)))
             case Exn.Exn(exn) => throw exn
           }
+        }
         else http.write_response(400, Response.empty)
       })
+
+  def get(root: String, body: Arg => Option[Response]): Handler = method("GET", root, body)
+  def post(root: String, body: Arg => Option[Response]): Handler = method("POST", root, body)
 
 
   /* server */

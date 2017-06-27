@@ -301,9 +301,9 @@ object Document_Model
   {
     val preview_root = http_root + "/preview"
     val preview =
-      HTTP.get(preview_root, uri =>
+      HTTP.get(preview_root, arg =>
         for {
-          theory <- Library.try_unprefix(preview_root + "/", uri.toString)
+          theory <- Library.try_unprefix(preview_root + "/", arg.uri.toString)
           model <-
             get_models().iterator.collectFirst(
               { case (node_name, model) if node_name.theory == theory => model })
