@@ -11,7 +11,6 @@ begin
 
 (*FIXME DELETE*)
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
-lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
 
 (* try instead structured proofs below *)
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
@@ -1570,11 +1569,11 @@ qed
 lemma has_integral_component_le:
   fixes f g :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes k: "k \<in> Basis"
-  assumes "(f has_integral i) s" "(g has_integral j) s"
-    and "\<forall>x\<in>s. (f x)\<bullet>k \<le> (g x)\<bullet>k"
+  assumes "(f has_integral i) S" "(g has_integral j) S"
+    and f_le_g: "\<And>x. x \<in> S \<Longrightarrow> (f x)\<bullet>k \<le> (g x)\<bullet>k"
   shows "i\<bullet>k \<le> j\<bullet>k"
 proof -
-  have lem: "i\<bullet>k \<le> j\<bullet>k"
+  have ik_le_jk: "i\<bullet>k \<le> j\<bullet>k"
     if f_i: "(f has_integral i) (cbox a b)"
     and g_j: "(g has_integral j) (cbox a b)"
     and le: "\<forall>x\<in>cbox a b. (f x)\<bullet>k \<le> (g x)\<bullet>k"
@@ -1583,25 +1582,29 @@ proof -
     assume "\<not> ?thesis"
     then have *: "0 < (i\<bullet>k - j\<bullet>k) / 3"
       by auto
-    guess d1 using f_i[unfolded has_integral,rule_format,OF *] by (elim exE conjE) note d1=this[rule_format]
-    guess d2 using g_j[unfolded has_integral,rule_format,OF *] by (elim exE conjE) note d2=this[rule_format]
-    obtain p where p: "p tagged_division_of cbox a b" "d1 fine p" "d2 fine p"
-       using fine_division_exists[OF gauge_Int[OF d1(1) d2(1)], of a b] unfolding fine_Int
+    obtain \<gamma>1 where "gauge \<gamma>1" 
+      and \<gamma>1: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; \<gamma>1 fine p\<rbrakk>
+                \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) < (i \<bullet> k - j \<bullet> k) / 3"
+      using f_i[unfolded has_integral,rule_format,OF *] by fastforce 
+    obtain \<gamma>2 where "gauge \<gamma>2" 
+      and \<gamma>2: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; \<gamma>2 fine p\<rbrakk>
+                \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - j) < (i \<bullet> k - j \<bullet> k) / 3"
+      using g_j[unfolded has_integral,rule_format,OF *] by fastforce 
+    obtain p where p: "p tagged_division_of cbox a b" and "\<gamma>1 fine p" "\<gamma>2 fine p"
+       using fine_division_exists[OF gauge_Int[OF \<open>gauge \<gamma>1\<close> \<open>gauge \<gamma>2\<close>], of a b] unfolding fine_Int
        by metis
-    note le_less_trans[OF Basis_le_norm[OF k]]
     then have "\<bar>((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
-              "\<bar>((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - j) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
-      using  k norm_bound_Basis_lt d1 d2 p
-      by blast+
+         "\<bar>((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - j) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
+      using le_less_trans[OF Basis_le_norm[OF k]] k \<gamma>1 \<gamma>2 by metis+ 
     then show False
       unfolding inner_simps
-      using rsum_component_le[OF p(1)] le
-      by (force simp add: abs_real_def split: if_split_asm)
+      using rsum_component_le[OF p] le
+      by (fastforce simp add: abs_real_def split: if_split_asm)
   qed
   show ?thesis
-  proof (cases "\<exists>a b. s = cbox a b")
+  proof (cases "\<exists>a b. S = cbox a b")
     case True
-    with lem assms show ?thesis
+    with ik_le_jk assms show ?thesis
       by auto
   next
     case False
@@ -1610,22 +1613,34 @@ proof -
       assume "\<not> i\<bullet>k \<le> j\<bullet>k"
       then have ij: "(i\<bullet>k - j\<bullet>k) / 3 > 0"
         by auto
-      note has_integral_altD[OF _ False this]
-      from this[OF assms(2)] this[OF assms(3)] guess B1 B2 . note B=this[rule_format]
+      obtain B1 where "0 < B1" 
+           and B1: "\<And>a b. ball 0 B1 \<subseteq> cbox a b \<Longrightarrow>
+                    \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and>
+                        norm (z - i) < (i \<bullet> k - j \<bullet> k) / 3"
+        using has_integral_altD[OF _ False ij] assms by blast
+      obtain B2 where "0 < B2" 
+           and B2: "\<And>a b. ball 0 B2 \<subseteq> cbox a b \<Longrightarrow>
+                    \<exists>z. ((\<lambda>x. if x \<in> S then g x else 0) has_integral z) (cbox a b) \<and>
+                        norm (z - j) < (i \<bullet> k - j \<bullet> k) / 3"
+        using has_integral_altD[OF _ False ij] assms by blast
       have "bounded (ball 0 B1 \<union> ball (0::'a) B2)"
         unfolding bounded_Un by(rule conjI bounded_ball)+
-      from bounded_subset_cbox[OF this] guess a b by (elim exE)
-      then have ab: "ball 0 B1 \<subseteq> cbox a b" "ball 0 B2 \<subseteq> cbox a b"
+      from bounded_subset_cbox[OF this] 
+      obtain a b::'a where ab: "ball 0 B1 \<subseteq> cbox a b" "ball 0 B2 \<subseteq> cbox a b"
         by blast+
-      guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
-      guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
+      then obtain w1 w2 where int_w1: "((\<lambda>x. if x \<in> S then f x else 0) has_integral w1) (cbox a b)"
+                        and norm_w1:  "norm (w1 - i) < (i \<bullet> k - j \<bullet> k) / 3"
+                        and int_w2: "((\<lambda>x. if x \<in> S then g x else 0) has_integral w2) (cbox a b)"
+                        and norm_w2: "norm (w2 - j) < (i \<bullet> k - j \<bullet> k) / 3"
+        using B1 B2 by blast
       have *: "\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False"
         by (simp add: abs_real_def split: if_split_asm)
-      note le_less_trans[OF Basis_le_norm[OF k]]
-      note this[OF w1(2)] this[OF w2(2)]
+      have "\<bar>(w1 - i) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
+           "\<bar>(w2 - j) \<bullet> k\<bar> < (i \<bullet> k - j \<bullet> k) / 3"
+        using Basis_le_norm k le_less_trans norm_w1 norm_w2 by blast+
       moreover
       have "w1\<bullet>k \<le> w2\<bullet>k"
-        by (rule lem[OF w1(1) w2(1)]) (simp add: assms(4))
+        using ik_le_jk int_w1 int_w2 f_le_g by auto
       ultimately show False
         unfolding inner_simps by(rule *)
     qed
@@ -1635,9 +1650,9 @@ qed
 lemma integral_component_le:
   fixes g f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "k \<in> Basis"
-    and "f integrable_on s" "g integrable_on s"
-    and "\<forall>x\<in>s. (f x)\<bullet>k \<le> (g x)\<bullet>k"
-  shows "(integral s f)\<bullet>k \<le> (integral s g)\<bullet>k"
+    and "f integrable_on S" "g integrable_on S"
+    and "\<And>x. x \<in> S \<Longrightarrow> (f x)\<bullet>k \<le> (g x)\<bullet>k"
+  shows "(integral S f)\<bullet>k \<le> (integral S g)\<bullet>k"
   apply (rule has_integral_component_le)
   using integrable_integral assms
   apply auto
@@ -1646,8 +1661,8 @@ lemma integral_component_le:
 lemma has_integral_component_nonneg:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "k \<in> Basis"
-    and "(f has_integral i) s"
-    and "\<forall>x\<in>s. 0 \<le> (f x)\<bullet>k"
+    and "(f has_integral i) S"
+    and "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> (f x)\<bullet>k"
   shows "0 \<le> i\<bullet>k"
   using has_integral_component_le[OF assms(1) has_integral_0 assms(2)]
   using assms(3-)
@@ -1656,9 +1671,9 @@ lemma has_integral_component_nonneg:
 lemma integral_component_nonneg:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "k \<in> Basis"
-    and  "\<forall>x\<in>s. 0 \<le> (f x)\<bullet>k"
-  shows "0 \<le> (integral s f)\<bullet>k"
-proof (cases "f integrable_on s")
+    and  "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> (f x)\<bullet>k"
+  shows "0 \<le> (integral S f)\<bullet>k"
+proof (cases "f integrable_on S")
   case True show ?thesis
     apply (rule has_integral_component_nonneg)
     using assms True
@@ -1671,8 +1686,8 @@ qed
 lemma has_integral_component_neg:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "k \<in> Basis"
-    and "(f has_integral i) s"
-    and "\<forall>x\<in>s. (f x)\<bullet>k \<le> 0"
+    and "(f has_integral i) S"
+    and "\<And>x. x \<in> S \<Longrightarrow> (f x)\<bullet>k \<le> 0"
   shows "i\<bullet>k \<le> 0"
   using has_integral_component_le[OF assms(1,2) has_integral_0] assms(2-)
   by auto
@@ -2149,7 +2164,11 @@ next
         by (meson Max_ge as(1) dual_order.trans finite_imageI tagged_division_of_finite)
       have "\<forall>i. \<exists>q. q tagged_division_of (cbox a b) \<and> (d i) fine q \<and> (\<forall>(x, k)\<in>p. k \<subseteq> (d i) x \<longrightarrow> (x, k) \<in> q)"
         by (auto intro: tagged_division_finer[OF as(1) d(1)])
-      from choice[OF this] guess q .. note q=conjunctD3[OF this[rule_format]]
+      from choice[OF this] 
+      obtain q where q: "\<And>n. q n tagged_division_of cbox a b"
+                      "\<And>n. d n fine q n"
+                      "\<And>n x k. \<lbrakk>(x, k) \<in> p; k \<subseteq> d n x\<rbrakk> \<Longrightarrow> (x, k) \<in> q n"
+        by fastforce
       have *: "\<And>i. (\<Sum>(x, k)\<in>q i. content k *\<^sub>R indicator s x) \<ge> (0::real)"
         apply (rule sum_nonneg)
         apply safe
@@ -2159,14 +2178,7 @@ next
         done
       have **: "finite s \<Longrightarrow> finite t \<Longrightarrow> (\<forall>(x,y) \<in> t. (0::real) \<le> g(x,y)) \<Longrightarrow>
         (\<forall>y\<in>s. \<exists>x. (x,y) \<in> t \<and> f(y) \<le> g(x,y)) \<Longrightarrow> sum f s \<le> sum g t" for f g s t
-        apply (rule sum_le_included[of s t g snd f])
-        prefer 4
-        apply safe
-        apply (erule_tac x=x in ballE)
-        apply (erule exE)
-        apply (rule_tac x="(xa,x)" in bexI)
-        apply auto
-        done
+        by (rule sum_le_included[of s t g snd f]; force)
       have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> sum (\<lambda>i. (real i + 1) *
         norm (sum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {..N+1}"
         unfolding real_norm_def sum_distrib_left abs_of_nonneg[OF *] diff_0_right
@@ -2228,13 +2240,7 @@ next
         qed
         ultimately show "\<exists>y. (y, x, k) \<in> {(i, j) |i j. i \<in> {..N + 1} \<and> j \<in> q i} \<and> norm (content k *\<^sub>R f x) \<le>
           (real y + 1) * (content k *\<^sub>R indicator s x)"
-          apply (rule_tac x=n in exI)
-          apply safe
-          apply (rule_tac x=n in exI)
-          apply (rule_tac x="(x,k)" in exI)
-          apply safe
-          apply auto
-          done
+          by force
       qed (insert as, auto)
       also have "\<dots> \<le> sum (\<lambda>i. e / 2 / 2 ^ i) {..N+1}"
       proof (rule sum_mono, goal_cases)

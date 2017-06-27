@@ -1770,19 +1770,11 @@ proof -
           unfolding p'_def by auto
         then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "k = i \<inter> l" by blast
         then show "\<exists>y i l. (x, k) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
-          apply (rule_tac x=x in exI)
-          apply (rule_tac x=i in exI)
-          apply (rule_tac x=l in exI)
-          using p'(2)[OF il(3)]
-          apply auto
-          done
+          using p'(2) by fastforce
       qed
       have sum_p': "(\<Sum>(x, k)\<in>p'. norm (integral k f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
         apply (subst sum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
-        unfolding norm_eq_zero
-         apply (rule integral_null)
-        apply (simp add: content_eq_0_interior)
-        apply rule
+         apply (auto intro: integral_null simp: content_eq_0_interior)
         done
       note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
 
@@ -1849,11 +1841,7 @@ proof -
             case prems: (1 l y)
             have "interior (k \<inter> l) \<subseteq> interior (l \<inter> y)"
               apply (subst(2) interior_Int)
-              apply (rule Int_greatest)
-              defer
-              apply (subst prems(4))
-              apply auto
-              done
+              by (metis Int_lower2 Int_subset_iff interior_mono prems(4))
             then have *: "interior (k \<inter> l) = {}"
               using snd_p(5)[OF prems(1-3)] by auto
             from d'(4)[OF k] snd_p(4)[OF prems(1)] guess u1 v1 u2 v2 by (elim exE) note uv=this
@@ -1894,16 +1882,7 @@ proof -
           have "l1 \<noteq> l2 \<or> k1 \<noteq> k2"
             using as by auto
           then have "interior k1 \<inter> interior k2 = {} \<or> interior l1 \<inter> interior l2 = {}"
-            apply -
-            apply (erule disjE)
-            apply (rule disjI2)
-            apply (rule d'(5))
-            prefer 4
-            apply (rule disjI1)
-            apply (rule *)
-            using as
-            apply auto
-            done
+            by (metis Pair_inject \<open>k1 \<in> snd ` p\<close> \<open>l1 \<in> d\<close> as(4) d'(5) snd_p(5))
           moreover have "interior (l1 \<inter> k1) = interior (l2 \<inter> k2)"
             using as(2) by auto
           ultimately have "interior(l1 \<inter> k1) = {}"
@@ -1934,14 +1913,13 @@ proof -
           case (1 x a b)
           then show ?case
             unfolding p'_def
-            apply safe
-            apply (rule_tac x=i in exI)
-            apply (rule_tac x=l in exI)
-            unfolding snd_conv image_iff
-            apply safe
-            apply (rule_tac x="(a,l)" in bexI)
-            apply auto
-            done
+          proof -
+            assume "(a, b) \<in> {(x, k) |x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l}"
+            then have "\<exists>n N. (a, b) = (n, N) \<and> (\<exists>Na Nb. n \<in> Na \<and> Na \<in> d \<and> (n, Nb) \<in> p \<and> N = Na \<inter> Nb)"
+              by force
+            then show ?thesis
+              by (metis (no_types) image_iff snd_conv)
+          qed
         qed
         finally show ?case .
       next
@@ -2019,15 +1997,7 @@ proof -
           note xl = p'(2-4)[OF this]
           from this(3) guess u v by (elim exE) note uv=this
           have "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar>) = (\<Sum>k\<in>d. content (k \<inter> cbox u v))"
-            apply (rule sum.cong)
-            apply (rule refl)
-            apply (drule d'(4))
-            apply safe
-            apply (subst Int_commute)
-            unfolding Int_interval uv
-            apply (subst abs_of_nonneg)
-            apply auto
-            done
+            by (simp add: Int_commute uv)
           also have "\<dots> = sum content {k \<inter> cbox u v| k. k \<in> d}"
             unfolding Setcompr_eq_image
             apply (rule sum.reindex_nontrivial [unfolded o_def, symmetric])
@@ -2095,13 +2065,11 @@ proof (rule absolutely_integrable_onI, fact)
     by (intro bdd_aboveI2[where M=B] assms(2)[rule_format]) simp
   note D = D_1 D_2
   let ?S = "SUP d:?D. ?f d"
-  have f_int: "\<And>a b. f absolutely_integrable_on cbox a b"
+  have "\<And>a b. f integrable_on cbox a b"
+    using assms(1) integrable_on_subcbox by blast
+  then have f_int: "\<And>a b. f absolutely_integrable_on cbox a b"
     apply (rule bounded_variation_absolutely_integrable_interval[where B=B])
-    apply (rule integrable_on_subcbox[OF assms(1)])
-    defer
-    apply safe
-    apply (rule assms(2)[rule_format])
-    apply auto
+    using assms(2) apply blast
     done
   have "((\<lambda>x. norm (f x)) has_integral ?S) UNIV"
     apply (subst has_integral_alt')
