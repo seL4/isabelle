@@ -274,8 +274,11 @@ object HTML
       XML.elem(
         Markup("input", List("type" -> "hidden") ::: optional_value(text) ::: optional_name(name)))
 
-    def form(body: XML.Body, name: String = "", action: String = ""): XML.Elem =
-      XML.Elem(Markup("form", optional_name(name) ::: optional_action(action)), body)
+    def form(body: XML.Body, name: String = "", action: String = "", http_post: Boolean = false)
+        : XML.Elem =
+      XML.Elem(
+        Markup("form", optional_name(name) ::: optional_action(action) :::
+          (if (http_post) List("method" -> "post") else Nil)), body)
   }
 
 
