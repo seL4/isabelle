@@ -197,10 +197,11 @@ object HTML
   def source(src: String): XML.Elem = source(text(src))
 
   def style(s: String): XML.Elem = XML.elem("style", text(s))
-
   def style_file(href: String): XML.Elem =
     XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
 
+  def script(s: String): XML.Elem = XML.elem("script", text(s))
+  def script_file(href: String): XML.Elem = XML.Elem(Markup("script", List("src" -> href)), Nil)
 
   /* messages */
 
@@ -246,29 +247,35 @@ object HTML
     private def optional_action(action: String): XML.Attributes =
       proper_string(action).map(a => "action" -> a).toList
 
-    def button(body: XML.Body, name: String = "", tooltip: String = "", submit: Boolean = false)
-        : XML.Elem =
+    private def optional_onclick(script: String): XML.Attributes =
+      proper_string(script).map(a => "onclick" -> a).toList
+
+    private def optional_onchange(script: String): XML.Attributes =
+      proper_string(script).map(a => "onchange" -> a).toList
+
+    def button(body: XML.Body, name: String = "", tooltip: String = "", submit: Boolean = false,
+        script: String = ""): XML.Elem =
       XML.Elem(
         Markup("button",
           List("type" -> (if (submit) "submit" else "button"), "value" -> "true") :::
-          optional_name(name) ::: optional_title(tooltip)), body)
+          optional_name(name) ::: optional_title(tooltip) ::: optional_onclick(script)), body)
 
     def checkbox(body: XML.Body, name: String = "", tooltip: String = "", submit: Boolean = false,
-        selected: Boolean = false): XML.Elem =
+        selected: Boolean = false, script: String = ""): XML.Elem =
       XML.elem("label",
         XML.elem(
           Markup("input",
             List("type" -> "checkbox", "value" -> "true") ::: optional_name(name) :::
               optional_title(tooltip) ::: optional_submit(submit) :::
-              optional_checked(selected))) :: body)
+              optional_checked(selected) ::: optional_onchange(script))) :: body)
 
     def text_field(columns: Int = 0, text: String = "", name: String = "", tooltip: String = "",
-        submit: Boolean = false): XML.Elem =
+        submit: Boolean = false, script: String = ""): XML.Elem =
       XML.elem(Markup("input",
         List("type" -> "text") :::
           (if (columns > 0) List("size" -> columns.toString) else Nil) :::
-          optional_value(text) ::: optional_name(name) :::
-          optional_title(tooltip) ::: optional_submit(submit)))
+          optional_value(text) ::: optional_name(name) ::: optional_title(tooltip) :::
+          optional_submit(submit) ::: optional_onchange(script)))
 
     def parameter(text: String = "", name: String = ""): XML.Elem =
       XML.elem(
