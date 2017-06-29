@@ -7,7 +7,8 @@ Isabelle from 2017, see also:
   * <http://isabelle.in.tum.de/devel/release_snapshot>
   * <http://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
 
-![Isabelle/VSCode](isabelle_vscode.png)
+![[Isabelle/VSCode screenshot]](isabelle_vscode.png)
+
 
 ## Prerequisites ##
 
@@ -18,6 +19,7 @@ Isabelle from 2017, see also:
 
   * On Windows: `isabelle.home` as above, but in Windows path notation with
     drive-letter and backslashes.
+
 
 ### Support for Isabelle symbols ###
 
