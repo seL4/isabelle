@@ -531,8 +531,11 @@ class Server(
       offset: Symbol.Offset = 0): Option[Hyperlink] =
     {
       if (snapshot.is_outdated) None
-      else snapshot.find_command_position(id, offset).map(node_pos =>
-        new Hyperlink { def follow(unit: Unit) { channel.write(Protocol.Caret_Update(node_pos)) } })
+      else
+        snapshot.find_command_position(id, offset).map(node_pos =>
+          new Hyperlink {
+            def follow(unit: Unit) { channel.write(Protocol.Caret_Update(node_pos, focus)) }
+          })
     }
 
 

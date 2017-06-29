@@ -30,6 +30,7 @@ export interface Caret_Update
   uri?: string
   line?: number
   character?: number
+  focus?: boolean
 }
 
 export const caret_update_type =

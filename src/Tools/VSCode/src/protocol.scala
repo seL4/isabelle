@@ -482,14 +482,12 @@ object Protocol
 
   object Caret_Update
   {
-    def apply(node_pos: Line.Node_Position): JSON.T =
+    def apply(node_pos: Line.Node_Position, focus: Boolean): JSON.T =
       Notification("PIDE/caret_update",
         Map("uri" -> Url.print_file_name(node_pos.name),
           "line" -> node_pos.pos.line,
-          "character" -> node_pos.pos.column))
-
-    def apply(file: JFile, pos: Line.Position): JSON.T =
-      apply(Line.Node_Position(file.getPath, pos))
+          "character" -> node_pos.pos.column,
+          "focus" -> focus))
 
     def unapply(json: JSON.T): Option[Option[(JFile, Line.Position)]] =
       json match {

@@ -9,8 +9,8 @@ import * as protocol from './protocol';
 import * as state_panel from './state_panel';
 import * as symbol from './symbol';
 import * as completion from './completion';
-import { Uri, Selection, Position, ExtensionContext, workspace, window, commands, languages }
-  from 'vscode';
+import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
+  commands, languages } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind,
   NotificationType } from 'vscode-languageclient';
 
@@ -82,14 +82,18 @@ export function activate(context: ExtensionContext)
 
     function goto_file(caret_update: protocol.Caret_Update)
     {
+      function move_cursor(editor: TextEditor)
+      {
+        const pos = new Position(caret_update.line || 0, caret_update.character || 0)
+        editor.selections = [new Selection(pos, pos)]
+      }
+
       if (caret_update.uri) {
         workspace.openTextDocument(Uri.parse(caret_update.uri)).then(document =>
         {
           const editor = library.find_file_editor(document.uri)
-          if (editor) {
-            const pos = new Position(caret_update.line || 0, caret_update.character || 0)
-            editor.selections = [new Selection(pos, pos)]
-          }
+          const column = editor ? editor.viewColumn : ViewColumn.One
+          window.showTextDocument(document, column, !caret_update.focus).then(move_cursor)
         })
       }
     }
