@@ -34,7 +34,7 @@
         "commands": [
             {
                 "command": "isabelle.state",
-                "title": "Show Proof State",
+                "title": "Show State",
                 "category": "Isabelle"
             },
             {
