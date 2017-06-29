@@ -49,7 +49,7 @@ In addition, the following user settings should be changed:
   * Preferred Color Theme: `Light+ (default light)`
 
   * Alternative Color Theme: `Dark+ (default dark)` – with restrictions: some color
-    combinations don't work out properly
+    combinations don't work out properly.
 
   * Recommended changes to default VSCode settings:
 
