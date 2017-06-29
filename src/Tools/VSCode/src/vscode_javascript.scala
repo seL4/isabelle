@@ -1,7 +1,7 @@
 /*  Title:      Tools/VSCode/src/build_html.scala
     Author:     Makarius
 
-JavaScript snipptes for VSCode HTML view.
+JavaScript snippets for VSCode HTML view.
 */
 
 package isabelle.vscode
