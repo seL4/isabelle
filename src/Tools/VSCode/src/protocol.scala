@@ -478,10 +478,19 @@ object Protocol
   }
 
 
-  /* caret handling */
+  /* caret update: bidirectional */
 
   object Caret_Update
   {
+    def apply(node_pos: Line.Node_Position): JSON.T =
+      Notification("PIDE/caret_update",
+        Map("uri" -> Url.print_file_name(node_pos.name),
+          "line" -> node_pos.pos.line,
+          "character" -> node_pos.pos.column))
+
+    def apply(file: JFile, pos: Line.Position): JSON.T =
+      apply(Line.Node_Position(file.getPath, pos))
+
     def unapply(json: JSON.T): Option[Option[(JFile, Line.Position)]] =
       json match {
         case Notification("PIDE/caret_update", Some(params)) =>

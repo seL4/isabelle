@@ -9,9 +9,10 @@ import * as protocol from './protocol';
 import * as state_panel from './state_panel';
 import * as symbol from './symbol';
 import * as completion from './completion';
-import { ExtensionContext, workspace, window, commands, languages } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind, NotificationType }
-  from 'vscode-languageclient';
+import { Uri, Selection, Position, ExtensionContext, workspace, window, commands, languages }
+  from 'vscode';
+import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind,
+  NotificationType } from 'vscode-languageclient';
 
 
 let last_caret_update: protocol.Caret_Update = {}
@@ -79,12 +80,28 @@ export function activate(context: ExtensionContext)
       }
     }
 
+    function goto_file(caret_update: protocol.Caret_Update)
+    {
+      if (caret_update.uri) {
+        workspace.openTextDocument(Uri.parse(caret_update.uri)).then(document =>
+        {
+          const editor = library.find_file_editor(document.uri)
+          if (editor) {
+            const pos = new Position(caret_update.line || 0, caret_update.character || 0)
+            editor.selections = [new Selection(pos, pos)]
+          }
+        })
+      }
+    }
+
     language_client.onReady().then(() =>
     {
       context.subscriptions.push(
         window.onDidChangeActiveTextEditor(_ => update_caret()),
         window.onDidChangeTextEditorSelection(_ => update_caret()))
       update_caret()
+
+      language_client.onNotification(protocol.caret_update_type, goto_file)
     })
 
 

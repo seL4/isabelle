@@ -29,13 +29,15 @@ export function is_file(uri: Uri): boolean
 
 export function find_file_editor(uri: Uri): TextEditor | undefined
 {
+  function check(editor: TextEditor): boolean
+  { return editor && is_file(editor.document.uri) && editor.document.uri.fsPath === uri.fsPath }
+
   if (is_file(uri)) {
-    return window.visibleTextEditors.find(editor =>
-      is_file(editor.document.uri) && editor.document.uri.fsPath === uri.fsPath)
+    if (check(window.activeTextEditor)) return window.activeTextEditor
+    else return window.visibleTextEditors.find(check)
   }
   else return undefined
 }
-
 
 
 /* Isabelle configuration */
