@@ -54,8 +54,9 @@ In addition, the following user settings should be changed:
   * Recommended changes to default VSCode settings:
 
     ```
-    "editor.acceptSuggestionOnEnter": false
-    "editor.lineNumbers": "off"
-    "editor.rulers": [100]
-    "editor.wordBasedSuggestions": true
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.lineNumbers": "off",
+    "editor.renderIndentGuides": false,
+    "editor.rulers": [100],
+    "editor.wordBasedSuggestions": true,
     ```
