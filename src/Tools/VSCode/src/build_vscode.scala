@@ -36,7 +36,10 @@ object Build_VSCode
     progress.echo(output_path.implode)
 
     progress.bash(
-      "npm install && npm update --dev && vsce " + (if (publish) "publish" else "package"),
+      "npm install && npm update --dev && vsce " +
+      (if (publish)
+        "publish --baseImagesUrl http://isabelle.in.tum.de/repos/isabelle/raw-file/tip/src/Tools/VSCode/extension"
+       else "package"),
       cwd = extension_dir.file, echo = true).check
   }
 
