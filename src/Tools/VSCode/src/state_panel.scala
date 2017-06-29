@@ -135,7 +135,7 @@ function invoke_locate() { invoke_command("_isabelle.state-locate", [""" + id + 
       tooltip = "Locate printed command within source text",
       script = "invoke_locate()")
 
-  private val controls: XML.Elem =
+  private def controls: XML.Elem =
     HTML.Wrap_Panel(List(auto_update_button, update_button, locate_button))
 
 
