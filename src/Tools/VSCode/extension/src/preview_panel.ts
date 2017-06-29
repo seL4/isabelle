@@ -85,10 +85,7 @@ export function source(preview_uri: Uri)
 {
   const document_uri = decode_preview(preview_uri)
   if (document_uri) {
-    const editor =
-      window.visibleTextEditors.find(editor =>
-        library.is_file(editor.document.uri) &&
-        editor.document.uri.fsPath === document_uri.fsPath)
+    const editor = library.find_file_editor(document_uri)
     if (editor) window.showTextDocument(editor.document, editor.viewColumn)
     else workspace.openTextDocument(document_uri).then(window.showTextDocument)
   }

@@ -1,7 +1,7 @@
 'use strict';
 
 import * as os from 'os';
-import { TextEditor, Uri, ViewColumn, workspace } from 'vscode'
+import { TextEditor, Uri, ViewColumn, workspace, window } from 'vscode'
 
 
 /* regular expressions */
@@ -20,12 +20,22 @@ export function platform_is_windows(): boolean
 }
 
 
-/* file URIs */
+/* files */
 
 export function is_file(uri: Uri): boolean
 {
   return uri.scheme === "file"
 }
+
+export function find_file_editor(uri: Uri): TextEditor | undefined
+{
+  if (is_file(uri)) {
+    return window.visibleTextEditors.find(editor =>
+      is_file(editor.document.uri) && editor.document.uri.fsPath === uri.fsPath)
+  }
+  else return undefined
+}
+
 
 
 /* Isabelle configuration */
