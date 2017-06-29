@@ -46,7 +46,7 @@ class Preview_Panel(resources: VSCode_Resources)
     val label = "Preview " + quote(model.node_name.toString)
     val content =
       HTML.output_document(
-        List(HTML.style(HTML.fonts_css()), HTML.style_file(Url.print_file(HTML.isabelle_css.file))),
+        List(HTML.style(HTML.fonts_css()), HTML.style_file(HTML.isabelle_css)),
         List(
           HTML.chapter("Theory " + quote(model.node_name.theory_base_name)),
           HTML.source(Present.theory_document(snapshot))),

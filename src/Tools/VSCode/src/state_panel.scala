@@ -65,7 +65,7 @@ class State_Panel private(val server: Server)
           val content =
             HTML.output_document(
               List(HTML.style(HTML.fonts_css()),
-                HTML.style_file(Url.print_file(HTML.isabelle_css.file)),
+                HTML.style_file(HTML.isabelle_css),
                 HTML.script(controls_script)),
               List(controls, HTML.source(text)),
               css = "")
