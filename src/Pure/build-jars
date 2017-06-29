@@ -172,6 +172,7 @@ declare -a SOURCES=(
   ../Tools/VSCode/src/protocol.scala
   ../Tools/VSCode/src/server.scala
   ../Tools/VSCode/src/state_panel.scala
+  ../Tools/VSCode/src/vscode_javascript.scala
   ../Tools/VSCode/src/vscode_rendering.scala
   ../Tools/VSCode/src/vscode_resources.scala
   ../Tools/VSCode/src/vscode_spell_checker.scala

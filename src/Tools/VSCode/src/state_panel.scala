@@ -38,6 +38,10 @@ object State_Panel
   def update(id: Counter.ID): Unit =
     instances.value.get(id).foreach(state =>
       state.server.editor.send_dispatcher(state.update()))
+
+  def auto_update(id: Counter.ID, enabled: Boolean): Unit =
+    instances.value.get(id).foreach(state =>
+      state.server.editor.send_dispatcher(state.auto_update(Some(enabled))))
 }
 
 
@@ -61,7 +65,8 @@ class State_Panel private(val server: Server)
           val content =
             HTML.output_document(
               List(HTML.style(HTML.fonts_css()),
-                HTML.style_file(Url.print_file(HTML.isabelle_css.file))),
+                HTML.style_file(Url.print_file(HTML.isabelle_css.file)),
+                HTML.script(controls_script)),
               List(controls, HTML.source(text)),
               css = "")
           output(content)
@@ -86,37 +91,52 @@ class State_Panel private(val server: Server)
 
   private val auto_update_enabled = Synchronized(true)
 
-  def set_auto_update(b: Boolean) { auto_update_enabled.change(_ => b); if (b) update() }
-
-  def auto_update() { if (auto_update_enabled.value) update() }
+  def auto_update(set: Option[Boolean] = None)
+  {
+    val enabled =
+      auto_update_enabled.guarded_access(a =>
+        set match {
+          case None => Some((a, a))
+          case Some(b) => Some((b, b))
+        })
+    if (enabled) update()
+  }
 
 
   /* controls */
 
-  private def id_parameter: XML.Elem =
-    HTML.GUI.parameter(id.toString, name = "id")
+  private def controls_script =
+    VSCode_JavaScript.invoke_command +
+"""
+function invoke_auto_update(enabled)
+{ invoke_command("_isabelle.state-auto-update", [""" + id + """, enabled]) }
+
+function invoke_update() { invoke_command("_isabelle.state-update", [""" + id + """]) }
+
+function invoke_locate() { invoke_command("_isabelle.state-locate", [""" + id + """]) }
+"""
 
   private def auto_update_button: XML.Elem =
     HTML.GUI.checkbox(HTML.text("Auto update"),
       name = "auto_update",
       tooltip = "Indicate automatic update following cursor movement",
-      submit = true,
-      selected = auto_update_enabled.value)
+      selected = auto_update_enabled.value,
+      script = "invoke_auto_update(this.checked)")
 
   private def update_button: XML.Elem =
     HTML.GUI.button(List(HTML.bold(HTML.text("Update"))),
       name = "update",
       tooltip = "Update display according to the command at cursor position",
-      submit = true)
+      script = "invoke_update()")
 
   private def locate_button: XML.Elem =
     HTML.GUI.button(HTML.text("Locate"),
       name = "locate",
       tooltip = "Locate printed command within source text",
-      submit = true)
+      script = "invoke_locate()")
 
   private val controls: XML.Elem =
-    HTML.Wrap_Panel(List(id_parameter, auto_update_button, update_button, locate_button))
+    HTML.Wrap_Panel(List(auto_update_button, update_button, locate_button))
 
 
   /* main */

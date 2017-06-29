@@ -63,10 +63,18 @@ export interface State_Id
   id: number
 }
 
+export interface Auto_Update
+{
+  id: number
+  enabled: boolean
+}
+
 export const state_init_type = new NotificationType<void, void>("PIDE/state_init")
 export const state_exit_type = new NotificationType<State_Id, void>("PIDE/state_exit")
 export const state_locate_type = new NotificationType<State_Id, void>("PIDE/state_locate")
 export const state_update_type = new NotificationType<State_Id, void>("PIDE/state_update")
+export const state_auto_update_type =
+  new NotificationType<Auto_Update, void>("PIDE/state_auto_update")
 
 
 /* preview */

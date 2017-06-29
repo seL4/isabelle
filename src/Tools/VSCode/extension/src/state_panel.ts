@@ -76,3 +76,9 @@ export function update(id: number)
 {
   if (language_client) language_client.sendNotification(protocol.state_update_type, { id: id })
 }
+
+export function auto_update(id: number, enabled: boolean)
+{
+  if (language_client)
+    language_client.sendNotification(protocol.state_auto_update_type, { id: id, enabled: enabled })
+}

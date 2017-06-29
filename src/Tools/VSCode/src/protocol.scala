@@ -528,6 +528,19 @@ object Protocol
   object State_Locate extends State_Id_Notification("PIDE/state_locate")
   object State_Update extends State_Id_Notification("PIDE/state_update")
 
+  object State_Auto_Update
+  {
+    def unapply(json: JSON.T): Option[(Counter.ID, Boolean)] =
+      json match {
+        case Notification("PIDE/state_auto_update", Some(params)) =>
+          for {
+            id <- JSON.long(params, "id")
+            enabled <- JSON.bool(params, "enabled")
+          } yield (id, enabled)
+        case _ => None
+      }
+  }
+
 
   /* preview */
 

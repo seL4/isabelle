@@ -450,6 +450,7 @@ class Server(
           case Protocol.State_Exit(id) => State_Panel.exit(id)
           case Protocol.State_Locate(id) => State_Panel.locate(id)
           case Protocol.State_Update(id) => State_Panel.update(id)
+          case Protocol.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
           case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
           case _ => log("### IGNORED")
