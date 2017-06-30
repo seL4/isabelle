@@ -16,7 +16,7 @@ See also:
 
 ## Screenshot
 
-![[Isabelle/VSCode]](http://isabelle.in.tum.de/repos/isabelle/raw-file/9fe05edaa351/src/Tools/VSCode/extension/isabelle_vscode.png)
+![[Isabelle/VSCode]](http://isabelle.in.tum.de/repos/isabelle/raw-file/b565a39627bb/src/Tools/VSCode/extension/isabelle_vscode.png)
 
 
 ## Notable Features
@@ -28,6 +28,9 @@ See also:
 
   * Implicit formal checking of theory files, using the *cursor position* of the
   active editor panel as indication for relevant spots.
+
+  * Text overview lane with formal status of prover commands (unprocessed,
+  running, error, warning).
 
   * Prover messages within the source text (errors/warnings and information
   messages).
@@ -55,7 +58,7 @@ See also:
 
 ## Requirements
 
-### Isabelle Installation
+### Isabelle/VSCode Installation
 
   * Download a recent Isabelle development snapshot from
   <http://isabelle.in.tum.de/devel/release_snapshot> or the particular version
@@ -68,7 +71,7 @@ See also:
 
   * Open the VSCode *Extensions* view and install the following:
 
-      + *Isabelle* (e.g. version 0.20).
+      + *Isabelle* (e.g. version 0.22).
 
       + *Prettify Symbols Mode* (important for display of Isabelle symbols).
 
@@ -106,11 +109,11 @@ See also:
   initialized and user settings are updated. Afterwards VSCode should know about
   `.thy` files (Isabelle theories) and `.ML` files (Isabelle/ML modules).
 
-  The Isabelle extension is initialized when the first Isabelle is opened. It
-  requires a few seconds to start up: a small popup window says *Welcome to
-  Isabelle*. If that fails, there might be something wrong with `isabelle.home`
-  from above, or the Isabelle distribution does not fit to the version of the
-  VSCode extension from the Marketplace.
+  The Isabelle extension is initialized when the first Isabelle file is opened.
+  It requires a few seconds to start up: a small popup window eventually says
+  *"Welcome to Isabelle ..."*. If that fails, there might be something wrong
+  with `isabelle.home` from above, or the Isabelle distribution does not fit to
+  the version of the VSCode extension from the Marketplace.
 
 
 ### Support for Isabelle symbols
@@ -183,3 +186,7 @@ based on the usual `etc/symbols` specifications of the Isabelle installation.
   dimensions.
 
   * Lack of GUI panels for Sledgehammer, Query operations etc.
+
+  * Big theory files may cause problems to the VSCode rendering engine, since
+  messages and text decorations are applied to the text as a whole (cf. the
+  minimap view).
