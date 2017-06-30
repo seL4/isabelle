@@ -97,7 +97,10 @@ object File
   /* platform files */
 
   def absolute(file: JFile): JFile = file.toPath.toAbsolutePath.normalize.toFile
+  def absolute_name(file: JFile): String = absolute(file).getPath
+
   def canonical(file: JFile): JFile = file.getCanonicalFile
+  def canonical_name(file: JFile): String = canonical(file).getPath
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
   def pwd(): Path = path(Path.current.absolute_file)
