@@ -254,7 +254,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
     for {
       platform_path <- resources.source_file(source_name)
       file <-
-        (try { Some(File.canonical(new JFile(platform_path))) }
+        (try { Some(File.absolute(new JFile(platform_path))) }
          catch { case ERROR(_) => None })
     }
     yield {

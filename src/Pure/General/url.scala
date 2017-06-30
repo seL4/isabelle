@@ -61,6 +61,9 @@ object Url
         false
     }
 
+  def absolute_file(uri: String): JFile = File.absolute(parse_file(uri))
+  def absolute_file_name(uri: String): String = absolute_file(uri).getPath
+
   def canonical_file(uri: String): JFile = File.canonical(parse_file(uri))
   def canonical_file_name(uri: String): String = canonical_file(uri).getPath
 }
