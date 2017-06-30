@@ -207,11 +207,12 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
   def position: Position.T = Position.File(implode)
 
 
-  /* platform file */
+  /* platform files */
 
   def file: JFile = File.platform_file(this)
   def is_file: Boolean = file.isFile
   def is_dir: Boolean = file.isDirectory
 
-  def canonical_file: JFile = file.getCanonicalFile
+  def absolute_file: JFile = File.absolute(file)
+  def canonical_file: JFile = File.canonical(file)
 }

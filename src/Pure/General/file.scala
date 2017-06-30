@@ -47,9 +47,6 @@ object File
 
   def standard_path(file: JFile): String = standard_path(file.getPath)
 
-  def path(file: JFile): Path = Path.explode(standard_path(file))
-  def pwd(): Path = path(Path.current.file.toPath.toAbsolutePath.toFile)
-
   def standard_url(name: String): String =
     try {
       val url = new URL(name)
@@ -95,6 +92,15 @@ object File
 
   def platform_path(path: Path): String = platform_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))
+
+
+  /* platform files */
+
+  def absolute(file: JFile): JFile = file.toPath.toAbsolutePath.normalize.toFile
+  def canonical(file: JFile): JFile = file.getCanonicalFile
+
+  def path(file: JFile): Path = Path.explode(standard_path(file))
+  def pwd(): Path = path(Path.current.absolute_file)
 
 
   /* bash path */
