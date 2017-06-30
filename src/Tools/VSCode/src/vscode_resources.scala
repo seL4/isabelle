@@ -109,7 +109,7 @@ class VSCode_Resources(
     else if (path.is_basic && !dir.endsWith("/") && !dir.endsWith(JFile.separator))
       dir + JFile.separator + File.platform_path(path)
     else if (path.is_basic) dir + File.platform_path(path)
-    else new JFile(dir + JFile.separator + File.platform_path(path)).getCanonicalPath
+    else File.canonical_name(new JFile(dir + JFile.separator + File.platform_path(path)))
   }
 
   def get_models: Map[JFile, Document_Model] = state.value.models

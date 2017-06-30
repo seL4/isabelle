@@ -83,7 +83,7 @@ object Sessions
 
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
     {
-      val res = files.getOrElse(file.getCanonicalFile, Nil).headOption
+      val res = files.getOrElse(File.canonical(file), Nil).headOption
       if (bootstrap) res.map(_.map_theory(Thy_Header.bootstrap_name(_))) else res
     }
   }

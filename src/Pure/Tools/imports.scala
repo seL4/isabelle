@@ -25,7 +25,7 @@ object Imports
         for {
           name <- hg.known_files()
           file = (hg.root + Path.explode(name)).file
-          if pred(file) && file.getCanonicalFile.toPath.startsWith(start_path)
+          if pred(file) && File.canonical(file).toPath.startsWith(start_path)
         } yield file
     }
 

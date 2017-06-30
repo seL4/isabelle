@@ -30,7 +30,7 @@ class Scala_Console extends Shell("Scala")
     def find_jars(start: String): List[String] =
       if (start != null)
         File.find_files(new JFile(start), file => file.getName.endsWith(".jar")).
-          map(_.getAbsolutePath)
+          map(File.absolute_name(_))
       else Nil
 
     val initial_class_path =
