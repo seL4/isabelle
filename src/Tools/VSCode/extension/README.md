@@ -7,7 +7,7 @@ Isabelle from 2017, see also:
   * <http://isabelle.in.tum.de/devel/release_snapshot>
   * <http://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
 
-![[Isabelle/VSCode screenshot]](isabelle_vscode.png)
+![[Isabelle/VSCode screenshot]](http://isabelle.in.tum.de/repos/isabelle/raw-file/9fe05edaa351/src/Tools/VSCode/extension/isabelle_vscode.png)
 
 
 ## Prerequisites ##
