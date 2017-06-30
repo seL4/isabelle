@@ -5,14 +5,18 @@ requires a recent development version of Isabelle from 2017 – one that happens
 to fit to the extension version!
 
 The implementation is centered around the VSCode Language Server protocol, but
-with many add-ons that to VSCode and Isabelle/PIDE.
+with many add-ons that are specific to VSCode and Isabelle/PIDE.
 
 See also:
 
   * <http://isabelle.in.tum.de/devel/release_snapshot>
   * <http://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
+  * <https://github.com/Microsoft/language-server-protocol>
 
-![[Isabelle/VSCode screenshot]](http://isabelle.in.tum.de/repos/isabelle/raw-file/9fe05edaa351/src/Tools/VSCode/extension/isabelle_vscode.png)
+
+## Screenshot
+
+![[Isabelle/VSCode]](http://isabelle.in.tum.de/repos/isabelle/raw-file/9fe05edaa351/src/Tools/VSCode/extension/isabelle_vscode.png)
 
 
 ## Notable Features
@@ -33,16 +37,17 @@ See also:
 
   * Visual indication of formal scopes and hyperlinks for formal entities.
 
-  * Implicit proof state output via VSCode message channel ("Isabelle Output").
+  * Implicit proof state output via the VSCode message channel "Isabelle
+  Output".
 
   * Explicit proof state output via separate GUI panel (command
   `isabelle.state`).
 
   * HTML preview via separate GUI panel (command `isabelle.preview`).
 
-  * Rich completion information (similar to Isabelle/jEdit): Isabelle symbols
-  (e.g. `\forall` or `\<forall>`), outer syntax keywords, formal entities,
-  file-system paths, BibTeX entries etc.
+  * Rich completion information: Isabelle symbols (e.g. `\forall` or
+  `\<forall>`), outer syntax keywords, formal entities, file-system paths,
+  BibTeX entries etc.
 
   * Spell-checking of informal texts, including dictionary operations: via the
   regular completion dialog.
@@ -77,8 +82,8 @@ See also:
       directory (`$ISABELLE_HOME`).
 
       + On Windows: use drive-letter and backslashes for `isabelle.home` above.
-      When running from a bare repository clone, `isabelle.cygwin_home` needs to
-      point to a suitable Cygwin installation.
+      When running from a bare repository clone (not a development snapshot),
+      `isabelle.cygwin_home` needs to point to a suitable Cygwin installation.
 
     Examples:
 
@@ -101,11 +106,11 @@ See also:
   initialized and user settings are updated. Afterwards VSCode should know about
   `.thy` files (Isabelle theories) and `.ML` files (Isabelle/ML modules).
 
-  The Isabelle extension is be initialized on the first opening of some Isabelle
-  file. It requires a few seconds to start up, with a small popup window saying
-  *Welcome to Isabelle*. If that fails, there might be something wrong with the
-  above user settings, or the Isabelle distribution does not fit to the version
-  of the VSCode extension from the Marketplace.
+  The Isabelle extension is initialized when the first Isabelle is opened. It
+  requires a few seconds to start up: a small popup window says *Welcome to
+  Isabelle*. If that fails, there might be something wrong with `isabelle.home`
+  from above, or the Isabelle distribution does not fit to the version of the
+  VSCode extension from the Marketplace.
 
 
 ### Support for Isabelle symbols
@@ -155,13 +160,13 @@ based on the usual `etc/symbols` specifications of the Isabelle installation.
     "editor.wordBasedSuggestions": true,
     ```
 
-## Notable Limitations of Isabelle/VSCode
+## Known Limitations of Isabelle/VSCode
 
   * Lack of specific support for the `IsabelleText` fonts: these need to be
-  manually installed on the system and configured for VSCode (cf.
+  manually installed on the system and configured for VSCode (see also
   `$ISABELLE_FONTS` within the Isabelle environment).
 
-    **Note:** As the Isabelle fonts continue to evelove, installed versions need
+    **Note:** As the Isabelle fonts continue to evolve, installed versions need
     to be updated according to each new Isabelle version.
 
   * Isabelle symbols are merely an optical illusion: it would be better to make
@@ -169,12 +174,12 @@ based on the usual `etc/symbols` specifications of the Isabelle installation.
 
   * Isabelle symbol abbreviations like "-->" are not accepted by VSCode.
 
-  * Lack of formal editor perspective in VSCode: only the cursor position (with
-  surrounding lines of text) is used.
+  * Lack of formal editor perspective in VSCode: only the cursor position is
+  used (with some surrounding lines of text).
 
   * Lack of formal markup in prover messages and popups.
 
-  * Lack of pretty-printing (line breaks) according to window and font
+  * Lack of pretty-printing (logical line breaks) according to window and font
   dimensions.
 
   * Lack of GUI panels for Sledgehammer, Query operations etc.
