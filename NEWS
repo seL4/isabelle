@@ -9,6 +9,19 @@ New in this Isabelle version
 
 *** General ***
 
+* Experimental support for Visual Studio Code (VSCode) as alternative
+Isabelle/PIDE front-end, see also
+https://marketplace.visualstudio.com/items?itemName=makarius.isabelle
+
+VSCode is a new type of application that continues the concepts of
+"programmer's editor" and "integrated development environment" towards
+fully semantic editing and debugging -- in a relatively light-weight
+manner. Thus it fits nicely on top of the Isabelle/PIDE infrastructure.
+Technically, VSCode is based on the Electron application framework
+(Node.js + Chromium browser + V8), which is implemented in JavaScript
+and TypeScript, while Isabelle/VSCode mainly consists of Isabelle/Scala
+modules around a Language Server implementation.
+
 * Theory names are qualified by the session name that they belong to.
 This affects imports, but not the theory name space prefix: it remains
 the theory base name as before. In order to import theories from other
