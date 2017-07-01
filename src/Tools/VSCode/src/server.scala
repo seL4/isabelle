@@ -31,6 +31,7 @@ object Server
   val isabelle_tool = Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", args =>
   {
     try {
+      var all_known = false
       var log_file: Option[Path] = None
       var dirs: List[Path] = Nil
       var logic = default_logic
@@ -43,6 +44,7 @@ object Server
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
+    -A           explore theory name space of all known sessions (potentially slow)
     -L FILE      enable logging on FILE
     -d DIR       include session directory
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
@@ -53,6 +55,7 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
+        "A" -> (_ => all_known = true),
         "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
         "l:" -> (arg => logic = arg),
@@ -66,7 +69,9 @@ Usage: isabelle vscode_server [OPTIONS]
 
       val log = Logger.make(log_file)
       val channel = new Channel(System.in, System.out, log, verbose)
-      val server = new Server(channel, options, logic, dirs, modes, system_mode, log)
+      val server =
+        new Server(channel, options, session_name = logic, session_dirs = dirs,
+          all_known = all_known, modes = modes, system_mode = system_mode, log = log)
 
       // prevent spurious garbage on the main protocol channel
       val orig_out = System.out
@@ -90,6 +95,7 @@ class Server(
   options: Options,
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
+  all_known: Boolean = false,
   modes: List[String] = Nil,
   system_mode: Boolean = false,
   log: Logger = No_Logger)
@@ -265,7 +271,7 @@ class Server(
         }
 
         val session_base =
-          Sessions.session_base(options, session_name, dirs = session_dirs, all_known = true)
+          Sessions.session_base(options, session_name, dirs = session_dirs, all_known = all_known)
         val resources = new VSCode_Resources(options, session_base, log)
           {
             override def commit(change: Session.Change): Unit =
