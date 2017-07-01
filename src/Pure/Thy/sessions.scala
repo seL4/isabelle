@@ -276,7 +276,8 @@ object Sessions
     val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
 
     if (all_known) {
-      val deps = Sessions.deps(full_sessions, global_theories = global_theories, all_known = true)
+      val deps =
+        Sessions.deps(full_sessions, global_theories = global_theories, all_known = all_known)
       deps(session).copy(known = deps.all_known)
     }
     else
