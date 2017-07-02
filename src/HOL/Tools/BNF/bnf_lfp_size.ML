@@ -355,9 +355,6 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             size_gen_o_map_thmss
           end;
 
-      (* Ideally, the "[code]" attribute would be generated only if the "code" plugin is enabled. *)
-      val code_attrs = Code.add_default_eqn_attrib Code.Equation;
-
       val massage_multi_notes =
         maps (fn (thmN, thmss, attrs) =>
           map2 (fn T_name => fn thms =>
@@ -367,7 +364,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         #> filter_out (null o fst o hd o snd);
 
       val notes =
-        [(sizeN, size_thmss, code_attrs :: nitpicksimp_attrs @ simp_attrs),
+        [(sizeN, size_thmss, nitpicksimp_attrs @ simp_attrs),
          (size_genN, size_gen_thmss, []),
          (size_gen_o_mapN, size_gen_o_map_thmss, []),
          (size_neqN, size_neq_thmss, [])]
@@ -377,6 +374,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         lthy2
         |> Spec_Rules.add Spec_Rules.Equational (size_consts, size_simps)
         |> Spec_Rules.add Spec_Rules.Equational (overloaded_size_consts, overloaded_size_simps)
+        |> Code.declare_default_eqns (map (rpair true) (flat size_thmss))
+          (*Ideally, this would only be issued if the "code" plugin is enabled.*)
         |> Local_Theory.notes notes;
 
       val phi0 = substitute_noted_thm noted;

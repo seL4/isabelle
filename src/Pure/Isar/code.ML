@@ -30,29 +30,28 @@ sig
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
-  val add_datatype: (string * typ) list -> theory -> theory
-  val add_datatype_cmd: string list -> theory -> theory
+  val declare_datatype_global: (string * typ) list -> theory -> theory
+  val declare_datatype_cmd: string list -> theory -> theory
   val datatype_interpretation:
     (string * ((string * sort) list * (string * ((string * sort) list * typ list)) list)
       -> theory -> theory) -> theory -> theory
-  val add_abstype: thm -> theory -> theory
-  val add_abstype_default: thm -> theory -> theory
+  val declare_abstype: thm -> local_theory -> local_theory
+  val declare_abstype_global: thm -> theory -> theory
   val abstype_interpretation:
     (string * ((string * sort) list * ((string * ((string * sort) list * typ)) * (string * thm)))
       -> theory -> theory) -> theory -> theory
-  type kind
-  val Equation: kind
-  val Nbe: kind
-  val Abstract: kind
-  val add_eqn: kind * bool -> thm -> theory -> theory
-  val add_default_eqn_attribute: kind -> attribute
-  val add_default_eqn_attrib: kind -> Token.src
-  val del_eqn_silent: thm -> theory -> theory
-  val del_eqn: thm -> theory -> theory
-  val del_eqns: string -> theory -> theory
-  val del_exception: string -> theory -> theory
-  val add_case: thm -> theory -> theory
-  val add_undefined: string -> theory -> theory
+  val declare_default_eqns: (thm * bool) list -> local_theory -> local_theory
+  val declare_default_eqns_global: (thm * bool) list -> theory -> theory
+  val declare_eqns: (thm * bool) list -> local_theory -> local_theory
+  val declare_eqns_global: (thm * bool) list -> theory -> theory
+  val add_eqn_global: thm * bool -> theory -> theory
+  val del_eqn_global: thm -> theory -> theory
+  val declare_abstract_eqn: thm -> local_theory -> local_theory
+  val declare_abstract_eqn_global: thm -> theory -> theory
+  val declare_empty_global: string -> theory -> theory
+  val declare_unimplemented_global: string -> theory -> theory
+  val declare_case_global: thm -> theory -> theory
+  val declare_undefined_global: string -> theory -> theory
   val get_type: theory -> string
     -> ((string * sort) list * (string * ((string * sort) list * typ list)) list) * bool
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
@@ -169,21 +168,17 @@ fun case_consts_of (Constructors (_, case_consts)) = case_consts
 (* functions *)
 
 datatype fun_spec = Unimplemented
-  | Eqns_Default of (thm * bool) list * (thm * bool) list lazy
-      (* (cache for default equations, lazy computation of default equations)
-         -- helps to restore natural order of default equations *)
+  | Eqns_Default of (thm * bool) list
   | Eqns of (thm * bool) list
-  | Proj of (term * string) * bool
-  | Abstr of (thm * string) * bool;
+  | Proj of term * string
+  | Abstr of thm * string;
 
-val default_fun_spec = Eqns_Default ([], Lazy.value []);
+val default_fun_spec = Eqns_Default [];
 
 fun is_default (Eqns_Default _) = true
-  | is_default (Proj (_, default)) = default
-  | is_default (Abstr (_, default)) = default
   | is_default _ = false;
 
-fun associated_abstype (Abstr ((_, tyco), _)) = SOME tyco
+fun associated_abstype (Abstr (_, tyco)) = SOME tyco
   | associated_abstype _ = NONE;
 
 
@@ -648,6 +643,33 @@ fun desymbolize_vars thy thm =
 fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbolize_vars thy);
 
 
+(* preparation and classification of code equations *)
+
+fun prep_eqn strictness thy =
+  apfst (meta_rewrite thy)
+  #> generic_assert_eqn strictness thy false
+  #> Option.map (fn eqn => (const_eqn thy (fst eqn), eqn));
+  
+fun prep_eqns strictness thy =
+  map_filter (prep_eqn strictness thy)
+  #> AList.group (op =);
+
+fun prep_abs_eqn strictness thy =
+  meta_rewrite thy
+  #> generic_assert_abs_eqn strictness thy NONE
+  #> Option.map (fn abs_eqn => (const_abs_eqn thy (fst abs_eqn), abs_eqn));
+
+fun prep_maybe_abs_eqn thy raw_thm =
+  let
+    val thm = meta_rewrite thy raw_thm;
+    val some_abs_thm = generic_assert_abs_eqn Silent thy NONE thm;
+  in case some_abs_thm of
+      SOME (thm, tyco) => SOME (const_abs_eqn thy thm, ((thm, true), SOME tyco))
+    | NONE => generic_assert_eqn Liberal thy false (thm, false)
+        |> Option.map (fn (thm, _) => (const_eqn thy thm, ((thm, is_linear thm), NONE)))
+  end;
+
+
 (* abstype certificates *)
 
 local
@@ -947,12 +969,12 @@ fun cert_of_eqns_preprocess ctxt functrans c =
 fun get_cert ctxt functrans c =
   case retrieve_raw (Proof_Context.theory_of ctxt) c of
     Unimplemented => nothing_cert ctxt c
-  | Eqns_Default (_, eqns_lazy) => Lazy.force eqns_lazy
+  | Eqns_Default eqns => eqns
       |> cert_of_eqns_preprocess ctxt functrans c
   | Eqns eqns => eqns
       |> cert_of_eqns_preprocess ctxt functrans c
-  | Proj ((_, tyco), _) => cert_of_proj ctxt c tyco
-  | Abstr ((abs_thm, tyco), _) => abs_thm
+  | Proj (_, tyco) => cert_of_proj ctxt c tyco
+  | Abstr (abs_thm, tyco) => abs_thm
      |> preprocess Conv.arg_conv ctxt
      |> cert_of_abs ctxt tyco c;
 
@@ -1027,13 +1049,13 @@ fun print_codesetup thy =
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
-    fun pretty_function (const, Eqns_Default (_, eqns_lazy)) =
-          pretty_equations const (map fst (Lazy.force eqns_lazy))
+    fun pretty_function (const, Eqns_Default eqns) =
+          pretty_equations const (map fst eqns)
       | pretty_function (const, Eqns eqns) =
           pretty_equations const (map fst eqns)
-      | pretty_function (const, Proj ((proj, _), _)) = Pretty.block
+      | pretty_function (const, Proj (proj, _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
-      | pretty_function (const, Abstr ((thm, _), _)) = pretty_equations const [thm];
+      | pretty_function (const, Abstr (thm, _)) = pretty_equations const [thm];
     fun pretty_typ (tyco, vs) = Pretty.str
       (string_of_typ thy (Type (tyco, map TFree vs)));
     fun pretty_typspec (typ, (cos, abstract)) = if null cos
@@ -1089,118 +1111,114 @@ fun print_codesetup thy =
 (* code equations *)
 
 (*
-  external distinction:
-    kind * default
-  processual distinction:
-    thm * proper  for concrete equations
-    thm  for abstract equations
-
   strictness wrt. shape of theorem propositions:
-    * default attributes: silent
-    * user attributes: warnings (after morphism application!)
-    * Isabelle/ML functions: strict
+    * default equations: silent
+    * using declarations and attributes: warnings (after morphism application!)
+    * using global declarations (... -> thy -> thy): strict
     * internal processing after storage: strict
 *)
 
-fun gen_add_eqn default (raw_thm, proper) thy =
+fun generic_code_declaration strictness lift_phi f x =
+  Local_Theory.declaration
+    {syntax = false, pervasive = false}
+    (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
+
+fun silent_code_declaration lift_phi = generic_code_declaration Silent lift_phi;
+fun code_declaration lift_phi = generic_code_declaration Liberal lift_phi;
+
+local
+
+fun subsumptive_add thy verbose (thm, proper) eqns =
   let
-    val thm = Thm.close_derivation raw_thm;
-    val c = const_eqn thy thm;
-    fun update_subsume verbose (thm, proper) eqns =
+    val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
+      o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
+    val args = args_of thm;
+    val incr_idx = Logic.incr_indexes ([], [], Thm.maxidx_of thm + 1);
+    fun matches_args args' =
       let
-        val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
-          o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
-        val args = args_of thm;
-        val incr_idx = Logic.incr_indexes ([], [], Thm.maxidx_of thm + 1);
-        fun matches_args args' =
-          let
-            val k = length args' - length args
-          in if k >= 0
-            then Pattern.matchess thy (args, (map incr_idx o drop k) args')
-            else false
-          end;
-        fun drop (thm', proper') = if (proper orelse not proper')
-          andalso matches_args (args_of thm') then
-            (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
-                Thm.string_of_thm_global thy thm') else (); true)
-          else false;
-      in (thm, proper) :: filter_out drop eqns end;
-    fun natural_order eqns =
-      (eqns, Lazy.lazy_name "code" (fn () => fold (update_subsume false) eqns []))
-    fun add_eqn' true Unimplemented = Eqns_Default (natural_order [(thm, proper)])
-      | add_eqn' true (Eqns_Default (eqns, _)) = Eqns_Default (natural_order ((thm, proper) :: eqns))
-          (*this restores the natural order and drops syntactic redundancies*)
-      | add_eqn' true fun_spec = fun_spec
-      | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
-      | add_eqn' false _ = Eqns [(thm, proper)];
-  in change_fun_spec c (add_eqn' default) thy end;
+        val k = length args' - length args
+      in if k >= 0
+        then Pattern.matchess thy (args, (map incr_idx o drop k) args')
+        else false
+      end;
+    fun drop (thm', proper') = if (proper orelse not proper')
+      andalso matches_args (args_of thm') then
+        (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
+            Thm.string_of_thm_global thy thm') else (); true)
+      else false;
+  in (thm, proper) :: filter_out drop eqns end;
 
-fun gen_add_abs_eqn default raw_thm thy =
+fun add_eqn_for (c, proto_eqn) thy =
   let
-    val (abs_thm, tyco) = apfst Thm.close_derivation raw_thm;
-    val c = const_abs_eqn thy abs_thm;
-  in change_fun_spec c (K (Abstr ((abs_thm, tyco), default))) thy end;
+    val eqn = apfst Thm.close_derivation proto_eqn;
+    fun add (Eqns eqns) = Eqns (subsumptive_add thy true eqn eqns)
+      | add _ = Eqns [eqn];
+  in change_fun_spec c add thy end;
 
-datatype kind = Equation | Nbe | Abstract;
-
-fun mk_eqn strictness thy = generic_assert_eqn strictness thy false o
-  apfst (meta_rewrite thy);
-
-fun mk_abs_eqn strictness thy = generic_assert_abs_eqn strictness thy NONE o
-  meta_rewrite thy;
-
-fun mk_maybe_abs_eqn thy raw_thm =
+fun add_eqns_for default (c, proto_eqns) thy =
   let
-    val thm = meta_rewrite thy raw_thm;
-    val some_abs_thm = generic_assert_abs_eqn Silent thy NONE thm;
-  in case some_abs_thm
-   of SOME (thm, tyco) => SOME ((thm, true), SOME tyco)
-    | NONE => Option.map (fn (thm, _) => ((thm, is_linear thm), NONE))
-        (generic_assert_eqn Liberal thy false (thm, false))
-  end;
+    val eqns = []
+      |> fold_rev (subsumptive_add thy (not default)) proto_eqns
+      |> (map o apfst) Thm.close_derivation;
+    fun add (Eqns_Default _) = Eqns_Default eqns
+      | add data = data;
+  in change_fun_spec c (if default then add else K (Eqns eqns)) thy end;
 
-fun generic_add_eqn strictness (kind, default) thm thy =
-  case kind of
-    Equation => fold (gen_add_eqn default)
-      (the_list (mk_eqn strictness thy (thm, true))) thy
-  | Nbe => fold (gen_add_eqn default)
-      (the_list (mk_eqn strictness thy (thm, false))) thy
-  | Abstract => fold (gen_add_abs_eqn default)
-      (the_list (mk_abs_eqn strictness thy thm)) thy;
+fun add_abstract_for (c, proto_abs_eqn) =
+  let
+    val abs_eqn = apfst Thm.close_derivation proto_abs_eqn;
+  in change_fun_spec c (K (Abstr abs_eqn)) end;
 
-val add_eqn = generic_add_eqn Strict;
+in
 
-fun lift_attribute f = Thm.declaration_attribute
-  (fn thm => Context.mapping (f thm) I);
+fun generic_declare_eqns default strictness raw_eqns thy =
+  fold (add_eqns_for default) (prep_eqns strictness thy raw_eqns) thy;
 
-fun add_default_eqn_attribute kind =
-  lift_attribute (generic_add_eqn Silent (kind, true));
+fun generic_add_eqn strictness raw_eqn thy =
+  fold add_eqn_for (the_list (prep_eqn strictness thy raw_eqn)) thy;
 
-fun add_default_eqn_attrib kind =
-  Attrib.internal (K (add_default_eqn_attribute kind));
+fun generic_declare_abstract_eqn strictness raw_abs_eqn thy =
+  fold add_abstract_for (the_list (prep_abs_eqn strictness thy raw_abs_eqn)) thy;
 
 fun add_maybe_abs_eqn_liberal thm thy =
-  case mk_maybe_abs_eqn thy thm
-   of SOME (eqn, NONE) => gen_add_eqn false eqn thy
-    | SOME ((thm, _), SOME tyco) => gen_add_abs_eqn false (thm, tyco) thy
+  case prep_maybe_abs_eqn thy thm
+   of SOME (c, (eqn, NONE)) => add_eqn_for (c, eqn) thy
+    | SOME (c, ((thm, _), SOME tyco)) => add_abstract_for (c, (thm, tyco)) thy
     | NONE => thy;
 
-fun generic_del_eqn strictness thm thy = case mk_eqn strictness thy (thm, true)
- of SOME (thm, _) =>
+end;
+
+val declare_default_eqns_global = generic_declare_eqns true Silent;
+
+val declare_default_eqns =
+  silent_code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns true);
+
+val declare_eqns_global = generic_declare_eqns false Strict;
+
+val declare_eqns =
+  code_declaration (map o apfst o Morphism.thm) (generic_declare_eqns false);
+
+val add_eqn_global = generic_add_eqn Strict;
+
+fun del_eqn_global thm thy =
+  case prep_eqn Liberal thy (thm, false) of
+    SOME (c, (thm, _)) =>
       let
-        fun del_eqn' (Eqns_Default _) = default_fun_spec
-          | del_eqn' (Eqns eqns) =
+        fun del (Eqns_Default _) = Eqns []
+          | del (Eqns eqns) =
               Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
-          | del_eqn' spec = spec
-      in change_fun_spec (const_eqn thy thm) del_eqn' thy end
+          | del spec = spec
+      in change_fun_spec c del thy end
   | NONE => thy;
 
-val del_eqn_silent = generic_del_eqn Silent;
-val del_eqn = generic_del_eqn Liberal;
+val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
 
-fun del_eqns c = change_fun_spec c (K Unimplemented);
+val declare_abstract_eqn =
+  code_declaration Morphism.thm generic_declare_abstract_eqn;
 
-fun del_exception c = change_fun_spec c (K (Eqns []));
+fun declare_empty_global c = change_fun_spec c (K (Eqns []));
+
+fun declare_unimplemented_global c = change_fun_spec c (K Unimplemented);
 
 
 (* cases *)
@@ -1223,7 +1241,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
         THEN ALLGOALS (Proof_Context.fact_tac ctxt' [Drule.reflexive_thm]))
   end;
 
-fun add_case thm thy =
+fun declare_case_global thm thy =
   let
     val (case_const, (k, cos)) = case_cert thm;
     val _ = case (filter_out (is_constr thy) o map_filter I) cos
@@ -1246,7 +1264,7 @@ fun add_case thm thy =
     |-> (fn cong => map_spec_purge (register_case cong #> register_type))
   end;
 
-fun add_undefined c =
+fun declare_undefined_global c =
   (map_spec_purge o map_cases) (Symtab.update (c, Undefined));
 
 
@@ -1273,7 +1291,7 @@ fun register_type (tyco, vs_spec) thy =
           then insert (op =) c else I | _ => I) cases []) cases;
   in
     thy
-    |> fold del_eqns (outdated_funs1 @ outdated_funs2)
+    |> fold declare_unimplemented_global (outdated_funs1 @ outdated_funs2)
     |> map_spec_purge
         ((map_types o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
         #> map_cases drop_outdated_cases)
@@ -1292,7 +1310,7 @@ fun datatype_interpretation f =
       |> f (tyco, fst (get_type thy tyco))
       |> Sign.restore_naming thy));
 
-fun add_datatype proto_constrs thy =
+fun declare_datatype_global proto_constrs thy =
   let
     fun unoverload_const_typ (c, ty) =
       (Axclass.unoverload_const thy (c, ty), ty);
@@ -1304,8 +1322,8 @@ fun add_datatype proto_constrs thy =
     |> Named_Target.theory_map (Datatype_Plugin.data_default tyco)
   end;
 
-fun add_datatype_cmd raw_constrs thy =
-  add_datatype (map (read_bare_const thy) raw_constrs) thy;
+fun declare_datatype_cmd raw_constrs thy =
+  declare_datatype_global (map (read_bare_const thy) raw_constrs) thy;
 
 structure Abstype_Plugin = Plugin(type T = string);
 
@@ -1316,35 +1334,48 @@ fun abstype_interpretation f =
     (fn tyco =>
       Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
 
-fun generic_add_abstype strictness default proto_thm thy =
+fun generic_declare_abstype strictness proto_thm thy =
   case check_abstype_cert strictness thy proto_thm of
     SOME (tyco, (vs, (abs_ty as (abs, (_, ty)), (rep, cert)))) =>
       thy
       |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
       |> change_fun_spec rep
-        (K (Proj ((Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco), default)))
+        (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
       |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
   | NONE => thy;
 
-val add_abstype = generic_add_abstype Strict false;
-val add_abstype_default = generic_add_abstype Strict true;
+val declare_abstype_global = generic_declare_abstype Strict;
+
+val declare_abstype =
+  code_declaration Morphism.thm generic_declare_abstype;
 
 
 (* setup *)
 
+fun code_attribute f = Thm.declaration_attribute
+  (fn thm => Context.mapping (f thm) I);
+
+fun code_const_attribute f cs =
+  code_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
+
 val _ = Theory.setup
   (let
-    fun lift_const_attribute f cs =
-      lift_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
     val code_attribute_parser =
-      Args.$$$ "equation" |-- Scan.succeed (lift_attribute (generic_add_eqn Liberal (Equation, false)))
-      || Args.$$$ "nbe" |-- Scan.succeed (lift_attribute (generic_add_eqn Liberal (Nbe, false)))
-      || Args.$$$ "abstract" |-- Scan.succeed (lift_attribute (generic_add_eqn Liberal (Abstract, false)))
-      || Args.$$$ "abstype" |-- Scan.succeed (lift_attribute (generic_add_abstype Liberal false))
-      || Args.del |-- Scan.succeed (lift_attribute del_eqn)
-      || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term >> lift_const_attribute del_eqns)
-      || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term >> lift_const_attribute del_exception)
-      || Scan.succeed (lift_attribute add_maybe_abs_eqn_liberal);
+      Args.$$$ "equation" |-- Scan.succeed (code_attribute
+          (fn thm => generic_add_eqn Liberal (thm, true)))
+      || Args.$$$ "nbe" |-- Scan.succeed (code_attribute
+          (fn thm => generic_add_eqn Liberal (thm, false)))
+      || Args.$$$ "abstract" |-- Scan.succeed (code_attribute
+          (generic_declare_abstract_eqn Liberal))
+      || Args.$$$ "abstype" |-- Scan.succeed (code_attribute
+          (generic_declare_abstype Liberal))
+      || Args.del |-- Scan.succeed (code_attribute del_eqn_global)
+      || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term
+          >> code_const_attribute declare_empty_global)
+      || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term
+          >> code_const_attribute declare_unimplemented_global)
+      || Scan.succeed (code_attribute
+          add_maybe_abs_eqn_liberal);
   in
     Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
         "declare theorems for code generation"

@@ -1307,7 +1307,7 @@ local
 val _ =
   Outer_Syntax.command @{command_keyword code_datatype}
     "define set of code datatype constructors"
-    (Scan.repeat1 Parse.term >> (Toplevel.theory o Code.add_datatype_cmd));
+    (Scan.repeat1 Parse.term >> (Toplevel.theory o Code.declare_datatype_cmd));
 
 in end\<close>
 

@@ -45,7 +45,7 @@ open Function_Lib
 open Function_Common
 
 val simp_attribs =
-  @{attributes [simp, nitpick_simp]} @ [Code.add_default_eqn_attrib Code.Equation]
+  @{attributes [simp, nitpick_simp]}
 
 val psimp_attribs =
   @{attributes [nitpick_psimp]}
@@ -195,6 +195,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
       in
         lthy
         |> add_simps I "simps" I simp_attribs tsimps
+        ||> Code.declare_default_eqns (map (rpair true) tsimps)
         ||>> Local_Theory.note
           ((derived_name defname "induct", [Attrib.case_names case_names]), tinduct)
         ||>> fold_map (note_derived ("elims", [Attrib.consumes 1, Attrib.constraints 1]))

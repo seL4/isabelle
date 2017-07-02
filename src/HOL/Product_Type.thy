@@ -49,7 +49,7 @@ lemma If_case_cert:
   shows "(CASE True \<equiv> f) &&& (CASE False \<equiv> g)"
   using assms by simp_all
 
-setup \<open>Code.add_case @{thm If_case_cert}\<close>
+setup \<open>Code.declare_case_global @{thm If_case_cert}\<close>
 
 code_printing
   constant "HOL.equal :: bool \<Rightarrow> bool \<Rightarrow> bool" \<rightharpoonup> (Haskell) infix 4 "=="

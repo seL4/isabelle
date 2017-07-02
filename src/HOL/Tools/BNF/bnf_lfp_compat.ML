@@ -460,16 +460,16 @@ fun interpretation name prefs f =
   Old_Datatype_Data.interpretation (old_interpretation_of prefs f)
   #> fp_sugars_interpretation name (Local_Theory.background_theory o new_interpretation_of prefs f);
 
-val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib Code.Equation :: @{attributes [nitpick_simp, simp]};
+val nitpicksimp_simp_attrs = @{attributes [nitpick_simp, simp]};
 
 fun datatype_compat fpT_names lthy =
   let
     val (nn, b_names, compat_b_names, lfp_sugar_thms, infos, lthy') =
       mk_infos_of_mutually_recursive_new_datatypes [] eq_set fpT_names lthy;
 
-    val all_notes =
+    val (all_notes, rec_thmss) =
       (case lfp_sugar_thms of
-        NONE => []
+        NONE => ([], [])
       | SOME ((inducts, induct, induct_attrs), (rec_thmss, _)) =>
         let
           val common_name = compat_N ^ mk_common_name b_names;
@@ -482,7 +482,7 @@ fun datatype_compat fpT_names lthy =
 
           val notes =
             [(inductN, map single inducts, induct_attrs),
-             (recN, rec_thmss, code_nitpicksimp_simp_attrs)]
+             (recN, rec_thmss, nitpicksimp_simp_attrs)]
             |> filter_out (null o #2)
             |> maps (fn (thmN, thmss, attrs) =>
               if forall null thmss then
@@ -492,7 +492,7 @@ fun datatype_compat fpT_names lthy =
                     ((Binding.qualify true b_name (Binding.name thmN), attrs), [(thms, [])]))
                   compat_b_names thmss);
         in
-          common_notes @ notes
+          (common_notes @ notes, rec_thmss)
         end);
 
     val register_interpret =
@@ -503,6 +503,7 @@ fun datatype_compat fpT_names lthy =
     |> Local_Theory.raw_theory register_interpret
     |> Local_Theory.notes all_notes
     |> snd
+    |> Code.declare_default_eqns (map (rpair true) (flat rec_thmss))
   end;
 
 val datatype_compat_global = Named_Target.theory_map o datatype_compat;

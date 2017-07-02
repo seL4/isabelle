@@ -451,17 +451,17 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
 
   in
     if is_valid_eq abs_eq_thm then
-      (ABS_EQ, Code.add_eqn (Code.Equation, true) abs_eq_thm thy)
+      (ABS_EQ, Code.declare_default_eqns_global [(abs_eq_thm, true)] thy)
     else
       let
         val (rty_body, qty_body) = get_body_types (rty, qty)
       in
         if rty_body = qty_body then
-          (REP_EQ, Code.add_eqn (Code.Equation, true) (the opt_rep_eq_thm) thy)
+          (REP_EQ, Code.declare_default_eqns_global [(the opt_rep_eq_thm, true)] thy)
         else
           if is_some opt_rep_eq_thm andalso is_valid_abs_eq (the opt_rep_eq_thm)
           then
-            (REP_EQ, Code.add_eqn (Code.Abstract, true) (the opt_rep_eq_thm) thy)
+            (REP_EQ, Code.declare_abstract_eqn_global (the opt_rep_eq_thm) thy)
           else
             (NONE_EQ, thy)
       end

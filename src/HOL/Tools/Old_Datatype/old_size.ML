@@ -195,14 +195,15 @@ fun prove_size_thms (info : Old_Datatype_Aux.info) new_type_names thy =
         val ([(_, size_thms)], thy'') = thy'
           |> Global_Theory.note_thmss ""
             [((Binding.name "size",
-                [Simplifier.simp_add, Named_Theorems.add @{named_theorems nitpick_simp},
-                 Code.add_default_eqn_attribute Code.Equation]),
+                [Simplifier.simp_add, Named_Theorems.add @{named_theorems nitpick_simp}]),
               [(size_eqns, [])])];
 
       in
-        fold2 (fn new_type_name => fn size_name =>
+        thy''
+        |> fold2 (fn new_type_name => fn size_name =>
             BNF_LFP_Size.register_size_global new_type_name size_name refl(*dummy*) size_thms [])
-          new_type_names size_names thy''
+          new_type_names size_names 
+        |> Code.declare_default_eqns_global (map (rpair true) size_thms)
       end
   end;
 

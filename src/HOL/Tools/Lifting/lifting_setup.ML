@@ -177,25 +177,16 @@ fun define_code_constr quot_thm lthy =
       let
         val (fixed_abs, lthy') = yield_singleton Variable.importT_terms abs lthy
       in  
-         Local_Theory.background_theory (Code.add_datatype [dest_Const fixed_abs]) lthy'
+         Local_Theory.background_theory
+           (Code.declare_datatype_global [dest_Const fixed_abs]) lthy'
       end
     else
       lthy
   end
 
-fun define_abs_type quot_thm lthy =
-  if Lifting_Def.can_generate_code_cert quot_thm then
-    let
-      val abs_type_thm = quot_thm RS @{thm Quotient_abs_rep}
-      val add_abstype_attribute = 
-          Thm.declaration_attribute (fn thm => Context.mapping (Code.add_abstype_default thm) I)
-        val add_abstype_attrib = Attrib.internal (K add_abstype_attribute)
-    in
-      lthy
-        |> (snd oo Local_Theory.note) ((Binding.empty, [add_abstype_attrib]), [abs_type_thm])
-    end
-  else
-    lthy
+fun define_abs_type quot_thm =
+  Lifting_Def.can_generate_code_cert quot_thm ?
+    Code.declare_abstype (quot_thm RS @{thm Quotient_abs_rep});
 
 local
   exception QUOT_ERROR of Pretty.T list

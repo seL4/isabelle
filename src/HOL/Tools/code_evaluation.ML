@@ -83,8 +83,7 @@ fun add_term_of_code tyco vs raw_cs thy =
     val eqs = map (mk_term_of_eq thy ty) cs;
  in
     thy
-    |> Code.del_eqns const
-    |> fold (Code.add_eqn (Code.Equation, false)) eqs
+    |> Code.declare_default_eqns_global (map (rpair true) eqs)
   end;
 
 fun ensure_term_of_code (tyco, (vs, cs)) =
@@ -115,8 +114,7 @@ fun add_abs_term_of_code tyco vs abs raw_ty_rep proj thy =
     val eq = mk_abs_term_of_eq thy ty abs ty_rep proj;
  in
     thy
-    |> Code.del_eqns const
-    |> Code.add_eqn (Code.Equation, false) eq
+    |> Code.declare_default_eqns_global [(eq, true)]
   end;
 
 fun ensure_abs_term_of_code (tyco, (vs, ((abs, (_, ty)), (proj, _)))) =

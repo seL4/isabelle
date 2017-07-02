@@ -179,8 +179,8 @@ fun random_aux_specification prfx name eqs lthy =
     |> random_aux_primrec_multi (name ^ prfx) proto_eqs
     |-> prove_simps
     |-> (fn simps => Local_Theory.note
-      ((b, Code.add_default_eqn_attrib Code.Equation:: @{attributes [simp, nitpick_simp]}), simps))
-    |> snd
+          ((b, @{attributes [simp, nitpick_simp]}), simps))
+    |-> (fn (_, thms) => Code.declare_default_eqns (map (rpair true) thms))
   end
 
 

@@ -1072,19 +1072,17 @@ fun prepare_free_constructors kind prep_plugins prep_term
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
-
         val nontriv_disc_eq_thmss =
           map (map (fn th => th RS @{thm eq_False[THEN iffD2]}
             handle THM _ => th RS @{thm eq_True[THEN iffD2]})) nontriv_disc_thmss;
 
         val anonymous_notes =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs),
-           (flat nontriv_disc_eq_thmss, code_attrs @ nitpicksimp_attrs)]
+           (flat nontriv_disc_eq_thmss, nitpicksimp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
-          [(caseN, case_thms, code_attrs @ nitpicksimp_attrs @ simp_attrs),
+          [(caseN, case_thms, nitpicksimp_attrs @ simp_attrs),
            (case_congN, [case_cong_thm], []),
            (case_cong_weak_thmsN, [case_cong_weak_thm], cong_attrs),
            (case_distribN, [case_distrib_thm], []),
@@ -1101,7 +1099,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
            (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ inductsimp_attrs),
            (nchotomyN, [nchotomy_thm], []),
-           (selN, all_sel_thms, code_attrs @ nitpicksimp_attrs @ simp_attrs),
+           (selN, all_sel_thms, nitpicksimp_attrs @ simp_attrs),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
            (split_selN, split_sel_thms, []),
@@ -1121,15 +1119,14 @@ fun prepare_free_constructors kind prep_plugins prep_term
           |> Local_Theory.declaration {syntax = false, pervasive = true}
             (fn phi => Case_Translation.register
                (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
-          |> Local_Theory.background_theory
-            (fold (fold Code.del_eqn_silent) [nontriv_disc_defs, sel_defs])
           |> plugins code_plugin ?
-             Local_Theory.declaration {syntax = false, pervasive = false}
+             (Code.declare_default_eqns (map (rpair true) (flat nontriv_disc_eq_thmss @ case_thms @ all_sel_thms))
+             #> Local_Theory.declaration {syntax = false, pervasive = false}
                (fn phi => Context.mapping
                   (add_ctr_code fcT_name (map (Morphism.typ phi) As)
                      (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
                      (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
-                  I)
+                  I))
           |> Local_Theory.notes (anonymous_notes @ notes)
           (* for "datatype_realizer.ML": *)
           |>> name_noted_thms fcT_name exhaustN;

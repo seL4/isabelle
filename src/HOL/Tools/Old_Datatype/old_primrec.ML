@@ -276,7 +276,7 @@ fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
-      (Binding.qualify false prefix b, Code.add_default_eqn_attrib Code.Equation :: attrs)) spec;
+      (Binding.qualify false prefix b, attrs)) spec;
     fun simp_attr_binding prefix =
       (Binding.qualify true prefix (Binding.name "simps"), @{attributes [simp, nitpick_simp]});
   in
@@ -286,7 +286,9 @@ fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
       Spec_Rules.add Spec_Rules.Equational (ts, simps)
       #> fold_map Local_Theory.note (attr_bindings prefix ~~ map single simps)
       #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')
-      #>> (fn (_, simps'') => (ts, simps''))))
+      #-> (fn (_, simps'') => 
+        Code.declare_default_eqns (map (rpair true) simps'')
+        #> pair (ts, simps''))))
   end;
 
 in

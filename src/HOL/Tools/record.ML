@@ -1775,20 +1775,24 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =
         ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq);
+      fun add_code eq_def thy =
+        let
+          val ctxt = Proof_Context.init_global thy;
+        in
+          thy
+          |> Code.declare_default_eqns_global
+               [(mk_eq (Proof_Context.init_global thy) eq_def, true), (mk_eq_refl (Proof_Context.init_global thy), false)]
+        end;
     in
       thy
-      |> Code.add_datatype [ext]
-      |> fold (Code.add_eqn (Code.Equation, true)) simps
+      |> Code.declare_datatype_global [ext]
+      |> Code.declare_default_eqns_global (map (rpair true) simps)
       |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
       |> `(fn lthy => Syntax.check_term lthy eq)
       |-> (fn eq => Specification.definition NONE [] [] (Binding.empty_atts, eq))
       |-> (fn (_, (_, eq_def)) =>
          Class.prove_instantiation_exit_result Morphism.thm tac eq_def)
-      |-> (fn eq_def => fn thy =>
-            thy
-            |> Code.del_eqn eq_def
-            |> Code.add_eqn (Code.Equation, true) (mk_eq (Proof_Context.init_global thy) eq_def))
-      |> (fn thy => Code.add_eqn (Code.Nbe, true) (mk_eq_refl (Proof_Context.init_global thy)) thy)
+      |-> add_code
       |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
       |> ensure_exhaustive_record ext_tyco vs (fst ext) (binder_types (snd ext))
     end
@@ -2045,8 +2049,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
           ||>> (Global_Theory.add_defs false o
                 map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) upd_specs
           ||>> (Global_Theory.add_defs false o
-                map (rpair [Code.add_default_eqn_attribute Code.Equation]
-                o apfst (Binding.concealed o Binding.name)))
+                map (Thm.no_attributes o apfst (Binding.concealed o Binding.name)))
             [make_spec, fields_spec, extend_spec, truncate_spec]);
     val defs_ctxt = Proof_Context.init_global defs_thy;
 
@@ -2212,6 +2215,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
           (_, splits' as [split_meta', split_object', split_ex']), (_, derived_defs'),
           (_, [surjective']), (_, [equality']), (_, [induct_scheme']), (_, [induct']),
           (_, [cases_scheme']), (_, [cases'])], thms_thy) = defs_thy
+      |> Code.declare_default_eqns_global (map (rpair true) derived_defs)
       |> Global_Theory.note_thmss ""
        [((Binding.name "select_convs", []), [(sel_convs, [])]),
         ((Binding.name "update_convs", []), [(upd_convs, [])]),

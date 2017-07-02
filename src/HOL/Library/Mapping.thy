@@ -117,8 +117,9 @@ lift_definition lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<Rightarrow> 'b op
 
 definition "lookup_default d m k = (case Mapping.lookup m k of None \<Rightarrow> d | Some v \<Rightarrow> v)"
 
-declare [[code drop: Mapping.lookup]]
-setup \<open>Code.add_eqn (Code.Equation, true) @{thm Mapping.lookup.abs_eq}\<close>  (* FIXME lifting *)
+lemma [code abstract]:
+  "lookup (Mapping f) = f"
+  by (fact Mapping.lookup.abs_eq) (* FIXME lifting *)
 
 lift_definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping"
   is "\<lambda>k v m. m(k \<mapsto> v)" parametric update_parametric .

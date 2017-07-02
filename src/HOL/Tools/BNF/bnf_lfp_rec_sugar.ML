@@ -623,8 +623,6 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
     val nonexhaustive = exists (can (fn Nonexhaustive_Option => ())) opts;
     val transfer = exists (can (fn Transfer_Option => ())) opts;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
-
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
 
     val mk_notes =
@@ -633,7 +631,7 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
           val (bs, attrss) = map_split (fst o nth specs) js;
           val notes =
             @{map 3} (fn b => fn attrs => fn thm =>
-                ((Binding.qualify false prefix b, code_attrs @ nitpicksimp_simp_attrs @ attrs),
+                ((Binding.qualify false prefix b, nitpicksimp_simp_attrs @ attrs),
                  [([thm], [])]))
               bs attrss thms;
         in
@@ -645,7 +643,9 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
     |-> (fn ((names, qualifys), (ts, defs, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes jss names qualifys simpss)
-      #>> (fn notes => (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
+      #-> (fn notes =>
+        plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (maps snd notes))
+        #> pair (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
   end
   handle OLD_PRIMREC () =>
     old_primrec int raw_fixes raw_specs lthy

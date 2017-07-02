@@ -110,8 +110,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
     val eqs = var_eq :: map_index (mk_partial_term_of_eq thy ty) cs
   in
     thy
-    |> Code.del_eqns const
-    |> fold (Code.add_eqn (Code.Equation, false)) eqs (*FIXME default code equation!?*)
+    |> Code.declare_default_eqns_global (map (rpair true) eqs)
   end
 
 fun ensure_partial_term_of_code (tyco, (raw_vs, cs)) thy =

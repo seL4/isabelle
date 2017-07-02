@@ -1498,8 +1498,6 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
         val common_name = mk_common_name fun_names;
         val common_qualify = fold_rev I qualifys;
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
-
         val anonymous_notes =
           [(flat disc_iff_or_disc_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
@@ -1516,7 +1514,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
           [(coinductN, map (if n2m then single else K []) coinduct_thms, coinduct_attrs),
            (coinduct_strongN, map (if n2m then single else K []) coinduct_strong_thms,
             coinduct_attrs),
-           (codeN, code_thmss, code_attrs @ nitpicksimp_attrs),
+           (codeN, code_thmss, nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, []),
            (disc_iffN, disc_iff_thmss, []),
@@ -1537,6 +1535,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
         |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat sel_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat ctr_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat code_thmss)
+        |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (flat code_thmss))
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes)
         |> snd
         |> (fn lthy =>

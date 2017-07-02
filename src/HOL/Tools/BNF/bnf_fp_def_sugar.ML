@@ -1386,11 +1386,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             |> Proof_Context.export names_lthy lthy
           end;
 
-        val code_attrs =
-          if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
-
         val anonymous_notes =
-          [(rel_code_thms, code_attrs @ nitpicksimp_attrs)]
+          [(rel_code_thms, nitpicksimp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
@@ -1402,7 +1399,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
            (ctr_transferN, ctr_transfer_thms, K []),
            (disc_transferN, disc_transfer_thms, K []),
            (sel_transferN, sel_transfer_thms, K []),
-           (mapN, map_thms, K (code_attrs @ nitpicksimp_attrs @ simp_attrs)),
+           (mapN, map_thms, K (nitpicksimp_attrs @ simp_attrs)),
            (map_disc_iffN, map_disc_iff_thms, K simp_attrs),
            (map_selN, map_sel_thms, K []),
            (pred_injectN, pred_injects, K simp_attrs),
@@ -1411,7 +1408,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
            (rel_injectN, rel_inject_thms, K simp_attrs),
            (rel_introsN, rel_intro_thms, K []),
            (rel_selN, rel_sel_thms, K []),
-           (setN, set_thms, K (code_attrs @ case_fp fp nitpicksimp_attrs [] @ simp_attrs)),
+           (setN, set_thms, K (case_fp fp nitpicksimp_attrs [] @ simp_attrs)),
            (set_casesN, set_cases_thms, nth set_cases_attrss),
            (set_introsN, set_intros_thms, K []),
            (set_selN, set_sel_thms, K [])]
@@ -1422,6 +1419,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           |> fp = Least_FP
             ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_code_thms)
           |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set0_thms)
+          |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (rel_code_thms @ map_thms @ set_thms))
           |> Local_Theory.notes (anonymous_notes @ notes);
 
         val subst = Morphism.thm (substitute_noted_thm noted);
@@ -1848,11 +1846,9 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
     val rec_thmss = mk_rec_thmss (the rec_args_typess) recs rec_defs ctor_rec_thms;
 
-    val code_attrs =
-      if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
   in
     ((induct_thms, induct_thm, mk_induct_attrs ctrss),
-     (rec_thmss, code_attrs @ nitpicksimp_attrs @ simp_attrs))
+     (rec_thmss, nitpicksimp_attrs @ simp_attrs))
   end;
 
 fun mk_coinduct_attrs fpTs ctrss discss mss =
@@ -2480,9 +2476,6 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val fpTs = map (domain_type o fastype_of) dtors;
     val fpBTs = map B_ify_T fpTs;
 
-    val code_attrs =
-      if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
-
     val real_unfreeze_fp = Term.typ_subst_atomic (Xs ~~ fpTs);
 
     val ctr_Tsss = map (map (map real_unfreeze_fp)) ctrXs_Tsss;
@@ -2698,6 +2691,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       in
         lthy
         |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
+        |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (flat rec_thmss))
         |> Local_Theory.notes (common_notes @ notes)
         (* for "datatype_realizer.ML": *)
         |>> name_noted_thms
@@ -2865,7 +2859,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             fn T_name => coinduct_attrs @ [coinduct_type_attr T_name]),
            (coinduct_strongN, map single coinduct_strong_thms, K coinduct_attrs),
            (corecN, corec_thmss, K []),
-           (corec_codeN, map single corec_code_thms, K (code_attrs @ nitpicksimp_attrs)),
+           (corec_codeN, map single corec_code_thms, K (nitpicksimp_attrs)),
            (corec_discN, corec_disc_thmss, K []),
            (corec_disc_iffN, corec_disc_iff_thmss, K corec_disc_iff_attrs),
            (corec_selN, corec_sel_thmss, K corec_sel_attrs),
@@ -2878,6 +2872,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         lthy
         |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
           [flat corec_sel_thmss, flat corec_thmss]
+        |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) corec_code_thms)
         |> Local_Theory.notes (common_notes @ notes)
         |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos
           fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctor_iff_dtors ctr_defss ctr_sugars

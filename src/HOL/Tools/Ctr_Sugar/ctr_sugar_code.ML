@@ -109,12 +109,13 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
     Class.instantiation ([fcT_name], map dest_TFree As, [HOLogic.class_equal])
     #> add_def
     #-> Class.prove_instantiation_exit_result (map o Morphism.thm) tac o single
-    #-> fold Code.del_eqn
+    #> snd
     #> `(mk_free_ctr_equations fcT ctrs inject_thms distinct_thms)
     #-> (fn (thms, thm) => Global_Theory.note_thmss Thm.theoremK
-      [((qualify reflN, [Code.add_default_eqn_attribute Code.Nbe]), [([thm], [])]),
-        ((qualify simpsN, [Code.add_default_eqn_attribute Code.Equation]), [(rev thms, [])])])
-    #> snd
+          [((qualify reflN, []), [([thm], [])]),
+            ((qualify simpsN, []), [(rev thms, [])])])
+    #-> (fn [(_, [thm]), (_, thms)] =>
+          Code.declare_default_eqns_global ((thm, false) :: map (rpair true) thms))
   end;
 
 fun add_ctr_code fcT_name raw_As raw_ctrs inject_thms distinct_thms case_thms thy =
@@ -126,9 +127,9 @@ fun add_ctr_code fcT_name raw_As raw_ctrs inject_thms distinct_thms case_thms th
   in
     if can (Code.constrset_of_consts thy) unover_ctrs then
       thy
-      |> Code.add_datatype ctrs
-      |> fold_rev (Code.add_eqn (Code.Equation, true)) case_thms
-      |> Code.add_case (mk_case_certificate (Proof_Context.init_global thy) case_thms)
+      |> Code.declare_datatype_global ctrs
+      |> Code.declare_default_eqns_global (map (rpair true) (rev case_thms))
+      |> Code.declare_case_global (mk_case_certificate (Proof_Context.init_global thy) case_thms)
       |> not (Sorts.has_instance (Sign.classes_of thy) fcT_name [HOLogic.class_equal])
         ? add_equality fcT fcT_name As ctrs inject_thms distinct_thms
     else

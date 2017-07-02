@@ -382,11 +382,11 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
         val eqs = map (fn eq => Goal.prove lthy argnames [] eq
           (fn {context = ctxt, ...} => ALLGOALS (Skip_Proof.cheat_tac ctxt))) eqs_t
       in
-        fold (fn (name, eq) => Local_Theory.note
-          ((Binding.qualify true prfx
-              (Binding.qualify true name (Binding.name "simps")),
-             [Code.add_default_eqn_attrib Code.Equation]), [eq]) #> snd)
-          (names ~~ eqs) lthy
+        lthy
+        |> fold_map (fn (name, eq) => Local_Theory.note
+             (((Binding.qualify true prfx o Binding.qualify true name) (Binding.name "simps"), []), [eq]))
+               (names ~~ eqs) 
+        |-> (fn notes => Code.declare_default_eqns (map (rpair true) (maps snd notes)))
       end)
 
 

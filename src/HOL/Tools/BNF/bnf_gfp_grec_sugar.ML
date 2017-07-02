@@ -2121,8 +2121,6 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
           |> derive_and_update_coinduct_cong_intross [corec_info];
         val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
-
         val anonymous_notes = [];
 (* TODO:
           [(flat disc_iff_or_disc_thmss, simp_attrs)]
@@ -2131,7 +2129,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
 
         val notes =
           [(cong_introsN, maps snd cong_intros_pairs, []),
-           (codeN, [code_thm], code_attrs @ nitpicksimp_attrs),
+           (codeN, [code_thm], nitpicksimp_attrs),
            (coinductN, [coinduct], coinduct_attrs),
            (inner_inductN, inner_fp_inducts, []),
            (uniqueN, uniques, [])] @
@@ -2160,6 +2158,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         |> Spec_Rules.add Spec_Rules.Equational ([fun_t0], flat ctr_thmss)
 *)
         |> Spec_Rules.add Spec_Rules.Equational ([fun_t0], [code_thm])
+        |> plugins code_plugin ? Code.declare_default_eqns [(code_thm, true)]
         |> Local_Theory.notes (anonymous_notes @ notes)
         |> snd
       end;

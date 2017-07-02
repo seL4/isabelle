@@ -570,7 +570,6 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy2 =
         ((prfx (Binding.name "splits"), []), [(maps (fn (x, y) => [x, y]) splits, [])]),
         ((Binding.empty, [Simplifier.simp_add]),
           [(flat case_rewrites @ flat distinct @ rec_rewrites, [])]),
-        ((Binding.empty, [Code.add_default_eqn_attribute Code.Equation]), [(rec_rewrites, [])]),
         ((Binding.empty, [iff_add]), [(flat inject, [])]),
         ((Binding.empty, [Classical.safe_elim NONE]),
           [(map (fn th => th RS notE) (flat distinct), [])]),
@@ -578,6 +577,7 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy2 =
         ((Binding.empty, [Induct.induct_simp_add]), [(flat (distinct @ inject), [])])] @
           named_rules @ unnamed_rules)
     |> snd
+    |> Code.declare_default_eqns_global (map (rpair true) rec_rewrites)
     |> Old_Datatype_Data.register dt_infos
     |> Context.theory_map (fold2 Case_Translation.register case_combs constrss)
     |> Old_Datatype_Data.interpretation_data (config, dt_names)

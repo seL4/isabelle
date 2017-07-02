@@ -25,7 +25,7 @@ let
   val tycos = Sign.logical_types thy;
   val consts = map_filter (try (curry (Axclass.param_of_inst thy)
     @{const_name "Quickcheck_Narrowing.partial_term_of"})) tycos;
-in fold Code.del_eqns consts thy end
+in fold Code.declare_unimplemented_global consts thy end
 \<close>
 
 text \<open>Simple example for the predicate compiler.\<close>

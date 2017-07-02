@@ -802,7 +802,7 @@ fun extract thm_vss thy =
              Logic.mk_equals (head, ft)), [])]
         |-> (fn [def_thm] =>
            Spec_Rules.add_global Spec_Rules.Equational ([head], [def_thm])
-           #> Code.add_eqn (Code.Equation, true) def_thm)
+           #> Code.declare_default_eqns_global [(def_thm, true)])
       end;
 
     fun add_corr (s, (vs, prf)) thy =

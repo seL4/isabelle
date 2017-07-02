@@ -208,16 +208,14 @@ lemma is_empty_sup:
   by (auto simp add: is_empty_def)
 
 definition singleton :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a pred \<Rightarrow> 'a" where
-  "\<And>default. singleton default A = (if \<exists>!x. eval A x then THE x. eval A x else default ())"
+  "singleton default A = (if \<exists>!x. eval A x then THE x. eval A x else default ())" for default
 
 lemma singleton_eqI:
-  fixes default
-  shows "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton default A = x"
+  "\<exists>!x. eval A x \<Longrightarrow> eval A x \<Longrightarrow> singleton default A = x" for default
   by (auto simp add: singleton_def)
 
 lemma eval_singletonI:
-  fixes default
-  shows "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton default A)"
+  "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton default A)" for default
 proof -
   assume assm: "\<exists>!x. eval A x"
   then obtain x where x: "eval A x" ..
@@ -226,8 +224,7 @@ proof -
 qed
 
 lemma single_singleton:
-  fixes default
-  shows "\<exists>!x. eval A x \<Longrightarrow> single (singleton default A) = A"
+  "\<exists>!x. eval A x \<Longrightarrow> single (singleton default A) = A" for default
 proof -
   assume assm: "\<exists>!x. eval A x"
   then have "eval A (singleton default A)"
@@ -242,23 +239,19 @@ proof -
 qed
 
 lemma singleton_undefinedI:
-  fixes default
-  shows "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton default A = default ()"
+  "\<not> (\<exists>!x. eval A x) \<Longrightarrow> singleton default A = default ()" for default
   by (simp add: singleton_def)
 
 lemma singleton_bot:
-  fixes default
-  shows "singleton default \<bottom> = default ()"
+  "singleton default \<bottom> = default ()" for default
   by (auto simp add: bot_pred_def intro: singleton_undefinedI)
 
 lemma singleton_single:
-  fixes default
-  shows "singleton default (single x) = x"
+  "singleton default (single x) = x" for default
   by (auto simp add: intro: singleton_eqI singleI elim: singleE)
 
 lemma singleton_sup_single_single:
-  fixes default
-  shows "singleton default (single x \<squnion> single y) = (if x = y then x else default ())"
+  "singleton default (single x \<squnion> single y) = (if x = y then x else default ())" for default
 proof (cases "x = y")
   case True then show ?thesis by (simp add: singleton_single)
 next
@@ -274,12 +267,10 @@ next
 qed
 
 lemma singleton_sup_aux:
-  fixes default
-  shows
   "singleton default (A \<squnion> B) = (if A = \<bottom> then singleton default B
     else if B = \<bottom> then singleton default A
     else singleton default
-      (single (singleton default A) \<squnion> single (singleton default B)))"
+      (single (singleton default A) \<squnion> single (singleton default B)))" for default
 proof (cases "(\<exists>!x. eval A x) \<and> (\<exists>!y. eval B y)")
   case True then show ?thesis by (simp add: single_singleton)
 next
@@ -306,11 +297,9 @@ next
 qed
 
 lemma singleton_sup:
-  fixes default
-  shows
   "singleton default (A \<squnion> B) = (if A = \<bottom> then singleton default B
     else if B = \<bottom> then singleton default A
-    else if singleton default A = singleton default B then singleton default A else default ())"
+    else if singleton default A = singleton default B then singleton default A else default ())" for default
   using singleton_sup_aux [of default A B] by (simp only: singleton_sup_single_single)
 
 
@@ -567,24 +556,21 @@ lemma is_empty_code [code]:
   by (simp add: null_is_empty Seq_def)
 
 primrec the_only :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a seq \<Rightarrow> 'a" where
-  [code del]: "\<And>default. the_only default Empty = default ()"
-| "\<And>default. the_only default (Insert x P) =
-    (if is_empty P then x else let y = singleton default P in if x = y then x else default ())"
-| "\<And>default. the_only default (Join P xq) =
+  "the_only default Empty = default ()" for default
+| "the_only default (Insert x P) =
+    (if is_empty P then x else let y = singleton default P in if x = y then x else default ())" for default
+| "the_only default (Join P xq) =
     (if is_empty P then the_only default xq else if null xq then singleton default P
        else let x = singleton default P; y = the_only default xq in
-       if x = y then x else default ())"
+       if x = y then x else default ())" for default
 
 lemma the_only_singleton:
-  fixes default
-  shows "the_only default xq = singleton default (pred_of_seq xq)"
+  "the_only default xq = singleton default (pred_of_seq xq)" for default
   by (induct xq)
     (auto simp add: singleton_bot singleton_single is_empty_def
     null_is_empty Let_def singleton_sup)
 
 lemma singleton_code [code]:
-  fixes default
-  shows
   "singleton default (Seq f) =
     (case f () of
       Empty \<Rightarrow> default ()
@@ -594,7 +580,7 @@ lemma singleton_code [code]:
     | Join P xq \<Rightarrow> if is_empty P then the_only default xq
         else if null xq then singleton default P
         else let x = singleton default P; y = the_only default xq in
-          if x = y then x else default ())"
+          if x = y then x else default ())" for default
   by (cases "f ()")
    (auto simp add: Seq_def the_only_singleton is_empty_def
       null_is_empty singleton_bot singleton_single singleton_sup Let_def)

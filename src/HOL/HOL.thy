@@ -1856,8 +1856,8 @@ lemma Let_case_cert:
   using assms by simp_all
 
 setup \<open>
-  Code.add_case @{thm Let_case_cert} #>
-  Code.add_undefined @{const_name undefined}
+  Code.declare_case_global @{thm Let_case_cert} #>
+  Code.declare_undefined_global @{const_name undefined}
 \<close>
 
 declare [[code abort: undefined]]

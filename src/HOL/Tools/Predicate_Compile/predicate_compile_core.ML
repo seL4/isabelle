@@ -1421,15 +1421,13 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     val result_thms' = #add_code_equations (dest_steps steps) ctxt'' preds
       (maps_modes result_thms)
     val qname = #qname (dest_steps steps)
-    val attrib = Thm.declaration_attribute (fn thm => Context.mapping
-      (Code.add_eqn (Code.Equation, false) thm) I)
-      (*FIXME default code equation!?*)
-    val thy''' =
-      cond_timeit (Config.get ctxt Quickcheck.timing) "Setting code equations...." (fn _ =>
-      fold (fn (name, result_thms) => fn thy => snd (Global_Theory.add_thmss
-      [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
-        [attrib])] thy))
-      result_thms' thy'')
+    val thy''' = cond_timeit (Config.get ctxt Quickcheck.timing) "Setting code equations...."
+      (fn _ =>
+        thy''
+        |> fold_map (fn (name, result_thms) => (Global_Theory.add_thmss
+            [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms), [])]))
+            result_thms'
+        |-> (fn notes => Code.declare_default_eqns_global (map (rpair true) (flat (flat (notes))))))
   in
     thy'''
   end

@@ -319,7 +319,7 @@ lemma STR_inject' [simp]:
 definition implode :: "string \<Rightarrow> String.literal"
 where
   [code del]: "implode = STR"
-  
+
 instantiation literal :: size
 begin
 

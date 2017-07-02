@@ -266,14 +266,17 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
 
     val ([(def_name, [th'])], lthy4) = lthy3
-      |> Local_Theory.notes [((name, Code.add_default_eqn_attrib Code.Equation :: atts), [([th], [])])];
+      |> Local_Theory.notes [((name, atts), [([th], [])])];
 
-    val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
+    val lthy5 = lthy4
+      |> Code.declare_default_eqns [(th', true)];
+
+    val lhs' = Morphism.term (Local_Theory.target_morphism lthy5) lhs;
 
     val _ =
-      Proof_Display.print_consts int (Position.thread_data ()) lthy4
+      Proof_Display.print_consts int (Position.thread_data ()) lthy5
         (member (op =) (Term.add_frees lhs' [])) [(x, T)];
-  in ((lhs, (def_name, th')), lthy4) end;
+  in ((lhs, (def_name, th')), lthy5) end;
 
 val definition' = gen_def check_spec_open (K I);
 fun definition xs ys As B = definition' xs ys As B false;
