@@ -904,6 +904,7 @@ lemmas [cont_intro, simp] =
 
 end
 
+setup \<open>Sign.map_naming (Name_Space.mandatory_path "ccpo")\<close>
 
 inductive compact :: "('a set \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   for lub ord x 
@@ -912,15 +913,15 @@ where compact:
      ccpo.admissible lub ord (\<lambda>y. x \<noteq> y) \<rbrakk>
   \<Longrightarrow> compact lub ord x"
 
-hide_fact (open) compact
+setup \<open>Sign.map_naming Name_Space.parent_path\<close>
 
 context ccpo begin
 
 lemma compactI:
   assumes "ccpo.admissible Sup op \<le> (\<lambda>y. \<not> x \<le> y)"
-  shows "compact Sup op \<le> x"
+  shows "ccpo.compact Sup op \<le> x"
 using assms
-proof(rule compact.intros)
+proof(rule ccpo.compact.intros)
   have neq: "(\<lambda>y. x \<noteq> y) = (\<lambda>y. \<not> x \<le> y \<or> \<not> y \<le> x)" by(auto)
   show "ccpo.admissible Sup op \<le> (\<lambda>y. x \<noteq> y)"
     by(subst neq)(rule admissible_disj admissible_not_below assms)+
@@ -928,7 +929,7 @@ qed
 
 lemma compact_bot:
   assumes "x = Sup {}"
-  shows "compact Sup op \<le> x"
+  shows "ccpo.compact Sup op \<le> x"
 proof(rule compactI)
   show "ccpo.admissible Sup op \<le> (\<lambda>y. \<not> x \<le> y)" using assms
     by(auto intro!: ccpo.admissibleI intro: ccpo_Sup_least chain_empty)
@@ -937,11 +938,11 @@ qed
 end
 
 lemma admissible_compact_neq' [THEN admissible_subst, cont_intro, simp]:
-  shows admissible_compact_neq: "compact lub ord k \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. k \<noteq> x)"
-by(simp add: compact.simps)
+  shows admissible_compact_neq: "ccpo.compact lub ord k \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. k \<noteq> x)"
+by(simp add: ccpo.compact.simps)
 
 lemma admissible_neq_compact' [THEN admissible_subst, cont_intro, simp]:
-  shows admissible_neq_compact: "compact lub ord k \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. x \<noteq> k)"
+  shows admissible_neq_compact: "ccpo.compact lub ord k \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. x \<noteq> k)"
 by(subst eq_commute)(rule admissible_compact_neq)
 
 context partial_function_definitions begin
@@ -1728,7 +1729,7 @@ lemma map_option_mono [partial_function_mono]:
   "mono_option B \<Longrightarrow> mono_option (\<lambda>f. map_option g (B f))"
 unfolding map_conv_bind_option by(rule bind_mono) simp_all
 
-lemma compact_flat_lub [cont_intro]: "compact (flat_lub x) (flat_ord x) y"
+lemma compact_flat_lub [cont_intro]: "ccpo.compact (flat_lub x) (flat_ord x) y"
 using flat_interpretation[THEN ccpo]
 proof(rule ccpo.compactI[OF _ ccpo.admissibleI])
   fix A
