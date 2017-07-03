@@ -258,8 +258,8 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 fun completion context space (xname, pos) =
   Completion.make (xname, pos) (fn completed =>
     let
-      fun result_ord ((precise1, (xname1, (_, name1))), (precise2, (xname2, (_, name2)))) =
-        (case bool_ord (precise2, precise1) of
+      fun result_ord ((pri1, (xname1, (_, name1))), (pri2, (xname2, (_, name2)))) =
+        (case int_ord (pri2, pri1) of
           EQUAL =>
             (case bool_ord (apply2 (is_some o Long_Name.dest_local) (name2, name1)) of
               EQUAL =>
@@ -272,17 +272,20 @@ fun completion context space (xname, pos) =
       val ext = extern_shortest (Context.proof_of context) space;
       val full = Name.clean xname = "";
 
-      fun complete_external xname' name =
-        if completed xname' andalso not (is_concealed space name) then
-          let val xname'' = ext name in
+      fun complete xname' name =
+        if (completed xname' orelse exists completed (Long_Name.explode xname')) andalso
+          not (is_concealed space name)
+        then
+          let
+            val xname'' = ext name;
+            val pri = (if xname' = xname'' then 1 else 0) + (if completed xname' then 1 else 0);
+          in
             if xname' <> xname'' andalso full then I
-            else cons (xname' = xname'', (xname', (kind, name)))
+            else cons (pri, (xname', (kind, name)))
           end
         else I;
     in
-      Change_Table.fold
-        (fn (xname', (name :: _, _)) => complete_external xname' name
-          | _ => I) internals []
+      Change_Table.fold (fn (xname', (name :: _, _)) => complete xname' name | _ => I) internals []
       |> sort_distinct result_ord
       |> map #2
     end);
