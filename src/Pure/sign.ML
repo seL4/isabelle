@@ -53,7 +53,6 @@ sig
   val intern_class: theory -> xstring -> string
   val intern_type: theory -> xstring -> string
   val intern_const: theory -> xstring -> string
-  val class_alias: binding -> class -> theory -> theory
   val type_alias: binding -> string -> theory -> theory
   val const_alias: binding -> string -> theory -> theory
   val arity_number: theory -> string -> int
@@ -246,7 +245,6 @@ val intern_class = Name_Space.intern o class_space;
 val intern_type = Name_Space.intern o type_space;
 val intern_const = Name_Space.intern o const_space;
 
-fun class_alias b c thy = map_tsig (Type.class_alias (naming_of thy) b c) thy;
 fun type_alias b c thy = map_tsig (Type.type_alias (naming_of thy) b c) thy;
 fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 

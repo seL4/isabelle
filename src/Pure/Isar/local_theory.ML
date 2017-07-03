@@ -63,7 +63,6 @@ sig
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val class_alias: binding -> class -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
   val init: Name_Space.naming -> operations -> Proof.context -> local_theory
@@ -335,7 +334,6 @@ fun syntax_alias global_alias local_alias b name =
     let val b' = Morphism.binding phi b
     in Context.mapping (global_alias b' name) (local_alias b' name) end);
 
-val class_alias = syntax_alias Sign.class_alias Proof_Context.class_alias;
 val type_alias = syntax_alias Sign.type_alias Proof_Context.type_alias;
 val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
