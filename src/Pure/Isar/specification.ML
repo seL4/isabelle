@@ -45,6 +45,10 @@ sig
     (binding * typ option * mixfix) list -> term -> bool -> local_theory -> local_theory
   val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option ->
     (binding * string option * mixfix) list -> string -> bool -> local_theory -> local_theory
+  val alias: binding * string -> local_theory -> local_theory
+  val alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
+  val type_alias: binding * string -> local_theory -> local_theory
+  val type_alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list ->
     local_theory -> local_theory
@@ -303,6 +307,27 @@ fun gen_abbrev prep_spec mode raw_var raw_params raw_spec int lthy =
 
 val abbreviation = gen_abbrev check_spec_open;
 val abbreviation_cmd = gen_abbrev read_spec_open;
+
+
+(* alias *)
+
+fun gen_alias decl check (b, arg) lthy =
+  let
+    val (c, reports) = check {proper = true, strict = false} lthy arg;
+    val _ = Position.reports reports;
+  in decl b c lthy end;
+
+val alias =
+  gen_alias Local_Theory.const_alias (K (K (fn c => (c, []))));
+val alias_cmd =
+  gen_alias Local_Theory.const_alias
+    (fn flags => fn ctxt => fn (c, pos) =>
+      apfst (#1 o dest_Const) (Proof_Context.check_const flags ctxt (c, [pos])));
+
+val type_alias =
+  gen_alias Local_Theory.type_alias (K (K (fn c => (c, []))));
+val type_alias_cmd =
+  gen_alias Local_Theory.type_alias (apfst (#1 o dest_Type) ooo Proof_Context.check_type_name);
 
 
 (* notation *)

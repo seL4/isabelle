@@ -62,6 +62,10 @@ src/HOL/Decision_Procs/Commutative_Ring.thy and
 src/HOL/Decision_Procs/Reflective_Field.thy for examples and the
 tutorial on code generation.
 
+* Commands 'alias' and 'type_alias' introduce aliases for constants and
+type constructors, respectively. This allows adhoc changes to name-space
+accesses within global or local theory contexts, e.g. within a 'bundle'.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

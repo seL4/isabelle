@@ -29,7 +29,6 @@ sig
   val change_ignore: tsig -> tsig
   val empty_tsig: tsig
   val class_space: tsig -> Name_Space.T
-  val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
   val eq_sort: tsig -> sort * sort -> bool
@@ -201,9 +200,6 @@ val empty_tsig =
 (* classes and sorts *)
 
 val class_space = #1 o #classes o rep_tsig;
-
-fun class_alias naming binding name = map_tsig (fn ((space, classes), default, types) =>
-  ((Name_Space.alias naming binding name space, classes), default, types));
 
 fun defaultS (TSig {default, ...}) = default;
 fun logical_types (TSig {log_types, ...}) = log_types;

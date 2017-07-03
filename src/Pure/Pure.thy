@@ -18,7 +18,7 @@ keywords
   and "typedecl" "type_synonym" "nonterminal" "judgment"
     "consts" "syntax" "no_syntax" "translations" "no_translations"
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
-    "no_notation" "axiomatization" "lemmas" "declare"
+    "no_notation" "axiomatization" "alias" "type_alias" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
@@ -373,6 +373,16 @@ val _ =
     (Scan.optional Parse.vars [] --
       Scan.optional (Parse.where_ |-- Parse.!!! axiomatization) ([], [], [])
       >> (fn (a, (b, c, d)) => Toplevel.theory (#2 o Specification.axiomatization_cmd a b c d)));
+
+val _ =
+  Outer_Syntax.local_theory @{command_keyword alias} "name-space alias for constant"
+    (Parse.binding -- (Parse.!!! @{keyword =} |-- Parse.position Parse.name)
+      >> Specification.alias_cmd);
+
+val _ =
+  Outer_Syntax.local_theory @{command_keyword type_alias} "name-space alias for type constructor"
+    (Parse.binding -- (Parse.!!! @{keyword =} |-- Parse.position Parse.name)
+      >> Specification.type_alias_cmd);
 
 in end\<close>
 

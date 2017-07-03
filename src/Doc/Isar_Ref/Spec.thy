@@ -1311,6 +1311,8 @@ section \<open>Name spaces\<close>
 
 text \<open>
   \begin{matharray}{rcl}
+    @{command_def "alias"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "type_alias"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "hide_class"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "hide_type"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "hide_const"} & : & \<open>theory \<rightarrow> theory\<close> \\
@@ -1318,14 +1320,22 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    ( @{command hide_class} | @{command hide_type} |
-      @{command hide_const} | @{command hide_fact} ) ('(' @'open' ')')? (@{syntax name} + )
+    (@{command alias} | @{command type_alias}) @{syntax name} '=' @{syntax name}
+    ;
+    (@{command hide_class} | @{command hide_type} |
+      @{command hide_const} | @{command hide_fact}) ('(' @'open' ')')? (@{syntax name} + )
   \<close>}
 
   Isabelle organizes any kind of name declarations (of types, constants,
   theorems etc.) by separate hierarchically structured name spaces. Normally
   the user does not have to control the behaviour of name spaces by hand, yet
   the following commands provide some way to do so.
+
+  \<^descr> \<^theory_text>\<open>alias\<close> and \<^theory_text>\<open>type_alias\<close> introduce aliases for constants and type
+  constructors, respectively. This allows adhoc changes to name-space
+  accesses.
+
+  \<^descr> \<^theory_text>\<open>type_alias b = c\<close> introduces an alias for an existing type constructor.
 
   \<^descr> \<^theory_text>\<open>hide_class names\<close> fully removes class declarations from a given name
   space; with the \<open>(open)\<close> option, only the unqualified base name is hidden.

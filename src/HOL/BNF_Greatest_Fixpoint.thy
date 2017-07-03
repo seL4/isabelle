@@ -17,7 +17,7 @@ keywords
   "primcorec" :: thy_decl
 begin
 
-setup \<open>Sign.const_alias @{binding proj} @{const_name Equiv_Relations.proj}\<close>
+alias proj = Equiv_Relations.proj
 
 lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by simp
