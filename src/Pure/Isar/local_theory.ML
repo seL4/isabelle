@@ -293,7 +293,7 @@ fun add_thms_dynamic (binding, f) lthy =
       let val binding' = Morphism.binding phi binding in
         Context.mapping
           (Global_Theory.alias_fact binding' name)
-          (Proof_Context.fact_alias binding' name)
+          (Proof_Context.alias_fact binding' name)
       end));
 
 
