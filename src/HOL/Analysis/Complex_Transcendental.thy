@@ -582,6 +582,35 @@ subsection\<open>Taylor series for complex exponential, sine and cosine.\<close>
 
 declare power_Suc [simp del]
 
+lemma Taylor_exp_field:
+  fixes z::"'a::{banach,real_normed_field}"
+  shows "norm (exp z - (\<Sum>i\<le>n. z ^ i / fact i)) \<le> exp (norm z) * (norm z ^ Suc n) / fact n"
+proof (rule field_taylor[of _ n "\<lambda>k. exp" "exp (norm z)" 0 z, simplified])
+  show "convex (closed_segment 0 z)"
+    by (rule convex_closed_segment [of 0 z])
+next
+  fix k x
+  assume "x \<in> closed_segment 0 z" "k \<le> n"
+  show "(exp has_field_derivative exp x) (at x within closed_segment 0 z)"
+    using DERIV_exp DERIV_subset by blast
+next
+  fix x
+  assume x: "x \<in> closed_segment 0 z"
+  have "norm (exp x) \<le> exp (norm x)"
+    by (rule norm_exp)
+  also have "norm x \<le> norm z"
+    using x by (auto simp: closed_segment_def intro!: mult_left_le_one_le)
+  finally show "norm (exp x) \<le> exp (norm z)"
+    by simp
+next
+  show "0 \<in> closed_segment 0 z"
+    by (auto simp: closed_segment_def)
+next
+  show "z \<in> closed_segment 0 z"
+    apply (simp add: closed_segment_def scaleR_conv_of_real)
+    using of_real_1 zero_le_one by blast
+qed
+
 lemma Taylor_exp:
   "norm(exp z - (\<Sum>k\<le>n. z ^ k / (fact k))) \<le> exp\<bar>Re z\<bar> * (norm z) ^ (Suc n) / (fact n)"
 proof (rule complex_taylor [of _ n "\<lambda>k. exp" "exp\<bar>Re z\<bar>" 0 z, simplified])

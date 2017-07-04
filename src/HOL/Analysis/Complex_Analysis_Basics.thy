@@ -23,10 +23,11 @@ lemma has_derivative_of_real[derivative_intros, simp]:
   "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. of_real (f x)) has_derivative (\<lambda>x. of_real (f' x))) F"
   using bounded_linear.has_derivative[OF bounded_linear_of_real] .
 
-lemma has_vector_derivative_real_complex:
+lemma has_vector_derivative_real_field:
   "DERIV f (of_real a) :> f' \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a within s)"
   using has_derivative_compose[of of_real of_real a _ f "op * f'"]
   by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def)
+lemmas has_vector_derivative_real_complex = has_vector_derivative_real_field
 
 lemma fact_cancel:
   fixes c :: "'a::real_field"
@@ -124,15 +125,9 @@ lemma DERIV_zero_connected_constant:
 using has_derivative_zero_connected_constant [OF assms(1-4)] assms
 by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
 
-lemma DERIV_zero_constant:
-  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
-  shows    "\<lbrakk>convex s;
-             \<And>x. x\<in>s \<Longrightarrow> (f has_field_derivative 0) (at x within s)\<rbrakk>
-             \<Longrightarrow> \<exists>c. \<forall>x \<in> s. f(x) = c"
-  by (auto simp: has_field_derivative_def lambda_zero intro: has_derivative_zero_constant)
+lemmas DERIV_zero_constant = has_field_derivative_zero_constant
 
 lemma DERIV_zero_unique:
-  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
   assumes "convex s"
       and d0: "\<And>x. x\<in>s \<Longrightarrow> (f has_field_derivative 0) (at x within s)"
       and "a \<in> s"
@@ -142,7 +137,6 @@ lemma DERIV_zero_unique:
      (metis d0 has_field_derivative_imp_has_derivative lambda_zero)
 
 lemma DERIV_zero_connected_unique:
-  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
   assumes "connected s"
       and "open s"
       and d0: "\<And>x. x\<in>s \<Longrightarrow> DERIV f x :> 0"
@@ -177,9 +171,8 @@ lemma DERIV_transform_at:
 
 (*generalising DERIV_isconst_all, which requires type real (using the ordering)*)
 lemma DERIV_zero_UNIV_unique:
-  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
-  shows "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a"
-by (metis DERIV_zero_unique UNIV_I convex_UNIV)
+  "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a"
+  by (metis DERIV_zero_unique UNIV_I convex_UNIV)
 
 subsection \<open>Some limit theorems about real part of real series etc.\<close>
 
@@ -854,7 +847,7 @@ qed
 
 
 lemma field_differentiable_series:
-  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach} \<Rightarrow> 'a"
   assumes "convex s" "open s"
   assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
   assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
@@ -879,7 +872,7 @@ proof -
 qed
 
 lemma field_differentiable_series':
-  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach} \<Rightarrow> 'a"
   assumes "convex s" "open s"
   assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
   assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
@@ -890,7 +883,7 @@ lemma field_differentiable_series':
 subsection\<open>Bound theorem\<close>
 
 lemma field_differentiable_bound:
-  fixes s :: "complex set"
+  fixes s :: "'a::real_normed_field set"
   assumes cvs: "convex s"
       and df:  "\<And>z. z \<in> s \<Longrightarrow> (f has_field_derivative f' z) (at z within s)"
       and dn:  "\<And>z. z \<in> s \<Longrightarrow> norm (f' z) \<le> B"
@@ -905,8 +898,7 @@ lemma field_differentiable_bound:
 
 subsection\<open>Inverse function theorem for complex derivatives\<close>
 
-lemma has_complex_derivative_inverse_basic:
-  fixes f :: "complex \<Rightarrow> complex"
+lemma has_field_derivative_inverse_basic:
   shows "DERIV f (g y) :> f' \<Longrightarrow>
         f' \<noteq> 0 \<Longrightarrow>
         continuous (at y) g \<Longrightarrow>
@@ -919,8 +911,10 @@ lemma has_complex_derivative_inverse_basic:
   apply (auto simp:  bounded_linear_mult_right)
   done
 
-lemma has_complex_derivative_inverse_strong:
-  fixes f :: "complex \<Rightarrow> complex"
+lemmas has_complex_derivative_inverse_basic = has_field_derivative_inverse_basic
+
+lemma has_field_derivative_inverse_strong:
+  fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
   shows "DERIV f x :> f' \<Longrightarrow>
          f' \<noteq> 0 \<Longrightarrow>
          open s \<Longrightarrow>
@@ -931,9 +925,10 @@ lemma has_complex_derivative_inverse_strong:
   unfolding has_field_derivative_def
   apply (rule has_derivative_inverse_strong [of s x f g ])
   by auto
+lemmas has_complex_derivative_inverse_strong = has_field_derivative_inverse_strong
 
-lemma has_complex_derivative_inverse_strong_x:
-  fixes f :: "complex \<Rightarrow> complex"
+lemma has_field_derivative_inverse_strong_x:
+  fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
   shows  "DERIV f (g y) :> f' \<Longrightarrow>
           f' \<noteq> 0 \<Longrightarrow>
           open s \<Longrightarrow>
@@ -944,6 +939,7 @@ lemma has_complex_derivative_inverse_strong_x:
   unfolding has_field_derivative_def
   apply (rule has_derivative_inverse_strong_x [of s g y f])
   by auto
+lemmas has_complex_derivative_inverse_strong_x = has_field_derivative_inverse_strong_x
 
 subsection \<open>Taylor on Complex Numbers\<close>
 
@@ -952,14 +948,14 @@ lemma sum_Suc_reindex:
     shows  "sum f {0..n} = f 0 - f (Suc n) + sum (\<lambda>i. f (Suc i)) {0..n}"
 by (induct n) auto
 
-lemma complex_taylor:
+lemma field_taylor:
   assumes s: "convex s"
       and f: "\<And>i x. x \<in> s \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within s)"
-      and B: "\<And>x. x \<in> s \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
+      and B: "\<And>x. x \<in> s \<Longrightarrow> norm (f (Suc n) x) \<le> B"
       and w: "w \<in> s"
       and z: "z \<in> s"
-    shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
-          \<le> B * cmod(z - w)^(Suc n) / fact n"
+    shows "norm(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
+          \<le> B * norm(z - w)^(Suc n) / fact n"
 proof -
   have wzs: "closed_segment w z \<subseteq> s" using assms
     by (metis convex_contains_segment)
@@ -1018,33 +1014,44 @@ proof -
     assume u: "u \<in> closed_segment w z"
     then have us: "u \<in> s"
       by (metis wzs subsetD)
-    have "cmod (f (Suc n) u) * cmod (z - u) ^ n \<le> cmod (f (Suc n) u) * cmod (u - z) ^ n"
+    have "norm (f (Suc n) u) * norm (z - u) ^ n \<le> norm (f (Suc n) u) * norm (u - z) ^ n"
       by (metis norm_minus_commute order_refl)
-    also have "... \<le> cmod (f (Suc n) u) * cmod (z - w) ^ n"
+    also have "... \<le> norm (f (Suc n) u) * norm (z - w) ^ n"
       by (metis mult_left_mono norm_ge_zero power_mono segment_bound [OF u])
-    also have "... \<le> B * cmod (z - w) ^ n"
+    also have "... \<le> B * norm (z - w) ^ n"
       by (metis norm_ge_zero zero_le_power mult_right_mono  B [OF us])
-    finally have "cmod (f (Suc n) u) * cmod (z - u) ^ n \<le> B * cmod (z - w) ^ n" .
+    finally have "norm (f (Suc n) u) * norm (z - u) ^ n \<le> B * norm (z - w) ^ n" .
   } note cmod_bound = this
   have "(\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)) = (\<Sum>i\<le>n. (f i z / (fact i)) * 0 ^ i)"
     by simp
   also have "\<dots> = f 0 z / (fact 0)"
     by (subst sum_zero_power) simp
-  finally have "cmod (f 0 z - (\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)))
-                \<le> cmod ((\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)) -
+  finally have "norm (f 0 z - (\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)))
+                \<le> norm ((\<Sum>i\<le>n. f i w * (z - w) ^ i / (fact i)) -
                         (\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)))"
     by (simp add: norm_minus_commute)
-  also have "... \<le> B * cmod (z - w) ^ n / (fact n) * cmod (w - z)"
+  also have "... \<le> B * norm (z - w) ^ n / (fact n) * norm (w - z)"
     apply (rule field_differentiable_bound
       [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
          and s = "closed_segment w z", OF convex_closed_segment])
     apply (auto simp: ends_in_segment DERIV_subset [OF sum_deriv wzs]
                   norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
     done
-  also have "...  \<le> B * cmod (z - w) ^ Suc n / (fact n)"
+  also have "...  \<le> B * norm (z - w) ^ Suc n / (fact n)"
     by (simp add: algebra_simps norm_minus_commute)
   finally show ?thesis .
 qed
+
+lemma complex_taylor:
+  assumes s: "convex s"
+      and f: "\<And>i x. x \<in> s \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within s)"
+      and B: "\<And>x. x \<in> s \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
+      and w: "w \<in> s"
+      and z: "z \<in> s"
+    shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
+          \<le> B * cmod(z - w)^(Suc n) / fact n"
+  using assms by (rule field_taylor)
+
 
 text\<open>Something more like the traditional MVT for real components\<close>
 
