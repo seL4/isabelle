@@ -3216,6 +3216,32 @@ lemma distinct_append [simp]:
   "distinct (xs @ ys) = (distinct xs \<and> distinct ys \<and> set xs \<inter> set ys = {})"
 by (induct xs) auto
 
+text \<open>Contributed by Stephan Merz:\<close>
+lemma distinct_split_list:
+  assumes "distinct (xs @ x # ys)" and "xs @ x # ys = xs' @ x # ys'"
+  shows "xs = xs'" "ys = ys'"
+proof -
+  show "xs = xs'"
+  proof (rule ccontr)
+    assume c: "xs \<noteq> xs'"
+    show "False"
+    proof (cases "size xs < size xs'")
+      case True
+      with assms(2) have "x \<in> set xs'"
+        by (metis in_set_conv_nth nth_append nth_append_length)
+      with assms show ?thesis by auto
+    next
+      case False
+      with c assms(2) have "size xs' < size xs"
+        by (meson append_eq_append_conv linorder_neqE_nat)
+      with assms(2) have "x \<in> set xs"
+        by (metis in_set_conv_nth nth_append nth_append_length)
+      with assms(1) show ?thesis by auto
+    qed
+  qed
+  with assms(2) show "ys = ys'" by simp
+qed
+
 lemma distinct_rev[simp]: "distinct(rev xs) = distinct xs"
 by(induct xs) auto
 
