@@ -82,10 +82,12 @@ object Build_Status
     def order: Long = - head.timing.elapsed.ms
 
     def finished_entries: List[Entry] = entries.filter(_.finished)
+    def finished_entries_size: Int =
+      finished_entries.map(entry => entry.pull_date.unix_epoch).toSet.size
 
-    def check_timing: Boolean = finished_entries.length >= 3
+    def check_timing: Boolean = finished_entries_size >= 3
     def check_heap: Boolean =
-      finished_entries.length >= 3 &&
+      finished_entries_size >= 3 &&
       finished_entries.forall(entry =>
         entry.maximum_heap > 0 ||
         entry.average_heap > 0 ||
