@@ -1443,6 +1443,11 @@ lemma set_minus_filter_out:
   "set xs - {y} = set (filter (\<lambda>x. \<not> (x = y)) xs)"
   by (induct xs) auto
 
+lemma append_Cons_eq_iff:
+  "\<lbrakk> x \<notin> set xs; x \<notin> set ys \<rbrakk> \<Longrightarrow>
+   xs @ x # ys = xs' @ x # ys' \<longleftrightarrow> (xs = xs' \<and> ys = ys')"
+by(auto simp: append_eq_Cons_conv Cons_eq_append_conv append_eq_append_conv2)
+
 
 subsubsection \<open>@{const filter}\<close>
 
@@ -3215,16 +3220,6 @@ by (cases xs) simp_all
 lemma distinct_append [simp]:
   "distinct (xs @ ys) = (distinct xs \<and> distinct ys \<and> set xs \<inter> set ys = {})"
 by (induct xs) auto
-
-lemma app_Cons_app_eqD:
-assumes "xs @ x # ys = xs' @ x # ys'" and "x \<notin> set xs" and "x \<notin> set ys"
-shows "xs = xs'" "ys = ys'"
-proof -
-  show "xs = xs'"
-    using assms
-    by(auto simp: append_eq_Cons_conv Cons_eq_append_conv append_eq_append_conv2)
-  with assms show "ys = ys'" by simp
-qed
 
 lemma distinct_rev[simp]: "distinct(rev xs) = distinct xs"
 by(induct xs) auto
