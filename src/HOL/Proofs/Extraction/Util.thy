@@ -5,7 +5,7 @@
 section \<open>Auxiliary lemmas used in program extraction examples\<close>
 
 theory Util
-imports "~~/src/HOL/Library/Old_Datatype"
+imports Main
 begin
 
 text \<open>Decidability of equality on natural numbers.\<close>

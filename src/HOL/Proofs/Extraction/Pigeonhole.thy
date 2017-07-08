@@ -5,7 +5,7 @@
 section \<open>The pigeonhole principle\<close>
 
 theory Pigeonhole
-imports Util "~~/src/HOL/Library/Code_Target_Numeral"
+imports Util Old_Datatype "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
 text \<open>

@@ -5,7 +5,7 @@
 section \<open>Combinator syntax for generic, open state monads (single-threaded monads)\<close>
 
 theory State_Monad
-imports Main Monad_Syntax
+imports Main
 begin
 
 subsection \<open>Motivation\<close>

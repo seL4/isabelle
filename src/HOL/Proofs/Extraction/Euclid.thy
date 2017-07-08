@@ -10,6 +10,7 @@ theory Euclid
 imports
   "~~/src/HOL/Computational_Algebra/Primes"
   Util
+  Old_Datatype
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 

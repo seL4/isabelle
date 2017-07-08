@@ -6,7 +6,7 @@
 subsection \<open>Extracting the program\<close>
 
 theory Higman_Extraction
-imports Higman "~~/src/HOL/Library/State_Monad" Random
+imports Higman Old_Datatype "~~/src/HOL/Library/State_Monad"
 begin
 
 declare R.induct [ind_realizer]

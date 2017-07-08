@@ -6,7 +6,7 @@
 section \<open>Higman's lemma\<close>
 
 theory Higman
-imports Old_Datatype
+imports Main
 begin
 
 text \<open>
