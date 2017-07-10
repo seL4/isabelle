@@ -5,7 +5,7 @@
 section \<open>Monad notation for arbitrary types\<close>
 
 theory Monad_Syntax
-imports Main "~~/src/Tools/Adhoc_Overloading"
+imports FSet "~~/src/Tools/Adhoc_Overloading"
 begin
 
 text \<open>
@@ -61,6 +61,6 @@ translations
   "(m \<then> n)" \<rightharpoonup> "(m \<bind> (\<lambda>_. n))"
 
 adhoc_overloading
-  bind Set.bind Predicate.bind Option.bind List.bind
+  bind Set.bind Predicate.bind Option.bind List.bind FSet.fbind
 
 end
