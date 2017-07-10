@@ -7,7 +7,7 @@
 section \<open>Type of finite sets defined as a subtype of sets\<close>
 
 theory FSet
-imports Main
+imports Main Countable
 begin
 
 subsection \<open>Definition of the type\<close>
@@ -1112,6 +1112,33 @@ next
       thus ?thesis unfolding Inr by auto
     qed
   qed
+qed
+
+
+subsubsection \<open>Countability\<close>
+
+lemma exists_fset_of_list: "\<exists>xs. fset_of_list xs = S"
+including fset.lifting
+by transfer (rule finite_list)
+
+lemma fset_of_list_surj[simp, intro]: "surj fset_of_list"
+proof -
+  have "x \<in> range fset_of_list" for x :: "'a fset"
+    unfolding image_iff
+    using exists_fset_of_list by fastforce
+  thus ?thesis by auto
+qed
+
+instance fset :: (countable) countable
+proof
+  obtain to_nat :: "'a list \<Rightarrow> nat" where "inj to_nat"
+    by (metis ex_inj)
+  moreover have "inj (inv fset_of_list)"
+    using fset_of_list_surj by (rule surj_imp_inj_inv)
+  ultimately have "inj (to_nat \<circ> inv fset_of_list)"
+    by (rule inj_comp)
+  thus "\<exists>to_nat::'a fset \<Rightarrow> nat. inj to_nat"
+    by auto
 qed
 
 
