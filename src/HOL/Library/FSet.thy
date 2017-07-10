@@ -202,8 +202,9 @@ lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightar
 
 lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold .
 
-lift_definition fset_of_list :: "'a list \<Rightarrow> 'a fset" is set by (rule finite_set)
+lift_definition fsum :: "('a \<Rightarrow> 'b::comm_monoid_add) \<Rightarrow> 'a fset \<Rightarrow> 'b" is sum .
 
+lift_definition fset_of_list :: "'a list \<Rightarrow> 'a fset" is set by (rule finite_set)
 
 subsection \<open>Transferred lemmas from Set.thy\<close>
 
@@ -712,6 +713,13 @@ begin
     by (transfer fixing: f) (rule fold_insert_idem2)
 
 end
+
+lemmas fsum_cong[fundef_cong] = sum.cong[Transfer.transferred]
+
+lemma fsum_strong_cong[cong]:
+  assumes "A = B" "\<And>x. x |\<in>| B =simp=> g x = h x"
+  shows "fsum (\<lambda>x. g x) A = fsum (\<lambda>x. h x) B"
+using assms unfolding simp_implies_def by (auto cong: fsum_cong)
 
 
 subsection \<open>Choice in fsets\<close>
