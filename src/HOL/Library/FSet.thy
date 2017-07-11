@@ -227,8 +227,8 @@ lemmas fBall_one_point1[simp] = ball_one_point1[Transfer.transferred]
 lemmas fBall_one_point2[simp] = ball_one_point2[Transfer.transferred]
 lemmas fBall_conj_distrib = ball_conj_distrib[Transfer.transferred]
 lemmas fBex_disj_distrib = bex_disj_distrib[Transfer.transferred]
-lemmas fBall_cong = ball_cong[Transfer.transferred]
-lemmas fBex_cong = bex_cong[Transfer.transferred]
+lemmas fBall_cong[fundef_cong] = ball_cong[Transfer.transferred]
+lemmas fBex_cong[fundef_cong] = bex_cong[Transfer.transferred]
 lemmas fsubsetI[intro!] = subsetI[Transfer.transferred]
 lemmas fsubsetD[elim, intro?] = subsetD[Transfer.transferred]
 lemmas rev_fsubsetD[no_atp,intro?] = rev_subsetD[Transfer.transferred]
@@ -452,6 +452,17 @@ lemmas fset_of_list_map[simp] = set_map[Transfer.transferred]
 
 subsection \<open>Additional lemmas\<close>
 
+subsubsection \<open>\<open>ffUnion\<close>\<close>
+
+lemmas ffUnion_funion_distrib[simp] = Union_Un_distrib[Transfer.transferred]
+
+
+subsubsection \<open>\<open>fbind\<close>\<close>
+
+lemma fbind_cong[fundef_cong]: "A = B \<Longrightarrow> (\<And>x. x |\<in>| B \<Longrightarrow> f x = g x) \<Longrightarrow> fbind A f = fbind B g"
+by transfer force
+
+
 subsubsection \<open>\<open>fsingleton\<close>\<close>
 
 lemmas fsingletonE = fsingletonD [elim_format]
@@ -530,6 +541,12 @@ using assms by transfer (metis Set.set_insert finite_insert)
 
 lemma mk_disjoint_finsert: "a |\<in>| A \<Longrightarrow> \<exists>B. A = finsert a B \<and> a |\<notin>| B"
   by (rule exI [where x = "A |-| {|a|}"]) blast
+
+lemma finsert_eq_iff:
+  assumes "a |\<notin>| A" and "b |\<notin>| B"
+  shows "(finsert a A = finsert b B) =
+    (if a = b then A = B else \<exists>C. A = finsert b C \<and> b |\<notin>| C \<and> B = finsert a C \<and> a |\<notin>| C)"
+  using assms by transfer (force simp: insert_eq_iff)
 
 
 subsubsection \<open>\<open>fimage\<close>\<close>
@@ -720,6 +737,76 @@ lemma fsum_strong_cong[cong]:
   assumes "A = B" "\<And>x. x |\<in>| B =simp=> g x = h x"
   shows "fsum (\<lambda>x. g x) A = fsum (\<lambda>x. h x) B"
 using assms unfolding simp_implies_def by (auto cong: fsum_cong)
+
+
+subsubsection \<open>Semilattice operations\<close>
+
+(* FIXME should work for arbitrary comm_monoid_set.F and semilattice_set.F operations *)
+
+lift_definition fMax :: "'a::linorder fset \<Rightarrow> 'a" is Max .
+lift_definition fMin :: "'a::linorder fset \<Rightarrow> 'a" is Min .
+
+lemma mono_fMax_commute: "mono f \<Longrightarrow> A \<noteq> {||} \<Longrightarrow> f (fMax A) = fMax (f |`| A)"
+by transfer (rule mono_Max_commute)
+
+lemma mono_fMin_commute: "mono f \<Longrightarrow> A \<noteq> {||} \<Longrightarrow> f (fMin A) = fMin (f |`| A)"
+by transfer (rule mono_Min_commute)
+
+lemma fMax_in[simp]: "A \<noteq> {||} \<Longrightarrow> fMax A |\<in>| A"
+  by transfer (rule Max_in)
+
+lemma fMin_in[simp]: "A \<noteq> {||} \<Longrightarrow> fMin A |\<in>| A"
+  by transfer (rule Min_in)
+
+lemma fMax_ge[simp]: "x |\<in>| A \<Longrightarrow> x \<le> fMax A"
+  by transfer (rule Max_ge)
+
+lemma fMin_le[simp]: "x |\<in>| A \<Longrightarrow> fMin A \<le> x"
+  by transfer (rule Min_le)
+
+lemma fMax_eqI: "(\<And>y. y |\<in>| A \<Longrightarrow> y \<le> x) \<Longrightarrow> x |\<in>| A \<Longrightarrow> fMax A = x"
+  by transfer (rule Max_eqI)
+
+lemma fMin_eqI: "(\<And>y. y |\<in>| A \<Longrightarrow> x \<le> y) \<Longrightarrow> x |\<in>| A \<Longrightarrow> fMin A = x"
+  by transfer (rule Min_eqI)
+
+lemma fMax_singleton[simp]: "fMax {|x|} = x"
+  by transfer (rule Max_singleton)
+
+lemma fMin_singleton[simp]: "fMin {|x|} = x"
+  by transfer (rule Min_singleton)
+
+lemma fMax_finsert[simp]: "fMax (finsert x A) = (if A = {||} then x else max x (fMax A))"
+  by transfer simp
+
+lemma fMin_finsert[simp]: "fMin (finsert x A) = (if A = {||} then x else min x (fMin A))"
+  by transfer simp
+
+context linorder begin
+
+lemma fset_linorder_max_induct[case_names fempty finsert]:
+  assumes "P {||}"
+  and     "\<And>x S. \<lbrakk>\<forall>y. y |\<in>| S \<longrightarrow> y < x; P S\<rbrakk> \<Longrightarrow> P (finsert x S)"
+  shows "P S"
+proof -
+  (* FIXME transfer and right_total vs. bi_total *)
+  note Domainp_forall_transfer[transfer_rule]
+  show ?thesis
+  using assms by (transfer fixing: less) (auto intro: finite_linorder_max_induct)
+qed
+
+lemma fset_linorder_min_induct[case_names fempty finsert]:
+  assumes "P {||}"
+  and     "\<And>x S. \<lbrakk>\<forall>y. y |\<in>| S \<longrightarrow> y > x; P S\<rbrakk> \<Longrightarrow> P (finsert x S)"
+  shows "P S"
+proof -
+  (* FIXME transfer and right_total vs. bi_total *)
+  note Domainp_forall_transfer[transfer_rule]
+  show ?thesis
+  using assms by (transfer fixing: less) (auto intro: finite_linorder_min_induct)
+qed
+
+end
 
 
 subsection \<open>Choice in fsets\<close>
