@@ -44,26 +44,6 @@ lemma finmap_eq_iff: "P = Q \<longleftrightarrow> (domain P = domain Q \<and> (\
   done
 
 
-subsection \<open>Countable Finite Maps\<close>
-
-instance fmap :: (countable, countable) countable
-proof
-  obtain mapper where mapper: "\<And>fm :: 'a \<Rightarrow>\<^sub>F 'b. set (mapper fm) = domain fm"
-    by (metis finite_list[OF finite_domain])
-  have "inj (\<lambda>fm. map (\<lambda>i. (i, (fm)\<^sub>F i)) (mapper fm))" (is "inj ?F")
-  proof (rule inj_onI)
-    fix f1 f2 assume "?F f1 = ?F f2"
-    then have "map fst (?F f1) = map fst (?F f2)" by simp
-    then have "mapper f1 = mapper f2" by (simp add: comp_def)
-    then have "domain f1 = domain f2" by (simp add: mapper[symmetric])
-    with \<open>?F f1 = ?F f2\<close> show "f1 = f2"
-      unfolding \<open>mapper f1 = mapper f2\<close> map_eq_conv mapper
-      by (simp add: finmap_eq_iff)
-  qed
-  then show "\<exists>to_nat :: 'a \<Rightarrow>\<^sub>F 'b \<Rightarrow> nat. inj to_nat"
-    by (intro exI[of _ "to_nat \<circ> ?F"] inj_comp) auto
-qed
-
 subsection \<open>Constructor of Finite Maps\<close>
 
 lift_definition finmap_of::"'i set \<Rightarrow> ('i \<Rightarrow> 'a) \<Rightarrow> ('i \<Rightarrow>\<^sub>F 'a)" is

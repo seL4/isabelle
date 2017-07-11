@@ -146,12 +146,12 @@ by transfer_prover
 
 definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map_on_set S P = eq_onp (\<lambda>x. x \<in> S) ===> rel_option P"
-  
+
 lemma map_of_transfer[transfer_rule]:
   includes lifting_syntax
   shows "(list_all2 (rel_prod op = A) ===> rel_map A) map_of map_of"
 unfolding map_of_def by transfer_prover
-  
+
 end
 
 
@@ -465,7 +465,7 @@ lemma fmpredI[intro]:
 using assms
 by transfer' (auto simp: map_pred_def split: option.splits)
 
-lemma fmpredD[dest]: "fmpred P m \<Longrightarrow> fmlookup m x = Some y \<Longrightarrow> P x y" 
+lemma fmpredD[dest]: "fmpred P m \<Longrightarrow> fmlookup m x = Some y \<Longrightarrow> P x y"
 by transfer' (auto simp: map_pred_def split: option.split_asm)
 
 lemma fmpred_iff: "fmpred P m \<longleftrightarrow> (\<forall>x y. fmlookup m x = Some y \<longrightarrow> P x y)"
@@ -827,6 +827,61 @@ done
 end
 
 declare fmap_generic_code[code]
+
+
+subsection \<open>Instances\<close>
+
+lemma exists_map_of:
+  assumes "finite (dom m)" shows "\<exists>xs. map_of xs = m"
+  using assms
+proof (induction "dom m" arbitrary: m)
+  case empty
+  hence "m = Map.empty"
+    by auto
+  moreover have "map_of [] = Map.empty"
+    by simp
+  ultimately show ?case
+    by blast
+next
+  case (insert x F)
+  hence "F = dom (map_drop x m)"
+    unfolding map_drop_def map_filter_def dom_def by auto
+  with insert have "\<exists>xs'. map_of xs' = map_drop x m"
+    by auto
+  then obtain xs' where "map_of xs' = map_drop x m"
+    ..
+  moreover obtain y where "m x = Some y"
+    using insert unfolding dom_def by blast
+  ultimately have "map_of ((x, y) # xs') = m"
+    using \<open>insert x F = dom m\<close>
+    unfolding map_drop_def map_filter_def
+    by auto
+  thus ?case
+    ..
+qed
+
+lemma exists_fmap_of_list: "\<exists>xs. fmap_of_list xs = m"
+by transfer (rule exists_map_of)
+
+lemma fmap_of_list_surj[simp, intro]: "surj fmap_of_list"
+proof -
+  have "x \<in> range fmap_of_list" for x :: "('a, 'b) fmap"
+    unfolding image_iff
+    using exists_fmap_of_list by (metis UNIV_I)
+  thus ?thesis by auto
+qed
+
+instance fmap :: (countable, countable) countable
+proof
+  obtain to_nat :: "('a \<times> 'b) list \<Rightarrow> nat" where "inj to_nat"
+    by (metis ex_inj)
+  moreover have "inj (inv fmap_of_list)"
+    using fmap_of_list_surj by (rule surj_imp_inj_inv)
+  ultimately have "inj (to_nat \<circ> inv fmap_of_list)"
+    by (rule inj_comp)
+  thus "\<exists>to_nat::('a, 'b) fmap \<Rightarrow> nat. inj to_nat"
+    by auto
+qed
 
 lifting_update fmap.lifting
 lifting_forget fmap.lifting
