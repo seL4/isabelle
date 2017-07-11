@@ -143,8 +143,9 @@ sig
   val bnf_internals: bool Config.T
   val bnf_timing: bool Config.T
   val user_policy: fact_policy -> Proof.context -> fact_policy
-  val note_bnf_thms: fact_policy -> (binding -> binding) -> binding -> bnf -> Proof.context ->
-    bnf * Proof.context
+  val note_bnf_thms: fact_policy -> (binding -> binding) -> binding -> bnf -> local_theory ->
+    bnf * local_theory
+  val note_bnf_defs: bnf -> local_theory -> bnf * local_theory
 
   val print_bnfs: Proof.context -> unit
   val prepare_def: inline_policy -> (Proof.context -> fact_policy) -> bool ->
@@ -981,6 +982,22 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
     |> fact_policy = Note_All ? note_if_note_all
     |> fact_policy <> Dont_Note ? note_unless_dont_note
     |>> (fn [] => bnf | noted => morph_bnf (substitute_noted_thm noted) bnf)
+  end;
+
+fun note_bnf_defs bnf lthy =
+  let
+    fun mk_def_binding cst_of =
+      Thm.def_binding (Binding.qualified_name (dest_Const (cst_of bnf) |> fst));
+    val notes =
+      [(mk_def_binding map_of_bnf, map_def_of_bnf bnf),
+       (mk_def_binding rel_of_bnf, rel_def_of_bnf bnf),
+       (mk_def_binding pred_of_bnf, pred_def_of_bnf bnf)] @
+      @{map 2} (pair o mk_def_binding o K) (sets_of_bnf bnf) (set_defs_of_bnf bnf)
+      |> map (fn (b, thm) => ((b, []), [([thm], [])]));
+  in
+    lthy
+    |> Local_Theory.notes notes
+    |>> (fn noted => morph_bnf (substitute_noted_thm noted) bnf)
   end;
 
 fun mk_wit_goals zs bs sets (I, wit) =

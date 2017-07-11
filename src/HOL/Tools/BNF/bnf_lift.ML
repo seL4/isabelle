@@ -326,12 +326,14 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
               [card_order_bd_tac, cinfinite_bd_tac] @ set_bds_tac @
               [le_rel_OO_tac, rel_OO_Grp_tac, pred_set_tac];
 
-            val (bnf, lthy) = bnf_def Dont_Inline (user_policy Note_Some) false I
+            val (bnf, lthy) = bnf_def Dont_Inline (user_policy Note_Some) true I
               tactics wit_tac NONE map_b rel_b pred_b set_bs
               (((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G), SOME pred_G)
               lthy;
 
-            val bnf = morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) bnf;
+            val (bnf, lthy) =
+              morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) bnf
+              |> (fn bnf => note_bnf_defs bnf lthy);
           in
             lthy |> BNF_Def.register_bnf plugins AbsT_name bnf
           end
