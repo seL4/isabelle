@@ -555,8 +555,8 @@ fun raw_assert_abs_eqn thy some_tyco thm =
 
 in
 
-fun generic_assert_eqn strictness thy check_patterns thm_proper =
-  handle_strictness fst (raw_assert_eqn thy check_patterns) strictness thy thm_proper;
+fun generic_assert_eqn strictness thy check_patterns eqn =
+  handle_strictness fst (raw_assert_eqn thy check_patterns) strictness thy eqn;
 
 fun generic_assert_abs_eqn strictness thy check_patterns thm =
   handle_strictness I (raw_assert_abs_eqn thy check_patterns) strictness thy thm;

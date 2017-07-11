@@ -19,7 +19,7 @@ sig
   val assert: local_theory -> local_theory
   val reset: local_theory -> local_theory
   val level: Proof.context -> int
-  val assert_bottom: bool -> local_theory -> local_theory
+  val assert_bottom: local_theory -> local_theory
   val mark_brittle: local_theory -> local_theory
   val assert_nonbrittle: local_theory -> local_theory
   val map_contexts: (int -> Proof.context -> Proof.context) -> local_theory -> local_theory
@@ -118,8 +118,28 @@ structure Data = Proof_Data
   fun init _ = [];
 );
 
+(* nested structure *)
+
+val level = length o Data.get;  (*1: main target at bottom, >= 2: nested context*)
+
 fun assert lthy =
-  if null (Data.get lthy) then error "Missing local theory context" else lthy;
+  if level lthy = 0 then error "Missing local theory context" else lthy;
+
+fun assert_bottom lthy =
+  let
+    val _ = assert lthy;
+  in
+    if level lthy > 1 then error "Not at bottom of local theory nesting"
+    else lthy
+  end;
+
+fun assert_not_bottom lthy =
+  let
+    val _ = assert lthy;
+  in
+    if level lthy = 1 then error "Already at bottom of local theory nesting"
+    else lthy
+  end;
 
 val bottom_of = List.last o Data.get o assert;
 val top_of = hd o Data.get o assert;
@@ -130,21 +150,6 @@ fun map_top f =
     make_lthy (f (background_naming, operations, after_close, brittle, target)) :: parents);
 
 fun reset lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
-
-
-(* nested structure *)
-
-val level = length o Data.get;  (*1: main target at bottom, >= 2: nested context*)
-
-fun assert_bottom b lthy =
-  let
-    val _ = assert lthy;
-    val b' = level lthy <= 1;
-  in
-    if b andalso not b' then error "Not at bottom of local theory nesting"
-    else if not b andalso b' then error "Already at bottom of local theory nesting"
-    else lthy
-  end;
 
 fun map_contexts f lthy =
   let val n = level lthy in
@@ -272,9 +277,9 @@ val define_internal = operation2 #define true;
 val notes_kind = operation2 #notes;
 val declaration = operation2 #declaration;
 fun theory_registration dep_morph mixin export =
-  assert_bottom true #> operation (fn ops => #theory_registration ops dep_morph mixin export);
+  assert_bottom #> operation (fn ops => #theory_registration ops dep_morph mixin export);
 fun locale_dependency dep_morph mixin export =
-  assert_bottom true #> operation (fn ops => #locale_dependency ops dep_morph mixin export);
+  assert_bottom #> operation (fn ops => #locale_dependency ops dep_morph mixin export);
 
 
 (* theorems *)
@@ -382,7 +387,7 @@ fun open_target lthy =
 
 fun close_target lthy =
   let
-    val _ = assert_bottom false lthy;
+    val _ = assert_not_bottom lthy;
     val ({after_close, ...} :: rest) = Data.get lthy;
   in lthy |> Data.put rest |> reset |> after_close end;
 

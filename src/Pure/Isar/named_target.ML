@@ -163,7 +163,7 @@ fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
 fun begin ("-", _) thy = theory_init thy
   | begin target thy = init NONE (Locale.check thy target) thy;
 
-val exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
+val exit = Local_Theory.assert_bottom #> Local_Theory.exit_global;
 
 fun switch NONE (Context.Theory thy) =
       (Context.Theory o exit, theory_init thy)

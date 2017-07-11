@@ -5,7 +5,7 @@
 section \<open>Quotient and remainder\<close>
 
 theory QuotRem
-imports Util
+imports Old_Datatype Util
 begin
 
 text \<open>Derivation of quotient and remainder using program extraction.\<close>
