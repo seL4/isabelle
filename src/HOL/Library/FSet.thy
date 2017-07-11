@@ -606,7 +606,7 @@ lemma fcard_finsert_if:
   "fcard (finsert x A) = (if x |\<in>| A then fcard A else Suc (fcard A))"
   by transfer (rule card_insert_if)
 
-lemma card_0_eq [simp, no_atp]:
+lemma fcard_0_eq [simp, no_atp]:
   "fcard A = 0 \<longleftrightarrow> A = {||}"
   by transfer (rule card_0_eq)
 
