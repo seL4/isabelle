@@ -71,6 +71,7 @@ imports
   Rewrite
   Saturated
   Set_Algebras
+  State_Monad
   Stirling
   Stream
   Sublist
