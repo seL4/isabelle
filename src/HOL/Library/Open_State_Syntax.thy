@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/State_Monad.thy
+(*  Title:      HOL/Library/Open_State_Syntax.thy
     Author:     Florian Haftmann, TU Muenchen
 *)
 
 section \<open>Combinator syntax for generic, open state monads (single-threaded monads)\<close>
 
-theory State_Monad
+theory Open_State_Syntax
 imports Main
 begin
 

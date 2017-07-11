@@ -448,7 +448,7 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
     "~~/src/HOL/Computational_Algebra/Primes"
-    "~~/src/HOL/Library/State_Monad"
+    "~~/src/HOL/Library/Open_State_Syntax"
   theories
     Greatest_Common_Divisor
     Warshall

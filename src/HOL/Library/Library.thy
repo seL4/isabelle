@@ -48,6 +48,7 @@ imports
   Nonpos_Ints
   Numeral_Type
   Omega_Words_Fun
+  Open_State_Syntax
   Option_ord
   Order_Continuity
   Parallel
@@ -70,7 +71,6 @@ imports
   Rewrite
   Saturated
   Set_Algebras
-  State_Monad
   Stirling
   Stream
   Sublist
