@@ -606,10 +606,6 @@ apply (subst dom_map_of_conv_image_fst)
 apply auto
 done
 
-lift_definition fmrel_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap \<Rightarrow> bool"
-  is rel_map_on_set
-.
-
 lift_definition fmrel_on_fset :: "'a fset \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap \<Rightarrow> bool"
   is rel_map_on_set
 .
@@ -633,6 +629,18 @@ unfolding fmrel_on_fset_alt_def
 by auto
 
 lemma fmrel_on_fsubset: "fmrel_on_fset S R m n \<Longrightarrow> T |\<subseteq>| S \<Longrightarrow> fmrel_on_fset T R m n"
+unfolding fmrel_on_fset_alt_def
+by auto
+
+lemma fmrel_on_fset_unionI:
+  "fmrel_on_fset A R m n \<Longrightarrow> fmrel_on_fset B R m n \<Longrightarrow> fmrel_on_fset (A |\<union>| B) R m n"
+unfolding fmrel_on_fset_alt_def
+by auto
+
+lemma fmrel_on_fset_updateI:
+  assumes "fmrel_on_fset S P m n" "P v\<^sub>1 v\<^sub>2"
+  shows "fmrel_on_fset (finsert k S) P (fmupd k v\<^sub>1 m) (fmupd k v\<^sub>2 n)"
+using assms
 unfolding fmrel_on_fset_alt_def
 by auto
 
@@ -733,6 +741,78 @@ lemma fmrel_restrict_set[intro]: "fmrel P m n \<Longrightarrow> fmrel P (fmrestr
 lemma fmrel_restrict_fset[intro]: "fmrel P m n \<Longrightarrow> fmrel P (fmrestrict_fset A m) (fmrestrict_fset A n)"
   unfolding fmfilter_alt_defs by blast
 
+lemma fmrel_on_fset_fmrel_restrict:
+  "fmrel_on_fset S P m n \<longleftrightarrow> fmrel P (fmrestrict_fset S m) (fmrestrict_fset S n)"
+unfolding fmrel_on_fset_alt_def fmrel_iff
+by auto
+
+lemma fmrel_on_fset_refl_strong:
+  assumes "\<And>x y. x |\<in>| S \<Longrightarrow> fmlookup m x = Some y \<Longrightarrow> P y y"
+  shows "fmrel_on_fset S P m m"
+unfolding fmrel_on_fset_fmrel_restrict fmrel_iff
+using assms
+by (simp add: option.rel_sel)
+
+lemma fmrel_on_fset_addI:
+  assumes "fmrel_on_fset S P m n" "fmrel_on_fset S P a b"
+  shows "fmrel_on_fset S P (m ++\<^sub>f a) (n ++\<^sub>f b)"
+using assms
+unfolding fmrel_on_fset_fmrel_restrict
+by auto
+
+lemma fmrel_fmdom_eq:
+  assumes "fmrel P x y"
+  shows "fmdom x = fmdom y"
+proof -
+  have "a |\<in>| fmdom x \<longleftrightarrow> a |\<in>| fmdom y" for a
+    proof -
+      have "rel_option P (fmlookup x a) (fmlookup y a)"
+        using assms by (simp add: fmrel_iff)
+      thus ?thesis
+        by cases (auto intro: fmdomI)
+    qed
+  thus ?thesis
+    by auto
+qed
+
+lemma fmrel_fmdom'_eq: "fmrel P x y \<Longrightarrow> fmdom' x = fmdom' y"
+unfolding fmdom'_alt_def
+by (metis fmrel_fmdom_eq)
+
+lemma fmrel_rel_fmran:
+  assumes "fmrel P x y"
+  shows "rel_fset P (fmran x) (fmran y)"
+proof -
+  {
+    fix b
+    assume "b |\<in>| fmran x"
+    then obtain a where "fmlookup x a = Some b"
+      by auto
+    moreover have "rel_option P (fmlookup x a) (fmlookup y a)"
+      using assms by auto
+    ultimately have "\<exists>b'. b' |\<in>| fmran y \<and> P b b'"
+      by (metis option_rel_Some1 fmranI)
+  }
+  moreover
+  {
+    fix b
+    assume "b |\<in>| fmran y"
+    then obtain a where "fmlookup y a = Some b"
+      by auto
+    moreover have "rel_option P (fmlookup x a) (fmlookup y a)"
+      using assms by auto
+    ultimately have "\<exists>b'. b' |\<in>| fmran x \<and> P b' b"
+      by (metis option_rel_Some2 fmranI)
+  }
+  ultimately show ?thesis
+    unfolding rel_fset_alt_def
+    by auto
+qed
+
+lemma fmrel_rel_fmran': "fmrel P x y \<Longrightarrow> rel_set P (fmran' x) (fmran' y)"
+unfolding fmran'_alt_def
+by (metis fmrel_rel_fmran rel_fset_fset)
+
 lemma pred_fmap_fmpred[simp]: "pred_fmap P = fmpred (\<lambda>_. P)"
 unfolding fmap.pred_set fmran'_alt_def
 including fset.lifting
@@ -744,6 +824,9 @@ done
 lemma pred_fmap_id[simp]: "pred_fmap id (fmmap f m) \<longleftrightarrow> pred_fmap f m"
 unfolding fmap.pred_set fmap.set_map
 by simp
+
+lemma pred_fmapD: "pred_fmap P m \<Longrightarrow> x |\<in>| fmran m \<Longrightarrow> P x"
+by auto
 
 lemma fmlookup_map[simp]: "fmlookup (fmmap f m) x = map_option f (fmlookup m x)"
 by transfer' auto
@@ -843,6 +926,88 @@ lemma fmupd_transfer[transfer_rule]:
   by auto
 
 end
+
+
+subsection \<open>View as datatype\<close>
+
+lemma fmap_distinct[simp]:
+  "fmempty \<noteq> fmupd k v m"
+  "fmupd k v m \<noteq> fmempty"
+by (transfer'; auto simp: map_upd_def fun_eq_iff)+
+
+lifting_update fmap.lifting
+
+lemma fmap_exhaust[case_names fmempty fmupd, cases type: fmap]:
+  assumes fmempty: "m = fmempty \<Longrightarrow> P"
+  assumes fmupd: "\<And>x y m'. m = fmupd x y m' \<Longrightarrow> x |\<notin>| fmdom m' \<Longrightarrow> P"
+  shows "P"
+using assms including fmap.lifting fset.lifting
+proof transfer
+  fix m P
+  assume "finite (dom m)"
+  assume empty: P if "m = Map.empty"
+  assume map_upd: P if "finite (dom m')" "m = map_upd x y m'" "x \<notin> dom m'" for x y m'
+
+  show P
+    proof (cases "m = Map.empty")
+      case True thus ?thesis using empty by simp
+    next
+      case False
+      hence "dom m \<noteq> {}" by simp
+      then obtain x where "x \<in> dom m" by blast
+
+      let ?m' = "map_drop x m"
+
+      show ?thesis
+        proof (rule map_upd)
+          show "finite (dom ?m')"
+            using \<open>finite (dom m)\<close>
+            unfolding map_drop_def
+            by auto
+        next
+          show "m = map_upd x (the (m x)) ?m'"
+            using \<open>x \<in> dom m\<close> unfolding map_drop_def map_filter_def map_upd_def
+            by auto
+        next
+          show "x \<notin> dom ?m'"
+            unfolding map_drop_def map_filter_def
+            by auto
+        qed
+    qed
+qed
+
+lemma fmap_induct[case_names fmempty fmupd, induct type: fmap]:
+  assumes "P fmempty"
+  assumes "(\<And>x y m. P m \<Longrightarrow> fmlookup m x = None \<Longrightarrow> P (fmupd x y m))"
+  shows "P m"
+proof (induction "fmdom m" arbitrary: m rule: fset_induct_stronger)
+  case empty
+  hence "m = fmempty"
+    by (metis fmrestrict_fset_dom fmrestrict_fset_null)
+  with assms show ?case
+    by simp
+next
+  case (insert x S)
+  hence "S = fmdom (fmdrop x m)"
+    by auto
+  with insert have "P (fmdrop x m)"
+    by auto
+
+  have "x |\<in>| fmdom m"
+    using insert by auto
+  then obtain y where "fmlookup m x = Some y"
+    by auto
+  hence "m = fmupd x y (fmdrop x m)"
+    by (auto intro: fmap_ext)
+
+  show ?case
+    apply (subst \<open>m = _\<close>)
+    apply (rule assms)
+    apply fact
+    apply simp
+    done
+qed
+
 
 subsection \<open>Code setup\<close>
 
