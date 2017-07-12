@@ -71,6 +71,10 @@ context begin
 qualified definition return :: "'a \<Rightarrow> ('s, 'a) state" where
 "return a = State (Pair a)"
 
+lemma run_state_return[simp]: "run_state (return x) s = (x, s)"
+unfolding return_def
+by simp
+
 qualified definition ap :: "('s, 'a \<Rightarrow> 'b) state \<Rightarrow> ('s, 'a) state \<Rightarrow> ('s, 'b) state" where
 "ap f x = State (\<lambda>s. case run_state f s of (g, s') \<Rightarrow> case run_state x s' of (y, s'') \<Rightarrow> (g y, s''))"
 
@@ -107,6 +111,14 @@ by simp
 
 lemma set_set[simp]: "bind (set s) (\<lambda>_. set s') = set s'"
 unfolding bind_def set_def
+by simp
+
+lemma get_bind_set[simp]: "bind get (\<lambda>s. bind (set s) (f s)) = bind get (\<lambda>s. f s ())"
+unfolding bind_def get_def set_def
+by simp
+
+lemma get_const[simp]: "bind get (\<lambda>_. m) = m"
+unfolding get_def bind_def
 by simp
 
 fun traverse_list :: "('a \<Rightarrow> ('b, 'c) state) \<Rightarrow> 'a list \<Rightarrow> ('b, 'c list) state" where
@@ -195,6 +207,14 @@ by auto
 lemma update_comp[simp]: "bind (update f) (\<lambda>_. update g) = update (g \<circ> f)"
 unfolding update_def return_def get_def set_def bind_def
 by auto
+
+lemma set_update[simp]: "bind (set s) (\<lambda>_. update f) = set (f s)"
+unfolding set_def update_def bind_def get_def set_def
+by simp
+
+lemma set_bind_update[simp]: "bind (set s) (\<lambda>_. bind (update f) g) = bind (set (f s)) g"
+unfolding set_def update_def bind_def get_def set_def
+by simp
 
 lemma update_mono:
   assumes "\<And>x. x \<le> f x"
