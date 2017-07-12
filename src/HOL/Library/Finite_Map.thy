@@ -646,22 +646,6 @@ lift_bnf ('a, fmran': 'b) fmap [wits: Map.empty]
       rel: fmrel
   by auto
 
-text \<open>
-  Unfortunately, @{command lift_bnf} doesn't register the definitional theorems. We're doing it
-  manually below.
-\<close>
-
-local_setup \<open>fn lthy =>
-  let
-    val SOME bnf = BNF_Def.bnf_of lthy @{type_name fmap}
-  in
-    lthy
-    |> Local_Theory.note ((@{binding fmmap_def}, []), [BNF_Def.map_def_of_bnf bnf]) |> #2
-    |> Local_Theory.note ((@{binding fmran'_def}, []), BNF_Def.set_defs_of_bnf bnf) |> #2
-    |> Local_Theory.note ((@{binding fmrel_def}, []), [BNF_Def.rel_def_of_bnf bnf]) |> #2
-  end
-\<close>
-
 declare fmap.pred_mono[mono]
 
 context includes lifting_syntax begin
