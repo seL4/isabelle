@@ -6179,4 +6179,197 @@ lemma
   using polyfun_rootbound [of "\<lambda>i. if i = 0 then -1 else if i=n then 1 else 0" n n] assms(2)
   by (auto simp add: root_polyfun [OF assms(2)])
 
+
+
+subsection \<open>Simprocs for root and power literals\<close>
+
+lemma numeral_powr_numeral_real [simp]:
+  "numeral m powr numeral n = (numeral m ^ numeral n :: real)"
+  by (simp add: powr_numeral)
+
+context
+begin
+  
+private lemma sqrt_numeral_simproc_aux: 
+  assumes "m * m \<equiv> n"
+  shows   "sqrt (numeral n :: real) \<equiv> numeral m"
+proof -
+  have "numeral n \<equiv> numeral m * (numeral m :: real)" by (simp add: assms [symmetric])
+  moreover have "sqrt \<dots> \<equiv> numeral m" by (subst real_sqrt_abs2) simp
+  ultimately show "sqrt (numeral n :: real) \<equiv> numeral m" by simp
+qed
+
+private lemma root_numeral_simproc_aux: 
+  assumes "Num.pow m n \<equiv> x"
+  shows   "root (numeral n) (numeral x :: real) \<equiv> numeral m"
+  by (subst assms [symmetric], subst numeral_pow, subst real_root_pos2) simp_all
+
+private lemma powr_numeral_simproc_aux:
+  assumes "Num.pow y n = x"
+  shows   "numeral x powr (m / numeral n :: real) \<equiv> numeral y powr m"
+  by (subst assms [symmetric], subst numeral_pow, subst powr_numeral [symmetric])
+     (simp, subst powr_powr, simp_all)
+
+private lemma numeral_powr_inverse_eq: 
+  "numeral x powr (inverse (numeral n)) = numeral x powr (1 / numeral n :: real)"
+  by simp
+
+
+ML \<open>
+
+signature ROOT_NUMERAL_SIMPROC = sig
+
+val sqrt : int option -> int -> int option
+val sqrt' : int option -> int -> int option
+val nth_root : int option -> int -> int -> int option
+val nth_root' : int option -> int -> int -> int option
+val sqrt_simproc : Proof.context -> cterm -> thm option
+val root_simproc : int * int -> Proof.context -> cterm -> thm option
+val powr_simproc : int * int -> Proof.context -> cterm -> thm option
+
+end
+
+structure Root_Numeral_Simproc : ROOT_NUMERAL_SIMPROC = struct
+
+fun iterate NONE p f x =
+      let
+        fun go x = if p x then x else go (f x)
+      in
+        SOME (go x)
+      end
+  | iterate (SOME threshold) p f x =
+      let
+        fun go (threshold, x) = 
+          if p x then SOME x else if threshold = 0 then NONE else go (threshold - 1, f x)
+      in
+        go (threshold, x)
+      end  
+
+
+fun nth_root _ 1 x = SOME x
+  | nth_root _ _ 0 = SOME 0
+  | nth_root _ _ 1 = SOME 1
+  | nth_root threshold n x =
+  let
+    fun newton_step y = ((n - 1) * y + x div Integer.pow (n - 1) y) div n
+    fun is_root y = Integer.pow n y <= x andalso x < Integer.pow n (y + 1)
+  in
+    if x < n then
+      SOME 1
+    else if x < Integer.pow n 2 then 
+      SOME 1 
+    else 
+      let
+        val y = Real.floor (Math.pow (Real.fromInt x, Real.fromInt 1 / Real.fromInt n))
+      in
+        if is_root y then
+          SOME y
+        else
+          iterate threshold is_root newton_step ((x + n - 1) div n)
+      end
+  end
+
+fun nth_root' _ 1 x = SOME x
+  | nth_root' _ _ 0 = SOME 0
+  | nth_root' _ _ 1 = SOME 1
+  | nth_root' threshold n x = if x < n then NONE else if x < Integer.pow n 2 then NONE else
+      case nth_root threshold n x of
+        NONE => NONE
+      | SOME y => if Integer.pow n y = x then SOME y else NONE
+
+fun sqrt _ 0 = SOME 0
+  | sqrt _ 1 = SOME 1
+  | sqrt threshold n =
+    let
+      fun aux (a, b) = if n >= b * b then aux (b, b * b) else (a, b)
+      val (lower_root, lower_n) = aux (1, 2)
+      fun newton_step x = (x + n div x) div 2
+      fun is_sqrt r = r*r <= n andalso n < (r+1)*(r+1)
+      val y = Real.floor (Math.sqrt (Real.fromInt n))
+    in
+      if is_sqrt y then 
+        SOME y
+      else
+        Option.mapPartial (iterate threshold is_sqrt newton_step o (fn x => x * lower_root)) 
+          (sqrt threshold (n div lower_n))
+    end
+
+fun sqrt' threshold x =
+  case sqrt threshold x of
+    NONE => NONE
+  | SOME y => if y * y = x then SOME y else NONE
+
+fun sqrt_simproc ctxt ct =
+  let
+    val n = ct |> Thm.term_of |> dest_comb |> snd |> dest_comb |> snd |> HOLogic.dest_numeral
+  in
+    case sqrt' (SOME 10000) n of
+      NONE => NONE
+    | SOME m => 
+        SOME (Thm.instantiate' [] (map (SOME o Thm.cterm_of ctxt o HOLogic.mk_numeral) [m, n])
+                  @{thm sqrt_numeral_simproc_aux})
+  end
+
+fun root_simproc (threshold1, threshold2) ctxt ct =
+  let
+    val [n, x] = 
+      ct |> Thm.term_of |> strip_comb |> snd |> map (dest_comb #> snd #> HOLogic.dest_numeral)
+  in
+    if n > threshold1 orelse x > threshold2 then NONE else
+      case nth_root' (SOME 100) n x of
+        NONE => NONE
+      | SOME m => 
+          SOME (Thm.instantiate' [] (map (SOME o Thm.cterm_of ctxt o HOLogic.mk_numeral) [m, n, x])
+            @{thm root_numeral_simproc_aux})
+  end
+
+fun powr_simproc (threshold1, threshold2) ctxt ct =
+  let
+    val eq_thm = Conv.try_conv (Conv.rewr_conv @{thm numeral_powr_inverse_eq}) ct
+    val ct = Thm.dest_equals_rhs (Thm.cprop_of eq_thm)
+    val (_, [x, t]) = strip_comb (Thm.term_of ct)
+    val (_, [m, n]) = strip_comb t
+    val [x, n] = map (dest_comb #> snd #> HOLogic.dest_numeral) [x, n]
+  in
+    if n > threshold1 orelse x > threshold2 then NONE else
+      case nth_root' (SOME 100) n x of
+        NONE => NONE
+      | SOME y => 
+          let
+            val [y, n, x] = map HOLogic.mk_numeral [y, n, x]
+            val thm = Thm.instantiate' [] (map (SOME o Thm.cterm_of ctxt) [y, n, x, m])
+              @{thm powr_numeral_simproc_aux}
+          in
+            SOME (@{thm transitive} OF [eq_thm, thm])
+          end
+  end
+
+end
+\<close>
+
+end
+
+simproc_setup sqrt_numeral ("sqrt (numeral n)") = 
+  \<open>K Root_Numeral_Simproc.sqrt_simproc\<close>
+  
+simproc_setup root_numeral ("root (numeral n) (numeral x)") = 
+  \<open>K (Root_Numeral_Simproc.root_simproc (200, Integer.pow 200 2))\<close>
+
+simproc_setup powr_divide_numeral 
+  ("numeral x powr (m / numeral n :: real)" | "numeral x powr (inverse (numeral n) :: real)") = 
+    \<open>K (Root_Numeral_Simproc.powr_simproc (200, Integer.pow 200 2))\<close>
+
+
+lemma "root 100 1267650600228229401496703205376 = 2"
+  by simp
+    
+lemma "sqrt 196 = 14" 
+  by simp
+
+lemma "256 powr (7 / 4 :: real) = 16384"
+  by simp
+    
+lemma "27 powr (inverse 3) = (3::real)"
+  by simp
+
 end
