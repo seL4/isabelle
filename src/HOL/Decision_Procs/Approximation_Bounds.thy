@@ -339,7 +339,7 @@ proof (induct n)
         show ?thesis by auto
       qed
       hence "sqrt (2 powr (?E mod 2)) < sqrt (2 * 2)"
-        by (auto simp del: real_sqrt_four)
+        by (intro real_sqrt_less_mono) auto
       hence E_mod_pow: "sqrt (2 powr (?E mod 2)) < 2" by auto
 
       have E_eq: "2 powr ?E = 2 powr (?E div 2 + ?E div 2 + ?E mod 2)"
