@@ -13,6 +13,12 @@ begin
 
 subsection \<open>Irreducible and prime elements\<close>
 
+(* TODO: Move ? *)
+lemma (in semiring_gcd) prod_coprime' [rule_format]: 
+    "(\<forall>i\<in>A. gcd a (f i) = 1) \<longrightarrow> gcd a (\<Prod>i\<in>A. f i) = 1"
+  using prod_coprime[of A f a] by (simp add: gcd.commute)
+
+
 context comm_semiring_1
 begin
 
@@ -217,6 +223,7 @@ proof -
     qed
   qed
   with that show thesis by blast
+
 qed
 
 context
@@ -463,6 +470,9 @@ lemma prime_dvd_power_iff:
 
 lemma prime_dvd_prod_mset_iff: "prime p \<Longrightarrow> p dvd prod_mset A \<longleftrightarrow> (\<exists>x. x \<in># A \<and> p dvd x)"
   by (induction A) (simp_all add: prime_elem_dvd_mult_iff prime_imp_prime_elem, blast+)
+
+lemma prime_dvd_prod_iff: "finite A \<Longrightarrow> prime p \<Longrightarrow> p dvd prod f A \<longleftrightarrow> (\<exists>x\<in>A. p dvd f x)"
+  by (auto simp: prime_dvd_prod_mset_iff prod_unfold_prod_mset)
 
 lemma primes_dvd_imp_eq:
   assumes "prime p" "prime q" "p dvd q"
@@ -1104,6 +1114,40 @@ proof (cases "is_unit p")
     by (intro multiplicity_geI ) (auto intro: dvd_trans[OF multiplicity_dvd' assms(1)])
 qed (insert assms, auto simp: multiplicity_unit_left)
 
+lemma prime_power_inj:
+  assumes "prime a" "a ^ m = a ^ n"
+  shows   "m = n"
+proof -
+  have "multiplicity a (a ^ m) = multiplicity a (a ^ n)" by (simp only: assms)
+  thus ?thesis using assms by (subst (asm) (1 2) multiplicity_prime_power) simp_all
+qed
+
+lemma prime_power_inj':
+  assumes "prime p" "prime q"
+  assumes "p ^ m = q ^ n" "m > 0" "n > 0"
+  shows   "p = q" "m = n"
+proof -
+  from assms have "p ^ 1 dvd p ^ m" by (intro le_imp_power_dvd) simp
+  also have "p ^ m = q ^ n" by fact
+  finally have "p dvd q ^ n" by simp
+  with assms have "p dvd q" using prime_dvd_power[of p q] by simp
+  with assms show "p = q" by (simp add: primes_dvd_imp_eq)
+  with assms show "m = n" by (simp add: prime_power_inj)
+qed
+
+lemma prime_power_eq_one_iff [simp]: "prime p \<Longrightarrow> p ^ n = 1 \<longleftrightarrow> n = 0"
+  using prime_power_inj[of p n 0] by auto
+
+lemma one_eq_prime_power_iff [simp]: "prime p \<Longrightarrow> 1 = p ^ n \<longleftrightarrow> n = 0"
+  using prime_power_inj[of p 0 n] by auto
+
+lemma prime_power_inj'':
+  assumes "prime p" "prime q"
+  shows   "p ^ m = q ^ n \<longleftrightarrow> (m = 0 \<and> n = 0) \<or> (p = q \<and> m = n)"
+  using assms 
+  by (cases "m = 0"; cases "n = 0")
+     (auto dest: prime_power_inj'[OF assms])
+
 lemma prime_factorization_0 [simp]: "prime_factorization 0 = {#}"
   by (simp add: multiset_eq_iff count_prime_factorization)
 
@@ -1264,6 +1308,12 @@ proof -
     by (rule prime_factorization_prod_mset_primes) (auto simp: in_prime_factors_imp_prime)
   finally show ?thesis .
 qed
+
+lemma prime_factorization_prod:
+  assumes "finite A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
+  shows   "prime_factorization (prod f A) = (\<Sum>n\<in>A. prime_factorization (f n))"
+  using assms by (induction A rule: finite_induct)
+                 (auto simp: Sup_multiset_empty prime_factorization_mult)
 
 lemma prime_elem_multiplicity_mult_distrib:
   assumes "prime_elem p" "x \<noteq> 0" "y \<noteq> 0"
@@ -1461,6 +1511,18 @@ proof -
     by (intro multiplicity_lessI) auto
   thus ?thesis by simp
 qed
+
+lemma inj_on_Prod_primes:
+  assumes "\<And>P p. P \<in> A \<Longrightarrow> p \<in> P \<Longrightarrow> prime p"
+  assumes "\<And>P. P \<in> A \<Longrightarrow> finite P"
+  shows   "inj_on Prod A"
+proof (rule inj_onI)
+  fix P Q assume PQ: "P \<in> A" "Q \<in> A" "\<Prod>P = \<Prod>Q"
+  with prime_factorization_unique'[of "mset_set P" "mset_set Q"] assms[of P] assms[of Q]
+    have "mset_set P = mset_set Q" by (auto simp: prod_unfold_prod_mset)
+    with assms[of P] assms[of Q] PQ show "P = Q" by simp
+qed
+
 
 
 subsection \<open>GCD and LCM computation with unique factorizations\<close>
@@ -1728,6 +1790,16 @@ lemma prime_factorization_Lcm:
   shows   "prime_factorization (Lcm A) = Sup (prime_factorization ` A)"
   using assms
   by (simp add: prime_factorization_Lcm_factorial Lcm_eq_Lcm_factorial Lcm_factorial_eq_0_iff)
+
+lemma prime_factors_gcd [simp]: 
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> prime_factors (gcd a b) = 
+     prime_factors a \<inter> prime_factors b"
+  by (subst prime_factorization_gcd) auto
+
+lemma prime_factors_lcm [simp]: 
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> prime_factors (lcm a b) = 
+     prime_factors a \<union> prime_factors b"
+  by (subst prime_factorization_lcm) auto
 
 subclass semiring_gcd
   by (standard, unfold gcd_eq_gcd_factorial lcm_eq_lcm_factorial)

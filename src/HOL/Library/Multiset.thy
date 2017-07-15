@@ -1813,6 +1813,12 @@ lemma mset_zero_iff[simp]: "(mset x = {#}) = (x = [])"
 lemma mset_zero_iff_right[simp]: "({#} = mset x) = (x = [])"
 by (induct x) auto
 
+lemma count_mset_gt_0: "x \<in> set xs \<Longrightarrow> count (mset xs) x > 0"
+  by (induction xs) auto
+
+lemma count_mset_0_iff [simp]: "count (mset xs) x = 0 \<longleftrightarrow> x \<notin> set xs"
+  by (induction xs) auto
+
 lemma mset_single_iff[iff]: "mset xs = {#x#} \<longleftrightarrow> xs = [x]"
   by (cases xs) auto
 
@@ -1949,6 +1955,9 @@ global_interpretation mset_set: folding add_mset "{#}"
   defines mset_set = "folding.F add_mset {#}"
   by standard (simp add: fun_eq_iff)
 
+lemma sum_multiset_singleton [simp]: "sum (\<lambda>n. {#n#}) A = mset_set A"
+  by (induction A rule: infinite_finite_induct) auto
+
 lemma count_mset_set [simp]:
   "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> count (mset_set A) x = 1" (is "PROP ?P")
   "\<not> finite A \<Longrightarrow> count (mset_set A) x = 0" (is "PROP ?Q")
@@ -2000,6 +2009,25 @@ qed
 
 lemma mset_set_set: "distinct xs \<Longrightarrow> mset_set (set xs) = mset xs"
   by (induction xs) simp_all
+
+lemma count_mset_set': "count (mset_set A) x = (if finite A \<and> x \<in> A then 1 else 0)"
+  by auto
+
+lemma subset_imp_msubset_mset_set: 
+  assumes "A \<subseteq> B" "finite B"
+  shows   "mset_set A \<subseteq># mset_set B"
+proof (rule mset_subset_eqI)
+  fix x :: 'a
+  from assms have "finite A" by (rule finite_subset)
+  with assms show "count (mset_set A) x \<le> count (mset_set B) x"
+    by (cases "x \<in> A"; cases "x \<in> B") auto
+qed
+
+lemma mset_set_set_mset_msubset: "mset_set (set_mset A) \<subseteq># A"
+proof (rule mset_subset_eqI)
+  fix x show "count (mset_set (set_mset A)) x \<le> count A x"
+    by (cases "x \<in># A") simp_all
+qed
 
 context linorder
 begin
@@ -2070,6 +2098,23 @@ proof (induction xs)
   also from Cons.prems have "\<dots> = mset (map snd xs)" by (intro Cons.IH) simp_all
   finally show ?case by simp
 qed simp_all
+
+lemma msubset_mset_set_iff [simp]:
+  assumes "finite A" "finite B"
+  shows   "mset_set A \<subseteq># mset_set B \<longleftrightarrow> A \<subseteq> B"
+  using subset_imp_msubset_mset_set[of A B] 
+        set_mset_mono[of "mset_set A" "mset_set B"] assms by auto
+    
+lemma mset_set_eq_iff [simp]:
+  assumes "finite A" "finite B"
+  shows   "mset_set A = mset_set B \<longleftrightarrow> A = B"
+proof -
+  from assms have "mset_set A = mset_set B \<longleftrightarrow> set_mset (mset_set A) = set_mset (mset_set B)"
+    by (intro iffI equalityI set_mset_mono) auto
+  also from assms have "\<dots> \<longleftrightarrow> A = B" by simp
+  finally show ?thesis .
+qed
+
 
 (* Contributed by Lukas Bulwahn *)
 lemma image_mset_mset_set:

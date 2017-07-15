@@ -9,9 +9,11 @@ imports
   Fraction_Field
   Fundamental_Theorem_Algebra
   Normalized_Fraction
+  Nth_Powers
   Polynomial_FPS
   Polynomial
   Primes
+  Squarefree
 begin
 
 end
