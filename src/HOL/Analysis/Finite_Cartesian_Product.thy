@@ -9,6 +9,8 @@ imports
   Euclidean_Space
   L2_Norm
   "~~/src/HOL/Library/Numeral_Type"
+  "~~/src/HOL/Library/Countable_Set"
+  "~~/src/HOL/Library/FuncSet"
 begin
 
 subsection \<open>Finite Cartesian products, with indexing and lambdas.\<close>
@@ -55,6 +57,80 @@ lemma vec_lambda_unique: "(\<forall>i. f$i = g i) \<longleftrightarrow> vec_lamb
 lemma vec_lambda_eta: "(\<chi> i. (g$i)) = g"
   by (simp add: vec_eq_iff)
 
+subsection \<open>Cardinality of vectors\<close>
+
+instance vec :: (finite, finite) finite
+proof
+  show "finite (UNIV :: ('a, 'b) vec set)"
+  proof (subst bij_betw_finite)
+    show "bij_betw vec_nth UNIV (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+      by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
+    have "finite (PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+      by (intro finite_PiE) auto
+    also have "(PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set)) = Pi UNIV (\<lambda>_. UNIV)"
+      by auto
+    finally show "finite \<dots>" .
+  qed
+qed
+
+lemma countable_PiE:
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (Pi\<^sub>E I F)"
+  by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
+
+instance vec :: (countable, finite) countable
+proof
+  have "countable (UNIV :: ('a, 'b) vec set)"
+  proof (rule countableI_bij2)
+    show "bij_betw vec_nth UNIV (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+      by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
+    have "countable (PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+      by (intro countable_PiE) auto
+    also have "(PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set)) = Pi UNIV (\<lambda>_. UNIV)"
+      by auto
+    finally show "countable \<dots>" .
+  qed
+  thus "\<exists>t::('a, 'b) vec \<Rightarrow> nat. inj t"
+    by (auto elim!: countableE)
+qed
+
+lemma infinite_UNIV_vec:
+  assumes "infinite (UNIV :: 'a set)"
+  shows   "infinite (UNIV :: ('a, 'b :: finite) vec set)"
+proof (subst bij_betw_finite)
+  show "bij_betw vec_nth UNIV (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+    by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
+  have "infinite (PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))" (is "infinite ?A")
+  proof
+    assume "finite ?A"
+    hence "finite ((\<lambda>f. f undefined) ` ?A)"
+      by (rule finite_imageI)
+    also have "(\<lambda>f. f undefined) ` ?A = UNIV"
+      by auto
+    finally show False 
+      using \<open>infinite (UNIV :: 'a set)\<close> by contradiction
+  qed
+  also have "?A = Pi UNIV (\<lambda>_. UNIV)" 
+    by auto
+  finally show "infinite (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))" .
+qed
+
+lemma CARD_vec [simp]:
+  "CARD(('a,'b::finite) vec) = CARD('a) ^ CARD('b)"
+proof (cases "finite (UNIV :: 'a set)")
+  case True
+  show ?thesis
+  proof (subst bij_betw_same_card)
+    show "bij_betw vec_nth UNIV (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+      by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
+    have "CARD('a) ^ CARD('b) = card (PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
+      (is "_ = card ?A")
+      by (subst card_PiE) (auto simp: prod_constant)
+    
+    also have "?A = Pi UNIV (\<lambda>_. UNIV)" 
+      by auto
+    finally show "card \<dots> = CARD('a) ^ CARD('b)" ..
+  qed
+qed (simp_all add: infinite_UNIV_vec)
 
 subsection \<open>Group operations and class instances\<close>
 
