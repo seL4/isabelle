@@ -9,6 +9,7 @@ imports
   Homeomorphism
   Bounded_Continuous_Function
   Function_Topology
+  Infinite_Products
   Weierstrass_Theorems
   Polytope
   Jordan_Curve
