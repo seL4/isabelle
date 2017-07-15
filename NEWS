@@ -105,6 +105,11 @@ than an unimplemented function (generate time abort).  Use explicit
 
 *** HOL ***
 
+* Notions of squarefreeness, n-th powers, and prime powers in
+HOL-Computational_Algebra and HOL-Number_Theory.
+
+* Material on infinite products in HOL-Analysis
+
 * "sublist" from theory List renamed to "nths" in analogy with "nth".
 "sublisteq" renamed to "subseq".  Minor INCOMPATIBILITY.
 
