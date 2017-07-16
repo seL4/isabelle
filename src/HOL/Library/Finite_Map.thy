@@ -152,6 +152,28 @@ lemma map_of_transfer[transfer_rule]:
   shows "(list_all2 (rel_prod op = A) ===> rel_map A) map_of map_of"
 unfolding map_of_def by transfer_prover
 
+definition set_of_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) set" where
+"set_of_map m = {(k, v)|k v. m k = Some v}"
+
+lemma set_of_map_alt_def: "set_of_map m = (\<lambda>k. (k, the (m k))) ` dom m"
+unfolding set_of_map_def dom_def
+by auto
+
+lemma set_of_map_finite: "finite (dom m) \<Longrightarrow> finite (set_of_map m)"
+unfolding set_of_map_alt_def
+by auto
+
+lemma set_of_map_inj: "inj set_of_map"
+proof
+  fix x y
+  assume "set_of_map x = set_of_map y"
+  hence "(x a = Some b) = (y a = Some b)" for a b
+    unfolding set_of_map_def by auto
+  hence "x k = y k" for k
+    by (metis not_None_eq)
+  thus "x = y" ..
+qed
+
 end
 
 
@@ -574,6 +596,14 @@ unfolding fmfilter_alt_defs by (rule fmsubset_filter_mono)
 
 lemma fmsubset_restrict_fset_mono: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmrestrict_fset A m \<subseteq>\<^sub>f fmrestrict_fset A n"
 unfolding fmfilter_alt_defs by (rule fmsubset_filter_mono)
+
+lift_definition fset_of_fmap :: "('a, 'b) fmap \<Rightarrow> ('a \<times> 'b) fset" is set_of_map
+by (rule set_of_map_finite)
+
+lemma fset_of_fmap_inj[intro, simp]: "inj fset_of_fmap"
+apply rule
+apply transfer'
+using set_of_map_inj unfolding inj_def by auto
 
 lift_definition fmap_of_list :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap"
   is map_of
@@ -1139,6 +1169,12 @@ proof
     by (rule inj_comp)
   thus "\<exists>to_nat::('a, 'b) fmap \<Rightarrow> nat. inj to_nat"
     by auto
+qed
+
+instance fmap :: (finite, finite) finite
+proof
+  show "finite (UNIV :: ('a, 'b) fmap set)"
+    by (rule finite_imageD) auto
 qed
 
 lifting_update fmap.lifting
