@@ -379,7 +379,7 @@ code_pred [inductify] one_or_two .
 code_pred [dseq] one_or_two .
 code_pred [random_dseq] one_or_two .
 thm one_or_two.dseq_equation
-values [expected "{Suc 0, Suc (Suc 0)}"] "{x. one_or_two x}"
+values [expected "{1::nat, 2}"] "{x. one_or_two x}"
 values [random_dseq 0,0,10] 3 "{x. one_or_two x}"
 
 inductive one_or_two' :: "nat => bool"
@@ -432,9 +432,9 @@ values [expected "{()}" dseq 8] "{x. odd 7}"
 
 values [expected "{}" dseq 0] 8 "{x. even x}"
 values [expected "{0::nat}" dseq 1] 8 "{x. even x}"
-values [expected "{0, Suc (Suc 0)}" dseq 3] 8 "{x. even x}"
-values [expected "{0, Suc (Suc 0)}" dseq 4] 8 "{x. even x}"
-values [expected "{0, Suc (Suc 0), Suc (Suc (Suc (Suc 0)))}" dseq 6] 8 "{x. even x}"
+values [expected "{0::nat, 2}" dseq 3] 8 "{x. even x}"
+values [expected "{0::nat, 2}" dseq 4] 8 "{x. even x}"
+values [expected "{0::nat, 2, 4}" dseq 6] 8 "{x. even x}"
 
 values [random_dseq 1, 1, 0] 8 "{x. even x}"
 values [random_dseq 1, 1, 1] 8 "{x. even x}"
@@ -487,7 +487,7 @@ values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
 values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0, 5]}"
 
 values [expected "{}" dseq 0] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
-values [expected "{(([]::nat list), [Suc 0, Suc (Suc 0), Suc (Suc (Suc 0)), Suc (Suc (Suc (Suc 0))), Suc (Suc (Suc (Suc (Suc 0))))])}" dseq 1] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
+values [expected "{(([]::nat list), [1::nat, 2, 3, 4, 5])}" dseq 1] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 values [dseq 4] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 values [dseq 6] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
 values [random_dseq 1, 1, 4] 10 "{(xs, ys). append xs ys [1, 2, 3, 4, (5::nat)]}"
@@ -598,9 +598,9 @@ code_pred [random_dseq] filter1 .
 
 thm filter1.equation
 
-values [expected "{[0, Suc (Suc 0), Suc (Suc (Suc (Suc 0)))]}"] "{xs. filter1 even [0, 1, 2, 3, 4] xs}"
+values [expected "{[0::nat, 2, 4]}"] "{xs. filter1 even [0, 1, 2, 3, 4] xs}"
 values [expected "{}" dseq 9] "{xs. filter1 even [0, 1, 2, 3, 4] xs}"
-values [expected "{[0, Suc (Suc 0), Suc (Suc (Suc (Suc 0)))]}" dseq 10] "{xs. filter1 even [0, 1, 2, 3, 4] xs}"
+values [expected "{[0::nat, 2, 4]}" dseq 10] "{xs. filter1 even [0, 1, 2, 3, 4] xs}"
 
 inductive filter2
 where
@@ -1278,21 +1278,16 @@ code_pred [new_random_dseq inductify] plus_nat_test .
 thm plus_nat_test.equation
 thm plus_nat_test.new_random_dseq_equation
 
-values [expected "{Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0))))))))}"] "{z. plus_nat_test 4 5 z}"
-values [expected "{Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0))))))))}"] "{z. plus_nat_test 7 2 z}"
-values [expected "{Suc (Suc (Suc (Suc 0)))}"] "{y. plus_nat_test 5 y 9}"
+values [expected "{9::nat}"] "{z. plus_nat_test 4 5 z}"
+values [expected "{9::nat}"] "{z. plus_nat_test 7 2 z}"
+values [expected "{4::nat}"] "{y. plus_nat_test 5 y 9}"
 values [expected "{}"] "{y. plus_nat_test 9 y 8}"
-values [expected "{Suc (Suc (Suc (Suc (Suc (Suc 0)))))}"] "{y. plus_nat_test 1 y 7}"
-values [expected "{Suc (Suc 0)}"] "{x. plus_nat_test x 7 9}"
+values [expected "{6::nat}"] "{y. plus_nat_test 1 y 7}"
+values [expected "{2::nat}"] "{x. plus_nat_test x 7 9}"
 values [expected "{}"] "{x. plus_nat_test x 9 7}"
 values [expected "{(0::nat, 0::nat)}"] "{(x, y). plus_nat_test x y 0}"
-values [expected "{(0, Suc 0), (Suc 0, 0)}"] "{(x, y). plus_nat_test x y 1}"
-values [expected "{(0, Suc (Suc (Suc (Suc (Suc 0))))),
-                  (Suc 0, Suc (Suc (Suc (Suc 0)))),
-                  (Suc (Suc 0), Suc (Suc (Suc 0))),
-                  (Suc (Suc (Suc 0)), Suc (Suc 0)),
-                  (Suc (Suc (Suc (Suc 0))), Suc 0),
-                  (Suc (Suc (Suc (Suc (Suc 0)))), 0)}"]
+values [expected "{(0, 1), (1::nat, 0::nat)}"] "{(x, y). plus_nat_test x y 1}"
+values [expected "{(0::nat, 5::nat), (1, 4), (2, 3), (3, 2), (4, 1), (5, 0)}"]
   "{(x, y). plus_nat_test x y 5}"
 
 inductive minus_nat_test :: "nat => nat => nat => bool"
@@ -1306,10 +1301,10 @@ thm minus_nat_test.equation
 thm minus_nat_test.new_random_dseq_equation
 
 values [expected "{0::nat}"] "{z. minus_nat_test 4 5 z}"
-values [expected "{Suc (Suc (Suc (Suc (Suc 0))))}"] "{z. minus_nat_test 7 2 z}"
-values [expected "{Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0)))))))))))))))}"] "{x. minus_nat_test x 7 9}"
-values [expected "{Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0)))))))))))))))}"] "{x. minus_nat_test x 9 7}"
-values [expected "{0, Suc 0, Suc (Suc 0), Suc (Suc (Suc 0))}"] "{x. minus_nat_test x 3 0}"
+values [expected "{5::nat}"] "{z. minus_nat_test 7 2 z}"
+values [expected "{16::nat}"] "{x. minus_nat_test x 7 9}"
+values [expected "{16::nat}"] "{x. minus_nat_test x 9 7}"
+values [expected "{0::nat, 1, 2, 3}"] "{x. minus_nat_test x 3 0}"
 values [expected "{0::nat}"] "{x. minus_nat_test x 0 0}"
 
 subsection \<open>Examples on int\<close>

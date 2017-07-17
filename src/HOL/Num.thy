@@ -1253,4 +1253,14 @@ subsection \<open>Code module namespace\<close>
 code_identifier
   code_module Num \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
+subsection \<open>Printing of evaluated natural numbers as numerals\<close>
+
+lemma [code_post]:
+  "Suc 0 = 1"
+  "Suc 1 = 2"
+  "Suc (numeral n) = numeral (Num.inc n)"
+  by (simp_all add: numeral_inc)
+
+lemmas [code_post] = Num.inc.simps
+
 end
