@@ -32,6 +32,8 @@ sig
   val ghc_options: string Config.T
   val evaluate_in_ghc: Proof.context -> (string * string) list * string -> Path.T -> string
   val evaluate_in_scala: Proof.context -> (string * string) list * string -> Path.T -> string
+  val target_Scala: string
+  val target_Haskell: string
 end
 
 structure Code_Test: CODE_TEST =
@@ -576,14 +578,21 @@ val _ =
       (Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
         >> (fn (ts, targets) => Toplevel.keep (test_code_cmd ts targets o Toplevel.context_of)))
 
+val target_Scala = "Scala_eval"
+val target_Haskell = "Haskell_eval"
+
+val _ = Theory.setup 
+   (Code_Target.add_derived_target (target_Scala, [(Code_Scala.target, I)])
+    #> Code_Target.add_derived_target (target_Haskell, [(Code_Haskell.target, I)]))
+
 val _ =
   Theory.setup (fold add_driver
     [(polymlN, (evaluate_in_polyml, Code_ML.target_SML)),
      (mltonN, (evaluate_in_mlton, Code_ML.target_SML)),
      (smlnjN, (evaluate_in_smlnj, Code_ML.target_SML)),
      (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
-     (ghcN, (evaluate_in_ghc, Code_Haskell.target)),
-     (scalaN, (evaluate_in_scala, Code_Scala.target))]
+     (ghcN, (evaluate_in_ghc, target_Haskell)),
+     (scalaN, (evaluate_in_scala, target_Scala))]
   #> fold (fn target => Value_Command.add_evaluator (target, eval_term target))
       [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN])
 
