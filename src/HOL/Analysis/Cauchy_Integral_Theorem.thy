@@ -6002,6 +6002,29 @@ proof -
     by (simp add: holomorphic_on_open open_Diff finite_imp_closed field_differentiable_def [symmetric])
 qed
 
+lemma no_isolated_singularity':
+  fixes z::complex
+  assumes f: "\<And>z. z \<in> k \<Longrightarrow> (f \<longlongrightarrow> f z) (at z within s)" 
+      and holf: "f holomorphic_on (s - k)" and s: "open s" and k: "finite k"
+    shows "f holomorphic_on s"
+proof (rule no_isolated_singularity[OF _ assms(2-)])
+  show "continuous_on s f" unfolding continuous_on_def
+  proof
+    fix z assume z: "z \<in> s"
+    show "(f \<longlongrightarrow> f z) (at z within s)"
+    proof (cases "z \<in> k")
+      case False
+      from holf have "continuous_on (s - k) f" 
+        by (rule holomorphic_on_imp_continuous_on)
+      with z False have "(f \<longlongrightarrow> f z) (at z within (s - k))" 
+        by (simp add: continuous_on_def)
+      also from z k s False have "at z within (s - k) = at z within s"
+        by (subst (1 2) at_within_open) (auto intro: finite_imp_closed)
+      finally show "(f \<longlongrightarrow> f z) (at z within s)" .
+    qed (insert assms z, simp_all)
+  qed
+qed
+
 proposition Cauchy_integral_formula_convex:
     assumes s: "convex s" and k: "finite k" and contf: "continuous_on s f"
         and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x)"

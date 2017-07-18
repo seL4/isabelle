@@ -2054,6 +2054,17 @@ lemma closed_Nats [simp]: "closed (\<nat> :: 'a :: real_normed_algebra_1 set)"
 lemma closed_Ints [simp]: "closed (\<int> :: 'a :: real_normed_algebra_1 set)"
   unfolding Ints_def by (rule closed_of_int_image)
 
+lemma closed_subset_Ints: 
+  fixes A :: "'a :: real_normed_algebra_1 set"
+  assumes "A \<subseteq> \<int>"
+  shows   "closed A"
+proof (intro discrete_imp_closed[OF zero_less_one] ballI impI, goal_cases)
+  case (1 x y)
+  with assms have "x \<in> \<int>" and "y \<in> \<int>" by auto
+  with \<open>dist y x < 1\<close> show "y = x"
+    by (auto elim!: Ints_cases simp: dist_of_int)
+qed
+
 
 subsection \<open>Interior of a Set\<close>
 

@@ -2143,6 +2143,52 @@ definition residue :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<R
   "residue f z = (SOME int. \<exists>e>0. \<forall>\<epsilon>>0. \<epsilon><e
     \<longrightarrow> (f has_contour_integral 2*pi* \<i> *int) (circlepath z \<epsilon>))"
 
+lemma Eps_cong:
+  assumes "\<And>x. P x = Q x"
+  shows   "Eps P = Eps Q"
+  using ext[of P Q, OF assms] by simp
+
+lemma residue_cong:
+  assumes eq: "eventually (\<lambda>z. f z = g z) (at z)" and "z = z'"
+  shows   "residue f z = residue g z'"
+proof -
+  from assms have eq': "eventually (\<lambda>z. g z = f z) (at z)"
+    by (simp add: eq_commute)
+  let ?P = "\<lambda>f c e. (\<forall>\<epsilon>>0. \<epsilon> < e \<longrightarrow>
+   (f has_contour_integral of_real (2 * pi) * \<i> * c) (circlepath z \<epsilon>))"
+  have "residue f z = residue g z" unfolding residue_def
+  proof (rule Eps_cong)
+    fix c :: complex
+    have "\<exists>e>0. ?P g c e" 
+      if "\<exists>e>0. ?P f c e" and "eventually (\<lambda>z. f z = g z) (at z)" for f g 
+    proof -
+      from that(1) obtain e where e: "e > 0" "?P f c e"
+        by blast
+      from that(2) obtain e' where e': "e' > 0" "\<And>z'. z' \<noteq> z \<Longrightarrow> dist z' z < e' \<Longrightarrow> f z' = g z'"
+        unfolding eventually_at by blast
+      have "?P g c (min e e')"
+      proof (intro allI exI impI, goal_cases)
+        case (1 \<epsilon>)
+        hence "(f has_contour_integral of_real (2 * pi) * \<i> * c) (circlepath z \<epsilon>)" 
+          using e(2) by auto
+        thus ?case
+        proof (rule has_contour_integral_eq)
+          fix z' assume "z' \<in> path_image (circlepath z \<epsilon>)"
+          hence "dist z' z < e'" and "z' \<noteq> z"
+            using 1 by (auto simp: dist_commute)
+          with e'(2)[of z'] show "f z' = g z'" by simp
+        qed
+      qed
+      moreover from e and e' have "min e e' > 0" by auto
+      ultimately show ?thesis by blast
+    qed
+    from this[OF _ eq] and this[OF _ eq']
+      show "(\<exists>e>0. ?P f c e) \<longleftrightarrow> (\<exists>e>0. ?P g c e)"
+      by blast
+  qed
+  with assms show ?thesis by simp
+qed
+
 lemma contour_integral_circlepath_eq:
   assumes "open s" and f_holo:"f holomorphic_on (s-{z})" and "0<e1" "e1\<le>e2"
     and e2_cball:"cball z e2 \<subseteq> s"
@@ -2400,6 +2446,37 @@ proof -
     using has_contour_integral_unique by blast
   thus ?thesis unfolding c_def f'_def  by auto
 qed
+
+lemma residue_simple':
+  assumes s: "open s" "z \<in> s" and holo: "f holomorphic_on (s - {z})" 
+      and lim: "((\<lambda>w. f w * (w - z)) \<longlongrightarrow> c) (at z)"
+  shows   "residue f z = c"
+proof -
+  define g where "g = (\<lambda>w. if w = z then c else f w * (w - z))"
+  from holo have "(\<lambda>w. f w * (w - z)) holomorphic_on (s - {z})" (is "?P")
+    by (force intro: holomorphic_intros)
+  also have "?P \<longleftrightarrow> g holomorphic_on (s - {z})"
+    by (intro holomorphic_cong refl) (simp_all add: g_def)
+  finally have *: "g holomorphic_on (s - {z})" .
+
+  note lim
+  also have "(\<lambda>w. f w * (w - z)) \<midarrow>z\<rightarrow> c \<longleftrightarrow> g \<midarrow>z\<rightarrow> g z"
+    by (intro filterlim_cong refl) (simp_all add: g_def [abs_def] eventually_at_filter)
+  finally have **: "g \<midarrow>z\<rightarrow> g z" .
+
+  have g_holo: "g holomorphic_on s"
+    by (rule no_isolated_singularity'[where k = "{z}"])
+       (insert assms * **, simp_all add: at_within_open_NO_MATCH)
+  from s and this have "residue (\<lambda>w. g w / (w - z)) z = g z"
+    by (rule residue_simple)
+  also have "\<forall>\<^sub>F za in at z. g za / (za - z) = f za"
+    unfolding eventually_at by (auto intro!: exI[of _ 1] simp: field_simps g_def)
+  hence "residue (\<lambda>w. g w / (w - z)) z = residue f z"
+    by (intro residue_cong refl)
+  finally show ?thesis
+    by (simp add: g_def)
+qed
+
 
 
 

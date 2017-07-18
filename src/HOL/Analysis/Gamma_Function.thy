@@ -6,7 +6,7 @@ section \<open>The Gamma Function\<close>
 
 theory Gamma_Function
 imports
-  Cauchy_Integral_Theorem
+  Conformal_Mappings
   Summation_Tests
   Harmonic_Numbers
   "~~/src/HOL/Library/Nonpos_Ints"
@@ -2432,6 +2432,19 @@ proof (subst tendsto_cong)
   finally show "(\<lambda>z. inverse (rGamma z / (z + of_nat n))) \<midarrow> (- of_nat n) \<rightarrow> ?c" .
 qed
 
+lemma is_pole_Gamma: "is_pole Gamma (- of_nat n)"
+  unfolding is_pole_def using Gamma_poles .
+
+lemma Gamme_residue:
+  "residue Gamma (- of_nat n) = (-1) ^ n / fact n"
+proof (rule residue_simple')
+  show "open (- (\<int>\<^sub>\<le>\<^sub>0 - {-of_nat n}) :: complex set)"
+    by (intro open_Compl closed_subset_Ints) auto
+  show "Gamma holomorphic_on (- (\<int>\<^sub>\<le>\<^sub>0 - {-of_nat n}) - {- of_nat n})"
+    by (rule holomorphic_Gamma) auto
+  show "(\<lambda>w. Gamma w * (w - - of_nat n)) \<midarrow>- of_nat n \<rightarrow> (- 1) ^ n / fact n"
+    using Gamma_residues[of n] by simp
+qed auto
 
 
 subsection \<open>Alternative definitions\<close>
