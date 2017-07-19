@@ -488,8 +488,10 @@ fun mk_primrec_tac ctxt num_extra_args fp_nesting_map_ident0s fp_nesting_map_com
     fp_nesting_pred_maps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
   HEADGOAL (rtac ctxt (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
-  unfold_thms_tac ctxt (nested_simps ctxt @ fp_nesting_map_ident0s @ fp_nesting_map_comps @
-    fp_nesting_pred_maps) THEN
+  unfold_thms_tac ctxt (fp_nesting_map_ident0s @ fp_nesting_map_comps @ fp_nesting_pred_maps) THEN
+  REPEAT_DETERM (CHANGED (unfold_thms_tac ctxt (fp_nesting_map_ident0s @ fp_nesting_map_comps @
+      fp_nesting_pred_maps) THEN
+    unfold_thms_tac ctxt (nested_simps ctxt))) THEN
   HEADGOAL (rtac ctxt refl);
 
 fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
