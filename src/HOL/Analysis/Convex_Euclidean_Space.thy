@@ -2704,6 +2704,13 @@ next
   qed
 qed
 
+lemma convex_hull_insert_alt:
+   "convex hull (insert a S) =
+      (if S = {} then {a}
+      else {(1 - u) *\<^sub>R a + u *\<^sub>R x |x u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> convex hull S})"
+  apply (auto simp: convex_hull_insert)
+  using diff_eq_eq apply fastforce
+  by (metis add.group_left_neutral add_le_imp_le_diff diff_add_cancel)
 
 subsubsection \<open>Explicit expression for convex hull\<close>
 
@@ -3271,13 +3278,13 @@ qed
 
 subsection \<open>Some Properties of Affine Dependent Sets\<close>
 
-lemma affine_independent_0: "\<not> affine_dependent {}"
+lemma affine_independent_0 [simp]: "\<not> affine_dependent {}"
   by (simp add: affine_dependent_def)
 
-lemma affine_independent_1: "\<not> affine_dependent {a}"
+lemma affine_independent_1 [simp]: "\<not> affine_dependent {a}"
   by (simp add: affine_dependent_def)
 
-lemma affine_independent_2: "\<not> affine_dependent {a,b}"
+lemma affine_independent_2 [simp]: "\<not> affine_dependent {a,b}"
   by (simp add: affine_dependent_def insert_Diff_if hull_same)
 
 lemma affine_hull_translation: "affine hull ((\<lambda>x. a + x) `  S) = (\<lambda>x. a + x) ` (affine hull S)"
@@ -7806,6 +7813,7 @@ proof -
     by (metis image_comp convex_translation)
 qed
 
+
 lemmas convex_segment = convex_closed_segment convex_open_segment
 
 lemma connected_segment [iff]:
@@ -7834,6 +7842,36 @@ proof
   then show "x \<in> rel_interior S"
     unfolding closed_segment_def open_segment_def  using assms
     by (auto intro: rel_interior_closure_convex_shrink)
+qed
+
+lemma convex_hull_insert_segments:
+   "convex hull (insert a S) =
+    (if S = {} then {a} else  \<Union>x \<in> convex hull S. closed_segment a x)"
+  by (force simp add: convex_hull_insert_alt in_segment)
+
+lemma Int_convex_hull_insert_rel_exterior:
+  fixes z :: "'a::euclidean_space"
+  assumes "convex C" "T \<subseteq> C" and z: "z \<in> rel_interior C" and dis: "disjnt S (rel_interior C)"
+  shows "S \<inter> (convex hull (insert z T)) = S \<inter> (convex hull T)" (is "?lhs = ?rhs")
+proof
+  have "T = {} \<Longrightarrow> z \<notin> S"
+    using dis z by (auto simp add: disjnt_def)
+  then show "?lhs \<subseteq> ?rhs"
+  proof (clarsimp simp add: convex_hull_insert_segments)
+    fix x y
+    assume "x \<in> S" and y: "y \<in> convex hull T" and "x \<in> closed_segment z y"
+    have "y \<in> closure C"
+      by (metis y \<open>convex C\<close> \<open>T \<subseteq> C\<close> closure_subset contra_subsetD convex_hull_eq hull_mono)
+    moreover have "x \<notin> rel_interior C"
+      by (meson \<open>x \<in> S\<close> dis disjnt_iff)
+    moreover have "x \<in> open_segment z y \<union> {z, y}"
+      using \<open>x \<in> closed_segment z y\<close> closed_segment_eq_open by blast
+    ultimately show "x \<in> convex hull T"
+      using rel_interior_closure_convex_segment [OF \<open>convex C\<close> z]
+      using y z by blast
+  qed
+  show "?rhs \<subseteq> ?lhs"
+    by (meson hull_mono inf_mono subset_insertI subset_refl)
 qed
 
 subsection\<open>More results about segments\<close>
@@ -8209,6 +8247,24 @@ lemma between_swap:
   assumes "between (A, B) Y"
   shows "between (X, B) Y \<longleftrightarrow> between (A, Y) X"
 using assms by (auto simp add: between)
+
+lemma between_translation [simp]: "between (a + y,a + z) (a + x) \<longleftrightarrow> between (y,z) x"
+  by (auto simp: between_def)
+
+lemma between_trans_2:
+  fixes a :: "'a :: euclidean_space"
+  shows "\<lbrakk>between (b,c) a; between (a,b) d\<rbrakk> \<Longrightarrow> between (c,d) a"
+  by (metis between_commute between_swap between_trans)
+
+lemma between_scaleR_lift [simp]:
+  fixes v :: "'a::euclidean_space"
+  shows "between (a *\<^sub>R v, b *\<^sub>R v) (c *\<^sub>R v) \<longleftrightarrow> v = 0 \<or> between (a, b) c"
+  by (simp add: between dist_norm scaleR_left_diff_distrib [symmetric] distrib_right [symmetric])
+
+lemma between_1:
+  fixes x::real
+  shows "between (a,b) x \<longleftrightarrow> (a \<le> x \<and> x \<le> b) \<or> (b \<le> x \<and> x \<le> a)"
+  by (auto simp: between_mem_segment closed_segment_eq_real_ivl)
 
 
 subsection \<open>Shrinking towards the interior of a convex set\<close>
@@ -11527,6 +11583,24 @@ lemma collinear_open_segment [simp]: "collinear (open_segment a b)"
   by (metis convex_hull_subset_affine_hull segment_convex_hull dual_order.trans
     convex_hull_subset_affine_hull Diff_subset collinear_affine_hull)
 
+lemma collinear_between_cases:
+  fixes c :: "'a::euclidean_space"
+  shows "collinear {a,b,c} \<longleftrightarrow> between (b,c) a \<or> between (c,a) b \<or> between (a,b) c"
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain u v where uv: "\<And>x. x \<in> {a, b, c} \<Longrightarrow> \<exists>c. x = u + c *\<^sub>R v"
+    by (auto simp: collinear_alt)
+  show ?rhs
+    using uv [of a] uv [of b] uv [of c] by (auto simp: between_1)
+next
+  assume ?rhs
+  then show ?lhs
+    unfolding between_mem_convex_hull
+    by (metis (no_types, hide_lams) collinear_closed_segment collinear_subset hull_redundant hull_subset insert_commute segment_convex_hull)
+qed
+
+
 lemma subset_continuous_image_segment_1:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "continuous_on (closed_segment a b) f"
@@ -12400,6 +12474,145 @@ next
     using proper_map [OF _ _ gfim] **
     by (simp add: continuous_on_closed * closedin_imp_subset)
 qed
+
+subsection\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
+
+lemma convex_connected_collinear:
+  fixes S :: "'a::euclidean_space set"
+  assumes "collinear S"
+    shows "convex S \<longleftrightarrow> connected S"
+proof
+  assume "convex S"
+  then show "connected S"
+    using convex_connected by blast
+next
+  assume S: "connected S"
+  show "convex S"
+  proof (cases "S = {}")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then obtain a where "a \<in> S" by auto
+    have "collinear (affine hull S)"
+      by (simp add: assms collinear_affine_hull_collinear)
+    then obtain z where "z \<noteq> 0" "\<And>x. x \<in> affine hull S \<Longrightarrow> \<exists>c. x - a = c *\<^sub>R z"
+      by (meson \<open>a \<in> S\<close> collinear hull_inc)
+    then obtain f where f: "\<And>x. x \<in> affine hull S \<Longrightarrow> x - a = f x *\<^sub>R z"
+      by metis
+    then have inj_f: "inj_on f (affine hull S)"
+      by (metis diff_add_cancel inj_onI)
+    have diff: "x - y = (f x - f y) *\<^sub>R z" if x: "x \<in> affine hull S" and y: "y \<in> affine hull S" for x y
+    proof -
+      have "f x *\<^sub>R z = x - a"
+        by (simp add: f hull_inc x)
+      moreover have "f y *\<^sub>R z = y - a"
+        by (simp add: f hull_inc y)
+      ultimately show ?thesis
+        by (simp add: scaleR_left.diff)
+    qed
+    have cont_f: "continuous_on (affine hull S) f"
+      apply (clarsimp simp: dist_norm continuous_on_iff diff)
+      by (metis \<open>z \<noteq> 0\<close> mult.commute mult_less_cancel_left_pos norm_minus_commute real_norm_def zero_less_mult_iff zero_less_norm_iff)
+    then have conn_fS: "connected (f ` S)"
+      by (meson S connected_continuous_image continuous_on_subset hull_subset)
+    show ?thesis
+    proof (clarsimp simp: convex_contains_segment)
+      fix x y z
+      assume "x \<in> S" "y \<in> S" "z \<in> closed_segment x y"
+      have False if "z \<notin> S"
+      proof -
+        have "f ` (closed_segment x y) = closed_segment (f x) (f y)"
+          apply (rule continuous_injective_image_segment_1)
+          apply (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc continuous_on_subset [OF cont_f])
+          by (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc inj_on_subset [OF inj_f])
+        then have fz: "f z \<in> closed_segment (f x) (f y)"
+          using \<open>z \<in> closed_segment x y\<close> by blast
+        have "z \<in> affine hull S"
+          by (meson \<open>x \<in> S\<close> \<open>y \<in> S\<close> \<open>z \<in> closed_segment x y\<close> convex_affine_hull convex_contains_segment hull_inc subset_eq)
+        then have fz_notin: "f z \<notin> f ` S"
+          using hull_subset inj_f inj_onD that by fastforce
+        moreover have "{..<f z} \<inter> f ` S \<noteq> {}" "{f z<..} \<inter> f ` S \<noteq> {}"
+        proof -
+          have "{..<f z} \<inter> f ` {x,y} \<noteq> {}"  "{f z<..} \<inter> f ` {x,y} \<noteq> {}"
+            using fz fz_notin \<open>x \<in> S\<close> \<open>y \<in> S\<close>
+             apply (auto simp: closed_segment_eq_real_ivl split: if_split_asm)
+             apply (metis image_eqI less_eq_real_def)+
+            done
+          then show "{..<f z} \<inter> f ` S \<noteq> {}" "{f z<..} \<inter> f ` S \<noteq> {}"
+            using \<open>x \<in> S\<close> \<open>y \<in> S\<close> by blast+
+        qed
+        ultimately show False
+          using connectedD [OF conn_fS, of "{..<f z}" "{f z<..}"] by force
+      qed
+      then show "z \<in> S" by meson
+    qed
+  qed
+qed
+
+lemma compact_convex_collinear_segment_alt:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S \<noteq> {}" "compact S" "connected S" "collinear S"
+  obtains a b where "S = closed_segment a b"
+proof -
+  obtain \<xi> where "\<xi> \<in> S" using \<open>S \<noteq> {}\<close> by auto
+  have "collinear (affine hull S)"
+    by (simp add: assms collinear_affine_hull_collinear)
+  then obtain z where "z \<noteq> 0" "\<And>x. x \<in> affine hull S \<Longrightarrow> \<exists>c. x - \<xi> = c *\<^sub>R z"
+    by (meson \<open>\<xi> \<in> S\<close> collinear hull_inc)
+  then obtain f where f: "\<And>x. x \<in> affine hull S \<Longrightarrow> x - \<xi> = f x *\<^sub>R z"
+    by metis
+  let ?g = "\<lambda>r. r *\<^sub>R z + \<xi>"
+  have gf: "?g (f x) = x" if "x \<in> affine hull S" for x
+    by (metis diff_add_cancel f that)
+  then have inj_f: "inj_on f (affine hull S)"
+    by (metis inj_onI)
+  have diff: "x - y = (f x - f y) *\<^sub>R z" if x: "x \<in> affine hull S" and y: "y \<in> affine hull S" for x y
+  proof -
+    have "f x *\<^sub>R z = x - \<xi>"
+      by (simp add: f hull_inc x)
+    moreover have "f y *\<^sub>R z = y - \<xi>"
+      by (simp add: f hull_inc y)
+    ultimately show ?thesis
+      by (simp add: scaleR_left.diff)
+  qed
+  have cont_f: "continuous_on (affine hull S) f"
+    apply (clarsimp simp: dist_norm continuous_on_iff diff)
+    by (metis \<open>z \<noteq> 0\<close> mult.commute mult_less_cancel_left_pos norm_minus_commute real_norm_def zero_less_mult_iff zero_less_norm_iff)
+  then have "connected (f ` S)"
+    by (meson \<open>connected S\<close> connected_continuous_image continuous_on_subset hull_subset)
+  moreover have "compact (f ` S)"
+    by (meson \<open>compact S\<close> compact_continuous_image_eq cont_f hull_subset inj_f)
+  ultimately obtain x y where "f ` S = {x..y}"
+    by (meson connected_compact_interval_1)
+  then have fS_eq: "f ` S = closed_segment x y"
+    using \<open>S \<noteq> {}\<close> closed_segment_eq_real_ivl by auto
+  obtain a b where "a \<in> S" "f a = x" "b \<in> S" "f b = y"
+    by (metis (full_types) ends_in_segment fS_eq imageE)
+  have "f ` (closed_segment a b) = closed_segment (f a) (f b)"
+    apply (rule continuous_injective_image_segment_1)
+     apply (meson \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc continuous_on_subset [OF cont_f])
+    by (meson \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment hull_inc inj_on_subset [OF inj_f])
+  then have "f ` (closed_segment a b) = f ` S"
+    by (simp add: \<open>f a = x\<close> \<open>f b = y\<close> fS_eq)
+  then have "?g ` f ` (closed_segment a b) = ?g ` f ` S"
+    by simp
+  moreover have "(\<lambda>x. f x *\<^sub>R z + \<xi>) ` closed_segment a b = closed_segment a b"
+    apply safe
+     apply (metis (mono_tags, hide_lams) \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment gf hull_inc subsetCE)
+    by (metis (mono_tags, lifting) \<open>a \<in> S\<close> \<open>b \<in> S\<close> convex_affine_hull convex_contains_segment gf hull_subset image_iff subsetCE)
+  ultimately have "closed_segment a b = S"
+    using gf by (simp add: image_comp o_def hull_inc cong: image_cong)
+  then show ?thesis
+    using that by blast
+qed
+
+lemma compact_convex_collinear_segment:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S \<noteq> {}" "compact S" "convex S" "collinear S"
+  obtains a b where "S = closed_segment a b"
+  using assms convex_connected_collinear compact_convex_collinear_segment_alt by blast
+
 
 lemma proper_map_from_compact:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"

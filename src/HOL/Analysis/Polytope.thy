@@ -74,9 +74,9 @@ lemma face_of_imp_subset: "T face_of S \<Longrightarrow> T \<subseteq> S"
   unfolding face_of_def by blast
 
 lemma face_of_imp_eq_affine_Int:
-     fixes S :: "'a::euclidean_space set"
-     assumes S: "convex S" "closed S" and T: "T face_of S"
-     shows "T = (affine hull T) \<inter> S"
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "convex S"  and T: "T face_of S"
+  shows "T = (affine hull T) \<inter> S"
 proof -
   have "convex T" using T by (simp add: face_of_def)
   have *: False if x: "x \<in> affine hull T" and "x \<in> S" "x \<notin> T" and y: "y \<in> rel_interior T" for x y
@@ -269,6 +269,20 @@ proof -
     by simp
 qed
 
+lemma subset_of_face_of_affine_hull:
+    fixes S :: "'a::euclidean_space set"
+  assumes T: "T face_of S" and "convex S" "U \<subseteq> S" and dis: "~disjnt (affine hull T) (rel_interior U)"
+  shows "U \<subseteq> T"
+  apply (rule subset_of_face_of [OF T \<open>U \<subseteq> S\<close>])
+  using face_of_imp_eq_affine_Int [OF \<open>convex S\<close> T]
+  using rel_interior_subset [of U] dis
+  using \<open>U \<subseteq> S\<close> disjnt_def by fastforce
+
+lemma affine_hull_face_of_disjoint_rel_interior:
+    fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "F face_of S" "F \<noteq> S"
+  shows "affine hull F \<inter> rel_interior S = {}"
+  by (metis assms disjnt_def face_of_imp_subset order_refl subset_antisym subset_of_face_of_affine_hull)
 
 lemma affine_diff_divide:
     assumes "affine S" "k \<noteq> 0" "k \<noteq> 1" and xy: "x \<in> S" "y /\<^sub>R (1 - k) \<in> S"
@@ -2160,9 +2174,8 @@ qed
 
 lemma face_of_polyhedron_polyhedron:
   fixes S :: "'a :: euclidean_space set"
-  assumes "polyhedron S" "c face_of S"
-    shows "polyhedron c"
-by (metis assms face_of_imp_eq_affine_Int polyhedron_Int polyhedron_affine_hull polyhedron_imp_closed polyhedron_imp_convex)
+  assumes "polyhedron S" "c face_of S" shows "polyhedron c"
+by (metis assms face_of_imp_eq_affine_Int polyhedron_Int polyhedron_affine_hull polyhedron_imp_convex)
 
 lemma finite_polyhedron_faces:
   fixes S :: "'a :: euclidean_space set"
@@ -2776,6 +2789,132 @@ proof -
       finally show ?thesis .
     qed
   qed (auto simp: eq poly aff face \<open>finite \<F>'\<close>)
+qed
+
+
+subsection\<open>Simplicial complexes and triangulations\<close>
+
+subsubsection\<open>The notion of n-simplex for integer @{term"n \<ge> -1"}\<close>
+
+definition simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix "simplex" 50)
+  where "n simplex S \<equiv> \<exists>C. ~(affine_dependent C) \<and> int(card C) = n + 1 \<and> S = convex hull C"
+
+lemma simplex:
+    "n simplex S \<longleftrightarrow> (\<exists>C. finite C \<and>
+                       ~(affine_dependent C) \<and>
+                       int(card C) = n + 1 \<and>
+                       S = convex hull C)"
+  by (auto simp add: simplex_def intro: aff_independent_finite)
+
+lemma simplex_convex_hull:
+   "~affine_dependent C \<and> int(card C) = n + 1 \<Longrightarrow> n simplex (convex hull C)"
+  by (auto simp add: simplex_def)
+
+lemma convex_simplex: "n simplex S \<Longrightarrow> convex S"
+  by (metis convex_convex_hull simplex_def)
+
+lemma compact_simplex: "n simplex S \<Longrightarrow> compact S"
+  unfolding simplex
+  using finite_imp_compact_convex_hull by blast
+
+lemma closed_simplex: "n simplex S \<Longrightarrow> closed S"
+  by (simp add: compact_imp_closed compact_simplex)
+
+lemma simplex_imp_polytope:
+   "n simplex S \<Longrightarrow> polytope S"
+  unfolding simplex_def polytope_def
+  using aff_independent_finite by blast
+
+lemma simplex_imp_polyhedron:
+   "n simplex S \<Longrightarrow> polyhedron S"
+  by (simp add: polytope_imp_polyhedron simplex_imp_polytope)
+
+lemma simplex_dim_ge: "n simplex S \<Longrightarrow> -1 \<le> n"
+  by (metis (no_types, hide_lams) aff_dim_geq affine_independent_iff_card diff_add_cancel diff_diff_eq2 simplex_def)
+
+lemma simplex_empty [simp]: "n simplex {} \<longleftrightarrow> n = -1"
+proof
+  assume "n simplex {}"
+  then show "n = -1"
+    unfolding simplex by (metis card_empty convex_hull_eq_empty diff_0 diff_eq_eq of_nat_0)
+next
+  assume "n = -1" then show "n simplex {}"
+    by (fastforce simp: simplex)
+qed
+
+lemma simplex_minus_1 [simp]: "-1 simplex S \<longleftrightarrow> S = {}"
+  by (metis simplex cancel_comm_monoid_add_class.diff_cancel card_0_eq diff_minus_eq_add of_nat_eq_0_iff simplex_empty)
+
+
+lemma aff_dim_simplex:
+   "n simplex S \<Longrightarrow> aff_dim S = n"
+  by (metis simplex add.commute add_diff_cancel_left' aff_dim_convex_hull affine_independent_iff_card)
+
+lemma zero_simplex_sing: "0 simplex {a}"
+  apply (simp add: simplex_def)
+  by (metis affine_independent_1 card_empty card_insert_disjoint convex_hull_singleton empty_iff finite.emptyI)
+
+lemma simplex_sing [simp]: "n simplex {a} \<longleftrightarrow> n = 0"
+  using aff_dim_simplex aff_dim_sing zero_simplex_sing by blast
+
+lemma simplex_zero: "0 simplex S \<longleftrightarrow> (\<exists>a. S = {a})"
+apply (auto simp: )
+  using aff_dim_eq_0 aff_dim_simplex by blast
+
+lemma one_simplex_segment: "a \<noteq> b \<Longrightarrow> 1 simplex closed_segment a b"
+  apply (simp add: simplex_def)
+  apply (rule_tac x="{a,b}" in exI)
+  apply (auto simp: segment_convex_hull)
+  done
+
+lemma simplex_segment_cases:
+   "(if a = b then 0 else 1) simplex closed_segment a b"
+  by (auto simp: one_simplex_segment)
+
+lemma simplex_segment:
+   "\<exists>n. n simplex closed_segment a b"
+  using simplex_segment_cases by metis
+
+lemma polytope_lowdim_imp_simplex:
+  assumes "polytope P" "aff_dim P \<le> 1"
+  obtains n where "n simplex P"
+proof (cases "P = {}")
+  case True
+  then show ?thesis
+    by (simp add: that)
+next
+  case False
+  then show ?thesis
+    by (metis assms compact_convex_collinear_segment collinear_aff_dim polytope_imp_compact polytope_imp_convex simplex_segment_cases that)
+qed
+
+lemma simplex_insert_dimplus1:
+  fixes n::int
+  assumes "n simplex S" and a: "a \<notin> affine hull S"
+  shows "(n+1) simplex (convex hull (insert a S))"
+proof -
+  obtain C where C: "finite C" "~(affine_dependent C)" "int(card C) = n+1" and S: "S = convex hull C"
+    using assms unfolding simplex by force
+  show ?thesis
+    unfolding simplex
+  proof (intro exI conjI)
+      have "aff_dim S = n"
+        using aff_dim_simplex assms(1) by blast
+      moreover have "a \<notin> affine hull C"
+        using S a affine_hull_convex_hull by blast
+      moreover have "a \<notin> C"
+          using S a hull_inc by fastforce
+      ultimately show "\<not> affine_dependent (insert a C)"
+        by (simp add: C S aff_dim_convex_hull aff_dim_insert affine_independent_iff_card)
+  next
+    have "a \<notin> C"
+      using S a hull_inc by fastforce
+    then show "int (card (insert a C)) = n + 1 + 1"
+      by (simp add: C)
+  next
+    show "convex hull insert a S = convex hull (insert a C)"
+      by (simp add: S convex_hull_insert_segments)
+  qed (use C in auto)
 qed
 
 end

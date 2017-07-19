@@ -3140,6 +3140,44 @@ subsection \<open>Collinearity\<close>
 definition collinear :: "'a::real_vector set \<Rightarrow> bool"
   where "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"
 
+lemma collinear_alt:
+     "collinear S \<longleftrightarrow> (\<exists>u v. \<forall>x \<in> S. \<exists>c. x = u + c *\<^sub>R v)" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    unfolding collinear_def by (metis Groups.add_ac(2) diff_add_cancel)
+next
+  assume ?rhs
+  then obtain u v where *: "\<And>x. x \<in> S \<Longrightarrow> \<exists>c. x = u + c *\<^sub>R v"
+    by (auto simp: )
+  have "\<exists>c. x - y = c *\<^sub>R v" if "x \<in> S" "y \<in> S" for x y
+        by (metis *[OF \<open>x \<in> S\<close>] *[OF \<open>y \<in> S\<close>] scaleR_left.diff add_diff_cancel_left)
+  then show ?lhs
+    using collinear_def by blast
+qed
+
+lemma collinear:
+  fixes S :: "'a::{perfect_space,real_vector} set"
+  shows "collinear S \<longleftrightarrow> (\<exists>u. u \<noteq> 0 \<and> (\<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u))"
+proof -
+  have "\<exists>v. v \<noteq> 0 \<and> (\<forall>x\<in>S. \<forall>y\<in>S. \<exists>c. x - y = c *\<^sub>R v)"
+    if "\<forall>x\<in>S. \<forall>y\<in>S. \<exists>c. x - y = c *\<^sub>R u" "u=0" for u
+  proof -
+    have "\<forall>x\<in>S. \<forall>y\<in>S. x = y"
+      using that by auto
+    moreover
+    obtain v::'a where "v \<noteq> 0"
+      using UNIV_not_singleton [of 0] by auto
+    ultimately have "\<forall>x\<in>S. \<forall>y\<in>S. \<exists>c. x - y = c *\<^sub>R v"
+      by auto
+    then show ?thesis
+      using \<open>v \<noteq> 0\<close> by blast
+  qed
+  then show ?thesis
+    apply (clarsimp simp: collinear_def)
+    by (metis real_vector.scale_zero_right vector_fraction_eq_iff)
+qed
+
 lemma collinear_subset: "\<lbrakk>collinear T; S \<subseteq> T\<rbrakk> \<Longrightarrow> collinear S"
   by (meson collinear_def subsetCE)
 

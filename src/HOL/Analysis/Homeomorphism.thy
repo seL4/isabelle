@@ -157,6 +157,65 @@ proof -
     by (simp add: \<open>interior S = rel_interior S\<close> frontier_def rel_frontier_def that)
 qed
 
+
+lemma segment_to_rel_frontier_aux:
+  fixes x :: "'a::euclidean_space"
+  assumes "convex S" "bounded S" and x: "x \<in> rel_interior S" and y: "y \<in> S" and xy: "x \<noteq> y"
+  obtains z where "z \<in> rel_frontier S" "y \<in> closed_segment x z"
+                   "open_segment x z \<subseteq> rel_interior S"
+proof -
+  have "x + (y - x) \<in> affine hull S"
+    using hull_inc [OF y] by auto
+  then obtain d where "0 < d" and df: "(x + d *\<^sub>R (y-x)) \<in> rel_frontier S"
+                  and di: "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (x + e *\<^sub>R (y-x)) \<in> rel_interior S"
+    by (rule ray_to_rel_frontier [OF \<open>bounded S\<close> x]) (use xy in auto)
+  show ?thesis
+  proof
+    show "x + d *\<^sub>R (y - x) \<in> rel_frontier S"
+      by (simp add: df)
+  next
+    have "open_segment x y \<subseteq> rel_interior S"
+      using rel_interior_closure_convex_segment [OF \<open>convex S\<close> x] closure_subset y by blast
+    moreover have "x + d *\<^sub>R (y - x) \<in> open_segment x y" if "d < 1"
+      using xy
+      apply (auto simp: in_segment)
+      apply (rule_tac x="d" in exI)
+      using \<open>0 < d\<close> that apply (auto simp: divide_simps algebra_simps)
+      done
+    ultimately have "1 \<le> d"
+      using df rel_frontier_def by fastforce
+    moreover have "x = (1 / d) *\<^sub>R x + ((d - 1) / d) *\<^sub>R x"
+      by (metis \<open>0 < d\<close> add.commute add_divide_distrib diff_add_cancel divide_self_if less_irrefl scaleR_add_left scaleR_one)
+    ultimately show "y \<in> closed_segment x (x + d *\<^sub>R (y - x))"
+      apply (auto simp: in_segment)
+      apply (rule_tac x="1/d" in exI)
+      apply (auto simp: divide_simps algebra_simps)
+      done
+  next
+    show "open_segment x (x + d *\<^sub>R (y - x)) \<subseteq> rel_interior S"
+      apply (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> x])
+      using df rel_frontier_def by auto
+  qed
+qed
+
+lemma segment_to_rel_frontier:
+  fixes x :: "'a::euclidean_space"
+  assumes S: "convex S" "bounded S" and x: "x \<in> rel_interior S"
+      and y: "y \<in> S" and xy: "~(x = y \<and> S = {x})"
+  obtains z where "z \<in> rel_frontier S" "y \<in> closed_segment x z"
+                  "open_segment x z \<subseteq> rel_interior S"
+proof (cases "x=y")
+  case True
+  with xy have "S \<noteq> {x}"
+    by blast
+  with True show ?thesis
+    by (metis Set.set_insert all_not_in_conv ends_in_segment(1) insert_iff segment_to_rel_frontier_aux[OF S x] that y)
+next
+  case False
+  then show ?thesis
+    using segment_to_rel_frontier_aux [OF S x y] that by blast
+qed
+
 proposition rel_frontier_not_sing:
   fixes a :: "'a::euclidean_space"
   assumes "bounded S"
