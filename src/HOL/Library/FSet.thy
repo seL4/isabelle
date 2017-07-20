@@ -202,8 +202,6 @@ lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightar
 
 lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold .
 
-lift_definition fsum :: "('a \<Rightarrow> 'b::comm_monoid_add) \<Rightarrow> 'a fset \<Rightarrow> 'b" is sum .
-
 lift_definition fset_of_list :: "'a list \<Rightarrow> 'a fset" is set by (rule finite_set)
 
 subsection \<open>Transferred lemmas from Set.thy\<close>
@@ -731,26 +729,100 @@ begin
 
 end
 
-lemmas fsum_cong[fundef_cong] = sum.cong[Transfer.transferred]
 
-lemma fsum_strong_cong[cong]:
+subsubsection \<open>Group operations\<close>
+
+locale comm_monoid_fset = comm_monoid
+begin
+
+sublocale set: comm_monoid_set ..
+
+lift_definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b fset \<Rightarrow> 'a" is set.F .
+
+lemmas cong[fundef_cong] = set.cong[Transfer.transferred]
+
+lemma strong_cong[cong]:
   assumes "A = B" "\<And>x. x |\<in>| B =simp=> g x = h x"
-  shows "fsum (\<lambda>x. g x) A = fsum (\<lambda>x. h x) B"
-using assms unfolding simp_implies_def by (auto cong: fsum_cong)
+  shows "F g A = F h B"
+using assms unfolding simp_implies_def by (auto cong: cong)
+
+end
+
+context comm_monoid_add begin
+
+sublocale fsum: comm_monoid_fset plus 0
+  defines fsum = fsum.F
+  rewrites "comm_monoid_set.F plus 0 = sum"
+proof -
+  show "comm_monoid_fset op + 0" by standard
+
+  show "comm_monoid_set.F op + 0 = sum" unfolding sum_def ..
+qed
+
+end
 
 
 subsubsection \<open>Semilattice operations\<close>
 
-(* FIXME should work for arbitrary comm_monoid_set.F and semilattice_set.F operations *)
+locale semilattice_fset = semilattice
+begin
 
-lift_definition fMax :: "'a::linorder fset \<Rightarrow> 'a" is Max .
-lift_definition fMin :: "'a::linorder fset \<Rightarrow> 'a" is Min .
+sublocale set: semilattice_set ..
+
+lift_definition F :: "'a fset \<Rightarrow> 'a" is set.F .
+
+lemma eq_fold: "F (finsert x A) = ffold f x A"
+  by transfer (rule set.eq_fold)
+
+lemma singleton [simp]: "F {|x|} = x"
+  by transfer (rule set.singleton)
+
+lemma insert_not_elem: "x |\<notin>| A \<Longrightarrow> A \<noteq> {||} \<Longrightarrow> F (finsert x A) = x \<^bold>* F A"
+  by transfer (rule set.insert_not_elem)
+
+lemma in_idem: "x |\<in>| A \<Longrightarrow> x \<^bold>* F A = F A"
+  by transfer (rule set.in_idem)
+
+lemma insert [simp]: "A \<noteq> {||} \<Longrightarrow> F (finsert x A) = x \<^bold>* F A"
+  by transfer (rule set.insert)
+
+end
+
+locale semilattice_order_fset = binary?: semilattice_order + semilattice_fset
+begin
+
+end
+
+
+context linorder begin
+
+sublocale fMin: semilattice_order_fset min less_eq less
+  defines fMin = fMin.F
+  rewrites "semilattice_set.F min = Min"
+proof -
+  show "semilattice_order_fset min op \<le> op <" by standard
+
+  show "semilattice_set.F min = Min" unfolding Min_def ..
+qed
+
+sublocale fMax: semilattice_order_fset max greater_eq greater
+  defines fMax = fMax.F
+  rewrites "semilattice_set.F max = Max"
+proof -
+  show "semilattice_order_fset max op \<ge> op >"
+    by standard
+
+  show "semilattice_set.F max = Max"
+    unfolding Max_def ..
+qed
+
+end
 
 lemma mono_fMax_commute: "mono f \<Longrightarrow> A \<noteq> {||} \<Longrightarrow> f (fMax A) = fMax (f |`| A)"
-by transfer (rule mono_Max_commute)
+  by transfer (rule mono_Max_commute)
 
 lemma mono_fMin_commute: "mono f \<Longrightarrow> A \<noteq> {||} \<Longrightarrow> f (fMin A) = fMin (f |`| A)"
-by transfer (rule mono_Min_commute)
+  by transfer (rule mono_Min_commute)
 
 lemma fMax_in[simp]: "A \<noteq> {||} \<Longrightarrow> fMax A |\<in>| A"
   by transfer (rule Max_in)
@@ -769,12 +841,6 @@ lemma fMax_eqI: "(\<And>y. y |\<in>| A \<Longrightarrow> y \<le> x) \<Longrighta
 
 lemma fMin_eqI: "(\<And>y. y |\<in>| A \<Longrightarrow> x \<le> y) \<Longrightarrow> x |\<in>| A \<Longrightarrow> fMin A = x"
   by transfer (rule Min_eqI)
-
-lemma fMax_singleton[simp]: "fMax {|x|} = x"
-  by transfer (rule Max_singleton)
-
-lemma fMin_singleton[simp]: "fMin {|x|} = x"
-  by transfer (rule Min_singleton)
 
 lemma fMax_finsert[simp]: "fMax (finsert x A) = (if A = {||} then x else max x (fMax A))"
   by transfer simp
