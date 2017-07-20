@@ -42,6 +42,7 @@ sig
 
   type lfp_rec_extension =
     {nested_simps: thm list,
+     special_endgame_tac: Proof.context -> thm list -> thm list -> thm list -> tactic,
      is_new_datatype: Proof.context -> string -> bool,
      basic_lfp_sugars_of: binding list -> typ list -> term list ->
        (term * term list list) list list -> local_theory ->
@@ -129,6 +130,7 @@ type basic_lfp_sugar =
 
 type lfp_rec_extension =
   {nested_simps: thm list,
+   special_endgame_tac: Proof.context -> thm list -> thm list -> thm list -> tactic,
    is_new_datatype: Proof.context -> string -> bool,
    basic_lfp_sugars_of: binding list -> typ list -> term list ->
      (term * term list list) list list -> local_theory ->
@@ -151,6 +153,11 @@ fun nested_simps ctxt =
   (case Data.get (Proof_Context.theory_of ctxt) of
     SOME {nested_simps, ...} => nested_simps
   | NONE => []);
+
+fun special_endgame_tac ctxt =
+  (case Data.get (Proof_Context.theory_of ctxt) of
+    SOME {special_endgame_tac, ...} => special_endgame_tac ctxt
+  | NONE => K (K (K no_tac)));
 
 fun is_new_datatype ctxt =
   (case Data.get (Proof_Context.theory_of ctxt) of
@@ -488,11 +495,10 @@ fun mk_primrec_tac ctxt num_extra_args fp_nesting_map_ident0s fp_nesting_map_com
     fp_nesting_pred_maps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
   HEADGOAL (rtac ctxt (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
-  unfold_thms_tac ctxt (fp_nesting_map_ident0s @ fp_nesting_map_comps @ fp_nesting_pred_maps) THEN
-  REPEAT_DETERM (CHANGED (unfold_thms_tac ctxt (fp_nesting_map_ident0s @ fp_nesting_map_comps @
-      fp_nesting_pred_maps) THEN
-    unfold_thms_tac ctxt (nested_simps ctxt))) THEN
-  HEADGOAL (rtac ctxt refl);
+  unfold_thms_tac ctxt (nested_simps ctxt @ fp_nesting_map_ident0s @ fp_nesting_map_comps @
+    fp_nesting_pred_maps) THEN
+  REPEAT_DETERM (HEADGOAL (rtac ctxt refl) ORELSE
+    special_endgame_tac ctxt fp_nesting_map_ident0s fp_nesting_map_comps fp_nesting_pred_maps);
 
 fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
   let

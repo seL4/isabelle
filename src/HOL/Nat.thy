@@ -163,8 +163,8 @@ let
       BNF_LFP_Rec_Sugar.default_basic_lfp_sugars_of bs arg_Ts callers callssss ctxt;
 in
   BNF_LFP_Rec_Sugar.register_lfp_rec_extension
-    {nested_simps = [], is_new_datatype = K (K true), basic_lfp_sugars_of = basic_lfp_sugars_of,
-     rewrite_nested_rec_call = NONE}
+    {nested_simps = [], special_endgame_tac = K (K (K (K no_tac))), is_new_datatype = K (K true),
+     basic_lfp_sugars_of = basic_lfp_sugars_of, rewrite_nested_rec_call = NONE}
 end
 \<close>
 

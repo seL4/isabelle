@@ -16,6 +16,7 @@ structure BNF_LFP_Rec_Sugar_More : BNF_LFP_REC_SUGAR_MORE =
 struct
 
 open BNF_Util
+open BNF_Tactics
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
@@ -25,6 +26,15 @@ open BNF_LFP_Rec_Sugar
 (* FIXME: remove "nat" cases throughout once it is registered as a datatype *)
 
 val nested_simps = @{thms o_def[abs_def] id_def split fst_conv snd_conv};
+
+fun special_endgame_tac ctxt fp_nesting_map_ident0s fp_nesting_map_comps fp_nesting_pred_maps =
+  ALLGOALS (CONVERSION Thm.eta_long_conversion) THEN
+  HEADGOAL (simp_tac (ss_only @{thms pred_fun_True_id} ctxt
+    addsimprocs [@{simproc NO_MATCH}])) THEN
+  unfold_thms_tac ctxt (nested_simps @
+    map (unfold_thms ctxt @{thms id_def}) (fp_nesting_map_ident0s @ fp_nesting_map_comps @
+      fp_nesting_pred_maps)) THEN
+  ALLGOALS (rtac ctxt refl);
 
 fun is_new_datatype _ @{type_name nat} = true
   | is_new_datatype ctxt s =
@@ -176,8 +186,8 @@ fun rewrite_nested_rec_call ctxt has_call get_ctr_pos =
   massage_nested_rec_call ctxt has_call (rewrite_map_fun ctxt get_ctr_pos) (fst_const o fst);
 
 val _ = Theory.setup (register_lfp_rec_extension
-  {nested_simps = nested_simps, is_new_datatype = is_new_datatype,
-   basic_lfp_sugars_of = basic_lfp_sugars_of,
+  {nested_simps = nested_simps, special_endgame_tac = special_endgame_tac,
+   is_new_datatype = is_new_datatype, basic_lfp_sugars_of = basic_lfp_sugars_of,
    rewrite_nested_rec_call = SOME rewrite_nested_rec_call});
 
 end;

@@ -193,6 +193,9 @@ lemma all_mem_range8:
 lemmas all_mem_range = all_mem_range1 all_mem_range2 all_mem_range3 all_mem_range4 all_mem_range5
   all_mem_range6 all_mem_range7 all_mem_range8
 
+lemma pred_fun_True_id: "NO_MATCH id p \<Longrightarrow> pred_fun (\<lambda>x. True) p f = pred_fun (\<lambda>x. True) id (p \<circ> f)"
+  unfolding fun.pred_map unfolding comp_def id_def ..
+
 ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
