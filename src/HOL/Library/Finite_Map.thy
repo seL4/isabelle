@@ -1066,7 +1066,7 @@ lemma fmrel_code:
 unfolding fmrel_iff fmlookup_dom_iff fBall_alt_def
 by (metis option.collapse option.rel_sel)
 
-lemmas fmap_generic_code =
+lemmas [code] =
   fmrel_code
   fmran'_alt_def
   fmdom'_alt_def
@@ -1113,8 +1113,6 @@ subgoal for f m by (induction m) (auto simp: apsnd_def map_prod_def fun_eq_iff)
 done
 
 end
-
-declare fmap_generic_code[code]
 
 
 subsection \<open>Instances\<close>
