@@ -5,7 +5,7 @@
 section \<open>Continuous extensions of functions: Urysohn's lemma, Dugundji extension theorem, Tietze\<close>
 
 theory Continuous_Extension
-imports Convex_Euclidean_Space
+imports Starlike
 begin
 
 subsection\<open>Partitions of unity subordinate to locally finite open coverings\<close>
