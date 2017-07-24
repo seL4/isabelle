@@ -5305,8 +5305,7 @@ proof -
   }
   then show lintg: "l contour_integrable_on \<gamma>"
     apply (simp add: contour_integrable_on)
-    apply (blast intro: integrable_uniform_limit_real)
-    done
+    by (metis (mono_tags, lifting)integrable_uniform_limit_real) 
   { fix e::real
     define B' where "B' = B + 1"
     have B': "B' > 0" "B' > B" using  \<open>0 \<le> B\<close> by (auto simp: B'_def)

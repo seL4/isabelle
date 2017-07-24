@@ -27,36 +27,20 @@ proof induct
     done
 qed auto
 
-lemma sum_sum_product:
-  assumes "finite s"
-    and "\<forall>i\<in>s. finite (t i)"
-  shows "sum (\<lambda>i. sum (x i) (t i)::real) s =
-    sum (\<lambda>(i,j). x i j) {(i,j) | i j. i \<in> s \<and> j \<in> t i}"
+lemma sum_Sigma_product:
+  assumes "finite S"
+    and "\<And>i. i \<in> S \<Longrightarrow> finite (T i)"
+  shows "(\<Sum>i\<in>S. sum (x i) (T i)) = (\<Sum>(i, j)\<in>Sigma S T. x i j)"
   using assms
 proof induct
-  case (insert a s)
-  have *: "{(i, j) |i j. i \<in> insert a s \<and> j \<in> t i} =
-    (\<lambda>y. (a,y)) ` (t a) \<union> {(i, j) |i j. i \<in> s \<and> j \<in> t i}" by auto
+  case empty
+  then show ?case
+    by simp
+next
+  case (insert a S)
   show ?case
-    unfolding *
-    apply (subst sum.union_disjoint)
-    unfolding sum.insert[OF insert(1-2)]
-    prefer 4
-    apply (subst insert(3))
-    unfolding add_right_cancel
-  proof -
-    show "sum (x a) (t a) = (\<Sum>(xa, y)\<in> Pair a ` t a. x xa y)"
-      apply (subst sum.reindex)
-      unfolding inj_on_def
-      apply auto
-      done
-    show "finite {(i, j) |i j. i \<in> s \<and> j \<in> t i}"
-      apply (rule finite_product_dependent)
-      using insert
-      apply auto
-      done
-  qed (insert insert, auto)
-qed auto
+    by (simp add: insert.hyps(1) insert.prems sum.Sigma)
+qed
 
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
   scaleR_zero_right scaleR_minus_right scaleR_right_diff_distrib scaleR_eq_0_iff

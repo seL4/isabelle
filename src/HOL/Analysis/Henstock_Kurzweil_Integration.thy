@@ -1757,132 +1757,137 @@ lemma real_arch_invD:
   "0 < (e::real) \<Longrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
   by (subst(asm) real_arch_inverse)
 
+
 lemma integrable_uniform_limit:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  assumes "\<forall>e>0. \<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
+  assumes "\<And>e. e > 0 \<Longrightarrow> \<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
   shows "f integrable_on cbox a b"
 proof (cases "content (cbox a b) > 0")
   case False then show ?thesis
-      using has_integral_null
-      by (simp add: content_lt_nz integrable_on_def)
+    using has_integral_null by (simp add: content_lt_nz integrable_on_def)
 next
   case True
-  have *: "\<And>P. \<forall>e>(0::real). P e \<Longrightarrow> \<forall>n::nat. P (inverse (real n + 1))"
+  have "1 / (real n + 1) > 0" for n
     by auto
-  from choice[OF *[OF assms]] guess g .. note g=conjunctD2[OF this[rule_format],rule_format]
-  from choice[OF allI[OF g(2)[unfolded integrable_on_def], of "\<lambda>x. x"]]
-  obtain i where i: "\<And>x. (g x has_integral i x) (cbox a b)"
-      by auto
-  have "Cauchy i"
+  then have "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> 1 / (real n + 1)) \<and> g integrable_on cbox a b" for n
+    using assms by blast
+  then obtain g where g_near_f: "\<And>n x. x \<in> cbox a b \<Longrightarrow> norm (f x - g n x) \<le> 1 / (real n + 1)"
+                  and int_g: "\<And>n. g n integrable_on cbox a b"
+    by metis
+  then obtain h where h: "\<And>n. (g n has_integral h n) (cbox a b)"
+    unfolding integrable_on_def by metis
+  have "Cauchy h"
     unfolding Cauchy_def
   proof clarify
     fix e :: real
     assume "e>0"
-    then have "e / 4 / content (cbox a b) > 0"
-      using True by (auto simp add: field_simps)
-    then obtain M :: nat
-         where M: "M \<noteq> 0" "0 < inverse (real_of_nat M)" "inverse (of_nat M) < e / 4 / content (cbox a b)"
-      by (subst (asm) real_arch_inverse) auto
-    show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (i m) (i n) < e"
+    then have "e/4 / content (cbox a b) > 0"
+      using True by (auto simp: field_simps)
+    then obtain M where "M \<noteq> 0" and M: "1 / (real M) < e/4 / content (cbox a b)"
+      by (metis inverse_eq_divide real_arch_inverse)
+    show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (h m) (h n) < e"
     proof (rule exI [where x=M], clarify)
       fix m n
       assume m: "M \<le> m" and n: "M \<le> n"
       have "e/4>0" using \<open>e>0\<close> by auto
-      note * = i[unfolded has_integral,rule_format,OF this]
-      from *[of m] guess gm by (elim conjE exE) note gm=this[rule_format]
-      from *[of n] guess gn by (elim conjE exE) note gn=this[rule_format]
-      from fine_division_exists[OF gauge_Int[OF gm(1) gn(1)], of a b]
-      obtain p where p: "p tagged_division_of cbox a b" "(\<lambda>x. gm x \<inter> gn x) fine p"
-        by auto
-      { fix s1 s2 i1 and i2::'b
-        assume no: "norm(s2 - s1) \<le> e/2" "norm (s1 - i1) < e/4" "norm (s2 - i2) < e/4"
+      then obtain gm gn where "gauge gm" "gauge gn"
+              and gm: "\<And>\<D>. \<D> tagged_division_of cbox a b \<and> gm fine \<D> 
+                            \<Longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g m x) - h m) < e/4"
+              and gn: "\<And>\<D>. \<D> tagged_division_of cbox a b \<and> gn fine \<D> \<Longrightarrow>
+                      norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g n x) - h n) < e/4"
+        using h[unfolded has_integral] by meson
+      then obtain \<D> where \<D>: "\<D> tagged_division_of cbox a b" "(\<lambda>x. gm x \<inter> gn x) fine \<D>"
+        by (metis (full_types) fine_division_exists gauge_Int)
+      have triangle3: "norm (i1 - i2) < e"
+        if no: "norm(s2 - s1) \<le> e/2" "norm (s1 - i1) < e/4" "norm (s2 - i2) < e/4" for s1 s2 i1 and i2::'b
+      proof -
         have "norm (i1 - i2) \<le> norm (i1 - s1) + norm (s1 - s2) + norm (s2 - i2)"
           using norm_triangle_ineq[of "i1 - s1" "s1 - i2"]
           using norm_triangle_ineq[of "s1 - s2" "s2 - i2"]
-          by (auto simp add: algebra_simps)
+          by (auto simp: algebra_simps)
         also have "\<dots> < e"
-          using no
-          unfolding norm_minus_commute
-          by (auto simp add: algebra_simps)
-        finally have "norm (i1 - i2) < e" .
-      } note triangle3 = this
-      have finep: "gm fine p" "gn fine p"
-        using fine_Int p  by auto
-      { fix x
-        assume x: "x \<in> cbox a b"
-        have "norm (f x - g n x) + norm (f x - g m x) \<le> inverse (real n + 1) + inverse (real m + 1)"
-          using g(1)[OF x, of n] g(1)[OF x, of m] by auto
-        also have "\<dots> \<le> inverse (real M) + inverse (real M)"
+          using no by (auto simp: algebra_simps norm_minus_commute)
+        finally show ?thesis .
+      qed
+      have finep: "gm fine \<D>" "gn fine \<D>"
+        using fine_Int \<D>  by auto
+      have norm_le: "norm (g n x - g m x) \<le> 2 / real M" if x: "x \<in> cbox a b" for x
+      proof -
+        have "norm (f x - g n x) + norm (f x - g m x) \<le> 1 / (real n + 1) + 1 / (real m + 1)"          
+          using g_near_f[OF x, of n] g_near_f[OF x, of m] by simp
+        also have "\<dots> \<le> 1 / (real M) + 1 / (real M)"
           apply (rule add_mono)
-          using M(2) m n by auto
+          using \<open>M \<noteq> 0\<close> m n by (auto simp: divide_simps)
         also have "\<dots> = 2 / real M"
-          unfolding divide_inverse by auto
-        finally have "norm (g n x - g m x) \<le> 2 / real M"
+          by auto
+        finally show "norm (g n x - g m x) \<le> 2 / real M"
           using norm_triangle_le[of "g n x - f x" "f x - g m x" "2 / real M"]
-          by (auto simp add: algebra_simps simp add: norm_minus_commute)
-      } note norm_le = this
-      have le_e2: "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g n x) - (\<Sum>(x, k)\<in>p. content k *\<^sub>R g m x)) \<le> e / 2"
-        apply (rule order_trans [OF rsum_diff_bound[OF p(1), where e="2 / real M"]])
-        apply (blast intro: norm_le)
+          by (auto simp: algebra_simps simp add: norm_minus_commute)
+      qed
+      have "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g n x) - (\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g m x)) \<le> 2 / real M * content (cbox a b)"
+        by (blast intro: norm_le rsum_diff_bound[OF \<D>(1), where e="2 / real M"])
+      also have "... \<le> e/2"
         using M True
-        by (auto simp add: field_simps)
-      then show "dist (i m) (i n) < e"
-        unfolding dist_norm
-        using gm gn p finep
-        by (auto intro!: triangle3)
+        by (auto simp: field_simps)
+      finally have le_e2: "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g n x) - (\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g m x)) \<le> e/2" .
+      then show "dist (h m) (h n) < e"
+        unfolding dist_norm using gm gn \<D> finep by (auto intro!: triangle3)
     qed
   qed
-  then obtain s where s: "i \<longlonglongrightarrow> s"
+  then obtain s where s: "h \<longlonglongrightarrow> s"
     using convergent_eq_Cauchy[symmetric] by blast
   show ?thesis
     unfolding integrable_on_def has_integral
   proof (rule_tac x=s in exI, clarify)
     fix e::real
     assume e: "0 < e"
-    then have *: "e/3 > 0" by auto
-    then obtain N1 where N1: "\<forall>n\<ge>N1. norm (i n - s) < e / 3"
+    then have "e/3 > 0" by auto
+    then obtain N1 where N1: "\<forall>n\<ge>N1. norm (h n - s) < e/3"
       using LIMSEQ_D [OF s] by metis
-    from e True have "e / 3 / content (cbox a b) > 0"
-      by (auto simp add: field_simps)
-    from real_arch_invD[OF this] guess N2 by (elim exE conjE) note N2=this
-    from i[of "N1 + N2",unfolded has_integral,rule_format,OF *] guess g' .. note g'=conjunctD2[OF this,rule_format]
-    { fix sf sg i
-      assume no: "norm (sf - sg) \<le> e / 3"
-                 "norm(i - s) < e / 3"
-                 "norm (sg - i) < e / 3"
-      have "norm (sf - s) \<le> norm (sf - sg) + norm (sg - i) + norm (i - s)"
+    from e True have "e/3 / content (cbox a b) > 0"
+      by (auto simp: field_simps)
+    then obtain N2 :: nat
+         where "N2 \<noteq> 0" and N2: "1 / (real N2) < e/3 / content (cbox a b)"
+      by (metis inverse_eq_divide real_arch_inverse)
+    obtain g' where "gauge g'"
+            and g': "\<And>\<D>. \<D> tagged_division_of cbox a b \<and> g' fine \<D> \<Longrightarrow>
+                    norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g (N1 + N2) x) - h (N1 + N2)) < e/3"
+      by (metis h has_integral \<open>e/3 > 0\<close>)
+    have *: "norm (sf - s) < e" 
+        if no: "norm (sf - sg) \<le> e/3" "norm(h - s) < e/3" "norm (sg - h) < e/3" for sf sg h
+    proof -
+      have "norm (sf - s) \<le> norm (sf - sg) + norm (sg - h) + norm (h - s)"
         using norm_triangle_ineq[of "sf - sg" "sg - s"]
-        using norm_triangle_ineq[of "sg -  i" " i - s"]
-        by (auto simp add: algebra_simps)
+        using norm_triangle_ineq[of "sg -  h" " h - s"]
+        by (auto simp: algebra_simps)
       also have "\<dots> < e"
-        using no
-        unfolding norm_minus_commute
-        by (auto simp add: algebra_simps)
-      finally have "norm (sf - s) < e" .
-    } note lem = this
-    { fix p
-      assume p: "p tagged_division_of (cbox a b) \<and> g' fine p"
-      then have norm_less: "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g (N1 + N2) x) - i (N1 + N2)) < e / 3"
+        using no by (auto simp: algebra_simps norm_minus_commute)
+      finally show ?thesis .
+    qed
+    { fix \<D>
+      assume ptag: "\<D> tagged_division_of (cbox a b)" and "g' fine \<D>"
+      then have norm_less: "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g (N1 + N2) x) - h (N1 + N2)) < e/3"
         using g' by blast
-      have "content (cbox a b) < e / 3 * (of_nat N2)"
-        using N2 unfolding inverse_eq_divide using True by (auto simp add: field_simps)
-      moreover have "e / 3 * of_nat N2 \<le> e / 3 * (of_nat (N1 + N2) + 1)"
+      have "content (cbox a b) < e/3 * (of_nat N2)"
+        using \<open>N2 \<noteq> 0\<close> N2 using True by (auto simp: divide_simps)
+      moreover have "e/3 * of_nat N2 \<le> e/3 * (of_nat (N1 + N2) + 1)"
         using \<open>e>0\<close> by auto
-      ultimately have "content (cbox a b) < e / 3 * (of_nat (N1 + N2) + 1)"
+      ultimately have "content (cbox a b) < e/3 * (of_nat (N1 + N2) + 1)"
         by linarith
-      then have le_e3: "inverse (real (N1 + N2) + 1) * content (cbox a b) \<le> e / 3"
+      then have le_e3: "1 / (real (N1 + N2) + 1) * content (cbox a b) \<le> e/3"
         unfolding inverse_eq_divide
-        by (auto simp add: field_simps)
-      have ne3: "norm (i (N1 + N2) - s) < e / 3"
+        by (auto simp: field_simps)
+      have ne3: "norm (h (N1 + N2) - s) < e/3"
         using N1 by auto
-      have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - s) < e"
-        apply (rule lem[OF order_trans [OF _ le_e3] ne3 norm_less])
-        apply (rule rsum_diff_bound[OF p[THEN conjunct1]])
-        apply (blast intro: g)
-        done }
+      have "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - (\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g (N1 + N2) x))
+            \<le> 1 / (real (N1 + N2) + 1) * content (cbox a b)"
+        by (blast intro: g_near_f rsum_diff_bound[OF ptag])
+      then have "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - s) < e"
+        by (rule *[OF order_trans [OF _ le_e3] ne3 norm_less])
+    }
     then show "\<exists>d. gauge d \<and>
-             (\<forall>p. p tagged_division_of cbox a b \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - s) < e)"
-      by (blast intro: g')
+             (\<forall>\<D>. \<D> tagged_division_of cbox a b \<and> d fine \<D> \<longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - s) < e)"
+      by (blast intro: g' \<open>gauge g'\<close>)
   qed
 qed
 
@@ -1895,7 +1900,7 @@ definition "negligible (s:: 'a::euclidean_space set) \<longleftrightarrow>
   (\<forall>a b. ((indicator s :: 'a\<Rightarrow>real) has_integral 0) (cbox a b))"
 
 
-subsection \<open>Negligibility of hyperplane.\<close>
+subsubsection \<open>Negligibility of hyperplane.\<close>
 
 lemma content_doublesplit:
   fixes a :: "'a::euclidean_space"
@@ -2080,189 +2085,149 @@ proof (clarify, goal_cases)
 qed
 
 
-subsection \<open>Hence the main theorem about negligible sets.\<close>
+subsubsection \<open>Hence the main theorem about negligible sets.\<close>
 
-lemma has_integral_negligible:
+
+lemma has_integral_negligible_cbox:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "negligible s"
-    and "\<forall>x\<in>(t - s). f x = 0"
-  shows "(f has_integral 0) t"
-proof -
-  presume P: "\<And>f::'b::euclidean_space \<Rightarrow> 'a.
-    \<And>a b. \<forall>x. x \<notin> s \<longrightarrow> f x = 0 \<Longrightarrow> (f has_integral 0) (cbox a b)"
-  let ?f = "(\<lambda>x. if x \<in> t then f x else 0)"
-  show ?thesis
-    apply (rule_tac f="?f" in has_integral_eq)
-    unfolding if_P
-    apply (rule refl)
-    apply (subst has_integral_alt)
-    apply cases
-    apply (subst if_P, assumption)
-    unfolding if_not_P
-  proof -
-    assume "\<exists>a b. t = cbox a b"
-    then guess a b apply - by (erule exE)+ note t = this
-    show "(?f has_integral 0) t"
-      unfolding t
-      apply (rule P)
-      using assms(2)
-      unfolding t
-      apply auto
-      done
-  next
-    show "\<forall>e>0. \<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
-      (\<exists>z. ((\<lambda>x. if x \<in> t then ?f x else 0) has_integral z) (cbox a b) \<and> norm (z - 0) < e)"
-      apply safe
-      apply (rule_tac x=1 in exI)
-      apply rule
-      apply (rule zero_less_one)
-      apply safe
-      apply (rule_tac x=0 in exI)
-      apply rule
-      apply (rule P)
-      using assms(2)
-      apply auto
-      done
-  qed
-next
-  fix f :: "'b \<Rightarrow> 'a"
-  fix a b :: 'b
-  assume assm: "\<forall>x. x \<notin> s \<longrightarrow> f x = 0"
-  show "(f has_integral 0) (cbox a b)"
-    unfolding has_integral
-  proof (safe, goal_cases)
-    case prems: (1 e)
-    then have "\<And>n. e / 2 / ((real n+1) * (2 ^ n)) > 0"
-      apply -
-      apply (rule divide_pos_pos)
-      defer
-      apply (rule mult_pos_pos)
-      apply (auto simp add:field_simps)
-      done
-    note assms(1)[unfolded negligible_def has_integral,rule_format,OF this,of a b]
-    note allI[OF this,of "\<lambda>x. x"]
-    from choice[OF this] guess d .. note d=conjunctD2[OF this[rule_format]]
-    show ?case
-      apply (rule_tac x="\<lambda>x. d (nat \<lfloor>norm (f x)\<rfloor>) x" in exI)
-    proof safe
-      show "gauge (\<lambda>x. d (nat \<lfloor>norm (f x)\<rfloor>) x)"
-        using d(1) unfolding gauge_def by auto
-      fix p
-      assume as: "p tagged_division_of (cbox a b)" "(\<lambda>x. d (nat \<lfloor>norm (f x)\<rfloor>) x) fine p"
-      let ?goal = "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e"
-      {
-        presume "p \<noteq> {} \<Longrightarrow> ?goal"
-        then show ?goal
-          apply (cases "p = {}")
-          using prems
-          apply auto
-          done
-      }
-      assume as': "p \<noteq> {}"
-      from real_arch_simple[of "Max((\<lambda>(x,k). norm(f x)) ` p)"] guess N ..
-      then have N: "\<forall>x\<in>(\<lambda>(x, k). norm (f x)) ` p. x \<le> real N"
-        by (meson Max_ge as(1) dual_order.trans finite_imageI tagged_division_of_finite)
-      have "\<forall>i. \<exists>q. q tagged_division_of (cbox a b) \<and> (d i) fine q \<and> (\<forall>(x, k)\<in>p. k \<subseteq> (d i) x \<longrightarrow> (x, k) \<in> q)"
-        by (auto intro: tagged_division_finer[OF as(1) d(1)])
+  assumes negs: "negligible S"
+    and 0: "\<And>x. x \<notin> S \<Longrightarrow> f x = 0"
+  shows "(f has_integral 0) (cbox a b)"
+  unfolding has_integral
+proof clarify
+  fix e::real
+  assume "e > 0"
+  then have nn_gt0: "e/2 / ((real n+1) * (2 ^ n)) > 0" for n
+    by simp
+  then have "\<exists>\<gamma>. gauge \<gamma> \<and>
+                   (\<forall>\<D>. \<D> tagged_division_of cbox a b \<and> \<gamma> fine \<D> \<longrightarrow>
+                        \<bar>\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R indicator S x\<bar>
+                        < e/2 / ((real n + 1) * 2 ^ n))" for n
+    using negs [unfolded negligible_def has_integral] by auto
+  then obtain \<gamma> where 
+    gd: "\<And>n. gauge (\<gamma> n)"
+    and \<gamma>: "\<And>n \<D>. \<lbrakk>\<D> tagged_division_of cbox a b; \<gamma> n fine \<D>\<rbrakk>
+                  \<Longrightarrow> \<bar>\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R indicator S x\<bar> < e/2 / ((real n + 1) * 2 ^ n)"
+    by metis
+  show "\<exists>\<gamma>. gauge \<gamma> \<and>
+             (\<forall>\<D>. \<D> tagged_division_of cbox a b \<and> \<gamma> fine \<D> \<longrightarrow>
+                  norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - 0) < e)"
+  proof (intro exI, safe)
+    show "gauge (\<lambda>x. \<gamma> (nat \<lfloor>norm (f x)\<rfloor>) x)"
+      using gd by (auto simp: gauge_def)
+
+    show "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - 0) < e"
+      if "\<D> tagged_division_of (cbox a b)" "(\<lambda>x. \<gamma> (nat \<lfloor>norm (f x)\<rfloor>) x) fine \<D>" for \<D>
+    proof (cases "\<D> = {}")
+      case True with \<open>0 < e\<close> show ?thesis by simp
+    next
+      case False
+      obtain N where "Max ((\<lambda>(x, K). norm (f x)) ` \<D>) \<le> real N"
+        using real_arch_simple by blast
+      then have N: "\<And>x. x \<in> (\<lambda>(x, K). norm (f x)) ` \<D> \<Longrightarrow> x \<le> real N"
+        by (meson Max_ge that(1) dual_order.trans finite_imageI tagged_division_of_finite)
+      have "\<forall>i. \<exists>q. q tagged_division_of (cbox a b) \<and> (\<gamma> i) fine q \<and> (\<forall>(x,K) \<in> \<D>. K \<subseteq> (\<gamma> i) x \<longrightarrow> (x, K) \<in> q)"
+        by (auto intro: tagged_division_finer[OF that(1) gd])
       from choice[OF this] 
       obtain q where q: "\<And>n. q n tagged_division_of cbox a b"
-                      "\<And>n. d n fine q n"
-                      "\<And>n x k. \<lbrakk>(x, k) \<in> p; k \<subseteq> d n x\<rbrakk> \<Longrightarrow> (x, k) \<in> q n"
+                        "\<And>n. \<gamma> n fine q n"
+                        "\<And>n x K. \<lbrakk>(x, K) \<in> \<D>; K \<subseteq> \<gamma> n x\<rbrakk> \<Longrightarrow> (x, K) \<in> q n"
         by fastforce
-      have *: "\<And>i. (\<Sum>(x, k)\<in>q i. content k *\<^sub>R indicator s x) \<ge> (0::real)"
-        apply (rule sum_nonneg)
-        apply safe
-        unfolding real_scaleR_def
-        apply (drule tagged_division_ofD(4)[OF q(1)])
-        apply (auto intro: mult_nonneg_nonneg)
-        done
-      have **: "finite s \<Longrightarrow> finite t \<Longrightarrow> (\<forall>(x,y) \<in> t. (0::real) \<le> g(x,y)) \<Longrightarrow>
-        (\<forall>y\<in>s. \<exists>x. (x,y) \<in> t \<and> f(y) \<le> g(x,y)) \<Longrightarrow> sum f s \<le> sum g t" for f g s t
-        by (rule sum_le_included[of s t g snd f]; force)
-      have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> sum (\<lambda>i. (real i + 1) *
-        norm (sum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {..N+1}"
-        unfolding real_norm_def sum_distrib_left abs_of_nonneg[OF *] diff_0_right
-        apply (rule order_trans)
-        apply (rule norm_sum)
-        apply (subst sum_sum_product)
-        prefer 3
-      proof (rule **, safe)
-        show "finite {(i, j) |i j. i \<in> {..N + 1} \<and> j \<in> q i}"
-          apply (rule finite_product_dependent)
-          using q
-          apply auto
-          done
-        fix i a b
-        assume as'': "(a, b) \<in> q i"
-        show "0 \<le> (real i + 1) * (content b *\<^sub>R indicator s a)"
-          unfolding real_scaleR_def
-          using tagged_division_ofD(4)[OF q(1) as'']
-          by (auto intro!: mult_nonneg_nonneg)
+      have "finite \<D>"
+        using that(1) by blast
+      then have sum_le_inc: "\<lbrakk>finite T; \<And>x y. (x,y) \<in> T \<Longrightarrow> (0::real) \<le> g(x,y);
+                      \<And>y. y\<in>\<D> \<Longrightarrow> \<exists>x. (x,y) \<in> T \<and> f(y) \<le> g(x,y)\<rbrakk> \<Longrightarrow> sum f \<D> \<le> sum g T" for f g T
+        by (rule sum_le_included[of \<D> T g snd f]; force)
+      have "norm (\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) \<le> (\<Sum>(x,K) \<in> \<D>. norm (content K *\<^sub>R f x))"
+        unfolding split_def by (rule norm_sum)
+      also have "... \<le> (\<Sum>(i, j) \<in> Sigma {..N + 1} q.
+                          (real i + 1) * (case j of (x, K) \<Rightarrow> content K *\<^sub>R indicator S x))"
+      proof (rule sum_le_inc, safe)
+        show "finite (Sigma {..N+1} q)"
+          by (meson finite_SigmaI finite_atMost tagged_division_of_finite q(1)) 
       next
-        fix i :: nat
-        show "finite (q i)"
-          using q by auto
-      next
-        fix x k
-        assume xk: "(x, k) \<in> p"
+        fix x K
+        assume xk: "(x, K) \<in> \<D>"
         define n where "n = nat \<lfloor>norm (f x)\<rfloor>"
-        have *: "norm (f x) \<in> (\<lambda>(x, k). norm (f x)) ` p"
+        have *: "norm (f x) \<in> (\<lambda>(x, K). norm (f x)) ` \<D>"
           using xk by auto
         have nfx: "real n \<le> norm (f x)" "norm (f x) \<le> real n + 1"
           unfolding n_def by auto
         then have "n \<in> {0..N + 1}"
-          using N[rule_format,OF *] by auto
+          using N[OF *] by auto
+        moreover have "K \<subseteq> \<gamma> (nat \<lfloor>norm (f x)\<rfloor>) x"
+          using that(2) xk by auto
+        moreover then have "(x, K) \<in> q (nat \<lfloor>norm (f x)\<rfloor>)"
+          by (simp add: q(3) xk)
+        moreover then have "(x, K) \<in> q n"
+          using n_def by blast
         moreover
-        note as(2)[unfolded fine_def,rule_format,OF xk,unfolded split_conv]
-        note q(3)[rule_format,OF xk,unfolded split_conv,rule_format,OF this]
-        note this[unfolded n_def[symmetric]]
-        moreover
-        have "norm (content k *\<^sub>R f x) \<le> (real n + 1) * (content k * indicator s x)"
-        proof (cases "x \<in> s")
+        have "norm (content K *\<^sub>R f x) \<le> (real n + 1) * (content K * indicator S x)"
+        proof (cases "x \<in> S")
           case False
-          then show ?thesis
-            using assm by auto
+          then show ?thesis by (simp add: 0)
         next
           case True
-          have *: "content k \<ge> 0"
-            using tagged_division_ofD(4)[OF as(1) xk] by auto
-          moreover
-          have "content k * norm (f x) \<le> content k * (real n + 1)"
-            apply (rule mult_mono)
-            using nfx *
-            apply auto
-            done
-          ultimately
-          show ?thesis
-            unfolding abs_mult
-            using nfx True
-            by (auto simp add: field_simps)
+          have *: "content K \<ge> 0"
+            using tagged_division_ofD(4)[OF that(1) xk] by auto
+          moreover have "content K * norm (f x) \<le> content K * (real n + 1)"
+            by (simp add: mult_left_mono nfx(2))
+          ultimately show ?thesis
+            using nfx True by (auto simp: field_simps)
         qed
-        ultimately show "\<exists>y. (y, x, k) \<in> {(i, j) |i j. i \<in> {..N + 1} \<and> j \<in> q i} \<and> norm (content k *\<^sub>R f x) \<le>
-          (real y + 1) * (content k *\<^sub>R indicator s x)"
+        ultimately show "\<exists>y. (y, x, K) \<in> (Sigma {..N + 1} q) \<and> norm (content K *\<^sub>R f x) \<le>
+          (real y + 1) * (content K *\<^sub>R indicator S x)"
           by force
-      qed (insert as, auto)
-      also have "\<dots> \<le> sum (\<lambda>i. e / 2 / 2 ^ i) {..N+1}"
-      proof (rule sum_mono, goal_cases)
-        case (1 i)
-        then show ?case
-          apply (subst mult.commute, subst pos_le_divide_eq[symmetric])
-          using d(2)[rule_format, of "q i" i]
-          using q[rule_format]
-          apply (auto simp add: field_simps)
-          done
-      qed
-      also have "\<dots> < e * inverse 2 * 2"
-        unfolding divide_inverse sum_distrib_left[symmetric]
-        apply (rule mult_strict_left_mono)
-        unfolding power_inverse [symmetric] lessThan_Suc_atMost[symmetric]
-        apply (subst geometric_sum)
-        using prems
-        apply auto
+      qed auto
+      also have "... = (\<Sum>i\<le>N + 1. \<Sum>j\<in>q i. (real i + 1) * (case j of (x, K) \<Rightarrow> content K *\<^sub>R indicator S x))"
+        apply (rule sum_Sigma_product [symmetric])
+        using q(1) apply auto
         done
-      finally show "?goal" by auto
+      also have "... \<le> (\<Sum>i\<le>N + 1. (real i + 1) * \<bar>\<Sum>(x,K) \<in> q i. content K *\<^sub>R indicator S x\<bar>)"
+        by (rule sum_mono) (simp add: sum_distrib_left [symmetric])
+      also have "... \<le> (\<Sum>i\<le>N + 1. e/2 / 2 ^ i)"
+      proof (rule sum_mono)
+        show "(real i + 1) * \<bar>\<Sum>(x,K) \<in> q i. content K *\<^sub>R indicator S x\<bar> \<le> e/2 / 2 ^ i"
+          if "i \<in> {..N + 1}" for i
+          using \<gamma>[of "q i" i] q by (simp add: divide_simps mult.left_commute)
+      qed
+      also have "... = e/2 * (\<Sum>i\<le>N + 1. (1 / 2) ^ i)"
+        unfolding sum_distrib_left by (metis divide_inverse inverse_eq_divide power_one_over)
+      also have "\<dots> < e/2 * 2"
+      proof (rule mult_strict_left_mono)
+        have "sum (op ^ (1 / 2)) {..N + 1} = sum (op ^ (1 / 2::real)) {..<N + 2}"
+          using lessThan_Suc_atMost by auto
+        also have "... < 2"
+          by (auto simp: geometric_sum)
+        finally show "sum (op ^ (1 / 2::real)) {..N + 1} < 2" .
+      qed (use \<open>0 < e\<close> in auto)
+      finally  show ?thesis by auto
     qed
   qed
+qed
+
+
+proposition has_integral_negligible:
+  fixes f :: "'b::euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  assumes negs: "negligible S"
+    and "\<And>x. x \<in> (T - S) \<Longrightarrow> f x = 0"
+  shows "(f has_integral 0) T"
+proof (cases "\<exists>a b. T = cbox a b")
+  case True
+  then have "((\<lambda>x. if x \<in> T then f x else 0) has_integral 0) T"
+    using assms by (auto intro!: has_integral_negligible_cbox)
+  then show ?thesis
+    by (rule has_integral_eq [rotated]) auto
+next
+  case False
+  let ?f = "(\<lambda>x. if x \<in> T then f x else 0)"
+  have "((\<lambda>x. if x \<in> T then f x else 0) has_integral 0) T"
+    apply (auto simp: False has_integral_alt [of ?f])
+    apply (rule_tac x=1 in exI, auto)
+    apply (rule_tac x=0 in exI, simp add: has_integral_negligible_cbox [OF negs] assms)
+    done
+  then show ?thesis
+    by (rule_tac f="?f" in has_integral_eq) auto
 qed
 
 lemma has_integral_spike:
@@ -2564,7 +2529,7 @@ lemma integrable_continuous:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
   assumes "continuous_on (cbox a b) f"
   shows "f integrable_on cbox a b"
-proof (rule integrable_uniform_limit, safe)
+proof (rule integrable_uniform_limit)
   fix e :: real
   assume e: "e > 0"
   then obtain d where "0 < d" and d: "\<And>x x'. \<lbrakk>x \<in> cbox a b; x' \<in> cbox a b; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"

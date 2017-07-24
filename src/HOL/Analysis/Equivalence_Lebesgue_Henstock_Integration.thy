@@ -1595,6 +1595,7 @@ lemma helplemma:
   apply (rule norm_triangle_ineq3)
   done
 
+text\<open>FIXME: needs refactoring and use of Sigma\<close>
 lemma bounded_variation_absolutely_integrable_interval:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes f: "f integrable_on cbox a b"
@@ -1852,14 +1853,14 @@ proof -
           qed
           finally show ?case .
         qed
-        also have "\<dots> = (\<Sum>(i,l)\<in>{(i, l) |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral (i\<inter>l) f))"
-          apply (subst sum_sum_product[symmetric])
+        also have "\<dots> = (\<Sum>(i,l) \<in> d \<times> (snd ` p). norm (integral (i\<inter>l) f))"
+          apply (subst sum_Sigma_product[symmetric])
           apply fact
           using p'(1)
           apply auto
           done
         also have "\<dots> = (\<Sum>x\<in>{(i, l) |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral (case_prod op \<inter> x) f))"
-          unfolding split_def ..
+          by (force simp: split_def Sigma_def intro!: sum.cong)
         also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
           unfolding *
           apply (rule sum.reindex_nontrivial [symmetric, unfolded o_def])
@@ -1925,8 +1926,6 @@ proof -
       next
         case 3
         let ?S = "{(x, i \<inter> l) |x i l. (x, l) \<in> p \<and> i \<in> d}"
-        have Sigma_alt: "\<And>s t. s \<times> t = {(i, j) |i j. i \<in> s \<and> j \<in> t}"
-          by auto
         have *: "?S = (\<lambda>(xl,i). (fst xl, snd xl \<inter> i)) ` (p \<times> d)"
           apply safe
           unfolding image_iff
@@ -1983,10 +1982,8 @@ proof -
             by auto
         qed safe
         also have "\<dots> = (\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x))"
-          unfolding Sigma_alt
-          apply (subst sum_sum_product[symmetric])
+          apply (subst sum_Sigma_product[symmetric])
           apply (rule p')
-          apply rule
           apply (rule d')
           apply (rule sum.cong)
           apply (rule refl)
