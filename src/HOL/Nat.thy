@@ -2143,6 +2143,12 @@ next
   qed
 qed
 
+lemma transitive_stepwise_le:
+  assumes "m \<le> n" "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" and "\<And>n. R n (Suc n)"
+  shows "R m n"
+using \<open>m \<le> n\<close>  
+  by (induction rule: dec_induct) (use assms in blast)+
+
 
 subsubsection \<open>Greatest operator\<close>
 
