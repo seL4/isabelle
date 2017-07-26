@@ -308,7 +308,7 @@ lemma division_ofI:
   using assms unfolding division_of_def by auto
 
 lemma division_of_finite: "s division_of i \<Longrightarrow> finite s"
-  unfolding division_of_def by auto
+  by auto
 
 lemma division_of_self[intro]: "cbox a b \<noteq> {} \<Longrightarrow> {cbox a b} division_of (cbox a b)"
   unfolding division_of_def by auto
@@ -356,6 +356,11 @@ lemma division_contains: "s division_of i \<Longrightarrow> \<forall>x\<in>i. \<
 lemma forall_in_division:
   "d division_of i \<Longrightarrow> (\<forall>x\<in>d. P x) \<longleftrightarrow> (\<forall>a b. cbox a b \<in> d \<longrightarrow> P (cbox a b))"
   unfolding division_of_def by fastforce
+
+lemma cbox_division_memE:
+  assumes \<D>: "K \<in> \<D>" "\<D> division_of S"
+  obtains a b where "K = cbox a b" "K \<noteq> {}" "K \<subseteq> S"
+  using assms unfolding division_of_def by metis
 
 lemma division_of_subset:
   assumes "p division_of (\<Union>p)"

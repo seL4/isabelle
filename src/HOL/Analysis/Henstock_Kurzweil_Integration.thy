@@ -46,6 +46,19 @@ lemma content_cbox: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longr
 lemma content_cbox': "cbox a b \<noteq> {} \<Longrightarrow> content (cbox a b) = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
   by (simp add: box_ne_empty inner_diff)
 
+lemma content_cbox_if: "content (cbox a b) = (if cbox a b = {} then 0 else \<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
+  by (simp add: content_cbox')
+
+lemma content_division_of:
+  assumes "K \<in> \<D>" "\<D> division_of S"
+  shows "content K = (\<Prod>i \<in> Basis. interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)"
+proof -
+  obtain a b where "K = cbox a b"
+    using cbox_division_memE assms by metis
+  then show ?thesis
+    using assms by (force simp: division_of_def content_cbox')
+qed
+
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
   by simp
 

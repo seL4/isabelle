@@ -1,6 +1,7 @@
 theory Analysis
 imports
   Lebesgue_Integral_Substitution
+  Improper_Integral
   Embed_Measure
   Complete_Measure
   Radon_Nikodym
