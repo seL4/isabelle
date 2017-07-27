@@ -79,20 +79,27 @@ lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> 
 lemma hull_inc: "x \<in> S \<Longrightarrow> x \<in> P hull S"
   by (metis hull_subset subset_eq)
 
-lemma hull_union_subset: "(S hull s) \<union> (S hull t) \<subseteq> (S hull (s \<union> t))"
+lemma hull_Un_subset: "(S hull s) \<union> (S hull t) \<subseteq> (S hull (s \<union> t))"
   unfolding Un_subset_iff by (metis hull_mono Un_upper1 Un_upper2)
 
-lemma hull_union:
+lemma hull_Un:
   assumes T: "\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)"
   shows "S hull (s \<union> t) = S hull (S hull s \<union> S hull t)"
-  apply rule
-  apply (rule hull_mono)
-  unfolding Un_subset_iff
-  apply (metis hull_subset Un_upper1 Un_upper2 subset_trans)
-  apply (rule hull_minimal)
-  apply (metis hull_union_subset)
-  apply (metis hull_in T)
-  done
+  apply (rule equalityI)
+  apply (meson hull_mono hull_subset sup.mono)
+  by (metis hull_Un_subset hull_hull hull_mono)
+
+lemma hull_Un_left: "P hull (S \<union> T) = P hull (P hull S \<union> T)"
+  apply (rule equalityI)
+   apply (simp add: Un_commute hull_mono hull_subset sup.coboundedI2)
+  by (metis Un_subset_iff hull_hull hull_mono hull_subset)
+
+lemma hull_Un_right: "P hull (S \<union> T) = P hull (S \<union> P hull T)"
+  by (metis hull_Un_left sup.commute)
+
+lemma hull_insert:
+   "P hull (insert a S) = P hull (insert a (P hull S))"
+  by (metis hull_Un_right insert_is_Un)
 
 lemma hull_redundant_eq: "a \<in> (S hull s) \<longleftrightarrow> S hull (insert a s) = S hull s"
   unfolding hull_def by blast

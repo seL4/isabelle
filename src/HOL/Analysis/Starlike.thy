@@ -5837,10 +5837,40 @@ next
   show ?thesis using S
     apply (simp add: hull_redundant cong: aff_dim_affine_hull2)
     apply (simp add: affine_hull_insert_span_gen hull_inc)
-    apply (simp add: insert_commute [of a] hull_inc aff_dim_eq_dim [of x] dim_insert span_0)
+    apply (simp add: insert_commute [of a] hull_inc aff_dim_eq_dim [of x] dim_insert)
     apply (metis (no_types, lifting) add_minus_cancel image_iff uminus_add_conv_diff)
     done
 qed
+
+lemma affine_dependent_choose:
+  fixes a :: "'a :: euclidean_space"
+  assumes "~(affine_dependent S)"
+  shows "affine_dependent(insert a S) \<longleftrightarrow> a \<notin> S \<and> a \<in> affine hull S"
+        (is "?lhs = ?rhs")
+proof safe
+  assume "affine_dependent (insert a S)" and "a \<in> S"
+  then show "False"
+    using \<open>a \<in> S\<close> assms insert_absorb by fastforce
+next
+  assume lhs: "affine_dependent (insert a S)"
+  then have "a \<notin> S"
+    by (metis (no_types) assms insert_absorb)
+  moreover have "finite S"
+    using affine_independent_iff_card assms by blast
+  moreover have "aff_dim (insert a S) \<noteq> int (card S)"
+    using \<open>finite S\<close> affine_independent_iff_card \<open>a \<notin> S\<close> lhs by fastforce
+  ultimately show "a \<in> affine hull S"
+    by (metis aff_dim_affine_independent aff_dim_insert assms)
+next
+  assume "a \<notin> S" and "a \<in> affine hull S"
+  show "affine_dependent (insert a S)"
+    by (simp add: \<open>a \<in> affine hull S\<close> \<open>a \<notin> S\<close> affine_dependent_def)
+qed
+
+lemma affine_independent_insert:
+  fixes a :: "'a :: euclidean_space"
+  shows "\<lbrakk>~(affine_dependent S); a \<notin> affine hull S\<rbrakk> \<Longrightarrow> ~(affine_dependent(insert a S))"
+  by (simp add: affine_dependent_choose)
 
 lemma subspace_bounded_eq_trivial:
   fixes S :: "'a::real_normed_vector set"
