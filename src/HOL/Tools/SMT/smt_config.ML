@@ -32,6 +32,7 @@ sig
   val statistics: bool Config.T
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
+  val nat_as_int: bool Config.T
   val infer_triggers: bool Config.T
   val debug_files: string Config.T
   val sat_solver: string Config.T
@@ -179,6 +180,7 @@ val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
 val statistics = Attrib.setup_config_bool @{binding smt_statistics} (K false)
 val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
 val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
+val nat_as_int = Attrib.setup_config_bool @{binding smt_nat_as_int} (K false)
 val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
 val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
 val sat_solver = Attrib.setup_config_string @{binding smt_sat_solver} (K "cdclite")

@@ -378,6 +378,32 @@ lemma [z3_rule]:
   using assms by (metis mult_le_0_iff)
 
 
+subsection {* Linear arithmetic for natural numbers *}
+
+declare [[smt_nat_as_int]]
+
+lemma "2 * (x::nat) \<noteq> 1" by smt
+
+lemma "a < 3 \<Longrightarrow> (7::nat) > 2 * a" by smt
+
+lemma "let x = (1::nat) + y in x - y > 0 * x" by smt
+
+lemma
+  "let x = (1::nat) + y in
+   let P = (if x > 0 then True else False) in
+   False \<or> P = (x - 1 = y) \<or> (\<not>P \<longrightarrow> False)"
+  by smt
+
+lemma "int (nat \<bar>x::int\<bar>) = \<bar>x\<bar>" by smt
+
+definition prime_nat :: "nat \<Rightarrow> bool" where
+  "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+
+lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)" by (smt prime_nat_def)
+
+declare [[smt_nat_as_int = false]]
+
+
 section \<open>Pairs\<close>
 
 lemma "fst (x, y) = a \<Longrightarrow> x = a"

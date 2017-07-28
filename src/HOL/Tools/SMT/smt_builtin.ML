@@ -13,7 +13,7 @@ sig
   val add_builtin_typ: SMT_Util.class ->
     typ * (typ -> string option) * (typ -> int -> string option) -> Context.generic ->
     Context.generic
-  val add_builtin_typ_ext: typ * (typ -> bool) -> Context.generic ->
+  val add_builtin_typ_ext: typ * (Proof.context -> typ -> bool) -> Context.generic ->
     Context.generic
   val dest_builtin_typ: Proof.context -> typ -> string option
   val is_builtin_typ_ext: Proof.context -> typ -> bool
@@ -93,7 +93,7 @@ type bfunr = string * int * term list * (term list -> term)
 structure Builtins = Generic_Data
 (
   type T =
-    (typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab *
+    (Proof.context -> typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab *
     (term list bfun, bfunr option bfun) btab
   val empty = ([], Symtab.empty)
   val extend = I
@@ -125,7 +125,7 @@ fun dest_builtin_typ ctxt T =
 fun is_builtin_typ_ext ctxt T =
   (case lookup_builtin_typ ctxt T of
     SOME (_, Int (f, _)) => is_some (f T)
-  | SOME (_, Ext f) => f T
+  | SOME (_, Ext f) => f ctxt T
   | NONE => false)
 
 

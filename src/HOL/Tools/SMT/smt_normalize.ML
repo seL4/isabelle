@@ -327,6 +327,85 @@ val setup_abs_min_max = fold (SMT_Builtin.add_builtin_fun_ext'' o fst) abs_min_m
 end
 
 
+(** embedding of standard natural number operations into integer operations **)
+
+local
+  val nat_embedding = @{thms nat_int' int_nat_nneg int_nat_neg}
+
+  val simple_nat_ops = [
+    @{const less (nat)}, @{const less_eq (nat)},
+    @{const Suc}, @{const plus (nat)}, @{const minus (nat)}]
+
+  val mult_nat_ops =
+    [@{const times (nat)}, @{const divide (nat)}, @{const modulo (nat)}]
+
+  val nat_ops = simple_nat_ops @ mult_nat_ops
+
+  val nat_consts = nat_ops @ [@{const numeral (nat)},
+    @{const zero_class.zero (nat)}, @{const one_class.one (nat)}]
+
+  val nat_int_coercions = [@{const of_nat (int)}, @{const nat}]
+
+  val builtin_nat_ops = nat_int_coercions @ simple_nat_ops
+
+  val is_nat_const = member (op aconv) nat_consts
+
+  fun is_nat_const' @{const of_nat (int)} = true
+    | is_nat_const' t = is_nat_const t
+
+  val expands = map mk_meta_eq @{thms nat_zero_as_int nat_one_as_int nat_numeral_as_int
+    nat_less_as_int nat_leq_as_int Suc_as_int nat_plus_as_int nat_minus_as_int nat_times_as_int
+    nat_div_as_int nat_mod_as_int}
+
+  val ints = map mk_meta_eq @{thms of_nat_0 of_nat_1 int_Suc int_plus int_minus of_nat_mult zdiv_int
+    zmod_int}
+  val int_if = mk_meta_eq @{lemma "int (if P then n else m) = (if P then int n else int m)" by simp}
+
+  fun mk_number_eq ctxt i lhs =
+    let
+      val eq = SMT_Util.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
+      val ctxt' = put_simpset HOL_ss ctxt addsimps @{thms of_nat_numeral}
+      val tac = HEADGOAL (Simplifier.simp_tac ctxt')
+    in Goal.norm_result ctxt (Goal.prove_internal ctxt [] eq (K tac)) end
+
+  fun ite_conv cv1 cv2 =
+    Conv.combination_conv (Conv.combination_conv (Conv.arg_conv cv1) cv2) cv2
+
+  fun int_conv ctxt ct =
+    (case Thm.term_of ct of
+      @{const of_nat (int)} $ (n as (@{const numeral (nat)} $ _)) =>
+        Conv.rewr_conv (mk_number_eq ctxt (snd (HOLogic.dest_number n)) ct)
+    | @{const of_nat (int)} $ _ =>
+        (Conv.rewrs_conv ints then_conv Conv.sub_conv ints_conv ctxt) else_conv
+        (Conv.rewr_conv int_if then_conv
+          ite_conv (nat_conv ctxt) (int_conv ctxt)) else_conv
+        Conv.sub_conv (Conv.top_sweep_conv nat_conv) ctxt
+    | _ => Conv.no_conv) ct
+
+  and ints_conv ctxt = Conv.top_sweep_conv int_conv ctxt
+
+  and expand_conv ctxt =
+    SMT_Util.if_conv (is_nat_const o Term.head_of)
+      (expand_head_conv (Conv.rewrs_conv expands) then_conv ints_conv ctxt) (int_conv ctxt)
+
+  and nat_conv ctxt = SMT_Util.if_exists_conv is_nat_const' (Conv.top_sweep_conv expand_conv ctxt)
+
+  val uses_nat_int = Term.exists_subterm (member (op aconv) nat_int_coercions)
+in
+
+val nat_as_int_conv = nat_conv
+
+fun add_nat_embedding thms =
+  if exists (uses_nat_int o Thm.prop_of) thms then (thms, nat_embedding) else (thms, [])
+
+val setup_nat_as_int =
+  SMT_Builtin.add_builtin_typ_ext (@{typ nat},
+    fn ctxt => K (Config.get ctxt SMT_Config.nat_as_int)) #>
+  fold (SMT_Builtin.add_builtin_fun_ext' o Term.dest_Const) builtin_nat_ops
+
+end
+
+
 (** normalize numerals **)
 
 local
@@ -359,22 +438,26 @@ end
 
 (** combined unfoldings and rewritings **)
 
-fun unfold_conv ctxt =
-  rewrite_case_bool_conv ctxt then_conv
-  unfold_abs_min_max_conv ctxt then_conv
-  Thm.beta_conversion true
-
-fun unfold_polymorph ctxt = map (apsnd (Conv.fconv_rule (unfold_conv ctxt)))
-fun unfold_monomorph ctxt = map (apsnd (Conv.fconv_rule (normalize_numerals_conv ctxt)))
-
-
-(* overall normalization *)
-
 fun burrow_ids f ithms =
   let
     val (is, thms) = split_list ithms
     val (thms', extra_thms) = f thms
   in (is ~~ thms') @ map (pair ~1) extra_thms end
+
+fun unfold_conv ctxt =
+  rewrite_case_bool_conv ctxt then_conv
+  unfold_abs_min_max_conv ctxt then_conv
+  (if Config.get ctxt SMT_Config.nat_as_int then nat_as_int_conv ctxt
+   else Conv.all_conv) then_conv
+  Thm.beta_conversion true
+
+fun unfold_polymorph ctxt = map (apsnd (Conv.fconv_rule (unfold_conv ctxt)))
+fun unfold_monomorph ctxt =
+  map (apsnd (Conv.fconv_rule (normalize_numerals_conv ctxt)))
+  #> Config.get ctxt SMT_Config.nat_as_int ? burrow_ids add_nat_embedding
+
+
+(* overall normalization *)
 
 type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
 
@@ -439,6 +522,7 @@ val _ = Theory.setup (Context.theory_map (
   setup_unfolded_quants #>
   setup_trigger #>
   setup_case_bool #>
-  setup_abs_min_max))
+  setup_abs_min_max #>
+  setup_nat_as_int))
 
 end;

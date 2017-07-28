@@ -197,6 +197,9 @@ INCOMPATIBILITY.
 Knaster-Tarski fixed point theorem and Galois Connections.
 
 * SMT module:
+  - A new option, 'smt_nat_as_int', has been added to translate 'nat' to
+    'int' and benefit from the SMT solver's theory reasoning. It is disabled
+    by default.
   - The legacy module 'src/HOL/Library/Old_SMT.thy' has been removed.
   - Several small issues have been rectified in the 'smt' command.
 
