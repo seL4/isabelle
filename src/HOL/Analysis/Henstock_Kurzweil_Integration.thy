@@ -6020,25 +6020,20 @@ proof -
     next
       case 3
       then show ?case
-        apply (rule inter_interior_unions_intervals)
-        apply fact
-        apply rule
-        apply rule
+      proof (rule Int_interior_Union_intervals [OF \<open>finite r\<close>])
+        show "open (interior (UNION p snd))"
+          by blast
+        show "\<And>T. T \<in> r \<Longrightarrow> \<exists>a b. T = cbox a b"
         apply (rule q')
-        defer
-        apply rule
-        apply (subst Int_commute)
-        apply (rule inter_interior_unions_intervals)
-        apply (rule finite_imageI)
-        apply (rule p')
-        apply rule
-        defer
-        apply rule
-        apply (rule q')
-        using q(1) p'
-        unfolding r_def
-        apply auto
-        done
+          using r_def by blast
+        have "finite (snd ` p)"
+          by (simp add: p'(1))
+        then show "\<And>T. T \<in> r \<Longrightarrow> interior (UNION p snd) \<inter> interior T = {}"
+          apply (subst Int_commute)
+          apply (rule Int_interior_Union_intervals)
+          using \<open>r \<equiv> q - snd ` p\<close>  q'(5) q(1) apply auto
+          by (simp add: p'(4))
+      qed
     qed
     moreover have "\<Union>(snd ` p) \<union> \<Union>r = cbox a b" and "{qq i |i. i \<in> r} = qq ` r"
       unfolding Union_Un_distrib[symmetric] r_def

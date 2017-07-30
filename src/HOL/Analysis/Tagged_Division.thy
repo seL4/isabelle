@@ -10,7 +10,7 @@ imports
   Topology_Euclidean_Space
 begin
 
-lemma finite_product_dependent:
+lemma finite_product_dependent: (*FIXME DELETE*)
   assumes "finite s"
     and "\<And>x. x \<in> s \<Longrightarrow> finite (t x)"
   shows "finite {(i, j) |i j. i \<in> s \<and> j \<in> t i}"
@@ -77,19 +77,17 @@ lemma interior_subset_union_intervals:
   assumes "i = cbox a b"
     and "j = cbox c d"
     and "interior j \<noteq> {}"
-    and "i \<subseteq> j \<union> s"
+    and "i \<subseteq> j \<union> S"
     and "interior i \<inter> interior j = {}"
-  shows "interior i \<subseteq> interior s"
+  shows "interior i \<subseteq> interior S"
 proof -
   have "box a b \<inter> cbox c d = {}"
-     using inter_interval_mixed_eq_empty[of c d a b] and assms(3,5)
-     unfolding assms(1,2) interior_cbox by auto
+     using inter_interval_mixed_eq_empty[of c d a b] assms
+     unfolding interior_cbox by auto
   moreover
-  have "box a b \<subseteq> cbox c d \<union> s"
+  have "box a b \<subseteq> cbox c d \<union> S"
     apply (rule order_trans,rule box_subset_cbox)
-    using assms(4) unfolding assms(1,2)
-    apply auto
-    done
+    using assms by auto
   ultimately
   show ?thesis
     unfolding assms interior_cbox
@@ -132,9 +130,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma inter_interior_unions_intervals:
-    "finite f \<Longrightarrow> open s \<Longrightarrow> \<forall>t\<in>f. \<exists>a b. t = cbox a b \<Longrightarrow> \<forall>t\<in>f. s \<inter> (interior t) = {} \<Longrightarrow> s \<inter> interior (\<Union>f) = {}"
-  using interior_Union_subset_cbox[of f "UNIV - s"] by auto
+lemma Int_interior_Union_intervals:
+    "\<lbrakk>finite \<F>; open S; \<And>T. T\<in>\<F> \<Longrightarrow> \<exists>a b. T = cbox a b; \<And>T. T\<in>\<F> \<Longrightarrow> S \<inter> (interior T) = {}\<rbrakk> 
+    \<Longrightarrow> S \<inter> interior (\<Union>\<F>) = {}"
+  using interior_Union_subset_cbox[of \<F> "UNIV - S"] by auto
 
 lemma interval_split:
   fixes a :: "'a::euclidean_space"
@@ -142,11 +141,7 @@ lemma interval_split:
   shows
     "cbox a b \<inter> {x. x\<bullet>k \<le> c} = cbox a (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i) *\<^sub>R i)"
     "cbox a b \<inter> {x. x\<bullet>k \<ge> c} = cbox (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i) *\<^sub>R i) b"
-  apply (rule_tac[!] set_eqI)
-  unfolding Int_iff mem_box mem_Collect_eq
-  using assms
-  apply auto
-  done
+  using assms by (rule_tac set_eqI; auto simp: mem_box)+
 
 lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> cbox a b \<noteq> {}"
   by (simp add: box_ne_empty)
@@ -242,17 +237,17 @@ lemma gauge_Int[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> g
   unfolding gauge_def by auto
 
 lemma gauge_reflect:
-  fixes \<D> :: "'a::euclidean_space \<Rightarrow> 'a set"
-  shows "gauge \<D> \<Longrightarrow> gauge (\<lambda>x. uminus ` \<D> (- x))"
+  fixes \<gamma> :: "'a::euclidean_space \<Rightarrow> 'a set"
+  shows "gauge \<gamma> \<Longrightarrow> gauge (\<lambda>x. uminus ` \<gamma> (- x))"
   using equation_minus_iff
   by (auto simp: gauge_def surj_def intro!: open_surjective_linear_image linear_uminus)
 
 lemma gauge_Inter:
-  assumes "finite s"
-    and "\<And>d. d\<in>s \<Longrightarrow> gauge (f d)"
-  shows "gauge (\<lambda>x. \<Inter>{f d x | d. d \<in> s})"
+  assumes "finite S"
+    and "\<And>d. d\<in>S \<Longrightarrow> gauge (f d)"
+  shows "gauge (\<lambda>x. \<Inter>{f d x | d. d \<in> S})"
 proof -
-  have *: "\<And>x. {f d x |d. d \<in> s} = (\<lambda>d. f d x) ` s"
+  have *: "\<And>x. {f d x |d. d \<in> S} = (\<lambda>d. f d x) ` S"
     by auto
   show ?thesis
     unfolding gauge_def unfolding *
@@ -266,16 +261,9 @@ lemma gauge_existence_lemma:
 subsection \<open>Attempt a systematic general set of "offset" results for components.\<close>
 
 lemma gauge_modify:
-  assumes "(\<forall>s. open s \<longrightarrow> open {x. f(x) \<in> s})" "gauge d"
+  assumes "(\<forall>S. open S \<longrightarrow> open {x. f(x) \<in> S})" "gauge d"
   shows "gauge (\<lambda>x. {y. f y \<in> d (f x)})"
-  using assms
-  unfolding gauge_def
-  apply safe
-  defer
-  apply (erule_tac x="f x" in allE)
-  apply (erule_tac x="d (f x)" in allE)
-  apply auto
-  done
+  using assms unfolding gauge_def by force
 
 subsection \<open>Divisions.\<close>
 
@@ -671,24 +659,19 @@ next
   qed
   obtain q where q: "\<And>x. x \<in> p \<Longrightarrow> q x division_of cbox a b" "\<And>x. x \<in> p \<Longrightarrow> x \<in> q x"
     using bchoice[OF div_cbox] by blast
-  { fix x
-    assume x: "x \<in> p"
-    have "q x division_of \<Union>q x"
-      apply (rule division_ofI)
-      using division_ofD[OF q(1)[OF x]]
-      apply auto
-      done }
-  then have "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
+  have "q x division_of \<Union>q x" if x: "x \<in> p" for x
+    apply (rule division_ofI)
+    using division_ofD[OF q(1)[OF x]] by auto
+  then have di: "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
     by (meson Diff_subset division_of_subset)
-  then have "\<exists>d. d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)"
-    apply -
+  have "\<exists>d. d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)"
     apply (rule elementary_inters [OF finite_imageI[OF p(1)]])
-    apply (auto simp: False elementary_inters [OF finite_imageI[OF p(1)]])
+    apply (auto dest: di simp: False elementary_inters [OF finite_imageI[OF p(1)]])
     done
   then obtain d where d: "d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)" ..
   have "d \<union> p division_of cbox a b"
   proof -
-    have te: "\<And>s f t. s \<noteq> {} \<Longrightarrow> \<forall>i\<in>s. f i \<union> i = t \<Longrightarrow> t = \<Inter>(f ` s) \<union> \<Union>s" by auto
+    have te: "\<And>S f T. S \<noteq> {} \<Longrightarrow> \<forall>i\<in>S. f i \<union> i = T \<Longrightarrow> T = \<Inter>(f ` S) \<union> \<Union>S" by auto
     have cbox_eq: "cbox a b = \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p) \<union> \<Union>p"
     proof (rule te[OF False], clarify)
       fix i
@@ -696,27 +679,23 @@ next
       show "\<Union>(q i - {i}) \<union> i = cbox a b"
         using division_ofD(6)[OF q(1)[OF i]] using q(2)[OF i] by auto
     qed
-    { fix k
-      assume k: "k \<in> p"
-      have *: "\<And>u t s. t \<inter> s = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<inter> t = {}"
+    { fix K
+      assume K: "K \<in> p"
+      note qk=division_ofD[OF q(1)[OF K]]
+      have *: "\<And>u T S. T \<inter> S = {} \<Longrightarrow> u \<subseteq> S \<Longrightarrow> u \<inter> T = {}"
         by auto
-      have "interior (\<Inter>i\<in>p. \<Union>(q i - {i})) \<inter> interior k = {}"
-      proof (rule *[OF inter_interior_unions_intervals])
-        note qk=division_ofD[OF q(1)[OF k]]
-        show "finite (q k - {k})" "open (interior k)" "\<forall>t\<in>q k - {k}. \<exists>a b. t = cbox a b"
-          using qk by auto
-        show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}"
-          using qk(5) using q(2)[OF k] by auto
-        show "interior (\<Inter>i\<in>p. \<Union>(q i - {i})) \<subseteq> interior (\<Union>(q k - {k}))"
+      have "interior (\<Inter>i\<in>p. \<Union>(q i - {i})) \<inter> interior K = {}"
+      proof (rule *[OF Int_interior_Union_intervals])
+        show "\<And>T. T\<in>q K - {K} \<Longrightarrow> interior K \<inter> interior T = {}"
+          using qk(5) using q(2)[OF K] by auto
+        show "interior (\<Inter>i\<in>p. \<Union>(q i - {i})) \<subseteq> interior (\<Union>(q K - {K}))"
           apply (rule interior_mono)+
-          using k
-          apply auto
-          done
-      qed } note [simp] = this
+          using K by auto
+      qed (use qk in auto)} note [simp] = this
     show "d \<union> p division_of (cbox a b)"
       unfolding cbox_eq
       apply (rule division_disjoint_union[OF d assms(1)])
-      apply (rule inter_interior_unions_intervals)
+      apply (rule Int_interior_Union_intervals)
       apply (rule p open_interior ballI)+
       apply simp_all
       done
@@ -726,12 +705,12 @@ next
 qed
 
 lemma elementary_bounded[dest]:
-  fixes s :: "'a::euclidean_space set"
-  shows "p division_of s \<Longrightarrow> bounded s"
+  fixes S :: "'a::euclidean_space set"
+  shows "p division_of S \<Longrightarrow> bounded S"
   unfolding division_of_def by (metis bounded_Union bounded_cbox)
 
 lemma elementary_subset_cbox:
-  "p division_of s \<Longrightarrow> \<exists>a b. s \<subseteq> cbox a (b::'a::euclidean_space)"
+  "p division_of S \<Longrightarrow> \<exists>a b. S \<subseteq> cbox a (b::'a::euclidean_space)"
   by (meson elementary_bounded bounded_subset_cbox)
 
 lemma division_union_intervals_exists:
@@ -758,16 +737,16 @@ next
     obtain u v where uv: "cbox a b \<inter> cbox c d = cbox u v"
       unfolding Int_interval by auto
     have uv_sub: "cbox u v \<subseteq> cbox c d" using uv by auto
-    obtain p where "p division_of cbox c d" "cbox u v \<in> p"
+    obtain p where pd: "p division_of cbox c d" and "cbox u v \<in> p"
       by (rule partial_division_extend_1[OF uv_sub False[unfolded uv]])
-    note p = this division_ofD[OF this(1)]
+    note p = this division_ofD[OF pd]
     have "interior (cbox a b \<inter> \<Union>(p - {cbox u v})) = interior(cbox u v \<inter> \<Union>(p - {cbox u v}))"
       apply (rule arg_cong[of _ _ interior])
       using p(8) uv by auto
     also have "\<dots> = {}"
       unfolding interior_Int
-      apply (rule inter_interior_unions_intervals)
-      using p(6) p(7)[OF p(2)] p(3)
+      apply (rule Int_interior_Union_intervals)
+      using p(6) p(7)[OF p(2)] \<open>finite p\<close>
       apply auto
       done
     finally have [simp]: "interior (cbox a b) \<inter> interior (\<Union>(p - {cbox u v})) = {}" by simp
@@ -784,59 +763,45 @@ next
   qed
 qed
 
-lemma division_of_unions:
+lemma division_of_Union:
   assumes "finite f"
     and "\<And>p. p \<in> f \<Longrightarrow> p division_of (\<Union>p)"
     and "\<And>k1 k2. k1 \<in> \<Union>f \<Longrightarrow> k2 \<in> \<Union>f \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> interior k1 \<inter> interior k2 = {}"
   shows "\<Union>f division_of \<Union>\<Union>f"
-  using assms
-  by (auto intro!: division_ofI)
+  using assms  by (auto intro!: division_ofI)
 
 lemma elementary_union_interval:
   fixes a b :: "'a::euclidean_space"
   assumes "p division_of \<Union>p"
   obtains q where "q division_of (cbox a b \<union> \<Union>p)"
-proof -
-  note assm = division_ofD[OF assms]
-  have lem1: "\<And>f s. \<Union>\<Union>(f ` s) = \<Union>((\<lambda>x. \<Union>(f x)) ` s)"
+proof (cases "p = {} \<or> cbox a b = {}")
+  case True
+  obtain p where "p division_of (cbox a b)"
+    by (rule elementary_interval)
+  then show thesis
+    using True assms that by auto
+next
+  case False
+  then have "p \<noteq> {}" "cbox a b \<noteq> {}"
     by auto
-  have lem2: "\<And>f s. f \<noteq> {} \<Longrightarrow> \<Union>{s \<union> t |t. t \<in> f} = s \<union> \<Union>f"
-    by auto
-  {
-    presume "p = {} \<Longrightarrow> thesis"
-      "cbox a b = {} \<Longrightarrow> thesis"
-      "cbox a b \<noteq> {} \<Longrightarrow> interior (cbox a b) = {} \<Longrightarrow> thesis"
-      "p \<noteq> {} \<Longrightarrow> interior (cbox a b)\<noteq>{} \<Longrightarrow> cbox a b \<noteq> {} \<Longrightarrow> thesis"
-    then show thesis by auto
+  note pdiv = division_ofD[OF assms]
+  show ?thesis
+  proof (cases "interior (cbox a b) = {}")
+    case True
+    show ?thesis
+      apply (rule that [of "insert (cbox a b) p", OF division_ofI])
+      using pdiv(1-4) True False apply auto
+       apply (metis IntI equals0D pdiv(5))
+      by (metis disjoint_iff_not_equal pdiv(5))
   next
-    assume as: "p = {}"
-    obtain p where "p division_of (cbox a b)"
-      by (rule elementary_interval)
-    then show thesis
-      using as that by auto
-  next
-    assume as: "cbox a b = {}"
-    show thesis
-      using as assms that by auto
-  next
-    assume as: "interior (cbox a b) = {}" "cbox a b \<noteq> {}"
-    show thesis
-      apply (rule that[of "insert (cbox a b) p"],rule division_ofI)
-      unfolding finite_insert
-      apply (rule assm(1)) unfolding Union_insert
-      using assm(2-4) as
-      apply -
-      apply (fast dest: assm(5))+
-      done
-  next
-    assume as: "p \<noteq> {}" "interior (cbox a b) \<noteq> {}" "cbox a b \<noteq> {}"
+    case False  
     have "\<forall>k\<in>p. \<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> k)"
     proof
       fix k
       assume kp: "k \<in> p"
-      from assm(4)[OF kp] obtain c d where "k = cbox c d" by blast
+      from pdiv(4)[OF kp] obtain c d where "k = cbox c d" by blast
       then show "\<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> k)"
-        by (meson as(3) division_union_intervals_exists)
+        by (meson \<open>cbox a b \<noteq> {}\<close> division_union_intervals_exists)
     qed
     from bchoice[OF this] obtain q where "\<forall>x\<in>p. insert (cbox a b) (q x) division_of (cbox a b) \<union> x" ..
     note q = division_ofD[OF this[rule_format]]
@@ -846,68 +811,58 @@ proof -
       have *: "{insert (cbox a b) (q k) |k. k \<in> p} = (\<lambda>k. insert (cbox a b) (q k)) ` p"
         by auto
       show "finite ?D"
-        using "*" assm(1) q(1) by auto
+        using "*" pdiv(1) q(1) by auto
+      have lem1: "\<And>f s. \<Union>\<Union>(f ` s) = \<Union>((\<lambda>x. \<Union>(f x)) ` s)"
+        by auto
+      have lem2: "\<And>f s. f \<noteq> {} \<Longrightarrow> \<Union>{s \<union> t |t. t \<in> f} = s \<union> \<Union>f"
+        by auto
       show "\<Union>?D = cbox a b \<union> \<Union>p"
         unfolding * lem1
-        unfolding lem2[OF as(1), of "cbox a b", symmetric]
-        using q(6)
-        by auto
-      fix k
-      assume k: "k \<in> ?D"
-      then show "k \<subseteq> cbox a b \<union> \<Union>p"
-        using q(2) by auto
-      show "k \<noteq> {}"
-        using q(3) k by auto
-      show "\<exists>a b. k = cbox a b"
-        using q(4) k by auto
-      fix k'
-      assume k': "k' \<in> ?D" "k \<noteq> k'"
+        unfolding lem2[OF \<open>p \<noteq> {}\<close>, of "cbox a b", symmetric]
+        using q(6)  by auto
+      show "k \<subseteq> cbox a b \<union> \<Union>p" "k \<noteq> {}" if "k \<in> ?D" for k
+        using q that by blast+
+      show "\<exists>a b. k = cbox a b" if "k \<in> ?D" for k
+        using q(4) that by auto
+    next
+      fix k' k
+      assume k: "k \<in> ?D" and k': "k' \<in> ?D" "k \<noteq> k'"
       obtain x where x: "k \<in> insert (cbox a b) (q x)" "x\<in>p"
         using k by auto
       obtain x' where x': "k'\<in>insert (cbox a b) (q x')" "x'\<in>p"
         using k' by auto
       show "interior k \<inter> interior k' = {}"
-      proof (cases "x = x'")
+      proof (cases "x = x' \<or> k  = cbox a b \<or> k' = cbox a b")
         case True
-        show ?thesis
+        then show ?thesis
           using True k' q(5) x' x by auto
       next
         case False
-        {
-          presume "k = cbox a b \<Longrightarrow> ?thesis"
-            and "k' = cbox a b \<Longrightarrow> ?thesis"
-            and "k \<noteq> cbox a b \<Longrightarrow> k' \<noteq> cbox a b \<Longrightarrow> ?thesis"
-          then show ?thesis by linarith
-        next
-          assume as': "k  = cbox a b"
-          show ?thesis
-            using as' k' q(5) x' by blast
-        next
-          assume as': "k' = cbox a b"
-          show ?thesis
-            using as' k'(2) q(5) x by blast
-        }
-        assume as': "k \<noteq> cbox a b" "k' \<noteq> cbox a b"
+        then have as': "k \<noteq> cbox a b" "k' \<noteq> cbox a b"
+          by auto
         obtain c d where k: "k = cbox c d"
           using q(4)[OF x(2,1)] by blast
         have "interior k \<inter> interior (cbox a b) = {}"
           using as' k'(2) q(5) x by blast
         then have "interior k \<subseteq> interior x"
-        using interior_subset_union_intervals
-          by (metis as(2) k q(2) x interior_subset_union_intervals)
+          by (metis \<open>interior (cbox a b) \<noteq> {}\<close> k q(2) x interior_subset_union_intervals)
         moreover
         obtain c d where c_d: "k' = cbox c d"
           using q(4)[OF x'(2,1)] by blast
         have "interior k' \<inter> interior (cbox a b) = {}"
           using as'(2) q(5) x' by blast
         then have "interior k' \<subseteq> interior x'"
-          by (metis as(2) c_d interior_subset_union_intervals q(2) x'(1) x'(2))
+          by (metis \<open>interior (cbox a b) \<noteq> {}\<close> c_d interior_subset_union_intervals q(2) x'(1) x'(2))
+        moreover have "interior x \<inter> interior x' = {}"
+          by (meson False assms division_ofD(5) x'(2) x(2))
         ultimately show ?thesis
-          using assm(5)[OF x(2) x'(2) False] by auto
+          using \<open>interior k \<subseteq> interior x\<close> \<open>interior k' \<subseteq> interior x'\<close> by auto
       qed
     qed
-  }
+  qed
 qed
+
+
 
 lemma elementary_unions_intervals:
   assumes fin: "finite f"
@@ -993,26 +948,20 @@ proof -
     apply(rule assms r2)+
   proof -
     have "interior s \<inter> interior (\<Union>(r1-p)) = {}"
-    proof (rule inter_interior_unions_intervals)
-      show "finite (r1 - p)" and "open (interior s)" and "\<forall>t\<in>r1-p. \<exists>a b. t = cbox a b"
-        using r1 by auto
+    proof (rule Int_interior_Union_intervals)
       have *: "\<And>s. (\<And>x. x \<in> s \<Longrightarrow> False) \<Longrightarrow> s = {}"
         by auto
-      show "\<forall>t\<in>r1-p. interior s \<inter> interior t = {}"
-      proof
-        fix m x
-        assume as: "m \<in> r1 - p"
+      show "interior s \<inter> interior m = {}" if "m \<in> r1 - p" for m 
+      proof -
         have "interior m \<inter> interior (\<Union>p) = {}"
-        proof (rule inter_interior_unions_intervals)
-          show "finite p" and "open (interior m)" and "\<forall>t\<in>p. \<exists>a b. t = cbox a b"
-            using divp by auto
-          show "\<forall>t\<in>p. interior m \<inter> interior t = {}"
-            by (metis DiffD1 DiffD2 as r1(1) r1(7) set_rev_mp)
-        qed
+        proof (rule Int_interior_Union_intervals)
+          show "\<And>t. t\<in>p \<Longrightarrow> interior m \<inter> interior t = {}"
+            by (metis DiffD1 DiffD2 that r1(1) r1(7) set_rev_mp)
+        qed (use divp in auto)
         then show "interior s \<inter> interior m = {}"
           unfolding divp by auto
-      qed
-    qed
+      qed 
+    qed (use r1 in auto)
     then show "interior s \<inter> interior (\<Union>(r1-p) \<inter> (\<Union>q)) = {}"
       using interior_subset by auto
   qed auto
@@ -2023,7 +1972,7 @@ proof -
       show ?case
         unfolding Union_insert
         apply (rule assms(2)[rule_format])
-        using inter_interior_unions_intervals [of f "interior x"]
+        using Int_interior_Union_intervals [of f "interior x"]
         apply (auto simp: insert)
         by (metis IntI empty_iff insert.hyps(2) insert.prems(3) insert_iff)
     qed
@@ -2434,9 +2383,8 @@ proof -
       apply auto
       done
     then have int: "interior (cbox u v) \<inter> interior (\<Union>{k. \<exists>x. (x, k) \<in> p}) = {}"
-      apply (rule inter_interior_unions_intervals)
+      apply (rule Int_interior_Union_intervals)
       apply (rule open_interior)
-      apply (rule_tac[!] ballI)
       unfolding mem_Collect_eq
       apply (erule_tac[!] exE)
       apply (drule p(4)[OF insertI2])
