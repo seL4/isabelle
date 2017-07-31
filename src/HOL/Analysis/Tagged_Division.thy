@@ -795,20 +795,20 @@ next
       by (metis disjoint_iff_not_equal pdiv(5))
   next
     case False  
-    have "\<forall>k\<in>p. \<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> k)"
+    have "\<forall>K\<in>p. \<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> K)"
     proof
-      fix k
-      assume kp: "k \<in> p"
-      from pdiv(4)[OF kp] obtain c d where "k = cbox c d" by blast
-      then show "\<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> k)"
+      fix K
+      assume kp: "K \<in> p"
+      from pdiv(4)[OF kp] obtain c d where "K = cbox c d" by blast
+      then show "\<exists>q. (insert (cbox a b) q) division_of (cbox a b \<union> K)"
         by (meson \<open>cbox a b \<noteq> {}\<close> division_union_intervals_exists)
     qed
     from bchoice[OF this] obtain q where "\<forall>x\<in>p. insert (cbox a b) (q x) division_of (cbox a b) \<union> x" ..
     note q = division_ofD[OF this[rule_format]]
-    let ?D = "\<Union>{insert (cbox a b) (q k) | k. k \<in> p}"
+    let ?D = "\<Union>{insert (cbox a b) (q K) | K. K \<in> p}"
     show thesis
     proof (rule that[OF division_ofI])
-      have *: "{insert (cbox a b) (q k) |k. k \<in> p} = (\<lambda>k. insert (cbox a b) (q k)) ` p"
+      have *: "{insert (cbox a b) (q K) |K. K \<in> p} = (\<lambda>K. insert (cbox a b) (q K)) ` p"
         by auto
       show "finite ?D"
         using "*" pdiv(1) q(1) by auto
@@ -820,43 +820,43 @@ next
         unfolding * lem1
         unfolding lem2[OF \<open>p \<noteq> {}\<close>, of "cbox a b", symmetric]
         using q(6)  by auto
-      show "k \<subseteq> cbox a b \<union> \<Union>p" "k \<noteq> {}" if "k \<in> ?D" for k
+      show "K \<subseteq> cbox a b \<union> \<Union>p" "K \<noteq> {}" if "K \<in> ?D" for K
         using q that by blast+
-      show "\<exists>a b. k = cbox a b" if "k \<in> ?D" for k
+      show "\<exists>a b. K = cbox a b" if "K \<in> ?D" for K
         using q(4) that by auto
     next
-      fix k' k
-      assume k: "k \<in> ?D" and k': "k' \<in> ?D" "k \<noteq> k'"
-      obtain x where x: "k \<in> insert (cbox a b) (q x)" "x\<in>p"
-        using k by auto
-      obtain x' where x': "k'\<in>insert (cbox a b) (q x')" "x'\<in>p"
-        using k' by auto
-      show "interior k \<inter> interior k' = {}"
-      proof (cases "x = x' \<or> k  = cbox a b \<or> k' = cbox a b")
+      fix K' K
+      assume K: "K \<in> ?D" and K': "K' \<in> ?D" "K \<noteq> K'"
+      obtain x where x: "K \<in> insert (cbox a b) (q x)" "x\<in>p"
+        using K by auto
+      obtain x' where x': "K'\<in>insert (cbox a b) (q x')" "x'\<in>p"
+        using K' by auto
+      show "interior K \<inter> interior K' = {}"
+      proof (cases "x = x' \<or> K  = cbox a b \<or> K' = cbox a b")
         case True
         then show ?thesis
-          using True k' q(5) x' x by auto
+          using True K' q(5) x' x by auto
       next
         case False
-        then have as': "k \<noteq> cbox a b" "k' \<noteq> cbox a b"
+        then have as': "K \<noteq> cbox a b" "K' \<noteq> cbox a b"
           by auto
-        obtain c d where k: "k = cbox c d"
-          using q(4)[OF x(2,1)] by blast
-        have "interior k \<inter> interior (cbox a b) = {}"
-          using as' k'(2) q(5) x by blast
-        then have "interior k \<subseteq> interior x"
-          by (metis \<open>interior (cbox a b) \<noteq> {}\<close> k q(2) x interior_subset_union_intervals)
+        obtain c d where K: "K = cbox c d"
+          using q(4) x by blast
+        have "interior K \<inter> interior (cbox a b) = {}"
+          using as' K'(2) q(5) x by blast
+        then have "interior K \<subseteq> interior x"
+          by (metis \<open>interior (cbox a b) \<noteq> {}\<close> K q(2) x interior_subset_union_intervals)
         moreover
-        obtain c d where c_d: "k' = cbox c d"
+        obtain c d where c_d: "K' = cbox c d"
           using q(4)[OF x'(2,1)] by blast
-        have "interior k' \<inter> interior (cbox a b) = {}"
+        have "interior K' \<inter> interior (cbox a b) = {}"
           using as'(2) q(5) x' by blast
-        then have "interior k' \<subseteq> interior x'"
+        then have "interior K' \<subseteq> interior x'"
           by (metis \<open>interior (cbox a b) \<noteq> {}\<close> c_d interior_subset_union_intervals q(2) x'(1) x'(2))
         moreover have "interior x \<inter> interior x' = {}"
           by (meson False assms division_ofD(5) x'(2) x(2))
         ultimately show ?thesis
-          using \<open>interior k \<subseteq> interior x\<close> \<open>interior k' \<subseteq> interior x'\<close> by auto
+          using \<open>interior K \<subseteq> interior x\<close> \<open>interior K' \<subseteq> interior x'\<close> by auto
       qed
     qed
   qed
@@ -888,11 +888,11 @@ proof -
 qed
 
 lemma elementary_union:
-  fixes s t :: "'a::euclidean_space set"
-  assumes "ps division_of s" "pt division_of t"
-  obtains p where "p division_of (s \<union> t)"
+  fixes S T :: "'a::euclidean_space set"
+  assumes "ps division_of S" "pt division_of T"
+  obtains p where "p division_of (S \<union> T)"
 proof -
-  have *: "s \<union> t = \<Union>ps \<union> \<Union>pt"
+  have *: "S \<union> T = \<Union>ps \<union> \<Union>pt"
     using assms unfolding division_of_def by auto
   show ?thesis
     apply (rule elementary_unions_intervals[of "ps \<union> pt"])
@@ -901,14 +901,14 @@ proof -
 qed
 
 lemma partial_division_extend:
-  fixes t :: "'a::euclidean_space set"
-  assumes "p division_of s"
-    and "q division_of t"
-    and "s \<subseteq> t"
-  obtains r where "p \<subseteq> r" and "r division_of t"
+  fixes T :: "'a::euclidean_space set"
+  assumes "p division_of S"
+    and "q division_of T"
+    and "S \<subseteq> T"
+  obtains r where "p \<subseteq> r" and "r division_of T"
 proof -
   note divp = division_ofD[OF assms(1)] and divq = division_ofD[OF assms(2)]
-  obtain a b where ab: "t \<subseteq> cbox a b"
+  obtain a b where ab: "T \<subseteq> cbox a b"
     using elementary_subset_cbox[OF assms(2)] by auto
   obtain r1 where "p \<subseteq> r1" "r1 division_of (cbox a b)"
     using assms
@@ -917,54 +917,49 @@ proof -
   obtain p' where "p' division_of \<Union>(r1 - p)"
     apply (rule elementary_unions_intervals[of "r1 - p"])
     using r1(3,6)
-    apply auto
+      apply auto
     done
   then obtain r2 where r2: "r2 division_of (\<Union>(r1 - p)) \<inter> (\<Union>q)"
     by (metis assms(2) divq(6) elementary_inter)
   {
     fix x
-    assume x: "x \<in> t" "x \<notin> s"
-    then have "x\<in>\<Union>r1"
-      unfolding r1 using ab by auto
-    then obtain r where r: "r \<in> r1" "x \<in> r"
-      unfolding Union_iff ..
-    moreover
-    have "r \<notin> p"
+    assume x: "x \<in> T" "x \<notin> S"
+    then obtain R where r: "R \<in> r1" "x \<in> R"
+      unfolding r1 using ab
+      by (meson division_contains r1(2) subsetCE)
+    moreover have "R \<notin> p"
     proof
-      assume "r \<in> p"
-      then have "x \<in> s" using divp(2) r by auto
+      assume "R \<in> p"
+      then have "x \<in> S" using divp(2) r by auto
       then show False using x by auto
     qed
     ultimately have "x\<in>\<Union>(r1 - p)" by auto
   }
-  then have *: "t = \<Union>p \<union> (\<Union>(r1 - p) \<inter> \<Union>q)"
+  then have Teq: "T = \<Union>p \<union> (\<Union>(r1 - p) \<inter> \<Union>q)"
     unfolding divp divq using assms(3) by auto
+  have "interior S \<inter> interior (\<Union>(r1-p)) = {}"
+  proof (rule Int_interior_Union_intervals)
+    have *: "\<And>S. (\<And>x. x \<in> S \<Longrightarrow> False) \<Longrightarrow> S = {}"
+      by auto
+    show "interior S \<inter> interior m = {}" if "m \<in> r1 - p" for m 
+    proof -
+      have "interior m \<inter> interior (\<Union>p) = {}"
+      proof (rule Int_interior_Union_intervals)
+        show "\<And>T. T\<in>p \<Longrightarrow> interior m \<inter> interior T = {}"
+          by (metis DiffD1 DiffD2 that r1(1) r1(7) set_rev_mp)
+      qed (use divp in auto)
+      then show "interior S \<inter> interior m = {}"
+        unfolding divp by auto
+    qed 
+  qed (use r1 in auto)
+  then have "interior S \<inter> interior (\<Union>(r1-p) \<inter> (\<Union>q)) = {}"
+    using interior_subset by auto
+  then have div: "p \<union> r2 division_of \<Union>p \<union> \<Union>(r1 - p) \<inter> \<Union>q"
+    by (simp add: assms(1) division_disjoint_union divp(6) r2)
   show ?thesis
     apply (rule that[of "p \<union> r2"])
-    unfolding *
-    defer
-    apply (rule division_disjoint_union)
-    unfolding divp(6)
-    apply(rule assms r2)+
-  proof -
-    have "interior s \<inter> interior (\<Union>(r1-p)) = {}"
-    proof (rule Int_interior_Union_intervals)
-      have *: "\<And>s. (\<And>x. x \<in> s \<Longrightarrow> False) \<Longrightarrow> s = {}"
-        by auto
-      show "interior s \<inter> interior m = {}" if "m \<in> r1 - p" for m 
-      proof -
-        have "interior m \<inter> interior (\<Union>p) = {}"
-        proof (rule Int_interior_Union_intervals)
-          show "\<And>t. t\<in>p \<Longrightarrow> interior m \<inter> interior t = {}"
-            by (metis DiffD1 DiffD2 that r1(1) r1(7) set_rev_mp)
-        qed (use divp in auto)
-        then show "interior s \<inter> interior m = {}"
-          unfolding divp by auto
-      qed 
-    qed (use r1 in auto)
-    then show "interior s \<inter> interior (\<Union>(r1-p) \<inter> (\<Union>q)) = {}"
-      using interior_subset by auto
-  qed auto
+     apply (auto simp: div Teq)
+    done
 qed
 
 
@@ -983,45 +978,51 @@ proof (rule_tac[!] division_ofI)
   show "\<Union>?p1 = ?I1" "\<Union>?p2 = ?I2"
     unfolding p(6)[symmetric] by auto
   {
-    fix k
-    assume "k \<in> ?p1"
-    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
-    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
-    show "k \<subseteq> ?I1"
+    fix K
+    assume "K \<in> ?p1"
+    then obtain l where l: "K = l \<inter> {x. x \<bullet> k \<le> c}" "l \<in> p" "l \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
+      by blast
+    obtain u v where uv: "l = cbox u v"
+      using assms(1) l(2) by blast
+    show "K \<subseteq> ?I1"
       using l p(2) uv by force
-    show  "k \<noteq> {}"
+    show  "K \<noteq> {}"
       by (simp add: l)
-    show  "\<exists>a b. k = cbox a b"
+    show  "\<exists>a b. K = cbox a b"
       apply (simp add: l uv p(2-3)[OF l(2)])
       apply (subst interval_split[OF k])
       apply (auto intro: order.trans)
       done
-    fix k'
-    assume "k' \<in> ?p1"
-    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
-    assume "k \<noteq> k'"
-    then show "interior k \<inter> interior k' = {}"
+    fix K'
+    assume "K' \<in> ?p1"
+    then obtain l' where l': "K' = l' \<inter> {x. x \<bullet> k \<le> c}" "l' \<in> p" "l' \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
+      by blast
+    assume "K \<noteq> K'"
+    then show "interior K \<inter> interior K' = {}"
       unfolding l l' using p(5)[OF l(2) l'(2)] by auto
   }
   {
-    fix k
-    assume "k \<in> ?p2"
-    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
-    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
-    show "k \<subseteq> ?I2"
+    fix K
+    assume "K \<in> ?p2"
+    then obtain l where l: "K = l \<inter> {x. c \<le> x \<bullet> k}" "l \<in> p" "l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
+      by blast
+    obtain u v where uv: "l = cbox u v"
+      using l(2) p(4) by blast
+    show "K \<subseteq> ?I2"
       using l p(2) uv by force
-    show  "k \<noteq> {}"
+    show  "K \<noteq> {}"
       by (simp add: l)
-    show  "\<exists>a b. k = cbox a b"
+    show  "\<exists>a b. K = cbox a b"
       apply (simp add: l uv p(2-3)[OF l(2)])
       apply (subst interval_split[OF k])
       apply (auto intro: order.trans)
       done
-    fix k'
-    assume "k' \<in> ?p2"
-    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
-    assume "k \<noteq> k'"
-    then show "interior k \<inter> interior k' = {}"
+    fix K'
+    assume "K' \<in> ?p2"
+    then obtain l' where l': "K' = l' \<inter> {x. c \<le> x \<bullet> k}" "l' \<in> p" "l' \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
+      by blast
+    assume "K \<noteq> K'"
+    then show "interior K \<inter> interior K' = {}"
       unfolding l l' using p(5)[OF l(2) l'(2)] by auto
   }
 qed
@@ -1070,10 +1071,7 @@ lemma tagged_division_ofI:
     and "(\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
   shows "s tagged_division_of i"
   unfolding tagged_division_of
-  using assms
-  apply auto
-  apply fastforce+
-  done
+  using assms  by fastforce
 
 lemma tagged_division_ofD[dest]:  (*FIXME USE A LOCALE*)
   assumes "s tagged_division_of i"
@@ -1325,67 +1323,58 @@ proof -
     "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i \<le> b\<bullet>i"
     "min (b \<bullet> k) c = c" "max (a \<bullet> k) c = c"
     using assms using less_imp_le by auto
-  show ?t1 (*FIXME a horrible mess*)
-    unfolding division_points_def interval_split[OF k, of a b]
-    unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
-    unfolding *
-    apply (rule subsetI)
-    unfolding mem_Collect_eq split_beta
-    apply (erule bexE conjE)+
-    apply (simp add: )
-    apply (erule exE conjE)+
-  proof
-    fix i l x
-    assume as:
-      "a \<bullet> fst x < snd x" "snd x < (if fst x = k then c else b \<bullet> fst x)"
-      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      "i = l \<inter> {x. x \<bullet> k \<le> c}" "l \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
-      and fstx: "fst x \<in> Basis"
-    from assm(4)[OF this(5)] guess u v apply-by(erule exE)+ note l=this
+   have "\<exists>i\<in>d. interval_lowerbound i \<bullet> x = y \<or> interval_upperbound i \<bullet> x = y"
+     if "a \<bullet> x < y" "y < (if x = k then c else b \<bullet> x)"
+        "interval_lowerbound i \<bullet> x = y \<or> interval_upperbound i \<bullet> x = y"
+        "i = l \<inter> {x. x \<bullet> k \<le> c}" "l \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
+        "x \<in> Basis" for i l x y
+  proof -
+    obtain u v where l: "l = cbox u v"
+      using \<open>l \<in> d\<close> assms(1) by blast
     have *: "\<forall>i\<in>Basis. u \<bullet> i \<le> (\<Sum>i\<in>Basis. (if i = k then min (v \<bullet> k) c else v \<bullet> i) *\<^sub>R i) \<bullet> i"
-      using as(6) unfolding l interval_split[OF k] box_ne_empty as .
+      using that(6) unfolding l interval_split[OF k] box_ne_empty that .
     have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
-      using l using as(6) unfolding box_ne_empty[symmetric] by auto
-    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      using l using that(6) unfolding box_ne_empty[symmetric] by auto
+    show ?thesis
       apply (rule bexI[OF _ \<open>l \<in> d\<close>])
-      using as(1-3,5) fstx
-      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
+      using that(1-3,5) \<open>x \<in> Basis\<close>
+      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] that
       apply (auto split: if_split_asm)
       done
-    show "snd x < b \<bullet> fst x"
-      using as(2) \<open>c < b\<bullet>k\<close> by (auto split: if_split_asm)
   qed
-  show ?t2
+  moreover have "\<And>x y. \<lbrakk>y < (if x = k then c else b \<bullet> x)\<rbrakk> \<Longrightarrow> y < b \<bullet> x"
+    using \<open>c < b\<bullet>k\<close> by (auto split: if_split_asm)
+  ultimately show ?t1 
+    unfolding division_points_def interval_split[OF k, of a b]
+    unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
+    unfolding * by force
+  have "\<And>x y i l. (if x = k then c else a \<bullet> x) < y \<Longrightarrow> a \<bullet> x < y"
+    using \<open>a\<bullet>k < c\<close> by (auto split: if_split_asm)
+  moreover have "\<exists>i\<in>d. interval_lowerbound i \<bullet> x = y \<or>
+                       interval_upperbound i \<bullet> x = y"
+    if "(if x = k then c else a \<bullet> x) < y" "y < b \<bullet> x"
+      "interval_lowerbound i \<bullet> x = y \<or> interval_upperbound i \<bullet> x = y"
+      "i = l \<inter> {x. c \<le> x \<bullet> k}" "l \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
+      "x \<in> Basis" for x y i l
+  proof -
+    obtain u v where l: "l = cbox u v"
+      using \<open>l \<in> d\<close> assm(4) by blast
+    have *: "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (u \<bullet> k) c else u \<bullet> i) *\<^sub>R i) \<bullet> i \<le> v \<bullet> i"
+      using that(6) unfolding l interval_split[OF k] box_ne_empty that .
+    have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
+      using l using that(6) unfolding box_ne_empty[symmetric] by auto
+    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> x = y \<or> interval_upperbound i \<bullet> x = y"
+      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
+      using that(1-3,5) \<open>x \<in> Basis\<close>
+      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] that
+      apply (auto split: if_split_asm)
+      done
+  qed
+  ultimately show ?t2
     unfolding division_points_def interval_split[OF k, of a b]
     unfolding interval_bounds[OF *(1)] interval_bounds[OF *(2)] interval_bounds[OF *(3)]
     unfolding *
-    unfolding subset_eq
-    apply rule
-    unfolding mem_Collect_eq split_beta
-    apply (erule bexE conjE)+
-    apply (simp only: mem_Collect_eq inner_sum_left_Basis simp_thms)
-    apply (erule exE conjE)+
-  proof
-    fix i l x
-    assume as:
-      "(if fst x = k then c else a \<bullet> fst x) < snd x" "snd x < b \<bullet> fst x"
-      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      "i = l \<inter> {x. c \<le> x \<bullet> k}" "l \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
-      and fstx: "fst x \<in> Basis"
-    from assm(4)[OF this(5)] guess u v by (elim exE) note l=this
-    have *: "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (u \<bullet> k) c else u \<bullet> i) *\<^sub>R i) \<bullet> i \<le> v \<bullet> i"
-      using as(6) unfolding l interval_split[OF k] box_ne_empty as .
-    have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
-      using l using as(6) unfolding box_ne_empty[symmetric] by auto
-    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
-      apply (rule bexI[OF _ \<open>l \<in> d\<close>])
-      using as(1-3,5) fstx
-      unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
-      apply (auto split: if_split_asm)
-      done
-    show "a \<bullet> fst x < snd x"
-      using as(1) \<open>a\<bullet>k < c\<close> by (auto split: if_split_asm)
-   qed
+    by force
 qed
 
 lemma division_points_psubset:
@@ -1393,7 +1382,7 @@ lemma division_points_psubset:
   assumes "d division_of (cbox a b)"
       and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
       and "l \<in> d"
-      and "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
+      and disj: "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
       and k: "k \<in> Basis"
   shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subset>
          division_points (cbox a b) d" (is "?D1 \<subset> ?D")
@@ -1571,8 +1560,12 @@ proof -
         have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
           unfolding mem_box using ab by (auto simp: inner_simps)
         note this[unfolded division_ofD(6)[OF \<open>d division_of cbox a b\<close>,symmetric] Union_iff]
-        then guess i .. note i=this
-        guess u v using d'[rule_format,OF i(1)] by (elim exE conjE) note uv=this
+        then obtain i where i: "i \<in> d" "(1 / 2) *\<^sub>R (a + b) \<in> i" ..
+        obtain u v where uv: "i = cbox u v" 
+                     "\<forall>j\<in>Basis. u \<bullet> j = a \<bullet> j \<and> v \<bullet> j = a \<bullet> j \<or>
+                                u \<bullet> j = b \<bullet> j \<and> v \<bullet> j = b \<bullet> j \<or>
+                                u \<bullet> j = a \<bullet> j \<and> v \<bullet> j = b \<bullet> j"
+          using d' i(1) by auto
         have "cbox a b \<in> d"
         proof -
           have "u = a" "v = b"
@@ -1595,7 +1588,11 @@ proof -
           assume x: "x \<in> d - {cbox a b}"
           then have "x\<in>d"
             by auto note d'[rule_format,OF this]
-          then guess u v by (elim exE conjE) note uv=this
+          then obtain u v where uv: "x = cbox u v"
+                      "\<forall>j\<in>Basis. u \<bullet> j = a \<bullet> j \<and> v \<bullet> j = a \<bullet> j \<or>
+                                 u \<bullet> j = b \<bullet> j \<and> v \<bullet> j = b \<bullet> j \<or>
+                                 u \<bullet> j = a \<bullet> j \<and> v \<bullet> j = b \<bullet> j" 
+            by blast
           have "u \<noteq> a \<or> v \<noteq> b"
             using x[unfolded uv] by auto
           then obtain j where "u\<bullet>j \<noteq> a\<bullet>j \<or> v\<bullet>j \<noteq> b\<bullet>j" and j: "j \<in> Basis"
@@ -1637,7 +1634,8 @@ proof -
           done
         { fix l y
           assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
-          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
+          then obtain u v where leq: "l = cbox u v"
+            by (meson cbox_division_memE less.prems)
           have "g (l \<inter> {x. x \<bullet> k \<le> c}) = \<^bold>1"
             unfolding leq interval_split[OF kc(4)]
             apply (rule operativeD[OF g])
@@ -1646,7 +1644,8 @@ proof -
         } note fxk_le = this
         { fix l y
           assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
-          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
+          then obtain u v where leq: "l = cbox u v"
+            by (meson cbox_division_memE less.prems)
           have "g (l \<inter> {x. x \<bullet> k \<ge> c}) = \<^bold>1"
             unfolding leq interval_split[OF kc(4)]
             apply (rule operativeD(1)[OF g])
@@ -2340,13 +2339,11 @@ proof -
       unfolding tagged_division_of_def
       by auto
     presume "\<And>p. finite p \<Longrightarrow> ?P p"
-    from this[rule_format,OF * assms(2)] guess q .. note q=this
-    then show ?thesis
-      apply -
-      apply (rule that[of q])
-      unfolding tagged_division_ofD[OF assms(1)]
-      apply auto
-      done
+    from this[rule_format,OF * assms(2)] 
+    obtain q where q: "q tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> p}" "d fine q" "(\<forall>(x, k)\<in>p. k \<subseteq> d x \<longrightarrow> (x, k) \<in> q)"
+      by auto
+    with that[of q] show ?thesis
+      using assms(1) by auto
   }
   fix p :: "('a::euclidean_space \<times> ('a::euclidean_space set)) set"
   assume as: "finite p"
