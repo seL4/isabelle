@@ -530,6 +530,9 @@ subsubsection \<open>Other examples\<close>
 
 notepad
 begin
+  fix a b :: real
+  have "f (a + b) = f (b + a)" by argo
+next
   have
     "(0::real) < 1"
     "(47::real) + 11 < 8 * 15"

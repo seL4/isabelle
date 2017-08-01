@@ -58,6 +58,9 @@ sig
 
   (* testers *)
   val is_nary: kind -> bool
+
+  (* string representations *)
+  val string_of_kind: kind -> string
 end
 
 structure Argo_Expr: ARGO_EXPR =
@@ -137,10 +140,12 @@ fun dual_expr (E (Not, [e1])) e2 = eq_expr (e1, e2)
 
 (* constructors *)
 
-val kind_of_string = the o Symtab.lookup (Symtab.make [
+val string_kinds = [
   ("true", True),("false", False), ("not", Not), ("and", And), ("or", Or), ("imp", Imp),
   ("iff", Iff), ("ite", Ite), ("eq", Eq), ("app", App), ("le", Le), ("lt", Lt), ("neg", Neg),
-  ("add", Add), ("sub", Sub), ("mul", Mul), ("div", Div), ("min", Min), ("max", Max), ("abs", Abs)])
+  ("add", Add), ("sub", Sub), ("mul", Mul), ("div", Div), ("min", Min), ("max", Max), ("abs", Abs)]
+
+val kind_of_string = the o Symtab.lookup (Symtab.make string_kinds)
 
 val true_expr = E (True, [])
 val false_expr = E (False, [])
@@ -246,6 +251,15 @@ and raw_check (E (True, [])) = true
 (* testers *)
 
 fun is_nary k = member (op =) [And, Or, Add] k
+
+
+(* string representations *)
+
+val kind_strings = map swap string_kinds
+
+fun string_of_kind (Con (n, _)) = n
+  | string_of_kind (Num n) = Rat.string_of_rat n
+  | string_of_kind k = the (AList.lookup (op =) kind_strings k)
 
 end
 

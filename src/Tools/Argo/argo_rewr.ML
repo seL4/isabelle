@@ -55,7 +55,7 @@ fun seq [] e = keep e
 
 fun on_args f (Argo_Expr.E (k, es)) =
   let val (es, cs) = split_list (f es)
-  in (Argo_Expr.E (k, es), Argo_Proof.mk_args_conv cs) end
+  in (Argo_Expr.E (k, es), Argo_Proof.mk_args_conv k cs) end
 
 fun args cv e = on_args (map cv) e
 

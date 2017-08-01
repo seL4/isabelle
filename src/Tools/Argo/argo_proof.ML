@@ -42,7 +42,8 @@ sig
     Rewr_Ineq_Sub of inequality | Rewr_Ineq_Mul of inequality * Rat.rat |
     Rewr_Not_Ineq of inequality
   datatype conv =
-    Keep_Conv | Then_Conv of conv * conv | Args_Conv of conv list | Rewr_Conv of rewrite
+    Keep_Conv | Then_Conv of conv * conv | Args_Conv of Argo_Expr.kind * conv list |
+    Rewr_Conv of rewrite
   datatype rule =
     Axiom of int | Taut of tautology * Argo_Expr.expr | Conjunct of int * int | Rewrite of conv |
     Hyp of int * Argo_Expr.expr | Clause of int list | Lemma of int list | Unit_Res of int |
@@ -56,7 +57,7 @@ sig
   (* conversion constructors *)
   val keep_conv: conv
   val mk_then_conv: conv -> conv -> conv
-  val mk_args_conv: conv list -> conv
+  val mk_args_conv: Argo_Expr.kind -> conv list -> conv
   val mk_rewr_conv: rewrite -> conv
 
   (* context *)
@@ -130,7 +131,8 @@ datatype rewrite =
   Rewr_Not_Ineq of inequality
 
 datatype conv =
-  Keep_Conv | Then_Conv of conv * conv | Args_Conv of conv list | Rewr_Conv of rewrite
+  Keep_Conv | Then_Conv of conv * conv | Args_Conv of Argo_Expr.kind * conv list |
+  Rewr_Conv of rewrite
 
 datatype rule =
   Axiom of int | Taut of tautology * Argo_Expr.expr | Conjunct of int * int | Rewrite of conv |
@@ -186,9 +188,9 @@ fun mk_then_conv Keep_Conv c = c
   | mk_then_conv c Keep_Conv = c
   | mk_then_conv c1 c2 = Then_Conv (c1, c2)
 
-fun mk_args_conv cs =
+fun mk_args_conv k cs =
   if forall (fn Keep_Conv => true | _ => false) cs then Keep_Conv
-  else Args_Conv cs
+  else Args_Conv (k, cs)
 
 fun mk_rewr_conv r = Rewr_Conv r
 
@@ -386,7 +388,8 @@ fun flatten_then_conv (Then_Conv (c1, c2)) = flatten_then_conv c1 @ flatten_then
 fun string_of_conv Keep_Conv = "_"
   | string_of_conv (c as Then_Conv _) =
       space_implode " then " (map (enclose "(" ")" o string_of_conv) (flatten_then_conv c))
-  | string_of_conv (Args_Conv cs) = "args " ^ brackets string_of_conv cs
+  | string_of_conv (Args_Conv (k, cs)) =
+      "args " ^ Argo_Expr.string_of_kind k ^ " " ^ brackets string_of_conv cs
   | string_of_conv (Rewr_Conv r) = string_of_rewr r
 
 fun string_of_rule (Axiom i) = "axiom " ^ string_of_int i

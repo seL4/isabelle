@@ -474,7 +474,9 @@ fun binop_conv cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
 fun replay_conv _ Argo_Proof.Keep_Conv ct = Conv.all_conv ct
   | replay_conv ctxt (Argo_Proof.Then_Conv (c1, c2)) ct = 
       (replay_conv ctxt c1 then_conv replay_conv ctxt c2) ct
-  | replay_conv ctxt (Argo_Proof.Args_Conv cs) ct = replay_args_conv ctxt cs ct
+  | replay_conv ctxt (Argo_Proof.Args_Conv (Argo_Expr.App, [c1, c2])) ct =
+      Conv.combination_conv (replay_conv ctxt c1) (replay_conv ctxt c2) ct
+  | replay_conv ctxt (Argo_Proof.Args_Conv (_, cs)) ct = replay_args_conv ctxt cs ct
   | replay_conv ctxt (Argo_Proof.Rewr_Conv r) ct = replay_rewr ctxt r ct
 
 and replay_args_conv _ [] ct = Conv.all_conv ct
