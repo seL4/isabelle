@@ -40,4 +40,7 @@ fun bal :: "'a tree23 \<Rightarrow> bool" where
 "bal (Node3 l _ m _ r) =
   (bal l & bal m & bal r & height l = height m & height m = height r)"
 
+lemma ht_sz_if_bal: "bal t \<Longrightarrow> 2 ^ height t \<le> size t + 1"
+by (induction t) auto
+
 end
