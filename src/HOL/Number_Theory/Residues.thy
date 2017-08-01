@@ -17,24 +17,26 @@ imports
   Totient
 begin
 
-definition QuadRes :: "int \<Rightarrow> int \<Rightarrow> bool" where
-  "QuadRes p a = (\<exists>y. ([y^2 = a] (mod p)))"
+definition QuadRes :: "int \<Rightarrow> int \<Rightarrow> bool"
+  where "QuadRes p a = (\<exists>y. ([y^2 = a] (mod p)))"
 
-definition Legendre :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "Legendre a p = (if ([a = 0] (mod p)) then 0
-    else if QuadRes p a then 1
-    else -1)"
+definition Legendre :: "int \<Rightarrow> int \<Rightarrow> int"
+  where "Legendre a p =
+    (if ([a = 0] (mod p)) then 0
+     else if QuadRes p a then 1
+     else -1)"
+
 
 subsection \<open>A locale for residue rings\<close>
 
 definition residue_ring :: "int \<Rightarrow> int ring"
-where
-  "residue_ring m =
-    \<lparr>carrier = {0..m - 1},
-     monoid.mult = \<lambda>x y. (x * y) mod m,
-     one = 1,
-     zero = 0,
-     add = \<lambda>x y. (x + y) mod m\<rparr>"
+  where
+    "residue_ring m =
+      \<lparr>carrier = {0..m - 1},
+       monoid.mult = \<lambda>x y. (x * y) mod m,
+       one = 1,
+       zero = 0,
+       add = \<lambda>x y. (x + y) mod m\<rparr>"
 
 locale residues =
   fixes m :: int and R (structure)
@@ -88,37 +90,37 @@ text \<open>
 \<close>
 
 lemma res_carrier_eq: "carrier R = {0..m - 1}"
-  unfolding R_def residue_ring_def by auto
+  by (auto simp: R_def residue_ring_def)
 
 lemma res_add_eq: "x \<oplus> y = (x + y) mod m"
-  unfolding R_def residue_ring_def by auto
+  by (auto simp: R_def residue_ring_def)
 
 lemma res_mult_eq: "x \<otimes> y = (x * y) mod m"
-  unfolding R_def residue_ring_def by auto
+  by (auto simp: R_def residue_ring_def)
 
 lemma res_zero_eq: "\<zero> = 0"
-  unfolding R_def residue_ring_def by auto
+  by (auto simp: R_def residue_ring_def)
 
 lemma res_one_eq: "\<one> = 1"
-  unfolding R_def residue_ring_def units_of_def by auto
+  by (auto simp: R_def residue_ring_def units_of_def)
 
 lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
   using m_gt_one
   unfolding Units_def R_def residue_ring_def
   apply auto
-  apply (subgoal_tac "x \<noteq> 0")
-  apply auto
-  apply (metis invertible_coprime_int)
+    apply (subgoal_tac "x \<noteq> 0")
+     apply auto
+   apply (metis invertible_coprime_int)
   apply (subst (asm) coprime_iff_invertible'_int)
-  apply (auto simp add: cong_int_def mult.commute)
+   apply (auto simp add: cong_int_def mult.commute)
   done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
   using m_gt_one unfolding R_def a_inv_def m_inv_def residue_ring_def
   apply simp
   apply (rule the_equality)
-  apply (simp add: mod_add_right_eq)
-  apply (simp add: add.commute mod_add_right_eq)
+   apply (simp add: mod_add_right_eq)
+   apply (simp add: add.commute mod_add_right_eq)
   apply (metis add.right_neutral minus_add_cancel mod_add_right_eq mod_pos_pos_trivial)
   done
 
@@ -139,18 +141,16 @@ lemma mod_in_carrier [iff]: "a mod m \<in> carrier R"
   using insert m_gt_one by auto
 
 lemma add_cong: "(x mod m) \<oplus> (y mod m) = (x + y) mod m"
-  unfolding R_def residue_ring_def
-  by (auto simp add: mod_simps)
+  by (auto simp: R_def residue_ring_def mod_simps)
 
 lemma mult_cong: "(x mod m) \<otimes> (y mod m) = (x * y) mod m"
-  unfolding R_def residue_ring_def
-  by (auto simp add: mod_simps)
+  by (auto simp: R_def residue_ring_def mod_simps)
 
 lemma zero_cong: "\<zero> = 0"
-  unfolding R_def residue_ring_def by auto
+  by (auto simp: R_def residue_ring_def)
 
 lemma one_cong: "\<one> = 1 mod m"
-  using m_gt_one unfolding R_def residue_ring_def by auto
+  using m_gt_one by (auto simp: R_def residue_ring_def)
 
 (* FIXME revise algebra library to use 1? *)
 lemma pow_cong: "(x mod m) (^) n = x^n mod m"
@@ -173,24 +173,26 @@ lemma mod_in_res_units [simp]:
   assumes "1 < m" and "coprime a m"
   shows "a mod m \<in> Units R"
 proof (cases "a mod m = 0")
-  case True with assms show ?thesis
+  case True
+  with assms show ?thesis
     by (auto simp add: res_units_eq gcd_red_int [symmetric])
 next
   case False
   from assms have "0 < m" by simp
-  with pos_mod_sign [of m a] have "0 \<le> a mod m" .
+  then have "0 \<le> a mod m" by (rule pos_mod_sign [of m a])
   with False have "0 < a mod m" by simp
   with assms show ?thesis
     by (auto simp add: res_units_eq gcd_red_int [symmetric] ac_simps)
 qed
 
 lemma res_eq_to_cong: "(a mod m) = (b mod m) \<longleftrightarrow> [a = b] (mod m)"
-  unfolding cong_int_def by auto
+  by (auto simp: cong_int_def)
 
 
 text \<open>Simplifying with these will translate a ring equation in R to a congruence.\<close>
-lemmas res_to_cong_simps = add_cong mult_cong pow_cong one_cong
-    prod_cong sum_cong neg_cong res_eq_to_cong
+lemmas res_to_cong_simps =
+  add_cong mult_cong pow_cong one_cong
+  prod_cong sum_cong neg_cong res_eq_to_cong
 
 text \<open>Other useful facts about the residue ring.\<close>
 lemma one_eq_neg_one: "\<one> = \<ominus> \<one> \<Longrightarrow> m = 2"
@@ -220,11 +222,11 @@ begin
 
 lemma is_field: "field R"
 proof -
-  have "\<And>x. \<lbrakk>gcd x (int p) \<noteq> 1; 0 \<le> x; x < int p\<rbrakk> \<Longrightarrow> x = 0"
+  have "gcd x (int p) \<noteq> 1 \<Longrightarrow> 0 \<le> x \<Longrightarrow> x < int p \<Longrightarrow> x = 0" for x
     by (metis dual_order.order_iff_strict gcd.commute less_le_not_le p_prime prime_imp_coprime prime_nat_int_transfer zdvd_imp_le)
   then show ?thesis
-  apply (intro cring.field_intro2 cring)
-  apply (auto simp add: res_carrier_eq res_one_eq res_zero_eq res_units_eq)
+    apply (intro cring.field_intro2 cring)
+     apply (auto simp add: res_carrier_eq res_one_eq res_zero_eq res_units_eq)
     done
 qed
 
@@ -245,23 +247,26 @@ section \<open>Test cases: Euler's theorem and Wilson's theorem\<close>
 
 subsection \<open>Euler's theorem\<close>
 
-lemma (in residues) totient_eq:
-  "totient (nat m) = card (Units R)"
+lemma (in residues) totient_eq: "totient (nat m) = card (Units R)"
 proof -
   have *: "inj_on nat (Units R)"
     by (rule inj_onI) (auto simp add: res_units_eq)
   define m' where "m' = nat m"
-  from m_gt_one have m: "m = int m'" "m' > 1" by (simp_all add: m'_def)
-  from m have "x \<in> Units R \<longleftrightarrow> x \<in> int ` totatives m'" for x
+  from m_gt_one have "m = int m'" "m' > 1"
+    by (simp_all add: m'_def)
+  then have "x \<in> Units R \<longleftrightarrow> x \<in> int ` totatives m'" for x
     unfolding res_units_eq
     by (cases x; cases "x = m") (auto simp: totatives_def transfer_int_nat_gcd)
-  hence "Units R = int ` totatives m'" by blast
-  hence "totatives m' = nat ` Units R" by (simp add: image_image)
+  then have "Units R = int ` totatives m'"
+    by blast
+  then have "totatives m' = nat ` Units R"
+    by (simp add: image_image)
   then have "card (totatives (nat m)) = card (nat ` Units R)"
     by (simp add: m'_def)
   also have "\<dots> = card (Units R)"
     using * card_image [of nat "Units R"] by auto
-  finally show ?thesis by (simp add: totient_def)
+  finally show ?thesis
+    by (simp add: totient_def)
 qed
 
 lemma (in residues_prime) totient_eq: "totient p = p - 1"
@@ -324,26 +329,26 @@ proof -
   have "(\<Otimes>i\<in>Units R. i) = (\<Otimes>i\<in>{\<one>, \<ominus> \<one>}. i) \<otimes> (\<Otimes>i\<in>\<Union>?Inverse_Pairs. i)"
     apply (subst UR)
     apply (subst finprod_Un_disjoint)
-    apply (auto intro: funcsetI)
+         apply (auto intro: funcsetI)
     using inv_one apply auto[1]
     using inv_eq_neg_one_eq apply auto
     done
   also have "(\<Otimes>i\<in>{\<one>, \<ominus> \<one>}. i) = \<ominus> \<one>"
     apply (subst finprod_insert)
-    apply auto
+        apply auto
     apply (frule one_eq_neg_one)
     using a apply force
     done
   also have "(\<Otimes>i\<in>(\<Union>?Inverse_Pairs). i) = (\<Otimes>A\<in>?Inverse_Pairs. (\<Otimes>y\<in>A. y))"
     apply (subst finprod_Union_disjoint)
-    apply auto
-    apply (metis Units_inv_inv)+
+       apply auto
+     apply (metis Units_inv_inv)+
     done
   also have "\<dots> = \<one>"
     apply (rule finprod_one)
-    apply auto
+     apply auto
     apply (subst finprod_insert)
-    apply auto
+        apply auto
     apply (metis inv_eq_self)
     done
   finally have "(\<Otimes>i\<in>Units R. i) = \<ominus> \<one>"
@@ -361,7 +366,7 @@ proof -
   finally have "fact (p - 1) mod p = \<ominus> \<one>" .
   then show ?thesis
     by (metis of_nat_fact Divides.transfer_int_nat_functions(2)
-      cong_int_def res_neg_eq res_one_eq)
+        cong_int_def res_neg_eq res_one_eq)
 qed
 
 lemma wilson_theorem:
@@ -380,13 +385,11 @@ qed
 
 text \<open>
   This result can be transferred to the multiplicative group of
-  $\mathbb{Z}/p\mathbb{Z}$ for $p$ prime.\<close>
+  \<open>\<int>/p\<int>\<close> for \<open>p\<close> prime.\<close>
 
 lemma mod_nat_int_pow_eq:
   fixes n :: nat and p a :: int
-  assumes "a \<ge> 0" "p \<ge> 0"
-  shows "(nat a ^ n) mod (nat p) = nat ((a ^ n) mod p)"
-  using assms
+  shows "a \<ge> 0 \<Longrightarrow> p \<ge> 0 \<Longrightarrow> (nat a ^ n) mod (nat p) = nat ((a ^ n) mod p)"
   by (simp add: int_one_le_iff_zero_less nat_mod_distrib order_less_imp_le nat_power_eq[symmetric])
 
 theorem residue_prime_mult_group_has_gen :
@@ -394,43 +397,55 @@ theorem residue_prime_mult_group_has_gen :
  assumes prime_p : "prime p"
  shows "\<exists>a \<in> {1 .. p - 1}. {1 .. p - 1} = {a^i mod p|i . i \<in> UNIV}"
 proof -
-  have "p\<ge>2" using prime_gt_1_nat[OF prime_p] by simp
-  interpret R:residues_prime "p" "residue_ring p" unfolding residues_prime_def
-    by (simp add: prime_p)
-  have car: "carrier (residue_ring (int p)) - {\<zero>\<^bsub>residue_ring (int p)\<^esub>} =  {1 .. int p - 1}"
+  have "p \<ge> 2"
+    using prime_gt_1_nat[OF prime_p] by simp
+  interpret R: residues_prime p "residue_ring p"
+    by (simp add: residues_prime_def prime_p)
+  have car: "carrier (residue_ring (int p)) - {\<zero>\<^bsub>residue_ring (int p)\<^esub>} = {1 .. int p - 1}"
     by (auto simp add: R.zero_cong R.res_carrier_eq)
-  obtain a where a:"a \<in> {1 .. int p - 1}"
-         and a_gen:"{1 .. int p - 1} = {a(^)\<^bsub>residue_ring (int p)\<^esub>i|i::nat . i \<in> UNIV}"
-    apply atomize_elim using field.finite_field_mult_group_has_gen[OF R.is_field]
+
+  have "x (^)\<^bsub>residue_ring (int p)\<^esub> i = x ^ i mod (int p)"
+    if "x \<in> {1 .. int p - 1}" for x and i :: nat
+    using that R.pow_cong[of x i] by auto
+  moreover
+  obtain a where a: "a \<in> {1 .. int p - 1}"
+    and a_gen: "{1 .. int p - 1} = {a(^)\<^bsub>residue_ring (int p)\<^esub>i|i::nat . i \<in> UNIV}"
+    using field.finite_field_mult_group_has_gen[OF R.is_field]
     by (auto simp add: car[symmetric] carrier_mult_of)
-  { fix x fix i :: nat assume x: "x \<in> {1 .. int p - 1}"
-    hence "x (^)\<^bsub>residue_ring (int p)\<^esub> i = x ^ i mod (int p)" using R.pow_cong[of x i] by auto}
-  note * = this
-  have **:"nat ` {1 .. int p - 1} = {1 .. p - 1}" (is "?L = ?R")
+  moreover
+  have "nat ` {1 .. int p - 1} = {1 .. p - 1}" (is "?L = ?R")
   proof
-    { fix n assume n: "n \<in> ?L"
-      then have "n \<in> ?R" using \<open>p\<ge>2\<close> by force
-    } thus "?L \<subseteq> ?R" by blast
-    { fix n assume n: "n \<in> ?R"
-      then have "n \<in> ?L" using \<open>p\<ge>2\<close> Set_Interval.transfer_nat_int_set_functions(2) by fastforce
-    } thus "?R \<subseteq> ?L" by blast
+    have "n \<in> ?R" if "n \<in> ?L" for n
+      using that \<open>p\<ge>2\<close> by force
+    then show "?L \<subseteq> ?R" by blast
+    have "n \<in> ?L" if "n \<in> ?R" for n
+      using that \<open>p\<ge>2\<close> Set_Interval.transfer_nat_int_set_functions(2) by fastforce
+    then show "?R \<subseteq> ?L" by blast
   qed
+  moreover
   have "nat ` {a^i mod (int p) | i::nat. i \<in> UNIV} = {nat a^i mod p | i . i \<in> UNIV}" (is "?L = ?R")
   proof
-    { fix x assume x: "x \<in> ?L"
-      then obtain i where i:"x = nat (a^i mod (int p))" by blast
-      hence "x = nat a ^ i mod p" using mod_nat_int_pow_eq[of a "int p" i] a \<open>p\<ge>2\<close> by auto
-      hence "x \<in> ?R" using i by blast
-    } thus "?L \<subseteq> ?R" by blast
-    { fix x assume x: "x \<in> ?R"
-      then obtain i where i:"x = nat a^i mod p" by blast
-      hence "x \<in> ?L" using mod_nat_int_pow_eq[of a "int p" i] a \<open>p\<ge>2\<close> by auto
-    } thus "?R \<subseteq> ?L" by blast
+    have "x \<in> ?R" if "x \<in> ?L" for x
+    proof -
+      from that obtain i where i: "x = nat (a^i mod (int p))"
+        by blast
+      then have "x = nat a ^ i mod p"
+        using mod_nat_int_pow_eq[of a "int p" i] a \<open>p\<ge>2\<close> by auto
+      with i show ?thesis by blast
+    qed
+    then show "?L \<subseteq> ?R" by blast
+    have "x \<in> ?L" if "x \<in> ?R" for x
+    proof -
+      from that obtain i where i: "x = nat a^i mod p"
+        by blast
+      with mod_nat_int_pow_eq[of a "int p" i] a \<open>p\<ge>2\<close> show ?thesis
+        by auto
+    qed
+    then show "?R \<subseteq> ?L" by blast
   qed
-  hence "{1 .. p - 1} = {nat a^i mod p | i. i \<in> UNIV}"
-    using * a a_gen ** by presburger
-  moreover
-  have "nat a \<in> {1 .. p - 1}" using a by force
+  ultimately have "{1 .. p - 1} = {nat a^i mod p | i. i \<in> UNIV}"
+    by presburger
+  moreover from a have "nat a \<in> {1 .. p - 1}" by force
   ultimately show ?thesis ..
 qed
 

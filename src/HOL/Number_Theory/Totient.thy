@@ -177,7 +177,7 @@ qed
   
 lemma totient_less: 
   assumes "n > 1"
-  shows   "totient n < n"
+  shows "totient n < n"
 proof -
   from assms have "card (totatives n) \<le> card {0<..<n}"
     using totatives_less[of _ n] totatives_subset[of n] by (intro card_mono) auto
