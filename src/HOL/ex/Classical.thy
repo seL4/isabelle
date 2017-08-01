@@ -790,28 +790,32 @@ lemma "(\<forall>x. p a & (p x --> p(f x)) --> p(f(f x)))  =
             (~ p a | ~ p(f x) | p(f(f x))))"
 by blast
 
-text\<open>* Charles Morgan's problems *\<close>
+text\<open>Charles Morgan's problems\<close>
+context
+  fixes T i n
+  assumes a: "\<forall>x y. T(i x(i y x))"
+    and b: "\<forall>x y z. T(i (i x (i y z)) (i (i x y) (i x z)))"
+    and c: "\<forall>x y. T(i (i (n x) (n y)) (i y x))"
+    and c': "\<forall>x y. T(i (i y x) (i (n x) (n y)))"
+    and d: "\<forall>x y. T(i x y) & T x --> T y"
+begin
 
-lemma
-  assumes a: "\<forall>x y.  T(i x(i y x))"
-      and b: "\<forall>x y z. T(i (i x (i y z)) (i (i x y) (i x z)))"
-      and c: "\<forall>x y.   T(i (i (n x) (n y)) (i y x))"
-      and c': "\<forall>x y.   T(i (i y x) (i (n x) (n y)))"
-      and d: "\<forall>x y.   T(i x y) & T x --> T y"
- shows True
-proof -
-  from a b d have "\<forall>x. T(i x x)" by blast
-  from a b c d have "\<forall>x. T(i x (n(n x)))" \<comment>\<open>Problem 66\<close>
-    by metis
-  from a b c d have "\<forall>x. T(i (n(n x)) x)" \<comment>\<open>Problem 67\<close>
-    by meson
-      \<comment>\<open>4.9s on griffon. 51061 inferences, depth 21\<close>
-  from a b c' d have "\<forall>x. T(i x (n(n x)))" 
-      \<comment>\<open>Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)\<close>
-oops
+lemma "\<forall>x. T(i x x)"
+  using a b d by blast
+
+lemma "\<forall>x. T(i x (n(n x)))" \<comment>\<open>Problem 66\<close>
+  using a b c d by metis
+
+lemma "\<forall>x. T(i (n(n x)) x)" \<comment>\<open>Problem 67\<close>
+  using a b c d by meson \<comment>\<open>4.9s on griffon. 51061 inferences, depth 21\<close>
+
+lemma "\<forall>x. T(i x (n(n x)))" \<comment>\<open>Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)\<close>
+  using a b c' d oops
+
+end
 
 text\<open>Problem 71, as found in TPTP (SYN007+1.005)\<close>
 lemma "p1 = (p2 = (p3 = (p4 = (p5 = (p1 = (p2 = (p3 = (p4 = p5))))))))"
-by blast
+  by blast
 
 end
