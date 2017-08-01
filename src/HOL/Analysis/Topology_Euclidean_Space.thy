@@ -5300,7 +5300,7 @@ lemma compact_eq_seq_compact_metric:
   "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
   using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
 
-lemma compact_def: --\<open>this is the definition of compactness in HOL Light\<close>
+lemma compact_def: \<comment>\<open>this is the definition of compactness in HOL Light\<close>
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto

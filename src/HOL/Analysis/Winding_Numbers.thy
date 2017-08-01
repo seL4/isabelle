@@ -41,7 +41,7 @@ proof -
           by (meson mem_interior)
         define z where "z \<equiv> - sgn (Im b) * (e/3) + sgn (Re b) * (e/3) * \<i>"
         have "z \<in> ball 0 e"
-          using `e>0`
+          using \<open>e>0\<close>
           apply (simp add: z_def dist_norm)
           apply (rule le_less_trans [OF norm_triangle_ineq4])
           apply (simp add: norm_mult abs_sgn_eq)
@@ -49,7 +49,7 @@ proof -
         then have "z \<in> {z. Im z * Re b \<le> Im b * Re z}"
           using e by blast
         then show False
-          using `e>0` `b \<noteq> 0`
+          using \<open>e>0\<close> \<open>b \<noteq> 0\<close>
           apply (simp add: z_def dist_norm sgn_if less_eq_real_def mult_less_0_iff complex.expand split: if_split_asm)
           apply (auto simp: algebra_simps)
           apply (meson less_asym less_trans mult_pos_pos neg_less_0_iff_less)
