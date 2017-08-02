@@ -142,9 +142,9 @@ lemma sum_list_upt[simp]:
   "m \<le> n \<Longrightarrow> sum_list [m..<n] = \<Sum> {m..<n}"
 by(simp add: distinct_sum_list_conv_Sum)
 
-lemma sum_list_eq_0_nat_iff_nat [simp]:
-  "sum_list ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
-  by (induct ns) simp_all
+lemma (in canonically_ordered_monoid_add) sum_list_eq_0_iff [simp]:
+  "sum_list ns = 0 \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
+by (induct ns) simp_all
 
 lemma member_le_sum_list_nat:
   "(n :: nat) \<in> set ns \<Longrightarrow> n \<le> sum_list ns"
