@@ -117,9 +117,10 @@ fun add_abs_term_of_code tyco vs abs raw_ty_rep proj thy =
     |> Code.declare_default_eqns_global [(eq, true)]
   end;
 
-fun ensure_abs_term_of_code (tyco, (vs, ((abs, (_, ty)), (proj, _)))) =
+fun ensure_abs_term_of_code (tyco, (vs, {abstractor = (abs, (_, ty)),
+    projection, ...})) =
   for_term_of_instance tyco vs
-    (fn tyco => fn vs => add_abs_term_of_code tyco vs abs ty proj);
+    (fn tyco => fn vs => add_abs_term_of_code tyco vs abs ty projection);
 
 
 (* setup *)

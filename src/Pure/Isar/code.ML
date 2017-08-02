@@ -20,7 +20,7 @@ sig
 
   (*code equations and certificates*)
   val assert_eqn: theory -> thm * bool -> thm * bool
-  val assert_abs_eqn: theory -> string option -> thm -> thm * string
+  val assert_abs_eqn: theory -> string option -> thm -> thm * (string * string)
   type cert
   val constrain_cert: theory -> sort list -> cert -> cert
   val conclude_cert: cert -> cert
@@ -38,8 +38,8 @@ sig
   val declare_abstype: thm -> local_theory -> local_theory
   val declare_abstype_global: thm -> theory -> theory
   val abstype_interpretation:
-    (string * ((string * sort) list * ((string * ((string * sort) list * typ)) * (string * thm)))
-      -> theory -> theory) -> theory -> theory
+    (string * ((string * sort) list * {abs_rep: thm, abstractor: string * ((string * sort) list * typ),
+      projection: string}) -> theory -> theory) -> theory -> theory
   val declare_default_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_default_eqns_global: (thm * bool) list -> theory -> theory
   val declare_eqns: (thm * bool) list -> local_theory -> local_theory
@@ -48,7 +48,7 @@ sig
   val del_eqn_global: thm -> theory -> theory
   val declare_abstract_eqn: thm -> local_theory -> local_theory
   val declare_abstract_eqn_global: thm -> theory -> theory
-  val declare_empty_global: string -> theory -> theory
+  val declare_aborting_global: string -> theory -> theory
   val declare_unimplemented_global: string -> theory -> theory
   val declare_case_global: thm -> theory -> theory
   val declare_undefined_global: string -> theory -> theory
@@ -59,7 +59,8 @@ sig
   val is_abstr: theory -> string -> bool
   val get_cert: Proof.context -> ((thm * bool) list -> (thm * bool) list option) list
     -> string -> cert
-  val get_case_schema: theory -> string -> (int * (int * string option list)) option
+  type case_schema
+  val get_case_schema: theory -> string -> case_schema option
   val get_case_cong: theory -> string -> thm option
   val is_undefined: theory -> string -> bool
   val print_codesetup: theory -> unit
@@ -150,96 +151,218 @@ fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 fun read_const thy = check_unoverload thy o read_bare_const thy;
 
 
-(** data store **)
+(** executable specifications **)
 
-(* datatypes *)
+(* types *)
 
-datatype typ_spec = Constructors of (string * ((string * sort) list * typ list)) list *
-      string list (*references to associated case constructors*)
-  | Abstractor of (string * ((string * sort) list * typ)) * (string * thm);
+datatype type_spec = Constructors of {
+      constructors: (string * ((string * sort) list * typ list)) list,
+      case_combinators: string list}
+  | Abstractor of {
+      abs_rep: thm,
+      abstractor: string * ((string * sort) list * typ),
+      projection: string,
+      more_abstract_functions: string list};
 
-fun constructors_of (Constructors (cos, _)) = (cos, false)
-  | constructors_of (Abstractor ((co, (vs, ty)), _)) = ([(co, (vs, [ty]))], true);
+fun concrete_constructors_of (Constructors {constructors, ...}) =
+      constructors
+  | concrete_constructors_of _ =
+      [];
 
-fun case_consts_of (Constructors (_, case_consts)) = case_consts
-  | case_consts_of (Abstractor _) = [];
+fun constructors_of (Constructors {constructors, ...}) =
+      (constructors, false)
+  | constructors_of (Abstractor {abstractor = (co, (vs, ty)), ...}) =
+      ([(co, (vs, [ty]))], true);
+
+fun case_combinators_of (Constructors {case_combinators, ...}) =
+      case_combinators
+  | case_combinators_of (Abstractor _) =
+      [];
+
+fun add_case_combinator c (vs, Constructors {constructors, case_combinators}) =
+  (vs, Constructors {constructors = constructors,
+    case_combinators = insert (op =) c case_combinators});
+
+fun projection_of (Constructors _) =
+      NONE
+  | projection_of (Abstractor {projection, ...}) =
+      SOME projection;
+
+fun abstract_functions_of (Constructors _) =
+      []
+  | abstract_functions_of (Abstractor {more_abstract_functions, projection, ...}) =
+      projection :: more_abstract_functions;
+
+fun add_abstract_function c (vs, Abstractor {abs_rep, abstractor, projection, more_abstract_functions}) =
+  (vs, Abstractor {abs_rep = abs_rep, abstractor = abstractor, projection = projection,
+    more_abstract_functions = insert (op =) c more_abstract_functions});
+
+fun join_same_types' (Constructors {constructors, case_combinators = case_combinators1},
+    Constructors {case_combinators = case_combinators2, ...}) =
+      Constructors {constructors = constructors,
+        case_combinators = merge (op =) (case_combinators1, case_combinators2)}
+  | join_same_types' (Abstractor {abs_rep, abstractor, projection, more_abstract_functions = more_abstract_functions1},
+      Abstractor {more_abstract_functions = more_abstract_functions2, ...}) =
+      Abstractor {abs_rep = abs_rep, abstractor = abstractor, projection = projection,
+        more_abstract_functions = merge (op =) (more_abstract_functions1, more_abstract_functions2)};
+
+fun join_same_types ((vs, spec1), (_, spec2)) = (vs, join_same_types' (spec1, spec2));
 
 
 (* functions *)
 
-datatype fun_spec = Unimplemented
-  | Eqns_Default of (thm * bool) list
-  | Eqns of (thm * bool) list
-  | Proj of term * string
-  | Abstr of thm * string;
+datatype fun_spec =
+    Eqns of bool * (thm * bool) list
+  | Proj of term * (string * string)
+  | Abstr of thm * (string * string);
 
-val default_fun_spec = Eqns_Default [];
+val unimplemented = Eqns (true, []);
 
-fun is_default (Eqns_Default _) = true
+fun is_unimplemented (Eqns (true, [])) = true
+  | is_unimplemented _ = false;
+
+fun is_default (Eqns (true, _)) = true
   | is_default _ = false;
 
-fun associated_abstype (Abstr (_, tyco)) = SOME tyco
+val aborting = Eqns (false, []);
+
+fun associated_abstype (Proj (_, tyco_abs)) = SOME tyco_abs
+  | associated_abstype (Abstr (_, tyco_abs)) = SOME tyco_abs
   | associated_abstype _ = NONE;
 
 
 (* cases *)
 
-datatype case_spec = Case of ((int * (int * string option list)) * thm)
+type case_schema = int * (int * string option list);
+
+datatype case_spec =
+    No_Case
+  | Case of {schema: case_schema, tycos: string list, cong: thm}
   | Undefined;
 
+fun associated_datatypes (Case {tycos, schema = (_, (_, raw_cos)), ...}) = (tycos, map_filter I raw_cos)
+  | associated_datatypes _ = ([], []);
 
-(* executable code data *)
 
-datatype spec = Spec of {
-  history_concluded: bool,
-  types: ((serial * ((string * sort) list * typ_spec)) list) Symtab.table
-    (*with explicit history*),
-  functions: ((bool * fun_spec) * (serial * fun_spec) list) Symtab.table
-    (*with explicit history*),
-  cases: case_spec Symtab.table
+(** background theory data store **)
+
+(* historized declaration data *)
+
+structure History =
+struct
+
+type 'a T = {
+  entry: 'a,
+  suppressed: bool,     (*incompatible entries are merely suppressed after theory merge but sustain*)
+  history: serial list  (*explicit trace of declaration history supports non-monotonic declarations*)
+} Symtab.table;
+
+fun some_entry (SOME {suppressed = false, entry, ...}) = SOME entry
+  | some_entry _ = NONE;
+
+fun lookup table =
+  Symtab.lookup table #> some_entry;
+
+fun register key entry table =
+  if is_some (Symtab.lookup table key)
+  then Symtab.map_entry key
+    (fn {history, ...} => {entry = entry, suppressed = false, history = serial () :: history}) table
+  else Symtab.update (key, {entry = entry, suppressed = false, history = [serial ()]}) table;
+
+fun modify_entry key f = Symtab.map_entry key
+  (fn {entry, suppressed, history} => {entry = f entry, suppressed = suppressed, history = history});
+
+fun all table = Symtab.dest table
+  |> map_filter (fn (key, {entry, suppressed = false, ...}) => SOME (key, entry) | _ => NONE);
+
+local
+
+fun tap_serial (table : 'a T) key =
+  Option.map (hd o #history) (Symtab.lookup table key);
+
+fun merge_history join_same
+    ({entry = entry1, history = history1, ...}, {entry = entry2, history = history2, ...}) =
+  let
+    val history = merge (op =) (history1, history2);
+    val entry = if hd history1 = hd history2 then join_same (entry1, entry2)
+      else if hd history = hd history1 then entry1 else entry2;
+  in {entry = entry, suppressed = false, history = history} end;
+
+in
+
+fun join join_same tables = Symtab.join (K (merge_history join_same)) tables;
+
+fun suppress key = Symtab.map_entry key
+  (fn {entry, history, ...} => {entry = entry, suppressed = true, history = history});
+
+fun suppress_except f = Symtab.map (fn key => fn {entry, suppressed, history} =>
+  {entry = entry, suppressed = suppressed orelse (not o f) (key, entry), history = history});
+
+end;
+
+end;
+
+datatype specs = Specs of {
+  types: ((string * sort) list * type_spec) History.T,
+  pending_eqns: (thm * bool) list Symtab.table,
+  functions: fun_spec History.T,
+  cases: case_spec History.T
 };
 
-fun make_spec (history_concluded, (types, (functions, cases))) =
-  Spec { history_concluded = history_concluded, types = types,
-    functions = functions,  cases = cases };
-val empty_spec =
-  make_spec (false, (Symtab.empty, (Symtab.empty, Symtab.empty)));
-fun map_spec f (Spec { history_concluded = history_concluded,
-  types = types, functions = functions, cases = cases }) =
-  make_spec (f (history_concluded, (types, (functions, cases))));
-fun merge_spec (Spec { history_concluded = _, types = types1,
-    functions = functions1, cases = cases1 },
-  Spec { history_concluded = _, types = types2,
-    functions = functions2, cases = cases2 }) =
-  let
-    val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
-    val case_consts_of' = (maps case_consts_of o map (snd o snd o hd o snd) o Symtab.dest);
-    fun merge_functions ((_, history1), (_, history2)) =
-      let
-        val raw_history = AList.merge (op = : serial * serial -> bool)
-          (K true) (history1, history2);
-        val filtered_history = filter_out (is_default o snd) raw_history;
-        val history = if null filtered_history
-          then raw_history else filtered_history;
-      in ((false, (snd o hd) history), history) end;
-    val all_datatype_specs = map (snd o snd o hd o snd) (Symtab.dest types);
-    val all_constructors = maps (map fst o fst o constructors_of) all_datatype_specs;
-    val invalidated_case_consts = union (op =) (case_consts_of' types1) (case_consts_of' types2)
-      |> subtract (op =) (maps case_consts_of all_datatype_specs)
-    val functions = Symtab.join (K merge_functions) (functions1, functions2)
-      |> fold (fn c => Symtab.map_entry c (apfst (K (true, default_fun_spec)))) all_constructors;
-    val cases = Symtab.merge (K true) (cases1, cases2)
-      |> fold Symtab.delete invalidated_case_consts;
-  in make_spec (false, (types, (functions, cases))) end;
+fun types_of (Specs {types, ...}) = types;
+fun pending_eqns_of (Specs {pending_eqns, ...}) = pending_eqns;
+fun functions_of (Specs {functions, ...}) = functions;
+fun cases_of (Specs {cases, ...}) = cases;
 
-fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
-fun types_of (Spec { types, ... }) = types;
-fun functions_of (Spec { functions, ... }) = functions;
-fun cases_of (Spec { cases, ... }) = cases;
-val map_history_concluded = map_spec o apfst;
-val map_types = map_spec o apsnd o apfst;
-val map_functions = map_spec o apsnd o apsnd o apfst;
-val map_cases = map_spec o apsnd o apsnd o apsnd;
+fun make_specs (types, ((pending_eqns, functions), cases)) =
+  Specs {types = types, pending_eqns = pending_eqns,
+    functions = functions, cases = cases};
+
+val empty_specs =
+  make_specs (Symtab.empty, ((Symtab.empty, Symtab.empty), Symtab.empty));
+
+fun map_specs f (Specs {types = types, pending_eqns = pending_eqns,
+    functions = functions, cases = cases}) =
+  make_specs (f (types, ((pending_eqns, functions), cases)));
+
+fun merge_specs (Specs {types = types1, pending_eqns = _,
+    functions = functions1, cases = cases1},
+  Specs {types = types2, pending_eqns = _,
+    functions = functions2, cases = cases2}) =
+  let
+    val types = History.join join_same_types (types1, types2);
+    val all_types = map (snd o snd) (History.all types);
+    fun check_abstype (c, fun_spec) = case associated_abstype fun_spec of
+        NONE => true
+      | SOME (tyco, abs) => (case History.lookup types tyco of
+          NONE => false
+        | SOME (_, Abstractor {abstractor = (abs', _), projection, more_abstract_functions, ...}) =>
+            abs = abs' andalso (c = projection orelse member (op =) more_abstract_functions c));
+    fun check_datatypes (c, case_spec) =
+      let
+        val (tycos, required_constructors) = associated_datatypes case_spec;
+        val allowed_constructors =
+          tycos
+          |> maps (these o Option.map (concrete_constructors_of o snd) o History.lookup types)
+          |> map fst;
+      in subset (op =) (required_constructors, allowed_constructors) end;
+    val all_constructors =
+      maps (fst o constructors_of) all_types;
+    val all_abstract_functions =
+      maps abstract_functions_of all_types;
+    val case_combinators =
+      maps case_combinators_of all_types;
+    val functions = History.join fst (functions1, functions2)
+      |> fold (History.suppress o fst) all_constructors
+      |> History.suppress_except check_abstype;
+    val cases = History.join fst (cases1, cases2)
+      |> History.suppress_except check_datatypes;
+  in make_specs (types, ((Symtab.empty, functions), cases)) end;
+
+val map_types = map_specs o apfst;
+val map_pending_eqns = map_specs o apsnd o apfst o apfst;
+val map_functions = map_specs o apsnd o apfst o apsnd;
+val map_cases = map_specs o apsnd o apsnd;
 
 
 (* data slots dependent on executable code *)
@@ -249,7 +372,7 @@ structure Datatab = Table(type key = int val ord = int_ord);
 
 local
 
-type kind = { empty: Any.T };
+type kind = {empty: Any.T};
 
 val kinds = Synchronized.var "Code_Data" (Datatab.empty: kind Datatab.table);
 
@@ -263,7 +386,7 @@ in
 fun declare_data empty =
   let
     val k = serial ();
-    val kind = { empty = empty };
+    val kind = {empty = empty};
     val _ = Synchronized.change kinds (Datatab.update (k, kind));
   in k end;
 
@@ -272,7 +395,7 @@ fun invoke_init k = invoke (fn kind => #empty kind) k;
 end; (*local*)
 
 
-(* theory store *)
+(* global theory store *)
 
 local
 
@@ -281,50 +404,24 @@ fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory) opti
 
 structure Code_Data = Theory_Data
 (
-  type T = spec * (data * theory) option Synchronized.var;
-  val empty = (empty_spec, empty_dataref ());
+  type T = specs * (data * theory) option Synchronized.var;
+  val empty = (empty_specs, empty_dataref ());
   val extend : T -> T = apsnd (K (empty_dataref ()));
-  fun merge ((spec1, _), (spec2, _)) =
-    (merge_spec (spec1, spec2), empty_dataref ());
+  fun merge ((specs1, _), (specs2, _)) =
+    (merge_specs (specs1, specs2), empty_dataref ());
 );
 
 in
 
 
-(* access to executable code *)
+(* access to executable specifications *)
 
-val spec_of : theory -> spec = fst o Code_Data.get;
+val specs_of : theory -> specs = fst o Code_Data.get;
 
-fun map_spec_purge f = Code_Data.map (fn (spec, _) => (f spec, empty_dataref ()));
-
-fun change_fun_spec c f = (map_spec_purge o map_functions
-  o (Symtab.map_default (c, ((false, default_fun_spec), [])))
-    o apfst) (fn (_, spec) => (true, f spec));
+fun modify_specs f = Code_Data.map (fn (specs, _) => (f specs, empty_dataref ()));
 
 
-(* tackling equation history *)
-
-fun continue_history thy = if (history_concluded o spec_of) thy
-  then thy
-    |> (Code_Data.map o apfst o map_history_concluded) (K false)
-    |> SOME
-  else NONE;
-
-fun conclude_history thy = if (history_concluded o spec_of) thy
-  then NONE
-  else thy
-    |> (Code_Data.map o apfst)
-        ((map_functions o Symtab.map) (fn _ => fn ((changed, current), history) =>
-          ((false, current),
-            if changed then (serial (), current) :: history else history))
-        #> map_history_concluded (K true))
-    |> SOME;
-
-val _ = Theory.setup
-  (Theory.at_begin continue_history #> Theory.at_end conclude_history);
-
-
-(* access to data dependent on abstract executable code *)
+(* access to data dependent on executable specifications *)
 
 fun change_yield_data (kind, mk, dest) theory f =
   let
@@ -344,6 +441,66 @@ fun change_yield_data (kind, mk, dest) theory f =
   in result end;
 
 end; (*local*)
+
+
+(* pending function equations *)
+
+(* Ideally, *all* equations implementing a functions would be treated as
+   *one* atomic declaration;  unfortunately, we cannot implement this:
+   the too-well-established declaration interface are Isar attributes
+   which operate on *one* single theorem.  Hence we treat such Isar
+   declarations as "pending" and historize them as proper declarations
+   at the end of each theory. *)
+
+fun modify_pending_eqns c f specs =
+  let
+    val existing_eqns = case History.lookup (functions_of specs) c of
+        SOME (Eqns (false, eqns)) => eqns
+      | _ => [];
+  in
+    specs
+    |> map_pending_eqns (Symtab.map_default (c, existing_eqns) f)
+  end;
+
+fun register_fun_spec c spec =
+  map_pending_eqns (Symtab.delete_safe c)
+  #> map_functions (History.register c spec);
+
+fun lookup_fun_spec specs c =
+  case Symtab.lookup (pending_eqns_of specs) c of
+    SOME eqns => Eqns (false, eqns)
+  | NONE => (case History.lookup (functions_of specs) c of
+      SOME spec => spec
+    | NONE => unimplemented);
+
+fun lookup_proper_fun_spec specs c =
+  let
+    val spec = lookup_fun_spec specs c
+  in
+    if is_unimplemented spec then NONE else SOME spec
+  end;
+
+fun all_fun_specs specs =
+  map_filter (fn c => Option.map (pair c) (lookup_proper_fun_spec specs c))
+    (union (op =)
+      ((Symtab.keys o pending_eqns_of) specs)
+      ((Symtab.keys o functions_of) specs));
+
+fun historize_pending_fun_specs thy =
+  let
+    val pending_eqns = (pending_eqns_of o specs_of) thy;
+  in if Symtab.is_empty pending_eqns
+    then
+      NONE
+    else
+      thy
+      |> modify_specs (map_functions
+          (Symtab.fold (fn (c, eqs) => History.register c (Eqns (false, eqs))) pending_eqns)
+          #> map_pending_eqns (K Symtab.empty))
+      |> SOME
+  end;
+
+val _ = Theory.setup (Theory.at_end historize_pending_fun_specs);
 
 
 (** foundation **)
@@ -393,20 +550,19 @@ fun constrset_of_consts thy consts =
     val constructors = map (inst vs o snd) raw_constructors;
   in (tyco, (map (rpair []) vs, constructors)) end;
 
-fun get_type_entry thy tyco = case these (Symtab.lookup ((types_of o spec_of) thy) tyco)
- of (_, entry) :: _ => SOME entry
-  | _ => NONE;
+fun lookup_vs_type_spec thy = History.lookup ((types_of o specs_of) thy);
 
-fun get_type thy tyco = case get_type_entry thy tyco
- of SOME (vs, spec) => apfst (pair vs) (constructors_of spec)
+fun get_type thy tyco = case lookup_vs_type_spec thy tyco
+ of SOME (vs, type_spec) => apfst (pair vs) (constructors_of type_spec)
   | NONE => Sign.arity_number thy tyco
       |> Name.invent Name.context Name.aT
       |> map (rpair [])
       |> rpair []
       |> rpair false;
 
-fun get_abstype_spec thy tyco = case get_type_entry thy tyco
- of SOME (vs, Abstractor spec) => (vs, spec)
+fun get_abstype_spec thy tyco = case lookup_vs_type_spec thy tyco of
+    SOME (vs, Abstractor {abs_rep, abstractor, projection, ...}) =>
+      (vs, {abs_rep = abs_rep, abstractor = abstractor, projection = projection})
   | _ => error ("Not an abstract type: " ^ tyco);
 
 fun get_type_of_constr_or_abstr thy c =
@@ -462,7 +618,7 @@ fun check_decl_ty thy (c, ty) =
       ^ string_of_typ thy ty_decl)
   end;
 
-fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
+fun check_eqn thy {allow_nonlinear, allow_consts, allow_pats} thm (lhs, rhs) =
   let
     fun vars_of t = fold_aterms (fn Var (v, _) => insert (op =) v
       | Free _ => bad_thm "Illegal free variable"
@@ -507,11 +663,14 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
     val _ = if not (is_abstr thy c) then ()
       else bad_thm "Abstractor as head in equation";
     val _ = check_decl_ty thy (c, ty);
-    val _ = case strip_type ty
-     of (Type (tyco, _) :: _, _) => (case get_type_entry thy tyco
-       of SOME (_, Abstractor (_, (proj, _))) => if c = proj
-            then bad_thm "Projection as head in equation"
-            else ()
+    val _ = case strip_type ty of
+        (Type (tyco, _) :: _, _) => (case lookup_vs_type_spec thy tyco of
+          SOME (_, type_spec) => (case projection_of type_spec of
+            SOME proj =>
+              if c = proj
+              then bad_thm "Projection as head in equation"
+              else ()
+          | _ => ())
         | _ => ())
       | _ => ();
   in () end;
@@ -523,8 +682,8 @@ fun raw_assert_eqn thy check_patterns (thm, proper) =
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm "Not an equation"
            | THM _ => bad_thm "Not a proper equation";
-    val _ = check_eqn thy { allow_nonlinear = not proper,
-      allow_consts = not (proper andalso check_patterns), allow_pats = true } thm (lhs, rhs);
+    val _ = check_eqn thy {allow_nonlinear = not proper,
+      allow_consts = not (proper andalso check_patterns), allow_pats = true} thm (lhs, rhs);
   in (thm, proper) end;
 
 fun raw_assert_abs_eqn thy some_tyco thm =
@@ -532,9 +691,9 @@ fun raw_assert_abs_eqn thy some_tyco thm =
     val (full_lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm "Not an equation"
            | THM _ => bad_thm "Not a proper equation";
-    val (rep, lhs) = dest_comb full_lhs
+    val (proj_t, lhs) = dest_comb full_lhs
       handle TERM _ => bad_thm "Not an abstract equation";
-    val (rep_const, ty) = dest_Const rep
+    val (proj, ty) = dest_Const proj_t
       handle TERM _ => bad_thm "Not an abstract equation";
     val (tyco, Ts) = (dest_Type o domain_type) ty
       handle TERM _ => bad_thm "Not an abstract equation"
@@ -542,16 +701,16 @@ fun raw_assert_abs_eqn thy some_tyco thm =
     val _ = case some_tyco of SOME tyco' => if tyco = tyco' then ()
           else bad_thm ("Abstract type mismatch:" ^ quote tyco ^ " vs. " ^ quote tyco')
       | NONE => ();
-    val (vs', (_, (rep', _))) = case try (get_abstype_spec thy) tyco
-     of SOME data => data
-      | NONE => bad_thm ("Not an abstract type: " ^ tyco);
-    val _ = if rep_const = rep' then ()
-      else bad_thm ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
-    val _ = check_eqn thy { allow_nonlinear = false,
-      allow_consts = false, allow_pats = false } thm (lhs, rhs);
-    val _ = if ListPair.all (fn (T, (_, sort)) => Sign.of_sort thy (T, sort)) (Ts, vs') then ()
+    val (vs, proj', (abs', _)) = case lookup_vs_type_spec thy tyco
+     of SOME (vs, Abstractor spec) => (vs, #projection spec, #abstractor spec)
+      | _ => bad_thm ("Not an abstract type: " ^ tyco);
+    val _ = if proj = proj' then ()
+      else bad_thm ("Projection mismatch: " ^ quote proj ^ " vs. " ^ quote proj');
+    val _ = check_eqn thy {allow_nonlinear = false,
+      allow_consts = false, allow_pats = false} thm (lhs, rhs);
+    val _ = if ListPair.all (fn (T, (_, sort)) => Sign.of_sort thy (T, sort)) (Ts, vs) then ()
       else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
-  in (thm, tyco) end;
+  in (thm, (tyco, abs')) end;
 
 in
 
@@ -741,13 +900,13 @@ fun constrain_thm thy vs sorts thm =
 
 fun concretify_abs thy tyco abs_thm =
   let
-    val (_, ((c, _), (_, cert))) = get_abstype_spec thy tyco;
+    val (_, {abstractor = (c_abs, _), abs_rep, ...}) = get_abstype_spec thy tyco;
     val lhs = (fst o Logic.dest_equals o Thm.prop_of) abs_thm
     val ty = fastype_of lhs;
     val ty_abs = (fastype_of o snd o dest_comb) lhs;
-    val abs = Thm.global_cterm_of thy (Const (c, ty --> ty_abs));
-    val raw_concrete_thm = Drule.transitive_thm OF [Thm.symmetric cert, Thm.combination (Thm.reflexive abs) abs_thm];
-  in (c, (Thm.varifyT_global o zero_var_indexes) raw_concrete_thm) end;
+    val abs = Thm.global_cterm_of thy (Const (c_abs, ty --> ty_abs));
+    val raw_concrete_thm = Drule.transitive_thm OF [Thm.symmetric abs_rep, Thm.combination (Thm.reflexive abs) abs_thm];
+  in (c_abs, (Thm.varifyT_global o zero_var_indexes) raw_concrete_thm) end;
 
 fun add_rhss_of_eqn thy t =
   let
@@ -809,13 +968,13 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val cert_thm = Conjunction.intr_balanced (map rewrite_head thms');
       in Equations (cert_thm, propers) end;
 
-fun cert_of_proj ctxt c tyco =
+fun cert_of_proj ctxt proj tyco =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (vs, ((abs, (_, ty)), (rep, _))) = get_abstype_spec thy tyco;
-    val _ = if c = rep then () else
-      error ("Wrong head of projection,\nexpected constant " ^ string_of_const thy rep);
-  in Projection (mk_proj tyco vs ty abs rep, tyco) end;
+    val (vs, {abstractor = (abs, (_, ty)), projection = proj', ...}) = get_abstype_spec thy tyco;
+    val _ = if proj = proj' then () else
+      error ("Wrong head of projection,\nexpected constant " ^ string_of_const thy proj);
+  in Projection (mk_proj tyco vs ty abs proj, tyco) end;
 
 fun cert_of_abs ctxt tyco c raw_abs_thm =
   let
@@ -900,7 +1059,7 @@ fun equations_of_cert thy (cert as Nothing _) =
       in (tyscm, SOME (map (abstractions o dest_eqn o Thm.prop_of) thms ~~ (map SOME thms ~~ propers))) end
   | equations_of_cert thy (Projection (t, tyco)) =
       let
-        val (_, ((abs, _), _)) = get_abstype_spec thy tyco;
+        val (_, {abstractor = (abs, _), ...}) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
         val t' = Logic.varify_types_global t;
         fun abstractions (args, rhs) = (map (rpair (SOME abs)) args, (rhs, NONE));
@@ -916,7 +1075,7 @@ fun equations_of_cert thy (cert as Nothing _) =
       end;
 
 fun pretty_cert thy (cert as Nothing _) =
-      [Pretty.str "(no equations)"]
+      [Pretty.str "(unimplemented)"]
   | pretty_cert thy (cert as Equations _) =
       (map_filter
         (Option.map (Thm.pretty_thm_global thy o
@@ -932,11 +1091,6 @@ end;
 
 
 (* code certificate access with preprocessing *)
-
-fun retrieve_raw thy c =
-  Symtab.lookup ((functions_of o spec_of) thy) c
-  |> Option.map (snd o fst)
-  |> the_default Unimplemented
 
 fun eqn_conv conv ct =
   let
@@ -967,14 +1121,12 @@ fun cert_of_eqns_preprocess ctxt functrans c =
   end;
 
 fun get_cert ctxt functrans c =
-  case retrieve_raw (Proof_Context.theory_of ctxt) c of
-    Unimplemented => nothing_cert ctxt c
-  | Eqns_Default eqns => eqns
+  case lookup_proper_fun_spec (specs_of (Proof_Context.theory_of ctxt)) c of
+    NONE => nothing_cert ctxt c
+  | SOME (Eqns (_, eqns)) => eqns
       |> cert_of_eqns_preprocess ctxt functrans c
-  | Eqns eqns => eqns
-      |> cert_of_eqns_preprocess ctxt functrans c
-  | Proj (_, tyco) => cert_of_proj ctxt c tyco
-  | Abstr (abs_thm, tyco) => abs_thm
+  | SOME (Proj (_, (tyco, _))) => cert_of_proj ctxt c tyco
+  | SOME (Abstr (abs_thm, (tyco, _))) => abs_thm
      |> preprocess Conv.arg_conv ctxt
      |> cert_of_abs ctxt tyco c;
 
@@ -1027,15 +1179,17 @@ fun case_cert thm = raw_case_cert thm
 
 end;
 
-fun get_case_schema thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
-    SOME (Case (schema, _)) => SOME schema
+fun lookup_case_spec thy = History.lookup ((cases_of o specs_of) thy);
+
+fun get_case_schema thy c = case lookup_case_spec thy c of
+    SOME (Case {schema, ...}) => SOME schema
   | _ => NONE;
 
-fun get_case_cong thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
-    SOME (Case (_, cong)) => SOME cong
+fun get_case_cong thy c = case lookup_case_spec thy c of
+    SOME (Case {cong, ...}) => SOME cong
   | _ => NONE;
 
-fun is_undefined thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
+fun is_undefined thy c = case lookup_case_spec thy c of
     SOME Undefined => true
   | _ => false;
 
@@ -1045,20 +1199,18 @@ fun is_undefined thy c = case Symtab.lookup ((cases_of o spec_of) thy) c of
 fun print_codesetup thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val spec = spec_of thy;
+    val specs = specs_of thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
-    fun pretty_function (const, Eqns_Default eqns) =
-          pretty_equations const (map fst eqns)
-      | pretty_function (const, Eqns eqns) =
+    fun pretty_function (const, Eqns (_, eqns)) =
           pretty_equations const (map fst eqns)
       | pretty_function (const, Proj (proj, _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
       | pretty_function (const, Abstr (thm, _)) = pretty_equations const [thm];
     fun pretty_typ (tyco, vs) = Pretty.str
       (string_of_typ thy (Type (tyco, map TFree vs)));
-    fun pretty_typspec (typ, (cos, abstract)) = if null cos
+    fun pretty_type_spec (typ, (cos, abstract)) = if null cos
       then pretty_typ typ
       else (Pretty.block o Pretty.breaks) (
         pretty_typ typ
@@ -1071,32 +1223,35 @@ fun print_codesetup thy =
                       :: Pretty.str "of"
                       :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
       );
-    fun pretty_caseparam NONE = "<ignored>"
-      | pretty_caseparam (SOME c) = string_of_const thy c
-    fun pretty_case (const, Case ((_, (_, cos)), _)) = (Pretty.block o Pretty.breaks) [
-          Pretty.str (string_of_const thy const), Pretty.str "with",
-          (Pretty.block o Pretty.commas o map (Pretty.str o pretty_caseparam)) cos]
-      | pretty_case (const, _) = Pretty.str (string_of_const thy const)
-    val functions = functions_of spec
-      |> Symtab.dest
-      |> (map o apsnd) (snd o fst)
-      |> filter (fn (_, Unimplemented) => false | _ => true)
+    fun pretty_case_param NONE = "<ignored>"
+      | pretty_case_param (SOME c) = string_of_const thy c
+    fun pretty_case (const, Case {schema = (_, (_, [])), ...}) =
+          Pretty.str (string_of_const thy const)
+      | pretty_case (const, Case {schema = (_, (_, cos)), ...}) =
+          (Pretty.block o Pretty.breaks) [
+            Pretty.str (string_of_const thy const), Pretty.str "with",
+            (Pretty.block o Pretty.commas o map (Pretty.str o pretty_case_param)) cos]
+      | pretty_case (const, Undefined) =
+          (Pretty.block o Pretty.breaks) [
+            Pretty.str (string_of_const thy const), Pretty.str "<undefined>"];
+    val functions = all_fun_specs specs
       |> sort (string_ord o apply2 fst);
-    val datatypes = types_of spec
-      |> Symtab.dest
-      |> map (fn (tyco, (_, (vs, spec)) :: _) =>
+    val types = History.all (types_of specs)
+      |> map (fn (tyco, (vs, spec)) =>
           ((tyco, vs), constructors_of spec))
       |> sort (string_ord o apply2 (fst o fst));
-    val cases = Symtab.dest ((cases_of o spec_of) thy);
+    val cases = History.all (cases_of specs)
+      |> filter (fn (_, No_Case) => false | _ => true)
+      |> sort (string_ord o apply2 fst);
   in
     Pretty.writeln_chunks [
       Pretty.block (
-        Pretty.str "code equations:" :: Pretty.fbrk
-        :: (Pretty.fbreaks o map pretty_function) functions
+        Pretty.str "types:" :: Pretty.fbrk
+        :: (Pretty.fbreaks o map pretty_type_spec) types
       ),
       Pretty.block (
-        Pretty.str "datatypes:" :: Pretty.fbrk
-        :: (Pretty.fbreaks o map pretty_typspec) datatypes
+        Pretty.str "functions:" :: Pretty.fbrk
+        :: (Pretty.fbreaks o map pretty_function) functions
       ),
       Pretty.block (
         Pretty.str "cases:" :: Pretty.fbrk
@@ -1106,9 +1261,103 @@ fun print_codesetup thy =
   end;
 
 
-(** declaring executable ingredients **)
+(** declaration of executable ingredients **)
 
-(* code equations *)
+(* abstract code declarations *)
+
+local
+
+fun generic_code_declaration strictness lift_phi f x =
+  Local_Theory.declaration
+    {syntax = false, pervasive = false}
+    (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
+
+in
+
+fun silent_code_declaration lift_phi = generic_code_declaration Silent lift_phi;
+fun code_declaration lift_phi = generic_code_declaration Liberal lift_phi;
+
+end;
+
+
+(* types *)
+
+fun invalidate_constructors_of (_, type_spec) =
+  fold (fn (c, _) => History.register c unimplemented) (fst (constructors_of type_spec));
+
+fun invalidate_abstract_functions_of (_, type_spec) =
+  fold (fn c => History.register c unimplemented) (abstract_functions_of type_spec);
+
+fun invalidate_case_combinators_of (_, type_spec) =
+  fold (fn c => History.register c No_Case) (case_combinators_of type_spec);
+
+fun register_type (tyco, vs_typ_spec) specs =
+  let
+    val olds = the_list (History.lookup (types_of specs) tyco);
+  in
+    specs
+    |> map_functions (fold invalidate_abstract_functions_of olds
+        #> invalidate_constructors_of vs_typ_spec)
+    |> map_cases (fold invalidate_case_combinators_of olds)
+    |> map_types (History.register tyco vs_typ_spec)
+  end;
+
+structure Datatype_Plugin = Plugin(type T = string);
+
+val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
+
+fun datatype_interpretation f =
+  Datatype_Plugin.interpretation datatype_plugin
+    (fn tyco => Local_Theory.background_theory (fn thy =>
+      thy
+      |> Sign.root_path
+      |> Sign.add_path (Long_Name.qualifier tyco)
+      |> f (tyco, fst (get_type thy tyco))
+      |> Sign.restore_naming thy));
+
+fun declare_datatype_global proto_constrs thy =
+  let
+    fun unoverload_const_typ (c, ty) =
+      (Axclass.unoverload_const thy (c, ty), ty);
+    val constrs = map unoverload_const_typ proto_constrs;
+    val (tyco, (vs, cos)) = constrset_of_consts thy constrs;
+  in
+    thy
+    |> modify_specs (register_type
+        (tyco, (vs, Constructors {constructors = cos, case_combinators = []})))
+    |> Named_Target.theory_map (Datatype_Plugin.data_default tyco)
+  end;
+
+fun declare_datatype_cmd raw_constrs thy =
+  declare_datatype_global (map (read_bare_const thy) raw_constrs) thy;
+
+structure Abstype_Plugin = Plugin(type T = string);
+
+val abstype_plugin = Plugin_Name.declare_setup @{binding abstype_code};
+
+fun abstype_interpretation f =
+  Abstype_Plugin.interpretation abstype_plugin
+    (fn tyco =>
+      Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
+
+fun generic_declare_abstype strictness proto_thm thy =
+  case check_abstype_cert strictness thy proto_thm of
+    SOME (tyco, (vs, (abstractor as (abs, (_, ty)), (proj, abs_rep)))) =>
+      thy
+      |> modify_specs (register_type
+            (tyco, (vs, Abstractor {abstractor = abstractor, projection = proj, abs_rep = abs_rep, more_abstract_functions = []}))
+          #> register_fun_spec proj
+            (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs proj), (tyco, abs))))
+      |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
+  | NONE => thy;
+
+val declare_abstype_global = generic_declare_abstype Strict;
+
+val declare_abstype =
+  code_declaration Morphism.thm generic_declare_abstype;
+
+
+(* functions *)
 
 (*
   strictness wrt. shape of theorem propositions:
@@ -1117,14 +1366,6 @@ fun print_codesetup thy =
     * using global declarations (... -> thy -> thy): strict
     * internal processing after storage: strict
 *)
-
-fun generic_code_declaration strictness lift_phi f x =
-  Local_Theory.declaration
-    {syntax = false, pervasive = false}
-    (fn phi => Context.mapping (f strictness (lift_phi phi x)) I);
-
-fun silent_code_declaration lift_phi = generic_code_declaration Silent lift_phi;
-fun code_declaration lift_phi = generic_code_declaration Liberal lift_phi;
 
 local
 
@@ -1148,26 +1389,24 @@ fun subsumptive_add thy verbose (thm, proper) eqns =
       else false;
   in (thm, proper) :: filter_out drop eqns end;
 
-fun add_eqn_for (c, proto_eqn) thy =
-  let
-    val eqn = apfst Thm.close_derivation proto_eqn;
-    fun add (Eqns eqns) = Eqns (subsumptive_add thy true eqn eqns)
-      | add _ = Eqns [eqn];
-  in change_fun_spec c add thy end;
+fun add_eqn_for (c, eqn) thy =
+  thy |> modify_specs (modify_pending_eqns c
+    (subsumptive_add thy true (apfst Thm.close_derivation eqn)));
 
 fun add_eqns_for default (c, proto_eqns) thy =
-  let
-    val eqns = []
-      |> fold_rev (subsumptive_add thy (not default)) proto_eqns
-      |> (map o apfst) Thm.close_derivation;
-    fun add (Eqns_Default _) = Eqns_Default eqns
-      | add data = data;
-  in change_fun_spec c (if default then add else K (Eqns eqns)) thy end;
+  thy |> modify_specs (fn specs =>
+    if is_default (lookup_fun_spec specs c) orelse not default
+    then
+      let
+        val eqns = []
+          |> fold_rev (subsumptive_add thy (not default)) proto_eqns
+          |> (map o apfst) Thm.close_derivation;
+      in specs |> register_fun_spec c (Eqns (default, eqns)) end
+    else specs);
 
-fun add_abstract_for (c, proto_abs_eqn) =
-  let
-    val abs_eqn = apfst Thm.close_derivation proto_abs_eqn;
-  in change_fun_spec c (K (Abstr abs_eqn)) end;
+fun add_abstract_for (c, (thm, tyco_abs as (tyco, _))) =
+  modify_specs (register_fun_spec c (Abstr (Thm.close_derivation thm, tyco_abs))
+    #> map_types (History.modify_entry tyco (add_abstract_function c)))
 
 in
 
@@ -1203,12 +1442,7 @@ val add_eqn_global = generic_add_eqn Strict;
 fun del_eqn_global thm thy =
   case prep_eqn Liberal thy (thm, false) of
     SOME (c, (thm, _)) =>
-      let
-        fun del (Eqns_Default _) = Eqns []
-          | del (Eqns eqns) =
-              Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
-          | del spec = spec
-      in change_fun_spec c del thy end
+      modify_specs (modify_pending_eqns c (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')))) thy
   | NONE => thy;
 
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
@@ -1216,9 +1450,11 @@ val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
 val declare_abstract_eqn =
   code_declaration Morphism.thm generic_declare_abstract_eqn;
 
-fun declare_empty_global c = change_fun_spec c (K (Eqns []));
+fun declare_aborting_global c = 
+  modify_specs (register_fun_spec c aborting);
 
-fun declare_unimplemented_global c = change_fun_spec c (K Unimplemented);
+fun declare_unimplemented_global c =
+  modify_specs (register_fun_spec c unimplemented);
 
 
 (* cases *)
@@ -1244,113 +1480,30 @@ fun case_cong thy case_const (num_args, (pos, _)) =
 fun declare_case_global thm thy =
   let
     val (case_const, (k, cos)) = case_cert thm;
-    val _ = case (filter_out (is_constr thy) o map_filter I) cos
-     of [] => ()
+    fun get_type_of_constr c = case get_type_of_constr_or_abstr thy c of
+        SOME (c, false) => SOME c
+      | _ => NONE;
+    val cos_with_tycos =
+      (map_filter o Option.map) (fn c => (c, get_type_of_constr c)) cos;
+    val _ = case map_filter (fn (c, NONE) => SOME c | _ => NONE) cos_with_tycos of
+        [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas_quote cs);
-    val entry = (1 + Int.max (1, length cos), (k, cos));
-    fun register_case cong = map_cases
-      (Symtab.update (case_const, Case (entry, cong)));
-    fun register_for_constructors (Constructors (cos', cases)) =
-         Constructors (cos',
-           if exists (fn (co, _) => member (op =) cos (SOME co)) cos'
-           then insert (op =) case_const cases
-           else cases)
-      | register_for_constructors (x as Abstractor _) = x;
-    val register_type = (map_types o Symtab.map)
-      (K ((map o apsnd o apsnd) register_for_constructors));
+    val tycos = distinct (op =) (map_filter snd cos_with_tycos);
+    val schema = (1 + Int.max (1, length cos), (k, cos));
+    val cong = case_cong thy case_const schema;
   in
     thy
-    |> `(fn thy => case_cong thy case_const entry)
-    |-> (fn cong => map_spec_purge (register_case cong #> register_type))
+    |> modify_specs (map_cases (History.register case_const
+         (Case {schema = schema, tycos = tycos, cong = cong}))
+      #> map_types (fold (fn tyco => History.modify_entry tyco
+        (add_case_combinator case_const)) tycos))
   end;
 
 fun declare_undefined_global c =
-  (map_spec_purge o map_cases) (Symtab.update (c, Undefined));
+  (modify_specs o map_cases) (History.register c Undefined);
 
 
-(* types *)
-
-fun register_type (tyco, vs_spec) thy =
-  let
-    val (old_constrs, some_old_proj) =
-      case these (Symtab.lookup ((types_of o spec_of) thy) tyco)
-       of (_, (_, Constructors (cos, _))) :: _ => (map fst cos, NONE)
-        | (_, (_, Abstractor ((co, _), (proj, _)))) :: _ => ([co], SOME proj)
-        | [] => ([], NONE);
-    val outdated_funs1 = (map fst o fst o constructors_of o snd) vs_spec;
-    val outdated_funs2 = case some_old_proj
-     of NONE => []
-      | SOME old_proj => Symtab.fold
-          (fn (c, ((_, spec), _)) =>
-            if member (op =) (the_list (associated_abstype spec)) tyco
-            then insert (op =) c else I)
-            ((functions_of o spec_of) thy) [old_proj];
-    fun drop_outdated_cases cases = fold Symtab.delete_safe
-      (Symtab.fold (fn (c, Case ((_, (_, cos)), _)) =>
-        if exists (member (op =) old_constrs) (map_filter I cos)
-          then insert (op =) c else I | _ => I) cases []) cases;
-  in
-    thy
-    |> fold declare_unimplemented_global (outdated_funs1 @ outdated_funs2)
-    |> map_spec_purge
-        ((map_types o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
-        #> map_cases drop_outdated_cases)
-  end;
-
-structure Datatype_Plugin = Plugin(type T = string);
-
-val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
-
-fun datatype_interpretation f =
-  Datatype_Plugin.interpretation datatype_plugin
-    (fn tyco => Local_Theory.background_theory (fn thy =>
-      thy
-      |> Sign.root_path
-      |> Sign.add_path (Long_Name.qualifier tyco)
-      |> f (tyco, fst (get_type thy tyco))
-      |> Sign.restore_naming thy));
-
-fun declare_datatype_global proto_constrs thy =
-  let
-    fun unoverload_const_typ (c, ty) =
-      (Axclass.unoverload_const thy (c, ty), ty);
-    val constrs = map unoverload_const_typ proto_constrs;
-    val (tyco, (vs, cos)) = constrset_of_consts thy constrs;
-  in
-    thy
-    |> register_type (tyco, (vs, Constructors (cos, [])))
-    |> Named_Target.theory_map (Datatype_Plugin.data_default tyco)
-  end;
-
-fun declare_datatype_cmd raw_constrs thy =
-  declare_datatype_global (map (read_bare_const thy) raw_constrs) thy;
-
-structure Abstype_Plugin = Plugin(type T = string);
-
-val abstype_plugin = Plugin_Name.declare_setup @{binding abstype_code};
-
-fun abstype_interpretation f =
-  Abstype_Plugin.interpretation abstype_plugin
-    (fn tyco =>
-      Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
-
-fun generic_declare_abstype strictness proto_thm thy =
-  case check_abstype_cert strictness thy proto_thm of
-    SOME (tyco, (vs, (abs_ty as (abs, (_, ty)), (rep, cert)))) =>
-      thy
-      |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
-      |> change_fun_spec rep
-        (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
-      |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
-  | NONE => thy;
-
-val declare_abstype_global = generic_declare_abstype Strict;
-
-val declare_abstype =
-  code_declaration Morphism.thm generic_declare_abstype;
-
-
-(* setup *)
+(* attributes *)
 
 fun code_attribute f = Thm.declaration_attribute
   (fn thm => Context.mapping (f thm) I);
@@ -1371,7 +1524,7 @@ val _ = Theory.setup
           (generic_declare_abstype Liberal))
       || Args.del |-- Scan.succeed (code_attribute del_eqn_global)
       || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term
-          >> code_const_attribute declare_empty_global)
+          >> code_const_attribute declare_aborting_global)
       || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term
           >> code_const_attribute declare_unimplemented_global)
       || Scan.succeed (code_attribute

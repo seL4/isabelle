@@ -99,8 +99,19 @@ buffers.
 
 * Deleting the last code equations for a particular function using
 [code del] results in function with no equations (runtime abort) rather
-than an unimplemented function (generate time abort).  Use explicit
+than an unimplemented function (generation time abort).  Use explicit
 [[code drop:]] to enforce the latter.  Minor INCOMPATIBILTIY.
+
+* Proper concept of code declarations in code.ML:
+  - Regular code declarations act only on the global theory level,
+    being ignored with warnings if syntactically malformed.
+  - Explicitly global code declarations yield errors if syntactically malformed.
+  - Default code declarations are silently ignored if syntactically malformed.
+Minor INCOMPATIBILITY.
+
+* Clarified and standardized internal data bookkeeping of code declarations:
+history of serials allows to track potentially non-monotonous declarations
+appropriately.  Minor INCOMPATIBILITY.
 
 
 *** HOL ***
