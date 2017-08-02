@@ -1504,7 +1504,7 @@ proof -
       done
     by (simp add: interval_split k interval_doublesplit)
 qed
-
+              
 lemma (in comm_monoid_set) operative_division:
   fixes g :: "'b::euclidean_space set \<Rightarrow> 'a"
   assumes g: "operative g" and d: "d division_of (cbox a b)" shows "F g d = g (cbox a b)"
@@ -1614,60 +1614,75 @@ proof -
         case False
         then have "\<exists>x. x \<in> division_points (cbox a b) d"
           by auto
-        then guess k c
-          unfolding split_paired_Ex division_points_def mem_Collect_eq split_conv
-          apply (elim exE conjE)
-          done
-        note this(2-4,1) note kc=this[unfolded interval_bounds[OF ab']]
-        from this(3) guess j .. note j=this
-        define d1 where "d1 = {l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
-        define d2 where "d2 = {l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
+        then obtain k c 
+          where "k \<in> Basis" "interval_lowerbound (cbox a b) \<bullet> k < c"
+                "c < interval_upperbound (cbox a b) \<bullet> k"
+                "\<exists>i\<in>d. interval_lowerbound i \<bullet> k = c \<or> interval_upperbound i \<bullet> k = c"
+          unfolding division_points_def by auto
+        then obtain j where "a \<bullet> k < c" "c < b \<bullet> k" 
+              and "j \<in> d" and j: "interval_lowerbound j \<bullet> k = c \<or> interval_upperbound j \<bullet> k = c"
+          by (metis division_of_trivial empty_iff interval_bounds' less.prems)
+        let ?lec = "{x. x\<bullet>k \<le> c}" let ?gec = "{x. x\<bullet>k \<ge> c}"
+        define d1 where "d1 = {l \<inter> ?lec | l. l \<in> d \<and> l \<inter> ?lec \<noteq> {}}"
+        define d2 where "d2 = {l \<inter> ?gec | l. l \<in> d \<and> l \<inter> ?gec \<noteq> {}}"
         define cb where "cb = (\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)"
         define ca where "ca = (\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)"
-        note division_points_psubset[OF \<open>d division_of cbox a b\<close> ab kc(1-2) j]
-        note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
-        then have *: "F g d1 = g (cbox a b \<inter> {x. x\<bullet>k \<le> c})" "F g d2 = g (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-          unfolding interval_split[OF kc(4)]
-          apply (rule_tac[!] "less.hyps"[rule_format])
-          using division_split[OF \<open>d division_of cbox a b\<close>, where k=k and c=c]
-          apply (simp_all add: interval_split kc d1_def d2_def division_points_finite[OF \<open>d division_of cbox a b\<close>])
-          done
-        { fix l y
-          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
-          then obtain u v where leq: "l = cbox u v"
-            by (meson cbox_division_memE less.prems)
-          have "g (l \<inter> {x. x \<bullet> k \<le> c}) = \<^bold>1"
-            unfolding leq interval_split[OF kc(4)]
-            apply (rule operativeD[OF g])
-            unfolding interior_cbox[symmetric] interval_split[symmetric, OF kc(4)]
-            using division_split_left_inj less as kc leq by blast
-        } note fxk_le = this
-        { fix l y
-          assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
-          then obtain u v where leq: "l = cbox u v"
-            by (meson cbox_division_memE less.prems)
-          have "g (l \<inter> {x. x \<bullet> k \<ge> c}) = \<^bold>1"
-            unfolding leq interval_split[OF kc(4)]
-            apply (rule operativeD(1)[OF g])
-            unfolding interior_cbox[symmetric] interval_split[symmetric,OF kc(4)]
-            using division_split_right_inj less leq as kc by blast
-        } note fxk_ge = this
-        have d1_alt: "d1 = (\<lambda>l. l \<inter> {x. x\<bullet>k \<le> c}) ` {l \<in> d. l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
+        have "division_points (cbox a b \<inter> ?lec) {l \<inter> ?lec |l. l \<in> d \<and> l \<inter> ?lec \<noteq> {}} 
+              \<subset> division_points (cbox a b) d"
+          by (rule division_points_psubset[OF \<open>d division_of cbox a b\<close> ab \<open>a \<bullet> k < c\<close> \<open>c < b \<bullet> k\<close> \<open>j \<in> d\<close> j \<open>k \<in> Basis\<close>])
+        with division_points_finite[OF \<open>d division_of cbox a b\<close>] 
+        have "card
+         (division_points (cbox a b \<inter> ?lec) {l \<inter> ?lec |l. l \<in> d \<and> l \<inter> ?lec \<noteq> {}})
+           < card (division_points (cbox a b) d)"
+          by (rule psubset_card_mono)
+        moreover have "division_points (cbox a b \<inter> {x. c \<le> x \<bullet> k}) {l \<inter> {x. c \<le> x \<bullet> k} |l. l \<in> d \<and> l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}}
+              \<subset> division_points (cbox a b) d"
+          by (rule division_points_psubset[OF \<open>d division_of cbox a b\<close> ab \<open>a \<bullet> k < c\<close> \<open>c < b \<bullet> k\<close> \<open>j \<in> d\<close> j \<open>k \<in> Basis\<close>])
+        with division_points_finite[OF \<open>d division_of cbox a b\<close>] 
+        have "card (division_points (cbox a b \<inter> ?gec) {l \<inter> ?gec |l. l \<in> d \<and> l \<inter> ?gec \<noteq> {}})
+              < card (division_points (cbox a b) d)"
+          by (rule psubset_card_mono)
+        ultimately have *: "F g d1 = g (cbox a b \<inter> ?lec)" "F g d2 = g (cbox a b \<inter> ?gec)"
+          unfolding interval_split[OF \<open>k \<in> Basis\<close>]
+          apply (rule_tac[!] less.hyps)
+          using division_split[OF \<open>d division_of cbox a b\<close>, where k=k and c=c] \<open>k \<in> Basis\<close>
+          by (simp_all add: interval_split  d1_def d2_def division_points_finite[OF \<open>d division_of cbox a b\<close>])
+        have fxk_le: "g (l \<inter> ?lec) = \<^bold>1" 
+          if "l \<in> d" "y \<in> d" "l \<inter> ?lec = y \<inter> ?lec" "l \<noteq> y" for l y
+        proof -
+          obtain u v where leq: "l = cbox u v"
+            using \<open>l \<in> d\<close> less.prems by auto
+          have "interior (cbox u v \<inter> ?lec) = {}"
+            using that division_split_left_inj leq less.prems by blast
+          then show ?thesis
+            unfolding leq interval_split[OF \<open>k \<in> Basis\<close>] using g by auto
+        qed
+        have fxk_ge: "g (l \<inter> {x. x \<bullet> k \<ge> c}) = \<^bold>1"
+          if "l \<in> d" "y \<in> d" "l \<inter> ?gec = y \<inter> ?gec" "l \<noteq> y" for l y
+        proof -
+          obtain u v where leq: "l = cbox u v"
+            using \<open>l \<in> d\<close> less.prems by auto
+          have "interior (cbox u v \<inter> ?gec) = {}"
+            using that division_split_right_inj leq less.prems by blast
+          then show ?thesis
+            unfolding leq interval_split[OF \<open>k \<in> Basis\<close>] using g by auto
+        qed
+        have d1_alt: "d1 = (\<lambda>l. l \<inter> ?lec) ` {l \<in> d. l \<inter> ?lec \<noteq> {}}"
           using d1_def by auto
-        have d2_alt: "d2 = (\<lambda>l. l \<inter> {x. x\<bullet>k \<ge> c}) ` {l \<in> d. l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
+        have d2_alt: "d2 = (\<lambda>l. l \<inter> ?gec) ` {l \<in> d. l \<inter> ?gec \<noteq> {}}"
           using d2_def by auto
         have "g (cbox a b) = F g d1 \<^bold>* F g d2" (is "_ = ?prev")
-          unfolding * using g kc(4) by blast
-        also have "F g d1 = F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<le> c})) d"
+          unfolding * using g \<open>k \<in> Basis\<close> by blast
+        also have "F g d1 = F (\<lambda>l. g (l \<inter> ?lec)) d"
           unfolding d1_alt using division_of_finite[OF less.prems] fxk_le
           by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left simp: operative_empty[OF g])
-        also have "F g d2 = F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<ge> c})) d"
+        also have "F g d2 = F (\<lambda>l. g (l \<inter> ?gec)) d"
           unfolding d2_alt using division_of_finite[OF less.prems] fxk_ge
           by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left simp: operative_empty[OF g])
-        also have *: "\<forall>x\<in>d. g x = g (x \<inter> {x. x \<bullet> k \<le> c}) \<^bold>* g (x \<inter> {x. c \<le> x \<bullet> k})"
+        also have *: "\<forall>x\<in>d. g x = g (x \<inter> ?lec) \<^bold>* g (x \<inter> ?gec)"
           unfolding forall_in_division[OF \<open>d division_of cbox a b\<close>]
-          using g kc(4) by blast
-        have "F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<le> c})) d \<^bold>* F (\<lambda>l. g (l \<inter> {x. x\<bullet>k \<ge> c})) d = F g d"
+          using g \<open>k \<in> Basis\<close> by blast
+        have "F (\<lambda>l. g (l \<inter> ?lec)) d \<^bold>* F (\<lambda>l. g (l \<inter> ?gec)) d = F g d"
           using * by (simp add: distrib)
         finally show ?thesis by auto
       qed
