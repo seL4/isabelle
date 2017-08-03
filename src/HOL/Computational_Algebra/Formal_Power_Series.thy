@@ -818,8 +818,6 @@ lemma fps_shift_cutoff:
 
 subsection \<open>Formal Power series form a metric space\<close>
 
-definition (in dist) "ball x r = {y. dist y x < r}"
-
 instantiation fps :: (comm_ring_1) dist
 begin
 
@@ -884,8 +882,8 @@ end
 
 declare uniformity_Abort[where 'a="'a :: comm_ring_1 fps", code]
 
-lemma open_fps_def: "open (S :: 'a::comm_ring_1 fps set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> ball a r \<subseteq> S)"
-  unfolding open_dist ball_def subset_eq by simp
+lemma open_fps_def: "open (S :: 'a::comm_ring_1 fps set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> {y. dist y a < r} \<subseteq> S)"
+  unfolding open_dist subset_eq by simp
 
 text \<open>The infinite sums and justification of the notation in textbooks.\<close>
 
