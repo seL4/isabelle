@@ -1379,8 +1379,8 @@ qed
 
 lemma division_points_psubset:
   fixes a :: "'a::euclidean_space"
-  assumes "d division_of (cbox a b)"
-      and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
+  assumes d: "d division_of (cbox a b)"
+      and altb: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
       and "l \<in> d"
       and disj: "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
       and k: "k \<in> Basis"
@@ -1390,14 +1390,12 @@ lemma division_points_psubset:
          division_points (cbox a b) d" (is "?D2 \<subset> ?D")
 proof -
   have ab: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-    using assms(2) by (auto intro!:less_imp_le)
-  guess u v using division_ofD(4)[OF assms(1,5)] by (elim exE) note l=this
+    using altb by (auto intro!:less_imp_le)
+  obtain u v where l: "l = cbox u v"
+    using d \<open>l \<in> d\<close> by blast
   have uv: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i" "\<forall>i\<in>Basis. a\<bullet>i \<le> u\<bullet>i \<and> v\<bullet>i \<le> b\<bullet>i"
-    using division_ofD(2,2,3)[OF assms(1,5)] unfolding l box_ne_empty
-    using subset_box(1)
-    apply auto
-    apply blast+
-    done
+    apply (metis assms(5) box_ne_empty(1) cbox_division_memE d l)
+    by (metis assms(5) box_ne_empty(1) cbox_division_memE d l subset_box(1))
   have *: "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
           "interval_upperbound (cbox a b \<inter> {x. x \<bullet> k \<le> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
     unfolding l interval_split[OF k] interval_bounds[OF uv(1)]
@@ -2375,64 +2373,49 @@ proof -
       done
   next
     case (insert xk p)
-    guess x k using surj_pair[of xk] by (elim exE) note xk=this
-    note tagged_partial_division_subset[OF insert(4) subset_insertI]
-    from insert(3)[OF this insert(5)] 
+    obtain x k where xk: "xk = (x, k)"
+      using surj_pair[of xk] by metis 
     obtain q1 where q1: "q1 tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> p}"
                 and "d fine q1"
                 and q1I: "\<And>x k. \<lbrakk>(x, k)\<in>p;  k \<subseteq> d x\<rbrakk> \<Longrightarrow> (x, k) \<in> q1"
-      by (force simp add: )
+      using case_prodD tagged_partial_division_subset[OF insert(4) subset_insertI]
+      by (metis (mono_tags, lifting) insert.hyps(3) insert.prems(2))
     have *: "\<Union>{l. \<exists>y. (y,l) \<in> insert xk p} = k \<union> \<Union>{l. \<exists>y. (y,l) \<in> p}"
       unfolding xk by auto
     note p = tagged_partial_division_ofD[OF insert(4)]
-    from p(4)[unfolded xk, OF insertI1] guess u v by (elim exE) note uv=this
-
+    obtain u v where uv: "k = cbox u v"
+      using p(4)[unfolded xk, OF insertI1] by blast
     have "finite {k. \<exists>x. (x, k) \<in> p}"
       apply (rule finite_subset[of _ "snd ` p"])
-      using p
-      apply safe
-      apply (metis image_iff snd_conv)
-      apply auto
-      done
+      using image_iff apply fastforce
+      using insert.hyps(1) by blast
     then have int: "interior (cbox u v) \<inter> interior (\<Union>{k. \<exists>x. (x, k) \<in> p}) = {}"
-      apply (rule Int_interior_Union_intervals)
-      apply (rule open_interior)
-      unfolding mem_Collect_eq
-      apply (erule_tac[!] exE)
-      apply (drule p(4)[OF insertI2])
-      apply assumption
-      apply (rule p(5))
-      unfolding uv xk
-      apply (rule insertI1)
-      apply (rule insertI2)
-      apply assumption
-      using insert(2)
-      unfolding uv xk
-      apply auto
-      done
+    proof (rule Int_interior_Union_intervals)
+      show "open (interior (cbox u v))"
+        by auto
+      show "\<And>T. T \<in> {k. \<exists>x. (x, k) \<in> p} \<Longrightarrow> \<exists>a b. T = cbox a b"
+        using p(4) by auto
+      show "\<And>T. T \<in> {k. \<exists>x. (x, k) \<in> p} \<Longrightarrow> interior (cbox u v) \<inter> interior T = {}"
+        by clarify (metis insert.hyps(2) insert_iff interior_cbox p(5) uv xk)
+    qed
     show ?case
     proof (cases "cbox u v \<subseteq> d x")
       case True
-      then show ?thesis
+      have "{(x, cbox u v)} tagged_division_of cbox u v"
+        by (simp add: p(2) uv xk tagged_division_of_self)
+      then have "{(x, cbox u v)} \<union> q1 tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> insert xk p}"
+        unfolding * uv by (metis (no_types, lifting) int q1 tagged_division_union)
+      with True show ?thesis
         apply (rule_tac x="{(x,cbox u v)} \<union> q1" in exI)
-        apply rule
-        unfolding * uv
-        apply (rule tagged_division_union)
-        apply (rule tagged_division_of_self)
-        apply (rule p[unfolded xk uv] insertI1)+
-        apply (rule q1)
-        apply (rule int)
-        apply rule
-        apply (rule fine_Un)
-        apply (subst fine_def)
-         apply (auto simp add:  \<open>d fine q1\<close> q1I uv xk)
+        using \<open>d fine q1\<close> fine_def q1I uv xk apply fastforce
         done
     next
       case False
-      from fine_division_exists[OF assms(2), of u v] guess q2 . note q2=this
+      obtain q2 where q2: "q2 tagged_division_of cbox u v" "d fine q2"
+        using fine_division_exists[OF assms(2)] by blast
       show ?thesis
         apply (rule_tac x="q2 \<union> q1" in exI)
-        apply rule
+        apply (intro conjI)
         unfolding * uv
         apply (rule tagged_division_union q2 q1 int fine_Un)+
           apply (auto intro: q1 q2 fine_Un \<open>d fine q1\<close> simp add: False q1I uv xk)
