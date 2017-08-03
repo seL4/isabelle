@@ -59,7 +59,6 @@ val print_string_any_ml = quote o implode o map print_char_any_ml o Symbol.explo
 fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     val deresolve_const = deresolve o Constant;
-    val deresolve_class = deresolve o Type_Class;
     val deresolve_classrel = deresolve o Class_Relation;
     val deresolve_inst = deresolve o Class_Instance;
     fun print_tyco_expr (sym, []) = (str o deresolve) sym
@@ -372,7 +371,6 @@ val literals_sml = Literals {
 fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     val deresolve_const = deresolve o Constant;
-    val deresolve_class = deresolve o Type_Class;
     val deresolve_classrel = deresolve o Class_Relation;
     val deresolve_inst = deresolve o Class_Instance;
     fun print_tyco_expr (sym, []) = (str o deresolve) sym
