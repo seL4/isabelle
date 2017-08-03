@@ -30,16 +30,14 @@ sig
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
+  type constructors
   val declare_datatype_global: (string * typ) list -> theory -> theory
   val declare_datatype_cmd: string list -> theory -> theory
-  val datatype_interpretation:
-    (string * ((string * sort) list * (string * ((string * sort) list * typ list)) list)
-      -> theory -> theory) -> theory -> theory
+  val datatype_interpretation: (string * constructors -> theory -> theory) -> theory -> theory
+  type abs_type
   val declare_abstype: thm -> local_theory -> local_theory
   val declare_abstype_global: thm -> theory -> theory
-  val abstype_interpretation:
-    (string * ((string * sort) list * {abs_rep: thm, abstractor: string * ((string * sort) list * typ),
-      projection: string}) -> theory -> theory) -> theory -> theory
+  val abstype_interpretation: (string * abs_type -> theory -> theory) -> theory -> theory
   val declare_default_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_default_eqns_global: (thm * bool) list -> theory -> theory
   val declare_eqns: (thm * bool) list -> local_theory -> local_theory
@@ -52,8 +50,7 @@ sig
   val declare_unimplemented_global: string -> theory -> theory
   val declare_case_global: thm -> theory -> theory
   val declare_undefined_global: string -> theory -> theory
-  val get_type: theory -> string
-    -> ((string * sort) list * (string * ((string * sort) list * typ list)) list) * bool
+  val get_type: theory -> string -> constructors * bool
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
@@ -545,6 +542,9 @@ fun constrset_of_consts thy consts =
 
 fun lookup_vs_type_spec thy = History.lookup ((types_of o specs_of) thy);
 
+type constructors =
+  (string * sort) list * (string * ((string * sort) list * typ list)) list;
+
 fun get_type thy tyco = case lookup_vs_type_spec thy tyco
  of SOME (vs, type_spec) => apfst (pair vs) (constructors_of type_spec)
   | NONE => Sign.arity_number thy tyco
@@ -552,6 +552,9 @@ fun get_type thy tyco = case lookup_vs_type_spec thy tyco
       |> map (rpair [])
       |> rpair []
       |> rpair false;
+
+type abs_type =
+  (string * sort) list * {abs_rep: thm, abstractor: string * ((string * sort) list * typ), projection: string};
 
 fun get_abstype_spec thy tyco = case lookup_vs_type_spec thy tyco of
     SOME (vs, Abstractor {abs_rep, abstractor, projection, ...}) =>
