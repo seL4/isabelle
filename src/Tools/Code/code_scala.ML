@@ -83,7 +83,6 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           let
             val (vs_tys, body) = Code_Thingol.unfold_abs t;
             val (ps, vars') = fold_map (print_abs_head tyvars) vs_tys vars;
-            val vars' = intro_vars (map_filter fst vs_tys) vars;
           in
             brackets (ps @| print_term tyvars false some_thm vars' NOBR body)
           end
