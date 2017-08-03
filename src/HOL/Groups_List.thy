@@ -142,25 +142,44 @@ lemma sum_list_upt[simp]:
   "m \<le> n \<Longrightarrow> sum_list [m..<n] = \<Sum> {m..<n}"
 by(simp add: distinct_sum_list_conv_Sum)
 
-lemma (in canonically_ordered_monoid_add) sum_list_eq_0_iff [simp]:
+context ordered_comm_monoid_add
+begin
+
+lemma sum_list_nonneg: "(\<And>x. x \<in> set xs \<Longrightarrow> 0 \<le> x) \<Longrightarrow> 0 \<le> sum_list xs"
+by (induction xs) auto
+
+lemma sum_list_nonpos: "(\<And>x. x \<in> set xs \<Longrightarrow> x \<le> 0) \<Longrightarrow> sum_list xs \<le> 0"
+by (induction xs) (auto simp: add_nonpos_nonpos)
+
+lemma sum_list_nonneg_eq_0_iff:
+  "(\<And>x. x \<in> set xs \<Longrightarrow> 0 \<le> x) \<Longrightarrow> sum_list xs = 0 \<longleftrightarrow> (\<forall>x\<in> set xs. x = 0)"
+by (induction xs) (simp_all add: add_nonneg_eq_0_iff sum_list_nonneg)
+
+end
+
+context canonically_ordered_monoid_add
+begin
+
+lemma sum_list_eq_0_iff [simp]:
   "sum_list ns = 0 \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
-by (induct ns) simp_all
+by (simp add: sum_list_nonneg_eq_0_iff)
 
-lemma member_le_sum_list_nat:
-  "(n :: nat) \<in> set ns \<Longrightarrow> n \<le> sum_list ns"
-  by (induct ns) auto
+lemma member_le_sum_list:
+  "x \<in> set xs \<Longrightarrow> x \<le> sum_list xs"
+by (induction xs) (auto simp: add_increasing add_increasing2)
 
-lemma elem_le_sum_list_nat:
-  "k < size ns \<Longrightarrow> ns ! k \<le> sum_list (ns::nat list)"
-  by (rule member_le_sum_list_nat) simp
+lemma elem_le_sum_list:
+  "k < size ns \<Longrightarrow> ns ! k \<le> sum_list (ns)"
+by (rule member_le_sum_list) simp
 
-lemma sum_list_update_nat:
-  "k < size ns \<Longrightarrow> sum_list (ns[k := (n::nat)]) = sum_list ns + n - ns ! k"
-apply(induct ns arbitrary:k)
- apply (auto split:nat.split)
-apply(drule elem_le_sum_list_nat)
-apply arith
-done
+end
+
+lemma (in ordered_cancel_comm_monoid_diff) sum_list_update:
+  "k < size xs \<Longrightarrow> sum_list (xs[k := x]) = sum_list xs + x - xs ! k"
+apply(induction xs arbitrary:k)
+ apply (auto simp: add_ac split: nat.split)
+apply(drule elem_le_sum_list)
+by (simp add: local.add_diff_assoc local.add_increasing)
 
 lemma (in monoid_add) sum_list_triv:
   "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"

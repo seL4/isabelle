@@ -2487,7 +2487,7 @@ proof (rule fps_ext)
                 g $ k * (of_nat (Suc m) * (f $ 0) ^ m) + ?h g" using assms 
         by (simp add: mult_ac del: power_Suc of_nat_Suc)
       also have "v ! i < k" if "v \<in> {v\<in>natpermute k (m+1). k \<notin> set v}" "i \<le> m" for v i
-        using that elem_le_sum_list_nat[of i v] unfolding natpermute_def
+        using that elem_le_sum_list[of i v] unfolding natpermute_def
         by (auto simp: set_conv_nth dest!: spec[of _ i])
       hence "?h f = ?h g"
         by (intro sum.cong refl prod.cong less lessI) (auto simp: natpermute_def)

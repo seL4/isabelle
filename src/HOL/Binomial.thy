@@ -1177,10 +1177,10 @@ proof -
     using finite_lists_length_eq[OF finite_atLeastLessThan] conj_commute by auto
   have fin_A: "finite ?A" using fin[of _ "N+1"]
     by (intro finite_subset[where ?A = "?A" and ?B = "{xs. size xs = m - 1 \<and> set xs \<subseteq> {0..<N+1}}"])
-      (auto simp: member_le_sum_list_nat less_Suc_eq_le)
+      (auto simp: member_le_sum_list less_Suc_eq_le)
   have fin_B: "finite ?B"
     by (intro finite_subset[where ?A = "?B" and ?B = "{xs. size xs = m \<and> set xs \<subseteq> {0..<N}}"])
-      (auto simp: member_le_sum_list_nat less_Suc_eq_le fin)
+      (auto simp: member_le_sum_list less_Suc_eq_le fin)
   have uni: "?C = ?A' \<union> ?B'"
     by auto
   have disj: "?A' \<inter> ?B' = {}" by blast

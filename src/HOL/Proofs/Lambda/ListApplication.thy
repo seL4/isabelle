@@ -127,7 +127,7 @@ lemma lem:
   apply (rule trans_le_add1)
   apply (rule trans_le_add2)
   apply (simp only: foldl_conv_fold add.commute fold_plus_sum_list_rev)
-  apply (simp add: member_le_sum_list_nat)
+  apply (simp add: member_le_sum_list)
   done
 
 theorem Apps_dB_induct:
