@@ -31,13 +31,14 @@ sig
 
   (*executable code*)
   type constructors
+  type abs_type
+  val type_interpretation: (string -> theory -> theory) -> theory -> theory
+  val datatype_interpretation: (string * constructors -> theory -> theory) -> theory -> theory
+  val abstype_interpretation: (string * abs_type -> theory -> theory) -> theory -> theory
   val declare_datatype_global: (string * typ) list -> theory -> theory
   val declare_datatype_cmd: string list -> theory -> theory
-  val datatype_interpretation: (string * constructors -> theory -> theory) -> theory -> theory
-  type abs_type
   val declare_abstype: thm -> local_theory -> local_theory
   val declare_abstype_global: thm -> theory -> theory
-  val abstype_interpretation: (string * abs_type -> theory -> theory) -> theory -> theory
   val declare_default_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_default_eqns_global: (thm * bool) list -> theory -> theory
   val declare_eqns: (thm * bool) list -> local_theory -> local_theory
@@ -1259,6 +1260,40 @@ fun print_codesetup thy =
 
 (** declaration of executable ingredients **)
 
+(* plugins for dependent applications *)
+
+structure Codetype_Plugin = Plugin(type T = string);
+
+val codetype_plugin = Plugin_Name.declare_setup @{binding codetype};
+
+fun type_interpretation f =
+  Codetype_Plugin.interpretation codetype_plugin
+    (fn tyco => Local_Theory.background_theory
+      (fn thy =>
+        thy
+        |> Sign.root_path
+        |> Sign.add_path (Long_Name.qualifier tyco)
+        |> f tyco 
+        |> Sign.restore_naming thy));
+
+fun datatype_interpretation f =
+  type_interpretation (fn tyco => fn thy =>
+    case get_type thy tyco of
+      (spec, false) => f (tyco, spec) thy
+    | (_, true) => thy
+  );
+
+fun abstype_interpretation f =
+  type_interpretation (fn tyco => fn thy =>
+    case try (get_abstype_spec thy) tyco of
+      SOME spec => f (tyco, spec) thy
+    | NONE => thy
+  );
+
+fun register_tyco_for_plugin tyco =
+  Named_Target.theory_map (Codetype_Plugin.data_default tyco);
+
+
 (* abstract code declarations *)
 
 local
@@ -1298,22 +1333,6 @@ fun register_type (tyco, vs_typ_spec) specs =
     |> map_types (History.register tyco vs_typ_spec)
   end;
 
-fun type_interpretation get_spec tyco f =
-  Local_Theory.background_theory (fn thy =>
-    thy
-    |> Sign.root_path
-    |> Sign.add_path (Long_Name.qualifier tyco)
-    |> f (tyco, get_spec thy tyco)
-    |> Sign.restore_naming thy);
-
-structure Datatype_Plugin = Plugin(type T = string);
-
-val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
-
-fun datatype_interpretation f =
-  Datatype_Plugin.interpretation datatype_plugin
-    (fn tyco => type_interpretation (fst oo get_type) tyco f);
-
 fun declare_datatype_global proto_constrs thy =
   let
     fun unoverload_const_typ (c, ty) =
@@ -1324,19 +1343,11 @@ fun declare_datatype_global proto_constrs thy =
     thy
     |> modify_specs (register_type
         (tyco, (vs, Constructors {constructors = cos, case_combinators = []})))
-    |> Named_Target.theory_map (Datatype_Plugin.data_default tyco)
+    |> register_tyco_for_plugin tyco
   end;
 
 fun declare_datatype_cmd raw_constrs thy =
   declare_datatype_global (map (read_bare_const thy) raw_constrs) thy;
-
-structure Abstype_Plugin = Plugin(type T = string);
-
-val abstype_plugin = Plugin_Name.declare_setup @{binding abstype_code};
-
-fun abstype_interpretation f =
-  Abstype_Plugin.interpretation abstype_plugin
-    (fn tyco => type_interpretation get_abstype_spec tyco f);
 
 fun generic_declare_abstype strictness proto_thm thy =
   case check_abstype_cert strictness thy proto_thm of
@@ -1346,7 +1357,7 @@ fun generic_declare_abstype strictness proto_thm thy =
             (tyco, (vs, Abstractor {abstractor = abstractor, projection = proj, abs_rep = abs_rep, more_abstract_functions = []}))
           #> register_fun_spec proj
             (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs proj), (tyco, abs))))
-      |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
+      |> register_tyco_for_plugin tyco
   | NONE => thy;
 
 val declare_abstype_global = generic_declare_abstype Strict;

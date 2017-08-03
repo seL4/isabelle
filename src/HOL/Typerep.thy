@@ -72,8 +72,7 @@ in
 
 add_typerep @{type_name fun}
 #> Typedef.interpretation (Local_Theory.background_theory o ensure_typerep)
-#> Code.datatype_interpretation (ensure_typerep o fst)
-#> Code.abstype_interpretation (ensure_typerep o fst)
+#> Code.type_interpretation ensure_typerep
 
 end
 \<close>

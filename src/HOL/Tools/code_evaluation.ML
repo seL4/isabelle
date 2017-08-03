@@ -20,8 +20,9 @@ struct
 
 (* formal definition *)
 
-fun add_term_of tyco raw_vs thy =
+fun add_term_of_inst tyco thy =
   let
+    val ((raw_vs, _), _) = Code.get_type thy tyco;
     val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
     val ty = Type (tyco, map TFree vs);
     val lhs = Const (@{const_name term_of}, ty --> @{typ term})
@@ -39,11 +40,11 @@ fun add_term_of tyco raw_vs thy =
     |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;
 
-fun ensure_term_of (tyco, (vs, _)) thy =
+fun ensure_term_of_inst tyco thy =
   let
     val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort term_of})
       andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep};
-  in if need_inst then add_term_of tyco vs thy else thy end;
+  in if need_inst then add_term_of_inst tyco thy else thy end;
 
 fun for_term_of_instance tyco vs f thy =
   let
@@ -74,20 +75,19 @@ fun mk_term_of_eq thy ty (c, (_, tys)) =
     |> Thm.varifyT_global
   end;
 
-fun add_term_of_code tyco vs raw_cs thy =
+fun add_term_of_code_datatype tyco vs raw_cs thy =
   let
     val ty = Type (tyco, map TFree vs);
     val cs = (map o apsnd o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
-    val const = Axclass.param_of_inst thy (@{const_name term_of}, tyco);
     val eqs = map (mk_term_of_eq thy ty) cs;
  in
     thy
     |> Code.declare_default_eqns_global (map (rpair true) eqs)
   end;
 
-fun ensure_term_of_code (tyco, (vs, cs)) =
-  for_term_of_instance tyco vs (fn tyco => fn vs => add_term_of_code tyco vs cs);
+fun ensure_term_of_code_datatype (tyco, (vs, cs)) =
+  for_term_of_instance tyco vs (fn tyco => fn vs => add_term_of_code_datatype tyco vs cs);
 
 
 (* code equations for abstypes *)
@@ -105,31 +105,29 @@ fun mk_abs_term_of_eq thy ty abs ty_rep proj =
     |> Thm.varifyT_global
   end;
 
-fun add_abs_term_of_code tyco vs abs raw_ty_rep proj thy =
+fun add_term_of_code_abstype tyco vs abs raw_ty_rep projection thy =
   let
     val ty = Type (tyco, map TFree vs);
     val ty_rep = map_atyps
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_ty_rep;
-    val const = Axclass.param_of_inst thy (@{const_name term_of}, tyco);
-    val eq = mk_abs_term_of_eq thy ty abs ty_rep proj;
+    val eq = mk_abs_term_of_eq thy ty abs ty_rep projection;
  in
     thy
     |> Code.declare_default_eqns_global [(eq, true)]
   end;
 
-fun ensure_abs_term_of_code (tyco, (vs, {abstractor = (abs, (_, ty)),
+fun ensure_term_of_code_abstype (tyco, (vs, {abstractor = (abs, (_, ty)),
     projection, ...})) =
   for_term_of_instance tyco vs
-    (fn tyco => fn vs => add_abs_term_of_code tyco vs abs ty projection);
+    (fn tyco => fn vs => add_term_of_code_abstype tyco vs abs ty projection);
 
 
 (* setup *)
 
 val _ = Theory.setup
-  (Code.datatype_interpretation ensure_term_of
-  #> Code.abstype_interpretation ensure_term_of
-  #> Code.datatype_interpretation ensure_term_of_code
-  #> Code.abstype_interpretation ensure_abs_term_of_code);
+  (Code.type_interpretation ensure_term_of_inst
+  #> Code.datatype_interpretation ensure_term_of_code_datatype
+  #> Code.abstype_interpretation ensure_term_of_code_abstype);
 
 
 (** termifying syntax **)
