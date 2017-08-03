@@ -277,9 +277,6 @@ fun all table = Symtab.dest table
 
 local
 
-fun tap_serial (table : 'a T) key =
-  Option.map (hd o #history) (Symtab.lookup table key);
-
 fun merge_history join_same
     ({entry = entry1, history = history1, ...}, {entry = entry2, history = history2, ...}) =
   let
@@ -338,7 +335,7 @@ fun merge_specs (Specs {types = types1, pending_eqns = _,
           NONE => false
         | SOME (_, Abstractor {abstractor = (abs', _), projection, more_abstract_functions, ...}) =>
             abs = abs' andalso (c = projection orelse member (op =) more_abstract_functions c));
-    fun check_datatypes (c, case_spec) =
+    fun check_datatypes (_, case_spec) =
       let
         val (tycos, required_constructors) = associated_datatypes case_spec;
         val allowed_constructors =
@@ -348,10 +345,6 @@ fun merge_specs (Specs {types = types1, pending_eqns = _,
       in subset (op =) (required_constructors, allowed_constructors) end;
     val all_constructors =
       maps (fst o constructors_of) all_types;
-    val all_abstract_functions =
-      maps abstract_functions_of all_types;
-    val case_combinators =
-      maps case_combinators_of all_types;
     val functions = History.join fst (functions1, functions2)
       |> fold (History.suppress o fst) all_constructors
       |> History.suppress_except check_abstype;
@@ -1003,7 +996,7 @@ fun constrain_cert thy sorts (Nothing cert_thm) =
       Nothing (constrain_cert_thm thy sorts cert_thm)
   | constrain_cert thy sorts (Equations (cert_thm, propers)) =
       Equations (constrain_cert_thm thy sorts cert_thm, propers)
-  | constrain_cert thy _ (cert as Projection _) =
+  | constrain_cert _ _ (cert as Projection _) =
       cert
   | constrain_cert thy sorts (Abstract (abs_thm, tyco)) =
       Abstract (snd (constrain_thm thy (fst (typscheme_abs thy abs_thm)) sorts abs_thm), tyco);
@@ -1074,7 +1067,7 @@ fun equations_of_cert thy (cert as Nothing _) =
           (SOME (Thm.varifyT_global abs_thm), true))])
       end;
 
-fun pretty_cert thy (cert as Nothing _) =
+fun pretty_cert _ (Nothing _) =
       [Pretty.str "(unimplemented)"]
   | pretty_cert thy (cert as Equations _) =
       (map_filter
