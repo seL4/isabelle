@@ -1298,18 +1298,21 @@ fun register_type (tyco, vs_typ_spec) specs =
     |> map_types (History.register tyco vs_typ_spec)
   end;
 
+fun type_interpretation get_spec tyco f =
+  Local_Theory.background_theory (fn thy =>
+    thy
+    |> Sign.root_path
+    |> Sign.add_path (Long_Name.qualifier tyco)
+    |> f (tyco, get_spec thy tyco)
+    |> Sign.restore_naming thy);
+
 structure Datatype_Plugin = Plugin(type T = string);
 
 val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
 
 fun datatype_interpretation f =
   Datatype_Plugin.interpretation datatype_plugin
-    (fn tyco => Local_Theory.background_theory (fn thy =>
-      thy
-      |> Sign.root_path
-      |> Sign.add_path (Long_Name.qualifier tyco)
-      |> f (tyco, fst (get_type thy tyco))
-      |> Sign.restore_naming thy));
+    (fn tyco => type_interpretation (fst oo get_type) tyco f);
 
 fun declare_datatype_global proto_constrs thy =
   let
@@ -1333,8 +1336,7 @@ val abstype_plugin = Plugin_Name.declare_setup @{binding abstype_code};
 
 fun abstype_interpretation f =
   Abstype_Plugin.interpretation abstype_plugin
-    (fn tyco =>
-      Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
+    (fn tyco => type_interpretation get_abstype_spec tyco f);
 
 fun generic_declare_abstype strictness proto_thm thy =
   case check_abstype_cert strictness thy proto_thm of
