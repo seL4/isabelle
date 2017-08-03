@@ -16,6 +16,8 @@ proof
   show "Suc 0 \<in> {n. n < 256}" by simp
 qed
 
+setup_lifting type_definition_char
+
 definition char_of_nat :: "nat \<Rightarrow> char"
 where
   "char_of_nat n = Abs_char (n mod 256)"
@@ -303,6 +305,9 @@ end
 lemma char_of_integer_code [code]:
   "char_of_integer n = Enum.enum ! (nat_of_integer n mod 256)"
   by (simp add: char_of_integer_def enum_char_unfold)
+
+lifting_update char.lifting
+lifting_forget char.lifting
 
 
 subsection \<open>Strings as dedicated type\<close>
