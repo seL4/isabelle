@@ -3458,8 +3458,7 @@ instance
 
 end
 
-lemma [code]: "sum_mset (mset xs) = sum_list xs"
-  by (induct xs) simp_all
+declare sum_mset_sum_list [code]
 
 lemma [code]: "prod_mset (mset xs) = fold times xs 1"
 proof -
