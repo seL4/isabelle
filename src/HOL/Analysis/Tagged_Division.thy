@@ -10,23 +10,6 @@ imports
   Topology_Euclidean_Space
 begin
 
-lemma finite_product_dependent: (*FIXME DELETE*)
-  assumes "finite s"
-    and "\<And>x. x \<in> s \<Longrightarrow> finite (t x)"
-  shows "finite {(i, j) |i j. i \<in> s \<and> j \<in> t i}"
-  using assms
-proof induct
-  case (insert x s)
-  have *: "{(i, j) |i j. i \<in> insert x s \<and> j \<in> t i} =
-    (\<lambda>y. (x,y)) ` (t x) \<union> {(i, j) |i j. i \<in> s \<and> j \<in> t i}" by auto
-  show ?case
-    unfolding *
-    apply (rule finite_UnI)
-    using insert
-    apply auto
-    done
-qed auto
-
 lemma sum_Sigma_product:
   assumes "finite S"
     and "\<And>i. i \<in> S \<Longrightarrow> finite (T i)"
@@ -210,18 +193,18 @@ qed
 
 subsection \<open>The notion of a gauge --- simply an open set containing the point.\<close>
 
-definition "gauge d \<longleftrightarrow> (\<forall>x. x \<in> d x \<and> open (d x))"
+definition "gauge \<gamma> \<longleftrightarrow> (\<forall>x. x \<in> \<gamma> x \<and> open (\<gamma> x))"
 
 lemma gaugeI:
-  assumes "\<And>x. x \<in> g x"
-    and "\<And>x. open (g x)"
-  shows "gauge g"
+  assumes "\<And>x. x \<in> \<gamma> x"
+    and "\<And>x. open (\<gamma> x)"
+  shows "gauge \<gamma>"
   using assms unfolding gauge_def by auto
 
 lemma gaugeD[dest]:
-  assumes "gauge d"
-  shows "x \<in> d x"
-    and "open (d x)"
+  assumes "gauge \<gamma>"
+  shows "x \<in> \<gamma> x"
+    and "open (\<gamma> x)"
   using assms unfolding gauge_def by auto
 
 lemma gauge_ball_dependent: "\<forall>x. 0 < e x \<Longrightarrow> gauge (\<lambda>x. ball x (e x))"
@@ -233,7 +216,7 @@ lemma gauge_ball[intro]: "0 < e \<Longrightarrow> gauge (\<lambda>x. ball x e)"
 lemma gauge_trivial[intro!]: "gauge (\<lambda>x. ball x 1)"
   by (rule gauge_ball) auto
 
-lemma gauge_Int[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> gauge (\<lambda>x. d1 x \<inter> d2 x)"
+lemma gauge_Int[intro]: "gauge \<gamma>1 \<Longrightarrow> gauge \<gamma>2 \<Longrightarrow> gauge (\<lambda>x. \<gamma>1 x \<inter> \<gamma>2 x)"
   unfolding gauge_def by auto
 
 lemma gauge_reflect:
@@ -244,10 +227,10 @@ lemma gauge_reflect:
 
 lemma gauge_Inter:
   assumes "finite S"
-    and "\<And>d. d\<in>S \<Longrightarrow> gauge (f d)"
-  shows "gauge (\<lambda>x. \<Inter>{f d x | d. d \<in> S})"
+    and "\<And>u. u\<in>S \<Longrightarrow> gauge (f u)"
+  shows "gauge (\<lambda>x. \<Inter>{f u x | u. u \<in> S})"
 proof -
-  have *: "\<And>x. {f d x |d. d \<in> S} = (\<lambda>d. f d x) ` S"
+  have *: "\<And>x. {f u x |u. u \<in> S} = (\<lambda>u. f u x) ` S"
     by auto
   show ?thesis
     unfolding gauge_def unfolding *
@@ -314,18 +297,15 @@ proof
     assume "s = {{a}}" "K\<in>s"
     then have "\<exists>x y. K = cbox x y"
       apply (rule_tac x=a in exI)+
-      apply (force simp: cbox_sing)
+      apply force
       done
   }
   ultimately show ?l
     unfolding division_of_def cbox_sing by auto
 next
   assume ?l
-  {
-    fix x
-    assume x: "x \<in> s" have "x = {a}"
-      by (metis \<open>s division_of cbox a a\<close> cbox_sing division_ofD(2) division_ofD(3) subset_singletonD x)
-  }
+  have "x = {a}" if  "x \<in> s" for x
+    by (metis \<open>s division_of cbox a a\<close> cbox_sing division_ofD(2) division_ofD(3) subset_singletonD that)
   moreover have "s \<noteq> {}"
     using \<open>s division_of cbox a a\<close> by auto
   ultimately show ?r
@@ -401,11 +381,8 @@ proof -
     have *: "\<And>s. \<Union>{x\<in>s. x \<noteq> {}} = \<Union>s"
       by auto
     show "\<Union>?A = s1 \<inter> s2"
-      apply (rule set_eqI)
-      unfolding * and UN_iff
-      using division_ofD(6)[OF assms(1)] and division_ofD(6)[OF assms(2)]
-      apply auto
-      done
+      unfolding * 
+      using division_ofD(6)[OF assms(1)] and division_ofD(6)[OF assms(2)] by auto
     {
       fix k
       assume "k \<in> ?A"
@@ -461,14 +438,14 @@ next
     unfolding * by auto
 qed
 
-lemma elementary_inter:
+lemma elementary_Int:
   fixes s t :: "'a::euclidean_space set"
   assumes "p1 division_of s"
     and "p2 division_of t"
   shows "\<exists>p. p division_of (s \<inter> t)"
 using assms division_inter by blast
 
-lemma elementary_inters:
+lemma elementary_Inter:
   assumes "finite f"
     and "f \<noteq> {}"
     and "\<forall>s\<in>f. \<exists>p. p division_of (s::('a::euclidean_space) set)"
@@ -488,7 +465,7 @@ proof (induct f rule: finite_induct)
     moreover obtain px where "px division_of x"
       using insert(5)[rule_format,OF insertI1] ..
     ultimately show ?thesis
-      by (simp add: elementary_inter Inter_insert)
+      by (simp add: elementary_Int Inter_insert)
   qed
 qed auto
 
@@ -665,8 +642,8 @@ next
   then have di: "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
     by (meson Diff_subset division_of_subset)
   have "\<exists>d. d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)"
-    apply (rule elementary_inters [OF finite_imageI[OF p(1)]])
-    apply (auto dest: di simp: False elementary_inters [OF finite_imageI[OF p(1)]])
+    apply (rule elementary_Inter [OF finite_imageI[OF p(1)]])
+    apply (auto dest: di simp: False elementary_Inter [OF finite_imageI[OF p(1)]])
     done
   then obtain d where d: "d division_of \<Inter>((\<lambda>i. \<Union>(q i - {i})) ` p)" ..
   have "d \<union> p division_of cbox a b"
@@ -920,7 +897,7 @@ proof -
       apply auto
     done
   then obtain r2 where r2: "r2 division_of (\<Union>(r1 - p)) \<inter> (\<Union>q)"
-    by (metis assms(2) divq(6) elementary_inter)
+    by (metis assms(2) divq(6) elementary_Int)
   {
     fix x
     assume x: "x \<in> T" "x \<notin> S"

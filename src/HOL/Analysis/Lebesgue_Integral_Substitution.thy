@@ -12,6 +12,24 @@ theory Lebesgue_Integral_Substitution
 imports Interval_Integral
 begin
 
+
+lemma finite_product_dependent: (*FIXME DELETE*)
+  assumes "finite s"
+    and "\<And>x. x \<in> s \<Longrightarrow> finite (t x)"
+  shows "finite {(i, j) |i j. i \<in> s \<and> j \<in> t i}"
+  using assms
+proof induct
+  case (insert x s)
+  have *: "{(i, j) |i j. i \<in> insert x s \<and> j \<in> t i} =
+    (\<lambda>y. (x,y)) ` (t x) \<union> {(i, j) |i j. i \<in> s \<and> j \<in> t i}" by auto
+  show ?case
+    unfolding *
+    apply (rule finite_UnI)
+    using insert
+    apply auto
+    done
+qed auto
+
 lemma nn_integral_substitution_aux:
   fixes f :: "real \<Rightarrow> ennreal"
   assumes Mf: "f \<in> borel_measurable borel"
