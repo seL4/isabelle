@@ -676,6 +676,8 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           in pair
            (if Code_Namespace.is_public export
               then type_decl_p :: map print_classparam_decl classparams
+              else if null classrels andalso null classparams
+              then [type_decl_p] (*work around weakness in export calculation*)
               else [concat [str "type", print_dicttyp (class, ITyVar v)]])
             (Pretty.chunks (
               doublesemicolon [type_decl_p]
