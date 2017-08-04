@@ -65,12 +65,15 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
-  val init: Name_Space.naming -> operations -> Proof.context -> local_theory
+  val init: {background_naming: Name_Space.naming, exit: local_theory -> Proof.context} ->
+    operations -> Proof.context -> local_theory
+  val exit_of: local_theory -> local_theory -> Proof.context
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
-  val init_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
+  val init_target: {background_naming: Name_Space.naming, after_close: local_theory -> local_theory,
+    exit: local_theory -> Proof.context} -> operations ->
     local_theory -> Binding.scope * local_theory
   val open_target: local_theory -> Binding.scope * local_theory
   val close_target: local_theory -> local_theory
@@ -95,19 +98,19 @@ type operations =
      local_theory -> local_theory,
   locale_dependency: string * morphism -> (morphism * bool) option -> morphism ->
      local_theory -> local_theory,
-  pretty: local_theory -> Pretty.T list,
-  exit: local_theory -> Proof.context};
+  pretty: local_theory -> Pretty.T list};
 
 type lthy =
  {background_naming: Name_Space.naming,
   operations: operations,
   after_close: local_theory -> local_theory,
+  exit: local_theory -> Proof.context,
   brittle: bool,
   target: Proof.context};
 
-fun make_lthy (background_naming, operations, after_close, brittle, target) : lthy =
+fun make_lthy (background_naming, operations, after_close, exit, brittle, target) : lthy =
   {background_naming = background_naming, operations = operations,
-    after_close = after_close, brittle = brittle, target = target};
+    after_close = after_close, exit = exit, brittle = brittle, target = target};
 
 
 (* context data *)
@@ -146,16 +149,16 @@ val top_of = hd o Data.get o assert;
 
 fun map_top f =
   assert #>
-  Data.map (fn {background_naming, operations, after_close, brittle, target} :: parents =>
-    make_lthy (f (background_naming, operations, after_close, brittle, target)) :: parents);
+  Data.map (fn {background_naming, operations, after_close, exit, brittle, target} :: parents =>
+    make_lthy (f (background_naming, operations, after_close, exit, brittle, target)) :: parents);
 
 fun reset lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
 
 fun map_contexts f lthy =
   let val n = level lthy in
     lthy |> (Data.map o map_index)
-      (fn (i, {background_naming, operations, after_close, brittle, target}) =>
-        make_lthy (background_naming, operations, after_close, brittle,
+      (fn (i, {background_naming, operations, after_close, exit, brittle, target}) =>
+        make_lthy (background_naming, operations, after_close, exit, brittle,
           target
           |> Context_Position.set_visible false
           |> f (n - i - 1)
@@ -168,8 +171,8 @@ fun map_contexts f lthy =
 
 fun mark_brittle lthy =
   if level lthy = 1 then
-    map_top (fn (background_naming, operations, after_close, _, target) =>
-      (background_naming, operations, after_close, true, target)) lthy
+    map_top (fn (background_naming, operations, after_close, exit, _, target) =>
+      (background_naming, operations, after_close, exit, true, target)) lthy
   else lthy;
 
 fun assert_nonbrittle lthy =
@@ -182,8 +185,8 @@ fun assert_nonbrittle lthy =
 val background_naming_of = #background_naming o top_of;
 
 fun map_background_naming f =
-  map_top (fn (background_naming, operations, after_close, brittle, target) =>
-    (f background_naming, operations, after_close, brittle, target));
+  map_top (fn (background_naming, operations, after_close, exit, brittle, target) =>
+    (f background_naming, operations, after_close, exit, brittle, target));
 
 val restore_background_naming = map_background_naming o K o background_naming_of;
 
@@ -348,12 +351,14 @@ val const_alias = syntax_alias Sign.const_alias Proof_Context.const_alias;
 
 (* outermost target *)
 
-fun init background_naming operations target =
+fun init {background_naming, exit} operations target =
   target |> Data.map
-    (fn [] => [make_lthy (background_naming, operations, I, false, target)]
+    (fn [] => [make_lthy (background_naming, operations, I, exit, false, target)]
       | _ => error "Local theory already initialized");
 
-val exit = operation #exit;
+val exit_of = #exit o top_of;
+
+fun exit lthy = exit_of lthy lthy;
 val exit_global = Proof_Context.theory_of o exit;
 
 fun exit_result f (x, lthy) =
@@ -372,18 +377,19 @@ fun exit_result_global f (x, lthy) =
 
 (* nested targets *)
 
-fun init_target background_naming operations after_close lthy =
+fun init_target {background_naming, after_close, exit} operations lthy =
   let
     val _ = assert lthy;
     val after_close' = Proof_Context.restore_naming lthy #> after_close;
     val (scope, target) = Proof_Context.new_scope lthy;
     val lthy' =
       target
-      |> Data.map (cons (make_lthy (background_naming, operations, after_close', true, target)));
+      |> Data.map (cons (make_lthy (background_naming, operations, after_close', exit, true, target)));
   in (scope, lthy') end;
 
 fun open_target lthy =
-  init_target (background_naming_of lthy) (operations_of lthy) I lthy;
+  init_target {background_naming = background_naming_of lthy, after_close = I,
+    exit = exit_of lthy} (operations_of lthy) lthy;
 
 fun close_target lthy =
   let

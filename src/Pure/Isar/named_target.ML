@@ -128,22 +128,21 @@ fun init_context Theory = Proof_Context.init_global
 fun init' {setup, conclude} ident thy =
   let
     val target = make_target thy ident;
-    val background_naming =
-      Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident);
   in
     thy
     |> Sign.change_begin
     |> init_context target
     |> setup
-    |> Local_Theory.init background_naming
+    |> Local_Theory.init
+       {background_naming = Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident),
+        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
        {define = Generic_Target.define (foundation target),
         notes = Generic_Target.notes (notes target),
         abbrev = abbrev target,
         declaration = declaration target,
         theory_registration = theory_registration target,
         locale_dependency = locale_dependency target,
-        pretty = pretty target,
-        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
+        pretty = pretty target}
   end;
 
 fun init ident thy =
