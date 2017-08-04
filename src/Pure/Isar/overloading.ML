@@ -193,15 +193,14 @@ fun gen_overloading prep_const raw_overloading thy =
       (Term.dest_Const (prep_const ctxt const), (v, checked)));
   in
     thy
-    |> Sign.change_begin
-    |> Proof_Context.init_global
-    |> Data.put overloading
-    |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
-    |> activate_improvable_syntax
-    |> synchronize_syntax
-    |> Local_Theory.init
+    |> Generic_Target.init
        {background_naming = Sign.naming_of thy,
-        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
+        setup = Proof_Context.init_global
+          #> Data.put overloading
+          #> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
+          #> activate_improvable_syntax
+          #> synchronize_syntax,
+        conclude = conclude}
        {define = Generic_Target.define foundation,
         notes = Generic_Target.notes Generic_Target.theory_target_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,

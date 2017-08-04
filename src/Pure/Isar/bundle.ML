@@ -175,12 +175,10 @@ in
 
 fun init binding thy =
   thy
-  |> Sign.change_begin
-  |> set_target []
-  |> Proof_Context.init_global
-  |> Local_Theory.init
+  |> Generic_Target.init
      {background_naming = Sign.naming_of thy,
-      exit = conclude false binding #> #2 #> Local_Theory.target_of #> Sign.change_end_local}
+      setup = set_target [] #> Proof_Context.init_global,
+      conclude = conclude false binding #> #2}
      {define = bad_operation,
       notes = bundle_notes,
       abbrev = bad_operation,

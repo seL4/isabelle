@@ -683,20 +683,19 @@ fun instantiation (tycos, vs, sort) thy =
       | NONE => NONE);
   in
     thy
-    |> Sign.change_begin
-    |> Proof_Context.init_global
-    |> Instantiation.put (make_instantiation ((tycos, vs, sort), params))
-    |> fold (Variable.declare_typ o TFree) vs
-    |> fold (Variable.declare_names o Free o snd) params
-    |> (Overloading.map_improvable_syntax) (K {primary_constraints = primary_constraints,
-      secondary_constraints = [], improve = improve, subst = K NONE,
-      no_subst_in_abbrev_mode = false, unchecks = []})
-    |> Overloading.activate_improvable_syntax
-    |> Context.proof_map (Syntax_Phases.term_check 0 "resorting" resort_check)
-    |> synchronize_inst_syntax
-    |> Local_Theory.init
+    |> Generic_Target.init
        {background_naming = Sign.naming_of thy,
-        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
+        setup = Proof_Context.init_global
+          #> Instantiation.put (make_instantiation ((tycos, vs, sort), params))
+          #> fold (Variable.declare_typ o TFree) vs
+          #> fold (Variable.declare_names o Free o snd) params
+          #> (Overloading.map_improvable_syntax) (K {primary_constraints = primary_constraints,
+            secondary_constraints = [], improve = improve, subst = K NONE,
+            no_subst_in_abbrev_mode = false, unchecks = []})
+          #> Overloading.activate_improvable_syntax
+          #> Context.proof_map (Syntax_Phases.term_check 0 "resorting" resort_check)
+          #> synchronize_inst_syntax,
+        conclude = conclude}
        {define = Generic_Target.define foundation,
         notes = Generic_Target.notes Generic_Target.theory_target_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,

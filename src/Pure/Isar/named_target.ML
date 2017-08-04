@@ -130,12 +130,10 @@ fun init' {setup, conclude} ident thy =
     val target = make_target thy ident;
   in
     thy
-    |> Sign.change_begin
-    |> init_context target
-    |> setup
-    |> Local_Theory.init
+    |> Generic_Target.init
        {background_naming = Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident),
-        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
+        setup = init_context target #> setup,
+        conclude = conclude}
        {define = Generic_Target.define (foundation target),
         notes = Generic_Target.notes (notes target),
         abbrev = abbrev target,
