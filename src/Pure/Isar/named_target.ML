@@ -2,7 +2,7 @@
     Author:     Makarius
     Author:     Florian Haftmann, TU Muenchen
 
-Targets for theory, locale, class -- at the bottom the nested structure.
+Targets for theory, locale, class -- at the bottom of the nested structure.
 *)
 
 signature NAMED_TARGET =
@@ -28,6 +28,12 @@ struct
 (* context data *)
 
 datatype target = Theory | Locale of string | Class of string;
+
+fun target_of_ident _ "" = Theory
+  | target_of_ident thy ident =
+      if Locale.defined thy ident
+      then (if Class.is_class thy ident then Class else Locale) ident
+      else error ("No such locale: " ^ quote ident);
 
 fun ident_of_target Theory = ""
   | ident_of_target (Locale locale) = locale
@@ -82,69 +88,50 @@ fun class_foundation class (((b, U), mx), (b_def, rhs)) params =
   #-> (fn (lhs, def) => Class.const class ((b, mx), lhs) params
     #> pair (lhs, def));
 
-fun foundation Theory = Generic_Target.theory_target_foundation
-  | foundation (Locale locale) = locale_foundation locale
-  | foundation (Class class) = class_foundation class;
+fun operations Theory =
+      {define = Generic_Target.define Generic_Target.theory_target_foundation,
+       notes = Generic_Target.notes Generic_Target.theory_target_notes,
+       abbrev = Generic_Target.theory_abbrev,
+       declaration = fn _ => Generic_Target.theory_declaration,
+       theory_registration = Generic_Target.theory_registration,
+       locale_dependency = fn _ => error "Not possible in theory target",
+       pretty = fn ctxt => [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
+        Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]}
+  | operations (Locale locale) =
+      {define = Generic_Target.define (locale_foundation locale),
+       notes = Generic_Target.notes (Generic_Target.locale_target_notes locale),
+       abbrev = Generic_Target.locale_abbrev locale,
+       declaration = Generic_Target.locale_declaration locale,
+       theory_registration = fn _ => error "Not possible in locale target",
+       locale_dependency = Generic_Target.locale_dependency locale,
+       pretty = fn ctxt => Locale.pretty_locale (Proof_Context.theory_of ctxt) false locale}
+  | operations (Class class) =
+      {define = Generic_Target.define (class_foundation class),
+       notes = Generic_Target.notes (Generic_Target.locale_target_notes class),
+       abbrev = Class.abbrev class,
+       declaration = Generic_Target.locale_declaration class,
+       theory_registration = fn _ => error "Not possible in class target",
+       locale_dependency = Generic_Target.locale_dependency class,
+       pretty = fn ctxt => Class.pretty_specification (Proof_Context.theory_of ctxt) class};
 
-fun notes Theory = Generic_Target.theory_target_notes
-  | notes (Locale locale) = Generic_Target.locale_target_notes locale
-  | notes (Class class) = Generic_Target.locale_target_notes class;
-
-fun abbrev Theory = Generic_Target.theory_abbrev
-  | abbrev (Locale locale) = Generic_Target.locale_abbrev locale
-  | abbrev (Class class) = Class.abbrev class;
-
-fun declaration Theory _ decl = Generic_Target.theory_declaration decl
-  | declaration (Locale locale) flags decl = Generic_Target.locale_declaration locale flags decl
-  | declaration (Class class) flags decl = Generic_Target.locale_declaration class flags decl;
-
-fun theory_registration Theory = Generic_Target.theory_registration
-  | theory_registration _ = (fn _ => error "Not possible in theory target");
-
-fun locale_dependency Theory = (fn _ => error "Not possible in theory target")
-  | locale_dependency (Locale locale) = Generic_Target.locale_dependency locale
-  | locale_dependency (Class class) = Generic_Target.locale_dependency class;
-
-fun pretty Theory ctxt =
-      [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
-        Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]
-  | pretty (Locale locale) ctxt = Locale.pretty_locale (Proof_Context.theory_of ctxt) false locale
-  | pretty (Class class) ctxt =
-      Class.pretty_specification (Proof_Context.theory_of ctxt) class;
-
-
-(* init *)
-
-fun make_target _ "" = Theory
-  | make_target thy ident =
-      if Locale.defined thy ident
-      then (if Class.is_class thy ident then Class else Locale) ident
-      else error ("No such locale: " ^ quote ident);
-
-fun init_context Theory = Proof_Context.init_global
-  | init_context (Locale locale) = Locale.init locale
-  | init_context (Class class) = Class.init class;
+fun setup_context Theory = Proof_Context.init_global
+  | setup_context (Locale locale) = Locale.init locale
+  | setup_context (Class class) = Class.init class;
 
 fun init' {setup, conclude} ident thy =
   let
-    val target = make_target thy ident;
+    val target = target_of_ident thy ident;
   in
     thy
     |> Generic_Target.init
        {background_naming = Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident),
-        setup = init_context target #> setup,
+        setup = setup_context target #> setup,
         conclude = conclude}
-       {define = Generic_Target.define (foundation target),
-        notes = Generic_Target.notes (notes target),
-        abbrev = abbrev target,
-        declaration = declaration target,
-        theory_registration = theory_registration target,
-        locale_dependency = locale_dependency target,
-        pretty = pretty target}
+       (operations target)
   end;
 
 fun init ident thy =
-  init' {setup = Data.put (SOME (make_target thy ident)), conclude = I} ident thy;
+  init' {setup = Data.put (SOME (target_of_ident thy ident)), conclude = I} ident thy;
 
 val theory_init = init "";
 
