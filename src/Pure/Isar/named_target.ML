@@ -25,41 +25,47 @@ struct
 
 (* context data *)
 
+datatype target = Theory | Locale of string | Class of string;
+
+fun ident_of_target Theory = ""
+  | ident_of_target (Locale locale) = locale
+  | ident_of_target (Class class) = class;
+
+fun target_is_theory (SOME Theory) = true
+  | target_is_theory _ = false;
+
+fun locale_of_target (SOME (Locale locale)) = SOME locale
+  | locale_of_target (SOME (Class locale)) = SOME locale
+  | locale_of_target _ = NONE;
+
+fun class_of_target (SOME (Class class)) = SOME class
+  | class_of_target _ = NONE;
+
 structure Data = Proof_Data
 (
-  type T = (string * bool) option;
+  type T = target option;
   fun init _ = NONE;
 );
 
-val get_bottom_data = Data.get;
+val get_bottom_target = Data.get;
 
-fun get_data lthy =
+fun get_target lthy =
   if Local_Theory.level lthy = 1
-  then get_bottom_data lthy
+  then get_bottom_target lthy
   else NONE;
 
-fun is_theory lthy =
-  (case get_data lthy of
-    SOME ("", _) => true
-  | _ => false);
-
-fun target_of lthy =
-  (case get_data lthy of
+fun ident_of lthy =
+  case get_target lthy of
     NONE => error "Not in a named target"
-  | SOME (target, _) => target);
+  | SOME target => ident_of_target target;
 
-fun locale_name_of NONE = NONE
-  | locale_name_of (SOME ("", _)) = NONE
-  | locale_name_of (SOME (locale, _)) = SOME locale;
+val is_theory = target_is_theory o get_target;
 
-val locale_of = locale_name_of o get_data;
+val locale_of = locale_of_target o get_target;
 
-val bottom_locale_of = locale_name_of o get_bottom_data;
+val bottom_locale_of = locale_of_target o get_bottom_target;
 
-fun class_of lthy =
-  (case get_data lthy of
-    SOME (class, true) => SOME class
-  | _ => NONE);
+val class_of = class_of_target o get_target;
 
 
 (* operations *)
@@ -74,87 +80,73 @@ fun class_foundation class (((b, U), mx), (b_def, rhs)) params =
   #-> (fn (lhs, def) => Class.const class ((b, mx), lhs) params
     #> pair (lhs, def));
 
-fun foundation ("", _) = Generic_Target.theory_target_foundation
-  | foundation (locale, false) = locale_foundation locale
-  | foundation (class, true) = class_foundation class;
+fun foundation Theory = Generic_Target.theory_target_foundation
+  | foundation (Locale locale) = locale_foundation locale
+  | foundation (Class class) = class_foundation class;
 
-fun notes ("", _) = Generic_Target.theory_target_notes
-  | notes (locale, _) = Generic_Target.locale_target_notes locale;
+fun notes Theory = Generic_Target.theory_target_notes
+  | notes (Locale locale) = Generic_Target.locale_target_notes locale
+  | notes (Class class) = Generic_Target.locale_target_notes class;
 
-fun abbrev ("", _) = Generic_Target.theory_abbrev
-  | abbrev (locale, false) = Generic_Target.locale_abbrev locale
-  | abbrev (class, true) = Class.abbrev class;
+fun abbrev Theory = Generic_Target.theory_abbrev
+  | abbrev (Locale locale) = Generic_Target.locale_abbrev locale
+  | abbrev (Class class) = Class.abbrev class;
 
-fun declaration ("", _) _ decl = Generic_Target.theory_declaration decl
-  | declaration (locale, _) flags decl = Generic_Target.locale_declaration locale flags decl;
+fun declaration Theory _ decl = Generic_Target.theory_declaration decl
+  | declaration (Locale locale) flags decl = Generic_Target.locale_declaration locale flags decl
+  | declaration (Class class) flags decl = Generic_Target.locale_declaration class flags decl;
 
-fun theory_registration ("", _) = Generic_Target.theory_registration
+fun theory_registration Theory = Generic_Target.theory_registration
   | theory_registration _ = (fn _ => error "Not possible in theory target");
 
-fun locale_dependency ("", false) = (fn _ => error "Not possible in locale target")
-  | locale_dependency ("", true) = (fn _ => error "Not possible in class target")
-  | locale_dependency (locale, _) = Generic_Target.locale_dependency locale;
+fun locale_dependency Theory = (fn _ => error "Not possible in theory target")
+  | locale_dependency (Locale locale) = Generic_Target.locale_dependency locale
+  | locale_dependency (Class class) = Generic_Target.locale_dependency class;
 
-fun pretty (target, is_class) ctxt =
-  if target = "" then
-    [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
-      Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]
-  else if is_class then Class.pretty_specification (Proof_Context.theory_of ctxt) target
-  else
-    (* FIXME pretty locale content *)
-    let
-      val target_name = [Pretty.keyword1 "locale", Pretty.brk 1, Locale.pretty_name ctxt target];
-      val fixes =
-        map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
-          (#1 (Proof_Context.inferred_fixes ctxt));
-      val assumes =
-        map (fn A => (Binding.empty_atts, [(Thm.term_of A, [])]))
-          (Assumption.all_assms_of ctxt);
-      val elems =
-        (if null fixes then [] else [Element.Fixes fixes]) @
-        (if null assumes then [] else [Element.Assumes assumes]);
-    in
-      if null elems then [Pretty.block target_name]
-      else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
-        map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
-    end;
+fun pretty Theory ctxt =
+      [Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
+        Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))]]
+  | pretty (Locale locale) ctxt = Locale.pretty_locale (Proof_Context.theory_of ctxt) false locale
+  | pretty (Class class) ctxt =
+      Class.pretty_specification (Proof_Context.theory_of ctxt) class;
 
 
 (* init *)
 
-fun make_name_data _ "" = ("", false)
-  | make_name_data thy target =
-      if Locale.defined thy target
-      then (target, Class.is_class thy target)
-      else error ("No such locale: " ^ quote target);
+fun make_target _ "" = Theory
+  | make_target thy ident =
+      if Locale.defined thy ident
+      then (if Class.is_class thy ident then Class else Locale) ident
+      else error ("No such locale: " ^ quote ident);
 
-fun init_context ("", _) = Proof_Context.init_global
-  | init_context (locale, false) = Locale.init locale
-  | init_context (class, true) = Class.init class;
+fun init_context Theory = Proof_Context.init_global
+  | init_context (Locale locale) = Locale.init locale
+  | init_context (Class class) = Class.init class;
 
-fun init before_exit target thy =
+fun init before_exit ident thy =
   let
-    val name_data = make_name_data thy target;
+    val target = make_target thy ident;
     val background_naming =
-      Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name target);
+      Sign.naming_of thy |> Name_Space.mandatory_path (Long_Name.base_name ident);
   in
     thy
     |> Sign.change_begin
-    |> init_context name_data
-    |> is_none before_exit ? Data.put (SOME name_data)
+    |> init_context target
+    |> is_none before_exit ? Data.put (SOME target)
     |> Local_Theory.init background_naming
-       {define = Generic_Target.define (foundation name_data),
-        notes = Generic_Target.notes (notes name_data),
-        abbrev = abbrev name_data,
-        declaration = declaration name_data,
-        theory_registration = theory_registration name_data,
-        locale_dependency = locale_dependency name_data,
-        pretty = pretty name_data,
+       {define = Generic_Target.define (foundation target),
+        notes = Generic_Target.notes (notes target),
+        abbrev = abbrev target,
+        declaration = declaration target,
+        theory_registration = theory_registration target,
+        locale_dependency = locale_dependency target,
+        pretty = pretty target,
         exit = the_default I before_exit
           #> Local_Theory.target_of #> Sign.change_end_local}
   end;
 
 val theory_init = init NONE "";
+
 fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
 
 
@@ -172,7 +164,7 @@ fun switch NONE (Context.Theory thy) =
   | switch NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.reset, lthy)
   | switch (SOME name) (Context.Proof lthy) =
-      (Context.Proof o init NONE (target_of lthy) o exit,
+      (Context.Proof o init NONE (ident_of lthy) o exit,
         (begin name o exit o Local_Theory.assert_nonbrittle) lthy);
 
 end;
