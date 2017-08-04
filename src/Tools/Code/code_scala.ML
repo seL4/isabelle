@@ -83,7 +83,6 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           let
             val (vs_tys, body) = Code_Thingol.unfold_abs t;
             val (ps, vars') = fold_map (print_abs_head tyvars) vs_tys vars;
-            val vars' = intro_vars (map_filter fst vs_tys) vars;
           in
             brackets (ps @| print_term tyvars false some_thm vars' NOBR body)
           end
@@ -183,22 +182,22 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn class => [" : ", deresolve_class class]) sort))
           NOBR (str s) vs;
-    fun print_defhead export tyvars vars const vs params tys ty =
+    fun print_defhead tyvars vars const vs params tys ty =
       concat [str "def", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
           NOBR (print_context tyvars vs (deresolve_const const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
             str "="];
-    fun print_def export const (vs, ty) [] =
+    fun print_def const (vs, ty) [] =
           let
             val (tys, ty') = Code_Thingol.unfold_fun ty;
             val params = Name.invent (snd reserved) "a" (length tys);
             val tyvars = intro_tyvars vs reserved;
             val vars = intro_vars params reserved;
           in
-            concat [print_defhead export tyvars vars const vs params tys ty',
+            concat [print_defhead tyvars vars const vs params tys ty',
               str ("sys.error(\"" ^ const ^ "\")")]
           end
-      | print_def export const (vs, ty) eqs =
+      | print_def const (vs, ty) eqs =
           let
             val tycos = fold (fn ((ts, t), _) =>
               fold Code_Thingol.add_tyconames (t :: ts)) eqs [];
@@ -230,7 +229,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                   tuplify (map (print_term tyvars true some_thm vars' NOBR) ts),
                   str "=>", print_rhs vars' eq]
               end;
-            val head = print_defhead export tyvars vars2 const vs params tys' ty';
+            val head = print_defhead tyvars vars2 const vs params tys' ty';
           in if simple then
             concat [head, print_rhs vars2 (hd eqs)]
           else
@@ -269,9 +268,9 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           str "=", str "new", print_dicttyp tyvars classtyp, str "{"], str "}")
             (map print_classparam_instance (inst_params @ superinst_params))
       end;
-    fun print_stmt (Constant const, (export, Fun ((vs, ty), raw_eqs))) =
-          print_def export const (vs, ty) (filter (snd o snd) raw_eqs)
-      | print_stmt (Type_Constructor tyco, (export, Datatype (vs, cos))) =
+    fun print_stmt (Constant const, (_, Fun ((vs, ty), raw_eqs))) =
+          print_def const (vs, ty) (filter (snd o snd) raw_eqs)
+      | print_stmt (Type_Constructor tyco, (_, Datatype (vs, cos))) =
           let
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, vs_args), tys) =
@@ -288,7 +287,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
                 :: map print_co cos)
           end
-      | print_stmt (Type_Class class, (export, Class ((v, (classrels, classparams)), insts))) =
+      | print_stmt (Type_Class class, (_, Class ((v, (classrels, classparams)), insts))) =
           let
             val tyvars = intro_tyvars [(v, [class])] reserved;
             fun add_typarg s = Pretty.block

@@ -825,7 +825,7 @@ fun gen_add_locale prep_decl
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms hyp_spec [] (rev notes) (rev deps')
-      |> Named_Target.init NONE name
+      |> Named_Target.init name
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 
   in (name, loc_ctxt) end;

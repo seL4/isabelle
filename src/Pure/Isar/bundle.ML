@@ -175,18 +175,17 @@ in
 
 fun init binding thy =
   thy
-  |> Sign.change_begin
-  |> set_target []
-  |> Proof_Context.init_global
-  |> Local_Theory.init (Sign.naming_of thy)
+  |> Generic_Target.init
+     {background_naming = Sign.naming_of thy,
+      setup = set_target [] #> Proof_Context.init_global,
+      conclude = conclude false binding #> #2}
      {define = bad_operation,
       notes = bundle_notes,
       abbrev = bad_operation,
       declaration = K bundle_declaration,
       theory_registration = bad_operation,
       locale_dependency = bad_operation,
-      pretty = pretty binding,
-      exit = conclude false binding #> #2 #> Local_Theory.target_of #> Sign.change_end_local}
+      pretty = pretty binding}
 
 end;
 
@@ -216,7 +215,8 @@ fun gen_context get prep_decl raw_incls raw_elems gthy =
       |> prep_decl ([], []) I raw_elems;
   in
     lthy' |> Local_Theory.init_target
-      (Local_Theory.background_naming_of lthy) (Local_Theory.operations_of lthy) after_close
+      {background_naming = Local_Theory.background_naming_of lthy, after_close = after_close}
+      (Local_Theory.operations_of lthy)
   end;
 
 in

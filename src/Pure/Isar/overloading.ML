@@ -193,21 +193,21 @@ fun gen_overloading prep_const raw_overloading thy =
       (Term.dest_Const (prep_const ctxt const), (v, checked)));
   in
     thy
-    |> Sign.change_begin
-    |> Proof_Context.init_global
-    |> Data.put overloading
-    |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
-    |> activate_improvable_syntax
-    |> synchronize_syntax
-    |> Local_Theory.init (Sign.naming_of thy)
+    |> Generic_Target.init
+       {background_naming = Sign.naming_of thy,
+        setup = Proof_Context.init_global
+          #> Data.put overloading
+          #> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
+          #> activate_improvable_syntax
+          #> synchronize_syntax,
+        conclude = conclude}
        {define = Generic_Target.define foundation,
         notes = Generic_Target.notes Generic_Target.theory_target_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,
         declaration = K Generic_Target.theory_declaration,
         theory_registration = Generic_Target.theory_registration,
         locale_dependency = fn _ => error "Not possible in overloading target",
-        pretty = pretty,
-        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
+        pretty = pretty}
   end;
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);

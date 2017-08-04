@@ -327,7 +327,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
     #> Class.register class sups params base_sort base_morph export_morph some_axiom some_assm_intro of_class
     #> Global_Theory.store_thm (prefix (Binding.qualified_name (class ^ ".of_class.intro")), of_class)))
     |> snd
-    |> Named_Target.init NONE class
+    |> Named_Target.init class
     |> pair class
   end;
 

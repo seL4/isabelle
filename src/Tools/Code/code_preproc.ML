@@ -306,7 +306,9 @@ fun pretty ctxt eqngr =
     AList.make (snd o Graph.get_node eqngr) (Graph.keys eqngr)
     |> (map o apfst) (Code.string_of_const thy)
     |> sort (string_ord o apply2 fst)
-    |> map (fn (s, cert) => (Pretty.block o Pretty.fbreaks) (Pretty.str s :: Code.pretty_cert thy cert))
+    |> (map o apsnd) (Code.pretty_cert thy)
+    |> filter_out (null o snd)
+    |> map (fn (s, ps) => (Pretty.block o Pretty.fbreaks) (Pretty.str s :: ps))
     |> Pretty.chunks
   end;
 

@@ -88,6 +88,7 @@ sig
   val print_locale: theory -> bool -> xstring * Position.T -> unit
   val print_registrations: Proof.context -> xstring * Position.T -> unit
   val print_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> unit
+  val pretty_locale: theory -> bool -> string -> Pretty.T list
   val pretty_locale_deps: theory -> {name: string, parents: string list, body: Pretty.T} list
 end;
 
@@ -699,13 +700,12 @@ fun pretty_locale thy show_facts name =
       activate_all name thy cons_elem (K (Morphism.transfer_morphism thy)) (empty_idents, [])
       |> snd |> rev;
   in
-    Pretty.block
-      (Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
-        maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems)
+    Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
+      maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems
   end;
 
 fun print_locale thy show_facts raw_name =
-  Pretty.writeln (pretty_locale thy show_facts (check thy raw_name));
+  Pretty.writeln (Pretty.block (pretty_locale thy show_facts (check thy raw_name)));
 
 fun print_registrations ctxt raw_name =
   let
@@ -732,7 +732,7 @@ fun pretty_locale_deps thy =
     fun make_node name =
      {name = name,
       parents = map (fst o fst) (dependencies_of thy name),
-      body = pretty_locale thy false name};
+      body = Pretty.block (pretty_locale thy false name)};
     val names = sort_strings (Name_Space.fold_table (cons o #1) (Locales.get thy) []);
   in map make_node names end;
 

@@ -12,6 +12,7 @@ theory Lebesgue_Integral_Substitution
 imports Interval_Integral
 begin
 
+
 lemma nn_integral_substitution_aux:
   fixes f :: "real \<Rightarrow> ennreal"
   assumes Mf: "f \<in> borel_measurable borel"

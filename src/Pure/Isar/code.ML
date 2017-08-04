@@ -30,16 +30,15 @@ sig
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
+  type constructors
+  type abs_type
+  val type_interpretation: (string -> theory -> theory) -> theory -> theory
+  val datatype_interpretation: (string * constructors -> theory -> theory) -> theory -> theory
+  val abstype_interpretation: (string * abs_type -> theory -> theory) -> theory -> theory
   val declare_datatype_global: (string * typ) list -> theory -> theory
   val declare_datatype_cmd: string list -> theory -> theory
-  val datatype_interpretation:
-    (string * ((string * sort) list * (string * ((string * sort) list * typ list)) list)
-      -> theory -> theory) -> theory -> theory
   val declare_abstype: thm -> local_theory -> local_theory
   val declare_abstype_global: thm -> theory -> theory
-  val abstype_interpretation:
-    (string * ((string * sort) list * {abs_rep: thm, abstractor: string * ((string * sort) list * typ),
-      projection: string}) -> theory -> theory) -> theory -> theory
   val declare_default_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_default_eqns_global: (thm * bool) list -> theory -> theory
   val declare_eqns: (thm * bool) list -> local_theory -> local_theory
@@ -52,8 +51,7 @@ sig
   val declare_unimplemented_global: string -> theory -> theory
   val declare_case_global: thm -> theory -> theory
   val declare_undefined_global: string -> theory -> theory
-  val get_type: theory -> string
-    -> ((string * sort) list * (string * ((string * sort) list * typ list)) list) * bool
+  val get_type: theory -> string -> constructors * bool
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
@@ -277,9 +275,6 @@ fun all table = Symtab.dest table
 
 local
 
-fun tap_serial (table : 'a T) key =
-  Option.map (hd o #history) (Symtab.lookup table key);
-
 fun merge_history join_same
     ({entry = entry1, history = history1, ...}, {entry = entry2, history = history2, ...}) =
   let
@@ -338,7 +333,7 @@ fun merge_specs (Specs {types = types1, pending_eqns = _,
           NONE => false
         | SOME (_, Abstractor {abstractor = (abs', _), projection, more_abstract_functions, ...}) =>
             abs = abs' andalso (c = projection orelse member (op =) more_abstract_functions c));
-    fun check_datatypes (c, case_spec) =
+    fun check_datatypes (_, case_spec) =
       let
         val (tycos, required_constructors) = associated_datatypes case_spec;
         val allowed_constructors =
@@ -348,10 +343,6 @@ fun merge_specs (Specs {types = types1, pending_eqns = _,
       in subset (op =) (required_constructors, allowed_constructors) end;
     val all_constructors =
       maps (fst o constructors_of) all_types;
-    val all_abstract_functions =
-      maps abstract_functions_of all_types;
-    val case_combinators =
-      maps case_combinators_of all_types;
     val functions = History.join fst (functions1, functions2)
       |> fold (History.suppress o fst) all_constructors
       |> History.suppress_except check_abstype;
@@ -552,6 +543,9 @@ fun constrset_of_consts thy consts =
 
 fun lookup_vs_type_spec thy = History.lookup ((types_of o specs_of) thy);
 
+type constructors =
+  (string * sort) list * (string * ((string * sort) list * typ list)) list;
+
 fun get_type thy tyco = case lookup_vs_type_spec thy tyco
  of SOME (vs, type_spec) => apfst (pair vs) (constructors_of type_spec)
   | NONE => Sign.arity_number thy tyco
@@ -559,6 +553,9 @@ fun get_type thy tyco = case lookup_vs_type_spec thy tyco
       |> map (rpair [])
       |> rpair []
       |> rpair false;
+
+type abs_type =
+  (string * sort) list * {abs_rep: thm, abstractor: string * ((string * sort) list * typ), projection: string};
 
 fun get_abstype_spec thy tyco = case lookup_vs_type_spec thy tyco of
     SOME (vs, Abstractor {abs_rep, abstractor, projection, ...}) =>
@@ -1003,7 +1000,7 @@ fun constrain_cert thy sorts (Nothing cert_thm) =
       Nothing (constrain_cert_thm thy sorts cert_thm)
   | constrain_cert thy sorts (Equations (cert_thm, propers)) =
       Equations (constrain_cert_thm thy sorts cert_thm, propers)
-  | constrain_cert thy _ (cert as Projection _) =
+  | constrain_cert _ _ (cert as Projection _) =
       cert
   | constrain_cert thy sorts (Abstract (abs_thm, tyco)) =
       Abstract (snd (constrain_thm thy (fst (typscheme_abs thy abs_thm)) sorts abs_thm), tyco);
@@ -1074,8 +1071,8 @@ fun equations_of_cert thy (cert as Nothing _) =
           (SOME (Thm.varifyT_global abs_thm), true))])
       end;
 
-fun pretty_cert thy (cert as Nothing _) =
-      [Pretty.str "(unimplemented)"]
+fun pretty_cert _ (Nothing _) =
+      []
   | pretty_cert thy (cert as Equations _) =
       (map_filter
         (Option.map (Thm.pretty_thm_global thy o
@@ -1263,6 +1260,40 @@ fun print_codesetup thy =
 
 (** declaration of executable ingredients **)
 
+(* plugins for dependent applications *)
+
+structure Codetype_Plugin = Plugin(type T = string);
+
+val codetype_plugin = Plugin_Name.declare_setup @{binding codetype};
+
+fun type_interpretation f =
+  Codetype_Plugin.interpretation codetype_plugin
+    (fn tyco => Local_Theory.background_theory
+      (fn thy =>
+        thy
+        |> Sign.root_path
+        |> Sign.add_path (Long_Name.qualifier tyco)
+        |> f tyco 
+        |> Sign.restore_naming thy));
+
+fun datatype_interpretation f =
+  type_interpretation (fn tyco => fn thy =>
+    case get_type thy tyco of
+      (spec, false) => f (tyco, spec) thy
+    | (_, true) => thy
+  );
+
+fun abstype_interpretation f =
+  type_interpretation (fn tyco => fn thy =>
+    case try (get_abstype_spec thy) tyco of
+      SOME spec => f (tyco, spec) thy
+    | NONE => thy
+  );
+
+fun register_tyco_for_plugin tyco =
+  Named_Target.theory_map (Codetype_Plugin.data_default tyco);
+
+
 (* abstract code declarations *)
 
 local
@@ -1302,19 +1333,6 @@ fun register_type (tyco, vs_typ_spec) specs =
     |> map_types (History.register tyco vs_typ_spec)
   end;
 
-structure Datatype_Plugin = Plugin(type T = string);
-
-val datatype_plugin = Plugin_Name.declare_setup @{binding datatype_code};
-
-fun datatype_interpretation f =
-  Datatype_Plugin.interpretation datatype_plugin
-    (fn tyco => Local_Theory.background_theory (fn thy =>
-      thy
-      |> Sign.root_path
-      |> Sign.add_path (Long_Name.qualifier tyco)
-      |> f (tyco, fst (get_type thy tyco))
-      |> Sign.restore_naming thy));
-
 fun declare_datatype_global proto_constrs thy =
   let
     fun unoverload_const_typ (c, ty) =
@@ -1325,20 +1343,11 @@ fun declare_datatype_global proto_constrs thy =
     thy
     |> modify_specs (register_type
         (tyco, (vs, Constructors {constructors = cos, case_combinators = []})))
-    |> Named_Target.theory_map (Datatype_Plugin.data_default tyco)
+    |> register_tyco_for_plugin tyco
   end;
 
 fun declare_datatype_cmd raw_constrs thy =
   declare_datatype_global (map (read_bare_const thy) raw_constrs) thy;
-
-structure Abstype_Plugin = Plugin(type T = string);
-
-val abstype_plugin = Plugin_Name.declare_setup @{binding abstype_code};
-
-fun abstype_interpretation f =
-  Abstype_Plugin.interpretation abstype_plugin
-    (fn tyco =>
-      Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
 
 fun generic_declare_abstype strictness proto_thm thy =
   case check_abstype_cert strictness thy proto_thm of
@@ -1348,7 +1357,7 @@ fun generic_declare_abstype strictness proto_thm thy =
             (tyco, (vs, Abstractor {abstractor = abstractor, projection = proj, abs_rep = abs_rep, more_abstract_functions = []}))
           #> register_fun_spec proj
             (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs proj), (tyco, abs))))
-      |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
+      |> register_tyco_for_plugin tyco
   | NONE => thy;
 
 val declare_abstype_global = generic_declare_abstype Strict;

@@ -1,7 +1,7 @@
 #main components for everyday use, without big impact on overall build time
 bash_process-1.2.1
 csdp-6.x
-cvc4-1.5pre-4
+cvc4-1.5
 e-1.8
 isabelle_fonts-20160830
 jdk-8u131

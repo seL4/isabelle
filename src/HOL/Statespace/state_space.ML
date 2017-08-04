@@ -298,7 +298,7 @@ fun inject_name T = injectN ^"_"^encode_type T;
 
 fun add_declaration name decl thy =
   thy
-  |> Named_Target.init NONE name
+  |> Named_Target.init name
   |> (fn lthy => Local_Theory.declaration {syntax = false, pervasive = false} (decl lthy) lthy)
   |> Local_Theory.exit_global;
 

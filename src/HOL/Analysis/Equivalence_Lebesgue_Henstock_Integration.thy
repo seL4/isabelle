@@ -7,6 +7,24 @@ theory Equivalence_Lebesgue_Henstock_Integration
   imports Lebesgue_Measure Henstock_Kurzweil_Integration Complete_Measure Set_Integral
 begin
 
+lemma finite_product_dependent: (*FIXME DELETE*)
+  assumes "finite s"
+    and "\<And>x. x \<in> s \<Longrightarrow> finite (t x)"
+  shows "finite {(i, j) |i j. i \<in> s \<and> j \<in> t i}"
+  using assms
+proof induct
+  case (insert x s)
+  have *: "{(i, j) |i j. i \<in> insert x s \<and> j \<in> t i} =
+    (\<lambda>y. (x,y)) ` (t x) \<union> {(i, j) |i j. i \<in> s \<and> j \<in> t i}" by auto
+  show ?case
+    unfolding *
+    apply (rule finite_UnI)
+    using insert
+    apply auto
+    done
+qed auto
+
+
 lemma le_left_mono: "x \<le> y \<Longrightarrow> y \<le> a \<longrightarrow> x \<le> (a::'a::preorder)"
   by (auto intro: order_trans)
 
@@ -1633,11 +1651,16 @@ proof -
       then show "\<exists>e>0. \<forall>i\<in>d. x \<notin> i \<longrightarrow> ball x e \<inter> i = {}"
         by force
     qed
-    from choice[OF this] guess k .. note k=conjunctD2[OF this[rule_format],rule_format]
-
+    then obtain k where k: "\<And>x. 0 < k x"
+                       "\<And>i x. \<lbrakk>i \<in> d; x \<notin> i\<rbrakk> \<Longrightarrow> ball x (k x) \<inter> i = {}"
+      by metis
     have "e/2 > 0"
       using e by auto
-    from henstock_lemma[OF assms(1) this] guess g . note g=this[rule_format]
+    from henstock_lemma[OF assms(1) this] 
+    obtain g where g: "gauge g"
+          "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; g fine p\<rbrakk> 
+                \<Longrightarrow> (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
+      by (metis (no_types, lifting))      
     let ?g = "\<lambda>x. g x \<inter> ball x (k x)"
     show ?case
       apply (rule_tac x="?g" in exI)
@@ -1716,15 +1739,12 @@ proof -
           assume y: "y \<in> cbox a b"
           then have "\<exists>x l. (x, l) \<in> p \<and> y\<in>l"
             unfolding p'(6)[symmetric] by auto
-          then guess x l by (elim exE) note xl=conjunctD2[OF this]
+          then obtain x l where xl: "(x, l) \<in> p" "y \<in> l" by metis
           then have "\<exists>k. k \<in> d \<and> y \<in> k"
             using y unfolding d'(6)[symmetric] by auto
-          then guess i .. note i = conjunctD2[OF this]
+          then obtain i where i: "i \<in> d" "y \<in> i" by metis
           have "x \<in> i"
-            using fineD[OF p(3) xl(1)]
-            using k(2)[OF i(1), of x]
-            using i(2) xl(2)
-            by auto
+            using fineD[OF p(3) xl(1)] using k(2) i xl by auto
           then show "y \<in> \<Union>{k. \<exists>x. (x, k) \<in> p'}"
             unfolding p'_def Union_iff
             apply (rule_tac x="i \<inter> l" in bexI)
@@ -1735,12 +1755,7 @@ proof -
       qed
 
       then have "(\<Sum>(x, k)\<in>p'. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
-        apply -
-        apply (rule g(2)[rule_format])
-        unfolding tagged_division_of_def
-        apply safe
-        apply (rule gp')
-        done
+        using g(2) gp' tagged_division_of_def by blast
       then have **: "\<bar>(\<Sum>(x,k)\<in>p'. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p'. norm (integral k f))\<bar> < e / 2"
         unfolding split_def
         using p''
