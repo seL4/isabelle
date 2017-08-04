@@ -67,14 +67,12 @@ sig
   val const_alias: binding -> string -> local_theory -> local_theory
   val init: {background_naming: Name_Space.naming, exit: local_theory -> Proof.context} ->
     operations -> Proof.context -> local_theory
-  val exit_of: local_theory -> local_theory -> Proof.context
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
-  val init_target: {background_naming: Name_Space.naming, after_close: local_theory -> local_theory,
-    exit: local_theory -> Proof.context} -> operations ->
-    local_theory -> Binding.scope * local_theory
+  val init_target: {background_naming: Name_Space.naming, after_close: local_theory -> local_theory} ->
+    operations -> local_theory -> Binding.scope * local_theory
   val open_target: local_theory -> Binding.scope * local_theory
   val close_target: local_theory -> local_theory
 end;
@@ -356,7 +354,7 @@ fun init {background_naming, exit} operations target =
     (fn [] => [make_lthy (background_naming, operations, I, exit, false, target)]
       | _ => error "Local theory already initialized");
 
-val exit_of = #exit o top_of;
+val exit_of = #exit o bottom_of;
 
 fun exit lthy = exit_of lthy lthy;
 val exit_global = Proof_Context.theory_of o exit;
@@ -377,19 +375,19 @@ fun exit_result_global f (x, lthy) =
 
 (* nested targets *)
 
-fun init_target {background_naming, after_close, exit} operations lthy =
+fun init_target {background_naming, after_close} operations lthy =
   let
     val _ = assert lthy;
     val after_close' = Proof_Context.restore_naming lthy #> after_close;
     val (scope, target) = Proof_Context.new_scope lthy;
     val lthy' =
       target
-      |> Data.map (cons (make_lthy (background_naming, operations, after_close', exit, true, target)));
+      |> Data.map (cons (make_lthy (background_naming, operations, after_close', exit_of lthy, true, target)));
   in (scope, lthy') end;
 
 fun open_target lthy =
-  init_target {background_naming = background_naming_of lthy, after_close = I,
-    exit = exit_of lthy} (operations_of lthy) lthy;
+  init_target {background_naming = background_naming_of lthy, after_close = I}
+    (operations_of lthy) lthy;
 
 fun close_target lthy =
   let
