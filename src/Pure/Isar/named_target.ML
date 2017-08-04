@@ -11,7 +11,9 @@ sig
   val locale_of: local_theory -> string option
   val bottom_locale_of: local_theory -> string option
   val class_of: local_theory -> string option
-  val init: (local_theory -> local_theory) option -> string -> theory -> local_theory
+  val init: string -> theory -> local_theory
+  val init': {setup: local_theory -> local_theory, conclude: local_theory -> local_theory} ->
+    string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val theory_map: (local_theory -> local_theory) -> theory -> theory
   val begin: xstring * Position.T -> theory -> local_theory
@@ -123,7 +125,7 @@ fun init_context Theory = Proof_Context.init_global
   | init_context (Locale locale) = Locale.init locale
   | init_context (Class class) = Class.init class;
 
-fun init before_exit ident thy =
+fun init' {setup, conclude} ident thy =
   let
     val target = make_target thy ident;
     val background_naming =
@@ -132,7 +134,7 @@ fun init before_exit ident thy =
     thy
     |> Sign.change_begin
     |> init_context target
-    |> is_none before_exit ? Data.put (SOME target)
+    |> setup
     |> Local_Theory.init background_naming
        {define = Generic_Target.define (foundation target),
         notes = Generic_Target.notes (notes target),
@@ -141,11 +143,13 @@ fun init before_exit ident thy =
         theory_registration = theory_registration target,
         locale_dependency = locale_dependency target,
         pretty = pretty target,
-        exit = the_default I before_exit
-          #> Local_Theory.target_of #> Sign.change_end_local}
+        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
   end;
 
-val theory_init = init NONE "";
+fun init ident thy =
+  init' {setup = Data.put (SOME (make_target thy ident)), conclude = I} ident thy;
+
+val theory_init = init "";
 
 fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
 
@@ -153,7 +157,7 @@ fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
 (* toplevel interaction *)
 
 fun begin ("-", _) thy = theory_init thy
-  | begin target thy = init NONE (Locale.check thy target) thy;
+  | begin target thy = init (Locale.check thy target) thy;
 
 val exit = Local_Theory.assert_bottom #> Local_Theory.exit_global;
 
@@ -164,7 +168,7 @@ fun switch NONE (Context.Theory thy) =
   | switch NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.reset, lthy)
   | switch (SOME name) (Context.Proof lthy) =
-      (Context.Proof o init NONE (ident_of lthy) o exit,
+      (Context.Proof o init (ident_of lthy) o exit,
         (begin name o exit o Local_Theory.assert_nonbrittle) lthy);
 
 end;
