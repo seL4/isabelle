@@ -115,6 +115,7 @@ object Isabelle_Tool
       Options.isabelle_tool,
       Profiling_Report.isabelle_tool,
       Remote_DMG.isabelle_tool,
+      Server.isabelle_tool,
       Update_Cartouches.isabelle_tool,
       Update_Header.isabelle_tool,
       Update_Then.isabelle_tool,
