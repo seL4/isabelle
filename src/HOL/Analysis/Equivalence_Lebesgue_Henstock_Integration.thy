@@ -1202,13 +1202,13 @@ proof (clarsimp simp: completion.null_sets_outer)
   assume "0 < e"
   have "S \<in> lmeasurable"
     using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets fmeasurableI_null_sets)
-  have e22: "0 < e / 2 / (2 * B * real DIM('M)) ^ DIM('N)"
+  have e22: "0 < e/2 / (2 * B * real DIM('M)) ^ DIM('N)"
     using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
   obtain T
     where "open T" "S \<subseteq> T" "T \<in> lmeasurable"
-      and "measure lebesgue T \<le> measure lebesgue S + e / 2 / (2 * B * DIM('M)) ^ DIM('N)"
+      and "measure lebesgue T \<le> measure lebesgue S + e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     by (rule lmeasurable_outer_open [OF \<open>S \<in> lmeasurable\<close> e22])
-  then have T: "measure lebesgue T \<le> e / 2 / (2 * B * DIM('M)) ^ DIM('N)"
+  then have T: "measure lebesgue T \<le> e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets measure_eq_0_null_sets)
   have "\<exists>r. 0 < r \<and> r \<le> 1/2 \<and>
             (x \<in> S \<longrightarrow> (\<forall>y. norm(y - x) < r
@@ -1289,7 +1289,7 @@ proof (clarsimp simp: completion.null_sets_outer)
   qed
   have countbl: "countable (fbx ` \<D>)"
     using \<open>countable \<D>\<close> by blast
-  have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> e / 2" if "\<D>' \<subseteq> \<D>" "finite \<D>'" for \<D>'
+  have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> e/2" if "\<D>' \<subseteq> \<D>" "finite \<D>'" for \<D>'
   proof -
     have BM_ge0: "0 \<le> B * (DIM('M) * prj1 (vf X - uf X))" if "X \<in> \<D>'" for X
       using \<open>0 < B\<close> \<open>\<D>' \<subseteq> \<D>\<close> that vu_pos by fastforce
@@ -1333,7 +1333,7 @@ proof (clarsimp simp: completion.null_sets_outer)
     qed
     also have "\<dots> = (2 * B * DIM('M)) ^ DIM('N) * sum (measure lebesgue) \<D>'"
       by (simp add: sum_distrib_left)
-    also have "\<dots> \<le> e / 2"
+    also have "\<dots> \<le> e/2"
     proof -
       have div: "\<D>' division_of \<Union>\<D>'"
         apply (auto simp: \<open>finite \<D>'\<close> \<open>{} \<notin> \<D>'\<close> division_of_def)
@@ -1366,13 +1366,13 @@ proof (clarsimp simp: completion.null_sets_outer)
         using \<open>0 < B\<close>
         apply (simp add: algebra_simps)
         done
-      also have "\<dots> \<le> e / 2"
+      also have "\<dots> \<le> e/2"
         using T \<open>0 < B\<close> by (simp add: field_simps)
       finally show ?thesis .
     qed
     finally show ?thesis .
   qed
-  then have e2: "sum (measure lebesgue) \<G> \<le> e / 2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
+  then have e2: "sum (measure lebesgue) \<G> \<le> e/2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
     by (metis finite_subset_image that)
   show "\<exists>W\<in>lmeasurable. f ` S \<subseteq> W \<and> measure lebesgue W < e"
   proof (intro bexI conjI)
@@ -1636,8 +1636,8 @@ proof -
                   norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - ?S) < e)"
     if e: "e > 0" for e
   proof -
-    have "?S - e / 2 < ?S" using \<open>e > 0\<close> by simp
-    then obtain d where d: "d division_of (cbox a b)" "?S - e / 2 < (\<Sum>k\<in>d. norm (integral k f))"
+    have "?S - e/2 < ?S" using \<open>e > 0\<close> by simp
+    then obtain d where d: "d division_of (cbox a b)" "?S - e/2 < (\<Sum>k\<in>d. norm (integral k f))"
       unfolding less_cSUP_iff[OF D] by auto
     note d' = division_ofD[OF this(1)]
 
@@ -1661,42 +1661,34 @@ proof -
       by metis
     have "e/2 > 0"
       using e by auto
-    from henstock_lemma[OF assms(1) this] 
+    with henstock_lemma[OF f] 
     obtain g where g: "gauge g"
       "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; g fine p\<rbrakk> 
-                \<Longrightarrow> (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
+                \<Longrightarrow> (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
       by (metis (no_types, lifting))      
     let ?g = "\<lambda>x. g x \<inter> ball x (k x)"
     show ?thesis 
-      apply (rule_tac x="?g" in exI)
-      apply safe
-    proof -
+    proof (intro exI conjI allI impI)
       show "gauge ?g"
-        using g(1) k(1)
-        unfolding gauge_def
-        by auto
+        using g(1) k(1) by (auto simp: gauge_def)
+    next
       fix p
-      assume "p tagged_division_of (cbox a b)" and "?g fine p"
-      note p = this(1) conjunctD2[OF this(2)[unfolded fine_Int]]
+      assume "p tagged_division_of (cbox a b) \<and> ?g fine p"
+      then have p: "p tagged_division_of cbox a b" "g fine p" "(\<lambda>x. ball x (k x)) fine p"
+        by (auto simp: fine_Int)
       note p' = tagged_division_ofD[OF p(1)]
       define p' where "p' = {(x,k) | x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x,l) \<in> p \<and> k = i \<inter> l}"
       have gp': "g fine p'"
-        using p(2)
-        unfolding p'_def fine_def
-        by auto
+        using p(2) by (auto simp: p'_def fine_def)
       have p'': "p' tagged_division_of (cbox a b)"
       proof (rule tagged_division_ofI)
         show "finite p'"
-          apply (rule finite_subset[of _ "(\<lambda>(k,(x,l)). (x,k \<inter> l)) `
-            {(k,xl) | k xl. k \<in> d \<and> xl \<in> p}"])
-          unfolding p'_def
-           defer
-           apply (rule finite_imageI,rule finite_product_dependent[OF d'(1) p'(1)])
-          apply safe
-          unfolding image_iff
-          apply (rule_tac x="(i,x,l)" in bexI)
-           apply auto
-          done
+        proof (rule finite_subset)
+          show "p' \<subseteq> (\<lambda>(k, x, l). (x, k \<inter> l)) ` (d \<times> p)"
+            by (force simp: p'_def image_iff)
+          show "finite ((\<lambda>(k, x, l). (x, k \<inter> l)) ` (d \<times> p))"
+            by (simp add: d'(1) p'(1))
+        qed
         fix x k
         assume "(x, k) \<in> p'"
         then have "\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l"
@@ -1714,7 +1706,7 @@ proof -
           unfolding p'_def by auto
         then obtain i1 l1 where il1: "x1 \<in> i1" "i1 \<in> d" "(x1, l1) \<in> p" "k1 = i1 \<inter> l1" by blast
         fix x2 k2
-        assume "(x2,k2)\<in>p'"
+        assume "(x2,k2) \<in> p'"
         then have "\<exists>i l. x2 \<in> i \<and> i \<in> d \<and> (x2, l) \<in> p \<and> k2 = i \<inter> l"
           unfolding p'_def by auto
         then obtain i2 l2 where il2: "x2 \<in> i2" "i2 \<in> d" "(x2, l2) \<in> p" "k2 = i2 \<inter> l2" by blast
@@ -1735,8 +1727,8 @@ proof -
           have "x \<in> i"
             using fineD[OF p(3) xl(1)] using k(2) i xl by auto
           then show ?thesis
-            apply (rule_tac X="i \<inter> l" in UnionI)
-            using i xl by (auto simp: p'_def)
+            unfolding p'_def
+            by (rule_tac X="i \<inter> l" in UnionI) (use i xl in auto)
         qed
         show "\<Union>{k. \<exists>x. (x, k) \<in> p'} = cbox a b"
         proof
@@ -1760,11 +1752,8 @@ proof -
         qed
       qed
 
-      then have sum_less_e2: "(\<Sum>(x, k)\<in>p'. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
+      then have sum_less_e2: "(\<Sum>(x, k)\<in>p'. norm (content k *\<^sub>R f x - integral k f)) < e/2"
         using g(2) gp' tagged_division_of_def by blast
-      then have XXX: "\<bar>(\<Sum>(x,k)\<in>p'. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p'. norm (integral k f))\<bar> < e / 2"
-        unfolding split_def
-        using p'' by (force intro!: absdiff_norm_less)
 
       have p'alt: "p' = {(x,(i \<inter> l)) | x i l. (x,l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}}"
       proof (safe, goal_cases)
@@ -1797,15 +1786,14 @@ proof -
         done
       note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
 
-
-      have *: "\<And>sni sni' sf sf'. \<lbrakk>\<bar>sf' - sni'\<bar> < e / 2; ?S - e / 2 < sni; sni' \<le> ?S;
+      have *: "\<And>sni sni' sf sf'. \<lbrakk>\<bar>sf' - sni'\<bar> < e/2; ?S - e/2 < sni; sni' \<le> ?S;
         sni \<le> sni'; sf' = sf\<rbrakk> \<Longrightarrow> \<bar>sf - ?S\<bar> < e"
         by arith
       show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - ?S) < e"
         unfolding real_norm_def
       proof (rule *)
-        show "\<bar>(\<Sum>(x,k)\<in>p'. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p'. norm (integral k f))\<bar> < e / 2"
-          by (rule XXX)
+        show "\<bar>(\<Sum>(x,k)\<in>p'. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p'. norm (integral k f))\<bar> < e/2"
+          using p'' sum_less_e2 unfolding split_def by (force intro!: absdiff_norm_less)
         show "(\<Sum>(x, k)\<in>p'. norm (integral k f)) \<le>?S"
           by (auto simp: sum_p' division_of_tagged_division[OF p''] D intro!: cSUP_upper)
         show "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>(x, k)\<in>p'. norm (integral k f))"
@@ -2147,23 +2135,23 @@ proof (rule absolutely_integrable_onI, fact)
           using \<open>e > 0\<close> by auto
         from * [OF this] obtain d1 where
           d1: "gauge d1" "\<forall>p. p tagged_division_of (cbox a b) \<and> d1 fine p \<longrightarrow>
-            norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e / 2"
+            norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e/2"
           by auto
         from henstock_lemma [OF f(1) \<open>e/2>0\<close>] obtain d2 where
           d2: "gauge d2" "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d2 fine p \<longrightarrow>
-            (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2" .
+            (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e/2" .
          obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
           by (rule fine_division_exists [OF gauge_Int [OF d1(1) d2(1)], of a b])
             (auto simp add: fine_Int)
-        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e / 2 \<longrightarrow>
-          \<bar>sf' - di\<bar> < e / 2 \<longrightarrow> di < ?S + e"
+        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e/2 \<longrightarrow>
+          \<bar>sf' - di\<bar> < e/2 \<longrightarrow> di < ?S + e"
           by arith
         show "integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
           apply (subst if_P)
           apply rule
         proof (rule *[rule_format])
-          show "\<bar>(\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p. norm (integral k f))\<bar> < e / 2"
+          show "\<bar>(\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p. norm (integral k f))\<bar> < e/2"
             unfolding split_def
             apply (rule absdiff_norm_less)
             using d2(2)[rule_format,of p]
@@ -2171,7 +2159,7 @@ proof (rule absolutely_integrable_onI, fact)
             unfolding tagged_division_of_def split_def
             apply auto
             done
-          show "\<bar>(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e / 2"
+          show "\<bar>(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e/2"
             using d1(2)[rule_format,OF conjI[OF p(1,2)]]
             by (simp only: real_norm_def)
           show "(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) = (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x))"
