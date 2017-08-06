@@ -7,7 +7,8 @@ Resident Isabelle servers.
 package isabelle
 
 
-import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter}
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
+  IOException}
 import java.net.{Socket, ServerSocket, InetAddress}
 
 
@@ -28,11 +29,12 @@ object Server
     {
       def print: String =
         "server " + quote(name) + " = 127.0.0.1:" + port + " (password " + quote(password) + ")"
+
+      def active: Boolean =
+        try { (new Socket(InetAddress.getByName("127.0.0.1"), port)).close; true }
+        catch { case _: IOException => false }
     }
   }
-
-  def list(): List[Data.Entry] =
-    using(SQLite.open_database(Data.database))(list(_))
 
   def list(db: SQLite.Database): List[Data.Entry] =
     if (db.tables.contains(Data.table.name)) {
@@ -46,7 +48,7 @@ object Server
     else Nil
 
   def find(db: SQLite.Database, name: String): Option[Data.Entry] =
-    list(db).find(entry => entry.name == name)
+    list(db).find(entry => entry.name == name && entry.active)
 
   def start(name: String = "", port: Int = 0): (Data.Entry, Option[Thread]) =
   {
@@ -60,6 +62,7 @@ object Server
 
             Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
             db.create_table(Data.table)
+            db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
             db.using_statement(Data.table.insert())(stmt =>
             {
               stmt.string(1) = entry.name
@@ -116,7 +119,10 @@ Usage: isabelle server [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      if (operation_list) list().foreach(entry => Console.println(entry.print))
+      if (operation_list) {
+        for (entry <- using(SQLite.open_database(Data.database))(list(_)) if entry.active)
+          Console.println(entry.print)
+      }
       else {
         val (entry, thread) = start(name, port)
         Console.println(entry.print)
