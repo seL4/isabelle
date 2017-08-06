@@ -259,4 +259,9 @@ object Library
 
   def proper_list[A](list: List[A]): Option[List[A]] =
     if (list == null || list.isEmpty) None else Some(list)
+
+
+  /* UUID */
+
+  def UUID(): String = java.util.UUID.randomUUID().toString
 }

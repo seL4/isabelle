@@ -7,7 +7,6 @@ Resident Isabelle servers.
 package isabelle
 
 
-import java.util.UUID
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter}
 import java.net.{Socket, ServerSocket, InetAddress}
 
@@ -132,7 +131,7 @@ class Server private(_port: Int, _password: String)
   def port: Int = server_socket.getLocalPort
   def close { server_socket.close }
 
-  val password: String = proper_string(_password) getOrElse UUID.randomUUID().toString
+  val password: String = proper_string(_password) getOrElse Library.UUID()
 
   private def handle_connection(socket: Socket)
   {

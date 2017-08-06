@@ -12,7 +12,6 @@ import isabelle._
 import javax.swing.JOptionPane
 
 import java.io.{File => JFile}
-import java.util.UUID
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
 import org.gjt.sp.jedit.textarea.JEditTextArea
@@ -398,7 +397,7 @@ class Plugin extends EBPlugin
 
   /* HTTP server */
 
-  val http_root: String = "/" + UUID.randomUUID().toString
+  val http_root: String = "/" + Library.UUID()
 
   val http_server: HTTP.Server = HTTP.server(Document_Model.http_handlers(http_root))
 
