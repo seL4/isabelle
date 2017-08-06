@@ -9,6 +9,10 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
+lemma eps_leI: 
+  assumes "(\<And>e::'a::linordered_idom. 0 < e \<Longrightarrow> x < y + e)" shows "x \<le> y"
+  by (metis add_diff_eq assms diff_diff_add diff_gt_0_iff_gt linorder_not_less order_less_irrefl)
+
 (*FIXME DELETE*)
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 
@@ -1260,7 +1264,7 @@ subsection \<open>A sort of converse, integrability on subintervals.\<close>
 
 lemma has_integral_separate_sides:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "(f has_integral i) (cbox a b)"
+  assumes f: "(f has_integral i) (cbox a b)"
     and "e > 0"
     and k: "k \<in> Basis"
   obtains d where "gauge d"
@@ -1268,18 +1272,23 @@ lemma has_integral_separate_sides:
         p2 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) \<and> d fine p2 \<longrightarrow>
         norm ((sum (\<lambda>(x,k). content k *\<^sub>R f x) p1 + sum (\<lambda>(x,k). content k *\<^sub>R f x) p2) - i) < e"
 proof -
-  guess d using has_integralD[OF assms(1-2)] . note d=this
+  obtain \<gamma> where d: "gauge \<gamma>"
+      "\<And>p. \<lbrakk>p tagged_division_of cbox a b; \<gamma> fine p\<rbrakk>
+            \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) < e"
+    using has_integralD[OF f \<open>e > 0\<close>] by metis
   { fix p1 p2
-    assume "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" "d fine p1"
-    note p1=tagged_division_ofD[OF this(1)] this
-    assume "p2 tagged_division_of (cbox a b) \<inter> {x. c \<le> x \<bullet> k}" "d fine p2"
-    note p2=tagged_division_ofD[OF this(1)] this
-    note tagged_division_union_interval[OF p1(7) p2(7)] note p12 = tagged_division_ofD[OF this] this
+    assume tdiv1: "p1 tagged_division_of (cbox a b) \<inter> {x. x \<bullet> k \<le> c}" and "\<gamma> fine p1"
+    note p1=tagged_division_ofD[OF this(1)] 
+    assume tdiv2: "p2 tagged_division_of (cbox a b) \<inter> {x. c \<le> x \<bullet> k}" and "\<gamma> fine p2"
+    note p2=tagged_division_ofD[OF this(1)] 
+    note tagged_division_union_interval[OF tdiv1 tdiv2] 
+    note p12 = tagged_division_ofD[OF this] this
     { fix a b
       assume ab: "(a, b) \<in> p1 \<inter> p2"
       have "(a, b) \<in> p1"
         using ab by auto
-      with p1 obtain u v where uv: "b = cbox u v" by auto
+      obtain u v where uv: "b = cbox u v"
+        using \<open>(a, b) \<in> p1\<close> p1(4) by moura
       have "b \<subseteq> {x. x\<bullet>k = c}"
         using ab p1(3)[of a b] p2(3)[of a b] by fastforce
       moreover
@@ -1288,25 +1297,23 @@ proof -
         assume "\<not> ?thesis"
         then obtain x where x: "x \<in> interior {x::'a. x\<bullet>k = c}"
           by auto
-        then guess e unfolding mem_interior .. note e=this
+        then obtain \<epsilon> where "0 < \<epsilon>" and \<epsilon>: "ball x \<epsilon> \<subseteq> {x. x \<bullet> k = c}"
+          using mem_interior by metis
         have x: "x\<bullet>k = c"
           using x interior_subset by fastforce
-        have *: "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (e / 2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then e/2 else 0)"
-          using e k by (auto simp: inner_simps inner_not_same_Basis)
-        have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (e / 2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
-              (\<Sum>i\<in>Basis. (if i = k then e / 2 else 0))"
+        have *: "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (\<epsilon> / 2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then \<epsilon>/2 else 0)"
+          using \<open>0 < \<epsilon>\<close> k by (auto simp: inner_simps inner_not_same_Basis)
+        have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (\<epsilon> / 2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
+              (\<Sum>i\<in>Basis. (if i = k then \<epsilon> / 2 else 0))"
           using "*" by (blast intro: sum.cong)
-        also have "\<dots> < e"
-          apply (subst sum.delta)
-          using e
-          apply auto
-          done
-        finally have "x + (e/2) *\<^sub>R k \<in> ball x e"
+        also have "\<dots> < \<epsilon>"
+          by (subst sum.delta) (use \<open>0 < \<epsilon>\<close> in auto)
+        finally have "x + (\<epsilon>/2) *\<^sub>R k \<in> ball x \<epsilon>"
           unfolding mem_ball dist_norm by(rule le_less_trans[OF norm_le_l1])
-        then have "x + (e/2) *\<^sub>R k \<in> {x. x\<bullet>k = c}"
-          using e by auto
+        then have "x + (\<epsilon>/2) *\<^sub>R k \<in> {x. x\<bullet>k = c}"
+          using \<epsilon> by auto
         then show False
-          unfolding mem_Collect_eq using e x k by (auto simp: inner_simps)
+          using \<open>0 < \<epsilon>\<close> x k by (auto simp: inner_simps)
       qed
       ultimately have "content b = 0"
         unfolding uv content_eq_0_interior
@@ -1318,11 +1325,11 @@ proof -
                norm ((\<Sum>(x, k)\<in>p1 \<union> p2. content k *\<^sub>R f x) - i)"
       by (subst sum.union_inter_neutral) (auto simp: p1 p2)
     also have "\<dots> < e"
-      by (rule k d(2) p12 fine_Un p1 p2)+
+      using d(2) p12 by (simp add: fine_Un k \<open>\<gamma> fine p1\<close> \<open>\<gamma> fine p2\<close>)
     finally have "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x) - i) < e" .
    }
   then show ?thesis
-    by (auto intro: that[of d] d elim: )
+    using d(1) that by auto
 qed
 
 lemma integrable_split [intro]:
@@ -6796,68 +6803,72 @@ lemma integral_norm_bound_integral:
     and "\<forall>x\<in>s. norm (f x) \<le> g x"
   shows "norm (integral s f) \<le> integral s g"
 proof -
-  have *: "\<And>x y. (\<forall>e::real. 0 < e \<longrightarrow> x < y + e) \<Longrightarrow> x \<le> y"
-    apply (rule ccontr)
-    apply (erule_tac x="x - y" in allE)
-    apply auto
-    done
   have norm: "norm ig < dia + e"
-    if "norm sg \<le> dsa"
-    and "\<bar>dsa - dia\<bar> < e / 2"
-    and "norm (sg - ig) < e / 2"
+    if "norm sg \<le> dsa" and "\<bar>dsa - dia\<bar> < e / 2" and "norm (sg - ig) < e / 2"
     for e dsa dia and sg ig :: 'a
     apply (rule le_less_trans[OF norm_triangle_sub[of ig sg]])
     apply (subst real_sum_of_halves[of e,symmetric])
     unfolding add.assoc[symmetric]
     apply (rule add_le_less_mono)
-    defer
-    apply (subst norm_minus_commute)
-    apply (rule that(3))
+     defer
+     apply (subst norm_minus_commute)
+     apply (rule that(3))
     apply (rule order_trans[OF that(1)])
     using that(2)
     apply arith
     done
   have lem: "norm (integral(cbox a b) f) \<le> integral (cbox a b) g"
-    if "f integrable_on cbox a b"
-    and "g integrable_on cbox a b"
-    and "\<forall>x\<in>cbox a b. norm (f x) \<le> g x"
+    if f: "f integrable_on cbox a b"
+    and g: "g integrable_on cbox a b"
+    and nle: "\<And>x. x \<in> cbox a b \<Longrightarrow> norm (f x) \<le> g x"
     for f :: "'n \<Rightarrow> 'a" and g a b
-  proof (rule *[rule_format])
+  proof (rule eps_leI)
     fix e :: real
     assume "e > 0"
-    then have *: "e/2 > 0"
+    then have e: "e/2 > 0"
       by auto
-    from integrable_integral[OF that(1),unfolded has_integral[of f],rule_format,OF *]
-    guess d1 .. note d1 = conjunctD2[OF this,rule_format]
-    from integrable_integral[OF that(2),unfolded has_integral[of g],rule_format,OF *]
-    guess d2 .. note d2 = conjunctD2[OF this,rule_format]
-    note gauge_Int[OF d1(1) d2(1)]
-    from fine_division_exists[OF this, of a b] guess p . note p=this
+    with integrable_integral[OF f,unfolded has_integral[of f]]
+    obtain \<gamma> where \<gamma>: "gauge \<gamma>"
+              "\<And>p. p tagged_division_of cbox a b \<and> \<gamma> fine p 
+           \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - integral (cbox a b) f) < e / 2"
+      by meson 
+    moreover
+    from integrable_integral[OF g,unfolded has_integral[of g]] e
+    obtain \<delta> where \<delta>: "gauge \<delta>"
+              "\<And>p. p tagged_division_of cbox a b \<and> \<delta> fine p 
+           \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - integral (cbox a b) g) < e / 2"
+      by meson
+    ultimately have "gauge (\<lambda>x. \<gamma> x \<inter> \<delta> x)"
+      using gauge_Int by blast
+    with fine_division_exists obtain p 
+      where p: "p tagged_division_of cbox a b" "(\<lambda>x. \<gamma> x \<inter> \<delta> x) fine p" 
+      by metis
+    have "\<gamma> fine p" "\<delta> fine p"
+      using fine_Int p(2) by blast+
     show "norm (integral (cbox a b) f) < integral (cbox a b) g + e"
-      apply (rule norm)
-      defer
-      apply (rule d2(2)[OF conjI[OF p(1)],unfolded real_norm_def])
-      defer
-      apply (rule d1(2)[OF conjI[OF p(1)]])
-      defer
-      apply (rule sum_norm_le)
-    proof safe
-      fix x k
-      assume "(x, k) \<in> p"
-      note as = tagged_division_ofD(2-4)[OF p(1) this]
-      from this(3) guess u v by (elim exE) note uv=this
-      show "norm (content k *\<^sub>R f x) \<le> content k *\<^sub>R g x"
-        unfolding uv norm_scaleR
-        unfolding abs_of_nonneg[OF content_pos_le] real_scaleR_def
-        apply (rule mult_left_mono)
-        using that(3) as
-        apply auto
-        done
-    qed (insert p[unfolded fine_Int], auto)
+    proof (rule norm)
+      have "norm (content K *\<^sub>R f x) \<le> content K *\<^sub>R g x" if  "(x, K) \<in> p" for x K
+      proof-
+        have K: "x \<in> K" "K \<subseteq> cbox a b"
+          using \<open>(x, K) \<in> p\<close> p(1) by blast+
+        obtain u v where  "K = cbox u v"
+          using \<open>(x, K) \<in> p\<close> p(1) by blast
+        moreover have "content K * norm (f x) \<le> content K * g x"
+          by (metis K subsetD dual_order.antisym measure_nonneg mult_zero_left nle not_le real_mult_le_cancel_iff2)
+        then show ?thesis
+          by simp
+      qed
+      then show "norm (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) \<le> (\<Sum>(x, k)\<in>p. content k *\<^sub>R g x)"
+        by (simp add: sum_norm_le split_def)
+      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - integral (cbox a b) f) < e / 2"
+        using \<open>\<gamma> fine p\<close> \<gamma> p(1) by simp
+      show "\<bar>(\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - integral (cbox a b) g\<bar> < e / 2"
+        using \<open>\<delta> fine p\<close> \<delta> p(1) by simp
+    qed
   qed
 
   { presume "\<And>e. 0 < e \<Longrightarrow> norm (integral s f) < integral s g + e"
-    then show ?thesis by (rule *[rule_format]) auto }
+    then show ?thesis by (rule eps_leI) auto }
   fix e :: real
   assume "e > 0"
   then have e: "e/2 > 0"
@@ -6885,13 +6896,13 @@ proof -
     defer
     apply (rule w(2)[unfolded real_norm_def])
     apply (rule z(2))
-    apply safe
     apply (case_tac "x \<in> s")
     unfolding if_P
     apply (rule assms(3)[rule_format])
     apply auto
     done
 qed
+
 
 lemma integral_norm_bound_integral_component:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
