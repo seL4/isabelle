@@ -48,14 +48,14 @@ object Server
   def find(db: SQLite.Database, name: String): Option[Data.Entry] =
     list(db).find(entry => entry.name == name)
 
-  def start(name: String = "", port: Int = 0, password: String = ""): (Data.Entry, Option[Thread]) =
+  def start(name: String = "", port: Int = 0): (Data.Entry, Option[Thread]) =
   {
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
         find(db, name) match {
           case Some(entry) => (entry, None)
           case None =>
-            val server = new Server(port, password)
+            val server = new Server(port)
             val entry = Data.Entry(name, server.port, server.password)
 
             Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
@@ -125,13 +125,13 @@ Usage: isabelle server [OPTIONS]
     })
 }
 
-class Server private(_port: Int, _password: String)
+class Server private(_port: Int)
 {
   private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
   def port: Int = server_socket.getLocalPort
   def close { server_socket.close }
 
-  val password: String = proper_string(_password) getOrElse Library.UUID()
+  val password: String = Library.UUID()
 
   private def handle_connection(socket: Socket)
   {
