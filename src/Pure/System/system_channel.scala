@@ -18,7 +18,7 @@ object System_Channel
 
 class System_Channel private
 {
-  private val server = new ServerSocket(0, 2, InetAddress.getByName("127.0.0.1"))
+  private val server = new ServerSocket(0, 50, InetAddress.getByName("127.0.0.1"))
 
   val server_name: String = "127.0.0.1:" + server.getLocalPort
   override def toString: String = server_name
