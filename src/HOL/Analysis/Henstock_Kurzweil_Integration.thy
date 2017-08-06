@@ -2669,18 +2669,22 @@ lemma interval_bounds_real:
 lemma fundamental_theorem_of_calculus:
   fixes f :: "real \<Rightarrow> 'a::banach"
   assumes "a \<le> b"
-    and "\<forall>x\<in>{a .. b}. (f has_vector_derivative f' x) (at x within {a .. b})"
+    and vecd: "\<forall>x\<in>{a .. b}. (f has_vector_derivative f' x) (at x within {a .. b})"
   shows "(f' has_integral (f b - f a)) {a .. b}"
   unfolding has_integral_factor_content box_real[symmetric]
 proof safe
   fix e :: real
-  assume e: "e > 0"
-  note assm = assms(2)[unfolded has_vector_derivative_def has_derivative_within_alt]
-  have *: "\<And>P Q. \<forall>x\<in>{a .. b}. P x \<and> (\<forall>e>0. \<exists>d>0. Q x e d) \<Longrightarrow> \<forall>x. \<exists>(d::real)>0. x\<in>{a .. b} \<longrightarrow> Q x e d"
-    using e by blast
-  note this[OF assm,unfolded gauge_existence_lemma]
-  from choice[OF this,unfolded Ball_def[symmetric]] guess d ..
-  note d=conjunctD2[OF this[rule_format],rule_format]
+  assume "e > 0"
+  then have "\<forall>x. \<exists>d>0.
+         x \<in> {a..b} \<longrightarrow>
+         (\<forall>y\<in>{a..b}.
+             norm (y - x) < d \<longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e * norm (y - x))"
+    using vecd[unfolded has_vector_derivative_def has_derivative_within_alt] by blast
+  then obtain d where d: "\<And>x. 0 < d x"
+                 "\<And>x y. \<lbrakk>x \<in> {a..b}; y \<in> {a..b}; norm (y - x) < d x\<rbrakk>
+                        \<Longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e * norm (y - x)"
+    by metis
+  
   show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
     norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content (cbox a b))"
     apply (rule_tac x="\<lambda>x. ball x (d x)" in exI)
@@ -2701,7 +2705,7 @@ proof safe
       fix x k
       assume "(x, k) \<in> p"
       note xk = tagged_division_ofD(2-4)[OF as(1) this]
-      from this(3) guess u v by (elim exE) note k=this
+      then obtain u v where k: "k = cbox u v" by blast
       have *: "u \<le> v"
         using xk unfolding k by auto
       have ball: "\<forall>xa\<in>k. xa \<in> ball x (d x)"
@@ -2907,10 +2911,9 @@ proof (induct "card s" arbitrary: s rule: nat_less_induct)
       done
   }
   assume noteq: "{k \<in> s. content k \<noteq> 0} \<noteq> s"
-  then obtain k where k: "k \<in> s" "content k = 0"
-    by auto
-  from s(4)[OF k(1)] guess c d by (elim exE) note k=k this
-  from k have "card s > 0"
+  then obtain k c d where k: "k \<in> s" "content k = 0" "k = cbox c d"
+    using s(4) by blast
+  then have "card s > 0"
     unfolding card_gt_0_iff using assm(1) by auto
   then have card: "card (s - {k}) < card s"
     using assm(1) k(1)
@@ -2933,9 +2936,9 @@ proof (induct "card s" arbitrary: s rule: nat_less_induct)
     fix x
     fix e :: real
     assume as: "x \<in> k" "e > 0"
-    from k(2)[unfolded k content_eq_0] guess i ..
-    then have i:"c\<bullet>i = d\<bullet>i" "i\<in>Basis"
-      using s(3)[OF k(1),unfolded k] unfolding box_ne_empty by auto
+    obtain i where i: "c\<bullet>i = d\<bullet>i" "i\<in>Basis"
+      using k(2) s(3)[OF k(1)] unfolding box_ne_empty k
+      by (metis dual_order.antisym content_eq_0) 
     then have xi: "x\<bullet>i = d\<bullet>i"
       using as unfolding k mem_box by (metis antisym)
     define y where "y = (\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
@@ -3114,42 +3117,30 @@ lemma integrable_on_little_subintervals:
     f integrable_on cbox u v"
   shows "f integrable_on cbox a b"
 proof -
-  have "\<forall>x. \<exists>d. x\<in>cbox a b \<longrightarrow> d>0 \<and> (\<forall>u v. x \<in> cbox u v \<and> cbox u v \<subseteq> ball x d \<and> cbox u v \<subseteq> cbox a b \<longrightarrow>
+  have "\<forall>x. \<exists>d>0. x\<in>cbox a b \<longrightarrow> (\<forall>u v. x \<in> cbox u v \<and> cbox u v \<subseteq> ball x d \<and> cbox u v \<subseteq> cbox a b \<longrightarrow>
     f integrable_on cbox u v)"
-    using assms by auto
-  note this[unfolded gauge_existence_lemma]
-  from choice[OF this] guess d .. note d=this[rule_format]
-  guess p
-    apply (rule fine_division_exists[OF gauge_ball_dependent,of d a b])
-    using d
+    using assms by (metis zero_less_one)
+  then obtain d where d: "\<And>x. 0 < d x"
+     "\<And>x u v. \<lbrakk>x \<in> cbox a b; x \<in> cbox u v; cbox u v \<subseteq> ball x (d x); cbox u v \<subseteq> cbox a b\<rbrakk> 
+               \<Longrightarrow> f integrable_on cbox u v"
+    by metis
+  obtain p where p: "p tagged_division_of cbox a b" "(\<lambda>x. ball x (d x)) fine p"
+    using fine_division_exists[OF gauge_ball_dependent,of d a b] d(1) by blast 
+  then have sndp: "snd ` p division_of cbox a b"
+    by (metis division_of_tagged_division)
+  have "f integrable_on k" if "(x, k) \<in> p" for x k
+    using tagged_division_ofD(2-4)[OF p(1) that] fineD[OF p(2) that] d[of x] by auto
+  then show ?thesis
+    unfolding comm_monoid_set.operative_division[OF comm_monoid_set_and operative_integrable sndp,  symmetric]
+              comm_monoid_set_F_and
     by auto
-  note p=this(1-2)
-  note division_of_tagged_division[OF this(1)]
-  note * = comm_monoid_set.operative_division[OF comm_monoid_set_and operative_integrable, OF this, symmetric, of f]
-  show ?thesis
-    unfolding * comm_monoid_set_F_and
-    apply safe
-    unfolding snd_conv
-  proof -
-    fix x k
-    assume "(x, k) \<in> p"
-    note tagged_division_ofD(2-4)[OF p(1) this] fineD[OF p(2) this]
-    then show "f integrable_on k"
-      apply safe
-      apply (rule d[THEN conjunct2,rule_format,of x])
-      apply (auto intro: order.trans)
-      done
-  qed
 qed
 
 
 subsection \<open>Second FTC or existence of antiderivative.\<close>
 
 lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
-  unfolding integrable_on_def
-  apply rule
-  apply (rule has_integral_const)
-  done
+  unfolding integrable_on_def by blast
 
 lemma integral_has_vector_derivative_continuous_at:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -3239,22 +3230,18 @@ lemma antiderivative_integral_continuous:
   assumes "continuous_on {a .. b} f"
   obtains g where "\<forall>u\<in>{a .. b}. \<forall>v \<in> {a .. b}. u \<le> v \<longrightarrow> (f has_integral (g v - g u)) {u .. v}"
 proof -
-  from antiderivative_continuous[OF assms] guess g . note g=this
-  show ?thesis
-    apply (rule that[of g])
-    apply safe
-  proof goal_cases
-    case prems: (1 u v)
+  obtain g 
+    where g: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_vector_derivative f x) (at x within {a..b})" 
+    using  antiderivative_continuous[OF assms] by metis
+  have "(f has_integral g v - g u) {u..v}" if "u \<in> {a..b}" "v \<in> {a..b}" "u \<le> v" for u v
+  proof -
     have "\<forall>x\<in>cbox u v. (g has_vector_derivative f x) (at x within cbox u v)"
-      apply rule
-      apply (rule has_vector_derivative_within_subset)
-      apply (rule g[rule_format])
-      using prems(1,2)
-      apply auto
-      done
-    then show ?case
-      using fundamental_theorem_of_calculus[OF prems(3), of g f] by auto
+      by (meson g has_vector_derivative_within_subset interval_subset_is_interval is_interval_closed_interval subsetCE that(1) that(2))
+    then show ?thesis
+      by (simp add: fundamental_theorem_of_calculus that(3))
   qed
+  then show ?thesis
+    using that by blast
 qed
 
 
@@ -3268,7 +3255,7 @@ lemma has_integral_twiddle:
     and "\<forall>u v. \<exists>w z. g ` cbox u v = cbox w z"
     and h: "\<forall>u v. \<exists>w z. h ` cbox u v = cbox w z"
     and "\<forall>u v. content(g ` cbox u v) = r * content (cbox u v)"
-    and "(f has_integral i) (cbox a b)"
+    and intfi: "(f has_integral i) (cbox a b)"
   shows "((\<lambda>x. f(g x)) has_integral (1 / r) *\<^sub>R i) (h ` cbox a b)"
 proof -
   show ?thesis when *: "cbox a b \<noteq> {} \<Longrightarrow> ?thesis"
@@ -3282,22 +3269,11 @@ proof -
       unfolding prems assms(8)[unfolded prems has_integral_empty_eq] by auto
   qed
   assume "cbox a b \<noteq> {}"
-  from assms(6)[rule_format,of a b] guess w z by (elim exE) note wz=this
+  obtain w z where wz: "h ` cbox a b = cbox w z"
+    using h by blast
   have inj: "inj g" "inj h"
-    unfolding inj_on_def
-    apply safe
-    apply(rule_tac[!] ccontr)
-    using assms(2)
-    apply(erule_tac x=x in allE)
-    using assms(2)
-    apply(erule_tac x=y in allE)
-    defer
-    using assms(3)
-    apply (erule_tac x=x in allE)
-    using assms(3)
-    apply(erule_tac x=y in allE)
-    apply auto
-    done
+    apply (metis assms(2) injI)
+    by (metis assms(3) injI)
   from h obtain ha hb where h_eq: "h ` cbox a b = cbox ha hb" by blast
   show ?thesis
     unfolding h_eq has_integral
@@ -3305,12 +3281,17 @@ proof -
   proof safe
     fix e :: real
     assume e: "e > 0"
-    with assms(1) have "e * r > 0" by simp
-    from assms(8)[unfolded has_integral,rule_format,OF this] guess d by (elim exE conjE) note d=this[rule_format]
+    with \<open>0 < r\<close> have "e * r > 0" by simp
+    with intfi[unfolded has_integral]
+    obtain d where d: "gauge d"
+                   "\<And>p. p tagged_division_of cbox a b \<and> d fine p 
+                        \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) < e * r" 
+      by metis
     define d' where "d' x = {y. g y \<in> d (g x)}" for x
     have d': "\<And>x. d' x = {y. g y \<in> (d (g x))}"
       unfolding d'_def ..
-    show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of h ` cbox a b \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e)"
+    show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of h ` cbox a b \<and> d fine p 
+              \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e)"
     proof (rule_tac x=d' in exI, safe)
       show "gauge d'"
         using d(1)
@@ -3377,16 +3358,10 @@ proof -
         assume "x \<in> cbox a b"
         then have "h x \<in>  \<Union>{k. \<exists>x. (x, k) \<in> p}"
           using p(6) by auto
-        then guess X unfolding Union_iff .. note X=this
-        from this(1) guess y unfolding mem_Collect_eq ..
+        then obtain X y where "h x \<in> X" "(y, X) \<in> p" by blast
         then show "x \<in> \<Union>{k. \<exists>x. (x, k) \<in> (\<lambda>(x, k). (g x, g ` k)) ` p}"
-          apply -
-          apply (rule_tac X="g ` X" in UnionI)
-          defer
-          apply (rule_tac x="h x" in image_eqI)
-          using X(2) assms(3)[rule_format,of x]
-          apply auto
-          done
+          apply (clarsimp simp: )
+          by (metis (no_types, lifting) assms(3) image_eqI pair_imageI)
       qed
         note ** = d(2)[OF this]
         have *: "inj_on (\<lambda>(x, k). (g x, g ` k)) p"
@@ -3676,8 +3651,9 @@ proof -
     using compact_cbox assms
     apply auto
     done
-  from this[unfolded bounded_pos] guess B .. note B = this[rule_format]
-
+  from this[unfolded bounded_pos] obtain B 
+    where "0 < B" and B: "\<And>x. x \<in> f ` cbox a b \<Longrightarrow> norm x \<le> B"
+    by metis
   have "\<exists>da. 0 < da \<and> (\<forall>c. a \<le> c \<and> {a .. c} \<subseteq> {a .. b} \<and> {a .. c} \<subseteq> ball a da \<longrightarrow>
     norm (content {a .. c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b - a)) / 4)"
   proof -
@@ -3748,20 +3724,23 @@ proof -
     note assms(2)[unfolded continuous_on_eq_continuous_within,rule_format,OF this]
     note * = this[unfolded continuous_within Lim_within,rule_format] have "(e * (b - a)) / 8 > 0"
       using e ab by (auto simp add: field_simps)
-    from *[OF this] guess k .. note k = conjunctD2[OF this,rule_format]
-    have "\<exists>l. 0 < l \<and> norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
+    from *[OF this] obtain k
+      where k: "0 < k"
+               "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < dist x b \<and> dist x b < k\<rbrakk>
+                    \<Longrightarrow> dist (f x) (f b) < e * (b - a) / 8"
+      by blast
+    obtain l where l: "0 < l" "norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
     proof (cases "f' b = 0")
       case True
-      thus ?thesis using ab e by auto
+      thus ?thesis using ab e that by auto
     next
       case False
       then show ?thesis
-        apply (rule_tac x="(e * (b - a)) / 8 / norm (f' b)" in exI)
+        apply (rule_tac l="(e * (b - a)) / 8 / norm (f' b)" in that)
         using ab e
         apply (auto simp add: field_simps)
         done
     qed
-    then guess l .. note l = conjunctD2[OF this]
     show ?thesis
       apply (rule_tac x="min k l" in exI)
       apply safe
@@ -3842,11 +3821,12 @@ proof -
         assume xk: "(x, k) \<in> p"
           "e * (Sup k -  Inf k) / 2 <
             norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))"
-        from p(4)[OF this(1)] guess u v by (elim exE) note k=this
+        obtain u v where k: "k = cbox u v"
+          using p(4) xk(1) by blast
         then have "u \<le> v" and uv: "{u, v} \<subseteq> cbox u v"
           using p(2)[OF xk(1)] by auto
-        note result = xk(2)[unfolded k box_real interval_bounds_real[OF this(1)] content_real[OF this(1)]]
-
+        then have result: "e * (v - u) / 2 < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
+          using xk(2)[unfolded k box_real interval_bounds_real content_real] by auto
         assume as': "x \<noteq> a" "x \<noteq> b"
         then have "x \<in> box a b"
           using p(2-3)[OF xk(1)] by (auto simp: mem_box)
@@ -3910,7 +3890,8 @@ proof -
           assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
           then have xk: "(x, k) \<in> p" "content k = 0"
             by auto
-          from p(4)[OF xk(1)] guess u v by (elim exE) note uv=this
+          then obtain u v where uv: "k = cbox u v"
+            using p(4) by blast
           have "k \<noteq> {}"
             using p(2)[OF xk(1)] by auto
           then have *: "u = v"
@@ -3952,9 +3933,10 @@ proof -
             let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
             have pa: "\<exists>v. k = cbox a v \<and> a \<le> v" if "(a, k) \<in> p" for k
             proof -
-              guess u v using p(4)[OF that] by (elim exE) note uv=this
-              have *: "u \<le> v"
-                using p(2)[OF that] unfolding uv by auto
+              obtain u v where uv: "k = cbox u v"
+                using \<open>(a, k) \<in> p\<close> p(4) by blast
+              then have *: "u \<le> v"
+                using p(2)[OF that] by auto
               have u: "u = a"
               proof (rule ccontr)
                 have "u \<in> cbox u v"
