@@ -17,18 +17,17 @@ object Server
 
   object Data
   {
-    val database = Path.explode("$ISABELLE_HOME_USER/server.db")
+    val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
 
-    val server_name = SQL.Column.string("server_name", primary_key = true)
-    val server_port = SQL.Column.int("server_port")
+    val name = SQL.Column.string("name", primary_key = true)
+    val port = SQL.Column.int("port")
     val password = SQL.Column.string("password")
-    val table = SQL.Table("isabelle_servers", List(server_name, server_port, password))
+    val table = SQL.Table("isabelle_servers", List(name, port, password))
 
-    sealed case class Entry(server_name: String, server_port: Int, password: String)
+    sealed case class Entry(name: String, port: Int, password: String)
     {
       def print: String =
-        "server " + quote(server_name) + " = 127.0.0.1:" + server_port +
-        " (password " + quote(password) + ")"
+        "server " + quote(name) + " = 127.0.0.1:" + port + " (password " + quote(password) + ")"
     }
   }
 
@@ -40,14 +39,14 @@ object Server
       db.using_statement(Data.table.select())(stmt =>
         stmt.execute_query().iterator(res =>
           Data.Entry(
-            res.string(Data.server_name),
-            res.int(Data.server_port),
-            res.string(Data.password))).toList.sortBy(_.server_name))
+            res.string(Data.name),
+            res.int(Data.port),
+            res.string(Data.password))).toList.sortBy(_.name))
     }
     else Nil
 
   def find(db: SQLite.Database, name: String): Option[Data.Entry] =
-    list(db).find(entry => entry.server_name == name)
+    list(db).find(entry => entry.name == name)
 
   def start(name: String = "", port: Int = 0, password: String = ""): (Data.Entry, Option[Thread]) =
   {
@@ -63,8 +62,8 @@ object Server
             db.create_table(Data.table)
             db.using_statement(Data.table.insert())(stmt =>
             {
-              stmt.string(1) = entry.server_name
-              stmt.int(2) = entry.server_port
+              stmt.string(1) = entry.name
+              stmt.int(2) = entry.port
               stmt.string(3) = entry.password
               stmt.execute()
             })
@@ -81,7 +80,7 @@ object Server
         find(db, name) match {
           case Some(entry) =>
             // FIXME shutdown server
-            db.using_statement(Data.table.delete(Data.server_name.where_equal(name)))(_.execute)
+            db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
             true
           case None =>
             false
