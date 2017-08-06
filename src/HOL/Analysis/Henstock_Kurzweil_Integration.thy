@@ -3727,21 +3727,20 @@ proof -
     from *[OF this] obtain k
       where k: "0 < k"
                "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < dist x b \<and> dist x b < k\<rbrakk>
-                    \<Longrightarrow> dist (f x) (f b) < e * (b - a) / 8
+                    \<Longrightarrow> dist (f x) (f b) < e * (b - a) / 8"
       by blast
-    have "\<exists>l. 0 < l \<and> norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
+    obtain l where l: "0 < l" "norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
     proof (cases "f' b = 0")
       case True
-      thus ?thesis using ab e by auto
+      thus ?thesis using ab e that by auto
     next
       case False
       then show ?thesis
-        apply (rule_tac x="(e * (b - a)) / 8 / norm (f' b)" in exI)
+        apply (rule_tac l="(e * (b - a)) / 8 / norm (f' b)" in that)
         using ab e
         apply (auto simp add: field_simps)
         done
     qed
-    then guess l .. note l = conjunctD2[OF this]
     show ?thesis
       apply (rule_tac x="min k l" in exI)
       apply safe
@@ -3822,11 +3821,12 @@ proof -
         assume xk: "(x, k) \<in> p"
           "e * (Sup k -  Inf k) / 2 <
             norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))"
-        from p(4)[OF this(1)] guess u v by (elim exE) note k=this
+        obtain u v where k: "k = cbox u v"
+          using p(4) xk(1) by blast
         then have "u \<le> v" and uv: "{u, v} \<subseteq> cbox u v"
           using p(2)[OF xk(1)] by auto
-        note result = xk(2)[unfolded k box_real interval_bounds_real[OF this(1)] content_real[OF this(1)]]
-
+        then have result: "e * (v - u) / 2 < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
+          using xk(2)[unfolded k box_real interval_bounds_real content_real] by auto
         assume as': "x \<noteq> a" "x \<noteq> b"
         then have "x \<in> box a b"
           using p(2-3)[OF xk(1)] by (auto simp: mem_box)
@@ -3890,7 +3890,8 @@ proof -
           assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
           then have xk: "(x, k) \<in> p" "content k = 0"
             by auto
-          from p(4)[OF xk(1)] guess u v by (elim exE) note uv=this
+          then obtain u v where uv: "k = cbox u v"
+            using p(4) by blast
           have "k \<noteq> {}"
             using p(2)[OF xk(1)] by auto
           then have *: "u = v"
@@ -3932,9 +3933,10 @@ proof -
             let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
             have pa: "\<exists>v. k = cbox a v \<and> a \<le> v" if "(a, k) \<in> p" for k
             proof -
-              guess u v using p(4)[OF that] by (elim exE) note uv=this
-              have *: "u \<le> v"
-                using p(2)[OF that] unfolding uv by auto
+              obtain u v where uv: "k = cbox u v"
+                using \<open>(a, k) \<in> p\<close> p(4) by blast
+              then have *: "u \<le> v"
+                using p(2)[OF that] by auto
               have u: "u = a"
               proof (rule ccontr)
                 have "u \<in> cbox u v"
