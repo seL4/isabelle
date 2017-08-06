@@ -17,9 +17,7 @@ struct
 
 fun default_value ctxt t =
   if null (Term.add_frees t [])
-  then case try (Code_Evaluation.dynamic_value_strict ctxt) t of
-    SOME t' => t'
-  | NONE => Nbe.dynamic_value ctxt t
+  then Code_Evaluation.dynamic_value_strict ctxt t
   else Nbe.dynamic_value ctxt t;
 
 structure Evaluator = Theory_Data

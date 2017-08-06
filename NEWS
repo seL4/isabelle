@@ -116,6 +116,11 @@ appropriately.  Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* Command and antiquotation "value" with modified default strategy:
+terms without free variables are always evaluated using plain evaluation
+only, with no fallback on normalization by evaluation.
+Minor INCOMPATIBILITY.
+
 * Notions of squarefreeness, n-th powers, and prime powers in
 HOL-Computational_Algebra and HOL-Number_Theory.
 
