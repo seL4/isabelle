@@ -26,7 +26,9 @@ object Server
 
     sealed case class Entry(server_name: String, server_port: Int, password: String)
     {
-      def address: String = "127.0.0.1:" + server_port
+      def print: String =
+        "server " + quote(server_name) + " = 127.0.0.1:" + server_port +
+        " (password " + quote(password) + ")"
     }
   }
 
@@ -47,15 +49,14 @@ object Server
   def find(db: SQLite.Database, name: String): Option[Data.Entry] =
     list(db).find(entry => entry.server_name == name)
 
-  def start(name: String = "", port: Int = 0): (Data.Entry, Boolean) =
+  def start(name: String = "", port: Int = 0, password: String = ""): (Data.Entry, Option[Thread]) =
   {
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
         find(db, name) match {
-          case Some(entry) => (entry, false)
+          case Some(entry) => (entry, None)
           case None =>
-            val socket = new ServerSocket(port, 50, InetAddress.getByName("127.0.0.1"))
-            val server = new Server(socket)
+            val server = new Server(port, password)
             val entry = Data.Entry(name, server.port, server.password)
 
             Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
@@ -67,7 +68,8 @@ object Server
               stmt.string(3) = entry.password
               stmt.execute()
             })
-            (entry, true)
+
+            (entry, Some(server.thread))
         }
       })
   }
@@ -93,30 +95,42 @@ object Server
   val isabelle_tool =
     Isabelle_Tool("server", "manage resident Isabelle servers", args =>
     {
-      var list_servers = false
+      var operation_list = false
+      var name = ""
+      var port = 0
 
       val getopts =
         Getopts("""
 Usage: isabelle server [OPTIONS]
 
   Options are:
-    -l           list servers
+    -L           list servers
+    -n NAME      explicit server name
+    -p PORT      explicit server port
 
   Manage resident Isabelle servers.
 """,
-          "l" -> (_ => list_servers = true))
+          "L" -> (_ => operation_list = true),
+          "n:" -> (arg => name = arg),
+          "p:" -> (arg => port = Value.Int.parse(arg)))
 
       val more_args = getopts(args)
-      if (more_args.nonEmpty || !list_servers) getopts.usage()
+      if (more_args.nonEmpty) getopts.usage()
 
-      if (list_servers) list().foreach(entry =>
-        Console.println("server " + quote(entry.server_name) + " = " + entry.address +
-          " (password " + quote(entry.password) + ")"))
+      if (operation_list) list().foreach(entry => Console.println(entry.print))
+      else {
+        val (entry, thread) = start(name, port)
+        Console.println(entry.print)
+        thread.foreach(_.join)
+      }
     })
 }
 
-class Server private(val socket: ServerSocket)
+class Server private(_port: Int, _password: String)
 {
+  val socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
   def port: Int = socket.getLocalPort
-  val password = UUID.randomUUID().toString
+  val password: String = proper_string(_password) getOrElse UUID.randomUUID().toString
+
+  lazy val thread: Thread = Thread.currentThread // FIXME
 }
