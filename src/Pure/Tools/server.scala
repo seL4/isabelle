@@ -8,7 +8,8 @@ package isabelle
 
 
 import java.util.UUID
-import java.net.{ServerSocket, InetAddress}
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter}
+import java.net.{Socket, ServerSocket, InetAddress}
 
 
 object Server
@@ -127,9 +128,48 @@ Usage: isabelle server [OPTIONS]
 
 class Server private(_port: Int, _password: String)
 {
-  val socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
-  def port: Int = socket.getLocalPort
+  private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
+  def port: Int = server_socket.getLocalPort
+  def close { server_socket.close }
+
   val password: String = proper_string(_password) getOrElse UUID.randomUUID().toString
 
-  lazy val thread: Thread = Thread.currentThread // FIXME
+  private def handle_connection(socket: Socket)
+  {
+    val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, UTF8.charset))
+    val writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream, UTF8.charset))
+
+    def println(s: String)
+    {
+      writer.write(s)
+      writer.newLine()
+      writer.flush()
+    }
+
+    reader.readLine() match {
+      case null =>
+      case bad if bad != password => println("BAD PASSWORD")
+      case _ =>
+        var finished = false
+        while (!finished) {
+          reader.readLine() match {
+            case null => println("FINISHED"); finished = true
+            case line => println("ECHO " + line)
+          }
+        }
+    }
+  }
+
+  lazy val thread: Thread =
+    Standard_Thread.fork("server") {
+      var finished = false
+      while (!finished) {
+        Exn.capture(server_socket.accept) match {
+          case Exn.Res(socket) =>
+            Standard_Thread.fork("server_connection")
+              { try { handle_connection(socket) } finally { socket.close } }
+          case Exn.Exn(_) => finished = true
+        }
+      }
+    }
 }
