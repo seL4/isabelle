@@ -31,7 +31,6 @@ sig
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
   val join: 'a future -> 'a
-  val join_tasks: task list -> unit
   val task_context: string -> group -> ('a -> 'b) -> 'a -> 'b
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
@@ -531,14 +530,6 @@ end;
 fun join_result x = singleton join_results x;
 fun joins xs = Par_Exn.release_all (join_results xs);
 fun join x = Exn.release (join_result x);
-
-fun join_tasks tasks =
-  if null tasks then ()
-  else
-    (singleton o forks)
-      {name = "join_tasks", group = SOME (new_group NONE),
-        deps = tasks, pri = 0, interrupts = false} I
-    |> join;
 
 
 (* task context for running thread *)

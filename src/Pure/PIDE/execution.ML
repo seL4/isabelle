@@ -13,6 +13,7 @@ sig
   val is_running_exec: Document_ID.exec -> bool
   val running: Document_ID.execution -> Document_ID.exec -> Future.group list -> bool
   val snapshot: Document_ID.exec list -> Future.task list
+  val join: Document_ID.exec list -> unit
   val peek: Document_ID.exec -> Future.group list
   val cancel: Document_ID.exec -> unit
   type params = {name: string, pos: Position.T, pri: int}
@@ -58,7 +59,7 @@ fun discontinue () = change_state (apfst (K Document_ID.none));
 fun is_running execution_id = execution_id = #1 (get_state ());
 
 
-(* execs *)
+(* running execs *)
 
 fun is_running_exec exec_id =
   Inttab.defined (#2 (get_state ())) exec_id;
@@ -70,6 +71,9 @@ fun running execution_id exec_id groups =
       val execs' = execs |> ok ? Inttab.update (exec_id, (groups, []));
     in (ok, (execution_id', execs')) end);
 
+
+(* exec groups and tasks *)
+
 fun exec_groups ((_, execs): state) exec_id =
   (case Inttab.lookup execs exec_id of
     SOME (groups, _) => groups
@@ -78,6 +82,15 @@ fun exec_groups ((_, execs): state) exec_id =
 fun snapshot exec_ids =
   change_state_result (fn state =>
     (maps Future.group_snapshot (maps (exec_groups state) exec_ids), state));
+
+fun join exec_ids =
+  (case snapshot exec_ids of
+    [] => ()
+  | tasks =>
+      ((singleton o Future.forks)
+        {name = "Execution.join", group = SOME (Future.new_group NONE),
+          deps = tasks, pri = 0, interrupts = false} I
+      |> Future.join; join exec_ids));
 
 fun peek exec_id = exec_groups (get_state ()) exec_id;
 
