@@ -58,7 +58,7 @@ abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   keywords: Keyword.keywords option,  (*outer syntax keywords*)
   perspective: perspective,  (*command perspective*)
-  entries: Command.exec option Entries.T,  (*command entries with excecutions*)
+  entries: Command.exec option Entries.T,  (*command entries with executions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
