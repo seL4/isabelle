@@ -607,8 +607,6 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
   if not proper_init andalso is_none init then NONE
   else
     let
-      val (_, (eval, _)) = command_exec;
-
       val command_visible = visible_command node command_id';
       val command_overlays = overlays node command_id';
       val (command_name, blob_digests, blobs_index, span0) = the_command state command_id';
@@ -616,15 +614,15 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
       val span = Lazy.force span0;
 
       val eval' =
-        Command.eval keywords (master_directory node)
-          (fn () => the_default illegal_init init span) (blobs, blobs_index) span eval;
+        Command.eval keywords (master_directory node) (fn () => the_default illegal_init init span)
+          (blobs, blobs_index) span (#1 (#2 command_exec));
       val prints' =
         perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
       val init' = if command_name = Thy_Header.theoryN then NONE else init;
-    in SOME (assign_update', (command_id', (eval', prints')), init') end;
+    in SOME (assign_update', (command_id', exec'), init') end;
 
 fun removed_execs node0 (command_id, exec_ids) =
   subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id));
@@ -679,7 +677,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                             SOME id => (id, the_default Command.no_exec (the_entry node id))
                           | NONE => (Document_ID.none, Command.init_exec ml_root));
 
-                        val (updated_execs, (command_id', (eval', _)), _) =
+                        val (updated_execs, (command_id', exec'), _) =
                           (print_execs, common_command_exec, if initial then SOME init else NONE)
                           |> (still_visible orelse node_required) ?
                             iterate_entries_after common
@@ -698,7 +696,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                           if command_id' = Document_ID.none then NONE else SOME command_id';
                         val result =
                           if is_none last_exec orelse is_some (after_entry node last_exec) then NONE
-                          else SOME eval';
+                          else SOME (#1 exec');
 
                         val assign_update = assign_update_result assigned_execs;
                         val removed = maps (removed_execs node0) assign_update;
