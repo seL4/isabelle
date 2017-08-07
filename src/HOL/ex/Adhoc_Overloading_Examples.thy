@@ -38,7 +38,7 @@ text \<open>Which is then overloaded with variants for terms, rules, and TRSs.\<
 adhoc_overloading
   vars term_vars
 
-value "vars (Fun ''f'' [Var 0, Var 1])"
+value [nbe] "vars (Fun ''f'' [Var 0, Var 1])"
 
 fun rule_vars :: "('a, 'b) term \<times> ('a, 'b) term \<Rightarrow> 'b set" where
   "rule_vars (l, r) = vars l \<union> vars r"
@@ -46,7 +46,7 @@ fun rule_vars :: "('a, 'b) term \<times> ('a, 'b) term \<Rightarrow> 'b set" whe
 adhoc_overloading
   vars rule_vars
 
-value "vars (Var 1, Var 0)"
+value [nbe] "vars (Var 1, Var 0)"
 
 definition trs_vars :: "(('a, 'b) term \<times> ('a, 'b) term) set \<Rightarrow> 'b set" where
   "trs_vars R = \<Union>(rule_vars ` R)"
@@ -54,7 +54,7 @@ definition trs_vars :: "(('a, 'b) term \<times> ('a, 'b) term) set \<Rightarrow>
 adhoc_overloading
   vars trs_vars
 
-value "vars {(Var 1, Var 0)}"
+value [nbe] "vars {(Var 1, Var 0)}"
 
 text \<open>Sometimes it is necessary to add explicit type constraints
 before a variant can be determined.\<close>

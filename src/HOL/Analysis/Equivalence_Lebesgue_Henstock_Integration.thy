@@ -1,29 +1,12 @@
 (*  Title:      HOL/Analysis/Equivalence_Lebesgue_Henstock_Integration.thy
     Author:     Johannes Hölzl, TU München
     Author:     Robert Himmelmann, TU München
+    Huge cleanup by LCP
 *)
 
 theory Equivalence_Lebesgue_Henstock_Integration
   imports Lebesgue_Measure Henstock_Kurzweil_Integration Complete_Measure Set_Integral
 begin
-
-lemma finite_product_dependent: (*FIXME DELETE*)
-  assumes "finite s"
-    and "\<And>x. x \<in> s \<Longrightarrow> finite (t x)"
-  shows "finite {(i, j) |i j. i \<in> s \<and> j \<in> t i}"
-  using assms
-proof induct
-  case (insert x s)
-  have *: "{(i, j) |i j. i \<in> insert x s \<and> j \<in> t i} =
-    (\<lambda>y. (x,y)) ` (t x) \<union> {(i, j) |i j. i \<in> s \<and> j \<in> t i}" by auto
-  show ?case
-    unfolding *
-    apply (rule finite_UnI)
-    using insert
-    apply auto
-    done
-qed auto
-
 
 lemma le_left_mono: "x \<le> y \<Longrightarrow> y \<le> a \<longrightarrow> x \<le> (a::'a::preorder)"
   by (auto intro: order_trans)
@@ -90,7 +73,7 @@ proof (rule cld_measure.borel_measurable_cld)
   obtain d
     where "gauge d"
       and integral_f: "\<forall>p. p tagged_division_of cbox x y \<and> d fine p \<longrightarrow>
-        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - I) < e"
+        norm ((\<Sum>(x,k) \<in> p. content k *\<^sub>R f x) - I) < e"
     using \<open>0<e\<close> f unfolding has_integral by auto
 
   define C where "C X m = X \<inter> {x. ball x (1/Suc m) \<subseteq> d x}" for X m
@@ -194,14 +177,14 @@ proof (rule cld_measure.borel_measurable_cld)
         then show "\<Union>{k. \<exists>x. (x, k) \<in> ?p} = cbox x y"
           using p(1) by auto
       qed
-      ultimately have I: "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - I) < e"
+      ultimately have I: "norm ((\<Sum>(x,k) \<in> ?p. content k *\<^sub>R f x) - I) < e"
         using integral_f by auto
 
-      have "(\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) =
-        (\<Sum>(x, k)\<in>?T ` (p \<inter> s). content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p - s. content k *\<^sub>R f x)"
+      have "(\<Sum>(x,k) \<in> ?p. content k *\<^sub>R f x) =
+        (\<Sum>(x,k) \<in> ?T ` (p \<inter> s). content k *\<^sub>R f x) + (\<Sum>(x,k) \<in> p - s. content k *\<^sub>R f x)"
         using p(1)[THEN tagged_division_ofD(1)]
         by (safe intro!: sum.union_inter_neutral) (auto simp: s_def T_def)
-      also have "(\<Sum>(x, k)\<in>?T ` (p \<inter> s). content k *\<^sub>R f x) = (\<Sum>(x, k)\<in>p \<inter> s. content k *\<^sub>R f (T X k))"
+      also have "(\<Sum>(x,k) \<in> ?T ` (p \<inter> s). content k *\<^sub>R f x) = (\<Sum>(x,k) \<in> p \<inter> s. content k *\<^sub>R f (T X k))"
       proof (subst sum.reindex_nontrivial, safe)
         fix x1 x2 k assume 1: "(x1, k) \<in> p" "(x1, k) \<in> s" and 2: "(x2, k) \<in> p" "(x2, k) \<in> s"
           and eq: "content k *\<^sub>R f (T X k) \<noteq> 0"
@@ -209,8 +192,8 @@ proof (rule cld_measure.borel_measurable_cld)
         show "x1 = x2"
           by (auto simp: content_eq_0_interior)
       qed (use p in \<open>auto intro!: sum.cong\<close>)
-      finally have eq: "(\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) =
-        (\<Sum>(x, k)\<in>p \<inter> s. content k *\<^sub>R f (T X k)) + (\<Sum>(x, k)\<in>p - s. content k *\<^sub>R f x)" .
+      finally have eq: "(\<Sum>(x,k) \<in> ?p. content k *\<^sub>R f x) =
+        (\<Sum>(x,k) \<in> p \<inter> s. content k *\<^sub>R f (T X k)) + (\<Sum>(x,k) \<in> p - s. content k *\<^sub>R f x)" .
 
       have in_T: "(x, k) \<in> s \<Longrightarrow> T X k \<in> X" for x k
         using in_s[of x k] by (auto simp: C_def)
@@ -224,7 +207,7 @@ proof (rule cld_measure.borel_measurable_cld)
     have [simp]: "finite p"
       using tagged_division_ofD(1)[OF p(1)] .
 
-    have "(M - 3*e) * (b - a) \<le> (\<Sum>(x, k)\<in>p \<inter> s. content k) * (b - a)"
+    have "(M - 3*e) * (b - a) \<le> (\<Sum>(x,k) \<in> p \<inter> s. content k) * (b - a)"
     proof (intro mult_right_mono)
       have fin: "?\<mu> (E \<inter> \<Union>{k\<in>snd`p. k \<inter> C X m = {}}) < \<infinity>" for X
         using \<open>?\<mu> E < \<infinity>\<close> by (rule le_less_trans[rotated]) (auto intro!: emeasure_mono \<open>E \<in> sets ?L\<close>)
@@ -287,15 +270,15 @@ proof (rule cld_measure.borel_measurable_cld)
       finally show "M - 3 * e \<le> (\<Sum>(x, y)\<in>p \<inter> s. content y)"
         using \<open>0 < e\<close> by (simp add: split_beta)
     qed (use \<open>a < b\<close> in auto)
-    also have "\<dots> = (\<Sum>(x, k)\<in>p \<inter> s. content k * (b - a))"
+    also have "\<dots> = (\<Sum>(x,k) \<in> p \<inter> s. content k * (b - a))"
       by (simp add: sum_distrib_right split_beta')
-    also have "\<dots> \<le> (\<Sum>(x, k)\<in>p \<inter> s. content k * (f (T ?F k) - f (T ?E k)))"
+    also have "\<dots> \<le> (\<Sum>(x,k) \<in> p \<inter> s. content k * (f (T ?F k) - f (T ?E k)))"
       using parts(3) by (auto intro!: sum_mono mult_left_mono diff_mono)
-    also have "\<dots> = (\<Sum>(x, k)\<in>p \<inter> s. content k * f (T ?F k)) - (\<Sum>(x, k)\<in>p \<inter> s. content k * f (T ?E k))"
+    also have "\<dots> = (\<Sum>(x,k) \<in> p \<inter> s. content k * f (T ?F k)) - (\<Sum>(x,k) \<in> p \<inter> s. content k * f (T ?E k))"
       by (auto intro!: sum.cong simp: field_simps sum_subtractf[symmetric])
-    also have "\<dots> = (\<Sum>(x, k)\<in>?B. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>?A. content k *\<^sub>R f x)"
+    also have "\<dots> = (\<Sum>(x,k) \<in> ?B. content k *\<^sub>R f x) - (\<Sum>(x,k) \<in> ?A. content k *\<^sub>R f x)"
       by (subst (1 2) parts) auto
-    also have "\<dots> \<le> norm ((\<Sum>(x, k)\<in>?B. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>?A. content k *\<^sub>R f x))"
+    also have "\<dots> \<le> norm ((\<Sum>(x,k) \<in> ?B. content k *\<^sub>R f x) - (\<Sum>(x,k) \<in> ?A. content k *\<^sub>R f x))"
       by auto
     also have "\<dots> \<le> e + e"
       using parts(1)[of ?E] parts(1)[of ?F] by (intro norm_diff_triangle_le[of _ I]) auto
@@ -574,10 +557,13 @@ lemma nn_integral_has_integral_lborel:
   shows "integral\<^sup>N lborel f = I"
 proof -
   from f_borel have "(\<lambda>x. ennreal (f x)) \<in> borel_measurable lborel" by auto
-  from borel_measurable_implies_simple_function_sequence'[OF this] guess F . note F = this
+  from borel_measurable_implies_simple_function_sequence'[OF this] 
+  obtain F where F: "\<And>i. simple_function lborel (F i)" "incseq F" 
+                 "\<And>i x. F i x < top" "\<And>x. (SUP i. F i x) = ennreal (f x)"
+    by blast
+  then have [measurable]: "\<And>i. F i \<in> borel_measurable lborel"
+    by (metis borel_measurable_simple_function)
   let ?B = "\<lambda>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One) :: 'a set"
-
-  note F(1)[THEN borel_measurable_simple_function, measurable]
 
   have "0 \<le> I"
     using I by (rule has_integral_nonneg) (simp add: nonneg)
@@ -1199,13 +1185,13 @@ proof (clarsimp simp: completion.null_sets_outer)
   assume "0 < e"
   have "S \<in> lmeasurable"
     using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets fmeasurableI_null_sets)
-  have e22: "0 < e / 2 / (2 * B * real DIM('M)) ^ DIM('N)"
+  have e22: "0 < e/2 / (2 * B * real DIM('M)) ^ DIM('N)"
     using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
   obtain T
     where "open T" "S \<subseteq> T" "T \<in> lmeasurable"
-      and "measure lebesgue T \<le> measure lebesgue S + e / 2 / (2 * B * DIM('M)) ^ DIM('N)"
+      and "measure lebesgue T \<le> measure lebesgue S + e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     by (rule lmeasurable_outer_open [OF \<open>S \<in> lmeasurable\<close> e22])
-  then have T: "measure lebesgue T \<le> e / 2 / (2 * B * DIM('M)) ^ DIM('N)"
+  then have T: "measure lebesgue T \<le> e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets measure_eq_0_null_sets)
   have "\<exists>r. 0 < r \<and> r \<le> 1/2 \<and>
             (x \<in> S \<longrightarrow> (\<forall>y. norm(y - x) < r
@@ -1286,7 +1272,7 @@ proof (clarsimp simp: completion.null_sets_outer)
   qed
   have countbl: "countable (fbx ` \<D>)"
     using \<open>countable \<D>\<close> by blast
-  have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> e / 2" if "\<D>' \<subseteq> \<D>" "finite \<D>'" for \<D>'
+  have "(\<Sum>k\<in>fbx`\<D>'. measure lebesgue k) \<le> e/2" if "\<D>' \<subseteq> \<D>" "finite \<D>'" for \<D>'
   proof -
     have BM_ge0: "0 \<le> B * (DIM('M) * prj1 (vf X - uf X))" if "X \<in> \<D>'" for X
       using \<open>0 < B\<close> \<open>\<D>' \<subseteq> \<D>\<close> that vu_pos by fastforce
@@ -1330,7 +1316,7 @@ proof (clarsimp simp: completion.null_sets_outer)
     qed
     also have "\<dots> = (2 * B * DIM('M)) ^ DIM('N) * sum (measure lebesgue) \<D>'"
       by (simp add: sum_distrib_left)
-    also have "\<dots> \<le> e / 2"
+    also have "\<dots> \<le> e/2"
     proof -
       have div: "\<D>' division_of \<Union>\<D>'"
         apply (auto simp: \<open>finite \<D>'\<close> \<open>{} \<notin> \<D>'\<close> division_of_def)
@@ -1363,13 +1349,13 @@ proof (clarsimp simp: completion.null_sets_outer)
         using \<open>0 < B\<close>
         apply (simp add: algebra_simps)
         done
-      also have "\<dots> \<le> e / 2"
+      also have "\<dots> \<le> e/2"
         using T \<open>0 < B\<close> by (simp add: field_simps)
       finally show ?thesis .
     qed
     finally show ?thesis .
   qed
-  then have e2: "sum (measure lebesgue) \<G> \<le> e / 2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
+  then have e2: "sum (measure lebesgue) \<G> \<le> e/2" if "\<G> \<subseteq> fbx ` \<D>" "finite \<G>" for \<G>
     by (metis finite_subset_image that)
   show "\<exists>W\<in>lmeasurable. f ` S \<subseteq> W \<and> measure lebesgue W < e"
   proof (intro bexI conjI)
@@ -1602,7 +1588,7 @@ proof (rule that[of "integral UNIV (\<lambda>x. norm (f x))"]; safe)
   finally show "(\<Sum>k\<in>d. norm (integral k f)) \<le> integral UNIV (\<lambda>x. norm (f x))" .
 qed
 
-lemma helplemma:
+lemma absdiff_norm_less:
   assumes "sum (\<lambda>x. norm (f x - g x)) s < e"
     and "finite s"
   shows "\<bar>sum (\<lambda>x. norm(f x)) s - sum (\<lambda>x. norm(g x)) s\<bar> < e"
@@ -1613,28 +1599,27 @@ lemma helplemma:
   apply (rule norm_triangle_ineq3)
   done
 
-text\<open>FIXME: needs refactoring and use of Sigma\<close>
-lemma bounded_variation_absolutely_integrable_interval:
+proposition bounded_variation_absolutely_integrable_interval:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes f: "f integrable_on cbox a b"
-    and *: "\<forall>d. d division_of (cbox a b) \<longrightarrow> sum (\<lambda>k. norm(integral k f)) d \<le> B"
+    and *: "\<And>d. d division_of (cbox a b) \<Longrightarrow> sum (\<lambda>K. norm(integral K f)) d \<le> B"
   shows "f absolutely_integrable_on cbox a b"
 proof -
-  let ?f = "\<lambda>d. \<Sum>k\<in>d. norm (integral k f)" and ?D = "{d. d division_of (cbox a b)}"
+  let ?f = "\<lambda>d. \<Sum>K\<in>d. norm (integral K f)" and ?D = "{d. d division_of (cbox a b)}"
   have D_1: "?D \<noteq> {}"
     by (rule elementary_interval[of a b]) auto
   have D_2: "bdd_above (?f`?D)"
     by (metis * mem_Collect_eq bdd_aboveI2)
   note D = D_1 D_2
   let ?S = "SUP x:?D. ?f x"
-  show ?thesis
-    apply (rule absolutely_integrable_onI [OF f has_integral_integrable])
-    apply (subst has_integral[of _ ?S])
-    apply safe
-  proof goal_cases
-    case e: (1 e)
-    then have "?S - e / 2 < ?S" by simp
-    then obtain d where d: "d division_of (cbox a b)" "?S - e / 2 < (\<Sum>k\<in>d. norm (integral k f))"
+  have *: "\<exists>\<gamma>. gauge \<gamma> \<and>
+             (\<forall>p. p tagged_division_of cbox a b \<and>
+                  \<gamma> fine p \<longrightarrow>
+                  norm ((\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - ?S) < e)"
+    if e: "e > 0" for e
+  proof -
+    have "?S - e/2 < ?S" using \<open>e > 0\<close> by simp
+    then obtain d where d: "d division_of (cbox a b)" "?S - e/2 < (\<Sum>k\<in>d. norm (integral k f))"
       unfolding less_cSUP_iff[OF D] by auto
     note d' = division_ofD[OF this(1)]
 
@@ -1642,126 +1627,118 @@ proof -
     proof
       fix x
       have "\<exists>da>0. \<forall>xa\<in>\<Union>{i \<in> d. x \<notin> i}. da \<le> dist x xa"
-        apply (rule separate_point_closed)
-        apply (rule closed_Union)
-        apply (rule finite_subset[OF _ d'(1)])
-        using d'(4)
-        apply auto
-        done
+      proof (rule separate_point_closed)
+        show "closed (\<Union>{i \<in> d. x \<notin> i})"
+          apply (rule closed_Union)
+           apply (simp add: d'(1))
+          using d'(4) apply auto
+          done
+        show "x \<notin> \<Union>{i \<in> d. x \<notin> i}"
+          by auto
+      qed 
       then show "\<exists>e>0. \<forall>i\<in>d. x \<notin> i \<longrightarrow> ball x e \<inter> i = {}"
         by force
     qed
-    then obtain k where k: "\<And>x. 0 < k x"
-                       "\<And>i x. \<lbrakk>i \<in> d; x \<notin> i\<rbrakk> \<Longrightarrow> ball x (k x) \<inter> i = {}"
+    then obtain k where k: "\<And>x. 0 < k x" "\<And>i x. \<lbrakk>i \<in> d; x \<notin> i\<rbrakk> \<Longrightarrow> ball x (k x) \<inter> i = {}"
       by metis
     have "e/2 > 0"
       using e by auto
-    from henstock_lemma[OF assms(1) this] 
-    obtain g where g: "gauge g"
-          "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; g fine p\<rbrakk> 
-                \<Longrightarrow> (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
+    with henstock_lemma[OF f] 
+    obtain \<gamma> where g: "gauge \<gamma>"
+      "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; \<gamma> fine p\<rbrakk> 
+                \<Longrightarrow> (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
       by (metis (no_types, lifting))      
-    let ?g = "\<lambda>x. g x \<inter> ball x (k x)"
-    show ?case
-      apply (rule_tac x="?g" in exI)
-      apply safe
-    proof -
+    let ?g = "\<lambda>x. \<gamma> x \<inter> ball x (k x)"
+    show ?thesis 
+    proof (intro exI conjI allI impI)
       show "gauge ?g"
-        using g(1) k(1)
-        unfolding gauge_def
-        by auto
+        using g(1) k(1) by (auto simp: gauge_def)
+    next
       fix p
-      assume "p tagged_division_of (cbox a b)" and "?g fine p"
-      note p = this(1) conjunctD2[OF this(2)[unfolded fine_Int]]
+      assume "p tagged_division_of (cbox a b) \<and> ?g fine p"
+      then have p: "p tagged_division_of cbox a b" "\<gamma> fine p" "(\<lambda>x. ball x (k x)) fine p"
+        by (auto simp: fine_Int)
       note p' = tagged_division_ofD[OF p(1)]
       define p' where "p' = {(x,k) | x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x,l) \<in> p \<and> k = i \<inter> l}"
-      have gp': "g fine p'"
-        using p(2)
-        unfolding p'_def fine_def
-        by auto
+      have gp': "\<gamma> fine p'"
+        using p(2) by (auto simp: p'_def fine_def)
       have p'': "p' tagged_division_of (cbox a b)"
-        apply (rule tagged_division_ofI)
-      proof -
+      proof (rule tagged_division_ofI)
         show "finite p'"
-          apply (rule finite_subset[of _ "(\<lambda>(k,(x,l)). (x,k \<inter> l)) `
-            {(k,xl) | k xl. k \<in> d \<and> xl \<in> p}"])
-          unfolding p'_def
-          defer
-          apply (rule finite_imageI,rule finite_product_dependent[OF d'(1) p'(1)])
-          apply safe
-          unfolding image_iff
-          apply (rule_tac x="(i,x,l)" in bexI)
-          apply auto
-          done
-        fix x k
-        assume "(x, k) \<in> p'"
-        then have "\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l"
-          unfolding p'_def by auto
-        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "k = i \<inter> l" by blast
-        show "x \<in> k" and "k \<subseteq> cbox a b"
-          using p'(2-3)[OF il(3)] il by auto
-        show "\<exists>a b. k = cbox a b"
-          unfolding il using p'(4)[OF il(3)] d'(4)[OF il(2)]
-          apply safe
-          unfolding Int_interval
-          apply auto
-          done
+        proof (rule finite_subset)
+          show "p' \<subseteq> (\<lambda>(k, x, l). (x, k \<inter> l)) ` (d \<times> p)"
+            by (force simp: p'_def image_iff)
+          show "finite ((\<lambda>(k, x, l). (x, k \<inter> l)) ` (d \<times> p))"
+            by (simp add: d'(1) p'(1))
+        qed
       next
-        fix x1 k1
-        assume "(x1, k1) \<in> p'"
-        then have "\<exists>i l. x1 \<in> i \<and> i \<in> d \<and> (x1, l) \<in> p \<and> k1 = i \<inter> l"
+        fix x K
+        assume "(x, K) \<in> p'"
+        then have "\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> K = i \<inter> l"
           unfolding p'_def by auto
-        then obtain i1 l1 where il1: "x1 \<in> i1" "i1 \<in> d" "(x1, l1) \<in> p" "k1 = i1 \<inter> l1" by blast
-        fix x2 k2
-        assume "(x2,k2)\<in>p'"
-        then have "\<exists>i l. x2 \<in> i \<and> i \<in> d \<and> (x2, l) \<in> p \<and> k2 = i \<inter> l"
+        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "K = i \<inter> l" by blast
+        show "x \<in> K" and "K \<subseteq> cbox a b"
+          using p'(2-3)[OF il(3)] il by auto
+        show "\<exists>a b. K = cbox a b"
+          unfolding il using p'(4)[OF il(3)] d'(4)[OF il(2)]
+          by (meson Int_interval)
+      next
+        fix x1 K1
+        assume "(x1, K1) \<in> p'"
+        then have "\<exists>i l. x1 \<in> i \<and> i \<in> d \<and> (x1, l) \<in> p \<and> K1 = i \<inter> l"
           unfolding p'_def by auto
-        then obtain i2 l2 where il2: "x2 \<in> i2" "i2 \<in> d" "(x2, l2) \<in> p" "k2 = i2 \<inter> l2" by blast
-        assume "(x1, k1) \<noteq> (x2, k2)"
+        then obtain i1 l1 where il1: "x1 \<in> i1" "i1 \<in> d" "(x1, l1) \<in> p" "K1 = i1 \<inter> l1" by blast
+        fix x2 K2
+        assume "(x2,K2) \<in> p'"
+        then have "\<exists>i l. x2 \<in> i \<and> i \<in> d \<and> (x2, l) \<in> p \<and> K2 = i \<inter> l"
+          unfolding p'_def by auto
+        then obtain i2 l2 where il2: "x2 \<in> i2" "i2 \<in> d" "(x2, l2) \<in> p" "K2 = i2 \<inter> l2" by blast
+        assume "(x1, K1) \<noteq> (x2, K2)"
         then have "interior i1 \<inter> interior i2 = {} \<or> interior l1 \<inter> interior l2 = {}"
-          using d'(5)[OF il1(2) il2(2)] p'(5)[OF il1(3) il2(3)]
-          unfolding il1 il2
-          by auto
-        then show "interior k1 \<inter> interior k2 = {}"
+          using d'(5)[OF il1(2) il2(2)] p'(5)[OF il1(3) il2(3)]  by (auto simp: il1 il2)
+        then show "interior K1 \<inter> interior K2 = {}"
           unfolding il1 il2 by auto
       next
         have *: "\<forall>(x, X) \<in> p'. X \<subseteq> cbox a b"
-          unfolding p'_def using d' by auto
-        show "\<Union>{k. \<exists>x. (x, k) \<in> p'} = cbox a b"
-          apply rule
-          apply (rule Union_least)
-          unfolding mem_Collect_eq
-          apply (erule exE)
-          apply (drule *[rule_format])
-          apply safe
+          unfolding p'_def using d' by blast
+        have "y \<in> \<Union>{K. \<exists>x. (x, K) \<in> p'}" if y: "y \<in> cbox a b" for y
         proof -
-          fix y
-          assume y: "y \<in> cbox a b"
-          then have "\<exists>x l. (x, l) \<in> p \<and> y\<in>l"
-            unfolding p'(6)[symmetric] by auto
-          then obtain x l where xl: "(x, l) \<in> p" "y \<in> l" by metis
-          then have "\<exists>k. k \<in> d \<and> y \<in> k"
+          obtain x l where xl: "(x, l) \<in> p" "y \<in> l" 
+            using y unfolding p'(6)[symmetric] by auto
+          obtain i where i: "i \<in> d" "y \<in> i" 
             using y unfolding d'(6)[symmetric] by auto
-          then obtain i where i: "i \<in> d" "y \<in> i" by metis
           have "x \<in> i"
             using fineD[OF p(3) xl(1)] using k(2) i xl by auto
-          then show "y \<in> \<Union>{k. \<exists>x. (x, k) \<in> p'}"
-            unfolding p'_def Union_iff
-            apply (rule_tac x="i \<inter> l" in bexI)
-            using i xl
-            apply auto
-            done
+          then show ?thesis
+            unfolding p'_def
+            by (rule_tac X="i \<inter> l" in UnionI) (use i xl in auto)
+        qed
+        show "\<Union>{K. \<exists>x. (x, K) \<in> p'} = cbox a b"
+        proof
+          show "\<Union>{k. \<exists>x. (x, k) \<in> p'} \<subseteq> cbox a b"
+            using * by auto
+        next
+          show "cbox a b \<subseteq> \<Union>{k. \<exists>x. (x, k) \<in> p'}"
+          proof 
+            fix y
+            assume y: "y \<in> cbox a b"
+            obtain x L where xl: "(x, L) \<in> p" "y \<in> L" 
+              using y unfolding p'(6)[symmetric] by auto
+            obtain I where i: "I \<in> d" "y \<in> I" 
+              using y unfolding d'(6)[symmetric] by auto
+            have "x \<in> I"
+              using fineD[OF p(3) xl(1)] using k(2) i xl by auto
+            then show "y \<in> \<Union>{k. \<exists>x. (x, k) \<in> p'}"
+              apply (rule_tac X="I \<inter> L" in UnionI)
+              using i xl by (auto simp: p'_def)
+          qed
         qed
       qed
 
-      then have "(\<Sum>(x, k)\<in>p'. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
+      then have sum_less_e2: "(\<Sum>(x,K) \<in> p'. norm (content K *\<^sub>R f x - integral K f)) < e/2"
         using g(2) gp' tagged_division_of_def by blast
-      then have **: "\<bar>(\<Sum>(x,k)\<in>p'. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p'. norm (integral k f))\<bar> < e / 2"
-        unfolding split_def
-        using p''
-        by (force intro!: helplemma)
 
-      have p'alt: "p' = {(x,(i \<inter> l)) | x i l. (x,l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}}"
+      have p'alt: "p' = {(x, I \<inter> L) | x I L. (x,L) \<in> p \<and> I \<in> d \<and> I \<inter> L \<noteq> {}}"
       proof (safe, goal_cases)
         case prems: (2 _ _ x i l)
         have "x \<in> i"
@@ -1773,296 +1750,246 @@ proof -
           apply safe
           apply (rule_tac x=x in exI)
           apply (rule_tac x="i \<inter> l" in exI)
-          apply safe
-          using prems
           apply auto
           done
         then show ?case
           using prems(3) by auto
       next
-        fix x k
-        assume "(x, k) \<in> p'"
-        then have "\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l"
+        fix x K
+        assume "(x, K) \<in> p'"
+        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "K = i \<inter> l" 
           unfolding p'_def by auto
-        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "k = i \<inter> l" by blast
-        then show "\<exists>y i l. (x, k) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
+        then show "\<exists>y i l. (x, K) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
           using p'(2) by fastforce
       qed
-      have sum_p': "(\<Sum>(x, k)\<in>p'. norm (integral k f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
+      have sum_p': "(\<Sum>(x,K) \<in> p'. norm (integral K f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
         apply (subst sum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
          apply (auto intro: integral_null simp: content_eq_0_interior)
         done
-      note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
+      have snd_p_div: "snd ` p division_of cbox a b"
+        by (rule division_of_tagged_division[OF p(1)])
+      note snd_p = division_ofD[OF snd_p_div]
+      have fin_d_sndp: "finite (d \<times> snd ` p)"
+        by (simp add: d'(1) snd_p(1))
 
-      have *: "\<And>sni sni' sf sf'. \<bar>sf' - sni'\<bar> < e / 2 \<longrightarrow> ?S - e / 2 < sni \<and> sni' \<le> ?S \<and>
-        sni \<le> sni' \<and> sf' = sf \<longrightarrow> \<bar>sf - ?S\<bar> < e"
+      have *: "\<And>sni sni' sf sf'. \<lbrakk>\<bar>sf' - sni'\<bar> < e/2; ?S - e/2 < sni; sni' \<le> ?S;
+                       sni \<le> sni'; sf' = sf\<rbrakk> \<Longrightarrow> \<bar>sf - ?S\<bar> < e"
         by arith
-      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - ?S) < e"
+      show "norm ((\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - ?S) < e"
         unfolding real_norm_def
-        apply (rule *[rule_format,OF **])
-        apply safe
-        apply(rule d(2))
-      proof goal_cases
-        case 1
-        show ?case
+      proof (rule *)
+        show "\<bar>(\<Sum>(x,K)\<in>p'. norm (content K *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p'. norm (integral k f))\<bar> < e/2"
+          using p'' sum_less_e2 unfolding split_def by (force intro!: absdiff_norm_less)
+        show "(\<Sum>(x,k) \<in> p'. norm (integral k f)) \<le>?S"
           by (auto simp: sum_p' division_of_tagged_division[OF p''] D intro!: cSUP_upper)
-      next
-        case 2
-        have *: "{k \<inter> l | k l. k \<in> d \<and> l \<in> snd ` p} =
-          (\<lambda>(k,l). k \<inter> l) ` {(k,l)|k l. k \<in> d \<and> l \<in> snd ` p}"
-          by auto
-        have "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>i\<in>d. \<Sum>l\<in>snd ` p. norm (integral (i \<inter> l) f))"
-        proof (rule sum_mono, goal_cases)
-          case k: (1 k)
-          from d'(4)[OF this] guess u v by (elim exE) note uv=this
-          define d' where "d' = {cbox u v \<inter> l |l. l \<in> snd ` p \<and>  cbox u v \<inter> l \<noteq> {}}"
-          note uvab = d'(2)[OF k[unfolded uv]]
-          have "d' division_of cbox u v"
-            apply (subst d'_def)
-            apply (rule division_inter_1)
-            apply (rule division_of_tagged_division[OF p(1)])
-            apply (rule uvab)
-            done
-          then have "norm (integral k f) \<le> sum (\<lambda>k. norm (integral k f)) d'"
-            unfolding uv
-            apply (subst integral_combine_division_topdown[of _ _ d'])
-            apply (rule integrable_on_subcbox[OF assms(1) uvab])
-            apply assumption
-            apply (rule sum_norm_le)
-            apply auto
-            done
-          also have "\<dots> = (\<Sum>k\<in>{k \<inter> l |l. l \<in> snd ` p}. norm (integral k f))"
-            apply (rule sum.mono_neutral_left)
-            apply (subst Setcompr_eq_image)
-            apply (rule finite_imageI)+
-            apply fact
-            unfolding d'_def uv
-            apply blast
-          proof (rule, goal_cases)
-            case prems: (1 i)
-            then have "i \<in> {cbox u v \<inter> l |l. l \<in> snd ` p}"
-              by auto
-            from this[unfolded mem_Collect_eq] guess l .. note l=this
-            then have "cbox u v \<inter> l = {}"
-              using prems by auto
-            then show ?case
-              using l by auto
-          qed
-          also have "\<dots> = (\<Sum>l\<in>snd ` p. norm (integral (k \<inter> l) f))"
-            unfolding Setcompr_eq_image
-            apply (rule sum.reindex_nontrivial [unfolded o_def])
-            apply (rule finite_imageI)
-            apply (rule p')
-          proof goal_cases
-            case prems: (1 l y)
-            have "interior (k \<inter> l) \<subseteq> interior (l \<inter> y)"
-              apply (subst(2) interior_Int)
-              by (metis Int_lower2 Int_subset_iff interior_mono prems(4))
-            then have *: "interior (k \<inter> l) = {}"
-              using snd_p(5)[OF prems(1-3)] by auto
-            from d'(4)[OF k] snd_p(4)[OF prems(1)] guess u1 v1 u2 v2 by (elim exE) note uv=this
-            show ?case
-              using *
-              unfolding uv Int_interval content_eq_0_interior[symmetric]
-              by auto
-          qed
-          finally show ?case .
-        qed
-        also have "\<dots> = (\<Sum>(i,l) \<in> d \<times> (snd ` p). norm (integral (i\<inter>l) f))"
-          apply (subst sum_Sigma_product[symmetric])
-          apply fact
-          using p'(1)
-          apply auto
-          done
-        also have "\<dots> = (\<Sum>x\<in>{(i, l) |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral (case_prod op \<inter> x) f))"
-          by (force simp: split_def Sigma_def intro!: sum.cong)
-        also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
-          unfolding *
-          apply (rule sum.reindex_nontrivial [symmetric, unfolded o_def])
-          apply (rule finite_product_dependent)
-          apply fact
-          apply (rule finite_imageI)
-          apply (rule p')
-          unfolding split_paired_all mem_Collect_eq split_conv o_def
+        show "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>(x,k) \<in> p'. norm (integral k f))"
         proof -
-          note * = division_ofD(4,5)[OF division_of_tagged_division,OF p(1)]
-          fix l1 l2 k1 k2
-          assume as:
-            "(l1, k1) \<noteq> (l2, k2)"
-            "l1 \<inter> k1 = l2 \<inter> k2"
-            "\<exists>i l. (l1, k1) = (i, l) \<and> i \<in> d \<and> l \<in> snd ` p"
-            "\<exists>i l. (l2, k2) = (i, l) \<and> i \<in> d \<and> l \<in> snd ` p"
-          then have "l1 \<in> d" and "k1 \<in> snd ` p"
-            by auto from d'(4)[OF this(1)] *(1)[OF this(2)]
-          guess u1 v1 u2 v2 by (elim exE) note uv=this
-          have "l1 \<noteq> l2 \<or> k1 \<noteq> k2"
-            using as by auto
-          then have "interior k1 \<inter> interior k2 = {} \<or> interior l1 \<inter> interior l2 = {}"
-            by (metis Pair_inject \<open>k1 \<in> snd ` p\<close> \<open>l1 \<in> d\<close> as(4) d'(5) snd_p(5))
-          moreover have "interior (l1 \<inter> k1) = interior (l2 \<inter> k2)"
-            using as(2) by auto
-          ultimately have "interior(l1 \<inter> k1) = {}"
+          have *: "{k \<inter> l | k l. k \<in> d \<and> l \<in> snd ` p} = (\<lambda>(k,l). k \<inter> l) ` (d \<times> snd ` p)"
             by auto
-          then show "norm (integral (l1 \<inter> k1) f) = 0"
-            unfolding uv Int_interval
-            unfolding content_eq_0_interior[symmetric]
-            by auto
-        qed
-        also have "\<dots> = (\<Sum>(x, k)\<in>p'. norm (integral k f))"
-          unfolding sum_p'
-          apply (rule sum.mono_neutral_right)
-          apply (subst *)
-          apply (rule finite_imageI[OF finite_product_dependent])
-          apply fact
-          apply (rule finite_imageI[OF p'(1)])
-          apply safe
-        proof goal_cases
-          case (2 i ia l a b)
-          then have "ia \<inter> b = {}"
-            unfolding p'alt image_iff Bex_def not_ex
-            apply (erule_tac x="(a, ia \<inter> b)" in allE)
-            apply auto
-            done
-          then show ?case
-            by auto
-        next
-          case (1 x a b)
-          then show ?case
-            unfolding p'_def
-          proof -
-            assume "(a, b) \<in> {(x, k) |x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> k = i \<inter> l}"
-            then have "\<exists>n N. (a, b) = (n, N) \<and> (\<exists>Na Nb. n \<in> Na \<and> Na \<in> d \<and> (n, Nb) \<in> p \<and> N = Na \<inter> Nb)"
-              by force
-            then show ?thesis
-              by (metis (no_types) image_iff snd_conv)
-          qed
-        qed
-        finally show ?case .
-      next
-        case 3
-        let ?S = "{(x, i \<inter> l) |x i l. (x, l) \<in> p \<and> i \<in> d}"
-        have *: "?S = (\<lambda>(xl,i). (fst xl, snd xl \<inter> i)) ` (p \<times> d)"
-          apply safe
-          unfolding image_iff
-          apply (rule_tac x="((x,l),i)" in bexI)
-          apply auto
-          done
-        note pdfin = finite_cartesian_product[OF p'(1) d'(1)]
-        have "(\<Sum>(x, k)\<in>p'. norm (content k *\<^sub>R f x)) = (\<Sum>(x, k)\<in>?S. \<bar>content k\<bar> * norm (f x))"
-          unfolding norm_scaleR
-          apply (rule sum.mono_neutral_left)
-          apply (subst *)
-          apply (rule finite_imageI)
-          apply fact
-          unfolding p'alt
-          apply blast
-          apply safe
-          apply (rule_tac x=x in exI)
-          apply (rule_tac x=i in exI)
-          apply (rule_tac x=l in exI)
-          apply auto
-          done
-        also have "\<dots> = (\<Sum>((x,l),i)\<in>p \<times> d. \<bar>content (l \<inter> i)\<bar> * norm (f x))"
-          unfolding *
-          apply (subst sum.reindex_nontrivial)
-          apply fact
-          unfolding split_paired_all
-          unfolding o_def split_def snd_conv fst_conv mem_Sigma_iff prod.inject
-          apply (elim conjE)
-        proof -
-          fix x1 l1 k1 x2 l2 k2
-          assume as: "(x1, l1) \<in> p" "(x2, l2) \<in> p" "k1 \<in> d" "k2 \<in> d"
-            "x1 = x2" "l1 \<inter> k1 = l2 \<inter> k2" "\<not> ((x1 = x2 \<and> l1 = l2) \<and> k1 = k2)"
-          from d'(4)[OF as(3)] p'(4)[OF as(1)] guess u1 v1 u2 v2 by (elim exE) note uv=this
-          from as have "l1 \<noteq> l2 \<or> k1 \<noteq> k2"
-            by auto
-          then have "interior k1 \<inter> interior k2 = {} \<or> interior l1 \<inter> interior l2 = {}"
-            apply -
-            apply (erule disjE)
-            apply (rule disjI2)
-            defer
-            apply (rule disjI1)
-            apply (rule d'(5)[OF as(3-4)])
-            apply assumption
-            apply (rule p'(5)[OF as(1-2)])
-            apply auto
-            done
-          moreover have "interior (l1 \<inter> k1) = interior (l2 \<inter> k2)"
-            unfolding  as ..
-          ultimately have "interior (l1 \<inter> k1) = {}"
-            by auto
-          then show "\<bar>content (l1 \<inter> k1)\<bar> * norm (f x1) = 0"
-            unfolding uv Int_interval
-            unfolding content_eq_0_interior[symmetric]
-            by auto
-        qed safe
-        also have "\<dots> = (\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x))"
-          apply (subst sum_Sigma_product[symmetric])
-          apply (rule p')
-          apply (rule d')
-          apply (rule sum.cong)
-          apply (rule refl)
-          unfolding split_paired_all split_conv
-        proof -
-          fix x l
-          assume as: "(x, l) \<in> p"
-          note xl = p'(2-4)[OF this]
-          from this(3) guess u v by (elim exE) note uv=this
-          have "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar>) = (\<Sum>k\<in>d. content (k \<inter> cbox u v))"
-            by (simp add: Int_commute uv)
-          also have "\<dots> = sum content {k \<inter> cbox u v| k. k \<in> d}"
-            unfolding Setcompr_eq_image
-            apply (rule sum.reindex_nontrivial [unfolded o_def, symmetric])
-            apply (rule d')
-          proof goal_cases
-            case prems: (1 k y)
-            from d'(4)[OF this(1)] d'(4)[OF this(2)]
-            guess u1 v1 u2 v2 by (elim exE) note uv=this
-            have "{} = interior ((k \<inter> y) \<inter> cbox u v)"
-              apply (subst interior_Int)
-              using d'(5)[OF prems(1-3)]
-              apply auto
+          have "(\<Sum>K\<in>d. norm (integral K f)) \<le> (\<Sum>i\<in>d. \<Sum>l\<in>snd ` p. norm (integral (i \<inter> l) f))"
+          proof (rule sum_mono)
+            fix K assume k: "K \<in> d"
+            from d'(4)[OF this] obtain u v where uv: "K = cbox u v" by metis
+            define d' where "d' = {cbox u v \<inter> l |l. l \<in> snd ` p \<and>  cbox u v \<inter> l \<noteq> {}}"
+            have uvab: "cbox u v \<subseteq> cbox a b"
+              using d(1) k uv by blast
+            have "d' division_of cbox u v"
+              unfolding d'_def by (rule division_inter_1 [OF snd_p_div uvab])
+            moreover then have "norm (\<Sum>i\<in>d'. integral i f) \<le> (\<Sum>k\<in>d'. norm (integral k f))"
+              by (simp add: sum_norm_le)
+            ultimately have "norm (integral K f) \<le> sum (\<lambda>k. norm (integral k f)) d'"
+              apply (subst integral_combine_division_topdown[of _ _ d'])
+                apply (auto simp: uv intro: integrable_on_subcbox[OF assms(1) uvab])
               done
-            also have "\<dots> = interior (y \<inter> (k \<inter> cbox u v))"
-              by auto
-            also have "\<dots> = interior (k \<inter> cbox u v)"
-              unfolding prems(4) by auto
-            finally show ?case
-              unfolding uv Int_interval content_eq_0_interior ..
+            also have "\<dots> = (\<Sum>I\<in>{K \<inter> L |L. L \<in> snd ` p}. norm (integral I f))"
+            proof -
+              have *: "norm (integral I f) = 0"
+                if "I \<in> {cbox u v \<inter> l |l. l \<in> snd ` p}"
+                  "I \<notin> {cbox u v \<inter> l |l. l \<in> snd ` p \<and> cbox u v \<inter> l \<noteq> {}}" for I
+                using that by auto
+              show ?thesis
+                apply (rule sum.mono_neutral_left)
+                  apply (simp add: snd_p(1))
+                unfolding d'_def uv using * by auto 
+            qed
+            also have "\<dots> = (\<Sum>l\<in>snd ` p. norm (integral (K \<inter> l) f))"
+            proof -
+              have *: "norm (integral (K \<inter> l) f) = 0"
+                if "l \<in> snd ` p" "y \<in> snd ` p" "l \<noteq> y" "K \<inter> l = K \<inter> y" for l y
+              proof -
+                have "interior (K \<inter> l) \<subseteq> interior (l \<inter> y)"
+                  by (metis Int_lower2 interior_mono le_inf_iff that(4))
+                then have "interior (K \<inter> l) = {}"
+                  by (simp add: snd_p(5) that) 
+                moreover from d'(4)[OF k] snd_p(4)[OF that(1)] 
+                obtain u1 v1 u2 v2
+                  where uv: "K = cbox u1 u2" "l = cbox v1 v2" by metis
+                ultimately show ?thesis
+                  using that integral_null
+                  unfolding uv Int_interval content_eq_0_interior
+                  by (metis (mono_tags, lifting) norm_eq_zero)
+              qed
+              show ?thesis
+                unfolding Setcompr_eq_image
+                apply (rule sum.reindex_nontrivial [unfolded o_def])
+                 apply (rule finite_imageI)
+                 apply (rule p')
+                using * by auto
+            qed
+            finally show "norm (integral K f) \<le> (\<Sum>l\<in>snd ` p. norm (integral (K \<inter> l) f))" .
           qed
-          also have "\<dots> = sum content {cbox u v \<inter> k |k. k \<in> d \<and> cbox u v \<inter> k \<noteq> {}}"
-            apply (rule sum.mono_neutral_right)
-            unfolding Setcompr_eq_image
-            apply (rule finite_imageI)
-            apply (rule d')
-            apply blast
-            apply safe
-            apply (rule_tac x=k in exI)
-          proof goal_cases
-            case prems: (1 i k)
-            from d'(4)[OF this(1)] guess a b by (elim exE) note ab=this
-            have "interior (k \<inter> cbox u v) \<noteq> {}"
-              using prems(2)
-              unfolding ab Int_interval content_eq_0_interior
-              by auto
-            then show ?case
-              using prems(1)
-              using interior_subset[of "k \<inter> cbox u v"]
-              by auto
+          also have "\<dots> = (\<Sum>(i,l) \<in> d \<times> snd ` p. norm (integral (i\<inter>l) f))"
+            by (simp add: sum.cartesian_product)
+          also have "\<dots> = (\<Sum>x \<in> d \<times> snd ` p. norm (integral (case_prod op \<inter> x) f))"
+            by (force simp: split_def intro!: sum.cong)
+          also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
+          proof -
+            have eq0: " (integral (l1 \<inter> k1) f) = 0"
+              if "l1 \<inter> k1 = l2 \<inter> k2" "(l1, k1) \<noteq> (l2, k2)"
+                "l1 \<in> d" "(j1,k1) \<in> p" "l2 \<in> d" "(j2,k2) \<in> p"
+              for l1 l2 k1 k2 j1 j2
+            proof -
+              obtain u1 v1 u2 v2 where uv: "l1 = cbox u1 u2" "k1 = cbox v1 v2"
+                using \<open>(j1, k1) \<in> p\<close> \<open>l1 \<in> d\<close> d'(4) p'(4) by blast
+              have "l1 \<noteq> l2 \<or> k1 \<noteq> k2"
+                using that by auto
+              then have "interior k1 \<inter> interior k2 = {} \<or> interior l1 \<inter> interior l2 = {}"
+                by (meson d'(5) old.prod.inject p'(5) that(3) that(4) that(5) that(6))
+              moreover have "interior (l1 \<inter> k1) = interior (l2 \<inter> k2)"
+                by (simp add: that(1))
+              ultimately have "interior(l1 \<inter> k1) = {}"
+                by auto
+              then show ?thesis
+                unfolding uv Int_interval content_eq_0_interior[symmetric] by auto
+            qed
+            show ?thesis
+              unfolding *
+              apply (rule sum.reindex_nontrivial [OF fin_d_sndp, symmetric, unfolded o_def])
+              apply clarsimp
+              by (metis eq0 fst_conv snd_conv)
           qed
-          finally show "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar> * norm (f x)) = content l *\<^sub>R norm (f x)"
-            unfolding sum_distrib_right[symmetric] real_scaleR_def
-            apply (subst(asm) additive_content_division[OF division_inter_1[OF d(1)]])
-            using xl(2)[unfolded uv]
-            unfolding uv
-            apply auto
-            done
+          also have "\<dots> = (\<Sum>(x,k) \<in> p'. norm (integral k f))"
+          proof -
+            have 0: "integral (ia \<inter> snd (a, b)) f = 0"
+              if "ia \<inter> snd (a, b) \<notin> snd ` p'" "ia \<in> d" "(a, b) \<in> p" for ia a b
+            proof -
+              have "ia \<inter> b = {}"
+                using that unfolding p'alt image_iff Bex_def not_ex
+                apply (erule_tac x="(a, ia \<inter> b)" in allE)
+                apply auto
+                done
+              then show ?thesis by auto
+            qed
+            have 1: "\<exists>i l. snd (a, b) = i \<inter> l \<and> i \<in> d \<and> l \<in> snd ` p" if "(a, b) \<in> p'" for a b
+              using that 
+              apply (clarsimp simp: p'_def image_iff)
+              by (metis (no_types, hide_lams) snd_conv)
+            show ?thesis
+              unfolding sum_p'
+              apply (rule sum.mono_neutral_right)
+                apply (metis * finite_imageI[OF fin_d_sndp])
+              using 0 1 by auto
+          qed
+          finally show ?thesis .
         qed
-        finally show ?case .
-      qed
-    qed
+        show "(\<Sum>(x,k) \<in> p'. norm (content k *\<^sub>R f x)) = (\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x))"
+        proof -
+          let ?S = "{(x, i \<inter> l) |x i l. (x, l) \<in> p \<and> i \<in> d}"
+          have *: "?S = (\<lambda>(xl,i). (fst xl, snd xl \<inter> i)) ` (p \<times> d)"
+            by force
+          have fin_pd: "finite (p \<times> d)"
+            using finite_cartesian_product[OF p'(1) d'(1)] by metis
+          have "(\<Sum>(x,k) \<in> p'. norm (content k *\<^sub>R f x)) = (\<Sum>(x,k) \<in> ?S. \<bar>content k\<bar> * norm (f x))"
+            unfolding norm_scaleR
+            apply (rule sum.mono_neutral_left)
+              apply (subst *)
+              apply (rule finite_imageI [OF fin_pd])
+            unfolding p'alt apply auto
+            by fastforce
+          also have "\<dots> = (\<Sum>((x,l),i)\<in>p \<times> d. \<bar>content (l \<inter> i)\<bar> * norm (f x))"
+          proof -
+            have "\<bar>content (l1 \<inter> k1)\<bar> * norm (f x1) = 0"
+              if "(x1, l1) \<in> p" "(x2, l2) \<in> p" "k1 \<in> d" "k2 \<in> d"
+                "x1 = x2" "l1 \<inter> k1 = l2 \<inter> k2" "x1 \<noteq> x2 \<or> l1 \<noteq> l2 \<or> k1 \<noteq> k2"
+              for x1 l1 k1 x2 l2 k2
+            proof -
+              obtain u1 v1 u2 v2 where uv: "k1 = cbox u1 u2" "l1 = cbox v1 v2"
+                by (meson \<open>(x1, l1) \<in> p\<close> \<open>k1 \<in> d\<close> d(1) division_ofD(4) p'(4))
+              have "l1 \<noteq> l2 \<or> k1 \<noteq> k2"
+                using that by auto
+              then have "interior k1 \<inter> interior k2 = {} \<or> interior l1 \<inter> interior l2 = {}"
+                apply (rule disjE)
+                using that p'(5) d'(5) by auto
+              moreover have "interior (l1 \<inter> k1) = interior (l2 \<inter> k2)"
+                unfolding that ..
+              ultimately have "interior (l1 \<inter> k1) = {}"
+                by auto
+              then show "\<bar>content (l1 \<inter> k1)\<bar> * norm (f x1) = 0"
+                unfolding uv Int_interval content_eq_0_interior[symmetric] by auto
+            qed 
+            then show ?thesis
+              unfolding *
+              apply (subst sum.reindex_nontrivial [OF fin_pd])
+              unfolding split_paired_all o_def split_def prod.inject
+               apply force+
+              done
+          qed
+          also have "\<dots> = (\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x))"
+          proof -
+            have sumeq: "(\<Sum>i\<in>d. content (l \<inter> i) * norm (f x)) = content l * norm (f x)"
+              if "(x, l) \<in> p" for x l
+            proof -
+              note xl = p'(2-4)[OF that]
+              then obtain u v where uv: "l = cbox u v" by blast
+              have "(\<Sum>i\<in>d. \<bar>content (l \<inter> i)\<bar>) = (\<Sum>k\<in>d. content (k \<inter> cbox u v))"
+                by (simp add: Int_commute uv)
+              also have "\<dots> = sum content {k \<inter> cbox u v| k. k \<in> d}"
+              proof -
+                have eq0: "content (k \<inter> cbox u v) = 0"
+                  if "k \<in> d" "y \<in> d" "k \<noteq> y" and eq: "k \<inter> cbox u v = y \<inter> cbox u v" for k y
+                proof -
+                  from d'(4)[OF that(1)] d'(4)[OF that(2)]
+                  obtain \<alpha> \<beta> where \<alpha>: "k \<inter> cbox u v = cbox \<alpha> \<beta>"
+                    by (meson Int_interval)
+                  have "{} = interior ((k \<inter> y) \<inter> cbox u v)"
+                    by (simp add: d'(5) that)
+                  also have "\<dots> = interior (y \<inter> (k \<inter> cbox u v))"
+                    by auto
+                  also have "\<dots> = interior (k \<inter> cbox u v)"
+                    unfolding eq by auto
+                  finally show ?thesis
+                    unfolding \<alpha> content_eq_0_interior ..
+                qed
+                then show ?thesis
+                  unfolding Setcompr_eq_image
+                  apply (rule sum.reindex_nontrivial [OF \<open>finite d\<close>, unfolded o_def, symmetric])
+                  by auto
+              qed
+              also have "\<dots> = sum content {cbox u v \<inter> k |k. k \<in> d \<and> cbox u v \<inter> k \<noteq> {}}"
+                apply (rule sum.mono_neutral_right)
+                unfolding Setcompr_eq_image
+                  apply (rule finite_imageI [OF \<open>finite d\<close>])
+                 apply (fastforce simp: inf.commute)+
+                done
+              finally show "(\<Sum>i\<in>d. content (l \<inter> i) * norm (f x)) = content l * norm (f x)"
+                unfolding sum_distrib_right[symmetric] real_scaleR_def
+                apply (subst(asm) additive_content_division[OF division_inter_1[OF d(1)]])
+                using xl(2)[unfolded uv] unfolding uv apply auto
+                done
+            qed
+            show ?thesis
+              by (subst sum_Sigma_product[symmetric]) (auto intro!: sumeq sum.cong p' d')
+          qed
+          finally show ?thesis .
+        qed
+      qed (rule d)
+    qed 
   qed
+  then show ?thesis
+    using absolutely_integrable_onI [OF f has_integral_integrable] has_integral[of _ ?S]
+    by blast
 qed
+
 
 lemma bounded_variation_absolutely_integrable:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
@@ -2169,43 +2096,40 @@ proof (rule absolutely_integrable_onI, fact)
           using \<open>e > 0\<close> by auto
         from * [OF this] obtain d1 where
           d1: "gauge d1" "\<forall>p. p tagged_division_of (cbox a b) \<and> d1 fine p \<longrightarrow>
-            norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e / 2"
+            norm ((\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e/2"
           by auto
         from henstock_lemma [OF f(1) \<open>e/2>0\<close>] obtain d2 where
           d2: "gauge d2" "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d2 fine p \<longrightarrow>
-            (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2" .
+            (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2" .
          obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
           by (rule fine_division_exists [OF gauge_Int [OF d1(1) d2(1)], of a b])
             (auto simp add: fine_Int)
-        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e / 2 \<longrightarrow>
-          \<bar>sf' - di\<bar> < e / 2 \<longrightarrow> di < ?S + e"
+        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e/2 \<longrightarrow>
+          \<bar>sf' - di\<bar> < e/2 \<longrightarrow> di < ?S + e"
           by arith
         show "integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
           apply (subst if_P)
           apply rule
         proof (rule *[rule_format])
-          show "\<bar>(\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p. norm (integral k f))\<bar> < e / 2"
+          show "\<bar>(\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p. norm (integral k f))\<bar> < e/2"
             unfolding split_def
-            apply (rule helplemma)
+            apply (rule absdiff_norm_less)
             using d2(2)[rule_format,of p]
             using p(1,3)
             unfolding tagged_division_of_def split_def
             apply auto
             done
-          show "\<bar>(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e / 2"
+          show "\<bar>(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e/2"
             using d1(2)[rule_format,OF conjI[OF p(1,2)]]
             by (simp only: real_norm_def)
-          show "(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) = (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x))"
+          show "(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) = (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x))"
             apply (rule sum.cong)
             apply (rule refl)
             unfolding split_paired_all split_conv
             apply (drule tagged_division_ofD(4)[OF p(1)])
-            unfolding norm_scaleR
-            apply (subst abs_of_nonneg)
-            apply auto
-            done
-          show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> ?S"
+            by simp
+          show "(\<Sum>(x,k) \<in> p. norm (integral k f)) \<le> ?S"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
             apply (subst sum.over_tagged_division_lemma[OF p(1)])
             apply (simp add: content_eq_0_interior)
@@ -2678,11 +2602,12 @@ proof -
     using f nonneg by (intro DERIV_nonneg_imp_nondecreasing[of x y F]) (auto intro: order_trans)
   then have F_le_T: "a \<le> x \<Longrightarrow> F x \<le> T" for x
     by (intro tendsto_lowerbound[OF lim])
-       (auto simp: trivial_limit_at_top_linorder eventually_at_top_linorder)
+       (auto simp: eventually_at_top_linorder)
 
   have "(SUP i::nat. ?f i x) = ?fR x" for x
   proof (rule LIMSEQ_unique[OF LIMSEQ_SUP])
-    from reals_Archimedean2[of "x - a"] guess n ..
+    obtain n where "x - a < real n"
+      using reals_Archimedean2[of "x - a"] ..
     then have "eventually (\<lambda>n. ?f n x = ?fR x) sequentially"
       by (auto intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
     then show "(\<lambda>n. ?f n x) \<longlonglongrightarrow> ?fR x"

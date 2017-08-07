@@ -4796,7 +4796,7 @@ proof -
 qed
 
 lemma card_lists_distinct_length_eq:
-  assumes "k < card A"
+  assumes "finite A" "k \<le> card A"
   shows "card {xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A} = \<Prod>{card A - k + 1 .. card A}"
 using assms
 proof (induct k)
@@ -4808,23 +4808,30 @@ next
   let "?k_list" = "\<lambda>k xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A"
   have inj_Cons: "\<And>A. inj_on (\<lambda>(xs, n). n # xs) A"  by (rule inj_onI) auto
 
-  from Suc have "k < card A" by simp
-  moreover have "finite A" using assms by (simp add: card_ge_0_finite)
+  from Suc have "k \<le> card A" by simp
+  moreover note \<open>finite A\<close>
   moreover have "finite {xs. ?k_list k xs}"
     by (rule finite_subset) (use finite_lists_length_eq[OF \<open>finite A\<close>, of k] in auto)
   moreover have "\<And>i j. i \<noteq> j \<longrightarrow> {i} \<times> (A - set i) \<inter> {j} \<times> (A - set j) = {}"
     by auto
-  moreover have "\<And>i. i \<in>Collect (?k_list k) \<Longrightarrow> card (A - set i) = card A - k"
+  moreover have "\<And>i. i \<in> {xs. ?k_list k xs} \<Longrightarrow> card (A - set i) = card A - k"
     by (simp add: card_Diff_subset distinct_card)
   moreover have "{xs. ?k_list (Suc k) xs} =
       (\<lambda>(xs, n). n#xs) ` \<Union>((\<lambda>xs. {xs} \<times> (A - set xs)) ` {xs. ?k_list k xs})"
     by (auto simp: length_Suc_conv)
-  moreover
-  have "Suc (card A - Suc k) = card A - k" using Suc.prems by simp
+  moreover have "Suc (card A - Suc k) = card A - k" using Suc.prems by simp
   then have "(card A - k) * \<Prod>{Suc (card A - k)..card A} = \<Prod>{Suc (card A - Suc k)..card A}"
     by (subst prod.insert[symmetric]) (simp add: atLeastAtMost_insertL)+
   ultimately show ?case
     by (simp add: card_image inj_Cons card_UN_disjoint Suc.hyps algebra_simps)
+qed
+
+lemma card_lists_distinct_length_eq':
+  assumes "k < card A"
+  shows "card {xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A} = \<Prod>{card A - k + 1 .. card A}"
+proof -
+  from \<open>k < card A\<close> have "finite A" and "k \<le> card A" using card_infinite by force+
+  from this show ?thesis by (rule card_lists_distinct_length_eq)
 qed
 
 lemma infinite_UNIV_listI: "~ finite(UNIV::'a list set)"
