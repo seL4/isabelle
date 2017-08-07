@@ -169,8 +169,6 @@ fun task_finished (Task _) = false
 
 fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) deps) parents;
 
-local
-
 val schedule_seq =
   String_Graph.schedule (fn deps => fn (_, task) =>
     (case task of
@@ -221,13 +219,6 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
     val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
   in () end);
-
-in
-
-fun schedule_tasks tasks =
-  if Multithreading.enabled () then schedule_futures tasks else schedule_seq tasks;
-
-end;
 
 
 (* eval theory *)
@@ -403,7 +394,7 @@ fun use_theories {document, symbols, last_timing, qualifier, master_dir} imports
   let
     val (_, tasks) =
       require_thys document symbols last_timing [] qualifier master_dir imports String_Graph.empty;
-  in schedule_tasks tasks end;
+  in if Multithreading.enabled () then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
   use_theories
