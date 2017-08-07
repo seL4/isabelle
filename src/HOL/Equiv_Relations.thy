@@ -5,7 +5,7 @@
 section \<open>Equivalence Relations in Higher-Order Set Theory\<close>
 
 theory Equiv_Relations
-  imports Groups_Big Relation
+  imports Groups_Big
 begin
 
 subsection \<open>Equivalence relations -- set version\<close>

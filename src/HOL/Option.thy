@@ -5,7 +5,7 @@
 section \<open>Datatype option\<close>
 
 theory Option
-imports Lifting Finite_Set
+  imports Lifting
 begin
 
 datatype 'a option =
