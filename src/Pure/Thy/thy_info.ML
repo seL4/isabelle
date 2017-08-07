@@ -155,7 +155,7 @@ fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j
 fun join_theory (Result {theory, exec_id, ...}) =
   let
     (*toplevel proofs and diags*)
-    val _ = Future.join_tasks (maps Future.group_snapshot (Execution.peek exec_id));
+    val _ = Future.join_tasks (Execution.snapshot [exec_id]);
     (*fully nested proofs*)
     val res = Exn.capture Thm.consolidate_theory theory;
   in res :: map Exn.Exn (maps Task_Queue.group_status (Execution.peek exec_id)) end;

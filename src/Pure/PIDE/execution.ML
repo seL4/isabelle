@@ -12,6 +12,7 @@ sig
   val is_running: Document_ID.execution -> bool
   val is_running_exec: Document_ID.exec -> bool
   val running: Document_ID.execution -> Document_ID.exec -> Future.group list -> bool
+  val snapshot: Document_ID.exec list -> Future.task list
   val peek: Document_ID.exec -> Future.group list
   val cancel: Document_ID.exec -> unit
   type params = {name: string, pos: Position.T, pri: int}
@@ -69,10 +70,16 @@ fun running execution_id exec_id groups =
       val execs' = execs |> ok ? Inttab.update (exec_id, (groups, []));
     in (ok, (execution_id', execs')) end);
 
-fun peek exec_id =
-  (case Inttab.lookup (#2 (get_state ())) exec_id of
+fun exec_groups ((_, execs): state) exec_id =
+  (case Inttab.lookup execs exec_id of
     SOME (groups, _) => groups
   | NONE => []);
+
+fun snapshot exec_ids =
+  change_state_result (fn state =>
+    (maps Future.group_snapshot (maps (exec_groups state) exec_ids), state));
+
+fun peek exec_id = exec_groups (get_state ()) exec_id;
 
 fun cancel exec_id = List.app Future.cancel_group (peek exec_id);
 
