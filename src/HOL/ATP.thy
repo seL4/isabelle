@@ -6,7 +6,7 @@
 section \<open>Automatic Theorem Provers (ATPs)\<close>
 
 theory ATP
-imports Meson
+  imports Meson
 begin
 
 subsection \<open>ATP problems and proofs\<close>

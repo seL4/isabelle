@@ -8,7 +8,7 @@
 section \<open>Big sum and product over finite (non-empty) sets\<close>
 
 theory Groups_Big
-  imports Finite_Set Power
+  imports Power
 begin
 
 subsection \<open>Generic monoid operation over a set\<close>

@@ -1836,15 +1836,6 @@ qed
 lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)"
   by (meson zero_less_one)
 
-lemma additive_tagged_division_1':
-  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
-  assumes "a \<le> b"
-    and "p tagged_division_of {a..b}"
-  shows "sum (\<lambda>(x,k). f (Sup k) - f(Inf k)) p = f b - f a"
-  using additive_tagged_division_1[OF _ assms(2), of f]
-  using assms(1)
-  by auto
-
 subsection \<open>Fine-ness of a partition w.r.t. a gauge.\<close>
 
 definition fine  (infixr "fine" 46)

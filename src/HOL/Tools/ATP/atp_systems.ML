@@ -207,8 +207,6 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-fun is_e_at_least_1_8 () = string_ord (getenv "E_VERSION", "1.8") <> LESS
-
 val e_smartN = "smart"
 val e_autoN = "auto"
 val e_fun_weightN = "fun_weight"
@@ -277,23 +275,19 @@ fun e_term_order_info_arguments false false _ = ""
       (if gen_prec then "--precedence='" ^ e_ord_precedence ord_info ^ "' " else "")
     end
 
+val e_tff0 = TFF Monomorphic
+
 val e_config : atp_config =
-  {exec = fn full_proofs => (["E_HOME"],
-     if full_proofs orelse not (is_e_at_least_1_8 ()) then ["eproof_ram", "eproof"]
-     else ["eprover"]),
-   arguments = fn ctxt => fn full_proofs => fn heuristic => fn timeout => fn file_name =>
+  {exec = fn _ => (["E_HOME"], ["eprover"]),
+   arguments = fn ctxt => fn _ => fn heuristic => fn timeout => fn file_name =>
      fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
-       (if is_e_at_least_1_8 () then "--auto-schedule " else "") ^
-       "--tstp-in --tstp-out --silent " ^
+       "--auto-schedule --tstp-in --tstp-out --silent " ^
        e_selection_weight_arguments ctxt heuristic sel_weights ^
        e_term_order_info_arguments gen_weights gen_prec ord_info ^
        "--term-ordering=" ^ (if is_lpo then "LPO4" else "KBO6") ^ " " ^
        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-       (if full_proofs orelse not (is_e_at_least_1_8 ()) then
-          " --output-level=5 --pcl-shell-level=" ^ (if full_proofs then "0" else "2")
-        else
-          " --proof-object=1") ^
-       " " ^ file_name,
+       " --proof-object=1 " ^
+       file_name,
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
@@ -306,14 +300,14 @@ val e_config : atp_config =
      let val heuristic = Config.get ctxt e_selection_heuristic in
        (* FUDGE *)
        if heuristic = e_smartN then
-         [(0.15, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
-          (0.15, (((128, mashN), FOF, "mono_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.15, (((91, mepoN), FOF, "mono_tags??", combsN, false), e_autoN)),
-          (0.15, (((1000, meshN), FOF, "poly_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.15, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN)),
-          (0.25, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN))]
+         [(0.15, (((128, meshN), e_tff0, "mono_native", combsN, false), e_fun_weightN)),
+          (0.15, (((128, mashN), e_tff0, "mono_native", combsN, false), e_sym_offset_weightN)),
+          (0.15, (((91, mepoN), e_tff0, "mono_native", combsN, false), e_autoN)),
+          (0.15, (((1000, meshN), e_tff0, "poly_guards??", combsN, false), e_sym_offset_weightN)),
+          (0.15, (((256, mepoN), e_tff0, "mono_native", liftingN, false), e_fun_weightN)),
+          (0.25, (((64, mashN), e_tff0, "mono_native", combsN, false), e_fun_weightN))]
        else
-         [(1.0, (((500, ""), FOF, "mono_tags??", combsN, false), heuristic))]
+         [(1.0, (((500, ""), e_tff0, "mono_native", combsN, false), heuristic))]
      end,
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
@@ -456,9 +450,8 @@ val spass_H2SOS = "-Heuristic=2 -SOS"
 val spass_extra_options =
   Attrib.setup_config_string @{binding atp_spass_extra_options} (K "")
 
-(* FIXME: Make "SPASS_NEW_HOME" legacy. *)
 val spass_config : atp_config =
-  {exec = K (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
+  {exec = K (["SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout =>
        fn file_name => fn _ =>
        "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
@@ -710,7 +703,7 @@ val remote_agsyhol =
     (K (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_e =
   remotify_atp e "E" ["2.0", "1.9.1", "1.8"]
-    (K (((750, ""), FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
+    (K (((750, ""), e_tff0, "mono_native", combsN, false), "") (* FUDGE *))
 val remote_iprover =
   remotify_atp iprover "iProver" ["0.99"]
     (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
@@ -724,7 +717,7 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
     (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["4.0", "3.0", "2.6"]
+  remotify_atp vampire "Vampire" ["4.2", "4.0"]
     (K (((400, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
