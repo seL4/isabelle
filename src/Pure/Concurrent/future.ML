@@ -40,7 +40,7 @@ sig
   val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
-  val group_snapshot: group -> task list
+  val snapshot: group list -> task list
   val shutdown: unit -> unit
 end;
 
@@ -638,11 +638,11 @@ fun fulfill_result (Future {promised, task, result}) res =
 fun fulfill x res = fulfill_result x (Exn.Res res);
 
 
-(* group snapshot *)
+(* snapshot: current tasks of groups *)
 
-fun group_snapshot group =
-  SYNCHRONIZED "group_snapshot" (fn () =>
-    Task_Queue.group_tasks (! queue) group);
+fun snapshot groups =
+  SYNCHRONIZED "snapshot" (fn () =>
+    Task_Queue.group_tasks (! queue) groups);
 
 
 (* shutdown *)
