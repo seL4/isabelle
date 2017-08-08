@@ -156,8 +156,8 @@ fun join_theory (Result {theory, exec_id, ...}) =
   let
     val _ = Execution.join [exec_id];
     val res = Exn.capture Thm.consolidate_theory theory;
-    val errs = maps Task_Queue.group_status (Execution.peek exec_id);
-  in res :: map Exn.Exn errs end;
+    val exns = maps Task_Queue.group_status (Execution.peek exec_id);
+  in res :: map Exn.Exn exns end;
 
 datatype task =
   Task of Path.T * string list * (theory list -> result) |

@@ -29,7 +29,7 @@ sig
   val waiting: task -> task list -> (unit -> 'a) -> 'a
   type queue
   val empty: queue
-  val group_tasks: queue -> group -> task list
+  val group_tasks: queue -> group list -> task list
   val known_task: queue -> task -> bool
   val all_passive: queue -> bool
   val status: queue -> {ready: int, pending: int, running: int, passive: int, urgent: int}
@@ -222,7 +222,11 @@ datatype queue = Queue of {groups: groups, jobs: jobs, urgent: int};
 fun make_queue groups jobs urgent = Queue {groups = groups, jobs = jobs, urgent = urgent};
 val empty = make_queue Inttab.empty Task_Graph.empty 0;
 
-fun group_tasks (Queue {groups, ...}) group = Tasks.keys (get_tasks groups (group_id group));
+fun group_tasks (Queue {groups, ...}) gs =
+  fold (fn g => fn tasks => Tasks.merge (op =) (tasks, get_tasks groups (group_id g)))
+    gs Tasks.empty
+  |> Tasks.keys;
+
 fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
 
 
