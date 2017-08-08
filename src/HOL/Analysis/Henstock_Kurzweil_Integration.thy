@@ -3639,8 +3639,8 @@ next
     have "continuous (at a within {a..b}) f"
       using contf continuous_on_eq_continuous_within by force
     with eba8 obtain k where "0 < k"
-            and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm (x-a); norm (x-a) < k\<rbrakk>
-                      \<Longrightarrow> norm (f x - f a) < e * (b - a) / 8"
+              and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm (x-a); norm (x-a) < k\<rbrakk>
+                          \<Longrightarrow> norm (f x - f a) < e * (b - a) / 8"
       unfolding continuous_within Lim_within dist_norm by metis
     obtain l where l: "0 < l" "norm (l *\<^sub>R f' a) \<le> e * (b - a) / 8" 
     proof (cases "f' a = 0")
@@ -3757,15 +3757,9 @@ next
     note * = additive_tagged_division_1[OF assms(1) as(1), symmetric]
     have **: "\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2"
       by arith
-    show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
-      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus
-      unfolding sum_distrib_left
-      apply (subst(2) pA)
-      apply (subst pA)
-      unfolding sum.union_disjoint[OF pA(2-)]
-    proof (rule norm_triangle_le, rule **, goal_cases)
-      case 1
-      show ?case
+    have 1: "norm (\<Sum>(x, k)\<in>p - ?A.
+                  content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
+             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
         apply (rule order_trans)
         apply (rule sum_norm_le)
         defer
@@ -3818,11 +3812,11 @@ next
           done
         then show False by auto
       qed
-    next
-      have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
-        by auto
-      case 2
-      have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}}" for x k
+    have 2: "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) -
+             (\<Sum>n\<in>p \<inter> ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k))
+             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
+    proof -
+      have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> ?A" for x k
       proof -
         obtain u v where uv: "k = cbox u v"
           by (meson Int_iff xkp p(4))
@@ -4062,7 +4056,9 @@ next
           qed (insert p(1) ab e, auto simp add: field_simps)
         qed auto
       qed
-      show ?case
+      have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
+        by auto
+      show ?thesis
         apply (rule * [OF sum_nonneg])
         using ge0 apply force
         unfolding sum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
@@ -4072,6 +4068,14 @@ next
         apply (rule **)
         done
     qed
+    show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
+      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus
+      unfolding sum_distrib_left
+      apply (subst(2) pA)
+      apply (subst pA)
+      unfolding sum.union_disjoint[OF pA(2-)]
+      using ** norm_triangle_le 1 2
+      by blast
   qed
 qed
 
