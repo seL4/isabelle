@@ -423,6 +423,7 @@ object Markup
   val RUNNING = "running"
   val FINISHED = "finished"
   val FAILED = "failed"
+  val CONSOLIDATED = "consolidated"
 
 
   /* interactive documents */

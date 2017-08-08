@@ -159,6 +159,7 @@ sig
   val runningN: string val running: T
   val finishedN: string val finished: T
   val failedN: string val failed: T
+  val consolidatedN: string val consolidated: T
   val exec_idN: string
   val initN: string
   val statusN: string val status: T
@@ -555,6 +556,7 @@ val (joinedN, joined) = markup_elem "joined";
 val (runningN, running) = markup_elem "running";
 val (finishedN, finished) = markup_elem "finished";
 val (failedN, failed) = markup_elem "failed";
+val (consolidatedN, consolidated) = markup_elem "consolidated";
 
 
 (* messages *)

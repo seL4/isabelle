@@ -453,6 +453,7 @@ object Document
 
     def node_name: Node.Name
     def node: Node
+    def node_consolidated: Boolean
 
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
@@ -791,6 +792,11 @@ object Document
       } yield tree).toList
     }
 
+    def node_consolidated(version: Version, name: Node.Name): Boolean =
+      !name.is_theory ||
+        version.nodes(name).commands.reverse.iterator.
+          flatMap(command_states(version, _)).exists(_.consolidated)
+
     // persistent user-view
     def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)
       : Snapshot =
@@ -834,6 +840,8 @@ object Document
 
         val node_name: Node.Name = name
         val node: Node = version.nodes(name)
+
+        def node_consolidated: Boolean = state.node_consolidated(version, node_name)
 
         val commands_loading: List[Command] =
           if (node_name.is_theory) Nil

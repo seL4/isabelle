@@ -130,6 +130,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   /* dynamic session options */
 
   def output_delay: Time = session_options.seconds("editor_output_delay")
+  def consolidate_delay: Time = session_options.seconds("editor_consolidate_delay")
   def prune_delay: Time = session_options.seconds("editor_prune_delay")
   def prune_size: Int = session_options.int("editor_prune_size")
   def syslog_limit: Int = session_options.int("editor_syslog_limit")
@@ -191,6 +192,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Update_Options(options: Options)
+  private case object Consolidate_Execution
   private case object Prune_History
 
 
@@ -519,6 +521,9 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               prover.get.terminate
             }
 
+          case Consolidate_Execution =>
+            if (prover.defined) prover.get.consolidate_execution()
+
           case Prune_History =>
             if (prover.defined) {
               val old_versions = global_state.change_result(_.remove_versions(prune_size))
@@ -564,6 +569,28 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     }
   }
 
+  private val consolidator: Thread =
+    Standard_Thread.fork("Session.consolidator", daemon = true) {
+      try {
+        while (true) {
+          Thread.sleep(consolidate_delay.ms)
+
+          val state = global_state.value
+          state.stable_tip_version match {
+            case None =>
+            case Some(version) =>
+              val consolidated =
+                version.nodes.iterator.forall(
+                  { case (name, _) =>
+                      resources.session_base.loaded_theory(name) ||
+                      state.node_consolidated(version, name) })
+              if (!consolidated) manager.send(Consolidate_Execution)
+          }
+        }
+      }
+      catch { case Exn.Interrupt() => }
+    }
+
 
   /* main operations */
 
@@ -602,6 +629,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
     change_parser.shutdown()
     change_buffer.shutdown()
+    consolidator.interrupt
+    consolidator.join
     manager.shutdown()
     dispatcher.shutdown()
 

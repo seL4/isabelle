@@ -58,6 +58,10 @@ val _ =
       end);
 
 val _ =
+  Isabelle_Process.protocol_command "Document.consolidate_execution"
+    (fn [] => Document.consolidate_execution (Document.state ()));
+
+val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
     (fn [] => Execution.discontinue ());
 

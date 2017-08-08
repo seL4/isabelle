@@ -213,6 +213,9 @@ object Command
     results: Results = Results.empty,
     markups: Markups = Markups.empty)
   {
+    lazy val consolidated: Boolean =
+      status.exists(markup => markup.name == Markup.CONSOLIDATED)
+
     lazy val protocol_status: Protocol.Status =
     {
       val warnings =

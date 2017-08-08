@@ -12,6 +12,7 @@ sig
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
     blob list * int -> Token.T list -> Toplevel.transition
   type eval
+  val eval_exec_id: eval -> Document_ID.exec
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool

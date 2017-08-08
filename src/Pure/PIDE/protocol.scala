@@ -352,6 +352,9 @@ trait Protocol
 
   /* execution */
 
+  def consolidate_execution(): Unit =
+    protocol_command("Document.consolidate_execution")
+
   def discontinue_execution(): Unit =
     protocol_command("Document.discontinue_execution")
 
