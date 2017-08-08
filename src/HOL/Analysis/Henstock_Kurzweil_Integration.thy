@@ -9,6 +9,12 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
+lemma norm_triangle_le_sub: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
+  apply (subst(asm)(2) norm_minus_cancel[symmetric])
+  apply (drule norm_triangle_le)
+  apply (auto simp add: algebra_simps)
+  done
+
 lemma eps_leI: 
   assumes "(\<And>e::'a::linordered_idom. 0 < e \<Longrightarrow> x < y + e)" shows "x \<le> y"
   by (metis add_diff_eq assms diff_diff_add diff_gt_0_iff_gt linorder_not_less order_less_irrefl)
@@ -18,7 +24,7 @@ lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 
 (* try instead structured proofs below *)
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
-  \<Longrightarrow> norm(y - x) \<le> e"
+  \<Longrightarrow> norm(y-x) \<le> e"
   using norm_triangle_mono [of "y1 - x1" "e1" "y2 - x2" "e2"]
   by (simp add: add_diff_add)
 
@@ -2669,11 +2675,11 @@ proof safe
   then have "\<forall>x. \<exists>d>0.
          x \<in> {a..b} \<longrightarrow>
          (\<forall>y\<in>{a..b}.
-             norm (y - x) < d \<longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e * norm (y - x))"
+             norm (y-x) < d \<longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e * norm (y-x))"
     using vecd[unfolded has_vector_derivative_def has_derivative_within_alt] by blast
   then obtain d where d: "\<And>x. 0 < d x"
-                 "\<And>x y. \<lbrakk>x \<in> {a..b}; y \<in> {a..b}; norm (y - x) < d x\<rbrakk>
-                        \<Longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e * norm (y - x)"
+                 "\<And>x y. \<lbrakk>x \<in> {a..b}; y \<in> {a..b}; norm (y-x) < d x\<rbrakk>
+                        \<Longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e * norm (y-x)"
     by metis
   
   show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
@@ -2954,16 +2960,16 @@ proof (induct "card s" arbitrary: s rule: nat_less_induct)
         unfolding euclidean_eq_iff[where 'a='a] using i by auto
       have *: "Basis = insert i (Basis - {i})"
         using i by auto
-      have "norm (y - x) < e + sum (\<lambda>i. 0) Basis"
+      have "norm (y-x) < e + sum (\<lambda>i. 0) Basis"
         apply (rule le_less_trans[OF norm_le_l1])
         apply (subst *)
         apply (subst sum.insert)
         prefer 3
         apply (rule add_less_le_mono)
       proof -
-        show "\<bar>(y - x) \<bullet> i\<bar> < e"
+        show "\<bar>(y-x) \<bullet> i\<bar> < e"
           using di as(2) y_def i xi by (auto simp: inner_simps)
-        show "(\<Sum>i\<in>Basis - {i}. \<bar>(y - x) \<bullet> i\<bar>) \<le> (\<Sum>i\<in>Basis. 0)"
+        show "(\<Sum>i\<in>Basis - {i}. \<bar>(y-x) \<bullet> i\<bar>) \<le> (\<Sum>i\<in>Basis. 0)"
           unfolding y_def by (auto simp: inner_simps)
       qed auto
       then show "dist y x < e"
@@ -3145,7 +3151,7 @@ proof -
     assume "e > 0"
     obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {a..b}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> norm(f x' - f x) \<le> e"
       using \<open>e>0\<close> fx by (auto simp: continuous_within_eps_delta dist_norm less_imp_le)
-    have "norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
+    have "norm (integral {a..y} f - integral {a..x} f - (y-x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
            if y: "y \<in> {a..b}" and yx: "\<bar>y - x\<bar> < d" for y
     proof (cases "y < x")
       case False
@@ -3153,7 +3159,7 @@ proof -
         using f y by (simp add: integrable_subinterval_real)
       then have Idiff: "?I a y - ?I a x = ?I x y"
         using False x by (simp add: algebra_simps integral_combine)
-      have fux_int: "((\<lambda>u. f u - f x) has_integral integral {x..y} f - (y - x) *\<^sub>R f x) {x..y}"
+      have fux_int: "((\<lambda>u. f u - f x) has_integral integral {x..y} f - (y-x) *\<^sub>R f x) {x..y}"
         apply (rule has_integral_diff)
         using x y apply (auto intro: integrable_integral [OF integrable_subinterval_real [OF f]])
         using has_integral_const_real [of "f x" x y] False
@@ -3186,7 +3192,7 @@ proof -
       then show ?thesis
         by (simp add: algebra_simps norm_minus_commute)
     qed
-    then have "\<exists>d>0. \<forall>y\<in>{a..b}. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
+    then have "\<exists>d>0. \<forall>y\<in>{a..b}. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y-x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
       using \<open>d>0\<close> by blast
   }
   then show ?thesis
@@ -3583,48 +3589,31 @@ subsection \<open>Stronger form of FCT; quite a tedious proof.\<close>
 lemma split_minus[simp]: "(\<lambda>(x, k). f x k) x - (\<lambda>(x, k). g x k) x = (\<lambda>(x, k). f x k - g x k) x"
   by (simp add: split_def)
 
-lemma norm_triangle_le_sub: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
-  apply (subst(asm)(2) norm_minus_cancel[symmetric])
-  apply (drule norm_triangle_le)
-  apply (auto simp add: algebra_simps)
-  done
-
-lemma fundamental_theorem_of_calculus_interior:
+theorem fundamental_theorem_of_calculus_interior:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and contf: "continuous_on {a .. b} f"
     and derf: "\<And>x. x \<in> {a <..< b} \<Longrightarrow> (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f b - f a)) {a .. b}"
-proof -
-  {
-    presume *: "a < b \<Longrightarrow> ?thesis"
-    show ?thesis
-    proof (cases "a < b")
-      case True
-      then show ?thesis by (rule *)
-    next
-      case False
-      then have "a = b"
-        using assms(1) by auto
-      then have *: "cbox a b = {b}" "f b - f a = 0"
-        by (auto simp add:  order_antisym)
-      show ?thesis
-        unfolding *(2)
-        unfolding content_eq_0
-        using * \<open>a = b\<close>
-        by (auto simp: ex_in_conv)
-    qed
-  }
-  assume ab: "a < b"
-  let ?P = "\<lambda>e. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a .. b} \<and> d fine p \<longrightarrow>
+proof (cases "a = b")
+  case True
+  then have *: "cbox a b = {b}" "f b - f a = 0"
+    by (auto simp add:  order_antisym)
+  with True show ?thesis by auto
+next
+  case False
+  with \<open>a \<le> b\<close> have ab: "a < b" by arith
+  let ?P = "\<lambda>e. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a .. b} \<longrightarrow> d fine p \<longrightarrow>
     norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a .. b})"
-  { presume "\<And>e. e > 0 \<Longrightarrow> ?P e" then show ?thesis unfolding has_integral_factor_content_real by auto }
+  { presume "\<And>e. e > 0 \<Longrightarrow> ?P e" then show ?thesis unfolding has_integral_factor_content_real by force }
   fix e :: real
   assume e: "e > 0"
+  then have eba8: "(e * (b - a)) / 8 > 0"
+      using ab by (auto simp add: field_simps)
   note derf_exp = derf[unfolded has_vector_derivative_def has_derivative_at_alt]
   have bounded: "\<And>x. x \<in> {a<..<b} \<Longrightarrow> bounded_linear (\<lambda>u. u *\<^sub>R f' x)"
     using derf_exp by simp
-  have "\<forall>x \<in> box a b. \<exists>d>0. \<forall>y. norm (y - x) < d \<longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e/2 * norm (y - x)"
+  have "\<forall>x \<in> box a b. \<exists>d>0. \<forall>y. norm (y-x) < d \<longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e/2 * norm (y-x)"
        (is "\<forall>x \<in> box a b. ?Q x")
   proof
     fix x assume x: "x \<in> box a b"
@@ -3634,160 +3623,133 @@ proof -
   qed
   from this [unfolded bgauge_existence_lemma]
   obtain d where d: "\<And>x. 0 < d x"
-     "\<And>x y. \<lbrakk>x \<in> box a b; norm (y - x) < d x\<rbrakk>
-               \<Longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e / 2 * norm (y - x)"
+     "\<And>x y. \<lbrakk>x \<in> box a b; norm (y-x) < d x\<rbrakk>
+               \<Longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e / 2 * norm (y-x)"
     by metis
   have "bounded (f ` cbox a b)"
     apply (rule compact_imp_bounded compact_continuous_image)+
-    using compact_cbox assms
-    apply auto
-    done
-  from this[unfolded bounded_pos] obtain B 
+    using compact_cbox assms by auto
+  then obtain B 
     where "0 < B" and B: "\<And>x. x \<in> f ` cbox a b \<Longrightarrow> norm x \<le> B"
-    by metis
-  have "\<exists>da. 0 < da \<and> (\<forall>c. a \<le> c \<and> {a .. c} \<subseteq> {a .. b} \<and> {a .. c} \<subseteq> ball a da \<longrightarrow>
-    norm (content {a .. c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b - a)) / 4)"
+    unfolding bounded_pos by metis
+  obtain da where "0 < da"
+            and da: "\<And>c. \<lbrakk>a \<le> c; {a .. c} \<subseteq> {a .. b}; {a .. c} \<subseteq> ball a da\<rbrakk>
+                          \<Longrightarrow> norm (content {a .. c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b - a)) / 4"
   proof -
-    have "a \<in> {a .. b}"
-      using ab by auto
-    note assms(2)[unfolded continuous_on_eq_continuous_within,rule_format,OF this]
-    note * = this[unfolded continuous_within Lim_within,rule_format]
-    have "(e * (b - a)) / 8 > 0"
-      using e ab by (auto simp add: field_simps)
-    from *[OF this] guess k .. note k = conjunctD2[OF this,rule_format]
-    have "\<exists>l. 0 < l \<and> norm(l *\<^sub>R f' a) \<le> (e * (b - a)) / 8"
+    have "continuous (at a within {a..b}) f"
+      using contf continuous_on_eq_continuous_within by force
+    with eba8 obtain k where "0 < k"
+              and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm (x-a); norm (x-a) < k\<rbrakk>
+                          \<Longrightarrow> norm (f x - f a) < e * (b - a) / 8"
+      unfolding continuous_within Lim_within dist_norm by metis
+    obtain l where l: "0 < l" "norm (l *\<^sub>R f' a) \<le> e * (b - a) / 8" 
     proof (cases "f' a = 0")
       case True
-      thus ?thesis using ab e by auto
+      thus ?thesis using ab e that by auto
     next
       case False
       then show ?thesis
-        apply (rule_tac x="(e * (b - a)) / 8 / norm (f' a)" in exI)
-        using ab e
-        apply (auto simp add: field_simps)
+        apply (rule_tac l="(e * (b - a)) / 8 / norm (f' a)" in that)
+        using ab e apply (auto simp add: field_simps)
         done
     qed
-    then obtain l where l: "0 < l" "norm (l *\<^sub>R f' a) \<le> e * (b - a) / 8" by metis
-    show ?thesis
-      apply (rule_tac x="min k l" in exI)
-      apply safe
-      unfolding min_less_iff_conj
-      apply rule
-      apply (rule l k)+
+    have "norm (content {a .. c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4"
+      if "a \<le> c" "{a .. c} \<subseteq> {a .. b}" and bmin: "{a .. c} \<subseteq> ball a (min k l)" for c
     proof -
-      fix c
-      assume as: "a \<le> c" "{a .. c} \<subseteq> {a .. b}" "{a .. c} \<subseteq> ball a (min k l)"
-      note as' = this[unfolded subset_eq Ball_def mem_ball dist_real_def mem_box]
+      have minkl: "\<bar>a - x\<bar> < min k l" if "x \<in> {a..c}" for x
+        using bmin dist_real_def that by auto
+      then have lel: "\<bar>c - a\<bar> \<le> \<bar>l\<bar>"
+        using that by force
       have "norm ((c - a) *\<^sub>R f' a - (f c - f a)) \<le> norm ((c - a) *\<^sub>R f' a) + norm (f c - f a)"
         by (rule norm_triangle_ineq4)
       also have "\<dots> \<le> e * (b - a) / 8 + e * (b - a) / 8"
       proof (rule add_mono)
         have "norm ((c - a) *\<^sub>R f' a) \<le> norm (l *\<^sub>R f' a)"
-          unfolding norm_scaleR
-          apply (rule mult_right_mono)
-          using as' by auto
+          by (auto intro: mult_right_mono [OF lel])
         also have "... \<le> e * (b - a) / 8"
           by (rule l)
         finally show "norm ((c - a) *\<^sub>R f' a) \<le> e * (b - a) / 8" .
       next
         have "norm (f c - f a) < e * (b - a) / 8"
         proof (cases "a = c")
-          case True
-          then show ?thesis
-            using \<open>0 < e * (b - a) / 8\<close> by auto
+          case True then show ?thesis
+            using eba8 by auto
         next
-          case False
-          show ?thesis
-            apply (rule k(2)[unfolded dist_norm])
-            using as' False
-             apply (auto simp add: field_simps)
-            done
+          case False show ?thesis
+            by (rule k) (use minkl \<open>a \<le> c\<close> that False in auto)
         qed
         then show "norm (f c - f a) \<le> e * (b - a) / 8" by simp
       qed
       finally show "norm (content {a .. c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4"
-        unfolding content_real[OF as(1)] by auto
+        unfolding content_real[OF \<open>a \<le> c\<close>] by auto
     qed
+    then show ?thesis
+      by (rule_tac da="min k l" in that) (auto simp: l \<open>0 < k\<close>)
   qed
-  then guess da .. note da=conjunctD2[OF this,rule_format]
 
-  have "\<exists>db>0. \<forall>c\<le>b. {c .. b} \<subseteq> {a .. b} \<and> {c .. b} \<subseteq> ball b db \<longrightarrow>
-    norm (content {c .. b} *\<^sub>R f' b - (f b - f c)) \<le> (e * (b - a)) / 4"
+  obtain db where "0 < db"
+            and db: "\<And>c. \<lbrakk>c \<le> b; {c .. b} \<subseteq> {a .. b}; {c .. b} \<subseteq> ball b db\<rbrakk>
+                          \<Longrightarrow> norm (content {c .. b} *\<^sub>R f' b - (f b - f c)) \<le> (e * (b - a)) / 4"
   proof -
-    have "b \<in> {a .. b}"
-      using ab by auto
-    note assms(2)[unfolded continuous_on_eq_continuous_within,rule_format,OF this]
-    note * = this[unfolded continuous_within Lim_within,rule_format] have "(e * (b - a)) / 8 > 0"
-      using e ab by (auto simp add: field_simps)
-    from *[OF this] obtain k
-      where k: "0 < k"
-               "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < dist x b \<and> dist x b < k\<rbrakk>
-                    \<Longrightarrow> dist (f x) (f b) < e * (b - a) / 8"
-      by blast
+    have "continuous (at b within {a..b}) f"
+      using contf continuous_on_eq_continuous_within by force
+    with eba8 obtain k
+      where "0 < k"
+        and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm(x-b); norm(x-b) < k\<rbrakk>
+                     \<Longrightarrow> norm (f b - f x) < e * (b - a) / 8"
+      unfolding continuous_within Lim_within dist_norm norm_minus_commute by metis
     obtain l where l: "0 < l" "norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
     proof (cases "f' b = 0")
-      case True
-      thus ?thesis using ab e that by auto
+      case True thus ?thesis 
+        using ab e that by auto
     next
-      case False
-      then show ?thesis
+      case False then show ?thesis
         apply (rule_tac l="(e * (b - a)) / 8 / norm (f' b)" in that)
-        using ab e
-        apply (auto simp add: field_simps)
-        done
+        using ab e by (auto simp add: field_simps)
     qed
-    show ?thesis
-      apply (rule_tac x="min k l" in exI)
-      apply safe
-      unfolding min_less_iff_conj
-      apply rule
-      apply (rule l k)+
+    have "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4" 
+      if "c \<le> b" "{c..b} \<subseteq> {a..b}" and bmin: "{c..b} \<subseteq> ball b (min k l)" for c
     proof -
-      fix c
-      assume as: "c \<le> b" "{c..b} \<subseteq> {a..b}" "{c..b} \<subseteq> ball b (min k l)"
-      note as' = this[unfolded subset_eq Ball_def mem_ball dist_real_def mem_box]
+      have minkl: "\<bar>b - x\<bar> < min k l" if "x \<in> {c..b}" for x
+        using bmin dist_real_def that by auto
+      then have lel: "\<bar>b - c\<bar> \<le> \<bar>l\<bar>"
+        using that by force
       have "norm ((b - c) *\<^sub>R f' b - (f b - f c)) \<le> norm ((b - c) *\<^sub>R f' b) + norm (f b - f c)"
         by (rule norm_triangle_ineq4)
       also have "\<dots> \<le> e * (b - a) / 8 + e * (b - a) / 8"
       proof (rule add_mono)
-        have "\<bar>c - b\<bar> \<le> \<bar>l\<bar>"
-          using as' by auto
-        then show "norm ((b - c) *\<^sub>R f' b) \<le> e * (b - a) / 8"
-          apply -
-          apply (rule order_trans[OF _ l(2)])
-          unfolding norm_scaleR
-          apply (rule mult_right_mono)
-          apply auto
-          done
+        have "norm ((b - c) *\<^sub>R f' b) \<le> norm (l *\<^sub>R f' b)"
+          by (auto intro: mult_right_mono [OF lel])
+        also have "... \<le> e * (b - a) / 8"
+          by (rule l)
+        finally show "norm ((b - c) *\<^sub>R f' b) \<le> e * (b - a) / 8" .
       next
-        show "norm (f b - f c) \<le> e * (b - a) / 8"
-          apply (rule less_imp_le)
-          apply (cases "b = c")
-          defer
-          apply (subst norm_minus_commute)
-          apply (rule k(2)[unfolded dist_norm])
-          using as' e ab
-          apply (auto simp add: field_simps)
-          done
+        have "norm (f b - f c) < e * (b - a) / 8"
+        proof (cases "b = c")
+          case True
+          then show ?thesis
+            using eba8 by auto
+        next
+          case False show ?thesis
+            by (rule k) (use minkl \<open>c \<le> b\<close> that False in auto)
+        qed
+        then show "norm (f b - f c) \<le> e * (b - a) / 8" by simp
       qed
       finally show "norm (content {c .. b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4"
-        unfolding content_real[OF as(1)] by auto
+        unfolding content_real[OF \<open>c \<le> b\<close>] by auto
     qed
+    then show ?thesis
+      by (rule_tac db="min k l" in that) (auto simp: l \<open>0 < k\<close>)
   qed
-  then guess db .. note db=conjunctD2[OF this,rule_format]
 
   let ?d = "(\<lambda>x. ball x (if x=a then da else if x=b then db else d x))"
   show "?P e"
-    apply (rule_tac x="?d" in exI)
-  proof (safe, goal_cases)
-    case 1
-    show ?case
-      apply (rule gauge_ball_dependent)
-      using ab db(1) da(1) d(1)
-      apply auto
-      done
+  proof (intro exI conjI allI impI)
+    show "gauge ?d"
+      using ab \<open>db > 0\<close> \<open>da > 0\<close> d(1) by (auto intro: gauge_ball_dependent)
   next
-    case as: (2 p)
+    fix p
+    assume as: "p tagged_division_of {a..b}" "?d fine p"
     let ?A = "{t. fst t \<in> {a, b}}"
     note p = tagged_division_ofD[OF as(1)]
     have pA: "p = (p \<inter> ?A) \<union> (p - ?A)" "finite (p \<inter> ?A)" "finite (p - ?A)" "(p \<inter> ?A) \<inter> (p - ?A) = {}"
@@ -3795,72 +3757,52 @@ proof -
     note * = additive_tagged_division_1[OF assms(1) as(1), symmetric]
     have **: "\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2"
       by arith
-    show ?case
-      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus
-      unfolding sum_distrib_left
-      apply (subst(2) pA)
-      apply (subst pA)
-      unfolding sum.union_disjoint[OF pA(2-)]
-    proof (rule norm_triangle_le, rule **, goal_cases)
-      case 1
-      show ?case
-        apply (rule order_trans)
-        apply (rule sum_norm_le)
-        defer
-        apply (subst sum_divide_distrib)
-        apply (rule order_refl)
-        apply safe
-        apply (unfold not_le o_def split_conv fst_conv)
-      proof (rule ccontr)
-        fix x k
-        assume xk: "(x, k) \<in> p"
-          "e * (Sup k -  Inf k) / 2 <
-            norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))"
+    have XX: False if xk: "(x,k) \<in> p" 
+         and less: "e * (Sup k - Inf k) / 2 < norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))"
+         and "x \<noteq> a" "x \<noteq> b"
+         for x k
+      proof -
         obtain u v where k: "k = cbox u v"
-          using p(4) xk(1) by blast
+          using p(4) xk by blast
         then have "u \<le> v" and uv: "{u, v} \<subseteq> cbox u v"
-          using p(2)[OF xk(1)] by auto
+          using p(2)[OF xk] by auto
         then have result: "e * (v - u) / 2 < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
-          using xk(2)[unfolded k box_real interval_bounds_real content_real] by auto
-        assume as': "x \<noteq> a" "x \<noteq> b"
+          using less[unfolded k box_real interval_bounds_real content_real] by auto
         then have "x \<in> box a b"
-          using p(2-3)[OF xk(1)] by (auto simp: mem_box)
-        note  * = d(2)[OF this]
+          using p(2) p(3) \<open>x \<noteq> a\<close> \<open>x \<noteq> b\<close> xk by fastforce
+        with d have *: "\<And>y. norm (y-x) < d x 
+                \<Longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e / 2 * norm (y-x)"
+          by metis
+        have xd: "norm (u - x) < d x" "norm (v - x) < d x"
+          using fineD[OF as(2) xk] \<open>x \<noteq> a\<close> \<open>x \<noteq> b\<close> uv 
+          by (auto simp add: k subset_eq dist_commute dist_real_def)
         have "norm ((v - u) *\<^sub>R f' (x) - (f (v) - f (u))) =
-          norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
-          apply (rule arg_cong[of _ _ norm])
-          unfolding scaleR_left.diff
-          apply auto
-          done
+              norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
+          by (rule arg_cong[where f=norm]) (auto simp: scaleR_left.diff)
         also have "\<dots> \<le> e / 2 * norm (u - x) + e / 2 * norm (v - x)"
-          apply (rule norm_triangle_le_sub)
-          apply (rule add_mono)
-          apply (rule_tac[!] *)
-          using fineD[OF as(2) xk(1)] as'
-          unfolding k subset_eq
-          apply -
-          apply (erule_tac x=u in ballE)
-          apply (erule_tac[3] x=v in ballE)
-          using uv
-          apply (auto simp:dist_real_def)
-          done
+          by (metis norm_triangle_le_sub add_mono * xd)
         also have "\<dots> \<le> e / 2 * norm (v - u)"
-          using p(2)[OF xk(1)]
-          unfolding k
-          by (auto simp add: field_simps)
+          using p(2)[OF xk] by (auto simp add: field_simps k)
+        also have "\<dots> < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
+          using result by (simp add: \<open>u \<le> v\<close>)
         finally have "e * (v - u) / 2 < e * (v - u) / 2"
-          apply -
-          apply (rule less_le_trans[OF result])
-          using uv
-          apply auto
-          done
+          using uv by auto
         then show False by auto
       qed
-    next
-      have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
-        by auto
-      case 2
-      have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}}" for x k
+    have "norm (\<Sum>(x, k)\<in>p - ?A. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
+          \<le> (\<Sum>(x, k)\<in>p - ?A. norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))))"
+      by (auto intro: sum_norm_le)
+    also have "... \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k) / 2)"
+      using XX by (force intro: sum_mono)
+    finally have 1: "norm (\<Sum>(x, k)\<in>p - ?A.
+                  content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
+             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
+      by (simp add: sum_divide_distrib)
+    have 2: "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) -
+             (\<Sum>n\<in>p \<inter> ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k))
+             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
+    proof -
+      have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> ?A" for x k
       proof -
         obtain u v where uv: "k = cbox u v"
           by (meson Int_iff xkp p(4))
@@ -3883,16 +3825,14 @@ proof -
         proof goal_cases
           fix x k
           assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
-          then have xk: "(x, k) \<in> p" "content k = 0"
+          then have xk: "(x, k) \<in> p" and k0: "content k = 0"
             by auto
           then obtain u v where uv: "k = cbox u v"
             using p(4) by blast
           have "k \<noteq> {}"
-            using p(2)[OF xk(1)] by auto
+            using p(2)[OF xk] by auto
           then have *: "u = v"
-            using xk
-            unfolding uv content_eq_0 box_eq_empty
-            by auto
+            using xk k0 by (auto simp: uv content_eq_0 box_eq_empty)
           then show "content k *\<^sub>R (f' (x)) - (f ((Sup k)) - f ((Inf k))) = 0"
             using xk unfolding uv by auto
         next
@@ -4058,7 +3998,7 @@ proof -
               ultimately show ?case
                 unfolding v interval_bounds_real[OF v(2)] box_real
                 apply -
-                apply(rule da(2)[of "v"])
+                apply(rule da[of "v"])
                 using prems fineD[OF as(2) prems(1)]
                 unfolding v content_eq_0
                 apply auto
@@ -4091,7 +4031,7 @@ proof -
                 unfolding v
                 unfolding interval_bounds_real[OF v(2)] box_real
                 apply -
-                apply(rule db(2)[of "v"])
+                apply(rule db[of "v"])
                 using prems fineD[OF as(2) prems(1)]
                 unfolding v content_eq_0
                 apply auto
@@ -4100,9 +4040,11 @@ proof -
           qed (insert p(1) ab e, auto simp add: field_simps)
         qed auto
       qed
-      show ?case
+      have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
+        by auto
+      show ?thesis
         apply (rule * [OF sum_nonneg])
-        using ge0 apply (force simp add: )
+        using ge0 apply force
         unfolding sum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
         unfolding sum_distrib_left[symmetric]
         apply (subst additive_tagged_division_1[OF _ as(1)])
@@ -4110,6 +4052,14 @@ proof -
         apply (rule **)
         done
     qed
+    show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
+      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus
+      unfolding sum_distrib_left
+      apply (subst(2) pA)
+      apply (subst pA)
+      unfolding sum.union_disjoint[OF pA(2-)]
+      using ** norm_triangle_le 1 2
+      by blast
   qed
 qed
 
@@ -6714,10 +6664,10 @@ proof -
     unfolding sub
     apply -
     apply rule
-    defer
+     apply simp
     apply (subst(asm) integral_diff)
     using assms(1)
-    apply auto
+      apply auto
     apply (rule LIMSEQ_imp_Suc)
     apply assumption
     done
