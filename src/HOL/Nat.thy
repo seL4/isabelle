@@ -764,6 +764,16 @@ lemma less_Suc_eq_0_disj: "m < Suc n \<longleftrightarrow> m = 0 \<or> (\<exists
 lemma All_less_Suc: "(\<forall>i < Suc n. P i) = (P n \<and> (\<forall>i < n. P i))"
 by (auto simp: less_Suc_eq)
 
+lemma All_less_Suc2: "(\<forall>i < Suc n. P i) = (P 0 \<and> (\<forall>i < n. P(Suc i)))"
+by (auto simp: less_Suc_eq_0_disj)
+
+lemma Ex_less_Suc: "(\<exists>i < Suc n. P i) = (P n \<or> (\<exists>i < n. P i))"
+by (auto simp: less_Suc_eq)
+
+lemma Ex_less_Suc2: "(\<exists>i < Suc n. P i) = (P 0 \<or> (\<exists>i < n. P(Suc i)))"
+by (auto simp: less_Suc_eq_0_disj)
+
+
 subsubsection \<open>Monotonicity of Addition\<close>
 
 lemma Suc_pred [simp]: "n > 0 \<Longrightarrow> Suc (n - Suc 0) = n"
