@@ -3811,7 +3811,7 @@ next
         then show "0 \<le> e * ((Sup k) - (Inf k))"
           unfolding uv using e by (auto simp add: field_simps)
       qed
-      have **: "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b - a) / 2"
+      have norm_le: "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b-a) / 2"
       proof -
         have *: "\<And>s f t e. sum f s = sum f t \<Longrightarrow> norm (sum f t) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
           by auto
@@ -3831,16 +3831,11 @@ next
             by auto
           then obtain u v where uv: "k = cbox u v"
             using p(4) by blast
-          have "k \<noteq> {}"
-            using p(2)[OF xk] by auto
-          then have *: "u = v"
-            using xk k0 by (auto simp: uv content_eq_0 box_eq_empty)
+          then have "u = v"
+            using xk k0 p(2) by force
           then show "content k *\<^sub>R (f' (x)) - (f ((Sup k)) - f ((Inf k))) = 0"
             using xk unfolding uv by auto
         next
-          have *: "p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} =
-            {t. t\<in>p \<and> fst t = a \<and> content(snd t) \<noteq> 0} \<union> {t. t\<in>p \<and> fst t = b \<and> content(snd t) \<noteq> 0}"
-            by blast
           have **: "norm (sum f s) \<le> e"
             if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y" "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e" "e > 0"
             for s f and e :: real
@@ -3851,135 +3846,102 @@ next
             case False
             then obtain x where "x \<in> s"
               by auto
-            then have *: "s = {x}"
+            then have "s = {x}"
               using that(1) by auto
             then show ?thesis
               using \<open>x \<in> s\<close> that(2) by auto
           qed
           case 2
+            let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
+          have *: "p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} = ?B a \<union> ?B b"
+            by blast
           show ?case
             apply (subst *)
             apply (subst sum.union_disjoint)
             prefer 4
             apply (rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
             apply (rule norm_triangle_le,rule add_mono)
-            apply (rule_tac[1-2] **)
+                 apply (rule_tac[1-2] **)
+
           proof -
-            let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
             have pa: "\<exists>v. k = cbox a v \<and> a \<le> v" if "(a, k) \<in> p" for k
             proof -
               obtain u v where uv: "k = cbox u v"
                 using \<open>(a, k) \<in> p\<close> p(4) by blast
-              then have *: "u \<le> v"
-                using p(2)[OF that] by auto
-              have u: "u = a"
-              proof (rule ccontr)
-                have "u \<in> cbox u v"
-                  using p(2-3)[OF that(1)] unfolding uv by auto
-                have "u \<ge> a"
-                  using p(2-3)[OF that(1)] unfolding uv subset_eq by auto
-                moreover assume "\<not> ?thesis"
-                ultimately have "u > a" by auto
-                then show False
-                  using p(2)[OF that(1)] unfolding uv by (auto simp add:)
-              qed
-              then show ?thesis
-                apply (rule_tac x=v in exI)
-                unfolding uv
-                using *
-                apply auto
-                done
+              moreover have "u \<le> v"
+                using uv p(2)[OF that] by auto
+              moreover have "u = a"
+                using p(2) p(3) that uv by force
+              ultimately show ?thesis
+                by blast
             qed
             have pb: "\<exists>v. k = cbox v b \<and> b \<ge> v" if "(b, k) \<in> p" for k
             proof -
               obtain u v where uv: "k = cbox u v"
                 using \<open>(b, k) \<in> p\<close> p(4) by blast
-              have *: "u \<le> v"
+              moreover have "u \<le> v"
                 using p(2)[OF that] unfolding uv by auto
-              have u: "v = b"
-              proof (rule ccontr)
-                have "u \<in> cbox u v"
-                  using p(2-3)[OF that(1)] unfolding uv by auto
-                have "v \<le> b"
-                  using p(2-3)[OF that(1)] unfolding uv subset_eq by auto
-                moreover assume "\<not> ?thesis"
-                ultimately have "v < b" by auto
-                then show False
-                  using p(2)[OF that(1)] unfolding uv by (auto simp add:)
-              qed
-              then show ?thesis
-                apply (rule_tac x=u in exI)
-                unfolding uv
-                using *
-                apply auto
-                done
+              moreover have "v = b"
+                using p(2) p(3) that uv by force
+              ultimately show ?thesis
+                by blast
             qed
             show "\<forall>x y. x \<in> ?B a \<and> y \<in> ?B a \<longrightarrow> x = y"
-              apply (rule,rule,rule,unfold split_paired_all)
-              unfolding mem_Collect_eq fst_conv snd_conv
-              apply safe
-            proof -
+            proof (safe; clarsimp)
               fix x k k'
               assume k: "(a, k) \<in> p" "(a, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
-              guess v using pa[OF k(1)] .. note v = conjunctD2[OF this]
-              guess v' using pa[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = "min v v'"
+              obtain v where v: "k = cbox a v" "a \<le> v"
+                using pa[OF k(1)] by blast
+              obtain v' where v': "k' = cbox a v'" "a \<le> v'"
+                using pa[OF k(2)] by blast              
+              let ?v = "min v v'"
               have "box a ?v \<subseteq> k \<inter> k'"
                 unfolding v v' by (auto simp add: mem_box)
-              note interior_mono[OF this,unfolded interior_Int]
+              then have "interior (box a (min v v')) \<subseteq> interior k \<inter> interior k'"
+                using interior_Int interior_mono by blast
               moreover have "(a + ?v)/2 \<in> box a ?v"
                 using k(3-)
                 unfolding v v' content_eq_0 not_le
                 by (auto simp add: mem_box)
               ultimately have "(a + ?v)/2 \<in> interior k \<inter> interior k'"
                 unfolding interior_open[OF open_box] by auto
-              then have *: "k = k'"
-                apply -
-                apply (rule ccontr)
-                using p(5)[OF k(1-2)]
-                apply auto
-                done
-              { assume "x \<in> k" then show "x \<in> k'" unfolding * . }
-              { assume "x \<in> k'" then show "x \<in> k" unfolding * . }
+              then have eq: "k = k'"
+                using p(5)[OF k(1-2)] by auto
+              { assume "x \<in> k" then show "x \<in> k'" unfolding eq . }
+              { assume "x \<in> k'" then show "x \<in> k" unfolding eq . }
             qed
+
             show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y"
-              apply rule
-              apply rule
-              apply rule
-              apply (unfold split_paired_all)
-              unfolding mem_Collect_eq fst_conv snd_conv
-              apply safe
-            proof -
+            proof (safe; clarsimp)
               fix x k k'
               assume k: "(b, k) \<in> p" "(b, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
-              guess v using pb[OF k(1)] .. note v = conjunctD2[OF this]
-              guess v' using pb[OF k(2)] .. note v' = conjunctD2[OF this]
+              obtain v where v: "k = cbox v b" "v \<le> b"
+                using pb[OF k(1)] by blast
+              obtain v' where v': "k' = cbox v' b" "v' \<le> b"
+                using pb[OF k(2)] by blast 
               let ?v = "max v v'"
               have "box ?v b \<subseteq> k \<inter> k'"
                 unfolding v v' by (auto simp: mem_box)
-                note interior_mono[OF this,unfolded interior_Int]
+              then have "interior (box (max v v') b) \<subseteq> interior k \<inter> interior k'"
+                using interior_Int interior_mono by blast
               moreover have " ((b + ?v)/2) \<in> box ?v b"
                 using k(3-) unfolding v v' content_eq_0 not_le by (auto simp: mem_box)
               ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'"
                 unfolding interior_open[OF open_box] by auto
-              then have *: "k = k'"
-                apply -
-                apply (rule ccontr)
-                using p(5)[OF k(1-2)]
-                apply auto
-                done
-              { assume "x \<in> k" then show "x \<in> k'" unfolding * . }
-              { assume "x \<in> k'" then show "x\<in>k" unfolding * . }
+              then have eq: "k = k'"
+                using p(5)[OF k(1-2)] by auto
+              { assume "x \<in> k" then show "x \<in> k'" unfolding eq . }
+              { assume "x \<in> k'" then show "x\<in>k" unfolding eq . }
             qed
 
-            let ?a = a and ?b = b (* a is something else while proofing the next theorem. *)
             have "norm (content c *\<^sub>R f' a - (f (Sup c) - f (Inf c))) \<le> e * (b - a) / 4"
               if "(a, c) \<in> p" and ne0: "content c \<noteq> 0" for c
             proof -
               obtain v where v: "c = cbox a v" and "a \<le> v"
                 using pa[OF \<open>(a, c) \<in> p\<close>] by metis 
-              then have "?a \<in> {?a..v}" "v \<le> ?b"
+              then have "a \<in> {a..v}" "v \<le> b"
                 using p(3)[OF \<open>(a, c) \<in> p\<close>] by auto
-              moreover have "{?a..v} \<subseteq> ball ?a da"
+              moreover have "{a..v} \<subseteq> ball a da"
                 using fineD[OF \<open>?d fine p\<close> \<open>(a, c) \<in> p\<close>] by (simp add: v split: if_split_asm)
               ultimately show ?thesis
                 unfolding v interval_bounds_real[OF \<open>a \<le> v\<close>] box_real
@@ -3994,9 +3956,9 @@ next
             proof -
               obtain v where v: "c = cbox v b" and "v \<le> b"
                 using \<open>(b, c) \<in> p\<close> pb by blast
-              then have "v \<ge> ?a""?b \<in> {v.. ?b}"  
+              then have "v \<ge> a""b \<in> {v.. b}"  
                 using p(3)[OF \<open>(b, c) \<in> p\<close>] by auto
-              moreover have "{v..?b} \<subseteq> ball ?b db"
+              moreover have "{v..b} \<subseteq> ball b db"
                 using fineD[OF \<open>?d fine p\<close> \<open>(b, c) \<in> p\<close>] box_real(2) v False by force
               ultimately show ?thesis
                 using db v by auto
@@ -4019,7 +3981,7 @@ next
         unfolding sum_distrib_left[symmetric]
         apply (subst additive_tagged_division_1[OF _ as(1)])
          apply (rule assms)
-        apply (rule **)
+        apply (rule norm_le)
         done
     qed
     show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
