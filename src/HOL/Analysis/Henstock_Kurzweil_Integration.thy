@@ -3815,6 +3815,8 @@ next
       proof -
         have *: "\<And>s f t e. sum f s = sum f t \<Longrightarrow> norm (sum f t) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
           by auto
+
+        
         show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
           (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
           apply (rule *[where t1="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
@@ -3840,9 +3842,7 @@ next
             {t. t\<in>p \<and> fst t = a \<and> content(snd t) \<noteq> 0} \<union> {t. t\<in>p \<and> fst t = b \<and> content(snd t) \<noteq> 0}"
             by blast
           have **: "norm (sum f s) \<le> e"
-            if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y"
-            and "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e"
-            and "e > 0"
+            if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y" "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e" "e > 0"
             for s f and e :: real
           proof (cases "s = {}")
             case True
@@ -3972,73 +3972,43 @@ next
             qed
 
             let ?a = a and ?b = b (* a is something else while proofing the next theorem. *)
-            show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) -
-              f (Inf k))) x) \<le> e * (b - a) / 4"
-              apply rule
-              apply rule
-              unfolding mem_Collect_eq
-              unfolding split_paired_all fst_conv snd_conv
-            proof (safe, goal_cases)
-              case prems: 1
-              guess v using pa[OF prems(1)] .. note v = conjunctD2[OF this]
-              have "?a \<in> {?a..v}"
-                using v(2) by auto
-              then have "v \<le> ?b"
-                using p(3)[OF prems(1)] unfolding subset_eq v by auto
+            have "norm (content c *\<^sub>R f' a - (f (Sup c) - f (Inf c))) \<le> e * (b - a) / 4"
+              if "(a, c) \<in> p" and ne0: "content c \<noteq> 0" for c
+            proof -
+              obtain v where v: "c = cbox a v" and "a \<le> v"
+                using pa[OF \<open>(a, c) \<in> p\<close>] by metis 
+              then have "?a \<in> {?a..v}" "v \<le> ?b"
+                using p(3)[OF \<open>(a, c) \<in> p\<close>] by auto
               moreover have "{?a..v} \<subseteq> ball ?a da"
-                using fineD[OF as(2) prems(1)]
-                apply -
-                apply (subst(asm) if_P)
-                apply (rule refl)
-                unfolding subset_eq
-                apply safe
-                apply (erule_tac x=" x" in ballE)
-                apply (auto simp add:subset_eq dist_real_def v)
-                done
-              ultimately show ?case
-                unfolding v interval_bounds_real[OF v(2)] box_real
-                apply -
-                apply(rule da[of "v"])
-                using prems fineD[OF as(2) prems(1)]
-                unfolding v content_eq_0
-                apply auto
-                done
+                using fineD[OF \<open>?d fine p\<close> \<open>(a, c) \<in> p\<close>] by (simp add: v split: if_split_asm)
+              ultimately show ?thesis
+                unfolding v interval_bounds_real[OF \<open>a \<le> v\<close>] box_real
+                using da \<open>a \<le> v\<close> by auto
             qed
-            show "\<forall>x. x \<in> ?B b \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x -
-              (f (Sup k) - f (Inf k))) x) \<le> e * (b - a) / 4"
-              apply rule
-              apply rule
-              unfolding mem_Collect_eq
-              unfolding split_paired_all fst_conv snd_conv
-            proof (safe, goal_cases)
-              case prems: 1
-              guess v using pb[OF prems(1)] .. note v = conjunctD2[OF this]
-              have "?b \<in> {v.. ?b}"
-                using v(2) by auto
-              then have "v \<ge> ?a" using p(3)[OF prems(1)]
-                unfolding subset_eq v by auto
+            then show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) -
+              f (Inf k))) x) \<le> e * (b - a) / 4"
+              by auto
+
+            have "norm (content c *\<^sub>R f' b - (f (Sup c) - f (Inf c))) \<le> e * (b - a) / 4"
+              if "(b, c) \<in> p" and ne0: "content c \<noteq> 0" for c
+            proof -
+              obtain v where v: "c = cbox v b" and "v \<le> b"
+                using \<open>(b, c) \<in> p\<close> pb by blast
+              then have "v \<ge> ?a""?b \<in> {v.. ?b}"  
+                using p(3)[OF \<open>(b, c) \<in> p\<close>] by auto
               moreover have "{v..?b} \<subseteq> ball ?b db"
-                using fineD[OF as(2) prems(1)]
-                apply -
-                apply (subst(asm) if_P, rule refl)
-                unfolding subset_eq
-                apply safe
-                apply (erule_tac x=" x" in ballE)
-                using ab
-                apply (auto simp add:subset_eq v dist_real_def)
-                done
-              ultimately show ?case
-                unfolding v
-                unfolding interval_bounds_real[OF v(2)] box_real
-                apply -
-                apply(rule db[of "v"])
-                using prems fineD[OF as(2) prems(1)]
-                unfolding v content_eq_0
-                apply auto
-                done
+                using fineD[OF \<open>?d fine p\<close> \<open>(b, c) \<in> p\<close>] box_real(2) v False by force
+              ultimately show ?thesis
+                using db v by auto
             qed
+            then show "\<forall>x. x \<in> ?B b \<longrightarrow> 
+                           norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) x) 
+                           \<le> e * (b - a) / 4"
+              by auto
           qed (insert p(1) ab e, auto simp add: field_simps)
         qed auto
+
+
       qed
       have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
         by auto
