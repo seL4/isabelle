@@ -779,5 +779,152 @@ corollary simple_closed_path_winding_number_pos:
 using simple_closed_path_winding_number_cases
   by fastforce
 
+
+subsection \<open>Winding number for rectangular paths\<close>
+
+(* TODO: Move *)
+lemma closed_segmentI:
+  "u \<in> {0..1} \<Longrightarrow> z = (1 - u) *\<^sub>R a + u *\<^sub>R b \<Longrightarrow> z \<in> closed_segment a b"
+  by (auto simp: closed_segment_def)
+
+lemma in_cbox_complex_iff: 
+  "x \<in> cbox a b \<longleftrightarrow> Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}"
+  by (cases x; cases a; cases b) (auto simp: cbox_Complex_eq)
+
+lemma box_Complex_eq: 
+  "box (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (box a b \<times> box c d)"
+  by (auto simp: box_def Basis_complex_def image_iff complex_eq_iff)
+
+lemma in_box_complex_iff: 
+  "x \<in> box a b \<longleftrightarrow> Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}"
+  by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
+(* END TODO *)
+
+lemma closed_segment_same_Re:
+  assumes "Re a = Re b"
+  shows   "closed_segment a b = {z. Re z = Re a \<and> Im z \<in> closed_segment (Im a) (Im b)}"
+proof safe
+  fix z assume "z \<in> closed_segment a b"
+  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from assms show "Re z = Re a" by (auto simp: u)
+  from u(1) show "Im z \<in> closed_segment (Im a) (Im b)"
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps)
+next
+  fix z assume [simp]: "Re z = Re a" and "Im z \<in> closed_segment (Im a) (Im b)"
+  then obtain u where u: "u \<in> {0..1}" "Im z = Im a + of_real u * (Im b - Im a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from u(1) show "z \<in> closed_segment a b" using assms
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
+qed
+
+lemma closed_segment_same_Im:
+  assumes "Im a = Im b"
+  shows   "closed_segment a b = {z. Im z = Im a \<and> Re z \<in> closed_segment (Re a) (Re b)}"
+proof safe
+  fix z assume "z \<in> closed_segment a b"
+  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from assms show "Im z = Im a" by (auto simp: u)
+  from u(1) show "Re z \<in> closed_segment (Re a) (Re b)"
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps)
+next
+  fix z assume [simp]: "Im z = Im a" and "Re z \<in> closed_segment (Re a) (Re b)"
+  then obtain u where u: "u \<in> {0..1}" "Re z = Re a + of_real u * (Re b - Re a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from u(1) show "z \<in> closed_segment a b" using assms
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
+qed
+
+
+definition rectpath where
+  "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
+                      in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)" 
+
+lemma path_rectpath [simp, intro]: "path (rectpath a b)"
+  by (simp add: Let_def rectpath_def)
+
+lemma valid_path_rectpath [simp, intro]: "valid_path (rectpath a b)"
+  by (simp add: Let_def rectpath_def)
+
+lemma pathstart_rectpath [simp]: "pathstart (rectpath a1 a3) = a1"
+  by (simp add: rectpath_def Let_def)
+
+lemma pathfinish_rectpath [simp]: "pathfinish (rectpath a1 a3) = a1"
+  by (simp add: rectpath_def Let_def)
+
+lemma simple_path_rectpath [simp, intro]: 
+  assumes "Re a1 \<noteq> Re a3" "Im a1 \<noteq> Im a3"
+  shows   "simple_path (rectpath a1 a3)"
+  unfolding rectpath_def Let_def using assms
+  by (intro simple_path_join_loop arc_join arc_linepath)
+     (auto simp: complex_eq_iff path_image_join closed_segment_same_Re closed_segment_same_Im)
+
+lemma path_image_rectpath: 
+  assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
+  shows "path_image (rectpath a1 a3) = 
+           {z. Re z \<in> {Re a1, Re a3} \<and> Im z \<in> {Im a1..Im a3}} \<union>
+           {z. Im z \<in> {Im a1, Im a3} \<and> Re z \<in> {Re a1..Re a3}}" (is "?lhs = ?rhs")
+proof -
+  define a2 a4 where "a2 = Complex (Re a3) (Im a1)" and "a4 = Complex (Re a1) (Im a3)"
+  have "?lhs = closed_segment a1 a2 \<union> closed_segment a2 a3 \<union> 
+                  closed_segment a4 a3 \<union> closed_segment a1 a4"
+    by (simp_all add: rectpath_def Let_def path_image_join closed_segment_commute
+                      a2_def a4_def Un_assoc)
+  also have "\<dots> = ?rhs" using assms
+    by (auto simp: rectpath_def Let_def path_image_join a2_def a4_def
+          closed_segment_same_Re closed_segment_same_Im closed_segment_eq_real_ivl)
+  finally show ?thesis .
+qed
+
+lemma path_image_rectpath_subset_cbox:
+  assumes "Re a \<le> Re b" "Im a \<le> Im b"
+  shows   "path_image (rectpath a b) \<subseteq> cbox a b"
+  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff)
+
+lemma path_image_rectpath_inter_box:
+  assumes "Re a \<le> Re b" "Im a \<le> Im b"
+  shows   "path_image (rectpath a b) \<inter> box a b = {}"
+  using assms by (auto simp: path_image_rectpath in_box_complex_iff)
+
+lemma path_image_rectpath_cbox_minus_box:
+  assumes "Re a \<le> Re b" "Im a \<le> Im b"
+  shows   "path_image (rectpath a b) = cbox a b - box a b"
+  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff 
+                             in_box_complex_iff)
+
+lemma winding_number_rectpath:
+  assumes "z \<in> box a1 a3"
+  shows   "winding_number (rectpath a1 a3) z = 1"
+proof -
+  from assms have less: "Re a1 < Re a3" "Im a1 < Im a3"
+    by (auto simp: in_box_complex_iff)
+  define a2 a4 where "a2 = Complex (Re a3) (Im a1)" and "a4 = Complex (Re a1) (Im a3)"
+  let ?l1 = "linepath a1 a2" and ?l2 = "linepath a2 a3"
+  and ?l3 = "linepath a3 a4" and ?l4 = "linepath a4 a1"
+  from assms and less have "z \<notin> path_image (rectpath a1 a3)"
+    by (auto simp: path_image_rectpath_cbox_minus_box)
+  also have "path_image (rectpath a1 a3) = 
+               path_image ?l1 \<union> path_image ?l2 \<union> path_image ?l3 \<union> path_image ?l4"
+    by (simp add: rectpath_def Let_def path_image_join Un_assoc a2_def a4_def)
+  finally have "z \<notin> \<dots>" .
+  moreover have "\<forall>l\<in>{?l1,?l2,?l3,?l4}. Re (winding_number l z) > 0"
+    unfolding ball_simps HOL.simp_thms a2_def a4_def
+    by (intro conjI; (rule winding_number_linepath_pos_lt;
+          (insert assms, auto simp: a2_def a4_def in_box_complex_iff mult_neg_neg))+)
+  ultimately have "Re (winding_number (rectpath a1 a3) z) > 0"
+    by (simp add: winding_number_join path_image_join rectpath_def Let_def a2_def a4_def)
+  thus "winding_number (rectpath a1 a3) z = 1" using assms less
+    by (intro simple_closed_path_winding_number_pos simple_path_rectpath)
+       (auto simp: path_image_rectpath_cbox_minus_box)
+qed
+
+lemma winding_number_rectpath_outside:
+  assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
+  assumes "z \<notin> cbox a1 a3"
+  shows   "winding_number (rectpath a1 a3) z = 0"
+  using assms by (intro winding_number_zero_outside[OF _ _ _ assms(3)] 
+                     path_image_rectpath_subset_cbox) simp_all
+
 end
 
