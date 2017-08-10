@@ -3749,20 +3749,20 @@ next
       using ab \<open>db > 0\<close> \<open>da > 0\<close> d(1) by (auto intro: gauge_ball_dependent)
   next
     fix p
-    assume as: "p tagged_division_of {a..b}" "?d fine p"
+    assume ptag: "p tagged_division_of {a..b}" and fine: "?d fine p"
     let ?A = "{t. fst t \<in> {a, b}}"
-    note p = tagged_division_ofD[OF as(1)]
+    note p = tagged_division_ofD[OF ptag]
     have pA: "p = (p \<inter> ?A) \<union> (p - ?A)" "finite (p \<inter> ?A)" "finite (p - ?A)" "(p \<inter> ?A) \<inter> (p - ?A) = {}"
-      using as by auto
-    note * = additive_tagged_division_1[OF assms(1) as(1), symmetric]
+      using ptag fine by auto
+    note * = additive_tagged_division_1[OF assms(1) ptag, symmetric]
     have **: "\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2"
       by arith
-    have XX: False if xk: "(x,k) \<in> p" 
-         and less: "e * (Sup k - Inf k) / 2 < norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))"
+    have XX: False if xk: "(x,K) \<in> p" 
+         and less: "e * (Sup K - Inf K) / 2 < norm (content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))"
          and "x \<noteq> a" "x \<noteq> b"
-         for x k
+         for x K
       proof -
-        obtain u v where k: "k = cbox u v"
+        obtain u v where k: "K = cbox u v"
           using p(4) xk by blast
         then have "u \<le> v" and uv: "{u, v} \<subseteq> cbox u v"
           using p(2)[OF xk] by auto
@@ -3774,7 +3774,7 @@ next
                 \<Longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e / 2 * norm (y-x)"
           by metis
         have xd: "norm (u - x) < d x" "norm (v - x) < d x"
-          using fineD[OF as(2) xk] \<open>x \<noteq> a\<close> \<open>x \<noteq> b\<close> uv 
+          using fineD[OF fine xk] \<open>x \<noteq> a\<close> \<open>x \<noteq> b\<close> uv 
           by (auto simp add: k subset_eq dist_commute dist_real_def)
         have "norm ((v - u) *\<^sub>R f' (x) - (f (v) - f (u))) =
               norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
@@ -3789,8 +3789,8 @@ next
           using uv by auto
         then show False by auto
       qed
-    have "norm (\<Sum>(x, k)\<in>p - ?A. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
-          \<le> (\<Sum>(x, k)\<in>p - ?A. norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))))"
+    have "norm (\<Sum>(x, K)\<in>p - ?A. content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))
+          \<le> (\<Sum>(x, K)\<in>p - ?A. norm (content K *\<^sub>R f' x - (f (Sup K) - f (Inf K))))"
       by (auto intro: sum_norm_le)
     also have "... \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k) / 2)"
       using XX by (force intro: sum_mono)
@@ -3811,31 +3811,30 @@ next
         then show "0 \<le> e * ((Sup k) - (Inf k))"
           unfolding uv using e by (auto simp add: field_simps)
       qed
-      have norm_le: "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b-a) / 2"
+      let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
+      let ?C = "{t \<in> p. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
+      have "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b-a) / 2"
       proof -
-        have *: "\<And>s f t e. sum f s = sum f t \<Longrightarrow> norm (sum f t) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
+        have *: "\<And>s f e. sum f s = sum f (p \<inter> ?C) \<Longrightarrow> norm (sum f (p \<inter> ?C)) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
           by auto
 
-        
-        show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
-          (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
-          apply (rule *[where t1="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
-          apply (rule sum.mono_neutral_right[OF pA(2)])
-          defer
-          apply rule
-          unfolding split_paired_all split_conv o_def
-        proof goal_cases
-          fix x k
-          assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
-          then have xk: "(x, k) \<in> p" and k0: "content k = 0"
-            by auto
-          then obtain u v where uv: "k = cbox u v"
+        have 1: "content K *\<^sub>R (f' (x)) - (f ((Sup K)) - f ((Inf K))) = 0"
+                if "(x,K) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> ?C" for x K
+        proof -
+          have xk: "(x, K) \<in> p" and k0: "content K = 0"
+            using that by auto
+          then obtain u v where uv: "K = cbox u v"
             using p(4) by blast
           then have "u = v"
             using xk k0 p(2) by force
-          then show "content k *\<^sub>R (f' (x)) - (f ((Sup k)) - f ((Inf k))) = 0"
+          then show "content K *\<^sub>R (f' (x)) - (f ((Sup K)) - f ((Inf K))) = 0"
             using xk unfolding uv by auto
-        next
+        qed
+        have 2: "norm(\<Sum>(x,k)\<in>p \<inter> ?C. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) 
+                 \<le> e * (b - a) / 2"
+        proof -
+          have *: "p \<inter> ?C = ?B a \<union> ?B b"
+            by blast
           have **: "norm (sum f s) \<le> e"
             if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y" "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e" "e > 0"
             for s f and e :: real
@@ -3851,16 +3850,13 @@ next
             then show ?thesis
               using \<open>x \<in> s\<close> that(2) by auto
           qed
-          case 2
-            let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
-          have *: "p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} = ?B a \<union> ?B b"
-            by blast
-          show ?case
+          show "norm (\<Sum>(x,k)\<in>p \<inter> ?C.
+                        content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b - a) / 2"
             apply (subst *)
             apply (subst sum.union_disjoint)
-            prefer 4
-            apply (rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
-            apply (rule norm_triangle_le,rule add_mono)
+               prefer 4
+               apply (rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
+                apply (rule norm_triangle_le,rule add_mono)
                  apply (rule_tac[1-2] **)
 
           proof -
@@ -3913,25 +3909,25 @@ next
 
             show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y"
             proof (safe; clarsimp)
-              fix x k k'
-              assume k: "(b, k) \<in> p" "(b, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
-              obtain v where v: "k = cbox v b" "v \<le> b"
+              fix x K K'
+              assume k: "(b, K) \<in> p" "(b, K') \<in> p" "content K \<noteq> 0" "content K' \<noteq> 0"
+              obtain v where v: "K = cbox v b" "v \<le> b"
                 using pb[OF k(1)] by blast
-              obtain v' where v': "k' = cbox v' b" "v' \<le> b"
+              obtain v' where v': "K' = cbox v' b" "v' \<le> b"
                 using pb[OF k(2)] by blast 
               let ?v = "max v v'"
-              have "box ?v b \<subseteq> k \<inter> k'"
+              have "box ?v b \<subseteq> K \<inter> K'"
                 unfolding v v' by (auto simp: mem_box)
-              then have "interior (box (max v v') b) \<subseteq> interior k \<inter> interior k'"
+              then have "interior (box (max v v') b) \<subseteq> interior K \<inter> interior K'"
                 using interior_Int interior_mono by blast
               moreover have " ((b + ?v)/2) \<in> box ?v b"
                 using k(3-) unfolding v v' content_eq_0 not_le by (auto simp: mem_box)
-              ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'"
+              ultimately have " ((b + ?v)/2) \<in> interior K \<inter> interior K'"
                 unfolding interior_open[OF open_box] by auto
-              then have eq: "k = k'"
+              then have eq: "K = K'"
                 using p(5)[OF k(1-2)] by auto
-              { assume "x \<in> k" then show "x \<in> k'" unfolding eq . }
-              { assume "x \<in> k'" then show "x\<in>k" unfolding eq . }
+              { assume "x \<in> K" then show "x \<in> K'" unfolding eq . }
+              { assume "x \<in> K'" then show "x \<in> K" unfolding eq . }
             qed
 
             have "norm (content c *\<^sub>R f' a - (f (Sup c) - f (Inf c))) \<le> e * (b - a) / 4"
@@ -3968,21 +3964,24 @@ next
                            \<le> e * (b - a) / 4"
               by auto
           qed (insert p(1) ab e, auto simp add: field_simps)
-        qed auto
-
-
+        qed
+        show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
+          apply (rule * [OF sum.mono_neutral_right[OF pA(2)]])
+          using 1 2  by (auto simp: split_paired_all)
       qed
+      also have "... = (\<Sum>n\<in>p. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
+        unfolding sum_distrib_left[symmetric]
+        apply (subst additive_tagged_division_1[OF \<open>a \<le> b\<close> ptag])
+        by auto
+      finally have norm_le: "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
+                \<le> (\<Sum>n\<in>p. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2" .
       have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
         by auto
       show ?thesis
         apply (rule * [OF sum_nonneg])
         using ge0 apply force
-        unfolding sum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
-        unfolding sum_distrib_left[symmetric]
-        apply (subst additive_tagged_division_1[OF _ as(1)])
-         apply (rule assms)
-        apply (rule norm_le)
-        done
+        unfolding sum.union_disjoint[OF pA(2-), symmetric] pA(1)[symmetric]
+        by (metis norm_le)
     qed
     show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
       unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus
@@ -3990,8 +3989,7 @@ next
       apply (subst(2) pA)
       apply (subst pA)
       unfolding sum.union_disjoint[OF pA(2-)]
-      using ** norm_triangle_le 1 2
-      by blast
+      using ** norm_triangle_le 1 2 by blast
   qed
 qed
 
