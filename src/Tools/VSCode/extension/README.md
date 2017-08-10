@@ -16,7 +16,7 @@ See also:
 
 ## Screenshot
 
-![[Isabelle/VSCode]](http://isabelle.in.tum.de/repos/isabelle/raw-file/b565a39627bb/src/Tools/VSCode/extension/isabelle_vscode.png)
+![[Isabelle/VSCode]](https://isabelle.in.tum.de/repos/isabelle/raw-file/b565a39627bb/src/Tools/VSCode/extension/isabelle_vscode.png)
 
 
 ## Notable Features
