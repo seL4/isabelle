@@ -1,16 +1,16 @@
 (*  Author:     Filip Maric
 
 Example theory involving Unicode characters (UTF-8 encoding) -- 
-Conversion between Serbian cyrillic and latin letters (српска ћирилица и латиница)
+Conversion between Serbian cyrillic and latin letters (српска ћирилица и латиница).
 *)
 
 section \<open>A Serbian theory\<close>
 
 theory Serbian
-imports Main
+  imports Main
 begin
 
-text\<open>Serbian cyrillic letters\<close>
+text \<open>Serbian cyrillic letters.\<close>
 datatype azbuka =
   azbA   ("А")
 | azbB   ("Б")
@@ -46,7 +46,7 @@ datatype azbuka =
 
 thm azbuka.induct
 
-text\<open>Serbian latin letters\<close>
+text \<open>Serbian latin letters.\<close>
 datatype abeceda =
   abcA   ("A")
 | abcB   ("B")
@@ -79,8 +79,7 @@ datatype abeceda =
 thm abeceda.induct
 
 
-text\<open>Conversion from cyrillic to latin - 
-       this conversion is valid in all cases\<close>
+text \<open>Conversion from cyrillic to latin -- this conversion is valid in all cases.\<close>
 primrec azb2abc_aux :: "azbuka \<Rightarrow> abeceda list"
 where
   "azb2abc_aux А = [A]"
@@ -123,8 +122,9 @@ where
 value "azb2abc [Д, О, Б, А, Р, azbSpc, Д, А, Н, azbSpc, С, В, И, М, А]"
 value "azb2abc [Љ, У, Б, И, Ч, И, Ц, А, azbSpc, Н, А, azbSpc, П, О, Љ, У]"
 
-text\<open>The conversion from latin to cyrillic - 
-       this conversion is valid in most cases but there are some exceptions\<close>
+text \<open>
+  The conversion from latin to cyrillic --
+  this conversion is valid in most cases but there are some exceptions.\<close>
 primrec abc2azb_aux :: "abeceda \<Rightarrow> azbuka"
 where
    "abc2azb_aux A = А"
@@ -160,33 +160,32 @@ where
   "abc2azb [] = []"
 | "abc2azb [x] = [abc2azb_aux x]"
 | "abc2azb (x1 # x2 # xs) = 
-       (if x1 = D \<and> x2 = J then
-           Ђ # abc2azb xs
-        else if x1 = L \<and> x2 = J then
-           Љ # abc2azb xs
-        else if x1 = N \<and> x2 = J then
-           Њ # abc2azb xs
-        else if x1 = D \<and> x2 = Ž then
-           Џ # abc2azb xs
-        else
-           abc2azb_aux x1 # abc2azb (x2 # xs)
-       )"
+    (if x1 = D \<and> x2 = J then
+        Ђ # abc2azb xs
+     else if x1 = L \<and> x2 = J then
+        Љ # abc2azb xs
+     else if x1 = N \<and> x2 = J then
+        Њ # abc2azb xs
+     else if x1 = D \<and> x2 = Ž then
+        Џ # abc2azb xs
+     else
+        abc2azb_aux x1 # abc2azb (x2 # xs))"
 
 value "abc2azb [D, O, B, A, R, abcSpc, D, A, N, abcSpc, S, V, I, M, A]"
 value "abc2azb [L, J, U, B, I, Č, I, C, A, abcSpc, N, A, abcSpc, P, O, L, J, U]"
 
-text\<open>Here are some invalid conversions\<close>
+text \<open>Here are some invalid conversions.\<close>
 lemma "abc2azb [N, A, D, Ž, I, V, E, T, I] = [Н, А, Џ, И, В, Е, Т, И]"
   by simp
-text\<open>but it should be: НАДЖИВЕТИ\<close>
+text \<open>but it should be: НАДЖИВЕТИ\<close>
 lemma "abc2azb [I, N, J, E, K, C, I, J, A] = [И, Њ, Е, К, Ц, И, Ј, А]"
   by simp
-text\<open>but it should be: ИНЈЕКЦИЈА\<close>
+text \<open>but it should be: ИНЈЕКЦИЈА\<close>
 
-text\<open>The conversion fails for all cyrrilic words that contain НЈ ЛЈ ДЈ ДЖ\<close>
+text \<open>The conversion fails for all cyrillic words that contain НЈ ЛЈ ДЈ ДЖ.\<close>
 
 
-text\<open>Idempotency in one direction\<close>
+text \<open>Idempotency in one direction.\<close>
 lemma [simp]: "azb2abc_aux (abc2azb_aux x) = [x]"
   by (cases x) auto
 
@@ -198,19 +197,24 @@ lemma [simp]: "abc2azb (J # xs) = Ј # abc2azb xs"
 
 theorem "azb2abc (abc2azb x) = x"
 proof (induct x)
+  case Nil
+  then show ?case by simp
+next
   case (Cons x1 xs)
-  thus ?case
+  then show ?case
   proof (cases xs)
+    case Nil
+    then show ?thesis by simp
+  next
     case (Cons x2 xss)
-    thus ?thesis
-      using \<open>azb2abc (abc2azb xs) = xs\<close>
+    with \<open>azb2abc (abc2azb xs) = xs\<close> show ?thesis
       by auto
-  qed simp
-qed simp
+  qed
+qed
 
-text\<open>Idempotency in the other direction does not hold\<close>
+text \<open>Idempotency in the other direction does not hold.\<close>
 lemma "abc2azb (azb2abc [И, Н, Ј, Е, К, Ц, И, Ј, А]) \<noteq> [И, Н, Ј, Е, К, Ц, И, Ј, А]"
   by simp
-text\<open>It fails for all cyrrilic words that contain НЈ ЛЈ ДЈ ДЖ\<close>
+text \<open>It fails for all cyrillic words that contain НЈ ЛЈ ДЈ ДЖ.\<close>
 
 end
