@@ -232,11 +232,9 @@ class Server(
         update_output(changed.nodes.toList.map(resources.node_file(_)))
     }
 
-  private val syslog =
-    Session.Consumer[Prover.Message](getClass.getName) {
-      case output: Prover.Output if output.is_syslog =>
-        channel.log_writeln(resources.output_xml(output.message))
-      case _ =>
+  private val syslog_messages =
+    Session.Consumer[Prover.Output](getClass.getName) {
+      case output => channel.log_writeln(resources.output_xml(output.message))
     }
 
 
@@ -288,7 +286,7 @@ class Server(
       session_.change(_ => Some(session))
 
       session.commands_changed += prover_output
-      session.all_messages += syslog
+      session.syslog_messages += syslog_messages
 
       dynamic_output.init()
 
@@ -317,7 +315,7 @@ class Server(
     session_.change({
       case Some(session) =>
         session.commands_changed -= prover_output
-        session.all_messages -= syslog
+        session.syslog_messages -= syslog_messages
 
         dynamic_output.exit()
 
