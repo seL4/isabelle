@@ -129,7 +129,8 @@ export function activate(context: ExtensionContext)
       commands.registerCommand("isabelle.state", uri => state_panel.init(uri)),
       commands.registerCommand("_isabelle.state-locate", state_panel.locate),
       commands.registerCommand("_isabelle.state-update", state_panel.update),
-      commands.registerCommand("_isabelle.state-auto-update", state_panel.auto_update))
+      commands.registerCommand("_isabelle.state-auto-update", state_panel.auto_update),
+      workspace.onDidCloseTextDocument(document => state_panel.exit_uri(document.uri)))
 
     language_client.onReady().then(() => state_panel.setup(context, language_client))
 
