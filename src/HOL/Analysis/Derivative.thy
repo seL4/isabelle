@@ -2421,6 +2421,22 @@ proof -
   thus ?thesis by (simp add: deriv_def assms)
 qed
 
+lemma higher_deriv_cong_ev:
+  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
+  shows   "(deriv ^^ n) f x = (deriv ^^ n) g y"
+proof -
+  from assms(1) have "eventually (\<lambda>x. (deriv ^^ n) f x = (deriv ^^ n) g x) (nhds x)"
+  proof (induction n arbitrary: f g)
+    case (Suc n)
+    from Suc.prems have "eventually (\<lambda>y. eventually (\<lambda>z. f z = g z) (nhds y)) (nhds x)"
+      by (simp add: eventually_eventually)
+    hence "eventually (\<lambda>x. deriv f x = deriv g x) (nhds x)"
+      by eventually_elim (rule deriv_cong_ev, simp_all)
+    thus ?case by (auto intro!: deriv_cong_ev Suc simp: funpow_Suc_right simp del: funpow.simps)
+  qed auto
+  from eventually_nhds_x_imp_x[OF this] assms(2) show ?thesis by simp
+qed
+
 lemma real_derivative_chain:
   fixes x :: real
   shows "f differentiable at x \<Longrightarrow> g differentiable at (f x)

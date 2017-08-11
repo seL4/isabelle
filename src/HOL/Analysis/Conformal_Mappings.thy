@@ -3141,6 +3141,160 @@ proof -
   ultimately show ?thesis using \<open>n>0\<close> unfolding P_def by auto
 qed
 
+lemma zorder_eqI:
+  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0" "n > 0"
+  assumes "\<And>w. w \<in> s \<Longrightarrow> f w = g w * (w - z) ^ n"
+  shows   "zorder f z = n"
+proof -
+  have "continuous_on s g" by (rule holomorphic_on_imp_continuous_on) fact
+  moreover have "open (-{0::complex})" by auto
+  ultimately have "open ((g -` (-{0})) \<inter> s)"
+    unfolding continuous_on_open_vimage[OF \<open>open s\<close>] by blast
+  moreover from assms have "z \<in> (g -` (-{0})) \<inter> s" by auto
+  ultimately obtain r where r: "r > 0" "cball z r \<subseteq> (g -` (-{0})) \<inter> s"
+    unfolding open_contains_cball by blast
+
+  have "n > 0 \<and> r > 0 \<and> g holomorphic_on cball z r \<and> 
+        (\<forall>w\<in>cball z r. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0)" (is "?P g r n")
+    using r assms(3,5,6) by auto
+  hence ex: "\<exists>g r. ?P g r n" by blast
+  have unique: "\<exists>!n. \<exists>g r. ?P g r n"
+  proof (rule holomorphic_factor_zero_Ex1)
+    from r have "(\<lambda>w. g w * (w - z) ^ n) holomorphic_on ball z r"
+      by (intro holomorphic_intros holomorphic_on_subset[OF assms(3)]) auto
+    also have "?this \<longleftrightarrow> f holomorphic_on ball z r"
+      using r assms by (intro holomorphic_cong refl) (auto simp: cball_def subset_iff)
+    finally show \<dots> .
+  next
+    let ?w = "z + of_real r / 2"
+    have "?w \<in> ball z r"
+      using r by (auto simp: dist_norm)
+    moreover from this and r have "g ?w \<noteq> 0" and "?w \<in> s" 
+      by (auto simp: cball_def ball_def subset_iff)
+    with assms have "f ?w \<noteq> 0" using \<open>r > 0\<close> by auto
+    ultimately show "\<exists>w\<in>ball z r. f w \<noteq> 0" by blast
+  qed (insert assms r, auto)
+  from unique and ex have "(THE n. \<exists>g r. ?P g r n) = n"
+    by (rule the1_equality)
+  also have "(THE n. \<exists>g r. ?P g r n) = zorder f z"
+    by (simp add: zorder_def mult.commute)
+  finally show ?thesis .
+qed
+
+lemma simple_zeroI:
+  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0"
+  assumes "\<And>w. w \<in> s \<Longrightarrow> f w = g w * (w - z)"
+  shows   "zorder f z = 1"
+  using assms(1-4) by (rule zorder_eqI) (use assms(5) in auto)
+
+lemma higher_deriv_power:
+  shows   "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) w = 
+             pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j)"
+proof (induction j arbitrary: w)
+  case 0
+  thus ?case by auto
+next
+  case (Suc j w)
+  have "(deriv ^^ Suc j) (\<lambda>w. (w - z) ^ n) w = deriv ((deriv ^^ j) (\<lambda>w. (w - z) ^ n)) w"
+    by simp
+  also have "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) = 
+               (\<lambda>w. pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j))"
+    using Suc by (intro Suc.IH ext)
+  also {
+    have "(\<dots> has_field_derivative of_nat (n - j) *
+               pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - Suc j)) (at w)"
+      using Suc.prems by (auto intro!: derivative_eq_intros)
+    also have "of_nat (n - j) * pochhammer (of_nat (Suc n - j)) j = 
+                 pochhammer (of_nat (Suc n - Suc j)) (Suc j)"
+      by (cases "Suc j \<le> n", subst pochhammer_rec) 
+         (insert Suc.prems, simp_all add: algebra_simps Suc_diff_le pochhammer_0_left)
+    finally have "deriv (\<lambda>w. pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j)) w =
+                    \<dots> * (w - z) ^ (n - Suc j)"
+      by (rule DERIV_imp_deriv)
+  }
+  finally show ?case .
+qed
+
+lemma zorder_eqI':
+  assumes "open s" "connected s" "z \<in> s" "f holomorphic_on s"
+  assumes zero: "\<And>i. i < n' \<Longrightarrow> (deriv ^^ i) f z = 0"
+  assumes nz: "(deriv ^^ n') f z \<noteq> 0" and n: "n' > 0"
+  shows   "zorder f z = n'"
+proof -
+  {
+    assume *: "\<And>w. w \<in> s \<Longrightarrow> f w = 0"
+    hence "eventually (\<lambda>u. u \<in> s) (nhds z)"
+      using assms by (intro eventually_nhds_in_open) auto
+    hence "eventually (\<lambda>u. f u = 0) (nhds z)"
+      by eventually_elim (simp_all add: *)
+    hence "(deriv ^^ n') f z = (deriv ^^ n') (\<lambda>_. 0) z"
+      by (intro higher_deriv_cong_ev) auto
+    also have "(deriv ^^ n') (\<lambda>_. 0) z = 0"
+      by (induction n') simp_all
+    finally have False using nz by contradiction
+  }
+  hence nz': "\<exists>w\<in>s. f w \<noteq> 0" by blast
+
+  from zero[of 0] and n have [simp]: "f z = 0" by simp
+
+  define n g where "n = zorder f z" and "g = zer_poly f z"
+  from zorder_exist[OF assms(1-4) \<open>f z = 0\<close> nz']
+    obtain r where r: "n > 0" "r > 0" "cball z r \<subseteq> s" "g holomorphic_on cball z r"
+                      "\<forall>w\<in>cball z r. f w = g w * (w - z) ^ n \<and> g w \<noteq> 0"
+    unfolding n_def g_def by blast
+
+  define A where "A = (\<lambda>i. of_nat (i choose n) * fact n * (deriv ^^ (i - n)) g z)"
+  {
+    fix i :: nat
+    have "eventually (\<lambda>w. w \<in> ball z r) (nhds z)"
+      using r by (intro eventually_nhds_in_open) auto
+    hence "eventually (\<lambda>w. f w = (w - z) ^ n * g w) (nhds z)"
+      by eventually_elim (use r in auto)
+    hence "(deriv ^^ i) f z = (deriv ^^ i) (\<lambda>w. (w - z) ^ n * g w) z"
+      by (intro higher_deriv_cong_ev) auto
+    also have "\<dots> = (\<Sum>j=0..i. of_nat (i choose j) *
+                       (deriv ^^ j) (\<lambda>w. (w - z) ^ n) z * (deriv ^^ (i - j)) g z)"
+      using r by (intro higher_deriv_mult[of _ "ball z r"]) (auto intro!: holomorphic_intros)
+    also have "\<dots> = (\<Sum>j=0..i. if j = n then of_nat (i choose n) * fact n * (deriv ^^ (i - n)) g z 
+                                 else 0)"
+    proof (intro sum.cong refl, goal_cases)
+      case (1 j)
+      have "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) z = 
+              pochhammer (of_nat (Suc n - j)) j * 0 ^ (n - j)"
+        by (subst higher_deriv_power) auto
+      also have "\<dots> = (if j = n then fact j else 0)"
+        by (auto simp: not_less pochhammer_0_left pochhammer_fact)
+      also have "of_nat (i choose j) * \<dots> * (deriv ^^ (i - j)) g z = 
+                   (if j = n then of_nat (i choose n) * fact n * (deriv ^^ (i - n)) g z else 0)"
+        by simp
+      finally show ?case .
+    qed
+    also have "\<dots> = (if i \<ge> n then A i else 0)"
+      by (auto simp: A_def)
+    finally have "(deriv ^^ i) f z = \<dots>" .
+  } note * = this
+
+  from *[of n] and r have "(deriv ^^ n) f z \<noteq> 0"
+    by (simp add: A_def)
+  with zero[of n] have "n \<ge> n'" by (cases "n \<ge> n'") auto
+  with nz show "n = n'"
+    by (auto simp: * split: if_splits)
+qed
+
+lemma simple_zeroI':
+  assumes "open s" "connected s" "z \<in> s" 
+  assumes "\<And>z. z \<in> s \<Longrightarrow> (f has_field_derivative f' z) (at z)"
+  assumes "f z = 0" "f' z \<noteq> 0"
+  shows   "zorder f z = 1"
+proof -
+  have "deriv f z = f' z" if "z \<in> s" for z
+    using that by (intro DERIV_imp_deriv assms) auto
+  moreover from assms have "f holomorphic_on s"
+    by (subst holomorphic_on_open) auto
+  ultimately show ?thesis using assms
+    by (intro zorder_eqI'[of s]) auto
+qed
+
 lemma porder_exist:
   fixes f::"complex \<Rightarrow> complex" and z::complex
   defines "n \<equiv> porder f z" and "h \<equiv> pol_poly f z"

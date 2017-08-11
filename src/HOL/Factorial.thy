@@ -264,6 +264,10 @@ lemma pochhammer_of_nat_eq_0_iff:
     pochhammer_of_nat_eq_0_lemma'[of k n, where ?'a = 'a]
   by (auto simp add: not_le[symmetric])
 
+lemma pochhammer_0_left:
+  "pochhammer 0 n = (if n = 0 then 1 else 0)"
+  by (induction n) (simp_all add: pochhammer_rec)
+
 lemma pochhammer_eq_0_iff: "pochhammer a n = (0::'a::field_char_0) \<longleftrightarrow> (\<exists>k < n. a = - of_nat k)"
   by (auto simp add: pochhammer_prod eq_neg_iff_add_eq_0)
 
