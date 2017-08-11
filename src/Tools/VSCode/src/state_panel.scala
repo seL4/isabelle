@@ -57,10 +57,12 @@ class State_Panel private(val server: Server)
 
   /* query operation */
 
+  private val output_active = Synchronized(true)
+
   private val print_state =
     new Query_Operation(server.editor, (), "print_state", _ => (),
       (snapshot, results, body) =>
-        {
+        if (output_active.value) {
           val text = server.resources.output_pretty_message(Pretty.separate(body))
           val content =
             HTML.output_document(
@@ -160,8 +162,9 @@ function invoke_locate() { invoke_command("_isabelle.state-locate", [""" + id + 
 
   def exit()
   {
-    server.editor.send_wait_dispatcher { print_state.deactivate() }
+    output_active.change(_ => false)
     server.session.commands_changed -= main
     server.session.caret_focus -= main
+    server.editor.send_wait_dispatcher { print_state.deactivate() }
   }
 }

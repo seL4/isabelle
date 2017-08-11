@@ -67,6 +67,12 @@ export function exit(id: number)
   if (language_client) language_client.sendNotification(protocol.state_exit_type, { id: id })
 }
 
+export function exit_uri(uri: Uri)
+{
+  const id = decode_state(uri)
+  if (id) exit(id)
+}
+
 export function locate(id: number)
 {
   if (language_client) language_client.sendNotification(protocol.state_locate_type, { id: id })
