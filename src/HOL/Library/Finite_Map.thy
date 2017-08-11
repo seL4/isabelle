@@ -605,6 +605,13 @@ apply rule
 apply transfer'
 using set_of_map_inj unfolding inj_def by auto
 
+lemma fset_of_fmap_iff[simp]: "(a, b) |\<in>| fset_of_fmap m \<longleftrightarrow> fmlookup m a = Some b"
+by transfer' (auto simp: set_of_map_def)
+
+lemma fset_of_fmap_iff'[simp]: "(a, b) \<in> fset (fset_of_fmap m) \<longleftrightarrow> fmlookup m a = Some b"
+by transfer' (auto simp: set_of_map_def)
+
+
 lift_definition fmap_of_list :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap"
   is map_of
   parametric map_of_transfer
@@ -899,6 +906,47 @@ lemma fmrestrict_fset_fmmap[simp]: "fmrestrict_fset A (fmmap f m) = fmmap f (fmr
 
 lemma fmmap_subset[intro]: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmmap f m \<subseteq>\<^sub>f fmmap f n"
 by transfer' (auto simp: map_le_def)
+
+lemma fmmap_fset_of_fmap: "fset_of_fmap (fmmap f m) = (\<lambda>(k, v). (k, f v)) |`| fset_of_fmap m"
+including fset.lifting
+by transfer' (auto simp: set_of_map_def)
+
+
+subsection \<open>@{const size} setup\<close>
+
+definition size_fmap :: "('a \<Rightarrow> nat) \<Rightarrow> ('b \<Rightarrow> nat) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> nat" where
+[simp]: "size_fmap f g m = size_fset (\<lambda>(a, b). f a + g b) (fset_of_fmap m)"
+
+instantiation fmap :: (type, type) size begin
+
+definition size_fmap where
+size_fmap_overloaded_def: "size_fmap = Finite_Map.size_fmap (\<lambda>_. 0) (\<lambda>_. 0)"
+
+instance ..
+
+end
+
+lemma size_fmap_overloaded_simps[simp]: "size x = size (fset_of_fmap x)"
+unfolding size_fmap_overloaded_def
+by simp
+
+lemma fmap_size_o_map: "inj h \<Longrightarrow> size_fmap f g \<circ> fmmap h = size_fmap f (g \<circ> h)"
+  unfolding size_fmap_def
+  apply (auto simp: fun_eq_iff fmmap_fset_of_fmap)
+  apply (subst sum.reindex)
+  subgoal for m
+    using prod.inj_map[unfolded map_prod_def, of "\<lambda>x. x" h]
+    unfolding inj_on_def
+    by auto
+  subgoal
+    by (rule sum.cong) (auto split: prod.splits)
+  done
+
+setup \<open>
+BNF_LFP_Size.register_size_global @{type_name fmap} @{const_name size_fmap}
+  @{thm size_fmap_overloaded_def} @{thms size_fmap_def size_fmap_overloaded_simps}
+  @{thms fmap_size_o_map}
+\<close>
 
 
 subsection \<open>Additional operations\<close>
