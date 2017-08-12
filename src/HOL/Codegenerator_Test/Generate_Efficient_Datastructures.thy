@@ -25,14 +25,8 @@ declare [[code drop:
   Cardinality.finite'
   Cardinality.subset'
   Cardinality.eq_set
-  Gcd_fin
-  Lcm_fin
   Euclidean_Algorithm.Gcd
   Euclidean_Algorithm.Lcm
-  "Gcd :: nat set \<Rightarrow> nat"
-  "Lcm :: nat set \<Rightarrow> nat"
-  "Gcd :: int set \<Rightarrow> int"
-  "Lcm :: int set \<Rightarrow> int"
   "Gcd :: _ poly set \<Rightarrow> _"
   "Lcm :: _ poly set \<Rightarrow> _"
   permutations_of_set

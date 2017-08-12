@@ -671,20 +671,6 @@ proof -
       r_min_eq_r_min_opt[symmetric] r_min_alt_def)
 qed
 
-definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a" where [code del]: "Inf' x = Inf x"
-declare Inf'_def[symmetric, code_unfold]
-declare Inf_Set_fold[folded Inf'_def, code]
-
-lemma INF_Set_fold [code]:
-  fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
-  shows "INFIMUM (Set t) f = fold_keys (inf \<circ> f) t top"
-proof -
-  have "comp_fun_commute ((inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
-    by standard (auto simp add: fun_eq_iff ac_simps)
-  then show ?thesis
-    by (auto simp: INF_fold_inf finite_fold_fold_keys)
-qed
-
 lemma Max_fin_set_fold [code]:
   "Max (Set t) = 
   (if RBT.is_empty t
@@ -714,20 +700,67 @@ proof -
       r_max_eq_r_max_opt[symmetric] r_max_alt_def)
 qed
 
-definition Sup' :: "'a :: {linorder,complete_lattice} set \<Rightarrow> 'a"
-  where [code del]: "Sup' x = Sup x"
-declare Sup'_def[symmetric, code_unfold]
-declare Sup_Set_fold[folded Sup'_def, code]
+context
+begin
 
-lemma SUP_Set_fold [code]:
-  fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
-  shows "SUPREMUM (Set t) f = fold_keys (sup \<circ> f) t bot"
+qualified definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
+  where [code_abbrev]: "Inf' = Inf"
+
+lemma Inf'_Set_fold [code]:
+  "Inf' (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
+  by (simp add: Inf'_def Inf_Set_fold)
+
+qualified definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
+  where [code_abbrev]: "Sup' = Sup"
+
+lemma Sup'_Set_fold [code]:
+  "Sup' (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
+  by (simp add: Sup'_def Sup_Set_fold)
+
+lemma [code drop: Gcd_fin, code]:
+  "Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys gcd t (0::'a::{semiring_gcd, linorder})"
 proof -
-  have "comp_fun_commute ((sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
-    by standard (auto simp add: fun_eq_iff ac_simps)
+  have "comp_fun_commute (gcd :: 'a \<Rightarrow> _)"
+    by standard (simp add: fun_eq_iff ac_simps)
+  with finite_fold_fold_keys [of _ 0 t]
+  have "Finite_Set.fold gcd 0 (Set t) = fold_keys gcd t 0"
+    by blast
   then show ?thesis
-    by (auto simp: SUP_fold_sup finite_fold_fold_keys)
+    by (simp add: Gcd_fin.eq_fold)
 qed
+    
+lemma [code drop: "Gcd :: _ \<Rightarrow> nat", code]:
+  "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
+  by simp
+
+lemma [code drop: "Gcd :: _ \<Rightarrow> int", code]:
+  "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
+  by simp
+
+lemma [code drop: Lcm_fin,code]:
+  "Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys lcm t (1::'a::{semiring_gcd, linorder})"
+proof -
+  have "comp_fun_commute (lcm :: 'a \<Rightarrow> _)"
+    by standard (simp add: fun_eq_iff ac_simps)
+  with finite_fold_fold_keys [of _ 1 t]
+  have "Finite_Set.fold lcm 1 (Set t) = fold_keys lcm t 1"
+    by blast
+  then show ?thesis
+    by (simp add: Lcm_fin.eq_fold)
+qed
+
+qualified definition Lcm' :: "'a :: semiring_Gcd set \<Rightarrow> 'a"
+  where [code_abbrev]: "Lcm' = Lcm"
+
+lemma [code drop: "Lcm :: _ \<Rightarrow> nat", code]:
+  "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
+  by simp
+
+lemma [code drop: "Lcm :: _ \<Rightarrow> int", code]:
+  "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
+  by simp
+
+end
 
 lemma sorted_list_set[code]: "sorted_list_of_set (Set t) = RBT.keys t"
   by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
