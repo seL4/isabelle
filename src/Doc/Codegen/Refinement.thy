@@ -184,12 +184,15 @@ subsection \<open>Datatype refinement involving invariants \label{sec:invariant}
 text \<open>
   Datatype representation involving invariants require a dedicated
   setup for the type and its primitive operations.  As a running
-  example, we implement a type @{text "'a dlist"} of list consisting
+  example, we implement a type @{typ "'a dlist"} of lists consisting
   of distinct elements.
 
+  The specification of @{typ "'a dlist"} itself can be found in theory
+  @{theory Dlist}.
+
   The first step is to decide on which representation the abstract
-  type (in our example @{text "'a dlist"}) should be implemented.
-  Here we choose @{text "'a list"}.  Then a conversion from the concrete
+  type (in our example @{typ "'a dlist"}) should be implemented.
+  Here we choose @{typ "'a list"}.  Then a conversion from the concrete
   type to the abstract type must be specified, here:
 \<close>
 
