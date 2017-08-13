@@ -1507,7 +1507,7 @@ next
         let ?\<phi> = "\<lambda>k x. if x \<in> cbox (a + (b - a) /\<^sub>R (Suc k)) (b - (b - a) /\<^sub>R (Suc k))
                         then g x - f x \<bullet> j else 0"
         have "(\<lambda>x. g x - f x \<bullet> j) integrable_on box a b"
-        proof (rule monotone_convergence_increasing [of ?\<phi>, THEN conjunct1], safe)
+        proof (rule monotone_convergence_increasing [of ?\<phi>, THEN conjunct1])
           have *: "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k)) \<inter> box a b
                  = cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))" for k
             using box_subset_cbox "1" by fastforce
@@ -1562,7 +1562,7 @@ next
               apply (simp add: integral_restrict_Int integral_diff)
               using "*" box_subset_cbox by (blast intro: Bg add_mono order_trans [OF abs_triangle_ineq4])
           qed
-          then show "bounded {integral (box a b) (?\<phi> k)| k. True}"
+          then show "bounded (range (\<lambda>k. integral (box a b) (?\<phi> k)))"
             apply (simp add: bounded_pos)
             apply (rule_tac x="Bg+Bf" in exI)
             using \<open>0 < Bf\<close> \<open>0 < Bg\<close>  apply auto
@@ -1585,7 +1585,7 @@ next
         let ?\<phi> = "\<lambda>k x. if x \<in> cbox (a + (b - a) /\<^sub>R (Suc k)) (b - (b - a) /\<^sub>R (Suc k))
                         then f x \<bullet> j - g x else 0"
         have "(\<lambda>x. f x \<bullet> j - g x) integrable_on box a b"
-        proof (rule monotone_convergence_increasing [of ?\<phi>, THEN conjunct1], safe)
+        proof (rule monotone_convergence_increasing [of ?\<phi>, THEN conjunct1])
           have *: "cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k)) \<inter> box a b
                  = cbox (a + (b - a) /\<^sub>R (1 + real k)) (b - (b - a) /\<^sub>R (1 + real k))" for k
             using box_subset_cbox "1" by fastforce
@@ -1642,7 +1642,7 @@ next
               apply (simp add: integral_restrict_Int integral_diff)
               using "*" box_subset_cbox by (blast intro: Bg add_mono order_trans [OF abs_triangle_ineq4])
           qed
-          then show "bounded {integral (box a b) (?\<phi> k)| k. True}"
+          then show "bounded (range (\<lambda>k. integral (box a b) (?\<phi> k)))"
             apply (simp add: bounded_pos)
             apply (rule_tac x="Bf+Bg" in exI)
             using \<open>0 < Bf\<close> \<open>0 < Bg\<close>  by auto

@@ -5389,13 +5389,6 @@ lemma not_compact_UNIV[simp]:
   shows "~ compact (UNIV::'a set)"
     by (simp add: compact_eq_bounded_closed)
 
-(* TODO: is this lemma necessary? *)
-lemma bounded_increasing_convergent:
-  fixes s :: "nat \<Rightarrow> real"
-  shows "bounded {s n| n. True} \<Longrightarrow> \<forall>n. s n \<le> s (Suc n) \<Longrightarrow> \<exists>l. s \<longlonglongrightarrow> l"
-  using Bseq_mono_convergent[of s] incseq_Suc_iff[of s]
-  by (auto simp: image_def Bseq_eq_bounded convergent_def incseq_def)
-
 instance real :: heine_borel
 proof
   fix f :: "nat \<Rightarrow> real"

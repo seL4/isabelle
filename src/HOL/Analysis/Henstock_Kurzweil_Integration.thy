@@ -6018,12 +6018,19 @@ qed
 
 subsection \<open>Monotone convergence (bounded interval first)\<close>
 
+(* TODO: is this lemma necessary? *)
+lemma bounded_increasing_convergent:
+  fixes f :: "nat \<Rightarrow> real"
+  shows "\<lbrakk>bounded (range f); \<And>n. f n \<le> f (Suc n)\<rbrakk> \<Longrightarrow> \<exists>l. f \<longlonglongrightarrow> l"
+  using Bseq_mono_convergent[of f] incseq_Suc_iff[of f]
+  by (auto simp: image_def Bseq_eq_bounded convergent_def incseq_def)
+
 lemma monotone_convergence_interval:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on cbox a b"
     and "\<forall>k. \<forall>x\<in>cbox a b.(f k x) \<le> f (Suc k) x"
     and "\<forall>x\<in>cbox a b. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and "bounded {integral (cbox a b) (f k) | k . k \<in> UNIV}"
+    and bounded: "bounded (range (\<lambda>k. integral (cbox a b) (f k)))"
   shows "g integrable_on cbox a b \<and> ((\<lambda>k. integral (cbox a b) (f k)) \<longlongrightarrow> integral (cbox a b) g) sequentially"
 proof (cases "content (cbox a b) = 0")
   case True
@@ -6049,45 +6056,31 @@ next
       apply auto
       done
   qed
-  have "\<exists>i. ((\<lambda>k. integral (cbox a b) (f k)) \<longlongrightarrow> i) sequentially"
-    apply (rule bounded_increasing_convergent)
-    defer
-    apply rule
-    apply (rule integral_le)
-    apply safe
-    apply (rule assms(1-2)[rule_format])+
-    using assms(4)
-    apply auto
-    done
-  then guess i..note i=this
-  have i': "\<And>k. (integral(cbox a b) (f k)) \<le> i\<bullet>1"
-    apply (rule Lim_component_ge)
-    apply (rule i)
-    apply (rule trivial_limit_sequentially)
+  have int_inc: "\<And>n. integral (cbox a b) (f n) \<le> integral (cbox a b) (f (Suc n))"
+    by (metis integral_le assms(1-2))
+  then obtain i where i: "(\<lambda>k. integral (cbox a b) (f k)) \<longlonglongrightarrow> i"
+    using bounded_increasing_convergent bounded by blast
+  have "\<And>k. \<forall>\<^sub>F x in sequentially. integral (cbox a b) (f k) \<le> integral (cbox a b) (f x) \<bullet> 1"
     unfolding eventually_sequentially
-    apply (rule_tac x=k in exI)
-    apply clarify
-    apply (erule transitive_stepwise_le)
-    prefer 3
-    unfolding inner_simps real_inner_1_right
-    apply (rule integral_le)
-    apply (rule assms(1-2)[rule_format])+
-    using assms(2)
-    apply auto
-    done
-
+    by (force intro: transitive_stepwise_le int_inc)
+  then have i': "\<And>k. (integral(cbox a b) (f k)) \<le> i\<bullet>1"
+    using Lim_component_ge [OF i] trivial_limit_sequentially by blast
   have "(g has_integral i) (cbox a b)"
     unfolding has_integral
   proof (safe, goal_cases)
-    case e: (1 e)
-    then have "\<forall>k. (\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
+    fix e::real
+    assume e: "e > 0"
+    have "\<And>k. (\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
       norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f k x) - integral (cbox a b) (f k)) < e/2 ^ (k + 2)))"
-      apply -
-      apply rule
       apply (rule assms(1)[unfolded has_integral_integral has_integral,rule_format])
-      apply auto
+      using e apply auto
       done
-    from choice[OF this] guess c..note c=conjunctD2[OF this[rule_format],rule_format]
+    then obtain c where c:
+          "\<And>x. gauge (c x)"
+          "\<And>x p. \<lbrakk>p tagged_division_of cbox a b; c x fine p\<rbrakk> \<Longrightarrow>
+              norm ((\<Sum>(u, ka)\<in>p. content ka *\<^sub>R f x u) - integral (cbox a b) (f x))
+              < e / 2 ^ (x + 2)"
+      by metis
 
     have "\<exists>r. \<forall>k\<ge>r. 0 \<le> i\<bullet>1 - (integral (cbox a b) (f k)) \<and> i\<bullet>1 - (integral (cbox a b) (f k)) < e / 4"
     proof -
@@ -6095,11 +6088,7 @@ next
         using e by auto
       from LIMSEQ_D [OF i this] guess r ..
       then show ?thesis
-        apply (rule_tac x=r in exI)
-        apply rule
-        apply (erule_tac x=k in allE)
-        subgoal for k using i'[of k] by auto
-        done
+        using i' by auto
     qed
     then guess r..note r=conjunctD2[OF this[rule_format]]
 
@@ -6122,7 +6111,14 @@ next
     qed
     from bchoice[OF this] guess m..note m=conjunctD2[OF this[rule_format],rule_format]
     define d where "d x = c (m x) x" for x
-    show ?case
+    show "\<exists>d. gauge d \<and>
+             (\<forall>p. p tagged_division_of cbox a b \<and>
+                  d fine p \<longrightarrow>
+                  norm
+                   ((\<Sum>(x, k)\<in>p.
+                       content k *\<^sub>R g x) -
+                    i)
+                  < e)"
       apply (rule_tac x=d in exI)
     proof safe
       show "gauge d"
@@ -6215,7 +6211,6 @@ next
               apply (simp add: e)
               apply safe
               apply (rule c)+
-              apply rule
               apply assumption+
               apply (rule tagged_partial_division_subset[of p])
               apply (rule p(1)[unfolded tagged_division_of_def,THEN conjunct1])
@@ -6286,22 +6281,22 @@ qed
 
 lemma monotone_convergence_increasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
-  assumes "\<forall>k. (f k) integrable_on s"
-    and "\<forall>k. \<forall>x\<in>s. (f k x) \<le> (f (Suc k) x)"
-    and "\<forall>x\<in>s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and "bounded {integral s (f k)| k. True}"
-  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
+  assumes "\<And>k. (f k) integrable_on S"
+    and "\<And>k x. x \<in> S \<Longrightarrow> (f k x) \<le> (f (Suc k) x)"
+    and "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+    and "bounded (range (\<lambda>k. integral S (f k)))"
+  shows "g integrable_on S \<and> ((\<lambda>k. integral S (f k)) \<longlongrightarrow> integral S g) sequentially"
 proof -
-  have lem: "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
-    if "\<forall>k. \<forall>x\<in>s. 0 \<le> f k x"
-    and "\<forall>k. (f k) integrable_on s"
-    and "\<forall>k. \<forall>x\<in>s. f k x \<le> f (Suc k) x"
-    and "\<forall>x\<in>s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and "bounded {integral s (f k)| k. True}"
-    for f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real" and g s
+  have lem: "g integrable_on S \<and> ((\<lambda>k. integral S (f k)) \<longlongrightarrow> integral S g) sequentially"
+    if "\<forall>k. \<forall>x\<in>S. 0 \<le> f k x"
+    and "\<forall>k. (f k) integrable_on S"
+    and "\<forall>k. \<forall>x\<in>S. f k x \<le> f (Suc k) x"
+    and "\<forall>x\<in>S. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+    and bou: "bounded (range(\<lambda>k. integral S (f k)))"
+    for f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real" and g S
   proof -
     note assms=that[rule_format]
-    have "\<forall>x\<in>s. \<forall>k. (f k x)\<bullet>1 \<le> (g x)\<bullet>1"
+    have "\<forall>x\<in>S. \<forall>k. (f k x)\<bullet>1 \<le> (g x)\<bullet>1"
       apply safe
       apply (rule Lim_component_ge)
       apply (rule that(4)[rule_format])
@@ -6312,19 +6307,12 @@ proof -
       using assms(3) by (force intro: transitive_stepwise_le)
     note fg=this[rule_format]
 
-    have "\<exists>i. ((\<lambda>k. integral s (f k)) \<longlongrightarrow> i) sequentially"
-      apply (rule bounded_increasing_convergent)
-      apply (rule that(5))
-      apply rule
-      apply (rule integral_le)
-      apply (rule that(2)[rule_format])+
-      using that(3)
-      apply auto
-      done
-    then guess i..note i=this
-    have "\<And>k. \<forall>x\<in>s. \<forall>n\<ge>k. f k x \<le> f n x"
+    obtain i where i: "(\<lambda>k. integral S (f k)) \<longlonglongrightarrow> i"
+      using bounded_increasing_convergent [OF bou]
+      using \<open>\<forall>k. \<forall>x\<in>S. f k x \<le> f (Suc k) x\<close> assms(2) integral_le by blast
+    have "\<And>k. \<forall>x\<in>S. \<forall>n\<ge>k. f k x \<le> f n x"
       using assms(3) by (force intro: transitive_stepwise_le)
-    then have i': "\<forall>k. (integral s (f k))\<bullet>1 \<le> i\<bullet>1"
+    then have i': "\<forall>k. (integral S (f k))\<bullet>1 \<le> i\<bullet>1"
       apply -
       apply rule
       apply (rule Lim_component_ge)
@@ -6339,45 +6327,45 @@ proof -
       apply auto
       done
 
-    note int = assms(2)[unfolded integrable_alt[of _ s],THEN conjunct1,rule_format]
-    have ifif: "\<And>k t. (\<lambda>x. if x \<in> t then if x \<in> s then f k x else 0 else 0) =
-      (\<lambda>x. if x \<in> t \<inter> s then f k x else 0)"
+    note int = assms(2)[unfolded integrable_alt[of _ S],THEN conjunct1,rule_format]
+    have ifif: "\<And>k t. (\<lambda>x. if x \<in> t then if x \<in> S then f k x else 0 else 0) =
+      (\<lambda>x. if x \<in> t \<inter> S then f k x else 0)"
       by (rule ext) auto
-    have int': "\<And>k a b. f k integrable_on cbox a b \<inter> s"
+    have int': "\<And>k a b. f k integrable_on cbox a b \<inter> S"
       apply (subst integrable_restrict_UNIV[symmetric])
       apply (subst ifif[symmetric])
       apply (subst integrable_restrict_UNIV)
       apply (rule int)
       done
-    have "\<And>a b. (\<lambda>x. if x \<in> s then g x else 0) integrable_on cbox a b \<and>
-      ((\<lambda>k. integral (cbox a b) (\<lambda>x. if x \<in> s then f k x else 0)) \<longlongrightarrow>
-      integral (cbox a b) (\<lambda>x. if x \<in> s then g x else 0)) sequentially"
+    have "\<And>a b. (\<lambda>x. if x \<in> S then g x else 0) integrable_on cbox a b \<and>
+      ((\<lambda>k. integral (cbox a b) (\<lambda>x. if x \<in> S then f k x else 0)) \<longlongrightarrow>
+      integral (cbox a b) (\<lambda>x. if x \<in> S then g x else 0)) sequentially"
     proof (rule monotone_convergence_interval, safe, goal_cases)
       case 1
       show ?case by (rule int)
     next
       case (2 _ _ _ x)
       then show ?case
-        apply (cases "x \<in> s")
+        apply (cases "x \<in> S")
         using assms(3)
         apply auto
         done
     next
       case (3 _ _ x)
       then show ?case
-        apply (cases "x \<in> s")
+        apply (cases "x \<in> S")
         using assms(4)
         apply auto
         done
     next
       case (4 a b)
       note * = integral_nonneg
-      have "\<And>k. norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f k x else 0)) \<le> norm (integral s (f k))"
+      have "\<And>k. norm (integral (cbox a b) (\<lambda>x. if x \<in> S then f k x else 0)) \<le> norm (integral S (f k))"
         unfolding real_norm_def
         apply (subst abs_of_nonneg)
         apply (rule *[OF int])
         apply safe
-        apply (case_tac "x \<in> s")
+        apply (case_tac "x \<in> S")
         apply (drule assms(1))
         prefer 3
         apply (subst abs_of_nonneg)
@@ -6395,7 +6383,7 @@ proof -
         apply safe
         apply (rule_tac x=aa in exI)
         apply safe
-        apply (erule_tac x="integral s (f k)" in ballE)
+        apply (erule_tac x="integral S (f k)" in ballE)
         apply (rule order_trans)
         apply assumption
         apply auto
@@ -6403,7 +6391,7 @@ proof -
     qed
     note g = conjunctD2[OF this]
 
-    have "(g has_integral i) s"
+    have "(g has_integral i) S"
       unfolding has_integral_alt'
       apply safe
       apply (rule g(1))
@@ -6425,7 +6413,7 @@ proof -
         from \<open>e > 0\<close> have "e/2 > 0"
           by auto
         from LIMSEQ_D [OF g(2)[of a b] this] guess M..note M=this
-        have **: "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f N x else 0) - i) < e/2"
+        have **: "norm (integral (cbox a b) (\<lambda>x. if x \<in> S then f N x else 0) - i) < e/2"
           apply (rule norm_triangle_half_l)
           using B(2)[rule_format,OF ab] N[rule_format,of N]
           apply -
@@ -6436,7 +6424,7 @@ proof -
         have *: "\<And>f1 f2 g. \<bar>f1 - i\<bar> < e/2 \<longrightarrow> \<bar>f2 - g\<bar> < e/2 \<longrightarrow>
           f1 \<le> f2 \<longrightarrow> f2 \<le> i \<longrightarrow> \<bar>g - i\<bar> < e"
           unfolding real_inner_1_right by arith
-        show "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then g x else 0) - i) < e"
+        show "norm (integral (cbox a b) (\<lambda>x. if x \<in> S then g x else 0) - i) < e"
           unfolding real_norm_def
           apply (rule *[rule_format])
           apply (rule **[unfolded real_norm_def])
@@ -6447,7 +6435,7 @@ proof -
           apply (rule order_trans[OF _ i'[rule_format,of "M + N",unfolded real_inner_1_right]])
         proof (safe, goal_cases)
           case (2 x)
-          have "\<And>m. x \<in> s \<Longrightarrow> \<forall>n\<ge>m. (f m x)\<bullet>1 \<le> (f n x)\<bullet>1"
+          have "\<And>m. x \<in> S \<Longrightarrow> \<forall>n\<ge>m. (f m x)\<bullet>1 \<le> (f n x)\<bullet>1"
             using assms(3) by (force intro: transitive_stepwise_le)
           then show ?case
             by auto
@@ -6472,16 +6460,16 @@ proof -
       done
   qed
 
-  have sub: "\<And>k. integral s (\<lambda>x. f k x - f 0 x) = integral s (f k) - integral s (f 0)"
+  have sub: "\<And>k. integral S (\<lambda>x. f k x - f 0 x) = integral S (f k) - integral S (f 0)"
     apply (subst integral_diff)
     apply (rule assms(1)[rule_format])+
     apply rule
     done
-  have "\<And>x m. x \<in> s \<Longrightarrow> \<forall>n\<ge>m. f m x \<le> f n x"
+  have "\<And>x m. x \<in> S \<Longrightarrow> \<forall>n\<ge>m. f m x \<le> f n x"
     using assms(2) by (force intro: transitive_stepwise_le)
   note * = this[rule_format]
-  have "(\<lambda>x. g x - f 0 x) integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. f (Suc k) x - f 0 x)) \<longlongrightarrow>
-    integral s (\<lambda>x. g x - f 0 x)) sequentially"
+  have "(\<lambda>x. g x - f 0 x) integrable_on S \<and> ((\<lambda>k. integral S (\<lambda>x. f (Suc k) x - f 0 x)) \<longlongrightarrow>
+    integral S (\<lambda>x. g x - f 0 x)) sequentially"
     apply (rule lem)
     apply safe
   proof goal_cases
@@ -6513,16 +6501,16 @@ proof -
       using assms(4)
       unfolding bounded_iff
       apply safe
-      apply (rule_tac x="a + norm (integral s (\<lambda>x. f 0 x))" in exI)
+      apply (rule_tac x="a + norm (integral S (\<lambda>x. f 0 x))" in exI)
       apply safe
-      apply (erule_tac x="integral s (\<lambda>x. f (Suc k) x)" in ballE)
+      apply (erule_tac x="integral S (\<lambda>x. f (Suc k) x)" in ballE)
       unfolding sub
       apply (rule order_trans[OF norm_triangle_ineq4])
       apply auto
       done
   qed
   note conjunctD2[OF this]
-  note tendsto_add[OF this(2) tendsto_const[of "integral s (f 0)"]]
+  note tendsto_add[OF this(2) tendsto_const[of "integral S (f 0)"]]
     integrable_add[OF this(1) assms(1)[rule_format,of 0]]
   then show ?thesis
     unfolding sub
@@ -6547,13 +6535,12 @@ lemma has_integral_monotone_convergence_increasing:
 proof -
   have x_eq: "x = (\<lambda>i. integral s (f i))"
     by (simp add: integral_unique[OF f])
-  then have x: "{integral s (f k) |k. True} = range x"
+  then have x: "range(\<lambda>k. integral s (f k)) = range x"
     by auto
-
   have *: "g integrable_on s \<and> (\<lambda>k. integral s (f k)) \<longlonglongrightarrow> integral s g"
   proof (intro monotone_convergence_increasing allI ballI assms)
-    show "bounded {integral s (f k) |k. True}"
-      unfolding x by (rule convergent_imp_bounded) fact
+    show "bounded (range(\<lambda>k. integral s (f k)))"
+      using x convergent_imp_bounded assms by metis
   qed (use f in auto)
   then have "integral s g = x'"
     by (intro LIMSEQ_unique[OF _ \<open>x \<longlonglongrightarrow> x'\<close>]) (simp add: x_eq)
@@ -6563,40 +6550,34 @@ qed
 
 lemma monotone_convergence_decreasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
-  assumes "\<forall>k. (f k) integrable_on s"
-    and "\<forall>k. \<forall>x\<in>s. f (Suc k) x \<le> f k x"
-    and "\<forall>x\<in>s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and "bounded {integral s (f k)| k. True}"
-  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
+  assumes "\<And>k. (f k) integrable_on S"
+    and "\<And>k x. x \<in> S \<Longrightarrow> f (Suc k) x \<le> f k x"
+    and "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+    and "bounded (range(\<lambda>k. integral S (f k)))"
+  shows "g integrable_on S \<and> ((\<lambda>k. integral S (f k)) \<longlongrightarrow> integral S g) sequentially"
 proof -
-  note assm = assms[rule_format]
-  have *: "{integral s (\<lambda>x. - f k x) |k. True} = op *\<^sub>R (- 1) ` {integral s (f k)| k. True}"
+  have *: "{integral S (\<lambda>x. - f k x) |k. True} = op *\<^sub>R (- 1) ` (range(\<lambda>k. integral S (f k)))"
     apply safe
     unfolding image_iff
-    apply (rule_tac x="integral s (f k)" in bexI)
+    apply (rule_tac x="integral S (f k)" in bexI)
     prefer 3
     apply (rule_tac x=k in exI)
     apply auto
     done
-  have "(\<lambda>x. - g x) integrable_on s \<and>
-    ((\<lambda>k. integral s (\<lambda>x. - f k x)) \<longlongrightarrow> integral s (\<lambda>x. - g x)) sequentially"
-    apply (rule monotone_convergence_increasing)
-    apply safe
-    apply (rule integrable_neg)
-    apply (rule assm)
-    defer
-    apply (rule tendsto_minus)
-    apply (rule assm)
-    apply assumption
-    unfolding *
-    apply (rule bounded_scaling)
-    using assm
-    apply auto
-    done
-  note * = conjunctD2[OF this]
-  show ?thesis
-    using integrable_neg[OF *(1)] tendsto_minus[OF *(2)]
-    by auto
+  have "(\<lambda>x. - g x) integrable_on S \<and>
+    ((\<lambda>k. integral S (\<lambda>x. - f k x)) \<longlongrightarrow> integral S (\<lambda>x. - g x)) sequentially"
+  proof (rule monotone_convergence_increasing)
+    show "\<And>k. (\<lambda>x. - f k x) integrable_on S"
+      by (blast intro: integrable_neg assms)
+    show "\<And>k x. x \<in> S \<Longrightarrow> - f k x \<le> - f (Suc k) x"
+      by (simp add: assms)
+    show "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>k. - f k x) \<longlonglongrightarrow> - g x"
+      by (simp add: assms tendsto_minus)
+    show "bounded (range(\<lambda>k. integral S (\<lambda>x. - f k x)))"
+      using "*" assms(4) bounded_scaling by auto
+  qed
+  then show ?thesis
+    by (force dest: integrable_neg tendsto_minus)
 qed
 
 lemma integral_norm_bound_integral:
@@ -7553,7 +7534,7 @@ proof -
       also have "\<dots> \<le> exp (- a * c) / a" using a by simp
       finally show ?thesis .
     qed (insert a, simp_all add: integral_f)
-    thus "bounded {integral {c..} (f k) |k. True}"
+    thus "bounded (range(\<lambda>k. integral {c..} (f k)))"
       by (intro boundedI[of _ "exp (-a*c)/a"]) auto
   qed (auto simp: f_def)
 
@@ -7646,7 +7627,7 @@ proof (cases "c = 0")
       hence "F k = abs (F k)" by simp
       finally have "abs (F k) \<le>  c powr (a + 1) / (a + 1)" .
     }
-    thus "bounded {integral {0..c} (f k) |k. True}"
+    thus "bounded (range(\<lambda>k. integral {0..c} (f k)))"
       by (intro boundedI[of _ "c powr (a+1) / (a+1)"]) (auto simp: integral_f)
   qed
 
@@ -7732,7 +7713,7 @@ proof -
         by (intro powr_mono2') simp_all
       with assms show ?thesis by (auto simp: divide_simps F_def integral_f)
     qed (insert assms, simp add: integral_f F_def divide_simps)
-    thus "bounded {integral {a..} (f n) |n. True}"
+    thus "bounded (range(\<lambda>k. integral {a..} (f k)))"
       unfolding bounded_iff by (intro exI[of _ "-F a"]) auto
   qed
 

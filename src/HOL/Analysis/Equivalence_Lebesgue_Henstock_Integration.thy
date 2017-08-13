@@ -513,11 +513,11 @@ next
 
   have *: "f integrable_on UNIV \<and> (\<lambda>k. integral UNIV (U k)) \<longlonglongrightarrow> integral UNIV f"
   proof (rule monotone_convergence_increasing)
-    show "\<forall>k. U k integrable_on UNIV" using U_int by auto
-    show "\<forall>k. \<forall>x\<in>UNIV. U k x \<le> U (Suc k) x" using \<open>incseq U\<close> by (auto simp: incseq_def le_fun_def)
-    then show "bounded {integral UNIV (U k) |k. True}"
+    show "\<And>k. U k integrable_on UNIV" using U_int by auto
+    show "\<And>k x. x\<in>UNIV \<Longrightarrow> U k x \<le> U (Suc k) x" using \<open>incseq U\<close> by (auto simp: incseq_def le_fun_def)
+    then show "bounded (range (\<lambda>k. integral UNIV (U k)))"
       using bnd int_eq by (auto simp: bounded_real intro!: exI[of _ r])
-    show "\<forall>x\<in>UNIV. (\<lambda>k. U k x) \<longlonglongrightarrow> f x"
+    show "\<And>x. x\<in>UNIV \<Longrightarrow> (\<lambda>k. U k x) \<longlonglongrightarrow> f x"
       using seq by auto
   qed
   moreover have "(\<lambda>i. (\<integral>\<^sup>+x. U i x \<partial>lborel)) \<longlonglongrightarrow> (\<integral>\<^sup>+x. f x \<partial>lborel)"
