@@ -9,16 +9,6 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
-lemma norm_triangle_le_sub: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
-  apply (subst(asm)(2) norm_minus_cancel[symmetric])
-  apply (drule norm_triangle_le)
-  apply (auto simp add: algebra_simps)
-  done
-
-lemma eps_leI: 
-  assumes "(\<And>e::'a::linordered_idom. 0 < e \<Longrightarrow> x < y + e)" shows "x \<le> y"
-  by (metis add_diff_eq assms diff_diff_add diff_gt_0_iff_gt linorder_not_less order_less_irrefl)
-
 (*FIXME DELETE*)
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 
@@ -3775,7 +3765,7 @@ next
               norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
           by (rule arg_cong[where f=norm]) (auto simp: scaleR_left.diff)
         also have "\<dots> \<le> e/2 * norm (u - x) + e/2 * norm (v - x)"
-          by (metis norm_triangle_le_sub add_mono * xd)
+          by (metis norm_triangle_le_diff add_mono * xd)
         also have "\<dots> \<le> e/2 * norm (v - u)"
           using p(2)[OF xk] by (auto simp add: field_simps k)
         also have "\<dots> < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
@@ -6273,16 +6263,16 @@ qed
 
 lemma monotone_convergence_increasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
-  assumes "\<And>k. (f k) integrable_on S"
+  assumes int_f: "\<And>k. (f k) integrable_on S"
     and "\<And>k x. x \<in> S \<Longrightarrow> (f k x) \<le> (f (Suc k) x)"
-    and "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and "bounded (range (\<lambda>k. integral S (f k)))"
+    and fg: "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+    and bou: "bounded (range (\<lambda>k. integral S (f k)))"
   shows "g integrable_on S \<and> ((\<lambda>k. integral S (f k)) \<longlongrightarrow> integral S g) sequentially"
 proof -
   have lem: "g integrable_on S \<and> ((\<lambda>k. integral S (f k)) \<longlongrightarrow> integral S g) sequentially"
     if f0: "\<And>k x. x \<in> S \<Longrightarrow> 0 \<le> f k x"
     and int_f: "\<And>k. (f k) integrable_on S"
-    and le: "\<And>k. \<forall>x\<in>S. f k x \<le> f (Suc k) x"
+    and le: "\<And>k x. x \<in> S \<Longrightarrow> f k x \<le> f (Suc k) x"
     and lim: "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
     and bou: "bounded (range(\<lambda>k. integral S (f k)))"
     for f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real" and g S
@@ -6294,8 +6284,7 @@ proof -
       using le  by (force intro: transitive_stepwise_le that) 
 
     obtain i where i: "(\<lambda>k. integral S (f k)) \<longlonglongrightarrow> i"
-      using bounded_increasing_convergent [OF bou]
-      using le int_f integral_le by blast
+      using bounded_increasing_convergent [OF bou] le int_f integral_le by blast
     have i': "(integral S (f k))\<bullet>1 \<le> i\<bullet>1" for k
     proof -
       have *: "\<And>k. \<forall>x\<in>S. \<forall>n\<ge>k. f k x \<le> f n x"
@@ -6307,21 +6296,18 @@ proof -
         using * by (simp add: int_f integral_le)
     qed
 
-    have int: "(\<lambda>x. if x \<in> S then f k x else 0) integrable_on cbox a b" for a b k
+    let ?f = "(\<lambda>k x. if x \<in> S then f k x else 0)"
+    let ?g = "(\<lambda>x. if x \<in> S then g x else 0)"
+    have int: "?f k integrable_on cbox a b" for a b k
       by (simp add: int_f integrable_altD(1))
     have int': "\<And>k a b. f k integrable_on cbox a b \<inter> S"
       using int by (simp add: Int_commute integrable_restrict_Int) 
-    have "(\<lambda>x. if x \<in> S then g x else 0) integrable_on cbox a b \<and>
-          (\<lambda>k. integral (cbox a b) (\<lambda>x. if x \<in> S then f k x else 0))
-          \<longlonglongrightarrow> integral (cbox a b) (\<lambda>x. if x \<in> S then g x else 0)" for a b
-    proof (rule monotone_convergence_interval, goal_cases)
-      case 1
-      show ?case by (rule int)
-    next
-      case 4
-      have "norm (integral (cbox a b) (\<lambda>x. if x \<in> S then f k x else 0)) \<le> norm (integral S (f k))" for k
+    have g: "?g integrable_on cbox a b \<and>
+             (\<lambda>k. integral (cbox a b) (?f k)) \<longlonglongrightarrow> integral (cbox a b) ?g" for a b
+    proof (rule monotone_convergence_interval)
+      have "norm (integral (cbox a b) (?f k)) \<le> norm (integral S (f k))" for k
       proof -
-        have "0 \<le> integral (cbox a b) (\<lambda>x. if x \<in> S then f k x else 0)"
+        have "0 \<le> integral (cbox a b) (?f k)"
           by (metis (no_types) integral_nonneg Int_iff f0 inf_commute integral_restrict_Int int')
         moreover have "0 \<le> integral S (f k)"
           by (simp add: integral_nonneg f0 int_f)
@@ -6332,121 +6318,100 @@ proof -
       qed
       moreover obtain B where "\<And>x. x \<in> range (\<lambda>k. integral S (f k)) \<Longrightarrow> norm x \<le> B"
         using bou unfolding bounded_iff by blast
-      ultimately show ?case
+      ultimately show "bounded (range (\<lambda>k. integral (cbox a b) (?f k)))"
         unfolding bounded_iff by (blast intro: order_trans)
-    qed (use le lim in auto)
-    note g = conjunctD2[OF this]
-
-    have "(g has_integral i) S"
-      unfolding has_integral_alt'
-      apply safe
-      apply (rule g(1))
-    proof goal_cases
-      case (1 e)
-      then have "e/4>0"
-        by auto
-      from LIMSEQ_D [OF i this] guess N..note N=this
-      note that(2)[of N,unfolded has_integral_integral has_integral_alt'[of "f N"]]
-      from this[THEN conjunct2,rule_format,OF \<open>e/4>0\<close>] guess B..note B=conjunctD2[OF this]
-      show ?case
-        apply rule
-        apply rule
-        apply (rule B)
-        apply safe
+    qed (use int le lim in auto)
+    moreover have "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow> norm (integral (cbox a b) ?g - i) < e"
+      if "0 < e" for e
+    proof -
+      have "e/4>0"
+        using that by auto
+      with LIMSEQ_D [OF i] obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> norm (integral S (f n) - i) < e/4"
+        by metis
+      with int_f[of N, unfolded has_integral_integral has_integral_alt'[of "f N"]] 
+      obtain B where "0 < B" and B: 
+        "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> norm (integral (cbox a b) (?f N) - integral S (f N)) < e / 4"
+        by (meson \<open>0 < e / 4\<close>)
+      have "norm (integral (cbox a b) ?g - i) < e" if  ab: "ball 0 B \<subseteq> cbox a b" for a b
       proof -
-        fix a b :: 'n
-        assume ab: "ball 0 B \<subseteq> cbox a b"
-        from \<open>e > 0\<close> have "e/2 > 0"
-          by auto
-        from LIMSEQ_D [OF g(2)[of a b] this] guess M..note M=this
-        have **: "norm (integral (cbox a b) (\<lambda>x. if x \<in> S then f N x else 0) - i) < e/2"
-        proof (rule norm_triangle_half_l)
-          show "norm (integral (cbox a b) (\<lambda>x. if x \<in> S then f N x else 0) - integral S (f N))
-                < e / 2 / 2"
-            using B(2)[rule_format,OF ab] by simp
-          show "norm (i - integral S (f N)) < e / 2 / 2"
-            using N by (simp add: abs_minus_commute)
-        qed
-        have *: "\<And>f1 f2 g. \<bar>f1 - i\<bar> < e/2 \<longrightarrow> \<bar>f2 - g\<bar> < e/2 \<longrightarrow>
-          f1 \<le> f2 \<longrightarrow> f2 \<le> i \<longrightarrow> \<bar>g - i\<bar> < e"
+        obtain M where M: "\<And>n. n \<ge> M \<Longrightarrow> abs (integral (cbox a b) (?f n) - integral (cbox a b) ?g) < e / 2"
+          using \<open>e > 0\<close> g by (fastforce simp add: dest!: LIMSEQ_D [where r = "e/2"])
+        have *: "\<And>\<alpha> \<beta> g. \<lbrakk>\<bar>\<alpha> - i\<bar> < e/2; \<bar>\<beta> - g\<bar> < e/2; \<alpha> \<le> \<beta>; \<beta> \<le> i\<rbrakk> \<Longrightarrow> \<bar>g - i\<bar> < e"
           unfolding real_inner_1_right by arith
-        show "norm (integral (cbox a b) (\<lambda>x. if x \<in> S then g x else 0) - i) < e"
+        show "norm (integral (cbox a b) ?g - i) < e"
           unfolding real_norm_def
-          apply (rule *[rule_format])
-          apply (rule **[unfolded real_norm_def])
-          apply (rule M[rule_format,of "M + N",unfolded real_norm_def])
-          apply (rule le_add1)
-          apply (rule integral_le[OF int int])
-          defer
-           apply (rule order_trans[OF _ i'[rule_format,of "M + N",unfolded real_inner_1_right]])
-        proof (safe, goal_cases)
-          case (2 x)
-          have "(f m x)\<bullet>1 \<le> (f n x)\<bullet>1" if "x \<in> S" "n \<ge> m" for m n
-            apply (rule transitive_stepwise_le [OF \<open>n \<ge> m\<close> order_refl])
-            using dual_order.trans apply blast
-            by (simp add: le \<open>x \<in> S\<close>)
-          then show ?case
-            by auto
-        next
-          case 1
+        proof (rule *)
+          show "\<bar>integral (cbox a b) (?f N) - i\<bar> < e/2"
+          proof (rule abs_triangle_half_l)
+            show "\<bar>integral (cbox a b) (?f N) - integral S (f N)\<bar> < e / 2 / 2"
+              using B[OF ab] by simp
+            show "abs (i - integral S (f N)) < e / 2 / 2"
+              using N by (simp add: abs_minus_commute)
+          qed
+          show "\<bar>integral (cbox a b) (?f (M + N)) - integral (cbox a b) ?g\<bar> < e / 2"
+            by (metis le_add1 M[of "M + N"])
+          show "integral (cbox a b) (?f N) \<le> integral (cbox a b) (?f (M + N))"
+          proof (intro ballI integral_le[OF int int])
+            fix x assume "x \<in> cbox a b"
+            have "(f m x)\<bullet>1 \<le> (f n x)\<bullet>1" if "x \<in> S" "n \<ge> m" for m n
+              apply (rule transitive_stepwise_le [OF \<open>n \<ge> m\<close> order_refl])
+              using dual_order.trans apply blast
+              by (simp add: le \<open>x \<in> S\<close>)
+            then show "(?f N)x \<le> (?f (M+N))x"
+              by auto
+          qed
           have "integral (cbox a b \<inter> S) (f (M + N)) \<le> integral S (f (M + N))"
             by (metis Int_lower1 f0 inf_commute int' int_f integral_subset_le)
-          then show ?case
-            by (simp add: inf_commute integral_restrict_Int)
+          then have "integral (cbox a b) (?f (M + N)) \<le> integral S (f (M + N))"
+            by (metis (no_types) inf_commute integral_restrict_Int)
+          also have "... \<le> i"
+            using i'[of "M + N"] by auto
+          finally show "integral (cbox a b) (?f (M + N)) \<le> i" .
         qed
       qed
+      then show ?thesis
+        using \<open>0 < B\<close> by blast
     qed
+    ultimately have "(g has_integral i) S"
+      unfolding has_integral_alt' by auto
     then show ?thesis
       using has_integral_integrable_integral i integral_unique by metis
   qed
 
   have sub: "\<And>k. integral S (\<lambda>x. f k x - f 0 x) = integral S (f k) - integral S (f 0)"
-    by (simp add: integral_diff assms(1))
+    by (simp add: integral_diff int_f)
   have *: "\<And>x m n. x \<in> S \<Longrightarrow> n\<ge>m \<Longrightarrow> f m x \<le> f n x"
     using assms(2) by (force intro: transitive_stepwise_le)
-  have "(\<lambda>x. g x - f 0 x) integrable_on S \<and> ((\<lambda>k. integral S (\<lambda>x. f (Suc k) x - f 0 x)) \<longlongrightarrow>
+  have gf: "(\<lambda>x. g x - f 0 x) integrable_on S \<and> ((\<lambda>k. integral S (\<lambda>x. f (Suc k) x - f 0 x)) \<longlongrightarrow>
     integral S (\<lambda>x. g x - f 0 x)) sequentially"
-    apply (rule lem)
-    apply safe
-  proof goal_cases
-    case (1 k x)
-    then show ?case
-      using *[of x 0 "Suc k"] by auto
-  next
-    case (2 k)
-    then show ?case
-      by (simp add: integrable_diff assms(1))
-  next
-    case (3 k x)
-    then show ?case
-      using *[of x "Suc k" "Suc (Suc k)"] by auto
-  next
-    case (4 x)
-    then show ?case
-      apply -
-      apply (rule tendsto_diff)
-      using LIMSEQ_ignore_initial_segment[OF assms(3)[rule_format],of x 1]
-      apply auto
-      done
-  next
-    case 5
-    then show ?case
-      using assms(4)
-      unfolding bounded_iff
-      apply safe
-      apply (rule_tac x="a + norm (integral S (\<lambda>x. f 0 x))" in exI)
-      apply safe
-      apply (erule_tac x="integral S (\<lambda>x. f (Suc k) x)" in ballE)
-      unfolding sub
-      apply (rule order_trans[OF norm_triangle_ineq4])
-      apply auto
-      done
-  qed
-  note conjunctD2[OF this]
-  note tendsto_add[OF this(2) tendsto_const[of "integral S (f 0)"]]
-    integrable_add[OF this(1) assms(1)[rule_format,of 0]]
-  then show ?thesis
-    by (simp add: integral_diff assms(1) LIMSEQ_imp_Suc sub)
+  proof (rule lem)
+    show "\<And>k. (\<lambda>x. f (Suc k) x - f 0 x) integrable_on S"
+      by (simp add: integrable_diff int_f)
+    show "(\<lambda>k. f (Suc k) x - f 0 x) \<longlonglongrightarrow> g x - f 0 x" if "x \<in> S" for x
+    proof -
+      have "(\<lambda>n. f (Suc n) x) \<longlonglongrightarrow> g x"
+        using LIMSEQ_ignore_initial_segment[OF fg[OF \<open>x \<in> S\<close>], of 1] by simp
+      then show ?thesis
+        by (simp add: tendsto_diff)
+    qed
+    show "bounded (range (\<lambda>k. integral S (\<lambda>x. f (Suc k) x - f 0 x)))"
+    proof -
+      obtain B where B: "\<And>k. norm (integral S (f k)) \<le> B"
+        using  bou by (auto simp: bounded_iff)
+      then have "norm (integral S (\<lambda>x. f (Suc k) x - f 0 x))
+              \<le> B + norm (integral S (f 0))" for k
+        unfolding sub by (meson add_le_cancel_right norm_triangle_le_diff)
+      then show ?thesis
+        unfolding bounded_iff by blast
+    qed
+  qed (use * in auto)
+  then have "(\<lambda>x. integral S (\<lambda>xa. f (Suc x) xa - f 0 xa) + integral S (f 0))
+             \<longlonglongrightarrow> integral S (\<lambda>x. g x - f 0 x) + integral S (f 0)"
+    by (auto simp add: tendsto_add)
+  moreover have "(\<lambda>x. g x - f 0 x + f 0 x) integrable_on S"
+    using gf integrable_add int_f [of 0] by metis
+  ultimately show ?thesis
+    by (simp add: integral_diff int_f LIMSEQ_imp_Suc sub)
 qed
 
 lemma has_integral_monotone_convergence_increasing:
@@ -6579,8 +6544,7 @@ proof -
       by auto
     let ?f = "(\<lambda>x. if x \<in> S then f x else 0)"
     let ?g = "(\<lambda>x. if x \<in> S then g x else 0)"
-    have f: "?f integrable_on cbox a b" and g: "?g integrable_on cbox a b"
-      for a b
+    have f: "?f integrable_on cbox a b" and g: "?g integrable_on cbox a b" for a b
       using int_f int_g integrable_altD by auto
     obtain Bf where "0 < Bf"
       and Bf: "\<And>a b. ball 0 Bf \<subseteq> cbox a b \<Longrightarrow>
@@ -6588,8 +6552,7 @@ proof -
       using integrable_integral [OF int_f,unfolded has_integral'[of f]] e that by blast
     obtain Bg where "0 < Bg"
       and Bg: "\<And>a b. ball 0 Bg \<subseteq> cbox a b \<Longrightarrow>
-        \<exists>z. (?g has_integral z) (cbox a b) \<and>
-            norm (z - integral S g) < e/2"
+        \<exists>z. (?g has_integral z) (cbox a b) \<and> norm (z - integral S g) < e/2"
       using integrable_integral [OF int_g,unfolded has_integral'[of g]] e that by blast
     obtain a b::'n where ab: "ball 0 Bf \<union> ball 0 Bg \<subseteq> cbox a b"
       using ball_max_Un bounded_subset_cbox[OF bounded_ball, of _ "max Bf Bg"] by blast
