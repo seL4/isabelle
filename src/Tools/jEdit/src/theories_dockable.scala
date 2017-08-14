@@ -95,10 +95,16 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
   private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
 
-  private def nodes_status_consolidated(name: Document.Node.Name): Boolean =
+  private object Overall_Node_Status extends Enumeration
+  {
+    val ok, failed, pending = Value
+  }
+
+  private def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
     nodes_status.get(name) match {
-      case None => false
-      case Some(st) => st.consolidated
+      case Some(st) if st.consolidated =>
+        if (st.ok) Overall_Node_Status.ok else Overall_Node_Status.failed
+      case _ => Overall_Node_Status.pending
     }
 
   private def in(geometry: Option[(Point, Dimension)], loc0: Point, p: Point): Boolean =
@@ -178,10 +184,15 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     def label_border(name: Document.Node.Name)
     {
+      val status = overall_node_status(name)
+      val color =
+        if (status == Overall_Node_Status.failed) PIDE.options.color_value("error_color")
+        else label.foreground
+      val thickness = if (status == Overall_Node_Status.pending) 1 else 3
+
       label.border =
         BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(
-            label.foreground, if (nodes_status_consolidated(name)) 3 else 1),
+          BorderFactory.createLineBorder(color, thickness),
           BorderFactory.createEmptyBorder(3, 3, 3, 3))
     }
 

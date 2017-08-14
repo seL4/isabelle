@@ -129,6 +129,7 @@ object Protocol
     unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int, consolidated: Boolean)
   {
     def total: Int = unprocessed + running + warned + failed + finished
+    def ok: Boolean = failed == 0
   }
 
   def node_status(
