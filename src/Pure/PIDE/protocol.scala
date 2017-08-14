@@ -126,13 +126,16 @@ object Protocol
   /* node status */
 
   sealed case class Node_Status(
-    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int)
+    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int, consolidated: Boolean)
   {
     def total: Int = unprocessed + running + warned + failed + finished
   }
 
   def node_status(
-    state: Document.State, version: Document.Version, node: Document.Node): Node_Status =
+    state: Document.State,
+    version: Document.Version,
+    name: Document.Node.Name,
+    node: Document.Node): Node_Status =
   {
     var unprocessed = 0
     var running = 0
@@ -149,7 +152,9 @@ object Protocol
       else if (status.is_finished) finished += 1
       else unprocessed += 1
     }
-    Node_Status(unprocessed, running, warned, failed, finished)
+    val consolidated = state.node_consolidated(version, name)
+
+    Node_Status(unprocessed, running, warned, failed, finished, consolidated)
   }
 
 

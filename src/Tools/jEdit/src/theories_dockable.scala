@@ -95,6 +95,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
   private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
 
+  private def nodes_status_consolidated(name: Document.Node.Name): Boolean =
+    nodes_status.get(name) match {
+      case None => false
+      case Some(st) => st.consolidated
+    }
+
   private def in(geometry: Option[(Point, Dimension)], loc0: Point, p: Point): Boolean =
     geometry match {
       case Some((loc, size)) =>
@@ -132,10 +138,6 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     val label = new Label {
       background = view.getTextArea.getPainter.getBackground
       foreground = view.getTextArea.getPainter.getForeground
-      border =
-        BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(foreground, 1),
-          BorderFactory.createEmptyBorder(1, 1, 1, 1))
       opaque = false
       xAlignment = Alignment.Leading
 
@@ -174,6 +176,15 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
+    def label_border(name: Document.Node.Name)
+    {
+      label.border =
+        BorderFactory.createCompoundBorder(
+          BorderFactory.createLineBorder(
+            label.foreground, if (nodes_status_consolidated(name)) 3 else 1),
+          BorderFactory.createEmptyBorder(3, 3, 3, 3))
+    }
+
     layout(checkbox) = BorderPanel.Position.West
     layout(label) = BorderPanel.Position.Center
   }
@@ -186,6 +197,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       val component = Node_Renderer_Component
       component.node_name = name
       component.checkbox.selected = nodes_required.contains(name)
+      component.label_border(name)
       component.label.text = name.theory_base_name
       component
     }
@@ -208,7 +220,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       (nodes_status /: iterator)({ case (status, (name, node)) =>
           if (!name.is_theory || PIDE.resources.session_base.loaded_theory(name) || node.is_empty)
             status
-          else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
+          else {
+            val st = Protocol.node_status(snapshot.state, snapshot.version, name, node)
+            status + (name -> st)
+          }
+      })
 
     val nodes_status2 =
       nodes_status1 -- nodes_status1.keysIterator.filter(nodes.is_hidden(_))
