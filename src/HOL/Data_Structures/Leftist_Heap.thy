@@ -3,8 +3,16 @@
 section \<open>Leftist Heap\<close>
 
 theory Leftist_Heap
-imports Tree2 "~~/src/HOL/Library/Multiset" Complex_Main
+imports
+  Tree2
+  Priority_Queue
+  Complex_Main
 begin
+
+(* FIXME mv Base *)
+lemma size_prod_measure[measure_function]: 
+  "is_measure f \<Longrightarrow> is_measure g \<Longrightarrow> is_measure (size_prod f g)"
+by (rule is_measure_trivial)
 
 fun mset_tree :: "('a,'b) tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |
@@ -40,14 +48,12 @@ definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarro
 fun get_min :: "'a lheap \<Rightarrow> 'a" where
 "get_min(Node n l a r) = a"
 
-function merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
+fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "merge Leaf t2 = t2" |
 "merge t1 Leaf = t1" |
 "merge (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
    (if a1 \<le> a2 then node l1 a1 (merge r1 (Node n2 l2 a2 r2))
     else node l2 a2 (merge r2 (Node n1 l1 a1 r1)))"
-by pat_completeness auto
-termination by (relation "measure (%(t1,t2). rank t1 + rank t2)") auto
 
 lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
@@ -66,7 +72,11 @@ fun del_min :: "'a::ord lheap \<Rightarrow> 'a lheap" where
 
 subsection "Lemmas"
 
+(* FIXME mv DS_Base *)
 declare Let_def [simp]
+
+lemma mset_tree_empty: "mset_tree t = {#} \<longleftrightarrow> t = Leaf"
+by(cases t) auto
 
 lemma rk_eq_rank[simp]: "ltree t \<Longrightarrow> rk t = rank t"
 by(cases t) auto
@@ -81,34 +91,14 @@ by(auto simp add: node_def)
 
 subsection "Functional Correctness"
 
-locale Priority_Queue =
-fixes empty :: "'q"
-and is_empty :: "'q \<Rightarrow> bool"
-and insert :: "'a::linorder \<Rightarrow> 'q \<Rightarrow> 'q"
-and get_min :: "'q \<Rightarrow> 'a"
-and del_min :: "'q \<Rightarrow> 'q"
-and invar :: "'q \<Rightarrow> bool"
-and mset :: "'q \<Rightarrow> 'a multiset"
-assumes mset_empty: "mset empty = {#}"
-and is_empty: "invar q \<Longrightarrow> is_empty q = (mset q = {#})"
-and mset_insert: "invar q \<Longrightarrow> mset (insert x q) = mset q + {#x#}"
-and mset_del_min: "invar q \<Longrightarrow> mset (del_min q) = mset q - {#get_min q#}"
-and get_min: "invar q \<Longrightarrow> q \<noteq> empty \<Longrightarrow>
-   get_min q \<in> set_mset(mset q) \<and> (\<forall>x \<in># mset q. get_min q \<le> x)"
-and invar_insert: "invar q \<Longrightarrow> invar (insert x q)"
-and invar_del_min: "invar q \<Longrightarrow> invar (del_min q)"
-
-
 lemma mset_merge: "mset_tree (merge h1 h2) = mset_tree h1 + mset_tree h2"
 by (induction h1 h2 rule: merge.induct) (auto simp add: node_def ac_simps)
 
 lemma mset_insert: "mset_tree (insert x t) = mset_tree t + {#x#}"
 by (auto simp add: insert_def mset_merge)
 
-lemma get_min:
-  "heap h \<Longrightarrow> h \<noteq> Leaf \<Longrightarrow>
-   get_min h \<in> set_mset(mset_tree h) \<and> (\<forall>x \<in># mset_tree h. get_min h \<le> x)"
-by (induction h) (auto)
+lemma get_min: "\<lbrakk> heap h;  h \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min h = Min_mset (mset_tree h)"
+by (induction h) (auto simp add:Min_mset_alt)
 
 lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
 by (cases h) (auto simp: mset_merge)
@@ -162,11 +152,13 @@ next
 next
   case 4 show ?case by(rule mset_del_min)
 next
-  case 5 thus ?case by(simp add: get_min)
+  case 5 thus ?case by(simp add: get_min mset_tree_empty)
 next
-  case 6 thus ?case by(simp add: heap_insert ltree_insert)
+  case 6 thus ?case by(simp)
 next
-  case 7 thus ?case by(simp add: heap_del_min ltree_del_min)
+  case 7 thus ?case by(simp add: heap_insert ltree_insert)
+next
+  case 8 thus ?case by(simp add: heap_del_min ltree_del_min)
 qed
 
 
@@ -187,14 +179,12 @@ next
   finally show ?case .
 qed
 
-function t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
+fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_merge Leaf t2 = 1" |
 "t_merge t2 Leaf = 1" |
 "t_merge (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
   (if a1 \<le> a2 then 1 + t_merge r1 (Node n2 l2 a2 r2)
    else 1 + t_merge r2 (Node n1 l1 a1 r1))"
-by pat_completeness auto
-termination by (relation "measure (%(t1,t2). rank t1 + rank t2)") auto
 
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_insert x t = t_merge (Node 1 Leaf x Leaf) t"
@@ -219,10 +209,11 @@ corollary t_insert_log: "ltree t \<Longrightarrow> t_insert x t \<le> log 2 (siz
 using t_merge_log[of "Node 1 Leaf x Leaf" t]
 by(simp add: t_insert_def split: tree.split)
 
+(* FIXME mv Lemmas_log *)
 lemma ld_ld_1_less:
-  assumes "x > 0" "y > 0" shows "1 + log 2 x + log 2 y < 2 * log 2 (x+y)"
+  assumes "x > 0" "y > 0" shows "log 2 x + log 2 y + 1 < 2 * log 2 (x+y)"
 proof -
-  have "2 powr (1 + log 2 x + log 2 y) = 2*x*y"
+  have "2 powr (log 2 x + log 2 y + 1) = 2*x*y"
     using assms by(simp add: powr_add)
   also have "\<dots> < (x+y)^2" using assms
     by(simp add: numeral_eq_Suc algebra_simps add_pos_pos)
