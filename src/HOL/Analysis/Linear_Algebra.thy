@@ -1482,6 +1482,22 @@ lemma norm_triangle_le: "norm x + norm y \<le> e \<Longrightarrow> norm (x + y) 
 lemma norm_triangle_lt: "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
   by (rule norm_triangle_ineq [THEN le_less_trans])
 
+lemma abs_triangle_half_r:
+  fixes y :: "'a::linordered_field"
+  shows "abs (y - x1) < e / 2 \<Longrightarrow> abs (y - x2) < e / 2 \<Longrightarrow> abs (x1 - x2) < e"
+  by linarith
+
+lemma abs_triangle_half_l:
+  fixes y :: "'a::linordered_field"
+  assumes "abs (x - y) < e / 2"
+    and "abs (x' - y) < e / 2"
+  shows "abs (x - x') < e"
+  using assms by linarith
+
+lemma eps_leI: 
+  assumes "(\<And>e::'a::linordered_idom. 0 < e \<Longrightarrow> x < y + e)" shows "x \<le> y"
+  by (metis add_diff_eq assms diff_diff_add diff_gt_0_iff_gt linorder_not_less order_less_irrefl)
+
 lemma sum_clauses:
   shows "sum f {} = 0"
     and "finite S \<Longrightarrow> sum f (insert x S) = (if x \<in> S then sum f S else f x + sum f S)"
