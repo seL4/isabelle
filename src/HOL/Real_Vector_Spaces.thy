@@ -825,8 +825,10 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma norm_triangle_le_diff: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
-  by (meson norm_triangle_ineq4 order_trans)
+lemma norm_triangle_le_diff:
+  fixes x y :: "'a::real_normed_vector"
+  shows "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
+    by (meson norm_triangle_ineq4 order_trans)
 
 lemma norm_diff_ineq: "norm a - norm b \<le> norm (a + b)"
   for a b :: "'a::real_normed_vector"

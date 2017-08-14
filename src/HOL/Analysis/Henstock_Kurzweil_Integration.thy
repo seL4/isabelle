@@ -9,23 +9,6 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
-(*MOVE ALL THESE*)
-lemma abs_triangle_half_r:
-  fixes y :: "'a::linordered_field"
-  shows "abs (y - x1) < e / 2 \<Longrightarrow> abs (y - x2) < e / 2 \<Longrightarrow> abs (x1 - x2) < e"
-  by linarith
-
-lemma abs_triangle_half_l:
-  fixes y :: "'a::linordered_field"
-  assumes "abs (x - y) < e / 2"
-    and "abs (x' - y) < e / 2"
-  shows "abs (x - x') < e"
-  using assms by linarith
-
-lemma eps_leI: 
-  assumes "(\<And>e::'a::linordered_idom. 0 < e \<Longrightarrow> x < y + e)" shows "x \<le> y"
-  by (metis add_diff_eq assms diff_diff_add diff_gt_0_iff_gt linorder_not_less order_less_irrefl)
-
 (*FIXME DELETE*)
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 
