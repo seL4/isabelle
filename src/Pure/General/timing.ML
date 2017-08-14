@@ -119,4 +119,3 @@ end;
 
 structure Basic_Timing: BASIC_TIMING = Timing;
 open Basic_Timing;
-
