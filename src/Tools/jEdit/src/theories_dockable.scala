@@ -188,12 +188,13 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       val color =
         if (status == Overall_Node_Status.failed) PIDE.options.color_value("error_color")
         else label.foreground
-      val thickness = if (status == Overall_Node_Status.pending) 1 else 3
+      val thickness1 = if (status == Overall_Node_Status.pending) 1 else 3
+      val thickness2 = 4 - thickness1
 
       label.border =
         BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(color, thickness),
-          BorderFactory.createEmptyBorder(3, 3, 3, 3))
+          BorderFactory.createLineBorder(color, thickness1),
+          BorderFactory.createEmptyBorder(thickness2, thickness2, thickness2, thickness2))
     }
 
     layout(checkbox) = BorderPanel.Position.West
