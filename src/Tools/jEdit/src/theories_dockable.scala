@@ -166,8 +166,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
                 (st.failed, PIDE.options.color_value("error_color"))
               ).filter(_._1 > 0)
 
-            ((size.width - 1) /: segments)({ case (last, (n, color)) =>
-              val w = (n * ((size.width - 2) - segments.length) / st.total) max 4
+            ((size.width - 2) /: segments)({ case (last, (n, color)) =>
+              val w = (n * ((size.width - 4) - segments.length) / st.total) max 4
               paint_segment(last - w, w, color)
               last - w - 1
             })
@@ -188,8 +188,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       val color =
         if (status == Overall_Node_Status.failed) PIDE.options.color_value("error_color")
         else label.foreground
-      val thickness1 = if (status == Overall_Node_Status.pending) 1 else 3
-      val thickness2 = 4 - thickness1
+      val thickness1 = if (status == Overall_Node_Status.pending) 1 else 2
+      val thickness2 = 3 - thickness1
 
       label.border =
         BorderFactory.createCompoundBorder(
