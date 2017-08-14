@@ -47,7 +47,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         val index_location = peer.indexToLocation(index)
         if (index >= 0 && in_checkbox(index_location, point))
           tooltip = "Mark as required for continuous checking"
-        if (index >= 0 && in_label(index_location, point))
+        else if (index >= 0 && in_label(index_location, point))
           tooltip = "theory " + quote(listData(index).theory)
         else
           tooltip = null
