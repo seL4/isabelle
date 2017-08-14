@@ -47,10 +47,14 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         val index_location = peer.indexToLocation(index)
         if (index >= 0 && in_checkbox(index_location, point))
           tooltip = "Mark as required for continuous checking"
-        else if (index >= 0 && in_label(index_location, point))
-          tooltip = "theory " + quote(listData(index).theory)
-        else
-          tooltip = null
+        else if (index >= 0 && in_label(index_location, point)) {
+          val name = listData(index)
+          val st = overall_node_status(name)
+          tooltip =
+            "theory " + quote(name.theory) +
+              (if (st == Overall_Node_Status.ok) "" else " (" + st + ")")
+        }
+        else tooltip = null
     }
   }
   status.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
