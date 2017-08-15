@@ -2089,40 +2089,35 @@ proof (rule absolutely_integrable_onI, fact)
         qed
         finally show ?case .
       next
-        note f' = f_int[of a b, unfolded absolutely_integrable_on_def]
-        note f = f'[THEN conjunct1] f'[THEN conjunct2]
-        note * = this(2)[unfolded has_integral_integral has_integral[of "\<lambda>x. norm (f x)"],rule_format]
         have "e/2>0"
           using \<open>e > 0\<close> by auto
-        from * [OF this] obtain d1 where
-          d1: "gauge d1" "\<forall>p. p tagged_division_of (cbox a b) \<and> d1 fine p \<longrightarrow>
+        moreover
+        have f: "f integrable_on cbox a b" "(\<lambda>x. norm (f x)) integrable_on cbox a b"
+          using f_int by (auto simp: absolutely_integrable_on_def)
+        ultimately obtain d1 where "gauge d1"
+           and d1: "\<And>p. \<lbrakk>p tagged_division_of (cbox a b); d1 fine p\<rbrakk> \<Longrightarrow>
             norm ((\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e/2"
-          by auto
-        from henstock_lemma [OF f(1) \<open>e/2>0\<close>] obtain d2 where
-          d2: "gauge d2" "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d2 fine p \<longrightarrow>
-            (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2" .
-         obtain p where
+          unfolding has_integral_integral has_integral by meson
+        obtain d2 where "gauge d2" 
+          and d2: "\<And>p. \<lbrakk>p tagged_partial_division_of (cbox a b); d2 fine p\<rbrakk> \<Longrightarrow>
+            (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
+          by (blast intro: henstock_lemma [OF f(1) \<open>e/2>0\<close>])
+        obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
-          by (rule fine_division_exists [OF gauge_Int [OF d1(1) d2(1)], of a b])
+          by (rule fine_division_exists [OF gauge_Int [OF \<open>gauge d1\<close> \<open>gauge d2\<close>], of a b])
             (auto simp add: fine_Int)
-        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e/2 \<longrightarrow>
-          \<bar>sf' - di\<bar> < e/2 \<longrightarrow> di < ?S + e"
+        have *: "\<And>sf sf' si di. \<lbrakk>sf' = sf; si \<le> ?S; \<bar>sf - si\<bar> < e/2;
+                      \<bar>sf' - di\<bar> < e/2\<rbrakk> \<Longrightarrow> di < ?S + e"
           by arith
-        show "integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
-          apply (subst if_P)
-          apply rule
-        proof (rule *[rule_format])
+        have "integral (cbox a b) (\<lambda>x. norm (f x)) < ?S + e"
+        proof (rule *)
           show "\<bar>(\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f x)) - (\<Sum>(x,k)\<in>p. norm (integral k f))\<bar> < e/2"
             unfolding split_def
             apply (rule absdiff_norm_less)
-            using d2(2)[rule_format,of p]
-            using p(1,3)
-            unfolding tagged_division_of_def split_def
-            apply auto
+            using d2[of p] p(1,3) apply (auto simp: tagged_division_of_def split_def)
             done
           show "\<bar>(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e/2"
-            using d1(2)[rule_format,OF conjI[OF p(1,2)]]
-            by (simp only: real_norm_def)
+            using d1[OF p(1,2)] by (simp only: real_norm_def)
           show "(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) = (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x))"
             apply (rule sum.cong)
             apply (rule refl)
@@ -2133,10 +2128,12 @@ proof (rule absolutely_integrable_onI, fact)
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
             apply (subst sum.over_tagged_division_lemma[OF p(1)])
             apply (simp add: content_eq_0_interior)
-            apply (intro cSUP_upper2[OF D(2), of "snd ` p"])
+            apply (intro cSUP_upper2 D)
             apply (auto simp: tagged_partial_division_of_def)
             done
         qed
+        then show "integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
+          by simp
       qed
     qed (insert K, auto)
   qed
