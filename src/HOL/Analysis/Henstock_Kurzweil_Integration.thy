@@ -3037,52 +3037,46 @@ lemma integrable_subinterval_real:
 subsection \<open>Combining adjacent intervals in 1 dimension.\<close>
 
 lemma has_integral_combine:
-  fixes a b c :: real
+  fixes a b c :: real and j :: "'a::banach"
   assumes "a \<le> c"
-    and "c \<le> b"
-    and "(f has_integral i) {a..c}"
-    and "(f has_integral (j::'a::banach)) {c..b}"
+      and "c \<le> b"
+      and ac: "(f has_integral i) {a..c}"
+      and cb: "(f has_integral j) {c..b}"
   shows "(f has_integral (i + j)) {a..b}"
 proof -
   interpret comm_monoid "lift_option plus" "Some (0::'a)"
     by (rule comm_monoid_lift_option)
       (rule add.comm_monoid_axioms)
-  note operative_integral [of f, unfolded operative_1_le]
-  note conjunctD2 [OF this, rule_format]
-  note * = this(2) [OF conjI [OF assms(1-2)],
-    unfolded if_P [OF assms(3)]]
+  from operative_integral [of f, unfolded operative_1_le] \<open>a \<le> c\<close> \<open>c \<le> b\<close>
+  have *: "lift_option op +
+             (if f integrable_on {a..c} then Some (integral {a..c} f) else None)
+             (if f integrable_on {c..b} then Some (integral {c..b} f) else None) =
+            (if f integrable_on {a..b} then Some (integral {a..b} f) else None)"
+    by (auto simp: split: if_split_asm)
   then have "f integrable_on cbox a b"
-    apply -
-    apply (rule ccontr)
-    apply (subst(asm) if_P)
-    defer
-    apply (subst(asm) if_P)
-    using assms(3-)
-    apply auto
-    done
+    using ac cb by (auto split: if_split_asm)
   with *
   show ?thesis
-    apply -
-    apply (subst(asm) if_P)
-    defer
-    apply (subst(asm) if_P)
-    defer
-    apply (subst(asm) if_P)
-    using assms(3-)
-    apply (auto simp add: integrable_on_def integral_unique)
-    done
+    using ac cb by (auto simp add: integrable_on_def integral_unique split: if_split_asm)
 qed
 
 lemma integral_combine:
   fixes f :: "real \<Rightarrow> 'a::banach"
   assumes "a \<le> c"
     and "c \<le> b"
-    and "f integrable_on {a..b}"
+    and ab: "f integrable_on {a..b}"
   shows "integral {a..c} f + integral {c..b} f = integral {a..b} f"
-  apply (rule integral_unique[symmetric])
-  apply (rule has_integral_combine[OF assms(1-2)])
-  apply (metis assms(2) assms(3) atLeastatMost_subset_iff box_real(2) content_pos_le content_real_eq_0 integrable_integral integrable_subinterval le_add_same_cancel2 monoid_add_class.add.left_neutral)
-  by (metis assms(1) assms(3) atLeastatMost_subset_iff box_real(2) content_pos_le content_real_eq_0 integrable_integral integrable_subinterval le_add_same_cancel1 monoid_add_class.add.right_neutral)
+proof -
+  have "(f has_integral integral {a..c} f) {a..c}"
+    using ab \<open>c \<le> b\<close> integrable_subinterval_real by fastforce
+  moreover
+  have "(f has_integral integral {c..b} f) {c..b}"
+    using ab \<open>a \<le> c\<close> integrable_subinterval_real by fastforce
+  ultimately have "(f has_integral integral {a..c} f + integral {c..b} f) {a..b}"
+    using \<open>a \<le> c\<close> \<open>c \<le> b\<close> has_integral_combine by blast
+  then show ?thesis
+    by (simp add: has_integral_integrable_integral)
+qed
 
 lemma integrable_combine:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -3093,7 +3087,7 @@ lemma integrable_combine:
   shows "f integrable_on {a..b}"
   using assms
   unfolding integrable_on_def
-  by (auto intro!:has_integral_combine)
+  by (auto intro!: has_integral_combine)
 
 
 subsection \<open>Reduce integrability to "local" integrability.\<close>
@@ -4348,87 +4342,49 @@ subsection \<open>Generalize a bit to any convex set.\<close>
 
 lemma has_derivative_zero_unique_strong_convex:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  assumes "convex s"
-    and "finite k"
-    and "continuous_on s f"
-    and "c \<in> s"
-    and "f c = y"
-    and "\<forall>x\<in>(s - k). (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    and "x \<in> s"
+  assumes "convex S" "finite K"
+    and contf: "continuous_on S f"
+    and "c \<in> S" "f c = y"
+    and derf: "\<And>x. x \<in> (S - K) \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    and "x \<in> S"
   shows "f x = y"
-proof -
-  {
-    presume *: "x \<noteq> c \<Longrightarrow> ?thesis"
-    show ?thesis
-      apply cases
-      apply (rule *)
-      apply assumption
-      unfolding assms(5)[symmetric]
-      apply auto
-      done
-  }
-  assume "x \<noteq> c"
-  note conv = assms(1)[unfolded convex_alt,rule_format]
-  have as1: "continuous_on {0 ..1} (f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x))"
-    apply (rule continuous_intros)+
-    apply (rule continuous_on_subset[OF assms(3)])
-    apply safe
-    apply (rule conv)
-    using assms(4,7)
-    apply auto
-    done
-  have *: "t = xa" if "(1 - t) *\<^sub>R c + t *\<^sub>R x = (1 - xa) *\<^sub>R c + xa *\<^sub>R x" for t xa
+proof (cases "x = c")
+  case True with \<open>f c = y\<close> show ?thesis
+    by blast
+next
+  case False
+  let ?\<phi> = "\<lambda>u. (1 - u) *\<^sub>R c + u *\<^sub>R x"
+  have contf': "continuous_on {0 ..1} (f \<circ> ?\<phi>)"
+    apply (rule continuous_intros continuous_on_subset[OF contf])+
+    using \<open>convex S\<close> \<open>x \<in> S\<close> \<open>c \<in> S\<close> by (auto simp add: convex_alt algebra_simps)
+  have "t = u" if "?\<phi> t = ?\<phi> u" for t u
   proof -
-    from that have "(t - xa) *\<^sub>R x = (t - xa) *\<^sub>R c"
-      unfolding scaleR_simps by (auto simp add: algebra_simps)
+    from that have "(t - u) *\<^sub>R x = (t - u) *\<^sub>R c"
+      by (auto simp add: algebra_simps)
     then show ?thesis
       using \<open>x \<noteq> c\<close> by auto
   qed
-  have as2: "finite {t. ((1 - t) *\<^sub>R c + t *\<^sub>R x) \<in> k}"
-    using assms(2)
-    apply (rule finite_surj[where f="\<lambda>z. SOME t. (1-t) *\<^sub>R c + t *\<^sub>R x = z"])
-    apply safe
-    unfolding image_iff
-    apply rule
-    defer
-    apply assumption
-    apply (rule sym)
-    apply (rule some_equality)
-    defer
-    apply (drule *)
-    apply auto
-    done
-  have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x)) 1 = y"
-    apply (rule has_derivative_zero_unique_strong_interval[OF as2 as1, of ])
-    unfolding o_def
-    using assms(5)
-    defer
-    apply -
-    apply rule
+  then have eq: "(SOME t. ?\<phi> t = ?\<phi> u) = u" for u
+    by blast
+  then have "(?\<phi> -` K) \<subseteq> (\<lambda>z. SOME t. ?\<phi> t = z) ` K"
+    by (clarsimp simp: image_iff) (metis (no_types) eq)
+  then have fin: "finite (?\<phi> -` K)"
+    by (rule finite_surj[OF \<open>finite K\<close>])
+
+  have derf': "((\<lambda>u. f (?\<phi> u)) has_derivative (\<lambda>h. 0)) (at t within {0..1})"
+               if "t \<in> {0..1} - {t. ?\<phi> t \<in> K}" for t
   proof -
-    fix t
-    assume as: "t \<in> {0..1} - {t. (1 - t) *\<^sub>R c + t *\<^sub>R x \<in> k}"
-    have *: "c - t *\<^sub>R c + t *\<^sub>R x \<in> s - k"
-      apply safe
-      apply (rule conv[unfolded scaleR_simps])
-      using \<open>x \<in> s\<close> \<open>c \<in> s\<close> as
-      by (auto simp add: algebra_simps)
-    have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x) has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x))
-      (at t within {0..1})"
-      apply (intro derivative_eq_intros)
-      apply simp_all
-      apply (simp add: field_simps)
-      unfolding scaleR_simps
-      apply (rule has_derivative_within_subset,rule assms(6)[rule_format])
-      apply (rule *)
-      apply safe
-      apply (rule conv[unfolded scaleR_simps])
-      using \<open>x \<in> s\<close> \<open>c \<in> s\<close>
-      apply auto
-      done
-    then show "((\<lambda>xa. f ((1 - xa) *\<^sub>R c + xa *\<^sub>R x)) has_derivative (\<lambda>h. 0)) (at t within {0..1})"
+    have df: "(f has_derivative (\<lambda>h. 0)) (at (?\<phi> t) within ?\<phi> ` {0..1})"
+      apply (rule has_derivative_within_subset [OF derf])
+      using \<open>convex S\<close> \<open>x \<in> S\<close> \<open>c \<in> S\<close> that by (auto simp add: convex_alt algebra_simps)
+    have "(f \<circ> ?\<phi> has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x)) (at t within {0..1})"
+      by (rule derivative_eq_intros df | simp)+
+    then show ?thesis
       unfolding o_def .
-  qed auto
+  qed
+  have "(f \<circ> ?\<phi>) 1 = y"
+    apply (rule has_derivative_zero_unique_strong_interval[OF fin contf'])
+    unfolding o_def using \<open>f c = y\<close> derf' by auto
   then show ?thesis
     by auto
 qed
@@ -4439,72 +4395,63 @@ text \<open>Also to any open connected set with finite set of exceptions. Could
 
 lemma has_derivative_zero_unique_strong_connected:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  assumes "connected s"
-    and "open s"
-    and "finite k"
-    and "continuous_on s f"
-    and "c \<in> s"
+  assumes "connected S"
+    and "open S"
+    and "finite K"
+    and contf: "continuous_on S f"
+    and "c \<in> S"
     and "f c = y"
-    and "\<forall>x\<in>(s - k). (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    and "x\<in>s"
+    and derf: "\<And>x. x \<in> (S - K) \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    and "x \<in> S"
   shows "f x = y"
 proof -
-  have "{x \<in> s. f x \<in> {y}} = {} \<or> {x \<in> s. f x \<in> {y}} = s"
-    apply (rule assms(1)[unfolded connected_clopen,rule_format])
-    apply rule
-    defer
-    apply (rule continuous_closedin_preimage[OF assms(4) closed_singleton])
-    apply (rule open_openin_trans[OF assms(2)])
-    unfolding open_contains_ball
-  proof safe
-    fix x
-    assume "x \<in> s"
-    from assms(2)[unfolded open_contains_ball,rule_format,OF this] guess e..note e=conjunctD2[OF this]
-    show "\<exists>e>0. ball x e \<subseteq> {xa \<in> s. f xa \<in> {f x}}"
-      apply rule
-      apply rule
-      apply (rule e)
+  have xx: "\<exists>e>0. ball x e \<subseteq> {xa \<in> S. f xa \<in> {f x}}" if "x \<in> S" for x
+  proof -
+    obtain e where "0 < e" and e: "ball x e \<subseteq> S"
+      using \<open>x \<in> S\<close> \<open>open S\<close> open_contains_ball by blast
+    have "ball x e \<subseteq> {u \<in> S. f u \<in> {f x}}"
     proof safe
       fix y
       assume y: "y \<in> ball x e"
-      then show "y \<in> s"
+      then show "y \<in> S"
         using e by auto
       show "f y = f x"
-        apply (rule has_derivative_zero_unique_strong_convex[OF convex_ball])
-        apply (rule assms)
-        apply (rule continuous_on_subset)
-        apply (rule assms)
-        apply (rule e)+
-        apply (subst centre_in_ball)
-        apply (rule e)
-        apply rule
-        apply safe
-        apply (rule has_derivative_within_subset)
-        apply (rule assms(7)[rule_format])
-        using y e
-        apply auto
-        done
+      proof (rule has_derivative_zero_unique_strong_convex[OF convex_ball \<open>finite K\<close>])
+        show "continuous_on (ball x e) f"
+          using contf continuous_on_subset e by blast
+        show "(f has_derivative (\<lambda>h. 0)) (at u within ball x e)"
+             if "u \<in> ball x e - K" for u
+          by (metis Diff_iff contra_subsetD derf e has_derivative_within_subset that)
+      qed (use y e \<open>0 < e\<close> in auto)
     qed
+    then show "\<exists>e>0. ball x e \<subseteq> {xa \<in> S. f xa \<in> {f x}}"
+      using \<open>0 < e\<close> by blast
   qed
+  then have "openin (subtopology euclidean S) {x \<in> S. f x \<in> {y}}"
+    by (auto intro!: open_openin_trans[OF \<open>open S\<close>] simp: open_contains_ball)
+  moreover have "closedin (subtopology euclidean S) {x \<in> S. f x \<in> {y}}"
+    by (force intro!: continuous_closedin_preimage [OF contf])
+  ultimately have "{x \<in> S. f x \<in> {y}} = {} \<or> {x \<in> S. f x \<in> {y}} = S"
+    using \<open>connected S\<close> connected_clopen by blast
   then show ?thesis
-    using \<open>x \<in> s\<close> \<open>f c = y\<close> \<open>c \<in> s\<close> by auto
+    using \<open>x \<in> S\<close> \<open>f c = y\<close> \<open>c \<in> S\<close> by auto
 qed
 
 lemma has_derivative_zero_connected_constant:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  assumes "connected s"
-      and "open s"
+  assumes "connected S"
+      and "open S"
       and "finite k"
-      and "continuous_on s f"
-      and "\<forall>x\<in>(s - k). (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    obtains c where "\<And>x. x \<in> s \<Longrightarrow> f(x) = c"
-proof (cases "s = {}")
+      and "continuous_on S f"
+      and "\<forall>x\<in>(S - k). (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
+proof (cases "S = {}")
   case True
   then show ?thesis
 by (metis empty_iff that)
 next
   case False
-  then obtain c where "c \<in> s"
+  then obtain c where "c \<in> S"
     by (metis equals0I)
   then show ?thesis
     by (metis has_derivative_zero_unique_strong_connected assms that)
@@ -6015,12 +5962,13 @@ lemma bounded_increasing_convergent:
   using Bseq_mono_convergent[of f] incseq_Suc_iff[of f]
   by (auto simp: image_def Bseq_eq_bounded convergent_def incseq_def)
 
+(*FIXME: why so much " \<bullet> 1"? *)
 lemma monotone_convergence_interval:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
-  assumes "\<And>k. (f k) integrable_on cbox a b"
-    and "\<And>k x. x \<in> cbox a b \<Longrightarrow> (f k x) \<le> f (Suc k) x"
-    and "\<And>x. x \<in> cbox a b \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and bounded: "bounded (range (\<lambda>k. integral (cbox a b) (f k)))"
+  assumes intf: "\<And>k. (f k) integrable_on cbox a b"
+    and le: "\<And>k x. x \<in> cbox a b \<Longrightarrow> (f k x) \<le> f (Suc k) x"
+    and fg: "\<And>x. x \<in> cbox a b \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+    and bou: "bounded (range (\<lambda>k. integral (cbox a b) (f k)))"
   shows "g integrable_on cbox a b \<and> ((\<lambda>k. integral (cbox a b) (f k)) \<longlongrightarrow> integral (cbox a b) g) sequentially"
 proof (cases "content (cbox a b) = 0")
   case True
@@ -6028,25 +5976,21 @@ proof (cases "content (cbox a b) = 0")
     by auto
 next
   case False
-  have fg: "\<forall>x\<in>cbox a b. \<forall>k. (f k x) \<bullet> 1 \<le> (g x) \<bullet> 1"
-  proof safe
-    fix x k
-    assume x: "x \<in> cbox a b"
-    note * = Lim_component_ge[OF assms(3)[rule_format, OF x] trivial_limit_sequentially]
-    show "f k x \<bullet> 1 \<le> g x \<bullet> 1"
-      apply (rule *)
+  have fg1: "(f k x) \<bullet> 1 \<le> (g x) \<bullet> 1" if x: "x \<in> cbox a b" for x k
+  proof -
+    have "\<forall>\<^sub>F xa in sequentially. f k x \<bullet> 1 \<le> f xa x \<bullet> 1"
       unfolding eventually_sequentially
       apply (rule_tac x=k in exI)
-      apply clarify
-      apply (rule transitive_stepwise_le)
-      using assms(2)[rule_format, OF x]
-      apply auto
+      using le x apply (force intro: transitive_stepwise_le)
       done
+    with Lim_component_ge [OF fg] x
+    show "f k x \<bullet> 1 \<le> g x \<bullet> 1"
+      using trivial_limit_sequentially by blast
   qed
   have int_inc: "\<And>n. integral (cbox a b) (f n) \<le> integral (cbox a b) (f (Suc n))"
     by (metis integral_le assms(1-2))
   then obtain i where i: "(\<lambda>k. integral (cbox a b) (f k)) \<longlonglongrightarrow> i"
-    using bounded_increasing_convergent bounded by blast
+    using bounded_increasing_convergent bou by blast
   have "\<And>k. \<forall>\<^sub>F x in sequentially. integral (cbox a b) (f k) \<le> integral (cbox a b) (f x) \<bullet> 1"
     unfolding eventually_sequentially
     by (force intro: transitive_stepwise_le int_inc)
@@ -6054,14 +5998,12 @@ next
     using Lim_component_ge [OF i] trivial_limit_sequentially by blast
   have "(g has_integral i) (cbox a b)"
     unfolding has_integral
-  proof (safe, goal_cases)
+  proof clarify
     fix e::real
     assume e: "e > 0"
     have "\<And>k. (\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
       norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f k x) - integral (cbox a b) (f k)) < e/2 ^ (k + 2)))"
-      apply (rule assms(1)[unfolded has_integral_integral has_integral,rule_format])
-      using e apply auto
-      done
+      using intf e by (auto simp: has_integral_integral has_integral)
     then obtain c where c:
           "\<And>x. gauge (c x)"
           "\<And>x p. \<lbrakk>p tagged_division_of cbox a b; c x fine p\<rbrakk> \<Longrightarrow>
@@ -6073,45 +6015,46 @@ next
     proof -
       have "e/4 > 0"
         using e by auto
-      from LIMSEQ_D [OF i this] guess r ..
-      then show ?thesis
-        using i' by auto
+      show ?thesis
+        using LIMSEQ_D [OF i \<open>e/4 > 0\<close>] i' by auto
     qed
-    then guess r..note r=conjunctD2[OF this[rule_format]]
-
-    have "\<forall>x\<in>cbox a b. \<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)\<bullet>1 - (f k x)\<bullet>1 \<and>
-      (g x)\<bullet>1 - (f k x)\<bullet>1 < e / (4 * content(cbox a b))"
-    proof (rule, goal_cases)
-      case prems: (1 x)
+    then obtain r where r: "\<And>k. r \<le> k \<Longrightarrow> 0 \<le> i \<bullet> 1 - integral (cbox a b) (f k)"
+                       "\<And>k. r \<le> k \<Longrightarrow> i \<bullet> 1 - integral (cbox a b) (f k) < e / 4" 
+      by metis
+    have "\<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)\<bullet>1 - (f k x)\<bullet>1 \<and> (g x)\<bullet>1 - (f k x)\<bullet>1 < e / (4 * content(cbox a b))"
+      if "x \<in> cbox a b" for x
+    proof -
       have "e / (4 * content (cbox a b)) > 0"
         by (simp add: False content_lt_nz e)
-      from assms(3)[rule_format, OF prems, THEN LIMSEQ_D, OF this]
-      guess n..note n=this
-      then show ?case
-        apply (rule_tac x="n + r" in exI)
-        apply safe
-        apply (erule_tac[2-3] x=k in allE)
-        unfolding dist_real_def
-        using fg[rule_format, OF prems]
-        apply (auto simp add: field_simps)
+      with fg that LIMSEQ_D
+      obtain N where "\<forall>n\<ge>N. norm (f n x - g x) < e / (4 * content (cbox a b))"
+        by metis
+      then show "\<exists>n\<ge>r.
+            \<forall>k\<ge>n.
+               0 \<le> g x \<bullet> 1 - f k x \<bullet> 1 \<and>
+               g x \<bullet> 1 - f k x \<bullet> 1
+               < e / (4 * content (cbox a b))"
+        apply (rule_tac x="N + r" in exI)
+        using fg1[OF that] apply (auto simp add: field_simps)
         done
     qed
-    from bchoice[OF this] guess m..note m=conjunctD2[OF this[rule_format],rule_format]
+    then obtain m where r_le_m: "\<And>x. x \<in> cbox a b \<Longrightarrow> r \<le> m x"
+       and m: "\<And>x k. \<lbrakk>x \<in> cbox a b; m x \<le> k\<rbrakk>
+                     \<Longrightarrow> 0 \<le> g x \<bullet> 1 - f k x \<bullet> 1 \<and> g x \<bullet> 1 - f k x \<bullet> 1 < e / (4 * content (cbox a b))"
+      by metis
     define d where "d x = c (m x) x" for x
     show "\<exists>\<gamma>. gauge \<gamma> \<and>
              (\<forall>p. p tagged_division_of cbox a b \<and>
                   \<gamma> fine p \<longrightarrow> norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R g x) - i) < e)"
-      apply (rule_tac x=d in exI)
-    proof safe
+    proof (rule exI, safe)
       show "gauge d"
         using c(1) unfolding gauge_def d_def by auto
     next
       fix p
       assume p: "p tagged_division_of (cbox a b)" "d fine p"
       note p'=tagged_division_ofD[OF p(1)]
-      have "\<exists>a. \<forall>x\<in>p. m (fst x) \<le> a"
+      obtain s where s: "\<And>x. x \<in> p \<Longrightarrow> m (fst x) \<le> s"
         by (metis finite_imageI finite_nat_set_iff_bounded_le p'(1) rev_image_eqI)
-      then guess s..note s=this
       have *: "\<forall>a b c d. norm(a - b) \<le> e / 4 \<and> norm(b - c) < e/2 \<and>
         norm (c - d) < e / 4 \<longrightarrow> norm (a - d) < e"
       proof (safe, goal_cases)
@@ -6137,25 +6080,21 @@ next
           unfolding split_def sum_distrib_right[symmetric] scaleR_diff_right[symmetric]
           unfolding additive_content_tagged_division[OF p(1), unfolded split_def]
         proof -
-          fix x k
-          assume xk: "(x, k) \<in> p"
+          fix x K
+          assume xk: "(x, K) \<in> p"
           then have x: "x \<in> cbox a b"
             using p'(2-3)[OF xk] by auto
-          from p'(4)[OF xk] guess u v by (elim exE) note uv=this
-          show "norm (content k *\<^sub>R (g x - f (m x) x)) \<le> content k * (e / (4 * content (cbox a b)))"
-            unfolding norm_scaleR uv
-            unfolding abs_of_nonneg[OF content_pos_le]
-            apply (rule mult_left_mono)
-            using m(2)[OF x,of "m x"]
-            apply auto
-            done
+          with p'(4)[OF xk] obtain u v where "K = cbox u v" by metis
+          then show "norm (content K *\<^sub>R (g x - f (m x) x)) \<le> content K * (e / (4 * content (cbox a b)))"
+            unfolding norm_scaleR using m[OF x]
+            by (metis abs_of_nonneg inner_real_def less_eq_real_def measure_nonneg mult.right_neutral mult_left_mono order_refl real_norm_def)
         qed (insert False, auto)
 
       next
         case 2
         show ?case
           apply (rule le_less_trans[of _ "norm (\<Sum>j = 0..s.
-            \<Sum>(x, k)\<in>{xk\<in>p. m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x)))"])
+            \<Sum>(x, K)\<in>{xk\<in>p. m (fst xk) = j}. content K *\<^sub>R f (m x) x - integral K (f (m x)))"])
           apply (subst sum_group)
           apply fact
           apply (rule finite_atLeastAtMost)
@@ -6222,10 +6161,8 @@ next
           unfolding split_paired_all split_conv
           apply (rule_tac[1-2] integral_le[OF ])
         proof safe
-          show "0 \<le> i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1"
-            using r(1) by auto
-          show "i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1 < e / 4"
-            using r(2) by auto
+          show "0 \<le> i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1" "i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1 < e / 4"
+            using r by auto
           fix x k
           assume xk: "(x, k) \<in> p"
           from p'(4)[OF this] guess u v by (elim exE) note uv=this
@@ -6243,22 +6180,19 @@ next
           assume "y \<in> k"
           then have "y \<in> cbox a b"
             using p'(3)[OF xk] by auto
-          then have *: "\<And>m. \<forall>n\<ge>m. f m y \<le> f n y"
+          then have *: "\<And>m n. n\<ge>m \<Longrightarrow> f m y \<le> f n y"
             using assms(2) by (auto intro: transitive_stepwise_le)
           show "f r y \<le> f (m x) y" and "f (m x) y \<le> f s y"
-            apply (rule_tac[!] *[rule_format])
-            using s[rule_format,OF xk] m(1)[of x] p'(2-3)[OF xk]
+            apply (rule_tac[!] *)
+            using s[rule_format,OF xk] r_le_m[of x] p'(2-3)[OF xk]
             apply auto
             done
         qed
       qed
     qed
-  qed note * = this
-
-  have "integral (cbox a b) g = i"
-    by (rule integral_unique) (rule *)
-  then show ?thesis
-    using i * by auto
+  qed 
+  with i integral_unique show ?thesis
+    by blast
 qed
 
 lemma monotone_convergence_increasing:
@@ -6439,31 +6373,24 @@ qed
 
 lemma monotone_convergence_decreasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
-  assumes "\<And>k. (f k) integrable_on S"
-    and "\<And>k x. x \<in> S \<Longrightarrow> f (Suc k) x \<le> f k x"
-    and "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-    and "bounded (range(\<lambda>k. integral S (f k)))"
-  shows "g integrable_on S \<and> ((\<lambda>k. integral S (f k)) \<longlongrightarrow> integral S g) sequentially"
+  assumes intf: "\<And>k. (f k) integrable_on S"
+    and le: "\<And>k x. x \<in> S \<Longrightarrow> f (Suc k) x \<le> f k x"
+    and fg: "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+    and bou: "bounded (range(\<lambda>k. integral S (f k)))"
+  shows "g integrable_on S \<and> (\<lambda>k. integral S (f k)) \<longlonglongrightarrow> integral S g"
 proof -
-  have *: "{integral S (\<lambda>x. - f k x) |k. True} = op *\<^sub>R (- 1) ` (range(\<lambda>k. integral S (f k)))"
-    apply safe
-    unfolding image_iff
-    apply (rule_tac x="integral S (f k)" in bexI)
-    prefer 3
-    apply (rule_tac x=k in exI)
-    apply auto
-    done
-  have "(\<lambda>x. - g x) integrable_on S \<and>
-    ((\<lambda>k. integral S (\<lambda>x. - f k x)) \<longlongrightarrow> integral S (\<lambda>x. - g x)) sequentially"
+  have *: "range(\<lambda>k. integral S (\<lambda>x. - f k x)) = op *\<^sub>R (- 1) ` (range(\<lambda>k. integral S (f k)))"
+    by force
+  have "(\<lambda>x. - g x) integrable_on S \<and> (\<lambda>k. integral S (\<lambda>x. - f k x)) \<longlonglongrightarrow> integral S (\<lambda>x. - g x)"
   proof (rule monotone_convergence_increasing)
     show "\<And>k. (\<lambda>x. - f k x) integrable_on S"
-      by (blast intro: integrable_neg assms)
+      by (blast intro: integrable_neg intf)
     show "\<And>k x. x \<in> S \<Longrightarrow> - f k x \<le> - f (Suc k) x"
-      by (simp add: assms)
+      by (simp add: le)
     show "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>k. - f k x) \<longlonglongrightarrow> - g x"
-      by (simp add: assms tendsto_minus)
+      by (simp add: fg tendsto_minus)
     show "bounded (range(\<lambda>k. integral S (\<lambda>x. - f k x)))"
-      using "*" assms(4) bounded_scaling by auto
+      using "*" bou bounded_scaling by auto
   qed
   then show ?thesis
     by (force dest: integrable_neg tendsto_minus)
