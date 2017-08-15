@@ -98,7 +98,7 @@ lemma mset_insert: "mset_tree (insert x t) = mset_tree t + {#x#}"
 by (auto simp add: insert_def mset_merge)
 
 lemma get_min: "\<lbrakk> heap h;  h \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min h = Min_mset (mset_tree h)"
-by (induction h) (auto simp add:Min_mset_alt)
+by (induction h) (auto simp add: eq_Min_iff)
 
 lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
 by (cases h) (auto simp: mset_merge)

@@ -6,33 +6,6 @@ theory Priority_Queue
 imports "~~/src/HOL/Library/Multiset"
 begin
 
-(* FIXME abbreviation? mv *)
-definition Min_mset :: "'a::linorder multiset \<Rightarrow> 'a" where
-"Min_mset = Min o set_mset"
-
-(* FIXME intros needed? *)
-
-lemma Min_mset_contained[simp, intro]: "m\<noteq>{#} \<Longrightarrow> Min_mset m \<in># m"    
-by (simp add: Min_mset_def)
-
-lemma Min_mset_min[simp, intro]: "x\<in># m \<Longrightarrow> Min_mset m \<le> x"
-by (simp add: Min_mset_def)
-    
-lemma Min_mset_alt: "m\<noteq>{#} \<Longrightarrow> (x=Min_mset m) \<longleftrightarrow> (x\<in>#m \<and> (\<forall>y\<in>#m. x\<le>y))"
-by (simp add: antisym)    
-
-(* FIXME a bit special *)
-lemma eq_min_msetI[intro?]: 
-  "m\<noteq>{#} \<Longrightarrow> (x\<in>#m \<and> (\<forall>y\<in>#m. x\<le>y)) \<Longrightarrow> x=Min_mset m"    
-using Min_mset_alt by blast
-    
-lemma Min_mset_singleton[simp]: "Min_mset {#x#} = x"
-by (simp add: Min_mset_def)
-    
-lemma Min_mset_insert[simp]: 
-  "m\<noteq>{#} \<Longrightarrow> Min_mset (add_mset x m) = min x (Min_mset m)"
-by (simp add: Min_mset_def)
-
 text \<open>Priority queue interface:\<close>
     
 locale Priority_Queue =

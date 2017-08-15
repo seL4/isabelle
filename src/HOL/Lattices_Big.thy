@@ -580,6 +580,22 @@ next
   from assms show "x \<le> Max A" by simp
 qed
 
+lemma eq_Min_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> m = Min A  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. m \<le> a)"
+by (meson Min_in Min_le antisym)
+
+lemma Min_eq_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A = m  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. m \<le> a)"
+by (meson Min_in Min_le antisym)
+
+lemma eq_Max_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> m = Max A  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. a \<le> m)"
+by (meson Max_in Max_ge antisym)
+
+lemma Max_eq_iff:
+  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A = m  \<longleftrightarrow>  m \<in> A \<and> (\<forall>a \<in> A. a \<le> m)"
+by (meson Max_in Max_ge antisym)
+
 context
   fixes A :: "'a set"
   assumes fin_nonempty: "finite A" "A \<noteq> {}"

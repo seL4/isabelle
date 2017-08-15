@@ -388,6 +388,15 @@ lemma union_iff:
   by auto
 
 
+subsubsection \<open>Min and Max\<close>
+
+abbreviation Min_mset :: "'a::linorder multiset \<Rightarrow> 'a" where
+"Min_mset m \<equiv> Min (set_mset m)"
+
+abbreviation Max_mset :: "'a::linorder multiset \<Rightarrow> 'a" where
+"Max_mset m \<equiv> Max (set_mset m)"
+
+
 subsubsection \<open>Equality of multisets\<close>
 
 lemma single_eq_single [simp]: "{#a#} = {#b#} \<longleftrightarrow> a = b"
@@ -1469,7 +1478,7 @@ proof (induct "size M" arbitrary: M)
   case (Suc k)
   note ih = this(1) and Sk_eq_sz_M = this(2)
 
-  let ?y = "Min (set_mset M)"
+  let ?y = "Min_mset M"
   let ?N = "M - {#?y#}"
 
   have M: "M = add_mset ?y ?N"
@@ -1490,7 +1499,7 @@ proof (induct "size M" arbitrary: M)
   case (Suc k)
   note ih = this(1) and Sk_eq_sz_M = this(2)
 
-  let ?y = "Max (set_mset M)"
+  let ?y = "Max_mset M"
   let ?N = "M - {#?y#}"
 
   have M: "M = add_mset ?y ?N"
