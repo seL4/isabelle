@@ -5670,10 +5670,10 @@ lemma henstock_lemma_part1:
   assumes "f integrable_on cbox a b"
     and "e > 0"
     and "gauge d"
-    and "(\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral(cbox a b) f) < e)"
+    and less_e: "\<And>p. \<lbrakk>p tagged_division_of (cbox a b); d fine p\<rbrakk> \<Longrightarrow>
+                     norm (sum (\<lambda>(x,K). content K *\<^sub>R f x) p - integral(cbox a b) f) < e"
     and p: "p tagged_partial_division_of (cbox a b)" "d fine p"
-  shows "norm (sum (\<lambda>(x,k). content k *\<^sub>R f x - integral k f) p) \<le> e"
+  shows "norm (sum (\<lambda>(x,K). content K *\<^sub>R f x - integral K f) p) \<le> e"
   (is "?x \<le> e")
 proof -
   { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" then show ?thesis by (blast intro: field_le_epsilon) }
@@ -5720,15 +5720,9 @@ proof -
 
   let ?p = "p \<union> \<Union>(qq ` r)"
   have "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - integral (cbox a b) f) < e"
-    apply (rule assms(4)[rule_format])
-  proof
+  proof (rule less_e)
     show "d fine ?p"
-      apply (rule fine_Un)
-      apply (rule p)
-      apply (rule fine_Union)
-      using qq
-      apply auto
-      done
+      by (metis (mono_tags, hide_lams) qq fine_Un fine_Union imageE p(2))
     note * = tagged_partial_division_of_union_self[OF p(1)]
     have "p \<union> \<Union>(qq ` r) tagged_division_of \<Union>(snd ` p) \<union> \<Union>r"
       using r
@@ -5902,53 +5896,55 @@ qed
 
 lemma henstock_lemma_part2:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
-  assumes "f integrable_on cbox a b"
-    and "e > 0"
-    and "gauge d"
-    and "\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral (cbox a b) f) < e"
-    and "p tagged_partial_division_of (cbox a b)"
+  assumes fed: "f integrable_on cbox a b" "e > 0" "gauge d"
+    and less_e: "\<And>p. \<lbrakk>p tagged_division_of (cbox a b); d fine p\<rbrakk> \<Longrightarrow>
+                     norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral (cbox a b) f) < e"
+    and tag: "p tagged_partial_division_of (cbox a b)"
     and "d fine p"
   shows "sum (\<lambda>(x,k). norm (content k *\<^sub>R f x - integral k f)) p \<le> 2 * real (DIM('n)) * e"
-  unfolding split_def
-  apply (rule sum_norm_allsubsets_bound)
-  defer
-  apply (rule henstock_lemma_part1[unfolded split_def,OF assms(1-3)])
-  apply safe
-  apply (rule assms[rule_format,unfolded split_def])
-  defer
-  apply (rule tagged_partial_division_subset)
-  apply (rule assms)
-  apply assumption
-  apply (rule fine_subset)
-  apply assumption
-  apply (rule assms)
-  using assms(5)
-  apply auto
-  done
+proof -
+  have "finite p"
+    using tag by blast
+  then show ?thesis
+    unfolding split_def
+  proof (rule sum_norm_allsubsets_bound)
+    fix Q
+    assume Q: "Q \<subseteq> p"
+    then have fine: "d fine Q"
+      by (simp add: \<open>d fine p\<close> fine_subset)
+    show "norm (\<Sum>x\<in>Q. content (snd x) *\<^sub>R f (fst x) - integral (snd x) f) \<le> e"
+      apply (rule henstock_lemma_part1[OF fed less_e, unfolded split_def])
+      using Q tag tagged_partial_division_subset apply (force simp add: fine)+
+      done
+  qed
+qed
 
 lemma henstock_lemma:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
-  assumes "f integrable_on cbox a b"
+  assumes intf: "f integrable_on cbox a b"
     and "e > 0"
-  obtains d where "gauge d"
-    and "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      sum (\<lambda>(x,k). norm(content k *\<^sub>R f x - integral k f)) p < e"
+  obtains \<gamma> where "gauge \<gamma>"
+    and "\<And>p. \<lbrakk>p tagged_partial_division_of (cbox a b); \<gamma> fine p\<rbrakk> \<Longrightarrow>
+             sum (\<lambda>(x,k). norm(content k *\<^sub>R f x - integral k f)) p < e"
 proof -
-  have *: "e / (2 * (real DIM('n) + 1)) > 0" using assms(2) by simp
-  from integrable_integral[OF assms(1),unfolded has_integral[of f],rule_format,OF this]
-  guess d..note d = conjunctD2[OF this]
+  have *: "e / (2 * (real DIM('n) + 1)) > 0" using \<open>e > 0\<close> by simp
+  with integrable_integral[OF intf, unfolded has_integral]
+  obtain \<gamma> where "gauge \<gamma>"
+    and \<gamma>: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; \<gamma> fine p\<rbrakk> \<Longrightarrow>
+         norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f x) - integral (cbox a b) f)
+         < e / (2 * (real DIM('n) + 1))"
+    by metis
   show thesis
-    apply (rule that)
-    apply (rule d)
-  proof (safe, goal_cases)
-    case (1 p)
-    note * = henstock_lemma_part2[OF assms(1) * d this]
-    show ?case
-      apply (rule le_less_trans[OF *])
-      using \<open>e > 0\<close>
-      apply (auto simp add: field_simps)
-      done
+  proof (rule that [OF \<open>gauge \<gamma>\<close>])
+    fix p
+    assume p: "p tagged_partial_division_of cbox a b" "\<gamma> fine p"
+    have "(\<Sum>(x,K)\<in>p. norm (content K *\<^sub>R f x - integral K f)) 
+          \<le> 2 * real DIM('n) * (e / (2 * (real DIM('n) + 1)))"
+      using henstock_lemma_part2[OF intf * \<open>gauge \<gamma>\<close> \<gamma> p] by metis
+    also have "... < e"
+      using \<open>e > 0\<close> by (auto simp add: field_simps)
+    finally
+    show "(\<Sum>(x,K)\<in>p. norm (content K *\<^sub>R f x - integral K f)) < e" .
   qed
 qed
 
@@ -6118,30 +6114,19 @@ next
               done
             fix t
             assume "t \<in> {0..s}"
-            show "norm (\<Sum>(x, k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f (m x) x -
-              integral k (f (m x))) \<le> e/2 ^ (t + 2)"
-              apply (rule order_trans
-                [of _ "norm (sum (\<lambda>(x,k). content k *\<^sub>R f t x - integral k (f t)) {xk \<in> p. m (fst xk) = t})"])
-              apply (rule eq_refl)
-              apply (rule arg_cong[where f=norm])
-              apply (rule sum.cong)
-              apply (rule refl)
-              defer
-              apply (rule henstock_lemma_part1)
-              apply (rule assms(1)[rule_format])
-              apply (simp add: e)
-              apply safe
-              apply (rule c)+
-              apply assumption+
-              apply (rule tagged_partial_division_subset[of p])
-              apply (rule p(1)[unfolded tagged_division_of_def,THEN conjunct1])
-              defer
-              unfolding fine_def
-              apply safe
-              apply (drule p(2)[unfolded fine_def,rule_format])
-              unfolding d_def
-              apply auto
-              done
+            have "norm (\<Sum>(x,k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f (m x) x - integral k (f (m x))) =
+                  norm (\<Sum>(x,k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f t x - integral k (f t))"
+              by (force intro!: sum.cong arg_cong[where f=norm])
+            also have "... \<le> e/2 ^ (t + 2)"
+            proof (rule henstock_lemma_part1 [OF intf _ c])
+              show "{xk \<in> p. m (fst xk) = t} tagged_partial_division_of cbox a b"
+                apply (rule tagged_partial_division_subset[of p])
+                using p by (auto simp: tagged_division_of_def)
+              show "c t fine {xk \<in> p. m (fst xk) = t}"
+                using p(2) by (auto simp: fine_def d_def)
+            qed (auto simp: e)
+            finally show "norm (\<Sum>(x, k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f (m x) x -
+              integral k (f (m x))) \<le> e/2 ^ (t + 2)" .
           qed
         qed (insert s, auto)
       next
