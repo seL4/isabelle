@@ -563,6 +563,7 @@ Type @{typ int}
 @{const List.shuffle} & @{typeof List.shuffle}\\
 @{const List.sort} & @{typeof List.sort}\\
 @{const List.sorted} & @{typeof List.sorted}\\
+@{const List.sorted_wrt} & @{typeof List.sorted_wrt}\\
 @{const List.splice} & @{typeof List.splice}\\
 @{const List.take} & @{typeof List.take}\\
 @{const List.takeWhile} & @{typeof List.takeWhile}\\

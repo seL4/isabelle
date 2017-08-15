@@ -2086,7 +2086,7 @@ by simp
 
 lemma set_sorted_list_of_multiset [simp]:
   "set (sorted_list_of_multiset M) = set_mset M"
-by (induct M) (simp_all add: set_insort)
+by (induct M) (simp_all add: set_insort_key)
 
 lemma sorted_list_of_mset_set [simp]:
   "sorted_list_of_multiset (mset_set A) = sorted_list_of_set A"
