@@ -286,6 +286,31 @@ proof -
   with assms(1) show ?thesis by simp
 qed
 
+text \<open>Summation of a strictly ascending sequence with length \<open>n\<close> 
+  can be upper-bounded by summation over \<open>{0..<n}\<close>.\<close>
+
+lemma sorted_wrt_less_sum_mono_lowerbound:
+  fixes f :: "nat \<Rightarrow> ('b::ordered_comm_monoid_add)"
+  assumes mono: "\<And>x y. x\<le>y \<Longrightarrow> f x \<le> f y"
+  shows "sorted_wrt (op <) ns \<Longrightarrow>
+    (\<Sum>i\<in>{0..<length ns}. f i) \<le> (\<Sum>i\<leftarrow>ns. f i)"
+proof (induction ns rule: rev_induct)
+  case Nil
+  then show ?case by simp
+next
+  case (snoc n ns)
+  have "sum f {0..<length (ns @ [n])} 
+      = sum f {0..<length ns} + f (length ns)"    
+    by simp
+  also have "sum f {0..<length ns} \<le> sum_list (map f ns)"
+    using snoc by (auto simp: sorted_wrt_append)
+  also have "length ns \<le> n"
+    using sorted_wrt_less_idx[OF snoc.prems(1), of "length ns"] by auto 
+  finally have "sum f {0..<length (ns @ [n])} \<le> sum_list (map f ns) + f n"
+    using mono add_mono by blast
+  thus ?case by simp
+qed      
+
 
 subsection \<open>Further facts about @{const List.n_lists}\<close>
 

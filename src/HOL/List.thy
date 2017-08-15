@@ -333,6 +333,17 @@ that should give an intuitive understanding of the above functions.
 text\<open>The following simple sort functions are intended for proofs,
 not for efficient implementations.\<close>
 
+text \<open>A sorted predicate w.r.t. a relation:\<close>
+
+fun sorted_wrt :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
+"sorted_wrt P [] = True" |
+"sorted_wrt P [x] = True" |
+"sorted_wrt P (x # y # zs) = (P x y \<and> sorted_wrt P (y # zs))"
+
+(* FIXME: define sorted in terms of sorted_wrt *)
+
+text \<open>A class-based sorted predicate:\<close>
+
 context linorder
 begin
 
@@ -4844,73 +4855,69 @@ by simp
 
 subsection \<open>Sorting\<close>
 
-text\<open>Currently it is not shown that @{const sort} returns a
-permutation of its input because the nicest proof is via multisets,
-which are not yet available. Alternatively one could define a function
-that counts the number of occurrences of an element in a list and use
-that instead of multisets to state the correctness property.\<close>
+
+subsubsection \<open>@{const sorted_wrt}\<close>
+
+lemma sorted_wrt_induct:
+  "\<lbrakk>P []; \<And>x. P [x]; \<And>x y zs. P (y # zs) \<Longrightarrow> P (x # y # zs)\<rbrakk> \<Longrightarrow> P xs"
+by induction_schema (pat_completeness, lexicographic_order)
+
+lemma sorted_wrt_Cons:
+assumes "transp P"
+shows   "sorted_wrt P (x # xs) = ((\<forall>y \<in> set xs. P x y) \<and> sorted_wrt P xs)"
+by(induction xs arbitrary: x)(auto intro: transpD[OF assms])
+
+lemma sorted_wrt_ConsI:
+  "\<lbrakk> transp P; \<And>y. y \<in> set xs \<Longrightarrow> P x y; sorted_wrt P xs \<rbrakk> \<Longrightarrow>
+  sorted_wrt P (x # xs)"
+by (simp add: sorted_wrt_Cons)
+
+lemma sorted_wrt_append:
+assumes "transp P"
+shows "sorted_wrt P (xs @ ys) \<longleftrightarrow>
+  sorted_wrt P xs \<and> sorted_wrt P ys \<and> (\<forall>x\<in>set xs. \<forall>y\<in>set ys. P x y)"  
+by (induction xs) (auto simp: sorted_wrt_Cons[OF assms])
+
+lemma sorted_wrt_rev: assumes "transp P"
+shows "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
+proof(induction xs rule: sorted_wrt_induct)
+  case 3 thus ?case
+    by(simp add: sorted_wrt_append sorted_wrt_Cons assms)
+      (meson assms transpD)
+qed simp_all
+
+text \<open>Strictly Ascending Sequences of Natural Numbers\<close>    
+
+lemma sorted_wrt_upt[simp]: "sorted_wrt (op <) [0..<n]"
+by(induction n) (auto simp: sorted_wrt_append)
+
+text \<open>Each element is greater or equal to its index:\<close>
+
+lemma sorted_wrt_less_idx:
+  "sorted_wrt (op <) ns \<Longrightarrow> i < length ns \<Longrightarrow> i \<le> ns!i"
+proof (induction ns arbitrary: i rule: rev_induct)
+  case Nil thus ?case by simp
+next
+  case snoc
+  thus ?case
+    by (auto simp: nth_append sorted_wrt_append)
+       (metis less_antisym not_less nth_mem)  
+qed
+
+
+subsubsection \<open>@{const sorted}\<close>
 
 context linorder
 begin
 
-lemma set_insort_key:
-  "set (insort_key f x xs) = insert x (set xs)"
-  by (induct xs) auto
-
-lemma length_insort [simp]:
-  "length (insort_key f x xs) = Suc (length xs)"
-  by (induct xs) simp_all
-
-lemma insort_key_left_comm:
-  assumes "f x \<noteq> f y"
-  shows "insort_key f y (insort_key f x xs) = insort_key f x (insort_key f y xs)"
-  by (induct xs) (auto simp add: assms dest: antisym)
-
-lemma insort_left_comm:
-  "insort x (insort y xs) = insort y (insort x xs)"
-  by (cases "x = y") (auto intro: insort_key_left_comm)
-
-lemma comp_fun_commute_insort:
-  "comp_fun_commute insort"
-proof
-qed (simp add: insort_left_comm fun_eq_iff)
-
-lemma sort_key_simps [simp]:
-  "sort_key f [] = []"
-  "sort_key f (x#xs) = insort_key f x (sort_key f xs)"
-  by (simp_all add: sort_key_def)
-
-lemma (in linorder) sort_key_conv_fold:
-  assumes "inj_on f (set xs)"
-  shows "sort_key f xs = fold (insort_key f) xs []"
-proof -
-  have "fold (insort_key f) (rev xs) = fold (insort_key f) xs"
-  proof (rule fold_rev, rule ext)
-    fix zs
-    fix x y
-    assume "x \<in> set xs" "y \<in> set xs"
-    with assms have *: "f y = f x \<Longrightarrow> y = x" by (auto dest: inj_onD)
-    have **: "x = y \<longleftrightarrow> y = x" by auto
-    show "(insort_key f y \<circ> insort_key f x) zs = (insort_key f x \<circ> insort_key f y) zs"
-      by (induct zs) (auto intro: * simp add: **)
-  qed
-  then show ?thesis by (simp add: sort_key_def foldr_conv_fold)
-qed
-
-lemma (in linorder) sort_conv_fold:
-  "sort xs = fold insort xs []"
-  by (rule sort_key_conv_fold) simp
-
-lemma length_sort[simp]: "length (sort_key f xs) = length xs"
-by (induct xs, auto)
-
-lemma sorted_Cons: "sorted (x#xs) = (sorted xs & (ALL y:set xs. x <= y))"
-apply(induct xs arbitrary: x) apply simp
+lemma sorted_Cons: "sorted (x#xs) = (sorted xs \<and> (\<forall>y \<in> set xs. x \<le> y))"
+apply(induction xs arbitrary: x)
+ apply simp
 by simp (blast intro: order_trans)
 
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
-  by (cases xs) (simp_all add: sorted_Cons)
+by (cases xs) (simp_all add: sorted_Cons)
 
 lemma sorted_append:
   "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
@@ -4954,84 +4961,20 @@ lemma sorted_equals_nth_mono:
   "sorted xs = (\<forall>j < length xs. \<forall>i \<le> j. xs ! i \<le> xs ! j)"
 by (auto intro: sorted_nth_monoI sorted_nth_mono)
 
-lemma set_insort: "set(insort_key f x xs) = insert x (set xs)"
-by (induct xs) auto
+lemma sorted_map_remove1:
+  "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
+by (induct xs) (auto simp add: sorted_Cons)
 
-lemma set_sort[simp]: "set(sort_key f xs) = set xs"
-by (induct xs) (simp_all add:set_insort)
-
-lemma distinct_insort: "distinct (insort_key f x xs) = (x \<notin> set xs \<and> distinct xs)"
-by(induct xs)(auto simp:set_insort)
-
-lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
-  by (induct xs) (simp_all add: distinct_insort)
-
-lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
-  by (induct xs) (auto simp:sorted_Cons set_insort)
-
-lemma sorted_insort: "sorted (insort x xs) = sorted xs"
-  using sorted_insort_key [where f="\<lambda>x. x"] by simp
-
-theorem sorted_sort_key [simp]: "sorted (map f (sort_key f xs))"
-  by (induct xs) (auto simp:sorted_insort_key)
-
-theorem sorted_sort [simp]: "sorted (sort xs)"
-  using sorted_sort_key [where f="\<lambda>x. x"] by simp
+lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
+using sorted_map_remove1 [of "\<lambda>x. x"] by simp
 
 lemma sorted_butlast:
   assumes "xs \<noteq> []" and "sorted xs"
   shows "sorted (butlast xs)"
 proof -
-  from \<open>xs \<noteq> []\<close> obtain ys y where "xs = ys @ [y]" by (cases xs rule: rev_cases) auto
+  from \<open>xs \<noteq> []\<close> obtain ys y where "xs = ys @ [y]"
+    by (cases xs rule: rev_cases) auto
   with \<open>sorted xs\<close> show ?thesis by (simp add: sorted_append)
-qed
-
-lemma insort_not_Nil [simp]:
-  "insort_key f a xs \<noteq> []"
-  by (induct xs) simp_all
-
-lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
-by (cases xs) auto
-
-lemma sorted_sort_id: "sorted xs \<Longrightarrow> sort xs = xs"
-  by (induct xs) (auto simp add: sorted_Cons insort_is_Cons)
-
-lemma sorted_map_remove1:
-  "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
-  by (induct xs) (auto simp add: sorted_Cons)
-
-lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
-  using sorted_map_remove1 [of "\<lambda>x. x"] by simp
-
-lemma insort_key_remove1:
-  assumes "a \<in> set xs" and "sorted (map f xs)" and "hd (filter (\<lambda>x. f a = f x) xs) = a"
-  shows "insort_key f a (remove1 a xs) = xs"
-using assms proof (induct xs)
-  case (Cons x xs)
-  then show ?case
-  proof (cases "x = a")
-    case False
-    then have "f x \<noteq> f a" using Cons.prems by auto
-    then have "f x < f a" using Cons.prems by (auto simp: sorted_Cons)
-    with \<open>f x \<noteq> f a\<close> show ?thesis using Cons by (auto simp: sorted_Cons insort_is_Cons)
-  qed (auto simp: sorted_Cons insort_is_Cons)
-qed simp
-
-lemma insort_remove1:
-  assumes "a \<in> set xs" and "sorted xs"
-  shows "insort a (remove1 a xs) = xs"
-proof (rule insort_key_remove1)
-  define n where "n = length (filter (op = a) xs) - 1"
-  from \<open>a \<in> set xs\<close> show "a \<in> set xs" .
-  from \<open>sorted xs\<close> show "sorted (map (\<lambda>x. x) xs)" by simp
-  from \<open>a \<in> set xs\<close> have "a \<in> set (filter (op = a) xs)" by auto
-  then have "set (filter (op = a) xs) \<noteq> {}" by auto
-  then have "filter (op = a) xs \<noteq> []" by (auto simp only: set_empty)
-  then have "length (filter (op = a) xs) > 0" by simp
-  then have n: "Suc n = length (filter (op = a) xs)" by (simp add: n_def)
-  moreover have "replicate (Suc n) a = a # replicate n a"
-    by simp
-  ultimately show "hd (filter (op = a) xs) = a" by (simp add: replicate_length_filter)
 qed
 
 lemma sorted_remdups[simp]:
@@ -5068,14 +5011,6 @@ proof -
   with \<open>inj_on f (set xs \<union> set ys)\<close> show "xs = ys"
     by (blast intro: map_inj_on)
 qed
-
-lemma finite_sorted_distinct_unique:
-shows "finite A \<Longrightarrow> \<exists>!xs. set xs = A \<and> sorted xs \<and> distinct xs"
-apply(drule finite_distinct_list)
-apply clarify
-apply(rule_tac a="sort xs" in ex1I)
-apply (auto simp: sorted_distinct_set_unique)
-done
 
 lemma
   assumes "sorted xs"
@@ -5133,6 +5068,155 @@ proof (rule takeWhile_eq_filter[symmetric])
   finally show "\<not> t < f x" by simp
 qed
 
+lemma sorted_map_same:
+  "sorted (map f [x\<leftarrow>xs. f x = g xs])"
+proof (induct xs arbitrary: g)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  then have "sorted (map f [y\<leftarrow>xs . f y = (\<lambda>xs. f x) xs])" .
+  moreover from Cons have "sorted (map f [y\<leftarrow>xs . f y = (g \<circ> Cons x) xs])" .
+  ultimately show ?case by (simp_all add: sorted_Cons)
+qed
+
+lemma sorted_same:
+  "sorted [x\<leftarrow>xs. x = g xs]"
+using sorted_map_same [of "\<lambda>x. x"] by simp
+
+end
+
+
+subsubsection \<open>Sorting functions\<close>
+
+text\<open>Currently it is not shown that @{const sort} returns a
+permutation of its input because the nicest proof is via multisets,
+which are not yet available. Alternatively one could define a function
+that counts the number of occurrences of an element in a list and use
+that instead of multisets to state the correctness property.\<close>
+
+context linorder
+begin
+
+lemma set_insort_key:
+  "set (insort_key f x xs) = insert x (set xs)"
+by (induct xs) auto
+
+lemma length_insort [simp]:
+  "length (insort_key f x xs) = Suc (length xs)"
+by (induct xs) simp_all
+
+lemma insort_key_left_comm:
+  assumes "f x \<noteq> f y"
+  shows "insort_key f y (insort_key f x xs) = insort_key f x (insort_key f y xs)"
+by (induct xs) (auto simp add: assms dest: antisym)
+
+lemma insort_left_comm:
+  "insort x (insort y xs) = insort y (insort x xs)"
+by (cases "x = y") (auto intro: insort_key_left_comm)
+
+lemma comp_fun_commute_insort: "comp_fun_commute insort"
+proof
+qed (simp add: insort_left_comm fun_eq_iff)
+
+lemma sort_key_simps [simp]:
+  "sort_key f [] = []"
+  "sort_key f (x#xs) = insort_key f x (sort_key f xs)"
+by (simp_all add: sort_key_def)
+
+lemma sort_key_conv_fold:
+  assumes "inj_on f (set xs)"
+  shows "sort_key f xs = fold (insort_key f) xs []"
+proof -
+  have "fold (insort_key f) (rev xs) = fold (insort_key f) xs"
+  proof (rule fold_rev, rule ext)
+    fix zs
+    fix x y
+    assume "x \<in> set xs" "y \<in> set xs"
+    with assms have *: "f y = f x \<Longrightarrow> y = x" by (auto dest: inj_onD)
+    have **: "x = y \<longleftrightarrow> y = x" by auto
+    show "(insort_key f y \<circ> insort_key f x) zs = (insort_key f x \<circ> insort_key f y) zs"
+      by (induct zs) (auto intro: * simp add: **)
+  qed
+  then show ?thesis by (simp add: sort_key_def foldr_conv_fold)
+qed
+
+lemma sort_conv_fold:
+  "sort xs = fold insort xs []"
+by (rule sort_key_conv_fold) simp
+
+lemma length_sort[simp]: "length (sort_key f xs) = length xs"
+by (induct xs, auto)
+
+lemma set_sort[simp]: "set(sort_key f xs) = set xs"
+by (induct xs) (simp_all add: set_insort_key)
+
+lemma distinct_insort: "distinct (insort_key f x xs) = (x \<notin> set xs \<and> distinct xs)"
+by(induct xs)(auto simp: set_insort_key)
+
+lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
+by (induct xs) (simp_all add: distinct_insort)
+
+lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
+by (induct xs) (auto simp: sorted_Cons set_insort_key)
+
+lemma sorted_insort: "sorted (insort x xs) = sorted xs"
+using sorted_insort_key [where f="\<lambda>x. x"] by simp
+
+theorem sorted_sort_key [simp]: "sorted (map f (sort_key f xs))"
+by (induct xs) (auto simp:sorted_insort_key)
+
+theorem sorted_sort [simp]: "sorted (sort xs)"
+using sorted_sort_key [where f="\<lambda>x. x"] by simp
+
+lemma insort_not_Nil [simp]:
+  "insort_key f a xs \<noteq> []"
+by (induction xs) simp_all
+
+lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
+by (cases xs) auto
+
+lemma sorted_sort_id: "sorted xs \<Longrightarrow> sort xs = xs"
+by (induct xs) (auto simp add: sorted_Cons insort_is_Cons)
+
+lemma insort_key_remove1:
+  assumes "a \<in> set xs" and "sorted (map f xs)" and "hd (filter (\<lambda>x. f a = f x) xs) = a"
+  shows "insort_key f a (remove1 a xs) = xs"
+using assms proof (induct xs)
+  case (Cons x xs)
+  then show ?case
+  proof (cases "x = a")
+    case False
+    then have "f x \<noteq> f a" using Cons.prems by auto
+    then have "f x < f a" using Cons.prems by (auto simp: sorted_Cons)
+    with \<open>f x \<noteq> f a\<close> show ?thesis using Cons by (auto simp: sorted_Cons insort_is_Cons)
+  qed (auto simp: sorted_Cons insort_is_Cons)
+qed simp
+
+lemma insort_remove1:
+  assumes "a \<in> set xs" and "sorted xs"
+  shows "insort a (remove1 a xs) = xs"
+proof (rule insort_key_remove1)
+  define n where "n = length (filter (op = a) xs) - 1"
+  from \<open>a \<in> set xs\<close> show "a \<in> set xs" .
+  from \<open>sorted xs\<close> show "sorted (map (\<lambda>x. x) xs)" by simp
+  from \<open>a \<in> set xs\<close> have "a \<in> set (filter (op = a) xs)" by auto
+  then have "set (filter (op = a) xs) \<noteq> {}" by auto
+  then have "filter (op = a) xs \<noteq> []" by (auto simp only: set_empty)
+  then have "length (filter (op = a) xs) > 0" by simp
+  then have n: "Suc n = length (filter (op = a) xs)" by (simp add: n_def)
+  moreover have "replicate (Suc n) a = a # replicate n a"
+    by simp
+  ultimately show "hd (filter (op = a) xs) = a" by (simp add: replicate_length_filter)
+qed
+
+lemma finite_sorted_distinct_unique:
+shows "finite A \<Longrightarrow> \<exists>!xs. set xs = A \<and> sorted xs \<and> distinct xs"
+apply(drule finite_distinct_list)
+apply clarify
+apply(rule_tac a="sort xs" in ex1I)
+apply (auto simp: sorted_distinct_set_unique)
+done
+
 lemma insort_insert_key_triv:
   "f x \<in> f ` set xs \<Longrightarrow> insort_insert_key f x xs = xs"
   by (simp add: insort_insert_key_def)
@@ -5151,12 +5235,12 @@ lemma insort_insert_insort:
 
 lemma set_insort_insert:
   "set (insort_insert x xs) = insert x (set xs)"
-  by (auto simp add: insort_insert_key_def set_insort)
+  by (auto simp add: insort_insert_key_def set_insort_key)
 
 lemma distinct_insort_insert:
   assumes "distinct xs"
   shows "distinct (insort_insert_key f x xs)"
-  using assms by (induct xs) (auto simp add: insort_insert_key_def set_insort)
+using assms by (induct xs) (auto simp add: insort_insert_key_def set_insort_key)
 
 lemma sorted_insort_insert_key:
   assumes "sorted (map f xs)"
@@ -5179,21 +5263,6 @@ lemma filter_insort:
 lemma filter_sort:
   "filter P (sort_key f xs) = sort_key f (filter P xs)"
   by (induct xs) (simp_all add: filter_insort_triv filter_insort)
-
-lemma sorted_map_same:
-  "sorted (map f [x\<leftarrow>xs. f x = g xs])"
-proof (induct xs arbitrary: g)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs)
-  then have "sorted (map f [y\<leftarrow>xs . f y = (\<lambda>xs. f x) xs])" .
-  moreover from Cons have "sorted (map f [y\<leftarrow>xs . f y = (g \<circ> Cons x) xs])" .
-  ultimately show ?case by (simp_all add: sorted_Cons)
-qed
-
-lemma sorted_same:
-  "sorted [x\<leftarrow>xs. x = g xs]"
-  using sorted_map_same [of "\<lambda>x. x"] by simp
 
 lemma remove1_insort [simp]:
   "remove1 x (insort x xs) = xs"
@@ -5391,13 +5460,6 @@ lists. Warning: in most cases it is not a good idea to convert from
 sets to lists but one should convert in the other direction (via
 @{const set}).\<close>
 
-subsubsection \<open>\<open>sorted_list_of_set\<close>\<close>
-
-text\<open>This function maps (finite) linearly ordered sets to sorted
-lists. Warning: in most cases it is not a good idea to convert from
-sets to lists but one should convert in the other direction (via
-@{const set}).\<close>
-
 context linorder
 begin
 
@@ -5428,7 +5490,8 @@ lemma sorted_list_of_set_eq_Nil_iff [simp]:
 lemma sorted_list_of_set [simp]:
   "finite A \<Longrightarrow> set (sorted_list_of_set A) = A \<and> sorted (sorted_list_of_set A)
     \<and> distinct (sorted_list_of_set A)"
-  by (induct A rule: finite_induct) (simp_all add: set_insort sorted_insort distinct_insort)
+by(induct A rule: finite_induct)
+  (simp_all add: set_insort_key sorted_insort distinct_insort)
 
 lemma distinct_sorted_list_of_set:
   "distinct (sorted_list_of_set A)"
