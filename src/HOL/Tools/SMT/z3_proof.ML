@@ -118,6 +118,18 @@ datatype z3_node = Z3_Node of {
 fun mk_node id rule prems concl bounds =
   Z3_Node {id = id, rule = rule, prems = prems, concl = concl, bounds = bounds}
 
+fun string_of_node ctxt =
+  let
+    fun str depth (Z3_Node {id, rule, prems, concl, bounds}) =
+      replicate_string depth "  " ^
+      enclose "{" "}" (commas
+        [string_of_int id,
+         string_of_rule rule,
+         enclose "[" "]" (space_implode " " bounds),
+         Syntax.string_of_term ctxt concl] ^
+        cat_lines (map (prefix "\n" o str (depth + 1)) prems))
+  in str 0 end
+
 datatype z3_step = Z3_Step of {
   id: int,
   rule: z3_rule,
