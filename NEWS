@@ -92,6 +92,11 @@ effectively always enabled.
 the document model to theories that are required for open editor
 buffers.
 
+* The Theories dockable indicates the overall status of checking of each
+entry. When all forked tasks of a theory are finished, the border is
+painted with thick lines; remaining errors in this situation are
+represented by a different border color.
+
 * Update to jedit-5.4.0.
 
 
