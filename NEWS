@@ -131,8 +131,11 @@ HOL-Computational_Algebra and HOL-Number_Theory.
 
 * Material on infinite products in HOL-Analysis
 
-* "sublist" from theory List renamed to "nths" in analogy with "nth".
-"sublisteq" renamed to "subseq".  Minor INCOMPATIBILITY.
+* Theory List:
+  "sublist" renamed to "nths" in analogy with "nth".
+  "sublisteq" renamed to "subseq".
+  Minor INCOMPATIBILITY.
+  New generic function "sorted_wrt"
 
 * Theories "GCD" and "Binomial" are already included in "Main" (instead
 of "Complex_Main").
