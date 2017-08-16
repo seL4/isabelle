@@ -23,6 +23,9 @@ public option auto_quickcheck : bool = true
 public option auto_solve_direct : bool = true
   -- "run solve_direct automatically"
 
+public option log_auto_tools : bool = false
+  -- "produce log messages for automatically tried tools"
+
 
 section "Miscellaneous Tools"
 
