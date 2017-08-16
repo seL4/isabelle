@@ -77,44 +77,64 @@ val _ =
     "try a combination of automatic proving and disproving tools"
     (Scan.succeed (Toplevel.keep_proof (ignore o try_tools o Toplevel.proof_of)));
 
+(* timeout wrapper *)
+
+fun try_tool_timeout state ((name, (_, auto, tool)): tool) = let
+    val auto_time_limit = Options.default_real \<^system_option>\<open>auto_time_limit\<close>
+  in
+    if Options.default_bool auto andalso auto_time_limit > 0.0 then
+       (case try (Timeout.apply (seconds auto_time_limit) (tool true)) state of
+         SOME (true, (kind, outcome)) => SOME (name, kind, outcome)
+       | _ => NONE)
+     else NONE
+  end;
 
 (* automatic try (TTY) *)
 
 fun auto_try state =
   get_tools (Proof.theory_of state)
-  |> map_filter (fn (_, (_, auto, tool)) => if Options.default_bool auto then SOME tool else NONE)
-  |> Par_List.get_some (fn tool =>
-    (case try (tool true) state of
-      SOME (true, (_, outcome)) => SOME outcome
-    | _ => NONE))
-  |> the_default [];
+  |> Par_List.map (try_tool_timeout state)
+  |> map_filter I
 
+fun log_auto_try trans top_state = let
+    val state = Toplevel.proof_of top_state
+    val keywords = Thy_Header.get_keywords (Proof.theory_of state)
+    val here = "at " ^ Position.here (Toplevel.pos_of trans)
+    fun print_res (name, kind, outcome) = Pretty.big_list
+        ("tool " ^ name ^ " produced result " ^ here)
+        (map Pretty.para outcome)
+  in if Options.default_bool @{system_option log_auto_tools}
+    andalso Keyword.is_theory_goal keywords (Toplevel.name_of trans)
+  then
+    auto_try state |> List.app (print_res #> Pretty.writeln)
+  else () end
+
+val () = Toplevel.add_hook (fn trans => fn _ => fn st' =>
+    (try (log_auto_try trans) st'; ()))
 
 (* asynchronous print function (PIDE) *)
 
 fun print_function ((name, (weight, auto, tool)): tool) =
   Command.print_function ("auto_" ^ name)
     (fn {keywords, command_name, ...} =>
-      if Keyword.is_theory_goal keywords command_name andalso Options.default_bool auto then
+      if Keyword.is_theory_goal keywords command_name
+          andalso Options.default_bool auto
+          andalso not (Options.default_bool @{system_option log_auto_tools})
+      then
         SOME
          {delay = SOME (seconds (Options.default_real \<^system_option>\<open>auto_time_start\<close>)),
           pri = ~ weight,
           persistent = true,
           strict = true,
-          print_fn = fn _ => fn st =>
+          print_fn = fn _ => ignore o try (fn st =>
             let
               val state = Toplevel.proof_of st
                 |> Proof.map_context (Context_Position.set_visible false)
-              val auto_time_limit = Options.default_real \<^system_option>\<open>auto_time_limit\<close>
-            in
-              if auto_time_limit > 0.0 then
-                (case Timeout.apply (seconds auto_time_limit) (fn () => tool true state) () of
-                  (true, (_, outcome)) => List.app Output.information outcome
-                | _ => ())
-              else ()
-            end handle exn => if Exn.is_interrupt exn then Exn.reraise exn else ()}
+            in case try_tool_timeout state (name, (weight, auto, tool))
+              of SOME (_, _, outcome) => List.app Output.information outcome
+                | _ => ()
+            end)}
       else NONE);
-
 
 (* hybrid tool setup *)
 
