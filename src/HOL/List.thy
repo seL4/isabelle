@@ -4915,6 +4915,14 @@ apply(induction xs arbitrary: x)
  apply simp
 by simp (blast intro: order_trans)
 
+lemma sorted_iff_wrt: "sorted xs = sorted_wrt (op \<le>) xs"
+proof
+  assume "sorted xs" thus "sorted_wrt (op \<le>) xs"
+  proof (induct xs rule: sorted.induct)
+    case (Cons xs x) thus ?case by (cases xs) simp_all
+  qed simp
+qed (induct xs rule: sorted_wrt_induct, simp_all)
+
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
 by (cases xs) (simp_all add: sorted_Cons)

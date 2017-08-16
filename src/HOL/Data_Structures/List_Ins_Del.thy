@@ -19,12 +19,12 @@ lemma elems_eq_set: "elems xs = set xs"
 by (induction xs) auto
 
 lemma sorted_Cons_iff:
-  "sorted(x # xs) = (sorted xs \<and> (\<forall>y \<in> elems xs. x < y))"
-by(simp add: elems_eq_set Sorted_Less.sorted_Cons_iff)
+  "sorted(x # xs) = ((\<forall>y \<in> elems xs. x < y) \<and> sorted xs)"
+by(simp add: elems_eq_set sorted_wrt_Cons)
 
 lemma sorted_snoc_iff:
   "sorted(xs @ [x]) = (sorted xs \<and> (\<forall>y \<in> elems xs. y < x))"
-by(simp add: elems_eq_set Sorted_Less.sorted_snoc_iff)
+by(simp add: elems_eq_set sorted_wrt_append)
 
 text{* The above two rules introduce quantifiers. It turns out
 that in practice this is not a problem because of the simplicity of
@@ -53,12 +53,12 @@ lemma set_ins_list: "elems (ins_list x xs) = insert x (elems xs)"
 by(induction xs) auto
 
 lemma distinct_if_sorted: "sorted xs \<Longrightarrow> distinct xs"
-apply(induction xs rule: sorted.induct)
+apply(induction xs rule: sorted_wrt_induct)
 apply auto
 by (metis in_set_conv_decomp_first less_imp_not_less sorted_mid_iff2)
 
 lemma sorted_ins_list: "sorted xs \<Longrightarrow> sorted(ins_list x xs)"
-by(induction xs rule: sorted.induct) auto
+by(induction xs rule: sorted_wrt_induct) auto
 
 lemma ins_list_sorted: "sorted (xs @ [a]) \<Longrightarrow>
   ins_list x (xs @ a # ys) =
@@ -105,7 +105,7 @@ apply blast
 done
 
 lemma sorted_del_list: "sorted xs \<Longrightarrow> sorted(del_list x xs)"
-apply(induction xs rule: sorted.induct)
+apply(induction xs rule: sorted_wrt_induct)
 apply auto
 by (meson order.strict_trans sorted_Cons_iff)
 
@@ -151,7 +151,7 @@ lemmas del_list_simps = sorted_lems
 text\<open>Splay trees need two additional @{const del_list} lemmas:\<close>
 
 lemma del_list_notin_Cons: "sorted (x # xs) \<Longrightarrow> del_list x xs = xs"
-by(induction xs)(auto simp: sorted_Cons_iff)
+by(induction xs)(fastforce simp: sorted_Cons_iff)+
 
 lemma del_list_sorted_app:
   "sorted(xs @ [x]) \<Longrightarrow> del_list x (xs @ ys) = xs @ del_list x ys"

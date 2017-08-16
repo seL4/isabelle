@@ -40,7 +40,7 @@ lemma map_of_append: "map_of (ps @ qs) x =
 by(induction ps)(auto)
 
 lemma map_of_None: "sorted (x # map fst ps) \<Longrightarrow> map_of ps x = None"
-by (induction ps) (auto simp: sorted_lems sorted_Cons_iff)
+by (induction ps) (fastforce simp: sorted_lems sorted_wrt_Cons)+
 
 lemma map_of_None2: "sorted (map fst ps @ [x]) \<Longrightarrow> map_of ps x = None"
 by (induction ps) (auto simp: sorted_lems)
@@ -51,11 +51,11 @@ by(induction ps) (auto simp: map_of_None sorted_lems fun_eq_iff)
 
 lemma map_of_sorted_Cons: "sorted (a # map fst ps) \<Longrightarrow> x < a \<Longrightarrow>
    map_of ps x = None"
-by (meson less_trans map_of_None sorted_Cons_iff)
+by (simp add: map_of_None sorted_Cons_le)
 
 lemma map_of_sorted_snoc: "sorted (map fst ps @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
   map_of ps x = None"
-by (meson le_less_trans map_of_None2 not_less sorted_snoc_iff)
+by (simp add: map_of_None2 sorted_snoc_le)
 
 lemmas map_of_sorteds = map_of_sorted_Cons map_of_sorted_snoc
 lemmas map_of_simps = sorted_lems map_of_append map_of_sorteds
@@ -106,8 +106,8 @@ lemma sorted_del_list: "sorted1 ps \<Longrightarrow> sorted1 (del_list x ps)"
 apply(induction ps)
  apply simp
 apply(case_tac ps)
-apply auto
-by (meson order.strict_trans sorted_Cons_iff)
+apply (auto simp: sorted_Cons_le)
+done
 
 lemma del_list_idem: "x \<notin> set(map fst xs) \<Longrightarrow> del_list x xs = xs"
 by (induct xs) auto
@@ -117,7 +117,7 @@ lemma del_list_sorted: "sorted1 (ps @ (a,b) # qs) \<Longrightarrow>
     (if x < a then del_list x ps @ (a,b) # qs
      else ps @ del_list x ((a,b) # qs))"
 by(induction ps)
-  (fastforce simp: sorted_lems sorted_Cons_iff intro!: del_list_idem)+
+  (fastforce simp: sorted_lems sorted_wrt_Cons intro!: del_list_idem)+
 
 text\<open>In principle, @{thm del_list_sorted} suffices, but the following
 corollaries speed up proofs.\<close>
@@ -156,7 +156,7 @@ lemmas del_list_simps = sorted_lems
 text\<open>Splay trees need two additional @{const del_list} lemmas:\<close>
 
 lemma del_list_notin_Cons: "sorted (x # map fst xs) \<Longrightarrow> del_list x xs = xs"
-by(induction xs)(auto simp: sorted_Cons_iff)
+by(induction xs)(fastforce simp: sorted_wrt_Cons)+
 
 lemma del_list_sorted_app:
   "sorted(map fst xs @ [x]) \<Longrightarrow> del_list x (xs @ ys) = xs @ del_list x ys"

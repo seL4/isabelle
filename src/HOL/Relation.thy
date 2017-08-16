@@ -438,18 +438,22 @@ lemma trans_singleton [simp]: "trans {(a, a)}"
 lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
   by (simp add: transp_def)
 
-lemma transp_le[simp]: "transp (op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
-by(auto simp add: transp_def)
+context preorder
+begin
 
-lemma transp_less[simp]: "transp (op < :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
-by(auto simp add: transp_def)
+lemma transp_le[simp]: "transp (op \<le>)"
+by(auto simp add: transp_def intro: order_trans)
 
-lemma transp_ge[simp]: "transp (op \<ge> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
-by(auto simp add: transp_def)
+lemma transp_less[simp]: "transp (op <)"
+by(auto simp add: transp_def intro: less_trans)
 
-lemma transp_gr[simp]: "transp (op > :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
-by(auto simp add: transp_def)
+lemma transp_ge[simp]: "transp (op \<ge>)"
+by(auto simp add: transp_def intro: order_trans)
 
+lemma transp_gr[simp]: "transp (op >)"
+by(auto simp add: transp_def intro: less_trans)
+
+end
 
 subsubsection \<open>Totality\<close>
 
