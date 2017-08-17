@@ -865,6 +865,7 @@ session "HOL-Word" (main timing) in Word = HOL +
     "HOL-Library"
   theories
     Word
+    WordBitwise
     Bit_Comparison
   document_files "root.bib" "root.tex"
 
