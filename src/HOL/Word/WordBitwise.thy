@@ -34,7 +34,7 @@ lemma xor3_simps:
 
 text \<open>Breaking up word equalities into equalities on their
   bit lists. Equalities are generated and manipulated in the
-  reverse order to to_bl.\<close>
+  reverse order to @{const to_bl}.\<close>
 
 lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
   by simp
@@ -368,7 +368,7 @@ lemma word_sless_rbl:
    apply auto
   done
 
-text \<open>Lemmas for unpacking rev (to_bl n) for numerals n and also
+text \<open>Lemmas for unpacking @{term "rev (to_bl n)"} for numerals n and also
   for irreducible values and expressions.\<close>
 
 lemma rev_bin_to_bl_simps:
