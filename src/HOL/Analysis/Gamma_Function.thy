@@ -101,7 +101,7 @@ proof -
   also have "(\<lambda>n. sin_coeff n *\<^sub>R z^n) sums sin z \<longleftrightarrow>
                  (\<lambda>n. ((-1)^n / fact (2*n+1)) *\<^sub>R z^(2*n+1)) sums sin z"
     by (subst sums_mono_reindex[of "\<lambda>n. 2*n+1", symmetric])
-       (auto simp: sin_coeff_def subseq_def ac_simps elim!: oddE)
+       (auto simp: sin_coeff_def strict_mono_def ac_simps elim!: oddE)
   finally show ?thesis .
 qed
 
@@ -111,7 +111,7 @@ proof -
   also have "(\<lambda>n. cos_coeff n *\<^sub>R z^n) sums cos z \<longleftrightarrow>
                  (\<lambda>n. ((-1)^n / fact (2*n)) *\<^sub>R z^(2*n)) sums cos z"
     by (subst sums_mono_reindex[of "\<lambda>n. 2*n", symmetric])
-       (auto simp: cos_coeff_def subseq_def ac_simps elim!: evenE)
+       (auto simp: cos_coeff_def strict_mono_def ac_simps elim!: evenE)
   finally show ?thesis .
 qed
 
@@ -2038,7 +2038,7 @@ proof -
     hence "?g \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
       using LIMSEQ_subseq_LIMSEQ[OF Gamma_series'_LIMSEQ, of "op*2" "2*z"]
       by (intro tendsto_intros Gamma_series'_LIMSEQ)
-         (simp_all add: o_def subseq_def Gamma_eq_zero_iff)
+         (simp_all add: o_def strict_mono_def Gamma_eq_zero_iff)
     ultimately have "?h \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
       by (rule Lim_transform_eventually)
   } note lim = this

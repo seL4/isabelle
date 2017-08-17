@@ -325,7 +325,7 @@ lemma Bseq_Suc_iff: "Bseq (\<lambda>n. f (Suc n)) \<longleftrightarrow> Bseq f"
   using Bseq_offset[of f 1] by (auto intro: Bseq_subseq)
 
 lemma increasing_Bseq_subseq_iff:
-  assumes "\<And>x y. x \<le> y \<Longrightarrow> norm (f x :: 'a::real_normed_vector) \<le> norm (f y)" "subseq g"
+  assumes "\<And>x y. x \<le> y \<Longrightarrow> norm (f x :: 'a::real_normed_vector) \<le> norm (f y)" "strict_mono g"
   shows "Bseq (\<lambda>x. f (g x)) \<longleftrightarrow> Bseq f"
 proof
   assume "Bseq (\<lambda>x. f (g x))"
@@ -346,7 +346,7 @@ qed (use Bseq_subseq[of f g] in simp_all)
 lemma nonneg_incseq_Bseq_subseq_iff:
   fixes f :: "nat \<Rightarrow> real"
     and g :: "nat \<Rightarrow> nat"
-  assumes "\<And>x. f x \<ge> 0" "incseq f" "subseq g"
+  assumes "\<And>x. f x \<ge> 0" "incseq f" "strict_mono g"
   shows "Bseq (\<lambda>x. f (g x)) \<longleftrightarrow> Bseq f"
   using assms by (intro increasing_Bseq_subseq_iff) (auto simp: incseq_def)
 
@@ -1398,11 +1398,11 @@ lemma real_tendsto_divide_at_top:
 
 lemma mult_nat_left_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. c * x) at_top sequentially"
   for c :: nat
-  by (rule filterlim_subseq) (auto simp: subseq_def)
+  by (rule filterlim_subseq) (auto simp: strict_mono_def)
 
 lemma mult_nat_right_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. x * c) at_top sequentially"
   for c :: nat
-  by (rule filterlim_subseq) (auto simp: subseq_def)
+  by (rule filterlim_subseq) (auto simp: strict_mono_def)
 
 lemma at_to_infinity: "(at (0::'a::{real_normed_field,field})) = filtermap inverse at_infinity"
 proof (rule antisym)

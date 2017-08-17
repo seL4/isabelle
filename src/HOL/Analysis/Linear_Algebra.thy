@@ -1757,8 +1757,8 @@ lemma seq_mono_lemma:
 
 lemma infinite_enumerate:
   assumes fS: "infinite S"
-  shows "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> S)"
-  unfolding subseq_def
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (\<forall>n. r n \<in> S)"
+  unfolding strict_mono_def
   using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
 
 lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"

@@ -2420,7 +2420,7 @@ proof -
                intro!: mult_pos_pos divide_pos_pos always_eventually)
     thus "summable (\<lambda>n. g n * u^n)"
       by (subst summable_mono_reindex[of "\<lambda>n. 2*n+1", symmetric])
-         (auto simp: power_mult subseq_def g_def h_def elim!: oddE)
+         (auto simp: power_mult strict_mono_def g_def h_def elim!: oddE)
   qed (simp add: h_def)
 
   have "\<exists>c. \<forall>u\<in>ball 0 1. Arctan u - G u = c"
@@ -2436,7 +2436,7 @@ proof -
       by (intro ext) (simp_all del: of_nat_Suc add: g_def diffs_def power_mult_distrib)
     also have "suminf \<dots> = (\<Sum>n. (-(u^2))^n)"
       by (subst suminf_mono_reindex[of "\<lambda>n. 2*n", symmetric])
-         (auto elim!: evenE simp: subseq_def power_mult power_mult_distrib)
+         (auto elim!: evenE simp: strict_mono_def power_mult power_mult_distrib)
     also from u have "norm u^2 < 1^2" by (intro power_strict_mono) simp_all
     hence "(\<Sum>n. (-(u^2))^n) = inverse (1 + u^2)"
       by (subst suminf_geometric) (simp_all add: norm_power inverse_eq_divide)
@@ -2450,7 +2450,7 @@ proof -
   with c z have "Arctan z = G z" by simp
   with summable[OF z] show "(\<lambda>n. g n * z^n) sums Arctan z" unfolding G_def by (simp add: sums_iff)
   thus "h z sums Arctan z" by (subst (asm) sums_mono_reindex[of "\<lambda>n. 2*n+1", symmetric])
-                              (auto elim!: oddE simp: subseq_def power_mult g_def h_def)
+                              (auto elim!: oddE simp: strict_mono_def power_mult g_def h_def)
 qed
 
 text \<open>A quickly-converging series for the logarithm, based on the arctangent.\<close>

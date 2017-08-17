@@ -215,7 +215,7 @@ proof -
   moreover have "(\<lambda>n. ?em (2*n) - ?em n + ln (2::real))
                      \<longlonglongrightarrow> euler_mascheroni - euler_mascheroni + ln 2"
     by (intro tendsto_intros euler_mascheroni_LIMSEQ filterlim_compose[OF euler_mascheroni_LIMSEQ]
-              filterlim_subseq) (auto simp: subseq_def)
+              filterlim_subseq) (auto simp: strict_mono_def)
   hence "(\<lambda>n. ?em (2*n) - ?em n + ln (2::real)) \<longlonglongrightarrow> ln 2" by simp
   ultimately have "(\<lambda>n. (\<Sum>k<2*n. (-1)^k / real_of_nat (Suc k))) \<longlonglongrightarrow> ln 2"
     by (rule Lim_transform_eventually)
@@ -227,7 +227,7 @@ proof -
     by (simp add: summable_sums_iff divide_inverse sums_def)
   from filterlim_compose[OF this filterlim_subseq[of "op * (2::nat)"]]
     have "(\<lambda>n. \<Sum>k<2*n. (-1)^k / real_of_nat (Suc k)) \<longlonglongrightarrow> (\<Sum>k. (-1)^k / real_of_nat (Suc k))"
-    by (simp add: subseq_def)
+    by (simp add: strict_mono_def)
   ultimately have "(\<Sum>k. (- 1) ^ k / real_of_nat (Suc k)) = ln 2" by (intro LIMSEQ_unique)
   with A show ?thesis by (simp add: sums_def)
 qed

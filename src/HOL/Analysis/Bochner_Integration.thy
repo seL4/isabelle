@@ -2128,7 +2128,7 @@ lemma tendsto_L1_AE_subseq:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes [measurable]: "\<And>n. integrable M (u n)"
       and "(\<lambda>n. (\<integral>x. norm(u n x) \<partial>M)) \<longlonglongrightarrow> 0"
-  shows "\<exists>r. subseq r \<and> (AE x in M. (\<lambda>n. u (r n) x) \<longlonglongrightarrow> 0)"
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (AE x in M. (\<lambda>n. u (r n) x) \<longlonglongrightarrow> 0)"
 proof -
   {
     fix k
@@ -2140,13 +2140,13 @@ proof -
   }
   then have "\<exists>r. \<forall>n. True \<and> (r (Suc n) > r n \<and> (\<integral>x. norm(u (r (Suc n)) x) \<partial>M) < (1/2)^(r n))"
     by (intro dependent_nat_choice, auto)
-  then obtain r0 where r0: "subseq r0" "\<And>n. (\<integral>x. norm(u (r0 (Suc n)) x) \<partial>M) < (1/2)^(r0 n)"
-    by (auto simp: subseq_Suc_iff)
+  then obtain r0 where r0: "strict_mono r0" "\<And>n. (\<integral>x. norm(u (r0 (Suc n)) x) \<partial>M) < (1/2)^(r0 n)"
+    by (auto simp: strict_mono_Suc_iff)
   define r where "r = (\<lambda>n. r0(n+1))"
-  have "subseq r" unfolding r_def using r0(1) by (simp add: subseq_Suc_iff)
+  have "strict_mono r" unfolding r_def using r0(1) by (simp add: strict_mono_Suc_iff)
   have I: "(\<integral>\<^sup>+x. norm(u (r n) x) \<partial>M) < ennreal((1/2)^n)" for n
   proof -
-    have "r0 n \<ge> n" using \<open>subseq r0\<close> by (simp add: seq_suble)
+    have "r0 n \<ge> n" using \<open>strict_mono r0\<close> by (simp add: seq_suble)
     have "(1/2::real)^(r0 n) \<le> (1/2)^n" by (rule power_decreasing[OF \<open>r0 n \<ge> n\<close>], auto)
     then have "(\<integral>x. norm(u (r0 (Suc n)) x) \<partial>M) < (1/2)^n" using r0(2) less_le_trans by auto
     then have "(\<integral>x. norm(u (r n) x) \<partial>M) < (1/2)^n" unfolding r_def by auto
@@ -2219,7 +2219,7 @@ proof -
       by (simp add: tendsto_norm_zero_iff)
   }
   ultimately have "AE x in M. (\<lambda>n. u (r n) x) \<longlonglongrightarrow> 0" by auto
-  then show ?thesis using \<open>subseq r\<close> by auto
+  then show ?thesis using \<open>strict_mono r\<close> by auto
 qed
 
 subsection \<open>Restricted measure spaces\<close>

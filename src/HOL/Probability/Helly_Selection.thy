@@ -19,7 +19,7 @@ theorem Helly_selection:
   assumes rcont: "\<And>n x. continuous (at_right x) (f n)"
   assumes mono: "\<And>n. mono (f n)"
   assumes bdd: "\<And>n x. \<bar>f n x\<bar> \<le> M"
-  shows "\<exists>s. subseq s \<and> (\<exists>F. (\<forall>x. continuous (at_right x) F) \<and> mono F \<and> (\<forall>x. \<bar>F x\<bar> \<le> M) \<and>
+  shows "\<exists>s. strict_mono (s::nat \<Rightarrow> nat) \<and> (\<exists>F. (\<forall>x. continuous (at_right x) F) \<and> mono F \<and> (\<forall>x. \<bar>F x\<bar> \<le> M) \<and>
     (\<forall>x. continuous (at x) F \<longrightarrow> (\<lambda>n. f (s n) x) \<longlonglongrightarrow> F x))"
 proof -
   obtain m :: "real \<Rightarrow> nat" where "bij_betw m \<rat> UNIV"
@@ -33,18 +33,18 @@ proof -
   let ?P = "\<lambda>n. \<lambda>s. convergent (\<lambda>k. f (s k) (r n))"
   interpret nat: subseqs ?P
   proof (unfold convergent_def, unfold subseqs_def, auto)
-    fix n :: nat and s :: "nat \<Rightarrow> nat" assume s: "subseq s"
+    fix n :: nat and s :: "nat \<Rightarrow> nat" assume s: "strict_mono s"
     have "bounded {-M..M}"
       using bounded_closed_interval by auto
     moreover have "\<And>k. f (s k) (r n) \<in> {-M..M}"
       using bdd by (simp add: abs_le_iff minus_le_iff)
-    ultimately have "\<exists>l s'. subseq s' \<and> ((\<lambda>k. f (s k) (r n)) \<circ> s') \<longlonglongrightarrow> l"
+    ultimately have "\<exists>l s'. strict_mono s' \<and> ((\<lambda>k. f (s k) (r n)) \<circ> s') \<longlonglongrightarrow> l"
       using compact_Icc compact_imp_seq_compact seq_compactE by metis
-    thus "\<exists>s'. subseq s' \<and> (\<exists>l. (\<lambda>k. f (s (s' k)) (r n)) \<longlonglongrightarrow> l)"
+    thus "\<exists>s'. strict_mono (s'::nat\<Rightarrow>nat) \<and> (\<exists>l. (\<lambda>k. f (s (s' k)) (r n)) \<longlonglongrightarrow> l)"
       by (auto simp: comp_def)
   qed
   define d where "d = nat.diagseq"
-  have subseq: "subseq d"
+  have subseq: "strict_mono d"
     unfolding d_def using nat.subseq_diagseq by auto
   have rat_cnv: "?P n d" for n
   proof -
@@ -157,8 +157,8 @@ where
 
 (* Can strengthen to equivalence. *)
 theorem tight_imp_convergent_subsubsequence:
-  assumes \<mu>: "tight \<mu>" "subseq s"
-  shows "\<exists>r M. subseq r \<and> real_distribution M \<and> weak_conv_m (\<mu> \<circ> s \<circ> r) M"
+  assumes \<mu>: "tight \<mu>" "strict_mono s"
+  shows "\<exists>r M. strict_mono (r :: nat \<Rightarrow> nat) \<and> real_distribution M \<and> weak_conv_m (\<mu> \<circ> s \<circ> r) M"
 proof -
   define f where "f k = cdf (\<mu> (s k))" for k
   interpret \<mu>: real_distribution "\<mu> k" for k
@@ -174,7 +174,7 @@ proof -
     by (auto simp add: abs_le_iff minus_le_iff f_def \<mu>.cdf_nonneg \<mu>.cdf_bounded_prob)
 
   from Helly_selection[OF rcont mono bdd, of "\<lambda>x. x"] obtain r F
-    where F: "subseq r" "\<And>x. continuous (at_right x) F" "mono F" "\<And>x. \<bar>F x\<bar> \<le> 1"
+    where F: "strict_mono r" "\<And>x. continuous (at_right x) F" "mono F" "\<And>x. \<bar>F x\<bar> \<le> 1"
     and lim_F: "\<And>x. continuous (at x) F \<Longrightarrow> (\<lambda>n. f (r n) x) \<longlonglongrightarrow> F x"
     by blast
 
@@ -265,14 +265,14 @@ proof -
     using F by (auto intro!: real_distribution_interval_measure cdf_interval_measure simp: mono_def)
   with lim_F LIMSEQ_subseq_LIMSEQ M have "weak_conv_m (\<mu> \<circ> s \<circ> r) (interval_measure F)"
     by (auto simp: weak_conv_def weak_conv_m_def f_def comp_def)
-  then show "\<exists>r M. subseq r \<and> (real_distribution M \<and> weak_conv_m (\<mu> \<circ> s \<circ> r) M)"
+  then show "\<exists>r M. strict_mono (r :: nat \<Rightarrow> nat) \<and> (real_distribution M \<and> weak_conv_m (\<mu> \<circ> s \<circ> r) M)"
     using F M by auto
 qed
 
 corollary tight_subseq_weak_converge:
   fixes \<mu> :: "nat \<Rightarrow> real measure" and M :: "real measure"
   assumes "\<And>n. real_distribution (\<mu> n)" "real_distribution M" and tight: "tight \<mu>" and
-    subseq: "\<And>s \<nu>. subseq s \<Longrightarrow> real_distribution \<nu> \<Longrightarrow> weak_conv_m (\<mu> \<circ> s) \<nu> \<Longrightarrow> weak_conv_m (\<mu> \<circ> s) M"
+    subseq: "\<And>s \<nu>. strict_mono s \<Longrightarrow> real_distribution \<nu> \<Longrightarrow> weak_conv_m (\<mu> \<circ> s) \<nu> \<Longrightarrow> weak_conv_m (\<mu> \<circ> s) M"
   shows "weak_conv_m \<mu> M"
 proof (rule ccontr)
   define f where "f n = cdf (\<mu> n)" for n
@@ -283,12 +283,12 @@ proof (rule ccontr)
     by (auto simp: weak_conv_m_def weak_conv_def f_def F_def)
   then obtain \<epsilon> where "\<epsilon> > 0" and "infinite {n. \<not> dist (f n x) (F x) < \<epsilon>}"
     by (auto simp: tendsto_iff not_eventually INFM_iff_infinite cofinite_eq_sequentially[symmetric])
-  then obtain s where s: "\<And>n. \<not> dist (f (s n) x) (F x) < \<epsilon>" and "subseq s"
-    using enumerate_in_set enumerate_mono by (fastforce simp: subseq_def)
-  then obtain r \<nu> where r: "subseq r" "real_distribution \<nu>" "weak_conv_m (\<mu> \<circ> s \<circ> r) \<nu>"
+  then obtain s :: "nat \<Rightarrow> nat" where s: "\<And>n. \<not> dist (f (s n) x) (F x) < \<epsilon>" and "strict_mono s"
+    using enumerate_in_set enumerate_mono by (fastforce simp: strict_mono_def)
+  then obtain r \<nu> where r: "strict_mono r" "real_distribution \<nu>" "weak_conv_m (\<mu> \<circ> s \<circ> r) \<nu>"
     using tight_imp_convergent_subsubsequence[OF tight] by blast
   then have "weak_conv_m (\<mu> \<circ> (s \<circ> r)) M"
-    using \<open>subseq s\<close> r by (intro subseq subseq_o) (auto simp: comp_assoc)
+    using \<open>strict_mono s\<close> r by (intro subseq strict_mono_o) (auto simp: comp_assoc)
   then have "(\<lambda>n. f (s (r n)) x) \<longlonglongrightarrow> F x"
     using x by (auto simp: weak_conv_m_def weak_conv_def F_def f_def)
   then show False

@@ -379,20 +379,20 @@ lemma tendsto_iff_Liminf_eq_Limsup:
 
 lemma liminf_subseq_mono:
   fixes X :: "nat \<Rightarrow> 'a :: complete_linorder"
-  assumes "subseq r"
+  assumes "strict_mono r"
   shows "liminf X \<le> liminf (X \<circ> r) "
 proof-
   have "\<And>n. (INF m:{n..}. X m) \<le> (INF m:{n..}. (X \<circ> r) m)"
   proof (safe intro!: INF_mono)
     fix n m :: nat assume "n \<le> m" then show "\<exists>ma\<in>{n..}. X ma \<le> (X \<circ> r) m"
-      using seq_suble[OF \<open>subseq r\<close>, of m] by (intro bexI[of _ "r m"]) auto
+      using seq_suble[OF \<open>strict_mono r\<close>, of m] by (intro bexI[of _ "r m"]) auto
   qed
   then show ?thesis by (auto intro!: SUP_mono simp: liminf_SUP_INF comp_def)
 qed
 
 lemma limsup_subseq_mono:
   fixes X :: "nat \<Rightarrow> 'a :: complete_linorder"
-  assumes "subseq r"
+  assumes "strict_mono r"
   shows "limsup (X \<circ> r) \<le> limsup X"
 proof-
   have "(SUP m:{n..}. (X \<circ> r) m) \<le> (SUP m:{n..}. X m)" for n
@@ -400,7 +400,7 @@ proof-
     fix m :: nat
     assume "n \<le> m"
     then show "\<exists>ma\<in>{n..}. (X \<circ> r) m \<le> X ma"
-      using seq_suble[OF \<open>subseq r\<close>, of m] by (intro bexI[of _ "r m"]) auto
+      using seq_suble[OF \<open>strict_mono r\<close>, of m] by (intro bexI[of _ "r m"]) auto
   qed
   then show ?thesis
     by (auto intro!: INF_mono simp: limsup_INF_SUP comp_def)
@@ -587,9 +587,9 @@ qed
 
 lemma compact_complete_linorder:
   fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
-  shows "\<exists>l r. subseq r \<and> (X \<circ> r) \<longlonglongrightarrow> l"
+  shows "\<exists>l r. strict_mono r \<and> (X \<circ> r) \<longlonglongrightarrow> l"
 proof -
-  obtain r where "subseq r" and mono: "monoseq (X \<circ> r)"
+  obtain r where "strict_mono r" and mono: "monoseq (X \<circ> r)"
     using seq_monosub[of X]
     unfolding comp_def
     by auto
@@ -599,7 +599,7 @@ proof -
      using lim_increasing_cl[of "X \<circ> r"] lim_decreasing_cl[of "X \<circ> r"]
      by auto
   then show ?thesis
-    using \<open>subseq r\<close> by auto
+    using \<open>strict_mono r\<close> by auto
 qed
 
 lemma tendsto_Limsup:

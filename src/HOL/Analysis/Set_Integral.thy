@@ -193,22 +193,22 @@ about limsups to statements about limits.\<close>
 
 lemma limsup_subseq_lim:
   fixes u::"nat \<Rightarrow> 'a :: {complete_linorder, linorder_topology}"
-  shows "\<exists>r. subseq r \<and> (u o r) \<longlonglongrightarrow> limsup u"
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (u o r) \<longlonglongrightarrow> limsup u"
 proof (cases)
   assume "\<forall>n. \<exists>p>n. \<forall>m\<ge>p. u m \<le> u p"
   then have "\<exists>r. \<forall>n. (\<forall>m\<ge>r n. u m \<le> u (r n)) \<and> r n < r (Suc n)"
     by (intro dependent_nat_choice) (auto simp: conj_commute)
-  then obtain r where "subseq r" and mono: "\<And>n m. r n \<le> m \<Longrightarrow> u m \<le> u (r n)"
-    by (auto simp: subseq_Suc_iff)
+  then obtain r :: "nat \<Rightarrow> nat" where "strict_mono r" and mono: "\<And>n m. r n \<le> m \<Longrightarrow> u m \<le> u (r n)"
+    by (auto simp: strict_mono_Suc_iff)
   define umax where "umax = (\<lambda>n. (SUP m:{n..}. u m))"
   have "decseq umax" unfolding umax_def by (simp add: SUP_subset_mono antimono_def)
   then have "umax \<longlonglongrightarrow> limsup u" unfolding umax_def by (metis LIMSEQ_INF limsup_INF_SUP)
-  then have *: "(umax o r) \<longlonglongrightarrow> limsup u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>subseq r\<close>)
+  then have *: "(umax o r) \<longlonglongrightarrow> limsup u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>strict_mono r\<close>)
   have "\<And>n. umax(r n) = u(r n)" unfolding umax_def using mono
     by (metis SUP_le_iff antisym atLeast_def mem_Collect_eq order_refl)
   then have "umax o r = u o r" unfolding o_def by simp
   then have "(u o r) \<longlonglongrightarrow> limsup u" using * by simp
-  then show ?thesis using \<open>subseq r\<close> by blast
+  then show ?thesis using \<open>strict_mono r\<close> by blast
 next
   assume "\<not> (\<forall>n. \<exists>p>n. (\<forall>m\<ge>p. u m \<le> u p))"
   then obtain N where N: "\<And>p. p > N \<Longrightarrow> \<exists>m>p. u p < u m" by (force simp: not_le le_less)
@@ -262,16 +262,16 @@ next
     then show "\<exists>y>N. x < y \<and> (\<forall>i\<in>{N<..y}. u i \<le> u y)" by auto
   qed (auto)
   then obtain r where r: "\<forall>n. N < r n \<and> r n < r (Suc n) \<and> (\<forall>i\<in> {N<..r (Suc n)}. u i \<le> u (r (Suc n)))" by auto
-  have "subseq r" using r by (auto simp: subseq_Suc_iff)
+  have "strict_mono r" using r by (auto simp: strict_mono_Suc_iff)
   have "incseq (u o r)" unfolding o_def using r by (simp add: incseq_SucI order.strict_implies_order)
   then have "(u o r) \<longlonglongrightarrow> (SUP n. (u o r) n)" using LIMSEQ_SUP by blast
   then have "limsup (u o r) = (SUP n. (u o r) n)" by (simp add: lim_imp_Limsup)
-  moreover have "limsup (u o r) \<le> limsup u" using \<open>subseq r\<close> by (simp add: limsup_subseq_mono)
+  moreover have "limsup (u o r) \<le> limsup u" using \<open>strict_mono r\<close> by (simp add: limsup_subseq_mono)
   ultimately have "(SUP n. (u o r) n) \<le> limsup u" by simp
 
   {
     fix i assume i: "i \<in> {N<..}"
-    obtain n where "i < r (Suc n)" using \<open>subseq r\<close> using Suc_le_eq seq_suble by blast
+    obtain n where "i < r (Suc n)" using \<open>strict_mono r\<close> using Suc_le_eq seq_suble by blast
     then have "i \<in> {N<..r(Suc n)}" using i by simp
     then have "u i \<le> u (r(Suc n))" using r by simp
     then have "u i \<le> (SUP n. (u o r) n)" unfolding o_def by (meson SUP_upper2 UNIV_I)
@@ -281,27 +281,27 @@ next
     by (metis (mono_tags, lifting) INF_lower2 atLeast_Suc_greaterThan atLeast_def eventually_ge_at_top mem_Collect_eq)
   then have "limsup u = (SUP n. (u o r) n)" using \<open>(SUP n. (u o r) n) \<le> limsup u\<close> by simp
   then have "(u o r) \<longlonglongrightarrow> limsup u" using \<open>(u o r) \<longlonglongrightarrow> (SUP n. (u o r) n)\<close> by simp
-  then show ?thesis using \<open>subseq r\<close> by auto
+  then show ?thesis using \<open>strict_mono r\<close> by auto
 qed
 
 lemma liminf_subseq_lim:
   fixes u::"nat \<Rightarrow> 'a :: {complete_linorder, linorder_topology}"
-  shows "\<exists>r. subseq r \<and> (u o r) \<longlonglongrightarrow> liminf u"
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (u o r) \<longlonglongrightarrow> liminf u"
 proof (cases)
   assume "\<forall>n. \<exists>p>n. \<forall>m\<ge>p. u m \<ge> u p"
   then have "\<exists>r. \<forall>n. (\<forall>m\<ge>r n. u m \<ge> u (r n)) \<and> r n < r (Suc n)"
     by (intro dependent_nat_choice) (auto simp: conj_commute)
-  then obtain r where "subseq r" and mono: "\<And>n m. r n \<le> m \<Longrightarrow> u m \<ge> u (r n)"
-    by (auto simp: subseq_Suc_iff)
+  then obtain r :: "nat \<Rightarrow> nat" where "strict_mono r" and mono: "\<And>n m. r n \<le> m \<Longrightarrow> u m \<ge> u (r n)"
+    by (auto simp: strict_mono_Suc_iff)
   define umin where "umin = (\<lambda>n. (INF m:{n..}. u m))"
   have "incseq umin" unfolding umin_def by (simp add: INF_superset_mono incseq_def)
   then have "umin \<longlonglongrightarrow> liminf u" unfolding umin_def by (metis LIMSEQ_SUP liminf_SUP_INF)
-  then have *: "(umin o r) \<longlonglongrightarrow> liminf u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>subseq r\<close>)
+  then have *: "(umin o r) \<longlonglongrightarrow> liminf u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>strict_mono r\<close>)
   have "\<And>n. umin(r n) = u(r n)" unfolding umin_def using mono
     by (metis le_INF_iff antisym atLeast_def mem_Collect_eq order_refl)
   then have "umin o r = u o r" unfolding o_def by simp
   then have "(u o r) \<longlonglongrightarrow> liminf u" using * by simp
-  then show ?thesis using \<open>subseq r\<close> by blast
+  then show ?thesis using \<open>strict_mono r\<close> by blast
 next
   assume "\<not> (\<forall>n. \<exists>p>n. (\<forall>m\<ge>p. u m \<ge> u p))"
   then obtain N where N: "\<And>p. p > N \<Longrightarrow> \<exists>m>p. u p > u m" by (force simp: not_le le_less)
@@ -354,17 +354,18 @@ next
     then have "N < y \<and> x < y \<and> (\<forall>i\<in>{N<..y}. u i \<ge> u y)" using \<open>y > x\<close> \<open>y > N\<close> by auto
     then show "\<exists>y>N. x < y \<and> (\<forall>i\<in>{N<..y}. u i \<ge> u y)" by auto
   qed (auto)
-  then obtain r where r: "\<forall>n. N < r n \<and> r n < r (Suc n) \<and> (\<forall>i\<in> {N<..r (Suc n)}. u i \<ge> u (r (Suc n)))" by auto
-  have "subseq r" using r by (auto simp: subseq_Suc_iff)
+  then obtain r :: "nat \<Rightarrow> nat" 
+    where r: "\<forall>n. N < r n \<and> r n < r (Suc n) \<and> (\<forall>i\<in> {N<..r (Suc n)}. u i \<ge> u (r (Suc n)))" by auto
+  have "strict_mono r" using r by (auto simp: strict_mono_Suc_iff)
   have "decseq (u o r)" unfolding o_def using r by (simp add: decseq_SucI order.strict_implies_order)
   then have "(u o r) \<longlonglongrightarrow> (INF n. (u o r) n)" using LIMSEQ_INF by blast
   then have "liminf (u o r) = (INF n. (u o r) n)" by (simp add: lim_imp_Liminf)
-  moreover have "liminf (u o r) \<ge> liminf u" using \<open>subseq r\<close> by (simp add: liminf_subseq_mono)
+  moreover have "liminf (u o r) \<ge> liminf u" using \<open>strict_mono r\<close> by (simp add: liminf_subseq_mono)
   ultimately have "(INF n. (u o r) n) \<ge> liminf u" by simp
 
   {
     fix i assume i: "i \<in> {N<..}"
-    obtain n where "i < r (Suc n)" using \<open>subseq r\<close> using Suc_le_eq seq_suble by blast
+    obtain n where "i < r (Suc n)" using \<open>strict_mono r\<close> using Suc_le_eq seq_suble by blast
     then have "i \<in> {N<..r(Suc n)}" using i by simp
     then have "u i \<ge> u (r(Suc n))" using r by simp
     then have "u i \<ge> (INF n. (u o r) n)" unfolding o_def by (meson INF_lower2 UNIV_I)
@@ -374,7 +375,7 @@ next
     by (metis (mono_tags, lifting) SUP_upper2 atLeast_Suc_greaterThan atLeast_def eventually_ge_at_top mem_Collect_eq)
   then have "liminf u = (INF n. (u o r) n)" using \<open>(INF n. (u o r) n) \<ge> liminf u\<close> by simp
   then have "(u o r) \<longlonglongrightarrow> liminf u" using \<open>(u o r) \<longlonglongrightarrow> (INF n. (u o r) n)\<close> by simp
-  then show ?thesis using \<open>subseq r\<close> by auto
+  then show ?thesis using \<open>strict_mono r\<close> by auto
 qed
 
 
@@ -1076,12 +1077,12 @@ next
   then have "limsup u < \<infinity>" "limsup v < \<infinity>" by auto
 
   define w where "w = (\<lambda>n. u n + v n)"
-  obtain r where r: "subseq r" "(w o r) \<longlonglongrightarrow> limsup w" using limsup_subseq_lim by auto
-  obtain s where s: "subseq s" "(u o r o s) \<longlonglongrightarrow> limsup (u o r)" using limsup_subseq_lim by auto
-  obtain t where t: "subseq t" "(v o r o s o t) \<longlonglongrightarrow> limsup (v o r o s)" using limsup_subseq_lim by auto
+  obtain r where r: "strict_mono r" "(w o r) \<longlonglongrightarrow> limsup w" using limsup_subseq_lim by auto
+  obtain s where s: "strict_mono s" "(u o r o s) \<longlonglongrightarrow> limsup (u o r)" using limsup_subseq_lim by auto
+  obtain t where t: "strict_mono t" "(v o r o s o t) \<longlonglongrightarrow> limsup (v o r o s)" using limsup_subseq_lim by auto
 
   define a where "a = r o s o t"
-  have "subseq a" using r s t by (simp add: a_def subseq_o)
+  have "strict_mono a" using r s t by (simp add: a_def strict_mono_o)
   have l:"(w o a) \<longlonglongrightarrow> limsup w"
          "(u o a) \<longlonglongrightarrow> limsup (u o r)"
          "(v o a) \<longlonglongrightarrow> limsup (v o r o s)"
@@ -1092,7 +1093,8 @@ next
 
   have "limsup (u o r) \<le> limsup u" by (simp add: limsup_subseq_mono r(1))
   then have a: "limsup (u o r) \<noteq> \<infinity>" using \<open>limsup u < \<infinity>\<close> by auto
-  have "limsup (v o r o s) \<le> limsup v" by (simp add: comp_assoc limsup_subseq_mono r(1) s(1) subseq_o)
+  have "limsup (v o r o s) \<le> limsup v" 
+    by (simp add: comp_assoc limsup_subseq_mono r(1) s(1) strict_mono_o)
   then have b: "limsup (v o r o s) \<noteq> \<infinity>" using \<open>limsup v < \<infinity>\<close> by auto
 
   have "(\<lambda>n. (u o a) n + (v o a) n) \<longlonglongrightarrow> limsup (u o r) + limsup (v o r o s)"
@@ -1122,12 +1124,12 @@ next
   then have "liminf u > -\<infinity>" "liminf v > -\<infinity>" by auto
 
   define w where "w = (\<lambda>n. u n + v n)"
-  obtain r where r: "subseq r" "(w o r) \<longlonglongrightarrow> liminf w" using liminf_subseq_lim by auto
-  obtain s where s: "subseq s" "(u o r o s) \<longlonglongrightarrow> liminf (u o r)" using liminf_subseq_lim by auto
-  obtain t where t: "subseq t" "(v o r o s o t) \<longlonglongrightarrow> liminf (v o r o s)" using liminf_subseq_lim by auto
+  obtain r where r: "strict_mono r" "(w o r) \<longlonglongrightarrow> liminf w" using liminf_subseq_lim by auto
+  obtain s where s: "strict_mono s" "(u o r o s) \<longlonglongrightarrow> liminf (u o r)" using liminf_subseq_lim by auto
+  obtain t where t: "strict_mono t" "(v o r o s o t) \<longlonglongrightarrow> liminf (v o r o s)" using liminf_subseq_lim by auto
 
   define a where "a = r o s o t"
-  have "subseq a" using r s t by (simp add: a_def subseq_o)
+  have "strict_mono a" using r s t by (simp add: a_def strict_mono_o)
   have l:"(w o a) \<longlonglongrightarrow> liminf w"
          "(u o a) \<longlonglongrightarrow> liminf (u o r)"
          "(v o a) \<longlonglongrightarrow> liminf (v o r o s)"
@@ -1138,7 +1140,8 @@ next
 
   have "liminf (u o r) \<ge> liminf u" by (simp add: liminf_subseq_mono r(1))
   then have a: "liminf (u o r) \<noteq> -\<infinity>" using \<open>liminf u > -\<infinity>\<close> by auto
-  have "liminf (v o r o s) \<ge> liminf v" by (simp add: comp_assoc liminf_subseq_mono r(1) s(1) subseq_o)
+  have "liminf (v o r o s) \<ge> liminf v" 
+    by (simp add: comp_assoc liminf_subseq_mono r(1) s(1) strict_mono_o)
   then have b: "liminf (v o r o s) \<noteq> -\<infinity>" using \<open>liminf v > -\<infinity>\<close> by auto
 
   have "(\<lambda>n. (u o a) n + (v o a) n) \<longlonglongrightarrow> liminf (u o r) + liminf (v o r o s)"
@@ -1188,7 +1191,7 @@ lemma ereal_limsup_lim_mult:
   shows "limsup (\<lambda>n. u n * v n) = a * limsup v"
 proof -
   define w where "w = (\<lambda>n. u n * v n)"
-  obtain r where r: "subseq r" "(v o r) \<longlonglongrightarrow> limsup v" using limsup_subseq_lim by auto
+  obtain r where r: "strict_mono r" "(v o r) \<longlonglongrightarrow> limsup v" using limsup_subseq_lim by auto
   have "(u o r) \<longlonglongrightarrow> a" using assms(1) LIMSEQ_subseq_LIMSEQ r by auto
   with tendsto_mult_ereal[OF this r(2)] have "(\<lambda>n. (u o r) n * (v o r) n) \<longlonglongrightarrow> a * limsup v" using assms(2) assms(3) by auto
   moreover have "\<And>n. (w o r) n = (u o r) n * (v o r) n" unfolding w_def by auto
@@ -1196,7 +1199,7 @@ proof -
   then have "limsup (w o r) = a * limsup v" by (simp add: tendsto_iff_Liminf_eq_Limsup)
   then have I: "limsup w \<ge> a * limsup v" by (metis limsup_subseq_mono r(1))
 
-  obtain s where s: "subseq s" "(w o s) \<longlonglongrightarrow> limsup w" using limsup_subseq_lim by auto
+  obtain s where s: "strict_mono s" "(w o s) \<longlonglongrightarrow> limsup w" using limsup_subseq_lim by auto
   have *: "(u o s) \<longlonglongrightarrow> a" using assms(1) LIMSEQ_subseq_LIMSEQ s by auto
   have "eventually (\<lambda>n. (u o s) n > 0) sequentially" using assms(2) * order_tendsto_iff by blast
   moreover have "eventually (\<lambda>n. (u o s) n < \<infinity>) sequentially" using assms(3) * order_tendsto_iff by blast
@@ -1218,7 +1221,7 @@ lemma ereal_liminf_lim_mult:
   shows "liminf (\<lambda>n. u n * v n) = a * liminf v"
 proof -
   define w where "w = (\<lambda>n. u n * v n)"
-  obtain r where r: "subseq r" "(v o r) \<longlonglongrightarrow> liminf v" using liminf_subseq_lim by auto
+  obtain r where r: "strict_mono r" "(v o r) \<longlonglongrightarrow> liminf v" using liminf_subseq_lim by auto
   have "(u o r) \<longlonglongrightarrow> a" using assms(1) LIMSEQ_subseq_LIMSEQ r by auto
   with tendsto_mult_ereal[OF this r(2)] have "(\<lambda>n. (u o r) n * (v o r) n) \<longlonglongrightarrow> a * liminf v" using assms(2) assms(3) by auto
   moreover have "\<And>n. (w o r) n = (u o r) n * (v o r) n" unfolding w_def by auto
@@ -1226,7 +1229,7 @@ proof -
   then have "liminf (w o r) = a * liminf v" by (simp add: tendsto_iff_Liminf_eq_Limsup)
   then have I: "liminf w \<le> a * liminf v" by (metis liminf_subseq_mono r(1))
 
-  obtain s where s: "subseq s" "(w o s) \<longlonglongrightarrow> liminf w" using liminf_subseq_lim by auto
+  obtain s where s: "strict_mono s" "(w o s) \<longlonglongrightarrow> liminf w" using liminf_subseq_lim by auto
   have *: "(u o s) \<longlonglongrightarrow> a" using assms(1) LIMSEQ_subseq_LIMSEQ s by auto
   have "eventually (\<lambda>n. (u o s) n > 0) sequentially" using assms(2) * order_tendsto_iff by blast
   moreover have "eventually (\<lambda>n. (u o s) n < \<infinity>) sequentially" using assms(3) * order_tendsto_iff by blast
@@ -1286,12 +1289,12 @@ next
   then have "limsup v < \<infinity>" "liminf u < \<infinity>" by auto
 
   define w where "w = (\<lambda>n. u n + v n)"
-  obtain r where r: "subseq r" "(u o r) \<longlonglongrightarrow> liminf u" using liminf_subseq_lim by auto
-  obtain s where s: "subseq s" "(w o r o s) \<longlonglongrightarrow> liminf (w o r)" using liminf_subseq_lim by auto
-  obtain t where t: "subseq t" "(v o r o s o t) \<longlonglongrightarrow> limsup (v o r o s)" using limsup_subseq_lim by auto
+  obtain r where r: "strict_mono r" "(u o r) \<longlonglongrightarrow> liminf u" using liminf_subseq_lim by auto
+  obtain s where s: "strict_mono s" "(w o r o s) \<longlonglongrightarrow> liminf (w o r)" using liminf_subseq_lim by auto
+  obtain t where t: "strict_mono t" "(v o r o s o t) \<longlonglongrightarrow> limsup (v o r o s)" using limsup_subseq_lim by auto
 
   define a where "a = r o s o t"
-  have "subseq a" using r s t by (simp add: a_def subseq_o)
+  have "strict_mono a" using r s t by (simp add: a_def strict_mono_o)
   have l:"(u o a) \<longlonglongrightarrow> liminf u"
          "(w o a) \<longlonglongrightarrow> liminf (w o r)"
          "(v o a) \<longlonglongrightarrow> limsup (v o r o s)"
@@ -1301,7 +1304,8 @@ next
   done
 
   have "liminf (w o r) \<ge> liminf w" by (simp add: liminf_subseq_mono r(1))
-  have "limsup (v o r o s) \<le> limsup v" by (simp add: comp_assoc limsup_subseq_mono r(1) s(1) subseq_o)
+  have "limsup (v o r o s) \<le> limsup v" 
+    by (simp add: comp_assoc limsup_subseq_mono r(1) s(1) strict_mono_o)
   then have b: "limsup (v o r o s) < \<infinity>" using \<open>limsup v < \<infinity>\<close> by auto
 
   have "(\<lambda>n. (u o a) n + (v o a) n) \<longlonglongrightarrow> liminf u + limsup (v o r o s)"

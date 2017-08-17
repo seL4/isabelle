@@ -236,13 +236,13 @@ lemma metric_bound_lemma: "cmod (x - y) \<le> \<bar>Re x - Re y\<bar> + \<bar>Im
 
 lemma bolzano_weierstrass_complex_disc:
   assumes r: "\<forall>n. cmod (s n) \<le> r"
-  shows "\<exists>f z. subseq f \<and> (\<forall>e >0. \<exists>N. \<forall>n \<ge> N. cmod (s (f n) - z) < e)"
+  shows "\<exists>f z. strict_mono (f :: nat \<Rightarrow> nat) \<and> (\<forall>e >0. \<exists>N. \<forall>n \<ge> N. cmod (s (f n) - z) < e)"
 proof -
   from seq_monosub[of "Re \<circ> s"]
-  obtain f where f: "subseq f" "monoseq (\<lambda>n. Re (s (f n)))"
+  obtain f where f: "strict_mono f" "monoseq (\<lambda>n. Re (s (f n)))"
     unfolding o_def by blast
   from seq_monosub[of "Im \<circ> s \<circ> f"]
-  obtain g where g: "subseq g" "monoseq (\<lambda>n. Im (s (f (g n))))"
+  obtain g where g: "strict_mono g" "monoseq (\<lambda>n. Im (s (f (g n))))"
     unfolding o_def by blast
   let ?h = "f \<circ> g"
   from r[rule_format, of 0] have rp: "r \<ge> 0"
@@ -284,8 +284,8 @@ proof -
   then have y: "\<forall>r>0. \<exists>n0. \<forall>n\<ge>n0. \<bar>Im (s (f (g n))) - y\<bar> < r"
     unfolding LIMSEQ_iff real_norm_def .
   let ?w = "Complex x y"
-  from f(1) g(1) have hs: "subseq ?h"
-    unfolding subseq_def by auto
+  from f(1) g(1) have hs: "strict_mono ?h"
+    unfolding strict_mono_def by auto
   have "\<exists>N. \<forall>n\<ge>N. cmod (s (?h n) - ?w) < e" if "e > 0" for e
   proof -
     from that have e2: "e/2 > 0"
@@ -400,7 +400,7 @@ proof -
         g: "\<forall>n. cmod (g n) \<le> r" "\<forall>n. cmod (poly p (g n)) <?m + 1 /real(Suc n)"
       by blast
     from bolzano_weierstrass_complex_disc[OF g(1)]
-    obtain f z where fz: "subseq f" "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. cmod (g (f n) - z) < e"
+    obtain f z where fz: "strict_mono (f :: nat \<Rightarrow> nat)" "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. cmod (g (f n) - z) < e"
       by blast
     {
       fix w

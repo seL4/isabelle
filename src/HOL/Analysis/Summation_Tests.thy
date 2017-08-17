@@ -189,7 +189,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k=1..<n. f k)" unfolding f'_def by simp
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k=1..<2^n. f k)"
     by (rule nonneg_incseq_Bseq_subseq_iff[symmetric])
-       (auto intro!: sum_nonneg incseq_SucI nonneg simp: subseq_def)
+       (auto intro!: sum_nonneg incseq_SucI nonneg simp: strict_mono_def)
   also have "\<dots> \<longleftrightarrow> Bseq (\<lambda>n. \<Sum>k<n. 2^k * f (2^k))"
   proof (intro iffI)
     assume A: "Bseq (\<lambda>n. \<Sum>k=1..<2^n. f k)"

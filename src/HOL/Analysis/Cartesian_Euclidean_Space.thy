@@ -957,7 +957,7 @@ lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x.
 lemma compact_lemma_cart:
   fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n"
   assumes f: "bounded (range f)"
-  shows "\<exists>l r. subseq r \<and>
+  shows "\<exists>l r. strict_mono r \<and>
         (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
     (is "?th d")
 proof -
@@ -971,7 +971,7 @@ instance vec :: (heine_borel, finite) heine_borel
 proof
   fix f :: "nat \<Rightarrow> 'a ^ 'b"
   assume f: "bounded (range f)"
-  then obtain l r where r: "subseq r"
+  then obtain l r where r: "strict_mono r"
       and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>UNIV. dist (f (r n) $ i) (l $ i) < e) sequentially"
     using compact_lemma_cart [OF f] by blast
   let ?d = "UNIV::'b set"
@@ -993,7 +993,7 @@ proof
       by (rule eventually_mono)
   }
   hence "((f \<circ> r) \<longlongrightarrow> l) sequentially" unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially" by auto
+  with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially" by auto
 qed
 
 lemma interval_cart:

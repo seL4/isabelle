@@ -618,22 +618,22 @@ subsection\<open>The Arzelà--Ascoli theorem\<close>
 
 lemma subsequence_diagonalization_lemma:
   fixes P :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool"
-  assumes sub: "\<And>i r. \<exists>k. subseq k \<and> P i (r \<circ> k)"
+  assumes sub: "\<And>i r. \<exists>k. strict_mono (k :: nat \<Rightarrow> nat) \<and> P i (r \<circ> k)"
       and P_P:  "\<And>i r::nat \<Rightarrow> 'a. \<And>k1 k2 N.
                    \<lbrakk>P i (r \<circ> k1); \<And>j. N \<le> j \<Longrightarrow> \<exists>j'. j \<le> j' \<and> k2 j = k1 j'\<rbrakk> \<Longrightarrow> P i (r \<circ> k2)"
-   obtains k where "subseq k" "\<And>i. P i (r \<circ> k)"
+   obtains k where "strict_mono (k :: nat \<Rightarrow> nat)" "\<And>i. P i (r \<circ> k)"
 proof -
-  obtain kk where "\<And>i r. subseq (kk i r) \<and> P i (r \<circ> (kk i r))"
+  obtain kk where "\<And>i r. strict_mono (kk i r :: nat \<Rightarrow> nat) \<and> P i (r \<circ> (kk i r))"
     using sub by metis
-  then have sub_kk: "\<And>i r. subseq (kk i r)" and P_kk: "\<And>i r. P i (r \<circ> (kk i r))"
+  then have sub_kk: "\<And>i r. strict_mono (kk i r)" and P_kk: "\<And>i r. P i (r \<circ> (kk i r))"
     by auto
   define rr where "rr \<equiv> rec_nat (kk 0 r) (\<lambda>n x. x \<circ> kk (Suc n) (r \<circ> x))"
   then have [simp]: "rr 0 = kk 0 r" "\<And>n. rr(Suc n) = rr n \<circ> kk (Suc n) (r \<circ> rr n)"
     by auto
   show thesis
   proof
-    have sub_rr: "subseq (rr i)" for i
-      using sub_kk  by (induction i) (auto simp: subseq_def o_def)
+    have sub_rr: "strict_mono (rr i)" for i
+      using sub_kk  by (induction i) (auto simp: strict_mono_def o_def)
     have P_rr: "P i (r \<circ> rr i)" for i
       using P_kk  by (induction i) (auto simp: o_def)
     have "i \<le> i+d \<Longrightarrow> rr i n \<le> rr (i+d) n" for d i n
@@ -643,13 +643,13 @@ proof -
     next
       case (Suc d) then show ?case
         apply simp
-          using seq_suble [OF sub_kk] order_trans subseq_le_mono [OF sub_rr] by blast
+          using seq_suble [OF sub_kk] order_trans strict_mono_less_eq [OF sub_rr] by blast
     qed
     then have "\<And>i j n. i \<le> j \<Longrightarrow> rr i n \<le> rr j n"
       by (metis le_iff_add)
-    show "subseq (\<lambda>n. rr n n)"
-      apply (simp add: subseq_Suc_iff)
-      by (meson Suc_le_eq seq_suble sub_kk sub_rr subseq_mono)
+    show "strict_mono (\<lambda>n. rr n n)"
+      apply (simp add: strict_mono_Suc_iff)
+      by (meson lessI less_le_trans seq_suble strict_monoD sub_kk sub_rr)
     have "\<exists>j. i \<le> j \<and> rr (n+d) i = rr n j" for d n i
       apply (induction d arbitrary: i, auto)
       by (meson order_trans seq_suble sub_kk)
@@ -663,19 +663,19 @@ qed
 lemma function_convergent_subsequence:
   fixes f :: "[nat,'a] \<Rightarrow> 'b::{real_normed_vector,heine_borel}"
   assumes "countable S" and M: "\<And>n::nat. \<And>x. x \<in> S \<Longrightarrow> norm(f n x) \<le> M"
-   obtains k where "subseq k" "\<And>x. x \<in> S \<Longrightarrow> \<exists>l. (\<lambda>n. f (k n) x) \<longlonglongrightarrow> l"
+   obtains k where "strict_mono (k::nat\<Rightarrow>nat)" "\<And>x. x \<in> S \<Longrightarrow> \<exists>l. (\<lambda>n. f (k n) x) \<longlonglongrightarrow> l"
 proof (cases "S = {}")
   case True
   then show ?thesis
-    using subseq_id that by fastforce
+    using strict_mono_id that by fastforce
 next
   case False
   with \<open>countable S\<close> obtain \<sigma> :: "nat \<Rightarrow> 'a" where \<sigma>: "S = range \<sigma>"
     using uncountable_def by blast
-  obtain k where "subseq k" and k: "\<And>i. \<exists>l. (\<lambda>n. (f \<circ> k) n (\<sigma> i)) \<longlonglongrightarrow> l"
+  obtain k where "strict_mono k" and k: "\<And>i. \<exists>l. (\<lambda>n. (f \<circ> k) n (\<sigma> i)) \<longlonglongrightarrow> l"
   proof (rule subsequence_diagonalization_lemma
       [of "\<lambda>i r. \<exists>l. ((\<lambda>n. (f \<circ> r) n (\<sigma> i)) \<longlongrightarrow> l) sequentially" id])
-    show "\<exists>k. subseq k \<and> (\<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k)) n (\<sigma> i)) \<longlonglongrightarrow> l)" for i r
+    show "\<exists>k::nat\<Rightarrow>nat. strict_mono k \<and> (\<exists>l. (\<lambda>n. (f \<circ> (r \<circ> k)) n (\<sigma> i)) \<longlonglongrightarrow> l)" for i r
     proof -
       have "f (r n) (\<sigma> i) \<in> cball 0 M" for n
         by (simp add: \<sigma> M)
@@ -705,7 +705,7 @@ theorem Arzela_Ascoli:
       and equicont:
           "\<And>x e. \<lbrakk>x \<in> S; 0 < e\<rbrakk>
                  \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>n y. y \<in> S \<and> norm(x - y) < d \<longrightarrow> norm(\<F> n x - \<F> n y) < e)"
-  obtains g k where "continuous_on S g" "subseq k"
+  obtains g k where "continuous_on S g" "strict_mono (k :: nat \<Rightarrow> nat)"
                     "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<and> x \<in> S \<longrightarrow> norm(\<F>(k n) x - g x) < e"
 proof -
   have UEQ: "\<And>e. 0 < e \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>n. \<forall>x \<in> S. \<forall>x' \<in> S. dist x' x < d \<longrightarrow> dist (\<F> n x') (\<F> n x) < e)"
@@ -727,7 +727,7 @@ proof -
   moreover
   obtain R where "countable R" "R \<subseteq> S" and SR: "S \<subseteq> closure R"
     by (metis separable that)
-  obtain k where "subseq k" and k: "\<And>x. x \<in> R \<Longrightarrow> \<exists>l. (\<lambda>n. \<F> (k n) x) \<longlonglongrightarrow> l"
+  obtain k where "strict_mono k" and k: "\<And>x. x \<in> R \<Longrightarrow> \<exists>l. (\<lambda>n. \<F> (k n) x) \<longlonglongrightarrow> l"
     apply (rule function_convergent_subsequence [OF \<open>countable R\<close> M])
     using \<open>R \<subseteq> S\<close> apply force+
     done
@@ -783,7 +783,7 @@ proof -
     apply (simp add: o_def dist_norm)
     by meson
   ultimately show thesis
-    by (metis that \<open>subseq k\<close>)
+    by (metis that \<open>strict_mono k\<close>)
 qed
 
 
@@ -802,7 +802,7 @@ theorem Montel:
       and bounded: "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>B. \<forall>h \<in> \<H>. \<forall> z \<in> K. norm(h z) \<le> B"
       and rng_f: "range \<F> \<subseteq> \<H>"
   obtains g r
-    where "g holomorphic_on S" "subseq r"
+    where "g holomorphic_on S" "strict_mono (r :: nat \<Rightarrow> nat)"
           "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>n. \<F> (r n) x) \<longlongrightarrow> g x) sequentially"
           "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> uniform_limit K (\<F> \<circ> r) g sequentially"        
 proof -
@@ -813,10 +813,10 @@ proof -
     by (simp add: bounded)
   then obtain B where B: "\<And>i h z. \<lbrakk>h \<in> \<H>; z \<in> K i\<rbrakk> \<Longrightarrow> norm(h z) \<le> B i"
     by metis
-  have *: "\<exists>r g. subseq r \<and> (\<forall>e > 0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> r) n x - g x) < e)"
+  have *: "\<exists>r g. strict_mono (r::nat\<Rightarrow>nat) \<and> (\<forall>e > 0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> r) n x - g x) < e)"
         if "\<And>n. \<F> n \<in> \<H>" for \<F> i
   proof -
-    obtain g k where "continuous_on (K i) g" "subseq k"
+    obtain g k where "continuous_on (K i) g" "strict_mono (k::nat\<Rightarrow>nat)"
                     "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm(\<F>(k n) x - g x) < e"
     proof (rule Arzela_Ascoli [of "K i" "\<F>" "B i"])
       show "\<exists>d>0. \<forall>n y. y \<in> K i \<and> cmod (z - y) < d \<longrightarrow> cmod (\<F> n z - \<F> n y) < e"
@@ -925,13 +925,13 @@ proof -
     then show ?thesis
       by fastforce
   qed
-  have "\<exists>k g. subseq k \<and> (\<forall>e > 0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> r \<circ> k) n x - g x) < e)"
+  have "\<exists>k g. strict_mono (k::nat\<Rightarrow>nat) \<and> (\<forall>e > 0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> r \<circ> k) n x - g x) < e)"
          for i r
     apply (rule *)
     using rng_f by auto
-  then have **: "\<And>i r. \<exists>k. subseq k \<and> (\<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> (r \<circ> k)) n x - g x) < e)"
+  then have **: "\<And>i r. \<exists>k. strict_mono (k::nat\<Rightarrow>nat) \<and> (\<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> (r \<circ> k)) n x - g x) < e)"
     by (force simp: o_assoc)
-  obtain k where "subseq k"
+  obtain k :: "nat \<Rightarrow> nat" where "strict_mono k"
              and "\<And>i. \<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod ((\<F> \<circ> (id \<circ> k)) n x - g x) < e"
     apply (rule subsequence_diagonalization_lemma [OF **, of id])
      apply (erule ex_forward all_forward imp_forward)+
@@ -988,7 +988,7 @@ proof -
         with d show ?thesis by blast
       qed
     qed
-  qed (auto simp: \<open>subseq k\<close>)
+  qed (auto simp: \<open>strict_mono k\<close>)
 qed
 
 
@@ -1332,7 +1332,7 @@ proof -
         using hol\<G> \<G>not0 \<G>not1 \<G>_le1 by (force simp: W_def)+
       then obtain e where "e > 0" and e: "ball v e \<subseteq> Z"
         by (meson open_contains_ball)
-      obtain h j where holh: "h holomorphic_on ball v e" and "subseq j"
+      obtain h j where holh: "h holomorphic_on ball v e" and "strict_mono j"
                    and lim:  "\<And>x. x \<in> ball v e \<Longrightarrow> (\<lambda>n. \<G> (j n) x) \<longlonglongrightarrow> h x"
                    and ulim: "\<And>K. \<lbrakk>compact K; K \<subseteq> ball v e\<rbrakk>
                                   \<Longrightarrow> uniform_limit K (\<G> \<circ> j) h sequentially"
@@ -1347,7 +1347,7 @@ proof -
         show "(\<lambda>n. \<G> (j n) v) \<longlonglongrightarrow> h v"
           using \<open>e > 0\<close> lim by simp
         have lt_Fj: "real x \<le> cmod (\<F> (j x) v)" for x
-          by (metis of_nat_Suc ltF \<open>subseq j\<close> add.commute less_eq_real_def less_le_trans nat_le_real_less seq_suble)
+          by (metis of_nat_Suc ltF \<open>strict_mono j\<close> add.commute less_eq_real_def less_le_trans nat_le_real_less seq_suble)
         show "(\<lambda>n. \<G> (j n) v) \<longlonglongrightarrow> 0"
         proof (rule Lim_null_comparison [OF eventually_sequentiallyI seq_harmonic])
           show "cmod (\<G> (j x) v) \<le> inverse (real x)" if "1 \<le> x" for x
@@ -1428,8 +1428,8 @@ proof -
   qed
   with that show ?thesis by metis
 qed
-    
-  
+
+
 lemma GPicard4:
   assumes "0 < k" and holf: "f holomorphic_on (ball 0 k - {0})" 
       and AE: "\<And>e. \<lbrakk>0 < e; e < k\<rbrakk> \<Longrightarrow> \<exists>d. 0 < d \<and> d < e \<and> (\<forall>z \<in> sphere 0 d. norm(f z) \<le> B)"
@@ -1500,7 +1500,8 @@ proof -
   then show ?thesis
   proof cases
     case 1
-    with infinite_enumerate obtain r where "subseq r" and r: "\<And>n. r n \<in> {n. norm(h n w) \<le> 1}"
+    with infinite_enumerate obtain r :: "nat \<Rightarrow> nat" 
+      where "strict_mono r" and r: "\<And>n. r n \<in> {n. norm(h n w) \<le> 1}"
       by blast
     obtain B where B: "\<And>j z. \<lbrakk>norm z = 1/2; j \<in> range (h \<circ> r)\<rbrakk> \<Longrightarrow> norm(j z) \<le> B"
     proof (rule GPicard3 [OF _ _ w, where K = "sphere 0 (1/2)"])  
@@ -1529,7 +1530,7 @@ proof -
       obtain n where "(1/e - 2) / 2 < real n"
         using reals_Archimedean2 by blast
       also have "... \<le> r n"
-        using \<open>subseq r\<close> by (simp add: seq_suble)
+        using \<open>strict_mono r\<close> by (simp add: seq_suble)
       finally have "(1/e - 2) / 2 < real (r n)" .
       with \<open>0 < e\<close> have e: "e > 1 / (2 + 2 * real (r n))"
         by (simp add: field_simps)
@@ -1546,7 +1547,8 @@ proof -
       using \<epsilon> by auto 
   next
     case 2
-    with infinite_enumerate obtain r where "subseq r" and r: "\<And>n. r n \<in> {n. norm(h n w) \<ge> 1}"
+    with infinite_enumerate obtain r :: "nat \<Rightarrow> nat" 
+      where "strict_mono r" and r: "\<And>n. r n \<in> {n. norm(h n w) \<ge> 1}"
       by blast
     obtain B where B: "\<And>j z. \<lbrakk>norm z = 1/2; j \<in> range (\<lambda>n. inverse \<circ> h (r n))\<rbrakk> \<Longrightarrow> norm(j z) \<le> B"
     proof (rule GPicard3 [OF _ _ w, where K = "sphere 0 (1/2)"])  
@@ -1579,7 +1581,7 @@ proof -
       obtain n where "(1/e - 2) / 2 < real n"
         using reals_Archimedean2 by blast
       also have "... \<le> r n"
-        using \<open>subseq r\<close> by (simp add: seq_suble)
+        using \<open>strict_mono r\<close> by (simp add: seq_suble)
       finally have "(1/e - 2) / 2 < real (r n)" .
       with \<open>0 < e\<close> have e: "e > 1 / (2 + 2 * real (r n))"
         by (simp add: field_simps)

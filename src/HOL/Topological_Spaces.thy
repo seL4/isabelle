@@ -1069,14 +1069,13 @@ lemma decseq_def: "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m.
   unfolding antimono_def ..
 
 text \<open>Definition of subsequence.\<close>
-definition subseq :: "(nat \<Rightarrow> nat) \<Rightarrow> bool"
-  where "subseq f \<longleftrightarrow> (\<forall>m. \<forall>n>m. f m < f n)"
 
-lemma subseq_le_mono: "subseq r \<Longrightarrow> m \<le> n \<Longrightarrow> r m \<le> r n"
-  by (simp add: less_mono_imp_le_mono subseq_def)
+(* For compatibility with the old "subseq" *)
+lemma strict_mono_leD: "strict_mono r \<Longrightarrow> m \<le> n \<Longrightarrow> r m \<le> r n"
+  by (erule (1) monoD [OF strict_mono_mono])
 
-lemma subseq_id: "subseq id"
-  by (simp add: subseq_def)
+lemma strict_mono_id: "strict_mono id"
+  by (simp add: strict_mono_def)
 
 lemma incseq_SucI: "(\<And>n. X n \<le> X (Suc n)) \<Longrightarrow> incseq X"
   using lift_Suc_mono_le[of X] by (auto simp: incseq_def)
@@ -1144,28 +1143,30 @@ qed
 
 text \<open>Subsequence (alternative definition, (e.g. Hoskins)\<close>
 
-lemma subseq_Suc_iff: "subseq f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
-  apply (simp add: subseq_def)
-  apply (auto dest!: less_imp_Suc_add)
-  apply (induct_tac k)
-   apply (auto intro: less_trans)
-  done
+lemma strict_mono_Suc_iff: "strict_mono f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
+proof (intro iffI strict_monoI)
+  assume *: "\<forall>n. f n < f (Suc n)"
+  fix m n :: nat assume "m < n"
+  thus "f m < f n"
+    by (induction rule: less_Suc_induct) (use * in auto)
+qed (auto simp: strict_mono_def)
 
-lemma subseq_add: "subseq (\<lambda>n. n + k)"
-  by (auto simp: subseq_Suc_iff)
+lemma strict_mono_add: "strict_mono (\<lambda>n::'a::linordered_semidom. n + k)"
+  by (auto simp: strict_mono_def)
 
 text \<open>For any sequence, there is a monotonic subsequence.\<close>
 lemma seq_monosub:
   fixes s :: "nat \<Rightarrow> 'a::linorder"
-  shows "\<exists>f. subseq f \<and> monoseq (\<lambda>n. (s (f n)))"
+  shows "\<exists>f. strict_mono f \<and> monoseq (\<lambda>n. (s (f n)))"
 proof (cases "\<forall>n. \<exists>p>n. \<forall>m\<ge>p. s m \<le> s p")
   case True
   then have "\<exists>f. \<forall>n. (\<forall>m\<ge>f n. s m \<le> s (f n)) \<and> f n < f (Suc n)"
     by (intro dependent_nat_choice) (auto simp: conj_commute)
-  then obtain f where f: "subseq f" and mono: "\<And>n m. f n \<le> m \<Longrightarrow> s m \<le> s (f n)"
-    by (auto simp: subseq_Suc_iff)
+  then obtain f :: "nat \<Rightarrow> nat" 
+    where f: "strict_mono f" and mono: "\<And>n m. f n \<le> m \<Longrightarrow> s m \<le> s (f n)"
+    by (auto simp: strict_mono_Suc_iff)
   then have "incseq f"
-    unfolding subseq_Suc_iff incseq_Suc_iff by (auto intro: less_imp_le)
+    unfolding strict_mono_Suc_iff incseq_Suc_iff by (auto intro: less_imp_le)
   then have "monoseq (\<lambda>n. s (f n))"
     by (auto simp add: incseq_def intro!: mono monoI2)
   with f show ?thesis
@@ -1182,29 +1183,29 @@ next
       by (auto intro: less_trans)
   qed auto
   then show ?thesis
-    by (auto simp: monoseq_iff incseq_Suc_iff subseq_Suc_iff)
+    by (auto simp: monoseq_iff incseq_Suc_iff strict_mono_Suc_iff)
 qed
 
 lemma seq_suble:
-  assumes sf: "subseq f"
+  assumes sf: "strict_mono (f :: nat \<Rightarrow> nat)"
   shows "n \<le> f n"
 proof (induct n)
   case 0
   show ?case by simp
 next
   case (Suc n)
-  with sf [unfolded subseq_Suc_iff, rule_format, of n] have "n < f (Suc n)"
+  with sf [unfolded strict_mono_Suc_iff, rule_format, of n] have "n < f (Suc n)"
      by arith
   then show ?case by arith
 qed
 
 lemma eventually_subseq:
-  "subseq r \<Longrightarrow> eventually P sequentially \<Longrightarrow> eventually (\<lambda>n. P (r n)) sequentially"
+  "strict_mono r \<Longrightarrow> eventually P sequentially \<Longrightarrow> eventually (\<lambda>n. P (r n)) sequentially"
   unfolding eventually_sequentially by (metis seq_suble le_trans)
 
 lemma not_eventually_sequentiallyD:
   assumes "\<not> eventually P sequentially"
-  shows "\<exists>r. subseq r \<and> (\<forall>n. \<not> P (r n))"
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (\<forall>n. \<not> P (r n))"
 proof -
   from assms have "\<forall>n. \<exists>m\<ge>n. \<not> P m"
     unfolding eventually_sequentially by (simp add: not_less)
@@ -1212,29 +1213,14 @@ proof -
     by (auto simp: choice_iff)
   then show ?thesis
     by (auto intro!: exI[of _ "\<lambda>n. r (((Suc \<circ> r) ^^ Suc n) 0)"]
-             simp: less_eq_Suc_le subseq_Suc_iff)
+             simp: less_eq_Suc_le strict_mono_Suc_iff)
 qed
 
-lemma filterlim_subseq: "subseq f \<Longrightarrow> filterlim f sequentially sequentially"
+lemma filterlim_subseq: "strict_mono f \<Longrightarrow> filterlim f sequentially sequentially"
   unfolding filterlim_iff by (metis eventually_subseq)
 
-lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r \<circ> s)"
-  unfolding subseq_def by simp
-
-lemma subseq_mono: "subseq r \<Longrightarrow> m < n \<Longrightarrow> r m < r n"
-  by (auto simp: subseq_def)
-
-lemma subseq_imp_inj_on: "subseq g \<Longrightarrow> inj_on g A"
-proof (rule inj_onI)
-  assume g: "subseq g"
-  fix x y
-  assume "g x = g y"
-  with subseq_mono[OF g, of x y] subseq_mono[OF g, of y x] show "x = y"
-    by (cases x y rule: linorder_cases) simp_all
-qed
-
-lemma subseq_strict_mono: "subseq g \<Longrightarrow> strict_mono g"
-  by (intro strict_monoI subseq_mono[of g])
+lemma strict_mono_o: "strict_mono r \<Longrightarrow> strict_mono s \<Longrightarrow> strict_mono (r \<circ> s)"
+  unfolding strict_mono_def by simp
 
 lemma incseq_imp_monoseq:  "incseq X \<Longrightarrow> monoseq X"
   by (simp add: incseq_def monoseq_def)
@@ -1324,10 +1310,10 @@ lemma monoseq_le:
   for x :: "'a::linorder_topology"
   by (metis LIMSEQ_le_const LIMSEQ_le_const2 decseq_def incseq_def monoseq_iff)
 
-lemma LIMSEQ_subseq_LIMSEQ: "X \<longlonglongrightarrow> L \<Longrightarrow> subseq f \<Longrightarrow> (X \<circ> f) \<longlonglongrightarrow> L"
+lemma LIMSEQ_subseq_LIMSEQ: "X \<longlonglongrightarrow> L \<Longrightarrow> strict_mono f \<Longrightarrow> (X \<circ> f) \<longlonglongrightarrow> L"
   unfolding comp_def by (rule filterlim_compose [of X, OF _ filterlim_subseq])
 
-lemma convergent_subseq_convergent: "convergent X \<Longrightarrow> subseq f \<Longrightarrow> convergent (X \<circ> f)"
+lemma convergent_subseq_convergent: "convergent X \<Longrightarrow> strict_mono f \<Longrightarrow> convergent (X \<circ> f)"
   by (auto simp: convergent_def intro: LIMSEQ_subseq_LIMSEQ)
 
 lemma limI: "X \<longlonglongrightarrow> L \<Longrightarrow> lim X = L"
@@ -1651,7 +1637,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
       and "(\<lambda>n. X (s n)) \<longlonglongrightarrow> a"
       and "\<not> P (X (s n))"
       for n
-      by (auto simp: subseq_Suc_iff Suc_le_eq incseq_Suc_iff
+      by (auto simp: strict_mono_Suc_iff Suc_le_eq incseq_Suc_iff
           intro!: LIMSEQ_subseq_LIMSEQ[OF \<open>X \<longlonglongrightarrow> a\<close>, unfolded comp_def])
     from *[OF this(1,2,3,4)] this(5) show False
       by auto
@@ -1700,7 +1686,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
       and "(\<lambda>n. X (s n)) \<longlonglongrightarrow> a"
       and "\<not> P (X (s n))"
       for n
-      by (auto simp: subseq_Suc_iff Suc_le_eq decseq_Suc_iff
+      by (auto simp: strict_mono_Suc_iff Suc_le_eq decseq_Suc_iff
           intro!: LIMSEQ_subseq_LIMSEQ[OF \<open>X \<longlonglongrightarrow> a\<close>, unfolded comp_def])
     from *[OF this(1,2,3,4)] this(5) show False
       by auto
@@ -3143,11 +3129,11 @@ lemma LIMSEQ_imp_Cauchy: "X \<longlonglongrightarrow> x \<Longrightarrow> Cauchy
   unfolding Cauchy_uniform filterlim_def by (intro nhds_imp_cauchy_filter)
 
 lemma Cauchy_subseq_Cauchy:
-  assumes "Cauchy X" "subseq f"
+  assumes "Cauchy X" "strict_mono f"
   shows "Cauchy (X \<circ> f)"
   unfolding Cauchy_uniform comp_def filtermap_filtermap[symmetric] cauchy_filter_def
   by (rule order_trans[OF _ \<open>Cauchy X\<close>[unfolded Cauchy_uniform cauchy_filter_def]])
-     (intro prod_filter_mono filtermap_mono filterlim_subseq[OF \<open>subseq f\<close>, unfolded filterlim_def])
+     (intro prod_filter_mono filtermap_mono filterlim_subseq[OF \<open>strict_mono f\<close>, unfolded filterlim_def])
 
 lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
   unfolding convergent_def by (erule exE, erule LIMSEQ_imp_Cauchy)

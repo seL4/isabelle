@@ -476,8 +476,8 @@ lemma mult_if_delta:
 lemma compact_blinfun_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space \<Rightarrow>\<^sub>L 'b::euclidean_space"
   assumes "bounded (range f)"
-  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a \<Rightarrow>\<^sub>L 'b. \<exists> r.
-    subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) i) (l i) < e) sequentially)"
+  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a \<Rightarrow>\<^sub>L 'b. \<exists> r::nat\<Rightarrow>nat.
+    strict_mono r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) i) (l i) < e) sequentially)"
   by (rule compact_lemma_general[where unproj = "\<lambda>e. blinfun_of_matrix (\<lambda>i j. e j \<bullet> i)"])
    (auto intro!: euclidean_eqI[where 'a='b] bounded_linear_image assms
     simp: blinfun_of_matrix_works blinfun_of_matrix_apply inner_Basis mult_if_delta sum.delta'
@@ -501,7 +501,7 @@ instance blinfun :: (euclidean_space, euclidean_space) heine_borel
 proof
   fix f :: "nat \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
   assume f: "bounded (range f)"
-  then obtain l::"'a \<Rightarrow>\<^sub>L 'b" and r where r: "subseq r"
+  then obtain l::"'a \<Rightarrow>\<^sub>L 'b" and r where r: "strict_mono r"
     and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) i) (l i) < e) sequentially"
     using compact_blinfun_lemma [OF f] by blast
   {
@@ -545,7 +545,7 @@ proof
   }
   then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
     unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
+  with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     by auto
 qed
 

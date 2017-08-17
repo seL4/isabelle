@@ -45,20 +45,20 @@ end
 lemma compactE':
   fixes S :: "'a :: metric_space set"
   assumes "compact S" "\<forall>n\<ge>m. f n \<in> S"
-  obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) \<longlongrightarrow> l) sequentially"
+  obtains l r where "l \<in> S" "strict_mono (r::nat\<Rightarrow>nat)" "((f \<circ> r) \<longlongrightarrow> l) sequentially"
 proof atomize_elim
-  have "subseq (op + m)" by (simp add: subseq_def)
+  have "strict_mono (op + m)" by (simp add: strict_mono_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto
   from seq_compactE[OF \<open>compact S\<close>[unfolded compact_eq_seq_compact_metric] this] guess l r .
-  hence "l \<in> S" "subseq ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) \<longlonglongrightarrow> l"
-    using subseq_o[OF \<open>subseq (op + m)\<close> \<open>subseq r\<close>] by (auto simp: o_def)
-  thus "\<exists>l r. l \<in> S \<and> subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l" by blast
+  hence "l \<in> S" "strict_mono ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) \<longlonglongrightarrow> l"
+    using strict_mono_o[OF \<open>strict_mono (op + m)\<close> \<open>strict_mono r\<close>] by (auto simp: o_def)
+  thus "\<exists>l r. l \<in> S \<and> strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l" by blast
 qed
 
 sublocale finmap_seqs_into_compact \<subseteq> subseqs "\<lambda>n s. (\<exists>l. (\<lambda>i. ((f o s) i)\<^sub>F n) \<longlonglongrightarrow> l)"
 proof
-  fix n s
-  assume "subseq s"
+  fix n and s :: "nat \<Rightarrow> nat"
+  assume "strict_mono s"
   from proj_in_KE[of n] guess n0 . note n0 = this
   have "\<forall>i \<ge> n0. ((f \<circ> s) i)\<^sub>F n \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0"
   proof safe
@@ -69,7 +69,7 @@ proof
       by auto
   qed
   from compactE'[OF compact_projset this] guess ls rs .
-  thus "\<exists>r'. subseq r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^sub>F n) \<longlonglongrightarrow> l)" by (auto simp: o_def)
+  thus "\<exists>r'. strict_mono r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^sub>F n) \<longlonglongrightarrow> l)" by (auto simp: o_def)
 qed
 
 lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^sub>F n) \<longlonglongrightarrow> l"
@@ -77,11 +77,11 @@ proof -
   obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^sub>F n) \<longlonglongrightarrow> l"
   proof (atomize_elim, rule diagseq_holds)
     fix r s n
-    assume "subseq r"
+    assume "strict_mono (r :: nat \<Rightarrow> nat)"
     assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^sub>F n) \<longlonglongrightarrow> l"
     then obtain l where "((\<lambda>i. (f i)\<^sub>F n) o s) \<longlonglongrightarrow> l"
       by (auto simp: o_def)
-    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) \<longlonglongrightarrow> l" using \<open>subseq r\<close>
+    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) \<longlonglongrightarrow> l" using \<open>strict_mono r\<close>
       by (rule LIMSEQ_subseq_LIMSEQ)
     thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^sub>F n) \<longlonglongrightarrow> l" by (auto simp add: o_def)
   qed
@@ -406,7 +406,7 @@ proof (rule emeasure_lim)
     have "(\<lambda>i. fm n (y (Suc (diagseq i)))) \<longlonglongrightarrow> finmap_of (Utn ` J n) z"
       by (rule tendsto_finmap)
     hence "((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) \<longlonglongrightarrow> finmap_of (Utn ` J n) z"
-      by (rule LIMSEQ_subseq_LIMSEQ) (simp add: subseq_def)
+      by (rule LIMSEQ_subseq_LIMSEQ) (simp add: strict_mono_def)
     moreover
     have "(\<forall>i. ((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) i \<in> K' n)"
       apply (auto simp add: o_def intro!: fm_in_K' \<open>1 \<le> n\<close> le_SucI)

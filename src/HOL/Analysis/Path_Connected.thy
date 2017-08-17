@@ -3305,7 +3305,8 @@ next
     then have "\<And>n. \<exists>x \<in> S. \<xi> n = f x" by force
     then obtain z where zs: "\<And>n. z n \<in> S" and fz: "\<And>n. \<xi> n = f (z n)"
       by metis
-    then obtain y K where y: "y \<in> closure S" and "subseq K" and Klim: "(z \<circ> K) \<longlonglongrightarrow> y"
+    then obtain y K where y: "y \<in> closure S" and "strict_mono (K :: nat \<Rightarrow> nat)" 
+                      and Klim: "(z \<circ> K) \<longlonglongrightarrow> y"
       using \<open>bounded S\<close>
       apply (simp add: compact_closure [symmetric] compact_def)
       apply (drule_tac x=z in spec)

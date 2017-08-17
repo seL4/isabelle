@@ -500,7 +500,7 @@ proof -
   show ?thesis
   proof (rule tight_subseq_weak_converge [OF real_distr_M real_distr_M' tight])
     fix s \<nu>
-    assume s: "subseq s"
+    assume s: "strict_mono (s :: nat \<Rightarrow> nat)"
     assume nu: "weak_conv_m (M \<circ> s) \<nu>"
     assume *: "real_distribution \<nu>"
     have 2: "\<And>n. real_distribution ((M \<circ> s) n)" unfolding comp_def by (rule assms)

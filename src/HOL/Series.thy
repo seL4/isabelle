@@ -1107,7 +1107,7 @@ proof -
 qed
 
 lemma sums_mono_reindex:
-  assumes subseq: "subseq g"
+  assumes subseq: "strict_mono g"
     and zero: "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
   shows "(\<lambda>n. f (g n)) sums c \<longleftrightarrow> f sums c"
   unfolding sums_def
@@ -1117,10 +1117,10 @@ proof
   proof
     fix n :: nat
     from subseq have "(\<Sum>k<n. f (g k)) = (\<Sum>k\<in>g`{..<n}. f k)"
-      by (subst sum.reindex) (auto intro: subseq_imp_inj_on)
+      by (subst sum.reindex) (auto intro: strict_mono_imp_inj_on)
     also from subseq have "\<dots> = (\<Sum>k<g n. f k)"
       by (intro sum.mono_neutral_left ballI zero)
-        (auto dest: subseq_strict_mono simp: strict_mono_less strict_mono_less_eq)
+        (auto simp: strict_mono_less strict_mono_less_eq)
     finally show "(\<Sum>k<n. f (g k)) = (\<Sum>k<g n. f k)" .
   qed
   also from LIMSEQ_subseq_LIMSEQ[OF lim subseq] have "\<dots> \<longlonglongrightarrow> c"
@@ -1150,7 +1150,7 @@ next
         have "g l < g (g_inv n)"
           by (rule less_le_trans[OF _ g_inv]) (use k l in simp_all)
         with subseq have "l < g_inv n"
-          by (simp add: subseq_strict_mono strict_mono_less)
+          by (simp add: strict_mono_less)
         with k l show False
           by simp
       qed
@@ -1160,7 +1160,7 @@ next
     with g_inv_least' g_inv have "(\<Sum>k<n. f k) = (\<Sum>k\<in>g`{..<g_inv n}. f k)"
       by (intro sum.mono_neutral_right) auto
     also from subseq have "\<dots> = (\<Sum>k<g_inv n. f (g k))"
-      using subseq_imp_inj_on by (subst sum.reindex) simp_all
+      using strict_mono_imp_inj_on by (subst sum.reindex) simp_all
     finally show "(\<Sum>k<n. f k) = (\<Sum>k<g_inv n. f (g k))" .
   qed
   also {
@@ -1169,7 +1169,7 @@ next
     also have "n \<le> g (g_inv n)"
       by (rule g_inv)
     finally have "K \<le> g_inv n"
-      using subseq by (simp add: strict_mono_less_eq subseq_strict_mono)
+      using subseq by (simp add: strict_mono_less_eq)
   }
   then have "filterlim g_inv at_top sequentially"
     by (auto simp: filterlim_at_top eventually_at_top_linorder)
@@ -1179,14 +1179,14 @@ next
 qed
 
 lemma summable_mono_reindex:
-  assumes subseq: "subseq g"
+  assumes subseq: "strict_mono g"
     and zero: "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
   shows "summable (\<lambda>n. f (g n)) \<longleftrightarrow> summable f"
   using sums_mono_reindex[of g f, OF assms] by (simp add: summable_def)
 
 lemma suminf_mono_reindex:
   fixes f :: "nat \<Rightarrow> 'a::{t2_space,comm_monoid_add}"
-  assumes "subseq g" "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
+  assumes "strict_mono g" "\<And>n. n \<notin> range g \<Longrightarrow> f n = 0"
   shows   "suminf (\<lambda>n. f (g n)) = suminf f"
 proof (cases "summable f")
   case True
