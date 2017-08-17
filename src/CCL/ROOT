@@ -11,6 +11,8 @@ session CCL = Pure +
     evaluation to weak head-normal form.
   *}
   options [document = false]
+  sessions
+    FOL
   theories
     Wfd
     Fix

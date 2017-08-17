@@ -692,6 +692,8 @@ session "HOL-Eisbach" in Eisbach = HOL +
   description {*
     The Eisbach proof method language and "match" method.
   *}
+  sessions
+    FOL
   theories
     Eisbach
     Tests

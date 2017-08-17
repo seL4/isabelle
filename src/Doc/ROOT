@@ -298,6 +298,8 @@ session Logics (doc) in "Logics" = Pure +
 session Logics_ZF (doc) in "Logics_ZF" = ZF +
   options [document_variants = "logics-ZF", print_mode = "brackets",
     thy_output_source]
+  sessions
+    FOL
   theories
     IFOL_examples
     FOL_examples

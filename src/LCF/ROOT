@@ -11,6 +11,8 @@ session LCF = Pure +
     Logic and Computation: Interactive proof with Cambridge LCF (CUP, 1987)
   *}
   options [document = false]
+  sessions
+    FOL
   theories
     LCF
 

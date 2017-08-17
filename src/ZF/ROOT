@@ -42,6 +42,8 @@ session ZF (main timing ZF) = Pure +
     Kenneth Kunen, Set Theory: An Introduction to Independence Proofs,
     (North-Holland, 1980)
   *}
+  sessions
+    FOL
   theories
     ZF (global)
     ZFC (global)
