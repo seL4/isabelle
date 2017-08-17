@@ -863,6 +863,7 @@ session "HOL-Word" (main timing) in Word = HOL +
     "HOL-Library"
   theories
     Word
+    Bit_Comparison
   document_files "root.bib" "root.tex"
 
 session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
