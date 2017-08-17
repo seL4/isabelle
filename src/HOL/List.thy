@@ -4886,6 +4886,10 @@ proof(induction xs rule: sorted_wrt_induct)
       (meson assms transpD)
 qed simp_all
 
+lemma sorted_wrt_mono:
+  "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
+by(induction xs rule: sorted_wrt_induct)(auto)
+
 text \<open>Strictly Ascending Sequences of Natural Numbers\<close>    
 
 lemma sorted_wrt_upt[simp]: "sorted_wrt (op <) [0..<n]"
