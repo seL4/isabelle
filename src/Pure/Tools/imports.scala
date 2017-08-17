@@ -75,6 +75,7 @@ object Imports
     operation_imports: Boolean = false,
     operation_repository_files: Boolean = false,
     operation_update: Boolean = false,
+    update_message: String = "",
     progress: Progress = No_Progress,
     selection: Sessions.Selection = Sessions.Selection.empty,
     dirs: List[Path] = Nil,
@@ -130,7 +131,7 @@ object Imports
     }
 
     if (operation_update) {
-      progress.echo("\nUpdate theory imports:")
+      progress.echo("\nUpdate theory imports" + update_message + ":")
       val updates =
         selected.flatMap(session_name =>
         {
@@ -224,6 +225,7 @@ object Imports
       var all_sessions = false
       var dirs: List[Path] = Nil
       var session_groups: List[String] = Nil
+      var incremental_update = false
       var options = Options.init()
       var verbose = false
       var exclude_sessions: List[String] = Nil
@@ -241,6 +243,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
     -a           select all sessions
     -d DIR       include session directory
     -g NAME      select session group NAME
+    -i           incremental update according to session graph structure
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -257,6 +260,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       "a" -> (_ => all_sessions = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+      "i" -> (_ => incremental_update = true),
       "o:" -> (arg => options = options + arg),
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
@@ -271,9 +275,25 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      imports(options, operation_imports = operation_imports,
-        operation_repository_files = operation_repository_files, operation_update = operation_update,
-        progress = progress, selection = selection, dirs = dirs, select_dirs = select_dirs,
-        verbose = verbose)
+      if (operation_imports || operation_repository_files ||
+          operation_update && !incremental_update)
+      {
+        imports(options, operation_imports = operation_imports,
+          operation_repository_files = operation_repository_files,
+          operation_update = operation_update,
+          progress = progress, selection = selection, dirs = dirs, select_dirs = select_dirs,
+          verbose = verbose)
+      }
+      else if (operation_update && incremental_update) {
+        val (selected, selected_sessions) =
+          Sessions.load(options, dirs, select_dirs).selection(selection)
+        selected_sessions.imports_topological_order.foreach(info =>
+        {
+          imports(options, operation_update = operation_update, progress = progress,
+            update_message = " for session " + quote(info.name),
+            selection = Sessions.Selection(sessions = List(info.name)),
+            dirs = dirs ::: select_dirs, verbose = verbose)
+        })
+      }
     })
 }
