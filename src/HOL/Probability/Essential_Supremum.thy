@@ -4,7 +4,7 @@
 *)
 
 theory Essential_Supremum
-imports "../Analysis/Analysis"
+imports "HOL-Analysis.Analysis"
 begin
 
 lemma ae_filter_eq_bot_iff: "ae_filter M = bot \<longleftrightarrow> emeasure M (space M) = 0"

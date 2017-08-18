@@ -5,7 +5,7 @@
 section \<open>The implementation: sender\<close>
 
 theory Sender
-imports "../IOA" Action Lemmas
+imports IOA.IOA Action Lemmas
 begin
 
 type_synonym

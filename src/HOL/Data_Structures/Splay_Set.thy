@@ -7,7 +7,7 @@ section "Splay Tree Implementation of Sets"
 
 theory Splay_Set
 imports
-  "~~/src/HOL/Library/Tree"
+  "HOL-Library.Tree"
   Set_by_Ordered
   Cmp
 begin

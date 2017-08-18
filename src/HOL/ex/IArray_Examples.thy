@@ -1,5 +1,5 @@
 theory IArray_Examples
-imports "~~/src/HOL/Library/IArray" "~~/src/HOL/Library/Code_Target_Numeral"
+imports "HOL-Library.IArray" "HOL-Library.Code_Target_Numeral"
 begin
 
 lemma "IArray [True,False] !! 1 = False"

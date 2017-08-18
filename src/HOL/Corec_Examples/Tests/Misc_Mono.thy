@@ -9,7 +9,7 @@ Miscellaneous monomorphic examples.
 section \<open>Miscellaneous Monomorphic Examples\<close>
 
 theory Misc_Mono
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 codatatype T0 =

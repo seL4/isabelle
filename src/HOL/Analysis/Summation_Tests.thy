@@ -7,9 +7,9 @@ section \<open>Radius of Convergence and Summation Tests\<close>
 theory Summation_Tests
 imports
   Complex_Main
-  "~~/src/HOL/Library/Discrete"
-  "~~/src/HOL/Library/Extended_Real"
-  "~~/src/HOL/Library/Liminf_Limsup"
+  "HOL-Library.Discrete"
+  "HOL-Library.Extended_Real"
+  "HOL-Library.Liminf_Limsup"
 begin
 
 text \<open>

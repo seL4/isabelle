@@ -8,10 +8,10 @@ section \<open>Euclid's theorem\<close>
 
 theory Euclid
 imports
-  "~~/src/HOL/Computational_Algebra/Primes"
+  "HOL-Computational_Algebra.Primes"
   Util
-  Old_Datatype
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "HOL-Library.Old_Datatype"
+  "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>

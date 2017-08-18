@@ -3,7 +3,7 @@
 *)
 
 theory Matrix
-imports Main "~~/src/HOL/Library/Lattice_Algebras"
+imports Main "HOL-Library.Lattice_Algebras"
 begin
 
 type_synonym 'a infmatrix = "nat \<Rightarrow> nat \<Rightarrow> 'a"

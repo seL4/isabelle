@@ -8,7 +8,7 @@ theory Projective_Limit
 imports
   Fin_Map
   Infinite_Product_Measure
-  "~~/src/HOL/Library/Diagonal_Subsequence"
+  "HOL-Library.Diagonal_Subsequence"
 begin
 
 subsection \<open>Sequences of Finite Maps in Compact Sets\<close>

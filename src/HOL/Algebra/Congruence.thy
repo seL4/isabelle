@@ -6,7 +6,7 @@
 theory Congruence
 imports 
   Main
-  "~~/src/HOL/Library/FuncSet"
+  "HOL-Library.FuncSet"
 begin
 
 section \<open>Objects\<close>

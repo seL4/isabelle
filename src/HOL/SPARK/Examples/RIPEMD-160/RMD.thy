@@ -5,7 +5,7 @@ Verification of the RIPEMD-160 hash function
 *)
 
 theory RMD
-imports "~~/src/HOL/Word/Word"
+imports "HOL-Word.Word"
 begin
 
 

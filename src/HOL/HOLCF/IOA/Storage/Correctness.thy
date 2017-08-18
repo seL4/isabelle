@@ -5,7 +5,7 @@
 section \<open>Correctness Proof\<close>
 
 theory Correctness
-imports "../SimCorrectness" Spec Impl
+imports IOA.SimCorrectness Spec Impl
 begin
 
 default_sort type

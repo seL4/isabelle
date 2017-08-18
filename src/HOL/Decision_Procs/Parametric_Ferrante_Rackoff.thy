@@ -9,8 +9,8 @@ imports
   Reflected_Multivariate_Polynomial
   Dense_Linear_Order
   DP_Library
-  "~~/src/HOL/Library/Code_Target_Numeral"
-  "~~/src/HOL/Library/Old_Recdef"
+  "HOL-Library.Code_Target_Numeral"
+  "HOL-Library.Old_Recdef"
 begin
 
 subsection \<open>Terms\<close>

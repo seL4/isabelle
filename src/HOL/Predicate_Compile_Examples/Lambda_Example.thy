@@ -1,5 +1,5 @@
 theory Lambda_Example
-imports "~~/src/HOL/Library/Code_Prolog"
+imports "HOL-Library.Code_Prolog"
 begin
 
 subsection \<open>Lambda\<close>

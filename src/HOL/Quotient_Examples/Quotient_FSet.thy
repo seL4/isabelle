@@ -13,7 +13,7 @@ Type of finite sets.
 *********************************************************************)
 
 theory Quotient_FSet
-imports "~~/src/HOL/Library/Multiset" "~~/src/HOL/Library/Quotient_List"
+imports "HOL-Library.Multiset" "HOL-Library.Quotient_List"
 begin
 
 text \<open>

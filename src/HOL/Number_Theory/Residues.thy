@@ -10,10 +10,10 @@ section \<open>Residue rings\<close>
 theory Residues
 imports
   Cong
-  "~~/src/HOL/Algebra/More_Group"
-  "~~/src/HOL/Algebra/More_Ring"
-  "~~/src/HOL/Algebra/More_Finite_Product"
-  "~~/src/HOL/Algebra/Multiplicative_Group"
+  "HOL-Algebra.More_Group"
+  "HOL-Algebra.More_Ring"
+  "HOL-Algebra.More_Finite_Product"
+  "HOL-Algebra.Multiplicative_Group"
   Totient
 begin
 

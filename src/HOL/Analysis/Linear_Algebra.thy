@@ -7,7 +7,7 @@ section \<open>Elementary linear algebra on Euclidean spaces\<close>
 theory Linear_Algebra
 imports
   Euclidean_Space
-  "~~/src/HOL/Library/Infinite_Set"
+  "HOL-Library.Infinite_Set"
 begin
 
 lemma linear_simps:

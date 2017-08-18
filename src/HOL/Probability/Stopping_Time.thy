@@ -3,7 +3,7 @@
 section {* Stopping times *}
 
 theory Stopping_Time
-  imports "../Analysis/Analysis"
+  imports "HOL-Analysis.Analysis"
 begin
 
 subsection \<open>Stopping Time\<close>

@@ -3,7 +3,7 @@
 section \<open>Formalization of a Countermeasure by Koepf \& Duermuth 2009\<close>
 
 theory Koepf_Duermuth_Countermeasure
-  imports "~~/src/HOL/Probability/Information" "~~/src/HOL/Library/Permutation"
+  imports "HOL-Probability.Information" "HOL-Library.Permutation"
 begin
 
 lemma SIGMA_image_vimage:

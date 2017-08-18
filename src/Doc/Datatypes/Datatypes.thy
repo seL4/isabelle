@@ -12,11 +12,11 @@ Tutorial for (co)datatype definitions.
 theory Datatypes
 imports
   Setup
-  "~~/src/HOL/Library/BNF_Axiomatization"
-  "~~/src/HOL/Library/Cardinal_Notations"
-  "~~/src/HOL/Library/Countable"
-  "~~/src/HOL/Library/FSet"
-  "~~/src/HOL/Library/Simps_Case_Conv"
+  "HOL-Library.BNF_Axiomatization"
+  "HOL-Library.Cardinal_Notations"
+  "HOL-Library.Countable"
+  "HOL-Library.FSet"
+  "HOL-Library.Simps_Case_Conv"
 begin
 
 section \<open>Introduction

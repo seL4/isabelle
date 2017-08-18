@@ -10,7 +10,7 @@ Miscellaneous codatatype definitions.
 section \<open>Miscellaneous Codatatype Definitions\<close>
 
 theory Misc_Codatatype
-imports "~~/src/HOL/Library/FSet"
+imports "HOL-Library.FSet"
 begin
 
 codatatype simple = X1 | X2 | X3 | X4

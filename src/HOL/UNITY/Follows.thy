@@ -6,7 +6,7 @@
 section\<open>The Follows Relation of Charpentier and Sivilotte\<close>
 
 theory Follows
-imports SubstAx ListOrder "~~/src/HOL/Library/Multiset"
+imports SubstAx ListOrder "HOL-Library.Multiset"
 begin
 
 definition Follows :: "['a => 'b::{order}, 'a => 'b::{order}] => 'a program set" (infixl "Fols" 65) where

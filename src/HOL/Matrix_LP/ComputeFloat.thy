@@ -5,7 +5,7 @@
 section \<open>Floating Point Representation of the Reals\<close>
 
 theory ComputeFloat
-imports Complex_Main "~~/src/HOL/Library/Lattice_Algebras"
+imports Complex_Main "HOL-Library.Lattice_Algebras"
 begin
 
 ML_file "~~/src/Tools/float.ML"

@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Live_True
-imports "~~/src/HOL/Library/While_Combinator" Vars Big_Step
+imports "HOL-Library.While_Combinator" Vars Big_Step
 begin
 
 subsection "True Liveness Analysis"

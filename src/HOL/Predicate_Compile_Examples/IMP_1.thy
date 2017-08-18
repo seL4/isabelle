@@ -1,5 +1,5 @@
 theory IMP_1
-imports "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
+imports "HOL-Library.Predicate_Compile_Quickcheck"
 begin
 
 subsection \<open>IMP\<close>

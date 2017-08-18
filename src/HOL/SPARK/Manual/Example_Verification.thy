@@ -1,6 +1,6 @@
 (*<*)
 theory Example_Verification
-imports "../Examples/Gcd/Greatest_Common_Divisor" Simple_Greatest_Common_Divisor
+imports "HOL-SPARK-Examples.Greatest_Common_Divisor" Simple_Greatest_Common_Divisor
 begin
 (*>*)
 

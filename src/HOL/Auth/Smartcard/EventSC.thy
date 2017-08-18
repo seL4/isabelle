@@ -3,7 +3,7 @@ section\<open>Theory of Events for Security Protocols that use smartcards\<close
 theory EventSC
 imports
   "../Message"
-  "~~/src/HOL/Library/Simps_Case_Conv"
+  "HOL-Library.Simps_Case_Conv"
 begin
 
 consts  (*Initial states of agents -- parameter of the construction*)

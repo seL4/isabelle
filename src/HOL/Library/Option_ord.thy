@@ -5,7 +5,7 @@
 section \<open>Canonical order on option type\<close>
 
 theory Option_ord
-imports Option Main
+imports HOL.Option Main
 begin
 
 notation

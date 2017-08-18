@@ -9,7 +9,7 @@ Tests type class instances as friends.
 section \<open>Tests Type Class Instances as Friends\<close>
 
 theory Type_Class
-imports "~~/src/HOL/Library/BNF_Corec" "~~/src/HOL/Library/Stream"
+imports "HOL-Library.BNF_Corec" "HOL-Library.Stream"
 begin
 
 instantiation stream :: (plus) plus

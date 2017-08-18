@@ -5,7 +5,7 @@
 section \<open>Examples for generic reflection and reification\<close>
 
 theory Reflection_Examples
-imports Complex_Main "~~/src/HOL/Library/Reflection"
+imports Complex_Main "HOL-Library.Reflection"
 begin
 
 text \<open>This theory presents two methods: reify and reflection\<close>

@@ -1,10 +1,10 @@
 theory Setup
 imports
   Complex_Main
-  "~~/src/HOL/Library/Dlist"
-  "~~/src/HOL/Library/RBT"
-  "~~/src/HOL/Library/Mapping"
-  "~~/src/HOL/Library/IArray"
+  "HOL-Library.Dlist"
+  "HOL-Library.RBT"
+  "HOL-Library.Mapping"
+  "HOL-Library.IArray"
 begin
 
 ML_file "../antiquote_setup.ML"

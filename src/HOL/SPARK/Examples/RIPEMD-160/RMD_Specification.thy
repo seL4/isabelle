@@ -5,7 +5,7 @@ Verification of the RIPEMD-160 hash function
 *)
 
 theory RMD_Specification
-imports RMD "~~/src/HOL/SPARK/SPARK"
+imports RMD SPARK
 begin
 
 (* bit operations *)

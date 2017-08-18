@@ -1,5 +1,5 @@
 theory Class1
-imports "../Nominal" 
+imports "HOL-Nominal.Nominal" 
 begin
 
 section \<open>Term-Calculus from Urban's PhD\<close>

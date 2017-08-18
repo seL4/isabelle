@@ -9,7 +9,7 @@ Finitely branching possibly infinite trees, with sets of children.
 section \<open>Finitely Branching Possibly Infinite Trees, with Sets of Children\<close>
 
 theory TreeFsetI
-imports "~~/src/HOL/Library/FSet"
+imports "HOL-Library.FSet"
 begin
 
 codatatype 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")

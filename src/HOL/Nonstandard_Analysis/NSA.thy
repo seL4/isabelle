@@ -6,7 +6,7 @@
 section \<open>Infinite Numbers, Infinitesimals, Infinitely Close Relation\<close>
 
 theory NSA
-  imports HyperDef "~~/src/HOL/Library/Lub_Glb"
+  imports HyperDef "HOL-Library.Lub_Glb"
 begin
 
 definition hnorm :: "'a::real_normed_vector star \<Rightarrow> real star"

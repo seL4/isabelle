@@ -5,7 +5,7 @@
 section \<open>Pi and Function Sets\<close>
 
 theory FuncSet
-  imports Hilbert_Choice Main
+  imports HOL.Hilbert_Choice Main
   abbrevs PiE = "Pi\<^sub>E"
     PIE = "\<Pi>\<^sub>E"
 begin

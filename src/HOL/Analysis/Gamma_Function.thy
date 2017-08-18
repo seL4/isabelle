@@ -9,8 +9,8 @@ imports
   Conformal_Mappings
   Summation_Tests
   Harmonic_Numbers
-  "~~/src/HOL/Library/Nonpos_Ints"
-  "~~/src/HOL/Library/Periodic_Fun"
+  "HOL-Library.Nonpos_Ints"
+  "HOL-Library.Periodic_Fun"
 begin
 
 text \<open>

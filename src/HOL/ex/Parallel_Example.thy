@@ -1,7 +1,7 @@
 section \<open>A simple example demonstrating parallelism for code generated towards Isabelle/ML\<close>
 
 theory Parallel_Example
-imports Complex_Main "~~/src/HOL/Library/Parallel" "~~/src/HOL/Library/Debug"
+imports Complex_Main "HOL-Library.Parallel" "HOL-Library.Debug"
 begin
 
 subsection \<open>Compute-intensive examples.\<close>

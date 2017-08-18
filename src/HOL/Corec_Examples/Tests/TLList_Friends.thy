@@ -9,7 +9,7 @@ Friendly functions on terminated lists.
 section \<open>Friendly Functions on Terminated Lists\<close>
 
 theory TLList_Friends
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 codatatype ('a, 'b) tllist =

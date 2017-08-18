@@ -7,7 +7,7 @@ Examples demonstrating and testing various word operations.
 section "Examples of word operations"
 
 theory WordExamples
-  imports "../Word" "../WordBitwise"
+  imports "HOL-Word.Word" "HOL-Word.WordBitwise"
 begin
 
 type_synonym word32 = "32 word"

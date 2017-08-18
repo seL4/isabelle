@@ -23,14 +23,22 @@ and TypeScript, while Isabelle/VSCode mainly consists of Isabelle/Scala
 modules around a Language Server implementation.
 
 * Theory names are qualified by the session name that they belong to.
-This affects imports, but not the theory name space prefix: it remains
-the theory base name as before. In order to import theories from other
-sessions, the ROOT file format provides a new 'sessions' keyword. In
-contrast, a theory that is imported in the old-fashioned manner via an
-explicit file-system path belongs to the current session.
+This affects imports, but not the theory name space prefix (which is
+just the theory base name as before).
 
-Theories that are imported from other sessions are excluded from the
-current session document.
+In order to import theories from other sessions, the ROOT file format
+provides a new 'sessions' keyword. In contrast, a theory that is
+imported in the old-fashioned manner via an explicit file-system path
+belongs to the current session, and might cause theory name confusion
+later on. Theories that are imported from other sessions are excluded
+from the current session document. The command-line tool "isabelle
+imports" helps to update theory imports.
+
+Properly qualified imports allow the Prover IDE to process arbitrary
+theory hierarchies independently of the underlying logic session image
+(e.g. option "isabelle jedit -l"), but the directory structure needs to
+be known in advance (e.g. option "isabelle jedit -d" or a line in the
+file $ISABELLE_HOME_USER/ROOTS).
 
 * The main theory entry points for some non-HOL sessions have changed,
 to avoid confusion with the global name "Main" of the session HOL. This

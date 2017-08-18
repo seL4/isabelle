@@ -9,7 +9,7 @@ Tests theory merges.
 section \<open>Tests Theory Merges\<close>
 
 theory Merge_A
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 codatatype 'a ta = Ca (sa1: 'a) (sa2: "'a ta")

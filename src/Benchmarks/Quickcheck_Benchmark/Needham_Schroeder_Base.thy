@@ -1,5 +1,5 @@
 theory Needham_Schroeder_Base
-imports Main "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
+imports Main "HOL-Library.Predicate_Compile_Quickcheck"
 begin
 
 datatype agent = Alice | Bob | Spy

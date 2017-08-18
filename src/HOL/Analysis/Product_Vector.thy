@@ -7,7 +7,7 @@ section \<open>Cartesian Products as Vector Spaces\<close>
 theory Product_Vector
 imports
   Inner_Product
-  "~~/src/HOL/Library/Product_Plus"
+  "HOL-Library.Product_Plus"
 begin
 
 subsection \<open>Product is a real vector space\<close>

@@ -5,7 +5,7 @@
 section \<open>Bit operations in $\cal Z_2$\<close>
 
 theory Bits_Bit
-imports Bits "~~/src/HOL/Library/Bit"
+imports Bits "HOL-Library.Bit"
 begin
 
 instantiation bit :: bit

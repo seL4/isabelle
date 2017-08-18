@@ -9,7 +9,7 @@ Small examples from the paper "Friends with Benefits".
 section \<open>Small Examples from the Paper ``Friends with Benefits''\<close>
 
 theory Paper_Examples
-imports "~~/src/HOL/Library/BNF_Corec" "~~/src/HOL/Library/FSet" Complex_Main
+imports "HOL-Library.BNF_Corec" "HOL-Library.FSet" Complex_Main
 begin
 
 section \<open>Examples from the introduction\<close>

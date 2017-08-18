@@ -4,8 +4,8 @@
 theory Stream_Space
 imports
   Infinite_Product_Measure
-  "~~/src/HOL/Library/Stream"
-  "~~/src/HOL/Library/Linear_Temporal_Logic_on_Streams"
+  "HOL-Library.Stream"
+  "HOL-Library.Linear_Temporal_Logic_on_Streams"
 begin
 
 lemma stream_eq_Stream_iff: "s = x ## t \<longleftrightarrow> (shd s = x \<and> stl s = t)"

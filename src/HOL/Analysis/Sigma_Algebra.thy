@@ -10,11 +10,11 @@ section \<open>Describing measurable sets\<close>
 theory Sigma_Algebra
 imports
   Complex_Main
-  "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Library/FuncSet"
-  "~~/src/HOL/Library/Indicator_Function"
-  "~~/src/HOL/Library/Extended_Nonnegative_Real"
-  "~~/src/HOL/Library/Disjoint_Sets"
+  "HOL-Library.Countable_Set"
+  "HOL-Library.FuncSet"
+  "HOL-Library.Indicator_Function"
+  "HOL-Library.Extended_Nonnegative_Real"
+  "HOL-Library.Disjoint_Sets"
 begin
 
 text \<open>Sigma algebras are an elementary concept in measure

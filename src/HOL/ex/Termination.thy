@@ -6,7 +6,7 @@
 section \<open>Examples and regression tests for automated termination proofs\<close>
  
 theory Termination
-imports Main "~~/src/HOL/Library/Multiset"
+imports Main "HOL-Library.Multiset"
 begin
 
 subsection \<open>Manually giving termination relations using \<open>relation\<close> and

@@ -5,7 +5,7 @@
 section \<open>The implementation of a memory\<close>
 
 theory Impl
-imports "../IOA" Action
+imports IOA.IOA Action
 begin
 
 definition

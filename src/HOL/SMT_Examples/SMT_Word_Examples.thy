@@ -5,7 +5,7 @@
 section \<open>Word examples for for SMT binding\<close>
 
 theory SMT_Word_Examples
-imports "~~/src/HOL/Word/Word"
+imports "HOL-Word.Word"
 begin
 
 declare [[smt_oracle = true]]

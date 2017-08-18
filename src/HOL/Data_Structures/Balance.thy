@@ -5,7 +5,7 @@ section \<open>Creating Balanced Trees\<close>
 theory Balance
 imports
   Complex_Main
-  "~~/src/HOL/Library/Tree"
+  "HOL-Library.Tree"
 begin
 
 (* The following two lemmas should go into theory \<open>Tree\<close>, except that that

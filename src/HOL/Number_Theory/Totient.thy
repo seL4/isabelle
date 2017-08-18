@@ -9,7 +9,7 @@ section \<open>Fundamental facts about Euler's totient function\<close>
 theory Totient
 imports
   Complex_Main
-  "~~/src/HOL/Computational_Algebra/Primes"
+  "HOL-Computational_Algebra.Primes"
   "~~/src/HOL/Number_Theory/Cong"
 begin
   

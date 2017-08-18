@@ -1,5 +1,5 @@
 theory Lambda_mu 
-  imports "../Nominal" 
+  imports "HOL-Nominal.Nominal" 
 begin
 
 section \<open>Lambda-Mu according to a paper by Gavin Bierman\<close>

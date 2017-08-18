@@ -1,5 +1,5 @@
 theory W
-imports "../Nominal"
+imports "HOL-Nominal.Nominal"
 begin
 
 text \<open>Example for strong induction rules avoiding sets of atoms.\<close>

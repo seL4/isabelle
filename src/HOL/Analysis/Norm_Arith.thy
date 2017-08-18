@@ -5,7 +5,7 @@
 section \<open>General linear decision procedure for normed spaces\<close>
 
 theory Norm_Arith
-imports "~~/src/HOL/Library/Sum_of_Squares"
+imports "HOL-Library.Sum_of_Squares"
 begin
 
 (* FIXME: move elsewhere *)

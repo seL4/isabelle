@@ -6,7 +6,7 @@ exponent p s   yields the greatest power of p that divides s.
 *)
 
 theory Exponent
-imports Main "~~/src/HOL/Computational_Algebra/Primes"
+imports Main "HOL-Computational_Algebra.Primes"
 begin
 
 section \<open>Sylow's Theorem\<close>

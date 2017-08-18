@@ -3,7 +3,7 @@
 section \<open>Bubblesort\<close>
 
 theory Bubblesort
-imports "~~/src/HOL/Library/Multiset"
+imports "HOL-Library.Multiset"
 begin
 
 text\<open>This is \emph{a} version of bubblesort.\<close>

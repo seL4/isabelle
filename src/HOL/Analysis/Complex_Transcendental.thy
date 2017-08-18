@@ -6,7 +6,7 @@ theory Complex_Transcendental
 imports
   Complex_Analysis_Basics
   Summation_Tests
-   "~~/src/HOL/Library/Periodic_Fun"
+   "HOL-Library.Periodic_Fun"
 begin
 
 (* TODO: Figure out what to do with Möbius transformations *)

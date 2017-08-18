@@ -1,7 +1,7 @@
 section \<open>Extending FOL by a modified version of HOL set theory\<close>
 
 theory Set
-imports "~~/src/FOL/FOL"
+imports FOL
 begin
 
 declare [[eta_contract]]

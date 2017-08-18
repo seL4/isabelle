@@ -6,15 +6,15 @@ section \<open>A huge collection of equations to generate code from\<close>
 theory Candidates
 imports
   Complex_Main
-  "~~/src/HOL/Library/Library"
-  "~~/src/HOL/Library/Subseq_Order"
-  "~~/src/HOL/Library/RBT"
-  "~~/src/HOL/Data_Structures/Tree_Map"
-  "~~/src/HOL/Data_Structures/Tree_Set"
-  "~~/src/HOL/Computational_Algebra/Computational_Algebra"
-  "~~/src/HOL/Computational_Algebra/Polynomial_Factorial"
-  "~~/src/HOL/Number_Theory/Eratosthenes"
-  "~~/src/HOL/ex/Records"
+  "HOL-Library.Library"
+  "HOL-Library.Subseq_Order"
+  "HOL-Library.RBT"
+  "HOL-Data_Structures.Tree_Map"
+  "HOL-Data_Structures.Tree_Set"
+  "HOL-Computational_Algebra.Computational_Algebra"
+  "HOL-Computational_Algebra.Polynomial_Factorial"
+  "HOL-Number_Theory.Eratosthenes"
+  "HOL-ex.Records"
 begin
 
 text \<open>Drop technical stuff from @{theory Quickcheck_Narrowing} which is tailored towards Haskell\<close>

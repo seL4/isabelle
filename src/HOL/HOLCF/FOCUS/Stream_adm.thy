@@ -5,7 +5,7 @@
 section \<open>Admissibility for streams\<close>
 
 theory Stream_adm
-imports "~~/src/HOL/HOLCF/Library/Stream" "~~/src/HOL/Library/Order_Continuity"
+imports "HOLCF-Library.Stream" "HOL-Library.Order_Continuity"
 begin
 
 definition

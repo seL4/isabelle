@@ -8,9 +8,9 @@ section \<open>Elementary topology in Euclidean space.\<close>
 
 theory Topology_Euclidean_Space
 imports
-  "~~/src/HOL/Library/Indicator_Function"
-  "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Library/FuncSet"
+  "HOL-Library.Indicator_Function"
+  "HOL-Library.Countable_Set"
+  "HOL-Library.FuncSet"
   Linear_Algebra
   Norm_Arith
 begin

@@ -9,7 +9,7 @@ Tests polymorphic merges.
 section \<open>Tests Polymorphic Merges\<close>
 
 theory Merge_Poly
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 subsection \<open>A Monomorphic Example\<close>

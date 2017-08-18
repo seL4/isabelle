@@ -8,7 +8,7 @@ section \<open>Helly's selection theorem\<close>
 text \<open>The set of bounded, monotone, right continuous functions is sequentially compact\<close>
 
 theory Helly_Selection
-  imports "~~/src/HOL/Library/Diagonal_Subsequence" Weak_Convergence
+  imports "HOL-Library.Diagonal_Subsequence" Weak_Convergence
 begin
 
 lemma minus_one_less: "x - 1 < (x::real)"

@@ -5,8 +5,8 @@
 theory Cooper
 imports
   Complex_Main
-  "~~/src/HOL/Library/Code_Target_Numeral"
-  "~~/src/HOL/Library/Old_Recdef"
+  "HOL-Library.Code_Target_Numeral"
+  "HOL-Library.Old_Recdef"
 begin
 
 (* Periodicity of dvd *)

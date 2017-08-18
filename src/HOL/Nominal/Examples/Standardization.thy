@@ -6,7 +6,7 @@
 section \<open>Standardization\<close>
 
 theory Standardization
-imports "../Nominal"
+imports "HOL-Nominal.Nominal"
 begin
 
 text \<open>

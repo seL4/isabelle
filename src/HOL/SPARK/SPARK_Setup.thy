@@ -6,7 +6,7 @@ Setup for SPARK/Ada verification environment.
 *)
 
 theory SPARK_Setup
-imports "~~/src/HOL/Word/Word" "~~/src/HOL/Word/Bit_Comparison"
+imports "HOL-Word.Word" "HOL-Word.Bit_Comparison"
 keywords
   "spark_open_vcg" :: thy_load ("vcg", "fdl", "rls") and
   "spark_open" :: thy_load ("siv", "fdl", "rls") and

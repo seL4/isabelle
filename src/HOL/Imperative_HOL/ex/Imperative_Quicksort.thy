@@ -8,8 +8,8 @@ theory Imperative_Quicksort
 imports
   "~~/src/HOL/Imperative_HOL/Imperative_HOL"
   Subarray
-  "~~/src/HOL/Library/Multiset"
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "HOL-Library.Multiset"
+  "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>We prove QuickSort correct in the Relational Calculus.\<close>

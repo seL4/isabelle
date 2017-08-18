@@ -1,6 +1,6 @@
 theory Iterate_GPV imports
-  "~~/src/HOL/Library/BNF_Axiomatization"
-  "~~/src/HOL/Library/BNF_Corec"
+  "HOL-Library.BNF_Axiomatization"
+  "HOL-Library.BNF_Corec"
 begin
 
 declare [[typedef_overloaded]]

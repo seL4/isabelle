@@ -8,7 +8,7 @@ Well-order embeddings.
 section \<open>Well-Order Embeddings\<close>
 
 theory Wellorder_Embedding
-imports BNF_Wellorder_Embedding Fun_More Wellorder_Relation
+imports HOL.BNF_Wellorder_Embedding Fun_More Wellorder_Relation
 begin
 
 subsection \<open>Auxiliaries\<close>

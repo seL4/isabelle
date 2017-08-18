@@ -7,8 +7,8 @@ section \<open>Ad Hoc Overloading\<close>
 theory Adhoc_Overloading_Examples
 imports
   Main
-  "~~/src/HOL/Library/Infinite_Set"
-  "~~/src/Tools/Adhoc_Overloading"
+  "HOL-Library.Infinite_Set"
+  "HOL-Library.Adhoc_Overloading"
 begin
 
 text \<open>Adhoc overloading allows to overload a constant depending on

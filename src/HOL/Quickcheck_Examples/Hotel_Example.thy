@@ -1,5 +1,5 @@
 theory Hotel_Example
-imports Main "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
+imports Main "HOL-Library.Predicate_Compile_Quickcheck"
 begin
 
 datatype guest = Guest0 | Guest1

@@ -4,7 +4,7 @@
 theory Measurable
   imports
     Sigma_Algebra
-    "~~/src/HOL/Library/Order_Continuity"
+    "HOL-Library.Order_Continuity"
 begin
 
 subsection \<open>Measurability prover\<close>

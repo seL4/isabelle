@@ -7,7 +7,7 @@ A proof that the area of a circle with radius R is R\<^sup>2\<pi>.
 section \<open>The area of a circle\<close>
 
 theory Circle_Area
-imports Complex_Main Interval_Integral
+imports Complex_Main "HOL-Analysis.Interval_Integral"
 begin
 
 lemma plus_emeasure':

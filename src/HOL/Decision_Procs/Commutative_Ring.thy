@@ -10,7 +10,7 @@ theory Commutative_Ring
 imports
   Conversions
   Algebra_Aux
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>Syntax of multivariate polynomials (pol) and polynomial expressions.\<close>

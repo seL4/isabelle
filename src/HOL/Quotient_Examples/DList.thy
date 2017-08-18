@@ -8,7 +8,7 @@ and theory morphism version by Maksym Bortin
 section \<open>Lists with distinct elements\<close>
 
 theory DList
-imports "~~/src/HOL/Library/Quotient_List"
+imports "HOL-Library.Quotient_List"
 begin
 
 text \<open>Some facts about lists\<close>

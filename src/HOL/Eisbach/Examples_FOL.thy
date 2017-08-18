@@ -5,7 +5,7 @@
 section \<open>Basic Eisbach examples (in FOL)\<close>
 
 theory Examples_FOL
-imports "~~/src/FOL/FOL" Eisbach_Old_Appl_Syntax
+imports FOL Eisbach_Old_Appl_Syntax
 begin
 
 

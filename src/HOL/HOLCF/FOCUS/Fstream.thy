@@ -9,7 +9,7 @@ TODO: integrate Fstreams.thy
 section \<open>FOCUS flat streams\<close>
 
 theory Fstream
-imports "~~/src/HOL/HOLCF/Library/Stream"
+imports "HOLCF-Library.Stream"
 begin
 
 default_sort type

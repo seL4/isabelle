@@ -9,8 +9,8 @@ section \<open>Constructions on Wellorders\<close>
 
 theory Wellorder_Constructions
 imports
-  BNF_Wellorder_Constructions Wellorder_Embedding Order_Union
-  "../Library/Cardinal_Notations"
+  HOL.BNF_Wellorder_Constructions Wellorder_Embedding Order_Union
+  "HOL-Library.Cardinal_Notations"
 begin
 
 declare

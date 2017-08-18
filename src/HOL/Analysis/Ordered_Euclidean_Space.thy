@@ -1,7 +1,7 @@
 theory Ordered_Euclidean_Space
 imports
   Cartesian_Euclidean_Space
-  "~~/src/HOL/Library/Product_Order"
+  "HOL-Library.Product_Order"
 begin
 
 subsection \<open>An ordering on euclidean spaces that will allow us to talk about intervals\<close>

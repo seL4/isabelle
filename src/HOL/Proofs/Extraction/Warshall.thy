@@ -5,7 +5,7 @@
 section \<open>Warshall's algorithm\<close>
 
 theory Warshall
-imports Old_Datatype
+imports "HOL-Library.Old_Datatype"
 begin
 
 text \<open>

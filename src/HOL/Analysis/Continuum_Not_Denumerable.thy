@@ -8,7 +8,7 @@ section \<open>Non-denumerability of the Continuum.\<close>
 theory Continuum_Not_Denumerable
 imports
   Complex_Main 
-  "~~/src/HOL/Library/Countable_Set"
+  "HOL-Library.Countable_Set"
 begin
 
 subsection \<open>Abstract\<close>

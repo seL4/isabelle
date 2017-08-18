@@ -8,7 +8,7 @@ Processes.
 section \<open>Processes\<close>
 
 theory Process
-imports "~~/src/HOL/Library/Stream"
+imports "HOL-Library.Stream"
 begin
 
 codatatype 'a process =

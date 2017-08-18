@@ -2,7 +2,7 @@
     Author:     Ondřej Kunčar, TU München
 *)
 theory Transfer_Debug 
-imports Main "~~/src/HOL/Library/FSet"
+imports Main "HOL-Library.FSet"
 begin                              
 
 (*

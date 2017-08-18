@@ -6,7 +6,7 @@ Examples for Sum_of_Squares.
 *)
 
 theory SOS
-imports "~~/src/HOL/Library/Sum_of_Squares"
+imports "HOL-Library.Sum_of_Squares"
 begin
 
 lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<Longrightarrow> a < 0"

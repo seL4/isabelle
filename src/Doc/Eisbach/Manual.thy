@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Manual
-imports Base "~~/src/HOL/Eisbach/Eisbach_Tools"
+imports Base "HOL-Eisbach.Eisbach_Tools"
 begin
 
 chapter \<open>The method command\<close>

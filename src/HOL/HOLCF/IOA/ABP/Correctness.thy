@@ -5,7 +5,7 @@
 section \<open>The main correctness proof: System_fin implements System\<close>
 
 theory Correctness
-imports "../IOA" Env Impl Impl_finite
+imports IOA.IOA Env Impl Impl_finite
 begin
 
 ML_file "Check.ML"

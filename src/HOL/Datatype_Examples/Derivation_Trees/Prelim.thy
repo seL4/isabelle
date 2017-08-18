@@ -8,7 +8,7 @@ Preliminaries.
 section \<open>Preliminaries\<close>
 
 theory Prelim
-imports "~~/src/HOL/Library/FSet"
+imports "HOL-Library.FSet"
 begin
 
 notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")

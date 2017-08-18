@@ -5,7 +5,7 @@
 
 section\<open>Common Declarations for Chandy and Charpentier's Allocator\<close>
 
-theory AllocBase imports "../UNITY_Main" "~~/src/HOL/Library/Multiset_Order" begin
+theory AllocBase imports "../UNITY_Main" "HOL-Library.Multiset_Order" begin
 
 consts Nclients :: nat  (*Number of clients*)
 

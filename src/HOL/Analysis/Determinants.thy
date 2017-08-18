@@ -7,7 +7,7 @@ section \<open>Traces, Determinant of square matrices and some properties\<close
 theory Determinants
 imports
   Cartesian_Euclidean_Space
-  "~~/src/HOL/Library/Permutations"
+  "HOL-Library.Permutations"
 begin
 
 subsection \<open>Trace\<close>

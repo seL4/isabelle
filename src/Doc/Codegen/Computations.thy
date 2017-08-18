@@ -1,7 +1,7 @@
 theory Computations
-  imports Setup
-    "~~/src/HOL/Library/Code_Target_Int"
-    "~~/src/HOL/Library/Code_Char"
+  imports Codegen_Basics.Setup
+    "HOL-Library.Code_Target_Int"
+    "HOL-Library.Code_Char"
 begin
 
 section \<open>Computations \label{sec:computations}\<close>

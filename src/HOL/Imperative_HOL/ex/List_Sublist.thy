@@ -5,7 +5,7 @@
 section \<open>Slices of lists\<close>
 
 theory List_Sublist
-imports "~~/src/HOL/Library/Multiset"
+imports "HOL-Library.Multiset"
 begin
 
 lemma nths_split: "i \<le> j \<and> j \<le> k \<Longrightarrow> nths xs {i..<j} @ nths xs {j..<k} = nths xs {i..<k}" 

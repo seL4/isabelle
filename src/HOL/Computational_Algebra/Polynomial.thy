@@ -9,9 +9,9 @@ section \<open>Polynomials as type over a ring structure\<close>
 
 theory Polynomial
 imports
-  "~~/src/HOL/Deriv"
-  "~~/src/HOL/Library/More_List"
-  "~~/src/HOL/Library/Infinite_Set"
+  HOL.Deriv
+  "HOL-Library.More_List"
+  "HOL-Library.Infinite_Set"
 begin
 
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>

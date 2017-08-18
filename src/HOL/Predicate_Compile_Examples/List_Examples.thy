@@ -1,8 +1,8 @@
 theory List_Examples
 imports
   Main
-  "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
-  "~~/src/HOL/Library/Code_Prolog"
+  "HOL-Library.Predicate_Compile_Quickcheck"
+  "HOL-Library.Code_Prolog"
 begin
 
 setup \<open>

@@ -122,7 +122,7 @@ session "HOL-Induct" in Induct = "HOL-Library" +
     mutually recursive relations.
   *}
   theories [document = false]
-    "~~/src/HOL/Library/Old_Datatype"
+    "HOL-Library.Old_Datatype"
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -143,11 +143,11 @@ session "HOL-Induct" in Induct = "HOL-Library" +
 session "HOL-IMP" (timing) in IMP = "HOL-Library" +
   options [document_variants = document]
   theories [document = false]
-    "~~/src/HOL/Library/While_Combinator"
-    "~~/src/HOL/Library/Char_ord"
-    "~~/src/HOL/Library/List_lexord"
-    "~~/src/HOL/Library/Quotient_List"
-    "~~/src/HOL/Library/Extended"
+    "HOL-Library.While_Combinator"
+    "HOL-Library.Char_ord"
+    "HOL-Library.List_lexord"
+    "HOL-Library.Quotient_List"
+    "HOL-Library.Extended"
   theories
     BExp
     ASM
@@ -200,8 +200,8 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     "HOL-Number_Theory"
   theories [document = false]
     Less_False
-    "~~/src/HOL/Library/Multiset"
-    "~~/src/HOL/Number_Theory/Fib"
+    "HOL-Library.Multiset"
+    "HOL-Number_Theory.Fib"
   theories
     Balance
     Tree_Map
@@ -228,10 +228,10 @@ session "HOL-Number_Theory" (timing) in Number_Theory = "HOL-Computational_Algeb
   sessions
     "HOL-Algebra"
   theories [document = false]
-    "~~/src/HOL/Library/FuncSet"
-    "~~/src/HOL/Library/Multiset"
-    "~~/src/HOL/Algebra/Ring"
-    "~~/src/HOL/Algebra/FiniteProduct"
+    "HOL-Library.FuncSet"
+    "HOL-Library.Multiset"
+    "HOL-Algebra.Ring"
+    "HOL-Algebra.FiniteProduct"
   theories
     Number_Theory
   document_files
@@ -322,9 +322,9 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   *}
   theories [document = false]
     (* Preliminaries from set and number theory *)
-    "~~/src/HOL/Library/FuncSet"
-    "~~/src/HOL/Computational_Algebra/Primes"
-    "~~/src/HOL/Library/Permutation"
+    "HOL-Library.FuncSet"
+    "HOL-Computational_Algebra.Primes"
+    "HOL-Library.Permutation"
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
@@ -414,9 +414,9 @@ session "HOL-ZF" in ZF = "HOL-Library" +
 session "HOL-Imperative_HOL" in Imperative_HOL = "HOL-Library" +
   options [print_mode = "iff,no_brackets"]
   theories [document = false]
-    "~~/src/HOL/Library/Countable"
-    "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Library/LaTeXsugar"
+    "HOL-Library.Countable"
+    "HOL-Library.Monad_Syntax"
+    "HOL-Library.LaTeXsugar"
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
 
@@ -446,10 +446,10 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
     "HOL-Library"
     "HOL-Computational_Algebra"
   theories [document = false]
-    "~~/src/HOL/Library/Code_Target_Numeral"
-    "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Computational_Algebra/Primes"
-    "~~/src/HOL/Library/Open_State_Syntax"
+    "HOL-Library.Code_Target_Numeral"
+    "HOL-Library.Monad_Syntax"
+    "HOL-Computational_Algebra.Primes"
+    "HOL-Library.Open_State_Syntax"
   theories
     Greatest_Common_Divisor
     Warshall
@@ -501,7 +501,7 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
   sessions
     "HOL-Eisbach"
   theories [document = false]
-    "~~/src/HOL/Library/While_Combinator"
+    "HOL-Library.While_Combinator"
   theories
     MicroJava
   document_files
@@ -664,8 +664,8 @@ session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
   *}
   options [quick_and_dirty]
   theories [document = false]
-    "~~/src/HOL/Library/Lattice_Syntax"
-    "../Computational_Algebra/Primes"
+    "HOL-Library.Lattice_Syntax"
+    "HOL-Computational_Algebra.Primes"
   theories
     Knaster_Tarski
     Peirce
@@ -705,7 +705,7 @@ session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
     Verification of the SET Protocol.
   *}
   theories [document = false]
-    "~~/src/HOL/Library/Nat_Bijection"
+    "HOL-Library.Nat_Bijection"
   theories
     SET_Protocol
   document_files "root.tex"
@@ -756,11 +756,11 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
   theories [document = false]
-    "~~/src/HOL/Library/Countable"
-    "~~/src/HOL/Library/Permutation"
-    "~~/src/HOL/Library/Order_Continuity"
-    "~~/src/HOL/Library/Diagonal_Subsequence"
-    "~~/src/HOL/Library/Finite_Map"
+    "HOL-Library.Countable"
+    "HOL-Library.Permutation"
+    "HOL-Library.Order_Continuity"
+    "HOL-Library.Diagonal_Subsequence"
+    "HOL-Library.Finite_Map"
   theories
     Probability (global)
   document_files "root.tex"
@@ -1084,8 +1084,8 @@ session HOLCF (main timing) in HOLCF = HOL +
   sessions
     "HOL-Library"
   theories [document = false]
-    "~~/src/HOL/Library/Nat_Bijection"
-    "~~/src/HOL/Library/Countable"
+    "HOL-Library.Nat_Bijection"
+    "HOL-Library.Countable"
   theories
     HOLCF (global)
   document_files "root.tex"

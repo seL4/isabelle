@@ -5,7 +5,7 @@
 section \<open>Things that can be added to the Algebra library\<close>
 
 theory Algebra_Aux
-imports "~~/src/HOL/Algebra/Ring"
+imports "HOL-Algebra.Ring"
 begin
 
 definition of_natural :: "('a, 'm) ring_scheme \<Rightarrow> nat \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<^sub>\<nat>\<index>") where

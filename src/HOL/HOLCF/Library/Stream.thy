@@ -5,7 +5,7 @@
 section \<open>General Stream domain\<close>
 
 theory Stream
-imports "../HOLCF" "~~/src/HOL/Library/Extended_Nat"
+imports HOLCF "HOL-Library.Extended_Nat"
 begin
 
 default_sort pcpo

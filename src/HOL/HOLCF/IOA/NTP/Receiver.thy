@@ -5,7 +5,7 @@
 section \<open>The implementation: receiver\<close>
 
 theory Receiver
-imports "../IOA" Action
+imports IOA.IOA Action
 begin
 
 type_synonym

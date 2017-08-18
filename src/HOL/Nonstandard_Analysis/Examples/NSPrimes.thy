@@ -7,7 +7,7 @@
 section \<open>The Nonstandard Primes as an Extension of the Prime Numbers\<close>
 
 theory NSPrimes
-  imports "~~/src/HOL/Computational_Algebra/Primes" "../Hyperreal"
+  imports "HOL-Computational_Algebra.Primes" "HOL-Nonstandard_Analysis.Hyperreal"
 begin
 
 text \<open>These can be used to derive an alternative proof of the infinitude of

@@ -5,7 +5,7 @@
 section \<open>An efficient checker for proofs from a SAT solver\<close>
 
 theory SatChecker
-imports "~~/src/HOL/Library/RBT_Impl" Sorted_List "../Imperative_HOL"
+imports "HOL-Library.RBT_Impl" Sorted_List "../Imperative_HOL"
 begin
 
 section\<open>General settings and functions for our representation of clauses\<close>

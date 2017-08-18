@@ -1,5 +1,5 @@
 theory VC_Condition
-imports "../Nominal" 
+imports "HOL-Nominal.Nominal" 
 begin
 
 text \<open>

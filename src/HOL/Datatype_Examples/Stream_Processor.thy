@@ -9,7 +9,7 @@ Stream processors---a syntactic representation of continuous functions on stream
 section \<open>Stream Processors---A Syntactic Representation of Continuous Functions on Streams\<close>
 
 theory Stream_Processor
-imports "~~/src/HOL/Library/Stream" "~~/src/HOL/Library/BNF_Axiomatization"
+imports "HOL-Library.Stream" "HOL-Library.BNF_Axiomatization"
 begin
 
 declare [[typedef_overloaded]]

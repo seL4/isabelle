@@ -6,7 +6,7 @@ theory Brother12_Set
 imports
   Cmp
   Set_by_Ordered
-  "~~/src/HOL/Number_Theory/Fib"
+  "HOL-Number_Theory.Fib"
 begin
 
 subsection \<open>Data Type and Operations\<close>

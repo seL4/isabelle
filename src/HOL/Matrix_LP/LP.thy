@@ -3,7 +3,7 @@
 *)
 
 theory LP 
-imports Main "~~/src/HOL/Library/Lattice_Algebras"
+imports Main "HOL-Library.Lattice_Algebras"
 begin
 
 lemma le_add_right_mono: 

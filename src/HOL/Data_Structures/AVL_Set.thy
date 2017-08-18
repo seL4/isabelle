@@ -9,7 +9,7 @@ theory AVL_Set
 imports
  Cmp
  Isin2
-  "~~/src/HOL/Number_Theory/Fib"
+  "HOL-Number_Theory.Fib"
 begin
 
 type_synonym 'a avl_tree = "('a,nat) tree"

@@ -5,7 +5,7 @@
 section \<open>Representable domains\<close>
 
 theory Representable
-imports Algebraic Map_Functions "~~/src/HOL/Library/Countable"
+imports Algebraic Map_Functions "HOL-Library.Countable"
 begin
 
 default_sort cpo

@@ -6,7 +6,7 @@
 section \<open>Examples for the 'quickcheck' command\<close>
 
 theory Quickcheck_Examples
-imports Complex_Main "~~/src/HOL/Library/Dlist" "~~/src/HOL/Library/DAList_Multiset"
+imports Complex_Main "HOL-Library.Dlist" "HOL-Library.DAList_Multiset"
 begin
 
 text \<open>

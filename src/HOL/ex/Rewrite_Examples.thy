@@ -1,5 +1,5 @@
 theory Rewrite_Examples
-imports Main "~~/src/HOL/Library/Rewrite"
+imports Main "HOL-Library.Rewrite"
 begin
 
 section \<open>The rewrite Proof Method by Example\<close>

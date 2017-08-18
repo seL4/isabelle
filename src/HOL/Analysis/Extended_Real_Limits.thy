@@ -10,9 +10,9 @@ section \<open>Limits on the Extended real number line\<close>
 theory Extended_Real_Limits
 imports
   Topology_Euclidean_Space
-  "~~/src/HOL/Library/Extended_Real"
-  "~~/src/HOL/Library/Extended_Nonnegative_Real"
-  "~~/src/HOL/Library/Indicator_Function"
+  "HOL-Library.Extended_Real"
+  "HOL-Library.Extended_Nonnegative_Real"
+  "HOL-Library.Indicator_Function"
 begin
 
 lemma compact_UNIV:

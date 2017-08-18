@@ -5,7 +5,7 @@
 section \<open>Trivial Abstraction Example\<close>
 
 theory TrivEx
-imports "../Abstraction"
+imports IOA.Abstraction
 begin
 
 datatype action = INC

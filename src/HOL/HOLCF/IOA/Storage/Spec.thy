@@ -5,7 +5,7 @@
 section \<open>The specification of a memory\<close>
 
 theory Spec
-imports "../IOA" Action
+imports IOA.IOA Action
 begin
 
 definition

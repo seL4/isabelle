@@ -1,5 +1,5 @@
 theory Dining_Cryptographers
-imports "~~/src/HOL/Probability/Information"
+imports "HOL-Probability.Information"
 begin
 
 lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrightarrow> (\<exists>!x \<in> A. b = f x)"

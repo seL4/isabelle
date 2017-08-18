@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Preface
-imports Base "~~/src/HOL/Eisbach/Eisbach_Tools"
+imports Base "HOL-Eisbach.Eisbach_Tools"
 begin
 
 text \<open>

@@ -5,7 +5,7 @@
 section \<open>Subspaces\<close>
 
 theory Subspace
-imports Vector_Space "~~/src/HOL/Library/Set_Algebras"
+imports Vector_Space "HOL-Library.Set_Algebras"
 begin
 
 subsection \<open>Definition\<close>

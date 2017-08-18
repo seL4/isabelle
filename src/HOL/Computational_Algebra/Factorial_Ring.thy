@@ -8,7 +8,7 @@ section \<open>Factorial (semi)rings\<close>
 theory Factorial_Ring
 imports
   Main
-  "~~/src/HOL/Library/Multiset"
+  "HOL-Library.Multiset"
 begin
 
 subsection \<open>Irreducible and prime elements\<close>
