@@ -52,6 +52,7 @@ imports
   Option_ord
   Order_Continuity
   Parallel
+  Pattern_Aliases
   Periodic_Fun
   Perm
   Permutation

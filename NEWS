@@ -121,6 +121,9 @@ appropriately.  Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* Theory Library/Pattern_Aliases provides input syntax for pattern
+aliases as known from Haskell, Scala and ML.
+
 * Constant "subseq" in Topological_Spaces removed and subsumed by
 "strict_mono". Some basic lemmas specific to "subseq" have been renamed
 accordingly, e.g. "subseq_o" -> "strict_mono_o" etc.
