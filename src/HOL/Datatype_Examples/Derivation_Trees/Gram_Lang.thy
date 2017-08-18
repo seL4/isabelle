@@ -8,7 +8,7 @@ Language of a grammar.
 section \<open>Language of a Grammar\<close>
 
 theory Gram_Lang
-imports DTree "~~/src/HOL/Library/Infinite_Set"
+imports DTree "HOL-Library.Infinite_Set"
 begin
 
 

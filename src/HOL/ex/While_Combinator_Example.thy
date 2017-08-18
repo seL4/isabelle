@@ -6,7 +6,7 @@
 section \<open>An application of the While combinator\<close>
 
 theory While_Combinator_Example
-imports "~~/src/HOL/Library/While_Combinator"
+imports "HOL-Library.While_Combinator"
 begin
 
 text \<open>Computation of the @{term lfp} on finite sets via 

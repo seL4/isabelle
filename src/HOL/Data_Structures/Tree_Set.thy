@@ -4,7 +4,7 @@ section \<open>Unbalanced Tree Implementation of Set\<close>
 
 theory Tree_Set
 imports
-  "~~/src/HOL/Library/Tree"
+  "HOL-Library.Tree"
   Cmp
   Set_by_Ordered
 begin

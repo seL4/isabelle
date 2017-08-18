@@ -9,9 +9,9 @@ section \<open>Metis Example Featuring the Big O Notation\<close>
 
 theory Big_O
 imports
-  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
-  "~~/src/HOL/Library/Function_Algebras"
-  "~~/src/HOL/Library/Set_Algebras"
+  "HOL-Decision_Procs.Dense_Linear_Order"
+  "HOL-Library.Function_Algebras"
+  "HOL-Library.Set_Algebras"
 begin
 
 subsection \<open>Definitions\<close>

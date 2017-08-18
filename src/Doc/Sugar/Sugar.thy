@@ -1,8 +1,8 @@
 (*<*)
 theory Sugar
 imports
-  "~~/src/HOL/Library/LaTeXsugar"
-  "~~/src/HOL/Library/OptionalSugar"
+  "HOL-Library.LaTeXsugar"
+  "HOL-Library.OptionalSugar"
 begin
 no_translations
   ("prop") "P \<and> Q \<Longrightarrow> R" <= ("prop") "P \<Longrightarrow> Q \<Longrightarrow> R"

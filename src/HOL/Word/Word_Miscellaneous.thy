@@ -3,7 +3,7 @@
 section \<open>Miscellaneous lemmas, of at least doubtful value\<close>
 
 theory Word_Miscellaneous
-  imports "~~/src/HOL/Library/Bit" Misc_Numeric
+  imports "HOL-Library.Bit" Misc_Numeric
 begin
 
 lemma power_minus_simp: "0 < n \<Longrightarrow> a ^ n = a * a ^ (n - 1)"

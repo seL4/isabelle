@@ -1,5 +1,5 @@
 theory Nominal 
-imports "~~/src/HOL/Library/Infinite_Set" "~~/src/HOL/Library/Old_Datatype"
+imports "HOL-Library.Infinite_Set" "HOL-Library.Old_Datatype"
 keywords
   "atom_decl" "nominal_datatype" "equivariance" :: thy_decl and
   "nominal_primrec" "nominal_inductive" "nominal_inductive2" :: thy_goal and

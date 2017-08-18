@@ -5,7 +5,7 @@
 section \<open>Square root of sum of squares\<close>
 
 theory L2_Norm
-imports NthRoot
+imports HOL.NthRoot
 begin
 
 definition

@@ -5,7 +5,7 @@
 section \<open>The implementation: sender\<close>
 
 theory Sender
-imports "../IOA" Action
+imports IOA.IOA Action
 begin
 
 type_synonym

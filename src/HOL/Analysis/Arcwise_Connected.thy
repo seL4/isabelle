@@ -5,7 +5,7 @@
 section \<open>Arcwise-connected sets\<close>
 
 theory Arcwise_Connected
-  imports Path_Connected Ordered_Euclidean_Space "~~/src/HOL/Computational_Algebra/Primes"
+  imports Path_Connected Ordered_Euclidean_Space "HOL-Computational_Algebra.Primes"
 
 begin
 

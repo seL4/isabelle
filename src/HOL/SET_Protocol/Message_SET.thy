@@ -7,7 +7,7 @@
 section\<open>The Message Theory, Modified for SET\<close>
 
 theory Message_SET
-imports Main "~~/src/HOL/Library/Nat_Bijection"
+imports Main "HOL-Library.Nat_Bijection"
 begin
 
 subsection\<open>General Lemmas\<close>

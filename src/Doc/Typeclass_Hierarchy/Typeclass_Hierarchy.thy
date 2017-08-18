@@ -1,5 +1,5 @@
 theory Typeclass_Hierarchy
-imports Setup
+imports Typeclass_Hierarchy_Basics.Setup
 begin
 
 section \<open>Introduction\<close>

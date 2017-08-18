@@ -9,7 +9,7 @@ A bare bones version of generative probabilistic values (GPVs).
 section \<open>A Bare Bones Version of Generative Probabilistic Values (GPVs)\<close>
 
 theory GPV_Bare_Bones
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 datatype 'a pmf = return_pmf 'a

@@ -4,7 +4,7 @@
 theory Approximation
 imports
   Complex_Main
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "HOL-Library.Code_Target_Numeral"
   Approximation_Bounds
 keywords "approximate" :: diag
 begin

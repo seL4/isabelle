@@ -5,7 +5,7 @@
 section \<open>Partial, Finite and Infinite Sequences (lazy lists), modeled as domain\<close>
 
 theory Seq
-imports "../HOLCF"
+imports HOLCF
 begin
 
 default_sort pcpo

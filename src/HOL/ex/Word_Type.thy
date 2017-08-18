@@ -6,7 +6,7 @@ section \<open>Proof of concept for algebraically founded bit word types\<close>
 theory Word_Type
   imports
     Main
-    "~~/src/HOL/Library/Type_Length"
+    "HOL-Library.Type_Length"
 begin
 
 subsection \<open>Truncating bit representations of numeric types\<close>

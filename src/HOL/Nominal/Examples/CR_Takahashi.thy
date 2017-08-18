@@ -8,7 +8,7 @@
 (*  Church-Rosser Theorem (1995).                                 *)
 
 theory CR_Takahashi
-  imports "../Nominal"
+  imports "HOL-Nominal.Nominal"
 begin
 
 atom_decl name

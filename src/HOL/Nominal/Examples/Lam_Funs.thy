@@ -1,5 +1,5 @@
 theory Lam_Funs
-  imports "../Nominal"
+  imports "HOL-Nominal.Nominal"
 begin
 
 text \<open>

@@ -6,8 +6,8 @@ section \<open>Pervasive test of code generator\<close>
 theory Generate
 imports
   Candidates
-  "~~/src/HOL/Library/AList_Mapping"
-  "~~/src/HOL/Library/Finite_Lattice"
+  "HOL-Library.AList_Mapping"
+  "HOL-Library.Finite_Lattice"
 begin
 
 text \<open>

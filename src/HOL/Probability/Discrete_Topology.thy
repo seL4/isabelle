@@ -3,7 +3,7 @@
 *)
 
 theory Discrete_Topology
-imports "~~/src/HOL/Analysis/Analysis"
+imports "HOL-Analysis.Analysis"
 begin
 
 text \<open>Copy of discrete types with discrete topology. This space is polish.\<close>

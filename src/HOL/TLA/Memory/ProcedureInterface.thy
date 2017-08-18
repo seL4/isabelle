@@ -5,7 +5,7 @@
 section \<open>Procedure interface for RPC-Memory components\<close>
 
 theory ProcedureInterface
-imports "../TLA" RPCMemoryParams
+imports "HOL-TLA.TLA" RPCMemoryParams
 begin
 
 typedecl ('a,'r) chan

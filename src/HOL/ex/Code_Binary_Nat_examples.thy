@@ -5,7 +5,7 @@
 section \<open>Simple examples for natural numbers implemented in binary representation.\<close>
 
 theory Code_Binary_Nat_examples
-imports Complex_Main "~~/src/HOL/Library/Code_Binary_Nat"
+imports Complex_Main "HOL-Library.Code_Binary_Nat"
 begin
 
 fun to_n :: "nat \<Rightarrow> nat list"

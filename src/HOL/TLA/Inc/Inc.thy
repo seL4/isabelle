@@ -5,7 +5,7 @@
 section \<open>Lamport's "increment" example\<close>
 
 theory Inc
-imports "../TLA"
+imports "HOL-TLA.TLA"
 begin
 
 (* program counter as an enumeration type *)

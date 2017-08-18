@@ -3,7 +3,7 @@
 section \<open>The Category of Measurable Spaces is not Cartesian Closed\<close>
 
 theory Measure_Not_CCC
-  imports "~~/src/HOL/Probability/Probability"
+  imports Probability
 begin
 
 text \<open>

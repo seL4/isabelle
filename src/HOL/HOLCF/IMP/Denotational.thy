@@ -5,7 +5,7 @@
 
 section "Denotational Semantics of Commands in HOLCF"
 
-theory Denotational imports HOLCF "~~/src/HOL/IMP/Big_Step" begin
+theory Denotational imports HOLCF "HOL-IMP.Big_Step" begin
 
 subsection "Definition"
 

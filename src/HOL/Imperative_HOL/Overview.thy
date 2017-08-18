@@ -4,7 +4,7 @@
 
 (*<*)
 theory Overview
-imports Imperative_HOL "~~/src/HOL/Library/LaTeXsugar"
+imports Imperative_HOL "HOL-Library.LaTeXsugar"
 begin
 
 (* type constraints with spacing *)

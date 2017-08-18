@@ -9,7 +9,7 @@ Small concrete examples.
 section \<open>Small Concrete Examples\<close>
 
 theory Small_Concrete
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 subsection \<open>Streams of Natural Numbers\<close>

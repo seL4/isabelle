@@ -1,6 +1,6 @@
 theory Abs_Int_init
-imports "~~/src/HOL/Library/While_Combinator"
-        "~~/src/HOL/Library/Extended"
+imports "HOL-Library.While_Combinator"
+        "HOL-Library.Extended"
         Vars Collecting Abs_Int_Tests
 begin
 

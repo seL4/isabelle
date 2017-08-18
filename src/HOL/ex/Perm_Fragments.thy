@@ -3,7 +3,7 @@
 section \<open>Fragments on permuations\<close>
 
 theory Perm_Fragments
-imports "~~/src/HOL/Library/Perm" "~~/src/HOL/Library/Dlist"
+imports "HOL-Library.Perm" "HOL-Library.Dlist"
 begin
 
 unbundle permutation_syntax

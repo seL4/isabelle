@@ -9,7 +9,7 @@ Miscellaneous polymorphic examples.
 section \<open>Miscellaneous Polymorphic Examples\<close>
 
 theory Misc_Poly
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 codatatype ('a, 'b) T0 =

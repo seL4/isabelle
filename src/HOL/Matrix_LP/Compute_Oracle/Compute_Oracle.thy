@@ -4,7 +4,7 @@
 Steven Obua's evaluator.
 *)
 
-theory Compute_Oracle imports HOL
+theory Compute_Oracle imports HOL.HOL
 begin
 
 ML_file "am.ML"

@@ -1,5 +1,5 @@
 theory CK_Machine 
-  imports "../Nominal" 
+  imports "HOL-Nominal.Nominal" 
 begin
 
 text \<open>

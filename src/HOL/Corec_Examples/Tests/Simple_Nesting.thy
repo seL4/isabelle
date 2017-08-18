@@ -9,7 +9,7 @@ Tests "corec"'s parsing of map functions.
 section \<open>Tests "corec"'s Parsing of Map Functions\<close>
 
 theory Simple_Nesting
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 subsection \<open>Corecursion via Map Functions\<close>

@@ -11,7 +11,7 @@ section \<open>Convex sets, functions and related things\<close>
 theory Convex_Euclidean_Space
 imports
   Topology_Euclidean_Space
-  "~~/src/HOL/Library/Set_Algebras"
+  "HOL-Library.Set_Algebras"
 begin
 
 lemma swap_continuous: (*move to Topological_Spaces?*)

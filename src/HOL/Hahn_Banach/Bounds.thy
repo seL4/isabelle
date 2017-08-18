@@ -5,7 +5,7 @@
 section \<open>Bounds\<close>
 
 theory Bounds
-imports Main "~~/src/HOL/Analysis/Continuum_Not_Denumerable"
+imports Main "HOL-Analysis.Continuum_Not_Denumerable"
 begin
 
 locale lub =

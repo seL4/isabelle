@@ -10,7 +10,7 @@ Stream processors---a syntactic representation of continuous functions on stream
 section \<open>Stream Processors---A Syntactic Representation of Continuous Functions on Streams\<close>
 
 theory Stream_Processor
-imports "~~/src/HOL/Library/BNF_Corec" "~~/src/HOL/Library/Stream"
+imports "HOL-Library.BNF_Corec" "HOL-Library.Stream"
 begin
 
 datatype (discs_sels) ('a, 'b, 'c) sp\<^sub>\<mu> =

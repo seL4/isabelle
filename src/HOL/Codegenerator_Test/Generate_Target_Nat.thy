@@ -6,9 +6,9 @@ section \<open>Pervasive test of code generator\<close>
 theory Generate_Target_Nat
 imports
   Candidates
-  "~~/src/HOL/Library/AList_Mapping"
-  "~~/src/HOL/Library/Finite_Lattice"
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "HOL-Library.AList_Mapping"
+  "HOL-Library.Finite_Lattice"
+  "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>

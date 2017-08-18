@@ -1,5 +1,5 @@
 theory Simps_Case_Conv_Examples imports
-  "~~/src/HOL/Library/Simps_Case_Conv"
+  "HOL-Library.Simps_Case_Conv"
 begin
 
 section \<open>Tests for the Simps<->Case conversion tools\<close>

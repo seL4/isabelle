@@ -1,7 +1,7 @@
 section \<open>Numeric approximations to Constants\<close>
 
 theory Approximations
-imports "../Complex_Transcendental" "../Harmonic_Numbers"
+imports "HOL-Analysis.Complex_Transcendental" "HOL-Analysis.Harmonic_Numbers"
 begin
 
 text \<open>

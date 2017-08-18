@@ -6,7 +6,7 @@
 section \<open>Square roots of primes are irrational (script version)\<close>
 
 theory Sqrt_Script
-imports Complex_Main "~~/src/HOL/Computational_Algebra/Primes"
+imports Complex_Main "HOL-Computational_Algebra.Primes"
 begin
 
 text \<open>

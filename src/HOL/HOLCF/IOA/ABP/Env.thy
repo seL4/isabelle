@@ -5,7 +5,7 @@
 section \<open>The environment\<close>
 
 theory Env
-imports "../IOA" Action
+imports IOA.IOA Action
 begin
 
 type_synonym

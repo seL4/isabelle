@@ -4,7 +4,7 @@
 *)
 
 theory IntRing
-imports "~~/src/HOL/Computational_Algebra/Primes" QuotRing Lattice Int
+imports "HOL-Computational_Algebra.Primes" QuotRing Lattice HOL.Int
 begin
 
 section \<open>The Ring of Integers\<close>

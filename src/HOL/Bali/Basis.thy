@@ -4,7 +4,7 @@
 subsection \<open>Definitions extending HOL as logical basis of Bali\<close>
 
 theory Basis
-imports Main "~~/src/HOL/Library/Old_Recdef"
+imports Main "HOL-Library.Old_Recdef"
 begin
 
 subsubsection "misc"

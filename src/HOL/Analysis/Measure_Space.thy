@@ -8,7 +8,7 @@ section \<open>Measure spaces and their properties\<close>
 
 theory Measure_Space
 imports
-  Measurable "~~/src/HOL/Library/Extended_Nonnegative_Real"
+  Measurable "HOL-Library.Extended_Nonnegative_Real"
 begin
 
 subsection "Relate extended reals and the indicator function"

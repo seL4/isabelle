@@ -7,7 +7,7 @@ Original file is ../Auth/NS_Public_Bad
 
 section\<open>Analyzing the Needham-Schroeder Public-Key Protocol in UNITY\<close>
 
-theory NSP_Bad imports "../../Auth/Public" "../UNITY_Main" begin
+theory NSP_Bad imports "HOL-Auth.Public" "../UNITY_Main" begin
 
 text\<open>This is the flawed version, vulnerable to Lowe's attack.
 From page 260 of

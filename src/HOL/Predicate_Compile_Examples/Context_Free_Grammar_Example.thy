@@ -1,5 +1,5 @@
 theory Context_Free_Grammar_Example
-imports "~~/src/HOL/Library/Code_Prolog"
+imports "HOL-Library.Code_Prolog"
 begin
 (*
 declare mem_def[code_pred_inline]

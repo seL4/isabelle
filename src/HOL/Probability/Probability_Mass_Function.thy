@@ -8,7 +8,7 @@ section \<open> Probability mass function \<close>
 theory Probability_Mass_Function
 imports
   Giry_Monad
-  "~~/src/HOL/Library/Multiset"
+  "HOL-Library.Multiset"
 begin
 
 lemma AE_emeasure_singleton:

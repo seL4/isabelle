@@ -3,7 +3,7 @@
 section \<open>Priority Queue Interface\<close>
 
 theory Priority_Queue
-imports "~~/src/HOL/Library/Multiset"
+imports "HOL-Library.Multiset"
 begin
 
 text \<open>Priority queue interface:\<close>

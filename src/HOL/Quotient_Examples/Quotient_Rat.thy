@@ -4,8 +4,8 @@
 Rational numbers defined with the quotient package, based on 'HOL/Rat.thy' by Makarius.
 *)
 
-theory Quotient_Rat imports Archimedean_Field
-  "~~/src/HOL/Library/Quotient_Product"
+theory Quotient_Rat imports HOL.Archimedean_Field
+  "HOL-Library.Quotient_Product"
 begin
 
 definition

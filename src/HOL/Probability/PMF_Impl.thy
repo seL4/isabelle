@@ -8,7 +8,7 @@
 section \<open>Code generation for PMFs\<close>
 
 theory PMF_Impl
-imports Probability_Mass_Function "~~/src/HOL/Library/AList_Mapping"
+imports Probability_Mass_Function "HOL-Library.AList_Mapping"
 begin
 
 subsection \<open>General code generation setup\<close>

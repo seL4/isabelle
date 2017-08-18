@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, CMU *)
 
 theory Tree_Space
-  imports Analysis "~~/src/HOL/Library/Tree"
+  imports "HOL-Analysis.Analysis" "HOL-Library.Tree"
 begin
 
 lemma countable_lfp:

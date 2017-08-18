@@ -1,5 +1,5 @@
 theory Dagstuhl
-imports "~~/src/HOL/HOLCF/Library/Stream"
+imports "HOLCF-Library.Stream"
 begin
 
 axiomatization

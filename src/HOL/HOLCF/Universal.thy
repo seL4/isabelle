@@ -5,7 +5,7 @@
 section \<open>A universal bifinite domain\<close>
 
 theory Universal
-imports Bifinite Completion "~~/src/HOL/Library/Nat_Bijection"
+imports Bifinite Completion "HOL-Library.Nat_Bijection"
 begin
 
 no_notation binomial  (infixl "choose" 65)

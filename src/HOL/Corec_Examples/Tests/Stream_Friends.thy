@@ -9,7 +9,7 @@ Friendly functions on streams.
 section \<open>Friendly Functions on Streams\<close>
 
 theory Stream_Friends
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 codatatype 'a stream = SCons (shd: 'a) (stl: "'a stream")

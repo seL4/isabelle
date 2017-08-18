@@ -9,7 +9,7 @@ Type of (at most) countable sets.
 section \<open>Type of (at Most) Countable Sets\<close>
 
 theory Countable_Set_Type
-imports Countable_Set Cardinal_Notations Conditionally_Complete_Lattices
+imports Countable_Set Cardinal_Notations HOL.Conditionally_Complete_Lattices
 begin
 
 

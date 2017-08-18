@@ -5,7 +5,7 @@
 section \<open>The transmission channel\<close>
 
 theory Abschannel
-imports "../IOA" Action Lemmas
+imports IOA.IOA Action Lemmas
 begin
 
 datatype 'a abs_action = S 'a | R 'a

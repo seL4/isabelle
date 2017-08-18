@@ -5,7 +5,7 @@
 section \<open>Three Divides Theorem\<close>
 
 theory ThreeDivides
-imports Main "~~/src/HOL/Library/LaTeXsugar"
+imports Main "HOL-Library.LaTeXsugar"
 begin
 
 subsection \<open>Abstract\<close>

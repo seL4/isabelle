@@ -6,7 +6,7 @@
 section \<open>Base of Zermelo-Fraenkel Set Theory\<close>
 
 theory ZF_Base
-imports "~~/src/FOL/FOL"
+imports FOL
 begin
 
 subsection \<open>Signature\<close>

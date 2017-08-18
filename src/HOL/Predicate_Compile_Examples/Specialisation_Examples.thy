@@ -1,5 +1,5 @@
 theory Specialisation_Examples
-imports Main "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
+imports Main "HOL-Library.Predicate_Compile_Alternative_Defs"
 begin
 
 declare [[values_timeout = 960.0]]

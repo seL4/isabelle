@@ -8,7 +8,7 @@ Tests for compatibility with the old datatype package.
 section \<open>Tests for Compatibility with the Old Datatype Package\<close>
 
 theory Compat
-imports "~~/src/HOL/Library/Old_Datatype"
+imports "HOL-Library.Old_Datatype"
 begin
 
 subsection \<open>Viewing and Registering New-Style Datatypes as Old-Style Ones\<close>

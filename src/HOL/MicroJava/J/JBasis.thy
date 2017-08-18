@@ -9,8 +9,8 @@ section \<open>Some Auxiliary Definitions\<close>
 theory JBasis
 imports
   Main
-  "~~/src/HOL/Library/Transitive_Closure_Table"
-  "~~/src/HOL/Eisbach/Eisbach"
+  "HOL-Library.Transitive_Closure_Table"
+  "HOL-Eisbach.Eisbach"
 begin
 
 lemmas [simp] = Let_def

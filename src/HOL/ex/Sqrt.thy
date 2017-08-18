@@ -5,7 +5,7 @@
 section \<open>Square roots of primes are irrational\<close>
 
 theory Sqrt
-imports Complex_Main "~~/src/HOL/Computational_Algebra/Primes"
+imports Complex_Main "HOL-Computational_Algebra.Primes"
 begin
 
 text \<open>The square root of any prime number (including 2) is irrational.\<close>

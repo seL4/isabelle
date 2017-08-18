@@ -7,7 +7,7 @@ TODO: integrate this with Fstream.
 *)
 
 theory Fstreams
-imports "~~/src/HOL/HOLCF/Library/Stream"
+imports "HOLCF-Library.Stream"
 begin
 
 default_sort type

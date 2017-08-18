@@ -3,7 +3,7 @@
 section \<open>Simple example for table-based implementation of the reflexive transitive closure\<close>
 
 theory Transitive_Closure_Table_Ex
-imports "~~/src/HOL/Library/Transitive_Closure_Table"
+imports "HOL-Library.Transitive_Closure_Table"
 begin
 
 datatype ty = A | B | C

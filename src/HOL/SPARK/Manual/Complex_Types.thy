@@ -1,5 +1,5 @@
 theory Complex_Types
-imports "../SPARK"
+imports SPARK
 begin
 
 datatype day = Mon | Tue | Wed | Thu | Fri | Sat | Sun

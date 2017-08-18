@@ -3,11 +3,11 @@
 theory HOL_Specific
   imports
     Main
-    "~~/src/HOL/Library/Old_Datatype"
-    "~~/src/HOL/Library/Old_Recdef"
-    "~~/src/Tools/Adhoc_Overloading"
-    "~~/src/HOL/Library/Dlist"
-    "~~/src/HOL/Library/FSet"
+    "HOL-Library.Old_Datatype"
+    "HOL-Library.Old_Recdef"
+    "HOL-Library.Adhoc_Overloading"
+    "HOL-Library.Dlist"
+    "HOL-Library.FSet"
     Base
 begin
 

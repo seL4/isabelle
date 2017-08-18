@@ -3,7 +3,7 @@
 section \<open>Pretty syntax for lattice operations\<close>
 
 theory Lattice_Syntax
-imports Complete_Lattices
+imports HOL.Complete_Lattices
 begin
 
 notation

@@ -11,7 +11,7 @@
 theory Approximation_Bounds
 imports
   Complex_Main
-  "~~/src/HOL/Library/Float"
+  "HOL-Library.Float"
   Dense_Linear_Order
 begin
 

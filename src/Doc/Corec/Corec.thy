@@ -9,8 +9,8 @@ Tutorial for nonprimitively corecursive definitions.
 *)
 
 theory Corec
-imports Main "../Datatypes/Setup" "~~/src/HOL/Library/BNF_Corec"
-  "~~/src/HOL/Library/FSet"
+imports Main Datatypes.Setup "HOL-Library.BNF_Corec"
+  "HOL-Library.FSet"
 begin
 
 section \<open>Introduction

@@ -4,7 +4,7 @@
 (*                                                      *)
 (* Authors: Christian Urban and Randy Pollack           *)
 theory LocalWeakening
-  imports "../Nominal"
+  imports "HOL-Nominal.Nominal"
 begin
 
 atom_decl name

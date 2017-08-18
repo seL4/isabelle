@@ -6,7 +6,7 @@ section \<open>Example of lifting definitions with contravariant or co/contravar
 
 
 theory Lift_Fun
-imports Main "~~/src/HOL/Library/Quotient_Syntax"
+imports Main "HOL-Library.Quotient_Syntax"
 begin
 
 text \<open>This file is meant as a test case. 

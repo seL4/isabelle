@@ -29,7 +29,7 @@ natural numbers and the integers, and added a number of new theorems.
 section \<open>Congruence\<close>
 
 theory Cong
-  imports "~~/src/HOL/Computational_Algebra/Primes"
+  imports "HOL-Computational_Algebra.Primes"
 begin
 
 subsection \<open>Turn off \<open>One_nat_def\<close>\<close>

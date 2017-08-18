@@ -5,7 +5,7 @@
 section \<open>Examples for code generation timing measures\<close>
 
 theory Code_Timing
-imports "~~/src/HOL/Number_Theory/Eratosthenes"
+imports "HOL-Number_Theory.Eratosthenes"
 begin
 
 declare [[code_timing]]

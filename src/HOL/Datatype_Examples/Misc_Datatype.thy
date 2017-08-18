@@ -10,7 +10,7 @@ Miscellaneous datatype definitions.
 section \<open>Miscellaneous Datatype Definitions\<close>
 
 theory Misc_Datatype
-imports "~~/src/HOL/Library/Countable" "~~/src/HOL/Library/FSet"
+imports "HOL-Library.Countable" "HOL-Library.FSet"
 begin
 
 datatype (discs_sels) simple = X1 | X2 | X3 | X4

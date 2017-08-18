@@ -1,6 +1,6 @@
 (*<*)
 theory Fsub
-imports "../Nominal" 
+imports "HOL-Nominal.Nominal" 
 begin
 (*>*)
 

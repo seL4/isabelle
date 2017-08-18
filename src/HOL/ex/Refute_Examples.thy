@@ -8,7 +8,7 @@ See HOL/Refute.thy for help.
 section \<open>Examples for the 'refute' command\<close>
 
 theory Refute_Examples
-imports "~~/src/HOL/Library/Refute"
+imports "HOL-Library.Refute"
 begin
 
 refute_params [satsolver = "cdclite"]

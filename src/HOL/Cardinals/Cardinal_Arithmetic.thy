@@ -8,7 +8,7 @@ Cardinal arithmetic.
 section \<open>Cardinal Arithmetic\<close>
 
 theory Cardinal_Arithmetic
-imports BNF_Cardinal_Arithmetic Cardinal_Order_Relation
+imports HOL.BNF_Cardinal_Arithmetic Cardinal_Order_Relation
 begin
 
 subsection \<open>Binary sum\<close>

@@ -1,7 +1,7 @@
 section \<open>Simply-typed lambda-calculus with let and tuple patterns\<close>
 
 theory Pattern
-imports "../Nominal"
+imports "HOL-Nominal.Nominal"
 begin
 
 no_syntax

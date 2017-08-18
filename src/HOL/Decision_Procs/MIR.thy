@@ -4,7 +4,7 @@
 
 theory MIR
 imports Complex_Main Dense_Linear_Order DP_Library
-  "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
+  "HOL-Library.Code_Target_Numeral" "HOL-Library.Old_Recdef"
 begin
 
 section \<open>Quantifier elimination for \<open>\<real> (0, 1, +, floor, <)\<close>\<close>

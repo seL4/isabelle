@@ -5,7 +5,7 @@
 section \<open>Higher-order hereditary Harrop formulas\<close>
 
 theory HOHH
-imports HOL
+imports HOL.HOL
 begin
 
 ML_file "prolog.ML"

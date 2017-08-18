@@ -7,7 +7,7 @@ section \<open>Unix file-systems \label{sec:unix-file-system}\<close>
 theory Unix
   imports
     Nested_Environment
-    "~~/src/HOL/Library/Sublist"
+    "HOL-Library.Sublist"
 begin
 
 text \<open>

@@ -3,7 +3,7 @@
 section \<open>A simple cookbook example how to eliminate choice in programs.\<close>
 
 theory Execute_Choice
-imports Main "~~/src/HOL/Library/AList_Mapping"
+imports Main "HOL-Library.AList_Mapping"
 begin
 
 text \<open>

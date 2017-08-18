@@ -5,7 +5,7 @@
 section \<open>Finite Maps\<close>
 
 theory Fin_Map
-  imports "~~/src/HOL/Analysis/Finite_Product_Measure" "~~/src/HOL/Library/Finite_Map"
+  imports "HOL-Analysis.Finite_Product_Measure" "HOL-Library.Finite_Map"
 begin
 
 text \<open>The @{type fmap} type can be instantiated to @{class polish_space}, needed for the proof of

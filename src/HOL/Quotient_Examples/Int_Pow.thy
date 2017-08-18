@@ -4,7 +4,7 @@
 *)
 
 theory Int_Pow
-imports Main "~~/src/HOL/Algebra/Group"
+imports Main "HOL-Algebra.Group"
 begin
 
 (*

@@ -1,7 +1,7 @@
 (* The definitions for a challenge suggested by Adam Chlipala *)
 
 theory Compile
-imports "../Nominal"
+imports "HOL-Nominal.Nominal"
 begin
 
 atom_decl name 

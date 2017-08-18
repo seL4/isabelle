@@ -7,7 +7,7 @@
 section \<open>Filters and Ultrafilters\<close>
 
 theory Free_Ultrafilter
-  imports "~~/src/HOL/Library/Infinite_Set"
+  imports "HOL-Library.Infinite_Set"
 begin
 
 

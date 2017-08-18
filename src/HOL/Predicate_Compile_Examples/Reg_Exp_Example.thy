@@ -1,7 +1,7 @@
 theory Reg_Exp_Example
 imports
-  "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
-  "~~/src/HOL/Library/Code_Prolog"
+  "HOL-Library.Predicate_Compile_Quickcheck"
+  "HOL-Library.Code_Prolog"
 begin
 
 text \<open>An example from the experiments from SmallCheck (\<^url>\<open>http://www.cs.york.ac.uk/fp/smallcheck\<close>)\<close>

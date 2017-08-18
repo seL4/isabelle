@@ -9,7 +9,7 @@ Lambda-terms.
 section \<open>Lambda-Terms\<close>
 
 theory Lambda_Term
-imports "~~/src/HOL/Library/FSet"
+imports "HOL-Library.FSet"
 begin
 
 section \<open>Datatype definition\<close>

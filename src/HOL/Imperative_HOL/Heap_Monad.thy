@@ -7,7 +7,7 @@ section \<open>A monad with a polymorphic heap and primitive reasoning infrastru
 theory Heap_Monad
 imports
   Heap
-  "~~/src/HOL/Library/Monad_Syntax"
+  "HOL-Library.Monad_Syntax"
 begin
 
 subsection \<open>The monad\<close>

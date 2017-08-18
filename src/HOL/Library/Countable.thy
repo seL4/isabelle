@@ -7,7 +7,7 @@
 section \<open>Encoding (almost) everything into natural numbers\<close>
 
 theory Countable
-imports Old_Datatype "~~/src/HOL/Rat" Nat_Bijection
+imports Old_Datatype HOL.Rat Nat_Bijection
 begin
 
 subsection \<open>The class of countable types\<close>

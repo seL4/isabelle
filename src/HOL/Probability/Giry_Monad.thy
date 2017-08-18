@@ -7,7 +7,7 @@ spaces.
 *)
 
 theory Giry_Monad
-  imports Probability_Measure "~~/src/HOL/Library/Monad_Syntax"
+  imports Probability_Measure "HOL-Library.Monad_Syntax"
 begin
 
 section \<open>Sub-probability spaces\<close>

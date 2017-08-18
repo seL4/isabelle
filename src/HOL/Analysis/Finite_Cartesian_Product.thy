@@ -8,9 +8,9 @@ theory Finite_Cartesian_Product
 imports
   Euclidean_Space
   L2_Norm
-  "~~/src/HOL/Library/Numeral_Type"
-  "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Library/FuncSet"
+  "HOL-Library.Numeral_Type"
+  "HOL-Library.Countable_Set"
+  "HOL-Library.FuncSet"
 begin
 
 subsection \<open>Finite Cartesian products, with indexing and lambdas.\<close>

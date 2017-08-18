@@ -1,5 +1,5 @@
 theory Code_Prolog_Examples
-imports "~~/src/HOL/Library/Code_Prolog"
+imports "HOL-Library.Code_Prolog"
 begin
 
 section \<open>Example append\<close>

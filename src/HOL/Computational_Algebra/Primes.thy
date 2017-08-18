@@ -39,7 +39,7 @@ Thomas Marthedal Rasmussen, Jeremy Avigad, and David Gray.
 section \<open>Primes\<close>
 
 theory Primes
-imports "~~/src/HOL/Binomial" Euclidean_Algorithm
+imports HOL.Binomial Euclidean_Algorithm
 begin
 
 (* As a simp or intro rule,

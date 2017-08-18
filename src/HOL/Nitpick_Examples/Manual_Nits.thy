@@ -12,7 +12,7 @@ section \<open>Examples from the Nitpick Manual\<close>
    suite. *)
 
 theory Manual_Nits
-imports Real "~~/src/HOL/Library/Quotient_Product"
+imports HOL.Real "HOL-Library.Quotient_Product"
 begin
 
 section \<open>2. First Steps\<close>

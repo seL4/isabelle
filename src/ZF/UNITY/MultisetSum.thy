@@ -5,7 +5,7 @@
 section \<open>Setsum for Multisets\<close>
 
 theory MultisetSum
-imports "../Induct/Multiset"
+imports "ZF-Induct.Multiset"
 begin
 
 definition

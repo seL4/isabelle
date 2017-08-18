@@ -1,5 +1,5 @@
 theory Setup
-imports Complex_Main "~~/src/HOL/Library/Multiset" "~~/src/HOL/Library/Lattice_Syntax"
+imports Complex_Main "HOL-Library.Multiset" "HOL-Library.Lattice_Syntax"
 begin
 
 ML_file "../antiquote_setup.ML"

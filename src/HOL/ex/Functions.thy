@@ -5,7 +5,7 @@
 section \<open>Examples of function definitions\<close>
 
 theory Functions
-imports Main "~~/src/HOL/Library/Monad_Syntax"
+imports Main "HOL-Library.Monad_Syntax"
 begin
 
 subsection \<open>Very basic\<close>

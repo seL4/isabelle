@@ -10,7 +10,7 @@ The filter function on lazy lists.
 section \<open>The Filter Function on Lazy Lists\<close>
 
 theory LFilter
-imports "~~/src/HOL/Library/BNF_Corec"
+imports "HOL-Library.BNF_Corec"
 begin
 
 codatatype (lset: 'a) llist =

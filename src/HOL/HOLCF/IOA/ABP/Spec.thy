@@ -5,7 +5,7 @@
 section \<open>The specification of reliable transmission\<close>
 
 theory Spec
-imports "../IOA" Action
+imports IOA.IOA Action
 begin
 
 definition

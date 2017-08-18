@@ -5,7 +5,7 @@
 section \<open>A simple FIFO buffer (synchronous communication, interleaving)\<close>
 
 theory Buffer
-imports "../TLA"
+imports "HOL-TLA.TLA"
 begin
 
 (* actions *)
