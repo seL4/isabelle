@@ -281,6 +281,12 @@ class Plugin extends EBPlugin
   @volatile private var startup_failure: Option[Throwable] = None
   @volatile private var startup_notified = false
 
+  private def init_view(view: View)
+  {
+    Session_Build.check_dialog(view)
+    Keymap_Merge.check_dialog(view)
+  }
+
   override def handleMessage(message: EBMessage)
   {
     GUI_Thread.assert {}
@@ -306,10 +312,7 @@ class Plugin extends EBPlugin
           }
 
           val view = jEdit.getActiveView()
-
-          Session_Build.check_dialog(view)
-
-          Keymap_Merge.check_dialog(view)
+          init_view(view)
 
           PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
             JEdit_Sessions.session_info(options.value).open_root).foreach(_.follow(view))
@@ -437,6 +440,9 @@ class Plugin extends EBPlugin
         startup_notified = false
         Log.log(Log.ERROR, this, exn)
     }
+
+    val view = jEdit.getActiveView()
+    if (view != null) init_view(view)
   }
 
   override def stop()

@@ -9,7 +9,7 @@ plugin.isabelle.jedit.Plugin.version=8.0
 plugin.isabelle.jedit.Plugin.description=Isabelle Prover IDE
 
 #system parameters
-plugin.isabelle.jedit.Plugin.activate=startup
+plugin.isabelle.jedit.Plugin.activate=defer
 plugin.isabelle.jedit.Plugin.usePluginHome=false
 
 #dependencies
