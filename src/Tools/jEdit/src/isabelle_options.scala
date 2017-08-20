@@ -42,7 +42,7 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
   val options = PIDE.options
 
   private val predefined =
-    List(JEdit_Sessions.logic_selector(options.value, false),
+    List(JEdit_Sessions.logic_selector(options, false),
       JEdit_Spell_Checker.dictionaries_selector())
 
   protected val components =

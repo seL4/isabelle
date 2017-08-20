@@ -26,6 +26,14 @@ object Main
         /* settings directory */
 
         val settings_dir = Path.explode("$JEDIT_SETTINGS")
+
+        val properties = settings_dir + Path.explode("properties")
+        if (properties.is_file) {
+          val props1 = split_lines(File.read(properties))
+          val props2 = props1.filterNot(_.startsWith("plugin-blacklist.Isabelle-jEdit"))
+          if (props1 != props2) File.write(properties, cat_lines(props2))
+        }
+
         Isabelle_System.mkdirs(settings_dir + Path.explode("DockableWindowManager"))
 
         if (!(settings_dir + Path.explode("perspective.xml")).is_file) {

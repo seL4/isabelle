@@ -144,17 +144,16 @@ text \<open>
   sense how it is meant to work, before loading too many other plugins.
 
   \<^medskip>
-  The main \<^emph>\<open>Isabelle\<close> plugin is an integral part of Isabelle/jEdit and needs
-  to remain active at all times! A few additional plugins are bundled with
-  Isabelle/jEdit for convenience or out of necessity, notably \<^emph>\<open>Console\<close> with
-  its Isabelle/Scala sub-plugin (\secref{sec:scala-console}) and \<^emph>\<open>SideKick\<close>
-  with some Isabelle-specific parsers for document tree structure
-  (\secref{sec:sidekick}). The \<^emph>\<open>Navigator\<close> plugin is particularly important
-  for hyperlinks within the formal document-model
-  (\secref{sec:tooltips-hyperlinks}). Further plugins (e.g.\ \<^emph>\<open>ErrorList\<close>,
-  \<^emph>\<open>Code2HTML\<close>) are included to saturate the dependencies of bundled plugins,
-  but have no particular use in Isabelle/jEdit.
-\<close>
+  The \<^emph>\<open>Isabelle\<close> plugin provides the main Prover IDE functionality of
+  Isabelle/jEdit: it manages the prover session in the background. A few
+  additional plugins are bundled with Isabelle/jEdit for convenience or out of
+  necessity, notably \<^emph>\<open>Console\<close> with its Isabelle/Scala sub-plugin
+  (\secref{sec:scala-console}) and \<^emph>\<open>SideKick\<close> with some Isabelle-specific
+  parsers for document tree structure (\secref{sec:sidekick}). The
+  \<^emph>\<open>Navigator\<close> plugin is particularly important for hyperlinks within the
+  formal document-model (\secref{sec:tooltips-hyperlinks}). Further plugins
+  (e.g.\ \<^emph>\<open>ErrorList\<close>, \<^emph>\<open>Code2HTML\<close>) are included to saturate the dependencies
+  of bundled plugins, but have no particular use in Isabelle/jEdit. \<close>
 
 
 subsection \<open>Options \label{sec:options}\<close>
@@ -497,13 +496,14 @@ text \<open>
 paragraph \<open>Encoding.\<close>
 text \<open>Technically, the Unicode interpretation of Isabelle symbols is an
   \<^emph>\<open>encoding\<close> called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit (\<^emph>\<open>not\<close> in the underlying
-  JVM). It is provided by the Isabelle/jEdit plugin and enabled by default for
-  all source files. Sometimes such defaults are reset accidentally, or
-  malformed UTF-8 sequences in the text force jEdit to fall back on a
-  different encoding like \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will
-  be shown in the text buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The
-  jEdit menu operation \<^emph>\<open>File~/ Reload with Encoding~/ UTF-8-Isabelle\<close> helps
-  to resolve such problems (after repairing malformed parts of the text). \<close>
+  JVM). It is provided by the Isabelle Base plugin and enabled by default for
+  all source files in Isabelle/jEdit. Sometimes such defaults are reset
+  accidentally, or malformed UTF-8 sequences in the text force jEdit to fall
+  back on a different encoding like \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim
+  ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text buffer instead of its Unicode rendering
+  ``\<open>\<alpha>\<close>''. The jEdit menu operation \<^emph>\<open>File~/ Reload with Encoding~/
+  UTF-8-Isabelle\<close> helps to resolve such problems (after repairing malformed
+  parts of the text). \<close>
 
 paragraph \<open>Font.\<close>
 text \<open>Correct rendering via Unicode requires a font that contains glyphs for
