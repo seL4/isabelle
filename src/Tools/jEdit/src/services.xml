@@ -11,9 +11,6 @@
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DockingFrameworkProvider" NAME="PIDE">
     new isabelle.jedit.PIDE_Docking_Framework();
   </SERVICE>
-  <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
-    new isabelle.jedit.Isabelle_Encoding();
-  </SERVICE>
   <SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
     new isabelle.jedit.Isabelle_Sidekick_Default();
   </SERVICE>

@@ -18,6 +18,7 @@ plugin.isabelle.jedit.Plugin.depend.1=jedit 05.04.00.00
 plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
 plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
 plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
+plugin.isabelle.jedit.Plugin.depend.5=plugin isabelle.jedit_base.Plugin 1.0
 
 #options
 plugin.isabelle.jedit.Plugin.option-group=isabelle-general isabelle-rendering
