@@ -100,13 +100,13 @@ object JEdit_Sessions
     override def toString: String = description
   }
 
-  def logic_selector(options: Options, autosave: Boolean): Option_Component =
+  def logic_selector(options: Options_Variable, autosave: Boolean): Option_Component =
   {
     GUI_Thread.require {}
 
     val entries =
-      new Logic_Entry("", "default (" + session_name(options) + ")") ::
-        session_list(options).map(name => new Logic_Entry(name, name))
+      new Logic_Entry("", "default (" + session_name(options.value) + ")") ::
+        session_list(options.value).map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
