@@ -278,6 +278,21 @@ proof -
     by (metis open_ball \<open>\<xi> islimpt T\<close> centre_in_ball fT0 insertE insert_Diff islimptE)
 qed
 
+corollary analytic_continuation_open:
+  assumes "open s" "open s'" "s \<noteq> {}" "connected s'" "s \<subseteq> s'"
+  assumes "f holomorphic_on s'" "g holomorphic_on s'" "\<And>z. z \<in> s \<Longrightarrow> f z = g z"
+  assumes "z \<in> s'"
+  shows   "f z = g z"
+proof -
+  from \<open>s \<noteq> {}\<close> obtain \<xi> where "\<xi> \<in> s" by auto
+  with \<open>open s\<close> have \<xi>: "\<xi> islimpt s" 
+    by (intro interior_limit_point) (auto simp: interior_open)
+  have "f z - g z = 0"
+    by (rule analytic_continuation[of "\<lambda>z. f z - g z" s' s \<xi>])
+       (insert assms \<open>\<xi> \<in> s\<close> \<xi>, auto intro: holomorphic_intros)
+  thus ?thesis by simp
+qed
+
 
 subsection\<open>Open mapping theorem\<close>
 
@@ -3908,6 +3923,293 @@ proof -
   ultimately have " c* (\<Sum>p\<in>zeros_fg. w p * (zorder fg p)) = c* (\<Sum>p\<in>zeros_f. w p * (zorder f p))"
     by auto
   then show ?thesis unfolding c_def using w_def by auto
+qed
+
+
+subsection \<open>More facts about poles and residues\<close>
+
+lemma lhopital_complex_simple:
+  assumes "(f has_field_derivative f') (at z)" 
+  assumes "(g has_field_derivative g') (at z)"
+  assumes "f z = 0" "g z = 0" "g' \<noteq> 0" "f' / g' = c"
+  shows   "((\<lambda>w. f w / g w) \<longlongrightarrow> c) (at z)"
+proof -
+  have "eventually (\<lambda>w. w \<noteq> z) (at z)"
+    by (auto simp: eventually_at_filter)
+  hence "eventually (\<lambda>w. ((f w - f z) / (w - z)) / ((g w - g z) / (w - z)) = f w / g w) (at z)"
+    by eventually_elim (simp add: assms divide_simps)
+  moreover have "((\<lambda>w. ((f w - f z) / (w - z)) / ((g w - g z) / (w - z))) \<longlongrightarrow> f' / g') (at z)"
+    by (intro tendsto_divide has_field_derivativeD assms)
+  ultimately have "((\<lambda>w. f w / g w) \<longlongrightarrow> f' / g') (at z)"
+    by (rule Lim_transform_eventually)
+  with assms show ?thesis by simp
+qed
+
+lemma porder_eqI:
+  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0" "n > 0"
+  assumes "\<And>w. w \<in> s - {z} \<Longrightarrow> f w = g w / (w - z) ^ n"
+  shows   "porder f z = n"
+proof -
+  define f' where "f' = (\<lambda>x. if x = z then 0 else inverse (f x))"
+  define g' where "g' = (\<lambda>x. inverse (g x))"
+  define s' where "s' = (g -` (-{0}) \<inter> s)"
+  have "continuous_on s g"
+    by (intro holomorphic_on_imp_continuous_on) fact
+  hence "open s'"
+    unfolding s'_def using assms by (subst (asm) continuous_on_open_vimage) blast+
+  have s': "z \<in> s'" "g' holomorphic_on s'" "g' z \<noteq> 0" using assms 
+    by (auto simp: s'_def g'_def intro!: holomorphic_intros)
+  have f'_g': "f' w = g' w * (w - z) ^ n" if "w \<in> s'" for w
+    unfolding f'_def g'_def using that \<open>n > 0\<close>
+    by (auto simp: assms(6) field_simps s'_def)
+  have "porder f z = zorder f' z"
+    by (simp add: porder_def f'_def)
+  also have "\<dots> = n" using assms f'_g' 
+    by (intro zorder_eqI[OF \<open>open s'\<close> s']) (auto simp: f'_def g'_def field_simps s'_def)
+  finally show ?thesis .
+qed
+
+lemma simple_poleI':
+  assumes "open s" "connected s" "z \<in> s"
+  assumes "\<And>w. w \<in> s - {z} \<Longrightarrow> 
+             ((\<lambda>w. inverse (f w)) has_field_derivative f' w) (at w)"
+  assumes "f holomorphic_on s - {z}" "f' holomorphic_on s" "is_pole f z" "f' z \<noteq> 0"
+  shows   "porder f z = 1"
+proof -
+  define g where "g = (\<lambda>w. if w = z then 0 else inverse (f w))"
+  from \<open>is_pole f z\<close> have "eventually (\<lambda>w. f w \<noteq> 0) (at z)"
+    unfolding is_pole_def using filterlim_at_infinity_imp_eventually_ne by blast
+  then obtain s'' where s'': "open s''" "z \<in> s''" "\<forall>w\<in>s''-{z}. f w \<noteq> 0"
+    by (auto simp: eventually_at_topological)
+  from assms(1) and s''(1) have "open (s \<inter> s'')" by auto
+  then obtain r where r: "r > 0" "ball z r \<subseteq> s \<inter> s''"
+    using assms(3) s''(2) by (subst (asm) open_contains_ball) blast
+  define s' where "s' = ball z r"
+  hence s': "open s'" "connected s'" "z \<in> s'" "s' \<subseteq> s" "\<forall>w\<in>s'-{z}. f w \<noteq> 0"
+    using r s'' by (auto simp: s'_def)
+  have s'_ne: "s' - {z} \<noteq> {}"
+    using r unfolding s'_def by (intro ball_minus_countable_nonempty) auto
+
+  have "porder f z = zorder g z"
+    by (simp add: porder_def g_def)
+  also have "\<dots> = 1"
+  proof (rule simple_zeroI')
+    fix w assume w: "w \<in> s'"
+    have [holomorphic_intros]: "g holomorphic_on s'" unfolding g_def using assms s'
+      by (intro is_pole_inverse_holomorphic holomorphic_on_subset[OF assms(5)]) auto
+    hence "(g has_field_derivative deriv g w) (at w)"
+      using w s' by (intro holomorphic_derivI)
+    also have deriv_g: "deriv g w = f' w" if "w \<in> s' - {z}" for w
+    proof -
+      from that have ne: "eventually (\<lambda>w. w \<noteq> z) (nhds w)"
+        by (intro t1_space_nhds) auto
+      have "deriv g w = deriv (\<lambda>w. inverse (f w)) w"
+        by (intro deriv_cong_ev refl eventually_mono [OF ne]) (auto simp: g_def)
+      also from assms(4)[of w] that s' have "\<dots> = f' w"
+        by (auto dest: DERIV_imp_deriv)
+      finally show ?thesis .
+    qed
+    have "deriv g w = f' w"
+      by (rule analytic_continuation_open[of "s' - {z}" s' "deriv g" f'])
+         (insert s' assms s'_ne deriv_g w, 
+          auto intro!: holomorphic_intros holomorphic_on_subset[OF assms(6)])
+    finally show "(g has_field_derivative f' w) (at w)" .
+  qed (insert assms s', auto simp: g_def)
+  finally show ?thesis .
+qed
+
+lemma residue_holomorphic_over_power:
+  assumes "open A" "z0 \<in> A" "f holomorphic_on A"
+  shows   "residue (\<lambda>z. f z / (z - z0) ^ Suc n) z0 = (deriv ^^ n) f z0 / fact n"
+proof -
+  let ?f = "\<lambda>z. f z / (z - z0) ^ Suc n"
+  from assms(1,2) obtain r where r: "r > 0" "cball z0 r \<subseteq> A"
+    by (auto simp: open_contains_cball)
+  have "(?f has_contour_integral 2 * pi * \<i> * residue ?f z0) (circlepath z0 r)"
+    using r assms by (intro base_residue[of A]) (auto intro!: holomorphic_intros)
+  moreover have "(?f has_contour_integral 2 * pi * \<i> / fact n * (deriv ^^ n) f z0) (circlepath z0 r)"
+    using assms r
+    by (intro Cauchy_has_contour_integral_higher_derivative_circlepath)
+       (auto intro!: holomorphic_on_subset[OF assms(3)] holomorphic_on_imp_continuous_on)
+  ultimately have "2 * pi * \<i> * residue ?f z0 = 2 * pi * \<i> / fact n * (deriv ^^ n) f z0"  
+    by (rule has_contour_integral_unique)
+  thus ?thesis by (simp add: field_simps)
+qed
+
+lemma residue_holomorphic_over_power':
+  assumes "open A" "0 \<in> A" "f holomorphic_on A"
+  shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
+  using residue_holomorphic_over_power[OF assms] by simp
+
+lemma zer_poly_eqI:
+  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
+  defines "n \<equiv> zorder f z0"
+  assumes "open A" "connected A" "z0 \<in> A" "f holomorphic_on A" "f z0 = 0" "\<exists>z\<in>A. f z \<noteq> 0"
+  assumes lim: "((\<lambda>x. f (g x) / (g x - z0) ^ n) \<longlongrightarrow> c) F"
+  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
+  shows   "zer_poly f z0 z0 = c"
+proof -
+  from zorder_exist[OF assms(2-7)] obtain r where
+    r: "r > 0" "cball z0 r \<subseteq> A" "zer_poly f z0 holomorphic_on cball z0 r"
+       "\<And>w. w \<in> cball z0 r \<Longrightarrow> f w = zer_poly f z0 w * (w - z0) ^ n"
+    unfolding n_def by blast
+  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
+    using eventually_at_ball'[of r z0 UNIV] by auto
+  hence "eventually (\<lambda>w. zer_poly f z0 w = f w / (w - z0) ^ n) (at z0)"
+    by eventually_elim (insert r, auto simp: field_simps)
+  moreover have "continuous_on (ball z0 r) (zer_poly f z0)"
+    using r by (intro holomorphic_on_imp_continuous_on) auto
+  with r(1,2) have "isCont (zer_poly f z0) z0"
+    by (auto simp: continuous_on_eq_continuous_at)
+  hence "(zer_poly f z0 \<longlongrightarrow> zer_poly f z0 z0) (at z0)"
+    unfolding isCont_def .
+  ultimately have "((\<lambda>w. f w / (w - z0) ^ n) \<longlongrightarrow> zer_poly f z0 z0) (at z0)"
+    by (rule Lim_transform_eventually)
+  hence "((\<lambda>x. f (g x) / (g x - z0) ^ n) \<longlongrightarrow> zer_poly f z0 z0) F"
+    by (rule filterlim_compose[OF _ g])
+  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
+qed
+
+lemma pol_poly_eqI:
+  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
+  defines "n \<equiv> porder f z0"
+  assumes "open A" "z0 \<in> A" "f holomorphic_on A-{z0}" "is_pole f z0"
+  assumes lim: "((\<lambda>x. f (g x) * (g x - z0) ^ n) \<longlongrightarrow> c) F"
+  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
+  shows   "pol_poly f z0 z0 = c"
+proof -
+  from porder_exist[OF assms(2-5)] obtain r where
+    r: "r > 0" "cball z0 r \<subseteq> A" "pol_poly f z0 holomorphic_on cball z0 r"
+       "\<And>w. w \<in> cball z0 r - {z0} \<Longrightarrow> f w = pol_poly f z0 w / (w - z0) ^ n"
+    unfolding n_def by blast
+  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
+    using eventually_at_ball'[of r z0 UNIV] by auto
+  hence "eventually (\<lambda>w. pol_poly f z0 w = f w * (w - z0) ^ n) (at z0)"
+    by eventually_elim (insert r, auto simp: field_simps)
+  moreover have "continuous_on (ball z0 r) (pol_poly f z0)"
+    using r by (intro holomorphic_on_imp_continuous_on) auto
+  with r(1,2) have "isCont (pol_poly f z0) z0"
+    by (auto simp: continuous_on_eq_continuous_at)
+  hence "(pol_poly f z0 \<longlongrightarrow> pol_poly f z0 z0) (at z0)"
+    unfolding isCont_def .
+  ultimately have "((\<lambda>w. f w * (w - z0) ^ n) \<longlongrightarrow> pol_poly f z0 z0) (at z0)"
+    by (rule Lim_transform_eventually)
+  hence "((\<lambda>x. f (g x) * (g x - z0) ^ n) \<longlongrightarrow> pol_poly f z0 z0) F"
+    by (rule filterlim_compose[OF _ g])
+  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
+qed
+
+lemma residue_simple_pole:
+  assumes "open A" "z0 \<in> A" "f holomorphic_on A - {z0}" 
+  assumes "is_pole f z0" "porder f z0 = 1"
+  shows   "residue f z0 = pol_poly f z0 z0"
+  using assms by (subst residue_porder[of A]) simp_all
+
+lemma residue_simple_pole_limit:
+  assumes "open A" "z0 \<in> A" "f holomorphic_on A - {z0}" 
+  assumes "is_pole f z0" "porder f z0 = 1"
+  assumes "((\<lambda>x. f (g x) * (g x - z0)) \<longlongrightarrow> c) F"
+  assumes "filterlim g (at z0) F" "F \<noteq> bot"
+  shows   "residue f z0 = c"
+proof -
+  have "residue f z0 = pol_poly f z0 z0"
+    by (rule residue_simple_pole assms)+
+  also have "\<dots> = c"
+    using assms by (intro pol_poly_eqI[of A z0 f g c F]) auto
+  finally show ?thesis .
+qed
+
+(* TODO: This is a mess and could be done much more easily if we had
+   a nice compositional theory of poles and zeros *)
+lemma
+  assumes "open s" "connected s" "z \<in> s" "f holomorphic_on s" "g holomorphic_on s"
+  assumes "(g has_field_derivative g') (at z)"
+  assumes "f z \<noteq> 0" "g z = 0" "g' \<noteq> 0"
+  shows   porder_simple_pole_deriv: "porder (\<lambda>w. f w / g w) z = 1"
+    and   residue_simple_pole_deriv: "residue (\<lambda>w. f w / g w) z = f z / g'"
+proof -
+  have "\<exists>w\<in>s. g w \<noteq> 0"
+  proof (rule ccontr)
+    assume *: "\<not>(\<exists>w\<in>s. g w \<noteq> 0)"
+    have **: "eventually (\<lambda>w. w \<in> s) (nhds z)"
+      by (intro eventually_nhds_in_open assms)
+    from * have "deriv g z = deriv (\<lambda>_. 0) z"
+      by (intro deriv_cong_ev eventually_mono [OF **]) auto
+    also have "\<dots> = 0" by simp
+    also from assms have "deriv g z = g'" by (auto dest: DERIV_imp_deriv)
+    finally show False using \<open>g' \<noteq> 0\<close> by contradiction
+  qed
+  then obtain w where w: "w \<in> s" "g w \<noteq> 0" by blast
+  from isolated_zeros[OF assms(5) assms(1-3,8) w]
+  obtain r where r: "r > 0" "ball z r \<subseteq> s" "\<And>w. w \<in> ball z r - {z} \<Longrightarrow> g w \<noteq> 0"
+    by blast
+  from assms r have holo: "(\<lambda>w. f w / g w) holomorphic_on ball z r - {z}"
+    by (auto intro!: holomorphic_intros)
+
+  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
+    using eventually_at_ball'[OF r(1), of z UNIV] by auto
+  hence "eventually (\<lambda>w. g w \<noteq> 0) (at z)"
+    by eventually_elim (use r in auto)
+  moreover have "continuous_on s g" 
+    by (intro holomorphic_on_imp_continuous_on) fact
+  with assms have "isCont g z"
+    by (auto simp: continuous_on_eq_continuous_at)
+  ultimately have "filterlim g (at 0) (at z)"
+    using \<open>g z = 0\<close> by (auto simp: filterlim_at isCont_def)
+  moreover have "continuous_on s f" by (intro holomorphic_on_imp_continuous_on) fact
+  with assms have "isCont f z"
+    by (auto simp: continuous_on_eq_continuous_at)
+  ultimately have pole: "is_pole (\<lambda>w. f w / g w) z" 
+    unfolding is_pole_def using \<open>f z \<noteq> 0\<close>
+    by (intro filterlim_divide_at_infinity[of _ "f z"]) (auto simp: isCont_def)
+
+  have "continuous_on s f" by (intro holomorphic_on_imp_continuous_on) fact
+  moreover have "open (-{0::complex})" by auto
+  ultimately have "open (f -` (-{0}) \<inter> s)" using \<open>open s\<close>
+    by (subst (asm) continuous_on_open_vimage) blast+
+  moreover have "z \<in> f -` (-{0}) \<inter> s" using assms by auto
+  ultimately obtain r' where r': "r' > 0" "ball z r' \<subseteq> f -` (-{0}) \<inter> s"
+    unfolding open_contains_ball by blast
+
+  let ?D = "\<lambda>w. (f w * deriv g w - g w * deriv f w) / f w ^ 2"
+  show "porder (\<lambda>w. f w / g w) z = 1"
+  proof (rule simple_poleI')
+    show "open (ball z (min r r'))" "connected (ball z (min r r'))" "z \<in> ball z (min r r')"
+      using r'(1) r(1) by auto
+  next
+    fix w assume "w \<in> ball z (min r r') - {z}"
+    with r' have "w \<in> s" "f w \<noteq> 0" by auto
+    have "((\<lambda>w. g w / f w) has_field_derivative ?D w) (at w)"
+      by (rule derivative_eq_intros holomorphic_derivI[OF assms(4)] 
+            holomorphic_derivI[OF assms(5)] | fact)+ 
+         (simp_all add: algebra_simps power2_eq_square)
+    thus "((\<lambda>w. inverse (f w / g w)) has_field_derivative ?D w) (at w)"
+      by (simp add: divide_simps)
+  next
+    from r' show "?D holomorphic_on ball z (min r r')"
+      by (intro holomorphic_intros holomorphic_on_subset[OF assms(4)]
+                holomorphic_on_subset[OF assms(5)]) auto
+  next
+    from assms have "deriv g z = g'"
+      by (auto dest: DERIV_imp_deriv)
+    with assms r' show "(f z * deriv g z - g z * deriv f z) / (f z)\<^sup>2 \<noteq> 0"
+      by simp
+  qed (insert pole holo, auto)
+
+  show "residue (\<lambda>w. f w / g w) z = f z / g'"
+  proof (rule residue_simple_pole_limit)
+    show "porder (\<lambda>w. f w / g w) z = 1" by fact
+    from r show "open (ball z r)" "z \<in> ball z r" by auto
+    
+    have "((\<lambda>w. (f w * (w - z)) / g w) \<longlongrightarrow> f z / g') (at z)"
+    proof (rule lhopital_complex_simple)
+      show "((\<lambda>w. f w * (w - z)) has_field_derivative f z) (at z)"
+        using assms by (auto intro!: derivative_eq_intros holomorphic_derivI[OF assms(4)])
+      show "(g has_field_derivative g') (at z)" by fact
+    qed (insert assms, auto)
+    thus "((\<lambda>w. (f w / g w) * (w - z)) \<longlongrightarrow> f z / g') (at z)"
+      by (simp add: divide_simps)
+  qed (insert holo pole, auto simp: filterlim_ident)
 qed
 
 end

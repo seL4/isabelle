@@ -10,6 +10,7 @@ imports
   "HOL-Library.Discrete"
   "HOL-Library.Extended_Real"
   "HOL-Library.Liminf_Limsup"
+  "Extended_Real_Limits"
 begin
 
 text \<open>
@@ -707,6 +708,41 @@ proof (rule conv_radius_inftyI')
     by (intro exI[of _ "of_real r"]) simp
 qed
 
+lemma conv_radius_conv_Sup:
+  fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
+  shows "conv_radius f = Sup {r. \<forall>z. ereal (norm z) < r \<longrightarrow> summable (\<lambda>n. f n * z ^ n)}"
+proof (rule Sup_eqI [symmetric], goal_cases)
+  case (1 r)
+  thus ?case
+    by (intro conv_radius_geI_ex') auto
+next
+  case (2 r)
+  from 2[of 0] have r: "r \<ge> 0" by auto
+  show ?case
+  proof (intro conv_radius_leI_ex' r)
+    fix R assume R: "R > 0" "ereal R > r"
+    with r obtain r' where [simp]: "r = ereal r'" by (cases r) auto
+    show "\<not>summable (\<lambda>n. f n * of_real R ^ n)"
+    proof
+      assume *: "summable (\<lambda>n. f n * of_real R ^ n)"
+      define R' where "R' = (R + r') / 2"
+      from R have R': "R' > r'" "R' < R" by (simp_all add: R'_def)
+      hence "\<forall>z. norm z < R' \<longrightarrow> summable (\<lambda>n. f n * z ^ n)"
+        using powser_inside[OF *] by auto
+      from 2[of R'] and this have "R' \<le> r'" by auto
+      with \<open>R' > r'\<close> show False by simp
+    qed
+  qed
+qed
+
+lemma conv_radius_shift:
+  fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
+  shows   "conv_radius (\<lambda>n. f (n + m)) = conv_radius f"
+  unfolding conv_radius_conv_Sup summable_powser_ignore_initial_segment ..
+
+lemma conv_radius_norm [simp]: "conv_radius (\<lambda>x. norm (f x)) = conv_radius f"
+  by (simp add: conv_radius_def)
+
 lemma conv_radius_ratio_limit_ereal:
   fixes f :: "nat \<Rightarrow> 'a :: {banach,real_normed_div_algebra}"
   assumes nz:  "eventually (\<lambda>n. f n \<noteq> 0) sequentially"
@@ -772,6 +808,31 @@ lemma conv_radius_ratio_limit_nonzero:
   assumes lim: "(\<lambda>n. norm (f n) / norm (f (Suc n))) \<longlonglongrightarrow> c"
   shows   "conv_radius f = c'"
   using assms by (intro conv_radius_ratio_limit_ereal_nonzero) simp_all
+
+lemma conv_radius_cmult_left:
+  assumes "c \<noteq> (0 :: 'a :: {banach, real_normed_div_algebra})"
+  shows   "conv_radius (\<lambda>n. c * f n) = conv_radius f"
+proof -
+  have "conv_radius (\<lambda>n. c * f n) = 
+          inverse (limsup (\<lambda>n. ereal (root n (norm (c * f n)))))"
+    unfolding conv_radius_def ..
+  also have "(\<lambda>n. ereal (root n (norm (c * f n)))) = 
+               (\<lambda>n. ereal (root n (norm c)) * ereal (root n (norm (f n))))"
+    by (rule ext) (auto simp: norm_mult real_root_mult)
+  also have "limsup \<dots> = ereal 1 * limsup (\<lambda>n. ereal (root n (norm (f n))))"
+    using assms by (intro ereal_limsup_lim_mult tendsto_ereal LIMSEQ_root_const) auto
+  also have "inverse \<dots> = conv_radius f" by (simp add: conv_radius_def)
+  finally show ?thesis .
+qed
+
+lemma conv_radius_cmult_right:
+  assumes "c \<noteq> (0 :: 'a :: {banach, real_normed_div_algebra})"
+  shows   "conv_radius (\<lambda>n. f n * c) = conv_radius f"
+proof -
+  have "conv_radius (\<lambda>n. f n * c) = conv_radius (\<lambda>n. c * f n)"
+    by (simp add: conv_radius_def norm_mult mult.commute)
+  with conv_radius_cmult_left[OF assms, of f] show ?thesis by simp
+qed
 
 lemma conv_radius_mult_power:
   assumes "c \<noteq> (0 :: 'a :: {real_normed_div_algebra,banach})"

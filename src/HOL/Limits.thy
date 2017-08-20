@@ -1617,6 +1617,17 @@ proof (intro filterlim_at_infinity[THEN iffD2] allI impI)
 qed simp
 
 
+lemma filterlim_divide_at_infinity:
+  fixes f g :: "'a \<Rightarrow> 'a :: real_normed_field"
+  assumes "filterlim f (nhds c) F" "filterlim g (at 0) F" "c \<noteq> 0"
+  shows   "filterlim (\<lambda>x. f x / g x) at_infinity F"
+proof -
+  have "filterlim (\<lambda>x. f x * inverse (g x)) at_infinity F"
+    by (intro tendsto_mult_filterlim_at_infinity[OF assms(1,3)]
+          filterlim_compose [OF filterlim_inverse_at_infinity assms(2)])
+  thus ?thesis by (simp add: field_simps)
+qed
+
 subsection \<open>Floor and Ceiling\<close>
 
 lemma eventually_floor_less:

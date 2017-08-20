@@ -983,6 +983,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma summable_powser_ignore_initial_segment:
+  fixes f :: "nat \<Rightarrow> 'a :: real_normed_div_algebra"
+  shows "summable (\<lambda>n. f (n + m) * z ^ n) \<longleftrightarrow> summable (\<lambda>n. f n * z ^ n)"
+proof (induction m)
+  case (Suc m)
+  have "summable (\<lambda>n. f (n + Suc m) * z ^ n) = summable (\<lambda>n. f (Suc n + m) * z ^ n)"
+    by simp
+  also have "\<dots> = summable (\<lambda>n. f (n + m) * z ^ n)"
+    by (rule summable_powser_split_head)
+  also have "\<dots> = summable (\<lambda>n. f n * z ^ n)"
+    by (rule Suc.IH)
+  finally show ?case .
+qed simp_all
+
 lemma powser_split_head:
   fixes f :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
   assumes "summable (\<lambda>n. f n * z ^ n)"

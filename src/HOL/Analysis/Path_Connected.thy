@@ -6747,6 +6747,16 @@ proof -
     by (metis countable_subset)
 qed
 
+lemma ball_minus_countable_nonempty:
+  assumes "countable (A :: 'a :: euclidean_space set)" "r > 0"
+  shows   "ball z r - A \<noteq> {}"
+proof
+  assume *: "ball z r - A = {}"
+  have "uncountable (ball z r - A)"
+    by (intro uncountable_minus_countable assms uncountable_ball)
+  thus False by (subst (asm) *) auto
+qed
+
 lemma uncountable_cball:
   fixes a :: "'a::euclidean_space"
   assumes "r > 0"
