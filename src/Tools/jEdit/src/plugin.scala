@@ -211,7 +211,7 @@ class Plugin extends EBPlugin
       GUI_Thread.later {
         delay_load.revoke()
         delay_init.revoke()
-        PIDE.editor.flush()
+        PIDE.editor.shutdown()
         exit_models(JEdit_Lib.jedit_buffers().toList)
       }
 
@@ -454,5 +454,6 @@ class Plugin extends EBPlugin
     exit_models(JEdit_Lib.jedit_buffers().toList)
     session.stop()
     file_watcher.shutdown()
+    PIDE.editor.shutdown()
   }
 }

@@ -39,6 +39,13 @@ class JEdit_Editor extends Editor[View]
   def invoke(): Unit = delay1_flush.invoke()
   def invoke_generated(): Unit = { delay1_flush.invoke(); delay2_flush.invoke() }
 
+  def shutdown(): Unit =
+    GUI_Thread.require {
+      delay1_flush.revoke()
+      delay2_flush.revoke()
+      Document_Model.flush_edits(hidden = false, purge = false)
+    }
+
   def visible_node(name: Document.Node.Name): Boolean =
     (for {
       text_area <- JEdit_Lib.jedit_text_areas()
