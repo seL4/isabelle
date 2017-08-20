@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!DOCTYPE SERVICES SYSTEM "services.dtd">
+
+<SERVICES>
+  <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
+    new isabelle.jedit_base.Isabelle_Encoding();
+  </SERVICE>
+</SERVICES>

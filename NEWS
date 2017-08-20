@@ -105,6 +105,10 @@ entry. When all forked tasks of a theory are finished, the border is
 painted with thick lines; remaining errors in this situation are
 represented by a different border color.
 
+* The main Isabelle/jEdit plugin may be restarted manually (using the
+jEdit Plugin Manager), as long as the "Isabelle Base" plugin remains
+enabled at all times.
+
 * Update to jedit-5.4.0.
 
 

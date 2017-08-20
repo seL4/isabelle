@@ -140,7 +140,7 @@ object Simplifier_Trace
   def send_reply(session: Session, serial: Long, answer: Answer) =
     manager.send(Reply(session, serial, answer))
 
-  private lazy val manager: Consumer_Thread[Any] =
+  def make_manager: Consumer_Thread[Any] =
   {
     var contexts = Map.empty[Document_ID.Command, Context]
 
@@ -283,17 +283,27 @@ object Simplifier_Trace
     )
   }
 
+  private val manager_variable = Synchronized[Option[Consumer_Thread[Any]]](None)
+
+  def manager: Consumer_Thread[Any] =
+    manager_variable.value match {
+      case Some(thread) if thread.is_active => thread
+      case _ => error("Bad Simplifier_Trace.manager thread")
+    }
+
 
   /* protocol handler */
 
   class Handler extends Session.Protocol_Handler
   {
-    assert(manager.is_active)
+    try { manager }
+    catch { case ERROR(_) => manager_variable.change(_ => Some(make_manager)) }
 
     override def exit() =
     {
       manager.send(Clear_Memory)
       manager.shutdown()
+      manager_variable.change(_ => None)
     }
 
     private def cancel(msg: Prover.Protocol_Output): Boolean =

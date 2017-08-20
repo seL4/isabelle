@@ -19,6 +19,16 @@ esac
 
 ## sources
 
+declare -a SOURCES_BASE=(
+  "src-base/isabelle_encoding.scala"
+  "src-base/plugin.scala"
+)
+
+declare -a RESOURCES_BASE=(
+  "src-base/Isabelle_Base.props"
+  "src-base/services.xml"
+)
+
 declare -a SOURCES=(
   "src/active.scala"
   "src/completion_popup.scala"
@@ -248,6 +258,7 @@ JEDIT_JARS=(
 
 # target
 
+TARGET_BASE="dist/jars/Isabelle-jEdit-base.jar"
 TARGET="dist/jars/Isabelle-jEdit.jar"
 
 declare -a UPDATED=()
@@ -256,23 +267,28 @@ if [ "$BUILD_JARS" = jars_fresh ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  if [ ! -e "$TARGET" ]; then
+  if [ ! -e "$TARGET_BASE" -a ! -e "$TARGET" ]; then
     OUTDATED=true
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
       declare -a DEPS=(
         "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
+        "${SOURCES_BASE[@]}" "${RESOURCES_BASE[@]}"
         "${SOURCES[@]}" "${RESOURCES[@]}"
       )
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
-      declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
+      declare -a DEPS=(
+        "$PURE_JAR"
+        "${SOURCES_BASE[@]}" "${RESOURCES_BASE[@]}"
+        "${SOURCES[@]}" "${RESOURCES[@]}"
+      )
     else
       declare -a DEPS=()
     fi
     for DEP in "${DEPS[@]}"
     do
       [ ! -e "$DEP" ] && fail "Missing file: $DEP"
-      [ "$DEP" -nt "$TARGET" ] && {
+      [ "$DEP" -nt "$TARGET_BASE" -o "$DEP" -nt "$TARGET" ] && {
         OUTDATED=true
         UPDATED["${#UPDATED[@]}"]="$DEP"
       }
@@ -282,6 +298,37 @@ fi
 
 
 # build
+
+function init_resources ()
+{
+  mkdir -p dist/classes || failed
+  cp -p -R -f "$@" dist/classes/.
+}
+
+function compile_sources ()
+{
+  (
+    #FIXME workarounds for scalac 2.11.0
+    export CYGWIN="nodosfilewarning"
+    function stty() { :; }
+    export -f stty
+
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
+    do
+      classpath "$JAR"
+    done
+    export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
+    isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d dist/classes "$@"
+  ) || fail "Failed to compile sources"
+}
+
+function make_jar ()
+{
+  cd dist/classes
+  isabelle_jdk jar cf "../../$1" * || failed
+  cd ../..
+  rm -rf dist/classes
+}
 
 if [ "$OUTDATED" = true ]
 then
@@ -299,10 +346,15 @@ then
     fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
 
   rm -rf dist || failed
-  mkdir -p dist dist/classes || failed
+  mkdir -p dist || failed
 
   cp -p -R -f "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
-  cp -p -R -f "${RESOURCES[@]}" dist/classes/.
+
+  init_resources "${RESOURCES_BASE[@]}"
+  compile_sources "${SOURCES_BASE[@]}"
+  make_jar "$TARGET_BASE"
+
+  init_resources "${RESOURCES[@]}"
   cp src/jEdit.props dist/properties/.
   cp -p -R -f src/modes/. dist/modes/.
 
@@ -334,24 +386,8 @@ then
   cd ..
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
-  (
-    #FIXME workarounds for scalac 2.11.0
-    export CYGWIN="nodosfilewarning"
-    function stty() { :; }
-    export -f stty
-
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
-    do
-      classpath "$JAR"
-    done
-    export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
-    isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d dist/classes "${SOURCES[@]}"
-  ) || fail "Failed to compile sources"
-
-  cd dist/classes
-  isabelle_jdk jar cf "../jars/Isabelle-jEdit.jar" * || failed
-  cd ../..
-  rm -rf dist/classes
+  compile_sources "${SOURCES[@]}"
+  make_jar "$TARGET"
 
   cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.4.0manual-a4.pdf" dist/doc/jedit-manual.pdf
   cp dist/doc/CHANGES.txt dist/doc/jedit-changes
