@@ -1736,6 +1736,17 @@ next
     by force
 qed
 
+lemma subset_box_complex:
+   "cbox a b \<subseteq> cbox c d \<longleftrightarrow> 
+      (Re a \<le> Re b \<and> Im a \<le> Im b) \<longrightarrow> Re a \<ge> Re c \<and> Im a \<ge> Im c \<and> Re b \<le> Re d \<and> Im b \<le> Im d"
+   "cbox a b \<subseteq> box c d \<longleftrightarrow> 
+      (Re a \<le> Re b \<and> Im a \<le> Im b) \<longrightarrow> Re a > Re c \<and> Im a > Im c \<and> Re b < Re d \<and> Im b < Im d"
+   "box a b \<subseteq> cbox c d \<longleftrightarrow>
+      (Re a < Re b \<and> Im a < Im b) \<longrightarrow> Re a \<ge> Re c \<and> Im a \<ge> Im c \<and> Re b \<le> Re d \<and> Im b \<le> Im d"
+   "box a b \<subseteq> box c d \<longleftrightarrow> 
+      (Re a < Re b \<and> Im a < Im b) \<longrightarrow> Re a \<ge> Re c \<and> Im a \<ge> Im c \<and> Re b \<le> Re d \<and> Im b \<le> Im d"
+  by (subst subset_box; force simp: Basis_complex_def)+
+
 lemma Int_interval:
   fixes a :: "'a::euclidean_space"
   shows "cbox a b \<inter> cbox c d =

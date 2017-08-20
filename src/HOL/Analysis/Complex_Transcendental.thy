@@ -247,6 +247,19 @@ qed
 lemma exp_plus_2pin [simp]: "exp (z + \<i> * (of_int n * (of_real pi * 2))) = exp z"
   by (simp add: exp_eq)
 
+lemma exp_integer_2pi_plus1:
+  assumes "n \<in> \<int>"
+  shows "exp(((2 * n + 1) * pi) * \<i>) = - 1"
+proof -
+  from assms obtain n' where [simp]: "n = of_int n'"
+    by (auto simp: Ints_def)
+  have "exp(((2 * n + 1) * pi) * \<i>) = exp (pi * \<i>)"
+    using assms by (subst exp_eq) (auto intro!: exI[of _ n'] simp: algebra_simps)
+  also have "... = - 1"
+    by simp
+  finally show ?thesis .
+qed
+
 lemma inj_on_exp_pi:
   fixes z::complex shows "inj_on exp (ball z pi)"
 proof (clarsimp simp: inj_on_def exp_eq)

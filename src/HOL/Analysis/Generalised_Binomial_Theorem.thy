@@ -61,7 +61,7 @@ proof (cases "a \<in> \<nat>")
   have "eventually (\<lambda>n. (a gchoose n) = 0) sequentially"
     using eventually_gt_at_top[of "nat \<lfloor>norm a\<rfloor>"]
     by eventually_elim (insert a, auto elim!: Nats_cases simp: binomial_gbinomial[symmetric])
-  from conv_radius_cong[OF this] a show ?thesis by simp
+  from conv_radius_cong'[OF this] a show ?thesis by simp
 next
   assume a: "a \<notin> \<nat>"
   from tendsto_norm[OF gbinomial_ratio_limit[OF this]]

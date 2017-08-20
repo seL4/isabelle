@@ -439,22 +439,8 @@ qed
 lemma fps_mult_X_commute: "X * (a :: 'a :: semiring_1 fps) = a * X" 
   by (simp add: fps_eq_iff)
 
-lemma X_power_iff: "X^k = Abs_fps (\<lambda>n. if n = k then 1::'a::comm_ring_1 else 0)"
-proof (induct k)
-  case 0
-  then show ?case by (simp add: X_def fps_eq_iff)
-next
-  case (Suc k)
-  have "(X^Suc k) $ m = (if m = Suc k then 1::'a else 0)" for m
-  proof -
-    have "(X^Suc k) $ m = (if m = 0 then 0 else (X^k) $ (m - 1))"
-      by (simp del: One_nat_def)
-    then show ?thesis
-      using Suc.hyps by (auto cong del: if_weak_cong)
-  qed
-  then show ?case
-    by (simp add: fps_eq_iff)
-qed
+lemma X_power_iff: "X ^ n = Abs_fps (\<lambda>m. if m = n then 1 else 0)"
+  by (induction n) (auto simp: fps_eq_iff)
 
 lemma X_nth[simp]: "X$n = (if n = 1 then 1 else 0)"
   by (simp add: X_def)
@@ -4325,6 +4311,12 @@ definition "fps_sin (c::'a::field_char_0) =
 definition "fps_cos (c::'a::field_char_0) =
   Abs_fps (\<lambda>n. if even n then (- 1) ^ (n div 2) * c^n / (of_nat (fact n)) else 0)"
 
+lemma fps_sin_0 [simp]: "fps_sin 0 = 0"
+  by (intro fps_ext) (auto simp: fps_sin_def elim!: oddE)
+
+lemma fps_cos_0 [simp]: "fps_cos 0 = 1"
+  by (intro fps_ext) (auto simp: fps_cos_def)
+
 lemma fps_sin_deriv:
   "fps_deriv (fps_sin c) = fps_const c * fps_cos c"
   (is "?lhs = ?rhs")
@@ -4501,6 +4493,9 @@ lemma fps_cos_odd: "fps_cos (- c) = fps_cos c"
   by (auto simp add: fps_eq_iff fps_cos_def)
 
 definition "fps_tan c = fps_sin c / fps_cos c"
+
+lemma fps_tan_0 [simp]: "fps_tan 0 = 0"
+  by (simp add: fps_tan_def)
 
 lemma fps_tan_deriv: "fps_deriv (fps_tan c) = fps_const c / (fps_cos c)\<^sup>2"
 proof -

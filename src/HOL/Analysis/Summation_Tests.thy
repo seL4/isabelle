@@ -465,7 +465,6 @@ proof (rule kummers_test_divergence)
 qed (insert pos eventually_gt_at_top[of "0::nat"] not_summable_harmonic, simp_all)
 
 
-
 subsection \<open>Radius of convergence\<close>
 
 text \<open>
@@ -476,6 +475,9 @@ text \<open>
 \<close>
 definition conv_radius :: "(nat \<Rightarrow> 'a :: banach) \<Rightarrow> ereal" where
   "conv_radius f = inverse (limsup (\<lambda>n. ereal (root n (norm (f n)))))"
+
+lemma conv_radius_cong_weak [cong]: "(\<And>n. f n = g n) \<Longrightarrow> conv_radius f = conv_radius g"
+  by (drule ext) simp_all
 
 lemma conv_radius_nonneg: "conv_radius f \<ge> 0"
 proof -
@@ -489,18 +491,19 @@ qed
 lemma conv_radius_zero [simp]: "conv_radius (\<lambda>_. 0) = \<infinity>"
   by (auto simp: conv_radius_def zero_ereal_def [symmetric] Limsup_const)
 
-lemma conv_radius_cong:
-  assumes "eventually (\<lambda>x. f x = g x) sequentially"
-  shows   "conv_radius f = conv_radius g"
-proof -
-  have "eventually (\<lambda>n. ereal (root n (norm (f n))) = ereal (root n (norm (g n)))) sequentially"
-    using assms by eventually_elim simp
-  from Limsup_eq[OF this] show ?thesis unfolding conv_radius_def by simp
-qed
-
 lemma conv_radius_altdef:
   "conv_radius f = liminf (\<lambda>n. inverse (ereal (root n (norm (f n)))))"
   by (subst Liminf_inverse_ereal) (simp_all add: real_root_ge_zero conv_radius_def)
+
+lemma conv_radius_cong':
+  assumes "eventually (\<lambda>x. f x = g x) sequentially"
+  shows   "conv_radius f = conv_radius g"
+  unfolding conv_radius_altdef by (intro Liminf_eq eventually_mono [OF assms]) auto
+
+lemma conv_radius_cong:
+  assumes "eventually (\<lambda>x. norm (f x) = norm (g x)) sequentially"
+  shows   "conv_radius f = conv_radius g"
+  unfolding conv_radius_altdef by (intro Liminf_eq eventually_mono [OF assms]) auto
 
 lemma abs_summable_in_conv_radius:
   fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
