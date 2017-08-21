@@ -263,6 +263,15 @@ INCOMPATIBILITY.
 
 *** System ***
 
+* Isabelle/Scala: the SQL module supports access to relational
+databases, either as plain file (SQLite) or full-scale server
+(PostgreSQL via local port or remote ssh connection).
+
+* Results of "isabelle build" are recorded as SQLite database (i.e.
+"Application File Format" in the sense of
+https://www.sqlite.org/appfileformat.html). This allows systematic
+access via operations from module Sessions.Store in Isabelle/Scala.
+
 * System option "parallel_proofs" is 1 by default (instead of more
 aggressive 2). This requires less heap space and avoids burning parallel
 CPU cycles, while full subproof parallelization is enabled for repeated
@@ -281,15 +290,6 @@ ISABELLE_WINDOWS_PLATFORM32, ISABELLE_WINDOWS_PLATFORM64 indicate the
 native Windows platform (independently of the Cygwin installation). This
 is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
 ISABELLE_PLATFORM64.
-
-* Isabelle/Scala: the SQL module supports access to relational
-databases, either as plain file (SQLite) or full-scale server
-(PostgreSQL via local port or remote ssh connection).
-
-* Results of "isabelle build" are recorded as SQLite database (i.e.
-"Application File Format" in the sense of
-https://www.sqlite.org/appfileformat.html). This allows systematic
-access via operations from module Sessions.Store in Isabelle/Scala.
 
 * Command-line tool "isabelle vscode_server" provides a Language Server
 Protocol implementation, e.g. for the Visual Studio Code editor. It
