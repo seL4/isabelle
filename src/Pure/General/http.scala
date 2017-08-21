@@ -141,8 +141,8 @@ object HTTP
   /* welcome */
 
   val welcome: Handler =
-    get("/", uri =>
-      if (uri.toString == "/") {
+    get("/", arg =>
+      if (arg.uri.toString == "/") {
         val id =
           Isabelle_System.getenv("ISABELLE_ID") match {
             case "" => Mercurial.repository(Path.explode("~~")).id()
@@ -160,9 +160,9 @@ object HTTP
       Isabelle_System.fonts(html = true).map(path => (path.base_name -> Bytes.read(path))): _*)
 
   def fonts(root: String = "/fonts"): Handler =
-    get(root, uri =>
+    get(root, arg =>
       {
-        val uri_name = uri.toString
+        val uri_name = arg.uri.toString
         if (uri_name == root) Some(Response.text(cat_lines(html_fonts.map(_._1))))
         else html_fonts.collectFirst({ case (a, b) if uri_name == root + "/" + a => Response(b) })
       })
