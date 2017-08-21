@@ -290,11 +290,10 @@ object Isabelle
             if (toks1.isEmpty) buffer.removeTrailingWhiteSpace(Array(line))
             else if (keywords.is_indent_command(toks1.head)) buffer.indentLine(line, true)
 
-            if (toks2.isEmpty || keywords.is_indent_command(toks2.head))
-              JEdit_Lib.buffer_edit(buffer) {
-                text_area.setSelectedText("\n")
-                if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
-              }
+            if (toks2.isEmpty || keywords.is_indent_command(toks2.head)) {
+              text_area.setSelectedText("\n")
+              if (!buffer.indentLine(line + 1, true)) text_area.goToStartOfWhiteSpace(false)
+            }
             else nl
           case None => nl
         }
