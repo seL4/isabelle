@@ -215,8 +215,8 @@ the literature. Minor INCOMPATIBILITY.
 * Theory "HOL-Library.Permutations": theorem bij_swap_ompose_bij has
 been renamed to bij_swap_compose_bij. INCOMPATIBILITY.
 
-* Theory "HOL-Library.Formal_Power_Series": constants E/L/F have been
-renamed to fps_exp/fps_ln/fps_hypergeo to avoid polluting the name
+* Theory "HOL-Library.Formal_Power_Series": constants X/E/L/F have been
+renamed to fps_X/fps_exp/fps_ln/fps_hypergeo to avoid polluting the name
 space. INCOMPATIBILITY.
 
 * Theory "HOL-Library.FinFun" has been moved to AFP (again).

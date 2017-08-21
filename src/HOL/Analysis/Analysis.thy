@@ -11,6 +11,7 @@ imports
   Bounded_Continuous_Function
   Function_Topology
   Infinite_Products
+  Infinite_Set_Sum
   Weierstrass_Theorems
   Polytope
   Jordan_Curve
@@ -18,6 +19,7 @@ imports
   Great_Picard
   Poly_Roots
   Conformal_Mappings
+  FPS_Convergence
   Generalised_Binomial_Theorem
   Gamma_Function
 begin

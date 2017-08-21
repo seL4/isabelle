@@ -14,6 +14,11 @@ Contributions to Isabelle2017
   Prover IDE improvements.
   Support for SQL databases in Isabelle/Scala: SQLite and PostgreSQL.
 
+* August 2017: Manuel Eberl, TUM
+  HOL-Analysis: infinite products over natural numbers,
+  infinite sums over arbitrary sets, connection between formal
+  power series and analytic complex functions
+
 * March 2017: Alasdair Armstrong, University of Sheffield and
   Simon Foster, University of York
   Fixed-point theory and Galois Connections in HOL-Algebra.

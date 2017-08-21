@@ -73,6 +73,10 @@ by (simp add: continuous_at_imp_continuous_within)
 lemma holomorphic_on_exp [holomorphic_intros]: "exp holomorphic_on s"
   by (simp add: field_differentiable_within_exp holomorphic_on_def)
 
+lemma holomorphic_on_exp' [holomorphic_intros]:
+  "f holomorphic_on s \<Longrightarrow> (\<lambda>x. exp (f x)) holomorphic_on s"
+  using holomorphic_on_compose[OF _ holomorphic_on_exp] by (simp add: o_def)
+
 subsection\<open>Euler and de Moivre formulas.\<close>
 
 text\<open>The sine series times @{term i}\<close>

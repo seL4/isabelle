@@ -8,6 +8,10 @@ theory Polynomial_FPS
   imports Polynomial Formal_Power_Series
 begin
 
+context
+  includes fps_notation
+begin
+
 definition fps_of_poly where
   "fps_of_poly p = Abs_fps (coeff p)"
 
@@ -39,7 +43,7 @@ lemma fps_of_poly_numeral [simp]: "fps_of_poly (numeral n) = numeral n"
 lemma fps_of_poly_numeral' [simp]: "fps_of_poly [:numeral n:] = numeral n"
   by (simp add: numeral_fps_const fps_of_poly_const [symmetric] numeral_poly)
 
-lemma fps_of_poly_X [simp]: "fps_of_poly [:0, 1:] = X"
+lemma fps_of_poly_fps_X [simp]: "fps_of_poly [:0, 1:] = fps_X"
   by (auto simp add: fps_of_poly_def fps_eq_iff coeff_pCons split: nat.split)
 
 lemma fps_of_poly_add: "fps_of_poly (p + q) = fps_of_poly p + fps_of_poly q"
@@ -71,8 +75,8 @@ lemma fps_of_poly_prod_list: "fps_of_poly (prod_list xs) = prod_list (map fps_of
   by (induction xs) (simp_all add: fps_of_poly_mult)
 
 lemma fps_of_poly_pCons: 
-  "fps_of_poly (pCons (c :: 'a :: semiring_1) p) = fps_const c + fps_of_poly p * X"
-  by (subst fps_mult_X_commute [symmetric], intro fps_ext) 
+  "fps_of_poly (pCons (c :: 'a :: semiring_1) p) = fps_const c + fps_of_poly p * fps_X"
+  by (subst fps_mult_fps_X_commute [symmetric], intro fps_ext) 
      (auto simp: fps_of_poly_def coeff_pCons split: nat.split)
   
 lemma fps_of_poly_pderiv: "fps_of_poly (pderiv p) = fps_deriv (fps_of_poly p)"
@@ -81,10 +85,10 @@ lemma fps_of_poly_pderiv: "fps_of_poly (pderiv p) = fps_deriv (fps_of_poly p)"
 lemma fps_of_poly_power: "fps_of_poly (p ^ n) = fps_of_poly p ^ n"
   by (induction n) (simp_all add: fps_of_poly_mult)
   
-lemma fps_of_poly_monom: "fps_of_poly (monom (c :: 'a :: comm_ring_1) n) = fps_const c * X ^ n"
+lemma fps_of_poly_monom: "fps_of_poly (monom (c :: 'a :: comm_ring_1) n) = fps_const c * fps_X ^ n"
   by (intro fps_ext) simp_all
 
-lemma fps_of_poly_monom': "fps_of_poly (monom (1 :: 'a :: comm_ring_1) n) = X ^ n"
+lemma fps_of_poly_monom': "fps_of_poly (monom (1 :: 'a :: comm_ring_1) n) = fps_X ^ n"
   by (simp add: fps_of_poly_monom)
 
 lemma fps_of_poly_div:
@@ -139,7 +143,7 @@ qed (insert assms, auto)
 
 
 lemmas fps_of_poly_simps =
-  fps_of_poly_0 fps_of_poly_1 fps_of_poly_numeral fps_of_poly_const fps_of_poly_X
+  fps_of_poly_0 fps_of_poly_1 fps_of_poly_numeral fps_of_poly_const fps_of_poly_fps_X
   fps_of_poly_add fps_of_poly_diff fps_of_poly_uminus fps_of_poly_mult fps_of_poly_smult
   fps_of_poly_sum fps_of_poly_sum_list fps_of_poly_prod fps_of_poly_prod_list
   fps_of_poly_pCons fps_of_poly_pderiv fps_of_poly_power fps_of_poly_monom
@@ -153,7 +157,7 @@ lemma fps_of_poly_pcompose:
                              fps_compose_add_distrib fps_compose_mult_distrib)
   
 lemmas reify_fps_atom =
-  fps_of_poly_0 fps_of_poly_1' fps_of_poly_numeral' fps_of_poly_const fps_of_poly_X
+  fps_of_poly_0 fps_of_poly_1' fps_of_poly_numeral' fps_of_poly_const fps_of_poly_fps_X
 
 
 text \<open>
@@ -163,7 +167,7 @@ text \<open>
   polynomial \<open>p\<close>.
   
   This may sound trivial, but it covers a number of annoying side conditions like 
-  @{term "1 + X \<noteq> 0"} that would otherwise not be solved automatically.
+  @{term "1 + fps_X \<noteq> 0"} that would otherwise not be solved automatically.
 \<close>
 
 ML \<open>
@@ -208,7 +212,7 @@ fun reify_conv ct =
     | (Const (@{const_name "Rings.divide"}, _) $ _ $ (Const (@{const_name "Num.numeral"}, _) $ _))
         => ct |> (Conv.fun_conv (Conv.arg_conv reify_conv)
              then_conv rewr @{thms fps_of_poly_divide_numeral [symmetric]})
-    | (Const (@{const_name "Power.power"}, _) $ Const (@{const_name "X"},_) $ _) => ct |> (
+    | (Const (@{const_name "Power.power"}, _) $ Const (@{const_name "fps_X"},_) $ _) => ct |> (
         rewr @{thms fps_of_poly_monom' [symmetric]}) 
     | (Const (@{const_name "Power.power"}, _) $ _ $ _) => ct |> (
         Conv.fun_conv (Conv.arg_conv reify_conv) 
@@ -232,10 +236,10 @@ end
 
 simproc_setup poly_fps_eq ("(f :: 'a fps) = g") = \<open>K (K Poly_Fps.eq_simproc)\<close>
 
-lemma fps_of_poly_linear: "fps_of_poly [:a,1 :: 'a :: field:] = X + fps_const a"
+lemma fps_of_poly_linear: "fps_of_poly [:a,1 :: 'a :: field:] = fps_X + fps_const a"
   by simp
 
-lemma fps_of_poly_linear': "fps_of_poly [:1,a :: 'a :: field:] = 1 + fps_const a * X"
+lemma fps_of_poly_linear': "fps_of_poly [:1,a :: 'a :: field:] = 1 + fps_const a * fps_X"
   by simp
 
 lemma fps_of_poly_cutoff [simp]: 
@@ -306,5 +310,7 @@ proof (cases "p = 0")
       by (simp add: coeffs_nth degree_eq_length_coeffs)
   qed
 qed (simp_all add: poly_subdegree_def prefix_length_def)
+
+end
 
 end

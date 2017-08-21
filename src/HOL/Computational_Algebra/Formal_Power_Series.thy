@@ -402,53 +402,53 @@ proof
 qed 
 
 
-subsection \<open>The eXtractor series X\<close>
+subsection \<open>The efps_Xtractor series fps_X\<close>
 
 lemma minus_one_power_iff: "(- (1::'a::comm_ring_1)) ^ n = (if even n then 1 else - 1)"
   by (induct n) auto
 
-definition "X = Abs_fps (\<lambda>n. if n = 1 then 1 else 0)"
+definition "fps_X = Abs_fps (\<lambda>n. if n = 1 then 1 else 0)"
 
-lemma X_mult_nth [simp]:
-  "(X * (f :: 'a::semiring_1 fps)) $n = (if n = 0 then 0 else f $ (n - 1))"
+lemma fps_X_mult_nth [simp]:
+  "(fps_X * (f :: 'a::semiring_1 fps)) $n = (if n = 0 then 0 else f $ (n - 1))"
 proof (cases "n = 0")
   case False
-  have "(X * f) $n = (\<Sum>i = 0..n. X $ i * f $ (n - i))"
+  have "(fps_X * f) $n = (\<Sum>i = 0..n. fps_X $ i * f $ (n - i))"
     by (simp add: fps_mult_nth)
   also have "\<dots> = f $ (n - 1)"
-    using False by (simp add: X_def mult_delta_left sum.delta)
+    using False by (simp add: fps_X_def mult_delta_left sum.delta)
   finally show ?thesis
     using False by simp
 next
   case True
   then show ?thesis
-    by (simp add: fps_mult_nth X_def)
+    by (simp add: fps_mult_nth fps_X_def)
 qed
 
-lemma X_mult_right_nth[simp]:
-  "((a::'a::semiring_1 fps) * X) $ n = (if n = 0 then 0 else a $ (n - 1))"
+lemma fps_X_mult_right_nth[simp]:
+  "((a::'a::semiring_1 fps) * fps_X) $ n = (if n = 0 then 0 else a $ (n - 1))"
 proof -
-  have "(a * X) $ n = (\<Sum>i = 0..n. a $ i * (if n - i = Suc 0 then 1 else 0))"
-    by (simp add: fps_times_def X_def)
+  have "(a * fps_X) $ n = (\<Sum>i = 0..n. a $ i * (if n - i = Suc 0 then 1 else 0))"
+    by (simp add: fps_times_def fps_X_def)
   also have "\<dots> = (\<Sum>i = 0..n. if i = n - 1 then if n = 0 then 0 else a $ i else 0)"
     by (intro sum.cong) auto
   also have "\<dots> = (if n = 0 then 0 else a $ (n - 1))" by (simp add: sum.delta)
   finally show ?thesis .
 qed
 
-lemma fps_mult_X_commute: "X * (a :: 'a :: semiring_1 fps) = a * X" 
+lemma fps_mult_fps_X_commute: "fps_X * (a :: 'a :: semiring_1 fps) = a * fps_X" 
   by (simp add: fps_eq_iff)
 
-lemma X_power_iff: "X ^ n = Abs_fps (\<lambda>m. if m = n then 1 else 0)"
+lemma fps_X_power_iff: "fps_X ^ n = Abs_fps (\<lambda>m. if m = n then 1 else 0)"
   by (induction n) (auto simp: fps_eq_iff)
 
-lemma X_nth[simp]: "X$n = (if n = 1 then 1 else 0)"
-  by (simp add: X_def)
+lemma fps_X_nth[simp]: "fps_X$n = (if n = 1 then 1 else 0)"
+  by (simp add: fps_X_def)
 
-lemma X_power_nth[simp]: "(X^k) $n = (if n = k then 1 else 0::'a::comm_ring_1)"
-  by (simp add: X_power_iff)
+lemma fps_X_power_nth[simp]: "(fps_X^k) $n = (if n = k then 1 else 0::'a::comm_ring_1)"
+  by (simp add: fps_X_power_iff)
 
-lemma X_power_mult_nth: "(X^k * (f :: 'a::comm_ring_1 fps)) $n = (if n < k then 0 else f $ (n - k))"
+lemma fps_X_power_mult_nth: "(fps_X^k * (f :: 'a::comm_ring_1 fps)) $n = (if n < k then 0 else f $ (n - k))"
   apply (induct k arbitrary: n)
   apply simp
   unfolding power_Suc mult.assoc
@@ -456,32 +456,32 @@ lemma X_power_mult_nth: "(X^k * (f :: 'a::comm_ring_1 fps)) $n = (if n < k then 
   apply auto
   done
 
-lemma X_power_mult_right_nth:
-    "((f :: 'a::comm_ring_1 fps) * X^k) $n = (if n < k then 0 else f $ (n - k))"
-  by (metis X_power_mult_nth mult.commute)
+lemma fps_X_power_mult_right_nth:
+    "((f :: 'a::comm_ring_1 fps) * fps_X^k) $n = (if n < k then 0 else f $ (n - k))"
+  by (metis fps_X_power_mult_nth mult.commute)
 
 
-lemma X_neq_fps_const [simp]: "(X :: 'a :: zero_neq_one fps) \<noteq> fps_const c"
+lemma fps_X_neq_fps_const [simp]: "(fps_X :: 'a :: zero_neq_one fps) \<noteq> fps_const c"
 proof
-  assume "(X::'a fps) = fps_const (c::'a)"
-  hence "X$1 = (fps_const (c::'a))$1" by (simp only:)
+  assume "(fps_X::'a fps) = fps_const (c::'a)"
+  hence "fps_X$1 = (fps_const (c::'a))$1" by (simp only:)
   thus False by auto
 qed
 
-lemma X_neq_zero [simp]: "(X :: 'a :: zero_neq_one fps) \<noteq> 0"
-  by (simp only: fps_const_0_eq_0[symmetric] X_neq_fps_const) simp
+lemma fps_X_neq_zero [simp]: "(fps_X :: 'a :: zero_neq_one fps) \<noteq> 0"
+  by (simp only: fps_const_0_eq_0[symmetric] fps_X_neq_fps_const) simp
 
-lemma X_neq_one [simp]: "(X :: 'a :: zero_neq_one fps) \<noteq> 1"
-  by (simp only: fps_const_1_eq_1[symmetric] X_neq_fps_const) simp
+lemma fps_X_neq_one [simp]: "(fps_X :: 'a :: zero_neq_one fps) \<noteq> 1"
+  by (simp only: fps_const_1_eq_1[symmetric] fps_X_neq_fps_const) simp
 
-lemma X_neq_numeral [simp]: "(X :: 'a :: {semiring_1,zero_neq_one} fps) \<noteq> numeral c"
-  by (simp only: numeral_fps_const X_neq_fps_const) simp
+lemma fps_X_neq_numeral [simp]: "(fps_X :: 'a :: {semiring_1,zero_neq_one} fps) \<noteq> numeral c"
+  by (simp only: numeral_fps_const fps_X_neq_fps_const) simp
 
-lemma X_pow_eq_X_pow_iff [simp]:
-  "(X :: ('a :: {comm_ring_1}) fps) ^ m = X ^ n \<longleftrightarrow> m = n"
+lemma fps_X_pow_eq_fps_X_pow_iff [simp]:
+  "(fps_X :: ('a :: {comm_ring_1}) fps) ^ m = fps_X ^ n \<longleftrightarrow> m = n"
 proof
-  assume "(X :: 'a fps) ^ m = X ^ n"
-  hence "(X :: 'a fps) ^ m $ m = X ^ n $ m" by (simp only:)
+  assume "(fps_X :: 'a fps) ^ m = fps_X ^ n"
+  hence "(fps_X :: 'a fps) ^ m $ m = fps_X ^ n $ m" by (simp only:)
   thus "m = n" by (simp split: if_split_asm)
 qed simp_all
 
@@ -553,8 +553,8 @@ lemma subdegree_0 [simp]: "subdegree 0 = 0"
 lemma subdegree_1 [simp]: "subdegree (1 :: ('a :: zero_neq_one) fps) = 0"
   by (auto intro!: subdegreeI)
 
-lemma subdegree_X [simp]: "subdegree (X :: ('a :: zero_neq_one) fps) = 1"
-  by (auto intro!: subdegreeI simp: X_def)
+lemma subdegree_fps_X [simp]: "subdegree (fps_X :: ('a :: zero_neq_one) fps) = 1"
+  by (auto intro!: subdegreeI simp: fps_X_def)
 
 lemma subdegree_fps_const [simp]: "subdegree (fps_const c) = 0"
   by (cases "c = 0") (auto intro!: subdegreeI)
@@ -705,33 +705,33 @@ lemma fps_shift_fps_const: "fps_shift n (fps_const c) = (if n = 0 then fps_const
 lemma fps_shift_numeral: "fps_shift n (numeral c) = (if n = 0 then numeral c else 0)"
   by (simp add: numeral_fps_const fps_shift_fps_const)
 
-lemma fps_shift_X_power [simp]:
-  "n \<le> m \<Longrightarrow> fps_shift n (X ^ m) = (X ^ (m - n) ::'a::comm_ring_1 fps)"
+lemma fps_shift_fps_X_power [simp]:
+  "n \<le> m \<Longrightarrow> fps_shift n (fps_X ^ m) = (fps_X ^ (m - n) ::'a::comm_ring_1 fps)"
   by (intro fps_ext) (auto simp: fps_shift_def )
 
-lemma fps_shift_times_X_power:
-  "n \<le> subdegree f \<Longrightarrow> fps_shift n f * X ^ n = (f :: 'a :: comm_ring_1 fps)"
-  by (intro fps_ext) (auto simp: X_power_mult_right_nth nth_less_subdegree_zero)
+lemma fps_shift_times_fps_X_power:
+  "n \<le> subdegree f \<Longrightarrow> fps_shift n f * fps_X ^ n = (f :: 'a :: comm_ring_1 fps)"
+  by (intro fps_ext) (auto simp: fps_X_power_mult_right_nth nth_less_subdegree_zero)
 
-lemma fps_shift_times_X_power' [simp]:
-  "fps_shift n (f * X^n) = (f :: 'a :: comm_ring_1 fps)"
-  by (intro fps_ext) (auto simp: X_power_mult_right_nth nth_less_subdegree_zero)
+lemma fps_shift_times_fps_X_power' [simp]:
+  "fps_shift n (f * fps_X^n) = (f :: 'a :: comm_ring_1 fps)"
+  by (intro fps_ext) (auto simp: fps_X_power_mult_right_nth nth_less_subdegree_zero)
 
-lemma fps_shift_times_X_power'':
-  "m \<le> n \<Longrightarrow> fps_shift n (f * X^m) = fps_shift (n - m) (f :: 'a :: comm_ring_1 fps)"
-  by (intro fps_ext) (auto simp: X_power_mult_right_nth nth_less_subdegree_zero)
+lemma fps_shift_times_fps_X_power'':
+  "m \<le> n \<Longrightarrow> fps_shift n (f * fps_X^m) = fps_shift (n - m) (f :: 'a :: comm_ring_1 fps)"
+  by (intro fps_ext) (auto simp: fps_X_power_mult_right_nth nth_less_subdegree_zero)
 
 lemma fps_shift_subdegree [simp]:
   "n \<le> subdegree f \<Longrightarrow> subdegree (fps_shift n f) = subdegree (f :: 'a :: comm_ring_1 fps) - n"
   by (cases "f = 0") (force intro: nth_less_subdegree_zero subdegreeI)+
 
 lemma subdegree_decompose:
-  "f = fps_shift (subdegree f) f * X ^ subdegree (f :: ('a :: comm_ring_1) fps)"
-  by (rule fps_ext) (auto simp: X_power_mult_right_nth)
+  "f = fps_shift (subdegree f) f * fps_X ^ subdegree (f :: ('a :: comm_ring_1) fps)"
+  by (rule fps_ext) (auto simp: fps_X_power_mult_right_nth)
 
 lemma subdegree_decompose':
-  "n \<le> subdegree (f :: ('a :: comm_ring_1) fps) \<Longrightarrow> f = fps_shift n f * X^n"
-  by (rule fps_ext) (auto simp: X_power_mult_right_nth intro!: nth_less_subdegree_zero)
+  "n \<le> subdegree (f :: ('a :: comm_ring_1) fps) \<Longrightarrow> f = fps_shift n f * fps_X^n"
+  by (rule fps_ext) (auto simp: fps_X_power_mult_right_nth intro!: nth_less_subdegree_zero)
 
 lemma fps_shift_fps_shift:
   "fps_shift (m + n) f = fps_shift m (fps_shift n f)"
@@ -745,8 +745,8 @@ lemma fps_shift_mult:
   assumes "n \<le> subdegree (g :: 'b :: {comm_ring_1} fps)"
   shows   "fps_shift n (h*g) = h * fps_shift n g"
 proof -
-  from assms have "g = fps_shift n g * X^n" by (rule subdegree_decompose')
-  also have "h * ... = (h * fps_shift n g) * X^n" by simp
+  from assms have "g = fps_shift n g * fps_X^n" by (rule subdegree_decompose')
+  also have "h * ... = (h * fps_shift n g) * fps_X^n" by simp
   also have "fps_shift n ... = h * fps_shift n g" by simp
   finally show ?thesis .
 qed
@@ -798,8 +798,8 @@ lemma fps_cutoff_numeral: "fps_cutoff n (numeral c) = (if n = 0 then 0 else nume
   by (simp add: numeral_fps_const fps_cutoff_fps_const)
 
 lemma fps_shift_cutoff:
-  "fps_shift n (f :: ('a :: comm_ring_1) fps) * X^n + fps_cutoff n f = f"
-  by (simp add: fps_eq_iff X_power_mult_right_nth)
+  "fps_shift n (f :: ('a :: comm_ring_1) fps) * fps_X^n + fps_cutoff n f = f"
+  by (simp add: fps_eq_iff fps_X_power_mult_right_nth)
 
 
 subsection \<open>Formal Power series form a metric space\<close>
@@ -905,11 +905,11 @@ proof -
     using kp by blast
 qed
 
-lemma fps_sum_rep_nth: "(sum (\<lambda>i. fps_const(a$i)*X^i) {0..m})$n =
+lemma fps_sum_rep_nth: "(sum (\<lambda>i. fps_const(a$i)*fps_X^i) {0..m})$n =
     (if n \<le> m then a$n else 0::'a::comm_ring_1)"
   by (auto simp add: fps_sum_nth cond_value_iff cong del: if_weak_cong)
 
-lemma fps_notation: "(\<lambda>n. sum (\<lambda>i. fps_const(a$i) * X^i) {0..n}) \<longlonglongrightarrow> a"
+lemma fps_notation: "(\<lambda>n. sum (\<lambda>i. fps_const(a$i) * fps_X^i) {0..n}) \<longlonglongrightarrow> a"
   (is "?s \<longlonglongrightarrow> a")
 proof -
   have "\<exists>n0. \<forall>n \<ge> n0. dist (?s n) a < r" if "r > 0" for r
@@ -1153,12 +1153,12 @@ definition fps_unit_factor_def [simp]:
   "unit_factor f = fps_shift (subdegree f) f"
 
 definition fps_normalize_def [simp]:
-  "normalize f = (if f = 0 then 0 else X ^ subdegree f)"
+  "normalize f = (if f = 0 then 0 else fps_X ^ subdegree f)"
 
 instance proof
   fix f :: "'a fps"
   show "unit_factor f * normalize f = f"
-    by (simp add: fps_shift_times_X_power)
+    by (simp add: fps_shift_times_fps_X_power)
 next
   fix f g :: "'a fps"
   show "unit_factor (f * g) = unit_factor f * unit_factor g"
@@ -1205,10 +1205,10 @@ proof (cases "f = 0")
 
   from assms nz have "f div g * g = fps_shift n (f * inverse h) * g"
     by (simp add: fps_divide_def Let_def h_def n_def)
-  also have "... = fps_shift n (f * inverse h) * X^n * h" unfolding h_def n_def
+  also have "... = fps_shift n (f * inverse h) * fps_X^n * h" unfolding h_def n_def
     by (subst subdegree_decompose[of g]) simp
-  also have "fps_shift n (f * inverse h) * X^n = f * inverse h"
-    by (rule fps_shift_times_X_power) (simp_all add: nz assms n_def)
+  also have "fps_shift n (f * inverse h) * fps_X^n = f * inverse h"
+    by (rule fps_shift_times_fps_X_power) (simp_all add: nz assms n_def)
   also have "... * h = f * (inverse h * h)" by simp
   also have "inverse h * h = 1" by (rule inverse_mult_eq_1) simp
   finally show ?thesis by simp
@@ -1246,14 +1246,14 @@ proof (cases "g = 0")
 qed (simp_all add: fps_divide_def)
 
 private lemma fps_divide_cancel_aux2:
-  "(f * X^m) div (g * X^m) = f div (g :: 'a :: field fps)"
+  "(f * fps_X^m) div (g * fps_X^m) = f div (g :: 'a :: field fps)"
 proof (cases "g = 0")
   assume [simp]: "g \<noteq> 0"
-  have "(f * X^m) div (g * X^m) =
-          fps_shift (subdegree g + m) (f*inverse (fps_shift (subdegree g + m) (g*X^m))*X^m)"
+  have "(f * fps_X^m) div (g * fps_X^m) =
+          fps_shift (subdegree g + m) (f*inverse (fps_shift (subdegree g + m) (g*fps_X^m))*fps_X^m)"
     by (simp add: fps_divide_def Let_def algebra_simps)
   also have "... = f div g"
-    by (simp add: fps_shift_times_X_power'' fps_divide_def Let_def)
+    by (simp add: fps_shift_times_fps_X_power'' fps_divide_def Let_def)
   finally show ?thesis .
 qed (simp_all add: fps_divide_def)
 
@@ -1272,11 +1272,11 @@ instance proof
       with nz show ?thesis by (simp add: fps_mod_eq_zero fps_times_divide_eq)
     next
       assume "subdegree f < subdegree g"
-      have g_decomp: "g = h * X^n" unfolding h_def n_def by (rule subdegree_decompose)
+      have g_decomp: "g = h * fps_X^n" unfolding h_def n_def by (rule subdegree_decompose)
       have "f div g * g + f mod g =
               fps_shift n (f * inverse h) * g + fps_cutoff n (f * inverse h) * h"
         by (simp add: fps_mod_def fps_divide_def Let_def n_def h_def)
-      also have "... = h * (fps_shift n (f * inverse h) * X^n + fps_cutoff n (f * inverse h))"
+      also have "... = h * (fps_shift n (f * inverse h) * fps_X^n + fps_cutoff n (f * inverse h))"
         by (subst g_decomp) (simp add: algebra_simps)
       also have "... = f * (inverse h * h)"
         by (subst fps_shift_cutoff) simp
@@ -1292,9 +1292,9 @@ next
   proof -
     define m where "m = subdegree h"
     define h' where "h' = fps_shift m h"
-    have h_decomp: "h = h' * X ^ m" unfolding h'_def m_def by (rule subdegree_decompose)
+    have h_decomp: "h = h' * fps_X ^ m" unfolding h'_def m_def by (rule subdegree_decompose)
     from \<open>h \<noteq> 0\<close> have [simp]: "h'$0 \<noteq> 0" by (simp add: h'_def m_def)
-    have "(h * f) div (h * g) = (h' * f * X^m) div (h' * g * X^m)"
+    have "(h * f) div (h * g) = (h' * f * fps_X^m) div (h' * g * fps_X^m)"
       by (simp add: h_decomp algebra_simps)
     also have "... = f div g" by (simp add: fps_divide_cancel_aux1 fps_divide_cancel_aux2)
     finally show ?thesis .
@@ -1306,10 +1306,10 @@ next
   define n h' where dfs: "n = subdegree h" "h' = fps_shift n h"
   have "(f + g * h) div h = fps_shift n (f * inverse h') + fps_shift n (g * (h * inverse h'))"
     by (simp add: fps_divide_def Let_def dfs[symmetric] algebra_simps fps_shift_add)
-  also have "h * inverse h' = (inverse h' * h') * X^n"
+  also have "h * inverse h' = (inverse h' * h') * fps_X^n"
     by (subst subdegree_decompose) (simp_all add: dfs)
-  also have "... = X^n" by (subst inverse_mult_eq_1) (simp_all add: dfs)
-  also have "fps_shift n (g * X^n) = g" by simp
+  also have "... = fps_X^n" by (subst inverse_mult_eq_1) (simp_all add: dfs)
+  also have "fps_shift n (g * fps_X^n) = g" by simp
   also have "fps_shift n (f * inverse h') = f div h"
     by (simp add: fps_divide_def Let_def dfs)
   finally show "(f + g * h) div h = g + f div h" by simp
@@ -1354,14 +1354,14 @@ proof
 qed (simp add: assms dvd_imp_subdegree_le)
 
 lemma fps_shift_altdef:
-  "fps_shift n f = (f :: 'a :: field fps) div X^n"
+  "fps_shift n f = (f :: 'a :: field fps) div fps_X^n"
   by (simp add: fps_divide_def)
   
-lemma fps_div_X_power_nth: "((f :: 'a :: field fps) div X^n) $ k = f $ (k + n)"
+lemma fps_div_fps_X_power_nth: "((f :: 'a :: field fps) div fps_X^n) $ k = f $ (k + n)"
   by (simp add: fps_shift_altdef [symmetric])
 
-lemma fps_div_X_nth: "((f :: 'a :: field fps) div X) $ k = f $ Suc k"
-  using fps_div_X_power_nth[of f 1] by simp
+lemma fps_div_fps_X_nth: "((f :: 'a :: field fps) div fps_X) $ k = f $ Suc k"
+  using fps_div_fps_X_power_nth[of f 1] by simp
 
 lemma fps_const_inverse: "inverse (fps_const (a::'a::field)) = fps_const (inverse a)"
   by (cases "a \<noteq> 0", rule fps_inverse_unique) (auto simp: fps_eq_iff)
@@ -1419,45 +1419,45 @@ end
 
 lemma fps_gcd:
   assumes [simp]: "f \<noteq> 0" "g \<noteq> 0"
-  shows   "gcd f g = X ^ min (subdegree f) (subdegree g)"
+  shows   "gcd f g = fps_X ^ min (subdegree f) (subdegree g)"
 proof -
   let ?m = "min (subdegree f) (subdegree g)"
-  show "gcd f g = X ^ ?m"
+  show "gcd f g = fps_X ^ ?m"
   proof (rule sym, rule gcdI)
     fix d assume "d dvd f" "d dvd g"
-    thus "d dvd X ^ ?m" by (cases "d = 0") (auto simp: fps_dvd_iff)
+    thus "d dvd fps_X ^ ?m" by (cases "d = 0") (auto simp: fps_dvd_iff)
   qed (simp_all add: fps_dvd_iff)
 qed
 
 lemma fps_gcd_altdef: "gcd (f :: 'a :: field fps) g =
   (if f = 0 \<and> g = 0 then 0 else
-   if f = 0 then X ^ subdegree g else
-   if g = 0 then X ^ subdegree f else
-     X ^ min (subdegree f) (subdegree g))"
+   if f = 0 then fps_X ^ subdegree g else
+   if g = 0 then fps_X ^ subdegree f else
+     fps_X ^ min (subdegree f) (subdegree g))"
   by (simp add: fps_gcd)
 
 lemma fps_lcm:
   assumes [simp]: "f \<noteq> 0" "g \<noteq> 0"
-  shows   "lcm f g = X ^ max (subdegree f) (subdegree g)"
+  shows   "lcm f g = fps_X ^ max (subdegree f) (subdegree g)"
 proof -
   let ?m = "max (subdegree f) (subdegree g)"
-  show "lcm f g = X ^ ?m"
+  show "lcm f g = fps_X ^ ?m"
   proof (rule sym, rule lcmI)
     fix d assume "f dvd d" "g dvd d"
-    thus "X ^ ?m dvd d" by (cases "d = 0") (auto simp: fps_dvd_iff)
+    thus "fps_X ^ ?m dvd d" by (cases "d = 0") (auto simp: fps_dvd_iff)
   qed (simp_all add: fps_dvd_iff)
 qed
 
 lemma fps_lcm_altdef: "lcm (f :: 'a :: field fps) g =
-  (if f = 0 \<or> g = 0 then 0 else X ^ max (subdegree f) (subdegree g))"
+  (if f = 0 \<or> g = 0 then 0 else fps_X ^ max (subdegree f) (subdegree g))"
   by (simp add: fps_lcm)
 
 lemma fps_Gcd:
   assumes "A - {0} \<noteq> {}"
-  shows   "Gcd A = X ^ (INF f:A-{0}. subdegree f)"
+  shows   "Gcd A = fps_X ^ (INF f:A-{0}. subdegree f)"
 proof (rule sym, rule GcdI)
   fix f assume "f \<in> A"
-  thus "X ^ (INF f:A - {0}. subdegree f) dvd f"
+  thus "fps_X ^ (INF f:A - {0}. subdegree f) dvd f"
     by (cases "f = 0") (auto simp: fps_dvd_iff intro!: cINF_lower)
 next
   fix d assume d: "\<And>f. f \<in> A \<Longrightarrow> d dvd f"
@@ -1465,25 +1465,25 @@ next
   with d[of f] have [simp]: "d \<noteq> 0" by auto
   from d assms have "subdegree d \<le> (INF f:A-{0}. subdegree f)"
     by (intro cINF_greatest) (auto simp: fps_dvd_iff[symmetric])
-  with d assms show "d dvd X ^ (INF f:A-{0}. subdegree f)" by (simp add: fps_dvd_iff)
+  with d assms show "d dvd fps_X ^ (INF f:A-{0}. subdegree f)" by (simp add: fps_dvd_iff)
 qed simp_all
 
 lemma fps_Gcd_altdef: "Gcd (A :: 'a :: field fps set) =
-  (if A \<subseteq> {0} then 0 else X ^ (INF f:A-{0}. subdegree f))"
+  (if A \<subseteq> {0} then 0 else fps_X ^ (INF f:A-{0}. subdegree f))"
   using fps_Gcd by auto
 
 lemma fps_Lcm:
   assumes "A \<noteq> {}" "0 \<notin> A" "bdd_above (subdegree`A)"
-  shows   "Lcm A = X ^ (SUP f:A. subdegree f)"
+  shows   "Lcm A = fps_X ^ (SUP f:A. subdegree f)"
 proof (rule sym, rule LcmI)
   fix f assume "f \<in> A"
   moreover from assms(3) have "bdd_above (subdegree ` A)" by auto
-  ultimately show "f dvd X ^ (SUP f:A. subdegree f)" using assms(2)
+  ultimately show "f dvd fps_X ^ (SUP f:A. subdegree f)" using assms(2)
     by (cases "f = 0") (auto simp: fps_dvd_iff intro!: cSUP_upper)
 next
   fix d assume d: "\<And>f. f \<in> A \<Longrightarrow> f dvd d"
   from assms obtain f where f: "f \<in> A" "f \<noteq> 0" by auto
-  show "X ^ (SUP f:A. subdegree f) dvd d"
+  show "fps_X ^ (SUP f:A. subdegree f) dvd d"
   proof (cases "d = 0")
     assume "d \<noteq> 0"
     moreover from d have "\<And>f. f \<in> A \<Longrightarrow> f \<noteq> 0 \<Longrightarrow> f dvd d" by blast
@@ -1496,7 +1496,7 @@ qed simp_all
 lemma fps_Lcm_altdef:
   "Lcm (A :: 'a :: field fps set) =
      (if 0 \<in> A \<or> \<not>bdd_above (subdegree`A) then 0 else
-      if A = {} then 1 else X ^ (SUP f:A. subdegree f))"
+      if A = {} then 1 else fps_X ^ (SUP f:A. subdegree f))"
 proof (cases "bdd_above (subdegree`A)")
   assume unbounded: "\<not>bdd_above (subdegree`A)"
   have "Lcm A = 0"
@@ -1568,8 +1568,8 @@ proof -
     unfolding fps_eq_iff by auto
 qed
 
-lemma fps_deriv_X[simp]: "fps_deriv X = 1"
-  by (simp add: fps_deriv_def X_def fps_eq_iff)
+lemma fps_deriv_fps_X[simp]: "fps_deriv fps_X = 1"
+  by (simp add: fps_deriv_def fps_X_def fps_eq_iff)
 
 lemma fps_deriv_neg[simp]:
   "fps_deriv (- (f:: 'a::comm_ring_1 fps)) = - (fps_deriv f)"
@@ -1878,7 +1878,7 @@ lemma fps_inverse_minus [simp]: "inverse (-f) = -inverse (f :: 'a :: field fps)"
 lemma divide_fps_const [simp]: "f / fps_const (c :: 'a :: field) = fps_const (inverse c) * f"
   by (cases "c = 0") (simp_all add: fps_divide_unit fps_const_inverse)
 
-(* FIXME: The last part of this proof should go through by simp once we have a proper
+(* FIfps_XME: The last part of this proof should go through by simp once we have a proper
    theorem collection for simplifying division on rings *)
 lemma fps_divide_deriv:
   assumes "b dvd (a :: 'a :: field fps)"
@@ -1893,28 +1893,28 @@ proof -
   thus ?thesis by (cases "b = 0") (auto simp: eq_divide_imp)
 qed
 
-lemma fps_inverse_gp': "inverse (Abs_fps (\<lambda>n. 1::'a::field)) = 1 - X"
-  by (simp add: fps_inverse_gp fps_eq_iff X_def)
+lemma fps_inverse_gp': "inverse (Abs_fps (\<lambda>n. 1::'a::field)) = 1 - fps_X"
+  by (simp add: fps_inverse_gp fps_eq_iff fps_X_def)
 
-lemma fps_one_over_one_minus_X_squared:
-  "inverse ((1 - X)^2 :: 'a :: field fps) = Abs_fps (\<lambda>n. of_nat (n+1))"
+lemma fps_one_over_one_minus_fps_X_squared:
+  "inverse ((1 - fps_X)^2 :: 'a :: field fps) = Abs_fps (\<lambda>n. of_nat (n+1))"
 proof -
-  have "inverse ((1 - X)^2 :: 'a fps) = fps_deriv (inverse (1 - X))"
+  have "inverse ((1 - fps_X)^2 :: 'a fps) = fps_deriv (inverse (1 - fps_X))"
     by (subst fps_inverse_deriv) (simp_all add: fps_inverse_power)
-  also have "inverse (1 - X :: 'a fps) = Abs_fps (\<lambda>_. 1)"
+  also have "inverse (1 - fps_X :: 'a fps) = Abs_fps (\<lambda>_. 1)"
     by (subst fps_inverse_gp' [symmetric]) simp
   also have "fps_deriv \<dots> = Abs_fps (\<lambda>n. of_nat (n + 1))"
     by (simp add: fps_deriv_def)
   finally show ?thesis .
 qed
 
-lemma fps_nth_deriv_X[simp]: "fps_nth_deriv n X = (if n = 0 then X else if n=1 then 1 else 0)"
+lemma fps_nth_deriv_fps_X[simp]: "fps_nth_deriv n fps_X = (if n = 0 then fps_X else if n=1 then 1 else 0)"
   by (cases n) simp_all
 
-lemma fps_inverse_X_plus1: "inverse (1 + X) = Abs_fps (\<lambda>n. (- (1::'a::field)) ^ n)"
+lemma fps_inverse_fps_X_plus1: "inverse (1 + fps_X) = Abs_fps (\<lambda>n. (- (1::'a::field)) ^ n)"
   (is "_ = ?r")
 proof -
-  have eq: "(1 + X) * ?r = 1"
+  have eq: "(1 + fps_X) * ?r = 1"
     unfolding minus_one_power_iff
     by (auto simp add: field_simps fps_eq_iff)
   show ?thesis
@@ -1956,7 +1956,7 @@ lemma fps_compose_nth: "(a oo b)$n = sum (\<lambda>i. a$i * (b^i$n)) {0..n}"
 lemma fps_compose_nth_0 [simp]: "(f oo g) $ 0 = f $ 0"
   by (simp add: fps_compose_nth)
 
-lemma fps_compose_X[simp]: "a oo X = (a :: 'a::comm_ring_1 fps)"
+lemma fps_compose_fps_X[simp]: "a oo fps_X = (a :: 'a::comm_ring_1 fps)"
   by (simp add: fps_ext fps_compose_def mult_delta_right sum.delta')
 
 lemma fps_const_compose[simp]: "fps_const (a::'a::comm_ring_1) oo b = fps_const a"
@@ -1968,7 +1968,7 @@ lemma numeral_compose[simp]: "(numeral k :: 'a::comm_ring_1 fps) oo b = numeral 
 lemma neg_numeral_compose[simp]: "(- numeral k :: 'a::comm_ring_1 fps) oo b = - numeral k"
   unfolding neg_numeral_fps_const by simp
 
-lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: 'a::comm_ring_1 fps)"
+lemma fps_X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> fps_X oo a = (a :: 'a::comm_ring_1 fps)"
   by (simp add: fps_eq_iff fps_compose_def mult_delta_left sum.delta not_le)
 
 
@@ -1978,14 +1978,14 @@ subsubsection \<open>Rule 1\<close>
   (* {a_{n+k}}_0^infty Corresponds to (f - sum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
 
 lemma fps_power_mult_eq_shift:
-  "X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) =
-    Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a::comm_ring_1) * X^i) {0 .. k}"
+  "fps_X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) =
+    Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a::comm_ring_1) * fps_X^i) {0 .. k}"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs $ n = ?rhs $ n" for n :: nat
   proof -
     have "?lhs $ n = (if n < Suc k then 0 else a n)"
-      unfolding X_power_mult_nth by auto
+      unfolding fps_X_power_mult_nth by auto
     also have "\<dots> = ?rhs $ n"
     proof (induct k)
       case 0
@@ -1993,14 +1993,14 @@ proof -
         by (simp add: fps_sum_nth)
     next
       case (Suc k)
-      have "(Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. Suc k})$n =
-        (Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. k} -
-          fps_const (a (Suc k)) * X^ Suc k) $ n"
+      have "(Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a) * fps_X^i) {0 .. Suc k})$n =
+        (Abs_fps a - sum (\<lambda>i. fps_const (a i :: 'a) * fps_X^i) {0 .. k} -
+          fps_const (a (Suc k)) * fps_X^ Suc k) $ n"
         by (simp add: field_simps)
-      also have "\<dots> = (if n < Suc k then 0 else a n) - (fps_const (a (Suc k)) * X^ Suc k)$n"
+      also have "\<dots> = (if n < Suc k then 0 else a n) - (fps_const (a (Suc k)) * fps_X^ Suc k)$n"
         using Suc.hyps[symmetric] unfolding fps_sub_nth by simp
       also have "\<dots> = (if n < Suc (Suc k) then 0 else a n)"
-        unfolding X_power_mult_right_nth
+        unfolding fps_X_power_mult_right_nth
         apply (auto simp add: not_less fps_const_def)
         apply (rule cong[of a a, OF refl])
         apply arith
@@ -2021,29 +2021,29 @@ subsubsection \<open>Rule 2\<close>
   (* If f reprents {a_n} and P is a polynomial, then
         P(xD) f represents {P(n) a_n}*)
 
-definition "XD = op * X \<circ> fps_deriv"
+definition "fps_XD = op * fps_X \<circ> fps_deriv"
 
-lemma XD_add[simp]:"XD (a + b) = XD a + XD (b :: 'a::comm_ring_1 fps)"
-  by (simp add: XD_def field_simps)
+lemma fps_XD_add[simp]:"fps_XD (a + b) = fps_XD a + fps_XD (b :: 'a::comm_ring_1 fps)"
+  by (simp add: fps_XD_def field_simps)
 
-lemma XD_mult_const[simp]:"XD (fps_const (c::'a::comm_ring_1) * a) = fps_const c * XD a"
-  by (simp add: XD_def field_simps)
+lemma fps_XD_mult_const[simp]:"fps_XD (fps_const (c::'a::comm_ring_1) * a) = fps_const c * fps_XD a"
+  by (simp add: fps_XD_def field_simps)
 
-lemma XD_linear[simp]: "XD (fps_const c * a + fps_const d * b) =
-    fps_const c * XD a + fps_const d * XD (b :: 'a::comm_ring_1 fps)"
+lemma fps_XD_linear[simp]: "fps_XD (fps_const c * a + fps_const d * b) =
+    fps_const c * fps_XD a + fps_const d * fps_XD (b :: 'a::comm_ring_1 fps)"
   by simp
 
-lemma XDN_linear:
-  "(XD ^^ n) (fps_const c * a + fps_const d * b) =
-    fps_const c * (XD ^^ n) a + fps_const d * (XD ^^ n) (b :: 'a::comm_ring_1 fps)"
+lemma fps_XDN_linear:
+  "(fps_XD ^^ n) (fps_const c * a + fps_const d * b) =
+    fps_const c * (fps_XD ^^ n) a + fps_const d * (fps_XD ^^ n) (b :: 'a::comm_ring_1 fps)"
   by (induct n) simp_all
 
-lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)"
+lemma fps_mult_fps_X_deriv_shift: "fps_X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)"
   by (simp add: fps_eq_iff)
 
-lemma fps_mult_XD_shift:
-  "(XD ^^ k) (a :: 'a::comm_ring_1 fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
-  by (induct k arbitrary: a) (simp_all add: XD_def fps_eq_iff field_simps del: One_nat_def)
+lemma fps_mult_fps_XD_shift:
+  "(fps_XD ^^ k) (a :: 'a::comm_ring_1 fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
+  by (induct k arbitrary: a) (simp_all add: fps_XD_def fps_eq_iff field_simps del: One_nat_def)
 
 
 subsubsection \<open>Rule 3\<close>
@@ -2051,15 +2051,15 @@ subsubsection \<open>Rule 3\<close>
 text \<open>Rule 3 is trivial and is given by \<open>fps_times_def\<close>.\<close>
 
 
-subsubsection \<open>Rule 5 --- summation and "division" by (1 - X)\<close>
+subsubsection \<open>Rule 5 --- summation and "division" by (1 - fps_X)\<close>
 
-lemma fps_divide_X_minus1_sum_lemma:
-  "a = ((1::'a::comm_ring_1 fps) - X) * Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
+lemma fps_divide_fps_X_minus1_sum_lemma:
+  "a = ((1::'a::comm_ring_1 fps) - fps_X) * Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
 proof -
   let ?sa = "Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
-  have th0: "\<And>i. (1 - (X::'a fps)) $ i = (if i = 0 then 1 else if i = 1 then - 1 else 0)"
+  have th0: "\<And>i. (1 - (fps_X::'a fps)) $ i = (if i = 0 then 1 else if i = 1 then - 1 else 0)"
     by simp
-  have "a$n = ((1 - X) * ?sa) $ n" for n
+  have "a$n = ((1 - fps_X) * ?sa) $ n" for n
   proof (cases "n = 0")
     case True
     then show ?thesis
@@ -2073,7 +2073,7 @@ proof -
       using False by simp_all
     have f: "finite {0}" "finite {1}" "finite {2 .. n}"
       "finite {0 .. n - 1}" "finite {n}" by simp_all
-    have "((1 - X) * ?sa) $ n = sum (\<lambda>i. (1 - X)$ i * ?sa $ (n - i)) {0 .. n}"
+    have "((1 - fps_X) * ?sa) $ n = sum (\<lambda>i. (1 - fps_X)$ i * ?sa $ (n - i)) {0 .. n}"
       by (simp add: fps_mult_nth)
     also have "\<dots> = a$n"
       unfolding th0
@@ -2090,16 +2090,16 @@ proof -
     unfolding fps_eq_iff by blast
 qed
 
-lemma fps_divide_X_minus1_sum:
-  "a /((1::'a::field fps) - X) = Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
+lemma fps_divide_fps_X_minus1_sum:
+  "a /((1::'a::field fps) - fps_X) = Abs_fps (\<lambda>n. sum (\<lambda>i. a $ i) {0..n})"
 proof -
-  let ?X = "1 - (X::'a fps)"
-  have th0: "?X $ 0 \<noteq> 0"
+  let ?fps_X = "1 - (fps_X::'a fps)"
+  have th0: "?fps_X $ 0 \<noteq> 0"
     by simp
-  have "a /?X = ?X *  Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) * inverse ?X"
-    using fps_divide_X_minus1_sum_lemma[of a, symmetric] th0
+  have "a /?fps_X = ?fps_X *  Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) * inverse ?fps_X"
+    using fps_divide_fps_X_minus1_sum_lemma[of a, symmetric] th0
     by (simp add: fps_divide_def mult.assoc)
-  also have "\<dots> = (inverse ?X * ?X) * Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) "
+  also have "\<dots> = (inverse ?fps_X * ?fps_X) * Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) "
     by (simp add: ac_simps)
   finally show ?thesis
     by (simp add: inverse_mult_eq_1[OF th0])
@@ -2495,10 +2495,10 @@ proof (cases "f = 0")
   also have "subdegree \<dots> = Suc m * subdegree g" by (rule subdegree_power)
   finally have [simp]: "subdegree f = subdegree g"
     by (subst (asm) Suc_mult_cancel1)
-  have "fps_shift (subdegree f) f * X ^ subdegree f = f"
+  have "fps_shift (subdegree f) f * fps_X ^ subdegree f = f"
     by (rule subdegree_decompose [symmetric])
   also have "\<dots> ^ Suc m = g ^ Suc m" by fact
-  also have "g = fps_shift (subdegree g) g * X ^ subdegree g"
+  also have "g = fps_shift (subdegree g) g * fps_X ^ subdegree g"
     by (rule subdegree_decompose)
   also have "subdegree f = subdegree g" by fact
   finally have "fps_shift (subdegree g) f ^ Suc m = fps_shift (subdegree g) g ^ Suc m"
@@ -3127,17 +3127,17 @@ proof -
   then show ?thesis by (simp add: fps_eq_iff)
 qed
 
-lemma fps_mult_X_plus_1_nth:
-  "((1+X)*a) $n = (if n = 0 then (a$n :: 'a::comm_ring_1) else a$n + a$(n - 1))"
+lemma fps_mult_fps_X_plus_1_nth:
+  "((1+fps_X)*a) $n = (if n = 0 then (a$n :: 'a::comm_ring_1) else a$n + a$(n - 1))"
 proof (cases n)
   case 0
   then show ?thesis
     by (simp add: fps_mult_nth)
 next
   case (Suc m)
-  have "((1 + X)*a) $ n = sum (\<lambda>i. (1 + X) $ i * a $ (n - i)) {0..n}"
+  have "((1 + fps_X)*a) $ n = sum (\<lambda>i. (1 + fps_X) $ i * a $ (n - i)) {0..n}"
     by (simp add: fps_mult_nth)
-  also have "\<dots> = sum (\<lambda>i. (1+X)$i * a$(n-i)) {0.. 1}"
+  also have "\<dots> = sum (\<lambda>i. (1+fps_X)$i * a$(n-i)) {0.. 1}"
     unfolding Suc by (rule sum.mono_neutral_right) auto
   also have "\<dots> = (if n = 0 then (a$n :: 'a::comm_ring_1) else a$n + a$(n - 1))"
     by (simp add: Suc)
@@ -3145,14 +3145,14 @@ next
 qed
 
 
-subsection \<open>Finite FPS (i.e. polynomials) and X\<close>
+subsection \<open>Finite FPS (i.e. polynomials) and fps_X\<close>
 
-lemma fps_poly_sum_X:
+lemma fps_poly_sum_fps_X:
   assumes "\<forall>i > n. a$i = (0::'a::comm_ring_1)"
-  shows "a = sum (\<lambda>i. fps_const (a$i) * X^i) {0..n}" (is "a = ?r")
+  shows "a = sum (\<lambda>i. fps_const (a$i) * fps_X^i) {0..n}" (is "a = ?r")
 proof -
   have "a$i = ?r$i" for i
-    unfolding fps_sum_nth fps_mult_left_const_nth X_power_nth
+    unfolding fps_sum_nth fps_mult_left_const_nth fps_X_power_nth
     by (simp add: mult_delta_right sum.delta' assms)
   then show ?thesis
     unfolding fps_eq_iff by blast
@@ -3163,23 +3163,23 @@ subsection \<open>Compositional inverses\<close>
 
 fun compinv :: "'a fps \<Rightarrow> nat \<Rightarrow> 'a::field"
 where
-  "compinv a 0 = X$0"
+  "compinv a 0 = fps_X$0"
 | "compinv a (Suc n) =
-    (X$ Suc n - sum (\<lambda>i. (compinv a i) * (a^i)$Suc n) {0 .. n}) / (a$1) ^ Suc n"
+    (fps_X$ Suc n - sum (\<lambda>i. (compinv a i) * (a^i)$Suc n) {0 .. n}) / (a$1) ^ Suc n"
 
 definition "fps_inv a = Abs_fps (compinv a)"
 
 lemma fps_inv:
   assumes a0: "a$0 = 0"
     and a1: "a$1 \<noteq> 0"
-  shows "fps_inv a oo a = X"
+  shows "fps_inv a oo a = fps_X"
 proof -
   let ?i = "fps_inv a oo a"
-  have "?i $n = X$n" for n
+  have "?i $n = fps_X$n" for n
   proof (induct n rule: nat_less_induct)
     fix n
-    assume h: "\<forall>m<n. ?i$m = X$m"
-    show "?i $ n = X$n"
+    assume h: "\<forall>m<n. ?i$m = fps_X$m"
+    show "?i $ n = fps_X$n"
     proof (cases n)
       case 0
       then show ?thesis using a0
@@ -3189,9 +3189,9 @@ proof -
       have "?i $ n = sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
         by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
       also have "\<dots> = sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} +
-        (X$ Suc n1 - sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
+        (fps_X$ Suc n1 - sum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
         using a0 a1 Suc by (simp add: fps_inv_def)
-      also have "\<dots> = X$n" using Suc by simp
+      also have "\<dots> = fps_X$n" using Suc by simp
       finally show ?thesis .
     qed
   qed
@@ -3238,7 +3238,7 @@ proof -
     by (simp add: fps_eq_iff)
 qed
 
-lemma fps_inv_ginv: "fps_inv = fps_ginv X"
+lemma fps_inv_ginv: "fps_inv = fps_ginv fps_X"
   apply (auto simp add: fun_eq_iff fps_eq_iff fps_inv_def fps_ginv_def)
   apply (induct_tac n rule: nat_less_induct)
   apply auto
@@ -3427,7 +3427,7 @@ lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
 lemma fps_compose_sub_distrib: "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
   using fps_compose_add_distrib [of a "- b" c] by (simp add: fps_compose_uminus)
 
-lemma X_fps_compose: "X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
+lemma fps_X_fps_compose: "fps_X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left sum.delta)
 
 lemma fps_inverse_compose:
@@ -3463,16 +3463,16 @@ lemma gp:
     (is "?one oo a = _")
 proof -
   have o0: "?one $ 0 \<noteq> 0" by simp
-  have th0: "(1 - X) $ 0 \<noteq> (0::'a)" by simp
+  have th0: "(1 - fps_X) $ 0 \<noteq> (0::'a)" by simp
   from fps_inverse_gp[where ?'a = 'a]
-  have "inverse ?one = 1 - X" by (simp add: fps_eq_iff)
-  then have "inverse (inverse ?one) = inverse (1 - X)" by simp
-  then have th: "?one = 1/(1 - X)" unfolding fps_inverse_idempotent[OF o0]
+  have "inverse ?one = 1 - fps_X" by (simp add: fps_eq_iff)
+  then have "inverse (inverse ?one) = inverse (1 - fps_X)" by simp
+  then have th: "?one = 1/(1 - fps_X)" unfolding fps_inverse_idempotent[OF o0]
     by (simp add: fps_divide_def)
   show ?thesis
     unfolding th
     unfolding fps_divide_compose[OF a0 th0]
-    fps_compose_1 fps_compose_sub_distrib X_fps_compose_startby0[OF a0] ..
+    fps_compose_1 fps_compose_sub_distrib fps_X_fps_compose_startby0[OF a0] ..
 qed
 
 lemma fps_const_power [simp]: "fps_const (c::'a::ring_1) ^ n = fps_const (c^n)"
@@ -3535,7 +3535,7 @@ qed
 
 lemma fps_X_power_compose:
   assumes a0: "a$0=0"
-  shows "X^k oo a = (a::'a::idom fps)^k"
+  shows "fps_X^k oo a = (a::'a::idom fps)^k"
   (is "?l = ?r")
 proof (cases k)
   case 0
@@ -3564,7 +3564,7 @@ qed
 lemma fps_inv_right:
   assumes a0: "a$0 = 0"
     and a1: "a$1 \<noteq> 0"
-  shows "a oo fps_inv a = X"
+  shows "a oo fps_inv a = fps_X"
 proof -
   let ?ia = "fps_inv a"
   let ?iaa = "a oo fps_inv a"
@@ -3572,12 +3572,12 @@ proof -
     by (simp add: fps_inv_def)
   have th1: "?iaa $ 0 = 0"
     using a0 a1 by (simp add: fps_inv_def fps_compose_nth)
-  have th2: "X$0 = 0"
+  have th2: "fps_X$0 = 0"
     by simp
-  from fps_inv[OF a0 a1] have "a oo (fps_inv a oo a) = a oo X"
+  from fps_inv[OF a0 a1] have "a oo (fps_inv a oo a) = a oo fps_X"
     by simp
-  then have "(a oo fps_inv a) oo a = X oo a"
-    by (simp add: fps_compose_assoc[OF a0 th0] X_fps_compose_startby0[OF a0])
+  then have "(a oo fps_inv a) oo a = fps_X oo a"
+    by (simp add: fps_compose_assoc[OF a0 th0] fps_X_fps_compose_startby0[OF a0])
   with fps_compose_inj_right[OF a0 a1] show ?thesis
     by simp
 qed
@@ -3612,13 +3612,13 @@ proof -
     by (simp add: fps_inv_def)
   from a1 have ra1: "?r a $ 1 \<noteq> 0"
     by (simp add: fps_inv_def field_simps)
-  have X0: "X$0 = 0"
+  have fps_X0: "fps_X$0 = 0"
     by simp
-  from fps_inv[OF ra0 ra1] have "?r (?r a) oo ?r a = X" .
-  then have "?r (?r a) oo ?r a oo a = X oo a"
+  from fps_inv[OF ra0 ra1] have "?r (?r a) oo ?r a = fps_X" .
+  then have "?r (?r a) oo ?r a oo a = fps_X oo a"
     by simp
   then have "?r (?r a) oo (?r a oo a) = a"
-    unfolding X_fps_compose_startby0[OF a0]
+    unfolding fps_X_fps_compose_startby0[OF a0]
     unfolding fps_compose_assoc[OF a0 ra0, symmetric] .
   then show ?thesis
     unfolding fps_inv[OF a0 a1] by simp
@@ -3661,13 +3661,13 @@ qed
 lemma fps_ginv_deriv:
   assumes a0:"a$0 = (0::'a::field)"
     and a1: "a$1 \<noteq> 0"
-  shows "fps_deriv (fps_ginv b a) = (fps_deriv b / fps_deriv a) oo fps_ginv X a"
+  shows "fps_deriv (fps_ginv b a) = (fps_deriv b / fps_deriv a) oo fps_ginv fps_X a"
 proof -
   let ?ia = "fps_ginv b a"
-  let ?iXa = "fps_ginv X a"
+  let ?ifps_Xa = "fps_ginv fps_X a"
   let ?d = "fps_deriv"
   let ?dia = "?d ?ia"
-  have iXa0: "?iXa $ 0 = 0"
+  have ifps_Xa0: "?ifps_Xa $ 0 = 0"
     by (simp add: fps_ginv_def)
   have da0: "?d a $ 0 \<noteq> 0"
     using a1 by simp
@@ -3679,21 +3679,21 @@ proof -
     by simp
   with a1 have "(?d ?ia oo a) * (inverse (?d a) * ?d a) = ?d b / ?d a"
     by (simp add: fps_divide_unit)
-  then have "(?d ?ia oo a) oo ?iXa =  (?d b / ?d a) oo ?iXa"
+  then have "(?d ?ia oo a) oo ?ifps_Xa =  (?d b / ?d a) oo ?ifps_Xa"
     unfolding inverse_mult_eq_1[OF da0] by simp
-  then have "?d ?ia oo (a oo ?iXa) =  (?d b / ?d a) oo ?iXa"
-    unfolding fps_compose_assoc[OF iXa0 a0] .
+  then have "?d ?ia oo (a oo ?ifps_Xa) =  (?d b / ?d a) oo ?ifps_Xa"
+    unfolding fps_compose_assoc[OF ifps_Xa0 a0] .
   then show ?thesis unfolding fps_inv_ginv[symmetric]
     unfolding fps_inv_right[OF a0 a1] by simp
 qed
 
 lemma fps_compose_linear:
-  "fps_compose (f :: 'a :: comm_ring_1 fps) (fps_const c * X) = Abs_fps (\<lambda>n. c^n * f $ n)"
+  "fps_compose (f :: 'a :: comm_ring_1 fps) (fps_const c * fps_X) = Abs_fps (\<lambda>n. c^n * f $ n)"
   by (simp add: fps_eq_iff fps_compose_def power_mult_distrib
                 if_distrib sum.delta' cong: if_cong)
               
 lemma fps_compose_uminus': 
-  "fps_compose f (-X :: 'a :: comm_ring_1 fps) = Abs_fps (\<lambda>n. (-1)^n * f $ n)"
+  "fps_compose f (-fps_X :: 'a :: comm_ring_1 fps) = Abs_fps (\<lambda>n. (-1)^n * f $ n)"
   using fps_compose_linear[of f "-1"] 
   by (simp only: fps_const_neg [symmetric] fps_const_1_eq_1) simp
 
@@ -3768,21 +3768,21 @@ lemma fps_exp_nth_deriv[simp]:
   "fps_nth_deriv n (fps_exp (a::'a::field_char_0)) = (fps_const a)^n * (fps_exp a)"
   by (induct n) auto
 
-lemma X_compose_fps_exp[simp]: "X oo fps_exp (a::'a::field) = fps_exp a - 1"
-  by (simp add: fps_eq_iff X_fps_compose)
+lemma fps_X_compose_fps_exp[simp]: "fps_X oo fps_exp (a::'a::field) = fps_exp a - 1"
+  by (simp add: fps_eq_iff fps_X_fps_compose)
 
 lemma fps_inv_fps_exp_compose:
   assumes a: "a \<noteq> 0"
-  shows "fps_inv (fps_exp a - 1) oo (fps_exp a - 1) = X"
-    and "(fps_exp a - 1) oo fps_inv (fps_exp a - 1) = X"
+  shows "fps_inv (fps_exp a - 1) oo (fps_exp a - 1) = fps_X"
+    and "(fps_exp a - 1) oo fps_inv (fps_exp a - 1) = fps_X"
 proof -
   let ?b = "fps_exp a - 1"
   have b0: "?b $ 0 = 0"
     by simp
   have b1: "?b $ 1 \<noteq> 0"
     by (simp add: a)
-  from fps_inv[OF b0 b1] show "fps_inv (fps_exp a - 1) oo (fps_exp a - 1) = X" .
-  from fps_inv_right[OF b0 b1] show "(fps_exp a - 1) oo fps_inv (fps_exp a - 1) = X" .
+  from fps_inv[OF b0 b1] show "fps_inv (fps_exp a - 1) oo (fps_exp a - 1) = fps_X" .
+  from fps_inv_right[OF b0 b1] show "(fps_exp a - 1) oo fps_inv (fps_exp a - 1) = fps_X" .
 qed
 
 lemma fps_exp_power_mult: "(fps_exp (c::'a::field_char_0))^n = fps_exp (of_nat n * c)"
@@ -3804,11 +3804,11 @@ proof -
 qed
 
 lemma fps_exp_compose_linear [simp]: 
-  "fps_exp (d::'a::field_char_0) oo (fps_const c * X) = fps_exp (c * d)"
+  "fps_exp (d::'a::field_char_0) oo (fps_const c * fps_X) = fps_exp (c * d)"
   by (simp add: fps_compose_linear fps_exp_def fps_eq_iff power_mult_distrib)
   
 lemma fps_fps_exp_compose_minus [simp]: 
-  "fps_compose (fps_exp c) (-X) = fps_exp (-c :: 'a :: field_char_0)"
+  "fps_compose (fps_exp c) (-fps_X) = fps_exp (-c :: 'a :: field_char_0)"
   using fps_exp_compose_linear[of c "-1 :: 'a"] 
   unfolding fps_const_neg [symmetric] fps_const_1_eq_1 by simp
 
@@ -3844,14 +3844,14 @@ subsubsection \<open>Logarithmic series\<close>
 
 lemma Abs_fps_if_0:
   "Abs_fps (\<lambda>n. if n = 0 then (v::'a::ring_1) else f n) =
-    fps_const v + X * Abs_fps (\<lambda>n. f (Suc n))"
+    fps_const v + fps_X * Abs_fps (\<lambda>n. f (Suc n))"
   by (auto simp add: fps_eq_iff)
 
 definition fps_ln :: "'a::field_char_0 \<Rightarrow> 'a fps"
   where "fps_ln c = fps_const (1/c) * Abs_fps (\<lambda>n. if n = 0 then 0 else (- 1) ^ (n - 1) / of_nat n)"
 
-lemma fps_ln_deriv: "fps_deriv (fps_ln c) = fps_const (1/c) * inverse (1 + X)"
-  unfolding fps_inverse_X_plus1
+lemma fps_ln_deriv: "fps_deriv (fps_ln c) = fps_const (1/c) * inverse (1 + fps_X)"
+  unfolding fps_inverse_fps_X_plus1
   by (simp add: fps_ln_def fps_eq_iff del: of_nat_Suc)
 
 lemma fps_ln_nth: "fps_ln c $ n = (if n = 0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
@@ -3870,13 +3870,13 @@ proof -
   have "fps_deriv (fps_exp a - 1) oo fps_inv (fps_exp a - 1) =
     (fps_const a * (fps_exp a - 1) + fps_const a) oo fps_inv (fps_exp a - 1)"
     by (simp add: field_simps)
-  also have "\<dots> = fps_const a * (X + 1)"
+  also have "\<dots> = fps_const a * (fps_X + 1)"
     apply (simp add: fps_compose_add_distrib fps_const_mult_apply_left[symmetric] fps_inv_right[OF b0 b1])
     apply (simp add: field_simps)
     done
-  finally have eq: "fps_deriv (fps_exp a - 1) oo fps_inv (fps_exp a - 1) = fps_const a * (X + 1)" .
+  finally have eq: "fps_deriv (fps_exp a - 1) oo fps_inv (fps_exp a - 1) = fps_const a * (fps_X + 1)" .
   from fps_inv_deriv[OF b0 b1, unfolded eq]
-  have "fps_deriv (fps_inv ?b) = fps_const (inverse a) / (X + 1)"
+  have "fps_deriv (fps_inv ?b) = fps_const (inverse a) / (fps_X + 1)"
     using a by (simp add: fps_const_inverse eq fps_divide_def fps_inverse_mult)
   then have "fps_deriv ?l = fps_deriv ?r"
     by (simp add: fps_ln_deriv add.commute fps_divide_def divide_inverse)
@@ -3891,7 +3891,7 @@ lemma fps_ln_mult_add:
   (is "?r = ?l")
 proof-
   from c0 d0 have eq: "1/c + 1/d = (c+d)/(c*d)" by (simp add: field_simps)
-  have "fps_deriv ?r = fps_const (1/c + 1/d) * inverse (1 + X)"
+  have "fps_deriv ?r = fps_const (1/c + 1/d) * inverse (1 + fps_X)"
     by (simp add: fps_ln_deriv fps_const_add[symmetric] algebra_simps del: fps_const_add)
   also have "\<dots> = fps_deriv ?l"
     apply (simp add: fps_ln_deriv)
@@ -3901,9 +3901,9 @@ proof-
     unfolding fps_deriv_eq_iff by simp
 qed
 
-lemma X_dvd_fps_ln [simp]: "X dvd fps_ln c"
+lemma fps_X_dvd_fps_ln [simp]: "fps_X dvd fps_ln c"
 proof -
-  have "fps_ln c = X * Abs_fps (\<lambda>n. (-1) ^ n / (of_nat (Suc n) * c))"
+  have "fps_ln c = fps_X * Abs_fps (\<lambda>n. (-1) ^ n / (of_nat (Suc n) * c))"
     by (intro fps_ext) (auto simp: fps_ln_def of_nat_diff)
   thus ?thesis by simp
 qed
@@ -3918,11 +3918,11 @@ lemma fps_binomial_nth[simp]: "fps_binomial a $ n = a gchoose n"
 
 lemma fps_binomial_ODE_unique:
   fixes c :: "'a::field_char_0"
-  shows "fps_deriv a = (fps_const c * a) / (1 + X) \<longleftrightarrow> a = fps_const (a$0) * fps_binomial c"
+  shows "fps_deriv a = (fps_const c * a) / (1 + fps_X) \<longleftrightarrow> a = fps_const (a$0) * fps_binomial c"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   let ?da = "fps_deriv a"
-  let ?x1 = "(1 + X):: 'a fps"
+  let ?x1 = "(1 + fps_X):: 'a fps"
   let ?l = "?x1 * ?da"
   let ?r = "fps_const c * a"
 
@@ -3985,10 +3985,10 @@ proof
 qed
 
 lemma fps_binomial_ODE_unique':
-  "(fps_deriv a = fps_const c * a / (1 + X) \<and> a $ 0 = 1) \<longleftrightarrow> (a = fps_binomial c)"
+  "(fps_deriv a = fps_const c * a / (1 + fps_X) \<and> a $ 0 = 1) \<longleftrightarrow> (a = fps_binomial c)"
   by (subst fps_binomial_ODE_unique) auto
 
-lemma fps_binomial_deriv: "fps_deriv (fps_binomial c) = fps_const c * fps_binomial c / (1 + X)"
+lemma fps_binomial_deriv: "fps_deriv (fps_binomial c) = fps_const c * fps_binomial c / (1 + fps_X)"
 proof -
   let ?a = "fps_binomial c"
   have th0: "?a = fps_const (?a$0) * ?a" by (simp)
@@ -4001,13 +4001,13 @@ proof -
   let ?b = "fps_binomial"
   let ?db = "\<lambda>x. fps_deriv (?b x)"
   have "fps_deriv ?P = ?db c * ?b d + ?b c * ?db d - ?db (c + d)"  by simp
-  also have "\<dots> = inverse (1 + X) *
+  also have "\<dots> = inverse (1 + fps_X) *
       (fps_const c * ?b c * ?b d + fps_const d * ?b c * ?b d - fps_const (c+d) * ?b (c + d))"
     unfolding fps_binomial_deriv
     by (simp add: fps_divide_def field_simps)
-  also have "\<dots> = (fps_const (c + d)/ (1 + X)) * ?P"
+  also have "\<dots> = (fps_const (c + d)/ (1 + fps_X)) * ?P"
     by (simp add: field_simps fps_divide_unit fps_const_add[symmetric] del: fps_const_add)
-  finally have th0: "fps_deriv ?P = fps_const (c+d) * ?P / (1 + X)"
+  finally have th0: "fps_deriv ?P = fps_const (c+d) * ?P / (1 + fps_X)"
     by (simp add: fps_divide_def)
   have "?P = fps_const (?P$0) * ?b (c + d)"
     unfolding fps_binomial_ODE_unique[symmetric]
@@ -4016,35 +4016,35 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma fps_binomial_minus_one: "fps_binomial (- 1) = inverse (1 + X)"
+lemma fps_binomial_minus_one: "fps_binomial (- 1) = inverse (1 + fps_X)"
   (is "?l = inverse ?r")
 proof-
   have th: "?r$0 \<noteq> 0" by simp
-  have th': "fps_deriv (inverse ?r) = fps_const (- 1) * inverse ?r / (1 + X)"
+  have th': "fps_deriv (inverse ?r) = fps_const (- 1) * inverse ?r / (1 + fps_X)"
     by (simp add: fps_inverse_deriv[OF th] fps_divide_def
       power2_eq_square mult.commute fps_const_neg[symmetric] del: fps_const_neg)
   have eq: "inverse ?r $ 0 = 1"
     by (simp add: fps_inverse_def)
-  from iffD1[OF fps_binomial_ODE_unique[of "inverse (1 + X)" "- 1"] th'] eq
+  from iffD1[OF fps_binomial_ODE_unique[of "inverse (1 + fps_X)" "- 1"] th'] eq
   show ?thesis by (simp add: fps_inverse_def)
 qed
 
-lemma fps_binomial_of_nat: "fps_binomial (of_nat n) = (1 + X :: 'a :: field_char_0 fps) ^ n"
+lemma fps_binomial_of_nat: "fps_binomial (of_nat n) = (1 + fps_X :: 'a :: field_char_0 fps) ^ n"
 proof (cases "n = 0")
   case [simp]: True
-  have "fps_deriv ((1 + X) ^ n :: 'a fps) = 0" by simp
-  also have "\<dots> = fps_const (of_nat n) * (1 + X) ^ n / (1 + X)" by (simp add: fps_binomial_def)
+  have "fps_deriv ((1 + fps_X) ^ n :: 'a fps) = 0" by simp
+  also have "\<dots> = fps_const (of_nat n) * (1 + fps_X) ^ n / (1 + fps_X)" by (simp add: fps_binomial_def)
   finally show ?thesis by (subst sym, subst fps_binomial_ODE_unique' [symmetric]) simp_all
 next
   case False
-  have "fps_deriv ((1 + X) ^ n :: 'a fps) = fps_const (of_nat n) * (1 + X) ^ (n - 1)"
+  have "fps_deriv ((1 + fps_X) ^ n :: 'a fps) = fps_const (of_nat n) * (1 + fps_X) ^ (n - 1)"
     by (simp add: fps_deriv_power)
-  also have "(1 + X :: 'a fps) $ 0 \<noteq> 0" by simp
-  hence "(1 + X :: 'a fps) \<noteq> 0" by (intro notI) (simp only: , simp)
-  with False have "(1 + X :: 'a fps) ^ (n - 1) = (1 + X) ^ n / (1 + X)"
+  also have "(1 + fps_X :: 'a fps) $ 0 \<noteq> 0" by simp
+  hence "(1 + fps_X :: 'a fps) \<noteq> 0" by (intro notI) (simp only: , simp)
+  with False have "(1 + fps_X :: 'a fps) ^ (n - 1) = (1 + fps_X) ^ n / (1 + fps_X)"
     by (cases n) (simp_all )
-  also have "fps_const (of_nat n :: 'a) * ((1 + X) ^ n / (1 + X)) =
-               fps_const (of_nat n) * (1 + X) ^ n / (1 + X)"
+  also have "fps_const (of_nat n :: 'a) * ((1 + fps_X) ^ n / (1 + fps_X)) =
+               fps_const (of_nat n) * (1 + fps_X) ^ n / (1 + fps_X)"
     by (simp add: unit_div_mult_swap)
   finally show ?thesis
     by (subst sym, subst fps_binomial_ODE_unique' [symmetric]) (simp_all add: fps_power_nth)
@@ -4056,24 +4056,24 @@ lemma fps_binomial_0 [simp]: "fps_binomial 0 = 1"
 lemma fps_binomial_power: "fps_binomial a ^ n = fps_binomial (of_nat n * a)"
   by (induction n) (simp_all add: fps_binomial_add_mult ring_distribs)
 
-lemma fps_binomial_1: "fps_binomial 1 = 1 + X"
+lemma fps_binomial_1: "fps_binomial 1 = 1 + fps_X"
   using fps_binomial_of_nat[of 1] by simp
 
 lemma fps_binomial_minus_of_nat:
-  "fps_binomial (- of_nat n) = inverse ((1 + X :: 'a :: field_char_0 fps) ^ n)"
+  "fps_binomial (- of_nat n) = inverse ((1 + fps_X :: 'a :: field_char_0 fps) ^ n)"
   by (rule sym, rule fps_inverse_unique)
      (simp add: fps_binomial_of_nat [symmetric] fps_binomial_add_mult [symmetric])
 
-lemma one_minus_const_X_power:
-  "c \<noteq> 0 \<Longrightarrow> (1 - fps_const c * X) ^ n =
-     fps_compose (fps_binomial (of_nat n)) (-fps_const c * X)"
+lemma one_minus_const_fps_X_power:
+  "c \<noteq> 0 \<Longrightarrow> (1 - fps_const c * fps_X) ^ n =
+     fps_compose (fps_binomial (of_nat n)) (-fps_const c * fps_X)"
   by (subst fps_binomial_of_nat)
      (simp add: fps_compose_power [symmetric] fps_compose_add_distrib fps_const_neg [symmetric] 
            del: fps_const_neg)
 
-lemma one_minus_X_const_neg_power:
-  "inverse ((1 - fps_const c * X) ^ n) = 
-       fps_compose (fps_binomial (-of_nat n)) (-fps_const c * X)"
+lemma one_minus_fps_X_const_neg_power:
+  "inverse ((1 - fps_const c * fps_X) ^ n) = 
+       fps_compose (fps_binomial (-of_nat n)) (-fps_const c * fps_X)"
 proof (cases "c = 0")
   case False
   thus ?thesis
@@ -4082,17 +4082,17 @@ proof (cases "c = 0")
                 fps_const_neg [symmetric] del: fps_const_neg)
 qed simp
 
-lemma X_plus_const_power:
-  "c \<noteq> 0 \<Longrightarrow> (X + fps_const c) ^ n =
-     fps_const (c^n) * fps_compose (fps_binomial (of_nat n)) (fps_const (inverse c) * X)"
+lemma fps_X_plus_const_power:
+  "c \<noteq> 0 \<Longrightarrow> (fps_X + fps_const c) ^ n =
+     fps_const (c^n) * fps_compose (fps_binomial (of_nat n)) (fps_const (inverse c) * fps_X)"
   by (subst fps_binomial_of_nat)
      (simp add: fps_compose_power [symmetric] fps_binomial_of_nat fps_compose_add_distrib
                 fps_const_power [symmetric] power_mult_distrib [symmetric] 
                 algebra_simps inverse_mult_eq_1' del: fps_const_power)
 
-lemma X_plus_const_neg_power:
-  "c \<noteq> 0 \<Longrightarrow> inverse ((X + fps_const c) ^ n) =
-     fps_const (inverse c^n) * fps_compose (fps_binomial (-of_nat n)) (fps_const (inverse c) * X)"
+lemma fps_X_plus_const_neg_power:
+  "c \<noteq> 0 \<Longrightarrow> inverse ((fps_X + fps_const c) ^ n) =
+     fps_const (inverse c^n) * fps_compose (fps_binomial (-of_nat n)) (fps_const (inverse c) * fps_X)"
   by (subst fps_binomial_minus_of_nat)
      (simp add: fps_compose_power [symmetric] fps_binomial_of_nat fps_compose_add_distrib
                 fps_const_power [symmetric] power_mult_distrib [symmetric] fps_inverse_compose 
@@ -4101,11 +4101,11 @@ lemma X_plus_const_neg_power:
            del: fps_const_power)
 
 
-lemma one_minus_const_X_neg_power':
-  "n > 0 \<Longrightarrow> inverse ((1 - fps_const (c :: 'a :: field_char_0) * X) ^ n) =
+lemma one_minus_const_fps_X_neg_power':
+  "n > 0 \<Longrightarrow> inverse ((1 - fps_const (c :: 'a :: field_char_0) * fps_X) ^ n) =
        Abs_fps (\<lambda>k. of_nat ((n + k - 1) choose k) * c^k)"
   apply (rule fps_ext)
-  apply (subst one_minus_X_const_neg_power, subst fps_const_neg, subst fps_compose_linear)
+  apply (subst one_minus_fps_X_const_neg_power, subst fps_const_neg, subst fps_compose_linear)
   apply (simp add: power_mult_distrib [symmetric] mult.assoc [symmetric] 
                    gbinomial_minus binomial_gbinomial of_nat_diff)
   done
@@ -4546,7 +4546,7 @@ lemma fps_deriv_of_int [simp]: "fps_deriv (of_int n) = 0"
   by (simp add: fps_of_int [symmetric])
 
 lemma fps_numeral_fps_const: "numeral i = fps_const (numeral i :: 'a::comm_ring_1)"
-  by (fact numeral_fps_const) (* FIXME: duplicate *)
+  by (fact numeral_fps_const) (* FIfps_XME: duplicate *)
 
 lemma fps_cos_fps_exp_ii: "fps_cos c = (fps_exp (\<i> * c) + fps_exp (- \<i> * c)) / fps_const 2"
 proof -
@@ -4610,10 +4610,10 @@ lemma fps_hypergeo_nth_alt:
 lemma fps_hypergeo_fps_exp[simp]: "fps_hypergeo [] [] c = fps_exp c"
   by (simp add: fps_eq_iff)
 
-lemma fps_hypergeo_1_0[simp]: "fps_hypergeo [1] [] c = 1/(1 - fps_const c * X)"
+lemma fps_hypergeo_1_0[simp]: "fps_hypergeo [1] [] c = 1/(1 - fps_const c * fps_X)"
 proof -
-  let ?a = "(Abs_fps (\<lambda>n. 1)) oo (fps_const c * X)"
-  have th0: "(fps_const c * X) $ 0 = 0" by simp
+  let ?a = "(Abs_fps (\<lambda>n. 1)) oo (fps_const c * fps_X)"
+  have th0: "(fps_const c * fps_X) $ 0 = 0" by simp
   show ?thesis unfolding gp[OF th0, symmetric]
     by (auto simp add: fps_eq_iff pochhammer_fact[symmetric]
       fps_compose_nth power_mult_distrib cond_value_iff sum.delta' cong del: if_weak_cong)
@@ -4645,26 +4645,26 @@ lemma fps_hypergeo_rec:
   apply (simp add: algebra_simps)
   done
 
-lemma XD_nth[simp]: "XD a $ n = (if n = 0 then 0 else of_nat n * a$n)"
-  by (simp add: XD_def)
+lemma fps_XD_nth[simp]: "fps_XD a $ n = (if n = 0 then 0 else of_nat n * a$n)"
+  by (simp add: fps_XD_def)
 
-lemma XD_0th[simp]: "XD a $ 0 = 0"
+lemma fps_XD_0th[simp]: "fps_XD a $ 0 = 0"
   by simp
-lemma XD_Suc[simp]:" XD a $ Suc n = of_nat (Suc n) * a $ Suc n"
+lemma fps_XD_Suc[simp]:" fps_XD a $ Suc n = of_nat (Suc n) * a $ Suc n"
   by simp
 
-definition "XDp c a = XD a + fps_const c * a"
+definition "fps_XDp c a = fps_XD a + fps_const c * a"
 
-lemma XDp_nth[simp]: "XDp c a $ n = (c + of_nat n) * a$n"
-  by (simp add: XDp_def algebra_simps)
+lemma fps_XDp_nth[simp]: "fps_XDp c a $ n = (c + of_nat n) * a$n"
+  by (simp add: fps_XDp_def algebra_simps)
 
-lemma XDp_commute: "XDp b \<circ> XDp (c::'a::comm_ring_1) = XDp c \<circ> XDp b"
-  by (auto simp add: XDp_def fun_eq_iff fps_eq_iff algebra_simps)
+lemma fps_XDp_commute: "fps_XDp b \<circ> fps_XDp (c::'a::comm_ring_1) = fps_XDp c \<circ> fps_XDp b"
+  by (auto simp add: fps_XDp_def fun_eq_iff fps_eq_iff algebra_simps)
 
-lemma XDp0 [simp]: "XDp 0 = XD"
+lemma fps_XDp0 [simp]: "fps_XDp 0 = fps_XD"
   by (simp add: fun_eq_iff fps_eq_iff)
 
-lemma XDp_fps_integral [simp]: "XDp 0 (fps_integral a c) = X * a"
+lemma fps_XDp_fps_integral [simp]: "fps_XDp 0 (fps_integral a c) = fps_X * a"
   by (simp add: fps_eq_iff fps_integral_def)
 
 lemma fps_hypergeo_minus_nat:
@@ -4687,11 +4687,11 @@ lemma sum_eq_if: "sum f {(n::nat) .. m} = (if m < n then 0 else f n + sum f {n+1
 lemma pochhammer_rec_if: "pochhammer a n = (if n = 0 then 1 else a * pochhammer (a + 1) (n - 1))"
   by (cases n) (simp_all add: pochhammer_rec)
 
-lemma XDp_foldr_nth [simp]: "foldr (\<lambda>c r. XDp c \<circ> r) cs (\<lambda>c. XDp c a) c0 $ n =
+lemma fps_XDp_foldr_nth [simp]: "foldr (\<lambda>c r. fps_XDp c \<circ> r) cs (\<lambda>c. fps_XDp c a) c0 $ n =
     foldr (\<lambda>c r. (c + of_nat n) * r) cs (c0 + of_nat n) * a$n"
   by (induct cs arbitrary: c0) (auto simp add: algebra_simps)
 
-lemma genric_XDp_foldr_nth:
+lemma genric_fps_XDp_foldr_nth:
   assumes f: "\<forall>n c a. f c a $ n = (of_nat n + k c) * a$n"
   shows "foldr (\<lambda>c r. f c \<circ> r) cs (\<lambda>c. g c a) c0 $ n =
     foldr (\<lambda>c r. (k c + of_nat n) * r) cs (g c0 a $ n)"
@@ -4732,22 +4732,22 @@ lemma dist_less_eq_nth_equal: "dist f g < inverse (2 ^ i) \<longleftrightarrow> 
 
 instance fps :: (comm_ring_1) complete_space
 proof
-  fix X :: "nat \<Rightarrow> 'a fps"
-  assume "Cauchy X"
-  obtain M where M: "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j"
+  fix fps_X :: "nat \<Rightarrow> 'a fps"
+  assume "Cauchy fps_X"
+  obtain M where M: "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. fps_X (M i) $ j = fps_X m $ j"
   proof -
-    have "\<exists>M. \<forall>m \<ge> M. \<forall>j\<le>i. X M $ j = X m $ j" for i
+    have "\<exists>M. \<forall>m \<ge> M. \<forall>j\<le>i. fps_X M $ j = fps_X m $ j" for i
     proof -
       have "0 < inverse ((2::real)^i)" by simp
-      from metric_CauchyD[OF \<open>Cauchy X\<close> this] dist_less_imp_nth_equal
+      from metric_CauchyD[OF \<open>Cauchy fps_X\<close> this] dist_less_imp_nth_equal
       show ?thesis by blast
     qed
     then show ?thesis using that by metis
   qed
 
-  show "convergent X"
+  show "convergent fps_X"
   proof (rule convergentI)
-    show "X \<longlonglongrightarrow> Abs_fps (\<lambda>i. X (M i) $ i)"
+    show "fps_X \<longlonglongrightarrow> Abs_fps (\<lambda>i. fps_X (M i) $ i)"
       unfolding tendsto_iff
     proof safe
       fix e::real assume e: "0 < e"
@@ -4758,19 +4758,27 @@ proof
         by (auto simp: eventually_sequentially)
       have "eventually (\<lambda>x. M i \<le> x) sequentially"
         by (auto simp: eventually_sequentially)
-      then show "eventually (\<lambda>x. dist (X x) (Abs_fps (\<lambda>i. X (M i) $ i)) < e) sequentially"
+      then show "eventually (\<lambda>x. dist (fps_X x) (Abs_fps (\<lambda>i. fps_X (M i) $ i)) < e) sequentially"
       proof eventually_elim
         fix x
         assume x: "M i \<le> x"
-        have "X (M i) $ j = X (M j) $ j" if "j \<le> i" for j
+        have "fps_X (M i) $ j = fps_X (M j) $ j" if "j \<le> i" for j
           using M that by (metis nat_le_linear)
-        with x have "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < inverse (2 ^ i)"
+        with x have "dist (fps_X x) (Abs_fps (\<lambda>j. fps_X (M j) $ j)) < inverse (2 ^ i)"
           using M by (force simp: dist_less_eq_nth_equal)
         also note \<open>inverse (2 ^ i) < e\<close>
-        finally show "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < e" .
+        finally show "dist (fps_X x) (Abs_fps (\<lambda>j. fps_X (M j) $ j)) < e" .
       qed
     qed
   qed
 qed
+
+(* TODO: Figure out better notation for this thing *)
+no_notation fps_nth (infixl "$" 75)
+
+bundle fps_notation
+begin
+notation fps_nth (infixl "$" 75)
+end
 
 end
