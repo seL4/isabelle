@@ -15,7 +15,9 @@ Checklist for official releases
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
-- check versions in src/Tools/jEdit/Isabelle.props;
+- check versions:
+    src/Tools/jEdit/src/Isabelle.props
+    src/Tools/jEdit/src-base/Isabelle_Base.props
 
 - check funny base directory, e.g. "Test 中国";
 
@@ -44,6 +46,7 @@ Checklist for official releases
 
 - test contrib components:
     x86_64-linux without 32bit C/C++ libraries
+    x86-linux on 32bit hardware
 
 - check "Handler catches all exceptions"
 
