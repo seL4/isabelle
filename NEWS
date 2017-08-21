@@ -263,13 +263,6 @@ INCOMPATIBILITY.
 
 *** System ***
 
-* Prover IDE support for the Visual Studio Code editor and language
-server protocol, via the "isabelle vscode_server" tool (see also
-src/Tools/VSCode/README.md). The example application within the VS code
-editor is called "Isabelle" and available from its online repository
-(the "Marketplace"). It serves as example for further potential IDE
-front-ends.
-
 * System option "parallel_proofs" is 1 by default (instead of more
 aggressive 2). This requires less heap space and avoids burning parallel
 CPU cycles, while full subproof parallelization is enabled for repeated
@@ -297,6 +290,10 @@ databases, either as plain file (SQLite) or full-scale server
 "Application File Format" in the sense of
 https://www.sqlite.org/appfileformat.html). This allows systematic
 access via operations from module Sessions.Store in Isabelle/Scala.
+
+* Command-line tool "isabelle vscode_server" provides a Language Server
+Protocol implementation, e.g. for the Visual Studio Code editor. It
+serves as example for alternative PIDE front-ends.
 
 * Command-line tool "isabelle imports" helps to maintain theory imports
 wrt. session structure. Examples:
