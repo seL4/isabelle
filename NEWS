@@ -4,8 +4,8 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2017 (October 2017)
+----------------------------------
 
 *** General ***
 
@@ -29,16 +29,10 @@ just the theory base name as before).
 In order to import theories from other sessions, the ROOT file format
 provides a new 'sessions' keyword. In contrast, a theory that is
 imported in the old-fashioned manner via an explicit file-system path
-belongs to the current session, and might cause theory name confusion
+belongs to the current session, and might cause theory name conflicts
 later on. Theories that are imported from other sessions are excluded
 from the current session document. The command-line tool "isabelle
 imports" helps to update theory imports.
-
-Properly qualified imports allow the Prover IDE to process arbitrary
-theory hierarchies independently of the underlying logic session image
-(e.g. option "isabelle jedit -l"), but the directory structure needs to
-be known in advance (e.g. option "isabelle jedit -d" or a line in the
-file $ISABELLE_HOME_USER/ROOTS).
 
 * The main theory entry points for some non-HOL sessions have changed,
 to avoid confusion with the global name "Main" of the session HOL. This
@@ -51,6 +45,10 @@ leads to the follow renamings:
   ZF/ZF.thy       ~>  ZF/ZF_Base.thy
 
 INCOMPATIBILITY.
+
+* Commands 'alias' and 'type_alias' introduce aliases for constants and
+type constructors, respectively. This allows adhoc changes to name-space
+accesses within global or local theory contexts, e.g. within a 'bundle'.
 
 * Document antiquotations @{prf} and @{full_prf} output proof terms
 (again) in the same way as commands 'prf' and 'full_prf'.
@@ -70,24 +68,14 @@ src/HOL/Decision_Procs/Commutative_Ring.thy and
 src/HOL/Decision_Procs/Reflective_Field.thy for examples and the
 tutorial on code generation.
 
-* Commands 'alias' and 'type_alias' introduce aliases for constants and
-type constructors, respectively. This allows adhoc changes to name-space
-accesses within global or local theory contexts, e.g. within a 'bundle'.
-
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Automatic indentation is more careful to avoid redundant spaces in
-intermediate situations. Keywords are indented after input (via typed
-characters or completion); see also option "jedit_indent_input".
-
-* Action "isabelle.preview" opens an HTML preview of the current theory
-document in the default web browser.
-
-* Command-line invocation "isabelle jedit -R -l SESSION" uses the parent
-image of the SESSION, with qualified theory imports restricted to that
-portion of the session graph. Moreover, the ROOT entry of the SESSION is
-opened in the editor.
+* Session-qualified theory imports allow the Prover IDE to process
+arbitrary theory hierarchies independently of the underlying logic
+session image (e.g. option "isabelle jedit -l"), but the directory
+structure needs to be known in advance (e.g. option "isabelle jedit -d"
+or a line in the file $ISABELLE_HOME_USER/ROOTS).
 
 * The PIDE document model maintains file content independently of the
 status of jEdit editor buffers. Reloading jEdit buffers no longer causes
@@ -105,122 +93,96 @@ entry. When all forked tasks of a theory are finished, the border is
 painted with thick lines; remaining errors in this situation are
 represented by a different border color.
 
+* Automatic indentation is more careful to avoid redundant spaces in
+intermediate situations. Keywords are indented after input (via typed
+characters or completion); see also option "jedit_indent_input".
+
+* Action "isabelle.preview" opens an HTML preview of the current theory
+document in the default web browser.
+
+* Command-line invocation "isabelle jedit -R -l SESSION" uses the parent
+image of the SESSION, with qualified theory imports restricted to that
+portion of the session graph. Moreover, the ROOT entry of the SESSION is
+opened in the editor.
+
 * The main Isabelle/jEdit plugin may be restarted manually (using the
 jEdit Plugin Manager), as long as the "Isabelle Base" plugin remains
 enabled at all times.
 
-* Update to jedit-5.4.0.
+* Update to current jedit-5.4.0.
 
 
 *** Pure ***
 
 * Deleting the last code equations for a particular function using
 [code del] results in function with no equations (runtime abort) rather
-than an unimplemented function (generation time abort).  Use explicit
-[[code drop:]] to enforce the latter.  Minor INCOMPATIBILTIY.
+than an unimplemented function (generation time abort). Use explicit
+[[code drop:]] to enforce the latter. Minor INCOMPATIBILTIY.
 
 * Proper concept of code declarations in code.ML:
-  - Regular code declarations act only on the global theory level,
-    being ignored with warnings if syntactically malformed.
-  - Explicitly global code declarations yield errors if syntactically malformed.
-  - Default code declarations are silently ignored if syntactically malformed.
+  - Regular code declarations act only on the global theory level, being
+    ignored with warnings if syntactically malformed.
+  - Explicitly global code declarations yield errors if syntactically
+    malformed.
+  - Default code declarations are silently ignored if syntactically
+    malformed.
 Minor INCOMPATIBILITY.
 
-* Clarified and standardized internal data bookkeeping of code declarations:
-history of serials allows to track potentially non-monotonous declarations
-appropriately.  Minor INCOMPATIBILITY.
+* Clarified and standardized internal data bookkeeping of code
+declarations: history of serials allows to track potentially
+non-monotonous declarations appropriately. Minor INCOMPATIBILITY.
 
 
 *** HOL ***
 
-* Theory Library/Pattern_Aliases provides input syntax for pattern
-aliases as known from Haskell, Scala and ML.
+* SMT module:
+  - A new option, 'smt_nat_as_int', has been added to translate 'nat' to
+    'int' and benefit from the SMT solver's theory reasoning. It is
+    disabled by default.
+  - The legacy module "src/HOL/Library/Old_SMT.thy" has been removed.
+  - Several small issues have been rectified in the 'smt' command.
 
-* Constant "subseq" in Topological_Spaces removed and subsumed by
-"strict_mono". Some basic lemmas specific to "subseq" have been renamed
-accordingly, e.g. "subseq_o" -> "strict_mono_o" etc.
+* (Co)datatype package: The 'size_gen_o_map' lemma is no longer
+generated for datatypes with type class annotations. As a result, the
+tactic that derives it no longer fails on nested datatypes. Slight
+INCOMPATIBILITY.
 
 * Command and antiquotation "value" with modified default strategy:
 terms without free variables are always evaluated using plain evaluation
-only, with no fallback on normalization by evaluation.
-Minor INCOMPATIBILITY.
-
-* Notions of squarefreeness, n-th powers, and prime powers in
-HOL-Computational_Algebra and HOL-Number_Theory.
-
-* Material on infinite products in HOL-Analysis
-
-* Theory List:
-  "sublist" renamed to "nths" in analogy with "nth".
-  "sublisteq" renamed to "subseq".
-  Minor INCOMPATIBILITY.
-  New generic function "sorted_wrt"
+only, with no fallback on normalization by evaluation. Minor
+INCOMPATIBILITY.
 
 * Theories "GCD" and "Binomial" are already included in "Main" (instead
 of "Complex_Main").
 
-* Constants E/L/F in Library/Formal_Power_Series were renamed to
-fps_exp/fps_ln/fps_hypergeo to avoid polluting the name space.
-INCOMPATIBILITY.
-
-* Theory Totient in session Number_Theory introduces basic notions
-about Euler's totient function previously hidden as solitary example
-in theory Residues. Definition changed so that "totient 1 = 1" in
-agreement with the literature.  Minor INCOMPATIBILITY.
-
-* Session "Computional_Algebra" covers many previously scattered
-theories, notably Euclidean_Algorithm, Factorial_Ring, Formal_Power_Series,
-Fraction_Field, Fundamental_Theorem_Algebra, Normalized_Fraction,
-Polynomial_FPS, Polynomial, Primes.  Minor INCOMPATIBILITY.
-
 * Constant "surj" is a full input/output abbreviation (again).
 Minor INCOMPATIBILITY.
-
-* Theory Library/FinFun has been moved to AFP (again).  INCOMPATIBILITY.
-
-* Some old and rarely used ASCII replacement syntax has been removed.
-INCOMPATIBILITY, standard syntax with symbols should be used instead.
-The subsequent commands help to reproduce the old forms, e.g. to
-simplify porting old theories:
-
-syntax (ASCII)
-  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PIE _:_./ _)" 10)
-  "_Pi"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PI _:_./ _)" 10)
-  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3%_:_./ _)" [0,0,3] 3)
 
 * Dropped aliasses RangeP, DomainP for Rangep, Domainp respectively.
 INCOMPATIBILITY.
 
-* Renamed ii to imaginary_unit in order to free up ii as a variable name.
-The syntax \<i> remains available.
-INCOMPATIBILITY.
+* Renamed ii to imaginary_unit in order to free up ii as a variable
+name. The syntax \<i> remains available. INCOMPATIBILITY.
 
-* Dropped abbreviations transP, antisymP, single_valuedP;
-use constants transp, antisymp, single_valuedp instead.
-INCOMPATIBILITY.
+* Dropped abbreviations transP, antisymP, single_valuedP; use constants
+transp, antisymp, single_valuedp instead. INCOMPATIBILITY.
 
-* Algebraic type class hierarchy of euclidean (semi)rings in HOL:
-euclidean_(semi)ring, euclidean_(semi)ring_cancel,
-unique_euclidean_(semi)ring; instantiation requires
-provision of a euclidean size.
+* Constant "subseq" in Topological_Spaces has been removed -- it is
+subsumed by "strict_mono". Some basic lemmas specific to "subseq" have
+been renamed accordingly, e.g. "subseq_o" -> "strict_mono_o" etc.
 
-* Reworking of theory Euclidean_Algorithm in session HOL-Number_Theory:
-  - Euclidean induction is available as rule eucl_induct;
-  - Constants Euclidean_Algorithm.gcd, Euclidean_Algorithm.lcm,
-    Euclidean_Algorithm.Gcd and Euclidean_Algorithm.Lcm allow
-    easy instantiation of euclidean (semi)rings as GCD (semi)rings.
-  - Coefficients obtained by extended euclidean algorithm are
-    available as "bezout_coefficients".
-INCOMPATIBILITY.
+* Theory List: "sublist" renamed to "nths" in analogy with "nth", and
+"sublisteq" renamed to "subseq". Minor INCOMPATIBILITY.
 
-* Named collection mod_simps covers various congruence rules
-concerning mod, replacing former zmod_simps.
-INCOMPATIBILITY.
+* Theory List: new generic function "sorted_wrt".
+
+* Named theorems mod_simps covers various congruence rules concerning
+mod, replacing former zmod_simps. INCOMPATIBILITY.
 
 * Swapped orientation of congruence rules mod_add_left_eq,
 mod_add_right_eq, mod_add_eq, mod_mult_left_eq, mod_mult_right_eq,
 mod_mult_eq, mod_minus_eq, mod_diff_left_eq, mod_diff_right_eq,
-mod_diff_eq.  INCOMPATIBILITY.
+mod_diff_eq. INCOMPATIBILITY.
 
 * Generalized some facts:
     measure_induct_rule
@@ -231,44 +193,75 @@ mod_diff_eq.  INCOMPATIBILITY.
     zmod_eq_dvd_iff ~> mod_eq_dvd_iff
 INCOMPATIBILITY.
 
-* (Co)datatype package:
-  - The 'size_gen_o_map' lemma is no longer generated for datatypes
-    with type class annotations. As a result, the tactic that derives
-    it no longer fails on nested datatypes. Slight INCOMPATIBILITY.
+* Algebraic type class hierarchy of euclidean (semi)rings in HOL:
+euclidean_(semi)ring, euclidean_(semi)ring_cancel,
+unique_euclidean_(semi)ring; instantiation requires provision of a
+euclidean size.
 
-* Session HOL-Algebra extended by additional lattice theory: the
-Knaster-Tarski fixed point theorem and Galois Connections.
-
-* SMT module:
-  - A new option, 'smt_nat_as_int', has been added to translate 'nat' to
-    'int' and benefit from the SMT solver's theory reasoning. It is disabled
-    by default.
-  - The legacy module 'src/HOL/Library/Old_SMT.thy' has been removed.
-  - Several small issues have been rectified in the 'smt' command.
-
-* Session HOL-Analysis: more material involving arcs, paths, covering
-spaces, innessential maps, retracts. Major results include the Jordan
-Curve Theorem and the Great Picard Theorem.
-
-* The theorem in Permutations has been renamed:
-  bij_swap_ompose_bij ~> bij_swap_compose_bij
-
-* Session HOL-Library: The simprocs on subsets operators of multisets
-have been renamed:
-  msetless_cancel_numerals ~> msetsubset_cancel
-  msetle_cancel_numerals ~> msetsubset_eq_cancel
+* Theory "HOL-Number_Theory.Euclidean_Algorithm" has been reworked:
+  - Euclidean induction is available as rule eucl_induct.
+  - Constants Euclidean_Algorithm.gcd, Euclidean_Algorithm.lcm,
+    Euclidean_Algorithm.Gcd and Euclidean_Algorithm.Lcm allow
+    easy instantiation of euclidean (semi)rings as GCD (semi)rings.
+  - Coefficients obtained by extended euclidean algorithm are
+    available as "bezout_coefficients".
 INCOMPATIBILITY.
 
-* Session HOL-Library: The suffix _numerals has been removed from the
-name of the simprocs on multisets. INCOMPATIBILITY.
+* Theory "Number_Theory.Totient" introduces basic notions about Euler's
+totient function previously hidden as solitary example in theory
+Residues. Definition changed so that "totient 1 = 1" in agreement with
+the literature. Minor INCOMPATIBILITY.
+
+* Theory "HOL-Library.Permutations": theorem bij_swap_ompose_bij has
+been renamed to bij_swap_compose_bij. INCOMPATIBILITY.
+
+* Theory "HOL-Library.Formal_Power_Series": constants E/L/F have been
+renamed to fps_exp/fps_ln/fps_hypergeo to avoid polluting the name
+space. INCOMPATIBILITY.
+
+* Theory "HOL-Library.FinFun" has been moved to AFP (again).
+INCOMPATIBILITY.
+
+* Theory "HOL-Library.FuncSet": some old and rarely used ASCII
+replacement syntax has been removed. INCOMPATIBILITY, standard syntax
+with symbols should be used instead. The subsequent commands help to
+reproduce the old forms, e.g. to simplify porting old theories:
+
+syntax (ASCII)
+  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PIE _:_./ _)" 10)
+  "_Pi"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PI _:_./ _)" 10)
+  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3%_:_./ _)" [0,0,3] 3)
+
+* Theory "HOL-Library.Multiset": the simprocs on subsets operators of
+multisets have been renamed:
+
+  msetless_cancel_numerals ~> msetsubset_cancel
+  msetle_cancel_numerals ~> msetsubset_eq_cancel
+
+INCOMPATIBILITY.
+
+* Theory "HOL-Library.Pattern_Aliases" provides input syntax for pattern
+aliases as known from Haskell, Scala and ML.
+
+* Session HOL-Analysis: more material involving arcs, paths, covering
+spaces, innessential maps, retracts, material on infinite products.
+Major results include the Jordan Curve Theorem and the Great Picard
+Theorem.
+
+* Session HOL-Algebra has been extended by additional lattice theory:
+the Knaster-Tarski fixed point theorem and Galois Connections.
+
+* Sessions HOL-Computational_Algebra and HOL-Number_Theory: new notions
+of squarefreeness, n-th powers, and prime powers.
+
+* Session "HOL-Computional_Algebra" covers many previously scattered
+theories, notably Euclidean_Algorithm, Factorial_Ring,
+Formal_Power_Series, Fraction_Field, Fundamental_Theorem_Algebra,
+Normalized_Fraction, Polynomial_FPS, Polynomial, Primes. Minor
+INCOMPATIBILITY.
 
 
 *** System ***
-
-* Option parallel_proofs is 1 by default (instead of more aggressive 2).
-This requires less heap space and avoids burning parallel CPU cycles,
-while full subproof parallelization is enabled for repeated builds
-(according to parallel_subproofs_threshold).
 
 * Prover IDE support for the Visual Studio Code editor and language
 server protocol, via the "isabelle vscode_server" tool (see also
@@ -277,27 +270,24 @@ editor is called "Isabelle" and available from its online repository
 (the "Marketplace"). It serves as example for further potential IDE
 front-ends.
 
-* ISABELLE_SCALA_BUILD_OPTIONS has been renamed to
-ISABELLE_SCALAC_OPTIONS. Rare INCOMPATIBILITY.
-
-* Isabelle settings ISABELLE_WINDOWS_PLATFORM,
-ISABELLE_WINDOWS_PLATFORM32, ISABELLE_WINDOWS_PLATFORM64 indicate the
-native Windows platform (independently of the Cygwin installation). This
-is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
-ISABELLE_PLATFORM64.
+* System option "parallel_proofs" is 1 by default (instead of more
+aggressive 2). This requires less heap space and avoids burning parallel
+CPU cycles, while full subproof parallelization is enabled for repeated
+builds (according to parallel_subproofs_threshold).
 
 * System option "record_proofs" allows to change the global
 Proofterm.proofs variable for a session. Regular values are are 0, 1, 2;
 a negative value means the current state in the ML heap image remains
 unchanged.
 
-* Command-line tool "isabelle imports" helps to maintain theory imports
-wrt. session structure. Examples:
+* Isabelle settings variable ISABELLE_SCALA_BUILD_OPTIONS has been
+renamed to ISABELLE_SCALAC_OPTIONS. Rare INCOMPATIBILITY.
 
-  isabelle imports -I -a
-  isabelle imports -U -a
-  isabelle imports -U -i -a
-  isabelle imports -M -a -d '~~/src/Benchmarks'
+* Isabelle settings variables ISABELLE_WINDOWS_PLATFORM,
+ISABELLE_WINDOWS_PLATFORM32, ISABELLE_WINDOWS_PLATFORM64 indicate the
+native Windows platform (independently of the Cygwin installation). This
+is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
+ISABELLE_PLATFORM64.
 
 * Isabelle/Scala: the SQL module supports access to relational
 databases, either as plain file (SQLite) or full-scale server
@@ -307,6 +297,14 @@ databases, either as plain file (SQLite) or full-scale server
 "Application File Format" in the sense of
 https://www.sqlite.org/appfileformat.html). This allows systematic
 access via operations from module Sessions.Store in Isabelle/Scala.
+
+* Command-line tool "isabelle imports" helps to maintain theory imports
+wrt. session structure. Examples:
+
+  isabelle imports -I -a
+  isabelle imports -U -a
+  isabelle imports -U -i -a
+  isabelle imports -M -a -d '~~/src/Benchmarks'
 
 
 New in Isabelle2016-1 (December 2016)
