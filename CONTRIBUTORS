@@ -3,8 +3,16 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
+Contributions to Isabelle2017
 --------------------------------------
+
+* November 2016 - June 2017: Makarius Wenzel
+  New Isabelle/VSCode, with underlying restructuring of Isabelle/PIDE.
+
+* 2017: Makarius Wenzel
+  Session-qualified theory names (theory imports and ROOT files).
+  Prover IDE improvements.
+  Support for SQL databases in Isabelle/Scala: SQLite and PostgreSQL.
 
 * March 2017: Alasdair Armstrong, University of Sheffield and
   Simon Foster, University of York
