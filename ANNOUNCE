@@ -18,7 +18,10 @@ indication of theory status, more careful auto-indentation.
 
 * Numerous HOL library improvements.
 
-* More material in HOL-Algebra, and HOL-Analysis (ported from HOL-Light).
+* More material in HOL-Algebra, HOL-Computational_Algebra and HOL-Analysis
+(ported from HOL-Light).
+
+* SQL database support in Isabelle/Scala.
 
 
 You may get Isabelle2017 from the following mirror sites:
