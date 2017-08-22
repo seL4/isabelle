@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Pattern_Aliases.thy
-    Author:     Lars Hupel, Ondrej Kuncar
+    Author:     Lars Hupel, Ondrej Kuncar, Tobias Nipkow
 *)
 
 section \<open>Input syntax for pattern aliases (or ``as-patterns'' in Haskell)\<close>
@@ -22,7 +22,9 @@ text \<open>
   \<^item> Terms that do not adhere to the above shape may either stay untranslated or produce an error
     message. The @{command fun} command will complain if pattern aliases are left untranslated.
     In particular, there are no checks whether the patterns are wellformed or linear.
-  \<^item> The corresponding uncheck phase attempts to reverse the translation (no guarantee).
+  \<^item> The corresponding uncheck phase attempts to reverse the translation (no guarantee). The
+    additionally introduced variables are bound using a ``fake quantifier'' that does not
+    appear in the output.
   \<^item> To obtain reasonable induction principles in function definitions, the bundle also declares
     a custom congruence rule for @{const Let} that only affects @{command fun}. This congruence
     rule might lead to an explosion in term size (although that is rare)!
@@ -31,10 +33,14 @@ text \<open>
 
 subsection \<open>Definition\<close>
 
-consts as :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+consts
+  as :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+  fake_quant :: "('a \<Rightarrow> prop) \<Rightarrow> prop"
 
 lemma let_cong_unfolding: "M = N \<Longrightarrow> f N = g N \<Longrightarrow> Let M f = Let N g"
 by simp
+
+translations "P" <= "CONST fake_quant (\<lambda>x. P)"
 
 ML\<open>
 local
@@ -71,6 +77,16 @@ fun subst_once (old, new) t =
         | _ => (t, false)
   in fst (go t) end
 
+(* adapted from logic.ML *)
+fun fake_const T = Const (@{const_name fake_quant}, (T --> propT) --> propT);
+
+fun dependent_fake_name v t =
+  let
+    val x = Term.term_name v
+    val T = Term.fastype_of v
+    val t' = Term.abstract_over (v, t)
+  in if Term.is_dependent t' then fake_const T $ Abs (x, T, t') else t end
+
 in
 
 fun check_pattern_syntax t =
@@ -106,6 +122,7 @@ fun uncheck_pattern_syntax ctxt t =
   case strip_all t of
     (vars, @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs)) =>
       let
+        (* restricted to going down abstractions; ignores eta-contracted rhs *)
         fun go lhs (rhs as Const (@{const_name Let}, _) $ pat $ Abs (name, typ, t)) ctxt frees =
               if exists_subterm (fn t' => t' = pat) lhs then
                 let
@@ -125,7 +142,8 @@ fun uncheck_pattern_syntax ctxt t =
 
         val res =
           HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs', rhs'))
-          |> fold (fn v => Logic.dependent_all_name ("", v)) (map Free vars @ frees)
+          |> fold (fn v => Logic.dependent_all_name ("", v)) (map Free vars)
+          |> fold dependent_fake_name frees
       in
         if null frees then t else res
       end
@@ -145,7 +163,8 @@ bundle pattern_aliases begin
 
 end
 
-hide_const (open) as
+hide_const as
+hide_const fake_quant
 
 
 subsection \<open>Usage\<close>
@@ -175,7 +194,7 @@ let
     |> Thm.prop_of
     |> Syntax.string_of_term @{context}
     |> YXML.content_of
-  val expected = "\<And>x x'. test_2 (?y # (?y' # ?ys =: x') =: x) = x @ x' @ x'"
+  val expected = "test_2 (?y # (?y' # ?ys =: x') =: x) = x @ x' @ x'"
 in @{assert} (actual = expected) end
 \<close>
 
