@@ -30,6 +30,7 @@ imports
   Function_Division
   Function_Growth
   Fun_Lexorder
+  Going_To_Filter
   Groups_Big_Fun
   Indicator_Function
   Infinite_Set
