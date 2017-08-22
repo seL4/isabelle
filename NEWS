@@ -240,8 +240,8 @@ multisets have been renamed:
 
 INCOMPATIBILITY.
 
-* Theory "HOL-Library.Pattern_Aliases" provides input syntax for pattern
-aliases as known from Haskell, Scala and ML.
+* Theory "HOL-Library.Pattern_Aliases" provides input and output syntax
+for pattern aliases as known from Haskell, Scala and ML.
 
 * Session HOL-Analysis: more material involving arcs, paths, covering
 spaces, innessential maps, retracts, material on infinite products.
