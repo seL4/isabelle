@@ -4,7 +4,7 @@ listed as an author in one of the source files of this Isabelle distribution.
 
 
 Contributions to Isabelle2017
---------------------------------------
+-----------------------------
 
 * November 2016 - June 2017: Makarius Wenzel
   New Isabelle/VSCode, with underlying restructuring of Isabelle/PIDE.
