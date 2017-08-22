@@ -458,7 +458,7 @@ proof -
     obtain M where M:
       "M > 0"
       "\<And>a b. ball 0 M \<subseteq> cbox a b \<Longrightarrow>
-        \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - y) < e / B"
+        \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - y) < e/B"
       using has_integral_altD[OF assms(1) as *] by blast
     show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
       (\<exists>z. ((\<lambda>x. if x \<in> S then (h \<circ> f) x else 0) has_integral z) (cbox a b) \<and> norm (z - h y) < e)"
@@ -466,7 +466,7 @@ proof -
       case prems: (1 a b)
       obtain z where z:
         "((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b)"
-        "norm (z - y) < e / B"
+        "norm (z - y) < e/B"
         using M(2)[OF prems(1)] by blast
       have *: "(\<lambda>x. if x \<in> S then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> S then f x else 0)"
         using zero by auto
@@ -5927,19 +5927,19 @@ lemma henstock_lemma:
     and "\<And>p. \<lbrakk>p tagged_partial_division_of (cbox a b); \<gamma> fine p\<rbrakk> \<Longrightarrow>
              sum (\<lambda>(x,k). norm(content k *\<^sub>R f x - integral k f)) p < e"
 proof -
-  have *: "e / (2 * (real DIM('n) + 1)) > 0" using \<open>e > 0\<close> by simp
+  have *: "e/(2 * (real DIM('n) + 1)) > 0" using \<open>e > 0\<close> by simp
   with integrable_integral[OF intf, unfolded has_integral]
   obtain \<gamma> where "gauge \<gamma>"
     and \<gamma>: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; \<gamma> fine p\<rbrakk> \<Longrightarrow>
          norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f x) - integral (cbox a b) f)
-         < e / (2 * (real DIM('n) + 1))"
+         < e/(2 * (real DIM('n) + 1))"
     by metis
   show thesis
   proof (rule that [OF \<open>gauge \<gamma>\<close>])
     fix p
     assume p: "p tagged_partial_division_of cbox a b" "\<gamma> fine p"
     have "(\<Sum>(x,K)\<in>p. norm (content K *\<^sub>R f x - integral K f)) 
-          \<le> 2 * real DIM('n) * (e / (2 * (real DIM('n) + 1)))"
+          \<le> 2 * real DIM('n) * (e/(2 * (real DIM('n) + 1)))"
       using henstock_lemma_part2[OF intf * \<open>gauge \<gamma>\<close> \<gamma> p] by metis
     also have "... < e"
       using \<open>e > 0\<close> by (auto simp add: field_simps)
@@ -5993,21 +5993,21 @@ next
   then have i': "\<And>k. (integral(cbox a b) (f k)) \<le> i\<bullet>1"
     using Lim_component_ge [OF i] trivial_limit_sequentially by blast
   have "(g has_integral i) (cbox a b)"
-    unfolding has_integral
+    unfolding has_integral real_norm_def
   proof clarify
     fix e::real
     assume e: "e > 0"
     have "\<And>k. (\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
-      norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f k x) - integral (cbox a b) (f k)) < e/2 ^ (k + 2)))"
+      abs ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f k x) - integral (cbox a b) (f k)) < e/2 ^ (k + 2)))"
       using intf e by (auto simp: has_integral_integral has_integral)
     then obtain c where c:
           "\<And>x. gauge (c x)"
           "\<And>x p. \<lbrakk>p tagged_division_of cbox a b; c x fine p\<rbrakk> \<Longrightarrow>
-              norm ((\<Sum>(u, ka)\<in>p. content ka *\<^sub>R f x u) - integral (cbox a b) (f x))
-              < e / 2 ^ (x + 2)"
+              abs ((\<Sum>(u, ka)\<in>p. content ka *\<^sub>R f x u) - integral (cbox a b) (f x))
+              < e/2 ^ (x + 2)"
       by metis
 
-    have "\<exists>r. \<forall>k\<ge>r. 0 \<le> i\<bullet>1 - (integral (cbox a b) (f k)) \<and> i\<bullet>1 - (integral (cbox a b) (f k)) < e / 4"
+    have "\<exists>r. \<forall>k\<ge>r. 0 \<le> i\<bullet>1 - (integral (cbox a b) (f k)) \<and> i\<bullet>1 - (integral (cbox a b) (f k)) < e/4"
     proof -
       have "e/4 > 0"
         using e by auto
@@ -6015,33 +6015,33 @@ next
         using LIMSEQ_D [OF i \<open>e/4 > 0\<close>] i' by auto
     qed
     then obtain r where r: "\<And>k. r \<le> k \<Longrightarrow> 0 \<le> i \<bullet> 1 - integral (cbox a b) (f k)"
-                       "\<And>k. r \<le> k \<Longrightarrow> i \<bullet> 1 - integral (cbox a b) (f k) < e / 4" 
+                       "\<And>k. r \<le> k \<Longrightarrow> i \<bullet> 1 - integral (cbox a b) (f k) < e/4" 
       by metis
-    have "\<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)\<bullet>1 - (f k x)\<bullet>1 \<and> (g x)\<bullet>1 - (f k x)\<bullet>1 < e / (4 * content(cbox a b))"
+    have "\<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)\<bullet>1 - (f k x)\<bullet>1 \<and> (g x)\<bullet>1 - (f k x)\<bullet>1 < e/(4 * content(cbox a b))"
       if "x \<in> cbox a b" for x
     proof -
-      have "e / (4 * content (cbox a b)) > 0"
+      have "e/(4 * content (cbox a b)) > 0"
         by (simp add: False content_lt_nz e)
       with fg that LIMSEQ_D
-      obtain N where "\<forall>n\<ge>N. norm (f n x - g x) < e / (4 * content (cbox a b))"
+      obtain N where "\<forall>n\<ge>N. norm (f n x - g x) < e/(4 * content (cbox a b))"
         by metis
       then show "\<exists>n\<ge>r.
             \<forall>k\<ge>n.
                0 \<le> g x \<bullet> 1 - f k x \<bullet> 1 \<and>
                g x \<bullet> 1 - f k x \<bullet> 1
-               < e / (4 * content (cbox a b))"
+               < e/(4 * content (cbox a b))"
         apply (rule_tac x="N + r" in exI)
         using fg1[OF that] apply (auto simp add: field_simps)
         done
     qed
     then obtain m where r_le_m: "\<And>x. x \<in> cbox a b \<Longrightarrow> r \<le> m x"
        and m: "\<And>x k. \<lbrakk>x \<in> cbox a b; m x \<le> k\<rbrakk>
-                     \<Longrightarrow> 0 \<le> g x \<bullet> 1 - f k x \<bullet> 1 \<and> g x \<bullet> 1 - f k x \<bullet> 1 < e / (4 * content (cbox a b))"
+                     \<Longrightarrow> 0 \<le> g x \<bullet> 1 - f k x \<bullet> 1 \<and> g x \<bullet> 1 - f k x \<bullet> 1 < e/(4 * content (cbox a b))"
       by metis
     define d where "d x = c (m x) x" for x
     show "\<exists>\<gamma>. gauge \<gamma> \<and>
              (\<forall>p. p tagged_division_of cbox a b \<and>
-                  \<gamma> fine p \<longrightarrow> norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R g x) - i) < e)"
+                  \<gamma> fine p \<longrightarrow> abs ((\<Sum>(x,K)\<in>p. content K *\<^sub>R g x) - i) < e)"
     proof (rule exI, safe)
       show "gauge d"
         using c(1) unfolding gauge_def d_def by auto
@@ -6051,26 +6051,18 @@ next
       note p'=tagged_division_ofD[OF p(1)]
       obtain s where s: "\<And>x. x \<in> p \<Longrightarrow> m (fst x) \<le> s"
         by (metis finite_imageI finite_nat_set_iff_bounded_le p'(1) rev_image_eqI)
-      have *: "\<forall>a b c d. norm(a - b) \<le> e / 4 \<and> norm(b - c) < e/2 \<and>
-        norm (c - d) < e / 4 \<longrightarrow> norm (a - d) < e"
-      proof (safe, goal_cases)
-        case (1 a b c d)
-        then show ?case
-          using norm_triangle_lt[of "a - b" "b - c" "3* e/4"]
-            norm_triangle_lt[of "a - b + (b - c)" "c - d" e]
-          unfolding norm_minus_cancel
-          by (auto simp add: algebra_simps)
-      qed
-      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - i) < e"
-        apply (rule *[rule_format,where
-          b="\<Sum>(x, k)\<in>p. content k *\<^sub>R f (m x) x" and c="\<Sum>(x, k)\<in>p. integral k (f (m x))"])
-      proof (safe, goal_cases)
-        case 1
-        show ?case
-          apply (rule order_trans[of _ "\<Sum>(x, k)\<in>p. content k * (e / (4 * content (cbox a b)))"])
+      have *: "\<bar>a - d\<bar> < e" if "\<bar>a - b\<bar> \<le> e/4" "\<bar>b - c\<bar> < e/2" "\<bar>c - d\<bar> < e/4" for a b c d
+        using that norm_triangle_lt[of "a - b" "b - c" "3* e/4"]
+          norm_triangle_lt[of "a - b + (b - c)" "c - d" e]
+        by (auto simp add: algebra_simps)
+      show "abs ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - i) < e"
+      proof (rule *)
+        show "\<bar>(\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - (\<Sum>(x, K)\<in>p. content K *\<^sub>R f (m x) x)\<bar>
+              \<le> e/4"
+          apply (rule order_trans[of _ "\<Sum>(x, k)\<in>p. content k * (e/(4 * content (cbox a b)))"])
           unfolding sum_subtractf[symmetric]
           apply (rule order_trans)
-          apply (rule norm_sum)
+          apply (rule sum_abs)
           apply (rule sum_mono)
           unfolding split_paired_all split_conv
           unfolding split_def sum_distrib_right[symmetric] scaleR_diff_right[symmetric]
@@ -6081,64 +6073,57 @@ next
           then have x: "x \<in> cbox a b"
             using p'(2-3)[OF xk] by auto
           with p'(4)[OF xk] obtain u v where "K = cbox u v" by metis
-          then show "norm (content K *\<^sub>R (g x - f (m x) x)) \<le> content K * (e / (4 * content (cbox a b)))"
-            unfolding norm_scaleR using m[OF x]
-            by (metis abs_of_nonneg inner_real_def less_eq_real_def measure_nonneg mult.right_neutral mult_left_mono order_refl real_norm_def)
+          then show "abs (content K *\<^sub>R (g x - f (m x) x)) \<le> content K * (e/(4 * content (cbox a b)))"
+            unfolding abs_scaleR using m[OF x]
+            by (metis real_inner_1_right real_scaleR_def abs_of_nonneg inner_real_def less_eq_real_def measure_nonneg mult_left_mono order_refl)
         qed (insert False, auto)
 
       next
-        case 2
-        show ?case
-          apply (rule le_less_trans[of _ "norm (\<Sum>j = 0..s.
-            \<Sum>(x, K)\<in>{xk\<in>p. m (fst xk) = j}. content K *\<^sub>R f (m x) x - integral K (f (m x)))"])
+        have "norm ((\<Sum>(x, K)\<in>p. content K *\<^sub>R f (m x) x) - (\<Sum>(x, k)\<in>p. integral k (f (m x))))
+              \<le> norm
+                  (\<Sum>j = 0..s.
+                      \<Sum>(x, K)\<in>{xk \<in> p. m (fst xk) = j}.
+                        content K *\<^sub>R f (m x) x - integral K (f (m x)))"
           apply (subst sum_group)
-          apply fact
-          apply (rule finite_atLeastAtMost)
-          defer
-          apply (subst split_def)+
-          unfolding sum_subtractf
-          apply rule
+          using s by (auto simp: sum_subtractf split_def p'(1))
+        also have "\<dots> < e/2"
         proof -
-          show "norm (\<Sum>j = 0..s. \<Sum>(x, k)\<in>{xk \<in> p.
-            m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x))) < e/2"
-            apply (rule le_less_trans[of _ "sum (\<lambda>i. e/2^(i+2)) {0..s}"])
-            apply (rule sum_norm_le)
-          proof -
-            show "(\<Sum>i = 0..s. e/2 ^ (i + 2)) < e/2"
-              unfolding power_add divide_inverse inverse_mult_distrib
-              unfolding sum_distrib_left[symmetric] sum_distrib_right[symmetric]
-              unfolding power_inverse [symmetric] sum_gp
-              apply(rule mult_strict_left_mono[OF _ e])
-              unfolding power2_eq_square
-              apply auto
-              done
+          have "norm (\<Sum>j = 0..s. \<Sum>(x, k)\<in>{xk \<in> p. m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x)))
+                \<le> (\<Sum>i = 0..s. e/2 ^ (i + 2))"
+          proof (rule sum_norm_le)
             fix t
             assume "t \<in> {0..s}"
             have "norm (\<Sum>(x,k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f (m x) x - integral k (f (m x))) =
                   norm (\<Sum>(x,k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f t x - integral k (f t))"
               by (force intro!: sum.cong arg_cong[where f=norm])
             also have "... \<le> e/2 ^ (t + 2)"
-            proof (rule henstock_lemma_part1 [OF intf _ c])
+            proof (rule henstock_lemma_part1 [OF intf])
               show "{xk \<in> p. m (fst xk) = t} tagged_partial_division_of cbox a b"
                 apply (rule tagged_partial_division_subset[of p])
                 using p by (auto simp: tagged_division_of_def)
               show "c t fine {xk \<in> p. m (fst xk) = t}"
                 using p(2) by (auto simp: fine_def d_def)
-            qed (auto simp: e)
-            finally show "norm (\<Sum>(x, k)\<in>{xk \<in> p. m (fst xk) = t}. content k *\<^sub>R f (m x) x -
-              integral k (f (m x))) \<le> e/2 ^ (t + 2)" .
+            qed (use c e in auto)
+            finally show "norm (\<Sum>(x,K)\<in>{xk \<in> p. m (fst xk) = t}. content K *\<^sub>R f (m x) x -
+                                integral K (f (m x))) \<le> e/2 ^ (t + 2)" .
           qed
-        qed (insert s, auto)
+          also have "... = (e/2/2) * (\<Sum>i = 0..s. (1/2) ^ i)"
+            by (simp add: sum_distrib_left field_simps)
+          also have "\<dots> < e/2"
+            by (simp add: sum_gp mult_strict_left_mono[OF _ e])
+          finally show "norm (\<Sum>j = 0..s. \<Sum>(x, k)\<in>{xk \<in> p.
+            m (fst xk) = j}. content k *\<^sub>R f (m x) x - integral k (f (m x))) < e/2" .
+        qed 
+        finally show "\<bar>(\<Sum>(x,K)\<in>p. content K *\<^sub>R f (m x) x) - (\<Sum>(x,K)\<in>p. integral K (f (m x)))\<bar> < e/2"
+          by simp
       next
-        case 3
         note comb = integral_combine_tagged_division_topdown[OF assms(1)[rule_format] p(1)]
-        have *: "\<And>sr sx ss ks kr::real. kr = sr \<longrightarrow> ks = ss \<longrightarrow>
-          ks \<le> i \<and> sr \<le> sx \<and> sx \<le> ss \<and> 0 \<le> i\<bullet>1 - kr\<bullet>1 \<and> i\<bullet>1 - kr\<bullet>1 < e/4 \<longrightarrow> \<bar>sx - i\<bar> < e/4"
+        have *: "\<And>sr sx ss ks kr. \<lbrakk>kr = sr; ks = ss;
+          ks \<le> i; sr \<le> sx; sx \<le> ss; 0 \<le> i\<bullet>1 - kr\<bullet>1; i\<bullet>1 - kr\<bullet>1 < e/4\<rbrakk> \<Longrightarrow> \<bar>sx - i\<bar> < e/4"
           by auto
-        show ?case
+        show "\<bar>(\<Sum>(x, k)\<in>p. integral k (f (m x))) - i\<bar> < e/4"
           unfolding real_norm_def
-          apply (rule *[rule_format])
-          apply safe
+          apply (rule *)
           apply (rule comb[of r])
           apply (rule comb[of s])
           apply (rule i'[unfolded real_inner_1_right])
@@ -6146,15 +6131,15 @@ next
           unfolding split_paired_all split_conv
           apply (rule_tac[1-2] integral_le[OF ])
         proof safe
-          show "0 \<le> i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1" "i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1 < e / 4"
+          show "0 \<le> i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1" "i\<bullet>1 - (integral (cbox a b) (f r))\<bullet>1 < e/4"
             using r by auto
-          fix x k
-          assume xk: "(x, k) \<in> p"
+          fix x K
+          assume xk: "(x, K) \<in> p"
           from p'(4)[OF this] guess u v by (elim exE) note uv=this
-          show "f r integrable_on k"
-            and "f s integrable_on k"
-            and "f (m x) integrable_on k"
-            and "f (m x) integrable_on k"
+          show "f r integrable_on K"
+            and "f s integrable_on K"
+            and "f (m x) integrable_on K"
+            and "f (m x) integrable_on K"
             unfolding uv
             apply (rule_tac[!] integrable_on_subcbox[OF assms(1)[rule_format]])
             using p'(3)[OF xk]
@@ -6162,15 +6147,14 @@ next
             apply auto
             done
           fix y
-          assume "y \<in> k"
+          assume "y \<in> K"
           then have "y \<in> cbox a b"
             using p'(3)[OF xk] by auto
           then have *: "\<And>m n. n\<ge>m \<Longrightarrow> f m y \<le> f n y"
             using assms(2) by (auto intro: transitive_stepwise_le)
-          show "f r y \<le> f (m x) y" and "f (m x) y \<le> f s y"
-            apply (rule_tac[!] *)
+          show "f r y \<le> f (m x) y" "f (m x) y \<le> f s y"
             using s[rule_format,OF xk] r_le_m[of x] p'(2-3)[OF xk]
-            apply auto
+            apply (auto intro!: *)
             done
         qed
       qed
@@ -6249,11 +6233,11 @@ proof -
         by metis
       with int_f[of N, unfolded has_integral_integral has_integral_alt'[of "f N"]] 
       obtain B where "0 < B" and B: 
-        "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> norm (integral (cbox a b) (?f N) - integral S (f N)) < e / 4"
-        by (meson \<open>0 < e / 4\<close>)
+        "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> norm (integral (cbox a b) (?f N) - integral S (f N)) < e/4"
+        by (meson \<open>0 < e/4\<close>)
       have "norm (integral (cbox a b) ?g - i) < e" if  ab: "ball 0 B \<subseteq> cbox a b" for a b
       proof -
-        obtain M where M: "\<And>n. n \<ge> M \<Longrightarrow> abs (integral (cbox a b) (?f n) - integral (cbox a b) ?g) < e / 2"
+        obtain M where M: "\<And>n. n \<ge> M \<Longrightarrow> abs (integral (cbox a b) (?f n) - integral (cbox a b) ?g) < e/2"
           using \<open>e > 0\<close> g by (fastforce simp add: dest!: LIMSEQ_D [where r = "e/2"])
         have *: "\<And>\<alpha> \<beta> g. \<lbrakk>\<bar>\<alpha> - i\<bar> < e/2; \<bar>\<beta> - g\<bar> < e/2; \<alpha> \<le> \<beta>; \<beta> \<le> i\<rbrakk> \<Longrightarrow> \<bar>g - i\<bar> < e"
           unfolding real_inner_1_right by arith
@@ -6262,12 +6246,12 @@ proof -
         proof (rule *)
           show "\<bar>integral (cbox a b) (?f N) - i\<bar> < e/2"
           proof (rule abs_triangle_half_l)
-            show "\<bar>integral (cbox a b) (?f N) - integral S (f N)\<bar> < e / 2 / 2"
+            show "\<bar>integral (cbox a b) (?f N) - integral S (f N)\<bar> < e/2 / 2"
               using B[OF ab] by simp
-            show "abs (i - integral S (f N)) < e / 2 / 2"
+            show "abs (i - integral S (f N)) < e/2 / 2"
               using N by (simp add: abs_minus_commute)
           qed
-          show "\<bar>integral (cbox a b) (?f (M + N)) - integral (cbox a b) ?g\<bar> < e / 2"
+          show "\<bar>integral (cbox a b) (?f (M + N)) - integral (cbox a b) ?g\<bar> < e/2"
             by (metis le_add1 M[of "M + N"])
           show "integral (cbox a b) (?f N) \<le> integral (cbox a b) (?f (M + N))"
           proof (intro ballI integral_le[OF int int])
@@ -6998,8 +6982,8 @@ next
       by (auto simp: False content_lt_nz e)
     then obtain dd
     where dd: "\<And>x x'. \<lbrakk>x\<in>cbox (a, c) (b, d); x'\<in>cbox (a, c) (b, d); norm (x' - x) < dd\<rbrakk>
-                       \<Longrightarrow> norm (f x' - f x) \<le> e / (2 * content (cbox c d))"  "dd>0"
-      using uc [unfolded uniformly_continuous_on_def, THEN spec, of "e / (2 * content (cbox c d))"]
+                       \<Longrightarrow> norm (f x' - f x) \<le> e/(2 * content (cbox c d))"  "dd>0"
+      using uc [unfolded uniformly_continuous_on_def, THEN spec, of "e/(2 * content (cbox c d))"]
       by (auto simp: dist_norm intro: less_imp_le)
     have "\<exists>delta>0. \<forall>x'\<in>cbox a b. norm (x' - x) < delta \<longrightarrow> norm (integral (cbox c d) (\<lambda>u. f (x', u) - f (x, u))) < e"
       apply (rule_tac x=dd in exI)
@@ -7144,7 +7128,7 @@ next
   have "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) = 0"
   proof (rule dense_eq0_I, simp)
     fix e::real  assume "0 < e"
-    with cbp have e': "0 < e / content ?CBOX"
+    with cbp have e': "0 < e/content ?CBOX"
       by simp
     have f_int_acbd: "f integrable_on cbox (a,c) (b,d)"
       by (rule integrable_continuous [OF assms])
@@ -7164,7 +7148,7 @@ next
       assume k: "0 < k"
          and nf: "\<And>x y u v.
                   \<lbrakk>x \<in> cbox a b; y \<in> cbox c d; u \<in> cbox a b; v\<in>cbox c d; norm (u-x, v-y) < k\<rbrakk>
-                  \<Longrightarrow> norm (f(u,v) - f(x,y)) < e / (2 * (content ?CBOX))"
+                  \<Longrightarrow> norm (f(u,v) - f(x,y)) < e/(2 * (content ?CBOX))"
          and p_acbd: "p tagged_division_of cbox (a,c) (b,d)"
          and fine: "(\<lambda>x. ball x k) fine p"  "((t1,t2), l) \<in> p"
          and uwvz_sub: "cbox (u,w) (v,z) \<subseteq> l" "cbox (u,w) (v,z) \<subseteq> cbox (a,c) (b,d)"
@@ -7181,7 +7165,7 @@ next
         also have "norm (t1 - x1, t2 - x2) < k"
           using xuvwz ls uwvz_sub unfolding ball_def
           by (force simp add: cbox_Pair_eq dist_norm )
-        finally have "norm (f (x1,x2) - f (t1,t2)) \<le> e / content ?CBOX / 2"
+        finally have "norm (f (x1,x2) - f (t1,t2)) \<le> e/content ?CBOX / 2"
           using nf [OF t x]  by simp
       } note nf' = this
       have f_int_uwvz: "f integrable_on cbox (u,w) (v,z)"
@@ -7192,7 +7176,7 @@ next
       have 1: "norm (integral (cbox (u,w) (v,z)) f - integral (cbox (u,w) (v,z)) (\<lambda>x. f (t1,t2)))
          \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
         apply (simp only: integral_diff [symmetric] f_int_uwvz integrable_const)
-        apply (rule order_trans [OF integrable_bound [of "e / content ?CBOX / 2"]])
+        apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
         using cbp e' nf'
         apply (auto simp: integrable_diff f_int_uwvz integrable_const)
         done
@@ -7203,7 +7187,7 @@ next
                norm (integral (cbox w z) (\<lambda>y. f (x, y)) - integral (cbox w z) (\<lambda>y. f (t1, t2)))
                \<le> e * content (cbox w z) / content (cbox (a, c) (b, d)) / 2"
         apply (simp only: integral_diff [symmetric] f_int_uv integrable_const)
-        apply (rule order_trans [OF integrable_bound [of "e / content ?CBOX / 2"]])
+        apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
         using cbp e' nf'
         apply (auto simp: integrable_diff f_int_uv integrable_const)
         done
