@@ -27,7 +27,13 @@ text \<open>
     appear in the output.
   \<^item> To obtain reasonable induction principles in function definitions, the bundle also declares
     a custom congruence rule for @{const Let} that only affects @{command fun}. This congruence
-    rule might lead to an explosion in term size (although that is rare)!
+    rule might lead to an explosion in term size (although that is rare)! In some circumstances
+    (using \<open>let\<close> to destructure tuples), the internal construction of functions stumbles over this
+    rule and prints an error. To mitigate this, either
+    \<^item> activate the bundle locally (@{theory_text \<open>context includes ... begin\<close>}) or
+    \<^item> rewrite the \<open>let\<close>-expression to use \<open>case\<close>: @{term \<open>let (a, b) = x in (b, a)\<close>} becomes
+      @{term \<open>case x of (a, b) \<Rightarrow> (b, a)\<close>}.
+  \<^item> The bundle also adds the @{thm Let_def} rule to the simpset.
 \<close>
 
 
@@ -160,6 +166,7 @@ bundle pattern_aliases begin
   declaration \<open>K (Syntax_Phases.term_uncheck 98 "pattern_syntax" (map o uncheck_pattern_syntax))\<close>
 
   declare let_cong_unfolding [fundef_cong]
+  declare Let_def [simp]
 
 end
 
