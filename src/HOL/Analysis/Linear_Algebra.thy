@@ -1397,43 +1397,6 @@ lemma norm_eq: "norm x = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet
 lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> x \<bullet> x = 1"
   by (simp add: norm_eq_sqrt_inner)
 
-text\<open>Squaring equations and inequalities involving norms.\<close>
-
-lemma dot_square_norm: "x \<bullet> x = (norm x)\<^sup>2"
-  by (simp only: power2_norm_eq_inner) (* TODO: move? *)
-
-lemma norm_eq_square: "norm x = a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x = a\<^sup>2"
-  by (auto simp add: norm_eq_sqrt_inner)
-
-lemma norm_le_square: "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x \<le> a\<^sup>2"
-  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
-  using norm_ge_zero[of x]
-  apply arith
-  done
-
-lemma norm_ge_square: "norm x \<ge> a \<longleftrightarrow> a \<le> 0 \<or> x \<bullet> x \<ge> a\<^sup>2"
-  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
-  using norm_ge_zero[of x]
-  apply arith
-  done
-
-lemma norm_lt_square: "norm x < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a\<^sup>2"
-  by (metis not_le norm_ge_square)
-
-lemma norm_gt_square: "norm x > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
-  by (metis norm_le_square not_less)
-
-text\<open>Dot product in terms of the norm rather than conversely.\<close>
-
-lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_left
-  inner_scaleR_left inner_scaleR_right
-
-lemma dot_norm: "x \<bullet> y = ((norm (x + y))\<^sup>2 - (norm x)\<^sup>2 - (norm y)\<^sup>2) / 2"
-  by (simp only: power2_norm_eq_inner inner_simps inner_commute) auto
-
-lemma dot_norm_neg: "x \<bullet> y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (norm (x - y))\<^sup>2) / 2"
-  by (simp only: power2_norm_eq_inner inner_simps inner_commute)
-    (auto simp add: algebra_simps)
 
 text\<open>Equality of vectors in terms of @{term "op \<bullet>"} products.\<close>
 

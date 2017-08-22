@@ -1313,6 +1313,9 @@ lemma continuous_on_pochhammer [continuous_intros]: "continuous_on A (\<lambda>z
   for A :: "'a::real_normed_field set"
   by (intro continuous_at_imp_continuous_on ballI isCont_pochhammer)
 
+lemmas continuous_on_pochhammer' [continuous_intros] =
+  continuous_on_compose2[OF continuous_on_pochhammer _ subset_UNIV]
+
 
 subsection \<open>Exponential Function\<close>
 

@@ -3928,6 +3928,166 @@ qed
 
 subsection \<open>More facts about poles and residues\<close>
 
+lemma zorder_cong:
+  assumes "eventually (\<lambda>z. f z = g z) (nhds z)" "z = z'"
+  shows   "zorder f z = zorder g z'"
+proof -
+  let ?P = "(\<lambda>f n h r. 0 < r \<and> h holomorphic_on cball z r \<and>
+              (\<forall>w\<in>cball z r. f w = h w * (w - z) ^ n \<and> h w \<noteq> 0))"
+  have "(\<lambda>n. n > 0 \<and> (\<exists>h r. ?P f n h r)) = (\<lambda>n. n > 0 \<and> (\<exists>h r. ?P g n h r))"
+  proof (intro ext conj_cong refl iff_exI[where ?'a = "complex \<Rightarrow> complex"], goal_cases)
+    case (1 n h)
+    have *: "\<exists>r. ?P g n h r" if "\<exists>r. ?P f n h r" and "eventually (\<lambda>x. f x = g x) (nhds z)" for f g
+    proof -
+      from that(1) obtain r where "?P f n h r" by blast
+      moreover from that(2) obtain r' where "r' > 0" "\<And>w. dist w z < r' \<Longrightarrow> f w = g w"
+        by (auto simp: eventually_nhds_metric)
+      hence "\<forall>w\<in>cball z (r'/2). f w = g w" by (auto simp: dist_commute)
+      ultimately show ?thesis using \<open>r' > 0\<close>
+        by (intro exI[of _ "min r (r'/2)"]) (auto simp: cball_def)
+    qed
+    from assms have eq': "eventually (\<lambda>z. g z = f z) (nhds z)"
+      by (simp add: eq_commute)
+    show ?case
+      by (rule iffI[OF *[OF _ assms(1)] *[OF _ eq']])
+  qed
+  with assms(2) show ?thesis unfolding zorder_def by simp
+qed
+
+lemma porder_cong:
+  assumes "eventually (\<lambda>z. f z = g z) (at z)" "z = z'"
+  shows   "porder f z = porder g z'"
+proof -
+  from assms(1) have *: "eventually (\<lambda>w. w \<noteq> z \<longrightarrow> f w = g w) (nhds z)"
+    by (auto simp: eventually_at_filter)
+  from assms(2) show ?thesis
+    unfolding porder_def Let_def
+    by (intro zorder_cong eventually_mono [OF *]) auto
+qed
+
+lemma zer_poly_cong:
+  assumes "eventually (\<lambda>z. f z = g z) (nhds z)" "z = z'"
+  shows   "zer_poly f z = zer_poly g z'"
+  unfolding zer_poly_def
+proof (rule Eps_cong, goal_cases)
+  case (1 h)
+  let ?P = "\<lambda>w f. f w = h w * (w - z) ^ zorder f z \<and> h w \<noteq> 0"
+  from assms have eq': "eventually (\<lambda>z. g z = f z) (nhds z)"
+    by (simp add: eq_commute)
+  have "\<exists>r>0. h holomorphic_on cball z r \<and> (\<forall>w\<in>cball z r. ?P w g)"
+    if "r > 0" "h holomorphic_on cball z r" "\<And>w. w \<in> cball z r \<Longrightarrow> ?P w f"
+       "eventually (\<lambda>z. f z = g z) (nhds z)" for f g r
+  proof -
+    from that have [simp]: "zorder f z = zorder g z"
+      by (intro zorder_cong) auto
+    from that(4) obtain r' where r': "r' > 0" "\<And>w. w \<in> ball z r' \<Longrightarrow> g w = f w"
+      by (auto simp: eventually_nhds_metric ball_def dist_commute)
+    define R where "R = min r (r' / 2)"
+    have "R > 0" "cball z R \<subseteq> cball z r" "cball z R \<subseteq> ball z r'"
+      using that(1) r' by (auto simp: R_def)
+    with that(1,2,3) r'
+    have "R > 0" "h holomorphic_on cball z R" "\<forall>w\<in>cball z R. ?P w g" 
+      by force+
+    thus ?thesis by blast
+  qed
+  from this[of _ f g] and this[of _ g f] and assms and eq'
+    show ?case by blast
+qed
+      
+lemma pol_poly_cong:
+  assumes "eventually (\<lambda>z. f z = g z) (at z)" "z = z'"
+  shows   "pol_poly f z = pol_poly g z'"
+proof -
+  from assms have *: "eventually (\<lambda>w. w \<noteq> z \<longrightarrow> f w = g w) (nhds z)"
+    by (auto simp: eventually_at_filter)
+  have "zer_poly (\<lambda>x. if x = z then 0 else inverse (f x)) z =
+          zer_poly (\<lambda>x. if x = z' then 0 else inverse (g x)) z"
+    by (intro zer_poly_cong eventually_mono[OF *] refl) (auto simp: assms(2))
+  thus "pol_poly f z = pol_poly g z'"
+    by (simp add: pol_poly_def Let_def o_def fun_eq_iff assms(2))
+qed
+
+lemma porder_nonzero_div_power:
+  assumes "open s" "z \<in> s" "f holomorphic_on s" "f z \<noteq> 0" "n > 0"
+  shows   "porder (\<lambda>w. f w / (w - z) ^ n) z = n"
+proof -
+  let ?s' = "(f -` (-{0}) \<inter> s)"
+  have "continuous_on s f"
+    by (rule holomorphic_on_imp_continuous_on) fact
+  moreover have "open (-{0::complex})" by auto
+  ultimately have s': "open ?s'"
+    unfolding continuous_on_open_vimage[OF \<open>open s\<close>] by blast
+  show ?thesis unfolding Let_def porder_def
+  proof (rule zorder_eqI)
+    show "(\<lambda>x. inverse (f x)) holomorphic_on ?s'"
+      using assms by (auto intro!: holomorphic_intros)
+  qed (insert assms s', auto simp: field_simps)
+qed
+
+lemma is_pole_inverse_power: "n > 0 \<Longrightarrow> is_pole (\<lambda>z::complex. 1 / (z - a) ^ n) a"
+  unfolding is_pole_def inverse_eq_divide [symmetric]
+  by (intro filterlim_compose[OF filterlim_inverse_at_infinity] tendsto_intros)
+     (auto simp: filterlim_at eventually_at intro!: exI[of _ 1] tendsto_eq_intros)
+
+lemma is_pole_inverse: "is_pole (\<lambda>z::complex. 1 / (z - a)) a"
+  using is_pole_inverse_power[of 1 a] by simp
+
+lemma is_pole_divide:
+  fixes f :: "'a :: t2_space \<Rightarrow> 'b :: real_normed_field"
+  assumes "isCont f z" "filterlim g (at 0) (at z)" "f z \<noteq> 0"
+  shows   "is_pole (\<lambda>z. f z / g z) z"
+proof -
+  have "filterlim (\<lambda>z. f z * inverse (g z)) at_infinity (at z)"
+    by (intro tendsto_mult_filterlim_at_infinity[of _ "f z"]
+                 filterlim_compose[OF filterlim_inverse_at_infinity])+
+       (insert assms, auto simp: isCont_def)
+  thus ?thesis by (simp add: divide_simps is_pole_def)
+qed
+
+lemma is_pole_basic:
+  assumes "f holomorphic_on A" "open A" "z \<in> A" "f z \<noteq> 0" "n > 0"
+  shows   "is_pole (\<lambda>w. f w / (w - z) ^ n) z"
+proof (rule is_pole_divide)
+  have "continuous_on A f" by (rule holomorphic_on_imp_continuous_on) fact
+  with assms show "isCont f z" by (auto simp: continuous_on_eq_continuous_at)
+  have "filterlim (\<lambda>w. (w - z) ^ n) (nhds 0) (at z)"
+    using assms by (auto intro!: tendsto_eq_intros)
+  thus "filterlim (\<lambda>w. (w - z) ^ n) (at 0) (at z)"
+    by (intro filterlim_atI tendsto_eq_intros)
+       (insert assms, auto simp: eventually_at_filter)
+qed fact+
+
+lemma is_pole_basic':
+  assumes "f holomorphic_on A" "open A" "0 \<in> A" "f 0 \<noteq> 0" "n > 0"
+  shows   "is_pole (\<lambda>w. f w / w ^ n) 0"
+  using is_pole_basic[of f A 0] assms by simp
+
+lemma zer_poly_eq:
+  assumes "open s" "connected s" "z \<in> s" "f holomorphic_on s" "f z = 0" "\<exists>w\<in>s. f w \<noteq> 0"
+  shows "eventually (\<lambda>w. zer_poly f z w = f w / (w - z) ^ zorder f z) (at z)"
+proof -
+  from zorder_exist [OF assms] obtain r where r: "r > 0" 
+    and "\<forall>w\<in>cball z r. f w = zer_poly f z w * (w - z) ^ zorder f z" by blast
+  hence *: "\<forall>w\<in>ball z r - {z}. zer_poly f z w = f w / (w - z) ^ zorder f z" 
+    by (auto simp: field_simps)
+  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
+    using r eventually_at_ball'[of r z UNIV] by auto
+  thus ?thesis by eventually_elim (insert *, auto)
+qed
+
+lemma pol_poly_eq:
+  assumes "open s" "z \<in> s" "f holomorphic_on s - {z}" "is_pole f z" "\<exists>w\<in>s. f w \<noteq> 0"
+  shows "eventually (\<lambda>w. pol_poly f z w = f w * (w - z) ^ porder f z) (at z)"
+proof -
+  from porder_exist[OF assms(1-4)] obtain r where r: "r > 0" 
+    and "\<forall>w\<in>cball z r. w \<noteq> z \<longrightarrow> f w = pol_poly f z w / (w - z) ^ porder f z" by blast
+  hence *: "\<forall>w\<in>ball z r - {z}. pol_poly f z w = f w * (w - z) ^ porder f z" 
+    by (auto simp: field_simps)
+  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
+    using r eventually_at_ball'[of r z UNIV] by auto
+  thus ?thesis by eventually_elim (insert *, auto)
+qed
+
 lemma lhopital_complex_simple:
   assumes "(f has_field_derivative f') (at z)" 
   assumes "(g has_field_derivative g') (at z)"

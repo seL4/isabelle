@@ -367,6 +367,14 @@ lemma holomorphic_on_sum [holomorphic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) holomorphic_on s"
   unfolding holomorphic_on_def by (metis field_differentiable_sum)
 
+lemma holomorphic_pochhammer [holomorphic_intros]:
+  "f holomorphic_on A \<Longrightarrow> (\<lambda>s. pochhammer (f s) n) holomorphic_on A"
+  by (induction n) (auto intro!: holomorphic_intros simp: pochhammer_Suc)
+
+lemma holomorphic_on_scaleR [holomorphic_intros]:
+  "f holomorphic_on A \<Longrightarrow> (\<lambda>x. c *\<^sub>R f x) holomorphic_on A"
+  by (auto simp: scaleR_conv_of_real intro!: holomorphic_intros)
+
 lemma DERIV_deriv_iff_field_differentiable:
   "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
   unfolding field_differentiable_def by (metis DERIV_imp_deriv)

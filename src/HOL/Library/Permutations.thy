@@ -204,6 +204,82 @@ lemma permutes_vimage: "f permutes A \<Longrightarrow> f -` A = A"
   by (simp add: bij_vimage_eq_inv_image permutes_bij permutes_image[OF permutes_inv])
 
 
+subsection \<open>Mapping permutations with bijections\<close>
+
+lemma bij_betw_permutations:
+  assumes "bij_betw f A B"
+  shows   "bij_betw (\<lambda>\<pi> x. if x \<in> B then f (\<pi> (inv_into A f x)) else x) 
+             {\<pi>. \<pi> permutes A} {\<pi>. \<pi> permutes B}" (is "bij_betw ?f _ _")
+proof -
+  let ?g = "(\<lambda>\<pi> x. if x \<in> A then inv_into A f (\<pi> (f x)) else x)"
+  show ?thesis
+  proof (rule bij_betw_byWitness [of _ ?g], goal_cases)
+    case 3
+    show ?case using permutes_bij_inv_into[OF _ assms] by auto
+  next
+    case 4
+    have bij_inv: "bij_betw (inv_into A f) B A" by (intro bij_betw_inv_into assms)
+    {
+      fix \<pi> assume "\<pi> permutes B"
+      from permutes_bij_inv_into[OF this bij_inv] and assms
+        have "(\<lambda>x. if x \<in> A then inv_into A f (\<pi> (f x)) else x) permutes A"
+        by (simp add: inv_into_inv_into_eq cong: if_cong)
+    }
+    from this show ?case by (auto simp: permutes_inv)
+  next
+    case 1
+    thus ?case using assms
+      by (auto simp: fun_eq_iff permutes_not_in permutes_in_image bij_betw_inv_into_left
+               dest: bij_betwE)
+  next
+    case 2
+    moreover have "bij_betw (inv_into A f) B A"
+      by (intro bij_betw_inv_into assms)
+    ultimately show ?case using assms
+      by (auto simp: fun_eq_iff permutes_not_in permutes_in_image bij_betw_inv_into_right 
+               dest: bij_betwE)
+  qed
+qed
+
+lemma bij_betw_derangements:
+  assumes "bij_betw f A B"
+  shows   "bij_betw (\<lambda>\<pi> x. if x \<in> B then f (\<pi> (inv_into A f x)) else x) 
+             {\<pi>. \<pi> permutes A \<and> (\<forall>x\<in>A. \<pi> x \<noteq> x)} {\<pi>. \<pi> permutes B \<and> (\<forall>x\<in>B. \<pi> x \<noteq> x)}" 
+           (is "bij_betw ?f _ _")
+proof -
+  let ?g = "(\<lambda>\<pi> x. if x \<in> A then inv_into A f (\<pi> (f x)) else x)"
+  show ?thesis
+  proof (rule bij_betw_byWitness [of _ ?g], goal_cases)
+    case 3
+    have "?f \<pi> x \<noteq> x" if "\<pi> permutes A" "\<And>x. x \<in> A \<Longrightarrow> \<pi> x \<noteq> x" "x \<in> B" for \<pi> x
+      using that and assms by (metis bij_betwE bij_betw_imp_inj_on bij_betw_imp_surj_on
+                                     inv_into_f_f inv_into_into permutes_imp_bij)
+    with permutes_bij_inv_into[OF _ assms] show ?case by auto
+  next
+    case 4
+    have bij_inv: "bij_betw (inv_into A f) B A" by (intro bij_betw_inv_into assms)
+    have "?g \<pi> permutes A" if "\<pi> permutes B" for \<pi>
+      using permutes_bij_inv_into[OF that bij_inv] and assms
+      by (simp add: inv_into_inv_into_eq cong: if_cong)
+    moreover have "?g \<pi> x \<noteq> x" if "\<pi> permutes B" "\<And>x. x \<in> B \<Longrightarrow> \<pi> x \<noteq> x" "x \<in> A" for \<pi> x
+      using that and assms by (metis bij_betwE bij_betw_imp_surj_on f_inv_into_f permutes_imp_bij)
+    ultimately show ?case by auto
+  next
+    case 1
+    thus ?case using assms
+      by (force simp: fun_eq_iff permutes_not_in permutes_in_image bij_betw_inv_into_left
+                dest: bij_betwE)
+  next
+    case 2
+    moreover have "bij_betw (inv_into A f) B A"
+      by (intro bij_betw_inv_into assms)
+    ultimately show ?case using assms
+      by (force simp: fun_eq_iff permutes_not_in permutes_in_image bij_betw_inv_into_right 
+                dest: bij_betwE)
+  qed
+qed
+
+
 subsection \<open>The number of permutations on a finite set\<close>
 
 lemma permutes_insert_lemma:
