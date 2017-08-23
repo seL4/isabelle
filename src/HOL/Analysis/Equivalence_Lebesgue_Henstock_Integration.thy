@@ -1643,7 +1643,7 @@ proof -
       by metis
     have "e/2 > 0"
       using e by auto
-    with henstock_lemma[OF f] 
+    with Henstock_lemma[OF f] 
     obtain \<gamma> where g: "gauge \<gamma>"
       "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; \<gamma> fine p\<rbrakk> 
                 \<Longrightarrow> (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
@@ -2101,7 +2101,7 @@ proof (rule absolutely_integrable_onI, fact)
         obtain d2 where "gauge d2" 
           and d2: "\<And>p. \<lbrakk>p tagged_partial_division_of (cbox a b); d2 fine p\<rbrakk> \<Longrightarrow>
             (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
-          by (blast intro: henstock_lemma [OF f(1) \<open>e/2>0\<close>])
+          by (blast intro: Henstock_lemma [OF f(1) \<open>e/2>0\<close>])
         obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
           by (rule fine_division_exists [OF gauge_Int [OF \<open>gauge d1\<close> \<open>gauge d2\<close>], of a b])

@@ -1276,7 +1276,7 @@ proof -
     note p1=tagged_division_ofD[OF this(1)] 
     assume tdiv2: "p2 tagged_division_of (cbox a b) \<inter> {x. c \<le> x \<bullet> k}" and "\<gamma> fine p2"
     note p2=tagged_division_ofD[OF this(1)] 
-    note tagged_division_union_interval[OF tdiv1 tdiv2] 
+    note tagged_division_Un_interval[OF tdiv1 tdiv2] 
     note p12 = tagged_division_ofD[OF this] this
     { fix a b
       assume ab: "(a, b) \<in> p1 \<inter> p2"
@@ -4116,7 +4116,7 @@ proof -
       using as by (auto simp add: field_simps)
 
     have "p \<union> {(c, {t..c})} tagged_division_of {a..c}"
-      apply (rule tagged_division_union_interval_real[of _ _ _ 1 "t"])
+      apply (rule tagged_division_Un_interval_real[of _ _ _ 1 "t"])
       using  \<open>t \<le> c\<close> by (auto simp: * ptag tagged_division_of_self_real)
     moreover
     have "d1 fine p \<union> {(c, {t..c})}"
@@ -5664,9 +5664,9 @@ lemma integral_combine_tagged_division_topdown:
 
 subsection \<open>Henstock's lemma\<close>
 
-lemma henstock_lemma_part1:
+lemma Henstock_lemma_part1:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on cbox a b"
+  assumes intf: "f integrable_on cbox a b"
     and "e > 0"
     and "gauge d"
     and less_e: "\<And>p. \<lbrakk>p tagged_division_of (cbox a b); d fine p\<rbrakk> \<Longrightarrow>
@@ -5689,59 +5689,52 @@ proof -
   have r: "finite r"
     using q' unfolding r_def by auto
 
-  have "\<forall>i\<in>r. \<exists>p. p tagged_division_of i \<and> d fine p \<and>
-    norm (sum (\<lambda>(x,j). content j *\<^sub>R f x) p - integral i f) < k / (real (card r) + 1)"
-    apply safe
-  proof goal_cases
-    case (1 i)
-    then have i: "i \<in> q"
-      unfolding r_def by auto
-    from q'(4)[OF this] guess u v by (elim exE) note uv=this
+  have "\<exists>p. p tagged_division_of i \<and> d fine p \<and>
+        norm (sum (\<lambda>(x,j). content j *\<^sub>R f x) p - integral i f) < k / (real (card r) + 1)"
+    if "i\<in>r" for i
+  proof -
     have *: "k / (real (card r) + 1) > 0" using k by simp
-    have "f integrable_on cbox u v"
-      apply (rule integrable_subinterval[OF assms(1)])
-      using q'(2)[OF i]
-      unfolding uv
-      apply auto
-      done
+    have i: "i \<in> q"
+      using that unfolding r_def by auto
+    then obtain u v where uv: "i = cbox u v"
+      using q'(4) by blast
+    then have "cbox u v \<subseteq> cbox a b"
+      using i q'(2) by auto  
+    then have "f integrable_on cbox u v"
+      by (rule integrable_subinterval[OF intf])
     note integrable_integral[OF this, unfolded has_integral[of f]]
     from this[rule_format,OF *] guess dd..note dd=conjunctD2[OF this,rule_format]
     note gauge_Int[OF \<open>gauge d\<close> dd(1)]
     from fine_division_exists[OF this,of u v] guess qq .
-    then show ?case
+    then show ?thesis
       apply (rule_tac x=qq in exI)
       using dd(2)[of qq]
       unfolding fine_Int uv
       apply auto
       done
   qed
-  from bchoice[OF this] guess qq..note qq=this[rule_format]
+  then obtain qq where qq: "\<And>i. i \<in> r \<Longrightarrow> qq i tagged_division_of i \<and>
+      d fine qq i \<and>
+      norm
+       ((\<Sum>(x, j) \<in> qq i. content j *\<^sub>R f x) -
+        integral i f)
+      < k / (real (card r) + 1)"
+    by metis
 
   let ?p = "p \<union> \<Union>(qq ` r)"
   have "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - integral (cbox a b) f) < e"
   proof (rule less_e)
     show "d fine ?p"
       by (metis (mono_tags, hide_lams) qq fine_Un fine_Union imageE p(2))
-    note * = tagged_partial_division_of_union_self[OF p(1)]
+    note * = tagged_partial_division_of_Union_self[OF p(1)]
     have "p \<union> \<Union>(qq ` r) tagged_division_of \<Union>(snd ` p) \<union> \<Union>r"
       using r
-    proof (rule tagged_division_union[OF * tagged_division_unions], goal_cases)
-      case 1
-      then show ?case
+    proof (rule tagged_division_Un[OF * tagged_division_Union])
+      show "\<And>i. i \<in> r \<Longrightarrow> qq i tagged_division_of i"
         using qq by auto
-    next
-      case 2
-      then show ?case
-        apply rule
-        apply rule
-        apply rule
-        apply(rule q'(5))
-        unfolding r_def
-        apply auto
-        done
-    next
-      case 3
-      then show ?case
+      show "\<And>i1 i2. \<lbrakk>i1 \<in> r; i2 \<in> r; i1 \<noteq> i2\<rbrakk> \<Longrightarrow> interior i1 \<inter> interior i2 = {}"
+        by (simp add: q'(5) r_def)
+      show "interior (UNION p snd) \<inter> interior (\<Union>r) = {}"
       proof (rule Int_interior_Union_intervals [OF \<open>finite r\<close>])
         show "open (interior (UNION p snd))"
           by blast
@@ -5758,9 +5751,7 @@ proof -
       qed
     qed
     moreover have "\<Union>(snd ` p) \<union> \<Union>r = cbox a b" and "{qq i |i. i \<in> r} = qq ` r"
-      unfolding Union_Un_distrib[symmetric] r_def
-      using q
-      by auto
+      using q  unfolding Union_Un_distrib[symmetric] r_def by auto
     ultimately show "?p tagged_division_of (cbox a b)"
       by fastforce
   qed
@@ -5893,7 +5884,7 @@ proof -
   finally show "?x \<le> e + k" .
 qed
 
-lemma henstock_lemma_part2:
+lemma Henstock_lemma_part2:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes fed: "f integrable_on cbox a b" "e > 0" "gauge d"
     and less_e: "\<And>\<D>. \<lbrakk>\<D> tagged_division_of (cbox a b); d fine \<D>\<rbrakk> \<Longrightarrow>
@@ -5912,13 +5903,13 @@ proof -
     then have fine: "d fine Q"
       by (simp add: \<open>d fine p\<close> fine_subset)
     show "norm (\<Sum>x\<in>Q. content (snd x) *\<^sub>R f (fst x) - integral (snd x) f) \<le> e"
-      apply (rule henstock_lemma_part1[OF fed less_e, unfolded split_def])
+      apply (rule Henstock_lemma_part1[OF fed less_e, unfolded split_def])
       using Q tag tagged_partial_division_subset apply (force simp add: fine)+
       done
   qed
 qed
 
-lemma henstock_lemma:
+lemma Henstock_lemma:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes intf: "f integrable_on cbox a b"
     and "e > 0"
@@ -5939,7 +5930,7 @@ proof -
     assume p: "p tagged_partial_division_of cbox a b" "\<gamma> fine p"
     have "(\<Sum>(x,K)\<in>p. norm (content K *\<^sub>R f x - integral K f)) 
           \<le> 2 * real DIM('n) * (e/(2 * (real DIM('n) + 1)))"
-      using henstock_lemma_part2[OF intf * \<open>gauge \<gamma>\<close> \<gamma> p] by metis
+      using Henstock_lemma_part2[OF intf * \<open>gauge \<gamma>\<close> \<gamma> p] by metis
     also have "... < e"
       using \<open>e > 0\<close> by (auto simp add: field_simps)
     finally
@@ -6040,8 +6031,8 @@ next
         using c(1) unfolding gauge_def d_def by auto
     next
       fix \<D>
-      assume p: "\<D> tagged_division_of (cbox a b)" "d fine \<D>"
-      note p'=tagged_division_ofD[OF p(1)]
+      assume ptag: "\<D> tagged_division_of (cbox a b)" and "d fine \<D>"
+      note p'=tagged_division_ofD[OF ptag]
       obtain s where s: "\<And>x. x \<in> \<D> \<Longrightarrow> m (fst x) \<le> s"
         by (metis finite_imageI finite_nat_set_iff_bounded_le p'(1) rev_image_eqI)
       have *: "\<bar>a - d\<bar> < e" if "\<bar>a - b\<bar> \<le> e/4" "\<bar>b - c\<bar> < e/2" "\<bar>c - d\<bar> < e/4" for a b c d
@@ -6050,24 +6041,26 @@ next
         by (auto simp add: algebra_simps)
       show "\<bar>(\<Sum>(x, k)\<in>\<D>. content k *\<^sub>R g x) - i\<bar> < e"
       proof (rule *)
-        show "\<bar>(\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R g x) - (\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f (m x) x)\<bar> \<le> e/4"
-          apply (rule order_trans[of _ "\<Sum>(x, k)\<in>\<D>. content k * (e/(4 * content (cbox a b)))"])
-          unfolding sum_subtractf[symmetric]
-          apply (rule order_trans)
-          apply (rule sum_abs)
-          apply (rule sum_mono)
-          unfolding split_paired_all split_conv
-          unfolding split_def sum_distrib_right[symmetric] scaleR_diff_right[symmetric]
-          unfolding additive_content_tagged_division[OF p(1), unfolded split_def]
-        proof -
+        have "\<bar>(\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R g x) - (\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f (m x) x)\<bar> 
+              \<le> (\<Sum>i\<in>\<D>. \<bar>(case i of (x, K) \<Rightarrow> content K *\<^sub>R g x) - (case i of (x, K) \<Rightarrow> content K *\<^sub>R f (m x) x)\<bar>)"
+          by (metis (mono_tags) sum_subtractf sum_abs) 
+        also have "... \<le> (\<Sum>(x, k)\<in>\<D>. content k * (e/(4 * content (cbox a b))))"
+        proof (rule sum_mono, simp add: split_paired_all)
           fix x K
-          assume xk: "(x, K) \<in> \<D>"
-          with p(1) have x: "x \<in> cbox a b"
+          assume xk: "(x,K) \<in> \<D>"
+          with ptag have x: "x \<in> cbox a b"
             by blast
-          then show "abs (content K *\<^sub>R (g x - f (m x) x)) \<le> content K * (e/(4 * content (cbox a b)))"
-            unfolding abs_scaleR using m[OF x] p'(4)[OF xk]
-            by (metis real_scaleR_def abs_of_nonneg less_eq_real_def measure_nonneg mult_left_mono order_refl)
-        qed (insert False, auto)
+          then have "abs (content K * (g x - f (m x) x)) \<le> content K * (e/(4 * content (cbox a b)))"
+            by (metis m[OF x] mult_nonneg_nonneg abs_of_nonneg less_eq_real_def measure_nonneg mult_left_mono order_refl)
+          then show "\<bar>content K * g x - content K * f (m x) x\<bar> \<le> content K * e / (4 * content (cbox a b))"
+            by (simp add: algebra_simps)
+        qed
+        also have "... = (e / (4 * content (cbox a b))) * (\<Sum>(x, k)\<in>\<D>. content k)"
+          by (simp add: sum_distrib_left sum_divide_distrib split_def mult.commute)
+        also have "... \<le> e/4"
+          by (metis False additive_content_tagged_division [OF ptag] nonzero_mult_divide_mult_cancel_right order_refl times_divide_eq_left)
+        finally show "\<bar>(\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R g x) - (\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f (m x) x)\<bar> \<le> e/4" .
+
       next
         have "norm ((\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f (m x) x) - (\<Sum>(x,K)\<in>\<D>. integral K (f (m x))))
               \<le> norm (\<Sum>j = 0..s. \<Sum>(x,K)\<in>{xk \<in> \<D>. m (fst xk) = j}. content K *\<^sub>R f (m x) x - integral K (f (m x)))"
@@ -6084,12 +6077,12 @@ next
                   norm (\<Sum>(x,k)\<in>{xk \<in> \<D>. m (fst xk) = t}. content k *\<^sub>R f t x - integral k (f t))"
               by (force intro!: sum.cong arg_cong[where f=norm])
             also have "... \<le> e/2 ^ (t + 2)"
-            proof (rule henstock_lemma_part1 [OF intf])
+            proof (rule Henstock_lemma_part1 [OF intf])
               show "{xk \<in> \<D>. m (fst xk) = t} tagged_partial_division_of cbox a b"
                 apply (rule tagged_partial_division_subset[of \<D>])
-                using p by (auto simp: tagged_division_of_def)
+                using ptag by (auto simp: tagged_division_of_def)
               show "c t fine {xk \<in> \<D>. m (fst xk) = t}"
-                using p(2) by (auto simp: fine_def d_def)
+                using \<open>d fine \<D>\<close> by (auto simp: fine_def d_def)
             qed (use c e in auto)
             finally show "norm (\<Sum>(x,K)\<in>{xk \<in> \<D>. m (fst xk) = t}. content K *\<^sub>R f (m x) x -
                                 integral K (f (m x))) \<le> e/2 ^ (t + 2)" .
@@ -6105,7 +6098,7 @@ next
           by simp
       next
         have comb: "integral (cbox a b) (f y) = (\<Sum>(x, k)\<in>\<D>. integral k (f y))" for y
-          using integral_combine_tagged_division_topdown[OF intf p(1)] by metis
+          using integral_combine_tagged_division_topdown[OF intf ptag] by metis
         have f_le: "\<And>y m n. \<lbrakk>y \<in> cbox a b; n\<ge>m\<rbrakk> \<Longrightarrow> f m y \<le> f n y"
           using le by (auto intro: transitive_stepwise_le)        
         have "(\<Sum>(x, k)\<in>\<D>. integral k (f r)) \<le> (\<Sum>(x, K)\<in>\<D>. integral K (f (m x)))"
@@ -6171,11 +6164,11 @@ proof -
       using bounded_increasing_convergent [OF bou] le int_f integral_le by blast
     have i': "(integral S (f k)) \<le> i" for k
     proof -
-      have *: "\<And>k. \<forall>x\<in>S. \<forall>n\<ge>k. f k x \<le> f n x"
+      have "\<And>k. \<forall>x\<in>S. \<forall>n\<ge>k. f k x \<le> f n x"
         using le  by (force intro: transitive_stepwise_le)
-      show ?thesis
+      then show ?thesis
         using tendsto_lowerbound [OF i eventually_sequentiallyI trivial_limit_sequentially]
-        by (meson "*" int_f integral_le)
+        by (meson int_f integral_le)
     qed
 
     let ?f = "(\<lambda>k x. if x \<in> S then f k x else 0)"

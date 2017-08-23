@@ -658,7 +658,7 @@ next
            if "S tagged_partial_division_of cbox a b" "\<gamma> fine S" "h \<in> F" for S h
       proof -
         have "(\<Sum>(x,K) \<in> S. norm (content K *\<^sub>R h x - integral K h)) \<le> 2 * real DIM('b) * (\<epsilon>/(5 * Suc DIM('b)))"
-        proof (rule henstock_lemma_part2 [of h a b])
+        proof (rule Henstock_lemma_part2 [of h a b])
           show "h integrable_on cbox a b"
             using that F equiintegrable_on_def by metis
           show "gauge \<gamma>"
@@ -778,7 +778,7 @@ next
       qed
       also have "... = (\<Sum>K\<in>snd ` S. \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) * content K
                                      / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))"
-        apply (rule sum.over_tagged_division_lemma [OF tagged_partial_division_of_union_self [OF S]])
+        apply (rule sum.over_tagged_division_lemma [OF tagged_partial_division_of_Union_self [OF S]])
         apply (simp add: box_eq_empty(1) content_eq_0)
         done
       also have "... = \<epsilon>/2 * ((b \<bullet> i - a \<bullet> i) / (2 * content (cbox a b)) * (\<Sum>K\<in>snd ` S. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)))"
@@ -789,7 +789,7 @@ next
               \<le> 2 * content (cbox a b)"
         proof (rule sum_content_area_over_thin_division)
           show "snd ` S division_of \<Union>(snd ` S)"
-            by (auto intro: S tagged_partial_division_of_union_self division_of_tagged_division)
+            by (auto intro: S tagged_partial_division_of_Union_self division_of_tagged_division)
           show "UNION S snd \<subseteq> cbox a b"
             using S by force
           show "a \<bullet> i \<le> c \<bullet> i" "c \<bullet> i \<le> b \<bullet> i"
@@ -861,7 +861,7 @@ next
         if "T tagged_partial_division_of cbox a b" "\<gamma>1 fine T" "h \<in> F" for T h
       proof -
         have "(\<Sum>(x,K) \<in> T. norm (?CI K h x)) \<le> 2 * real DIM('b) * (\<epsilon>/(7 * Suc DIM('b)))"
-        proof (rule henstock_lemma_part2 [of h a b])
+        proof (rule Henstock_lemma_part2 [of h a b])
           show "h integrable_on cbox a b"
             using that F equiintegrable_on_def by metis
           show "gauge \<gamma>1"
@@ -985,7 +985,7 @@ next
                     obtain u v where uv: "L = cbox u v"
                       using T'_tagged \<open>(x, L) \<in> A\<close> \<open>A \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
                     have "A tagged_division_of UNION A snd"
-                      using A_tagged tagged_partial_division_of_union_self by auto
+                      using A_tagged tagged_partial_division_of_Union_self by auto
                     then have "interior (K \<inter> {x. x \<bullet> i \<le> c}) = {}"
                       apply (rule tagged_division_split_left_inj [OF _ \<open>(x,K) \<in> A\<close> \<open>(x,L) \<in> A\<close>])
                       using that eq \<open>i \<in> Basis\<close> by auto
@@ -1014,7 +1014,7 @@ next
                     obtain u v where uv: "L = cbox u v"
                       using T'_tagged \<open>(x, L) \<in> B\<close> \<open>B \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
                     have "B tagged_division_of UNION B snd"
-                      using B_tagged tagged_partial_division_of_union_self by auto
+                      using B_tagged tagged_partial_division_of_Union_self by auto
                     then have "interior (K \<inter> {x. c \<le> x \<bullet> i}) = {}"
                       apply (rule tagged_division_split_right_inj [OF _ \<open>(x,K) \<in> B\<close> \<open>(x,L) \<in> B\<close>])
                       using that eq \<open>i \<in> Basis\<close> by auto

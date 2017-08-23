@@ -1120,7 +1120,7 @@ lemma tagged_division_of_self_real: "x \<in> {a .. b::real} \<Longrightarrow> {(
   unfolding box_real[symmetric]
   by (rule tagged_division_of_self)
 
-lemma tagged_division_union:
+lemma tagged_division_Un:
   assumes "p1 tagged_division_of s1"
     and "p2 tagged_division_of s2"
     and "interior s1 \<inter> interior s2 = {}"
@@ -1148,13 +1148,13 @@ proof (rule tagged_division_ofI)
     by (metis "*" UnE assms(1) assms(2) inf_sup_aci(1) p2(5) tagged_division_ofD(3) xk xk'(1) xk'(2))
 qed
 
-lemma tagged_division_unions:
+lemma tagged_division_Union:
   assumes "finite I"
-    and "\<forall>i\<in>I. pfn i tagged_division_of i"
-    and "\<forall>i1\<in>I. \<forall>i2\<in>I. i1 \<noteq> i2 \<longrightarrow> interior(i1) \<inter> interior(i2) = {}"
+    and tag: "\<And>i. i\<in>I \<Longrightarrow> pfn i tagged_division_of i"
+    and disj: "\<And>i1 i2. \<lbrakk>i1 \<in> I; i2 \<in> I; i1 \<noteq> i2\<rbrakk> \<Longrightarrow> interior(i1) \<inter> interior(i2) = {}"
   shows "\<Union>(pfn ` I) tagged_division_of (\<Union>I)"
 proof (rule tagged_division_ofI)
-  note assm = tagged_division_ofD[OF assms(2)[rule_format]]
+  note assm = tagged_division_ofD[OF tag]
   show "finite (\<Union>(pfn ` I))"
     using assms by auto
   have "\<Union>{k. \<exists>x. (x, k) \<in> \<Union>(pfn ` I)} = \<Union>((\<lambda>i. \<Union>{k. \<exists>x. (x, k) \<in> pfn i}) ` I)"
@@ -1173,16 +1173,18 @@ proof (rule tagged_division_ofI)
   then obtain i' where i': "i' \<in> I" "(x', k') \<in> pfn i'"
     by auto
   have *: "\<And>a b. i \<noteq> i' \<Longrightarrow> a \<subseteq> i \<Longrightarrow> b \<subseteq> i' \<Longrightarrow> interior a \<inter> interior b = {}"
-    using i(1) i'(1)
-    using assms(3)[rule_format] interior_mono
-    by blast
+    using i(1) i'(1) disj interior_mono by blast
   show "interior k \<inter> interior k' = {}"
-    apply (cases "i = i'")
-    using assm(5) i' i(2) xk'(2) apply blast
+  proof (cases "i = i'")
+    case True then show ?thesis 
+      using assm(5) i' i xk'(2) by blast
+  next
+    case False then show ?thesis 
     using "*" assm(3) i' i by auto
+  qed
 qed
 
-lemma tagged_partial_division_of_union_self:
+lemma tagged_partial_division_of_Union_self:
   assumes "p tagged_partial_division_of s"
   shows "p tagged_division_of (\<Union>(snd ` p))"
   apply (rule tagged_division_ofI)
@@ -1753,7 +1755,7 @@ next
   qed
 qed
 
-lemma tagged_division_union_interval:
+lemma tagged_division_Un_interval:
   fixes a :: "'a::euclidean_space"
   assumes "p1 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<le> (c::real)})"
     and "p2 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
@@ -1764,14 +1766,14 @@ proof -
     by auto
   show ?thesis
     apply (subst *)
-    apply (rule tagged_division_union[OF assms(1-2)])
+    apply (rule tagged_division_Un[OF assms(1-2)])
     unfolding interval_split[OF k] interior_cbox
     using k
     apply (auto simp add: box_def elim!: ballE[where x=k])
     done
 qed
 
-lemma tagged_division_union_interval_real:
+lemma tagged_division_Un_interval_real:
   fixes a :: real
   assumes "p1 tagged_division_of ({a .. b} \<inter> {x. x\<bullet>k \<le> (c::real)})"
     and "p2 tagged_division_of ({a .. b} \<inter> {x. x\<bullet>k \<ge> c})"
@@ -1779,7 +1781,7 @@ lemma tagged_division_union_interval_real:
   shows "(p1 \<union> p2) tagged_division_of {a .. b}"
   using assms
   unfolding box_real[symmetric]
-  by (rule tagged_division_union_interval)
+  by (rule tagged_division_Un_interval)
 
 lemma tagged_division_split_left_inj:
   assumes d: "d tagged_division_of i"
@@ -1882,7 +1884,7 @@ proof -
     using bchoice[OF assms(2)] by auto
   show thesis
     apply (rule_tac p="\<Union>(pfn ` I)" in that)
-    using assms(1) assms(3) assms(4) pfn(1) tagged_division_unions apply force
+    using assms(1) assms(3) assms(4) pfn(1) tagged_division_Union apply force
     by (metis (mono_tags, lifting) fine_Union imageE pfn(2))
 qed
 
@@ -2233,7 +2235,7 @@ next
           \<not> (\<exists>p. p tagged_division_of cbox c d \<and> g fine p)"
     apply (rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p", OF _ _ False])
     apply (simp add: fine_def)
-    apply (metis tagged_division_union fine_Un)
+    apply (metis tagged_division_Un fine_Un)
     apply auto
     done
   obtain e where e: "e > 0" "ball x e \<subseteq> g x"
@@ -2324,7 +2326,7 @@ proof -
       have "{(x, cbox u v)} tagged_division_of cbox u v"
         by (simp add: p(2) uv xk tagged_division_of_self)
       then have "{(x, cbox u v)} \<union> q1 tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> insert xk p}"
-        unfolding * uv by (metis (no_types, lifting) int q1 tagged_division_union)
+        unfolding * uv by (metis (no_types, lifting) int q1 tagged_division_Un)
       with True show ?thesis
         apply (rule_tac x="{(x,cbox u v)} \<union> q1" in exI)
         using \<open>d fine q1\<close> fine_def q1I uv xk apply fastforce
@@ -2337,7 +2339,7 @@ proof -
         apply (rule_tac x="q2 \<union> q1" in exI)
         apply (intro conjI)
         unfolding * uv
-        apply (rule tagged_division_union q2 q1 int fine_Un)+
+        apply (rule tagged_division_Un q2 q1 int fine_Un)+
           apply (auto intro: q1 q2 fine_Un \<open>d fine q1\<close> simp add: False q1I uv xk)
         done
     qed
