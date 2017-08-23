@@ -4,15 +4,13 @@ section \<open>Leftist Heap\<close>
 
 theory Leftist_Heap
 imports
+  Base_FDS
   Tree2
   Priority_Queue
   Complex_Main
 begin
 
-(* FIXME mv Base *)
-lemma size_prod_measure[measure_function]: 
-  "is_measure f \<Longrightarrow> is_measure g \<Longrightarrow> is_measure (size_prod f g)"
-by (rule is_measure_trivial)
+unbundle pattern_aliases
 
 fun mset_tree :: "('a,'b) tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |
@@ -48,12 +46,16 @@ definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarro
 fun get_min :: "'a lheap \<Rightarrow> 'a" where
 "get_min(Node n l a r) = a"
 
-fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
+text\<open>Explicit termination argument: sum of sizes\<close>
+
+function merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "merge Leaf t2 = t2" |
 "merge t1 Leaf = t1" |
-"merge (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
-   (if a1 \<le> a2 then node l1 a1 (merge r1 (Node n2 l2 a2 r2))
-    else node l2 a2 (merge r2 (Node n1 l1 a1 r1)))"
+"merge (Node n1 l1 a1 r1 =: t1) (Node n2 l2 a2 r2 =: t2) =
+   (if a1 \<le> a2 then node l1 a1 (merge r1 t2)
+    else node l2 a2 (merge r2 t1))"
+by pat_completeness auto
+termination by (relation "measure (\<lambda>(t1,t2). size t1 + size t2)") auto
 
 lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
@@ -71,9 +73,6 @@ fun del_min :: "'a::ord lheap \<Rightarrow> 'a lheap" where
 
 
 subsection "Lemmas"
-
-(* FIXME mv DS_Base *)
-declare Let_def [simp]
 
 lemma mset_tree_empty: "mset_tree t = {#} \<longleftrightarrow> t = Leaf"
 by(cases t) auto
@@ -179,12 +178,16 @@ next
   finally show ?case .
 qed
 
-fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
+text\<open>Explicit termination argument: sum of sizes\<close>
+
+function t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_merge Leaf t2 = 1" |
 "t_merge t2 Leaf = 1" |
-"t_merge (Node n1 l1 a1 r1) (Node n2 l2 a2 r2) =
-  (if a1 \<le> a2 then 1 + t_merge r1 (Node n2 l2 a2 r2)
-   else 1 + t_merge r2 (Node n1 l1 a1 r1))"
+"t_merge (Node n1 l1 a1 r1 =: t1) (Node n2 l2 a2 r2 =: t2) =
+  (if a1 \<le> a2 then 1 + t_merge r1 t2
+   else 1 + t_merge r2 t1)"
+by pat_completeness auto
+termination by (relation "measure (\<lambda>(t1,t2). size t1 + size t2)") auto
 
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_insert x t = t_merge (Node 1 Leaf x Leaf) t"
@@ -209,7 +212,7 @@ corollary t_insert_log: "ltree t \<Longrightarrow> t_insert x t \<le> log 2 (siz
 using t_merge_log[of "Node 1 Leaf x Leaf" t]
 by(simp add: t_insert_def split: tree.split)
 
-(* FIXME mv Lemmas_log *)
+(* FIXME mv ? *)
 lemma ld_ld_1_less:
   assumes "x > 0" "y > 0" shows "log 2 x + log 2 y + 1 < 2 * log 2 (x+y)"
 proof -
@@ -218,7 +221,7 @@ proof -
   also have "\<dots> < (x+y)^2" using assms
     by(simp add: numeral_eq_Suc algebra_simps add_pos_pos)
   also have "\<dots> = 2 powr (2 * log 2 (x+y))"
-    using assms by(simp add: powr_add log_powr[symmetric] powr_numeral)
+    using assms by(simp add: powr_add log_powr[symmetric])
   finally show ?thesis by simp
 qed
 

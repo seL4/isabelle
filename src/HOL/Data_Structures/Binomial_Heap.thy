@@ -4,12 +4,10 @@ section \<open>Binomial Heap\<close>
 
 theory Binomial_Heap
 imports
+  Base_FDS
   Complex_Main
   Priority_Queue
 begin
-
-lemma sum_power2: "(\<Sum>i\<in>{0..<k}. (2::nat)^i) = 2^k-1"    
-by (induction k) auto
 
 text \<open>
   We formalize the binomial heap presentation from Okasaki's book.
@@ -96,7 +94,7 @@ definition link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> 'a tre
   "link t\<^sub>1 t\<^sub>2 = (case (t\<^sub>1,t\<^sub>2) of (Node r x\<^sub>1 c\<^sub>1, Node _ x\<^sub>2 c\<^sub>2) \<Rightarrow>
     if x\<^sub>1\<le>x\<^sub>2 then Node (r+1) x\<^sub>1 (t\<^sub>2#c\<^sub>1) else Node (r+1) x\<^sub>2 (t\<^sub>1#c\<^sub>2)
   )"
-  
+
 lemma link_invar_btree:
   assumes "invar_btree t\<^sub>1"
   assumes "invar_btree t\<^sub>2"
@@ -104,7 +102,7 @@ lemma link_invar_btree:
   shows "invar_btree (link t\<^sub>1 t\<^sub>2)"  
   using assms  
   unfolding link_def
-  by (force split: tree.split )
+  by (force split: tree.split)
     
 lemma link_otree_invar:      
   assumes "otree_invar t\<^sub>1"
@@ -179,17 +177,17 @@ lemma ins_invar[simp]: "invar t \<Longrightarrow> invar (ins x t)"
     
 lemma ins_mset[simp]: "mset_heap (ins x t) = {#x#} + mset_heap t"
   unfolding ins_def
-  by auto  
-  
+  by auto
+
 fun merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> 'a heap" where
   "merge ts\<^sub>1 [] = ts\<^sub>1"
 | "merge [] ts\<^sub>2 = ts\<^sub>2"  
 | "merge (t\<^sub>1#ts\<^sub>1) (t\<^sub>2#ts\<^sub>2) = (
-    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1#merge ts\<^sub>1 (t\<^sub>2#ts\<^sub>2)
-    else if rank t\<^sub>2 < rank t\<^sub>1 then t\<^sub>2#merge (t\<^sub>1#ts\<^sub>1) ts\<^sub>2
+    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1 # merge ts\<^sub>1 (t\<^sub>2#ts\<^sub>2) else
+    if rank t\<^sub>2 < rank t\<^sub>1 then t\<^sub>2 # merge (t\<^sub>1#ts\<^sub>1) ts\<^sub>2
     else ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2)
-  )"  
-    
+  )"
+
 lemma merge_simp2[simp]: "merge [] ts\<^sub>2 = ts\<^sub>2" by (cases ts\<^sub>2) auto
   
 lemma merge_rank_bound:
@@ -281,7 +279,7 @@ lemma find_min_mset_aux:
   using assms  
   apply (induction ts arbitrary: x rule: find_min.induct)  
   apply (auto 
-      simp: Let_def otree_invar_root_min intro: order_trans;
+      simp: otree_invar_root_min intro: order_trans;
       meson linear order_trans otree_invar_root_min
       )+
   done  
@@ -300,7 +298,7 @@ lemma find_min_member:
   shows "find_min ts \<in># mset_heap ts"  
   using assms  
   apply (induction ts rule: find_min.induct)  
-  apply (auto simp: Let_def)
+  apply (auto)
   done  
 
 lemma find_min:    
@@ -323,8 +321,8 @@ lemma get_min_find_min_same_root:
   shows "root t' = find_min ts"  
   using assms  
   apply (induction ts arbitrary: t' ts' rule: find_min.induct)
-  apply (auto simp: Let_def split: prod.splits)
-  done  
+  apply (auto split: prod.splits)
+  done
   
 lemma get_min_mset:    
   assumes "get_min ts = (t',ts')"  
