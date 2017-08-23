@@ -38,7 +38,7 @@ lemma of_real_harm: "of_real (harm n) = harm n"
   unfolding harm_def by simp
 
 lemma abs_harm [simp]: "(abs (harm n) :: real) = harm n"
-  using harm_nonneg[of n] by (rule abs_of_nonneg)    
+  using harm_nonneg[of n] by (rule abs_of_nonneg)
 
 lemma norm_harm: "norm (harm n) = harm n"
   by (subst of_real_harm [symmetric]) (simp add: harm_nonneg)
@@ -99,12 +99,12 @@ proof (rule filterlim_at_top_mono)
   show "eventually (\<lambda>n. harm n \<ge> ln (real (Suc n))) at_top"
     using ln_le_harm by (intro always_eventually allI) (simp_all add: add_ac)
   show "filterlim (\<lambda>n. ln (real (Suc n))) at_top sequentially"
-    by (intro filterlim_compose[OF ln_at_top] filterlim_compose[OF filterlim_real_sequentially] 
+    by (intro filterlim_compose[OF ln_at_top] filterlim_compose[OF filterlim_real_sequentially]
               filterlim_Suc)
 qed
 
 
-subsection \<open>The Euler--Mascheroni constant\<close>
+subsection \<open>The Euler-Mascheroni constant\<close>
 
 text \<open>
   The limit of the difference between the partial harmonic sum and the natural logarithm
@@ -250,7 +250,7 @@ proof (rule Lim_transform_eventually)
 qed
 
 
-subsection \<open>Bounds on the Euler--Mascheroni constant\<close>
+subsection \<open>Bounds on the Euler-Mascheroni constant\<close>
 
 (* TODO: Move? *)
 lemma ln_inverse_approx_le:
@@ -295,7 +295,7 @@ proof -
     finally show "inverse t \<le> (t - x) * f' + inverse x" .
   qed
   hence "integral {x..x+a} inverse \<le> integral {x..x+a} ?f" using f'_nonpos assms
-    by (intro integral_le has_integral_integrable[OF int1] has_integral_integrable[OF int2] ineq)
+    by (blast intro: integral_le has_integral_integrable[OF int1] has_integral_integrable[OF int2] ineq)
   also have "\<dots> = ?A" using int1 by (rule integral_unique)
   finally show ?thesis .
 qed
@@ -332,7 +332,7 @@ proof -
     thus "(t - m) * f' + inverse m \<le> inverse t" by (simp add: algebra_simps)
   qed
   hence "integral {x..y} inverse \<ge> integral {x..y} (\<lambda>t. (t - m) * f' + inverse m)"
-    using int1 int2 by (intro integral_le has_integral_integrable)
+    using int1 int2 by (blast intro: integral_le has_integral_integrable)
   also have "integral {x..y} (\<lambda>t. (t - m) * f' + inverse m) = ?A"
     using integral_unique[OF int1] by simp
   finally show ?thesis .
@@ -359,7 +359,7 @@ proof -
   from euler_mascheroni_sum_real have "euler_mascheroni = (\<Sum>k. D k)"
     by (simp add: sums_iff D_def)
   also have "\<dots> = (\<Sum>k. D (k + Suc n)) + (\<Sum>k\<le>n. D k)"
-    by (subst suminf_split_initial_segment[OF summable, of "Suc n"], 
+    by (subst suminf_split_initial_segment[OF summable, of "Suc n"],
         subst lessThan_Suc_atMost) simp
   finally have sum: "(\<Sum>k\<le>n. D k) - euler_mascheroni = -(\<Sum>k. D (k + Suc n))" by simp
 
@@ -524,7 +524,7 @@ lemma ln2_ge_two_thirds: "2/3 \<le> ln (2::real)"
 
 
 text \<open>
-  Approximation of the Euler--Mascheroni constant. The lower bound is accurate to about 0.0015;
+  Approximation of the Euler-Mascheroni constant. The lower bound is accurate to about 0.0015;
   the upper bound is accurate to about 0.015.
 \<close>
 lemma euler_mascheroni_gt_19_over_33: "(euler_mascheroni :: real) > 19/33" (is ?th1)
