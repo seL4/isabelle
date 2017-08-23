@@ -188,15 +188,23 @@ proof (rule sum.neutral, rule)
   finally show "(\<lambda>(x, k). content k *\<^sub>R f x) y = 0" .
 qed
 
-lemma operative_content[intro]: "add.operative content"
-  by (force simp add: add.operative_def content_split[symmetric] content_eq_0_interior)
+global_interpretation sum_content: operative plus 0 content
+  rewrites "comm_monoid_set.F plus 0 = sum"
+proof -
+  interpret operative plus 0 content
+    by standard (auto simp add: content_split [symmetric] content_eq_0_interior)
+  show "operative plus 0 content"
+    by standard
+  show "comm_monoid_set.F plus 0 = sum"
+    by (simp add: sum_def)
+qed
 
 lemma additive_content_division: "d division_of (cbox a b) \<Longrightarrow> sum content d = content (cbox a b)"
-  by (metis operative_content sum.operative_division)
+  by (fact sum_content.division)
 
 lemma additive_content_tagged_division:
   "d tagged_division_of (cbox a b) \<Longrightarrow> sum (\<lambda>(x,l). content l) d = content (cbox a b)"
-  unfolding sum.operative_tagged_division[OF operative_content, symmetric] by blast
+  by (fact sum_content.tagged_division)
 
 lemma subadditive_content_division:
   assumes "\<D> division_of S" "S \<subseteq> cbox a b"
@@ -1405,16 +1413,16 @@ proof -
     by (simp add: interval_split[OF k] integrable_Cauchy)
 qed
 
-lemma operative_integral:
+lemma operative_integralI:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  shows "comm_monoid.operative (lift_option op +) (Some 0)
+  shows "operative (lift_option op +) (Some 0)
     (\<lambda>i. if f integrable_on i then Some (integral i f) else None)"
 proof -
   interpret comm_monoid "lift_option plus" "Some (0::'b)"
     by (rule comm_monoid_lift_option)
       (rule add.comm_monoid_axioms)
   show ?thesis
-  proof (unfold operative_def, safe)
+  proof
     fix a b c
     fix k :: 'a
     assume k: "k \<in> Basis"
@@ -2458,45 +2466,49 @@ lemma integrable_spike_interior:
 
 subsection \<open>Integrability of continuous functions.\<close>
 
-lemma operative_approximable:
+lemma operative_approximableI:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
   assumes "0 \<le> e"
-  shows "comm_monoid.operative op \<and> True (\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i)"
-  unfolding comm_monoid.operative_def[OF comm_monoid_and]
-proof safe
-  fix a b :: 'b
-  show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
-    if "box a b = {}" for a b
-    apply (rule_tac x=f in exI)
-    using assms that by (auto simp: content_eq_0_interior)
-  {
-    fix c g and k :: 'b
-    assume fg: "\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e" and g: "g integrable_on cbox a b"
-    assume k: "k \<in> Basis"
-    show "\<exists>g. (\<forall>x\<in>cbox a b \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}"
-         "\<exists>g. (\<forall>x\<in>cbox a b \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k}"
-       apply (rule_tac[!] x=g in exI)
-      using fg integrable_split[OF g k] by auto
-  }
-  show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
-    if fg1: "\<forall>x\<in>cbox a b \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g1 x) \<le> e" 
-      and g1: "g1 integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}"
-      and fg2: "\<forall>x\<in>cbox a b \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g2 x) \<le> e" 
-      and g2: "g2 integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k}" 
-      and k: "k \<in> Basis"
-    for c k g1 g2
-  proof -
-    let ?g = "\<lambda>x. if x\<bullet>k = c then f x else if x\<bullet>k \<le> c then g1 x else g2 x"
+  shows "operative conj True (\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i)"
+proof -
+  interpret comm_monoid conj True
+    by standard auto
+  show ?thesis
+  proof (standard, safe)
+    fix a b :: 'b
     show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
-    proof (intro exI conjI ballI)
-      show "norm (f x - ?g x) \<le> e" if "x \<in> cbox a b" for x
-        by (auto simp: that assms fg1 fg2)
-      show "?g integrable_on cbox a b"
-      proof -
-        have "?g integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}" "?g integrable_on cbox a b \<inter> {x. x \<bullet> k \<ge> c}"
-          by(rule integrable_spike[OF negligible_standard_hyperplane[of k c]], use k g1 g2 in auto)+
-        with has_integral_split[OF _ _ k] show ?thesis
-          unfolding integrable_on_def by blast
+      if "box a b = {}" for a b
+      apply (rule_tac x=f in exI)
+      using assms that by (auto simp: content_eq_0_interior)
+    {
+      fix c g and k :: 'b
+      assume fg: "\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e" and g: "g integrable_on cbox a b"
+      assume k: "k \<in> Basis"
+      show "\<exists>g. (\<forall>x\<in>cbox a b \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}"
+           "\<exists>g. (\<forall>x\<in>cbox a b \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k}"
+         apply (rule_tac[!] x=g in exI)
+        using fg integrable_split[OF g k] by auto
+    }
+    show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
+      if fg1: "\<forall>x\<in>cbox a b \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g1 x) \<le> e" 
+        and g1: "g1 integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}"
+        and fg2: "\<forall>x\<in>cbox a b \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g2 x) \<le> e" 
+        and g2: "g2 integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k}" 
+        and k: "k \<in> Basis"
+      for c k g1 g2
+    proof -
+      let ?g = "\<lambda>x. if x\<bullet>k = c then f x else if x\<bullet>k \<le> c then g1 x else g2 x"
+      show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
+      proof (intro exI conjI ballI)
+        show "norm (f x - ?g x) \<le> e" if "x \<in> cbox a b" for x
+          by (auto simp: that assms fg1 fg2)
+        show "?g integrable_on cbox a b"
+        proof -
+          have "?g integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}" "?g integrable_on cbox a b \<inter> {x. x \<bullet> k \<ge> c}"
+            by(rule integrable_spike[OF negligible_standard_hyperplane[of k c]], use k g1 g2 in auto)+
+          with has_integral_split[OF _ _ k] show ?thesis
+            unfolding integrable_on_def by blast
+        qed
       qed
     qed
   qed
@@ -2517,11 +2529,9 @@ lemma approximable_on_division:
     and f: "\<forall>i\<in>d. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
   obtains g where "\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e" "g integrable_on cbox a b"
 proof -
-  note * = comm_monoid_set.operative_division
-             [OF comm_monoid_set_and operative_approximable[OF \<open>0 \<le> e\<close>] d]
-  have "finite d"
-    by (rule division_of_finite[OF d])
-  with f *[unfolded comm_monoid_set_F_and, of f] that show thesis
+  interpret operative conj True "\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i"
+    using \<open>0 \<le> e\<close> by (rule operative_approximableI)
+  from f local.division [OF d] that show thesis
     by auto
 qed
 
@@ -3000,31 +3010,43 @@ qed
 
 subsection \<open>Integrability on subintervals.\<close>
 
-lemma operative_integrable:
+lemma operative_integrableI:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
-  shows "comm_monoid.operative op \<and> True (\<lambda>i. f integrable_on i)"
-  unfolding comm_monoid.operative_def[OF comm_monoid_and]
-  apply safe
-     apply (subst integrable_on_def)
-     apply rule
-     apply (rule has_integral_null_eq[where i=0, THEN iffD2])
-      apply (simp add: content_eq_0_interior)
-     apply rule
-    apply (rule, assumption, assumption)+
-  unfolding integrable_on_def
-  by (auto intro!: has_integral_split)
+  assumes "0 \<le> e"
+  shows "operative conj True (\<lambda>i. f integrable_on i)"
+proof -
+  interpret comm_monoid conj True
+    by standard auto
+  show ?thesis
+    apply standard
+    apply safe
+       apply (subst integrable_on_def)
+       apply rule
+       apply (rule has_integral_null_eq[where i=0, THEN iffD2])
+        apply (simp add: content_eq_0_interior)
+       apply rule
+      apply (rule, assumption, assumption)+
+    unfolding integrable_on_def
+    apply (auto intro!: has_integral_split)
+    done
+qed
 
 lemma integrable_subinterval:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
   assumes "f integrable_on cbox a b"
     and "cbox c d \<subseteq> cbox a b"
   shows "f integrable_on cbox c d"
-  apply (cases "cbox c d = {}")
-  defer
-  apply (rule partial_division_extend_1[OF assms(2)],assumption)
-  using comm_monoid_set.operative_division[OF comm_monoid_set_and operative_integrable,symmetric,of _ _ _ f] assms(1)
-  apply (auto simp: comm_monoid_set_F_and)
-  done
+proof -
+  interpret operative conj True "\<lambda>i. f integrable_on i"
+    using order_refl by (rule operative_integrableI)
+  show ?thesis
+    apply (cases "cbox c d = {}")
+     defer
+     apply (rule partial_division_extend_1[OF assms(2)],assumption)
+    using division [symmetric] assms(1)
+     apply (auto simp: comm_monoid_set_F_and)
+    done
+qed
 
 lemma integrable_subinterval_real:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -3044,10 +3066,10 @@ lemma has_integral_combine:
       and cb: "(f has_integral j) {c..b}"
   shows "(f has_integral (i + j)) {a..b}"
 proof -
-  interpret comm_monoid "lift_option plus" "Some (0::'a)"
-    by (rule comm_monoid_lift_option)
-      (rule add.comm_monoid_axioms)
-  from operative_integral [of f, unfolded operative_1_le] \<open>a \<le> c\<close> \<open>c \<le> b\<close>
+  interpret operative_real "lift_option plus" "Some 0"
+    "\<lambda>i. if f integrable_on i then Some (integral i f) else None"
+    using operative_integralI by (rule operative_realI)
+  from \<open>a \<le> c\<close> \<open>c \<le> b\<close> ac cb coalesce_less_eq
   have *: "lift_option op +
              (if f integrable_on {a..c} then Some (integral {a..c} f) else None)
              (if f integrable_on {c..b} then Some (integral {c..b} f) else None) =
@@ -3098,6 +3120,8 @@ lemma integrable_on_little_subintervals:
     f integrable_on cbox u v"
   shows "f integrable_on cbox a b"
 proof -
+  interpret operative conj True "\<lambda>i. f integrable_on i"
+    using order_refl by (rule operative_integrableI)
   have "\<forall>x. \<exists>d>0. x\<in>cbox a b \<longrightarrow> (\<forall>u v. x \<in> cbox u v \<and> cbox u v \<subseteq> ball x d \<and> cbox u v \<subseteq> cbox a b \<longrightarrow>
     f integrable_on cbox u v)"
     using assms by (metis zero_less_one)
@@ -3112,8 +3136,7 @@ proof -
   have "f integrable_on k" if "(x, k) \<in> p" for x k
     using tagged_division_ofD(2-4)[OF p(1) that] fineD[OF p(2) that] d[of x] by auto
   then show ?thesis
-    unfolding comm_monoid_set.operative_division[OF comm_monoid_set_and operative_integrable sndp,  symmetric]
-              comm_monoid_set_F_and
+    unfolding division [symmetric, OF sndp] comm_monoid_set_F_and
     by auto
 qed
 
@@ -4486,13 +4509,11 @@ proof -
   }
   assume "cbox c d \<noteq> {}"
   from partial_division_extend_1 [OF assms(2) this] guess p . note p=this
-  interpret comm_monoid_set "lift_option plus" "Some (0 :: 'b)"
-    apply (rule comm_monoid_set.intro)
-    apply (rule comm_monoid_lift_option)
-    apply (rule add.comm_monoid_axioms)
-    done
-  note operat = operative_division
-    [OF operative_integral p(1), symmetric]
+  interpret operative "lift_option plus" "Some (0 :: 'b)"
+    "\<lambda>i. if g integrable_on i then Some (integral i g) else None"
+    by (fact operative_integralI)
+  note operat = division
+    [OF p(1), symmetric]
   let ?P = "(if g integrable_on cbox a b then Some (integral (cbox a b) g) else None) = Some i"
   {
     presume "?P"
@@ -7012,16 +7033,16 @@ lemma integral_split:
   apply (auto simp: has_integral_integral [symmetric])
   done
 
-lemma integral_swap_operative:
+lemma integral_swap_operativeI:
   fixes f :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::banach"
   assumes f: "continuous_on s f" and e: "0 < e"
-    shows "comm_monoid.operative (op \<and>) True
+    shows "operative conj True
            (\<lambda>k. \<forall>a b c d.
                 cbox (a,c) (b,d) \<subseteq> k \<and> cbox (a,c) (b,d) \<subseteq> s
                 \<longrightarrow> norm(integral (cbox (a,c) (b,d)) f -
                          integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f((x,y)))))
                     \<le> e * content (cbox (a,c) (b,d)))"
-proof (auto simp: comm_monoid.operative_def[OF comm_monoid_and])
+proof (standard, auto)
   fix a::'a and c::'b and b::'a and d::'b and u::'a and v::'a and w::'b and z::'b
   assume *: "box (a, c) (b, d) = {}"
      and cb1: "cbox (u, w) (v, z) \<subseteq> cbox (a, c) (b, d)"
@@ -7115,8 +7136,8 @@ lemma integral_Pair_const:
 
 lemma integral_prod_continuous:
   fixes f :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::banach"
-  assumes "continuous_on (cbox (a,c) (b,d)) f" (is "continuous_on ?CBOX f")
-    shows "integral (cbox (a,c) (b,d)) f = integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f(x,y)))"
+  assumes "continuous_on (cbox (a, c) (b, d)) f" (is "continuous_on ?CBOX f")
+    shows "integral (cbox (a, c) (b, d)) f = integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x, y)))"
 proof (cases "content ?CBOX = 0")
   case True
   then show ?thesis
@@ -7127,22 +7148,41 @@ next
     using content_lt_nz by blast
   have "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) = 0"
   proof (rule dense_eq0_I, simp)
-    fix e::real  assume "0 < e"
-    with cbp have e': "0 < e/content ?CBOX"
+    fix e :: real 
+    assume "0 < e"
+    with \<open>content ?CBOX > 0\<close> have "0 < e / content ?CBOX"
       by simp
-    have f_int_acbd: "f integrable_on cbox (a,c) (b,d)"
+    have f_int_acbd: "f integrable_on ?CBOX"
       by (rule integrable_continuous [OF assms])
     { fix p
-      assume p: "p division_of cbox (a,c) (b,d)"
-      note opd1 = comm_monoid_set.operative_division [OF comm_monoid_set_and integral_swap_operative [OF assms e'], THEN iffD1,
-                       THEN spec, THEN spec, THEN spec, THEN spec, of p "(a,c)" "(b,d)" a c b d]
-      have "(\<And>t u v w z.
-              \<lbrakk>t \<in> p; cbox (u,w) (v,z) \<subseteq> t;  cbox (u,w) (v,z) \<subseteq> cbox (a,c) (b,d)\<rbrakk> \<Longrightarrow>
-              norm (integral (cbox (u,w) (v,z)) f - integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y))))
-              \<le> e * content (cbox (u,w) (v,z)) / content?CBOX)
-            \<Longrightarrow>
-            norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) \<le> e"
-        using opd1 [OF p] False  by (simp add: comm_monoid_set_F_and)
+      assume p: "p division_of ?CBOX"
+      then have "finite p"
+        by blast
+      define e' where "e' = e / content ?CBOX"
+      with \<open>0 < e\<close> \<open>0 < e / content ?CBOX\<close>
+      have "0 < e'"
+        by simp
+      interpret operative conj True
+           "\<lambda>k. \<forall>a' b' c' d'.
+                cbox (a', c') (b', d') \<subseteq> k \<and> cbox (a', c') (b', d') \<subseteq> ?CBOX
+                \<longrightarrow> norm (integral (cbox (a', c') (b', d')) f -
+                         integral (cbox a' b') (\<lambda>x. integral (cbox c' d') (\<lambda>y. f ((x, y)))))
+                    \<le> e' * content (cbox (a', c') (b', d'))"
+        using assms \<open>0 < e'\<close> by (rule integral_swap_operativeI)
+      have "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x, y))))
+          \<le> e' * content ?CBOX"
+        if "\<And>t u v w z. t \<in> p \<Longrightarrow> cbox (u, w) (v, z) \<subseteq> t \<Longrightarrow> cbox (u, w) (v, z) \<subseteq> ?CBOX
+          \<Longrightarrow> norm (integral (cbox (u, w) (v, z)) f -
+              integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x, y))))
+              \<le> e' * content (cbox (u, w) (v, z))"
+        using that division [of p "(a, c)" "(b, d)"] p \<open>finite p\<close> by (auto simp add: comm_monoid_set_F_and)
+      with False have "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x, y))))
+          \<le> e"
+        if "\<And>t u v w z. t \<in> p \<Longrightarrow> cbox (u, w) (v, z) \<subseteq> t \<Longrightarrow> cbox (u, w) (v, z) \<subseteq> ?CBOX
+          \<Longrightarrow> norm (integral (cbox (u, w) (v, z)) f -
+              integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x, y))))
+              \<le> e * content (cbox (u, w) (v, z)) / content ?CBOX"
+        using that by (simp add: e'_def)
     } note op_acbd = this
     { fix k::real and p and u::'a and v w and z::'b and t1 t2 l
       assume k: "0 < k"
@@ -7177,7 +7217,7 @@ next
          \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
         apply (simp only: integral_diff [symmetric] f_int_uwvz integrable_const)
         apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
-        using cbp e' nf'
+        using cbp \<open>0 < e / content ?CBOX\<close> nf'
         apply (auto simp: integrable_diff f_int_uwvz integrable_const)
         done
       have int_integrable: "(\<lambda>x. integral (cbox w z) (\<lambda>y. f (x, y))) integrable_on cbox u v"
@@ -7188,14 +7228,14 @@ next
                \<le> e * content (cbox w z) / content (cbox (a, c) (b, d)) / 2"
         apply (simp only: integral_diff [symmetric] f_int_uv integrable_const)
         apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
-        using cbp e' nf'
+        using cbp \<open>0 < e / content ?CBOX\<close> nf'
         apply (auto simp: integrable_diff f_int_uv integrable_const)
         done
       have "norm (integral (cbox u v)
                (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y)) - integral (cbox w z) (\<lambda>y. f (t1,t2))))
             \<le> e * content (cbox w z) / content ?CBOX / 2 * content (cbox u v)"
         apply (rule integrable_bound [OF _ _ normint_wz])
-        using cbp e'
+        using cbp \<open>0 < e / content ?CBOX\<close>
         apply (auto simp: divide_simps content_pos_le integrable_diff int_integrable integrable_const)
         done
       also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"

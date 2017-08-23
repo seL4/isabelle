@@ -10,6 +10,8 @@ imports
   Topology_Euclidean_Space
 begin
 
+term comm_monoid
+
 lemma sum_Sigma_product:
   assumes "finite S"
     and "\<And>i. i \<in> S \<Longrightarrow> finite (T i)"
@@ -571,7 +573,7 @@ proof
                   "g i = (a, c) \<or> g i = (c, d) \<or> g i = (d, b)"
           using f g by (auto simp: PiE_iff)
         with * ord[of i] show "interior l \<inter> interior k = {}"
-          by (auto simp add: l k interior_cbox disjoint_interval intro!: bexI[of _ i])
+          by (auto simp add: l k disjoint_interval intro!: bexI[of _ i])
       }
       note \<open>k \<subseteq> cbox a b\<close>
     }
@@ -1198,6 +1200,91 @@ lemma tagged_division_of_union_self:
   apply auto
   done
 
+lemma tagged_division_union_interval:
+  fixes a :: "'a::euclidean_space"
+  assumes "p1 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<le> (c::real)})"
+    and "p2 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+    and k: "k \<in> Basis"
+  shows "(p1 \<union> p2) tagged_division_of (cbox a b)"
+proof -
+  have *: "cbox a b = (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<union> (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+    by auto
+  show ?thesis
+    apply (subst *)
+    apply (rule tagged_division_union[OF assms(1-2)])
+    unfolding interval_split[OF k] interior_cbox
+    using k
+    apply (auto simp add: box_def elim!: ballE[where x=k])
+    done
+qed
+
+lemma tagged_division_union_interval_real:
+  fixes a :: real
+  assumes "p1 tagged_division_of ({a .. b} \<inter> {x. x\<bullet>k \<le> (c::real)})"
+    and "p2 tagged_division_of ({a .. b} \<inter> {x. x\<bullet>k \<ge> c})"
+    and k: "k \<in> Basis"
+  shows "(p1 \<union> p2) tagged_division_of {a .. b}"
+  using assms
+  unfolding box_real[symmetric]
+  by (rule tagged_division_union_interval)
+
+lemma tagged_division_split_left_inj:
+  assumes d: "d tagged_division_of i"
+  and tags: "(x1, K1) \<in> d" "(x2, K2) \<in> d"
+  and "K1 \<noteq> K2"
+  and eq: "K1 \<inter> {x. x \<bullet> k \<le> c} = K2 \<inter> {x. x \<bullet> k \<le> c}"
+    shows "interior (K1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
+proof -
+  have "interior (K1 \<inter> K2) = {} \<or> (x2, K2) = (x1, K1)"
+    using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
+  then show ?thesis
+    using eq \<open>K1 \<noteq> K2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
+qed
+
+lemma tagged_division_split_right_inj:
+  assumes d: "d tagged_division_of i"
+  and tags: "(x1, K1) \<in> d" "(x2, K2) \<in> d"
+  and "K1 \<noteq> K2"
+  and eq: "K1 \<inter> {x. x\<bullet>k \<ge> c} = K2 \<inter> {x. x\<bullet>k \<ge> c}"
+    shows "interior (K1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
+proof -
+  have "interior (K1 \<inter> K2) = {} \<or> (x2, K2) = (x1, K1)"
+    using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
+  then show ?thesis
+    using eq \<open>K1 \<noteq> K2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
+qed
+
+lemma (in comm_monoid_set) over_tagged_division_lemma:
+  assumes "p tagged_division_of i"
+    and "\<And>u v. box u v = {} \<Longrightarrow> d (cbox u v) = \<^bold>1"
+  shows "F (\<lambda>(_, k). d k) p = F d (snd ` p)"
+proof -
+  have *: "(\<lambda>(_ ,k). d k) = d \<circ> snd"
+    by (simp add: fun_eq_iff)
+  note assm = tagged_division_ofD[OF assms(1)]
+  show ?thesis
+    unfolding *
+  proof (rule reindex_nontrivial[symmetric])
+    show "finite p"
+      using assm by auto
+    fix x y
+    assume "x\<in>p" "y\<in>p" "x\<noteq>y" "snd x = snd y"
+    obtain a b where ab: "snd x = cbox a b"
+      using assm(4)[of "fst x" "snd x"] \<open>x\<in>p\<close> by auto
+    have "(fst x, snd y) \<in> p" "(fst x, snd y) \<noteq> y"
+      using \<open>x \<in> p\<close> \<open>x \<noteq> y\<close> \<open>snd x = snd y\<close> [symmetric] by auto
+    with \<open>x\<in>p\<close> \<open>y\<in>p\<close> have "interior (snd x) \<inter> interior (snd y) = {}"
+      by (intro assm(5)[of "fst x" _ "fst y"]) auto
+    then have "box a b = {}"
+      unfolding \<open>snd x = snd y\<close>[symmetric] ab by auto
+    then have "d (cbox a b) = \<^bold>1"
+      using assm(2)[of "fst x" "snd x"] \<open>x\<in>p\<close> ab[symmetric] by (intro assms(2)) auto
+    then show "d (snd x) = \<^bold>1"
+      unfolding ab by auto
+  qed
+qed
+
+
 subsection \<open>Functions closed on boxes: morphisms from boxes to monoids\<close>
 
 text \<open>This auxiliary structure is used to sum up over the elements of a division. Main theorem is
@@ -1231,29 +1318,21 @@ lemma comm_monoid_and: "comm_monoid HOL.conj True"
 lemma comm_monoid_set_and: "comm_monoid_set HOL.conj True"
   by (rule comm_monoid_set.intro) (fact comm_monoid_and)
 
-paragraph \<open>Operative\<close>
 
-definition (in comm_monoid) operative :: "('b::euclidean_space set \<Rightarrow> 'a) \<Rightarrow> bool"
-  where "operative g \<longleftrightarrow>
-    (\<forall>a b. box a b = {} \<longrightarrow> g (cbox a b) = \<^bold>1) \<and>
-    (\<forall>a b c. \<forall>k\<in>Basis. g (cbox a b) = g (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. x\<bullet>k \<ge> c}))"
+paragraph \<open>Misc\<close>
 
-lemma (in comm_monoid) operativeD[dest]:
-  assumes "operative g"
-  shows "\<And>a b. box a b = {} \<Longrightarrow> g (cbox a b) = \<^bold>1"
-    and "\<And>a b c k. k \<in> Basis \<Longrightarrow> g (cbox a b) = g (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-  using assms unfolding operative_def by auto
+lemma interval_real_split:
+  "{a .. b::real} \<inter> {x. x \<le> c} = {a .. min b c}"
+  "{a .. b} \<inter> {x. c \<le> x} = {max a c .. b}"
+  apply (metis Int_atLeastAtMostL1 atMost_def)
+  apply (metis Int_atLeastAtMostL2 atLeast_def)
+  done
 
-lemma (in comm_monoid) operative_empty:
-  assumes g: "operative g" shows "g {} = \<^bold>1"
-proof -
-  have *: "cbox One (-One) = ({}::'b set)"
-    by (auto simp: box_eq_empty inner_sum_left inner_Basis sum.If_cases ex_in_conv)
-  moreover have "box One (-One) = ({}::'b set)"
-    using box_subset_cbox[of One "-One"] by (auto simp: *)
-  ultimately show ?thesis
-    using operativeD(1)[OF g, of One "-One"] by simp
-qed
+lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)"
+  by (meson zero_less_one)
+
+
+paragraph \<open>Division points\<close>
 
 definition "division_points (k::('a::euclidean_space) set) d =
    {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
@@ -1460,30 +1539,47 @@ proof -
       done
     by (simp add: interval_split k interval_doublesplit)
 qed
-              
-lemma (in comm_monoid_set) operative_division:
+
+paragraph \<open>Operative\<close>
+
+locale operative = comm_monoid_set +
   fixes g :: "'b::euclidean_space set \<Rightarrow> 'a"
-  assumes g: "operative g" and d: "d division_of (cbox a b)" shows "F g d = g (cbox a b)"
+  assumes box_empty_imp: "\<And>a b. box a b = {} \<Longrightarrow> g (cbox a b) = \<^bold>1"
+    and Basis_imp: "\<And>a b c k. k \<in> Basis \<Longrightarrow> g (cbox a b) = g (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+begin
+
+lemma empty [simp]:
+  "g {} = \<^bold>1"
+proof -
+  have *: "cbox One (-One) = ({}::'b set)"
+    by (auto simp: box_eq_empty inner_sum_left inner_Basis sum.If_cases ex_in_conv)
+  moreover have "box One (-One) = ({}::'b set)"
+    using box_subset_cbox[of One "-One"] by (auto simp: *)
+  ultimately show ?thesis
+    using box_empty_imp [of One "-One"] by simp
+qed
+       
+lemma division:
+  "F g d = g (cbox a b)" if "d division_of (cbox a b)"
 proof -
   define C where [abs_def]: "C = card (division_points (cbox a b) d)"
   then show ?thesis
-    using d
-  proof (induction C arbitrary: a b d rule: less_induct)
+  using that proof (induction C arbitrary: a b d rule: less_induct)
     case (less a b d)
     show ?case
     proof cases
       assume "box a b = {}"
       { fix k assume "k\<in>d"
         then obtain a' b' where k: "k = cbox a' b'"
-          using division_ofD(4)[OF less.prems] by blast
+          using division_ofD(4) [OF less.prems] by blast
         with \<open>k\<in>d\<close> division_ofD(2)[OF less.prems] have "cbox a' b' \<subseteq> cbox a b"
           by auto
         then have "box a' b' \<subseteq> box a b"
           unfolding subset_box by auto
         then have "g k = \<^bold>1"
-          using operativeD(1)[OF g, of a' b'] k by (simp add: \<open>box a b = {}\<close>) }
+          using box_empty_imp [of a' b'] k by (simp add: \<open>box a b = {}\<close>) }
       then show "box a b = {} \<Longrightarrow> F g d = g (cbox a b)"
-        by (auto intro!: neutral simp: operativeD(1)[OF g])
+        by (auto intro!: neutral simp: box_empty_imp)
     next
       assume "box a b \<noteq> {}"
       then have ab: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i" and ab': "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
@@ -1558,7 +1654,7 @@ proof -
           then have "box u v = {}"
             using j unfolding box_eq_empty by (auto intro!: bexI[of _ j])
           then show "g x = \<^bold>1"
-            unfolding uv(1) by (rule operativeD(1)[OF g])
+            unfolding uv(1) by (rule box_empty_imp)
         qed
         then show "F g d = g (cbox a b)"
           using division_ofD[OF less.prems]
@@ -1611,7 +1707,8 @@ proof -
           have "interior (cbox u v \<inter> ?lec) = {}"
             using that division_split_left_inj leq less.prems by blast
           then show ?thesis
-            unfolding leq interval_split[OF \<open>k \<in> Basis\<close>] using g by auto
+            unfolding leq interval_split [OF \<open>k \<in> Basis\<close>]
+            by (auto intro: box_empty_imp)
         qed
         have fxk_ge: "g (l \<inter> {x. x \<bullet> k \<ge> c}) = \<^bold>1"
           if "l \<in> d" "y \<in> d" "l \<inter> ?gec = y \<inter> ?gec" "l \<noteq> y" for l y
@@ -1621,23 +1718,26 @@ proof -
           have "interior (cbox u v \<inter> ?gec) = {}"
             using that division_split_right_inj leq less.prems by blast
           then show ?thesis
-            unfolding leq interval_split[OF \<open>k \<in> Basis\<close>] using g by auto
+            unfolding leq interval_split[OF \<open>k \<in> Basis\<close>]
+            by (auto intro: box_empty_imp)
         qed
         have d1_alt: "d1 = (\<lambda>l. l \<inter> ?lec) ` {l \<in> d. l \<inter> ?lec \<noteq> {}}"
           using d1_def by auto
         have d2_alt: "d2 = (\<lambda>l. l \<inter> ?gec) ` {l \<in> d. l \<inter> ?gec \<noteq> {}}"
           using d2_def by auto
         have "g (cbox a b) = F g d1 \<^bold>* F g d2" (is "_ = ?prev")
-          unfolding * using g \<open>k \<in> Basis\<close> by blast
+          unfolding * using \<open>k \<in> Basis\<close>
+          by (auto dest: Basis_imp)
         also have "F g d1 = F (\<lambda>l. g (l \<inter> ?lec)) d"
           unfolding d1_alt using division_of_finite[OF less.prems] fxk_le
-          by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left simp: operative_empty[OF g])
+          by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left)
         also have "F g d2 = F (\<lambda>l. g (l \<inter> ?gec)) d"
           unfolding d2_alt using division_of_finite[OF less.prems] fxk_ge
-          by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left simp: operative_empty[OF g])
+          by (subst reindex_nontrivial) (auto intro!: mono_neutral_cong_left)
         also have *: "\<forall>x\<in>d. g x = g (x \<inter> ?lec) \<^bold>* g (x \<inter> ?gec)"
           unfolding forall_in_division[OF \<open>d division_of cbox a b\<close>]
-          using g \<open>k \<in> Basis\<close> by blast
+          using \<open>k \<in> Basis\<close>
+          by (auto dest: Basis_imp)
         have "F (\<lambda>l. g (l \<inter> ?lec)) d \<^bold>* F (\<lambda>l. g (l \<inter> ?gec)) d = F g d"
           using * by (simp add: distrib)
         finally show ?thesis by auto
@@ -1646,166 +1746,86 @@ proof -
   qed
 qed
 
-lemma (in comm_monoid_set) over_tagged_division_lemma:
-  assumes "p tagged_division_of i"
-    and "\<And>u v. cbox u v \<noteq> {} \<Longrightarrow> box u v = {} \<Longrightarrow> d (cbox u v) = \<^bold>1"
-  shows "F (\<lambda>(x,k). d k) p = F d (snd ` p)"
+lemma tagged_division:
+  assumes "d tagged_division_of (cbox a b)"
+  shows "F (\<lambda>(_, l). g l) d = g (cbox a b)"
 proof -
-  have *: "(\<lambda>(x,k). d k) = d \<circ> snd"
-    unfolding o_def by (rule ext) auto
-  note assm = tagged_division_ofD[OF assms(1)]
-  show ?thesis
-    unfolding *
-  proof (rule reindex_nontrivial[symmetric])
-    show "finite p"
-      using assm by auto
-    fix x y
-    assume "x\<in>p" "y\<in>p" "x\<noteq>y" "snd x = snd y"
-    obtain a b where ab: "snd x = cbox a b"
-      using assm(4)[of "fst x" "snd x"] \<open>x\<in>p\<close> by auto
-    have "(fst x, snd y) \<in> p" "(fst x, snd y) \<noteq> y"
-      by (metis prod.collapse \<open>x\<in>p\<close> \<open>snd x = snd y\<close> \<open>x \<noteq> y\<close>)+
-    with \<open>x\<in>p\<close> \<open>y\<in>p\<close> have "interior (snd x) \<inter> interior (snd y) = {}"
-      by (intro assm(5)[of "fst x" _ "fst y"]) auto
-    then have "box a b = {}"
-      unfolding \<open>snd x = snd y\<close>[symmetric] ab by auto
-    then have "d (cbox a b) = \<^bold>1"
-      using assm(2)[of "fst x" "snd x"] \<open>x\<in>p\<close> ab[symmetric] by (intro assms(2)) auto
-    then show "d (snd x) = \<^bold>1"
-      unfolding ab by auto
-  qed
+  have "F (\<lambda>(_, k). g k) d = F g (snd ` d)"
+    using assms box_empty_imp by (rule over_tagged_division_lemma)
+  then show ?thesis
+    unfolding assms [THEN division_of_tagged_division, THEN division] .
 qed
 
-lemma (in comm_monoid_set) operative_tagged_division:
-  assumes f: "operative g" and d: "d tagged_division_of (cbox a b)"
-  shows "F (\<lambda>(x, l). g l) d = g (cbox a b)"
-  unfolding d[THEN division_of_tagged_division, THEN operative_division[OF f], symmetric]
-  by (simp add: f[THEN operativeD(1)] over_tagged_division_lemma[OF d])
+end
 
-lemma interval_real_split:
-  "{a .. b::real} \<inter> {x. x \<le> c} = {a .. min b c}"
-  "{a .. b} \<inter> {x. c \<le> x} = {max a c .. b}"
-  apply (metis Int_atLeastAtMostL1 atMost_def)
-  apply (metis Int_atLeastAtMostL2 atLeast_def)
-  done
+locale operative_real = comm_monoid_set +
+  fixes g :: "real set \<Rightarrow> 'a"
+  assumes neutral: "b \<le> a \<Longrightarrow> g {a..b} = \<^bold>1"
+  assumes coalesce_less: "a < c \<Longrightarrow> c < b \<Longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
+begin
 
-lemma (in comm_monoid) operative_1_lt:
-  "operative (g :: real set \<Rightarrow> 'a) \<longleftrightarrow>
-    ((\<forall>a b. b \<le> a \<longrightarrow> g {a .. b} = \<^bold>1) \<and> (\<forall>a b c. a < c \<and> c < b \<longrightarrow> g {a .. c} \<^bold>* g {c .. b} = g {a .. b}))"
-  apply (simp add: operative_def atMost_def[symmetric] atLeast_def[symmetric])
-proof safe
-  fix a b c :: real
-  assume *: "\<forall>a b c. g {a..b} = g {a..min b c} \<^bold>* g {max a c..b}"
-  assume "a < c" "c < b"
-  with *[rule_format, of a b c] show "g {a..c} \<^bold>* g {c..b} = g {a..b}"
-    by (simp add: less_imp_le min.absorb2 max.absorb2)
-next
-  fix a b c :: real
-  assume as: "\<forall>a b. b \<le> a \<longrightarrow> g {a..b} = \<^bold>1"
-    "\<forall>a b c. a < c \<and> c < b \<longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
-  from as(1)[rule_format, of 0 1] as(1)[rule_format, of a a for a] as(2)
-  have [simp]: "g {} = \<^bold>1" "\<And>a. g {a} = \<^bold>1"
-    "\<And>a b c. a < c \<Longrightarrow> c < b \<Longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
-    by auto
-  show "g {a..b} = g {a..min b c} \<^bold>* g {max a c..b}"
-    by (auto simp: min_def max_def le_less)
-qed
-
-lemma (in comm_monoid) operative_1_le:
-  "operative (g :: real set \<Rightarrow> 'a) \<longleftrightarrow>
-    ((\<forall>a b. b \<le> a \<longrightarrow> g {a..b} = \<^bold>1) \<and> (\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> g {a .. c} \<^bold>* g {c .. b} = g {a .. b}))"
-  unfolding operative_1_lt
-proof safe
-  fix a b c :: real
-  assume as: "\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}" "a < c" "c < b"
-  show "g {a..c} \<^bold>* g {c..b} = g {a..b}"
-    apply (rule as(1)[rule_format])
-    using as(2-)
-    apply auto
-    done
-next
-  fix a b c :: real
-  assume eq1: "\<forall>a b. b \<le> a \<longrightarrow> g {a .. b} = \<^bold>1"
-    and eqg: "\<forall>a b c. a < c \<and> c < b \<longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
-    and "a \<le> c"
-    and "c \<le> b"
-  show "g {a..c} \<^bold>* g {c..b} = g {a..b}"
-  proof (cases "c = a \<or> c = b")
-    case False
-    then show ?thesis
-      using eqg \<open>a \<le> c\<close> \<open>c \<le> b\<close> by auto
-  next
-    case True
-    then show ?thesis
-    proof
-      assume *: "c = a"
-      then have "g {a .. c} = \<^bold>1"
-        using eq1 by blast
-      then show ?thesis
-        unfolding * by auto
-    next
-      assume *: "c = b"
-      then have "g {c .. b} = \<^bold>1"
-        using eq1 by blast
-      then show ?thesis
-        unfolding * by auto
+sublocale operative where g = g
+  rewrites "box = (greaterThanLessThan :: real \<Rightarrow> _)"
+    and "cbox = (atLeastAtMost :: real \<Rightarrow> _)"
+    and "\<And>x::real. x \<in> Basis \<longleftrightarrow> x = 1"
+proof -
+  show "operative f z g"
+  proof
+    show "g (cbox a b) = \<^bold>1" if "box a b = {}" for a b
+      using that by (simp add: neutral)
+    show "g (cbox a b) = g (cbox a b \<inter> {x. x \<bullet> k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. c \<le> x \<bullet> k})"
+      if "k \<in> Basis" for a b c k
+    proof -
+      from that have [simp]: "k = 1"
+        by simp
+      from neutral [of 0 1] neutral [of a a for a] coalesce_less
+      have [simp]: "g {} = \<^bold>1" "\<And>a. g {a} = \<^bold>1"
+        "\<And>a b c. a < c \<Longrightarrow> c < b \<Longrightarrow> g {a..c} \<^bold>* g {c..b} = g {a..b}"
+        by auto
+      have "g {a..b} = g {a..min b c} \<^bold>* g {max a c..b}"
+        by (auto simp: min_def max_def le_less)
+      then show "g (cbox a b) = g (cbox a b \<inter> {x. x \<bullet> k \<le> c}) \<^bold>* g (cbox a b \<inter> {x. c \<le> x \<bullet> k})"
+        by (simp add: atMost_def [symmetric] atLeast_def [symmetric])
     qed
   qed
+  show "box = (greaterThanLessThan :: real \<Rightarrow> _)"
+    and "cbox = (atLeastAtMost :: real \<Rightarrow> _)"
+    and "\<And>x::real. x \<in> Basis \<longleftrightarrow> x = 1"
+    by (simp_all add: fun_eq_iff)
 qed
 
-lemma tagged_division_union_interval:
-  fixes a :: "'a::euclidean_space"
-  assumes "p1 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<le> (c::real)})"
-    and "p2 tagged_division_of (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
-    and k: "k \<in> Basis"
-  shows "(p1 \<union> p2) tagged_division_of (cbox a b)"
-proof -
-  have *: "cbox a b = (cbox a b \<inter> {x. x\<bullet>k \<le> c}) \<union> (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
+lemma coalesce_less_eq:
+  "g {a..c} \<^bold>* g {c..b} = g {a..b}" if "a \<le> c" "c \<le> b"
+proof (cases "c = a \<or> c = b")
+  case False
+  with that have "a < c" "c < b"
     by auto
+  then show ?thesis
+    by (rule coalesce_less)
+next
+  case True
+  with that box_empty_imp [of a a] box_empty_imp [of b b] show ?thesis
+    by safe simp_all
+qed
+
+end
+
+lemma operative_realI:
+  "operative_real f z g" if "operative f z g"
+proof -
+  interpret operative f z g
+    using that .
   show ?thesis
-    apply (subst *)
-    apply (rule tagged_division_union[OF assms(1-2)])
-    unfolding interval_split[OF k] interior_cbox
-    using k
-    apply (auto simp add: box_def elim!: ballE[where x=k])
-    done
+  proof
+    show "g {a..b} = z" if "b \<le> a" for a b
+      using that box_empty_imp by simp
+    show "f (g {a..c}) (g {c..b}) = g {a..b}" if "a < c" "c < b" for a b c
+      using that
+    using Basis_imp [of 1 a b c]
+      by (simp_all add: atMost_def [symmetric] atLeast_def [symmetric] max_def min_def)
+  qed
 qed
 
-lemma tagged_division_union_interval_real:
-  fixes a :: real
-  assumes "p1 tagged_division_of ({a .. b} \<inter> {x. x\<bullet>k \<le> (c::real)})"
-    and "p2 tagged_division_of ({a .. b} \<inter> {x. x\<bullet>k \<ge> c})"
-    and k: "k \<in> Basis"
-  shows "(p1 \<union> p2) tagged_division_of {a .. b}"
-  using assms
-  unfolding box_real[symmetric]
-  by (rule tagged_division_union_interval)
-
-lemma tagged_division_split_left_inj:
-  assumes d: "d tagged_division_of i"
-  and tags: "(x1, K1) \<in> d" "(x2, K2) \<in> d"
-  and "K1 \<noteq> K2"
-  and eq: "K1 \<inter> {x. x \<bullet> k \<le> c} = K2 \<inter> {x. x \<bullet> k \<le> c}"
-    shows "interior (K1 \<inter> {x. x\<bullet>k \<le> c}) = {}"
-proof -
-  have "interior (K1 \<inter> K2) = {} \<or> (x2, K2) = (x1, K1)"
-    using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
-  then show ?thesis
-    using eq \<open>K1 \<noteq> K2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
-qed
-
-lemma tagged_division_split_right_inj:
-  assumes d: "d tagged_division_of i"
-  and tags: "(x1, K1) \<in> d" "(x2, K2) \<in> d"
-  and "K1 \<noteq> K2"
-  and eq: "K1 \<inter> {x. x\<bullet>k \<ge> c} = K2 \<inter> {x. x\<bullet>k \<ge> c}"
-    shows "interior (K1 \<inter> {x. x\<bullet>k \<ge> c}) = {}"
-proof -
-  have "interior (K1 \<inter> K2) = {} \<or> (x2, K2) = (x1, K1)"
-    using tags d by (metis (no_types) interior_Int tagged_division_ofD(5))
-  then show ?thesis
-    using eq \<open>K1 \<noteq> K2\<close> by (metis (no_types) inf_assoc inf_bot_left inf_left_idem interior_Int old.prod.inject)
-qed
 
 subsection \<open>Special case of additivity we need for the FTC.\<close>
 
@@ -1816,10 +1836,11 @@ lemma additive_tagged_division_1:
   shows "sum (\<lambda>(x,k). f(Sup k) - f(Inf k)) p = f b - f a"
 proof -
   let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
+  interpret operative_real plus 0 ?f
+    rewrites "comm_monoid_set.F op + 0 = sum"
+    by standard[1] (auto simp add: sum_def)
   have p_td: "p tagged_division_of cbox a b"
     using assms(2) box_real(2) by presburger
-  have *: "add.operative ?f"
-    unfolding add.operative_1_lt box_eq_empty by auto
   have **: "cbox a b \<noteq> {}"
     using assms(1) by auto
   then have "f b - f a = (\<Sum>(x, l)\<in>p. if l = {} then 0 else f (interval_upperbound l) - f (interval_lowerbound l))"
@@ -1827,14 +1848,12 @@ proof -
       have "(if cbox a b = {} then 0 else f (interval_upperbound (cbox a b)) - f (interval_lowerbound (cbox a b))) = f b - f a"
         using assms by auto
       then show ?thesis
-        using p_td assms by (simp add: "*" sum.operative_tagged_division)
+        using p_td assms by (simp add: tagged_division) 
     qed 
   then show ?thesis
     using assms by (auto intro!: sum.cong)
 qed
 
-lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)"
-  by (meson zero_less_one)
 
 subsection \<open>Fine-ness of a partition w.r.t. a gauge.\<close>
 
