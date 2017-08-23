@@ -1894,6 +1894,9 @@ lemma sum_lessThan_telescope':
 
 subsection \<open>The formula for geometric sums\<close>
 
+lemma sum_power2: "(\<Sum>i=0..<k. (2::nat)^i) = 2^k-1"
+by (induction k) (auto simp: mult_2)
+
 lemma geometric_sum:
   assumes "x \<noteq> 1"
   shows "(\<Sum>i<n. x ^ i) = (x ^ n - 1) / (x - 1::'a::field)"
