@@ -5034,62 +5034,56 @@ lemma integrable_alt:
       integral (cbox c d)  (\<lambda>x. if x \<in> s then f x else 0)) < e)"
   (is "?l = ?r")
 proof
+  let ?F = "\<lambda>x. if x \<in> s then f x else 0"
   assume ?l
-  then guess y unfolding integrable_on_def..note this[unfolded has_integral_alt'[of f]]
-  note y=conjunctD2[OF this,rule_format]
+  then obtain y where intF: "\<And>a b. ?F integrable_on cbox a b"
+          and y: "\<And>e. 0 < e \<Longrightarrow>
+              \<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow> norm (integral (cbox a b) ?F - y) < e"
+    unfolding integrable_on_def has_integral_alt'[of f] by auto
   show ?r
-    apply safe
-    apply (rule y)
-  proof goal_cases
-    case (1 e)
+  proof (intro conjI allI impI intF)
+    fix e::real
+    assume "e > 0"
     then have "e/2 > 0"
       by auto
-    from y(2)[OF this] guess B..note B=conjunctD2[OF this,rule_format]
-    show ?case
-      apply rule
-      apply rule
-      apply (rule B)
-      apply safe
-    proof goal_cases
-      case prems: (1 a b c d)
-      show ?case
-        apply (rule norm_triangle_half_l)
-        using B(2)[OF prems(1)] B(2)[OF prems(2)]
-        apply auto
-        done
+    obtain B where "0 < B" 
+       and B: "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> norm (integral (cbox a b) ?F - y) < e/2"
+      using \<open>0 < e/2\<close> y by blast
+    show "\<exists>B>0. \<forall>a b c d. ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d \<longrightarrow>
+                  norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e"
+    proof (intro conjI exI impI allI, rule \<open>0 < B\<close>)
+      fix a b c d::'n
+      assume sub: "ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d"
+      show "norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e"
+        using sub by (auto intro: norm_triangle_half_l dest: B)
     qed
   qed
 next
-  assume ?r
+  let ?F = "\<lambda>x. if x \<in> s then f x else 0"
+  assume rhs: ?r
   note as = conjunctD2[OF this,rule_format]
   let ?cube = "\<lambda>n. cbox (\<Sum>i\<in>Basis. - real n *\<^sub>R i::'n) (\<Sum>i\<in>Basis. real n *\<^sub>R i)"
   have "Cauchy (\<lambda>n. integral (?cube n) (\<lambda>x. if x \<in> s then f x else 0))"
   proof (unfold Cauchy_def, safe, goal_cases)
     case (1 e)
-    from as(2)[OF this] guess B..note B = conjunctD2[OF this,rule_format]
-    from real_arch_simple[of B] guess N..note N = this
+    with rhs obtain B where "0 < B" 
+      and B: "\<And>a b c d. ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d 
+                        \<Longrightarrow> norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e"
+      by blast
+    obtain N where N: "B \<le> real N"
+      using real_arch_simple by blast
     {
       fix n
       assume n: "n \<ge> N"
-      have "ball 0 B \<subseteq> ?cube n"
-        apply (rule subsetI)
-        unfolding mem_ball mem_box dist_norm
-      proof (rule, goal_cases)
-        case (1 x i)
-        then show ?case
-          using Basis_le_norm[of i x] \<open>i\<in>Basis\<close>
-          using n N
-          by (auto simp add: field_simps sum_negf)
-      qed
+      have "sum (op *\<^sub>R (- real n)) Basis \<bullet> i \<le> x \<bullet> i \<and>
+            x \<bullet> i \<le> sum (op *\<^sub>R (real n)) Basis \<bullet> i"
+        if "norm x < B" "i \<in> Basis" for x i::'n
+          using Basis_le_norm[of i x] n N that by (auto simp add: field_simps sum_negf)
+      then have "ball 0 B \<subseteq> ?cube n"
+        by (auto simp: mem_box dist_norm)
     }
     then show ?case
-      apply -
-      apply (rule_tac x=N in exI)
-      apply safe
-      unfolding dist_norm
-      apply (rule B(2))
-      apply auto
-      done
+      by (fastforce simp add: dist_norm intro!: B)
   qed
   from this[unfolded convergent_eq_Cauchy[symmetric]] guess i ..
   note i = this[THEN LIMSEQ_D]
@@ -5153,15 +5147,15 @@ lemma integrable_altD:
 
 lemma integrable_on_subcbox:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on s"
-    and "cbox a b \<subseteq> s"
+  assumes intf: "f integrable_on S"
+    and sub: "cbox a b \<subseteq> S"
   shows "f integrable_on cbox a b"
-  apply (rule integrable_eq)
-  defer
-  apply (rule integrable_altD(1)[OF assms(1)])
-  using assms(2)
-  apply auto
-  done
+proof -
+  have "(\<lambda>x. if x \<in> S then f x else 0) integrable_on cbox a b"
+    by (simp add: intf integrable_altD(1))
+then show ?thesis
+  by (metis (mono_tags) sub integrable_restrict_Int le_inf_iff order_refl subset_antisym)
+qed
 
 
 subsection \<open>A straddling criterion for integrability\<close>
@@ -5993,10 +5987,10 @@ next
             by blast
           then have "abs (content K * (g x - f (m x) x)) \<le> content K * (e/(4 * content (cbox a b)))"
             by (metis m[OF x] mult_nonneg_nonneg abs_of_nonneg less_eq_real_def measure_nonneg mult_left_mono order_refl)
-          then show "\<bar>content K * g x - content K * f (m x) x\<bar> \<le> content K * e / (4 * content (cbox a b))"
+          then show "\<bar>content K * g x - content K * f (m x) x\<bar> \<le> content K * e/(4 * content (cbox a b))"
             by (simp add: algebra_simps)
         qed
-        also have "... = (e / (4 * content (cbox a b))) * (\<Sum>(x, k)\<in>\<D>. content k)"
+        also have "... = (e/(4 * content (cbox a b))) * (\<Sum>(x, k)\<in>\<D>. content k)"
           by (simp add: sum_distrib_left sum_divide_distrib split_def mult.commute)
         also have "... \<le> e/4"
           by (metis False additive_content_tagged_division [OF ptag] nonzero_mult_divide_mult_cancel_right order_refl times_divide_eq_left)
@@ -6070,7 +6064,7 @@ next
               using that s xK f_le p'(3) by fastforce
           qed
         qed
-        moreover have "0 \<le> i - integral (cbox a b) (f r)" "i - integral (cbox a b) (f r) < e / 4"
+        moreover have "0 \<le> i - integral (cbox a b) (f r)" "i - integral (cbox a b) (f r) < e/4"
           using r by auto
         ultimately show "\<bar>(\<Sum>(x,K)\<in>\<D>. integral K (f (m x))) - i\<bar> < e/4"
           using comb i'[of s] by auto
@@ -7042,7 +7036,7 @@ next
   proof (rule dense_eq0_I, simp)
     fix e :: real 
     assume "0 < e"
-    with \<open>content ?CBOX > 0\<close> have "0 < e / content ?CBOX"
+    with \<open>content ?CBOX > 0\<close> have "0 < e/content ?CBOX"
       by simp
     have f_int_acbd: "f integrable_on ?CBOX"
       by (rule integrable_continuous [OF assms])
@@ -7050,8 +7044,8 @@ next
       assume p: "p division_of ?CBOX"
       then have "finite p"
         by blast
-      define e' where "e' = e / content ?CBOX"
-      with \<open>0 < e\<close> \<open>0 < e / content ?CBOX\<close>
+      define e' where "e' = e/content ?CBOX"
+      with \<open>0 < e\<close> \<open>0 < e/content ?CBOX\<close>
       have "0 < e'"
         by simp
       interpret operative conj True
@@ -7109,7 +7103,7 @@ next
          \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
         apply (simp only: integral_diff [symmetric] f_int_uwvz integrable_const)
         apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
-        using cbp \<open>0 < e / content ?CBOX\<close> nf'
+        using cbp \<open>0 < e/content ?CBOX\<close> nf'
         apply (auto simp: integrable_diff f_int_uwvz integrable_const)
         done
       have int_integrable: "(\<lambda>x. integral (cbox w z) (\<lambda>y. f (x, y))) integrable_on cbox u v"
@@ -7120,14 +7114,14 @@ next
                \<le> e * content (cbox w z) / content (cbox (a, c) (b, d)) / 2"
         apply (simp only: integral_diff [symmetric] f_int_uv integrable_const)
         apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
-        using cbp \<open>0 < e / content ?CBOX\<close> nf'
+        using cbp \<open>0 < e/content ?CBOX\<close> nf'
         apply (auto simp: integrable_diff f_int_uv integrable_const)
         done
       have "norm (integral (cbox u v)
                (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y)) - integral (cbox w z) (\<lambda>y. f (t1,t2))))
             \<le> e * content (cbox w z) / content ?CBOX / 2 * content (cbox u v)"
         apply (rule integrable_bound [OF _ _ normint_wz])
-        using cbp \<open>0 < e / content ?CBOX\<close>
+        using cbp \<open>0 < e/content ?CBOX\<close>
         apply (auto simp: divide_simps content_pos_le integrable_diff int_integrable integrable_const)
         done
       also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
