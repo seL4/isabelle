@@ -1521,34 +1521,25 @@ lemma multiset_cases [cases type]:
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
 
-lemma multiset_partition: "M = {# x\<in>#M. P x #} + {# x\<in>#M. \<not> P x #}"
-apply (subst multiset_eq_iff)
-apply auto
-done
+lemma multiset_partition: "M = {#x \<in># M. P x#} + {#x \<in># M. \<not> P x#}"
+  by (subst multiset_eq_iff) auto
 
-lemma mset_subset_size: "(A::'a multiset) \<subset># B \<Longrightarrow> size A < size B"
+lemma mset_subset_size: "A \<subset># B \<Longrightarrow> size A < size B"
 proof (induct A arbitrary: B)
-  case (empty M)
-  then have "M \<noteq> {#}" by (simp add: subset_mset.zero_less_iff_neq_zero)
-  then obtain M' x where "M = add_mset x M'"
-    by (blast dest: multi_nonempty_split)
-  then show ?case by simp
+  case empty
+  then show ?case
+    using nonempty_has_size by auto
 next
-  case (add x S T)
-  have IH: "\<And>B. S \<subset># B \<Longrightarrow> size S < size B" by fact
-  have SxsubT: "add_mset x S \<subset># T" by fact
-  then have "x \<in># T" and "S \<subset># T"
-    by (auto dest: mset_subset_insertD)
-  then obtain T' where T: "T = add_mset x T'"
-    by (blast dest: multi_member_split)
-  then have "S \<subset># T'" using SxsubT
-    by simp
-  then have "size S < size T'" using IH by simp
-  then show ?case using T by simp
+  case (add x A)
+  have "add_mset x A \<subseteq># B"
+    by (meson add.prems subset_mset_def)
+  then show ?case
+    by (metis (no_types) add.prems add.right_neutral add_diff_cancel_left' leD nat_neq_iff
+      size_Diff_submset size_eq_0_iff_empty size_mset_mono subset_mset.le_iff_add subset_mset_def)
 qed
 
 lemma size_1_singleton_mset: "size M = 1 \<Longrightarrow> \<exists>a. M = {#a#}"
-by (cases M) auto
+  by (cases M) auto
 
 
 subsubsection \<open>Strong induction and subset induction for multisets\<close>
@@ -1674,18 +1665,13 @@ definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Righ
   "image_mset f = fold_mset (add_mset \<circ> f) {#}"
 
 lemma comp_fun_commute_mset_image: "comp_fun_commute (add_mset \<circ> f)"
-proof
-qed (simp add: fun_eq_iff)
+  by unfold_locales (simp add: fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
   by (simp add: image_mset_def)
 
 lemma image_mset_single: "image_mset f {#x#} = {#f x#}"
-proof -
-  interpret comp_fun_commute "add_mset \<circ> f"
-    by (fact comp_fun_commute_mset_image)
-  show ?thesis by (simp add: image_mset_def)
-qed
+  by (simp add: comp_fun_commute.fold_mset_add_mset comp_fun_commute_mset_image image_mset_def)
 
 lemma image_mset_union [simp]: "image_mset f (M + N) = image_mset f M + image_mset f N"
 proof -
@@ -1723,8 +1709,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma count_image_mset:
-  "count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)"
+lemma count_image_mset: "count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)"
 proof (induction A)
   case empty
   then show ?case by simp
@@ -1733,7 +1718,7 @@ next
   moreover have *: "(if x = y then Suc n else n) = n + (if x = y then 1 else 0)" for n y
     by simp
   ultimately show ?case
-    by (auto simp: sum.distrib sum.delta' intro!: sum.mono_neutral_left)
+    by (auto simp: sum.distrib intro!: sum.mono_neutral_left)
 qed
 
 lemma image_mset_subseteq_mono: "A \<subseteq># B \<Longrightarrow> image_mset f A \<subseteq># image_mset f B"
@@ -1765,7 +1750,7 @@ text \<open>
 \<close>
 
 lemma in_image_mset: "y \<in># {#f x. x \<in># M#} \<longleftrightarrow> y \<in> f ` set_mset M"
-by (metis set_image_mset)
+  by simp
 
 functor image_mset: image_mset
 proof -
@@ -2065,24 +2050,20 @@ qed
 
 end
 
-lemma mset_sorted_list_of_multiset [simp]:
-  "mset (sorted_list_of_multiset M) = M"
-by (induct M) simp_all
+lemma mset_sorted_list_of_multiset[simp]: "mset (sorted_list_of_multiset M) = M"
+  by (induct M) simp_all
 
-lemma sorted_list_of_multiset_mset [simp]:
-  "sorted_list_of_multiset (mset xs) = sort xs"
-by (induct xs) simp_all
+lemma sorted_list_of_multiset_mset[simp]: "sorted_list_of_multiset (mset xs) = sort xs"
+  by (induct xs) simp_all
 
-lemma finite_set_mset_mset_set[simp]:
-  "finite A \<Longrightarrow> set_mset (mset_set A) = A"
-by (induct A rule: finite_induct) simp_all
+lemma finite_set_mset_mset_set[simp]: "finite A \<Longrightarrow> set_mset (mset_set A) = A"
+  by auto
 
 lemma mset_set_empty_iff: "mset_set A = {#} \<longleftrightarrow> A = {} \<or> infinite A"
   using finite_set_mset_mset_set by fastforce
 
-lemma infinite_set_mset_mset_set:
-  "\<not> finite A \<Longrightarrow> set_mset (mset_set A) = {}"
-by simp
+lemma infinite_set_mset_mset_set: "\<not> finite A \<Longrightarrow> set_mset (mset_set A) = {}"
+  by simp
 
 lemma set_sorted_list_of_multiset [simp]:
   "set (sorted_list_of_multiset M) = set_mset M"
@@ -2108,22 +2089,15 @@ proof (induction xs)
   finally show ?case by simp
 qed simp_all
 
-lemma msubset_mset_set_iff [simp]:
+lemma msubset_mset_set_iff[simp]:
   assumes "finite A" "finite B"
-  shows   "mset_set A \<subseteq># mset_set B \<longleftrightarrow> A \<subseteq> B"
-  using subset_imp_msubset_mset_set[of A B] 
-        set_mset_mono[of "mset_set A" "mset_set B"] assms by auto
-    
-lemma mset_set_eq_iff [simp]:
-  assumes "finite A" "finite B"
-  shows   "mset_set A = mset_set B \<longleftrightarrow> A = B"
-proof -
-  from assms have "mset_set A = mset_set B \<longleftrightarrow> set_mset (mset_set A) = set_mset (mset_set B)"
-    by (intro iffI equalityI set_mset_mono) auto
-  also from assms have "\<dots> \<longleftrightarrow> A = B" by simp
-  finally show ?thesis .
-qed
+  shows "mset_set A \<subseteq># mset_set B \<longleftrightarrow> A \<subseteq> B"
+  using assms set_mset_mono subset_imp_msubset_mset_set by fastforce
 
+lemma mset_set_eq_iff[simp]:
+  assumes "finite A" "finite B"
+  shows "mset_set A = mset_set B \<longleftrightarrow> A = B"
+  using assms by (fastforce dest: finite_set_mset_mset_set)
 
 (* Contributed by Lukas Bulwahn *)
 lemma image_mset_mset_set:
@@ -2158,17 +2132,14 @@ lemma count_le_replicate_mset_subset_eq: "n \<le> count M x \<longleftrightarrow
 lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
   by (induct D) simp_all
 
-lemma replicate_count_mset_eq_filter_eq:
-  "replicate (count (mset xs) k) k = filter (HOL.eq k) xs"
+lemma replicate_count_mset_eq_filter_eq: "replicate (count (mset xs) k) k = filter (HOL.eq k) xs"
   by (induct xs) auto
 
-lemma replicate_mset_eq_empty_iff [simp]:
-  "replicate_mset n a = {#} \<longleftrightarrow> n = 0"
+lemma replicate_mset_eq_empty_iff [simp]: "replicate_mset n a = {#} \<longleftrightarrow> n = 0"
   by (induct n) simp_all
 
 lemma replicate_mset_eq_iff:
-  "replicate_mset m a = replicate_mset n b \<longleftrightarrow>
-    m = 0 \<and> n = 0 \<or> m = n \<and> a = b"
+  "replicate_mset m a = replicate_mset n b \<longleftrightarrow> m = 0 \<and> n = 0 \<or> m = n \<and> a = b"
   by (auto simp add: multiset_eq_iff)
 
 lemma repeat_mset_cancel1: "repeat_mset a A = repeat_mset a B \<longleftrightarrow> A = B \<or> a = 0"
