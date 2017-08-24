@@ -141,7 +141,7 @@ lemma dvd_nat_bounds :
 definition phi' :: "nat => nat"
   where "phi' m = card {x. 1 \<le> x \<and> x \<le> m \<and> gcd x m = 1}"
 
-notation (latex_output)
+notation (latex output)
   phi' ("\<phi> _")
 
 lemma phi'_nonzero :
