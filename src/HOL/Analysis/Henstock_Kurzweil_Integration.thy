@@ -11,8 +11,8 @@ begin
 
 (*FIXME DELETE*)
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
-
 (* try instead structured proofs below *)
+
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
   \<Longrightarrow> norm(y-x) \<le> e"
   using norm_triangle_mono [of "y1 - x1" "e1" "y2 - x2" "e2"]
@@ -4627,142 +4627,88 @@ text \<open>Hence we can apply the limit process uniformly to all integrals.\<cl
 
 lemma has_integral':
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  shows "(f has_integral i) s \<longleftrightarrow>
+  shows "(f has_integral i) S \<longleftrightarrow>
     (\<forall>e>0. \<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
-      (\<exists>z. ((\<lambda>x. if x \<in> s then f(x) else 0) has_integral z) (cbox a b) \<and> norm(z - i) < e))"
+      (\<exists>z. ((\<lambda>x. if x \<in> S then f(x) else 0) has_integral z) (cbox a b) \<and> norm(z - i) < e))"
   (is "?l \<longleftrightarrow> (\<forall>e>0. ?r e)")
-proof -
-  {
-    presume *: "\<exists>a b. s = cbox a b \<Longrightarrow> ?thesis"
-    show ?thesis
-      apply cases
-      apply (rule *)
-      apply assumption
-      apply (subst has_integral_alt)
-      apply auto
-      done
-  }
-  assume "\<exists>a b. s = cbox a b"
-  then obtain a b where s: "s = cbox a b"
-    by blast
-  from bounded_cbox[of a b, unfolded bounded_pos] 
+proof (cases "\<exists>a b. S = cbox a b")
+  case False then show ?thesis 
+    by (simp add: has_integral_alt)
+next
+  case True
+  then obtain a b where S: "S = cbox a b"
+    by blast 
   obtain B where " 0 < B" and B: "\<And>x. x \<in> cbox a b \<Longrightarrow> norm x \<le> B"
-    by blast
+    using bounded_cbox[unfolded bounded_pos] by blast
   show ?thesis
   proof safe
     fix e :: real
     assume ?l and "e > 0"
-    show "?r e"
+    have "((\<lambda>x. if x \<in> S then f x else 0) has_integral i) (cbox c d)"
+      if "ball 0 (B+1) \<subseteq> cbox c d" for c d
+        unfolding S using B that
+        by (force intro: \<open>?l\<close>[unfolded S] has_integral_restrict_closed_subinterval)
+    then show "?r e"
       apply (rule_tac x="B+1" in exI)
-      apply safe
-      defer
-      apply (rule_tac x=i in exI)
-    proof
-      fix c d :: 'n
-      assume as: "ball 0 (B+1) \<subseteq> cbox c d"
-      then show "((\<lambda>x. if x \<in> s then f x else 0) has_integral i) (cbox c d)"
-        unfolding s
-        apply -
-        apply (rule has_integral_restrict_closed_subinterval)
-        apply (rule \<open>?l\<close>[unfolded s])
-        apply safe
-        apply (drule B[rule_format])
-        unfolding subset_eq
-        apply (erule_tac x=x in ballE)
-        apply (auto simp add: dist_norm)
-        done
-    qed (insert \<open>B>0\<close> \<open>e>0\<close>, auto)
+      using \<open>B>0\<close> \<open>e>0\<close> by force
   next
     assume as: "\<forall>e>0. ?r e"
-    from this[rule_format,OF zero_less_one] guess C..note C=conjunctD2[OF this,rule_format]
+    then obtain C 
+      where C: "\<And>a b. ball 0 C \<subseteq> cbox a b \<Longrightarrow>
+                \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b)"
+      by (meson zero_less_one)
     define c :: 'n where "c = (\<Sum>i\<in>Basis. (- max B C) *\<^sub>R i)"
     define d :: 'n where "d = (\<Sum>i\<in>Basis. max B C *\<^sub>R i)"
-    have c_d: "cbox a b \<subseteq> cbox c d"
-      apply safe
-      apply (drule B)
-      unfolding mem_box
-    proof
-      fix x i
-      show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i" if "norm x \<le> B" and "i \<in> Basis"
-        using that and Basis_le_norm[OF \<open>i\<in>Basis\<close>, of x]
-        unfolding c_def d_def
-        by (auto simp add: field_simps sum_negf)
-    qed
-    have "ball 0 C \<subseteq> cbox c d"
-      apply (rule subsetI)
-      unfolding mem_box mem_ball dist_norm
-    proof
-      fix x i :: 'n
-      assume x: "norm (0 - x) < C" and i: "i \<in> Basis"
-      show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
-        using Basis_le_norm[OF i, of x] and x i
-        unfolding c_def d_def
-        by (auto simp: sum_negf)
-    qed
-    from C(2)[OF this] have "\<exists>y. (f has_integral y) (cbox a b)"
-      unfolding has_integral_restrict_closed_subintervals_eq[OF c_d,symmetric]
-      unfolding s
-      by auto
-    then guess y..note y=this
-
+    have "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i" if "norm x \<le> B" "i \<in> Basis" for x i
+      using that and Basis_le_norm[OF \<open>i\<in>Basis\<close>, of x]
+      by (auto simp add: field_simps sum_negf c_def d_def)
+    then have c_d: "cbox a b \<subseteq> cbox c d"
+      by (meson B mem_box(2) subsetI)
+    have "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
+      if x: "norm (0 - x) < C" and i: "i \<in> Basis" for x i
+        using Basis_le_norm[OF i, of x] x i by (auto simp: sum_negf c_def d_def)
+      then have "ball 0 C \<subseteq> cbox c d"
+        by (auto simp: mem_box dist_norm)
+    with C obtain y where y: "(f has_integral y) (cbox a b)"
+      using c_d has_integral_restrict_closed_subintervals_eq S by blast
     have "y = i"
     proof (rule ccontr)
-      assume "\<not> ?thesis"
+      assume "y \<noteq> i"
       then have "0 < norm (y - i)"
         by auto
-      from as[rule_format,OF this] guess C ..  note C=conjunctD2[OF this,rule_format]
+      from as[rule_format,OF this]
+      obtain C where C: "\<And>a b. ball 0 C \<subseteq> cbox a b \<Longrightarrow> 
+           \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z-i) < norm (y-i)"
+        by auto
       define c :: 'n where "c = (\<Sum>i\<in>Basis. (- max B C) *\<^sub>R i)"
       define d :: 'n where "d = (\<Sum>i\<in>Basis. max B C *\<^sub>R i)"
-      have c_d: "cbox a b \<subseteq> cbox c d"
-        apply safe
-        apply (drule B)
-        unfolding mem_box
-      proof
-        fix x i :: 'n
-        assume "norm x \<le> B" and "i \<in> Basis"
-        then show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
-          using Basis_le_norm[of i x]
-          unfolding c_def d_def
-          by (auto simp add: field_simps sum_negf)
-      qed
-      have "ball 0 C \<subseteq> cbox c d"
-        apply (rule subsetI)
-        unfolding mem_box mem_ball dist_norm
-      proof
-        fix x i :: 'n
-        assume "norm (0 - x) < C" and "i \<in> Basis"
-        then show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
-          using Basis_le_norm[of i x]
-          unfolding c_def d_def
-          by (auto simp: sum_negf)
-      qed
-      note C(2)[OF this] then guess z..note z = conjunctD2[OF this, unfolded s]
-      note this[unfolded has_integral_restrict_closed_subintervals_eq[OF c_d]]
-      then have "z = y" and "norm (z - i) < norm (y - i)"
-        apply -
-        apply (rule has_integral_unique[OF _ y(1)])
-        apply assumption
-        apply assumption
-        done
-      then show False
+      have "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
+        if "norm x \<le> B" and "i \<in> Basis" for x i
+          using that Basis_le_norm[of i x] by (auto simp add: field_simps sum_negf c_def d_def)
+        then have c_d: "cbox a b \<subseteq> cbox c d"
+        by (simp add: B mem_box(2) subset_eq)
+      have "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i" if "norm (0 - x) < C" and "i \<in> Basis" for x i
+        using Basis_le_norm[of i x] that by (auto simp: sum_negf c_def d_def)
+      then have "ball 0 C \<subseteq> cbox c d"
+        by (auto simp: mem_box dist_norm)
+      with C obtain z where z: "(f has_integral z) (cbox a b)" "norm (z-i) < norm (y-i)"
+        using has_integral_restrict_closed_subintervals_eq[OF c_d] S by blast
+      moreover then have "z = y" 
+        by (blast intro: has_integral_unique[OF _ y])
+      ultimately show False
         by auto
     qed
     then show ?l
-      using y
-      unfolding s
-      by auto
+      using y by (auto simp: S)
   qed
 qed
 
 lemma has_integral_le:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
-  assumes "(f has_integral i) S"
-    and "(g has_integral j) S"
-    and "\<And>x. x \<in> S \<Longrightarrow> f x \<le> g x"
+  assumes fg: "(f has_integral i) S" "(g has_integral j) S"
+    and le: "\<And>x. x \<in> S \<Longrightarrow> f x \<le> g x"
   shows "i \<le> j"
-  using has_integral_component_le[OF _ assms(1-2), of 1]
-  using assms(3)
-  by auto
+  using has_integral_component_le[OF _ fg, of 1] le  by auto
 
 lemma integral_le:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
