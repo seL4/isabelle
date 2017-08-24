@@ -11,8 +11,7 @@ With \<open>size_prod_measure\<close> enabled it also tries measures based on th
 of different parameters.
 
 To alert the reader whenever such a more subtle termination proof is taking place
-the lemma is not enabled all the time but only locally in a \<open>context\<close> block
-around such function definitions.
+the lemma is not enabled all the time but only when it is needed.
 \<close>
 
 lemma size_prod_measure: 

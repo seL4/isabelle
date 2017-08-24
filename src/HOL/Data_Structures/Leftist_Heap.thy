@@ -10,8 +10,6 @@ imports
   Complex_Main
 begin
 
-unbundle pattern_aliases
-
 fun mset_tree :: "('a,'b) tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |
 "mset_tree (Node _ l a r) = {#a#} + mset_tree l + mset_tree r"
@@ -46,16 +44,16 @@ definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarro
 fun get_min :: "'a lheap \<Rightarrow> 'a" where
 "get_min(Node n l a r) = a"
 
-text\<open>Explicit termination argument: sum of sizes\<close>
+text \<open>For function \<open>merge\<close>:\<close>
+unbundle pattern_aliases
+declare size_prod_measure[measure_function]
 
-function merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
+fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "merge Leaf t2 = t2" |
 "merge t1 Leaf = t1" |
 "merge (Node n1 l1 a1 r1 =: t1) (Node n2 l2 a2 r2 =: t2) =
    (if a1 \<le> a2 then node l1 a1 (merge r1 t2)
     else node l2 a2 (merge r2 t1))"
-by pat_completeness auto
-termination by (relation "measure (\<lambda>(t1,t2). size t1 + size t2)") auto
 
 lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
@@ -180,14 +178,12 @@ qed
 
 text\<open>Explicit termination argument: sum of sizes\<close>
 
-function t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
+fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_merge Leaf t2 = 1" |
 "t_merge t2 Leaf = 1" |
 "t_merge (Node n1 l1 a1 r1 =: t1) (Node n2 l2 a2 r2 =: t2) =
   (if a1 \<le> a2 then 1 + t_merge r1 t2
    else 1 + t_merge r2 t1)"
-by pat_completeness auto
-termination by (relation "measure (\<lambda>(t1,t2). size t1 + size t2)") auto
 
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_insert x t = t_merge (Node 1 Leaf x Leaf) t"
