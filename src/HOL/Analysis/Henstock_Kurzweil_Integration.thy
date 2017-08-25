@@ -5061,80 +5061,67 @@ proof
 next
   let ?F = "\<lambda>x. if x \<in> s then f x else 0"
   assume rhs: ?r
-  note as = conjunctD2[OF this,rule_format]
   let ?cube = "\<lambda>n. cbox (\<Sum>i\<in>Basis. - real n *\<^sub>R i::'n) (\<Sum>i\<in>Basis. real n *\<^sub>R i)"
-  have "Cauchy (\<lambda>n. integral (?cube n) (\<lambda>x. if x \<in> s then f x else 0))"
-  proof (unfold Cauchy_def, safe, goal_cases)
-    case (1 e)
+  have "Cauchy (\<lambda>n. integral (?cube n) ?F)"
+    unfolding Cauchy_def
+  proof (intro allI impI)
+    fix e::real
+    assume "e > 0"
     with rhs obtain B where "0 < B" 
       and B: "\<And>a b c d. ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d 
                         \<Longrightarrow> norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e"
       by blast
     obtain N where N: "B \<le> real N"
       using real_arch_simple by blast
-    {
-      fix n
-      assume n: "n \<ge> N"
+    have "ball 0 B \<subseteq> ?cube n" if n: "n \<ge> N" for n
+    proof -
       have "sum (op *\<^sub>R (- real n)) Basis \<bullet> i \<le> x \<bullet> i \<and>
             x \<bullet> i \<le> sum (op *\<^sub>R (real n)) Basis \<bullet> i"
         if "norm x < B" "i \<in> Basis" for x i::'n
           using Basis_le_norm[of i x] n N that by (auto simp add: field_simps sum_negf)
-      then have "ball 0 B \<subseteq> ?cube n"
+      then show ?thesis
         by (auto simp: mem_box dist_norm)
-    }
-    then show ?case
+    qed
+    then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (integral (?cube m) ?F) (integral (?cube n) ?F) < e"
       by (fastforce simp add: dist_norm intro!: B)
   qed
-  from this[unfolded convergent_eq_Cauchy[symmetric]] guess i ..
-  note i = this[THEN LIMSEQ_D]
-
-  show ?l unfolding integrable_on_def has_integral_alt'[of f]
-    apply (rule_tac x=i in exI)
-    apply safe
-    apply (rule as(1)[unfolded integrable_on_def])
-  proof goal_cases
-    case (1 e)
-    then have *: "e/2 > 0" by auto
-    from i[OF this] guess N..note N =this[rule_format]
-    from as(2)[OF *] guess B..note B=conjunctD2[OF this,rule_format]
+  then obtain i where i: "(\<lambda>n. integral (?cube n) ?F) \<longlonglongrightarrow> i"
+    using convergent_eq_Cauchy by blast
+  have "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow> norm (integral (cbox a b) ?F - i) < e"
+    if "e > 0" for e
+  proof -
+    have *: "e/2 > 0" using that by auto
+    then obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> norm (i - integral (?cube n) ?F) < e / 2"
+      using i[THEN LIMSEQ_D, simplified norm_minus_commute] by meson
+    obtain B where "0 < B" 
+      and B: "\<And>a b c d. \<lbrakk>ball 0 B \<subseteq> cbox a b; ball 0 B \<subseteq> cbox c d\<rbrakk> \<Longrightarrow>
+                  norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e / 2"
+      using rhs * by meson
     let ?B = "max (real N) B"
-    show ?case
-      apply (rule_tac x="?B" in exI)
-    proof safe
+    show ?thesis
+    proof (intro exI conjI allI impI)
       show "0 < ?B"
-        using B(1) by auto
+        using \<open>B > 0\<close> by auto
       fix a b :: 'n
-      assume ab: "ball 0 ?B \<subseteq> cbox a b"
-      from real_arch_simple[of ?B] guess n..note n=this
-      show "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f x else 0) - i) < e"
-        apply (rule norm_triangle_half_l)
-        apply (rule B(2))
-        defer
-        apply (subst norm_minus_commute)
-        apply (rule N[of n])
-      proof safe
-        show "N \<le> n"
-          using n by auto
+      assume "ball 0 ?B \<subseteq> cbox a b"
+      moreover obtain n where n: "max (real N) B \<le> real n"
+        using real_arch_simple by blast
+      moreover have "ball 0 B \<subseteq> ?cube n"
+      proof 
         fix x :: 'n
         assume x: "x \<in> ball 0 B"
-        then have "x \<in> ball 0 ?B"
-          by auto
-        then show "x \<in> cbox a b"
-          using ab by blast
-        show "x \<in> ?cube n"
-          using x
-          unfolding mem_box mem_ball dist_norm
-          apply -
-        proof (rule, goal_cases)
-          case (1 i)
-          then show ?case
-            using Basis_le_norm[of i x] \<open>i \<in> Basis\<close>
-            using n
-            by (auto simp add: field_simps sum_negf)
-        qed
-      qed
+        have "\<lbrakk>norm (0 - x) < B; i \<in> Basis\<rbrakk>
+              \<Longrightarrow> sum (op *\<^sub>R (-n)) Basis \<bullet> i\<le> x \<bullet> i \<and> x \<bullet> i \<le> sum (op *\<^sub>R n) Basis \<bullet> i" for i
+          using Basis_le_norm[of i x] n by (auto simp add: field_simps sum_negf)
+        then show "x \<in> ?cube n"
+          using x by (auto simp: mem_box dist_norm)
+      qed 
+      ultimately show "norm (integral (cbox a b) ?F - i) < e"
+        using norm_triangle_half_l [OF B N] by force
     qed
   qed
+  then show ?l unfolding integrable_on_def has_integral_alt'[of f]
+    using rhs by blast
 qed
 
 lemma integrable_altD:
