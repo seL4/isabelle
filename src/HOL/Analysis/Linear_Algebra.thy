@@ -1457,10 +1457,6 @@ lemma abs_triangle_half_l:
   shows "abs (x - x') < e"
   using assms by linarith
 
-lemma eps_leI: 
-  assumes "(\<And>e::'a::linordered_idom. 0 < e \<Longrightarrow> x < y + e)" shows "x \<le> y"
-  by (metis add_diff_eq assms diff_diff_add diff_gt_0_iff_gt linorder_not_less order_less_irrefl)
-
 lemma sum_clauses:
   shows "sum f {} = 0"
     and "finite S \<Longrightarrow> sum f (insert x S) = (if x \<in> S then sum f S else f x + sum f S)"

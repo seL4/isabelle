@@ -1347,7 +1347,7 @@ lemma has_integral_contour_integral_subpath:
             has_integral  contour_integral (subpath u v g) f) {u..v}"
   using assms
   apply (auto simp: has_integral_integrable_integral)
-  apply (rule integrable_on_subcbox [where a=u and b=v and s = "{0..1}", simplified])
+  apply (rule integrable_on_subcbox [where a=u and b=v and S = "{0..1}", simplified])
   apply (auto simp: contour_integral_unique [OF has_contour_integral_subpath] contour_integrable_on)
   done
 
@@ -1364,7 +1364,7 @@ lemma contour_integral_subpath_combine_less:
            contour_integral (subpath u w g) f"
   using assms apply (auto simp: contour_integral_subcontour_integral)
   apply (rule integral_combine, auto)
-  apply (rule integrable_on_subcbox [where a=u and b=w and s = "{0..1}", simplified])
+  apply (rule integrable_on_subcbox [where a=u and b=w and S = "{0..1}", simplified])
   apply (auto simp: contour_integrable_on)
   done
 
