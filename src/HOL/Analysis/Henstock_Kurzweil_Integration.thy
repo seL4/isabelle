@@ -5610,7 +5610,8 @@ proof (rule field_le_epsilon)
     note integrable_integral[OF this, unfolded has_integral[of f]]
     from this[rule_format,OF *] guess dd..note dd=conjunctD2[OF this,rule_format]
     note gauge_Int[OF \<open>gauge d\<close> dd(1)]
-    from fine_division_exists[OF this,of u v] guess qq .
+    then obtain qq where qq: "qq tagged_division_of cbox u v" "(\<lambda>x. d x \<inter> dd x) fine qq"
+      using fine_division_exists by blast
     then show ?thesis
       apply (rule_tac x=qq in exI)
       using dd(2)[of qq]
@@ -5674,14 +5675,15 @@ proof (rule field_le_epsilon)
   proof -
     fix x l k
     assume as: "(x, l) \<in> p" "(x, l) \<in> qq k" "k \<in> r"
-    note qq[OF this(3)]
-    note tagged_division_ofD(3,4)[OF conjunct1[OF this] as(2)]
-    from this(2) guess u v by (elim exE) note uv=this
-    have "l\<in>snd ` p" unfolding image_iff apply(rule_tac x="(x,l)" in bexI) using as by auto
+    then obtain u v where uv: "l = cbox u v"
+      using p'(4) by blast
+    have "l \<subseteq> k"
+      using  qq[OF as(3)] tagged_division_ofD(3) \<open>(x, l) \<in> qq k\<close> by metis
+    have "l \<in> snd ` p" 
+      using \<open>(x, l) \<in> p\<close> image_iff by fastforce 
     then have "l \<in> q" "k \<in> q" "l \<noteq> k"
       using as(1,3) q(1) unfolding r_def by auto
-    note q'(5)[OF this]
-    then have "interior l = {}"
+    with q'(5) have "interior l = {}"
       using interior_mono[OF \<open>l \<subseteq> k\<close>] by blast
     then show "content l *\<^sub>R f x = 0"
       unfolding uv content_eq_0_interior[symmetric] by auto
@@ -5745,45 +5747,33 @@ proof (rule field_le_epsilon)
   have "?x =  norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p. integral k f))"
     unfolding split_def sum_subtractf ..
   also have "\<dots> \<le> e + k"
-    apply (rule *[OF **, where ir1="sum (\<lambda>k. integral k f) r"])
-  proof goal_cases
-    case 1
+  proof (rule *[OF **])
     have *: "k * real (card r) / (1 + real (card r)) < k"
       using k by (auto simp add: field_simps)
-    show ?case
-      apply (rule le_less_trans[of _ "sum (\<lambda>x. k / (real (card r) + 1)) r"])
-      unfolding sum_subtractf[symmetric]
-      apply (rule sum_norm_le)
-      apply (drule qq)
-      defer
-      unfolding divide_inverse sum_distrib_right[symmetric]
-      unfolding divide_inverse[symmetric]
-      using * apply (auto simp add: field_simps)
-      done
+    have "norm (sum (sum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r - (\<Sum>k\<in>r. integral k f))
+          \<le> (\<Sum>x\<in>r. k / (real (card r) + 1))"
+      unfolding sum_subtractf[symmetric] by (force dest: qq intro!: sum_norm_le)
+    also have "... < k"
+      by (simp add: "*" add.commute mult.commute)
+    finally show "norm (sum (sum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r - (\<Sum>k\<in>r. integral k f)) < k" .
   next
-    case 2
-    have *: "(\<Sum>(x, k)\<in>p. integral k f) = (\<Sum>k\<in>snd ` p. integral k f)"
-      apply (subst sum.reindex_nontrivial)
-      apply fact
-      unfolding split_paired_all snd_conv split_def o_def
+    from q(1) have [simp]: "snd ` p \<union> q = q" by auto
+    have "integral l f = 0"
+      if inp: "(x, l) \<in> p" "(y, m) \<in> p" and ne: "(x, l) \<noteq> (y, m)" and "l = m" for x l y m
     proof -
-      fix x l y m
-      assume as: "(x, l) \<in> p" "(y, m) \<in> p" "(x, l) \<noteq> (y, m)" "l = m"
-      from p'(4)[OF as(1)] guess u v by (elim exE) note uv=this
-      show "integral l f = 0"
-        unfolding uv
-        apply (rule integral_unique)
-        apply (rule has_integral_null)
-        unfolding content_eq_0_interior
-        using p'(5)[OF as(1-3)]
-        unfolding uv as(4)[symmetric]
-        apply auto
-        done
-    qed auto
-    from q(1) have **: "snd ` p \<union> q = q" by auto
-    show ?case
-      unfolding integral_combine_division_topdown[OF assms(1) q(2)] * r_def
-      using ** q'(1) p'(1) sum.union_disjoint [of "snd ` p" "q - snd ` p" "\<lambda>k. integral k f", symmetric]
+      obtain u v where uv: "l = cbox u v"
+        using inp p'(4) by blast
+      have "content (cbox u v) = 0"
+        unfolding content_eq_0_interior using that p(1) uv by auto
+      then show ?thesis
+        using uv by blast
+    qed
+    then have "(\<Sum>(x, k)\<in>p. integral k f) = (\<Sum>k\<in>snd ` p. integral k f)"
+      apply (subst sum.reindex_nontrivial [OF \<open>finite p\<close>])
+      unfolding split_paired_all split_def by auto
+    then show "(\<Sum>(x, k)\<in>p. integral k f) + (\<Sum>k\<in>r. integral k f) = integral (cbox a b) f"
+      unfolding integral_combine_division_topdown[OF assms(1) q(2)] r_def
+      using q'(1) p'(1) sum.union_disjoint [of "snd ` p" "q - snd ` p", symmetric]
         by simp
   qed
   finally show "?x \<le> e + k" .
