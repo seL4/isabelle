@@ -5794,7 +5794,35 @@ apply (rule iffI)
  prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
 apply (case_tac xys, simp, simp)
 apply blast
-done
+  done
+
+lemma lex_append_rightI:
+  "(xs, ys) \<in> lex r \<Longrightarrow> length vs = length us \<Longrightarrow> (xs @ us, ys @ vs) \<in> lex r"
+by (fastforce simp: lex_def lexn_conv)
+
+lemma lex_append_leftI:
+  "(ys, zs) \<in> lex r \<Longrightarrow> (xs @ ys, xs @ zs) \<in> lex r"
+by (induct xs) auto
+
+lemma lex_append_leftD:
+  "\<forall>x. (x,x) \<notin> r \<Longrightarrow> (xs @ ys, xs @ zs) \<in> lex r \<Longrightarrow> (ys, zs) \<in> lex r"
+by (induct xs) auto
+
+lemma lex_append_left_iff:
+  "\<forall>x. (x,x) \<notin> r \<Longrightarrow> (xs @ ys, xs @ zs) \<in> lex r \<longleftrightarrow> (ys, zs) \<in> lex r"
+by(metis lex_append_leftD lex_append_leftI)
+
+lemma lex_take_index:
+  assumes "(xs, ys) \<in> lex r"
+  obtains i where "i < length xs" and "i < length ys" and "take i xs =
+take i ys"
+    and "(xs ! i, ys ! i) \<in> r"
+proof -
+  obtain n us x xs' y ys' where "(xs, ys) \<in> lexn r n" and "length xs = n" and "length ys = n"
+    and "xs = us @ x # xs'" and "ys = us @ y # ys'" and "(x, y) \<in> r"
+    using assms by (fastforce simp: lex_def lexn_conv)
+  then show ?thesis by (intro that [of "length us"]) auto
+qed
 
 
 subsubsection \<open>Lexicographic Ordering\<close>
