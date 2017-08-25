@@ -4,66 +4,8 @@ section \<open>Creating Balanced Trees\<close>
 
 theory Balance
 imports
-  Complex_Main
-  "HOL-Library.Tree"
+  "HOL-Library.Tree_Real"
 begin
-
-(* The following two lemmas should go into theory \<open>Tree\<close>, except that that
-theory would then depend on \<open>Complex_Main\<close>. *)
-
-lemma min_height_balanced: assumes "balanced t"
-shows "min_height t = nat(floor(log 2 (size1 t)))"
-proof cases
-  assume *: "complete t"
-  hence "size1 t = 2 ^ min_height t"
-    by (simp add: complete_iff_height size1_if_complete)
-  hence "size1 t = 2 powr min_height t"
-    using * by (simp add: powr_realpow)
-  hence "min_height t = log 2 (size1 t)"
-    by simp
-  thus ?thesis
-    by linarith
-next
-  assume *: "\<not> complete t"
-  hence "height t = min_height t + 1"
-    using assms min_height_le_height[of t]
-    by(auto simp add: balanced_def complete_iff_height)
-  hence "2 ^ min_height t \<le> size1 t \<and> size1 t < 2 ^ (min_height t + 1)"
-    by (metis * min_height_size1 size1_height_if_incomplete)
-  hence "2 powr min_height t \<le> size1 t \<and> size1 t < 2 powr (min_height t + 1)"
-    by(simp only: powr_realpow)
-      (metis of_nat_less_iff of_nat_le_iff of_nat_numeral of_nat_power)
-  hence "min_height t \<le> log 2 (size1 t) \<and> log 2 (size1 t) < min_height t + 1"
-    by(simp add: log_less_iff le_log_iff)
-  thus ?thesis by linarith
-qed
-
-lemma height_balanced: assumes "balanced t"
-shows "height t = nat(ceiling(log 2 (size1 t)))"
-proof cases
-  assume *: "complete t"
-  hence "size1 t = 2 ^ height t"
-    by (simp add: size1_if_complete)
-  hence "size1 t = 2 powr height t"
-    using * by (simp add: powr_realpow)
-  hence "height t = log 2 (size1 t)"
-    by simp
-  thus ?thesis
-    by linarith
-next
-  assume *: "\<not> complete t"
-  hence **: "height t = min_height t + 1"
-    using assms min_height_le_height[of t]
-    by(auto simp add: balanced_def complete_iff_height)
-  hence 0: "2 ^ min_height t < size1 t \<and> size1 t \<le> 2 ^ (min_height t + 1)"
-    by (metis "*" min_height_size1_if_incomplete size1_height)
-  hence "2 powr min_height t < size1 t \<and> size1 t \<le> 2 powr (min_height t + 1)"
-    by(simp only: powr_realpow)
-      (metis of_nat_less_iff of_nat_le_iff of_nat_numeral of_nat_power)
-  hence "min_height t < log 2 (size1 t) \<and> log 2 (size1 t) \<le> min_height t + 1"
-    by(simp add: log_le_iff less_log_iff)
-  thus ?thesis using ** by linarith
-qed
 
 (* mv *)
 

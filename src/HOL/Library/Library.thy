@@ -80,6 +80,7 @@ imports
   Sum_of_Squares
   Transitive_Closure_Table
   Tree_Multiset
+  Tree_Real
   Type_Length
   While_Combinator
 begin
