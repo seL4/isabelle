@@ -2545,6 +2545,9 @@ lemma powr_le_cancel_iff [simp]: "1 < x \<Longrightarrow> x powr a \<le> x powr 
   for a b x :: real
   by (simp add: linorder_not_less [symmetric])
 
+lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
+by (induction n) (simp_all add: ac_simps powr_add)
+
 lemma log_ln: "ln x = log (exp(1)) x"
   by (simp add: log_def)
 
@@ -2695,15 +2698,46 @@ lemmas powr_le_iff = le_log_iff[symmetric]
   and less_powr_iff = log_less_iff[symmetric]
   and le_powr_iff = log_le_iff[symmetric]
 
+lemma le_log_of_power:
+  assumes "b ^ n \<le> m" "1 < b"
+  shows "n \<le> log b m"
+proof -
+  from assms have "0 < m" by (metis less_trans zero_less_power less_le_trans zero_less_one)
+  thus ?thesis using assms by (simp add: le_log_iff powr_realpow)
+qed
+
+lemma le_log2_of_power: "2 ^ n \<le> m \<Longrightarrow> n \<le> log 2 m" for m n :: nat
+using le_log_of_power[of 2] by simp
+
+lemma log_of_power_le: "\<lbrakk> m \<le> b ^ n; b > 1; m > 0 \<rbrakk> \<Longrightarrow> log b (real m) \<le> n"
+by (simp add: log_le_iff powr_realpow)
+
+lemma log2_of_power_le: "\<lbrakk> m \<le> 2 ^ n; m > 0 \<rbrakk> \<Longrightarrow> log 2 m \<le> n" for m n :: nat
+using log_of_power_le[of _ 2] by simp
+
+lemma log_of_power_less: "\<lbrakk> m < b ^ n; b > 1; m > 0 \<rbrakk> \<Longrightarrow> log b (real m) < n"
+by (simp add: log_less_iff powr_realpow)
+
+lemma log2_of_power_less: "\<lbrakk> m < 2 ^ n; m > 0 \<rbrakk> \<Longrightarrow> log 2 m < n" for m n :: nat
+using log_of_power_less[of _ 2] by simp
+
+lemma less_log_of_power:
+  assumes "b ^ n < m" "1 < b"
+  shows "n < log b m"
+proof -
+  have "0 < m" by (metis assms less_trans zero_less_power zero_less_one)
+  thus ?thesis using assms by (simp add: less_log_iff powr_realpow)
+qed
+
+lemma less_log2_of_power: "2 ^ n < m \<Longrightarrow> n < log 2 m" for m n :: nat
+using less_log_of_power[of 2] by simp
+
 lemma gr_one_powr[simp]:
   fixes x y :: real shows "\<lbrakk> x > 1; y > 0 \<rbrakk> \<Longrightarrow> 1 < x powr y"
 by(simp add: less_powr_iff)
 
 lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
-
-lemma powr_realpow: "0 < x \<Longrightarrow> x powr (real n) = x^n"
-  by (induct n) (simp_all add: ac_simps powr_add)
 
 lemma powr_real_of_int:
   "x > 0 \<Longrightarrow> x powr real_of_int n = (if n \<ge> 0 then x ^ nat n else inverse (x ^ nat (- n)))"
@@ -2771,43 +2805,6 @@ lemma log_powr: "x \<noteq> 0 \<Longrightarrow> log b (x powr y) = y * log b x"
 lemma log_nat_power: "0 < x \<Longrightarrow> log b (x^n) = real n * log b x"
   by (simp add: log_powr powr_realpow [symmetric])
 
-lemma le_log_of_power:
-  assumes "b ^ n \<le> m" "1 < b"
-  shows "n \<le> log b m"
-proof -
-  from assms have "0 < m" by (metis less_trans zero_less_power less_le_trans zero_less_one)
-  have "n = log b (b ^ n)" using assms(2) by (simp add: log_nat_power)
-  also have "\<dots> \<le> log b m" using assms \<open>0 < m\<close> by simp
-  finally show ?thesis .
-qed
-
-lemma le_log2_of_power: "2 ^ n \<le> m \<Longrightarrow> n \<le> log 2 m" for m n :: nat
-using le_log_of_power[of 2] by simp
-
-lemma log_of_power_le:
-  assumes "m \<le> b ^ n" "b > 1" "m > 0"
-  shows "log b (real m) \<le> n"
-proof -
-  have "log b m \<le> log b (b ^ n)" using assms by simp
-  also have "\<dots> = n" using assms(2) by (simp add: log_nat_power)
-  finally show ?thesis .
-qed
-
-lemma log2_of_power_le: "\<lbrakk> m \<le> 2 ^ n; m > 0 \<rbrakk> \<Longrightarrow> log 2 m \<le> n" for m n :: nat
-using log_of_power_le[of _ 2] by simp
-
-lemma log_of_power_less:
-  assumes "m < b ^ n" "b > 1" "m > 0"
-  shows "log b (real m) < n"
-proof -
-  have "log b m < log b (b ^ n)" using assms by simp
-  also have "\<dots> = n" using assms(2) by (simp add: log_nat_power)
-  finally show ?thesis .
-qed
-
-lemma log2_of_power_less: "\<lbrakk> m < 2 ^ n; m > 0 \<rbrakk> \<Longrightarrow> log 2 m < n" for m n :: nat
-using log_of_power_less[of _ 2] by simp
-
 lemma log_of_power_eq:
   assumes "m = b ^ n" "b > 1"
   shows "n = log b (real m)"
@@ -2819,19 +2816,6 @@ qed
 
 lemma log2_of_power_eq: "m = 2 ^ n \<Longrightarrow> n = log 2 m" for m n :: nat
 using log_of_power_eq[of _ 2] by simp
-
-lemma less_log_of_power:
-  assumes "b ^ n < m" "1 < b"
-  shows "n < log b m"
-proof -
-   have "0 < m" by (metis assms less_trans zero_less_power zero_less_one)
-   have "n = log b (b ^ n)" using assms(2) by (simp add: log_nat_power)
-   also have "\<dots> < log b m" using assms \<open>0 < m\<close> by simp
-   finally show ?thesis .
-qed
-
-lemma less_log2_of_power: "2 ^ n < m \<Longrightarrow> n < log 2 m" for m n :: nat
-using less_log_of_power[of 2] by simp
 
 lemma log_base_change: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log b x = log a x / log a b"
   by (simp add: log_def)
