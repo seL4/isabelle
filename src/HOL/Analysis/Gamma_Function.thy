@@ -2697,6 +2697,75 @@ qed
 
 subsubsection \<open>Integral form\<close>
 
+lemma integrable_on_powr_from_0':
+  assumes a: "a > (-1::real)" and c: "c \<ge> 0"
+  shows   "(\<lambda>x. x powr a) integrable_on {0<..c}"
+proof -
+  from c have *: "{0<..c} - {0..c} = {}" "{0..c} - {0<..c} = {0}" by auto
+  show ?thesis
+  by (rule integrable_spike_set [OF integrable_on_powr_from_0[OF a c]]) (simp_all add: *)
+qed
+
+lemma absolutely_integrable_Gamma_integral:
+  assumes "Re z > 0" "a > 0"
+  shows   "(\<lambda>t. complex_of_real t powr (z - 1) / of_real (exp (a * t))) 
+             absolutely_integrable_on {0<..}" (is "?f absolutely_integrable_on _")
+proof -
+  have "((\<lambda>x. (Re z - 1) * (ln x / x)) \<longlongrightarrow> (Re z - 1) * 0) at_top"
+    by (intro tendsto_intros ln_x_over_x_tendsto_0)
+  hence "((\<lambda>x. ((Re z - 1) * ln x) / x) \<longlongrightarrow> 0) at_top" by simp
+  from order_tendstoD(2)[OF this, of "a/2"] and \<open>a > 0\<close>
+    have "eventually (\<lambda>x. (Re z - 1) * ln x / x < a/2) at_top" by simp
+  from eventually_conj[OF this eventually_gt_at_top[of 0]]
+    obtain x0 where "\<forall>x\<ge>x0. (Re z - 1) * ln x / x < a/2 \<and> x > 0"
+      by (auto simp: eventually_at_top_linorder)
+  hence "x0 > 0" by simp
+  have "x powr (Re z - 1) / exp (a * x) < exp (-(a/2) * x)" if "x \<ge> x0" for x
+  proof -
+    from that and \<open>\<forall>x\<ge>x0. _\<close> have x: "(Re z - 1) * ln x / x < a / 2" "x > 0" by auto
+    have "x powr (Re z - 1) = exp ((Re z - 1) * ln x)"
+      using \<open>x > 0\<close> by (simp add: powr_def)
+    also from x have "(Re z - 1) * ln x < (a * x) / 2" by (simp add: field_simps)
+    finally show ?thesis by (simp add: field_simps exp_add [symmetric])
+  qed
+  note x0 = \<open>x0 > 0\<close> this
+
+  have "?f absolutely_integrable_on ({0<..x0} \<union> {x0..})"
+  proof (rule set_integrable_Un)
+    show "?f absolutely_integrable_on {0<..x0}"
+    proof (rule Bochner_Integration.integrable_bound [OF _ _ AE_I2])
+      show "set_integrable lebesgue {0<..x0} (\<lambda>x. x powr (Re z - 1))" using x0(1) assms
+        by (intro nonnegative_absolutely_integrable_1 integrable_on_powr_from_0') auto
+      show "set_borel_measurable lebesgue {0<..x0}
+              (\<lambda>x. complex_of_real x powr (z - 1) / complex_of_real (exp (a * x)))"
+        by (intro measurable_completion)
+           (auto intro!: borel_measurable_continuous_on_indicator continuous_intros)
+      fix x :: real 
+      have "x powr (Re z - 1) / exp (a * x) \<le> x powr (Re z - 1) / 1" if "x \<ge> 0"
+        using that assms by (intro divide_left_mono) auto
+      thus "norm (indicator {0<..x0} x *\<^sub>R ?f x) \<le> 
+               norm (indicator {0<..x0} x *\<^sub>R x powr (Re z - 1))"
+        by (simp_all add: norm_divide norm_powr_real_powr indicator_def)
+    qed
+  next
+    show "?f absolutely_integrable_on {x0..}"
+    proof (rule Bochner_Integration.integrable_bound [OF _ _ AE_I2])
+      show "set_integrable lebesgue {x0..} (\<lambda>x. exp (-(a/2) * x))" using assms
+        by (intro nonnegative_absolutely_integrable_1 integrable_on_exp_minus_to_infinity) auto
+      show "set_borel_measurable lebesgue {x0..}
+              (\<lambda>x. complex_of_real x powr (z - 1) / complex_of_real (exp (a * x)))" using x0(1)
+        by (intro measurable_completion)
+           (auto intro!: borel_measurable_continuous_on_indicator continuous_intros)
+      fix x :: real 
+      show "norm (indicator {x0..} x *\<^sub>R ?f x) \<le> 
+               norm (indicator {x0..} x *\<^sub>R exp (-(a/2) * x))" using x0
+        by (auto simp: norm_divide norm_powr_real_powr indicator_def less_imp_le)
+    qed
+  qed auto
+  also have "{0<..x0} \<union> {x0..} = {0<..}" using x0(1) by auto
+  finally show ?thesis .
+qed
+
 lemma integrable_Gamma_integral_bound:
   fixes a c :: real
   assumes a: "a > -1" and c: "c \<ge> 0"
@@ -2896,6 +2965,25 @@ proof -
   have "((\<lambda>t. complex_of_real (t powr (x - 1) / exp t)) has_integral of_real (Gamma x)) {0..}"
     by (rule has_integral_eq[OF _ A]) (simp_all add: powr_of_real [symmetric])
   from has_integral_linear[OF this bounded_linear_Re] show ?thesis by (simp add: o_def)
+qed
+
+lemma absolutely_integrable_Gamma_integral':
+  assumes "Re z > 0"
+  shows   "(\<lambda>t. complex_of_real t powr (z - 1) / of_real (exp t)) absolutely_integrable_on {0<..}"
+  using absolutely_integrable_Gamma_integral [OF assms zero_less_one] by simp
+
+lemma Gamma_integral_complex':
+  assumes z: "Re z > 0"
+  shows   "((\<lambda>t. of_real t powr (z - 1) / of_real (exp t)) has_integral Gamma z) {0<..}"
+proof -
+  have "((\<lambda>t. of_real t powr (z - 1) / of_real (exp t)) has_integral Gamma z) {0..}"
+    by (rule Gamma_integral_complex) fact+
+  hence "((\<lambda>t. if t \<in> {0<..} then of_real t powr (z - 1) / of_real (exp t) else 0) 
+           has_integral Gamma z) {0..}"
+    by (rule has_integral_spike [of "{0}", rotated 2]) auto
+  also have "?this = ?thesis"
+    by (subst has_integral_restrict) auto
+  finally show ?thesis .
 qed
 
 

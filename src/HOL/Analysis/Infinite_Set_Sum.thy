@@ -108,6 +108,15 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>ai\<in>A. b" \<rightleftharpoons> "CONST infsetsum (\<lambda>i. b) A"
 
 syntax (ASCII)
+  "_uinfsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}" 
+  ("(3INFSETSUM _:_./ _)" [0, 51, 10] 10)
+syntax
+  "_uinfsetsum" :: "pttrn \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}" 
+  ("(2\<Sum>\<^sub>a_./ _)" [0, 10] 10)
+translations \<comment> \<open>Beware of argument permutation!\<close>
+  "\<Sum>\<^sub>ai. b" \<rightleftharpoons> "CONST infsetsum (\<lambda>i. b) (CONST UNIV)"
+
+syntax (ASCII)
   "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}" 
   ("(3INFSETSUM _ |/ _./ _)" [0, 0, 10] 10)
 syntax
@@ -158,6 +167,31 @@ lemma abs_summable_on_altdef: "f abs_summable_on A \<longleftrightarrow> set_int
 lemma abs_summable_on_altdef': 
   "A \<subseteq> B \<Longrightarrow> f abs_summable_on A \<longleftrightarrow> set_integrable (count_space B) A f"
   by (subst abs_summable_on_restrict[of _ B]) (auto simp: abs_summable_on_def)
+
+lemma abs_summable_on_norm_iff [simp]: 
+  "(\<lambda>x. norm (f x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on A"
+  by (simp add: abs_summable_on_def integrable_norm_iff)
+
+lemma abs_summable_on_normI: "f abs_summable_on A \<Longrightarrow> (\<lambda>x. norm (f x)) abs_summable_on A"
+  by simp
+
+lemma abs_summable_on_comparison_test:
+  assumes "g abs_summable_on A"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> norm (f x) \<le> norm (g x)"
+  shows   "f abs_summable_on A"
+  using assms Bochner_Integration.integrable_bound[of "count_space A" g f] 
+  unfolding abs_summable_on_def by (auto simp: AE_count_space)  
+
+lemma abs_summable_on_comparison_test':
+  assumes "g abs_summable_on A"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> norm (f x) \<le> g x"
+  shows   "f abs_summable_on A"
+proof (rule abs_summable_on_comparison_test[OF assms(1), of f])
+  fix x assume "x \<in> A"
+  with assms(2) have "norm (f x) \<le> g x" .
+  also have "\<dots> \<le> norm (g x)" by simp
+  finally show "norm (f x) \<le> norm (g x)" .
+qed
 
 lemma abs_summable_on_cong [cong]:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> A = B \<Longrightarrow> (f abs_summable_on A) \<longleftrightarrow> (g abs_summable_on B)"
@@ -210,6 +244,18 @@ lemma abs_summable_on_union [intro]:
   shows   "f abs_summable_on (A \<union> B)"
   using assms unfolding abs_summable_on_altdef by (intro set_integrable_Un) auto
 
+lemma abs_summable_on_insert_iff [simp]:
+  "f abs_summable_on insert x A \<longleftrightarrow> f abs_summable_on A"
+proof safe
+  assume "f abs_summable_on insert x A"
+  thus "f abs_summable_on A"
+    by (rule abs_summable_on_subset) auto
+next
+  assume "f abs_summable_on A"
+  from abs_summable_on_union[OF this, of "{x}"]
+    show "f abs_summable_on insert x A" by simp
+qed
+
 lemma abs_summable_on_reindex_bij_betw:
   assumes "bij_betw g A B"
   shows   "(\<lambda>x. f (g x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on B"
@@ -235,11 +281,11 @@ proof -
   finally show ?thesis .
 qed
 
-lemma abs_summable_reindex_iff: 
+lemma abs_summable_on_reindex_iff: 
   "inj_on g A \<Longrightarrow> (\<lambda>x. f (g x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on (g ` A)"
   by (intro abs_summable_on_reindex_bij_betw inj_on_imp_bij_betw)
 
-lemma abs_summable_on_Sigma_project:
+lemma abs_summable_on_Sigma_project2:
   fixes A :: "'a set" and B :: "'a \<Rightarrow> 'b set"
   assumes "f abs_summable_on (Sigma A B)" "x \<in> A"
   shows   "(\<lambda>y. f (x, y)) abs_summable_on (B x)"
@@ -425,6 +471,46 @@ lemma infsetsum_cong_neutral:
   by (intro Bochner_Integration.integral_cong refl)
      (auto simp: indicator_def split: if_splits)
 
+lemma infsetsum_mono_neutral:
+  fixes f g :: "'a \<Rightarrow> real"
+  assumes "f abs_summable_on A" and "g abs_summable_on B"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x"
+  assumes "\<And>x. x \<in> A - B \<Longrightarrow> f x \<le> 0"
+  assumes "\<And>x. x \<in> B - A \<Longrightarrow> g x \<ge> 0"
+  shows   "infsetsum f A \<le> infsetsum g B"
+  using assms unfolding infsetsum_altdef abs_summable_on_altdef
+  by (intro Bochner_Integration.integral_mono) (auto simp: indicator_def)
+
+lemma infsetsum_mono_neutral_left:
+  fixes f g :: "'a \<Rightarrow> real"
+  assumes "f abs_summable_on A" and "g abs_summable_on B"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x"
+  assumes "A \<subseteq> B"
+  assumes "\<And>x. x \<in> B - A \<Longrightarrow> g x \<ge> 0"
+  shows   "infsetsum f A \<le> infsetsum g B"
+  using \<open>A \<subseteq> B\<close> by (intro infsetsum_mono_neutral assms) auto
+
+lemma infsetsum_mono_neutral_right:
+  fixes f g :: "'a \<Rightarrow> real"
+  assumes "f abs_summable_on A" and "g abs_summable_on B"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x"
+  assumes "B \<subseteq> A"
+  assumes "\<And>x. x \<in> A - B \<Longrightarrow> f x \<le> 0"
+  shows   "infsetsum f A \<le> infsetsum g B"
+  using \<open>B \<subseteq> A\<close> by (intro infsetsum_mono_neutral assms) auto
+
+lemma infsetsum_mono:
+  fixes f g :: "'a \<Rightarrow> real"
+  assumes "f abs_summable_on A" and "g abs_summable_on A"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x"
+  shows   "infsetsum f A \<le> infsetsum g A"
+  by (intro infsetsum_mono_neutral assms) auto
+
+lemma norm_infsetsum_bound:
+  "norm (infsetsum f A) \<le> infsetsum (\<lambda>x. norm (f x)) A"
+  unfolding abs_summable_on_def infsetsum_def
+  by (rule Bochner_Integration.integral_norm_bound)
+
 lemma infsetsum_Sigma:
   fixes A :: "'a set" and B :: "'a \<Rightarrow> 'b set"
   assumes [simp]: "countable A" and "\<And>i. countable (B i)"
@@ -459,6 +545,13 @@ proof -
     by (rule infsetsum_altdef' [symmetric]) (auto simp: B'_def)
   finally show ?thesis ..
 qed
+
+lemma infsetsum_Sigma':
+  fixes A :: "'a set" and B :: "'a \<Rightarrow> 'b set"
+  assumes [simp]: "countable A" and "\<And>i. countable (B i)"
+  assumes summable: "(\<lambda>(x,y). f x y) abs_summable_on (Sigma A B)"
+  shows   "infsetsum (\<lambda>x. infsetsum (\<lambda>y. f x y) (B x)) A = infsetsum (\<lambda>(x,y). f x y) (Sigma A B)"
+  using assms by (subst infsetsum_Sigma) auto
 
 lemma infsetsum_Times:
   fixes A :: "'a set" and B :: "'b set"
@@ -495,6 +588,95 @@ proof -
     using summable' by (subst infsetsum_Times) auto
   finally show ?thesis .
 qed
+
+lemma abs_summable_on_Sigma_iff:
+  assumes [simp]: "countable A" and "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
+  shows   "f abs_summable_on Sigma A B \<longleftrightarrow> 
+             (\<forall>x\<in>A. (\<lambda>y. f (x, y)) abs_summable_on B x) \<and>
+             ((\<lambda>x. infsetsum (\<lambda>y. norm (f (x, y))) (B x)) abs_summable_on A)"
+proof safe
+  define B' where "B' = (\<Union>x\<in>A. B x)"
+  have [simp]: "countable B'" 
+    unfolding B'_def using assms by auto
+  interpret pair_sigma_finite "count_space A" "count_space B'"
+    by (intro pair_sigma_finite.intro sigma_finite_measure_count_space_countable) fact+
+
+  {
+    assume *: "f abs_summable_on Sigma A B"
+    thus "(\<lambda>y. f (x, y)) abs_summable_on B x" if "x \<in> A" for x
+      using that by (rule abs_summable_on_Sigma_project2)
+
+    have "set_integrable (count_space (A \<times> B')) (Sigma A B) (\<lambda>z. norm (f z))"
+      using abs_summable_on_normI[OF *]
+      by (subst abs_summable_on_altdef' [symmetric]) (auto simp: B'_def)
+    also have "count_space (A \<times> B') = count_space A \<Otimes>\<^sub>M count_space B'"
+      by (simp add: pair_measure_countable)
+    finally have "integrable (count_space A) 
+                    (\<lambda>x. lebesgue_integral (count_space B') 
+                      (\<lambda>y. indicator (Sigma A B) (x, y) *\<^sub>R norm (f (x, y))))"
+      by (rule integrable_fst')
+    also have "?this \<longleftrightarrow> integrable (count_space A)
+                    (\<lambda>x. lebesgue_integral (count_space B') 
+                      (\<lambda>y. indicator (B x) y *\<^sub>R norm (f (x, y))))"
+      by (intro integrable_cong refl) (simp_all add: indicator_def)
+    also have "\<dots> \<longleftrightarrow> integrable (count_space A) (\<lambda>x. infsetsum (\<lambda>y. norm (f (x, y))) (B x))"
+      by (intro integrable_cong refl infsetsum_altdef' [symmetric]) (auto simp: B'_def)
+    also have "\<dots> \<longleftrightarrow> (\<lambda>x. infsetsum (\<lambda>y. norm (f (x, y))) (B x)) abs_summable_on A"
+      by (simp add: abs_summable_on_def)
+    finally show \<dots> .
+  }
+
+  {
+    assume *: "\<forall>x\<in>A. (\<lambda>y. f (x, y)) abs_summable_on B x"
+    assume "(\<lambda>x. \<Sum>\<^sub>ay\<in>B x. norm (f (x, y))) abs_summable_on A"
+    also have "?this \<longleftrightarrow> (\<lambda>x. \<integral>y\<in>B x. norm (f (x, y)) \<partial>count_space B') abs_summable_on A"
+      by (intro abs_summable_on_cong refl infsetsum_altdef') (auto simp: B'_def)
+    also have "\<dots> \<longleftrightarrow> (\<lambda>x. \<integral>y. indicator (Sigma A B) (x, y) *\<^sub>R norm (f (x, y)) \<partial>count_space B')
+                        abs_summable_on A" (is "_ \<longleftrightarrow> ?h abs_summable_on _")
+      by (intro abs_summable_on_cong) (auto simp: indicator_def)
+    also have "\<dots> \<longleftrightarrow> integrable (count_space A) ?h"
+      by (simp add: abs_summable_on_def)
+    finally have **: \<dots> .
+
+    have "integrable (count_space A \<Otimes>\<^sub>M count_space B') (\<lambda>z. indicator (Sigma A B) z *\<^sub>R f z)"
+    proof (rule Fubini_integrable, goal_cases)
+      case 3
+      {
+        fix x assume x: "x \<in> A"
+        with * have "(\<lambda>y. f (x, y)) abs_summable_on B x"
+          by blast
+        also have "?this \<longleftrightarrow> integrable (count_space B') 
+                      (\<lambda>y. indicator (B x) y *\<^sub>R f (x, y))"
+          using x by (intro abs_summable_on_altdef') (auto simp: B'_def)
+        also have "(\<lambda>y. indicator (B x) y *\<^sub>R f (x, y)) = 
+                     (\<lambda>y. indicator (Sigma A B) (x, y) *\<^sub>R f (x, y))"
+          using x by (auto simp: indicator_def)
+        finally have "integrable (count_space B')
+                        (\<lambda>y. indicator (Sigma A B) (x, y) *\<^sub>R f (x, y))" .
+      }
+      thus ?case by (auto simp: AE_count_space)
+    qed (insert **, auto simp: pair_measure_countable)
+    also have "count_space A \<Otimes>\<^sub>M count_space B' = count_space (A \<times> B')"
+      by (simp add: pair_measure_countable)
+    also have "set_integrable (count_space (A \<times> B')) (Sigma A B) f \<longleftrightarrow>
+                 f abs_summable_on Sigma A B"
+      by (rule abs_summable_on_altdef' [symmetric]) (auto simp: B'_def)
+    finally show \<dots> .
+  }
+qed
+
+lemma abs_summable_on_Sigma_project1:
+  assumes "(\<lambda>(x,y). f x y) abs_summable_on Sigma A B"
+  assumes [simp]: "countable A" and "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
+  shows   "(\<lambda>x. infsetsum (\<lambda>y. norm (f x y)) (B x)) abs_summable_on A"
+  using assms by (subst (asm) abs_summable_on_Sigma_iff) auto
+
+lemma abs_summable_on_Sigma_project1':
+  assumes "(\<lambda>(x,y). f x y) abs_summable_on Sigma A B"
+  assumes [simp]: "countable A" and "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
+  shows   "(\<lambda>x. infsetsum (\<lambda>y. f x y) (B x)) abs_summable_on A"
+  by (intro abs_summable_on_comparison_test' [OF abs_summable_on_Sigma_project1[OF assms]]
+        norm_infsetsum_bound)
 
 lemma infsetsum_prod_PiE:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c :: {real_normed_field,banach,second_countable_topology}"
@@ -565,6 +747,29 @@ lemma infsetsum_cmult_right:
   using assms unfolding infsetsum_def abs_summable_on_def 
   by (rule Bochner_Integration.integral_mult_right)
 
+lemma infsetsum_cdiv:
+  fixes f :: "'a \<Rightarrow> 'b :: {banach, real_normed_field, second_countable_topology}"
+  assumes "c \<noteq> 0 \<Longrightarrow> f abs_summable_on A"
+  shows   "infsetsum (\<lambda>x. f x / c) A = infsetsum f A / c"
+  using assms unfolding infsetsum_def abs_summable_on_def by auto
+
+
 (* TODO Generalise with bounded_linear *)
+
+lemma
+  fixes f :: "'a \<Rightarrow> 'c :: {banach, real_normed_field, second_countable_topology}"
+  assumes [simp]: "countable A" and [simp]: "countable B"
+  assumes "f abs_summable_on A" and "g abs_summable_on B"
+  shows   abs_summable_on_product: "(\<lambda>(x,y). f x * g y) abs_summable_on A \<times> B"
+    and   infsetsum_product: "infsetsum (\<lambda>(x,y). f x * g y) (A \<times> B) =
+                                infsetsum f A * infsetsum g B"
+proof -
+  from assms show "(\<lambda>(x,y). f x * g y) abs_summable_on A \<times> B"
+    by (subst abs_summable_on_Sigma_iff)
+       (auto intro!: abs_summable_on_cmult_right simp: norm_mult infsetsum_cmult_right)
+  with assms show "infsetsum (\<lambda>(x,y). f x * g y) (A \<times> B) = infsetsum f A * infsetsum g B"
+    by (subst infsetsum_Sigma)
+       (auto simp: infsetsum_cmult_left infsetsum_cmult_right)
+qed
 
 end
