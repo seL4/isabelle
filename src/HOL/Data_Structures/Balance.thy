@@ -7,8 +7,6 @@ imports
   "HOL-Library.Tree_Real"
 begin
 
-(* FIXME rm floor_eq_iff / rename unique \<rightarrow> eq *)
-
 fun bal :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a tree * 'a list" where
 "bal n xs = (if n=0 then (Leaf,xs) else
  (let m = n div 2;
