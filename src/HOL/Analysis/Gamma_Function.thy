@@ -719,22 +719,22 @@ proof -
   hence "(\<lambda>n. of_real (ln (real n / (real n + 1)))) \<longlonglongrightarrow> (0 :: 'a)" by (simp add: add_ac)
   hence lim: "(\<lambda>n. of_real (ln (real n)) - of_real (ln (real n + 1))) \<longlonglongrightarrow> (0::'a)"
   proof (rule Lim_transform_eventually [rotated])
-    show "eventually (\<lambda>n. of_real (ln (real n / (real n + 1))) = 
+    show "eventually (\<lambda>n. of_real (ln (real n / (real n + 1))) =
             of_real (ln (real n)) - (of_real (ln (real n + 1)) :: 'a)) at_top"
       using eventually_gt_at_top[of "0::nat"] by eventually_elim (simp add: ln_div)
   qed
 
   from summable_Digamma[OF z]
-    have "(\<lambda>n. inverse (of_nat (n+1)) - inverse (z + of_nat n)) 
+    have "(\<lambda>n. inverse (of_nat (n+1)) - inverse (z + of_nat n))
               sums (Digamma z + euler_mascheroni)"
     by (simp add: Digamma_def summable_sums)
   from sums_diff[OF this euler_mascheroni_sum]
     have "(\<lambda>n. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1)) - inverse (z + of_nat n))
             sums Digamma z" by (simp add: add_ac)
-  hence "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1))) - 
+  hence "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1))) -
               (\<Sum>n<m. inverse (z + of_nat n))) \<longlonglongrightarrow> Digamma z"
     by (simp add: sums_def sum_subtractf)
-  also have "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1)))) = 
+  also have "(\<lambda>m. (\<Sum>n<m. of_real (ln (real (Suc n) + 1)) - of_real (ln (real n + 1)))) =
                  (\<lambda>m. of_real (ln (m + 1)) :: 'a)"
     by (subst sum_lessThan_telescope) simp_all
   finally show ?thesis by (rule Lim_transform) (insert lim, simp)
@@ -977,17 +977,17 @@ lemma continuous_on_ln_Gamma_complex [continuous_intros]:
   shows "A \<inter> \<real>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> continuous_on A ln_Gamma"
   by (intro continuous_at_imp_continuous_on ballI isCont_ln_Gamma_complex[OF continuous_ident])
      fastforce
-     
+
 lemma deriv_Polygamma:
   assumes "z \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  shows   "deriv (Polygamma m) z = 
+  shows   "deriv (Polygamma m) z =
              Polygamma (Suc m) (z :: 'a :: {real_normed_field,euclidean_space})"
   by (intro DERIV_imp_deriv has_field_derivative_Polygamma assms)
     thm has_field_derivative_Polygamma
 
 lemma higher_deriv_Polygamma:
   assumes "z \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  shows   "(deriv ^^ n) (Polygamma m) z = 
+  shows   "(deriv ^^ n) (Polygamma m) z =
              Polygamma (m + n) (z :: 'a :: {real_normed_field,euclidean_space})"
 proof -
   have "eventually (\<lambda>u. (deriv ^^ n) (Polygamma m) u = Polygamma (m + n) u) (nhds z)"
@@ -995,7 +995,7 @@ proof -
     case (Suc n)
     from Suc.IH have "eventually (\<lambda>z. eventually (\<lambda>u. (deriv ^^ n) (Polygamma m) u = Polygamma (m + n) u) (nhds z)) (nhds z)"
       by (simp add: eventually_eventually)
-    hence "eventually (\<lambda>z. deriv ((deriv ^^ n) (Polygamma m)) z = 
+    hence "eventually (\<lambda>z. deriv ((deriv ^^ n) (Polygamma m)) z =
              deriv (Polygamma (m + n)) z) (nhds z)"
       by eventually_elim (intro deriv_cong_ev refl)
     moreover have "eventually (\<lambda>z. z \<in> UNIV - \<int>\<^sub>\<le>\<^sub>0) (nhds z)" using assms
@@ -1478,9 +1478,9 @@ lemma holomorphic_Gamma [holomorphic_intros]: "A \<inter> \<int>\<^sub>\<le>\<^s
 lemma analytic_Gamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Gamma analytic_on A"
   by (rule analytic_on_subset[of _ "UNIV - \<int>\<^sub>\<le>\<^sub>0"], subst analytic_on_open)
      (auto intro!: holomorphic_Gamma)
-     
 
-lemma field_differentiable_ln_Gamma_complex: 
+
+lemma field_differentiable_ln_Gamma_complex:
   "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> ln_Gamma field_differentiable (at (z::complex) within A)"
   by (rule field_differentiable_within_subset[of _ _ UNIV])
      (force simp: field_differentiable_def intro!: derivative_intros)+
@@ -1648,8 +1648,8 @@ lemma ln_Gamma_real_pos: "x > 0 \<Longrightarrow> ln_Gamma x = ln (Gamma x :: re
 
 lemma ln_Gamma_complex_conv_fact: "n > 0 \<Longrightarrow> ln_Gamma (of_nat n :: complex) = ln (fact (n - 1))"
   using ln_Gamma_complex_of_real[of "real n"] Gamma_fact[of "n - 1", where 'a = real]
-  by (simp add: ln_Gamma_real_pos of_nat_diff Ln_of_real [symmetric])    
-    
+  by (simp add: ln_Gamma_real_pos of_nat_diff Ln_of_real [symmetric])
+
 lemma ln_Gamma_real_conv_fact: "n > 0 \<Longrightarrow> ln_Gamma (real n) = ln (fact (n - 1))"
   using Gamma_fact[of "n - 1", where 'a = real]
   by (simp add: ln_Gamma_real_pos of_nat_diff Ln_of_real [symmetric])
@@ -1668,14 +1668,14 @@ proof (subst DERIV_cong_ev[OF refl _ refl])
     show "eventually (\<lambda>y. ln_Gamma y = (Re \<circ> ln_Gamma \<circ> of_real) y) (nhds x)"
     by (auto elim!: eventually_mono simp: ln_Gamma_complex_of_real interior_open)
 qed
-  
-lemma field_differentiable_ln_Gamma_real: 
+
+lemma field_differentiable_ln_Gamma_real:
   "x > 0 \<Longrightarrow> ln_Gamma field_differentiable (at (x::real) within A)"
   by (rule field_differentiable_within_subset[of _ _ UNIV])
      (auto simp: field_differentiable_def intro!: derivative_intros)+
 
 declare has_field_derivative_ln_Gamma_real[THEN DERIV_chain2, derivative_intros]
-  
+
 lemma deriv_ln_Gamma_real:
   assumes "z > 0"
   shows   "deriv ln_Gamma z = Digamma (z :: real)"
@@ -1785,12 +1785,12 @@ lemma log_convex_Gamma_real: "convex_on {0<..} (ln \<circ> Gamma :: real \<Right
 subsection \<open>The uniqueness of the real Gamma function\<close>
 
 text \<open>
-  The following is a proof of the Bohr--Mollerup theorem, which states that 
+  The following is a proof of the Bohr--Mollerup theorem, which states that
   any log-convex function $G$ on the positive reals that fulfils $G(1) = 1$ and
-  satisfies the functional equation $G(x+1) = x G(x)$ must be equal to the 
+  satisfies the functional equation $G(x+1) = x G(x)$ must be equal to the
   Gamma function.
-  In principle, if $G$ is a holomorphic complex function, one could then extend 
-  this from the positive reals to the entire complex plane (minus the non-positive 
+  In principle, if $G$ is a holomorphic complex function, one could then extend
+  this from the positive reals to the entire complex plane (minus the non-positive
   integers, where the Gamma function is not defined).
 \<close>
 
@@ -1809,7 +1809,7 @@ private lemma G_fact: "G (of_nat n + 1) = fact n"
 private definition S :: "real \<Rightarrow> real \<Rightarrow> real" where
   "S x y = (ln (G y) - ln (G x)) / (y - x)"
 
-private lemma S_eq: 
+private lemma S_eq:
   "n \<ge> 2 \<Longrightarrow> S (of_nat n) (of_nat n + x) = (ln (G (real n + x)) - ln (fact (n - 1))) / x"
   by (subst G_fact [symmetric]) (simp add: S_def add_ac of_nat_diff)
 
@@ -1821,16 +1821,16 @@ proof -
           (ln \<circ> G) (real (Suc n) - 1)) / (real (Suc n) + x - (real (Suc n) - 1)) *
            (real (Suc n) - (real (Suc n) - 1)) + (ln \<circ> G) (real (Suc n) - 1)"
     using x n by (intro convex_onD_Icc' convex_on_subset[OF log_convex_G]) auto
-  hence "S (of_nat n) (of_nat (Suc n)) \<le> S (of_nat (Suc n)) (of_nat (Suc n) + x)" 
+  hence "S (of_nat n) (of_nat (Suc n)) \<le> S (of_nat (Suc n)) (of_nat (Suc n) + x)"
     unfolding S_def using x by (simp add: field_simps)
   also have "S (of_nat n) (of_nat (Suc n)) = ln (fact n) - ln (fact (n-1))"
-    unfolding S_def using n 
+    unfolding S_def using n
     by (subst (1 2) G_fact [symmetric]) (simp_all add: add_ac of_nat_diff)
   also have "\<dots> = ln (fact n / fact (n-1))" by (subst ln_div) simp_all
   also from n have "fact n / fact (n - 1) = n" by (cases n) simp_all
   finally have "x * ln (real n) + ln (fact n) \<le> ln (G (real (Suc n) + x))"
     using x n by (subst (asm) S_eq) (simp_all add: field_simps)
-  also have "x * ln (real n) + ln (fact n) = ln (exp (x * ln (real n)) * fact n)" 
+  also have "x * ln (real n) + ln (fact n) = ln (exp (x * ln (real n)) * fact n)"
     using x by (simp add: ln_mult)
   finally have "exp (x * ln (real n)) * fact n \<le> G (real (Suc n) + x)" using x
     by (subst (asm) ln_le_cancel_iff) (simp_all add: G_pos)
@@ -1847,15 +1847,15 @@ private lemma G_upper:
 proof -
   have "(ln \<circ> G) (real n + x) \<le> ((ln \<circ> G) (real n + 1) -
           (ln \<circ> G) (real n)) / (real n + 1 - (real n)) *
-           ((real n + x) - real n) + (ln \<circ> G) (real n)" 
+           ((real n + x) - real n) + (ln \<circ> G) (real n)"
     using x n by (intro convex_onD_Icc' convex_on_subset[OF log_convex_G]) auto
-  hence "S (of_nat n) (of_nat n + x) \<le> S (of_nat n) (of_nat n + 1)" 
+  hence "S (of_nat n) (of_nat n + x) \<le> S (of_nat n) (of_nat n + 1)"
     unfolding S_def using x by (simp add: field_simps)
   also from n have "S (of_nat n) (of_nat n + 1) = ln (fact n) - ln (fact (n-1))"
     by (subst (1 2) G_fact [symmetric]) (simp add: S_def add_ac of_nat_diff)
   also have "\<dots> = ln (fact n / (fact (n-1)))" using n by (subst ln_div) simp_all
   also from n have "fact n / fact (n - 1) = n" by (cases n) simp_all
-  finally have "ln (G (real n + x)) \<le> x * ln (real n) + ln (fact (n - 1))" 
+  finally have "ln (G (real n + x)) \<le> x * ln (real n) + ln (fact (n - 1))"
     using x n by (subst (asm) S_eq) (simp_all add: field_simps)
   also have "\<dots> = ln (exp (x * ln (real n)) * fact (n - 1))" using x
     by (simp add: ln_mult)
@@ -1867,7 +1867,7 @@ proof -
   finally have "G x \<le> exp (x * ln (real n)) * fact (n- 1) / pochhammer x n"
     using x by (simp add: field_simps pochhammer_pos)
   also from n have "fact (n - 1) = fact n / n" by (cases n) simp_all
-  also have "exp (x * ln (real n)) * \<dots> / pochhammer x n = 
+  also have "exp (x * ln (real n)) * \<dots> / pochhammer x n =
                Gamma_series x n * (1 + x / real n)" using n x
     by (simp add: Gamma_series_def divide_simps pochhammer_Suc)
   finally show ?thesis .
@@ -1886,7 +1886,7 @@ next
   show "G x \<le> Gamma x"
   proof (rule tendsto_lowerbound)
     have "(\<lambda>n. Gamma_series x n * (1 + x / real n)) \<longlonglongrightarrow> Gamma x * (1 + 0)"
-      by (rule tendsto_intros real_tendsto_divide_at_top 
+      by (rule tendsto_intros real_tendsto_divide_at_top
                Gamma_series_LIMSEQ filterlim_real_sequentially)+
     thus "(\<lambda>n. Gamma_series x n * (1 + x / real n)) \<longlonglongrightarrow> Gamma x" by simp
   next
@@ -1907,7 +1907,7 @@ proof -
     with Suc show ?case using G_plus1[of "real n + x"] Gamma_plus1[of "real n + x"]
       by (auto simp: add_ac)
   qed (simp_all add: G_eq_Gamma_aux)
-  
+
   show ?thesis
   proof (cases "frac x = 0")
     case True
@@ -2129,9 +2129,9 @@ proof -
     also have "g \<circ> (\<lambda>x. x - of_int n) = g" by (intro ext) (simp add: g.minus_of_int)
     finally show "(g has_field_derivative (h z * g z)) (at z)" by (simp add: z h_def)
   qed
-    
+
   have g_holo [holomorphic_intros]: "g holomorphic_on A" for A
-    by (rule holomorphic_on_subset[of _ UNIV]) 
+    by (rule holomorphic_on_subset[of _ UNIV])
        (force simp: holomorphic_on_open intro!: derivative_intros)+
 
   have g_eq: "g (z/2) * g ((z+1)/2) = Gamma (1/2)^2 * g z" if "Re z > -1" "Re z < 2" for z
@@ -2193,10 +2193,10 @@ proof -
   have g_nz [simp]: "g z \<noteq> 0" for z :: complex
   unfolding g_def using Ints_diff[of 1 "1 - z"]
     by (auto simp: Gamma_eq_zero_iff sin_eq_0 dest!: nonpos_Ints_Int)
-  
+
   have h_altdef: "h z = deriv g z / g z" for z :: complex
     using DERIV_imp_deriv[OF g_g', of z] by simp
-  
+
   have h_eq: "h z = (h (z/2) + h ((z+1)/2)) / 2" for z
   proof -
     have "((\<lambda>t. g (t/2) * g ((t+1)/2)) has_field_derivative
@@ -2485,7 +2485,7 @@ proof (rule Gamma_seriesI, rule Lim_transform_eventually)
   let ?r' = "\<lambda>n. exp (z * of_real (ln (of_nat (Suc n) / of_nat n)))"
   from z have z': "z \<noteq> 0" by auto
 
-  have "eventually (\<lambda>n. ?r' n = ?r n) sequentially" 
+  have "eventually (\<lambda>n. ?r' n = ?r n) sequentially"
     using z by (auto simp: divide_simps Gamma_series_def ring_distribs exp_diff ln_div add_ac
                      intro: eventually_mono eventually_gt_at_top[of "0::nat"] dest: pochhammer_eq_0_imp_nonpos_Int)
   moreover have "?r' \<longlonglongrightarrow> exp (z * of_real (ln 1))"
@@ -2711,7 +2711,7 @@ proof -
   have "f integrable_on {c..}"
     by (rule integrable_spike_finite[of "{c}", OF _ _ A]) (simp_all add: f_def)
   ultimately show "f integrable_on {0..}"
-    by (rule integrable_union') (insert c, auto simp: max_def)
+    by (rule integrable_Un') (insert c, auto simp: max_def)
 qed
 
 lemma Gamma_integral_complex:
@@ -2948,9 +2948,9 @@ lemma sin_product_formula_real':
 
 theorem wallis: "(\<lambda>n. \<Prod>k=1..n. (4*real k^2) / (4*real k^2 - 1)) \<longlonglongrightarrow> pi / 2"
 proof -
-  from tendsto_inverse[OF tendsto_mult[OF 
+  from tendsto_inverse[OF tendsto_mult[OF
          sin_product_formula_real[of "1/2"] tendsto_const[of "2/pi"]]]
-    have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) \<longlonglongrightarrow> pi/2" 
+    have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) \<longlonglongrightarrow> pi/2"
     by (simp add: prod_inversef [symmetric])
   also have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) =
                (\<lambda>n. (\<Prod>k=1..n. (4*real k^2)/(4*real k^2 - 1)))"

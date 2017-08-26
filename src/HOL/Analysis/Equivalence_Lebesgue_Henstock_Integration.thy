@@ -1623,20 +1623,16 @@ proof -
       unfolding less_cSUP_iff[OF D] by auto
     note d' = division_ofD[OF this(1)]
 
-    have "\<forall>x. \<exists>e>0. \<forall>i\<in>d. x \<notin> i \<longrightarrow> ball x e \<inter> i = {}"
-    proof
-      fix x
-      have "\<exists>da>0. \<forall>xa\<in>\<Union>{i \<in> d. x \<notin> i}. da \<le> dist x xa"
+    have "\<exists>e>0. \<forall>i\<in>d. x \<notin> i \<longrightarrow> ball x e \<inter> i = {}" for x
+    proof -
+      have "\<exists>d'>0. \<forall>x'\<in>\<Union>{i \<in> d. x \<notin> i}. d' \<le> dist x x'"
       proof (rule separate_point_closed)
         show "closed (\<Union>{i \<in> d. x \<notin> i})"
-          apply (rule closed_Union)
-           apply (simp add: d'(1))
-          using d'(4) apply auto
-          done
+          using d' by force
         show "x \<notin> \<Union>{i \<in> d. x \<notin> i}"
           by auto
       qed 
-      then show "\<exists>e>0. \<forall>i\<in>d. x \<notin> i \<longrightarrow> ball x e \<inter> i = {}"
+      then show ?thesis
         by force
     qed
     then obtain k where k: "\<And>x. 0 < k x" "\<And>i x. \<lbrakk>i \<in> d; x \<notin> i\<rbrakk> \<Longrightarrow> ball x (k x) \<inter> i = {}"
@@ -1680,8 +1676,7 @@ proof -
         show "x \<in> K" and "K \<subseteq> cbox a b"
           using p'(2-3)[OF il(3)] il by auto
         show "\<exists>a b. K = cbox a b"
-          unfolding il using p'(4)[OF il(3)] d'(4)[OF il(2)]
-          by (meson Int_interval)
+          unfolding il using p'(4)[OF il(3)] d'(4)[OF il(2)] by (meson Int_interval)
       next
         fix x1 K1
         assume "(x1, K1) \<in> p'"
@@ -1710,8 +1705,7 @@ proof -
           have "x \<in> i"
             using fineD[OF p(3) xl(1)] using k(2) i xl by auto
           then show ?thesis
-            unfolding p'_def
-            by (rule_tac X="i \<inter> l" in UnionI) (use i xl in auto)
+            unfolding p'_def by (rule_tac X="i \<inter> l" in UnionI) (use i xl in auto)
         qed
         show "\<Union>{K. \<exists>x. (x, K) \<in> p'} = cbox a b"
         proof
@@ -1738,30 +1732,27 @@ proof -
       then have sum_less_e2: "(\<Sum>(x,K) \<in> p'. norm (content K *\<^sub>R f x - integral K f)) < e/2"
         using g(2) gp' tagged_division_of_def by blast
 
-      have p'alt: "p' = {(x, I \<inter> L) | x I L. (x,L) \<in> p \<and> I \<in> d \<and> I \<inter> L \<noteq> {}}"
-      proof (safe, goal_cases)
-        case prems: (2 _ _ x i l)
-        have "x \<in> i"
-          using fineD[OF p(3) prems(1)] k(2)[OF prems(2), of x] prems(4-)
-          by auto
-        then have "(x, i \<inter> l) \<in> p'"
-          unfolding p'_def
-          using prems
-          apply safe
-          apply (rule_tac x=x in exI)
-          apply (rule_tac x="i \<inter> l" in exI)
-          apply auto
-          done
-        then show ?case
-          using prems(3) by auto
-      next
-        fix x K
-        assume "(x, K) \<in> p'"
-        then obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "K = i \<inter> l" 
-          unfolding p'_def by auto
-        then show "\<exists>y i l. (x, K) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
+      have "(x, I \<inter> L) \<in> p'" if x: "(x, L) \<in> p" "I \<in> d" and y: "y \<in> I" "y \<in> L"
+        for x I L y
+      proof -
+        have "x \<in> I"
+          using fineD[OF p(3) that(1)] k(2)[OF \<open>I \<in> d\<close>] y by auto
+        with x have "(\<exists>i l. x \<in> i \<and> i \<in> d \<and> (x, l) \<in> p \<and> I \<inter> L = i \<inter> l)"
+          by blast
+        then have "(x, I \<inter> L) \<in> p'"
+          by (simp add: p'_def)
+        with y show ?thesis by auto
+      qed
+      moreover have "\<exists>y i l. (x, K) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
+        if xK: "(x,K) \<in> p'" for x K
+      proof -
+        obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "K = i \<inter> l" 
+          using xK unfolding p'_def by auto
+        then show ?thesis
           using p'(2) by fastforce
       qed
+      ultimately have p'alt: "p' = {(x, I \<inter> L) | x I L. (x,L) \<in> p \<and> I \<in> d \<and> I \<inter> L \<noteq> {}}"
+        by auto
       have sum_p': "(\<Sum>(x,K) \<in> p'. norm (integral K f)) = (\<Sum>k\<in>snd ` p'. norm (integral k f))"
         apply (subst sum.over_tagged_division_lemma[OF p'',of "\<lambda>k. norm (integral k f)"])
          apply (auto intro: integral_null simp: content_eq_0_interior)
@@ -2027,67 +2018,45 @@ proof (rule absolutely_integrable_onI, fact)
       then show False
         using prems by auto
     qed
-    then obtain K where *: "\<exists>x\<in>{d. d division_of \<Union>d}. K = (\<Sum>k\<in>x. norm (integral k f))"
+    then obtain d K where ddiv: "d division_of \<Union>d" and "K = (\<Sum>k\<in>d. norm (integral k f))"
       "SUPREMUM {d. d division_of \<Union>d} (sum (\<lambda>k. norm (integral k f))) - e < K"
       by (auto simp add: image_iff not_le)
-    from this(1) obtain d where "d division_of \<Union>d"
-      and "K = (\<Sum>k\<in>d. norm (integral k f))"
+    then have d: "SUPREMUM {d. d division_of \<Union>d} (sum (\<lambda>k. norm (integral k f))) - e 
+                  < (\<Sum>k\<in>d. norm (integral k f))"
       by auto
-    note d = this(1) *(2)[unfolded this(2)]
-    note d'=division_ofD[OF this(1)]
+    note d'=division_ofD[OF ddiv]
     have "bounded (\<Union>d)"
       by (rule elementary_bounded,fact)
     from this[unfolded bounded_pos] obtain K where
        K: "0 < K" "\<forall>x\<in>\<Union>d. norm x \<le> K" by auto
     show ?case
-      apply (rule_tac x="K + 1" in exI)
-      apply safe
-    proof -
+    proof (intro conjI impI allI exI)
       fix a b :: 'n
       assume ab: "ball 0 (K + 1) \<subseteq> cbox a b"
-      have *: "\<forall>s s1. ?S - e < s1 \<and> s1 \<le> s \<and> s < ?S + e \<longrightarrow> \<bar>s - ?S\<bar> < e"
+      have *: "\<And>s s1. \<lbrakk>?S - e < s1; s1 \<le> s; s < ?S + e\<rbrakk> \<Longrightarrow> \<bar>s - ?S\<bar> < e"
         by arith
       show "norm (integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) - ?S) < e"
         unfolding real_norm_def
-        apply (rule *[rule_format])
-        apply safe
-        apply (rule d(2))
-      proof goal_cases
-        case 1
+      proof (rule * [OF d])
         have "(\<Sum>k\<in>d. norm (integral k f)) \<le> sum (\<lambda>k. integral k (\<lambda>x. norm (f x))) d"
-          apply (intro sum_mono)
-          subgoal for k
-            using d'(4)[of k] f_int
-            by (auto simp: absolutely_integrable_on_def integral_norm_bound_integral)
-          done
+        proof (intro sum_mono)
+          fix k assume "k \<in> d"
+          with d'(4) f_int show "norm (integral k f) \<le> integral k (\<lambda>x. norm (f x))"
+            by (force simp: absolutely_integrable_on_def integral_norm_bound_integral)
+        qed
         also have "\<dots> = integral (\<Union>d) (\<lambda>x. norm (f x))"
-          apply (rule integral_combine_division_bottomup[symmetric])
-          apply (rule d)
-          unfolding forall_in_division[OF d(1)]
-          using f_int unfolding absolutely_integrable_on_def
-          apply auto
-          done
+          apply (rule integral_combine_division_bottomup[OF ddiv, symmetric])
+          using absolutely_integrable_on_def d'(4) f_int by blast
         also have "\<dots> \<le> integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0)"
         proof -
           have "\<Union>d \<subseteq> cbox a b"
-            apply rule
-            apply (drule K(2)[rule_format])
-            apply (rule ab[unfolded subset_eq,rule_format])
-            apply (auto simp add: dist_norm)
-            done
+            using K(2) ab by fastforce
           then show ?thesis
-            apply -
-            apply (subst if_P)
-            apply rule
-            apply (rule integral_subset_le)
-            defer
-            apply (rule integrable_on_subdivision[of _ _ _ "cbox a b"])
-            apply (rule d)
-            using f_int[of a b] unfolding absolutely_integrable_on_def
-            apply auto
-            done
+            using integrable_on_subdivision[OF ddiv] f_int[of a b] unfolding absolutely_integrable_on_def
+            by (auto intro!: integral_subset_le)
         qed
-        finally show ?case .
+        finally show "(\<Sum>k\<in>d. norm (integral k f))
+                      \<le> integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0)" .
       next
         have "e/2>0"
           using \<open>e > 0\<close> by auto
@@ -2119,17 +2088,11 @@ proof (rule absolutely_integrable_onI, fact)
           show "\<bar>(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e/2"
             using d1[OF p(1,2)] by (simp only: real_norm_def)
           show "(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) = (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x))"
-            apply (rule sum.cong)
-            apply (rule refl)
-            unfolding split_paired_all split_conv
-            apply (drule tagged_division_ofD(4)[OF p(1)])
-            by simp
+            by (auto simp: split_paired_all sum.cong [OF refl])
           show "(\<Sum>(x,k) \<in> p. norm (integral k f)) \<le> ?S"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
             apply (subst sum.over_tagged_division_lemma[OF p(1)])
-            apply (simp add: content_eq_0_interior)
-            apply (intro cSUP_upper2 D)
-            apply (auto simp: tagged_partial_division_of_def)
+            apply (auto simp: content_eq_0_interior tagged_partial_division_of_def intro!: cSUP_upper2 D)
             done
         qed
         then show "integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
