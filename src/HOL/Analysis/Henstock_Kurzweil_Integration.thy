@@ -5577,28 +5577,27 @@ lemma Henstock_lemma_part1:
     and less_e: "\<And>p. \<lbrakk>p tagged_division_of (cbox a b); d fine p\<rbrakk> \<Longrightarrow>
                      norm (sum (\<lambda>(x,K). content K *\<^sub>R f x) p - integral(cbox a b) f) < e"
     and p: "p tagged_partial_division_of (cbox a b)" "d fine p"
-  shows "norm (sum (\<lambda>(x,K). content K *\<^sub>R f x - integral K f) p) \<le> e"
-  (is "?x \<le> e")
+  shows "norm (sum (\<lambda>(x,K). content K *\<^sub>R f x - integral K f) p) \<le> e" (is "?lhs \<le> e")
 proof (rule field_le_epsilon)
   fix k :: real
-  assume k: "k > 0"
+  assume "k > 0"
+  let ?SUM = "\<lambda>p. (\<Sum>(x,K) \<in> p. content K *\<^sub>R f x)"
   note p' = tagged_partial_division_ofD[OF p(1)]
   have "\<Union>(snd ` p) \<subseteq> cbox a b"
     using p'(3) by fastforce
-  then obtain q where q: "snd ` p \<subseteq> q" "q division_of cbox a b"
+  then obtain q where q: "snd ` p \<subseteq> q" and qdiv: "q division_of cbox a b"
     by (meson p(1) partial_division_extend_interval partial_division_of_tagged_division)
-  note q' = division_ofD[OF this(2)]
+  note q' = division_ofD[OF qdiv]
   define r where "r = q - snd ` p"
   have "snd ` p \<inter> r = {}"
     unfolding r_def by auto
-  have r: "finite r"
+  have "finite r"
     using q' unfolding r_def by auto
-
   have "\<exists>p. p tagged_division_of i \<and> d fine p \<and>
-        norm (sum (\<lambda>(x,j). content j *\<^sub>R f x) p - integral i f) < k / (real (card r) + 1)"
+        norm (?SUM p - integral i f) < k / (real (card r) + 1)"
     if "i\<in>r" for i
   proof -
-    have *: "k / (real (card r) + 1) > 0" using k by simp
+    have gt0: "k / (real (card r) + 1) > 0" using \<open>k > 0\<close> by simp
     have i: "i \<in> q"
       using that unfolding r_def by auto
     then obtain u v where uv: "i = cbox u v"
@@ -5607,35 +5606,29 @@ proof (rule field_le_epsilon)
       using i q'(2) by auto  
     then have "f integrable_on cbox u v"
       by (rule integrable_subinterval[OF intf])
-    note integrable_integral[OF this, unfolded has_integral[of f]]
-    from this[rule_format,OF *] guess dd..note dd=conjunctD2[OF this,rule_format]
-    note gauge_Int[OF \<open>gauge d\<close> dd(1)]
-    then obtain qq where qq: "qq tagged_division_of cbox u v" "(\<lambda>x. d x \<inter> dd x) fine qq"
+    with integrable_integral[OF this, unfolded has_integral[of f]]
+    obtain dd where "gauge dd" and dd:
+      "\<And>\<D>. \<lbrakk>\<D> tagged_division_of cbox u v; dd fine \<D>\<rbrakk> \<Longrightarrow>
+    norm (?SUM \<D> - integral (cbox u v) f) < k / (real (card r) + 1)"
+      using gt0 by auto
+    with gauge_Int[OF \<open>gauge d\<close> \<open>gauge dd\<close>]
+    obtain qq where qq: "qq tagged_division_of cbox u v" "(\<lambda>x. d x \<inter> dd x) fine qq"
       using fine_division_exists by blast
-    then show ?thesis
-      apply (rule_tac x=qq in exI)
-      using dd(2)[of qq]
-      unfolding fine_Int uv
-      apply auto
-      done
+    with dd[of qq]  show ?thesis
+      by (auto simp: fine_Int uv)
   qed
   then obtain qq where qq: "\<And>i. i \<in> r \<Longrightarrow> qq i tagged_division_of i \<and>
-      d fine qq i \<and>
-      norm
-       ((\<Sum>(x, j) \<in> qq i. content j *\<^sub>R f x) -
-        integral i f)
-      < k / (real (card r) + 1)"
+      d fine qq i \<and> norm (?SUM (qq i) - integral i f) < k / (real (card r) + 1)"
     by metis
 
   let ?p = "p \<union> \<Union>(qq ` r)"
-  have "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - integral (cbox a b) f) < e"
+  have "norm (?SUM ?p - integral (cbox a b) f) < e"
   proof (rule less_e)
     show "d fine ?p"
       by (metis (mono_tags, hide_lams) qq fine_Un fine_Union imageE p(2))
-    note * = tagged_partial_division_of_Union_self[OF p(1)]
+    note ptag = tagged_partial_division_of_Union_self[OF p(1)]
     have "p \<union> \<Union>(qq ` r) tagged_division_of \<Union>(snd ` p) \<union> \<Union>r"
-      using r
-    proof (rule tagged_division_Un[OF * tagged_division_Union])
+    proof (rule tagged_division_Un[OF ptag tagged_division_Union [OF \<open>finite r\<close>]])
       show "\<And>i. i \<in> r \<Longrightarrow> qq i tagged_division_of i"
         using qq by auto
       show "\<And>i1 i2. \<lbrakk>i1 \<in> r; i2 \<in> r; i1 \<noteq> i2\<rbrakk> \<Longrightarrow> interior i1 \<inter> interior i2 = {}"
@@ -5645,98 +5638,69 @@ proof (rule field_le_epsilon)
         show "open (interior (UNION p snd))"
           by blast
         show "\<And>T. T \<in> r \<Longrightarrow> \<exists>a b. T = cbox a b"
-        apply (rule q')
-          using r_def by blast
+          by (simp add: q'(4) r_def)
         have "finite (snd ` p)"
           by (simp add: p'(1))
         then show "\<And>T. T \<in> r \<Longrightarrow> interior (UNION p snd) \<inter> interior T = {}"
           apply (subst Int_commute)
           apply (rule Int_interior_Union_intervals)
-          using \<open>r \<equiv> q - snd ` p\<close>  q'(5) q(1) apply auto
+          using r_def q'(5) q(1) apply auto
           by (simp add: p'(4))
       qed
     qed
     moreover have "\<Union>(snd ` p) \<union> \<Union>r = cbox a b" and "{qq i |i. i \<in> r} = qq ` r"
-      using q  unfolding Union_Un_distrib[symmetric] r_def by auto
+      using qdiv q unfolding Union_Un_distrib[symmetric] r_def by auto
     ultimately show "?p tagged_division_of (cbox a b)"
       by fastforce
   qed
-
-  then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>\<Union>(qq ` r). content k *\<^sub>R f x) -
-    integral (cbox a b) f) < e"
-    apply (subst sum.union_inter_neutral[symmetric])
-    apply (rule p')
-    prefer 3
-    apply assumption
-    apply rule
-    apply (rule r)
-    apply safe
-    apply (drule qq)
+  then have "norm (?SUM p + (?SUM (\<Union>(qq ` r))) - integral (cbox a b) f) < e"
+  proof (subst sum.union_inter_neutral[symmetric, OF \<open>finite p\<close>], safe)
+    show "content L *\<^sub>R f x = 0" if "(x, L) \<in> p" "(x, L) \<in> qq K" "K \<in> r" for x K L 
+    proof -
+      obtain u v where uv: "L = cbox u v"
+        using \<open>(x,L) \<in> p\<close> p'(4) by blast
+      have "L \<subseteq> K"
+        using  qq[OF that(3)] tagged_division_ofD(3) \<open>(x,L) \<in> qq K\<close> by metis
+      have "L \<in> snd ` p" 
+        using \<open>(x,L) \<in> p\<close> image_iff by fastforce 
+      then have "L \<in> q" "K \<in> q" "L \<noteq> K"
+        using that(1,3) q(1) unfolding r_def by auto
+      with q'(5) have "interior L = {}"
+        using interior_mono[OF \<open>L \<subseteq> K\<close>] by blast
+      then show "content L *\<^sub>R f x = 0"
+        unfolding uv content_eq_0_interior[symmetric] by auto
+    qed
+    show "finite (UNION r qq)"
+      by (meson finite_UN qq \<open>finite r\<close> tagged_division_of_finite)
+  qed
+  moreover have "content M *\<^sub>R f x = 0" 
+      if x: "(x,M) \<in> qq K" "(x,M) \<in> qq L" and KL: "qq K \<noteq> qq L" and r: "K \<in> r" "L \<in> r"
+    for x M K L
   proof -
-    fix x l k
-    assume as: "(x, l) \<in> p" "(x, l) \<in> qq k" "k \<in> r"
-    then obtain u v where uv: "l = cbox u v"
-      using p'(4) by blast
-    have "l \<subseteq> k"
-      using  qq[OF as(3)] tagged_division_ofD(3) \<open>(x, l) \<in> qq k\<close> by metis
-    have "l \<in> snd ` p" 
-      using \<open>(x, l) \<in> p\<close> image_iff by fastforce 
-    then have "l \<in> q" "k \<in> q" "l \<noteq> k"
-      using as(1,3) q(1) unfolding r_def by auto
-    with q'(5) have "interior l = {}"
-      using interior_mono[OF \<open>l \<subseteq> k\<close>] by blast
-    then show "content l *\<^sub>R f x = 0"
-      unfolding uv content_eq_0_interior[symmetric] by auto
-  qed auto
-
-  then have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + sum (sum (\<lambda>(x, k). content k *\<^sub>R f x))
-    (qq ` r) - integral (cbox a b) f) < e"
-    apply (subst (asm) sum.Union_comp)
-    prefer 2
-    unfolding split_paired_all split_conv image_iff
-    apply (erule bexE)+
-  proof -
-    fix x m k l T1 T2
-    assume "(x, m) \<in> T1" "(x, m) \<in> T2" "T1 \<noteq> T2" "k \<in> r" "l \<in> r" "T1 = qq k" "T2 = qq l"
-    note as = this(1-5)[unfolded this(6-)]
     note kl = tagged_division_ofD(3,4)[OF qq[THEN conjunct1]]
-    from this(2)[OF as(4,1)] guess u v by (elim exE) note uv=this
-    have *: "interior (k \<inter> l) = {}"
-      by (metis DiffE \<open>T1 = qq k\<close> \<open>T1 \<noteq> T2\<close> \<open>T2 = qq l\<close> as(4) as(5) interior_Int q'(5) r_def)
-    have "interior m = {}"
-      unfolding subset_empty[symmetric]
-      unfolding *[symmetric]
-      apply (rule interior_mono)
-      using kl(1)[OF as(4,1)] kl(1)[OF as(5,2)]
-      apply auto
-      done
-    then show "content m *\<^sub>R f x = 0"
+    obtain u v where uv: "M = cbox u v"
+      using \<open>(x, M) \<in> qq L\<close> \<open>L \<in> r\<close> kl(2) by blast
+    have empty: "interior (K \<inter> L) = {}"
+      by (metis DiffD1 interior_Int q'(5) r_def KL r)
+    have "interior M = {}"
+      by (metis (no_types, lifting) Int_assoc empty inf.absorb_iff2 interior_Int kl(1) subset_empty x r)
+    then show "content M *\<^sub>R f x = 0"
       unfolding uv content_eq_0_interior[symmetric]
       by auto
-  qed (insert qq, auto)
-
-  then have **: "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + sum (sum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r -
-    integral (cbox a b) f) < e"
-    apply (subst (asm) sum.reindex_nontrivial)
-    apply fact
-    apply (rule sum.neutral)
-    apply rule
-    unfolding split_paired_all split_conv
-    defer
-    apply assumption
-  proof -
-    fix k l x m
-    assume as: "k \<in> r" "l \<in> r" "k \<noteq> l" "qq k = qq l" "(x, m) \<in> qq k"
-    note tagged_division_ofD(6)[OF qq[THEN conjunct1]]
-    from this[OF as(1)] this[OF as(2)] show "content m *\<^sub>R f x = 0"
-      using as(3) unfolding as by auto
-  qed
-
-  have *: "norm (cp - ip) \<le> e + k"
-    if "norm ((cp + cr) - i) < e"
-    and "norm (cr - ir) < k"
-    and "ip + ir = i"
-    for ir ip i cr cp
+  qed 
+  ultimately have "norm (?SUM p + sum ?SUM (qq ` r) - integral (cbox a b) f) < e"
+    apply (subst (asm) sum.Union_comp)
+    using qq by (force simp: split_paired_all)+
+  moreover have "content M *\<^sub>R f x = 0" 
+       if "K \<in> r" "L \<in> r" "K \<noteq> L" "qq K = qq L" "(x, M) \<in> qq K" for K L x M
+    using tagged_division_ofD(6) qq that by (metis (no_types, lifting)) 
+  ultimately have less_e: "norm (?SUM p + sum (?SUM \<circ> qq) r - integral (cbox a b) f) < e"
+    apply (subst (asm) sum.reindex_nontrivial [OF \<open>finite r\<close>])
+     apply (auto simp: split_paired_all sum.neutral)
+    done
+  have norm_le: "norm (cp - ip) \<le> e + k"
+                  if "norm ((cp + cr) - i) < e" "norm (cr - ir) < k" "ip + ir = i"
+                  for ir ip i cr cp::'a
   proof -
     from that show ?thesis
       using norm_triangle_le[of "cp + cr - i" "- (cr - ir)"]
@@ -5744,18 +5708,17 @@ proof (rule field_le_epsilon)
       by (auto simp add: algebra_simps)
   qed
 
-  have "?x =  norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p. integral k f))"
+  have "?lhs =  norm (?SUM p - (\<Sum>(x, k)\<in>p. integral k f))"
     unfolding split_def sum_subtractf ..
   also have "\<dots> \<le> e + k"
-  proof (rule *[OF **])
-    have *: "k * real (card r) / (1 + real (card r)) < k"
-      using k by (auto simp add: field_simps)
-    have "norm (sum (sum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r - (\<Sum>k\<in>r. integral k f))
-          \<le> (\<Sum>x\<in>r. k / (real (card r) + 1))"
+  proof (rule norm_le[OF less_e])
+    have lessk: "k * real (card r) / (1 + real (card r)) < k"
+      using \<open>k>0\<close> by (auto simp add: field_simps)
+    have "norm (sum (?SUM \<circ> qq) r - (\<Sum>k\<in>r. integral k f)) \<le> (\<Sum>x\<in>r. k / (real (card r) + 1))"
       unfolding sum_subtractf[symmetric] by (force dest: qq intro!: sum_norm_le)
     also have "... < k"
-      by (simp add: "*" add.commute mult.commute)
-    finally show "norm (sum (sum (\<lambda>(x, k). content k *\<^sub>R f x) \<circ> qq) r - (\<Sum>k\<in>r. integral k f)) < k" .
+      by (simp add: lessk add.commute mult.commute)
+    finally show "norm (sum (?SUM \<circ> qq) r - (\<Sum>k\<in>r. integral k f)) < k" .
   next
     from q(1) have [simp]: "snd ` p \<union> q = q" by auto
     have "integral l f = 0"
@@ -5772,11 +5735,11 @@ proof (rule field_le_epsilon)
       apply (subst sum.reindex_nontrivial [OF \<open>finite p\<close>])
       unfolding split_paired_all split_def by auto
     then show "(\<Sum>(x, k)\<in>p. integral k f) + (\<Sum>k\<in>r. integral k f) = integral (cbox a b) f"
-      unfolding integral_combine_division_topdown[OF assms(1) q(2)] r_def
+      unfolding integral_combine_division_topdown[OF intf qdiv] r_def
       using q'(1) p'(1) sum.union_disjoint [of "snd ` p" "q - snd ` p", symmetric]
         by simp
   qed
-  finally show "?x \<le> e + k" .
+  finally show "?lhs \<le> e + k" .
 qed
 
 lemma Henstock_lemma_part2:
