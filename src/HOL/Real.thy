@@ -1495,9 +1495,6 @@ lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real_of_int \<lfloor>r\<rflo
 lemma real_of_int_floor_add_one_gt [simp]: "r < real_of_int \<lfloor>r\<rfloor> + 1"
   by linarith
 
-lemma floor_eq_iff: "\<lfloor>x\<rfloor> = b \<longleftrightarrow> of_int b \<le> x \<and> x < of_int (b + 1)"
-  by (simp add: floor_unique_iff)
-
 lemma floor_divide_real_eq_div:
   assumes "0 \<le> b"
   shows "\<lfloor>a / real_of_int b\<rfloor> = \<lfloor>a\<rfloor> div b"

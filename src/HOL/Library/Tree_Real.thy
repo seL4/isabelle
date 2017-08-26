@@ -61,4 +61,57 @@ next
   show ?thesis by linarith
 qed
 
+lemma balanced_Node_if_wbal1:
+assumes "balanced l" "balanced r" "size l = size r + 1"
+shows "balanced \<langle>l, x, r\<rangle>"
+proof -
+  from assms(3) have [simp]: "size1 l = size1 r + 1" by(simp add: size1_def)
+  have "nat \<lceil>log 2 (1 + size1 r)\<rceil> \<ge> nat \<lceil>log 2 (size1 r)\<rceil>"
+    by(rule nat_mono[OF ceiling_mono]) simp
+  hence 1: "height(Node l x r) = nat \<lceil>log 2 (1 + size1 r)\<rceil> + 1"
+    using height_balanced[OF assms(1)] height_balanced[OF assms(2)]
+    by (simp del: nat_ceiling_le_eq add: max_def)
+  have "nat \<lfloor>log 2 (1 + size1 r)\<rfloor> \<ge> nat \<lfloor>log 2 (size1 r)\<rfloor>"
+    by(rule nat_mono[OF floor_mono]) simp
+  hence 2: "min_height(Node l x r) = nat \<lfloor>log 2 (size1 r)\<rfloor> + 1"
+    using min_height_balanced[OF assms(1)] min_height_balanced[OF assms(2)]
+    by (simp)
+  have "size1 r \<ge> 1" by(simp add: size1_def)
+  then obtain i where i: "2 ^ i \<le> size1 r" "size1 r < 2 ^ (i + 1)"
+    using ex_power_ivl1[of 2 "size1 r"] by auto
+  hence i1: "2 ^ i < size1 r + 1" "size1 r + 1 \<le> 2 ^ (i + 1)" by auto
+  from 1 2 floor_log_nat_eq_if[OF i] ceiling_log_nat_eq_if[OF i1]
+  show ?thesis by(simp add:balanced_def)
+qed
+
+lemma balanced_sym: "balanced \<langle>l, x, r\<rangle> \<Longrightarrow> balanced \<langle>r, y, l\<rangle>"
+by(auto simp: balanced_def)
+
+lemma balanced_Node_if_wbal2:
+assumes "balanced l" "balanced r" "abs(int(size l) - int(size r)) \<le> 1"
+shows "balanced \<langle>l, x, r\<rangle>"
+proof -
+  have "size l = size r \<or> (size l = size r + 1 \<or> size r = size l + 1)" (is "?A \<or> ?B")
+    using assms(3) by linarith
+  thus ?thesis
+  proof
+    assume "?A"
+    thus ?thesis using assms(1,2)
+      apply(simp add: balanced_def min_def max_def)
+      by (metis assms(1,2) balanced_optimal le_antisym le_less)
+  next
+    assume "?B"
+    thus ?thesis
+      by (meson assms(1,2) balanced_sym balanced_Node_if_wbal1)
+  qed
+qed
+
+lemma balanced_if_wbalanced: "wbalanced t \<Longrightarrow> balanced t"
+proof(induction t)
+  case Leaf show ?case by (simp add: balanced_def)
+next
+  case (Node l x r)
+  thus ?case by(simp add: balanced_Node_if_wbal2)
+qed
+
 end

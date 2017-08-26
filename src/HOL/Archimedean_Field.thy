@@ -224,9 +224,8 @@ class floor_ceiling = archimedean_field +
 lemma floor_unique: "of_int z \<le> x \<Longrightarrow> x < of_int z + 1 \<Longrightarrow> \<lfloor>x\<rfloor> = z"
   using floor_correct [of x] floor_exists1 [of x] by auto
 
-lemma floor_unique_iff: "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
-  for x :: "'a::floor_ceiling"
-  using floor_correct floor_unique by auto
+lemma floor_eq_iff: "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
+using floor_correct floor_unique by auto
 
 lemma of_int_floor_le [simp]: "of_int \<lfloor>x\<rfloor> \<le> x"
   using floor_correct ..
@@ -467,6 +466,9 @@ lemma ceiling_correct: "of_int \<lceil>x\<rceil> - 1 < x \<and> x \<le> of_int \
 lemma ceiling_unique: "of_int z - 1 < x \<Longrightarrow> x \<le> of_int z \<Longrightarrow> \<lceil>x\<rceil> = z"
   unfolding ceiling_def using floor_unique [of "- z" "- x"] by simp
 
+lemma ceiling_eq_iff: "\<lceil>x\<rceil> = a \<longleftrightarrow> of_int a - 1 < x \<and> x \<le> of_int a"
+using ceiling_correct ceiling_unique by auto
+
 lemma le_of_int_ceiling [simp]: "x \<le> of_int \<lceil>x\<rceil>"
   using ceiling_correct ..
 
@@ -673,7 +675,7 @@ proof -
     by (metis add.commute floor_unique le_floor_add le_floor_iff of_int_add)
   moreover
   have "\<not> x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>) \<Longrightarrow> \<lfloor>x + y\<rfloor> = 1 + (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>)"
-    apply (simp add: floor_unique_iff)
+    apply (simp add: floor_eq_iff)
     apply (auto simp add: algebra_simps)
     apply linarith
     done
@@ -727,7 +729,7 @@ proof -
 qed
 
 lemma round_of_int [simp]: "round (of_int n) = n"
-  unfolding round_def by (subst floor_unique_iff) force
+  unfolding round_def by (subst floor_eq_iff) force
 
 lemma round_0 [simp]: "round 0 = 0"
   using round_of_int[of 0] by simp

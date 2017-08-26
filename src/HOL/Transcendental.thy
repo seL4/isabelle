@@ -2694,7 +2694,7 @@ lemma
   by auto
 
 lemmas powr_le_iff = le_log_iff[symmetric]
-  and powr_less_iff = le_log_iff[symmetric]
+  and powr_less_iff = less_log_iff[symmetric]
   and less_powr_iff = log_less_iff[symmetric]
   and le_powr_iff = log_le_iff[symmetric]
 
@@ -2738,6 +2738,80 @@ by(simp add: less_powr_iff)
 
 lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
+
+lemma floor_log_nat_eq_powr_iff: fixes b n k :: nat
+  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow>
+  floor (log b (real k)) = n \<longleftrightarrow> b^n \<le> k \<and> k < b^(n+1)"
+by (auto simp: floor_log_eq_powr_iff powr_add powr_realpow
+               of_nat_power[symmetric] of_nat_mult[symmetric] ac_simps
+         simp del: of_nat_power of_nat_mult)
+
+lemma floor_log_nat_eq_if: fixes b n k :: nat
+  assumes "b^n \<le> k" "k < b^(n+1)" "b \<ge> 2"
+  shows "floor (log b (real k)) = n"
+proof -
+  have "k \<ge> 1" using assms(1,3) one_le_power[of b n] by linarith
+  with assms show ?thesis by(simp add: floor_log_nat_eq_powr_iff)
+qed
+
+lemma ceiling_log_eq_powr_iff: "\<lbrakk> x > 0; b > 1 \<rbrakk>
+  \<Longrightarrow> \<lceil>log b x\<rceil> = int k + 1 \<longleftrightarrow> b powr k < x \<and> x \<le> b powr (k + 1)"
+by (auto simp add: ceiling_eq_iff powr_less_iff le_powr_iff)
+
+lemma ceiling_log_nat_eq_powr_iff: fixes b n k :: nat
+  shows "\<lbrakk> b \<ge> 2; k > 0 \<rbrakk> \<Longrightarrow>
+  ceiling (log b (real k)) = int n + 1 \<longleftrightarrow> (b^n < k \<and> k \<le> b^(n+1))"
+using ceiling_log_eq_powr_iff
+by (auto simp: powr_add powr_realpow of_nat_power[symmetric] of_nat_mult[symmetric] ac_simps
+         simp del: of_nat_power of_nat_mult)
+
+lemma ceiling_log_nat_eq_if: fixes b n k :: nat
+  assumes "b^n < k" "k \<le> b^(n+1)" "b \<ge> 2"
+  shows "ceiling (log b (real k)) = int n + 1"
+proof -
+  have "k \<ge> 1" using assms(1,3) one_le_power[of b n] by linarith
+  with assms show ?thesis by(simp add: ceiling_log_nat_eq_powr_iff)
+qed
+
+(* FIXME: a more appropriate place for these two lemmas
+   is a theory of discrete logarithms
+*)
+
+lemma floor_log2_div2: fixes n :: nat assumes "n \<ge> 2"
+shows "floor(log 2 n) = floor(log 2 (n div 2)) + 1"
+proof cases
+  assume "n=2" thus ?thesis by simp
+next
+  let ?m = "n div 2"
+  assume "n\<noteq>2"
+  hence "1 \<le> ?m" using assms by arith
+  then obtain i where i: "2 ^ i \<le> ?m" "?m < 2 ^ (i + 1)"
+    using ex_power_ivl1[of 2 ?m] by auto
+  have "2^(i+1) \<le> 2*?m" using i(1) by simp
+  also have "2*?m \<le> n" by arith
+  finally have *: "2^(i+1) \<le> \<dots>" .
+  have "n < 2^(i+1+1)" using i(2) by simp
+  from floor_log_nat_eq_if[OF * this] floor_log_nat_eq_if[OF i]
+  show ?thesis by simp
+qed
+
+lemma ceiling_log2_div2: assumes "n \<ge> 2"
+shows "ceiling(log 2 (real n)) = ceiling(log 2 ((n-1) div 2 + 1)) + 1"
+proof cases
+  assume "n=2" thus ?thesis by simp
+next
+  let ?m = "(n-1) div 2 + 1"
+  assume "n\<noteq>2"
+  hence "2 \<le> ?m" using assms by arith
+  then obtain i where i: "2 ^ i < ?m" "?m \<le> 2 ^ (i + 1)"
+    using ex_power_ivl2[of 2 ?m] by auto
+  have "n \<le> 2*?m" by arith
+  also have "2*?m \<le> 2 ^ ((i+1)+1)" using i(2) by simp
+  finally have *: "n \<le> \<dots>" .
+  have "2^(i+1) < n" using i(1) by (auto simp add: less_Suc_eq_0_disj)
+  from ceiling_log_nat_eq_if[OF this *] ceiling_log_nat_eq_if[OF i]
+  show ?thesis by simp
+qed
 
 lemma powr_real_of_int:
   "x > 0 \<Longrightarrow> x powr real_of_int n = (if n \<ge> 0 then x ^ nat n else inverse (x ^ nat (- n)))"
