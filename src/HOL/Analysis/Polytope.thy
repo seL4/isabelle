@@ -2803,7 +2803,7 @@ proof -
     case 1
     let ?n = "of_int (floor (x/a)) + 1"
     have x: "x < ?n * a"
-      by (meson \<open>0 < a\<close> divide_less_eq floor_unique_iff)
+      by (meson \<open>0 < a\<close> divide_less_eq floor_eq_iff)
     have "?n * a \<le> a + x"
       apply (simp add: algebra_simps)
       by (metis \<open>0 < a\<close> floor_correct less_irrefl nonzero_mult_div_cancel_left real_mult_le_cancel_iff2 times_divide_eq_right)
@@ -2816,7 +2816,7 @@ proof -
     case 2
     let ?n = "of_int (floor (y/a)) + 1"
     have y: "y < ?n * a"
-      by (meson \<open>0 < a\<close> divide_less_eq floor_unique_iff)
+      by (meson \<open>0 < a\<close> divide_less_eq floor_eq_iff)
     have "?n * a \<le> a + y"
       apply (simp add: algebra_simps)
       by (metis \<open>0 < a\<close> floor_correct less_irrefl nonzero_mult_div_cancel_left real_mult_le_cancel_iff2 times_divide_eq_right)

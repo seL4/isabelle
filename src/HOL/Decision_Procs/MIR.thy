@@ -3423,7 +3423,7 @@ proof(induct t rule: rsplit0.induct)
           (((?N ?nxs \<ge> real_of_int ?l) \<and> (?N ?nxs < real_of_int (?l + 1))) \<and> (?N a = ?N ?nxs ))"
         by (simp add: fp_def np algebra_simps)
       also have "\<dots> \<longrightarrow> \<lfloor>?N ?nxs\<rfloor> = ?l \<and> ?N a = ?N ?nxs"
-        using floor_unique_iff[where x="?N ?nxs" and a="?l"] by simp
+        using floor_eq_iff[where x="?N ?nxs" and a="?l"] by simp
       moreover
       have "\<dots> \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))" by simp
       ultimately have "?I (?p (p',n',s') j) \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))"
@@ -3449,7 +3449,7 @@ proof(induct t rule: rsplit0.induct)
           (((?N ?nxs \<ge> real_of_int ?l) \<and> (?N ?nxs < real_of_int (?l + 1))) \<and> (?N a = ?N ?nxs ))"
         by (simp add: np fp_def algebra_simps)
       also have "\<dots> \<longrightarrow> \<lfloor>?N ?nxs\<rfloor> = ?l \<and> ?N a = ?N ?nxs"
-        using floor_unique_iff[where x="?N ?nxs" and a="?l"] by simp
+        using floor_eq_iff[where x="?N ?nxs" and a="?l"] by simp
       moreover
       have "\<dots> \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))"  by simp
       ultimately have "?I (?p (p',n',s') j) \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))"
