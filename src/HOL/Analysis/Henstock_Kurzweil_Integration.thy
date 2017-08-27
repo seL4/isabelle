@@ -324,7 +324,7 @@ lemma has_integral_unique:
   assumes "(f has_integral k1) i" "(f has_integral k2) i"
   shows "k1 = k2"
 proof (rule ccontr)
-  let ?e = "norm (k1 - k2) / 2"
+  let ?e = "norm (k1 - k2)/2"
   let ?F = "(\<lambda>x. if x \<in> i then f x else 0)"
   assume "k1 \<noteq> k2"
   then have e: "?e > 0"
@@ -334,25 +334,25 @@ proof (rule ccontr)
   obtain B1 where B1:
       "0 < B1"
       "\<And>a b. ball 0 B1 \<subseteq> cbox a b \<Longrightarrow>
-        \<exists>z. (?F has_integral z) (cbox a b) \<and> norm (z - k1) < norm (k1 - k2) / 2"
+        \<exists>z. (?F has_integral z) (cbox a b) \<and> norm (z - k1) < norm (k1 - k2)/2"
     by (rule has_integral_altD[OF assms(1) nonbox,OF e]) blast
   obtain B2 where B2:
       "0 < B2"
       "\<And>a b. ball 0 B2 \<subseteq> cbox a b \<Longrightarrow>
-        \<exists>z. (?F has_integral z) (cbox a b) \<and> norm (z - k2) < norm (k1 - k2) / 2"
+        \<exists>z. (?F has_integral z) (cbox a b) \<and> norm (z - k2) < norm (k1 - k2)/2"
     by (rule has_integral_altD[OF assms(2) nonbox,OF e]) blast
   obtain a b :: 'n where ab: "ball 0 B1 \<subseteq> cbox a b" "ball 0 B2 \<subseteq> cbox a b"
     by (metis Un_subset_iff bounded_Un bounded_ball bounded_subset_cbox)
-  obtain w where w: "(?F has_integral w) (cbox a b)" "norm (w - k1) < norm (k1 - k2) / 2"
+  obtain w where w: "(?F has_integral w) (cbox a b)" "norm (w - k1) < norm (k1 - k2)/2"
     using B1(2)[OF ab(1)] by blast
-  obtain z where z: "(?F has_integral z) (cbox a b)" "norm (z - k2) < norm (k1 - k2) / 2"
+  obtain z where z: "(?F has_integral z) (cbox a b)" "norm (z - k2) < norm (k1 - k2)/2"
     using B2(2)[OF ab(2)] by blast
   have "z = w"
     using has_integral_unique_cbox[OF w(1) z(1)] by auto
   then have "norm (k1 - k2) \<le> norm (z - k2) + norm (w - k1)"
     using norm_triangle_ineq4 [of "k1 - w" "k2 - z"]
     by (auto simp add: norm_minus_commute)
-  also have "\<dots> < norm (k1 - k2) / 2 + norm (k1 - k2) / 2"
+  also have "\<dots> < norm (k1 - k2)/2 + norm (k1 - k2)/2"
     by (metis add_strict_mono z(2) w(2))
   finally show False by auto
 qed
@@ -1290,10 +1290,10 @@ proof -
           using mem_interior by metis
         have x: "x\<bullet>k = c"
           using x interior_subset by fastforce
-        have *: "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (\<epsilon> / 2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then \<epsilon>/2 else 0)"
+        have *: "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (\<epsilon>/2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then \<epsilon>/2 else 0)"
           using \<open>0 < \<epsilon>\<close> k by (auto simp: inner_simps inner_not_same_Basis)
-        have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (\<epsilon> / 2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
-              (\<Sum>i\<in>Basis. (if i = k then \<epsilon> / 2 else 0))"
+        have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (\<epsilon>/2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
+              (\<Sum>i\<in>Basis. (if i = k then \<epsilon>/2 else 0))"
           using "*" by (blast intro: sum.cong)
         also have "\<dots> < \<epsilon>"
           by (subst sum.delta) (use \<open>0 < \<epsilon>\<close> in auto)
@@ -1964,17 +1964,17 @@ next
       assume c: "c < a \<bullet> k"
       moreover have "x \<in> cbox a b \<Longrightarrow> c \<le> x \<bullet> k" for x
         using k c by (auto simp: cbox_def)
-      ultimately have "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> (a \<bullet> k - c) / 2} = {}"
+      ultimately have "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> (a \<bullet> k - c)/2} = {}"
         using k by (auto simp: cbox_def)
-      with \<open>0<e\<close> c that[of "(a \<bullet> k - c) / 2"] show ?thesis
+      with \<open>0<e\<close> c that[of "(a \<bullet> k - c)/2"] show ?thesis
         by auto
     next
       assume c: "b \<bullet> k < c"
       moreover have "x \<in> cbox a b \<Longrightarrow> x \<bullet> k \<le> c" for x
         using k c by (auto simp: cbox_def)
-      ultimately have "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> (c - b \<bullet> k) / 2} = {}"
+      ultimately have "cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> (c - b \<bullet> k)/2} = {}"
         using k by (auto simp: cbox_def)
-      with \<open>0<e\<close> c that[of "(c - b \<bullet> k) / 2"] show ?thesis
+      with \<open>0<e\<close> c that[of "(c - b \<bullet> k)/2"] show ?thesis
         by auto
     qed
   qed
@@ -2194,21 +2194,21 @@ proof clarify
         done
       also have "... \<le> (\<Sum>i\<le>N + 1. (real i + 1) * \<bar>\<Sum>(x,K) \<in> q i. content K *\<^sub>R indicator S x\<bar>)"
         by (rule sum_mono) (simp add: sum_distrib_left [symmetric])
-      also have "... \<le> (\<Sum>i\<le>N + 1. e/2 / 2 ^ i)"
+      also have "... \<le> (\<Sum>i\<le>N + 1. e/2/2 ^ i)"
       proof (rule sum_mono)
-        show "(real i + 1) * \<bar>\<Sum>(x,K) \<in> q i. content K *\<^sub>R indicator S x\<bar> \<le> e/2 / 2 ^ i"
+        show "(real i + 1) * \<bar>\<Sum>(x,K) \<in> q i. content K *\<^sub>R indicator S x\<bar> \<le> e/2/2 ^ i"
           if "i \<in> {..N + 1}" for i
           using \<gamma>[of "q i" i] q by (simp add: divide_simps mult.left_commute)
       qed
-      also have "... = e/2 * (\<Sum>i\<le>N + 1. (1 / 2) ^ i)"
+      also have "... = e/2 * (\<Sum>i\<le>N + 1. (1/2) ^ i)"
         unfolding sum_distrib_left by (metis divide_inverse inverse_eq_divide power_one_over)
       also have "\<dots> < e/2 * 2"
       proof (rule mult_strict_left_mono)
-        have "sum (op ^ (1 / 2)) {..N + 1} = sum (op ^ (1 / 2::real)) {..<N + 2}"
+        have "sum (op ^ (1/2)) {..N + 1} = sum (op ^ (1/2::real)) {..<N + 2}"
           using lessThan_Suc_atMost by auto
         also have "... < 2"
           by (auto simp: geometric_sum)
-        finally show "sum (op ^ (1 / 2::real)) {..N + 1} < 2" .
+        finally show "sum (op ^ (1/2::real)) {..N + 1} < 2" .
       qed (use \<open>0 < e\<close> in auto)
       finally  show ?thesis by auto
     qed
@@ -2727,7 +2727,7 @@ qed
 lemma ident_has_integral:
   fixes a::real
   assumes "a \<le> b"
-  shows "((\<lambda>x. x) has_integral (b\<^sup>2 - a\<^sup>2) / 2) {a..b}"
+  shows "((\<lambda>x. x) has_integral (b\<^sup>2 - a\<^sup>2)/2) {a..b}"
 proof -
   have "((\<lambda>x. x) has_integral inverse 2 * b\<^sup>2 - inverse 2 * a\<^sup>2) {a..b}"
     apply (rule fundamental_theorem_of_calculus [OF assms], clarify)
@@ -2740,7 +2740,7 @@ qed
 lemma integral_ident [simp]:
   fixes a::real
   assumes "a \<le> b"
-  shows "integral {a..b} (\<lambda>x. x) = (if a \<le> b then (b\<^sup>2 - a\<^sup>2) / 2 else 0)"
+  shows "integral {a..b} (\<lambda>x. x) = (if a \<le> b then (b\<^sup>2 - a\<^sup>2)/2 else 0)"
   by (metis assms ident_has_integral integral_unique)
 
 lemma ident_integrable_on:
@@ -2798,9 +2798,9 @@ lemma
   and ivl: "a \<le> b"
   defines "i \<equiv> \<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x"
   shows taylor_has_integral:
-    "(i has_integral f b - (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)) {a..b}"
+    "(i has_integral f b - (\<Sum>i<p. ((b-a) ^ i / fact i) *\<^sub>R Df i a)) {a..b}"
   and taylor_integral:
-    "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) + integral {a..b} i"
+    "f b = (\<Sum>i<p. ((b-a) ^ i / fact i) *\<^sub>R Df i a) + integral {a..b} i"
   and taylor_integrable:
     "i integrable_on {a..b}"
 proof goal_cases
@@ -2855,7 +2855,7 @@ proof goal_cases
       by (auto intro!: image_eqI[where x = "p - x - 1"])
   qed simp
   from _ this
-  have "?sum a = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a)"
+  have "?sum a = (\<Sum>i<p. ((b-a) ^ i / fact i) *\<^sub>R Df i a)"
     by (rule sum.reindex_cong) (auto simp add: inj_on_def Dg_def one)
   finally show c: ?case .
   case 2 show ?case using c integral_unique
@@ -2900,8 +2900,8 @@ proof (induction "card \<D>" arbitrary: \<D> rule: less_induct)
       by (meson content_eq_0 dual_order.antisym)
     then have xi: "x\<bullet>i = d\<bullet>i"
       using \<open>x \<in> K\<close> unfolding keq mem_box by (metis antisym)
-    define y where "y = (\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
-      min e (b\<bullet>i - c\<bullet>i) / 2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i) / 2 else x\<bullet>j) *\<^sub>R j)"
+    define y where "y = (\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i)/2 then c\<bullet>i +
+      min e (b\<bullet>i - c\<bullet>i)/2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i)/2 else x\<bullet>j) *\<^sub>R j)"
     show "\<exists>x'\<in>\<Union>(\<D> - {K}). x' \<noteq> x \<and> dist x' x < e"
     proof (intro bexI conjI)
       have "d \<in> cbox c d"
@@ -3414,7 +3414,7 @@ next
       apply (erule_tac x=i in ballE)
       apply (auto simp: inner_simps mult_left_mono)
       done
-    moreover from True have *: "\<And>i. (m *\<^sub>R b + c) \<bullet> i - (m *\<^sub>R a + c) \<bullet> i = m *\<^sub>R (b - a) \<bullet> i"
+    moreover from True have *: "\<And>i. (m *\<^sub>R b + c) \<bullet> i - (m *\<^sub>R a + c) \<bullet> i = m *\<^sub>R (b-a) \<bullet> i"
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis
       by (simp add: image_affinity_cbox True content_cbox'
@@ -3427,7 +3427,7 @@ next
       apply (erule_tac x=i in ballE)
       apply (auto simp: inner_simps mult_left_mono)
       done
-    moreover from False have *: "\<And>i. (m *\<^sub>R a + c) \<bullet> i - (m *\<^sub>R b + c) \<bullet> i = (-m) *\<^sub>R (b - a) \<bullet> i"
+    moreover from False have *: "\<And>i. (m *\<^sub>R a + c) \<bullet> i - (m *\<^sub>R b + c) \<bullet> i = (-m) *\<^sub>R (b-a) \<bullet> i"
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis using False
       by (simp add: image_affinity_cbox content_cbox'
@@ -3543,7 +3543,7 @@ theorem fundamental_theorem_of_calculus_interior:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and contf: "continuous_on {a..b} f"
-    and derf: "\<And>x. x \<in> {a <..< b} \<Longrightarrow> (f has_vector_derivative f'(x)) (at x)"
+    and derf: "\<And>x. x \<in> {a <..< b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
   shows "(f' has_integral (f b - f a)) {a..b}"
 proof (cases "a = b")
   case True
@@ -3553,165 +3553,163 @@ proof (cases "a = b")
 next
   case False
   with \<open>a \<le> b\<close> have ab: "a < b" by arith
-  let ?P = "\<lambda>e. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<longrightarrow> d fine p \<longrightarrow>
-    norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b})"
-  { presume "\<And>e. e > 0 \<Longrightarrow> ?P e" then show ?thesis unfolding has_integral_factor_content_real by force }
-  fix e :: real
-  assume e: "e > 0"
-  then have eba8: "(e * (b - a)) / 8 > 0"
-    using ab by (auto simp add: field_simps)
-  note derf_exp = derf[unfolded has_vector_derivative_def has_derivative_at_alt]
-  have bounded: "\<And>x. x \<in> {a<..<b} \<Longrightarrow> bounded_linear (\<lambda>u. u *\<^sub>R f' x)"
-    using derf_exp by simp
-  have "\<forall>x \<in> box a b. \<exists>d>0. \<forall>y. norm (y-x) < d \<longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e/2 * norm (y-x)"
-    (is "\<forall>x \<in> box a b. ?Q x")
-  proof
-    fix x assume x: "x \<in> box a b"
-    show "?Q x"
-      apply (rule allE [where x="e/2", OF derf_exp [THEN conjunct2, of x]])
-      using x e by auto
-  qed
-  from this [unfolded bgauge_existence_lemma]
-  obtain d where d: "\<And>x. 0 < d x"
-    "\<And>x y. \<lbrakk>x \<in> box a b; norm (y-x) < d x\<rbrakk>
+  show ?thesis
+    unfolding has_integral_factor_content_real
+  proof (intro allI impI)
+    fix e :: real
+    assume e: "e > 0"
+    then have eba8: "(e * (b-a)) / 8 > 0"
+      using ab by (auto simp add: field_simps)
+    note derf_exp = derf[unfolded has_vector_derivative_def has_derivative_at_alt]
+    have bounded: "\<And>x. x \<in> {a<..<b} \<Longrightarrow> bounded_linear (\<lambda>u. u *\<^sub>R f' x)"
+      using derf_exp by simp
+    have "\<forall>x \<in> box a b. \<exists>d>0. \<forall>y. norm (y-x) < d \<longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e/2 * norm (y-x)"
+      (is "\<forall>x \<in> box a b. ?Q x")
+    proof
+      fix x assume x: "x \<in> box a b"
+      show "?Q x"
+        apply (rule allE [where x="e/2", OF derf_exp [THEN conjunct2, of x]])
+        using x e by auto
+    qed
+    from this [unfolded bgauge_existence_lemma]
+    obtain d where d: "\<And>x. 0 < d x"
+      "\<And>x y. \<lbrakk>x \<in> box a b; norm (y-x) < d x\<rbrakk>
                \<Longrightarrow> norm (f y - f x - (y-x) *\<^sub>R f' x) \<le> e/2 * norm (y-x)"
-    by metis
-  have "bounded (f ` cbox a b)"
-    apply (rule compact_imp_bounded compact_continuous_image)+
-    using compact_cbox assms by auto
-  then obtain B 
-    where "0 < B" and B: "\<And>x. x \<in> f ` cbox a b \<Longrightarrow> norm x \<le> B"
-    unfolding bounded_pos by metis
-  obtain da where "0 < da"
-    and da: "\<And>c. \<lbrakk>a \<le> c; {a..c} \<subseteq> {a..b}; {a..c} \<subseteq> ball a da\<rbrakk>
-                          \<Longrightarrow> norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b - a)) / 4"
-  proof -
-    have "continuous (at a within {a..b}) f"
-      using contf continuous_on_eq_continuous_within by force
-    with eba8 obtain k where "0 < k"
-      and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm (x-a); norm (x-a) < k\<rbrakk>
-                          \<Longrightarrow> norm (f x - f a) < e * (b - a) / 8"
-      unfolding continuous_within Lim_within dist_norm by metis
-    obtain l where l: "0 < l" "norm (l *\<^sub>R f' a) \<le> e * (b - a) / 8" 
-    proof (cases "f' a = 0")
-      case True with ab e that show ?thesis by auto
-    next
-      case False
+      by metis
+    have "bounded (f ` cbox a b)"
+      using compact_cbox assms by (auto simp: compact_imp_bounded compact_continuous_image)
+    then obtain B 
+      where "0 < B" and B: "\<And>x. x \<in> f ` cbox a b \<Longrightarrow> norm x \<le> B"
+      unfolding bounded_pos by metis
+    obtain da where "0 < da"
+      and da: "\<And>c. \<lbrakk>a \<le> c; {a..c} \<subseteq> {a..b}; {a..c} \<subseteq> ball a da\<rbrakk>
+                          \<Longrightarrow> norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b-a)) / 4"
+    proof -
+      have "continuous (at a within {a..b}) f"
+        using contf continuous_on_eq_continuous_within by force
+      with eba8 obtain k where "0 < k"
+        and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm (x-a); norm (x-a) < k\<rbrakk> \<Longrightarrow> norm (f x - f a) < e * (b-a) / 8"
+        unfolding continuous_within Lim_within dist_norm by metis
+      obtain l where l: "0 < l" "norm (l *\<^sub>R f' a) \<le> e * (b-a) / 8" 
+      proof (cases "f' a = 0")
+        case True with ab e that show ?thesis by auto
+      next
+        case False
+        then show ?thesis
+          apply (rule_tac l="(e * (b-a)) / 8 / norm (f' a)" in that)
+          using ab e apply (auto simp add: field_simps)
+          done
+      qed
+      have "norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b-a) / 4"
+        if "a \<le> c" "{a..c} \<subseteq> {a..b}" and bmin: "{a..c} \<subseteq> ball a (min k l)" for c
+      proof -
+        have minkl: "\<bar>a - x\<bar> < min k l" if "x \<in> {a..c}" for x
+          using bmin dist_real_def that by auto
+        then have lel: "\<bar>c - a\<bar> \<le> \<bar>l\<bar>"
+          using that by force
+        have "norm ((c - a) *\<^sub>R f' a - (f c - f a)) \<le> norm ((c - a) *\<^sub>R f' a) + norm (f c - f a)"
+          by (rule norm_triangle_ineq4)
+        also have "\<dots> \<le> e * (b-a) / 8 + e * (b-a) / 8"
+        proof (rule add_mono)
+          have "norm ((c - a) *\<^sub>R f' a) \<le> norm (l *\<^sub>R f' a)"
+            by (auto intro: mult_right_mono [OF lel])
+          also have "... \<le> e * (b-a) / 8"
+            by (rule l)
+          finally show "norm ((c - a) *\<^sub>R f' a) \<le> e * (b-a) / 8" .
+        next
+          have "norm (f c - f a) < e * (b-a) / 8"
+          proof (cases "a = c")
+            case True then show ?thesis
+              using eba8 by auto
+          next
+            case False show ?thesis
+              by (rule k) (use minkl \<open>a \<le> c\<close> that False in auto)
+          qed
+          then show "norm (f c - f a) \<le> e * (b-a) / 8" by simp
+        qed
+        finally show "norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b-a) / 4"
+          unfolding content_real[OF \<open>a \<le> c\<close>] by auto
+      qed
       then show ?thesis
-        apply (rule_tac l="(e * (b - a)) / 8 / norm (f' a)" in that)
-        using ab e apply (auto simp add: field_simps)
-        done
+        by (rule_tac da="min k l" in that) (auto simp: l \<open>0 < k\<close>)
     qed
-    have "norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4"
-      if "a \<le> c" "{a..c} \<subseteq> {a..b}" and bmin: "{a..c} \<subseteq> ball a (min k l)" for c
+    obtain db where "0 < db"
+      and db: "\<And>c. \<lbrakk>c \<le> b; {c..b} \<subseteq> {a..b}; {c..b} \<subseteq> ball b db\<rbrakk>
+                          \<Longrightarrow> norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> (e * (b-a)) / 4"
     proof -
-      have minkl: "\<bar>a - x\<bar> < min k l" if "x \<in> {a..c}" for x
-        using bmin dist_real_def that by auto
-      then have lel: "\<bar>c - a\<bar> \<le> \<bar>l\<bar>"
-        using that by force
-      have "norm ((c - a) *\<^sub>R f' a - (f c - f a)) \<le> norm ((c - a) *\<^sub>R f' a) + norm (f c - f a)"
-        by (rule norm_triangle_ineq4)
-      also have "\<dots> \<le> e * (b - a) / 8 + e * (b - a) / 8"
-      proof (rule add_mono)
-        have "norm ((c - a) *\<^sub>R f' a) \<le> norm (l *\<^sub>R f' a)"
-          by (auto intro: mult_right_mono [OF lel])
-        also have "... \<le> e * (b - a) / 8"
-          by (rule l)
-        finally show "norm ((c - a) *\<^sub>R f' a) \<le> e * (b - a) / 8" .
+      have "continuous (at b within {a..b}) f"
+        using contf continuous_on_eq_continuous_within by force
+      with eba8 obtain k
+        where "0 < k"
+          and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm(x-b); norm(x-b) < k\<rbrakk>
+                     \<Longrightarrow> norm (f b - f x) < e * (b-a) / 8"
+        unfolding continuous_within Lim_within dist_norm norm_minus_commute by metis
+      obtain l where l: "0 < l" "norm (l *\<^sub>R f' b) \<le> (e * (b-a)) / 8"
+      proof (cases "f' b = 0")
+        case True thus ?thesis 
+          using ab e that by auto
       next
-        have "norm (f c - f a) < e * (b - a) / 8"
-        proof (cases "a = c")
-          case True then show ?thesis
-            using eba8 by auto
-        next
-          case False show ?thesis
-            by (rule k) (use minkl \<open>a \<le> c\<close> that False in auto)
-        qed
-        then show "norm (f c - f a) \<le> e * (b - a) / 8" by simp
+        case False then show ?thesis
+          apply (rule_tac l="(e * (b-a)) / 8 / norm (f' b)" in that)
+          using ab e by (auto simp add: field_simps)
       qed
-      finally show "norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4"
-        unfolding content_real[OF \<open>a \<le> c\<close>] by auto
+      have "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b-a) / 4" 
+        if "c \<le> b" "{c..b} \<subseteq> {a..b}" and bmin: "{c..b} \<subseteq> ball b (min k l)" for c
+      proof -
+        have minkl: "\<bar>b - x\<bar> < min k l" if "x \<in> {c..b}" for x
+          using bmin dist_real_def that by auto
+        then have lel: "\<bar>b - c\<bar> \<le> \<bar>l\<bar>"
+          using that by force
+        have "norm ((b - c) *\<^sub>R f' b - (f b - f c)) \<le> norm ((b - c) *\<^sub>R f' b) + norm (f b - f c)"
+          by (rule norm_triangle_ineq4)
+        also have "\<dots> \<le> e * (b-a) / 8 + e * (b-a) / 8"
+        proof (rule add_mono)
+          have "norm ((b - c) *\<^sub>R f' b) \<le> norm (l *\<^sub>R f' b)"
+            by (auto intro: mult_right_mono [OF lel])
+          also have "... \<le> e * (b-a) / 8"
+            by (rule l)
+          finally show "norm ((b - c) *\<^sub>R f' b) \<le> e * (b-a) / 8" .
+        next
+          have "norm (f b - f c) < e * (b-a) / 8"
+          proof (cases "b = c")
+            case True with eba8 show ?thesis
+              by auto
+          next
+            case False show ?thesis
+              by (rule k) (use minkl \<open>c \<le> b\<close> that False in auto)
+          qed
+          then show "norm (f b - f c) \<le> e * (b-a) / 8" by simp
+        qed
+        finally show "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b-a) / 4"
+          unfolding content_real[OF \<open>c \<le> b\<close>] by auto
+      qed
+      then show ?thesis
+        by (rule_tac db="min k l" in that) (auto simp: l \<open>0 < k\<close>)
     qed
-    then show ?thesis
-      by (rule_tac da="min k l" in that) (auto simp: l \<open>0 < k\<close>)
-  qed
-  obtain db where "0 < db"
-            and db: "\<And>c. \<lbrakk>c \<le> b; {c..b} \<subseteq> {a..b}; {c..b} \<subseteq> ball b db\<rbrakk>
-                          \<Longrightarrow> norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> (e * (b - a)) / 4"
-  proof -
-    have "continuous (at b within {a..b}) f"
-      using contf continuous_on_eq_continuous_within by force
-    with eba8 obtain k
-      where "0 < k"
-        and k: "\<And>x. \<lbrakk>x \<in> {a..b}; 0 < norm(x-b); norm(x-b) < k\<rbrakk>
-                     \<Longrightarrow> norm (f b - f x) < e * (b - a) / 8"
-      unfolding continuous_within Lim_within dist_norm norm_minus_commute by metis
-    obtain l where l: "0 < l" "norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
-    proof (cases "f' b = 0")
-      case True thus ?thesis 
-        using ab e that by auto
+    let ?d = "(\<lambda>x. ball x (if x=a then da else if x=b then db else d x))"
+    show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow>
+              norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b})"
+    proof (rule exI, safe)
+      show "gauge ?d"
+        using ab \<open>db > 0\<close> \<open>da > 0\<close> d(1) by (auto intro: gauge_ball_dependent)
     next
-      case False then show ?thesis
-        apply (rule_tac l="(e * (b - a)) / 8 / norm (f' b)" in that)
-        using ab e by (auto simp add: field_simps)
-    qed
-    have "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4" 
-      if "c \<le> b" "{c..b} \<subseteq> {a..b}" and bmin: "{c..b} \<subseteq> ball b (min k l)" for c
-    proof -
-      have minkl: "\<bar>b - x\<bar> < min k l" if "x \<in> {c..b}" for x
-        using bmin dist_real_def that by auto
-      then have lel: "\<bar>b - c\<bar> \<le> \<bar>l\<bar>"
-        using that by force
-      have "norm ((b - c) *\<^sub>R f' b - (f b - f c)) \<le> norm ((b - c) *\<^sub>R f' b) + norm (f b - f c)"
-        by (rule norm_triangle_ineq4)
-      also have "\<dots> \<le> e * (b - a) / 8 + e * (b - a) / 8"
-      proof (rule add_mono)
-        have "norm ((b - c) *\<^sub>R f' b) \<le> norm (l *\<^sub>R f' b)"
-          by (auto intro: mult_right_mono [OF lel])
-        also have "... \<le> e * (b - a) / 8"
-          by (rule l)
-        finally show "norm ((b - c) *\<^sub>R f' b) \<le> e * (b - a) / 8" .
-      next
-        have "norm (f b - f c) < e * (b - a) / 8"
-        proof (cases "b = c")
-          case True with eba8 show ?thesis
-            by auto
-        next
-          case False show ?thesis
-            by (rule k) (use minkl \<open>c \<le> b\<close> that False in auto)
-        qed
-        then show "norm (f b - f c) \<le> e * (b - a) / 8" by simp
-      qed
-      finally show "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4"
-        unfolding content_real[OF \<open>c \<le> b\<close>] by auto
-    qed
-    then show ?thesis
-      by (rule_tac db="min k l" in that) (auto simp: l \<open>0 < k\<close>)
-  qed
-  let ?d = "(\<lambda>x. ball x (if x=a then da else if x=b then db else d x))"
-  show "?P e"
-  proof (intro exI conjI allI impI)
-    show "gauge ?d"
-      using ab \<open>db > 0\<close> \<open>da > 0\<close> d(1) by (auto intro: gauge_ball_dependent)
-  next
-    fix p
-    assume ptag: "p tagged_division_of {a..b}" and fine: "?d fine p"
-    let ?A = "{t. fst t \<in> {a, b}}"
-    note p = tagged_division_ofD[OF ptag]
-    have pA: "p = (p \<inter> ?A) \<union> (p - ?A)" "finite (p \<inter> ?A)" "finite (p - ?A)" "(p \<inter> ?A) \<inter> (p - ?A) = {}"
-      using ptag fine by auto
-    note * = additive_tagged_division_1[OF assms(1) ptag, symmetric]
-    have **: "\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2"
-      by arith
-    have non: False if xk: "(x,K) \<in> p" and "x \<noteq> a" "x \<noteq> b"
-         and less: "e * (Sup K - Inf K) / 2 < norm (content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))"
-         for x K
+      fix p
+      assume ptag: "p tagged_division_of {a..b}" and fine: "?d fine p"
+      let ?A = "{t. fst t \<in> {a, b}}"
+      note p = tagged_division_ofD[OF ptag]
+      have pA: "p = (p \<inter> ?A) \<union> (p - ?A)" "finite (p \<inter> ?A)" "finite (p - ?A)" "(p \<inter> ?A) \<inter> (p - ?A) = {}"
+        using ptag fine by auto
+      have le_xz: "\<And>w x y z::real. y \<le> z/2 \<Longrightarrow> w - x \<le> z/2 \<Longrightarrow> w + y \<le> x + z"
+        by arith
+      have non: False if xk: "(x,K) \<in> p" and "x \<noteq> a" "x \<noteq> b"
+        and less: "e * (Sup K - Inf K)/2 < norm (content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))"
+      for x K
       proof -
         obtain u v where k: "K = cbox u v"
           using p(4) xk by blast
         then have "u \<le> v" and uv: "{u, v} \<subseteq> cbox u v"
           using p(2)[OF xk] by auto
-        then have result: "e * (v - u) / 2 < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
+        then have result: "e * (v - u)/2 < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
           using less[unfolded k box_real interval_bounds_real content_real] by auto
         then have "x \<in> box a b"
           using p(2) p(3) \<open>x \<noteq> a\<close> \<open>x \<noteq> b\<close> xk by fastforce
@@ -3721,8 +3719,8 @@ next
         have xd: "norm (u - x) < d x" "norm (v - x) < d x"
           using fineD[OF fine xk] \<open>x \<noteq> a\<close> \<open>x \<noteq> b\<close> uv 
           by (auto simp add: k subset_eq dist_commute dist_real_def)
-        have "norm ((v - u) *\<^sub>R f' (x) - (f (v) - f (u))) =
-              norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
+        have "norm ((v - u) *\<^sub>R f' x - (f v - f u)) =
+              norm ((f u - f x - (u - x) *\<^sub>R f' x) - (f v - f x - (v - x) *\<^sub>R f' x))"
           by (rule arg_cong[where f=norm]) (auto simp: scaleR_left.diff)
         also have "\<dots> \<le> e/2 * norm (u - x) + e/2 * norm (v - x)"
           by (metis norm_triangle_le_diff add_mono * xd)
@@ -3730,211 +3728,186 @@ next
           using p(2)[OF xk] by (auto simp add: field_simps k)
         also have "\<dots> < norm ((v - u) *\<^sub>R f' x - (f v - f u))"
           using result by (simp add: \<open>u \<le> v\<close>)
-        finally have "e * (v - u) / 2 < e * (v - u) / 2"
+        finally have "e * (v - u)/2 < e * (v - u)/2"
           using uv by auto
         then show False by auto
       qed
-    have "norm (\<Sum>(x, K)\<in>p - ?A. content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))
+      have "norm (\<Sum>(x, K)\<in>p - ?A. content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))
           \<le> (\<Sum>(x, K)\<in>p - ?A. norm (content K *\<^sub>R f' x - (f (Sup K) - f (Inf K))))"
-      by (auto intro: sum_norm_le)
-    also have "... \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k) / 2)"
-      using non by (force intro: sum_mono)
-    finally have I: "norm (\<Sum>(x, k)\<in>p - ?A.
+        by (auto intro: sum_norm_le)
+      also have "... \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)/2)"
+        using non by (fastforce intro: sum_mono)
+      finally have I: "norm (\<Sum>(x, k)\<in>p - ?A.
                   content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
-             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
-      by (simp add: sum_divide_distrib)
-    have II: "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) -
+             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k))/2"
+        by (simp add: sum_divide_distrib)
+      have II: "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) -
              (\<Sum>n\<in>p \<inter> ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k))
-             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
-    proof -
-      have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> ?A" for x k
+             \<le> (\<Sum>n\<in>p - ?A. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k))/2"
       proof -
-        obtain u v where uv: "k = cbox u v"
-          by (meson Int_iff xkp p(4))
-        with p(2) that uv have "cbox u v \<noteq> {}"
-          by blast
-        then show "0 \<le> e * ((Sup k) - (Inf k))"
-          unfolding uv using e by (auto simp add: field_simps)
-      qed
-      let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
-      let ?C = "{t \<in> p. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
-      have "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b-a) / 2"
-      proof -
-        have *: "\<And>s f e. sum f s = sum f (p \<inter> ?C) \<Longrightarrow> norm (sum f (p \<inter> ?C)) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
-          by auto
-        have 1: "content K *\<^sub>R (f' (x)) - (f ((Sup K)) - f ((Inf K))) = 0"
-                if "(x,K) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> ?C" for x K
+        have ge0: "0 \<le> e * (Sup k - Inf k)" if xkp: "(x, k) \<in> p \<inter> ?A" for x k
         proof -
-          have xk: "(x, K) \<in> p" and k0: "content K = 0"
-            using that by auto
-          then obtain u v where uv: "K = cbox u v"
-            using p(4) by blast
-          then have "u = v"
-            using xk k0 p(2) by force
-          then show "content K *\<^sub>R (f' (x)) - (f ((Sup K)) - f ((Inf K))) = 0"
-            using xk unfolding uv by auto
-        qed
-        have 2: "norm(\<Sum>(x,k)\<in>p \<inter> ?C. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) 
-                 \<le> e * (b - a) / 2"
-        proof -
-          have *: "p \<inter> ?C = ?B a \<union> ?B b"
+          obtain u v where uv: "k = cbox u v"
+            by (meson Int_iff xkp p(4))
+          with p(2) that uv have "cbox u v \<noteq> {}"
             by blast
-          have **: "norm (sum f s) \<le> e"
-            if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y" "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e" "e > 0"
-            for s f and e :: real
-          proof (cases "s = {}")
-            case True
-            with that show ?thesis by auto
-          next
-            case False
-            then obtain x where "x \<in> s"
-              by auto
-            then have "s = {x}"
-              using that(1) by auto
-            then show ?thesis
-              using \<open>x \<in> s\<close> that(2) by auto
-          qed
-          show "norm (\<Sum>(x,k)\<in>p \<inter> ?C.
-                        content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b - a) / 2"
-            apply (subst *)
-            apply (subst sum.union_disjoint)
-               prefer 4
-               apply (rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
-                apply (rule norm_triangle_le,rule add_mono)
-                 apply (rule_tac[1-2] **)
-
-          proof -
-            have pa: "\<exists>v. k = cbox a v \<and> a \<le> v" if "(a, k) \<in> p" for k
-            proof -
-              obtain u v where uv: "k = cbox u v"
-                using \<open>(a, k) \<in> p\<close> p(4) by blast
-              moreover have "u \<le> v"
-                using uv p(2)[OF that] by auto
-              moreover have "u = a"
-                using p(2) p(3) that uv by force
-              ultimately show ?thesis
-                by blast
-            qed
-            have pb: "\<exists>v. k = cbox v b \<and> b \<ge> v" if "(b, k) \<in> p" for k
-            proof -
-              obtain u v where uv: "k = cbox u v"
-                using \<open>(b, k) \<in> p\<close> p(4) by blast
-              moreover have "u \<le> v"
-                using p(2)[OF that] unfolding uv by auto
-              moreover have "v = b"
-                using p(2) p(3) that uv by force
-              ultimately show ?thesis
-                by blast
-            qed
-            show "\<forall>x y. x \<in> ?B a \<and> y \<in> ?B a \<longrightarrow> x = y"
-            proof (safe; clarsimp)
-              fix x k k'
-              assume k: "(a, k) \<in> p" "(a, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
-              obtain v where v: "k = cbox a v" "a \<le> v"
-                using pa[OF k(1)] by blast
-              obtain v' where v': "k' = cbox a v'" "a \<le> v'"
-                using pa[OF k(2)] by blast              
-              let ?v = "min v v'"
-              have "box a ?v \<subseteq> k \<inter> k'"
-                unfolding v v' by (auto simp add: mem_box)
-              then have "interior (box a (min v v')) \<subseteq> interior k \<inter> interior k'"
-                using interior_Int interior_mono by blast
-              moreover have "(a + ?v)/2 \<in> box a ?v"
-                using k(3-)
-                unfolding v v' content_eq_0 not_le
-                by (auto simp add: mem_box)
-              ultimately have "(a + ?v)/2 \<in> interior k \<inter> interior k'"
-                unfolding interior_open[OF open_box] by auto
-              then have eq: "k = k'"
-                using p(5)[OF k(1-2)] by auto
-              { assume "x \<in> k" then show "x \<in> k'" unfolding eq . }
-              { assume "x \<in> k'" then show "x \<in> k" unfolding eq . }
-            qed
-
-            show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y"
-            proof (safe; clarsimp)
-              fix x K K'
-              assume k: "(b, K) \<in> p" "(b, K') \<in> p" "content K \<noteq> 0" "content K' \<noteq> 0"
-              obtain v where v: "K = cbox v b" "v \<le> b"
-                using pb[OF k(1)] by blast
-              obtain v' where v': "K' = cbox v' b" "v' \<le> b"
-                using pb[OF k(2)] by blast 
-              let ?v = "max v v'"
-              have "box ?v b \<subseteq> K \<inter> K'"
-                unfolding v v' by (auto simp: mem_box)
-              then have "interior (box (max v v') b) \<subseteq> interior K \<inter> interior K'"
-                using interior_Int interior_mono by blast
-              moreover have " ((b + ?v)/2) \<in> box ?v b"
-                using k(3-) unfolding v v' content_eq_0 not_le by (auto simp: mem_box)
-              ultimately have " ((b + ?v)/2) \<in> interior K \<inter> interior K'"
-                unfolding interior_open[OF open_box] by auto
-              then have eq: "K = K'"
-                using p(5)[OF k(1-2)] by auto
-              { assume "x \<in> K" then show "x \<in> K'" unfolding eq . }
-              { assume "x \<in> K'" then show "x \<in> K" unfolding eq . }
-            qed
-
-            have "norm (content c *\<^sub>R f' a - (f (Sup c) - f (Inf c))) \<le> e * (b - a) / 4"
-              if "(a, c) \<in> p" and ne0: "content c \<noteq> 0" for c
-            proof -
-              obtain v where v: "c = cbox a v" and "a \<le> v"
-                using pa[OF \<open>(a, c) \<in> p\<close>] by metis 
-              then have "a \<in> {a..v}" "v \<le> b"
-                using p(3)[OF \<open>(a, c) \<in> p\<close>] by auto
-              moreover have "{a..v} \<subseteq> ball a da"
-                using fineD[OF \<open>?d fine p\<close> \<open>(a, c) \<in> p\<close>] by (simp add: v split: if_split_asm)
-              ultimately show ?thesis
-                unfolding v interval_bounds_real[OF \<open>a \<le> v\<close>] box_real
-                using da \<open>a \<le> v\<close> by auto
-            qed
-            then show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) -
-              f (Inf k))) x) \<le> e * (b - a) / 4"
-              by auto
-
-            have "norm (content c *\<^sub>R f' b - (f (Sup c) - f (Inf c))) \<le> e * (b - a) / 4"
-              if "(b, c) \<in> p" and ne0: "content c \<noteq> 0" for c
-            proof -
-              obtain v where v: "c = cbox v b" and "v \<le> b"
-                using \<open>(b, c) \<in> p\<close> pb by blast
-              then have "v \<ge> a""b \<in> {v.. b}"  
-                using p(3)[OF \<open>(b, c) \<in> p\<close>] by auto
-              moreover have "{v..b} \<subseteq> ball b db"
-                using fineD[OF \<open>?d fine p\<close> \<open>(b, c) \<in> p\<close>] box_real(2) v False by force
-              ultimately show ?thesis
-                using db v by auto
-            qed
-            then show "\<forall>x. x \<in> ?B b \<longrightarrow> 
-                           norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) x) 
-                           \<le> e * (b - a) / 4"
-              by auto
-          qed (insert p(1) ab e, auto simp add: field_simps)
+          then show "0 \<le> e * ((Sup k) - (Inf k))"
+            unfolding uv using e by (auto simp add: field_simps)
         qed
-        show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
-          apply (rule * [OF sum.mono_neutral_right[OF pA(2)]])
-          using 1 2 by (auto simp: split_paired_all)
+        let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
+        let ?C = "{t \<in> p. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
+        have "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b-a)/2"
+        proof -
+          have *: "\<And>s f e. sum f s = sum f (p \<inter> ?C) \<Longrightarrow> norm (sum f (p \<inter> ?C)) \<le> e \<Longrightarrow> norm (sum f s) \<le> e"
+            by auto
+          have 1: "content K *\<^sub>R (f' x) - (f ((Sup K)) - f ((Inf K))) = 0"
+            if "(x,K) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> ?C" for x K
+          proof -
+            have xk: "(x,K) \<in> p" and k0: "content K = 0"
+              using that by auto
+            then obtain u v where uv: "K = cbox u v"
+              using p(4) by blast
+            then have "u = v"
+              using xk k0 p(2) by force
+            then show "content K *\<^sub>R (f' x) - (f ((Sup K)) - f ((Inf K))) = 0"
+              using xk unfolding uv by auto
+          qed
+          have 2: "norm(\<Sum>(x,K)\<in>p \<inter> ?C. content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))  \<le> e * (b-a)/2"
+          proof -
+            have *: "p \<inter> ?C = ?B a \<union> ?B b"
+              by blast
+            have norm_le: "norm (sum f s) \<le> e"
+              if "\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y" "\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e" "e > 0"
+              for s f and e :: real
+            proof (cases "s = {}")
+              case True
+              with that show ?thesis by auto
+            next
+              case False then obtain x where "x \<in> s"
+                by auto
+              then have "s = {x}"
+                using that(1) by auto
+              then show ?thesis
+                using \<open>x \<in> s\<close> that(2) by auto
+            qed
+            show "norm (\<Sum>(x,k)\<in>p \<inter> ?C.
+                        content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le> e * (b-a)/2"
+              apply (subst *)
+              apply (subst sum.union_disjoint)
+                 prefer 4
+                 apply (rule order_trans[of _ "e * (b-a)/4 + e * (b-a)/4"])
+                  apply (rule norm_triangle_le,rule add_mono)
+                   apply (rule_tac[1-2] norm_le)
+
+            proof -
+              have pa: "\<exists>v. k = cbox a v \<and> a \<le> v" if "(a, k) \<in> p" for k
+                using p(2) p(3) p(4) that by fastforce
+              have pb: "\<exists>v. k = cbox v b \<and> b \<ge> v" if "(b, k) \<in> p" for k
+                using p(2) p(3) p(4) that by fastforce
+              show "\<forall>x y. x \<in> ?B a \<and> y \<in> ?B a \<longrightarrow> x = y"
+              proof (safe; clarsimp)
+                fix x K K'
+                assume K: "(a, K) \<in> p" "(a, K') \<in> p" and ne0: "content K \<noteq> 0" "content K' \<noteq> 0"
+                with pa obtain v v' where v: "K = cbox a v" "a \<le> v" and v': "K' = cbox a v'" "a \<le> v'"
+                  by blast
+                let ?v = "min v v'"
+                have "box a ?v \<subseteq> K \<inter> K'"
+                  unfolding v v' by (auto simp add: mem_box)
+                then have "interior (box a (min v v')) \<subseteq> interior K \<inter> interior K'"
+                  using interior_Int interior_mono by blast
+                moreover have "(a + ?v)/2 \<in> box a ?v"
+                  using ne0  unfolding v v' content_eq_0 not_le
+                  by (auto simp add: mem_box)
+                ultimately have "(a + ?v)/2 \<in> interior K \<inter> interior K'"
+                  unfolding interior_open[OF open_box] by auto
+                then have eq: "K = K'"
+                  using p(5)[OF K] by auto
+                then show "x \<in> K \<Longrightarrow> x \<in> K'" "x \<in> K' \<Longrightarrow> x \<in> K" 
+                  using eq by auto
+              qed
+              show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y"
+              proof (safe; clarsimp)
+                fix x K K'
+                assume K: "(b, K) \<in> p" "(b, K') \<in> p" and ne0: "content K \<noteq> 0" "content K' \<noteq> 0"
+                with pb obtain v v' where v: "K = cbox v b" "v \<le> b" and v': "K' = cbox v' b" "v' \<le> b"
+                  by blast
+                let ?v = "max v v'"
+                have "box ?v b \<subseteq> K \<inter> K'"
+                  unfolding v v' by (auto simp: mem_box)
+                then have "interior (box (max v v') b) \<subseteq> interior K \<inter> interior K'"
+                  using interior_Int interior_mono by blast
+                moreover have " ((b + ?v)/2) \<in> box ?v b"
+                  using ne0 unfolding v v' content_eq_0 not_le by (auto simp: mem_box)
+                ultimately have "((b + ?v)/2) \<in> interior K \<inter> interior K'"
+                  unfolding interior_open[OF open_box] by auto
+                then have eq: "K = K'"
+                  using p(5)[OF K] by auto
+                then show "x \<in> K \<Longrightarrow> x \<in> K'" "x \<in> K' \<Longrightarrow> x \<in> K" 
+                  using eq by auto
+              qed
+              have "norm (content c *\<^sub>R f' a - (f (Sup c) - f (Inf c))) \<le> e * (b-a) / 4"
+                if "(a, c) \<in> p" and ne0: "content c \<noteq> 0" for c
+              proof -
+                obtain v where v: "c = cbox a v" and "a \<le> v"
+                  using pa[OF \<open>(a, c) \<in> p\<close>] by metis 
+                then have "a \<in> {a..v}" "v \<le> b"
+                  using p(3)[OF \<open>(a, c) \<in> p\<close>] by auto
+                moreover have "{a..v} \<subseteq> ball a da"
+                  using fineD[OF \<open>?d fine p\<close> \<open>(a, c) \<in> p\<close>] by (simp add: v split: if_split_asm)
+                ultimately show ?thesis
+                  unfolding v interval_bounds_real[OF \<open>a \<le> v\<close>] box_real
+                  using da \<open>a \<le> v\<close> by auto
+              qed
+              then show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) -
+              f (Inf k))) x) \<le> e * (b-a) / 4"
+                by auto
+
+              have "norm (content c *\<^sub>R f' b - (f (Sup c) - f (Inf c))) \<le> e * (b-a) / 4"
+                if "(b, c) \<in> p" and ne0: "content c \<noteq> 0" for c
+              proof -
+                obtain v where v: "c = cbox v b" and "v \<le> b"
+                  using \<open>(b, c) \<in> p\<close> pb by blast
+                then have "v \<ge> a""b \<in> {v.. b}"  
+                  using p(3)[OF \<open>(b, c) \<in> p\<close>] by auto
+                moreover have "{v..b} \<subseteq> ball b db"
+                  using fineD[OF \<open>?d fine p\<close> \<open>(b, c) \<in> p\<close>] box_real(2) v False by force
+                ultimately show ?thesis
+                  using db v by auto
+              qed
+              then show "\<forall>x. x \<in> ?B b \<longrightarrow> 
+                           norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) x) 
+                           \<le> e * (b-a) / 4"
+                by auto
+            qed (insert p(1) ab e, auto simp add: field_simps)
+          qed
+          show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x - (f ((Sup k)) - f ((Inf k)))) \<le> e * (b-a)/2"
+            apply (rule * [OF sum.mono_neutral_right[OF pA(2)]])
+            using 1 2 by (auto simp: split_paired_all)
+        qed
+        also have "... = (\<Sum>n\<in>p. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k))/2"
+          unfolding sum_distrib_left[symmetric]
+          apply (subst additive_tagged_division_1[OF \<open>a \<le> b\<close> ptag])
+          by auto
+        finally have norm_le: "norm (\<Sum>(x,K)\<in>p \<inter> {t. fst t \<in> {a, b}}. content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))
+                \<le> (\<Sum>n\<in>p. e * (case n of (x, K) \<Rightarrow> Sup K - Inf K))/2" .
+        have le2: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2)/2 \<Longrightarrow> x - s1 \<le> s2/2"
+          by auto
+        show ?thesis
+          apply (rule le2 [OF sum_nonneg])
+          using ge0 apply force
+          unfolding sum.union_disjoint[OF pA(2-), symmetric] pA(1)[symmetric]
+          by (metis norm_le)
       qed
-      also have "... = (\<Sum>n\<in>p. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2"
-        unfolding sum_distrib_left[symmetric]
-        apply (subst additive_tagged_division_1[OF \<open>a \<le> b\<close> ptag])
-        by auto
-      finally have norm_le: "norm (\<Sum>(x, k)\<in>p \<inter> {t. fst t \<in> {a, b}}. content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))
-                \<le> (\<Sum>n\<in>p. e * (case n of (x, k) \<Rightarrow> Sup k - Inf k)) / 2" .
-      have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
-        by auto
-      show ?thesis
-        apply (rule * [OF sum_nonneg])
-        using ge0 apply force
-        unfolding sum.union_disjoint[OF pA(2-), symmetric] pA(1)[symmetric]
-        by (metis norm_le)
-    qed
-    have "norm (\<Sum>(x,K)\<in>p \<inter> ?A \<union> (p - ?A). content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))
+      note * = additive_tagged_division_1[OF assms(1) ptag, symmetric]
+      have "norm (\<Sum>(x,K)\<in>p \<inter> ?A \<union> (p - ?A). content K *\<^sub>R f' x - (f (Sup K) - f (Inf K)))
                \<le> e * (\<Sum>(x,K)\<in>p \<inter> ?A \<union> (p - ?A). Sup K - Inf K)"
-      unfolding sum_distrib_left
-      unfolding sum.union_disjoint[OF pA(2-)]
-      using ** norm_triangle_le I II by blast
-    then
-    show "norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
-      by (simp only: content_real[OF \<open>a \<le> b\<close>] *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus pA(1) [symmetric])
+        unfolding sum_distrib_left
+        unfolding sum.union_disjoint[OF pA(2-)]
+        using le_xz norm_triangle_le I II by blast
+      then
+      show "norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
+        by (simp only: content_real[OF \<open>a \<le> b\<close>] *[of "\<lambda>x. x"] *[of f] sum_subtractf[symmetric] split_minus pA(1) [symmetric])
+    qed
   qed
 qed
 
@@ -3992,12 +3965,9 @@ corollary fundamental_theorem_of_calculus_strong:
   using vec apply (auto simp: mem_box)
   done
 
-lemma indefinite_integral_continuous_left:
+proposition indefinite_integral_continuous_left:
   fixes f:: "real \<Rightarrow> 'a::banach"
-  assumes intf: "f integrable_on {a..b}"
-    and "a < c"
-    and "c \<le> b"
-    and "e > 0"
+  assumes intf: "f integrable_on {a..b}" and "a < c" "c \<le> b" "e > 0"
   obtains d where "d > 0"
     and "\<forall>t. c - d < t \<and> t \<le> c \<longrightarrow> norm (integral {a..c} f - integral {a..t} f) < e"
 proof -
@@ -4020,14 +3990,14 @@ proof -
       using \<open>e > 0\<close> that by auto
   qed
 
+  let ?SUM = "\<lambda>p. (\<Sum>(x,K) \<in> p. content K *\<^sub>R f x)"
   have e3: "e/3 > 0"
     using \<open>e > 0\<close> by auto
   have "f integrable_on {a..c}"
     apply (rule integrable_subinterval_real[OF intf])
     using \<open>a < c\<close> \<open>c \<le> b\<close> by auto
   then obtain d1 where "gauge d1" and d1:
-    "\<And>p. \<lbrakk>p tagged_division_of {a..c}; d1 fine p\<rbrakk> \<Longrightarrow>
-            norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f x) - integral {a..c} f) < e/3"
+    "\<And>p. \<lbrakk>p tagged_division_of {a..c}; d1 fine p\<rbrakk> \<Longrightarrow> norm (?SUM p - integral {a..c} f) < e/3"
     using integrable_integral has_integral_real e3 by metis
   define d where [abs_def]: "d x = ball x w \<inter> d1 x" for x
   have "gauge d"
@@ -4035,11 +4005,9 @@ proof -
   then obtain k where "0 < k" and k: "ball c k \<subseteq> d c"
     by (meson gauge_def open_contains_ball)
 
-  let ?d = "min k (c - a) / 2"
+  let ?d = "min k (c - a)/2"
   show ?thesis
-    apply (rule that[of ?d])
-    apply safe
-  proof -
+  proof (intro that[of ?d] allI impI, safe)
     show "?d > 0"
       using \<open>0 < k\<close> using assms(2) by auto
     fix t
@@ -4064,8 +4032,7 @@ proof -
       apply (rule integrable_subinterval_real[OF intf])
       using \<open>t < c\<close> \<open>c \<le> b\<close> by auto
     then obtain d2 where d2: "gauge d2"
-      "\<And>p. p tagged_division_of {a..t} \<and> d2 fine p \<Longrightarrow>
-            norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f x) - integral {a..t} f) < e/3"
+      "\<And>p. p tagged_division_of {a..t} \<and> d2 fine p \<Longrightarrow> norm (?SUM p - integral {a..t} f) < e/3"
       using integrable_integral has_integral_real e3 by metis
     define d3 where "d3 x = (if x \<le> t then d1 x \<inter> d2 x else d1 x)" for x
     have "gauge d3"
@@ -4077,14 +4044,13 @@ proof -
       by (meson atLeastAtMost_iff p'(2) p'(3) subsetCE)
     with pfine have "d2 fine p"
       unfolding fine_def d3_def by fastforce
-    then have d2_fin: "norm ((\<Sum>(x, K)\<in>p. content K *\<^sub>R f x) - integral {a..t} f) < e/3"
+    then have d2_fin: "norm (?SUM p - integral {a..t} f) < e/3"
       using d2(2) ptag by auto
-    have *: "{a..c} \<inter> {x. x \<le> t} = {a..t}" "{a..c} \<inter> {x. x \<ge> t} = {t..c}"
+    have eqs: "{a..c} \<inter> {x. x \<le> t} = {a..t}" "{a..c} \<inter> {x. x \<ge> t} = {t..c}"
       using as by (auto simp add: field_simps)
-
     have "p \<union> {(c, {t..c})} tagged_division_of {a..c}"
       apply (rule tagged_division_Un_interval_real[of _ _ _ 1 "t"])
-      using  \<open>t \<le> c\<close> by (auto simp: * ptag tagged_division_of_self_real)
+      using  \<open>t \<le> c\<close> by (auto simp: eqs ptag tagged_division_of_self_real)
     moreover
     have "d1 fine p \<union> {(c, {t..c})}"
       unfolding fine_def
@@ -4095,66 +4061,48 @@ proof -
     next
       fix x assume "x \<in> {t..c}"
       then have "dist c x < k"
-        using as(1)
-        by (auto simp add: field_simps dist_real_def)
+        using as(1) by (auto simp add: field_simps dist_real_def)
       with k show "x \<in> d1 c"
         unfolding d_def by auto
     qed  
-    ultimately have d1_fin: "norm ((\<Sum>(x,K) \<in> p \<union> {(c, {t..c})}. content K *\<^sub>R f x) - integral {a..c} f) < e/3"
+    ultimately have d1_fin: "norm (?SUM(p \<union> {(c, {t..c})}) - integral {a..c} f) < e/3"
       using d1 by metis
-
-    have *: "integral {a..c} f - integral {a..t} f = -(((c - t) *\<^sub>R f c + (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)) -
-      integral {a..c} f) + ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - integral {a..t} f) + (c - t) *\<^sub>R f c"
-      "e = (e/3 + e/3) + e/3"
+    have 1: "integral {a..c} f - integral {a..t} f = -(((c - t) *\<^sub>R f c + ?SUM p) -
+             integral {a..c} f) + (?SUM p - integral {a..t} f) + (c - t) *\<^sub>R f c"
+    and 2: "e = (e/3 + e/3) + e/3"
       by auto
-    have **: "(\<Sum>(x, k)\<in>p \<union> {(c, {t..c})}. content k *\<^sub>R f x) =
-      (c - t) *\<^sub>R f c + (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)"
+    have **: "?SUM(p \<union> {(c, {t..c})}) = (c - t) *\<^sub>R f c + ?SUM p"
     proof -
-      have **: "\<And>x F. F \<union> {x} = insert x F"
-        by auto
-      have "(c, cbox t c) \<notin> p"
-      proof (safe, goal_cases)
-        case prems: 1
-        from p'(2-3)[OF prems] have "c \<in> cbox a t"
-          by auto
-        then show False using \<open>t < c\<close>
-          by auto
-      qed
-      then show ?thesis
-        unfolding ** box_real
-        apply -
-        apply (subst sum.insert)
-        apply (rule p')
-        unfolding split_conv
-        defer
-        apply (subst content_real)
-        using as(2)
-        apply auto
-        done
+      have "?SUM(p \<union> {(c, {t..c})}) = (content{t..c} *\<^sub>R f c) + ?SUM p"
+      proof (subst sum.union_disjoint)
+        show "p \<inter> {(c, {t..c})} = {}"
+          using \<open>t < c\<close> pt by force
+      qed (use p'(1) in auto)
+      also have "... = (c - t) *\<^sub>R f c + ?SUM p"
+        using \<open>t \<le> c\<close> by auto
+      finally show ?thesis .
     qed
-    have ***: "c - w < t \<and> t < c"
-    proof -
-      have "c - k < t"
-        using \<open>k>0\<close> as(1) by (auto simp add: field_simps)
-      moreover have "k \<le> w"
-        apply (rule ccontr)
-        using k
-        unfolding subset_eq
-        apply (erule_tac x="c + ((k + w)/2)" in ballE)
-        unfolding d_def
-        using \<open>k > 0\<close> \<open>w > 0\<close>
-        apply (auto simp add: field_simps not_le not_less dist_real_def)
-        done
-      ultimately show ?thesis using \<open>t < c\<close>
-        by (auto simp add: field_simps)
+    have "c - k < t"
+      using \<open>k>0\<close> as(1) by (auto simp add: field_simps)
+    moreover have "k \<le> w"
+    proof (rule ccontr)
+      assume "\<not> k \<le> w"
+      then have "c + (k + w) / 2 \<notin> d c"
+        by (auto simp add: field_simps not_le not_less dist_real_def d_def)
+      then have "c + (k + w) / 2 \<notin> ball c k"
+        using k by blast
+      then show False
+        using \<open>0 < w\<close> \<open>\<not> k \<le> w\<close> dist_real_def by auto
     qed
+    ultimately have cwt: "c - w < t"
+      by (auto simp add: field_simps)
     show ?thesis
-      unfolding *(1)
-      apply (subst *(2))
+      unfolding 1 
+      apply (subst 2)
       apply (rule norm_triangle_lt add_strict_mono)+
       apply (metis "**" d1_fin norm_minus_cancel)
       using d2_fin apply blast
-      using w ***
+      using w cwt \<open>t < c\<close>
       apply (auto simp add: field_simps)
       done
   qed
@@ -4672,10 +4620,9 @@ lemma has_integral_nonneg:
 
 lemma integral_nonneg:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
-  assumes "f integrable_on S"
-    and "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f x"
+  assumes f: "f integrable_on S" and 0: "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f x"
   shows "0 \<le> integral S f"
-  by (rule has_integral_nonneg[OF assms(1)[unfolded has_integral_integral] assms(2)])
+  by (rule has_integral_nonneg[OF f[unfolded has_integral_integral] 0])
 
 
 text \<open>Hence a general restriction property.\<close>
@@ -5033,11 +4980,11 @@ next
     if "e > 0" for e
   proof -
     have *: "e/2 > 0" using that by auto
-    then obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> norm (i - integral (?cube n) ?F) < e / 2"
+    then obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> norm (i - integral (?cube n) ?F) < e/2"
       using i[THEN LIMSEQ_D, simplified norm_minus_commute] by meson
     obtain B where "0 < B" 
       and B: "\<And>a b c d. \<lbrakk>ball 0 B \<subseteq> cbox a b; ball 0 B \<subseteq> cbox c d\<rbrakk> \<Longrightarrow>
-                  norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e / 2"
+                  norm (integral (cbox a b) ?F - integral (cbox c d) ?F) < e/2"
       using rhs * by meson
     let ?B = "max (real N) B"
     show ?thesis
@@ -6017,9 +5964,9 @@ proof -
         proof (rule *)
           show "\<bar>integral (cbox a b) (?f N) - i\<bar> < e/2"
           proof (rule abs_triangle_half_l)
-            show "\<bar>integral (cbox a b) (?f N) - integral S (f N)\<bar> < e/2 / 2"
+            show "\<bar>integral (cbox a b) (?f N) - integral S (f N)\<bar> < e/2/2"
               using B[OF ab] by simp
-            show "abs (i - integral S (f N)) < e/2 / 2"
+            show "abs (i - integral S (f N)) < e/2/2"
               using N by (simp add: abs_minus_commute)
           qed
           show "\<bar>integral (cbox a b) (?f (M + N)) - integral (cbox a b) ?g\<bar> < e/2"
@@ -6953,7 +6900,7 @@ next
         also have "norm (t1 - x1, t2 - x2) < k"
           using xuvwz ls uwvz_sub unfolding ball_def
           by (force simp add: cbox_Pair_eq dist_norm )
-        finally have "norm (f (x1,x2) - f (t1,t2)) \<le> e/content ?CBOX / 2"
+        finally have "norm (f (x1,x2) - f (t1,t2)) \<le> e/content ?CBOX/2"
           using nf [OF t x]  by simp
       } note nf' = this
       have f_int_uwvz: "f integrable_on cbox (u,w) (v,z)"
@@ -6962,9 +6909,9 @@ next
         using assms continuous_on_subset uwvz_sub
         by (blast intro: continuous_on_imp_integrable_on_Pair1)
       have 1: "norm (integral (cbox (u,w) (v,z)) f - integral (cbox (u,w) (v,z)) (\<lambda>x. f (t1,t2)))
-         \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
+         \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
         apply (simp only: integral_diff [symmetric] f_int_uwvz integrable_const)
-        apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
+        apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX/2"]])
         using cbp \<open>0 < e/content ?CBOX\<close> nf'
         apply (auto simp: integrable_diff f_int_uwvz integrable_const)
         done
@@ -6973,24 +6920,24 @@ next
       have normint_wz:
          "\<And>x. x \<in> cbox u v \<Longrightarrow>
                norm (integral (cbox w z) (\<lambda>y. f (x, y)) - integral (cbox w z) (\<lambda>y. f (t1, t2)))
-               \<le> e * content (cbox w z) / content (cbox (a, c) (b, d)) / 2"
+               \<le> e * content (cbox w z) / content (cbox (a, c) (b, d))/2"
         apply (simp only: integral_diff [symmetric] f_int_uv integrable_const)
-        apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX / 2"]])
+        apply (rule order_trans [OF integrable_bound [of "e/content ?CBOX/2"]])
         using cbp \<open>0 < e/content ?CBOX\<close> nf'
         apply (auto simp: integrable_diff f_int_uv integrable_const)
         done
       have "norm (integral (cbox u v)
                (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y)) - integral (cbox w z) (\<lambda>y. f (t1,t2))))
-            \<le> e * content (cbox w z) / content ?CBOX / 2 * content (cbox u v)"
+            \<le> e * content (cbox w z) / content ?CBOX/2 * content (cbox u v)"
         apply (rule integrable_bound [OF _ _ normint_wz])
         using cbp \<open>0 < e/content ?CBOX\<close>
         apply (auto simp: divide_simps content_pos_le integrable_diff int_integrable integrable_const)
         done
-      also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
+      also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
         by (simp add: content_Pair divide_simps)
       finally have 2: "norm (integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y))) -
                       integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (t1,t2))))
-                \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
+                \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
         by (simp only: integral_diff [symmetric] int_integrable integrable_const)
       have norm_xx: "\<lbrakk>x' = y'; norm(x - x') \<le> e/2; norm(y - y') \<le> e/2\<rbrakk> \<Longrightarrow> norm(x - y) \<le> e" for x::'c and y x' y' e
         using norm_triangle_mono [of "x-y'" "e/2" "y'-y" "e/2"] real_sum_of_halves
