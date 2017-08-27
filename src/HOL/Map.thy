@@ -619,6 +619,33 @@ apply (subgoal_tac "aa \<noteq> a")
  apply auto
 done
 
+lemma ran_map_add:
+  assumes "dom m1 \<inter> dom m2 = {}"
+  shows "ran (m1 ++ m2) = ran m1 \<union> ran m2"
+proof
+  show "ran (m1 ++ m2) \<subseteq> ran m1 \<union> ran m2"
+    unfolding ran_def by auto
+next
+  show "ran m1 \<union> ran m2 \<subseteq> ran (m1 ++ m2)"
+  proof -
+    have "(m1 ++ m2) x = Some y" if "m1 x = Some y" for x y
+      using assms map_add_comm that by fastforce
+    moreover have "(m1 ++ m2) x = Some y" if "m2 x = Some y" for x y
+      using assms that by auto
+    ultimately show ?thesis
+      unfolding ran_def by blast
+  qed
+qed
+
+lemma finite_ran:
+  assumes "finite (dom p)"
+  shows "finite (ran p)"
+proof -
+  have "ran p = (\<lambda>x. the (p x)) ` dom p"
+    unfolding ran_def by force
+  from this \<open>finite (dom p)\<close> show ?thesis by auto
+qed
+
 lemma ran_distinct:
   assumes dist: "distinct (map fst al)"
   shows "ran (map_of al) = snd ` set al"
