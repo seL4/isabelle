@@ -548,60 +548,52 @@ lemma has_integral_neg: "(f has_integral k) S \<Longrightarrow> ((\<lambda>x. -(
 lemma has_integral_neg_iff: "((\<lambda>x. - f x) has_integral k) S \<longleftrightarrow> (f has_integral - k) S"
   using has_integral_neg[of f "- k"] has_integral_neg[of "\<lambda>x. - f x" k] by auto
 
-lemma has_integral_add:
+lemma has_integral_add_cbox:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral k) S"
-    and "(g has_integral l) S"
-  shows "((\<lambda>x. f x + g x) has_integral (k + l)) S"
-proof -
-  have lem: "(f has_integral k) (cbox a b) \<Longrightarrow> (g has_integral l) (cbox a b) \<Longrightarrow>
-    ((\<lambda>x. f x + g x) has_integral (k + l)) (cbox a b)"
-    for f :: "'n \<Rightarrow> 'a" and g a b k l
+  assumes "(f has_integral k) (cbox a b)" "(g has_integral l) (cbox a b)"
+  shows "((\<lambda>x. f x + g x) has_integral (k + l)) (cbox a b)"
+  using assms
     unfolding has_integral_cbox
     by (simp add: split_beta' scaleR_add_right sum.distrib[abs_def] tendsto_add)
-  {
-    presume "\<not> (\<exists>a b. S = cbox a b) \<Longrightarrow> ?thesis"
-    then show ?thesis
-      using assms lem by force
-  }
-  assume nonbox: "\<not> (\<exists>a b. S = cbox a b)"
+
+lemma has_integral_add:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  assumes f: "(f has_integral k) S" and g: "(g has_integral l) S"
+  shows "((\<lambda>x. f x + g x) has_integral (k + l)) S"
+proof (cases "\<exists>a b. S = cbox a b")
+  case True with has_integral_add_cbox assms show ?thesis
+    by blast 
+next
+  let ?S = "\<lambda>f x. if x \<in> S then f x else 0"
+  case False
   then show ?thesis
   proof (subst has_integral_alt, clarsimp, goal_cases)
     case (1 e)
-    then have *: "e/2 > 0"
+    then have e2: "e/2 > 0"
       by auto
-    from has_integral_altD[OF assms(1) nonbox *]
-    obtain B1 where B1:
-        "0 < B1"
-        "\<And>a b. ball 0 B1 \<subseteq> cbox a b \<Longrightarrow>
-          \<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - k) < e/2"
-      by blast
-    from has_integral_altD[OF assms(2) nonbox *]
-    obtain B2 where B2:
-        "0 < B2"
-        "\<And>a b. ball 0 B2 \<subseteq> (cbox a b) \<Longrightarrow>
-          \<exists>z. ((\<lambda>x. if x \<in> S then g x else 0) has_integral z) (cbox a b) \<and> norm (z - l) < e/2"
-      by blast
+    obtain Bf where "0 < Bf"
+      and Bf: "\<And>a b. ball 0 Bf \<subseteq> cbox a b \<Longrightarrow>
+                     \<exists>z. (?S f has_integral z) (cbox a b) \<and> norm (z - k) < e/2"
+      using has_integral_altD[OF f False e2] by blast
+    obtain Bg where "0 < Bg"
+      and Bg: "\<And>a b. ball 0 Bg \<subseteq> (cbox a b) \<Longrightarrow>
+                     \<exists>z. (?S g has_integral z) (cbox a b) \<and> norm (z - l) < e/2"
+      using has_integral_altD[OF g False e2] by blast
     show ?case
-    proof (rule_tac x="max B1 B2" in exI, clarsimp simp add: max.strict_coboundedI1 B1)
+    proof (rule_tac x="max Bf Bg" in exI, clarsimp simp add: max.strict_coboundedI1 \<open>0 < Bf\<close>)
       fix a b
-      assume "ball 0 (max B1 B2) \<subseteq> cbox a (b::'n)"
-      then have *: "ball 0 B1 \<subseteq> cbox a (b::'n)" "ball 0 B2 \<subseteq> cbox a (b::'n)"
+      assume "ball 0 (max Bf Bg) \<subseteq> cbox a (b::'n)"
+      then have fs: "ball 0 Bf \<subseteq> cbox a (b::'n)" and gs: "ball 0 Bg \<subseteq> cbox a (b::'n)"
         by auto
-      obtain w where w:
-        "((\<lambda>x. if x \<in> S then f x else 0) has_integral w) (cbox a b)"
-        "norm (w - k) < e/2"
-        using B1(2)[OF *(1)] by blast
-      obtain z where z:
-        "((\<lambda>x. if x \<in> S then g x else 0) has_integral z) (cbox a b)"
-        "norm (z - l) < e/2"
-        using B2(2)[OF *(2)] by blast
-      have *: "\<And>x. (if x \<in> S then f x + g x else 0) =
-        (if x \<in> S then f x else 0) + (if x \<in> S then g x else 0)"
+      obtain w where w: "(?S f has_integral w) (cbox a b)" "norm (w - k) < e/2"
+        using Bf[OF fs] by blast
+      obtain z where z: "(?S g has_integral z) (cbox a b)" "norm (z - l) < e/2"
+        using Bg[OF gs] by blast
+      have *: "\<And>x. (if x \<in> S then f x + g x else 0) = (?S f x) + (?S g x)"
         by auto
-      show "\<exists>z. ((\<lambda>x. if x \<in> S then f x + g x else 0) has_integral z) (cbox a b) \<and> norm (z - (k + l)) < e"
+      show "\<exists>z. (?S(\<lambda>x. f x + g x) has_integral z) (cbox a b) \<and> norm (z - (k + l)) < e"
         apply (rule_tac x="w + z" in exI)
-        apply (simp add: lem[OF w(1) z(1), unfolded *[symmetric]])
+        apply (simp add: has_integral_add_cbox[OF w(1) z(1), unfolded *[symmetric]])
         using norm_triangle_ineq[of "w - k" "z - l"] w(2) z(2)
         apply (auto simp add: field_simps)
         done
@@ -2875,129 +2867,87 @@ qed
 
 subsection \<open>Only need trivial subintervals if the interval itself is trivial.\<close>
 
-lemma division_of_nontrivial:
-  fixes s :: "'a::euclidean_space set set"
-  assumes "s division_of (cbox a b)"
-    and "content (cbox a b) \<noteq> 0"
-  shows "{k. k \<in> s \<and> content k \<noteq> 0} division_of (cbox a b)"
-  using assms(1)
-  apply -
-proof (induct "card s" arbitrary: s rule: nat_less_induct)
-  fix s::"'a set set"
-  assume assm: "s division_of (cbox a b)"
-    "\<forall>m<card s. \<forall>x. m = card x \<longrightarrow>
-      x division_of (cbox a b) \<longrightarrow> {k \<in> x. content k \<noteq> 0} division_of (cbox a b)"
-  note s = division_ofD[OF assm(1)]
-  let ?thesis = "{k \<in> s. content k \<noteq> 0} division_of (cbox a b)"
+proposition division_of_nontrivial:
+  fixes \<D> :: "'a::euclidean_space set set"
+  assumes sdiv: "\<D> division_of (cbox a b)"
+     and cont0: "content (cbox a b) \<noteq> 0"
+  shows "{k. k \<in> \<D> \<and> content k \<noteq> 0} division_of (cbox a b)"
+  using sdiv
+proof (induction "card \<D>" arbitrary: \<D> rule: less_induct)
+  case less
+  note \<D> = division_ofD[OF less.prems]
   {
-    presume *: "{k \<in> s. content k \<noteq> 0} \<noteq> s \<Longrightarrow> ?thesis"
-    show ?thesis
-      apply cases
-      defer
-      apply (rule *)
-      apply assumption
-      using assm(1)
-      apply auto
-      done
+    presume *: "{k \<in> \<D>. content k \<noteq> 0} \<noteq> \<D> \<Longrightarrow> ?case"
+    then show ?case
+      using less.prems by fastforce
   }
-  assume noteq: "{k \<in> s. content k \<noteq> 0} \<noteq> s"
-  then obtain k c d where k: "k \<in> s" "content k = 0" "k = cbox c d"
-    using s(4) by blast
-  then have "card s > 0"
-    unfolding card_gt_0_iff using assm(1) by auto
-  then have card: "card (s - {k}) < card s"
-    using assm(1) k(1)
-    apply (subst card_Diff_singleton_if)
-    apply auto
-    done
-  have *: "closed (\<Union>(s - {k}))"
-    apply (rule closed_Union)
-    defer
-    apply rule
-    apply (drule DiffD1,drule s(4))
-    using assm(1)
-    apply auto
-    done
-  have "k \<subseteq> \<Union>(s - {k})"
-    apply safe
-    apply (rule *[unfolded closed_limpt,rule_format])
+  assume noteq: "{k \<in> \<D>. content k \<noteq> 0} \<noteq> \<D>"
+  then obtain K c d where "K \<in> \<D>" and contk: "content K = 0" and keq: "K = cbox c d"
+    using \<D>(4) by blast 
+  then have "card \<D> > 0"
+    unfolding card_gt_0_iff using less by auto
+  then have card: "card (\<D> - {K}) < card \<D>"
+    using less \<open>K \<in> \<D>\<close> by (simp add: \<D>(1))
+  have closed: "closed (\<Union>(\<D> - {K}))"
+    using less.prems by auto
+  have "x islimpt \<Union>(\<D> - {K})" if "x \<in> K" for x 
     unfolding islimpt_approachable
-  proof safe
-    fix x
-    fix e :: real
-    assume as: "x \<in> k" "e > 0"
+  proof (intro allI impI)
+    fix e::real
+    assume "e > 0"
     obtain i where i: "c\<bullet>i = d\<bullet>i" "i\<in>Basis"
-      using k(2) s(3)[OF k(1)] unfolding box_ne_empty k
-      by (metis dual_order.antisym content_eq_0) 
+      using contk \<D>(3) [OF \<open>K \<in> \<D>\<close>] unfolding box_ne_empty keq
+      by (meson content_eq_0 dual_order.antisym)
     then have xi: "x\<bullet>i = d\<bullet>i"
-      using as unfolding k mem_box by (metis antisym)
+      using \<open>x \<in> K\<close> unfolding keq mem_box by (metis antisym)
     define y where "y = (\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
       min e (b\<bullet>i - c\<bullet>i) / 2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i) / 2 else x\<bullet>j) *\<^sub>R j)"
-    show "\<exists>x'\<in>\<Union>(s - {k}). x' \<noteq> x \<and> dist x' x < e"
-      apply (rule_tac x=y in bexI)
-    proof
+    show "\<exists>x'\<in>\<Union>(\<D> - {K}). x' \<noteq> x \<and> dist x' x < e"
+    proof (intro bexI conjI)
       have "d \<in> cbox c d"
-        using s(3)[OF k(1)]
-        unfolding k box_eq_empty mem_box
-        by (fastforce simp add: not_less)
+        using \<D>(3)[OF \<open>K \<in> \<D>\<close>] by (simp add: box_ne_empty(1) keq mem_box(2))
       then have "d \<in> cbox a b"
-        using s(2)[OF k(1)]
-        unfolding k
-        by auto
-      note di = this[unfolded mem_box,THEN bspec[where x=i]]
+        using \<D>(2)[OF \<open>K \<in> \<D>\<close>] by (auto simp: keq)
+      then have di: "a \<bullet> i \<le> d \<bullet> i \<and> d \<bullet> i \<le> b \<bullet> i"
+        using \<open>i \<in> Basis\<close> mem_box(2) by blast
       then have xyi: "y\<bullet>i \<noteq> x\<bullet>i"
-        unfolding y_def i xi
-        using as(2) assms(2)[unfolded content_eq_0] i(2)
-        by (auto elim!: ballE[of _ _ i])
+        unfolding y_def i xi using \<open>e > 0\<close> cont0 \<open>i \<in> Basis\<close>
+        by (auto simp: content_eq_0 elim!: ballE[of _ _ i])
       then show "y \<noteq> x"
         unfolding euclidean_eq_iff[where 'a='a] using i by auto
-      have *: "Basis = insert i (Basis - {i})"
-        using i by auto
-      have "norm (y-x) < e + sum (\<lambda>i. 0) Basis"
-        apply (rule le_less_trans[OF norm_le_l1])
-        apply (subst *)
-        apply (subst sum.insert)
-        prefer 3
-        apply (rule add_less_le_mono)
-      proof -
+      have "norm (y-x) \<le> (\<Sum>b\<in>Basis. \<bar>(y - x) \<bullet> b\<bar>)"
+        by (rule norm_le_l1)
+      also have "... = \<bar>(y - x) \<bullet> i\<bar> + (\<Sum>b \<in> Basis - {i}. \<bar>(y - x) \<bullet> b\<bar>)"
+        by (meson finite_Basis i(2) sum.remove)
+      also have "... <  e + sum (\<lambda>i. 0) Basis"
+      proof (rule add_less_le_mono)
         show "\<bar>(y-x) \<bullet> i\<bar> < e"
-          using di as(2) y_def i xi by (auto simp: inner_simps)
+          using di \<open>e > 0\<close> y_def i xi by (auto simp: inner_simps)
         show "(\<Sum>i\<in>Basis - {i}. \<bar>(y-x) \<bullet> i\<bar>) \<le> (\<Sum>i\<in>Basis. 0)"
           unfolding y_def by (auto simp: inner_simps)
-      qed auto
+      qed 
+      finally have "norm (y-x) < e + sum (\<lambda>i. 0) Basis" .
       then show "dist y x < e"
         unfolding dist_norm by auto
-      have "y \<notin> k"
-        unfolding k mem_box
-        apply rule
-        apply (erule_tac x=i in ballE)
-        using xyi k i xi
-        apply auto
-        done
-      moreover
-      have "y \<in> \<Union>s"
-        using set_rev_mp[OF as(1) s(2)[OF k(1)]] as(2) di i
-        unfolding s mem_box y_def
-        by (auto simp: field_simps elim!: ballE[of _ _ i])
-      ultimately
-      show "y \<in> \<Union>(s - {k})" by auto
+      have "y \<notin> K"
+        unfolding keq mem_box using i(1) i(2) xi xyi by fastforce
+      moreover have "y \<in> \<Union>\<D>"
+        using subsetD[OF \<D>(2)[OF \<open>K \<in> \<D>\<close>] \<open>x \<in> K\<close>] \<open>e > 0\<close> di i
+        by (auto simp: \<D> mem_box y_def field_simps elim!: ballE[of _ _ i])
+      ultimately show "y \<in> \<Union>(\<D> - {K})" by auto
     qed
   qed
-  then have "\<Union>(s - {k}) = cbox a b"
-    unfolding s(6)[symmetric] by auto
-  then have  "{ka \<in> s - {k}. content ka \<noteq> 0} division_of (cbox a b)"
-    apply -
-    apply (rule assm(2)[rule_format,OF card refl])
-    apply (rule division_ofI)
-    defer
-    apply (rule_tac[1-4] s)
-    using assm(1)
-    apply auto
-    done
-  moreover
-  have "{ka \<in> s - {k}. content ka \<noteq> 0} = {k \<in> s. content k \<noteq> 0}"
-    using k by auto
-  ultimately show ?thesis by auto
+  then have "K \<subseteq> \<Union>(\<D> - {K})"
+    using closed closed_limpt by blast
+  then have "\<Union>(\<D> - {K}) = cbox a b"
+    unfolding \<D>(6)[symmetric] by auto
+  then have "\<D> - {K} division_of cbox a b"
+    by (metis Diff_subset less.prems division_of_subset \<D>(6))
+  then have "{ka \<in> \<D> - {K}. content ka \<noteq> 0} division_of (cbox a b)"
+    using card less.hyps by blast
+  moreover have "{ka \<in> \<D> - {K}. content ka \<noteq> 0} = {K \<in> \<D>. content K \<noteq> 0}"
+    using contk by auto
+  ultimately show ?case by auto
 qed
 
 
@@ -3046,7 +2996,7 @@ lemma integrable_subinterval_real:
   assumes "f integrable_on {a..b}"
     and "{c..d} \<subseteq> {a..b}"
   shows "f integrable_on {c..d}"
-  by (metis assms(1) assms(2) box_real(2) integrable_subinterval)
+  by (metis assms box_real(2) integrable_subinterval)
 
 
 subsection \<open>Combining adjacent intervals in 1 dimension.\<close>
@@ -4202,11 +4152,9 @@ proof -
       unfolding *(1)
       apply (subst *(2))
       apply (rule norm_triangle_lt add_strict_mono)+
-      unfolding norm_minus_cancel
-      apply (rule d1_fin[unfolded **])
-      apply (rule d2_fin)
+      apply (metis "**" d1_fin norm_minus_cancel)
+      using d2_fin apply blast
       using w ***
-      unfolding norm_scaleR
       apply (auto simp add: field_simps)
       done
   qed
