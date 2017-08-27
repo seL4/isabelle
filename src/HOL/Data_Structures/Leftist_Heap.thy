@@ -62,6 +62,8 @@ lemma merge_code: "merge t1 t2 = (case (t1,t2) of
     if a1 \<le> a2 then node l1 a1 (merge r1 t2) else node l2 a2 (merge r2 t1))"
 by(induction t1 t2 rule: merge.induct) (simp_all split: tree.split)
 
+hide_const (open) insert
+
 definition insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "insert x t = merge (Node 1 Leaf x Leaf) t"
 

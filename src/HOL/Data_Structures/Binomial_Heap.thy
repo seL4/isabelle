@@ -1,4 +1,6 @@
-(* Author: Peter Lammich *)
+(* Author: Peter Lammich
+           Tobias Nipkow (tuning)
+*)
 
 section \<open>Binomial Heap\<close>
 
@@ -37,147 +39,142 @@ lemma mset_tree_simp_alt[simp]:
 declare mset_tree.simps[simp del]    
   
 lemma mset_tree_nonempty[simp]: "mset_tree t \<noteq> {#}"  
-  by (cases t) auto
+by (cases t) auto
   
 lemma mset_heap_Nil[simp]: 
   "mset_heap [] = {#}"
-  unfolding mset_heap_def 
-  by auto 
-  
+by (auto simp: mset_heap_def)
+
 lemma mset_heap_Cons[simp]: "mset_heap (t#ts) = mset_tree t + mset_heap ts"
-  unfolding mset_heap_def by auto 
+by (auto simp: mset_heap_def)
   
 lemma mset_heap_empty_iff[simp]: "mset_heap ts = {#} \<longleftrightarrow> ts=[]"
-  unfolding mset_heap_def by auto 
+by (auto simp: mset_heap_def)
     
-lemma root_in_mset[simp]: "root t \<in># mset_tree t" by (cases t) auto    
+lemma root_in_mset[simp]: "root t \<in># mset_tree t"
+by (cases t) auto    
     
 lemma mset_heap_rev_eq[simp]: "mset_heap (rev ts) = mset_heap ts"    
-  unfolding mset_heap_def by auto
+by (auto simp: mset_heap_def)
     
 subsubsection \<open>Invariants\<close>  
   
 text \<open>Binomial invariant\<close>  
-fun invar_btree :: "'a::linorder tree \<Rightarrow> bool" 
-  where
-    "invar_btree (Node r x ts) \<longleftrightarrow> 
-      (\<forall>t\<in>set ts. invar_btree t) 
-    \<and> (map rank ts = rev [0..<r])"
+fun invar_btree :: "'a::linorder tree \<Rightarrow> bool" where
+"invar_btree (Node r x ts) \<longleftrightarrow> 
+   (\<forall>t\<in>set ts. invar_btree t) \<and> map rank ts = rev [0..<r]"
 
 definition invar_bheap :: "'a::linorder heap \<Rightarrow> bool" where
-  "invar_bheap ts
+"invar_bheap ts
   \<longleftrightarrow> (\<forall>t\<in>set ts. invar_btree t) \<and> (sorted_wrt (op <) (map rank ts))"
 
 text \<open>Ordering (heap) invariant\<close>
-fun otree_invar :: "'a::linorder tree \<Rightarrow> bool"
-  where
-    "otree_invar (Node _ x ts) \<longleftrightarrow> (\<forall>t\<in>set ts. otree_invar t \<and> x \<le> root t)"
+fun invar_otree :: "'a::linorder tree \<Rightarrow> bool" where
+"invar_otree (Node _ x ts) \<longleftrightarrow> (\<forall>t\<in>set ts. invar_otree t \<and> x \<le> root t)"
 
-definition oheap_invar :: "'a::linorder heap \<Rightarrow> bool" where
-  "oheap_invar ts \<longleftrightarrow> (\<forall>t\<in>set ts. otree_invar t)"
+definition invar_oheap :: "'a::linorder heap \<Rightarrow> bool" where
+"invar_oheap ts \<longleftrightarrow> (\<forall>t\<in>set ts. invar_otree t)"
   
 definition invar :: "'a::linorder heap \<Rightarrow> bool" where
-  "invar ts \<longleftrightarrow> invar_bheap ts \<and> oheap_invar ts"
+"invar ts \<longleftrightarrow> invar_bheap ts \<and> invar_oheap ts"
   
 text \<open>The children of a node are a valid heap\<close>
-lemma children_oheap_invar: 
-  "otree_invar (Node r v ts) \<Longrightarrow> oheap_invar (rev ts)"  
-  by (auto simp: oheap_invar_def)
+lemma invar_oheap_children: 
+  "invar_otree (Node r v ts) \<Longrightarrow> invar_oheap (rev ts)"  
+by (auto simp: invar_oheap_def)
 
-lemma children_invar_bheap: 
+lemma invar_bheap_children: 
   "invar_btree (Node r v ts) \<Longrightarrow> invar_bheap (rev ts)"  
-  by (auto simp: invar_bheap_def rev_map[symmetric])
-      
-subsection \<open>Operations\<close>  
+by (auto simp: invar_bheap_def rev_map[symmetric])
+
+
+subsection \<open>Operations and Their Functional Correctness\<close>  
     
+subsubsection \<open>\<open>link\<close>\<close>
+
 definition link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
   "link t\<^sub>1 t\<^sub>2 = (case (t\<^sub>1,t\<^sub>2) of (Node r x\<^sub>1 c\<^sub>1, Node _ x\<^sub>2 c\<^sub>2) \<Rightarrow>
     if x\<^sub>1\<le>x\<^sub>2 then Node (r+1) x\<^sub>1 (t\<^sub>2#c\<^sub>1) else Node (r+1) x\<^sub>2 (t\<^sub>1#c\<^sub>2)
   )"
 
-lemma link_invar_btree:
+lemma invar_btree_link:
   assumes "invar_btree t\<^sub>1"
   assumes "invar_btree t\<^sub>2"
   assumes "rank t\<^sub>1 = rank t\<^sub>2"  
   shows "invar_btree (link t\<^sub>1 t\<^sub>2)"  
-  using assms  
-  unfolding link_def
-  by (force split: tree.split)
+using assms 
+by (auto simp: link_def split: tree.split)
+
+lemma invar_link_otree:      
+  assumes "invar_otree t\<^sub>1"
+  assumes "invar_otree t\<^sub>2"
+  shows "invar_otree (link t\<^sub>1 t\<^sub>2)"  
+using assms 
+by (auto simp: link_def split: tree.split)
+
+lemma rank_link[simp]: "rank (link t\<^sub>1 t\<^sub>2) = rank t\<^sub>1 + 1"
+by (auto simp: link_def split: tree.split)
     
-lemma link_otree_invar:      
-  assumes "otree_invar t\<^sub>1"
-  assumes "otree_invar t\<^sub>2"
-  shows "otree_invar (link t\<^sub>1 t\<^sub>2)"  
-  using assms  
-  unfolding link_def
-  by (auto split: tree.split)
+lemma mset_link[simp]: "mset_tree (link t\<^sub>1 t\<^sub>2) = mset_tree t\<^sub>1 + mset_tree t\<^sub>2"
+by (auto simp: link_def split: tree.split)
     
-lemma link_rank[simp]: "rank (link t\<^sub>1 t\<^sub>2) = rank t\<^sub>1 + 1"
-  unfolding link_def
-  by (auto split: tree.split)
-    
-lemma link_mset[simp]: "mset_tree (link t\<^sub>1 t\<^sub>2) = mset_tree t\<^sub>1 + mset_tree t\<^sub>2"
-  unfolding link_def
-  by (auto split: tree.split)
-    
+subsubsection \<open>\<open>ins_tree\<close>\<close>
+
 fun ins_tree :: "'a::linorder tree \<Rightarrow> 'a heap \<Rightarrow> 'a heap" where
   "ins_tree t [] = [t]"
-| "ins_tree t\<^sub>1 (t\<^sub>2#ts) = (
-    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1#t\<^sub>2#ts else ins_tree (link t\<^sub>1 t\<^sub>2) ts
-  )"  
+| "ins_tree t\<^sub>1 (t\<^sub>2#ts) =
+  (if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1#t\<^sub>2#ts else ins_tree (link t\<^sub>1 t\<^sub>2) ts)"  
     
 lemma invar_bheap_Cons[simp]: 
   "invar_bheap (t#ts) 
   \<longleftrightarrow> invar_btree t \<and> invar_bheap ts \<and> (\<forall>t'\<in>set ts. rank t < rank t')"
-  unfolding invar_bheap_def
-  by (auto simp: sorted_wrt_Cons)
+by (auto simp: sorted_wrt_Cons invar_bheap_def)
   
-lemma ins_tree_invar_btree:
+lemma invar_btree_ins_tree:
   assumes "invar_btree t" 
   assumes "invar_bheap ts"
   assumes "\<forall>t'\<in>set ts. rank t \<le> rank t'"  
   shows "invar_bheap (ins_tree t ts)"  
-  using assms
-  apply (induction t ts rule: ins_tree.induct)  
-  apply (auto simp: link_invar_btree less_eq_Suc_le[symmetric])
-  done  
+using assms
+by (induction t ts rule: ins_tree.induct) (auto simp: invar_btree_link less_eq_Suc_le[symmetric])
     
-lemma oheap_invar_Cons[simp]: 
-  "oheap_invar (t#ts) \<longleftrightarrow> otree_invar t \<and> oheap_invar ts"    
-  unfolding oheap_invar_def by auto
+lemma invar_oheap_Cons[simp]: 
+  "invar_oheap (t#ts) \<longleftrightarrow> invar_otree t \<and> invar_oheap ts"    
+by (auto simp: invar_oheap_def)
+
+lemma invar_oheap_ins_tree:
+  assumes "invar_otree t" 
+  assumes "invar_oheap ts"
+  shows "invar_oheap (ins_tree t ts)"  
+using assms  
+by (induction t ts rule: ins_tree.induct) (auto simp: invar_link_otree)
     
-lemma ins_tree_otree_invar:
-  assumes "otree_invar t" 
-  assumes "oheap_invar ts"
-  shows "oheap_invar (ins_tree t ts)"  
-  using assms  
-  apply (induction t ts rule: ins_tree.induct)  
-  apply (auto simp: link_otree_invar)
-  done  
-    
-lemma ins_tree_mset[simp]: 
+lemma mset_heap_ins_tree[simp]: 
   "mset_heap (ins_tree t ts) = mset_tree t + mset_heap ts"    
-  by (induction t ts rule: ins_tree.induct) auto  
+by (induction t ts rule: ins_tree.induct) auto  
 
 lemma ins_tree_rank_bound:
   assumes "t' \<in> set (ins_tree t ts)"  
   assumes "\<forall>t'\<in>set ts. rank t\<^sub>0 < rank t'"
   assumes "rank t\<^sub>0 < rank t"  
   shows "rank t\<^sub>0 < rank t'"
-  using assms  
-  by (induction t ts rule: ins_tree.induct) (auto split: if_splits)
+using assms  
+by (induction t ts rule: ins_tree.induct) (auto split: if_splits)
+
+subsubsection \<open>\<open>insert\<close>\<close>
+
+hide_const (open) insert
+
+definition insert :: "'a::linorder \<Rightarrow> 'a heap \<Rightarrow> 'a heap" where
+"insert x ts = ins_tree (Node 0 x []) ts"
   
+lemma invar_insert[simp]: "invar t \<Longrightarrow> invar (insert x t)"
+by (auto intro!: invar_btree_ins_tree simp: invar_oheap_ins_tree insert_def invar_def)  
     
-definition ins :: "'a::linorder \<Rightarrow> 'a heap \<Rightarrow> 'a heap" where
-  "ins x ts = ins_tree (Node 0 x []) ts"
-  
-lemma ins_invar[simp]: "invar t \<Longrightarrow> invar (ins x t)"
-  unfolding ins_def invar_def
-  by (auto intro!: ins_tree_invar_btree simp: ins_tree_otree_invar)  
-    
-lemma ins_mset[simp]: "mset_heap (ins x t) = {#x#} + mset_heap t"
-  unfolding ins_def
-  by auto
+lemma mset_heap_insert[simp]: "mset_heap (insert x t) = {#x#} + mset_heap t"
+by(auto simp: insert_def)
+
+subsubsection \<open>\<open>merge\<close>\<close>
 
 fun merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> 'a heap" where
   "merge ts\<^sub>1 [] = ts\<^sub>1"
@@ -188,19 +185,19 @@ fun merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> 'a heap" whe
     else ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2)
   )"
 
-lemma merge_simp2[simp]: "merge [] ts\<^sub>2 = ts\<^sub>2" by (cases ts\<^sub>2) auto
+lemma merge_simp2[simp]: "merge [] ts\<^sub>2 = ts\<^sub>2"
+by (cases ts\<^sub>2) auto
   
 lemma merge_rank_bound:
   assumes "t' \<in> set (merge ts\<^sub>1 ts\<^sub>2)"
   assumes "\<forall>t'\<in>set ts\<^sub>1. rank t < rank t'"
   assumes "\<forall>t'\<in>set ts\<^sub>2. rank t < rank t'"
   shows "rank t < rank t'"
-  using assms
-  apply (induction ts\<^sub>1 ts\<^sub>2 arbitrary: t' rule: merge.induct)
-  apply (auto split: if_splits simp: ins_tree_rank_bound)
-  done
-    
-lemma merge_invar_bheap:
+using assms
+by (induction ts\<^sub>1 ts\<^sub>2 arbitrary: t' rule: merge.induct)
+   (auto split: if_splits simp: ins_tree_rank_bound)
+
+lemma invar_bheap_merge:
   assumes "invar_bheap ts\<^sub>1"
   assumes "invar_bheap ts\<^sub>2"
   shows "invar_bheap (merge ts\<^sub>1 ts\<^sub>2)"  
@@ -234,173 +231,194 @@ proof (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
       apply (rule merge_rank_bound)
       using "3.prems" by auto
     with EQ show ?thesis
-      by (auto simp: Suc_le_eq ins_tree_invar_btree link_invar_btree)
+      by (auto simp: Suc_le_eq invar_btree_ins_tree invar_btree_link)
   qed
 qed simp_all
   
-lemma merge_oheap_invar:
-  assumes "oheap_invar ts\<^sub>1"
-  assumes "oheap_invar ts\<^sub>2"
-  shows "oheap_invar (merge ts\<^sub>1 ts\<^sub>2)"  
-  using assms
-  apply (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
-  apply (auto simp: ins_tree_otree_invar link_otree_invar)  
-  done
+lemma invar_oheap_merge:
+  assumes "invar_oheap ts\<^sub>1"
+  assumes "invar_oheap ts\<^sub>2"
+  shows "invar_oheap (merge ts\<^sub>1 ts\<^sub>2)"  
+using assms
+by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
+   (auto simp: invar_oheap_ins_tree invar_link_otree)  
+ 
+lemma invar_merge[simp]: "\<lbrakk> invar ts\<^sub>1; invar ts\<^sub>2 \<rbrakk> \<Longrightarrow> invar (merge ts\<^sub>1 ts\<^sub>2)"
+by (auto simp: invar_def invar_bheap_merge invar_oheap_merge)
     
-lemma merge_invar[simp]: "\<lbrakk> invar ts\<^sub>1; invar ts\<^sub>2 \<rbrakk> \<Longrightarrow> invar (merge ts\<^sub>1 ts\<^sub>2)"
-  unfolding invar_def by (auto simp: merge_invar_bheap merge_oheap_invar)
-    
-lemma merge_mset[simp]: 
+lemma mset_heap_merge[simp]: 
   "mset_heap (merge ts\<^sub>1 ts\<^sub>2) = mset_heap ts\<^sub>1 + mset_heap ts\<^sub>2"
-  by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct) auto  
+by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct) auto  
     
+subsubsection \<open>\<open>get_min\<close>\<close>
 
-fun find_min :: "'a::linorder heap \<Rightarrow> 'a" where
-  "find_min [t] = root t"
-| "find_min (t#ts) = (let x=root t; 
-                          y=find_min ts
-                      in if x\<le>y then x else y)"
+fun get_min :: "'a::linorder heap \<Rightarrow> 'a" where
+  "get_min [t] = root t"
+| "get_min (t#ts) = (let x = root t; 
+                          y = get_min ts
+                      in if x \<le> y then x else y)"
   
-lemma otree_invar_root_min:
-  assumes "otree_invar t"
+lemma invar_otree_root_min:
+  assumes "invar_otree t"
   assumes "x \<in># mset_tree t" 
   shows "root t \<le> x"  
-  using assms
-  apply (induction t arbitrary: x rule: mset_tree.induct)  
-  apply (force simp: mset_heap_def)
-  done  
-    
+using assms
+by (induction t arbitrary: x rule: mset_tree.induct) (fastforce simp: mset_heap_def)
   
-lemma find_min_mset_aux: 
+lemma get_min_mset_aux: 
   assumes "ts\<noteq>[]"    
-  assumes "oheap_invar ts"
+  assumes "invar_oheap ts"
   assumes "x \<in># mset_heap ts"  
-  shows "find_min ts \<le> x"
+  shows "get_min ts \<le> x"
   using assms  
-  apply (induction ts arbitrary: x rule: find_min.induct)  
-  apply (auto 
-      simp: otree_invar_root_min intro: order_trans;
-      meson linear order_trans otree_invar_root_min
+apply (induction ts arbitrary: x rule: get_min.induct)  
+apply (auto 
+      simp: invar_otree_root_min intro: order_trans;
+      meson linear order_trans invar_otree_root_min
       )+
-  done  
+done  
 
-lemma find_min_mset: 
+lemma get_min_mset: 
   assumes "ts\<noteq>[]"    
   assumes "invar ts"
   assumes "x \<in># mset_heap ts"  
-  shows "find_min ts \<le> x"
-  using assms unfolding invar_def 
-  by (auto simp: find_min_mset_aux)
-    
-    
-lemma find_min_member:    
-  assumes "ts\<noteq>[]"    
-  shows "find_min ts \<in># mset_heap ts"  
-  using assms  
-  apply (induction ts rule: find_min.induct)  
-  apply (auto)
-  done  
+  shows "get_min ts \<le> x"
+using assms by (auto simp: invar_def get_min_mset_aux)
 
-lemma find_min:    
+lemma get_min_member:    
+  "ts\<noteq>[] \<Longrightarrow> get_min ts \<in># mset_heap ts"  
+by (induction ts rule: get_min.induct) (auto)
+
+lemma get_min:    
   assumes "mset_heap ts \<noteq> {#}"
   assumes "invar ts"
-  shows "find_min ts = Min_mset (mset_heap ts)"
-  using assms find_min_member find_min_mset  
-  by (auto simp: eq_Min_iff)
+  shows "get_min ts = Min_mset (mset_heap ts)"
+using assms get_min_member get_min_mset  
+by (auto simp: eq_Min_iff)
     
+subsubsection \<open>\<open>get_min_rest\<close>\<close>
 
-fun get_min :: "'a::linorder heap \<Rightarrow> 'a tree \<times> 'a heap" where
-  "get_min [t] = (t,[])"
-| "get_min (t#ts) = (let (t',ts') = get_min ts
+fun get_min_rest :: "'a::linorder heap \<Rightarrow> 'a tree \<times> 'a heap" where
+  "get_min_rest [t] = (t,[])"
+| "get_min_rest (t#ts) = (let (t',ts') = get_min_rest ts
                      in if root t \<le> root t' then (t,ts) else (t',t#ts'))"
 
-  
-lemma get_min_find_min_same_root: 
+lemma get_min_rest_get_min_same_root: 
   assumes "ts\<noteq>[]"
-  assumes "get_min ts = (t',ts')"  
-  shows "root t' = find_min ts"  
-  using assms  
-  apply (induction ts arbitrary: t' ts' rule: find_min.induct)
-  apply (auto split: prod.splits)
-  done
-  
-lemma get_min_mset:    
-  assumes "get_min ts = (t',ts')"  
+  assumes "get_min_rest ts = (t',ts')"  
+  shows "root t' = get_min ts"  
+using assms  
+by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto split: prod.splits)
+
+lemma mset_get_min_rest:    
+  assumes "get_min_rest ts = (t',ts')"  
   assumes "ts\<noteq>[]"
   shows "mset ts = {#t'#} + mset ts'"  
-  using assms  
-  apply (induction ts arbitrary: t' ts' rule: find_min.induct)
-  apply (auto split: prod.splits if_splits)
-  done  
+using assms  
+by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto split: prod.splits if_splits)
     
-lemma get_min_set:
-  assumes "get_min ts = (t', ts')" 
+lemma set_get_min_rest:
+  assumes "get_min_rest ts = (t', ts')" 
   assumes "ts\<noteq>[]"
-  shows "set ts = insert t' (set ts')" 
-  using get_min_mset[OF assms, THEN arg_cong[where f=set_mset]]
-  by auto  
+  shows "set ts = Set.insert t' (set ts')"
+using mset_get_min_rest[OF assms, THEN arg_cong[where f=set_mset]]
+by auto  
 
-    
-lemma get_min_invar_bheap:    
-  assumes "get_min ts = (t',ts')"  
+lemma invar_bheap_get_min_rest:    
+  assumes "get_min_rest ts = (t',ts')"  
   assumes "ts\<noteq>[]"
   assumes "invar_bheap ts"  
   shows "invar_btree t'" and "invar_bheap ts'"
 proof -
   have "invar_btree t' \<and> invar_bheap ts'"
     using assms  
-    proof (induction ts arbitrary: t' ts' rule: find_min.induct)
+    proof (induction ts arbitrary: t' ts' rule: get_min.induct)
       case (2 t v va)
       then show ?case
         apply (clarsimp split: prod.splits if_splits)
-        apply (drule get_min_set; fastforce)
+        apply (drule set_get_min_rest; fastforce)
         done  
     qed auto
   thus "invar_btree t'" and "invar_bheap ts'" by auto
 qed
-  
-lemma get_min_oheap_invar:    
-  assumes "get_min ts = (t',ts')"  
+
+lemma invar_oheap_get_min_rest:    
+  assumes "get_min_rest ts = (t',ts')"  
   assumes "ts\<noteq>[]"
-  assumes "oheap_invar ts"  
-  shows "otree_invar t'" and "oheap_invar ts'"
-  using assms  
-  apply (induction ts arbitrary: t' ts' rule: find_min.induct)
-  apply (auto split: prod.splits if_splits)
-  done  
-    
+  assumes "invar_oheap ts"  
+  shows "invar_otree t'" and "invar_oheap ts'"
+using assms  
+by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto split: prod.splits if_splits)
+
+subsubsection \<open>\<open>del_min\<close>\<close>
+
 definition del_min :: "'a::linorder heap \<Rightarrow> 'a::linorder heap" where
-"del_min ts = (case get_min ts of
+"del_min ts = (case get_min_rest ts of
    (Node r x ts\<^sub>1, ts\<^sub>2) \<Rightarrow> merge (rev ts\<^sub>1) ts\<^sub>2)"
   
-lemma del_min_invar[simp]:
+lemma invar_del_min[simp]:
   assumes "ts \<noteq> []"
   assumes "invar ts"
   shows "invar (del_min ts)"
-  using assms  
-  unfolding invar_def del_min_def  
-  by (auto 
+using assms  
+unfolding invar_def del_min_def  
+by (auto 
       split: prod.split tree.split 
-      intro!: merge_invar_bheap merge_oheap_invar
-      dest: get_min_invar_bheap get_min_oheap_invar
-      intro!: children_oheap_invar children_invar_bheap
-      )
+      intro!: invar_bheap_merge invar_oheap_merge
+      dest: invar_bheap_get_min_rest invar_oheap_get_min_rest
+      intro!: invar_oheap_children invar_bheap_children
+    )
     
-lemma del_min_mset: 
+lemma mset_heap_del_min: 
   assumes "ts \<noteq> []"
-  shows "mset_heap ts = mset_heap (del_min ts) + {# find_min ts #}"
-  using assms
-  unfolding del_min_def
-  apply (clarsimp split: tree.split prod.split)
-  apply (frule (1) get_min_find_min_same_root)  
-  apply (frule (1) get_min_mset)  
-  apply (auto simp: mset_heap_def)
-  done  
+  shows "mset_heap ts = mset_heap (del_min ts) + {# get_min ts #}"
+using assms
+unfolding del_min_def
+apply (clarsimp split: tree.split prod.split)
+apply (frule (1) get_min_rest_get_min_same_root)  
+apply (frule (1) mset_get_min_rest)  
+apply (auto simp: mset_heap_def)
+done  
+
+
+subsubsection \<open>Instantiating the Priority Queue Locale\<close>
+
+interpretation binheap: Priority_Queue
+  where empty = "[]" and is_empty = "op = []" and insert = insert
+  and get_min = get_min and del_min = del_min
+  and invar = invar and mset = mset_heap
+proof (unfold_locales, goal_cases)
+  case 1
+  then show ?case by simp
+next
+  case (2 q)
+  then show ?case by auto
+next
+  case (3 q x)
+  then show ?case by auto
+next
+  case (4 q)
+  then show ?case using mset_heap_del_min[of q] get_min[OF _ \<open>invar q\<close>] 
+    by (auto simp: union_single_eq_diff)
+next
+  case (5 q)
+  then show ?case using get_min[of q] by auto
+next 
+  case 6 
+  then show ?case by (auto simp add: invar_def invar_bheap_def invar_oheap_def)
+next
+  case (7 q x)
+  then show ?case by simp
+next
+  case (8 q)
+  then show ?case by simp
+qed
+
 
 subsection \<open>Complexity\<close>
   
 text \<open>The size of a binomial tree is determined by its rank\<close>  
-lemma size_btree:
+lemma size_mset_btree:
   assumes "invar_btree t"
   shows "size (mset_tree t) = 2^rank t"  
   using assms
@@ -427,7 +445,7 @@ proof (induction t)
 qed
    
 text \<open>The length of a binomial heap is bounded by the number of its elements\<close>  
-lemma size_bheap:      
+lemma size_mset_heap:      
   assumes "invar_bheap ts"
   shows "2^length ts \<le> size (mset_heap ts) + 1"
 proof -
@@ -443,13 +461,14 @@ proof -
     using power_increasing[where a="2::nat"]  
     by (auto simp: o_def)
   also have "\<dots> = (\<Sum>t\<leftarrow>ts. size (mset_tree t)) + 1" using TINV   
-    by (auto cong: sum_list_cong simp: size_btree)
+    by (auto cong: sum_list_cong simp: size_mset_btree)
   also have "\<dots> = size (mset_heap ts) + 1"
     unfolding mset_heap_def by (induction ts) auto
   finally show ?thesis .
 qed      
   
-subsubsection \<open>Timing Functions\<close>  
+subsubsection \<open>Timing Functions\<close>
+
 text \<open>
   We define timing functions for each operation, and provide
   estimations of their complexity.
@@ -459,28 +478,29 @@ definition t_link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> nat"
 
 fun t_ins_tree :: "'a::linorder tree \<Rightarrow> 'a heap \<Rightarrow> nat" where
   "t_ins_tree t [] = 1"
-| "t_ins_tree t\<^sub>1 (t\<^sub>2#rest) = (
+| "t_ins_tree t\<^sub>1 (t\<^sub>2 # rest) = (
     (if rank t\<^sub>1 < rank t\<^sub>2 then 1 
      else t_link t\<^sub>1 t\<^sub>2 + t_ins_tree (link t\<^sub>1 t\<^sub>2) rest)
   )"  
-    
-  
-definition t_ins :: "'a::linorder \<Rightarrow> 'a heap \<Rightarrow> nat" where
-  "t_ins x ts = t_ins_tree (Node 0 x []) ts"
 
-lemma t_ins_tree_simple_bound: "t_ins_tree t ts \<le> length ts + 1" for t 
-  by (induction t ts rule: t_ins_tree.induct) auto
-  
-lemma t_ins_bound: 
+definition t_insert :: "'a::linorder \<Rightarrow> 'a heap \<Rightarrow> nat" where
+"t_insert x ts = t_ins_tree (Node 0 x []) ts"
+
+lemma t_ins_tree_simple_bound: "t_ins_tree t ts \<le> length ts + 1"
+by (induction t ts rule: t_ins_tree.induct) auto
+
+subsubsection \<open>\<open>t_insert\<close>\<close>
+
+lemma t_insert_bound: 
   assumes "invar ts"
-  shows "t_ins x ts \<le> log 2 (size (mset_heap ts) + 1) + 1"
+  shows "t_insert x ts \<le> log 2 (size (mset_heap ts) + 1) + 1"
 proof -
 
-  have 1: "t_ins x ts \<le> length ts + 1" 
-    unfolding t_ins_def by (rule t_ins_tree_simple_bound)
+  have 1: "t_insert x ts \<le> length ts + 1" 
+    unfolding t_insert_def by (rule t_ins_tree_simple_bound)
   also have "\<dots> \<le> log 2 (2 * (size (mset_heap ts) + 1))" 
   proof -
-    from size_bheap[of ts] assms 
+    from size_mset_heap[of ts] assms 
     have "2 ^ length ts \<le> size (mset_heap ts) + 1"
       unfolding invar_def by auto
     hence "2 ^ (length ts + 1) \<le> 2 * (size (mset_heap ts) + 1)" by auto
@@ -489,7 +509,9 @@ proof -
   finally show ?thesis 
     by (simp only: log_mult of_nat_mult) auto
 qed      
-  
+
+subsubsection \<open>\<open>t_merge\<close>\<close>
+
 fun t_merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> nat" where
   "t_merge ts\<^sub>1 [] = 1"
 | "t_merge [] ts\<^sub>2 = 1"  
@@ -501,16 +523,16 @@ fun t_merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> nat" where
   
 text \<open>A crucial idea is to estimate the time in correlation with the 
   result length, as each carry reduces the length of the result.\<close>  
-lemma l_ins_tree_estimate: 
+
+lemma t_ins_tree_length:
   "t_ins_tree t ts + length (ins_tree t ts) = 2 + length ts"
 by (induction t ts rule: ins_tree.induct) auto
 
-lemma l_merge_estimate: 
+lemma t_merge_length: 
   "length (merge ts\<^sub>1 ts\<^sub>2) + t_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1"
-  apply (induction ts\<^sub>1 ts\<^sub>2 rule: t_merge.induct)  
-  apply (auto simp: l_ins_tree_estimate algebra_simps)
-  done
-    
+by (induction ts\<^sub>1 ts\<^sub>2 rule: t_merge.induct)  
+   (auto simp: t_ins_tree_length algebra_simps)
+
 text \<open>Finally, we get the desired logarithmic bound\<close>
 lemma t_merge_bound_aux:
   fixes ts\<^sub>1 ts\<^sub>2
@@ -521,14 +543,14 @@ lemma t_merge_bound_aux:
 proof -
   define n where "n = n\<^sub>1 + n\<^sub>2"  
       
-  from l_merge_estimate[of ts\<^sub>1 ts\<^sub>2] 
+  from t_merge_length[of ts\<^sub>1 ts\<^sub>2] 
   have "t_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1" by auto
   hence "(2::nat)^t_merge ts\<^sub>1 ts\<^sub>2 \<le> 2^(2 * (length ts\<^sub>1 + length ts\<^sub>2) + 1)" 
     by (rule power_increasing) auto
   also have "\<dots> = 2*(2^length ts\<^sub>1)\<^sup>2*(2^length ts\<^sub>2)\<^sup>2"    
     by (auto simp: algebra_simps power_add power_mult)
-  also note BINVARS(1)[THEN size_bheap]
-  also note BINVARS(2)[THEN size_bheap]
+  also note BINVARS(1)[THEN size_mset_heap]
+  also note BINVARS(2)[THEN size_mset_heap]
   finally have "2 ^ t_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (n\<^sub>1 + 1)\<^sup>2 * (n\<^sub>2 + 1)\<^sup>2" 
     by (auto simp: power2_nat_le_eq_le n\<^sub>1_def n\<^sub>2_def)
   from le_log2_of_power[OF this] have "t_merge ts\<^sub>1 ts\<^sub>2 \<le> log 2 \<dots>"    
@@ -553,86 +575,69 @@ lemma t_merge_bound:
   assumes "invar ts\<^sub>1" "invar ts\<^sub>2"
   shows "t_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 2"
 using assms t_merge_bound_aux unfolding invar_def by blast  
-  
-  
-fun t_find_min :: "'a::linorder heap \<Rightarrow> nat" where
-  "t_find_min [t] = 1"
-| "t_find_min (t#ts) = 1 + t_find_min ts"
 
-lemma t_find_min_estimate: "ts\<noteq>[] \<Longrightarrow> t_find_min ts = length ts"  
-by (induction ts rule: t_find_min.induct) auto
-  
-lemma t_find_min_bound: 
-  assumes "invar ts"
-  assumes "ts\<noteq>[]"
-  shows "t_find_min ts \<le> log 2 (size (mset_heap ts) + 1)"
-proof -
-  have 1: "t_find_min ts = length ts" using assms t_find_min_estimate by auto
-  also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
-  proof -
-    from size_bheap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
-      unfolding invar_def by auto
-    thus ?thesis using le_log2_of_power by blast
-  qed
-  finally show ?thesis by auto 
-qed  
-    
+subsubsection \<open>\<open>t_get_min\<close>\<close>
+
 fun t_get_min :: "'a::linorder heap \<Rightarrow> nat" where
   "t_get_min [t] = 1"
 | "t_get_min (t#ts) = 1 + t_get_min ts"
 
 lemma t_get_min_estimate: "ts\<noteq>[] \<Longrightarrow> t_get_min ts = length ts"  
-  by (induction ts rule: t_get_min.induct) auto
+by (induction ts rule: t_get_min.induct) auto
   
-lemma t_get_min_bound_aux: 
-  assumes "invar_bheap ts"
+lemma t_get_min_bound: 
+  assumes "invar ts"
   assumes "ts\<noteq>[]"
   shows "t_get_min ts \<le> log 2 (size (mset_heap ts) + 1)"
 proof -
   have 1: "t_get_min ts = length ts" using assms t_get_min_estimate by auto
   also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
   proof -
-    from size_bheap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
+    from size_mset_heap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
+      unfolding invar_def by auto
+    thus ?thesis using le_log2_of_power by blast
+  qed
+  finally show ?thesis by auto 
+qed  
+
+subsubsection \<open>\<open>t_del_min\<close>\<close>
+
+fun t_get_min_rest :: "'a::linorder heap \<Rightarrow> nat" where
+  "t_get_min_rest [t] = 1"
+| "t_get_min_rest (t#ts) = 1 + t_get_min_rest ts"
+
+lemma t_get_min_rest_estimate: "ts\<noteq>[] \<Longrightarrow> t_get_min_rest ts = length ts"  
+  by (induction ts rule: t_get_min_rest.induct) auto
+  
+lemma t_get_min_rest_bound_aux: 
+  assumes "invar_bheap ts"
+  assumes "ts\<noteq>[]"
+  shows "t_get_min_rest ts \<le> log 2 (size (mset_heap ts) + 1)"
+proof -
+  have 1: "t_get_min_rest ts = length ts" using assms t_get_min_rest_estimate by auto
+  also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
+  proof -
+    from size_mset_heap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
       by auto
     thus ?thesis using le_log2_of_power by blast
   qed
   finally show ?thesis by auto 
 qed  
 
-lemma t_get_min_bound: 
+lemma t_get_min_rest_bound: 
   assumes "invar ts"
   assumes "ts\<noteq>[]"
-  shows "t_get_min ts \<le> log 2 (size (mset_heap ts) + 1)"
-  using assms t_get_min_bound_aux unfolding invar_def by blast  
-  
-thm fold_simps -- \<open>Theorems used by code generator\<close>
-fun t_fold :: "('a \<Rightarrow> 'b \<Rightarrow> nat) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> nat" 
-  where
-  "t_fold t_f f [] s = 1"
-| "t_fold t_f f (x # xs) s = t_f x s + t_fold t_f f xs (f x s)"
-    
-text \<open>Estimation for constant function is enough for our purpose\<close>
-lemma t_fold_const_bound:  
-  shows "t_fold (\<lambda>_ _. K) f l s = K*length l + 1"  
-  by (induction l arbitrary: s) auto
+  shows "t_get_min_rest ts \<le> log 2 (size (mset_heap ts) + 1)"
+using assms t_get_min_rest_bound_aux unfolding invar_def by blast  
 
-lemma t_fold_bounded_bound:  
-  assumes "\<forall>x s. x\<in>set l \<longrightarrow> t_f x s \<le> K"
-  shows "t_fold t_f f l s \<le> K*length l + 1"  
-  using assms 
-  apply (induction l arbitrary: s)
-  apply (simp; fail)
-  using add_mono
-  by (fastforce simp: algebra_simps) 
-  
-thm rev_conv_fold -- \<open>Theorem used by code generator\<close>
-definition "t_rev xs = t_fold (\<lambda>_ _. 1) op # xs []"
-lemma t_rev_bound: "t_rev xs = length xs + 1"
-  unfolding t_rev_def t_fold_const_bound by auto
-    
-definition t_del_min :: "'a::linorder heap \<Rightarrow> nat" 
-  where
-  "t_del_min ts = t_get_min ts + (case get_min ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
+text\<open>Note that although the definition of function @{const rev} has quadratic complexity,
+it can and is implemented (via suitable code lemmas) as a linear time function.
+Thus the following definition is justified:\<close>
+
+definition "t_rev xs = length xs + 1"
+
+definition t_del_min :: "'a::linorder heap \<Rightarrow> nat" where
+  "t_del_min ts = t_get_min_rest ts + (case get_min_rest ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
                     \<Rightarrow> t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2
   )"
   
@@ -642,10 +647,9 @@ lemma t_rev_ts1_bound_aux:
   assumes BINVAR: "invar_bheap (rev ts)"
   shows "t_rev ts \<le> 1 + log 2 (n+1)"
 proof -
-  have "t_rev ts = length ts + 1"
-    by (auto simp: t_rev_bound)
+  have "t_rev ts = length ts + 1" by (auto simp: t_rev_def)
   hence "2^t_rev ts = 2*2^length ts" by auto
-  also have "\<dots> \<le> 2*n+2" using size_bheap[OF BINVAR] by (auto simp: n_def)
+  also have "\<dots> \<le> 2*n+2" using size_mset_heap[OF BINVAR] by (auto simp: n_def)
   finally have "2 ^ t_rev ts \<le> 2 * n + 2" .
   from le_log2_of_power[OF this] have "t_rev ts \<le> log 2 (2 * (n + 1))"
     by auto
@@ -653,8 +657,7 @@ proof -
     by (simp only: of_nat_mult log_mult) auto  
   finally show ?thesis by (auto simp: algebra_simps)
 qed    
-  
-  
+
 lemma t_del_min_bound_aux:
   fixes ts
   defines "n \<equiv> size (mset_heap ts)"
@@ -662,11 +665,11 @@ lemma t_del_min_bound_aux:
   assumes "ts\<noteq>[]"
   shows "t_del_min ts \<le> 6 * log 2 (n+1) + 3"  
 proof -
-  obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
+  obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min_rest ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
     by (metis surj_pair tree.exhaust_sel)
 
-  note BINVAR' = get_min_invar_bheap[OF GM \<open>ts\<noteq>[]\<close> BINVAR]
-  hence BINVAR1: "invar_bheap (rev ts\<^sub>1)" by (blast intro: children_invar_bheap)
+  note BINVAR' = invar_bheap_get_min_rest[OF GM \<open>ts\<noteq>[]\<close> BINVAR]
+  hence BINVAR1: "invar_bheap (rev ts\<^sub>1)" by (blast intro: invar_bheap_children)
 
   define n\<^sub>1 where "n\<^sub>1 = size (mset_heap ts\<^sub>1)"
   define n\<^sub>2 where "n\<^sub>2 = size (mset_heap ts\<^sub>2)"
@@ -676,15 +679,15 @@ proof -
     note t_rev_ts1_bound_aux[OF BINVAR1, simplified, folded n\<^sub>1_def]
     also have "n\<^sub>1 \<le> n" 
       unfolding n\<^sub>1_def n_def
-      using get_min_mset[OF GM \<open>ts\<noteq>[]\<close>]
+      using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
       by (auto simp: mset_heap_def)
     finally show ?thesis by (auto simp: algebra_simps)
   qed    
     
-  have "t_del_min ts = t_get_min ts + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
+  have "t_del_min ts = t_get_min_rest ts + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
     unfolding t_del_min_def by (simp add: GM)
   also have "\<dots> \<le> log 2 (n+1) + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
-    using t_get_min_bound_aux[OF assms(2-)] by (auto simp: n_def)
+    using t_get_min_rest_bound_aux[OF assms(2-)] by (auto simp: n_def)
   also have "\<dots> \<le> 2*log 2 (n+1) + t_merge (rev ts\<^sub>1) ts\<^sub>2 + 1"
     using t_rev_ts1_bound by auto
   also have "\<dots> \<le> 2*log 2 (n+1) + 4 * log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 3"
@@ -692,7 +695,7 @@ proof -
     by (auto simp: n\<^sub>1_def n\<^sub>2_def algebra_simps)
   also have "n\<^sub>1 + n\<^sub>2 \<le> n"
     unfolding n\<^sub>1_def n\<^sub>2_def n_def
-    using get_min_mset[OF GM \<open>ts\<noteq>[]\<close>]
+    using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
     by (auto simp: mset_heap_def)
   finally have "t_del_min ts \<le> 6 * log 2 (n+1) + 3" 
     by auto
@@ -705,130 +708,6 @@ lemma t_del_min_bound:
   assumes "invar ts"
   assumes "ts\<noteq>[]"
   shows "t_del_min ts \<le> 6 * log 2 (n+1) + 3"  
-  using assms t_del_min_bound_aux unfolding invar_def by blast
-
-subsection \<open>Instantiating the Priority Queue Locale\<close>
-
-interpretation binheap: 
-  Priority_Queue "[]" "op = []" ins find_min del_min invar mset_heap
-proof (unfold_locales, goal_cases)
-  case 1
-  then show ?case by simp
-next
-  case (2 q)
-  then show ?case by auto
-next
-  case (3 q x)
-  then show ?case by auto
-next
-  case (4 q)
-  then show ?case using del_min_mset[of q] find_min[OF _ \<open>invar q\<close>] 
-    by (auto simp: union_single_eq_diff)
-next
-  case (5 q)
-  then show ?case using find_min[of q] by auto
-next 
-  case 6 
-  then show ?case by (auto simp add: invar_def invar_bheap_def oheap_invar_def)
-next
-  case (7 q x)
-  then show ?case by simp
-next
-  case (8 q)
-  then show ?case by simp
-qed
-    
-    
-(* Exercise? *)    
-subsection \<open>Combined Find and Delete Operation\<close>
-  
-text \<open>We define an operation that returns the minimum element and 
-  a heap with this element removed. \<close>
-definition pop_min :: "'a::linorder heap \<Rightarrow> 'a \<times> 'a::linorder heap" 
-  where
-  "pop_min ts = (case get_min ts of (Node _ x ts\<^sub>1, ts\<^sub>2) 
-                    \<Rightarrow> (x,merge (rev ts\<^sub>1) ts\<^sub>2)
-  )"
-    
-lemma pop_min_refine:  
-  assumes "ts \<noteq> []"
-  shows "pop_min ts = (find_min ts, del_min ts)"
-  unfolding pop_min_def del_min_def
-  by (auto 
-      split: prod.split tree.split 
-      dest: get_min_find_min_same_root[OF assms])
-  
-lemma pop_min_invar:
-  assumes "ts \<noteq> []"
-  assumes "invar ts"
-  assumes "pop_min ts = (x,ts')"  
-  shows "invar ts'"  
-  using del_min_invar[of ts] pop_min_refine[of ts] assms by simp
-
-lemma pop_min_mset:    
-  assumes "ts \<noteq> []"
-  assumes "invar ts"
-  assumes "pop_min ts = (x,ts')"  
-  shows "mset_heap ts = add_mset x (mset_heap ts')"
-  using del_min_mset[of ts] pop_min_refine[of ts] assms by simp 
-  
-lemma pop_min_min:
-  assumes "ts \<noteq> []"
-  assumes "invar ts"
-  assumes "pop_min ts = (x,ts')"  
-  shows "\<forall>y\<in>#mset_heap ts'. x\<le>y"
-  using pop_min_refine[of ts] del_min_mset[of ts] find_min_mset[of ts] assms
-  by (auto simp del: binheap.mset_simps)
-    
-
-definition t_pop_min :: "'a::linorder heap \<Rightarrow> nat" 
-  where
-  "t_pop_min ts = t_get_min ts + (case get_min ts of (Node _ x ts\<^sub>1, ts\<^sub>2) 
-                    \<Rightarrow> t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2
-  )"
-    
-lemma t_pop_min_bound_aux:
-  fixes ts
-  defines "n \<equiv> size (mset_heap ts)"
-  assumes BINVAR: "invar_bheap ts"
-  assumes "ts\<noteq>[]"
-  shows "t_pop_min ts \<le> 6 * log 2 (n+1) + 3"  
-proof -
-  obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
-    by (metis surj_pair tree.exhaust_sel)
-
-  note BINVAR' = get_min_invar_bheap[OF GM \<open>ts\<noteq>[]\<close> BINVAR]
-  hence BINVAR1: "invar_bheap (rev ts\<^sub>1)" by (blast intro: children_invar_bheap)
-
-  define n\<^sub>1 where "n\<^sub>1 = size (mset_heap ts\<^sub>1)"
-  define n\<^sub>2 where "n\<^sub>2 = size (mset_heap ts\<^sub>2)"
-      
-  have t_rev_ts1_bound: "t_rev ts\<^sub>1 \<le> 1 + log 2 (n+1)"
-  proof -
-    note t_rev_ts1_bound_aux[OF BINVAR1, simplified, folded n\<^sub>1_def]
-    also have "n\<^sub>1 \<le> n" 
-      unfolding n\<^sub>1_def n_def
-      using get_min_mset[OF GM \<open>ts\<noteq>[]\<close>]
-      by (auto simp: mset_heap_def)
-    finally show ?thesis by (auto simp: algebra_simps)
-  qed
-
-  have "t_pop_min ts = t_get_min ts + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
-    unfolding t_pop_min_def by (simp add: GM)
-  also have "\<dots> \<le> log 2 (n+1) + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
-    using t_get_min_bound_aux[OF assms(2-)] by (auto simp: n_def)
-  also have "\<dots> \<le> 2*log 2 (n+1) + t_merge (rev ts\<^sub>1) ts\<^sub>2 + 1"
-    using t_rev_ts1_bound by auto
-  also have "\<dots> \<le> 2*log 2 (n+1) + 4 * log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 3"
-    using t_merge_bound_aux[OF \<open>invar_bheap (rev ts\<^sub>1)\<close> \<open>invar_bheap ts\<^sub>2\<close>]
-    by (auto simp: n\<^sub>1_def n\<^sub>2_def algebra_simps)
-  also have "n\<^sub>1 + n\<^sub>2 \<le> n"
-    unfolding n\<^sub>1_def n\<^sub>2_def n_def
-    using get_min_mset[OF GM \<open>ts\<noteq>[]\<close>]
-    by (auto simp: mset_heap_def)
-  finally have "t_pop_min ts \<le> 6 * log 2 (n+1) + 3" 
-    by auto
-  thus ?thesis by (simp add: algebra_simps)
-qed      
+using assms t_del_min_bound_aux unfolding invar_def by blast
 
 end
