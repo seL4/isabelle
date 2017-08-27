@@ -2773,10 +2773,6 @@ proof -
   with assms show ?thesis by(simp add: ceiling_log_nat_eq_powr_iff)
 qed
 
-(* FIXME: a more appropriate place for these two lemmas
-   is a theory of discrete logarithms
-*)
-
 lemma floor_log2_div2: fixes n :: nat assumes "n \<ge> 2"
 shows "floor(log 2 n) = floor(log 2 (n div 2)) + 1"
 proof cases
