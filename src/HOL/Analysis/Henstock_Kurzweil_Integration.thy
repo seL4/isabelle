@@ -4362,96 +4362,65 @@ lemma has_integral_restrict_open_subinterval:
   assumes intf: "(f has_integral i) (cbox c d)"
     and cb: "cbox c d \<subseteq> cbox a b"
   shows "((\<lambda>x. if x \<in> box c d then f x else 0) has_integral i) (cbox a b)"
-proof -
-  define g where [abs_def]: "g x = (if x \<in>box c d then f x else 0)" for x
-  {
-    presume *: "cbox c d \<noteq> {} \<Longrightarrow> ?thesis"
-    show ?thesis
-      apply cases
-      apply (rule *)
-      apply assumption
-    proof goal_cases
-      case prems: 1
-      then have *: "box c d = {}"
-        by (metis bot.extremum_uniqueI box_subset_cbox)
-      show ?thesis
-        using assms(1)
-        unfolding *
-        using prems
-        by auto
-    qed
-  }
-  assume "cbox c d \<noteq> {}"
-  then obtain p where p: "p division_of cbox a b" "cbox c d \<in> p"
+proof (cases "cbox c d = {}")
+  case True
+  then have "box c d = {}"
+    by (metis bot.extremum_uniqueI box_subset_cbox)
+  then show ?thesis
+    using True intf by auto
+next
+  case False
+  then obtain p where pdiv: "p division_of cbox a b" and inp: "cbox c d \<in> p"
     using cb partial_division_extend_1 by blast
+  define g where [abs_def]: "g x = (if x \<in>box c d then f x else 0)" for x
   interpret operative "lift_option plus" "Some (0 :: 'b)"
     "\<lambda>i. if g integrable_on i then Some (integral i g) else None"
     by (fact operative_integralI)
-  note operat = division
-    [OF p(1), symmetric]
-  let ?P = "(if g integrable_on cbox a b then Some (integral (cbox a b) g) else None) = Some i"
-  {
-    presume "?P"
-    then have "g integrable_on cbox a b \<and> integral (cbox a b) g = i"
-      apply -
-      apply cases
-      apply (subst(asm) if_P)
-      apply assumption
-      apply auto
-      done
-    then show ?thesis
-      using integrable_integral
-      unfolding g_def
-      by auto
-  }
-  let ?F = F
-  have iterate:"?F (\<lambda>i. if g integrable_on i then Some (integral i g) else None) (p - {cbox c d}) = Some 0"
-  proof (intro neutral ballI)
-    fix x
-    assume x: "x \<in> p - {cbox c d}"
-    then have "x \<in> p"
-      by auto
-    note div = division_ofD(2-5)[OF p(1) this]
-    then obtain u v where uv: "x = cbox u v" by blast
-    have "interior x \<inter> interior (cbox c d) = {}"
-      using div(4)[OF p(2)] x by auto
-    then have "(g has_integral 0) x"
-      unfolding uv
-      using has_integral_spike_interior[where f="\<lambda>x. 0"]
-      by (metis (no_types, lifting) disjoint_iff_not_equal g_def has_integral_0_eq interior_cbox)
-    then show "(if g integrable_on x then Some (integral x g) else None) = Some 0"
-      by auto
+  note operat = division [OF pdiv, symmetric]
+  show ?thesis
+  proof (cases "(g has_integral i) (cbox a b)")
+    case True then show ?thesis
+      by (simp add: g_def)
+  next
+    case False
+    have iterate:"F (\<lambda>i. if g integrable_on i then Some (integral i g) else None) (p - {cbox c d}) = Some 0"
+    proof (intro neutral ballI)
+      fix x
+      assume x: "x \<in> p - {cbox c d}"
+      then have "x \<in> p"
+        by auto
+      then obtain u v where uv: "x = cbox u v"
+        using pdiv by blast
+      have "interior x \<inter> interior (cbox c d) = {}"
+        using pdiv inp x by blast 
+      then have "(g has_integral 0) x"
+        unfolding uv using has_integral_spike_interior[where f="\<lambda>x. 0"]
+        by (metis (no_types, lifting) disjoint_iff_not_equal g_def has_integral_0_eq interior_cbox)
+      then show "(if g integrable_on x then Some (integral x g) else None) = Some 0"
+        by auto
+    qed
+    interpret comm_monoid_set "lift_option plus" "Some (0 :: 'b)"
+      by (intro comm_monoid_set.intro comm_monoid_lift_option add.comm_monoid_axioms)
+    have intg: "g integrable_on cbox c d"
+      using integrable_spike_interior[where f=f]
+      by (meson g_def has_integral_integrable intf)
+    moreover have "integral (cbox c d) g = i"
+    proof (rule has_integral_unique[OF has_integral_spike_interior intf])
+      show "\<forall>x\<in>box c d. f x = g x"
+        by (auto simp: g_def)
+      show "(g has_integral integral (cbox c d) g) (cbox c d)"
+        by (rule integrable_integral[OF intg])
+    qed
+    ultimately have "F (\<lambda>A. if g integrable_on A then Some (integral A g) else None) p = Some i"
+      by (metis (full_types, lifting) division_of_finite inp iterate pdiv remove right_neutral)
+    then
+    have "(g has_integral i) (cbox a b)"
+      by (metis integrable_on_def integral_unique operat option.inject option.simps(3))
+    with False show ?thesis
+      by blast
   qed
-
-  have *: "p = insert (cbox c d) (p - {cbox c d})"
-    using p by auto
-  interpret comm_monoid_set "lift_option plus" "Some (0 :: 'b)"
-    apply (rule comm_monoid_set.intro)
-    apply (rule comm_monoid_lift_option)
-    apply (rule add.comm_monoid_axioms)
-    done
-  have **: "g integrable_on cbox c d"
-    apply (rule integrable_spike_interior[where f=f])
-    unfolding g_def  using assms(1)
-    apply auto
-    done
-  moreover
-  have "integral (cbox c d) g = i"
-    apply (rule has_integral_unique[OF _ assms(1)])
-    apply (rule has_integral_spike_interior[where f=g])
-    defer
-    apply (rule integrable_integral[OF **])
-    unfolding g_def
-    apply auto
-    done
-  ultimately show ?P
-    unfolding operat
-    using p
-    apply (subst *)
-    apply (subst insert)
-    apply (simp_all add: division_of_finite iterate)
-    done
 qed
+
 
 lemma has_integral_restrict_closed_subinterval:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
