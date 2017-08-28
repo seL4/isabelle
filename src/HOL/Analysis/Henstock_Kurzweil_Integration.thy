@@ -1981,71 +1981,66 @@ next
 qed
 
 
-lemma negligible_standard_hyperplane[intro]:
+proposition negligible_standard_hyperplane[intro]:
   fixes k :: "'a::euclidean_space"
   assumes k: "k \<in> Basis"
   shows "negligible {x. x\<bullet>k = c}"
   unfolding negligible_def has_integral
-proof (clarify, goal_cases)
-  case (1 a b e)
-  from this and k obtain d where d: "0 < d" "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
-    by (rule content_doublesplit)
+proof clarsimp
+  fix a b and e::real assume "e > 0"
+  with k obtain d where d: "0 < d" "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
+    by (metis content_doublesplit)
   let ?i = "indicator {x::'a. x\<bullet>k = c} :: 'a\<Rightarrow>real"
-  show ?case
-    apply (rule_tac x="\<lambda>x. ball x d" in exI)
-    apply rule
-    apply (rule gauge_ball)
-    apply (rule d)
-  proof (rule, rule)
-    fix p
-    assume p: "p tagged_division_of (cbox a b) \<and> (\<lambda>x. ball x d) fine p"
-    have *: "(\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) =
-      (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
-      apply (rule sum.cong)
-      apply (rule refl)
+  show "\<exists>\<gamma>. gauge \<gamma> \<and>
+           (\<forall>\<D>. \<D> tagged_division_of cbox a b \<and> \<gamma> fine \<D> \<longrightarrow>
+                 \<bar>\<Sum>(x,K) \<in> \<D>. content K * ?i x\<bar> < e)"
+  proof (intro exI, safe)
+    show "gauge (\<lambda>x. ball x d)"
+      using d(1) by blast
+  next
+    fix \<D>
+    assume p: "\<D> tagged_division_of (cbox a b)" "(\<lambda>x. ball x d) fine \<D>"
+    have *: "(\<Sum>(x,K)\<in>\<D>. content K * ?i x) = (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
+      apply (rule sum.cong [OF refl])
       unfolding split_paired_all real_scaleR_def mult_cancel_right split_conv
       apply cases
-      apply (rule disjI1)
-      apply assumption
+       apply (rule disjI1)
+       apply assumption
       apply (rule disjI2)
     proof -
       fix x l
-      assume as: "(x, l) \<in> p" "?i x \<noteq> 0"
+      assume as: "(x, l) \<in> \<D>" "?i x \<noteq> 0"
       then have xk: "x\<bullet>k = c"
-        unfolding indicator_def
-        apply -
-        apply (rule ccontr)
-        apply auto
-        done
+        by (simp add: indicator_def split: if_split_asm)
       show "content l = content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
         apply (rule arg_cong[where f=content])
         apply (rule set_eqI)
         apply rule
-        apply rule
+         apply rule
         unfolding mem_Collect_eq
       proof -
         fix y
         assume y: "y \<in> l"
-        note p[THEN conjunct2,unfolded fine_def,rule_format,OF as(1),unfolded split_conv]
+        note p(2)[unfolded fine_def,rule_format,OF as(1),unfolded split_conv]
         note this[unfolded subset_eq mem_ball dist_norm,rule_format,OF y]
         note le_less_trans[OF Basis_le_norm[OF k] this]
         then show "\<bar>y \<bullet> k - c\<bar> \<le> d"
           unfolding inner_simps xk by auto
       qed auto
     qed
-    note p'= tagged_division_ofD[OF p[THEN conjunct1]] and p''=division_of_tagged_division[OF p[THEN conjunct1]]
-    have "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * indicator {x. x \<bullet> k = c} x) < e"
+    note p'= tagged_division_ofD[OF p(1)] and p''=division_of_tagged_division[OF p(1)]
+    have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * indicator {x. x \<bullet> k = c} x) < e"
     proof -
-      have "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) \<le>
-        (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}))"
+      have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) \<le>
+        (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}))"
         apply (rule sum_mono)
         unfolding split_paired_all split_conv
         apply (rule mult_right_le_one_le)
-        apply (drule p'(4))
-        apply (auto simp add:interval_doublesplit[OF k])
+          apply (drule p'(4))
+          apply (auto simp add:interval_doublesplit[OF k])
         done
       also have "\<dots> < e"
-      proof (subst sum.over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
+      proof (subst sum.over_tagged_division_lemma[OF p(1)], goal_cases)
         case prems: (1 u v)
         then have *: "content (cbox u v) = 0"
           unfolding content_eq_0_interior by simp
@@ -2059,37 +2054,38 @@ proof (clarify, goal_cases)
           unfolding * interval_doublesplit[OF k]
           by (blast intro: antisym)
       next
-        have "(\<Sum>l\<in>snd ` p. content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) =
-          sum content ((\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}})"
+        have "(\<Sum>l\<in>snd ` \<D>. content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) =
+          sum content ((\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` \<D>. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}})"
         proof (subst (2) sum.reindex_nontrivial)
-          fix x y assume "x \<in> {l \<in> snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}" "y \<in> {l \<in> snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}"
+          fix x y assume "x \<in> {l \<in> snd ` \<D>. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}" "y \<in> {l \<in> snd ` \<D>. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}"
             "x \<noteq> y" and eq: "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
-          then obtain x' y' where "(x', x) \<in> p" "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}" "(y', y) \<in> p" "y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}"
+          then obtain x' y' where "(x', x) \<in> \<D>" "x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}" "(y', y) \<in> \<D>" "y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}"
             by (auto)
-          from p'(5)[OF \<open>(x', x) \<in> p\<close> \<open>(y', y) \<in> p\<close>] \<open>x \<noteq> y\<close> have "interior (x \<inter> y) = {}"
+          from p'(5)[OF \<open>(x', x) \<in> \<D>\<close> \<open>(y', y) \<in> \<D>\<close>] \<open>x \<noteq> y\<close> have "interior (x \<inter> y) = {}"
             by auto
           moreover have "interior ((x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<inter> (y \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) \<subseteq> interior (x \<inter> y)"
             by (auto intro: interior_mono)
           ultimately have "interior (x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = {}"
             by (auto simp: eq)
           then show "content (x \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = 0"
-            using p'(4)[OF \<open>(x', x) \<in> p\<close>] by (auto simp: interval_doublesplit[OF k] content_eq_0_interior simp del: interior_Int)
+            using p'(4)[OF \<open>(x', x) \<in> \<D>\<close>] by (auto simp: interval_doublesplit[OF k] content_eq_0_interior simp del: interior_Int)
         qed (insert p'(1), auto intro!: sum.mono_neutral_right)
-        also have "\<dots> \<le> norm (\<Sum>l\<in>(\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` p. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}. content l *\<^sub>R 1::real)"
+        also have "\<dots> \<le> norm (\<Sum>l\<in>(\<lambda>l. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})`{l\<in>snd ` \<D>. l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}}. content l *\<^sub>R 1::real)"
           by simp
         also have "\<dots> \<le> 1 * content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
           using division_doublesplit[OF p'' k, unfolded interval_doublesplit[OF k]]
           unfolding interval_doublesplit[OF k] by (intro dsum_bound) auto
         also have "\<dots> < e"
           using d(2) by simp
-        finally show "(\<Sum>ka\<in>snd ` p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) < e" .
+        finally show "(\<Sum>K\<in>snd ` \<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) < e" .
       qed
-      finally show "(\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) < e" .
+      finally show "(\<Sum>(x, K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) < e" .
     qed
-    then show "norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) - 0) < e"
-      unfolding * real_norm_def
+    then show "\<bar>\<Sum>(x, K)\<in>\<D>. content K * ?i x\<bar> < e"
+      unfolding * 
       apply (subst abs_of_nonneg)
-      using measure_nonneg  by (force simp add: indicator_def intro: sum_nonneg)+
+      using measure_nonneg       
+      by (force simp add: indicator_def intro: sum_nonneg)+
   qed
 qed
 
@@ -2960,18 +2956,17 @@ lemma operative_integrableI:
 proof -
   interpret comm_monoid conj True
     by standard auto
+  have 1: "\<And>a b. box a b = {} \<Longrightarrow> f integrable_on cbox a b"
+    by (simp add: content_eq_0_interior integrable_on_null)
+  have 2: "\<And>a b c k.
+       \<lbrakk>k \<in> Basis;
+        f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c};
+        f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k}\<rbrakk>
+       \<Longrightarrow> f integrable_on cbox a b"
+    unfolding integrable_on_def by (auto intro!: has_integral_split)
   show ?thesis
     apply standard
-    apply safe
-       apply (subst integrable_on_def)
-       apply rule
-       apply (rule has_integral_null_eq[where i=0, THEN iffD2])
-        apply (simp add: content_eq_0_interior)
-       apply rule
-      apply (rule, assumption, assumption)+
-    unfolding integrable_on_def
-    apply (auto intro!: has_integral_split)
-    done
+    using 1 2 by blast+
 qed
 
 lemma integrable_subinterval:
@@ -3162,12 +3157,8 @@ done
 lemma antiderivative_continuous:
   fixes q b :: real
   assumes "continuous_on {a..b} f"
-  obtains g where "\<forall>x\<in>{a..b}. (g has_vector_derivative (f x::_::banach)) (at x within {a..b})"
-  apply (rule that)
-  apply rule
-  using integral_has_vector_derivative[OF assms]
-  apply auto
-  done
+  obtains g where "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_vector_derivative (f x::_::banach)) (at x within {a..b})"
+  using integral_has_vector_derivative[OF assms] by auto
 
 
 subsection \<open>Combined fundamental theorem of calculus.\<close>
@@ -3491,12 +3482,10 @@ subsection \<open>even more special cases.\<close>
 lemma uminus_interval_vector[simp]:
   fixes a b :: "'a::euclidean_space"
   shows "uminus ` cbox a b = cbox (-b) (-a)"
-  apply (rule set_eqI)
-  apply rule
-  defer
-  unfolding image_iff
-  apply (rule_tac x="-x" in bexI)
-  apply (auto simp add:minus_le_iff le_minus_iff mem_box)
+  apply safe
+   apply (simp add: mem_box(2))
+  apply (rule_tac x="-x" in image_eqI)
+   apply (auto simp add: mem_box)
   done
 
 lemma has_integral_reflect_lemma[intro]:
@@ -3514,10 +3503,7 @@ lemma has_integral_reflect_lemma_real[intro]:
 
 lemma has_integral_reflect[simp]:
   "((\<lambda>x. f (-x)) has_integral i) (cbox (-b) (-a)) \<longleftrightarrow> (f has_integral i) (cbox a b)"
-  apply rule
-  apply (drule_tac[!] has_integral_reflect_lemma)
-  apply auto
-  done
+  by (auto dest: has_integral_reflect_lemma)
 
 lemma integrable_reflect[simp]: "(\<lambda>x. f(-x)) integrable_on cbox (-b) (-a) \<longleftrightarrow> f integrable_on cbox a b"
   unfolding integrable_on_def by auto
@@ -4446,28 +4432,21 @@ proof (cases "cbox c d = {}")
   case False
   let ?g = "\<lambda>x. if x \<in> cbox c d then f x else 0"
   show ?thesis
-    apply rule
-    defer
-    apply (rule has_integral_restrict_closed_subinterval[OF _ assms])
-    apply assumption
-  proof -
+  proof 
     assume ?l
     then have "?g integrable_on cbox c d"
       using assms has_integral_integrable integrable_subinterval by blast
-    then have *: "f integrable_on cbox c d"
+    then have "f integrable_on cbox c d"
       apply -
       apply (rule integrable_eq)
       apply auto
       done
-    then have "i = integral (cbox c d) f"
-      apply -
-      apply (rule has_integral_unique)
-      apply (rule \<open>?l\<close>)
-      apply (rule has_integral_restrict_closed_subinterval[OF _ assms])
-      apply auto
-      done
-    then show ?r
-      using * by auto
+    moreover then have "i = integral (cbox c d) f"
+      by (meson \<open>((\<lambda>x. if x \<in> cbox c d then f x else 0) has_integral i) (cbox a b)\<close> assms has_integral_restrict_closed_subinterval has_integral_unique integrable_integral)
+    ultimately show ?r by auto
+  next
+    assume ?r then show ?l
+      by (rule has_integral_restrict_closed_subinterval[OF _ assms])
   qed
 qed auto
 
