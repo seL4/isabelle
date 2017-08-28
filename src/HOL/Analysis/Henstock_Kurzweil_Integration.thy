@@ -1988,7 +1988,7 @@ proposition negligible_standard_hyperplane[intro]:
   unfolding negligible_def has_integral
 proof clarsimp
   fix a b and e::real assume "e > 0"
-  with k obtain d where d: "0 < d" "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
+  with k obtain d where "0 < d" and d: "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
     by (metis content_doublesplit)
   let ?i = "indicator {x::'a. x\<bullet>k = c} :: 'a\<Rightarrow>real"
   show "\<exists>\<gamma>. gauge \<gamma> \<and>
@@ -1996,22 +1996,15 @@ proof clarsimp
                  \<bar>\<Sum>(x,K) \<in> \<D>. content K * ?i x\<bar> < e)"
   proof (intro exI, safe)
     show "gauge (\<lambda>x. ball x d)"
-      using d(1) by blast
+      using \<open>0 < d\<close> by blast
   next
     fix \<D>
     assume p: "\<D> tagged_division_of (cbox a b)" "(\<lambda>x. ball x d) fine \<D>"
-    have *: "(\<Sum>(x,K)\<in>\<D>. content K * ?i x) = (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
-      apply (rule sum.cong [OF refl])
-      unfolding split_paired_all real_scaleR_def mult_cancel_right split_conv
-      apply cases
-       apply (rule disjI1)
-       apply assumption
-      apply (rule disjI2)
+    have "content l = content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})" 
+      if "(x, l) \<in> \<D>" "?i x \<noteq> 0" for x l
     proof -
-      fix x l
-      assume as: "(x, l) \<in> \<D>" "?i x \<noteq> 0"
-      then have xk: "x\<bullet>k = c"
-        by (simp add: indicator_def split: if_split_asm)
+      have xk: "x\<bullet>k = c"
+        using that by (simp add: indicator_def split: if_split_asm)
       show "content l = content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
         apply (rule arg_cong[where f=content])
         apply (rule set_eqI)
@@ -2021,13 +2014,15 @@ proof clarsimp
       proof -
         fix y
         assume y: "y \<in> l"
-        note p(2)[unfolded fine_def,rule_format,OF as(1),unfolded split_conv]
+        note p(2)[unfolded fine_def,rule_format,OF that(1),unfolded split_conv]
         note this[unfolded subset_eq mem_ball dist_norm,rule_format,OF y]
         note le_less_trans[OF Basis_le_norm[OF k] this]
         then show "\<bar>y \<bullet> k - c\<bar> \<le> d"
           unfolding inner_simps xk by auto
       qed auto
     qed
+    then have *: "(\<Sum>(x,K)\<in>\<D>. content K * ?i x) = (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
+      by (force simp add: split_paired_all intro!: sum.cong [OF refl])
     note p'= tagged_division_ofD[OF p(1)] and p''=division_of_tagged_division[OF p(1)]
     have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * indicator {x. x \<bullet> k = c} x) < e"
     proof -
@@ -2044,12 +2039,10 @@ proof clarsimp
         case prems: (1 u v)
         then have *: "content (cbox u v) = 0"
           unfolding content_eq_0_interior by simp
-        have "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<le> content (cbox u v)"
-          unfolding interval_doublesplit[OF k]
-          apply (rule content_subset)
-          unfolding interval_doublesplit[symmetric,OF k]
-          apply auto
-          done
+        have "cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<subseteq> cbox u v"
+          by auto
+        then have "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<le> content (cbox u v)"
+          unfolding interval_doublesplit[OF k] by (rule content_subset)
         then show ?case
           unfolding * interval_doublesplit[OF k]
           by (blast intro: antisym)
@@ -2076,7 +2069,7 @@ proof clarsimp
           using division_doublesplit[OF p'' k, unfolded interval_doublesplit[OF k]]
           unfolding interval_doublesplit[OF k] by (intro dsum_bound) auto
         also have "\<dots> < e"
-          using d(2) by simp
+          using d by simp
         finally show "(\<Sum>K\<in>snd ` \<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})) < e" .
       qed
       finally show "(\<Sum>(x, K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) < e" .
