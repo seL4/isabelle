@@ -128,5 +128,31 @@ in
 end
 \<close>
 
+setup \<open>
+let
+
+fun eta_expand Ts t xs = case t of
+    Abs(x,T,t) =>
+      let val (t', xs') = eta_expand (T::Ts) t xs
+      in (Abs (x, T, t'), xs') end
+  | _ =>
+      let
+        val (a,ts) = strip_comb t (* assume a atomic *)
+        val (ts',xs') = fold_map (eta_expand Ts) ts xs
+        val t' = list_comb (a, ts');
+        val Bs = binder_types (fastype_of1 (Ts,t));
+        val n = Int.min (length Bs, length xs');
+        val bs = map Bound ((n - 1) downto 0);
+        val xBs = ListPair.zip (xs',Bs);
+        val xs'' = drop n xs';
+        val t'' = fold_rev Term.abs xBs (list_comb(t', bs))
+      in (t'', xs'') end
+
+val style_eta_expand =
+  (Scan.repeat Args.name) >> (fn xs => fn ctxt => fn t => fst (eta_expand [] t xs))
+
+in Term_Style.setup @{binding eta_expand} style_eta_expand end
+\<close>
+
 end
 (*>*)

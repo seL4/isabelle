@@ -200,6 +200,24 @@ It expects a list of names or underscores, similar to the \texttt{of} attribute:
 \showout @{thm split_paired_All[rename_abs _ l r]}
 \end{quote}
 
+Sometimes Isabelle $\eta$-contracts terms, for example in the following definition:
+*}
+fun eta where
+"eta (x \<cdot> xs) = (\<forall>y \<in> set xs. x < y)"
+text{*
+\noindent
+If you now print the defining equation, the result is not what you hoped for:
+\begin{quote}
+\verb!@!\verb!{thm eta.simps}!\\
+\showout @{thm eta.simps}
+\end{quote}
+In such situations you can put the abstractions back by explicitly $\eta$-expanding upon output:
+\begin{quote}
+\verb!@!\verb!{thm (eta_expand z) eta.simps}!\\
+\showout @{thm (eta_expand z) eta.simps}
+\end{quote}
+Instead of a single variable \verb!z! you can give a whole list \verb!x y z!
+to perform multiple $\eta$-expansions.
 
 \subsection{Inference rules}
 
