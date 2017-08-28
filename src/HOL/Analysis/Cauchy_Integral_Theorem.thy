@@ -3617,22 +3617,24 @@ lemma winding_number_pos_le:
       and ge: "\<And>x. \<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> 0 \<le> Im (vector_derivative \<gamma> (at x) * cnj(\<gamma> x - z))"
     shows "0 \<le> Re(winding_number \<gamma> z)"
 proof -
-  have *: "0 \<le> Im (vector_derivative \<gamma> (at x) / (\<gamma> x - z))" if x: "0 < x" "x < 1" for x
+  have ge0: "0 \<le> Im (vector_derivative \<gamma> (at x) / (\<gamma> x - z))" if x: "0 < x" "x < 1" for x
     using ge by (simp add: Complex.Im_divide algebra_simps x)
-  show ?thesis
-    apply (simp add: Re_winding_number [OF \<gamma>] field_simps)
+  have hi: "((\<lambda>x. 1 / (\<gamma> x - z) * vector_derivative \<gamma> (at x)) has_integral contour_integral \<gamma> (\<lambda>w. 1 / (w - z)))
+            (cbox 0 1)"
+    unfolding box_real
+    apply (subst has_contour_integral [symmetric])
+    using \<gamma> by (simp add: contour_integrable_inversediff has_contour_integral_integral)
+  have "0 \<le> Im (contour_integral \<gamma> (\<lambda>w. 1 / (w - z)))"
     apply (rule has_integral_component_nonneg
              [of \<i> "\<lambda>x. if x \<in> {0<..<1}
                          then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else 0", simplified])
-      prefer 3 apply (force simp: *)
+      prefer 3 apply (force simp: ge0)
      apply (simp add: Basis_complex_def)
-    apply (rule has_integral_spike_interior [of 0 1 _ "\<lambda>x. 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x)"])
+    apply (rule has_integral_spike_interior [OF hi])
     apply simp
-    apply (simp only: box_real)
-    apply (subst has_contour_integral [symmetric])
-    using \<gamma>
-    apply (simp add: contour_integrable_inversediff has_contour_integral_integral)
     done
+  then show ?thesis
+    by (simp add: Re_winding_number [OF \<gamma>] field_simps)
 qed
 
 lemma winding_number_pos_lt_lemma:
@@ -3641,19 +3643,20 @@ lemma winding_number_pos_lt_lemma:
       and ge: "\<And>x. \<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> e \<le> Im (vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
     shows "0 < Re(winding_number \<gamma> z)"
 proof -
+  have hi: "((\<lambda>x. 1 / (\<gamma> x - z) * vector_derivative \<gamma> (at x)) has_integral contour_integral \<gamma> (\<lambda>w. 1 / (w - z)))
+            (cbox 0 1)"
+    unfolding box_real
+    apply (subst has_contour_integral [symmetric])
+    using \<gamma> by (simp add: contour_integrable_inversediff has_contour_integral_integral)
   have "e \<le> Im (contour_integral \<gamma> (\<lambda>w. 1 / (w - z)))"
     apply (rule has_integral_component_le
              [of \<i> "\<lambda>x. \<i>*e" "\<i>*e" "{0..1}"
                     "\<lambda>x. if x \<in> {0<..<1} then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else \<i>*e"
                     "contour_integral \<gamma> (\<lambda>w. 1/(w - z))", simplified])
-    using e
-    apply (simp_all add: Basis_complex_def)
+    using e apply (simp_all add: Basis_complex_def)
     using has_integral_const_real [of _ 0 1] apply force
-    apply (rule has_integral_spike_interior [of 0 1 _ "\<lambda>x. 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x)", simplified box_real])
-    apply simp
-    apply (subst has_contour_integral [symmetric])
-    using \<gamma>
-    apply (simp_all add: contour_integrable_inversediff has_contour_integral_integral ge)
+     apply (rule has_integral_spike_interior [OF hi, simplified box_real])
+    apply (simp_all add: ge)
     done
   with e show ?thesis
     by (simp add: Re_winding_number [OF \<gamma>] field_simps)
