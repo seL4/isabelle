@@ -2000,50 +2000,45 @@ proof clarsimp
   next
     fix \<D>
     assume p: "\<D> tagged_division_of (cbox a b)" "(\<lambda>x. ball x d) fine \<D>"
-    have "content l = content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})" 
-      if "(x, l) \<in> \<D>" "?i x \<noteq> 0" for x l
+    have "content L = content (L \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})" 
+      if "(x, L) \<in> \<D>" "?i x \<noteq> 0" for x L
     proof -
       have xk: "x\<bullet>k = c"
         using that by (simp add: indicator_def split: if_split_asm)
-      show "content l = content (l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
-        apply (rule arg_cong[where f=content])
-        apply (rule set_eqI)
-        apply rule
-         apply rule
-        unfolding mem_Collect_eq
-      proof -
+      have "L \<subseteq> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
+      proof 
         fix y
-        assume y: "y \<in> l"
-        note p(2)[unfolded fine_def,rule_format,OF that(1),unfolded split_conv]
-        note this[unfolded subset_eq mem_ball dist_norm,rule_format,OF y]
-        note le_less_trans[OF Basis_le_norm[OF k] this]
-        then show "\<bar>y \<bullet> k - c\<bar> \<le> d"
+        assume y: "y \<in> L"
+        have "L \<subseteq> ball x d"
+          using p(2) that(1) by auto
+        then have "norm (x - y) < d"
+          by (simp add: dist_norm subset_iff y)
+        then have "\<bar>(x - y) \<bullet> k\<bar> < d"
+          using k norm_bound_Basis_lt by blast
+        then show "y \<in> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
           unfolding inner_simps xk by auto
-      qed auto
+      qed 
+      then show "content L = content (L \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d})"
+        by (metis inf.orderE)
     qed
     then have *: "(\<Sum>(x,K)\<in>\<D>. content K * ?i x) = (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
       by (force simp add: split_paired_all intro!: sum.cong [OF refl])
     note p'= tagged_division_ofD[OF p(1)] and p''=division_of_tagged_division[OF p(1)]
     have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * indicator {x. x \<bullet> k = c} x) < e"
     proof -
-      have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) \<le>
-        (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}))"
-        apply (rule sum_mono)
-        unfolding split_paired_all split_conv
-        apply (rule mult_right_le_one_le)
-          apply (drule p'(4))
-          apply (auto simp add:interval_doublesplit[OF k])
-        done
+      have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * ?i x) \<le> (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}))"
+        by (force simp add: indicator_def intro!: sum_mono)
       also have "\<dots> < e"
-      proof (subst sum.over_tagged_division_lemma[OF p(1)], goal_cases)
-        case prems: (1 u v)
+      proof (subst sum.over_tagged_division_lemma[OF p(1)])
+        fix u v::'a
+        assume "box u v = {}"
         then have *: "content (cbox u v) = 0"
           unfolding content_eq_0_interior by simp
         have "cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<subseteq> cbox u v"
           by auto
         then have "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<le> content (cbox u v)"
           unfolding interval_doublesplit[OF k] by (rule content_subset)
-        then show ?case
+        then show "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = 0"
           unfolding * interval_doublesplit[OF k]
           by (blast intro: antisym)
       next
@@ -2395,47 +2390,30 @@ subsection \<open>In particular, the boundary of an interval is negligible.\<clo
 lemma negligible_frontier_interval: "negligible(cbox (a::'a::euclidean_space) b - box a b)"
 proof -
   let ?A = "\<Union>((\<lambda>k. {x. x\<bullet>k = a\<bullet>k} \<union> {x::'a. x\<bullet>k = b\<bullet>k}) ` Basis)"
-  have "cbox a b - box a b \<subseteq> ?A"
-    apply rule unfolding Diff_iff mem_box
-    apply simp
-    apply(erule conjE bexE)+
-    apply(rule_tac x=i in bexI)
-    apply auto
-    done
-  then show ?thesis
-    apply -
-    apply (rule negligible_subset[of ?A])
-    apply (rule negligible_Union[OF finite_imageI])
-    apply auto
-    done
+  have "negligible ?A"
+    by (force simp add: negligible_Union[OF finite_imageI])
+  moreover have "cbox a b - box a b \<subseteq> ?A"
+    by (force simp add: mem_box)
+  ultimately show ?thesis
+    by (rule negligible_subset)
 qed
 
 lemma has_integral_spike_interior:
-  assumes "\<forall>x\<in>box a b. g x = f x"
-    and "(f has_integral y) (cbox a b)"
+  assumes f: "(f has_integral y) (cbox a b)" and gf: "\<And>x. x \<in> box a b \<Longrightarrow> g x = f x"
   shows "(g has_integral y) (cbox a b)"
-  apply (rule has_integral_spike[OF negligible_frontier_interval _ assms(2)])
-  using assms(1)
-  apply auto
-  done
+  apply (rule has_integral_spike[OF negligible_frontier_interval _ f])
+  using gf by auto
 
 lemma has_integral_spike_interior_eq:
-  assumes "\<forall>x\<in>box a b. g x = f x"
+  assumes "\<And>x. x \<in> box a b \<Longrightarrow> g x = f x"
   shows "(f has_integral y) (cbox a b) \<longleftrightarrow> (g has_integral y) (cbox a b)"
-  apply rule
-  apply (rule_tac[!] has_integral_spike_interior)
-  using assms
-  apply auto
-  done
+  by (metis assms has_integral_spike_interior)
 
 lemma integrable_spike_interior:
-  assumes "\<forall>x\<in>box a b. g x = f x"
+  assumes "\<And>x. x \<in> box a b \<Longrightarrow> g x = f x"
     and "f integrable_on cbox a b"
   shows "g integrable_on cbox a b"
-  using assms
-  unfolding integrable_on_def
-  using has_integral_spike_interior[OF assms(1)]
-  by auto
+  using assms has_integral_spike_interior_eq by blast
 
 
 subsection \<open>Integrability of continuous functions.\<close>
@@ -4385,7 +4363,7 @@ next
       by (meson g_def has_integral_integrable intf)
     moreover have "integral (cbox c d) g = i"
     proof (rule has_integral_unique[OF has_integral_spike_interior intf])
-      show "\<forall>x\<in>box c d. f x = g x"
+      show "\<And>x. x \<in> box c d \<Longrightarrow> f x = g x"
         by (auto simp: g_def)
       show "(g has_integral integral (cbox c d) g) (cbox c d)"
         by (rule integrable_integral[OF intg])
