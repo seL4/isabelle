@@ -9,7 +9,7 @@ package isabelle
 
 object Build_Cygwin
 {
-  val default_mirror: String = "http://isabelle.in.tum.de/cygwin_2016-1"
+  val default_mirror: String = "http://isabelle.in.tum.de/cygwin_2017"
 
   val packages: List[String] =
     List("curl", "nano", "perl", "perl-libwww-perl", "rlwrap", "unzip")
