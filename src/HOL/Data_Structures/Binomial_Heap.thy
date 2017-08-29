@@ -92,10 +92,15 @@ subsection \<open>Operations and Their Functional Correctness\<close>
     
 subsubsection \<open>\<open>link\<close>\<close>
 
-definition link :: "'a::linorder tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
-  "link t\<^sub>1 t\<^sub>2 = (case (t\<^sub>1,t\<^sub>2) of (Node r x\<^sub>1 c\<^sub>1, Node _ x\<^sub>2 c\<^sub>2) \<Rightarrow>
-    if x\<^sub>1\<le>x\<^sub>2 then Node (r+1) x\<^sub>1 (t\<^sub>2#c\<^sub>1) else Node (r+1) x\<^sub>2 (t\<^sub>1#c\<^sub>2)
-  )"
+context
+includes pattern_aliases
+begin
+
+fun link :: "('a::linorder) tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
+  "link (Node r x\<^sub>1 c\<^sub>1 =: t\<^sub>1) (Node _ x\<^sub>2 c\<^sub>2 =: t\<^sub>2) = 
+    (if x\<^sub>1\<le>x\<^sub>2 then Node (r+1) x\<^sub>1 (t\<^sub>2#c\<^sub>1) else Node (r+1) x\<^sub>2 (t\<^sub>1#c\<^sub>2))"
+
+end
 
 lemma invar_btree_link:
   assumes "invar_btree t\<^sub>1"
@@ -103,20 +108,20 @@ lemma invar_btree_link:
   assumes "rank t\<^sub>1 = rank t\<^sub>2"  
   shows "invar_btree (link t\<^sub>1 t\<^sub>2)"  
 using assms 
-by (auto simp: link_def split: tree.split)
+by (cases "(t\<^sub>1, t\<^sub>2)" rule: link.cases) simp
 
 lemma invar_link_otree:      
   assumes "invar_otree t\<^sub>1"
   assumes "invar_otree t\<^sub>2"
   shows "invar_otree (link t\<^sub>1 t\<^sub>2)"  
 using assms 
-by (auto simp: link_def split: tree.split)
+by (cases "(t\<^sub>1, t\<^sub>2)" rule: link.cases) auto
 
 lemma rank_link[simp]: "rank (link t\<^sub>1 t\<^sub>2) = rank t\<^sub>1 + 1"
-by (auto simp: link_def split: tree.split)
+by (cases "(t\<^sub>1, t\<^sub>2)" rule: link.cases) simp
     
 lemma mset_link[simp]: "mset_tree (link t\<^sub>1 t\<^sub>2) = mset_tree t\<^sub>1 + mset_tree t\<^sub>2"
-by (auto simp: link_def split: tree.split)
+by (cases "(t\<^sub>1, t\<^sub>2)" rule: link.cases) simp
     
 subsubsection \<open>\<open>ins_tree\<close>\<close>
 
