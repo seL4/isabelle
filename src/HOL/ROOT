@@ -203,6 +203,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     "HOL-Library.Multiset"
     "HOL-Number_Theory.Fib"
   theories
+    Sorting
     Balance
     Tree_Map
     AVL_Map
