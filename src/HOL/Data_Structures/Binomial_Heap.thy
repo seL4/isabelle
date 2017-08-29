@@ -443,7 +443,7 @@ proof (induction t)
 qed
    
 text \<open>The length of a binomial heap is bounded by the number of its elements\<close>  
-lemma size_mset_heap:      
+lemma size_mset_bheap:      
   assumes "invar_bheap ts"
   shows "2^length ts \<le> size (mset_heap ts) + 1"
 proof -
@@ -498,7 +498,7 @@ proof -
     unfolding t_insert_def by (rule t_ins_tree_simple_bound)
   also have "\<dots> \<le> log 2 (2 * (size (mset_heap ts) + 1))" 
   proof -
-    from size_mset_heap[of ts] assms 
+    from size_mset_bheap[of ts] assms 
     have "2 ^ length ts \<le> size (mset_heap ts) + 1"
       unfolding invar_def by auto
     hence "2 ^ (length ts + 1) \<le> 2 * (size (mset_heap ts) + 1)" by auto
@@ -547,8 +547,8 @@ proof -
     by (rule power_increasing) auto
   also have "\<dots> = 2*(2^length ts\<^sub>1)\<^sup>2*(2^length ts\<^sub>2)\<^sup>2"    
     by (auto simp: algebra_simps power_add power_mult)
-  also note BINVARS(1)[THEN size_mset_heap]
-  also note BINVARS(2)[THEN size_mset_heap]
+  also note BINVARS(1)[THEN size_mset_bheap]
+  also note BINVARS(2)[THEN size_mset_bheap]
   finally have "2 ^ t_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * (n\<^sub>1 + 1)\<^sup>2 * (n\<^sub>2 + 1)\<^sup>2" 
     by (auto simp: power2_nat_le_eq_le n\<^sub>1_def n\<^sub>2_def)
   from le_log2_of_power[OF this] have "t_merge ts\<^sub>1 ts\<^sub>2 \<le> log 2 \<dots>"    
@@ -591,7 +591,7 @@ proof -
   have 1: "t_get_min ts = length ts" using assms t_get_min_estimate by auto
   also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
   proof -
-    from size_mset_heap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
+    from size_mset_bheap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
       unfolding invar_def by auto
     thus ?thesis using le_log2_of_power by blast
   qed
@@ -615,7 +615,7 @@ proof -
   have 1: "t_get_min_rest ts = length ts" using assms t_get_min_rest_estimate by auto
   also have "\<dots> \<le> log 2 (size (mset_heap ts) + 1)"
   proof -
-    from size_mset_heap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
+    from size_mset_bheap[of ts] assms have "2 ^ length ts \<le> size (mset_heap ts) + 1"
       by auto
     thus ?thesis using le_log2_of_power by blast
   qed
@@ -647,7 +647,7 @@ lemma t_rev_ts1_bound_aux:
 proof -
   have "t_rev ts = length ts + 1" by (auto simp: t_rev_def)
   hence "2^t_rev ts = 2*2^length ts" by auto
-  also have "\<dots> \<le> 2*n+2" using size_mset_heap[OF BINVAR] by (auto simp: n_def)
+  also have "\<dots> \<le> 2*n+2" using size_mset_bheap[OF BINVAR] by (auto simp: n_def)
   finally have "2 ^ t_rev ts \<le> 2 * n + 2" .
   from le_log2_of_power[OF this] have "t_rev ts \<le> log 2 (2 * (n + 1))"
     by auto
