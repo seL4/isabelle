@@ -1388,6 +1388,9 @@ lemma degree_mult_eq_0:
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   by (auto simp: degree_mult_eq)
 
+lemma degree_power_eq: "p \<noteq> 0 \<Longrightarrow> degree ((p :: 'a :: idom poly) ^ n) = n * degree p"
+  by (induction n) (simp_all add: degree_mult_eq)
+
 lemma degree_mult_right_le:
   fixes p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
   assumes "q \<noteq> 0"
@@ -2454,9 +2457,6 @@ next
   qed
 qed
 
-lemma map_upt_Suc: "map f [0 ..< Suc n] = f 0 # map (\<lambda>i. f (Suc i)) [0 ..< n]"
-  by (induct n arbitrary: f) auto
-
 lemma coeffs_pderiv_code [code abstract]: "coeffs (pderiv p) = pderiv_coeffs (coeffs p)"
   unfolding pderiv_coeffs_def
 proof (rule coeffs_eqI, unfold pderiv_coeffs_code coeff_pderiv, goal_cases)
@@ -2538,6 +2538,10 @@ lemma pderiv_power_Suc: "pderiv (p ^ Suc n) = smult (of_nat (Suc n)) (p ^ n) * p
   apply (simp only: of_nat_Suc smult_add_left smult_1_left)
   apply (simp add: algebra_simps)
   done
+
+lemma pderiv_pcompose: "pderiv (pcompose p q) = pcompose (pderiv p) q * pderiv q"
+  by (induction p rule: pCons_induct)
+     (auto simp: pcompose_pCons pderiv_add pderiv_mult pderiv_pCons pcompose_add algebra_simps)
 
 lemma pderiv_prod: "pderiv (prod f (as)) = (\<Sum>a\<in>as. prod f (as - {a}) * pderiv (f a))"
 proof (induct as rule: infinite_finite_induct)

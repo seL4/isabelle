@@ -1386,6 +1386,22 @@ lemma fps_numeral_mult_divide:
 lemmas fps_numeral_simps = 
   fps_numeral_divide_divide fps_numeral_mult_divide inverse_fps_numeral neg_numeral_fps_const
 
+lemma subdegree_div:
+  assumes "q dvd p"
+  shows   "subdegree ((p :: 'a :: field fps) div q) = subdegree p - subdegree q"
+proof (cases "p = 0")
+  case False
+  from assms have "p = p div q * q" by simp
+  also from assms False have "subdegree \<dots> = subdegree (p div q) + subdegree q"
+    by (intro subdegree_mult) (auto simp: dvd_div_eq_0_iff)
+  finally show ?thesis by simp
+qed simp_all
+
+lemma subdegree_div_unit:
+  assumes "q $ 0 \<noteq> 0"
+  shows   "subdegree ((p :: 'a :: field fps) div q) = subdegree p"
+  using assms by (subst subdegree_div) simp_all
+
 
 subsection \<open>Formal power series form a Euclidean ring\<close>
 

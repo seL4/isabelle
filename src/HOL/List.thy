@@ -3108,7 +3108,10 @@ apply (induct n m  arbitrary: i rule: diff_induct)
 done
 
 lemma map_decr_upt: "map (\<lambda>n. n - Suc 0) [Suc m..<Suc n] = [m..<n]"
-by (induct n) simp_all
+  by (induct n) simp_all
+
+lemma map_upt_Suc: "map f [0 ..< Suc n] = f 0 # map (\<lambda>i. f (Suc i)) [0 ..< n]"
+  by (induct n arbitrary: f) auto
 
 
 lemma nth_take_lemma:
