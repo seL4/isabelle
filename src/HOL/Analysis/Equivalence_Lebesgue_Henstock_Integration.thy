@@ -314,7 +314,7 @@ proof -
     then have "(\<lambda>x. f x * indicator \<Omega> x) integrable_on \<Omega>"
       by (auto simp: integrable_on_def cong: has_integral_cong)
     then have "(\<lambda>x. f x * indicator \<Omega> x) integrable_on (\<Omega> \<union> B n)"
-      by (rule integrable_on_superset[rotated 2]) auto
+      by (rule integrable_on_superset) auto
     then have "(\<lambda>x. f x * indicator \<Omega> x) integrable_on B n"
       unfolding B_def by (rule integrable_on_subcbox) auto
     then show "(\<lambda>x. f x * indicator \<Omega> x) \<in> lebesgue_on \<Omega>' \<rightarrow>\<^sub>M borel"
@@ -2717,7 +2717,7 @@ proof -
   note intl = has_integral_integrable[OF int]
   have af: "f absolutely_integrable_on (closure S)"
     using nonneg
-    by (intro absolutely_integrable_onI intl integrable_eq[OF _ intl]) simp
+    by (intro absolutely_integrable_onI intl integrable_eq[OF intl]) simp
   then have "integral (closure S) f = set_lebesgue_integral lebesgue (closure S) f"
     by (intro set_lebesgue_integral_eq_integral(2)[symmetric])
   also have "\<dots> = 0 \<longleftrightarrow> (AE x in lebesgue. indicator (closure S) x *\<^sub>R f x = 0)"
