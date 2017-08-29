@@ -1,12 +1,13 @@
 (*  Title:      HOL/SMT.thy
     Author:     Sascha Boehme, TU Muenchen
+    Author:     Jasmin Blanchette, VU Amsterdam
 *)
 
 section \<open>Bindings to Satisfiability Modulo Theories (SMT) solvers based on SMT-LIB 2\<close>
 
 theory SMT
-imports Divides
-keywords "smt_status" :: diag
+  imports Divides
+  keywords "smt_status" :: diag
 begin
 
 subsection \<open>A skolemization tactic and proof method\<close>

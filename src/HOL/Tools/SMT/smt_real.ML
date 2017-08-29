@@ -32,7 +32,7 @@ in
 
 val setup_builtins =
   SMT_Builtin.add_builtin_typ SMTLIB_Interface.smtlibC
-    (@{typ real}, K (SOME "Real"), real_num) #>
+    (@{typ real}, K (SOME ("Real", [])), real_num) #>
   fold (SMT_Builtin.add_builtin_fun' SMTLIB_Interface.smtlibC) [
     (@{const less (real)}, "<"),
     (@{const less_eq (real)}, "<="),

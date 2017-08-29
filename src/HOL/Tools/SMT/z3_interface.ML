@@ -24,15 +24,19 @@ end;
 structure Z3_Interface: Z3_INTERFACE =
 struct
 
-val smtlib_z3C = SMTLIB_Interface.smtlibC @ ["z3"]
+val z3C = ["z3"]
+
+val smtlib_z3C = SMTLIB_Interface.smtlibC @ z3C
 
 
 (* interface *)
 
 local
   fun translate_config ctxt =
-    {logic = K "", fp_kinds = [BNF_Util.Least_FP],
-     serialize = #serialize (SMTLIB_Interface.translate_config ctxt)}
+    {order = SMT_Util.First_Order,
+     logic = K "",
+     fp_kinds = [BNF_Util.Least_FP],
+     serialize = #serialize (SMTLIB_Interface.translate_config SMT_Util.First_Order ctxt)}
 
   fun is_div_mod @{const divide (int)} = true
     | is_div_mod @{const modulo (int)} = true

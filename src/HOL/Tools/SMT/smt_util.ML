@@ -10,6 +10,8 @@ sig
   val repeat: ('a -> 'a option) -> 'a -> 'a
   val repeat_yield: ('a -> 'b -> ('a * 'b) option) -> 'a -> 'b -> 'a * 'b
 
+  datatype order = First_Order | Higher_Order
+
   (*class dictionaries*)
   type class = string list
   val basicC: class
@@ -77,6 +79,11 @@ fun repeat f =
 fun repeat_yield f =
   let fun rep x y = (case f x y of SOME (x', y') => rep x' y' | NONE => (x, y))
   in rep end
+
+
+(* order *)
+
+datatype order = First_Order | Higher_Order
 
 
 (* class dictionaries *)

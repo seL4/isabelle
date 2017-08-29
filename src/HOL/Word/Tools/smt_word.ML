@@ -28,7 +28,8 @@ local
   fun index1 s i = "(_ " ^ s ^ " " ^ string_of_int i ^ ")"
   fun index2 s i j = "(_ " ^ s ^ " " ^ string_of_int i ^ " " ^ string_of_int j ^ ")"
 
-  fun word_typ (Type (@{type_name word}, [T])) = Option.map (index1 "BitVec") (try dest_binT T)
+  fun word_typ (Type (@{type_name word}, [T])) =
+      Option.map (rpair [] o index1 "BitVec") (try dest_binT T)
     | word_typ _ = NONE
 
   fun word_num (Type (@{type_name word}, [T])) k =

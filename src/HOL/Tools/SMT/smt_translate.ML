@@ -10,8 +10,8 @@ sig
   datatype squant = SForall | SExists
   datatype 'a spattern = SPat of 'a list | SNoPat of 'a list
   datatype sterm =
-    SVar of int |
-    SApp of string * sterm list |
+    SVar of int * sterm list |
+    SConst of string * sterm list |
     SQua of squant * string list * sterm spattern list * sterm
 
   (*translation configuration*)
@@ -21,6 +21,7 @@ sig
     dtyps: (BNF_Util.fp_kind * (string * (string * (string * string) list) list)) list,
     funcs: (string * (string list * string)) list }
   type config = {
+    order: SMT_Util.order,
     logic: term list -> string,
     fp_kinds: BNF_Util.fp_kind list,
     serialize: (string * string) list -> string list -> sign -> sterm list -> string }
@@ -50,8 +51,8 @@ datatype 'a spattern =
   SPat of 'a list | SNoPat of 'a list
 
 datatype sterm =
-  SVar of int |
-  SApp of string * sterm list |
+  SVar of int * sterm list |
+  SConst of string * sterm list |
   SQua of squant * string list * sterm spattern list * sterm
 
 
@@ -64,6 +65,7 @@ type sign = {
   funcs: (string * (string list * string)) list }
 
 type config = {
+  order: SMT_Util.order,
   logic: term list -> string,
   fp_kinds: BNF_Util.fp_kind list,
   serialize: (string * string) list -> string list -> sign -> sterm list -> string }
@@ -147,7 +149,7 @@ fun collect_co_datatypes fp_kinds (tr_context, ctxt) ts =
 
     fun add_typ' T proper =
       (case SMT_Builtin.dest_builtin_typ ctxt' T of
-        SOME n => pair n
+        SOME (n, Ts) => pair n (* FIXME HO: Consider Ts *)
       | NONE => add_typ T proper)
 
     fun tr_select sel =
@@ -425,10 +427,11 @@ fun intermediate logic dtyps builtin ctxt ts trx =
       | transT (T as TVar _) = (fn _ => raise TYPE ("bad SMT type", [T], []))
       | transT (T as Type _) =
           (case SMT_Builtin.dest_builtin_typ ctxt T of
-            SOME n => pair n
+            SOME (n, []) => pair n
+          | SOME (n, Ts) =>
+            fold_map transT Ts
+            #>> (fn ns => enclose "(" ")" (space_implode " " (n :: ns)))
           | NONE => add_typ T true)
-
-    fun app n ts = SApp (n, ts)
 
     fun trans t =
       (case Term.strip_comb t of
@@ -440,17 +443,17 @@ fun intermediate logic dtyps builtin ctxt ts trx =
           | NONE => raise TERM ("unsupported quantifier", [t]))
       | (u as Const (c as (_, T)), ts) =>
           (case builtin ctxt c ts of
-            SOME (n, _, us, _) => fold_map trans us #>> app n
-          | NONE => transs u T ts)
-      | (u as Free (_, T), ts) => transs u T ts
-      | (Bound i, []) => pair (SVar i)
+            SOME (n, _, us, _) => fold_map trans us #>> curry SConst n
+          | NONE => trans_applied_fun u T ts)
+      | (u as Free (_, T), ts) => trans_applied_fun u T ts
+      | (Bound i, ts) => pair i ##>> fold_map trans ts #>> SVar
       | _ => raise TERM ("bad SMT term", [t]))
 
-    and transs t T ts =
+    and trans_applied_fun t T ts =
       let val (Us, U) = SMT_Util.dest_funT (length ts) T
       in
         fold_map transT Us ##>> transT U #-> (fn Up =>
-          add_fun t (SOME Up) ##>> fold_map trans ts #>> SApp)
+          add_fun t (SOME Up) ##>> fold_map trans ts #>> SConst)
       end
 
     val (us, trx') = fold_map trans ts trx
@@ -480,7 +483,7 @@ fun get_config ctxt =
 
 fun translate ctxt smt_options comments ithms =
   let
-    val {logic, fp_kinds, serialize} = get_config ctxt
+    val {order, logic, fp_kinds, serialize} = get_config ctxt
 
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
@@ -510,10 +513,14 @@ fun translate ctxt smt_options comments ithms =
       |> rpair ctxt1
       |-> Lambda_Lifting.lift_lambdas NONE is_binder
       |-> (fn (ts', ll_defs) => fn ctxt' =>
-          (ctxt', (intro_explicit_application ctxt' funcs (map mk_trigger ll_defs @ ts'), ll_defs)))
-
+        let
+          val ts'' = map mk_trigger ll_defs @ ts'
+            |> order = SMT_Util.First_Order ? intro_explicit_application ctxt' funcs
+        in
+          (ctxt', (ts'', ll_defs))
+        end)
     val ((rewrite_rules, builtin), ts4) = folify ctxt2 ts3
-      |>> apfst (cons fun_app_eq)
+      |>> order = SMT_Util.First_Order ? apfst (cons fun_app_eq)
   in
     (ts4, tr_context)
     |-> intermediate logic dtyps (builtin SMT_Builtin.dest_builtin) ctxt2

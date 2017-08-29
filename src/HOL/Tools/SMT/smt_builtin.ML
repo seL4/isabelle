@@ -11,11 +11,11 @@ sig
 
   (*built-in types*)
   val add_builtin_typ: SMT_Util.class ->
-    typ * (typ -> string option) * (typ -> int -> string option) -> Context.generic ->
+    typ * (typ -> (string * typ list) option) * (typ -> int -> string option) -> Context.generic ->
     Context.generic
   val add_builtin_typ_ext: typ * (Proof.context -> typ -> bool) -> Context.generic ->
     Context.generic
-  val dest_builtin_typ: Proof.context -> typ -> string option
+  val dest_builtin_typ: Proof.context -> typ -> (string * typ list) option
   val is_builtin_typ_ext: Proof.context -> typ -> bool
 
   (*built-in numbers*)
@@ -93,7 +93,8 @@ type bfunr = string * int * term list * (term list -> term)
 structure Builtins = Generic_Data
 (
   type T =
-    (Proof.context -> typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab *
+    (Proof.context -> typ -> bool,
+     (typ -> (string * typ list) option) * (typ -> int -> string option)) ttab *
     (term list bfun, bfunr option bfun) btab
   val empty = ([], Symtab.empty)
   val extend = I

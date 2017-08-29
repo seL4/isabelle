@@ -62,6 +62,7 @@ val cvc3: SMT_Solver.solver_config = {
 
 end
 
+
 (* CVC4 *)
 
 val cvc4_extensions = Attrib.setup_config_bool @{binding cvc4_extensions} (K false)
@@ -75,8 +76,16 @@ local
     "--tlimit", string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT_Config.timeout))]
 
   fun select_class ctxt =
-    if Config.get ctxt cvc4_extensions then CVC4_Interface.smtlib_cvc4C
-    else SMTLIB_Interface.smtlibC
+    if Config.get ctxt cvc4_extensions then
+      if Config.get ctxt SMT_Config.higher_order then
+        CVC4_Interface.hosmtlib_cvc4C
+      else
+        CVC4_Interface.smtlib_cvc4C
+    else
+      if Config.get ctxt SMT_Config.higher_order then
+        SMTLIB_Interface.hosmtlibC
+      else
+        SMTLIB_Interface.smtlibC
 in
 
 val cvc4: SMT_Solver.solver_config = {
@@ -93,11 +102,20 @@ val cvc4: SMT_Solver.solver_config = {
 
 end
 
+
 (* veriT *)
+
+local
+  fun select_class ctxt =
+    if Config.get ctxt SMT_Config.higher_order then
+      SMTLIB_Interface.hosmtlibC
+    else
+      SMTLIB_Interface.smtlibC
+in
 
 val veriT: SMT_Solver.solver_config = {
   name = "verit",
-  class = K SMTLIB_Interface.smtlibC,
+  class = select_class,
   avail = make_avail "VERIT",
   command = make_command "VERIT",
   options = (fn ctxt => [
@@ -112,6 +130,9 @@ val veriT: SMT_Solver.solver_config = {
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
   replay = NONE }
+
+end
+
 
 (* Z3 *)
 

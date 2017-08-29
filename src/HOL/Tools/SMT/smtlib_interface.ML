@@ -8,8 +8,9 @@ Interface to SMT solvers based on the SMT-LIB 2 format.
 signature SMTLIB_INTERFACE =
 sig
   val smtlibC: SMT_Util.class
+  val hosmtlibC: SMT_Util.class
   val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
-  val translate_config: Proof.context -> SMT_Translate.config
+  val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
   val assert_name_of_index: int -> string
   val assert_index_of_name: string -> int
   val assert_prefix : string
@@ -18,7 +19,10 @@ end;
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
 struct
 
-val smtlibC = ["smtlib"]
+val hoC = ["ho"]
+
+val smtlibC = ["smtlib"]   (* SMT-LIB 2 *)
+val hosmtlibC = smtlibC @ hoC   (* possibly SMT-LIB 3 *)
 
 
 (* builtins *)
@@ -36,9 +40,11 @@ local
 in
 
 val setup_builtins =
+  SMT_Builtin.add_builtin_typ hosmtlibC
+    (@{typ "'a => 'b"}, fn Type (@{type_name fun}, Ts) => SOME ("->", Ts), K (K NONE)) #>
   fold (SMT_Builtin.add_builtin_typ smtlibC) [
-    (@{typ bool}, K (SOME "Bool"), K (K NONE)),
-    (@{typ int}, K (SOME "Int"), int_num)] #>
+    (@{typ bool}, K (SOME ("Bool", [])), K (K NONE)),
+    (@{typ int}, K (SOME ("Int", [])), int_num)] #>
   fold (SMT_Builtin.add_builtin_fun' smtlibC) [
     (@{const True}, "true"),
     (@{const False}, "false"),
@@ -90,9 +96,11 @@ fun choose_logic ctxt ts =
 
 fun var i = "?v" ^ string_of_int i
 
-fun tree_of_sterm l (SMT_Translate.SVar i) = SMTLIB.Sym (var (l - i - 1))
-  | tree_of_sterm _ (SMT_Translate.SApp (n, [])) = SMTLIB.Sym n
-  | tree_of_sterm l (SMT_Translate.SApp (n, ts)) =
+fun tree_of_sterm l (SMT_Translate.SVar (i, [])) = SMTLIB.Sym (var (l - i - 1))
+  | tree_of_sterm l (SMT_Translate.SVar (i, ts)) =
+      SMTLIB.S (SMTLIB.Sym (var (l - i - 1)) :: map (tree_of_sterm l) ts)
+  | tree_of_sterm _ (SMT_Translate.SConst (n, [])) = SMTLIB.Sym n
+  | tree_of_sterm l (SMT_Translate.SConst (n, ts)) =
       SMTLIB.S (SMTLIB.Sym n :: map (tree_of_sterm l) ts)
   | tree_of_sterm l (SMT_Translate.SQua (q, ss, pats, t)) =
       let
@@ -157,13 +165,15 @@ fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
 
 (* interface *)
 
-fun translate_config ctxt = {
+fun translate_config order ctxt = {
+  order = order,
   logic = choose_logic ctxt,
   fp_kinds = [],
   serialize = serialize}
 
 val _ = Theory.setup (Context.theory_map
   (setup_builtins #>
-   SMT_Translate.add_config (smtlibC, translate_config)))
+   SMT_Translate.add_config (smtlibC, translate_config SMT_Util.First_Order) #>
+   SMT_Translate.add_config (hosmtlibC, translate_config SMT_Util.Higher_Order)))
 
 end;

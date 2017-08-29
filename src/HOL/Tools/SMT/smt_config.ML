@@ -32,6 +32,7 @@ sig
   val statistics: bool Config.T
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
+  val higher_order: bool Config.T
   val nat_as_int: bool Config.T
   val infer_triggers: bool Config.T
   val debug_files: string Config.T
@@ -180,6 +181,7 @@ val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
 val statistics = Attrib.setup_config_bool @{binding smt_statistics} (K false)
 val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
 val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
+val higher_order = Attrib.setup_config_bool @{binding smt_higher_order} (K false)
 val nat_as_int = Attrib.setup_config_bool @{binding smt_nat_as_int} (K false)
 val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
 val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
