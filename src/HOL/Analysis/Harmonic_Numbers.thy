@@ -261,8 +261,8 @@ proof -
   have f'_nonpos: "f' \<le> 0" using assms by (simp add: f'_def divide_simps)
   let ?f = "\<lambda>t. (t - x) * f' + inverse x"
   let ?F = "\<lambda>t. (t - x)^2 * f' / 2 + t * inverse x"
-  have diff: "\<forall>t\<in>{x..x+a}. (?F has_vector_derivative ?f t)
-                               (at t within {x..x+a})" using assms
+  have diff: "\<And>t. t \<in> {x..x+a} \<Longrightarrow> (?F has_vector_derivative ?f t) (at t within {x..x+a})" 
+    using assms
     by (auto intro!: derivative_eq_intros
              simp: has_field_derivative_iff_has_vector_derivative[symmetric])
   from assms have "(?f has_integral (?F (x+a) - ?F x)) {x..x+a}"
