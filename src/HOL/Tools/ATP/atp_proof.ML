@@ -347,10 +347,13 @@ fun parse_type x =
     || (scan_general_id -- Scan.optional ($$ "{" |-- parse_classes --| $$ "}") [])
         -- Scan.optional ($$ "(" |-- parse_types --| $$ ")") []
        >> AType)
-   -- Scan.option ($$ tptp_fun_type |-- parse_type)
+   -- Scan.option (($$ tptp_fun_type || $$ tptp_product_type) -- parse_type)
   >> (fn (a, NONE) => a
-       | (a, SOME b) => AFun (a, b))) x
-and parse_types x = (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
+       | (a, SOME (fun_or_product, b)) =>
+         if fun_or_product = tptp_fun_type then AFun (a, b)
+         else AType ((tptp_product_type, []), [a, b]))) x
+and parse_types x =
+  (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
 
 (* We currently half ignore types. *)
 fun parse_optional_type_signature x =

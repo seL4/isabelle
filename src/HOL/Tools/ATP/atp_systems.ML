@@ -717,7 +717,7 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
     (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["4.2", "4.0"]
+  remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
     (K (((400, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
