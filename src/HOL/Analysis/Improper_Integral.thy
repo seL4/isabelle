@@ -220,7 +220,10 @@ proof -
     qed
   qed
   then show ?thesis
-    using assms by (auto simp: equiintegrable_on_def integrable_eq)
+    using assms
+    apply (auto simp: equiintegrable_on_def)
+    apply (rule integrable_eq)
+    by auto 
 qed
 
 subsection\<open>Subinterval restrictions for equiintegrable families\<close>
