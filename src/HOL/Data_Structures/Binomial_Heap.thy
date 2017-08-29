@@ -97,8 +97,8 @@ includes pattern_aliases
 begin
 
 fun link :: "('a::linorder) tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
-  "link (Node r x\<^sub>1 c\<^sub>1 =: t\<^sub>1) (Node _ x\<^sub>2 c\<^sub>2 =: t\<^sub>2) = 
-    (if x\<^sub>1\<le>x\<^sub>2 then Node (r+1) x\<^sub>1 (t\<^sub>2#c\<^sub>1) else Node (r+1) x\<^sub>2 (t\<^sub>1#c\<^sub>2))"
+  "link (Node r x\<^sub>1 ts\<^sub>1 =: t\<^sub>1) (Node r' x\<^sub>2 ts\<^sub>2 =: t\<^sub>2) = 
+    (if x\<^sub>1\<le>x\<^sub>2 then Node (r+1) x\<^sub>1 (t\<^sub>2#ts\<^sub>1) else Node (r+1) x\<^sub>2 (t\<^sub>1#ts\<^sub>2))"
 
 end
 
