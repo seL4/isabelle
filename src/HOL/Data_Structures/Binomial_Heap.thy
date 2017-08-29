@@ -254,9 +254,7 @@ subsubsection \<open>\<open>get_min\<close>\<close>
 
 fun get_min :: "'a::linorder heap \<Rightarrow> 'a" where
   "get_min [t] = root t"
-| "get_min (t#ts) = (let x = root t; 
-                          y = get_min ts
-                      in if x \<le> y then x else y)"
+| "get_min (t#ts) = min (root t) (get_min ts)"
   
 lemma invar_otree_root_min:
   assumes "invar_otree t"
@@ -273,7 +271,7 @@ lemma get_min_mset_aux:
   using assms  
 apply (induction ts arbitrary: x rule: get_min.induct)  
 apply (auto 
-      simp: invar_otree_root_min intro: order_trans;
+      simp: invar_otree_root_min min_def intro: order_trans;
       meson linear order_trans invar_otree_root_min
       )+
 done  
@@ -287,7 +285,7 @@ using assms by (auto simp: invar_def get_min_mset_aux)
 
 lemma get_min_member:    
   "ts\<noteq>[] \<Longrightarrow> get_min ts \<in># mset_heap ts"  
-by (induction ts rule: get_min.induct) (auto)
+by (induction ts rule: get_min.induct) (auto simp: min_def)
 
 lemma get_min:    
   assumes "mset_heap ts \<noteq> {#}"
@@ -308,7 +306,7 @@ lemma get_min_rest_get_min_same_root:
   assumes "get_min_rest ts = (t',ts')"  
   shows "root t' = get_min ts"  
 using assms  
-by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto split: prod.splits)
+by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto simp: min_def split: prod.splits)
 
 lemma mset_get_min_rest:    
   assumes "get_min_rest ts = (t',ts')"  
