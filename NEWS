@@ -212,6 +212,10 @@ totient function previously hidden as solitary example in theory
 Residues. Definition changed so that "totient 1 = 1" in agreement with
 the literature. Minor INCOMPATIBILITY.
 
+* New styles in theory Library/LaTeXsugar:
+  - "dummy_pats" for printing equations with "_" on the lhs;
+  - "eta_expand" for printing eta-expanded terms.
+
 * Theory "HOL-Library.Permutations": theorem bij_swap_ompose_bij has
 been renamed to bij_swap_compose_bij. INCOMPATIBILITY.
 
