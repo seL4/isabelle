@@ -248,7 +248,7 @@ options.
 
 declare [[cvc3_options = ""]]
 declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call --inst-no-entail --term-db-mode=relevant --multi-trigger-linear"]]
-declare [[verit_options = ""]]
+declare [[verit_options = "--index-sorts --index-fresh-sorts"]]
 declare [[z3_options = ""]]
 
 text \<open>
