@@ -685,10 +685,10 @@ lemma integral_component_eq[simp]:
   unfolding integral_linear[OF assms(1) bounded_linear_inner_left,unfolded o_def] ..
 
 lemma has_integral_sum:
-  assumes "finite t"
-    and "\<forall>a\<in>t. ((f a) has_integral (i a)) S"
-  shows "((\<lambda>x. sum (\<lambda>a. f a x) t) has_integral (sum i t)) S"
-  using assms(1) subset_refl[of t]
+  assumes "finite T"
+    and "\<And>a. a \<in> T \<Longrightarrow> ((f a) has_integral (i a)) S"
+  shows "((\<lambda>x. sum (\<lambda>a. f a x) T) has_integral (sum i T)) S"
+  using assms(1) subset_refl[of T]
 proof (induct rule: finite_subset_induct)
   case empty
   then show ?case by auto
@@ -2328,9 +2328,9 @@ lemma negligible_finite[intro]:
   using assms by (induct s) auto
 
 lemma negligible_Union[intro]:
-  assumes "finite s"
-    and "\<forall>t\<in>s. negligible t"
-  shows "negligible(\<Union>s)"
+  assumes "finite \<T>"
+    and "\<And>t. t \<in> \<T> \<Longrightarrow> negligible t"
+  shows "negligible(\<Union>\<T>)"
   using assms by induct auto
 
 lemma negligible:
@@ -5123,43 +5123,42 @@ lemma integrable_Un':
 
 lemma has_integral_Union:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "finite t"
-    and "\<forall>s\<in>t. (f has_integral (i s)) s"
-    and "\<forall>s\<in>t. \<forall>s'\<in>t. s \<noteq> s' \<longrightarrow> negligible (s \<inter> s')"
-  shows "(f has_integral (sum i t)) (\<Union>t)"
+  assumes \<T>: "finite \<T>"
+    and int: "\<And>S. S \<in> \<T> \<Longrightarrow> (f has_integral (i S)) S"
+    and neg: "\<And>S S'. \<lbrakk>S \<in> \<T>; S' \<in> \<T>; S \<noteq> S'\<rbrakk> \<Longrightarrow> negligible (S \<inter> S')"
+  shows "(f has_integral (sum i \<T>)) (\<Union>\<T>)"
 proof -
-  note * = has_integral_restrict_UNIV[symmetric, of f]
-  have **: "negligible (\<Union>((\<lambda>(a,b). a \<inter> b) ` {(a,b). a \<in> t \<and> b \<in> {y. y \<in> t \<and> a \<noteq> y}}))"
-    apply (rule negligible_Union)
-    apply (rule finite_imageI)
-    apply (rule finite_subset[of _ "t \<times> t"])
-    defer
-    apply (rule finite_cartesian_product[OF assms(1,1)])
-    using assms(3)
-    apply auto
-    done
-  note assms(2)[unfolded *]
-  note has_integral_sum[OF assms(1) this]
-  then show ?thesis
-    unfolding *
-    apply -
-    apply (rule has_integral_spike[OF **])
-    defer
-    apply assumption
-    apply safe
-  proof goal_cases
-    case prems: (1 x)
-    then show ?case
-    proof (cases "x \<in> \<Union>t")
-      case True
-      then obtain s where "s \<in> t" "x \<in> s"
-        by blast
-      moreover then have "\<forall>b\<in>t. x \<in> b \<longleftrightarrow> b = s"
-        using prems(3) by blast
-      ultimately show ?thesis
-        by (simp add: sum.delta[OF assms(1)])
-    qed auto
+  let ?\<U> = "((\<lambda>(a,b). a \<inter> b) ` {(a,b). a \<in> \<T> \<and> b \<in> {y. y \<in> \<T> \<and> a \<noteq> y}})"
+  have "((\<lambda>x. if x \<in> \<Union>\<T> then f x else 0) has_integral sum i \<T>) UNIV"
+  proof (rule has_integral_spike)
+    show "negligible (\<Union>?\<U>)"
+    proof (rule negligible_Union)
+      have "finite (\<T> \<times> \<T>)"
+        by (simp add: \<T>)
+      moreover have "{(a, b). a \<in> \<T> \<and> b \<in> {y \<in> \<T>. a \<noteq> y}} \<subseteq> \<T> \<times> \<T>"
+        by auto
+      ultimately show "finite ?\<U>"
+        by (blast intro: finite_subset[of _ "\<T> \<times> \<T>"])
+      show "\<And>t. t \<in> ?\<U> \<Longrightarrow> negligible t"
+        using neg by auto
+    qed
+  next
+    show "(if x \<in> \<Union>\<T> then f x else 0) = (\<Sum>A\<in>\<T>. if x \<in> A then f x else 0)"
+      if "x \<in> UNIV - (\<Union>?\<U>)" for x
+    proof clarsimp
+      fix S assume "S \<in> \<T>" "x \<in> S"
+      moreover then have "\<forall>b\<in>\<T>. x \<in> b \<longleftrightarrow> b = S"
+        using that by blast
+      ultimately show "f x = (\<Sum>A\<in>\<T>. if x \<in> A then f x else 0)"
+        by (simp add: sum.delta[OF \<T>])
+    qed 
+  next
+    show "((\<lambda>x. \<Sum>A\<in>\<T>. if x \<in> A then f x else 0) has_integral (\<Sum>A\<in>\<T>. i A)) UNIV"
+      apply (rule has_integral_sum [OF \<T>])
+      using int by (simp add: has_integral_restrict_UNIV)
   qed
+  then show ?thesis
+    using has_integral_restrict_UNIV by blast
 qed
 
 
