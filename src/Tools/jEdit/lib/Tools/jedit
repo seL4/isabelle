@@ -22,6 +22,7 @@ esac
 declare -a SOURCES_BASE=(
   "src-base/isabelle_encoding.scala"
   "src-base/plugin.scala"
+  "src-base/syntax_style.scala"
 )
 
 declare -a RESOURCES_BASE=(
