@@ -5166,61 +5166,54 @@ text \<open>In particular adding integrals over a division, maybe not of an inte
 
 lemma has_integral_combine_division:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "d division_of S"
-    and "\<And>k. k \<in> d \<Longrightarrow> (f has_integral (i k)) k"
-  shows "(f has_integral (sum i d)) S"
+  assumes "\<D> division_of S"
+    and "\<And>k. k \<in> \<D> \<Longrightarrow> (f has_integral (i k)) k"
+  shows "(f has_integral (sum i \<D>)) S"
 proof -
-  note d = division_ofD[OF assms(1)]
-  have neg: "negligible (S \<inter> s')" if "S \<in> d" "s' \<in> d" "S \<noteq> s'" for S s'
+  note \<D> = division_ofD[OF assms(1)]
+  have neg: "negligible (S \<inter> s')" if "S \<in> \<D>" "s' \<in> \<D>" "S \<noteq> s'" for S s'
   proof -
-    obtain a c b d where obt: "S = cbox a b" "s' = cbox c d"
-      by (meson \<open>S \<in> d\<close> \<open>s' \<in> d\<close> d(4))
-    from d(5)[OF that] show ?thesis
+    obtain a c b \<D> where obt: "S = cbox a b" "s' = cbox c \<D>"
+      by (meson \<open>S \<in> \<D>\<close> \<open>s' \<in> \<D>\<close> \<D>(4))
+    from \<D>(5)[OF that] show ?thesis
       unfolding obt interior_cbox
       by (metis (no_types, lifting) Diff_empty Int_interval box_Int_box negligible_frontier_interval)
   qed
   show ?thesis
-    unfolding d(6)[symmetric]
-    by (auto intro: d neg assms has_integral_Union)
+    unfolding \<D>(6)[symmetric]
+    by (auto intro: \<D> neg assms has_integral_Union)
 qed
 
 lemma integral_combine_division_bottomup:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "d division_of S"
-    and "\<And>k. k \<in> d \<Longrightarrow> f integrable_on k"
-  shows "integral S f = sum (\<lambda>i. integral i f) d"
+  assumes "\<D> division_of S" "\<And>k. k \<in> \<D> \<Longrightarrow> f integrable_on k"
+  shows "integral S f = sum (\<lambda>i. integral i f) \<D>"
   apply (rule integral_unique)
-  apply (rule has_integral_combine_division[OF assms(1)])
-  using assms(2)
-  unfolding has_integral_integral
-  apply assumption
-  done
+  by (meson assms has_integral_combine_division has_integral_integrable_integral)
 
 lemma has_integral_combine_division_topdown:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on S"
-    and "d division_of k"
-    and "k \<subseteq> S"
-  shows "(f has_integral (sum (\<lambda>i. integral i f) d)) k"
-  apply (rule has_integral_combine_division[OF assms(2)])
-  unfolding has_integral_integral[symmetric]
-proof goal_cases
-  case (1 k)
-  from division_ofD(2,4)[OF assms(2) this]
-  show ?case
-    apply safe
-    apply (rule integrable_on_subcbox)
-    apply (rule assms)
-    using assms(3)
-    apply auto
-    done
+  assumes f: "f integrable_on S"
+    and \<D>: "\<D> division_of K"
+    and "K \<subseteq> S"
+  shows "(f has_integral (sum (\<lambda>i. integral i f) \<D>)) K"
+proof -
+  have "f integrable_on L" if "L \<in> \<D>" for L
+  proof -
+    have "L \<subseteq> S"
+      using \<open>K \<subseteq> S\<close> \<D> that by blast
+    then show "f integrable_on L"
+      using that by (metis (no_types) f \<D> division_ofD(4) integrable_on_subcbox)
+  qed
+  then show ?thesis
+    by (meson \<D> has_integral_combine_division has_integral_integrable_integral)
 qed
 
 lemma integral_combine_division_topdown:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "f integrable_on S"
-    and "d division_of S"
-  shows "integral S f = sum (\<lambda>i. integral i f) d"
+    and "\<D> division_of S"
+  shows "integral S f = sum (\<lambda>i. integral i f) \<D>"
   apply (rule integral_unique)
   apply (rule has_integral_combine_division_topdown)
   using assms
@@ -5229,30 +5222,27 @@ lemma integral_combine_division_topdown:
 
 lemma integrable_combine_division:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "d division_of S"
-    and "\<forall>i\<in>d. f integrable_on i"
+  assumes \<D>: "\<D> division_of S"
+    and f: "\<And>i. i \<in> \<D> \<Longrightarrow> f integrable_on i"
   shows "f integrable_on S"
-  using assms(2)
-  unfolding integrable_on_def
-  by (metis has_integral_combine_division[OF assms(1)])
+  using f unfolding integrable_on_def by (metis has_integral_combine_division[OF \<D>])
 
 lemma integrable_on_subdivision:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "d division_of i"
-    and "f integrable_on S"
+  assumes \<D>: "\<D> division_of i"
+    and f: "f integrable_on S"
     and "i \<subseteq> S"
   shows "f integrable_on i"
-  apply (rule integrable_combine_division assms)+
-  apply safe
-proof goal_cases
-  case 1
-  note division_ofD(2,4)[OF assms(1) this]
-  then show ?case
-    apply safe
-    apply (rule integrable_on_subcbox[OF assms(2)])
-    using assms(3)
-    apply auto
-    done
+proof -
+  have "f integrable_on i" if "i \<in> \<D>" for i
+proof -
+  have "i \<subseteq> S"
+    using assms that by auto
+  then show "f integrable_on i"
+    using that by (metis (no_types) \<D> f division_ofD(4) integrable_on_subcbox)
+qed
+  then show ?thesis
+    using \<D> integrable_combine_division by blast
 qed
 
 
@@ -5293,16 +5283,14 @@ lemma integral_combine_tagged_division_bottomup:
 
 lemma has_integral_combine_tagged_division_topdown:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on cbox a b"
-    and "p tagged_division_of (cbox a b)"
-  shows "(f has_integral (sum (\<lambda>(x,k). integral k f) p)) (cbox a b)"
-  apply (rule has_integral_combine_tagged_division[OF assms(2)])
-  apply safe
-proof goal_cases
-  case 1
-  note tagged_division_ofD(3-4)[OF assms(2) this]
-  then show ?case
-    using integrable_subinterval[OF assms(1)] by blast
+  assumes f: "f integrable_on cbox a b"
+    and p: "p tagged_division_of (cbox a b)"
+  shows "(f has_integral (sum (\<lambda>(x,K). integral K f) p)) (cbox a b)"
+proof -
+  have "(f has_integral integral K f) K" if "(x,K) \<in> p" for x K
+    by (metis assms integrable_integral integrable_on_subcbox tagged_division_ofD(3,4) that)
+  then show ?thesis
+    by (metis assms case_prodI2 has_integral_integrable_integral integral_combine_tagged_division_bottomup)
 qed
 
 lemma integral_combine_tagged_division_topdown:
@@ -5310,10 +5298,8 @@ lemma integral_combine_tagged_division_topdown:
   assumes "f integrable_on cbox a b"
     and "p tagged_division_of (cbox a b)"
   shows "integral (cbox a b) f = sum (\<lambda>(x,k). integral k f) p"
-  apply (rule integral_unique)
-  apply (rule has_integral_combine_tagged_division_topdown)
-  using assms
-  apply auto
+  apply (rule integral_unique [OF has_integral_combine_tagged_division_topdown])
+  using assms apply auto
   done
 
 
