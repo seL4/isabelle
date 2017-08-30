@@ -29,7 +29,15 @@ object Mercurial
   /* repository access */
 
   def is_repository(root: Path, ssh: Option[SSH.Session] = None): Boolean =
-    new Repository(root, ssh).command("root").ok
+  {
+    val root_hg = root + Path.explode(".hg")
+    val root_hg_present =
+      ssh match {
+        case None => root_hg.is_dir
+        case Some(ssh) => ssh.is_dir(root_hg)
+      }
+    root_hg_present && new Repository(root, ssh).command("root").ok
+  }
 
   def repository(root: Path, ssh: Option[SSH.Session] = None): Repository =
   {
