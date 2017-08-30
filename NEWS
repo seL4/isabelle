@@ -250,6 +250,8 @@ INCOMPATIBILITY.
 * Theory "HOL-Library.Pattern_Aliases" provides input and output syntax
 for pattern aliases as known from Haskell, Scala and ML.
 
+* Theory "HOL-Library.Uprod" formalizes the type of unordered pairs.
+
 * Session HOL-Analysis: more material involving arcs, paths, covering
 spaces, innessential maps, retracts, material on infinite products.
 Major results include the Jordan Curve Theorem and the Great Picard

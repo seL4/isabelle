@@ -82,6 +82,7 @@ imports
   Tree_Multiset
   Tree_Real
   Type_Length
+  Uprod
   While_Combinator
 begin
 end
