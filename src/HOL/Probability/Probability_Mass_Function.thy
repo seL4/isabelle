@@ -529,6 +529,25 @@ lemma integral_map_pmf[simp]:
   shows "integral\<^sup>L (map_pmf g p) f = integral\<^sup>L p (\<lambda>x. f (g x))"
   by (simp add: integral_distr map_pmf_rep_eq)
 
+lemma pmf_abs_summable [intro]: "pmf p abs_summable_on A"
+  by (rule abs_summable_on_subset[OF _ subset_UNIV]) 
+     (auto simp:  abs_summable_on_def integrable_iff_bounded nn_integral_pmf)
+
+lemma measure_pmf_conv_infsetsum: "measure (measure_pmf p) A = infsetsum (pmf p) A"
+  unfolding infsetsum_def by (simp add: integral_eq_nn_integral nn_integral_pmf measure_def)  
+
+lemma infsetsum_pmf_eq_1:
+  assumes "set_pmf p \<subseteq> A"
+  shows   "infsetsum (pmf p) A = 1"
+proof -
+  have "infsetsum (pmf p) A = lebesgue_integral (count_space UNIV) (pmf p)"
+    using assms unfolding infsetsum_altdef
+    by (intro Bochner_Integration.integral_cong) (auto simp: indicator_def set_pmf_eq)
+  also have "\<dots> = 1"
+    by (subst integral_eq_nn_integral) (auto simp: nn_integral_pmf)
+  finally show ?thesis .
+qed
+
 lemma map_return_pmf [simp]: "map_pmf f (return_pmf x) = return_pmf (f x)"
   by transfer (simp add: distr_return)
 
@@ -2078,6 +2097,20 @@ lemma emeasure_Int_set_pmf:
 lemma measure_Int_set_pmf:
   "measure (measure_pmf p) (A \<inter> set_pmf p) = measure (measure_pmf p) A"
   using emeasure_Int_set_pmf[of p A] by (simp add: Sigma_Algebra.measure_def)
+
+lemma measure_prob_cong_0:
+  assumes "\<And>x. x \<in> A - B \<Longrightarrow> pmf p x = 0"
+  assumes "\<And>x. x \<in> B - A \<Longrightarrow> pmf p x = 0"
+  shows   "measure (measure_pmf p) A = measure (measure_pmf p) B"
+proof -
+  have "measure_pmf.prob p A = measure_pmf.prob p (A \<inter> set_pmf p)"
+    by (simp add: measure_Int_set_pmf)
+  also have "A \<inter> set_pmf p = B \<inter> set_pmf p"
+    using assms by (auto simp: set_pmf_eq)
+  also have "measure_pmf.prob p \<dots> = measure_pmf.prob p B"
+    by (simp add: measure_Int_set_pmf)
+  finally show ?thesis .
+qed
 
 lemma emeasure_pmf_of_list:
   assumes "pmf_of_list_wf xs"

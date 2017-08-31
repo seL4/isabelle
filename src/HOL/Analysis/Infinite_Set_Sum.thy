@@ -350,6 +350,25 @@ lemma abs_summable_on_cmult_left [intro]:
   shows   "(\<lambda>x. f x * c) abs_summable_on A"
   using assms unfolding abs_summable_on_def by (intro Bochner_Integration.integrable_mult_left)
 
+lemma abs_summable_on_prod_PiE:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c :: {real_normed_field,banach,second_countable_topology}"
+  assumes finite: "finite A" and countable: "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
+  assumes summable: "\<And>x. x \<in> A \<Longrightarrow> f x abs_summable_on B x"
+  shows   "(\<lambda>g. \<Prod>x\<in>A. f x (g x)) abs_summable_on PiE A B"
+proof -
+  define B' where "B' = (\<lambda>x. if x \<in> A then B x else {})"
+  from assms have [simp]: "countable (B' x)" for x
+    by (auto simp: B'_def)
+  then interpret product_sigma_finite "count_space \<circ> B'"
+    unfolding o_def by (intro product_sigma_finite.intro sigma_finite_measure_count_space_countable)
+  from assms have "integrable (PiM A (count_space \<circ> B')) (\<lambda>g. \<Prod>x\<in>A. f x (g x))"
+    by (intro product_integrable_prod) (auto simp: abs_summable_on_def B'_def)
+  also have "PiM A (count_space \<circ> B') = count_space (PiE A B')"
+    unfolding o_def using finite by (intro count_space_PiM_finite) simp_all
+  also have "PiE A B' = PiE A B" by (intro PiE_cong) (simp_all add: B'_def)
+  finally show ?thesis by (simp add: abs_summable_on_def)
+qed
+
 
 
 lemma not_summable_infsetsum_eq:
@@ -365,6 +384,18 @@ lemma infsetsum_altdef':
   "A \<subseteq> B \<Longrightarrow> infsetsum f A = set_lebesgue_integral (count_space B) A f"
   by (subst integral_restrict_space [symmetric])
      (auto simp: restrict_count_space_subset infsetsum_def)
+
+lemma nn_integral_conv_infsetsum:
+  assumes "f abs_summable_on A" "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> 0"
+  shows   "nn_integral (count_space A) f = ennreal (infsetsum f A)"
+  using assms unfolding infsetsum_def abs_summable_on_def
+  by (subst nn_integral_eq_integral) auto
+
+lemma infsetsum_conv_nn_integral:
+  assumes "nn_integral (count_space A) f \<noteq> \<infinity>" "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> 0"
+  shows   "infsetsum f A = enn2real (nn_integral (count_space A) f)"
+  unfolding infsetsum_def using assms
+  by (subst integral_eq_nn_integral) auto
 
 lemma infsetsum_cong [cong]:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> A = B \<Longrightarrow> infsetsum f A = infsetsum g B"
