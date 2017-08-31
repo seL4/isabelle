@@ -307,10 +307,8 @@ object Sessions
     dirs: List[Path] = Nil,
     all_known: Boolean = false): Base =
   {
-    session_base_errors(options, session, dirs = dirs, all_known = all_known) match {
-      case (Nil, base) => base
-      case (errs, _) => error(cat_lines(errs))
-    }
+    val (errs, base) = session_base_errors(options, session, dirs = dirs, all_known = all_known)
+    if (errs.isEmpty) base else error(cat_lines(errs))
   }
 
 
