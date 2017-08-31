@@ -21,7 +21,17 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
-class JEdit_Resources(session_base: Sessions.Base) extends Resources(session_base)
+object JEdit_Resources
+{
+  def apply(options: Options): JEdit_Resources =
+  {
+    val (errs, base) = JEdit_Sessions.session_base(options)
+    new JEdit_Resources(errs, base)
+  }
+}
+
+class JEdit_Resources private(val session_errors: List[String], session_base: Sessions.Base)
+  extends Resources(session_base)
 {
   /* document node name */
 

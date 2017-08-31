@@ -377,7 +377,7 @@ object Build
     val deps =
       Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
         verbose = verbose, list_files = list_files, check_keywords = check_keywords,
-        global_theories = full_sessions.global_theories)
+        global_theories = full_sessions.global_theories).check_errors
 
     def sources_stamp(name: String): List[String] =
       (selected_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted

@@ -100,10 +100,9 @@ characters or completion); see also option "jedit_indent_input".
 * Action "isabelle.preview" opens an HTML preview of the current theory
 document in the default web browser.
 
-* Command-line invocation "isabelle jedit -R -l SESSION" uses the parent
-image of the SESSION, with qualified theory imports restricted to that
-portion of the session graph. Moreover, the ROOT entry of the SESSION is
-opened in the editor.
+* Command-line invocation "isabelle jedit -R -l LOGIC" opens the ROOT
+entry of the specified logic session in the editor, while its parent is
+used for formal checking.
 
 * The main Isabelle/jEdit plugin may be restarted manually (using the
 jEdit Plugin Manager), as long as the "Isabelle Base" plugin remains

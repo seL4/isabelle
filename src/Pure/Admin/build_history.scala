@@ -439,7 +439,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     /* prepare repository clones */
 
     val isabelle_hg =
-      Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = Some(ssh))
+      Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
 
     if (self_update) {
       val self_rev =
@@ -460,12 +460,12 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
     }
 
-    if (Mercurial.is_repository(isabelle_repos_other, ssh = Some(ssh))) {
+    if (Mercurial.is_repository(isabelle_repos_other, ssh = ssh)) {
       ssh.rm_tree(isabelle_repos_other)
     }
     val other_hg =
       Mercurial.clone_repository(
-        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev, ssh = Some(ssh))
+        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev, ssh = ssh)
 
 
     /* Admin/build_history */

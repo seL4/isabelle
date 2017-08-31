@@ -28,82 +28,51 @@ object Mercurial
 
   /* repository access */
 
-  def is_repository(root: Path, ssh: Option[SSH.Session] = None): Boolean =
-  {
-    val root_hg = root + Path.explode(".hg")
-    val root_hg_present =
-      ssh match {
-        case None => root_hg.is_dir
-        case Some(ssh) => ssh.is_dir(root_hg)
-      }
-    root_hg_present && new Repository(root, ssh).command("root").ok
-  }
+  def is_repository(root: Path, ssh: SSH.System = SSH.Local): Boolean =
+    ssh.is_dir(root + Path.explode(".hg")) &&
+    new Repository(root, ssh).command("root").ok
 
-  def repository(root: Path, ssh: Option[SSH.Session] = None): Repository =
+  def repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
   {
     val hg = new Repository(root, ssh)
     hg.command("root").check
     hg
   }
 
-  def find_repository(start: Path, ssh: Option[SSH.Session] = None): Option[Repository] =
+  def find_repository(start: Path, ssh: SSH.System = SSH.Local): Option[Repository] =
   {
     def find(root: Path): Option[Repository] =
       if (is_repository(root, ssh)) Some(repository(root, ssh = ssh))
       else if (root.is_root) None
       else find(root + Path.parent)
 
-    ssh match {
-      case None => find(start.expand)
-      case Some(ssh) => find(ssh.expand_path(start))
-    }
+    find(ssh.expand_path(start))
   }
 
   def clone_repository(source: String, root: Path, rev: String = "", options: String = "",
-    ssh: Option[SSH.Session] = None): Repository =
+    ssh: SSH.System = SSH.Local): Repository =
   {
     val hg = new Repository(root, ssh)
-    ssh match {
-      case None => Isabelle_System.mkdirs(hg.root.dir)
-      case Some(ssh) => ssh.mkdirs(hg.root.dir)
-    }
+    ssh.mkdirs(hg.root.dir)
     hg.command("clone", Bash.string(source) + " " + File.bash_path(hg.root) + opt_rev(rev), options)
       .check
     hg
   }
 
-  def setup_repository(source: String, root: Path, ssh: Option[SSH.Session] = None): Repository =
+  def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository =
   {
-    val present =
-      ssh match {
-        case None => root.is_dir
-        case Some(ssh) => ssh.is_dir(root)
-      }
-    if (present) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
+    if (ssh.is_dir(root)) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
 
-  class Repository private[Mercurial](root_path: Path, ssh: Option[SSH.Session])
+  class Repository private[Mercurial](root_path: Path, ssh: SSH.System = SSH.Local)
   {
     hg =>
 
-    val root =
-      ssh match {
-        case None => root_path.expand
-        case Some(ssh) => root_path.expand_env(ssh.settings)
-      }
+    val root = ssh.expand_path(root_path)
+    def root_url: String = ssh.hg_url + root.implode
 
-    def root_url: String =
-      ssh match {
-        case None => root.implode
-        case Some(ssh) => ssh.hg_url + root.implode
-      }
-
-    override def toString: String =
-      ssh match {
-        case None => root.implode
-        case Some(ssh) => ssh.toString + ":" + root.implode
-      }
+    override def toString: String = ssh.prefix + root.implode
 
     def command(name: String, args: String = "", options: String = ""): Process_Result =
     {
@@ -111,10 +80,7 @@ object Mercurial
         "\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
           (if (name == "clone") "" else " --repository " + File.bash_path(root)) +
           " --noninteractive " + name + " " + options + " " + args
-      ssh match {
-        case None => Isabelle_System.bash(cmdline)
-        case Some(ssh) => ssh.execute(cmdline)
-      }
+      ssh.execute(cmdline)
     }
 
     def archive(target: String, rev: String = "", options: String = ""): Unit =
@@ -171,7 +137,7 @@ object Mercurial
 
   /* unknown files */
 
-  def unknown_files(files: List[Path], ssh: Option[SSH.Session] = None): List[Path] =
+  def unknown_files(files: List[Path], ssh: SSH.System = SSH.Local): List[Path] =
   {
     val unknown = new mutable.ListBuffer[Path]
 

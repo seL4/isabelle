@@ -110,7 +110,7 @@ function usage()
   echo "  Options are:"
   echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
-  echo "    -R           restrict to parent of logic session and open its ROOT"
+  echo "    -R           open ROOT entry of logic session and use its parent"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
@@ -148,7 +148,7 @@ BUILD_ONLY=false
 BUILD_JARS="jars"
 ML_PROCESS_POLICY=""
 JEDIT_SESSION_DIRS=""
-JEDIT_LOGIC_RESTRICT=""
+JEDIT_LOGIC_ROOT=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 JEDIT_BUILD_MODE="normal"
@@ -166,7 +166,7 @@ function getoptions()
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
         ;;
       R)
-        JEDIT_LOGIC_RESTRICT="true"
+        JEDIT_LOGIC_ROOT="true"
         ;;
       b)
         BUILD_ONLY=true
@@ -408,7 +408,7 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_RESTRICT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ROOT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"

@@ -318,7 +318,7 @@ text \<open>
   Any session root directory may refer recursively to further directories of
   the same kind, by listing them in a catalog file \<^verbatim>\<open>ROOTS\<close> line-by-line. This
   helps to organize large collections of session specifications, or to make
-  \<^verbatim>\<open>-d\<close> command line options persistent (say within
+  \<^verbatim>\<open>-d\<close> command line options persistent (e.g.\ in
   \<^verbatim>\<open>$ISABELLE_HOME_USER/ROOTS\<close>).
 
   \<^medskip>

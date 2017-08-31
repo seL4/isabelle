@@ -23,6 +23,21 @@ object Main
         GUI.install_fonts()
 
 
+        /* ROOTS template */
+
+        {
+          val roots = Path.explode("$ISABELLE_HOME_USER/ROOTS")
+          if (!roots.is_file) File.write(roots, """# Additional session root directories
+#
+#   * each line contains one directory entry in Isabelle path notation
+#   * lines starting with "#" are stripped
+#   * changes require application restart
+#
+#:mode=text:encoding=UTF-8:
+""")
+        }
+
+
         /* settings directory */
 
         val settings_dir = Path.explode("$JEDIT_SETTINGS")
