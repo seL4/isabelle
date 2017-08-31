@@ -87,8 +87,7 @@ object Imports
 
     val deps =
       Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
-        global_theories = full_sessions.global_theories,
-        all_known = true).check_errors
+        global_theories = full_sessions.global_theories).check_errors
 
     val root_keywords = Sessions.root_syntax.keywords
 

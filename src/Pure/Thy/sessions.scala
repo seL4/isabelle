@@ -153,8 +153,7 @@ object Sessions
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
-      global_theories: Map[String, String] = Map.empty,
-      all_known: Boolean = false): Deps =
+      global_theories: Map[String, String] = Map.empty): Deps =
   {
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
@@ -274,9 +273,7 @@ object Sessions
           }
       })
 
-    Deps(session_bases,
-      if (all_known) Known.make(Path.current, session_bases.toList.map(_._2), Nil)
-      else Known.empty)
+    Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2), Nil))
   }
 
   def session_base_errors(
@@ -287,18 +284,12 @@ object Sessions
   {
     val full_sessions = load(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
-    val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
+    val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
-    if (all_known) {
-      val deps =
-        Sessions.deps(full_sessions, global_theories = global_theories, all_known = all_known)
-      (deps.errors, deps(session).copy(known = deps.all_known))
-    }
-    else {
-      val deps =
-        Sessions.deps(selected_sessions, global_theories = global_theories)
-      (deps.errors, deps(session))
-    }
+    val sessions: T = if (all_known) full_sessions else selected_sessions
+    val deps = Sessions.deps(sessions, global_theories = global_theories)
+    val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
+    (deps.errors, base)
   }
 
   def session_base(
