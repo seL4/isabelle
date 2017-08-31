@@ -136,12 +136,14 @@ by(cases t)(auto simp add: ltree_merge simp del: merge.simps)
 lemma heap_del_min: "heap t \<Longrightarrow> heap(del_min t)"
 by(cases t)(auto simp add: heap_merge simp del: merge.simps)
 
+text \<open>Last step of functional correctness proof: combine all the above lemmas
+to show that leftist heaps satisfy the specification of priority queues with merge.\<close>
 
-interpretation lheap: Priority_Queue
+interpretation lheap: Priority_Queue_Merge
 where empty = Leaf and is_empty = "\<lambda>h. h = Leaf"
 and insert = insert and del_min = del_min
-and get_min = get_min and invar = "\<lambda>h. heap h \<and> ltree h"
-and mset = mset_tree
+and get_min = get_min and merge = merge
+and invar = "\<lambda>h. heap h \<and> ltree h" and mset = mset_tree
 proof(standard, goal_cases)
   case 1 show ?case by simp
 next
@@ -158,6 +160,10 @@ next
   case 7 thus ?case by(simp add: heap_insert ltree_insert)
 next
   case 8 thus ?case by(simp add: heap_del_min ltree_del_min)
+next
+  case 9 thus ?case by (simp add: mset_merge)
+next
+  case 10 thus ?case by (simp add: heap_merge ltree_merge)
 qed
 
 

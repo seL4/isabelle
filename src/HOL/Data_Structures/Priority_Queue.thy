@@ -25,17 +25,12 @@ and mset_get_min: "invar q \<Longrightarrow> mset q \<noteq> {#} \<Longrightarro
 and invar_empty: "invar empty"
 and invar_insert: "invar q \<Longrightarrow> invar (insert x q)"
 and invar_del_min: "invar q \<Longrightarrow> mset q \<noteq> {#} \<Longrightarrow> invar (del_min q)"
-begin
 
-(* FIXME why? *)
+text \<open>Extend locale with \<open>merge\<close>. Need to enforce that \<open>'q\<close> is the same in both locales.\<close>
 
-lemma get_min_alt: "invar q \<Longrightarrow> mset q \<noteq> {#} \<Longrightarrow> 
-  get_min q \<in># mset q \<and> (\<forall>x\<in>#mset q. get_min q \<le> x)"
-  by (simp add: mset_get_min)
-  
-lemmas invar_simps[simp] = invar_empty invar_insert invar_del_min
-lemmas mset_simps[simp] = mset_empty is_empty mset_insert mset_del_min mset_get_min
-
-end
+locale Priority_Queue_Merge = Priority_Queue where empty = empty for empty :: 'q +
+fixes merge :: "'q \<Rightarrow> 'q \<Rightarrow> 'q"
+assumes mset_merge: "\<lbrakk> invar q1; invar q2 \<rbrakk> \<Longrightarrow> mset (merge q1 q2) = mset q1 + mset q2"
+and invar_merge: "\<lbrakk> invar q1; invar q2 \<rbrakk> \<Longrightarrow> invar (merge q1 q2)"
 
 end

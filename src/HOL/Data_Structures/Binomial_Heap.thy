@@ -386,35 +386,35 @@ done
 
 subsubsection \<open>Instantiating the Priority Queue Locale\<close>
 
-interpretation binheap: Priority_Queue
+text \<open>Last step of functional correctness proof: combine all the above lemmas
+to show that binomial heaps satisfy the specification of priority queues with merge.\<close>
+
+interpretation binheap: Priority_Queue_Merge
   where empty = "[]" and is_empty = "op = []" and insert = insert
-  and get_min = get_min and del_min = del_min
+  and get_min = get_min and del_min = del_min and merge = merge
   and invar = invar and mset = mset_heap
 proof (unfold_locales, goal_cases)
-  case 1
-  then show ?case by simp
+  case 1 thus ?case by simp
 next
-  case (2 q)
-  then show ?case by auto
+  case 2 thus ?case by auto
 next
-  case (3 q x)
-  then show ?case by auto
+  case 3 thus ?case by auto
 next
   case (4 q)
-  then show ?case using mset_heap_del_min[of q] get_min[OF _ \<open>invar q\<close>] 
+  thus ?case using mset_heap_del_min[of q] get_min[OF _ \<open>invar q\<close>] 
     by (auto simp: union_single_eq_diff)
 next
-  case (5 q)
-  then show ?case using get_min[of q] by auto
+  case (5 q) thus ?case using get_min[of q] by auto
 next 
-  case 6 
-  then show ?case by (auto simp add: invar_def invar_bheap_def invar_oheap_def)
+  case 6 thus ?case by (auto simp add: invar_def invar_bheap_def invar_oheap_def)
 next
-  case (7 q x)
-  then show ?case by simp
+  case 7 thus ?case by simp
 next
-  case (8 q)
-  then show ?case by simp
+  case 8 thus ?case by simp
+next
+  case 9 thus ?case by simp
+next
+  case 10 thus ?case by simp
 qed
 
 
