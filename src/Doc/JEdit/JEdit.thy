@@ -232,7 +232,7 @@ text \<open>
   Options are:
     -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
-    -R           restrict to parent of logic session and open its ROOT
+    -R           open ROOT entry of logic session and use its parent
     -b           build only
     -d DIR       include session directory
     -f           fresh build
@@ -256,12 +256,10 @@ text \<open>
   The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for the selected
   session image.
 
-  Option \<^verbatim>\<open>-R\<close> modifies the meaning of option \<^verbatim>\<open>-l\<close>~\<open>session\<close> as follows: the
-  parent image of the \<open>session\<close> is used, with qualified theory imports
-  restricted to that portion of the session graph. Moreover, the \<^verbatim>\<open>ROOT\<close> entry
-  of the \<open>session\<close> is opened in the editor. This facilitates maintenance of a
-  particular session, by moving the Prover IDE quickly to relevant source
-  files.
+  Option \<^verbatim>\<open>-R\<close> modifies the meaning of option \<^verbatim>\<open>-l\<close> as follows: the \<^verbatim>\<open>ROOT\<close>
+  entry of the specified session is opened in the editor, while its parent
+  session is used for formal checking. This facilitates maintenance of a
+  broken session, by moving the Prover IDE quickly to relevant source files.
 
   The \<^verbatim>\<open>-m\<close> option specifies additional print modes for the prover process.
   Note that the system option @{system_option_ref jedit_print_mode} allows to
