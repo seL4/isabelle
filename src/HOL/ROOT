@@ -212,7 +212,6 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Tree234_Map
     Brother12_Map
     AA_Map
-    Splay_Map
     Leftist_Heap
     Binomial_Heap
   document_files "root.tex" "root.bib"
