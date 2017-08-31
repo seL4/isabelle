@@ -51,12 +51,12 @@ definition
   where "x \<sqinter>\<^bsub>L\<^esub> y = \<Sqinter>\<^bsub>L\<^esub>{x, y}"
 
 definition
-  LFP :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<mu>\<index>") where
-  "LFP L f = \<Sqinter>\<^bsub>L\<^esub> {u \<in> carrier L. f u \<sqsubseteq>\<^bsub>L\<^esub> u}"    --\<open>least fixed point\<close>
+  LEAST_FP :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("LFP\<index>") where
+  "LEAST_FP L f = \<Sqinter>\<^bsub>L\<^esub> {u \<in> carrier L. f u \<sqsubseteq>\<^bsub>L\<^esub> u}"    --\<open>least fixed point\<close>
 
 definition
-  GFP:: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<nu>\<index>") where
-  "GFP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    --\<open>greatest fixed point\<close>
+  GREATEST_FP:: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("GFP\<index>") where
+  "GREATEST_FP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    --\<open>greatest fixed point\<close>
 
 
 subsection \<open>Dual operators\<close>
@@ -86,12 +86,12 @@ lemma bottom_dual [simp]:
   by (simp add: top_def bottom_def)
 
 lemma LFP_dual [simp]:
-  "LFP (inv_gorder L) f = GFP L f"
-  by (simp add:LFP_def GFP_def)
+  "LEAST_FP (inv_gorder L) f = GREATEST_FP L f"
+  by (simp add:LEAST_FP_def GREATEST_FP_def)
 
 lemma GFP_dual [simp]:
-  "GFP (inv_gorder L) f = LFP L f"
-  by (simp add:LFP_def GFP_def)
+  "GREATEST_FP (inv_gorder L) f = LEAST_FP L f"
+  by (simp add:LEAST_FP_def GREATEST_FP_def)
 
 
 subsection \<open>Lattices\<close>
