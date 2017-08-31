@@ -90,7 +90,7 @@ object Mercurial
     val root =
       ssh match {
         case None => root_path.expand
-        case Some(ssh) => root_path.expand_env(ssh.settings)
+        case Some(ssh) => ssh.expand_path(root_path)
       }
 
     def root_url: String =
