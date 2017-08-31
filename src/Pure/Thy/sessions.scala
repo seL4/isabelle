@@ -100,6 +100,7 @@ object Sessions
   }
 
   sealed case class Base(
+    pos: Position.T = Position.none,
     imports: Option[Base] = None,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, String] = Map.empty,
@@ -107,7 +108,8 @@ object Sessions
     keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
-    session_graph: Graph_Display.Graph = Graph_Display.empty_graph)
+    session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
+    errors: List[String] = Nil)
   {
     def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
 
@@ -129,6 +131,20 @@ object Sessions
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
     def sources(name: String): List[SHA1.Digest] = session_bases(name).sources.map(_._2)
+
+    def errors: List[String] =
+      (for {
+        (name, base) <- session_bases.iterator
+        if base.errors.nonEmpty
+      } yield cat_lines(base.errors) +
+          "\nThe error(s) above occurred in session " + quote(name) + Position.here(base.pos)
+      ).toList
+
+    def check_errors: Deps =
+      errors match {
+        case Nil => this
+        case errs => error(cat_lines(errs))
+      }
   }
 
   def deps(sessions: T,
@@ -171,12 +187,7 @@ object Sessions
                   thys.map({ case (thy, pos) =>
                     (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos) })
                 })
-              val thy_deps = resources.thy_info.dependencies(root_theories)
-
-              thy_deps.errors match {
-                case Nil => thy_deps
-                case errs => error(cat_lines(errs))
-              }
+              resources.thy_info.dependencies(root_theories)
             }
 
             val syntax = thy_deps.syntax
@@ -242,14 +253,17 @@ object Sessions
             }
 
             val base =
-              Base(imports = Some(imports_base),
+              Base(
+                pos = info.pos,
+                imports = Some(imports_base),
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
                 keywords = thy_deps.keywords,
                 syntax = syntax,
                 sources = all_files.map(p => (p, SHA1.digest(p.file))),
-                session_graph = session_graph)
+                session_graph = session_graph,
+                errors = thy_deps.errors)
 
             session_bases + (info.name -> base)
           }
@@ -265,11 +279,11 @@ object Sessions
       else Known.empty)
   }
 
-  def session_base(
+  def session_base_errors(
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
-    all_known: Boolean = false): Base =
+    all_known: Boolean = false): (List[String], Base) =
   {
     val full_sessions = load(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
@@ -278,10 +292,25 @@ object Sessions
     if (all_known) {
       val deps =
         Sessions.deps(full_sessions, global_theories = global_theories, all_known = all_known)
-      deps(session).copy(known = deps.all_known)
+      (deps.errors, deps(session).copy(known = deps.all_known))
     }
-    else
-      deps(selected_sessions, global_theories = global_theories)(session)
+    else {
+      val deps =
+        Sessions.deps(selected_sessions, global_theories = global_theories)
+      (deps.errors, deps(session))
+    }
+  }
+
+  def session_base(
+    options: Options,
+    session: String,
+    dirs: List[Path] = Nil,
+    all_known: Boolean = false): Base =
+  {
+    session_base_errors(options, session, dirs = dirs, all_known = all_known) match {
+      case (Nil, base) => base
+      case (errs, _) => error(cat_lines(errs))
+    }
   }
 
 
