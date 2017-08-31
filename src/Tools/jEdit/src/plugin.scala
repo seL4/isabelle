@@ -70,8 +70,7 @@ class Plugin extends EBPlugin
   /* resources */
 
   private var _resources: JEdit_Resources = null
-  private def init_resources(): Unit =
-    _resources = new JEdit_Resources(JEdit_Sessions.session_base(options.value))
+  private def init_resources(): Unit = _resources = JEdit_Resources(options.value)
   def resources: JEdit_Resources = _resources
 
 
@@ -309,6 +308,12 @@ class Plugin extends EBPlugin
             GUI.warning_dialog(jEdit.getActiveView, "Isabelle version for testing",
               "This is " + Distribution.version + ".",
               "It is for testing only, not for production use.")
+          }
+
+          if (resources.session_errors.nonEmpty) {
+            GUI.warning_dialog(jEdit.getActiveView,
+              "Bad session structure: may cause problems with theory imports",
+              GUI.scrollable_text(cat_lines(resources.session_errors)))
           }
 
           val view = jEdit.getActiveView()
