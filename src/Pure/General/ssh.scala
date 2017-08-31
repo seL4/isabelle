@@ -255,14 +255,17 @@ object SSH
 
   /* session */
 
-  class Session private[SSH](val options: Options, val session: JSch_Session)
+  class Session private[SSH](val options: Options, val session: JSch_Session) extends System
   {
     def update_options(new_options: Options): Session = new Session(new_options, session)
 
     def user_prefix: String = if (session.getUserName == null) "" else session.getUserName + "@"
     def host: String = if (session.getHost == null) "" else session.getHost
     def port_suffix: String = if (session.getPort == default_port) "" else ":" + session.getPort
-    def hg_url: String = "ssh://" + user_prefix + host + port_suffix + "/"
+    override def hg_url: String = "ssh://" + user_prefix + host + port_suffix + "/"
+
+    override def prefix: String =
+      user_prefix + host + port_suffix + ":"
 
     override def toString: String =
       user_prefix + host + port_suffix + (if (session.isConnected) "" else " (disconnected)")
@@ -289,7 +292,7 @@ object SSH
       val home = sftp.getHome
       Map("HOME" -> home, "USER_HOME" -> home)
     }
-    def expand_path(path: Path): Path = path.expand_env(settings)
+    override def expand_path(path: Path): Path = path.expand_env(settings)
     def remote_path(path: Path): String = expand_path(path).implode
     def bash_path(path: Path): String = Bash.string(remote_path(path))
 
@@ -303,10 +306,10 @@ object SSH
       try { Some(Dir_Entry(expand_path(path), sftp.stat(remote_path(path)))) }
       catch { case _: SftpException => None }
 
-    def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
-    def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
+    override def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
+    override def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
 
-    def mkdirs(path: Path): Unit =
+    override def mkdirs(path: Path): Unit =
       if (!is_dir(path)) {
         execute(
           "perl -e \"use File::Path make_path; make_path('" + remote_path(path) + "');\"")
@@ -363,7 +366,7 @@ object SSH
       new Exec(this, channel)
     }
 
-    def execute(command: String,
+    override def execute(command: String,
         progress_stdout: String => Unit = (_: String) => (),
         progress_stderr: String => Unit = (_: String) => (),
         strict: Boolean = true): Process_Result =
@@ -386,4 +389,28 @@ object SSH
       try { body(Path.explode(remote_dir)) } finally { rm_tree(remote_dir) }
     }
   }
+
+
+
+  /* system operations */
+
+  trait System
+  {
+    def hg_url: String = ""
+    def prefix: String = ""
+
+    def expand_path(path: Path): Path = path.expand
+    def is_file(path: Path): Boolean = path.is_file
+    def is_dir(path: Path): Boolean = path.is_dir
+    def mkdirs(path: Path): Unit = Isabelle_System.mkdirs(path)
+
+    def execute(command: String,
+        progress_stdout: String => Unit = (_: String) => (),
+        progress_stderr: String => Unit = (_: String) => (),
+        strict: Boolean = true): Process_Result =
+      Isabelle_System.bash(command, progress_stdout = progress_stdout,
+        progress_stderr = progress_stderr, strict = strict)
+  }
+
+  object Local extends System
 }
