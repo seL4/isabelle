@@ -436,8 +436,14 @@ end; (* local *)
 
 (* code generation *)
 
-fun prep_destination "" = NONE
-  | prep_destination s = SOME (Path.explode s);
+fun prep_destination (s, pos) =
+  if s = "" then NONE
+  else
+    let
+      val _ = Position.report pos Markup.language_path;
+      val path = Path.explode s;
+      val _ = Position.report pos (Markup.path (Path.smart_implode path));
+    in SOME path end;
 
 fun export_code ctxt all_public cs seris =
   let
@@ -630,7 +636,7 @@ val code_expr_argsP = Scan.optional (@{keyword "("} |-- Parse.args --| @{keyword
 fun code_expr_inP all_public raw_cs =
   Scan.repeat (@{keyword "in"} |-- Parse.!!! (Parse.name
     -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
-    -- Scan.optional (@{keyword "file"} |-- Parse.name) ""
+    -- Scan.optional (@{keyword "file"} |-- Parse.position Parse.path) ("", Position.none)
     -- code_expr_argsP))
       >> (fn seri_args => export_code_cmd all_public raw_cs seri_args);
 
