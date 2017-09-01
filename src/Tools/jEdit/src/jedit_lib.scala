@@ -340,6 +340,11 @@ object JEdit_Lib
 
   /* key event handling */
 
+  def request_focus_view(alt_view: View = null)
+  {
+    isabelle.jedit_base.JEdit_Lib.request_focus_view(alt_view)
+  }
+
   def propagate_key(view: View, evt: KeyEvent)
   {
     if (view != null && !evt.isConsumed)
