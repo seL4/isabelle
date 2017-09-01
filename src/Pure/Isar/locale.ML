@@ -16,7 +16,7 @@ themselves.
 A comprehensive account of locales is available:
 
 [1] Clemens Ballarin. Locales: a module system for mathematical theories.
-    Journal of Automated Reasoning, 52(2):123–153, 2014.
+    Journal of Automated Reasoning, 52(2):123-153, 2014.
 
 See also:
 
