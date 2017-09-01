@@ -2607,6 +2607,24 @@ lemma in_set_zip:
   \<and> n < length xs \<and> n < length ys)"
 by (cases p) (auto simp add: set_zip)
 
+lemma in_set_impl_in_set_zip1:
+  assumes "length xs = length ys"
+  assumes "x \<in> set xs"
+  obtains y where "(x, y) \<in> set (zip xs ys)"
+proof -
+  from assms have "x \<in> set (map fst (zip xs ys))" by simp
+  from this that show ?thesis by fastforce
+qed
+
+lemma in_set_impl_in_set_zip2:
+  assumes "length xs = length ys"
+  assumes "y \<in> set ys"
+  obtains x where "(x, y) \<in> set (zip xs ys)"
+proof -
+  from assms have "y \<in> set (map snd (zip xs ys))" by simp
+  from this that show ?thesis by fastforce
+qed
+
 lemma pair_list_eqI:
   assumes "map fst xs = map fst ys" and "map snd xs = map snd ys"
   shows "xs = ys"

@@ -202,6 +202,20 @@ next
   ultimately show ?case by simp
 qed
 
+lemma map_of_zip_nth:
+  assumes "length xs = length ys"
+  assumes "distinct xs"
+  assumes "i < length ys"
+  shows "map_of (zip xs ys) (xs ! i) = Some (ys ! i)"
+using assms proof (induct arbitrary: i rule: list_induct2)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs y ys)
+  then show ?case
+    using less_Suc_eq_0_disj by auto
+qed
+
 lemma map_of_zip_map:
   "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
   by (induct xs) (simp_all add: fun_eq_iff)
@@ -660,6 +674,11 @@ next
     by (simp add: map_of_eq_None_iff)
   ultimately show ?case by (simp only: map_of.simps ran_map_upd) simp
 qed
+
+lemma ran_map_of_zip:
+  assumes "length xs = length ys" "distinct xs"
+  shows "ran (map_of (zip xs ys)) = set ys"
+using assms by (simp add: ran_distinct set_map[symmetric])
 
 lemma ran_map_option: "ran (\<lambda>x. map_option f (m x)) = f ` ran m"
   by (auto simp add: ran_def)
