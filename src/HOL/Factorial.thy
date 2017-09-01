@@ -1,4 +1,4 @@
-(*  Title:      HOL/Factoiral.thy
+(*  Title:      HOL/Factorial.thy
     Author:     Jacques D. Fleuriot
     Author:     Lawrence C Paulson
     Author:     Jeremy Avigad

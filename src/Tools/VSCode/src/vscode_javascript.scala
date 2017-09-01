@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/src/build_html.scala
+/*  Title:      Tools/VSCode/src/vscode_javascript.scala
     Author:     Makarius
 
 JavaScript snippets for VSCode HTML view.
