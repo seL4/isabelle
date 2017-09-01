@@ -5,23 +5,28 @@ Locales -- managed Isar proof contexts, based on Pure predicates.
 
 Draws basic ideas from Florian Kammueller's original version of
 locales, but uses the richer infrastructure of Isar instead of the raw
-meta-logic.  Furthermore, structured import of contexts (with merge
-and rename operations) are provided, as well as type-inference of the
-signature parts, and predicate definitions of the specification text.
+meta-logic.  Furthermore, structured composition of contexts (with merge
+and instantiation) is provided, as well as type-inference of the
+signature parts and predicate definitions of the specification text.
 
-Interpretation enables the reuse of theorems of locales in other
-contexts, namely those defined by theories, structured proofs and
-locales themselves.
+Interpretation enables the transfer of declarations and theorems to other
+contexts, namely those defined by theories, structured proofs and locales
+themselves.
+
+A comprehensive account of locales is available:
+
+[1] Clemens Ballarin. Locales: a module system for mathematical theories.
+    Journal of Automated Reasoning, 52(2):123–153, 2014.
 
 See also:
 
-[1] Clemens Ballarin. Locales and Locale Expressions in Isabelle/Isar.
+[2] Clemens Ballarin. Locales and Locale Expressions in Isabelle/Isar.
     In Stefano Berardi et al., Types for Proofs and Programs: International
     Workshop, TYPES 2003, Torino, Italy, LNCS 3085, pages 34-50, 2004.
-[2] Clemens Ballarin. Interpretation of Locales in Isabelle: Managing
+[3] Clemens Ballarin. Interpretation of Locales in Isabelle: Managing
     Dependencies between Locales. Technical Report TUM-I0607, Technische
     Universitaet Muenchen, 2006.
-[3] Clemens Ballarin. Interpretation of Locales in Isabelle: Theories and
+[4] Clemens Ballarin. Interpretation of Locales in Isabelle: Theories and
     Proof Contexts. In J.M. Borwein and W.M. Farmer, MKM 2006, LNAI 4108,
     pages 31-43, 2006.
 *)
