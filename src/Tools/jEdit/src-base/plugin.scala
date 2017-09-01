@@ -21,4 +21,9 @@ class Plugin extends EBPlugin
 
     SyntaxUtilities.setStyleExtender(Syntax_Style.Dummy_Extender)
   }
+
+  override def stop()
+  {
+    SyntaxUtilities.setStyleExtender(new SyntaxUtilities.StyleExtender)
+  }
 }

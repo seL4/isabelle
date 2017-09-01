@@ -354,6 +354,7 @@ then
   init_resources "${RESOURCES_BASE[@]}"
   compile_sources "${SOURCES_BASE[@]}"
   make_jar "$TARGET_BASE"
+  classpath "$PWD/$TARGET_BASE"
 
   init_resources "${RESOURCES[@]}"
   cp src/jEdit.props dist/properties/.
