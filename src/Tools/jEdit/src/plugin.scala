@@ -13,7 +13,7 @@ import javax.swing.JOptionPane
 
 import java.io.{File => JFile}
 
-import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, PerspectiveManager}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
@@ -414,9 +414,6 @@ class Plugin extends EBPlugin
 
   override def start()
   {
-    Debug.DISABLE_SEARCH_DIALOG_POOL = true
-
-
     /* strict initialization */
 
     init_options()
