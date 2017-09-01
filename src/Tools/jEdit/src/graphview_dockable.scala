@@ -8,6 +8,7 @@ package isabelle.jedit
 
 
 import isabelle._
+import isabelle.jedit_base.Dockable
 
 import javax.swing.JComponent
 import java.awt.{Point, Font}

@@ -1,10 +1,10 @@
-/*  Title:      Tools/jEdit/src/dockable.scala
+/*  Title:      Tools/jEdit/src-base/dockable.scala
     Author:     Makarius
 
 Generic dockable window.
 */
 
-package isabelle.jedit
+package isabelle.jedit_base
 
 
 import isabelle._

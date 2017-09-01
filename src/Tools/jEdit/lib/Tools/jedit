@@ -20,7 +20,10 @@ esac
 ## sources
 
 declare -a SOURCES_BASE=(
+  "src-base/dockable.scala"
   "src-base/isabelle_encoding.scala"
+  "src-base/jedit_lib.scala"
+  "src-base/pide_docking_framework.scala"
   "src-base/plugin.scala"
   "src-base/syntax_style.scala"
 )
@@ -35,7 +38,6 @@ declare -a SOURCES=(
   "src/completion_popup.scala"
   "src/context_menu.scala"
   "src/debugger_dockable.scala"
-  "src/dockable.scala"
   "src/document_model.scala"
   "src/document_view.scala"
   "src/documentation_dockable.scala"
@@ -58,7 +60,6 @@ declare -a SOURCES=(
   "src/keymap_merge.scala"
   "src/monitor_dockable.scala"
   "src/output_dockable.scala"
-  "src/pide_docking_framework.scala"
   "src/plugin.scala"
   "src/pretty_text_area.scala"
   "src/pretty_tooltip.scala"

@@ -8,6 +8,7 @@ package isabelle.jedit
 
 
 import isabelle._
+import isabelle.jedit_base.Dockable
 
 import scala.swing.{Label, ListView, Alignment, ScrollPane, Component, TextField}
 import scala.swing.event.{MouseClicked, ValueChanged}

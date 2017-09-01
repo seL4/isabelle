@@ -8,9 +8,6 @@
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DynamicContextMenuService" NAME="Spell_Checker">
     new isabelle.jedit.Context_Menu();
   </SERVICE>
-  <SERVICE CLASS="org.gjt.sp.jedit.gui.DockingFrameworkProvider" NAME="PIDE">
-    new isabelle.jedit.PIDE_Docking_Framework();
-  </SERVICE>
   <SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
     new isabelle.jedit.Isabelle_Sidekick_Default();
   </SERVICE>
