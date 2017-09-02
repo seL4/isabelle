@@ -1,16 +1,15 @@
 # Isabelle Prover IDE support
 
-This extension connects VSCode to the Isabelle Prover IDE infrastructure. It
-requires a recent development version of Isabelle from 2017 – one that happens
-to fit to the extension version!
+This extension connects VSCode to the Isabelle Prover IDE infrastructure: it
+requires Isabelle2017.
 
 The implementation is centered around the VSCode Language Server protocol, but
 with many add-ons that are specific to VSCode and Isabelle/PIDE.
 
 See also:
 
-  * <http://isabelle.in.tum.de/devel/release_snapshot>
-  * <http://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
+  * <http://isabelle.in.tum.de/website-Isabelle2017>
+  * <http://isabelle.in.tum.de/repos/isabelle/file/Isabelle2017/src/Tools/VSCode>
   * <https://github.com/Microsoft/language-server-protocol>
 
 
@@ -60,9 +59,8 @@ See also:
 
 ### Isabelle/VSCode Installation
 
-  * Download a recent Isabelle development snapshot from
-  <http://isabelle.in.tum.de/devel/release_snapshot> or the particular version
-  <http://www4.in.tum.de/~wenzelm/Isabelle_01-Jul-2017>
+  * Download Isabelle2017 from <http://isabelle.in.tum.de> or any of its mirror
+  sites.
 
   * Unpack and run the main Isabelle/jEdit application as usual, to ensure that
   the logic image is built properly and Isabelle works as expected.
@@ -71,7 +69,7 @@ See also:
 
   * Open the VSCode *Extensions* view and install the following:
 
-      + *Isabelle* (e.g. version 0.22).
+      + *Isabelle2017* (needs to fit to the underlying Isabelle release).
 
       + *Prettify Symbols Mode* (important for display of Isabelle symbols).
 
@@ -92,17 +90,17 @@ See also:
 
       + Linux:
         ```
-        "isabelle.home": "/home/makarius/Isabelle_01-Jul-2017"
+        "isabelle.home": "/home/makarius/Isabelle2017"
         ```
 
       + Mac OS X:
         ```
-        "isabelle.home": "/Users/makarius/Isabelle_01-Jul-2017.app/Isabelle"
+        "isabelle.home": "/Users/makarius/Isabelle2017.app/Isabelle"
         ```
 
       + Windows:
         ```
-        "isabelle.home": "C:\\Users\\makarius\\Isabelle_01-Jul-2017"
+        "isabelle.home": "C:\\Users\\makarius\\Isabelle2017"
         ```
 
   * Restart the VSCode application to ensure that all extensions are properly

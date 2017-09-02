@@ -19,6 +19,10 @@ Checklist for official releases
     src/Tools/jEdit/src/Isabelle.props
     src/Tools/jEdit/src-base/Isabelle_Base.props
 
+- check Isabelle version:
+    src/Tools/VSCode/extension/README.md
+    src/Tools/VSCode/extension/package.json
+
 - check funny base directory, e.g. "Test 中国";
 
 - check scalable fonts, e.g. src/Doc/Prog_Prove (NOTE: T1 encoding
