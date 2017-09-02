@@ -416,8 +416,10 @@ object Build
 
     // scheduler loop
     case class Result(
-      current: Boolean, heap_stamp: Option[String],
-      process: Option[Process_Result], info: Sessions.Info)
+      current: Boolean,
+      heap_stamp: Option[String],
+      process: Option[Process_Result],
+      info: Sessions.Info)
     {
       def ok: Boolean =
         process match {
