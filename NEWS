@@ -11,7 +11,7 @@ New in Isabelle2017 (October 2017)
 
 * Experimental support for Visual Studio Code (VSCode) as alternative
 Isabelle/PIDE front-end, see also
-https://marketplace.visualstudio.com/items?itemName=makarius.isabelle
+https://marketplace.visualstudio.com/items?itemName=makarius.Isabelle2017
 
 VSCode is a new type of application that continues the concepts of
 "programmer's editor" and "integrated development environment" towards
