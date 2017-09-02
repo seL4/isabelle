@@ -525,11 +525,11 @@ object Build
                       using(SQLite.open_database(database))(store.read_build(_, name)) match {
                         case Some(build) =>
                           val current =
+                            build.return_code == 0 &&
                             build.sources == sources_stamp(name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_stamp &&
-                            !(do_output && heap_stamp.isEmpty) &&
-                            build.return_code == 0
+                            !(do_output && heap_stamp.isEmpty)
                           (current, heap_stamp)
                         case None => (false, None)
                       }
