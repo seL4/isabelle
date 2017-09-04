@@ -11,6 +11,7 @@ import isabelle._
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, SyntaxStyle}
+import org.gjt.sp.jedit.jEdit
 
 
 object Syntax_Style
@@ -29,4 +30,12 @@ object Syntax_Style
       new_styles
     }
   }
+
+  def set_style_extender(extender: SyntaxUtilities.StyleExtender)
+  {
+    SyntaxUtilities.setStyleExtender(extender)
+    GUI_Thread.later { jEdit.propertiesChanged }
+  }
+
+  def dummy_style_extender() { set_style_extender(Dummy_Extender) }
 }

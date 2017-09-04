@@ -316,6 +316,8 @@ class Plugin extends EBPlugin
               GUI.scrollable_text(cat_lines(resources.session_errors)))
           }
 
+          jEdit.propertiesChanged()
+
           val view = jEdit.getActiveView()
           init_view(view)
 
@@ -428,7 +430,7 @@ class Plugin extends EBPlugin
       completion_history.load()
       spell_checker.update(options.value)
 
-      SyntaxUtilities.setStyleExtender(Syntax_Style.Extender)
+      isabelle.jedit_base.Syntax_Style.set_style_extender(Syntax_Style.Extender)
       init_mode_provider()
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
@@ -451,7 +453,7 @@ class Plugin extends EBPlugin
   {
     http_server.stop
 
-    SyntaxUtilities.setStyleExtender(isabelle.jedit_base.Syntax_Style.Dummy_Extender)
+    isabelle.jedit_base.Syntax_Style.dummy_style_extender()
     exit_mode_provider()
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 

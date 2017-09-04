@@ -21,11 +21,11 @@ class Plugin extends EBPlugin
 
     Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
-    SyntaxUtilities.setStyleExtender(Syntax_Style.Dummy_Extender)
+    Syntax_Style.dummy_style_extender()
   }
 
   override def stop()
   {
-    SyntaxUtilities.setStyleExtender(new SyntaxUtilities.StyleExtender)
+    Syntax_Style.set_style_extender(new SyntaxUtilities.StyleExtender)
   }
 }
