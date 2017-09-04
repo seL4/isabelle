@@ -9,7 +9,7 @@ package isabelle.jedit_base
 
 import isabelle._
 
-import org.gjt.sp.jedit.{Debug, EBPlugin}
+import org.gjt.sp.jedit.{EBMessage, Debug, EBPlugin}
 import org.gjt.sp.util.SyntaxUtilities
 
 
@@ -28,4 +28,6 @@ class Plugin extends EBPlugin
   {
     Syntax_Style.set_style_extender(new SyntaxUtilities.StyleExtender)
   }
+
+  override def handleMessage(message: EBMessage) { }
 }
