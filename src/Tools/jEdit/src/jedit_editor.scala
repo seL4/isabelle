@@ -128,7 +128,7 @@ class JEdit_Editor extends Editor[View]
   }
 
   def goto_file(focus: Boolean, view: View, name: String): Unit =
-    goto_file(focus, view, Line.Node_Position(name))
+    goto_file(focus, view, Line.Node_Position.offside(name))
 
   def goto_file(focus: Boolean, view: View, pos: Line.Node_Position)
   {
@@ -215,7 +215,7 @@ class JEdit_Editor extends Editor[View]
     }
 
   def hyperlink_file(focus: Boolean, name: String): Hyperlink =
-    hyperlink_file(focus, Line.Node_Position(name))
+    hyperlink_file(focus, Line.Node_Position.offside(name))
 
   def hyperlink_file(focus: Boolean, pos: Line.Node_Position): Hyperlink =
     new Hyperlink {

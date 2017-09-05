@@ -26,6 +26,7 @@ object Line
   object Position
   {
     val zero: Position = Position()
+    val offside: Position = Position(line = -1)
 
     object Ordering extends scala.math.Ordering[Position]
     {
@@ -76,6 +77,11 @@ object Line
 
 
   /* positions within document node */
+
+  object Node_Position
+  {
+    def offside(name: String): Node_Position = Node_Position(name, Position.offside)
+  }
 
   sealed case class Node_Position(name: String, pos: Position = Position.zero)
   {
