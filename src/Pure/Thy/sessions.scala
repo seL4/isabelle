@@ -251,6 +251,11 @@ object Sessions
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
+            val sources =
+              for (p <- all_files if p.is_file) yield (p, SHA1.digest(p.file))
+            val sources_errors =
+              for (p <- all_files if !p.is_file) yield "No such file: " + p
+
             val base =
               Base(
                 pos = info.pos,
@@ -260,9 +265,9 @@ object Sessions
                 known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
                 keywords = thy_deps.keywords,
                 syntax = syntax,
-                sources = all_files.map(p => (p, SHA1.digest(p.file))),
+                sources = sources,
                 session_graph = session_graph,
-                errors = thy_deps.errors)
+                errors = thy_deps.errors ::: sources_errors)
 
             session_bases + (info.name -> base)
           }
