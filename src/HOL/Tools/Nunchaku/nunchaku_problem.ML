@@ -714,7 +714,9 @@ fun str_of_nun_copy_spec {abs_ty, rep_ty, subset, quotient, abs, rep} =
   str_of_ty abs_ty ^ " " ^ nun_assign ^ " " ^ str_of_ty rep_ty ^
   (case subset of
     NONE => ""
-  | SOME s => if is_triv_subset s then "" else "\n  " ^ nun_subset ^ " " ^ str_of_tm s) ^
+  | SOME s =>
+    if is_triv_subset s then ""
+    else "\n  " ^ nun_subset ^ " " ^ nun_parens_if_space (str_of_tm s)) ^
   (* TODO: use nun_quotient when possible *)
   (case quotient of
     NONE => ""
