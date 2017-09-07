@@ -82,7 +82,7 @@ val nunchaku_home_env_var = "NUNCHAKU_HOME";
 val unknown_solver = "unknown";
 
 val cached_outcome = Synchronized.var "Nunchaku_Tool.cached_outcome"
-  (NONE : ((string list * nun_problem) * nun_outcome) option);
+  (NONE : ((tool_params * nun_problem) * nun_outcome) option);
 
 fun uncached_solve_nun_problem
     ({solvers, overlord, initial_bound, bound_increment, specialize, timeout, ...} : tool_params)
@@ -136,7 +136,7 @@ fun uncached_solve_nun_problem
       end);
 
 fun solve_nun_problem (params as {solvers, overlord, debug, ...}) problem =
-  let val key = (solvers, problem) in
+  let val key = (params, problem) in
     (case (overlord orelse debug,
         AList.lookup (op =) (the_list (Synchronized.value cached_outcome)) key) of
       (false, SOME outcome) => outcome
