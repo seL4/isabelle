@@ -136,6 +136,10 @@ fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) = subset (op =) (S, syntac
 
 val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort);
 
+val unprefix_error =
+  perhaps (try (unprefix "Error: "))
+  #> perhaps (try (unprefix "failure: "));
+
 (* Give the soft timeout a chance. *)
 val timeout_slack = seconds 1.0;
 
@@ -213,10 +217,7 @@ fun run_chaku_on_prop state
               null whacks andalso null cards andalso null monos;
 
             fun unknown () =
-              (print_n ("No " ^ das_wort_model ^ " can be found\n\
-                 \The problem lies outside Nunchaku's fragment, or the Nunchaku backends are not \
-                 \installed properly");
-               (unknownN, NONE));
+              (print_n ("No " ^ das_wort_model ^ " found"); (unknownN, NONE));
 
             fun unsat_or_unknown complete =
               if complete then
@@ -268,7 +269,7 @@ fun run_chaku_on_prop state
               (print_n "External tool \"cvc4\" cannot execute"; (unknownN, NONE))
             | CVC4_Not_Found => (print_n "External tool \"cvc4\" not found"; (unknownN, NONE))
             | Unknown_Error (code, msg) =>
-              (print_n ("Unknown error: " ^ msg ^
+              (print_n ("Unknown error: " ^ unprefix_error msg ^
                  (if code = 0 then "" else " (code " ^ string_of_int code ^ ")"));
                (unknownN, NONE)))
           end
