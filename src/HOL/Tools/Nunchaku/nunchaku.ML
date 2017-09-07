@@ -137,8 +137,8 @@ fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) = subset (op =) (S, syntac
 val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort);
 
 val unprefix_error =
-  perhaps (try (unprefix "Error: "))
-  #> perhaps (try (unprefix "failure: "));
+  perhaps (try (unprefix "failure: "))
+  #> perhaps (try (unprefix "Error: "));
 
 (* Give the soft timeout a chance. *)
 val timeout_slack = seconds 1.0;
@@ -219,20 +219,20 @@ fun run_chaku_on_prop state
             fun unknown () =
               (print_n ("No " ^ das_wort_model ^ " found"); (unknownN, NONE));
 
-            fun unsat_or_unknown complete =
+            fun unsat_or_unknown solver complete =
               if complete then
-                (print_n ("No " ^ das_wort_model ^ " exists" ^
+                (print_n ("No " ^ das_wort_model ^ " exists (according to " ^ solver ^ ")" ^
                    (if falsify andalso unsat_means_theorem () then "\nThe goal is a theorem"
                     else ""));
                  (noneN, NONE))
               else
                 unknown ();
 
-            fun sat_or_maybe_sat sound output =
+            fun sat_or_maybe_sat solver sound output =
               let val header = if sound then das_wort_Model else "Potential " ^ das_wort_model in
                 (case (null poly_axioms, none_true wfs) of
                   (true, true) =>
-                  (print (header ^ ":\n" ^
+                  (print (header ^ " (according to " ^ solver ^ "):\n" ^
                      model_str output); print_any_hints ();
                    (genuineN, isa_model_opt output))
                 | (no_poly, no_wf) =>
@@ -241,7 +241,8 @@ fun run_chaku_on_prop state
                       |> not no_poly ? cons "polymorphic axioms"
                       |> not no_wf ? cons "unchecked well-foundedness";
                   in
-                    (print (header ^ " (ignoring " ^ space_implode " and " ignorings ^ "):\n" ^
+                    (print (header ^ " (according to " ^ solver ^
+                       ", ignoring " ^ space_implode " and " ignorings ^ "):\n" ^
                        model_str output ^
                        (if no_poly then
                           ""
@@ -254,10 +255,10 @@ fun run_chaku_on_prop state
               end;
           in
             (case solve_nun_problem tool_params nice_nun_problem of
-              Unsat => unsat_or_unknown complete
-            | Sat (output, _) => sat_or_maybe_sat sound output
+              Unsat solver => unsat_or_unknown solver complete
+            | Sat (solver, output, _) => sat_or_maybe_sat solver sound output
             | Unknown NONE => unknown ()
-            | Unknown (SOME (output, _)) => sat_or_maybe_sat false output
+            | Unknown (SOME (solver, output, _)) => sat_or_maybe_sat solver false output
             | Timeout => (print_n "Time out"; (unknownN, NONE))
             | Nunchaku_Var_Not_Set =>
               (print_n ("Variable $" ^ nunchaku_home_env_var ^ " not set"); (unknownN, NONE))

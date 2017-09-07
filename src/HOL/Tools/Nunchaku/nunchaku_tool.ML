@@ -23,9 +23,9 @@ sig
      tms: (tm * tm) list}
 
   datatype nun_outcome =
-    Unsat
-  | Sat of string * nun_solution
-  | Unknown of (string * nun_solution) option
+    Unsat of string
+  | Sat of string * string * nun_solution
+  | Unknown of (string * string * nun_solution) option
   | Timeout
   | Nunchaku_Var_Not_Set
   | Nunchaku_Cannot_Execute
@@ -57,9 +57,9 @@ type nun_solution =
    tms: (tm * tm) list};
 
 datatype nun_outcome =
-  Unsat
-| Sat of string * nun_solution
-| Unknown of (string * nun_solution) option
+  Unsat of string
+| Sat of string * string * nun_solution
+| Unknown of (string * string * nun_solution) option
 | Timeout
 | Nunchaku_Var_Not_Set
 | Nunchaku_Cannot_Execute
@@ -74,6 +74,8 @@ fun bash_output_error s =
   end;
 
 val nunchaku_home_env_var = "NUNCHAKU_HOME";
+
+val unknown_solver = "unknown";
 
 val cached_outcome = Synchronized.var "Nunchaku_Tool.cached_outcome"
   (NONE : ((string list * nun_problem) * nun_outcome) option);
@@ -97,11 +99,20 @@ fun uncached_solve_nun_problem ({solvers, overlord, specialize, timeout, ...} : 
         val prob_str = cat_lines (map (prefix "# ") comments) ^ "\n\n" ^ str_of_nun_problem problem;
         val _ = File.write prob_path prob_str;
         val ((output, error), code) = bash_output_error bash_cmd;
+
+        val backend =
+          (case filter_out (curry (op =) "") (split_lines output) of
+            [] => unknown_solver
+          | lines =>
+            (case try (unprefix "{backend:") (List.last lines) of
+              NONE => unknown_solver
+            | SOME "" => unknown_solver
+            | SOME s => hd (space_explode "," s)));
       in
         if String.isPrefix "SAT" output then
-          (if sound then Sat else Unknown o SOME) (output, {tys = [], tms = []})
+          (if sound then Sat else Unknown o SOME) (backend, output, {tys = [], tms = []})
         else if String.isPrefix "UNSAT" output then
-          if complete then Unsat else Unknown NONE
+          if complete then Unsat backend else Unknown NONE
         else if String.isSubstring "TIMEOUT" output
             (* FIXME: temporary *)
             orelse String.isSubstring "kodkod failed (errcode 152)" error then
@@ -130,7 +141,7 @@ fun solve_nun_problem (params as {solvers, overlord, debug, ...}) problem =
           Synchronized.change cached_outcome (K (SOME (key, outcome)));
       in
         (case outcome of
-          Unsat => update_cache ()
+          Unsat _ => update_cache ()
         | Sat _ => update_cache ()
         | Unknown _ => update_cache ()
         | _ => ());
