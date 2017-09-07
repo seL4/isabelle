@@ -32,6 +32,13 @@ fun sorting_str_of_term (Const (s, T)) = "b" ^ s ^ sorting_str_of_typ T
   | sorting_str_of_term (Abs (_, T, t)) = "c" ^ sorting_str_of_typ T ^ " " ^ sorting_str_of_term t
   | sorting_str_of_term _ = "X";
 
+val basic_defs_sym = @{thms rmember_def[abs_def]};
+
+fun fold_basic_def ctxt =
+  let val thy = Proof_Context.theory_of ctxt in
+    Pattern.rewrite_term thy (map (Logic.dest_equals o Thm.prop_of) basic_defs_sym) []
+  end;
+
 fun pretty_of_isa_model_opt _ NONE =
     pretty_indent (Pretty.str "Model unavailable due to internal error")
   | pretty_of_isa_model_opt ctxt0 (SOME {type_model, free_model, pat_complete_model,
@@ -48,7 +55,10 @@ fun pretty_of_isa_model_opt _ NONE =
           val schematic_ctxt = ctxt |> Proof_Context.set_mode Proof_Context.mode_schematic;
 
           val show_types = Config.get ctxt show_types;
-          val value' = value |> perhaps (try (Syntax.check_term schematic_ctxt));
+          val value' =
+            value
+            |> perhaps (try (Syntax.check_term schematic_ctxt))
+            |> perhaps (try (fold_basic_def ctxt));
           val T = fastype_of t;
           val T' = if T = dummyT then try fastype_of value' |> the_default T else T;
           val t' = t |> show_types ? Type.constraint T';

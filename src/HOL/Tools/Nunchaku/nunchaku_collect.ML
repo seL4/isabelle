@@ -792,7 +792,7 @@ datatype lhs_pat =
 | Prim_Pattern of string
 | Any_Pattern;
 
-fun is_likely_pat_complete ctxt props =
+fun is_apparently_pat_complete ctxt props =
   let
     val is_Var_or_Bound = is_Var orf is_Bound;
 
@@ -965,7 +965,7 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                              (props,
                               [IRec (map2 (fn const => fn props =>
                                    {const = const, props = props,
-                                    pat_complete = is_likely_pat_complete ctxt props})
+                                    pat_complete = is_apparently_pat_complete ctxt props})
                                  consts propss)])
                            | NONE => def_or_spec ())
                          else if member (op =) [Spec_Rules.Inductive, Spec_Rules.Co_Inductive]
