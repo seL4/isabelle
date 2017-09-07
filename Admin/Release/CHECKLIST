@@ -93,12 +93,6 @@ Final release stage
   default = http://bitbucket.org/isabelle_project/isabelle-release
   default = ssh://hg@bitbucket.org/isabelle_project/isabelle-release
 
-- Admin/cronjob/self_update:
-  http://bitbucket.org/isabelle_project/isabelle-release
-
-- src/Pure/Admin/isabelle_cronjon.scala:
-  isabelle_repos_source = isabelle_release_source
-
 
 Post-release
 ============
