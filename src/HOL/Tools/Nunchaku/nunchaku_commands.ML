@@ -22,10 +22,10 @@ type raw_param = string * string list;
 
 val default_default_params =
   [("assms", "true"),
-   ("bound_increment", "2"),
+   ("bound_increment", "4"),
    ("debug", "false"),
    ("falsify", "true"),
-   ("min_bound", "2"),
+   ("min_bound", "4"),
    ("max_bound", "none"),
    ("max_genuine", "1"),
    ("max_potential", "1"),
