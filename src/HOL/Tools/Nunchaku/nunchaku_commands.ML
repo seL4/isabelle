@@ -22,8 +22,10 @@ type raw_param = string * string list;
 
 val default_default_params =
   [("assms", "true"),
+   ("bound_increment", "2"),
    ("debug", "false"),
    ("falsify", "true"),
+   ("initial_bound", "2"),
    ("max_genuine", "1"),
    ("max_potential", "1"),
    ("overlord", "false"),
@@ -178,6 +180,8 @@ fun extract_params ctxt mode default_params override_params =
     val expect = lookup_string "expect";
 
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf";
+    val initial_bound = lookup_int "initial_bound";
+    val bound_increment = lookup_int "bound_increment";
     val whacks = lookup_bool_assigns read_term_polymorphic "whack";
     val cards = lookup_int_range_assigns read_type_polymorphic "card";
     val monos = lookup_bool_option_assigns read_type_polymorphic "mono";
@@ -200,7 +204,8 @@ fun extract_params ctxt mode default_params override_params =
        expect = expect};
 
     val scope_of_search_params =
-      {wfs = wfs, whacks = whacks, cards = cards, monos = monos};
+      {wfs = wfs, whacks = whacks, initial_bound = initial_bound, bound_increment = bound_increment,
+       cards = cards, monos = monos};
 
     val output_format_params =
       {verbose = verbose, debug = debug, max_potential = max_potential, max_genuine = max_genuine,
