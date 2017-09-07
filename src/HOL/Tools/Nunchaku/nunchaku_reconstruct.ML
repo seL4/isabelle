@@ -224,8 +224,19 @@ fun term_of_nun ctxt atomss =
           | _ => same ())
         end
       | term_of _ (NMatch _) = raise Fail "unexpected match";
+
+    fun rewrite_numbers (t as @{const Suc} $ _) =
+        (case try HOLogic.dest_nat t of
+          SOME n => HOLogic.mk_number @{typ nat} n
+        | NONE => t)
+      | rewrite_numbers (@{const Abs_Integ} $ (@{const Pair (nat, nat)} $ t $ u)) =
+        HOLogic.mk_number @{typ int} (HOLogic.dest_nat t - HOLogic.dest_nat u)
+      | rewrite_numbers (t $ u) = rewrite_numbers t $ rewrite_numbers u
+      | rewrite_numbers (Abs (s, T, t)) = Abs (s, T, rewrite_numbers t)
+      | rewrite_numbers t = t;
   in
     term_of []
+    #> rewrite_numbers
   end;
 
 fun isa_typ_entry_of_nun ctxt atomss (ty, atoms) =
