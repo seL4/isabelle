@@ -17,12 +17,14 @@ sig
      free_model: term_entry list,
      pat_complete_model: term_entry list,
      pat_incomplete_model: term_entry list,
-     skolem_model: term_entry list}
+     skolem_model: term_entry list,
+     auxiliary_model: term_entry list}
 
   val str_of_isa_model: Proof.context -> isa_model -> string
 
   val isa_model_of_nun: Proof.context -> term list -> (typ option * string list) list ->
     nun_model -> isa_model
+  val clean_up_isa_model: Proof.context -> isa_model -> isa_model
 end;
 
 structure Nunchaku_Reconstruct : NUNCHAKU_RECONSTRUCT =
@@ -41,7 +43,8 @@ type isa_model =
    free_model: term_entry list,
    pat_complete_model: term_entry list,
    pat_incomplete_model: term_entry list,
-   skolem_model: term_entry list};
+   skolem_model: term_entry list,
+   auxiliary_model: term_entry list};
 
 val anonymousN = "anonymous";
 val irrelevantN = "irrelevant";
@@ -95,12 +98,14 @@ fun str_of_term_entry ctxt (tm, value) =
   "val " ^ Syntax.string_of_term ctxt tm ^ " := " ^ Syntax.string_of_term ctxt value ^ ".";
 
 fun str_of_isa_model ctxt
-    {type_model, free_model, pat_complete_model, pat_incomplete_model, skolem_model} =
+    {type_model, free_model, pat_complete_model, pat_incomplete_model, skolem_model,
+     auxiliary_model} =
   map (str_of_typ_entry ctxt) type_model @ "" ::
   map (str_of_term_entry ctxt) free_model @ "" ::
   map (str_of_term_entry ctxt) pat_complete_model @ "" ::
   map (str_of_term_entry ctxt) pat_incomplete_model @ "" ::
-  map (str_of_term_entry ctxt) skolem_model
+  map (str_of_term_entry ctxt) skolem_model @ "" ::
+  map (str_of_term_entry ctxt) auxiliary_model
   |> cat_lines;
 
 fun typ_of_nun ctxt =
@@ -154,10 +159,10 @@ fun term_of_nun ctxt atomss =
       | term_of bounds (NConst (id, tys0, ty)) =
         if id = nun_conj then
           HOLogic.conj
-        else if id = nun_disj then
-          HOLogic.disj
         else if id = nun_choice then
           Const (@{const_name Eps}, typ_of ty)
+        else if id = nun_disj then
+          HOLogic.disj
         else if id = nun_equals then
           Const (@{const_name HOL.eq}, typ_of ty)
         else if id = nun_false then
@@ -166,14 +171,16 @@ fun term_of_nun ctxt atomss =
           Const (@{const_name If}, typ_of ty)
         else if id = nun_implies then
           @{term implies}
+        else if id = nun_not then
+          HOLogic.Not
         else if id = nun_unique then
           Const (@{const_name The}, typ_of ty)
         else if id = nun_unique_unsafe then
           Const (@{const_name The_unsafe}, typ_of ty)
         else if id = nun_true then
           @{const True}
-        else if String.isPrefix nun_anon_fun_prefix id then
-          let val j = Int.fromString (unprefix nun_anon_fun_prefix id) |> the_default ~1 in
+        else if String.isPrefix nun_dollar_anon_fun_prefix id then
+          let val j = Int.fromString (unprefix nun_dollar_anon_fun_prefix id) |> the_default ~1 in
             Var ((anonymousN ^ nat_subscript (j + 1), 0), typ_of ty)
           end
         else if String.isPrefix nun_irrelevant id then
@@ -227,7 +234,8 @@ fun isa_typ_entry_of_nun ctxt atomss (ty, atoms) =
 fun isa_term_entry_of_nun ctxt atomss (tm, value) =
   (term_of_nun ctxt atomss tm, term_of_nun ctxt atomss value);
 
-fun isa_model_of_nun ctxt pat_completes atomss {type_model, const_model, skolem_model} =
+fun isa_model_of_nun ctxt pat_completes atomss
+    {type_model, const_model, skolem_model, auxiliary_model} =
   let
     val free_and_const_model = map (isa_term_entry_of_nun ctxt atomss) const_model;
     val (free_model, (pat_complete_model, pat_incomplete_model)) =
@@ -236,7 +244,31 @@ fun isa_model_of_nun ctxt pat_completes atomss {type_model, const_model, skolem_
   in
     {type_model = map (isa_typ_entry_of_nun ctxt atomss) type_model, free_model = free_model,
      pat_complete_model = pat_complete_model, pat_incomplete_model = pat_incomplete_model,
-     skolem_model = map (isa_term_entry_of_nun ctxt atomss) skolem_model}
+     skolem_model = map (isa_term_entry_of_nun ctxt atomss) skolem_model,
+     auxiliary_model = map (isa_term_entry_of_nun ctxt atomss) auxiliary_model}
+  end;
+
+fun clean_up_isa_model ctxt {type_model, free_model, pat_complete_model, pat_incomplete_model,
+    skolem_model, auxiliary_model} =
+  let
+    val pat_complete_model' = if Config.get ctxt show_consts then pat_complete_model else [];
+    val pat_incomplete_model' = pat_incomplete_model
+      |> filter_out (can (fn Const (@{const_name unreachable}, _) => ()) o fst);
+
+    val term_model = free_model @ pat_complete_model' @ pat_incomplete_model' @
+      skolem_model @ auxiliary_model;
+
+    (* Incomplete test: Can be led astray by references between the auxiliaries. *)
+    fun is_auxiliary_referenced (aux, _) =
+      exists (fn (lhs, rhs) =>
+          not (lhs aconv aux) andalso exists_subterm (curry (op aconv) aux) rhs)
+        term_model;
+
+    val auxiliary_model' = filter is_auxiliary_referenced auxiliary_model;
+  in
+    {type_model = type_model, free_model = free_model, pat_complete_model = pat_complete_model',
+     pat_incomplete_model = pat_incomplete_model', skolem_model = skolem_model,
+     auxiliary_model = auxiliary_model'}
   end;
 
 end;

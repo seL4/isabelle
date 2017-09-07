@@ -201,11 +201,15 @@ fun run_chaku_on_prop state
                   str_of_nun_model ugly_nun_model);
 
                 val pat_completes = pat_completes_of_isa_problem isa_problem;
-                val isa_model = isa_model_of_nun ctxt pat_completes atomss ugly_nun_model;
-                val _ = print_d (fn () => "*** Isabelle model ***\n" ^
-                  str_of_isa_model ctxt isa_model);
+                val raw_isa_model = isa_model_of_nun ctxt pat_completes atomss ugly_nun_model;
+                val _ = print_d (fn () => "*** Raw Isabelle model ***\n" ^
+                  str_of_isa_model ctxt raw_isa_model);
+
+                val cleaned_isa_model = clean_up_isa_model ctxt raw_isa_model;
+                val _ = print_d (fn () => "*** Cleaned-up Isabelle model ***\n" ^
+                  str_of_isa_model ctxt cleaned_isa_model);
               in
-                isa_model
+                cleaned_isa_model
               end;
 
             fun isa_model_opt output =

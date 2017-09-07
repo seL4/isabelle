@@ -68,7 +68,6 @@ sig
 
   val nun_abstract: string
   val nun_and: string
-  val nun_anon_fun_prefix: string
   val nun_arrow: string
   val nun_asserting: string
   val nun_assign: string
@@ -86,6 +85,7 @@ sig
   val nun_data: string
   val nun_disj: string
   val nun_dollar: string
+  val nun_dollar_anon_fun_prefix: string
   val nun_dot: string
   val nun_dummy: string
   val nun_else: string
@@ -241,7 +241,6 @@ type name_pool =
 
 val nun_abstract = "abstract";
 val nun_and = "and";
-val nun_anon_fun_prefix = "anon_fun_";
 val nun_arrow = "->";
 val nun_asserting = "asserting";
 val nun_assign = ":=";
@@ -259,6 +258,7 @@ val nun_copy = "copy";
 val nun_data = "data";
 val nun_disj = "||";
 val nun_dollar = "$";
+val nun_dollar_anon_fun_prefix = "$anon_fun_";
 val nun_dot = ".";
 val nun_dummy = "_";
 val nun_else = "else";

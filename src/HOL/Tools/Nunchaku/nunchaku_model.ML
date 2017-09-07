@@ -18,7 +18,8 @@ sig
   type nun_model =
     {type_model: ty_entry list,
      const_model: tm_entry list,
-     skolem_model: tm_entry list}
+     skolem_model: tm_entry list,
+     auxiliary_model: tm_entry list}
 
   val str_of_nun_model: nun_model -> string
 
@@ -51,7 +52,8 @@ type tm_entry = tm * tm;
 type nun_model =
   {type_model: ty_entry list,
    const_model: tm_entry list,
-   skolem_model: tm_entry list};
+   skolem_model: tm_entry list,
+   auxiliary_model: tm_entry list};
 
 fun base_of_id id = hd (space_explode "/" id);
 
@@ -63,9 +65,9 @@ fun str_of_ty_entry (ty, tms) =
 fun str_of_tm_entry (tm, value) =
   "val " ^ str_of_tm tm ^ " := " ^ str_of_tm value ^ ".";
 
-fun str_of_nun_model {type_model, const_model, skolem_model} =
+fun str_of_nun_model {type_model, const_model, skolem_model, auxiliary_model} =
   map str_of_ty_entry type_model @ "" :: map str_of_tm_entry const_model @ "" ::
-  map str_of_tm_entry skolem_model
+  map str_of_tm_entry skolem_model @ "" :: map str_of_tm_entry auxiliary_model
   |> cat_lines;
 
 fun fold_map_ty_entry_idents f (ty, atoms) =
@@ -76,12 +78,14 @@ fun fold_map_tm_entry_idents f (tm, value) =
   fold_map_tm_idents f tm
   ##>> fold_map_tm_idents f value;
 
-fun fold_map_nun_model_idents f {type_model, const_model, skolem_model} =
+fun fold_map_nun_model_idents f {type_model, const_model, skolem_model, auxiliary_model} =
   fold_map (fold_map_ty_entry_idents f) type_model
   ##>> fold_map (fold_map_tm_entry_idents f) const_model
   ##>> fold_map (fold_map_tm_entry_idents f) skolem_model
-  #>> (fn ((type_model, const_model), skolem_model) =>
-    {type_model = type_model, const_model = const_model, skolem_model = skolem_model});
+  ##>> fold_map (fold_map_tm_entry_idents f) auxiliary_model
+  #>> (fn (((type_model, const_model), skolem_model), auxiliary_model) =>
+    {type_model = type_model, const_model = const_model, skolem_model = skolem_model,
+     auxiliary_model = auxiliary_model});
 
 fun swap_name_pool ({nice_of_ugly, ugly_of_nice} : name_pool) =
   {nice_of_ugly = ugly_of_nice, ugly_of_nice = nice_of_ugly};
@@ -114,16 +118,18 @@ fun atom_of_str s =
     in
       (case Int.fromString suf of
         SOME j => Atom (ident_of_str pre, j)
-      | NONE => raise Fail "ill-formed atom")
+      | NONE => raise Fail ("ill-formed atom: " ^ s))
     end
-  | NONE => raise Fail "ill-formed atom");
+  | NONE => raise Fail ("ill-formed atom: " ^ s));
 
 fun is_alnum_etc_char c = Char.isAlphaNum c orelse c = #"_" orelse c = #"/";
+
+fun is_dollar_alnum_etc_char c = c = #"$" orelse is_alnum_etc_char c;
 
 val multi_ids =
   [nun_arrow, nun_assign, nun_conj, nun_disj, nun_implies, nun_unparsable, nun_irrelevant];
 
-val nun_anon_fun_prefix_exploded = String.explode nun_anon_fun_prefix;
+val nun_dollar_anon_fun_prefix_exploded = String.explode nun_dollar_anon_fun_prefix;
 val [nun_dollar_char] = String.explode nun_dollar;
 
 fun next_token [] = (End_of_Stream, [])
@@ -131,10 +137,10 @@ fun next_token [] = (End_of_Stream, [])
     if Char.isSpace c then
       next_token cs
     else if c = nun_dollar_char then
-      let val n = find_index (not o is_alnum_etc_char) cs in
+      let val n = find_index (not o is_dollar_alnum_etc_char) cs in
         (if n = ~1 then (cs, []) else chop n cs)
         |>> (String.implode
-          #> (if is_prefix (op =) nun_anon_fun_prefix_exploded cs then ident_of_str #> Ident
+          #> (if is_prefix (op =) nun_dollar_anon_fun_prefix_exploded cs then ident_of_str #> Ident
             else atom_of_str))
       end
     else if is_alnum_etc_char c then
@@ -221,9 +227,13 @@ and parse_disj toks =
    >> (fn (tm, NONE) => tm
      | (lhs, SOME (Symbol id, rhs)) => napps (NConst (id, [], dummy_ty), [lhs, rhs]))) toks
 and parse_conj toks =
-  (parse_equals -- Scan.option (parse_sym nun_conj -- parse_conj)
+  (parse_not -- Scan.option (parse_sym nun_conj -- parse_conj)
    >> (fn (tm, NONE) => tm
      | (lhs, SOME (Symbol id, rhs)) => napps (NConst (id, [], dummy_ty), [lhs, rhs]))) toks
+and parse_not toks =
+  (Scan.option (parse_sym nun_not) -- parse_equals
+   >> (fn (NONE, tm) => tm
+     | (SOME _, tm) => napps (NConst (nun_not, [], dummy_ty), [tm]))) toks
 and parse_equals toks =
   (parse_comb -- Scan.option (parse_sym nun_equals -- parse_comb)
    >> (fn (tm, NONE) => tm
@@ -250,15 +260,23 @@ val parse_witness =
   |-- Scan.option (parse_sym nun_lparen) |-- parse_witness_name
   --| Scan.repeat (Scan.one (curry (op <>) (Symbol nun_assign)));
 
+val parse_anon_fun_name =
+  Scan.one (fn Ident id => String.isPrefix nun_dollar_anon_fun_prefix id | _ => false);
+
+val parse_anon_fun =
+  parse_anon_fun_name >> (fn Ident id => NConst (id, [], dummy_ty));
+
 datatype entry =
   Type_Entry of ty_entry
+| Const_Entry of tm_entry
 | Skolem_Entry of tm_entry
-| Const_Entry of tm_entry;
+| Auxiliary_Entry of tm_entry;
 
 val parse_entry =
   (parse_id nun_type |-- parse_ty --| parse_sym nun_assign --| parse_sym nun_lbrace --
        parse_enum (parse_sym nun_comma) parse_tm --| parse_sym nun_rbrace
      >> Type_Entry
+   || parse_id nun_val |-- parse_anon_fun --| parse_sym nun_assign -- parse_tm >> Auxiliary_Entry
    || parse_id nun_val |-- parse_witness --| parse_sym nun_assign -- parse_tm >> Skolem_Entry
    || parse_id nun_val |-- parse_tm --| parse_sym nun_assign -- parse_tm >> Const_Entry)
   --| parse_sym nun_dot;
@@ -267,18 +285,24 @@ val parse_model =
   parse_id nun_SAT |-- parse_sym nun_colon |-- parse_sym nun_lbrace |-- Scan.repeat parse_entry
   --| parse_sym nun_rbrace;
 
-fun add_entry entry ({type_model, const_model, skolem_model} : nun_model) =
+fun add_entry entry ({type_model, const_model, skolem_model, auxiliary_model} : nun_model) =
   (case entry of
     Type_Entry e =>
-    {type_model = e :: type_model, const_model = const_model, skolem_model = skolem_model}
-  | Skolem_Entry e =>
-    {type_model = type_model, const_model = const_model, skolem_model = e :: skolem_model}
+    {type_model = e :: type_model, const_model = const_model, skolem_model = skolem_model,
+     auxiliary_model = auxiliary_model}
   | Const_Entry e =>
-    {type_model = type_model, const_model = e :: const_model, skolem_model = skolem_model});
+    {type_model = type_model, const_model = e :: const_model, skolem_model = skolem_model,
+     auxiliary_model = auxiliary_model}
+  | Skolem_Entry e =>
+    {type_model = type_model, const_model = const_model, skolem_model = e :: skolem_model,
+     auxiliary_model = auxiliary_model}
+  | Auxiliary_Entry e =>
+    {type_model = type_model, const_model = const_model, skolem_model = skolem_model,
+     auxiliary_model = e :: auxiliary_model});
 
 fun nun_model_of_str str =
   let val (entries, _) = parse_model (tokenize str) in
-    {type_model = [], const_model = [], skolem_model = []}
+    {type_model = [], const_model = [], skolem_model = [], auxiliary_model = []}
     |> fold_rev add_entry entries
   end;
 
