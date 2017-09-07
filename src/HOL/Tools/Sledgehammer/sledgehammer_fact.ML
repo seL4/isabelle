@@ -449,10 +449,11 @@ fun is_useful_unnamed_local_fact ctxt =
     val global_facts = Global_Theory.facts_of thy
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = Facts.dest_static true [global_facts] local_facts
+      |> maps (map (normalize_eq o Thm.prop_of) o snd)
   in
     fn th =>
       not (Thm.has_name_hint th) andalso
-      forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
+      not (member (op aconv) named_locals (normalize_eq (Thm.prop_of th)))
   end
 
 fun all_facts ctxt generous ho_atp keywords add_ths chained css =
