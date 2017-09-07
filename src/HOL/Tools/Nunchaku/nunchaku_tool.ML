@@ -91,7 +91,7 @@ fun uncached_solve_nun_problem ({solvers, overlord, specialize, timeout, ...} : 
           "PATH=\"$CVC4_HOME:$KODKODI/bin:$PATH\" \"$" ^
           nunchaku_home_env_var ^ "\"/nunchaku --skolems-in-model --no-color " ^
           (if specialize then "" else "--no-specialize ") ^
-          "--solvers \"" ^ Bash_Syntax.string (space_implode "," solvers) ^ "\" " ^
+          "--solvers \"" ^ space_implode "," (map Bash_Syntax.string solvers) ^ "\" " ^
           "--timeout " ^ string_of_int (Time.toSeconds timeout) ^ " " ^
           File.bash_path prob_path;
         val comments =
