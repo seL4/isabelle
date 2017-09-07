@@ -137,7 +137,6 @@ fun gen_tm_of_isa in_prop ctxt t =
   in
     t
     |> tm_of Name.context
-    |> beta_reduce_tm
     |> eta_expand_builtin_tm
   end;
 

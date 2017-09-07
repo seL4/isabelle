@@ -164,7 +164,6 @@ sig
 
   val rcomb_tms: tm list -> tm -> tm
   val abs_tms: tm list -> tm -> tm
-  val beta_reduce_tm: tm -> tm
   val eta_expandN_tm: int -> tm -> tm
   val eta_expand_builtin_tm: tm -> tm
 
@@ -529,19 +528,6 @@ fun dest_rassoc_args oper arg0 rest =
     if oper' = oper then arg0 :: dest_rassoc_args oper arg1 rest' else [arg0, rest]
   | _ => [arg0, rest]);
 
-fun replace_tm from to =
-  let
-    (* This code assumes all enclosing binders bind distinct variables and bound variables are
-       distinct from any other variables. *)
-    fun repl_br (id, vars, body) = (id, map repl vars, repl body)
-    and repl (NApp (const, arg)) = NApp (repl const, repl arg)
-      | repl (NAbs (var, body)) = NAbs (var, repl body)
-      | repl (NMatch (obj, branches)) = NMatch (repl obj, map repl_br branches)
-      | repl tm = if tm = from then to else tm;
-  in
-    repl
-  end;
-
 val rcomb_tms = fold (fn arg => fn func => NApp (func, arg));
 val abs_tms = fold_rev (curry NAbs);
 
@@ -560,16 +546,6 @@ fun fresh_var_names_wrt_tm n tm =
   in
     map (index_name max_name) (1 upto n)
   end;
-
-fun beta_reduce_tm (NApp (NAbs (var, body), arg)) = beta_reduce_tm (replace_tm var arg body)
-  | beta_reduce_tm (NApp (const, arg)) =
-    (case beta_reduce_tm const of
-      const' as NAbs _ => beta_reduce_tm (NApp (const', arg))
-    | const' => NApp (const', beta_reduce_tm arg))
-  | beta_reduce_tm (NAbs (var, body)) = NAbs (var, beta_reduce_tm body)
-  | beta_reduce_tm (NMatch (obj, branches)) =
-    NMatch (beta_reduce_tm obj, map (@{apply 3(3)} beta_reduce_tm) branches)
-  | beta_reduce_tm tm = tm;
 
 fun eta_expandN_tm 0 tm = tm
   | eta_expandN_tm n tm =
@@ -656,7 +632,7 @@ val (str_of_tmty, str_of_tm) =
         | NONE => nun_parens o str_of_tmty) var ^
         nun_dot ^ " " ^ str_of (Option.map range_ty ty_opt) body
       | str_of ty_opt (NMatch (obj, branches)) =
-        nun_match ^ " " ^ str_of NONE obj ^ " " ^ nun_with ^ " " ^
+        nun_match ^ " " ^ str_of NONE obj ^ " " ^ nun_with ^
         space_implode "" (map (str_of_br ty_opt) branches) ^ " " ^ nun_end
       | str_of ty_opt (app as NApp (func, argN)) =
         (case (func, argN) of
