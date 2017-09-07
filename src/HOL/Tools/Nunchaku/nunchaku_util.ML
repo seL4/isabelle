@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nunchaku/Tools/nunchaku_util.ML
-    Author:     Jasmin Blanchette, Inria Nancy, LORIA, MPII
-    Copyright   2015, 2016
+    Author:     Jasmin Blanchette, VU Amsterdam
+    Copyright   2015, 2016, 2017
 
 General-purpose functions used by Nunchaku.
 *)

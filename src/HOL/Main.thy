@@ -6,7 +6,7 @@ text \<open>
 \<close>
 
 theory Main
-imports Predicate_Compile Quickcheck_Narrowing Extraction Nitpick BNF_Greatest_Fixpoint Filter Conditionally_Complete_Lattices Binomial GCD
+imports Predicate_Compile Quickcheck_Narrowing Extraction Nunchaku BNF_Greatest_Fixpoint Filter Conditionally_Complete_Lattices Binomial GCD
 begin
 
 text \<open>

@@ -134,6 +134,8 @@ non-monotonous declarations appropriately. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* The Nunchaku model finder is now part of "Main".
+
 * SMT module:
   - A new option, 'smt_nat_as_int', has been added to translate 'nat' to
     'int' and benefit from the SMT solver's theory reasoning. It is
@@ -569,7 +571,7 @@ propositional logic with equality, and goals based on a combination of
 quantifier-free propositional logic with linear real arithmetic
 including min/max/abs. See HOL/ex/Argo_Examples.thy for examples.
 
-* The new "nunchaku" program integrates the Nunchaku model finder. The
+* The new "nunchaku" command integrates the Nunchaku model finder. The
 tool is experimental. See ~~/src/HOL/Nunchaku/Nunchaku.thy for details.
 
 * Metis: The problem encoding has changed very slightly. This might

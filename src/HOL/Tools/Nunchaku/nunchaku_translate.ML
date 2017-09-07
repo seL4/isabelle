@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nunchaku/Tools/nunchaku_translate.ML
-    Author:     Jasmin Blanchette, Inria Nancy, LORIA, MPII
-    Copyright   2015, 2016
+    Author:     Jasmin Blanchette, VU Amsterdam
+    Copyright   2015, 2016, 2017
 
 Translation of Isabelle/HOL problems to Nunchaku.
 *)
