@@ -53,6 +53,8 @@ type nun_model =
    const_model: tm_entry list,
    skolem_model: tm_entry list};
 
+fun base_of_id id = hd (space_explode "/" id);
+
 val nun_SAT = str_of_ident "SAT";
 
 fun str_of_ty_entry (ty, tms) =
@@ -231,9 +233,8 @@ and parse_comb toks =
 and parse_arg toks =
   (parse_choice_or_unique
    || parse_ident >> (fn id => NConst (id, [], dummy_ty))
-   || parse_sym nun_irrelevant
-      |-- Scan.option (parse_sym nun_lparen |-- parse_tm --| parse_sym nun_rparen) (* FIXME *)
-     >> (fn _ => NConst (nun_irrelevant, [], dummy_ty))
+   || parse_sym nun_irrelevant |-- parse_ident
+     >> (fn num => NConst (nun_irrelevant ^ num, [], dummy_ty))
    || parse_sym nun_unparsable |-- parse_ty >> (fn ty => NConst (nun_unparsable, [], ty))
    || parse_sym nun_lparen |-- parse_tm -- Scan.option (parse_sym nun_colon |-- parse_ty)
       --| parse_sym nun_rparen
@@ -242,7 +243,7 @@ and parse_arg toks =
    || parse_atom >> (fn (id, j) => NAtom (j, NType (id, [])))) toks;
 
 val parse_witness_name =
-  parse_ident >> (fn id => NConst (hd (space_explode "/" id), [], dummy_ty));
+  parse_ident >> (fn id => NConst (base_of_id id, [], dummy_ty));
 
 val parse_witness =
   parse_id nun__witness_of |-- parse_sym nun_lparen |-- (parse_id nun_forall || parse_id nun_exists)

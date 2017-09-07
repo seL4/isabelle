@@ -176,13 +176,11 @@ fun term_of_nun ctxt atomss =
           let val j = Int.fromString (unprefix nun_anon_fun_prefix id) |> the_default ~1 in
             Var ((anonymousN ^ nat_subscript (j + 1), 0), typ_of ty)
           end
-        else if id = nun_irrelevant then
-          (* FIXME: get bounds from Nunchaku *)
-          list_comb (Var ((irrelevantN, 0), map (typ_of o safe_ty_of) bounds ---> typ_of ty),
-            map Bound (length bounds - 1 downto 0))
+        else if String.isPrefix nun_irrelevant id then
+          Var ((irrelevantN ^ nat_subscript (Value.parse_int (unprefix nun_irrelevant id)), 0),
+            dummyT)
         else if id = nun_unparsable then
-          (* FIXME: get bounds from Nunchaku *)
-          list_comb (Var ((unparsableN, 0), typ_of ty), map Bound (length bounds - 1 downto 0))
+          Var ((unparsableN, 0), typ_of ty)
         else
           (case try str_of_nun_const id of
             SOME (args, s) =>
