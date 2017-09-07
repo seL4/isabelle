@@ -281,7 +281,7 @@ fun run_chaku_on_prop state
               (print_n "External tool \"cvc4\" cannot execute"; (unknownN, NONE))
             | CVC4_Not_Found => (print_n "External tool \"cvc4\" not found"; (unknownN, NONE))
             | Unknown_Error (code, msg) =>
-              (print_n ("Unknown error: " ^ unprefix_error msg ^
+              (print_n ("Error: " ^ unprefix_error msg ^
                  (if code = 0 then "" else " (code " ^ string_of_int code ^ ")"));
                (unknownN, NONE)))
           end
