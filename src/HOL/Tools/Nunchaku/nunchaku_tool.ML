@@ -111,13 +111,9 @@ fun uncached_solve_nun_problem ({solvers, overlord, min_bound, max_bound, bound_
         val ((output, error), code) = bash_output_error bash_cmd;
 
         val backend =
-          (case filter_out (curry (op =) "") (split_lines output) of
-            [] => unknown_solver
-          | lines =>
-            (case try (unprefix "{backend:") (List.last lines) of
-              NONE => unknown_solver
-            | SOME "" => unknown_solver
-            | SOME s => hd (space_explode "," s)));
+          (case map_filter (try (unprefix "{backend:")) (split_lines output) of
+            [s] => hd (space_explode "," s)
+          | _ => unknown_solver);
       in
         if String.isPrefix "SAT" output then
           (if sound then Sat else Unknown o SOME) (backend, output, {tys = [], tms = []})
