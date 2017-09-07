@@ -975,6 +975,7 @@ val setup =
   #> add_discrete_type @{type_name nat}
   #> add_lessD @{thm Suc_leI}
   #> add_simps (@{thms simp_thms} @ @{thms ring_distribs} @ [@{thm if_True}, @{thm if_False},
+      @{thm minus_diff_eq},
       @{thm add_0_left}, @{thm add_0_right}, @{thm order_less_irrefl},
       @{thm zero_neq_one}, @{thm zero_less_one}, @{thm zero_le_one},
       @{thm zero_neq_one} RS not_sym, @{thm not_one_le_zero}, @{thm not_one_less_zero}])
