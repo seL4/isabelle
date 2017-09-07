@@ -177,9 +177,11 @@ val tokenize =
     toks o String.explode
   end;
 
-fun parse_enum sep scan = scan ::: Scan.repeat (sep |-- scan);
+fun parse_enum sep scan =
+  Scan.optional (scan ::: Scan.repeat (sep |-- scan)) [];
 
-fun parse_tok tok = Scan.one (curry (op =) tok);
+fun parse_tok tok =
+  Scan.one (curry (op =) tok);
 
 val parse_ident = Scan.some (try (fn Ident id => id));
 val parse_id = parse_tok o Ident;
