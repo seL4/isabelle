@@ -1073,7 +1073,7 @@ fun str_of_isa_const_spec ctxt {const, props} =
 
 fun str_of_isa_rec_spec ctxt {const, props, pat_complete} =
   str_of_isa_term_with_type ctxt const ^ (if pat_complete then " [pat_complete]" else "") ^
-  " :=\n " ^ space_implode ";\n " (map (Syntax.string_of_term ctxt) props);
+  " :=\n  " ^ space_implode ";\n  " (map (Syntax.string_of_term ctxt) props);
 
 fun str_of_isa_consts_spec ctxt {consts, props} =
   space_implode " and\n     " (map (str_of_isa_term_with_type ctxt) consts) ^ " :=\n  " ^
