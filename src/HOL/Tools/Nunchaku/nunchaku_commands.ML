@@ -34,7 +34,10 @@ val default_default_params =
    ("verbose", "false"),
    ("wf_timeout", "0.5")];
 
-val negated_params =
+val alias_params =
+  [("solver", "solvers")];
+
+val negated_alias_params =
   [("dont_whack", "whack"),
    ("dont_specialize", "specialize"),
    ("dont_spy", "spy"),
@@ -48,7 +51,8 @@ val negated_params =
 
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
-  AList.defined (op =) negated_params s orelse
+  AList.defined (op =) alias_params s orelse
+  AList.defined (op =) negated_alias_params s orelse
   member (op =) ["atoms", "card", "eval", "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
     ["atoms", "card", "dont_whack", "mono", "non_mono", "non_wf", "wf", "whack"];
@@ -57,7 +61,7 @@ fun check_raw_param (s, _) =
   if is_known_raw_param s then () else error ("Unknown parameter: " ^ quote s);
 
 fun unnegate_param_name name =
-  (case AList.lookup (op =) negated_params name of
+  (case AList.lookup (op =) negated_alias_params name of
     NONE =>
     if String.isPrefix "dont_" name then SOME (unprefix "dont_" name)
     else if String.isPrefix "non_" name then SOME (unprefix "non_" name)
@@ -65,15 +69,18 @@ fun unnegate_param_name name =
   | some_name => some_name);
 
 fun normalize_raw_param (name, value) =
-  (case unnegate_param_name name of
-    SOME name' =>
-    [(name',
-      (case value of
-        ["false"] => ["true"]
-      | ["true"] => ["false"]
-      | [] => ["false"]
-      | _ => value))]
-  | NONE => [(name, value)]);
+  (case AList.lookup (op =) alias_params name of
+    SOME alias => [(alias, value)]
+  | NONE =>
+    (case unnegate_param_name name of
+      SOME name' =>
+      [(name',
+        (case value of
+          ["false"] => ["true"]
+        | ["true"] => ["false"]
+        | [] => ["false"]
+        | _ => value))]
+    | NONE => [(name, value)]));
 
 structure Data = Theory_Data
 (
