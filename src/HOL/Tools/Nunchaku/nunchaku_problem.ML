@@ -744,7 +744,7 @@ fun str_of_nun_cards_suffix (NONE, NONE) = ""
       val s1 = Option.map (prefix "min_card " o signed_string_of_int) c1;
       val s2 = Option.map (prefix "max_card " o signed_string_of_int) c2;
     in
-      enclose " [" "]" (space_implode ", " (map_filter I [s1, s2]))
+      enclose " [" "]" (space_implode "; " (map_filter I [s1, s2]))
     end;
 
 fun str_of_nun_command (NTVal (ty, cards)) =
