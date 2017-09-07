@@ -22,7 +22,8 @@ sig
   type scope_of_search_params =
     {wfs: ((string * typ) option * bool option) list,
      whacks: (term option * bool) list,
-     initial_bound: int,
+     min_bound: int,
+     max_bound: int option,
      bound_increment: int,
      cards: (typ option * (int option * int option)) list,
      monos: (typ option * bool option) list}
@@ -87,7 +88,8 @@ type mode_of_operation_params =
 type scope_of_search_params =
   {wfs: ((string * typ) option * bool option) list,
    whacks: (term option * bool) list,
-   initial_bound: int,
+   min_bound: int,
+   max_bound: int option,
    bound_increment: int,
    cards: (typ option * (int option * int option)) list,
    monos: (typ option * bool option) list};
@@ -149,7 +151,7 @@ val timeout_slack = seconds 1.0;
 
 fun run_chaku_on_prop state
     ({mode_of_operation_params = {solvers, falsify, assms, spy, overlord, expect},
-      scope_of_search_params = {wfs, whacks, initial_bound, bound_increment, cards, monos},
+      scope_of_search_params = {wfs, whacks, min_bound, max_bound, bound_increment, cards, monos},
       output_format_params = {verbose, debug, evals, atomss, ...},
       optimization_params = {specialize, ...},
       timeout_params = {timeout, wf_timeout}})
@@ -168,7 +170,7 @@ fun run_chaku_on_prop state
     val das_wort_model = if falsify then "countermodel" else "model";
 
     val tool_params =
-      {solvers = solvers, overlord = overlord, initial_bound = initial_bound,
+      {solvers = solvers, overlord = overlord, min_bound = min_bound, max_bound = max_bound,
        bound_increment = bound_increment, debug = debug, specialize = specialize,
        timeout = timeout};
 
