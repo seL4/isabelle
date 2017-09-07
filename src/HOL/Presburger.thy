@@ -485,7 +485,7 @@ lemma [presburger]:
 
 lemma [presburger]:
   "even n \<longleftrightarrow> even (int n)"
-  using even_int_iff [of n] by simp
+  by simp
   
 
 subsection \<open>Nice facts about division by @{term 4}\<close>  

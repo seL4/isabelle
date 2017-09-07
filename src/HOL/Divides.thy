@@ -501,7 +501,7 @@ lemma even_iff_mod_2_eq_zero:
 
 lemma odd_iff_mod_2_eq_one:
   "odd a \<longleftrightarrow> a mod 2 = 1"
-  by (auto simp add: even_iff_mod_2_eq_zero)
+  by (simp add: even_iff_mod_2_eq_zero)
 
 lemma even_succ_div_two [simp]:
   "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
@@ -1853,8 +1853,8 @@ proof -
   from assms have "sgn v = - 1 \<or> sgn v = 1"
     by (cases "v \<ge> 0") auto
   then show ?thesis
-  using assms unfolding divide_int_def [of "sgn v * \<bar>k\<bar>" "sgn v * \<bar>l\<bar>"]
-    by (auto simp add: not_less div_abs_eq_div_nat)
+    using assms unfolding divide_int_def [of "sgn v * \<bar>k\<bar>" "sgn v * \<bar>l\<bar>"]
+    by (fastforce simp add: not_less div_abs_eq_div_nat)
 qed
 
 lemma div_eq_sgn_abs:
@@ -2031,7 +2031,7 @@ lemma zminus1_lemma:
      "eucl_rel_int a b (q, r) ==> b \<noteq> 0
       ==> eucl_rel_int (-a) b (if r=0 then -q else -q - 1,
                           if r=0 then 0 else b-r)"
-by (force simp add: split_ifs eucl_rel_int_iff linorder_neq_iff right_diff_distrib)
+by (force simp add: eucl_rel_int_iff right_diff_distrib)
 
 
 lemma zdiv_zminus1_eq_if:
