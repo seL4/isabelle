@@ -254,9 +254,9 @@ for pattern aliases as known from Haskell, Scala and ML.
 * Theory "HOL-Library.Uprod" formalizes the type of unordered pairs.
 
 * Session HOL-Analysis: more material involving arcs, paths, covering
-spaces, innessential maps, retracts, infinite products, simplicial complexes.
-Baire Category theorem. Major results include the Jordan Curve Theorem and the Great Picard
-Theorem.
+spaces, innessential maps, retracts, infinite products, simplicial
+complexes. Baire Category theorem. Major results include the Jordan
+Curve Theorem and the Great Picard Theorem.
 
 * Session HOL-Algebra has been extended by additional lattice theory:
 the Knaster-Tarski fixed point theorem and Galois Connections.
