@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nunchaku/Tools/nunchaku_model.ML
+(*  Title:      HOL/Tools/Nunchaku/nunchaku_model.ML
     Author:     Jasmin Blanchette, VU Amsterdam
     Copyright   2015, 2016, 2017
 

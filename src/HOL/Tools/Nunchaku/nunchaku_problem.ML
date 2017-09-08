@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nunchaku/Tools/nunchaku_problem.ML
+(*  Title:      HOL/Tools/Nunchaku/nunchaku_problem.ML
     Author:     Jasmin Blanchette, VU Amsterdam
     Copyright   2015, 2016, 2017
 
