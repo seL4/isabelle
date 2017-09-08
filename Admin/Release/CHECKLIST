@@ -7,6 +7,8 @@ Checklist for official releases
 
 - test 'display_drafts' command;
 
+- test Isabelle/jEdit: print buffer
+
 - test "#!/usr/bin/env isabelle_scala_script";
 
 - check sources:
@@ -42,11 +44,6 @@ Checklist for official releases
 - HTML library: check HTML header;
 
 - HTML library: check theory dependencies (PDF);
-
-- test Isabelle/jEdit:
-    . print buffer
-    . on single-core
-    . on airy device
 
 - test contrib components:
     x86_64-linux without 32bit C/C++ libraries
