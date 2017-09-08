@@ -6,6 +6,12 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2017
 -----------------------------
 
+* September 2017: Lawrence Paulson
+  HOL-Analysis, e.g. simplicial complexes, Jordan Curve Theorem.
+
+* September 2017: Jasmin Blanchette
+  Further integration of Nunchaku model finder.
+
 * November 2016 - June 2017: Makarius Wenzel
   New Isabelle/VSCode, with underlying restructuring of Isabelle/PIDE.
 
@@ -13,12 +19,6 @@ Contributions to Isabelle2017
   Session-qualified theory names (theory imports and ROOT files).
   Prover IDE improvements.
   Support for SQL databases in Isabelle/Scala: SQLite and PostgreSQL.
-
-* September 2017: Jasmin Blanchette
-  Further integration of Nunchaku model finder.
-
-* September 2017: Lawrence Paulson
-  HOL-Analysis, e.g., simplicial complexes, Jordan Curve Theorem.
 
 * August 2017: Andreas Lochbihler, ETH Zurich
   type of unordered pairs (HOL-Library.Uprod)
