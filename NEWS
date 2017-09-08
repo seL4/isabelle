@@ -220,7 +220,7 @@ the literature. Minor INCOMPATIBILITY.
 * Theory "HOL-Library.Permutations": theorem bij_swap_ompose_bij has
 been renamed to bij_swap_compose_bij. INCOMPATIBILITY.
 
-* New theory "HOL-Library.Going_To_Filter" providing the "f going_to F" 
+* New theory "HOL-Library.Going_To_Filter" providing the "f going_to F"
 filter for describing points x such that f(x) is in the filter F.
 
 * Theory "HOL-Library.Formal_Power_Series": constants X/E/L/F have been
@@ -255,7 +255,7 @@ for pattern aliases as known from Haskell, Scala and ML.
 
 * Session HOL-Analysis: more material involving arcs, paths, covering
 spaces, innessential maps, retracts, infinite products, simplicial complexes.
-Baire Category theory. Major results include the Jordan Curve Theorem and the Great Picard
+Baire Category theorem. Major results include the Jordan Curve Theorem and the Great Picard
 Theorem.
 
 * Session HOL-Algebra has been extended by additional lattice theory:
