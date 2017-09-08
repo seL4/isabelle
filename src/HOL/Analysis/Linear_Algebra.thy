@@ -310,7 +310,7 @@ lemma span_unique:
 lemma span_minimal: "S \<subseteq> T \<Longrightarrow> subspace T \<Longrightarrow> span S \<subseteq> T"
   unfolding span_def by (rule hull_minimal)
 
-lemma span_UNIV: "span UNIV = UNIV"
+lemma span_UNIV [simp]: "span UNIV = UNIV"
   by (intro span_unique) auto
 
 lemma (in real_vector) span_induct:

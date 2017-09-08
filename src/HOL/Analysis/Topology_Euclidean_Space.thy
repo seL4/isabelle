@@ -2356,6 +2356,28 @@ proof (rule closure_unique)
     done
 qed
 
+lemma closure_openin_Int_closure:
+  assumes ope: "openin (subtopology euclidean U) S" and "T \<subseteq> U"
+  shows "closure(S \<inter> closure T) = closure(S \<inter> T)"
+proof
+  obtain V where "open V" and S: "S = U \<inter> V"
+    using ope using openin_open by metis
+  show "closure (S \<inter> closure T) \<subseteq> closure (S \<inter> T)"
+    proof (clarsimp simp: S)
+      fix x
+      assume  "x \<in> closure (U \<inter> V \<inter> closure T)"
+      then have "V \<inter> closure T \<subseteq> A \<Longrightarrow> x \<in> closure A" for A
+          by (metis closure_mono subsetD inf.coboundedI2 inf_assoc)
+      then have "x \<in> closure (T \<inter> V)"
+         by (metis \<open>open V\<close> closure_closure inf_commute open_Int_closure_subset)
+      then show "x \<in> closure (U \<inter> V \<inter> T)"
+        by (metis \<open>T \<subseteq> U\<close> inf.absorb_iff2 inf_assoc inf_commute)
+    qed
+next
+  show "closure (S \<inter> T) \<subseteq> closure (S \<inter> closure T)"
+    by (meson Int_mono closure_mono closure_subset order_refl)
+qed
+
 lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
   unfolding closure_def using islimpt_punctured by blast
 
@@ -3520,6 +3542,12 @@ lemma closure_approachable:
   apply (metis dist_self)
   done
 
+lemma closure_approachable_le:
+  fixes S :: "'a::metric_space set"
+  shows "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x \<le> e)"
+  unfolding closure_approachable
+  using dense by force
+
 lemma closed_approachable:
   fixes S :: "'a::metric_space set"
   shows "closed S \<Longrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
@@ -3542,6 +3570,17 @@ proof -
       by (intro bexI[of _ x]) (auto simp add: dist_real_def)
   }
   then show ?thesis unfolding closure_approachable by auto
+qed
+
+lemma closure_Int_ballI:
+  fixes S :: "'a :: metric_space set"
+  assumes "\<And>U. \<lbrakk>openin (subtopology euclidean S) U; U \<noteq> {}\<rbrakk> \<Longrightarrow> T \<inter> U \<noteq> {}"
+ shows "S \<subseteq> closure T"
+proof (clarsimp simp: closure_approachable dist_commute)
+  fix x and e::real
+  assume "x \<in> S" "0 < e"
+  with assms [of "S \<inter> ball x e"] show "\<exists>y\<in>T. dist x y < e"
+    by force
 qed
 
 lemma closed_contains_Inf:
@@ -4802,6 +4841,11 @@ next
     by (simp add: closure_subset open_Compl)
 qed
 
+corollary closure_Int_ball_not_empty:
+  assumes "S \<subseteq> closure T" "x \<in> S" "r > 0"
+  shows "T \<inter> ball x r \<noteq> {}"
+  using assms centre_in_ball closure_iff_nhds_not_empty by blast
+
 lemma compact_filter:
   "compact U \<longleftrightarrow> (\<forall>F. F \<noteq> bot \<longrightarrow> eventually (\<lambda>x. x \<in> U) F \<longrightarrow> (\<exists>x\<in>U. inf (nhds x) F \<noteq> bot))"
 proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
@@ -5630,6 +5674,115 @@ proof -
     done
 qed
 
+text\<open>The Baire propery of dense sets\<close>
+theorem Baire:
+  fixes S::"'a::{real_normed_vector,heine_borel} set"
+  assumes "closed S" "countable \<G>"
+      and ope: "\<And>T. T \<in> \<G> \<Longrightarrow> openin (subtopology euclidean S) T \<and> S \<subseteq> closure T"
+ shows "S \<subseteq> closure(\<Inter>\<G>)"
+proof (cases "\<G> = {}")
+  case True
+  then show ?thesis
+    using closure_subset by auto
+next
+  let ?g = "from_nat_into \<G>"
+  case False
+  then have gin: "?g n \<in> \<G>" for n
+    by (simp add: from_nat_into)
+  show ?thesis
+  proof (clarsimp simp: closure_approachable)
+    fix x and e::real
+    assume "x \<in> S" "0 < e"
+    obtain TF where opeF: "\<And>n. openin (subtopology euclidean S) (TF n)" 
+               and ne: "\<And>n. TF n \<noteq> {}" 
+               and subg: "\<And>n. S \<inter> closure(TF n) \<subseteq> ?g n"
+               and subball: "\<And>n. closure(TF n) \<subseteq> ball x e" 
+               and decr: "\<And>n. TF(Suc n) \<subseteq> TF n"
+    proof -
+      have *: "\<exists>Y. (openin (subtopology euclidean S) Y \<and> Y \<noteq> {} \<and>
+                   S \<inter> closure Y \<subseteq> ?g n \<and> closure Y \<subseteq> ball x e) \<and> Y \<subseteq> U" 
+        if opeU: "openin (subtopology euclidean S) U" and "U \<noteq> {}" and cloU: "closure U \<subseteq> ball x e" for U n
+      proof -
+        obtain T where T: "open T" "U = T \<inter> S"
+          using \<open>openin (subtopology euclidean S) U\<close> by (auto simp: openin_subtopology)
+        with \<open>U \<noteq> {}\<close> have "T \<inter> closure (?g n) \<noteq> {}"
+          using gin ope by fastforce
+        then have "T \<inter> ?g n \<noteq> {}"
+          using \<open>open T\<close> open_Int_closure_eq_empty by blast
+        then obtain y where "y \<in> U" "y \<in> ?g n"
+          using T ope [of "?g n", OF gin] by (blast dest:  openin_imp_subset)
+        moreover have "openin (subtopology euclidean S) (U \<inter> ?g n)"
+          using gin ope opeU by blast
+        ultimately obtain d where U: "U \<inter> ?g n \<subseteq> S" and "d > 0" and d: "ball y d \<inter> S \<subseteq> U \<inter> ?g n"
+          by (force simp add: openin_contains_ball)
+        show ?thesis
+        proof (intro exI conjI)
+          show "openin (subtopology euclidean S) (S \<inter> ball y (d/2))"
+            by (simp add: openin_open_Int)
+          show "S \<inter> ball y (d/2) \<noteq> {}"
+            using \<open>0 < d\<close> \<open>y \<in> U\<close> opeU openin_imp_subset by fastforce
+          have "S \<inter> closure (S \<inter> ball y (d/2)) \<subseteq> S \<inter> closure (ball y (d/2))"
+            using closure_mono by blast
+          also have "... \<subseteq> ?g n"
+            using \<open>d > 0\<close> d by force
+          finally show "S \<inter> closure (S \<inter> ball y (d/2)) \<subseteq> ?g n" .
+          have "closure (S \<inter> ball y (d/2)) \<subseteq> S \<inter> ball y d"
+          proof -
+            have "closure (ball y (d/2)) \<subseteq> ball y d"
+              using \<open>d > 0\<close> by auto
+            then have "closure (S \<inter> ball y (d/2)) \<subseteq> ball y d"
+              by (meson closure_mono inf.cobounded2 subset_trans)
+            then show ?thesis
+              by (simp add: \<open>closed S\<close> closure_minimal)
+          qed
+          also have "...  \<subseteq> ball x e"
+            using cloU closure_subset d by blast
+          finally show "closure (S \<inter> ball y (d/2)) \<subseteq> ball x e" .
+          show "S \<inter> ball y (d/2) \<subseteq> U"
+            using ball_divide_subset_numeral d by blast
+        qed
+      qed
+      let ?\<Phi> = "\<lambda>n X. openin (subtopology euclidean S) X \<and> X \<noteq> {} \<and> 
+                      S \<inter> closure X \<subseteq> ?g n \<and> closure X \<subseteq> ball x e"
+      have "closure (S \<inter> ball x (e / 2)) \<subseteq> closure(ball x (e/2))"
+        by (simp add: closure_mono)
+      also have "...  \<subseteq> ball x e"
+        using \<open>e > 0\<close> by auto
+      finally have "closure (S \<inter> ball x (e / 2)) \<subseteq> ball x e" .
+      moreover have"openin (subtopology euclidean S) (S \<inter> ball x (e / 2))" "S \<inter> ball x (e / 2) \<noteq> {}"
+        using \<open>0 < e\<close> \<open>x \<in> S\<close> by auto
+      ultimately obtain Y where Y: "?\<Phi> 0 Y \<and> Y \<subseteq> S \<inter> ball x (e / 2)"
+            using * [of "S \<inter> ball x (e/2)" 0] by metis
+      show thesis
+      proof (rule exE [OF dependent_nat_choice [of ?\<Phi> "\<lambda>n X Y. Y \<subseteq> X"]])
+        show "\<exists>x. ?\<Phi> 0 x"
+          using Y by auto
+        show "\<exists>Y. ?\<Phi> (Suc n) Y \<and> Y \<subseteq> X" if "?\<Phi> n X" for X n
+          using that by (blast intro: *)
+      qed (use that in metis)
+    qed
+    have "(\<Inter>n. S \<inter> closure (TF n)) \<noteq> {}"
+    proof (rule compact_nest)
+      show "\<And>n. compact (S \<inter> closure (TF n))"
+        by (metis closed_closure subball bounded_subset_ballI compact_eq_bounded_closed closed_Int_compact [OF \<open>closed S\<close>])
+      show "\<And>n. S \<inter> closure (TF n) \<noteq> {}" 
+        by (metis Int_absorb1 opeF \<open>closed S\<close> closure_eq_empty closure_minimal ne openin_imp_subset)
+      show "\<And>m n. m \<le> n \<Longrightarrow> S \<inter> closure (TF n) \<subseteq> S \<inter> closure (TF m)"
+        by (meson closure_mono decr dual_order.refl inf_mono lift_Suc_antimono_le)
+    qed
+    moreover have "(\<Inter>n. S \<inter> closure (TF n)) \<subseteq> {y \<in> \<Inter>\<G>. dist y x < e}"
+    proof (clarsimp, intro conjI)
+      fix y
+      assume "y \<in> S" and y: "\<forall>n. y \<in> closure (TF n)"
+      then show "\<forall>T\<in>\<G>. y \<in> T"
+        by (metis Int_iff from_nat_into_surj [OF \<open>countable \<G>\<close>] set_mp subg)
+      show "dist y x < e"
+        by (metis y dist_commute mem_ball subball subsetCE)
+    qed
+    ultimately show "\<exists>y \<in> \<Inter>\<G>. dist y x < e"
+      by auto
+  qed
+qed
 
 subsubsection \<open>Completeness\<close>
 

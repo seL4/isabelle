@@ -7041,6 +7041,70 @@ proof -
     by (rule that [OF 1 2 3 4 5 6])
 qed
 
+
+proposition orthogonal_to_subspace_exists_gen:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "span S \<subset> span T"
+  obtains x where "x \<noteq> 0" "x \<in> span T" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
+proof -
+  obtain B where "B \<subseteq> span S" and orthB: "pairwise orthogonal B"
+             and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
+             and "independent B" "card B = dim S" "span B = span S"
+    by (rule orthonormal_basis_subspace [of "span S"]) auto
+  with assms obtain u where spanBT: "span B \<subseteq> span T" and "u \<notin> span B" "u \<in> span T"
+    by auto
+  obtain C where orthBC: "pairwise orthogonal (B \<union> C)" and spanBC: "span (B \<union> C) = span (B \<union> {u})"
+    by (blast intro: orthogonal_extension [OF orthB])
+  show thesis
+  proof (cases "C \<subseteq> insert 0 B")
+    case True
+    then have "C \<subseteq> span B"
+      using Linear_Algebra.span_eq
+      by (metis span_insert_0 subset_trans)
+    moreover have "u \<in> span (B \<union> C)"
+      using \<open>span (B \<union> C) = span (B \<union> {u})\<close> span_inc by force
+    ultimately show ?thesis
+      by (metis \<open>u \<notin> span B\<close> span_Un span_span sup.orderE)
+  next
+    case False
+    then obtain x where "x \<in> C" "x \<noteq> 0" "x \<notin> B"
+      by blast
+    then have "x \<in> span T"
+      by (metis (no_types, lifting) Un_insert_right Un_upper2 \<open>u \<in> span T\<close> spanBT spanBC \<open>u \<in> span T\<close> insert_subset span_inc span_mono span_span subsetCE subset_trans sup_bot.comm_neutral)
+    moreover have "orthogonal x y" if "y \<in> span B" for y
+      using that
+    proof (rule span_induct)
+      show "subspace {a. orthogonal x a}"
+        by (simp add: subspace_orthogonal_to_vector)
+      show "\<And>b. b \<in> B \<Longrightarrow> orthogonal x b"
+        by (metis Un_iff \<open>x \<in> C\<close> \<open>x \<notin> B\<close> orthBC pairwise_def)
+    qed
+    ultimately show ?thesis
+      using \<open>x \<noteq> 0\<close> that \<open>span B = span S\<close> by auto
+  qed
+qed
+
+corollary orthogonal_to_subspace_exists:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "dim S < DIM('a)"
+  obtains x where "x \<noteq> 0" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
+proof -
+have "span S \<subset> UNIV"
+  by (metis assms dim_eq_full less_irrefl top.not_eq_extremum)
+  with orthogonal_to_subspace_exists_gen [of S UNIV] that show ?thesis by auto
+qed
+
+corollary orthogonal_to_vector_exists:
+  fixes x :: "'a :: euclidean_space"
+  assumes "2 \<le> DIM('a)"
+  obtains y where "y \<noteq> 0" "orthogonal x y"
+proof -
+  have "dim {x} < DIM('a)"
+    using assms by auto
+  then show thesis
+    by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_clauses(1) that)
+qed
+
 proposition orthogonal_subspace_decomp_exists:
   fixes S :: "'a :: euclidean_space set"
   obtains y z where "y \<in> span S" "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w" "x = y + z"
@@ -7201,6 +7265,119 @@ next
     by (metis aff_dim_subset aff_dim_subspace dim_span span_inc subspace_span)
   finally show "dim T \<le> dim S" by simp
 qed
+
+subsection\<open>Lower-dimensional affine subsets are nowhere dense.\<close>
+
+proposition dense_complement_subspace:
+  fixes S :: "'a :: euclidean_space set"
+  assumes dim_less: "dim T < dim S" and "subspace S" shows "closure(S - T) = S"
+proof -
+  have "closure(S - U) = S" if "dim U < dim S" "U \<subseteq> S" for U
+  proof -
+    have "span U \<subset> span S"
+      by (metis neq_iff psubsetI span_eq_dim span_mono that)
+    then obtain a where "a \<noteq> 0" "a \<in> span S" and a: "\<And>y. y \<in> span U \<Longrightarrow> orthogonal a y"
+      using orthogonal_to_subspace_exists_gen by metis
+    show ?thesis
+    proof
+      have "closed S"
+        by (simp add: \<open>subspace S\<close> closed_subspace)
+      then show "closure (S - U) \<subseteq> S"
+        by (simp add: Diff_subset closure_minimal)
+      show "S \<subseteq> closure (S - U)"
+      proof (clarsimp simp: closure_approachable)
+        fix x and e::real
+        assume "x \<in> S" "0 < e"
+        show "\<exists>y\<in>S - U. dist y x < e"
+        proof (cases "x \<in> U")
+          case True
+          let ?y = "x + (e/2 / norm a) *\<^sub>R a"
+          show ?thesis
+          proof
+            show "dist ?y x < e"
+              using \<open>0 < e\<close> by (simp add: dist_norm)
+          next
+            have "?y \<in> S"
+              by (metis span_eq \<open>a \<in> span S\<close> \<open>x \<in> S\<close> \<open>subspace S\<close> subspace_add subspace_mul)
+            moreover have "?y \<notin> U"
+            proof -
+              have "e/2 / norm a \<noteq> 0"
+                using \<open>0 < e\<close> \<open>a \<noteq> 0\<close> by auto
+              then show ?thesis
+                by (metis True \<open>a \<noteq> 0\<close> a orthogonal_scaleR orthogonal_self real_vector.scale_eq_0_iff span_add_eq span_clauses(1))
+            qed
+            ultimately show "?y \<in> S - U" by blast
+          qed
+        next
+          case False
+          with \<open>0 < e\<close> \<open>x \<in> S\<close> show ?thesis by force
+        qed
+      qed
+    qed
+  qed
+  moreover have "S - S \<inter> T = S-T"
+    by blast
+  moreover have "dim (S \<inter> T) < dim S"
+    by (metis dim_less dim_subset inf.cobounded2 inf.orderE inf.strict_boundedE not_le)
+  ultimately show ?thesis
+    by force
+qed
+
+corollary dense_complement_affine:
+  fixes S :: "'a :: euclidean_space set"
+  assumes less: "aff_dim T < aff_dim S" and "affine S" shows "closure(S - T) = S"
+proof (cases "S \<inter> T = {}")
+  case True
+  then show ?thesis
+    by (metis Diff_triv affine_hull_eq \<open>affine S\<close> closure_same_affine_hull closure_subset hull_subset subset_antisym)
+next
+  case False
+  then obtain z where z: "z \<in> S \<inter> T" by blast
+  then have "subspace (op + (- z) ` S)"
+    by (meson IntD1 affine_diffs_subspace \<open>affine S\<close>)
+  moreover have "int (dim (op + (- z) ` T)) < int (dim (op + (- z) ` S))"
+    using z less by (simp add: aff_dim_eq_dim [symmetric] hull_inc)
+  ultimately have "closure((op + (- z) ` S) - (op + (- z) ` T)) = (op + (- z) ` S)"
+    by (simp add: dense_complement_subspace)
+  then show ?thesis
+    by (metis closure_translation translation_diff translation_invert)
+qed
+
+corollary dense_complement_openin_affine_hull:
+  fixes S :: "'a :: euclidean_space set"
+  assumes less: "aff_dim T < aff_dim S"
+      and ope: "openin (subtopology euclidean (affine hull S)) S"
+    shows "closure(S - T) = closure S"
+proof -
+  have "affine hull S - T \<subseteq> affine hull S"
+    by blast
+  then have "closure (S \<inter> closure (affine hull S - T)) = closure (S \<inter> (affine hull S - T))"
+    by (rule closure_openin_Int_closure [OF ope])
+  then show ?thesis
+    by (metis Int_Diff aff_dim_affine_hull affine_affine_hull dense_complement_affine hull_subset inf.orderE less)
+qed
+
+corollary dense_complement_convex:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "aff_dim T < aff_dim S" "convex S"
+    shows "closure(S - T) = closure S"
+proof
+  show "closure (S - T) \<subseteq> closure S"
+    by (simp add: Diff_subset closure_mono)
+  have "closure (rel_interior S - T) = closure (rel_interior S)"
+    apply (rule dense_complement_openin_affine_hull)
+    apply (simp add: assms rel_interior_aff_dim)
+    using \<open>convex S\<close> rel_interior_rel_open rel_open by blast
+  then show "closure S \<subseteq> closure (S - T)"
+    by (metis Diff_mono \<open>convex S\<close> closure_mono convex_closure_rel_interior order_refl rel_interior_subset)
+qed
+
+corollary dense_complement_convex_closed:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "aff_dim T < aff_dim S" "convex S" "closed S"
+    shows "closure(S - T) = S"
+  by (simp add: assms dense_complement_convex)
+
 
 subsection\<open>Parallel slices, etc.\<close>
 

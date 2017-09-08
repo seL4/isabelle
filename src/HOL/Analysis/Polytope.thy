@@ -3811,4 +3811,113 @@ proof -
   qed
 qed
 
+subsection\<open>Some results on cell division with full-dimensional cells only\<close>
+
+lemma convex_Union_fulldim_cells:
+  assumes "finite \<S>" and clo: "\<And>C. C \<in> \<S> \<Longrightarrow> closed C" and con: "\<And>C. C \<in> \<S> \<Longrightarrow> convex C"
+      and eq: "\<Union>\<S> = U"and  "convex U"
+ shows "\<Union>{C \<in> \<S>. aff_dim C = aff_dim U} = U"  (is "?lhs = U")
+proof -
+  have "closed U"
+    using \<open>finite \<S>\<close> clo eq by blast
+  have "?lhs \<subseteq> U"
+    using eq by blast
+  moreover have "U \<subseteq> ?lhs"
+  proof (cases "\<forall>C \<in> \<S>. aff_dim C = aff_dim U")
+    case True
+    then show ?thesis
+      using eq by blast
+  next
+    case False
+    have "closed ?lhs"
+      by (simp add: \<open>finite \<S>\<close> clo closed_Union)
+    moreover have "U \<subseteq> closure ?lhs"
+    proof -
+      have "U \<subseteq> closure(\<Inter>{U - C |C. C \<in> \<S> \<and> aff_dim C < aff_dim U})"
+      proof (rule Baire [OF \<open>closed U\<close>])
+        show "countable {U - C |C. C \<in> \<S> \<and> aff_dim C < aff_dim U}"
+          using \<open>finite \<S>\<close> uncountable_infinite by fastforce
+        have "\<And>C. C \<in> \<S> \<Longrightarrow> openin (subtopology euclidean U) (U-C)"
+          by (metis Sup_upper clo closed_limpt closedin_limpt eq openin_diff openin_subtopology_self)
+        then show "openin (subtopology euclidean U) T \<and> U \<subseteq> closure T"
+          if "T \<in> {U - C |C. C \<in> \<S> \<and> aff_dim C < aff_dim U}" for T
+          using that dense_complement_convex_closed \<open>closed U\<close> \<open>convex U\<close> by auto
+      qed
+      also have "... \<subseteq> closure ?lhs"
+      proof -
+        obtain C where "C \<in> \<S>" "aff_dim C < aff_dim U"
+          by (metis False Sup_upper aff_dim_subset eq eq_iff not_le)
+        have "\<exists>X. X \<in> \<S> \<and> aff_dim X = aff_dim U \<and> x \<in> X"
+          if "\<And>V. (\<exists>C. V = U - C \<and> C \<in> \<S> \<and> aff_dim C < aff_dim U) \<Longrightarrow> x \<in> V" for x
+        proof -
+          have "x \<in> U \<and> x \<in> \<Union>\<S>"
+            using \<open>C \<in> \<S>\<close> \<open>aff_dim C < aff_dim U\<close> eq that by blast
+          then show ?thesis
+            by (metis Diff_iff Sup_upper Union_iff aff_dim_subset dual_order.order_iff_strict eq that)
+        qed
+        then show ?thesis
+          by (auto intro!: closure_mono)
+      qed
+      finally show ?thesis .
+    qed
+    ultimately show ?thesis
+      using closure_subset_eq by blast
+  qed
+  ultimately show ?thesis by blast
+qed
+
+proposition fine_triangular_subdivision_of_cell_complex:
+  assumes "0 < e" "finite \<M>"
+      and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
+      and aff: "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C = d"
+      and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
+  obtains \<T> where "triangulation \<T>" "\<And>k. k \<in> \<T> \<Longrightarrow> diameter k < e"
+                 "\<And>k. k \<in> \<T> \<Longrightarrow> aff_dim k = d" "\<Union>\<T> = \<Union>\<M>"
+                 "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>f. finite f \<and> f \<subseteq> \<T> \<and> C = \<Union>f"
+                 "\<And>k. k \<in> \<T> \<Longrightarrow> \<exists>C. C \<in> \<M> \<and> k \<subseteq> C"
+proof -
+  obtain \<T> where "simplicial_complex \<T>"
+             and dia\<T>: "\<And>K. K \<in> \<T> \<Longrightarrow> diameter K < e"
+             and "\<Union>\<T> = \<Union>\<M>"
+             and in\<M>: "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<T> \<and> C = \<Union>F"
+             and in\<T>: "\<And>K. K \<in> \<T> \<Longrightarrow> \<exists>C. C \<in> \<M> \<and> K \<subseteq> C"
+    by (blast intro: fine_simplicial_subdivision_of_cell_complex [OF \<open>e > 0\<close> \<open>finite \<M>\<close> poly face])
+  let ?\<T> = "{K \<in> \<T>. aff_dim K = d}"
+  show thesis
+  proof
+    show "triangulation ?\<T>"
+      using \<open>simplicial_complex \<T>\<close> by (auto simp: triangulation_def simplicial_complex_def)
+    show "diameter L < e" if "L \<in> {K \<in> \<T>. aff_dim K = d}" for L
+      using that by (auto simp: dia\<T>)
+    show "aff_dim L = d" if "L \<in> {K \<in> \<T>. aff_dim K = d}" for L
+      using that by auto
+    show "\<exists>F. finite F \<and> F \<subseteq> {K \<in> \<T>. aff_dim K = d} \<and> C = \<Union>F" if "C \<in> \<M>" for C
+    proof -
+      obtain F where "finite F" "F \<subseteq> \<T>" "C = \<Union>F"
+        using in\<M> [OF \<open>C \<in> \<M>\<close>] by auto
+      show ?thesis
+      proof (intro exI conjI)
+        show "finite {K \<in> F. aff_dim K = d}"
+          by (simp add: \<open>finite F\<close>)
+        show "{K \<in> F. aff_dim K = d} \<subseteq> {K \<in> \<T>. aff_dim K = d}"
+          using \<open>F \<subseteq> \<T>\<close> by blast
+        have "d = aff_dim C"
+          by (simp add: aff that)
+        moreover have "\<And>K. K \<in> F \<Longrightarrow> closed K \<and> convex K"
+          using \<open>simplicial_complex \<T>\<close> \<open>F \<subseteq> \<T>\<close>
+          unfolding simplicial_complex_def by (metis subsetCE \<open>F \<subseteq> \<T>\<close> closed_simplex convex_simplex)
+        moreover have "convex (\<Union>F)"
+          using \<open>C = \<Union>F\<close> poly polytope_imp_convex that by blast
+        ultimately show "C = \<Union>{K \<in> F. aff_dim K = d}"
+          by (simp add: convex_Union_fulldim_cells \<open>C = \<Union>F\<close> \<open>finite F\<close>)
+      qed
+    qed
+    then show "\<Union>{K \<in> \<T>. aff_dim K = d} = \<Union>\<M>"
+      by auto (meson in\<T> subsetCE)
+    show "\<exists>C. C \<in> \<M> \<and> L \<subseteq> C"
+      if "L \<in> {K \<in> \<T>. aff_dim K = d}" for L
+      using that by (auto simp: in\<T>)
+  qed
+qed
+
 end

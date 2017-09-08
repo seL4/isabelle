@@ -3979,6 +3979,41 @@ lemma aff_dim_negative_iff [simp]:
   shows "aff_dim S < 0 \<longleftrightarrow>S = {}"
 by (metis aff_dim_empty aff_dim_geq diff_0 eq_iff zle_diff1_eq)
 
+lemma aff_lowdim_subset_hyperplane:
+  fixes S :: "'a::euclidean_space set"
+  assumes "aff_dim S < DIM('a)"
+  obtains a b where "a \<noteq> 0" "S \<subseteq> {x. a \<bullet> x = b}"
+proof (cases "S={}")
+  case True
+  moreover
+  have "(SOME b. b \<in> Basis) \<noteq> 0"
+    by (metis norm_some_Basis norm_zero zero_neq_one)
+  ultimately show ?thesis
+    using that by blast
+next
+  case False
+  then obtain c S' where "c \<notin> S'" "S = insert c S'"
+    by (meson equals0I mk_disjoint_insert)
+  have "dim (op + (-c) ` S) < DIM('a)"
+    by (metis \<open>S = insert c S'\<close> aff_dim_eq_dim assms hull_inc insertI1 of_nat_less_imp_less)
+  then obtain a where "a \<noteq> 0" "span (op + (-c) ` S) \<subseteq> {x. a \<bullet> x = 0}"
+    using lowdim_subset_hyperplane by blast
+  moreover
+  have "a \<bullet> w = a \<bullet> c" if "span (op + (- c) ` S) \<subseteq> {x. a \<bullet> x = 0}" "w \<in> S" for w
+  proof -
+    have "w-c \<in> span (op + (- c) ` S)"
+      by (simp add: span_superset \<open>w \<in> S\<close>)
+    with that have "w-c \<in> {x. a \<bullet> x = 0}"
+      by blast
+    then show ?thesis
+      by (auto simp: algebra_simps)
+  qed
+  ultimately have "S \<subseteq> {x. a \<bullet> x = a \<bullet> c}"
+    by blast
+  then show ?thesis
+    by (rule that[OF \<open>a \<noteq> 0\<close>])
+qed
+
 lemma affine_independent_card_dim_diffs:
   fixes S :: "'a :: euclidean_space set"
   assumes "~ affine_dependent S" "a \<in> S"
