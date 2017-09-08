@@ -21,6 +21,8 @@ indication of theory status, more careful auto-indentation.
 * More material in HOL-Algebra, HOL-Computational_Algebra and HOL-Analysis
 (ported from HOL-Light).
 
+* Improved Nunchaku model finder, now in main HOL.
+
 * SQL database support in Isabelle/Scala.
 
 
