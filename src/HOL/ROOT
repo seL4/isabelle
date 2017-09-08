@@ -304,16 +304,6 @@ session "HOL-Nitpick_Examples" in Nitpick_Examples = "HOL-Library" +
   options [document = false]
   theories [quick_and_dirty] Nitpick_Examples
 
-session "HOL-Nunchaku" in Nunchaku = HOL +
-  description {*
-    Author:     Jasmin Blanchette, Inria Nancy, LORIA, MPII
-    Copyright   2015, 2016
-
-    Nunchaku: Yet another counterexample generator for Isabelle/HOL.
-  *}
-  options [document = false]
-  theories Nunchaku
-
 session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   description {*
     Author: Clemens Ballarin, started 24 September 1999
