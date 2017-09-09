@@ -946,9 +946,9 @@ text \<open>
   Another benefit of @{ML add_content} is its ``open'' form as a function on
   buffers that can be continued in further linear transformations, folding
   etc. Thus it is more compositional than the naive @{ML slow_content}. As
-  realistic example, compare the old-style @{ML "Term.maxidx_of_term: term ->
-  int"} with the newer @{ML "Term.maxidx_term: term -> int -> int"} in
-  Isabelle/Pure.
+  realistic example, compare the old-style
+  @{ML "Term.maxidx_of_term: term -> int"} with the newer @{ML
+  "Term.maxidx_term: term -> int -> int"} in Isabelle/Pure.
 
   Note that @{ML fast_content} above is only defined as example. In many
   practical situations, it is customary to provide the incremental @{ML
@@ -1851,18 +1851,18 @@ text \<open>
   evaluation via promises, evaluation with time limit etc.
 
   \<^medskip>
-  An \<^emph>\<open>unevaluated expression\<close> is represented either as unit abstraction \<^verbatim>\<open>fn
-  () => a\<close> of type \<^verbatim>\<open>unit -> 'a\<close> or as regular function \<^verbatim>\<open>fn a => b\<close> of type
-  \<^verbatim>\<open>'a -> 'b\<close>. Both forms occur routinely, and special care is required to
-  tell them apart --- the static type-system of SML is only of limited help
+  An \<^emph>\<open>unevaluated expression\<close> is represented either as unit abstraction
+  \<^verbatim>\<open>fn () => a\<close> of type \<^verbatim>\<open>unit -> 'a\<close> or as regular function \<^verbatim>\<open>fn a => b\<close> of
+  type \<^verbatim>\<open>'a -> 'b\<close>. Both forms occur routinely, and special care is required
+  to tell them apart --- the static type-system of SML is only of limited help
   here.
 
-  The first form is more intuitive: some combinator \<open>(unit -> 'a) -> 'a\<close>
-  applies the given function to \<open>()\<close> to initiate the postponed evaluation
-  process. The second form is more flexible: some combinator \<open>('a -> 'b) -> 'a
-  -> 'b\<close> acts like a modified form of function application; several such
-  combinators may be cascaded to modify a given function, before it is
-  ultimately applied to some argument.
+  The first form is more intuitive: some combinator \<^verbatim>\<open>(unit -> 'a) -> 'a\<close>
+  applies the given function to \<^verbatim>\<open>()\<close> to initiate the postponed evaluation
+  process. The second form is more flexible: some combinator
+  \<^verbatim>\<open>('a -> 'b) -> 'a -> 'b\<close> acts like a modified form of function application;
+  several such combinators may be cascaded to modify a given function, before
+  it is ultimately applied to some argument.
 
   \<^medskip>
   \<^emph>\<open>Reified results\<close> make the disjoint sum of regular values versions
