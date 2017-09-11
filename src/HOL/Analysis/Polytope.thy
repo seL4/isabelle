@@ -806,6 +806,75 @@ next
   qed
 qed
 
+lemma exposed_face_of_parallel:
+   "T exposed_face_of S \<longleftrightarrow>
+         T face_of S \<and>
+         (\<exists>a b. S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b} \<and>
+                (T \<noteq> {} \<longrightarrow> T \<noteq> S \<longrightarrow> a \<noteq> 0) \<and>
+                (T \<noteq> S \<longrightarrow> (\<forall>w \<in> affine hull S. (w + a) \<in> affine hull S)))"
+  (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+  proof (clarsimp simp: exposed_face_of_def)
+    fix a b
+    assume faceS: "S \<inter> {x. a \<bullet> x = b} face_of S" and Ssub: "S \<subseteq> {x. a \<bullet> x \<le> b}" 
+    show "\<exists>c d. S \<subseteq> {x. c \<bullet> x \<le> d} \<and>
+                S \<inter> {x. a \<bullet> x = b} = S \<inter> {x. c \<bullet> x = d} \<and>
+                (S \<inter> {x. a \<bullet> x = b} \<noteq> {} \<longrightarrow> S \<inter> {x. a \<bullet> x = b} \<noteq> S \<longrightarrow> c \<noteq> 0) \<and>
+                (S \<inter> {x. a \<bullet> x = b} \<noteq> S \<longrightarrow> (\<forall>w \<in> affine hull S. w + c \<in> affine hull S))"
+    proof (cases "affine hull S \<inter> {x. -a \<bullet> x \<le> -b} = {} \<or> affine hull S \<subseteq> {x. - a \<bullet> x \<le> - b}")
+      case True
+      then show ?thesis
+      proof
+        assume "affine hull S \<inter> {x. - a \<bullet> x \<le> - b} = {}"
+       then show ?thesis
+         apply (rule_tac x="0" in exI)
+         apply (rule_tac x="1" in exI)
+         using hull_subset by fastforce
+    next
+      assume "affine hull S \<subseteq> {x. - a \<bullet> x \<le> - b}"
+      then show ?thesis
+         apply (rule_tac x="0" in exI)
+         apply (rule_tac x="0" in exI)
+        using Ssub hull_subset by fastforce
+    qed
+  next
+    case False
+    then obtain a' b' where "a' \<noteq> 0" 
+      and le: "affine hull S \<inter> {x. a' \<bullet> x \<le> b'} = affine hull S \<inter> {x. - a \<bullet> x \<le> - b}" 
+      and eq: "affine hull S \<inter> {x. a' \<bullet> x = b'} = affine hull S \<inter> {x. - a \<bullet> x = - b}" 
+      and mem: "\<And>w. w \<in> affine hull S \<Longrightarrow> w + a' \<in> affine hull S"
+      using affine_parallel_slice affine_affine_hull by metis 
+    show ?thesis
+    proof (intro conjI impI allI ballI exI)
+      have *: "S \<subseteq> - (affine hull S \<inter> {x. P x}) \<union> affine hull S \<inter> {x. Q x} \<Longrightarrow> S \<subseteq> {x. ~P x \<or> Q x}" 
+        for P Q 
+        using hull_subset by fastforce  
+      have "S \<subseteq> {x. ~ (a' \<bullet> x \<le> b') \<or> a' \<bullet> x = b'}"
+        apply (rule *)
+        apply (simp only: le eq)
+        using Ssub by auto
+      then show "S \<subseteq> {x. - a' \<bullet> x \<le> - b'}"
+        by auto 
+      show "S \<inter> {x. a \<bullet> x = b} = S \<inter> {x. - a' \<bullet> x = - b'}"
+        using eq hull_subset [of S affine] by force
+      show "\<lbrakk>S \<inter> {x. a \<bullet> x = b} \<noteq> {}; S \<inter> {x. a \<bullet> x = b} \<noteq> S\<rbrakk> \<Longrightarrow> - a' \<noteq> 0"
+        using \<open>a' \<noteq> 0\<close> by auto
+      show "w + - a' \<in> affine hull S"
+        if "S \<inter> {x. a \<bullet> x = b} \<noteq> S" "w \<in> affine hull S" for w
+      proof -
+        have "w + 1 *\<^sub>R (w - (w + a')) \<in> affine hull S"
+          using affine_affine_hull mem mem_affine_3_minus that(2) by blast
+        then show ?thesis  by simp
+      qed
+    qed
+  qed
+qed
+next
+  assume ?rhs then show ?lhs
+    unfolding exposed_face_of_def by blast
+qed
+
 subsection\<open>Extreme points of a set: its singleton faces\<close>
 
 definition extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
