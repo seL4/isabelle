@@ -9,9 +9,9 @@ sig
   val init: string -> term -> term -> thm -> thm -> thm option -> declaration
   val mono_tac: Proof.context -> int -> tactic
   val add_partial_function: string -> (binding * typ option * mixfix) list ->
-    Attrib.binding * term -> local_theory -> local_theory
+    Attrib.binding * term -> local_theory -> (term * thm) * local_theory
   val add_partial_function_cmd: string -> (binding * string option * mixfix) list ->
-    Attrib.binding * string -> local_theory -> local_theory
+    Attrib.binding * string -> local_theory -> (term * thm) * local_theory
 end;
 
 structure Partial_Function: PARTIAL_FUNCTION =
@@ -296,14 +296,15 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
           CONVERSION ((arg_conv o arg1_conv o head_conv o rewr_conv) (mk_meta_eq unfold)) 1
           THEN resolve_tac lthy' @{thms refl} 1)
       end;
+    val ((_, [rec_rule']), lthy'') = lthy' |> Local_Theory.note (eq_abinding, [rec_rule])
   in
-    lthy'
-    |> Local_Theory.note (eq_abinding, [rec_rule])
-    |-> (fn (_, rec') =>
-      Spec_Rules.add Spec_Rules.Equational ([f], rec') #> note_qualified ("simps", rec'))
+    lthy''
+    |> Spec_Rules.add Spec_Rules.Equational ([f], [rec_rule'])
+    |> note_qualified ("simps", [rec_rule'])
     |> note_qualified ("mono", [mono_thm])
     |> (case raw_induct of NONE => I | SOME thm => note_qualified ("raw_induct", [thm]))
     |> note_qualified ("fixp_induct", [specialized_fixp_induct])
+    |> pair (f, rec_rule')
   end;
 
 val add_partial_function = gen_add_partial_function Specification.check_multi_specs;
@@ -314,6 +315,6 @@ val mode = @{keyword "("} |-- Parse.name --| @{keyword ")"};
 val _ =
   Outer_Syntax.local_theory @{command_keyword partial_function} "define partial function"
     ((mode -- (Parse.vars -- (Parse.where_ |-- Parse_Spec.simple_spec)))
-      >> (fn (mode, (vars, spec)) => add_partial_function_cmd mode vars spec));
+      >> (fn (mode, (vars, spec)) => add_partial_function_cmd mode vars spec #> #2));
 
 end;
