@@ -116,7 +116,7 @@ enabled at all times.
 * Deleting the last code equations for a particular function using
 [code del] results in function with no equations (runtime abort) rather
 than an unimplemented function (generation time abort). Use explicit
-[[code drop:]] to enforce the latter. Minor INCOMPATIBILTIY.
+[[code drop:]] to enforce the latter. Minor INCOMPATIBILITY.
 
 * Proper concept of code declarations in code.ML:
   - Regular code declarations act only on the global theory level, being
