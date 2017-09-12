@@ -5123,7 +5123,7 @@ subsubsection \<open>Sorting functions\<close>
 
 text\<open>Currently it is not shown that @{const sort} returns a
 permutation of its input because the nicest proof is via multisets,
-which are not yet available. Alternatively one could define a function
+which are not part of Main. Alternatively one could define a function
 that counts the number of occurrences of an element in a list and use
 that instead of multisets to state the correctness property.\<close>
 
@@ -5335,6 +5335,59 @@ qed
 lemma sorted_enumerate [simp]:
   "sorted (map fst (enumerate n xs))"
   by (simp add: enumerate_eq_zip)
+
+text \<open>Stability of function @{const sort_key}:\<close>
+
+lemma sort_key_stable:
+  "x \<in> set xs \<Longrightarrow> [y <- sort_key f xs. f y = f x] = [y <- xs. f y = f x]"
+proof (induction xs arbitrary: x)
+  case Nil thus ?case by simp
+next  
+  case (Cons a xs)
+  thus ?case 
+  proof (cases "x \<in> set xs")
+    case True 
+    thus ?thesis
+    proof (cases "f a = f x")
+      case False thus ?thesis 
+        using Cons.IH by (metis (mono_tags) True filter.simps(2) filter_sort)
+    next
+      case True
+      hence ler: "[y <- (a # xs). f y = f x] = a # [y <- xs. f y = f a]" by simp
+      have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
+      hence "insort_key f a (sort_key f [y <- xs. f y = f a]) 
+              = a # (sort_key f [y <- xs. f y = f a])"
+        by (simp add: insort_is_Cons)
+      hence lel: "[y <- sort_key f (a # xs). f y = f x] = a # [y <- sort_key f xs. f y = f a]"
+        by (metis True filter_sort ler sort_key_simps(2))
+      from lel ler show ?thesis using Cons.IH \<open>x \<in> set xs\<close> by (metis True filter_sort)
+    qed
+  next
+    case False
+    from Cons.prems have "x = a" by (metis False set_ConsD)
+    have ler: "[y <- (a # xs). f y = f a] = a # [y <- xs. f y = f a]" by simp
+    have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
+    hence "insort_key f a (sort_key f [y <- xs. f y = f a]) 
+           = a # (sort_key f [y <- xs. f y = f a])"
+      by (simp add: insort_is_Cons)
+    hence lel: "[y <- sort_key f (a # xs). f y = f a] = a # [y <- sort_key f xs. f y = f a]"
+      by (metis (mono_tags) filter.simps(2) filter_sort sort_key_simps(2))
+    show ?thesis (is "?l = ?r")
+    proof (cases "f a \<in> set (map f xs)")
+      case False
+      hence "\<forall>y \<in> set xs. f y \<noteq> f a" by (metis image_eqI set_map)
+      hence R: "?r = [a]" using ler \<open>x=a\<close> by simp
+      have L: "?l = [a]" using lel \<open>x=a\<close> by (metis R filter_sort insort_key.simps(1) sort_key_simps)
+      from L R show ?thesis ..
+    next
+      case True
+      then obtain z where Z: "z \<in> set xs \<and> f z = f a" by auto
+      hence L: "[y <- sort_key f xs. f y = f z] = [y <- sort_key f xs. f y = f a]" by simp
+      from Z have R: "[y <- xs. f y = f z] = [y <- xs. f y = f a]" by simp 
+      from L R Z show ?thesis using Cons.IH ler lel \<open>x=a\<close> by metis
+    qed
+  qed
+qed
 
 
 subsubsection \<open>@{const transpose} on sorted lists\<close>
