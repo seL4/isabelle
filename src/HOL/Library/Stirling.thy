@@ -246,7 +246,7 @@ text \<open>
 \<close>
 
 definition zip_with_prev :: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'b list"
-  where "zip_with_prev f x xs = map (\<lambda>(x,y). f x y) (zip (x # xs) xs)"
+  where "zip_with_prev f x xs = zip_with f (x # xs) xs"
 
 lemma zip_with_prev_altdef:
   "zip_with_prev f x xs =

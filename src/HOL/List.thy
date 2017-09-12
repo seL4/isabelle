@@ -151,6 +151,9 @@ zip_Cons: "zip xs (y # ys) =
   \<comment> \<open>Warning: simpset does not contain this definition, but separate
        theorems for \<open>xs = []\<close> and \<open>xs = z # zs\<close>\<close>
 
+abbreviation zip_with :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
+"zip_with f xs ys \<equiv> map (\<lambda>(x,y). f x y) (zip xs ys)"
+
 primrec product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
 "product [] _ = []" |
 "product (x#xs) ys = map (Pair x) ys @ product xs ys"
