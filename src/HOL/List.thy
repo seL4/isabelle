@@ -151,8 +151,8 @@ zip_Cons: "zip xs (y # ys) =
   \<comment> \<open>Warning: simpset does not contain this definition, but separate
        theorems for \<open>xs = []\<close> and \<open>xs = z # zs\<close>\<close>
 
-abbreviation zip_with :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
-"zip_with f xs ys \<equiv> map (\<lambda>(x,y). f x y) (zip xs ys)"
+abbreviation map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
+"map2 f xs ys \<equiv> map (\<lambda>(x,y). f x y) (zip xs ys)"
 
 primrec product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
 "product [] _ = []" |
@@ -4396,12 +4396,12 @@ apply simp
 done
 
 lemma nths_shift_lemma:
-     "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
-      map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
+  "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
+   map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
 by (induct xs rule: rev_induct) (simp_all add: add.commute)
 
 lemma nths_append:
-     "nths (l @ l') A = nths l A @ nths l' {j. j + length l : A}"
+  "nths (l @ l') A = nths l A @ nths l' {j. j + length l : A}"
 apply (unfold nths_def)
 apply (induct l' rule: rev_induct, simp)
 apply (simp add: upt_add_eq_append[of 0] nths_shift_lemma)
@@ -4409,7 +4409,7 @@ apply (simp add: add.commute)
 done
 
 lemma nths_Cons:
-"nths (x # l) A = (if 0:A then [x] else []) @ nths l {j. Suc j : A}"
+  "nths (x # l) A = (if 0:A then [x] else []) @ nths l {j. Suc j : A}"
 apply (induct l rule: rev_induct)
  apply (simp add: nths_def)
 apply (simp del: append_Cons add: append_Cons[symmetric] nths_append)
@@ -4432,17 +4432,18 @@ by(auto simp add:set_nths)
 lemma nths_singleton [simp]: "nths [x] A = (if 0 : A then [x] else [])"
 by (simp add: nths_Cons)
 
-
 lemma distinct_nthsI[simp]: "distinct xs \<Longrightarrow> distinct (nths xs I)"
-  by (induct xs arbitrary: I) (auto simp: nths_Cons)
-
+by (induct xs arbitrary: I) (auto simp: nths_Cons)
 
 lemma nths_upt_eq_take [simp]: "nths l {..<n} = take n l"
-  by (induct l rule: rev_induct)
-     (simp_all split: nat_diff_split add: nths_append)
+by (induct l rule: rev_induct)
+   (simp_all split: nat_diff_split add: nths_append)
+
+lemma filter_eq_nths: "filter P xs = nths xs {i. i<length xs \<and> P(xs!i)}"
+by(induction xs) (auto simp: nths_Cons)
 
 lemma filter_in_nths:
- "distinct xs \<Longrightarrow> filter (%x. x \<in> set (nths xs s)) xs = nths xs s"
+  "distinct xs \<Longrightarrow> filter (%x. x \<in> set (nths xs s)) xs = nths xs s"
 proof (induct xs arbitrary: s)
   case Nil thus ?case by simp
 next
