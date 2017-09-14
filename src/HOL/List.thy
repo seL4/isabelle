@@ -2014,11 +2014,17 @@ unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
 
 subsubsection \<open>@{const take} and @{const drop}\<close>
 
-lemma take_0 [simp]: "take 0 xs = []"
+lemma take_0: "take 0 xs = []"
 by (induct xs) auto
 
-lemma drop_0 [simp]: "drop 0 xs = xs"
+lemma drop_0: "drop 0 xs = xs"
 by (induct xs) auto
+
+lemma take0[simp]: "take 0 = (\<lambda>xs. [])"
+by(rule ext) (rule take_0)
+
+lemma drop0[simp]: "drop 0 = (\<lambda>x. x)"
+by(rule ext) (rule drop_0)
 
 lemma take_Suc_Cons [simp]: "take (Suc n) (x # xs) = x # take n xs"
 by simp
