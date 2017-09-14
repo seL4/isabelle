@@ -2034,6 +2034,9 @@ by(clarsimp simp add:neq_Nil_conv)
 lemma drop_Suc: "drop (Suc n) xs = drop n (tl xs)"
 by(cases xs, simp_all)
 
+lemma hd_take: "j > 0 \<Longrightarrow> hd (take j xs) = hd xs"
+by (metis gr0_conv_Suc list.sel(1) take.simps(1) take_Suc)
+
 lemma take_tl: "take n (tl xs) = tl (take (Suc n) xs)"
 by (induct xs arbitrary: n) simp_all
 
