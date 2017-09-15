@@ -70,6 +70,7 @@ export -f isabelle_scala
 #classpath
 function classpath ()
 {
+  local X=""
   for X in "$@"
   do
     if [ -z "$ISABELLE_CLASSPATH" ]; then
@@ -98,6 +99,7 @@ function splitarray ()
 {
   SPLITARRAY=()
   local IFS="$1"; shift
+  local X=""
   for X in $*
   do
     SPLITARRAY["${#SPLITARRAY[@]}"]="$X"
@@ -149,6 +151,7 @@ export -f init_component
 #init component forest
 function init_components ()
 {
+  local REPLY=""
   local BASE="$1"
   local CATALOG="$2"
   local COMPONENT=""
