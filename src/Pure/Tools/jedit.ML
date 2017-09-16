@@ -32,7 +32,8 @@ val isabelle_jedit_dockables =
   Lazy.lazy (fn () =>
     (case XML.parse (File.read \<^file>\<open>~~/src/Tools/jEdit/src/dockables.xml\<close>) of
       XML.Elem (("DOCKABLES", _), body) => maps (parse_named "DOCKABLE") body
-    | _ => []));
+    | _ => [])
+    |> maps (fn a => [a, a ^ "-toggle", a ^ "-float"]));
 
 val jedit_actions =
   Lazy.lazy (fn () =>
