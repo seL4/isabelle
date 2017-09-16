@@ -81,6 +81,11 @@ object Sessions
         theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.platform_path(_))),
         files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.platform_path(_)))))
 
+    def standard_path: Known =
+      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.standard_path(_))),
+        theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.standard_path(_))),
+        files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.standard_path(_)))))
+
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
     {
       val res = files.getOrElse(File.canonical(file), Nil).headOption
@@ -114,6 +119,7 @@ object Sessions
     def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
 
     def platform_path: Base = copy(known = known.platform_path)
+    def standard_path: Base = copy(known = known.standard_path)
 
     def loaded_theory(name: Document.Node.Name): Boolean =
       loaded_theories.isDefinedAt(name.theory)
