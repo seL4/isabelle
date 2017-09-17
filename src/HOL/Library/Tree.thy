@@ -475,6 +475,12 @@ by (simp add: size1_def)
 lemma height_mirror[simp]: "height(mirror t) = height t"
 by (induction t) simp_all
 
+lemma min_height_mirror [simp]: "min_height (mirror t) = min_height t"
+by (induction t) simp_all  
+
+lemma ipl_mirror [simp]: "ipl (mirror t) = ipl t"
+by (induction t) simp_all
+
 lemma inorder_mirror: "inorder(mirror t) = rev(inorder t)"
 by (induction t) simp_all
 
