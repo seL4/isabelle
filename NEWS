@@ -306,7 +306,7 @@ Protocol implementation, e.g. for the Visual Studio Code editor. It
 serves as example for alternative PIDE front-ends.
 
 * Command-line tool "isabelle imports" helps to maintain theory imports
-wrt. session structure. Examples:
+wrt. session structure. Examples for the main Isabelle distribution:
 
   isabelle imports -I -a
   isabelle imports -U -a

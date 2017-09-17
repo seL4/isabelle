@@ -119,7 +119,7 @@ object Imports
     }
 
     if (operation_repository_files) {
-      progress.echo("\nMercurial files check:")
+      progress.echo("\nMercurial repository check:")
       val unused_files =
         for {
           (_, dir) <- Sessions.directories(dirs, select_dirs)
@@ -235,7 +235,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
   Options are:
     -D DIR       include session directory and select its sessions
     -I           operation: report potential session imports
-    -M           operation: Mercurial files check for imported theory files
+    -M           operation: Mercurial repository check for theory files
     -R           operate on requirements of selected sessions
     -U           operation: update theory imports to use session qualifiers
     -X NAME      exclude sessions from group NAME and all descendants
