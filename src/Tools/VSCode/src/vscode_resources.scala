@@ -155,13 +155,15 @@ class VSCode_Resources(
     session: Session,
     editor: Server.Editor,
     file: JFile,
+    version: Long,
     text: String,
     range: Option[Line.Range] = None)
   {
     state.change(st =>
       {
         val model = st.models.getOrElse(file, Document_Model.init(session, editor, node_name(file)))
-        val model1 = (model.change_text(text, range) getOrElse model).external(false)
+        val model1 =
+          (model.change_text(text, range) getOrElse model).set_version(version).external(false)
         st.update_models(Some(file -> model1))
       })
   }

@@ -153,7 +153,7 @@ class Server(
     delay_output.invoke()
   }
 
-  private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
+  private def change_document(file: JFile, version: Long, changes: List[Protocol.TextDocumentChange])
   {
     val norm_changes = new mutable.ListBuffer[Protocol.TextDocumentChange]
     @tailrec def norm(chs: List[Protocol.TextDocumentChange])
@@ -168,7 +168,7 @@ class Server(
     }
     norm(changes)
     norm_changes.foreach(change =>
-      resources.change_model(session, editor, file, change.text, change.range))
+      resources.change_model(session, editor, file, version, change.text, change.range))
 
     delay_input.invoke()
     delay_output.invoke()
@@ -436,9 +436,10 @@ class Server(
           case Protocol.Initialized(()) =>
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(file, _, _, text) =>
-            change_document(file, List(Protocol.TextDocumentChange(None, text)))
-          case Protocol.DidChangeTextDocument(file, _, changes) => change_document(file, changes)
+          case Protocol.DidOpenTextDocument(file, _, version, text) =>
+            change_document(file, version, List(Protocol.TextDocumentChange(None, text)))
+          case Protocol.DidChangeTextDocument(file, version, changes) =>
+            change_document(file, version, changes)
           case Protocol.DidCloseTextDocument(file) => close_document(file)
           case Protocol.Completion(id, node_pos) => completion(id, node_pos)
           case Protocol.Include_Word(()) => update_dictionary(true, false)

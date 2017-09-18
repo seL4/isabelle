@@ -56,6 +56,7 @@ sealed case class Document_Model(
   editor: Server.Editor,
   node_name: Document.Node.Name,
   content: Document_Model.Content,
+  version: Option[Long] = None,
   external_file: Boolean = false,
   node_required: Boolean = false,
   last_perspective: Document.Node.Perspective_Text = Document.Node.no_perspective_text,
@@ -66,9 +67,11 @@ sealed case class Document_Model(
   model =>
 
 
-  /* text */
+  /* content */
 
   def try_get_text(range: Text.Range): Option[String] = content.doc.try_get_text(range)
+
+  def set_version(new_version: Long): Document_Model = copy(version = Some(new_version))
 
 
   /* external file */
