@@ -458,7 +458,7 @@ class Server(
           case Protocol.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
           case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
-          case _ => log("### IGNORED")
+          case _ => if (!Protocol.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
