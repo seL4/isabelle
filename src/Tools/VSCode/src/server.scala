@@ -326,8 +326,8 @@ class Server(
         delay_caret_update.revoke()
         delay_preview.revoke()
 
-        val rc = session.stop()
-        if (rc == 0) reply("") else reply("Prover shutdown failed: return code " + rc)
+        val result = session.stop()
+        if (result.ok) reply("") else reply("Prover shutdown failed: return code " + result.rc)
         None
       case None =>
         reply("Prover inactive")
