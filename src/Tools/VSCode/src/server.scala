@@ -123,7 +123,7 @@ class Server(
 
   private val delay_input: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
-    { resources.flush_input(session) }
+    { resources.flush_input(session, channel) }
 
   private val delay_load: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
@@ -487,7 +487,7 @@ class Server(
     /* session */
 
     override def session: Session = server.session
-    override def flush(): Unit = resources.flush_input(session)
+    override def flush(): Unit = resources.flush_input(session, channel)
     override def invoke(): Unit = delay_input.invoke()
 
 

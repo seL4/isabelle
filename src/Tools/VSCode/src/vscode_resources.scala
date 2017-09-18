@@ -258,7 +258,7 @@ class VSCode_Resources(
 
   /* pending input */
 
-  def flush_input(session: Session)
+  def flush_input(session: Session, channel: Channel)
   {
     state.change(st =>
       {
@@ -266,10 +266,15 @@ class VSCode_Resources(
           (for {
             file <- st.pending_input.iterator
             model <- st.models.get(file)
-            (edits, model1) <- model.flush_edits(st.document_blobs, st.get_caret(file))
+            (edits, model1) <-
+              model.flush_edits(unicode_symbols, st.document_blobs, file, st.get_caret(file))
           } yield (edits, (file, model1))).toList
 
-        session.update(st.document_blobs, changed_models.flatMap(_._1))
+        for { ((workspace_edits, _), _) <- changed_models if workspace_edits.nonEmpty }
+          channel.write(Protocol.WorkspaceEdit(workspace_edits))
+
+        session.update(st.document_blobs, changed_models.flatMap(res => res._1._2))
+
         st.copy(
           models = st.models ++ changed_models.iterator.map(_._2),
           pending_input = Set.empty)

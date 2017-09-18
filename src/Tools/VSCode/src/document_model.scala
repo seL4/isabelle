@@ -45,6 +45,16 @@ object Document_Model
     lazy val bibtex_entries: List[Text.Info[String]] =
       try { Bibtex.entries(text) }
       catch { case ERROR(_) => Nil }
+
+    def recode_symbols: List[Protocol.TextEdit] =
+      (for {
+        (line, l) <- doc.lines.iterator.zipWithIndex
+        text1 = Symbol.encode(line.text)
+        if (line.text != text1)
+      } yield {
+        val range = Line.Range(Line.Position(l), Line.Position(l, line.text.length))
+        Protocol.TextEdit(range, text1)
+      }).toList
   }
 
   def init(session: Session, editor: Server.Editor, node_name: Document.Node.Name): Document_Model =
@@ -166,12 +176,27 @@ sealed case class Document_Model(
     }
   }
 
-  def flush_edits(doc_blobs: Document.Blobs, caret: Option[Line.Position])
-    : Option[(List[Document.Edit_Text], Document_Model)] =
+  def flush_edits(
+      unicode_symbols: Boolean,
+      doc_blobs: Document.Blobs,
+      file: JFile,
+      caret: Option[Line.Position])
+    : Option[((List[Protocol.TextDocumentEdit], List[Document.Edit_Text]), Document_Model)] =
   {
+    val workspace_edits =
+      if (unicode_symbols && version.isDefined) {
+        val edits = content.recode_symbols
+        if (edits.nonEmpty) List(Protocol.TextDocumentEdit(file, version.get, edits))
+        else Nil
+      }
+      else Nil
+
     val (reparse, perspective) = node_perspective(doc_blobs, caret)
-    if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
-      val edits = node_edits(node_header, pending_edits, perspective)
+    if (reparse || pending_edits.nonEmpty || last_perspective != perspective ||
+        workspace_edits.nonEmpty)
+    {
+      val prover_edits = node_edits(node_header, pending_edits, perspective)
+      val edits = (workspace_edits, prover_edits)
       Some((edits, copy(pending_edits = Nil, last_perspective = perspective)))
     }
     else None
