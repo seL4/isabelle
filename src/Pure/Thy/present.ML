@@ -196,7 +196,7 @@ fun init symbols build info info_path doc document_output doc_variants doc_files
 
 fun isabelle_document {verbose, purge} format name tags dir =
   let
-    val s = "isabelle document" ^ (if purge then " -c" else "") ^ " -o '" ^ format ^ "' \
+    val s = "isabelle document -o '" ^ format ^ "' \
       \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.bash_path dir ^ " 2>&1";
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
     val _ = if verbose then writeln s else ();
@@ -206,6 +206,7 @@ fun isabelle_document {verbose, purge} format name tags dir =
         cat_error out ("Failed to build document " ^ quote (show_path doc_path))
       else if verbose then writeln out
       else ();
+    val _ = if purge andalso rc = 0 then Isabelle_System.rm_tree dir else ();
   in doc_path end;
 
 
