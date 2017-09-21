@@ -720,6 +720,10 @@ text \<open>
     alignment of the main Isar language elements. This depends on option
     @{system_option_def "jedit_indent_newline"} (enabled by default).
 
+    Regular input (via keyboard or completion) indents the current line
+    whenever an new keyword is emerging the start of the line. This depends on
+    option @{system_option_def "jedit_indent_input"} (enabled by default).
+
     \<^descr>[Semantic indentation] adds additional white space to unstructured proof
     scripts (\<^theory_text>\<open>apply\<close> etc.) via number of subgoals. This requires information
     of ongoing document processing and may thus lag behind, when the user is
@@ -728,12 +732,9 @@ text \<open>
     "jedit_script_indent_limit"}.
 
   The above options are accessible in the menu \<^emph>\<open>Plugins / Plugin Options /
-  Isabelle / General\<close>.
-
-  \<^medskip> Automatic indentation has a tendency to produce trailing whitespace. That
-  can be purged manually with the jEdit action @{action "remove-trailing-ws"}
-  (shortcut \<^verbatim>\<open>C+e r\<close>). Moreover, the \<^emph>\<open>WhiteSpace\<close> plugin provides some
-  aggressive options to trim whitespace on buffer-save.
+  Isabelle / General\<close>. A prerequisite for advanced indentation is \<^emph>\<open>Utilities
+  / Buffer Options / Automatic indentation\<close>: it needs to be set to \<^verbatim>\<open>full\<close>
+  (default).
 \<close>
 
 
