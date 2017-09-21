@@ -177,7 +177,8 @@ fun entity check markup binding index =
             NONE => ""
           | SOME is_def =>
               "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name);
-        val _ = check ctxt (name, pos);
+        val _ =
+          if Context_Position.is_reported ctxt pos then ignore (check ctxt (name, pos)) else ();
       in
         idx ^
         (Output.output name
