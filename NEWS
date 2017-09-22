@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* SMT module:
+  - The 'smt_oracle' option is now necessary when using the 'smt' method
+    with a solver other than Z3.
+
 
 New in Isabelle2017 (October 2017)
 ----------------------------------
