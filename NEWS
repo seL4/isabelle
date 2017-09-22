@@ -11,7 +11,7 @@ New in this Isabelle version
 
 * SMT module:
   - The 'smt_oracle' option is now necessary when using the 'smt' method
-    with a solver other than Z3.
+    with a solver other than Z3. INCOMPATIBILITY.
 
 
 New in Isabelle2017 (October 2017)
