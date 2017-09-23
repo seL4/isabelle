@@ -10,7 +10,7 @@
         "document preparation"
     ],
     "icon": "isabelle.png",
-    "version": "0.23.0",
+    "version": "1.0.0",
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
@@ -492,9 +492,9 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.42",
+        "@types/mocha": "^2.2.43",
         "@types/node": "^7.0.43",
-        "mocha": "^3.5.0",
+        "mocha": "^3.5.3",
         "typescript": "^2.5.2",
         "vscode": "^1.1.5"
     },

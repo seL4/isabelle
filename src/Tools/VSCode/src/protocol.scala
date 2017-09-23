@@ -62,6 +62,11 @@ object Protocol
 
   /* request message */
 
+  object Id
+  {
+    def empty: Id = Id("")
+  }
+
   sealed case class Id(id: Any)
   {
     require(
@@ -118,6 +123,9 @@ object Protocol
     def strict(id: Id, result: Option[JSON.T] = None, error: String = ""): JSON.T =
       if (error == "") apply(id, result = result)
       else apply(id, error = Some(ResponseError(code = ErrorCodes.serverErrorEnd, message = error)))
+
+    def is_empty(json: JSON.T): Boolean =
+      JSON.string(json, "id") == Some("") && JSON.value(json, "result").isDefined
   }
 
   sealed case class ResponseError(code: Int, message: String, data: Option[JSON.T] = None)
@@ -324,6 +332,28 @@ object Protocol
   object DidSaveTextDocument extends TextDocumentNotification("textDocument/didSave")
 
 
+  /* workspace edits */
+
+  sealed case class TextEdit(range: Line.Range, new_text: String)
+  {
+    def json: JSON.T = Map("range" -> Range(range), "newText" -> new_text)
+  }
+
+  sealed case class TextDocumentEdit(file: JFile, version: Long, edits: List[TextEdit])
+  {
+    def json: JSON.T =
+      Map("textDocument" -> Map("uri" -> Url.print_file(file), "version" -> version),
+        "edits" -> edits.map(_.json))
+  }
+
+  object WorkspaceEdit
+  {
+    def apply(edits: List[TextDocumentEdit]): JSON.T =
+      RequestMessage(Id.empty, "workspace/applyEdit",
+        Map("edit" -> Map("documentChanges" -> edits.map(_.json))))
+  }
+
+
   /* completion */
 
   sealed case class CompletionItem(
@@ -342,8 +372,7 @@ object Protocol
       JSON.optional("documentation" -> documentation) ++
       JSON.optional("insertText" -> text) ++
       JSON.optional("range" -> range.map(Range(_))) ++
-      JSON.optional("textEdit" ->
-        range.map(r => Map("range" -> Range(r), "newText" -> text.getOrElse(label)))) ++
+      JSON.optional("textEdit" -> range.map(r => TextEdit(r, text.getOrElse(label)).json)) ++
       JSON.optional("command" -> command.map(_.json))
   }
 

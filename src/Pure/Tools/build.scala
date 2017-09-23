@@ -455,9 +455,6 @@ object Build
             //{{{ finish job
 
             val process_result = job.join
-            process_result.err_lines.foreach(progress.echo(_))
-            if (process_result.ok)
-              progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
 
             val log_lines = process_result.out_lines.filterNot(_.startsWith("\f"))
             val process_result_tail =
@@ -469,6 +466,8 @@ object Build
                   (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
+
+            // write log file
             val heap_stamp =
               if (process_result.ok) {
                 (store.output_dir + store.log(name)).file.delete
@@ -485,8 +484,6 @@ object Build
                 (store.output_dir + store.log_gz(name)).file.delete
 
                 File.write(store.output_dir + store.log(name), terminate_lines(log_lines))
-                progress.echo(name + " FAILED")
-                if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
                 None
               }
@@ -504,6 +501,16 @@ object Build
                         command_timings = true, ml_statistics = true, task_statistics = true),
                   build =
                     Session_Info(sources_stamp(name), input_heaps, heap_stamp, process_result.rc)))
+            }
+
+            // messages
+            process_result.err_lines.foreach(progress.echo(_))
+
+            if (process_result.ok)
+              progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
+            else {
+              progress.echo(name + " FAILED")
+              if (!process_result.interrupted) progress.echo(process_result_tail.out)
             }
 
             loop(pending - name, running - name,

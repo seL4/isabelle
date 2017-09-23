@@ -123,7 +123,7 @@ class Server(
 
   private val delay_input: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_input_delay"), channel.Error_Logger)
-    { resources.flush_input(session) }
+    { resources.flush_input(session, channel) }
 
   private val delay_load: Standard_Thread.Delay =
     Standard_Thread.delay_last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
@@ -153,7 +153,7 @@ class Server(
     delay_output.invoke()
   }
 
-  private def change_document(file: JFile, changes: List[Protocol.TextDocumentChange])
+  private def change_document(file: JFile, version: Long, changes: List[Protocol.TextDocumentChange])
   {
     val norm_changes = new mutable.ListBuffer[Protocol.TextDocumentChange]
     @tailrec def norm(chs: List[Protocol.TextDocumentChange])
@@ -168,7 +168,7 @@ class Server(
     }
     norm(changes)
     norm_changes.foreach(change =>
-      resources.change_model(session, editor, file, change.text, change.range))
+      resources.change_model(session, editor, file, version, change.text, change.range))
 
     delay_input.invoke()
     delay_output.invoke()
@@ -326,8 +326,8 @@ class Server(
         delay_caret_update.revoke()
         delay_preview.revoke()
 
-        val rc = session.stop()
-        if (rc == 0) reply("") else reply("Prover shutdown failed: return code " + rc)
+        val result = session.stop()
+        if (result.ok) reply("") else reply("Prover shutdown failed: return code " + result.rc)
         None
       case None =>
         reply("Prover inactive")
@@ -436,9 +436,10 @@ class Server(
           case Protocol.Initialized(()) =>
           case Protocol.Shutdown(id) => shutdown(id)
           case Protocol.Exit(()) => exit()
-          case Protocol.DidOpenTextDocument(file, _, _, text) =>
-            change_document(file, List(Protocol.TextDocumentChange(None, text)))
-          case Protocol.DidChangeTextDocument(file, _, changes) => change_document(file, changes)
+          case Protocol.DidOpenTextDocument(file, _, version, text) =>
+            change_document(file, version, List(Protocol.TextDocumentChange(None, text)))
+          case Protocol.DidChangeTextDocument(file, version, changes) =>
+            change_document(file, version, changes)
           case Protocol.DidCloseTextDocument(file) => close_document(file)
           case Protocol.Completion(id, node_pos) => completion(id, node_pos)
           case Protocol.Include_Word(()) => update_dictionary(true, false)
@@ -457,7 +458,7 @@ class Server(
           case Protocol.State_Auto_Update(id, enabled) => State_Panel.auto_update(id, enabled)
           case Protocol.Preview_Request(file, column) => request_preview(file, column)
           case Protocol.Symbols_Request(()) => channel.write(Protocol.Symbols())
-          case _ => log("### IGNORED")
+          case _ => if (!Protocol.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
@@ -486,7 +487,7 @@ class Server(
     /* session */
 
     override def session: Session = server.session
-    override def flush(): Unit = resources.flush_input(session)
+    override def flush(): Unit = resources.flush_input(session, channel)
     override def invoke(): Unit = delay_input.invoke()
 
 

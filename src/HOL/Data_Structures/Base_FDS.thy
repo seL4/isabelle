@@ -1,5 +1,5 @@
 theory Base_FDS
-imports "../Library/Pattern_Aliases"
+imports "HOL-Library.Pattern_Aliases"
 begin
 
 declare Let_def [simp]

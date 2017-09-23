@@ -10,7 +10,7 @@ imports
   "HOL-Library.Discrete"
   "HOL-Library.Extended_Real"
   "HOL-Library.Liminf_Limsup"
-  "Extended_Real_Limits"
+  Extended_Real_Limits
 begin
 
 text \<open>

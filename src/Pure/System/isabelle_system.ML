@@ -6,6 +6,7 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
+  val rm_tree: Path.T -> unit
   val mkdirs: Path.T -> unit
   val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit

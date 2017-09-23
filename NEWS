@@ -126,7 +126,7 @@ enabled at all times.
 * Deleting the last code equations for a particular function using
 [code del] results in function with no equations (runtime abort) rather
 than an unimplemented function (generation time abort). Use explicit
-[[code drop:]] to enforce the latter. Minor INCOMPATIBILTIY.
+[[code drop:]] to enforce the latter. Minor INCOMPATIBILITY.
 
 * Proper concept of code declarations in code.ML:
   - Regular code declarations act only on the global theory level, being
@@ -316,7 +316,7 @@ Protocol implementation, e.g. for the Visual Studio Code editor. It
 serves as example for alternative PIDE front-ends.
 
 * Command-line tool "isabelle imports" helps to maintain theory imports
-wrt. session structure. Examples:
+wrt. session structure. Examples for the main Isabelle distribution:
 
   isabelle imports -I -a
   isabelle imports -U -a
