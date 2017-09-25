@@ -13,10 +13,10 @@ else
 fi
 
 case "${ISABELLE_PLATFORM}:${ML_SYSTEM_64}" in
-  x86-cygwin:true)
+  *-cygwin:true)
     PLATFORMS="x86_64-windows x86-windows"
     ;;
-  x86-cygwin:*)
+  *-cygwin:*)
     PLATFORMS="x86-windows x86_64-windows"
     ;;
   *:true)

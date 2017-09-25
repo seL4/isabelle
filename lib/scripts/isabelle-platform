@@ -40,15 +40,18 @@ case $(uname -s) in
     ;;
   CYGWIN_NT*)
     ISABELLE_PLATFORM_FAMILY="windows"
+    if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" -o "$PROCESSOR_ARCHITEW6432" = "AMD64" ]; then
+      ISABELLE_WINDOWS_PLATFORM32="x86-windows"
+      ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
+    else
+      ISABELLE_WINDOWS_PLATFORM32="x86-windows"
+    fi
     case $(uname -m) in
-      i?86 | x86_64)
+      x86_64)
+        ISABELLE_PLATFORM64=x86_64-cygwin
+        ;;
+      i?86)
         ISABELLE_PLATFORM32=x86-cygwin
-        if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" -o "$PROCESSOR_ARCHITEW6432" = "AMD64" ]; then
-          ISABELLE_WINDOWS_PLATFORM32="x86-windows"
-          ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
-        else
-          ISABELLE_WINDOWS_PLATFORM32="x86-windows"
-        fi
         ;;
     esac
     ;;
@@ -62,5 +65,5 @@ case $(uname -s) in
     ;;
 esac
 
-ISABELLE_PLATFORM="$ISABELLE_PLATFORM32"
-ISABELLE_WINDOWS_PLATFORM="$ISABELLE_WINDOWS_PLATFORM32"
+ISABELLE_PLATFORM="${ISABELLE_PLATFORM32:-$ISABELLE_PLATFORM64}"
+ISABELLE_WINDOWS_PLATFORM="${ISABELLE_WINDOWS_PLATFORM32:-$ISABELLE_WINDOWS_PLATFORM64}"

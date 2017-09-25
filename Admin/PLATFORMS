@@ -41,6 +41,7 @@ too old nor too new):
   x86-windows       Windows 7
   x86_64-windows    Windows 7
   x86-cygwin        Cygwin 2.8 http://isabelle.in.tum.de/cygwin_2017 (x86/release)
+  x86_64-cygwin     Cygwin 2.8 http://isabelle.in.tum.de/cygwin_2017 (x86_64/release)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
@@ -67,7 +68,7 @@ The Isabelle settings environment provides the following variables to
 help configuring platform-dependent tools:
 
   ISABELLE_PLATFORM64  (potentially empty)
-  ISABELLE_PLATFORM32
+  ISABELLE_PLATFORM32  (potentially empty)
   ISABELLE_PLATFORM
 
 The ISABELLE_PLATFORM setting variable refers to the 32 bit version of
