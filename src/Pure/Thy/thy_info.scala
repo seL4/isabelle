@@ -90,14 +90,8 @@ class Thy_Info(resources: Resources)
 
     def loaded_files: List[Path] =
     {
-      def loaded(dep: Thy_Info.Dep): List[Path] =
-      {
-        val string = resources.with_thy_reader(dep.name,
-          reader => Symbol.decode(reader.source.toString))
-        resources.loaded_files(syntax, string).
-          map(a => Path.explode(dep.name.master_dir) + Path.explode(a))
-      }
-      val dep_files = Par_List.map(loaded _, rev_deps)
+      val dep_files =
+        Par_List.map((dep: Thy_Info.Dep) => resources.loaded_files(syntax, dep.name), rev_deps)
       ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
     }
 

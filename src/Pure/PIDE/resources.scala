@@ -64,6 +64,13 @@ class Resources(
     }
     else Nil
 
+  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name): List[Path] =
+  {
+    val text = with_thy_reader(name, reader => Symbol.decode(reader.source.toString))
+    val dir = Path.explode(name.master_dir)
+    loaded_files(syntax, text).map(a => dir + Path.explode(a))
+  }
+
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
 
