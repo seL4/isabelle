@@ -426,8 +426,10 @@ fun prove_prop_rewrite ctxt t =
     abstract_eq abstract_prop (dest_prop t))
 
 fun arith_rewrite_tac ctxt _ =
-  TRY o Simplifier.simp_tac ctxt
-  THEN_ALL_NEW (Arith_Data.arith_tac ctxt ORELSE' Clasimp.force_tac ctxt)
+  let val backup_tac = Arith_Data.arith_tac ctxt ORELSE' Clasimp.force_tac ctxt in
+    (TRY o Simplifier.simp_tac ctxt) THEN_ALL_NEW backup_tac
+    ORELSE' backup_tac
+  end
 
 fun prove_arith_rewrite ctxt t =
   prove_abstract' ctxt t arith_rewrite_tac (
