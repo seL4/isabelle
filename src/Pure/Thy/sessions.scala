@@ -200,16 +200,7 @@ object Sessions
             val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files =
               if (inlined_files) {
-                val pure_files =
-                  if (is_pure(info.name)) {
-                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
-                    val files =
-                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
-                        map(file => info.dir + Path.explode(file))
-                    roots ::: files
-                  }
-                  else Nil
-                pure_files ::: thy_deps.loaded_files
+                resources.pure_files(syntax, info.name, info.dir) ::: thy_deps.loaded_files
               }
               else Nil
 
