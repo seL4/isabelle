@@ -106,6 +106,21 @@ object File
   def pwd(): Path = path(Path.current.absolute_file)
 
 
+  /* relative paths */
+
+  def relative_path(base: Path, other: Path): Option[Path] =
+  {
+    val base_path = base.file.toPath
+    val other_path = other.file.toPath
+    if (other_path.startsWith(base_path))
+      Some(path(base_path.relativize(other_path).toFile))
+    else None
+  }
+
+  def rebase_path(base: Path, other: Path): Option[Path] =
+    relative_path(base, other).map(base + _)
+
+
   /* bash path */
 
   def bash_path(path: Path): String = Bash.string(standard_path(path))
