@@ -106,7 +106,6 @@ object Sessions
 
   sealed case class Base(
     pos: Position.T = Position.none,
-    imports: Option[Base] = None,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, String] = Map.empty,
     known: Known = Known.empty,
@@ -114,10 +113,9 @@ object Sessions
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
-    errors: List[String] = Nil)
+    errors: List[String] = Nil,
+    imports: Option[Base] = None)
   {
-    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
-
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
@@ -130,6 +128,8 @@ object Sessions
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known.theories.toList)
         yield (theory, node_name.node)
+
+    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
   }
 
   sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
@@ -265,7 +265,6 @@ object Sessions
             val base =
               Base(
                 pos = info.pos,
-                imports = Some(imports_base),
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
@@ -273,7 +272,8 @@ object Sessions
                 syntax = syntax,
                 sources = sources,
                 session_graph = session_graph,
-                errors = thy_deps.errors ::: sources_errors)
+                errors = thy_deps.errors ::: sources_errors,
+                imports = Some(imports_base))
 
             session_bases + (info.name -> base)
           }
