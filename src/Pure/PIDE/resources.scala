@@ -57,16 +57,18 @@ class Resources(
 
   /* theory files */
 
-  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name): List[Path] =
+  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name): () => List[Path] =
   {
     val text = with_thy_reader(name, reader => Symbol.decode(reader.source.toString))
-    if (syntax.load_commands_in(text)) {
-      val spans = syntax.parse_spans(text)
-      val dir = Path.explode(name.master_dir)
-      spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
-        map(a => dir + Path.explode(a)).toList
+    () => {
+      if (syntax.load_commands_in(text)) {
+        val spans = syntax.parse_spans(text)
+        val dir = Path.explode(name.master_dir)
+        spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
+          map(a => dir + Path.explode(a)).toList
+      }
+      else Nil
     }
-    else Nil
   }
 
   def pure_files(syntax: Outer_Syntax, session: String, dir: Path): List[Path] =
@@ -77,7 +79,7 @@ class Resources(
       val files =
         for {
           (path, (_, theory)) <- roots zip Thy_Header.ml_roots
-          file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))
+          file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))()
         } yield file
       roots ::: files
     }

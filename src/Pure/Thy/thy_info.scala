@@ -90,8 +90,8 @@ class Thy_Info(resources: Resources)
 
     def loaded_files: List[Path] =
     {
-      val dep_files =
-        Par_List.map((dep: Thy_Info.Dep) => resources.loaded_files(syntax, dep.name), rev_deps)
+      val parses = rev_deps.map(dep => resources.loaded_files(syntax, dep.name))
+      val dep_files = Par_List.map((parse: () => List[Path]) => parse(), parses)
       ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
     }
 
