@@ -72,14 +72,14 @@ class Resources(
   def pure_files(syntax: Outer_Syntax, session: String, dir: Path): List[Path] =
     if (Sessions.is_pure(session)) {
       val roots =
-        for { (name, theory) <- Thy_Header.ml_roots }
-        yield ((dir + Path.explode(name)).expand, theory)
+        for { (name, _) <- Thy_Header.ml_roots }
+        yield (dir + Path.explode(name)).expand
       val files =
         for {
-          (path, theory) <- roots
+          (path, (_, theory)) <- roots zip Thy_Header.ml_roots
           file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))
         } yield file
-      roots.map(_._1) ::: files
+      roots ::: files
     }
     else Nil
 
