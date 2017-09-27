@@ -72,19 +72,18 @@ class Resources(
     }
   }
 
-  def pure_files(syntax: Outer_Syntax, session: String, dir: Path): List[Path] =
-    if (Sessions.is_pure(session)) {
-      val roots =
-        for { (name, _) <- Thy_Header.ml_roots }
-        yield (dir + Path.explode(name)).expand
-      val files =
-        for {
-          (path, (_, theory)) <- roots zip Thy_Header.ml_roots
-          file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))()
-        } yield file
-      roots ::: files
-    }
-    else Nil
+  def pure_files(syntax: Outer_Syntax, dir: Path): List[Path] =
+  {
+    val roots =
+      for { (name, _) <- Thy_Header.ml_roots }
+      yield (dir + Path.explode(name)).expand
+    val files =
+      for {
+        (path, (_, theory)) <- roots zip Thy_Header.ml_roots
+        file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))()
+      } yield file
+    roots ::: files
+  }
 
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
