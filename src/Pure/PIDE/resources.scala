@@ -66,7 +66,7 @@ class Resources(
         val spans = syntax.parse_spans(text)
         val dir = Path.explode(name.master_dir)
         spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
-          map(a => dir + Path.explode(a)).toList
+          map(a => (dir + Path.explode(a)).expand).toList
       }
       else Nil
     }
