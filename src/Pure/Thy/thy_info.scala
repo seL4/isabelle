@@ -61,13 +61,8 @@ class Thy_Info(resources: Resources)
     lazy val syntax: Outer_Syntax =
       resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
 
-    def loaded_theories: Map[String, String] =
-      (resources.session_base.loaded_theories /: rev_deps) {
-        case (loaded, dep) =>
-          val name = dep.name
-          loaded + (name.theory -> name.theory) +
-            (name.theory_base_name -> name.theory)  // legacy
-      }
+    def loaded_theories: Set[String] =
+      resources.session_base.loaded_theories ++ rev_deps.map(dep => dep.name.theory)
 
     def loaded_files: List[(String, List[Path])] =
     {

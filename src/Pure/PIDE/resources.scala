@@ -88,15 +88,14 @@ class Resources(
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
 
-  def theory_name(qualifier: String, theory0: String): (Boolean, String) =
-    session_base.loaded_theories.get(theory0) match {
-      case Some(theory) => (true, theory)
-      case None =>
-        val theory =
-          if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0))
-            theory0
-          else Long_Name.qualify(qualifier, theory0)
-        (false, theory)
+  def theory_name(qualifier: String, theory: String): (Boolean, String) =
+    if (session_base.loaded_theory(theory)) (true, theory)
+    else {
+      val theory1 =
+        if (Long_Name.is_qualified(theory) || session_base.global_theories.isDefinedAt(theory))
+          theory
+        else Long_Name.qualify(qualifier, theory)
+      (false, theory1)
     }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =

@@ -115,7 +115,7 @@ object Sessions
   sealed case class Base(
     pos: Position.T = Position.none,
     global_theories: Map[String, String] = Map.empty,
-    loaded_theories: Map[String, String] = Map.empty,
+    loaded_theories: Set[String] = Set.empty,
     known: Known = Known.empty,
     keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -127,8 +127,8 @@ object Sessions
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
-    def loaded_theory(name: Document.Node.Name): Boolean =
-      loaded_theories.isDefinedAt(name.theory)
+    def loaded_theory(name: String): Boolean = loaded_theories.contains(name)
+    def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
 
     def known_theory(name: String): Option[Document.Node.Name] =
       known.theories.get(name)
