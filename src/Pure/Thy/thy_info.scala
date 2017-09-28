@@ -38,44 +38,25 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty)
+    val empty = new Dependencies(Nil, Nil, Nil, Set.empty)
   }
 
   final class Dependencies private(
     rev_deps: List[Thy_Info.Dep],
     val keywords: Thy_Header.Keywords,
     val abbrevs: Thy_Header.Abbrevs,
-    val seen: Set[Document.Node.Name],
-    val seen_theory: Multi_Map[String, (Document.Node.Name, Position.T)])
+    val seen: Set[Document.Node.Name])
   {
     def :: (dep: Thy_Info.Dep): Dependencies =
       new Dependencies(
-        dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs,
-        seen, seen_theory)
+        dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs, seen)
 
-    def + (thy: (Document.Node.Name, Position.T)): Dependencies =
-    {
-      val (name, _) = thy
-      new Dependencies(rev_deps, keywords, abbrevs, seen + name, seen_theory + (name.theory -> thy))
-    }
+    def + (name: Document.Node.Name): Dependencies =
+      new Dependencies(rev_deps, keywords, abbrevs, seen + name)
 
     def deps: List[Thy_Info.Dep] = rev_deps.reverse
 
-    def errors: List[String] =
-    {
-      val header_errors = deps.flatMap(dep => dep.header.errors)
-      val import_errors =
-        (for {
-          (theory, imports) <- seen_theory.iterator_list
-          if !resources.session_base.loaded_theories.isDefinedAt(theory)
-          if imports.length > 1
-        } yield {
-          "Incoherent imports for theory " + quote(theory) + ":\n" +
-            cat_lines(imports.map({ case (name, pos) =>
-              "  " + quote(name.node) + Position.here(pos) }))
-        }).toList
-      header_errors ::: import_errors
-    }
+    def errors: List[String] = deps.flatMap(dep => dep.header.errors)
 
     lazy val syntax: Outer_Syntax =
       resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
@@ -105,13 +86,13 @@ class Thy_Info(resources: Resources)
   private def require_thy(initiators: List[Document.Node.Name], required: Dependencies,
     thy: (Document.Node.Name, Position.T)): Dependencies =
   {
-    val (name, require_pos) = thy
+    val (name, pos) = thy
 
     def message: String =
       "The error(s) above occurred for theory " + quote(name.theory) +
-        required_by(initiators) + Position.here(require_pos)
+        required_by(initiators) + Position.here(pos)
 
-    val required1 = required + thy
+    val required1 = required + name
     if (required.seen(name)) required
     else if (resources.session_base.loaded_theory(name)) required1
     else {

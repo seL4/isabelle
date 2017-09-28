@@ -160,7 +160,7 @@ fun join_theory (Result {theory, exec_id, ...}) =
   in res :: map Exn.Exn exns end;
 
 datatype task =
-  Task of Path.T * string list * (theory list -> result) |
+  Task of string list * (theory list -> result) |
   Finished of theory;
 
 fun task_finished (Task _) = false
@@ -171,7 +171,7 @@ fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) de
 val schedule_seq =
   String_Graph.schedule (fn deps => fn (_, task) =>
     (case task of
-      Task (_, parents, body) =>
+      Task (parents, body) =>
         let
           val result = body (task_parents deps parents);
           val _ = Par_Exn.release_all (join_theory result);
@@ -185,7 +185,7 @@ val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
     val futures = tasks
       |> String_Graph.schedule (fn deps => fn (name, task) =>
         (case task of
-          Task (_, parents, body) =>
+          Task (parents, body) =>
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = NONE,
                 deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
@@ -335,19 +335,10 @@ fun require_thys document symbols last_timing initiators qualifier dir strs task
       |>> forall I
 and require_thy document symbols last_timing initiators qualifier dir (s, require_pos) tasks =
   let
-    val {node_name, master_dir, theory_name} = Resources.import_name qualifier dir s;
-    fun check_entry (Task (node_name', _, _)) =
-          if op = (apply2 File.platform_path (node_name, node_name'))
-          then ()
-          else
-            error ("Incoherent imports for theory " ^ quote theory_name ^
-              Position.here require_pos ^ ":\n" ^
-              "  " ^ Path.print node_name ^ "\n" ^
-              "  " ^ Path.print node_name')
-      | check_entry _ = ();
+    val {master_dir, theory_name, ...} = Resources.import_name qualifier dir s;
   in
     (case try (String_Graph.get_node tasks) theory_name of
-      SOME task => (check_entry task; (task_finished task, tasks))
+      SOME task => (task_finished task, tasks)
     | NONE =>
         let
           val _ = member (op =) initiators theory_name andalso error (cycle_msg initiators);
@@ -378,7 +369,7 @@ and require_thy document symbols last_timing initiators qualifier dir (s, requir
                     val load =
                       load_thy document symbols last_timing initiators update_time dep
                         text (theory_name, theory_pos) keywords;
-                  in Task (node_name, parents, load) end);
+                  in Task (parents, load) end);
 
           val tasks'' = new_entry theory_name parents task tasks';
         in (all_current, tasks'') end)
