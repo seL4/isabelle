@@ -57,12 +57,33 @@ class Resources(
 
   /* theory files */
 
-  def loaded_files(syntax: Outer_Syntax, text: String): List[String] =
-    if (syntax.load_commands_in(text)) {
-      val spans = syntax.parse_spans(text)
-      spans.iterator.map(Command.span_files(syntax, _)._1).flatten.toList
+  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name): () => List[Path] =
+  {
+    val raw_text = with_thy_reader(name, reader => reader.source.toString)
+    () => {
+      val text = Symbol.decode(raw_text)
+      if (syntax.load_commands_in(text)) {
+        val spans = syntax.parse_spans(text)
+        val dir = Path.explode(name.master_dir)
+        spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
+          map(a => (dir + Path.explode(a)).expand).toList
+      }
+      else Nil
     }
-    else Nil
+  }
+
+  def pure_files(syntax: Outer_Syntax, dir: Path): List[Path] =
+  {
+    val roots =
+      for { (name, _) <- Thy_Header.ml_roots }
+      yield (dir + Path.explode(name)).expand
+    val files =
+      for {
+        (path, (_, theory)) <- roots zip Thy_Header.ml_roots
+        file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))()
+      } yield file
+    roots ::: files
+  }
 
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))

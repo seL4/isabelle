@@ -88,17 +88,11 @@ class Thy_Info(resources: Resources)
             (name.theory_base_name -> name.theory)  // legacy
       }
 
-    def loaded_files: List[Path] =
+    def loaded_files: List[(String, List[Path])] =
     {
-      def loaded(dep: Thy_Info.Dep): List[Path] =
-      {
-        val string = resources.with_thy_reader(dep.name,
-          reader => Symbol.decode(reader.source.toString))
-        resources.loaded_files(syntax, string).
-          map(a => Path.explode(dep.name.master_dir) + Path.explode(a))
-      }
-      val dep_files = Par_List.map(loaded _, rev_deps)
-      ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
+      val names = deps.map(_.name)
+      names.map(_.theory) zip
+        Par_List.map((e: () => List[Path]) => e(), names.map(resources.loaded_files(syntax, _)))
     }
 
     override def toString: String = deps.toString
