@@ -18,6 +18,10 @@ object Outer_Syntax
 
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
 
+  def merge(syns: List[Outer_Syntax]): Outer_Syntax =
+    if (syns.isEmpty) Thy_Header.bootstrap_syntax
+    else (syns.head /: syns.tail)(_ ++ _)
+
 
   /* string literals */
 
@@ -98,7 +102,10 @@ final class Outer_Syntax private(
     }
 
 
-  /* merge */
+  /* build */
+
+  def + (header: Document.Node.Header): Outer_Syntax =
+    add_keywords(header.keywords).add_abbrevs(header.abbrevs)
 
   def ++ (other: Outer_Syntax): Outer_Syntax =
     if (this eq other) this

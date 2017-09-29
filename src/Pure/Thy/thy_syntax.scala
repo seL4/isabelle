@@ -101,8 +101,7 @@ object Thy_Syntax
         else {
           val header = node.header
           val imports_syntax = header.imports.flatMap(a => nodes(a._1).syntax)
-          Some((resources.session_base.syntax /: imports_syntax)(_ ++ _)
-            .add_keywords(header.keywords).add_abbrevs(header.abbrevs))
+          Some((resources.session_base.syntax /: imports_syntax)(_ ++ _) + header)
         }
       nodes += (name -> node.update_syntax(syntax))
     }

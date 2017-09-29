@@ -215,7 +215,7 @@ object Build
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
                 (info.theories,
-                (base.global_theories.toList, (base.loaded_theories.toList,
+                (base.global_theories.toList, (base.loaded_theories.keys,
                 base.dest_known_theories)))))))))))))))
             })
 
