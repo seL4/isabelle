@@ -46,6 +46,7 @@ class Thy_Info(resources: Resources)
       new Dependencies(rev_entries, keywords, abbrevs, seen + name)
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
+    def names: List[Document.Node.Name] = entries.map(_.name)
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 
@@ -57,7 +58,6 @@ class Thy_Info(resources: Resources)
 
     def loaded_files: List[(String, List[Path])] =
     {
-      val names = entries.map(_.name)
       names.map(_.theory) zip
         Par_List.map((e: () => List[Path]) => e(), names.map(resources.loaded_files(syntax, _)))
     }

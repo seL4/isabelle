@@ -205,7 +205,7 @@ object Sessions
 
             val syntax = thy_deps.syntax
 
-            val theory_files = thy_deps.entries.map(entry => Path.explode(entry.name.node))
+            val theory_files = thy_deps.names.map(name => Path.explode(name.node))
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
@@ -262,7 +262,7 @@ object Sessions
 
             val known =
               Known.make(info.dir, List(imports_base),
-                theories = thy_deps.entries.map(_.name),
+                theories = thy_deps.names,
                 loaded_files = loaded_files)
 
             val sources =
