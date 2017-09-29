@@ -107,7 +107,7 @@ object Sessions
     def bootstrap(global_theories: Map[String, String]): Base =
       Base(
         global_theories = global_theories,
-        syntax = Thy_Header.bootstrap_syntax)
+        overall_syntax = Thy_Header.bootstrap_syntax)
   }
 
   sealed case class Base(
@@ -115,7 +115,7 @@ object Sessions
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
-    syntax: Outer_Syntax = Outer_Syntax.empty,
+    overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil,
@@ -205,13 +205,13 @@ object Sessions
               resources.thy_info.dependencies(root_theories)
             }
 
-            val session_syntax = thy_deps.overall_syntax
+            val overall_syntax = thy_deps.overall_syntax
 
             val theory_files = thy_deps.names.map(_.path)
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
-                  (Thy_Header.PURE -> resources.pure_files(session_syntax, info.dir)) ::
+                  (Thy_Header.PURE -> resources.pure_files(overall_syntax, info.dir)) ::
                     thy_deps.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
                 }
                 else thy_deps.loaded_files
@@ -228,7 +228,7 @@ object Sessions
 
             if (check_keywords.nonEmpty) {
               Check_Keywords.check_keywords(
-                progress, session_syntax.keywords, check_keywords, theory_files)
+                progress, overall_syntax.keywords, check_keywords, theory_files)
             }
 
             val session_graph: Graph_Display.Graph =
@@ -280,7 +280,7 @@ object Sessions
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
-                syntax = session_syntax,
+                overall_syntax = overall_syntax,
                 sources = sources,
                 session_graph = session_graph,
                 errors = thy_deps.errors ::: sources_errors,

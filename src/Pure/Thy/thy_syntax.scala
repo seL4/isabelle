@@ -101,7 +101,7 @@ object Thy_Syntax
         else {
           val header = node.header
           val imports_syntax = header.imports.flatMap(a => nodes(a._1).syntax)
-          Some((resources.session_base.syntax /: imports_syntax)(_ ++ _) + header)
+          Some((resources.session_base.overall_syntax /: imports_syntax)(_ ++ _) + header)
         }
       nodes += (name -> node.update_syntax(syntax))
     }
@@ -323,7 +323,7 @@ object Thy_Syntax
         node_edits foreach {
           case (name, edits) =>
             val node = nodes(name)
-            val syntax = node.syntax getOrElse resources.session_base.syntax
+            val syntax = node.syntax getOrElse resources.session_base.overall_syntax
             val commands = node.commands
 
             val node1 =
