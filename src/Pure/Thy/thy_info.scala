@@ -7,18 +7,6 @@ Theory and file dependencies.
 package isabelle
 
 
-object Thy_Info
-{
-  /* dependencies */
-
-  sealed case class Dep(
-    name: Document.Node.Name,
-    header: Document.Node.Header)
-  {
-    override def toString: String = name.toString
-  }
-}
-
 class Thy_Info(resources: Resources)
 {
   /* messages */
@@ -38,64 +26,50 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Nil, Set.empty, Multi_Map.empty)
+    val empty = new Dependencies(Nil, Set.empty)
   }
 
   final class Dependencies private(
-    rev_deps: List[Thy_Info.Dep],
-    val keywords: Thy_Header.Keywords,
-    val abbrevs: Thy_Header.Abbrevs,
-    val seen: Set[Document.Node.Name],
-    val seen_theory: Multi_Map[String, (Document.Node.Name, Position.T)])
+    rev_entries: List[Document.Node.Entry],
+    val seen: Set[Document.Node.Name])
   {
-    def :: (dep: Thy_Info.Dep): Dependencies =
-      new Dependencies(
-        dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs,
-        seen, seen_theory)
+    def :: (entry: Document.Node.Entry): Dependencies =
+      new Dependencies(entry :: rev_entries, seen)
 
-    def + (thy: (Document.Node.Name, Position.T)): Dependencies =
-    {
-      val (name, _) = thy
-      new Dependencies(rev_deps, keywords, abbrevs, seen + name, seen_theory + (name.theory -> thy))
-    }
+    def + (name: Document.Node.Name): Dependencies =
+      new Dependencies(rev_entries, seen + name)
 
-    def deps: List[Thy_Info.Dep] = rev_deps.reverse
+    def entries: List[Document.Node.Entry] = rev_entries.reverse
+    def names: List[Document.Node.Name] = entries.map(_.name)
 
-    def errors: List[String] =
-    {
-      val header_errors = deps.flatMap(dep => dep.header.errors)
-      val import_errors =
-        (for {
-          (theory, imports) <- seen_theory.iterator_list
-          if !resources.session_base.loaded_theories.isDefinedAt(theory)
-          if imports.length > 1
-        } yield {
-          "Incoherent imports for theory " + quote(theory) + ":\n" +
-            cat_lines(imports.map({ case (name, pos) =>
-              "  " + quote(name.node) + Position.here(pos) }))
-        }).toList
-      header_errors ::: import_errors
-    }
+    def errors: List[String] = entries.flatMap(_.header.errors)
 
-    lazy val syntax: Outer_Syntax =
-      resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
+    lazy val loaded_theories: Graph[String, Outer_Syntax] =
+      (resources.session_base.loaded_theories /: entries)({ case (graph, entry) =>
+        val name = entry.name.theory
+        val imports = entry.header.imports.map(p => p._1.theory)
 
-    def loaded_theories: Map[String, String] =
-      (resources.session_base.loaded_theories /: rev_deps) {
-        case (loaded, dep) =>
-          val name = dep.name
-          loaded + (name.theory -> name.theory) +
-            (name.theory_base_name -> name.theory)  // legacy
-      }
+        if (graph.defined(name))
+          error("Duplicate loaded theory entry " + quote(name))
+
+        for (dep <- imports if !graph.defined(dep))
+          error("Missing loaded theory entry " + quote(dep) + " for " + quote(name))
+
+        val syntax = Outer_Syntax.merge(imports.map(graph.get_node(_))) + entry.header
+        (graph.new_node(name, syntax) /: imports)((g, dep) => g.add_edge(dep, name))
+      })
 
     def loaded_files: List[(String, List[Path])] =
     {
-      val names = deps.map(_.name)
       names.map(_.theory) zip
-        Par_List.map((e: () => List[Path]) => e(), names.map(resources.loaded_files(syntax, _)))
+        Par_List.map((e: () => List[Path]) => e(),
+          names.map(name => resources.loaded_files(loaded_theories.get_node(name.theory), name)))
     }
 
-    override def toString: String = deps.toString
+    lazy val overall_syntax: Outer_Syntax =
+      Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node(_)))
+
+    override def toString: String = entries.toString
   }
 
   private def require_thys(initiators: List[Document.Node.Name], required: Dependencies,
@@ -105,13 +79,13 @@ class Thy_Info(resources: Resources)
   private def require_thy(initiators: List[Document.Node.Name], required: Dependencies,
     thy: (Document.Node.Name, Position.T)): Dependencies =
   {
-    val (name, require_pos) = thy
+    val (name, pos) = thy
 
     def message: String =
       "The error(s) above occurred for theory " + quote(name.theory) +
-        required_by(initiators) + Position.here(require_pos)
+        required_by(initiators) + Position.here(pos)
 
-    val required1 = required + thy
+    val required1 = required + name
     if (required.seen(name)) required
     else if (resources.session_base.loaded_theory(name)) required1
     else {
@@ -120,11 +94,12 @@ class Thy_Info(resources: Resources)
         val header =
           try { resources.check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
-        Thy_Info.Dep(name, header) :: require_thys(name :: initiators, required1, header.imports)
+        Document.Node.Entry(name, header) ::
+          require_thys(name :: initiators, required1, header.imports)
       }
       catch {
         case e: Throwable =>
-          Thy_Info.Dep(name, Document.Node.bad_header(Exn.message(e))) :: required1
+          Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: required1
       }
     }
   }

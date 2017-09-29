@@ -157,7 +157,7 @@ Usage: isabelle vscode_grammar [OPTIONS]
     val more_args = getopts(args)
     if (more_args.nonEmpty) getopts.usage()
 
-    val keywords = Sessions.session_base(Options.init(), logic, dirs).syntax.keywords
+    val keywords = Sessions.session_base(Options.init(), logic, dirs).overall_syntax.keywords
     val output_path = output getOrElse Path.explode(default_output(logic))
 
     Output.writeln(output_path.implode)

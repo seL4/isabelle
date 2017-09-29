@@ -40,8 +40,7 @@ object Sessions
       def local_theories_iterator =
       {
         val local_path = local_dir.canonical_file.toPath
-        theories.iterator.filter(name =>
-          Path.explode(name.node).canonical_file.toPath.startsWith(local_path))
+        theories.iterator.filter(name => name.path.canonical_file.toPath.startsWith(local_path))
       }
 
       val known_theories =
@@ -62,7 +61,7 @@ object Sessions
         (Map.empty[JFile, List[Document.Node.Name]] /:
             (bases_iterator(true) ++ bases_iterator(false) ++ theories.iterator))({
           case (known, name) =>
-            val file = Path.explode(name.node).canonical_file
+            val file = name.path.canonical_file
             val theories1 = known.getOrElse(file, Nil)
             if (theories1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
               known
@@ -103,22 +102,18 @@ object Sessions
 
   object Base
   {
-    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
-
     def bootstrap(global_theories: Map[String, String]): Base =
       Base(
         global_theories = global_theories,
-        keywords = Thy_Header.bootstrap_header,
-        syntax = Thy_Header.bootstrap_syntax)
+        overall_syntax = Thy_Header.bootstrap_syntax)
   }
 
   sealed case class Base(
     pos: Position.T = Position.none,
     global_theories: Map[String, String] = Map.empty,
-    loaded_theories: Map[String, String] = Map.empty,
+    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
-    keywords: Thy_Header.Keywords = Nil,
-    syntax: Outer_Syntax = Outer_Syntax.empty,
+    overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil,
@@ -127,8 +122,16 @@ object Sessions
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
-    def loaded_theory(name: Document.Node.Name): Boolean =
-      loaded_theories.isDefinedAt(name.theory)
+    def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
+    def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
+
+    def loaded_theory_syntax(name: String): Option[Outer_Syntax] =
+      if (loaded_theory(name)) Some(loaded_theories.get_node(name)) else None
+    def loaded_theory_syntax(name: Document.Node.Name): Option[Outer_Syntax] =
+      loaded_theory_syntax(name.theory)
+
+    def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Option[Outer_Syntax] =
+      nodes(name).syntax orElse loaded_theory_syntax(name)
 
     def known_theory(name: String): Option[Document.Node.Name] =
       known.theories.get(name)
@@ -203,13 +206,13 @@ object Sessions
               resources.thy_info.dependencies(root_theories)
             }
 
-            val syntax = thy_deps.syntax
+            val overall_syntax = thy_deps.overall_syntax
 
-            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
+            val theory_files = thy_deps.names.map(_.path)
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
-                  (Thy_Header.PURE -> resources.pure_files(syntax, info.dir)) ::
+                  (Thy_Header.PURE -> resources.pure_files(overall_syntax, info.dir)) ::
                     thy_deps.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
                 }
                 else thy_deps.loaded_files
@@ -224,8 +227,10 @@ object Sessions
             if (list_files)
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
 
-            if (check_keywords.nonEmpty)
-              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+            if (check_keywords.nonEmpty) {
+              Check_Keywords.check_keywords(
+                progress, overall_syntax.keywords, check_keywords, theory_files)
+            }
 
             val session_graph: Graph_Display.Graph =
             {
@@ -251,18 +256,18 @@ object Sessions
                       val bs = imports_subgraph.imm_preds(session).toList.map(session_node(_))
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
-              (graph0 /: thy_deps.deps)(
-                { case (g, dep) =>
-                    val a = node(dep.name)
+              (graph0 /: thy_deps.entries)(
+                { case (g, entry) =>
+                    val a = node(entry.name)
                     val bs =
-                      dep.header.imports.map({ case (name, _) => node(name) }).
+                      entry.header.imports.map({ case (name, _) => node(name) }).
                         filterNot(_ == a)
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
             val known =
               Known.make(info.dir, List(imports_base),
-                theories = thy_deps.deps.map(_.name),
+                theories = thy_deps.names,
                 loaded_files = loaded_files)
 
             val sources =
@@ -276,8 +281,7 @@ object Sessions
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
-                keywords = thy_deps.keywords,
-                syntax = syntax,
+                overall_syntax = overall_syntax,
                 sources = sources,
                 session_graph = session_graph,
                 errors = thy_deps.errors ::: sources_errors,

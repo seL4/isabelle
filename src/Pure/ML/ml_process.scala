@@ -99,9 +99,11 @@ object ML_Process
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
                 ML_Syntax.print_string, ML_Syntax.print_string))(table)
+          def print_list(list: List[String]): String =
+            ML_Syntax.print_list(ML_Syntax.print_string)(list)
           List("Resources.init_session_base" +
             " {global_theories = " + print_table(base.global_theories.toList) +
-            ", loaded_theories = " + print_table(base.loaded_theories.toList) +
+            ", loaded_theories = " + print_list(base.loaded_theories.keys) +
             ", known_theories = " + print_table(base.dest_known_theories) + "}")
       }
 

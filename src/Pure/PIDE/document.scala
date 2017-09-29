@@ -116,6 +116,8 @@ object Document
           case _ => false
         }
 
+      def path: Path = Path.explode(node)
+
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
@@ -124,6 +126,11 @@ object Document
 
       def map(f: String => String): Name = copy(f(node), f(master_dir), theory)
       def map_theory(f: String => String): Name = copy(node, master_dir, f(theory))
+    }
+
+    sealed case class Entry(name: Node.Name, header: Node.Header)
+    {
+      override def toString: String = name.toString
     }
 
 

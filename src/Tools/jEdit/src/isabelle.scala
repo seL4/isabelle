@@ -50,7 +50,7 @@ object Isabelle
 
   def mode_syntax(mode: String): Option[Outer_Syntax] =
     mode match {
-      case "isabelle" => Some(PIDE.resources.session_base.syntax)
+      case "isabelle" => Some(PIDE.resources.session_base.overall_syntax)
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Sessions.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
