@@ -2253,9 +2253,7 @@ proof -
     have "(\<lambda>x. \<bar>f x \<bullet> i\<bar>) integrable_on S" 
       using assms integrable_component [OF fcomp, where y=i] that by simp
     then have "(\<lambda>x. f x \<bullet> i) absolutely_integrable_on S"
-      apply -
-      apply (rule abs_absolutely_integrableI_1, auto)
-      by (simp add: f integrable_component)
+      using abs_absolutely_integrableI_1 f integrable_component by blast
     then show ?thesis
       by (rule absolutely_integrable_scaleR_right)
   qed

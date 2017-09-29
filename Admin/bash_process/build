@@ -42,7 +42,7 @@ case "$TARGET" in
   x86-linux | x86-darwin)
     cc -Wall -m32 bash_process.c -o "$TARGET/bash_process"
     ;;
-  x86-cygwin)
+  x86_64-cygwin | x86-cygwin)
     cc -Wall bash_process.c -o "$TARGET/bash_process.exe"
     ;;
   *)

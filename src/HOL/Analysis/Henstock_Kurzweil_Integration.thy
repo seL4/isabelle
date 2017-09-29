@@ -3060,8 +3060,8 @@ lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   unfolding integrable_on_def by blast
 
 lemma integral_has_vector_derivative_continuous_at:
- fixes f :: "real \<Rightarrow> 'a::banach"
- assumes f: "f integrable_on {a..b}"
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes f: "f integrable_on {a..b}"
      and x: "x \<in> {a..b} - S"
      and "finite S"
      and fx: "continuous (at x within ({a..b} - S)) f"
@@ -3091,7 +3091,7 @@ proof -
       show ?thesis
         using False
         apply (simp add: abs_eq_content del: content_real_if measure_lborel_Icc)
-        apply (rule has_integral_bound_real [where f="(\<lambda>u. f u - f x)"])
+        apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
         using yx False d x y \<open>e>0\<close> assms by (auto simp: Idiff fux_int)
     next
       case True
@@ -6062,8 +6062,7 @@ proof -
   have "norm (integral S f) \<le> integral S ((\<lambda>x. x \<bullet> k) \<circ> g)"
     apply (rule integral_norm_bound_integral[OF f integrable_linear[OF g]])
     apply (simp add: bounded_linear_inner_left)
-    unfolding o_def
-    apply (metis fg)
+    apply (metis fg o_def)
     done
   then show ?thesis
     unfolding o_def integral_component_eq[OF g] .
@@ -6180,7 +6179,6 @@ proof cases
       have "closed_segment x0 x \<subseteq> U"
         by (rule \<open>convex U\<close>[unfolded convex_contains_segment, rule_format, OF \<open>x0 \<in> U\<close> \<open>x \<in> U\<close>])
       from elim have [intro]: "x \<in> U" by auto
-
       have "?F x - ?F x0 - ?dF (x - x0) =
         integral (cbox a b) (\<lambda>y. f x y - f x0 y - fx x0 y (x - x0))"
         (is "_ = ?id")
@@ -6217,7 +6215,7 @@ proof cases
       also have "\<dots> < e' * norm (x - x0)"
         using \<open>e' > 0\<close>
         apply (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])
-        apply  (auto simp: divide_simps e_def)
+        apply (auto simp: divide_simps e_def)
         by (metis \<open>0 < e\<close> e_def order.asym zero_less_divide_iff)
       finally have "norm (?F x - ?F x0 - ?dF (x - x0)) < e' * norm (x - x0)" .
       then show ?case
@@ -6306,14 +6304,12 @@ proof -
     by atomize_elim (auto simp: integrable_on_def intro!: choice)
 
   moreover
-
   have gi[simp]: "g integrable_on (cbox a b)"
     by (auto intro!: integrable_continuous uniform_limit_theorem[OF _ u] eventuallyI c)
   then obtain J where J: "(g has_integral J) (cbox a b)"
     by blast
 
   moreover
-
   have "(I \<longlongrightarrow> J) F"
   proof cases
     assume "content (cbox a b) = 0"
@@ -6461,19 +6457,17 @@ proof -
           f integrable_continuous_real)+
   have deriv: "(((\<lambda>x. integral {c..x} f) \<circ> g) has_vector_derivative g' x *\<^sub>R f (g x))
                  (at x within {a..b})" if "x \<in> {a..b} - s" for x
-    apply (rule has_vector_derivative_eq_rhs)
-    apply (rule vector_diff_chain_within)
-    apply (subst has_field_derivative_iff_has_vector_derivative [symmetric])
-    apply (rule deriv that)+
-    apply (rule has_vector_derivative_within_subset)
-    apply (rule integral_has_vector_derivative f)+
-    using that le subset
-    apply blast+
-    done
+  proof (rule has_vector_derivative_eq_rhs [OF vector_diff_chain_within refl])
+    show "(g has_vector_derivative g' x) (at x within {a..b})"
+      using deriv has_field_derivative_iff_has_vector_derivative that by blast
+    show "((\<lambda>x. integral {c..x} f) has_vector_derivative f (g x)) 
+          (at (g x) within g ` {a..b})"
+      using that le subset
+      by (blast intro: has_vector_derivative_within_subset integral_has_vector_derivative f)
+  qed
   have deriv: "(?F has_vector_derivative g' x *\<^sub>R f (g x))
                   (at x)" if "x \<in> {a..b} - (s \<union> {a,b})" for x
     using deriv[of x] that by (simp add: at_within_closed_interval o_def)
-
   have "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (?F b - ?F a)) {a..b}"
     using le cont_int s deriv cont_int
     by (intro fundamental_theorem_of_calculus_interior_strong[of "s \<union> {a,b}"]) simp_all
@@ -6805,20 +6799,21 @@ next
             \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX"
         by (rule norm_xx [OF integral_Pair_const 1 2])
     } note * = this
-    show "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) \<le> e"
+    have "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) \<le> e" 
+      if "\<forall>x\<in>?CBOX. \<forall>x'\<in>?CBOX. norm (x' - x) < k \<longrightarrow> norm (f x' - f x) < e /(2 * content (?CBOX))" "0 < k" for k
+    proof -
+      obtain p where ptag: "p tagged_division_of cbox (a, c) (b, d)" 
+                 and fine: "(\<lambda>x. ball x k) fine p"
+        using fine_division_exists \<open>0 < k\<close> by blast
+      show ?thesis
+        apply (rule op_acbd [OF division_of_tagged_division [OF ptag]])
+        using that fine ptag \<open>0 < k\<close> by (auto simp: *)
+    qed
+    then show "norm (integral ?CBOX f - integral (cbox a b) (\<lambda>x. integral (cbox c d) (\<lambda>y. f (x,y)))) \<le> e"
       using compact_uniformly_continuous [OF assms compact_cbox]
       apply (simp add: uniformly_continuous_on_def dist_norm)
       apply (drule_tac x="e/2 / content?CBOX" in spec)
-      using cbp \<open>0 < e\<close>
-      apply (auto simp: zero_less_mult_iff)
-      apply (rename_tac k)
-      apply (rule_tac e1=k in fine_division_exists [OF gauge_ball, where a = "(a,c)" and b = "(b,d)"])
-      apply assumption
-      apply (rule op_acbd)
-      apply (erule division_of_tagged_division)
-      using *
-      apply auto
-      done
+      using cbp \<open>0 < e\<close> by (auto simp: zero_less_mult_iff)
   qed
   then show ?thesis
     by simp
@@ -6861,7 +6856,6 @@ lemma has_integral_exp_minus_to_infinity:
   shows   "((\<lambda>x::real. exp (-a*x)) has_integral exp (-a*c)/a) {c..}"
 proof -
   define f where "f = (\<lambda>k x. if x \<in> {c..real k} then exp (-a*x) else 0)"
-
   {
     fix k :: nat assume k: "of_nat k \<ge> c"
     from k a

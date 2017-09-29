@@ -27,7 +27,9 @@ object Sessions
   {
     val empty: Known = Known()
 
-    def make(local_dir: Path, bases: List[Base], theories: List[Document.Node.Name]): Known =
+    def make(local_dir: Path, bases: List[Base],
+      theories: List[Document.Node.Name] = Nil,
+      loaded_files: List[(String, List[Path])] = Nil): Known =
     {
       def bases_iterator(local: Boolean) =
         for {
@@ -66,15 +68,21 @@ object Sessions
               known
             else known + (file -> (name :: theories1))
         })
+
+      val known_loaded_files =
+        (loaded_files.toMap /: bases.map(base => base.known.loaded_files))(_ ++ _)
+
       Known(known_theories, known_theories_local,
-        known_files.iterator.map(p => (p._1, p._2.reverse)).toMap)
+        known_files.iterator.map(p => (p._1, p._2.reverse)).toMap,
+        known_loaded_files)
     }
   }
 
   sealed case class Known(
     theories: Map[String, Document.Node.Name] = Map.empty,
     theories_local: Map[String, Document.Node.Name] = Map.empty,
-    files: Map[JFile, List[Document.Node.Name]] = Map.empty)
+    files: Map[JFile, List[Document.Node.Name]] = Map.empty,
+    loaded_files: Map[String, List[Path]] = Map.empty)
   {
     def platform_path: Known =
       copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))),
@@ -106,7 +114,6 @@ object Sessions
 
   sealed case class Base(
     pos: Position.T = Position.none,
-    imports: Option[Base] = None,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Map[String, String] = Map.empty,
     known: Known = Known.empty,
@@ -114,10 +121,9 @@ object Sessions
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
-    errors: List[String] = Nil)
+    errors: List[String] = Nil,
+    imports: Option[Base] = None)
   {
-    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
-
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
@@ -130,6 +136,8 @@ object Sessions
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known.theories.toList)
         yield (theory, node_name.node)
+
+    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
   }
 
   sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
@@ -174,7 +182,7 @@ object Sessions
               }
             val imports_base: Sessions.Base =
               parent_base.copy(known =
-                Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
+                Known.make(info.dir, parent_base :: info.imports.map(session_bases(_))))
 
             val resources = new Resources(imports_base)
 
@@ -200,21 +208,16 @@ object Sessions
             val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files =
               if (inlined_files) {
-                val pure_files =
-                  if (is_pure(info.name)) {
-                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
-                    val files =
-                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
-                        map(file => info.dir + Path.explode(file))
-                    roots ::: files
-                  }
-                  else Nil
-                pure_files ::: thy_deps.loaded_files
+                if (Sessions.is_pure(info.name)) {
+                  (Thy_Header.PURE -> resources.pure_files(syntax, info.dir)) ::
+                    thy_deps.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
+                }
+                else thy_deps.loaded_files
               }
               else Nil
 
             val all_files =
-              (theory_files ::: loaded_files :::
+              (theory_files ::: loaded_files.flatMap(_._2) :::
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
@@ -257,6 +260,11 @@ object Sessions
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
+            val known =
+              Known.make(info.dir, List(imports_base),
+                theories = thy_deps.deps.map(_.name),
+                loaded_files = loaded_files)
+
             val sources =
               for (p <- all_files if p.is_file) yield (p, SHA1.digest(p.file))
             val sources_errors =
@@ -265,15 +273,15 @@ object Sessions
             val base =
               Base(
                 pos = info.pos,
-                imports = Some(imports_base),
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
-                known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
+                known = known,
                 keywords = thy_deps.keywords,
                 syntax = syntax,
                 sources = sources,
                 session_graph = session_graph,
-                errors = thy_deps.errors ::: sources_errors)
+                errors = thy_deps.errors ::: sources_errors,
+                imports = Some(imports_base))
 
             session_bases + (info.name -> base)
           }
@@ -284,13 +292,14 @@ object Sessions
           }
       })
 
-    Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2), Nil))
+    Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2)))
   }
 
   def session_base_errors(
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
+    inlined_files: Boolean = false,
     all_known: Boolean = false): (List[String], Base) =
   {
     val full_sessions = load(options, dirs = dirs)
@@ -298,7 +307,8 @@ object Sessions
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
     val sessions: T = if (all_known) full_sessions else selected_sessions
-    val deps = Sessions.deps(sessions, global_theories = global_theories)
+    val deps =
+      Sessions.deps(sessions, inlined_files = inlined_files, global_theories = global_theories)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
     (deps.errors, base)
   }
@@ -307,9 +317,12 @@ object Sessions
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
+    inlined_files: Boolean = false,
     all_known: Boolean = false): Base =
   {
-    val (errs, base) = session_base_errors(options, session, dirs = dirs, all_known = all_known)
+    val (errs, base) =
+      session_base_errors(options, session, dirs = dirs,
+        inlined_files = inlined_files, all_known = all_known)
     if (errs.isEmpty) base else error(cat_lines(errs))
   }
 

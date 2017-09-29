@@ -1919,89 +1919,71 @@ subsection \<open>General bisection principle for intervals; might be useful els
 
 lemma interval_bisection_step:
   fixes type :: "'a::euclidean_space"
-  assumes "P {}"
-    and "\<forall>s t. P s \<and> P t \<and> interior(s) \<inter> interior(t) = {} \<longrightarrow> P (s \<union> t)"
-    and "\<not> P (cbox a (b::'a))"
+  assumes emp: "P {}"
+    and Un: "\<And>S T. \<lbrakk>P S; P T; interior(S) \<inter> interior(T) = {}\<rbrakk> \<Longrightarrow> P (S \<union> T)"
+    and non: "\<not> P (cbox a (b::'a))"
   obtains c d where "\<not> P (cbox c d)"
-    and "\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
+    and "\<And>i. i \<in> Basis \<Longrightarrow> a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
 proof -
   have "cbox a b \<noteq> {}"
-    using assms(1,3) by metis
+    using emp non by metis
   then have ab: "\<And>i. i\<in>Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i"
     by (force simp: mem_box)
-  have UN_cases: "\<lbrakk>finite f;
-           \<And>s. s\<in>f \<Longrightarrow> P s;
-           \<And>s. s\<in>f \<Longrightarrow> \<exists>a b. s = cbox a b;
-           \<And>s t. s\<in>f \<Longrightarrow> t\<in>f \<Longrightarrow> s \<noteq> t \<Longrightarrow> interior s \<inter> interior t = {}\<rbrakk> \<Longrightarrow> P (\<Union>f)" for f
-  proof (induct f rule: finite_induct)
-    case empty
-    show ?case
-      using assms(1) by auto
+  have UN_cases: "\<lbrakk>finite \<F>;
+           \<And>S. S\<in>\<F> \<Longrightarrow> P S;
+           \<And>S. S\<in>\<F> \<Longrightarrow> \<exists>a b. S = cbox a b;
+           \<And>S T. S\<in>\<F> \<Longrightarrow> T\<in>\<F> \<Longrightarrow> S \<noteq> T \<Longrightarrow> interior S \<inter> interior T = {}\<rbrakk> \<Longrightarrow> P (\<Union>\<F>)" for \<F>
+  proof (induct \<F> rule: finite_induct)
+    case empty show ?case
+      using emp by auto
   next
     case (insert x f)
-    show ?case
-      unfolding Union_insert
-      apply (rule assms(2)[rule_format])
-      using Int_interior_Union_intervals [of f "interior x"]
-      by (metis (no_types, lifting) insert insert_iff open_interior)
+    then show ?case
+      unfolding Union_insert by (metis Int_interior_Union_intervals Un insert_iff open_interior)
   qed
-  let ?A = "{cbox c d | c d::'a. \<forall>i\<in>Basis. (c\<bullet>i = a\<bullet>i) \<and> (d\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<or>
-    (c\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<and> (d\<bullet>i = b\<bullet>i)}"
-  let ?PP = "\<lambda>c d. \<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
-  {
-    presume "\<forall>c d. ?PP c d \<longrightarrow> P (cbox c d) \<Longrightarrow> False"
-    then show thesis
-      unfolding atomize_not not_all
-      by (blast intro: that)
-  }
-  assume as: "\<forall>c d. ?PP c d \<longrightarrow> P (cbox c d)"
-  have "P (\<Union>?A)"
+  let ?ab = "\<lambda>i. (a\<bullet>i + b\<bullet>i) / 2"
+  let ?A = "{cbox c d | c d::'a. \<forall>i\<in>Basis. (c\<bullet>i = a\<bullet>i) \<and> (d\<bullet>i = ?ab i) \<or>
+    (c\<bullet>i = ?ab i) \<and> (d\<bullet>i = b\<bullet>i)}"
+  have "P (\<Union>?A)" 
+    if "\<And>c d.  \<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i \<Longrightarrow> P (cbox c d)"
   proof (rule UN_cases)
-    let ?B = "(\<lambda>s. cbox (\<Sum>i\<in>Basis. (if i \<in> s then a\<bullet>i else (a\<bullet>i + b\<bullet>i) / 2) *\<^sub>R i::'a)
-      (\<Sum>i\<in>Basis. (if i \<in> s then (a\<bullet>i + b\<bullet>i) / 2 else b\<bullet>i) *\<^sub>R i)) ` {s. s \<subseteq> Basis}"
+    let ?B = "(\<lambda>S. cbox (\<Sum>i\<in>Basis. (if i \<in> S then a\<bullet>i else ?ab i) *\<^sub>R i::'a)
+                        (\<Sum>i\<in>Basis. (if i \<in> S then ?ab i else b\<bullet>i) *\<^sub>R i)) ` {s. s \<subseteq> Basis}"
     have "?A \<subseteq> ?B"
     proof
       fix x
       assume "x \<in> ?A"
       then obtain c d
         where x:  "x = cbox c d"
-                  "\<And>i. i \<in> Basis \<Longrightarrow>
-                        c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-                        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
-      show "x \<in> ?B"
-        unfolding image_iff x
-        apply (rule_tac x="{i. i\<in>Basis \<and> c\<bullet>i = a\<bullet>i}" in bexI)
-        apply (rule arg_cong2 [where f = cbox])
-        using x(2) ab
-        apply (auto simp add: euclidean_eq_iff[where 'a='a])
-        by fastforce
+          "\<And>i. i \<in> Basis \<Longrightarrow>
+                        c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = ?ab i \<or> c \<bullet> i = ?ab i \<and> d \<bullet> i = b \<bullet> i" 
+        by blast
+      have "c = (\<Sum>i\<in>Basis. (if c \<bullet> i = a \<bullet> i then a \<bullet> i else ?ab i) *\<^sub>R i)"
+           "d = (\<Sum>i\<in>Basis. (if c \<bullet> i = a \<bullet> i then ?ab i else b \<bullet> i) *\<^sub>R i)"
+        using x(2) ab by (fastforce simp add: euclidean_eq_iff[where 'a='a])+
+      then show "x \<in> ?B"
+        unfolding x by (rule_tac x="{i. i\<in>Basis \<and> c\<bullet>i = a\<bullet>i}" in image_eqI) auto
     qed
     then show "finite ?A"
       by (rule finite_subset) auto
   next
-    fix s
-    assume "s \<in> ?A"
+    fix S
+    assume "S \<in> ?A"
     then obtain c d
-      where s: "s = cbox c d"
-               "\<And>i. i \<in> Basis \<Longrightarrow>
-                     c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-                     c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i"
+      where s: "S = cbox c d"
+               "\<And>i. i \<in> Basis \<Longrightarrow> c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = ?ab i \<or> c \<bullet> i = ?ab i \<and> d \<bullet> i = b \<bullet> i"
       by blast
-    show "P s"
-      unfolding s
-      apply (rule as[rule_format])
-      using ab s(2) by force
-    show "\<exists>a b. s = cbox a b"
+    show "P S"
+      unfolding s using ab s(2) by (fastforce intro!: that)
+    show "\<exists>a b. S = cbox a b"
       unfolding s by auto
-    fix t
-    assume "t \<in> ?A"
+    fix T
+    assume "T \<in> ?A"
     then obtain e f where t:
-      "t = cbox e f"
-      "\<And>i. i \<in> Basis \<Longrightarrow>
-        e \<bullet> i = a \<bullet> i \<and> f \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-        e \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> f \<bullet> i = b \<bullet> i"
+      "T = cbox e f"
+      "\<And>i. i \<in> Basis \<Longrightarrow> e \<bullet> i = a \<bullet> i \<and> f \<bullet> i = ?ab i \<or> e \<bullet> i = ?ab i \<and> f \<bullet> i = b \<bullet> i"
       by blast
-    assume "s \<noteq> t"
+    assume "S \<noteq> T"
     then have "\<not> (c = e \<and> d = f)"
       unfolding s t by auto
     then obtain i where "c\<bullet>i \<noteq> e\<bullet>i \<or> d\<bullet>i \<noteq> f\<bullet>i" and i': "i \<in> Basis"
@@ -2011,24 +1993,15 @@ proof -
       using t(2)[OF i'] \<open>c \<bullet> i \<noteq> e \<bullet> i \<or> d \<bullet> i \<noteq> f \<bullet> i\<close> i' s(2) t(2) by fastforce
     have *: "\<And>s t. (\<And>a. a \<in> s \<Longrightarrow> a \<in> t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}"
       by auto
-    show "interior s \<inter> interior t = {}"
+    show "interior S \<inter> interior T = {}"
       unfolding s t interior_cbox
     proof (rule *)
       fix x
       assume "x \<in> box c d" "x \<in> box e f"
       then have x: "c\<bullet>i < d\<bullet>i" "e\<bullet>i < f\<bullet>i" "c\<bullet>i < f\<bullet>i" "e\<bullet>i < d\<bullet>i"
-        unfolding mem_box using i'
-        by force+
-      show False  using s(2)[OF i']
-      proof safe
-        assume as: "c \<bullet> i = a \<bullet> i" "d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2"
-        show False
-          using t(2)[OF i'] and i x unfolding as by (fastforce simp add:field_simps)
-      next
-        assume as: "c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2" "d \<bullet> i = b \<bullet> i"
-        show False
-          using t(2)[OF i'] and i x unfolding as by(fastforce simp add:field_simps)
-      qed
+        unfolding mem_box using i'  by force+
+      show False  using s(2)[OF i'] t(2)[OF i'] and i x  
+        by auto
     qed
   qed
   also have "\<Union>?A = cbox a b"
@@ -2037,48 +2010,30 @@ proof -
     assume "x \<in> \<Union>?A"
     then obtain c d where x:
       "x \<in> cbox c d"
-      "\<And>i. i \<in> Basis \<Longrightarrow>
-        c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i"
+      "\<And>i. i \<in> Basis \<Longrightarrow> c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = ?ab i \<or> c \<bullet> i = ?ab i \<and> d \<bullet> i = b \<bullet> i"
       by blast
-    show "x\<in>cbox a b"
-      unfolding mem_box
-    proof safe
-      fix i :: 'a
-      assume i: "i \<in> Basis"
-      then show "a \<bullet> i \<le> x \<bullet> i" "x \<bullet> i \<le> b \<bullet> i"
-        using x(2)[OF i] x(1)[unfolded mem_box,THEN bspec, OF i] by auto
-    qed
+    then show "x\<in>cbox a b"
+      unfolding mem_box by force
   next
     fix x
     assume x: "x \<in> cbox a b"
-    have "\<forall>i\<in>Basis.
-      \<exists>c d. (c = a\<bullet>i \<and> d = (a\<bullet>i + b\<bullet>i) / 2 \<or> c = (a\<bullet>i + b\<bullet>i) / 2 \<and> d = b\<bullet>i) \<and> c\<le>x\<bullet>i \<and> x\<bullet>i \<le> d"
+    then have "\<forall>i\<in>Basis. \<exists>c d. (c = a\<bullet>i \<and> d = ?ab i \<or> c = ?ab i \<and> d = b\<bullet>i) \<and> c\<le>x\<bullet>i \<and> x\<bullet>i \<le> d"
       (is "\<forall>i\<in>Basis. \<exists>c d. ?P i c d")
-      unfolding mem_box
-    proof
-      fix i :: 'a
-      assume i: "i \<in> Basis"
-      have "?P i (a\<bullet>i) ((a \<bullet> i + b \<bullet> i) / 2) \<or> ?P i ((a \<bullet> i + b \<bullet> i) / 2) (b\<bullet>i)"
-        using x[unfolded mem_box,THEN bspec, OF i] by auto
-      then show "\<exists>c d. ?P i c d"
-        by blast
-    qed
-    then obtain \<alpha> \<beta> where
-     "\<forall>i\<in>Basis. (\<alpha> \<bullet> i = a \<bullet> i \<and> \<beta> \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
-         \<alpha> \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> \<beta> \<bullet> i = b \<bullet> i) \<and> \<alpha> \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> \<beta> \<bullet> i"
+      unfolding mem_box by (metis linear)
+    then obtain \<alpha> \<beta> where "\<forall>i\<in>Basis. (\<alpha> \<bullet> i = a \<bullet> i \<and> \<beta> \<bullet> i = ?ab i \<or>
+         \<alpha> \<bullet> i = ?ab i \<and> \<beta> \<bullet> i = b \<bullet> i) \<and> \<alpha> \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> \<beta> \<bullet> i"
       by (auto simp: choice_Basis_iff)
     then show "x\<in>\<Union>?A"
       by (force simp add: mem_box)
   qed
-  finally show False
-    using assms by auto
+  finally show thesis
+      by (metis (no_types, lifting) assms(3) that)
 qed
 
 lemma interval_bisection:
   fixes type :: "'a::euclidean_space"
   assumes "P {}"
-    and "(\<forall>s t. P s \<and> P t \<and> interior(s) \<inter> interior(t) = {} \<longrightarrow> P(s \<union> t))"
+    and Un: "\<And>S T. \<lbrakk>P S; P T; interior(S) \<inter> interior(T) = {}\<rbrakk> \<Longrightarrow> P (S \<union> T)"
     and "\<not> P (cbox a (b::'a))"
   obtains x where "x \<in> cbox a b"
     and "\<forall>e>0. \<exists>c d. x \<in> cbox c d \<and> cbox c d \<subseteq> ball x e \<and> cbox c d \<subseteq> cbox a b \<and> \<not> P (cbox c d)"
@@ -2092,14 +2047,14 @@ proof -
       case True
       then show ?thesis by auto
     next
-      case as: False
+      case False
       obtain c d where "\<not> P (cbox c d)"
-        "\<forall>i\<in>Basis.
+        "\<And>i. i \<in> Basis \<Longrightarrow>
            fst x \<bullet> i \<le> c \<bullet> i \<and>
            c \<bullet> i \<le> d \<bullet> i \<and>
            d \<bullet> i \<le> snd x \<bullet> i \<and>
            2 * (d \<bullet> i - c \<bullet> i) \<le> snd x \<bullet> i - fst x \<bullet> i"
-        by (rule interval_bisection_step[of P, OF assms(1-2) as])
+        by (blast intro: interval_bisection_step[of P, OF assms(1-2) False])
       then show ?thesis
         by (rule_tac x="(c,d)" in exI) auto
     qed
@@ -2281,33 +2236,17 @@ subsection \<open>A technical lemma about "refinement" of division.\<close>
 
 lemma tagged_division_finer:
   fixes p :: "('a::euclidean_space \<times> ('a::euclidean_space set)) set"
-  assumes "p tagged_division_of (cbox a b)"
+  assumes ptag: "p tagged_division_of (cbox a b)"
     and "gauge d"
   obtains q where "q tagged_division_of (cbox a b)"
     and "d fine q"
     and "\<forall>(x,k) \<in> p. k \<subseteq> d(x) \<longrightarrow> (x,k) \<in> q"
 proof -
-  let ?P = "\<lambda>p. p tagged_partial_division_of (cbox a b) \<longrightarrow> gauge d \<longrightarrow>
-    (\<exists>q. q tagged_division_of (\<Union>{k. \<exists>x. (x,k) \<in> p}) \<and> d fine q \<and>
-      (\<forall>(x,k) \<in> p. k \<subseteq> d(x) \<longrightarrow> (x,k) \<in> q))"
-  {
-    have *: "finite p" "p tagged_partial_division_of (cbox a b)"
-      using assms(1)
-      unfolding tagged_division_of_def
-      by auto
-    presume "\<And>p. finite p \<Longrightarrow> ?P p"
-    from this[rule_format,OF * assms(2)] 
-    obtain q where q: "q tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> p}" "d fine q" "(\<forall>(x, k)\<in>p. k \<subseteq> d x \<longrightarrow> (x, k) \<in> q)"
-      by auto
-    with that[of q] show ?thesis
-      using assms(1) by auto
-  }
-  fix p :: "('a::euclidean_space \<times> ('a::euclidean_space set)) set"
-  assume as: "finite p"
-  show "?P p"
-    apply rule
-    apply rule
-    using as
+  have p: "finite p" "p tagged_partial_division_of (cbox a b)"
+    using ptag unfolding tagged_division_of_def by auto
+  have "(\<exists>q. q tagged_division_of (\<Union>{k. \<exists>x. (x,k) \<in> p}) \<and> d fine q \<and> (\<forall>(x,k) \<in> p. k \<subseteq> d(x) \<longrightarrow> (x,k) \<in> q))" 
+    if "finite p" "p tagged_partial_division_of (cbox a b)" "gauge d" for p
+    using that
   proof (induct p)
     case empty
     show ?case
@@ -2325,7 +2264,7 @@ proof -
       unfolding xk by auto
     note p = tagged_partial_division_ofD[OF insert(4)]
     obtain u v where uv: "k = cbox u v"
-      using p(4)[unfolded xk, OF insertI1] by blast
+      using p(4) xk by blast
     have "finite {k. \<exists>x. (x, k) \<in> p}"
       apply (rule finite_subset[of _ "snd ` p"])
       using image_iff apply fastforce
@@ -2363,6 +2302,9 @@ proof -
         done
     qed
   qed
+  with p obtain q where q: "q tagged_division_of \<Union>{k. \<exists>x. (x, k) \<in> p}" "d fine q" "\<forall>(x, k)\<in>p. k \<subseteq> d x \<longrightarrow> (x, k) \<in> q"
+    by (meson \<open>gauge d\<close>)
+  with ptag that show ?thesis by auto
 qed
 
 subsubsection \<open>Covering lemma\<close>
