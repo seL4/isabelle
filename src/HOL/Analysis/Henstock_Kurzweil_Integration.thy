@@ -10,10 +10,6 @@ imports
   Lebesgue_Measure Tagged_Division
 begin
 
-(*FIXME DELETE*)
-lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
-(* try instead structured proofs below *)
-
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
   \<Longrightarrow> norm(y-x) \<le> e"
   using norm_triangle_mono [of "y1 - x1" "e1" "y2 - x2" "e2"]
@@ -1541,14 +1537,6 @@ proof (rule ccontr)
     using \<gamma> [OF p \<open>\<gamma> fine p\<close>] rsum_bound[OF p] assms by metis
 qed
 
-corollary has_integral_bound_real:
-  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
-  assumes "0 \<le> B"
-      and "(f has_integral i) {a..b}"
-      and "\<forall>x\<in>{a..b}. norm (f x) \<le> B"
-    shows "norm i \<le> B * content {a..b}"
-  by (metis assms box_real(2) has_integral_bound)
-
 corollary integrable_bound:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "0 \<le> B"
@@ -2384,6 +2372,31 @@ lemma integrable_spike_finite:
   shows "g integrable_on T"
   using assms has_integral_spike_finite by blast
 
+lemma has_integral_bound_spike_finite:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "0 \<le> B" "finite S"
+      and f: "(f has_integral i) (cbox a b)"
+      and leB: "\<And>x. x \<in> cbox a b - S \<Longrightarrow> norm (f x) \<le> B"
+    shows "norm i \<le> B * content (cbox a b)"
+proof -
+  define g where "g \<equiv> (\<lambda>x. if x \<in> S then 0 else f x)"
+  then have "\<And>x. x \<in> cbox a b - S \<Longrightarrow> norm (g x) \<le> B"
+    using leB by simp
+  moreover have "(g has_integral i) (cbox a b)"
+    using has_integral_spike_finite [OF \<open>finite S\<close> _ f]
+    by (simp add: g_def)
+  ultimately show ?thesis
+    by (simp add: \<open>0 \<le> B\<close> g_def has_integral_bound)
+qed
+
+corollary has_integral_bound_real:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "0 \<le> B" "finite S"
+      and "(f has_integral i) {a..b}"
+      and "\<And>x. x \<in> {a..b} - S \<Longrightarrow> norm (f x) \<le> B"
+    shows "norm i \<le> B * content {a..b}"
+  by (metis assms box_real(2) has_integral_bound_spike_finite)
+
 
 subsection \<open>In particular, the boundary of an interval is negligible.\<close>
 
@@ -3047,19 +3060,20 @@ lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   unfolding integrable_on_def by blast
 
 lemma integral_has_vector_derivative_continuous_at:
-  fixes f :: "real \<Rightarrow> 'a::banach"
-  assumes f: "f integrable_on {a..b}"
-      and x: "x \<in> {a..b}"
-      and fx: "continuous (at x within {a..b}) f"
-  shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f x) (at x within {a..b})"
+ fixes f :: "real \<Rightarrow> 'a::banach"
+ assumes f: "f integrable_on {a..b}"
+     and x: "x \<in> {a..b} - S"
+     and "finite S"
+     and fx: "continuous (at x within ({a..b} - S)) f"
+ shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f x) (at x within ({a..b} - S))"
 proof -
   let ?I = "\<lambda>a b. integral {a..b} f"
   { fix e::real
     assume "e > 0"
-    obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {a..b}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> norm(f x' - f x) \<le> e"
+    obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {a..b} - S; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> norm(f x' - f x) \<le> e"
       using \<open>e>0\<close> fx by (auto simp: continuous_within_eps_delta dist_norm less_imp_le)
     have "norm (integral {a..y} f - integral {a..x} f - (y-x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
-           if y: "y \<in> {a..b}" and yx: "\<bar>y - x\<bar> < d" for y
+           if y: "y \<in> {a..b} - S" and yx: "\<bar>y - x\<bar> < d" for y
     proof (cases "y < x")
       case False
       have "f integrable_on {a..y}"
@@ -3070,14 +3084,15 @@ proof -
         apply (rule has_integral_diff)
         using x y apply (auto intro: integrable_integral [OF integrable_subinterval_real [OF f]])
         using has_integral_const_real [of "f x" x y] False
-        apply (simp add: )
+        apply simp
         done
+      have "\<And>xa. y - x < d \<Longrightarrow> (\<And>x'. a \<le> x' \<and> x' \<le> b \<and> x' \<notin> S \<Longrightarrow> \<bar>x' - x\<bar> < d \<Longrightarrow> norm (f x' - f x) \<le> e) \<Longrightarrow> 0 < e \<Longrightarrow> xa \<notin> S \<Longrightarrow> a \<le> x \<Longrightarrow> x \<notin> S \<Longrightarrow> y \<le> b \<Longrightarrow> y \<notin> S \<Longrightarrow> x \<le> xa \<Longrightarrow> xa \<le> y \<Longrightarrow> norm (f xa - f x) \<le> e"
+        using assms by auto
       show ?thesis
         using False
         apply (simp add: abs_eq_content del: content_real_if measure_lborel_Icc)
-        apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
-        using yx False d x y \<open>e>0\<close> apply (auto simp add: Idiff fux_int)
-        done
+        apply (rule has_integral_bound_real [where f="(\<lambda>u. f u - f x)"])
+        using yx False d x y \<open>e>0\<close> assms by (auto simp: Idiff fux_int)
     next
       case True
       have "f integrable_on {a..x}"
@@ -3088,33 +3103,31 @@ proof -
         apply (rule has_integral_diff)
         using x y apply (auto intro: integrable_integral [OF integrable_subinterval_real [OF f]])
         using has_integral_const_real [of "f x" y x] True
-        apply (simp add: )
+        apply simp
         done
       have "norm (integral {a..x} f - integral {a..y} f - (x - y) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
         using True
         apply (simp add: abs_eq_content del: content_real_if measure_lborel_Icc)
         apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
-        using yx True d x y \<open>e>0\<close> apply (auto simp add: Idiff fux_int)
-        done
+        using yx True d x y \<open>e>0\<close> assms by (auto simp: Idiff fux_int)
       then show ?thesis
         by (simp add: algebra_simps norm_minus_commute)
     qed
-    then have "\<exists>d>0. \<forall>y\<in>{a..b}. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y-x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
+    then have "\<exists>d>0. \<forall>y\<in>{a..b} - S. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y-x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
       using \<open>d>0\<close> by blast
   }
   then show ?thesis
     by (simp add: has_vector_derivative_def has_derivative_within_alt bounded_linear_scaleR_left)
 qed
 
+
 lemma integral_has_vector_derivative:
   fixes f :: "real \<Rightarrow> 'a::banach"
   assumes "continuous_on {a..b} f"
     and "x \<in> {a..b}"
   shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f(x)) (at x within {a..b})"
-apply (rule integral_has_vector_derivative_continuous_at [OF integrable_continuous_real])
-using assms
-apply (auto simp: continuous_on_eq_continuous_within)
-done
+using assms integral_has_vector_derivative_continuous_at [OF integrable_continuous_real]
+  by (fastforce simp: continuous_on_eq_continuous_within)
 
 lemma antiderivative_continuous:
   fixes q b :: real
@@ -6432,7 +6445,6 @@ lemma integrable_by_parts:
 
 subsection \<open>Integration by substitution\<close>
 
-
 lemma has_integral_substitution_general:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
   assumes s: "finite s" and le: "a \<le> b"
@@ -6461,7 +6473,6 @@ proof -
   have deriv: "(?F has_vector_derivative g' x *\<^sub>R f (g x))
                   (at x)" if "x \<in> {a..b} - (s \<union> {a,b})" for x
     using deriv[of x] that by (simp add: at_within_closed_interval o_def)
-
 
   have "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (?F b - ?F a)) {a..b}"
     using le cont_int s deriv cont_int
