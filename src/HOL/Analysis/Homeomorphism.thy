@@ -827,7 +827,7 @@ theorem homeomorphic_punctured_affine_sphere_affine:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" "b \<in> sphere a r" "affine T" "a \<in> T" "b \<in> T" "affine p"
       and aff: "aff_dim T = aff_dim p + 1"
-    shows "((sphere a r \<inter> T) - {b}) homeomorphic p"
+    shows "(sphere a r \<inter> T) - {b} homeomorphic p"
 proof -
   have "a \<noteq> b" using assms by auto
   then have inj: "inj (\<lambda>x::'a. x /\<^sub>R norm (a - b))"
@@ -846,6 +846,23 @@ proof -
     done
   finally show ?thesis .
 qed
+
+corollary homeomorphic_punctured_sphere_affine:
+  fixes a :: "'a :: euclidean_space"
+  assumes "0 < r" and b: "b \<in> sphere a r"
+      and "affine T" and affS: "aff_dim T + 1 = DIM('a)"
+    shows "(sphere a r - {b}) homeomorphic T"
+  using homeomorphic_punctured_affine_sphere_affine [of r b a UNIV T] assms by auto
+
+corollary homeomorphic_punctured_sphere_hyperplane:
+  fixes a :: "'a :: euclidean_space"
+  assumes "0 < r" and b: "b \<in> sphere a r"
+      and "c \<noteq> 0"
+    shows "(sphere a r - {b}) homeomorphic {x::'a. c \<bullet> x = d}"
+apply (rule homeomorphic_punctured_sphere_affine)
+using assms
+apply (auto simp: affine_hyperplane of_nat_diff)
+done
 
 proposition homeomorphic_punctured_sphere_affine_gen:
   fixes a :: "'a :: euclidean_space"
@@ -891,24 +908,6 @@ proof -
     by (auto simp: affS affdS \<open>affine T\<close> \<open>affine U\<close> \<open>z \<in> U\<close>)
   finally show ?thesis .
 qed
-
-corollary homeomorphic_punctured_sphere_affine:
-  fixes a :: "'a :: euclidean_space"
-  assumes "0 < r" and b: "b \<in> sphere a r"
-      and "affine T" and affS: "aff_dim T + 1 = DIM('a)"
-    shows "(sphere a r - {b}) homeomorphic T"
-using homeomorphic_punctured_sphere_affine_gen [of "cball a r" b T]
-  assms aff_dim_cball by force
-
-corollary homeomorphic_punctured_sphere_hyperplane:
-  fixes a :: "'a :: euclidean_space"
-  assumes "0 < r" and b: "b \<in> sphere a r"
-      and "c \<noteq> 0"
-    shows "(sphere a r - {b}) homeomorphic {x::'a. c \<bullet> x = d}"
-apply (rule homeomorphic_punctured_sphere_affine)
-using assms
-apply (auto simp: affine_hyperplane of_nat_diff)
-done
 
 
 text\<open> When dealing with AR, ANR and ANR later, it's useful to know that every set
