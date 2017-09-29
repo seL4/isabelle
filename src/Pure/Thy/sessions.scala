@@ -107,7 +107,6 @@ object Sessions
     def bootstrap(global_theories: Map[String, String]): Base =
       Base(
         global_theories = global_theories,
-        keywords = Thy_Header.bootstrap_header,
         syntax = Thy_Header.bootstrap_syntax)
   }
 
@@ -116,7 +115,6 @@ object Sessions
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
-    keywords: Thy_Header.Keywords = Nil,
     syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
@@ -280,7 +278,6 @@ object Sessions
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
-                keywords = thy_deps.keywords,
                 syntax = syntax,
                 sources = sources,
                 session_graph = session_graph,
