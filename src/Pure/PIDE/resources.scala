@@ -127,7 +127,7 @@ class Resources(
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, start, strict).decode_symbols
+        val header = Thy_Header.read(reader, start, strict)
 
         val base_name = node_name.theory_base_name
         val (name, pos) = header.name

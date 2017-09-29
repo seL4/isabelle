@@ -138,7 +138,14 @@ object Thy_Header extends Parse.Parser
       (opt($$$(ABBREVS) ~! abbrevs) ^^
         { case None => Nil case Some(_ ~ xs) => xs }) ~
       $$$(BEGIN) ^^
-      { case x ~ ys ~ zs ~ ws ~ _ => Thy_Header(x, ys, zs, ws) }
+      { case (name, pos) ~ imports ~ keywords ~ abbrevs ~ _ =>
+          val f = Symbol.decode _
+          Thy_Header((f(name), pos),
+            imports.map({ case (a, b) => (f(a), b) }),
+            keywords.map({ case (a, Keyword.Spec(b, c, d)) =>
+              (f(a), Keyword.Spec(f(b), c.map(f), d.map(f))) }),
+            abbrevs.map({ case (a, b) => (f(a), f(b)) }))
+      }
 
     val heading =
       (command(CHAPTER) |
@@ -197,20 +204,8 @@ object Thy_Header extends Parse.Parser
   }
 }
 
-
 sealed case class Thy_Header(
   name: (String, Position.T),
   imports: List[(String, Position.T)],
   keywords: Thy_Header.Keywords,
   abbrevs: Thy_Header.Abbrevs)
-{
-  def decode_symbols: Thy_Header =
-  {
-    val f = Symbol.decode _
-    Thy_Header((f(name._1), name._2),
-      imports.map({ case (a, b) => (f(a), b) }),
-      keywords.map({ case (a, Keyword.Spec(b, c, d)) =>
-        (f(a), Keyword.Spec(f(b), c.map(f), d.map(f))) }),
-      abbrevs.map({ case (a, b) => (f(a), f(b)) }))
-  }
-}
