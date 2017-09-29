@@ -116,6 +116,8 @@ object Document
           case _ => false
         }
 
+      def path: Path = Path.explode(node)
+
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)

@@ -117,7 +117,7 @@ class Resources(
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    val path = File.check_file(Path.explode(name.node))
+    val path = File.check_file(name.path)
     val reader = Scan.byte_reader(path.file)
     try { f(reader) } finally { reader.close }
   }

@@ -105,7 +105,7 @@ object Imports
           (for {
             (_, a) <- session_resources.session_base.known.theories.iterator
             if session_resources.theory_qualifier(a) == info.theory_qualifier
-            b <- deps.all_known.get_file(Path.explode(a.node).file)
+            b <- deps.all_known.get_file(a.path.file)
             qualifier = session_resources.theory_qualifier(b)
             if !declared_imports.contains(qualifier)
           } yield qualifier).toSet
@@ -146,7 +146,7 @@ object Imports
             val s1 =
               if (imports_base.loaded_theory(name)) name.theory
               else {
-                imports_base.known.get_file(Path.explode(name.node).file) match {
+                imports_base.known.get_file(name.path.file) match {
                   case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
                     name1.theory
                   case Some(name1) if Thy_Header.is_base_name(s) =>
