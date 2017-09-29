@@ -7,18 +7,6 @@ Theory and file dependencies.
 package isabelle
 
 
-object Thy_Info
-{
-  /* dependencies */
-
-  sealed case class Dep(
-    name: Document.Node.Name,
-    header: Document.Node.Header)
-  {
-    override def toString: String = name.toString
-  }
-}
-
 class Thy_Info(resources: Resources)
 {
   /* messages */
@@ -42,36 +30,39 @@ class Thy_Info(resources: Resources)
   }
 
   final class Dependencies private(
-    rev_deps: List[Thy_Info.Dep],
+    rev_entries: List[Document.Node.Entry],
     val keywords: Thy_Header.Keywords,
     val abbrevs: Thy_Header.Abbrevs,
     val seen: Set[Document.Node.Name])
   {
-    def :: (dep: Thy_Info.Dep): Dependencies =
+    def :: (entry: Document.Node.Entry): Dependencies =
       new Dependencies(
-        dep :: rev_deps, dep.header.keywords ::: keywords, dep.header.abbrevs ::: abbrevs, seen)
+        entry :: rev_entries,
+        entry.header.keywords ::: keywords,
+        entry.header.abbrevs ::: abbrevs,
+        seen)
 
     def + (name: Document.Node.Name): Dependencies =
-      new Dependencies(rev_deps, keywords, abbrevs, seen + name)
+      new Dependencies(rev_entries, keywords, abbrevs, seen + name)
 
-    def deps: List[Thy_Info.Dep] = rev_deps.reverse
+    def entries: List[Document.Node.Entry] = rev_entries.reverse
 
-    def errors: List[String] = deps.flatMap(dep => dep.header.errors)
+    def errors: List[String] = entries.flatMap(_.header.errors)
 
     lazy val syntax: Outer_Syntax =
       resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
 
     def loaded_theories: Set[String] =
-      resources.session_base.loaded_theories ++ rev_deps.map(dep => dep.name.theory)
+      resources.session_base.loaded_theories ++ rev_entries.map(_.name.theory)
 
     def loaded_files: List[(String, List[Path])] =
     {
-      val names = deps.map(_.name)
+      val names = entries.map(_.name)
       names.map(_.theory) zip
         Par_List.map((e: () => List[Path]) => e(), names.map(resources.loaded_files(syntax, _)))
     }
 
-    override def toString: String = deps.toString
+    override def toString: String = entries.toString
   }
 
   private def require_thys(initiators: List[Document.Node.Name], required: Dependencies,
@@ -96,11 +87,12 @@ class Thy_Info(resources: Resources)
         val header =
           try { resources.check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
-        Thy_Info.Dep(name, header) :: require_thys(name :: initiators, required1, header.imports)
+        Document.Node.Entry(name, header) ::
+          require_thys(name :: initiators, required1, header.imports)
       }
       catch {
         case e: Throwable =>
-          Thy_Info.Dep(name, Document.Node.bad_header(Exn.message(e))) :: required1
+          Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: required1
       }
     }
   }

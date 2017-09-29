@@ -126,6 +126,11 @@ object Document
       def map_theory(f: String => String): Name = copy(node, master_dir, f(theory))
     }
 
+    sealed case class Entry(name: Node.Name, header: Node.Header)
+    {
+      override def toString: String = name.toString
+    }
+
 
     /* node overlays */
 

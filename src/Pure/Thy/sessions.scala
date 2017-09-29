@@ -205,7 +205,7 @@ object Sessions
 
             val syntax = thy_deps.syntax
 
-            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
+            val theory_files = thy_deps.entries.map(entry => Path.explode(entry.name.node))
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
@@ -251,18 +251,18 @@ object Sessions
                       val bs = imports_subgraph.imm_preds(session).toList.map(session_node(_))
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
-              (graph0 /: thy_deps.deps)(
-                { case (g, dep) =>
-                    val a = node(dep.name)
+              (graph0 /: thy_deps.entries)(
+                { case (g, entry) =>
+                    val a = node(entry.name)
                     val bs =
-                      dep.header.imports.map({ case (name, _) => node(name) }).
+                      entry.header.imports.map({ case (name, _) => node(name) }).
                         filterNot(_ == a)
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
             val known =
               Known.make(info.dir, List(imports_base),
-                theories = thy_deps.deps.map(_.name),
+                theories = thy_deps.entries.map(_.name),
                 loaded_files = loaded_files)
 
             val sources =
