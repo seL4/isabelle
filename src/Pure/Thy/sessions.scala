@@ -102,8 +102,6 @@ object Sessions
 
   object Base
   {
-    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
-
     def bootstrap(global_theories: Map[String, String]): Base =
       Base(
         global_theories = global_theories,
