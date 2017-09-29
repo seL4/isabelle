@@ -205,13 +205,13 @@ object Sessions
               resources.thy_info.dependencies(root_theories)
             }
 
-            val syntax = thy_deps.syntax
+            val session_syntax = thy_deps.overall_syntax
 
             val theory_files = thy_deps.names.map(_.path)
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
-                  (Thy_Header.PURE -> resources.pure_files(syntax, info.dir)) ::
+                  (Thy_Header.PURE -> resources.pure_files(session_syntax, info.dir)) ::
                     thy_deps.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
                 }
                 else thy_deps.loaded_files
@@ -226,8 +226,10 @@ object Sessions
             if (list_files)
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
 
-            if (check_keywords.nonEmpty)
-              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+            if (check_keywords.nonEmpty) {
+              Check_Keywords.check_keywords(
+                progress, session_syntax.keywords, check_keywords, theory_files)
+            }
 
             val session_graph: Graph_Display.Graph =
             {
@@ -278,7 +280,7 @@ object Sessions
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
-                syntax = syntax,
+                syntax = session_syntax,
                 sources = sources,
                 session_graph = session_graph,
                 errors = thy_deps.errors ::: sources_errors,

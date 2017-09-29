@@ -26,34 +26,25 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Nil, Set.empty)
+    val empty = new Dependencies(Nil, Set.empty)
   }
 
   final class Dependencies private(
     rev_entries: List[Document.Node.Entry],
-    val keywords: Thy_Header.Keywords,
-    val abbrevs: Thy_Header.Abbrevs,
     val seen: Set[Document.Node.Name])
   {
     def :: (entry: Document.Node.Entry): Dependencies =
-      new Dependencies(
-        entry :: rev_entries,
-        entry.header.keywords ::: keywords,
-        entry.header.abbrevs ::: abbrevs,
-        seen)
+      new Dependencies(entry :: rev_entries, seen)
 
     def + (name: Document.Node.Name): Dependencies =
-      new Dependencies(rev_entries, keywords, abbrevs, seen + name)
+      new Dependencies(rev_entries, seen + name)
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
     def names: List[Document.Node.Name] = entries.map(_.name)
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 
-    lazy val syntax: Outer_Syntax =
-      resources.session_base.syntax.add_keywords(keywords).add_abbrevs(abbrevs)
-
-    def loaded_theories: Graph[String, Outer_Syntax] =
+    lazy val loaded_theories: Graph[String, Outer_Syntax] =
       (resources.session_base.loaded_theories /: entries)({ case (graph, entry) =>
         val name = entry.name.theory
         val imports = entry.header.imports.map(p => p._1.theory)
@@ -71,8 +62,12 @@ class Thy_Info(resources: Resources)
     def loaded_files: List[(String, List[Path])] =
     {
       names.map(_.theory) zip
-        Par_List.map((e: () => List[Path]) => e(), names.map(resources.loaded_files(syntax, _)))
+        Par_List.map((e: () => List[Path]) => e(),
+          names.map(name => resources.loaded_files(loaded_theories.get_node(name.theory), name)))
     }
+
+    lazy val overall_syntax: Outer_Syntax =
+      Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node(_)))
 
     override def toString: String = entries.toString
   }
