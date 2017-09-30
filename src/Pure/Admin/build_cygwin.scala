@@ -27,7 +27,7 @@ object Build_Cygwin
         val cygwin_isabelle = cygwin + Path.explode("isabelle")
         Isabelle_System.mkdirs(cygwin_isabelle)
 
-        val cygwin_exe_name = mirror + "/setup-x86.exe"
+        val cygwin_exe_name = mirror + "/setup-x86_64.exe"
         val cygwin_exe = cygwin_isabelle + Path.explode("cygwin.exe")
         Bytes.write(cygwin_exe,
           try { Bytes.read(Url(cygwin_exe_name)) }
