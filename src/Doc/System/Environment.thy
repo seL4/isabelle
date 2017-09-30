@@ -1,4 +1,4 @@
-     (*:maxLineLen=78:*)
+(*:maxLineLen=78:*)
 
 theory Environment
 imports Base
@@ -118,22 +118,38 @@ text \<open>
   \<^descr>[@{setting_def ISABELLE_PLATFORM_FAMILY}\<open>\<^sup>*\<close>] is automatically set to the
   general platform family: \<^verbatim>\<open>linux\<close>, \<^verbatim>\<open>macos\<close>, \<^verbatim>\<open>windows\<close>. Note that
   platform-dependent tools usually need to refer to the more specific
-  identification according to @{setting ISABELLE_PLATFORM}, @{setting
-  ISABELLE_PLATFORM32}, @{setting ISABELLE_PLATFORM64}.
+  identification according to @{setting ISABELLE_PLATFORM} etc.
 
-  \<^descr>[@{setting_def ISABELLE_PLATFORM}\<open>\<^sup>*\<close>] is automatically set to a symbolic
-  identifier for the underlying hardware and operating system. The Isabelle
-  platform identification always refers to the 32 bit variant, even this is a
-  64 bit machine. Note that the ML or Java runtime may have a different idea,
-  depending on which binaries are actually run.
+  \<^descr>[@{setting_def ISABELLE_PLATFORM32}\<open>\<^sup>*\<close>, @{setting_def
+  ISABELLE_PLATFORM64}\<open>\<^sup>*\<close>, @{setting_def ISABELLE_PLATFORM}\<open>\<^sup>*\<close>] indicate the
+  standard Posix platform: \<^verbatim>\<open>x86\<close> for 32 bit and \<^verbatim>\<open>x86_64\<close> for 64 bit,
+  together with a symbolic name for the operating system (\<^verbatim>\<open>linux\<close>, \<^verbatim>\<open>darwin\<close>,
+  \<^verbatim>\<open>cygwin\<close>). Some platforms support both 32 bit and 64 bit executables, but
+  this depends on various side-conditions.
 
-  \<^descr>[@{setting_def ISABELLE_PLATFORM64}\<open>\<^sup>*\<close>] is similar to @{setting
-  ISABELLE_PLATFORM} but refers to the proper 64 bit variant on a platform
-  that supports this; the value is empty for 32 bit. Note that the following
-  bash expression (including the quotes) prefers the 64 bit platform, if that
-  is available:
+  In GNU bash scripts, it is possible to use the following expressions
+  (including the quotes) to specify a preference of 64 bit over 32 bit:
 
-  @{verbatim [display] \<open>"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"\<close>}
+  @{verbatim [display] \<open>"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"\<close>}
+
+  In contrast, the subsequent expression prefers the 32 bit variant; this is
+  how @{setting ISABELLE_PLATFORM} is defined:
+
+  @{verbatim [display] \<open>"${ISABELLE_PLATFORM32:-$ISABELLE_PLATFORM64}"\<close>}
+
+  \<^descr>[@{setting_def ISABELLE_WINDOWS_PLATFORM32}\<open>\<^sup>*\<close>, @{setting_def
+  ISABELLE_WINDOWS_PLATFORM64}\<open>\<^sup>*\<close>,] @{setting_def
+  ISABELLE_WINDOWS_PLATFORM}\<open>\<^sup>*\<close> indicate the native Windows platform. These
+  settings are analogous (but independent) of those for the standard Posix
+  subsystem: @{setting ISABELLE_PLATFORM32}, @{setting ISABELLE_PLATFORM64},
+  @{setting ISABELLE_PLATFORM}.
+
+  In GNU bash scripts, a preference for native Windows platform variants may
+  be specified like this:
+
+  @{verbatim [display] \<open>"${ISABELLE_WINDOWS_PLATFORM:-$ISABELLE_PLATFORM}"\<close>}
+
+  @{verbatim [display] \<open>"${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"\<close>}
 
   \<^descr>[@{setting ISABELLE_TOOL}\<open>\<^sup>*\<close>] is automatically set to the full path name
   of the @{executable isabelle} executable. Thus other tools and scripts need
