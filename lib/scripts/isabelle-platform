@@ -1,8 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 #
-# determine general hardware and operating system type for Isabelle
+# determine general hardware and operating system type for Isabelle system tools
 #
-# NOTE: The ML system or JVM may have their own idea about the platform!
 
 ISABELLE_PLATFORM_FAMILY=""
 ISABELLE_PLATFORM32=""
@@ -52,14 +51,6 @@ case $(uname -s) in
         ;;
       i?86)
         ISABELLE_PLATFORM32=x86-cygwin
-        ;;
-    esac
-    ;;
-  *BSD)
-    ISABELLE_PLATFORM_FAMILY="linux"
-    case $(uname -m) in
-      i?86 | x86_64)
-        ISABELLE_PLATFORM32=x86-linux  #cf. BSD Linux Binary Compatibility
         ;;
     esac
     ;;
