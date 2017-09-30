@@ -24,8 +24,7 @@ object Build_Release
   {
     val bundle_infos: List[Bundle_Info] =
       List(Bundle_Info("linux", "Linux", name + "_app.tar.gz", None),
-        Bundle_Info("windows", "Windows (32bit)", name + "-win32.exe", None),
-        Bundle_Info("windows64", "Windows (64bit)", name + "-win64.exe", None),
+        Bundle_Info("windows", "Windows (64bit)", name + ".exe", None),
         Bundle_Info("macos", "Mac OS X", name + ".dmg", Some(name + "_dmg.tar.gz")))
 
     def bundle_info(platform_family: String): Bundle_Info =
@@ -34,7 +33,7 @@ object Build_Release
   }
 
 
-  private val default_platform_families = List("linux", "windows", "windows64", "macos")
+  private val default_platform_families = List("linux", "windows", "macos")
 
   def build_release(base_dir: Path,
     progress: Progress = No_Progress,

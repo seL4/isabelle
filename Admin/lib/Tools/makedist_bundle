@@ -12,7 +12,7 @@ function usage()
   echo "Usage: isabelle $PRG ARCHIVE PLATFORM_FAMILY [REMOTE_MAC]"
   echo
   echo "  Re-package Isabelle source distribution with add-on components and"
-  echo "  post-hoc patches for platform family linux, windows, windows64, macos."
+  echo "  post-hoc patches for platform family linux, windows, macos."
   echo
   echo "  The optional remote Mac OS X system is used for dmg build."
   echo
@@ -35,12 +35,6 @@ function fail()
 ARCHIVE="$1"; shift
 PLATFORM_FAMILY="$1"; shift
 REMOTE_MAC="$1"; shift
-
-if [ "$PLATFORM_FAMILY" = windows64 ]; then
-  PLATFORM_FAM="windows"
-else
-  PLATFORM_FAM="$PLATFORM_FAMILY"
-fi
 
 [ -f "$ARCHIVE" ] || fail "Bad source archive: $ARCHIVE"
 
@@ -98,7 +92,7 @@ fi
 
 echo "#bundled components" >> "$ISABELLE_TARGET/etc/components"
 
-for CATALOG in main "$PLATFORM_FAM" bundled "bundled-$PLATFORM_FAM"
+for CATALOG in main "$PLATFORM_FAMILY" bundled "bundled-$PLATFORM_FAMILY"
 do
   CATALOG_FILE="$ISABELLE_HOME/Admin/components/$CATALOG"
   if [ -f "$CATALOG_FILE" ]
@@ -194,7 +188,7 @@ function purge_jdk
 perl -pi -e "s,view.title=Isabelle/jEdit,view.title=${ISABELLE_NAME},g;" \
   "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
-case "$PLATFORM_FAM" in
+case "$PLATFORM_FAMILY" in
   linux)
     purge_target 'contrib -name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
     purge_jdk "x86-linux"
@@ -250,19 +244,9 @@ case "$PLATFORM_FAM" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
-    if [ "$PLATFORM_FAMILY" = windows ]; then
-      purge_target 'contrib -name x86_64-windows -o -name "x86*-linux" -o -name "x86*-darwin"'
-      PLATFORM="x86-windows"
-      PLATFORM_IS_64="false"
-      PLATFORM_BITS="32"
-    else
-      purge_target 'contrib -name "x86*-linux" -o -name "x86*-darwin"'
-      purge_target 'contrib/jdk -name "x86-windows"'
-      PLATFORM="x86_64-windows"
-      PLATFORM_IS_64="true"
-      PLATFORM_BITS="64"
-    fi
-    purge_jdk "$PLATFORM"
+    purge_target 'contrib -name "x86*-linux" -o -name "x86*-darwin"'
+    purge_target 'contrib/jdk -name "x86-windows"'
+    purge_jdk "x86_64-windows"
 
     mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."
 
@@ -275,13 +259,8 @@ case "$PLATFORM_FAM" in
       init_component "$JEDIT_HOME"
 
       declare -a JAVA_ARGS=()
-      if [ "$PLATFORM_FAMILY" = windows ]; then
-        echo -e "# Java runtime options for 32bit platform\r"
-        eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS32)"
-      else
-        echo -e "# Java runtime options for 64bit platform\r"
-        eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
-      fi
+      echo -e "# Java runtime options for 64bit platform\r"
+      eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
       for ARG in "${JAVA_ARGS[@]}"
       do
         echo -e "$ARG\r"
@@ -309,9 +288,6 @@ case "$PLATFORM_FAM" in
         -e "s,{SPLASH},$APP_TEMPLATE/isabelle.bmp,g;" \
         -e "s,{CLASSPATH},$EXE_CLASSPATH,g;" \
         -e "s,{ISABELLE_NAME},$ISABELLE_NAME,g;" \
-        -e "s,{PLATFORM},$PLATFORM,g;" \
-        -e "s,{PLATFORM_IS_64},$PLATFORM_IS_64,g;" \
-        -e "s,{PLATFORM_BITS},$PLATFORM_BITS,g;" \
         "$APP_TEMPLATE/isabelle.xml" > isabelle.xml
 
       "windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j" isabelle.xml
@@ -361,7 +337,7 @@ tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME" || exit 2
 
 # platform-specific setup (outside archive)
 
-case "$PLATFORM_FAM" in
+case "$PLATFORM_FAMILY" in
   linux)
     echo "application for $PLATFORM_FAMILY"
     ln -s "${ISABELLE_NAME}_linux.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
@@ -432,12 +408,6 @@ case "$PLATFORM_FAM" in
     ;;
   windows)
     (
-      if [ "$PLATFORM_FAMILY" = windows ]; then
-        PLATFORM_SUFFIX="-win32"
-      else
-        PLATFORM_SUFFIX="-win64"
-      fi
-
       cd "$TMP"
       rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
       7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
@@ -448,8 +418,8 @@ case "$PLATFORM_FAM" in
         cat "$ISABELLE_HOME/Admin/Windows/Installer/sfx.txt" | \
           perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;"
         cat "$TMP/${ISABELLE_NAME}.7z"
-      ) > "${ARCHIVE_DIR}/${ISABELLE_NAME}${PLATFORM_SUFFIX}.exe"
-      chmod +x "${ARCHIVE_DIR}/${ISABELLE_NAME}${PLATFORM_SUFFIX}.exe"
+      ) > "${ARCHIVE_DIR}/${ISABELLE_NAME}.exe"
+      chmod +x "${ARCHIVE_DIR}/${ISABELLE_NAME}.exe"
     )
     ;;
   *)
