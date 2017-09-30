@@ -173,11 +173,15 @@ text \<open>
   of @{setting ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version
   values.
 
-  \<^descr>[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK (Java
-  Development Kit) installation with \<^verbatim>\<open>javac\<close> and \<^verbatim>\<open>jar\<close> executables. This is
-  essential for Isabelle/Scala and other JVM-based tools to work properly.
-  Note that conventional \<^verbatim>\<open>JAVA_HOME\<close> usually points to the JRE (Java Runtime
-  Environment), not JDK.
+  \<^descr>[@{setting_def ISABELLE_JDK_HOME}] points to a full JDK (Java Development
+  Kit) installation with \<^verbatim>\<open>javac\<close> and \<^verbatim>\<open>jar\<close> executables. Note that
+  conventional \<^verbatim>\<open>JAVA_HOME\<close> points to the JRE (Java Runtime Environment), not
+  the JDK.
+
+  \<^descr>[@{setting_def ISABELLE_JAVA_PLATFORM}] identifies the hardware and
+  operating system platform for the Java installation of Isabelle. That is
+  usually the (native) 64 bit variant: \<^verbatim>\<open>x86_64-linux\<close>, \<^verbatim>\<open>x86_64-darwin\<close>,
+  \<^verbatim>\<open>x86_64-windows\<close>.
 
   \<^descr>[@{setting_def ISABELLE_PATH}] is a list of directories (separated by
   colons) where Isabelle logic images may reside. When looking up heaps files,
