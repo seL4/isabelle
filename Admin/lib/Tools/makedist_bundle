@@ -244,7 +244,7 @@ case "$PLATFORM_FAMILY" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
-    purge_target 'contrib -name "x86*-linux" -o -name "x86*-darwin"'
+    purge_target 'contrib -name "x86*-linux" -o -name "x86*-darwin" -o -name "x86-cygwin"'
     purge_target 'contrib/jdk -name "x86-windows"'
     purge_jdk "x86_64-windows"
 
