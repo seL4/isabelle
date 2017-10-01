@@ -52,7 +52,7 @@ ML_file "boogie.ML"
 section \<open>Verification condition proofs\<close>
 
 declare [[smt_oracle = false]]
-declare [[smt_read_only_certificates = true]]
+declare [[smt_read_only_certificates = false]] (* FIXME *)
 
 
 declare [[smt_certificates = "Boogie_Max.certs"]]

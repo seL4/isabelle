@@ -35,7 +35,8 @@ lemma
 axiomatization symm_f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   symm_f: "symm_f x y = symm_f y x"
 
-lemma "a = a \<and> symm_f a b = symm_f b a" by (smt symm_f)
+lemma "a = a \<and> symm_f a b = symm_f b a"
+  by (smt symm_f)
 
 (*
 Taken from ~~/src/HOL/ex/SAT_Examples.thy.
@@ -474,11 +475,14 @@ end
 
 section \<open>Monomorphization examples\<close>
 
-definition Pred :: "'a \<Rightarrow> bool" where "Pred x = True"
+definition Pred :: "'a \<Rightarrow> bool" where
+  "Pred x = True"
 
-lemma poly_Pred: "Pred x \<and> (Pred [x] \<or> \<not> Pred [x])" by (simp add: Pred_def)
+lemma poly_Pred: "Pred x \<and> (Pred [x] \<or> \<not> Pred [x])"
+  by (simp add: Pred_def)
 
-lemma "Pred (1::int)" by (smt poly_Pred)
+lemma "Pred (1::int)"
+  by (smt poly_Pred)
 
 axiomatization g :: "'a \<Rightarrow> nat"
 axiomatization where
