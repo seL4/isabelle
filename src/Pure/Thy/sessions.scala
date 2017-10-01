@@ -114,8 +114,8 @@ object Sessions
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
-    sources: List[(Path, SHA1.Digest)] = Nil,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
+    sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil,
     imports: Option[Base] = None)
@@ -148,7 +148,12 @@ object Sessions
   {
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
-    def sources(name: String): List[SHA1.Digest] = session_bases(name).sources.map(_._2)
+
+    def imported_sources(name: String): List[SHA1.Digest] =
+      session_bases(name).imported_sources.map(_._2)
+
+    def sources(name: String): List[SHA1.Digest] =
+      session_bases(name).sources.map(_._2)
 
     def errors: List[String] =
       (for {
@@ -297,8 +302,8 @@ object Sessions
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
                 overall_syntax = overall_syntax,
-                sources = check_sources(session_files),
                 imported_sources = check_sources(imported_files),
+                sources = check_sources(session_files),
                 session_graph = session_graph,
                 errors = thy_deps.errors ::: sources_errors,
                 imports = Some(imports_base))
@@ -810,11 +815,12 @@ object Sessions
       List(session_name, session_timing, command_timings, ml_statistics, task_statistics, errors)
 
     // Build.Session_Info
+    val imported_sources = SQL.Column.string("imported_sources")
     val sources = SQL.Column.string("sources")
     val input_heaps = SQL.Column.string("input_heaps")
     val output_heap = SQL.Column.string("output_heap")
     val return_code = SQL.Column.int("return_code")
-    val build_columns = List(sources, input_heaps, output_heap, return_code)
+    val build_columns = List(imported_sources, sources, input_heaps, output_heap, return_code)
 
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
   }
@@ -903,10 +909,11 @@ object Sessions
           stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
           stmt.bytes(5) = Properties.compress(build_log.task_statistics)
           stmt.bytes(6) = Build_Log.compress_errors(build_log.errors)
-          stmt.string(7) = cat_lines(build.sources)
-          stmt.string(8) = cat_lines(build.input_heaps)
-          stmt.string(9) = build.output_heap getOrElse ""
-          stmt.int(10) = build.return_code
+          stmt.string(7) = cat_lines(build.imported_sources)
+          stmt.string(8) = cat_lines(build.sources)
+          stmt.string(9) = cat_lines(build.input_heaps)
+          stmt.string(10) = build.output_heap getOrElse ""
+          stmt.int(11) = build.return_code
           stmt.execute()
         })
       }
@@ -928,19 +935,35 @@ object Sessions
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors))
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
-      db.using_statement(Session_Info.table.select(Session_Info.build_columns,
-        Session_Info.session_name.where_equal(name)))(stmt =>
-      {
-        val res = stmt.execute_query()
-        if (!res.next()) None
-        else {
-          Some(
-            Build.Session_Info(
-              split_lines(res.string(Session_Info.sources)),
-              split_lines(res.string(Session_Info.input_heaps)),
-              res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
-              res.int(Session_Info.return_code)))
-        }
-      })
+    {
+      val result0 =
+        db.using_statement(Session_Info.table.select(Session_Info.build_columns.tail,
+          Session_Info.session_name.where_equal(name)))(stmt =>
+        {
+          val res = stmt.execute_query()
+          if (!res.next()) None
+          else {
+            Some(
+              Build.Session_Info(Nil,
+                split_lines(res.string(Session_Info.sources)),
+                split_lines(res.string(Session_Info.input_heaps)),
+                res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
+                res.int(Session_Info.return_code)))
+          }
+        })
+      result0.map(info =>
+        info.copy(imported_sources =
+          try {
+            db.using_statement(Session_Info.table.select(List(Session_Info.imported_sources),
+              Session_Info.session_name.where_equal(name)))(stmt =>
+            {
+              val res = stmt.execute_query()
+              if (!res.next) Nil else split_lines(res.string(Session_Info.imported_sources))
+            })
+          } // column "imported_sources" could be missing
+          catch { case _: java.sql.SQLException => Nil }
+        )
+      )
+    }
   }
 }

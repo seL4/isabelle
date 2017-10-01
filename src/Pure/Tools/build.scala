@@ -24,6 +24,7 @@ object Build
   /* persistent build info */
 
   sealed case class Session_Info(
+    imported_sources: List[String],
     sources: List[String],
     input_heaps: List[String],
     output_heap: Option[String],
@@ -380,6 +381,9 @@ object Build
         verbose = verbose, list_files = list_files, check_keywords = check_keywords,
         global_theories = full_sessions.global_theories).check_errors
 
+    def imported_sources_stamp(name: String): List[String] =
+      deps.imported_sources(name).map(_.toString).sorted
+
     def sources_stamp(name: String): List[String] =
       (selected_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
 
@@ -501,7 +505,12 @@ object Build
                       parse_session_info(
                         command_timings = true, ml_statistics = true, task_statistics = true),
                   build =
-                    Session_Info(sources_stamp(name), input_heaps, heap_stamp, process_result.rc)))
+                    Session_Info(
+                      imported_sources_stamp(name),
+                      sources_stamp(name),
+                      input_heaps,
+                      heap_stamp,
+                      process_result.rc)))
             }
 
             // messages
