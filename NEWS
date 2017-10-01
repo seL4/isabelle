@@ -20,6 +20,9 @@ Isabelle2017 yet (using the "isabelle imports" tool).
 * SMT module:
   - The 'smt_oracle' option is now necessary when using the 'smt' method
     with a solver other than Z3. INCOMPATIBILITY.
+  - The encoding to first-order logic is now more complete in the presence of
+    higher-order quantifiers. An 'smt_explicit_application' option has been
+    added to control this. INCOMPATIBILITY.
 
 
 *** System ***
