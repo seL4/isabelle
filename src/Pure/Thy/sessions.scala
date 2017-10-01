@@ -373,14 +373,14 @@ object Sessions
     session_groups: List[String] = Nil,
     sessions: List[String] = Nil)
   {
-    def + (other: Selection): Selection =
+    def ++ (other: Selection): Selection =
       Selection(
         requirements = requirements || other.requirements,
         all_sessions = all_sessions || other.all_sessions,
-        exclude_session_groups = exclude_session_groups ::: other.exclude_session_groups,
-        exclude_sessions = exclude_sessions ::: other.exclude_sessions,
-        session_groups = session_groups ::: other.session_groups,
-        sessions = sessions ::: other.sessions)
+        exclude_session_groups = Library.merge(exclude_session_groups, other.exclude_session_groups),
+        exclude_sessions = Library.merge(exclude_sessions, other.exclude_sessions),
+        session_groups = Library.merge(session_groups, other.session_groups),
+        sessions = Library.merge(sessions, other.sessions))
 
     def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
     {

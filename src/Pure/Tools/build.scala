@@ -372,7 +372,7 @@ object Build
     val (selected, selected_sessions) =
       full_sessions.selection(
           Sessions.Selection(requirements, all_sessions, exclude_session_groups,
-            exclude_sessions, session_groups, sessions) + selection)
+            exclude_sessions, session_groups, sessions) ++ selection)
 
     val deps =
       Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
