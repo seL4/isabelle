@@ -368,6 +368,7 @@ object Sessions
   sealed case class Selection(
     requirements: Boolean = false,
     all_sessions: Boolean = false,
+    base_sessions: List[String] = Nil,
     exclude_session_groups: List[String] = Nil,
     exclude_sessions: List[String] = Nil,
     session_groups: List[String] = Nil,
@@ -377,6 +378,7 @@ object Sessions
       Selection(
         requirements = requirements || other.requirements,
         all_sessions = all_sessions || other.all_sessions,
+        base_sessions = Library.merge(base_sessions, other.base_sessions),
         exclude_session_groups = Library.merge(exclude_session_groups, other.exclude_session_groups),
         exclude_sessions = Library.merge(exclude_sessions, other.exclude_sessions),
         session_groups = Library.merge(session_groups, other.session_groups),
@@ -385,8 +387,10 @@ object Sessions
     def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
     {
       val bad_sessions =
-        SortedSet((exclude_sessions ::: sessions).filterNot(graph.defined(_)): _*).toList
-      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
+        SortedSet((base_sessions ::: exclude_sessions ::: sessions).
+          filterNot(graph.defined(_)): _*).toList
+      if (bad_sessions.nonEmpty)
+        error("Undefined session(s): " + commas_quote(bad_sessions))
 
       val excluded =
       {
@@ -404,7 +408,7 @@ object Sessions
         if (all_sessions) graph.keys
         else {
           val select_group = session_groups.toSet
-          val select = sessions.toSet
+          val select = sessions.toSet ++ graph.all_succs(base_sessions)
           (for {
             (name, (info, _)) <- graph.iterator
             if info.select || select(name) || graph.get_node(name).groups.exists(select_group)

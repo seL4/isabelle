@@ -27,6 +27,9 @@ Isabelle2017 yet (using the "isabelle imports" tool).
 * Windows and Cygwin is for x86_64 only. Old 32bit platform support has
 been discontinued.
 
+* Command-line tool "isabelle build" supports option -B for base
+sessions: all descendants are included.
+
 
 New in Isabelle2017 (October 2017)
 ----------------------------------

@@ -280,6 +280,7 @@ text \<open>
 \<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -R           operate on requirements of selected sessions
@@ -327,6 +328,10 @@ text \<open>
   more options \<^verbatim>\<open>-g\<close>~\<open>NAME\<close>. Option \<^verbatim>\<open>-a\<close> selects all sessions. The build tool
   takes session dependencies into account: the set of selected sessions is
   completed by including all ancestors.
+
+  \<^medskip>
+  One or more options \<^verbatim>\<open>-B\<close>~\<open>NAME\<close> specify base sessions. All descendants
+  are included.
 
   \<^medskip>
   One or more options \<^verbatim>\<open>-x\<close>~\<open>NAME\<close> specify sessions to be excluded. All
@@ -450,6 +455,7 @@ text \<open>
 \<open>Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -I           operation: report potential session imports
     -M           operation: Mercurial repository check for theory files
@@ -469,7 +475,7 @@ text \<open>
 
   \<^medskip>
   The selection of sessions and session directories works as for @{tool build}
-  via options \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> (see
+  via options \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> (see
   \secref{sec:tool-build}).
 
   \<^medskip>

@@ -215,6 +215,7 @@ object Imports
   val isabelle_tool =
     Isabelle_Tool("imports", "maintain theory imports wrt. session structure", args =>
     {
+      var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var operation_imports = false
       var operation_repository_files = false
@@ -233,6 +234,7 @@ object Imports
 Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -I           operation: report potential session imports
     -M           operation: Mercurial repository check for theory files
@@ -250,6 +252,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
   Maintain theory imports wrt. session structure. At least one operation
   needs to be specified (see options -I -M -U).
 """,
+      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "I" -> (_ => operation_imports = true),
       "M" -> (_ => operation_repository_files = true),
@@ -269,7 +272,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
         getopts.usage()
 
       val selection =
-        Sessions.Selection(requirements, all_sessions, exclude_session_groups,
+        Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
           exclude_sessions, session_groups, sessions)
 
       val progress = new Console_Progress(verbose = verbose)

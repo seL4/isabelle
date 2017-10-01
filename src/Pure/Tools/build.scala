@@ -357,6 +357,7 @@ object Build
     pide: Boolean = false,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
+    base_sessions: List[String] = Nil,
     exclude_session_groups: List[String] = Nil,
     exclude_sessions: List[String] = Nil,
     session_groups: List[String] = Nil,
@@ -371,7 +372,7 @@ object Build
 
     val (selected, selected_sessions) =
       full_sessions.selection(
-          Sessions.Selection(requirements, all_sessions, exclude_session_groups,
+          Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
             exclude_sessions, session_groups, sessions) ++ selection)
 
     val deps =
@@ -627,6 +628,7 @@ object Build
   {
     val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
 
+    var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
     var pide = false
@@ -650,6 +652,7 @@ object Build
 Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P           build via PIDE protocol
@@ -672,6 +675,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Build and manage Isabelle sessions, depending on implicit settings:
 
 """ + Library.prefix_lines("  ", Build_Log.Settings.show()) + "\n",
+      "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
       "P" -> (_ => pide = true),
@@ -722,6 +726,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           pide = pide,
           requirements = requirements,
           all_sessions = all_sessions,
+          base_sessions = base_sessions,
           exclude_session_groups = exclude_session_groups,
           exclude_sessions = exclude_sessions,
           session_groups = session_groups,
