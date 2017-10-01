@@ -250,14 +250,12 @@ local
     | (Abs (_, T, u), ts) => (can dest_funT T ? add_type T) #> min_arities u #> fold min_arities ts
     | (_, ts) => fold min_arities ts)
 
-  fun minimize types t i =
+  fun take_vars_into_account types t i =
     let
-      fun find_min j [] _ = j
-        | find_min j (U :: Us) T =
-            if Typtab.defined types T then j else find_min (j + 1) Us (U --> T)
-
-      val (Ts, T) = Term.strip_type (Term.type_of t)
-    in find_min 0 (take i (rev Ts)) T end
+      fun find_min j (T as Type (@{type_name fun}, [_, T'])) =
+          if j = i orelse Typtab.defined types T then j else find_min (j + 1) T'
+        | find_min j _ = j
+    in find_min 0 (Term.type_of t) end
 
   fun app u (t, T) = (Const (@{const_name fun_app}, T --> T) $ t $ u, Term.range_type T)
 
@@ -270,12 +268,21 @@ in
 
 fun intro_explicit_application ctxt funcs ts =
   let
-    val (arities, types) = fold min_arities ts (Termtab.empty, Typtab.empty)
-    val arities' = Termtab.map (minimize types) arities (* FIXME: highly suspicious *)
+    val explicit_application = Config.get ctxt SMT_Config.explicit_application
+    val get_arities =
+      (case explicit_application of
+        0 => min_arities
+      | 1 => min_arities
+      | 2 => K I
+      | n => error ("Illegal value for " ^ quote (Config.name_of SMT_Config.explicit_application) ^
+          ": " ^ string_of_int n))
+
+    val (arities, types) = fold get_arities ts (Termtab.empty, Typtab.empty)
+    val arities' = arities |> explicit_application = 1 ? Termtab.map (take_vars_into_account types)
 
     fun app_func t T ts =
       if is_some (Termtab.lookup funcs t) then Term.list_comb (t, ts)
-      else apply (the (Termtab.lookup arities' t)) t T ts
+      else apply (the_default 0 (Termtab.lookup arities' t)) t T ts
 
     fun in_list T f t = SMT_Util.mk_symb_list T (map f (SMT_Util.dest_symb_list t))
 

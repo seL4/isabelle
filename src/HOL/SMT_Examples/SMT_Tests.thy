@@ -604,7 +604,7 @@ lemma
   by smt+
 
 
-section \<open>Datatypes, Records, and Typedefs\<close>
+section \<open>Datatypes, records, and typedefs\<close>
 
 subsection \<open>Without support by the SMT solver\<close>
 
@@ -843,7 +843,10 @@ lemma
   by (smt n0_def n1_def n2_def plus'_def)+
 
 
-section \<open>Function updates\<close>
+section \<open>Functions\<close>
+
+lemma "\<exists>f. map_option f (Some x) = Some (y + x)"
+  by (smt option.map(2))
 
 lemma
   "(f (i := v)) i = v"
