@@ -115,6 +115,7 @@ object Sessions
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     sources: List[(Path, SHA1.Digest)] = Nil,
+    imported_sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil,
     imports: Option[Base] = None)
@@ -141,13 +142,6 @@ object Sessions
         yield (theory, node_name.node)
 
     def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
-  }
-
-  private def check_files(paths: List[Path]): (List[(Path, SHA1.Digest)], List[String]) =
-  {
-    val digests = for (p <- paths if p.is_file) yield (p, SHA1.digest(p.file))
-    val errors = for (p <- paths if !p.is_file) yield "No such file: " + p
-    (digests, errors)
   }
 
   sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
@@ -179,6 +173,25 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Map[String, String] = Map.empty): Deps =
   {
+    var cache_sources = Map.empty[JFile, SHA1.Digest]
+    def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] =
+    {
+      for {
+        path <- paths
+        file = path.file
+        if cache_sources.isDefinedAt(file) || file.isFile
+      }
+      yield {
+        cache_sources.get(file) match {
+          case Some(digest) => (path, digest)
+          case None =>
+            val digest = SHA1.digest(file)
+            cache_sources = cache_sources + (file -> digest)
+            (path, digest)
+        }
+      }
+    }
+
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
         case (session_bases, info) =>
@@ -226,6 +239,8 @@ object Sessions
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
+            val imported_files = if (inlined_files) thy_deps.imported_files else Nil
+
             if (list_files)
               progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
 
@@ -272,7 +287,8 @@ object Sessions
                 theories = thy_deps.names,
                 loaded_files = loaded_files)
 
-            val (sources, sources_errors) = check_files(session_files)
+            val sources_errors =
+              for (p <- session_files if !p.is_file) yield "No such file: " + p
 
             val base =
               Base(
@@ -281,7 +297,8 @@ object Sessions
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
                 overall_syntax = overall_syntax,
-                sources = sources,
+                sources = check_sources(session_files),
+                imported_sources = check_sources(imported_files),
                 session_graph = session_graph,
                 errors = thy_deps.errors ::: sources_errors,
                 imports = Some(imports_base))
