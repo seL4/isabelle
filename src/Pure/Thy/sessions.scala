@@ -143,6 +143,13 @@ object Sessions
     def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
   }
 
+  private def check_files(paths: List[Path]): (List[(Path, SHA1.Digest)], List[String]) =
+  {
+    val digests = for (p <- paths if p.is_file) yield (p, SHA1.digest(p.file))
+    val errors = for (p <- paths if !p.is_file) yield "No such file: " + p
+    (digests, errors)
+  }
+
   sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
   {
     def is_empty: Boolean = session_bases.isEmpty
@@ -197,14 +204,9 @@ object Sessions
             }
 
             val thy_deps =
-            {
-              val root_theories =
-                info.theories.flatMap({ case (_, thys) =>
-                  thys.map({ case (thy, pos) =>
-                    (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos) })
-                })
-              resources.thy_info.dependencies(root_theories)
-            }
+              resources.thy_info.dependencies(
+                for { (_, thys) <- info.theories; (thy, pos) <- thys }
+                yield (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos))
 
             val overall_syntax = thy_deps.overall_syntax
 
@@ -219,13 +221,13 @@ object Sessions
               }
               else Nil
 
-            val all_files =
+            val session_files =
               (theory_files ::: loaded_files.flatMap(_._2) :::
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
             if (list_files)
-              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+              progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
 
             if (check_keywords.nonEmpty) {
               Check_Keywords.check_keywords(
@@ -270,10 +272,7 @@ object Sessions
                 theories = thy_deps.names,
                 loaded_files = loaded_files)
 
-            val sources =
-              for (p <- all_files if p.is_file) yield (p, SHA1.digest(p.file))
-            val sources_errors =
-              for (p <- all_files if !p.is_file) yield "No such file: " + p
+            val (sources, sources_errors) = check_files(session_files)
 
             val base =
               Base(
