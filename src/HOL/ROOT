@@ -865,9 +865,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
   options [document = false, spark_prv = false]
   theories
     "Gcd/Greatest_Common_Divisor"
-
     "Liseq/Longest_Increasing_Subsequence"
-
     "RIPEMD-160/F"
     "RIPEMD-160/Hash"
     "RIPEMD-160/K_L"
@@ -877,42 +875,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/R_R"
     "RIPEMD-160/S_L"
     "RIPEMD-160/S_R"
-
     "Sqrt/Sqrt"
-  files
-    "Gcd/greatest_common_divisor/g_c_d.fdl"
-    "Gcd/greatest_common_divisor/g_c_d.rls"
-    "Gcd/greatest_common_divisor/g_c_d.siv"
-    "Liseq/liseq/liseq_length.fdl"
-    "Liseq/liseq/liseq_length.rls"
-    "Liseq/liseq/liseq_length.siv"
-    "RIPEMD-160/rmd/f.fdl"
-    "RIPEMD-160/rmd/f.rls"
-    "RIPEMD-160/rmd/f.siv"
-    "RIPEMD-160/rmd/hash.fdl"
-    "RIPEMD-160/rmd/hash.rls"
-    "RIPEMD-160/rmd/hash.siv"
-    "RIPEMD-160/rmd/k_l.fdl"
-    "RIPEMD-160/rmd/k_l.rls"
-    "RIPEMD-160/rmd/k_l.siv"
-    "RIPEMD-160/rmd/k_r.fdl"
-    "RIPEMD-160/rmd/k_r.rls"
-    "RIPEMD-160/rmd/k_r.siv"
-    "RIPEMD-160/rmd/r_l.fdl"
-    "RIPEMD-160/rmd/r_l.rls"
-    "RIPEMD-160/rmd/r_l.siv"
-    "RIPEMD-160/rmd/round.fdl"
-    "RIPEMD-160/rmd/round.rls"
-    "RIPEMD-160/rmd/round.siv"
-    "RIPEMD-160/rmd/r_r.fdl"
-    "RIPEMD-160/rmd/r_r.rls"
-    "RIPEMD-160/rmd/r_r.siv"
-    "RIPEMD-160/rmd/s_l.fdl"
-    "RIPEMD-160/rmd/s_l.rls"
-    "RIPEMD-160/rmd/s_l.siv"
-    "RIPEMD-160/rmd/s_r.fdl"
-    "RIPEMD-160/rmd/s_r.rls"
-    "RIPEMD-160/rmd/s_r.siv"
 
 session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
   options [show_question_marks = false, spark_prv = false]
@@ -923,19 +886,6 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     VC_Principles
     Reference
     Complex_Types
-  files
-    "complex_types_app/initialize.fdl"
-    "complex_types_app/initialize.rls"
-    "complex_types_app/initialize.siv"
-    "loop_invariant/proc1.fdl"
-    "loop_invariant/proc1.rls"
-    "loop_invariant/proc1.siv"
-    "loop_invariant/proc2.fdl"
-    "loop_invariant/proc2.rls"
-    "loop_invariant/proc2.siv"
-    "simple_greatest_common_divisor/g_c_d.fdl"
-    "simple_greatest_common_divisor/g_c_d.rls"
-    "simple_greatest_common_divisor/g_c_d.siv"
   document_files
     "complex_types.ads"
     "complex_types_app.adb"
