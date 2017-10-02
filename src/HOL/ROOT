@@ -7,9 +7,6 @@ session HOL (main) = Pure +
   theories
     Main (global)
     Complex_Main (global)
-  files
-    "Tools/Quickcheck/Narrowing_Engine.hs"
-    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
   document_files
     "root.bib"
     "root.tex"
@@ -24,9 +21,6 @@ session "HOL-Proofs" (timing) = Pure +
     "HOL-Library"
   theories
     "HOL-Library.Old_Datatype"
-  files
-    "Tools/Quickcheck/Narrowing_Engine.hs"
-    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
 session "HOL-Library" (main timing) in Library = HOL +
   description {*
@@ -848,12 +842,6 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
     SMT_Examples
     SMT_Word_Examples
     SMT_Tests
-  files
-    "Boogie_Dijkstra.certs"
-    "Boogie_Max.certs"
-    "SMT_Examples.certs"
-    "SMT_Word_Examples.certs"
-    "VCC_Max.certs"
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
   options [document = false]

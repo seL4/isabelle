@@ -8,6 +8,7 @@ theory SMT_Examples
 imports Complex_Main
 begin
 
+external_file "SMT_Examples.certs"
 declare [[smt_certificates = "SMT_Examples.certs"]]
 declare [[smt_read_only_certificates = true]]
 
