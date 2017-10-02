@@ -143,9 +143,10 @@ session "ZF-IMP" (ZF) in IMP = ZF +
     Glynn Winskel. The Formal Semantics of Programming Languages.
     MIT Press, 1993.
   *}
-  options [document = false]
   theories Equiv
-  document_files "root.tex" "root.bib"
+  document_files
+    "root.tex"
+    "root.bib"
 
 session "ZF-Induct" (ZF) in Induct = ZF +
   description {*
