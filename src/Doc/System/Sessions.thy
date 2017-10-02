@@ -417,6 +417,14 @@ text \<open>
   @{verbatim [display] \<open>isabelle build -b -g main\<close>}
 
   \<^smallskip>
+  Build all descendants (and requirements) of \<^verbatim>\<open>FOL\<close> and \<^verbatim>\<open>ZF\<close>:
+  @{verbatim [display] \<open>isabelle build -B FOL -B ZF\<close>}
+
+  \<^smallskip>
+  Build all sessions where sources have changed (ignoring heaps):
+  @{verbatim [display] \<open>isabelle build -a -S\<close>}
+
+  \<^smallskip>
   Provide a general overview of the status of all Isabelle sessions, without
   building anything:
   @{verbatim [display] \<open>isabelle build -a -n -v\<close>}
