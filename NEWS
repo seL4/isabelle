@@ -14,6 +14,10 @@ to refer to unqualified theories from the parent session.
 INCOMPATIBILITY for old developments that have not been updated to
 Isabelle2017 yet (using the "isabelle imports" tool).
 
+* Command 'external_file' declares the formal dependency on the given
+file name, such that the Isabelle build process knows about it, but
+without specific Prover IDE management.
+
 
 *** HOL ***
 
