@@ -24,7 +24,6 @@ object Build
   /* persistent build info */
 
   sealed case class Session_Info(
-    imported_sources: List[String],
     sources: List[String],
     input_heaps: List[String],
     output_heap: Option[String],
@@ -375,11 +374,9 @@ object Build
 
     val full_sessions = Sessions.load(build_options, dirs, select_dirs)
 
-    def imported_sources_stamp(deps: Sessions.Deps, name: String): List[String] =
-      deps.imported_sources(name).map(_.toString).sorted
-
     def sources_stamp(deps: Sessions.Deps, name: String): List[String] =
-      (full_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
+      (full_sessions(name).meta_digest :: deps.sources(name) ::: deps.imported_sources(name))
+        .map(_.toString).sorted
 
     val (selected, selected_sessions, deps) =
     {
@@ -401,7 +398,6 @@ object Build
                 using(SQLite.open_database(database))(store.read_build(_, name)) match {
                   case Some(build)
                   if build.return_code == 0 &&
-                    build.imported_sources == imported_sources_stamp(deps0, name) &&
                     build.sources == sources_stamp(deps0, name) => None
                   case _ => Some(name)
                 }
@@ -537,11 +533,7 @@ object Build
                       parse_session_info(
                         command_timings = true, ml_statistics = true, task_statistics = true),
                   build =
-                    Session_Info(
-                      imported_sources_stamp(deps, name),
-                      sources_stamp(deps, name),
-                      input_heaps,
-                      heap_stamp,
+                    Session_Info(sources_stamp(deps, name), input_heaps, heap_stamp,
                       process_result.rc)))
             }
 
