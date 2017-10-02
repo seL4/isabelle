@@ -409,7 +409,6 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
   *}
   options [parallel_proofs = 0, quick_and_dirty = false]
   sessions
-    "HOL-Library"
     "HOL-Computational_Algebra"
   theories
     Greatest_Common_Divisor
@@ -524,13 +523,11 @@ session "HOL-Lattice" in Lattice = HOL +
   theories CompleteLattice
   document_files "root.tex"
 
-session "HOL-ex" (timing) in ex = "HOL-Library" +
+session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
   options [document = false]
-  sessions
-    "HOL-Number_Theory"
   theories
     Adhoc_Overloading_Examples
     Antiquote
@@ -719,10 +716,8 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Koepf_Duermuth_Countermeasure
     Measure_Not_CCC
 
-session "HOL-Nominal" in Nominal = HOL +
+session "HOL-Nominal" in Nominal = "HOL-Library" +
   options [document = false]
-  sessions
-    "HOL-Library"
   theories
     Nominal
 
@@ -1022,15 +1017,13 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
     "Examples/Finite"
     "Examples/T2_Spaces"
 
-session HOLCF (main timing) in HOLCF = HOL +
+session HOLCF (main timing) in HOLCF = "HOL-Library" +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman
 
     HOLCF -- a semantic extension of HOL by the LCF logic.
   *}
-  sessions
-    "HOL-Library"
   theories
     HOLCF (global)
   document_files "root.tex"
