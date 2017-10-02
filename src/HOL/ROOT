@@ -751,7 +751,6 @@ session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
-  options [document = false]
   theories
     Cardinals
     Bounded_Set
