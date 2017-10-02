@@ -24,7 +24,7 @@ object Build
   /* persistent build info */
 
   sealed case class Session_Info(
-    sources: List[String],
+    sources: String,
     input_heaps: List[String],
     output_heap: Option[String],
     return_code: Int)
@@ -377,9 +377,12 @@ object Build
 
     val full_sessions = Sessions.load(build_options, dirs, select_dirs)
 
-    def sources_stamp(deps: Sessions.Deps, name: String): List[String] =
-      (full_sessions(name).meta_digest :: deps.sources(name) ::: deps.imported_sources(name))
-        .map(_.toString).sorted
+    def sources_stamp(deps: Sessions.Deps, name: String): String =
+    {
+      val digests =
+        full_sessions(name).meta_digest :: deps.sources(name) ::: deps.imported_sources(name)
+      SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
+    }
 
     val (selected, selected_sessions, deps) =
     {

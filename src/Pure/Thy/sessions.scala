@@ -908,7 +908,7 @@ object Sessions
           stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
           stmt.bytes(5) = Properties.compress(build_log.task_statistics)
           stmt.bytes(6) = Build_Log.compress_errors(build_log.errors)
-          stmt.string(7) = cat_lines(build.sources)
+          stmt.string(7) = build.sources
           stmt.string(8) = cat_lines(build.input_heaps)
           stmt.string(9) = build.output_heap getOrElse ""
           stmt.int(10) = build.return_code
@@ -942,7 +942,7 @@ object Sessions
         else {
           Some(
             Build.Session_Info(
-              split_lines(res.string(Session_Info.sources)),
+              res.string(Session_Info.sources),
               split_lines(res.string(Session_Info.input_heaps)),
               res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
               res.int(Session_Info.return_code)))
