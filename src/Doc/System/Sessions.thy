@@ -284,6 +284,7 @@ text \<open>
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -R           operate on requirements of selected sessions
+    -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b           build heap images
@@ -348,6 +349,11 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-D\<close> is similar to \<^verbatim>\<open>-d\<close>, but selects all sessions that are defined
   in the given directories.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-S\<close> indicates a ``soft build'': the selection is restricted to
+  those sessions that have changed sources (according to actually imported
+  theories). The status of heap images is ignored.
 
   \<^medskip>
   The build process depends on additional options
