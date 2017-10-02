@@ -241,7 +241,6 @@ object Sessions
 
             val session_files =
               (theory_files ::: loaded_files.flatMap(_._2) :::
-                info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
             val imported_files = if (inlined_files) thy_deps.imported_files else Nil
@@ -367,7 +366,6 @@ object Sessions
     imports: List[String],
     theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
-    files: List[Path],
     document_files: List[(Path, Path)],
     meta_digest: SHA1.Digest)
   {
@@ -546,7 +544,6 @@ object Sessions
   private val SESSIONS = "sessions"
   private val THEORIES = "theories"
   private val GLOBAL = "global"
-  private val FILES = "files"
   private val DOCUMENT_FILES = "document_files"
 
   lazy val root_syntax =
@@ -557,7 +554,6 @@ object Sessions
       (OPTIONS, Keyword.QUASI_COMMAND) +
       (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
-      (FILES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND)
 
   private object Parser extends Parse.Parser with Options.Parser
@@ -574,7 +570,6 @@ object Sessions
       options: List[Options.Spec],
       imports: List[String],
       theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
-      files: List[String],
       document_files: List[(String, String)]) extends Entry
     {
       def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
@@ -624,10 +619,9 @@ object Sessions
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
-              (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j) }
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
     def parse(options: Options, select: Boolean, dir: Path): List[(String, Info)] =
@@ -656,18 +650,17 @@ object Sessions
               else thy_name
             }
 
-          val files = entry.files.map(Path.explode(_))
           val document_files =
             entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
 
           val meta_digest =
             SHA1.digest((entry_chapter, name, entry.parent, entry.options, entry.imports,
-              entry.theories_no_position, entry.files, entry.document_files).toString)
+              entry.theories_no_position, entry.document_files).toString)
 
           val info =
             Info(name, entry_chapter, select, entry.pos, entry.groups,
               dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
-              entry.imports, theories, global_theories, files, document_files, meta_digest)
+              entry.imports, theories, global_theories, document_files, meta_digest)
 
           (name, info)
         }

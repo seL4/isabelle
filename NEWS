@@ -18,6 +18,10 @@ Isabelle2017 yet (using the "isabelle imports" tool).
 file name, such that the Isabelle build process knows about it, but
 without specific Prover IDE management.
 
+* Session ROOT entries no longer allow specification of 'files'. Rare
+INCOMPATIBILITY, use command 'external_file' within a proper theory
+context.
+
 
 *** HOL ***
 
