@@ -28,6 +28,9 @@ object Build
     input_heaps: List[String],
     output_heap: Option[String],
     return_code: Int)
+  {
+    def ok: Boolean = return_code == 0
+  }
 
 
   /* queue with scheduling information */
@@ -397,8 +400,7 @@ object Build
               case Some(database) =>
                 using(SQLite.open_database(database))(store.read_build(_, name)) match {
                   case Some(build)
-                  if build.return_code == 0 &&
-                    build.sources == sources_stamp(deps0, name) => None
+                  if build.ok && build.sources == sources_stamp(deps0, name) => None
                   case _ => Some(name)
                 }
               case None => Some(name)
@@ -566,7 +568,7 @@ object Build
                       using(SQLite.open_database(database))(store.read_build(_, name)) match {
                         case Some(build) =>
                           val current =
-                            build.return_code == 0 &&
+                            build.ok &&
                             build.sources == sources_stamp(deps, name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_stamp &&
