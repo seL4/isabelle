@@ -284,6 +284,7 @@ text \<open>
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -R           operate on requirements of selected sessions
+    -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b           build heap images
@@ -350,6 +351,11 @@ text \<open>
   in the given directories.
 
   \<^medskip>
+  Option \<^verbatim>\<open>-S\<close> indicates a ``soft build'': the selection is restricted to
+  those sessions that have changed sources (according to actually imported
+  theories). The status of heap images is ignored.
+
+  \<^medskip>
   The build process depends on additional options
   (\secref{sec:system-options}) that are passed to the prover eventually. The
   settings variable @{setting_ref ISABELLE_BUILD_OPTIONS} allows to provide
@@ -409,6 +415,14 @@ text \<open>
   \<^smallskip>
   Build the main group of logic images:
   @{verbatim [display] \<open>isabelle build -b -g main\<close>}
+
+  \<^smallskip>
+  Build all descendants (and requirements) of \<^verbatim>\<open>FOL\<close> and \<^verbatim>\<open>ZF\<close>:
+  @{verbatim [display] \<open>isabelle build -B FOL -B ZF\<close>}
+
+  \<^smallskip>
+  Build all sessions where sources have changed (ignoring heaps):
+  @{verbatim [display] \<open>isabelle build -a -S\<close>}
 
   \<^smallskip>
   Provide a general overview of the status of all Isabelle sessions, without

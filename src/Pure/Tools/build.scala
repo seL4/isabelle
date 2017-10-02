@@ -24,10 +24,13 @@ object Build
   /* persistent build info */
 
   sealed case class Session_Info(
-    sources: List[String],
+    sources: String,
     input_heaps: List[String],
     output_heap: Option[String],
     return_code: Int)
+  {
+    def ok: Boolean = return_code == 0
+  }
 
 
   /* queue with scheduling information */
@@ -352,6 +355,7 @@ object Build
     list_files: Boolean = false,
     check_keywords: Set[String] = Set.empty,
     no_build: Boolean = false,
+    soft_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
     pide: Boolean = false,
@@ -364,24 +368,58 @@ object Build
     sessions: List[String] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty): Results =
   {
-    /* session selection and dependencies */
-
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
+
+    val store = Sessions.store(system_mode)
+
+
+    /* session selection and dependencies */
 
     val full_sessions = Sessions.load(build_options, dirs, select_dirs)
 
-    val (selected, selected_sessions) =
-      full_sessions.selection(
-          Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
-            exclude_sessions, session_groups, sessions) ++ selection)
+    def sources_stamp(deps: Sessions.Deps, name: String): String =
+    {
+      val digests =
+        full_sessions(name).meta_digest :: deps.sources(name) ::: deps.imported_sources(name)
+      SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
+    }
 
-    val deps =
-      Sessions.deps(selected_sessions, progress = progress, inlined_files = true,
-        verbose = verbose, list_files = list_files, check_keywords = check_keywords,
-        global_theories = full_sessions.global_theories).check_errors
+    val (selected, selected_sessions, deps) =
+    {
+      val (selected0, selected_sessions0) =
+        full_sessions.selection(
+            Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
+              exclude_sessions, session_groups, sessions) ++ selection)
 
-    def sources_stamp(name: String): List[String] =
-      (selected_sessions(name).meta_digest :: deps.sources(name)).map(_.toString).sorted
+      val deps0 =
+        Sessions.deps(selected_sessions0, progress = progress, inlined_files = true,
+          verbose = verbose, list_files = list_files, check_keywords = check_keywords,
+          global_theories = full_sessions.global_theories).check_errors
+
+      if (soft_build) {
+        val outdated =
+          selected0.flatMap(name =>
+            store.find_database(name) match {
+              case Some(database) =>
+                using(SQLite.open_database(database))(store.read_build(_, name)) match {
+                  case Some(build)
+                  if build.ok && build.sources == sources_stamp(deps0, name) => None
+                  case _ => Some(name)
+                }
+              case None => Some(name)
+            })
+        val (selected, selected_sessions) =
+          full_sessions.selection(Sessions.Selection(sessions = outdated))
+        val deps =
+          Sessions.deps(selected_sessions, inlined_files = true,
+            global_theories = full_sessions.global_theories).check_errors
+        (selected, selected_sessions, deps)
+      }
+      else (selected0, selected_sessions0, deps0)
+    }
+
+
+    /* check unknown files */
 
     if (check_unknown_files) {
       val source_files =
@@ -399,7 +437,6 @@ object Build
 
     /* main build process */
 
-    val store = Sessions.store(system_mode)
     val queue = Queue(progress, selected_sessions, store)
 
     store.prepare_output()
@@ -501,7 +538,8 @@ object Build
                       parse_session_info(
                         command_timings = true, ml_statistics = true, task_statistics = true),
                   build =
-                    Session_Info(sources_stamp(name), input_heaps, heap_stamp, process_result.rc)))
+                    Session_Info(sources_stamp(deps, name), input_heaps, heap_stamp,
+                      process_result.rc)))
             }
 
             // messages
@@ -533,8 +571,8 @@ object Build
                       using(SQLite.open_database(database))(store.read_build(_, name)) match {
                         case Some(build) =>
                           val current =
-                            build.return_code == 0 &&
-                            build.sources == sources_stamp(name) &&
+                            build.ok &&
+                            build.sources == sources_stamp(deps, name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_stamp &&
                             !(do_output && heap_stamp.isEmpty)
@@ -633,6 +671,7 @@ object Build
     var numa_shuffling = false
     var pide = false
     var requirements = false
+    var soft_build = false
     var exclude_session_groups: List[String] = Nil
     var all_sessions = false
     var build_heap = false
@@ -657,6 +696,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -P           build via PIDE protocol
     -R           operate on requirements of selected sessions
+    -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b           build heap images
@@ -680,6 +720,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "N" -> (_ => numa_shuffling = true),
       "P" -> (_ => pide = true),
       "R" -> (_ => requirements = true),
+      "S" -> (_ => soft_build = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
       "b" -> (_ => build_heap = true),
@@ -721,6 +762,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           list_files = list_files,
           check_keywords = check_keywords,
           no_build = no_build,
+          soft_build = soft_build,
           system_mode = system_mode,
           verbose = verbose,
           pide = pide,

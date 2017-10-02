@@ -121,8 +121,6 @@ session "HOL-Induct" in Induct = "HOL-Library" +
     Exp demonstrates the use of iterated inductive definitions to reason about
     mutually recursive relations.
   *}
-  theories [document = false]
-    "HOL-Library.Old_Datatype"
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -142,12 +140,6 @@ session "HOL-Induct" in Induct = "HOL-Library" +
 
 session "HOL-IMP" (timing) in IMP = "HOL-Library" +
   options [document_variants = document]
-  theories [document = false]
-    "HOL-Library.While_Combinator"
-    "HOL-Library.Char_ord"
-    "HOL-Library.List_lexord"
-    "HOL-Library.Quotient_List"
-    "HOL-Library.Extended"
   theories
     BExp
     ASM
@@ -200,8 +192,6 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     "HOL-Number_Theory"
   theories [document = false]
     Less_False
-    "HOL-Library.Multiset"
-    "HOL-Number_Theory.Fib"
   theories
     Sorting
     Balance
@@ -227,11 +217,6 @@ session "HOL-Number_Theory" (timing) in Number_Theory = "HOL-Computational_Algeb
   *}
   sessions
     "HOL-Algebra"
-  theories [document = false]
-    "HOL-Library.FuncSet"
-    "HOL-Library.Multiset"
-    "HOL-Algebra.Ring"
-    "HOL-Algebra.FiniteProduct"
   theories
     Number_Theory
   document_files
@@ -310,11 +295,6 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
 
     The Isabelle Algebraic Library.
   *}
-  theories [document = false]
-    (* Preliminaries from set and number theory *)
-    "HOL-Library.FuncSet"
-    "HOL-Computational_Algebra.Primes"
-    "HOL-Library.Permutation"
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
@@ -403,10 +383,6 @@ session "HOL-ZF" in ZF = "HOL-Library" +
 
 session "HOL-Imperative_HOL" in Imperative_HOL = "HOL-Library" +
   options [print_mode = "iff,no_brackets"]
-  theories [document = false]
-    "HOL-Library.Countable"
-    "HOL-Library.Monad_Syntax"
-    "HOL-Library.LaTeXsugar"
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
 
@@ -433,13 +409,7 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
   *}
   options [parallel_proofs = 0, quick_and_dirty = false]
   sessions
-    "HOL-Library"
     "HOL-Computational_Algebra"
-  theories [document = false]
-    "HOL-Library.Code_Target_Numeral"
-    "HOL-Library.Monad_Syntax"
-    "HOL-Computational_Algebra.Primes"
-    "HOL-Library.Open_State_Syntax"
   theories
     Greatest_Common_Divisor
     Warshall
@@ -490,8 +460,6 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
   *}
   sessions
     "HOL-Eisbach"
-  theories [document = false]
-    "HOL-Library.While_Combinator"
   theories
     MicroJava
   document_files
@@ -555,13 +523,11 @@ session "HOL-Lattice" in Lattice = HOL +
   theories CompleteLattice
   document_files "root.tex"
 
-session "HOL-ex" (timing) in ex = "HOL-Library" +
+session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
   options [document = false]
-  sessions
-    "HOL-Number_Theory"
   theories
     Adhoc_Overloading_Examples
     Antiquote
@@ -653,9 +619,6 @@ session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
     Miscellaneous Isabelle/Isar examples.
   *}
   options [quick_and_dirty]
-  theories [document = false]
-    "HOL-Library.Lattice_Syntax"
-    "HOL-Computational_Algebra.Primes"
   theories
     Knaster_Tarski
     Peirce
@@ -694,8 +657,6 @@ session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
   description {*
     Verification of the SET Protocol.
   *}
-  theories [document = false]
-    "HOL-Library.Nat_Bijection"
   theories
     SET_Protocol
   document_files "root.tex"
@@ -745,12 +706,6 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  theories [document = false]
-    "HOL-Library.Countable"
-    "HOL-Library.Permutation"
-    "HOL-Library.Order_Continuity"
-    "HOL-Library.Diagonal_Subsequence"
-    "HOL-Library.Finite_Map"
   theories
     Probability (global)
   document_files "root.tex"
@@ -761,10 +716,8 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Koepf_Duermuth_Countermeasure
     Measure_Not_CCC
 
-session "HOL-Nominal" in Nominal = HOL +
+session "HOL-Nominal" in Nominal = "HOL-Library" +
   options [document = false]
-  sessions
-    "HOL-Library"
   theories
     Nominal
 
@@ -1064,18 +1017,13 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
     "Examples/Finite"
     "Examples/T2_Spaces"
 
-session HOLCF (main timing) in HOLCF = HOL +
+session HOLCF (main timing) in HOLCF = "HOL-Library" +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman
 
     HOLCF -- a semantic extension of HOL by the LCF logic.
   *}
-  sessions
-    "HOL-Library"
-  theories [document = false]
-    "HOL-Library.Nat_Bijection"
-    "HOL-Library.Countable"
   theories
     HOLCF (global)
   document_files "root.tex"

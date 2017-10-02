@@ -114,6 +114,7 @@ object Sessions
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
+    imported_sources: List[(Path, SHA1.Digest)] = Nil,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil,
@@ -147,7 +148,12 @@ object Sessions
   {
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
-    def sources(name: String): List[SHA1.Digest] = session_bases(name).sources.map(_._2)
+
+    def imported_sources(name: String): List[SHA1.Digest] =
+      session_bases(name).imported_sources.map(_._2)
+
+    def sources(name: String): List[SHA1.Digest] =
+      session_bases(name).sources.map(_._2)
 
     def errors: List[String] =
       (for {
@@ -172,6 +178,25 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Map[String, String] = Map.empty): Deps =
   {
+    var cache_sources = Map.empty[JFile, SHA1.Digest]
+    def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] =
+    {
+      for {
+        path <- paths
+        file = path.file
+        if cache_sources.isDefinedAt(file) || file.isFile
+      }
+      yield {
+        cache_sources.get(file) match {
+          case Some(digest) => (path, digest)
+          case None =>
+            val digest = SHA1.digest(file)
+            cache_sources = cache_sources + (file -> digest)
+            (path, digest)
+        }
+      }
+    }
+
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
         case (session_bases, info) =>
@@ -197,14 +222,9 @@ object Sessions
             }
 
             val thy_deps =
-            {
-              val root_theories =
-                info.theories.flatMap({ case (_, thys) =>
-                  thys.map({ case (thy, pos) =>
-                    (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos) })
-                })
-              resources.thy_info.dependencies(root_theories)
-            }
+              resources.thy_info.dependencies(
+                for { (_, thys) <- info.theories; (thy, pos) <- thys }
+                yield (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos))
 
             val overall_syntax = thy_deps.overall_syntax
 
@@ -219,13 +239,15 @@ object Sessions
               }
               else Nil
 
-            val all_files =
+            val session_files =
               (theory_files ::: loaded_files.flatMap(_._2) :::
                 info.files.map(file => info.dir + file) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
+            val imported_files = if (inlined_files) thy_deps.imported_files else Nil
+
             if (list_files)
-              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+              progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
 
             if (check_keywords.nonEmpty) {
               Check_Keywords.check_keywords(
@@ -270,10 +292,8 @@ object Sessions
                 theories = thy_deps.names,
                 loaded_files = loaded_files)
 
-            val sources =
-              for (p <- all_files if p.is_file) yield (p, SHA1.digest(p.file))
             val sources_errors =
-              for (p <- all_files if !p.is_file) yield "No such file: " + p
+              for (p <- session_files if !p.is_file) yield "No such file: " + p
 
             val base =
               Base(
@@ -282,7 +302,8 @@ object Sessions
                 loaded_theories = thy_deps.loaded_theories,
                 known = known,
                 overall_syntax = overall_syntax,
-                sources = sources,
+                imported_sources = check_sources(imported_files),
+                sources = check_sources(session_files),
                 session_graph = session_graph,
                 errors = thy_deps.errors ::: sources_errors,
                 imports = Some(imports_base))
@@ -887,7 +908,7 @@ object Sessions
           stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
           stmt.bytes(5) = Properties.compress(build_log.task_statistics)
           stmt.bytes(6) = Build_Log.compress_errors(build_log.errors)
-          stmt.string(7) = cat_lines(build.sources)
+          stmt.string(7) = build.sources
           stmt.string(8) = cat_lines(build.input_heaps)
           stmt.string(9) = build.output_heap getOrElse ""
           stmt.int(10) = build.return_code
@@ -912,6 +933,7 @@ object Sessions
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors))
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
+    {
       db.using_statement(Session_Info.table.select(Session_Info.build_columns,
         Session_Info.session_name.where_equal(name)))(stmt =>
       {
@@ -920,11 +942,12 @@ object Sessions
         else {
           Some(
             Build.Session_Info(
-              split_lines(res.string(Session_Info.sources)),
+              res.string(Session_Info.sources),
               split_lines(res.string(Session_Info.input_heaps)),
               res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
               res.int(Session_Info.return_code)))
         }
       })
+    }
   }
 }

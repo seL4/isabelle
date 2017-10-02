@@ -66,6 +66,17 @@ class Thy_Info(resources: Resources)
           names.map(name => resources.loaded_files(loaded_theories.get_node(name.theory), name)))
     }
 
+    def imported_files: List[Path] =
+    {
+      val base = resources.session_base
+      val base_theories =
+        loaded_theories.all_preds(names.map(_.theory)).
+          filter(base.loaded_theories.defined(_))
+
+      base_theories.map(theory => base.known.theories(theory).path) :::
+      base_theories.flatMap(base.known.loaded_files(_))
+    }
+
     lazy val overall_syntax: Outer_Syntax =
       Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node(_)))
 

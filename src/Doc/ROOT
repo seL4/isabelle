@@ -48,7 +48,6 @@ session Corec (doc) in "Corec" = "HOL-Library" +
   options [document_variants = "corec"]
   sessions
     Datatypes
-  theories [document = false] Datatypes.Setup
   theories Corec
   document_files (in "..")
     "prepare_document"
@@ -248,9 +247,6 @@ session Sugar (doc) in "Sugar" = HOL +
   options [document_variants = "sugar"]
   sessions
     "HOL-Library"
-  theories [document = false]
-    "HOL-Library.LaTeXsugar"
-    "HOL-Library.OptionalSugar"
   theories Sugar
   document_files (in "..")
     "prepare_document"
