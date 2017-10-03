@@ -7,7 +7,7 @@ Quick start in 30min
 1a. Linux and Mac OS X: ensure that Mercurial is installed
     (see also http://www.selenic.com/mercurial)
 
-1b. Windows: ensure that Cygwin with curl and Mercurial is installed
+1b. Windows: ensure that Cygwin64 with curl and Mercurial is installed
     (see also http://www.cygwin.com)
 
 2. Clone repository (bash shell commands):
