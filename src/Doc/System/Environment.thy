@@ -141,7 +141,7 @@ text \<open>
   search path of the shell.
 
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
-  Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2012\<close>''.
+  Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2017\<close>''.
 
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME}, @{setting_def
   ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def ML_IDENTIFIER}\<open>\<^sup>*\<close>]

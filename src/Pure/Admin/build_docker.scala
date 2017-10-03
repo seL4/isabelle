@@ -130,9 +130,9 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Examples:
 
-    isabelle build_docker -E -t test/isabelle:Isabelle2016-1 Isabelle2016-1_app.tar.gz
+    isabelle build_docker -E -t test/isabelle:Isabelle2017 Isabelle2017_app.tar.gz
 
-    isabelle build_docker -E -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2016-1_app.tar.gz
+    isabelle build_docker -E -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2017_app.tar.gz
 
 """,
           "B:" -> (arg => base = arg),
