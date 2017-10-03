@@ -301,6 +301,10 @@ native Windows platform (independently of the Cygwin installation). This
 is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
 ISABELLE_PLATFORM64.
 
+* Command-line tool "isabelle build_docker" builds a Docker image from
+the Isabelle application bundle for Linux. See also
+https://hub.docker.com/r/makarius/isabelle
+
 * Command-line tool "isabelle vscode_server" provides a Language Server
 Protocol implementation, e.g. for the Visual Studio Code editor. It
 serves as example for alternative PIDE front-ends.
