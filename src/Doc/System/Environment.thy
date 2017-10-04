@@ -136,9 +136,7 @@ text \<open>
   @{verbatim [display] \<open>"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"\<close>}
 
   \<^descr>[@{setting ISABELLE_TOOL}\<open>\<^sup>*\<close>] is automatically set to the full path name
-  of the @{executable isabelle} executable. Thus other tools and scripts need
-  not assume that the \<^dir>\<open>$ISABELLE_HOME/bin\<close> directory is on the current
-  search path of the shell.
+  of the @{executable isabelle} executable.
 
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
   Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2017\<close>''.
