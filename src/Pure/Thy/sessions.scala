@@ -624,7 +624,7 @@ object Sessions
             Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
-    def parse(options: Options, select: Boolean, dir: Path): List[(String, Info)] =
+    def parse_root(options: Options, select: Boolean, path: Path): List[(String, Info)] =
     {
       def make_info(entry_chapter: String, entry: Session_Entry): (String, Info) =
       {
@@ -659,7 +659,7 @@ object Sessions
 
           val info =
             Info(name, entry_chapter, select, entry.pos, entry.groups,
-              dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+              path.dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
               entry.imports, theories, global_theories, document_files, meta_digest)
 
           (name, info)
@@ -671,24 +671,20 @@ object Sessions
         }
       }
 
-      val root = dir + ROOT
-      if (root.is_file) {
-        val toks = Token.explode(root_syntax.keywords, File.read(root))
-        val start = Token.Pos.file(root.implode)
+      val toks = Token.explode(root_syntax.keywords, File.read(path))
+      val start = Token.Pos.file(path.implode)
 
-        parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
-          case Success(result, _) =>
-            var entry_chapter = "Unsorted"
-            val infos = new mutable.ListBuffer[(String, Info)]
-            result.foreach {
-              case Chapter(name) => entry_chapter = name
-              case entry: Session_Entry => infos += make_info(entry_chapter, entry)
-            }
-            infos.toList
-          case bad => error(bad.toString)
-        }
+      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
+        case Success(result, _) =>
+          var entry_chapter = "Unsorted"
+          val infos = new mutable.ListBuffer[(String, Info)]
+          result.foreach {
+            case Chapter(name) => entry_chapter = name
+            case entry: Session_Entry => infos += make_info(entry_chapter, entry)
+          }
+          infos.toList
+        case bad => error(bad.toString)
       }
-      else Nil
     }
   }
 
@@ -710,13 +706,16 @@ object Sessions
 
   def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
   {
-    def load_dir(select: Boolean, dir: Path): List[(String, Info)] =
+    def load_dir(select: Boolean, dir: Path): List[(Boolean, Path)] =
       load_root(select, dir) ::: load_roots(select, dir)
 
-    def load_root(select: Boolean, dir: Path): List[(String, Info)] =
-      Parser.parse(options, select, dir)
+    def load_root(select: Boolean, dir: Path): List[(Boolean, Path)] =
+    {
+      val root = dir + ROOT
+      if (root.is_file) List((select, root)) else Nil
+    }
 
-    def load_roots(select: Boolean, dir: Path): List[(String, Info)] =
+    def load_roots(select: Boolean, dir: Path): List[(Boolean, Path)] =
     {
       val roots = dir + ROOTS
       if (roots.is_file) {
@@ -729,17 +728,28 @@ object Sessions
               case ERROR(msg) =>
                 error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
             }
-          info <- load_dir(select, dir1)
-        } yield info
+          res <- load_dir(select, dir1)
+        } yield res
       }
       else Nil
     }
 
-    make(
+    val roots =
       for {
         (select, dir) <- directories(dirs, select_dirs)
-        info <- load_dir(select, check_session_dir(dir))
-      } yield info)
+        res <- load_dir(select, check_session_dir(dir))
+      } yield res
+
+    val unique_roots =
+      ((Map.empty[JFile, (Boolean, Path)] /: roots) { case (m, (select, path)) =>
+        val file = path.canonical_file
+        m.get(file) match {
+          case None => m + (file -> (select, path))
+          case Some((select1, path1)) => m + (file -> (select1 || select, path1))
+        }
+      }).toList.map(_._2)
+
+    make(unique_roots.flatMap(p => Parser.parse_root(options, p._1, p._2)))
   }
 
 
