@@ -134,7 +134,7 @@ class Resources(
         if (base_name != name)
           error("Bad theory name " + quote(name) +
             " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
-            Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
+            Completion.report_theories(pos, List(base_name)))
 
         val imports = header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
