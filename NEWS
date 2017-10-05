@@ -30,6 +30,11 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
   isabelle build -D '~~/src/ZF'
 
 
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Completion supports theory header imports.
+
+
 *** HOL ***
 
 * SMT module:

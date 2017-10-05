@@ -138,11 +138,19 @@ object Completion
     if (s == "" || s == "_") None
     else Some(s.reverseIterator.dropWhile(_ == '_').toList.reverse.mkString)
 
+  def completed(input: String): String => Boolean =
+    clean_name(input) match {
+      case None => (name: String) => false
+      case Some(prefix) => (name: String) => name.startsWith(prefix)
+    }
+
   def report_no_completion(pos: Position.T): String =
     YXML.string_of_tree(Semantic.Info(pos, No_Completion))
 
   def report_names(pos: Position.T, names: List[(String, (String, String))], total: Int = 0): String =
-    YXML.string_of_tree(Semantic.Info(pos, Names(if (total > 0) total else names.length, names)))
+    if (names.isEmpty) ""
+    else
+      YXML.string_of_tree(Semantic.Info(pos, Names(if (total > 0) total else names.length, names)))
 
   def report_theories(pos: Position.T, thys: List[String], total: Int = 0): String =
     report_names(pos, thys.map(name => (name, ("theory", name))), total)
