@@ -141,22 +141,7 @@ object Imports
           val imports_resources = new Resources(imports_base)
 
           def standard_import(qualifier: String, dir: String, s: String): String =
-          {
-            val name = imports_resources.import_name(qualifier, dir, s)
-            val s1 =
-              if (imports_base.loaded_theory(name)) name.theory
-              else {
-                imports_base.known.get_file(name.path.file) match {
-                  case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
-                    name1.theory
-                  case Some(name1) if Thy_Header.is_base_name(s) =>
-                    name1.theory_base_name
-                  case _ => s
-                }
-              }
-            val name2 = imports_resources.import_name(qualifier, dir, s1)
-            if (name.node == name2.node) s1 else s
-          }
+            imports_resources.standard_import(session_resources, qualifier, dir, s)
 
           val updates_root =
             for {

@@ -115,6 +115,25 @@ class Resources(
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
     import_name(theory_qualifier(name), name.master_dir, s)
 
+  def standard_import(session_resources: Resources,
+    qualifier: String, dir: String, s: String): String =
+  {
+    val name = import_name(qualifier, dir, s)
+    val s1 =
+      if (session_base.loaded_theory(name)) name.theory
+      else {
+        session_base.known.get_file(name.path.file) match {
+          case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+            name1.theory
+          case Some(name1) if Thy_Header.is_base_name(s) =>
+            name1.theory_base_name
+          case _ => s
+        }
+      }
+    val name2 = import_name(qualifier, dir, s1)
+    if (name.node == name2.node) s1 else s
+  }
+
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val path = File.check_file(name.path)
@@ -134,7 +153,7 @@ class Resources(
         if (base_name != name)
           error("Bad theory name " + quote(name) +
             " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
-            Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
+            Completion.report_theories(pos, List(base_name)))
 
         val imports = header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
