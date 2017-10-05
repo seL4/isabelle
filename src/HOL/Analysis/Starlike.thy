@@ -3794,6 +3794,16 @@ lemma at_within_closed_interval:
     shows "a < x \<Longrightarrow> x < b \<Longrightarrow> (at x within {a..b}) = at x"
   by (metis at_within_interior greaterThanLessThan_iff interior_atLeastAtMost)
 
+lemma at_within_cbox_finite:
+  assumes "x \<in> box a b" "x \<notin> S" "finite S"
+  shows "(at x within cbox a b - S) = at x"
+proof -
+  have "interior (cbox a b - S) = box a b - S"
+    using \<open>finite S\<close> by (simp add: interior_diff finite_imp_closed)
+  then show ?thesis
+    using at_within_interior assms by fastforce
+qed
+
 lemma affine_independent_convex_affine_hull:
   fixes s :: "'a::euclidean_space set"
   assumes "~affine_dependent s" "t \<subseteq> s"
