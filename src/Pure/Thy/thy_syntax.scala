@@ -102,7 +102,7 @@ object Thy_Syntax
           val header = node.header
           val imports_syntax =
             Outer_Syntax.merge(
-              header.imports.flatMap(p => resources.session_base.node_syntax(nodes, p._1)))
+              header.imports.map(p => resources.session_base.node_syntax(nodes, p._1)))
           Some(imports_syntax + header)
         }
       nodes += (name -> node.update_syntax(syntax))
@@ -325,9 +325,7 @@ object Thy_Syntax
         node_edits foreach {
           case (name, edits) =>
             val node = nodes(name)
-            val syntax =
-              resources.session_base.node_syntax(nodes, name) getOrElse
-              Thy_Header.bootstrap_syntax
+            val syntax = resources.session_base.node_syntax(nodes, name)
             val commands = node.commands
 
             val node1 =
