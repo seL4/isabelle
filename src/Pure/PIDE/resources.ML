@@ -123,7 +123,10 @@ fun import_name qualifier dir s =
       let val node_name =
         (case known_theory theory of
           SOME node_name => node_name
-        | NONE => File.full_path dir (thy_path (Path.expand (Path.explode s))))
+        | NONE =>
+            if Thy_Header.is_base_name s andalso Long_Name.is_qualified s
+            then Path.explode s
+            else File.full_path dir (thy_path (Path.expand (Path.explode s))))
       in {master_dir = Path.dir node_name, theory_name = theory} end);
 
 fun check_file dir file = File.check_file (File.full_path dir file);

@@ -105,10 +105,14 @@ class Resources(
         session_base.known_theory(theory) match {
           case Some(node_name) => node_name
           case None =>
-            val path = Path.explode(s)
-            val node = append(dir, thy_path(path))
-            val master_dir = append(dir, path.dir)
-            Document.Node.Name(node, master_dir, theory)
+            if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
+              Document.Node.Name.loaded_theory(theory)
+            else {
+              val path = Path.explode(s)
+              val node = append(dir, thy_path(path))
+              val master_dir = append(dir, path.dir)
+              Document.Node.Name(node, master_dir, theory)
+            }
         }
     }
 
@@ -136,9 +140,14 @@ class Resources(
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    val path = File.check_file(name.path)
-    val reader = Scan.byte_reader(path.file)
-    try { f(reader) } finally { reader.close }
+    val path = name.path
+    if (path.is_file) {
+      val reader = Scan.byte_reader(path.file)
+      try { f(reader) } finally { reader.close }
+    }
+    else if (name.node == name.theory)
+      error("Cannot load theory " + quote(name.theory))
+    else error ("Cannot load theory file " + path)
   }
 
   def check_thy_reader(node_name: Document.Node.Name, reader: Reader[Char],
