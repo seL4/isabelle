@@ -101,8 +101,11 @@ object Thy_Syntax
         else {
           val header = node.header
           val imports_syntax =
-            Outer_Syntax.merge(
-              header.imports.map(p => resources.session_base.node_syntax(nodes, p._1)))
+            if (header.imports.nonEmpty) {
+              Outer_Syntax.merge(
+                header.imports.map(p => resources.session_base.node_syntax(nodes, p._1)))
+            }
+            else resources.session_base.overall_syntax
           Some(imports_syntax + header)
         }
       nodes += (name -> node.update_syntax(syntax))
