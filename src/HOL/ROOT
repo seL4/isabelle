@@ -15,8 +15,7 @@ session "HOL-Proofs" (timing) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, theory_qualifier = "HOL",
-    quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
+  options [document = false, quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
   sessions
     "HOL-Library"
   theories
