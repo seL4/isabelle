@@ -49,12 +49,13 @@ class Thy_Info(resources: Resources)
         val name = entry.name.theory
         val imports = entry.header.imports.map(p => p._1.theory)
 
-        val graph1 = (graph /: (name :: imports))(_.default_node(_, Thy_Header.bootstrap_syntax))
+        val graph1 = (graph /: (name :: imports))(_.default_node(_, Outer_Syntax.empty))
         val graph2 = (graph1 /: imports)(_.add_edge(_, name))
 
-        val syntax =
-          Outer_Syntax.merge((name :: graph2.imm_preds(name).toList).map(graph2.get_node(_))) +
-            entry.header
+        val syntax0 = if (name == Thy_Header.PURE) List(Thy_Header.bootstrap_syntax) else Nil
+        val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node(_))
+        val syntax = Outer_Syntax.merge(syntax0 ::: syntax1) + entry.header
+
         graph2.map_node(name, _ => syntax)
       })
 
