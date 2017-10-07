@@ -49,14 +49,13 @@ class Thy_Info(resources: Resources)
         val name = entry.name.theory
         val imports = entry.header.imports.map(p => p._1.theory)
 
-        if (graph.defined(name))
-          error("Duplicate loaded theory entry " + quote(name))
+        val graph1 = (graph /: (name :: imports))(_.default_node(_, Thy_Header.bootstrap_syntax))
+        val graph2 = (graph1 /: imports)(_.add_edge(_, name))
 
-        for (dep <- imports if !graph.defined(dep))
-          error("Missing loaded theory entry " + quote(dep) + " for " + quote(name))
-
-        val syntax = Outer_Syntax.merge(imports.map(graph.get_node(_))) + entry.header
-        (graph.new_node(name, syntax) /: imports)((g, dep) => g.add_edge(dep, name))
+        val syntax =
+          Outer_Syntax.merge((name :: graph2.imm_preds(name).toList).map(graph2.get_node(_))) +
+            entry.header
+        graph2.map_node(name, _ => syntax)
       })
 
     def loaded_files: List[(String, List[Path])] =
