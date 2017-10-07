@@ -224,7 +224,7 @@ object Sessions
             val thy_deps =
               resources.thy_info.dependencies(
                 for { (_, thys) <- info.theories; (thy, pos) <- thys }
-                yield (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos))
+                yield (resources.import_name(info.name, info.dir.implode, thy), pos))
 
             val overall_syntax = thy_deps.overall_syntax
 
@@ -261,7 +261,7 @@ object Sessions
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
                 val qualifier = resources.theory_qualifier(name)
-                if (qualifier == info.theory_qualifier)
+                if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)
               }
@@ -370,12 +370,6 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
-
-    def theory_qualifier: String =
-      options.string("theory_qualifier") match {
-        case "" => name
-        case qualifier => qualifier
-      }
   }
 
   object Selection
@@ -496,7 +490,7 @@ object Sessions
           thy <- info.global_theories.iterator }
          yield (thy, info)))({
             case (global, (thy, info)) =>
-              val qualifier = info.theory_qualifier
+              val qualifier = info.name
               global.get(thy) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
                   error("Duplicate global theory " + quote(thy) + Position.here(info.pos))

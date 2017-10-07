@@ -104,7 +104,7 @@ object Imports
         val extra_imports =
           (for {
             (_, a) <- session_resources.session_base.known.theories.iterator
-            if session_resources.theory_qualifier(a) == info.theory_qualifier
+            if session_resources.theory_qualifier(a) == info.name
             b <- deps.all_known.get_file(a.path.file)
             qualifier = session_resources.theory_qualifier(b)
             if !declared_imports.contains(qualifier)
@@ -146,14 +146,13 @@ object Imports
           val updates_root =
             for {
               (_, pos) <- info.theories.flatMap(_._2)
-              upd <- update_name(root_keywords, pos,
-                standard_import(info.theory_qualifier, info.dir.implode, _))
+              upd <- update_name(root_keywords, pos, standard_import(info.name, info.dir.implode, _))
             } yield upd
 
           val updates_theories =
             for {
               (_, name) <- session_base.known.theories_local.toList
-              if session_resources.theory_qualifier(name) == info.theory_qualifier
+              if session_resources.theory_qualifier(name) == info.name
               (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
               upd <- update_name(session_base.overall_syntax.keywords, pos,
                 standard_import(session_resources.theory_qualifier(name), name.master_dir, _))
