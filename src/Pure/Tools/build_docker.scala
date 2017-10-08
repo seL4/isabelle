@@ -1,4 +1,4 @@
-/*  Title:      Pure/Admin/build_docker.scala
+/*  Title:      Pure/Tools/build_docker.scala
     Author:     Makarius
 
 Build docker image from Isabelle application bundle for Linux.
@@ -159,5 +159,5 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
       build_docker(new Console_Progress(), app_archive, base = base, logic = logic,
         no_build = no_build, entrypoint = entrypoint, output = output,
         more_packages = more_packages, tag = tag, verbose = verbose)
-    }, admin = true)
+    })
 }

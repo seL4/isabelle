@@ -11,7 +11,6 @@
 declare -a SOURCES=(
   Admin/build_cygwin.scala
   Admin/build_doc.scala
-  Admin/build_docker.scala
   Admin/build_history.scala
   Admin/build_jdk.scala
   Admin/build_log.scala
@@ -133,6 +132,7 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   Tools/bibtex.scala
   Tools/build.scala
+  Tools/build_docker.scala
   Tools/check_keywords.scala
   Tools/debugger.scala
   Tools/doc.scala
