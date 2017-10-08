@@ -1,61 +1,20 @@
 (*  Title:      HOL/Computational_Algebra/Polynomial_Factorial.thy
-    Author:     Brian Huffman
-    Author:     Clemens Ballarin
-    Author:     Amine Chaieb
-    Author:     Florian Haftmann
     Author:     Manuel Eberl
 *)
+
+section \<open>Polynomials, fractions and rings\<close>
 
 theory Polynomial_Factorial
 imports 
   Complex_Main
   Polynomial
   Normalized_Fraction
-  Field_as_Ring
 begin
-
-subsection \<open>Various facts about polynomials\<close>
-
-lemma prod_mset_const_poly: " (\<Prod>x\<in>#A. [:f x:]) = [:prod_mset (image_mset f A):]"
-  by (induct A) (simp_all add: ac_simps)
-
-lemma irreducible_const_poly_iff:
-  fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
-  shows "irreducible [:c:] \<longleftrightarrow> irreducible c"
-proof
-  assume A: "irreducible c"
-  show "irreducible [:c:]"
-  proof (rule irreducibleI)
-    fix a b assume ab: "[:c:] = a * b"
-    hence "degree [:c:] = degree (a * b)" by (simp only: )
-    also from A ab have "a \<noteq> 0" "b \<noteq> 0" by auto
-    hence "degree (a * b) = degree a + degree b" by (simp add: degree_mult_eq)
-    finally have "degree a = 0" "degree b = 0" by auto
-    then obtain a' b' where ab': "a = [:a':]" "b = [:b':]" by (auto elim!: degree_eq_zeroE)
-    from ab have "coeff [:c:] 0 = coeff (a * b) 0" by (simp only: )
-    hence "c = a' * b'" by (simp add: ab' mult_ac)
-    from A and this have "a' dvd 1 \<or> b' dvd 1" by (rule irreducibleD)
-    with ab' show "a dvd 1 \<or> b dvd 1"
-      by (auto simp add: is_unit_const_poly_iff)
-  qed (insert A, auto simp: irreducible_def is_unit_poly_iff)
-next
-  assume A: "irreducible [:c:]"
-  then have "c \<noteq> 0" and "\<not> c dvd 1"
-    by (auto simp add: irreducible_def is_unit_const_poly_iff)
-  then show "irreducible c"
-  proof (rule irreducibleI)
-    fix a b assume ab: "c = a * b"
-    hence "[:c:] = [:a:] * [:b:]" by (simp add: mult_ac)
-    from A and this have "[:a:] dvd 1 \<or> [:b:] dvd 1" by (rule irreducibleD)
-    then show "a dvd 1 \<or> b dvd 1"
-      by (auto simp add: is_unit_const_poly_iff)
-  qed
-qed
-
 
 subsection \<open>Lifting elements into the field of fractions\<close>
 
-definition to_fract :: "'a :: idom \<Rightarrow> 'a fract" where "to_fract x = Fract x 1"
+definition to_fract :: "'a :: idom \<Rightarrow> 'a fract"
+  where "to_fract x = Fract x 1"
   \<comment> \<open>FIXME: name \<open>of_idom\<close>, abbreviation\<close>
 
 lemma to_fract_0 [simp]: "to_fract 0 = 0"
@@ -429,39 +388,6 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma primitive_part_mult:
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
-  shows "primitive_part (p * q) = primitive_part p * primitive_part q"
-proof -
-  have "primitive_part (p * q) = p * q div [:content (p * q):]"
-    by (simp add: primitive_part_def div_const_poly_conv_map_poly)
-  also have "\<dots> = (p div [:content p:]) * (q div [:content q:])"
-    by (subst div_mult_div_if_dvd) (simp_all add: content_mult mult_ac)
-  also have "\<dots> = primitive_part p * primitive_part q"
-    by (simp add: primitive_part_def div_const_poly_conv_map_poly)
-  finally show ?thesis .
-qed
-
-lemma primitive_part_smult:
-  fixes p :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
-  shows "primitive_part (smult a p) = smult (unit_factor a) (primitive_part p)"
-proof -
-  have "smult a p = [:a:] * p" by simp
-  also have "primitive_part \<dots> = smult (unit_factor a) (primitive_part p)"
-    by (subst primitive_part_mult) simp_all
-  finally show ?thesis .
-qed  
-
-lemma primitive_part_dvd_primitive_partI [intro]:
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
-  shows "p dvd q \<Longrightarrow> primitive_part p dvd primitive_part q"
-  by (auto elim!: dvdE simp: primitive_part_mult)
-
-lemma content_prod_mset: 
-  fixes A :: "'a :: {factorial_semiring, semiring_Gcd} poly multiset"
-  shows "content (prod_mset A) = prod_mset (image_mset content A)"
-  by (induction A) (simp_all add: content_mult mult_ac)
-
 lemma fract_poly_dvdD:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "fract_poly p dvd fract_poly q" "content p = 1"
@@ -481,104 +407,80 @@ proof -
   thus ?thesis by (rule dvdI)
 qed
 
-lemma content_prod_eq_1_iff: 
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd} poly"
-  shows "content (p * q) = 1 \<longleftrightarrow> content p = 1 \<and> content q = 1"
-proof safe
-  assume A: "content (p * q) = 1"
-  {
-    fix p q :: "'a poly" assume "content p * content q = 1"
-    hence "1 = content p * content q" by simp
-    hence "content p dvd 1" by (rule dvdI)
-    hence "content p = 1" by simp
-  } note B = this
-  from A B[of p q] B [of q p] show "content p = 1" "content q = 1" 
-    by (simp_all add: content_mult mult_ac)
-qed (auto simp: content_mult)
-
 end
 
 
 subsection \<open>Polynomials over a field are a Euclidean ring\<close>
 
-definition unit_factor_field_poly :: "'a :: field poly \<Rightarrow> 'a poly" where
-  "unit_factor_field_poly p = [:lead_coeff p:]"
-
-definition normalize_field_poly :: "'a :: field poly \<Rightarrow> 'a poly" where
-  "normalize_field_poly p = smult (inverse (lead_coeff p)) p"
-
-definition euclidean_size_field_poly :: "'a :: field poly \<Rightarrow> nat" where
-  "euclidean_size_field_poly p = (if p = 0 then 0 else 2 ^ degree p)" 
-
-lemma dvd_field_poly: "dvd.dvd (op * :: 'a :: field poly \<Rightarrow> _) = op dvd"
-  by (intro ext) (simp_all add: dvd.dvd_def dvd_def)
+context
+begin
 
 interpretation field_poly: 
   unique_euclidean_ring where zero = "0 :: 'a :: field poly"
-    and one = 1 and plus = plus and uminus = uminus and minus = minus
+    and one = 1 and plus = plus
+    and uminus = uminus and minus = minus
     and times = times
-    and normalize = normalize_field_poly and unit_factor = unit_factor_field_poly
-    and euclidean_size = euclidean_size_field_poly
+    and normalize = "\<lambda>p. smult (inverse (lead_coeff p)) p"
+    and unit_factor = "\<lambda>p. [:lead_coeff p:]"
+    and euclidean_size = "\<lambda>p. if p = 0 then 0 else 2 ^ degree p"
     and uniqueness_constraint = top
     and divide = divide and modulo = modulo
-proof (standard, unfold dvd_field_poly)
-  fix p :: "'a poly"
-  show "unit_factor_field_poly p * normalize_field_poly p = p"
-    by (cases "p = 0") 
-       (simp_all add: unit_factor_field_poly_def normalize_field_poly_def)
-next
-  fix p :: "'a poly" assume "is_unit p"
-  then show "unit_factor_field_poly p = p"
-    by (elim is_unit_polyE) (auto simp: unit_factor_field_poly_def monom_0 one_poly_def field_simps)
-next
-  fix p :: "'a poly" assume "p \<noteq> 0"
-  thus "is_unit (unit_factor_field_poly p)"
-    by (simp add: unit_factor_field_poly_def is_unit_pCons_iff)
-next
-  fix p q s :: "'a poly" assume "s \<noteq> 0"
-  moreover assume "euclidean_size_field_poly p < euclidean_size_field_poly q"
-  ultimately show "euclidean_size_field_poly (p * s) < euclidean_size_field_poly (q * s)"
-    by (auto simp add: euclidean_size_field_poly_def degree_mult_eq)
-next
-  fix p q r :: "'a poly" assume "p \<noteq> 0"
-  moreover assume "euclidean_size_field_poly r < euclidean_size_field_poly p"
-  ultimately show "(q * p + r) div p = q"
-    by (cases "r = 0")
-      (auto simp add: unit_factor_field_poly_def euclidean_size_field_poly_def div_poly_less)
-qed (auto simp: unit_factor_field_poly_def normalize_field_poly_def lead_coeff_mult 
-       euclidean_size_field_poly_def Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
+  rewrites "dvd.dvd (times :: 'a poly \<Rightarrow> _) = Rings.dvd"
+    and "comm_monoid_mult.prod_mset times 1 = prod_mset"
+    and "comm_semiring_1.irreducible times 1 0 = irreducible"
+    and "comm_semiring_1.prime_elem times 1 0 = prime_elem"
+proof -
+  show "dvd.dvd (times :: 'a poly \<Rightarrow> _) = Rings.dvd"
+    by (simp add: dvd_dict)
+  show "comm_monoid_mult.prod_mset times 1 = prod_mset"
+    by (simp add: prod_mset_dict)
+  show "comm_semiring_1.irreducible times 1 0 = irreducible"
+    by (simp add: irreducible_dict)
+  show "comm_semiring_1.prime_elem times 1 0 = prime_elem"
+    by (simp add: prime_elem_dict)
+  show "class.unique_euclidean_ring divide plus minus (0 :: 'a poly) times 1 modulo
+    (\<lambda>p. [:lead_coeff p:]) (\<lambda>p. smult (inverse (lead_coeff p)) p)
+    (\<lambda>p. if p = 0 then 0 else 2 ^ degree p) uminus top"
+  proof (standard, fold dvd_dict)
+    fix p :: "'a poly"
+    show "[:lead_coeff p:] * smult (inverse (lead_coeff p)) p = p"
+      by (cases "p = 0") simp_all
+  next
+    fix p :: "'a poly" assume "is_unit p"
+    then show "[:lead_coeff p:] = p"
+      by (elim is_unit_polyE) (auto simp: monom_0 one_poly_def field_simps)
+  next
+    fix p :: "'a poly" assume "p \<noteq> 0"
+    then show "is_unit [:lead_coeff p:]"
+      by (simp add: is_unit_pCons_iff)
+  next
+    fix p q s :: "'a poly" assume "s \<noteq> 0"
+    moreover assume "(if p = 0 then (0::nat) else 2 ^ degree p) < (if q = 0 then 0 else 2 ^ degree q)"
+    ultimately show "(if p * s = 0 then (0::nat) else 2 ^ degree (p * s)) < (if q * s = 0 then 0 else 2 ^ degree (q * s))"
+      by (auto simp add: degree_mult_eq)
+  next
+    fix p q r :: "'a poly" assume "p \<noteq> 0"
+    moreover assume "(if r = 0 then (0::nat) else 2 ^ degree r)
+    < (if p = 0 then 0 else 2 ^ degree p)"
+    ultimately show "(q * p + r) div p = q"
+      by (cases "r = 0") (auto simp add: div_poly_less)
+  qed (auto simp: lead_coeff_mult Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
+qed
 
 lemma field_poly_irreducible_imp_prime:
-  assumes "irreducible (p :: 'a :: field poly)"
-  shows   "prime_elem p"
-proof -
-  have A: "class.comm_semiring_1 op * 1 op + (0 :: 'a poly)" ..
-  from field_poly.irreducible_imp_prime_elem[of p] assms
-    show ?thesis unfolding irreducible_def prime_elem_def dvd_field_poly
-      comm_semiring_1.irreducible_def[OF A] comm_semiring_1.prime_elem_def[OF A] by blast
-qed
+  "prime_elem p" if "irreducible p" for p :: "'a :: field poly"
+  using that by (fact field_poly.irreducible_imp_prime_elem)
 
 lemma field_poly_prod_mset_prime_factorization:
-  assumes "(x :: 'a :: field poly) \<noteq> 0"
-  shows   "prod_mset (field_poly.prime_factorization x) = normalize_field_poly x"
-proof -
-  have A: "class.comm_monoid_mult op * (1 :: 'a poly)" ..
-  have "comm_monoid_mult.prod_mset op * (1 :: 'a poly) = prod_mset"
-    by (intro ext) (simp add: comm_monoid_mult.prod_mset_def[OF A] prod_mset_def)
-  with field_poly.prod_mset_prime_factorization[OF assms] show ?thesis by simp
-qed
+  "prod_mset (field_poly.prime_factorization p) = smult (inverse (lead_coeff p)) p"
+  if "p \<noteq> 0" for p :: "'a :: field poly"
+  using that by (fact field_poly.prod_mset_prime_factorization)
 
 lemma field_poly_in_prime_factorization_imp_prime:
-  assumes "(p :: 'a :: field poly) \<in># field_poly.prime_factorization x"
-  shows   "prime_elem p"
-proof -
-  have A: "class.comm_semiring_1 op * 1 op + (0 :: 'a poly)" ..
-  have B: "class.normalization_semidom op div op + op - (0 :: 'a poly) op * 1 
-             unit_factor_field_poly normalize_field_poly" ..
-  from field_poly.in_prime_factors_imp_prime [of p x] assms
-    show ?thesis unfolding prime_elem_def dvd_field_poly
-      comm_semiring_1.prime_elem_def[OF A] normalization_semidom.prime_def[OF B] by blast
-qed
+  "prime_elem p" if "p \<in># field_poly.prime_factorization x"
+  for p :: "'a :: field poly"
+  by (rule field_poly.prime_imp_prime_elem, rule field_poly.in_prime_factors_imp_prime)
+    (fact that)
 
 
 subsection \<open>Primality and irreducibility in polynomial rings\<close>
@@ -658,9 +560,6 @@ next
   qed
 qed
 
-context
-begin
-
 private lemma irreducible_imp_prime_poly:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
   assumes "irreducible p"
@@ -685,7 +584,6 @@ next
     with primitive show "p dvd q \<or> p dvd r" by (auto dest: fract_poly_dvdD)
   qed (insert assms, auto simp: irreducible_def)
 qed
-
 
 lemma degree_primitive_part_fract [simp]:
   "degree (primitive_part_fract p) = degree p"
@@ -749,13 +647,8 @@ lemma prime_elem_linear_poly:
   shows "b \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> prime_elem [:a,b:]"
   by (rule irreducible_imp_prime_poly, rule irreducible_linear_poly)
 
-end
-
  
 subsection \<open>Prime factorisation of polynomials\<close>   
-
-context
-begin 
 
 private lemma poly_prime_factorization_exists_content_1:
   fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
@@ -775,11 +668,12 @@ proof -
   finally have content_e: "content e = 1"
     by simp    
   
-  have "fract_poly p = unit_factor_field_poly (fract_poly p) * 
-          normalize_field_poly (fract_poly p)" by simp
-  also have "unit_factor_field_poly (fract_poly p) = [:to_fract (lead_coeff p):]" 
-    by (simp add: unit_factor_field_poly_def monom_0 degree_map_poly coeff_map_poly)
-  also from assms have "normalize_field_poly (fract_poly p) = prod_mset ?P" 
+  from \<open>p \<noteq> 0\<close> have "fract_poly p = [:lead_coeff (fract_poly p):] * 
+    smult (inverse (lead_coeff (fract_poly p))) (fract_poly p)"
+    by simp 
+  also have "[:lead_coeff (fract_poly p):] = [:to_fract (lead_coeff p):]" 
+    by (simp add: monom_0 degree_map_poly coeff_map_poly)
+  also from assms have "smult (inverse (lead_coeff (fract_poly p))) (fract_poly p) = prod_mset ?P" 
     by (subst field_poly_prod_mset_prime_factorization) simp_all
   also have "\<dots> = prod_mset (image_mset id ?P)" by simp
   also have "image_mset id ?P = 

@@ -12,6 +12,7 @@ imports
   Nth_Powers
   Polynomial_FPS
   Polynomial
+  Polynomial_Factorial
   Primes
   Squarefree
 begin

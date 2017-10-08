@@ -12,6 +12,7 @@ imports
   HOL.Deriv
   "HOL-Library.More_List"
   "HOL-Library.Infinite_Set"
+  Factorial_Ring
 begin
 
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
@@ -2881,167 +2882,6 @@ next
 qed
 
 
-subsection \<open>Content and primitive part of a polynomial\<close>
-
-definition content :: "'a::semiring_gcd poly \<Rightarrow> 'a"
-  where "content p = gcd_list (coeffs p)"
-
-lemma content_eq_fold_coeffs [code]: "content p = fold_coeffs gcd p 0"
-  by (simp add: content_def Gcd_fin.set_eq_fold fold_coeffs_def foldr_fold fun_eq_iff ac_simps)
-
-lemma content_0 [simp]: "content 0 = 0"
-  by (simp add: content_def)
-
-lemma content_1 [simp]: "content 1 = 1"
-  by (simp add: content_def)
-
-lemma content_const [simp]: "content [:c:] = normalize c"
-  by (simp add: content_def cCons_def)
-
-lemma const_poly_dvd_iff_dvd_content: "[:c:] dvd p \<longleftrightarrow> c dvd content p"
-  for c :: "'a::semiring_gcd"
-proof (cases "p = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  have "[:c:] dvd p \<longleftrightarrow> (\<forall>n. c dvd coeff p n)"
-    by (rule const_poly_dvd_iff)
-  also have "\<dots> \<longleftrightarrow> (\<forall>a\<in>set (coeffs p). c dvd a)"
-  proof safe
-    fix n :: nat
-    assume "\<forall>a\<in>set (coeffs p). c dvd a"
-    then show "c dvd coeff p n"
-      by (cases "n \<le> degree p") (auto simp: coeff_eq_0 coeffs_def split: if_splits)
-  qed (auto simp: coeffs_def simp del: upt_Suc split: if_splits)
-  also have "\<dots> \<longleftrightarrow> c dvd content p"
-    by (simp add: content_def dvd_Gcd_fin_iff dvd_mult_unit_iff)
-  finally show ?thesis .
-qed
-
-lemma content_dvd [simp]: "[:content p:] dvd p"
-  by (subst const_poly_dvd_iff_dvd_content) simp_all
-
-lemma content_dvd_coeff [simp]: "content p dvd coeff p n"
-proof (cases "p = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  then show ?thesis
-    by (cases "n \<le> degree p")
-      (auto simp add: content_def not_le coeff_eq_0 coeff_in_coeffs intro: Gcd_fin_dvd)
-qed
-
-lemma content_dvd_coeffs: "c \<in> set (coeffs p) \<Longrightarrow> content p dvd c"
-  by (simp add: content_def Gcd_fin_dvd)
-
-lemma normalize_content [simp]: "normalize (content p) = content p"
-  by (simp add: content_def)
-
-lemma is_unit_content_iff [simp]: "is_unit (content p) \<longleftrightarrow> content p = 1"
-proof
-  assume "is_unit (content p)"
-  then have "normalize (content p) = 1" by (simp add: is_unit_normalize del: normalize_content)
-  then show "content p = 1" by simp
-qed auto
-
-lemma content_smult [simp]: "content (smult c p) = normalize c * content p"
-  by (simp add: content_def coeffs_smult Gcd_fin_mult)
-
-lemma content_eq_zero_iff [simp]: "content p = 0 \<longleftrightarrow> p = 0"
-  by (auto simp: content_def simp: poly_eq_iff coeffs_def)
-
-definition primitive_part :: "'a :: semiring_gcd poly \<Rightarrow> 'a poly"
-  where "primitive_part p = map_poly (\<lambda>x. x div content p) p"
-
-lemma primitive_part_0 [simp]: "primitive_part 0 = 0"
-  by (simp add: primitive_part_def)
-
-lemma content_times_primitive_part [simp]: "smult (content p) (primitive_part p) = p"
-  for p :: "'a :: semiring_gcd poly"
-proof (cases "p = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then show ?thesis
-  unfolding primitive_part_def
-  by (auto simp: smult_conv_map_poly map_poly_map_poly o_def content_dvd_coeffs
-      intro: map_poly_idI)
-qed
-
-lemma primitive_part_eq_0_iff [simp]: "primitive_part p = 0 \<longleftrightarrow> p = 0"
-proof (cases "p = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have "primitive_part p = map_poly (\<lambda>x. x div content p) p"
-    by (simp add:  primitive_part_def)
-  also from False have "\<dots> = 0 \<longleftrightarrow> p = 0"
-    by (intro map_poly_eq_0_iff) (auto simp: dvd_div_eq_0_iff content_dvd_coeffs)
-  finally show ?thesis
-    using False by simp
-qed
-
-lemma content_primitive_part [simp]:
-  assumes "p \<noteq> 0"
-  shows "content (primitive_part p) = 1"
-proof -
-  have "p = smult (content p) (primitive_part p)"
-    by simp
-  also have "content \<dots> = content (primitive_part p) * content p"
-    by (simp del: content_times_primitive_part add: ac_simps)
-  finally have "1 * content p = content (primitive_part p) * content p"
-    by simp
-  then have "1 * content p div content p = content (primitive_part p) * content p div content p"
-    by simp
-  with assms show ?thesis
-    by simp
-qed
-
-lemma content_decompose:
-  obtains p' :: "'a::semiring_gcd poly" where "p = smult (content p) p'" "content p' = 1"
-proof (cases "p = 0")
-  case True
-  then show ?thesis by (intro that[of 1]) simp_all
-next
-  case False
-  from content_dvd[of p] obtain r where r: "p = [:content p:] * r"
-    by (rule dvdE)
-  have "content p * 1 = content p * content r"
-    by (subst r) simp
-  with False have "content r = 1"
-    by (subst (asm) mult_left_cancel) simp_all
-  with r show ?thesis
-    by (intro that[of r]) simp_all
-qed
-
-lemma content_dvd_contentI [intro]: "p dvd q \<Longrightarrow> content p dvd content q"
-  using const_poly_dvd_iff_dvd_content content_dvd dvd_trans by blast
-
-lemma primitive_part_const_poly [simp]: "primitive_part [:x:] = [:unit_factor x:]"
-  by (simp add: primitive_part_def map_poly_pCons)
-
-lemma primitive_part_prim: "content p = 1 \<Longrightarrow> primitive_part p = p"
-  by (auto simp: primitive_part_def)
-
-lemma degree_primitive_part [simp]: "degree (primitive_part p) = degree p"
-proof (cases "p = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  have "p = smult (content p) (primitive_part p)"
-    by simp
-  also from False have "degree \<dots> = degree (primitive_part p)"
-    by (subst degree_smult_eq) simp_all
-  finally show ?thesis ..
-qed
-
-
 subsection \<open>Division of polynomials\<close>
 
 subsubsection \<open>Division in general\<close>
@@ -3646,16 +3486,6 @@ proof -
   have "smult c p = [:c:] * p" by simp
   also have "normalize \<dots> = smult (normalize c) (normalize p)"
     by (subst normalize_mult) (simp add: normalize_const_poly)
-  finally show ?thesis .
-qed
-
-lemma smult_content_normalize_primitive_part [simp]:
-  "smult (content p) (normalize (primitive_part p)) = normalize p"
-proof -
-  have "smult (content p) (normalize (primitive_part p)) =
-      normalize ([:content p:] * primitive_part p)"
-    by (subst normalize_mult) (simp_all add: normalize_const_poly)
-  also have "[:content p:] * primitive_part p = p" by simp
   finally show ?thesis .
 qed
 
@@ -4501,6 +4331,387 @@ proof -
         (auto simp: lcg ltp, simp add: degree_eq_length_coeffs)
   qed
 qed
+
+
+subsection \<open>Primality and irreducibility in polynomial rings\<close>
+
+lemma prod_mset_const_poly: "(\<Prod>x\<in>#A. [:f x:]) = [:prod_mset (image_mset f A):]"
+  by (induct A) (simp_all add: ac_simps)
+
+lemma irreducible_const_poly_iff:
+  fixes c :: "'a :: {comm_semiring_1,semiring_no_zero_divisors}"
+  shows "irreducible [:c:] \<longleftrightarrow> irreducible c"
+proof
+  assume A: "irreducible c"
+  show "irreducible [:c:]"
+  proof (rule irreducibleI)
+    fix a b assume ab: "[:c:] = a * b"
+    hence "degree [:c:] = degree (a * b)" by (simp only: )
+    also from A ab have "a \<noteq> 0" "b \<noteq> 0" by auto
+    hence "degree (a * b) = degree a + degree b" by (simp add: degree_mult_eq)
+    finally have "degree a = 0" "degree b = 0" by auto
+    then obtain a' b' where ab': "a = [:a':]" "b = [:b':]" by (auto elim!: degree_eq_zeroE)
+    from ab have "coeff [:c:] 0 = coeff (a * b) 0" by (simp only: )
+    hence "c = a' * b'" by (simp add: ab' mult_ac)
+    from A and this have "a' dvd 1 \<or> b' dvd 1" by (rule irreducibleD)
+    with ab' show "a dvd 1 \<or> b dvd 1"
+      by (auto simp add: is_unit_const_poly_iff)
+  qed (insert A, auto simp: irreducible_def is_unit_poly_iff)
+next
+  assume A: "irreducible [:c:]"
+  then have "c \<noteq> 0" and "\<not> c dvd 1"
+    by (auto simp add: irreducible_def is_unit_const_poly_iff)
+  then show "irreducible c"
+  proof (rule irreducibleI)
+    fix a b assume ab: "c = a * b"
+    hence "[:c:] = [:a:] * [:b:]" by (simp add: mult_ac)
+    from A and this have "[:a:] dvd 1 \<or> [:b:] dvd 1" by (rule irreducibleD)
+    then show "a dvd 1 \<or> b dvd 1"
+      by (auto simp add: is_unit_const_poly_iff)
+  qed
+qed
+
+lemma lift_prime_elem_poly:
+  assumes "prime_elem (c :: 'a :: semidom)"
+  shows   "prime_elem [:c:]"
+proof (rule prime_elemI)
+  fix a b assume *: "[:c:] dvd a * b"
+  from * have dvd: "c dvd coeff (a * b) n" for n
+    by (subst (asm) const_poly_dvd_iff) blast
+  {
+    define m where "m = (GREATEST m. \<not>c dvd coeff b m)"
+    assume "\<not>[:c:] dvd b"
+    hence A: "\<exists>i. \<not>c dvd coeff b i" by (subst (asm) const_poly_dvd_iff) blast
+    have B: "\<forall>i. \<not>c dvd coeff b i \<longrightarrow> i \<le> degree b"
+      by (auto intro: le_degree)
+    have coeff_m: "\<not>c dvd coeff b m" unfolding m_def by (rule GreatestI_ex_nat[OF A B])
+    have "i \<le> m" if "\<not>c dvd coeff b i" for i
+      unfolding m_def by (rule Greatest_le_nat[OF that B])
+    hence dvd_b: "c dvd coeff b i" if "i > m" for i using that by force
+
+    have "c dvd coeff a i" for i
+    proof (induction i rule: nat_descend_induct[of "degree a"])
+      case (base i)
+      thus ?case by (simp add: coeff_eq_0)
+    next
+      case (descend i)
+      let ?A = "{..i+m} - {i}"
+      have "c dvd coeff (a * b) (i + m)" by (rule dvd)
+      also have "coeff (a * b) (i + m) = (\<Sum>k\<le>i + m. coeff a k * coeff b (i + m - k))"
+        by (simp add: coeff_mult)
+      also have "{..i+m} = insert i ?A" by auto
+      also have "(\<Sum>k\<in>\<dots>. coeff a k * coeff b (i + m - k)) =
+                   coeff a i * coeff b m + (\<Sum>k\<in>?A. coeff a k * coeff b (i + m - k))"
+        (is "_ = _ + ?S")
+        by (subst sum.insert) simp_all
+      finally have eq: "c dvd coeff a i * coeff b m + ?S" .
+      moreover have "c dvd ?S"
+      proof (rule dvd_sum)
+        fix k assume k: "k \<in> {..i+m} - {i}"
+        show "c dvd coeff a k * coeff b (i + m - k)"
+        proof (cases "k < i")
+          case False
+          with k have "c dvd coeff a k" by (intro descend.IH) simp
+          thus ?thesis by simp
+        next
+          case True
+          hence "c dvd coeff b (i + m - k)" by (intro dvd_b) simp
+          thus ?thesis by simp
+        qed
+      qed
+      ultimately have "c dvd coeff a i * coeff b m"
+        by (simp add: dvd_add_left_iff)
+      with assms coeff_m show "c dvd coeff a i"
+        by (simp add: prime_elem_dvd_mult_iff)
+    qed
+    hence "[:c:] dvd a" by (subst const_poly_dvd_iff) blast
+  }
+  then show "[:c:] dvd a \<or> [:c:] dvd b" by blast
+next
+  from assms show "[:c:] \<noteq> 0" and "\<not> [:c:] dvd 1"
+    by (simp_all add: prime_elem_def is_unit_const_poly_iff)
+qed
+
+lemma prime_elem_const_poly_iff:
+  fixes c :: "'a :: semidom"
+  shows   "prime_elem [:c:] \<longleftrightarrow> prime_elem c"
+proof
+  assume A: "prime_elem [:c:]"
+  show "prime_elem c"
+  proof (rule prime_elemI)
+    fix a b assume "c dvd a * b"
+    hence "[:c:] dvd [:a:] * [:b:]" by (simp add: mult_ac)
+    from A and this have "[:c:] dvd [:a:] \<or> [:c:] dvd [:b:]" by (rule prime_elem_dvd_multD)
+    thus "c dvd a \<or> c dvd b" by simp
+  qed (insert A, auto simp: prime_elem_def is_unit_poly_iff)
+qed (auto intro: lift_prime_elem_poly)
+
+
+subsection \<open>Content and primitive part of a polynomial\<close>
+
+definition content :: "'a::semiring_gcd poly \<Rightarrow> 'a"
+  where "content p = gcd_list (coeffs p)"
+
+lemma content_eq_fold_coeffs [code]: "content p = fold_coeffs gcd p 0"
+  by (simp add: content_def Gcd_fin.set_eq_fold fold_coeffs_def foldr_fold fun_eq_iff ac_simps)
+
+lemma content_0 [simp]: "content 0 = 0"
+  by (simp add: content_def)
+
+lemma content_1 [simp]: "content 1 = 1"
+  by (simp add: content_def)
+
+lemma content_const [simp]: "content [:c:] = normalize c"
+  by (simp add: content_def cCons_def)
+
+lemma const_poly_dvd_iff_dvd_content: "[:c:] dvd p \<longleftrightarrow> c dvd content p"
+  for c :: "'a::semiring_gcd"
+proof (cases "p = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  have "[:c:] dvd p \<longleftrightarrow> (\<forall>n. c dvd coeff p n)"
+    by (rule const_poly_dvd_iff)
+  also have "\<dots> \<longleftrightarrow> (\<forall>a\<in>set (coeffs p). c dvd a)"
+  proof safe
+    fix n :: nat
+    assume "\<forall>a\<in>set (coeffs p). c dvd a"
+    then show "c dvd coeff p n"
+      by (cases "n \<le> degree p") (auto simp: coeff_eq_0 coeffs_def split: if_splits)
+  qed (auto simp: coeffs_def simp del: upt_Suc split: if_splits)
+  also have "\<dots> \<longleftrightarrow> c dvd content p"
+    by (simp add: content_def dvd_Gcd_fin_iff dvd_mult_unit_iff)
+  finally show ?thesis .
+qed
+
+lemma content_dvd [simp]: "[:content p:] dvd p"
+  by (subst const_poly_dvd_iff_dvd_content) simp_all
+
+lemma content_dvd_coeff [simp]: "content p dvd coeff p n"
+proof (cases "p = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then show ?thesis
+    by (cases "n \<le> degree p")
+      (auto simp add: content_def not_le coeff_eq_0 coeff_in_coeffs intro: Gcd_fin_dvd)
+qed
+
+lemma content_dvd_coeffs: "c \<in> set (coeffs p) \<Longrightarrow> content p dvd c"
+  by (simp add: content_def Gcd_fin_dvd)
+
+lemma normalize_content [simp]: "normalize (content p) = content p"
+  by (simp add: content_def)
+
+lemma is_unit_content_iff [simp]: "is_unit (content p) \<longleftrightarrow> content p = 1"
+proof
+  assume "is_unit (content p)"
+  then have "normalize (content p) = 1" by (simp add: is_unit_normalize del: normalize_content)
+  then show "content p = 1" by simp
+qed auto
+
+lemma content_smult [simp]: "content (smult c p) = normalize c * content p"
+  by (simp add: content_def coeffs_smult Gcd_fin_mult)
+
+lemma content_eq_zero_iff [simp]: "content p = 0 \<longleftrightarrow> p = 0"
+  by (auto simp: content_def simp: poly_eq_iff coeffs_def)
+
+definition primitive_part :: "'a :: semiring_gcd poly \<Rightarrow> 'a poly"
+  where "primitive_part p = map_poly (\<lambda>x. x div content p) p"
+
+lemma primitive_part_0 [simp]: "primitive_part 0 = 0"
+  by (simp add: primitive_part_def)
+
+lemma content_times_primitive_part [simp]: "smult (content p) (primitive_part p) = p"
+  for p :: "'a :: semiring_gcd poly"
+proof (cases "p = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then show ?thesis
+  unfolding primitive_part_def
+  by (auto simp: smult_conv_map_poly map_poly_map_poly o_def content_dvd_coeffs
+      intro: map_poly_idI)
+qed
+
+lemma primitive_part_eq_0_iff [simp]: "primitive_part p = 0 \<longleftrightarrow> p = 0"
+proof (cases "p = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then have "primitive_part p = map_poly (\<lambda>x. x div content p) p"
+    by (simp add:  primitive_part_def)
+  also from False have "\<dots> = 0 \<longleftrightarrow> p = 0"
+    by (intro map_poly_eq_0_iff) (auto simp: dvd_div_eq_0_iff content_dvd_coeffs)
+  finally show ?thesis
+    using False by simp
+qed
+
+lemma content_primitive_part [simp]:
+  assumes "p \<noteq> 0"
+  shows "content (primitive_part p) = 1"
+proof -
+  have "p = smult (content p) (primitive_part p)"
+    by simp
+  also have "content \<dots> = content (primitive_part p) * content p"
+    by (simp del: content_times_primitive_part add: ac_simps)
+  finally have "1 * content p = content (primitive_part p) * content p"
+    by simp
+  then have "1 * content p div content p = content (primitive_part p) * content p div content p"
+    by simp
+  with assms show ?thesis
+    by simp
+qed
+
+lemma content_decompose:
+  obtains p' :: "'a::semiring_gcd poly" where "p = smult (content p) p'" "content p' = 1"
+proof (cases "p = 0")
+  case True
+  then show ?thesis by (intro that[of 1]) simp_all
+next
+  case False
+  from content_dvd[of p] obtain r where r: "p = [:content p:] * r"
+    by (rule dvdE)
+  have "content p * 1 = content p * content r"
+    by (subst r) simp
+  with False have "content r = 1"
+    by (subst (asm) mult_left_cancel) simp_all
+  with r show ?thesis
+    by (intro that[of r]) simp_all
+qed
+
+lemma content_dvd_contentI [intro]: "p dvd q \<Longrightarrow> content p dvd content q"
+  using const_poly_dvd_iff_dvd_content content_dvd dvd_trans by blast
+
+lemma primitive_part_const_poly [simp]: "primitive_part [:x:] = [:unit_factor x:]"
+  by (simp add: primitive_part_def map_poly_pCons)
+
+lemma primitive_part_prim: "content p = 1 \<Longrightarrow> primitive_part p = p"
+  by (auto simp: primitive_part_def)
+
+lemma degree_primitive_part [simp]: "degree (primitive_part p) = degree p"
+proof (cases "p = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  have "p = smult (content p) (primitive_part p)"
+    by simp
+  also from False have "degree \<dots> = degree (primitive_part p)"
+    by (subst degree_smult_eq) simp_all
+  finally show ?thesis ..
+qed
+
+lemma smult_content_normalize_primitive_part [simp]:
+  "smult (content p) (normalize (primitive_part p)) = normalize p"
+proof -
+  have "smult (content p) (normalize (primitive_part p)) =
+      normalize ([:content p:] * primitive_part p)"
+    by (subst normalize_mult) (simp_all add: normalize_const_poly)
+  also have "[:content p:] * primitive_part p = p" by simp
+  finally show ?thesis .
+qed
+
+lemma content_mult:
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd} poly"
+  shows "content (p * q) = content p * content q"
+proof -
+  from content_decompose[of p] guess p' . note p = this
+  from content_decompose[of q] guess q' . note q = this
+  have "content (p * q) = content p * content q * content (p' * q')"
+    by (subst p, subst q) (simp add: mult_ac normalize_mult)
+  also have "content (p' * q') = 1"
+  proof (cases "p' * q' = 0")
+    case True
+    with \<open>content p' = 1\<close> \<open>content q' = 1\<close> show ?thesis
+      by auto
+  next  
+    case False
+    from \<open>content p' = 1\<close> \<open>content q' = 1\<close>
+    have "p' \<noteq> 0" "q' \<noteq> 0"
+      by auto
+    then have "p' * q' \<noteq> 0"
+      by auto
+    have "is_unit (content (p' * q'))"
+    proof (rule ccontr)      
+      assume "\<not> is_unit (content (p' * q'))"
+      with False have "\<exists>p. p dvd content (p' * q') \<and> prime p"
+        by (intro prime_divisor_exists) simp_all
+      then obtain p where "p dvd content (p' * q')" "prime p"
+        by blast
+      from \<open>p dvd content (p' * q')\<close> have "[:p:] dvd p' * q'"
+        by (simp add: const_poly_dvd_iff_dvd_content)
+      moreover from \<open>prime p\<close> have "prime_elem [:p:]"
+        by (simp add: lift_prime_elem_poly)
+      ultimately have "[:p:] dvd p' \<or> [:p:] dvd q'"
+        by (simp add: prime_elem_dvd_mult_iff)
+      with \<open>content p' = 1\<close> \<open>content q' = 1\<close> have "is_unit p"
+        by (simp add: const_poly_dvd_iff_dvd_content)
+      with \<open>prime p\<close> show False
+        by simp
+    qed    
+    then have "normalize (content (p' * q')) = 1"
+      by (simp add: is_unit_normalize del: normalize_content)
+    then show ?thesis
+      by simp
+  qed
+  finally show ?thesis
+    by simp
+qed
+
+lemma primitive_part_mult:
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
+  shows "primitive_part (p * q) = primitive_part p * primitive_part q"
+proof -
+  have "primitive_part (p * q) = p * q div [:content (p * q):]"
+    by (simp add: primitive_part_def div_const_poly_conv_map_poly)
+  also have "\<dots> = (p div [:content p:]) * (q div [:content q:])"
+    by (subst div_mult_div_if_dvd) (simp_all add: content_mult mult_ac)
+  also have "\<dots> = primitive_part p * primitive_part q"
+    by (simp add: primitive_part_def div_const_poly_conv_map_poly)
+  finally show ?thesis .
+qed
+
+lemma primitive_part_smult:
+  fixes p :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
+  shows "primitive_part (smult a p) = smult (unit_factor a) (primitive_part p)"
+proof -
+  have "smult a p = [:a:] * p" by simp
+  also have "primitive_part \<dots> = smult (unit_factor a) (primitive_part p)"
+    by (subst primitive_part_mult) simp_all
+  finally show ?thesis .
+qed  
+
+lemma primitive_part_dvd_primitive_partI [intro]:
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
+  shows "p dvd q \<Longrightarrow> primitive_part p dvd primitive_part q"
+  by (auto elim!: dvdE simp: primitive_part_mult)
+
+lemma content_prod_mset: 
+  fixes A :: "'a :: {factorial_semiring, semiring_Gcd} poly multiset"
+  shows "content (prod_mset A) = prod_mset (image_mset content A)"
+  by (induction A) (simp_all add: content_mult mult_ac)
+
+lemma content_prod_eq_1_iff: 
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd} poly"
+  shows "content (p * q) = 1 \<longleftrightarrow> content p = 1 \<and> content q = 1"
+proof safe
+  assume A: "content (p * q) = 1"
+  {
+    fix p q :: "'a poly" assume "content p * content q = 1"
+    hence "1 = content p * content q" by simp
+    hence "content p dvd 1" by (rule dvdI)
+    hence "content p = 1" by simp
+  } note B = this
+  from A B[of p q] B [of q p] show "content p = 1" "content q = 1" 
+    by (simp_all add: content_mult mult_ac)
+qed (auto simp: content_mult)
+
 
 no_notation cCons (infixr "##" 65)
 
