@@ -154,7 +154,6 @@ fun extend_entry ctxt (a, D) guess
     { inj = inj1, embed = embed1, return = return1, cong = cong1, hints = hints1 }
     { inj = inj2, embed = embed2, return = return2, cong = cong2, hints = hints2 } =
   let
-    fun add_del eq del add = union eq add #> subtract eq del;
     val guessed = if guess
       then map (fn thm => transfer_thm
         ((a, D), (if null inj1 then inj2 else inj1, [], [], cong1)) [] ctxt thm RS sym) embed1

@@ -285,7 +285,7 @@ lemma transfer_int_nat_functions:
     "(int x) * (int y) = int (x * y)"
     "tsub (int x) (int y) = int (x - y)"
     "(int x)^n = int (x^n)"
-  by (auto simp add: of_nat_mult tsub_def of_nat_power)
+  by (auto simp add: tsub_def)
 
 lemma transfer_int_nat_function_closures:
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x + y)"
