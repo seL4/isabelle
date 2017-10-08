@@ -17,6 +17,7 @@ imports
   Countable_Set_Type
   Debug
   Diagonal_Subsequence
+  Discrete
   Disjoint_Sets
   Dlist
   Extended
@@ -28,7 +29,6 @@ imports
   FSet
   FuncSet
   Function_Division
-  Function_Growth
   Fun_Lexorder
   Going_To_Filter
   Groups_Big_Fun

@@ -548,6 +548,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Executable_Relation
     Execute_Choice
     Functions
+    Function_Growth
     Gauge_Integration
     Groebner_Examples
     Guess

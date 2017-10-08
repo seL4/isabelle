@@ -4,7 +4,10 @@
 section \<open>Comparing growth of functions on natural numbers by a preorder relation\<close>
 
 theory Function_Growth
-imports Main Preorder Discrete
+imports
+  Main
+  "HOL-Library.Preorder"
+  "HOL-Library.Discrete"
 begin
 
 (* FIXME move *)
