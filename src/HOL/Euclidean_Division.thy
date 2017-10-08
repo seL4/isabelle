@@ -192,6 +192,10 @@ proof -
     by (auto intro!: euclidean_size_times_nonunit)
 qed
 
+lemma unit_imp_mod_eq_0:
+  "a mod b = 0" if "is_unit b"
+  using that by (simp add: mod_eq_0_iff_dvd unit_imp_dvd)
+
 end
 
 class euclidean_ring = idom_modulo + euclidean_semiring
