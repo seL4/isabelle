@@ -47,6 +47,10 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 * Fact mod_mult_self4 (on nat) renamed to mod_mult_self3', to avoid clash
 with fact mod_mult_self4 (on more generic semirings). INCOMPATIBILITY.
 
+* Facts sum.commute(_restrict) and prod.commute(_restrict) renamed to
+sum.swap(_restrict) and prod.swap(_restrict), to avoid name clashes
+on interpretation of abstract locales. INCOMPATIBILITY.
+
 * Predicate pairwise_coprime abolished, use "pairwise coprime" instead.
 INCOMPATIBILITY.
 

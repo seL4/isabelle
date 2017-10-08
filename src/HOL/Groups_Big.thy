@@ -425,14 +425,14 @@ next
     by (simp add: H)
 qed
 
-lemma commute: "F (\<lambda>i. F (g i) B) A = F (\<lambda>j. F (\<lambda>i. g i j) A) B"
+lemma swap: "F (\<lambda>i. F (g i) B) A = F (\<lambda>j. F (\<lambda>i. g i j) A) B"
   unfolding cartesian_product
   by (rule reindex_bij_witness [where i = "\<lambda>(i, j). (j, i)" and j = "\<lambda>(i, j). (j, i)"]) auto
 
-lemma commute_restrict:
+lemma swap_restrict:
   "finite A \<Longrightarrow> finite B \<Longrightarrow>
     F (\<lambda>x. F (g x) {y. y \<in> B \<and> R x y}) A = F (\<lambda>y. F (\<lambda>x. g x y) {x. x \<in> A \<and> R x y}) B"
-  by (simp add: inter_filter) (rule commute)
+  by (simp add: inter_filter) (rule swap)
 
 lemma Plus:
   fixes A :: "'b set" and B :: "'c set"
@@ -540,7 +540,7 @@ proof -
   then have "sum g S = sum (\<lambda>x. sum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
     by simp
   also have "\<dots> = sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-    by (rule sum.commute_restrict [OF fin finite_imageI [OF fin]])
+    by (rule sum.swap_restrict [OF fin finite_imageI [OF fin]])
   finally show ?thesis .
 qed
 
@@ -843,7 +843,7 @@ lemma sum_diff1_ring:
 lemma sum_product:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   shows "sum f A * sum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"
-  by (simp add: sum_distrib_left sum_distrib_right) (rule sum.commute)
+  by (simp add: sum_distrib_left sum_distrib_right) (rule sum.swap)
 
 lemma sum_mult_sum_if_inj:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
@@ -1021,7 +1021,7 @@ proof-
   have "?l = sum (\<lambda>i. sum (\<lambda>x.1) {j\<in>t. R i j}) s"
     by auto
   also have "\<dots> = ?r"
-    unfolding sum.commute_restrict [OF assms(1-2)]
+    unfolding sum.swap_restrict [OF assms(1-2)]
     using assms(3) by auto
   finally show ?thesis .
 qed

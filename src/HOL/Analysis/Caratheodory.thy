@@ -44,7 +44,7 @@ proof -
   qed
   also have "\<dots> = (SUP p. \<Sum>i<p. \<Sum>n. f (i, n))"
     unfolding suminf_sum[OF summableI, symmetric]
-    by (simp add: suminf_eq_SUP SUP_pair sum.commute[of _ "{..< fst _}"])
+    by (simp add: suminf_eq_SUP SUP_pair sum.swap[of _ "{..< fst _}"])
   finally show ?thesis unfolding g_def
     by (simp add: suminf_eq_SUP)
 qed
@@ -592,7 +592,7 @@ proof -
     assume "\<Union>C = \<Union>D"
     with split_sum[OF C D] split_sum[OF D C]
     have "(\<Sum>d\<in>D. \<mu> d) = (\<Sum>c\<in>C. \<mu> c)"
-      by (simp, subst sum.commute, simp add: ac_simps) }
+      by (simp, subst sum.swap, simp add: ac_simps) }
   note sum_eq = this
 
   { fix C assume C: "C \<subseteq> M" "finite C" "disjoint C"

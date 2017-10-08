@@ -106,7 +106,7 @@ proof -
     by (simp add: expand_superset [of "{a. g a \<noteq> \<^bold>1} \<union> {a. h a \<noteq> \<^bold>1}"] F.distrib)
 qed
 
-lemma commute:
+lemma swap:
   assumes "finite C"
   assumes subset: "{a. \<exists>b. g a b \<noteq> \<^bold>1} \<times> {b. \<exists>a. g a b \<noteq> \<^bold>1} \<subseteq> C" (is "?A \<times> ?B \<subseteq> C")
   shows "G (\<lambda>a. G (g a)) = G (\<lambda>b. G (\<lambda>a. g a b))"
@@ -122,7 +122,7 @@ proof -
     "{a. F.F (g a) {b. \<exists>a. g a b \<noteq> \<^bold>1} \<noteq> \<^bold>1} \<subseteq> {a. \<exists>b. g a b \<noteq> \<^bold>1}"
     "{a. F.F (\<lambda>aa. g aa a) {a. \<exists>b. g a b \<noteq> \<^bold>1} \<noteq> \<^bold>1} \<subseteq> {b. \<exists>a. g a b \<noteq> \<^bold>1}"
     by (auto elim: F.not_neutral_contains_not_neutral)
-  from F.commute have
+  from F.swap have
     "F.F (\<lambda>a. F.F (g a) {b. \<exists>a. g a b \<noteq> \<^bold>1}) {a. \<exists>b. g a b \<noteq> \<^bold>1} =
       F.F (\<lambda>b. F.F (\<lambda>a. g a b) {a. \<exists>b. g a b \<noteq> \<^bold>1}) {b. \<exists>a. g a b \<noteq> \<^bold>1}" .
   with subsets fins have "G (\<lambda>a. F.F (g a) {b. \<exists>a. g a b \<noteq> \<^bold>1}) =

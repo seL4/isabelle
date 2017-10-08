@@ -648,7 +648,7 @@ proof -
       if \<exists>x\<in>space M. y = f x \<and> z = g x then y * emeasure M {x\<in>space M. g x = z} else 0))"
     by (auto intro!: sum.cong simp: sum_distrib_left)
   also have "\<dots> = ?r"
-    by (subst sum.commute)
+    by (subst sum.swap)
        (auto intro!: sum.cong simp: sum.If_cases scaleR_sum_right[symmetric] eq)
   finally show "integral\<^sup>S M f = ?r" .
 qed

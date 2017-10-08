@@ -3133,7 +3133,7 @@ proof -
       done
     also have "\<dots> = sum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (sum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
       unfolding sum_distrib_left
-      apply (subst sum.commute)
+      apply (subst sum.swap)
       apply (rule sum.cong, rule refl)+
       apply simp
       done
@@ -3314,7 +3314,7 @@ proof -
     done
   have "?r =  sum (\<lambda>i. sum (\<lambda>(k,m). a$k * (c^k)$i * b$m * (d^m) $ (n - i)) {(k,m). k + m \<le> n}) {0..n}"
     apply (simp add: fps_mult_nth sum_distrib_left)
-    apply (subst sum.commute)
+    apply (subst sum.swap)
     apply (rule sum.cong)
     apply (auto simp add: field_simps)
     done

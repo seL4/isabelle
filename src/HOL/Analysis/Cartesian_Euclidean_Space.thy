@@ -518,14 +518,14 @@ lemma matrix_mul_rid:
 
 lemma matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
   apply (vector matrix_matrix_mult_def sum_distrib_left sum_distrib_right mult.assoc)
-  apply (subst sum.commute)
+  apply (subst sum.swap)
   apply simp
   done
 
 lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (vector matrix_matrix_mult_def matrix_vector_mult_def
     sum_distrib_left sum_distrib_right mult.assoc)
-  apply (subst sum.commute)
+  apply (subst sum.swap)
   apply simp
   done
 
@@ -556,7 +556,7 @@ lemma matrix_vector_mul_component: "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
 
 lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
   apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def sum_distrib_right sum_distrib_left ac_simps)
-  apply (subst sum.commute)
+  apply (subst sum.swap)
   apply simp
   done
 
@@ -659,7 +659,7 @@ lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. 
   apply (rule adjoint_unique)
   apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def
     sum_distrib_right sum_distrib_left)
-  apply (subst sum.commute)
+  apply (subst sum.swap)
   apply (auto simp add: ac_simps)
   done
 

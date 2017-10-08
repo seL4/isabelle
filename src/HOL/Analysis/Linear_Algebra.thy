@@ -1886,7 +1886,7 @@ proof -
   have "(\<Sum>x\<in>P. norm (f x)) \<le> (\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>)"
     by (rule sum_mono) (rule norm_le_l1)
   also have "(\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>) = (\<Sum>b\<in>Basis. \<Sum>x\<in>P. \<bar>f x \<bullet> b\<bar>)"
-    by (rule sum.commute)
+    by (rule sum.swap)
   also have "\<dots> \<le> of_nat (card (Basis :: 'n set)) * (2 * e)"
   proof (rule sum_bounded_above)
     fix i :: 'n

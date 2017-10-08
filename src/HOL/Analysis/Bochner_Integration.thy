@@ -368,7 +368,7 @@ proof -
       if \<exists>x\<in>space M. y = f x \<and> z = g x then measure M {x\<in>space M. g x = z} *\<^sub>R y else 0))"
     by (auto intro!: sum.cong simp: scaleR_sum_left)
   also have "\<dots> = ?r"
-    by (subst sum.commute)
+    by (subst sum.swap)
        (auto intro!: sum.cong simp: sum.If_cases scaleR_sum_right[symmetric] eq)
   finally show "simple_bochner_integral M f = ?r" .
 qed

@@ -59,7 +59,7 @@ proof -
   let ?S = "(\<Sum>j=0..<n. (\<Sum>k=0..<n. (a j - a k) * (b j - b k)))"
   have "2 * (of_nat n * (\<Sum>j=0..<n. (a j * b j)) - (\<Sum>j=0..<n. b j) * (\<Sum>k=0..<n. a k)) = ?S"
     by (simp only: one_add_one[symmetric] algebra_simps)
-      (simp add: algebra_simps sum_subtractf sum.distrib sum.commute[of "\<lambda>i j. a i * b j"] sum_distrib_left)
+      (simp add: algebra_simps sum_subtractf sum.distrib sum.swap[of "\<lambda>i j. a i * b j"] sum_distrib_left)
   also
   { fix i j::nat assume "i<n" "j<n"
     hence "a i - a j \<le> 0 \<and> b i - b j \<ge> 0 \<or> a i - a j \<ge> 0 \<and> b i - b j \<le> 0"

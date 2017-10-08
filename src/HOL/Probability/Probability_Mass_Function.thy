@@ -797,7 +797,7 @@ proof -
          (insert assms, auto simp: scaleR_sum_left)
   qed
   also have "\<dots> = (\<Sum>j\<in>A. pmf p j *\<^sub>R (\<Sum>i\<in>(\<Union>x\<in>A. set_pmf (f x)). pmf (f j) i *\<^sub>R h i))"
-    by (subst sum.commute) (simp add: scaleR_sum_right)
+    by (subst sum.swap) (simp add: scaleR_sum_right)
   also have "\<dots> = (\<Sum>j\<in>A. pmf p j *\<^sub>R measure_pmf.expectation (f j) h)"
   proof (intro sum.cong refl, goal_cases)
     case (1 x)
@@ -2141,7 +2141,7 @@ proof -
     by (intro sum.cong refl, subst sum_list_map_filter', subst sum_list_sum_nth) simp
   also have "\<dots> = (\<Sum>xa = 0..<length xs. (\<Sum>x\<in>set (map fst xs).
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
-    by (rule sum.commute)
+    by (rule sum.swap)
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then
                      (\<Sum>x\<in>set (map fst xs). if x = fst (xs ! xa) then snd (xs ! xa) else 0) else 0)"
     by (auto intro!: sum.cong sum.neutral simp del: sum.delta)
