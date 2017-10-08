@@ -82,6 +82,13 @@ Packaging
 
   hg up -r DISTNAME && Admin/build_release -M macbroy30 -O -l -R DISTNAME /home/isabelle/dist
 
+- Docker image:
+
+  isabelle build_docker -E -t makarius/isabelle:Isabelle2017 Isabelle2017_app.tar.gz
+
+  https://hub.docker.com/r/makarius/isabelle
+  https://docs.docker.com/docker-cloud/builds/push-images
+
 
 Final release stage
 ===================
