@@ -282,6 +282,9 @@ lemma [code]:
   "uniqueness_constraint (k :: integer) l \<longleftrightarrow> unit_factor k = unit_factor l"
   by (simp add: integer_eq_iff)
 
+instance integer :: ring_parity
+  by (standard; transfer) (simp_all add: of_nat_div odd_iff_mod_2_eq_one)
+
 instantiation integer :: unique_euclidean_semiring_numeral
 begin
 
@@ -926,6 +929,9 @@ lemma [code]:
 lemma [code]:
   "uniqueness_constraint = (\<top> :: natural \<Rightarrow> natural \<Rightarrow> bool)"
   by (simp add: fun_eq_iff)
+
+instance natural :: semiring_parity
+  by (standard; transfer) (simp_all add: of_nat_div odd_iff_mod_2_eq_one)
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"

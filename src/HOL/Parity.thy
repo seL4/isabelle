@@ -6,19 +6,73 @@
 section \<open>Parity in rings and semirings\<close>
 
 theory Parity
-  imports Nat_Transfer Euclidean_Division
+  imports Euclidean_Division
 begin
 
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
 
-class semiring_parity = comm_semiring_1_cancel + numeral +
-  assumes odd_one [simp]: "\<not> 2 dvd 1"
-  assumes odd_even_add: "\<not> 2 dvd a \<Longrightarrow> \<not> 2 dvd b \<Longrightarrow> 2 dvd a + b"
-  assumes even_multD: "2 dvd a * b \<Longrightarrow> 2 dvd a \<or> 2 dvd b"
-  assumes odd_ex_decrement: "\<not> 2 dvd a \<Longrightarrow> \<exists>b. a = b + 1"
+class semiring_parity = linordered_semidom + unique_euclidean_semiring +
+  assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
+    and odd_imp_mod_2_eq_1: "\<not> 2 dvd a \<Longrightarrow> a mod 2 = 1"
+
+context semiring_parity
 begin
 
-subclass semiring_numeral ..
+lemma of_nat_dvd_iff:
+  "of_nat m dvd of_nat n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
+proof (cases "m = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  show ?thesis
+  proof
+    assume ?Q
+    then show ?P
+      by (auto elim: dvd_class.dvdE)
+  next
+    assume ?P
+    with False have "of_nat n = of_nat n div of_nat m * of_nat m"
+      by simp
+    then have "of_nat n = of_nat (n div m * m)"
+      by (simp add: of_nat_div)
+    then have "n = n div m * m"
+      by (simp only: of_nat_eq_iff)
+    then have "n = m * (n div m)"
+      by (simp add: ac_simps)
+    then show ?Q ..
+  qed
+qed
+
+lemma of_nat_mod:
+  "of_nat (m mod n) = of_nat m mod of_nat n"
+proof -
+  have "of_nat m div of_nat n * of_nat n + of_nat m mod of_nat n = of_nat m"
+    by (simp add: div_mult_mod_eq)
+  also have "of_nat m = of_nat (m div n * n + m mod n)"
+    by simp
+  finally show ?thesis
+    by (simp only: of_nat_div of_nat_mult of_nat_add) simp
+qed
+
+lemma one_div_two_eq_zero [simp]:
+  "1 div 2 = 0"
+proof -
+  from of_nat_div [symmetric] have "of_nat 1 div of_nat 2 = of_nat 0"
+    by (simp only:) simp
+  then show ?thesis
+    by simp
+qed
+
+lemma one_mod_two_eq_one [simp]:
+  "1 mod 2 = 1"
+proof -
+  from of_nat_mod [symmetric] have "of_nat 1 mod of_nat 2 = of_nat 1"
+    by (simp only:) simp
+  then show ?thesis
+    by simp
+qed
 
 abbreviation even :: "'a \<Rightarrow> bool"
   where "even a \<equiv> 2 dvd a"
@@ -26,11 +80,27 @@ abbreviation even :: "'a \<Rightarrow> bool"
 abbreviation odd :: "'a \<Rightarrow> bool"
   where "odd a \<equiv> \<not> 2 dvd a"
 
-lemma even_zero [simp]: "even 0"
-  by (fact dvd_0_right)
+lemma even_iff_mod_2_eq_zero:
+  "even a \<longleftrightarrow> a mod 2 = 0"
+  by (fact dvd_eq_mod_eq_0)
 
-lemma even_plus_one_iff [simp]: "even (a + 1) \<longleftrightarrow> odd a"
-  by (auto simp add: dvd_add_right_iff intro: odd_even_add)
+lemma odd_iff_mod_2_eq_one:
+  "odd a \<longleftrightarrow> a mod 2 = 1"
+  by (auto dest: odd_imp_mod_2_eq_1)
+
+lemma parity_cases [case_names even odd]:
+  assumes "even a \<Longrightarrow> a mod 2 = 0 \<Longrightarrow> P"
+  assumes "odd a \<Longrightarrow> a mod 2 = 1 \<Longrightarrow> P"
+  shows P
+  using assms by (cases "even a") (simp_all add: odd_iff_mod_2_eq_one)
+
+lemma not_mod_2_eq_1_eq_0 [simp]:
+  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
+  by (cases a rule: parity_cases) simp_all
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
+  by (cases a rule: parity_cases) simp_all
 
 lemma evenE [elim?]:
   assumes "even a"
@@ -41,22 +111,107 @@ lemma oddE [elim?]:
   assumes "odd a"
   obtains b where "a = 2 * b + 1"
 proof -
-  from assms obtain b where *: "a = b + 1"
-    by (blast dest: odd_ex_decrement)
-  with assms have "even (b + 2)" by simp
-  then have "even b" by simp
-  then obtain c where "b = 2 * c" ..
-  with * have "a = 2 * c + 1" by simp
-  with that show thesis .
+  have "a = 2 * (a div 2) + a mod 2"
+    by (simp add: mult_div_mod_eq)
+  with assms have "a = 2 * (a div 2) + 1"
+    by (simp add: odd_iff_mod_2_eq_one)
+  then show ?thesis ..
 qed
 
-lemma even_times_iff [simp]: "even (a * b) \<longleftrightarrow> even a \<or> even b"
-  by (auto dest: even_multD)
+lemma mod_2_eq_odd:
+  "a mod 2 = of_bool (odd a)"
+  by (auto elim: oddE)
+
+lemma one_mod_2_pow_eq [simp]:
+  "1 mod (2 ^ n) = of_bool (n > 0)"
+proof -
+  have "1 mod (2 ^ n) = (of_bool (n > 0) :: nat)"
+    by (induct n) (simp_all add: mod_mult2_eq)
+  then have "of_nat (1 mod (2 ^ n)) = of_bool (n > 0)"
+    by simp
+  then show ?thesis
+    by (simp add: of_nat_mod)
+qed
+
+lemma even_of_nat [simp]:
+  "even (of_nat a) \<longleftrightarrow> even a"
+proof -
+  have "even (of_nat a) \<longleftrightarrow> of_nat 2 dvd of_nat a"
+    by simp
+  also have "\<dots> \<longleftrightarrow> even a"
+    by (simp only: of_nat_dvd_iff)
+  finally show ?thesis .
+qed
+
+lemma even_zero [simp]:
+  "even 0"
+  by (fact dvd_0_right)
+
+lemma odd_one [simp]:
+  "odd 1"
+proof -
+  have "\<not> (2 :: nat) dvd 1"
+    by simp
+  then have "\<not> of_nat 2 dvd of_nat 1"
+    unfolding of_nat_dvd_iff by simp
+  then show ?thesis
+    by simp
+qed
+
+lemma odd_even_add:
+  "even (a + b)" if "odd a" and "odd b"
+proof -
+  from that obtain c d where "a = 2 * c + 1" and "b = 2 * d + 1"
+    by (blast elim: oddE)
+  then have "a + b = 2 * c + 2 * d + (1 + 1)"
+    by (simp only: ac_simps)
+  also have "\<dots> = 2 * (c + d + 1)"
+    by (simp add: algebra_simps)
+  finally show ?thesis ..
+qed
+
+lemma even_add [simp]:
+  "even (a + b) \<longleftrightarrow> (even a \<longleftrightarrow> even b)"
+  by (auto simp add: dvd_add_right_iff dvd_add_left_iff odd_even_add)
+
+lemma odd_add [simp]:
+  "odd (a + b) \<longleftrightarrow> \<not> (odd a \<longleftrightarrow> odd b)"
+  by simp
+
+lemma even_plus_one_iff [simp]:
+  "even (a + 1) \<longleftrightarrow> odd a"
+  by (auto simp add: dvd_add_right_iff intro: odd_even_add)
+
+lemma even_mult_iff [simp]:
+  "even (a * b) \<longleftrightarrow> even a \<or> even b" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q
+  then show ?P
+    by auto
+next
+  assume ?P
+  show ?Q
+  proof (rule ccontr)
+    assume "\<not> (even a \<or> even b)"
+    then have "odd a" and "odd b"
+      by auto
+    then obtain r s where "a = 2 * r + 1" and "b = 2 * s + 1"
+      by (blast elim: oddE)
+    then have "a * b = (2 * r + 1) * (2 * s + 1)"
+      by simp
+    also have "\<dots> = 2 * (2 * r * s + r + s) + 1"
+      by (simp add: algebra_simps)
+    finally have "odd (a * b)"
+      by simp
+    with \<open>?P\<close> show False
+      by auto
+  qed
+qed
 
 lemma even_numeral [simp]: "even (numeral (Num.Bit0 n))"
 proof -
   have "even (2 * numeral n)"
-    unfolding even_times_iff by simp
+    unfolding even_mult_iff by simp
   then have "even (numeral n + numeral n)"
     unfolding mult_2 .
   then show ?thesis
@@ -77,14 +232,25 @@ proof
   then show False by simp
 qed
 
-lemma even_add [simp]: "even (a + b) \<longleftrightarrow> (even a \<longleftrightarrow> even b)"
-  by (auto simp add: dvd_add_right_iff dvd_add_left_iff odd_even_add)
-
-lemma odd_add [simp]: "odd (a + b) \<longleftrightarrow> (\<not> (odd a \<longleftrightarrow> odd b))"
-  by simp
-
 lemma even_power [simp]: "even (a ^ n) \<longleftrightarrow> even a \<and> n > 0"
   by (induct n) auto
+
+lemma even_succ_div_two [simp]:
+  "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
+  by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
+
+lemma odd_succ_div_two [simp]:
+  "odd a \<Longrightarrow> (a + 1) div 2 = a div 2 + 1"
+  by (auto elim!: oddE simp add: add.assoc)
+
+lemma even_two_times_div_two:
+  "even a \<Longrightarrow> 2 * (a div 2) = a"
+  by (fact dvd_mult_div_cancel)
+
+lemma odd_two_times_div_two_succ [simp]:
+  "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
+  using mult_div_mod_eq [of 2 a]
+  by (simp add: even_iff_mod_2_eq_zero)
 
 end
 
@@ -93,166 +259,48 @@ begin
 
 subclass comm_ring_1 ..
 
-lemma even_minus [simp]: "even (- a) \<longleftrightarrow> even a"
+lemma even_minus [simp]:
+  "even (- a) \<longleftrightarrow> even a"
   by (fact dvd_minus_iff)
 
-lemma even_diff [simp]: "even (a - b) \<longleftrightarrow> even (a + b)"
+lemma even_diff [simp]:
+  "even (a - b) \<longleftrightarrow> even (a + b)"
   using even_add [of a "- b"] by simp
 
 end
 
-class unique_euclidean_semiring_parity = unique_euclidean_semiring +
-  assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
-  assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
-  assumes zero_not_eq_two: "0 \<noteq> 2"
-begin
 
-lemma parity_cases [case_names even odd]:
-  assumes "a mod 2 = 0 \<Longrightarrow> P"
-  assumes "a mod 2 = 1 \<Longrightarrow> P"
-  shows P
-  using assms parity by blast
+subsection \<open>Instance for @{typ nat}\<close>
 
-lemma one_div_two_eq_zero [simp]:
-  "1 div 2 = 0"
-proof (cases "2 = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  from div_mult_mod_eq have "1 div 2 * 2 + 1 mod 2 = 1" .
-  with one_mod_two_eq_one have "1 div 2 * 2 + 1 = 1" by simp
-  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq del: mult_eq_0_iff)
-  then have "1 div 2 = 0 \<or> 2 = 0" by simp
-  with False show ?thesis by auto
-qed
+instance nat :: semiring_parity
+  by standard (simp_all add: dvd_eq_mod_eq_0)
 
-lemma not_mod_2_eq_0_eq_1 [simp]:
-  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
-  by (cases a rule: parity_cases) simp_all
-
-lemma not_mod_2_eq_1_eq_0 [simp]:
-  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
-  by (cases a rule: parity_cases) simp_all
-
-subclass semiring_parity
-proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
-  show "1 mod 2 = 1"
-    by (fact one_mod_two_eq_one)
-next
-  fix a b
-  assume "a mod 2 = 1"
-  moreover assume "b mod 2 = 1"
-  ultimately show "(a + b) mod 2 = 0"
-    using mod_add_eq [of a 2 b] by simp
-next
-  fix a b
-  assume "(a * b) mod 2 = 0"
-  then have "(a mod 2) * (b mod 2) mod 2 = 0"
-    by (simp add: mod_mult_eq)
-  then have "(a mod 2) * (b mod 2) = 0"
-    by (cases "a mod 2 = 0") simp_all
-  then show "a mod 2 = 0 \<or> b mod 2 = 0"
-    by (rule divisors_zero)
-next
-  fix a
-  assume "a mod 2 = 1"
-  then have "a = a div 2 * 2 + 1"
-    using div_mult_mod_eq [of a 2] by simp
-  then show "\<exists>b. a = b + 1" ..
-qed
-
-lemma even_iff_mod_2_eq_zero:
-  "even a \<longleftrightarrow> a mod 2 = 0"
-  by (fact dvd_eq_mod_eq_0)
-
-lemma odd_iff_mod_2_eq_one:
-  "odd a \<longleftrightarrow> a mod 2 = 1"
-  by (simp add: even_iff_mod_2_eq_zero)
-
-lemma even_succ_div_two [simp]:
-  "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
-  by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
-
-lemma odd_succ_div_two [simp]:
-  "odd a \<Longrightarrow> (a + 1) div 2 = a div 2 + 1"
-  by (auto elim!: oddE simp add: zero_not_eq_two [symmetric] add.assoc)
-
-lemma even_two_times_div_two:
-  "even a \<Longrightarrow> 2 * (a div 2) = a"
-  by (fact dvd_mult_div_cancel)
-
-lemma odd_two_times_div_two_succ [simp]:
-  "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
-  using mult_div_mod_eq [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
- 
-end
-
-
-subsection \<open>Instances for @{typ nat} and @{typ int}\<close>
-
-lemma even_Suc_Suc_iff [simp]: "2 dvd Suc (Suc n) \<longleftrightarrow> 2 dvd n"
+lemma even_Suc_Suc_iff [simp]:
+  "even (Suc (Suc n)) \<longleftrightarrow> even n"
   using dvd_add_triv_right_iff [of 2 n] by simp
 
-lemma even_Suc [simp]: "2 dvd Suc n \<longleftrightarrow> \<not> 2 dvd n"
-  by (induct n) auto
+lemma even_Suc [simp]: "even (Suc n) \<longleftrightarrow> odd n"
+  using even_plus_one_iff [of n] by simp
 
-lemma even_diff_nat [simp]: "2 dvd (m - n) \<longleftrightarrow> m < n \<or> 2 dvd (m + n)"
-  for m n :: nat
+lemma even_diff_nat [simp]:
+  "even (m - n) \<longleftrightarrow> m < n \<or> even (m + n)" for m n :: nat
 proof (cases "n \<le> m")
   case True
   then have "m - n + n * 2 = m + n" by (simp add: mult_2_right)
-  moreover have "2 dvd (m - n) \<longleftrightarrow> 2 dvd (m - n + n * 2)" by simp
-  ultimately have "2 dvd (m - n) \<longleftrightarrow> 2 dvd (m + n)" by (simp only:)
+  moreover have "even (m - n) \<longleftrightarrow> even (m - n + n * 2)" by simp
+  ultimately have "even (m - n) \<longleftrightarrow> even (m + n)" by (simp only:)
   then show ?thesis by auto
 next
   case False
   then show ?thesis by simp
 qed
 
-instance nat :: semiring_parity
-proof
-  show "\<not> 2 dvd (1 :: nat)"
-    by (rule notI, erule dvdE) simp
-next
-  fix m n :: nat
-  assume "\<not> 2 dvd m"
-  moreover assume "\<not> 2 dvd n"
-  ultimately have *: "2 dvd Suc m \<and> 2 dvd Suc n"
-    by simp
-  then have "2 dvd (Suc m + Suc n)"
-    by (blast intro: dvd_add)
-  also have "Suc m + Suc n = m + n + 2"
-    by simp
-  finally show "2 dvd (m + n)"
-    using dvd_add_triv_right_iff [of 2 "m + n"] by simp
-next
-  fix m n :: nat
-  assume *: "2 dvd (m * n)"
-  show "2 dvd m \<or> 2 dvd n"
-  proof (rule disjCI)
-    assume "\<not> 2 dvd n"
-    then have "2 dvd (Suc n)" by simp
-    then obtain r where "Suc n = 2 * r" ..
-    moreover from * obtain s where "m * n = 2 * s" ..
-    then have "2 * s + m = m * Suc n" by simp
-    ultimately have " 2 * s + m = 2 * (m * r)"
-      by (simp add: algebra_simps)
-    then have "m = 2 * (m * r - s)" by simp
-    then show "2 dvd m" ..
-  qed
-next
-  fix n :: nat
-  assume "\<not> 2 dvd n"
-  then show "\<exists>m. n = m + 1"
-    by (cases n) simp_all
-qed
-
-lemma odd_pos: "odd n \<Longrightarrow> 0 < n"
-  for n :: nat
+lemma odd_pos:
+  "odd n \<Longrightarrow> 0 < n" for n :: nat
   by (auto elim: oddE)
 
-lemma Suc_double_not_eq_double: "Suc (2 * m) \<noteq> 2 * n"
-  for m n :: nat
+lemma Suc_double_not_eq_double:
+  "Suc (2 * m) \<noteq> 2 * n"
 proof
   assume "Suc (2 * m) = 2 * n"
   moreover have "odd (Suc (2 * m))" and "even (2 * n)"
@@ -260,52 +308,58 @@ proof
   ultimately show False by simp
 qed
 
-lemma double_not_eq_Suc_double: "2 * m \<noteq> Suc (2 * n)"
-  for m n :: nat
+lemma double_not_eq_Suc_double:
+  "2 * m \<noteq> Suc (2 * n)"
   using Suc_double_not_eq_double [of n m] by simp
 
-lemma even_diff_iff [simp]: "2 dvd (k - l) \<longleftrightarrow> 2 dvd (k + l)"
-  for k l :: int
-  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
+lemma odd_Suc_minus_one [simp]: "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
+  by (auto elim: oddE)
 
-lemma even_abs_add_iff [simp]: "2 dvd (\<bar>k\<bar> + l) \<longleftrightarrow> 2 dvd (k + l)"
-  for k l :: int
-  by (cases "k \<ge> 0") (simp_all add: ac_simps)
+lemma even_Suc_div_two [simp]:
+  "even n \<Longrightarrow> Suc n div 2 = n div 2"
+  using even_succ_div_two [of n] by simp
 
-lemma even_add_abs_iff [simp]: "2 dvd (k + \<bar>l\<bar>) \<longleftrightarrow> 2 dvd (k + l)"
-  for k l :: int
-  using even_abs_add_iff [of l k] by (simp add: ac_simps)
+lemma odd_Suc_div_two [simp]:
+  "odd n \<Longrightarrow> Suc n div 2 = Suc (n div 2)"
+  using odd_succ_div_two [of n] by simp
 
-instance int :: ring_parity
-proof
-  show "\<not> 2 dvd (1 :: int)"
-    by (simp add: dvd_int_unfold_dvd_nat)
-next
-  fix k l :: int
-  assume "\<not> 2 dvd k"
-  moreover assume "\<not> 2 dvd l"
-  ultimately have "2 dvd (nat \<bar>k\<bar> + nat \<bar>l\<bar>)"
-    by (auto simp add: dvd_int_unfold_dvd_nat intro: odd_even_add)
-  then have "2 dvd (\<bar>k\<bar> + \<bar>l\<bar>)"
-    by (simp add: dvd_int_unfold_dvd_nat nat_add_distrib)
-  then show "2 dvd (k + l)"
+lemma odd_two_times_div_two_nat [simp]:
+  assumes "odd n"
+  shows "2 * (n div 2) = n - (1 :: nat)"
+proof -
+  from assms have "2 * (n div 2) + 1 = n"
+    by (rule odd_two_times_div_two_succ)
+  then have "Suc (2 * (n div 2)) - 1 = n - 1"
     by simp
-next
-  fix k l :: int
-  assume "2 dvd (k * l)"
-  then show "2 dvd k \<or> 2 dvd l"
-    by (simp add: dvd_int_unfold_dvd_nat even_multD nat_abs_mult_distrib)
-next
-  fix k :: int
-  have "k = (k - 1) + 1" by simp
-  then show "\<exists>l. k = l + 1" ..
+  then show ?thesis
+    by simp
 qed
 
-lemma even_int_iff [simp]: "even (int n) \<longleftrightarrow> even n"
-  by (simp add: dvd_int_iff)
-
-lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
-  by (simp add: even_int_iff [symmetric])
+lemma parity_induct [case_names zero even odd]:
+  assumes zero: "P 0"
+  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
+  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
+  shows "P n"
+proof (induct n rule: less_induct)
+  case (less n)
+  show "P n"
+  proof (cases "n = 0")
+    case True with zero show ?thesis by simp
+  next
+    case False
+    with less have hyp: "P (n div 2)" by simp
+    show ?thesis
+    proof (cases "even n")
+      case True
+      with hyp even [of "n div 2"] show ?thesis
+        by simp
+    next
+      case False
+      with hyp odd [of "n div 2"] show ?thesis
+        by simp
+    qed
+  qed
+qed
 
 
 subsection \<open>Parity and powers\<close>
@@ -318,6 +372,10 @@ lemma power_minus_even [simp]: "even n \<Longrightarrow> (- a) ^ n = a ^ n"
 
 lemma power_minus_odd [simp]: "odd n \<Longrightarrow> (- a) ^ n = - (a ^ n)"
   by (auto elim: oddE)
+
+lemma uminus_power_if:
+  "(- a) ^ n = (if even n then a ^ n else - (a ^ n))"
+  by auto
 
 lemma neg_one_even_power [simp]: "even n \<Longrightarrow> (- 1) ^ n = 1"
   by simp
@@ -396,9 +454,6 @@ next
   qed
 qed
 
-lemma (in comm_ring_1) uminus_power_if: "(- x) ^ n = (if even n then x^n else - (x ^ n))"
-  by auto
-
 text \<open>Simplify, when the exponent is a numeral\<close>
 
 lemma zero_le_power_eq_numeral [simp]:
@@ -427,10 +482,5 @@ lemma power_even_abs_numeral [simp]:
   by (fact power_even_abs)
 
 end
-
-
-subsubsection \<open>Tool setup\<close>
-
-declare transfer_morphism_int_nat [transfer add return: even_int_iff]
 
 end

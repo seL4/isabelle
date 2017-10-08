@@ -218,7 +218,7 @@ lemma real_root_mult: "root n (x * y) = root n x * root n y"
 
 lemma real_root_inverse: "root n (inverse x) = inverse (root n x)"
   by (auto split: split_root elim!: sgn_power_injE
-      simp: inverse_sgn power_inverse)
+      simp: power_inverse)
 
 lemma real_root_divide: "root n (x / y) = root n x / root n y"
   by (simp add: divide_inverse real_root_mult real_root_inverse)
@@ -715,7 +715,7 @@ proof -
     have "x n \<le> sqrt (2 / real n)" if "2 < n" for n :: nat
     proof -
       have "1 + (real (n - 1) * n) / 2 * (x n)\<^sup>2 = 1 + of_nat (n choose 2) * (x n)\<^sup>2"
-        by (auto simp add: choose_two of_nat_div mod_eq_0_iff_dvd)
+        by (auto simp add: choose_two field_char_0_class.of_nat_div mod_eq_0_iff_dvd)
       also have "\<dots> \<le> (\<Sum>k\<in>{0, 2}. of_nat (n choose k) * x n^k)"
         by (simp add: x_def)
       also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"

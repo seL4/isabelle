@@ -6,7 +6,7 @@
 section \<open>More on quotient and remainder\<close>
 
 theory Divides
-imports Parity
+imports Parity Nat_Transfer
 begin
 
 subsection \<open>Numeral division with a pragmatic type class\<close>
@@ -19,7 +19,7 @@ text \<open>
   and less technical class hierarchy.
 \<close>
 
-class unique_euclidean_semiring_numeral = unique_euclidean_semiring + linordered_semidom +
+class unique_euclidean_semiring_numeral = semiring_parity + linordered_semidom +
   assumes div_less: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
     and div_positive: "0 < b \<Longrightarrow> b \<le> a \<Longrightarrow> a div b > 0"
@@ -40,29 +40,6 @@ class unique_euclidean_semiring_numeral = unique_euclidean_semiring + linordered
     yields a significant speedup.\<close>
 begin
 
-subclass unique_euclidean_semiring_parity
-proof
-  fix a
-  show "a mod 2 = 0 \<or> a mod 2 = 1"
-  proof (rule ccontr)
-    assume "\<not> (a mod 2 = 0 \<or> a mod 2 = 1)"
-    then have "a mod 2 \<noteq> 0" and "a mod 2 \<noteq> 1" by simp_all
-    have "0 < 2" by simp
-    with pos_mod_bound pos_mod_sign have "0 \<le> a mod 2" "a mod 2 < 2" by simp_all
-    with \<open>a mod 2 \<noteq> 0\<close> have "0 < a mod 2" by simp
-    with discrete have "1 \<le> a mod 2" by simp
-    with \<open>a mod 2 \<noteq> 1\<close> have "1 < a mod 2" by simp
-    with discrete have "2 \<le> a mod 2" by simp
-    with \<open>a mod 2 < 2\<close> show False by simp
-  qed
-next
-  show "1 mod 2 = 1"
-    by (rule mod_less) simp_all
-next
-  show "0 \<noteq> 2"
-    by simp
-qed
-
 lemma divmod_digit_1:
   assumes "0 \<le> a" "0 < b" and "b \<le> a mod (2 * b)"
   shows "2 * (a div (2 * b)) + 1 = a div b" (is "?P")
@@ -74,7 +51,7 @@ proof -
   then have [simp]: "1 \<le> a div b" by (simp add: discrete)
   with \<open>0 < b\<close> have mod_less: "a mod b < b" by (simp add: pos_mod_bound)
   define w where "w = a div b mod 2"
-  with parity have w_exhaust: "w = 0 \<or> w = 1" by auto
+  then have w_exhaust: "w = 0 \<or> w = 1" by auto
   have mod_w: "a mod (2 * b) = a mod b + b * w"
     by (simp add: w_def mod_mult2_eq ac_simps)
   from assms w_exhaust have "w = 1"
@@ -93,7 +70,7 @@ lemma divmod_digit_0:
     and "a mod (2 * b) = a mod b" (is "?Q")
 proof -
   define w where "w = a div b mod 2"
-  with parity have w_exhaust: "w = 0 \<or> w = 1" by auto
+  then have w_exhaust: "w = 0 \<or> w = 1" by auto
   have mod_w: "a mod (2 * b) = a mod b + b * w"
     by (simp add: w_def mod_mult2_eq ac_simps)
   moreover have "b \<le> a mod b + b"
@@ -317,60 +294,6 @@ instance by standard
 end
 
 declare divmod_algorithm_code [where ?'a = nat, code]
-
-lemma odd_Suc_minus_one [simp]: "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
-  by (auto elim: oddE)
-
-lemma even_Suc_div_two [simp]:
-  "even n \<Longrightarrow> Suc n div 2 = n div 2"
-  using even_succ_div_two [of n] by simp
-
-lemma odd_Suc_div_two [simp]:
-  "odd n \<Longrightarrow> Suc n div 2 = Suc (n div 2)"
-  using odd_succ_div_two [of n] by simp
-
-lemma odd_two_times_div_two_nat [simp]:
-  assumes "odd n"
-  shows "2 * (n div 2) = n - (1 :: nat)"
-proof -
-  from assms have "2 * (n div 2) + 1 = n"
-    by (rule odd_two_times_div_two_succ)
-  then have "Suc (2 * (n div 2)) - 1 = n - 1"
-    by simp
-  then show ?thesis
-    by simp
-qed
-
-lemma parity_induct [case_names zero even odd]:
-  assumes zero: "P 0"
-  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
-  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
-  shows "P n"
-proof (induct n rule: less_induct)
-  case (less n)
-  show "P n"
-  proof (cases "n = 0")
-    case True with zero show ?thesis by simp
-  next
-    case False
-    with less have hyp: "P (n div 2)" by simp
-    show ?thesis
-    proof (cases "even n")
-      case True
-      with hyp even [of "n div 2"] show ?thesis
-        by simp
-    next
-      case False
-      with hyp odd [of "n div 2"] show ?thesis
-        by simp
-    qed
-  qed
-qed
-
-lemma mod_2_not_eq_zero_eq_one_nat:
-  fixes n :: nat
-  shows "n mod 2 \<noteq> 0 \<longleftrightarrow> n mod 2 = 1"
-  by (fact not_mod_2_eq_0_eq_1)
 
 lemma Suc_0_div_numeral [simp]:
   fixes k l :: num
@@ -707,6 +630,39 @@ apply (auto simp add: eucl_rel_int_iff)
 done
 
 text\<open>There is no \<open>mod_neg_pos_trivial\<close>.\<close>
+
+instance int :: ring_parity
+proof
+  fix k l :: int
+  show "k mod 2 = 1" if "\<not> 2 dvd k"
+  proof (rule order_antisym)
+    have "0 \<le> k mod 2" and "k mod 2 < 2"
+      by auto
+    moreover have "k mod 2 \<noteq> 0"
+      using that by (simp add: dvd_eq_mod_eq_0)
+    ultimately have "0 < k mod 2"
+      by (simp only: less_le) simp
+    then show "1 \<le> k mod 2"
+      by simp
+    from \<open>k mod 2 < 2\<close> show "k mod 2 \<le> 1"
+      by (simp only: less_le) simp
+  qed
+qed (simp_all add: dvd_eq_mod_eq_0 divide_int_def)
+
+lemma even_diff_iff [simp]:
+  "even (k - l) \<longleftrightarrow> even (k + l)" for k l :: int
+  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
+
+lemma even_abs_add_iff [simp]:
+  "even (\<bar>k\<bar> + l) \<longleftrightarrow> even (k + l)" for k l :: int
+  by (cases "k \<ge> 0") (simp_all add: ac_simps)
+
+lemma even_add_abs_iff [simp]:
+  "even (k + \<bar>l\<bar>) \<longleftrightarrow> even (k + l)" for k l :: int
+  using even_abs_add_iff [of l k] by (simp add: ac_simps)
+
+lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
+  by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
 
 
 subsubsection \<open>Laws for div and mod with Unary Minus\<close>
@@ -1494,5 +1450,19 @@ proof -
   with assms have "m = r + q * d" by simp
   then show ?thesis ..
 qed
+
+lemmas even_times_iff = even_mult_iff -- \<open>FIXME duplicate\<close>
+
+lemma mod_2_not_eq_zero_eq_one_nat:
+  fixes n :: nat
+  shows "n mod 2 \<noteq> 0 \<longleftrightarrow> n mod 2 = 1"
+  by (fact not_mod_2_eq_0_eq_1)
+
+lemma even_int_iff [simp]: "even (int n) \<longleftrightarrow> even n"
+  by (fact even_of_nat)
+
+text \<open>Tool setup\<close>
+
+declare transfer_morphism_int_nat [transfer add return: even_int_iff]
 
 end

@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Truncating bit representations of numeric types\<close>
 
-class semiring_bits = unique_euclidean_semiring_parity +
+class semiring_bits = semiring_parity +
   assumes semiring_bits: "(1 + 2 * a) mod of_nat (2 * n) = 1 + 2 * (a mod of_nat n)"
 begin
 
@@ -27,28 +27,16 @@ lemma bitrunc_0 [simp]:
   by (simp add: bitrunc_eq_mod)
 
 lemma bitrunc_Suc [simp]:
-  "bitrunc (Suc n) a = bitrunc n (a div 2) * 2 + a mod 2"
+  "bitrunc (Suc n) a = bitrunc n (a div 2) * 2 + of_bool (odd a)"
 proof -
-  define b and c
-    where "b = a div 2" and "c = a mod 2"
-  then have a: "a = b * 2 + c" 
-    and "c = 0 \<or> c = 1"
-    by (simp_all add: div_mult_mod_eq parity)
-  from \<open>c = 0 \<or> c = 1\<close>
-  have "bitrunc (Suc n) (b * 2 + c) = bitrunc n b * 2 + c"
-  proof
-    assume "c = 0"
-    moreover have "(2 * b) mod (2 * 2 ^ n) = 2 * (b mod 2 ^ n)"
-      by (simp add: mod_mult_mult1)
-    ultimately show ?thesis
-      by (simp add: bitrunc_eq_mod ac_simps)
-  next
-    assume "c = 1"
-    with semiring_bits [of b "2 ^ n"] show ?thesis
-      by (simp add: bitrunc_eq_mod ac_simps)
-  qed
-  with a show ?thesis
-    by (simp add: b_def c_def)
+  have "1 + 2 * (a div 2) mod (2 * 2 ^ n) = (a div 2 * 2 + a mod 2) mod (2 * 2 ^ n)"
+    if "odd a"
+    using that semiring_bits [of "a div 2" "2 ^ n"]
+      by (simp add: algebra_simps odd_iff_mod_2_eq_one mult_mod_right)
+  also have "\<dots> = a mod (2 * 2 ^ n)"
+    by (simp only: div_mult_mod_eq)
+  finally show ?thesis
+    by (simp add: bitrunc_eq_mod algebra_simps mult_mod_right)
 qed
 
 lemma bitrunc_of_0 [simp]:
@@ -57,11 +45,11 @@ lemma bitrunc_of_0 [simp]:
 
 lemma bitrunc_plus:
   "bitrunc n (bitrunc n a + bitrunc n b) = bitrunc n (a + b)"
-  by (simp add: bitrunc_eq_mod mod_add_eq)
+  by (simp add: bitrunc_eq_mod mod_simps)
 
 lemma bitrunc_of_1_eq_0_iff [simp]:
   "bitrunc n 1 = 0 \<longleftrightarrow> n = 0"
-  by (induct n) simp_all
+  by (simp add: bitrunc_eq_mod)
 
 end
 
@@ -113,7 +101,7 @@ qed
 
 lemma signed_bitrunc_Suc [simp]:
   "signed_bitrunc (Suc n) k = signed_bitrunc n (k div 2) * 2 + k mod 2"
-  using zero_not_eq_two by (simp add: signed_bitrunc_eq_bitrunc algebra_simps)
+  by (simp add: odd_iff_mod_2_eq_one signed_bitrunc_eq_bitrunc algebra_simps)
 
 lemma signed_bitrunc_of_0 [simp]:
   "signed_bitrunc n 0 = 0"

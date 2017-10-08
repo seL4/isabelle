@@ -834,6 +834,10 @@ instance
 
 end
 
+instance star :: (semidom_modulo) semidom_modulo
+  by standard (transfer; simp)
+
+
 
 subsection \<open>Power\<close>
 
@@ -916,14 +920,6 @@ proof
 qed
 
 instance star :: (ring_char_0) ring_char_0 ..
-
-instance star :: (semiring_parity) semiring_parity
-  apply intro_classes
-     apply (transfer, rule odd_one)
-    apply (transfer, erule (1) odd_even_add)
-   apply (transfer, erule even_multD)
-  apply (transfer, erule odd_ex_decrement)
-  done
 
 
 subsection \<open>Finite class\<close>
