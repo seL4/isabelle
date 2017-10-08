@@ -1510,21 +1510,6 @@ lemma Gcd_singleton [simp]: "Gcd {a} = normalize a"
 lemma Gcd_2 [simp]: "Gcd {a, b} = gcd a b"
   by simp
 
-
-definition pairwise_coprime
-  where "pairwise_coprime A = (\<forall>x y. x \<in> A \<and> y \<in> A \<and> x \<noteq> y \<longrightarrow> coprime x y)"
-
-lemma pairwise_coprimeI [intro?]:
-  "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> coprime x y) \<Longrightarrow> pairwise_coprime A"
-  by (simp add: pairwise_coprime_def)
-
-lemma pairwise_coprimeD:
-  "pairwise_coprime A \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> coprime x y"
-  by (simp add: pairwise_coprime_def)
-
-lemma pairwise_coprime_subset: "pairwise_coprime A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> pairwise_coprime B"
-  by (force simp: pairwise_coprime_def)
-
 end
 
 

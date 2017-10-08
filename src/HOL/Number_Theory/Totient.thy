@@ -335,19 +335,30 @@ next
 qed
 
 lemma totient_prod_coprime:
-  assumes "pairwise_coprime (f ` A)" "inj_on f A"
-  shows   "totient (prod f A) = prod (\<lambda>x. totient (f x)) A"
+  assumes "pairwise coprime (f ` A)" "inj_on f A"
+  shows   "totient (prod f A) = (\<Prod>a\<in>A. totient (f a))"
   using assms
 proof (induction A rule: infinite_finite_induct)
   case (insert x A)
-  from insert.prems and insert.hyps have *: "coprime (prod f A) (f x)"
-    by (intro prod_coprime[OF pairwise_coprimeD[OF insert.prems(1)]]) (auto simp: inj_on_def)
+  have *: "coprime (prod f A) (f x)"
+  proof (rule prod_coprime)
+    fix y
+    assume "y \<in> A"
+    with \<open>x \<notin> A\<close> have "y \<noteq> x"
+      by auto
+    with \<open>x \<notin> A\<close> \<open>y \<in> A\<close> \<open>inj_on f (insert x A)\<close> have "f y \<noteq> f x"
+      using inj_onD [of f "insert x A" y x]
+      by auto
+    with \<open>y \<in> A\<close> show "coprime (f y) (f x)"
+      using pairwiseD [OF \<open>pairwise coprime (f ` insert x A)\<close>]
+      by auto
+  qed
   from insert.hyps have "prod f (insert x A) = prod f A * f x" by simp
   also have "totient \<dots> = totient (prod f A) * totient (f x)"
     using insert.hyps insert.prems by (intro totient_mult_coprime *)
-  also have "totient (prod f A) = (\<Prod>x\<in>A. totient (f x))" 
-    using insert.prems by (intro insert.IH) (auto dest: pairwise_coprime_subset)
-  also from insert.hyps have "\<dots> * totient (f x) = (\<Prod>x\<in>insert x A. totient (f x))" by simp
+  also have "totient (prod f A) = (\<Prod>a\<in>A. totient (f a))" 
+    using insert.prems by (intro insert.IH) (auto dest: pairwise_subset)
+  also from insert.hyps have "\<dots> * totient (f x) = (\<Prod>a\<in>insert x A. totient (f a))" by simp
   finally show ?case .
 qed simp_all
 
@@ -375,8 +386,8 @@ proof -
     by (rule prime_factorization_nat)
   also have "totient \<dots> = (\<Prod>x\<in>prime_factors n. totient (x ^ multiplicity x n))"
   proof (rule totient_prod_coprime)
-    show "pairwise_coprime ((\<lambda>p. p ^ multiplicity p n) ` prime_factors n)"
-    proof (standard, clarify, goal_cases)
+    show "pairwise coprime ((\<lambda>p. p ^ multiplicity p n) ` prime_factors n)"
+    proof (rule pairwiseI, clarify)
       fix p q assume "p \<in># prime_factorization n" "q \<in># prime_factorization n" 
                      "p ^ multiplicity p n \<noteq> q ^ multiplicity q n"
       thus "coprime (p ^ multiplicity p n) (q ^ multiplicity q n)"
