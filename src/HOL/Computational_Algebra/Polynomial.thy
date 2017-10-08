@@ -596,6 +596,10 @@ lemma lead_coeff_pCons[simp]:
 lemma lead_coeff_monom [simp]: "lead_coeff (monom c n) = c"
   by (cases "c = 0") (simp_all add: degree_monom_eq)
 
+lemma last_coeffs_eq_coeff_degree:
+  "last (coeffs p) = lead_coeff p" if "p \<noteq> 0"
+  using that by (simp add: coeffs_def)
+  
 
 subsection \<open>Addition and subtraction\<close>
 
@@ -1110,7 +1114,7 @@ proof -
   also have "\<dots> = (\<Sum>i\<le>k. (if n = i then c * coeff p (k - i) else 0))"
     by (intro sum.cong) simp_all
   also have "\<dots> = (if k < n then 0 else c * coeff p (k - n))"
-    by (simp add: sum.delta')
+    by simp
   finally show ?thesis .
 qed
 
@@ -1162,8 +1166,9 @@ lemma coeffs_map_poly [code abstract]:
 lemma coeffs_map_poly':
   assumes "\<And>x. x \<noteq> 0 \<Longrightarrow> f x \<noteq> 0"
   shows "coeffs (map_poly f p) = map f (coeffs p)"
-  using assms by (simp add: coeffs_map_poly no_trailing_map strip_while_idem_iff)
-    (metis comp_def no_leading_def no_trailing_coeffs)
+  using assms
+  by (auto simp add: coeffs_map_poly strip_while_idem_iff
+    last_coeffs_eq_coeff_degree no_trailing_unfold last_map)
 
 lemma set_coeffs_map_poly:
   "(\<And>x. f x = 0 \<longleftrightarrow> x = 0) \<Longrightarrow> set (coeffs (map_poly f p)) = f ` set (coeffs p)"
@@ -1493,9 +1498,6 @@ lemma pos_poly_mult: "pos_poly p \<Longrightarrow> pos_poly q \<Longrightarrow> 
 lemma pos_poly_total: "p = 0 \<or> pos_poly p \<or> pos_poly (- p)"
   for p :: "'a::linordered_idom poly"
   by (induct p) (auto simp: pos_poly_pCons)
-
-lemma last_coeffs_eq_coeff_degree: "p \<noteq> 0 \<Longrightarrow> last (coeffs p) = coeff p (degree p)"
-  by (simp add: coeffs_def)
 
 lemma pos_poly_coeffs [code]: "pos_poly p \<longleftrightarrow> (let as = coeffs p in as \<noteq> [] \<and> last as > 0)"
   (is "?lhs \<longleftrightarrow> ?rhs")
