@@ -838,31 +838,13 @@ done
 
 subsubsection \<open>More Algebraic Laws for div and mod\<close>
 
-text\<open>proving (a*b) div c = a * (b div c) + a * (b mod c)\<close>
-
-lemma zmult1_lemma:
-     "[| eucl_rel_int b c (q, r) |]
-      ==> eucl_rel_int (a * b) c (a*q + a*r div c, a*r mod c)"
-by (auto simp add: split_ifs eucl_rel_int_iff linorder_neq_iff distrib_left ac_simps)
-
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
-apply (case_tac "c = 0", simp)
-apply (blast intro: eucl_rel_int [THEN zmult1_lemma, THEN div_int_unique])
-done
-
-text\<open>proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c)\<close>
-
-lemma zadd1_lemma:
-     "[| eucl_rel_int a c (aq, ar);  eucl_rel_int b c (bq, br) |]
-      ==> eucl_rel_int (a+b) c (aq + bq + (ar+br) div c, (ar+br) mod c)"
-by (force simp add: split_ifs eucl_rel_int_iff linorder_neq_iff distrib_left)
+  by (fact div_mult1_eq)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma zdiv_zadd1_eq:
      "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)"
-apply (case_tac "c = 0", simp)
-apply (blast intro: zadd1_lemma [OF eucl_rel_int eucl_rel_int] div_int_unique)
-done
+  by (fact div_add1_eq)
 
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
 by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)

@@ -531,9 +531,10 @@ lemma divmod_cases [case_names divides remainder by0]:
       and "a div b = q"
       and "a mod b = 0"
       and "a = q * b"
-  | (remainder) q r where "b \<noteq> 0" and "r \<noteq> 0"
+  | (remainder) q r where "b \<noteq> 0"
       and "uniqueness_constraint r b"
       and "euclidean_size r < euclidean_size b"
+      and "r \<noteq> 0"
       and "a div b = q"
       and "a mod b = r"
       and "a = q * b + r"
@@ -628,6 +629,67 @@ next
       by (auto intro!: div_eqI [of _ "c * (a mod b)"] simp add: algebra_simps)
         (use \<open>b * c \<noteq> 0\<close> in simp)
   qed
+qed
+
+lemma div_mult1_eq:
+  "(a * b) div c = a * (b div c) + a * (b mod c) div c"
+proof (cases "a * (b mod c)" c rule: divmod_cases)
+  case (divides q)
+  have "a * b = a * (b div c * c + b mod c)"
+    by (simp add: div_mult_mod_eq)
+  also have "\<dots> = (a * (b div c) + q) * c"
+    using divides by (simp add: algebra_simps)
+  finally have "(a * b) div c = \<dots> div c"
+    by simp
+  with divides show ?thesis
+    by simp
+next
+  case (remainder q r)
+  from remainder(1-3) show ?thesis
+  proof (rule div_eqI)
+    have "a * b = a * (b div c * c + b mod c)"
+      by (simp add: div_mult_mod_eq)
+    also have "\<dots> = a * c * (b div c) + q * c + r"
+      using remainder by (simp add: algebra_simps)
+    finally show "(a * (b div c) + a * (b mod c) div c) * c + r = a * b"
+      using remainder(5-7) by (simp add: algebra_simps)
+  qed
+next
+  case by0
+  then show ?thesis
+    by simp
+qed
+
+lemma div_add1_eq:
+  "(a + b) div c = a div c + b div c + (a mod c + b mod c) div c"
+proof (cases "a mod c + b mod c" c rule: divmod_cases)
+  case (divides q)
+  have "a + b = (a div c * c + a mod c) + (b div c * c + b mod c)"
+    using mod_mult_div_eq [of a c] mod_mult_div_eq [of b c] by (simp add: ac_simps)
+  also have "\<dots> = (a div c + b div c) * c + (a mod c + b mod c)"
+    by (simp add: algebra_simps)
+  also have "\<dots> = (a div c + b div c + q) * c"
+    using divides by (simp add: algebra_simps)
+  finally have "(a + b) div c = (a div c + b div c + q) * c div c"
+    by simp
+  with divides show ?thesis
+    by simp
+next
+  case (remainder q r)
+  from remainder(1-3) show ?thesis
+  proof (rule div_eqI)
+    have "(a div c + b div c + q) * c + r + (a mod c + b mod c) =
+        (a div c * c + a mod c) + (b div c * c + b mod c) + q * c + r"
+      by (simp add: algebra_simps)
+    also have "\<dots> = a + b + (a mod c + b mod c)"
+      by (simp add: div_mult_mod_eq remainder) (simp add: ac_simps)
+    finally show "(a div c + b div c + (a mod c + b mod c) div c) * c + r = a + b"
+      using remainder by simp
+  qed
+next
+  case by0
+  then show ?thesis
+    by simp
 qed
 
 end
@@ -946,23 +1008,6 @@ lemma
   and Suc_mod_mult_self3 [simp]: "Suc (k * n + m) mod n = Suc m mod n"
   and Suc_mod_mult_self4 [simp]: "Suc (n * k + m) mod n = Suc m mod n"
   by (subst mod_Suc_eq [symmetric], simp add: mod_simps)+
-
-lemma div_mult1_eq: -- \<open>TODO: Generalization candidate\<close>
-  "(a * b) div c = a * (b div c) + a * (b mod c) div c" for a b c :: nat
-  apply (cases "c = 0")
-   apply simp
-  apply (rule div_eqI [of _ "(a * (b mod c)) mod c"])
-     apply (auto simp add: algebra_simps distrib_left [symmetric])
-  done
-
-lemma div_add1_eq: -- \<open>NOT suitable for rewriting: the RHS has an instance of the LHS\<close>
-   -- \<open>TODO: Generalization candidate\<close>
-  "(a + b) div c = a div c + b div c + ((a mod c + b mod c) div c)" for a b c :: nat
-  apply (cases "c = 0")
-   apply simp
-  apply (rule div_eqI [of _ "(a mod c + b mod c) mod c"])
-  apply (auto simp add: algebra_simps)
-  done
 
 context
   fixes m n q :: nat
