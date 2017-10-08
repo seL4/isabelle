@@ -169,8 +169,8 @@ simproc_setup ring_le_cancel_numeral_factor
 
 (* TODO: remove comm_ring_1 constraint if possible *)
 simproc_setup int_div_cancel_numeral_factors
-  ("((l::'a::{semiring_div,comm_ring_1,ring_char_0}) * m) div n"
-  |"(l::'a::{semiring_div,comm_ring_1,ring_char_0}) div (m * n)") =
+  ("((l::'a::{euclidean_semiring_cancel,comm_ring_1,ring_char_0}) * m) div n"
+  |"(l::'a::{euclidean_semiring_cancel,comm_ring_1,ring_char_0}) div (m * n)") =
   \<open>fn phi => Numeral_Simprocs.div_cancel_numeral_factor\<close>
 
 simproc_setup divide_cancel_numeral_factor
@@ -194,13 +194,13 @@ simproc_setup linordered_ring_less_cancel_factor
   \<open>fn phi => Numeral_Simprocs.less_cancel_factor\<close>
 
 simproc_setup int_div_cancel_factor
-  ("((l::'a::semiring_div) * m) div n"
-  |"(l::'a::semiring_div) div (m * n)") =
+  ("((l::'a::euclidean_semiring_cancel) * m) div n"
+  |"(l::'a::euclidean_semiring_cancel) div (m * n)") =
   \<open>fn phi => Numeral_Simprocs.div_cancel_factor\<close>
 
 simproc_setup int_mod_cancel_factor
-  ("((l::'a::semiring_div) * m) mod n"
-  |"(l::'a::semiring_div) mod (m * n)") =
+  ("((l::'a::euclidean_semiring_cancel) * m) mod n"
+  |"(l::'a::euclidean_semiring_cancel) mod (m * n)") =
   \<open>fn phi => Numeral_Simprocs.mod_cancel_factor\<close>
 
 simproc_setup dvd_cancel_factor

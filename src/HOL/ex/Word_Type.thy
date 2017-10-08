@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Truncating bit representations of numeric types\<close>
 
-class semiring_bits = semiring_div_parity +
+class semiring_bits = unique_euclidean_semiring_parity +
   assumes semiring_bits: "(1 + 2 * a) mod of_nat (2 * n) = 1 + 2 * (a mod of_nat n)"
 begin
 

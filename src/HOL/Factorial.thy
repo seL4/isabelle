@@ -130,11 +130,11 @@ lemma dvd_fact: "1 \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd f
 lemma fact_ge_self: "fact n \<ge> n"
   by (cases "n = 0") (simp_all add: dvd_imp_le dvd_fact)
 
-lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd (fact m :: 'a::{semiring_div,linordered_semidom})"
+lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd (fact m :: 'a::linordered_semidom)"
   by (induct m) (auto simp: le_Suc_eq)
 
-lemma fact_mod: "m \<le> n \<Longrightarrow> fact n mod (fact m :: 'a::{semiring_div,linordered_semidom}) = 0"
-  by (auto simp add: fact_dvd)
+lemma fact_mod: "m \<le> n \<Longrightarrow> fact n mod (fact m :: 'a::{semidom_modulo, linordered_semidom}) = 0"
+  by (simp add: mod_eq_0_iff_dvd fact_dvd)
 
 lemma fact_div_fact:
   assumes "m \<ge> n"

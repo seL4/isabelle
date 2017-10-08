@@ -3637,40 +3637,7 @@ lemma mod_poly_eq: "eucl_rel_poly x y (q, r) \<Longrightarrow> x mod y = r"
   for x :: "'a::field poly"
   by (rule eucl_rel_poly_unique_mod [OF eucl_rel_poly])
 
-instance poly :: (field) ring_div
-proof
-  fix x y z :: "'a poly"
-  assume "y \<noteq> 0"
-  with eucl_rel_poly [of x y] have "eucl_rel_poly (x + z * y) y (z + x div y, x mod y)"
-    by (simp add: eucl_rel_poly_iff distrib_right)
-  then show "(x + z * y) div y = z + x div y"
-    by (rule div_poly_eq)
-next
-  fix x y z :: "'a poly"
-  assume "x \<noteq> 0"
-  show "(x * y) div (x * z) = y div z"
-  proof (cases "y \<noteq> 0 \<and> z \<noteq> 0")
-    have "\<And>x::'a poly. eucl_rel_poly x 0 (0, x)"
-      by (rule eucl_rel_poly_by_0)
-    then have [simp]: "\<And>x::'a poly. x div 0 = 0"
-      by (rule div_poly_eq)
-    have "\<And>x::'a poly. eucl_rel_poly 0 x (0, 0)"
-      by (rule eucl_rel_poly_0)
-    then have [simp]: "\<And>x::'a poly. 0 div x = 0"
-      by (rule div_poly_eq)
-    case False
-    then show ?thesis by auto
-  next
-    case True
-    then have "y \<noteq> 0" and "z \<noteq> 0" by auto
-    with \<open>x \<noteq> 0\<close> have "\<And>q r. eucl_rel_poly y z (q, r) \<Longrightarrow> eucl_rel_poly (x * y) (x * z) (q, x * r)"
-      by (auto simp: eucl_rel_poly_iff algebra_simps) (rule classical, simp add: degree_mult_eq)
-    moreover from eucl_rel_poly have "eucl_rel_poly y z (y div z, y mod z)" .
-    ultimately have "eucl_rel_poly (x * y) (x * z) (y div z, x * (y mod z))" .
-    then show ?thesis
-      by (simp add: div_poly_eq)
-  qed
-qed
+instance poly :: (field) idom_modulo ..
 
 lemma div_pCons_eq:
   "pCons a p div q =

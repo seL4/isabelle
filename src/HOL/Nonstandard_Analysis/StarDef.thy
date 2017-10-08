@@ -772,9 +772,6 @@ instance star :: (semidom) semidom ..
 instance star :: (semidom_divide) semidom_divide
   by (intro_classes; transfer) simp_all
 
-instance star :: (semiring_div) semiring_div
-  by (intro_classes; transfer) (simp_all add: div_mult_mod_eq)
-
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
 instance star :: (idom) idom ..
@@ -820,6 +817,22 @@ instance star :: (linordered_idom) linordered_idom
   by (intro_classes; transfer) (fact sgn_if)
 
 instance star :: (linordered_field) linordered_field ..
+
+instance star :: (algebraic_semidom) algebraic_semidom ..
+
+instantiation star :: (normalization_semidom) normalization_semidom
+begin
+
+definition unit_factor_star :: "'a star \<Rightarrow> 'a star"
+  where [transfer_unfold]: "unit_factor_star = *f* unit_factor"
+
+definition normalize_star :: "'a star \<Rightarrow> 'a star"
+  where [transfer_unfold]: "normalize_star = *f* normalize"
+
+instance
+  by standard (transfer; simp add: is_unit_unit_factor unit_factor_mult)+
+
+end
 
 
 subsection \<open>Power\<close>
@@ -911,49 +924,6 @@ instance star :: (semiring_parity) semiring_parity
    apply (transfer, erule even_multD)
   apply (transfer, erule odd_ex_decrement)
   done
-
-instance star :: (semiring_div_parity) semiring_div_parity
-  apply intro_classes
-    apply (transfer, rule parity)
-   apply (transfer, rule one_mod_two_eq_one)
-  apply (transfer, rule zero_not_eq_two)
-  done
-
-instantiation star :: (semiring_numeral_div) semiring_numeral_div
-begin
-
-definition divmod_star :: "num \<Rightarrow> num \<Rightarrow> 'a star \<times> 'a star"
-  where divmod_star_def: "divmod_star m n = (numeral m div numeral n, numeral m mod numeral n)"
-
-definition divmod_step_star :: "num \<Rightarrow> 'a star \<times> 'a star \<Rightarrow> 'a star \<times> 'a star"
-  where "divmod_step_star l qr =
-    (let (q, r) = qr
-     in if r \<ge> numeral l then (2 * q + 1, r - numeral l) else (2 * q, r))"
-
-instance
-proof
-  show "divmod m n = (numeral m div numeral n :: 'a star, numeral m mod numeral n)" for m n
-    by (fact divmod_star_def)
-  show "divmod_step l qr =
-    (let (q, r) = qr
-     in if r \<ge> numeral l then (2 * q + 1, r - numeral l) else (2 * q, r))"
-    for l and qr :: "'a star \<times> 'a star"
-    by (fact divmod_step_star_def)
-qed (transfer,
-  fact
-  semiring_numeral_div_class.div_less
-  semiring_numeral_div_class.mod_less
-  semiring_numeral_div_class.div_positive
-  semiring_numeral_div_class.mod_less_eq_dividend
-  semiring_numeral_div_class.pos_mod_bound
-  semiring_numeral_div_class.pos_mod_sign
-  semiring_numeral_div_class.mod_mult2_eq
-  semiring_numeral_div_class.div_mult2_eq
-  semiring_numeral_div_class.discrete)+
-
-end
-
-declare divmod_algorithm_code [where ?'a = "'a::semiring_numeral_div star", code]
 
 
 subsection \<open>Finite class\<close>

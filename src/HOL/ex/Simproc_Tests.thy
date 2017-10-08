@@ -199,7 +199,7 @@ end
 subsection \<open>\<open>int_div_cancel_numeral_factors\<close>\<close>
 
 notepad begin
-  fix x y z :: "'a::{semiring_div,comm_ring_1,ring_char_0}"
+  fix x y z :: "'a::{unique_euclidean_semiring,comm_ring_1,ring_char_0}"
   {
     assume "(3*x) div (4*y) = z" have "(9*x) div (12*y) = z"
       by (tactic \<open>test @{context} [@{simproc int_div_cancel_numeral_factors}]\<close>) fact
@@ -325,7 +325,7 @@ end
 subsection \<open>\<open>int_div_cancel_factor\<close>\<close>
 
 notepad begin
-  fix a b c d k uu x y :: "'a::semiring_div"
+  fix a b c d k uu x y :: "'a::unique_euclidean_semiring"
   {
     assume "(if k = 0 then 0 else x div y) = uu"
     have "(x*k) div (k*y) = uu"

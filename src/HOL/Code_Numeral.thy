@@ -247,7 +247,7 @@ instance
 
 end
 
-instantiation integer :: ring_div
+instantiation integer :: unique_euclidean_ring
 begin
   
 lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
@@ -256,12 +256,33 @@ lift_definition modulo_integer :: "integer \<Rightarrow> integer \<Rightarrow> i
 
 declare modulo_integer.rep_eq [simp]
 
+lift_definition euclidean_size_integer :: "integer \<Rightarrow> nat"
+  is "euclidean_size :: int \<Rightarrow> nat"
+  .
+
+declare euclidean_size_integer.rep_eq [simp]
+
+lift_definition uniqueness_constraint_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
+  is "uniqueness_constraint :: int \<Rightarrow> int \<Rightarrow> bool"
+  .
+
+declare uniqueness_constraint_integer.rep_eq [simp]
+
 instance
-  by (standard; transfer) simp_all
+  by (standard; transfer)
+    (use mult_le_mono2 [of 1] in \<open>auto simp add: sgn_mult_abs abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>, rule div_eqI, simp_all)
 
 end
 
-instantiation integer :: semiring_numeral_div
+lemma [code]:
+  "euclidean_size = nat_of_integer \<circ> abs"
+  by (simp add: fun_eq_iff nat_of_integer.rep_eq)
+
+lemma [code]:
+  "uniqueness_constraint (k :: integer) l \<longleftrightarrow> unit_factor k = unit_factor l"
+  by (simp add: integer_eq_iff)
+
+instantiation integer :: unique_euclidean_semiring_numeral
 begin
 
 definition divmod_integer :: "num \<Rightarrow> num \<Rightarrow> integer \<times> integer"
@@ -283,15 +304,15 @@ instance proof
     by (fact divmod_step_integer_def)
 qed (transfer,
   fact le_add_diff_inverse2
-  semiring_numeral_div_class.div_less
-  semiring_numeral_div_class.mod_less
-  semiring_numeral_div_class.div_positive
-  semiring_numeral_div_class.mod_less_eq_dividend
-  semiring_numeral_div_class.pos_mod_bound
-  semiring_numeral_div_class.pos_mod_sign
-  semiring_numeral_div_class.mod_mult2_eq
-  semiring_numeral_div_class.div_mult2_eq
-  semiring_numeral_div_class.discrete)+
+  unique_euclidean_semiring_numeral_class.div_less
+  unique_euclidean_semiring_numeral_class.mod_less
+  unique_euclidean_semiring_numeral_class.div_positive
+  unique_euclidean_semiring_numeral_class.mod_less_eq_dividend
+  unique_euclidean_semiring_numeral_class.pos_mod_bound
+  unique_euclidean_semiring_numeral_class.pos_mod_sign
+  unique_euclidean_semiring_numeral_class.mod_mult2_eq
+  unique_euclidean_semiring_numeral_class.div_mult2_eq
+  unique_euclidean_semiring_numeral_class.discrete)+
 
 end
 
@@ -853,7 +874,7 @@ lemma nat_of_natural_max [simp]:
   "nat_of_natural (max k l) = max (nat_of_natural k) (nat_of_natural l)"
   by transfer rule
 
-instantiation natural :: "{semiring_div, normalization_semidom}"
+instantiation natural :: unique_euclidean_semiring
 begin
 
 lift_definition normalize_natural :: "natural \<Rightarrow> natural"
@@ -880,10 +901,31 @@ lift_definition modulo_natural :: "natural \<Rightarrow> natural \<Rightarrow> n
 
 declare modulo_natural.rep_eq [simp]
 
+lift_definition euclidean_size_natural :: "natural \<Rightarrow> nat"
+  is "euclidean_size :: nat \<Rightarrow> nat"
+  .
+
+declare euclidean_size_natural.rep_eq [simp]
+
+lift_definition uniqueness_constraint_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
+  is "uniqueness_constraint :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  .
+
+declare uniqueness_constraint_natural.rep_eq [simp]
+
 instance
-  by standard (transfer, auto simp add: algebra_simps unit_factor_nat_def gr0_conv_Suc)+
+  by (standard; transfer)
+    (auto simp add: algebra_simps unit_factor_nat_def gr0_conv_Suc)
 
 end
+
+lemma [code]:
+  "euclidean_size = nat_of_natural"
+  by (simp add: fun_eq_iff)
+
+lemma [code]:
+  "uniqueness_constraint = (\<top> :: natural \<Rightarrow> natural \<Rightarrow> bool)"
+  by (simp add: fun_eq_iff)
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"

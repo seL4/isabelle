@@ -459,11 +459,17 @@ proof -
     ultimately show "(if p * s = 0 then (0::nat) else 2 ^ degree (p * s)) < (if q * s = 0 then 0 else 2 ^ degree (q * s))"
       by (auto simp add: degree_mult_eq)
   next
-    fix p q r :: "'a poly" assume "p \<noteq> 0"
+    fix p q r :: "'a poly"
+    assume "p \<noteq> 0"
+    with eucl_rel_poly [of r p] have "eucl_rel_poly (r + q * p) p (q + r div p, r mod p)"
+      by (simp add: eucl_rel_poly_iff distrib_right)
+    then have "(r + q * p) div p = q + r div p"
+      by (rule div_poly_eq)
     moreover assume "(if r = 0 then (0::nat) else 2 ^ degree r)
-    < (if p = 0 then 0 else 2 ^ degree p)"
+      < (if p = 0 then 0 else 2 ^ degree p)"
     ultimately show "(q * p + r) div p = q"
-      by (cases "r = 0") (auto simp add: div_poly_less)
+      using \<open>p \<noteq> 0\<close>
+      by (cases "r = 0") (simp_all add: div_poly_less ac_simps)
   qed (auto simp: lead_coeff_mult Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
 qed
 
@@ -761,9 +767,18 @@ definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
 definition uniqueness_constraint_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
   where [simp]: "uniqueness_constraint_poly = top"
 
-instance 
-  by standard
-   (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq intro!: degree_mod_less' degree_mult_right_le
+instance proof
+  show "(q * p + r) div p = q" if "p \<noteq> 0"
+    and "euclidean_size r < euclidean_size p" for q p r :: "'a poly"
+  proof -
+    from \<open>p \<noteq> 0\<close> eucl_rel_poly [of r p] have "eucl_rel_poly (r + q * p) p (q + r div p, r mod p)"
+      by (simp add: eucl_rel_poly_iff distrib_right)
+    then have "(r + q * p) div p = q + r div p"
+      by (rule div_poly_eq)
+    with that show ?thesis
+      by (cases "r = 0") (simp_all add: euclidean_size_poly_def div_poly_less ac_simps)
+  qed
+qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq intro!: degree_mod_less' degree_mult_right_le
     split: if_splits)
 
 end

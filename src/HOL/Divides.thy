@@ -9,433 +9,9 @@ theory Divides
 imports Parity
 begin
 
-subsection \<open>Quotient and remainder in integral domains with additional properties\<close>
-
-class semiring_div = semidom_modulo +
-  assumes div_mult_self1 [simp]: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
-    and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
-begin
-
-lemma div_mult_self2 [simp]:
-  assumes "b \<noteq> 0"
-  shows "(a + b * c) div b = c + a div b"
-  using assms div_mult_self1 [of b a c] by (simp add: mult.commute)
-
-lemma div_mult_self3 [simp]:
-  assumes "b \<noteq> 0"
-  shows "(c * b + a) div b = c + a div b"
-  using assms by (simp add: add.commute)
-
-lemma div_mult_self4 [simp]:
-  assumes "b \<noteq> 0"
-  shows "(b * c + a) div b = c + a div b"
-  using assms by (simp add: add.commute)
-
-lemma mod_mult_self1 [simp]: "(a + c * b) mod b = a mod b"
-proof (cases "b = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  have "a + c * b = (a + c * b) div b * b + (a + c * b) mod b"
-    by (simp add: div_mult_mod_eq)
-  also from False div_mult_self1 [of b a c] have
-    "\<dots> = (c + a div b) * b + (a + c * b) mod b"
-      by (simp add: algebra_simps)
-  finally have "a = a div b * b + (a + c * b) mod b"
-    by (simp add: add.commute [of a] add.assoc distrib_right)
-  then have "a div b * b + (a + c * b) mod b = a div b * b + a mod b"
-    by (simp add: div_mult_mod_eq)
-  then show ?thesis by simp
-qed
-
-lemma mod_mult_self2 [simp]:
-  "(a + b * c) mod b = a mod b"
-  by (simp add: mult.commute [of b])
-
-lemma mod_mult_self3 [simp]:
-  "(c * b + a) mod b = a mod b"
-  by (simp add: add.commute)
-
-lemma mod_mult_self4 [simp]:
-  "(b * c + a) mod b = a mod b"
-  by (simp add: add.commute)
-
-lemma mod_mult_self1_is_0 [simp]:
-  "b * a mod b = 0"
-  using mod_mult_self2 [of 0 b a] by simp
-
-lemma mod_mult_self2_is_0 [simp]:
-  "a * b mod b = 0"
-  using mod_mult_self1 [of 0 a b] by simp
-
-lemma div_add_self1:
-  assumes "b \<noteq> 0"
-  shows "(b + a) div b = a div b + 1"
-  using assms div_mult_self1 [of b a 1] by (simp add: add.commute)
-
-lemma div_add_self2:
-  assumes "b \<noteq> 0"
-  shows "(a + b) div b = a div b + 1"
-  using assms div_add_self1 [of b a] by (simp add: add.commute)
-
-lemma mod_add_self1 [simp]:
-  "(b + a) mod b = a mod b"
-  using mod_mult_self1 [of a 1 b] by (simp add: add.commute)
-
-lemma mod_add_self2 [simp]:
-  "(a + b) mod b = a mod b"
-  using mod_mult_self1 [of a 1 b] by simp
-
-lemma mod_div_trivial [simp]:
-  "a mod b div b = 0"
-proof (cases "b = 0")
-  assume "b = 0"
-  thus ?thesis by simp
-next
-  assume "b \<noteq> 0"
-  hence "a div b + a mod b div b = (a mod b + a div b * b) div b"
-    by (rule div_mult_self1 [symmetric])
-  also have "\<dots> = a div b"
-    by (simp only: mod_div_mult_eq)
-  also have "\<dots> = a div b + 0"
-    by simp
-  finally show ?thesis
-    by (rule add_left_imp_eq)
-qed
-
-lemma mod_mod_trivial [simp]:
-  "a mod b mod b = a mod b"
-proof -
-  have "a mod b mod b = (a mod b + a div b * b) mod b"
-    by (simp only: mod_mult_self1)
-  also have "\<dots> = a mod b"
-    by (simp only: mod_div_mult_eq)
-  finally show ?thesis .
-qed
-
-lemma mod_mod_cancel:
-  assumes "c dvd b"
-  shows "a mod b mod c = a mod c"
-proof -
-  from \<open>c dvd b\<close> obtain k where "b = c * k"
-    by (rule dvdE)
-  have "a mod b mod c = a mod (c * k) mod c"
-    by (simp only: \<open>b = c * k\<close>)
-  also have "\<dots> = (a mod (c * k) + a div (c * k) * k * c) mod c"
-    by (simp only: mod_mult_self1)
-  also have "\<dots> = (a div (c * k) * (c * k) + a mod (c * k)) mod c"
-    by (simp only: ac_simps)
-  also have "\<dots> = a mod c"
-    by (simp only: div_mult_mod_eq)
-  finally show ?thesis .
-qed
-
-lemma div_mult_mult2 [simp]:
-  "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
-  by (drule div_mult_mult1) (simp add: mult.commute)
-
-lemma div_mult_mult1_if [simp]:
-  "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
-  by simp_all
-
-lemma mod_mult_mult1:
-  "(c * a) mod (c * b) = c * (a mod b)"
-proof (cases "c = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  from div_mult_mod_eq
-  have "((c * a) div (c * b)) * (c * b) + (c * a) mod (c * b) = c * a" .
-  with False have "c * ((a div b) * b + a mod b) + (c * a) mod (c * b)
-    = c * a + c * (a mod b)" by (simp add: algebra_simps)
-  with div_mult_mod_eq show ?thesis by simp
-qed
-
-lemma mod_mult_mult2:
-  "(a * c) mod (b * c) = (a mod b) * c"
-  using mod_mult_mult1 [of c a b] by (simp add: mult.commute)
-
-lemma mult_mod_left: "(a mod b) * c = (a * c) mod (b * c)"
-  by (fact mod_mult_mult2 [symmetric])
-
-lemma mult_mod_right: "c * (a mod b) = (c * a) mod (c * b)"
-  by (fact mod_mult_mult1 [symmetric])
-
-lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod n)"
-  unfolding dvd_def by (auto simp add: mod_mult_mult1)
-
-lemma div_plus_div_distrib_dvd_left:
-  "c dvd a \<Longrightarrow> (a + b) div c = a div c + b div c"
-  by (cases "c = 0") (auto elim: dvdE)
-
-lemma div_plus_div_distrib_dvd_right:
-  "c dvd b \<Longrightarrow> (a + b) div c = a div c + b div c"
-  using div_plus_div_distrib_dvd_left [of c b a]
-  by (simp add: ac_simps)
-
-named_theorems mod_simps
-
-text \<open>Addition respects modular equivalence.\<close>
-
-lemma mod_add_left_eq [mod_simps]:
-  "(a mod c + b) mod c = (a + b) mod c"
-proof -
-  have "(a + b) mod c = (a div c * c + a mod c + b) mod c"
-    by (simp only: div_mult_mod_eq)
-  also have "\<dots> = (a mod c + b + a div c * c) mod c"
-    by (simp only: ac_simps)
-  also have "\<dots> = (a mod c + b) mod c"
-    by (rule mod_mult_self1)
-  finally show ?thesis
-    by (rule sym)
-qed
-
-lemma mod_add_right_eq [mod_simps]:
-  "(a + b mod c) mod c = (a + b) mod c"
-  using mod_add_left_eq [of b c a] by (simp add: ac_simps)
-
-lemma mod_add_eq:
-  "(a mod c + b mod c) mod c = (a + b) mod c"
-  by (simp add: mod_add_left_eq mod_add_right_eq)
-
-lemma mod_sum_eq [mod_simps]:
-  "(\<Sum>i\<in>A. f i mod a) mod a = sum f A mod a"
-proof (induct A rule: infinite_finite_induct)
-  case (insert i A)
-  then have "(\<Sum>i\<in>insert i A. f i mod a) mod a
-    = (f i mod a + (\<Sum>i\<in>A. f i mod a)) mod a"
-    by simp
-  also have "\<dots> = (f i + (\<Sum>i\<in>A. f i mod a) mod a) mod a"
-    by (simp add: mod_simps)
-  also have "\<dots> = (f i + (\<Sum>i\<in>A. f i) mod a) mod a"
-    by (simp add: insert.hyps)
-  finally show ?case
-    by (simp add: insert.hyps mod_simps)
-qed simp_all
-
-lemma mod_add_cong:
-  assumes "a mod c = a' mod c"
-  assumes "b mod c = b' mod c"
-  shows "(a + b) mod c = (a' + b') mod c"
-proof -
-  have "(a mod c + b mod c) mod c = (a' mod c + b' mod c) mod c"
-    unfolding assms ..
-  then show ?thesis
-    by (simp add: mod_add_eq)
-qed
-
-text \<open>Multiplication respects modular equivalence.\<close>
-
-lemma mod_mult_left_eq [mod_simps]:
-  "((a mod c) * b) mod c = (a * b) mod c"
-proof -
-  have "(a * b) mod c = ((a div c * c + a mod c) * b) mod c"
-    by (simp only: div_mult_mod_eq)
-  also have "\<dots> = (a mod c * b + a div c * b * c) mod c"
-    by (simp only: algebra_simps)
-  also have "\<dots> = (a mod c * b) mod c"
-    by (rule mod_mult_self1)
-  finally show ?thesis
-    by (rule sym)
-qed
-
-lemma mod_mult_right_eq [mod_simps]:
-  "(a * (b mod c)) mod c = (a * b) mod c"
-  using mod_mult_left_eq [of b c a] by (simp add: ac_simps)
-
-lemma mod_mult_eq:
-  "((a mod c) * (b mod c)) mod c = (a * b) mod c"
-  by (simp add: mod_mult_left_eq mod_mult_right_eq)
-
-lemma mod_prod_eq [mod_simps]:
-  "(\<Prod>i\<in>A. f i mod a) mod a = prod f A mod a"
-proof (induct A rule: infinite_finite_induct)
-  case (insert i A)
-  then have "(\<Prod>i\<in>insert i A. f i mod a) mod a
-    = (f i mod a * (\<Prod>i\<in>A. f i mod a)) mod a"
-    by simp
-  also have "\<dots> = (f i * ((\<Prod>i\<in>A. f i mod a) mod a)) mod a"
-    by (simp add: mod_simps)
-  also have "\<dots> = (f i * ((\<Prod>i\<in>A. f i) mod a)) mod a"
-    by (simp add: insert.hyps)
-  finally show ?case
-    by (simp add: insert.hyps mod_simps)
-qed simp_all
-
-lemma mod_mult_cong:
-  assumes "a mod c = a' mod c"
-  assumes "b mod c = b' mod c"
-  shows "(a * b) mod c = (a' * b') mod c"
-proof -
-  have "(a mod c * (b mod c)) mod c = (a' mod c * (b' mod c)) mod c"
-    unfolding assms ..
-  then show ?thesis
-    by (simp add: mod_mult_eq)
-qed
-
-text \<open>Exponentiation respects modular equivalence.\<close>
-
-lemma power_mod [mod_simps]: 
-  "((a mod b) ^ n) mod b = (a ^ n) mod b"
-proof (induct n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  have "(a mod b) ^ Suc n mod b = (a mod b) * ((a mod b) ^ n mod b) mod b"
-    by (simp add: mod_mult_right_eq)
-  with Suc show ?case
-    by (simp add: mod_mult_left_eq mod_mult_right_eq)
-qed
-
-end
-
-class ring_div = comm_ring_1 + semiring_div
-begin
-
-subclass idom_divide ..
-
-lemma div_minus_minus [simp]: "(- a) div (- b) = a div b"
-  using div_mult_mult1 [of "- 1" a b] by simp
-
-lemma mod_minus_minus [simp]: "(- a) mod (- b) = - (a mod b)"
-  using mod_mult_mult1 [of "- 1" a b] by simp
-
-lemma div_minus_right: "a div (- b) = (- a) div b"
-  using div_minus_minus [of "- a" b] by simp
-
-lemma mod_minus_right: "a mod (- b) = - ((- a) mod b)"
-  using mod_minus_minus [of "- a" b] by simp
-
-lemma div_minus1_right [simp]: "a div (- 1) = - a"
-  using div_minus_right [of a 1] by simp
-
-lemma mod_minus1_right [simp]: "a mod (- 1) = 0"
-  using mod_minus_right [of a 1] by simp
-
-text \<open>Negation respects modular equivalence.\<close>
-
-lemma mod_minus_eq [mod_simps]:
-  "(- (a mod b)) mod b = (- a) mod b"
-proof -
-  have "(- a) mod b = (- (a div b * b + a mod b)) mod b"
-    by (simp only: div_mult_mod_eq)
-  also have "\<dots> = (- (a mod b) + - (a div b) * b) mod b"
-    by (simp add: ac_simps)
-  also have "\<dots> = (- (a mod b)) mod b"
-    by (rule mod_mult_self1)
-  finally show ?thesis
-    by (rule sym)
-qed
-
-lemma mod_minus_cong:
-  assumes "a mod b = a' mod b"
-  shows "(- a) mod b = (- a') mod b"
-proof -
-  have "(- (a mod b)) mod b = (- (a' mod b)) mod b"
-    unfolding assms ..
-  then show ?thesis
-    by (simp add: mod_minus_eq)
-qed
-
-text \<open>Subtraction respects modular equivalence.\<close>
-
-lemma mod_diff_left_eq [mod_simps]:
-  "(a mod c - b) mod c = (a - b) mod c"
-  using mod_add_cong [of a c "a mod c" "- b" "- b"]
-  by simp
-
-lemma mod_diff_right_eq [mod_simps]:
-  "(a - b mod c) mod c = (a - b) mod c"
-  using mod_add_cong [of a c a "- b" "- (b mod c)"] mod_minus_cong [of "b mod c" c b]
-  by simp
-
-lemma mod_diff_eq:
-  "(a mod c - b mod c) mod c = (a - b) mod c"
-  using mod_add_cong [of a c "a mod c" "- b" "- (b mod c)"] mod_minus_cong [of "b mod c" c b]
-  by simp
-
-lemma mod_diff_cong:
-  assumes "a mod c = a' mod c"
-  assumes "b mod c = b' mod c"
-  shows "(a - b) mod c = (a' - b') mod c"
-  using assms mod_add_cong [of a c a' "- b" "- b'"] mod_minus_cong [of b c "b'"]
-  by simp
-
-lemma minus_mod_self2 [simp]:
-  "(a - b) mod b = a mod b"
-  using mod_diff_right_eq [of a b b]
-  by (simp add: mod_diff_right_eq)
-
-lemma minus_mod_self1 [simp]:
-  "(b - a) mod b = - a mod b"
-  using mod_add_self2 [of "- a" b] by simp
-
-end
-
-  
-subsection \<open>Euclidean (semi)rings with cancel rules\<close>
-
-class euclidean_semiring_cancel = euclidean_semiring + semiring_div
-
-class euclidean_ring_cancel = euclidean_ring + ring_div
-
-context unique_euclidean_semiring
-begin
-
-subclass euclidean_semiring_cancel
-proof
-  show "(a + c * b) div b = c + a div b" if "b \<noteq> 0" for a b c
-  proof (cases a b rule: divmod_cases)
-    case by0
-    with \<open>b \<noteq> 0\<close> show ?thesis
-      by simp
-  next
-    case (divides q)
-    then show ?thesis
-      by (simp add: ac_simps)
-  next
-    case (remainder q r)
-    then show ?thesis
-      by (auto intro: div_eqI simp add: algebra_simps)
-  qed
-next
-  show"(c * a) div (c * b) = a div b" if "c \<noteq> 0" for a b c
-  proof (cases a b rule: divmod_cases)
-    case by0
-    then show ?thesis
-      by simp
-  next
-    case (divides q)
-    with \<open>c \<noteq> 0\<close> show ?thesis
-      by (simp add: mult.left_commute [of c])
-  next
-    case (remainder q r)
-    from \<open>b \<noteq> 0\<close> \<open>c \<noteq> 0\<close> have "b * c \<noteq> 0"
-      by simp
-    from remainder \<open>c \<noteq> 0\<close>
-    have "uniqueness_constraint (r * c) (b * c)"
-      and "euclidean_size (r * c) < euclidean_size (b * c)"
-      by (simp_all add: uniqueness_constraint_mono_mult uniqueness_constraint_mod size_mono_mult)
-    with remainder show ?thesis
-      by (auto intro!: div_eqI [of _ "c * (a mod b)"] simp add: algebra_simps)
-        (use \<open>b * c \<noteq> 0\<close> in simp)
-  qed
-qed
-
-end
-
-context unique_euclidean_ring
-begin
-
-subclass euclidean_ring_cancel ..
-
-end
-
-
 subsection \<open>Parity\<close>
 
-class semiring_div_parity = semiring_div + comm_semiring_1_cancel + numeral +
+class unique_euclidean_semiring_parity = unique_euclidean_semiring +
   assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
   assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
   assumes zero_not_eq_two: "0 \<noteq> 2"
@@ -532,7 +108,7 @@ text \<open>
   and less technical class hierarchy.
 \<close>
 
-class semiring_numeral_div = semiring_div + comm_semiring_1_cancel + linordered_semidom +
+class unique_euclidean_semiring_numeral = unique_euclidean_semiring + linordered_semidom +
   assumes div_less: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
     and div_positive: "0 < b \<Longrightarrow> b \<le> a \<Longrightarrow> a div b > 0"
@@ -553,7 +129,7 @@ class semiring_numeral_div = semiring_div + comm_semiring_1_cancel + linordered_
     yields a significant speedup.\<close>
 begin
 
-subclass semiring_div_parity
+subclass unique_euclidean_semiring_parity
 proof
   fix a
   show "a mod 2 = 0 \<or> a mod 2 = 1"
@@ -1050,58 +626,6 @@ qed (simp_all add: unit_factor_nat_def)
 
 end
 
-instance nat :: semiring_div
-proof
-  fix m n q :: nat
-  assume "n \<noteq> 0"
-  then show "(q + m * n) div n = m + q div n"
-    by (induct m) (simp_all add: le_div_geq)
-next
-  fix m n q :: nat
-  assume "m \<noteq> 0"
-  show "(m * n) div (m * q) = n div q"
-  proof (cases "q = 0")
-    case True
-    then show ?thesis
-      by simp
-  next
-    case False
-    show ?thesis
-    proof (rule div_nat_unique [of _ _ _ "m * (n mod q)"])
-      show "eucl_rel_nat (m * n) (m * q) (n div q, m * (n mod q))"
-        by (rule eucl_rel_natI)
-          (use \<open>m \<noteq> 0\<close> \<open>q \<noteq> 0\<close> div_mult_mod_eq [of n q] in \<open>auto simp add: algebra_simps distrib_left [symmetric]\<close>)
-    qed          
-  qed
-qed
-
-lemma div_by_Suc_0 [simp]:
-  "m div Suc 0 = m"
-  using div_by_1 [of m] by simp
-
-lemma mod_by_Suc_0 [simp]:
-  "m mod Suc 0 = 0"
-  using mod_by_1 [of m] by simp
-
-lemma mod_greater_zero_iff_not_dvd:
-  fixes m n :: nat
-  shows "m mod n > 0 \<longleftrightarrow> \<not> n dvd m"
-  by (simp add: dvd_eq_mod_eq_0)
-
-instantiation nat :: unique_euclidean_semiring
-begin
-
-definition [simp]:
-  "euclidean_size_nat = (id :: nat \<Rightarrow> nat)"
-
-definition [simp]:
-  "uniqueness_constraint_nat = (top :: nat \<Rightarrow> nat \<Rightarrow> bool)"
-
-instance
-  by standard (use mult_le_mono2 [of 1] in \<open>simp_all add: unit_factor_nat_def mod_greater_zero_iff_not_dvd\<close>)
-
-end
-
 text \<open>Simproc for cancelling @{const divide} and @{const modulo}\<close>
 
 lemma (in semiring_modulo) cancel_div_mod_rules:
@@ -1142,6 +666,41 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 simproc_setup cancel_div_mod_nat ("(m::nat) + n") =
   \<open>K Cancel_Div_Mod_Nat.proc\<close>
 
+lemma div_by_Suc_0 [simp]:
+  "m div Suc 0 = m"
+  using div_by_1 [of m] by simp
+
+lemma mod_by_Suc_0 [simp]:
+  "m mod Suc 0 = 0"
+  using mod_by_1 [of m] by simp
+
+lemma mod_greater_zero_iff_not_dvd:
+  fixes m n :: nat
+  shows "m mod n > 0 \<longleftrightarrow> \<not> n dvd m"
+  by (simp add: dvd_eq_mod_eq_0)
+
+instantiation nat :: unique_euclidean_semiring
+begin
+
+definition [simp]:
+  "euclidean_size_nat = (id :: nat \<Rightarrow> nat)"
+
+definition [simp]:
+  "uniqueness_constraint_nat = (top :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+
+instance proof
+  fix n q r :: nat
+  assume "euclidean_size r < euclidean_size n"
+  then have "n > r"
+    by simp_all
+  then have "eucl_rel_nat (q * n + r) n (q, r)"
+    by (rule eucl_rel_natI) rule
+  then show "(q * n + r) div n = q"
+    by (rule div_nat_unique)
+qed (use mult_le_mono2 [of 1] in \<open>simp_all\<close>)
+
+end
+  
 lemma divmod_nat_if [code]:
   "Divides.divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
     let (q, r) = Divides.divmod_nat (m - n) n in (Suc q, r))"
@@ -1262,7 +821,7 @@ by (force simp add: eucl_rel_nat [THEN eucl_rel_nat_mult2_eq, THEN div_nat_uniqu
 lemma mod_mult2_eq: "a mod (b * c) = b * (a div b mod c) + a mod (b::nat)"
 by (auto simp add: mult.commute eucl_rel_nat [THEN eucl_rel_nat_mult2_eq, THEN mod_nat_unique])
 
-instantiation nat :: semiring_numeral_div
+instantiation nat :: unique_euclidean_semiring_numeral
 begin
 
 definition divmod_nat :: "num \<Rightarrow> num \<Rightarrow> nat \<times> nat"
@@ -1820,6 +1379,25 @@ qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
 
+ML \<open>
+structure Cancel_Div_Mod_Int = Cancel_Div_Mod
+(
+  val div_name = @{const_name divide};
+  val mod_name = @{const_name modulo};
+  val mk_binop = HOLogic.mk_binop;
+  val mk_sum = Arith_Data.mk_sum HOLogic.intT;
+  val dest_sum = Arith_Data.dest_sum;
+
+  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
+
+  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
+    @{thms diff_conv_add_uminus add_0_left add_0_right ac_simps})
+)
+\<close>
+
+simproc_setup cancel_div_mod_int ("(k::int) + l") =
+  \<open>K Cancel_Div_Mod_Int.proc\<close>
+
 lemma is_unit_int:
   "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
   by auto
@@ -1921,50 +1499,28 @@ lemma abs_mod_less:
   using assms unfolding modulo_int_def [of k l]
   by (auto simp add: not_less int_dvd_iff mod_greater_zero_iff_not_dvd elim: pos_int_cases neg_int_cases nonneg_int_cases nonpos_int_cases)
 
-instance int :: ring_div
-proof
-  fix k l s :: int
-  assume "l \<noteq> 0"
-  then have "eucl_rel_int (k + s * l) l (s + k div l, k mod l)"
-    using eucl_rel_int [of k l]
-    unfolding eucl_rel_int_iff by (auto simp: algebra_simps)
-  then show "(k + s * l) div l = s + k div l"
+instantiation int :: unique_euclidean_ring
+begin
+
+definition [simp]:
+  "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
+
+definition [simp]:
+  "uniqueness_constraint_int (k :: int) l \<longleftrightarrow> unit_factor k = unit_factor l"
+  
+instance proof
+  fix l q r:: int
+  assume "uniqueness_constraint r l"
+    and "euclidean_size r < euclidean_size l"
+  then have "sgn r = sgn l" and "\<bar>r\<bar> < \<bar>l\<bar>"
+    by simp_all
+  then have "eucl_rel_int (q * l + r) l (q, r)"
+    by (rule eucl_rel_int_remainderI) simp
+  then show "(q * l + r) div l = q"
     by (rule div_int_unique)
-next
-  fix k l s :: int
-  assume "s \<noteq> 0"
-  have "\<And>q r. eucl_rel_int k l (q, r)
-    \<Longrightarrow> eucl_rel_int (s * k) (s * l) (q, s * r)"
-    unfolding eucl_rel_int_iff
-    by (rule linorder_cases [of 0 l])
-      (use \<open>s \<noteq> 0\<close> in \<open>auto simp: algebra_simps
-      mult_less_0_iff zero_less_mult_iff mult_strict_right_mono
-      mult_strict_right_mono_neg zero_le_mult_iff mult_le_0_iff\<close>)
-  then have "eucl_rel_int (s * k) (s * l) (k div l, s * (k mod l))"
-    using eucl_rel_int [of k l] .
-  then show "(s * k) div (s * l) = k div l"
-    by (rule div_int_unique)
-qed
+qed (use mult_le_mono2 [of 1] in \<open>auto simp add: abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
 
-ML \<open>
-structure Cancel_Div_Mod_Int = Cancel_Div_Mod
-(
-  val div_name = @{const_name divide};
-  val mod_name = @{const_name modulo};
-  val mk_binop = HOLogic.mk_binop;
-  val mk_sum = Arith_Data.mk_sum HOLogic.intT;
-  val dest_sum = Arith_Data.dest_sum;
-
-  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
-
-  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    @{thms diff_conv_add_uminus add_0_left add_0_right ac_simps})
-)
-\<close>
-
-simproc_setup cancel_div_mod_int ("(k::int) + l") =
-  \<open>K Cancel_Div_Mod_Int.proc\<close>
-
+end
 
 text\<open>Basic laws about division and remainder\<close>
 
@@ -2420,21 +1976,6 @@ proof -
     by simp
 qed
 
-instantiation int :: unique_euclidean_ring
-begin
-
-definition [simp]:
-  "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
-
-definition [simp]:
-  "uniqueness_constraint_int (k :: int) l \<longleftrightarrow> unit_factor k = unit_factor l"
-  
-instance
-  by standard
-    (use mult_le_mono2 [of 1] in \<open>auto simp add: abs_mult nat_mult_distrib sgn_mod zdiv_eq_0_iff sgn_1_pos sgn_mult split: abs_split\<close>)
-
-end
-
   
 subsubsection \<open>Quotients of Signs\<close>
 
@@ -2506,7 +2047,7 @@ done
 
 subsubsection \<open>Computation of Division and Remainder\<close>
 
-instantiation int :: semiring_numeral_div
+instantiation int :: unique_euclidean_semiring_numeral
 begin
 
 definition divmod_int :: "num \<Rightarrow> num \<Rightarrow> int \<times> int"
@@ -2687,22 +2228,6 @@ apply (subgoal_tac "nat x div nat k < nat x")
 apply (rule Divides.div_less_dividend, simp_all)
 done
 
-lemma (in ring_div) mod_eq_dvd_iff:
-  "a mod c = b mod c \<longleftrightarrow> c dvd a - b" (is "?P \<longleftrightarrow> ?Q")
-proof
-  assume ?P
-  then have "(a mod c - b mod c) mod c = 0"
-    by simp
-  then show ?Q
-    by (simp add: dvd_eq_mod_eq_0 mod_simps)
-next
-  assume ?Q
-  then obtain d where d: "a - b = c * d" ..
-  then have "a = c * d + b"
-    by (simp add: algebra_simps)
-  then show ?P by simp
-qed
-
 lemma nat_mod_eq_lemma: assumes xyn: "(x::nat) mod n = y mod n" and xy:"y \<le> x"
   shows "\<exists>q. x = y + n * q"
 proof-
@@ -2742,23 +2267,23 @@ text \<open>
 \<close>
 
 simproc_setup numeral_divmod
-  ("0 div 0 :: 'a :: semiring_numeral_div" | "0 mod 0 :: 'a :: semiring_numeral_div" |
-   "0 div 1 :: 'a :: semiring_numeral_div" | "0 mod 1 :: 'a :: semiring_numeral_div" |
+  ("0 div 0 :: 'a :: unique_euclidean_semiring_numeral" | "0 mod 0 :: 'a :: unique_euclidean_semiring_numeral" |
+   "0 div 1 :: 'a :: unique_euclidean_semiring_numeral" | "0 mod 1 :: 'a :: unique_euclidean_semiring_numeral" |
    "0 div - 1 :: int" | "0 mod - 1 :: int" |
-   "0 div numeral b :: 'a :: semiring_numeral_div" | "0 mod numeral b :: 'a :: semiring_numeral_div" |
+   "0 div numeral b :: 'a :: unique_euclidean_semiring_numeral" | "0 mod numeral b :: 'a :: unique_euclidean_semiring_numeral" |
    "0 div - numeral b :: int" | "0 mod - numeral b :: int" |
-   "1 div 0 :: 'a :: semiring_numeral_div" | "1 mod 0 :: 'a :: semiring_numeral_div" |
-   "1 div 1 :: 'a :: semiring_numeral_div" | "1 mod 1 :: 'a :: semiring_numeral_div" |
+   "1 div 0 :: 'a :: unique_euclidean_semiring_numeral" | "1 mod 0 :: 'a :: unique_euclidean_semiring_numeral" |
+   "1 div 1 :: 'a :: unique_euclidean_semiring_numeral" | "1 mod 1 :: 'a :: unique_euclidean_semiring_numeral" |
    "1 div - 1 :: int" | "1 mod - 1 :: int" |
-   "1 div numeral b :: 'a :: semiring_numeral_div" | "1 mod numeral b :: 'a :: semiring_numeral_div" |
+   "1 div numeral b :: 'a :: unique_euclidean_semiring_numeral" | "1 mod numeral b :: 'a :: unique_euclidean_semiring_numeral" |
    "1 div - numeral b :: int" |"1 mod - numeral b :: int" |
    "- 1 div 0 :: int" | "- 1 mod 0 :: int" | "- 1 div 1 :: int" | "- 1 mod 1 :: int" |
    "- 1 div - 1 :: int" | "- 1 mod - 1 :: int" | "- 1 div numeral b :: int" | "- 1 mod numeral b :: int" |
    "- 1 div - numeral b :: int" | "- 1 mod - numeral b :: int" |
-   "numeral a div 0 :: 'a :: semiring_numeral_div" | "numeral a mod 0 :: 'a :: semiring_numeral_div" |
-   "numeral a div 1 :: 'a :: semiring_numeral_div" | "numeral a mod 1 :: 'a :: semiring_numeral_div" |
+   "numeral a div 0 :: 'a :: unique_euclidean_semiring_numeral" | "numeral a mod 0 :: 'a :: unique_euclidean_semiring_numeral" |
+   "numeral a div 1 :: 'a :: unique_euclidean_semiring_numeral" | "numeral a mod 1 :: 'a :: unique_euclidean_semiring_numeral" |
    "numeral a div - 1 :: int" | "numeral a mod - 1 :: int" |
-   "numeral a div numeral b :: 'a :: semiring_numeral_div" | "numeral a mod numeral b :: 'a :: semiring_numeral_div" |
+   "numeral a div numeral b :: 'a :: unique_euclidean_semiring_numeral" | "numeral a mod numeral b :: 'a :: unique_euclidean_semiring_numeral" |
    "numeral a div - numeral b :: int" | "numeral a mod - numeral b :: int" |
    "- numeral a div 0 :: int" | "- numeral a mod 0 :: int" |
    "- numeral a div 1 :: int" | "- numeral a mod 1 :: int" |
@@ -2818,7 +2343,7 @@ code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 lemma dvd_eq_mod_eq_0_numeral:
-  "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semiring_div)"
+  "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semidom_modulo)"
   by (fact dvd_eq_mod_eq_0)
 
 declare minus_div_mult_eq_mod [symmetric, nitpick_unfold]

@@ -1011,7 +1011,7 @@ lemma binomial_altdef_nat: "k \<le> n \<Longrightarrow> n choose k = fact n div 
   by (subst binomial_fact_lemma [symmetric]) auto
 
 lemma choose_dvd:
-  "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd (fact n :: 'a::{semiring_div,linordered_semidom})"
+  "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd (fact n :: 'a::linordered_semidom)"
   unfolding dvd_def
   apply (rule exI [where x="of_nat (n choose k)"])
   using binomial_fact_lemma [of k n, THEN arg_cong [where f = of_nat and 'b='a]]
@@ -1019,7 +1019,7 @@ lemma choose_dvd:
   done
 
 lemma fact_fact_dvd_fact:
-  "fact k * fact n dvd (fact (k + n) :: 'a::{semiring_div,linordered_semidom})"
+  "fact k * fact n dvd (fact (k + n) :: 'a::linordered_semidom)"
   by (metis add.commute add_diff_cancel_left' choose_dvd le_add2)
 
 lemma choose_mult_lemma:

@@ -1181,7 +1181,7 @@ qed (auto simp add: fps_divide_def Let_def)
 
 end
 
-instantiation fps :: (field) ring_div
+instantiation fps :: (field) idom_modulo
 begin
 
 definition fps_mod_def:
@@ -1224,39 +1224,6 @@ proof -
   from assms show "f mod g = 0" by (intro fps_mod_eq_zero) auto
 qed
 
-context
-begin
-private lemma fps_divide_cancel_aux1:
-  assumes "h$0 \<noteq> (0 :: 'a :: field)"
-  shows   "(h * f) div (h * g) = f div g"
-proof (cases "g = 0")
-  assume "g \<noteq> 0"
-  from assms have "h \<noteq> 0" by auto
-  note nz [simp] = \<open>g \<noteq> 0\<close> \<open>h \<noteq> 0\<close>
-  from assms have [simp]: "subdegree h = 0" by (simp add: subdegree_eq_0_iff)
-
-  have "(h * f) div (h * g) =
-          fps_shift (subdegree g) (h * f * inverse (fps_shift (subdegree g) (h*g)))"
-    by (simp add: fps_divide_def Let_def)
-  also have "h * f * inverse (fps_shift (subdegree g) (h*g)) =
-               (inverse h * h) * f * inverse (fps_shift (subdegree g) g)"
-    by (subst fps_shift_mult) (simp_all add: algebra_simps fps_inverse_mult)
-  also from assms have "inverse h * h = 1" by (rule inverse_mult_eq_1)
-  finally show "(h * f) div (h * g) = f div g" by (simp_all add: fps_divide_def Let_def)
-qed (simp_all add: fps_divide_def)
-
-private lemma fps_divide_cancel_aux2:
-  "(f * fps_X^m) div (g * fps_X^m) = f div (g :: 'a :: field fps)"
-proof (cases "g = 0")
-  assume [simp]: "g \<noteq> 0"
-  have "(f * fps_X^m) div (g * fps_X^m) =
-          fps_shift (subdegree g + m) (f*inverse (fps_shift (subdegree g + m) (g*fps_X^m))*fps_X^m)"
-    by (simp add: fps_divide_def Let_def algebra_simps)
-  also have "... = f div g"
-    by (simp add: fps_shift_times_fps_X_power'' fps_divide_def Let_def)
-  finally show ?thesis .
-qed (simp_all add: fps_divide_def)
-
 instance proof
   fix f g :: "'a fps"
   define n where "n = subdegree g"
@@ -1284,38 +1251,8 @@ instance proof
       finally show ?thesis by simp
     qed
   qed (auto simp: fps_mod_def fps_divide_def Let_def)
-next
-
-  fix f g h :: "'a fps"
-  assume "h \<noteq> 0"
-  show "(h * f) div (h * g) = f div g"
-  proof -
-    define m where "m = subdegree h"
-    define h' where "h' = fps_shift m h"
-    have h_decomp: "h = h' * fps_X ^ m" unfolding h'_def m_def by (rule subdegree_decompose)
-    from \<open>h \<noteq> 0\<close> have [simp]: "h'$0 \<noteq> 0" by (simp add: h'_def m_def)
-    have "(h * f) div (h * g) = (h' * f * fps_X^m) div (h' * g * fps_X^m)"
-      by (simp add: h_decomp algebra_simps)
-    also have "... = f div g" by (simp add: fps_divide_cancel_aux1 fps_divide_cancel_aux2)
-    finally show ?thesis .
-  qed
-
-next
-  fix f g h :: "'a fps"
-  assume [simp]: "h \<noteq> 0"
-  define n h' where dfs: "n = subdegree h" "h' = fps_shift n h"
-  have "(f + g * h) div h = fps_shift n (f * inverse h') + fps_shift n (g * (h * inverse h'))"
-    by (simp add: fps_divide_def Let_def dfs[symmetric] algebra_simps fps_shift_add)
-  also have "h * inverse h' = (inverse h' * h') * fps_X^n"
-    by (subst subdegree_decompose) (simp_all add: dfs)
-  also have "... = fps_X^n" by (subst inverse_mult_eq_1) (simp_all add: dfs)
-  also have "fps_shift n (g * fps_X^n) = g" by simp
-  also have "fps_shift n (f * inverse h') = f div h"
-    by (simp add: fps_divide_def Let_def dfs)
-  finally show "(f + g * h) div h = g + f div h" by simp
 qed
 
-end
 end
 
 lemma subdegree_mod:
@@ -1411,6 +1348,40 @@ begin
 definition fps_euclidean_size_def:
   "euclidean_size f = (if f = 0 then 0 else 2 ^ subdegree f)"
 
+context
+begin
+
+private lemma fps_divide_cancel_aux1:
+  assumes "h$0 \<noteq> (0 :: 'a :: field)"
+  shows   "(h * f) div (h * g) = f div g"
+proof (cases "g = 0")
+  assume "g \<noteq> 0"
+  from assms have "h \<noteq> 0" by auto
+  note nz [simp] = \<open>g \<noteq> 0\<close> \<open>h \<noteq> 0\<close>
+  from assms have [simp]: "subdegree h = 0" by (simp add: subdegree_eq_0_iff)
+
+  have "(h * f) div (h * g) =
+          fps_shift (subdegree g) (h * f * inverse (fps_shift (subdegree g) (h*g)))"
+    by (simp add: fps_divide_def Let_def)
+  also have "h * f * inverse (fps_shift (subdegree g) (h*g)) =
+               (inverse h * h) * f * inverse (fps_shift (subdegree g) g)"
+    by (subst fps_shift_mult) (simp_all add: algebra_simps fps_inverse_mult)
+  also from assms have "inverse h * h = 1" by (rule inverse_mult_eq_1)
+  finally show "(h * f) div (h * g) = f div g" by (simp_all add: fps_divide_def Let_def)
+qed (simp_all add: fps_divide_def)
+
+private lemma fps_divide_cancel_aux2:
+  "(f * fps_X^m) div (g * fps_X^m) = f div (g :: 'a :: field fps)"
+proof (cases "g = 0")
+  assume [simp]: "g \<noteq> 0"
+  have "(f * fps_X^m) div (g * fps_X^m) =
+          fps_shift (subdegree g + m) (f*inverse (fps_shift (subdegree g + m) (g*fps_X^m))*fps_X^m)"
+    by (simp add: fps_divide_def Let_def algebra_simps)
+  also have "... = f div g"
+    by (simp add: fps_shift_times_fps_X_power'' fps_divide_def Let_def)
+  finally show ?thesis .
+qed (simp_all add: fps_divide_def)
+
 instance proof
   fix f g :: "'a fps" assume [simp]: "g \<noteq> 0"
   show "euclidean_size f \<le> euclidean_size (f * g)"
@@ -1420,7 +1391,37 @@ instance proof
     apply (rule disjE[OF le_less_linear[of "subdegree g" "subdegree f"]])
     apply (simp_all add: fps_mod_eq_zero fps_euclidean_size_def subdegree_mod)
     done
+  show "(h * f) div (h * g) = f div g" if "h \<noteq> 0"
+    for f g h :: "'a fps"
+  proof -
+    define m where "m = subdegree h"
+    define h' where "h' = fps_shift m h"
+    have h_decomp: "h = h' * fps_X ^ m" unfolding h'_def m_def by (rule subdegree_decompose)
+    from \<open>h \<noteq> 0\<close> have [simp]: "h'$0 \<noteq> 0" by (simp add: h'_def m_def)
+    have "(h * f) div (h * g) = (h' * f * fps_X^m) div (h' * g * fps_X^m)"
+      by (simp add: h_decomp algebra_simps)
+    also have "... = f div g"
+      by (simp add: fps_divide_cancel_aux1 fps_divide_cancel_aux2)
+    finally show ?thesis .
+  qed
+  show "(f + g * h) div h = g + f div h"
+    if "h \<noteq> 0" for f g h :: "'a fps"
+  proof -
+    define n h' where dfs: "n = subdegree h" "h' = fps_shift n h"
+    have "(f + g * h) div h = fps_shift n (f * inverse h') + fps_shift n (g * (h * inverse h'))"
+      by (simp add: fps_divide_def Let_def dfs [symmetric] algebra_simps fps_shift_add that)
+    also have "h * inverse h' = (inverse h' * h') * fps_X^n"
+      by (subst subdegree_decompose) (simp_all add: dfs)
+    also have "... = fps_X^n"
+      by (subst inverse_mult_eq_1) (simp_all add: dfs that)
+    also have "fps_shift n (g * fps_X^n) = g" by simp
+    also have "fps_shift n (f * inverse h') = f div h"
+      by (simp add: fps_divide_def Let_def dfs)
+    finally show ?thesis by simp
+  qed
 qed (simp_all add: fps_euclidean_size_def)
+
+end
 
 end
 
