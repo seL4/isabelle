@@ -41,17 +41,9 @@ fun find_first_numeral past (t::terms) =
          handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
-val zero = mk_number 0;
-val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
+val mk_sum = Arith_Data.mk_sum HOLogic.natT;
 
-(*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
-fun mk_sum []        = zero
-  | mk_sum [t,u]     = mk_plus (t, u)
-  | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
-
-(*this version ALWAYS includes a trailing zero*)
-fun long_mk_sum []        = HOLogic.zero
-  | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
+val long_mk_sum = Arith_Data.long_mk_sum HOLogic.natT;
 
 val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
 
