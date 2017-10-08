@@ -1624,7 +1624,38 @@ lemma dvd_minus_mod [simp]:
   "b dvd a - a mod b"
   by (simp add: minus_mod_eq_div_mult)
 
+lemma cancel_div_mod_rules:
+  "((a div b) * b + a mod b) + c = a + c"
+  "(b * (a div b) + a mod b) + c = a + c"
+  by (simp_all add: div_mult_mod_eq mult_div_mod_eq)
+
 end
+
+text \<open>Interlude: basic tool support for algebraic and arithmetic calculations\<close>
+
+named_theorems arith "arith facts -- only ground formulas"
+ML_file "Tools/arith_data.ML"
+
+ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
+
+ML \<open>
+structure Cancel_Div_Mod_Ring = Cancel_Div_Mod
+(
+  val div_name = @{const_name divide};
+  val mod_name = @{const_name modulo};
+  val mk_binop = HOLogic.mk_binop;
+  val mk_sum = Arith_Data.mk_sum;
+  val dest_sum = Arith_Data.dest_sum;
+
+  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
+
+  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
+    @{thms diff_conv_add_uminus add_0_left add_0_right ac_simps})
+)
+\<close>
+
+simproc_setup cancel_div_mod_int ("(a::'a::semidom_modulo) + b") =
+  \<open>K Cancel_Div_Mod_Ring.proc\<close>
 
 class idom_modulo = idom + semidom_modulo
 begin

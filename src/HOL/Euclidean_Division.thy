@@ -9,16 +9,6 @@ theory Euclidean_Division
   imports Nat_Transfer Lattices_Big
 begin
 
-subsection \<open>Prelude: simproc for cancelling @{const divide} and @{const modulo}\<close>
-
-lemma (in semiring_modulo) cancel_div_mod_rules:
-  "((a div b) * b + a mod b) + c = a + c"
-  "(b * (a div b) + a mod b) + c = a + c"
-  by (simp_all add: div_mult_mod_eq mult_div_mod_eq)
-
-ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
-
-
 subsection \<open>Euclidean (semi)rings with explicit division and remainder\<close>
   
 class euclidean_semiring = semidom_modulo + normalization_semidom + 
@@ -767,9 +757,10 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
   val mk_binop = HOLogic.mk_binop;
   val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
   val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
-  fun mk_sum [] = HOLogic.zero
-    | mk_sum [t] = t
-    | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
+  fun mk_sum' [] = HOLogic.zero
+    | mk_sum' [t] = t
+    | mk_sum' (t :: ts) = mk_plus (t, mk_sum' ts);
+  fun mk_sum _ = mk_sum';
   fun dest_sum tm =
     if HOLogic.is_zero tm then []
     else

@@ -527,25 +527,6 @@ qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
 
-ML \<open>
-structure Cancel_Div_Mod_Int = Cancel_Div_Mod
-(
-  val div_name = @{const_name divide};
-  val mod_name = @{const_name modulo};
-  val mk_binop = HOLogic.mk_binop;
-  val mk_sum = Arith_Data.mk_sum HOLogic.intT;
-  val dest_sum = Arith_Data.dest_sum;
-
-  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
-
-  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
-    @{thms diff_conv_add_uminus add_0_left add_0_right ac_simps})
-)
-\<close>
-
-simproc_setup cancel_div_mod_int ("(k::int) + l") =
-  \<open>K Cancel_Div_Mod_Int.proc\<close>
-
 lemma is_unit_int:
   "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
   by auto

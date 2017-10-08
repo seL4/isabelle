@@ -15,7 +15,7 @@ sig
   val div_name: string
   val mod_name: string
   val mk_binop: string -> term * term -> term
-  val mk_sum: term list -> term
+  val mk_sum: typ -> term list -> term
   val dest_sum: term -> term list
   (*logic*)
   val div_mod_eqs: thm list
@@ -34,16 +34,16 @@ end;
 functor Cancel_Div_Mod(Data: CANCEL_DIV_MOD_DATA): CANCEL_DIV_MOD =
 struct
 
-fun coll_div_mod (Const(@{const_name Groups.plus},_) $ s $ t) dms =
+fun coll_div_mod (Const (@{const_name Groups.plus}, _) $ s $ t) dms =
       coll_div_mod t (coll_div_mod s dms)
-  | coll_div_mod (Const(@{const_name Groups.times},_) $ m $ (Const(d,_) $ s $ n))
-                 (dms as (divs,mods)) =
-      if d = Data.div_name andalso m=n then ((s,n)::divs,mods) else dms
-  | coll_div_mod (Const(@{const_name Groups.times},_) $ (Const(d,_) $ s $ n) $ m)
-                 (dms as (divs,mods)) =
-      if d = Data.div_name andalso m=n then ((s,n)::divs,mods) else dms
-  | coll_div_mod (Const(m,_) $ s $ n) (dms as (divs,mods)) =
-      if m = Data.mod_name then (divs,(s,n)::mods) else dms
+  | coll_div_mod (Const (@{const_name Groups.times}, _) $ m $ (Const (d, _) $ s $ n))
+                 (dms as (divs, mods)) =
+      if d = Data.div_name andalso m = n then ((s, n) :: divs, mods) else dms
+  | coll_div_mod (Const (@{const_name Groups.times}, _) $ (Const (d, _) $ s $ n) $ m)
+                 (dms as (divs, mods)) =
+      if d = Data.div_name andalso m = n then ((s, n) :: divs, mods) else dms
+  | coll_div_mod (Const (m, _) $ s $ n) (dms as (divs, mods)) =
+      if m = Data.mod_name then (divs, (s, n) :: mods) else dms
   | coll_div_mod _ dms = dms;
 
 
@@ -58,16 +58,18 @@ fun coll_div_mod (Const(@{const_name Groups.plus},_) $ s $ t) dms =
 val mk_plus = Data.mk_binop @{const_name Groups.plus};
 val mk_times = Data.mk_binop @{const_name Groups.times};
 
-fun rearrange t pq =
-  let val ts = Data.dest_sum t;
-      val dpq = Data.mk_binop Data.div_name pq
-      val d1 = mk_times (snd pq,dpq) and d2 = mk_times (dpq,snd pq)
-      val d = if member (op =) ts d1 then d1 else d2
-      val m = Data.mk_binop Data.mod_name pq
-  in mk_plus(mk_plus(d,m),Data.mk_sum(ts |> remove (op =) d |> remove (op =) m)) end
+fun rearrange T t pq =
+  let
+    val ts = Data.dest_sum t;
+    val dpq = Data.mk_binop Data.div_name pq;
+    val d1 = mk_times (snd pq, dpq) and d2 = mk_times (dpq, snd pq);
+    val d = if member (op =) ts d1 then d1 else d2;
+    val m = Data.mk_binop Data.mod_name pq;
+  in mk_plus (mk_plus (d, m), Data.mk_sum T (ts |> remove (op =) d |> remove (op =) m)) end
 
 fun cancel ctxt t pq =
-  let val teqt' = Data.prove_eq_sums ctxt (t, rearrange t pq)
+  let
+    val teqt' = Data.prove_eq_sums ctxt (t, rearrange (fastype_of t) t pq);
   in hd (Data.div_mod_eqs RL [teqt' RS transitive_thm]) end;
 
 fun proc ctxt ct =

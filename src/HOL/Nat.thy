@@ -10,10 +10,6 @@ theory Nat
 imports Inductive Typedef Fun Rings
 begin
 
-named_theorems arith "arith facts -- only ground formulas"
-ML_file "Tools/arith_data.ML"
-
-
 subsection \<open>Type \<open>ind\<close>\<close>
 
 typedecl ind
