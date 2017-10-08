@@ -98,9 +98,9 @@ object ML_Process
           def print_table(table: List[(String, String)]): String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
-                ML_Syntax.print_string, ML_Syntax.print_string))(table)
+                ML_Syntax.print_string0, ML_Syntax.print_string0))(table)
           def print_list(list: List[String]): String =
-            ML_Syntax.print_list(ML_Syntax.print_string)(list)
+            ML_Syntax.print_list(ML_Syntax.print_string0)(list)
           List("Resources.init_session_base" +
             " {global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) +
