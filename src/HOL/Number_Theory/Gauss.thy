@@ -196,7 +196,8 @@ proof (auto simp add: C_def)
   moreover have "int y = 0 \<or> 0 < int y" for y
     by linarith
   ultimately show "0 < x mod int p"
-    by (metis (no_types) B_greater_zero Divides.transfer_int_nat_functions(2) zero_less_imp_eq_int)
+    using B_greater_zero [of x]
+    by (auto simp add: mod_int_pos_iff intro: neq_le_trans)
 qed
 
 lemma F_subset: "F \<subseteq> {x. 0 < x \<and> x \<le> ((int p - 1) div 2)}"

@@ -416,14 +416,12 @@ context
 begin
 
 interpretation field_poly: 
-  unique_euclidean_ring where zero = "0 :: 'a :: field poly"
-    and one = 1 and plus = plus
-    and uminus = uminus and minus = minus
+  normalization_euclidean_semiring where zero = "0 :: 'a :: field poly"
+    and one = 1 and plus = plus and minus = minus
     and times = times
     and normalize = "\<lambda>p. smult (inverse (lead_coeff p)) p"
     and unit_factor = "\<lambda>p. [:lead_coeff p:]"
     and euclidean_size = "\<lambda>p. if p = 0 then 0 else 2 ^ degree p"
-    and uniqueness_constraint = top
     and divide = divide and modulo = modulo
   rewrites "dvd.dvd (times :: 'a poly \<Rightarrow> _) = Rings.dvd"
     and "comm_monoid_mult.prod_mset times 1 = prod_mset"
@@ -438,9 +436,9 @@ proof -
     by (simp add: irreducible_dict)
   show "comm_semiring_1.prime_elem times 1 0 = prime_elem"
     by (simp add: prime_elem_dict)
-  show "class.unique_euclidean_ring divide plus minus (0 :: 'a poly) times 1
-    (\<lambda>p. [:lead_coeff p:]) (\<lambda>p. smult (inverse (lead_coeff p)) p) modulo
-    (\<lambda>p. if p = 0 then 0 else 2 ^ degree p) uminus top"
+  show "class.normalization_euclidean_semiring divide plus minus (0 :: 'a poly) times 1
+    modulo (\<lambda>p. if p = 0 then 0 else 2 ^ degree p)
+    (\<lambda>p. [:lead_coeff p:]) (\<lambda>p. smult (inverse (lead_coeff p)) p)"
   proof (standard, fold dvd_dict)
     fix p :: "'a poly"
     show "[:lead_coeff p:] * smult (inverse (lead_coeff p)) p = p"
@@ -453,23 +451,6 @@ proof -
     fix p :: "'a poly" assume "p \<noteq> 0"
     then show "is_unit [:lead_coeff p:]"
       by (simp add: is_unit_pCons_iff)
-  next
-    fix p q s :: "'a poly" assume "s \<noteq> 0"
-    moreover assume "(if p = 0 then (0::nat) else 2 ^ degree p) < (if q = 0 then 0 else 2 ^ degree q)"
-    ultimately show "(if p * s = 0 then (0::nat) else 2 ^ degree (p * s)) < (if q * s = 0 then 0 else 2 ^ degree (q * s))"
-      by (auto simp add: degree_mult_eq)
-  next
-    fix p q r :: "'a poly"
-    assume "p \<noteq> 0"
-    with eucl_rel_poly [of r p] have "eucl_rel_poly (r + q * p) p (q + r div p, r mod p)"
-      by (simp add: eucl_rel_poly_iff distrib_right)
-    then have "(r + q * p) div p = q + r div p"
-      by (rule div_poly_eq)
-    moreover assume "(if r = 0 then (0::nat) else 2 ^ degree r)
-      < (if p = 0 then 0 else 2 ^ degree p)"
-    ultimately show "(q * p + r) div p = q"
-      using \<open>p \<noteq> 0\<close>
-      by (cases "r = 0") (simp_all add: div_poly_less ac_simps)
   qed (auto simp: lead_coeff_mult Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
 qed
 
@@ -758,7 +739,7 @@ instance by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_p
 
 end
 
-instantiation poly :: ("{field,factorial_ring_gcd}") unique_euclidean_ring
+instantiation poly :: ("{field,factorial_ring_gcd}") "{unique_euclidean_ring, normalization_euclidean_semiring}"
 begin
 
 definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
@@ -783,9 +764,8 @@ qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degr
 
 end
 
-instance poly :: ("{field,factorial_ring_gcd}") euclidean_ring_gcd
-  by (rule euclidean_ring_gcd_class.intro, rule factorial_euclidean_semiring_gcdI)
-    standard
+instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd}") euclidean_ring_gcd
+  by (rule euclidean_ring_gcd_class.intro, rule factorial_euclidean_semiring_gcdI) standard
 
   
 subsection \<open>Polynomial GCD\<close>

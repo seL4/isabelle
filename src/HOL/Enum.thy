@@ -712,7 +712,7 @@ lemma dvd_finite_2_unfold:
   "x dvd y \<longleftrightarrow> x = a\<^sub>2 \<or> y = a\<^sub>1"
   by (auto simp add: dvd_def times_finite_2_def split: finite_2.splits)
 
-instantiation finite_2 :: unique_euclidean_semiring begin
+instantiation finite_2 :: "{normalization_semidom, unique_euclidean_semiring}" begin
 definition [simp]: "normalize = (id :: finite_2 \<Rightarrow> _)"
 definition [simp]: "unit_factor = (id :: finite_2 \<Rightarrow> _)"
 definition [simp]: "euclidean_size x = (case x of a\<^sub>1 \<Rightarrow> 0 | a\<^sub>2 \<Rightarrow> 1)"
@@ -864,7 +864,7 @@ lemma dvd_finite_3_unfold:
   "x dvd y \<longleftrightarrow> x = a\<^sub>2 \<or> x = a\<^sub>3 \<or> y = a\<^sub>1"
   by (cases x) (auto simp add: dvd_def times_finite_3_def split: finite_3.splits)
 
-instantiation finite_3 :: unique_euclidean_semiring begin
+instantiation finite_3 :: "{normalization_semidom, unique_euclidean_semiring}" begin
 definition [simp]: "normalize x = (case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> x)"
 definition [simp]: "unit_factor = (id :: finite_3 \<Rightarrow> _)"
 definition [simp]: "euclidean_size x = (case x of a\<^sub>1 \<Rightarrow> 0 | _ \<Rightarrow> 1)"

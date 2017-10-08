@@ -1425,6 +1425,8 @@ end
 
 end
 
+instance fps :: (field) normalization_euclidean_semiring ..
+
 instantiation fps :: (field) euclidean_ring_gcd
 begin
 definition fps_gcd_def: "(gcd :: 'a fps \<Rightarrow> _) = Euclidean_Algorithm.gcd"

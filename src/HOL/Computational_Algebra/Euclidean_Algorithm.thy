@@ -9,9 +9,25 @@ theory Euclidean_Algorithm
 begin
 
 subsection \<open>Generic construction of the (simple) euclidean algorithm\<close>
-  
-context euclidean_semiring
+
+class normalization_euclidean_semiring = euclidean_semiring + normalization_semidom
 begin
+
+lemma euclidean_size_normalize [simp]:
+  "euclidean_size (normalize a) = euclidean_size a"
+proof (cases "a = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case [simp]: False
+  have "euclidean_size (normalize a) \<le> euclidean_size (normalize a * unit_factor a)"
+    by (rule size_mult_mono) simp
+  moreover have "euclidean_size a \<le> euclidean_size (a * (1 div unit_factor a))"
+    by (rule size_mult_mono) simp
+  ultimately show ?thesis
+    by simp
+qed
 
 context
 begin
@@ -282,7 +298,7 @@ lemma prime_int_iff:
   
 subsection \<open>The (simple) euclidean algorithm as gcd computation\<close>
   
-class euclidean_semiring_gcd = euclidean_semiring + gcd + Gcd +
+class euclidean_semiring_gcd = normalization_euclidean_semiring + gcd + Gcd +
   assumes gcd_eucl: "Euclidean_Algorithm.gcd = GCD.gcd"
     and lcm_eucl: "Euclidean_Algorithm.lcm = GCD.lcm"
   assumes Gcd_eucl: "Euclidean_Algorithm.Gcd = GCD.Gcd"
@@ -400,7 +416,7 @@ lemma euclidean_size_lcm_less2:
 end
 
 lemma factorial_euclidean_semiring_gcdI:
-  "OFCLASS('a::{factorial_semiring_gcd, euclidean_semiring}, euclidean_semiring_gcd_class)"
+  "OFCLASS('a::{factorial_semiring_gcd, normalization_euclidean_semiring}, euclidean_semiring_gcd_class)"
 proof
   interpret semiring_Gcd 1 0 times
     Euclidean_Algorithm.gcd Euclidean_Algorithm.lcm
@@ -502,7 +518,7 @@ proof -
         also have "r' - r' div r * r = r' mod r" using div_mult_mod_eq [of r' r]
           by (simp add: algebra_simps)
         finally show "(s' - r' div r * s) * a + (t' - r' div r * t) * b = r' mod r" .
-      qed (auto simp: gcd_mod_right algebra_simps minus_mod_eq_div_mult [symmetric] gcd.commute)
+      qed (auto simp: algebra_simps minus_mod_eq_div_mult [symmetric] gcd.commute)
       finally show ?thesis .
     qed
   qed
@@ -552,6 +568,8 @@ end
 
 subsection \<open>Typical instances\<close>
 
+instance nat :: normalization_euclidean_semiring ..
+
 instance nat :: euclidean_semiring_gcd
 proof
   interpret semiring_Gcd 1 0 times
@@ -583,6 +601,8 @@ proof
   show "(Euclidean_Algorithm.Gcd :: nat set \<Rightarrow> _) = Gcd"
     by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
 qed
+
+instance int :: normalization_euclidean_semiring ..
 
 instance int :: euclidean_ring_gcd
 proof

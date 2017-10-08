@@ -365,8 +365,7 @@ proof -
     done
   finally have "fact (p - 1) mod p = \<ominus> \<one>" .
   then show ?thesis
-    by (metis of_nat_fact Divides.transfer_int_nat_functions(2)
-        cong_int_def res_neg_eq res_one_eq)
+    by (simp add: cong_int_def res_neg_eq res_one_eq zmod_int)
 qed
 
 lemma wilson_theorem:

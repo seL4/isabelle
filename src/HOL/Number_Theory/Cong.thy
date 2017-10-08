@@ -86,8 +86,7 @@ lemma transfer_nat_int_cong:
   "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> m \<ge> 0 \<Longrightarrow> [nat x = nat y] (mod (nat m)) \<longleftrightarrow> [x = y] (mod m)"
   for x y m :: int
   unfolding cong_int_def cong_nat_def
-  by (metis Divides.transfer_int_nat_functions(2) nat_0_le nat_mod_distrib)
-
+  by (metis int_nat_eq nat_mod_distrib zmod_int)
 
 declare transfer_morphism_nat_int [transfer add return: transfer_nat_int_cong]
 

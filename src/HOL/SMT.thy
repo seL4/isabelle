@@ -124,8 +124,14 @@ lemma nat_int': "\<forall>n. nat (int n) = n" by simp
 lemma int_nat_nneg: "\<forall>i. i \<ge> 0 \<longrightarrow> int (nat i) = i" by simp
 lemma int_nat_neg: "\<forall>i. i < 0 \<longrightarrow> int (nat i) = 0" by simp
 
-lemmas nat_zero_as_int = transfer_nat_int_numerals(1)
-lemmas nat_one_as_int = transfer_nat_int_numerals(2)
+lemma nat_zero_as_int:
+  "0 = nat 0"
+  by simp
+
+lemma nat_one_as_int:
+  "1 = nat 1"
+  by simp
+
 lemma nat_numeral_as_int: "numeral = (\<lambda>i. nat (numeral i))" by simp
 lemma nat_less_as_int: "op < = (\<lambda>a b. int a < int b)" by simp
 lemma nat_leq_as_int: "op \<le> = (\<lambda>a b. int a \<le> int b)" by simp

@@ -3,15 +3,15 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section \<open>Uniquely determined division in euclidean (semi)rings\<close>
+section \<open>Division in euclidean (semi)rings\<close>
 
 theory Euclidean_Division
-  imports Nat_Transfer Lattices_Big
+  imports Int Lattices_Big
 begin
 
 subsection \<open>Euclidean (semi)rings with explicit division and remainder\<close>
   
-class euclidean_semiring = semidom_modulo + normalization_semidom + 
+class euclidean_semiring = semidom_modulo + 
   fixes euclidean_size :: "'a \<Rightarrow> nat"
   assumes size_0 [simp]: "euclidean_size 0 = 0"
   assumes mod_size_less: 
@@ -22,22 +22,6 @@ begin
 
 lemma size_mult_mono': "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (b * a)"
   by (subst mult.commute) (rule size_mult_mono)
-
-lemma euclidean_size_normalize [simp]:
-  "euclidean_size (normalize a) = euclidean_size a"
-proof (cases "a = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case [simp]: False
-  have "euclidean_size (normalize a) \<le> euclidean_size (normalize a * unit_factor a)"
-    by (rule size_mult_mono) simp
-  moreover have "euclidean_size a \<le> euclidean_size (a * (1 div unit_factor a))"
-    by (rule size_mult_mono) simp
-  ultimately show ?thesis
-    by simp
-qed
 
 lemma dvd_euclidean_size_eq_imp_dvd:
   assumes "a \<noteq> 0" and "euclidean_size a = euclidean_size b"

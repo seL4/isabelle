@@ -6,7 +6,7 @@
 section \<open>More on quotient and remainder\<close>
 
 theory Divides
-imports Parity Nat_Transfer
+imports Parity
 begin
 
 subsection \<open>Numeral division with a pragmatic type class\<close>
@@ -273,7 +273,7 @@ end
 hide_fact (open) div_less mod_less mod_less_eq_dividend mod_mult2_eq div_mult2_eq
 
 
-subsection \<open>Division on @{typ nat}\<close>
+subsection \<open>More on division\<close>
 
 instantiation nat :: unique_euclidean_semiring_numeral
 begin
@@ -1094,6 +1094,24 @@ end
 
 subsubsection \<open>Further properties\<close>
 
+lemma div_int_pos_iff:
+  "k div l \<ge> 0 \<longleftrightarrow> k = 0 \<or> l = 0 \<or> k \<ge> 0 \<and> l \<ge> 0
+    \<or> k < 0 \<and> l < 0"
+  for k l :: int
+  apply (cases "k = 0 \<or> l = 0")
+   apply (auto simp add: pos_imp_zdiv_nonneg_iff neg_imp_zdiv_nonneg_iff)
+  apply (rule ccontr)
+  apply (simp add: neg_imp_zdiv_nonneg_iff)
+  done
+
+lemma mod_int_pos_iff:
+  "k mod l \<ge> 0 \<longleftrightarrow> l dvd k \<or> l = 0 \<and> k \<ge> 0 \<or> l > 0"
+  for k l :: int
+  apply (cases "l > 0")
+   apply (simp_all add: dvd_eq_mod_eq_0)
+  apply (use neg_mod_conj [of l k] in \<open>auto simp add: le_less not_less\<close>)
+  done
+
 text \<open>Simplify expresions in which div and mod combine numerical constants\<close>
 
 lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
@@ -1138,42 +1156,6 @@ lemma nat_mod_distrib:
 apply (case_tac "y = 0", simp)
 apply (simp add: nat_eq_iff zmod_int)
 done
-
-text  \<open>transfer setup\<close>
-
-lemma transfer_nat_int_functions:
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) div (nat y) = nat (x div y)"
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> (nat x) mod (nat y) = nat (x mod y)"
-  by (auto simp add: nat_div_distrib nat_mod_distrib)
-
-lemma transfer_nat_int_function_closures:
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x div y >= 0"
-    "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> x mod y >= 0"
-  apply (cases "y = 0")
-  apply (auto simp add: pos_imp_zdiv_nonneg_iff)
-  apply (cases "y = 0")
-  apply auto
-done
-
-declare transfer_morphism_nat_int [transfer add return:
-  transfer_nat_int_functions
-  transfer_nat_int_function_closures
-]
-
-lemma transfer_int_nat_functions:
-    "(int x) div (int y) = int (x div y)"
-    "(int x) mod (int y) = int (x mod y)"
-  by (auto simp add: zdiv_int zmod_int)
-
-lemma transfer_int_nat_function_closures:
-    "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x div y)"
-    "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x mod y)"
-  by (simp_all only: is_nat_def transfer_nat_int_function_closures)
-
-declare transfer_morphism_int_nat [transfer add return:
-  transfer_int_nat_functions
-  transfer_int_nat_function_closures
-]
 
 text\<open>Suggested by Matthias Daum\<close>
 lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
@@ -1351,9 +1333,5 @@ lemma even_int_iff [simp]: "even (int n) \<longleftrightarrow> even n"
 lemma is_unit_int:
   "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
   by auto
-
-text \<open>Tool setup\<close>
-
-declare transfer_morphism_int_nat [transfer add return: even_int_iff]
 
 end
