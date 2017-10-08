@@ -12,29 +12,32 @@ object Build_Release
   sealed case class Bundle_Info(
     platform_family: String,
     platform_description: String,
-    main_bundle: String,
-    fallback_bundle: Option[String])
+    main: String,
+    fallback: Option[String])
   {
-    def all_bundles: List[String] = main_bundle :: fallback_bundle.toList
+    def names: List[String] = main :: fallback.toList
   }
 
   sealed case class Release_Info(
-    date: Date, name: String, dist_dir: Path, dist_archive: Path, dist_library_archive: Path,
-      id: String)
+    date: Date,
+    name: String,
+    dist_dir: Path,
+    dist_archive: Path,
+    dist_library_archive: Path,
+    id: String)
   {
     val bundle_infos: List[Bundle_Info] =
       List(Bundle_Info("linux", "Linux", name + "_app.tar.gz", None),
-        Bundle_Info("windows", "Windows (32bit)", name + "-win32.exe", None),
-        Bundle_Info("windows64", "Windows (64bit)", name + "-win64.exe", None),
+        Bundle_Info("windows", "Windows (64bit)", name + ".exe", None),
         Bundle_Info("macos", "Mac OS X", name + ".dmg", Some(name + "_dmg.tar.gz")))
 
     def bundle_info(platform_family: String): Bundle_Info =
-      bundle_infos.find(info => info.platform_family == platform_family) getOrElse
+      bundle_infos.find(bundle_info => bundle_info.platform_family == platform_family) getOrElse
         error("Unknown platform family " + quote(platform_family))
   }
 
 
-  private val default_platform_families = List("linux", "windows", "windows64", "macos")
+  private val default_platform_families = List("linux", "windows", "macos")
 
   def build_release(base_dir: Path,
     progress: Progress = No_Progress,
@@ -95,18 +98,18 @@ object Build_Release
 
     /* make application bundles */
 
-    for (info <- bundle_infos) {
+    for (bundle_info <- bundle_infos) {
       val bundle =
-        (if (remote_mac.isEmpty) info.fallback_bundle else None) getOrElse info.main_bundle
+        (if (remote_mac.isEmpty) bundle_info.fallback else None) getOrElse bundle_info.main
       val bundle_archive = release_info.dist_dir + Path.explode(bundle)
       if (bundle_archive.is_file)
         progress.echo("### Application bundle already exists: " + bundle_archive.implode)
       else {
         progress.echo(
-          "\nApplication bundle for " + info.platform_family + ": " + bundle_archive.implode)
+          "\nApplication bundle for " + bundle_info.platform_family + ": " + bundle_archive.implode)
         progress.bash(
           "isabelle makedist_bundle " + File.bash_path(release_info.dist_archive) +
-            " " + Bash.string(info.platform_family) +
+            " " + Bash.string(bundle_info.platform_family) +
             (if (remote_mac == "") "" else " " + Bash.string(remote_mac)),
           echo = true).check
       }
@@ -118,10 +121,10 @@ object Build_Release
     for (dir <- website) {
       val website_platform_bundles =
         for {
-          info <- bundle_infos
+          bundle_info <- bundle_infos
           bundle <-
-            info.all_bundles.find(name => (release_info.dist_dir + Path.explode(name)).is_file)
-        } yield (bundle, info)
+            bundle_info.names.find(name => (release_info.dist_dir + Path.explode(name)).is_file)
+        } yield (bundle, bundle_info)
 
       val afp_link =
         HTML.link("https://bitbucket.org/isa-afp/afp-devel/commits/" + afp_rev,
@@ -132,8 +135,8 @@ object Build_Release
         List(
           HTML.chapter(release_info.name + " (" + release_id + ")"),
           HTML.itemize(
-            website_platform_bundles.map({ case (bundle, info) =>
-              List(HTML.link(bundle, HTML.text(info.platform_description))) }))) :::
+            website_platform_bundles.map({ case (bundle, bundle_info) =>
+              List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) }))) :::
         (if (afp_rev == "") Nil else List(HTML.par(HTML.text("See also ") ::: List(afp_link)))))
 
       for ((bundle, _) <- website_platform_bundles)

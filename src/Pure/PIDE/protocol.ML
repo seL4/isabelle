@@ -22,10 +22,11 @@ val _ =
     (fn [global_theories_yxml, loaded_theories_yxml, known_theories_yxml] =>
       let
         val decode_table = YXML.parse_body #> let open XML.Decode in list (pair string string) end;
+        val decode_list = YXML.parse_body #> let open XML.Decode in list string end;
       in
         Resources.init_session_base
           {global_theories = decode_table global_theories_yxml,
-           loaded_theories = decode_table loaded_theories_yxml,
+           loaded_theories = decode_list loaded_theories_yxml,
            known_theories = decode_table known_theories_yxml}
       end);
 

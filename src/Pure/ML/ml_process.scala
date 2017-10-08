@@ -75,14 +75,14 @@ object ML_Process
       else
         List(
           "(PolyML.SaveState.loadHierarchy " +
-            ML_Syntax.print_list(ML_Syntax.print_string0)(heaps) +
+            ML_Syntax.print_list(ML_Syntax.print_string_bytes)(heaps) +
           "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
-          ML_Syntax.print_string0(": " + logic_name + "\n") +
+          ML_Syntax.print_string_bytes(": " + logic_name + "\n") +
           "); OS.Process.exit OS.Process.failure)")
 
     val eval_modes =
       if (modes.isEmpty) Nil
-      else List("Print_Mode.add_modes " + ML_Syntax.print_list(ML_Syntax.print_string0)(modes))
+      else List("Print_Mode.add_modes " + ML_Syntax.print_list(ML_Syntax.print_string_bytes)(modes))
 
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
@@ -98,10 +98,12 @@ object ML_Process
           def print_table(table: List[(String, String)]): String =
             ML_Syntax.print_list(
               ML_Syntax.print_pair(
-                ML_Syntax.print_string, ML_Syntax.print_string))(table)
+                ML_Syntax.print_string_bytes, ML_Syntax.print_string_bytes))(table)
+          def print_list(list: List[String]): String =
+            ML_Syntax.print_list(ML_Syntax.print_string_bytes)(list)
           List("Resources.init_session_base" +
             " {global_theories = " + print_table(base.global_theories.toList) +
-            ", loaded_theories = " + print_table(base.loaded_theories.toList) +
+            ", loaded_theories = " + print_list(base.loaded_theories.keys) +
             ", known_theories = " + print_table(base.dest_known_theories) + "}")
       }
 
@@ -114,7 +116,7 @@ object ML_Process
           case None =>
             List("Isabelle_Process.init_options ()")
           case Some(ch) =>
-            List("Isabelle_Process.init_protocol " + ML_Syntax.print_string0(ch.server_name))
+            List("Isabelle_Process.init_protocol " + ML_Syntax.print_string_bytes(ch.server_name))
         }
 
     // ISABELLE_TMP
@@ -176,7 +178,7 @@ Usage: isabelle process [OPTIONS]
   Run the raw Isabelle ML process in batch mode.
 """,
       "T:" -> (arg =>
-        eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string0(arg))),
+        eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string_bytes(arg))),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
       "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),

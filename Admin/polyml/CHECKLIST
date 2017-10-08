@@ -2,7 +2,7 @@ Notes on building Poly/ML as Isabelle component
 ===============================================
 
 * component skeleton:
-  $ isabelle build_polyml_component -s sha1 component
+  $ isabelle build_polyml -s sha1 component
 
 * include full source (without symlink), for example:
   $ wget https://github.com/polyml/polyml/archive/master.zip

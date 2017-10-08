@@ -20,7 +20,7 @@ object Build_VSCode
   def build_grammar(options: Options, progress: Progress = No_Progress)
   {
     val logic = Grammar.default_logic
-    val keywords = Sessions.session_base(options, logic).syntax.keywords
+    val keywords = Sessions.session_base(options, logic).overall_syntax.keywords
 
     val output_path = extension_dir + Path.explode(Grammar.default_output(logic))
     progress.echo(output_path.implode)

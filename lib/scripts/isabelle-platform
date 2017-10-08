@@ -1,8 +1,7 @@
 # -*- shell-script -*- :mode=shellscript:
 #
-# determine general hardware and operating system type for Isabelle
+# determine general hardware and operating system type for Isabelle system tools
 #
-# NOTE: The ML system or JVM may have their own idea about the platform!
 
 ISABELLE_PLATFORM_FAMILY=""
 ISABELLE_PLATFORM32=""
@@ -40,27 +39,22 @@ case $(uname -s) in
     ;;
   CYGWIN_NT*)
     ISABELLE_PLATFORM_FAMILY="windows"
+    if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" -o "$PROCESSOR_ARCHITEW6432" = "AMD64" ]; then
+      ISABELLE_WINDOWS_PLATFORM32="x86-windows"
+      ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
+    else
+      ISABELLE_WINDOWS_PLATFORM32="x86-windows"
+    fi
     case $(uname -m) in
-      i?86 | x86_64)
-        ISABELLE_PLATFORM32=x86-cygwin
-        if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" -o "$PROCESSOR_ARCHITEW6432" = "AMD64" ]; then
-          ISABELLE_WINDOWS_PLATFORM32="x86-windows"
-          ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
-        else
-          ISABELLE_WINDOWS_PLATFORM32="x86-windows"
-        fi
+      x86_64)
+        ISABELLE_PLATFORM64=x86_64-cygwin
         ;;
-    esac
-    ;;
-  *BSD)
-    ISABELLE_PLATFORM_FAMILY="linux"
-    case $(uname -m) in
-      i?86 | x86_64)
-        ISABELLE_PLATFORM32=x86-linux  #cf. BSD Linux Binary Compatibility
+      i?86)
+        ISABELLE_PLATFORM32=x86-cygwin
         ;;
     esac
     ;;
 esac
 
-ISABELLE_PLATFORM="$ISABELLE_PLATFORM32"
-ISABELLE_WINDOWS_PLATFORM="$ISABELLE_WINDOWS_PLATFORM32"
+ISABELLE_PLATFORM="${ISABELLE_PLATFORM32:-$ISABELLE_PLATFORM64}"
+ISABELLE_WINDOWS_PLATFORM="${ISABELLE_WINDOWS_PLATFORM32:-$ISABELLE_WINDOWS_PLATFORM64}"

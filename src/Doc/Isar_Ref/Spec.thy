@@ -1177,6 +1177,23 @@ text \<open>
 \<close>
 
 
+section \<open>External file dependencies\<close>
+
+text \<open>
+  \begin{matharray}{rcl}
+    @{command_def "external_file"} & : & \<open>any \<rightarrow> any\<close> \\
+  \end{matharray}
+
+  @{rail \<open>@@{command external_file} @{syntax name} ';'?\<close>}
+
+  \<^descr> \<^theory_text>\<open>external_file name\<close> declares the formal dependency on the given file
+  name, such that the Isabelle build process knows about it (see also @{cite
+  "isabelle-system"}). The file can be read e.g.\ in Isabelle/ML via @{ML
+  File.read}, without specific management by the Prover IDE.
+\<close>
+
+
+
 section \<open>Primitive specification elements\<close>
 
 subsection \<open>Sorts\<close>

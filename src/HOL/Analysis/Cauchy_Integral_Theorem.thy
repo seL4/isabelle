@@ -3749,12 +3749,14 @@ proof -
     by meson
   have exy: "\<exists>y. ((\<lambda>x. inverse (\<gamma> x - z) * ?D\<gamma> x) has_integral y) {a..b}"
     unfolding integrable_on_def [symmetric]
-    apply (rule contour_integral_local_primitive_any [OF piecewise_C1_imp_differentiable [OF \<gamma>], of "-{z}"])
-    apply (rename_tac w)
-    apply (rule_tac x="norm(w - z)" in exI)
-    apply (simp_all add: inverse_eq_divide)
-    apply (metis has_field_derivative_at_within h)
-    done
+  proof (rule contour_integral_local_primitive_any [OF piecewise_C1_imp_differentiable [OF \<gamma>]])
+    show "\<exists>d h. 0 < d \<and>
+               (\<forall>y. cmod (y - w) < d \<longrightarrow> (h has_field_derivative inverse (y - z))(at y within - {z}))" 
+          if "w \<in> - {z}" for w
+      apply (rule_tac x="norm(w - z)" in exI)
+      using that inverse_eq_divide has_field_derivative_at_within h
+      by (metis Compl_insert DiffD2 insertCI right_minus_eq zero_less_norm_iff)
+  qed simp
   have vg_int: "(\<lambda>x. ?D\<gamma> x / (\<gamma> x - z)) integrable_on {a..b}"
     unfolding box_real [symmetric] divide_inverse_commute
     by (auto intro!: exy integrable_subinterval simp add: integrable_on_def ab)
@@ -3774,20 +3776,29 @@ proof -
       assume x: "x \<notin> k" "a < x" "x < b"
       then have "x \<in> interior ({a..b} - k)"
         using open_subset_interior [OF o] by fastforce
-      then have con: "isCont (\<lambda>x. ?D\<gamma> x) x"
+      then have con: "isCont ?D\<gamma> x"
         using g_C1_diff x by (auto simp: C1_differentiable_on_eq intro: continuous_on_interior)
       then have con_vd: "continuous (at x within {a..b}) (\<lambda>x. ?D\<gamma> x)"
         by (rule continuous_at_imp_continuous_within)
       have gdx: "\<gamma> differentiable at x"
         using x by (simp add: g_diff_at)
-      have "((\<lambda>c. exp (- integral {a..c} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))) * (\<gamma> c - z)) has_derivative (\<lambda>h. 0))
+      have "\<And>d. \<lbrakk>x \<notin> k; a < x; x < b;
+          (\<gamma> has_vector_derivative d) (at x); a \<le> t; t \<le> b\<rbrakk>
+         \<Longrightarrow> ((\<lambda>x. integral {a..x}
+                     (\<lambda>x. ?D\<gamma> x /
+                           (\<gamma> x - z))) has_vector_derivative
+              d / (\<gamma> x - z))
+              (at x within {a..b})"
+        apply (rule has_vector_derivative_eq_rhs)
+         apply (rule integral_has_vector_derivative_continuous_at [where S = "{}", simplified])
+        apply (rule con_vd continuous_intros cong vg_int | simp add: continuous_at_imp_continuous_within has_vector_derivative_continuous vector_derivative_at)+
+        done
+      then have "((\<lambda>c. exp (- integral {a..c} (\<lambda>x. ?D\<gamma> x / (\<gamma> x - z))) * (\<gamma> c - z)) has_derivative (\<lambda>h. 0))
           (at x within {a..b})"
         using x gdx t
         apply (clarsimp simp add: differentiable_iff_scaleR)
         apply (rule exp_fg [unfolded has_vector_derivative_def, simplified], blast intro: has_derivative_at_within)
         apply (simp_all add: has_vector_derivative_def [symmetric])
-        apply (rule has_vector_derivative_eq_rhs [OF integral_has_vector_derivative_continuous_at])
-        apply (rule con_vd continuous_intros cong vg_int | simp add: continuous_at_imp_continuous_within has_vector_derivative_continuous vector_derivative_at)+
         done
       } note * = this
     have "exp (- (integral {a..t} (\<lambda>x. ?D\<gamma> x / (\<gamma> x - z)))) * (\<gamma> t - z) =\<gamma> a - z"

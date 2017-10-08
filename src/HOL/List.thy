@@ -151,6 +151,9 @@ zip_Cons: "zip xs (y # ys) =
   \<comment> \<open>Warning: simpset does not contain this definition, but separate
        theorems for \<open>xs = []\<close> and \<open>xs = z # zs\<close>\<close>
 
+abbreviation map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
+"map2 f xs ys \<equiv> map (\<lambda>(x,y). f x y) (zip xs ys)"
+
 primrec product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
 "product [] _ = []" |
 "product (x#xs) ys = map (Pair x) ys @ product xs ys"
@@ -2011,11 +2014,17 @@ unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
 
 subsubsection \<open>@{const take} and @{const drop}\<close>
 
-lemma take_0 [simp]: "take 0 xs = []"
+lemma take_0: "take 0 xs = []"
 by (induct xs) auto
 
-lemma drop_0 [simp]: "drop 0 xs = xs"
+lemma drop_0: "drop 0 xs = xs"
 by (induct xs) auto
+
+lemma take0[simp]: "take 0 = (\<lambda>xs. [])"
+by(rule ext) (rule take_0)
+
+lemma drop0[simp]: "drop 0 = (\<lambda>x. x)"
+by(rule ext) (rule drop_0)
 
 lemma take_Suc_Cons [simp]: "take (Suc n) (x # xs) = x # take n xs"
 by simp
@@ -2030,6 +2039,9 @@ by(clarsimp simp add:neq_Nil_conv)
 
 lemma drop_Suc: "drop (Suc n) xs = drop n (tl xs)"
 by(cases xs, simp_all)
+
+lemma hd_take: "j > 0 \<Longrightarrow> hd (take j xs) = hd xs"
+by (metis gr0_conv_Suc list.sel(1) take.simps(1) take_Suc)
 
 lemma take_tl: "take n (tl xs) = tl (take (Suc n) xs)"
 by (induct xs arbitrary: n) simp_all
@@ -4393,12 +4405,12 @@ apply simp
 done
 
 lemma nths_shift_lemma:
-     "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
-      map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
+  "map fst [p<-zip xs [i..<i + length xs] . snd p : A] =
+   map fst [p<-zip xs [0..<length xs] . snd p + i : A]"
 by (induct xs rule: rev_induct) (simp_all add: add.commute)
 
 lemma nths_append:
-     "nths (l @ l') A = nths l A @ nths l' {j. j + length l : A}"
+  "nths (l @ l') A = nths l A @ nths l' {j. j + length l : A}"
 apply (unfold nths_def)
 apply (induct l' rule: rev_induct, simp)
 apply (simp add: upt_add_eq_append[of 0] nths_shift_lemma)
@@ -4406,7 +4418,7 @@ apply (simp add: add.commute)
 done
 
 lemma nths_Cons:
-"nths (x # l) A = (if 0:A then [x] else []) @ nths l {j. Suc j : A}"
+  "nths (x # l) A = (if 0:A then [x] else []) @ nths l {j. Suc j : A}"
 apply (induct l rule: rev_induct)
  apply (simp add: nths_def)
 apply (simp del: append_Cons add: append_Cons[symmetric] nths_append)
@@ -4429,17 +4441,18 @@ by(auto simp add:set_nths)
 lemma nths_singleton [simp]: "nths [x] A = (if 0 : A then [x] else [])"
 by (simp add: nths_Cons)
 
-
 lemma distinct_nthsI[simp]: "distinct xs \<Longrightarrow> distinct (nths xs I)"
-  by (induct xs arbitrary: I) (auto simp: nths_Cons)
-
+by (induct xs arbitrary: I) (auto simp: nths_Cons)
 
 lemma nths_upt_eq_take [simp]: "nths l {..<n} = take n l"
-  by (induct l rule: rev_induct)
-     (simp_all split: nat_diff_split add: nths_append)
+by (induct l rule: rev_induct)
+   (simp_all split: nat_diff_split add: nths_append)
+
+lemma filter_eq_nths: "filter P xs = nths xs {i. i<length xs \<and> P(xs!i)}"
+by(induction xs) (auto simp: nths_Cons)
 
 lemma filter_in_nths:
- "distinct xs \<Longrightarrow> filter (%x. x \<in> set (nths xs s)) xs = nths xs s"
+  "distinct xs \<Longrightarrow> filter (%x. x \<in> set (nths xs s)) xs = nths xs s"
 proof (induct xs arbitrary: s)
   case Nil thus ?case by simp
 next
@@ -5123,7 +5136,7 @@ subsubsection \<open>Sorting functions\<close>
 
 text\<open>Currently it is not shown that @{const sort} returns a
 permutation of its input because the nicest proof is via multisets,
-which are not yet available. Alternatively one could define a function
+which are not part of Main. Alternatively one could define a function
 that counts the number of occurrences of an element in a list and use
 that instead of multisets to state the correctness property.\<close>
 
@@ -5335,6 +5348,59 @@ qed
 lemma sorted_enumerate [simp]:
   "sorted (map fst (enumerate n xs))"
   by (simp add: enumerate_eq_zip)
+
+text \<open>Stability of function @{const sort_key}:\<close>
+
+lemma sort_key_stable:
+  "x \<in> set xs \<Longrightarrow> [y <- sort_key f xs. f y = f x] = [y <- xs. f y = f x]"
+proof (induction xs arbitrary: x)
+  case Nil thus ?case by simp
+next  
+  case (Cons a xs)
+  thus ?case 
+  proof (cases "x \<in> set xs")
+    case True 
+    thus ?thesis
+    proof (cases "f a = f x")
+      case False thus ?thesis 
+        using Cons.IH by (metis (mono_tags) True filter.simps(2) filter_sort)
+    next
+      case True
+      hence ler: "[y <- (a # xs). f y = f x] = a # [y <- xs. f y = f a]" by simp
+      have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
+      hence "insort_key f a (sort_key f [y <- xs. f y = f a]) 
+              = a # (sort_key f [y <- xs. f y = f a])"
+        by (simp add: insort_is_Cons)
+      hence lel: "[y <- sort_key f (a # xs). f y = f x] = a # [y <- sort_key f xs. f y = f a]"
+        by (metis True filter_sort ler sort_key_simps(2))
+      from lel ler show ?thesis using Cons.IH \<open>x \<in> set xs\<close> by (metis True filter_sort)
+    qed
+  next
+    case False
+    from Cons.prems have "x = a" by (metis False set_ConsD)
+    have ler: "[y <- (a # xs). f y = f a] = a # [y <- xs. f y = f a]" by simp
+    have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
+    hence "insort_key f a (sort_key f [y <- xs. f y = f a]) 
+           = a # (sort_key f [y <- xs. f y = f a])"
+      by (simp add: insort_is_Cons)
+    hence lel: "[y <- sort_key f (a # xs). f y = f a] = a # [y <- sort_key f xs. f y = f a]"
+      by (metis (mono_tags) filter.simps(2) filter_sort sort_key_simps(2))
+    show ?thesis (is "?l = ?r")
+    proof (cases "f a \<in> set (map f xs)")
+      case False
+      hence "\<forall>y \<in> set xs. f y \<noteq> f a" by (metis image_eqI set_map)
+      hence R: "?r = [a]" using ler \<open>x=a\<close> by simp
+      have L: "?l = [a]" using lel \<open>x=a\<close> by (metis R filter_sort insort_key.simps(1) sort_key_simps)
+      from L R show ?thesis ..
+    next
+      case True
+      then obtain z where Z: "z \<in> set xs \<and> f z = f a" by auto
+      hence L: "[y <- sort_key f xs. f y = f z] = [y <- sort_key f xs. f y = f a]" by simp
+      from Z have R: "[y <- xs. f y = f z] = [y <- xs. f y = f a]" by simp 
+      from L R Z show ?thesis using Cons.IH ler lel \<open>x=a\<close> by metis
+    qed
+  qed
+qed
 
 
 subsubsection \<open>@{const transpose} on sorted lists\<close>

@@ -20,6 +20,7 @@ keywords
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "alias" "type_alias" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
+  and "external_file" :: thy_load
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" :: thy_decl % "ML"
@@ -106,6 +107,20 @@ abbrevs
 begin
 
 section \<open>Isar commands\<close>
+
+subsection \<open>External file dependencies\<close>
+
+ML \<open>
+  Outer_Syntax.command @{command_keyword external_file} "formal dependency on external file"
+    (Parse.position Parse.path >> (fn (s, pos) => Toplevel.keep (fn st =>
+      let
+        val ctxt = Toplevel.context_of st;
+        val _ = Context_Position.report ctxt pos Markup.language_path;
+        val path = Path.explode s;
+        val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
+      in () end)));
+\<close>
+
 
 subsection \<open>Embedded ML text\<close>
 

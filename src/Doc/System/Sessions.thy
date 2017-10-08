@@ -54,7 +54,7 @@ text \<open>
 
     @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
     ;
-    body: description? options? (theories+) \<newline> files? (document_files*)
+    body: description? options? (theories+) \<newline> (document_files*)
     ;
     spec: @{syntax name} groups? dir?
     ;
@@ -76,16 +76,13 @@ text \<open>
     ;
     theory_entry: @{syntax name} ('(' @'global' ')')?
     ;
-    files: @'files' (@{syntax name}+)
-    ;
     document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
   \<close>}
 
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
-  parent session \<open>B\<close>, with its content given in \<open>body\<close> (imported sessions,
-  theories and auxiliary source files). Note that a parent (like \<open>HOL\<close>) is
-  mandatory in practical applications: only Isabelle/Pure can bootstrap itself
-  from nothing.
+  parent session \<open>B\<close>, with its content given in \<open>body\<close> (imported sessions and
+  theories). Note that a parent (like \<open>HOL\<close>) is mandatory in practical
+  applications: only Isabelle/Pure can bootstrap itself from nothing.
 
   All such session specifications together describe a hierarchy (graph) of
   sessions, with globally unique names. The new session name \<open>A\<close> should be
@@ -103,9 +100,8 @@ text \<open>
   directory for this session; by default this is the current directory of the
   \<^verbatim>\<open>ROOT\<close> file.
 
-  All theories and auxiliary source files are located relatively to the
-  session directory. The prover process is run within the same as its current
-  working directory.
+  All theory files are located relatively to the session directory. The prover
+  process is run within the same as its current working directory.
 
   \<^descr> \isakeyword{description}~\<open>text\<close> is a free-form annotation for this
   session.
@@ -134,12 +130,6 @@ text \<open>
   literally in other session specifications or theory imports. In contrast,
   the default is to qualify theory names by the session name, in order to
   ensure globally unique names in big session graphs.
-
-  \<^descr> \isakeyword{files}~\<open>files\<close> lists additional source files that are involved
-  in the processing of this session. This should cover anything outside the
-  formal content of the theory sources. In contrast, files that are loaded
-  formally within a theory, e.g.\ via @{command "ML_file"}, need not be
-  declared again.
 
   \<^descr> \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>base_dir) files\<close> lists
   source files for document preparation, typically \<^verbatim>\<open>.tex\<close> and \<^verbatim>\<open>.sty\<close> for
@@ -280,9 +270,11 @@ text \<open>
 \<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -R           operate on requirements of selected sessions
+    -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b           build heap images
@@ -329,6 +321,10 @@ text \<open>
   completed by including all ancestors.
 
   \<^medskip>
+  One or more options \<^verbatim>\<open>-B\<close>~\<open>NAME\<close> specify base sessions. All descendants
+  are included.
+
+  \<^medskip>
   One or more options \<^verbatim>\<open>-x\<close>~\<open>NAME\<close> specify sessions to be excluded. All
   descendents of excluded sessions are removed from the selection as specified
   above. Option \<^verbatim>\<open>-X\<close> is analogous to this, but excluded sessions are
@@ -343,6 +339,11 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-D\<close> is similar to \<^verbatim>\<open>-d\<close>, but selects all sessions that are defined
   in the given directories.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-S\<close> indicates a ``soft build'': the selection is restricted to
+  those sessions that have changed sources (according to actually imported
+  theories). The status of heap images is ignored.
 
   \<^medskip>
   The build process depends on additional options
@@ -406,6 +407,14 @@ text \<open>
   @{verbatim [display] \<open>isabelle build -b -g main\<close>}
 
   \<^smallskip>
+  Build all descendants (and requirements) of \<^verbatim>\<open>FOL\<close> and \<^verbatim>\<open>ZF\<close>:
+  @{verbatim [display] \<open>isabelle build -B FOL -B ZF\<close>}
+
+  \<^smallskip>
+  Build all sessions where sources have changed (ignoring heaps):
+  @{verbatim [display] \<open>isabelle build -a -S\<close>}
+
+  \<^smallskip>
   Provide a general overview of the status of all Isabelle sessions, without
   building anything:
   @{verbatim [display] \<open>isabelle build -a -n -v\<close>}
@@ -450,6 +459,7 @@ text \<open>
 \<open>Usage: isabelle imports [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -I           operation: report potential session imports
     -M           operation: Mercurial repository check for theory files
@@ -469,7 +479,7 @@ text \<open>
 
   \<^medskip>
   The selection of sessions and session directories works as for @{tool build}
-  via options \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> (see
+  via options \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> (see
   \secref{sec:tool-build}).
 
   \<^medskip>

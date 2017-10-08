@@ -253,7 +253,7 @@ object Document_Model
               val pending_nodes = for ((node_name, None) <- purged) yield node_name
               (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
             }
-            val retain = PIDE.resources.thy_info.dependencies(imports).deps.map(_.name).toSet
+            val retain = PIDE.resources.thy_info.dependencies(imports).names.toSet
 
             for ((node_name, Some(edits)) <- purged; if !retain(node_name); edit <- edits)
               yield edit

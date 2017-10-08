@@ -438,12 +438,32 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = Scan.char_reader(Token.implode(span.content))
-        val header = resources.check_thy_reader(node_name, reader)
+        val imports = resources.check_thy_reader(node_name, reader).imports
+        val raw_imports =
+          try {
+            val imports1 = Thy_Header.read(reader, Token.Pos.none).imports
+            if (imports.length == imports1.length) imports1.map(_._1) else error("")
+          }
+          catch { case exn: Throwable => List.fill(imports.length)("") }
+
         val errors =
-          for ((imp, pos) <- header.imports if !can_import(imp)) yield {
+          for { ((import_name, pos), s) <- imports zip raw_imports if !can_import(import_name) }
+          yield {
+            val completion =
+              if (Thy_Header.is_base_name(s)) {
+                val completed = Completion.completed(import_name.theory_base_name)
+                val qualifier = resources.theory_qualifier(node_name)
+                val dir = node_name.master_dir
+                for {
+                  (_, known_name) <- resources.session_base.known.theories.toList
+                  if completed(known_name.theory_base_name)
+                } yield resources.standard_import(resources, qualifier, dir, known_name.theory)
+              }.sorted
+              else Nil
             val msg =
               "Bad theory import " +
-                Markup.Path(imp.node).markup(quote(imp.toString)) + Position.here(pos)
+                Markup.Path(import_name.node).markup(quote(import_name.toString)) +
+                Position.here(pos) + Completion.report_theories(pos, completion)
             Exn.Exn(ERROR(msg)): Command.Blob
           }
         (errors, -1)

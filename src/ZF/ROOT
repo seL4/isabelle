@@ -1,6 +1,6 @@
 chapter ZF
 
-session ZF (main timing ZF) = Pure +
+session ZF (main timing) = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -49,7 +49,7 @@ session ZF (main timing ZF) = Pure +
     ZFC (global)
   document_files "root.tex"
 
-session "ZF-AC" (ZF) in AC = ZF +
+session "ZF-AC" in AC = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -77,7 +77,7 @@ session "ZF-AC" (ZF) in AC = ZF +
     DC
   document_files "root.tex" "root.bib"
 
-session "ZF-Coind" (ZF) in Coind = ZF +
+session "ZF-Coind" in Coind = ZF +
   description {*
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -103,7 +103,7 @@ session "ZF-Coind" (ZF) in Coind = ZF +
   options [document = false]
   theories ECR
 
-session "ZF-Constructible" (ZF) in Constructible = ZF +
+session "ZF-Constructible" in Constructible = ZF +
   description {*
     Relative Consistency of the Axiom of Choice:
     Inner Models, Absoluteness and Consistency Proofs.
@@ -129,7 +129,7 @@ session "ZF-Constructible" (ZF) in Constructible = ZF +
     Rank_Separation
   document_files "root.tex" "root.bib"
 
-session "ZF-IMP" (ZF) in IMP = ZF +
+session "ZF-IMP" in IMP = ZF +
   description {*
     Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
@@ -143,11 +143,12 @@ session "ZF-IMP" (ZF) in IMP = ZF +
     Glynn Winskel. The Formal Semantics of Programming Languages.
     MIT Press, 1993.
   *}
-  options [document = false]
   theories Equiv
-  document_files "root.tex" "root.bib"
+  document_files
+    "root.tex"
+    "root.bib"
 
-session "ZF-Induct" (ZF) in Induct = ZF +
+session "ZF-Induct" in Induct = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
@@ -180,7 +181,7 @@ session "ZF-Induct" (ZF) in Induct = ZF +
     "root.bib"
     "root.tex"
 
-session "ZF-Resid" (ZF) in Resid = ZF +
+session "ZF-Resid" in Resid = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
@@ -200,7 +201,7 @@ session "ZF-Resid" (ZF) in Resid = ZF +
   options [document = false]
   theories Confluence
 
-session "ZF-UNITY" (timing ZF) in UNITY = "ZF-Induct" +
+session "ZF-UNITY" (timing) in UNITY = "ZF-Induct" +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -218,7 +219,7 @@ session "ZF-UNITY" (timing ZF) in UNITY = "ZF-Induct" +
     (*Prefix relation; the Allocator example*)
     Distributor Merge ClientImpl AllocImpl
 
-session "ZF-ex" (ZF) in ex = ZF +
+session "ZF-ex" in ex = ZF +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge

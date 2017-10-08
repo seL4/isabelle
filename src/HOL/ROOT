@@ -7,9 +7,6 @@ session HOL (main) = Pure +
   theories
     Main (global)
     Complex_Main (global)
-  files
-    "Tools/Quickcheck/Narrowing_Engine.hs"
-    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
   document_files
     "root.bib"
     "root.tex"
@@ -18,15 +15,11 @@ session "HOL-Proofs" (timing) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, theory_qualifier = "HOL",
-    quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
+  options [document = false, quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
   sessions
     "HOL-Library"
   theories
     "HOL-Library.Old_Datatype"
-  files
-    "Tools/Quickcheck/Narrowing_Engine.hs"
-    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
 session "HOL-Library" (main timing) in Library = HOL +
   description {*
@@ -121,8 +114,6 @@ session "HOL-Induct" in Induct = "HOL-Library" +
     Exp demonstrates the use of iterated inductive definitions to reason about
     mutually recursive relations.
   *}
-  theories [document = false]
-    "HOL-Library.Old_Datatype"
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -142,12 +133,6 @@ session "HOL-Induct" in Induct = "HOL-Library" +
 
 session "HOL-IMP" (timing) in IMP = "HOL-Library" +
   options [document_variants = document]
-  theories [document = false]
-    "HOL-Library.While_Combinator"
-    "HOL-Library.Char_ord"
-    "HOL-Library.List_lexord"
-    "HOL-Library.Quotient_List"
-    "HOL-Library.Extended"
   theories
     BExp
     ASM
@@ -200,8 +185,6 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     "HOL-Number_Theory"
   theories [document = false]
     Less_False
-    "HOL-Library.Multiset"
-    "HOL-Number_Theory.Fib"
   theories
     Sorting
     Balance
@@ -227,11 +210,6 @@ session "HOL-Number_Theory" (timing) in Number_Theory = "HOL-Computational_Algeb
   *}
   sessions
     "HOL-Algebra"
-  theories [document = false]
-    "HOL-Library.FuncSet"
-    "HOL-Library.Multiset"
-    "HOL-Algebra.Ring"
-    "HOL-Algebra.FiniteProduct"
   theories
     Number_Theory
   document_files
@@ -310,11 +288,6 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
 
     The Isabelle Algebraic Library.
   *}
-  theories [document = false]
-    (* Preliminaries from set and number theory *)
-    "HOL-Library.FuncSet"
-    "HOL-Computational_Algebra.Primes"
-    "HOL-Library.Permutation"
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
@@ -403,10 +376,6 @@ session "HOL-ZF" in ZF = "HOL-Library" +
 
 session "HOL-Imperative_HOL" in Imperative_HOL = "HOL-Library" +
   options [print_mode = "iff,no_brackets"]
-  theories [document = false]
-    "HOL-Library.Countable"
-    "HOL-Library.Monad_Syntax"
-    "HOL-Library.LaTeXsugar"
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
 
@@ -433,13 +402,7 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
   *}
   options [parallel_proofs = 0, quick_and_dirty = false]
   sessions
-    "HOL-Library"
     "HOL-Computational_Algebra"
-  theories [document = false]
-    "HOL-Library.Code_Target_Numeral"
-    "HOL-Library.Monad_Syntax"
-    "HOL-Computational_Algebra.Primes"
-    "HOL-Library.Open_State_Syntax"
   theories
     Greatest_Common_Divisor
     Warshall
@@ -490,8 +453,6 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
   *}
   sessions
     "HOL-Eisbach"
-  theories [document = false]
-    "HOL-Library.While_Combinator"
   theories
     MicroJava
   document_files
@@ -555,13 +516,11 @@ session "HOL-Lattice" in Lattice = HOL +
   theories CompleteLattice
   document_files "root.tex"
 
-session "HOL-ex" (timing) in ex = "HOL-Library" +
+session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
   options [document = false]
-  sessions
-    "HOL-Number_Theory"
   theories
     Adhoc_Overloading_Examples
     Antiquote
@@ -653,9 +612,6 @@ session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
     Miscellaneous Isabelle/Isar examples.
   *}
   options [quick_and_dirty]
-  theories [document = false]
-    "HOL-Library.Lattice_Syntax"
-    "HOL-Computational_Algebra.Primes"
   theories
     Knaster_Tarski
     Peirce
@@ -694,8 +650,6 @@ session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
   description {*
     Verification of the SET Protocol.
   *}
-  theories [document = false]
-    "HOL-Library.Nat_Bijection"
   theories
     SET_Protocol
   document_files "root.tex"
@@ -745,12 +699,6 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  theories [document = false]
-    "HOL-Library.Countable"
-    "HOL-Library.Permutation"
-    "HOL-Library.Order_Continuity"
-    "HOL-Library.Diagonal_Subsequence"
-    "HOL-Library.Finite_Map"
   theories
     Probability (global)
   document_files "root.tex"
@@ -761,10 +709,8 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Koepf_Duermuth_Countermeasure
     Measure_Not_CCC
 
-session "HOL-Nominal" in Nominal = HOL +
+session "HOL-Nominal" in Nominal = "HOL-Library" +
   options [document = false]
-  sessions
-    "HOL-Library"
   theories
     Nominal
 
@@ -798,7 +744,6 @@ session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
-  options [document = false]
   theories
     Cardinals
     Bounded_Set
@@ -896,12 +841,6 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
     SMT_Examples
     SMT_Word_Examples
     SMT_Tests
-  files
-    "Boogie_Dijkstra.certs"
-    "Boogie_Max.certs"
-    "SMT_Examples.certs"
-    "SMT_Word_Examples.certs"
-    "VCC_Max.certs"
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
   options [document = false]
@@ -912,9 +851,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
   options [document = false, spark_prv = false]
   theories
     "Gcd/Greatest_Common_Divisor"
-
     "Liseq/Longest_Increasing_Subsequence"
-
     "RIPEMD-160/F"
     "RIPEMD-160/Hash"
     "RIPEMD-160/K_L"
@@ -924,42 +861,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/R_R"
     "RIPEMD-160/S_L"
     "RIPEMD-160/S_R"
-
     "Sqrt/Sqrt"
-  files
-    "Gcd/greatest_common_divisor/g_c_d.fdl"
-    "Gcd/greatest_common_divisor/g_c_d.rls"
-    "Gcd/greatest_common_divisor/g_c_d.siv"
-    "Liseq/liseq/liseq_length.fdl"
-    "Liseq/liseq/liseq_length.rls"
-    "Liseq/liseq/liseq_length.siv"
-    "RIPEMD-160/rmd/f.fdl"
-    "RIPEMD-160/rmd/f.rls"
-    "RIPEMD-160/rmd/f.siv"
-    "RIPEMD-160/rmd/hash.fdl"
-    "RIPEMD-160/rmd/hash.rls"
-    "RIPEMD-160/rmd/hash.siv"
-    "RIPEMD-160/rmd/k_l.fdl"
-    "RIPEMD-160/rmd/k_l.rls"
-    "RIPEMD-160/rmd/k_l.siv"
-    "RIPEMD-160/rmd/k_r.fdl"
-    "RIPEMD-160/rmd/k_r.rls"
-    "RIPEMD-160/rmd/k_r.siv"
-    "RIPEMD-160/rmd/r_l.fdl"
-    "RIPEMD-160/rmd/r_l.rls"
-    "RIPEMD-160/rmd/r_l.siv"
-    "RIPEMD-160/rmd/round.fdl"
-    "RIPEMD-160/rmd/round.rls"
-    "RIPEMD-160/rmd/round.siv"
-    "RIPEMD-160/rmd/r_r.fdl"
-    "RIPEMD-160/rmd/r_r.rls"
-    "RIPEMD-160/rmd/r_r.siv"
-    "RIPEMD-160/rmd/s_l.fdl"
-    "RIPEMD-160/rmd/s_l.rls"
-    "RIPEMD-160/rmd/s_l.siv"
-    "RIPEMD-160/rmd/s_r.fdl"
-    "RIPEMD-160/rmd/s_r.rls"
-    "RIPEMD-160/rmd/s_r.siv"
 
 session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
   options [show_question_marks = false, spark_prv = false]
@@ -970,19 +872,6 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     VC_Principles
     Reference
     Complex_Types
-  files
-    "complex_types_app/initialize.fdl"
-    "complex_types_app/initialize.rls"
-    "complex_types_app/initialize.siv"
-    "loop_invariant/proc1.fdl"
-    "loop_invariant/proc1.rls"
-    "loop_invariant/proc1.siv"
-    "loop_invariant/proc2.fdl"
-    "loop_invariant/proc2.rls"
-    "loop_invariant/proc2.siv"
-    "simple_greatest_common_divisor/g_c_d.fdl"
-    "simple_greatest_common_divisor/g_c_d.rls"
-    "simple_greatest_common_divisor/g_c_d.siv"
   document_files
     "complex_types.ads"
     "complex_types_app.adb"
@@ -1064,18 +953,13 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
     "Examples/Finite"
     "Examples/T2_Spaces"
 
-session HOLCF (main timing) in HOLCF = HOL +
+session HOLCF (main timing) in HOLCF = "HOL-Library" +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman
 
     HOLCF -- a semantic extension of HOL by the LCF logic.
   *}
-  sessions
-    "HOL-Library"
-  theories [document = false]
-    "HOL-Library.Nat_Bijection"
-    "HOL-Library.Countable"
   theories
     HOLCF (global)
   document_files "root.tex"

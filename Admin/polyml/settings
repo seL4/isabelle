@@ -12,11 +12,11 @@ else
   ML_SYSTEM_64="false"
 fi
 
-case "${ISABELLE_PLATFORM}:${ML_SYSTEM_64}" in
-  x86-cygwin:true)
+case "${ISABELLE_PLATFORM_FAMILY}:${ML_SYSTEM_64}" in
+  windows:true)
     PLATFORMS="x86_64-windows x86-windows"
     ;;
-  x86-cygwin:*)
+  windows:*)
     PLATFORMS="x86-windows x86_64-windows"
     ;;
   *:true)
@@ -41,7 +41,7 @@ do
 
       # ML settings
 
-      ML_SYSTEM=polyml-5.7
+      ML_SYSTEM=polyml-5.7.1
       ML_PLATFORM="$PLATFORM"
       ML_HOME="$POLYML_HOME/$ML_PLATFORM"
       ML_SOURCES="$POLYML_HOME/src"

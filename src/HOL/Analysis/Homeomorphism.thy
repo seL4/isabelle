@@ -827,7 +827,7 @@ theorem homeomorphic_punctured_affine_sphere_affine:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" "b \<in> sphere a r" "affine T" "a \<in> T" "b \<in> T" "affine p"
       and aff: "aff_dim T = aff_dim p + 1"
-    shows "((sphere a r \<inter> T) - {b}) homeomorphic p"
+    shows "(sphere a r \<inter> T) - {b} homeomorphic p"
 proof -
   have "a \<noteq> b" using assms by auto
   then have inj: "inj (\<lambda>x::'a. x /\<^sub>R norm (a - b))"
@@ -847,62 +847,12 @@ proof -
   finally show ?thesis .
 qed
 
-proposition homeomorphic_punctured_sphere_affine_gen:
-  fixes a :: "'a :: euclidean_space"
-  assumes "convex S" "bounded S" and a: "a \<in> rel_frontier S"
-      and "affine T" and affS: "aff_dim S = aff_dim T + 1"
-    shows "rel_frontier S - {a} homeomorphic T"
-proof -
-  have "S \<noteq> {}" using assms by auto
-  obtain U :: "'a set" where "affine U" and affdS: "aff_dim U = aff_dim S"
-    using choose_affine_subset [OF affine_UNIV aff_dim_geq]
-    by (meson aff_dim_affine_hull affine_affine_hull)
-  have "convex U"
-    by (simp add: affine_imp_convex \<open>affine U\<close>)
-  have "U \<noteq> {}"
-    by (metis \<open>S \<noteq> {}\<close> \<open>aff_dim U = aff_dim S\<close> aff_dim_empty)
-  then obtain z where "z \<in> U"
-    by auto
-  then have bne: "ball z 1 \<inter> U \<noteq> {}" by force
-  have [simp]: "aff_dim(ball z 1 \<inter> U) = aff_dim U"
-    using aff_dim_convex_Int_open [OF \<open>convex U\<close> open_ball] bne
-    by (fastforce simp add: Int_commute)
-  have "rel_frontier S homeomorphic rel_frontier (ball z 1 \<inter> U)"
-    apply (rule homeomorphic_rel_frontiers_convex_bounded_sets)
-    apply (auto simp: \<open>affine U\<close> affine_imp_convex convex_Int affdS assms)
-    done
-  also have "... = sphere z 1 \<inter> U"
-    using convex_affine_rel_frontier_Int [of "ball z 1" U]
-    by (simp add: \<open>affine U\<close> bne)
-  finally obtain h k where him: "h ` rel_frontier S = sphere z 1 \<inter> U"
-                    and kim: "k ` (sphere z 1 \<inter> U) = rel_frontier S"
-                    and hcon: "continuous_on (rel_frontier S) h"
-                    and kcon: "continuous_on (sphere z 1 \<inter> U) k"
-                    and kh:  "\<And>x. x \<in> rel_frontier S \<Longrightarrow> k(h(x)) = x"
-                    and hk:  "\<And>y. y \<in> sphere z 1 \<inter> U \<Longrightarrow> h(k(y)) = y"
-    unfolding homeomorphic_def homeomorphism_def by auto
-  have "rel_frontier S - {a} homeomorphic (sphere z 1 \<inter> U) - {h a}"
-  proof (rule homeomorphicI [where f=h and g=k])
-    show h: "h ` (rel_frontier S - {a}) = sphere z 1 \<inter> U - {h a}"
-      using him a kh by auto metis
-    show "k ` (sphere z 1 \<inter> U - {h a}) = rel_frontier S - {a}"
-      by (force simp: h [symmetric] image_comp o_def kh)
-  qed (auto intro: continuous_on_subset hcon kcon simp: kh hk)
-  also have "... homeomorphic T"
-    apply (rule homeomorphic_punctured_affine_sphere_affine)
-    using a him
-    by (auto simp: affS affdS \<open>affine T\<close>  \<open>affine U\<close> \<open>z \<in> U\<close>)
-  finally show ?thesis .
-qed
-
-
-lemma homeomorphic_punctured_sphere_affine:
+corollary homeomorphic_punctured_sphere_affine:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" and b: "b \<in> sphere a r"
       and "affine T" and affS: "aff_dim T + 1 = DIM('a)"
     shows "(sphere a r - {b}) homeomorphic T"
-using homeomorphic_punctured_sphere_affine_gen [of "cball a r" b T]
-  assms aff_dim_cball by force
+  using homeomorphic_punctured_affine_sphere_affine [of r b a UNIV T] assms by auto
 
 corollary homeomorphic_punctured_sphere_hyperplane:
   fixes a :: "'a :: euclidean_space"
@@ -913,6 +863,51 @@ apply (rule homeomorphic_punctured_sphere_affine)
 using assms
 apply (auto simp: affine_hyperplane of_nat_diff)
 done
+
+proposition homeomorphic_punctured_sphere_affine_gen:
+  fixes a :: "'a :: euclidean_space"
+  assumes "convex S" "bounded S" and a: "a \<in> rel_frontier S"
+      and "affine T" and affS: "aff_dim S = aff_dim T + 1"
+    shows "rel_frontier S - {a} homeomorphic T"
+proof -
+  obtain U :: "'a set" where "affine U" "convex U" and affdS: "aff_dim U = aff_dim S"
+    using choose_affine_subset [OF affine_UNIV aff_dim_geq]
+    by (meson aff_dim_affine_hull affine_affine_hull affine_imp_convex)
+  have "S \<noteq> {}" using assms by auto
+  then obtain z where "z \<in> U"
+    by (metis aff_dim_negative_iff equals0I affdS)
+  then have bne: "ball z 1 \<inter> U \<noteq> {}" by force
+  then have [simp]: "aff_dim(ball z 1 \<inter> U) = aff_dim U"
+    using aff_dim_convex_Int_open [OF \<open>convex U\<close> open_ball]
+    by (fastforce simp add: Int_commute)
+  have "rel_frontier S homeomorphic rel_frontier (ball z 1 \<inter> U)"
+    apply (rule homeomorphic_rel_frontiers_convex_bounded_sets)
+    apply (auto simp: \<open>affine U\<close> affine_imp_convex convex_Int affdS assms)
+    done
+  also have "... = sphere z 1 \<inter> U"
+    using convex_affine_rel_frontier_Int [of "ball z 1" U]
+    by (simp add: \<open>affine U\<close> bne)
+  finally have "rel_frontier S homeomorphic sphere z 1 \<inter> U" . 
+  then obtain h k where him: "h ` rel_frontier S = sphere z 1 \<inter> U"
+                    and kim: "k ` (sphere z 1 \<inter> U) = rel_frontier S"
+                    and hcon: "continuous_on (rel_frontier S) h"
+                    and kcon: "continuous_on (sphere z 1 \<inter> U) k"
+                    and kh:  "\<And>x. x \<in> rel_frontier S \<Longrightarrow> k(h(x)) = x"
+                    and hk:  "\<And>y. y \<in> sphere z 1 \<inter> U \<Longrightarrow> h(k(y)) = y"
+    unfolding homeomorphic_def homeomorphism_def by auto
+  have "rel_frontier S - {a} homeomorphic (sphere z 1 \<inter> U) - {h a}"
+  proof (rule homeomorphicI)
+    show h: "h ` (rel_frontier S - {a}) = sphere z 1 \<inter> U - {h a}"
+      using him a kh by auto metis
+    show "k ` (sphere z 1 \<inter> U - {h a}) = rel_frontier S - {a}"
+      by (force simp: h [symmetric] image_comp o_def kh)
+  qed (auto intro: continuous_on_subset hcon kcon simp: kh hk)
+  also have "... homeomorphic T"
+    apply (rule homeomorphic_punctured_affine_sphere_affine)
+    using a him
+    by (auto simp: affS affdS \<open>affine T\<close> \<open>affine U\<close> \<open>z \<in> U\<close>)
+  finally show ?thesis .
+qed
 
 
 text\<open> When dealing with AR, ANR and ANR later, it's useful to know that every set

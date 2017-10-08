@@ -425,8 +425,8 @@ fun mk_driver_smlnj _ path _ value_name =
       "end;"
     val ml_source =
       "Control.MC.matchRedundantError := false; Control.MC.matchRedundantWarn := false;" ^
-      "use " ^ ML_Syntax.print_string (Path.implode (Path.expand code_path)) ^
-      "; use " ^ ML_Syntax.print_string (Path.implode (Path.expand driver_path)) ^
+      "use " ^ ML_Syntax.print_string (Bash.string (File.platform_path code_path)) ^
+      "; use " ^ ML_Syntax.print_string (Bash.string (File.platform_path driver_path)) ^
       "; Test.main ();"
     val cmd = "echo " ^ Bash.string ml_source ^ " | \"$ISABELLE_SMLNJ\""
   in

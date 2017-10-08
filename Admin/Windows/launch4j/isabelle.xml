@@ -23,13 +23,13 @@
     <windowTitle>{ISABELLE_NAME}</windowTitle>
   </singleInstance>
   <jre>
-    <path>%EXEDIR%\contrib\jdk\{PLATFORM}\jre</path>
-    <bundledJre64Bit>{PLATFORM_IS_64}</bundledJre64Bit>
+    <path>%EXEDIR%\contrib\jdk\x86_64-windows\jre</path>
+    <bundledJre64Bit>true</bundledJre64Bit>
     <bundledJreAsFallback>false</bundledJreAsFallback>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
-    <runtimeBits>{PLATFORM_BITS}</runtimeBits>
+    <runtimeBits>64</runtimeBits>
     <opt>-Disabelle.root=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\contrib\cygwin&quot;</opt>
   </jre>
   <splash>

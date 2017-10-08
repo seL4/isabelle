@@ -113,9 +113,6 @@ option checkpoint : bool = false
 option profiling : string = ""
   -- "ML profiling (possible values: time, allocations)"
 
-option theory_qualifier : string = ""
-  -- "explicit theory qualifier for special sessions (default: session name)"
-
 
 section "ML System"
 

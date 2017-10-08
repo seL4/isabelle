@@ -147,7 +147,7 @@ datatype args = Args of
   master_dir: Path.T,
   theories: (Options.T * (string * Position.T) list) list,
   global_theories: (string * string) list,
-  loaded_theories: (string * string) list,
+  loaded_theories: string list,
   known_theories: (string * string) list};
 
 fun decode_args yxml =
@@ -162,7 +162,7 @@ fun decode_args yxml =
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
               (pair (list (pair string string))
-                (pair (list (pair string string)) (list (pair string string)))))))))))))))
+                (pair (list string) (list (pair string string)))))))))))))))
       (YXML.parse_body yxml);
   in
     Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,

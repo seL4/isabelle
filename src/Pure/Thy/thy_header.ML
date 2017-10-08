@@ -20,6 +20,7 @@ sig
   val ml_bootstrapN: string
   val ml_roots: string list
   val bootstrap_thys: string list
+  val is_base_name: string -> bool
   val import_name: string -> string
   val args: header parser
   val read: Position.T -> string -> header
@@ -113,6 +114,9 @@ val get_keywords' = get_keywords o Proof_Context.theory_of;
 val ml_bootstrapN = "ML_Bootstrap";
 val ml_roots = ["ML_Root0", "ML_Root"];
 val bootstrap_thys = ["Bootstrap_Pure", "Bootstrap_ML_Bootstrap"];
+
+fun is_base_name s =
+  s <> "" andalso not (exists_string (member (op =) ["/", "\\", ":"]) s)
 
 val import_name = Path.base_name o Path.explode;
 

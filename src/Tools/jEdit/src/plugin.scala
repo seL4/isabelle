@@ -126,7 +126,7 @@ class Plugin extends EBPlugin
           val thys =
             (for ((node_name, model) <- models.iterator if model.is_theory)
               yield (node_name, Position.none)).toList
-          val thy_files = resources.thy_info.dependencies(thys).deps.map(_.name)
+          val thy_files = resources.thy_info.dependencies(thys).names
 
           val aux_files =
             if (options.bool("jedit_auto_resolve")) {

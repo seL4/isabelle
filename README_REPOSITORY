@@ -7,7 +7,7 @@ Quick start in 30min
 1a. Linux and Mac OS X: ensure that Mercurial is installed
     (see also http://www.selenic.com/mercurial)
 
-1b. Windows: ensure that Cygwin with curl and Mercurial is installed
+1b. Windows: ensure that Cygwin64 with curl and Mercurial is installed
     (see also http://www.cygwin.com)
 
 2. Clone repository (bash shell commands):
@@ -300,7 +300,9 @@ examples are for tests on the local machine:
   ./bin/isabelle build -a -j2 -o threads=4  #test on multiple cores (example)
 
 See also the chapter on Isabelle sessions and build management in the
-"system" manual.
+"system" manual. The build option -S is particularly useful for quick
+tests of individual commits, e.g. for each step of a longer chain of
+changes, but the final push always requires a full test as above!
 
 Note that implicit dependencies on Isabelle components are specified
 via catalog files in $ISABELLE_HOME/Admin/components/ as part of the

@@ -192,6 +192,8 @@ hide_const (open) Constant eval_cfun Abs_cfun Rep_cfun
 
 subsubsection \<open>Setting up the counterexample generator\<close>
 
+external_file "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs"
+external_file "~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 ML_file "Tools/Quickcheck/narrowing_generators.ML"
 
 definition narrowing_dummy_partial_term_of :: "('a :: partial_term_of) itself => narrowing_term => term"

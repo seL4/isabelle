@@ -202,9 +202,13 @@ local
       (replay_data as {context = ctxt, ...} : SMT_Translate.replay_data) output =
     (case outcome output of
       (Unsat, lines) =>
-        if not (Config.get ctxt SMT_Config.oracle) andalso is_some replay0
-        then the replay0 outer_ctxt replay_data lines
-        else oracle ()
+        if Config.get ctxt SMT_Config.oracle then
+          oracle ()
+        else
+          (case replay0 of
+            SOME replay => replay outer_ctxt replay_data lines
+          | NONE => error "No proof reconstruction for solver -- \
+            \declare [[smt_oracle]] to allow oracle")
     | (result, _) => raise SMT_Failure.SMT (SMT_Failure.Counterexample (result = Sat)))
 
   val cfalse = Thm.cterm_of @{context} @{prop False}

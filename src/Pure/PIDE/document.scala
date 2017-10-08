@@ -86,7 +86,8 @@ object Document
       abbrevs: Thy_Header.Abbrevs = Nil,
       errors: List[String] = Nil)
     {
-      def error(msg: String): Header = copy(errors = errors ::: List(msg))
+      def append_errors(msgs: List[String]): Header =
+        copy(errors = errors ::: msgs)
 
       def cat_errors(msg2: String): Header =
         copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
@@ -116,6 +117,8 @@ object Document
           case _ => false
         }
 
+      def path: Path = Path.explode(node)
+
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
@@ -124,6 +127,11 @@ object Document
 
       def map(f: String => String): Name = copy(f(node), f(master_dir), theory)
       def map_theory(f: String => String): Name = copy(node, master_dir, f(theory))
+    }
+
+    sealed case class Entry(name: Node.Name, header: Node.Header)
+    {
+      override def toString: String = name.toString
     }
 
 
@@ -516,8 +524,10 @@ object Document
           case None =>
             List(
               Node.Deps(
-                if (session.resources.session_base.loaded_theory(node_name))
-                  node_header.error("Cannot update finished theory " + quote(node_name.theory))
+                if (session.resources.session_base.loaded_theory(node_name)) {
+                  node_header.append_errors(
+                    List("Cannot update finished theory " + quote(node_name.theory)))
+                }
                 else node_header),
               Node.Edits(text_edits), perspective)
           case Some(blob) => List(Node.Blob(blob), Node.Edits(text_edits))

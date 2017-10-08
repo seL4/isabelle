@@ -57,25 +57,45 @@ class Resources(
 
   /* theory files */
 
-  def loaded_files(syntax: Outer_Syntax, text: String): List[String] =
-    if (syntax.load_commands_in(text)) {
-      val spans = syntax.parse_spans(text)
-      spans.iterator.map(Command.span_files(syntax, _)._1).flatten.toList
+  def loaded_files(syntax: Outer_Syntax, name: Document.Node.Name): () => List[Path] =
+  {
+    val raw_text = with_thy_reader(name, reader => reader.source.toString)
+    () => {
+      val text = Symbol.decode(raw_text)
+      if (syntax.load_commands_in(text)) {
+        val spans = syntax.parse_spans(text)
+        val dir = Path.explode(name.master_dir)
+        spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
+          map(a => (dir + Path.explode(a)).expand).toList
+      }
+      else Nil
     }
-    else Nil
+  }
+
+  def pure_files(syntax: Outer_Syntax, dir: Path): List[Path] =
+  {
+    val roots =
+      for { (name, _) <- Thy_Header.ml_roots }
+      yield (dir + Path.explode(name)).expand
+    val files =
+      for {
+        (path, (_, theory)) <- roots zip Thy_Header.ml_roots
+        file <- loaded_files(syntax, Document.Node.Name(path.implode, path.dir.implode, theory))()
+      } yield file
+    roots ::: files
+  }
 
   def theory_qualifier(name: Document.Node.Name): String =
     session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
 
-  def theory_name(qualifier: String, theory0: String): (Boolean, String) =
-    session_base.loaded_theories.get(theory0) match {
-      case Some(theory) => (true, theory)
-      case None =>
-        val theory =
-          if (Long_Name.is_qualified(theory0) || session_base.global_theories.isDefinedAt(theory0))
-            theory0
-          else Long_Name.qualify(qualifier, theory0)
-        (false, theory)
+  def theory_name(qualifier: String, theory: String): (Boolean, String) =
+    if (session_base.loaded_theory(theory)) (true, theory)
+    else {
+      val theory1 =
+        if (Long_Name.is_qualified(theory) || session_base.global_theories.isDefinedAt(theory))
+          theory
+        else Long_Name.qualify(qualifier, theory)
+      (false, theory1)
     }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
@@ -85,21 +105,49 @@ class Resources(
         session_base.known_theory(theory) match {
           case Some(node_name) => node_name
           case None =>
-            val path = Path.explode(s)
-            val node = append(dir, thy_path(path))
-            val master_dir = append(dir, path.dir)
-            Document.Node.Name(node, master_dir, theory)
+            if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
+              Document.Node.Name.loaded_theory(theory)
+            else {
+              val path = Path.explode(s)
+              val node = append(dir, thy_path(path))
+              val master_dir = append(dir, path.dir)
+              Document.Node.Name(node, master_dir, theory)
+            }
         }
     }
 
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
     import_name(theory_qualifier(name), name.master_dir, s)
 
+  def standard_import(session_resources: Resources,
+    qualifier: String, dir: String, s: String): String =
+  {
+    val name = import_name(qualifier, dir, s)
+    val s1 =
+      if (session_base.loaded_theory(name)) name.theory
+      else {
+        session_base.known.get_file(name.path.file) match {
+          case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+            name1.theory
+          case Some(name1) if Thy_Header.is_base_name(s) =>
+            name1.theory_base_name
+          case _ => s
+        }
+      }
+    val name2 = import_name(qualifier, dir, s1)
+    if (name.node == name2.node) s1 else s
+  }
+
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
-    val path = File.check_file(Path.explode(name.node))
-    val reader = Scan.byte_reader(path.file)
-    try { f(reader) } finally { reader.close }
+    val path = name.path
+    if (path.is_file) {
+      val reader = Scan.byte_reader(path.file)
+      try { f(reader) } finally { reader.close }
+    }
+    else if (name.node == name.theory)
+      error("Cannot load theory " + quote(name.theory))
+    else error ("Cannot load theory file " + path)
   }
 
   def check_thy_reader(node_name: Document.Node.Name, reader: Reader[Char],
@@ -107,14 +155,14 @@ class Resources(
   {
     if (node_name.is_theory && reader.source.length > 0) {
       try {
-        val header = Thy_Header.read(reader, start, strict).decode_symbols
+        val header = Thy_Header.read(reader, start, strict)
 
         val base_name = node_name.theory_base_name
         val (name, pos) = header.name
         if (base_name != name)
           error("Bad theory name " + quote(name) +
             " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
-            Completion.report_names(pos, 1, List((base_name, ("theory", base_name)))))
+            Completion.report_theories(pos, List(base_name)))
 
         val imports = header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
         Document.Node.Header(imports, header.keywords, header.abbrevs)

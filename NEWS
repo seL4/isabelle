@@ -4,6 +4,57 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** General ***
+
+* Session-qualified theory names are mandatory: it is no longer possible
+to refer to unqualified theories from the parent session.
+INCOMPATIBILITY for old developments that have not been updated to
+Isabelle2017 yet (using the "isabelle imports" tool).
+
+* Command 'external_file' declares the formal dependency on the given
+file name, such that the Isabelle build process knows about it, but
+without specific Prover IDE management.
+
+* Session ROOT entries no longer allow specification of 'files'. Rare
+INCOMPATIBILITY, use command 'external_file' within a proper theory
+context.
+
+* Session root directories may be specified multiple times: each
+accessible ROOT file is processed only once. This facilitates
+specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
+-d or -D for "isabelle build" and "isabelle jedit". Example:
+
+  isabelle build -D '~~/src/ZF'
+
+
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Completion supports theory header imports.
+
+
+*** HOL ***
+
+* SMT module:
+  - The 'smt_oracle' option is now necessary when using the 'smt' method
+    with a solver other than Z3. INCOMPATIBILITY.
+  - The encoding to first-order logic is now more complete in the presence of
+    higher-order quantifiers. An 'smt_explicit_application' option has been
+    added to control this. INCOMPATIBILITY.
+
+
+*** System ***
+
+* Windows and Cygwin is for x86_64 only. Old 32bit platform support has
+been discontinued.
+
+* Command-line tool "isabelle build" supports new options:
+  - option -B NAME: include session NAME and all descendants
+  - option -S: only observe changes of sources, not heap images
+
+
 New in Isabelle2017 (October 2017)
 ----------------------------------
 

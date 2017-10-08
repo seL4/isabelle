@@ -739,7 +739,7 @@ by (rule LeastI Least_le; rule P)+
 lemma holomorphic_factor_zero_nonconstant:
   assumes holf: "f holomorphic_on S" and S: "open S" "connected S"
       and "\<xi> \<in> S" "f \<xi> = 0"
-      and nonconst: "\<And>c. \<exists>z \<in> S. f z \<noteq> c"
+      and nonconst: "~ f constant_on S"
    obtains g r n
       where "0 < n"  "0 < r"  "ball \<xi> r \<subseteq> S"
             "g holomorphic_on ball \<xi> r"
@@ -747,7 +747,7 @@ lemma holomorphic_factor_zero_nonconstant:
             "\<And>w. w \<in> ball \<xi> r \<Longrightarrow> g w \<noteq> 0"
 proof (cases "\<forall>n>0. (deriv ^^ n) f \<xi> = 0")
   case True then show ?thesis
-    using holomorphic_fun_eq_const_on_connected [OF holf S _ \<open>\<xi> \<in> S\<close>] nonconst by auto
+    using holomorphic_fun_eq_const_on_connected [OF holf S _ \<open>\<xi> \<in> S\<close>] nonconst by (simp add: constant_on_def)
 next
   case False
   then obtain n0 where "n0 > 0" and n0: "(deriv ^^ n0) f \<xi> \<noteq> 0" by blast
@@ -3074,18 +3074,19 @@ qed
 
 lemma holomorphic_factor_zero_Ex1:
   assumes "open s" "connected s" "z \<in> s" and
-        holo:"f holomorphic_on s"
-        and "f z = 0" and "\<exists>w\<in>s. f w \<noteq> 0"
+        holf: "f holomorphic_on s"
+        and f: "f z = 0" "\<exists>w\<in>s. f w \<noteq> 0"
   shows "\<exists>!n. \<exists>g r. 0 < n \<and> 0 < r \<and>
                 g holomorphic_on cball z r
                 \<and> (\<forall>w\<in>cball z r. f w = (w-z)^n * g w \<and> g w\<noteq>0)"
 proof (rule ex_ex1I)
-  obtain g r n where "0 < n" "0 < r" "ball z r \<subseteq> s" and
+  have "\<not> f constant_on s"
+    by (metis \<open>z\<in>s\<close> constant_on_def f)
+  then obtain g r n where "0 < n" "0 < r" "ball z r \<subseteq> s" and
           g:"g holomorphic_on ball z r"
           "\<And>w. w \<in> ball z r \<Longrightarrow> f w = (w - z) ^ n * g w"
           "\<And>w. w \<in> ball z r \<Longrightarrow> g w \<noteq> 0"
-    using holomorphic_factor_zero_nonconstant[OF holo \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> \<open>f z=0\<close>]
-    by (metis assms(3) assms(5) assms(6))
+    by (blast intro: holomorphic_factor_zero_nonconstant[OF holf \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> \<open>f z=0\<close>])
   define r' where "r' \<equiv> r/2"
   have "cball z r' \<subseteq> ball z r" unfolding r'_def by (simp add: \<open>0 < r\<close> cball_subset_ball_iff)
   hence "cball z r' \<subseteq> s" "g holomorphic_on cball z r'"

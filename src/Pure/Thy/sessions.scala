@@ -27,7 +27,9 @@ object Sessions
   {
     val empty: Known = Known()
 
-    def make(local_dir: Path, bases: List[Base], theories: List[Document.Node.Name]): Known =
+    def make(local_dir: Path, bases: List[Base],
+      theories: List[Document.Node.Name] = Nil,
+      loaded_files: List[(String, List[Path])] = Nil): Known =
     {
       def bases_iterator(local: Boolean) =
         for {
@@ -38,8 +40,7 @@ object Sessions
       def local_theories_iterator =
       {
         val local_path = local_dir.canonical_file.toPath
-        theories.iterator.filter(name =>
-          Path.explode(name.node).canonical_file.toPath.startsWith(local_path))
+        theories.iterator.filter(name => name.path.canonical_file.toPath.startsWith(local_path))
       }
 
       val known_theories =
@@ -60,21 +61,27 @@ object Sessions
         (Map.empty[JFile, List[Document.Node.Name]] /:
             (bases_iterator(true) ++ bases_iterator(false) ++ theories.iterator))({
           case (known, name) =>
-            val file = Path.explode(name.node).canonical_file
+            val file = name.path.canonical_file
             val theories1 = known.getOrElse(file, Nil)
             if (theories1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
               known
             else known + (file -> (name :: theories1))
         })
+
+      val known_loaded_files =
+        (loaded_files.toMap /: bases.map(base => base.known.loaded_files))(_ ++ _)
+
       Known(known_theories, known_theories_local,
-        known_files.iterator.map(p => (p._1, p._2.reverse)).toMap)
+        known_files.iterator.map(p => (p._1, p._2.reverse)).toMap,
+        known_loaded_files)
     }
   }
 
   sealed case class Known(
     theories: Map[String, Document.Node.Name] = Map.empty,
     theories_local: Map[String, Document.Node.Name] = Map.empty,
-    files: Map[JFile, List[Document.Node.Name]] = Map.empty)
+    files: Map[JFile, List[Document.Node.Name]] = Map.empty,
+    loaded_files: Map[String, List[Path]] = Map.empty)
   {
     def platform_path: Known =
       copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))),
@@ -95,34 +102,37 @@ object Sessions
 
   object Base
   {
-    def pure(options: Options): Base = session_base(options, Thy_Header.PURE)
-
     def bootstrap(global_theories: Map[String, String]): Base =
       Base(
         global_theories = global_theories,
-        keywords = Thy_Header.bootstrap_header,
-        syntax = Thy_Header.bootstrap_syntax)
+        overall_syntax = Thy_Header.bootstrap_syntax)
   }
 
   sealed case class Base(
     pos: Position.T = Position.none,
-    imports: Option[Base] = None,
     global_theories: Map[String, String] = Map.empty,
-    loaded_theories: Map[String, String] = Map.empty,
+    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
-    keywords: Thy_Header.Keywords = Nil,
-    syntax: Outer_Syntax = Outer_Syntax.empty,
+    overall_syntax: Outer_Syntax = Outer_Syntax.empty,
+    imported_sources: List[(Path, SHA1.Digest)] = Nil,
     sources: List[(Path, SHA1.Digest)] = Nil,
     session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
-    errors: List[String] = Nil)
+    errors: List[String] = Nil,
+    imports: Option[Base] = None)
   {
-    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
-
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
-    def loaded_theory(name: Document.Node.Name): Boolean =
-      loaded_theories.isDefinedAt(name.theory)
+    def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
+    def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
+
+    def loaded_theory_syntax(name: String): Option[Outer_Syntax] =
+      if (loaded_theory(name)) Some(loaded_theories.get_node(name)) else None
+    def loaded_theory_syntax(name: Document.Node.Name): Option[Outer_Syntax] =
+      loaded_theory_syntax(name.theory)
+
+    def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
+      nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
 
     def known_theory(name: String): Option[Document.Node.Name] =
       known.theories.get(name)
@@ -130,13 +140,20 @@ object Sessions
     def dest_known_theories: List[(String, String)] =
       for ((theory, node_name) <- known.theories.toList)
         yield (theory, node_name.node)
+
+    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
   }
 
   sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
   {
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
-    def sources(name: String): List[SHA1.Digest] = session_bases(name).sources.map(_._2)
+
+    def imported_sources(name: String): List[SHA1.Digest] =
+      session_bases(name).imported_sources.map(_._2)
+
+    def sources(name: String): List[SHA1.Digest] =
+      session_bases(name).sources.map(_._2)
 
     def errors: List[String] =
       (for {
@@ -161,6 +178,25 @@ object Sessions
       check_keywords: Set[String] = Set.empty,
       global_theories: Map[String, String] = Map.empty): Deps =
   {
+    var cache_sources = Map.empty[JFile, SHA1.Digest]
+    def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] =
+    {
+      for {
+        path <- paths
+        file = path.file
+        if cache_sources.isDefinedAt(file) || file.isFile
+      }
+      yield {
+        cache_sources.get(file) match {
+          case Some(digest) => (path, digest)
+          case None =>
+            val digest = SHA1.digest(file)
+            cache_sources = cache_sources + (file -> digest)
+            (path, digest)
+        }
+      }
+    }
+
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
         case (session_bases, info) =>
@@ -174,7 +210,7 @@ object Sessions
               }
             val imports_base: Sessions.Base =
               parent_base.copy(known =
-                Known.make(info.dir, parent_base :: info.imports.map(session_bases(_)), Nil))
+                Known.make(info.dir, parent_base :: info.imports.map(session_bases(_))))
 
             val resources = new Resources(imports_base)
 
@@ -186,43 +222,36 @@ object Sessions
             }
 
             val thy_deps =
-            {
-              val root_theories =
-                info.theories.flatMap({ case (_, thys) =>
-                  thys.map({ case (thy, pos) =>
-                    (resources.import_name(info.theory_qualifier, info.dir.implode, thy), pos) })
-                })
-              resources.thy_info.dependencies(root_theories)
-            }
+              resources.thy_info.dependencies(
+                for { (_, thys) <- info.theories; (thy, pos) <- thys }
+                yield (resources.import_name(info.name, info.dir.implode, thy), pos))
 
-            val syntax = thy_deps.syntax
+            val overall_syntax = thy_deps.overall_syntax
 
-            val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
+            val theory_files = thy_deps.names.map(_.path)
             val loaded_files =
               if (inlined_files) {
-                val pure_files =
-                  if (is_pure(info.name)) {
-                    val roots = Thy_Header.ml_roots.map(p => info.dir + Path.explode(p._1))
-                    val files =
-                      roots.flatMap(root => resources.loaded_files(syntax, File.read(root))).
-                        map(file => info.dir + Path.explode(file))
-                    roots ::: files
-                  }
-                  else Nil
-                pure_files ::: thy_deps.loaded_files
+                if (Sessions.is_pure(info.name)) {
+                  (Thy_Header.PURE -> resources.pure_files(overall_syntax, info.dir)) ::
+                    thy_deps.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
+                }
+                else thy_deps.loaded_files
               }
               else Nil
 
-            val all_files =
-              (theory_files ::: loaded_files :::
-                info.files.map(file => info.dir + file) :::
+            val session_files =
+              (theory_files ::: loaded_files.flatMap(_._2) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
-            if (list_files)
-              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+            val imported_files = if (inlined_files) thy_deps.imported_files else Nil
 
-            if (check_keywords.nonEmpty)
-              Check_Keywords.check_keywords(progress, syntax.keywords, check_keywords, theory_files)
+            if (list_files)
+              progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
+
+            if (check_keywords.nonEmpty) {
+              Check_Keywords.check_keywords(
+                progress, overall_syntax.keywords, check_keywords, theory_files)
+            }
 
             val session_graph: Graph_Display.Graph =
             {
@@ -232,7 +261,7 @@ object Sessions
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
                 val qualifier = resources.theory_qualifier(name)
-                if (qualifier == info.theory_qualifier)
+                if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)
               }
@@ -248,32 +277,35 @@ object Sessions
                       val bs = imports_subgraph.imm_preds(session).toList.map(session_node(_))
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
-              (graph0 /: thy_deps.deps)(
-                { case (g, dep) =>
-                    val a = node(dep.name)
+              (graph0 /: thy_deps.entries)(
+                { case (g, entry) =>
+                    val a = node(entry.name)
                     val bs =
-                      dep.header.imports.map({ case (name, _) => node(name) }).
+                      entry.header.imports.map({ case (name, _) => node(name) }).
                         filterNot(_ == a)
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
-            val sources =
-              for (p <- all_files if p.is_file) yield (p, SHA1.digest(p.file))
+            val known =
+              Known.make(info.dir, List(imports_base),
+                theories = thy_deps.names,
+                loaded_files = loaded_files)
+
             val sources_errors =
-              for (p <- all_files if !p.is_file) yield "No such file: " + p
+              for (p <- session_files if !p.is_file) yield "No such file: " + p
 
             val base =
               Base(
                 pos = info.pos,
-                imports = Some(imports_base),
                 global_theories = global_theories,
                 loaded_theories = thy_deps.loaded_theories,
-                known = Known.make(info.dir, List(imports_base), thy_deps.deps.map(_.name)),
-                keywords = thy_deps.keywords,
-                syntax = syntax,
-                sources = sources,
+                known = known,
+                overall_syntax = overall_syntax,
+                imported_sources = check_sources(imported_files),
+                sources = check_sources(session_files),
                 session_graph = session_graph,
-                errors = thy_deps.errors ::: sources_errors)
+                errors = thy_deps.errors ::: sources_errors,
+                imports = Some(imports_base))
 
             session_bases + (info.name -> base)
           }
@@ -284,13 +316,14 @@ object Sessions
           }
       })
 
-    Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2), Nil))
+    Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2)))
   }
 
   def session_base_errors(
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
+    inlined_files: Boolean = false,
     all_known: Boolean = false): (List[String], Base) =
   {
     val full_sessions = load(options, dirs = dirs)
@@ -298,7 +331,8 @@ object Sessions
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
     val sessions: T = if (all_known) full_sessions else selected_sessions
-    val deps = Sessions.deps(sessions, global_theories = global_theories)
+    val deps =
+      Sessions.deps(sessions, inlined_files = inlined_files, global_theories = global_theories)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
     (deps.errors, base)
   }
@@ -307,9 +341,12 @@ object Sessions
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
+    inlined_files: Boolean = false,
     all_known: Boolean = false): Base =
   {
-    val (errs, base) = session_base_errors(options, session, dirs = dirs, all_known = all_known)
+    val (errs, base) =
+      session_base_errors(options, session, dirs = dirs,
+        inlined_files = inlined_files, all_known = all_known)
     if (errs.isEmpty) base else error(cat_lines(errs))
   }
 
@@ -329,17 +366,10 @@ object Sessions
     imports: List[String],
     theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
-    files: List[Path],
     document_files: List[(Path, Path)],
     meta_digest: SHA1.Digest)
   {
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
-
-    def theory_qualifier: String =
-      options.string("theory_qualifier") match {
-        case "" => name
-        case qualifier => qualifier
-      }
   }
 
   object Selection
@@ -351,25 +381,29 @@ object Sessions
   sealed case class Selection(
     requirements: Boolean = false,
     all_sessions: Boolean = false,
+    base_sessions: List[String] = Nil,
     exclude_session_groups: List[String] = Nil,
     exclude_sessions: List[String] = Nil,
     session_groups: List[String] = Nil,
     sessions: List[String] = Nil)
   {
-    def + (other: Selection): Selection =
+    def ++ (other: Selection): Selection =
       Selection(
         requirements = requirements || other.requirements,
         all_sessions = all_sessions || other.all_sessions,
-        exclude_session_groups = exclude_session_groups ::: other.exclude_session_groups,
-        exclude_sessions = exclude_sessions ::: other.exclude_sessions,
-        session_groups = session_groups ::: other.session_groups,
-        sessions = sessions ::: other.sessions)
+        base_sessions = Library.merge(base_sessions, other.base_sessions),
+        exclude_session_groups = Library.merge(exclude_session_groups, other.exclude_session_groups),
+        exclude_sessions = Library.merge(exclude_sessions, other.exclude_sessions),
+        session_groups = Library.merge(session_groups, other.session_groups),
+        sessions = Library.merge(sessions, other.sessions))
 
     def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
     {
       val bad_sessions =
-        SortedSet((exclude_sessions ::: sessions).filterNot(graph.defined(_)): _*).toList
-      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
+        SortedSet((base_sessions ::: exclude_sessions ::: sessions).
+          filterNot(graph.defined(_)): _*).toList
+      if (bad_sessions.nonEmpty)
+        error("Undefined session(s): " + commas_quote(bad_sessions))
 
       val excluded =
       {
@@ -387,7 +421,7 @@ object Sessions
         if (all_sessions) graph.keys
         else {
           val select_group = session_groups.toSet
-          val select = sessions.toSet
+          val select = sessions.toSet ++ graph.all_succs(base_sessions)
           (for {
             (name, (info, _)) <- graph.iterator
             if info.select || select(name) || graph.get_node(name).groups.exists(select_group)
@@ -456,7 +490,7 @@ object Sessions
           thy <- info.global_theories.iterator }
          yield (thy, info)))({
             case (global, (thy, info)) =>
-              val qualifier = info.theory_qualifier
+              val qualifier = info.name
               global.get(thy) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
                   error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
@@ -504,7 +538,6 @@ object Sessions
   private val SESSIONS = "sessions"
   private val THEORIES = "theories"
   private val GLOBAL = "global"
-  private val FILES = "files"
   private val DOCUMENT_FILES = "document_files"
 
   lazy val root_syntax =
@@ -515,7 +548,6 @@ object Sessions
       (OPTIONS, Keyword.QUASI_COMMAND) +
       (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
-      (FILES, Keyword.QUASI_COMMAND) +
       (DOCUMENT_FILES, Keyword.QUASI_COMMAND)
 
   private object Parser extends Parse.Parser with Options.Parser
@@ -532,7 +564,6 @@ object Sessions
       options: List[Options.Spec],
       imports: List[String],
       theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
-      files: List[String],
       document_files: List[(String, String)]) extends Entry
     {
       def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
@@ -582,13 +613,12 @@ object Sessions
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
-              (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j) }
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
-    def parse(options: Options, select: Boolean, dir: Path): List[(String, Info)] =
+    def parse_root(options: Options, select: Boolean, path: Path): List[(String, Info)] =
     {
       def make_info(entry_chapter: String, entry: Session_Entry): (String, Info) =
       {
@@ -614,18 +644,17 @@ object Sessions
               else thy_name
             }
 
-          val files = entry.files.map(Path.explode(_))
           val document_files =
             entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
 
           val meta_digest =
             SHA1.digest((entry_chapter, name, entry.parent, entry.options, entry.imports,
-              entry.theories_no_position, entry.files, entry.document_files).toString)
+              entry.theories_no_position, entry.document_files).toString)
 
           val info =
             Info(name, entry_chapter, select, entry.pos, entry.groups,
-              dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
-              entry.imports, theories, global_theories, files, document_files, meta_digest)
+              path.dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+              entry.imports, theories, global_theories, document_files, meta_digest)
 
           (name, info)
         }
@@ -636,24 +665,20 @@ object Sessions
         }
       }
 
-      val root = dir + ROOT
-      if (root.is_file) {
-        val toks = Token.explode(root_syntax.keywords, File.read(root))
-        val start = Token.Pos.file(root.implode)
+      val toks = Token.explode(root_syntax.keywords, File.read(path))
+      val start = Token.Pos.file(path.implode)
 
-        parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
-          case Success(result, _) =>
-            var entry_chapter = "Unsorted"
-            val infos = new mutable.ListBuffer[(String, Info)]
-            result.foreach {
-              case Chapter(name) => entry_chapter = name
-              case entry: Session_Entry => infos += make_info(entry_chapter, entry)
-            }
-            infos.toList
-          case bad => error(bad.toString)
-        }
+      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
+        case Success(result, _) =>
+          var entry_chapter = "Unsorted"
+          val infos = new mutable.ListBuffer[(String, Info)]
+          result.foreach {
+            case Chapter(name) => entry_chapter = name
+            case entry: Session_Entry => infos += make_info(entry_chapter, entry)
+          }
+          infos.toList
+        case bad => error(bad.toString)
       }
-      else Nil
     }
   }
 
@@ -675,13 +700,16 @@ object Sessions
 
   def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
   {
-    def load_dir(select: Boolean, dir: Path): List[(String, Info)] =
+    def load_dir(select: Boolean, dir: Path): List[(Boolean, Path)] =
       load_root(select, dir) ::: load_roots(select, dir)
 
-    def load_root(select: Boolean, dir: Path): List[(String, Info)] =
-      Parser.parse(options, select, dir)
+    def load_root(select: Boolean, dir: Path): List[(Boolean, Path)] =
+    {
+      val root = dir + ROOT
+      if (root.is_file) List((select, root)) else Nil
+    }
 
-    def load_roots(select: Boolean, dir: Path): List[(String, Info)] =
+    def load_roots(select: Boolean, dir: Path): List[(Boolean, Path)] =
     {
       val roots = dir + ROOTS
       if (roots.is_file) {
@@ -694,17 +722,28 @@ object Sessions
               case ERROR(msg) =>
                 error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
             }
-          info <- load_dir(select, dir1)
-        } yield info
+          res <- load_dir(select, dir1)
+        } yield res
       }
       else Nil
     }
 
-    make(
+    val roots =
       for {
         (select, dir) <- directories(dirs, select_dirs)
-        info <- load_dir(select, check_session_dir(dir))
-      } yield info)
+        res <- load_dir(select, check_session_dir(dir))
+      } yield res
+
+    val unique_roots =
+      ((Map.empty[JFile, (Boolean, Path)] /: roots) { case (m, (select, path)) =>
+        val file = path.canonical_file
+        m.get(file) match {
+          case None => m + (file -> (select, path))
+          case Some((select1, path1)) => m + (file -> (select1 || select, path1))
+        }
+      }).toList.map(_._2)
+
+    make(unique_roots.flatMap(p => Parser.parse_root(options, p._1, p._2)))
   }
 
 
@@ -866,7 +905,7 @@ object Sessions
           stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
           stmt.bytes(5) = Properties.compress(build_log.task_statistics)
           stmt.bytes(6) = Build_Log.compress_errors(build_log.errors)
-          stmt.string(7) = cat_lines(build.sources)
+          stmt.string(7) = build.sources
           stmt.string(8) = cat_lines(build.input_heaps)
           stmt.string(9) = build.output_heap getOrElse ""
           stmt.int(10) = build.return_code
@@ -891,6 +930,7 @@ object Sessions
       Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors))
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
+    {
       db.using_statement(Session_Info.table.select(Session_Info.build_columns,
         Session_Info.session_name.where_equal(name)))(stmt =>
       {
@@ -899,11 +939,12 @@ object Sessions
         else {
           Some(
             Build.Session_Info(
-              split_lines(res.string(Session_Info.sources)),
+              res.string(Session_Info.sources),
               split_lines(res.string(Session_Info.input_heaps)),
               res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
               res.int(Session_Info.return_code)))
         }
       })
+    }
   }
 }

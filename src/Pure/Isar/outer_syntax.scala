@@ -18,6 +18,8 @@ object Outer_Syntax
 
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
 
+  def merge(syns: List[Outer_Syntax]): Outer_Syntax = (empty /: syns)(_ ++ _)
+
 
   /* string literals */
 
@@ -98,10 +100,14 @@ final class Outer_Syntax private(
     }
 
 
-  /* merge */
+  /* build */
+
+  def + (header: Document.Node.Header): Outer_Syntax =
+    add_keywords(header.keywords).add_abbrevs(header.abbrevs)
 
   def ++ (other: Outer_Syntax): Outer_Syntax =
     if (this eq other) this
+    else if (this eq Outer_Syntax.empty) other
     else {
       val keywords1 = keywords ++ other.keywords
       val completion1 = completion ++ other.completion

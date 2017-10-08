@@ -1000,7 +1000,7 @@ proposition Hurwitz_no_zeros:
       and holf: "\<And>n::nat. \<F> n holomorphic_on S"
       and holg: "g holomorphic_on S"
       and ul_g: "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> uniform_limit K \<F> g sequentially"
-      and nonconst: "\<And>c. \<exists>z \<in> S. g z \<noteq> c"
+      and nonconst: "~ g constant_on S"
       and nz: "\<And>n z. z \<in> S \<Longrightarrow> \<F> n z \<noteq> 0"
       and "z0 \<in> S"
       shows "g z0 \<noteq> 0"
@@ -1164,14 +1164,14 @@ corollary Hurwitz_injective:
       and holf: "\<And>n::nat. \<F> n holomorphic_on S"
       and holg: "g holomorphic_on S"
       and ul_g: "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> uniform_limit K \<F> g sequentially"
-      and nonconst: "\<And>c. \<exists>z \<in> S. g z \<noteq> c"
+      and nonconst: "~ g constant_on S"
       and inj: "\<And>n. inj_on (\<F> n) S"
     shows "inj_on g S"
 proof -
   have False if z12: "z1 \<in> S" "z2 \<in> S" "z1 \<noteq> z2" "g z2 = g z1" for z1 z2
   proof -
     obtain z0 where "z0 \<in> S" and z0: "g z0 \<noteq> g z2"
-      using nonconst by blast
+      using constant_on_def nonconst by blast
     have "(\<lambda>z. g z - g z1) holomorphic_on S"
       by (intro holomorphic_intros holg)
     then obtain r where "0 < r" "ball z2 r \<subseteq> S" "\<And>z. dist z2 z < r \<and> z \<noteq> z2 \<Longrightarrow> g z \<noteq> g z1"
@@ -1214,7 +1214,8 @@ proof -
         show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e"
           by simp
       qed
-      show "\<And>c. \<exists>z\<in>S - {z1}. g z - g z1 \<noteq> c"
+      show "\<not> (\<lambda>z. g z - g z1) constant_on S - {z1}"
+        unfolding constant_on_def
         by (metis Diff_iff \<open>z0 \<in> S\<close> empty_iff insert_iff right_minus_eq z0 z12)
       show "\<And>n z. z \<in> S - {z1} \<Longrightarrow> \<F> n z - \<F> n z1 \<noteq> 0"
         by (metis DiffD1 DiffD2 eq_iff_diff_eq_0 inj inj_onD insertI1 \<open>z1 \<in> S\<close>)
@@ -1360,8 +1361,9 @@ proof -
           using \<open>Z \<subseteq> S\<close> e hol\<G> by force
         show "\<And>n z. z \<in> ball v e \<Longrightarrow> (\<G> \<circ> j) n z \<noteq> 0"
           using \<G>not0 \<open>Z \<subseteq> S\<close> e by fastforce
-        show "\<exists>z\<in>ball v e. h z \<noteq> c" for c
-        proof -
+        show "\<not> h constant_on ball v e"
+        proof (clarsimp simp: constant_on_def)
+          fix c
           have False if "\<And>z. dist v z < e \<Longrightarrow> h z = c"  
           proof -
             have "h v = c"
@@ -1389,7 +1391,7 @@ proof -
             show False
               using \<open>C < cmod (\<F> (j n) y)\<close> le_C not_less by blast
           qed
-          then show ?thesis by force
+          then show "\<exists>x\<in>ball v e. h x \<noteq> c" by force
         qed
         show "h holomorphic_on ball v e"
           by (simp add: holh)
@@ -1827,7 +1829,6 @@ proof -
   with that show thesis
     by meson
 qed
-
 
 corollary Casorati_Weierstrass:
   assumes "open M" "z \<in> M" "f holomorphic_on (M - {z})"
