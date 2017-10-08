@@ -527,7 +527,7 @@ subsection \<open>Numeral division with a pragmatic type class\<close>
 text \<open>
   The following type class contains everything necessary to formulate
   a division algorithm in ring structures with numerals, restricted
-  to its positive segments.  This is its primary motiviation, and it
+  to its positive segments.  This is its primary motivation, and it
   could surely be formulated using a more fine-grained, more algebraic
   and less technical class hierarchy.
 \<close>
@@ -551,7 +551,6 @@ class semiring_numeral_div = semiring_div + comm_semiring_1_cancel + linordered_
     \<comment> \<open>These are conceptually definitions but force generated code
     to be monomorphic wrt. particular instances of this class which
     yields a significant speedup.\<close>
-
 begin
 
 subclass semiring_div_parity
