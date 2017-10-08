@@ -1849,11 +1849,33 @@ text \<open>Misc\<close>
 definition pairwise :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
   where "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. x \<noteq> y \<longrightarrow> R x y)"
 
+lemma pairwiseI:
+  "pairwise R S" if "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y"
+  using that by (simp add: pairwise_def)
+
+lemma pairwiseD:
+  "R x y" and "R y x"
+  if "pairwise R S" "x \<in> S" and "y \<in> S" and "x \<noteq> y"
+  using that by (simp_all add: pairwise_def)
+
+lemma pairwise_empty [simp]: "pairwise P {}"
+  by (simp add: pairwise_def)
+
+lemma pairwise_singleton [simp]: "pairwise P {A}"
+  by (simp add: pairwise_def)
+
+lemma pairwise_insert:
+  "pairwise r (insert x s) \<longleftrightarrow> (\<forall>y. y \<in> s \<and> y \<noteq> x \<longrightarrow> r x y \<and> r y x) \<and> pairwise r s"
+  by (force simp: pairwise_def)
+
 lemma pairwise_subset: "pairwise P S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> pairwise P T"
   by (force simp: pairwise_def)
 
 lemma pairwise_mono: "\<lbrakk>pairwise P A; \<And>x y. P x y \<Longrightarrow> Q x y\<rbrakk> \<Longrightarrow> pairwise Q A"
   by (auto simp: pairwise_def)
+
+lemma pairwise_image: "pairwise r (f ` s) \<longleftrightarrow> pairwise (\<lambda>x y. (f x \<noteq> f y) \<longrightarrow> r (f x) (f y)) s"
+  by (force simp: pairwise_def)
 
 definition disjnt :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "disjnt A B \<longleftrightarrow> A \<inter> B = {}"
@@ -1881,19 +1903,6 @@ lemma disjnt_subset1 : "\<lbrakk>disjnt X Y; Z \<subseteq> X\<rbrakk> \<Longrigh
 
 lemma disjnt_subset2 : "\<lbrakk>disjnt X Y; Z \<subseteq> Y\<rbrakk> \<Longrightarrow> disjnt X Z"
   by (auto simp: disjnt_def)
-
-lemma pairwise_empty [simp]: "pairwise P {}"
-  by (simp add: pairwise_def)
-
-lemma pairwise_singleton [simp]: "pairwise P {A}"
-  by (simp add: pairwise_def)
-
-lemma pairwise_insert:
-  "pairwise r (insert x s) \<longleftrightarrow> (\<forall>y. y \<in> s \<and> y \<noteq> x \<longrightarrow> r x y \<and> r y x) \<and> pairwise r s"
-  by (force simp: pairwise_def)
-
-lemma pairwise_image: "pairwise r (f ` s) \<longleftrightarrow> pairwise (\<lambda>x y. (f x \<noteq> f y) \<longrightarrow> r (f x) (f y)) s"
-  by (force simp: pairwise_def)
 
 lemma disjoint_image_subset: "\<lbrakk>pairwise disjnt \<A>; \<And>X. X \<in> \<A> \<Longrightarrow> f X \<subseteq> X\<rbrakk> \<Longrightarrow> pairwise disjnt (f `\<A>)"
   unfolding disjnt_def pairwise_def by fast
