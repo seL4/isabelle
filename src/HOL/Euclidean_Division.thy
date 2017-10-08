@@ -755,12 +755,8 @@ structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
   val div_name = @{const_name divide};
   val mod_name = @{const_name modulo};
   val mk_binop = HOLogic.mk_binop;
-  val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
   val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
-  fun mk_sum' [] = HOLogic.zero
-    | mk_sum' [t] = t
-    | mk_sum' (t :: ts) = mk_plus (t, mk_sum' ts);
-  fun mk_sum _ = mk_sum';
+  val mk_sum = Arith_Data.mk_sum;
   fun dest_sum tm =
     if HOLogic.is_zero tm then []
     else
