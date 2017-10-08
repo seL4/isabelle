@@ -704,7 +704,7 @@ end
 
 subsection \<open>Euclidean division on @{typ nat}\<close>
 
-instantiation nat :: unique_euclidean_semiring
+instantiation nat :: normalization_semidom
 begin
 
 definition normalize_nat :: "nat \<Rightarrow> nat"
@@ -718,14 +718,22 @@ lemma unit_factor_simps [simp]:
   "unit_factor (Suc n) = 1"
   by (simp_all add: unit_factor_nat_def)
 
+definition divide_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  where "m div n = (if n = 0 then 0 else Max {k::nat. k * n \<le> m})"
+
+instance
+  by standard (auto simp add: divide_nat_def ac_simps unit_factor_nat_def intro: Max_eqI)
+
+end
+
+instantiation nat :: unique_euclidean_semiring
+begin
+
 definition euclidean_size_nat :: "nat \<Rightarrow> nat"
   where [simp]: "euclidean_size_nat = id"
 
 definition uniqueness_constraint_nat :: "nat \<Rightarrow> nat \<Rightarrow> bool"
   where [simp]: "uniqueness_constraint_nat = \<top>"
-
-definition divide_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  where "m div n = (if n = 0 then 0 else Max {k::nat. k * n \<le> m})"
 
 definition modulo_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   where "m mod n = m - (m div n * (n::nat))"
@@ -757,15 +765,11 @@ instance proof
     finally show ?thesis
       using False by (simp add: divide_nat_def ac_simps)
   qed
-  show "n div 0 = 0"
-    by (simp add: divide_nat_def)
   have less_eq: "m div n * n \<le> m"
     by (auto simp add: mult_div_unfold ac_simps intro: Max.boundedI)
   then show "m div n * n + m mod n = m"
     by (simp add: modulo_nat_def)
   assume "n \<noteq> 0" 
-  show "m * n div n = m"
-    using \<open>n \<noteq> 0\<close> by (auto simp add: divide_nat_def ac_simps intro: Max_eqI)
   show "euclidean_size (m mod n) < euclidean_size n"
   proof -
     have "m < Suc (m div n) * n"
@@ -805,7 +809,7 @@ instance proof
     with \<open>n \<noteq> 0\<close> ex fin show ?thesis
       by (auto simp add: divide_nat_def Max_eq_iff)
   qed
-qed (simp_all add: unit_factor_nat_def)
+qed simp_all
 
 end
 
@@ -1326,6 +1330,186 @@ next
     with False show ?P
       by (auto intro: * [of _ "m div n"])
   qed
+qed
+
+
+subsection \<open>Euclidean division on @{typ int}\<close>
+
+instantiation int :: normalization_semidom
+begin
+
+definition normalize_int :: "int \<Rightarrow> int"
+  where [simp]: "normalize = (abs :: int \<Rightarrow> int)"
+
+definition unit_factor_int :: "int \<Rightarrow> int"
+  where [simp]: "unit_factor = (sgn :: int \<Rightarrow> int)"
+
+definition divide_int :: "int \<Rightarrow> int \<Rightarrow> int"
+  where "k div l = (if l = 0 then 0
+    else if sgn k = sgn l
+      then int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)
+      else - int (nat \<bar>k\<bar> div nat \<bar>l\<bar> + of_bool (\<not> l dvd k)))"
+
+lemma divide_int_unfold:
+  "(sgn k * int m) div (sgn l * int n) =
+   (if sgn l = 0 \<or> sgn k = 0 \<or> n = 0 then 0
+    else if sgn k = sgn l
+      then int (m div n)
+      else - int (m div n + of_bool (\<not> n dvd m)))"
+  by (auto simp add: divide_int_def sgn_0_0 sgn_1_pos sgn_mult abs_mult
+    nat_mult_distrib dvd_int_iff)
+
+instance proof
+  fix k :: int show "k div 0 = 0"
+  by (simp add: divide_int_def)
+next
+  fix k l :: int
+  assume "l \<noteq> 0"
+  obtain n m and s t where k: "k = sgn s * int n" and l: "l = sgn t * int m" 
+    by (blast intro: int_sgnE elim: that)
+  then have "k * l = sgn (s * t) * int (n * m)"
+    by (simp add: ac_simps sgn_mult)
+  with k l \<open>l \<noteq> 0\<close> show "k * l div l = k"
+    by (simp only: divide_int_unfold)
+      (auto simp add: algebra_simps sgn_mult sgn_1_pos sgn_0_0)
+qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
+
+end
+
+instantiation int :: unique_euclidean_ring
+begin
+
+definition euclidean_size_int :: "int \<Rightarrow> nat"
+  where [simp]: "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
+
+definition uniqueness_constraint_int :: "int \<Rightarrow> int \<Rightarrow> bool"
+  where [simp]: "uniqueness_constraint_int k l \<longleftrightarrow> unit_factor k = unit_factor l"
+
+definition modulo_int :: "int \<Rightarrow> int \<Rightarrow> int"
+  where "k mod l = (if l = 0 then k
+    else if sgn k = sgn l
+      then sgn l * int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)
+      else sgn l * (\<bar>l\<bar> * of_bool (\<not> l dvd k) - int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)))"
+
+lemma modulo_int_unfold:
+  "(sgn k * int m) mod (sgn l * int n) =
+   (if sgn l = 0 \<or> sgn k = 0 \<or> n = 0 then sgn k * int m
+    else if sgn k = sgn l
+      then sgn l * int (m mod n)
+      else sgn l * (int (n * of_bool (\<not> n dvd m)) - int (m mod n)))"
+  by (auto simp add: modulo_int_def sgn_0_0 sgn_1_pos sgn_mult abs_mult
+    nat_mult_distrib dvd_int_iff)
+
+lemma abs_mod_less:
+  "\<bar>k mod l\<bar> < \<bar>l\<bar>" if "l \<noteq> 0" for k l :: int
+proof -
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+    by (blast intro: int_sgnE elim: that)
+  with that show ?thesis
+    by (simp add: modulo_int_unfold sgn_0_0 sgn_1_pos sgn_1_neg
+      abs_mult mod_greater_zero_iff_not_dvd)
+qed
+
+lemma sgn_mod:
+  "sgn (k mod l) = sgn l" if "l \<noteq> 0" "\<not> l dvd k" for k l :: int
+proof -
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+    by (blast intro: int_sgnE elim: that)
+  with that show ?thesis
+    by (simp add: modulo_int_unfold sgn_0_0 sgn_1_pos sgn_1_neg
+      sgn_mult mod_eq_0_iff_dvd int_dvd_iff)
+qed
+
+instance proof
+  fix k l :: int
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+    by (blast intro: int_sgnE elim: that)
+  then show "k div l * l + k mod l = k"
+    by (auto simp add: divide_int_unfold modulo_int_unfold algebra_simps dest!: sgn_not_eq_imp)
+       (simp_all add: of_nat_mult [symmetric] of_nat_add [symmetric]
+         distrib_left [symmetric] minus_mult_right
+         del: of_nat_mult minus_mult_right [symmetric])
+next
+  fix l q r :: int
+  obtain n m and s t
+     where l: "l = sgn s * int n" and q: "q = sgn t * int m"
+    by (blast intro: int_sgnE elim: that)
+  assume \<open>l \<noteq> 0\<close>
+  with l have "s \<noteq> 0" and "n > 0"
+    by (simp_all add: sgn_0_0)
+  assume "uniqueness_constraint r l"
+  moreover have "r = sgn r * \<bar>r\<bar>"
+    by (simp add: sgn_mult_abs)
+  moreover define u where "u = nat \<bar>r\<bar>"
+  ultimately have "r = sgn l * int u"
+    by simp
+  with l \<open>n > 0\<close> have r: "r = sgn s * int u"
+    by (simp add: sgn_mult)
+  assume "euclidean_size r < euclidean_size l"
+  with l r \<open>s \<noteq> 0\<close> have "u < n"
+    by (simp add: abs_mult)
+  show "(q * l + r) div l = q"
+  proof (cases "q = 0 \<or> r = 0")
+    case True
+    then show ?thesis
+    proof
+      assume "q = 0"
+      then show ?thesis
+        using l r \<open>u < n\<close> by (simp add: divide_int_unfold)
+    next
+      assume "r = 0"
+      from \<open>r = 0\<close> have *: "q * l + r = sgn (t * s) * int (n * m)"
+        using q l by (simp add: ac_simps sgn_mult)
+      from \<open>s \<noteq> 0\<close> \<open>n > 0\<close> show ?thesis
+        by (simp only: *, simp only: q l divide_int_unfold)
+          (auto simp add: sgn_mult sgn_0_0 sgn_1_pos)
+    qed
+  next
+    case False
+    with q r have "t \<noteq> 0" and "m > 0" and "s \<noteq> 0" and "u > 0"
+      by (simp_all add: sgn_0_0)
+    moreover from \<open>0 < m\<close> \<open>u < n\<close> have "u \<le> m * n"
+      using mult_le_less_imp_less [of 1 m u n] by simp
+    ultimately have *: "q * l + r = sgn (s * t)
+      * int (if t < 0 then m * n - u else m * n + u)"
+      using l q r
+      by (simp add: sgn_mult algebra_simps of_nat_diff)
+    have "(m * n - u) div n = m - 1" if "u > 0"
+      using \<open>0 < m\<close> \<open>u < n\<close> that
+      by (auto intro: div_nat_eqI simp add: algebra_simps)
+    moreover have "n dvd m * n - u \<longleftrightarrow> n dvd u"
+      using \<open>u \<le> m * n\<close> dvd_diffD1 [of n "m * n" u]
+      by auto
+    ultimately show ?thesis
+      using \<open>s \<noteq> 0\<close> \<open>m > 0\<close> \<open>u > 0\<close> \<open>u < n\<close> \<open>u \<le> m * n\<close>
+      by (simp only: *, simp only: l q divide_int_unfold)
+        (auto simp add: sgn_mult sgn_0_0 sgn_1_pos algebra_simps dest: dvd_imp_le)
+  qed
+qed (use mult_le_mono2 [of 1] in \<open>auto simp add: abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
+
+end
+
+lemma pos_mod_bound [simp]:
+  "k mod l < l" if "l > 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (blast intro: int_sgnE elim: that)
+  moreover from that obtain n where "l = sgn 1 * int n"
+    by (cases l) auto
+  ultimately show ?thesis
+    using that by (simp only: modulo_int_unfold)
+      (simp add: mod_greater_zero_iff_not_dvd)
+qed
+
+lemma pos_mod_sign [simp]:
+  "0 \<le> k mod l" if "l > 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (blast intro: int_sgnE elim: that)
+  moreover from that obtain n where "l = sgn 1 * int n"
+    by (cases l) auto
+  ultimately show ?thesis
+    using that by (simp only: modulo_int_unfold) simp
 qed
 
 

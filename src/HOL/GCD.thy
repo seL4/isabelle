@@ -2017,11 +2017,11 @@ lemma gcd_diff2_nat: "n \<ge> m \<Longrightarrow> gcd (n - m) n = gcd m n"
 lemma gcd_non_0_int: "y > 0 \<Longrightarrow> gcd x y = gcd y (x mod y)"
   for x y :: int
   apply (frule_tac b = y and a = x in pos_mod_sign)
-  apply (simp del: pos_mod_sign add: gcd_int_def abs_if nat_mod_distrib)
+  apply (simp del: Euclidean_Division.pos_mod_sign add: gcd_int_def abs_if nat_mod_distrib)
   apply (auto simp add: gcd_non_0_nat nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
   apply (frule_tac a = x in pos_mod_bound)
   apply (subst (1 2) gcd.commute)
-  apply (simp del: pos_mod_bound add: nat_diff_distrib gcd_diff2_nat nat_le_eq_zle)
+  apply (simp del: Euclidean_Division.pos_mod_bound add: nat_diff_distrib gcd_diff2_nat nat_le_eq_zle)
   done
 
 lemma gcd_red_int: "gcd x y = gcd y (x mod y)"

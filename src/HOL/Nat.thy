@@ -1676,6 +1676,10 @@ next
     by (simp add: add.commute)
 qed
 
+lemma of_nat_of_bool [simp]:
+  "of_nat (of_bool P) = of_bool P"
+  by auto
+
 end
 
 declare of_nat_code [code]
@@ -1763,6 +1767,10 @@ begin
 
 lemma abs_of_nat [simp]: "\<bar>of_nat n\<bar> = of_nat n"
   unfolding abs_if by auto
+
+lemma sgn_of_nat [simp]:
+  "sgn (of_nat n) = of_bool (n > 0)"
+  by simp
 
 end
 

@@ -483,4 +483,40 @@ lemma power_even_abs_numeral [simp]:
 
 end
 
+
+subsection \<open>Instance for @{typ int}\<close>
+
+instance int :: ring_parity
+proof
+  fix k l :: int
+  show "k mod 2 = 1" if "\<not> 2 dvd k"
+  proof (rule order_antisym)
+    have "0 \<le> k mod 2" and "k mod 2 < 2"
+      by auto
+    moreover have "k mod 2 \<noteq> 0"
+      using that by (simp add: dvd_eq_mod_eq_0)
+    ultimately have "0 < k mod 2"
+      by (simp only: less_le) simp
+    then show "1 \<le> k mod 2"
+      by simp
+    from \<open>k mod 2 < 2\<close> show "k mod 2 \<le> 1"
+      by (simp only: less_le) simp
+  qed
+qed (simp_all add: dvd_eq_mod_eq_0 divide_int_def)
+
+lemma even_diff_iff [simp]:
+  "even (k - l) \<longleftrightarrow> even (k + l)" for k l :: int
+  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
+
+lemma even_abs_add_iff [simp]:
+  "even (\<bar>k\<bar> + l) \<longleftrightarrow> even (k + l)" for k l :: int
+  by (cases "k \<ge> 0") (simp_all add: ac_simps)
+
+lemma even_add_abs_iff [simp]:
+  "even (k + \<bar>l\<bar>) \<longleftrightarrow> even (k + l)" for k l :: int
+  using even_abs_add_iff [of l k] by (simp add: ac_simps)
+
+lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
+  by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
+
 end

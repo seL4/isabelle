@@ -326,12 +326,6 @@ lemma [code]:
   "m mod n = snd (divmod_nat m n)"
   by simp_all
 
-
-subsection \<open>Division on @{typ int}\<close>
-
-context
-begin
-
 inductive eucl_rel_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool"
   where eucl_rel_int_by0: "eucl_rel_int k 0 (0, k)"
   | eucl_rel_int_dividesI: "l \<noteq> 0 \<Longrightarrow> k = q * l \<Longrightarrow> eucl_rel_int k l (q, 0)"
@@ -377,31 +371,6 @@ apply (subgoal_tac "q = q'")
 apply (blast intro: unique_quotient)
 done
 
-end
-
-instantiation int :: "{idom_modulo, normalization_semidom}"
-begin
-
-definition normalize_int :: "int \<Rightarrow> int"
-  where [simp]: "normalize = (abs :: int \<Rightarrow> int)"
-
-definition unit_factor_int :: "int \<Rightarrow> int"
-  where [simp]: "unit_factor = (sgn :: int \<Rightarrow> int)"
-
-definition divide_int :: "int \<Rightarrow> int \<Rightarrow> int"
-  where "k div l = (if l = 0 \<or> k = 0 then 0
-    else if k > 0 \<and> l > 0 \<or> k < 0 \<and> l < 0
-      then int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)
-      else
-        if l dvd k then - int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)
-        else - int (Suc (nat \<bar>k\<bar> div nat \<bar>l\<bar>)))"
-
-definition modulo_int :: "int \<Rightarrow> int \<Rightarrow> int"
-  where "k mod l = (if l = 0 then k else if l dvd k then 0
-    else if k > 0 \<and> l > 0 \<or> k < 0 \<and> l < 0
-      then sgn l * int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)
-      else sgn l * (\<bar>l\<bar> - int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)))"
-
 lemma eucl_rel_int:
   "eucl_rel_int k l (k div l, k mod l)"
 proof (cases k rule: int_cases3)
@@ -433,42 +402,21 @@ lemma divmod_int_unique:
   using unique_quotient [of k l] unique_remainder [of k l]
   by auto
 
-instance proof
-  fix k l :: int
-  show "k div l * l + k mod l = k"
-    using eucl_rel_int [of k l]
-    unfolding eucl_rel_int_iff by (simp add: ac_simps)
-next
-  fix k :: int show "k div 0 = 0"
-    by (rule div_int_unique, simp add: eucl_rel_int_iff)
-next
-  fix k l :: int
-  assume "l \<noteq> 0"
-  then show "k * l div l = k"
-    by (auto simp add: eucl_rel_int_iff ac_simps intro: div_int_unique [of _ _ _ 0])
-qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
-
-end
-
-lemma is_unit_int:
-  "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
-  by auto
-
-lemma zdiv_int:
-  "int (a div b) = int a div int b"
-  by (simp add: divide_int_def)
-
-lemma zmod_int:
-  "int (a mod b) = int a mod int b"
-  by (simp add: modulo_int_def int_dvd_iff)
-
 lemma div_abs_eq_div_nat:
   "\<bar>k\<bar> div \<bar>l\<bar> = int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)"
   by (simp add: divide_int_def)
 
 lemma mod_abs_eq_div_nat:
   "\<bar>k\<bar> mod \<bar>l\<bar> = int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)"
-  by (simp add: modulo_int_def dvd_int_unfold_dvd_nat)
+  by (simp add: modulo_int_def)
+
+lemma zdiv_int:
+  "int (a div b) = int a div int b"
+  by (simp add: divide_int_def sgn_1_pos)
+
+lemma zmod_int:
+  "int (a mod b) = int a mod int b"
+  by (simp add: modulo_int_def sgn_1_pos)
 
 lemma div_sgn_abs_cancel:
   fixes k l v :: int
@@ -493,7 +441,7 @@ proof (cases "l = 0")
 next
   case False
   with assms have "(sgn k * \<bar>k\<bar>) div (sgn l * \<bar>l\<bar>) = \<bar>k\<bar> div \<bar>l\<bar>"
-    by (simp add: div_sgn_abs_cancel)
+    using div_sgn_abs_cancel [of l k l] by simp
   then show ?thesis
     by (simp add: sgn_mult_abs)
 qed
@@ -502,12 +450,14 @@ lemma div_dvd_sgn_abs:
   fixes k l :: int
   assumes "l dvd k"
   shows "k div l = (sgn k * sgn l) * (\<bar>k\<bar> div \<bar>l\<bar>)"
-proof (cases "k = 0")
+proof (cases "k = 0 \<or> l = 0")
   case True
   then show ?thesis
-    by simp
+    by auto
 next
   case False
+  then have "k \<noteq> 0" and "l \<noteq> 0"
+    by auto
   show ?thesis
   proof (cases "sgn l = sgn k")
     case True
@@ -515,9 +465,12 @@ next
       by (simp add: div_eq_sgn_abs)
   next
     case False
-    with \<open>k \<noteq> 0\<close> assms show ?thesis
+    with \<open>k \<noteq> 0\<close> \<open>l \<noteq> 0\<close>
+    have "sgn l * sgn k = - 1"
+      by (simp add: sgn_if split: if_splits)
+    with assms show ?thesis
       unfolding divide_int_def [of k l]
-        by (auto simp add: zdiv_int)
+      by (auto simp add: zdiv_int ac_simps)
   qed
 qed
 
@@ -529,59 +482,14 @@ lemma div_noneq_sgn_abs:
   using assms
   by (simp only: divide_int_def [of k l], auto simp add: not_less zdiv_int)
   
-lemma sgn_mod:
-  fixes k l :: int
-  assumes "l \<noteq> 0" "\<not> l dvd k"
-  shows "sgn (k mod l) = sgn l"
-proof -
-  from \<open>\<not> l dvd k\<close>
-  have "k mod l \<noteq> 0"
-    by (simp add: dvd_eq_mod_eq_0)
-  show ?thesis
-    using \<open>l \<noteq> 0\<close> \<open>\<not> l dvd k\<close>
-    unfolding modulo_int_def [of k l]
-    by (auto simp add: sgn_1_pos sgn_1_neg mod_greater_zero_iff_not_dvd nat_dvd_iff not_less
-      zless_nat_eq_int_zless [symmetric] elim: nonpos_int_cases)
-qed
-
-lemma abs_mod_less:
-  fixes k l :: int
-  assumes "l \<noteq> 0"
-  shows "\<bar>k mod l\<bar> < \<bar>l\<bar>"
-  using assms unfolding modulo_int_def [of k l]
-  by (auto simp add: not_less int_dvd_iff mod_greater_zero_iff_not_dvd elim: pos_int_cases neg_int_cases nonneg_int_cases nonpos_int_cases)
-
-instantiation int :: unique_euclidean_ring
-begin
-
-definition [simp]:
-  "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
-
-definition [simp]:
-  "uniqueness_constraint_int (k :: int) l \<longleftrightarrow> unit_factor k = unit_factor l"
-  
-instance proof
-  fix l q r:: int
-  assume "uniqueness_constraint r l"
-    and "euclidean_size r < euclidean_size l"
-  then have "sgn r = sgn l" and "\<bar>r\<bar> < \<bar>l\<bar>"
-    by simp_all
-  then have "eucl_rel_int (q * l + r) l (q, r)"
-    by (rule eucl_rel_int_remainderI) simp
-  then show "(q * l + r) div l = q"
-    by (rule div_int_unique)
-qed (use mult_le_mono2 [of 1] in \<open>auto simp add: abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
-
-end
-
 text\<open>Basic laws about division and remainder\<close>
 
 lemma pos_mod_conj: "(0::int) < b \<Longrightarrow> 0 \<le> a mod b \<and> a mod b < b"
   using eucl_rel_int [of a b]
   by (auto simp add: eucl_rel_int_iff prod_eq_iff)
 
-lemmas pos_mod_sign [simp] = pos_mod_conj [THEN conjunct1]
-   and pos_mod_bound [simp] = pos_mod_conj [THEN conjunct2]
+lemmas pos_mod_sign = pos_mod_conj [THEN conjunct1]
+   and pos_mod_bound = pos_mod_conj [THEN conjunct2]
 
 lemma neg_mod_conj: "b < (0::int) \<Longrightarrow> a mod b \<le> 0 \<and> b < a mod b"
   using eucl_rel_int [of a b]
@@ -631,39 +539,6 @@ done
 
 text\<open>There is no \<open>mod_neg_pos_trivial\<close>.\<close>
 
-instance int :: ring_parity
-proof
-  fix k l :: int
-  show "k mod 2 = 1" if "\<not> 2 dvd k"
-  proof (rule order_antisym)
-    have "0 \<le> k mod 2" and "k mod 2 < 2"
-      by auto
-    moreover have "k mod 2 \<noteq> 0"
-      using that by (simp add: dvd_eq_mod_eq_0)
-    ultimately have "0 < k mod 2"
-      by (simp only: less_le) simp
-    then show "1 \<le> k mod 2"
-      by simp
-    from \<open>k mod 2 < 2\<close> show "k mod 2 \<le> 1"
-      by (simp only: less_le) simp
-  qed
-qed (simp_all add: dvd_eq_mod_eq_0 divide_int_def)
-
-lemma even_diff_iff [simp]:
-  "even (k - l) \<longleftrightarrow> even (k + l)" for k l :: int
-  using dvd_add_times_triv_right_iff [of 2 "k - l" l] by (simp add: mult_2_right)
-
-lemma even_abs_add_iff [simp]:
-  "even (\<bar>k\<bar> + l) \<longleftrightarrow> even (k + l)" for k l :: int
-  by (cases "k \<ge> 0") (simp_all add: ac_simps)
-
-lemma even_add_abs_iff [simp]:
-  "even (k + \<bar>l\<bar>) \<longleftrightarrow> even (k + l)" for k l :: int
-  using even_abs_add_iff [of l k] by (simp add: ac_simps)
-
-lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
-  by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
-
 
 subsubsection \<open>Laws for div and mod with Unary Minus\<close>
 
@@ -697,14 +572,14 @@ lemma zmod_zminus2_not_zero:
   by (simp add: mod_eq_0_iff_dvd)
 
 lemma zdiv_zminus2_eq_if:
-     "b \<noteq> (0::int)
+  "b \<noteq> (0::int)
       ==> a div (-b) =
           (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
-by (simp add: zdiv_zminus1_eq_if div_minus_right)
+  by (auto simp add: zdiv_zminus1_eq_if div_minus_right)
 
 lemma zmod_zminus2_eq_if:
-     "a mod (-b::int) = (if a mod b = 0 then 0 else  (a mod b) - b)"
-by (simp add: zmod_zminus1_eq_if mod_minus_right)
+  "a mod (-b::int) = (if a mod b = 0 then 0 else  (a mod b) - b)"
+  by (auto simp add: zmod_zminus1_eq_if mod_minus_right)
 
 
 subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
@@ -1161,11 +1036,17 @@ qed
 
 lemma minus_numeral_mod_numeral [simp]:
   "- numeral m mod numeral n = adjust_mod (numeral n) (snd (divmod m n) :: int)"
-proof -
-  have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
-    using that by (simp only: snd_divmod modulo_int_def) auto
+proof (cases "snd (divmod m n) = (0::int)")
+  case True
   then show ?thesis
-    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def modulo_int_def)
+    by (simp add: mod_eq_0_iff_dvd divides_aux_def)
+next
+  case False
+  then have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
+    by (simp only: snd_divmod modulo_int_def) auto
+  then show ?thesis
+    by (simp add: divides_aux_def adjust_div_def)
+      (simp add: divides_aux_def modulo_int_def)
 qed
 
 lemma numeral_div_minus_numeral [simp]:
@@ -1179,11 +1060,17 @@ qed
   
 lemma numeral_mod_minus_numeral [simp]:
   "numeral m mod - numeral n = - adjust_mod (numeral n) (snd (divmod m n) :: int)"
-proof -
-  have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
-    using that by (simp only: snd_divmod modulo_int_def) auto
+proof (cases "snd (divmod m n) = (0::int)")
+  case True
   then show ?thesis
-    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def modulo_int_def)
+    by (simp add: mod_eq_0_iff_dvd divides_aux_def)
+next
+  case False
+  then have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
+    by (simp only: snd_divmod modulo_int_def) auto
+  then show ?thesis
+    by (simp add: divides_aux_def adjust_div_def)
+      (simp add: divides_aux_def modulo_int_def)
 qed
 
 lemma minus_one_div_numeral [simp]:
@@ -1460,6 +1347,10 @@ lemma mod_2_not_eq_zero_eq_one_nat:
 
 lemma even_int_iff [simp]: "even (int n) \<longleftrightarrow> even n"
   by (fact even_of_nat)
+
+lemma is_unit_int:
+  "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
+  by auto
 
 text \<open>Tool setup\<close>
 

@@ -118,6 +118,13 @@ lemma split_of_bool_asm: "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \
 end
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
+begin
+
+lemma (in semiring_1) of_bool_conj:
+  "of_bool (P \<and> Q) = of_bool P * of_bool Q"
+  by auto
+
+end
 
 text \<open>Abstract divisibility\<close>
 
@@ -2318,6 +2325,10 @@ proof -
   finally show ?thesis
     by (auto simp add: abs_mult)
 qed
+
+lemma sgn_not_eq_imp:
+  "sgn a = - sgn b" if "sgn b \<noteq> sgn a" and "sgn a \<noteq> 0" and "sgn b \<noteq> 0"
+  using that by (cases "a < 0") (auto simp add: sgn_0_0 sgn_1_pos sgn_1_neg)
 
 lemma abs_dvd_iff [simp]: "\<bar>m\<bar> dvd k \<longleftrightarrow> m dvd k"
   by (simp add: abs_if)

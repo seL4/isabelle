@@ -255,6 +255,10 @@ lemma of_int_neg_numeral [code_post]: "of_int (- numeral k) = - numeral k"
 lemma of_int_power [simp]: "of_int (z ^ n) = of_int z ^ n"
   by (induct n) simp_all
 
+lemma of_int_of_bool [simp]:
+  "of_int (of_bool P) = of_bool P"
+  by auto
+
 end
 
 context ring_char_0
@@ -548,6 +552,10 @@ lemma (in ring_1) of_nat_nat [simp]: "0 \<le> z \<Longrightarrow> of_nat (nat z)
 lemma diff_nat_numeral [simp]: "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
   by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
 
+lemma nat_of_bool [simp]:
+  "nat (of_bool P) = of_bool P"
+  by auto
+
 
 text \<open>For termination proofs:\<close>
 lemma measure_function_int[measure_function]: "is_measure (nat \<circ> abs)" ..
@@ -667,6 +675,31 @@ lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
 lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
   \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
   by (fact Let_neg_numeral) \<comment> \<open>FIXME drop\<close>
+
+lemma sgn_mult_dvd_iff [simp]:
+  "sgn r * l dvd k \<longleftrightarrow> l dvd k \<and> (r = 0 \<longrightarrow> k = 0)" for k l r :: int
+  by (cases r rule: int_cases3) auto
+
+lemma mult_sgn_dvd_iff [simp]:
+  "l * sgn r dvd k \<longleftrightarrow> l dvd k \<and> (r = 0 \<longrightarrow> k = 0)" for k l r :: int
+  using sgn_mult_dvd_iff [of r l k] by (simp add: ac_simps)
+
+lemma dvd_sgn_mult_iff [simp]:
+  "l dvd sgn r * k \<longleftrightarrow> l dvd k \<or> r = 0" for k l r :: int
+  by (cases r rule: int_cases3) simp_all
+
+lemma dvd_mult_sgn_iff [simp]:
+  "l dvd k * sgn r \<longleftrightarrow> l dvd k \<or> r = 0" for k l r :: int
+  using dvd_sgn_mult_iff [of l r k] by (simp add: ac_simps)
+
+lemma int_sgnE:
+  fixes k :: int
+  obtains n and l where "k = sgn l * int n"
+proof -
+  have "k = sgn k * int (nat \<bar>k\<bar>)"
+    by (simp add: sgn_mult_abs)
+  then show ?thesis ..
+qed
 
 text \<open>Unfold \<open>min\<close> and \<open>max\<close> on numerals.\<close>
 
@@ -1629,19 +1662,10 @@ lemma zdvd_period:
   shows "a dvd (x + t) \<longleftrightarrow> a dvd ((x + c * d) + t)"
     (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
-  from assms obtain k where "d = a * k" by (rule dvdE)
-  show ?thesis
-  proof
-    assume ?lhs
-    then obtain l where "x + t = a * l" by (rule dvdE)
-    then have "x = a * l - t" by simp
-    with \<open>d = a * k\<close> show ?rhs by simp
-  next
-    assume ?rhs
-    then obtain l where "x + c * d + t = a * l" by (rule dvdE)
-    then have "x = a * l - c * d - t" by simp
-    with \<open>d = a * k\<close> show ?lhs by simp
-  qed
+  from assms have "a dvd (x + t) \<longleftrightarrow> a dvd ((x + t) + c * d)"
+    by (simp add: dvd_add_left_iff)
+  then show ?thesis
+    by (simp add: ac_simps)
 qed
 
 
