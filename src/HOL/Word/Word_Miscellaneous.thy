@@ -248,9 +248,7 @@ lemma int_mod_eq: "0 \<le> b \<Longrightarrow> b < n \<Longrightarrow> a mod n =
 
 lemmas int_mod_eq' = mod_pos_pos_trivial (* FIXME delete *)
 
-lemma int_mod_le: "0 \<le> a \<Longrightarrow> a mod n \<le> a"
-  for a :: int
-  by (fact Divides.semiring_numeral_div_class.mod_less_eq_dividend) (* FIXME: delete *)
+lemmas int_mod_le = zmod_le_nonneg_dividend (* FIXME: delete *)
 
 lemma mod_add_if_z:
   "x < z \<Longrightarrow> y < z \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> z \<Longrightarrow>

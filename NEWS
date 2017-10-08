@@ -44,6 +44,9 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
     higher-order quantifiers. An 'smt_explicit_application' option has been
     added to control this. INCOMPATIBILITY.
 
+* Fact mod_mult_self4 (on nat) renamed to mod_mult_self3', to avoid clash
+with fact mod_mult_self4 (on more generic semirings). INCOMPATIBILITY.
+
 
 *** System ***
 

@@ -381,7 +381,7 @@ proof
       from that have *: "(fst x + (snd x - 1) * int p) mod int p = fst x"
         by force
       from that have "(fst x + (snd x - 1) * int p) div int p + 1 = snd x"
-        by (auto simp: semiring_numeral_div_class.div_less)
+        by (auto simp: div_pos_pos_trivial)
       with * show "f_3 (g_3 x) = x"
         by (simp add: f_3_def g_3_def)
     qed

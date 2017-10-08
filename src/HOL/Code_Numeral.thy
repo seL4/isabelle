@@ -446,11 +446,11 @@ definition divmod_integer :: "integer \<Rightarrow> integer \<Rightarrow> intege
 where
   "divmod_integer k l = (k div l, k mod l)"
 
-lemma fst_divmod [simp]:
+lemma fst_divmod_integer [simp]:
   "fst (divmod_integer k l) = k div l"
   by (simp add: divmod_integer_def)
 
-lemma snd_divmod [simp]:
+lemma snd_divmod_integer [simp]:
   "snd (divmod_integer k l) = k mod l"
   by (simp add: divmod_integer_def)
 

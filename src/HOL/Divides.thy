@@ -1627,12 +1627,8 @@ proof -
   from Suc_n_div_2_gt_zero [OF B] C show ?thesis by simp
 qed
 
-lemma mod_mult_self4 [simp]: "Suc (k*n + m) mod n = Suc m mod n"
-proof -
-  have "Suc (k * n + m) mod n = (k * n + Suc m) mod n" by simp
-  also have "... = Suc m mod n" by (rule mod_mult_self3)
-  finally show ?thesis .
-qed
+lemma mod_mult_self3' [simp]: "Suc (k * n + m) mod n = Suc m mod n"
+  using mod_mult_self3 [of k n "Suc m"] by simp
 
 lemma mod_Suc_eq_Suc_mod: "Suc m mod n = Suc (m mod n) mod n"
 apply (subst mod_Suc [of m])
@@ -2003,6 +1999,10 @@ lemma div_pos_neg_trivial: "[| (0::int) < a;  a+b \<le> 0 |] ==> a div b = -1"
 apply (rule div_int_unique)
 apply (auto simp add: eucl_rel_int_iff)
 done
+
+lemma div_positive_int:
+  "k div l > 0" if "k \<ge> l" and "l > 0" for k l :: int
+  using that by (simp add: divide_int_def div_positive)
 
 (*There is no div_neg_pos_trivial because  0 div b = 0 would supersede it*)
 
