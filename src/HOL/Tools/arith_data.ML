@@ -71,7 +71,7 @@ fun mk_sum T [] = mk_number T 0
 
 (*this version ALWAYS includes a trailing zero*)
 fun long_mk_sum T [] = mk_number T 0
-  | long_mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
+  | long_mk_sum T (t :: ts) = mk_plus (t, long_mk_sum T ts);
 
 (*decompose additions AND subtractions as a sum*)
 fun dest_summing (pos, Const (@{const_name Groups.plus}, _) $ t $ u, ts) =
