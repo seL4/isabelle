@@ -20,7 +20,7 @@ object ML_Syntax
 
   /* string */
 
-  private def print_chr(c: Byte): String =
+  private def print_byte(c: Byte): String =
     c match {
       case 34 => "\\\""
       case 92 => "\\\\"
@@ -35,15 +35,15 @@ object ML_Syntax
         else "\\" + Library.signed_string_of_int(c)
     }
 
-  def print_char(s: Symbol.Symbol): String =
+  private def print_symbol(s: Symbol.Symbol): String =
     if (s.startsWith("\\<")) s
-    else UTF8.bytes(s).iterator.map(print_chr(_)).mkString
+    else UTF8.bytes(s).iterator.map(print_byte(_)).mkString
 
-  def print_string(str: String): String =
-    quote(Symbol.iterator(str).map(print_char(_)).mkString)
+  def print_string_bytes(str: String): String =
+    quote(UTF8.bytes(str).iterator.map(print_byte(_)).mkString)
 
-  def print_string0(str: String): String =
-    quote(UTF8.bytes(str).iterator.map(print_chr(_)).mkString)
+  def print_string_symbols(str: String): String =
+    quote(Symbol.iterator(str).map(print_symbol(_)).mkString)
 
 
   /* pair */
