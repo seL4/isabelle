@@ -304,8 +304,8 @@ lemma pl_pl_mm: "a + b = c + d \<Longrightarrow> a - c = d - b"
 lemmas pl_pl_mm' = add.commute [THEN [2] trans, THEN pl_pl_mm]
 
 lemmas dme = div_mult_mod_eq
-lemmas dtle = xtr3 [OF dme [symmetric] le_add1]
-lemmas th2 = order_trans [OF order_refl [THEN [2] mult_le_mono] dtle]
+lemmas dtle = div_times_less_eq_dividend
+lemmas th2 = order_trans [OF order_refl [THEN [2] mult_le_mono] div_times_less_eq_dividend]
 
 lemma td_gal: "0 < c \<Longrightarrow> a \<ge> b * c \<longleftrightarrow> a div c \<ge> b"
   for a b c :: nat
@@ -316,15 +316,13 @@ lemma td_gal: "0 < c \<Longrightarrow> a \<ge> b * c \<longleftrightarrow> a div
 
 lemmas td_gal_lt = td_gal [simplified not_less [symmetric], simplified]
 
-lemma div_mult_le: "a div b * b \<le> a"
-  for a b :: nat
-  by (fact dtle)
+lemmas div_mult_le = div_times_less_eq_dividend 
 
-lemmas sdl = split_div_lemma [THEN iffD1, symmetric]
+lemmas sdl = div_nat_eqI
 
 lemma given_quot: "f > 0 \<Longrightarrow> (f * l + (f - 1)) div f = l"
   for f l :: nat
-  by (rule sdl, assumption) (simp (no_asm))
+  by (rule div_nat_eqI) (simp_all)
 
 lemma given_quot_alt: "f > 0 \<Longrightarrow> (l * f + f - Suc 0) div f = l"
   for f l :: nat

@@ -1169,7 +1169,7 @@ lemma rbtreeify_f_code [code]:
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
       else case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_f n' kvs'))"
-by (subst rbtreeify_f.simps) (simp only: Let_def divmod_nat_div_mod prod.case)
+by (subst rbtreeify_f.simps) (simp only: Let_def divmod_nat_def prod.case)
 
 lemma rbtreeify_g_code [code]:
   "rbtreeify_g n kvs =
@@ -1180,7 +1180,7 @@ lemma rbtreeify_g_code [code]:
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
       else case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs'))"
-by(subst rbtreeify_g.simps)(simp only: Let_def divmod_nat_div_mod prod.case)
+by(subst rbtreeify_g.simps)(simp only: Let_def divmod_nat_def prod.case)
 
 lemma Suc_double_half: "Suc (2 * n) div 2 = n"
 by simp

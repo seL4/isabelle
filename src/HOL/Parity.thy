@@ -101,6 +101,92 @@ lemma even_diff [simp]: "even (a - b) \<longleftrightarrow> even (a + b)"
 
 end
 
+class unique_euclidean_semiring_parity = unique_euclidean_semiring +
+  assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
+  assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
+  assumes zero_not_eq_two: "0 \<noteq> 2"
+begin
+
+lemma parity_cases [case_names even odd]:
+  assumes "a mod 2 = 0 \<Longrightarrow> P"
+  assumes "a mod 2 = 1 \<Longrightarrow> P"
+  shows P
+  using assms parity by blast
+
+lemma one_div_two_eq_zero [simp]:
+  "1 div 2 = 0"
+proof (cases "2 = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  from div_mult_mod_eq have "1 div 2 * 2 + 1 mod 2 = 1" .
+  with one_mod_two_eq_one have "1 div 2 * 2 + 1 = 1" by simp
+  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq del: mult_eq_0_iff)
+  then have "1 div 2 = 0 \<or> 2 = 0" by simp
+  with False show ?thesis by auto
+qed
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
+  by (cases a rule: parity_cases) simp_all
+
+lemma not_mod_2_eq_1_eq_0 [simp]:
+  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
+  by (cases a rule: parity_cases) simp_all
+
+subclass semiring_parity
+proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
+  show "1 mod 2 = 1"
+    by (fact one_mod_two_eq_one)
+next
+  fix a b
+  assume "a mod 2 = 1"
+  moreover assume "b mod 2 = 1"
+  ultimately show "(a + b) mod 2 = 0"
+    using mod_add_eq [of a 2 b] by simp
+next
+  fix a b
+  assume "(a * b) mod 2 = 0"
+  then have "(a mod 2) * (b mod 2) mod 2 = 0"
+    by (simp add: mod_mult_eq)
+  then have "(a mod 2) * (b mod 2) = 0"
+    by (cases "a mod 2 = 0") simp_all
+  then show "a mod 2 = 0 \<or> b mod 2 = 0"
+    by (rule divisors_zero)
+next
+  fix a
+  assume "a mod 2 = 1"
+  then have "a = a div 2 * 2 + 1"
+    using div_mult_mod_eq [of a 2] by simp
+  then show "\<exists>b. a = b + 1" ..
+qed
+
+lemma even_iff_mod_2_eq_zero:
+  "even a \<longleftrightarrow> a mod 2 = 0"
+  by (fact dvd_eq_mod_eq_0)
+
+lemma odd_iff_mod_2_eq_one:
+  "odd a \<longleftrightarrow> a mod 2 = 1"
+  by (simp add: even_iff_mod_2_eq_zero)
+
+lemma even_succ_div_two [simp]:
+  "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
+  by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
+
+lemma odd_succ_div_two [simp]:
+  "odd a \<Longrightarrow> (a + 1) div 2 = a div 2 + 1"
+  by (auto elim!: oddE simp add: zero_not_eq_two [symmetric] add.assoc)
+
+lemma even_two_times_div_two:
+  "even a \<Longrightarrow> 2 * (a div 2) = a"
+  by (fact dvd_mult_div_cancel)
+
+lemma odd_two_times_div_two_succ [simp]:
+  "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
+  using mult_div_mod_eq [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
+ 
+end
+
 
 subsection \<open>Instances for @{typ nat} and @{typ int}\<close>
 
@@ -189,9 +275,6 @@ lemma even_abs_add_iff [simp]: "2 dvd (\<bar>k\<bar> + l) \<longleftrightarrow> 
 lemma even_add_abs_iff [simp]: "2 dvd (k + \<bar>l\<bar>) \<longleftrightarrow> 2 dvd (k + l)"
   for k l :: int
   using even_abs_add_iff [of l k] by (simp add: ac_simps)
-
-lemma odd_Suc_minus_one [simp]: "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
-  by (auto elim: oddE)
 
 instance int :: ring_parity
 proof

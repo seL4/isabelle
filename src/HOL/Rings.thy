@@ -1620,6 +1620,10 @@ lemma dvd_mod_imp_dvd:
   shows "c dvd a"
   using assms dvd_mod_iff [of c b a] by simp
 
+lemma dvd_minus_mod [simp]:
+  "b dvd a - a mod b"
+  by (simp add: minus_mod_eq_div_mult)
+
 end
 
 class idom_modulo = idom + semidom_modulo

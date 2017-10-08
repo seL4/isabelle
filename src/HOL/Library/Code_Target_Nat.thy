@@ -95,7 +95,7 @@ lemma [code abstract]:
 
 lemma [code]:
   "Divides.divmod_nat m n = (m div n, m mod n)"
-  by (fact divmod_nat_div_mod)
+  by (fact divmod_nat_def)
 
 lemma [code]:
   "divmod m n = map_prod nat_of_integer nat_of_integer (divmod m n)"
@@ -130,7 +130,7 @@ lemma (in semiring_1) of_nat_code_if:
 proof -
   from div_mult_mod_eq have *: "of_nat n = of_nat (n div 2 * 2 + n mod 2)" by simp
   show ?thesis
-    by (simp add: Let_def divmod_nat_div_mod of_nat_add [symmetric])
+    by (simp add: Let_def divmod_nat_def of_nat_add [symmetric])
       (simp add: * mult.commute of_nat_mult add.commute)
 qed
 

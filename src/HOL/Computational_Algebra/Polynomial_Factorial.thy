@@ -15,7 +15,7 @@ subsection \<open>Lifting elements into the field of fractions\<close>
 
 definition to_fract :: "'a :: idom \<Rightarrow> 'a fract"
   where "to_fract x = Fract x 1"
-  \<comment> \<open>FIXME: name \<open>of_idom\<close>, abbreviation\<close>
+  \<comment> \<open>FIXME: more idiomatic name, abbreviation\<close>
 
 lemma to_fract_0 [simp]: "to_fract 0 = 0"
   by (simp add: to_fract_def eq_fract Zero_fract_def)
@@ -438,8 +438,8 @@ proof -
     by (simp add: irreducible_dict)
   show "comm_semiring_1.prime_elem times 1 0 = prime_elem"
     by (simp add: prime_elem_dict)
-  show "class.unique_euclidean_ring divide plus minus (0 :: 'a poly) times 1 modulo
-    (\<lambda>p. [:lead_coeff p:]) (\<lambda>p. smult (inverse (lead_coeff p)) p)
+  show "class.unique_euclidean_ring divide plus minus (0 :: 'a poly) times 1
+    (\<lambda>p. [:lead_coeff p:]) (\<lambda>p. smult (inverse (lead_coeff p)) p) modulo
     (\<lambda>p. if p = 0 then 0 else 2 ^ degree p) uminus top"
   proof (standard, fold dvd_dict)
     fix p :: "'a poly"

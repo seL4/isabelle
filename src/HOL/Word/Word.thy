@@ -2024,7 +2024,7 @@ lemmas word_plus_mcs = word_diff_ls [where y = "v + x", unfolded add_diff_cancel
 
 lemmas le_unat_uoi = unat_le [THEN word_unat.Abs_inverse]
 
-lemmas thd = refl [THEN [2] split_div_lemma [THEN iffD2], THEN conjunct1]
+lemmas thd = times_div_less_eq_dividend
 
 lemmas uno_simps [THEN le_unat_uoi] = mod_le_divisor div_le_dividend dtle
 
@@ -3724,7 +3724,7 @@ lemma length_word_rsplit_even_size:
 lemmas length_word_rsplit_exp_size' = refl [THEN length_word_rsplit_exp_size]
 
 (* alternative proof of word_rcat_rsplit *)
-lemmas tdle = iffD2 [OF split_div_lemma refl, THEN conjunct1]
+lemmas tdle = times_div_less_eq_dividend
 lemmas dtle = xtr4 [OF tdle mult.commute]
 
 lemma word_rcat_rsplit: "word_rcat (word_rsplit w) = w"
@@ -3734,7 +3734,7 @@ lemma word_rcat_rsplit: "word_rcat (word_rsplit w) = w"
     apply (simp_all add: word_size
       refl [THEN length_word_rsplit_size [simplified not_less [symmetric], simplified]])
    apply safe
-   apply (erule xtr7, rule len_gt_0 [THEN dtle])+
+   apply (erule xtr7, rule dtle)+
   done
 
 lemma size_word_rsplit_rcat_size:

@@ -9,95 +9,6 @@ theory Divides
 imports Parity
 begin
 
-subsection \<open>Parity\<close>
-
-class unique_euclidean_semiring_parity = unique_euclidean_semiring +
-  assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
-  assumes one_mod_two_eq_one [simp]: "1 mod 2 = 1"
-  assumes zero_not_eq_two: "0 \<noteq> 2"
-begin
-
-lemma parity_cases [case_names even odd]:
-  assumes "a mod 2 = 0 \<Longrightarrow> P"
-  assumes "a mod 2 = 1 \<Longrightarrow> P"
-  shows P
-  using assms parity by blast
-
-lemma one_div_two_eq_zero [simp]:
-  "1 div 2 = 0"
-proof (cases "2 = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  from div_mult_mod_eq have "1 div 2 * 2 + 1 mod 2 = 1" .
-  with one_mod_two_eq_one have "1 div 2 * 2 + 1 = 1" by simp
-  then have "1 div 2 * 2 = 0" by (simp add: ac_simps add_left_imp_eq del: mult_eq_0_iff)
-  then have "1 div 2 = 0 \<or> 2 = 0" by simp
-  with False show ?thesis by auto
-qed
-
-lemma not_mod_2_eq_0_eq_1 [simp]:
-  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
-  by (cases a rule: parity_cases) simp_all
-
-lemma not_mod_2_eq_1_eq_0 [simp]:
-  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
-  by (cases a rule: parity_cases) simp_all
-
-subclass semiring_parity
-proof (unfold_locales, unfold dvd_eq_mod_eq_0 not_mod_2_eq_0_eq_1)
-  show "1 mod 2 = 1"
-    by (fact one_mod_two_eq_one)
-next
-  fix a b
-  assume "a mod 2 = 1"
-  moreover assume "b mod 2 = 1"
-  ultimately show "(a + b) mod 2 = 0"
-    using mod_add_eq [of a 2 b] by simp
-next
-  fix a b
-  assume "(a * b) mod 2 = 0"
-  then have "(a mod 2) * (b mod 2) mod 2 = 0"
-    by (simp add: mod_mult_eq)
-  then have "(a mod 2) * (b mod 2) = 0"
-    by (cases "a mod 2 = 0") simp_all
-  then show "a mod 2 = 0 \<or> b mod 2 = 0"
-    by (rule divisors_zero)
-next
-  fix a
-  assume "a mod 2 = 1"
-  then have "a = a div 2 * 2 + 1"
-    using div_mult_mod_eq [of a 2] by simp
-  then show "\<exists>b. a = b + 1" ..
-qed
-
-lemma even_iff_mod_2_eq_zero:
-  "even a \<longleftrightarrow> a mod 2 = 0"
-  by (fact dvd_eq_mod_eq_0)
-
-lemma odd_iff_mod_2_eq_one:
-  "odd a \<longleftrightarrow> a mod 2 = 1"
-  by (simp add: even_iff_mod_2_eq_zero)
-
-lemma even_succ_div_two [simp]:
-  "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
-  by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
-
-lemma odd_succ_div_two [simp]:
-  "odd a \<Longrightarrow> (a + 1) div 2 = a div 2 + 1"
-  by (auto elim!: oddE simp add: zero_not_eq_two [symmetric] add.assoc)
-
-lemma even_two_times_div_two:
-  "even a \<Longrightarrow> 2 * (a div 2) = a"
-  by (fact dvd_mult_div_cancel)
-
-lemma odd_two_times_div_two_succ [simp]:
-  "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
-  using mult_div_mod_eq [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
- 
-end
-
-
 subsection \<open>Numeral division with a pragmatic type class\<close>
 
 text \<open>
@@ -382,444 +293,10 @@ lemma cong_exp_iff_simps:
 
 end
 
+hide_fact (open) div_less mod_less mod_less_eq_dividend mod_mult2_eq div_mult2_eq
+
 
 subsection \<open>Division on @{typ nat}\<close>
-
-context
-begin
-
-text \<open>
-  We define @{const divide} and @{const modulo} on @{typ nat} by means
-  of a characteristic relation with two input arguments
-  @{term "m::nat"}, @{term "n::nat"} and two output arguments
-  @{term "q::nat"}(uotient) and @{term "r::nat"}(emainder).
-\<close>
-
-inductive eucl_rel_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat \<Rightarrow> bool"
-  where eucl_rel_nat_by0: "eucl_rel_nat m 0 (0, m)"
-  | eucl_rel_natI: "r < n \<Longrightarrow> m = q * n + r \<Longrightarrow> eucl_rel_nat m n (q, r)"
-
-text \<open>@{const eucl_rel_nat} is total:\<close>
-
-qualified lemma eucl_rel_nat_ex:
-  obtains q r where "eucl_rel_nat m n (q, r)"
-proof (cases "n = 0")
-  case True
-  with that eucl_rel_nat_by0 show thesis
-    by blast
-next
-  case False
-  have "\<exists>q r. m = q * n + r \<and> r < n"
-  proof (induct m)
-    case 0 with \<open>n \<noteq> 0\<close>
-    have "(0::nat) = 0 * n + 0 \<and> 0 < n" by simp
-    then show ?case by blast
-  next
-    case (Suc m) then obtain q' r'
-      where m: "m = q' * n + r'" and n: "r' < n" by auto
-    then show ?case proof (cases "Suc r' < n")
-      case True
-      from m n have "Suc m = q' * n + Suc r'" by simp
-      with True show ?thesis by blast
-    next
-      case False then have "n \<le> Suc r'"
-        by (simp add: not_less)
-      moreover from n have "Suc r' \<le> n"
-        by (simp add: Suc_le_eq)
-      ultimately have "n = Suc r'" by auto
-      with m have "Suc m = Suc q' * n + 0" by simp
-      with \<open>n \<noteq> 0\<close> show ?thesis by blast
-    qed
-  qed
-  with that \<open>n \<noteq> 0\<close> eucl_rel_natI show thesis
-    by blast
-qed
-
-text \<open>@{const eucl_rel_nat} is injective:\<close>
-
-qualified lemma eucl_rel_nat_unique_div:
-  assumes "eucl_rel_nat m n (q, r)"
-    and "eucl_rel_nat m n (q', r')"
-  shows "q = q'"
-proof (cases "n = 0")
-  case True with assms show ?thesis
-    by (auto elim: eucl_rel_nat.cases)
-next
-  case False
-  have *: "q' \<le> q" if "q' * n + r' = q * n + r" "r < n" for q r q' r' :: nat
-  proof (rule ccontr)
-    assume "\<not> q' \<le> q"
-    then have "q < q'"
-      by (simp add: not_le)
-    with that show False
-      by (auto simp add: less_iff_Suc_add algebra_simps)
-  qed
-  from \<open>n \<noteq> 0\<close> assms show ?thesis
-    by (auto intro: order_antisym elim: eucl_rel_nat.cases dest: * sym split: if_splits)
-qed
-
-qualified lemma eucl_rel_nat_unique_mod:
-  assumes "eucl_rel_nat m n (q, r)"
-    and "eucl_rel_nat m n (q', r')"
-  shows "r = r'"
-proof -
-  from assms have "q' = q"
-    by (auto intro: eucl_rel_nat_unique_div)
-  with assms show ?thesis
-    by (auto elim!: eucl_rel_nat.cases)
-qed
-
-text \<open>
-  We instantiate divisibility on the natural numbers by
-  means of @{const eucl_rel_nat}:
-\<close>
-
-qualified definition divmod_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  "divmod_nat m n = (THE qr. eucl_rel_nat m n qr)"
-
-qualified lemma eucl_rel_nat_divmod_nat:
-  "eucl_rel_nat m n (divmod_nat m n)"
-proof -
-  from eucl_rel_nat_ex
-    obtain q r where rel: "eucl_rel_nat m n (q, r)" .
-  then show ?thesis
-    by (auto simp add: divmod_nat_def intro: theI
-      elim: eucl_rel_nat_unique_div eucl_rel_nat_unique_mod)
-qed
-
-qualified lemma divmod_nat_unique:
-  "divmod_nat m n = (q, r)" if "eucl_rel_nat m n (q, r)"
-  using that
-  by (auto simp add: divmod_nat_def intro: eucl_rel_nat_divmod_nat elim: eucl_rel_nat_unique_div eucl_rel_nat_unique_mod)
-
-qualified lemma divmod_nat_zero:
-  "divmod_nat m 0 = (0, m)"
-  by (rule divmod_nat_unique) (fact eucl_rel_nat_by0)
-
-qualified lemma divmod_nat_zero_left:
-  "divmod_nat 0 n = (0, 0)"
-  by (rule divmod_nat_unique) 
-    (cases n, auto intro: eucl_rel_nat_by0 eucl_rel_natI)
-
-qualified lemma divmod_nat_base:
-  "m < n \<Longrightarrow> divmod_nat m n = (0, m)"
-  by (rule divmod_nat_unique) 
-    (cases n, auto intro: eucl_rel_nat_by0 eucl_rel_natI)
-
-qualified lemma divmod_nat_step:
-  assumes "0 < n" and "n \<le> m"
-  shows "divmod_nat m n =
-    (Suc (fst (divmod_nat (m - n) n)), snd (divmod_nat (m - n) n))"
-proof (rule divmod_nat_unique)
-  have "eucl_rel_nat (m - n) n (divmod_nat (m - n) n)"
-    by (fact eucl_rel_nat_divmod_nat)
-  then show "eucl_rel_nat m n (Suc
-    (fst (divmod_nat (m - n) n)), snd (divmod_nat (m - n) n))"
-    using assms
-      by (auto split: if_splits intro: eucl_rel_natI elim!: eucl_rel_nat.cases simp add: algebra_simps)
-qed
-
-end
-
-instantiation nat :: "{semidom_modulo, normalization_semidom}"
-begin
-
-definition normalize_nat :: "nat \<Rightarrow> nat"
-  where [simp]: "normalize = (id :: nat \<Rightarrow> nat)"
-
-definition unit_factor_nat :: "nat \<Rightarrow> nat"
-  where "unit_factor n = (if n = 0 then 0 else 1 :: nat)"
-
-lemma unit_factor_simps [simp]:
-  "unit_factor 0 = (0::nat)"
-  "unit_factor (Suc n) = 1"
-  by (simp_all add: unit_factor_nat_def)
-
-definition divide_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  where div_nat_def: "m div n = fst (Divides.divmod_nat m n)"
-
-definition modulo_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  where mod_nat_def: "m mod n = snd (Divides.divmod_nat m n)"
-
-lemma fst_divmod_nat [simp]:
-  "fst (Divides.divmod_nat m n) = m div n"
-  by (simp add: div_nat_def)
-
-lemma snd_divmod_nat [simp]:
-  "snd (Divides.divmod_nat m n) = m mod n"
-  by (simp add: mod_nat_def)
-
-lemma divmod_nat_div_mod:
-  "Divides.divmod_nat m n = (m div n, m mod n)"
-  by (simp add: prod_eq_iff)
-
-lemma div_nat_unique:
-  assumes "eucl_rel_nat m n (q, r)"
-  shows "m div n = q"
-  using assms
-  by (auto dest!: Divides.divmod_nat_unique simp add: prod_eq_iff)
-
-lemma mod_nat_unique:
-  assumes "eucl_rel_nat m n (q, r)"
-  shows "m mod n = r"
-  using assms
-  by (auto dest!: Divides.divmod_nat_unique simp add: prod_eq_iff)
-
-lemma eucl_rel_nat: "eucl_rel_nat m n (m div n, m mod n)"
-  using Divides.eucl_rel_nat_divmod_nat
-  by (simp add: divmod_nat_div_mod)
-
-text \<open>The ''recursion'' equations for @{const divide} and @{const modulo}\<close>
-
-lemma div_less [simp]:
-  fixes m n :: nat
-  assumes "m < n"
-  shows "m div n = 0"
-  using assms Divides.divmod_nat_base by (simp add: prod_eq_iff)
-
-lemma le_div_geq:
-  fixes m n :: nat
-  assumes "0 < n" and "n \<le> m"
-  shows "m div n = Suc ((m - n) div n)"
-  using assms Divides.divmod_nat_step by (simp add: prod_eq_iff)
-
-lemma mod_less [simp]:
-  fixes m n :: nat
-  assumes "m < n"
-  shows "m mod n = m"
-  using assms Divides.divmod_nat_base by (simp add: prod_eq_iff)
-
-lemma le_mod_geq:
-  fixes m n :: nat
-  assumes "n \<le> m"
-  shows "m mod n = (m - n) mod n"
-  using assms Divides.divmod_nat_step by (cases "n = 0") (simp_all add: prod_eq_iff)
-
-lemma mod_less_divisor [simp]:
-  fixes m n :: nat
-  assumes "n > 0"
-  shows "m mod n < n"
-  using assms eucl_rel_nat [of m n]
-    by (auto elim: eucl_rel_nat.cases)
-
-lemma mod_le_divisor [simp]:
-  fixes m n :: nat
-  assumes "n > 0"
-  shows "m mod n \<le> n"
-  using assms eucl_rel_nat [of m n]
-    by (auto elim: eucl_rel_nat.cases)
-
-instance proof
-  fix m n :: nat
-  show "m div n * n + m mod n = m"
-    using eucl_rel_nat [of m n]
-    by (auto elim: eucl_rel_nat.cases)
-next
-  fix n :: nat show "n div 0 = 0"
-    by (simp add: div_nat_def Divides.divmod_nat_zero)
-next
-  fix m n :: nat
-  assume "n \<noteq> 0"
-  then show "m * n div n = m"
-    by (auto intro!: eucl_rel_natI div_nat_unique [of _ _ _ 0])
-qed (simp_all add: unit_factor_nat_def)
-
-end
-
-text \<open>Simproc for cancelling @{const divide} and @{const modulo}\<close>
-
-lemma (in semiring_modulo) cancel_div_mod_rules:
-  "((a div b) * b + a mod b) + c = a + c"
-  "(b * (a div b) + a mod b) + c = a + c"
-  by (simp_all add: div_mult_mod_eq mult_div_mod_eq)
-
-ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
-
-ML \<open>
-structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
-(
-  val div_name = @{const_name divide};
-  val mod_name = @{const_name modulo};
-  val mk_binop = HOLogic.mk_binop;
-  val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
-  val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
-  fun mk_sum [] = HOLogic.zero
-    | mk_sum [t] = t
-    | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
-  fun dest_sum tm =
-    if HOLogic.is_zero tm then []
-    else
-      (case try HOLogic.dest_Suc tm of
-        SOME t => HOLogic.Suc_zero :: dest_sum t
-      | NONE =>
-          (case try dest_plus tm of
-            SOME (t, u) => dest_sum t @ dest_sum u
-          | NONE => [tm]));
-
-  val div_mod_eqs = map mk_meta_eq @{thms cancel_div_mod_rules};
-
-  val prove_eq_sums = Arith_Data.prove_conv2 all_tac
-    (Arith_Data.simp_all_tac @{thms add_0_left add_0_right ac_simps})
-)
-\<close>
-
-simproc_setup cancel_div_mod_nat ("(m::nat) + n") =
-  \<open>K Cancel_Div_Mod_Nat.proc\<close>
-
-lemma div_by_Suc_0 [simp]:
-  "m div Suc 0 = m"
-  using div_by_1 [of m] by simp
-
-lemma mod_by_Suc_0 [simp]:
-  "m mod Suc 0 = 0"
-  using mod_by_1 [of m] by simp
-
-lemma mod_greater_zero_iff_not_dvd:
-  fixes m n :: nat
-  shows "m mod n > 0 \<longleftrightarrow> \<not> n dvd m"
-  by (simp add: dvd_eq_mod_eq_0)
-
-instantiation nat :: unique_euclidean_semiring
-begin
-
-definition [simp]:
-  "euclidean_size_nat = (id :: nat \<Rightarrow> nat)"
-
-definition [simp]:
-  "uniqueness_constraint_nat = (top :: nat \<Rightarrow> nat \<Rightarrow> bool)"
-
-instance proof
-  fix n q r :: nat
-  assume "euclidean_size r < euclidean_size n"
-  then have "n > r"
-    by simp_all
-  then have "eucl_rel_nat (q * n + r) n (q, r)"
-    by (rule eucl_rel_natI) rule
-  then show "(q * n + r) div n = q"
-    by (rule div_nat_unique)
-qed (use mult_le_mono2 [of 1] in \<open>simp_all\<close>)
-
-end
-  
-lemma divmod_nat_if [code]:
-  "Divides.divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
-    let (q, r) = Divides.divmod_nat (m - n) n in (Suc q, r))"
-  by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
-
-lemma mod_Suc_eq [mod_simps]:
-  "Suc (m mod n) mod n = Suc m mod n"
-proof -
-  have "(m mod n + 1) mod n = (m + 1) mod n"
-    by (simp only: mod_simps)
-  then show ?thesis
-    by simp
-qed
-
-lemma mod_Suc_Suc_eq [mod_simps]:
-  "Suc (Suc (m mod n)) mod n = Suc (Suc m) mod n"
-proof -
-  have "(m mod n + 2) mod n = (m + 2) mod n"
-    by (simp only: mod_simps)
-  then show ?thesis
-    by simp
-qed
-
-
-subsubsection \<open>Quotient\<close>
-
-lemma div_geq: "0 < n \<Longrightarrow>  \<not> m < n \<Longrightarrow> m div n = Suc ((m - n) div n)"
-by (simp add: le_div_geq linorder_not_less)
-
-lemma div_if: "0 < n \<Longrightarrow> m div n = (if m < n then 0 else Suc ((m - n) div n))"
-by (simp add: div_geq)
-
-lemma div_mult_self_is_m [simp]: "0<n ==> (m*n) div n = (m::nat)"
-by simp
-
-lemma div_mult_self1_is_m [simp]: "0<n ==> (n*m) div n = (m::nat)"
-by simp
-
-lemma div_positive:
-  fixes m n :: nat
-  assumes "n > 0"
-  assumes "m \<ge> n"
-  shows "m div n > 0"
-proof -
-  from \<open>m \<ge> n\<close> obtain q where "m = n + q"
-    by (auto simp add: le_iff_add)
-  with \<open>n > 0\<close> show ?thesis by (simp add: div_add_self1)
-qed
-
-lemma div_eq_0_iff: "(a div b::nat) = 0 \<longleftrightarrow> a < b \<or> b = 0"
-  by auto (metis div_positive less_numeral_extra(3) not_less)
-
-
-subsubsection \<open>Remainder\<close>
-
-lemma mod_Suc_le_divisor [simp]:
-  "m mod Suc n \<le> n"
-  using mod_less_divisor [of "Suc n" m] by arith
-
-lemma mod_less_eq_dividend [simp]:
-  fixes m n :: nat
-  shows "m mod n \<le> m"
-proof (rule add_leD2)
-  from div_mult_mod_eq have "m div n * n + m mod n = m" .
-  then show "m div n * n + m mod n \<le> m" by auto
-qed
-
-lemma mod_geq: "\<not> m < (n::nat) \<Longrightarrow> m mod n = (m - n) mod n"
-by (simp add: le_mod_geq linorder_not_less)
-
-lemma mod_if: "m mod (n::nat) = (if m < n then m else (m - n) mod n)"
-by (simp add: le_mod_geq)
-
-
-subsubsection \<open>Quotient and Remainder\<close>
-
-lemma div_mult1_eq:
-  "(a * b) div c = a * (b div c) + a * (b mod c) div (c::nat)"
-  by (cases "c = 0")
-     (auto simp add: algebra_simps distrib_left [symmetric]
-     intro!: div_nat_unique [of _ _ _ "(a * (b mod c)) mod c"] eucl_rel_natI)
-
-lemma eucl_rel_nat_add1_eq:
-  "eucl_rel_nat a c (aq, ar) \<Longrightarrow> eucl_rel_nat b c (bq, br)
-   \<Longrightarrow> eucl_rel_nat (a + b) c (aq + bq + (ar + br) div c, (ar + br) mod c)"
-  by (auto simp add: split_ifs algebra_simps elim!: eucl_rel_nat.cases intro: eucl_rel_nat_by0 eucl_rel_natI)
-
-(*NOT suitable for rewriting: the RHS has an instance of the LHS*)
-lemma div_add1_eq:
-  "(a + b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)"
-by (blast intro: eucl_rel_nat_add1_eq [THEN div_nat_unique] eucl_rel_nat)
-
-lemma eucl_rel_nat_mult2_eq:
-  assumes "eucl_rel_nat a b (q, r)"
-  shows "eucl_rel_nat a (b * c) (q div c, b *(q mod c) + r)"
-proof (cases "c = 0")
-  case True
-  with assms show ?thesis
-    by (auto intro: eucl_rel_nat_by0 elim!: eucl_rel_nat.cases simp add: ac_simps)
-next
-  case False
-  { assume "r < b"
-    with False have "b * (q mod c) + r < b * c"
-      apply (cut_tac m = q and n = c in mod_less_divisor)
-      apply (drule_tac [2] m = "q mod c" in less_imp_Suc_add, auto)
-      apply (erule_tac P = "%x. lhs < rhs x" for lhs rhs in ssubst)
-      apply (simp add: add_mult_distrib2)
-      done
-    then have "r + b * (q mod c) < b * c"
-      by (simp add: ac_simps)
-  } with assms False show ?thesis
-    by (auto simp add: algebra_simps add_mult_distrib2 [symmetric] elim!: eucl_rel_nat.cases intro: eucl_rel_nat.intros)
-qed
-
-lemma div_mult2_eq: "a div (b * c) = (a div b) div (c::nat)"
-by (force simp add: eucl_rel_nat [THEN eucl_rel_nat_mult2_eq, THEN div_nat_unique])
-
-lemma mod_mult2_eq: "a mod (b * c) = b * (a div b mod c) + a mod (b::nat)"
-by (auto simp add: mult.commute eucl_rel_nat [THEN eucl_rel_nat_mult2_eq, THEN mod_nat_unique])
 
 instantiation nat :: unique_euclidean_semiring_numeral
 begin
@@ -834,370 +311,15 @@ where
     in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
     else (2 * q, r))"
 
-instance
-  by standard (auto intro: div_positive simp add: divmod'_nat_def divmod_step_nat_def mod_mult2_eq div_mult2_eq)
+instance by standard
+  (auto simp add: divmod'_nat_def divmod_step_nat_def div_greater_zero_iff div_mult2_eq mod_mult2_eq)
 
 end
 
 declare divmod_algorithm_code [where ?'a = nat, code]
-  
 
-subsubsection \<open>Further Facts about Quotient and Remainder\<close>
-
-lemma div_le_mono:
-  fixes m n k :: nat
-  assumes "m \<le> n"
-  shows "m div k \<le> n div k"
-proof -
-  from assms obtain q where "n = m + q"
-    by (auto simp add: le_iff_add)
-  then show ?thesis
-    by (simp add: div_add1_eq [of m q k])
-qed
-
-(* Antimonotonicity of div in second argument *)
-lemma div_le_mono2: "!!m::nat. [| 0<m; m\<le>n |] ==> (k div n) \<le> (k div m)"
-apply (subgoal_tac "0<n")
- prefer 2 apply simp
-apply (induct_tac k rule: nat_less_induct)
-apply (rename_tac "k")
-apply (case_tac "k<n", simp)
-apply (subgoal_tac "~ (k<m) ")
- prefer 2 apply simp
-apply (simp add: div_geq)
-apply (subgoal_tac "(k-n) div n \<le> (k-m) div n")
- prefer 2
- apply (blast intro: div_le_mono diff_le_mono2)
-apply (rule le_trans, simp)
-apply (simp)
-done
-
-lemma div_le_dividend [simp]: "m div n \<le> (m::nat)"
-apply (case_tac "n=0", simp)
-apply (subgoal_tac "m div n \<le> m div 1", simp)
-apply (rule div_le_mono2)
-apply (simp_all (no_asm_simp))
-done
-
-(* Similar for "less than" *)
-lemma div_less_dividend [simp]:
-  "\<lbrakk>(1::nat) < n; 0 < m\<rbrakk> \<Longrightarrow> m div n < m"
-apply (induct m rule: nat_less_induct)
-apply (rename_tac "m")
-apply (case_tac "m<n", simp)
-apply (subgoal_tac "0<n")
- prefer 2 apply simp
-apply (simp add: div_geq)
-apply (case_tac "n<m")
- apply (subgoal_tac "(m-n) div n < (m-n) ")
-  apply (rule impI less_trans_Suc)+
-apply assumption
-  apply (simp_all)
-done
-
-text\<open>A fact for the mutilated chess board\<close>
-lemma mod_Suc: "Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))"
-apply (case_tac "n=0", simp)
-apply (induct "m" rule: nat_less_induct)
-apply (case_tac "Suc (na) <n")
-(* case Suc(na) < n *)
-apply (frule lessI [THEN less_trans], simp add: less_not_refl3)
-(* case n \<le> Suc(na) *)
-apply (simp add: linorder_not_less le_Suc_eq mod_geq)
-apply (auto simp add: Suc_diff_le le_mod_geq)
-done
-
-lemma mod_eq_0_iff: "(m mod d = 0) = (\<exists>q::nat. m = d*q)"
-by (auto simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
-
-lemmas mod_eq_0D [dest!] = mod_eq_0_iff [THEN iffD1]
-
-(*Loses information, namely we also have r<d provided d is nonzero*)
-lemma mod_eqD:
-  fixes m d r q :: nat
-  assumes "m mod d = r"
-  shows "\<exists>q. m = r + q * d"
-proof -
-  from div_mult_mod_eq obtain q where "q * d + m mod d = m" by blast
-  with assms have "m = r + q * d" by simp
-  then show ?thesis ..
-qed
-
-lemma split_div:
- "P(n div k :: nat) =
- ((k = 0 \<longrightarrow> P 0) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P i)))"
- (is "?P = ?Q" is "_ = (_ \<and> (_ \<longrightarrow> ?R))")
-proof
-  assume P: ?P
-  show ?Q
-  proof (cases)
-    assume "k = 0"
-    with P show ?Q by simp
-  next
-    assume not0: "k \<noteq> 0"
-    thus ?Q
-    proof (simp, intro allI impI)
-      fix i j
-      assume n: "n = k*i + j" and j: "j < k"
-      show "P i"
-      proof (cases)
-        assume "i = 0"
-        with n j P show "P i" by simp
-      next
-        assume "i \<noteq> 0"
-        with not0 n j P show "P i" by(simp add:ac_simps)
-      qed
-    qed
-  qed
-next
-  assume Q: ?Q
-  show ?P
-  proof (cases)
-    assume "k = 0"
-    with Q show ?P by simp
-  next
-    assume not0: "k \<noteq> 0"
-    with Q have R: ?R by simp
-    from not0 R[THEN spec,of "n div k",THEN spec, of "n mod k"]
-    show ?P by simp
-  qed
-qed
-
-lemma split_div_lemma:
-  assumes "0 < n"
-  shows "n * q \<le> m \<and> m < n * Suc q \<longleftrightarrow> q = ((m::nat) div n)" (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?rhs
-  with minus_mod_eq_mult_div [symmetric] have nq: "n * q = m - (m mod n)" by simp
-  then have A: "n * q \<le> m" by simp
-  have "n - (m mod n) > 0" using mod_less_divisor assms by auto
-  then have "m < m + (n - (m mod n))" by simp
-  then have "m < n + (m - (m mod n))" by simp
-  with nq have "m < n + n * q" by simp
-  then have B: "m < n * Suc q" by simp
-  from A B show ?lhs ..
-next
-  assume P: ?lhs
-  then have "eucl_rel_nat m n (q, m - n * q)"
-    by (auto intro: eucl_rel_natI simp add: ac_simps)
-  then have "m div n = q"
-    by (rule div_nat_unique)
-  then show ?rhs by simp
-qed
-
-theorem split_div':
-  "P ((m::nat) div n) = ((n = 0 \<and> P 0) \<or>
-   (\<exists>q. (n * q \<le> m \<and> m < n * (Suc q)) \<and> P q))"
-  apply (cases "0 < n")
-  apply (simp only: add: split_div_lemma)
-  apply simp_all
-  done
-
-lemma split_mod:
- "P(n mod k :: nat) =
- ((k = 0 \<longrightarrow> P n) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P j)))"
- (is "?P = ?Q" is "_ = (_ \<and> (_ \<longrightarrow> ?R))")
-proof
-  assume P: ?P
-  show ?Q
-  proof (cases)
-    assume "k = 0"
-    with P show ?Q by simp
-  next
-    assume not0: "k \<noteq> 0"
-    thus ?Q
-    proof (simp, intro allI impI)
-      fix i j
-      assume "n = k*i + j" "j < k"
-      thus "P j" using not0 P by (simp add: ac_simps)
-    qed
-  qed
-next
-  assume Q: ?Q
-  show ?P
-  proof (cases)
-    assume "k = 0"
-    with Q show ?P by simp
-  next
-    assume not0: "k \<noteq> 0"
-    with Q have R: ?R by simp
-    from not0 R[THEN spec,of "n div k",THEN spec, of "n mod k"]
-    show ?P by simp
-  qed
-qed
-
-lemma div_eq_dividend_iff: "a \<noteq> 0 \<Longrightarrow> (a :: nat) div b = a \<longleftrightarrow> b = 1"
-  apply rule
-  apply (cases "b = 0")
-  apply simp_all
-  apply (metis (full_types) One_nat_def Suc_lessI div_less_dividend less_not_refl3)
-  done
-
-lemma (in field_char_0) of_nat_div:
-  "of_nat (m div n) = ((of_nat m - of_nat (m mod n)) / of_nat n)"
-proof -
-  have "of_nat (m div n) = ((of_nat (m div n * n + m mod n) - of_nat (m mod n)) / of_nat n :: 'a)"
-    unfolding of_nat_add by (cases "n = 0") simp_all
-  then show ?thesis
-    by simp
-qed
-
-
-subsubsection \<open>An ``induction'' law for modulus arithmetic.\<close>
-
-lemma mod_induct_0:
-  assumes step: "\<forall>i<p. P i \<longrightarrow> P ((Suc i) mod p)"
-  and base: "P i" and i: "i<p"
-  shows "P 0"
-proof (rule ccontr)
-  assume contra: "\<not>(P 0)"
-  from i have p: "0<p" by simp
-  have "\<forall>k. 0<k \<longrightarrow> \<not> P (p-k)" (is "\<forall>k. ?A k")
-  proof
-    fix k
-    show "?A k"
-    proof (induct k)
-      show "?A 0" by simp  \<comment> "by contradiction"
-    next
-      fix n
-      assume ih: "?A n"
-      show "?A (Suc n)"
-      proof (clarsimp)
-        assume y: "P (p - Suc n)"
-        have n: "Suc n < p"
-        proof (rule ccontr)
-          assume "\<not>(Suc n < p)"
-          hence "p - Suc n = 0"
-            by simp
-          with y contra show "False"
-            by simp
-        qed
-        hence n2: "Suc (p - Suc n) = p-n" by arith
-        from p have "p - Suc n < p" by arith
-        with y step have z: "P ((Suc (p - Suc n)) mod p)"
-          by blast
-        show "False"
-        proof (cases "n=0")
-          case True
-          with z n2 contra show ?thesis by simp
-        next
-          case False
-          with p have "p-n < p" by arith
-          with z n2 False ih show ?thesis by simp
-        qed
-      qed
-    qed
-  qed
-  moreover
-  from i obtain k where "0<k \<and> i+k=p"
-    by (blast dest: less_imp_add_positive)
-  hence "0<k \<and> i=p-k" by auto
-  moreover
-  note base
-  ultimately
-  show "False" by blast
-qed
-
-lemma mod_induct:
-  assumes step: "\<forall>i<p. P i \<longrightarrow> P ((Suc i) mod p)"
-  and base: "P i" and i: "i<p" and j: "j<p"
-  shows "P j"
-proof -
-  have "\<forall>j<p. P j"
-  proof
-    fix j
-    show "j<p \<longrightarrow> P j" (is "?A j")
-    proof (induct j)
-      from step base i show "?A 0"
-        by (auto elim: mod_induct_0)
-    next
-      fix k
-      assume ih: "?A k"
-      show "?A (Suc k)"
-      proof
-        assume suc: "Suc k < p"
-        hence k: "k<p" by simp
-        with ih have "P k" ..
-        with step k have "P (Suc k mod p)"
-          by blast
-        moreover
-        from suc have "Suc k mod p = Suc k"
-          by simp
-        ultimately
-        show "P (Suc k)" by simp
-      qed
-    qed
-  qed
-  with j show ?thesis by blast
-qed
-
-lemma div2_Suc_Suc [simp]: "Suc (Suc m) div 2 = Suc (m div 2)"
-  by (simp add: numeral_2_eq_2 le_div_geq)
-
-lemma mod2_Suc_Suc [simp]: "Suc (Suc m) mod 2 = m mod 2"
-  by (simp add: numeral_2_eq_2 le_mod_geq)
-
-lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
-by (simp add: mult_2 [symmetric])
-
-lemma mod2_gr_0 [simp]: "0 < (m::nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
-proof -
-  { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (cases n) simp_all }
-  moreover have "m mod 2 < 2" by simp
-  ultimately have "m mod 2 = 0 \<or> m mod 2 = 1" .
-  then show ?thesis by auto
-qed
-
-text\<open>These lemmas collapse some needless occurrences of Suc:
-    at least three Sucs, since two and fewer are rewritten back to Suc again!
-    We already have some rules to simplify operands smaller than 3.\<close>
-
-lemma div_Suc_eq_div_add3 [simp]: "m div (Suc (Suc (Suc n))) = m div (3+n)"
-by (simp add: Suc3_eq_add_3)
-
-lemma mod_Suc_eq_mod_add3 [simp]: "m mod (Suc (Suc (Suc n))) = m mod (3+n)"
-by (simp add: Suc3_eq_add_3)
-
-lemma Suc_div_eq_add3_div: "(Suc (Suc (Suc m))) div n = (3+m) div n"
-by (simp add: Suc3_eq_add_3)
-
-lemma Suc_mod_eq_add3_mod: "(Suc (Suc (Suc m))) mod n = (3+m) mod n"
-by (simp add: Suc3_eq_add_3)
-
-lemmas Suc_div_eq_add3_div_numeral [simp] = Suc_div_eq_add3_div [of _ "numeral v"] for v
-lemmas Suc_mod_eq_add3_mod_numeral [simp] = Suc_mod_eq_add3_mod [of _ "numeral v"] for v
-
-lemma Suc_times_mod_eq: "1<k ==> Suc (k * m) mod k = 1"
-apply (induct "m")
-apply (simp_all add: mod_Suc)
-done
-
-declare Suc_times_mod_eq [of "numeral w", simp] for w
-
-lemma Suc_div_le_mono [simp]: "n div k \<le> (Suc n) div k"
-by (simp add: div_le_mono)
-
-lemma Suc_n_div_2_gt_zero [simp]: "(0::nat) < n ==> 0 < (n + 1) div 2"
-by (cases n) simp_all
-
-lemma div_2_gt_zero [simp]: assumes A: "(1::nat) < n" shows "0 < n div 2"
-proof -
-  from A have B: "0 < n - 1" and C: "n - 1 + 1 = n" by simp_all
-  from Suc_n_div_2_gt_zero [OF B] C show ?thesis by simp
-qed
-
-lemma mod_mult_self3' [simp]: "Suc (k * n + m) mod n = Suc m mod n"
-  using mod_mult_self3 [of k n "Suc m"] by simp
-
-lemma mod_Suc_eq_Suc_mod: "Suc m mod n = Suc (m mod n) mod n"
-apply (subst mod_Suc [of m])
-apply (subst mod_Suc [of "m mod n"], simp)
-done
-
-lemma mod_2_not_eq_zero_eq_one_nat:
-  fixes n :: nat
-  shows "n mod 2 \<noteq> 0 \<longleftrightarrow> n mod 2 = 1"
-  by (fact not_mod_2_eq_0_eq_1)
+lemma odd_Suc_minus_one [simp]: "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
+  by (auto elim: oddE)
 
 lemma even_Suc_div_two [simp]:
   "even n \<Longrightarrow> Suc n div 2 = n div 2"
@@ -1245,6 +367,11 @@ proof (induct n rule: less_induct)
   qed
 qed
 
+lemma mod_2_not_eq_zero_eq_one_nat:
+  fixes n :: nat
+  shows "n mod 2 \<noteq> 0 \<longleftrightarrow> n mod 2 = 1"
+  by (fact not_mod_2_eq_0_eq_1)
+
 lemma Suc_0_div_numeral [simp]:
   fixes k l :: num
   shows "Suc 0 div numeral k = fst (divmod Num.One k)"
@@ -1254,6 +381,27 @@ lemma Suc_0_mod_numeral [simp]:
   fixes k l :: num
   shows "Suc 0 mod numeral k = snd (divmod Num.One k)"
   by (simp_all add: snd_divmod)
+
+definition divmod_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
+  where "divmod_nat m n = (m div n, m mod n)"
+
+lemma fst_divmod_nat [simp]:
+  "fst (divmod_nat m n) = m div n"
+  by (simp add: divmod_nat_def)
+
+lemma snd_divmod_nat [simp]:
+  "snd (divmod_nat m n) = m mod n"
+  by (simp add: divmod_nat_def)
+
+lemma divmod_nat_if [code]:
+  "Divides.divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
+    let (q, r) = Divides.divmod_nat (m - n) n in (Suc q, r))"
+  by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
+
+lemma [code]:
+  "m div n = fst (divmod_nat m n)"
+  "m mod n = snd (divmod_nat m n)"
+  by simp_all
 
 
 subsection \<open>Division on @{typ int}\<close>
@@ -2225,7 +1373,7 @@ text\<open>Suggested by Matthias Daum\<close>
 lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
 apply (subgoal_tac "nat x div nat k < nat x")
  apply (simp add: nat_div_distrib [symmetric])
-apply (rule Divides.div_less_dividend, simp_all)
+apply (rule div_less_dividend, simp_all)
 done
 
 lemma nat_mod_eq_lemma: assumes xyn: "(x::nat) mod n = y mod n" and xy:"y \<le> x"
@@ -2258,11 +1406,12 @@ next
   thus  ?lhs by simp
 qed
 
+
 subsubsection \<open>Dedicated simproc for calculation\<close>
 
 text \<open>
   There is space for improvement here: the calculation itself
-  could be carried outside the logic, and a generic simproc
+  could be carried out outside the logic, and a generic simproc
   (simplifier setup) for generic calculation would be helpful. 
 \<close>
 
@@ -2347,5 +1496,40 @@ lemma dvd_eq_mod_eq_0_numeral:
   by (fact dvd_eq_mod_eq_0)
 
 declare minus_div_mult_eq_mod [symmetric, nitpick_unfold]
+
+
+subsubsection \<open>Lemmas of doubtful value\<close>
+
+lemma mod_mult_self3':
+  "Suc (k * n + m) mod n = Suc m mod n"
+  by (fact Suc_mod_mult_self3)
+
+lemma mod_Suc_eq_Suc_mod:
+  "Suc m mod n = Suc (m mod n) mod n"
+  by (simp add: mod_simps)
+
+lemma div_geq:
+  "m div n = Suc ((m - n) div n)" if "0 < n" and " \<not> m < n" for m n :: nat
+  by (rule le_div_geq) (use that in \<open>simp_all add: not_less\<close>)
+
+lemma mod_geq:
+  "m mod n = (m - n) mod n" if "\<not> m < n" for m n :: nat
+  by (rule le_mod_geq) (use that in \<open>simp add: not_less\<close>)
+
+lemma mod_eq_0_iff: "(m mod d = 0) = (\<exists>q::nat. m = d*q)"
+  by (auto simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
+
+lemmas mod_eq_0D [dest!] = mod_eq_0_iff [THEN iffD1]
+
+(*Loses information, namely we also have r<d provided d is nonzero*)
+lemma mod_eqD:
+  fixes m d r q :: nat
+  assumes "m mod d = r"
+  shows "\<exists>q. m = r + q * d"
+proof -
+  from div_mult_mod_eq obtain q where "q * d + m mod d = m" by blast
+  with assms have "m = r + q * d" by simp
+  then show ?thesis ..
+qed
 
 end
