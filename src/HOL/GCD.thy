@@ -1995,11 +1995,7 @@ lemma gcd_mult_distrib_nat: "k * gcd m n = gcd (k * m) (k * n)"
 
 lemma gcd_mult_distrib_int: "\<bar>k\<bar> * gcd m n = gcd (k * m) (k * n)"
   for k m n :: int
-  apply (subst (1 2) gcd_abs_int)
-  apply (subst (1 2) abs_mult)
-  apply (rule gcd_mult_distrib_nat [transferred])
-    apply auto
-  done
+  by (simp add: gcd_int_def abs_mult nat_mult_distrib gcd_mult_distrib_nat [symmetric])
 
 lemma coprime_crossproduct_nat:
   fixes a b c d :: nat
@@ -2480,10 +2476,7 @@ lemma lcm_pos_nat: "m > 0 \<Longrightarrow> n > 0 \<Longrightarrow> lcm m n > 0"
 
 lemma lcm_pos_int: "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> lcm m n > 0"
   for m n :: int
-  apply (subst lcm_abs_int)
-  apply (rule lcm_pos_nat [transferred])
-     apply auto
-  done
+  by (simp add: lcm_int_def lcm_pos_nat)
 
 lemma dvd_pos_nat: "n > 0 \<Longrightarrow> m dvd n \<Longrightarrow> m > 0"  (* FIXME move *)
   for m n :: nat
