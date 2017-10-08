@@ -228,7 +228,7 @@ object Build
 
         def save_heap: String =
           "ML_Heap.share_common_data (); ML_Heap.save_child " +
-            ML_Syntax.print_string0(File.platform_path(output))
+            ML_Syntax.print_string_bytes(File.platform_path(output))
 
         if (pide && !Sessions.is_pure(name)) {
           val resources = new Resources(deps(parent))
@@ -262,7 +262,7 @@ object Build
 
           val eval =
             "Command_Line.tool0 (fn () => (" +
-            "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
+            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file)) +
             (if (do_output) "; " + save_heap else "") + "));"
 
           val process =
