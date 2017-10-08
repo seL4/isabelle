@@ -10,24 +10,29 @@ imports
   Dense_Linear_Order
   DP_Library
   "HOL-Library.Code_Target_Numeral"
-  "HOL-Library.Old_Recdef"
 begin
 
 subsection \<open>Terms\<close>
 
-datatype tm = CP poly | Bound nat | Add tm tm | Mul poly tm
+datatype (plugins del: size) tm = CP poly | Bound nat | Add tm tm | Mul poly tm
   | Neg tm | Sub tm tm | CNP nat poly tm
 
-text \<open>A size for poly to make inductive proofs simpler.\<close>
-primrec tmsize :: "tm \<Rightarrow> nat"
+instantiation tm :: size
+begin
+
+primrec size_tm :: "tm \<Rightarrow> nat"
 where
-  "tmsize (CP c) = polysize c"
-| "tmsize (Bound n) = 1"
-| "tmsize (Neg a) = 1 + tmsize a"
-| "tmsize (Add a b) = 1 + tmsize a + tmsize b"
-| "tmsize (Sub a b) = 3 + tmsize a + tmsize b"
-| "tmsize (Mul c a) = 1 + polysize c + tmsize a"
-| "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
+  "size_tm (CP c) = polysize c"
+| "size_tm (Bound n) = 1"
+| "size_tm (Neg a) = 1 + size_tm a"
+| "size_tm (Add a b) = 1 + size_tm a + size_tm b"
+| "size_tm (Sub a b) = 3 + size_tm a + size_tm b"
+| "size_tm (Mul c a) = 1 + polysize c + size_tm a"
+| "size_tm (CNP n c a) = 3 + polysize c + size_tm a "
+
+instance ..
+
+end
 
 text \<open>Semantics of terms tm.\<close>
 primrec Itm :: "'a::{field_char_0,field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
@@ -258,42 +263,42 @@ lemma incrtm0_tmbound: "tmbound n t \<Longrightarrow> tmbound (Suc n) (incrtm0 t
 
 text \<open>Simplification.\<close>
 
-consts tmadd:: "tm \<times> tm \<Rightarrow> tm"
-recdef tmadd "measure (\<lambda>(t,s). size t + size s)"
-  "tmadd (CNP n1 c1 r1,CNP n2 c2 r2) =
+fun tmadd:: "tm \<Rightarrow> tm \<Rightarrow> tm"
+where
+  "tmadd (CNP n1 c1 r1) (CNP n2 c2 r2) =
     (if n1 = n2 then
       let c = c1 +\<^sub>p c2
-      in if c = 0\<^sub>p then tmadd(r1,r2) else CNP n1 c (tmadd (r1, r2))
-    else if n1 \<le> n2 then (CNP n1 c1 (tmadd (r1,CNP n2 c2 r2)))
-    else (CNP n2 c2 (tmadd (CNP n1 c1 r1, r2))))"
-  "tmadd (CNP n1 c1 r1, t) = CNP n1 c1 (tmadd (r1, t))"
-  "tmadd (t, CNP n2 c2 r2) = CNP n2 c2 (tmadd (t, r2))"
-  "tmadd (CP b1, CP b2) = CP (b1 +\<^sub>p b2)"
-  "tmadd (a, b) = Add a b"
+      in if c = 0\<^sub>p then tmadd r1 r2 else CNP n1 c (tmadd r1 r2)
+    else if n1 \<le> n2 then (CNP n1 c1 (tmadd r1 (CNP n2 c2 r2)))
+    else (CNP n2 c2 (tmadd (CNP n1 c1 r1) r2)))"
+| "tmadd (CNP n1 c1 r1) t = CNP n1 c1 (tmadd r1 t)"
+| "tmadd t (CNP n2 c2 r2) = CNP n2 c2 (tmadd t r2)"
+| "tmadd (CP b1) (CP b2) = CP (b1 +\<^sub>p b2)"
+| "tmadd a b = Add a b"
 
-lemma tmadd[simp]: "Itm vs bs (tmadd (t, s)) = Itm vs bs (Add t s)"
+lemma tmadd [simp]: "Itm vs bs (tmadd t s) = Itm vs bs (Add t s)"
   apply (induct t s rule: tmadd.induct)
   apply (simp_all add: Let_def)
   apply (case_tac "c1 +\<^sub>p c2 = 0\<^sub>p")
   apply (case_tac "n1 \<le> n2")
   apply simp_all
   apply (case_tac "n1 = n2")
-  apply (simp_all add: field_simps)
-  apply (simp only: distrib_left[symmetric])
-  apply (auto simp del: polyadd simp add: polyadd[symmetric])
+  apply (simp_all add: algebra_simps)
+  apply (simp only: distrib_left [symmetric] polyadd [symmetric])
+  apply simp
   done
 
-lemma tmadd_nb0[simp]: "tmbound0 t \<Longrightarrow> tmbound0 s \<Longrightarrow> tmbound0 (tmadd (t, s))"
+lemma tmadd_nb0[simp]: "tmbound0 t \<Longrightarrow> tmbound0 s \<Longrightarrow> tmbound0 (tmadd t s)"
   by (induct t s rule: tmadd.induct) (auto simp add: Let_def)
 
-lemma tmadd_nb[simp]: "tmbound n t \<Longrightarrow> tmbound n s \<Longrightarrow> tmbound n (tmadd (t, s))"
+lemma tmadd_nb[simp]: "tmbound n t \<Longrightarrow> tmbound n s \<Longrightarrow> tmbound n (tmadd t s)"
   by (induct t s rule: tmadd.induct) (auto simp add: Let_def)
 
-lemma tmadd_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n s \<Longrightarrow> tmboundslt n (tmadd (t, s))"
+lemma tmadd_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n s \<Longrightarrow> tmboundslt n (tmadd t s)"
   by (induct t s rule: tmadd.induct) (auto simp add: Let_def)
 
 lemma tmadd_allpolys_npoly[simp]:
-  "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmadd(t, s))"
+  "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmadd t s)"
   by (induct t s rule: tmadd.induct) (simp_all add: Let_def polyadd_norm)
 
 fun tmmul:: "tm \<Rightarrow> poly \<Rightarrow> tm"
@@ -323,7 +328,7 @@ definition tmneg :: "tm \<Rightarrow> tm"
   where "tmneg t \<equiv> tmmul t (C (- 1,1))"
 
 definition tmsub :: "tm \<Rightarrow> tm \<Rightarrow> tm"
-  where "tmsub s t \<equiv> (if s = t then CP 0\<^sub>p else tmadd (s, tmneg t))"
+  where "tmsub s t \<equiv> (if s = t then CP 0\<^sub>p else tmadd s (tmneg t))"
 
 lemma tmneg[simp]: "Itm vs bs (tmneg t) = Itm vs bs (Neg t)"
   using tmneg_def[of t] by simp
@@ -367,12 +372,12 @@ where
   "simptm (CP j) = CP (polynate j)"
 | "simptm (Bound n) = CNP n (1)\<^sub>p (CP 0\<^sub>p)"
 | "simptm (Neg t) = tmneg (simptm t)"
-| "simptm (Add t s) = tmadd (simptm t,simptm s)"
+| "simptm (Add t s) = tmadd (simptm t) (simptm s)"
 | "simptm (Sub t s) = tmsub (simptm t) (simptm s)"
 | "simptm (Mul i t) =
     (let i' = polynate i in if i' = 0\<^sub>p then CP 0\<^sub>p else tmmul (simptm t) i')"
 | "simptm (CNP n c t) =
-    (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p ), simptm t))"
+    (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p)) (simptm t))"
 
 lemma polynate_stupid:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
@@ -497,24 +502,34 @@ lemma isnpoly_fst_split0:
 
 subsection \<open>Formulae\<close>
 
-datatype fm  =  T| F| Le tm | Lt tm | Eq tm | NEq tm|
-  NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
+datatype (plugins del: size) fm = T | F | Le tm | Lt tm | Eq tm | NEq tm |
+  NOT fm | And fm fm | Or fm fm | Imp fm fm | Iff fm fm | E fm | A fm
 
+instantiation fm :: size
+begin
 
-text \<open>A size for fm.\<close>
-fun fmsize :: "fm \<Rightarrow> nat"
+primrec size_fm :: "fm \<Rightarrow> nat"
 where
-  "fmsize (NOT p) = 1 + fmsize p"
-| "fmsize (And p q) = 1 + fmsize p + fmsize q"
-| "fmsize (Or p q) = 1 + fmsize p + fmsize q"
-| "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
-| "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
-| "fmsize (E p) = 1 + fmsize p"
-| "fmsize (A p) = 4+ fmsize p"
-| "fmsize p = 1"
+  "size_fm (NOT p) = 1 + size_fm p"
+| "size_fm (And p q) = 1 + size_fm p + size_fm q"
+| "size_fm (Or p q) = 1 + size_fm p + size_fm q"
+| "size_fm (Imp p q) = 3 + size_fm p + size_fm q"
+| "size_fm (Iff p q) = 3 + 2 * (size_fm p + size_fm q)"
+| "size_fm (E p) = 1 + size_fm p"
+| "size_fm (A p) = 4 + size_fm p"
+| "size_fm T = 1"
+| "size_fm F = 1"
+| "size_fm (Le _) = 1"
+| "size_fm (Lt _) = 1"
+| "size_fm (Eq _) = 1"
+| "size_fm (NEq _) = 1"
 
-lemma fmsize_pos[termination_simp]: "fmsize p > 0"
-  by (induct p rule: fmsize.induct) simp_all
+instance ..
+
+end
+
+lemma fmsize_pos [simp]: "size p > 0" for p :: fm
+  by (induct p) simp_all
 
 text \<open>Semantics of formulae (fm).\<close>
 primrec Ifm ::"'a::linordered_field list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
@@ -1507,30 +1522,30 @@ proof clarify
     by blast
 qed
 
-consts simpfm :: "fm \<Rightarrow> fm"
-recdef simpfm "measure fmsize"
+fun simpfm :: "fm \<Rightarrow> fm"
+where
   "simpfm (Lt t) = simplt (simptm t)"
-  "simpfm (Le t) = simple (simptm t)"
-  "simpfm (Eq t) = simpeq(simptm t)"
-  "simpfm (NEq t) = simpneq(simptm t)"
-  "simpfm (And p q) = conj (simpfm p) (simpfm q)"
-  "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
-  "simpfm (Imp p q) = disj (simpfm (NOT p)) (simpfm q)"
-  "simpfm (Iff p q) =
+| "simpfm (Le t) = simple (simptm t)"
+| "simpfm (Eq t) = simpeq(simptm t)"
+| "simpfm (NEq t) = simpneq(simptm t)"
+| "simpfm (And p q) = conj (simpfm p) (simpfm q)"
+| "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
+| "simpfm (Imp p q) = disj (simpfm (NOT p)) (simpfm q)"
+| "simpfm (Iff p q) =
     disj (conj (simpfm p) (simpfm q)) (conj (simpfm (NOT p)) (simpfm (NOT q)))"
-  "simpfm (NOT (And p q)) = disj (simpfm (NOT p)) (simpfm (NOT q))"
-  "simpfm (NOT (Or p q)) = conj (simpfm (NOT p)) (simpfm (NOT q))"
-  "simpfm (NOT (Imp p q)) = conj (simpfm p) (simpfm (NOT q))"
-  "simpfm (NOT (Iff p q)) =
+| "simpfm (NOT (And p q)) = disj (simpfm (NOT p)) (simpfm (NOT q))"
+| "simpfm (NOT (Or p q)) = conj (simpfm (NOT p)) (simpfm (NOT q))"
+| "simpfm (NOT (Imp p q)) = conj (simpfm p) (simpfm (NOT q))"
+| "simpfm (NOT (Iff p q)) =
     disj (conj (simpfm p) (simpfm (NOT q))) (conj (simpfm (NOT p)) (simpfm q))"
-  "simpfm (NOT (Eq t)) = simpneq t"
-  "simpfm (NOT (NEq t)) = simpeq t"
-  "simpfm (NOT (Le t)) = simplt (Neg t)"
-  "simpfm (NOT (Lt t)) = simple (Neg t)"
-  "simpfm (NOT (NOT p)) = simpfm p"
-  "simpfm (NOT T) = F"
-  "simpfm (NOT F) = T"
-  "simpfm p = p"
+| "simpfm (NOT (Eq t)) = simpneq t"
+| "simpfm (NOT (NEq t)) = simpeq t"
+| "simpfm (NOT (Le t)) = simplt (Neg t)"
+| "simpfm (NOT (Lt t)) = simple (Neg t)"
+| "simpfm (NOT (NOT p)) = simpfm p"
+| "simpfm (NOT T) = F"
+| "simpfm (NOT F) = T"
+| "simpfm p = p"
 
 lemma simpfm[simp]: "Ifm vs bs (simpfm p) = Ifm vs bs p"
   by (induct p arbitrary: bs rule: simpfm.induct) auto
@@ -1589,39 +1604,38 @@ lemma
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (simp_all add: conj_lin disj_lin)
 
-consts prep :: "fm \<Rightarrow> fm"
-recdef prep "measure fmsize"
+fun prep :: "fm \<Rightarrow> fm"
+where
   "prep (E T) = T"
-  "prep (E F) = F"
-  "prep (E (Or p q)) = disj (prep (E p)) (prep (E q))"
-  "prep (E (Imp p q)) = disj (prep (E (NOT p))) (prep (E q))"
-  "prep (E (Iff p q)) = disj (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))"
-  "prep (E (NOT (And p q))) = disj (prep (E (NOT p))) (prep (E(NOT q)))"
-  "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
-  "prep (E (NOT (Iff p q))) = disj (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
-  "prep (E p) = E (prep p)"
-  "prep (A (And p q)) = conj (prep (A p)) (prep (A q))"
-  "prep (A p) = prep (NOT (E (NOT p)))"
-  "prep (NOT (NOT p)) = prep p"
-  "prep (NOT (And p q)) = disj (prep (NOT p)) (prep (NOT q))"
-  "prep (NOT (A p)) = prep (E (NOT p))"
-  "prep (NOT (Or p q)) = conj (prep (NOT p)) (prep (NOT q))"
-  "prep (NOT (Imp p q)) = conj (prep p) (prep (NOT q))"
-  "prep (NOT (Iff p q)) = disj (prep (And p (NOT q))) (prep (And (NOT p) q))"
-  "prep (NOT p) = not (prep p)"
-  "prep (Or p q) = disj (prep p) (prep q)"
-  "prep (And p q) = conj (prep p) (prep q)"
-  "prep (Imp p q) = prep (Or (NOT p) q)"
-  "prep (Iff p q) = disj (prep (And p q)) (prep (And (NOT p) (NOT q)))"
-  "prep p = p"
-  (hints simp add: fmsize_pos)
+| "prep (E F) = F"
+| "prep (E (Or p q)) = disj (prep (E p)) (prep (E q))"
+| "prep (E (Imp p q)) = disj (prep (E (NOT p))) (prep (E q))"
+| "prep (E (Iff p q)) = disj (prep (E (And p q))) (prep (E (And (NOT p) (NOT q))))"
+| "prep (E (NOT (And p q))) = disj (prep (E (NOT p))) (prep (E(NOT q)))"
+| "prep (E (NOT (Imp p q))) = prep (E (And p (NOT q)))"
+| "prep (E (NOT (Iff p q))) = disj (prep (E (And p (NOT q)))) (prep (E(And (NOT p) q)))"
+| "prep (E p) = E (prep p)"
+| "prep (A (And p q)) = conj (prep (A p)) (prep (A q))"
+| "prep (A p) = prep (NOT (E (NOT p)))"
+| "prep (NOT (NOT p)) = prep p"
+| "prep (NOT (And p q)) = disj (prep (NOT p)) (prep (NOT q))"
+| "prep (NOT (A p)) = prep (E (NOT p))"
+| "prep (NOT (Or p q)) = conj (prep (NOT p)) (prep (NOT q))"
+| "prep (NOT (Imp p q)) = conj (prep p) (prep (NOT q))"
+| "prep (NOT (Iff p q)) = disj (prep (And p (NOT q))) (prep (And (NOT p) q))"
+| "prep (NOT p) = not (prep p)"
+| "prep (Or p q) = disj (prep p) (prep q)"
+| "prep (And p q) = conj (prep p) (prep q)"
+| "prep (Imp p q) = prep (Or (NOT p) q)"
+| "prep (Iff p q) = disj (prep (And p q)) (prep (And (NOT p) (NOT q)))"
+| "prep p = p"
 
 lemma prep: "Ifm vs bs (prep p) = Ifm vs bs p"
   by (induct p arbitrary: bs rule: prep.induct) auto
 
 
 text \<open>Generic quantifier elimination.\<close>
-function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
+fun qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
 where
   "qelim (E p) = (\<lambda>qe. DJ (CJNB qe) (qelim p qe))"
 | "qelim (A p) = (\<lambda>qe. not (qe ((qelim (NOT p) qe))))"
@@ -1631,8 +1645,6 @@ where
 | "qelim (Imp p q) = (\<lambda>qe. imp (qelim p qe) (qelim q qe))"
 | "qelim (Iff p q) = (\<lambda>qe. iff (qelim p qe) (qelim q qe))"
 | "qelim p = (\<lambda>y. simpfm p)"
-  by pat_completeness simp_all
-termination by (relation "measure fmsize") auto
 
 lemma qelim:
   assumes qe_inv: "\<forall>bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm vs bs (qe p) = Ifm vs bs (E p))"
@@ -2667,7 +2679,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (-?s / (2*?d)) + ?r) = 0"
       using cd(2) mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2 * ?d * ?r= 0"
-      by (simp add: field_simps distrib_left[of "2*?d"] del: distrib_left)
+      by (simp add: field_simps distrib_left [of "2*?d"])
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r = 0"
       using cd(2) by simp
     finally show ?thesis
@@ -2684,7 +2696,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (-?t / (2 * ?c)) + ?r) = 0"
       using cd(1) mult_cancel_left[of "2 * ?c" "(?a * (-?t / (2 * ?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2 * ?c) / (2 * ?c) + 2 * ?c * ?r= 0"
-      by (simp add: field_simps distrib_left[of "2 * ?c"] del: distrib_left)
+      by (simp add: field_simps distrib_left [of "2 * ?c"])
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2 * ?c * ?r = 0"
       using cd(1) by simp
     finally show ?thesis using cd

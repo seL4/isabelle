@@ -6,7 +6,6 @@ theory Cooper
 imports
   Complex_Main
   "HOL-Library.Code_Target_Numeral"
-  "HOL-Library.Old_Recdef"
 begin
 
 (* Periodicity of dvd *)
@@ -15,50 +14,74 @@ begin
 (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
 (*********************************************************************************)
 
-datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub num num
+datatype (plugins del: size) num = C int | Bound nat | CN nat int num
+  | Neg num | Add num num | Sub num num
   | Mul int num
 
-primrec num_size :: "num \<Rightarrow> nat" \<comment> \<open>A size for num to make inductive proofs simpler\<close>
+instantiation num :: size
+begin
+
+primrec size_num :: "num \<Rightarrow> nat"
 where
-  "num_size (C c) = 1"
-| "num_size (Bound n) = 1"
-| "num_size (Neg a) = 1 + num_size a"
-| "num_size (Add a b) = 1 + num_size a + num_size b"
-| "num_size (Sub a b) = 3 + num_size a + num_size b"
-| "num_size (CN n c a) = 4 + num_size a"
-| "num_size (Mul c a) = 1 + num_size a"
+  "size_num (C c) = 1"
+| "size_num (Bound n) = 1"
+| "size_num (Neg a) = 1 + size_num a"
+| "size_num (Add a b) = 1 + size_num a + size_num b"
+| "size_num (Sub a b) = 3 + size_num a + size_num b"
+| "size_num (CN n c a) = 4 + size_num a"
+| "size_num (Mul c a) = 1 + size_num a"
+
+instance ..
+
+end
 
 primrec Inum :: "int list \<Rightarrow> num \<Rightarrow> int"
 where
   "Inum bs (C c) = c"
-| "Inum bs (Bound n) = bs!n"
-| "Inum bs (CN n c a) = c * (bs!n) + (Inum bs a)"
-| "Inum bs (Neg a) = -(Inum bs a)"
+| "Inum bs (Bound n) = bs ! n"
+| "Inum bs (CN n c a) = c * (bs ! n) + Inum bs a"
+| "Inum bs (Neg a) = - Inum bs a"
 | "Inum bs (Add a b) = Inum bs a + Inum bs b"
 | "Inum bs (Sub a b) = Inum bs a - Inum bs b"
-| "Inum bs (Mul c a) = c* Inum bs a"
+| "Inum bs (Mul c a) = c * Inum bs a"
 
-datatype fm  =
-  T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num| Dvd int num| NDvd int num|
-  NOT fm| And fm fm|  Or fm fm| Imp fm fm| Iff fm fm| E fm| A fm
-  | Closed nat | NClosed nat
+datatype (plugins del: size) fm = T | F
+  | Lt num | Le num | Gt num | Ge num | Eq num | NEq num
+  | Dvd int num | NDvd int num
+  | NOT fm | And fm fm | Or fm fm | Imp fm fm | Iff fm fm
+  | E fm | A fm | Closed nat | NClosed nat
 
+instantiation fm :: size
+begin
 
-fun fmsize :: "fm \<Rightarrow> nat"  \<comment> \<open>A size for fm\<close>
+primrec size_fm :: "fm \<Rightarrow> nat"
 where
-  "fmsize (NOT p) = 1 + fmsize p"
-| "fmsize (And p q) = 1 + fmsize p + fmsize q"
-| "fmsize (Or p q) = 1 + fmsize p + fmsize q"
-| "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
-| "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
-| "fmsize (E p) = 1 + fmsize p"
-| "fmsize (A p) = 4+ fmsize p"
-| "fmsize (Dvd i t) = 2"
-| "fmsize (NDvd i t) = 2"
-| "fmsize p = 1"
+  "size_fm (NOT p) = 1 + size_fm p"
+| "size_fm (And p q) = 1 + size_fm p + size_fm q"
+| "size_fm (Or p q) = 1 + size_fm p + size_fm q"
+| "size_fm (Imp p q) = 3 + size_fm p + size_fm q"
+| "size_fm (Iff p q) = 3 + 2 * (size_fm p + size_fm q)"
+| "size_fm (E p) = 1 + size_fm p"
+| "size_fm (A p) = 4 + size_fm p"
+| "size_fm (Dvd i t) = 2"
+| "size_fm (NDvd i t) = 2"
+| "size_fm T = 1" 
+| "size_fm F = 1"
+| "size_fm (Lt _) = 1" 
+| "size_fm (Le _) = 1" 
+| "size_fm (Gt _) = 1" 
+| "size_fm (Ge _) = 1" 
+| "size_fm (Eq _) = 1" 
+| "size_fm (NEq _) = 1" 
+| "size_fm (Closed _) = 1" 
+| "size_fm (NClosed _) = 1"
 
-lemma fmsize_pos: "fmsize p > 0"
-  by (induct p rule: fmsize.induct) simp_all
+instance ..
+
+end
+
+lemma fmsize_pos [simp]: "size p > 0" for p :: fm
+  by (induct p) simp_all
 
 primrec Ifm :: "bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> bool"  \<comment> \<open>Semantics of formulae (fm)\<close>
 where
@@ -79,10 +102,10 @@ where
 | "Ifm bbs bs (Iff p q) \<longleftrightarrow> Ifm bbs bs p = Ifm bbs bs q"
 | "Ifm bbs bs (E p) \<longleftrightarrow> (\<exists>x. Ifm bbs (x # bs) p)"
 | "Ifm bbs bs (A p) \<longleftrightarrow> (\<forall>x. Ifm bbs (x # bs) p)"
-| "Ifm bbs bs (Closed n) \<longleftrightarrow> bbs!n"
-| "Ifm bbs bs (NClosed n) \<longleftrightarrow> \<not> bbs!n"
+| "Ifm bbs bs (Closed n) \<longleftrightarrow> bbs ! n"
+| "Ifm bbs bs (NClosed n) \<longleftrightarrow> \<not> bbs ! n"
 
-function (sequential) prep :: "fm \<Rightarrow> fm"
+fun prep :: "fm \<Rightarrow> fm"
 where
   "prep (E T) = T"
 | "prep (E F) = F"
@@ -107,10 +130,6 @@ where
 | "prep (Imp p q) = prep (Or (NOT p) q)"
 | "prep (Iff p q) = Or (prep (And p q)) (prep (And (NOT p) (NOT q)))"
 | "prep p = p"
-  by pat_completeness auto
-
-termination
-  by (relation "measure fmsize") (simp_all add: fmsize_pos)
 
 lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
   by (induct p arbitrary: bs rule: prep.induct) auto
@@ -424,34 +443,24 @@ where
 definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
   where "lex_bnd t s = lex_ns (bnds t) (bnds s)"
 
-consts numadd:: "num \<times> num \<Rightarrow> num"
-recdef numadd "measure (\<lambda>(t, s). num_size t + num_size s)"
-  "numadd (CN n1 c1 r1, CN n2 c2 r2) =
+fun numadd:: "num \<Rightarrow> num \<Rightarrow> num"
+where
+  "numadd (CN n1 c1 r1) (CN n2 c2 r2) =
     (if n1 = n2 then
        let c = c1 + c2
-       in if c = 0 then numadd (r1, r2) else CN n1 c (numadd (r1, r2))
-     else if n1 \<le> n2 then CN n1 c1 (numadd (r1, Add (Mul c2 (Bound n2)) r2))
-     else CN n2 c2 (numadd (Add (Mul c1 (Bound n1)) r1, r2)))"
-  "numadd (CN n1 c1 r1, t) = CN n1 c1 (numadd (r1, t))"
-  "numadd (t, CN n2 c2 r2) = CN n2 c2 (numadd (t, r2))"
-  "numadd (C b1, C b2) = C (b1 + b2)"
-  "numadd (a, b) = Add a b"
+       in if c = 0 then numadd r1 r2 else CN n1 c (numadd r1 r2)
+     else if n1 \<le> n2 then CN n1 c1 (numadd r1 (Add (Mul c2 (Bound n2)) r2))
+     else CN n2 c2 (numadd (Add (Mul c1 (Bound n1)) r1) r2))"
+| "numadd (CN n1 c1 r1) t = CN n1 c1 (numadd r1 t)"
+| "numadd t (CN n2 c2 r2) = CN n2 c2 (numadd t r2)"
+| "numadd (C b1) (C b2) = C (b1 + b2)"
+| "numadd a b = Add a b"
 
-lemma numadd: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
-  apply (induct t s rule: numadd.induct)
-  apply (simp_all add: Let_def)
-  subgoal for n1 c1 r1 n2 c2 r2
-    apply (cases "c1 + c2 = 0")
-    apply (cases "n1 \<le> n2")
-    apply simp_all
-     apply (cases "n1 = n2")
-      apply (simp_all add: algebra_simps)
-    apply (simp add: distrib_right[symmetric])
-    done
-  done
+lemma numadd: "Inum bs (numadd t s) = Inum bs (Add t s)"
+  by (induct t s rule: numadd.induct) (simp_all add: Let_def algebra_simps add_eq_0_iff)
 
-lemma numadd_nb: "numbound0 t \<Longrightarrow> numbound0 s \<Longrightarrow> numbound0 (numadd (t, s))"
-  by (induct t s rule: numadd.induct) (auto simp add: Let_def)
+lemma numadd_nb: "numbound0 t \<Longrightarrow> numbound0 s \<Longrightarrow> numbound0 (numadd t s)"
+  by (induct t s rule: numadd.induct) (simp_all add: Let_def)
 
 fun nummul :: "int \<Rightarrow> num \<Rightarrow> num"
 where
@@ -460,16 +469,16 @@ where
 | "nummul i t = Mul i t"
 
 lemma nummul: "Inum bs (nummul i t) = Inum bs (Mul i t)"
-  by (induct t arbitrary: i rule: nummul.induct) (auto simp add: algebra_simps numadd)
+  by (induct t arbitrary: i rule: nummul.induct) (simp_all add: algebra_simps)
 
 lemma nummul_nb: "numbound0 t \<Longrightarrow> numbound0 (nummul i t)"
-  by (induct t arbitrary: i rule: nummul.induct) (auto simp add: numadd_nb)
+  by (induct t arbitrary: i rule: nummul.induct) (simp_all add: numadd_nb)
 
 definition numneg :: "num \<Rightarrow> num"
   where "numneg t = nummul (- 1) t"
 
 definition numsub :: "num \<Rightarrow> num \<Rightarrow> num"
-  where "numsub s t = (if s = t then C 0 else numadd (s, numneg t))"
+  where "numsub s t = (if s = t then C 0 else numadd s (numneg t))"
 
 lemma numneg: "Inum bs (numneg t) = Inum bs (Neg t)"
   using numneg_def nummul by simp
@@ -488,7 +497,7 @@ where
   "simpnum (C j) = C j"
 | "simpnum (Bound n) = CN n 1 (C 0)"
 | "simpnum (Neg t) = numneg (simpnum t)"
-| "simpnum (Add t s) = numadd (simpnum t, simpnum s)"
+| "simpnum (Add t s) = numadd (simpnum t) (simpnum s)"
 | "simpnum (Sub t s) = numsub (simpnum t) (simpnum s)"
 | "simpnum (Mul i t) = (if i = 0 then C 0 else nummul i (simpnum t))"
 | "simpnum t = t"
@@ -587,7 +596,7 @@ lemma iff_qf: "qfree p \<Longrightarrow> qfree q \<Longrightarrow> qfree (iff p 
 lemma iff_nb: "bound0 p \<Longrightarrow> bound0 q \<Longrightarrow> bound0 (iff p q)"
   using iff_def by (unfold iff_def, cases "p = q", auto simp add: not_bn)
 
-function (sequential) simpfm :: "fm \<Rightarrow> fm"
+fun simpfm :: "fm \<Rightarrow> fm"
 where
   "simpfm (And p q) = conj (simpfm p) (simpfm q)"
 | "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
@@ -609,8 +618,6 @@ where
      else if \<bar>i\<bar> = 1 then F
      else let a' = simpnum a in case a' of C v \<Rightarrow> if \<not>( i dvd v) then T else F | _ \<Rightarrow> NDvd i a')"
 | "simpfm p = p"
-  by pat_completeness auto
-termination by (relation "measure fmsize") auto
 
 lemma simpfm: "Ifm bbs bs (simpfm p) = Ifm bbs bs p"
 proof (induct p rule: simpfm.induct)
@@ -819,7 +826,7 @@ lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
   done
 
 text \<open>Generic quantifier elimination\<close>
-function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
+fun qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
 where
   "qelim (E p) = (\<lambda>qe. DJ qe (qelim p qe))"
 | "qelim (A p) = (\<lambda>qe. not (qe ((qelim (NOT p) qe))))"
@@ -829,8 +836,6 @@ where
 | "qelim (Imp p q) = (\<lambda>qe. imp (qelim p qe) (qelim q qe))"
 | "qelim (Iff p q) = (\<lambda>qe. iff (qelim p qe) (qelim q qe))"
 | "qelim p = (\<lambda>y. simpfm p)"
-  by pat_completeness auto
-termination by (relation "measure fmsize") auto
 
 lemma qelim_ci:
   assumes qe_inv: "\<forall>bs p. qfree p \<longrightarrow> qfree (qe p) \<and> Ifm bbs bs (qe p) = Ifm bbs bs (E p)"
@@ -990,7 +995,7 @@ where
 lemma zlin_qfree: "iszlfm p \<Longrightarrow> qfree p"
   by (induct p rule: iszlfm.induct) auto
 
-function (sequential) zlfm :: "fm \<Rightarrow> fm"  \<comment> \<open>Linearity transformation for fm\<close>
+fun zlfm :: "fm \<Rightarrow> fm"  \<comment> \<open>Linearity transformation for fm\<close>
 where
   "zlfm (And p q) = And (zlfm p) (zlfm q)"
 | "zlfm (Or p q) = Or (zlfm p) (zlfm q)"
@@ -1058,10 +1063,6 @@ where
 | "zlfm (NOT (Closed P)) = NClosed P"
 | "zlfm (NOT (NClosed P)) = Closed P"
 | "zlfm p = p"
-  by pat_completeness auto
-
-termination
-  by (relation "measure fmsize") (simp_all add: fmsize_pos)
 
 lemma zlfm_I:
   assumes qfp: "qfree p"
