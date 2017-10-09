@@ -20,6 +20,27 @@ class euclidean_semiring = semidom_modulo +
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (a * b)"
 begin
 
+lemma euclidean_size_eq_0_iff [simp]:
+  "euclidean_size b = 0 \<longleftrightarrow> b = 0"
+proof
+  assume "b = 0"
+  then show "euclidean_size b = 0"
+    by simp
+next
+  assume "euclidean_size b = 0"
+  show "b = 0"
+  proof (rule ccontr)
+    assume "b \<noteq> 0"
+    with mod_size_less have "euclidean_size (b mod b) < euclidean_size b" .
+    with \<open>euclidean_size b = 0\<close> show False
+      by simp
+  qed
+qed
+
+lemma euclidean_size_greater_0_iff [simp]:
+  "euclidean_size b > 0 \<longleftrightarrow> b \<noteq> 0"
+  using euclidean_size_eq_0_iff [symmetric, of b] by safe simp
+
 lemma size_mult_mono': "b \<noteq> 0 \<Longrightarrow> euclidean_size a \<le> euclidean_size (b * a)"
   by (subst mult.commute) (rule size_mult_mono)
 
@@ -108,7 +129,7 @@ end
 
 class euclidean_ring = idom_modulo + euclidean_semiring
 
-  
+
 subsection \<open>Euclidean (semi)rings with cancel rules\<close>
 
 class euclidean_semiring_cancel = euclidean_semiring +
@@ -506,10 +527,7 @@ end
 subsection \<open>Uniquely determined division\<close>
   
 class unique_euclidean_semiring = euclidean_semiring + 
-  assumes size_mono_mult:
-    "b \<noteq> 0 \<Longrightarrow> euclidean_size a < euclidean_size c
-      \<Longrightarrow> euclidean_size (a * b) < euclidean_size (c * b)"
-    -- \<open>FIXME justify\<close>
+  assumes euclidean_size_mult: "euclidean_size (a * b) = euclidean_size a * euclidean_size b"
   fixes division_segment :: "'a \<Rightarrow> 'a"
   assumes is_unit_division_segment [simp]: "is_unit (division_segment a)"
     and division_segment_mult:
@@ -625,7 +643,7 @@ next
     from remainder \<open>c \<noteq> 0\<close>
     have "division_segment (r * c) = division_segment (b * c)"
       and "euclidean_size (r * c) < euclidean_size (b * c)"
-      by (simp_all add: division_segment_mult division_segment_mod size_mono_mult)
+      by (simp_all add: division_segment_mult division_segment_mod euclidean_size_mult)
     with remainder show ?thesis
       by (auto intro!: div_eqI [of _ "c * (a mod b)"] simp add: algebra_simps)
         (use \<open>b * c \<noteq> 0\<close> in simp)

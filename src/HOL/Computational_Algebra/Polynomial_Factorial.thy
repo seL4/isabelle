@@ -759,8 +759,8 @@ instance proof
     with that show ?thesis
       by (cases "r = 0") (simp_all add: euclidean_size_poly_def div_poly_less ac_simps)
   qed
-qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq intro!: degree_mod_less' degree_mult_right_le
-    split: if_splits)
+qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degree_mult_eq power_add
+    intro!: degree_mod_less' split: if_splits)
 
 end
 

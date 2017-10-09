@@ -135,15 +135,7 @@ next
     show "euclidean_size (a mod 2) \<le> 1"
       using mod_size_less [of 2 a] by simp
     show "1 \<le> euclidean_size (a mod 2)"
-    proof (rule ccontr)
-      assume "\<not> 1 \<le> euclidean_size (a mod 2)"
-      then have "euclidean_size (a mod 2) = 0"
-        by simp
-      then have "division_segment (a mod 2) * of_nat (euclidean_size (a mod 2)) = division_segment (a mod 2) * of_nat 0"
-        by simp
-      with \<open>odd a\<close> show False
-        by (simp add: dvd_eq_mod_eq_0)
-    qed
+      using \<open>odd a\<close> by (simp add: Suc_le_eq dvd_eq_mod_eq_0)
   qed 
   from \<open>odd a\<close> have "\<not> of_nat 2 dvd division_segment a * of_nat (euclidean_size a)"
     by simp
