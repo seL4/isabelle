@@ -1164,16 +1164,40 @@ apply (subgoal_tac "nat x div nat k < nat x")
 apply (rule div_less_dividend, simp_all)
 done
 
-lemma nat_mod_eq_lemma: assumes xyn: "(x::nat) mod n = y mod n" and xy:"y \<le> x"
-  shows "\<exists>q. x = y + n * q"
-proof-
-  from xy have th: "int x - int y = int (x - y)" by simp
-  from xyn have "int x mod int n = int y mod int n"
-    by (simp add: zmod_int [symmetric])
-  hence "int n dvd int x - int y" by (simp only: mod_eq_dvd_iff [symmetric])
-  hence "n dvd x - y" by (simp add: th zdvd_int)
-  then show ?thesis using xy unfolding dvd_def apply clarsimp apply (rule_tac x="k" in exI) by arith
+lemma mod_eq_dvd_iff_nat:
+  "m mod q = n mod q \<longleftrightarrow> q dvd m - n" if "m \<ge> n" for m n q :: nat
+proof -
+  have "int m mod int q = int n mod int q \<longleftrightarrow> int q dvd int m - int n"
+    by (simp add: mod_eq_dvd_iff)
+  with that have "int (m mod q) = int (n mod q) \<longleftrightarrow> int q dvd int (m - n)"
+    by (simp only: of_nat_mod of_nat_diff)
+  then show ?thesis
+    by (simp add: zdvd_int)
 qed
+
+lemma mod_eq_nat1E:
+  fixes m n q :: nat
+  assumes "m mod q = n mod q" and "m \<ge> n"
+  obtains s where "m = n + q * s"
+proof -
+  from assms have "q dvd m - n"
+    by (simp add: mod_eq_dvd_iff_nat)
+  then obtain s where "m - n = q * s" ..
+  with \<open>m \<ge> n\<close> have "m = n + q * s"
+    by simp
+  with that show thesis .
+qed
+
+lemma mod_eq_nat2E:
+  fixes m n q :: nat
+  assumes "m mod q = n mod q" and "n \<ge> m"
+  obtains s where "n = m + q * s"
+  using assms mod_eq_nat1E [of n q m] by (auto simp add: ac_simps)
+
+lemma nat_mod_eq_lemma:
+  assumes "(x::nat) mod n = y mod n" and "y \<le> x"
+  shows "\<exists>q. x = y + n * q"
+  using assms by (rule mod_eq_nat1E) rule
 
 lemma nat_mod_eq_iff: "(x::nat) mod n = y mod n \<longleftrightarrow> (\<exists>q1 q2. x + n * q1 = y + n * q2)"
   (is "?lhs = ?rhs")

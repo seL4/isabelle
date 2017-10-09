@@ -318,9 +318,8 @@ lemma cong_less_unique_int: "0 < m \<Longrightarrow> (\<exists>!b. 0 \<le> b \<a
 
 lemma cong_iff_lin_int: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k. b = a + m * k)"
   for a b :: int
-  apply (auto simp add: cong_altdef_int dvd_def)
-  apply (rule_tac [!] x = "-k" in exI, auto)
-  done
+  by (auto simp add: cong_altdef_int algebra_simps elim!: dvdE)
+    (simp add: distrib_right [symmetric] add_eq_0_iff)
 
 lemma cong_iff_lin_nat: "([a = b] (mod m)) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
   (is "?lhs = ?rhs")
@@ -512,7 +511,7 @@ lemma cong_to_1'_nat: "[a = 1] (mod n) \<longleftrightarrow> a = 0 \<and> n = 1 
 
 lemma cong_le_nat: "y \<le> x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (\<exists>q. x = q * n + y)"
   for x y :: nat
-  by (metis cong_altdef_nat Nat.le_imp_diff_is_add dvd_def mult.commute)
+  by (auto simp add: cong_altdef_nat le_imp_diff_is_add elim!: dvdE)
 
 lemma cong_solve_nat:
   fixes a :: nat

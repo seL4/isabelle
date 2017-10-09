@@ -58,6 +58,9 @@ begin
 declare [[coercion int]]
 declare [[coercion_enabled]]
 
+lemma Suc_0_not_prime_nat [simp]: "\<not> prime (Suc 0)"
+  using not_prime_1 [where ?'a = nat] by simp
+
 lemma prime_elem_nat_iff:
   "prime_elem (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
 proof safe
@@ -97,8 +100,16 @@ lemma prime_elem_nat_int_transfer [simp]: "prime_elem (int n) \<longleftrightarr
 lemma prime_nat_int_transfer [simp]: "prime (int n) \<longleftrightarrow> prime n"
   by (auto simp: prime_elem_int_nat_transfer prime_def)
 
-lemma prime_int_nat_transfer: "prime (n::int) \<longleftrightarrow> n \<ge> 0 \<and> prime (nat n)"
+lemma prime_int_nat_transfer: "prime (k::int) \<longleftrightarrow> k \<ge> 0 \<and> prime (nat k)"
   by (auto simp: prime_elem_int_nat_transfer prime_def)
+
+lemma prime_elem_iff_prime_abs:
+  "prime_elem k \<longleftrightarrow> prime \<bar>k\<bar>" for k :: int
+  by (auto intro: primeI)
+
+lemma prime_nat_iff_prime:
+  "prime (nat k) \<longleftrightarrow> prime k"
+  by (cases "k \<ge> 0") (simp_all add: prime_int_nat_transfer)
 
 lemma prime_int_iff:
   "prime (n::int) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m \<ge> 0 \<and> m dvd n \<longrightarrow> m = 1 \<or> m = n))"
@@ -258,9 +269,6 @@ qed
 
 
 subsubsection \<open>Make prime naively executable\<close>
-
-lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
-  unfolding One_nat_def [symmetric] by (rule not_prime_1)
 
 lemma prime_nat_iff':
   "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. ~ n dvd p)"

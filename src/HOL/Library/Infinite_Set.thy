@@ -64,7 +64,12 @@ subsection \<open>The set of integers is also infinite\<close>
 
 lemma infinite_int_iff_infinite_nat_abs: "infinite S \<longleftrightarrow> infinite ((nat \<circ> abs) ` S)"
   for S :: "int set"
-  by (auto simp: transfer_nat_int_set_relations o_def image_comp dest: finite_image_absD)
+proof -
+  have "inj_on nat (abs ` A)" for A
+    by (rule inj_onI) auto
+  then show ?thesis
+    by (auto simp add: image_comp [symmetric] dest: finite_image_absD finite_imageD)
+qed
 
 proposition infinite_int_iff_unbounded_le: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> \<ge> m \<and> n \<in> S)"
   for S :: "int set"
@@ -181,7 +186,7 @@ lemma MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
   by (simp_all add: MOST_Suc_iff)
 
 lemma MOST_ge_nat: "MOST n::nat. m \<le> n"
-  by (simp add: cofinite_eq_sequentially eventually_ge_at_top)
+  by (simp add: cofinite_eq_sequentially)
 
 (* legacy names *)
 lemma Inf_many_def: "Inf_many P \<longleftrightarrow> infinite {x. P x}" by (fact frequently_cofinite)

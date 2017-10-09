@@ -488,6 +488,18 @@ next
   then show ?P by simp
 qed
 
+lemma mod_eqE:
+  assumes "a mod c = b mod c"
+  obtains d where "b = a + c * d"
+proof -
+  from assms have "c dvd a - b"
+    by (simp add: mod_eq_dvd_iff)
+  then obtain d where "a - b = c * d" ..
+  then have "b = a + c * - d"
+    by (simp add: algebra_simps)
+  with that show thesis .
+qed
+
 end
 
   

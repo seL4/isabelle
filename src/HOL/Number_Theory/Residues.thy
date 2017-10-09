@@ -222,12 +222,11 @@ begin
 
 lemma is_field: "field R"
 proof -
-  have "gcd x (int p) \<noteq> 1 \<Longrightarrow> 0 \<le> x \<Longrightarrow> x < int p \<Longrightarrow> x = 0" for x
-    by (metis dual_order.order_iff_strict gcd.commute less_le_not_le p_prime prime_imp_coprime prime_nat_int_transfer zdvd_imp_le)
+  have "0 < x \<Longrightarrow> x < int p \<Longrightarrow> coprime (int p) x" for x
+    by (rule prime_imp_coprime) (auto simp add: zdvd_not_zless)
   then show ?thesis
-    apply (intro cring.field_intro2 cring)
-     apply (auto simp add: res_carrier_eq res_one_eq res_zero_eq res_units_eq)
-    done
+    by (intro cring.field_intro2 cring)
+      (auto simp add: res_carrier_eq res_one_eq res_zero_eq res_units_eq ac_simps)
 qed
 
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
@@ -256,7 +255,7 @@ proof -
     by (simp_all add: m'_def)
   then have "x \<in> Units R \<longleftrightarrow> x \<in> int ` totatives m'" for x
     unfolding res_units_eq
-    by (cases x; cases "x = m") (auto simp: totatives_def transfer_int_nat_gcd)
+    by (cases x; cases "x = m") (auto simp: totatives_def gcd_int_def)
   then have "Units R = int ` totatives m'"
     by blast
   then have "totatives m' = nat ` Units R"
@@ -293,7 +292,7 @@ next
   case False
   with assms show ?thesis
     using residues.euler_theorem [of "int m" "int a"] transfer_int_nat_cong
-    by (auto simp add: residues_def transfer_int_nat_gcd(1)) force
+    by (auto simp add: residues_def gcd_int_def) force
 qed
 
 lemma fermat_theorem:
@@ -418,7 +417,7 @@ proof -
       using that \<open>p\<ge>2\<close> by force
     then show "?L \<subseteq> ?R" by blast
     have "n \<in> ?L" if "n \<in> ?R" for n
-      using that \<open>p\<ge>2\<close> Set_Interval.transfer_nat_int_set_functions(2) by fastforce
+      using that \<open>p\<ge>2\<close> by (auto intro: rev_image_eqI [of "int n"])
     then show "?R \<subseteq> ?L" by blast
   qed
   moreover

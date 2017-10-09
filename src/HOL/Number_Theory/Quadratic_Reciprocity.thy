@@ -46,7 +46,7 @@ lemma pq_coprime: "coprime p q"
   using pq_neq p_prime primes_coprime_nat q_prime by blast
 
 lemma pq_coprime_int: "coprime (int p) (int q)"
-  using pq_coprime transfer_int_nat_gcd(1) by presburger
+  by (simp add: gcd_int_def pq_coprime)
 
 lemma qp_ineq: "int p * k \<le> (int p * int q - 1) div 2 \<longleftrightarrow> k \<le> (int q - 1) div 2"
 proof -
