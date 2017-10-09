@@ -10751,7 +10751,7 @@ proof -
   then show ?thesis by blast
 qed
 
-lemma clconnected_closedin_eqosed_imp_fip_compact:
+lemma closed_imp_fip_compact:
   fixes S :: "'a::heine_borel set"
   shows
    "\<lbrakk>closed S; \<And>T. T \<in> \<F> \<Longrightarrow> compact T;
