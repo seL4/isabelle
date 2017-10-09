@@ -198,7 +198,7 @@ object Build
       }
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph)
+    isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {

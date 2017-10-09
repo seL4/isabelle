@@ -116,7 +116,7 @@ object Sessions
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
     sources: List[(Path, SHA1.Digest)] = Nil,
-    session_graph: Graph_Display.Graph = Graph_Display.empty_graph,
+    session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil,
     imports: Option[Base] = None)
   {
@@ -253,7 +253,7 @@ object Sessions
                 progress, overall_syntax.keywords, check_keywords, theory_files)
             }
 
-            val session_graph: Graph_Display.Graph =
+            val session_graph_display: Graph_Display.Graph =
             {
               def session_node(name: String): Graph_Display.Node =
                 Graph_Display.Node("[" + name + "]", "session." + name)
@@ -303,7 +303,7 @@ object Sessions
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
-                session_graph = session_graph,
+                session_graph_display = session_graph_display,
                 errors = thy_deps.errors ::: sources_errors,
                 imports = Some(imports_base))
 
