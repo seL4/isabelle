@@ -2241,6 +2241,10 @@ lemma less_minus_iff_1 [simp, no_atp]: "1 < - b \<longleftrightarrow> b < - 1"
 lemma minus_less_iff_1 [simp, no_atp]: "- a < 1 \<longleftrightarrow> - 1 < a"
   by (fact minus_less_iff)
 
+lemma add_less_zeroD:
+  shows "x+y < 0 \<Longrightarrow> x<0 \<or> y<0"
+  by (auto simp: not_less intro: le_less_trans [of _ "x+y"])
+
 end
 
 text \<open>Simprules for comparisons where common factors can be cancelled.\<close>

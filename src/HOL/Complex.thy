@@ -1077,7 +1077,7 @@ lemma legacy_Complex_simps:
     and Complex_mult_complex_of_real: "Complex x y * complex_of_real r = Complex (x*r) (y*r)"
     and complex_of_real_mult_Complex: "complex_of_real r * Complex x y = Complex (r*x) (r*y)"
     and complex_eq_cancel_iff2: "(Complex x y = complex_of_real xa) = (x = xa \<and> y = 0)"
-    and complex_cn: "cnj (Complex a b) = Complex a (- b)"
+    and complex_cnj: "cnj (Complex a b) = Complex a (- b)"
     and Complex_sum': "sum (\<lambda>x. Complex (f x) 0) s = Complex (sum f s) 0"
     and Complex_sum: "Complex (sum f s) 0 = sum (\<lambda>x. Complex (f x) 0) s"
     and complex_of_real_def: "complex_of_real r = Complex r 0"

@@ -1469,17 +1469,14 @@ locale bounded_bilinear =
 begin
 
 lemma pos_bounded: "\<exists>K>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
-  apply (insert bounded)
-  apply (erule exE)
-  apply (rule_tac x="max 1 K" in exI)
-  apply safe
-   apply (rule order_less_le_trans [OF zero_less_one max.cobounded1])
-  apply (drule spec)
-  apply (drule spec)
-  apply (erule order_trans)
-  apply (rule mult_left_mono [OF max.cobounded2])
-  apply (intro mult_nonneg_nonneg norm_ge_zero)
-  done
+proof -
+  obtain K where "\<And>a b. norm (a ** b) \<le> norm a * norm b * K"
+    using bounded by blast
+  then have "norm (a ** b) \<le> norm a * norm b * (max 1 K)" for a b
+    by (rule order.trans) (simp add: mult_left_mono)
+  then show ?thesis
+    by force
+qed
 
 lemma nonneg_bounded: "\<exists>K\<ge>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
   using pos_bounded by (auto intro: order_less_imp_le)

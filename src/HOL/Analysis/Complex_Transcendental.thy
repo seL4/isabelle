@@ -1233,7 +1233,7 @@ lemma continuous_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrighta
 lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on s Ln"
   by (simp add: continuous_at_imp_continuous_on continuous_within_Ln)
 
-lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on s"
+lemma holomorphic_on_Ln [holomorphic_intros]: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on s"
   by (simp add: field_differentiable_within_Ln holomorphic_on_def)
 
 lemma divide_ln_mono:

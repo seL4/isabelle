@@ -820,6 +820,11 @@ lemmas tendsto_mult_left_zero =
 lemmas tendsto_mult_right_zero =
   bounded_bilinear.tendsto_right_zero [OF bounded_bilinear_mult]
 
+lemma tendsto_divide_zero:
+  fixes c :: "'a::real_normed_field"
+  shows "(f \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. f x / c) \<longlongrightarrow> 0) F"
+  by (cases "c=0") (simp_all add: divide_inverse tendsto_mult_left_zero)
+
 lemma tendsto_power [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) \<longlongrightarrow> a ^ n) F"
   for f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
   by (induct n) (simp_all add: tendsto_mult)

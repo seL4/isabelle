@@ -1454,6 +1454,15 @@ proof -
   qed
 qed
 
+corollary Schwarz_Lemma':
+  assumes holf: "f holomorphic_on (ball 0 1)" and [simp]: "f 0 = 0"
+      and no: "\<And>z. norm z < 1 \<Longrightarrow> norm (f z) < 1"
+    shows "((\<forall>\<xi>. norm \<xi> < 1 \<longrightarrow> norm (f \<xi>) \<le> norm \<xi>) \<and> norm(deriv f 0) \<le> 1) \<and>
+           (((\<exists>z. norm z < 1 \<and> z \<noteq> 0 \<and> norm(f z) = norm z) \<or> norm(deriv f 0) = 1)
+           \<longrightarrow> (\<exists>\<alpha>. (\<forall>z. norm z < 1 \<longrightarrow> f z = \<alpha> * z) \<and> norm \<alpha> = 1))"
+  using Schwarz_Lemma [OF assms]
+  by (metis (no_types) norm_eq_zero zero_less_one)
+
 subsection\<open>The Schwarz reflection principle\<close>
 
 lemma hol_pal_lem0:

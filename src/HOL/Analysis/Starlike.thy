@@ -3776,24 +3776,6 @@ qed simp
 
 subsection\<open>Explicit formulas for interior and relative interior of convex hull\<close>
 
-lemma interior_atLeastAtMost [simp]:
-  fixes a::real shows "interior {a..b} = {a<..<b}"
-  using interior_cbox [of a b] by auto
-
-lemma interior_atLeastLessThan [simp]:
-  fixes a::real shows "interior {a..<b} = {a<..<b}"
-  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost interior_Int interior_interior interior_real_semiline)
-
-lemma interior_lessThanAtMost [simp]:
-  fixes a::real shows "interior {a<..b} = {a<..<b}"
-  by (metis atLeastAtMost_def greaterThanAtMost_def interior_atLeastAtMost interior_Int
-            interior_interior interior_real_semiline)
-
-lemma at_within_closed_interval:
-    fixes x::real
-    shows "a < x \<Longrightarrow> x < b \<Longrightarrow> (at x within {a..b}) = at x"
-  by (metis at_within_interior greaterThanLessThan_iff interior_atLeastAtMost)
-
 lemma at_within_cbox_finite:
   assumes "x \<in> box a b" "x \<notin> S" "finite S"
   shows "(at x within cbox a b - S) = at x"
@@ -5087,7 +5069,6 @@ lemma separation_normal:
 using separation_closures [of S T]
 by (metis assms closure_closed disjnt_def inf_commute)
 
-
 lemma separation_normal_local:
   fixes S :: "'a::euclidean_space set"
   assumes US: "closedin (subtopology euclidean U) S"
@@ -5146,6 +5127,139 @@ proof -
     apply (rule_tac U=U and V=V in that)
     by auto (meson bounded_ball bounded_subset compl_le_swap2 disjoint_eq_subset_Compl)
 qed
+
+subsection\<open>Connectedness of the intersection of a chain\<close>
+
+proposition connected_chain:
+  fixes \<F> :: "'a :: euclidean_space set set"
+  assumes cc: "\<And>S. S \<in> \<F> \<Longrightarrow> compact S \<and> connected S"
+      and linear: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+  shows "connected(\<Inter>\<F>)"
+proof (cases "\<F> = {}")
+  case True then show ?thesis
+    by auto
+next
+  case False
+  then have cf: "compact(\<Inter>\<F>)"
+    by (simp add: cc compact_Inter)
+  have False if AB: "closed A" "closed B" "A \<inter> B = {}"
+                and ABeq: "A \<union> B = \<Inter>\<F>" and "A \<noteq> {}" "B \<noteq> {}" for A B
+  proof -
+    obtain U V where "open U" "open V" "A \<subseteq> U" "B \<subseteq> V" "U \<inter> V = {}"
+      using separation_normal [OF AB] by metis
+    obtain K where "K \<in> \<F>" "compact K"
+      using cc False by blast
+    then obtain N where "open N" and "K \<subseteq> N"
+      by blast
+    let ?\<C> = "insert (U \<union> V) ((\<lambda>S. N - S) ` \<F>)"
+    obtain \<D> where "\<D> \<subseteq> ?\<C>" "finite \<D>" "K \<subseteq> \<Union>\<D>"
+    proof (rule compactE [OF \<open>compact K\<close>])
+      show "K \<subseteq> \<Union>insert (U \<union> V) (op - N ` \<F>)"
+        using \<open>K \<subseteq> N\<close> ABeq \<open>A \<subseteq> U\<close> \<open>B \<subseteq> V\<close> by auto
+      show "\<And>B. B \<in> insert (U \<union> V) (op - N ` \<F>) \<Longrightarrow> open B"
+        by (auto simp:  \<open>open U\<close> \<open>open V\<close> open_Un \<open>open N\<close> cc compact_imp_closed open_Diff)
+    qed
+    then have "finite(\<D> - {U \<union> V})"
+      by blast
+    moreover have "\<D> - {U \<union> V} \<subseteq> (\<lambda>S. N - S) ` \<F>"
+      using \<open>\<D> \<subseteq> ?\<C>\<close> by blast
+    ultimately obtain \<G> where "\<G> \<subseteq> \<F>" "finite \<G>" and Deq: "\<D> - {U \<union> V} = (\<lambda>S. N-S) ` \<G>"
+      using finite_subset_image by metis
+    obtain J where "J \<in> \<F>" and J: "(\<Union>S\<in>\<G>. N - S) \<subseteq> N - J"
+    proof (cases "\<G> = {}")
+      case True
+      with \<open>\<F> \<noteq> {}\<close> that show ?thesis
+        by auto
+    next
+      case False
+      have "\<And>S T. \<lbrakk>S \<in> \<G>; T \<in> \<G>\<rbrakk> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+        by (meson \<open>\<G> \<subseteq> \<F>\<close> in_mono local.linear)
+      with \<open>finite \<G>\<close> \<open>\<G> \<noteq> {}\<close>
+      have "\<exists>J \<in> \<G>. (\<Union>S\<in>\<G>. N - S) \<subseteq> N - J"
+      proof induction
+        case (insert X \<H>)
+        show ?case
+        proof (cases "\<H> = {}")
+          case True then show ?thesis by auto
+        next
+          case False
+          then have "\<And>S T. \<lbrakk>S \<in> \<H>; T \<in> \<H>\<rbrakk> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+            by (simp add: insert.prems)
+          with insert.IH False obtain J where "J \<in> \<H>" and J: "(\<Union>Y\<in>\<H>. N - Y) \<subseteq> N - J"
+            by metis
+          have "N - J \<subseteq> N - X \<or> N - X \<subseteq> N - J"
+            by (meson Diff_mono \<open>J \<in> \<H>\<close> insert.prems(2) insert_iff order_refl)
+          then show ?thesis
+          proof
+            assume "N - J \<subseteq> N - X" with J show ?thesis
+              by auto
+          next
+            assume "N - X \<subseteq> N - J"
+            with J have "N - X \<union> UNION \<H> (op - N) \<subseteq> N - J"
+              by auto
+            with \<open>J \<in> \<H>\<close> show ?thesis
+              by blast
+          qed
+        qed
+      qed simp
+      with \<open>\<G> \<subseteq> \<F>\<close> show ?thesis by (blast intro: that)
+    qed
+    have "K \<subseteq> \<Union>(insert (U \<union> V) (\<D> - {U \<union> V}))"
+      using \<open>K \<subseteq> \<Union>\<D>\<close> by auto
+    also have "... \<subseteq> (U \<union> V) \<union> (N - J)"
+      by (metis (no_types, hide_lams) Deq Un_subset_iff Un_upper2 J Union_insert order_trans sup_ge1)
+    finally have "J \<inter> K \<subseteq> U \<union> V"
+      by blast
+    moreover have "connected(J \<inter> K)"
+      by (metis Int_absorb1 \<open>J \<in> \<F>\<close> \<open>K \<in> \<F>\<close> cc inf.orderE local.linear)
+    moreover have "U \<inter> (J \<inter> K) \<noteq> {}"
+      using ABeq \<open>J \<in> \<F>\<close> \<open>K \<in> \<F>\<close> \<open>A \<noteq> {}\<close> \<open>A \<subseteq> U\<close> by blast
+    moreover have "V \<inter> (J \<inter> K) \<noteq> {}"
+      using ABeq \<open>J \<in> \<F>\<close> \<open>K \<in> \<F>\<close> \<open>B \<noteq> {}\<close> \<open>B \<subseteq> V\<close> by blast
+    ultimately show False
+        using connectedD [of "J \<inter> K" U V] \<open>open U\<close> \<open>open V\<close> \<open>U \<inter> V = {}\<close>  by auto
+  qed
+  with cf show ?thesis
+    by (auto simp: connected_closed_set compact_imp_closed)
+qed
+
+lemma connected_chain_gen:
+  fixes \<F> :: "'a :: euclidean_space set set"
+  assumes X: "X \<in> \<F>" "compact X"
+      and cc: "\<And>T. T \<in> \<F> \<Longrightarrow> closed T \<and> connected T"
+      and linear: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+  shows "connected(\<Inter>\<F>)"
+proof -
+  have "\<Inter>\<F> = (\<Inter>T\<in>\<F>. X \<inter> T)"
+    using X by blast
+  moreover have "connected (\<Inter>T\<in>\<F>. X \<inter> T)"
+  proof (rule connected_chain)
+    show "\<And>T. T \<in> op \<inter> X ` \<F> \<Longrightarrow> compact T \<and> connected T"
+      using cc X by auto (metis inf.absorb2 inf.orderE local.linear)
+    show "\<And>S T. S \<in> op \<inter> X ` \<F> \<and> T \<in> op \<inter> X ` \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+      using local.linear by blast
+  qed
+  ultimately show ?thesis
+    by metis
+qed
+
+lemma connected_nest:
+  fixes S :: "'a::linorder \<Rightarrow> 'b::euclidean_space set"
+  assumes S: "\<And>n. compact(S n)" "\<And>n. connected(S n)"
+    and nest: "\<And>m n. m \<le> n \<Longrightarrow> S n \<subseteq> S m"
+  shows "connected(\<Inter> (range S))"
+  apply (rule connected_chain)
+  using S apply blast
+  by (metis image_iff le_cases nest)
+
+lemma connected_nest_gen:
+  fixes S :: "'a::linorder \<Rightarrow> 'b::euclidean_space set"
+  assumes S: "\<And>n. closed(S n)" "\<And>n. connected(S n)" "compact(S k)"
+    and nest: "\<And>m n. m \<le> n \<Longrightarrow> S n \<subseteq> S m"
+  shows "connected(\<Inter> (range S))"
+  apply (rule connected_chain_gen [of "S k"])
+  using S apply auto
+  by (meson le_cases nest subsetCE)
 
 subsection\<open>Proper maps, including projections out of compact sets\<close>
 

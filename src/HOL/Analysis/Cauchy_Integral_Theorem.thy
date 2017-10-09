@@ -180,7 +180,7 @@ proof -
         have "f differentiable at x within ({a<..<c} - s)"
           apply (rule differentiable_at_withinI)
           using x le st
-          by (metis (no_types, lifting) DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost le st(3) x)
+          by (metis (no_types, lifting) DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost_real le st(3) x)
         moreover have "open ({a<..<c} - s)"
           by (blast intro: open_greaterThanLessThan \<open>finite s\<close> finite_imp_closed)
         ultimately show "f differentiable at x within {a..b}"
@@ -192,7 +192,7 @@ proof -
         have "g differentiable at x within ({c<..<b} - t)"
           apply (rule differentiable_at_withinI)
           using x ge st
-          by (metis DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost)
+          by (metis DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost_real)
         moreover have "open ({c<..<b} - t)"
           by (blast intro: open_greaterThanLessThan \<open>finite t\<close> finite_imp_closed)
         ultimately show "g differentiable at x within {a..b}"
@@ -1446,7 +1446,7 @@ proof -
   show ?thesis
     apply (rule fundamental_theorem_of_calculus_interior_strong)
     using k assms cfg *
-    apply (auto simp: at_within_closed_interval)
+    apply (auto simp: at_within_Icc_at)
     done
 qed
 
@@ -4158,7 +4158,7 @@ qed
 
 subsection\<open>Winding number is zero "outside" a curve, in various senses\<close>
 
-lemma winding_number_zero_in_outside:
+proposition winding_number_zero_in_outside:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and z: "z \<in> outside (path_image \<gamma>)"
     shows "winding_number \<gamma> z = 0"
 proof -
@@ -4210,7 +4210,11 @@ proof -
   finally show ?thesis .
 qed
 
-lemma winding_number_zero_outside:
+corollary winding_number_zero_const: "a \<noteq> z \<Longrightarrow> winding_number (\<lambda>t. a) z = 0"
+  by (rule winding_number_zero_in_outside)
+     (auto simp: pathfinish_def pathstart_def path_polynomial_function)
+
+corollary winding_number_zero_outside:
     "\<lbrakk>path \<gamma>; convex s; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> s; path_image \<gamma> \<subseteq> s\<rbrakk> \<Longrightarrow> winding_number \<gamma> z = 0"
   by (meson convex_in_outside outside_mono subsetCE winding_number_zero_in_outside)
 

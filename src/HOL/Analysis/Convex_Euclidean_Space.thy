@@ -4696,6 +4696,15 @@ proof-
   finally show ?thesis .
 qed
 
+lemma interior_atLeastLessThan [simp]:
+  fixes a::real shows "interior {a..<b} = {a<..<b}"
+  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost_real interior_Int interior_interior interior_real_semiline)
+
+lemma interior_lessThanAtMost [simp]:
+  fixes a::real shows "interior {a<..b} = {a<..<b}"
+  by (metis atLeastAtMost_def greaterThanAtMost_def interior_atLeastAtMost_real interior_Int
+            interior_interior interior_real_semiline)
+
 lemma interior_greaterThanLessThan_real [simp]: "interior {a<..<b} = {a<..<b :: real}"
   by (metis interior_atLeastAtMost_real interior_interior)
 

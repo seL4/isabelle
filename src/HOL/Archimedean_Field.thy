@@ -526,7 +526,8 @@ corollary finite_abs_int_segment:
   shows "finite {k \<in> \<int>. \<bar>k\<bar> \<le> a}" 
   using finite_int_segment [of "-a" a] by (auto simp add: abs_le_iff conj_commute minus_le_iff)
 
-text \<open>Ceiling with numerals.\<close>
+
+subsubsection \<open>Ceiling with numerals.\<close>
 
 lemma ceiling_zero [simp]: "\<lceil>0\<rceil> = 0"
   using ceiling_of_int [of 0] by simp
@@ -595,7 +596,7 @@ lemma floor_le_ceiling [simp]: "\<lfloor>x\<rfloor> \<le> \<lceil>x\<rceil>"
   by (simp add: ceiling_altdef)
 
 
-text \<open>Addition and subtraction of integers.\<close>
+subsubsection \<open>Addition and subtraction of integers.\<close>
 
 lemma ceiling_add_of_int [simp]: "\<lceil>x + of_int z\<rceil> = \<lceil>x\<rceil> + z"
   using ceiling_correct [of x] by (simp add: ceiling_def)
@@ -630,6 +631,24 @@ proof -
     unfolding of_int_less_iff by simp
 qed
 
+lemma nat_approx_posE:
+  fixes e:: "'a::{archimedean_field,floor_ceiling}"
+  assumes "0 < e"
+  obtains n :: nat where "1 / of_nat(Suc n) < e"
+proof 
+  have "(1::'a) / of_nat (Suc (nat \<lceil>1/e\<rceil>)) < 1 / of_int (\<lceil>1/e\<rceil>)"
+  proof (rule divide_strict_left_mono)
+    show "(of_int \<lceil>1 / e\<rceil>::'a) < of_nat (Suc (nat \<lceil>1 / e\<rceil>))"
+      using assms by (simp add: field_simps)
+    show "(0::'a) < of_nat (Suc (nat \<lceil>1 / e\<rceil>)) * of_int \<lceil>1 / e\<rceil>"
+      using assms by (auto simp: zero_less_mult_iff pos_add_strict)
+  qed auto
+  also have "1 / of_int (\<lceil>1/e\<rceil>) \<le> 1 / (1/e)"
+    by (rule divide_left_mono) (auto simp: \<open>0 < e\<close> ceiling_correct)
+  also have "\<dots> = e" by simp
+  finally show  "1 / of_nat (Suc (nat \<lceil>1 / e\<rceil>)) < e"
+    by metis 
+qed
 
 subsection \<open>Negation\<close>
 

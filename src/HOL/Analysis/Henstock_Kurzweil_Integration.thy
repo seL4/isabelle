@@ -6467,7 +6467,7 @@ proof -
   qed
   have deriv: "(?F has_vector_derivative g' x *\<^sub>R f (g x))
                   (at x)" if "x \<in> {a..b} - (s \<union> {a,b})" for x
-    using deriv[of x] that by (simp add: at_within_closed_interval o_def)
+    using deriv[of x] that by (simp add: at_within_Icc_at o_def)
   have "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (?F b - ?F a)) {a..b}"
     using le cont_int s deriv cont_int
     by (intro fundamental_theorem_of_calculus_interior_strong[of "s \<union> {a,b}"]) simp_all

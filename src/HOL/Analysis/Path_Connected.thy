@@ -166,6 +166,9 @@ lemma arc_simple_path: "arc g \<longleftrightarrow> simple_path g \<and> pathfin
 lemma simple_path_eq_arc: "pathfinish g \<noteq> pathstart g \<Longrightarrow> (simple_path g = arc g)"
   by (simp add: arc_simple_path)
 
+lemma path_image_const [simp]: "path_image (\<lambda>t. a) = {a}"
+  by (force simp: path_image_def)
+
 lemma path_image_nonempty [simp]: "path_image g \<noteq> {}"
   unfolding path_image_def image_is_empty box_eq_empty
   by auto
@@ -1511,13 +1514,7 @@ lemma convex_imp_path_connected:
   assumes "convex s"
   shows "path_connected s"
   unfolding path_connected_def
-  apply rule
-  apply rule
-  apply (rule_tac x = "linepath x y" in exI)
-  unfolding path_image_linepath
-  using assms [unfolded convex_contains_segment]
-  apply auto
-  done
+  using assms convex_contains_segment by fastforce
 
 lemma path_connected_UNIV [iff]: "path_connected (UNIV :: 'a::real_normed_vector set)"
   by (simp add: convex_imp_path_connected)
@@ -1528,13 +1525,7 @@ lemma path_component_UNIV: "path_component_set UNIV x = (UNIV :: 'a::real_normed
 lemma path_connected_imp_connected:
   assumes "path_connected S"
   shows "connected S"
-  unfolding connected_def not_ex
-  apply rule
-  apply rule
-  apply (rule ccontr)
-  unfolding not_not
-  apply (elim conjE)
-proof -
+proof (rule connectedI)
   fix e1 e2
   assume as: "open e1" "open e2" "S \<subseteq> e1 \<union> e2" "e1 \<inter> e2 \<inter> S = {}" "e1 \<inter> S \<noteq> {}" "e2 \<inter> S \<noteq> {}"
   then obtain x1 x2 where obt:"x1 \<in> e1 \<inter> S" "x2 \<in> e2 \<inter> S"
@@ -1570,31 +1561,14 @@ proof
   fix y
   assume as: "y \<in> path_component_set S x"
   then have "y \<in> S"
-    apply -
-    apply (rule path_component_mem(2))
-    unfolding mem_Collect_eq
-    apply auto
-    done
+    by (simp add: path_component_mem(2))
   then obtain e where e: "e > 0" "ball y e \<subseteq> S"
     using assms[unfolded open_contains_ball]
     by auto
-  show "\<exists>e > 0. ball y e \<subseteq> path_component_set S x"
-    apply (rule_tac x=e in exI)
-    apply (rule,rule \<open>e>0\<close>)
-    apply rule
-    unfolding mem_ball mem_Collect_eq
-  proof -
-    fix z
-    assume "dist y z < e"
-    then show "path_component S x z"
-      apply (rule_tac path_component_trans[of _ _ y])
-      defer
-      apply (rule path_component_of_subset[OF e(2)])
-      apply (rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format])
-      using \<open>e > 0\<close> as
-      apply auto
-      done
-  qed
+have "\<And>u. dist y u < e \<Longrightarrow> path_component S x u"
+      by (metis (full_types) as centre_in_ball convex_ball convex_imp_path_connected e mem_Collect_eq mem_ball path_component_eq path_component_of_subset path_connected_component)
+  then show "\<exists>e > 0. ball y e \<subseteq> path_component_set S x"
+    using \<open>e>0\<close> by auto
 qed
 
 lemma open_non_path_component:
@@ -1904,6 +1878,8 @@ lemma is_interval_path_connected_1:
 using is_interval_connected_1 is_interval_path_connected path_connected_imp_connected by blast
 
 
+subsection\<open>Path components\<close>
+
 lemma Union_path_component [simp]:
    "Union {path_component_set S x |x. x \<in> S} = S"
 apply (rule subset_antisym)
@@ -2151,7 +2127,6 @@ next
     by (auto simp: path_connected_component)
 qed
 
-
 lemma connected_complement_bounded_convex:
     fixes s :: "'a :: euclidean_space set"
     assumes "bounded s" "convex s" "2 \<le> DIM('a)"
@@ -2298,6 +2273,65 @@ proof -
   ultimately show ?thesis
     by (simp add: CS connected_Un)
 qed
+
+
+subsection\<open>Every annulus is a connected set\<close>
+
+lemma path_connected_2DIM_I:
+  fixes a :: "'N::euclidean_space"
+  assumes 2: "2 \<le> DIM('N)" and pc: "path_connected {r. 0 \<le> r \<and> P r}"
+  shows "path_connected {x. P(norm(x - a))}"
+proof -
+  have "{x. P(norm(x - a))} = op+a ` {x. P(norm x)}"
+    by force
+  moreover have "path_connected {x::'N. P(norm x)}"
+  proof -
+    let ?D = "{x. 0 \<le> x \<and> P x} \<times> sphere (0::'N) 1"
+    have "x \<in> (\<lambda>z. fst z *\<^sub>R snd z) ` ?D"
+      if "P (norm x)" for x::'N
+    proof (cases "x=0")
+      case True
+      with that show ?thesis
+        apply (simp add: image_iff)
+        apply (rule_tac x=0 in exI, simp)
+        using vector_choose_size zero_le_one by blast
+    next
+      case False
+      with that show ?thesis
+        by (rule_tac x="(norm x, x /\<^sub>R norm x)" in image_eqI) auto
+    qed
+    then have *: "{x::'N. P(norm x)} =  (\<lambda>z. fst z *\<^sub>R snd z) ` ?D"
+      by auto
+    have "continuous_on ?D (\<lambda>z:: real\<times>'N. fst z *\<^sub>R snd z)"
+      by (intro continuous_intros)
+    moreover have "path_connected ?D"
+      by (metis path_connected_Times [OF pc] path_connected_sphere 2)
+    ultimately show ?thesis
+      apply (subst *)
+      apply (rule path_connected_continuous_image, auto)
+      done
+  qed
+  ultimately show ?thesis
+    using path_connected_translation by metis
+qed
+
+lemma path_connected_annulus:
+  fixes a :: "'N::euclidean_space"
+  assumes "2 \<le> DIM('N)"
+  shows "path_connected {x. r1 < norm(x - a) \<and> norm(x - a) < r2}"
+        "path_connected {x. r1 < norm(x - a) \<and> norm(x - a) \<le> r2}"
+        "path_connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) < r2}"
+        "path_connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) \<le> r2}"
+  by (auto simp: is_interval_def intro!: is_interval_convex convex_imp_path_connected path_connected_2DIM_I [OF assms])
+
+lemma connected_annulus:
+  fixes a :: "'N::euclidean_space"
+  assumes "2 \<le> DIM('N::euclidean_space)"
+  shows "connected {x. r1 < norm(x - a) \<and> norm(x - a) < r2}"
+        "connected {x. r1 < norm(x - a) \<and> norm(x - a) \<le> r2}"
+        "connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) < r2}"
+        "connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) \<le> r2}"
+  by (auto simp: path_connected_annulus [OF assms] path_connected_imp_connected)
 
 
 subsection\<open>Relations between components and path components\<close>
@@ -2894,10 +2928,20 @@ lemma outside_convex:
     shows "outside s = - s"
   by (metis ComplD assms convex_in_outside equalityI inside_Un_outside subsetI sup.cobounded2)
 
+lemma outside_singleton [simp]:
+  fixes x :: "'a :: {real_normed_vector, perfect_space}"
+  shows "outside {x} = -{x}"
+  by (auto simp: outside_convex)
+
 lemma inside_convex:
   fixes s :: "'a :: {real_normed_vector, perfect_space} set"
   shows "convex s \<Longrightarrow> inside s = {}"
   by (simp add: inside_outside outside_convex)
+
+lemma inside_singleton [simp]:
+  fixes x :: "'a :: {real_normed_vector, perfect_space}"
+  shows "inside {x} = {}"
+  by (auto simp: inside_convex)
 
 lemma outside_subset_convex:
   fixes s :: "'a :: {real_normed_vector, perfect_space} set"
@@ -4117,6 +4161,39 @@ proof -
   qed
   ultimately show ?thesis
     by (blast intro: homotopic_loops_trans)
+qed
+
+lemma homotopic_paths_loop_parts:
+  assumes loops: "homotopic_loops S (p +++ reversepath q) (linepath a a)" and "path q"
+  shows "homotopic_paths S p q"
+proof -
+  have paths: "homotopic_paths S (p +++ reversepath q) (linepath (pathstart p) (pathstart p))"
+    using homotopic_loops_imp_homotopic_paths_null [OF loops] by simp
+  then have "path p"
+    using \<open>path q\<close> homotopic_loops_imp_path loops path_join path_join_path_ends path_reversepath by blast
+  show ?thesis
+  proof (cases "pathfinish p = pathfinish q")
+    case True
+    have pipq: "path_image p \<subseteq> S" "path_image q \<subseteq> S"
+      by (metis Un_subset_iff paths \<open>path p\<close> \<open>path q\<close> homotopic_loops_imp_subset homotopic_paths_imp_path loops
+           path_image_join path_image_reversepath path_imp_reversepath path_join_eq)+
+    have "homotopic_paths S p (p +++ (linepath (pathfinish p) (pathfinish p)))"
+      using \<open>path p\<close> \<open>path_image p \<subseteq> S\<close> homotopic_paths_rid homotopic_paths_sym by blast
+    moreover have "homotopic_paths S (p +++ (linepath (pathfinish p) (pathfinish p))) (p +++ (reversepath q +++ q))"
+      by (simp add: True \<open>path p\<close> \<open>path q\<close> pipq homotopic_paths_join homotopic_paths_linv homotopic_paths_sym)
+    moreover have "homotopic_paths S (p +++ (reversepath q +++ q)) ((p +++ reversepath q) +++ q)"
+      by (simp add: True \<open>path p\<close> \<open>path q\<close> homotopic_paths_assoc pipq)
+    moreover have "homotopic_paths S ((p +++ reversepath q) +++ q) (linepath (pathstart p) (pathstart p) +++ q)"
+      by (simp add: \<open>path q\<close> homotopic_paths_join paths pipq)
+    moreover then have "homotopic_paths S (linepath (pathstart p) (pathstart p) +++ q) q"
+      by (metis \<open>path q\<close> homotopic_paths_imp_path homotopic_paths_lid linepath_trivial path_join_path_ends pathfinish_def pipq(2))
+    ultimately show ?thesis
+      using homotopic_paths_trans by metis
+  next
+    case False
+    then show ?thesis
+      using \<open>path q\<close> homotopic_loops_imp_path loops path_join_path_ends by fastforce
+  qed
 qed
 
 

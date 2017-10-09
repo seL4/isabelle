@@ -676,6 +676,10 @@ proof -
     using openin_INT[of _ _ U, OF assms(1) assms(3)] by (simp add: inf.absorb2 inf_commute)
 qed
 
+lemma openin_Inter [intro]:
+  assumes "finite \<F>" "\<F> \<noteq> {}" "\<And>X. X \<in> \<F> \<Longrightarrow> openin T X" shows "openin T (\<Inter>\<F>)"
+  by (metis (full_types) assms openin_INT2 image_ident)
+
 
 subsubsection \<open>Closed sets\<close>
 
@@ -2403,6 +2407,11 @@ lemma closedin_limpt:
 
 lemma closedin_closed_eq: "closed S \<Longrightarrow> closedin (subtopology euclidean S) T \<longleftrightarrow> closed T \<and> T \<subseteq> S"
   by (meson closedin_limpt closed_subset closedin_closed_trans)
+
+lemma connected_closed_set:
+   "closed S
+    \<Longrightarrow> connected S \<longleftrightarrow> (\<nexists>A B. closed A \<and> closed B \<and> A \<noteq> {} \<and> B \<noteq> {} \<and> A \<union> B = S \<and> A \<inter> B = {})"
+  unfolding connected_closedin_eq closedin_closed_eq connected_closedin_eq by blast
 
 lemma closedin_subset_trans:
   "closedin (subtopology euclidean U) S \<Longrightarrow> S \<subseteq> T \<Longrightarrow> T \<subseteq> U \<Longrightarrow>
@@ -5407,6 +5416,13 @@ next
     by auto
 qed
 
+lemma compact_Inter:
+  fixes \<F> :: "'a :: heine_borel set set"
+  assumes com: "\<And>S. S \<in> \<F> \<Longrightarrow> compact S" and "\<F> \<noteq> {}"
+  shows "compact(\<Inter> \<F>)"
+  using assms
+  by (meson Inf_lower all_not_in_conv bounded_subset closed_Inter compact_eq_bounded_closed)
+
 lemma compact_closure [simp]:
   fixes S :: "'a::heine_borel set"
   shows "compact(closure S) \<longleftrightarrow> bounded S"
@@ -5817,19 +5833,6 @@ proof -
       unfolding lim_sequentially by auto
   }
   then show ?thesis unfolding complete_def by auto
-qed
-
-lemma nat_approx_posE:
-  fixes e::real
-  assumes "0 < e"
-  obtains n :: nat where "1 / (Suc n) < e"
-proof atomize_elim
-  have "1 / real (Suc (nat \<lceil>1/e\<rceil>)) < 1 / \<lceil>1/e\<rceil>"
-    by (rule divide_strict_left_mono) (auto simp: \<open>0 < e\<close>)
-  also have "1 / \<lceil>1/e\<rceil> \<le> 1 / (1/e)"
-    by (rule divide_left_mono) (auto simp: \<open>0 < e\<close> ceiling_correct)
-  also have "\<dots> = e" by simp
-  finally show  "\<exists>n. 1 / real (Suc n) < e" ..
 qed
 
 lemma compact_eq_totally_bounded:
@@ -9679,6 +9682,43 @@ unfolding homeomorphic_minimal
       simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
     done
 
+lemma homeomorphic_ball01_UNIV:
+  "ball (0::'a::real_normed_vector) 1 homeomorphic (UNIV:: 'a set)"
+  (is "?B homeomorphic ?U")
+proof
+  have "x \<in> (\<lambda>z. z /\<^sub>R (1 - norm z)) ` ball 0 1" for x::'a
+    apply (rule_tac x="x /\<^sub>R (1 + norm x)" in image_eqI)
+     apply (auto simp: divide_simps)
+    using norm_ge_zero [of x] apply linarith+
+    done
+  then show "(\<lambda>z::'a. z /\<^sub>R (1 - norm z)) ` ?B = ?U"
+    by blast
+  have "x \<in> range (\<lambda>z. (1 / (1 + norm z)) *\<^sub>R z)" if "norm x < 1" for x::'a
+    apply (rule_tac x="x /\<^sub>R (1 - norm x)" in image_eqI)
+    using that apply (auto simp: divide_simps)
+    done
+  then show "(\<lambda>z::'a. z /\<^sub>R (1 + norm z)) ` ?U = ?B"
+    by (force simp: divide_simps dest: add_less_zeroD)
+  show "continuous_on (ball 0 1) (\<lambda>z. z /\<^sub>R (1 - norm z))"
+    by (rule continuous_intros | force)+
+  show "continuous_on UNIV (\<lambda>z. z /\<^sub>R (1 + norm z))"
+    apply (intro continuous_intros)
+    apply (metis le_add_same_cancel1 norm_ge_zero not_le zero_less_one)
+    done
+  show "\<And>x. x \<in> ball 0 1 \<Longrightarrow>
+         x /\<^sub>R (1 - norm x) /\<^sub>R (1 + norm (x /\<^sub>R (1 - norm x))) = x"
+    by (auto simp: divide_simps)
+  show "\<And>y. y /\<^sub>R (1 + norm y) /\<^sub>R (1 - norm (y /\<^sub>R (1 + norm y))) = y"
+    apply (auto simp: divide_simps)
+    apply (metis le_add_same_cancel1 norm_ge_zero not_le zero_less_one)
+    done
+qed
+
+proposition homeomorphic_ball_UNIV:
+  fixes a ::"'a::real_normed_vector"
+  assumes "0 < r" shows "ball a r homeomorphic (UNIV:: 'a set)"
+  using assms homeomorphic_ball01_UNIV homeomorphic_balls(1) homeomorphic_trans zero_less_one by blast
+
 subsection\<open>Inverse function property for open/closed maps\<close>
 
 lemma continuous_on_inverse_open_map:
@@ -10711,7 +10751,7 @@ proof -
   then show ?thesis by blast
 qed
 
-lemma closed_imp_fip_compact:
+lemma clconnected_closedin_eqosed_imp_fip_compact:
   fixes S :: "'a::heine_borel set"
   shows
    "\<lbrakk>closed S; \<And>T. T \<in> \<F> \<Longrightarrow> compact T;
@@ -11043,38 +11083,38 @@ subsection\<open>Constancy of a function from a connected set into a finite, dis
 text\<open>Still missing: versions for a set that is smaller than R, or countable.\<close>
 
 lemma continuous_disconnected_range_constant:
-  assumes s: "connected s"
-      and conf: "continuous_on s f"
-      and fim: "f ` s \<subseteq> t"
+  assumes S: "connected S"
+      and conf: "continuous_on S f"
+      and fim: "f ` S \<subseteq> t"
       and cct: "\<And>y. y \<in> t \<Longrightarrow> connected_component_set t y = {y}"
-    shows "\<exists>a. \<forall>x \<in> s. f x = a"
-proof (cases "s = {}")
+    shows "\<exists>a. \<forall>x \<in> S. f x = a"
+proof (cases "S = {}")
   case True then show ?thesis by force
 next
   case False
-  { fix x assume "x \<in> s"
-    then have "f ` s \<subseteq> {f x}"
-    by (metis connected_continuous_image conf connected_component_maximal fim image_subset_iff rev_image_eqI s cct)
+  { fix x assume "x \<in> S"
+    then have "f ` S \<subseteq> {f x}"
+    by (metis connected_continuous_image conf connected_component_maximal fim image_subset_iff rev_image_eqI S cct)
   }
   with False show ?thesis
     by blast
 qed
 
 lemma discrete_subset_disconnected:
-  fixes s :: "'a::topological_space set"
+  fixes S :: "'a::topological_space set"
   fixes t :: "'b::real_normed_vector set"
-  assumes conf: "continuous_on s f"
-      and no: "\<And>x. x \<in> s \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
-   shows "f ` s \<subseteq> {y. connected_component_set (f ` s) y = {y}}"
+  assumes conf: "continuous_on S f"
+      and no: "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
+   shows "f ` S \<subseteq> {y. connected_component_set (f ` S) y = {y}}"
 proof -
-  { fix x assume x: "x \<in> s"
-    then obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> s; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
+  { fix x assume x: "x \<in> S"
+    then obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> S; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
       using conf no [OF x] by auto
     then have e2: "0 \<le> e / 2"
       by simp
-    have "f y = f x" if "y \<in> s" and ccs: "f y \<in> connected_component_set (f ` s) (f x)" for y
+    have "f y = f x" if "y \<in> S" and ccs: "f y \<in> connected_component_set (f ` S) (f x)" for y
       apply (rule ccontr)
-      using connected_closed [of "connected_component_set (f ` s) (f x)"] \<open>e>0\<close>
+      using connected_closed [of "connected_component_set (f ` S) (f x)"] \<open>e>0\<close>
       apply (simp add: del: ex_simps)
       apply (drule spec [where x="cball (f x) (e / 2)"])
       apply (drule spec [where x="- ball(f x) e"])
@@ -11082,11 +11122,11 @@ proof -
         apply (metis diff_self e2 ele norm_minus_commute norm_zero not_less)
        using centre_in_cball connected_component_refl_eq e2 x apply blast
       using ccs
-      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF \<open>y \<in> s\<close>])
+      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF \<open>y \<in> S\<close>])
       done
-    moreover have "connected_component_set (f ` s) (f x) \<subseteq> f ` s"
+    moreover have "connected_component_set (f ` S) (f x) \<subseteq> f ` S"
       by (auto simp: connected_component_in)
-    ultimately have "connected_component_set (f ` s) (f x) = {f x}"
+    ultimately have "connected_component_set (f ` S) (f x) = {f x}"
       by (auto simp: x)
   }
   with assms show ?thesis
@@ -11094,22 +11134,22 @@ proof -
 qed
 
 lemma finite_implies_discrete:
-  fixes s :: "'a::topological_space set"
-  assumes "finite (f ` s)"
-  shows "(\<forall>x \<in> s. \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x))"
+  fixes S :: "'a::topological_space set"
+  assumes "finite (f ` S)"
+  shows "(\<forall>x \<in> S. \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x))"
 proof -
-  have "\<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)" if "x \<in> s" for x
-  proof (cases "f ` s - {f x} = {}")
+  have "\<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)" if "x \<in> S" for x
+  proof (cases "f ` S - {f x} = {}")
     case True
     with zero_less_numeral show ?thesis
       by (fastforce simp add: Set.image_subset_iff cong: conj_cong)
   next
     case False
-    then obtain z where z: "z \<in> s" "f z \<noteq> f x"
+    then obtain z where z: "z \<in> S" "f z \<noteq> f x"
       by blast
-    have finn: "finite {norm (z - f x) |z. z \<in> f ` s - {f x}}"
+    have finn: "finite {norm (z - f x) |z. z \<in> f ` S - {f x}}"
       using assms by simp
-    then have *: "0 < Inf{norm(z - f x) | z. z \<in> f ` s - {f x}}"
+    then have *: "0 < Inf{norm(z - f x) | z. z \<in> f ` S - {f x}}"
       apply (rule finite_imp_less_Inf)
       using z apply force+
       done
@@ -11123,20 +11163,20 @@ qed
 text\<open>This proof requires the existence of two separate values of the range type.\<close>
 lemma finite_range_constant_imp_connected:
   assumes "\<And>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-              \<lbrakk>continuous_on s f; finite(f ` s)\<rbrakk> \<Longrightarrow> \<exists>a. \<forall>x \<in> s. f x = a"
-    shows "connected s"
+              \<lbrakk>continuous_on S f; finite(f ` S)\<rbrakk> \<Longrightarrow> \<exists>a. \<forall>x \<in> S. f x = a"
+    shows "connected S"
 proof -
   { fix t u
-    assume clt: "closedin (subtopology euclidean s) t"
-       and clu: "closedin (subtopology euclidean s) u"
-       and tue: "t \<inter> u = {}" and tus: "t \<union> u = s"
-    have conif: "continuous_on s (\<lambda>x. if x \<in> t then 0 else 1)"
+    assume clt: "closedin (subtopology euclidean S) t"
+       and clu: "closedin (subtopology euclidean S) u"
+       and tue: "t \<inter> u = {}" and tus: "t \<union> u = S"
+    have conif: "continuous_on S (\<lambda>x. if x \<in> t then 0 else 1)"
       apply (subst tus [symmetric])
       apply (rule continuous_on_cases_local)
       using clt clu tue
       apply (auto simp: tus continuous_on_const)
       done
-    have fi: "finite ((\<lambda>x. if x \<in> t then 0 else 1) ` s)"
+    have fi: "finite ((\<lambda>x. if x \<in> t then 0 else 1) ` S)"
       by (rule finite_subset [of _ "{0,1}"]) auto
     have "t = {} \<or> u = {}"
       using assms [OF conif fi] tus [symmetric]
