@@ -70,6 +70,9 @@ class AFP private(val base_dir: Path)
     val afp_sessions: Sessions.T,
     val entries_graph: Graph[String, Unit])
   {
+    def entries_graph_display: Graph_Display.Graph =
+      Graph_Display.make_graph(entries_graph)
+
     def entries_json_text: String =
       (for (entry <- entries)
       yield {

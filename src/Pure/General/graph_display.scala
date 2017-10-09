@@ -60,5 +60,13 @@ object Graph_Display
         import XML.Decode._
         list(pair(pair(string, pair(string, x => x)), list(string)))(body)
       })
-}
 
+  def make_graph[A](
+    graph: isabelle.Graph[String, A],
+    name: (String, A) => String = (x: String, a: A) => x): Graph =
+  {
+    val entries =
+      (for ((x, (a, (ps, _))) <- graph.iterator) yield ((x, (name(x, a), Nil)), ps.toList)).toList
+    build_graph(entries)
+  }
+}

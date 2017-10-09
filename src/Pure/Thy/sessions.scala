@@ -479,6 +479,9 @@ object Sessions
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
   {
+    def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
+    def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
+
     def apply(name: String): Info = imports_graph.get_node(name)
     def get(name: String): Option[Info] =
       if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
