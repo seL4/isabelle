@@ -13,10 +13,48 @@ subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd
 
 class semiring_parity = linordered_semidom + unique_euclidean_semiring +
   assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
-    and odd_imp_mod_2_eq_1: "\<not> 2 dvd a \<Longrightarrow> a mod 2 = 1"
-
-context semiring_parity
+    and division_segment_of_nat [simp]: "division_segment (of_nat n) = 1"
+    and division_segment_euclidean_size [simp]: "division_segment a * of_nat (euclidean_size a) = a"
 begin
+
+lemma division_segment_eq_iff:
+  "a = b" if "division_segment a = division_segment b"
+    and "euclidean_size a = euclidean_size b"
+  using that division_segment_euclidean_size [of a] by simp
+
+lemma euclidean_size_of_nat [simp]:
+  "euclidean_size (of_nat n) = n"
+proof -
+  have "division_segment (of_nat n) * of_nat (euclidean_size (of_nat n)) = of_nat n"
+    by (fact division_segment_euclidean_size)
+  then show ?thesis by simp
+qed
+
+lemma of_nat_euclidean_size:
+  "of_nat (euclidean_size a) = a div division_segment a"
+proof -
+  have "of_nat (euclidean_size a) = division_segment a * of_nat (euclidean_size a) div division_segment a"
+    by (subst nonzero_mult_div_cancel_left) simp_all
+  also have "\<dots> = a div division_segment a"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma division_segment_1 [simp]:
+  "division_segment 1 = 1"
+  using division_segment_of_nat [of 1] by simp
+
+lemma division_segment_numeral [simp]:
+  "division_segment (numeral k) = 1"
+  using division_segment_of_nat [of "numeral k"] by simp
+
+lemma euclidean_size_1 [simp]:
+  "euclidean_size 1 = 1"
+  using euclidean_size_of_nat [of 1] by simp
+
+lemma euclidean_size_numeral [simp]:
+  "euclidean_size (numeral k) = numeral k"
+  using euclidean_size_of_nat [of "numeral k"] by simp
 
 lemma of_nat_dvd_iff:
   "of_nat m dvd of_nat n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
@@ -86,7 +124,43 @@ lemma even_iff_mod_2_eq_zero:
 
 lemma odd_iff_mod_2_eq_one:
   "odd a \<longleftrightarrow> a mod 2 = 1"
-  by (auto dest: odd_imp_mod_2_eq_1)
+proof
+  assume "a mod 2 = 1"
+  then show "odd a"
+    by auto
+next
+  assume "odd a"
+  have eucl: "euclidean_size (a mod 2) = 1"
+  proof (rule order_antisym)
+    show "euclidean_size (a mod 2) \<le> 1"
+      using mod_size_less [of 2 a] by simp
+    show "1 \<le> euclidean_size (a mod 2)"
+    proof (rule ccontr)
+      assume "\<not> 1 \<le> euclidean_size (a mod 2)"
+      then have "euclidean_size (a mod 2) = 0"
+        by simp
+      then have "division_segment (a mod 2) * of_nat (euclidean_size (a mod 2)) = division_segment (a mod 2) * of_nat 0"
+        by simp
+      with \<open>odd a\<close> show False
+        by (simp add: dvd_eq_mod_eq_0)
+    qed
+  qed 
+  from \<open>odd a\<close> have "\<not> of_nat 2 dvd division_segment a * of_nat (euclidean_size a)"
+    by simp
+  then have "\<not> of_nat 2 dvd of_nat (euclidean_size a)"
+    by (auto simp only: dvd_mult_unit_iff' is_unit_division_segment)
+  then have "\<not> 2 dvd euclidean_size a"
+    using of_nat_dvd_iff [of 2] by simp
+  then have "euclidean_size a mod 2 = 1"
+    by (simp add: semidom_modulo_class.dvd_eq_mod_eq_0)
+  then have "of_nat (euclidean_size a mod 2) = of_nat 1"
+    by simp
+  then have "of_nat (euclidean_size a) mod 2 = 1"
+    by (simp add: of_nat_mod)
+  from \<open>odd a\<close> eucl
+  show "a mod 2 = 1"
+    by (auto intro: division_segment_eq_iff simp add: division_segment_mod)
+qed
 
 lemma parity_cases [case_names even odd]:
   assumes "even a \<Longrightarrow> a mod 2 = 0 \<Longrightarrow> P"
@@ -487,22 +561,7 @@ end
 subsection \<open>Instance for @{typ int}\<close>
 
 instance int :: ring_parity
-proof
-  fix k l :: int
-  show "k mod 2 = 1" if "\<not> 2 dvd k"
-  proof (rule order_antisym)
-    have "0 \<le> k mod 2" and "k mod 2 < 2"
-      by auto
-    moreover have "k mod 2 \<noteq> 0"
-      using that by (simp add: dvd_eq_mod_eq_0)
-    ultimately have "0 < k mod 2"
-      by (simp only: less_le) simp
-    then show "1 \<le> k mod 2"
-      by simp
-    from \<open>k mod 2 < 2\<close> show "k mod 2 \<le> 1"
-      by (simp only: less_le) simp
-  qed
-qed (simp_all add: dvd_eq_mod_eq_0 divide_int_def)
+  by standard (simp_all add: dvd_eq_mod_eq_0 divide_int_def division_segment_int_def)
 
 lemma even_diff_iff [simp]:
   "even (k - l) \<longleftrightarrow> even (k + l)" for k l :: int

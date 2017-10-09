@@ -263,7 +263,7 @@ lemma [code]:
   by transfer (simp add: division_segment_int_def)
 
 instance integer :: ring_parity
-  by (standard; transfer) (simp_all add: of_nat_div odd_iff_mod_2_eq_one)
+  by (standard; transfer) (simp_all add: of_nat_div division_segment_int_def)
 
 instantiation integer :: unique_euclidean_semiring_numeral
 begin
@@ -891,7 +891,7 @@ lemma [code]:
   by (simp add: natural_eq_iff)
 
 instance natural :: semiring_parity
-  by (standard; transfer) (simp_all add: of_nat_div odd_iff_mod_2_eq_one)
+  by (standard; transfer) simp_all
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"

@@ -511,7 +511,7 @@ class unique_euclidean_semiring = euclidean_semiring +
       \<Longrightarrow> euclidean_size (a * b) < euclidean_size (c * b)"
     -- \<open>FIXME justify\<close>
   fixes division_segment :: "'a \<Rightarrow> 'a"
-  assumes is_unit_division_segment: "is_unit (division_segment a)"
+  assumes is_unit_division_segment [simp]: "is_unit (division_segment a)"
     and division_segment_mult:
     "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> division_segment (a * b) = division_segment a * division_segment b"
     and division_segment_mod:
@@ -521,6 +521,10 @@ class unique_euclidean_semiring = euclidean_semiring +
     \<Longrightarrow> euclidean_size r < euclidean_size b
     \<Longrightarrow> (q * b + r) div b = q"
 begin
+
+lemma division_segment_not_0 [simp]:
+  "division_segment a \<noteq> 0"
+  using is_unit_division_segment [of a] is_unitE [of "division_segment a"] by blast
 
 lemma divmod_cases [case_names divides remainder by0]:
   obtains 
