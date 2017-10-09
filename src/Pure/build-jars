@@ -9,6 +9,7 @@
 ## sources
 
 declare -a SOURCES=(
+  Admin/afp.scala
   Admin/build_cygwin.scala
   Admin/build_doc.scala
   Admin/build_history.scala
