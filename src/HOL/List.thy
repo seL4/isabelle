@@ -6600,39 +6600,6 @@ lemma set_list_bind: "set (List.bind xs f) = (\<Union>x\<in>set xs. set (f x))"
   by (induction xs) simp_all
 
 
-subsection \<open>Transfer\<close>
-
-definition embed_list :: "nat list \<Rightarrow> int list" where
-"embed_list l = map int l"
-
-definition nat_list :: "int list \<Rightarrow> bool" where
-"nat_list l = nat_set (set l)"
-
-definition return_list :: "int list \<Rightarrow> nat list" where
-"return_list l = map nat l"
-
-lemma transfer_nat_int_list_return_embed: "nat_list l \<longrightarrow>
-    embed_list (return_list l) = l"
-  unfolding embed_list_def return_list_def nat_list_def nat_set_def
-  apply (induct l)
-  apply auto
-done
-
-lemma transfer_nat_int_list_functions:
-  "l @ m = return_list (embed_list l @ embed_list m)"
-  "[] = return_list []"
-  unfolding return_list_def embed_list_def
-  apply auto
-  apply (induct l, auto)
-  apply (induct m, auto)
-done
-
-(*
-lemma transfer_nat_int_fold1: "fold f l x =
-    fold (%x. f (nat x)) (embed_list l) x";
-*)
-
-
 subsection \<open>Code generation\<close>
 
 text\<open>Optional tail recursive version of @{const map}. Can avoid

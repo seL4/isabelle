@@ -5,7 +5,7 @@
 section \<open>Semiring normalization\<close>
 
 theory Semiring_Normalization
-imports Numeral_Simprocs Nat_Transfer
+imports Numeral_Simprocs
 begin
 
 text \<open>Prelude\<close>

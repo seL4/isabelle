@@ -14,7 +14,7 @@ Examples: Ico = {_ ..< _} and Ici = {_ ..}
 section \<open>Set intervals\<close>
 
 theory Set_Interval
-imports Lattices_Big Divides Nat_Transfer
+imports Divides
 begin
 
 context ord
@@ -2230,43 +2230,5 @@ proof -
 qed
 
 (* TODO: Add support for more kinds of intervals here *)
-
-
-subsection \<open>Transfer setup\<close>
-
-lemma transfer_nat_int_set_functions:
-    "{..n} = nat ` {0..int n}"
-    "{m..n} = nat ` {int m..int n}"  (* need all variants of these! *)
-  apply (auto simp add: image_def)
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  done
-
-lemma transfer_nat_int_set_function_closures:
-    "x >= 0 \<Longrightarrow> nat_set {x..y}"
-  by (simp add: nat_set_def)
-
-declare transfer_morphism_nat_int[transfer add
-  return: transfer_nat_int_set_functions
-    transfer_nat_int_set_function_closures
-]
-
-lemma transfer_int_nat_set_functions:
-    "is_nat m \<Longrightarrow> is_nat n \<Longrightarrow> {m..n} = int ` {nat m..nat n}"
-  by (simp only: is_nat_def transfer_nat_int_set_functions
-    transfer_nat_int_set_function_closures
-    transfer_nat_int_set_return_embed nat_0_le
-    cong: transfer_nat_int_set_cong)
-
-lemma transfer_int_nat_set_function_closures:
-    "is_nat x \<Longrightarrow> nat_set {x..y}"
-  by (simp only: transfer_nat_int_set_function_closures is_nat_def)
-
-declare transfer_morphism_int_nat[transfer add
-  return: transfer_int_nat_set_functions
-    transfer_int_nat_set_function_closures
-]
 
 end

@@ -1708,36 +1708,6 @@ instance ..
 
 end
 
-text \<open>Transfer setup\<close>
-
-lemma transfer_nat_int_gcd:
-  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> gcd (nat x) (nat y) = nat (gcd x y)"
-  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> lcm (nat x) (nat y) = nat (lcm x y)"
-  for x y :: int
-  unfolding gcd_int_def lcm_int_def by auto
-
-lemma transfer_nat_int_gcd_closures:
-  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> gcd x y \<ge> 0"
-  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> lcm x y \<ge> 0"
-  for x y :: int
-  by (auto simp add: gcd_int_def lcm_int_def)
-
-declare transfer_morphism_nat_int
-  [transfer add return: transfer_nat_int_gcd transfer_nat_int_gcd_closures]
-
-lemma transfer_int_nat_gcd:
-  "gcd (int x) (int y) = int (gcd x y)"
-  "lcm (int x) (int y) = int (lcm x y)"
-  by (auto simp: gcd_int_def lcm_int_def)
-
-lemma transfer_int_nat_gcd_closures:
-  "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> gcd x y >= 0"
-  "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> lcm x y >= 0"
-  by (auto simp: gcd_int_def lcm_int_def)
-
-declare transfer_morphism_int_nat
-  [transfer add return: transfer_int_nat_gcd transfer_int_nat_gcd_closures]
-
 lemma gcd_nat_induct:
   fixes m n :: nat
   assumes "\<And>m. P m 0"

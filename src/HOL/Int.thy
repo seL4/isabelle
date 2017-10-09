@@ -556,6 +556,43 @@ lemma nat_of_bool [simp]:
   "nat (of_bool P) = of_bool P"
   by auto
 
+lemma split_nat [arith_split]: "P (nat i) \<longleftrightarrow> ((\<forall>n. i = int n \<longrightarrow> P n) \<and> (i < 0 \<longrightarrow> P 0))"
+  (is "?P = (?L \<and> ?R)")
+  for i :: int
+proof (cases "i < 0")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  have "?P = ?L"
+  proof
+    assume ?P
+    then show ?L using False by auto
+  next
+    assume ?L
+    moreover from False have "int (nat i) = i"
+      by (simp add: not_less)
+    ultimately show ?P
+      by simp
+  qed
+  with False show ?thesis by simp
+qed
+
+lemma all_nat: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x\<ge>0. P (nat x))"
+  by (auto split: split_nat)
+
+lemma ex_nat: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> P (nat x))"
+proof
+  assume "\<exists>x. P x"
+  then obtain x where "P x" ..
+  then have "int x \<ge> 0 \<and> P (nat (int x))" by simp
+  then show "\<exists>x\<ge>0. P (nat x)" ..
+next
+  assume "\<exists>x\<ge>0. P (nat x)"
+  then show "\<exists>x. P x" by auto
+qed
+
 
 text \<open>For termination proofs:\<close>
 lemma measure_function_int[measure_function]: "is_measure (nat \<circ> abs)" ..
@@ -1042,25 +1079,6 @@ text \<open>
   \<open>z\<close> is an integer literal.
 \<close>
 lemmas int_eq_iff_numeral [simp] = int_eq_iff [of _ "numeral v"] for v
-
-lemma split_nat [arith_split]: "P (nat i) = ((\<forall>n. i = int n \<longrightarrow> P n) \<and> (i < 0 \<longrightarrow> P 0))"
-  (is "?P = (?L \<and> ?R)")
-  for i :: int
-proof (cases "i < 0")
-  case True
-  then show ?thesis by auto
-next
-  case False
-  have "?P = ?L"
-  proof
-    assume ?P
-    then show ?L using False by auto
-  next
-    assume ?L
-    then show ?P using False by simp
-  qed
-  with False show ?thesis by simp
-qed
 
 lemma nat_abs_int_diff: "nat \<bar>int a - int b\<bar> = (if a \<le> b then b - a else a - b)"
   by auto

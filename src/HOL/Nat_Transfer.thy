@@ -3,7 +3,7 @@
 section \<open>Generic transfer machinery;  specific transfer from nats to ints and back.\<close>
 
 theory Nat_Transfer
-imports Int Divides
+imports List GCD
 begin
 
 subsection \<open>Generic transfer machinery\<close>
@@ -90,33 +90,10 @@ lemma transfer_nat_int_relations [no_atp, transfer key: transfer_morphism_nat_in
 
 text \<open>first-order quantifiers\<close>
 
-lemma all_nat: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x\<ge>0. P (nat x))"
-  by (simp split: split_nat)
-
-lemma ex_nat: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> P (nat x))"
-proof
-  assume "\<exists>x. P x"
-  then obtain x where "P x" ..
-  then have "int x \<ge> 0 \<and> P (nat (int x))" by simp
-  then show "\<exists>x\<ge>0. P (nat x)" ..
-next
-  assume "\<exists>x\<ge>0. P (nat x)"
-  then show "\<exists>x. P x" by auto
-qed
-
 lemma transfer_nat_int_quantifiers [no_atp, transfer key: transfer_morphism_nat_int]:
     "(ALL (x::nat). P x) = (ALL (x::int). x >= 0 \<longrightarrow> P (nat x))"
     "(EX (x::nat). P x) = (EX (x::int). x >= 0 & P (nat x))"
   by (rule all_nat, rule ex_nat)
-
-(* should we restrict these? *)
-lemma all_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow>
-    (ALL x. Q x \<longrightarrow> P x) = (ALL x. Q x \<longrightarrow> P' x)"
-  by auto
-
-lemma ex_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow>
-    (EX x. Q x \<and> P x) = (EX x. Q x \<and> P' x)"
-  by auto
 
 declare transfer_morphism_nat_int [transfer add
   cong: all_cong ex_cong]
@@ -142,17 +119,10 @@ lemma transfer_nat_int_set_functions [no_atp]:
     "A Un B = nat ` (int ` A Un int ` B)"
     "A Int B = nat ` (int ` A Int int ` B)"
     "{x. P x} = nat ` {x. x >= 0 & P(nat x)}"
-  apply (rule card_image [symmetric])
-  apply (auto simp add: inj_on_def image_def)
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  apply (rule_tac x = "int x" in bexI)
-  apply auto
-  apply (rule_tac x = "int x" in exI)
-  apply auto
-done
+    "{..n} = nat ` {0..int n}"
+    "{m..n} = nat ` {int m..int n}"  (* need all variants of these! *)
+  by (rule card_image [symmetric])
+    (auto simp add: inj_on_def image_def intro: bexI [of _ "int x" for x] exI [of _ "int x" for x])
 
 lemma transfer_nat_int_set_function_closures [no_atp]:
     "nat_set {}"
@@ -161,6 +131,7 @@ lemma transfer_nat_int_set_function_closures [no_atp]:
     "nat_set {x. x >= 0 & P x}"
     "nat_set (int ` C)"
     "nat_set A \<Longrightarrow> x : A \<Longrightarrow> x >= 0" (* does it hurt to turn this on? *)
+    "x >= 0 \<Longrightarrow> nat_set {x..y}"
   unfolding nat_set_def apply auto
 done
 
@@ -361,6 +332,7 @@ lemma transfer_int_nat_set_functions [no_atp]:
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> A Un B = int ` (nat ` A Un nat ` B)"
     "nat_set A \<Longrightarrow> nat_set B \<Longrightarrow> A Int B = int ` (nat ` A Int nat ` B)"
     "{x. x >= 0 & P x} = int ` {x. P(int x)}"
+    "is_nat m \<Longrightarrow> is_nat n \<Longrightarrow> {m..n} = int ` {nat m..nat n}"
        (* need all variants of these! *)
   by (simp_all only: is_nat_def transfer_nat_int_set_functions
           transfer_nat_int_set_function_closures
@@ -374,6 +346,7 @@ lemma transfer_int_nat_set_function_closures [no_atp]:
     "nat_set {x. x >= 0 & P x}"
     "nat_set (int ` C)"
     "nat_set A \<Longrightarrow> x : A \<Longrightarrow> is_nat x"
+    "is_nat x \<Longrightarrow> nat_set {x..y}"
   by (simp_all only: transfer_nat_int_set_function_closures is_nat_def)
 
 lemma transfer_int_nat_set_relations [no_atp]:
@@ -429,5 +402,63 @@ declare transfer_morphism_int_nat [transfer add
   cong: sum.cong prod.cong]
 
 declare transfer_morphism_int_nat [transfer add return: even_int_iff]
+
+lemma transfer_nat_int_gcd [no_atp]:
+  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> gcd (nat x) (nat y) = nat (gcd x y)"
+  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> lcm (nat x) (nat y) = nat (lcm x y)"
+  for x y :: int
+  unfolding gcd_int_def lcm_int_def by auto
+
+lemma transfer_nat_int_gcd_closures [no_atp]:
+  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> gcd x y \<ge> 0"
+  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> lcm x y \<ge> 0"
+  for x y :: int
+  by (auto simp add: gcd_int_def lcm_int_def)
+
+declare transfer_morphism_nat_int
+  [transfer add return: transfer_nat_int_gcd transfer_nat_int_gcd_closures]
+
+lemma transfer_int_nat_gcd [no_atp]:
+  "gcd (int x) (int y) = int (gcd x y)"
+  "lcm (int x) (int y) = int (lcm x y)"
+  by (auto simp: gcd_int_def lcm_int_def)
+
+lemma transfer_int_nat_gcd_closures [no_atp]:
+  "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> gcd x y >= 0"
+  "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> lcm x y >= 0"
+  by (auto simp: gcd_int_def lcm_int_def)
+
+declare transfer_morphism_int_nat
+  [transfer add return: transfer_int_nat_gcd transfer_int_nat_gcd_closures]
+
+definition embed_list :: "nat list \<Rightarrow> int list" where
+"embed_list l = map int l"
+
+definition nat_list :: "int list \<Rightarrow> bool" where
+"nat_list l = nat_set (set l)"
+
+definition return_list :: "int list \<Rightarrow> nat list" where
+"return_list l = map nat l"
+
+lemma transfer_nat_int_list_return_embed [no_atp]:
+  "nat_list l \<longrightarrow> embed_list (return_list l) = l"
+  unfolding embed_list_def return_list_def nat_list_def nat_set_def
+  apply (induct l)
+  apply auto
+done
+
+lemma transfer_nat_int_list_functions [no_atp]:
+  "l @ m = return_list (embed_list l @ embed_list m)"
+  "[] = return_list []"
+  unfolding return_list_def embed_list_def
+  apply auto
+  apply (induct l, auto)
+  apply (induct m, auto)
+done
+
+(*
+lemma transfer_nat_int_fold1: "fold f l x =
+    fold (%x. f (nat x)) (embed_list l) x";
+*)
 
 end
