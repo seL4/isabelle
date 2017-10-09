@@ -618,7 +618,7 @@ object Sessions
             Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
-    def parse_root(options: Options, select: Boolean, path: Path): List[Entry] =
+    def parse_root(path: Path): List[Entry] =
     {
       val toks = Token.explode(root_syntax.keywords, File.read(path))
       val start = Token.Pos.file(path.implode)
@@ -630,8 +630,11 @@ object Sessions
     }
   }
 
-  def parse_root(options: Options, select: Boolean, path: Path): List[Entry] =
-    Parser.parse_root(options, select, path)
+  def parse_root(path: Path): List[Entry] = Parser.parse_root(path)
+
+  def parse_root_entries(path: Path): List[Session_Entry] =
+    for (entry <- Parser.parse_root(path) if entry.isInstanceOf[Session_Entry])
+    yield entry.asInstanceOf[Session_Entry]
 
   def read_root(options: Options, select: Boolean, path: Path): List[(String, Info)] =
   {
@@ -682,7 +685,7 @@ object Sessions
 
     var entry_chapter = "Unsorted"
     val infos = new mutable.ListBuffer[(String, Info)]
-    parse_root(options, select, path).foreach {
+    parse_root(path).foreach {
       case Chapter(name) => entry_chapter = name
       case entry: Session_Entry => infos += make_info(entry_chapter, entry)
     }
