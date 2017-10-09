@@ -716,7 +716,7 @@ instantiation finite_2 :: "{normalization_semidom, unique_euclidean_semiring}" b
 definition [simp]: "normalize = (id :: finite_2 \<Rightarrow> _)"
 definition [simp]: "unit_factor = (id :: finite_2 \<Rightarrow> _)"
 definition [simp]: "euclidean_size x = (case x of a\<^sub>1 \<Rightarrow> 0 | a\<^sub>2 \<Rightarrow> 1)"
-definition [simp]: "uniqueness_constraint = (\<top> :: finite_2 \<Rightarrow> _)"
+definition [simp]: "division_segment (x :: finite_2) = 1"
 instance
   by standard
     (auto simp add: divide_finite_2_def times_finite_2_def dvd_finite_2_unfold
@@ -868,7 +868,7 @@ instantiation finite_3 :: "{normalization_semidom, unique_euclidean_semiring}" b
 definition [simp]: "normalize x = (case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> x)"
 definition [simp]: "unit_factor = (id :: finite_3 \<Rightarrow> _)"
 definition [simp]: "euclidean_size x = (case x of a\<^sub>1 \<Rightarrow> 0 | _ \<Rightarrow> 1)"
-definition [simp]: "uniqueness_constraint = (\<top> :: finite_3 \<Rightarrow> _)"
+definition [simp]: "division_segment (x :: finite_3) = 1"
 instance proof
   fix x :: finite_3
   assume "x \<noteq> 0"

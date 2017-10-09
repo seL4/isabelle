@@ -241,15 +241,16 @@ lift_definition euclidean_size_integer :: "integer \<Rightarrow> nat"
 
 declare euclidean_size_integer.rep_eq [simp]
 
-lift_definition uniqueness_constraint_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
-  is "uniqueness_constraint :: int \<Rightarrow> int \<Rightarrow> bool"
+lift_definition division_segment_integer :: "integer \<Rightarrow> integer"
+  is "division_segment :: int \<Rightarrow> int"
   .
 
-declare uniqueness_constraint_integer.rep_eq [simp]
+declare division_segment_integer.rep_eq [simp]
 
 instance
   by (standard; transfer)
-    (use mult_le_mono2 [of 1] in \<open>auto simp add: sgn_mult_abs abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>, rule div_eqI, simp_all)
+    (use mult_le_mono2 [of 1] in \<open>auto simp add: sgn_mult_abs abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib
+     division_segment_mult division_segment_mod intro: div_eqI\<close>)
 
 end
 
@@ -258,8 +259,8 @@ lemma [code]:
   by (simp add: fun_eq_iff nat_of_integer.rep_eq)
 
 lemma [code]:
-  "uniqueness_constraint (k :: integer) l \<longleftrightarrow> sgn k = sgn l"
-  by (simp add: integer_eq_iff)
+  "division_segment (k :: integer) = (if k \<ge> 0 then 1 else - 1)"
+  by transfer (simp add: division_segment_int_def)
 
 instance integer :: ring_parity
   by (standard; transfer) (simp_all add: of_nat_div odd_iff_mod_2_eq_one)
@@ -869,11 +870,11 @@ lift_definition euclidean_size_natural :: "natural \<Rightarrow> nat"
 
 declare euclidean_size_natural.rep_eq [simp]
 
-lift_definition uniqueness_constraint_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
-  is "uniqueness_constraint :: nat \<Rightarrow> nat \<Rightarrow> bool"
+lift_definition division_segment_natural :: "natural \<Rightarrow> natural"
+  is "division_segment :: nat \<Rightarrow> nat"
   .
 
-declare uniqueness_constraint_natural.rep_eq [simp]
+declare division_segment_natural.rep_eq [simp]
 
 instance
   by (standard; transfer)
@@ -886,8 +887,8 @@ lemma [code]:
   by (simp add: fun_eq_iff)
 
 lemma [code]:
-  "uniqueness_constraint = (\<top> :: natural \<Rightarrow> natural \<Rightarrow> bool)"
-  by (simp add: fun_eq_iff)
+  "division_segment (n::natural) = 1"
+  by (simp add: natural_eq_iff)
 
 instance natural :: semiring_parity
   by (standard; transfer) (simp_all add: of_nat_div odd_iff_mod_2_eq_one)

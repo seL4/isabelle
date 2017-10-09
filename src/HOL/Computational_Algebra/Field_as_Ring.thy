@@ -29,9 +29,9 @@ begin
 
 definition [simp]: "normalize_real = (normalize_field :: real \<Rightarrow> _)"
 definition [simp]: "unit_factor_real = (unit_factor_field :: real \<Rightarrow> _)"
-definition [simp]: "euclidean_size_real = (euclidean_size_field :: real \<Rightarrow> _)"
-definition [simp]: "uniqueness_constraint_real = (top :: real \<Rightarrow> real \<Rightarrow> bool)"
 definition [simp]: "modulo_real = (mod_field :: real \<Rightarrow> _)"
+definition [simp]: "euclidean_size_real = (euclidean_size_field :: real \<Rightarrow> _)"
+definition [simp]: "division_segment (x :: real) = 1"
 
 instance
   by standard
@@ -60,9 +60,9 @@ begin
 
 definition [simp]: "normalize_rat = (normalize_field :: rat \<Rightarrow> _)"
 definition [simp]: "unit_factor_rat = (unit_factor_field :: rat \<Rightarrow> _)"
-definition [simp]: "euclidean_size_rat = (euclidean_size_field :: rat \<Rightarrow> _)"
-definition [simp]: "uniqueness_constraint_rat = (top :: rat \<Rightarrow> rat \<Rightarrow> bool)"
 definition [simp]: "modulo_rat = (mod_field :: rat \<Rightarrow> _)"
+definition [simp]: "euclidean_size_rat = (euclidean_size_field :: rat \<Rightarrow> _)"
+definition [simp]: "division_segment (x :: rat) = 1"
 
 instance
   by standard
@@ -91,9 +91,9 @@ begin
 
 definition [simp]: "normalize_complex = (normalize_field :: complex \<Rightarrow> _)"
 definition [simp]: "unit_factor_complex = (unit_factor_field :: complex \<Rightarrow> _)"
-definition [simp]: "euclidean_size_complex = (euclidean_size_field :: complex \<Rightarrow> _)"
-definition [simp]: "uniqueness_constraint_complex = (top :: complex \<Rightarrow> complex \<Rightarrow> bool)"
 definition [simp]: "modulo_complex = (mod_field :: complex \<Rightarrow> _)"
+definition [simp]: "euclidean_size_complex = (euclidean_size_field :: complex \<Rightarrow> _)"
+definition [simp]: "division_segment (x :: complex) = 1"
 
 instance
   by standard

@@ -745,8 +745,8 @@ begin
 definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
   where "euclidean_size_poly p = (if p = 0 then 0 else 2 ^ degree p)"
 
-definition uniqueness_constraint_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
-  where [simp]: "uniqueness_constraint_poly = top"
+definition division_segment_poly :: "'a poly \<Rightarrow> 'a poly"
+  where [simp]: "division_segment_poly p = 1"
 
 instance proof
   show "(q * p + r) div p = q" if "p \<noteq> 0"

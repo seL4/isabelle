@@ -506,17 +506,18 @@ end
 subsection \<open>Uniquely determined division\<close>
   
 class unique_euclidean_semiring = euclidean_semiring + 
-  fixes uniqueness_constraint :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   assumes size_mono_mult:
     "b \<noteq> 0 \<Longrightarrow> euclidean_size a < euclidean_size c
       \<Longrightarrow> euclidean_size (a * b) < euclidean_size (c * b)"
     -- \<open>FIXME justify\<close>
-  assumes uniqueness_constraint_mono_mult:
-    "uniqueness_constraint a b \<Longrightarrow> uniqueness_constraint (a * c) (b * c)"
-  assumes uniqueness_constraint_mod:
-    "b \<noteq> 0 \<Longrightarrow> \<not> b dvd a \<Longrightarrow> uniqueness_constraint (a mod b) b"
+  fixes division_segment :: "'a \<Rightarrow> 'a"
+  assumes is_unit_division_segment: "is_unit (division_segment a)"
+    and division_segment_mult:
+    "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> division_segment (a * b) = division_segment a * division_segment b"
+    and division_segment_mod:
+    "b \<noteq> 0 \<Longrightarrow> \<not> b dvd a \<Longrightarrow> division_segment (a mod b) = division_segment b"
   assumes div_bounded:
-    "b \<noteq> 0 \<Longrightarrow> uniqueness_constraint r b
+    "b \<noteq> 0 \<Longrightarrow> division_segment r = division_segment b
     \<Longrightarrow> euclidean_size r < euclidean_size b
     \<Longrightarrow> (q * b + r) div b = q"
 begin
@@ -528,7 +529,7 @@ lemma divmod_cases [case_names divides remainder by0]:
       and "a mod b = 0"
       and "a = q * b"
   | (remainder) q r where "b \<noteq> 0"
-      and "uniqueness_constraint r b"
+      and "division_segment r = division_segment b"
       and "euclidean_size r < euclidean_size b"
       and "r \<noteq> 0"
       and "a div b = q"
@@ -552,19 +553,19 @@ next
     case False
     then have "a mod b \<noteq> 0"
       by (simp add: mod_eq_0_iff_dvd)
-    moreover from \<open>b \<noteq> 0\<close> \<open>\<not> b dvd a\<close> have "uniqueness_constraint (a mod b) b"
-      by (rule uniqueness_constraint_mod)
+    moreover from \<open>b \<noteq> 0\<close> \<open>\<not> b dvd a\<close> have "division_segment (a mod b) = division_segment b"
+      by (rule division_segment_mod)
     moreover have "euclidean_size (a mod b) < euclidean_size b"
       using \<open>b \<noteq> 0\<close> by (rule mod_size_less)
     moreover have "a = a div b * b + a mod b"
       by (simp add: div_mult_mod_eq)
     ultimately show thesis
-      using \<open>b \<noteq> 0\<close> by (blast intro: remainder)
+      using \<open>b \<noteq> 0\<close> by (blast intro!: remainder)
   qed
 qed
 
 lemma div_eqI:
-  "a div b = q" if "b \<noteq> 0" "uniqueness_constraint r b"
+  "a div b = q" if "b \<noteq> 0" "division_segment r = division_segment b"
     "euclidean_size r < euclidean_size b" "q * b + r = a"
 proof -
   from that have "(q * b + r) div b = q"
@@ -574,7 +575,7 @@ proof -
 qed
 
 lemma mod_eqI:
-  "a mod b = r" if "b \<noteq> 0" "uniqueness_constraint r b"
+  "a mod b = r" if "b \<noteq> 0" "division_segment r = division_segment b"
     "euclidean_size r < euclidean_size b" "q * b + r = a" 
 proof -
   from that have "a div b = q"
@@ -618,9 +619,9 @@ next
     from \<open>b \<noteq> 0\<close> \<open>c \<noteq> 0\<close> have "b * c \<noteq> 0"
       by simp
     from remainder \<open>c \<noteq> 0\<close>
-    have "uniqueness_constraint (r * c) (b * c)"
+    have "division_segment (r * c) = division_segment (b * c)"
       and "euclidean_size (r * c) < euclidean_size (b * c)"
-      by (simp_all add: uniqueness_constraint_mono_mult uniqueness_constraint_mod size_mono_mult)
+      by (simp_all add: division_segment_mult division_segment_mod size_mono_mult)
     with remainder show ?thesis
       by (auto intro!: div_eqI [of _ "c * (a mod b)"] simp add: algebra_simps)
         (use \<open>b * c \<noteq> 0\<close> in simp)
@@ -728,8 +729,8 @@ begin
 definition euclidean_size_nat :: "nat \<Rightarrow> nat"
   where [simp]: "euclidean_size_nat = id"
 
-definition uniqueness_constraint_nat :: "nat \<Rightarrow> nat \<Rightarrow> bool"
-  where [simp]: "uniqueness_constraint_nat = \<top>"
+definition division_segment_nat :: "nat \<Rightarrow> nat"
+  where [simp]: "division_segment_nat n = 1"
 
 definition modulo_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
   where "m mod n = m - (m div n * (n::nat))"
@@ -1372,14 +1373,8 @@ qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
 
-instantiation int :: unique_euclidean_ring
+instantiation int :: idom_modulo
 begin
-
-definition euclidean_size_int :: "int \<Rightarrow> nat"
-  where [simp]: "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
-
-definition uniqueness_constraint_int :: "int \<Rightarrow> int \<Rightarrow> bool"
-  where [simp]: "uniqueness_constraint_int k l \<longleftrightarrow> unit_factor k = unit_factor l"
 
 definition modulo_int :: "int \<Rightarrow> int \<Rightarrow> int"
   where "k mod l = (if l = 0 then k
@@ -1395,6 +1390,36 @@ lemma modulo_int_unfold:
       else sgn l * (int (n * of_bool (\<not> n dvd m)) - int (m mod n)))"
   by (auto simp add: modulo_int_def sgn_0_0 sgn_1_pos sgn_mult abs_mult
     nat_mult_distrib dvd_int_iff)
+
+instance proof
+  fix k l :: int
+  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
+    by (blast intro: int_sgnE elim: that)
+  then show "k div l * l + k mod l = k"
+    by (auto simp add: divide_int_unfold modulo_int_unfold algebra_simps dest!: sgn_not_eq_imp)
+       (simp_all add: of_nat_mult [symmetric] of_nat_add [symmetric]
+         distrib_left [symmetric] minus_mult_right
+         del: of_nat_mult minus_mult_right [symmetric])
+qed
+
+end
+
+instantiation int :: unique_euclidean_ring
+begin
+
+definition euclidean_size_int :: "int \<Rightarrow> nat"
+  where [simp]: "euclidean_size_int = (nat \<circ> abs :: int \<Rightarrow> nat)"
+
+definition division_segment_int :: "int \<Rightarrow> int"
+  where "division_segment_int k = (if k \<ge> 0 then 1 else - 1)"
+
+lemma division_segment_eq_sgn:
+  "division_segment k = sgn k" if "k \<noteq> 0" for k :: int
+  using that by (simp add: division_segment_int_def)
+
+lemma abs_division_segment [simp]:
+  "\<bar>division_segment k\<bar> = 1" for k :: int
+  by (simp add: division_segment_int_def)
 
 lemma abs_mod_less:
   "\<bar>k mod l\<bar> < \<bar>l\<bar>" if "l \<noteq> 0" for k l :: int
@@ -1418,13 +1443,9 @@ qed
 
 instance proof
   fix k l :: int
-  obtain n m and s t where "k = sgn s * int n" and "l = sgn t * int m" 
-    by (blast intro: int_sgnE elim: that)
-  then show "k div l * l + k mod l = k"
-    by (auto simp add: divide_int_unfold modulo_int_unfold algebra_simps dest!: sgn_not_eq_imp)
-       (simp_all add: of_nat_mult [symmetric] of_nat_add [symmetric]
-         distrib_left [symmetric] minus_mult_right
-         del: of_nat_mult minus_mult_right [symmetric])
+  show "division_segment (k mod l) = division_segment l" if
+    "l \<noteq> 0" and "\<not> l dvd k"
+    using that by (simp add: division_segment_eq_sgn dvd_eq_mod_eq_0 sgn_mod)
 next
   fix l q r :: int
   obtain n m and s t
@@ -1433,12 +1454,12 @@ next
   assume \<open>l \<noteq> 0\<close>
   with l have "s \<noteq> 0" and "n > 0"
     by (simp_all add: sgn_0_0)
-  assume "uniqueness_constraint r l"
+  assume "division_segment r = division_segment l"
   moreover have "r = sgn r * \<bar>r\<bar>"
     by (simp add: sgn_mult_abs)
   moreover define u where "u = nat \<bar>r\<bar>"
   ultimately have "r = sgn l * int u"
-    by simp
+    using division_segment_eq_sgn \<open>l \<noteq> 0\<close> by (cases "r = 0") simp_all
   with l \<open>n > 0\<close> have r: "r = sgn s * int u"
     by (simp add: sgn_mult)
   assume "euclidean_size r < euclidean_size l"
@@ -1481,7 +1502,7 @@ next
       by (simp only: *, simp only: l q divide_int_unfold)
         (auto simp add: sgn_mult sgn_0_0 sgn_1_pos algebra_simps dest: dvd_imp_le)
   qed
-qed (use mult_le_mono2 [of 1] in \<open>auto simp add: abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
+qed (use mult_le_mono2 [of 1] in \<open>auto simp add: division_segment_int_def not_le sign_simps abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
 
 end
 
