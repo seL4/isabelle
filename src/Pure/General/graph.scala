@@ -147,6 +147,8 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   def is_minimal(x: Key): Boolean = imm_preds(x).isEmpty
   def is_maximal(x: Key): Boolean = imm_succs(x).isEmpty
 
+  def is_isolated(x: Key): Boolean = is_minimal(x) && is_maximal(x)
+
 
   /* node operations */
 
