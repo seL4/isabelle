@@ -1,8 +1,8 @@
-(*  Author:     L C Paulson, University of Cambridge*)
+(*  Author:     L C Paulson, University of Cambridge
+    Material split off from Topology_Euclidean_Space
+*)
 
 section \<open>Connected Components, Homeomorphisms, Baire property, etc.\<close>
-
-text\<open>Material split off from Topology_Euclidean_Space\<close>
 
 theory Connected
 imports Topology_Euclidean_Space
@@ -1266,18 +1266,9 @@ proof -
       then obtain N :: nat where N: "\<forall>n\<ge>N. dist (t n) l < e"
         using l[unfolded lim_sequentially] by auto
       have "t (max n N) \<in> s n"
-        using assms(3)
-        unfolding subset_eq
-        apply (erule_tac x=n in allE)
-        apply (erule_tac x="max n N" in allE)
-        using t
-        apply auto
-        done
+        by (meson assms(3) contra_subsetD max.cobounded1 t)
       then have "\<exists>y\<in>s n. dist y l < e"
-        apply (rule_tac x="t (max n N)" in bexI)
-        using N
-        apply auto
-        done
+        using N max.cobounded2 by blast
     }
     then have "l \<in> s n"
       using closed_approachable[of "s n" l] assms(1) by auto
@@ -1495,11 +1486,7 @@ proof -
   have *: "f ` s \<subseteq> cball 0 b"
     using assms(2)[unfolded mem_cball_0[symmetric]] by auto
   show ?thesis
-    using image_closure_subset[OF assms(1) closed_cball[of 0 b] *] assms(3)
-    unfolding subset_eq
-    apply (erule_tac x="f x" in ballE)
-    apply (auto simp: dist_norm)
-    done
+    by (meson "*" assms(1) assms(3) closed_cball image_closure_subset image_subset_iff mem_cball_0)
 qed
 
 lemma isCont_indicator:
