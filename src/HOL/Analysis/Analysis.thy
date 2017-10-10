@@ -16,7 +16,7 @@ imports
   Polytope
   Jordan_Curve
   Winding_Numbers
-  Great_Picard
+  Riemann_Mapping
   Poly_Roots
   Conformal_Mappings
   FPS_Convergence

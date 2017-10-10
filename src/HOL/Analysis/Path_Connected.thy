@@ -5485,6 +5485,275 @@ lemma locally_compact_Times:
   shows "\<lbrakk>locally compact S; locally compact T\<rbrakk> \<Longrightarrow> locally compact (S \<times> T)"
   by (auto simp: compact_Times locally_Times)
 
+lemma locally_compact_compact_subopen:
+  fixes S :: "'a :: heine_borel set"
+  shows
+   "locally compact S \<longleftrightarrow>
+    (\<forall>K T. K \<subseteq> S \<and> compact K \<and> open T \<and> K \<subseteq> T
+          \<longrightarrow> (\<exists>U V. K \<subseteq> U \<and> U \<subseteq> V \<and> U \<subseteq> T \<and> V \<subseteq> S \<and>
+                     openin (subtopology euclidean S) U \<and> compact V))"
+   (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  show ?rhs
+  proof clarify
+    fix K :: "'a set" and T :: "'a set"
+    assume "K \<subseteq> S" and "compact K" and "open T" and "K \<subseteq> T"
+    obtain U V where "K \<subseteq> U" "U \<subseteq> V" "V \<subseteq> S" "compact V"
+                 and ope: "openin (subtopology euclidean S) U"
+      using L unfolding locally_compact_compact by (meson \<open>K \<subseteq> S\<close> \<open>compact K\<close>)
+    show "\<exists>U V. K \<subseteq> U \<and> U \<subseteq> V \<and> U \<subseteq> T \<and> V \<subseteq> S \<and>
+                openin (subtopology euclidean S) U \<and> compact V"
+    proof (intro exI conjI)
+      show "K \<subseteq> U \<inter> T"
+        by (simp add: \<open>K \<subseteq> T\<close> \<open>K \<subseteq> U\<close>)
+      show "U \<inter> T \<subseteq> closure(U \<inter> T)"
+        by (rule closure_subset)
+      show "closure (U \<inter> T) \<subseteq> S"
+        by (metis \<open>U \<subseteq> V\<close> \<open>V \<subseteq> S\<close> \<open>compact V\<close> closure_closed closure_mono compact_imp_closed inf.cobounded1 subset_trans)
+      show "openin (subtopology euclidean S) (U \<inter> T)"
+        by (simp add: \<open>open T\<close> ope openin_Int_open)
+      show "compact (closure (U \<inter> T))"
+        by (meson Int_lower1 \<open>U \<subseteq> V\<close> \<open>compact V\<close> bounded_subset compact_closure compact_eq_bounded_closed)
+    qed auto
+  qed
+next
+  assume ?rhs then show ?lhs
+    unfolding locally_compact_compact
+    by (metis open_openin openin_topspace subtopology_superset top.extremum topspace_euclidean_subtopology)
+qed
+
+subsection\<open>Sura-Bura's results about compact components of sets.\<close>
+
+proposition Sura_Bura_compact:
+  fixes S :: "'a::euclidean_space set"
+  assumes "compact S" and C: "C \<in> components S"
+  shows "C = \<Inter>{T. C \<subseteq> T \<and> openin (subtopology euclidean S) T \<and>
+                           closedin (subtopology euclidean S) T}"
+         (is "C = \<Inter>?\<T>")
+proof
+  obtain x where x: "C = connected_component_set S x" and "x \<in> S"
+    using C by (auto simp: components_def)
+  have "C \<subseteq> S"
+    by (simp add: C in_components_subset)
+  have "\<Inter>?\<T> \<subseteq> connected_component_set S x"
+  proof (rule connected_component_maximal)
+    have "x \<in> C"
+      by (simp add: \<open>x \<in> S\<close> x)
+    then show "x \<in> \<Inter>?\<T>"
+      by blast
+    have clo: "closed (\<Inter>?\<T>)"
+      by (simp add: \<open>compact S\<close> closed_Inter closedin_compact_eq compact_imp_closed)
+    have False
+      if K1: "closedin (subtopology euclidean (\<Inter>?\<T>)) K1" and
+         K2: "closedin (subtopology euclidean (\<Inter>?\<T>)) K2" and
+         K12_Int: "K1 \<inter> K2 = {}" and K12_Un: "K1 \<union> K2 = \<Inter>?\<T>" and "K1 \<noteq> {}" "K2 \<noteq> {}"
+       for K1 K2
+    proof -
+      have "closed K1" "closed K2"
+        using closedin_closed_trans clo K1 K2 by blast+
+      then obtain V1 V2 where "open V1" "open V2" "K1 \<subseteq> V1" "K2 \<subseteq> V2" and V12: "V1 \<inter> V2 = {}"
+        using separation_normal \<open>K1 \<inter> K2 = {}\<close> by metis
+      have SV12_ne: "(S - (V1 \<union> V2)) \<inter> (\<Inter>?\<T>) \<noteq> {}"
+      proof (rule compact_imp_fip)
+        show "compact (S - (V1 \<union> V2))"
+          by (simp add: \<open>open V1\<close> \<open>open V2\<close> \<open>compact S\<close> compact_diff open_Un)
+        show clo\<T>: "closed T" if "T \<in> ?\<T>" for T
+          using that \<open>compact S\<close>
+          by (force intro: closedin_closed_trans simp add: compact_imp_closed)
+        show "(S - (V1 \<union> V2)) \<inter> \<Inter>\<F> \<noteq> {}" if "finite \<F>" and \<F>: "\<F> \<subseteq> ?\<T>" for \<F>
+        proof
+          assume djo: "(S - (V1 \<union> V2)) \<inter> \<Inter>\<F> = {}"
+          obtain D where opeD: "openin (subtopology euclidean S) D"
+                   and cloD: "closedin (subtopology euclidean S) D"
+                   and "C \<subseteq> D" and DV12: "D \<subseteq> V1 \<union> V2"
+          proof (cases "\<F> = {}")
+            case True
+            with \<open>C \<subseteq> S\<close> djo that show ?thesis
+              by force
+          next
+            case False show ?thesis
+            proof
+              show ope: "openin (subtopology euclidean S) (\<Inter>\<F>)"
+                using openin_Inter \<open>finite \<F>\<close> False \<F> by blast
+              then show "closedin (subtopology euclidean S) (\<Inter>\<F>)"
+                by (meson clo\<T> \<F> closed_Inter closed_subset openin_imp_subset subset_eq)
+              show "C \<subseteq> \<Inter>\<F>"
+                using \<F> by auto
+              show "\<Inter>\<F> \<subseteq> V1 \<union> V2"
+                using ope djo openin_imp_subset by fastforce
+            qed
+          qed
+          have "connected C"
+            by (simp add: x)
+          have "closed D"
+            using \<open>compact S\<close> cloD closedin_closed_trans compact_imp_closed by blast
+          have cloV1: "closedin (subtopology euclidean D) (D \<inter> closure V1)"
+            and cloV2: "closedin (subtopology euclidean D) (D \<inter> closure V2)"
+            by (simp_all add: closedin_closed_Int)
+          moreover have "D \<inter> closure V1 = D \<inter> V1" "D \<inter> closure V2 = D \<inter> V2"
+            apply safe
+            using \<open>D \<subseteq> V1 \<union> V2\<close> \<open>open V1\<close> \<open>open V2\<close> V12
+               apply (simp_all add: closure_subset [THEN subsetD] closure_iff_nhds_not_empty, blast+)
+            done
+          ultimately have cloDV1: "closedin (subtopology euclidean D) (D \<inter> V1)"
+                      and cloDV2:  "closedin (subtopology euclidean D) (D \<inter> V2)"
+            by metis+
+          then obtain U1 U2 where "closed U1" "closed U2"
+               and D1: "D \<inter> V1 = D \<inter> U1" and D2: "D \<inter> V2 = D \<inter> U2"
+            by (auto simp: closedin_closed)
+          have "D \<inter> U1 \<inter> C \<noteq> {}"
+          proof
+            assume "D \<inter> U1 \<inter> C = {}"
+            then have *: "C \<subseteq> D \<inter> V2"
+              using D1 DV12 \<open>C \<subseteq> D\<close> by auto
+            have "\<Inter>?\<T> \<subseteq> D \<inter> V2"
+              apply (rule Inter_lower)
+              using * apply simp
+              by (meson cloDV2 \<open>open V2\<close> cloD closedin_trans le_inf_iff opeD openin_Int_open)
+            then show False
+              using K1 V12 \<open>K1 \<noteq> {}\<close> \<open>K1 \<subseteq> V1\<close> closedin_imp_subset by blast
+          qed
+          moreover have "D \<inter> U2 \<inter> C \<noteq> {}"
+          proof
+            assume "D \<inter> U2 \<inter> C = {}"
+            then have *: "C \<subseteq> D \<inter> V1"
+              using D2 DV12 \<open>C \<subseteq> D\<close> by auto
+            have "\<Inter>?\<T> \<subseteq> D \<inter> V1"
+              apply (rule Inter_lower)
+              using * apply simp
+              by (meson cloDV1 \<open>open V1\<close> cloD closedin_trans le_inf_iff opeD openin_Int_open)
+            then show False
+              using K2 V12 \<open>K2 \<noteq> {}\<close> \<open>K2 \<subseteq> V2\<close> closedin_imp_subset by blast
+          qed
+          ultimately show False
+            using \<open>connected C\<close> unfolding connected_closed
+            apply (simp only: not_ex)
+            apply (drule_tac x="D \<inter> U1" in spec)
+            apply (drule_tac x="D \<inter> U2" in spec)
+            using \<open>C \<subseteq> D\<close> D1 D2 V12 DV12 \<open>closed U1\<close> \<open>closed U2\<close> \<open>closed D\<close>
+            by blast
+        qed
+      qed
+      show False
+        by (metis (full_types) DiffE UnE Un_upper2 SV12_ne \<open>K1 \<subseteq> V1\<close> \<open>K2 \<subseteq> V2\<close> disjoint_iff_not_equal subsetCE sup_ge1 K12_Un)
+    qed
+    then show "connected (\<Inter>?\<T>)"
+      by (auto simp: connected_closedin_eq)
+    show "\<Inter>?\<T> \<subseteq> S"
+      by (fastforce simp: C in_components_subset)
+  qed
+  with x show "\<Inter>?\<T> \<subseteq> C" by simp
+qed auto
+
+
+corollary Sura_Bura_clopen_subset:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "locally compact S" and C: "C \<in> components S" and "compact C"
+      and U: "open U" "C \<subseteq> U"
+  obtains K where "openin (subtopology euclidean S) K" "compact K" "C \<subseteq> K" "K \<subseteq> U"
+proof (rule ccontr)
+  assume "\<not> thesis"
+  with that have neg: "\<nexists>K. openin (subtopology euclidean S) K \<and> compact K \<and> C \<subseteq> K \<and> K \<subseteq> U"
+    by metis
+  obtain V K where "C \<subseteq> V" "V \<subseteq> U" "V \<subseteq> K" "K \<subseteq> S" "compact K"
+               and opeSV: "openin (subtopology euclidean S) V"
+    using S U \<open>compact C\<close>
+    apply (simp add: locally_compact_compact_subopen)
+    by (meson C in_components_subset)
+  let ?\<T> = "{T. C \<subseteq> T \<and> openin (subtopology euclidean K) T \<and> compact T \<and> T \<subseteq> K}"
+  have CK: "C \<in> components K"
+    by (meson C \<open>C \<subseteq> V\<close> \<open>K \<subseteq> S\<close> \<open>V \<subseteq> K\<close> components_intermediate_subset subset_trans)
+  with \<open>compact K\<close>
+  have "C = \<Inter>{T. C \<subseteq> T \<and> openin (subtopology euclidean K) T \<and> closedin (subtopology euclidean K) T}"
+    by (simp add: Sura_Bura_compact)
+  then have Ceq: "C = \<Inter>?\<T>"
+    by (simp add: closedin_compact_eq \<open>compact K\<close>)
+  obtain W where "open W" and W: "V = S \<inter> W"
+    using opeSV by (auto simp: openin_open)
+  have "-(U \<inter> W) \<inter> \<Inter>?\<T> \<noteq> {}"
+  proof (rule closed_imp_fip_compact)
+    show "- (U \<inter> W) \<inter> \<Inter>\<F> \<noteq> {}"
+      if "finite \<F>" and \<F>: "\<F> \<subseteq> ?\<T>" for \<F>
+    proof (cases "\<F> = {}")
+      case True
+      have False if "U = UNIV" "W = UNIV"
+      proof -
+        have "V = S"
+          by (simp add: W \<open>W = UNIV\<close>)
+        with neg show False
+          using \<open>C \<subseteq> V\<close> \<open>K \<subseteq> S\<close> \<open>V \<subseteq> K\<close> \<open>V \<subseteq> U\<close> \<open>compact K\<close> by auto
+      qed
+      with True show ?thesis
+        by auto
+    next
+      case False
+      show ?thesis
+      proof
+        assume "- (U \<inter> W) \<inter> \<Inter>\<F> = {}"
+        then have FUW: "\<Inter>\<F> \<subseteq> U \<inter> W"
+          by blast
+        have "C \<subseteq> \<Inter>\<F>"
+          using \<F> by auto
+        moreover have "compact (\<Inter>\<F>)"
+          by (metis (no_types, lifting) compact_Inter False mem_Collect_eq subsetCE \<F>)
+        moreover have "\<Inter>\<F> \<subseteq> K"
+          using False that(2) by fastforce
+        moreover have opeKF: "openin (subtopology euclidean K) (\<Inter>\<F>)"
+          using False \<F> \<open>finite \<F>\<close> by blast
+        then have opeVF: "openin (subtopology euclidean V) (\<Inter>\<F>)"
+          using W \<open>K \<subseteq> S\<close> \<open>V \<subseteq> K\<close> opeKF \<open>\<Inter>\<F> \<subseteq> K\<close> FUW openin_subset_trans by fastforce
+        then have "openin (subtopology euclidean S) (\<Inter>\<F>)"
+          by (metis opeSV openin_trans)
+        moreover have "\<Inter>\<F> \<subseteq> U"
+          by (meson \<open>V \<subseteq> U\<close> opeVF dual_order.trans openin_imp_subset)
+        ultimately show False
+          using neg by blast
+      qed
+    qed
+  qed (use \<open>open W\<close> \<open>open U\<close> in auto)
+  with W Ceq \<open>C \<subseteq> V\<close> \<open>C \<subseteq> U\<close> show False
+    by auto
+qed
+
+
+corollary Sura_Bura_clopen_subset_alt:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "locally compact S" and C: "C \<in> components S" and "compact C"
+      and opeSU: "openin (subtopology euclidean S) U" and "C \<subseteq> U"
+  obtains K where "openin (subtopology euclidean S) K" "compact K" "C \<subseteq> K" "K \<subseteq> U"
+proof -
+  obtain V where "open V" "U = S \<inter> V"
+    using opeSU by (auto simp: openin_open)
+  with \<open>C \<subseteq> U\<close> have "C \<subseteq> V"
+    by auto
+  then show ?thesis
+    using Sura_Bura_clopen_subset [OF S C \<open>compact C\<close> \<open>open V\<close>]
+    by (metis \<open>U = S \<inter> V\<close> inf.bounded_iff openin_imp_subset that)
+qed
+
+corollary Sura_Bura:
+  fixes S :: "'a::euclidean_space set"
+  assumes "locally compact S" "C \<in> components S" "compact C"
+  shows "C = \<Inter> {K. C \<subseteq> K \<and> compact K \<and> openin (subtopology euclidean S) K}"
+         (is "C = ?rhs")
+proof
+  show "?rhs \<subseteq> C"
+  proof (clarsimp, rule ccontr)
+    fix x
+    assume *: "\<forall>X. C \<subseteq> X \<and> compact X \<and> openin (subtopology euclidean S) X \<longrightarrow> x \<in> X"
+      and "x \<notin> C"
+    obtain U V where "open U" "open V" "{x} \<subseteq> U" "C \<subseteq> V" "U \<inter> V = {}"
+      using separation_normal [of "{x}" C]
+      by (metis Int_empty_left \<open>x \<notin> C\<close> \<open>compact C\<close> closed_empty closed_insert compact_imp_closed insert_disjoint(1))
+    have "x \<notin> V"
+      using \<open>U \<inter> V = {}\<close> \<open>{x} \<subseteq> U\<close> by blast
+    then show False
+      by (meson "*" Sura_Bura_clopen_subset \<open>C \<subseteq> V\<close> \<open>open V\<close> assms(1) assms(2) assms(3) subsetCE)
+  qed
+qed blast
+
+
 subsection\<open>Important special cases of local connectedness and path connectedness\<close>
 
 lemma locally_connected_1:

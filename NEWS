@@ -59,6 +59,7 @@ on interpretation of abstract locales. INCOMPATIBILITY.
 * Predicate pairwise_coprime abolished, use "pairwise coprime" instead.
 INCOMPATIBILITY.
 
+* Session HOL-Analysis: Moebius functions and the Riemann mapping theorem.
 
 *** System ***
 
