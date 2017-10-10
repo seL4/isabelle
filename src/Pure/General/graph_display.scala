@@ -63,10 +63,12 @@ object Graph_Display
 
   def make_graph[A](
     graph: isabelle.Graph[String, A],
+    isolated: Boolean = false,
     name: (String, A) => String = (x: String, a: A) => x): Graph =
   {
     val entries =
-      (for ((x, (a, (ps, _))) <- graph.iterator) yield ((x, (name(x, a), Nil)), ps.toList)).toList
+      (for { (x, (a, (ps, _))) <- graph.iterator if isolated || !graph.is_isolated(x) }
+       yield ((x, (name(x, a), Nil)), ps.toList)).toList
     build_graph(entries)
   }
 }
