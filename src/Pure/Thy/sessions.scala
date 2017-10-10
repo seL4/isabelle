@@ -355,7 +355,7 @@ object Sessions
   sealed case class Info(
     name: String,
     chapter: String,
-    select: Boolean,
+    dir_selected: Boolean,
     pos: Position.T,
     groups: List[String],
     dir: Path,
@@ -425,7 +425,7 @@ object Sessions
           val select = sessions.toSet ++ graph.all_succs(base_sessions)
           (for {
             (name, (info, _)) <- graph.iterator
-            if info.select || select(name) || graph.get_node(name).groups.exists(select_group)
+            if info.dir_selected || select(name) || graph.get_node(name).groups.exists(select_group)
           } yield name).toList
         }
       }.filterNot(excluded)
