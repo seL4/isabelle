@@ -40,6 +40,7 @@ sig
   val maximals: 'a T -> key list
   val is_minimal: 'a T -> key -> bool
   val is_maximal: 'a T -> key -> bool
+  val is_isolated: 'a T -> key -> bool
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_node: key -> 'a T -> 'a T                                   (*exception UNDEF*)
@@ -176,6 +177,8 @@ fun minimals G = fold_graph (fn (m, (_, (preds, _))) => Keys.is_empty preds ? co
 fun maximals G = fold_graph (fn (m, (_, (_, succs))) => Keys.is_empty succs ? cons m) G [];
 fun is_minimal G x = Keys.is_empty (imm_preds G x);
 fun is_maximal G x = Keys.is_empty (imm_succs G x);
+
+fun is_isolated G x = is_minimal G x andalso is_maximal G x;
 
 
 (* node operations *)

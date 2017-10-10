@@ -267,8 +267,7 @@ object Sessions
               }
 
               val imports_subgraph =
-                sessions.imports_graph.restrict(
-                  sessions.imports_graph.all_preds(info.parent.toList ::: info.imports).toSet)
+                sessions.imports_graph.restrict(sessions.imports_graph.all_preds(info.deps).toSet)
 
               val graph0 =
                 (Graph_Display.empty_graph /: imports_subgraph.topological_order)(
@@ -356,7 +355,7 @@ object Sessions
   sealed case class Info(
     name: String,
     chapter: String,
-    select: Boolean,
+    dir_selected: Boolean,
     pos: Position.T,
     groups: List[String],
     dir: Path,
@@ -369,6 +368,8 @@ object Sessions
     document_files: List[(Path, Path)],
     meta_digest: SHA1.Digest)
   {
+    def deps: List[String] = parent.toList ::: imports
+
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
   }
 
@@ -424,7 +425,7 @@ object Sessions
           val select = sessions.toSet ++ graph.all_succs(base_sessions)
           (for {
             (name, (info, _)) <- graph.iterator
-            if info.select || select(name) || graph.get_node(name).groups.exists(select_group)
+            if info.dir_selected || select(name) || graph.get_node(name).groups.exists(select_group)
           } yield name).toList
         }
       }.filterNot(excluded)

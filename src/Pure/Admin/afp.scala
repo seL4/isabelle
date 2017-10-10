@@ -43,22 +43,33 @@ class AFP private(options: Options, val base_dir: Path)
   private def sessions_deps(entry: AFP.Entry): List[String] =
     entry.sessions.flatMap(sessions_structure.imports_graph.imm_preds(_)).distinct.sorted
 
-  val entries_graph: Graph[String, Unit] =
+  def dependency_graph(acyclic: Boolean): Graph[String, Unit] =
   {
     val session_entries =
-      (Multi_Map.empty[String, String] /: entries) { case (m1, e) =>
-        (m1 /: e.sessions) { case (m2, s) => m2.insert(s, e.name) }
+      (Map.empty[String, String] /: entries) {
+        case (m1, e) => (m1 /: e.sessions) { case (m2, s) => m2 + (s -> e.name) }
       }
-    (Graph.empty[String, Unit] /: entries) { case (g, e1) =>
-      val name1 = e1.name
-      val g1 = g.default_node(name1, ())
-      (g1 /: sessions_deps(e1)) { case (g2, s2) =>
-        (g2 /: session_entries.get_list(s2)) { case (g3, name2) =>
-          if (name1 == name2) g3 else g3.default_node(name2, ()).add_edge(name2, name1)
+    (Graph.empty[String, Unit] /: entries) { case (g, entry) =>
+      val e1 = entry.name
+      (g.default_node(e1, ()) /: sessions_deps(entry)) { case (g1, s) =>
+        (g1 /: session_entries.get(s).filterNot(_ == e1)) { case (g2, e2) =>
+          val g3 = g2.default_node(e2, ())
+          if (acyclic) {
+            try { g3.add_edge_acyclic(e2, e1) }
+            catch {
+              case exn: Graph.Cycles[_] =>
+                error(cat_lines(exn.cycles.map(cycle =>
+                  "Cyclic dependency of " + cycle.map(c => quote(c.toString)).mkString(" via ") +
+                  " due to session " + quote(s))))
+            }
+          }
+          else g3.add_edge(e2, e1)
         }
       }
     }
   }
+
+  val entries_graph: Graph[String, Unit] = dependency_graph(acyclic = false)
 
   def entries_graph_display: Graph_Display.Graph =
     Graph_Display.make_graph(entries_graph)
