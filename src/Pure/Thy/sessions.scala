@@ -267,8 +267,7 @@ object Sessions
               }
 
               val imports_subgraph =
-                sessions.imports_graph.restrict(
-                  sessions.imports_graph.all_preds(info.parent.toList ::: info.imports).toSet)
+                sessions.imports_graph.restrict(sessions.imports_graph.all_preds(info.deps).toSet)
 
               val graph0 =
                 (Graph_Display.empty_graph /: imports_subgraph.topological_order)(
@@ -369,6 +368,8 @@ object Sessions
     document_files: List[(Path, Path)],
     meta_digest: SHA1.Digest)
   {
+    def deps: List[String] = parent.toList ::: imports
+
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
   }
 
