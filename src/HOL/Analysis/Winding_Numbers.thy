@@ -799,15 +799,15 @@ lemma closed_segmentI:
   "u \<in> {0..1} \<Longrightarrow> z = (1 - u) *\<^sub>R a + u *\<^sub>R b \<Longrightarrow> z \<in> closed_segment a b"
   by (auto simp: closed_segment_def)
 
-lemma in_cbox_complex_iff: 
+lemma in_cbox_complex_iff:
   "x \<in> cbox a b \<longleftrightarrow> Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}"
   by (cases x; cases a; cases b) (auto simp: cbox_Complex_eq)
 
-lemma box_Complex_eq: 
+lemma box_Complex_eq:
   "box (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (box a b \<times> box c d)"
   by (auto simp: box_def Basis_complex_def image_iff complex_eq_iff)
 
-lemma in_box_complex_iff: 
+lemma in_box_complex_iff:
   "x \<in> box a b \<longleftrightarrow> Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}"
   by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
 (* END TODO *)
@@ -851,7 +851,7 @@ qed
 
 definition rectpath where
   "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
-                      in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)" 
+                      in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)"
 
 lemma path_rectpath [simp, intro]: "path (rectpath a b)"
   by (simp add: Let_def rectpath_def)
@@ -865,21 +865,21 @@ lemma pathstart_rectpath [simp]: "pathstart (rectpath a1 a3) = a1"
 lemma pathfinish_rectpath [simp]: "pathfinish (rectpath a1 a3) = a1"
   by (simp add: rectpath_def Let_def)
 
-lemma simple_path_rectpath [simp, intro]: 
+lemma simple_path_rectpath [simp, intro]:
   assumes "Re a1 \<noteq> Re a3" "Im a1 \<noteq> Im a3"
   shows   "simple_path (rectpath a1 a3)"
   unfolding rectpath_def Let_def using assms
   by (intro simple_path_join_loop arc_join arc_linepath)
      (auto simp: complex_eq_iff path_image_join closed_segment_same_Re closed_segment_same_Im)
 
-lemma path_image_rectpath: 
+lemma path_image_rectpath:
   assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
-  shows "path_image (rectpath a1 a3) = 
+  shows "path_image (rectpath a1 a3) =
            {z. Re z \<in> {Re a1, Re a3} \<and> Im z \<in> {Im a1..Im a3}} \<union>
            {z. Im z \<in> {Im a1, Im a3} \<and> Re z \<in> {Re a1..Re a3}}" (is "?lhs = ?rhs")
 proof -
   define a2 a4 where "a2 = Complex (Re a3) (Im a1)" and "a4 = Complex (Re a1) (Im a3)"
-  have "?lhs = closed_segment a1 a2 \<union> closed_segment a2 a3 \<union> 
+  have "?lhs = closed_segment a1 a2 \<union> closed_segment a2 a3 \<union>
                   closed_segment a4 a3 \<union> closed_segment a1 a4"
     by (simp_all add: rectpath_def Let_def path_image_join closed_segment_commute
                       a2_def a4_def Un_assoc)
@@ -902,7 +902,7 @@ lemma path_image_rectpath_inter_box:
 lemma path_image_rectpath_cbox_minus_box:
   assumes "Re a \<le> Re b" "Im a \<le> Im b"
   shows   "path_image (rectpath a b) = cbox a b - box a b"
-  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff 
+  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff
                              in_box_complex_iff)
 
 lemma winding_number_rectpath:
@@ -916,7 +916,7 @@ proof -
   and ?l3 = "linepath a3 a4" and ?l4 = "linepath a4 a1"
   from assms and less have "z \<notin> path_image (rectpath a1 a3)"
     by (auto simp: path_image_rectpath_cbox_minus_box)
-  also have "path_image (rectpath a1 a3) = 
+  also have "path_image (rectpath a1 a3) =
                path_image ?l1 \<union> path_image ?l2 \<union> path_image ?l3 \<union> path_image ?l4"
     by (simp add: rectpath_def Let_def path_image_join Un_assoc a2_def a4_def)
   finally have "z \<notin> \<dots>" .
@@ -935,7 +935,7 @@ lemma winding_number_rectpath_outside:
   assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
   assumes "z \<notin> cbox a1 a3"
   shows   "winding_number (rectpath a1 a3) z = 0"
-  using assms by (intro winding_number_zero_outside[OF _ _ _ assms(3)] 
+  using assms by (intro winding_number_zero_outside[OF _ _ _ assms(3)]
                      path_image_rectpath_subset_cbox) simp_all
 
 
@@ -1074,7 +1074,7 @@ proof -
         have "continuous (at t within {0..1}) (g o p)"
           apply (rule continuous_within_compose)
           using \<open>path p\<close> continuous_on_eq_continuous_within path_def that apply blast
-          by (metis (no_types, lifting) Topology_Euclidean_Space.open_ball UNIV_I \<open>p t \<noteq> \<zeta>\<close> centre_in_ball contg continuous_on_eq_continuous_at continuous_within_topological right_minus_eq zero_less_norm_iff)
+          by (metis (no_types, lifting) open_ball UNIV_I \<open>p t \<noteq> \<zeta>\<close> centre_in_ball contg continuous_on_eq_continuous_at continuous_within_topological right_minus_eq zero_less_norm_iff)
         with LIM_zero have "((\<lambda>u. (g (subpath t u p 1) - g (subpath t u p 0))) \<longlongrightarrow> 0) (at t within {0..1})"
           by (auto simp: subpath_def continuous_within o_def)
         then show "((\<lambda>u.  (g (subpath t u p 1) - g (subpath t u p 0)) / (2 * of_real pi * \<i>)) \<longlongrightarrow> 0)

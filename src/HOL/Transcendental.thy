@@ -5822,7 +5822,7 @@ proof -
       moreover have "isCont (\<lambda> x. ?a x n - ?diff x n) x" for x
         unfolding diff_conv_add_uminus divide_inverse
         by (auto intro!: isCont_add isCont_rabs continuous_ident isCont_minus isCont_arctan
-          isCont_inverse isCont_mult isCont_power continuous_const isCont_sum
+          continuous_at_inverse isCont_mult isCont_power continuous_const isCont_sum
           simp del: add_uminus_conv_diff)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n"
         by (rule LIM_less_bound)

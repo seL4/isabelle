@@ -1084,7 +1084,7 @@ next
     have cloS: "closedin (subtopology euclidean U) S"
       by (metis US closed_closure closedin_closed_Int)
     have cont: "isCont ((\<lambda>x. setdist {x} (- U)) o fst) z" for z :: "'a \<times> 'b"
-      by (rule isCont_o continuous_intros continuous_at_setdist)+
+      by (rule continuous_at_compose continuous_intros continuous_at_setdist)+
     have setdist1D: "setdist {a} (- U) *\<^sub>R b = One \<Longrightarrow> setdist {a} (- U) \<noteq> 0" for a::'a and b::'b
       by force
     have *: "r *\<^sub>R b = One \<Longrightarrow> b = (1 / r) *\<^sub>R One" for r and b::'b

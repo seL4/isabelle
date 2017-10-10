@@ -341,7 +341,7 @@ proof -
       with w have der_gw: "(g has_field_derivative deriv g w) (at w)"
         by (simp add: field_differentiable_within_open [of _ "ball 0 1"] field_differentiable_derivI)
       with DERIV_unique [OF der_gw] g' w have "deriv g w = g' w"
-        by (metis Topology_Euclidean_Space.open_ball at_within_open ball_subset_cball has_field_derivative_subset subsetCE)
+        by (metis open_ball at_within_open ball_subset_cball has_field_derivative_subset subsetCE)
       then show "cmod (g' w) \<le> 12 / (1 - t)"
         using g' 12 \<open>t < 1\<close> by (simp add: field_simps)
     qed
@@ -1350,7 +1350,7 @@ proof -
         have lt_Fj: "real x \<le> cmod (\<F> (j x) v)" for x
           by (metis of_nat_Suc ltF \<open>strict_mono j\<close> add.commute less_eq_real_def less_le_trans nat_le_real_less seq_suble)
         show "(\<lambda>n. \<G> (j n) v) \<longlonglongrightarrow> 0"
-        proof (rule Lim_null_comparison [OF eventually_sequentiallyI seq_harmonic])
+        proof (rule Lim_null_comparison [OF eventually_sequentiallyI lim_inverse_n])
           show "cmod (\<G> (j x) v) \<le> inverse (real x)" if "1 \<le> x" for x
             using that by (simp add: \<G>_def norm_inverse_le_norm [OF lt_Fj])
         qed        

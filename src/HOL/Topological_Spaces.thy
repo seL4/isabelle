@@ -1216,6 +1216,17 @@ proof -
              simp: less_eq_Suc_le strict_mono_Suc_iff)
 qed
 
+lemma sequentially_offset: 
+  assumes "eventually (\<lambda>i. P i) sequentially"
+  shows "eventually (\<lambda>i. P (i + k)) sequentially"
+  using assms by (rule eventually_sequentially_seg [THEN iffD2])
+
+lemma seq_offset_neg: 
+  "(f \<longlongrightarrow> l) sequentially \<Longrightarrow> ((\<lambda>i. f(i - k)) \<longlongrightarrow> l) sequentially"
+  apply (erule filterlim_compose)
+  apply (simp add: filterlim_def le_sequentially eventually_filtermap eventually_sequentially, arith)
+  done
+
 lemma filterlim_subseq: "strict_mono f \<Longrightarrow> filterlim f sequentially sequentially"
   unfolding filterlim_iff by (metis eventually_subseq)
 
@@ -2017,7 +2028,7 @@ lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longright
 lemma isCont_o2: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
   unfolding isCont_def by (rule tendsto_compose)
 
-lemma isCont_o[continuous_intros]: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (g \<circ> f) a"
+lemma continuous_at_compose[continuous_intros]: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (g \<circ> f) a"
   unfolding o_def by (rule isCont_o2)
 
 lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"

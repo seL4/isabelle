@@ -6,7 +6,7 @@
 section \<open>Uniform Limit and Uniform Convergence\<close>
 
 theory Uniform_Limit
-imports Topology_Euclidean_Space Summation_Tests
+imports Connected Summation_Tests
 begin
 
 definition uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"

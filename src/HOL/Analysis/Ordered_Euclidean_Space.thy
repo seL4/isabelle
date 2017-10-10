@@ -190,12 +190,12 @@ lemma closed_eucl_atLeastAtMost[simp, intro]:
 lemma closed_eucl_atMost[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {..a}"
-  by (simp add: eucl_le_atMost[symmetric])
+  by (simp add: closed_interval_left eucl_le_atMost[symmetric])
 
 lemma closed_eucl_atLeast[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..}"
-  by (simp add: eucl_le_atLeast[symmetric])
+  by (simp add: closed_interval_right eucl_le_atLeast[symmetric])
 
 lemma bounded_closed_interval [simp]:
   fixes a :: "'a::ordered_euclidean_space"

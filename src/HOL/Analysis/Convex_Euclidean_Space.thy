@@ -10,7 +10,7 @@ section \<open>Convex sets, functions and related things\<close>
 
 theory Convex_Euclidean_Space
 imports
-  Topology_Euclidean_Space
+  Connected
   "HOL-Library.Set_Algebras"
 begin
 
@@ -6717,7 +6717,7 @@ proof -
     done
   then show ?thesis
     using connected_ivt_component[of "f ` cbox a b" "f a" "f b" k y]
-    by (simp add: Topology_Euclidean_Space.connected_continuous_image assms)
+    by (simp add: connected_continuous_image assms)
 qed
 
 lemma ivt_increasing_component_1:

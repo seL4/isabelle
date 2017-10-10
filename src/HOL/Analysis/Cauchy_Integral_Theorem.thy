@@ -2955,7 +2955,7 @@ proof -
       using holomorphic_convex_primitive [OF convex_ball k contfb fcd] d
             interior_subset by force
     then have "\<forall>y\<in>ball z d. (h has_field_derivative f y) (at y within s)"
-      by (metis Topology_Euclidean_Space.open_ball at_within_open d(2) os subsetCE)
+      by (metis open_ball at_within_open d(2) os subsetCE)
     then have "\<exists>h. (\<forall>y. cmod (y - z) < d \<longrightarrow> (h has_field_derivative f y) (at y within s))"
       by (force simp: dist_norm norm_minus_commute)
     then have "\<exists>d h. 0 < d \<and> (\<forall>y. cmod (y - z) < d \<longrightarrow> (h has_field_derivative f y) (at y within s))"

@@ -24,7 +24,7 @@ Hence, to form a product of topological spaces, all these spaces should be subse
 This means that type classes can not be used to define such a product if one wants to take the
 product of different topological spaces (as the type 'a can only be given one structure of
 topological space using type classes). On the other hand, one can define different topologies (as
-introduced in \verb+Topology_Euclidean_Space.thy+) on one type, and these topologies do not need to
+introduced in \verb+thy+) on one type, and these topologies do not need to
 share the same maximal open set. Hence, one can form a product of topologies in this sense, and
 this works well. The big caveat is that it does not interact well with the main body of
 topology in Isabelle/HOL defined in terms of type classes... For instance, continuity of maps

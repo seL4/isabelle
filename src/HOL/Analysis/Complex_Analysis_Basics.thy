@@ -497,7 +497,7 @@ by (metis holomorphic_on_def holomorphic_on_subset open_contains_ball)
 lemma analytic_on_imp_differentiable_at:
   "f analytic_on s \<Longrightarrow> x \<in> s \<Longrightarrow> f field_differentiable (at x)"
  apply (auto simp: analytic_on_def holomorphic_on_def)
-by (metis Topology_Euclidean_Space.open_ball centre_in_ball field_differentiable_within_open)
+by (metis open_ball centre_in_ball field_differentiable_within_open)
 
 lemma analytic_on_subset: "f analytic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f analytic_on t"
   by (auto simp: analytic_on_def)
@@ -521,7 +521,7 @@ proof -
     then show "\<exists>t. open t \<and> s \<subseteq> t \<and> f analytic_on t"
       apply (simp add: analytic_on_def)
       apply (rule exI [where x="\<Union>{u. open u \<and> f analytic_on u}"], auto)
-      apply (metis Topology_Euclidean_Space.open_ball analytic_on_open centre_in_ball)
+      apply (metis open_ball analytic_on_open centre_in_ball)
       by (metis analytic_on_def)
   next
     fix t
@@ -652,7 +652,7 @@ proof (intro ballI)
   have "continuous_on (ball z e) f"
     by (metis fh holomorphic_on_imp_continuous_on)
   then obtain e' where e': "0 < e'" and nz': "\<And>y. dist z y < e' \<Longrightarrow> f y \<noteq> 0"
-    by (metis Topology_Euclidean_Space.open_ball centre_in_ball continuous_on_open_avoid e z nz)
+    by (metis open_ball centre_in_ball continuous_on_open_avoid e z nz)
   have "(\<lambda>z. inverse (f z)) holomorphic_on ball z (min e e')"
     apply (rule holomorphic_on_inverse)
     apply (metis fh holomorphic_on_subset min.cobounded2 min.commute subset_ball)

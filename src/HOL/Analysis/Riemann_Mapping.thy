@@ -1435,7 +1435,7 @@ proof -
       then have "S = g ` (ball 0 1)"
         by (force simp:)
       then have "open S"
-        by (metis Topology_Euclidean_Space.open_ball g inj_on_def open_mapping_thm3)
+        by (metis open_ball g inj_on_def open_mapping_thm3)
     }
     with that show "open S" by auto
   qed

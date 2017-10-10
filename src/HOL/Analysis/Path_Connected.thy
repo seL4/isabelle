@@ -5987,7 +5987,7 @@ lemma open_imp_locally_path_connected:
   shows "open S \<Longrightarrow> locally path_connected S"
 apply (rule locally_mono [of convex])
 apply (simp_all add: locally_def openin_open_eq convex_imp_path_connected)
-apply (meson Topology_Euclidean_Space.open_ball centre_in_ball convex_ball openE order_trans)
+apply (meson open_ball centre_in_ball convex_ball openE order_trans)
 done
 
 lemma open_imp_locally_connected:
@@ -6029,7 +6029,7 @@ lemma convex_imp_locally_path_connected:
 apply (clarsimp simp add: locally_path_connected)
 apply (subst (asm) openin_open)
 apply clarify
-apply (erule (1) Topology_Euclidean_Space.openE)
+apply (erule (1) openE)
 apply (rule_tac x = "S \<inter> ball x e" in exI)
 apply (force simp: convex_Int convex_imp_path_connected)
 done
@@ -6281,7 +6281,7 @@ proof -
   have "S \<subseteq> u"
     using S closedin_imp_subset by blast
   moreover have "u - S = \<Union>c \<union> \<Union>(components (u - S) - c)"
-    by (metis Diff_partition Topology_Euclidean_Space.Union_components Union_Un_distrib assms(3))
+    by (metis Diff_partition Union_components Union_Un_distrib assms(3))
   moreover have "disjnt (\<Union>c) (\<Union>(components (u - S) - c))"
     apply (rule di)
     by (metis DiffD1 DiffD2 assms(3) components_nonoverlap disjnt_def subsetCE)
@@ -7407,7 +7407,7 @@ proof (clarsimp simp add: path_connected_component)
         using \<open>\<not> collinear S\<close> collinear_aff_dim by auto
       then have "\<not> collinear (ball x r \<inter> affine hull S)"
         apply (simp add: collinear_aff_dim)
-        by (metis (no_types, hide_lams) aff_dim_convex_Int_open IntI Topology_Euclidean_Space.open_ball \<open>0 < r\<close> aff_dim_affine_hull affine_affine_hull affine_imp_convex centre_in_ball empty_iff hull_subset inf_commute subsetCE that)
+        by (metis (no_types, hide_lams) aff_dim_convex_Int_open IntI open_ball \<open>0 < r\<close> aff_dim_affine_hull affine_affine_hull affine_imp_convex centre_in_ball empty_iff hull_subset inf_commute subsetCE that)
       then have *: "path_connected ((ball x r \<inter> affine hull S) - T)"
         by (rule path_connected_convex_diff_countable [OF conv _ \<open>countable T\<close>])
       have ST: "ball x r \<inter> affine hull S - T \<subseteq> S - T"

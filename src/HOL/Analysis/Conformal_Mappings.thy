@@ -693,7 +693,7 @@ proof -
   have cd: "\<And>x. dist \<xi> x < r \<Longrightarrow> (\<lambda>z. deriv g z / g z) field_differentiable at x"
     apply (rule derivative_intros)+
     using holg mem_ball apply (blast intro: holomorphic_deriv holomorphic_on_imp_differentiable_at)
-    apply (metis Topology_Euclidean_Space.open_ball at_within_open holg holomorphic_on_def mem_ball)
+    apply (metis open_ball at_within_open holg holomorphic_on_def mem_ball)
     using gne mem_ball by blast
   obtain h where h: "\<And>x. x \<in> ball \<xi> r \<Longrightarrow> (h has_field_derivative deriv g x / g x) (at x)"
     apply (rule exE [OF holomorphic_convex_primitive [of "ball \<xi> r" "{}" "\<lambda>z. deriv g z / g z"]])
@@ -1234,7 +1234,7 @@ proof -
         apply (rule has_complex_derivative_locally_invertible [OF holgw, of \<xi>])
         using \<open>0 < r\<close> \<open>0 < \<delta>\<close>
         apply (simp_all add:)
-        by (meson Topology_Euclidean_Space.open_ball centre_in_ball)
+        by (meson open_ball centre_in_ball)
       define U where "U = (\<lambda>w. (w - \<xi>) * g w) ` T"
       have "open U" by (metis oimT U_def)
       have "0 \<in> U"
@@ -1931,7 +1931,7 @@ proof -
   have hol0: "(\<lambda>z. f (a + z)) holomorphic_on cball 0 r"
     unfolding fz by (intro holomorphic_intros holf holomorphic_on_compose | simp)+
   then have [simp]: "\<And>x. norm x < r \<Longrightarrow> (\<lambda>z. f (a + z)) field_differentiable at x"
-    by (metis Topology_Euclidean_Space.open_ball at_within_open ball_subset_cball diff_0 dist_norm holomorphic_on_def holomorphic_on_subset mem_ball norm_minus_cancel)
+    by (metis open_ball at_within_open ball_subset_cball diff_0 dist_norm holomorphic_on_def holomorphic_on_subset mem_ball norm_minus_cancel)
   have [simp]: "\<And>z. norm z < r \<Longrightarrow> f field_differentiable at (a + z)"
     by (metis holf open_ball add_diff_cancel_left' dist_complex_def holomorphic_on_imp_differentiable_at holomorphic_on_subset interior_cball interior_subset mem_ball norm_minus_commute)
   then have [simp]: "f field_differentiable at a"
@@ -2131,13 +2131,13 @@ proof -
   then show ?thesis
   proof cases
     case 1 then show ?thesis
-      by (simp add: Topology_Euclidean_Space.ball_empty that)
+      by (simp add: ball_empty that)
   next
     case 2
     show ?thesis
     proof (cases "deriv f a = 0")
       case True then show ?thesis
-        using rle by (simp add: Topology_Euclidean_Space.ball_empty that)
+        using rle by (simp add: ball_empty that)
     next
       case False
       then have "t > 0"
@@ -3620,7 +3620,7 @@ proof -
                   have po:"zo = Suc (zo - Suc 0) " using \<open>zo>0\<close> by auto
                   have "(zp has_field_derivative (deriv zp w)) (at w)"
                     using DERIV_deriv_iff_has_field_derivative pp_holo
-                    by (meson Topology_Euclidean_Space.open_ball \<open>w \<in> ball p r\<close> ball_subset_cball holomorphic_derivI holomorphic_on_subset)
+                    by (meson open_ball \<open>w \<in> ball p r\<close> ball_subset_cball holomorphic_derivI holomorphic_on_subset)
                   then show "(f' has_field_derivative  der) (at w)"
                     using \<open>w\<noteq>p\<close> \<open>zo>0\<close> unfolding der_def f'_def
                     by (auto intro!: derivative_eq_intros simp add:field_simps)

@@ -1183,7 +1183,7 @@ next
                  and hin: "\<And>x. x \<in> C \<inter> K \<Longrightarrow> h x \<in> ball a d \<inter> U"
     proof (rule homeomorphism_grouping_points_exists_gen [of C "ball a d \<inter> U" "C \<inter> K" "S \<union> C"])
       show "openin (subtopology euclidean C) (ball a d \<inter> U)"
-        by (metis Topology_Euclidean_Space.open_ball \<open>C \<subseteq> U\<close> \<open>ball a d \<inter> U \<subseteq> C\<close> inf.absorb_iff2 inf.orderE inf_assoc open_openin openin_subtopology)
+        by (metis open_ball \<open>C \<subseteq> U\<close> \<open>ball a d \<inter> U \<subseteq> C\<close> inf.absorb_iff2 inf.orderE inf_assoc open_openin openin_subtopology)
       show "openin (subtopology euclidean (affine hull C)) C"
         by (metis \<open>a \<in> C\<close> \<open>openin (subtopology euclidean U) C\<close> affine_hull_eq affine_hull_openin all_not_in_conv \<open>affine U\<close>)
       show "ball a d \<inter> U \<noteq> {}"

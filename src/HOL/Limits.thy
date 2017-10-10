@@ -982,7 +982,7 @@ lemma continuous_at_within_inverse[continuous_intros]:
   shows "continuous (at a within s) (\<lambda>x. inverse (f x))"
   using assms unfolding continuous_within by (rule tendsto_inverse)
 
-lemma isCont_inverse[continuous_intros, simp]:
+lemma continuous_at_inverse[continuous_intros, simp]:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "isCont f a"
     and "f a \<noteq> 0"
@@ -2663,7 +2663,7 @@ lemma isCont_inverse_function2:
   apply (simp_all add: abs_le_iff)
   done
 
-(* need to rename second isCont_inverse *)
+(* need to rename second continuous_at_inverse *)
 lemma isCont_inv_fun:
   fixes f g :: "real \<Rightarrow> real"
   shows "0 < d \<Longrightarrow> (\<forall>z. \<bar>z - x\<bar> \<le> d \<longrightarrow> g (f z) = z) \<Longrightarrow>

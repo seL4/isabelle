@@ -6,8 +6,7 @@
 section \<open>Tagged divisions used for the Henstock-Kurzweil gauge integration\<close>
 
 theory Tagged_Division
-imports
-  Topology_Euclidean_Space
+  imports Connected
 begin
 
 term comm_monoid
