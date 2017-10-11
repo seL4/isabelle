@@ -69,6 +69,7 @@ been discontinued.
 * Command-line tool "isabelle build" supports new options:
   - option -B NAME: include session NAME and all descendants
   - option -S: only observe changes of sources, not heap images
+  - option -f: forces a fresh build
 
 
 New in Isabelle2017 (October 2017)

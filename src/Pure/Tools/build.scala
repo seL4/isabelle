@@ -354,6 +354,7 @@ object Build
     max_jobs: Int = 1,
     list_files: Boolean = false,
     check_keywords: Set[String] = Set.empty,
+    fresh_build: Boolean = false,
     no_build: Boolean = false,
     soft_build: Boolean = false,
     system_mode: Boolean = false,
@@ -396,7 +397,7 @@ object Build
           verbose = verbose, list_files = list_files, check_keywords = check_keywords,
           global_theories = full_sessions.global_theories).check_errors
 
-      if (soft_build) {
+      if (soft_build && !fresh_build) {
         val outdated =
           selected0.flatMap(name =>
             store.find_database(name) match {
@@ -571,6 +572,7 @@ object Build
                       using(SQLite.open_database(database))(store.read_build(_, name)) match {
                         case Some(build) =>
                           val current =
+                            !fresh_build &&
                             build.ok &&
                             build.sources == sources_stamp(deps, name) &&
                             build.input_heaps == ancestor_heaps &&
@@ -677,6 +679,7 @@ object Build
     var build_heap = false
     var clean_build = false
     var dirs: List[Path] = Nil
+    var fresh_build = false
     var session_groups: List[String] = Nil
     var max_jobs = 1
     var check_keywords: Set[String] = Set.empty
@@ -702,6 +705,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -b           build heap images
     -c           clean build
     -d DIR       include session directory
+    -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
@@ -726,6 +730,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "b" -> (_ => build_heap = true),
       "c" -> (_ => clean_build = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+      "f" -> (_ => fresh_build = true),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
       "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
       "k:" -> (arg => check_keywords = check_keywords + arg),
@@ -761,6 +766,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           max_jobs = max_jobs,
           list_files = list_files,
           check_keywords = check_keywords,
+          fresh_build = fresh_build,
           no_build = no_build,
           soft_build = soft_build,
           system_mode = system_mode,

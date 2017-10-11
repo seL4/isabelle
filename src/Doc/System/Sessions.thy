@@ -280,6 +280,7 @@ text \<open>
     -b           build heap images
     -c           clean build
     -d DIR       include session directory
+    -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -k KEYWORD   check theory sources for conflicts with proposed keywords
@@ -363,6 +364,10 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-c\<close> cleans all descendants of the selected sessions before
   performing the specified build operation.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-f\<close> forces a fresh build of all selected sessions and their
+  requirements.
 
   \<^medskip>
   Option \<^verbatim>\<open>-n\<close> omits the actual build process after the preparatory stage
