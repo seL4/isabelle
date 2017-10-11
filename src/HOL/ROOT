@@ -243,13 +243,13 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
     Generate_Pretty_Char
     Code_Test_PolyML
     Code_Test_Scala
-  theories [condition = "ISABELLE_GHC"]
+  theories [condition = ISABELLE_GHC]
     Code_Test_GHC
-  theories [condition = "ISABELLE_MLTON"]
+  theories [condition = ISABELLE_MLTON]
     Code_Test_MLton
-  theories [condition = "ISABELLE_OCAMLC"]
+  theories [condition = ISABELLE_OCAMLC]
     Code_Test_OCaml
-  theories [condition = "ISABELLE_SMLNJ"]
+  theories [condition = ISABELLE_SMLNJ]
     Code_Test_SMLNJ
 
 session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
