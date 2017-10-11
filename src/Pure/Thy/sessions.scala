@@ -666,12 +666,16 @@ object Sessions
             else thy_name
           }
 
+        val conditions =
+          theories.flatMap(thys => space_explode(',', thys._1.string("condition"))).distinct.sorted.
+            map(x => (x, Isabelle_System.getenv(x) != ""))
+
         val document_files =
           entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
 
         val meta_digest =
           SHA1.digest((entry_chapter, name, entry.parent, entry.options, entry.imports,
-            entry.theories_no_position, entry.document_files).toString)
+            entry.theories_no_position, conditions, entry.document_files).toString)
 
         val info =
           Info(name, entry_chapter, select, entry.pos, entry.groups,

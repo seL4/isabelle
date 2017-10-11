@@ -71,6 +71,10 @@ been discontinued.
   - option -S: only observe changes of sources, not heap images
   - option -f: forces a fresh build
 
+* Command-line tool "isabelle build" takes "condition" options with the
+corresponding environment values into account, when determining the
+up-to-date status of a session.
+
 
 New in Isabelle2017 (October 2017)
 ----------------------------------
