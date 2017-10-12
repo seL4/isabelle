@@ -126,12 +126,16 @@ class Resources(
     val s1 =
       if (session_base.loaded_theory(name)) name.theory
       else {
-        session_base.known.get_file(name.path.file) match {
-          case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
-            name1.theory
-          case Some(name1) if Thy_Header.is_base_name(s) =>
-            name1.theory_base_name
-          case _ => s
+        (try { Some(name.path) } catch { case ERROR(_) => None }) match {
+          case None => s
+          case Some(path) =>
+            session_base.known.get_file(path.file) match {
+              case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+                name1.theory
+              case Some(name1) if Thy_Header.is_base_name(s) =>
+                name1.theory_base_name
+              case _ => s
+            }
         }
       }
     val name2 = import_name(qualifier, dir, s1)
