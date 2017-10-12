@@ -560,7 +560,9 @@ object Build
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
-                val ancestor_results = selected_sessions.build_ancestors(name).map(results(_))
+                val ancestor_results =
+                  selected_sessions.build_requirements(List(name)).filterNot(_ == name).
+                    map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)

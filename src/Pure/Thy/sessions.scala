@@ -509,18 +509,17 @@ object Sessions
       (selected, new T(build_graph1, imports_graph1))
     }
 
-    def build_ancestors(name: String): List[String] =
-      build_graph.all_preds(List(name)).tail.reverse
-
     def build_descendants(names: List[String]): List[String] =
       build_graph.all_succs(names)
-
+    def build_requirements(names: List[String]): List[String] =
+      build_graph.all_preds(names).reverse
     def build_topological_order: List[Info] =
       build_graph.topological_order.map(apply(_))
 
-    def imports_ancestors(name: String): List[String] =
-      imports_graph.all_preds(List(name)).tail.reverse
-
+    def imports_descendants(names: List[String]): List[String] =
+      imports_graph.all_succs(names)
+    def imports_requirements(names: List[String]): List[String] =
+      imports_graph.all_preds(names).reverse
     def imports_topological_order: List[Info] =
       imports_graph.topological_order.map(apply(_))
 

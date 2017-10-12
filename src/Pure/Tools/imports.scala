@@ -99,8 +99,7 @@ object Imports
         val info = full_sessions(session_name)
         val session_resources = new Resources(deps(session_name))
 
-        val declared_imports =
-          full_sessions.imports_ancestors(session_name).toSet + session_name
+        val declared_imports = full_sessions.imports_requirements(List(session_name)).toSet
         val extra_imports =
           (for {
             (_, a) <- session_resources.session_base.known.theories.iterator
