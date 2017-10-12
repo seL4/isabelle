@@ -1713,9 +1713,8 @@ apply (induct xs arbitrary: n, simp)
 apply (case_tac n, auto)
 done
 
-lemma nth_tl:
-  assumes "n < length (tl x)" shows "tl x ! n = x ! Suc n"
-using assms by (induct x) auto
+lemma nth_tl: "n < length (tl xs) \<Longrightarrow> tl xs ! n = xs ! Suc n"
+by (induction xs) auto
 
 lemma hd_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd xs = xs!0"
 by(cases xs) simp_all
@@ -2153,7 +2152,7 @@ apply (case_tac i, auto)
 done
 
 lemma nth_drop [simp]:
-  "n + i <= length xs ==> (drop n xs)!i = xs!(n + i)"
+  "n <= length xs ==> (drop n xs)!i = xs!(n + i)"
 apply (induct n arbitrary: xs i, auto)
  apply (case_tac xs, auto)
 done
