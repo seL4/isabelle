@@ -117,7 +117,7 @@ object Document
           case _ => false
         }
 
-      def path: Path = Path.explode(node)
+      def path: Path = Path.explode(File.standard_path(node))
 
       def is_theory: Boolean = theory.nonEmpty
 
