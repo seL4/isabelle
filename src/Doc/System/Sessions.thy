@@ -466,7 +466,7 @@ text \<open>
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -I           operation: report potential session imports
+    -I           operation: report session imports
     -M           operation: Mercurial repository check for theory files
     -R           operate on requirements of selected sessions
     -U           operation: update theory imports to use session qualifiers
@@ -495,12 +495,19 @@ text \<open>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-I\<close> determines potential session imports, which may be turned into
-  \isakeyword{sessions} within the corresponding \<^verbatim>\<open>ROOT\<close> file entry. Thus
-  theory imports from other sessions may use session-qualified names. For
-  example, adhoc \<^theory_text>\<open>imports\<close> \<^verbatim>\<open>"~~/src/HOL/Library/Multiset"\<close> may become formal
-  \<^theory_text>\<open>imports\<close> \<^verbatim>\<open>"HOL-Library.Multiset"\<close> after adding \isakeyword{sessions}
-  \<^verbatim>\<open>"HOL-Library"\<close> to the \<^verbatim>\<open>ROOT\<close> entry.
+  Option \<^verbatim>\<open>-I\<close> determines reports session imports:
+
+    \<^descr>[Potential session imports] are derived from old-style use of theory
+    files from other sessions via the directory structure. After declaring
+    those as \isakeyword{sessions} in the corresponding \<^verbatim>\<open>ROOT\<close> file entry, a
+    proper session-qualified theory name can be used (cf.\ option \<^verbatim>\<open>-U\<close>). For
+    example, adhoc \<^theory_text>\<open>imports\<close> \<^verbatim>\<open>"~~/src/HOL/Library/Multiset"\<close> becomes formal
+    \<^theory_text>\<open>imports\<close> \<^verbatim>\<open>"HOL-Library.Multiset"\<close> after adding \isakeyword{sessions}
+    \<^verbatim>\<open>"HOL-Library"\<close> to the \<^verbatim>\<open>ROOT\<close> entry.
+
+    \<^descr>[Actual session imports] are derived from the session qualifiers of all
+    currently imported theories. This helps to minimize dependencies in the
+    session import structure to what is actually required.
 
   \<^medskip>
   Option \<^verbatim>\<open>-M\<close> checks imported theories against the Mercurial repositories of

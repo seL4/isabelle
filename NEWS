@@ -78,6 +78,9 @@ been discontinued.
 corresponding environment values into account, when determining the
 up-to-date status of a session.
 
+* Command-line tool "isabelle imports -I" also reports actual session
+imports. This helps to minimize the session dependency graph.
+
 
 New in Isabelle2017 (October 2017)
 ----------------------------------

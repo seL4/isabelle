@@ -30,6 +30,23 @@ object Imports
     }
 
 
+  /* report imports */
+
+  sealed case class Report(
+    info: Sessions.Info,
+    declared_imports: Set[String],
+    potential_imports: Option[List[String]],
+    actual_imports: Option[List[String]])
+  {
+    def print(keywords: Keyword.Keywords, result: List[String]): String =
+    {
+      def print_name(name: String): String = Token.quote_name(keywords, name)
+
+      "  session " + print_name(info.name) + ": " + result.map(print_name(_)).mkString(" ")
+    }
+  }
+
+
   /* update imports */
 
   sealed case class Update(range: Text.Range, old_text: String, new_text: String)
@@ -91,15 +108,16 @@ object Imports
 
     val root_keywords = Sessions.root_syntax.keywords
 
-
     if (operation_imports) {
-      progress.echo("\nPotential session imports:")
-      selected.flatMap(session_name =>
+      val report_imports: List[Report] = selected.map((session_name: String) =>
       {
-        val info = full_sessions(session_name)
-        val session_resources = new Resources(deps(session_name))
+        val info = selected_sessions(session_name)
+        val session_base = deps(session_name)
+        val session_resources = new Resources(session_base)
 
-        val declared_imports = full_sessions.imports_requirements(List(session_name)).toSet
+        val declared_imports =
+          selected_sessions.imports_requirements(List(session_name)).toSet
+
         val extra_imports =
           (for {
             (_, a) <- session_resources.session_base.known.theories.iterator
@@ -109,12 +127,36 @@ object Imports
             if !declared_imports.contains(qualifier)
           } yield qualifier).toSet
 
-        if (extra_imports.isEmpty) None
-        else Some((session_name, extra_imports.toList.sorted, declared_imports.size))
-      }).sortBy(_._3).foreach({ case (session_name, extra_imports, _) =>
-        progress.echo("session " + Token.quote_name(root_keywords, session_name) + ": " +
-          extra_imports.map(Token.quote_name(root_keywords, _)).mkString(" "))
+        val loaded_imports =
+          selected_sessions.imports_requirements(
+            session_base.loaded_theories.keys.map(a =>
+              session_resources.theory_qualifier(session_base.known.theories(a))))
+          .toSet - session_name
+
+        val minimal_imports =
+          loaded_imports.filter(s1 =>
+            !loaded_imports.exists(s2 => selected_sessions.imports_graph.is_edge(s1, s2)))
+
+        def make_result(set: Set[String]): Option[List[String]] =
+          if (set.isEmpty) None
+          else Some(selected_sessions.imports_topological_order.map(_.name).filter(set))
+
+        Report(info, declared_imports, make_result(extra_imports),
+          if (loaded_imports == declared_imports - session_name) None
+          else make_result(minimal_imports))
       })
+
+      progress.echo("\nPotential session imports:")
+      for {
+        report <- report_imports.sortBy(_.declared_imports.size)
+        potential_imports <- report.potential_imports
+      } progress.echo(report.print(root_keywords, potential_imports))
+
+      progress.echo("\nActual session imports:")
+      for {
+        report <- report_imports
+        actual_imports <- report.actual_imports
+      } progress.echo(report.print(root_keywords, actual_imports))
     }
 
     if (operation_repository_files) {
@@ -133,7 +175,7 @@ object Imports
       val updates =
         selected.flatMap(session_name =>
         {
-          val info = full_sessions(session_name)
+          val info = selected_sessions(session_name)
           val session_base = deps(session_name)
           val session_resources = new Resources(session_base)
           val imports_base = session_base.get_imports
@@ -219,7 +261,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
   Options are:
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
-    -I           operation: report potential session imports
+    -I           operation: report session imports
     -M           operation: Mercurial repository check for theory files
     -R           operate on requirements of selected sessions
     -U           operation: update theory imports to use session qualifiers
