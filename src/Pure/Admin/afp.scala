@@ -9,6 +9,8 @@ package isabelle
 
 object AFP
 {
+  val repos_source = "https://bitbucket.org/isa-afp/afp-devel"
+
   def init(options: Options, base_dir: Path = Path.explode("$AFP_BASE")): AFP =
     new AFP(options, base_dir)
 

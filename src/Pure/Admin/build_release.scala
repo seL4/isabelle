@@ -127,8 +127,7 @@ object Build_Release
         } yield (bundle, bundle_info)
 
       val afp_link =
-        HTML.link("https://bitbucket.org/isa-afp/afp-devel/commits/" + afp_rev,
-          HTML.text("AFP/" + afp_rev))
+        HTML.link(AFP.repos_source + "/commits/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
       HTML.write_document(dir, "index.html",
         List(HTML.title(release_info.name)),

@@ -23,7 +23,6 @@ object Isabelle_Cronjob
   val isabelle_repos = main_dir + Path.explode("isabelle")
   val isabelle_repos_test = main_dir + Path.explode("isabelle-test")
   val afp_repos = main_dir + Path.explode("AFP")
-  val afp_source = "https://bitbucket.org/isa-afp/afp-devel"
 
   val jenkins_jobs = "identify" :: Jenkins.build_log_jobs
 
@@ -39,7 +38,7 @@ object Isabelle_Cronjob
           Isabelle_Devel.make_index()
 
           val rev = Mercurial.repository(isabelle_repos).id()
-          val afp_rev = Mercurial.setup_repository(afp_source, afp_repos).id()
+          val afp_rev = Mercurial.setup_repository(AFP.repos_source, afp_repos).id()
 
           File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
             Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
@@ -246,7 +245,6 @@ object Isabelle_Cronjob
                 Build_History.remote_build_history(ssh,
                   isabelle_repos,
                   isabelle_repos.ext(r.host),
-                  isabelle_repos_source = "http://isabelle.in.tum.de/repos/isabelle",
                   isabelle_identifier = "cronjob_build_history",
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
