@@ -652,8 +652,8 @@ object Build_Log
 
     /* main content */
 
-    val log_name = SQL.Column.string("log_name", primary_key = true)
-    val session_name = SQL.Column.string("session_name", primary_key = true)
+    val log_name = SQL.Column.string("log_name").make_primary_key
+    val session_name = SQL.Column.string("session_name").make_primary_key
     val chapter = SQL.Column.string("chapter")
     val groups = SQL.Column.string("groups")
     val threads = SQL.Column.int("threads")
@@ -690,7 +690,7 @@ object Build_Log
     {
       val version1 = Prop.isabelle_version
       val version2 = Prop.afp_version
-      build_log_table("isabelle_afp_versions", List(version1.copy(primary_key = true), version2),
+      build_log_table("isabelle_afp_versions", List(version1.make_primary_key, version2),
         SQL.select(List(version1, version2), distinct = true) + meta_info_table +
         " WHERE " + version1.defined + " AND " + version2.defined)
     }
@@ -703,7 +703,7 @@ object Build_Log
     val pull_date_table: SQL.Table =
     {
       val version = Prop.isabelle_version
-      build_log_table("pull_date", List(version.copy(primary_key = true), pull_date),
+      build_log_table("pull_date", List(version.make_primary_key, pull_date),
         "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
         " FROM " + meta_info_table +
         " WHERE " + version.defined + " AND " + Prop.build_start.defined +
@@ -716,7 +716,7 @@ object Build_Log
       val version2 = Prop.afp_version
       val table1 = pull_date_table
       val table2 = isabelle_afp_versions_table
-      build_log_table("afp_pull_date", List(version1.copy(primary_key = true), version2, pull_date),
+      build_log_table("afp_pull_date", List(version1.make_primary_key, version2, pull_date),
         table1.select(List(version1(table1), version2(table2), pull_date(table1))) +
         SQL.join_inner + table2.query_named + " ON " + version1(table1) + " = " + version1(table2))
     }

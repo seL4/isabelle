@@ -20,7 +20,7 @@ object Server
   {
     val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
 
-    val name = SQL.Column.string("name", primary_key = true)
+    val name = SQL.Column.string("name").make_primary_key
     val port = SQL.Column.int("port")
     val password = SQL.Column.string("password")
     val table = SQL.Table("isabelle_servers", List(name, port, password))

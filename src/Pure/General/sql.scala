@@ -105,6 +105,8 @@ object SQL
     name: String, T: Type.Value, strict: Boolean = false, primary_key: Boolean = false,
     expr: SQL.Source = "")
   {
+    def make_primary_key: Column = copy(primary_key = true)
+
     def apply(table: Table): Column =
       Column(Long_Name.qualify(table.name, name), T, strict = strict, primary_key = primary_key)
 
