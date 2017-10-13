@@ -1228,6 +1228,9 @@ lemma map_snd_zip[simp]:
   "length xs = length ys \<Longrightarrow> map snd (zip xs ys) = ys"
 by (induct rule:list_induct2, simp_all)
 
+lemma map2_map_map: "map2 h (map f xs) (map g xs) = map (\<lambda>x. h (f x) (g x)) xs"
+by (induction xs) (auto)
+
 functor map: map
 by (simp_all add: id_def)
 
@@ -3108,7 +3111,7 @@ lemma hd_upt[simp]: "i < j \<Longrightarrow> hd[i..<j] = i"
 by(simp add:upt_conv_Cons)
 
 lemma tl_upt: "tl [m..<n] = [Suc m..<n]"
-  by (simp add: upt_rec)
+by (simp add: upt_rec)
 
 lemma last_upt[simp]: "i < j \<Longrightarrow> last[i..<j] = j - 1"
 by(cases j)(auto simp: upt_Suc_append)
@@ -3137,10 +3140,10 @@ apply (induct n m  arbitrary: i rule: diff_induct)
 done
 
 lemma map_decr_upt: "map (\<lambda>n. n - Suc 0) [Suc m..<Suc n] = [m..<n]"
-  by (induct n) simp_all
+by (induct n) simp_all
 
 lemma map_upt_Suc: "map f [0 ..< Suc n] = f 0 # map (\<lambda>i. f (Suc i)) [0 ..< n]"
-  by (induct n arbitrary: f) auto
+by (induct n arbitrary: f) auto
 
 
 lemma nth_take_lemma:
@@ -4034,7 +4037,7 @@ by (induct n) auto
 
 lemma map_replicate_const:
   "map (\<lambda> x. k) lst = replicate (length lst) k"
-  by (induct lst) auto
+by (induct lst) auto
 
 lemma replicate_app_Cons_same:
 "(replicate n x) @ (x # xs) = x # replicate n x @ xs"
@@ -4116,7 +4119,7 @@ lemma replicate_append_same:
 
 lemma map_replicate_trivial:
   "map (\<lambda>i. x) [0..<i] = replicate i x"
-  by (induct i) (simp_all add: replicate_append_same)
+by (induct i) (simp_all add: replicate_append_same)
 
 lemma concat_replicate_trivial[simp]:
   "concat (replicate i []) = []"
@@ -4141,12 +4144,9 @@ lemma replicate_length_filter:
   by (induct xs) auto
 
 lemma comm_append_are_replicate:
-  fixes xs ys :: "'a list"
-  assumes "xs \<noteq> []" "ys \<noteq> []"
-  assumes "xs @ ys = ys @ xs"
-  shows "\<exists>m n zs. concat (replicate m zs) = xs \<and> concat (replicate n zs) = ys"
-  using assms
-proof (induct "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
+  "\<lbrakk> xs \<noteq> []; ys \<noteq> []; xs @ ys = ys @ xs \<rbrakk>
+  \<Longrightarrow> \<exists>m n zs. concat (replicate m zs) = xs \<and> concat (replicate n zs) = ys"
+proof (induction "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
   case less
 
   define xs' ys' where "xs' = (if (length xs \<le> length ys) then xs else ys)"
@@ -4192,7 +4192,6 @@ lemma comm_append_is_replicate:
   assumes "xs \<noteq> []" "ys \<noteq> []"
   assumes "xs @ ys = ys @ xs"
   shows "\<exists>n zs. n > 1 \<and> concat (replicate n zs) = xs @ ys"
-
 proof -
   obtain m n zs where "concat (replicate m zs) = xs"
     and "concat (replicate n zs) = ys"
@@ -4205,19 +4204,19 @@ qed
 
 lemma Cons_replicate_eq:
   "x # xs = replicate n y \<longleftrightarrow> x = y \<and> n > 0 \<and> xs = replicate (n - 1) x"
-  by (induct n) auto
+by (induct n) auto
 
 lemma replicate_length_same:
   "(\<forall>y\<in>set xs. y = x) \<Longrightarrow> replicate (length xs) x = xs"
-  by (induct xs) simp_all
+by (induct xs) simp_all
 
 lemma foldr_replicate [simp]:
   "foldr f (replicate n x) = f x ^^ n"
-  by (induct n) (simp_all)
+by (induct n) (simp_all)
 
 lemma fold_replicate [simp]:
   "fold f (replicate n x) = f x ^^ n"
-  by (subst foldr_fold [symmetric]) simp_all
+by (subst foldr_fold [symmetric]) simp_all
 
 
 subsubsection \<open>@{const enumerate}\<close>
@@ -4225,22 +4224,22 @@ subsubsection \<open>@{const enumerate}\<close>
 lemma enumerate_simps [simp, code]:
   "enumerate n [] = []"
   "enumerate n (x # xs) = (n, x) # enumerate (Suc n) xs"
-  apply (auto simp add: enumerate_eq_zip not_le)
-  apply (cases "n < n + length xs")
-  apply (auto simp add: upt_conv_Cons)
-  done
+apply (auto simp add: enumerate_eq_zip not_le)
+apply (cases "n < n + length xs")
+ apply (auto simp add: upt_conv_Cons)
+done
 
 lemma length_enumerate [simp]:
   "length (enumerate n xs) = length xs"
-  by (simp add: enumerate_eq_zip)
+by (simp add: enumerate_eq_zip)
 
 lemma map_fst_enumerate [simp]:
   "map fst (enumerate n xs) = [n..<n + length xs]"
-  by (simp add: enumerate_eq_zip)
+by (simp add: enumerate_eq_zip)
 
 lemma map_snd_enumerate [simp]:
   "map snd (enumerate n xs) = xs"
-  by (simp add: enumerate_eq_zip)
+by (simp add: enumerate_eq_zip)
 
 lemma in_set_enumerate_eq:
   "p \<in> set (enumerate n xs) \<longleftrightarrow> n \<le> fst p \<and> fst p < length xs + n \<and> nth xs (fst p - n) = snd p"
@@ -4255,36 +4254,35 @@ proof -
   } then show ?thesis by (cases p) (auto simp add: enumerate_eq_zip in_set_zip)
 qed
 
-lemma nth_enumerate_eq:
-  assumes "m < length xs"
-  shows "enumerate n xs ! m = (n + m, xs ! m)"
-  using assms by (simp add: enumerate_eq_zip)
+lemma nth_enumerate_eq: "m < length xs \<Longrightarrow> enumerate n xs ! m = (n + m, xs ! m)"
+by (simp add: enumerate_eq_zip)
 
 lemma enumerate_replicate_eq:
   "enumerate n (replicate m a) = map (\<lambda>q. (q, a)) [n..<n + m]"
-  by (rule pair_list_eqI)
-    (simp_all add: enumerate_eq_zip comp_def map_replicate_const)
+by (rule pair_list_eqI)
+   (simp_all add: enumerate_eq_zip comp_def map_replicate_const)
 
 lemma enumerate_Suc_eq:
   "enumerate (Suc n) xs = map (apfst Suc) (enumerate n xs)"
-  by (rule pair_list_eqI)
-    (simp_all add: not_le, simp del: map_map add: map_Suc_upt map_map [symmetric])
+by (rule pair_list_eqI)
+   (simp_all add: not_le, simp del: map_map add: map_Suc_upt map_map [symmetric])
 
 lemma distinct_enumerate [simp]:
   "distinct (enumerate n xs)"
-  by (simp add: enumerate_eq_zip distinct_zipI1)
+by (simp add: enumerate_eq_zip distinct_zipI1)
 
 lemma enumerate_append_eq:
   "enumerate n (xs @ ys) = enumerate n xs @ enumerate (n + length xs) ys"
-  unfolding enumerate_eq_zip apply auto
-  apply (subst zip_append [symmetric]) apply simp
-  apply (subst upt_add_eq_append [symmetric])
-  apply (simp_all add: ac_simps)
-  done
+unfolding enumerate_eq_zip
+apply auto
+ apply (subst zip_append [symmetric]) apply simp
+ apply (subst upt_add_eq_append [symmetric])
+ apply (simp_all add: ac_simps)
+done
 
 lemma enumerate_map_upt:
   "enumerate n (map f [n..<m]) = map (\<lambda>k. (k, f k)) [n..<m]"
-  by (cases "n \<le> m") (simp_all add: zip_map2 zip_same_conv_map enumerate_eq_zip)
+by (cases "n \<le> m") (simp_all add: zip_map2 zip_same_conv_map enumerate_eq_zip)
 
 
 subsubsection \<open>@{const rotate1} and @{const rotate}\<close>
@@ -4422,6 +4420,9 @@ apply (induct l rule: rev_induct)
  apply (simp add: nths_def)
 apply (simp del: append_Cons add: append_Cons[symmetric] nths_append)
 done
+
+lemma nths_map: "nths (map f xs) I = map f (nths xs I)"
+by(induction xs arbitrary: I) (simp_all add: nths_Cons)
 
 lemma set_nths: "set(nths xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
 apply(induct xs arbitrary: I)
@@ -5030,6 +5031,9 @@ lemma sorted_remdups_adj[simp]:
   "sorted xs \<Longrightarrow> sorted (remdups_adj xs)"
 by (induct xs rule: remdups_adj.induct, simp_all split: if_split_asm add: sorted_Cons)
 
+lemma sorted_nths: "sorted xs \<Longrightarrow> sorted (nths xs I)"
+by(induction xs arbitrary: I)(auto simp: sorted_Cons nths_Cons)
+
 lemma sorted_distinct_set_unique:
 assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
 shows "xs = ys"
@@ -5344,9 +5348,8 @@ next
   qed
 qed
 
-lemma sorted_enumerate [simp]:
-  "sorted (map fst (enumerate n xs))"
-  by (simp add: enumerate_eq_zip)
+lemma sorted_enumerate [simp]: "sorted (map fst (enumerate n xs))"
+by (simp add: enumerate_eq_zip)
 
 text \<open>Stability of function @{const sort_key}:\<close>
 
@@ -5404,9 +5407,8 @@ qed
 
 subsubsection \<open>@{const transpose} on sorted lists\<close>
 
-lemma sorted_transpose[simp]:
-  shows "sorted (rev (map length (transpose xs)))"
-  by (auto simp: sorted_equals_nth_mono rev_nth nth_transpose
+lemma sorted_transpose[simp]: "sorted (rev (map length (transpose xs)))"
+by (auto simp: sorted_equals_nth_mono rev_nth nth_transpose
     length_filter_conv_card intro: card_mono)
 
 lemma transpose_max_length:
@@ -5445,9 +5447,9 @@ lemma nth_nth_transpose_sorted[simp]:
   and i: "i < length (transpose xs)"
   and j: "j < length [ys \<leftarrow> xs. i < length ys]"
   shows "transpose xs ! i ! j = xs ! j  ! i"
-  using j filter_equals_takeWhile_sorted_rev[OF sorted, of i]
+using j filter_equals_takeWhile_sorted_rev[OF sorted, of i]
     nth_transpose[OF i] nth_map[OF j]
-  by (simp add: takeWhile_nth)
+by (simp add: takeWhile_nth)
 
 lemma transpose_column_length:
   fixes xs :: "'a list list"
@@ -5575,15 +5577,15 @@ qed
 
 lemma sorted_list_of_set_empty:
   "sorted_list_of_set {} = []"
-  by (fact sorted_list_of_set.empty)
+by (fact sorted_list_of_set.empty)
 
 lemma sorted_list_of_set_insert [simp]:
   "finite A \<Longrightarrow> sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
-  by (fact sorted_list_of_set.insert_remove)
+by (fact sorted_list_of_set.insert_remove)
 
 lemma sorted_list_of_set_eq_Nil_iff [simp]:
   "finite A \<Longrightarrow> sorted_list_of_set A = [] \<longleftrightarrow> A = {}"
-  by (auto simp: sorted_list_of_set.remove)
+by (auto simp: sorted_list_of_set.remove)
 
 lemma sorted_list_of_set [simp]:
   "finite A \<Longrightarrow> set (sorted_list_of_set A) = A \<and> sorted (sorted_list_of_set A)
@@ -5593,7 +5595,7 @@ by(induct A rule: finite_induct)
 
 lemma distinct_sorted_list_of_set:
   "distinct (sorted_list_of_set A)"
-  using sorted_list_of_set by (cases "finite A") auto
+using sorted_list_of_set by (cases "finite A") auto
 
 lemma sorted_list_of_set_sort_remdups [code]:
   "sorted_list_of_set (set xs) = sort (remdups xs)"
@@ -5617,7 +5619,7 @@ end
 
 lemma sorted_list_of_set_range [simp]:
   "sorted_list_of_set {m..<n} = [m..<n]"
-  by (rule sorted_distinct_set_unique) simp_all
+by (rule sorted_distinct_set_unique) simp_all
 
 
 subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>
