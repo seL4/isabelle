@@ -34,18 +34,18 @@ object Isabelle_Cronjob
 
   private val build_release =
     Logger_Task("build_release", logger =>
-        {
-          Isabelle_Devel.make_index()
+      {
+        Isabelle_Devel.make_index()
 
-          val rev = Mercurial.repository(isabelle_repos).id()
-          val afp_rev = Mercurial.setup_repository(AFP.repos_source, afp_repos).id()
+        val rev = Mercurial.repository(isabelle_repos).id()
+        val afp_rev = Mercurial.setup_repository(AFP.repos_source, afp_repos).id()
 
-          File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
-            Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
+        File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
+          Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
 
-          Isabelle_Devel.release_snapshot(rev = rev, afp_rev = afp_rev,
-            parallel_jobs = 4, remote_mac = "macbroy31")
-        })
+        Isabelle_Devel.release_snapshot(rev = rev, afp_rev = afp_rev,
+          parallel_jobs = 4, remote_mac = "macbroy31")
+      })
 
 
   /* integrity test of build_history vs. build_history_base */
