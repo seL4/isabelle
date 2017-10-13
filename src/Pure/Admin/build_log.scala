@@ -684,6 +684,18 @@ object Build_Log
       build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
 
 
+    /* AFP versions */
+
+    val isabelle_afp_versions_table: SQL.Table =
+    {
+      val version1 = Prop.isabelle_version
+      val version2 = Prop.afp_version
+      build_log_table("isabelle_afp_versions", List(version1.copy(primary_key = true), version2),
+        SQL.select(List(version1, version2), distinct = true) + meta_info_table +
+        " WHERE " + version1 + " IS NOT NULL AND " + version2 + " IS NOT NULL")
+    }
+
+
     /* earliest pull date for repository version (PostgreSQL queries) */
 
     val pull_date = SQL.Column.date("pull_date")
@@ -697,6 +709,20 @@ object Build_Log
         " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
         " GROUP BY " + version)
     }
+
+    val afp_pull_date_table: SQL.Table =
+    {
+      val version1 = Prop.isabelle_version
+      val version2 = Prop.afp_version
+      val table1 = pull_date_table
+      val table2 = isabelle_afp_versions_table
+      build_log_table("afp_pull_date", List(version1.copy(primary_key = true), version2, pull_date),
+        table1.select(List(version1(table1), version2(table2), pull_date(table1))) +
+        SQL.join_inner + table2.query_named + " ON " + version1(table1) + " = " + version1(table2))
+    }
+
+
+    /* recent entries */
 
     def recent_time(days: Int): SQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
@@ -799,6 +825,7 @@ object Build_Log
       write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
       db.create_view(Data.pull_date_table)
+      db.create_view(Data.afp_pull_date_table)
       db.create_view(Data.universal_table)
     }
 
