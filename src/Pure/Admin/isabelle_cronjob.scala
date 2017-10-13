@@ -77,7 +77,7 @@ object Isabelle_Cronjob
   def recent_items(db: SQL.Database, days: Int, rev: String, sql: SQL.Source): List[Item] =
   {
     val select =
-      Build_Log.Data.select_recent_isabelle_versions(days = days, rev = rev, sql = "WHERE " + sql)
+      Build_Log.Data.select_recent_versions(days = days, rev = rev, sql = "WHERE " + sql)
 
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res =>

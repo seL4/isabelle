@@ -727,9 +727,9 @@ object Build_Log
     def recent_time(days: Int): SQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
 
-    def recent_pull_date_table(days: Int, rev: String = ""): SQL.Table =
+    def recent_pull_date_table(days: Int, rev: String = "", afp: Boolean = false): SQL.Table =
     {
-      val table = pull_date_table
+      val table = if (afp) afp_pull_date_table else pull_date_table
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns,
           "WHERE " + pull_date(table) + " > " + recent_time(days) +
@@ -744,19 +744,20 @@ object Build_Log
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
     }
 
-    def select_recent_isabelle_versions(days: Int, rev: String = "", sql: SQL.Source = "")
-      : SQL.Source =
+    def select_recent_versions(
+      days: Int, rev: String = "", afp: Boolean = false, sql: SQL.Source = ""): SQL.Source =
     {
-      val table1 = recent_pull_date_table(days, rev = rev)
+      val version = Prop.isabelle_version
+      val table1 = recent_pull_date_table(days, rev = rev, afp = afp)
       val table2 = meta_info_table
       val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = sql))
 
       val columns =
-        List(Prop.isabelle_version(table1), pull_date(table1),
-          known.copy(expr = log_name(aux_table).defined))
+        table1.columns.map(c => c(table1)) :::
+          List(known.copy(expr = log_name(aux_table).defined))
       SQL.select(columns, distinct = true) +
         table1.query_named + SQL.join_outer + aux_table.query_named +
-        " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(aux_table) +
+        " ON " + version(table1) + " = " + version(aux_table) +
         " ORDER BY " + pull_date(table1) + " DESC"
     }
 
