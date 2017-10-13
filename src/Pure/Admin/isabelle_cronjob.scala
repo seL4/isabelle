@@ -197,7 +197,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
             " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
           args = "-a",
-          detect = Build_Log.Prop.build_tags + " IS NULL"),
+          detect = Build_Log.Prop.build_tags.undefined),
         Remote_Build("Mac OS X 10.9 Mavericks, quick_and_dirty", "macbroy2",
           options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),

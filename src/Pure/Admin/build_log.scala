@@ -692,7 +692,7 @@ object Build_Log
       val version2 = Prop.afp_version
       build_log_table("isabelle_afp_versions", List(version1.copy(primary_key = true), version2),
         SQL.select(List(version1, version2), distinct = true) + meta_info_table +
-        " WHERE " + version1 + " IS NOT NULL AND " + version2 + " IS NOT NULL")
+        " WHERE " + version1.defined + " AND " + version2.defined)
     }
 
 
@@ -706,7 +706,7 @@ object Build_Log
       build_log_table("pull_date", List(version.copy(primary_key = true), pull_date),
         "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
         " FROM " + meta_info_table +
-        " WHERE " + version + " IS NOT NULL AND " + Prop.build_start + " IS NOT NULL" +
+        " WHERE " + version.defined + " AND " + Prop.build_start.defined +
         " GROUP BY " + version)
     }
 
@@ -753,7 +753,7 @@ object Build_Log
 
       val columns =
         List(Prop.isabelle_version(table1), pull_date(table1),
-          known.copy(expr = log_name(aux_table) + " IS NOT NULL"))
+          known.copy(expr = log_name(aux_table).defined))
       SQL.select(columns, distinct = true) +
         table1.query_named + SQL.join_outer + aux_table.query_named +
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(aux_table) +

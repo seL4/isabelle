@@ -115,6 +115,9 @@ object SQL
     def decl(sql_type: Type.Value => Source): Source =
       ident + " " + sql_type(T) + (if (strict || primary_key) " NOT NULL" else "")
 
+    def defined: String = ident + " IS NOT NULL"
+    def undefined: String = ident + " IS NULL"
+
     def where_equal(s: String): Source = "WHERE " + ident + " = " + string(s)
 
     override def toString: Source = ident
