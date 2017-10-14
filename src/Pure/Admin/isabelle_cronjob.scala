@@ -131,17 +131,17 @@ object Isabelle_Cronjob
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history, sql)
 
-    def history_base_filter(hg: Mercurial.Repository): Set[String] =
+    def history_base_filter(hg: Mercurial.Repository): Item => Boolean =
     {
       val rev0 = hg.id(history_base)
-      val graph = hg.graph()
-      (rev0 :: graph.all_succs(List(rev0))).toSet
+      val nodes = hg.graph().all_succs(List(rev0)).toSet
+      (item: Item) => nodes(item.isabelle_version)
     }
 
     def pick(
       options: Options,
       rev: String = "",
-      filter: String => Boolean = (_: String) => true): Option[(String, Option[String])] =
+      filter: Item => Boolean = _ => true): Option[(String, Option[String])] =
     {
       val afp_rev = if (afp) Some(Mercurial.repository(afp_repos).id()) else None
 
@@ -150,9 +150,7 @@ object Isabelle_Cronjob
       {
         def pick_days(days: Int, gap: Int): Option[(String, Option[String])] =
         {
-          val items =
-            recent_items(db, days, rev, afp_rev, sql).
-              filter(item => filter(item.isabelle_version))
+          val items = recent_items(db, days, rev, afp_rev, sql).filter(filter)
           def runs = unknown_runs(items).filter(run => run.length >= gap)
 
           if (historic || items.exists(_.known_versions(rev, afp_rev))) {
