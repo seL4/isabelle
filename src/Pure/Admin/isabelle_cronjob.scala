@@ -69,23 +69,37 @@ object Isabelle_Cronjob
 
   /* remote build_history */
 
-  sealed case class Item(known: Boolean, isabelle_version: String, pull_date: Date)
+  sealed case class Item(
+    known: Boolean,
+    isabelle_version: String,
+    afp_version: Option[String],
+    pull_date: Date)
   {
     def unknown: Boolean = !known
+    def versions: (String, Option[String]) = (isabelle_version, afp_version)
+
+    def known_versions(rev: String, afp_rev: Option[String]): Boolean =
+      known && rev != "" && isabelle_version == rev &&
+      (afp_rev.isEmpty || afp_rev.get != "" && afp_version == afp_rev.get)
   }
 
-  def recent_items(db: SQL.Database, days: Int, rev: String, sql: SQL.Source): List[Item] =
+  def recent_items(db: SQL.Database,
+    days: Int, rev: String, afp_rev: Option[String], sql: SQL.Source): List[Item] =
   {
     val select =
-      Build_Log.Data.select_recent_versions(days = days, rev = rev, sql = "WHERE " + sql)
+      Build_Log.Data.select_recent_versions(
+        days = days, rev = rev, afp_rev = afp_rev, sql = "WHERE " + sql)
 
     db.using_statement(select)(stmt =>
       stmt.execute_query().iterator(res =>
       {
         val known = res.bool(Build_Log.Data.known)
         val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
+        val afp_version =
+          if (afp_rev.isEmpty) None
+          else proper_string(res.string(Build_Log.Prop.afp_version))
         val pull_date = res.date(Build_Log.Data.pull_date)
-        Item(known, isabelle_version, pull_date)
+        Item(known, isabelle_version, afp_version, pull_date)
       }).toList)
   }
 
@@ -106,6 +120,7 @@ object Isabelle_Cronjob
     history_base: String = "build_history_base",
     options: String = "",
     args: String = "",
+    afp: Boolean = false,
     detect: SQL.Source = "")
   {
     def sql: SQL.Source =
@@ -123,32 +138,33 @@ object Isabelle_Cronjob
       (rev0 :: graph.all_succs(List(rev0))).toSet
     }
 
-    def pick(options: Options, rev: String = "", filter: String => Boolean = (_: String) => true)
-      : Option[String] =
+    def pick(
+      options: Options,
+      rev: String = "",
+      filter: String => Boolean = (_: String) => true): Option[(String, Option[String])] =
     {
+      val afp_rev = if (afp) Some(Mercurial.repository(afp_repos).id()) else None
+
       val store = Build_Log.store(options)
       using(store.open_database())(db =>
       {
-        def pick_days(days: Int, gap: Int): Option[String] =
+        def pick_days(days: Int, gap: Int): Option[(String, Option[String])] =
         {
           val items =
-            recent_items(db, days = days, rev = rev, sql = sql).
+            recent_items(db, days, rev, afp_rev, sql).
               filter(item => filter(item.isabelle_version))
           def runs = unknown_runs(items).filter(run => run.length >= gap)
 
-          val known_rev =
-            rev != "" && items.exists(item => item.known && item.isabelle_version == rev)
-
-          if (historic || known_rev) {
+          if (historic || items.exists(_.known_versions(rev, afp_rev))) {
             val longest_run =
               (List.empty[Item] /: runs)({ case (item1, item2) =>
                 if (item1.length >= item2.length) item1 else item2
               })
             if (longest_run.isEmpty) None
-            else Some(longest_run(longest_run.length / 2).isabelle_version)
+            else Some(longest_run(longest_run.length / 2).versions)
           }
-          else if (rev != "") Some(rev)
-          else runs.flatten.headOption.map(_.isabelle_version)
+          else if (rev != "") Some((rev, afp_rev))
+          else runs.flatten.headOption.map(_.versions)
         }
 
         pick_days(options.int("build_log_history") max history, 2) orElse
@@ -227,10 +243,22 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))))
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows")))
+    ) :::
+    {
+      for { (host, n) <- List("lxbroy6" -> 1, "lxbroy7" -> 2) }
+      yield {
+        List(Remote_Build("AFP " + n, host = host,
+          options = "-m32 -M1x2 -t AFP -P" + n,
+          args = "-N -X slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
+      }
+    }
   }
 
-  private def remote_build_history(rev: String, i: Int, r: Remote_Build): Logger_Task =
+  private def remote_build_history(
+    rev: String, afp_rev: Option[String], i: Int, r: Remote_Build): Logger_Task =
   {
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
@@ -249,6 +277,7 @@ object Isabelle_Cronjob
                   self_update = self_update,
                   push_isabelle_home = push_isabelle_home,
                   rev = rev,
+                  afp_rev = afp_rev,
                   options =
                     " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                     " -f " + r.options,
@@ -415,8 +444,8 @@ object Isabelle_Cronjob
               SEQ(
                 for {
                   (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
-                  rev <- r.pick(logger.options, rev, r.history_base_filter(hg))
-                } yield remote_build_history(rev, i, r)))),
+                  (isabelle_rev, afp_rev) <- r.pick(logger.options, rev, r.history_base_filter(hg))
+                } yield remote_build_history(isabelle_rev, afp_rev, i, r)))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
               logger => Isabelle_Devel.build_log_database(logger.options)),
