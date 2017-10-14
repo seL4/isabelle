@@ -159,7 +159,7 @@ object Build_History
     val afp_repos = root + Path.explode("AFP")
     val afp_version = afp_rev.map(checkout(afp_repos, _))
 
-    val (afp_build_options, afp_build_args) =
+    val (afp_build_args, afp_sessions) =
       if (afp_rev.isEmpty) (Nil, Nil)
       else {
         val afp = AFP.init(options, afp_repos)
@@ -223,11 +223,11 @@ object Build_History
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
-      val build_args1 =
-        List("-v", "-j" + processes) ::: afp_build_options ::: build_args ::: afp_build_args
+      val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
       val build_result =
         (new Other_Isabelle(build_out_progress, root, isabelle_identifier))(
-          "build " + Bash.strings(build_args1), redirect = true, echo = true, strict = false)
+          "build " + Bash.strings(build_args1 ::: afp_sessions), redirect = true, echo = true,
+          strict = false)
       val build_end = Date.now()
 
       val build_info: Build_Log.Build_Info =
