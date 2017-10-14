@@ -58,8 +58,8 @@ object Isabelle_Cronjob
             File.standard_path(isabelle_repos), isabelle_repos_test)
         for {
           (result, log_path) <-
-            Build_History.build_history(
-              hg, rev = "build_history_base", fresh = true, build_args = List("HOL"))
+            Build_History.build_history(isabelle_repos_test,
+              rev = "build_history_base", fresh = true, build_args = List("HOL"))
         } {
           result.check
           File.move(log_path, logger.log_dir + log_path.base)

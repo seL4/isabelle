@@ -102,9 +102,10 @@ object Build_History
   private val default_isabelle_identifier = "build_history"
 
   def build_history(
-    hg: Mercurial.Repository,
+    root: Path,
     progress: Progress = No_Progress,
     rev: String = default_rev,
+    afp_rev: Option[String] = None,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
     fresh: Boolean = false,
@@ -122,7 +123,7 @@ object Build_History
   {
     /* sanity checks */
 
-    if (File.eq(Path.explode("~~"), hg.root))
+    if (File.eq(Path.explode("~~"), root))
       error("Repository coincides with ISABELLE_HOME=" + Path.explode("~~").expand)
 
     for ((threads, _) <- multicore_list if threads < 1)
@@ -141,16 +142,25 @@ object Build_History
     }
 
 
-    /* init repository */
+    /* checkout Isabelle + AFP repository */
 
-    hg.update(rev = rev, clean = true)
-    progress.echo_if(verbose, hg.log(rev, options = "-l1"))
+    def checkout(dir: Path, version: String): String =
+    {
+      val hg = Mercurial.repository(dir)
+      hg.update(rev = version, clean = true)
+      progress.echo_if(verbose, hg.log(version, options = "-l1"))
+      hg.id(rev)
+    }
 
-    val isabelle_version = hg.id(rev)
-    val other_isabelle = new Other_Isabelle(progress, hg.root, isabelle_identifier)
+    val isabelle_version = checkout(root, rev)
+    val afp_version = afp_rev.map(checkout(root + Path.explode("AFP"), _))
 
 
     /* main */
+
+    val other_isabelle = new Other_Isabelle(progress, root, isabelle_identifier)
+
+    val afp_build_args = if (afp_rev.isDefined) List("-d", "~~/AFP/thys") else Nil
 
     val build_host = Isabelle_System.hostname()
     val build_history_date = Date.now()
@@ -204,9 +214,9 @@ object Build_History
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
-      val build_args1 = List("-v", "-j" + processes) ::: build_args
+      val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
       val build_result =
-        (new Other_Isabelle(build_out_progress, hg.root, isabelle_identifier))(
+        (new Other_Isabelle(build_out_progress, root, isabelle_identifier))(
           "build " + Bash.strings(build_args1), redirect = true, echo = true, strict = false)
       val build_end = Date.now()
 
@@ -229,7 +239,8 @@ object Build_History
           Build_Log.Prop.build_host.name -> build_host,
           Build_Log.Prop.build_start.name -> Build_Log.print_date(build_start),
           Build_Log.Prop.build_end.name -> Build_Log.print_date(build_end),
-          Build_Log.Prop.isabelle_version.name -> isabelle_version)
+          Build_Log.Prop.isabelle_version.name -> isabelle_version) :::
+        afp_version.map(Build_Log.Prop.afp_version.name -> _).toList
 
       build_out_progress.echo("Reading ML statistics ...")
       val ml_statistics =
@@ -317,6 +328,7 @@ object Build_History
   def main(args: Array[String])
   {
     Command_Line.tool0 {
+      var afp_rev: Option[String] = None
       var multicore_base = false
       var components_base = ""
       var heap: Option[Int] = None
@@ -338,6 +350,7 @@ object Build_History
 Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   Options are:
+    -A REV       include $ISABELLE_HOME/AFP repository at given revision
     -B           first multicore build serves as base for scheduling information
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
@@ -362,6 +375,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   Each MULTICORE configuration consists of one or two numbers (default 1):
   THREADS or THREADSxPROCESSES, e.g. -M 1,2,4 or -M 1x4,2x2,4.
 """,
+        "A:" -> (arg => afp_rev = Some(arg)),
         "B" -> (_ => multicore_base = true),
         "C:" -> (arg => components_base = arg),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
@@ -387,17 +401,17 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val more_args = getopts(args)
       val (root, build_args) =
         more_args match {
-          case root :: build_args => (root, build_args)
+          case root :: build_args => (Path.explode(root), build_args)
           case _ => getopts.usage()
         }
 
-      val hg = Mercurial.repository(Path.explode(root))
       val progress = new Console_Progress(stderr = true)
 
       val results =
-        build_history(hg, progress = progress, rev = rev, isabelle_identifier = isabelle_identifier,
-          components_base = components_base, fresh = fresh, nonfree = nonfree,
-          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
+        build_history(root, progress = progress, rev = rev, afp_rev = afp_rev,
+          isabelle_identifier = isabelle_identifier, components_base = components_base,
+          fresh = fresh, nonfree = nonfree, multicore_base = multicore_base,
+          multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
           verbose = verbose, build_tags = build_tags, build_args = build_args)
@@ -425,18 +439,19 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     isabelle_repos_self: Path,
     isabelle_repos_other: Path,
     isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
+    afp_repos_source: String = AFP.repos_source,
     isabelle_identifier: String = "remote_build_history",
     self_update: Boolean = false,
     push_isabelle_home: Boolean = false,
     progress: Progress = No_Progress,
     rev: String = "",
+    afp_rev: Option[String] = None,
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
+    /* Isabelle self repository */
+
     val isabelle_admin = isabelle_repos_self + Path.explode("Admin")
-
-
-    /* prepare repository clones */
 
     val isabelle_hg =
       Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
@@ -460,12 +475,23 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
     }
 
+
+    /* Isabelle other + AFP repository */
+
     if (Mercurial.is_repository(isabelle_repos_other, ssh = ssh)) {
       ssh.rm_tree(isabelle_repos_other)
     }
     val other_hg =
       Mercurial.clone_repository(
         ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev, ssh = ssh)
+
+    val afp_options =
+      if (afp_rev.isEmpty) ""
+      else {
+        val afp_repos = isabelle_repos_other + Path.explode("AFP")
+        val afp_hg = Mercurial.setup_repository(afp_repos_source, afp_repos, ssh = ssh)
+        " -A " + Bash.string(afp_rev.get)
+      }
 
 
     /* Admin/build_history */
@@ -479,7 +505,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
           " -o " + ssh.bash_path(output_file) +
           (if (rev == "") "" else " -r " + Bash.string(rev)) + " " +
-          options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
+          options + afp_options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
         progress_stdout = progress.echo(_),
         progress_stderr = progress.echo(_),
         strict = false).check
