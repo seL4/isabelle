@@ -700,25 +700,17 @@ object Build_Log
 
     val pull_date = SQL.Column.date("pull_date")
 
-    val pull_date_table: SQL.Table =
+    def pull_date_table(afp: Boolean = false): SQL.Table =
     {
-      val version = Prop.isabelle_version
-      build_log_table("pull_date", List(version.make_primary_key, pull_date),
-        "SELECT " + version + ", min(" + Prop.build_start + ") AS " + pull_date +
-        " FROM " + meta_info_table +
-        " WHERE " + version.defined + " AND " + Prop.build_start.defined +
-        " GROUP BY " + version)
-    }
+      val (name, versions) =
+        if (afp) ("afp_pull_date", List(Prop.isabelle_version, Prop.afp_version))
+        else ("pull_date", List(Prop.isabelle_version))
 
-    val afp_pull_date_table: SQL.Table =
-    {
-      val version1 = Prop.isabelle_version
-      val version2 = Prop.afp_version
-      val table1 = pull_date_table
-      val table2 = isabelle_afp_versions_table
-      build_log_table("afp_pull_date", List(version1.make_primary_key, version2, pull_date),
-        table1.select(List(version1(table1), version2(table2), pull_date(table1))) +
-        SQL.join_inner + table2.query_named + " ON " + version1(table1) + " = " + version1(table2))
+      build_log_table(name, versions.map(_.make_primary_key) ::: List(pull_date),
+        "SELECT " + versions.mkString(", ") + ", min(" + Prop.build_start + ") AS " + pull_date +
+        " FROM " + meta_info_table +
+        " WHERE " + (versions ::: List(Prop.build_start)).map(_.defined).mkString(" AND ") +
+        " GROUP BY " + versions.mkString(", "))
     }
 
 
@@ -727,13 +719,25 @@ object Build_Log
     def recent_time(days: Int): SQL.Source =
       "now() - INTERVAL '" + days.max(0) + " days'"
 
-    def recent_pull_date_table(days: Int, rev: String = "", afp: Boolean = false): SQL.Table =
+    def recent_pull_date_table(
+      days: Int, rev: String = "", afp_rev: Option[String] = None): SQL.Table =
     {
-      val table = if (afp) afp_pull_date_table else pull_date_table
+      val afp = afp_rev.isDefined
+      val rev2 = afp_rev.getOrElse("")
+      val table = pull_date_table(afp)
+
+      val version1 = Prop.isabelle_version
+      val version2 = Prop.afp_version
+      val eq1 = version1(table) + " = " + SQL.string(rev)
+      val eq2 = version2(table) + " = " + SQL.string(rev2)
+
       SQL.Table("recent_pull_date", table.columns,
         table.select(table.columns,
           "WHERE " + pull_date(table) + " > " + recent_time(days) +
-          (if (rev == "") "" else " OR " + Prop.isabelle_version(table) + " = " + SQL.string(rev))))
+          (if (rev != "" && rev2 == "") " OR " + eq1
+           else if (rev == "" && rev2 != "") " OR " + eq2
+           else if (rev != "" && rev2 != "") " OR (" + eq1 + " AND " + eq2 + ")"
+           else "")))
     }
 
     def select_recent_log_names(days: Int): SQL.Source =
@@ -744,11 +748,11 @@ object Build_Log
         " ON " + Prop.isabelle_version(table1) + " = " + Prop.isabelle_version(table2)
     }
 
-    def select_recent_versions(
-      days: Int, rev: String = "", afp: Boolean = false, sql: SQL.Source = ""): SQL.Source =
+    def select_recent_versions(days: Int,
+      rev: String = "", afp_rev: Option[String] = None, sql: SQL.Source = ""): SQL.Source =
     {
       val version = Prop.isabelle_version
-      val table1 = recent_pull_date_table(days, rev = rev, afp = afp)
+      val table1 = recent_pull_date_table(days, rev = rev, afp_rev = afp_rev)
       val table2 = meta_info_table
       val aux_table = SQL.Table("aux", table2.columns, table2.select(sql = sql))
 
@@ -767,7 +771,7 @@ object Build_Log
     val universal_table: SQL.Table =
     {
       val table1 = meta_info_table
-      val table2 = pull_date_table
+      val table2 = pull_date_table()
       val table3 = sessions_table
       val table4 = ml_statistics_table
 
@@ -825,8 +829,8 @@ object Build_Log
     {
       write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
 
-      db.create_view(Data.pull_date_table)
-      db.create_view(Data.afp_pull_date_table)
+      db.create_view(Data.pull_date_table())
+      db.create_view(Data.pull_date_table(afp = true))
       db.create_view(Data.universal_table)
     }
 
@@ -863,7 +867,7 @@ object Build_Log
 
             // pull_date
             {
-              val table = Data.pull_date_table
+              val table = Data.pull_date_table()
               db2.create_table(table)
               db2.using_statement(table.insert())(stmt2 =>
               {
