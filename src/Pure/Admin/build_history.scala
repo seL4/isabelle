@@ -102,10 +102,12 @@ object Build_History
   private val default_isabelle_identifier = "build_history"
 
   def build_history(
+    options: Options,
     root: Path,
     progress: Progress = No_Progress,
     rev: String = default_rev,
     afp_rev: Option[String] = None,
+    afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     components_base: String = "",
     fresh: Boolean = false,
@@ -153,14 +155,21 @@ object Build_History
     }
 
     val isabelle_version = checkout(root, rev)
-    val afp_version = afp_rev.map(checkout(root + Path.explode("AFP"), _))
+
+    val afp_repos = root + Path.explode("AFP")
+    val afp_version = afp_rev.map(checkout(afp_repos, _))
+
+    val (afp_build_options, afp_build_args) =
+      if (afp_rev.isEmpty) (Nil, Nil)
+      else {
+        val afp = AFP.init(options, afp_repos)
+        (List("-d", "~~/AFP/thys"), afp.partition(afp_partition))
+      }
 
 
     /* main */
 
     val other_isabelle = new Other_Isabelle(progress, root, isabelle_identifier)
-
-    val afp_build_args = if (afp_rev.isDefined) List("-d", "~~/AFP/thys") else Nil
 
     val build_host = Isabelle_System.hostname()
     val build_history_date = Date.now()
@@ -214,7 +223,8 @@ object Build_History
         Isabelle_System.copy_dir(isabelle_base_log, isabelle_output_log)
 
       val build_start = Date.now()
-      val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
+      val build_args1 =
+        List("-v", "-j" + processes) ::: afp_build_options ::: build_args ::: afp_build_args
       val build_result =
         (new Other_Isabelle(build_out_progress, root, isabelle_identifier))(
           "build " + Bash.strings(build_args1), redirect = true, echo = true, strict = false)
@@ -335,6 +345,7 @@ object Build_History
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
       var isabelle_identifier = default_isabelle_identifier
+      var afp_partition = 0
       var more_settings: List[String] = Nil
       var fresh = false
       var init_settings: List[String] = Nil
@@ -357,6 +368,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
     -N NAME      alternative ISABELLE_IDENTIFIER (default: """ + default_isabelle_identifier + """)
+    -P NUMBER    AFP partition number (0, 1, 2, default: 0=unrestricted)
     -U SIZE      maximal ML heap in MB (default: unbounded)
     -e TEXT      additional text for generated etc/settings
     -f           fresh build of Isabelle/Scala components (recommended)
@@ -381,6 +393,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
         "N:" -> (arg => isabelle_identifier = arg),
+        "P:" -> (arg => afp_partition = Value.Int.parse(arg)),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "e:" -> (arg => more_settings = more_settings ::: List(arg)),
         "f" -> (_ => fresh = true),
@@ -408,10 +421,10 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val progress = new Console_Progress(stderr = true)
 
       val results =
-        build_history(root, progress = progress, rev = rev, afp_rev = afp_rev,
-          isabelle_identifier = isabelle_identifier, components_base = components_base,
-          fresh = fresh, nonfree = nonfree, multicore_base = multicore_base,
-          multicore_list = multicore_list, arch_64 = arch_64,
+        build_history(Options.init(), root, progress = progress, rev = rev, afp_rev = afp_rev,
+          afp_partition = afp_partition, isabelle_identifier = isabelle_identifier,
+          components_base = components_base, fresh = fresh, nonfree = nonfree,
+          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
           verbose = verbose, build_tags = build_tags, build_args = build_args)
