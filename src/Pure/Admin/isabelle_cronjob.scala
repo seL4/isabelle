@@ -241,7 +241,13 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows")))
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))),
+      List(
+        Remote_Build("AFP slow", "lrzcloud1",
+          options = "-m64 -M6 -s10 -t AFP",
+          args = "-g slow -X very_slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
     ) :::
     {
       for { (host, n) <- List("lxbroy6" -> 1, "lxbroy7" -> 2) }
