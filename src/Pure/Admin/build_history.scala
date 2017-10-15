@@ -151,7 +151,7 @@ object Build_History
       val hg = Mercurial.repository(dir)
       hg.update(rev = version, clean = true)
       progress.echo_if(verbose, hg.log(version, options = "-l1"))
-      hg.id(rev)
+      hg.id(rev = version)
     }
 
     val isabelle_version = checkout(root, rev)
