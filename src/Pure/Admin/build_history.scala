@@ -109,6 +109,7 @@ object Build_History
     afp_rev: Option[String] = None,
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
+    ml_statistics_step: Int = 1,
     components_base: String = "",
     fresh: Boolean = false,
     nonfree: Boolean = false,
@@ -268,7 +269,16 @@ object Build_History
                 Build_Log.Log_File(log_gz).parse_session_info(ml_statistics = true).ml_statistics
               }
               else Nil
-            properties.map(props => (Build_Log.SESSION_NAME -> session_name) :: props)
+
+            val trimmed_properties =
+              if (ml_statistics_step <= 0) Nil
+              else if (ml_statistics_step == 1) properties
+              else {
+                (for { (ps, i) <- properties.iterator.zipWithIndex if i % ml_statistics_step == 0 }
+                 yield ps).toList
+              }
+
+            trimmed_properties.map(ps => (Build_Log.SESSION_NAME -> session_name) :: ps)
           })
 
       build_out_progress.echo("Reading error messages ...")
@@ -353,6 +363,7 @@ object Build_History
       var nonfree = false
       var output_file = ""
       var rev = default_rev
+      var ml_statistics_step = 1
       var build_tags = List.empty[String]
       var verbose = false
       var exit_code = false
@@ -377,6 +388,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -n           include nonfree components
     -o FILE      output file for log names (default: stdout)
     -r REV       update to revision (default: """ + default_rev + """)
+    -s NUMBER    step size for ML statistics (0=none, 1=all, n=step, default: 1)
     -t TAG       free-form build tag (multiple occurrences possible)
     -v           verbose
     -x           return overall exit code from build processes
@@ -407,6 +419,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         "n" -> (_ => nonfree = true),
         "o:" -> (arg => output_file = arg),
         "r:" -> (arg => rev = arg),
+        "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
         "v" -> (_ => verbose = true),
         "x" -> (_ => exit_code = true))
@@ -423,9 +436,9 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val results =
         build_history(Options.init(), root, progress = progress, rev = rev, afp_rev = afp_rev,
           afp_partition = afp_partition, isabelle_identifier = isabelle_identifier,
-          components_base = components_base, fresh = fresh, nonfree = nonfree,
-          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
-          heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
+          ml_statistics_step = ml_statistics_step, components_base = components_base, fresh = fresh,
+          nonfree = nonfree, multicore_base = multicore_base, multicore_list = multicore_list,
+          arch_64 = arch_64, heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
           verbose = verbose, build_tags = build_tags, build_args = build_args)
 
