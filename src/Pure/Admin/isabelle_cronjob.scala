@@ -243,7 +243,7 @@ object Isabelle_Cronjob
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))),
       List(
-        Remote_Build("AFP slow", "lrzcloud1",
+        Remote_Build("AFP slow", "lrzcloud1", shared_home = false,
           options = "-m64 -M6 -s10 -t AFP",
           args = "-g slow -X very_slow",
           afp = true,
