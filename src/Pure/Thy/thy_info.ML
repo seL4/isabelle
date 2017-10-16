@@ -301,10 +301,17 @@ fun load_thy document symbols last_timing
       Execution.running Document_ID.none exec_id [] orelse
         raise Fail ("Failed to register execution: " ^ Document_ID.print exec_id);
 
+    val timing_start = Timing.start ();
+
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
       eval_thy document symbols last_timing update_time dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
+
+    val timing_result = Timing.result timing_start;
+    val timing_props = [Markup.theory_timing, (Markup.nameN, name)];
+    val _  = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
+
     fun commit () = update_thy deps theory;
   in
     Result {theory = theory, exec_id = exec_id, present = present, commit = commit, weight = weight}

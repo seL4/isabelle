@@ -283,9 +283,11 @@ object Build_Log
 
     def parse_session_info(
         command_timings: Boolean = false,
+        theory_timings: Boolean = false,
         ml_statistics: Boolean = false,
         task_statistics: Boolean = false): Session_Info =
-      Build_Log.parse_session_info(log_file, command_timings, ml_statistics, task_statistics)
+      Build_Log.parse_session_info(
+        log_file, command_timings, theory_timings, ml_statistics, task_statistics)
   }
 
 
@@ -446,6 +448,7 @@ object Build_Log
 
   /** build info: toplevel output of isabelle build or Admin/build_history **/
 
+  val THEORY_TIMING_MARKER = "\ftheory_timing = "
   val ML_STATISTICS_MARKER = "\fML_statistics = "
   val ERROR_MESSAGE_MARKER = "\ferror_message = "
   val SESSION_NAME = "session_name"
@@ -612,6 +615,7 @@ object Build_Log
   sealed case class Session_Info(
     session_timing: Properties.T,
     command_timings: List[Properties.T],
+    theory_timings: List[Properties.T],
     ml_statistics: List[Properties.T],
     task_statistics: List[Properties.T],
     errors: List[String])
@@ -619,12 +623,14 @@ object Build_Log
   private def parse_session_info(
     log_file: Log_File,
     command_timings: Boolean,
+    theory_timings: Boolean,
     ml_statistics: Boolean,
     task_statistics: Boolean): Session_Info =
   {
     Session_Info(
       session_timing = log_file.find_props("\fTiming = ") getOrElse Nil,
       command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
+      theory_timings = if (theory_timings) log_file.filter_props(THEORY_TIMING_MARKER) else Nil,
       ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
       task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil,
       errors = log_file.filter_lines(ERROR_MESSAGE_MARKER).map(Library.decode_lines(_)))

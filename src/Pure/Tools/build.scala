@@ -537,7 +537,10 @@ object Build
                   build_log =
                     Build_Log.Log_File(name, process_result.out_lines).
                       parse_session_info(
-                        command_timings = true, ml_statistics = true, task_statistics = true),
+                        command_timings = true,
+                        theory_timings = true,
+                        ml_statistics = true,
+                        task_statistics = true),
                   build =
                     Session_Info(sources_stamp(deps, name), input_heaps, heap_stamp,
                       process_result.rc)))

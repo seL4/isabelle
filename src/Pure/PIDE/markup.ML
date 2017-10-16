@@ -194,6 +194,7 @@ sig
   val ML_statistics: Properties.entry
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
+  val theory_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
   val build_session_finished: Properties.T
@@ -618,6 +619,8 @@ val ML_statistics = (functionN, "ML_statistics");
 val task_statistics = (functionN, "task_statistics");
 
 val command_timing = (functionN, "command_timing");
+
+val theory_timing = (functionN, "theory_timing");
 
 fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 

@@ -392,9 +392,11 @@ object Markup
   }
 
 
-  /* command timing */
+  /* protocol functions */
 
-  val COMMAND_TIMING = "command_timing"
+  val COMMAND_TIMING: Properties.Entry = (FUNCTION, "command_timing")
+
+  val THEORY_TIMING: Properties.Entry = (FUNCTION, "theory_timing")
 
 
   /* command indentation */

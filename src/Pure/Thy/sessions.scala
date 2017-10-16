@@ -829,11 +829,13 @@ object Sessions
     // Build_Log.Session_Info
     val session_timing = SQL.Column.bytes("session_timing")
     val command_timings = SQL.Column.bytes("command_timings")
+    val theory_timings = SQL.Column.bytes("theory_timings")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
     val task_statistics = SQL.Column.bytes("task_statistics")
     val errors = SQL.Column.bytes("errors")
     val build_log_columns =
-      List(session_name, session_timing, command_timings, ml_statistics, task_statistics, errors)
+      List(session_name, session_timing, command_timings, theory_timings,
+        ml_statistics, task_statistics, errors)
 
     // Build.Session_Info
     val sources = SQL.Column.string("sources")
@@ -926,13 +928,14 @@ object Sessions
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
           stmt.bytes(3) = Properties.compress(build_log.command_timings)
-          stmt.bytes(4) = Properties.compress(build_log.ml_statistics)
-          stmt.bytes(5) = Properties.compress(build_log.task_statistics)
-          stmt.bytes(6) = Build_Log.compress_errors(build_log.errors)
-          stmt.string(7) = build.sources
-          stmt.string(8) = cat_lines(build.input_heaps)
-          stmt.string(9) = build.output_heap getOrElse ""
-          stmt.int(10) = build.return_code
+          stmt.bytes(4) = Properties.compress(build_log.theory_timings)
+          stmt.bytes(5) = Properties.compress(build_log.ml_statistics)
+          stmt.bytes(6) = Properties.compress(build_log.task_statistics)
+          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors)
+          stmt.string(8) = build.sources
+          stmt.string(9) = cat_lines(build.input_heaps)
+          stmt.string(10) = build.output_heap getOrElse ""
+          stmt.int(11) = build.return_code
           stmt.execute()
         })
       }
@@ -943,6 +946,9 @@ object Sessions
 
     def read_command_timings(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.command_timings)
+
+    def read_theory_timings(db: SQL.Database, name: String): List[Properties.T] =
+      read_properties(db, name, Session_Info.theory_timings)
 
     def read_ml_statistics(db: SQL.Database, name: String): List[Properties.T] =
       read_properties(db, name, Session_Info.ml_statistics)

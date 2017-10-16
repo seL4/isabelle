@@ -432,6 +432,9 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 accumulate(state_id, xml_cache.elem(message))
 
+              case Protocol.Theory_Timing(_, _) =>
+                // FIXME
+
               case Markup.Assign_Update =>
                 msg.text match {
                   case Protocol.Assign_Update(id, update) =>
