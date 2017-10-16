@@ -458,11 +458,6 @@ object Build_Log
     val existing, finished, failed, cancelled = Value
   }
 
-  object Session_Entry
-  {
-    val empty: Session_Entry = Session_Entry()
-  }
-
   sealed case class Session_Entry(
     chapter: String = "",
     groups: List[String] = Nil,
@@ -472,11 +467,18 @@ object Build_Log
     heap_size: Option[Long] = None,
     status: Option[Session_Status.Value] = None,
     errors: List[String] = Nil,
+    theory_timings: Map[String, Timing] = Map.empty,
     ml_statistics: List[Properties.T] = Nil)
   {
     def proper_groups: Option[String] = if (groups.isEmpty) None else Some(cat_lines(groups))
     def finished: Boolean = status == Some(Session_Status.finished)
     def failed: Boolean = status == Some(Session_Status.failed)
+  }
+
+  object Build_Info
+  {
+    val sessions_dummy: Map[String, Session_Entry] =
+      Map("" -> Session_Entry(theory_timings = Map("" -> Timing.zero)))
   }
 
   sealed case class Build_Info(sessions: Map[String, Session_Entry])
@@ -509,6 +511,19 @@ object Build_Log
     val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
+    object Theory_Timing
+    {
+      def unapply(line: String): Option[(String, (String, Timing))] =
+        Library.try_unprefix(THEORY_TIMING_MARKER, line).map(log_file.parse_props(_)) match {
+          case Some((SESSION_NAME, name) :: props) =>
+            (props, props) match {
+              case (Markup.Name(thy), Markup.Timing_Properties(t)) => Some((name, thy -> t))
+              case _ => None
+            }
+          case _ => None
+        }
+    }
+
     var chapter = Map.empty[String, String]
     var groups = Map.empty[String, List[String]]
     var threads = Map.empty[String, Int]
@@ -518,12 +533,14 @@ object Build_Log
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
     var heap_sizes = Map.empty[String, Long]
+    var theory_timings = Map.empty[String, Map[String, Timing]]
     var ml_statistics = Map.empty[String, List[Properties.T]]
     var errors = Map.empty[String, List[String]]
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
-      failed ++ cancelled ++ started ++ heap_sizes.keySet ++ ml_statistics.keySet
+      failed ++ cancelled ++ started ++ heap_sizes.keySet ++ theory_timings.keySet ++
+      ml_statistics.keySet
 
 
     for (line <- log_file.lines) {
@@ -562,21 +579,26 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
+        case _ if line.startsWith(THEORY_TIMING_MARKER) && YXML.detect(line) =>
+          line match {
+            case Theory_Timing(name, theory_timing) =>
+              theory_timings += (name -> (theory_timings.getOrElse(name, Map.empty) + theory_timing))
+            case _ => log_file.err("malformed theory_timing " + quote(line))
+          }
+
         case _ if parse_ml_statistics && line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
-          val (name, props) =
-            Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
-              case Some((SESSION_NAME, name) :: props) => (name, props)
-              case _ => log_file.err("malformed ML_statistics " + quote(line))
-            }
-          ml_statistics += (name -> (props :: ml_statistics.getOrElse(name, Nil)))
+          Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
+            case Some((SESSION_NAME, name) :: props) =>
+              ml_statistics += (name -> (props :: ml_statistics.getOrElse(name, Nil)))
+            case _ => log_file.err("malformed ML_statistics " + quote(line))
+          }
 
         case _ if line.startsWith(ERROR_MESSAGE_MARKER) && YXML.detect(line) =>
-          val (name, msg) =
-            Library.try_unprefix(ERROR_MESSAGE_MARKER, line).map(log_file.parse_props(_)) match {
-              case Some(List((SESSION_NAME, name), (Markup.CONTENT, msg))) => (name, msg)
-              case _ => log_file.err("malformed error message " + quote(line))
-            }
-          errors += (name -> (Library.decode_lines(msg) :: errors.getOrElse(name, Nil)))
+          Library.try_unprefix(ERROR_MESSAGE_MARKER, line).map(log_file.parse_props(_)) match {
+            case Some(List((SESSION_NAME, name), (Markup.CONTENT, msg))) =>
+              errors += (name -> (Library.decode_lines(msg) :: errors.getOrElse(name, Nil)))
+            case _ => log_file.err("malformed error message " + quote(line))
+          }
 
         case _ =>
       }
@@ -602,6 +624,7 @@ object Build_Log
               heap_size = heap_sizes.get(name),
               status = Some(status),
               errors = errors.getOrElse(name, Nil).reverse,
+              theory_timings = theory_timings.getOrElse(name, Map.empty),
               ml_statistics = ml_statistics.getOrElse(name, Nil).reverse)
           (name -> entry)
         }):_*)
@@ -660,6 +683,7 @@ object Build_Log
 
     val log_name = SQL.Column.string("log_name").make_primary_key
     val session_name = SQL.Column.string("session_name").make_primary_key
+    val theory_name = SQL.Column.string("theory_name").make_primary_key
     val chapter = SQL.Column.string("chapter")
     val groups = SQL.Column.string("groups")
     val threads = SQL.Column.int("threads")
@@ -671,6 +695,9 @@ object Build_Log
     val ml_timing_cpu = SQL.Column.long("ml_timing_cpu")
     val ml_timing_gc = SQL.Column.long("ml_timing_gc")
     val ml_timing_factor = SQL.Column.double("ml_timing_factor")
+    val theory_timing_elapsed = SQL.Column.long("theory_timing_elapsed")
+    val theory_timing_cpu = SQL.Column.long("theory_timing_cpu")
+    val theory_timing_gc = SQL.Column.long("theory_timing_gc")
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
     val errors = SQL.Column.bytes("errors")
@@ -685,6 +712,11 @@ object Build_Log
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
           heap_size, status, errors))
+
+    val theories_table =
+      build_log_table("theories",
+        List(log_name, session_name, theory_name, theory_timing_elapsed, theory_timing_cpu,
+          theory_timing_gc))
 
     val ml_statistics_table =
       build_log_table("ml_statistics", List(log_name, session_name, ml_statistics))
@@ -853,6 +885,7 @@ object Build_Log
             // main content
             db2.create_table(Data.meta_info_table)
             db2.create_table(Data.sessions_table)
+            db2.create_table(Data.theories_table)
             db2.create_table(Data.ml_statistics_table)
 
             val recent_log_names =
@@ -923,10 +956,10 @@ object Build_Log
       val table = Data.sessions_table
       db.using_statement(db.insert_permissive(table))(stmt =>
       {
-        val entries_iterator =
-          if (build_info.sessions.isEmpty) Iterator("" -> Session_Entry.empty)
-          else build_info.sessions.iterator
-        for ((session_name, session) <- entries_iterator) {
+        val sessions =
+          if (build_info.sessions.isEmpty) Build_Info.sessions_dummy
+          else build_info.sessions
+        for ((session_name, session) <- sessions) {
           stmt.string(1) = log_name
           stmt.string(2) = session_name
           stmt.string(3) = proper_string(session.chapter)
@@ -943,6 +976,30 @@ object Build_Log
           stmt.long(14) = session.heap_size
           stmt.string(15) = session.status.map(_.toString)
           stmt.bytes(16) = compress_errors(session.errors)
+          stmt.execute()
+        }
+      })
+    }
+
+    def update_theories(db: SQL.Database, log_name: String, build_info: Build_Info)
+    {
+      val table = Data.theories_table
+      db.using_statement(db.insert_permissive(table))(stmt =>
+      {
+        val sessions =
+          if (build_info.sessions.forall({ case (_, session) => session.theory_timings.isEmpty }))
+            Build_Info.sessions_dummy
+          else build_info.sessions
+        for {
+          (session_name, session) <- sessions
+          (theory_name, timing) <- session.theory_timings
+        } {
+          stmt.string(1) = log_name
+          stmt.string(2) = session_name
+          stmt.string(3) = theory_name
+          stmt.long(4) = timing.elapsed.ms
+          stmt.long(5) = timing.cpu.ms
+          stmt.long(6) = timing.gc.ms
           stmt.execute()
         }
       })
@@ -994,6 +1051,10 @@ object Build_Log
           new Table_Status(Data.sessions_table) {
             override def update_db(db: SQL.Database, log_file: Log_File): Unit =
               update_sessions(db, log_file.name, log_file.parse_build_info())
+          },
+          new Table_Status(Data.theories_table) {
+            override def update_db(db: SQL.Database, log_file: Log_File): Unit =
+              update_theories(db, log_file.name, log_file.parse_build_info())
           },
           new Table_Status(Data.ml_statistics_table) {
             override def update_db(db: SQL.Database, log_file: Log_File): Unit =

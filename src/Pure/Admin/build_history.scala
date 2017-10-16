@@ -253,6 +253,19 @@ object Build_History
           Build_Log.Prop.isabelle_version.name -> isabelle_version) :::
         afp_version.map(Build_Log.Prop.afp_version.name -> _).toList
 
+      build_out_progress.echo("Reading theory timings ...")
+      val theory_timings =
+        build_info.finished_sessions.flatMap(session_name =>
+          {
+            val database = isabelle_output + store.database(session_name)
+
+            val properties =
+              using(SQLite.open_database(database))(db =>
+                store.read_theory_timings(db, session_name))
+
+            properties.map(ps => (Build_Log.SESSION_NAME -> session_name) :: ps)
+          })
+
       build_out_progress.echo("Reading ML statistics ...")
       val ml_statistics =
         build_info.finished_sessions.flatMap(session_name =>
@@ -311,6 +324,7 @@ object Build_History
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
+          theory_timings.map(Build_Log.Log_File.print_props(Build_Log.THEORY_TIMING_MARKER, _)) :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
           session_errors.map(Build_Log.Log_File.print_props(Build_Log.ERROR_MESSAGE_MARKER, _)) :::
           heap_sizes), XZ.options(6))
