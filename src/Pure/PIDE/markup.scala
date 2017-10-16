@@ -540,7 +540,7 @@ object Markup
   {
     def unapply(props: Properties.T): Option[Properties.T] =
       props match {
-        case (FUNCTION, "ML_statistics") :: stats => Some(stats)
+        case (FUNCTION, "ML_statistics") :: props => Some(props)
         case _ => None
       }
   }
@@ -549,7 +549,7 @@ object Markup
   {
     def unapply(props: Properties.T): Option[Properties.T] =
       props match {
-        case (FUNCTION, "task_statistics") :: stats => Some(stats)
+        case (FUNCTION, "task_statistics") :: props => Some(props)
         case _ => None
       }
   }
