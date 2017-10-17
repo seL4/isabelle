@@ -498,6 +498,14 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     val isabelle_hg =
       Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
 
+    def execute(cmd: String, args: String, echo: Boolean = false, strict: Boolean = true): Unit =
+      ssh.execute(
+        Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
+          ssh.bash_path(isabelle_repos_self + Path.explode(cmd)) + " " + args,
+        progress_stdout = progress.echo_if(echo, _),
+        progress_stderr = progress.echo_if(echo, _),
+        strict = strict).check
+
     if (self_update) {
       val self_rev =
         if (push_isabelle_home) {
@@ -511,12 +519,9 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
           isabelle_hg.id()
         }
       isabelle_hg.update(rev = self_rev, clean = true)
-      for (cmd <- List("components -I", "components -a")) {
-        ssh.execute(
-          ssh.bash_path(isabelle_repos_self + Path.explode("bin/isabelle")) + " " + cmd).check
-      }
-      ssh.execute(
-        ssh.bash_path(isabelle_repos_self + Path.explode("Admin/build")) + " jars_fresh").check
+      execute("bin/isabelle", "components -I")
+      execute("bin/isabelle", "components -a")
+      execute("Admin/build", "jars_fresh")
     }
 
 
@@ -544,15 +549,11 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     {
       val output_file = tmp_dir + Path.explode("output")
 
-      ssh.execute(
-        Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-        ssh.bash_path(isabelle_repos_self + Path.explode("Admin/build_history")) +
-          " -o " + ssh.bash_path(output_file) +
+      execute("Admin/build_history",
+        "-o " + ssh.bash_path(output_file) +
           (if (rev == "") "" else " -r " + Bash.string(rev)) + " " +
           options + afp_options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
-        progress_stdout = progress.echo(_),
-        progress_stderr = progress.echo(_),
-        strict = false).check
+        echo = true, strict = false)
 
       for (line <- split_lines(ssh.read(output_file)))
       yield {
