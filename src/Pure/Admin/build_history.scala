@@ -520,7 +520,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         }
       isabelle_hg.update(rev = self_rev, clean = true)
       execute("bin/isabelle", "components -I")
-      execute("bin/isabelle", "components -a")
+      execute("bin/isabelle", "components -a", echo = true)
       execute("Admin/build", "jars_fresh")
     }
 
