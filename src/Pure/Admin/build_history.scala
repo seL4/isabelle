@@ -260,8 +260,12 @@ object Build_History
             val database = isabelle_output + store.database(session_name)
 
             val properties =
-              using(SQLite.open_database(database))(db =>
-                store.read_theory_timings(db, session_name))
+              if (database.is_file) {
+                using(SQLite.open_database(database))(db =>
+                  try { store.read_theory_timings(db, session_name) }
+                  catch { case ERROR(_) => Nil })
+              }
+              else Nil
 
             properties.map(ps => (Build_Log.SESSION_NAME -> session_name) :: ps)
           })
