@@ -495,8 +495,6 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
   {
     /* Isabelle self repository */
 
-    val isabelle_admin = isabelle_repos_self + Path.explode("Admin")
-
     val isabelle_hg =
       Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
 
@@ -517,7 +515,8 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         ssh.execute(
           ssh.bash_path(isabelle_repos_self + Path.explode("bin/isabelle")) + " " + cmd).check
       }
-      ssh.execute(ssh.bash_path(isabelle_admin + Path.explode("build")) + " jars_fresh").check
+      ssh.execute(
+        ssh.bash_path(isabelle_repos_self + Path.explode("Admin/build")) + " jars_fresh").check
     }
 
 
@@ -547,7 +546,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       ssh.execute(
         Isabelle_System.export_isabelle_identifier(isabelle_identifier) +
-        ssh.bash_path(isabelle_admin + Path.explode("build_history")) +
+        ssh.bash_path(isabelle_repos_self + Path.explode("Admin/build_history")) +
           " -o " + ssh.bash_path(output_file) +
           (if (rev == "") "" else " -r " + Bash.string(rev)) + " " +
           options + afp_options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
