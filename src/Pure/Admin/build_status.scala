@@ -21,7 +21,8 @@ object Build_Status
 
   /* data profiles */
 
-  sealed case class Profile(description: String, history: Int, sql: String)
+  sealed case class Profile(
+    description: String, history: Int = 0, afp: Boolean = false, sql: String)
   {
     def days(options: Options): Int = options.int("build_log_history") max history
 
@@ -32,7 +33,8 @@ object Build_Status
     {
       Build_Log.Data.universal_table.select(columns, distinct = true,
         sql = "WHERE " +
-          Build_Log.Data.pull_date + " > " + Build_Log.Data.recent_time(days(options)) + " AND " +
+          Build_Log.Data.pull_date(afp) + " > " + Build_Log.Data.recent_time(days(options)) +
+          " AND " +
           SQL.member(Build_Log.Data.status.ident,
             List(
               Build_Log.Session_Status.finished.toString,
@@ -40,7 +42,7 @@ object Build_Status
           (if (only_sessions.isEmpty) ""
            else " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
           " AND " + SQL.enclose(sql) +
-          " ORDER BY " + Build_Log.Data.pull_date)
+          " ORDER BY " + Build_Log.Data.pull_date(afp))
     }
   }
 
@@ -109,16 +111,26 @@ object Build_Status
     def failed: Boolean = status == Build_Log.Session_Status.failed
 
     def present_errors(name: String): XML.Body =
-      if (errors.isEmpty) HTML.text(name + " (" + isabelle_version + ")")
+    {
+      if (errors.isEmpty) HTML.text(name + print_versions(isabelle_version, afp_version))
       else {
         HTML.tooltip_errors(HTML.text(name), errors.map(s => HTML.text(Symbol.decode(s)))) ::
-          HTML.text(" (" + isabelle_version + ")")
+          HTML.text(print_versions(isabelle_version, afp_version))
       }
+    }
   }
 
   sealed case class Image(name: String, width: Int, height: Int)
   {
     def path: Path = Path.basic(name)
+  }
+
+  def print_versions(isabelle_version: String, afp_version: String): String =
+  {
+    val body =
+      proper_string(isabelle_version).map("Isabelle/" + _).toList :::
+      proper_string(afp_version).map("AFP/" + _).toList
+    if (body.isEmpty) "" else body.mkString(" (", ", ", ")")
   }
 
   def read_data(options: Options,
@@ -142,9 +154,10 @@ object Build_Status
       for (profile <- profiles.sortBy(_.description)) {
         progress.echo("input " + quote(profile.description))
 
+        val afp = profile.afp
         val columns =
           List(
-            Build_Log.Data.pull_date,
+            Build_Log.Data.pull_date(afp),
             Build_Log.Prop.build_host,
             Build_Log.Prop.isabelle_version,
             Build_Log.Prop.afp_version,
@@ -195,18 +208,19 @@ object Build_Status
             data_stretch += (data_name -> profile.stretch(options))
 
             val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
+            val afp_version = res.string(Build_Log.Prop.afp_version)
 
             val ml_stats =
               ML_Statistics(
                 if (ml_statistics)
                   Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
-                else Nil, heading = session_name + " (Isabelle/" + isabelle_version + ")")
+                else Nil, heading = session_name + print_versions(isabelle_version, afp_version))
 
             val entry =
               Entry(
-                pull_date = res.date(Build_Log.Data.pull_date),
+                pull_date = res.date(Build_Log.Data.pull_date(afp)),
                 isabelle_version = isabelle_version,
-                afp_version = res.string(Build_Log.Prop.afp_version),
+                afp_version = afp_version,
                 timing =
                   res.timing(
                     Build_Log.Data.timing_elapsed,

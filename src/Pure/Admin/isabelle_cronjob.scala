@@ -86,6 +86,7 @@ object Isabelle_Cronjob
   def recent_items(db: SQL.Database,
     days: Int, rev: String, afp_rev: Option[String], sql: SQL.Source): List[Item] =
   {
+    val afp = afp_rev.isDefined
     val select =
       Build_Log.Data.select_recent_versions(
         days = days, rev = rev, afp_rev = afp_rev, sql = "WHERE " + sql)
@@ -95,10 +96,8 @@ object Isabelle_Cronjob
       {
         val known = res.bool(Build_Log.Data.known)
         val isabelle_version = res.string(Build_Log.Prop.isabelle_version)
-        val afp_version =
-          if (afp_rev.isEmpty) None
-          else proper_string(res.string(Build_Log.Prop.afp_version))
-        val pull_date = res.date(Build_Log.Data.pull_date)
+        val afp_version = if (afp) proper_string(res.string(Build_Log.Prop.afp_version)) else None
+        val pull_date = res.date(Build_Log.Data.pull_date(afp))
         Item(known, isabelle_version, afp_version, pull_date)
       }).toList)
   }
@@ -129,7 +128,7 @@ object Isabelle_Cronjob
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
 
     def profile: Build_Status.Profile =
-      Build_Status.Profile(description, history, sql)
+      Build_Status.Profile(description, history = history, afp = afp, sql = sql)
 
     def history_base_filter(hg: Mercurial.Repository): Item => Boolean =
     {
