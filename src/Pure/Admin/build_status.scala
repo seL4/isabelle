@@ -96,6 +96,7 @@ object Build_Status
         entry.stored_heap > 0)
   }
   sealed case class Entry(
+    chapter: String,
     pull_date: Date,
     isabelle_version: String,
     afp_version: String,
@@ -112,10 +113,11 @@ object Build_Status
 
     def present_errors(name: String): XML.Body =
     {
-      if (errors.isEmpty) HTML.text(name + print_versions(isabelle_version, afp_version))
+      if (errors.isEmpty)
+        HTML.text(name + print_version(isabelle_version, afp_version, chapter))
       else {
         HTML.tooltip_errors(HTML.text(name), errors.map(s => HTML.text(Symbol.decode(s)))) ::
-          HTML.text(print_versions(isabelle_version, afp_version))
+          HTML.text(print_version(isabelle_version, afp_version, chapter))
       }
     }
   }
@@ -125,11 +127,12 @@ object Build_Status
     def path: Path = Path.basic(name)
   }
 
-  def print_versions(isabelle_version: String, afp_version: String): String =
+  def print_version(
+    isabelle_version: String, afp_version: String = "", chapter: String = "AFP"): String =
   {
     val body =
       proper_string(isabelle_version).map("Isabelle/" + _).toList :::
-      proper_string(afp_version).map("AFP/" + _).toList
+      (if (chapter == "AFP") proper_string(afp_version).map("AFP/" + _) else None).toList
     if (body.isEmpty) "" else body.mkString(" (", ", ", ")")
   }
 
@@ -164,6 +167,7 @@ object Build_Status
             Build_Log.Settings.ISABELLE_BUILD_OPTIONS,
             Build_Log.Settings.ML_PLATFORM,
             Build_Log.Data.session_name,
+            Build_Log.Data.chapter,
             Build_Log.Data.threads,
             Build_Log.Data.timing_elapsed,
             Build_Log.Data.timing_cpu,
@@ -186,6 +190,7 @@ object Build_Status
           val res = stmt.execute_query()
           while (res.next()) {
             val session_name = res.string(Build_Log.Data.session_name)
+            val chapter = res.string(Build_Log.Data.chapter)
             val threads =
             {
               val threads1 =
@@ -214,10 +219,12 @@ object Build_Status
               ML_Statistics(
                 if (ml_statistics)
                   Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
-                else Nil, heading = session_name + print_versions(isabelle_version, afp_version))
+                else Nil,
+                heading = session_name + print_version(isabelle_version, afp_version, chapter))
 
             val entry =
               Entry(
+                chapter = chapter,
                 pull_date = res.date(Build_Log.Data.pull_date(afp)),
                 isabelle_version = isabelle_version,
                 afp_version = afp_version,
