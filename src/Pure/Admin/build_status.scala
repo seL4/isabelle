@@ -247,7 +247,10 @@ object Build_Status
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
             val session = Session(session_name, threads, entry :: entries, ml_stats)
-            data_entries += (data_name -> (sessions + (session_name -> session)))
+
+            if (!afp || chapter == "AFP") {
+              data_entries += (data_name -> (sessions + (session_name -> session)))
+            }
           }
         })
       }
