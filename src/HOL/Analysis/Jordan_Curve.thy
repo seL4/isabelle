@@ -88,8 +88,10 @@ proof -
       then show ?thesis
         by (rule_tac x="2*pi" in exI) auto
     qed
-    ultimately obtain z where z: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = z"
+    ultimately have "(\<lambda>x. g x - h x) constant_on S \<inter> T"
       using continuous_discrete_range_constant [OF conST contgh] by blast
+    then obtain z where z: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = z"
+      by (auto simp: constant_on_def)
     obtain w where "exp(\<i> * of_real(h w)) = exp (\<i> * of_real(z + h w))"
       using disc z False
       by auto (metis diff_add_cancel g h of_real_add)

@@ -740,22 +740,20 @@ proof (cases "pathfinish \<gamma> = pathstart \<gamma>")
   case True
   have "path \<gamma>"
     by (simp add: assms simple_path_imp_path)
-  then obtain k where k: "\<And>z. z \<in> inside(path_image \<gamma>) \<Longrightarrow> winding_number \<gamma> z = k"
+  then have const: "winding_number \<gamma> constant_on inside(path_image \<gamma>)"
   proof (rule winding_number_constant)
     show "connected (inside(path_image \<gamma>))"
       by (simp add: Jordan_inside_outside True assms)
   qed (use inside_no_overlap True in auto)
   obtain z where zin: "z \<in> inside (path_image \<gamma>)" and z1: "cmod (winding_number \<gamma> z) = 1"
     using simple_closed_path_wn3 [of \<gamma>] True assms by blast
-  with k have "winding_number \<gamma> z = k"
-    by blast
   have "winding_number \<gamma> z \<in> \<int>"
     using zin integer_winding_number [OF \<open>path \<gamma>\<close> True] inside_def by blast
   with z1 consider "winding_number \<gamma> z = 1" | "winding_number \<gamma> z = -1"
     apply (auto simp: Ints_def abs_if split: if_split_asm)
     by (metis of_int_1 of_int_eq_iff of_int_minus)
-  then show ?thesis
-    using that \<open>winding_number \<gamma> z = k\<close> k by auto
+  with that const zin show ?thesis
+    unfolding constant_on_def by metis
 next
   case False
   then show ?thesis

@@ -1546,7 +1546,7 @@ proof (rule connectedI)
     by (simp add: ex_in_conv [symmetric], metis zero_le_one order_refl)
   ultimately show False
     using *[unfolded connected_local not_ex, rule_format,
-      of "{x\<in>{0..1}. g x \<in> e1}" "{x\<in>{0..1}. g x \<in> e2}"]
+      of "{0..1} \<inter> g -` e1" "{0..1} \<inter> g -` e2"]
     using continuous_openin_preimage_gen[OF g(1)[unfolded path_def] as(1)]
     using continuous_openin_preimage_gen[OF g(1)[unfolded path_def] as(2)]
     by auto
@@ -4946,58 +4946,57 @@ qed
 proposition homeomorphism_locally_imp:
   fixes S :: "'a::metric_space set" and t :: "'b::t2_space set"
   assumes S: "locally P S" and hom: "homeomorphism S t f g"
-      and Q: "\<And>S t. \<lbrakk>P S; homeomorphism S t f g\<rbrakk> \<Longrightarrow> Q t"
+      and Q: "\<And>S S'. \<lbrakk>P S; homeomorphism S S' f g\<rbrakk> \<Longrightarrow> Q S'"
     shows "locally Q t"
 proof (clarsimp simp: locally_def)
-  fix w y
-  assume "y \<in> w" and "openin (subtopology euclidean t) w"
-  then obtain T where T: "open T" "w = t \<inter> T"
+  fix W y
+  assume "y \<in> W" and "openin (subtopology euclidean t) W"
+  then obtain T where T: "open T" "W = t \<inter> T"
     by (force simp: openin_open)
-  then have "w \<subseteq> t" by auto
+  then have "W \<subseteq> t" by auto
   have f: "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x" "f ` S = t" "continuous_on S f"
    and g: "\<And>y. y \<in> t \<Longrightarrow> f(g y) = y" "g ` t = S" "continuous_on t g"
     using hom by (auto simp: homeomorphism_def)
-  have gw: "g ` w = S \<inter> {x. f x \<in> w}"
-    using \<open>w \<subseteq> t\<close>
+  have gw: "g ` W = S \<inter> f -` W"
+    using \<open>W \<subseteq> t\<close>
     apply auto
-    using \<open>g ` t = S\<close> \<open>w \<subseteq> t\<close> apply blast
-    using g \<open>w \<subseteq> t\<close> apply auto[1]
+    using \<open>g ` t = S\<close> \<open>W \<subseteq> t\<close> apply blast
+    using g \<open>W \<subseteq> t\<close> apply auto[1]
     by (simp add: f rev_image_eqI)
-  have o: "openin (subtopology euclidean S) (g ` w)"
+  have o: "openin (subtopology euclidean S) (g ` W)"
   proof -
     have "continuous_on S f"
       using f(3) by blast
-    then show "openin (subtopology euclidean S) (g ` w)"
-      by (simp add: gw Collect_conj_eq \<open>openin (subtopology euclidean t) w\<close> continuous_on_open f(2))
+    then show "openin (subtopology euclidean S) (g ` W)"
+      by (simp add: gw Collect_conj_eq \<open>openin (subtopology euclidean t) W\<close> continuous_on_open f(2))
   qed
   then obtain u v
-    where osu: "openin (subtopology euclidean S) u" and uv: "P v" "g y \<in> u" "u \<subseteq> v" "v \<subseteq> g ` w"
-    using S [unfolded locally_def, rule_format, of "g ` w" "g y"] \<open>y \<in> w\<close> by force
+    where osu: "openin (subtopology euclidean S) u" and uv: "P v" "g y \<in> u" "u \<subseteq> v" "v \<subseteq> g ` W"
+    using S [unfolded locally_def, rule_format, of "g ` W" "g y"] \<open>y \<in> W\<close> by force
   have "v \<subseteq> S" using uv by (simp add: gw)
   have fv: "f ` v = t \<inter> {x. g x \<in> v}"
     using \<open>f ` S = t\<close> f \<open>v \<subseteq> S\<close> by auto
-  have "f ` v \<subseteq> w"
+  have "f ` v \<subseteq> W"
     using uv using Int_lower2 gw image_subsetI mem_Collect_eq subset_iff by auto
   have contvf: "continuous_on v f"
     using \<open>v \<subseteq> S\<close> continuous_on_subset f(3) by blast
   have contvg: "continuous_on (f ` v) g"
-    using \<open>f ` v \<subseteq> w\<close> \<open>w \<subseteq> t\<close> continuous_on_subset g(3) by blast
+    using \<open>f ` v \<subseteq> W\<close> \<open>W \<subseteq> t\<close> continuous_on_subset g(3) by blast
   have homv: "homeomorphism v (f ` v) f g"
-    using \<open>v \<subseteq> S\<close> \<open>w \<subseteq> t\<close> f
+    using \<open>v \<subseteq> S\<close> \<open>W \<subseteq> t\<close> f
     apply (simp add: homeomorphism_def contvf contvg, auto)
     by (metis f(1) rev_image_eqI rev_subsetD)
-  have 1: "openin (subtopology euclidean t) {x \<in> t. g x \<in> u}"
+  have 1: "openin (subtopology euclidean t) (t \<inter> g -` u)"
     apply (rule continuous_on_open [THEN iffD1, rule_format])
     apply (rule \<open>continuous_on t g\<close>)
     using \<open>g ` t = S\<close> apply (simp add: osu)
     done
-  have 2: "\<exists>v. Q v \<and> y \<in> {x \<in> t. g x \<in> u} \<and> {x \<in> t. g x \<in> u} \<subseteq> v \<and> v \<subseteq> w"
+  have 2: "\<exists>V. Q V \<and> y \<in> (t \<inter> g -` u) \<and> (t \<inter> g -` u) \<subseteq> V \<and> V \<subseteq> W"
     apply (rule_tac x="f ` v" in exI)
     apply (intro conjI Q [OF \<open>P v\<close> homv])
-    using \<open>w \<subseteq> t\<close> \<open>y \<in> w\<close>  \<open>f ` v \<subseteq> w\<close>  uv  apply (auto simp: fv)
+    using \<open>W \<subseteq> t\<close> \<open>y \<in> W\<close>  \<open>f ` v \<subseteq> W\<close>  uv  apply (auto simp: fv)
     done
-  show "\<exists>u. openin (subtopology euclidean t) u \<and>
-            (\<exists>v. Q v \<and> y \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
+  show "\<exists>U. openin (subtopology euclidean t) U \<and> (\<exists>v. Q v \<and> y \<in> U \<and> U \<subseteq> v \<and> v \<subseteq> W)"
     by (meson 1 2)
 qed
 
@@ -5057,22 +5056,21 @@ lemma locally_open_map_image:
       and Q: "\<And>t. \<lbrakk>t \<subseteq> S; P t\<rbrakk> \<Longrightarrow> Q(f ` t)"
     shows "locally Q (f ` S)"
 proof (clarsimp simp add: locally_def)
-  fix w y
-  assume oiw: "openin (subtopology euclidean (f ` S)) w" and "y \<in> w"
-  then have "w \<subseteq> f ` S" by (simp add: openin_euclidean_subtopology_iff)
-  have oivf: "openin (subtopology euclidean S) {x \<in> S. f x \<in> w}"
+  fix W y
+  assume oiw: "openin (subtopology euclidean (f ` S)) W" and "y \<in> W"
+  then have "W \<subseteq> f ` S" by (simp add: openin_euclidean_subtopology_iff)
+  have oivf: "openin (subtopology euclidean S) (S \<inter> f -` W)"
     by (rule continuous_on_open [THEN iffD1, rule_format, OF f oiw])
   then obtain x where "x \<in> S" "f x = y"
-    using \<open>w \<subseteq> f ` S\<close> \<open>y \<in> w\<close> by blast
-  then obtain u v
-    where "openin (subtopology euclidean S) u" "P v" "x \<in> u" "u \<subseteq> v" "v \<subseteq> {x \<in> S. f x \<in> w}"
-    using P [unfolded locally_def, rule_format, of "{x. x \<in> S \<and> f x \<in> w}" x] oivf \<open>y \<in> w\<close>
+    using \<open>W \<subseteq> f ` S\<close> \<open>y \<in> W\<close> by blast
+  then obtain U V
+    where "openin (subtopology euclidean S) U" "P V" "x \<in> U" "U \<subseteq> V" "V \<subseteq> S \<inter> f -` W"
+    using P [unfolded locally_def, rule_format, of "(S \<inter> f -` W)" x] oivf \<open>y \<in> W\<close>
     by auto
-  then show "\<exists>u. openin (subtopology euclidean (f ` S)) u \<and>
-            (\<exists>v. Q v \<and> y \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
-    apply (rule_tac x="f ` u" in exI)
+  then show "\<exists>X. openin (subtopology euclidean (f ` S)) X \<and> (\<exists>Y. Q Y \<and> y \<in> X \<and> X \<subseteq> Y \<and> Y \<subseteq> W)"
+    apply (rule_tac x="f ` U" in exI)
     apply (rule conjI, blast intro!: oo)
-    apply (rule_tac x="f ` v" in exI)
+    apply (rule_tac x="f ` V" in exI)
     apply (force simp: \<open>f x = y\<close> rev_image_eqI intro: Q)
     done
 qed
@@ -6087,7 +6085,7 @@ by (simp add: open_path_connected_component)
 proposition locally_connected_quotient_image:
   assumes lcS: "locally connected S"
       and oo: "\<And>T. T \<subseteq> f ` S
-                \<Longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> T} \<longleftrightarrow>
+                \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow>
                     openin (subtopology euclidean (f ` S)) T"
     shows "locally connected (f ` S)"
 proof (clarsimp simp: locally_connected_open_component)
@@ -6096,53 +6094,53 @@ proof (clarsimp simp: locally_connected_open_component)
   then have "C \<subseteq> U" "U \<subseteq> f ` S"
     by (meson in_components_subset openin_imp_subset)+
   then have "openin (subtopology euclidean (f ` S)) C \<longleftrightarrow>
-             openin (subtopology euclidean S) {x \<in> S. f x \<in> C}"
+             openin (subtopology euclidean S) (S \<inter> f -` C)"
     by (auto simp: oo)
-  moreover have "openin (subtopology euclidean S) {x \<in> S. f x \<in> C}"
+  moreover have "openin (subtopology euclidean S) (S \<inter> f -` C)"
   proof (subst openin_subopen, clarify)
     fix x
     assume "x \<in> S" "f x \<in> C"
-    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> {x \<in> S. f x \<in> C}"
+    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> (S \<inter> f -` C)"
     proof (intro conjI exI)
-      show "openin (subtopology euclidean S) (connected_component_set {w \<in> S. f w \<in> U} x)"
+      show "openin (subtopology euclidean S) (connected_component_set (S \<inter> f -` U) x)"
       proof (rule ccontr)
-        assume **: "\<not> openin (subtopology euclidean S) (connected_component_set {a \<in> S. f a \<in> U} x)"
-        then have "x \<notin> {a \<in> S. f a \<in> U}"
+        assume **: "\<not> openin (subtopology euclidean S) (connected_component_set (S \<inter> f -` U) x)"
+        then have "x \<notin> (S \<inter> f -` U)"
           using \<open>U \<subseteq> f ` S\<close> opefSU lcS locally_connected_2 oo by blast
         with ** show False
           by (metis (no_types) connected_component_eq_empty empty_iff openin_subopen)
       qed
     next
-      show "x \<in> connected_component_set {w \<in> S. f w \<in> U} x"
+      show "x \<in> connected_component_set (S \<inter> f -` U) x"
         using \<open>C \<subseteq> U\<close> \<open>f x \<in> C\<close> \<open>x \<in> S\<close> by auto
     next
       have contf: "continuous_on S f"
         by (simp add: continuous_on_open oo openin_imp_subset)
-      then have "continuous_on (connected_component_set {w \<in> S. f w \<in> U} x) f"
+      then have "continuous_on (connected_component_set (S \<inter> f -` U) x) f"
         apply (rule continuous_on_subset)
         using connected_component_subset apply blast
         done
-      then have "connected (f ` connected_component_set {w \<in> S. f w \<in> U} x)"
+      then have "connected (f ` connected_component_set (S \<inter> f -` U) x)"
         by (rule connected_continuous_image [OF _ connected_connected_component])
-      moreover have "f ` connected_component_set {w \<in> S. f w \<in> U} x \<subseteq> U"
+      moreover have "f ` connected_component_set (S \<inter> f -` U) x \<subseteq> U"
         using connected_component_in by blast
-      moreover have "C \<inter> f ` connected_component_set {w \<in> S. f w \<in> U} x \<noteq> {}"
+      moreover have "C \<inter> f ` connected_component_set (S \<inter> f -` U) x \<noteq> {}"
         using \<open>C \<subseteq> U\<close> \<open>f x \<in> C\<close> \<open>x \<in> S\<close> by fastforce
-      ultimately have fC: "f ` (connected_component_set {w \<in> S. f w \<in> U} x) \<subseteq> C"
+      ultimately have fC: "f ` (connected_component_set (S \<inter> f -` U) x) \<subseteq> C"
         by (rule components_maximal [OF \<open>C \<in> components U\<close>])
-      have cUC: "connected_component_set {a \<in> S. f a \<in> U} x \<subseteq> {a \<in> S. f a \<in> C}"
+      have cUC: "connected_component_set (S \<inter> f -` U) x \<subseteq> (S \<inter> f -` C)"
         using connected_component_subset fC by blast
-      have "connected_component_set {w \<in> S. f w \<in> U} x \<subseteq> connected_component_set {w \<in> S. f w \<in> C} x"
+      have "connected_component_set (S \<inter> f -` U) x \<subseteq> connected_component_set (S \<inter> f -` C) x"
       proof -
-        { assume "x \<in> connected_component_set {a \<in> S. f a \<in> U} x"
+        { assume "x \<in> connected_component_set (S \<inter> f -` U) x"
           then have ?thesis
-            by (simp add: cUC connected_component_maximal) }
+            using cUC connected_component_idemp connected_component_mono by blast }
         then show ?thesis
           using connected_component_eq_empty by auto
       qed
-      also have "... \<subseteq> {w \<in> S. f w \<in> C}"
+      also have "... \<subseteq> (S \<inter> f -` C)"
         by (rule connected_component_subset)
-      finally show "connected_component_set {w \<in> S. f w \<in> U} x \<subseteq> {x \<in> S. f x \<in> C}" .
+      finally show "connected_component_set (S \<inter> f -` U) x \<subseteq> (S \<inter> f -` C)" .
     qed
   qed
   ultimately show "openin (subtopology euclidean (f ` S)) C"
@@ -6153,8 +6151,7 @@ text\<open>The proof resembles that above but is not identical!\<close>
 proposition locally_path_connected_quotient_image:
   assumes lcS: "locally path_connected S"
       and oo: "\<And>T. T \<subseteq> f ` S
-                \<Longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> T} \<longleftrightarrow>
-                    openin (subtopology euclidean (f ` S)) T"
+                \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow> openin (subtopology euclidean (f ` S)) T"
     shows "locally path_connected (f ` S)"
 proof (clarsimp simp: locally_path_connected_open_path_component)
   fix U y
@@ -6162,62 +6159,62 @@ proof (clarsimp simp: locally_path_connected_open_path_component)
   then have "path_component_set U y \<subseteq> U" "U \<subseteq> f ` S"
     by (meson path_component_subset openin_imp_subset)+
   then have "openin (subtopology euclidean (f ` S)) (path_component_set U y) \<longleftrightarrow>
-             openin (subtopology euclidean S) {x \<in> S. f x \<in> path_component_set U y}"
+             openin (subtopology euclidean S) (S \<inter> f -` path_component_set U y)"
   proof -
     have "path_component_set U y \<subseteq> f ` S"
       using \<open>U \<subseteq> f ` S\<close> \<open>path_component_set U y \<subseteq> U\<close> by blast
     then show ?thesis
       using oo by blast
   qed
-  moreover have "openin (subtopology euclidean S) {x \<in> S. f x \<in> path_component_set U y}"
+  moreover have "openin (subtopology euclidean S) (S \<inter> f -` path_component_set U y)"
   proof (subst openin_subopen, clarify)
     fix x
     assume "x \<in> S" and Uyfx: "path_component U y (f x)"
     then have "f x \<in> U"
       using path_component_mem by blast
-    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> {x \<in> S. f x \<in> path_component_set U y}"
+    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> (S \<inter> f -` path_component_set U y)"
     proof (intro conjI exI)
-      show "openin (subtopology euclidean S) (path_component_set {w \<in> S. f w \<in> U} x)"
+      show "openin (subtopology euclidean S) (path_component_set (S \<inter> f -` U) x)"
       proof (rule ccontr)
-        assume **: "\<not> openin (subtopology euclidean S) (path_component_set {a \<in> S. f a \<in> U} x)"
-        then have "x \<notin> {a \<in> S. f a \<in> U}"
+        assume **: "\<not> openin (subtopology euclidean S) (path_component_set (S \<inter> f -` U) x)"
+        then have "x \<notin> (S \<inter> f -` U)"
           by (metis (no_types, lifting) \<open>U \<subseteq> f ` S\<close> opefSU lcS oo locally_path_connected_open_path_component)
         then show False
           using ** \<open>path_component_set U y \<subseteq> U\<close>  \<open>x \<in> S\<close> \<open>path_component U y (f x)\<close> by blast
       qed
     next
-      show "x \<in> path_component_set {w \<in> S. f w \<in> U} x"
-        by (metis (no_types, lifting) \<open>x \<in> S\<close> IntD2 Int_Collect \<open>path_component U y (f x)\<close> path_component_mem(2) path_component_refl)
+      show "x \<in> path_component_set (S \<inter> f -` U) x"
+        by (simp add: \<open>f x \<in> U\<close> \<open>x \<in> S\<close> path_component_refl)
     next
       have contf: "continuous_on S f"
         by (simp add: continuous_on_open oo openin_imp_subset)
-      then have "continuous_on (path_component_set {w \<in> S. f w \<in> U} x) f"
+      then have "continuous_on (path_component_set (S \<inter> f -` U) x) f"
         apply (rule continuous_on_subset)
         using path_component_subset apply blast
         done
-      then have "path_connected (f ` path_component_set {w \<in> S. f w \<in> U} x)"
-        by (simp add: path_connected_continuous_image path_connected_path_component)
-      moreover have "f ` path_component_set {w \<in> S. f w \<in> U} x \<subseteq> U"
+      then have "path_connected (f ` path_component_set (S \<inter> f -` U) x)"
+        by (simp add: path_connected_continuous_image)
+      moreover have "f ` path_component_set (S \<inter> f -` U) x \<subseteq> U"
         using path_component_mem by fastforce
-      moreover have "f x \<in> f ` path_component_set {w \<in> S. f w \<in> U} x"
+      moreover have "f x \<in> f ` path_component_set (S \<inter> f -` U) x"
         by (force simp: \<open>x \<in> S\<close> \<open>f x \<in> U\<close> path_component_refl_eq)
-      ultimately have "f ` (path_component_set {w \<in> S. f w \<in> U} x) \<subseteq> path_component_set U (f x)"
+      ultimately have "f ` (path_component_set (S \<inter> f -` U) x) \<subseteq> path_component_set U (f x)"
         by (meson path_component_maximal)
        also have  "... \<subseteq> path_component_set U y"
-        by (simp add: Uyfx path_component_maximal path_component_subset path_component_sym path_connected_path_component)
-      finally have fC: "f ` (path_component_set {w \<in> S. f w \<in> U} x) \<subseteq> path_component_set U y" .
-      have cUC: "path_component_set {a \<in> S. f a \<in> U} x \<subseteq> {a \<in> S. f a \<in> path_component_set U y}"
+        by (simp add: Uyfx path_component_maximal path_component_subset path_component_sym)
+      finally have fC: "f ` (path_component_set (S \<inter> f -` U) x) \<subseteq> path_component_set U y" .
+      have cUC: "path_component_set (S \<inter> f -` U) x \<subseteq> (S \<inter> f -` path_component_set U y)"
         using path_component_subset fC by blast
-      have "path_component_set {w \<in> S. f w \<in> U} x \<subseteq> path_component_set {w \<in> S. f w \<in> path_component_set U y} x"
+      have "path_component_set (S \<inter> f -` U) x \<subseteq> path_component_set (S \<inter> f -` path_component_set U y) x"
       proof -
-        have "\<And>a. path_component_set (path_component_set {a \<in> S. f a \<in> U} x) a \<subseteq> path_component_set {a \<in> S. f a \<in> path_component_set U y} a"
+        have "\<And>a. path_component_set (path_component_set (S \<inter> f -` U) x) a \<subseteq> path_component_set (S \<inter> f -` path_component_set U y) a"
           using cUC path_component_mono by blast
         then show ?thesis
           using path_component_path_component by blast
       qed
-      also have "... \<subseteq> {w \<in> S. f w \<in> path_component_set U y}"
+      also have "... \<subseteq> (S \<inter> f -` path_component_set U y)"
         by (rule path_component_subset)
-      finally show "path_component_set {w \<in> S. f w \<in> U} x \<subseteq> {x \<in> S. f x \<in> path_component_set U y}" .
+      finally show "path_component_set (S \<inter> f -` U) x \<subseteq> (S \<inter> f -` path_component_set U y)" .
     qed
   qed
   ultimately show "openin (subtopology euclidean (f ` S)) (path_component_set U y)"
@@ -6234,13 +6231,10 @@ lemma continuous_on_components_gen:
 proof (clarsimp simp: continuous_openin_preimage_eq)
   fix t :: "'b set"
   assume "open t"
-  have "{x. x \<in> S \<and> f x \<in> t} = \<Union>{{x. x \<in> c \<and> f x \<in> t} |c. c \<in> components S}"
-    apply auto
-    apply (metis (lifting) components_iff connected_component_refl_eq mem_Collect_eq)
-    using Union_components by blast
-  then show "openin (subtopology euclidean S) {x \<in> S. f x \<in> t}"
-    using \<open>open t\<close> assms
-    by (fastforce intro: openin_trans continuous_openin_preimage_gen)
+  have *: "S \<inter> f -` t = (\<Union>c \<in> components S. c \<inter> f -` t)"
+    by auto
+  show "openin (subtopology euclidean S) (S \<inter> f -` t)"
+    unfolding * using \<open>open t\<close> assms continuous_openin_preimage_gen openin_trans openin_Union by blast
 qed
 
 lemma continuous_on_components:
@@ -6308,11 +6302,9 @@ lemma closed_union_complement_components:
 proof -
   have "closedin (subtopology euclidean UNIV) (S \<union> \<Union>c)"
     apply (rule closedin_union_complement_components [OF locally_connected_UNIV])
-    using S apply (simp add: closed_closedin)
-    using c apply (simp add: Compl_eq_Diff_UNIV)
+    using S c apply (simp_all add: Compl_eq_Diff_UNIV)
     done
-  then show ?thesis
-    by (simp add: closed_closedin)
+  then show ?thesis by simp
 qed
 
 lemma closedin_Un_complement_component:

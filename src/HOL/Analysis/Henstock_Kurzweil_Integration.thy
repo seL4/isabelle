@@ -3187,17 +3187,15 @@ next
   proof -
     have "e * r > 0" using that \<open>0 < r\<close> by simp
     with intfi[unfolded has_integral]
-    obtain d where d: "gauge d"
-                   "\<And>p. p tagged_division_of cbox a b \<and> d fine p 
+    obtain d where "gauge d"
+               and d: "\<And>p. p tagged_division_of cbox a b \<and> d fine p 
                         \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) < e * r" 
       by metis
-    define d' where "d' x = {y. g y \<in> d (g x)}" for x
-    have d': "\<And>x. d' x = {y. g y \<in> (d (g x))}"
-      unfolding d'_def ..
+    define d' where "d' x = g -` d (g x)" for x
     show ?thesis
     proof (rule_tac x=d' in exI, safe)
       show "gauge d'"
-        using d(1) continuous_open_preimage_univ[OF _ contg] by (auto simp: gauge_def d')
+        using \<open>gauge d\<close> continuous_open_vimage[OF _ contg] by (auto simp: gauge_def d'_def)
     next
       fix p
       assume ptag: "p tagged_division_of h ` cbox a b" and finep: "d' fine p"
@@ -3211,7 +3209,7 @@ next
         show "finite ((\<lambda>(x, k). (g x, g ` k)) ` p)"
           using ptag by auto
         show "d fine (\<lambda>(x, k). (g x, g ` k)) ` p"
-          using finep unfolding fine_def d' by auto
+          using finep unfolding fine_def d'_def by auto
       next
         fix x k
         assume xk: "(x, k) \<in> p"
@@ -3259,7 +3257,7 @@ next
         using \<open>0 < r\<close> by (auto simp: scaleR_diff_right)
       finally have eq: "?l = ?r" .
       show "norm ((\<Sum>(x,K)\<in>p. content K *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e"
-        using d(2)[OF gimp] \<open>0 < r\<close> by (auto simp add: eq)
+        using d[OF gimp] \<open>0 < r\<close> by (auto simp add: eq)
     qed
   qed
   then show ?thesis
@@ -4229,7 +4227,7 @@ lemma has_derivative_zero_unique_strong_connected:
     and "x \<in> S"
   shows "f x = y"
 proof -
-  have xx: "\<exists>e>0. ball x e \<subseteq> {xa \<in> S. f xa \<in> {f x}}" if "x \<in> S" for x
+  have "\<exists>e>0. ball x e \<subseteq> (S \<inter> f -` {f x})" if "x \<in> S" for x
   proof -
     obtain e where "0 < e" and e: "ball x e \<subseteq> S"
       using \<open>x \<in> S\<close> \<open>open S\<close> open_contains_ball by blast
@@ -4248,15 +4246,15 @@ proof -
           by (metis Diff_iff contra_subsetD derf e has_derivative_within_subset that)
       qed (use y e \<open>0 < e\<close> in auto)
     qed
-    then show "\<exists>e>0. ball x e \<subseteq> {xa \<in> S. f xa \<in> {f x}}"
+    then show "\<exists>e>0. ball x e \<subseteq> (S \<inter> f -` {f x})"
       using \<open>0 < e\<close> by blast
   qed
-  then have "openin (subtopology euclidean S) {x \<in> S. f x \<in> {y}}"
+  then have "openin (subtopology euclidean S) (S \<inter> f -` {y})"
     by (auto intro!: open_openin_trans[OF \<open>open S\<close>] simp: open_contains_ball)
-  moreover have "closedin (subtopology euclidean S) {x \<in> S. f x \<in> {y}}"
+  moreover have "closedin (subtopology euclidean S) (S \<inter> f -` {y})"
     by (force intro!: continuous_closedin_preimage [OF contf])
-  ultimately have "{x \<in> S. f x \<in> {y}} = {} \<or> {x \<in> S. f x \<in> {y}} = S"
-    using \<open>connected S\<close> connected_clopen by blast
+  ultimately have "(S \<inter> f -` {y}) = {} \<or> (S \<inter> f -` {y}) = S"
+    using \<open>connected S\<close> by (simp add: connected_clopen)
   then show ?thesis
     using \<open>x \<in> S\<close> \<open>f c = y\<close> \<open>c \<in> S\<close> by auto
 qed

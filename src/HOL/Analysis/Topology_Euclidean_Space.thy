@@ -858,9 +858,14 @@ lemma closedin_imp_subset:
 by (simp add: closedin_def topspace_subtopology)
 
 lemma openin_subtopology_Un:
-    "openin (subtopology U T) S \<and> openin (subtopology U u) S
-     \<Longrightarrow> openin (subtopology U (T \<union> u)) S"
+    "\<lbrakk>openin (subtopology X T) S; openin (subtopology X U) S\<rbrakk>
+     \<Longrightarrow> openin (subtopology X (T \<union> U)) S"
 by (simp add: openin_subtopology) blast
+
+lemma closedin_subtopology_Un:
+    "\<lbrakk>closedin (subtopology X T) S; closedin (subtopology X U) S\<rbrakk>
+     \<Longrightarrow> closedin (subtopology X (T \<union> U)) S"
+by (simp add: closedin_subtopology) blast
 
 
 subsubsection \<open>The standard Euclidean topology\<close>
@@ -885,6 +890,8 @@ lemma topspace_euclidean_subtopology[simp]: "topspace (subtopology euclidean S) 
 
 lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
   by (simp add: closed_def closedin_def Compl_eq_Diff_UNIV)
+
+declare closed_closedin [symmetric, simp]
 
 lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
   using openI by auto
@@ -913,7 +920,7 @@ lemma open_subset: "S \<subseteq> T \<Longrightarrow> open S \<Longrightarrow> o
   by (auto simp: openin_open)
 
 lemma closedin_closed: "closedin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. closed T \<and> S = U \<inter> T)"
-  by (simp add: closedin_subtopology closed_closedin Int_ac)
+  by (simp add: closedin_subtopology Int_ac)
 
 lemma closedin_closed_Int: "closed S \<Longrightarrow> closedin (subtopology euclidean U) (U \<inter> S)"
   by (metis closedin_closed)
@@ -965,7 +972,7 @@ lemma connected_openin:
        ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
                  openin (subtopology euclidean s) e2 \<and>
                  s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and> e1 \<noteq> {} \<and> e2 \<noteq> {})"
-  apply (simp add: connected_def openin_open, safe)
+  apply (simp add: connected_def openin_open disjoint_iff_not_equal, safe)
   apply (simp_all, blast+)  (* SLOW *)
   done
 
@@ -1032,7 +1039,7 @@ lemma openin_open_trans: "openin (subtopology euclidean T) S \<Longrightarrow> o
 lemma closedin_trans[trans]:
   "closedin (subtopology euclidean T) S \<Longrightarrow> closedin (subtopology euclidean U) T \<Longrightarrow>
     closedin (subtopology euclidean U) S"
-  by (auto simp: closedin_closed closed_closedin closed_Inter Int_assoc)
+  by (auto simp: closedin_closed closed_Inter Int_assoc)
 
 lemma closedin_closed_trans: "closedin (subtopology euclidean T) S \<Longrightarrow> closed T \<Longrightarrow> closed S"
   by (auto simp: closedin_closed intro: closedin_trans)
@@ -5304,9 +5311,9 @@ proof (rule topological_tendstoI)
 qed
 
 lemma continuous_on_open:
-  "continuous_on s f \<longleftrightarrow>
-    (\<forall>t. openin (subtopology euclidean (f ` s)) t \<longrightarrow>
-      openin (subtopology euclidean s) {x \<in> s. f x \<in> t})"
+  "continuous_on S f \<longleftrightarrow>
+    (\<forall>T. openin (subtopology euclidean (f ` S)) T \<longrightarrow>
+      openin (subtopology euclidean S) (S \<inter> f -` T))"
   unfolding continuous_on_open_invariant openin_open Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
@@ -5315,37 +5322,42 @@ lemma continuous_on_open_gen:
   assumes "f ` S \<subseteq> T"
     shows "continuous_on S f \<longleftrightarrow>
              (\<forall>U. openin (subtopology euclidean T) U
-                  \<longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<in> U})"
+                  \<longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` U))"
      (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then show ?rhs
-    apply (auto simp: openin_euclidean_subtopology_iff continuous_on_iff)
+    apply (clarsimp simp: openin_euclidean_subtopology_iff continuous_on_iff)
     by (metis assms image_subset_iff)
 next
   have ope: "openin (subtopology euclidean T) (ball y e \<inter> T)" for y e
     by (simp add: Int_commute openin_open_Int)
-  assume ?rhs
-  then show ?lhs
-    apply (clarsimp simp add: continuous_on_iff)
-    apply (drule_tac x = "ball (f x) e \<inter> T" in spec)
-    apply (clarsimp simp add: ope openin_euclidean_subtopology_iff [of S])
-    by (metis (no_types, hide_lams) assms dist_commute dist_self image_subset_iff)
+  assume R [rule_format]: ?rhs
+  show ?lhs
+  proof (clarsimp simp add: continuous_on_iff)
+    fix x and e::real
+    assume "x \<in> S" and "0 < e"
+    then have x: "x \<in> S \<inter> (f -` ball (f x) e \<inter> f -` T)"
+      using assms by auto
+    show "\<exists>d>0. \<forall>x'\<in>S. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
+      using R [of "ball (f x) e \<inter> T"] x
+      by (fastforce simp add: ope openin_euclidean_subtopology_iff [of S] dist_commute)
+  qed
 qed
 
 lemma continuous_openin_preimage:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   shows
    "\<lbrakk>continuous_on S f; f ` S \<subseteq> T; openin (subtopology euclidean T) U\<rbrakk>
-        \<Longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<in> U}"
+        \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` U)"
 by (simp add: continuous_on_open_gen)
 
 text \<open>Similarly in terms of closed sets.\<close>
 
 lemma continuous_on_closed:
-  "continuous_on s f \<longleftrightarrow>
-    (\<forall>t. closedin (subtopology euclidean (f ` s)) t \<longrightarrow>
-      closedin (subtopology euclidean s) {x \<in> s. f x \<in> t})"
+  "continuous_on S f \<longleftrightarrow>
+    (\<forall>T. closedin (subtopology euclidean (f ` S)) T \<longrightarrow>
+      closedin (subtopology euclidean S) (S \<inter> f -` T))"
   unfolding continuous_on_closed_invariant closedin_closed Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
@@ -5354,61 +5366,73 @@ lemma continuous_on_closed_gen:
   assumes "f ` S \<subseteq> T"
     shows "continuous_on S f \<longleftrightarrow>
              (\<forall>U. closedin (subtopology euclidean T) U
-                  \<longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x \<in> U})"
+                  \<longrightarrow> closedin (subtopology euclidean S) (S \<inter> f -` U))"
+     (is "?lhs = ?rhs")
 proof -
-  have *: "U \<subseteq> T \<Longrightarrow> {x \<in> S. f x \<in> T \<and> f x \<notin> U} = S - {x \<in> S. f x \<in> U}" for U
+  have *: "U \<subseteq> T \<Longrightarrow> S \<inter> f -` (T - U) = S - (S \<inter> f -` U)" for U
     using assms by blast
   show ?thesis
-    apply (simp add: continuous_on_open_gen [OF assms], safe)
-    apply (drule_tac [!] x="T-U" in spec)
-    apply (force simp: closedin_def *)
-    apply (force simp: openin_closedin_eq *)
-    done
+  proof
+    assume L: ?lhs
+    show ?rhs
+    proof clarify
+      fix U
+      assume "closedin (subtopology euclidean T) U"
+      then show "closedin (subtopology euclidean S) (S \<inter> f -` U)"
+        using L unfolding continuous_on_open_gen [OF assms]
+        by (metis * closedin_def inf_le1 topspace_euclidean_subtopology)
+    qed
+  next
+    assume R [rule_format]: ?rhs
+    show ?lhs
+      unfolding continuous_on_open_gen [OF assms]
+      by (metis * R inf_le1 openin_closedin_eq topspace_euclidean_subtopology)
+  qed
 qed
 
 lemma continuous_closedin_preimage_gen:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "continuous_on S f" "f ` S \<subseteq> T" "closedin (subtopology euclidean T) U"
-    shows "closedin (subtopology euclidean S) {x \<in> S. f x \<in> U}"
+    shows "closedin (subtopology euclidean S) (S \<inter> f -` U)"
 using assms continuous_on_closed_gen by blast
 
 lemma continuous_on_imp_closedin:
   assumes "continuous_on S f" "closedin (subtopology euclidean (f ` S)) T"
-    shows "closedin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> T}"
+    shows "closedin (subtopology euclidean S) (S \<inter> f -` T)"
 using assms continuous_on_closed by blast
 
 subsection \<open>Half-global and completely global cases.\<close>
 
 lemma continuous_openin_preimage_gen:
-  assumes "continuous_on s f"  "open t"
-  shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
+  assumes "continuous_on S f"  "open T"
+  shows "openin (subtopology euclidean S) (S \<inter> f -` T)"
 proof -
-  have *: "\<forall>x. x \<in> s \<and> f x \<in> t \<longleftrightarrow> x \<in> s \<and> f x \<in> (t \<inter> f ` s)"
+  have *: "(S \<inter> f -` T) = (S \<inter> f -` (T \<inter> f ` S))"
     by auto
-  have "openin (subtopology euclidean (f ` s)) (t \<inter> f ` s)"
-    using openin_open_Int[of t "f ` s", OF assms(2)] unfolding openin_open by auto
+  have "openin (subtopology euclidean (f ` S)) (T \<inter> f ` S)"
+    using openin_open_Int[of T "f ` S", OF assms(2)] unfolding openin_open by auto
   then show ?thesis
-    using assms(1)[unfolded continuous_on_open, THEN spec[where x="t \<inter> f ` s"]]
+    using assms(1)[unfolded continuous_on_open, THEN spec[where x="T \<inter> f ` S"]]
     using * by auto
 qed
 
 lemma continuous_closedin_preimage:
-  assumes "continuous_on s f" and "closed t"
-  shows "closedin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
+  assumes "continuous_on S f" and "closed T"
+  shows "closedin (subtopology euclidean S) (S \<inter> f -` T)"
 proof -
-  have *: "\<forall>x. x \<in> s \<and> f x \<in> t \<longleftrightarrow> x \<in> s \<and> f x \<in> (t \<inter> f ` s)"
+  have *: "(S \<inter> f -` T) = (S \<inter> f -` (T \<inter> f ` S))"
     by auto
-  have "closedin (subtopology euclidean (f ` s)) (t \<inter> f ` s)"
-    using closedin_closed_Int[of t "f ` s", OF assms(2)]
+  have "closedin (subtopology euclidean (f ` S)) (T \<inter> f ` S)"
+    using closedin_closed_Int[of T "f ` S", OF assms(2)]
     by (simp add: Int_commute)
   then show ?thesis
-    using assms(1)[unfolded continuous_on_closed, THEN spec[where x="t \<inter> f ` s"]]
+    using assms(1)[unfolded continuous_on_closed, THEN spec[where x="T \<inter> f ` S"]]
     using * by auto
 qed
 
 lemma continuous_openin_preimage_eq:
    "continuous_on S f \<longleftrightarrow>
-    (\<forall>t. open t \<longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
+    (\<forall>T. open T \<longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T))"
 apply safe
 apply (simp add: continuous_openin_preimage_gen)
 apply (fastforce simp add: continuous_on_open openin_open)
@@ -5416,66 +5440,55 @@ done
 
 lemma continuous_closedin_preimage_eq:
    "continuous_on S f \<longleftrightarrow>
-    (\<forall>t. closed t \<longrightarrow> closedin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
+    (\<forall>T. closed T \<longrightarrow> closedin (subtopology euclidean S) (S \<inter> f -` T))"
 apply safe
 apply (simp add: continuous_closedin_preimage)
 apply (fastforce simp add: continuous_on_closed closedin_closed)
 done
 
 lemma continuous_open_preimage:
-  assumes "continuous_on s f"
-    and "open s"
-    and "open t"
-  shows "open {x \<in> s. f x \<in> t}"
+  assumes contf: "continuous_on S f" and "open S" "open T"
+  shows "open (S \<inter> f -` T)"
 proof-
-  obtain T where T: "open T" "{x \<in> s. f x \<in> t} = s \<inter> T"
-    using continuous_openin_preimage_gen[OF assms(1,3)] unfolding openin_open by auto
+  obtain U where "open U" "(S \<inter> f -` T) = S \<inter> U"
+    using continuous_openin_preimage_gen[OF contf \<open>open T\<close>]
+    unfolding openin_open by auto
   then show ?thesis
-    using open_Int[of s T, OF assms(2)] by auto
+    using open_Int[of S U, OF \<open>open S\<close>] by auto
 qed
 
 lemma continuous_closed_preimage:
-  assumes "continuous_on s f"
-    and "closed s"
-    and "closed t"
-  shows "closed {x \<in> s. f x \<in> t}"
+  assumes contf: "continuous_on S f" and "closed S" "closed T"
+  shows "closed (S \<inter> f -` T)"
 proof-
-  obtain T where "closed T" "{x \<in> s. f x \<in> t} = s \<inter> T"
-    using continuous_closedin_preimage[OF assms(1,3)]
+  obtain U where "closed U" "(S \<inter> f -` T) = S \<inter> U"
+    using continuous_closedin_preimage[OF contf \<open>closed T\<close>]
     unfolding closedin_closed by auto
-  then show ?thesis using closed_Int[of s T, OF assms(2)] by auto
+  then show ?thesis using closed_Int[of S U, OF \<open>closed S\<close>] by auto
 qed
 
-lemma continuous_open_preimage_univ:
-  "open s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> open {x. f x \<in> s}"
-  using continuous_open_preimage[of UNIV f s] open_UNIV continuous_at_imp_continuous_on by auto
-
-lemma continuous_closed_preimage_univ:
-  "closed s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> closed {x. f x \<in> s}"
-  using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
-
-lemma continuous_open_vimage: "open s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> open (f -` s)"
-  unfolding vimage_def by (rule continuous_open_preimage_univ)
-
-lemma continuous_closed_vimage: "closed s \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> closed (f -` s)"
-  unfolding vimage_def by (rule continuous_closed_preimage_univ)
+lemma continuous_open_vimage: "open S \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> open (f -` S)"
+  by (metis continuous_on_eq_continuous_within open_vimage) 
+ 
+lemma continuous_closed_vimage: "closed S \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> closed (f -` S)"
+  by (simp add: closed_vimage continuous_on_eq_continuous_within)
 
 lemma interior_image_subset:
   assumes "inj f" "\<And>x. continuous (at x) f"
-  shows "interior (f ` s) \<subseteq> f ` (interior s)"
+  shows "interior (f ` S) \<subseteq> f ` (interior S)"
 proof
-  fix x assume "x \<in> interior (f ` s)"
-  then obtain T where as: "open T" "x \<in> T" "T \<subseteq> f ` s" ..
-  then have "x \<in> f ` s" by auto
-  then obtain y where y: "y \<in> s" "x = f y" by auto
-  have "open (vimage f T)"
-    using assms \<open>open T\<close> by (metis continuous_open_vimage)
+  fix x assume "x \<in> interior (f ` S)"
+  then obtain T where as: "open T" "x \<in> T" "T \<subseteq> f ` S" ..
+  then have "x \<in> f ` S" by auto
+  then obtain y where y: "y \<in> S" "x = f y" by auto
+  have "open (f -` T)"
+    using assms \<open>open T\<close> by (simp add: continuous_at_imp_continuous_on open_vimage)
   moreover have "y \<in> vimage f T"
     using \<open>x = f y\<close> \<open>x \<in> T\<close> by simp
-  moreover have "vimage f T \<subseteq> s"
-    using \<open>T \<subseteq> image f s\<close> \<open>inj f\<close> unfolding inj_on_def subset_eq by auto
-  ultimately have "y \<in> interior s" ..
-  with \<open>x = f y\<close> show "x \<in> f ` interior s" ..
+  moreover have "vimage f T \<subseteq> S"
+    using \<open>T \<subseteq> image f S\<close> \<open>inj f\<close> unfolding inj_on_def subset_eq by auto
+  ultimately have "y \<in> interior S" ..
+  with \<open>x = f y\<close> show "x \<in> f ` interior S" ..
 qed
 
 subsection \<open>Topological properties of linear functions.\<close>
@@ -5853,7 +5866,7 @@ next
     by auto
 qed
 
-lemma inter_interval_mixed_eq_empty:
+lemma Int_interval_mixed_eq_empty:
   fixes a :: "'a::euclidean_space"
    assumes "box c d \<noteq> {}"
   shows "box a b \<inter> cbox c d = {} \<longleftrightarrow> box a b \<inter> box c d = {}"

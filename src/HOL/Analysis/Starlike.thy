@@ -4973,9 +4973,15 @@ by (simp add: setdist_eq_0_sing_1)
 
 lemma setdist_eq_0_closedin:
   fixes S :: "'a::euclidean_space set"
-  shows "\<lbrakk>closedin (subtopology euclidean u) S; x \<in> u\<rbrakk>
+  shows "\<lbrakk>closedin (subtopology euclidean U) S; x \<in> U\<rbrakk>
          \<Longrightarrow> (setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> S)"
   by (auto simp: closedin_limpt setdist_eq_0_sing_1 closure_def)
+
+lemma setdist_gt_0_closedin:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>closedin (subtopology euclidean U) S; x \<in> U; S \<noteq> {}; x \<notin> S\<rbrakk>
+         \<Longrightarrow> setdist {x} S > 0"
+  using less_eq_real_def setdist_eq_0_closedin by fastforce
 
 subsection\<open>Basic lemmas about hyperplanes and halfspaces\<close>
 
@@ -5089,25 +5095,19 @@ next
   have contf: "continuous_on U f"
     unfolding f_def by (intro continuous_intros)
   show ?thesis
-  proof (rule_tac S' = "{x\<in>U. f x > 0}" and T' = "{x\<in>U. f x < 0}" in that)
-    show "{x \<in> U. 0 < f x} \<inter> {x \<in> U. f x < 0} = {}"
+  proof (rule_tac S' = "(U \<inter> f -` {0<..})" and T' = "(U \<inter> f -` {..<0})" in that)
+    show "(U \<inter> f -` {0<..}) \<inter> (U \<inter> f -` {..<0}) = {}"
       by auto
-    have "openin (subtopology euclidean U) {x \<in> U. f x \<in> {0<..}}"
+    show "openin (subtopology euclidean U) (U \<inter> f -` {0<..})"
       by (rule continuous_openin_preimage [where T=UNIV]) (simp_all add: contf)
-    then show "openin (subtopology euclidean U) {x \<in> U. 0 < f x}" by simp
   next
-    have "openin (subtopology euclidean U) {x \<in> U. f x \<in> {..<0}}"
+    show "openin (subtopology euclidean U) (U \<inter> f -` {..<0})"
       by (rule continuous_openin_preimage [where T=UNIV]) (simp_all add: contf)
-    then show "openin (subtopology euclidean U) {x \<in> U. f x < 0}" by simp
   next
-    show "S \<subseteq> {x \<in> U. 0 < f x}"
-      apply (clarsimp simp add: f_def setdist_sing_in_set)
-      using assms
-      by (metis False Int_insert_right closedin_imp_subset empty_not_insert insert_absorb insert_subset linorder_neqE_linordered_idom not_le setdist_eq_0_closedin setdist_pos_le)
-    show "T \<subseteq> {x \<in> U. f x < 0}"
-      apply (clarsimp simp add: f_def setdist_sing_in_set)
-      using assms
-      by (metis False closedin_subset disjoint_iff_not_equal insert_absorb insert_subset linorder_neqE_linordered_idom not_less setdist_eq_0_closedin setdist_pos_le topspace_euclidean_subtopology)
+    have "S \<subseteq> U" "T \<subseteq> U"
+      using closedin_imp_subset assms by blast+
+    then show "S \<subseteq> U \<inter> f -` {0<..}" "T \<subseteq> U \<inter> f -` {..<0}"
+      using assms False by (force simp add: f_def setdist_sing_in_set intro!: setdist_gt_0_closedin)+
   qed
 qed
 
@@ -5282,7 +5282,7 @@ qed
 proposition proper_map:
   fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
   assumes "closedin (subtopology euclidean S) K"
-      and com: "\<And>U. \<lbrakk>U \<subseteq> T; compact U\<rbrakk> \<Longrightarrow> compact {x \<in> S. f x \<in> U}"
+      and com: "\<And>U. \<lbrakk>U \<subseteq> T; compact U\<rbrakk> \<Longrightarrow> compact (S \<inter> f -` U)"
       and "f ` S \<subseteq> T"
     shows "closedin (subtopology euclidean T) (f ` K)"
 proof -
@@ -5298,7 +5298,7 @@ proof -
       by metis
     then have fX: "\<And>n. f (X n) = h n"
       by metis
-    have "compact (C \<inter> {a \<in> S. f a \<in> insert y (range (\<lambda>i. f(X(n + i))))})" for n
+    have "compact (C \<inter> (S \<inter> f -` insert y (range (\<lambda>i. f(X(n + i))))))" for n
       apply (rule closed_Int_compact [OF \<open>closed C\<close>])
       apply (rule com)
        using X \<open>K \<subseteq> S\<close> \<open>f ` S \<subseteq> T\<close> \<open>y \<in> T\<close> apply blast
@@ -5350,16 +5350,16 @@ next
   assume RHS: ?rhs
   obtain g where gf: "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x"
     by (metis inv_into_f_f f)
-  then have *: "{x \<in> S. f x \<in> U} = g ` U" if "U \<subseteq> f ` S" for U
+  then have *: "(S \<inter> f -` U) = g ` U" if "U \<subseteq> f ` S" for U
     using that by fastforce
   have gfim: "g ` f ` S \<subseteq> S" using gf by auto
-  have **: "compact {x \<in> f ` S. g x \<in> C}" if C: "C \<subseteq> S" "compact C" for C
+  have **: "compact (f ` S \<inter> g -` C)" if C: "C \<subseteq> S" "compact C" for C
   proof -
-    obtain h :: "'a set \<Rightarrow> 'a" where "h C \<in> C \<and> h C \<notin> S \<or> compact (f ` C)"
+    obtain h where "h C \<in> C \<and> h C \<notin> S \<or> compact (f ` C)"
       by (force simp: C RHS)
-    moreover have "f ` C = {b \<in> f ` S. g b \<in> C}"
+    moreover have "f ` C = (f ` S \<inter> g -` C)"
       using C gf by auto
-    ultimately show "compact {b \<in> f ` S. g b \<in> C}"
+    ultimately show ?thesis
       using C by auto
   qed
   show ?lhs
@@ -5510,14 +5510,14 @@ lemma proper_map_from_compact:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T" and "compact S"
           "closedin (subtopology euclidean T) K"
-  shows "compact {x. x \<in> S \<and> f x \<in> K}"
+  shows "compact (S \<inter> f -` K)"
 by (rule closedin_compact [OF \<open>compact S\<close>] continuous_closedin_preimage_gen assms)+
 
 lemma proper_map_fst:
   assumes "compact T" "K \<subseteq> S" "compact K"
-    shows "compact {z \<in> S \<times> T. fst z \<in> K}"
+    shows "compact (S \<times> T \<inter> fst -` K)"
 proof -
-  have "{z \<in> S \<times> T. fst z \<in> K} = K \<times> T"
+  have "(S \<times> T \<inter> fst -` K) = K \<times> T"
     using assms by auto
   then show ?thesis by (simp add: assms compact_Times)
 qed
@@ -5535,9 +5535,9 @@ qed
 
 lemma proper_map_snd:
   assumes "compact S" "K \<subseteq> T" "compact K"
-    shows "compact {z \<in> S \<times> T. snd z \<in> K}"
+    shows "compact (S \<times> T \<inter> snd -` K)"
 proof -
-  have "{z \<in> S \<times> T. snd z \<in> K} = S \<times> K"
+  have "(S \<times> T \<inter> snd -` K) = S \<times> K"
     using assms by auto
   then show ?thesis by (simp add: assms compact_Times)
 qed
@@ -7872,8 +7872,7 @@ corollary paracompact_closed:
                and "\<And>U. U \<in> \<C>' \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<C> \<and> U \<subseteq> T)"
                and "\<And>x. \<exists>V. open V \<and> x \<in> V \<and>
                                finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
-using paracompact_closedin [of UNIV S \<C>] assms
-by (auto simp: open_openin [symmetric] closed_closedin [symmetric])
+using paracompact_closedin [of UNIV S \<C>] assms by auto
 
   
 subsection\<open>Closed-graph characterization of continuity\<close>
@@ -7883,7 +7882,7 @@ lemma continuous_closed_graph_gen:
   assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
     shows "closedin (subtopology euclidean (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
 proof -
-  have eq: "((\<lambda>x. Pair x (f x)) ` S) = {z. z \<in> S \<times> T \<and> (f \<circ> fst)z - snd z \<in> {0}}"
+  have eq: "((\<lambda>x. Pair x (f x)) ` S) =(S \<times> T \<inter> (\<lambda>z. (f \<circ> fst)z - snd z) -` {0})"
     using fim by auto
   show ?thesis
     apply (subst eq)
@@ -7902,9 +7901,9 @@ proof -
   proof (clarsimp simp add: continuous_on_closed_gen [OF fim])
     fix U
     assume U: "closedin (subtopology euclidean T) U"
-    have eq: "{x. x \<in> S \<and> f x \<in> U} = fst ` (((\<lambda>x. Pair x (f x)) ` S) \<inter> (S \<times> U))"
+    have eq: "(S \<inter> f -` U) = fst ` (((\<lambda>x. Pair x (f x)) ` S) \<inter> (S \<times> U))"
       by (force simp: image_iff)
-    show "closedin (subtopology euclidean S) {x \<in> S. f x \<in> U}"
+    show "closedin (subtopology euclidean S) (S \<inter> f -` U)"
       by (simp add: U closedin_Int closedin_Times closed_map_fst [OF \<open>compact T\<close>] that eq)
   qed
   with continuous_closed_graph_gen assms show ?thesis by blast

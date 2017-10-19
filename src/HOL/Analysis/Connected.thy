@@ -395,29 +395,6 @@ proof -
     by (simp add: th0 th1)
 qed
 
-lemma connected_continuous_image:
-  assumes "continuous_on s f"
-    and "connected s"
-  shows "connected(f ` s)"
-proof -
-  {
-    fix T
-    assume as:
-      "T \<noteq> {}"
-      "T \<noteq> f ` s"
-      "openin (subtopology euclidean (f ` s)) T"
-      "closedin (subtopology euclidean (f ` s)) T"
-    have "{x \<in> s. f x \<in> T} = {} \<or> {x \<in> s. f x \<in> T} = s"
-      using assms(1)[unfolded continuous_on_open, THEN spec[where x=T]]
-      using assms(1)[unfolded continuous_on_closed, THEN spec[where x=T]]
-      using assms(2)[unfolded connected_clopen, THEN spec[where x="{x \<in> s. f x \<in> T}"]] as(3,4) by auto
-    then have False using as(1,2)
-      using as(4)[unfolded closedin_def topspace_euclidean_subtopology] by auto
-  }
-  then show ?thesis
-    unfolding connected_clopen by auto
-qed
-
 lemma connected_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "linear f" and "connected s"
@@ -1442,13 +1419,13 @@ subsection \<open>Equality of continuous functions on closure and related result
 
 lemma continuous_closedin_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
-  shows "continuous_on s f \<Longrightarrow> closedin (subtopology euclidean s) {x \<in> s. f x = a}"
-  using continuous_closedin_preimage[of s f "{a}"] by auto
+  shows "continuous_on S f \<Longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x = a}"
+  using continuous_closedin_preimage[of S f "{a}"] by (simp add: vimage_def Collect_conj_eq)
 
 lemma continuous_closed_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
-  shows "continuous_on s f \<Longrightarrow> closed s \<Longrightarrow> closed {x \<in> s. f x = a}"
-  using continuous_closed_preimage[of s f "{a}"] by auto
+  shows "continuous_on S f \<Longrightarrow> closed S \<Longrightarrow> closed {x \<in> S. f x = a}"
+  using continuous_closed_preimage[of S f "{a}"] by (simp add: vimage_def Collect_conj_eq)
 
 lemma continuous_constant_on_closure:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -1462,17 +1439,17 @@ lemma continuous_constant_on_closure:
     by auto
 
 lemma image_closure_subset:
-  assumes "continuous_on (closure s) f"
-    and "closed t"
-    and "(f ` s) \<subseteq> t"
-  shows "f ` (closure s) \<subseteq> t"
+  assumes contf: "continuous_on (closure S) f"
+    and "closed T"
+    and "(f ` S) \<subseteq> T"
+  shows "f ` (closure S) \<subseteq> T"
 proof -
-  have "s \<subseteq> {x \<in> closure s. f x \<in> t}"
+  have "S \<subseteq> {x \<in> closure S. f x \<in> T}"
     using assms(3) closure_subset by auto
-  moreover have "closed {x \<in> closure s. f x \<in> t}"
-    using continuous_closed_preimage[OF assms(1)] and assms(2) by auto
-  ultimately have "closure s = {x \<in> closure s . f x \<in> t}"
-    using closure_minimal[of s "{x \<in> closure s. f x \<in> t}"] by auto
+  moreover have "closed (closure S \<inter> f -` T)"
+    using continuous_closed_preimage[OF contf] \<open>closed T\<close> by auto
+  ultimately have "closure S = (closure S \<inter> f -` T)"
+    using closure_minimal[of S "(closure S \<inter> f -` T)"] by auto
   then show ?thesis by auto
 qed
 
@@ -1967,7 +1944,7 @@ qed
 lemma bounded_uniformly_continuous_image:
   fixes f :: "'a :: heine_borel \<Rightarrow> 'b :: heine_borel"
   assumes "uniformly_continuous_on S f" "bounded S"
-  shows "bounded(image f S)"
+  shows "bounded(f ` S)"
   by (metis (no_types, lifting) assms bounded_closure_image compact_closure compact_continuous_image compact_eq_bounded_closed image_cong uniformly_continuous_imp_continuous uniformly_continuous_on_extension_on_closure)
 
 subsection \<open>Making a continuous function avoid some value in a neighbourhood.\<close>
@@ -2023,61 +2000,61 @@ lemma continuous_on_open_avoid:
 subsection\<open>Quotient maps\<close>
 
 lemma quotient_map_imp_continuous_open:
-  assumes t: "f ` s \<subseteq> t"
-      and ope: "\<And>u. u \<subseteq> t
-              \<Longrightarrow> (openin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
-                   openin (subtopology euclidean t) u)"
-    shows "continuous_on s f"
+  assumes T: "f ` S \<subseteq> T"
+      and ope: "\<And>U. U \<subseteq> T
+              \<Longrightarrow> (openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+                   openin (subtopology euclidean T) U)"
+    shows "continuous_on S f"
 proof -
-  have [simp]: "{x \<in> s. f x \<in> f ` s} = s" by auto
+  have [simp]: "S \<inter> f -` f ` S = S" by auto
   show ?thesis
-    using ope [OF t]
+    using ope [OF T]
     apply (simp add: continuous_on_open)
-    by (metis (no_types, lifting) "ope"  openin_imp_subset openin_trans)
+    by (meson ope openin_imp_subset openin_trans)
 qed
 
 lemma quotient_map_imp_continuous_closed:
-  assumes t: "f ` s \<subseteq> t"
-      and ope: "\<And>u. u \<subseteq> t
-                  \<Longrightarrow> (closedin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
-                       closedin (subtopology euclidean t) u)"
-    shows "continuous_on s f"
+  assumes T: "f ` S \<subseteq> T"
+      and ope: "\<And>U. U \<subseteq> T
+                  \<Longrightarrow> (closedin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+                       closedin (subtopology euclidean T) U)"
+    shows "continuous_on S f"
 proof -
-  have [simp]: "{x \<in> s. f x \<in> f ` s} = s" by auto
+  have [simp]: "S \<inter> f -` f ` S = S" by auto
   show ?thesis
-    using ope [OF t]
+    using ope [OF T]
     apply (simp add: continuous_on_closed)
-    by (metis (no_types, lifting) "ope" closedin_imp_subset closedin_subtopology_refl closedin_trans openin_subtopology_refl openin_subtopology_self)
+    by (metis (no_types, lifting) ope closedin_imp_subset closedin_trans)
 qed
 
 lemma open_map_imp_quotient_map:
-  assumes contf: "continuous_on s f"
-      and t: "t \<subseteq> f ` s"
-      and ope: "\<And>t. openin (subtopology euclidean s) t
-                   \<Longrightarrow> openin (subtopology euclidean (f ` s)) (f ` t)"
-    shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t} =
-           openin (subtopology euclidean (f ` s)) t"
+  assumes contf: "continuous_on S f"
+      and T: "T \<subseteq> f ` S"
+      and ope: "\<And>T. openin (subtopology euclidean S) T
+                   \<Longrightarrow> openin (subtopology euclidean (f ` S)) (f ` T)"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` T) =
+           openin (subtopology euclidean (f ` S)) T"
 proof -
-  have "t = image f {x. x \<in> s \<and> f x \<in> t}"
-    using t by blast
+  have "T = f ` (S \<inter> f -` T)"
+    using T by blast
   then show ?thesis
-    using "ope" contf continuous_on_open by fastforce
+    using "ope" contf continuous_on_open by metis
 qed
 
 lemma closed_map_imp_quotient_map:
-  assumes contf: "continuous_on s f"
-      and t: "t \<subseteq> f ` s"
-      and ope: "\<And>t. closedin (subtopology euclidean s) t
-              \<Longrightarrow> closedin (subtopology euclidean (f ` s)) (f ` t)"
-    shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t} \<longleftrightarrow>
-           openin (subtopology euclidean (f ` s)) t"
+  assumes contf: "continuous_on S f"
+      and T: "T \<subseteq> f ` S"
+      and ope: "\<And>T. closedin (subtopology euclidean S) T
+              \<Longrightarrow> closedin (subtopology euclidean (f ` S)) (f ` T)"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow>
+           openin (subtopology euclidean (f ` S)) T"
           (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then have *: "closedin (subtopology euclidean s) (s - {x \<in> s. f x \<in> t})"
+  then have *: "closedin (subtopology euclidean S) (S - (S \<inter> f -` T))"
     using closedin_diff by fastforce
-  have [simp]: "(f ` s - f ` (s - {x \<in> s. f x \<in> t})) = t"
-    using t by blast
+  have [simp]: "(f ` S - f ` (S - (S \<inter> f -` T))) = T"
+    using T by blast
   show ?rhs
     using ope [OF *, unfolded closedin_def] by auto
 next
@@ -2087,50 +2064,49 @@ next
 qed
 
 lemma continuous_right_inverse_imp_quotient_map:
-  assumes contf: "continuous_on s f" and imf: "f ` s \<subseteq> t"
-      and contg: "continuous_on t g" and img: "g ` t \<subseteq> s"
-      and fg [simp]: "\<And>y. y \<in> t \<Longrightarrow> f(g y) = y"
-      and u: "u \<subseteq> t"
-    shows "openin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
-           openin (subtopology euclidean t) u"
+  assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T"
+      and contg: "continuous_on T g" and img: "g ` T \<subseteq> S"
+      and fg [simp]: "\<And>y. y \<in> T \<Longrightarrow> f(g y) = y"
+      and U: "U \<subseteq> T"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+           openin (subtopology euclidean T) U"
           (is "?lhs = ?rhs")
 proof -
-  have f: "\<And>z. openin (subtopology euclidean (f ` s)) z \<Longrightarrow>
-                openin (subtopology euclidean s) {x \<in> s. f x \<in> z}"
-  and  g: "\<And>z. openin (subtopology euclidean (g ` t)) z \<Longrightarrow>
-                openin (subtopology euclidean t) {x \<in> t. g x \<in> z}"
+  have f: "\<And>Z. openin (subtopology euclidean (f ` S)) Z \<Longrightarrow>
+                openin (subtopology euclidean S) (S \<inter> f -` Z)"
+  and  g: "\<And>Z. openin (subtopology euclidean (g ` T)) Z \<Longrightarrow>
+                openin (subtopology euclidean T) (T \<inter> g -` Z)"
     using contf contg by (auto simp: continuous_on_open)
   show ?thesis
   proof
-    have "{x \<in> t. g x \<in> g ` t \<and> g x \<in> s \<and> f (g x) \<in> u} = {x \<in> t. f (g x) \<in> u}"
+    have "T \<inter> g -` (g ` T \<inter> (S \<inter> f -` U)) = {x \<in> T. f (g x) \<in> U}"
       using imf img by blast
-    also have "... = u"
-      using u by auto
-    finally have [simp]: "{x \<in> t. g x \<in> g ` t \<and> g x \<in> s \<and> f (g x) \<in> u} = u" .
+    also have "... = U"
+      using U by auto
+    finally have eq: "T \<inter> g -` (g ` T \<inter> (S \<inter> f -` U)) = U" .
     assume ?lhs
-    then have *: "openin (subtopology euclidean (g ` t)) (g ` t \<inter> {x \<in> s. f x \<in> u})"
+    then have *: "openin (subtopology euclidean (g ` T)) (g ` T \<inter> (S \<inter> f -` U))"
       by (meson img openin_Int openin_subtopology_Int_subset openin_subtopology_self)
     show ?rhs
-      using g [OF *] by simp
+      using g [OF *] eq by auto
   next
     assume rhs: ?rhs
     show ?lhs
-      apply (rule f)
-      by (metis fg image_eqI image_subset_iff imf img openin_subopen openin_subtopology_self openin_trans rhs)
+      by (metis f fg image_eqI image_subset_iff imf img openin_subopen openin_subtopology_self openin_trans rhs)
   qed
 qed
 
 lemma continuous_left_inverse_imp_quotient_map:
-  assumes "continuous_on s f"
-      and "continuous_on (f ` s) g"
-      and  "\<And>x. x \<in> s \<Longrightarrow> g(f x) = x"
-      and "u \<subseteq> f ` s"
-    shows "openin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
-           openin (subtopology euclidean (f ` s)) u"
+  assumes "continuous_on S f"
+      and "continuous_on (f ` S) g"
+      and  "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
+      and "U \<subseteq> f ` S"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+           openin (subtopology euclidean (f ` S)) U"
 apply (rule continuous_right_inverse_imp_quotient_map)
-using assms
-apply force+
+using assms apply force+
 done
+
 
 text \<open>Proving a function is constant by proving that a level set is open\<close>
 
@@ -3234,17 +3210,19 @@ lemma continuous_on_cases_le:
       and "\<And>t. \<lbrakk>t \<in> s; h t = a\<rbrakk> \<Longrightarrow> f t = g t"
     shows "continuous_on s (\<lambda>t. if h t \<le> a then f(t) else g(t))"
 proof -
-  have s: "s = {t \<in> s. h t \<in> atMost a} \<union> {t \<in> s. h t \<in> atLeast a}"
+  have s: "s = (s \<inter> h -` atMost a) \<union> (s \<inter> h -` atLeast a)"
     by force
-  have 1: "closedin (subtopology euclidean s) {t \<in> s. h t \<in> atMost a}"
+  have 1: "closedin (subtopology euclidean s) (s \<inter> h -` atMost a)"
     by (rule continuous_closedin_preimage [OF h closed_atMost])
-  have 2: "closedin (subtopology euclidean s) {t \<in> s. h t \<in> atLeast a}"
+  have 2: "closedin (subtopology euclidean s) (s \<inter> h -` atLeast a)"
     by (rule continuous_closedin_preimage [OF h closed_atLeast])
+  have eq: "s \<inter> h -` {..a} = {t \<in> s. h t \<le> a}" "s \<inter> h -` {a..} = {t \<in> s. a \<le> h t}"
+    by auto
   show ?thesis
     apply (rule continuous_on_subset [of s, OF _ order_refl])
     apply (subst s)
     apply (rule continuous_on_cases_local)
-    using 1 2 s assms apply auto
+    using 1 2 s assms apply (auto simp: eq)
     done
 qed
 
@@ -3761,7 +3739,7 @@ lemma continuous_on_inverse_open_map:
 proof -
   from imf injf have gTS: "g ` T = S"
     by force
-  from imf injf have fU: "U \<subseteq> S \<Longrightarrow> (f ` U) = {x \<in> T. g x \<in> U}" for U
+  from imf injf have fU: "U \<subseteq> S \<Longrightarrow> (f ` U) = T \<inter> g -` U" for U
     by force
   show ?thesis
     by (simp add: continuous_on_open [of T g] gTS) (metis openin_imp_subset fU oo)
@@ -3776,7 +3754,7 @@ lemma continuous_on_inverse_closed_map:
 proof -
   from imf injf have gTS: "g ` T = S"
     by force
-  from imf injf have fU: "U \<subseteq> S \<Longrightarrow> (f ` U) = {x \<in> T. g x \<in> U}" for U
+  from imf injf have fU: "U \<subseteq> S \<Longrightarrow> (f ` U) = T \<inter> g -` U" for U
     by force
   show ?thesis
     by (simp add: continuous_on_closed [of T g] gTS) (metis closedin_imp_subset fU oo)
@@ -3813,7 +3791,7 @@ lemma homeomorphism_imp_open_map:
     and oo: "openin (subtopology euclidean S) U"
   shows "openin (subtopology euclidean T) (f ` U)"
 proof -
-  from hom oo have [simp]: "f ` U = {y. y \<in> T \<and> g y \<in> U}"
+  from hom oo have [simp]: "f ` U = T \<inter> g -` U"
     using openin_subset by (fastforce simp: homeomorphism_def rev_image_eqI)
   from hom have "continuous_on T g"
     unfolding homeomorphism_def by blast
@@ -3828,7 +3806,7 @@ lemma homeomorphism_imp_closed_map:
     and oo: "closedin (subtopology euclidean S) U"
   shows "closedin (subtopology euclidean T) (f ` U)"
 proof -
-  from hom oo have [simp]: "f ` U = {y. y \<in> T \<and> g y \<in> U}"
+  from hom oo have [simp]: "f ` U = T \<inter> g -` U"
     using closedin_subset by (fastforce simp: homeomorphism_def rev_image_eqI)
   from hom have "continuous_on T g"
     unfolding homeomorphism_def by blast
@@ -4750,17 +4728,263 @@ by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
 lemma continuous_imp_closed_map:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "closedin (subtopology euclidean S) U"
-          "continuous_on S f" "image f S = T" "compact S"
-    shows "closedin (subtopology euclidean T) (image f U)"
+          "continuous_on S f" "f ` S = T" "compact S"
+    shows "closedin (subtopology euclidean T) (f ` U)"
   by (metis assms closedin_compact_eq compact_continuous_image continuous_on_subset subset_image_iff)
 
 lemma continuous_imp_quotient_map:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
-  assumes "continuous_on S f" "image f S = T" "compact S" "U \<subseteq> T"
-    shows "openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> U} \<longleftrightarrow>
+  assumes "continuous_on S f" "f ` S = T" "compact S" "U \<subseteq> T"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
            openin (subtopology euclidean T) U"
-  by (metis (no_types, lifting) Collect_cong assms closed_map_imp_quotient_map continuous_imp_closed_map)
+  by (metis (no_types, lifting) assms closed_map_imp_quotient_map continuous_imp_closed_map)
 
+
+lemma open_map_restrict:
+  assumes opeU: "openin (subtopology euclidean (S \<inter> f -` T')) U"
+    and oo: "\<And>U. openin (subtopology euclidean S) U \<Longrightarrow> openin (subtopology euclidean T) (f ` U)"
+    and "T' \<subseteq> T"
+  shows "openin (subtopology euclidean T') (f ` U)"
+proof -
+  obtain V where "open V" "U = S \<inter> f -` T' \<inter> V"
+    using opeU by (auto simp: openin_open)
+  with oo [of "S \<inter> V"] \<open>T' \<subseteq> T\<close> show ?thesis
+    by (fastforce simp add: openin_open)
+qed
+
+lemma closed_map_restrict:
+  assumes cloU: "closedin (subtopology euclidean (S \<inter> f -` T')) U"
+    and cc: "\<And>U. closedin (subtopology euclidean S) U \<Longrightarrow> closedin (subtopology euclidean T) (f ` U)"
+    and "T' \<subseteq> T"
+  shows "closedin (subtopology euclidean T') (f ` U)"
+proof -
+  obtain V where "closed V" "U = S \<inter> f -` T' \<inter> V"
+    using cloU by (auto simp: closedin_closed)
+  with cc [of "S \<inter> V"] \<open>T' \<subseteq> T\<close> show ?thesis
+    by (fastforce simp add: closedin_closed)
+qed
+
+lemma connected_monotone_quotient_preimage:
+  assumes "connected T"
+      and contf: "continuous_on S f" and fim: "f ` S = T"
+      and opT: "\<And>U. U \<subseteq> T
+                 \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+                     openin (subtopology euclidean T) U"
+      and connT: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
+    shows "connected S"
+proof (rule connectedI)
+  fix U V
+  assume "open U" and "open V" and "U \<inter> S \<noteq> {}" and "V \<inter> S \<noteq> {}"
+    and "U \<inter> V \<inter> S = {}" and "S \<subseteq> U \<union> V"
+  moreover
+  have disjoint: "f ` (S \<inter> U) \<inter> f ` (S \<inter> V) = {}"
+  proof -
+    have False if "y \<in> f ` (S \<inter> U) \<inter> f ` (S \<inter> V)" for y
+    proof -
+      have "y \<in> T"
+        using fim that by blast
+      show ?thesis
+        using connectedD [OF connT [OF \<open>y \<in> T\<close>] \<open>open U\<close> \<open>open V\<close>]
+              \<open>S \<subseteq> U \<union> V\<close> \<open>U \<inter> V \<inter> S = {}\<close> that by fastforce
+    qed
+    then show ?thesis by blast
+  qed
+  ultimately have UU: "(S \<inter> f -` f ` (S \<inter> U)) = S \<inter> U" and VV: "(S \<inter> f -` f ` (S \<inter> V)) = S \<inter> V"
+    by auto
+  have opeU: "openin (subtopology euclidean T) (f ` (S \<inter> U))"
+    by (metis UU \<open>open U\<close> fim image_Int_subset le_inf_iff opT openin_open_Int)
+  have opeV: "openin (subtopology euclidean T) (f ` (S \<inter> V))"
+    by (metis opT fim VV \<open>open V\<close> openin_open_Int image_Int_subset inf.bounded_iff)
+  have "T \<subseteq> f ` (S \<inter> U) \<union> f ` (S \<inter> V)"
+    using \<open>S \<subseteq> U \<union> V\<close> fim by auto
+  then show False
+    using \<open>connected T\<close> disjoint opeU opeV \<open>U \<inter> S \<noteq> {}\<close> \<open>V \<inter> S \<noteq> {}\<close>
+    by (auto simp: connected_openin)
+qed
+
+lemma connected_open_monotone_preimage:
+  assumes contf: "continuous_on S f" and fim: "f ` S = T"
+    and ST: "\<And>C. openin (subtopology euclidean S) C \<Longrightarrow> openin (subtopology euclidean T) (f ` C)"
+    and connT: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
+    and "connected C" "C \<subseteq> T"
+  shows "connected (S \<inter> f -` C)"
+proof -
+  have contf': "continuous_on (S \<inter> f -` C) f"
+    by (meson contf continuous_on_subset inf_le1)
+  have eqC: "f ` (S \<inter> f -` C) = C"
+    using \<open>C \<subseteq> T\<close> fim by blast
+  show ?thesis
+  proof (rule connected_monotone_quotient_preimage [OF \<open>connected C\<close> contf' eqC])
+    show "connected (S \<inter> f -` C \<inter> f -` {y})" if "y \<in> C" for y
+    proof -
+      have "S \<inter> f -` C \<inter> f -` {y} = S \<inter> f -` {y}"
+        using that by blast
+      moreover have "connected (S \<inter> f -` {y})"
+        using \<open>C \<subseteq> T\<close> connT that by blast
+      ultimately show ?thesis
+        by metis
+    qed
+    have "\<And>U. openin (subtopology euclidean (S \<inter> f -` C)) U
+               \<Longrightarrow> openin (subtopology euclidean C) (f ` U)"
+      using open_map_restrict [OF _ ST \<open>C \<subseteq> T\<close>] by metis
+    then show "\<And>D. D \<subseteq> C
+          \<Longrightarrow> openin (subtopology euclidean (S \<inter> f -` C)) (S \<inter> f -` C \<inter> f -` D) =
+              openin (subtopology euclidean C) D"
+      using open_map_imp_quotient_map [of "(S \<inter> f -` C)" f] contf' by (simp add: eqC)
+  qed
+qed
+
+
+lemma connected_closed_monotone_preimage:
+  assumes contf: "continuous_on S f" and fim: "f ` S = T"
+    and ST: "\<And>C. closedin (subtopology euclidean S) C \<Longrightarrow> closedin (subtopology euclidean T) (f ` C)"
+    and connT: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
+    and "connected C" "C \<subseteq> T"
+  shows "connected (S \<inter> f -` C)"
+proof -
+  have contf': "continuous_on (S \<inter> f -` C) f"
+    by (meson contf continuous_on_subset inf_le1)
+  have eqC: "f ` (S \<inter> f -` C) = C"
+    using \<open>C \<subseteq> T\<close> fim by blast
+  show ?thesis
+  proof (rule connected_monotone_quotient_preimage [OF \<open>connected C\<close> contf' eqC])
+    show "connected (S \<inter> f -` C \<inter> f -` {y})" if "y \<in> C" for y
+    proof -
+      have "S \<inter> f -` C \<inter> f -` {y} = S \<inter> f -` {y}"
+        using that by blast
+      moreover have "connected (S \<inter> f -` {y})"
+        using \<open>C \<subseteq> T\<close> connT that by blast
+      ultimately show ?thesis
+        by metis
+    qed
+    have "\<And>U. closedin (subtopology euclidean (S \<inter> f -` C)) U
+               \<Longrightarrow> closedin (subtopology euclidean C) (f ` U)"
+      using closed_map_restrict [OF _ ST \<open>C \<subseteq> T\<close>] by metis
+    then show "\<And>D. D \<subseteq> C
+          \<Longrightarrow> openin (subtopology euclidean (S \<inter> f -` C)) (S \<inter> f -` C \<inter> f -` D) =
+              openin (subtopology euclidean C) D"
+      using closed_map_imp_quotient_map [of "(S \<inter> f -` C)" f] contf' by (simp add: eqC)
+  qed
+qed
+
+
+
+subsection\<open>A couple of lemmas about components (see Newman IV, 3.3 and 3.4).\<close>
+
+
+lemma connected_Un_clopen_in_complement:
+  fixes S U :: "'a::metric_space set"
+  assumes "connected S" "connected U" "S \<subseteq> U" 
+      and opeT: "openin (subtopology euclidean (U - S)) T" 
+      and cloT: "closedin (subtopology euclidean (U - S)) T"
+    shows "connected (S \<union> T)"
+proof -
+  have *: "\<lbrakk>\<And>x y. P x y \<longleftrightarrow> P y x; \<And>x y. P x y \<Longrightarrow> S \<subseteq> x \<or> S \<subseteq> y;
+            \<And>x y. \<lbrakk>P x y; S \<subseteq> x\<rbrakk> \<Longrightarrow> False\<rbrakk> \<Longrightarrow> ~(\<exists>x y. (P x y))" for P
+    by metis
+  show ?thesis
+    unfolding connected_closedin_eq
+  proof (rule *)
+    fix H1 H2
+    assume H: "closedin (subtopology euclidean (S \<union> T)) H1 \<and> 
+               closedin (subtopology euclidean (S \<union> T)) H2 \<and>
+               H1 \<union> H2 = S \<union> T \<and> H1 \<inter> H2 = {} \<and> H1 \<noteq> {} \<and> H2 \<noteq> {}"
+    then have clo: "closedin (subtopology euclidean S) (S \<inter> H1)"
+                   "closedin (subtopology euclidean S) (S \<inter> H2)"
+      by (metis Un_upper1 closedin_closed_subset inf_commute)+
+    have Seq: "S \<inter> (H1 \<union> H2) = S"
+      by (simp add: H)
+    have "S \<inter> ((S \<union> T) \<inter> H1) \<union> S \<inter> ((S \<union> T) \<inter> H2) = S"
+      using Seq by auto
+    moreover have "H1 \<inter> (S \<inter> ((S \<union> T) \<inter> H2)) = {}"
+      using H by blast
+    ultimately have "S \<inter> H1 = {} \<or> S \<inter> H2 = {}"
+      by (metis (no_types) H Int_assoc \<open>S \<inter> (H1 \<union> H2) = S\<close> \<open>connected S\<close>
+          clo Seq connected_closedin inf_bot_right inf_le1)
+    then show "S \<subseteq> H1 \<or> S \<subseteq> H2"
+      using H \<open>connected S\<close> unfolding connected_closedin by blast
+  next
+    fix H1 H2
+    assume H: "closedin (subtopology euclidean (S \<union> T)) H1 \<and>
+               closedin (subtopology euclidean (S \<union> T)) H2 \<and>
+               H1 \<union> H2 = S \<union> T \<and> H1 \<inter> H2 = {} \<and> H1 \<noteq> {} \<and> H2 \<noteq> {}" 
+       and "S \<subseteq> H1"
+    then have H2T: "H2 \<subseteq> T"
+      by auto
+    have "T \<subseteq> U"
+      using Diff_iff opeT openin_imp_subset by auto
+    with \<open>S \<subseteq> U\<close> have Ueq: "U = (U - S) \<union> (S \<union> T)" 
+      by auto
+    have "openin (subtopology euclidean ((U - S) \<union> (S \<union> T))) H2"
+    proof (rule openin_subtopology_Un)
+      show "openin (subtopology euclidean (S \<union> T)) H2"
+        using \<open>H2 \<subseteq> T\<close> apply (auto simp: openin_closedin_eq)
+        by (metis Diff_Diff_Int Diff_disjoint Diff_partition Diff_subset H Int_absorb1 Un_Diff)
+      then show "openin (subtopology euclidean (U - S)) H2"
+        by (meson H2T Un_upper2 opeT openin_subset_trans openin_trans)
+    qed
+    moreover have "closedin (subtopology euclidean ((U - S) \<union> (S \<union> T))) H2"
+    proof (rule closedin_subtopology_Un)
+      show "closedin (subtopology euclidean (U - S)) H2"
+        using H H2T cloT closedin_subset_trans 
+        by (blast intro: closedin_subtopology_Un closedin_trans)
+    qed (simp add: H)
+    ultimately
+    have H2: "H2 = {} \<or> H2 = U"
+      using Ueq \<open>connected U\<close> unfolding connected_clopen by metis   
+    then have "H2 \<subseteq> S"
+      by (metis Diff_partition H Un_Diff_cancel Un_subset_iff \<open>H2 \<subseteq> T\<close> assms(3) inf.orderE opeT openin_imp_subset)
+    moreover have "T \<subseteq> H2 - S"
+      by (metis (no_types) H2 H opeT openin_closedin_eq topspace_euclidean_subtopology)
+    ultimately show False
+      using H \<open>S \<subseteq> H1\<close> by blast
+  qed blast
+qed
+
+
+proposition component_complement_connected:
+  fixes S :: "'a::metric_space set"
+  assumes "connected S" "connected U" "S \<subseteq> U" and C: "C \<in> components (U - S)"
+  shows "connected(U - C)"
+  using \<open>connected S\<close> unfolding connected_closedin_eq not_ex de_Morgan_conj
+proof clarify
+  fix H3 H4 
+  assume clo3: "closedin (subtopology euclidean (U - C)) H3" 
+    and clo4: "closedin (subtopology euclidean (U - C)) H4" 
+    and "H3 \<union> H4 = U - C" and "H3 \<inter> H4 = {}" and "H3 \<noteq> {}" and "H4 \<noteq> {}"
+    and * [rule_format]:
+    "\<forall>H1 H2. \<not> closedin (subtopology euclidean S) H1 \<or>
+                      \<not> closedin (subtopology euclidean S) H2 \<or>
+                      H1 \<union> H2 \<noteq> S \<or> H1 \<inter> H2 \<noteq> {} \<or> \<not> H1 \<noteq> {} \<or> \<not> H2 \<noteq> {}"
+  then have "H3 \<subseteq> U-C" and ope3: "openin (subtopology euclidean (U - C)) (U - C - H3)"
+    and "H4 \<subseteq> U-C" and ope4: "openin (subtopology euclidean (U - C)) (U - C - H4)"
+    by (auto simp: closedin_def)
+  have "C \<noteq> {}" "C \<subseteq> U-S" "connected C"
+    using C in_components_nonempty in_components_subset in_components_maximal by blast+
+  have cCH3: "connected (C \<union> H3)"
+  proof (rule connected_Un_clopen_in_complement [OF \<open>connected C\<close> \<open>connected U\<close> _ _ clo3])
+    show "openin (subtopology euclidean (U - C)) H3"
+      apply (simp add: openin_closedin_eq \<open>H3 \<subseteq> U - C\<close>)
+      apply (simp add: closedin_subtopology)
+      by (metis Diff_cancel Diff_triv Un_Diff clo4 \<open>H3 \<inter> H4 = {}\<close> \<open>H3 \<union> H4 = U - C\<close> closedin_closed inf_commute sup_bot.left_neutral)
+  qed (use clo3 \<open>C \<subseteq> U - S\<close> in auto)
+  have cCH4: "connected (C \<union> H4)"
+  proof (rule connected_Un_clopen_in_complement [OF \<open>connected C\<close> \<open>connected U\<close> _ _ clo4])
+    show "openin (subtopology euclidean (U - C)) H4"
+      apply (simp add: openin_closedin_eq \<open>H4 \<subseteq> U - C\<close>)
+      apply (simp add: closedin_subtopology)
+      by (metis Diff_cancel Int_commute Un_Diff Un_Diff_Int \<open>H3 \<inter> H4 = {}\<close> \<open>H3 \<union> H4 = U - C\<close> clo3 closedin_closed)
+  qed (use clo4 \<open>C \<subseteq> U - S\<close> in auto)
+  have "closedin (subtopology euclidean S) (S \<inter> H3)" "closedin (subtopology euclidean S) (S \<inter> H4)"
+    using clo3 clo4 \<open>S \<subseteq> U\<close> \<open>C \<subseteq> U - S\<close> by (auto simp: closedin_closed)
+  moreover have "S \<inter> H3 \<noteq> {}"      
+    using components_maximal [OF C cCH3] \<open>C \<noteq> {}\<close> \<open>C \<subseteq> U - S\<close> \<open>H3 \<noteq> {}\<close> \<open>H3 \<subseteq> U - C\<close> by auto
+  moreover have "S \<inter> H4 \<noteq> {}"
+    using components_maximal [OF C cCH4] \<open>C \<noteq> {}\<close> \<open>C \<subseteq> U - S\<close> \<open>H4 \<noteq> {}\<close> \<open>H4 \<subseteq> U - C\<close> by auto
+  ultimately show False
+    using * [of "S \<inter> H3" "S \<inter> H4"] \<open>H3 \<inter> H4 = {}\<close> \<open>C \<subseteq> U - S\<close> \<open>H3 \<union> H4 = U - C\<close> \<open>S \<subseteq> U\<close> 
+    by auto
+qed
 
 subsection\<open> Finite intersection property\<close>
 
@@ -4952,15 +5176,12 @@ proof (clarsimp simp: continuous_openin_preimage_eq)
   assume "open U"
   have S: "\<And>i. i \<in> I \<Longrightarrow> (T i) \<subseteq> S"
     using clo openin_imp_subset by blast
-  have *: "{x \<in> S. g x \<in> U} = \<Union>{{x. x \<in> (T i) \<and> (f i x) \<in> U} |i. i \<in> I}"
-    apply (auto simp: dest: S)
-      apply (metis (no_types, lifting) g mem_Collect_eq)
-    using clo f g openin_imp_subset by fastforce
-  show "openin (subtopology euclidean S) {x \<in> S. g x \<in> U}"
+  have *: "(S \<inter> g -` U) = (\<Union>i \<in> I. T i \<inter> f i -` U)"
+    using S f g by fastforce
+  show "openin (subtopology euclidean S) (S \<inter> g -` U)"
     apply (subst *)
     apply (rule openin_Union, clarify)
-    apply (metis (full_types) \<open>open U\<close> cont clo openin_trans continuous_openin_preimage_gen)
-    done
+    using \<open>open U\<close> clo cont continuous_openin_preimage_gen openin_trans by blast
 qed
 
 lemma pasting_lemma_exists:
@@ -4996,13 +5217,11 @@ lemma pasting_lemma_closed:
 proof (clarsimp simp: continuous_closedin_preimage_eq)
   fix U :: "'b set"
   assume "closed U"
-  have *: "{x \<in> S. g x \<in> U} = \<Union>{{x. x \<in> (T i) \<and> (f i x) \<in> U} |i. i \<in> I}"
-    apply auto
-    apply (metis (no_types, lifting) g mem_Collect_eq)
-    using clo closedin_closed apply blast
-    apply (metis Int_iff f g clo closedin_limpt inf.absorb_iff2)
-    done
-  show "closedin (subtopology euclidean S) {x \<in> S. g x \<in> U}"
+  have S: "\<And>i. i \<in> I \<Longrightarrow> (T i) \<subseteq> S"
+    using clo closedin_imp_subset by blast
+  have *: "(S \<inter> g -` U) = (\<Union>i \<in> I. T i \<inter> f i -` U)"
+    using S f g by fastforce
+  show "closedin (subtopology euclidean S) (S \<inter> g -` U)"
     apply (subst *)
     apply (rule closedin_Union)
     using \<open>finite I\<close> apply simp
@@ -5119,9 +5338,10 @@ lemma continuous_disconnected_range_constant:
       and conf: "continuous_on S f"
       and fim: "f ` S \<subseteq> t"
       and cct: "\<And>y. y \<in> t \<Longrightarrow> connected_component_set t y = {y}"
-    shows "\<exists>a. \<forall>x \<in> S. f x = a"
+    shows "f constant_on S"
 proof (cases "S = {}")
-  case True then show ?thesis by force
+  case True then show ?thesis
+    by (simp add: constant_on_def)
 next
   case False
   { fix x assume "x \<in> S"
@@ -5129,7 +5349,7 @@ next
     by (metis connected_continuous_image conf connected_component_maximal fim image_subset_iff rev_image_eqI S cct)
   }
   with False show ?thesis
-    by blast
+    unfolding constant_on_def by blast
 qed
 
 lemma discrete_subset_disconnected:
@@ -5195,7 +5415,7 @@ qed
 text\<open>This proof requires the existence of two separate values of the range type.\<close>
 lemma finite_range_constant_imp_connected:
   assumes "\<And>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-              \<lbrakk>continuous_on S f; finite(f ` S)\<rbrakk> \<Longrightarrow> \<exists>a. \<forall>x \<in> S. f x = a"
+              \<lbrakk>continuous_on S f; finite(f ` S)\<rbrakk> \<Longrightarrow> f constant_on S"
     shows "connected S"
 proof -
   { fix t u
@@ -5212,7 +5432,7 @@ proof -
       by (rule finite_subset [of _ "{0,1}"]) auto
     have "t = {} \<or> u = {}"
       using assms [OF conif fi] tus [symmetric]
-      by (auto simp: Ball_def) (metis IntI empty_iff one_neq_zero tue)
+      by (auto simp: Ball_def constant_on_def) (metis IntI empty_iff one_neq_zero tue)
   }
   then show ?thesis
     by (simp add: connected_closedin_eq)
@@ -5222,18 +5442,18 @@ lemma continuous_disconnected_range_constant_eq:
       "(connected S \<longleftrightarrow>
            (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
             \<forall>t. continuous_on S f \<and> f ` S \<subseteq> t \<and> (\<forall>y \<in> t. connected_component_set t y = {y})
-            \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> S. f x = a)))" (is ?thesis1)
+            \<longrightarrow> f constant_on S))" (is ?thesis1)
   and continuous_discrete_range_constant_eq:
       "(connected S \<longleftrightarrow>
          (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
           continuous_on S f \<and>
           (\<forall>x \<in> S. \<exists>e. 0 < e \<and> (\<forall>y. y \<in> S \<and> (f y \<noteq> f x) \<longrightarrow> e \<le> norm(f y - f x)))
-          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> S. f x = a)))" (is ?thesis2)
+          \<longrightarrow> f constant_on S))" (is ?thesis2)
   and continuous_finite_range_constant_eq:
       "(connected S \<longleftrightarrow>
          (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
           continuous_on S f \<and> finite (f ` S)
-          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> S. f x = a)))" (is ?thesis3)
+          \<longrightarrow> f constant_on S))" (is ?thesis3)
 proof -
   have *: "\<And>s t u v. \<lbrakk>s \<Longrightarrow> t; t \<Longrightarrow> u; u \<Longrightarrow> v; v \<Longrightarrow> s\<rbrakk>
     \<Longrightarrow> (s \<longleftrightarrow> t) \<and> (s \<longleftrightarrow> u) \<and> (s \<longleftrightarrow> v)"
@@ -5255,18 +5475,16 @@ lemma continuous_discrete_range_constant:
   assumes S: "connected S"
       and "continuous_on S f"
       and "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
-    obtains a where "\<And>x. x \<in> S \<Longrightarrow> f x = a"
-  using continuous_discrete_range_constant_eq [THEN iffD1, OF S] assms
-  by blast
+    shows "f constant_on S"
+  using continuous_discrete_range_constant_eq [THEN iffD1, OF S] assms by blast
 
 lemma continuous_finite_range_constant:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
   assumes "connected S"
       and "continuous_on S f"
       and "finite (f ` S)"
-    obtains a where "\<And>x. x \<in> S \<Longrightarrow> f x = a"
-  using assms continuous_finite_range_constant_eq
-  by blast
+    shows "f constant_on S"
+  using assms continuous_finite_range_constant_eq  by blast
 
 
 

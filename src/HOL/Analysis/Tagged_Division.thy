@@ -66,7 +66,7 @@ lemma interior_subset_union_intervals:
   shows "interior i \<subseteq> interior S"
 proof -
   have "box a b \<inter> cbox c d = {}"
-     using inter_interval_mixed_eq_empty[of c d a b] assms
+     using Int_interval_mixed_eq_empty[of c d a b] assms
      unfolding interior_cbox by auto
   moreover
   have "box a b \<subseteq> cbox c d \<union> S"
