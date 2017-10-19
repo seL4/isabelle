@@ -2279,7 +2279,7 @@ qed
 lemma retraction_imp_quotient_map:
    "retraction s t r
     \<Longrightarrow> u \<subseteq> t
-            \<Longrightarrow> (openin (subtopology euclidean s) {x. x \<in> s \<and> r x \<in> u} \<longleftrightarrow>
+            \<Longrightarrow> (openin (subtopology euclidean s) (s \<inter> r -` u) \<longleftrightarrow>
                  openin (subtopology euclidean t) u)"
 apply (clarsimp simp add: retraction)
 apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
@@ -2941,21 +2941,21 @@ proof -
               and eq: "\<And>x. x \<in> T \<Longrightarrow> f' x = (g \<circ> f) x"
     by (metis Dugundji [OF C cloUT contgf gfTC])
   show ?thesis
-  proof (rule_tac V = "{x \<in> U. f' x \<in> D}" and g = "h o r o f'" in that)
-    show "T \<subseteq> {x \<in> U. f' x \<in> D}"
+  proof (rule_tac V = "U \<inter> f' -` D" and g = "h o r o f'" in that)
+    show "T \<subseteq> U \<inter> f' -` D"
       using cloUT closedin_imp_subset \<open>S' \<subseteq> D\<close> \<open>f ` T \<subseteq> S\<close> eq homeomorphism_image1 homgh
       by fastforce
-    show ope: "openin (subtopology euclidean U) {x \<in> U. f' x \<in> D}"
+    show ope: "openin (subtopology euclidean U) (U \<inter> f' -` D)"
       using  \<open>f' ` U \<subseteq> C\<close> by (auto simp: opD contf' continuous_openin_preimage)
-    have conth: "continuous_on (r ` f' ` {x \<in> U. f' x \<in> D}) h"
+    have conth: "continuous_on (r ` f' ` (U \<inter> f' -` D)) h"
       apply (rule continuous_on_subset [of S'])
       using homeomorphism_def homgh apply blast
       using \<open>r ` D \<subseteq> S'\<close> by blast
-    show "continuous_on {x \<in> U. f' x \<in> D} (h \<circ> r \<circ> f')"
+    show "continuous_on (U \<inter> f' -` D) (h \<circ> r \<circ> f')"
       apply (intro continuous_on_compose conth
                    continuous_on_subset [OF contr] continuous_on_subset [OF contf'], auto)
       done
-    show "(h \<circ> r \<circ> f') ` {x \<in> U. f' x \<in> D} \<subseteq> S"
+    show "(h \<circ> r \<circ> f') ` (U \<inter> f' -` D) \<subseteq> S"
       using \<open>homeomorphism S S' g h\<close>  \<open>f' ` U \<subseteq> C\<close>  \<open>r ` D \<subseteq> S'\<close>
       by (auto simp: homeomorphism_def)
     show "\<And>x. x \<in> T \<Longrightarrow> (h \<circ> r \<circ> f') x = f x"
@@ -3150,36 +3150,36 @@ proof -
   have "S' \<subseteq> W" using WS' closedin_closed by auto
   have him: "\<And>x. x \<in> S' \<Longrightarrow> h x \<in> X"
     by (metis (no_types) \<open>S retract_of X\<close> hg hom homeomorphism_def image_insert insert_absorb insert_iff retract_of_imp_subset subset_eq)
-  have "S' retract_of {x \<in> W. h x \<in> X}"
+  have "S' retract_of (W \<inter> h -` X)"
   proof (simp add: retraction_def retract_of_def, intro exI conjI)
-    show "S' \<subseteq> {x \<in> W. h x \<in> X}"
-      using him WS' closedin_imp_subset by blast
-    show "continuous_on {x \<in> W. h x \<in> X} (f o r o h)"
+    show "S' \<subseteq> W" "S' \<subseteq> h -` X"
+      using him WS' closedin_imp_subset by blast+
+    show "continuous_on (W \<inter> h -` X) (f o r o h)"
     proof (intro continuous_on_compose)
-      show "continuous_on {x \<in> W. h x \<in> X} h"
-        by (metis (no_types) Collect_restrict conth continuous_on_subset)
-      show "continuous_on (h ` {x \<in> W. h x \<in> X}) r"
+      show "continuous_on (W \<inter> h -` X) h"
+        by (meson conth continuous_on_subset inf_le1)
+      show "continuous_on (h ` (W \<inter> h -` X)) r"
       proof -
-        have "h ` {b \<in> W. h b \<in> X} \<subseteq> X"
+        have "h ` (W \<inter> h -` X) \<subseteq> X"
           by blast
-        then show "continuous_on (h ` {b \<in> W. h b \<in> X}) r"
+        then show "continuous_on (h ` (W \<inter> h -` X)) r"
           by (meson \<open>retraction X S r\<close> continuous_on_subset retraction)
       qed
-      show "continuous_on (r ` h ` {x \<in> W. h x \<in> X}) f"
+      show "continuous_on (r ` h ` (W \<inter> h -` X)) f"
         apply (rule continuous_on_subset [of S])
          using hom homeomorphism_def apply blast
         apply clarify
         apply (meson \<open>retraction X S r\<close> subsetD imageI retraction_def)
         done
     qed
-    show "(f \<circ> r \<circ> h) ` {x \<in> W. h x \<in> X} \<subseteq> S'"
+    show "(f \<circ> r \<circ> h) ` (W \<inter> h -` X) \<subseteq> S'"
       using \<open>retraction X S r\<close> hom
       by (auto simp: retraction_def homeomorphism_def)
     show "\<forall>x\<in>S'. (f \<circ> r \<circ> h) x = x"
       using \<open>retraction X S r\<close> hom by (auto simp: retraction_def homeomorphism_def hg)
   qed
   then show ?thesis
-    apply (rule_tac V = "{x. x \<in> W \<and> h x \<in> X}" in that)
+    apply (rule_tac V = "W \<inter> h -` X" in that)
      apply (rule openin_trans [OF _ UW])
      using \<open>continuous_on W h\<close> \<open>open X\<close> continuous_openin_preimage_eq apply blast+
      done
@@ -3248,8 +3248,7 @@ next
     using \<open>ANR S\<close>
     apply (simp add: ANR_def)
     apply (drule_tac x=UNIV in spec)
-    apply (drule_tac x=T in spec)
-    apply (auto simp: closed_closedin)
+    apply (drule_tac x=T in spec, clarsimp)
     apply (meson ENR_def ENR_homeomorphic_ENR open_openin)
     done
 qed
@@ -3455,10 +3454,10 @@ proof -
   define W  where "W \<equiv> {x \<in> U. setdist {x} S = setdist {x} T}"
   have US': "closedin (subtopology euclidean U) S'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} S - setdist {x} T" "{..0}"]
-    by (simp add: S'_def continuous_intros)
+    by (simp add: S'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
   have UT': "closedin (subtopology euclidean U) T'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} T - setdist {x} S" "{..0}"]
-    by (simp add: T'_def continuous_intros)
+    by (simp add: T'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
   have "S \<subseteq> S'"
     using S'_def \<open>S \<subseteq> U\<close> setdist_sing_in_set by fastforce
   have "T \<subseteq> T'"
@@ -3543,19 +3542,19 @@ proof -
   proof -
     obtain f g where hom: "homeomorphism (S \<union> T) C f g"
       using hom by (force simp: homeomorphic_def)
-    have US: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> S}"
+    have US: "closedin (subtopology euclidean U) (C \<inter> g -` S)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
       using hom homeomorphism_def apply blast
       apply (metis hom homeomorphism_def set_eq_subset)
       done
-    have UT: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> T}"
+    have UT: "closedin (subtopology euclidean U) (C \<inter> g -` T)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
       using hom homeomorphism_def apply blast
       apply (metis hom homeomorphism_def set_eq_subset)
       done
-    have ARS: "AR {x \<in> C. g x \<in> S}"
+    have ARS: "AR (C \<inter> g -` S)"
       apply (rule AR_homeomorphic_AR [OF \<open>AR S\<close>])
       apply (simp add: homeomorphic_def)
       apply (rule_tac x=g in exI)
@@ -3563,7 +3562,7 @@ proof -
       using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have ART: "AR {x \<in> C. g x \<in> T}"
+    have ART: "AR (C \<inter> g -` T)"
       apply (rule AR_homeomorphic_AR [OF \<open>AR T\<close>])
       apply (simp add: homeomorphic_def)
       apply (rule_tac x=g in exI)
@@ -3571,7 +3570,7 @@ proof -
       using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have ARI: "AR ({x \<in> C. g x \<in> S} \<inter> {x \<in> C. g x \<in> T})"
+    have ARI: "AR ((C \<inter> g -` S) \<inter> (C \<inter> g -` T))"
       apply (rule AR_homeomorphic_AR [OF \<open>AR (S \<inter> T)\<close>])
       apply (simp add: homeomorphic_def)
       apply (rule_tac x=g in exI)
@@ -3580,7 +3579,7 @@ proof -
       apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have "C = {x \<in> C. g x \<in> S} \<union> {x \<in> C. g x \<in> T}"
+    have "C = (C \<inter> g -` S) \<union> (C \<inter> g -` T)"
       using hom  by (auto simp: homeomorphism_def)
     then show ?thesis
       by (metis AR_closed_Un_local_aux [OF US UT ARS ART ARI])
@@ -3615,10 +3614,10 @@ next
   define W  where "W \<equiv> {x \<in> U. setdist {x} S = setdist {x} T}"
   have cloUS': "closedin (subtopology euclidean U) S'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} S - setdist {x} T" "{..0}"]
-    by (simp add: S'_def continuous_intros)
+    by (simp add: S'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
   have cloUT': "closedin (subtopology euclidean U) T'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} T - setdist {x} S" "{..0}"]
-    by (simp add: T'_def continuous_intros)
+    by (simp add: T'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
   have "S \<subseteq> S'"
     using S'_def \<open>S \<subseteq> U\<close> setdist_sing_in_set by fastforce
   have "T \<subseteq> T'"
@@ -3752,19 +3751,19 @@ proof -
   proof -
     obtain f g where hom: "homeomorphism (S \<union> T) C f g"
       using hom by (force simp: homeomorphic_def)
-    have US: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> S}"
+    have US: "closedin (subtopology euclidean U) (C \<inter> g -` S)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
       using hom [unfolded homeomorphism_def] apply blast
       apply (metis hom homeomorphism_def set_eq_subset)
       done
-    have UT: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> T}"
+    have UT: "closedin (subtopology euclidean U) (C \<inter> g -` T)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
       using hom [unfolded homeomorphism_def] apply blast
       apply (metis hom homeomorphism_def set_eq_subset)
       done
-    have ANRS: "ANR {x \<in> C. g x \<in> S}"
+    have ANRS: "ANR (C \<inter> g -` S)"
       apply (rule ANR_homeomorphic_ANR [OF \<open>ANR S\<close>])
       apply (simp add: homeomorphic_def)
       apply (rule_tac x=g in exI)
@@ -3772,7 +3771,7 @@ proof -
       using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have ANRT: "ANR {x \<in> C. g x \<in> T}"
+    have ANRT: "ANR (C \<inter> g -` T)"
       apply (rule ANR_homeomorphic_ANR [OF \<open>ANR T\<close>])
       apply (simp add: homeomorphic_def)
       apply (rule_tac x=g in exI)
@@ -3780,7 +3779,7 @@ proof -
       using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have ANRI: "ANR ({x \<in> C. g x \<in> S} \<inter> {x \<in> C. g x \<in> T})"
+    have ANRI: "ANR ((C \<inter> g -` S) \<inter> (C \<inter> g -` T))"
       apply (rule ANR_homeomorphic_ANR [OF \<open>ANR (S \<inter> T)\<close>])
       apply (simp add: homeomorphic_def)
       apply (rule_tac x=g in exI)
@@ -3789,8 +3788,8 @@ proof -
       apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
       apply (rule_tac x="f x" in image_eqI, auto)
       done
-    have "C = {x. x \<in> C \<and> g x \<in> S} \<union> {x. x \<in> C \<and> g x \<in> T}"
-      by auto (metis Un_iff hom homeomorphism_def imageI)
+    have "C = (C \<inter> g -` S) \<union> (C \<inter> g -` T)"
+      using hom by (auto simp: homeomorphism_def)
     then show ?thesis
       by (metis ANR_closed_Un_local_aux [OF US UT ANRS ANRT ANRI])
   qed
@@ -3822,13 +3821,13 @@ proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
     using fim by auto
   show "\<exists>V g. C \<subseteq> V \<and> openin (subtopology euclidean U) V \<and> continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x\<in>C. g x = f x)"
   proof (intro exI conjI)
-    show "C \<subseteq> {x \<in> W. g x \<in> S}"
+    show "C \<subseteq> W \<inter> g -` S"
       using \<open>C \<subseteq> W\<close> fim geq by blast
-    show "openin (subtopology euclidean U) {x \<in> W. g x \<in> S}"
+    show "openin (subtopology euclidean U) (W \<inter> g -` S)"
       by (metis (mono_tags, lifting) UW contg continuous_openin_preimage gim opeTS openin_trans)
-    show "continuous_on {x \<in> W. g x \<in> S} g"
+    show "continuous_on (W \<inter> g -` S) g"
       by (blast intro: continuous_on_subset [OF contg])
-    show "g ` {x \<in> W. g x \<in> S} \<subseteq> S"
+    show "g ` (W \<inter> g -` S) \<subseteq> S"
       using gim by blast
     show "\<forall>x\<in>C. g x = f x"
       using geq by blast
@@ -4074,15 +4073,14 @@ next
     apply (auto simp add: False closest_point_self affine_imp_convex closest_point_in_set continuous_on_closest_point)
     done
   finally have "rel_frontier S retract_of {x. closest_point (affine hull S) x \<noteq> a}" .
-  moreover have "openin (subtopology euclidean UNIV) {x \<in> UNIV. closest_point (affine hull S) x \<in> - {a}}"
+  moreover have "openin (subtopology euclidean UNIV) (UNIV \<inter> closest_point (affine hull S) -` (- {a}))"
     apply (rule continuous_openin_preimage_gen)
     apply (auto simp add: False affine_imp_convex continuous_on_closest_point)
     done
   ultimately show ?thesis
-    apply (simp add: ENR_def)
-    apply (rule_tac x = "{x. x \<in> UNIV \<and>
-                             closest_point (affine hull S) x \<in> (- {a})}" in exI)
-    apply simp
+    unfolding ENR_def
+    apply (rule_tac x = "closest_point (affine hull S) -` (- {a})" in exI)
+    apply (simp add: vimage_def)
     done
 qed
 
@@ -4880,6 +4878,5 @@ corollary path_connected_complement_homeomorphic_convex_compact:
     shows "path_connected(- S)"
   using connected_complement_homeomorphic_convex_compact [OF assms]
   using \<open>compact T\<close> compact_eq_bounded_closed connected_open_path_connected hom homeomorphic_compactness by blast
-
 
 end

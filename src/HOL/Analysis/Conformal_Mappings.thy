@@ -127,7 +127,7 @@ next
       apply (rule Cauchy_inequality)
          using holf holomorphic_on_subset apply force
         using holf holomorphic_on_imp_continuous_on holomorphic_on_subset apply blast
-       using \<open>w \<noteq> 0\<close> apply (simp add:)
+       using \<open>w \<noteq> 0\<close> apply simp
        by (metis nof wgeA dist_0_norm dist_norm)
     also have "... = fact k * (B * 1 / cmod w ^ (k-n))"
       apply (simp only: mult_cancel_left times_divide_eq_right [symmetric])
@@ -327,7 +327,7 @@ proof -
     ultimately obtain w where w: "w \<in> frontier(cball \<xi> r)"
                           and now: "\<And>x. x \<in> frontier(cball \<xi> r) \<Longrightarrow> norm (f w) \<le> norm (f x)"
       apply (rule bexE [OF continuous_attains_inf [OF compact_frontier [OF compact_cball]]])
-      apply (simp add:)
+      apply simp
       done
     then have fw: "0 < norm (f w)"
       by (simp add: fnz')
@@ -336,7 +336,7 @@ proof -
     then obtain v where v: "v \<in> frontier(cball \<xi> r)"
                and nov: "\<And>x. x \<in> frontier(cball \<xi> r) \<Longrightarrow> norm (g v) \<ge> norm (g x)"
       apply (rule bexE [OF continuous_attains_sup [OF compact_frontier [OF compact_cball] froc]])
-      apply (simp add:)
+      apply simp
       done
     then have fv: "0 < norm (f v)"
       by (simp add: fnz')
@@ -628,7 +628,7 @@ proof -
       unfolding powf_def by (rule holomorphic_power_series [OF holfb w])
     moreover have "(\<Sum>i<n. powf i) = f \<xi>"
       apply (subst Groups_Big.comm_monoid_add_class.sum.setdiff_irrelevant [symmetric])
-      apply (simp add:)
+      apply simp
       apply (simp only: dfz sing)
       apply (simp add: powf_def)
       done
@@ -640,7 +640,7 @@ proof -
     have "summable (\<lambda>i. (deriv ^^ (i + n)) f \<xi> * (w - \<xi>) ^ i / fact (i + n))"
     proof (cases "w=\<xi>")
       case False then show ?thesis
-        using summable_mult [OF *, of "1 / (w - \<xi>) ^ n"] by (simp add:)
+        using summable_mult [OF *, of "1 / (w - \<xi>) ^ n"] by simp
     next
       case True then show ?thesis
         by (auto simp: Power.semiring_1_class.power_0_left intro!: summable_finite [of "{0}"]
@@ -716,7 +716,7 @@ proof -
     apply (rule holomorphic_intros)+
     using h holomorphic_on_open apply blast
     apply (rule holomorphic_intros)+
-    using \<open>0 < n\<close> apply (simp add:)
+    using \<open>0 < n\<close> apply simp
     apply (rule holomorphic_intros)+
     done
   show ?thesis
@@ -924,7 +924,7 @@ next
         using \<open>0 < r\<close> by simp
       have "\<exists>B. 0<B \<and> eventually (\<lambda>z. cmod ((inverse \<circ> f \<circ> inverse) z) \<le> B) (at 0)"
         apply (rule exI [where x=1])
-        apply (simp add:)
+        apply simp
         using tendstoD [OF lim [unfolded lim_at_infinity_0] zero_less_one]
         apply (rule eventually_mono)
         apply (simp add: dist_norm)
@@ -969,8 +969,7 @@ next
       qed
       then show ?thesis
         apply (rule_tac a = "\<lambda>k. (deriv ^^ k) f 0 / (fact k)" and n=n in that)
-        apply (rule_tac A = "2/e" and B = "1/B" in Liouville_polynomial [OF holf])
-        apply (simp add:)
+        apply (rule_tac A = "2/e" and B = "1/B" in Liouville_polynomial [OF holf], simp)
         done
   next
     case False
@@ -1041,11 +1040,12 @@ proof -
   have "bounded {z. (\<Sum>i\<le>n. c i * z ^ i) \<in> K}"
     using polyfun_extremal [where c=c and B="B+1", OF c]
     by (auto simp: bounded_pos eventually_at_infinity_pos *)
-  moreover have "closed {z. (\<Sum>i\<le>n. c i * z ^ i) \<in> K}"
-    apply (intro allI continuous_closed_preimage_univ continuous_intros)
+  moreover have "closed ((\<lambda>z. (\<Sum>i\<le>n. c i * z ^ i)) -` K)"
+    apply (intro allI continuous_closed_vimage continuous_intros)
     using \<open>compact K\<close> compact_eq_bounded_closed by blast
   ultimately show ?thesis
-    using closed_Int_compact [OF \<open>closed S\<close>] compact_eq_bounded_closed by blast
+    using closed_Int_compact [OF \<open>closed S\<close>] compact_eq_bounded_closed
+    by (auto simp add: vimage_def)
 qed
 
 corollary proper_map_polyfun_univ:
@@ -1095,7 +1095,7 @@ proof
     fix e::real assume "0 < e"
     with compf [of "cball 0 (inverse e)"]
     show "\<exists>B. \<forall>x. B \<le> cmod x \<longrightarrow> dist ((inverse \<circ> f) x) 0 \<le> e"
-      apply (simp add:)
+      apply simp
       apply (clarsimp simp add: compact_eq_bounded_closed bounded_pos norm_inverse)
       apply (rule_tac x="b+1" in exI)
       apply (metis inverse_inverse_eq less_add_same_cancel2 less_imp_inverse_less add.commute not_le not_less_iff_gr_or_eq order_trans zero_less_one)
@@ -1134,7 +1134,7 @@ proof -
     with \<open>\<delta>>0\<close> have "\<exists>\<delta>>0. \<forall>x. dist \<xi> x < \<delta> \<longrightarrow> onorm (\<lambda>v. deriv f x * v - deriv f \<xi> * v) \<le> e/2"
       apply (rule_tac x="min \<delta> \<epsilon>" in exI)
       apply (intro conjI allI impI Operator_Norm.onorm_le)
-      apply (simp add:)
+      apply simp
       apply (simp only: Rings.ring_class.left_diff_distrib [symmetric] norm_mult)
       apply (rule mult_right_mono [OF \<delta>])
       apply (auto simp: dist_commute Rings.ordered_semiring_class.mult_right_mono \<delta>)

@@ -281,10 +281,7 @@ lemma Urysohn_strong:
           "\<And>x. f x \<in> closed_segment a b"
           "\<And>x. f x = a \<longleftrightarrow> x \<in> S"
           "\<And>x. f x = b \<longleftrightarrow> x \<in> T"
-apply (rule Urysohn_local_strong [of UNIV S T])
-using assms
-apply (auto simp: closed_closedin)
-done
+using assms by (auto intro: Urysohn_local_strong [of UNIV S T])
 
 proposition Urysohn:
   assumes US: "closed S"
@@ -295,10 +292,7 @@ proposition Urysohn:
           "\<And>x. f x \<in> closed_segment a b"
           "\<And>x. x \<in> S \<Longrightarrow> f x = a"
           "\<And>x. x \<in> T \<Longrightarrow> f x = b"
-apply (rule Urysohn_local [of UNIV S T a b])
-using assms
-apply (auto simp: closed_closedin)
-done
+using assms by (auto intro: Urysohn_local [of UNIV S T a b])
 
 
 subsection\<open> The Dugundji extension theorem, and Tietze variants as corollaries.\<close>

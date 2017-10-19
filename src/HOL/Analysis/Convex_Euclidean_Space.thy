@@ -1271,15 +1271,17 @@ proof -
     using g by (simp add: image_comp)
   have cgf: "closed (g ` f ` S)"
     by (simp add: \<open>g \<circ> f = id\<close> S image_comp)
-  have [simp]: "{x \<in> range f. g x \<in> S} = f ` S"
-    using g by (simp add: o_def id_def image_def) metis
+  have [simp]: "(range f \<inter> g -` S) = f ` S"
+    using g unfolding o_def id_def image_def by auto metis+
   show ?thesis
-    apply (rule closedin_closed_trans [of "range f"])
-    apply (rule continuous_closedin_preimage [OF confg cgf, simplified])
-    apply (rule closed_injective_image_subspace)
-    using f
-    apply (auto simp: linear_linear linear_injective_0)
-    done
+  proof (rule closedin_closed_trans [of "range f"])
+    show "closedin (subtopology euclidean (range f)) (f ` S)"
+      using continuous_closedin_preimage [OF confg cgf] by simp
+    show "closed (range f)"
+      apply (rule closed_injective_image_subspace)
+      using f apply (auto simp: linear_linear linear_injective_0)
+      done
+  qed
 qed
 
 lemma closed_injective_linear_image_eq:
@@ -2374,16 +2376,13 @@ corollary connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)
   by(simp add: convex_connected)
 
 proposition clopen:
-  fixes s :: "'a :: real_normed_vector set"
-  shows "closed s \<and> open s \<longleftrightarrow> s = {} \<or> s = UNIV"
-apply (rule iffI)
- apply (rule connected_UNIV [unfolded connected_clopen, rule_format])
- apply (force simp add: closed_closedin, force)
-done
+  fixes S :: "'a :: real_normed_vector set"
+  shows "closed S \<and> open S \<longleftrightarrow> S = {} \<or> S = UNIV"
+    by (force intro!: connected_UNIV [unfolded connected_clopen, rule_format])
 
 corollary compact_open:
-  fixes s :: "'a :: euclidean_space set"
-  shows "compact s \<and> open s \<longleftrightarrow> s = {}"
+  fixes S :: "'a :: euclidean_space set"
+  shows "compact S \<and> open S \<longleftrightarrow> S = {}"
   by (auto simp: compact_eq_bounded_closed clopen)
 
 corollary finite_imp_not_open:

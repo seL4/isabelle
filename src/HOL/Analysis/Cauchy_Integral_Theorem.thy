@@ -4111,30 +4111,29 @@ corollary continuous_on_winding_number:
 subsection\<open>The winding number is constant on a connected region\<close>
 
 lemma winding_number_constant:
-  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and cs: "connected s" and sg: "s \<inter> path_image \<gamma> = {}"
-  obtains k where "\<And>z. z \<in> s \<Longrightarrow> winding_number \<gamma> z = k"
+  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and cs: "connected S" and sg: "S \<inter> path_image \<gamma> = {}"
+  shows "winding_number \<gamma> constant_on S"
 proof -
   have *: "1 \<le> cmod (winding_number \<gamma> y - winding_number \<gamma> z)"
-      if ne: "winding_number \<gamma> y \<noteq> winding_number \<gamma> z" and "y \<in> s" "z \<in> s" for y z
+      if ne: "winding_number \<gamma> y \<noteq> winding_number \<gamma> z" and "y \<in> S" "z \<in> S" for y z
   proof -
     have "winding_number \<gamma> y \<in> \<int>"  "winding_number \<gamma> z \<in>  \<int>"
-      using that integer_winding_number [OF \<gamma> loop] sg \<open>y \<in> s\<close> by auto
+      using that integer_winding_number [OF \<gamma> loop] sg \<open>y \<in> S\<close> by auto
     with ne show ?thesis
       by (auto simp: Ints_def of_int_diff [symmetric] simp del: of_int_diff)
   qed
-  have cont: "continuous_on s (\<lambda>w. winding_number \<gamma> w)"
+  have cont: "continuous_on S (\<lambda>w. winding_number \<gamma> w)"
     using continuous_on_winding_number [OF \<gamma>] sg
     by (meson continuous_on_subset disjoint_eq_subset_Compl)
   show ?thesis
-    apply (rule continuous_discrete_range_constant [OF cs cont])
-    using "*" zero_less_one apply blast
-    by (simp add: that)
+    using "*" zero_less_one
+    by (blast intro: continuous_discrete_range_constant [OF cs cont])
 qed
 
 lemma winding_number_eq:
-     "\<lbrakk>path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; w \<in> s; z \<in> s; connected s; s \<inter> path_image \<gamma> = {}\<rbrakk>
+     "\<lbrakk>path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; w \<in> S; z \<in> S; connected S; S \<inter> path_image \<gamma> = {}\<rbrakk>
       \<Longrightarrow> winding_number \<gamma> w = winding_number \<gamma> z"
-  using winding_number_constant by blast
+  using winding_number_constant by (metis constant_on_def) 
 
 lemma open_winding_number_levelsets:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
@@ -4149,7 +4148,7 @@ proof -
     have "\<exists>e>0. \<forall>y. dist y z < e \<longrightarrow> y \<notin> path_image \<gamma> \<and> winding_number \<gamma> y = winding_number \<gamma> z"
       apply (rule_tac x=e in exI)
       using e apply (simp add: dist_norm ball_def norm_minus_commute)
-      apply (auto simp: dist_norm norm_minus_commute intro!: winding_number_eq [OF assms, where s = "ball z e"])
+      apply (auto simp: dist_norm norm_minus_commute intro!: winding_number_eq [OF assms, where S = "ball z e"])
       done
   } then
   show ?thesis
@@ -4171,11 +4170,11 @@ proof -
     using B subset_ball by auto
   then have wout: "w \<in> outside (path_image \<gamma>)"
     using w by blast
-  moreover obtain k where "\<And>z. z \<in> outside (path_image \<gamma>) \<Longrightarrow> winding_number \<gamma> z = k"
+  moreover have "winding_number \<gamma> constant_on outside (path_image \<gamma>)"
     using winding_number_constant [OF \<gamma> loop, of "outside(path_image \<gamma>)"] connected_outside
     by (metis DIM_complex bounded_path_image dual_order.refl \<gamma> outside_no_overlap)
   ultimately have "winding_number \<gamma> z = winding_number \<gamma> w"
-    using z by blast
+    by (metis (no_types, hide_lams) constant_on_def z)
   also have "... = 0"
   proof -
     have wnot: "w \<notin> path_image \<gamma>"  using wout by (simp add: outside_def)

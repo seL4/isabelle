@@ -2318,9 +2318,9 @@ lemma continuous_on_inverse_open:
 proof (clarsimp simp add: continuous_openin_preimage_eq)
   fix T :: "'a set"
   assume "open T"
-  have eq: "{x. x \<in> f ` S \<and> g x \<in> T} = f ` (S \<inter> T)"
+  have eq: "f ` S \<inter> g -` T = f ` (S \<inter> T)"
     by (auto simp: gf)
-  show "openin (subtopology euclidean (f ` S)) {x \<in> f ` S. g x \<in> T}"
+  show "openin (subtopology euclidean (f ` S)) (f ` S \<inter> g -` T)"
     apply (subst eq)
     apply (rule open_openin_trans)
       apply (rule invariance_of_domain_gen)
@@ -3173,7 +3173,7 @@ proof -
   have zn2: "(\<lambda>z::complex. z^n) ` (- {0}) = - {0}"
     using assms by (auto simp: image_def elim: exists_complex_root_nonzero [where n = n])
   have zn3: "\<exists>T. z^n \<in> T \<and> open T \<and> 0 \<notin> T \<and>
-               (\<exists>v. \<Union>v = {x. x \<noteq> 0 \<and> x^n \<in> T} \<and>
+               (\<exists>v. \<Union>v = -{0} \<inter> (\<lambda>z. z ^ n) -` T \<and>
                     (\<forall>u\<in>v. open u \<and> 0 \<notin> u) \<and>
                     pairwise disjnt v \<and>
                     (\<forall>u\<in>v. Ex (homeomorphism u T (\<lambda>z. z^n))))"
@@ -3216,8 +3216,6 @@ proof -
       by (intro continuous_intros)
     have noncon: "\<not> (\<lambda>w::complex. w^n) constant_on UNIV"
       by (metis UNIV_I assms constant_on_def power_one zero_neq_one zero_power)
-    have open_imball: "open ((\<lambda>w. w^n) ` ball z d)"
-      by (rule invariance_of_domain [OF cont open_ball inj])
     have im_eq: "(\<lambda>w. w^n) ` ball z' d = (\<lambda>w. w^n) ` ball z d"
                 if z': "z'^n = z^n" for z'
     proof -
@@ -3262,6 +3260,7 @@ proof -
       qed
       then show ?thesis by blast
     qed
+
     have ex_ball: "\<exists>B. (\<exists>z'. B = ball z' d \<and> z'^n = z^n) \<and> x \<in> B"
                   if "x \<noteq> 0" and eq: "x^n = w^n" and dzw: "dist z w < d" for x w
     proof -
@@ -3286,50 +3285,63 @@ proof -
         apply (simp add: dist_norm)
         done
     qed
-    have ball1: "\<Union>{ball z' d |z'. z'^n = z^n} = {x. x \<noteq> 0 \<and> x^n \<in> (\<lambda>w. w^n) ` ball z d}"
-      apply (rule equalityI)
-       prefer 2 apply (force simp: ex_ball, clarsimp)
-      apply (subst im_eq [symmetric], assumption)
-      using assms
-      apply (force simp: dist_norm d_def min_mult_distrib_right dest: power_eq_imp_eq_norm)
-      done
-    have ball2: "pairwise disjnt {ball z' d |z'. z'^n = z^n}"
-    proof (clarsimp simp add: pairwise_def disjnt_iff)
-      fix \<xi> \<zeta> x
-      assume "\<xi>^n = z^n" "\<zeta>^n = z^n" "ball \<xi> d \<noteq> ball \<zeta> d"
-         and "dist \<xi> x < d" "dist \<zeta> x < d"
-      then have "dist \<xi> \<zeta> < d+d"
-        using dist_triangle_less_add by blast
-      then have "cmod (\<xi> - \<zeta>) < 2*d"
-        by (simp add: dist_norm)
-      also have "... \<le> e * cmod z"
-        using mult_right_mono \<open>0 < e\<close> that by (auto simp: d_def)
-      finally have "cmod (\<xi> - \<zeta>) < e * cmod z" .
-      with e have "\<xi> = \<zeta>"
-        by (metis \<open>\<xi>^n = z^n\<close> \<open>\<zeta>^n = z^n\<close> assms power_eq_imp_eq_norm)
-      then show "False"
-        using \<open>ball \<xi> d \<noteq> ball \<zeta> d\<close> by blast
-    qed
-    have ball3: "Ex (homeomorphism (ball z' d) ((\<lambda>w. w^n) ` ball z d) (\<lambda>z. z^n))"
-            if zeq: "z'^n = z^n" for z'
-    proof -
-      have inj: "inj_on (\<lambda>z. z ^ n) (ball z' d)"
-        by (meson iff_x_eq_y inj_onI zeq)
-      show ?thesis
-        apply (rule invariance_of_domain_homeomorphism [of "ball z' d" "\<lambda>z. z^n"])
-          apply (rule open_ball continuous_intros order_refl inj)+
-        apply (force simp: im_eq [OF zeq])
-        done
-    qed
+
     show ?thesis
-      apply (rule_tac x = "(\<lambda>w. w^n) ` (ball z d)" in exI)
-      apply (intro conjI open_imball)
-        using \<open>d > 0\<close> apply simp
-       using \<open>z \<noteq> 0\<close> assms apply (force simp: d_def)
-      apply (rule_tac x="{ ball z' d |z'. z'^n = z^n}" in exI)
-      apply (intro conjI ball1 ball2)
-       apply (force simp: assms d_def power_eq_imp_eq_norm that, clarify)
-      by (metis ball3)
+    proof (rule exI, intro conjI)
+      show "z ^ n \<in> (\<lambda>w. w ^ n) ` ball z d"
+        using \<open>d > 0\<close> by simp
+      show "open ((\<lambda>w. w ^ n) ` ball z d)"
+        by (rule invariance_of_domain [OF cont open_ball inj])
+      show "0 \<notin> (\<lambda>w. w ^ n) ` ball z d"
+        using \<open>z \<noteq> 0\<close> assms by (force simp: d_def)
+      show "\<exists>v. \<Union>v = - {0} \<inter> (\<lambda>z. z ^ n) -` (\<lambda>w. w ^ n) ` ball z d \<and>
+                (\<forall>u\<in>v. open u \<and> 0 \<notin> u) \<and>
+                disjoint v \<and>
+                (\<forall>u\<in>v. Ex (homeomorphism u ((\<lambda>w. w ^ n) ` ball z d) (\<lambda>z. z ^ n)))"
+      proof (rule exI, intro ballI conjI)
+        show "\<Union>{ball z' d |z'. z'^n = z^n} = - {0} \<inter> (\<lambda>z. z ^ n) -` (\<lambda>w. w ^ n) ` ball z d" (is "?l = ?r")
+        proof 
+          show "?l \<subseteq> ?r"
+            apply auto
+             apply (simp add: assms d_def power_eq_imp_eq_norm that)
+            by (metis im_eq image_eqI mem_ball)
+          show "?r \<subseteq> ?l"
+            by auto (meson ex_ball)
+        qed
+        show "\<And>u. u \<in> {ball z' d |z'. z' ^ n = z ^ n} \<Longrightarrow> 0 \<notin> u"
+          by (force simp add: assms d_def power_eq_imp_eq_norm that)
+
+        show "disjoint {ball z' d |z'. z' ^ n = z ^ n}"
+        proof (clarsimp simp add: pairwise_def disjnt_iff)
+          fix \<xi> \<zeta> x
+          assume "\<xi>^n = z^n" "\<zeta>^n = z^n" "ball \<xi> d \<noteq> ball \<zeta> d"
+            and "dist \<xi> x < d" "dist \<zeta> x < d"
+          then have "dist \<xi> \<zeta> < d+d"
+            using dist_triangle_less_add by blast
+          then have "cmod (\<xi> - \<zeta>) < 2*d"
+            by (simp add: dist_norm)
+          also have "... \<le> e * cmod z"
+            using mult_right_mono \<open>0 < e\<close> that by (auto simp: d_def)
+          finally have "cmod (\<xi> - \<zeta>) < e * cmod z" .
+          with e have "\<xi> = \<zeta>"
+            by (metis \<open>\<xi>^n = z^n\<close> \<open>\<zeta>^n = z^n\<close> assms power_eq_imp_eq_norm)
+          then show "False"
+            using \<open>ball \<xi> d \<noteq> ball \<zeta> d\<close> by blast
+        qed
+        show "Ex (homeomorphism u ((\<lambda>w. w ^ n) ` ball z d) (\<lambda>z. z ^ n))"
+          if "u \<in> {ball z' d |z'. z' ^ n = z ^ n}" for u
+        proof (rule invariance_of_domain_homeomorphism [of "u" "\<lambda>z. z^n"])
+          show "open u"
+            using that by auto
+          show "continuous_on u (\<lambda>z. z ^ n)"
+            by (intro continuous_intros)
+          show "inj_on (\<lambda>z. z ^ n) u"
+            using that by (auto simp: iff_x_eq_y inj_on_def)
+          show "\<And>g. homeomorphism u ((\<lambda>z. z ^ n) ` u) (\<lambda>z. z ^ n) g \<Longrightarrow> Ex (homeomorphism u ((\<lambda>w. w ^ n) ` ball z d) (\<lambda>z. z ^ n))"
+            using im_eq that by clarify metis
+        qed auto
+      qed auto
+    qed
   qed
   show ?thesis
     using assms
@@ -3353,7 +3365,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
   show "range exp = - {0::complex}"
     by auto (metis exp_Ln range_eqI)
   show "\<exists>T. z \<in> T \<and> openin (subtopology euclidean (- {0})) T \<and>
-             (\<exists>v. \<Union>v = {z. exp z \<in> T} \<and> (\<forall>u\<in>v. open u) \<and> disjoint v \<and>
+             (\<exists>v. \<Union>v = exp -` T \<and> (\<forall>u\<in>v. open u) \<and> disjoint v \<and>
                   (\<forall>u\<in>v. \<exists>q. homeomorphism u T exp q))"
         if "z \<in> - {0::complex}" for z
   proof -
@@ -3374,8 +3386,8 @@ proof (simp add: covering_space_def, intro conjI ballI)
         using pi_ge_two by (simp add: ball_subset_ball_iff)
       ultimately show "openin (subtopology euclidean (- {0})) (exp ` ball (Ln z) 1)"
         by (auto simp: openin_open_eq invariance_of_domain continuous_on_exp [OF continuous_on_id])
-      show "\<Union>\<V> = {w. exp w \<in> exp ` ball (Ln z) 1}"
-        by (auto simp: \<V>_def Complex_Transcendental.exp_eq image_iff)
+      show "\<Union>\<V> = exp -` exp ` ball (Ln z) 1"
+        by (force simp: \<V>_def Complex_Transcendental.exp_eq image_iff)
       show "\<forall>V\<in>\<V>. open V"
         by (auto simp: \<V>_def inj_on_def continuous_intros invariance_of_domain)
       have xy: "2 \<le> cmod (2 * of_int x * of_real pi * \<i> - 2 * of_int y * of_real pi * \<i>)"
@@ -4314,7 +4326,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     qed
   next
     case False
-    obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a"
+    have "(\<lambda>x. g x - h x) constant_on S \<inter> T"
     proof (rule continuous_discrete_range_constant [OF ST])
       show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
         apply (intro continuous_intros)
@@ -4338,7 +4350,9 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
         then show ?thesis
           by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
       qed
-    qed blast
+    qed 
+    then obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a"
+      by (auto simp: constant_on_def)
     with False have "exp a = 1"
       by (metis IntI disjoint_iff_not_equal divide_self_if exp_diff exp_not_eq_zero fg fh)
     with a show ?thesis
@@ -4382,7 +4396,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     qed
   next
     case False
-    obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a"
+    have "(\<lambda>x. g x - h x) constant_on S \<inter> T"
     proof (rule continuous_discrete_range_constant [OF ST])
       show "continuous_on (S \<inter> T) (\<lambda>x. g x - h x)"
         apply (intro continuous_intros)
@@ -4406,7 +4420,9 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
         then show ?thesis
           by (rule_tac x="2*pi" in exI) (fastforce simp add: algebra_simps)
       qed
-    qed blast
+    qed
+    then obtain a where a: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> g x - h x = a"
+      by (auto simp: constant_on_def)
     with False have "exp a = 1"
       by (metis IntI disjoint_iff_not_equal divide_self_if exp_diff exp_not_eq_zero fg fh)
     with a show ?thesis
@@ -4441,7 +4457,7 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     using fim by auto
   then obtain f' where f': "\<And>y. y \<in> T \<longrightarrow> f' y \<in> S \<and> f (f' y) = y"
     by metis
-  have *: "\<exists>a. \<forall>x \<in> {x. x \<in> S \<and> f x = y}. h x - h(f' y) = a" if "y \<in> T" for y
+  have *: "(\<lambda>x. h x - h(f' y)) constant_on {x. x \<in> S \<and> f x = y}" if "y \<in> T" for y
   proof (rule continuous_discrete_range_constant [OF conn [OF that], of "\<lambda>x. h x - h (f' y)"], simp_all add: algebra_simps)
     show "continuous_on {x \<in> S. f x = y} (\<lambda>x. h x - h (f' y))"
       by (intro continuous_intros continuous_on_subset [OF conth]) auto
@@ -4462,13 +4478,12 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
     qed
   qed 
   have "h x = h (f' (f x))" if "x \<in> S" for x
-    using * [of "f x"] fim that apply clarsimp
-    by (metis f' imageI right_minus_eq)
+    using * [of "f x"] fim that unfolding constant_on_def by clarsimp (metis f' imageI right_minus_eq)
   moreover have "\<And>x. x \<in> T \<Longrightarrow> \<exists>u. u \<in> S \<and> x = f u \<and> h (f' x) = h u"
     using f' by fastforce
   ultimately
   have eq: "((\<lambda>x. (x, (h \<circ> f') x)) ` T) =
-            {p. \<exists>x. x \<in> S \<and> (x, p) \<in> {z \<in> S \<times> UNIV. snd z - ((f \<circ> fst) z, (h \<circ> fst) z) \<in> {0}}}"
+            {p. \<exists>x. x \<in> S \<and> (x, p) \<in> (S \<times> UNIV) \<inter> ((\<lambda>z. snd z - ((f \<circ> fst) z, (h \<circ> fst) z)) -` {0})}"
     using fim by (auto simp: image_iff)
   show "\<exists>h. continuous_on T h \<and> (\<forall>x\<in>T. g x = exp (h x))"
   proof (intro exI conjI)
@@ -4513,9 +4528,10 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
     proof (rule compact_continuous_image)
       show "continuous_on {x \<in> S. f x = y} h"
         by (rule continuous_on_subset [OF conth]) auto
-      have "compact {x \<in> S. f x \<in> {y}}"
+      have "compact (S \<inter> f -` {y})"
         by (rule proper_map_from_compact [OF contf _ \<open>compact S\<close>, of T]) (simp_all add: fim that)
-      then show "compact {x \<in> S. f x = y}" by simp
+      then show "compact {x \<in> S. f x = y}" 
+        by (auto simp: vimage_def Int_def)
     qed
     have 2: "h ` {x \<in> S. f x = y} \<noteq> {}"
       using fim that by auto
