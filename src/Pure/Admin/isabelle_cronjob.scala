@@ -244,7 +244,7 @@ object Isabelle_Cronjob
       List(
         Remote_Build("AFP slow", "lrzcloud1", shared_home = false,
           options = "-m64 -M6 -U30000 -s10 -t AFP",
-          args = "-g slow -X very_slow",
+          args = "-g slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
     ) :::
