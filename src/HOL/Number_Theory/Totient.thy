@@ -93,7 +93,7 @@ proof
       by (rule binary_chinese_remainder_unique_nat) (insert assms, simp_all)
     have "x < m1 * m2 \<and> [x = x] (mod m1) \<and> [x = x] (mod m2)"
          "y < m1 * m2 \<and> [y = x] (mod m1) \<and> [y = x] (mod m2)"
-      using xy assms by (simp_all add: totatives_less one_less_mult cong_nat_def)
+      using xy assms by (simp_all add: totatives_less one_less_mult cong_def)
     from this[THEN the1_equality[OF ex]] show "x = y" by simp
   qed
 next
@@ -106,7 +106,7 @@ next
     fix a b assume ab: "a \<in> totatives m1" "b \<in> totatives m2"
     with assms have ab': "a < m1" "b < m2" by (auto simp: totatives_less)
     with binary_chinese_remainder_unique_nat[OF assms(3), of a b] obtain x
-      where x: "x < m1 * m2" "x mod m1 = a" "x mod m2 = b" by (auto simp: cong_nat_def)
+      where x: "x < m1 * m2" "x mod m1 = a" "x mod m2 = b" by (auto simp: cong_def)
     from x ab assms(3) have "x \<in> totatives (m1 * m2)"
       by (auto simp: totatives_def coprime_mul_eq simp del: One_nat_def intro!: Nat.gr0I)
     with x show "(a, b) \<in> (\<lambda>x. (x mod m1, x mod m2)) ` totatives (m1*m2)" by blast

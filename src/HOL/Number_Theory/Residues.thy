@@ -112,7 +112,7 @@ lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
      apply auto
    apply (metis invertible_coprime_int)
   apply (subst (asm) coprime_iff_invertible'_int)
-   apply (auto simp add: cong_int_def mult.commute)
+   apply (auto simp add: cong_def mult.commute)
   done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
@@ -186,7 +186,7 @@ next
 qed
 
 lemma res_eq_to_cong: "(a mod m) = (b mod m) \<longleftrightarrow> [a = b] (mod m)"
-  by (auto simp: cong_int_def)
+  by (auto simp: cong_def)
 
 
 text \<open>Simplifying with these will translate a ring equation in R to a congruence.\<close>
@@ -364,7 +364,7 @@ proof -
     done
   finally have "fact (p - 1) mod p = \<ominus> \<one>" .
   then show ?thesis
-    by (simp add: cong_int_def res_neg_eq res_one_eq zmod_int)
+    by (simp add: cong_def res_neg_eq res_one_eq zmod_int)
 qed
 
 lemma wilson_theorem:
@@ -373,7 +373,7 @@ lemma wilson_theorem:
 proof (cases "p = 2")
   case True
   then show ?thesis
-    by (simp add: cong_int_def fact_prod)
+    by (simp add: cong_def fact_prod)
 next
   case False
   then show ?thesis

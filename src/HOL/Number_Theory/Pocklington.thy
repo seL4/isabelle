@@ -40,7 +40,7 @@ lemma cong_solve:
 proof (cases "a = 0")
   case True
   with an show ?thesis
-    by (simp add: cong_nat_def)
+    by (simp add: cong_def)
 next
   case False
   from bezout_add_strong_nat [OF this]
@@ -56,7 +56,7 @@ next
   then have "a * (x * b) mod n = b mod n"
     by (simp add: mod_add_left_eq)
   then have "[a * (x * b) = b] (mod n)"
-    by (simp only: cong_nat_def)
+    by (simp only: cong_def)
   then show ?thesis by blast
 qed
 
@@ -70,17 +70,17 @@ proof -
   let ?P = "\<lambda>x. x < n \<and> [a * x = b] (mod n)"
   let ?x = "x mod n"
   from x have *: "[a * ?x = b] (mod n)"
-    by (simp add: cong_nat_def mod_mult_right_eq[of a x n])
+    by (simp add: cong_def mod_mult_right_eq[of a x n])
   from mod_less_divisor[ of n x] nz * have Px: "?P ?x" by simp
   have "y = ?x" if Py: "y < n" "[a * y = b] (mod n)" for y
   proof -
     from Py(2) * have "[a * y = a * ?x] (mod n)"
-      by (simp add: cong_nat_def)
+      by (simp add: cong_def)
     then have "[y = ?x] (mod n)"
       by (metis an cong_mult_lcancel_nat)
     with mod_less[OF Py(1)] mod_less_divisor[ of n x] nz
     show ?thesis
-      by (simp add: cong_nat_def)
+      by (simp add: cong_def)
   qed
   with Px show ?thesis by blast
 qed
@@ -103,7 +103,7 @@ proof -
   proof
     assume "y = 0"
     with y(2) have "p dvd a"
-      by (auto dest: cong_dvd_eq_nat)
+      using cong_dvd_iff by auto
     then show False
       by (metis gcd_nat.absorb1 not_prime_1 p pa)
   qed
@@ -151,14 +151,14 @@ proof -
   next
     case 2
     with am m show ?thesis
-      by (metis am cong_0_nat gcd_nat.right_neutral power_eq_one_eq_nat)
+      by simp
   next
     case 3
     from m obtain m' where m': "m = Suc m'" by (cases m) blast+
     have "d = 1" if d: "d dvd a" "d dvd n" for d
     proof -
       from am mod_less[OF \<open>n > 1\<close>] have am1: "a^m mod n = 1"
-        by (simp add: cong_nat_def)
+        by (simp add: cong_def)
       from dvd_mult2[OF d(1), of "a^m'"] have dam: "d dvd a^m"
         by (simp add: m')
       from dvd_mod_iff[OF d(2), of "a^m"] dam am1 show ?thesis
@@ -234,13 +234,13 @@ proof-
         by (simp add: algebra_simps power_mult)
       also have "\<dots> = (a^m mod n)^((n - 1) div m) mod n"
         using power_mod[of "a^m" n "(n - 1) div m"] by simp
-      also have "\<dots> = 1" using m(3)[unfolded cong_nat_def onen] onen
+      also have "\<dots> = 1" using m(3)[unfolded cong_def onen] onen
         by (metis power_one)
       finally have *: "?y mod n = 1"  .
       have **: "[?y * a ^ ((n - 1) mod m) = ?y* 1] (mod n)"
-        using an1[unfolded cong_nat_def onen] onen
+        using an1[unfolded cong_def onen] onen
           div_mult_mod_eq[of "(n - 1)" m, symmetric]
-        by (simp add:power_add[symmetric] cong_nat_def * del: One_nat_def)
+        by (simp add:power_add[symmetric] cong_def * del: One_nat_def)
       have "[a ^ ((n - 1) mod m) = 1] (mod n)"
         by (metis cong_mult_rcancel_nat mult.commute ** yn)
       with m(4)[rule_format, OF th0] nm1
@@ -265,9 +265,9 @@ proof-
     also have "\<dots> = ((a^m mod n)^(r div p)) mod n"
       using power_mod ..
     also from m(3) onen have "\<dots> = 1"
-      by (simp add: cong_nat_def)
+      by (simp add: cong_def)
     finally have "[(a ^ ((n - 1) div p))= 1] (mod n)"
-      using onen by (simp add: cong_nat_def)
+      using onen by (simp add: cong_def)
     with pn th show ?thesis by blast
   qed
   then have "\<forall>m. 0 < m \<and> m < n - 1 \<longrightarrow> \<not> [a ^ m = 1] (mod n)"
@@ -315,7 +315,7 @@ qed
 text \<open>With the special value \<open>0\<close> for non-coprime case, it's more convenient.\<close>
 lemma ord_works: "[a ^ (ord n a) = 1] (mod n) \<and> (\<forall>m. 0 < m \<and> m < ord n a \<longrightarrow> \<not> [a^ m = 1] (mod n))"
   for n :: nat
-  by (cases "coprime n a") (use coprime_ord[of n a] in \<open>auto simp add: ord_def cong_nat_def\<close>)
+  by (cases "coprime n a") (use coprime_ord[of n a] in \<open>auto simp add: ord_def cong_def\<close>)
 
 lemma ord: "[a^(ord n a) = 1] (mod n)"
   for n :: nat
@@ -341,10 +341,10 @@ proof
   then obtain k where "d = ord n a * k"
     unfolding dvd_def by blast
   then have "[a ^ d = (a ^ (ord n a) mod n)^k] (mod n)"
-    by (simp add : cong_nat_def power_mult power_mod)
+    by (simp add : cong_def power_mult power_mod)
   also have "[(a ^ (ord n a) mod n)^k = 1] (mod n)"
-    using ord[of a n, unfolded cong_nat_def]
-    by (simp add: cong_nat_def power_mod)
+    using ord[of a n, unfolded cong_def]
+    by (simp add: cong_def power_mod)
   finally show ?lhs .
 next
   assume ?lhs
@@ -355,7 +355,7 @@ next
     show ?thesis
     proof (cases d)
       case 0
-      with o prem show ?thesis by (simp add: cong_nat_def)
+      with o prem show ?thesis by (simp add: cong_def)
     next
       case (Suc d')
       then have d0: "d \<noteq> 0" by simp
@@ -374,17 +374,17 @@ next
     let ?q = "d div ord n a"
     let ?r = "d mod ord n a"
     have eqo: "[(a^?o)^?q = 1] (mod n)"
-      by (metis cong_exp_nat ord power_one)
+      using cong_pow ord_works by fastforce
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
     then have op: "?o > 0" by simp
     from div_mult_mod_eq[of d "ord n a"] \<open>?lhs\<close>
     have "[a^(?o*?q + ?r) = 1] (mod n)"
-      by (simp add: cong_nat_def mult.commute)
+      by (simp add: cong_def mult.commute)
     then have "[(a^?o)^?q * (a^?r) = 1] (mod n)"
-      by (simp add: cong_nat_def power_mult[symmetric] power_add[symmetric])
+      by (simp add: cong_def power_mult[symmetric] power_add[symmetric])
     then have th: "[a^?r = 1] (mod n)"
       using eqo mod_mult_left_eq[of "(a^?o)^?q" "a^?r" n]
-      by (simp add: cong_nat_def del: One_nat_def) (metis mod_mult_left_eq nat_mult_1)
+      by (simp add: cong_def del: One_nat_def) (metis mod_mult_left_eq nat_mult_1)
     show ?thesis
     proof (cases "?r = 0")
       case True
@@ -425,8 +425,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> ord n a dvd c"
       by (simp only: ord_divides)
     also have "\<dots> \<longleftrightarrow> [e + c = e + 0] (mod ord n a)"
-      using cong_add_lcancel_nat
-      by (metis cong_dvd_eq_nat dvd_0_right cong_dvd_modulus_nat cong_mult_self_nat nat_mult_1)
+      by (auto simp add: cong_altdef_nat)
     finally show ?thesis
       using c by simp
   qed
@@ -438,7 +437,7 @@ proof -
   next
     case 2
     from th[OF na this] show ?thesis
-      by (metis cong_sym_nat)
+      by (metis cong_sym)
   qed
 qed
 
@@ -583,7 +582,7 @@ proof -
     with n have "a^ (n - 1) = 0"
       by (simp add: power_0_left)
     with n an mod_less[of 1 n] show False
-      by (simp add: power_0_left cong_nat_def)
+      by (simp add: power_0_left cong_def)
   qed
   with n nqr have aqr0: "a ^ (q * r) \<noteq> 0"
     by simp
@@ -616,7 +615,7 @@ proof -
     then have exps: "a^(ord p (a^r) * t*r) = ((a ^ r) ^ ord p (a^r)) ^ t"
       by (simp only: power_mult)
     then have "[((a ^ r) ^ ord p (a^r)) ^ t= 1] (mod p)"
-      by (metis cong_exp_nat ord power_one)
+      by (metis cong_pow ord power_one)
     then have pd0: "p dvd a^(ord p (a^r) * t*r) - 1"
       by (metis cong_to_1_nat exps)
     from nqr s s' have "(n - 1) div P = ord p (a^r) * t*r"
@@ -694,7 +693,7 @@ proof -
       from n an have "[0 = 1] (mod n)"
         unfolding a0 power_0_left by auto
       then show False
-        using n by (simp add: cong_nat_def dvd_eq_mod_eq_0[symmetric])
+        using n by (simp add: cong_def dvd_eq_mod_eq_0[symmetric])
     qed
     then have a1: "a \<ge> 1" by arith
     from one_le_power[OF a1] have ath: "1 \<le> a ^ ((n - 1) div p)" .
@@ -712,11 +711,11 @@ proof -
       then have pS: "Suc (p - 1) = p" by arith
       from b have d: "n dvd a^((n - 1) div p)"
         unfolding b0 by auto
-      from divides_rexp[OF d, of "p - 1"] pS eq cong_dvd_eq_nat [OF an] n show False
+      from divides_rexp[OF d, of "p - 1"] pS eq cong_dvd_iff [OF an] n show False
         by simp
     qed
     then have b1: "b \<ge> 1" by arith
-    from cong_imp_coprime_nat[OF Cong.cong_diff_nat[OF cong_sym_nat [OF b(1)] cong_refl_nat[of 1] b1]]
+    from cong_imp_coprime_nat[OF Cong.cong_diff_nat[OF cong_sym [OF b(1)] cong_refl [of 1] b1]]
       ath b1 b nqr
     have "coprime (a ^ ((n - 1) div p) - 1) n"
       by simp
@@ -820,7 +819,7 @@ proof -
   from div_mult_mod_eq[of "a^(n - 1)" n]
     mod_less_divisor[OF n0, of "a^(n - 1)"]
   have an1: "[a ^ (n - 1) = 1] (mod n)"
-    by (metis bqn cong_nat_def mod_mod_trivial)
+    by (metis bqn cong_def mod_mod_trivial)
   have "coprime (a ^ ((n - 1) div p) - 1) n" if p: "prime p" "p dvd q" for p
   proof -
     from psp psq have pfpsq: "primefact ps q"
@@ -853,10 +852,10 @@ proof -
     }
     then have *: "a ^ ((n - 1) div p) mod n \<noteq> 0" by auto
     have "[a ^ ((n - 1) div p) mod n = a ^ ((n - 1) div p)] (mod n)"
-      by (simp add: cong_nat_def)
+      by (simp add: cong_def)
     with ath[OF mod_less_eq_dividend *]
     have "[a ^ ((n - 1) div p) mod n - 1 = a ^ ((n - 1) div p) - 1] (mod n)"
-      by (metis cong_diff_nat cong_refl_nat)
+      by (simp add: cong_diff_nat)
     then show ?thesis
       by (metis cong_imp_coprime_nat eq1 p')
   qed

@@ -146,7 +146,7 @@ proof -
     for x y
   proof -
     from a have a': "[x * a = y * a](mod p)"
-      by (metis cong_int_def)
+      using cong_def by blast
     from p_a_relprime have "\<not>p dvd a"
       by (simp add: cong_altdef_int)
     with p_prime have "coprime a (int p)"
@@ -173,7 +173,7 @@ lemma inj_on_pminusx_E: "inj_on (\<lambda>x. p - x) E"
 
 lemma nonzero_mod_p: "0 < x \<Longrightarrow> x < int p \<Longrightarrow> [x \<noteq> 0](mod p)"
   for x :: int
-  by (simp add: cong_int_def)
+  by (simp add: cong_def)
 
 lemma A_ncong_p: "x \<in> A \<Longrightarrow> [x \<noteq> 0](mod p)"
   by (rule nonzero_mod_p) (auto simp add: A_def)
@@ -187,18 +187,21 @@ lemma B_ncong_p: "x \<in> B \<Longrightarrow> [x \<noteq> 0](mod p)"
 lemma B_greater_zero: "x \<in> B \<Longrightarrow> 0 < x"
   using a_nonzero by (auto simp add: B_def A_greater_zero)
 
-lemma C_greater_zero: "y \<in> C \<Longrightarrow> 0 < y"
-proof (auto simp add: C_def)
-  fix x :: int
-  assume x: "x \<in> B"
-  moreover from x have "x mod int p \<noteq> 0"
-    using B_ncong_p cong_int_def by simp
-  moreover have "int y = 0 \<or> 0 < int y" for y
-    by linarith
-  ultimately show "0 < x mod int p"
-    using B_greater_zero [of x]
+lemma B_mod_greater_zero:
+  "0 < x mod int p" if "x \<in> B"
+proof -
+  from that have "x mod int p \<noteq> 0"
+    using B_ncong_p cong_def cong_mult_self_left by blast
+  moreover from that have "0 < x"
+    by (rule B_greater_zero)
+  then have "0 \<le> x mod int p"
     by (auto simp add: mod_int_pos_iff intro: neq_le_trans)
+  ultimately show ?thesis
+    by simp
 qed
+
+lemma C_greater_zero: "y \<in> C \<Longrightarrow> 0 < y"
+  by (auto simp add: C_def B_mod_greater_zero)
 
 lemma F_subset: "F \<subseteq> {x. 0 < x \<and> x \<le> ((int p - 1) div 2)}"
   apply (auto simp add: F_def E_def C_def)
@@ -228,7 +231,7 @@ lemma A_prod_relprime: "gcd (prod id A) p = 1"
 subsection \<open>Relationships Between Gauss Sets\<close>
 
 lemma StandardRes_inj_on_ResSet: "ResSet m X \<Longrightarrow> inj_on (\<lambda>b. b mod m) X"
-  by (auto simp add: ResSet_def inj_on_def cong_int_def)
+  by (auto simp add: ResSet_def inj_on_def cong_def)
 
 lemma B_card_eq_A: "card B = card A"
   using finite_A by (simp add: finite_A B_def inj_on_xa_A card_image)
@@ -261,8 +264,8 @@ lemma C_B_zcong_prod: "[prod id C = prod id B] (mod p)"
   apply (insert finite_B SR_B_inj)
   apply (drule prod.reindex [of "\<lambda>x. x mod int p" B id])
   apply auto
-  apply (rule cong_prod_int)
-  apply (auto simp add: cong_int_def)
+  apply (rule cong_prod)
+  apply (auto simp add: cong_def)
   done
 
 lemma F_Un_D_subset: "(F \<union> D) \<subseteq> A"
@@ -273,11 +276,11 @@ proof (auto simp add: F_eq D_eq)
   fix y z :: int
   assume "p - (y * a) mod p = (z * a) mod p"
   then have "[(y * a) mod p + (z * a) mod p = 0] (mod p)"
-    by (metis add.commute diff_eq_eq dvd_refl cong_int_def dvd_eq_mod_eq_0 mod_0)
+    by (metis add.commute diff_eq_eq dvd_refl cong_def dvd_eq_mod_eq_0 mod_0)
   moreover have "[y * a = (y * a) mod p] (mod p)"
-    by (metis cong_int_def mod_mod_trivial)
+    by (metis cong_def mod_mod_trivial)
   ultimately have "[a * (y + z) = 0] (mod p)"
-    by (metis cong_int_def mod_add_left_eq mod_add_right_eq mult.commute ring_class.ring_distribs(1))
+    by (metis cong_def mod_add_left_eq mod_add_right_eq mult.commute ring_class.ring_distribs(1))
   with p_prime a_nonzero p_a_relprime have a: "[y + z = 0] (mod p)"
     by (auto dest!: cong_prime_prod_zero_int)
   assume b: "y \<in> A" and c: "z \<in> A"
@@ -314,12 +317,12 @@ proof -
     apply auto
     done
   then have "\<forall>x \<in> E. [(p-x) mod p = - x](mod p)"
-    by (metis cong_int_def minus_mod_self1 mod_mod_trivial)
+    by (metis cong_def minus_mod_self1 mod_mod_trivial)
   then have "[prod ((\<lambda>x. x mod p) o (op - p)) E = prod (uminus) E](mod p)"
-    using finite_E p_ge_2 cong_prod_int [of E "(\<lambda>x. x mod p) o (op - p)" uminus p]
+    using finite_E p_ge_2 cong_prod [of E "(\<lambda>x. x mod p) o (op - p)" uminus p]
     by auto
   then have two: "[prod id F = prod (uminus) E](mod p)"
-    by (metis FE cong_cong_mod_int cong_refl_int cong_prod_int minus_mod_self1)
+    by (metis FE cong_cong_mod_int cong_refl cong_prod minus_mod_self1)
   have "prod uminus E = (-1) ^ card E * prod id E"
     using finite_E by (induct set: finite) auto
   with two show ?thesis
@@ -330,18 +333,18 @@ qed
 subsection \<open>Gauss' Lemma\<close>
 
 lemma aux: "prod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = prod id A * a ^ card A"
-  by (metis (no_types) minus_minus mult.commute mult.left_commute power_minus power_one)
+  by auto
 
 theorem pre_gauss_lemma: "[a ^ nat((int p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
   have "[prod id A = prod id F * prod id D](mod p)"
     by (auto simp: prod_D_F_eq_prod_A mult.commute cong del: prod.strong_cong)
   then have "[prod id A = ((-1)^(card E) * prod id E) * prod id D] (mod p)"
-    by (rule cong_trans_int) (metis cong_scalar_int prod_F_zcong)
+    by (rule cong_trans) (metis cong_scalar_right prod_F_zcong)
   then have "[prod id A = ((-1)^(card E) * prod id C)] (mod p)"
-    by (metis C_prod_eq_D_times_E mult.commute mult.left_commute)
+    using finite_D finite_E by (auto simp add: ac_simps C_prod_eq_D_times_E C_eq D_E_disj prod.union_disjoint)
   then have "[prod id A = ((-1)^(card E) * prod id B)] (mod p)"
-    by (rule cong_trans_int) (metis C_B_zcong_prod cong_scalar2_int)
+    by (rule cong_trans) (metis C_B_zcong_prod cong_scalar_left)
   then have "[prod id A = ((-1)^(card E) * prod id ((\<lambda>x. x * a) ` A))] (mod p)"
     by (simp add: B_def)
   then have "[prod id A = ((-1)^(card E) * prod (\<lambda>x. x * a) A)] (mod p)"
@@ -351,20 +354,20 @@ proof -
   ultimately have "[prod id A = ((-1)^(card E) * (prod (\<lambda>x. a) A * prod id A))] (mod p)"
     by simp
   then have "[prod id A = ((-1)^(card E) * a^(card A) * prod id A)](mod p)"
-    by (rule cong_trans_int)
-      (simp add: cong_scalar2_int cong_scalar_int finite_A prod_constant mult.assoc)
+    by (rule cong_trans)
+      (simp add: cong_scalar_left cong_scalar_right finite_A prod_constant ac_simps)
   then have a: "[prod id A * (-1)^(card E) =
       ((-1)^(card E) * a^(card A) * prod id A * (-1)^(card E))](mod p)"
-    by (rule cong_scalar_int)
+    by (rule cong_scalar_right)
   then have "[prod id A * (-1)^(card E) = prod id A *
       (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)"
-    by (rule cong_trans_int) (simp add: a mult.commute mult.left_commute)
+    by (rule cong_trans) (simp add: a ac_simps)
   then have "[prod id A * (-1)^(card E) = prod id A * a^(card A)](mod p)"
-    by (rule cong_trans_int) (simp add: aux cong del: prod.strong_cong)
+    by (rule cong_trans) (simp add: aux cong del: prod.strong_cong)
   with A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
     by (metis cong_mult_lcancel_int)
   then show ?thesis
-    by (simp add: A_card_eq cong_sym_int)
+    by (simp add: A_card_eq cong_sym)
 qed
 
 theorem gauss_lemma: "Legendre a p = (-1) ^ (card E)"
@@ -376,7 +379,7 @@ proof -
   then have "[a ^ nat (int ((p - 1) div 2)) = a ^ nat ((int p - 1) div 2)] (mod int p)"
     by force
   ultimately have "[Legendre a p = (-1) ^ (card E)] (mod p)"
-    using pre_gauss_lemma cong_trans_int by blast
+    using pre_gauss_lemma cong_trans by blast
   moreover from p_a_relprime have "Legendre a p = 1 \<or> Legendre a p = -1"
     by (auto simp add: Legendre_def)
   moreover have "(-1::int) ^ (card E) = 1 \<or> (-1::int) ^ (card E) = -1"
@@ -384,7 +387,7 @@ proof -
   moreover have "[1 \<noteq> - 1] (mod int p)"
     using cong_altdef_int nonzero_mod_p[of 2] p_odd_int by fastforce
   ultimately show ?thesis
-    by (auto simp add: cong_sym_int)
+    by (auto simp add: cong_sym)
 qed
 
 end

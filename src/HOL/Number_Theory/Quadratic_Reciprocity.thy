@@ -146,9 +146,10 @@ proof -
     then have "(p * p_inv * kx) mod q = (p * p_inv * ky) mod q"
       by (simp add: algebra_simps)
     then have "kx mod q = ky mod q"
-      using p_inv mod_mult_cong[of "p * p_inv" "q" "1"] by (auto simp: cong_int_def)
+      using p_inv mod_mult_cong[of "p * p_inv" "q" "1"]
+      by (auto simp: cong_def)
     then have "[kx = ky] (mod q)"
-      unfolding cong_int_def by blast
+      unfolding cong_def by blast
     ultimately show ?thesis
       using cong_less_imp_eq_int k by blast
   qed
@@ -184,12 +185,21 @@ lemma P_1_lemma:
 proof -
   obtain y k1 k2 where yk: "y = nat (fst res) + k1 * p" "y = nat (snd res) + k2 * q"
     using chinese_remainder[of p q] pq_coprime p_ge_0 q_ge_0 by fastforce
-  have *: "[y = fst res] (mod p)" "[y = snd res] (mod q)"
-    using yk(1) assms(1) cong_iff_lin_int[of "fst res"] cong_sym_int apply simp
-    using yk(2) assms(3) cong_iff_lin_int[of "snd res"] cong_sym_int by simp
-  have "(y mod (int p * int q)) mod int p = fst res" "(y mod (int p * int q)) mod int q = snd res"
-    using *(1) mod_mod_cancel[of "int p"] assms(1) assms(2) cong_int_def apply simp
-    using *(2) mod_mod_cancel[of "int q"] assms(3) assms(4) cong_int_def by simp
+  have "fst res = int (y - k1 * p)"
+    using \<open>0 \<le> fst res\<close> yk(1) by simp
+  moreover have "snd res = int (y - k2 * q)"
+    using \<open>0 \<le> snd res\<close> yk(2) by simp
+  ultimately have res: "res = (int (y - k1 * p), int (y - k2 * q))"
+    by (simp add: prod_eq_iff)
+  have y: "k1 * p \<le> y" "k2 * q \<le> y"
+    using yk by simp_all
+  from y have *: "[y = nat (fst res)] (mod p)" "[y = nat (snd res)] (mod q)"
+    by (auto simp add: res cong_le_nat intro: exI [of _ k1] exI [of _ k2])
+  from * have "(y mod (int p * int q)) mod int p = fst res" "(y mod (int p * int q)) mod int q = snd res"
+    using y apply (auto simp add: res of_nat_mult [symmetric] of_nat_mod [symmetric] mod_mod_cancel simp del: of_nat_mult)
+     apply (metis \<open>fst res = int (y - k1 * p)\<close> assms(1) assms(2) cong_def mod_pos_pos_trivial nat_int of_nat_mod)
+    apply (metis \<open>snd res = int (y - k2 * q)\<close> assms(3) assms(4) cong_def mod_pos_pos_trivial nat_int of_nat_mod)
+    done
   then obtain x where "P_1 res x"
     unfolding P_1_def
     using Divides.pos_mod_bound Divides.pos_mod_sign pq_ge_0 by fastforce
@@ -320,7 +330,7 @@ qed
 lemma QR_lemma_08:
     "f_2 x mod p \<in> Res_l p \<longleftrightarrow> x mod p \<in> Res_h p"
     "f_2 x mod p \<in> Res_h p \<longleftrightarrow> x mod p \<in> Res_l p"
-  using f_2_lemma_2[of x] cong_int_def[of "f_2 x" "p - x" p] minus_mod_self2[of x p]
+  using f_2_lemma_2[of x] cong_def[of "f_2 x" "p - x" p] minus_mod_self2[of x p]
     zmod_zminus1_eq_if[of x p] p_eq2
   by auto
 
@@ -381,7 +391,7 @@ proof
       from that have *: "(fst x + (snd x - 1) * int p) mod int p = fst x"
         by force
       from that have "(fst x + (snd x - 1) * int p) div int p + 1 = snd x"
-        by (auto simp: div_pos_pos_trivial)
+        by auto
       with * show "f_3 (g_3 x) = x"
         by (simp add: f_3_def g_3_def)
     qed
