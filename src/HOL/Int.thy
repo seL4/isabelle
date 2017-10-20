@@ -552,6 +552,10 @@ lemma (in ring_1) of_nat_nat [simp]: "0 \<le> z \<Longrightarrow> of_nat (nat z)
 lemma diff_nat_numeral [simp]: "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
   by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
 
+lemma nat_abs_triangle_ineq:
+  "nat \<bar>k + l\<bar> \<le> nat \<bar>k\<bar> + nat \<bar>l\<bar>"
+  by (simp add: nat_add_distrib [symmetric] nat_le_eq_zle abs_triangle_ineq)
+
 lemma nat_of_bool [simp]:
   "nat (of_bool P) = of_bool P"
   by auto

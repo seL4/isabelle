@@ -128,6 +128,18 @@ lemma unit_imp_mod_eq_0:
 end
 
 class euclidean_ring = idom_modulo + euclidean_semiring
+begin
+
+lemma dvd_diff_commute:
+  "a dvd c - b \<longleftrightarrow> a dvd b - c"
+proof -
+  have "a dvd c - b \<longleftrightarrow> a dvd (c - b) * - 1"
+    by (subst dvd_mult_unit_iff) simp_all
+  then show ?thesis
+    by simp
+qed
+ 
+end
 
 
 subsection \<open>Euclidean (semi)rings with cancel rules\<close>
@@ -711,6 +723,21 @@ next
     by simp
 qed
 
+lemma div_eq_0_iff:
+  "a div b = 0 \<longleftrightarrow> euclidean_size a < euclidean_size b \<or> b = 0" (is "_ \<longleftrightarrow> ?P")
+  if "division_segment a = division_segment b"
+proof
+  assume ?P
+  with that show "a div b = 0"
+    by (cases "b = 0") (auto intro: div_eqI)
+next
+  assume "a div b = 0"
+  then have "a mod b = a"
+    using div_mult_mod_eq [of a b] by simp
+  with mod_size_less [of b a] show ?P
+    by auto
+qed
+
 end
 
 class unique_euclidean_ring = euclidean_ring + unique_euclidean_semiring
@@ -954,7 +981,7 @@ lemma mod_if:
 
 lemma div_eq_0_iff:
   "m div n = 0 \<longleftrightarrow> m < n \<or> n = 0" for m n :: nat
-  by (simp add: div_if)
+  by (simp add: div_eq_0_iff)
 
 lemma div_greater_zero_iff:
   "m div n > 0 \<longleftrightarrow> n \<le> m \<and> n > 0" for m n :: nat

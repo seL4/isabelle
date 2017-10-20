@@ -125,7 +125,6 @@ by (simp add: one_def Rep_Abs_1)
 lemma Rep_mod: "Rep x mod n = Rep x"
 apply (rule_tac x=x in type_definition.Abs_cases [OF type])
 apply (simp add: type_definition.Abs_inverse [OF type])
-apply (simp add: mod_pos_pos_trivial)
 done
 
 lemmas Rep_simps =

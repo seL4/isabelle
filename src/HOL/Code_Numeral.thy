@@ -578,16 +578,15 @@ lemma nat_of_integer_code [code]:
        l'' = l' + l'
      in if j = 0 then l'' else l'' + 1)"
 proof -
-  obtain j where "k = integer_of_int j"
+  obtain j where k: "k = integer_of_int j"
   proof
     show "k = integer_of_int (int_of_integer k)" by simp
   qed
-  moreover have "2 * (j div 2) = j - j mod 2"
-    by (simp add: minus_mod_eq_mult_div [symmetric] mult.commute)
-  ultimately show ?thesis
-    by (auto simp add: split_def Let_def modulo_integer_def nat_of_integer_def not_le
-      nat_add_distrib [symmetric] Suc_nat_eq_nat_zadd1)
-      (auto simp add: mult_2 [symmetric])
+  have *: "nat j mod 2 = nat_of_integer (of_int j mod 2)" if "j \<ge> 0"
+    using that by transfer (simp add: nat_mod_distrib)
+  from k show ?thesis
+    by (auto simp add: split_def Let_def nat_of_integer_def nat_div_distrib mult_2 [symmetric]
+      minus_mod_eq_mult_div [symmetric] *)
 qed
 
 lemma int_of_integer_code [code]:

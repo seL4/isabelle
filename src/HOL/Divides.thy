@@ -501,15 +501,13 @@ lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
 
 subsubsection \<open>General Properties of div and mod\<close>
 
-lemma div_pos_pos_trivial: "[| (0::int) \<le> a;  a < b |] ==> a div b = 0"
-apply (rule div_int_unique)
-apply (auto simp add: eucl_rel_int_iff)
-done
+lemma div_pos_pos_trivial [simp]:
+  "k div l = 0" if "k \<ge> 0" and "k < l" for k l :: int
+  using that by (auto intro!: div_int_unique [of _ _ _ k] simp add: eucl_rel_int_iff)
 
-lemma div_neg_neg_trivial: "[| a \<le> (0::int);  b < a |] ==> a div b = 0"
-apply (rule div_int_unique)
-apply (auto simp add: eucl_rel_int_iff)
-done
+lemma div_neg_neg_trivial [simp]:
+  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (auto intro!: div_int_unique [of _ _ _ k] simp add: eucl_rel_int_iff)
 
 lemma div_pos_neg_trivial: "[| (0::int) < a;  a+b \<le> 0 |] ==> a div b = -1"
 apply (rule div_int_unique)
@@ -522,15 +520,13 @@ lemma div_positive_int:
 
 (*There is no div_neg_pos_trivial because  0 div b = 0 would supersede it*)
 
-lemma mod_pos_pos_trivial: "[| (0::int) \<le> a;  a < b |] ==> a mod b = a"
-apply (rule_tac q = 0 in mod_int_unique)
-apply (auto simp add: eucl_rel_int_iff)
-done
+lemma mod_pos_pos_trivial [simp]:
+  "k mod l = k" if "k \<ge> 0" and "k < l" for k l :: int
+  using that by (auto intro!: mod_int_unique [of _ _ 0] simp add: eucl_rel_int_iff)
 
-lemma mod_neg_neg_trivial: "[| a \<le> (0::int);  b < a |] ==> a mod b = a"
-apply (rule_tac q = 0 in mod_int_unique)
-apply (auto simp add: eucl_rel_int_iff)
-done
+lemma mod_neg_neg_trivial [simp]:
+  "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (auto intro!: mod_int_unique [of _ _ 0] simp add: eucl_rel_int_iff)
 
 lemma mod_pos_neg_trivial: "[| (0::int) < a;  a+b \<le> 0 |] ==> a mod b = a+b"
 apply (rule_tac q = "-1" in mod_int_unique)
@@ -775,38 +771,22 @@ text\<open>The proofs of the two lemmas below are essentially identical\<close>
 lemma split_pos_lemma:
  "0<k ==>
     P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i j)"
-apply (rule iffI, clarify)
- apply (erule_tac P="P x y" for x y in rev_mp)
- apply (subst mod_add_eq [symmetric])
- apply (subst zdiv_zadd1_eq)
- apply (simp add: div_pos_pos_trivial mod_pos_pos_trivial)
-txt\<open>converse direction\<close>
-apply (drule_tac x = "n div k" in spec)
-apply (drule_tac x = "n mod k" in spec, simp)
-done
+  by auto
 
 lemma split_neg_lemma:
  "k<0 ==>
     P(n div k :: int)(n mod k) = (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i j)"
-apply (rule iffI, clarify)
- apply (erule_tac P="P x y" for x y in rev_mp)
- apply (subst mod_add_eq [symmetric])
- apply (subst zdiv_zadd1_eq)
- apply (simp add: div_neg_neg_trivial mod_neg_neg_trivial)
-txt\<open>converse direction\<close>
-apply (drule_tac x = "n div k" in spec)
-apply (drule_tac x = "n mod k" in spec, simp)
-done
+  by auto
 
 lemma split_zdiv:
  "P(n div k :: int) =
   ((k = 0 --> P 0) &
    (0<k --> (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i)) &
    (k<0 --> (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i)))"
-apply (case_tac "k=0", simp)
+  apply (cases "k = 0")
+  apply simp
 apply (simp only: linorder_neq_iff)
-apply (erule disjE)
- apply (simp_all add: split_pos_lemma [of concl: "%x y. P x"]
+ apply (auto simp add: split_pos_lemma [of concl: "%x y. P x"]
                       split_neg_lemma [of concl: "%x y. P x"])
 done
 
@@ -897,14 +877,17 @@ lemma zmod_numeral_Bit1 [simp]:
   by (rule pos_zmod_mult_2, simp)
 
 lemma zdiv_eq_0_iff:
- "(i::int) div k = 0 \<longleftrightarrow> k=0 \<or> 0\<le>i \<and> i<k \<or> i\<le>0 \<and> k<i" (is "?L = ?R")
+  "i div k = 0 \<longleftrightarrow> k = 0 \<or> 0 \<le> i \<and> i < k \<or> i \<le> 0 \<and> k < i" (is "?L = ?R")
+  for i k :: int
 proof
   assume ?L
-  have "?L \<longrightarrow> ?R" by (rule split_zdiv[THEN iffD2]) simp
-  with \<open>?L\<close> show ?R by blast
+  moreover have "?L \<longrightarrow> ?R"
+    by (rule split_zdiv [THEN iffD2]) simp
+  ultimately show ?R
+    by blast
 next
-  assume ?R thus ?L
-    by(auto simp: div_pos_pos_trivial div_neg_neg_trivial)
+  assume ?R then show ?L
+    by auto
 qed
 
 lemma zmod_trival_iff:
@@ -1004,7 +987,7 @@ where
 
 instance
   by standard (auto intro: zmod_le_nonneg_dividend simp add: divmod_int_def divmod_step_int_def
-    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial zmod_zmult2_eq zdiv_zmult2_eq)
+    pos_imp_zdiv_pos_iff zmod_zmult2_eq zdiv_zmult2_eq)
 
 end
 

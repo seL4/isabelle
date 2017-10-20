@@ -239,7 +239,6 @@ lemma normalize_quot_0 [simp]:
   
 lemma normalize_quot_eq_0_iff [simp]: "fst (normalize_quot x) = 0 \<longleftrightarrow> fst x = 0 \<or> snd x = 0"
   by (auto simp: normalize_quot_def case_prod_unfold Let_def div_mult_unit2 dvd_div_eq_0_iff)
-  find_theorems "_ div _ = 0"
   
 lemma fst_quot_of_fract_0_imp: "fst (quot_of_fract x) = 0 \<Longrightarrow> snd (quot_of_fract x) = 1"
   by transfer auto
