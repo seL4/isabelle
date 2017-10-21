@@ -2259,7 +2259,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma take_update_swap: "n < m \<Longrightarrow> take m (xs[n := x]) = (take m xs)[n := x]"
+lemma take_update_swap: "take m (xs[n := x]) = (take m xs)[n := x]"
 apply(cases "n \<ge> length xs")
  apply simp
 apply(simp add: upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc
