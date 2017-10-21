@@ -4911,13 +4911,13 @@ shows "sorted_wrt P (xs @ ys) \<longleftrightarrow>
   sorted_wrt P xs \<and> sorted_wrt P ys \<and> (\<forall>x\<in>set xs. \<forall>y\<in>set ys. P x y)"  
 by (induction xs) (auto simp: sorted_wrt_Cons[OF assms])
 
-lemma sorted_wrt_rev: assumes "transp P"
-shows "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
-proof(induction xs rule: sorted_wrt_induct)
-  case 3 thus ?case
-    by(simp add: sorted_wrt_append sorted_wrt_Cons assms)
-      (meson assms transpD)
-qed simp_all
+lemma sorted_wrt_backwards:
+  "sorted_wrt P (xs @ [y, z]) = (P y z \<and> sorted_wrt P (xs @ [y]))"
+by (induction xs rule: sorted_wrt_induct) auto
+
+lemma sorted_wrt_rev:
+  "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
+by (induction xs rule: sorted_wrt_induct) (simp_all add: sorted_wrt_backwards)
 
 lemma sorted_wrt_mono:
   "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
