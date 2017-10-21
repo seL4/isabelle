@@ -4902,9 +4902,8 @@ shows   "sorted_wrt P (x # xs) = ((\<forall>y \<in> set xs. P x y) \<and> sorted
 by(induction xs arbitrary: x)(auto intro: transpD[OF assms])
 
 lemma sorted_wrt_ConsI:
-  "\<lbrakk> transp P; \<And>y. y \<in> set xs \<Longrightarrow> P x y; sorted_wrt P xs \<rbrakk> \<Longrightarrow>
-  sorted_wrt P (x # xs)"
-by (simp add: sorted_wrt_Cons)
+  "\<lbrakk> \<And>y. y \<in> set xs \<Longrightarrow> P x y; sorted_wrt P xs \<rbrakk> \<Longrightarrow> sorted_wrt P (x # xs)"
+by (induction xs rule: sorted_wrt_induct) simp_all
 
 lemma sorted_wrt_append:
 assumes "transp P"
