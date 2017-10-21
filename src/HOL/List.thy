@@ -295,7 +295,7 @@ text\<open>
 @{lemma "product_lists [[a,b], [c], [d,e]] = [[a,c,d], [a,c,e], [b,c,d], [b,c,e]]" by simp}\\
 @{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" by simp}\\
 @{lemma "splice [a,b,c,d] [x,y] = [a,x,b,y,c,d]" by simp}\\
-@{lemma "shuffle [a,b] [c,d] =  {[a,b,c,d],[a,c,b,d],[a,c,d,b],[c,a,b,d],[c,a,d,b],[c,d,a,b]}" 
+@{lemma "shuffle [a,b] [c,d] =  {[a,b,c,d],[a,c,b,d],[a,c,d,b],[c,a,b,d],[c,a,d,b],[c,d,a,b]}"
     by (simp add: insert_commute)}\\
 @{lemma "take 2 [a,b,c,d] = [a,b]" by simp}\\
 @{lemma "take 6 [a,b,c,d] = [a,b,c,d]" by simp}\\
@@ -4557,13 +4557,13 @@ lemma Cons_in_shuffle_iff:
     (xs \<noteq> [] \<and> hd xs = z \<and> zs \<in> shuffle (tl xs) ys \<or>
      ys \<noteq> [] \<and> hd ys = z \<and> zs \<in> shuffle xs (tl ys))"
   by (induct xs ys rule: shuffle.induct) auto
-  
+
 lemma splice_in_shuffle [simp, intro]: "splice xs ys \<in> shuffle xs ys"
   by (induction xs ys rule: splice.induct) (simp_all add: Cons_in_shuffle_iff)
 
-lemma Nil_in_shuffleI: "xs = [] \<Longrightarrow> ys = [] \<Longrightarrow> [] \<in> shuffle xs ys" 
+lemma Nil_in_shuffleI: "xs = [] \<Longrightarrow> ys = [] \<Longrightarrow> [] \<in> shuffle xs ys"
   by simp
-    
+
 lemma Cons_in_shuffle_leftI: "zs \<in> shuffle xs ys \<Longrightarrow> z # zs \<in> shuffle (z # xs) ys"
   by (cases ys) auto
 
@@ -4572,10 +4572,10 @@ lemma Cons_in_shuffle_rightI: "zs \<in> shuffle xs ys \<Longrightarrow> z # zs \
 
 lemma finite_shuffle [simp, intro]: "finite (shuffle xs ys)"
   by (induction xs ys rule: shuffle.induct) simp_all
-    
+
 lemma length_shuffle: "zs \<in> shuffle xs ys \<Longrightarrow> length zs = length xs + length ys"
   by (induction xs ys arbitrary: zs rule: shuffle.induct) auto
-  
+
 lemma set_shuffle: "zs \<in> shuffle xs ys \<Longrightarrow> set zs = set xs \<union> set ys"
   by (induction xs ys arbitrary: zs rule: shuffle.induct) auto
 
@@ -4594,10 +4594,10 @@ qed simp_all
 
 lemma shuffle_commutes: "shuffle xs ys = shuffle ys xs"
   by (induction xs ys rule: shuffle.induct) (simp_all add: Un_commute)
-    
+
 lemma Cons_shuffle_subset1: "op # x ` shuffle xs ys \<subseteq> shuffle (x # xs) ys"
   by (cases ys) auto
-    
+
 lemma Cons_shuffle_subset2: "op # y ` shuffle xs ys \<subseteq> shuffle xs (y # ys)"
   by (cases xs) auto
 
@@ -4608,7 +4608,7 @@ proof -
     by (auto simp: image_image)
   show ?thesis
   by (induction xs ys rule: shuffle.induct)
-     (simp_all split: if_splits add: image_Un * Un_absorb1 Un_absorb2 
+     (simp_all split: if_splits add: image_Un * Un_absorb1 Un_absorb2
            Cons_shuffle_subset1 Cons_shuffle_subset2)
 qed
 
@@ -4638,7 +4638,7 @@ qed
 lemma filter_shuffle_disjoint2:
   assumes "set xs \<inter> set ys = {}" "zs \<in> shuffle xs ys"
   shows   "filter (\<lambda>x. x \<in> set ys) zs = ys" "filter (\<lambda>x. x \<notin> set ys) zs = xs"
-  using filter_shuffle_disjoint1[of ys xs zs] assms 
+  using filter_shuffle_disjoint1[of ys xs zs] assms
   by (simp_all add: shuffle_commutes Int_commute)
 
 lemma partition_in_shuffle:
@@ -4669,7 +4669,7 @@ lemma inv_image_partition:
 proof (intro equalityI subsetI)
   fix zs assume zs: "zs \<in> shuffle xs ys"
   hence [simp]: "set zs = set xs \<union> set ys" by (rule set_shuffle)
-  from assms have "filter P zs = filter (\<lambda>x. x \<in> set xs) zs" 
+  from assms have "filter P zs = filter (\<lambda>x. x \<in> set xs) zs"
                   "filter (\<lambda>x. \<not>P x) zs = filter (\<lambda>x. x \<in> set ys) zs"
     by (intro filter_cong refl; force)+
   moreover from assms have "set xs \<inter> set ys = {}" by auto
@@ -4908,7 +4908,7 @@ by (induction xs rule: sorted_wrt_induct) simp_all
 lemma sorted_wrt_append:
 assumes "transp P"
 shows "sorted_wrt P (xs @ ys) \<longleftrightarrow>
-  sorted_wrt P xs \<and> sorted_wrt P ys \<and> (\<forall>x\<in>set xs. \<forall>y\<in>set ys. P x y)"  
+  sorted_wrt P xs \<and> sorted_wrt P ys \<and> (\<forall>x\<in>set xs. \<forall>y\<in>set ys. P x y)"
 by (induction xs) (auto simp: sorted_wrt_Cons[OF assms])
 
 lemma sorted_wrt_backwards:
@@ -4923,7 +4923,7 @@ lemma sorted_wrt_mono:
   "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
 by(induction xs rule: sorted_wrt_induct)(auto)
 
-text \<open>Strictly Ascending Sequences of Natural Numbers\<close>    
+text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
 
 lemma sorted_wrt_upt[simp]: "sorted_wrt (op <) [0..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
@@ -4938,7 +4938,7 @@ next
   case snoc
   thus ?case
     by (auto simp: nth_append sorted_wrt_append)
-       (metis less_antisym not_less nth_mem)  
+       (metis less_antisym not_less nth_mem)
 qed
 
 
@@ -5356,20 +5356,20 @@ lemma sort_key_stable:
   "x \<in> set xs \<Longrightarrow> [y <- sort_key f xs. f y = f x] = [y <- xs. f y = f x]"
 proof (induction xs arbitrary: x)
   case Nil thus ?case by simp
-next  
+next
   case (Cons a xs)
-  thus ?case 
+  thus ?case
   proof (cases "x \<in> set xs")
-    case True 
+    case True
     thus ?thesis
     proof (cases "f a = f x")
-      case False thus ?thesis 
+      case False thus ?thesis
         using Cons.IH by (metis (mono_tags) True filter.simps(2) filter_sort)
     next
       case True
       hence ler: "[y <- (a # xs). f y = f x] = a # [y <- xs. f y = f a]" by simp
       have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
-      hence "insort_key f a (sort_key f [y <- xs. f y = f a]) 
+      hence "insort_key f a (sort_key f [y <- xs. f y = f a])
               = a # (sort_key f [y <- xs. f y = f a])"
         by (simp add: insort_is_Cons)
       hence lel: "[y <- sort_key f (a # xs). f y = f x] = a # [y <- sort_key f xs. f y = f a]"
@@ -5381,7 +5381,7 @@ next
     from Cons.prems have "x = a" by (metis False set_ConsD)
     have ler: "[y <- (a # xs). f y = f a] = a # [y <- xs. f y = f a]" by simp
     have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
-    hence "insort_key f a (sort_key f [y <- xs. f y = f a]) 
+    hence "insort_key f a (sort_key f [y <- xs. f y = f a])
            = a # (sort_key f [y <- xs. f y = f a])"
       by (simp add: insort_is_Cons)
     hence lel: "[y <- sort_key f (a # xs). f y = f a] = a # [y <- sort_key f xs. f y = f a]"
@@ -5397,7 +5397,7 @@ next
       case True
       then obtain z where Z: "z \<in> set xs \<and> f z = f a" by auto
       hence L: "[y <- sort_key f xs. f y = f z] = [y <- sort_key f xs. f y = f a]" by simp
-      from Z have R: "[y <- xs. f y = f z] = [y <- xs. f y = f a]" by simp 
+      from Z have R: "[y <- xs. f y = f z] = [y <- xs. f y = f a]" by simp
       from L R Z show ?thesis using Cons.IH ler lel \<open>x=a\<close> by metis
     qed
   qed
@@ -7315,7 +7315,7 @@ lemma rotate_transfer [transfer_rule]:
 lemma nths_transfer [transfer_rule]:
   "(list_all2 A ===> rel_set (op =) ===> list_all2 A) nths nths"
   unfolding nths_def [abs_def] by transfer_prover
-    
+
 lemma subseqs_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 (list_all2 A)) subseqs subseqs"
   unfolding subseqs_def [abs_def] by transfer_prover
@@ -7365,7 +7365,7 @@ lemma splice_transfer [transfer_rule]:
   apply (rule rel_funI)
   apply (erule_tac xs=x in list_all2_induct, simp, simp add: rel_fun_def)
   done
-    
+
 lemma shuffle_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A ===> rel_set (list_all2 A)) shuffle shuffle"
 proof (intro rel_funI, goal_cases)
@@ -7384,7 +7384,7 @@ proof (intro rel_funI, goal_cases)
                (op # x' ` shuffle xs'' ys' \<union> op # y' ` shuffle xs' ys'')" by transfer_prover
     thus ?case by (simp add: xs' ys')
   qed (auto simp: rel_set_def)
-qed 
+qed
 
 lemma rtrancl_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A" "bi_total A"
