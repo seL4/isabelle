@@ -192,10 +192,12 @@ object Isabelle_Cronjob
   {
     List(
       List(Remote_Build("Poly/ML 5.7.1 Linux", "lxbroy8",
-        history_base = "37074e22e8be",
-        options = "-m32 -B -M1x2,2 -t polyml-5.7.1-pre1 -i 'init_component /home/isabelle/contrib/polyml-test-e7a662f8f9c4'",
+        history_base = "a9d5b59c3e12",
+        options = "-m32 -B -M1x2,2 -t polyml-5.7.1-pre2 -i 'init_component /home/isabelle/contrib/polyml-test-905dae2ebfda'",
         args = "-N -g timing",
-        detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1"))),
+        detect =
+          Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
+          Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2"))),
       List(Remote_Build("Linux A", "lxbroy9",
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
@@ -214,10 +216,12 @@ object Isabelle_Cronjob
           options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs")),
         Remote_Build("Poly/ML 5.7.1 Mac OS X", "macbroy2",
-          history_base = "37074e22e8be",
-          options = "-m32 -B -M1x4,4 -t polyml-5.7.1-pre1 -i 'init_component /home/isabelle/contrib/polyml-test-e7a662f8f9c4'",
+          history_base = "a9d5b59c3e12",
+          options = "-m32 -B -M1x4,4 -t polyml-5.7.1-pre2 -i 'init_component /home/isabelle/contrib/polyml-test-905dae2ebfda'",
           args = "-a",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1"))),
+          detect =
+          Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre1") + " OR " +
+          Build_Log.Prop.build_tags + " = " + SQL.string("polyml-5.7.1-pre2"))),
       List(
         Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
