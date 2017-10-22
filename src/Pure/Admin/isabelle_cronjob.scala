@@ -130,13 +130,6 @@ object Isabelle_Cronjob
     def profile: Build_Status.Profile =
       Build_Status.Profile(description, history = history, afp = afp, sql = sql)
 
-    def history_base_filter(hg: Mercurial.Repository): Item => Boolean =
-    {
-      val rev0 = hg.id(history_base)
-      val nodes = hg.graph().all_succs(List(rev0)).toSet
-      (item: Item) => nodes(item.isabelle_version)
-    }
-
     def pick(
       options: Options,
       rev: String = "",
@@ -437,7 +430,15 @@ object Isabelle_Cronjob
     File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
     val hg = Mercurial.repository(isabelle_repos)
+    val hg_graph = hg.graph()
     val rev = hg.id()
+
+    def history_base_filter(r: Remote_Build): Item => Boolean =
+    {
+      val base_rev = hg.id(r.history_base)
+      val nodes = hg_graph.all_succs(List(base_rev)).toSet
+      (item: Item) => nodes(item.isabelle_version)
+    }
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
@@ -447,7 +448,7 @@ object Isabelle_Cronjob
               SEQ(
                 for {
                   (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
-                  (isabelle_rev, afp_rev) <- r.pick(logger.options, rev, r.history_base_filter(hg))
+                  (isabelle_rev, afp_rev) <- r.pick(logger.options, rev, history_base_filter(r))
                 } yield remote_build_history(isabelle_rev, afp_rev, i, r)))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
