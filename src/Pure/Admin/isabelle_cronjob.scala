@@ -188,7 +188,7 @@ object Isabelle_Cronjob
         detect = Build_Log.Prop.build_start + " < date '2017-03-03'"))
 
 
-  val remote_builds: List[List[Remote_Build]] =
+  val remote_builds1: List[List[Remote_Build]] =
   {
     List(
       List(Remote_Build("Poly/ML 5.7.1 Linux", "lxbroy8",
@@ -237,12 +237,6 @@ object Isabelle_Cronjob
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))),
-      List(
-        Remote_Build("AFP slow", "lrzcloud1", shared_home = false,
-          options = "-m64 -M6 -U30000 -s10 -t AFP",
-          args = "-g slow",
-          afp = true,
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
     ) :::
     {
       for { (host, n) <- List("lxbroy6" -> 1, "lxbroy7" -> 2) }
@@ -255,6 +249,15 @@ object Isabelle_Cronjob
       }
     }
   }
+
+  val remote_builds2: List[List[Remote_Build]] =
+    List(
+      List(
+        Remote_Build("AFP slow", "lrzcloud1", shared_home = false,
+          options = "-m64 -M6 -U30000 -s10 -t AFP",
+          args = "-g slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
 
   private def remote_build_history(
     rev: String, afp_rev: Option[String], i: Int, r: Remote_Build): Logger_Task =
@@ -291,7 +294,7 @@ object Isabelle_Cronjob
   }
 
   val build_status_profiles: List[Build_Status.Profile] =
-    (remote_builds_old :: remote_builds).flatten.map(_.profile)
+    (remote_builds_old :: remote_builds1 ::: remote_builds2).flatten.map(_.profile)
 
 
 
@@ -450,17 +453,19 @@ object Isabelle_Cronjob
       Logger_Task("isabelle_cronjob", logger =>
         run_now(
           SEQ(List(build_release, build_history_base,
-            PAR(remote_builds.map(seq =>
-              SEQ(
-                for {
-                  (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
-                  (isabelle_rev, afp_rev) <- r.pick(logger.options, rev, history_base_filter(r))
-                } yield remote_build_history(isabelle_rev, afp_rev, i, r)))),
-            Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
-            Logger_Task("build_log_database",
-              logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
-            Logger_Task("build_status",
-              logger => Isabelle_Devel.build_status(logger.options)))))))
+            PAR(List(remote_builds1, remote_builds2).map(remote_builds =>
+              SEQ(List(
+                PAR(remote_builds.map(seq =>
+                  SEQ(
+                    for {
+                      (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
+                      (isabelle_rev, afp_rev) <- r.pick(logger.options, rev, history_base_filter(r))
+                    } yield remote_build_history(isabelle_rev, afp_rev, i, r)))),
+                Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
+                Logger_Task("build_log_database",
+                  logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
+                Logger_Task("build_status",
+                  logger => Isabelle_Devel.build_status(logger.options)))))))))))
 
     log_service.shutdown()
 
