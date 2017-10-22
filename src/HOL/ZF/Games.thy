@@ -153,7 +153,7 @@ proof -
   }
   note games = this
   show ?thesis
-    apply (rule iff[rule_format])
+    apply (rule iffI)
     apply (erule games)
     apply (simp add: games_lfp_unfold[symmetric])
     done
