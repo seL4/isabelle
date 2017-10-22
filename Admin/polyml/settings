@@ -48,15 +48,19 @@ do
 
       case "$ML_PLATFORM" in
         x86_64-windows)
+          POLYML_EXE="$ML_HOME/poly.exe"
           ML_OPTIONS="-H 1000 --codepage utf8"
           ;;
         x86-windows)
+          POLYML_EXE="$ML_HOME/poly.exe"
           ML_OPTIONS="-H 500 --codepage utf8"
           ;;
         x86_64-*)
+          POLYML_EXE="$ML_HOME/poly"
           ML_OPTIONS="-H 1000"
           ;;
         *)
+          POLYML_EXE="$ML_HOME/poly"
           ML_OPTIONS="-H 500"
           ;;
       esac

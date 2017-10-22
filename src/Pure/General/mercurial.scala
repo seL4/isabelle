@@ -16,6 +16,9 @@ import scala.collection.mutable
 
 object Mercurial
 {
+  type Graph = isabelle.Graph[String, Unit]
+
+
   /* command-line syntax */
 
   def optional(s: String, prefix: String = ""): String =
@@ -119,7 +122,7 @@ object Mercurial
     def known_files(): List[String] =
       hg.command("status", options = "--modified --added --clean --no-status").check.out_lines
 
-    def graph(): Graph[String, Unit] =
+    def graph(): Graph =
     {
       val Node = """^node: (\w{12}) (\w{12}) (\w{12})""".r
       val log_result =
