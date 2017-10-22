@@ -15,9 +15,6 @@ object Isabelle_Devel
   val BUILD_LOG_DB = "build_log.db"
   val BUILD_STATUS = "build_status"
 
-  val standard_log_dirs =
-    List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
-
 
   /* index */
 
@@ -67,7 +64,7 @@ object Isabelle_Devel
 
   /* maintain build_log database */
 
-  def build_log_database(options: Options, log_dirs: List[Path] = standard_log_dirs)
+  def build_log_database(options: Options, log_dirs: List[Path])
   {
     val store = Build_Log.store(options)
     using(store.open_database())(db =>

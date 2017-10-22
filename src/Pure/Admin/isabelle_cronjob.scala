@@ -26,6 +26,9 @@ object Isabelle_Cronjob
 
   val jenkins_jobs = "identify" :: Jenkins.build_log_jobs
 
+  val build_log_dirs =
+    List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
+
 
 
   /** particular tasks **/
@@ -452,7 +455,7 @@ object Isabelle_Cronjob
                 } yield remote_build_history(isabelle_rev, afp_rev, i, r)))),
             Logger_Task("jenkins_logs", _ => Jenkins.download_logs(jenkins_jobs, main_dir)),
             Logger_Task("build_log_database",
-              logger => Isabelle_Devel.build_log_database(logger.options)),
+              logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
             Logger_Task("build_status",
               logger => Isabelle_Devel.build_status(logger.options)))))))
 
