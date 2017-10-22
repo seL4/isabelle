@@ -55,6 +55,15 @@ ML \<open>
 
 subsection \<open>Primitive logic\<close>
 
+text \<open>
+The definition of the logic is based on Mike Gordon's technical report \cite{Gordon-TR68} that
+describes the first implementation of HOL. However, there are a number of differences.
+In particular, we start with the definite description operator and introduce Hilbert's \<open>\<epsilon>\<close> operator
+only much later. Moreover, axiom \<open>(P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P) \<longrightarrow> (P = Q)\<close> is derived from the other
+axioms. The fact that this axiom is derivable was first noticed by Bruno Barras (for Mike Gordon's
+line of HOL systems) and later independently by Alexander Maletzky (for Isabelle/HOL).
+\<close>
+
 subsubsection \<open>Core syntax\<close>
 
 setup \<open>Axclass.class_axiomatization (@{binding type}, [])\<close>
@@ -195,7 +204,6 @@ axiomatization where
   impI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<longrightarrow> Q" and
   mp: "\<lbrakk>P \<longrightarrow> Q; P\<rbrakk> \<Longrightarrow> Q" and
 
-  iff: "(P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P) \<longrightarrow> (P = Q)" and
   True_or_False: "(P = True) \<or> (P = False)"
 
 definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
@@ -283,9 +291,6 @@ ML \<open>fun cong_tac ctxt = Cong_Tac.cong_tac ctxt @{thm cong}\<close>
 
 subsubsection \<open>Equality of booleans -- iff\<close>
 
-lemma iffI: assumes "P \<Longrightarrow> Q" and "Q \<Longrightarrow> P" shows "P = Q"
-  by (iprover intro: iff [THEN mp, THEN mp] impI assms)
-
 lemma iffD2: "\<lbrakk>P = Q; Q\<rbrakk> \<Longrightarrow> P"
   by (erule ssubst)
 
@@ -305,24 +310,16 @@ lemma iffE:
   by (iprover intro: minor impI major [THEN iffD2] major [THEN iffD1])
 
 
-subsubsection \<open>True\<close>
+subsubsection \<open>True (1)\<close>
 
 lemma TrueI: True
   unfolding True_def by (rule refl)
-
-lemma eqTrueI: "P \<Longrightarrow> P = True"
-  by (iprover intro: iffI TrueI)
 
 lemma eqTrueE: "P = True \<Longrightarrow> P"
   by (erule iffD2) (rule TrueI)
 
 
-subsubsection \<open>Universal quantifier\<close>
-
-lemma allI:
-  assumes "\<And>x::'a. P x"
-  shows "\<forall>x. P x"
-  unfolding All_def by (iprover intro: ext eqTrueI assms)
+subsubsection \<open>Universal quantifier (1)\<close>
 
 lemma spec: "\<forall>x::'a. P x \<Longrightarrow> P x"
   apply (unfold All_def)
@@ -420,6 +417,70 @@ lemma eq_neq_eq_imp_neq: "\<lbrakk>x = a; a \<noteq> b; b = y\<rbrakk> \<Longrig
   by (erule subst, erule ssubst, assumption)
 
 
+subsubsection \<open>Disjunction (1)\<close>
+
+lemma disjE:
+  assumes major: "P \<or> Q"
+    and minorP: "P \<Longrightarrow> R"
+    and minorQ: "Q \<Longrightarrow> R"
+  shows R
+  by (iprover intro: minorP minorQ impI
+      major [unfolded or_def, THEN spec, THEN mp, THEN mp])
+
+
+subsubsection \<open>Derivation of \<open>iffI\<close>\<close>
+
+text \<open>In an intuitionistic version of HOL \<open>iffI\<close> needs to be an axiom.\<close>
+
+lemma iffI:
+  assumes "P \<Longrightarrow> Q" and "Q \<Longrightarrow> P"
+  shows "P = Q"
+proof (rule disjE[OF True_or_False[of P]])
+  assume 1: "P = True"
+  note Q = assms(1)[OF eqTrueE[OF this]]
+  from 1 show ?thesis
+  proof (rule ssubst)
+    from True_or_False[of Q] show "True = Q"
+    proof (rule disjE)
+      assume "Q = True"
+      thus ?thesis by(rule sym)
+    next
+      assume "Q = False"
+      with Q have False by (rule rev_iffD1)
+      thus ?thesis by (rule FalseE)
+    qed
+  qed
+next
+  assume 2: "P = False"
+  thus ?thesis
+  proof (rule ssubst)
+    from True_or_False[of Q] show "False = Q"
+    proof (rule disjE)
+      assume "Q = True"
+      from 2 assms(2)[OF eqTrueE[OF this]] have False by (rule iffD1)
+      thus ?thesis by (rule FalseE)
+    next
+      assume "Q = False"
+      thus ?thesis by(rule sym)
+    qed
+  qed
+qed
+
+
+subsubsection \<open>True (2)\<close>
+
+lemma eqTrueI: "P \<Longrightarrow> P = True"
+  by (iprover intro: iffI TrueI)
+
+
+subsubsection \<open>Universal quantifier (2)\<close>
+
+lemma allI:
+  assumes "\<And>x::'a. P x"
+  shows "\<forall>x. P x"
+  unfolding All_def by (iprover intro: ext eqTrueI assms)
+
+
 subsubsection \<open>Existential quantifier\<close>
 
 lemma exI: "P x \<Longrightarrow> \<exists>x::'a. P x"
@@ -458,21 +519,13 @@ lemma context_conjI:
   by (iprover intro: conjI assms)
 
 
-subsubsection \<open>Disjunction\<close>
+subsubsection \<open>Disjunction (2)\<close>
 
 lemma disjI1: "P \<Longrightarrow> P \<or> Q"
   unfolding or_def by (iprover intro: allI impI mp)
 
 lemma disjI2: "Q \<Longrightarrow> P \<or> Q"
   unfolding or_def by (iprover intro: allI impI mp)
-
-lemma disjE:
-  assumes major: "P \<or> Q"
-    and minorP: "P \<Longrightarrow> R"
-    and minorQ: "Q \<Longrightarrow> R"
-  shows R
-  by (iprover intro: minorP minorQ impI
-      major [unfolded or_def, THEN spec, THEN mp, THEN mp])
 
 
 subsubsection \<open>Classical logic\<close>

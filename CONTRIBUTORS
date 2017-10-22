@@ -6,6 +6,8 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2017: Alexander Maletzky
+  Derivation of axiom "iff" in HOL.thy from the other axioms.
 
 Contributions to Isabelle2017
 -----------------------------
