@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 object Isabelle_Cronjob
 {
-  /* file-system state: owned by main cronjob */
+  /* global resources: owned by main cronjob */
 
   val main_dir = Path.explode("~/cronjob")
   val main_state_file = main_dir + Path.explode("run/main.state")
@@ -427,10 +427,7 @@ object Isabelle_Cronjob
       })
 
 
-    /* main */
-
-    val main_start_date = Date.now()
-    File.write(main_state_file, main_start_date + " " + log_service.hostname)
+    /* repository structure */
 
     val hg = Mercurial.repository(isabelle_repos)
     val hg_graph = hg.graph()
@@ -442,6 +439,12 @@ object Isabelle_Cronjob
       val nodes = hg_graph.all_succs(List(base_rev)).toSet
       (item: Item) => nodes(item.isabelle_version)
     }
+
+
+    /* main */
+
+    val main_start_date = Date.now()
+    File.write(main_state_file, main_start_date + " " + log_service.hostname)
 
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
