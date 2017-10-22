@@ -245,7 +245,7 @@ object Isabelle_Cronjob
     {
       for { (host, n) <- List("lxbroy6" -> 1, "lxbroy7" -> 2) }
       yield {
-        List(Remote_Build("AFP " + n, host = host,
+        List(Remote_Build("AFP", host = host,
           options = "-m32 -M1x2 -t AFP -P" + n,
           args = "-N -X slow",
           afp = true,
