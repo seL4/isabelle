@@ -66,8 +66,8 @@ theorem.
 
 *** System ***
 
-* Windows and Cygwin is for x86_64 only. Old 32bit platform support has
-been discontinued.
+* Linux and Windows/Cygwin is for x86_64 only. Old 32bit platform
+support has been discontinued.
 
 * Java runtime is for x86_64 only. Corresponding Isabelle settings have
 been renamed to ISABELLE_TOOL_JAVA_OPTIONS and JEDIT_JAVA_OPTIONS,
