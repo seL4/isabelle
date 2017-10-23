@@ -6,7 +6,7 @@
 
 isabelle_admin_build jars || exit $?
 
-declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
 declare -a SCALA_ARGS=()
 for ARG in "${JAVA_ARGS[@]}"
 do

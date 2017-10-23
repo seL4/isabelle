@@ -4,11 +4,10 @@
 #
 # DESCRIPTION: invoke Java within the Isabelle environment
 
-declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
 
 [ -n "$CLASSPATH" ] && classpath "$CLASSPATH"
 unset CLASSPATH
 
 isabelle_java java "${JAVA_ARGS[@]}" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"
-

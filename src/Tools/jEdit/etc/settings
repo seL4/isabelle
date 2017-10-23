@@ -5,12 +5,10 @@ JEDIT_SETTINGS="$ISABELLE_HOME_USER/jedit"
 
 JEDIT_OPTIONS="-reuseview -nobackground -log=9"
 
-JEDIT_JAVA_OPTIONS32="-Xms128m -Xmx1024m -Xss4m"
-JEDIT_JAVA_OPTIONS64="-Xms512m -Xmx2560m -Xss8m"
+JEDIT_JAVA_OPTIONS="-Xms512m -Xmx2560m -Xss8m"
 JEDIT_JAVA_SYSTEM_OPTIONS="-Duser.language=en -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dapple.laf.useScreenMenuBar=true -Dapple.awt.application.name=Isabelle"
 
 ISABELLE_JEDIT_OPTIONS=""
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$JEDIT_HOME/lib/Tools"
 ISABELLE_DOCS="$ISABELLE_DOCS:$JEDIT_HOME/dist/doc"
-

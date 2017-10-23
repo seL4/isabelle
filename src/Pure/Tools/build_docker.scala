@@ -63,7 +63,6 @@ WORKDIR /home/isabelle
 """
 RUN tar xzf Isabelle.tar.gz && \
   mv """ + isabelle_name + """ Isabelle && \
-  rm -rf Isabelle.tar.gz Isabelle/contrib/jdk/x86-linux && \
   perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
   perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=""" + logic + """,g;' Isabelle/etc/settings && \
   Isabelle/bin/isabelle build -s -b """ + logic +

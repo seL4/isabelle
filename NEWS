@@ -69,6 +69,10 @@ theorem.
 * Windows and Cygwin is for x86_64 only. Old 32bit platform support has
 been discontinued.
 
+* Java runtime is for x86_64 only. Corresponding Isabelle settings have
+been renamed to ISABELLE_TOOL_JAVA_OPTIONS and JEDIT_JAVA_OPTIONS,
+instead of former 32/64 variants. INCOMPATIBILITY.
+
 * Command-line tool "isabelle build" supports new options:
   - option -B NAME: include session NAME and all descendants
   - option -S: only observe changes of sources, not heap images

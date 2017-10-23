@@ -6,16 +6,7 @@
 
 isabelle_admin_build jars || exit $?
 
-case "$ISABELLE_JAVA_PLATFORM" in
-  x86-*)
-    ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS32"
-    ;;
-  x86_64-*)
-    ISABELLE_TOOL_JAVA_OPTIONS="$ISABELLE_TOOL_JAVA_OPTIONS64"
-    ;;
-esac
-
-declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
+eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
 
 mkdir -p "$ISABELLE_TMP_PREFIX" || exit $?
 

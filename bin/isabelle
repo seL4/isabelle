@@ -45,13 +45,5 @@ fi
 
 isabelle_admin_build jars || exit $?
 
-case "$ISABELLE_JAVA_PLATFORM" in
-  x86-*)
-    eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS32)"
-    ;;
-  x86_64-*)
-    eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS64)"
-    ;;
-esac
-
+eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
 exec isabelle java "${JAVA_ARGS[@]}" isabelle.Isabelle_Tool "$@"
