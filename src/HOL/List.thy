@@ -5022,6 +5022,9 @@ proof -
   with \<open>sorted xs\<close> show ?thesis by (simp add: sorted_append)
 qed
 
+lemma sorted_replicate [simp]: "sorted(replicate n x)"
+by(induction n) (auto simp: sorted_Cons)
+
 lemma sorted_remdups[simp]:
   "sorted l \<Longrightarrow> sorted (remdups l)"
 by (induct l) (auto simp: sorted_Cons)
