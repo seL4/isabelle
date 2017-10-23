@@ -5,18 +5,6 @@
 # DESCRIPTION: Isabelle/jEdit interface wrapper
 
 
-## settings
-
-case "$ISABELLE_JAVA_PLATFORM" in
-  x86_64-*)
-    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS64"
-    ;;
-  *)
-    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS32"
-    ;;
-esac
-
-
 ## sources
 
 declare -a SOURCES_BASE=(
@@ -212,7 +200,7 @@ function getoptions()
   done
 }
 
-declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+eval "declare -a JAVA_ARGS=($JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
 
 declare -a ARGS=()
 

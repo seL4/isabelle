@@ -178,7 +178,7 @@ text \<open>
 
   \<^descr>[@{setting_def ISABELLE_JAVA_PLATFORM}] identifies the hardware and
   operating system platform for the Java installation of Isabelle. That is
-  usually the (native) 64 bit variant: \<^verbatim>\<open>x86_64-linux\<close>, \<^verbatim>\<open>x86_64-darwin\<close>,
+  always the (native) 64 bit variant: \<^verbatim>\<open>x86_64-linux\<close>, \<^verbatim>\<open>x86_64-darwin\<close>,
   \<^verbatim>\<open>x86_64-windows\<close>.
 
   \<^descr>[@{setting_def ISABELLE_PATH}] is a list of directories (separated by

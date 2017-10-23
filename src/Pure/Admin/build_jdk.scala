@@ -46,9 +46,8 @@ object Build_JDK
     }
   }
   val jdk_platforms =
-    List(JDK_Platform("x86-linux", "bin/java", """.*ELF 32-bit.*80386.*""".r),
+    List(
       JDK_Platform("x86_64-linux", "bin/java", """.*ELF 64-bit.*x86[-_]64.*""".r),
-      JDK_Platform("x86-windows", "bin/java.exe", """.*PE32 executable.*80386.*""".r),
       JDK_Platform("x86_64-windows", "bin/java.exe", """.*PE32\+ executable.*x86[-_]64.*""".r),
       JDK_Platform("x86_64-darwin", "Contents/Home/bin/java", """.*Mach-O 64-bit.*x86[-_]64.*""".r))
 
@@ -74,26 +73,16 @@ platform-specific subdirectories.
 
 case "$ISABELLE_PLATFORM_FAMILY" in
   linux)
-    ISABELLE_JAVA_PLATFORM="${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
+    ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"
     ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM"
     ;;
   windows)
-    if [ ! -e "$COMPONENT/x86_64-windows" ]; then
-      ISABELLE_JAVA_PLATFORM="x86-windows"
-    elif "$COMPONENT/x86_64-windows/jre/bin/java" -version > /dev/null 2> /dev/null; then
-      ISABELLE_JAVA_PLATFORM="x86_64-windows"
-    else
-      ISABELLE_JAVA_PLATFORM="x86-windows"
-    fi
+    ISABELLE_JAVA_PLATFORM="$ISABELLE_WINDOWS_PLATFORM64"
     ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM"
     ;;
   macos)
-    if [ -z "$ISABELLE_PLATFORM64" ]; then
-      echo "### Java unavailable on 32bit Mac OS X" >&2
-    else
-      ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"
-      ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM/Contents/Home"
-    fi
+    ISABELLE_JAVA_PLATFORM="$ISABELLE_PLATFORM64"
+    ISABELLE_JDK_HOME="$COMPONENT/$ISABELLE_JAVA_PLATFORM/Contents/Home"
     ;;
 esac
 """
@@ -225,7 +214,7 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
     -D DIR       target directory (default ".")
 
   Build jdk component from tar.gz archives, with original jdk installations
-  for Linux (x86, x86_64), Windows (x86, x86_64), Mac OS X (x86_64).
+  for x86_64 Linux, Windows, Mac OS X.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)))
 

@@ -191,28 +191,19 @@ perl -pi -e "s,view.title=Isabelle/jEdit,view.title=${ISABELLE_NAME},g;" \
 case "$PLATFORM_FAMILY" in
   linux)
     purge_target 'contrib -name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
-    purge_jdk "x86-linux"
     purge_jdk "x86_64-linux"
 
-    for PLATFORM in 32 64
-    do
-      (
-        init_component "$JEDIT_HOME"
+    (
+      init_component "$JEDIT_HOME"
 
-        echo "# Java runtime options for ${PLATFORM}bit platform"
-        declare -a JAVA_ARGS
-        if [ "$PLATFORM" = 32 ]; then
-          eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS32)"
-        else
-          eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
-        fi
-        for ARG in "${JAVA_ARGS[@]}"
-        do
-          echo "$ARG"
-        done
-        echo "-Disabelle.jedit_server=${ISABELLE_NAME}"
-      ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.options${PLATFORM}"
-    done
+      echo "# Java runtime options"
+      eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+      for ARG in "${JAVA_ARGS[@]}"
+      do
+        echo "$ARG"
+      done
+      echo "-Disabelle.jedit_server=${ISABELLE_NAME}"
+    ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.options"
 
     LINUX_CLASSPATH=""
     for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
@@ -258,9 +249,8 @@ case "$PLATFORM_FAMILY" in
     (
       init_component "$JEDIT_HOME"
 
-      declare -a JAVA_ARGS=()
-      echo -e "# Java runtime options for 64bit platform\r"
-      eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
+      echo -e "# Java runtime options\r"
+      eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
       for ARG in "${JAVA_ARGS[@]}"
       do
         echo -e "$ARG\r"
@@ -366,7 +356,7 @@ case "$PLATFORM_FAMILY" in
         cat "$APP_TEMPLATE/Info.plist-part1"
 
         declare -a OPTIONS=()
-        eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
+        eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
         for OPT in "${OPTIONS[@]}"
         do
           echo "<string>$OPT</string>"
