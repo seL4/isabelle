@@ -236,7 +236,6 @@ case "$PLATFORM_FAMILY" in
     ;;
   windows)
     purge_target 'contrib -name "x86*-linux" -o -name "x86*-darwin" -o -name "x86-cygwin"'
-    purge_target 'contrib/jdk -name "x86-windows"'
     purge_jdk "x86_64-windows"
 
     mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."

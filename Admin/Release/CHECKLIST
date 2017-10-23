@@ -45,10 +45,6 @@ Checklist for official releases
 
 - HTML library: check theory dependencies (PDF);
 
-- test contrib components:
-    x86_64-linux without 32bit C/C++ libraries
-    x86-linux on 32bit hardware
-
 - check "Handler catches all exceptions"
 
 - Mac OS X: check app bundle with Retina display;

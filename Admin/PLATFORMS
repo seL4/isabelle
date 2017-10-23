@@ -30,7 +30,6 @@ supported by the Isabelle distribution (and bundled tools), with the
 following base-line versions (which have been selected to be neither
 too old nor too new):
 
-  x86-linux         Ubuntu 12.04 LTS
   x86_64-linux      Ubuntu 12.04 LTS
 
   x86_64-darwin     Mac OS X 10.9 Mavericks (macbroy2 MacPro4,1)
@@ -38,7 +37,6 @@ too old nor too new):
                     Mac OS X 10.11 El Capitan (?)
                     macOS 10.12 Sierra (macbroy30 MacBookPro6,2)
 
-  x86-windows       Windows 7
   x86_64-windows    Windows 7
   x86_64-cygwin     Cygwin 2.8 http://isabelle.in.tum.de/cygwin_2017 (x86_64/release)
 
