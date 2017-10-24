@@ -17,9 +17,10 @@ Isabelle/POSIX standards, although Poly/ML and the JVM are native on
 Windows.
 
 When producing add-on tools, it is important to stay within this clean
-room of Isabelle, and refrain from overly ambitious system hacking.
-The existing Isabelle bash scripts follow a peculiar style that
-reflects long years of experience in getting system plumbing right.
+room of Isabelle, and refrain from low-level access to the operating
+system. The Isabelle environment uses peculiar scripts for GNU bash and
+perl to get the plumbing right. This style should be imitated as far as
+possible.
 
 
 Supported platforms
@@ -46,18 +47,19 @@ should not have to care about the differences (at least in theory).
 Fringe platforms like BSD or Solaris are not supported.
 
 
-32 bit vs. 64 bit platforms
----------------------------
+64 bit vs. 32 bit platform personality
+--------------------------------------
 
-Most users have 64 bit hardware and are running a 64 bit operating
-system by default.  For Linux this usually means missing 32 bit shared
-libraries, so native x86_64-linux needs to be used by default, despite
-its doubled space requirements for Poly/ML heaps.  For Mac OS X, the
-x86-darwin personality usually works seamlessly for C/C++ programs,
-but the Java platform is always for x86_64-darwin.
+Isabelle requires 64 bit hardware running a 64 bit operating. Windows
+and Mac OS X allow x86 executables as well, but for Linux this requires
+separate installation of 32 bit shared libraries. The POSIX emulation on
+Windows via Cygwin64 is exclusively for x86_64.
+
+ML works both for x86_64 and x86, and the latter is preferred for space
+and performance reasons. Java is always for x86_64 on all platforms.
 
 Add-on executables are expected to work without manual user
-configuration.  Each component settings script needs to determine the
+configuration. Each component settings script needs to determine the
 platform details appropriately.
 
 
@@ -68,9 +70,10 @@ help configuring platform-dependent tools:
   ISABELLE_PLATFORM32  (potentially empty)
   ISABELLE_PLATFORM
 
-The ISABELLE_PLATFORM setting variable prefers the 32 bit version of the
-platform, if possible. Using regular bash notation, tools may express their
-preference for 64 bit with a fall-back for 32 bit as follows:
+The ISABELLE_PLATFORM setting variable prefers the 32 bit personality of
+the platform, if possible. Using regular bash notation, tools may
+express their preference for 64 bit with a fall-back for 32 bit as
+follows:
 
   "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
 
@@ -89,17 +92,6 @@ It can be used like this:
   "${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"
 
 
-Moreover note that ML and JVM usually have a different idea of the
-platform, depending on the respective binaries that are actually run.
-Poly/ML 5.6.x performs best in 32 bit mode, even for large
-applications, thanks to its sophisticated heap management.  The JVM
-usually works better in 64 bit mode, which allows its heap to grow
-beyond 2 GB.
-
-The traditional "uname" Unix tool only tells about its own executable
-format, not the underlying platform!
-
-
 Dependable system tools
 -----------------------
 
@@ -108,9 +100,10 @@ The following portable system tools can be taken for granted:
 * Scala on top of Java 8.  Isabelle/Scala irons out many oddities and
   portability issues of the Java platform.
 
-* GNU bash as uniform shell on all platforms.  The POSIX "standard"
-  shell /bin/sh does *not* work -- there are too many non-standard
-  implementations of it.
+* GNU bash as uniform shell on all platforms. The POSIX "standard" shell
+  /bin/sh does *not* work -- there are too many non-standard
+  implementations of it. On Debian and Ubuntu /bin/sh is actually
+  /bin/dash and thus introduces many oddities.
 
 * Perl as largely portable system programming language, with its
   fairly robust support for processes, signals, sockets etc.
@@ -130,12 +123,14 @@ Known problems
   Such add-ons are usually included in Apple's /usr/bin/perl by
   default.
 
-* The Java runtime has its own idea about the underlying platform,
-  which affects Java native libraries in particular.  In
-  Isabelle/Scala the function isabelle.Platform.jvm_platform
-  identifies the JVM platform.  Since a particular Java version is
-  always bundled with Isabelle, the resulting settings also provide
-  some clues about its platform, without running it.
+* The Java runtime has its own idea about the underlying platform, which
+  affects Java native libraries in particular. In Isabelle/Scala the
+  function isabelle.Platform.jvm_platform identifies the JVM platform.
+  In the settings environment, ISABELLE_JAVA_PLATFORM provides the same
+  information without running the JVM.
 
 * Common Unix tools like /bin/sh, /bin/kill, sed, ulimit are
   notoriously non-portable an should be avoided.
+
+* The traditional "uname" Unix tool only tells about its own executable
+  format, not the underlying platform!
