@@ -277,6 +277,29 @@ lemma of_int_0_eq_iff [simp]: "0 = of_int z \<longleftrightarrow> z = 0"
 lemma of_int_eq_1_iff [iff]: "of_int z = 1 \<longleftrightarrow> z = 1"
   using of_int_eq_iff [of z 1] by simp
 
+lemma numeral_power_eq_of_int_cancel_iff [simp]:
+  "numeral x ^ n = of_int y \<longleftrightarrow> numeral x ^ n = y"
+  using of_int_eq_iff[of "numeral x ^ n" y, unfolded of_int_numeral of_int_power] .
+
+lemma of_int_eq_numeral_power_cancel_iff [simp]:
+  "of_int y = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
+  using numeral_power_eq_of_int_cancel_iff [of x n y] by (metis (mono_tags))
+
+lemma neg_numeral_power_eq_of_int_cancel_iff [simp]:
+  "(- numeral x) ^ n = of_int y \<longleftrightarrow> (- numeral x) ^ n = y"
+  using of_int_eq_iff[of "(- numeral x) ^ n" y]
+  by simp
+
+lemma of_int_eq_neg_numeral_power_cancel_iff [simp]:
+  "of_int y = (- numeral x) ^ n \<longleftrightarrow> y = (- numeral x) ^ n"
+  using neg_numeral_power_eq_of_int_cancel_iff[of x n y] by (metis (mono_tags))
+
+lemma of_int_eq_of_int_power_cancel_iff[simp]: "(of_int b) ^ w = of_int x \<longleftrightarrow> b ^ w = x"
+  by (metis of_int_power of_int_eq_iff)
+
+lemma of_int_power_eq_of_int_cancel_iff[simp]: "of_int x = (of_int b) ^ w \<longleftrightarrow> x = b ^ w"
+  by (metis of_int_eq_of_int_power_cancel_iff)
+
 end
 
 context linordered_idom
@@ -360,6 +383,52 @@ next
   then have "1 \<le> x" using assms by (rule order_trans)
   then show ?thesis ..
 qed
+
+lemma numeral_power_le_of_int_cancel_iff [simp]:
+  "numeral x ^ n \<le> of_int a \<longleftrightarrow> numeral x ^ n \<le> a"
+  by (metis (mono_tags) local.of_int_eq_numeral_power_cancel_iff of_int_le_iff)
+
+lemma of_int_le_numeral_power_cancel_iff [simp]:
+  "of_int a \<le> numeral x ^ n \<longleftrightarrow> a \<le> numeral x ^ n"
+  by (metis (mono_tags) local.numeral_power_eq_of_int_cancel_iff of_int_le_iff)
+
+lemma numeral_power_less_of_int_cancel_iff [simp]:
+  "numeral x ^ n < of_int a \<longleftrightarrow> numeral x ^ n < a"
+  by (metis (mono_tags) local.of_int_eq_numeral_power_cancel_iff of_int_less_iff)
+
+lemma of_int_less_numeral_power_cancel_iff [simp]:
+  "of_int a < numeral x ^ n \<longleftrightarrow> a < numeral x ^ n"
+  by (metis (mono_tags) local.of_int_eq_numeral_power_cancel_iff of_int_less_iff)
+
+lemma neg_numeral_power_le_of_int_cancel_iff [simp]:
+  "(- numeral x) ^ n \<le> of_int a \<longleftrightarrow> (- numeral x) ^ n \<le> a"
+  by (metis (mono_tags) of_int_le_iff of_int_neg_numeral of_int_power)
+
+lemma of_int_le_neg_numeral_power_cancel_iff [simp]:
+  "of_int a \<le> (- numeral x) ^ n \<longleftrightarrow> a \<le> (- numeral x) ^ n"
+  by (metis (mono_tags) of_int_le_iff of_int_neg_numeral of_int_power)
+
+lemma neg_numeral_power_less_of_int_cancel_iff [simp]:
+  "(- numeral x) ^ n < of_int a \<longleftrightarrow> (- numeral x) ^ n < a"
+  using of_int_less_iff[of "(- numeral x) ^ n" a]
+  by simp
+
+lemma of_int_less_neg_numeral_power_cancel_iff [simp]:
+  "of_int a < (- numeral x) ^ n \<longleftrightarrow> a < (- numeral x::int) ^ n"
+  using of_int_less_iff[of a "(- numeral x) ^ n"]
+  by simp
+
+lemma of_int_le_of_int_power_cancel_iff[simp]: "(of_int b) ^ w \<le> of_int x \<longleftrightarrow> b ^ w \<le> x"
+  by (metis (mono_tags) of_int_le_iff of_int_power)
+
+lemma of_int_power_le_of_int_cancel_iff[simp]: "of_int x \<le> (of_int b) ^ w\<longleftrightarrow> x \<le> b ^ w"
+  by (metis (mono_tags) of_int_le_iff of_int_power)
+
+lemma of_int_less_of_int_power_cancel_iff[simp]: "(of_int b) ^ w < of_int x \<longleftrightarrow> b ^ w < x"
+  by (metis (mono_tags) of_int_less_iff of_int_power)
+
+lemma of_int_power_less_of_int_cancel_iff[simp]: "of_int x < (of_int b) ^ w\<longleftrightarrow> x < b ^ w"
+  by (metis (mono_tags) of_int_less_iff of_int_power)
 
 end
 
@@ -1669,6 +1738,34 @@ lemma eq_nat_nat_iff: "0 \<le> z \<Longrightarrow> 0 \<le> z' \<Longrightarrow> 
 
 lemma nat_power_eq: "0 \<le> z \<Longrightarrow> nat (z ^ n) = nat z ^ n"
   by (induct n) (simp_all add: nat_mult_distrib)
+
+lemma numeral_power_eq_nat_cancel_iff [simp]:
+  "numeral x ^ n = nat y \<longleftrightarrow> numeral x ^ n = y"
+  using nat_eq_iff2 by auto
+
+lemma nat_eq_numeral_power_cancel_iff [simp]:
+  "nat y = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
+  using numeral_power_eq_nat_cancel_iff[of x n y]
+  by (metis (mono_tags))
+
+lemma numeral_power_le_nat_cancel_iff [simp]:
+  "numeral x ^ n \<le> nat a \<longleftrightarrow> numeral x ^ n \<le> a"
+  using nat_le_eq_zle[of "numeral x ^ n" a]
+  by (auto simp: nat_power_eq)
+
+lemma nat_le_numeral_power_cancel_iff [simp]:
+  "nat a \<le> numeral x ^ n \<longleftrightarrow> a \<le> numeral x ^ n"
+  by (simp add: nat_le_iff)
+
+lemma numeral_power_less_nat_cancel_iff [simp]:
+  "numeral x ^ n < nat a \<longleftrightarrow> numeral x ^ n < a"
+  using nat_less_eq_zless[of "numeral x ^ n" a]
+  by (auto simp: nat_power_eq)
+
+lemma nat_less_numeral_power_cancel_iff [simp]:
+  "nat a < numeral x ^ n \<longleftrightarrow> a < numeral x ^ n"
+  using nat_less_eq_zless[of a "numeral x ^ n"]
+  by (cases "a < 0") (auto simp: nat_power_eq less_le_trans[where y=0])
 
 lemma zdvd_imp_le: "z dvd n \<Longrightarrow> 0 < n \<Longrightarrow> z \<le> n"
   for n z :: int

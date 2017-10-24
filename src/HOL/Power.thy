@@ -174,6 +174,24 @@ lemma power_0_left: "0 ^ n = (if n = 0 then 1 else 0)"
 
 end
 
+context semiring_char_0 begin
+
+lemma numeral_power_eq_of_nat_cancel_iff [simp]:
+  "numeral x ^ n = of_nat y \<longleftrightarrow> numeral x ^ n = y"
+  using of_nat_eq_iff by fastforce
+
+lemma real_of_nat_eq_numeral_power_cancel_iff [simp]:
+  "of_nat y = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
+  using numeral_power_eq_of_nat_cancel_iff [of x n y] by (metis (mono_tags))
+
+lemma of_nat_eq_of_nat_power_cancel_iff[simp]: "(of_nat b) ^ w = of_nat x \<longleftrightarrow> b ^ w = x"
+  by (metis of_nat_power of_nat_eq_iff)
+
+lemma of_nat_power_eq_of_nat_cancel_iff[simp]: "of_nat x = (of_nat b) ^ w \<longleftrightarrow> x = b ^ w"
+  by (metis of_nat_eq_of_nat_power_cancel_iff)
+
+end
+
 context comm_semiring_1
 begin
 
@@ -567,6 +585,34 @@ lemma power2_eq_iff_nonneg [simp]:
   assumes "0 \<le> x" "0 \<le> y"
   shows "(x ^ 2 = y ^ 2) \<longleftrightarrow> x = y"
 using assms power2_eq_imp_eq by blast
+
+lemma of_nat_less_numeral_power_cancel_iff[simp]:
+  "of_nat x < numeral i ^ n \<longleftrightarrow> x < numeral i ^ n"
+  using of_nat_less_iff[of x "numeral i ^ n", unfolded of_nat_numeral of_nat_power] .
+
+lemma of_nat_le_numeral_power_cancel_iff[simp]:
+  "of_nat x \<le> numeral i ^ n \<longleftrightarrow> x \<le> numeral i ^ n"
+  using of_nat_le_iff[of x "numeral i ^ n", unfolded of_nat_numeral of_nat_power] .
+
+lemma numeral_power_less_of_nat_cancel_iff[simp]:
+  "numeral i ^ n < of_nat x \<longleftrightarrow> numeral i ^ n < x"
+  using of_nat_less_iff[of "numeral i ^ n" x, unfolded of_nat_numeral of_nat_power] .
+
+lemma numeral_power_le_of_nat_cancel_iff[simp]:
+  "numeral i ^ n \<le> of_nat x \<longleftrightarrow> numeral i ^ n \<le> x"
+  using of_nat_le_iff[of "numeral i ^ n" x, unfolded of_nat_numeral of_nat_power] .
+
+lemma of_nat_le_of_nat_power_cancel_iff[simp]: "(of_nat b) ^ w \<le> of_nat x \<longleftrightarrow> b ^ w \<le> x"
+  by (metis of_nat_le_iff of_nat_power)
+
+lemma of_nat_power_le_of_nat_cancel_iff[simp]: "of_nat x \<le> (of_nat b) ^ w \<longleftrightarrow> x \<le> b ^ w"
+  by (metis of_nat_le_iff of_nat_power)
+
+lemma of_nat_less_of_nat_power_cancel_iff[simp]: "(of_nat b) ^ w < of_nat x \<longleftrightarrow> b ^ w < x"
+  by (metis of_nat_less_iff of_nat_power)
+
+lemma of_nat_power_less_of_nat_cancel_iff[simp]: "of_nat x < (of_nat b) ^ w \<longleftrightarrow> x < b ^ w"
+  by (metis of_nat_less_iff of_nat_power)
 
 end
 

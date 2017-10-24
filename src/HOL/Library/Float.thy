@@ -1467,8 +1467,8 @@ next
     using bitlen_bounds[of "\<bar>m2\<bar>"]
     by (auto simp: powr_add bitlen_nonneg)
   then show ?thesis
-    by (metis bitlen_nonneg powr_int of_int_abs real_of_int_less_numeral_power_cancel_iff
-      zero_less_numeral)
+    by (metis bitlen_nonneg powr_int of_int_abs of_int_less_numeral_power_cancel_iff
+        zero_less_numeral)
 qed
 
 lemma floor_sum_times_2_powr_sgn_eq:
@@ -1570,7 +1570,7 @@ next
   from this[simplified of_int_le_iff[symmetric]] \<open>0 \<le> k\<close>
   have r_le: "r \<le> 2 powr k - 1"
     by (auto simp: algebra_simps powr_int)
-      (metis of_int_1 of_int_add real_of_int_le_numeral_power_cancel_iff)
+      (metis of_int_1 of_int_add of_int_le_numeral_power_cancel_iff)
 
   have "\<bar>ai\<bar> = 2 powr k + r"
     using \<open>k \<ge> 0\<close> by (auto simp: k_def r_def powr_realpow[symmetric])
@@ -1981,7 +1981,7 @@ proof -
     qed
     then have "real_of_int \<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)\<rceil> \<le> 2 powr int (Suc prec)"
       by (auto simp: powr_realpow powr_add)
-        (metis power_Suc real_of_int_le_numeral_power_cancel_iff)
+        (metis power_Suc of_int_le_numeral_power_cancel_iff)
     also
     have "2 powr - real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le> 2 powr - real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)"
       using logless flogless by (auto intro!: floor_mono)

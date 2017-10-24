@@ -868,11 +868,7 @@ lemma uints_unats: "uints n = int ` unats n"
   apply safe
     apply (rule_tac image_eqI)
      apply (erule_tac nat_0_le [symmetric])
-    apply auto
-   apply (erule_tac nat_less_iff [THEN iffD2])
-   apply (rule_tac [2] zless_nat_eq_int_zless [THEN iffD1])
-   apply (auto simp: nat_power_eq)
-  done
+  by auto
 
 lemma unats_uints: "unats n = nat ` uints n"
   by (auto simp: uints_unats image_iff)

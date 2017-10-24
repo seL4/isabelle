@@ -1378,62 +1378,6 @@ lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> x\<^sup>2"
   for u x :: real
   by (auto simp add: power2_eq_square)
 
-lemma numeral_power_eq_real_of_int_cancel_iff [simp]:
-  "numeral x ^ n = real_of_int y \<longleftrightarrow> numeral x ^ n = y"
-  by (metis of_int_eq_iff of_int_numeral of_int_power)
-
-lemma real_of_int_eq_numeral_power_cancel_iff [simp]:
-  "real_of_int y = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
-  using numeral_power_eq_real_of_int_cancel_iff [of x n y] by metis
-
-lemma numeral_power_eq_real_of_nat_cancel_iff [simp]:
-  "numeral x ^ n = real y \<longleftrightarrow> numeral x ^ n = y"
-  using of_nat_eq_iff by fastforce
-
-lemma real_of_nat_eq_numeral_power_cancel_iff [simp]:
-  "real y = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
-  using numeral_power_eq_real_of_nat_cancel_iff [of x n y] by metis
-
-lemma numeral_power_le_real_of_nat_cancel_iff [simp]:
-  "(numeral x :: real) ^ n \<le> real a \<longleftrightarrow> (numeral x::nat) ^ n \<le> a"
-  by (metis of_nat_le_iff of_nat_numeral of_nat_power)
-
-lemma real_of_nat_le_numeral_power_cancel_iff [simp]:
-  "real a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::nat) ^ n"
-  by (metis of_nat_le_iff of_nat_numeral of_nat_power)
-
-lemma numeral_power_le_real_of_int_cancel_iff [simp]:
-  "(numeral x::real) ^ n \<le> real_of_int a \<longleftrightarrow> (numeral x::int) ^ n \<le> a"
-  by (metis ceiling_le_iff ceiling_of_int of_int_numeral of_int_power)
-
-lemma real_of_int_le_numeral_power_cancel_iff [simp]:
-  "real_of_int a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::int) ^ n"
-  by (metis floor_of_int le_floor_iff of_int_numeral of_int_power)
-
-lemma numeral_power_less_real_of_nat_cancel_iff [simp]:
-  "(numeral x::real) ^ n < real a \<longleftrightarrow> (numeral x::nat) ^ n < a"
-  by (metis of_nat_less_iff of_nat_numeral of_nat_power)
-
-lemma real_of_nat_less_numeral_power_cancel_iff [simp]:
-  "real a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::nat) ^ n"
-  by (metis of_nat_less_iff of_nat_numeral of_nat_power)
-
-lemma numeral_power_less_real_of_int_cancel_iff [simp]:
-  "(numeral x::real) ^ n < real_of_int a \<longleftrightarrow> (numeral x::int) ^ n < a"
-  by (meson not_less real_of_int_le_numeral_power_cancel_iff)
-
-lemma real_of_int_less_numeral_power_cancel_iff [simp]:
-  "real_of_int a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::int) ^ n"
-  by (meson not_less numeral_power_le_real_of_int_cancel_iff)
-
-lemma neg_numeral_power_le_real_of_int_cancel_iff [simp]:
-  "(- numeral x::real) ^ n \<le> real_of_int a \<longleftrightarrow> (- numeral x::int) ^ n \<le> a"
-  by (metis of_int_le_iff of_int_neg_numeral of_int_power)
-
-lemma real_of_int_le_neg_numeral_power_cancel_iff [simp]:
-  "real_of_int a \<le> (- numeral x::real) ^ n \<longleftrightarrow> a \<le> (- numeral x::int) ^ n"
-  by (metis of_int_le_iff of_int_neg_numeral of_int_power)
-
 
 subsection \<open>Density of the Reals\<close>
 

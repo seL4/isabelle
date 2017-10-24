@@ -202,6 +202,6 @@ qed
 (* Beware of conversions: *)
 lemma "length xs = 2^k \<Longrightarrow> c_msort xs \<le> length xs * log 2 (length xs)"
 using c_msort_le[of xs k] apply (simp add: log_nat_power algebra_simps)
-by (metis (mono_tags) numeral_power_eq_real_of_nat_cancel_iff of_nat_le_iff of_nat_mult)
+by (metis (mono_tags) numeral_power_eq_of_nat_cancel_iff of_nat_le_iff of_nat_mult)
 
 end

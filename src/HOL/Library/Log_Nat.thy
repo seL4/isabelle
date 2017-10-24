@@ -131,6 +131,70 @@ proof -
 qed
 
 
+lemma powr_eq_one_iff[simp]: "a powr x = 1 \<longleftrightarrow> (x = 0)"
+  if "a > 1"
+  for a x::real
+  using that
+  by (auto simp: powr_def split: if_splits)
+
+lemma floorlog_leD: "floorlog b x \<le> w \<Longrightarrow> b > 1 \<Longrightarrow> x < b ^ w"
+  by (metis floorlog_bounds leD linorder_neqE_nat order.strict_trans power_strict_increasing_iff
+      zero_less_one zero_less_power)
+
+lemma floorlog_leI: "x < b ^ w \<Longrightarrow> 0 \<le> w \<Longrightarrow> b > 1 \<Longrightarrow> floorlog b x \<le> w"
+  by (drule less_imp_of_nat_less[where 'a=real])
+    (auto simp: floorlog_def Suc_le_eq nat_less_iff floor_less_iff log_of_power_less)
+
+lemma floorlog_eq_zero_iff:
+  "floorlog b x = 0 \<longleftrightarrow> (b \<le> 1 \<or> x \<le> 0)"
+  by (auto simp: floorlog_def)
+
+lemma floorlog_le_iff: "floorlog b x \<le> w \<longleftrightarrow> b \<le> 1 \<or> b > 1 \<and> 0 \<le> w \<and> x < b ^ w"
+  using floorlog_leD[of b x w] floorlog_leI[of x b w]
+  by (auto simp: floorlog_eq_zero_iff[THEN iffD2])
+
+lemma floorlog_ge_SucI: "Suc w \<le> floorlog b x" if "b ^ w \<le> x" "b > 1"
+  using that le_log_of_power[of b w x] power_not_zero
+  by (force simp: floorlog_def Suc_le_eq powr_realpow not_less Suc_nat_eq_nat_zadd1
+      zless_nat_eq_int_zless int_add_floor less_floor_iff
+      simp del: floor_add2)
+
+lemma floorlog_geI: "w \<le> floorlog b x" if "b ^ (w - 1) \<le> x" "b > 1"
+  using floorlog_ge_SucI[of b "w - 1" x] that
+  by auto
+
+lemma floorlog_geD: "b ^ (w - 1) \<le> x" if "w \<le> floorlog b x" "w > 0"
+proof -
+  have "b > 1" "0 < x"
+    using that by (auto simp: floorlog_def split: if_splits)
+  have "b ^ (w - 1) \<le> x" if "b ^ w \<le> x"
+  proof -
+    have "b ^ (w - 1) \<le> b ^ w"
+      using \<open>b > 1\<close>
+      by (auto intro!: power_increasing)
+    also note that
+    finally show ?thesis .
+  qed
+  moreover have "b ^ nat \<lfloor>log (real b) (real x)\<rfloor> \<le> x" (is "?l \<le> _")
+  proof -
+    have "0 \<le> log (real b) (real x)"
+      using \<open>b > 1\<close> \<open>0 < x\<close>
+      by (auto simp: )
+    then have "?l \<le> b powr log (real b) (real x)"
+      using \<open>b > 1\<close>
+      by (auto simp add: powr_realpow[symmetric] intro!: powr_mono of_nat_floor)
+    also have "\<dots> = x" using \<open>b > 1\<close> \<open>0 < x\<close>
+      by auto
+    finally show ?thesis
+      unfolding of_nat_le_iff .
+  qed
+  ultimately show ?thesis
+    using that
+    by (auto simp: floorlog_def le_nat_iff le_floor_iff le_log_iff powr_realpow
+        split: if_splits elim!: le_SucE)
+qed
+
+
 definition bitlen :: "int \<Rightarrow> int" where "bitlen a = floorlog 2 (nat a)"
 
 lemma bitlen_alt_def: "bitlen a = (if a > 0 then \<lfloor>log 2 a\<rfloor> + 1 else 0)"
@@ -184,10 +248,27 @@ proof -
   also have "\<dots> = ?B * 2"
     unfolding nat_add_distrib[OF \<open>0 \<le> bitlen m - 1\<close> zero_le_one] by auto
   finally have "real_of_int m < 2 * ?B"
-    by (metis (full_types) mult.commute power.simps(2) real_of_int_less_numeral_power_cancel_iff)
+    by (metis (full_types) mult.commute power.simps(2) of_int_less_numeral_power_cancel_iff)
   then have "real_of_int m / ?B < 2 * ?B / ?B"
     by (rule divide_strict_right_mono) auto
   then show "real_of_int m / ?B < 2" by auto
 qed
+
+lemma bitlen_le_iff_floorlog: "bitlen x \<le> w \<longleftrightarrow> w \<ge> 0 \<and> floorlog 2 (nat x) \<le> nat w"
+  by (auto simp: bitlen_def)
+
+lemma bitlen_le_iff_power: "bitlen x \<le> w \<longleftrightarrow> w \<ge> 0 \<and> x < 2 ^ nat w"
+  by (auto simp: bitlen_le_iff_floorlog floorlog_le_iff)
+
+lemma less_power_nat_iff_bitlen: "x < 2 ^ w \<longleftrightarrow> bitlen (int x) \<le> w"
+  using bitlen_le_iff_power[of x w]
+  by auto
+
+lemma bitlen_ge_iff_power: "w \<le> bitlen x \<longleftrightarrow> w \<le> 0 \<or> 2 ^ (nat w - 1) \<le> x"
+  unfolding bitlen_def
+  by (auto simp: nat_le_iff[symmetric] intro: floorlog_geI dest: floorlog_geD)
+
+lemma bitlen_twopow_add_eq: "bitlen (2 ^ w + b) = w + 1" if "0 \<le> b" "b < 2 ^ w"
+  by (auto simp: that nat_add_distrib bitlen_le_iff_power bitlen_ge_iff_power intro!: antisym)
 
 end

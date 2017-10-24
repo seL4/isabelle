@@ -1093,7 +1093,8 @@ proof -
             proof
               have "real j < 2 ^ n"
                 using j_le i k
-                apply (auto simp: le_max_iff_disj simp del: real_of_nat_less_numeral_power_cancel_iff elim!: le_less_trans)
+                apply (auto simp: le_max_iff_disj simp del: of_nat_less_numeral_power_cancel_iff
+                    elim!: le_less_trans)
                  apply (auto simp: field_simps)
                 done
               then show "j < 2 ^ n"
