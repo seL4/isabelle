@@ -464,6 +464,7 @@ object Build_Log
     threads: Option[Int] = None,
     timing: Timing = Timing.zero,
     ml_timing: Timing = Timing.zero,
+    sources: Option[String] = None,
     heap_size: Option[Long] = None,
     status: Option[Session_Status.Value] = None,
     errors: List[String] = Nil,
@@ -509,6 +510,7 @@ object Build_Log
     val Session_Started = new Regex("""^(?:Running|Building) (\S+) \.\.\.$""")
     val Session_Failed = new Regex("""^(\S+) FAILED""")
     val Session_Cancelled = new Regex("""^(\S+) CANCELLED""")
+    val Sources = new Regex("""^Sources (\S+) (\S{""" + SHA1.digest_length + """})$""")
     val Heap = new Regex("""^Heap (\S+) \((\d+) bytes\)$""")
 
     object Theory_Timing
@@ -532,6 +534,7 @@ object Build_Log
     var started = Set.empty[String]
     var failed = Set.empty[String]
     var cancelled = Set.empty[String]
+    var sources = Map.empty[String, String]
     var heap_sizes = Map.empty[String, Long]
     var theory_timings = Map.empty[String, Map[String, Timing]]
     var ml_statistics = Map.empty[String, List[Properties.T]]
@@ -539,8 +542,8 @@ object Build_Log
 
     def all_sessions: Set[String] =
       chapter.keySet ++ groups.keySet ++ threads.keySet ++ timing.keySet ++ ml_timing.keySet ++
-      failed ++ cancelled ++ started ++ heap_sizes.keySet ++ theory_timings.keySet ++
-      ml_statistics.keySet
+      failed ++ cancelled ++ started ++ sources.keySet ++ heap_sizes.keySet ++
+      theory_timings.keySet ++ ml_statistics.keySet
 
 
     for (line <- log_file.lines) {
@@ -575,6 +578,9 @@ object Build_Log
           val gc = Time.seconds(g)
           ml_timing += (name -> Timing(elapsed, cpu, gc))
           threads += (name -> t)
+
+        case Sources(name, s) =>
+          sources += (name -> s)
 
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
@@ -621,6 +627,7 @@ object Build_Log
               threads = threads.get(name),
               timing = timing.getOrElse(name, Timing.zero),
               ml_timing = ml_timing.getOrElse(name, Timing.zero),
+              sources = sources.get(name),
               heap_size = heap_sizes.get(name),
               status = Some(status),
               errors = errors.getOrElse(name, Nil).reverse,
@@ -701,6 +708,7 @@ object Build_Log
     val heap_size = SQL.Column.long("heap_size")
     val status = SQL.Column.string("status")
     val errors = SQL.Column.bytes("errors")
+    val sources = SQL.Column.string("sources")
     val ml_statistics = SQL.Column.bytes("ml_statistics")
     val known = SQL.Column.bool("known")
 
@@ -711,7 +719,7 @@ object Build_Log
       build_log_table("sessions",
         List(log_name, session_name, chapter, groups, threads, timing_elapsed, timing_cpu,
           timing_gc, timing_factor, ml_timing_elapsed, ml_timing_cpu, ml_timing_gc, ml_timing_factor,
-          heap_size, status, errors))
+          heap_size, status, errors, sources))
 
     val theories_table =
       build_log_table("theories",
@@ -995,6 +1003,7 @@ object Build_Log
           stmt.long(14) = session.heap_size
           stmt.string(15) = session.status.map(_.toString)
           stmt.bytes(16) = compress_errors(session.errors)
+          stmt.string(17) = session.sources
           stmt.execute()
         }
       })
@@ -1154,6 +1163,7 @@ object Build_Log
                 timing = res.timing(Data.timing_elapsed, Data.timing_cpu, Data.timing_gc),
                 ml_timing =
                   res.timing(Data.ml_timing_elapsed, Data.ml_timing_cpu, Data.ml_timing_gc),
+                sources = res.get_string(Data.sources),
                 heap_size = res.get_long(Data.heap_size),
                 status = res.get_string(Data.status).map(Session_Status.withName(_)),
                 errors = uncompress_errors(res.bytes(Data.errors)),

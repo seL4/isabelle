@@ -253,21 +253,34 @@ object Build_History
           Build_Log.Prop.isabelle_version.name -> isabelle_version) :::
         afp_version.map(Build_Log.Prop.afp_version.name -> _).toList
 
-      build_out_progress.echo("Reading theory timings ...")
-      val theory_timings =
+      build_out_progress.echo("Reading session build info ...")
+      val session_build_info =
         build_info.finished_sessions.flatMap(session_name =>
           {
             val database = isabelle_output + store.database(session_name)
 
-            val properties =
-              if (database.is_file) {
-                using(SQLite.open_database(database))(db =>
-                  try { store.read_theory_timings(db, session_name) }
-                  catch { case ERROR(_) => Nil })
-              }
-              else Nil
+            if (database.is_file) {
+              using(SQLite.open_database(database))(db =>
+              {
+                val theory_timings =
+                  try {
+                    store.read_theory_timings(db, session_name).map(ps =>
+                      Build_Log.Log_File.print_props(Build_Log.THEORY_TIMING_MARKER,
+                        (Build_Log.SESSION_NAME, session_name) :: ps))
+                  }
+                  catch { case ERROR(_) => Nil }
 
-            properties.map(ps => (Build_Log.SESSION_NAME -> session_name) :: ps)
+                val session_sources =
+                  store.read_build(db, session_name).map(_.sources) match {
+                    case Some(sources) if sources.length == SHA1.digest_length =>
+                      List("Sources " + session_name + " " + sources)
+                    case _ => Nil
+                  }
+
+                theory_timings ::: session_sources
+              })
+            }
+            else Nil
           })
 
       build_out_progress.echo("Reading ML statistics ...")
@@ -328,7 +341,7 @@ object Build_History
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
           Build_Log.Log_File.print_props(META_INFO_MARKER, meta_info) :: build_result.out_lines :::
-          theory_timings.map(Build_Log.Log_File.print_props(Build_Log.THEORY_TIMING_MARKER, _)) :::
+          session_build_info :::
           ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _)) :::
           session_errors.map(Build_Log.Log_File.print_props(Build_Log.ERROR_MESSAGE_MARKER, _)) :::
           heap_sizes), XZ.options(6))
