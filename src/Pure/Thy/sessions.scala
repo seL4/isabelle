@@ -582,8 +582,6 @@ object Sessions
 
     private val session_entry: Parser[Session_Entry] =
     {
-      val session_name = atom("session name", _.is_name)
-
       val option =
         option_name ~ opt($$$("=") ~! option_value ^^
           { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
