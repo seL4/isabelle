@@ -188,6 +188,9 @@ text \<open>
     ;
     @{syntax_def par_name}: '(' @{syntax name} ')'
   \<close>}
+
+  A @{syntax_def system_name} is like @{syntax name}, but it excludes
+  white-space characters and needs to conform to file-name notation.
 \<close>
 
 

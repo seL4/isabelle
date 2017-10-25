@@ -52,11 +52,12 @@ text \<open>
     @{syntax_def session_chapter}: @'chapter' @{syntax name}
     ;
 
-    @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
+    @{syntax_def session_entry}: @'session' spec '='
+      (@{syntax system_name} '+')? body
     ;
     body: description? options? (theories+) \<newline> (document_files*)
     ;
-    spec: @{syntax name} groups? dir?
+    spec: @{syntax system_name} groups? dir?
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
@@ -70,11 +71,11 @@ text \<open>
     ;
     value: @{syntax name} | @{syntax real}
     ;
-    sessions: @'sessions' (@{syntax name}+)
+    sessions: @'sessions' (@{syntax system_name}+)
     ;
     theories: @'theories' opts? (theory_entry*)
     ;
-    theory_entry: @{syntax name} ('(' @'global' ')')?
+    theory_entry: @{syntax system_name} ('(' @'global' ')')?
     ;
     document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
   \<close>}
