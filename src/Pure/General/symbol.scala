@@ -60,6 +60,8 @@ object Symbol
     else char_symbols(c.toInt)
   }
 
+  def is_ascii(s: Symbol): Boolean = s.length == 1 && s(0) < 128
+
 
   /* symbol matching */
 

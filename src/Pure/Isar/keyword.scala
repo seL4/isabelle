@@ -166,7 +166,11 @@ object Keyword
           (minor + name, major)
         else (minor, major + name)
       val load_commands1 =
-        if (kind == THY_LOAD) load_commands + (name -> exts)
+        if (kind == THY_LOAD) {
+          if (!Symbol.iterator(name).forall(Symbol.is_ascii(_)))
+            error("Bad theory load command " + quote(name))
+          load_commands + (name -> exts)
+        }
         else load_commands
       new Keywords(minor1, major1, kinds1, load_commands1)
     }
