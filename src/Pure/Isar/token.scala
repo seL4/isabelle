@@ -306,5 +306,9 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     else if (kind == Token.Kind.COMMENT) Scan.Parsers.comment_content(source)
     else source
 
-  def is_system_name: Boolean = is_name && Path.is_wellformed(content)
+  def is_system_name: Boolean =
+  {
+    val s = content
+    is_name && Path.is_wellformed(s) && !s.exists(Symbol.is_ascii_blank(_))
+  }
 }
