@@ -61,8 +61,8 @@ class Resources(
   {
     val raw_text = with_thy_reader(name, reader => reader.source.toString)
     () => {
-      val text = Symbol.decode(raw_text)
-      if (syntax.load_commands_in(text)) {
+      if (syntax.load_commands_in(raw_text)) {
+        val text = Symbol.decode(raw_text)
         val spans = syntax.parse_spans(text)
         val dir = Path.explode(name.master_dir)
         spans.iterator.map(Command.span_files(syntax, _)._1).flatten.
