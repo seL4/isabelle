@@ -491,6 +491,15 @@ object Scan
     make_byte_reader(stream, stream_length)
   }
 
+  def reader_is_utf8(reader: Reader[Char]): Boolean =
+    reader.isInstanceOf[Byte_Reader]
+
+  def reader_decode_utf8(is_utf8: Boolean, s: String): String =
+    if (is_utf8) UTF8.decode_permissive(s) else s
+
+  def reader_decode_utf8(reader: Reader[Char], s: String): String =
+    reader_decode_utf8(reader_is_utf8(reader), s)
+
 
   /* plain text reader */
 

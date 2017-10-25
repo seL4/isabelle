@@ -189,10 +189,7 @@ object Thy_Header extends Parse.Parser
   def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
   {
     val (_, tokens0) = read_tokens(reader, true)
-    val text =
-      if (reader.isInstanceOf[Scan.Byte_Reader])
-        UTF8.decode_permissive(Token.implode(tokens0))
-      else Token.implode(tokens0)
+    val text = Scan.reader_decode_utf8(reader, Token.implode(tokens0))
 
     val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val pos = (start /: drop_tokens)(_.advance(_))
