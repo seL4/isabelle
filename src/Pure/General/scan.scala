@@ -74,6 +74,9 @@ object Scan
     def one(pred: Symbol.Symbol => Boolean): Parser[String] =
       repeated(pred, 1, 1)
 
+    def maybe(pred: Symbol.Symbol => Boolean): Parser[String] =
+      repeated(pred, 0, 1)
+
     def many(pred: Symbol.Symbol => Boolean): Parser[String] =
       repeated(pred, 0, Integer.MAX_VALUE)
 

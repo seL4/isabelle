@@ -7,12 +7,105 @@ Support for JSON parsing.
 package isabelle
 
 
+import scala.util.parsing.combinator.lexical.Scanners
+import scala.util.parsing.input.CharArrayReader.EofCh
 import scala.util.parsing.json.{JSONObject, JSONArray}
+
 
 object JSON
 {
   type T = Any
   type S = String
+
+
+  /* lexer */
+
+  object Kind extends Enumeration
+  {
+    val KEYWORD, STRING, NUMBER, ERROR = Value
+  }
+
+  sealed case class Token(kind: Kind.Value, text: String)
+  {
+    def is_keyword: Boolean = kind == Kind.KEYWORD
+    def is_string: Boolean = kind == Kind.STRING
+    def is_number: Boolean = kind == Kind.NUMBER
+    def is_error: Boolean = kind == Kind.ERROR
+  }
+
+  object Lexer extends Scanners with Scan.Parsers
+  {
+    override type Elem = Char
+    type Token = JSON.Token
+
+    def errorToken(msg: String): Token = Token(Kind.ERROR, msg)
+
+    override val whiteSpace = """\s+""".r
+    def whitespace: Parser[Any] = many(character(Symbol.is_ascii_blank(_)))
+
+    val letter: Parser[String] = one(character(Symbol.is_ascii_letter(_)))
+    val letters1: Parser[String] = many1(character(Symbol.is_ascii_letter(_)))
+
+    def digits: Parser[String] = many(character(Symbol.is_ascii_digit(_)))
+    def digits1: Parser[String] = many1(character(Symbol.is_ascii_digit(_)))
+
+
+    /* keyword */
+
+    def keyword: Parser[Token] =
+      elem("keyword", "{}[],:".contains(_)) ^^ (c => Token(Kind.KEYWORD, c.toString)) |
+      letters1 ^^ (s =>
+        if (s == "true" || s == "false" || s == "null") Token(Kind.KEYWORD, s)
+        else errorToken("Bad keyword: " + quote(s)))
+
+
+    /* string */
+
+    def string: Parser[Token] =
+      '\"' ~> rep(string_body) <~ '\"' ^^ (cs => Token(Kind.STRING, cs.mkString))
+
+    def string_body: Parser[Char] =
+      elem("", c => c != '\"' && c != '\\' && c != EofCh) | '\\' ~> string_escape
+
+    def string_escape: Parser[Char] =
+      elem("", "\"\\/".contains(_)) |
+      elem("", "bfnrt".contains(_)) ^^
+        { case 'b' => '\b' case 'f' => '\f' case 'n' => '\n' case 'r' => '\r' case 't' => '\t' } |
+      'u' ~> repeated(character("0123456789abcdefABCDEF".contains(_)), 4, 4) ^^
+        (s => Integer.parseInt(s, 16).toChar)
+
+    def string_failure: Parser[Token] = '\"' ~> failure("Unterminated string")
+
+
+    /* number */
+
+    def number: Parser[Token] =
+      opt("-" <~ whitespace) ~ number_body ~ opt(letter) ^^ {
+        case a ~ b ~ None => Token(Kind.NUMBER, a.getOrElse("") + b)
+        case a ~ b ~ Some(c) =>
+          errorToken("Invalid number format: " + quote(a.getOrElse("") + b + c))
+      }
+
+    def number_body: Parser[String] =
+      (zero | positive) ~ opt(number_fract) ~ opt(number_exp) ^^
+        { case a ~ b ~ c => a + b.getOrElse("") + c.getOrElse("") }
+
+    def number_fract: Parser[String] = "." ~ digits1 ^^ { case a ~ b => a + b }
+
+    def number_exp: Parser[String] =
+      one(character("eE".contains(_))) ~ maybe(character("-+".contains(_))) ~ digits1 ^^
+        { case a ~ b ~ c => a + b + c }
+
+    def zero = one(character(c => c == '0'))
+    def nonzero = one(character(c => c != '0' && Symbol.is_ascii_digit(c)))
+    def positive: Parser[String] = nonzero ~ digits ^^ { case a ~ b => a + b }
+
+
+    /* token */
+
+    def token: Parser[Token] =
+      keyword | (string | (string_failure | (number | failure("Illegal character"))))
+  }
 
 
   /* standard format */
