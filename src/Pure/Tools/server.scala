@@ -144,6 +144,9 @@ class Server private(_port: Int)
     val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, UTF8.charset))
     val writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream, UTF8.charset))
 
+    val Blank_Line = """^\s*$""".r
+    val Command_Line = """^(\S+)\s*(.*)$""".r
+
     def println(s: String)
     {
       writer.write(s)
@@ -151,15 +154,27 @@ class Server private(_port: Int)
       writer.flush()
     }
 
+    def println_result(t: JSON.T) { println("RESULT " + JSON.Format(t)) }
+    def println_error(t: JSON.T) { println("ERROR " + JSON.Format(t)) }
+
     reader.readLine() match {
       case null =>
-      case bad if bad != password => println("BAD PASSWORD")
+      case bad if bad != password => println_error("Bad password -- connection closed")
       case _ =>
         var finished = false
         while (!finished) {
           reader.readLine() match {
-            case null => println("FINISHED"); finished = true
-            case line => println("ECHO " + line)
+            case null => finished = true
+            case Blank_Line() =>
+            case Command_Line(cmd, arg) =>
+              proper_string(arg) getOrElse "{}" match {
+                case JSON.Format(json) =>
+                  println_result(Map("command" -> cmd, "argument" -> arg))
+                case _ =>
+                  println_error(
+                    Map("message" -> "Malformed command", "command" -> cmd, "argument" -> arg))
+              }
+            case _ =>
           }
         }
     }
