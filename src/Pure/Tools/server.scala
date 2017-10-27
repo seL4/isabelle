@@ -14,6 +14,14 @@ import java.net.{Socket, ServerSocket, InetAddress}
 
 object Server
 {
+  /* protocol */
+
+  object Reply extends Enumeration
+  {
+    val OK, ERROR = Value
+  }
+
+
   /* per-user servers */
 
   object Data
@@ -147,19 +155,25 @@ class Server private(_port: Int)
     val Blank_Line = """^\s*$""".r
     val Command_Line = """^(\S+)\s*(.*)$""".r
 
-    def println(s: String)
+    def reply_line(msg: String)
     {
-      writer.write(s)
+      require(split_lines(msg).length <= 1)
+      writer.write(msg)
       writer.newLine()
       writer.flush()
     }
 
-    def println_result(t: JSON.T) { println("RESULT " + JSON.Format(t)) }
-    def println_error(t: JSON.T) { println("ERROR " + JSON.Format(t)) }
+    def reply(r: Server.Reply.Value, t: JSON.T)
+    {
+      reply_line(if (t == JSON.empty) r.toString else r.toString + " " + JSON.Format(t))
+    }
+
+    def reply_ok(t: JSON.T) { reply(Server.Reply.OK, t) }
+    def reply_error(t: JSON.T) { reply(Server.Reply.ERROR, t) }
 
     reader.readLine() match {
       case null =>
-      case bad if bad != password => println_error("Bad password -- connection closed")
+      case bad if bad != password => reply_error("Bad password -- connection closed")
       case _ =>
         var finished = false
         while (!finished) {
@@ -169,10 +183,10 @@ class Server private(_port: Int)
             case Command_Line(cmd, arg) =>
               proper_string(arg) getOrElse "{}" match {
                 case JSON.Format(json) =>
-                  println_result(Map("command" -> cmd, "argument" -> arg))
+                  reply_ok(Map("command" -> cmd, "argument" -> json))
                 case _ =>
-                  println_error(
-                    Map("message" -> "Malformed command", "command" -> cmd, "argument" -> arg))
+                  reply_error(
+                    Map("message" -> "Malformed command", "command" -> cmd, "input" -> arg))
               }
             case _ =>
           }
