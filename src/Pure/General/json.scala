@@ -7,9 +7,9 @@ Support for JSON parsing.
 package isabelle
 
 
+import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.combinator.lexical.Scanners
 import scala.util.parsing.input.CharArrayReader.EofCh
-import scala.util.parsing.json.{JSONObject, JSONArray}
 
 
 object JSON
@@ -28,6 +28,7 @@ object JSON
   sealed case class Token(kind: Kind.Value, text: String)
   {
     def is_keyword: Boolean = kind == Kind.KEYWORD
+    def is_keyword(name: String): Boolean = kind == Kind.KEYWORD && text == name
     def is_string: Boolean = kind == Kind.STRING
     def is_number: Boolean = kind == Kind.NUMBER
     def is_error: Boolean = kind == Kind.ERROR
@@ -105,14 +106,49 @@ object JSON
   }
 
 
+  /* parser */
+
+  trait Parser extends Parsers
+  {
+    type Elem = Token
+
+    def $$$(name: String): Parser[Token] = elem(name, _.is_keyword(name))
+    def string: Parser[String] = elem("string", _.is_string) ^^ (_.text)
+    def number: Parser[Double] = elem("number", _.is_number) ^^ (tok => tok.text.toDouble)
+
+    def json_object: Parser[Map[String, T]] =
+      $$$("{") ~>
+        repsep(string ~ ($$$(":") ~> json_value) ^^ { case a ~ b => (a, b) }, $$$(",")) <~
+      $$$("}") ^^ (_.toMap)
+
+    def json_array: Parser[List[T]] =
+      $$$("[") ~> repsep(json_value, $$$(",")) <~ $$$("]")
+
+    def json_value: Parser[T] =
+      json_object | (json_array | (number | (string |
+        ($$$("true") ^^^ true | ($$$("false") ^^^ false | ($$$("null") ^^^ null))))))
+
+    def parse(input: CharSequence, strict: Boolean): T =
+    {
+      val scanner = new Lexer.Scanner(Scan.char_reader(input))
+      phrase(if (strict) json_object | json_array else json_value)(scanner) match {
+        case Success(json, _) => json
+        case NoSuccess(_, next) => error("Malformed JSON input at " + next.pos)
+      }
+    }
+  }
+
+  object Parser extends Parser
+
+
   /* standard format */
 
-  def parse(s: S): T = Format.unapply(s) getOrElse error("Malformed JSON")
+  def parse(s: S, strict: Boolean = true): T = Parser.parse(s, strict)
 
   object Format
   {
     def unapply(s: S): Option[T] =
-      try { scala.util.parsing.json.JSON.parseFull(s) }
+      try { Some(parse(s, strict = false)) }
       catch { case ERROR(_) => None }
 
     def apply(json: T): S =
@@ -170,10 +206,8 @@ object JSON
             val i = n.toLong
             result ++= (if (i.toDouble == n) i.toString else n.toString)
           case s: String => string(s)
-          case JSONObject(obj) => object_(obj)
           case obj: Map[_, _] if obj.keySet.forall(_.isInstanceOf[String]) =>
             object_(obj.asInstanceOf[Map[String, T]])
-          case JSONArray(list) => array(list)
           case list: List[T] => array(list)
           case _ => error("Bad JSON value: " + x.toString)
         }
