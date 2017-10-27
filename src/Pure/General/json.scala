@@ -257,10 +257,12 @@ object JSON
 
   /* object values */
 
+  val empty: Map[String, T] = Map.empty
+
   def optional(entry: (String, Option[T])): Map[String, T] =
     entry match {
       case (name, Some(x)) => Map(name -> x)
-      case (_, None) => Map.empty
+      case (_, None) => empty
     }
 
   def value(obj: T, name: String): Option[T] =
