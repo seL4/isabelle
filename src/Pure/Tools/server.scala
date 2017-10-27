@@ -16,6 +16,11 @@ object Server
 {
   /* protocol */
 
+  val commands: Map[String, PartialFunction[JSON.T, JSON.T]] =
+    Map(
+      "help" -> { case JSON.empty => commands.keySet.toList.sorted },
+      "echo" -> { case t => t })
+
   object Reply extends Enumeration
   {
     val OK, ERROR = Value
@@ -152,9 +157,6 @@ class Server private(_port: Int)
     val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, UTF8.charset))
     val writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream, UTF8.charset))
 
-    val Blank_Line = """^\s*$""".r
-    val Command_Line = """^(\S+)\s*(.*)$""".r
-
     def reply_line(msg: String)
     {
       require(split_lines(msg).length <= 1)
@@ -170,6 +172,10 @@ class Server private(_port: Int)
 
     def reply_ok(t: JSON.T) { reply(Server.Reply.OK, t) }
     def reply_error(t: JSON.T) { reply(Server.Reply.ERROR, t) }
+    def reply_error_message(message: String, more: (String, JSON.T)*): Unit =
+      reply_error(Map("message" -> message) ++ more)
+
+    val Command_Line = """^(\S+)\s*(.*)$""".r
 
     reader.readLine() match {
       case null =>
@@ -179,14 +185,24 @@ class Server private(_port: Int)
         while (!finished) {
           reader.readLine() match {
             case null => finished = true
-            case Blank_Line() =>
-            case Command_Line(cmd, arg) =>
-              proper_string(arg) getOrElse "{}" match {
-                case JSON.Format(json) =>
-                  reply_ok(Map("command" -> cmd, "argument" -> json))
-                case _ =>
-                  reply_error(
-                    Map("message" -> "Malformed command", "command" -> cmd, "input" -> arg))
+            case Command_Line(cmd, input) =>
+              Server.commands.get(cmd) match {
+                case None => reply_error("Unknown command " + quote(cmd))
+                case Some(body) =>
+                  proper_string(input) getOrElse "{}" match {
+                    case JSON.Format(arg) =>
+                      if (body.isDefinedAt(arg)) {
+                        try { reply_ok(body(arg)) }
+                        catch { case ERROR(msg) => reply_error(msg) }
+                      }
+                      else {
+                        reply_error_message(
+                          "Bad argument for command", "command" -> cmd, "argument" -> arg)
+                      }
+                    case _ =>
+                      reply_error_message(
+                        "Malformed command-line", "command" -> cmd, "input" -> input)
+                  }
               }
             case _ =>
           }
