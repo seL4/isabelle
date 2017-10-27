@@ -17,6 +17,9 @@ object JSON
   type T = Any
   type S = String
 
+  type Object = Map[String, T]
+  val empty: Object = Map.empty
+
 
   /* lexer */
 
@@ -116,7 +119,7 @@ object JSON
     def string: Parser[String] = elem("string", _.is_string) ^^ (_.text)
     def number: Parser[Double] = elem("number", _.is_number) ^^ (tok => tok.text.toDouble)
 
-    def json_object: Parser[Map[String, T]] =
+    def json_object: Parser[Object] =
       $$$("{") ~>
         repsep(string ~ ($$$(":") ~> json_value) ^^ { case a ~ b => (a, b) }, $$$(",")) <~
       $$$("}") ^^ (_.toMap)
@@ -184,7 +187,7 @@ object JSON
         result += ']'
       }
 
-      def object_(obj: Map[String, T])
+      def object_(obj: Object)
       {
         result += '{'
         Library.separate(None, obj.toList.map(Some(_))).foreach({
@@ -207,7 +210,7 @@ object JSON
             result ++= (if (i.toDouble == n) i.toString else n.toString)
           case s: String => string(s)
           case obj: Map[_, _] if obj.keySet.forall(_.isInstanceOf[String]) =>
-            object_(obj.asInstanceOf[Map[String, T]])
+            object_(obj.asInstanceOf[Object])
           case list: List[T] => array(list)
           case _ => error("Bad JSON value: " + x.toString)
         }
@@ -257,9 +260,7 @@ object JSON
 
   /* object values */
 
-  val empty: Map[String, T] = Map.empty
-
-  def optional(entry: (String, Option[T])): Map[String, T] =
+  def optional(entry: (String, Option[T])): Object =
     entry match {
       case (name, Some(x)) => Map(name -> x)
       case (_, None) => empty
@@ -268,7 +269,7 @@ object JSON
   def value(obj: T, name: String): Option[T] =
     obj match {
       case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
-        m.asInstanceOf[Map[String, T]].get(name)
+        m.asInstanceOf[Object].get(name)
       case _ => None
     }
 
