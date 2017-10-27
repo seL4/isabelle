@@ -53,10 +53,7 @@ object JSON
     /* keyword */
 
     def keyword: Parser[Token] =
-      elem("keyword", "{}[],:".contains(_)) ^^ (c => Token(Kind.KEYWORD, c.toString)) |
-      letters1 ^^ (s =>
-        if (s == "true" || s == "false" || s == "null") Token(Kind.KEYWORD, s)
-        else errorToken("Bad keyword: " + quote(s)))
+      (letters1 | one(character("{}[],:".contains(_)))) ^^ (s => Token(Kind.KEYWORD, s))
 
 
     /* string */
