@@ -18,7 +18,7 @@ object Line
     if (text.contains('\r')) text.replace("\r\n", "\n") else text
 
   def logical_lines(text: String): List[String] =
-    Library.split_lines(normalize(text))
+    split_lines(normalize(text))
 
 
   /* position */

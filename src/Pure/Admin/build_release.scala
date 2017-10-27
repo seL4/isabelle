@@ -223,7 +223,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "W:" -> (arg => website = Some(Path.explode(arg))),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
         "l" -> (_ => build_library = true),
-        "p:" -> (arg => platform_families = Library.space_explode(',', arg)),
+        "p:" -> (arg => platform_families = space_explode(',', arg)),
         "r:" -> (arg => rev = arg))
 
       val more_args = getopts(args)

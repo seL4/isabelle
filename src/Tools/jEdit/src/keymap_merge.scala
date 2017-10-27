@@ -48,7 +48,7 @@ object Keymap_Merge
     private def prop_ignore: String = property + ".ignore"
 
     def ignored_keymaps(): List[String] =
-      Library.space_explode(',', jEdit.getProperty(prop_ignore, ""))
+      space_explode(',', jEdit.getProperty(prop_ignore, ""))
 
     def is_ignored(keymap_name: String): Boolean =
       ignored_keymaps().contains(keymap_name)

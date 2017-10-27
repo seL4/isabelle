@@ -72,8 +72,8 @@ object HTTP
   sealed case class Arg(method: String, uri: URI, request: Bytes)
   {
     def decode_properties: Properties.T =
-      Library.space_explode('&', request.text).map(s =>
-        Library.space_explode('=', s) match {
+      space_explode('&', request.text).map(s =>
+        space_explode('=', s) match {
           case List(a, b) =>
             URLDecoder.decode(a, UTF8.charset_name) ->
             URLDecoder.decode(b, UTF8.charset_name)

@@ -343,7 +343,7 @@ object Isabelle_Cronjob
           case Exn.Exn(exn) =>
             System.err.println("Exception trace for " + quote(task.name) + ":")
             exn.printStackTrace()
-            val first_line = Library.split_lines(Exn.message(exn)).headOption getOrElse "exception"
+            val first_line = split_lines(Exn.message(exn)).headOption getOrElse "exception"
             Some(first_line)
         }
       logger.log_end(end_date, err)

@@ -63,7 +63,7 @@ object SSH
     jsch.setKnownHosts(File.platform_path(known_hosts))
 
     val identity_files =
-      Library.space_explode(':', options.string("ssh_identity_files")).map(Path.explode(_))
+      space_explode(':', options.string("ssh_identity_files")).map(Path.explode(_))
     for (identity_file <- identity_files if identity_file.is_file)
       jsch.addIdentity(File.platform_path(identity_file))
 

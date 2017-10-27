@@ -26,7 +26,7 @@ object NUMA
       }
 
     if (numa_nodes_linux.is_file) {
-      Library.space_explode(',', File.read(numa_nodes_linux).trim).flatMap(read(_))
+      space_explode(',', File.read(numa_nodes_linux).trim).flatMap(read(_))
     }
     else Nil
   }

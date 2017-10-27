@@ -306,7 +306,7 @@ abstract class Rendering(
         if (files == null) Nil
         else {
           val ignore =
-            Library.space_explode(':', options.string("completion_path_ignore")).
+            space_explode(':', options.string("completion_path_ignore")).
               map(s => FileSystems.getDefault.getPathMatcher("glob:" + s))
           (for {
             file <- files.iterator

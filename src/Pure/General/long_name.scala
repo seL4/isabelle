@@ -15,7 +15,7 @@ object Long_Name
   def is_qualified(name: String): Boolean = name.contains(separator_char)
 
   def implode(names: List[String]): String = names.mkString(separator)
-  def explode(name: String): List[String] = Library.space_explode(separator_char, name)
+  def explode(name: String): List[String] = space_explode(separator_char, name)
 
   def qualify(qual: String, name: String): String =
     if (qual == "" || name == "") name
