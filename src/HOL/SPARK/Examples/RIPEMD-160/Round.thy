@@ -330,7 +330,7 @@ proof -
   from this[OF x_lower x_upper x_lower' x_upper' \<open>0 <= 0\<close> \<open>0 <= 79\<close>]
     \<open>0 \<le> ca\<close> \<open>0 \<le> ce\<close> x_lower x_lower'
   show ?thesis unfolding returns(1) returns(2) unfolding returns
-    by simp
+    by (simp del: mod_pos_pos_trivial mod_neg_neg_trivial)
 qed
 
 spark_vc procedure_round_62
@@ -415,7 +415,8 @@ proof -
     \<open>0 \<le> cla\<close> \<open>0 \<le> cle\<close> \<open>0 \<le> cra\<close> \<open>0 \<le> cre\<close> x_lower x_lower'
   show ?thesis unfolding \<open>loop__1__j + 1 + 1 = loop__1__j + 2\<close>
     unfolding returns(1) returns(2) unfolding returns
-    by simp
+    by (simp del: mod_pos_pos_trivial mod_neg_neg_trivial)
+
 qed
 
 spark_vc procedure_round_76
