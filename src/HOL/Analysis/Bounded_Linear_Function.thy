@@ -210,7 +210,7 @@ lemmas [bilinear_simps] =
 end
 
 
-instance blinfun :: (banach, banach) banach
+instance blinfun :: (real_normed_vector, banach) banach
 proof
   fix X::"nat \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
   assume "Cauchy X"
