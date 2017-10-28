@@ -55,7 +55,9 @@ session "HOL-Library" (main timing) in Library = HOL +
     Refute
   document_files "root.bib" "root.tex"
 
-session "HOL-Analysis" (main timing) in Analysis = "HOL-Computational_Algebra" +
+session "HOL-Analysis" (main timing) in Analysis = HOL +
+  sessions
+    "HOL-Computational_Algebra"
   theories
     Analysis
   document_files
