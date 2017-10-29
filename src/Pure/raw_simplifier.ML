@@ -389,7 +389,13 @@ val clear_simpset =
 
 (* simp depth *)
 
-val simp_depth_limit_raw = Config.declare ("simp_depth_limit", \<^here>) (K (Config.Int 100));
+(*
+The simp_depth_limit is meant to abort infinite recursion of the simplifier
+early but should not terminate "normal" executions.
+As of 2017, 25 would suffice; 40 builds in a safety margin.
+*)
+
+val simp_depth_limit_raw = Config.declare ("simp_depth_limit", \<^here>) (K (Config.Int 40));
 val simp_depth_limit = Config.int simp_depth_limit_raw;
 
 val simp_trace_depth_limit_raw =
