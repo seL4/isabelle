@@ -433,4 +433,3 @@ structure Inttab = Table(type key = int val ord = int_ord);
 structure Symtab = Table(type key = string val ord = fast_string_ord);
 structure Symreltab = Table(type key = string * string
   val ord = prod_ord fast_string_ord fast_string_ord);
-
