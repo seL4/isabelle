@@ -199,7 +199,7 @@ lemma wf_empty [iff]: "wf {}"
 lemma wfP_empty [iff]: "wfP (\<lambda>x y. False)"
 proof -
   have "wfP bot"
-    by (fact wf_empty [to_pred bot_empty_eq2])
+    by (fact wf_empty[to_pred bot_empty_eq2])
   then show ?thesis
     by (simp add: bot_fun_def)
 qed
@@ -753,13 +753,11 @@ text \<open>lexicographic combinations with measure functions\<close>
 definition mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
   where "f <*mlex*> R = inv_image (less_than <*lex*> R) (\<lambda>x. (f x, x))"
 
-lemma wf_mlex: "wf R \<Longrightarrow> wf (f <*mlex*> R)"
-  by (auto simp: mlex_prod_def)
-
-lemma mlex_less: "f x < f y \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
-  by (simp add: mlex_prod_def)
-
-lemma mlex_leq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
+lemma
+  wf_mlex: "wf R \<Longrightarrow> wf (f <*mlex*> R)" and
+  mlex_less: "f x < f y \<Longrightarrow> (x, y) \<in> f <*mlex*> R" and
+  mlex_leq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (x, y) \<in> f <*mlex*> R" and
+  mlex_iff: "(x, y) \<in> f <*mlex*> R \<longleftrightarrow> f x < f y \<or> f x = f y \<and> (x, y) \<in> R"
   by (auto simp: mlex_prod_def)
 
 text \<open>Proper subset relation on finite sets.\<close>
@@ -846,7 +844,6 @@ qed
 lemma max_ext_additive: "(A, B) \<in> max_ext R \<Longrightarrow> (C, D) \<in> max_ext R \<Longrightarrow> (A \<union> C, B \<union> D) \<in> max_ext R"
   by (force elim!: max_ext.cases)
 
-
 definition min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set"
   where "min_ext r = {(X, Y) | X Y. X \<noteq> {} \<and> (\<forall>y \<in> Y. (\<exists>x \<in> X. (x, y) \<in> r))}"
 
@@ -854,7 +851,7 @@ lemma min_ext_wf:
   assumes "wf r"
   shows "wf (min_ext r)"
 proof (rule wfI_min)
-  show "\<exists>m \<in> Q. (\<forall> n. (n, m) \<in> min_ext r \<longrightarrow> n \<notin> Q)" if nonempty: "x \<in> Q"
+  show "\<exists>m \<in> Q. (\<forall>n. (n, m) \<in> min_ext r \<longrightarrow> n \<notin> Q)" if nonempty: "x \<in> Q"
     for Q :: "'a set set" and x
   proof (cases "Q = {{}}")
     case True
@@ -900,20 +897,9 @@ lemma wf_bounded_set:
 
 lemma finite_subset_wf:
   assumes "finite A"
-  shows "wf {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}"
-proof (intro finite_acyclic_wf)
-  have "{(X,Y). X \<subset> Y \<and> Y \<subseteq> A} \<subseteq> Pow A \<times> Pow A"
-    by blast
-  then show "finite {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}"
-    by (rule finite_subset) (auto simp: assms finite_cartesian_product)
-next
-  have "{(X, Y). X \<subset> Y \<and> Y \<subseteq> A}\<^sup>+ = {(X, Y). X \<subset> Y \<and> Y \<subseteq> A}"
-    by (intro trancl_id transI) blast
-  also have " \<forall>x. (x, x) \<notin> \<dots>"
-    by blast
-  finally show "acyclic {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}"
-    by (rule acyclicI)
-qed
+  shows "wf {(X, Y). X \<subset> Y \<and> Y \<subseteq> A}"
+  by (rule wf_subset[OF wf_finite_psubset[unfolded finite_psubset_def]])
+    (auto intro: finite_subset[OF _ assms])
 
 hide_const (open) acc accp
 
