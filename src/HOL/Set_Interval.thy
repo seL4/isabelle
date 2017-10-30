@@ -218,6 +218,10 @@ alone.\<close>
 lemma greaterThanLessThan_eq: "{ a <..< b} = { a <..} \<inter> {..< b }"
   by auto
 
+lemma (in order) atLeast_lessThan_eq_atLeast_atMost_diff:
+  "{a..<b} = {a..b} - {b}"
+  by (auto simp add: atLeastLessThan_def atLeastAtMost_def)
+
 end
 
 subsubsection\<open>Emptyness, singletons, subset\<close>
@@ -842,6 +846,7 @@ lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \
   apply (simp_all add: atLeastLessThanSuc)
   done
 
+
 subsubsection \<open>Intervals and numerals\<close>
 
 lemma lessThan_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
@@ -858,32 +863,74 @@ lemma atLeastLessThan_nat_numeral:  \<comment>\<open>Evaluation for specific num
                  else {})"
   by (simp add: numeral_eq_Suc atLeastLessThanSuc)
 
+
 subsubsection \<open>Image\<close>
 
-lemma image_add_atLeastAtMost [simp]:
-  fixes k ::"'a::linordered_semidom"
-  shows "(\<lambda>n. n+k) ` {i..j} = {i+k..j+k}" (is "?A = ?B")
+context linordered_semidom
+begin
+
+lemma image_add_atLeast_atMost [simp]:
+  "plus k ` {i..j} = {i + k..j + k}" (is "?A = ?B")
 proof
-  show "?A \<subseteq> ?B" by auto
+  show "?A \<subseteq> ?B"
+    by (auto simp add: ac_simps)
 next
   show "?B \<subseteq> ?A"
   proof
-    fix n assume a: "n : ?B"
-    hence "n - k : {i..j}"
-      by (auto simp: add_le_imp_le_diff add_le_add_imp_diff_le)
-    moreover have "n = (n - k) + k" using a
+    fix n
+    assume "n \<in> ?B"
+    then have "i \<le> n - k"
+      by (simp add: add_le_imp_le_diff)
+    have "n = n - k + k"
     proof -
-      have "k + i \<le> n"
-        by (metis a add.commute atLeastAtMost_iff)
-      hence "k + (n - k) = n"
-        by (metis (no_types) ab_semigroup_add_class.add_ac(1) add_diff_cancel_left' le_add_diff_inverse)
-      thus ?thesis
-        by (simp add: add.commute)
+      from \<open>n \<in> ?B\<close> have "n = n - (i + k) + (i + k)"
+        by simp
+      also have "\<dots> = n - k - i + i + k"
+        by (simp add: algebra_simps)
+      also have "\<dots> = n - k + k"
+        using \<open>i \<le> n - k\<close> by simp
+      finally show ?thesis .
     qed
-    ultimately show "n : ?A" by blast
+    moreover have "n - k \<in> {i..j}"
+      using \<open>n \<in> ?B\<close>
+      by (auto simp: add_le_imp_le_diff add_le_add_imp_diff_le)
+    ultimately show "n \<in> ?A"
+      by (simp add: ac_simps) 
   qed
 qed
 
+lemma image_add_atLeast_atMost' [simp]:
+  "(\<lambda>n. n + k) ` {i..j} = {i + k..j + k}"
+  by (simp add: add.commute [of _ k])
+
+lemma image_add_atLeast_lessThan [simp]:
+  "plus k ` {i..<j} = {i + k..<j + k}"
+  by (simp add: image_set_diff atLeast_lessThan_eq_atLeast_atMost_diff ac_simps)
+
+lemma image_add_atLeast_lessThan' [simp]:
+  "(\<lambda>n. n + k) ` {i..<j} = {i + k..<j + k}"
+  by (simp add: add.commute [of _ k])
+
+end
+
+lemma image_Suc_atLeast_atMost [simp]:
+  "Suc ` {i..j} = {Suc i..Suc j}"
+  using image_add_atLeast_atMost [of 1 i j]
+    by (simp only: plus_1_eq_Suc) simp
+
+lemma image_Suc_atLeast_lessThan [simp]:
+  "Suc ` {i..<j} = {Suc i..<Suc j}"
+  using image_add_atLeast_lessThan [of 1 i j]
+    by (simp only: plus_1_eq_Suc) simp
+
+corollary image_Suc_atMost:
+  "Suc ` {..n} = {1..Suc n}"
+  by (simp add: atMost_atLeast0 atLeastLessThanSuc_atLeastAtMost)
+
+corollary image_Suc_lessThan:
+  "Suc ` {..<n} = {1..n}"
+  by (simp add: lessThan_atLeast0 atLeastLessThanSuc_atLeastAtMost)
+  
 lemma image_diff_atLeastAtMost [simp]:
   fixes d::"'a::linordered_idom" shows "(op - d ` {a..b}) = {d-b..d-a}"
   apply auto
@@ -930,38 +977,6 @@ lemma image_affinity_atLeastAtMost_div_diff:
   using image_affinity_atLeastAtMost_diff [of "inverse m" c a b]
   by (simp add: field_class.field_divide_inverse algebra_simps)
 
-lemma image_add_atLeastLessThan:
-  "(%n::nat. n+k) ` {i..<j} = {i+k..<j+k}" (is "?A = ?B")
-proof
-  show "?A \<subseteq> ?B" by auto
-next
-  show "?B \<subseteq> ?A"
-  proof
-    fix n assume a: "n : ?B"
-    hence "n - k : {i..<j}" by auto
-    moreover have "n = (n - k) + k" using a by auto
-    ultimately show "n : ?A" by blast
-  qed
-qed
-
-corollary image_Suc_lessThan:
-  "Suc ` {..<n} = {1..n}"
-  using image_add_atLeastLessThan [of 1 0 n]
-  by (auto simp add: lessThan_Suc_atMost atLeast0LessThan)
-
-corollary image_Suc_atMost:
-  "Suc ` {..n} = {1..Suc n}"
-  using image_add_atLeastLessThan [of 1 0 "Suc n"]
-  by (auto simp add: lessThan_Suc_atMost atLeast0LessThan)
-
-corollary image_Suc_atLeastAtMost[simp]:
-  "Suc ` {i..j} = {Suc i..Suc j}"
-using image_add_atLeastAtMost[where k="Suc 0"] by simp
-
-corollary image_Suc_atLeastLessThan[simp]:
-  "Suc ` {i..<j} = {Suc i..<Suc j}"
-using image_add_atLeastLessThan[where k="Suc 0"] by simp
-
 lemma atLeast1_lessThan_eq_remove0:
   "{Suc 0..<n} = {..<n} - {0}"
   by auto
@@ -994,7 +1009,12 @@ proof safe
   qed
 qed auto
 
-lemma image_int_atLeastLessThan: "int ` {a..<b} = {int a..<int b}"
+lemma image_int_atLeast_lessThan:
+  "int ` {a..<b} = {int a..<int b}"
+  by (auto intro!: image_eqI [where x = "nat x" for x])
+
+lemma image_int_atLeast_atMost:
+  "int ` {a..b} = {int a..int b}"
   by (auto intro!: image_eqI [where x = "nat x" for x])
 
 context ordered_ab_group_add
@@ -1532,42 +1552,73 @@ done
 
 subsection \<open>Generic big monoid operation over intervals\<close>
 
-lemma inj_on_add_nat' [simp]:
-  "inj_on (plus k) N" for k :: nat
+context semiring_char_0
+begin
+
+lemma inj_on_of_nat [simp]:
+  "inj_on of_nat N"
   by rule simp
+
+lemma bij_betw_of_nat [simp]:
+  "bij_betw of_nat N A \<longleftrightarrow> of_nat ` N = A"
+  by (simp add: bij_betw_def)
+
+end
 
 context comm_monoid_set
 begin
 
-lemma atLeast_lessThan_shift_bounds:
-  fixes m n k :: nat
-  shows "F g {m + k..<n + k} = F (g \<circ> plus k) {m..<n}"
+lemma atLeast_lessThan_reindex:
+  "F g {h m..<h n} = F (g \<circ> h) {m..<n}"
+  if "bij_betw h {m..<n} {h m..<h n}" for m n ::nat
 proof -
-  have "{m + k..<n + k} = plus k ` {m..<n}"
-    by (auto simp add: image_add_atLeastLessThan [symmetric])
-  also have "F g (plus k ` {m..<n}) = F (g \<circ> plus k) {m..<n}"
-    by (rule reindex) simp
-  finally show ?thesis .
+  from that have "inj_on h {m..<n}" and "h ` {m..<n} = {h m..<h n}"
+    by (simp_all add: bij_betw_def)
+  then show ?thesis
+    using reindex [of h "{m..<n}" g] by simp
 qed
 
-lemma atLeast_atMost_shift_bounds:
-  fixes m n k :: nat
-  shows "F g {m + k..n + k} = F (g \<circ> plus k) {m..n}"
+lemma atLeast_atMost_reindex:
+  "F g {h m..h n} = F (g \<circ> h) {m..n}"
+  if "bij_betw h {m..n} {h m..h n}" for m n ::nat
 proof -
-  have "{m + k..n + k} = plus k ` {m..n}"
-    by (auto simp del: image_add_atLeastAtMost simp add: image_add_atLeastAtMost [symmetric])
-  also have "F g (plus k ` {m..n}) = F (g \<circ> plus k) {m..n}"
-    by (rule reindex) simp
-  finally show ?thesis .
+  from that have "inj_on h {m..n}" and "h ` {m..n} = {h m..h n}"
+    by (simp_all add: bij_betw_def)
+  then show ?thesis
+    using reindex [of h "{m..n}" g] by simp
 qed
+
+lemma atLeast_lessThan_shift_bounds:
+  "F g {m + k..<n + k} = F (g \<circ> plus k) {m..<n}"
+  for m n k :: nat
+  using atLeast_lessThan_reindex [of "plus k" m n g]
+  by (simp add: ac_simps)
+
+lemma atLeast_atMost_shift_bounds:
+  "F g {m + k..n + k} = F (g \<circ> plus k) {m..n}"
+  for m n k :: nat
+  using atLeast_atMost_reindex [of "plus k" m n g]
+  by (simp add: ac_simps)
 
 lemma atLeast_Suc_lessThan_Suc_shift:
   "F g {Suc m..<Suc n} = F (g \<circ> Suc) {m..<n}"
-  using atLeast_lessThan_shift_bounds [of _ _ 1] by simp
+  using atLeast_lessThan_shift_bounds [of _ _ 1]
+  by (simp add: plus_1_eq_Suc)
 
 lemma atLeast_Suc_atMost_Suc_shift:
   "F g {Suc m..Suc n} = F (g \<circ> Suc) {m..n}"
-  using atLeast_atMost_shift_bounds [of _ _ 1] by simp
+  using atLeast_atMost_shift_bounds [of _ _ 1]
+  by (simp add: plus_1_eq_Suc)
+
+lemma atLeast_int_lessThan_int_shift:
+  "F g {int m..<int n} = F (g \<circ> int) {m..<n}"
+  by (rule atLeast_lessThan_reindex)
+    (simp add: image_int_atLeast_lessThan)
+
+lemma atLeast_int_atMost_int_shift:
+  "F g {int m..int n} = F (g \<circ> int) {m..n}"
+  by (rule atLeast_atMost_reindex)
+    (simp add: image_int_atLeast_atMost)
 
 lemma atLeast0_lessThan_Suc:
   "F g {0..<Suc n} = F g {0..<n} \<^bold>* g n"
@@ -1780,6 +1831,9 @@ by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
 lemma nat_diff_sum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
   by (rule sum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
 
+lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
+  by (subst sum_subtractf_nat) auto
+
 
 subsubsection \<open>Shifting bounds\<close>
 
@@ -1799,15 +1853,45 @@ corollary sum_shift_bounds_Suc_ivl:
   "sum f {Suc m..<Suc n} = sum (%i. f(Suc i)){m..<n}"
 by (simp add:sum_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
-lemma sum_shift_lb_Suc0_0:
-  "f(0::nat) = (0::nat) \<Longrightarrow> sum f {Suc 0..k} = sum f {0..k}"
-by(simp add:sum_head_Suc)
+context comm_monoid_add
+begin
+
+context
+  fixes f :: "nat \<Rightarrow> 'a"
+  assumes "f 0 = 0"
+begin
 
 lemma sum_shift_lb_Suc0_0_upt:
-  "f(0::nat) = 0 \<Longrightarrow> sum f {Suc 0..<k} = sum f {0..<k}"
-apply(cases k)apply simp
-apply(simp add:sum_head_upt_Suc)
-done
+  "sum f {Suc 0..<k} = sum f {0..<k}"
+proof (cases k)
+  case 0
+  then show ?thesis
+    by simp
+next
+  case (Suc k)
+  moreover have "{0..<Suc k} = insert 0 {Suc 0..<Suc k}"
+    by auto
+  ultimately show ?thesis
+    using \<open>f 0 = 0\<close> by simp
+qed
+
+lemma sum_shift_lb_Suc0_0:
+  "sum f {Suc 0..k} = sum f {0..k}"
+proof (cases k)
+  case 0
+  with \<open>f 0 = 0\<close> show ?thesis
+    by simp
+next
+  case (Suc k)
+  moreover have "{0..Suc k} = insert 0 {Suc 0..Suc k}"
+    by auto
+  ultimately show ?thesis
+    using \<open>f 0 = 0\<close> by simp
+qed
+
+end
+
+end
 
 lemma sum_atMost_Suc_shift:
   fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
@@ -1892,7 +1976,7 @@ lemma sum_lessThan_telescope':
   by (induction m) (simp_all add: algebra_simps)
 
 
-subsection \<open>The formula for geometric sums\<close>
+subsubsection \<open>The formula for geometric sums\<close>
 
 lemma sum_power2: "(\<Sum>i=0..<k. (2::nat)^i) = 2^k-1"
 by (induction k) (auto simp: mult_2)
@@ -1991,7 +2075,8 @@ lemma sum_gp:
 using sum_gp_multiplied [of m n x] apply auto
 by (metis eq_iff_diff_eq_0 mult.commute nonzero_divide_eq_eq)
 
-subsection\<open>Geometric progressions\<close>
+
+subsubsection\<open>Geometric progressions\<close>
 
 lemma sum_gp0:
   fixes x :: "'a::{comm_ring,division_ring}"
@@ -2016,67 +2101,125 @@ lemma sum_gp_strict:
   shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
   by (induct n) (auto simp: algebra_simps divide_simps)
 
-subsubsection \<open>The formula for arithmetic sums\<close>
+
+subsubsection \<open>The formulae for arithmetic sums\<close>
+
+context comm_semiring_1
+begin
+
+lemma double_gauss_sum:
+  "2 * (\<Sum>i = 0..n. of_nat i) = of_nat n * (of_nat n + 1)"
+  by (induct n) (simp_all add: sum.atLeast0_atMost_Suc algebra_simps left_add_twice)
+
+lemma double_gauss_sum_from_Suc_0:
+  "2 * (\<Sum>i = Suc 0..n. of_nat i) = of_nat n * (of_nat n + 1)"
+proof -
+  have "sum of_nat {Suc 0..n} = sum of_nat (insert 0 {Suc 0..n})"
+    by simp
+  also have "\<dots> = sum of_nat {0..n}"
+    by (cases n) (simp_all add: atLeast0_atMost_Suc_eq_insert_0)
+  finally show ?thesis
+    by (simp add: double_gauss_sum)
+qed
+
+lemma double_arith_series:
+  "2 * (\<Sum>i = 0..n. a + of_nat i * d) = (of_nat n + 1) * (2 * a + of_nat n * d)"
+proof -
+  have "(\<Sum>i = 0..n. a + of_nat i * d) = ((\<Sum>i = 0..n. a) + (\<Sum>i = 0..n. of_nat i * d))"
+    by (rule sum.distrib)
+  also have "\<dots> = (of_nat (Suc n) * a + d * (\<Sum>i = 0..n. of_nat i))"
+    by (simp add: sum_distrib_left algebra_simps)
+  finally show ?thesis
+    by (simp add: algebra_simps double_gauss_sum left_add_twice)
+qed
+
+end
+
+context semiring_parity
+begin
 
 lemma gauss_sum:
-  "(2::'a::comm_semiring_1)*(\<Sum>i\<in>{1..n}. of_nat i) = of_nat n*((of_nat n)+1)"
-proof (induct n)
-  case 0
-  show ?case by simp
-next
-  case (Suc n)
-  then show ?case
-    by (simp add: algebra_simps add: one_add_one [symmetric] del: one_add_one)
-      (* FIXME: make numeral cancellation simprocs work for semirings *)
-qed
+  "(\<Sum>i = 0..n. of_nat i) = of_nat n * (of_nat n + 1) div 2"
+  using double_gauss_sum [of n, symmetric] by simp
 
-theorem arith_series_general:
-  "(2::'a::comm_semiring_1) * (\<Sum>i\<in>{..<n}. a + of_nat i * d) =
-  of_nat n * (a + (a + of_nat(n - 1)*d))"
-proof cases
-  assume ngt1: "n > 1"
-  let ?I = "\<lambda>i. of_nat i" and ?n = "of_nat n"
-  have
-    "(\<Sum>i\<in>{..<n}. a+?I i*d) =
-     ((\<Sum>i\<in>{..<n}. a) + (\<Sum>i\<in>{..<n}. ?I i*d))"
-    by (rule sum.distrib)
-  also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
-  also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
-    unfolding One_nat_def
-    by (simp add: sum_distrib_left atLeast0LessThan[symmetric] sum_shift_lb_Suc0_0_upt ac_simps)
-  also have "2*\<dots> = 2*?n*a + d*2*(\<Sum>i\<in>{1..<n}. ?I i)"
-    by (simp add: algebra_simps)
-  also from ngt1 have "{1..<n} = {1..n - 1}"
-    by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)
-  also from ngt1
-  have "2*?n*a + d*2*(\<Sum>i\<in>{1..n - 1}. ?I i) = (2*?n*a + d*?I (n - 1)*?I n)"
-    by (simp only: mult.assoc gauss_sum [of "n - 1"], unfold One_nat_def)
-      (simp add:  mult.commute trans [OF add.commute of_nat_Suc [symmetric]])
-  finally show ?thesis
-    unfolding mult_2 by (simp add: algebra_simps)
-next
-  assume "\<not>(n > 1)"
-  hence "n = 1 \<or> n = 0" by auto
-  thus ?thesis by (auto simp: mult_2)
-qed
+lemma gauss_sum_from_Suc_0:
+  "(\<Sum>i = Suc 0..n. of_nat i) = of_nat n * (of_nat n + 1) div 2"
+  using double_gauss_sum_from_Suc_0 [of n, symmetric] by simp
+
+lemma arith_series:
+  "(\<Sum>i = 0..n. a + of_nat i * d) = (of_nat n + 1) * (2 * a + of_nat n * d) div 2"
+  using double_arith_series [of a d n, symmetric] by simp
+
+end
+
+lemma gauss_sum_nat:
+  "\<Sum>{0..n} = (n * Suc n) div 2"
+  using gauss_sum [of n, where ?'a = nat] by simp
 
 lemma arith_series_nat:
-  "(2::nat) * (\<Sum>i\<in>{..<n}. a+i*d) = n * (a + (a+(n - 1)*d))"
-proof -
-  have
-    "2 * (\<Sum>i\<in>{..<n::nat}. a + of_nat(i)*d) =
-    of_nat(n) * (a + (a + of_nat(n - 1)*d))"
-    by (rule arith_series_general)
-  thus ?thesis
-    unfolding One_nat_def by auto
+  "(\<Sum>i = 0..n. a + i * d) = Suc n * (2 * a + n * d) div 2"
+  using arith_series [of a d n] by simp
+
+lemma Sum_Icc_int:
+  "\<Sum>{m..n} = (n * (n + 1) - m * (m - 1)) div 2"
+  if "m \<le> n" for m n :: int
+using that proof (induct i \<equiv> "nat (n - m)" arbitrary: m n)
+  case 0
+  then have "m = n"
+    by arith
+  then show ?case
+    by (simp add: algebra_simps mult_2 [symmetric])
+next
+  case (Suc i)
+  have 0: "i = nat((n-1) - m)" "m \<le> n-1" using Suc(2,3) by arith+
+  have "\<Sum> {m..n} = \<Sum> {m..1+(n-1)}" by simp
+  also have "\<dots> = \<Sum> {m..n-1} + n" using \<open>m \<le> n\<close>
+    by(subst atLeastAtMostPlus1_int_conv) simp_all
+  also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1)) div 2 + n"
+    by(simp add: Suc(1)[OF 0])
+  also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1) + 2*n) div 2" by simp
+  also have "\<dots> = (n*(n+1) - m*(m-1)) div 2"
+    by (simp add: algebra_simps mult_2_right)
+  finally show ?case .
 qed
 
-lemma arith_series_int:
-  "2 * (\<Sum>i\<in>{..<n}. a + int i * d) = int n * (a + (a + int(n - 1)*d))"
-  by (fact arith_series_general) (* FIXME: duplicate *)
+lemma Sum_Icc_nat:
+  "\<Sum>{m..n} = (n * (n + 1) - m * (m - 1)) div 2"
+  if "m \<le> n" for m n :: nat
+proof -
+  have *: "m * (m - 1) \<le> n * (n + 1)"
+    using that by (meson diff_le_self order_trans le_add1 mult_le_mono)
+  have "int (\<Sum>{m..n}) = (\<Sum>{int m..int n})"
+    by (simp add: sum.atLeast_int_atMost_int_shift)
+  also have "\<dots> = (int n * (int n + 1) - int m * (int m - 1)) div 2"
+    using that by (simp add: Sum_Icc_int)
+  also have "\<dots> = int ((n * (n + 1) - m * (m - 1)) div 2)"
+    using le_square * by (simp add: algebra_simps of_nat_div of_nat_diff)
+  finally show ?thesis
+    by (simp only: of_nat_eq_iff)
+qed
 
-lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
-  by (subst sum_subtractf_nat) auto
+lemma Sum_Ico_nat: 
+  "\<Sum>{m..<n} = (n * (n - 1) - m * (m - 1)) div 2"
+  if "m \<le> n" for m n :: nat
+proof -
+  from that consider "m < n" | "m = n"
+    by (auto simp add: less_le)
+  then show ?thesis proof cases
+    case 1
+    then have "{m..<n} = {m..n - 1}"
+      by auto
+    then have "\<Sum>{m..<n} = \<Sum>{m..n - 1}"
+      by simp
+    also have "\<dots> = (n * (n - 1) - m * (m - 1)) div 2"
+      using \<open>m < n\<close> by (simp add: Sum_Icc_nat mult.commute)
+    finally show ?thesis .
+  next
+    case 2
+    then show ?thesis
+      by simp
+  qed
+qed
 
 
 subsubsection \<open>Division remainder\<close>

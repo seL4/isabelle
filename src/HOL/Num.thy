@@ -522,6 +522,10 @@ lemma mult_2: "2 * z = z + z"
 lemma mult_2_right: "z * 2 = z + z"
   by (simp add: one_add_one [symmetric] distrib_left)
 
+lemma left_add_twice:
+  "a + (a + b) = 2 * a + b"
+  by (simp add: mult_2 ac_simps)
+
 end
 
 

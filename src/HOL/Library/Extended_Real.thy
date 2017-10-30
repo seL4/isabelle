@@ -3381,18 +3381,20 @@ lemma suminf_ereal_offset_le:
   shows "(\<Sum>i. f (i + k)) \<le> suminf f"
 proof -
   have "(\<lambda>n. \<Sum>i<n. f (i + k)) \<longlonglongrightarrow> (\<Sum>i. f (i + k))"
-    using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
+    using summable_sums[OF summable_ereal_pos]
+    by (simp add: sums_def atLeast0LessThan f)
   moreover have "(\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> (\<Sum>i. f i)"
-    using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
+    using summable_sums[OF summable_ereal_pos]
+    by (simp add: sums_def atLeast0LessThan f)
   then have "(\<lambda>n. \<Sum>i<n + k. f i) \<longlonglongrightarrow> (\<Sum>i. f i)"
     by (rule LIMSEQ_ignore_initial_segment)
   ultimately show ?thesis
   proof (rule LIMSEQ_le, safe intro!: exI[of _ k])
     fix n assume "k \<le> n"
-    have "(\<Sum>i<n. f (i + k)) = (\<Sum>i<n. (f \<circ> (\<lambda>i. i + k)) i)"
-      by simp
-    also have "\<dots> = (\<Sum>i\<in>(\<lambda>i. i + k) ` {..<n}. f i)"
-      by (subst sum.reindex) auto
+    have "(\<Sum>i<n. f (i + k)) = (\<Sum>i<n. (f \<circ> plus k) i)"
+      by (simp add: ac_simps)
+    also have "\<dots> = (\<Sum>i\<in>(plus k) ` {..<n}. f i)"
+      by (rule sum.reindex [symmetric]) simp
     also have "\<dots> \<le> sum f {..<n + k}"
       by (intro sum_mono2) (auto simp: f)
     finally show "(\<Sum>i<n. f (i + k)) \<le> sum f {..<n + k}" .

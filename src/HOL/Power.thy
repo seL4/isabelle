@@ -306,6 +306,20 @@ lemma power2_eq_iff: "x\<^sup>2 = y\<^sup>2 \<longleftrightarrow> x = y \<or> x 
 
 end
 
+context semidom_divide
+begin
+
+lemma power_diff:
+  "a ^ (m - n) = (a ^ m) div (a ^ n)" if "a \<noteq> 0" and "n \<le> m"
+proof -
+  define q where "q = m - n"
+  with \<open>n \<le> m\<close> have "m = q + n" by simp
+  with \<open>a \<noteq> 0\<close> q_def show ?thesis
+    by (simp add: power_add)
+qed
+
+end
+
 context algebraic_semidom
 begin
 
@@ -369,11 +383,6 @@ end
 
 context field
 begin
-
-lemma power_diff:
-  assumes "a \<noteq> 0"
-  shows "n \<le> m \<Longrightarrow> a ^ (m - n) = a ^ m / a ^ n"
-  by (induct m n rule: diff_induct) (simp_all add: assms power_not_zero)
 
 lemma power_divide [field_simps, divide_simps]: "(a / b) ^ n = a ^ n / b ^ n"
   by (induct n) simp_all

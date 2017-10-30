@@ -168,7 +168,7 @@ lemma cases:
   shows "P"
 apply (cases x rule: type_definition.Abs_cases [OF type])
 apply (rule_tac z="y" in 1)
-apply (simp_all add: of_int_eq mod_pos_pos_trivial)
+apply (simp_all add: of_int_eq)
 done
 
 lemma induct:
@@ -229,7 +229,7 @@ interpretation bit0:
            "Rep_bit0 :: 'a::finite bit0 \<Rightarrow> int"
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
 apply (rule mod_type.intro)
-apply (simp add: of_nat_mult type_definition_bit0)
+apply (simp add: type_definition_bit0)
 apply (rule one_less_int_card)
 apply (rule zero_bit0_def)
 apply (rule one_bit0_def)
@@ -244,7 +244,7 @@ interpretation bit1:
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
 apply (rule mod_type.intro)
-apply (simp add: of_nat_mult type_definition_bit1)
+apply (simp add: type_definition_bit1)
 apply (rule one_less_int_card)
 apply (rule zero_bit1_def)
 apply (rule one_bit1_def)
@@ -411,12 +411,12 @@ definition "enum_class.enum_ex P = (\<exists>b :: 'a bit0 \<in> set enum_class.e
 instance
 proof(intro_classes)
   show "distinct (enum_class.enum :: 'a bit0 list)"
-    by (simp add: enum_bit0_def distinct_map inj_on_def Abs_bit0'_def Abs_bit0_inject mod_pos_pos_trivial)
+    by (simp add: enum_bit0_def distinct_map inj_on_def Abs_bit0'_def Abs_bit0_inject)
 
   show univ_eq: "(UNIV :: 'a bit0 set) = set enum_class.enum"
     unfolding enum_bit0_def type_definition.Abs_image[OF type_definition_bit0, symmetric]
-    by(simp add: image_comp [symmetric] inj_on_Abs_bit0 card_image image_int_atLeastLessThan)
-      (auto intro!: image_cong[OF refl] simp add: Abs_bit0'_def mod_pos_pos_trivial)
+    by (simp add: image_comp [symmetric] inj_on_Abs_bit0 card_image image_int_atLeast_lessThan)
+      (auto intro!: image_cong[OF refl] simp add: Abs_bit0'_def)
 
   fix P :: "'a bit0 \<Rightarrow> bool"
   show "enum_class.enum_all P = Ball UNIV P"
@@ -439,8 +439,8 @@ proof(intro_classes)
 
   show univ_eq: "(UNIV :: 'a bit1 set) = set enum_class.enum"
     unfolding enum_bit1_def type_definition.Abs_image[OF type_definition_bit1, symmetric]
-    by(simp add: image_comp [symmetric] inj_on_Abs_bit1 card_image image_int_atLeastLessThan)
-      (auto intro!: image_cong[OF refl] simp add: Abs_bit1'_def mod_pos_pos_trivial)
+    by(simp add: image_comp [symmetric] inj_on_Abs_bit1 card_image image_int_atLeast_lessThan)
+      (auto intro!: image_cong[OF refl] simp add: Abs_bit1'_def)
 
   fix P :: "'a bit1 \<Rightarrow> bool"
   show "enum_class.enum_all P = Ball UNIV P"

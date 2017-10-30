@@ -1600,13 +1600,10 @@ proof (cases "b = 0")
     by simp
 next
   case False
-  then have "inj (times b)"
-    by (rule inj_times)
   show ?thesis proof (cases "finite A")
     case False
-    moreover from \<open>inj (times b)\<close>
-    have "inj_on (times b) A"
-      by (rule inj_on_subset) simp
+    moreover have "inj_on (times b) A"
+      using \<open>b \<noteq> 0\<close> by (rule inj_on_mult)
     ultimately have "infinite (times b ` A)"
       by (simp add: finite_image_iff)
     with False show ?thesis

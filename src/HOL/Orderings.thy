@@ -1178,6 +1178,21 @@ proof
   qed
 qed
 
+lemma mono_strict_invE:
+  fixes f :: "'a \<Rightarrow> 'b::order"
+  assumes "mono f"
+  assumes "f x < f y"
+  obtains "x < y"
+proof
+  show "x < y"
+  proof (rule ccontr)
+    assume "\<not> x < y"
+    then have "y \<le> x" by simp
+    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
+    with \<open>f x < f y\<close> show False by simp
+  qed
+qed
+
 lemma strict_mono_eq:
   assumes "strict_mono f"
   shows "f x = f y \<longleftrightarrow> x = y"
@@ -1242,6 +1257,7 @@ lemma max_min_same [simp]:
   fixes x y :: "'a :: linorder"
   shows "max x (min x y) = x" "max (min x y) x = x" "max (min x y) y = y" "max y (min x y) = y"
 by(auto simp add: max_def min_def)
+
 
 subsection \<open>(Unique) top and bottom elements\<close>
 

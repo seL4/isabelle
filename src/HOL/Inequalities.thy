@@ -7,49 +7,6 @@ theory Inequalities
   imports Real_Vector_Spaces
 begin
 
-lemma Sum_Icc_int: "(m::int) \<le> n \<Longrightarrow> \<Sum> {m..n} = (n*(n+1) - m*(m-1)) div 2"
-proof(induct i == "nat(n-m)" arbitrary: m n)
-  case 0
-  hence "m = n" by arith
-  thus ?case by (simp add: algebra_simps)
-next
-  case (Suc i)
-  have 0: "i = nat((n-1) - m)" "m \<le> n-1" using Suc(2,3) by arith+
-  have "\<Sum> {m..n} = \<Sum> {m..1+(n-1)}" by simp
-  also have "\<dots> = \<Sum> {m..n-1} + n" using \<open>m \<le> n\<close>
-    by(subst atLeastAtMostPlus1_int_conv) simp_all
-  also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1)) div 2 + n"
-    by(simp add: Suc(1)[OF 0])
-  also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1) + 2*n) div 2" by simp
-  also have "\<dots> = (n*(n+1) - m*(m-1)) div 2" by(simp add: algebra_simps)
-  finally show ?case .
-qed
-
-lemma Sum_Icc_nat: assumes "(m::nat) \<le> n"
-shows "\<Sum> {m..n} = (n*(n+1) - m*(m-1)) div 2"
-proof -
-  have "m*(m-1) \<le> n*(n + 1)"
-   using assms by (meson diff_le_self order_trans le_add1 mult_le_mono)
-  hence "int(\<Sum> {m..n}) = int((n*(n+1) - m*(m-1)) div 2)" using assms
-    by (auto simp: Sum_Icc_int[transferred, OF assms] zdiv_int of_nat_mult simp del: of_nat_sum
-          split: zdiff_int_split)
-  thus ?thesis
-    using of_nat_eq_iff by blast
-qed
-
-lemma Sum_Ico_nat: assumes "(m::nat) \<le> n"
-shows "\<Sum> {m..<n} = (n*(n-1) - m*(m-1)) div 2"
-proof cases
-  assume "m < n"
-  hence "{m..<n} = {m..n-1}" by auto
-  hence "\<Sum>{m..<n} = \<Sum>{m..n-1}" by simp
-  also have "\<dots> = (n*(n-1) - m*(m-1)) div 2"
-    using assms \<open>m < n\<close> by (simp add: Sum_Icc_nat mult.commute)
-  finally show ?thesis .
-next
-  assume "\<not> m < n" with assms show ?thesis by simp
-qed
-
 lemma Chebyshev_sum_upper:
   fixes a b::"nat \<Rightarrow> 'a::linordered_idom"
   assumes "\<And>i j. i \<le> j \<Longrightarrow> j < n \<Longrightarrow> a i \<le> a j"

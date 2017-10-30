@@ -206,13 +206,13 @@ proof(cases "finite (UNIV :: 'a set)")
     apply(rule card_image)
     using bij[THEN bij_betw_imp_inj_on]
     by(simp add: inj_on_def Ball_def)(metis leD le_eq_less_or_eq le_less_trans)
-  also have "\<dots> = sum (\<lambda>n. n + 1) {0..<?A}"
-    by(subst card_SigmaI) simp_all
-  also have "\<dots> = 2 * sum of_nat {1..?A} div 2"
-    using sum.reindex[where g="of_nat :: nat \<Rightarrow> nat" and h="\<lambda>x. x + 1" and A="{0..<?A}", symmetric] True
-    by(simp del: sum_op_ivl_Suc add: atLeastLessThanSuc_atLeastAtMost)
+  also have "\<dots> = sum Suc {0..<?A}"
+    by (subst card_SigmaI) simp_all
+  also have "\<dots> = sum of_nat {Suc 0..?A}"
+    using sum.atLeast_lessThan_reindex [symmetric, of Suc 0 ?A id]
+    by (simp del: sum_op_ivl_Suc add: atLeastLessThanSuc_atLeastAtMost)
   also have "\<dots> = ?A * (?A + 1) div 2"
-    by(subst gauss_sum) simp
+    using gauss_sum_from_Suc_0 [of ?A, where ?'a = nat] by simp
   finally show ?thesis .
 qed simp
 

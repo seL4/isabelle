@@ -761,31 +761,16 @@ lemma (in canonically_ordered_monoid_add) sum_eq_0_iff [simp]:
   "finite F \<Longrightarrow> (sum f F = 0) = (\<forall>a\<in>F. f a = 0)"
   by (intro ballI sum_nonneg_eq_0_iff zero_le)
 
-lemma sum_distrib_left: "r * sum f A = sum (\<lambda>n. r * f n) A"
-  for f :: "'a \<Rightarrow> 'b::semiring_0"
-proof (induct A rule: infinite_finite_induct)
-  case infinite
-  then show ?case by simp
-next
-  case empty
-  then show ?case by simp
-next
-  case insert
-  then show ?case by (simp add: distrib_left)
-qed
+context semiring_0
+begin
+
+lemma sum_distrib_left: "r * sum f A = (\<Sum>n\<in>A. r * f n)"
+  by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
 
 lemma sum_distrib_right: "sum f A * r = (\<Sum>n\<in>A. f n * r)"
-  for r :: "'a::semiring_0"
-proof (induct A rule: infinite_finite_induct)
-  case infinite
-  then show ?case by simp
-next
-  case empty
-  then show ?case by simp
-next
-  case insert
-  then show ?case by (simp add: distrib_right)
-qed
+  by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
+
+end
 
 lemma sum_divide_distrib: "sum f A / r = (\<Sum>n\<in>A. f n / r)"
   for r :: "'a::field"
@@ -958,8 +943,14 @@ proof -
     by (simp add: card.eq_fold sum.eq_fold)
 qed
 
-lemma sum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat (card A) * y"
-  by (induct A rule: infinite_finite_induct) (auto simp: algebra_simps)
+context semiring_1
+begin
+
+lemma sum_constant [simp]:
+  "(\<Sum>x \<in> A. y) = of_nat (card A) * y"
+  by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
+
+end
 
 lemma sum_Suc: "sum (\<lambda>x. Suc(f x)) A = sum f A + card A"
   using sum.distrib[of f "\<lambda>_. 1" A] by simp

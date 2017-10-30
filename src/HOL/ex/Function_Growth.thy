@@ -10,40 +10,6 @@ imports
   "HOL-Library.Discrete"
 begin
 
-(* FIXME move *)
-
-context linorder
-begin
-
-lemma mono_invE:
-  fixes f :: "'a \<Rightarrow> 'b::order"
-  assumes "mono f"
-  assumes "f x < f y"
-  obtains "x < y"
-proof
-  show "x < y"
-  proof (rule ccontr)
-    assume "\<not> x < y"
-    then have "y \<le> x" by simp
-    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
-    with \<open>f x < f y\<close> show False by simp
-  qed
-qed
-
-end
-
-lemma (in semidom_divide) power_diff:
-  fixes a :: 'a
-  assumes "a \<noteq> 0"
-  assumes "m \<ge> n"
-  shows "a ^ (m - n) = (a ^ m) div (a ^ n)"
-proof -
-  define q where "q = m - n"
-  with assms have "m = q + n" by (simp add: q_def)
-  with q_def show ?thesis using \<open>a \<noteq> 0\<close> by (simp add: power_add)
-qed
-
-
 subsection \<open>Motivation\<close>
 
 text \<open>

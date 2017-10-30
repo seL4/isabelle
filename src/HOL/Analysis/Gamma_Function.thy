@@ -152,10 +152,10 @@ proof (rule has_field_derivative_at_within)
     fix z
     show "(\<Sum>n. of_real (sin_coeff (n+1)) * z^n)  = ?f z"
       by (cases "z = 0") (insert sin_z_over_z_series'[of z],
-            simp_all add: scaleR_conv_of_real sums_iff powser_zero sin_coeff_def)
+            simp_all add: scaleR_conv_of_real sums_iff sin_coeff_def)
   qed
   also have "(\<Sum>n. diffs (\<lambda>n. of_real (sin_coeff (n + 1))) n * (0::'a) ^ n) =
-                 diffs (\<lambda>n. of_real (sin_coeff (Suc n))) 0" by (simp add: powser_zero)
+                 diffs (\<lambda>n. of_real (sin_coeff (Suc n))) 0" by simp
   also have "\<dots> = 0" by (simp add: sin_coeff_def diffs_def)
   finally show "((\<lambda>z::'a. if z = 0 then 1 else sin z / z) has_field_derivative 0) (at 0)" .
 qed
@@ -520,7 +520,7 @@ proof -
     unfolding pochhammer_prod
     by (simp add: prod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
   also have "of_nat n powr z / (pochhammer z (Suc n) / fact n) = Gamma_series z n"
-    unfolding Gamma_series_def using assms by (simp add: divide_simps powr_def Ln_of_nat)
+    unfolding Gamma_series_def using assms by (simp add: divide_simps powr_def)
   finally show ?thesis .
 qed
 
@@ -656,8 +656,7 @@ proof -
     also have "(\<Sum>n\<in>\<dots>. f n) = (\<Sum>n<k. f n) + (\<Sum>n=k..<m+k. f n)"
       by (rule sum.union_disjoint) auto
     also have "(\<Sum>n=k..<m+k. f n) = (\<Sum>n=0..<m+k-k. f (n + k))"
-      by (intro sum.reindex_cong[of "\<lambda>n. n + k"])
-         (simp, subst image_add_atLeastLessThan, auto)
+      using sum_shift_bounds_nat_ivl [of f 0 k m] by simp
     finally show "(\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k)) = (\<Sum>n<m+k. f n)" by (simp add: atLeast0LessThan)
   qed
   finally have "(\<lambda>a. sum f {..<a}) \<longlonglongrightarrow> lim (\<lambda>m. sum f {..<m + k})"
@@ -2295,7 +2294,7 @@ proof -
     unfolding h_def using that by (auto intro!: Reals_mult Reals_add Reals_diff Polygamma_Real)
 
   from h'_zero h_h'_2 have "\<exists>c. \<forall>z\<in>UNIV. h z = c"
-    by (intro has_field_derivative_zero_constant) (simp_all add: dist_0_norm)
+    by (intro has_field_derivative_zero_constant) simp_all
   then obtain c where c: "\<And>z. h z = c" by auto
   have "\<exists>u. u \<in> closed_segment 0 1 \<and> Re (g 1) - Re (g 0) = Re (h u * g u * (1 - 0))"
     by (intro complex_mvt_line g_g')
@@ -2861,7 +2860,7 @@ proof -
     have "((\<lambda>x. exp ((z - 1) * of_real (ln x)) * (1 - of_real x / of_nat n) ^ n)
             has_integral (?I * exp ((z - 1) * ln (of_nat n)))) {0..real n}" (is ?P)
       by (insert B, subst (asm) mult.assoc [symmetric], subst (asm) exp_add [symmetric])
-         (simp add: Ln_of_nat algebra_simps)
+         (simp add: algebra_simps)
     also have "?P \<longleftrightarrow> ((\<lambda>x. of_real x powr (z - 1) * (1 - of_real x / of_nat n) ^ n)
             has_integral (?I * exp ((z - 1) * ln (of_nat n)))) {0..real n}"
       by (intro has_integral_spike_finite_eq[of "{0}"]) (simp_all add: powr_def Ln_of_real)

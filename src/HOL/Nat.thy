@@ -166,20 +166,12 @@ end
 
 text \<open>Injectiveness and distinctness lemmas\<close>
 
-lemma (in semidom_divide) inj_times:
-  "inj (times a)" if "a \<noteq> 0"
-proof (rule injI)
-  fix b c
-  assume "a * b = a * c"
-  then have "a * b div a = a * c div a"
-    by (simp only:)
-  with that show "b = c"
-    by simp
-qed
+context cancel_ab_semigroup_add
+begin
 
-lemma (in cancel_ab_semigroup_add) inj_plus:
-  "inj (plus a)"
-proof (rule injI)
+lemma inj_on_add [simp]:
+  "inj_on (plus a) A"
+proof (rule inj_onI)
   fix b c
   assume "a + b = a + c"
   then have "a + b - a = a + c - a"
@@ -188,8 +180,39 @@ proof (rule injI)
     by simp
 qed
 
-lemma inj_Suc[simp]: "inj_on Suc N"
+lemma inj_on_add' [simp]:
+  "inj_on (\<lambda>b. b + a) A"
+  using inj_on_add [of a A] by (simp add: add.commute [of _ a])
+
+lemma bij_betw_add [simp]:
+  "bij_betw (plus a) A B \<longleftrightarrow> plus a ` A = B"
+  by (simp add: bij_betw_def)
+
+end
+
+context semidom_divide
+begin
+
+lemma inj_on_mult:
+  "inj_on (times a) A" if "a \<noteq> 0"
+proof (rule inj_onI)
+  fix b c
+  assume "a * b = a * c"
+  then have "a * b div a = a * c div a"
+    by (simp only:)
+  with that show "b = c"
+    by simp
+qed
+
+end
+
+lemma inj_Suc [simp]:
+  "inj_on Suc N"
   by (simp add: inj_on_def)
+
+lemma bij_betw_Suc [simp]:
+  "bij_betw Suc M N \<longleftrightarrow> Suc ` M = N"
+  by (simp add: bij_betw_def)
 
 lemma Suc_neq_Zero: "Suc m = 0 \<Longrightarrow> R"
   by (rule notE) (rule Suc_not_Zero)
@@ -338,16 +361,9 @@ lemma add_eq_self_zero: "m + n = m \<Longrightarrow> n = 0"
   for m n :: nat
   by (induct m) simp_all
 
-lemma inj_on_add_nat [simp]: "inj_on (\<lambda>n. n + k) N"
-  for k :: nat
-proof (induct k)
-  case 0
-  then show ?case by simp
-next
-  case (Suc k)
-  show ?case
-    using comp_inj_on [OF Suc inj_Suc] by (simp add: o_def)
-qed
+lemma plus_1_eq_Suc:
+  "plus 1 = Suc"
+  by (simp add: fun_eq_iff)
 
 lemma Suc_eq_plus1: "Suc n = n + 1"
   by simp
