@@ -190,6 +190,15 @@ lemma bij_betw_add [simp]:
 
 end
 
+context ab_group_add
+begin
+
+lemma surj_plus [simp]:
+  "surj (plus a)"
+  by (auto intro: range_eqI [of b "plus a" "b - a" for b] simp add: algebra_simps)
+
+end
+
 context semidom_divide
 begin
 

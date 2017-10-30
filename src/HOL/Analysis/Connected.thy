@@ -168,7 +168,7 @@ lemma closure_ball [simp]:
   apply (rule subsetD [OF closure_subset], simp)
   apply (simp add: closure_def, clarify)
   apply (rule closure_ball_lemma)
-  apply (simp add: zero_less_dist_iff)
+  apply simp
   done
 
 (* In a trivial vector space, this fails for e = 0. *)
@@ -1969,7 +1969,7 @@ proof -
   then have "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
     using \<open>a \<notin> U\<close> by (fast elim: eventually_mono)
   then show ?thesis
-    using \<open>f x \<noteq> a\<close> by (auto simp: dist_commute zero_less_dist_iff eventually_at)
+    using \<open>f x \<noteq> a\<close> by (auto simp: dist_commute eventually_at)
 qed
 
 lemma continuous_at_avoid:
@@ -3022,9 +3022,7 @@ lemma translation_Compl:
 lemma translation_UNIV:
   fixes a :: "'a::ab_group_add"
   shows "range (\<lambda>x. a + x) = UNIV"
-  apply (auto simp: image_iff)
-  apply (rule_tac x="x - a" in exI, auto)
-  done
+  by (fact surj_plus)
 
 lemma translation_diff:
   fixes a :: "'a::ab_group_add"
