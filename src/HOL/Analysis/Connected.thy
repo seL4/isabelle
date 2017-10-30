@@ -810,6 +810,10 @@ next
     by (auto simp: closedin_closed)
 qed
 
+lemma closedin_component:
+   "C \<in> components s \<Longrightarrow> closedin (subtopology euclidean s) C"
+  using closedin_connected_component componentsE by blast
+
 
 subsection \<open>Intersecting chains of compact sets and the Baire property\<close>
 
@@ -3235,39 +3239,29 @@ lemma continuous_on_cases_1:
 using assms
 by (auto simp: continuous_on_id intro: continuous_on_cases_le [where h = id, simplified])
 
-text\<open>Some more convenient intermediate-value theorem formulations.\<close>
+subsubsection\<open>Some more convenient intermediate-value theorem formulations.\<close>
 
 lemma connected_ivt_hyperplane:
-  assumes "connected s"
-    and "x \<in> s"
-    and "y \<in> s"
-    and "inner a x \<le> b"
-    and "b \<le> inner a y"
-  shows "\<exists>z \<in> s. inner a z = b"
+  assumes "connected S" and xy: "x \<in> S" "y \<in> S" and b: "inner a x \<le> b" "b \<le> inner a y"
+  shows "\<exists>z \<in> S. inner a z = b"
 proof (rule ccontr)
-  assume as:"\<not> (\<exists>z\<in>s. inner a z = b)"
+  assume as:"\<not> (\<exists>z\<in>S. inner a z = b)"
   let ?A = "{x. inner a x < b}"
   let ?B = "{x. inner a x > b}"
   have "open ?A" "open ?B"
     using open_halfspace_lt and open_halfspace_gt by auto
-  moreover
-  have "?A \<inter> ?B = {}" by auto
-  moreover
-  have "s \<subseteq> ?A \<union> ?B" using as by auto
-  ultimately
-  show False
-    using assms(1)[unfolded connected_def not_ex,
+  moreover have "?A \<inter> ?B = {}" by auto
+  moreover have "S \<subseteq> ?A \<union> ?B" using as by auto
+  ultimately show False
+    using \<open>connected S\<close>[unfolded connected_def not_ex,
       THEN spec[where x="?A"], THEN spec[where x="?B"]]
-    using assms(2-5)
-    by auto
+    using xy b by auto
 qed
 
 lemma connected_ivt_component:
   fixes x::"'a::euclidean_space"
-  shows "connected s \<Longrightarrow>
-    x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow>
-    x\<bullet>k \<le> a \<Longrightarrow> a \<le> y\<bullet>k \<Longrightarrow> (\<exists>z\<in>s.  z\<bullet>k = a)"
-  using connected_ivt_hyperplane[of s x y "k::'a" a]
+  shows "connected S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x\<bullet>k \<le> a \<Longrightarrow> a \<le> y\<bullet>k \<Longrightarrow> (\<exists>z\<in>S.  z\<bullet>k = a)"
+  using connected_ivt_hyperplane[of S x y "k::'a" a]
   by (auto simp: inner_commute)
 
 lemma image_affinity_cbox: fixes m::real
@@ -4942,7 +4936,7 @@ proof -
 qed
 
 
-proposition component_complement_connected:
+proposition component_diff_connected:
   fixes S :: "'a::metric_space set"
   assumes "connected S" "connected U" "S \<subseteq> U" and C: "C \<in> components (U - S)"
   shows "connected(U - C)"

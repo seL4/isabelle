@@ -4446,6 +4446,46 @@ corollary ANR_sphere:
   by (simp add: ENR_imp_ANR ENR_sphere)
 
 
+subsection\<open>Spheres are connected, etc.\<close>
+
+lemma locally_path_connected_sphere_gen:
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S" and "convex S" 
+  shows "locally path_connected (rel_frontier S)"
+proof (cases "rel_interior S = {}")
+  case True
+  with assms show ?thesis
+    by (simp add: rel_interior_eq_empty)
+next
+  case False
+  then obtain a where a: "a \<in> rel_interior S"
+    by blast
+  show ?thesis
+  proof (rule retract_of_locally_path_connected)
+    show "locally path_connected (affine hull S - {a})"
+      by (meson convex_affine_hull convex_imp_locally_path_connected locally_open_subset openin_delete openin_subtopology_self)
+    show "rel_frontier S retract_of affine hull S - {a}"
+      using a assms rel_frontier_retract_of_punctured_affine_hull by blast
+  qed
+qed
+
+lemma locally_connected_sphere_gen:
+  fixes S :: "'a::euclidean_space set"
+  assumes "bounded S" and "convex S" 
+  shows "locally connected (rel_frontier S)"
+  by (simp add: ANR_imp_locally_connected ANR_rel_frontier_convex assms)
+
+lemma locally_path_connected_sphere:
+  fixes a :: "'a::euclidean_space"
+  shows "locally path_connected (sphere a r)"
+  using ENR_imp_locally_path_connected ENR_sphere by blast
+
+lemma locally_connected_sphere:
+  fixes a :: "'a::euclidean_space"
+  shows "locally connected(sphere a r)"
+  using ANR_imp_locally_connected ANR_sphere by blast
+
+
 subsection\<open>Borsuk homotopy extension theorem\<close>
 
 text\<open>It's only this late so we can use the concept of retraction,
@@ -4791,6 +4831,386 @@ next
     using assms(1) compact_eq_bounded_closed open_Compl open_path_connected_component_set by fastforce
   then show ?lhs
     by (simp add: Borsuk_maps_homotopic_in_path_component)
+qed
+
+
+subsection\<open>More extension theorems\<close>
+
+lemma extension_from_clopen:
+  assumes ope: "openin (subtopology euclidean S) T"
+      and clo: "closedin (subtopology euclidean S) T"
+      and contf: "continuous_on T f" and fim: "f ` T \<subseteq> U" and null: "U = {} \<Longrightarrow> S = {}"
+ obtains g where "continuous_on S g" "g ` S \<subseteq> U" "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
+proof (cases "U = {}")
+  case True
+  then show ?thesis
+    by (simp add: null that)
+next
+  case False
+  then obtain a where "a \<in> U"
+    by auto
+  let ?g = "\<lambda>x. if x \<in> T then f x else a"
+  have Seq: "S = T \<union> (S - T)"
+    using clo closedin_imp_subset by fastforce
+  show ?thesis
+  proof
+    have "continuous_on (T \<union> (S - T)) ?g"
+      apply (rule continuous_on_cases_local)
+      using Seq clo ope by (auto simp: contf continuous_on_const intro: continuous_on_cases_local)
+    with Seq show "continuous_on S ?g"
+      by metis
+    show "?g ` S \<subseteq> U"
+      using \<open>a \<in> U\<close> fim by auto
+    show "\<And>x. x \<in> T \<Longrightarrow> ?g x = f x"
+      by auto
+  qed
+qed
+
+
+lemma extension_from_component:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes S: "locally connected S \<or> compact S" and "ANR U"
+     and C: "C \<in> components S" and contf: "continuous_on C f" and fim: "f ` C \<subseteq> U"
+ obtains g where "continuous_on S g" "g ` S \<subseteq> U" "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
+proof -
+  obtain T g where ope: "openin (subtopology euclidean S) T"
+               and clo: "closedin (subtopology euclidean S) T"
+               and "C \<subseteq> T" and contg: "continuous_on T g" and gim: "g ` T \<subseteq> U"
+               and gf: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
+    using S
+  proof
+    assume "locally connected S"
+    show ?thesis
+      by (metis C \<open>locally connected S\<close> openin_components_locally_connected closedin_component contf fim order_refl that)
+  next
+    assume "compact S"
+    then obtain W g where "C \<subseteq> W" and opeW: "openin (subtopology euclidean S) W"
+                 and contg: "continuous_on W g"
+                 and gim: "g ` W \<subseteq> U" and gf: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
+      using ANR_imp_absolute_neighbourhood_extensor [of U C f S] C \<open>ANR U\<close> closedin_component contf fim by blast
+    then obtain V where "open V" and V: "W = S \<inter> V"
+      by (auto simp: openin_open)
+    moreover have "locally compact S"
+      by (simp add: \<open>compact S\<close> closed_imp_locally_compact compact_imp_closed)
+    ultimately obtain K where opeK: "openin (subtopology euclidean S) K" and "compact K" "C \<subseteq> K" "K \<subseteq> V"
+      by (metis C Int_subset_iff \<open>C \<subseteq> W\<close> \<open>compact S\<close> compact_components Sura_Bura_clopen_subset)
+    show ?thesis
+    proof
+      show "closedin (subtopology euclidean S) K"
+        by (meson \<open>compact K\<close> \<open>compact S\<close> closedin_compact_eq opeK openin_imp_subset)
+      show "continuous_on K g"
+        by (metis Int_subset_iff V \<open>K \<subseteq> V\<close> contg continuous_on_subset opeK openin_subtopology subset_eq)
+      show "g ` K \<subseteq> U"
+        using V \<open>K \<subseteq> V\<close> gim opeK openin_imp_subset by fastforce
+    qed (use opeK gf \<open>C \<subseteq> K\<close> in auto)
+  qed
+  obtain h where "continuous_on S h" "h ` S \<subseteq> U" "\<And>x. x \<in> T \<Longrightarrow> h x = g x"
+    using extension_from_clopen
+    by (metis C bot.extremum_uniqueI clo contg gim fim image_is_empty in_components_nonempty ope)
+  then show ?thesis
+    by (metis \<open>C \<subseteq> T\<close> gf subset_eq that)
+qed
+
+
+lemma tube_lemma:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "compact S" and S: "S \<noteq> {}" "(\<lambda>x. (x,a)) ` S \<subseteq> U" 
+      and ope: "openin (subtopology euclidean (S \<times> T)) U"
+  obtains V where "openin (subtopology euclidean T) V" "a \<in> V" "S \<times> V \<subseteq> U"
+proof -
+  let ?W = "{y. \<exists>x. x \<in> S \<and> (x, y) \<in> (S \<times> T - U)}"
+  have "U \<subseteq> S \<times> T" "closedin (subtopology euclidean (S \<times> T)) (S \<times> T - U)"
+    using ope by (auto simp: openin_closedin_eq)
+  then have "closedin (subtopology euclidean T) ?W"
+    using \<open>compact S\<close> closedin_compact_projection by blast
+  moreover have "a \<in> T - ?W"
+    using \<open>U \<subseteq> S \<times> T\<close> S by auto
+  moreover have "S \<times> (T - ?W) \<subseteq> U"
+    by auto
+  ultimately show ?thesis
+    by (metis (no_types, lifting) Sigma_cong closedin_def that topspace_euclidean_subtopology)
+qed
+
+lemma tube_lemma_gen:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "compact S" "S \<noteq> {}" "T \<subseteq> T'" "S \<times> T \<subseteq> U"
+      and ope: "openin (subtopology euclidean (S \<times> T')) U"
+  obtains V where "openin (subtopology euclidean T') V" "T \<subseteq> V" "S \<times> V \<subseteq> U"
+proof -
+  have "\<And>x. x \<in> T \<Longrightarrow> \<exists>V. openin (subtopology euclidean T') V \<and> x \<in> V \<and> S \<times> V \<subseteq> U"
+    using assms by (auto intro:  tube_lemma [OF \<open>compact S\<close>])
+  then obtain F where F: "\<And>x. x \<in> T \<Longrightarrow> openin (subtopology euclidean T') (F x) \<and> x \<in> F x \<and> S \<times> F x \<subseteq> U"
+    by metis
+  show ?thesis
+  proof
+    show "openin (subtopology euclidean T') (UNION T F)"
+      using F by blast
+    show "T \<subseteq> UNION T F"
+      using F by blast
+    show "S \<times> UNION T F \<subseteq> U"
+      using F by auto
+  qed
+qed
+
+proposition homotopic_neighbourhood_extension:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> U"
+      and contg: "continuous_on S g" and gim: "g ` S \<subseteq> U"
+      and clo: "closedin (subtopology euclidean S) T"
+      and "ANR U" and hom: "homotopic_with (\<lambda>x. True) T U f g"
+    obtains V where "T \<subseteq> V" "openin (subtopology euclidean S) V"
+                    "homotopic_with (\<lambda>x. True) V U f g"
+proof -
+  have "T \<subseteq> S"
+    using clo closedin_imp_subset by blast
+  obtain h where conth: "continuous_on ({0..1::real} \<times> T) h"
+             and him: "h ` ({0..1} \<times> T) \<subseteq> U"
+             and h0: "\<And>x. h(0, x) = f x" and h1: "\<And>x. h(1, x) = g x"
+    using hom by (auto simp: homotopic_with_def)
+  define h' where "h' \<equiv> \<lambda>z. if fst z \<in> {0} then f(snd z)
+                             else if fst z \<in> {1} then g(snd z)
+                             else h z"
+  let ?S0 = "{0::real} \<times> S" and ?S1 = "{1::real} \<times> S"
+  have "continuous_on(?S0 \<union> (?S1 \<union> {0..1} \<times> T)) h'"
+    unfolding h'_def
+  proof (intro continuous_on_cases_local)
+    show "closedin (subtopology euclidean (?S0 \<union> (?S1 \<union> {0..1} \<times> T))) ?S0"
+         "closedin (subtopology euclidean (?S1 \<union> {0..1} \<times> T)) ?S1"
+      using \<open>T \<subseteq> S\<close> by (force intro: closedin_Times closedin_subset_trans [of "{0..1} \<times> S"])+
+    show "closedin (subtopology euclidean (?S0 \<union> (?S1 \<union> {0..1} \<times> T))) (?S1 \<union> {0..1} \<times> T)"
+         "closedin (subtopology euclidean (?S1 \<union> {0..1} \<times> T)) ({0..1} \<times> T)"
+      using \<open>T \<subseteq> S\<close> by (force intro: clo closedin_Times closedin_subset_trans [of "{0..1} \<times> S"])+
+    show "continuous_on (?S0) (\<lambda>x. f (snd x))"
+      by (intro continuous_intros continuous_on_compose2 [OF contf]) auto
+    show "continuous_on (?S1) (\<lambda>x. g (snd x))"
+      by (intro continuous_intros continuous_on_compose2 [OF contg]) auto
+  qed (use h0 h1 conth in auto)
+  then have "continuous_on ({0,1} \<times> S \<union> ({0..1} \<times> T)) h'"
+    by (metis Sigma_Un_distrib1 Un_assoc insert_is_Un) 
+  moreover have "h' ` ({0,1} \<times> S \<union> {0..1} \<times> T) \<subseteq> U"
+    using fim gim him \<open>T \<subseteq> S\<close> unfolding h'_def by force
+  moreover have "closedin (subtopology euclidean ({0..1::real} \<times> S)) ({0,1} \<times> S \<union> {0..1::real} \<times> T)"
+    by (intro closedin_Times closedin_Un clo) (simp_all add: closed_subset)
+  ultimately
+  obtain W k where W: "({0,1} \<times> S) \<union> ({0..1} \<times> T) \<subseteq> W"
+               and opeW: "openin (subtopology euclidean ({0..1} \<times> S)) W"
+               and contk: "continuous_on W k"
+               and kim: "k ` W \<subseteq> U"
+               and kh': "\<And>x. x \<in> ({0,1} \<times> S) \<union> ({0..1} \<times> T) \<Longrightarrow> k x = h' x"
+    by (metis ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR U\<close>, of "({0,1} \<times> S) \<union> ({0..1} \<times> T)" h' "{0..1} \<times> S"])
+  obtain T' where opeT': "openin (subtopology euclidean S) T'" 
+              and "T \<subseteq> T'" and TW: "{0..1} \<times> T' \<subseteq> W"
+    using tube_lemma_gen [of "{0..1::real}" T S W] W \<open>T \<subseteq> S\<close> opeW by auto
+  moreover have "homotopic_with (\<lambda>x. True) T' U f g"
+  proof (simp add: homotopic_with, intro exI conjI)
+    show "continuous_on ({0..1} \<times> T') k"
+      using TW continuous_on_subset contk by auto
+    show "k ` ({0..1} \<times> T') \<subseteq> U"
+      using TW kim by fastforce
+    have "T' \<subseteq> S"
+      by (meson opeT' subsetD openin_imp_subset)
+    then show "\<forall>x\<in>T'. k (0, x) = f x" "\<forall>x\<in>T'. k (1, x) = g x"
+      by (auto simp: kh' h'_def)
+  qed
+  ultimately show ?thesis
+    by (blast intro: that)
+qed
+
+text\<open> Homotopy on a union of closed-open sets.\<close>
+proposition homotopic_on_clopen_Union:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (subtopology euclidean (\<Union>\<F>)) S"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean (\<Union>\<F>)) S"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> homotopic_with (\<lambda>x. True) S T f g"
+  shows "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f g"
+proof -
+  obtain \<V> where "\<V> \<subseteq> \<F>" "countable \<V>" and eqU: "\<Union>\<V> = \<Union>\<F>"
+    using Lindelof_openin assms by blast
+  show ?thesis
+  proof (cases "\<V> = {}")
+    case True
+    then show ?thesis
+      by (metis Union_empty eqU homotopic_on_empty)
+  next
+    case False
+    then obtain V :: "nat \<Rightarrow> 'a set" where V: "range V = \<V>"
+      using range_from_nat_into \<open>countable \<V>\<close> by metis
+    with \<open>\<V> \<subseteq> \<F>\<close> have clo: "\<And>n. closedin (subtopology euclidean (\<Union>\<F>)) (V n)"
+                  and ope: "\<And>n. openin (subtopology euclidean (\<Union>\<F>)) (V n)"
+                  and hom: "\<And>n. homotopic_with (\<lambda>x. True) (V n) T f g"
+      using assms by auto 
+    then obtain h where conth: "\<And>n. continuous_on ({0..1::real} \<times> V n) (h n)"
+                  and him: "\<And>n. h n ` ({0..1} \<times> V n) \<subseteq> T" 
+                  and h0: "\<And>n. \<And>x. x \<in> V n \<Longrightarrow> h n (0, x) = f x" 
+                  and h1: "\<And>n. \<And>x. x \<in> V n \<Longrightarrow> h n (1, x) = g x"
+      by (simp add: homotopic_with) metis
+    have wop: "b \<in> V x \<Longrightarrow> \<exists>k. b \<in> V k \<and> (\<forall>j<k. b \<notin> V j)" for b x
+        using nat_less_induct [where P = "\<lambda>i. b \<notin> V i"] by meson
+    obtain \<zeta> where cont: "continuous_on ({0..1} \<times> UNION UNIV V) \<zeta>"
+              and eq: "\<And>x i. \<lbrakk>x \<in> {0..1} \<times> UNION UNIV V \<inter>
+                                   {0..1} \<times> (V i - (\<Union>m<i. V m))\<rbrakk> \<Longrightarrow> \<zeta> x = h i x"
+    proof (rule pasting_lemma_exists)
+      show "{0..1} \<times> UNION UNIV V \<subseteq> (\<Union>i. {0..1::real} \<times> (V i - (\<Union>m<i. V m)))"
+        by (force simp: Ball_def dest: wop)
+      show "openin (subtopology euclidean ({0..1} \<times> UNION UNIV V)) 
+                   ({0..1::real} \<times> (V i - (\<Union>m<i. V m)))" for i
+      proof (intro openin_Times openin_subtopology_self openin_diff)
+        show "openin (subtopology euclidean (UNION UNIV V)) (V i)"
+          using ope V eqU by auto
+        show "closedin (subtopology euclidean (UNION UNIV V)) (\<Union>m<i. V m)"
+          using V clo eqU by (force intro: closedin_Union)
+      qed
+      show "continuous_on ({0..1} \<times> (V i - (\<Union>m<i. V m))) (h i)" for i
+        by (rule continuous_on_subset [OF conth]) auto
+      show "\<And>i j x. x \<in> {0..1} \<times> UNION UNIV V \<inter>
+                    {0..1} \<times> (V i - (\<Union>m<i. V m)) \<inter> {0..1} \<times> (V j - (\<Union>m<j. V m))
+                    \<Longrightarrow> h i x = h j x"
+        by clarsimp (metis lessThan_iff linorder_neqE_nat)
+    qed auto
+    show ?thesis
+    proof (simp add: homotopic_with eqU [symmetric], intro exI conjI ballI)
+      show "continuous_on ({0..1} \<times> \<Union>\<V>) \<zeta>"
+        using V eqU by (blast intro!:  continuous_on_subset [OF cont])
+      show "\<zeta>` ({0..1} \<times> \<Union>\<V>) \<subseteq> T"
+      proof clarsimp
+        fix t :: real and y :: "'a" and X :: "'a set"
+        assume "y \<in> X" "X \<in> \<V>" and t: "0 \<le> t" "t \<le> 1"
+        then obtain k where "y \<in> V k" and j: "\<forall>j<k. y \<notin> V j"
+          by (metis image_iff V wop)
+        with him t show "\<zeta>(t, y) \<in> T"
+          by (subst eq) (force simp:)+
+      qed
+      fix X y
+      assume "X \<in> \<V>" "y \<in> X"
+      then obtain k where "y \<in> V k" and j: "\<forall>j<k. y \<notin> V j"
+        by (metis image_iff V wop)
+      then show "\<zeta>(0, y) = f y" and "\<zeta>(1, y) = g y"
+        by (subst eq [where i=k]; force simp: h0 h1)+ 
+    qed
+  qed
+qed
+
+proposition homotopic_on_components_eq:
+  fixes S :: "'a :: euclidean_space set" and T :: "'b :: euclidean_space set"
+  assumes S: "locally connected S \<or> compact S" and "ANR T"
+  shows "homotopic_with (\<lambda>x. True) S T f g \<longleftrightarrow>
+         (continuous_on S f \<and> f ` S \<subseteq> T \<and> continuous_on S g \<and> g ` S \<subseteq> T) \<and>
+         (\<forall>C \<in> components S. homotopic_with (\<lambda>x. True) C T f g)"
+    (is "?lhs \<longleftrightarrow> ?C \<and> ?rhs")
+proof -
+  have "continuous_on S f" "f ` S \<subseteq> T" "continuous_on S g" "g ` S \<subseteq> T" if ?lhs
+    using homotopic_with_imp_continuous homotopic_with_imp_subset1 homotopic_with_imp_subset2 that by blast+
+  moreover have "?lhs \<longleftrightarrow> ?rhs"
+    if contf: "continuous_on S f" and fim: "f ` S \<subseteq> T" and contg: "continuous_on S g" and gim: "g ` S \<subseteq> T"
+  proof
+    assume ?lhs
+    with that show ?rhs
+      by (simp add: homotopic_with_subset_left in_components_subset)
+  next
+    assume R: ?rhs
+    have "\<exists>U. C \<subseteq> U \<and> closedin (subtopology euclidean S) U \<and>
+              openin (subtopology euclidean S) U \<and>
+              homotopic_with (\<lambda>x. True) U T f g" if C: "C \<in> components S" for C
+    proof -
+      have "C \<subseteq> S"
+        by (simp add: in_components_subset that)
+      show ?thesis
+        using S
+      proof
+        assume "locally connected S"
+        show ?thesis
+        proof (intro exI conjI)
+          show "closedin (subtopology euclidean S) C"
+            by (simp add: closedin_component that)
+          show "openin (subtopology euclidean S) C"
+            by (simp add: \<open>locally connected S\<close> openin_components_locally_connected that)
+          show "homotopic_with (\<lambda>x. True) C T f g"
+            by (simp add: R that)
+        qed auto
+      next
+        assume "compact S"
+        have hom: "homotopic_with (\<lambda>x. True) C T f g"
+          using R that by blast
+        obtain U where "C \<subseteq> U" and opeU: "openin (subtopology euclidean S) U"
+                  and hom: "homotopic_with (\<lambda>x. True) U T f g"
+          using homotopic_neighbourhood_extension [OF contf fim contg gim _ \<open>ANR T\<close> hom]
+            \<open>C \<in> components S\<close> closedin_component by blast
+        then obtain V where "open V" and V: "U = S \<inter> V"
+          by (auto simp: openin_open)
+        moreover have "locally compact S"
+          by (simp add: \<open>compact S\<close> closed_imp_locally_compact compact_imp_closed)
+        ultimately obtain K where opeK: "openin (subtopology euclidean S) K" and "compact K" "C \<subseteq> K" "K \<subseteq> V"
+          by (metis C Int_subset_iff Sura_Bura_clopen_subset \<open>C \<subseteq> U\<close> \<open>compact S\<close> compact_components)
+        show ?thesis
+        proof (intro exI conjI)
+          show "closedin (subtopology euclidean S) K"
+            by (meson \<open>compact K\<close> \<open>compact S\<close> closedin_compact_eq opeK openin_imp_subset)
+          show "homotopic_with (\<lambda>x. True) K T f g"
+            using V \<open>K \<subseteq> V\<close> hom homotopic_with_subset_left opeK openin_imp_subset by fastforce
+        qed (use opeK \<open>C \<subseteq> K\<close> in auto)
+      qed
+    qed
+    then obtain \<phi> where \<phi>: "\<And>C. C \<in> components S \<Longrightarrow> C \<subseteq> \<phi> C"
+                  and clo\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> closedin (subtopology euclidean S) (\<phi> C)"
+                  and ope\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> openin (subtopology euclidean S) (\<phi> C)"
+                  and hom\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> homotopic_with (\<lambda>x. True) (\<phi> C) T f g"
+      by metis
+    have Seq: "S = UNION (components S) \<phi>"
+    proof
+      show "S \<subseteq> UNION (components S) \<phi>"
+        by (metis Sup_mono Union_components \<phi> imageI)
+      show "UNION (components S) \<phi> \<subseteq> S"
+        using ope\<phi> openin_imp_subset by fastforce
+    qed
+    show ?lhs
+      apply (subst Seq)
+      apply (rule homotopic_on_clopen_Union)
+      using Seq clo\<phi> ope\<phi> hom\<phi> by auto
+  qed
+  ultimately show ?thesis by blast
+qed
+
+
+lemma cohomotopically_trivial_on_components:
+  fixes S :: "'a :: euclidean_space set" and T :: "'b :: euclidean_space set"
+  assumes S: "locally connected S \<or> compact S" and "ANR T"
+  shows
+   "(\<forall>f g. continuous_on S f \<longrightarrow> f ` S \<subseteq> T \<longrightarrow> continuous_on S g \<longrightarrow> g ` S \<subseteq> T \<longrightarrow>
+           homotopic_with (\<lambda>x. True) S T f g)
+    \<longleftrightarrow>
+    (\<forall>C\<in>components S.
+        \<forall>f g. continuous_on C f \<longrightarrow> f ` C \<subseteq> T \<longrightarrow> continuous_on C g \<longrightarrow> g ` C \<subseteq> T \<longrightarrow>
+              homotopic_with (\<lambda>x. True) C T f g)"
+     (is "?lhs = ?rhs")
+proof
+  assume L[rule_format]: ?lhs
+  show ?rhs
+  proof clarify
+    fix C f g
+    assume contf: "continuous_on C f" and fim: "f ` C \<subseteq> T"
+       and contg: "continuous_on C g" and gim: "g ` C \<subseteq> T" and C: "C \<in> components S"
+    obtain f' where contf': "continuous_on S f'" and f'im: "f' ` S \<subseteq> T" and f'f: "\<And>x. x \<in> C \<Longrightarrow> f' x = f x"
+      using extension_from_component [OF S \<open>ANR T\<close> C contf fim] by metis
+    obtain g' where contg': "continuous_on S g'" and g'im: "g' ` S \<subseteq> T" and g'g: "\<And>x. x \<in> C \<Longrightarrow> g' x = g x"
+      using extension_from_component [OF S \<open>ANR T\<close> C contg gim] by metis
+    have "homotopic_with (\<lambda>x. True) C T f' g'"
+      using L [OF contf' f'im contg' g'im] homotopic_with_subset_left C in_components_subset by fastforce
+    then show "homotopic_with (\<lambda>x. True) C T f g"
+      using f'f g'g homotopic_with_eq by force
+  qed
+next
+  assume R [rule_format]: ?rhs
+  show ?lhs
+  proof clarify
+    fix f g
+    assume contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
+      and contg: "continuous_on S g" and gim: "g ` S \<subseteq> T"
+    moreover have "homotopic_with (\<lambda>x. True) C T f g" if "C \<in> components S" for C
+      using R [OF that]
+      by (meson contf contg continuous_on_subset fim gim image_mono in_components_subset order.trans that)
+    ultimately show "homotopic_with (\<lambda>x. True) S T f g"
+      by (subst homotopic_on_components_eq [OF S \<open>ANR T\<close>]) auto
+  qed
 qed
 
 
