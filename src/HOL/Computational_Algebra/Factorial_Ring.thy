@@ -1424,7 +1424,7 @@ proof
   define A where "A = Abs_multiset f"
   from \<open>finite S\<close> S(1) have "(\<Prod>p\<in>S. p ^ f p) \<noteq> 0" by auto
   with S(2) have nz: "n \<noteq> 0" by auto
-  from S_eq \<open>finite S\<close> have count_A: "count A x = f x" for x
+  from S_eq \<open>finite S\<close> have count_A: "count A = f"
     unfolding A_def by (subst multiset.Abs_multiset_inverse) (simp_all add: multiset_def)
   from S_eq count_A have set_mset_A: "set_mset A = S"
     by (simp only: set_mset_def)
@@ -1452,7 +1452,8 @@ proof
     also from S(1) p
     have "image_mset (multiplicity p) A = image_mset (\<lambda>q. if p = q then 1 else 0) A"
       by (intro image_mset_cong) (auto simp: set_mset_A multiplicity_self prime_multiplicity_other)
-    also have "sum_mset \<dots> = f p" by (simp add: sum_mset_delta' count_A)
+    also have "sum_mset \<dots> = f p"
+      by (simp add: semiring_1_class.sum_mset_delta' count_A)
     finally show "f p = multiplicity p n" ..
   qed
 qed

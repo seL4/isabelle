@@ -2247,51 +2247,11 @@ begin
 sublocale sum_mset: comm_monoid_mset plus 0
   defines sum_mset = sum_mset.F ..
 
-lemma (in semiring_1) sum_mset_replicate_mset [simp]:
-  "sum_mset (replicate_mset n a) = of_nat n * a"
-  by (induct n) (simp_all add: algebra_simps)
-
 lemma sum_unfold_sum_mset:
   "sum f A = sum_mset (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
 
-lemma sum_mset_delta: "sum_mset (image_mset (\<lambda>x. if x = y then c else 0) A) = c * count A y"
-  by (induction A) simp_all
-
-lemma sum_mset_delta': "sum_mset (image_mset (\<lambda>x. if y = x then c else 0) A) = c * count A y"
-  by (induction A) simp_all
-
 end
-
-lemma of_nat_sum_mset [simp]:
-  "of_nat (sum_mset M) = sum_mset (image_mset of_nat M)"
-by (induction M) auto
-
-lemma sum_mset_0_iff [simp]:
-  "sum_mset M = (0::'a::canonically_ordered_monoid_add)
-   \<longleftrightarrow> (\<forall>x \<in> set_mset M. x = 0)"
-by(induction M) auto
-
-lemma sum_mset_diff:
-  fixes M N :: "('a :: ordered_cancel_comm_monoid_diff) multiset"
-  shows "N \<subseteq># M \<Longrightarrow> sum_mset (M - N) = sum_mset M - sum_mset N"
-  by (metis add_diff_cancel_right' sum_mset.union subset_mset.diff_add)
-
-lemma size_eq_sum_mset: "size M = sum_mset (image_mset (\<lambda>_. 1) M)"
-proof (induct M)
-  case empty then show ?case by simp
-next
-  case (add x M) then show ?case
-    by (cases "x \<in> set_mset M")
-      (simp_all add: size_multiset_overloaded_eq not_in_iff sum.If_cases Diff_eq[symmetric]
-        sum.remove)
-qed
-
-lemma size_mset_set [simp]: "size (mset_set A) = card A"
-by (simp only: size_eq_sum_mset card_eq_sum sum_unfold_sum_mset)
-
-lemma sum_mset_sum_list: "sum_mset (mset xs) = sum_list xs"
-  by (induction xs) auto
 
 syntax (ASCII)
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
@@ -2300,30 +2260,94 @@ syntax
 translations
   "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST sum_mset (CONST image_mset (\<lambda>i. b) A)"
 
+context comm_monoid_add
+begin
+
+lemma sum_mset_sum_list:
+  "sum_mset (mset xs) = sum_list xs"
+  by (induction xs) auto
+
+end
+
+context canonically_ordered_monoid_add
+begin
+
+lemma sum_mset_0_iff [simp]:
+  "sum_mset M = 0  \<longleftrightarrow> (\<forall>x \<in> set_mset M. x = 0)"
+  by (induction M) auto
+
+end
+
+context ordered_comm_monoid_add
+begin
+
+lemma sum_mset_mono:
+  "sum_mset (image_mset f K) \<le> sum_mset (image_mset g K)"
+  if "\<And>i. i \<in># K \<Longrightarrow> f i \<le> g i"
+  using that by (induction K) (simp_all add: add_mono)
+
+end
+
+context ordered_cancel_comm_monoid_diff
+begin
+
+lemma sum_mset_diff:
+  "sum_mset (M - N) = sum_mset M - sum_mset N" if "N \<subseteq># M" for M N :: "'a multiset"
+  using that by (auto simp add: subset_mset.le_iff_add)
+
+end
+
+context semiring_0
+begin
+
 lemma sum_mset_distrib_left:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "c * (\<Sum>x \<in># M. f x) = (\<Sum>x \<in># M. c * f(x))"
-by (induction M) (simp_all add: distrib_left)
+  "c * (\<Sum>x \<in># M. f x) = (\<Sum>x \<in># M. c * f(x))"
+  by (induction M) (simp_all add: algebra_simps)
 
 lemma sum_mset_distrib_right:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "(\<Sum>b \<in># B. f b) * a = (\<Sum>b \<in># B. f b * a)"
-  by (induction B) (auto simp: distrib_right)
+  "(\<Sum>x \<in># M. f x) * c = (\<Sum>x \<in># M. f x * c)"
+  by (induction M) (simp_all add: algebra_simps)
 
-lemma sum_mset_constant [simp]:
-  fixes y :: "'b::semiring_1"
-  shows \<open>(\<Sum>x\<in>#A. y) = of_nat (size A) * y\<close>
-  by (induction A) (auto simp: algebra_simps)
-
-lemma (in ordered_comm_monoid_add) sum_mset_mono:
-  assumes "\<And>i. i \<in># K \<Longrightarrow> f i \<le> g i"
-  shows "sum_mset (image_mset f K) \<le> sum_mset (image_mset g K)"
-  using assms by (induction K) (simp_all add: local.add_mono)
+end
 
 lemma sum_mset_product:
   fixes f :: "'a::{comm_monoid_add,times} \<Rightarrow> 'b::semiring_0"
   shows "(\<Sum>i \<in># A. f i) * (\<Sum>i \<in># B. g i) = (\<Sum>i\<in>#A. \<Sum>j\<in>#B. f i * g j)"
   by (subst sum_mset.commute) (simp add: sum_mset_distrib_left sum_mset_distrib_right)
+
+context semiring_1
+begin
+
+lemma sum_mset_replicate_mset [simp]:
+  "sum_mset (replicate_mset n a) = of_nat n * a"
+  by (induction n) (simp_all add: algebra_simps)
+
+lemma sum_mset_delta:
+  "sum_mset (image_mset (\<lambda>x. if x = y then c else 0) A) = c * of_nat (count A y)"
+  by (induction A) (simp_all add: algebra_simps)
+
+lemma sum_mset_delta':
+  "sum_mset (image_mset (\<lambda>x. if y = x then c else 0) A) = c * of_nat (count A y)"
+  by (induction A) (simp_all add: algebra_simps)
+
+end
+
+lemma of_nat_sum_mset [simp]:
+  "of_nat (sum_mset A) = sum_mset (image_mset of_nat A)"
+  by (induction A) auto
+
+lemma size_eq_sum_mset:
+  "size M = (\<Sum>a\<in>#M. 1)"
+  using image_mset_const_eq [of "1::nat" M] by simp
+
+lemma size_mset_set [simp]:
+  "size (mset_set A) = card A"
+  by (simp only: size_eq_sum_mset card_eq_sum sum_unfold_sum_mset)
+
+lemma sum_mset_constant [simp]:
+  fixes y :: "'b::semiring_1"
+  shows \<open>(\<Sum>x\<in>#A. y) = of_nat (size A) * y\<close>
+  by (induction A) (auto simp: algebra_simps)
 
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
   where "\<Union># MM \<equiv> sum_mset MM" \<comment> \<open>FIXME ambiguous notation --
@@ -2347,6 +2371,7 @@ lemma sum_eq_empty_iff:
 lemma Union_mset_empty_conv[simp]: "\<Union># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"
   by (induction M) auto
 
+
 context comm_monoid_mult
 begin
 
@@ -2364,6 +2389,10 @@ lemma prod_mset_singleton:
 lemma prod_mset_Un:
   "prod_mset (A + B) = prod_mset A * prod_mset B"
   by (fact prod_mset.union)
+
+lemma prod_mset_prod_list:
+  "prod_mset (mset xs) = prod_list xs"
+  by (induct xs) auto
 
 lemma prod_mset_replicate_mset [simp]:
   "prod_mset (replicate_mset n a) = a ^ n"
@@ -2383,6 +2412,21 @@ lemma prod_mset_delta: "prod_mset (image_mset (\<lambda>x. if x = y then c else 
 lemma prod_mset_delta': "prod_mset (image_mset (\<lambda>x. if y = x then c else 1) A) = c ^ count A y"
   by (induction A) simp_all
 
+lemma prod_mset_subset_imp_dvd:
+  assumes "A \<subseteq># B"
+  shows   "prod_mset A dvd prod_mset B"
+proof -
+  from assms have "B = (B - A) + A" by (simp add: subset_mset.diff_add)
+  also have "prod_mset \<dots> = prod_mset (B - A) * prod_mset A" by simp
+  also have "prod_mset A dvd \<dots>" by simp
+  finally show ?thesis .
+qed
+
+lemma dvd_prod_mset:
+  assumes "x \<in># A"
+  shows "x dvd prod_mset A"
+  using assms prod_mset_subset_imp_dvd [of "{#x#}" A] by simp
+
 end
 
 syntax (ASCII)
@@ -2394,21 +2438,6 @@ translations
 
 lemma prod_mset_constant [simp]: "(\<Prod>_\<in>#A. c) = c ^ size A"
   by (simp add: image_mset_const_eq)
-
-lemma (in comm_monoid_mult) prod_mset_subset_imp_dvd:
-  assumes "A \<subseteq># B"
-  shows   "prod_mset A dvd prod_mset B"
-proof -
-  from assms have "B = (B - A) + A" by (simp add: subset_mset.diff_add)
-  also have "prod_mset \<dots> = prod_mset (B - A) * prod_mset A" by simp
-  also have "prod_mset A dvd \<dots>" by simp
-  finally show ?thesis .
-qed
-
-lemma (in comm_monoid_mult) dvd_prod_mset:
-  assumes "x \<in># A"
-  shows "x dvd prod_mset A"
-  using assms prod_mset_subset_imp_dvd [of "{#x#}" A] by simp
 
 lemma (in semidom) prod_mset_zero_iff [iff]:
   "prod_mset A = 0 \<longleftrightarrow> 0 \<in># A"
@@ -2444,9 +2473,6 @@ proof -
     by (induct A) simp_all
   then show ?thesis by (simp add: normalize_prod_mset)
 qed
-
-lemma prod_mset_prod_list: "prod_mset (mset xs) = prod_list xs"
-  by (induct xs) auto
 
 
 subsection \<open>Alternative representations\<close>
