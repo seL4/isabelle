@@ -15,7 +15,7 @@ session "HOL-Proofs" (timing) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
+  options [quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0]
   sessions
     "HOL-Library"
   theories
@@ -177,7 +177,6 @@ session "HOL-IMPP" in IMPP = HOL +
     procedures. For documentation see "Hoare Logic for Mutual Recursion and
     Local Variables" (http://isabelle.in.tum.de/Bali/papers/FSTTCS99.html).
   *}
-  options [document = false]
   theories EvenOdd
 
 session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
@@ -233,7 +232,7 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
-  options [document = false, browser_info = false]
+  options [browser_info = false]
   sessions
     "HOL-Data_Structures"
     "HOL-ex"
@@ -261,7 +260,6 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
 
     Testing Metis and Sledgehammer.
   *}
-  options [document = false]
   sessions
     "HOL-Decision_Procs"
   theories
@@ -280,7 +278,6 @@ session "HOL-Nitpick_Examples" in Nitpick_Examples = "HOL-Library" +
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
   *}
-  options [document = false]
   theories [quick_and_dirty] Nitpick_Examples
 
 session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
@@ -384,12 +381,10 @@ session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +
   description {*
     Various decision procedures, typically involving reflection.
   *}
-  options [document = false]
   theories
     Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
-  options [document = false]
   sessions
     "HOL-Isar_Examples"
   theories
@@ -443,7 +438,6 @@ session "HOL-Prolog" in Prolog = HOL +
     including some minimal examples (in Test.thy) and a more typical example of
     a little functional language and its type system.
   *}
-  options [document = false]
   theories Test Type
 
 session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
@@ -505,7 +499,6 @@ session "HOL-IOA" in IOA = HOL +
     year=1995}
     ftp://ftp.informatik.tu-muenchen.de/local/lehrstuhl/nipkow/tacas.dvi.gz
   *}
-  options [document = false]
   theories Solve
 
 session "HOL-Lattice" in Lattice = HOL +
@@ -521,7 +514,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
-  options [document = false]
   theories
     Adhoc_Overloading_Examples
     Antiquote
@@ -667,19 +659,15 @@ session "HOL-TLA" in TLA = HOL +
   description {*
     Lamport's Temporal Logic of Actions.
   *}
-  options [document = false]
   theories TLA
 
 session "HOL-TLA-Inc" in "TLA/Inc" = "HOL-TLA" +
-  options [document = false]
   theories Inc
 
 session "HOL-TLA-Buffer" in "TLA/Buffer" = "HOL-TLA" +
-  options [document = false]
   theories DBuffer
 
 session "HOL-TLA-Memory" in "TLA/Memory" = "HOL-TLA" +
-  options [document = false]
   theories MemoryImplementation
 
 session "HOL-TPTP" in TPTP = "HOL-Library" +
@@ -690,7 +678,6 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
 
     TPTP-related extensions.
   *}
-  options [document = false]
   theories
     ATP_Theory_Export
     MaSh_Eval
@@ -712,12 +699,10 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Measure_Not_CCC
 
 session "HOL-Nominal" in Nominal = "HOL-Library" +
-  options [document = false]
   theories
     Nominal
 
 session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
-  options [document = false]
   theories
     Class3
     CK_Machine
@@ -758,7 +743,6 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
   description {*
     (Co)datatype Examples.
   *}
-  options [document = false]
   theories
     Compat
     Lambda_Term
@@ -779,7 +763,6 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = "HOL-Library" +
   description {*
     Corecursion Examples.
   *}
-  options [document = false]
   theories
     LFilter
     Paper_Examples
@@ -807,7 +790,6 @@ session "HOL-Word" (main timing) in Word = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
-  options [document = false]
   theories WordExamples
 
 session "HOL-Statespace" in Statespace = HOL +
@@ -824,20 +806,18 @@ session "HOL-Nonstandard_Analysis" (timing) in Nonstandard_Analysis = "HOL-Compu
   document_files "root.tex"
 
 session "HOL-Nonstandard_Analysis-Examples" (timing) in "Nonstandard_Analysis/Examples" = "HOL-Nonstandard_Analysis" +
-  options [document = false]
   theories
     NSPrimes
 
 session "HOL-Mirabelle" in Mirabelle = HOL +
-  options [document = false]
   theories Mirabelle_Test
 
 session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
-  options [document = false, timeout = 60]
+  options [timeout = 60]
   theories Ex
 
 session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
-  options [document = false, quick_and_dirty]
+  options [quick_and_dirty]
   theories
     Boogie
     SMT_Examples
@@ -845,12 +825,11 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
     SMT_Tests
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
-  options [document = false]
   theories
     SPARK (global)
 
 session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
-  options [document = false, spark_prv = false]
+  options [spark_prv = false]
   theories
     "Gcd/Greatest_Common_Divisor"
     "Liseq/Longest_Increasing_Subsequence"
@@ -889,11 +868,9 @@ session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
     "Simple_Gcd.ads"
 
 session "HOL-Mutabelle" in Mutabelle = "HOL-Library" +
-  options [document = false]
   theories MutabelleExtra
 
 session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = "HOL-Library" +
-  options [document = false]
   theories
     Quickcheck_Examples
     Quickcheck_Lattice_Examples
@@ -908,7 +885,6 @@ session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Algebra" +
   description {*
     Author:     Cezary Kaliszyk and Christian Urban
   *}
-  options [document = false]
   theories
     DList
     Quotient_FSet
@@ -923,7 +899,6 @@ session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Algebra" +
     Lifting_Code_Dt_Test
 
 session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples = "HOL-Library" +
-  options [document = false]
   theories
     Examples
     Predicate_Compile_Tests
@@ -948,7 +923,6 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
   description {*
     Experimental extension of Higher-Order Logic to allow translation of types to sets.
   *}
-  options [document = false]
   theories
     Types_To_Sets
     "Examples/Prerequisites"
@@ -974,7 +948,6 @@ session "HOLCF-Tutorial" in "HOLCF/Tutorial" = HOLCF +
   document_files "root.tex"
 
 session "HOLCF-Library" in "HOLCF/Library" = HOLCF +
-  options [document = false]
   theories
     HOLCF_Library
     HOL_Cpo
@@ -985,7 +958,6 @@ session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
 
     This is the HOLCF-based denotational semantics of a simple WHILE-language.
   *}
-  options [document = false]
   sessions
     "HOL-IMP"
   theories
@@ -996,7 +968,6 @@ session "HOLCF-ex" in "HOLCF/ex" = "HOLCF-Library" +
   description {*
     Miscellaneous examples for HOLCF.
   *}
-  options [document = false]
   theories
     Dnat
     Dagstuhl
@@ -1025,7 +996,6 @@ session "HOLCF-FOCUS" in "HOLCF/FOCUS" = "HOLCF-Library" +
     "Specification and Development of Interactive Systems: Focus on Streams,
     Interfaces, and Refinement" http://www4.in.tum.de/publ/html.php?e=321
   *}
-  options [document = false]
   theories
     Fstreams
     FOCUS
@@ -1042,7 +1012,6 @@ session IOA (timing) in "HOLCF/IOA" = HOLCF +
     abstraction theory. Everything is based upon a domain-theoretic model of
     finite and infinite sequences.
   *}
-  options [document = false]
   theories Abstraction
 
 session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
@@ -1051,7 +1020,6 @@ session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
 
     The Alternating Bit Protocol performed in I/O-Automata.
   *}
-  options [document = false]
   theories
     Correctness
     Spec
@@ -1063,7 +1031,6 @@ session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
     A network transmission protocol, performed in the
     I/O automata formalization by Olaf Mueller.
   *}
-  options [document = false]
   theories Correctness
 
 session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
@@ -1072,14 +1039,12 @@ session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
 
     Memory storage case study.
   *}
-  options [document = false]
   theories Correctness
 
 session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
   description {*
     Author:     Olaf Mueller
   *}
-  options [document = false]
   theories
     TrivEx
     TrivEx2

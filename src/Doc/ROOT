@@ -17,7 +17,6 @@ session Classes (doc) in "Classes" = HOL +
     "style.sty"
 
 session Codegen_Basics in "Codegen" = "HOL-Library" +
-  options [document = false]
   theories
     Setup
 
@@ -505,6 +504,5 @@ session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = "Typeclass_Hierarch
     "style.sty"
 
 session Typeclass_Hierarchy_Basics in "Typeclass_Hierarchy" = "HOL-Library" +
-  options [document = false]
   theories
     Setup

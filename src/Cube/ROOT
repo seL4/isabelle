@@ -13,6 +13,4 @@ session Cube = Pure +
     For more information about the Lambda-Cube, see H. Barendregt, Introduction
     to Generalised Type Systems, J. Functional Programming.
   *}
-  options [document = false]
   theories Example
-

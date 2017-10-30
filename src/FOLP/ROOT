@@ -9,7 +9,6 @@ session FOLP = Pure +
 
     Presence of unknown proof term means that matching does not behave as expected.
   *}
-  options [document = false]
   theories
     IFOLP (global)
     FOLP (global)
@@ -21,7 +20,6 @@ session "FOLP-ex" in ex = FOLP +
 
     Examples for First-Order Logic.
   *}
-  options [document = false]
   theories
     Intro
     Nat
@@ -33,4 +31,3 @@ session "FOLP-ex" in ex = FOLP +
     Quantifiers_Int
     Propositional_Cla
     Quantifiers_Cla
-
