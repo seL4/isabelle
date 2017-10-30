@@ -4,7 +4,6 @@ session "HOL-Datatype_Benchmark" in Datatype_Benchmark = "HOL-Library" +
   description {*
     Big (co)datatypes.
   *}
-  options [document = false]
   theories
     Brackin
     IsaFoR
@@ -21,6 +20,5 @@ session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
   description {*
     Big records.
   *}
-  options [document = false]
   theories
     Record_Benchmark

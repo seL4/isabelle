@@ -10,7 +10,6 @@ session LCF = Pure +
     Useful references on LCF: Lawrence C. Paulson,
     Logic and Computation: Interactive proof with Cambridge LCF (CUP, 1987)
   *}
-  options [document = false]
   sessions
     FOL
   theories
@@ -21,4 +20,3 @@ session LCF = Pure +
     "ex/Ex2"
     "ex/Ex3"
     "ex/Ex4"
-

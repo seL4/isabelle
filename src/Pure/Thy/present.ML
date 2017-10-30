@@ -171,13 +171,7 @@ fun init symbols build info info_path doc document_output doc_variants doc_files
       val doc_output =
         if document_output = "" then NONE else SOME (Path.explode document_output);
 
-      val documents =
-        if doc = "" then []
-        else if null doc_files andalso not (can File.check_dir document_path) then
-          (if verbose then Output.physical_stderr "Warning: missing document directory\n"
-           else (); [])
-        else doc_variants;
-
+      val documents = if doc = "" orelse null doc_files then [] else doc_variants;
       val readme = if File.exists readme_html_path then SOME readme_html_path else NONE;
 
       val docs =

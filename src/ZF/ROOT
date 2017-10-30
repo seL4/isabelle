@@ -100,7 +100,6 @@ session "ZF-Coind" in Coind = ZF +
         Report, Computer Lab, University of Cambridge (1995).
         http://www.cl.cam.ac.uk/Research/Reports/TR359-jf10008-co-induction-in-isabelle.dvi.gz
   *}
-  options [document = false]
   theories ECR
 
 session "ZF-Constructible" in Constructible = ZF +
@@ -198,7 +197,6 @@ session "ZF-Resid" in Resid = ZF +
     Porting Experiment.
     http://www.cl.cam.ac.uk/ftp/papers/reports/TR364-or200-church-rosser-isabelle.ps.gz
   *}
-  options [document = false]
   theories Confluence
 
 session "ZF-UNITY" (timing) in UNITY = "ZF-Induct" +
@@ -208,7 +206,6 @@ session "ZF-UNITY" (timing) in UNITY = "ZF-Induct" +
 
     ZF/UNITY proofs.
   *}
-  options [document = false]
   theories
     (*Simple examples: no composition*)
     Mutex
@@ -235,7 +232,6 @@ session "ZF-ex" in ex = ZF +
     href="http://www.cl.cam.ac.uk/Research/Reports/TR320-lcp-isabelle-ind-defs.dvi.gz
     describes the package that automates their declaration.
   *}
-  options [document = false]
   theories
     misc
     Ring             (*abstract algebra*)

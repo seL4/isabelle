@@ -649,6 +649,10 @@ object Build_Log
     ml_statistics: List[Properties.T],
     task_statistics: List[Properties.T],
     errors: List[String])
+  {
+    def error(s: String): Session_Info =
+      copy(errors = errors ::: List(s))
+  }
 
   private def parse_session_info(
     log_file: Log_File,

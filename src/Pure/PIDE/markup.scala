@@ -392,13 +392,6 @@ object Markup
   }
 
 
-  /* protocol functions */
-
-  val COMMAND_TIMING: Properties.Entry = (FUNCTION, "command_timing")
-
-  val THEORY_TIMING: Properties.Entry = (FUNCTION, "theory_timing")
-
-
   /* command indentation */
 
   object Command_Indent
@@ -505,6 +498,9 @@ object Markup
 
   val FUNCTION = "function"
   val Function = new Properties.String(FUNCTION)
+
+  val COMMAND_TIMING: Properties.Entry = (FUNCTION, "command_timing")
+  val THEORY_TIMING: Properties.Entry = (FUNCTION, "theory_timing")
 
   val Assign_Update: Properties.T = List((FUNCTION, "assign_update"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))

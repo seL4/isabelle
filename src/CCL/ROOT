@@ -10,7 +10,6 @@ session CCL = Pure +
     A computational logic for an untyped functional language with
     evaluation to weak head-normal form.
   *}
-  options [document = false]
   sessions
     FOL
   theories
@@ -22,4 +21,3 @@ session CCL = Pure +
     "ex/List"
     "ex/Stream"
     "ex/Flag"
-

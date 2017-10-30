@@ -37,7 +37,6 @@ session Sequents = Pure +
     S. Kalvala and V. de Paiva, Linear Logic in Isabelle (in TR 379, University
     of Cambridge Computer Lab, 1995, ed L. Paulson)
   *}
-  options [document = false]
   theories
     LK
     ILL
@@ -53,4 +52,3 @@ session Sequents = Pure +
     "LK/Quantifiers"
     "LK/Hard_Quantifiers"
     "LK/Nat"
-

@@ -255,8 +255,8 @@ text \<open>
   "$ISABELLE_HOME_USER/etc/components"}, although it is often more convenient
   to do that programmatically via the \<^verbatim>\<open>init_component\<close> shell function in the
   \<^verbatim>\<open>etc/settings\<close> script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component
-  directory). For example: @{verbatim [display] \<open>init_component
-  "$HOME/screwdriver-2.0"\<close>}
+  directory). For example:
+  @{verbatim [display] \<open>init_component "$HOME/screwdriver-2.0"\<close>}
 
   This is tolerant wrt.\ missing component directories, but might produce a
   warning.
