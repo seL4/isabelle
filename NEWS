@@ -69,6 +69,10 @@ pathologic instances. Minor INCOMPATIBILITY.
 
 *** System ***
 
+* Session ROOT entry: empty 'document_files' means there is no document
+for this session. There is no need to specify options [document = false]
+anymore.
+
 * Linux and Windows/Cygwin is for x86_64 only. Old 32bit platform
 support has been discontinued.
 
