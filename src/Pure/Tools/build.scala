@@ -298,11 +298,10 @@ object Build
     def terminate: Unit = future_result.cancel
     def is_finished: Boolean = future_result.is_finished
 
-    @volatile private var was_timeout = false
     private val timeout_request: Option[Event_Timer.Request] =
     {
       if (info.timeout > Time.zero)
-        Some(Event_Timer.request(Time.now() + info.timeout) { terminate; was_timeout = true })
+        Some(Event_Timer.request(Time.now() + info.timeout) { terminate })
       else None
     }
 
@@ -314,7 +313,12 @@ object Build
         Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
-      timeout_request.foreach(_.cancel)
+
+      val was_timeout =
+        timeout_request match {
+          case None => false
+          case Some(request) => !request.cancel
+        }
 
       if (result.interrupted) {
         if (was_timeout) result.error(Output.error_message_text("Timeout")).was_timeout
