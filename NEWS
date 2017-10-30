@@ -63,6 +63,9 @@ INCOMPATIBILITY.
 * Session HOL-Analysis: Moebius functions and the Riemann mapping
 theorem.
 
+* Class linordered_semiring_1 covers zero_less_one also, ruling out
+pathologic instances. Minor INCOMPATIBILITY.
+
 
 *** System ***
 

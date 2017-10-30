@@ -1738,7 +1738,10 @@ lemma mult_right_less_imp_less: "a * c < b * c \<Longrightarrow> 0 \<le> c \<Lon
 
 end
 
-class linordered_semiring_1 = linordered_semiring + semiring_1
+class zero_less_one = order + zero + one +
+  assumes zero_less_one [simp]: "0 < 1"
+
+class linordered_semiring_1 = linordered_semiring + semiring_1 + zero_less_one
 begin
 
 lemma convex_bound_le:
@@ -1847,7 +1850,7 @@ lemma mult_le_less_imp_less:
 
 end
 
-class linordered_semiring_1_strict = linordered_semiring_strict + semiring_1
+class linordered_semiring_1_strict = linordered_semiring_strict + semiring_1 + zero_less_one
 begin
 
 subclass linordered_semiring_1 ..
@@ -2124,9 +2127,6 @@ subclass ordered_cancel_comm_semiring ..
 
 end
 
-class zero_less_one = order + zero + one +
-  assumes zero_less_one [simp]: "0 < 1"
-
 class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linorder + zero_less_one
 begin
 
@@ -2200,22 +2200,26 @@ lemma less_1_mult: "1 < m \<Longrightarrow> 1 < n \<Longrightarrow> 1 < m * n"
 
 end
 
-class linordered_idom =
-  comm_ring_1 + linordered_comm_semiring_strict + ordered_ab_group_add + abs_if + sgn +
+class linordered_idom = comm_ring_1 + linordered_comm_semiring_strict +
+  ordered_ab_group_add + abs_if + sgn +
   assumes sgn_if: "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 begin
 
-subclass linordered_semiring_1_strict ..
 subclass linordered_ring_strict ..
+
+subclass linordered_semiring_1_strict
+proof
+  have "0 \<le> 1 * 1"
+    by (fact zero_le_square)
+  then show "0 < 1" 
+    by (simp add: le_less)
+qed
+
 subclass ordered_comm_ring ..
 subclass idom ..
 
 subclass linordered_semidom
-proof
-  have "0 \<le> 1 * 1" by (rule zero_le_square)
-  then show "0 < 1" by (simp add: le_less)
-  show "b \<le> a \<Longrightarrow> a - b + b = a" for a b by simp
-qed
+  by standard simp
 
 subclass idom_abs_sgn
   by standard
