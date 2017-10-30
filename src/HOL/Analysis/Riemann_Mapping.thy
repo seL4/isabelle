@@ -1416,7 +1416,56 @@ qed
 qed
 
 
-text\<open>Finally, pick out the Riemann Mapping Theorem from the earlier chain\<close>
+subsection\<open>More Borsukian results\<close>
+
+lemma Borsukian_componentwise_eq:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "locally connected S \<or> compact S"
+  shows "Borsukian S \<longleftrightarrow> (\<forall>C \<in> components S. Borsukian C)"
+proof -
+  have *: "ANR(-{0::complex})"
+    by (simp add: ANR_delete open_Compl open_imp_ANR)
+  show ?thesis
+    using cohomotopically_trivial_on_components [OF assms *] by (auto simp: Borsukian_alt)
+qed
+
+lemma Borsukian_componentwise:
+  fixes S :: "'a::euclidean_space set"
+  assumes "locally connected S \<or> compact S" "\<And>C. C \<in> components S \<Longrightarrow> Borsukian C"
+  shows "Borsukian S"
+  by (metis Borsukian_componentwise_eq assms)
+
+lemma simply_connected_eq_Borsukian:
+  fixes S :: "complex set"
+  shows "open S \<Longrightarrow> (simply_connected S \<longleftrightarrow> connected S \<and> Borsukian S)"
+  by (auto simp: simply_connected_eq_continuous_log Borsukian_continuous_logarithm)
+
+lemma Borsukian_eq_simply_connected:
+  fixes S :: "complex set"
+  shows "open S \<Longrightarrow> Borsukian S \<longleftrightarrow> (\<forall>C \<in> components S. simply_connected C)"
+apply (auto simp: Borsukian_componentwise_eq open_imp_locally_connected)
+  using in_components_connected open_components simply_connected_eq_Borsukian apply blast
+  using open_components simply_connected_eq_Borsukian by blast
+
+lemma Borsukian_separation_open_closed:
+  fixes S :: "complex set"
+  assumes S: "open S \<or> closed S" and "bounded S"
+  shows "Borsukian S \<longleftrightarrow> connected(- S)"
+  using S
+proof
+  assume "open S"
+  show ?thesis
+    unfolding Borsukian_eq_simply_connected [OF \<open>open S\<close>]
+    by (meson \<open>open S\<close> \<open>bounded S\<close> bounded_subset in_components_connected in_components_subset nonseparation_by_component_eq open_components simply_connected_iff_simple)
+next
+  assume "closed S"
+  with \<open>bounded S\<close> show ?thesis
+    by (simp add: Borsukian_separation_compact compact_eq_bounded_closed)
+qed
+
+
+subsection\<open>Finally, the Riemann Mapping Theorem\<close>
+
 theorem Riemann_mapping_theorem:
     "open S \<and> simply_connected S \<longleftrightarrow>
      S = {} \<or> S = UNIV \<or>

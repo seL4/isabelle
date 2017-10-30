@@ -4972,7 +4972,6 @@ proof
 qed
 
 
-
 subsection\<open>Several common variants of unicoherence\<close>
 
 lemma connected_frontier_simple:
@@ -5024,6 +5023,9 @@ next
   ultimately show ?thesis
     using \<open>connected S\<close> connected_frontier_component_complement by auto
 qed
+
+
+subsection\<open>Some separation results\<close>
 
 lemma separation_by_component_closed_pointwise:
   fixes S :: "'a :: euclidean_space set"
