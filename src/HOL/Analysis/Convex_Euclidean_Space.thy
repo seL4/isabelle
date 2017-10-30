@@ -2373,7 +2373,14 @@ proof (rule connectedI)
 qed
 
 corollary connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
-  by(simp add: convex_connected)
+  by (simp add: convex_connected)
+
+corollary component_complement_connected:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "connected S" "C \<in> components (-S)"
+  shows "connected(-C)"
+  using component_diff_connected [of S UNIV] assms
+  by (auto simp: Compl_eq_Diff_UNIV)
 
 proposition clopen:
   fixes S :: "'a :: real_normed_vector set"

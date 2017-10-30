@@ -4589,4 +4589,788 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
     using fk gfh kTS by force
 qed
 
+
+text\<open>If two points are separated by a closed set, there's a minimal one.\<close>
+proposition closed_irreducible_separator:
+  fixes a :: "'a::real_normed_vector"
+  assumes "closed S" and ab: "\<not> connected_component (- S) a b"
+  obtains T where "T \<subseteq> S" "closed T" "T \<noteq> {}" "\<not> connected_component (- T) a b"
+                  "\<And>U. U \<subset> T \<Longrightarrow> connected_component (- U) a b"
+proof (cases "a \<in> S \<or> b \<in> S")
+  case True
+  then show ?thesis
+  proof
+    assume *: "a \<in> S"
+    show ?thesis
+    proof
+      show "{a} \<subseteq> S"
+        using * by blast
+      show "\<not> connected_component (- {a}) a b"
+        using connected_component_in by auto
+      show "\<And>U. U \<subset> {a} \<Longrightarrow> connected_component (- U) a b"
+        by (metis connected_component_UNIV UNIV_I compl_bot_eq connected_component_eq_eq less_le_not_le subset_singletonD)
+    qed auto
+  next
+    assume *: "b \<in> S"
+    show ?thesis
+    proof
+      show "{b} \<subseteq> S"
+        using * by blast
+      show "\<not> connected_component (- {b}) a b"
+        using connected_component_in by auto
+      show "\<And>U. U \<subset> {b} \<Longrightarrow> connected_component (- U) a b"
+        by (metis connected_component_UNIV UNIV_I compl_bot_eq connected_component_eq_eq less_le_not_le subset_singletonD)
+    qed auto
+  qed
+next
+  case False
+  define A where "A \<equiv> connected_component_set (- S) a"
+  define B where "B \<equiv> connected_component_set (- (closure A)) b"
+  have "a \<in> A"
+    using False A_def by auto
+  have "b \<in> B"
+    unfolding A_def B_def closure_Un_frontier
+    using ab False \<open>closed S\<close> frontier_complement frontier_of_connected_component_subset frontier_subset_closed by force
+  have "frontier B \<subseteq> frontier (connected_component_set (- closure A) b)"
+    using B_def by blast
+  also have frsub: "... \<subseteq> frontier A"
+  proof -
+    have "\<And>A. closure (- closure (- A)) \<subseteq> closure A"
+      by (metis (no_types) closure_mono closure_subset compl_le_compl_iff double_compl)
+    then show ?thesis
+      by (metis (no_types) closure_closure double_compl frontier_closures frontier_of_connected_component_subset le_inf_iff subset_trans)
+  qed
+  finally have frBA: "frontier B \<subseteq> frontier A" .
+  show ?thesis
+  proof
+    show "frontier B \<subseteq> S"
+    proof -
+      have "frontier S \<subseteq> S"
+        by (simp add: \<open>closed S\<close> frontier_subset_closed)
+      then show ?thesis
+        using frsub frontier_complement frontier_of_connected_component_subset
+        unfolding A_def B_def by blast
+    qed
+    show "closed (frontier B)"
+      by simp
+    show "\<not> connected_component (- frontier B) a b"
+      unfolding connected_component_def
+    proof clarify
+      fix T
+      assume "connected T" and TB: "T \<subseteq> - frontier B" and "a \<in> T" and "b \<in> T"
+      have "a \<notin> B"
+        by (metis A_def B_def ComplD \<open>a \<in> A\<close> assms(1) closed_open connected_component_subset in_closure_connected_component set_mp)
+      have "T \<inter> B \<noteq> {}"
+        using \<open>b \<in> B\<close> \<open>b \<in> T\<close> by blast
+      moreover have "T - B \<noteq> {}"
+        using \<open>a \<notin> B\<close> \<open>a \<in> T\<close> by blast
+      ultimately show "False"
+        using connected_Int_frontier [of T B] TB \<open>connected T\<close> by blast
+    qed
+    moreover have "connected_component (- frontier B) a b" if "frontier B = {}"
+      apply (simp add: that)
+      using connected_component_eq_UNIV by blast
+    ultimately show "frontier B \<noteq> {}"
+      by blast
+    show "connected_component (- U) a b" if "U \<subset> frontier B" for U
+    proof -
+      obtain p where Usub: "U \<subseteq> frontier B" and p: "p \<in> frontier B" "p \<notin> U"
+        using \<open>U \<subset> frontier B\<close> by blast
+      show ?thesis
+        unfolding connected_component_def
+      proof (intro exI conjI)
+        have "connected ((insert p A) \<union> (insert p B))"
+        proof (rule connected_Un)
+          show "connected (insert p A)"
+            by (metis A_def IntD1 frBA \<open>p \<in> frontier B\<close> closure_insert closure_subset connected_connected_component connected_intermediate_closure frontier_closures insert_absorb subsetCE subset_insertI)
+          show "connected (insert p B)"
+            by (metis B_def IntD1 \<open>p \<in> frontier B\<close> closure_insert closure_subset connected_connected_component connected_intermediate_closure frontier_closures insert_absorb subset_insertI)
+        qed blast
+        then show "connected (insert p (B \<union> A))"
+          by (simp add: sup.commute)
+        have "A \<subseteq> - U"
+          using A_def Usub \<open>frontier B \<subseteq> S\<close> connected_component_subset by fastforce
+        moreover have "B \<subseteq> - U"
+          using B_def Usub connected_component_subset frBA frontier_closures by fastforce
+        ultimately show "insert p (B \<union> A) \<subseteq> - U"
+          using p by auto
+      qed (auto simp: \<open>a \<in> A\<close> \<open>b \<in> B\<close>)
+    qed
+  qed
+qed
+
+lemma frontier_minimal_separating_closed_pointwise:
+  fixes S :: "'a::real_normed_vector set"
+  assumes S: "closed S" "a \<notin> S" and nconn: "\<not> connected_component (- S) a b"
+      and conn: "\<And>T. \<lbrakk>closed T; T \<subset> S\<rbrakk> \<Longrightarrow> connected_component (- T) a b"
+    shows "frontier(connected_component_set (- S) a) = S" (is "?F = S")
+proof -
+  have "?F \<subseteq> S"
+    by (simp add: S componentsI frontier_of_components_closed_complement)
+  moreover have False if "?F \<subset> S"
+  proof -
+    have "connected_component (- ?F) a b"
+      by (simp add: conn that)
+    then obtain T where "connected T" "T \<subseteq> -?F" "a \<in> T" "b \<in> T"
+      by (auto simp: connected_component_def)
+    moreover have "T \<inter> ?F \<noteq> {}"
+    proof (rule connected_Int_frontier [OF \<open>connected T\<close>])
+      show "T \<inter> connected_component_set (- S) a \<noteq> {}"
+        using \<open>a \<notin> S\<close> \<open>a \<in> T\<close> by fastforce
+      show "T - connected_component_set (- S) a \<noteq> {}"
+        using \<open>b \<in> T\<close> nconn by blast
+    qed
+    ultimately show ?thesis
+      by blast
+  qed
+  ultimately show ?thesis
+    by blast
+qed
+
+
+subsection\<open>Unicoherence (closed)\<close>
+
+definition unicoherent where
+  "unicoherent U \<equiv>
+  \<forall>S T. connected S \<and> connected T \<and> S \<union> T = U \<and>
+        closedin (subtopology euclidean U) S \<and> closedin (subtopology euclidean U) T
+        \<longrightarrow> connected (S \<inter> T)"
+
+lemma unicoherentI [intro?]:
+  assumes "\<And>S T. \<lbrakk>connected S; connected T; U = S \<union> T; closedin (subtopology euclidean U) S; closedin (subtopology euclidean U) T\<rbrakk>
+          \<Longrightarrow> connected (S \<inter> T)"
+  shows "unicoherent U"
+  using assms unfolding unicoherent_def by blast
+
+lemma unicoherentD:
+  assumes "unicoherent U" "connected S" "connected T" "U = S \<union> T" "closedin (subtopology euclidean U) S" "closedin (subtopology euclidean U) T"
+  shows "connected (S \<inter> T)"
+  using assms unfolding unicoherent_def by blast
+
+lemma homeomorphic_unicoherent:
+  assumes ST: "S homeomorphic T" and S: "unicoherent S"
+  shows "unicoherent T"
+proof -
+  obtain f g where gf: "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x" and fim: "T = f ` S" and gfim: "g ` f ` S = S"
+    and contf: "continuous_on S f" and contg: "continuous_on (f ` S) g"
+    using ST by (auto simp: homeomorphic_def homeomorphism_def)
+  show ?thesis
+  proof
+    fix U V
+    assume "connected U" "connected V" and T: "T = U \<union> V"
+      and cloU: "closedin (subtopology euclidean T) U"
+      and cloV: "closedin (subtopology euclidean T) V"
+    have "f ` (g ` U \<inter> g ` V) \<subseteq> U" "f ` (g ` U \<inter> g ` V) \<subseteq> V"
+      using gf fim T by auto (metis UnCI image_iff)+
+    moreover have "U \<inter> V \<subseteq> f ` (g ` U \<inter> g ` V)"
+      using gf fim by (force simp: image_iff T)
+    ultimately have "U \<inter> V = f ` (g ` U \<inter> g ` V)" by blast
+    moreover have "connected (f ` (g ` U \<inter> g ` V))"
+    proof (rule connected_continuous_image)
+      show "continuous_on (g ` U \<inter> g ` V) f"
+        apply (rule continuous_on_subset [OF contf])
+        using T fim gfim by blast
+      show "connected (g ` U \<inter> g ` V)"
+      proof (intro conjI unicoherentD [OF S])
+        show "connected (g ` U)" "connected (g ` V)"
+          using \<open>connected U\<close> cloU \<open>connected V\<close> cloV
+          by (metis Topological_Spaces.connected_continuous_image closedin_imp_subset contg continuous_on_subset fim)+
+        show "S = g ` U \<union> g ` V"
+          using T fim gfim by auto
+        have hom: "homeomorphism T S g f"
+          by (simp add: contf contg fim gf gfim homeomorphism_def)
+        have "closedin (subtopology euclidean T) U" "closedin (subtopology euclidean T) V"
+          by (simp_all add: cloU cloV)
+        then show "closedin (subtopology euclidean S) (g ` U)"
+                  "closedin (subtopology euclidean S) (g ` V)"
+          by (blast intro: homeomorphism_imp_closed_map [OF hom])+
+      qed
+    qed
+    ultimately show "connected (U \<inter> V)" by metis
+  qed
+qed
+
+
+lemma homeomorphic_unicoherent_eq:
+   "S homeomorphic T \<Longrightarrow> (unicoherent S \<longleftrightarrow> unicoherent T)"
+  by (meson homeomorphic_sym homeomorphic_unicoherent)
+
+lemma unicoherent_translation:
+  fixes S :: "'a::real_normed_vector set"
+  shows
+   "unicoherent (image (\<lambda>x. a + x) S) \<longleftrightarrow> unicoherent S"
+  using homeomorphic_translation homeomorphic_unicoherent_eq by blast
+
+lemma unicoherent_injective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+  shows "(unicoherent(f ` S) \<longleftrightarrow> unicoherent S)"
+  using assms homeomorphic_unicoherent_eq linear_homeomorphic_image by blast
+
+
+lemma Borsukian_imp_unicoherent:
+  fixes U :: "'a::euclidean_space set"
+  assumes "Borsukian U"  shows "unicoherent U"
+  unfolding unicoherent_def
+proof clarify
+  fix S T
+  assume "connected S" "connected T" "U = S \<union> T"
+     and cloS: "closedin (subtopology euclidean (S \<union> T)) S"
+     and cloT: "closedin (subtopology euclidean (S \<union> T)) T"
+  show "connected (S \<inter> T)"
+    unfolding connected_closedin_eq
+  proof clarify
+    fix V W
+    assume "closedin (subtopology euclidean (S \<inter> T)) V"
+       and "closedin (subtopology euclidean (S \<inter> T)) W"
+       and VW: "V \<union> W = S \<inter> T" "V \<inter> W = {}" and "V \<noteq> {}" "W \<noteq> {}"
+    then have cloV: "closedin (subtopology euclidean U) V" and cloW: "closedin (subtopology euclidean U) W"
+      using \<open>U = S \<union> T\<close> cloS cloT closedin_trans by blast+
+    obtain q where contq: "continuous_on U q"
+         and q01: "\<And>x. x \<in> U \<Longrightarrow> q x \<in> {0..1::real}"
+         and qV: "\<And>x. x \<in> V \<Longrightarrow> q x = 0" and qW: "\<And>x. x \<in> W \<Longrightarrow> q x = 1"
+      by (rule Urysohn_local [OF cloV cloW \<open>V \<inter> W = {}\<close>, of 0 1])
+         (fastforce simp: closed_segment_eq_real_ivl)
+    let ?h = "\<lambda>x. if x \<in> S then exp(pi * \<i> * q x) else 1 / exp(pi * \<i> * q x)"
+    have eqST: "exp(pi * \<i> * q x) = 1 / exp(pi * \<i> * q x)" if "x \<in> S \<inter> T" for x
+    proof -
+      have "x \<in> V \<union> W"
+        using that \<open>V \<union> W = S \<inter> T\<close> by blast
+      with qV qW show ?thesis by force
+    qed
+    obtain g where contg: "continuous_on U g"
+      and circle: "g ` U \<subseteq> sphere 0 1"
+      and S: "\<And>x. x \<in> S \<Longrightarrow> g x = exp(pi * \<i> * q x)"
+      and T: "\<And>x. x \<in> T \<Longrightarrow> g x = 1 / exp(pi * \<i> * q x)"
+    proof
+      show "continuous_on U ?h"
+        unfolding \<open>U = S \<union> T\<close>
+      proof (rule continuous_on_cases_local [OF cloS cloT])
+        show "continuous_on S (\<lambda>x. exp (pi * \<i> * q x))"
+          apply (intro continuous_intros)
+          using \<open>U = S \<union> T\<close> continuous_on_subset contq by blast
+        show "continuous_on T (\<lambda>x. 1 / exp (pi * \<i> * q x))"
+          apply (intro continuous_intros)
+          using \<open>U = S \<union> T\<close> continuous_on_subset contq by auto
+      qed (use eqST in auto)
+    qed (use eqST in \<open>auto simp: norm_divide\<close>)
+    then obtain h where conth: "continuous_on U h" and heq: "\<And>x. x \<in> U \<Longrightarrow> g x = exp (h x)"
+      by (metis Borsukian_continuous_logarithm_circle assms)
+    obtain v w where "v \<in> V" "w \<in> W"
+      using \<open>V \<noteq> {}\<close> \<open>W \<noteq> {}\<close> by blast
+    then have vw: "v \<in> S \<inter> T" "w \<in> S \<inter> T"
+      using VW by auto
+    have iff: "2 * pi \<le> cmod (2 * of_int m * of_real pi * \<i> - 2 * of_int n * of_real pi * \<i>)
+          \<longleftrightarrow> 1 \<le> abs (m - n)" for m n
+    proof -
+      have "2 * pi \<le> cmod (2 * of_int m * of_real pi * \<i> - 2 * of_int n * of_real pi * \<i>)
+            \<longleftrightarrow> 2 * pi \<le> cmod ((2 * pi * \<i>) * (of_int m - of_int n))"
+        by (simp add: algebra_simps)
+      also have "... \<longleftrightarrow> 2 * pi \<le> 2 * pi * cmod (of_int m - of_int n)"
+        by (simp add: norm_mult)
+      also have "... \<longleftrightarrow> 1 \<le> abs (m - n)"
+        by simp (metis norm_of_int of_int_1_le_iff of_int_abs of_int_diff)
+      finally show ?thesis .
+    qed
+    have *: "\<exists>n::int. h x - (pi * \<i> * q x) = (of_int(2*n) * pi) * \<i>" if "x \<in> S" for x
+      using that S \<open>U = S \<union> T\<close> heq exp_eq [symmetric] by (simp add: algebra_simps)
+    moreover have "(\<lambda>x. h x - (pi * \<i> * q x)) constant_on S"
+    proof (rule continuous_discrete_range_constant [OF \<open>connected S\<close>])
+      have "continuous_on S h" "continuous_on S q"
+        using \<open>U = S \<union> T\<close> continuous_on_subset conth contq by blast+
+      then show "continuous_on S (\<lambda>x. h x - (pi * \<i> * q x))"
+        by (intro continuous_intros)
+      have "2*pi \<le> cmod (h y - (pi * \<i> * q y) - (h x - (pi * \<i> * q x)))"
+        if "x \<in> S" "y \<in> S" and ne: "h y - (pi * \<i> * q y) \<noteq> h x - (pi * \<i> * q x)" for x y
+        using * [OF \<open>x \<in> S\<close>] * [OF \<open>y \<in> S\<close>] ne by (auto simp: iff)
+      then show "\<And>x. x \<in> S \<Longrightarrow>
+         \<exists>e>0. \<forall>y. y \<in> S \<and> h y - (pi * \<i> * q y) \<noteq> h x - (pi * \<i> * q x) \<longrightarrow>
+                   e \<le> cmod (h y - (pi * \<i> * q y) - (h x - (pi * \<i> * q x)))"
+        by (rule_tac x="2*pi" in exI) auto
+    qed
+    ultimately
+    obtain m where m: "\<And>x. x \<in> S \<Longrightarrow> h x - (pi * \<i> * q x) = (of_int(2*m) * pi) * \<i>"
+      using vw by (force simp: constant_on_def)
+    have *: "\<exists>n::int. h x = - (pi * \<i> * q x) + (of_int(2*n) * pi) * \<i>" if "x \<in> T" for x
+      unfolding exp_eq [symmetric]
+      using that T \<open>U = S \<union> T\<close> by (simp add: exp_minus field_simps  heq [symmetric])
+    moreover have "(\<lambda>x. h x + (pi * \<i> * q x)) constant_on T"
+    proof (rule continuous_discrete_range_constant [OF \<open>connected T\<close>])
+      have "continuous_on T h" "continuous_on T q"
+        using \<open>U = S \<union> T\<close> continuous_on_subset conth contq by blast+
+      then show "continuous_on T (\<lambda>x. h x + (pi * \<i> * q x))"
+        by (intro continuous_intros)
+      have "2*pi \<le> cmod (h y + (pi * \<i> * q y) - (h x + (pi * \<i> * q x)))"
+        if "x \<in> T" "y \<in> T" and ne: "h y + (pi * \<i> * q y) \<noteq> h x + (pi * \<i> * q x)" for x y
+        using * [OF \<open>x \<in> T\<close>] * [OF \<open>y \<in> T\<close>] ne by (auto simp: iff)
+      then show "\<And>x. x \<in> T \<Longrightarrow>
+         \<exists>e>0. \<forall>y. y \<in> T \<and> h y + (pi * \<i> * q y) \<noteq> h x + (pi * \<i> * q x) \<longrightarrow>
+                   e \<le> cmod (h y + (pi * \<i> * q y) - (h x + (pi * \<i> * q x)))"
+        by (rule_tac x="2*pi" in exI) auto
+    qed
+    ultimately
+    obtain n where n: "\<And>x. x \<in> T \<Longrightarrow> h x + (pi * \<i> * q x) = (of_int(2*n) * pi) * \<i>"
+      using vw by (force simp: constant_on_def)
+    show "False"
+      using m [of v] m [of w] n [of v] n [of w] vw
+      by (auto simp: algebra_simps \<open>v \<in> V\<close> \<open>w \<in> W\<close> qV qW)
+  qed
+qed
+
+
+corollary contractible_imp_unicoherent:
+  fixes U :: "'a::euclidean_space set"
+  assumes "contractible U"  shows "unicoherent U"
+  by (simp add: Borsukian_imp_unicoherent assms contractible_imp_Borsukian)
+
+corollary convex_imp_unicoherent:
+  fixes U :: "'a::euclidean_space set"
+  assumes "convex U"  shows "unicoherent U"
+  by (simp add: Borsukian_imp_unicoherent assms convex_imp_Borsukian)
+
+text\<open>If the type class constraint can be relaxed, I don't know how!\<close>
+corollary unicoherent_UNIV: "unicoherent (UNIV :: 'a :: euclidean_space set)"
+  by (simp add: convex_imp_unicoherent)
+
+
+lemma unicoherent_monotone_image_compact:
+  fixes T :: "'b :: t2_space set"
+  assumes S: "unicoherent S" "compact S" and contf: "continuous_on S f" and fim: "f ` S = T"
+  and conn: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
+  shows "unicoherent T"
+proof
+  fix U V
+  assume UV: "connected U" "connected V" "T = U \<union> V"
+     and cloU: "closedin (subtopology euclidean T) U"
+     and cloV: "closedin (subtopology euclidean T) V"
+  moreover have "compact T"
+    using \<open>compact S\<close> compact_continuous_image contf fim by blast
+  ultimately have "closed U" "closed V"
+    by (auto simp: closedin_closed_eq compact_imp_closed)
+  let ?SUV = "(S \<inter> f -` U) \<inter> (S \<inter> f -` V)"
+  have UV_eq: "f ` ?SUV = U \<inter> V"
+    using \<open>T = U \<union> V\<close> fim by force+
+  have "connected (f ` ?SUV)"
+  proof (rule connected_continuous_image)
+    show "continuous_on ?SUV f"
+      by (meson contf continuous_on_subset inf_le1)
+    show "connected ?SUV"
+    proof (rule unicoherentD [OF \<open>unicoherent S\<close>, of "S \<inter> f -` U" "S \<inter> f -` V"])
+      have "\<And>C. closedin (subtopology euclidean S) C \<Longrightarrow> closedin (subtopology euclidean T) (f ` C)"
+        by (metis \<open>compact S\<close> closed_subset closedin_compact closedin_imp_subset compact_continuous_image compact_imp_closed contf continuous_on_subset fim image_mono)
+      then show "connected (S \<inter> f -` U)" "connected (S \<inter> f -` V)"
+        using UV by (auto simp: conn intro: connected_closed_monotone_preimage [OF contf fim])
+      show "S = (S \<inter> f -` U) \<union> (S \<inter> f -` V)"
+        using UV fim by blast
+      show "closedin (subtopology euclidean S) (S \<inter> f -` U)"
+            "closedin (subtopology euclidean S) (S \<inter> f -` V)"
+        by (auto simp: continuous_on_imp_closedin cloU cloV contf fim)
+    qed
+  qed
+  with UV_eq show "connected (U \<inter> V)"
+    by simp
+qed
+
+
+
+subsection\<open>Several common variants of unicoherence\<close>
+
+lemma connected_frontier_simple:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "connected S" "connected(- S)" shows "connected(frontier S)"
+  unfolding frontier_closures
+  apply (rule unicoherentD [OF unicoherent_UNIV])
+      apply (simp_all add: assms connected_imp_connected_closure)
+  by (simp add: closure_def)
+
+lemma connected_frontier_component_complement:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "connected S" and C: "C \<in> components(- S)" shows "connected(frontier C)"
+  apply (rule connected_frontier_simple)
+  using C in_components_connected apply blast
+  by (metis Compl_eq_Diff_UNIV connected_UNIV assms top_greatest component_complement_connected)
+
+lemma connected_frontier_disjoint:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "connected S" "connected T" "disjnt S T" and ST: "frontier S \<subseteq> frontier T"
+  shows "connected(frontier S)"
+proof (cases "S = UNIV")
+  case True then show ?thesis
+    by simp
+next
+  case False
+  then have "-S \<noteq> {}"
+    by blast
+  then obtain C where C: "C \<in> components(- S)" and "T \<subseteq> C"
+    by (metis ComplI disjnt_iff subsetI exists_component_superset \<open>disjnt S T\<close> \<open>connected T\<close>)
+  moreover have "frontier S = frontier C"
+  proof -
+    have "frontier C \<subseteq> frontier S"
+      using C frontier_complement frontier_of_components_subset by blast
+    moreover have "x \<in> frontier C" if "x \<in> frontier S" for x
+    proof -
+      have "x \<in> closure C"
+        using that unfolding frontier_def
+        by (metis (no_types) Diff_eq ST \<open>T \<subseteq> C\<close> closure_mono contra_subsetD frontier_def le_inf_iff that)
+      moreover have "x \<notin> interior C"
+        using that unfolding frontier_def
+        by (metis C Compl_eq_Diff_UNIV Diff_iff subsetD in_components_subset interior_diff interior_mono)
+      ultimately show ?thesis
+        by (auto simp: frontier_def)
+    qed
+    ultimately show ?thesis
+      by blast
+  qed
+  ultimately show ?thesis
+    using \<open>connected S\<close> connected_frontier_component_complement by auto
+qed
+
+lemma separation_by_component_closed_pointwise:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "closed S" "\<not> connected_component (- S) a b"
+  obtains C where "C \<in> components S" "\<not> connected_component(- C) a b"
+proof (cases "a \<in> S \<or> b \<in> S")
+  case True
+  then show ?thesis
+    using connected_component_in componentsI that by fastforce
+next
+  case False
+  obtain T where "T \<subseteq> S" "closed T" "T \<noteq> {}"
+             and nab: "\<not> connected_component (- T) a b"
+             and conn: "\<And>U. U \<subset> T \<Longrightarrow> connected_component (- U) a b"
+    using closed_irreducible_separator [OF assms] by metis
+  moreover have "connected T"
+  proof -
+    have ab: "frontier(connected_component_set (- T) a) = T" "frontier(connected_component_set (- T) b) = T"
+      using frontier_minimal_separating_closed_pointwise
+      by (metis False \<open>T \<subseteq> S\<close> \<open>closed T\<close> connected_component_sym conn connected_component_eq_empty connected_component_intermediate_subset empty_subsetI nab)+
+    have "connected (frontier (connected_component_set (- T) a))"
+    proof (rule connected_frontier_disjoint)
+      show "disjnt (connected_component_set (- T) a) (connected_component_set (- T) b)"
+        unfolding disjnt_iff
+        by (metis connected_component_eq connected_component_eq_empty connected_component_idemp mem_Collect_eq nab)
+      show "frontier (connected_component_set (- T) a) \<subseteq> frontier (connected_component_set (- T) b)"
+        by (simp add: ab)
+    qed auto
+    with ab \<open>closed T\<close> show ?thesis
+      by simp
+  qed
+  ultimately obtain C where "C \<in> components S" "T \<subseteq> C"
+    using exists_component_superset [of T S] by blast
+  then show ?thesis
+    by (meson Compl_anti_mono connected_component_of_subset nab that)
+qed
+
+
+lemma separation_by_component_closed:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "closed S" "\<not> connected(- S)"
+  obtains C where "C \<in> components S" "\<not> connected(- C)"
+proof -
+  obtain x y where "closed S" "x \<notin> S" "y \<notin> S" and "\<not> connected_component (- S) x y"
+    using assms by (auto simp: connected_iff_connected_component)
+  then obtain C where "C \<in> components S" "\<not> connected_component(- C) x y"
+    using separation_by_component_closed_pointwise by metis
+  then show "thesis"
+    apply (clarify elim!: componentsE)
+    by (metis Compl_iff \<open>C \<in> components S\<close> \<open>x \<notin> S\<close> \<open>y \<notin> S\<close> connected_component_eq connected_component_eq_eq connected_iff_connected_component that)
+qed
+
+lemma separation_by_Un_closed_pointwise:
+  fixes S :: "'a :: euclidean_space set"
+  assumes ST: "closed S" "closed T" "S \<inter> T = {}"
+      and conS: "connected_component (- S) a b" and conT: "connected_component (- T) a b"
+    shows "connected_component (- (S \<union> T)) a b"
+proof (rule ccontr)
+  have "a \<notin> S" "b \<notin> S" "a \<notin> T" "b \<notin> T"
+    using conS conT connected_component_in by auto
+  assume "\<not> connected_component (- (S \<union> T)) a b"
+  then obtain C where "C \<in> components (S \<union> T)" and C: "\<not> connected_component(- C) a b"
+    using separation_by_component_closed_pointwise assms by blast
+  then have "C \<subseteq> S \<or> C \<subseteq> T"
+  proof -
+    have "connected C" "C \<subseteq> S \<union> T"
+      using \<open>C \<in> components (S \<union> T)\<close> in_components_subset by (blast elim: componentsE)+
+    moreover then have "C \<inter> T = {} \<or> C \<inter> S = {}"
+      by (metis Int_empty_right ST inf.commute connected_closed)
+    ultimately show ?thesis
+      by blast
+  qed
+  then show False
+    by (meson Compl_anti_mono C conS conT connected_component_of_subset)
+qed
+
+lemma separation_by_Un_closed:
+  fixes S :: "'a :: euclidean_space set"
+  assumes ST: "closed S" "closed T" "S \<inter> T = {}" and conS: "connected(- S)" and conT: "connected(- T)"
+  shows "connected(- (S \<union> T))"
+  using assms separation_by_Un_closed_pointwise
+  by (fastforce simp add: connected_iff_connected_component)
+
+lemma open_unicoherent_UNIV:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" "open T" "connected S" "connected T" "S \<union> T = UNIV"
+  shows "connected(S \<inter> T)"
+proof -
+  have "connected(- (-S \<union> -T))"
+    by (metis closed_Compl compl_sup compl_top_eq double_compl separation_by_Un_closed assms)
+  then show ?thesis
+    by simp
+qed
+
+lemma separation_by_component_open_aux:
+  fixes S :: "'a :: euclidean_space set"
+  assumes ST: "closed S" "closed T" "S \<inter> T = {}"
+      and "S \<noteq> {}" "T \<noteq> {}"
+  obtains C where "C \<in> components(-(S \<union> T))" "C \<noteq> {}" "frontier C \<inter> S \<noteq> {}" "frontier C \<inter> T \<noteq> {}"
+proof (rule ccontr)
+  let ?S = "S \<union> \<Union>{C \<in> components(- (S \<union> T)). frontier C \<subseteq> S}"
+  let ?T = "T \<union> \<Union>{C \<in> components(- (S \<union> T)). frontier C \<subseteq> T}"
+  assume "~ thesis"
+  with that have *: "frontier C \<inter> S = {} \<or> frontier C \<inter> T = {}"
+            if C: "C \<in> components (- (S \<union> T))" "C \<noteq> {}" for C
+    using C by blast
+  have "\<exists>A B::'a set. closed A \<and> closed B \<and> UNIV \<subseteq> A \<union> B \<and> A \<inter> B = {} \<and> A \<noteq> {} \<and> B \<noteq> {}"
+  proof (intro exI conjI)
+    have "frontier (\<Union>{C \<in> components (- S \<inter> - T). frontier C \<subseteq> S}) \<subseteq> S"
+      apply (rule subset_trans [OF frontier_Union_subset_closure])
+      by (metis (no_types, lifting) SUP_least \<open>closed S\<close> closure_minimal mem_Collect_eq)
+    then have "frontier ?S \<subseteq> S"
+      by (simp add: frontier_subset_eq assms  subset_trans [OF frontier_Un_subset])
+    then show "closed ?S"
+      using frontier_subset_eq by fastforce
+    have "frontier (\<Union>{C \<in> components (- S \<inter> - T). frontier C \<subseteq> T}) \<subseteq> T"
+      apply (rule subset_trans [OF frontier_Union_subset_closure])
+      by (metis (no_types, lifting) SUP_least \<open>closed T\<close> closure_minimal mem_Collect_eq)
+    then have "frontier ?T \<subseteq> T"
+      by (simp add: frontier_subset_eq assms  subset_trans [OF frontier_Un_subset])
+    then show "closed ?T"
+      using frontier_subset_eq by fastforce
+    have "UNIV \<subseteq> (S \<union> T) \<union> \<Union>(components(- (S \<union> T)))"
+      using Union_components by blast
+    also have "...  \<subseteq> ?S \<union> ?T"
+    proof -
+      have "C \<in> components (-(S \<union> T)) \<and> frontier C \<subseteq> S \<or>
+            C \<in> components (-(S \<union> T)) \<and> frontier C \<subseteq> T"
+        if "C \<in> components (- (S \<union> T))" "C \<noteq> {}" for C
+        using * [OF that] that
+        by clarify (metis (no_types, lifting) UnE \<open>closed S\<close> \<open>closed T\<close> closed_Un disjoint_iff_not_equal frontier_of_components_closed_complement subsetCE)
+      then show ?thesis
+        by blast
+    qed
+    finally show "UNIV \<subseteq> ?S \<union> ?T" .
+    have "\<Union>{C \<in> components (- (S \<union> T)). frontier C \<subseteq> S} \<union>
+          \<Union>{C \<in> components (- (S \<union> T)). frontier C \<subseteq> T} \<subseteq> - (S \<union> T)"
+      using in_components_subset by fastforce
+    moreover have "\<Union>{C \<in> components (- (S \<union> T)). frontier C \<subseteq> S} \<inter>
+                   \<Union>{C \<in> components (- (S \<union> T)). frontier C \<subseteq> T} = {}"
+    proof -
+      have "C \<inter> C' = {}" if "C \<in> components (- (S \<union> T))" "frontier C \<subseteq> S"
+                            "C' \<in> components (- (S \<union> T))" "frontier C' \<subseteq> T" for C C'
+      proof -
+        have NUN: "- S \<inter> - T \<noteq> UNIV"
+          using \<open>T \<noteq> {}\<close> by blast
+        have "C \<noteq> C'"
+        proof
+          assume "C = C'"
+          with that have "frontier C' \<subseteq> S \<inter> T"
+            by simp
+          also have "... = {}"
+            using \<open>S \<inter> T = {}\<close> by blast
+          finally have "C' = {} \<or> C' = UNIV"
+            using frontier_eq_empty by auto
+          then show False
+            using \<open>C = C'\<close> NUN that by (force simp: dest: in_components_nonempty in_components_subset)
+        qed
+        with that show ?thesis
+          by (simp add: components_nonoverlap [of _ "-(S \<union> T)"])
+      qed
+      then show ?thesis
+        by blast
+    qed
+    ultimately show "?S \<inter> ?T = {}"
+      using ST by blast
+    show "?S \<noteq> {}" "?T \<noteq> {}"
+      using \<open>S \<noteq> {}\<close> \<open>T \<noteq> {}\<close> by blast+
+  qed
+    then show False
+      by (metis Compl_disjoint Convex_Euclidean_Space.connected_UNIV compl_bot_eq compl_unique connected_closedD inf_sup_absorb sup_compl_top_left1 top.extremum_uniqueI)
+qed
+
+
+lemma separation_by_component_open:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" and non: "\<not> connected(- S)"
+  obtains C where "C \<in> components S" "\<not> connected(- C)"
+proof -
+  obtain T U
+    where "closed T" "closed U" and TU: "T \<union> U = - S" "T \<inter> U = {}" "T \<noteq> {}" "U \<noteq> {}"
+    using assms by (auto simp: connected_closed_set closed_def)
+  then obtain C where C: "C \<in> components(-(T \<union> U))" "C \<noteq> {}"
+          and "frontier C \<inter> T \<noteq> {}" "frontier C \<inter> U \<noteq> {}"
+    using separation_by_component_open_aux [OF \<open>closed T\<close> \<open>closed U\<close> \<open>T \<inter> U = {}\<close>] by force
+  show "thesis"
+  proof
+    show "C \<in> components S"
+      using C(1) TU(1) by auto
+    show "\<not> connected (- C)"
+    proof
+      assume "connected (- C)"
+      then have "connected (frontier C)"
+        using connected_frontier_simple [of C] \<open>C \<in> components S\<close> in_components_connected by blast
+      then show False
+        unfolding connected_closed
+        by (metis C(1) TU(2) \<open>closed T\<close> \<open>closed U\<close> \<open>frontier C \<inter> T \<noteq> {}\<close> \<open>frontier C \<inter> U \<noteq> {}\<close> closed_Un frontier_of_components_closed_complement inf_bot_right inf_commute)
+    qed
+  qed
+qed
+
+lemma separation_by_Un_open:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" "open T" "S \<inter> T = {}" and cS: "connected(-S)" and cT: "connected(-T)"
+    shows "connected(- (S \<union> T))"
+  using assms unicoherent_UNIV unfolding unicoherent_def by force
+
+
+lemma nonseparation_by_component_eq:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S \<or> closed S"
+  shows "((\<forall>C \<in> components S. connected(-C)) \<longleftrightarrow> connected(- S))" (is "?lhs = ?rhs")
+proof
+  assume ?lhs with assms show ?rhs
+    by (meson separation_by_component_closed separation_by_component_open)
+next
+  assume ?rhs with assms show ?lhs
+    using component_complement_connected by force
+qed
+
+
+text\<open>Another interesting equivalent of an inessential mapping into C-{0}\<close>
+proposition inessential_eq_extensible:
+  fixes f :: "'a::euclidean_space \<Rightarrow> complex"
+  assumes "closed S"
+  shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
+         (\<exists>g. continuous_on UNIV g \<and> (\<forall>x \<in> S. g x = f x) \<and> (\<forall>x. g x \<noteq> 0))"
+     (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain a where a: "homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)" ..
+  show ?rhs
+  proof (cases "S = {}")
+    case True
+    with a show ?thesis
+      using continuous_on_const by force
+  next
+    case False
+    have anr: "ANR (-{0::complex})"
+      by (simp add: ANR_delete open_Compl open_imp_ANR)
+    obtain g where contg: "continuous_on UNIV g" and gim: "g ` UNIV \<subseteq> -{0}"
+                   and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+    proof (rule Borsuk_homotopy_extension_homotopic [OF _ _ continuous_on_const _ homotopic_with_symD [OF a]])
+      show "closedin (subtopology euclidean UNIV) S"
+        using assms by auto
+      show "range (\<lambda>t. a) \<subseteq> - {0}"
+        using a homotopic_with_imp_subset2 False by blast
+    qed (use anr that in \<open>force+\<close>)
+    then show ?thesis
+      by force
+  qed
+next
+  assume ?rhs
+  then obtain g where contg: "continuous_on UNIV g"
+          and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x" and non0: "\<And>x. g x \<noteq> 0"
+    by metis
+  obtain h k::"'a\<Rightarrow>'a" where hk: "homeomorphism (ball 0 1) UNIV h k"
+    using homeomorphic_ball01_UNIV homeomorphic_def by blast
+  then have "continuous_on (ball 0 1) (g \<circ> h)"
+    by (meson contg continuous_on_compose continuous_on_subset homeomorphism_cont1 top_greatest)
+  then obtain j where contj: "continuous_on (ball 0 1) j"
+                  and j: "\<And>z. z \<in> ball 0 1 \<Longrightarrow> exp(j z) = (g \<circ> h) z"
+    by (metis (mono_tags, hide_lams) continuous_logarithm_on_ball comp_apply non0)
+  have [simp]: "\<And>x. x \<in> S \<Longrightarrow> h (k x) = x"
+    using hk homeomorphism_apply2 by blast
+  have "\<exists>\<zeta>. continuous_on S \<zeta>\<and> (\<forall>x\<in>S. f x = exp (\<zeta> x))"
+  proof (intro exI conjI ballI)
+    show "continuous_on S (j \<circ> k)"
+    proof (rule continuous_on_compose)
+      show "continuous_on S k"
+        by (meson continuous_on_subset hk homeomorphism_cont2 top_greatest)
+      show "continuous_on (k ` S) j"
+        apply (rule continuous_on_subset [OF contj])
+        using homeomorphism_image2 [OF hk] continuous_on_subset [OF contj] by blast
+    qed
+    show "f x = exp ((j \<circ> k) x)" if "x \<in> S" for x
+    proof -
+      have "f x = (g \<circ> h) (k x)"
+        by (simp add: gf that)
+      also have "... = exp (j (k x))"
+        by (metis rangeI homeomorphism_image2 [OF hk] j)
+      finally show ?thesis by simp
+    qed
+  qed
+  then show ?lhs
+    by (simp add: inessential_eq_continuous_logarithm)
+qed
+
+lemma inessential_on_clopen_Union:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes T: "path_connected T"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (subtopology euclidean (\<Union>\<F>)) S"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean (\<Union>\<F>)) S"
+      and hom: "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. a)"
+  obtains a where "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
+proof (cases "\<Union>\<F> = {}")
+  case True
+  with that show ?thesis
+    by force
+next
+  case False
+  then obtain C where "C \<in> \<F>" "C \<noteq> {}"
+    by blast
+  then obtain a where clo: "closedin (subtopology euclidean (\<Union>\<F>)) C"
+    and ope: "openin (subtopology euclidean (\<Union>\<F>)) C"
+    and "homotopic_with (\<lambda>x. True) C T f (\<lambda>x. a)"
+    using assms by blast
+  with \<open>C \<noteq> {}\<close> have "f ` C \<subseteq> T" "a \<in> T"
+    using homotopic_with_imp_subset1 homotopic_with_imp_subset2 by blast+
+  have "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
+  proof (rule homotopic_on_clopen_Union)
+    show "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (subtopology euclidean (\<Union>\<F>)) S"
+         "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean (\<Union>\<F>)) S"
+      by (simp_all add: assms)
+    show "homotopic_with (\<lambda>x. True) S T f (\<lambda>x. a)" if "S \<in> \<F>" for S
+    proof (cases "S = {}")
+      case True
+      then show ?thesis
+        by auto
+    next
+      case False
+      then obtain b where "b \<in> S"
+        by blast
+      obtain c where c: "homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)"
+        using \<open>S \<in> \<F>\<close> hom by blast
+      then have "c \<in> T"
+        using \<open>b \<in> S\<close> homotopic_with_imp_subset2 by blast
+      then have "homotopic_with (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. c)"
+        using T \<open>a \<in> T\<close> homotopic_constant_maps path_connected_component by blast
+      then show ?thesis
+        using c homotopic_with_symD homotopic_with_trans by blast
+    qed
+  qed
+  then show ?thesis ..
+qed
+
+lemma Janiszewski_dual:
+  fixes S :: "complex set"
+  assumes
+   "compact S" "compact T" "connected S" "connected T" "connected(- (S \<union> T))"
+ shows "connected(S \<inter> T)"
+proof -
+  have ST: "compact (S \<union> T)"
+    by (simp add: assms compact_Un)
+  with Borsukian_imp_unicoherent [of "S \<union> T"] ST assms
+  show ?thesis
+    by (auto simp: closed_subset compact_imp_closed Borsukian_separation_compact unicoherent_def)
+qed
+
 end

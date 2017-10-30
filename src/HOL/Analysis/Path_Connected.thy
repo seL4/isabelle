@@ -6969,7 +6969,7 @@ lemma homotopy_eqv_empty1 [simp]:
   shows "S homotopy_eqv ({}::'b::real_normed_vector set) \<longleftrightarrow> S = {}"
 apply (rule iffI)
 using homotopy_eqv_def apply fastforce
-by (simp add: homotopy_eqv_contractible_sets contractible_empty)
+by (simp add: homotopy_eqv_contractible_sets)
 
 lemma homotopy_eqv_empty2 [simp]:
   fixes S :: "'a::real_normed_vector set"

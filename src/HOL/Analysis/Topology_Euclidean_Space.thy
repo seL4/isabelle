@@ -2501,6 +2501,29 @@ lemma frontier_closed [iff]: "closed (frontier S)"
 lemma frontier_closures: "frontier S = closure S \<inter> closure (- S)"
   by (auto simp: frontier_def interior_closure)
 
+lemma frontier_Int: "frontier(S \<inter> T) = closure(S \<inter> T) \<inter> (frontier S \<union> frontier T)"
+proof -
+  have "closure (S \<inter> T) \<subseteq> closure S" "closure (S \<inter> T) \<subseteq> closure T"
+    by (simp_all add: closure_mono)
+  then show ?thesis
+    by (auto simp: frontier_closures)
+qed
+
+lemma frontier_Int_subset: "frontier(S \<inter> T) \<subseteq> frontier S \<union> frontier T"
+  by (auto simp: frontier_Int)
+
+lemma frontier_Int_closed:
+  assumes "closed S" "closed T"
+  shows "frontier(S \<inter> T) = (frontier S \<inter> T) \<union> (S \<inter> frontier T)"
+proof -
+  have "closure (S \<inter> T) = T \<inter> S"
+    using assms by (simp add: Int_commute closed_Int)
+  moreover have "T \<inter> (closure S \<inter> closure (- S)) = frontier S \<inter> T"
+    by (simp add: Int_commute frontier_closures)
+  ultimately show ?thesis
+    by (simp add: Int_Un_distrib Int_assoc Int_left_commute assms frontier_closures)
+qed
+
 lemma frontier_straddle:
   fixes a :: "'a::metric_space"
   shows "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))"
@@ -2527,6 +2550,9 @@ qed
 
 lemma frontier_complement [simp]: "frontier (- S) = frontier S"
   by (auto simp: frontier_def closure_complement interior_complement)
+
+lemma frontier_Un_subset: "frontier(S \<union> T) \<subseteq> frontier S \<union> frontier T"
+  by (metis compl_sup frontier_Int_subset frontier_complement)
 
 lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> open S"
   using frontier_complement frontier_subset_eq[of "- S"]
