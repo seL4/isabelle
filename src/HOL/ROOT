@@ -962,7 +962,10 @@ session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
     "HOL-IMP"
   theories
     HoareEx
-  document_files "root.tex"
+  document_files
+    "isaverbatimwrite.sty"
+    "root.tex"
+    "root.bib"
 
 session "HOLCF-ex" in "HOLCF/ex" = "HOLCF-Library" +
   description {*
