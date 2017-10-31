@@ -318,34 +318,33 @@ object Sessions
     Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2)))
   }
 
-  def session_base_errors(
+
+  /* base info */
+
+  sealed case class Base_Info(base: Base, errors: List[String])
+  {
+    def platform_path: Base_Info = copy(base = base.platform_path)
+    def check: Base = if (errors.isEmpty) base else error(cat_lines(errors))
+  }
+
+  def session_base_info(
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
     inlined_files: Boolean = false,
-    all_known: Boolean = false): (List[String], Base) =
+    all_known: Boolean = false): Base_Info =
   {
     val full_sessions = load(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
-    val sessions: T = if (all_known) full_sessions else selected_sessions
-    val deps = Sessions.deps(sessions, global_theories, inlined_files = inlined_files)
-    val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
-    (deps.errors, base)
-  }
+    val deps =
+      Sessions.deps(if (all_known) full_sessions else selected_sessions,
+        global_theories, inlined_files = inlined_files)
 
-  def session_base(
-    options: Options,
-    session: String,
-    dirs: List[Path] = Nil,
-    inlined_files: Boolean = false,
-    all_known: Boolean = false): Base =
-  {
-    val (errs, base) =
-      session_base_errors(options, session, dirs = dirs,
-        inlined_files = inlined_files, all_known = all_known)
-    if (errs.isEmpty) base else error(cat_lines(errs))
+    val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
+
+    Base_Info(base, deps.errors)
   }
 
 
