@@ -123,8 +123,9 @@ object Sessions
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
-    def theory_qualifier(name: Document.Node.Name): String =
-      global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
+    def theory_qualifier(name: String): String =
+      global_theories.getOrElse(name, Long_Name.qualifier(name))
+    def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
@@ -349,6 +350,42 @@ object Sessions
 
     def errors: List[String] = deps.errors
     def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
+
+    def imported_session: Option[Info] =
+    {
+      val info = sessions(session)
+
+      val parent_loaded =
+        info.parent match {
+          case Some(parent) => deps(parent).loaded_theories.defined(_)
+          case None => (_: String) => false
+        }
+      val imported_theories =
+        for {
+          thy <- base.loaded_theories.keys
+          if !parent_loaded(thy) && base.theory_qualifier(thy) != session
+        }
+        yield (List.empty[Options.Spec], List(((thy, Position.none), false)))
+
+      if (imported_theories.isEmpty) None
+      else
+        Some(
+          make_info(info.options,
+            dir_selected = false,
+            dir = info.dir,
+            chapter = info.chapter,
+            Session_Entry(
+              pos = info.pos,
+              name = info.name + "(base)",
+              groups = info.groups,
+              path = ".",
+              parent = info.parent,
+              description = "All required theories from other session imports",
+              options = Nil,
+              imports = info.imports,
+              theories = imported_theories,
+              document_files = Nil)))
+    }
   }
 
 
@@ -373,6 +410,53 @@ object Sessions
     def deps: List[String] = parent.toList ::: imports
 
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+  }
+
+  def make_info(options: Options, dir_selected: Boolean, dir: Path, chapter: String,
+    entry: Session_Entry): Info =
+  {
+    try {
+      val name = entry.name
+
+      if (name == "" || name == DRAFT) error("Bad session name")
+      if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
+      if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
+
+      val session_options = options ++ entry.options
+
+      val theories =
+        entry.theories.map({ case (opts, thys) => (session_options ++ opts, thys.map(_._1)) })
+
+      val global_theories =
+        for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
+        yield {
+          val thy_name = Path.explode(thy).expand.base_name
+          if (Long_Name.is_qualified(thy_name))
+            error("Bad qualified name for global theory " +
+              quote(thy_name) + Position.here(pos))
+          else thy_name
+        }
+
+      val conditions =
+        theories.flatMap(thys => space_explode(',', thys._1.string("condition"))).distinct.sorted.
+          map(x => (x, Isabelle_System.getenv(x) != ""))
+
+      val document_files =
+        entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
+
+      val meta_digest =
+        SHA1.digest((name, chapter, entry.parent, entry.options, entry.imports,
+          entry.theories_no_position, conditions, entry.document_files).toString)
+
+      Info(name, chapter, dir_selected, entry.pos, entry.groups,
+        dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+        entry.imports, theories, global_theories, document_files, meta_digest)
+    }
+    catch {
+      case ERROR(msg) =>
+        error(msg + "\nThe error(s) above occurred in session entry " +
+          quote(entry.name) + Position.here(entry.pos))
+    }
   }
 
   object Selection
@@ -641,57 +725,12 @@ object Sessions
 
   def read_root(options: Options, select: Boolean, path: Path): List[Info] =
   {
-    def make_info(entry_chapter: String, entry: Session_Entry): Info =
-    {
-      try {
-        val name = entry.name
-
-        if (name == "" || name == DRAFT) error("Bad session name")
-        if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
-        if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
-
-        val session_options = options ++ entry.options
-
-        val theories =
-          entry.theories.map({ case (opts, thys) => (session_options ++ opts, thys.map(_._1)) })
-
-        val global_theories =
-          for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
-          yield {
-            val thy_name = Path.explode(thy).expand.base_name
-            if (Long_Name.is_qualified(thy_name))
-              error("Bad qualified name for global theory " +
-                quote(thy_name) + Position.here(pos))
-            else thy_name
-          }
-
-        val conditions =
-          theories.flatMap(thys => space_explode(',', thys._1.string("condition"))).distinct.sorted.
-            map(x => (x, Isabelle_System.getenv(x) != ""))
-
-        val document_files =
-          entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
-
-        val meta_digest =
-          SHA1.digest((entry_chapter, name, entry.parent, entry.options, entry.imports,
-            entry.theories_no_position, conditions, entry.document_files).toString)
-
-        Info(name, entry_chapter, select, entry.pos, entry.groups,
-          path.dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
-          entry.imports, theories, global_theories, document_files, meta_digest)
-      }
-      catch {
-        case ERROR(msg) =>
-          error(msg + "\nThe error(s) above occurred in session entry " +
-            quote(entry.name) + Position.here(entry.pos))
-      }
-    }
-
     var entry_chapter = "Unsorted"
     val infos = new mutable.ListBuffer[Info]
     parse_root(path).foreach {
       case Chapter(name) => entry_chapter = name
-      case entry: Session_Entry => infos += make_info(entry_chapter, entry)
+      case entry: Session_Entry =>
+        infos += make_info(options, select, path.dir, entry_chapter, entry)
     }
     infos.toList
   }
