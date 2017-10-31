@@ -232,7 +232,6 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
-  options [browser_info = false]
   sessions
     "HOL-Data_Structures"
     "HOL-ex"
