@@ -438,7 +438,7 @@ object Sessions
     }
   }
 
-  def make(infos: Traversable[(String, Info)]): T =
+  def make(infos: List[Info]): T =
   {
     def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
       : Graph[String, Info] =
@@ -464,11 +464,11 @@ object Sessions
 
     val graph0 =
       (Graph.string[Info] /: infos) {
-        case (graph, (name, info)) =>
-          if (graph.defined(name))
-            error("Duplicate session " + quote(name) + Position.here(info.pos) +
-              Position.here(graph.get_node(name).pos))
-          else graph.new_node(name, info)
+        case (graph, info) =>
+          if (graph.defined(info.name))
+            error("Duplicate session " + quote(info.name) + Position.here(info.pos) +
+              Position.here(graph.get_node(info.name).pos))
+          else graph.new_node(info.name, info)
       }
     val graph1 = add_edges(graph0, "parent", _.parent)
     val graph2 = add_edges(graph1, "imports", _.imports)
@@ -637,9 +637,9 @@ object Sessions
     for (entry <- Parser.parse_root(path) if entry.isInstanceOf[Session_Entry])
     yield entry.asInstanceOf[Session_Entry]
 
-  def read_root(options: Options, select: Boolean, path: Path): List[(String, Info)] =
+  def read_root(options: Options, select: Boolean, path: Path): List[Info] =
   {
-    def make_info(entry_chapter: String, entry: Session_Entry): (String, Info) =
+    def make_info(entry_chapter: String, entry: Session_Entry): Info =
     {
       try {
         val name = entry.name
@@ -674,12 +674,9 @@ object Sessions
           SHA1.digest((entry_chapter, name, entry.parent, entry.options, entry.imports,
             entry.theories_no_position, conditions, entry.document_files).toString)
 
-        val info =
-          Info(name, entry_chapter, select, entry.pos, entry.groups,
-            path.dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
-            entry.imports, theories, global_theories, document_files, meta_digest)
-
-        (name, info)
+        Info(name, entry_chapter, select, entry.pos, entry.groups,
+          path.dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+          entry.imports, theories, global_theories, document_files, meta_digest)
       }
       catch {
         case ERROR(msg) =>
@@ -689,7 +686,7 @@ object Sessions
     }
 
     var entry_chapter = "Unsorted"
-    val infos = new mutable.ListBuffer[(String, Info)]
+    val infos = new mutable.ListBuffer[Info]
     parse_root(path).foreach {
       case Chapter(name) => entry_chapter = name
       case entry: Session_Entry => infos += make_info(entry_chapter, entry)
