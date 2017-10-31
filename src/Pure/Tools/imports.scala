@@ -99,7 +99,7 @@ object Imports
     select_dirs: List[Path] = Nil,
     verbose: Boolean = false) =
   {
-    val full_sessions = Sessions.load(options, dirs, select_dirs)
+    val full_sessions = Sessions.load(options, dirs = dirs, select_dirs = select_dirs)
     val (selected, selected_sessions) = full_sessions.selection(selection)
 
     val deps =
@@ -313,7 +313,7 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       }
       else if (operation_update && incremental_update) {
         val (selected, selected_sessions) =
-          Sessions.load(options, dirs, select_dirs).selection(selection)
+          Sessions.load(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
         selected_sessions.imports_topological_order.foreach(info =>
         {
           imports(options, operation_update = operation_update, progress = progress,
