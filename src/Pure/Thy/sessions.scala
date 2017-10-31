@@ -321,12 +321,6 @@ object Sessions
 
   /* base info */
 
-  sealed case class Base_Info(base: Base, errors: List[String])
-  {
-    def platform_path: Base_Info = copy(base = base.platform_path)
-    def check: Base = if (errors.isEmpty) base else error(cat_lines(errors))
-  }
-
   def session_base_info(
     options: Options,
     session: String,
@@ -338,13 +332,19 @@ object Sessions
     val global_theories = full_sessions.global_theories
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
-    val deps =
-      Sessions.deps(if (all_known) full_sessions else selected_sessions,
-        global_theories, inlined_files = inlined_files)
-
+    val sessions: T = if (all_known) full_sessions else selected_sessions
+    val deps = Sessions.deps(sessions, global_theories, inlined_files = inlined_files)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
 
-    Base_Info(base, deps.errors)
+    new Base_Info(sessions, deps, base)
+  }
+
+  final class Base_Info private [Sessions](val sessions: T, val deps: Deps, val base: Base)
+  {
+    def platform_path: Base_Info = new Base_Info(sessions, deps, base.platform_path)
+
+    def errors: List[String] = deps.errors
+    def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
   }
 
 

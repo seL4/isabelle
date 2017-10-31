@@ -75,7 +75,7 @@ Usage: isabelle console [OPTIONS]
           raw_ml_system = raw_ml_system, store = Sessions.store(system_mode),
           session_base =
             if (raw_ml_system) None
-            else Some(Sessions.session_base_info(options, logic, dirs).check))
+            else Some(Sessions.session_base_info(options, logic, dirs).check_base))
       val process_output = Future.thread[Unit]("process_output") {
         try {
           var result = new StringBuilder(100)
