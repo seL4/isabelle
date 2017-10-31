@@ -336,12 +336,13 @@ object Sessions
     val deps = Sessions.deps(sessions, global_theories, inlined_files = inlined_files)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
 
-    new Base_Info(sessions, deps, base)
+    new Base_Info(session, sessions, deps, base)
   }
 
-  final class Base_Info private [Sessions](val sessions: T, val deps: Deps, val base: Base)
+  final class Base_Info private [Sessions](
+    val session: String, val sessions: T, val deps: Deps, val base: Base)
   {
-    def platform_path: Base_Info = new Base_Info(sessions, deps, base.platform_path)
+    override def toString: String = session
 
     def errors: List[String] = deps.errors
     def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
