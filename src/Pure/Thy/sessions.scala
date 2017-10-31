@@ -959,20 +959,23 @@ object Sessions
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
     {
-      db.using_statement(Session_Info.table.select(Session_Info.build_columns,
-        Session_Info.session_name.where_equal(name)))(stmt =>
-      {
-        val res = stmt.execute_query()
-        if (!res.next()) None
-        else {
-          Some(
-            Build.Session_Info(
-              res.string(Session_Info.sources),
-              split_lines(res.string(Session_Info.input_heaps)),
-              res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
-              res.int(Session_Info.return_code)))
-        }
-      })
+      if (db.tables.contains(Session_Info.table.name)) {
+        db.using_statement(Session_Info.table.select(Session_Info.build_columns,
+          Session_Info.session_name.where_equal(name)))(stmt =>
+        {
+          val res = stmt.execute_query()
+          if (!res.next()) None
+          else {
+            Some(
+              Build.Session_Info(
+                res.string(Session_Info.sources),
+                split_lines(res.string(Session_Info.input_heaps)),
+                res.string(Session_Info.output_heap) match { case "" => None case s => Some(s) },
+                res.int(Session_Info.return_code)))
+          }
+        })
+      }
+      else None
     }
   }
 }
