@@ -87,15 +87,19 @@ fun worker_waiting deps e =
 
 type 'a result = 'a Exn.result Single_Assignment.var;
 
-datatype 'a future = Future of
- {promised: bool,
-  task: task,
-  result: 'a result};
+datatype 'a future =
+  Value of 'a Exn.result |
+  Future of
+   {promised: bool,
+    task: task,
+    result: 'a result};
 
-fun task_of (Future {task, ...}) = task;
-fun result_of (Future {result, ...}) = result;
+fun task_of (Value _) = Task_Queue.dummy_task
+  | task_of (Future {task, ...}) = task;
 
-fun peek x = Single_Assignment.peek (result_of x);
+fun peek (Value res) = SOME res
+  | peek (Future {result, ...}) = Single_Assignment.peek result;
+
 fun is_finished x = is_some (peek x);
 
 val _ =
@@ -522,7 +526,10 @@ fun join_results xs =
       else if is_some (worker_task ()) then
         Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
           (fn orig_atts => join_loop orig_atts (map task_of xs))
-      else List.app (ignore o Single_Assignment.await o result_of) xs;
+      else
+        xs |> List.app
+          (fn Value _ => ()
+            | Future {result, ...} => ignore (Single_Assignment.await result));
   in map get_result xs end;
 
 end;
@@ -609,31 +616,30 @@ fun promise_name name abort : 'a future =
 
 fun promise abort = promise_name "passive" abort;
 
-fun fulfill_result (Future {promised, task, result}) res =
-  if not promised then raise Fail "Not a promised future"
-  else
-    let
-      val group = Task_Queue.group_of_task task;
-      val pos = Position.thread_data ();
-      fun job ok =
-        assign_result group result (if ok then identify_result pos res else Exn.interrupt_exn);
-      val _ =
-        Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn _ =>
-          let
-            val passive_job =
-              SYNCHRONIZED "fulfill_result" (fn () =>
-                Unsynchronized.change_result queue
-                  (Task_Queue.dequeue_passive (Thread.self ()) task));
-          in
-            (case passive_job of
-              SOME true => worker_exec (task, [job])
-            | SOME false => ()
-            | NONE => ignore (job (not (Task_Queue.is_canceled group))))
-          end);
-      val _ =
-        if is_some (Single_Assignment.peek result) then ()
-        else worker_waiting [task] (fn () => ignore (Single_Assignment.await result));
-    in () end;
+fun fulfill_result (Future {promised = true, task, result}) res =
+      let
+        val group = Task_Queue.group_of_task task;
+        val pos = Position.thread_data ();
+        fun job ok =
+          assign_result group result (if ok then identify_result pos res else Exn.interrupt_exn);
+        val _ =
+          Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn _ =>
+            let
+              val passive_job =
+                SYNCHRONIZED "fulfill_result" (fn () =>
+                  Unsynchronized.change_result queue
+                    (Task_Queue.dequeue_passive (Thread.self ()) task));
+            in
+              (case passive_job of
+                SOME true => worker_exec (task, [job])
+              | SOME false => ()
+              | NONE => ignore (job (not (Task_Queue.is_canceled group))))
+            end);
+        val _ =
+          if is_some (Single_Assignment.peek result) then ()
+          else worker_waiting [task] (fn () => ignore (Single_Assignment.await result));
+      in () end
+  | fulfill_result _ _ = raise Fail "Not a promised future";
 
 fun fulfill x res = fulfill_result x (Exn.Res res);
 
