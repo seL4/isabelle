@@ -398,9 +398,9 @@ object Build
               exclude_sessions, session_groups, sessions) ++ selection)
 
       val deps0 =
-        Sessions.deps(selected_sessions0, progress = progress, inlined_files = true,
-          verbose = verbose, list_files = list_files, check_keywords = check_keywords,
-          global_theories = full_sessions.global_theories).check_errors
+        Sessions.deps(selected_sessions0, full_sessions.global_theories,
+          progress = progress, inlined_files = true, verbose = verbose,
+          list_files = list_files, check_keywords = check_keywords).check_errors
 
       if (soft_build && !fresh_build) {
         val outdated =
@@ -417,8 +417,8 @@ object Build
         val (selected, selected_sessions) =
           full_sessions.selection(Sessions.Selection(sessions = outdated))
         val deps =
-          Sessions.deps(selected_sessions, inlined_files = true,
-            global_theories = full_sessions.global_theories).check_errors
+          Sessions.deps(selected_sessions, full_sessions.global_theories, inlined_files = true)
+            .check_errors
         (selected, selected_sessions, deps)
       }
       else (selected0, selected_sessions0, deps0)

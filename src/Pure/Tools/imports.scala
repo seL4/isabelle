@@ -103,8 +103,8 @@ object Imports
     val (selected, selected_sessions) = full_sessions.selection(selection)
 
     val deps =
-      Sessions.deps(selected_sessions, progress = progress, verbose = verbose,
-        global_theories = full_sessions.global_theories).check_errors
+      Sessions.deps(selected_sessions, full_sessions.global_theories,
+        progress = progress, verbose = verbose).check_errors
 
     val root_keywords = Sessions.root_syntax.keywords
 

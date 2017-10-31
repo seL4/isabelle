@@ -171,12 +171,12 @@ object Sessions
   }
 
   def deps(sessions: T,
+      global_theories: Map[String, String],
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
       list_files: Boolean = false,
-      check_keywords: Set[String] = Set.empty,
-      global_theories: Map[String, String] = Map.empty): Deps =
+      check_keywords: Set[String] = Set.empty): Deps =
   {
     var cache_sources = Map.empty[JFile, SHA1.Digest]
     def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] =
@@ -330,8 +330,7 @@ object Sessions
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
     val sessions: T = if (all_known) full_sessions else selected_sessions
-    val deps =
-      Sessions.deps(sessions, inlined_files = inlined_files, global_theories = global_theories)
+    val deps = Sessions.deps(sessions, global_theories, inlined_files = inlined_files)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
     (deps.errors, base)
   }
