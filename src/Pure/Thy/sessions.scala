@@ -330,7 +330,6 @@ object Sessions
     session: String,
     dirs: List[Path] = Nil,
     infos: List[Info] = Nil,
-    inlined_files: Boolean = false,
     all_known: Boolean = false,
     required_session: Boolean = false): Base_Info =
   {
@@ -339,7 +338,7 @@ object Sessions
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
     val sessions: T = if (all_known) full_sessions else selected_sessions
-    val deps = Sessions.deps(sessions, global_theories, inlined_files = inlined_files)
+    val deps = Sessions.deps(sessions, global_theories)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
 
     val other_session: Option[(String, List[Info])] =
@@ -385,8 +384,8 @@ object Sessions
     other_session match {
       case None => new Base_Info(session, sessions, deps, base, infos)
       case Some((other_name, more_infos)) =>
-        session_base_info(options, other_name, dirs = dirs, infos = more_infos ::: infos,
-          inlined_files = inlined_files, all_known = all_known)
+        session_base_info(options, other_name,
+          dirs = dirs, infos = more_infos ::: infos, all_known = all_known)
     }
   }
 
