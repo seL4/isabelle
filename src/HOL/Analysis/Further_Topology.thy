@@ -3799,7 +3799,7 @@ proof -
     by (simp add: Int_assoc openin_INT2 [OF \<open>finite C\<close> \<open>C \<noteq> {}\<close>])
   with xin obtain d2 where "d2>0"
               and d2: "\<And>u v. \<lbrakk>u \<in> S; dist u x < d2; v \<in> C\<rbrakk> \<Longrightarrow> f u \<inter> T \<inter> ball v (e/2) \<noteq> {}"
-    by (force simp: openin_euclidean_subtopology_iff)
+    unfolding openin_euclidean_subtopology_iff using xin by fastforce
   show ?thesis
   proof (intro that conjI ballI)
     show "0 < min d1 d2"
@@ -3827,7 +3827,7 @@ proof -
 qed
 
 
-subsection\<open>complex logs exist on various "well-behaved" sets\<close>
+subsection\<open>Complex logs exist on various "well-behaved" sets\<close>
 
 lemma continuous_logarithm_on_contractible:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
@@ -3838,7 +3838,7 @@ proof -
     using nullhomotopic_from_contractible assms
     by (metis imageE subset_Compl_singleton)
   then show ?thesis
-    by (metis inessential_eq_continuous_logarithm of_real_0 that)
+    by (metis inessential_eq_continuous_logarithm that)
 qed
 
 lemma continuous_logarithm_on_simply_connected:
@@ -3893,6 +3893,72 @@ proof -
     show "\<And>x. x \<in> S \<Longrightarrow> f x = (exp (g x / 2))\<^sup>2"
       by (metis exp_double feq nonzero_mult_div_cancel_left times_divide_eq_right zero_neq_numeral)
   qed
+qed
+
+
+subsection\<open>Another simple case where sphere maps are nullhomotopic.\<close>
+
+lemma inessential_spheremap_2_aux:
+  fixes f :: "'a::euclidean_space \<Rightarrow> complex"
+  assumes 2: "2 < DIM('a)" and contf: "continuous_on (sphere a r) f" 
+      and fim: "f `(sphere a r) \<subseteq> (sphere 0 1)" 
+  obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere 0 1) f (\<lambda>x. c)"
+proof -
+  obtain g where contg: "continuous_on (sphere a r) g" 
+             and feq: "\<And>x. x \<in> sphere a r \<Longrightarrow> f x = exp(g x)"
+  proof (rule continuous_logarithm_on_simply_connected [OF contf])
+    show "simply_connected (sphere a r)"
+      using 2 by (simp add: simply_connected_sphere_eq)
+    show "locally path_connected (sphere a r)"
+      by (simp add: locally_path_connected_sphere)
+    show "\<And>z.  z \<in> sphere a r \<Longrightarrow> f z \<noteq> 0"
+      using fim by force
+  qed auto
+  have "\<exists>g. continuous_on (sphere a r) g \<and> (\<forall>x\<in>sphere a r. f x = exp (\<i> * complex_of_real (g x)))"
+  proof (intro exI conjI)
+    show "continuous_on (sphere a r) (Im \<circ> g)"
+      by (intro contg continuous_intros continuous_on_compose)
+    show "\<forall>x\<in>sphere a r. f x = exp (\<i> * complex_of_real ((Im \<circ> g) x))"
+      using exp_eq_polar feq fim norm_exp_eq_Re by auto
+  qed
+  with inessential_eq_continuous_logarithm_circle that show ?thesis 
+    by metis
+qed
+
+lemma inessential_spheremap_2:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes a2: "2 < DIM('a)" and b2: "DIM('b) = 2" 
+      and contf: "continuous_on (sphere a r) f" and fim: "f `(sphere a r) \<subseteq> (sphere b s)"
+  obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
+proof (cases "s \<le> 0")
+  case True
+  then show ?thesis
+    using contf contractible_sphere fim nullhomotopic_into_contractible that by blast
+next
+  case False
+  then have "sphere b s homeomorphic sphere (0::complex) 1"
+    using assms by (simp add: homeomorphic_spheres_gen)
+  then obtain h k where hk: "homeomorphism (sphere b s) (sphere (0::complex) 1) h k"
+    by (auto simp: homeomorphic_def)
+  then have conth: "continuous_on (sphere b s) h"
+       and  contk: "continuous_on (sphere 0 1) k"
+       and  him: "h ` sphere b s \<subseteq> sphere 0 1"
+       and  kim: "k ` sphere 0 1 \<subseteq> sphere b s"
+    by (simp_all add: homeomorphism_def)
+  obtain c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere 0 1) (h \<circ> f) (\<lambda>x. c)"
+  proof (rule inessential_spheremap_2_aux [OF a2])
+    show "continuous_on (sphere a r) (h \<circ> f)"
+      by (meson continuous_on_compose [OF contf] conth continuous_on_subset fim)
+    show "(h \<circ> f) ` sphere a r \<subseteq> sphere 0 1"
+      using fim him by force
+  qed auto
+  then have "homotopic_with (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
+    by (rule homotopic_compose_continuous_left [OF _ contk kim])
+  then have "homotopic_with (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
+    apply (rule homotopic_with_eq, auto)
+    by (metis fim hk homeomorphism_def image_subset_iff mem_sphere)
+  then show ?thesis
+    by (metis that)
 qed
 
 

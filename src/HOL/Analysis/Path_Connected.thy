@@ -4864,7 +4864,7 @@ lemma locallyE:
   assumes "locally P S" "openin (subtopology euclidean S) w" "x \<in> w"
   obtains u v where "openin (subtopology euclidean S) u"
                     "P v" "x \<in> u" "u \<subseteq> v" "v \<subseteq> w"
-using assms by (force simp: locally_def)
+  using assms unfolding locally_def by meson
 
 lemma locally_mono:
   assumes "locally P S" "\<And>t. P t \<Longrightarrow> Q t"
@@ -4981,7 +4981,7 @@ proof (clarsimp simp: locally_def)
   have contvf: "continuous_on v f"
     using \<open>v \<subseteq> S\<close> continuous_on_subset f(3) by blast
   have contvg: "continuous_on (f ` v) g"
-    using \<open>f ` v \<subseteq> W\<close> \<open>W \<subseteq> t\<close> continuous_on_subset g(3) by blast
+    using \<open>f ` v \<subseteq> W\<close> \<open>W \<subseteq> t\<close> continuous_on_subset [OF g(3)] by blast
   have homv: "homeomorphism v (f ` v) f g"
     using \<open>v \<subseteq> S\<close> \<open>W \<subseteq> t\<close> f
     apply (simp add: homeomorphism_def contvf contvg, auto)
@@ -5903,7 +5903,7 @@ next
     obtain u where u:
       "openin (subtopology euclidean S) u \<and> x \<in> u \<and> u \<subseteq> t \<and>
        (\<forall>y. y \<in> u \<longrightarrow> (\<exists>c. connected c \<and> c \<subseteq> t \<and> x \<in> c \<and> y \<in> c))"
-      by auto (meson subsetD in_components_subset)
+      using in_components_subset by auto
     obtain F :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a" where
       "\<forall>x y. (\<exists>z. z \<in> x \<and> y = connected_component_set x z) = (F x y \<in> x \<and> y = connected_component_set x (F x y))"
       by moura
