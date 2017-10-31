@@ -291,8 +291,8 @@ proof (cases "m = 0 | m = 1")
 next
   case False
   with assms show ?thesis
-    using residues.euler_theorem [of "int m" "int a"] transfer_int_nat_cong
-    by (auto simp add: residues_def gcd_int_def) force
+    using residues.euler_theorem [of "int m" "int a"] cong_int_iff
+    by (auto simp add: residues_def gcd_int_def) fastforce
 qed
 
 lemma fermat_theorem:

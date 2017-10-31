@@ -93,7 +93,7 @@ lemma nat_minus1_eq: "nat (- 1) = 0"
 ML \<open>
 fun nat_conv i = (case strip_app i of
     (@{const_name zero_class.zero}, []) => @{thm nat_0 [meta]}
-  | (@{const_name one_class.one}, []) => @{thm transfer_nat_int_numerals(2) [meta, symmetric]}
+  | (@{const_name one_class.one}, []) => @{thm nat_one_as_int [meta, symmetric]}
   | (@{const_name numeral}, [b]) => inst [] [b] @{thm nat_numeral [meta]}
   | (@{const_name uminus}, [b]) => (case strip_app b of
       (@{const_name one_class.one}, []) => @{thm nat_minus1_eq [meta]}

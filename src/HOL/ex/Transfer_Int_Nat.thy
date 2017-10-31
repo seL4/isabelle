@@ -39,13 +39,16 @@ lemma ZN_add [transfer_rule]: "(ZN ===> ZN ===> ZN) (op +) (op +)"
   unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) (op *) (op *)"
-  unfolding rel_fun_def ZN_def by (simp add: of_nat_mult)
+  unfolding rel_fun_def ZN_def by simp
+
+definition tsub :: "int \<Rightarrow> int \<Rightarrow> int"
+  where "tsub k l = max 0 (k - l)"
 
 lemma ZN_diff [transfer_rule]: "(ZN ===> ZN ===> ZN) tsub (op -)"
-  unfolding rel_fun_def ZN_def tsub_def by (simp add: of_nat_diff)
+  unfolding rel_fun_def ZN_def by (auto simp add: of_nat_diff tsub_def)
 
 lemma ZN_power [transfer_rule]: "(ZN ===> op = ===> ZN) (op ^) (op ^)"
-  unfolding rel_fun_def ZN_def by (simp add: of_nat_power)
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_nat_id [transfer_rule]: "(ZN ===> op =) nat id"
   unfolding rel_fun_def ZN_def by simp
@@ -92,7 +95,7 @@ lemma ZN_mod [transfer_rule]: "(ZN ===> ZN ===> ZN) (op mod) (op mod)"
   unfolding rel_fun_def ZN_def by (simp add: zmod_int)
 
 lemma ZN_gcd [transfer_rule]: "(ZN ===> ZN ===> ZN) gcd gcd"
-  unfolding rel_fun_def ZN_def by (simp add: transfer_int_nat_gcd)
+  unfolding rel_fun_def ZN_def by (simp add: gcd_int_def)
 
 lemma ZN_atMost [transfer_rule]:
   "(ZN ===> rel_set ZN) (atLeastAtMost 0) atMost"

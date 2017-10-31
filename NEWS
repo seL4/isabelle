@@ -66,6 +66,8 @@ theorem.
 * Class linordered_semiring_1 covers zero_less_one also, ruling out
 pathologic instances. Minor INCOMPATIBILITY.
 
+* Removed nat-int transfer machinery.  Rare INCOMPATIBILITY.
+
 
 *** System ***
 

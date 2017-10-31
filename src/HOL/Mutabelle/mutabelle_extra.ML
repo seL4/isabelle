@@ -268,7 +268,6 @@ val forbidden_mutant_constnames =
  @{const_name Meson.skolem},
  @{const_name ATP.fequal},
  @{const_name ATP.fEx},
- @{const_name transfer_morphism},
  @{const_name enum_prod_inst.enum_all_prod},
  @{const_name enum_prod_inst.enum_ex_prod},
  @{const_name Quickcheck_Random.catch_match},

@@ -161,54 +161,56 @@ end
 
 subsection \<open>Congruences on @{typ nat} and @{typ int}\<close>
 
-lemma transfer_nat_int_cong:
-  "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> m \<ge> 0 \<Longrightarrow> [nat x = nat y] (mod (nat m)) \<longleftrightarrow> [x = y] (mod m)"
-  for x y m :: int
-  by (auto simp add: cong_def nat_mod_distrib [symmetric])
-     (metis eq_nat_nat_iff le_less mod_by_0 pos_mod_conj)
-
-declare transfer_morphism_nat_int [transfer add return: transfer_nat_int_cong]
-
 lemma cong_int_iff:
   "[int m = int q] (mod int n) \<longleftrightarrow> [m = q] (mod n)"
   by (simp add: cong_def of_nat_mod [symmetric])
-
-lemma transfer_int_nat_cong:
-  "[int x = int y] (mod (int m)) = [x = y] (mod m)"
-  by (fact cong_int_iff)
-
-declare transfer_morphism_int_nat [transfer add return: transfer_int_nat_cong]
 
 lemma cong_Suc_0 [simp, presburger]:
   "[m = n] (mod Suc 0)"
   using cong_1 [of m n] by simp
 
-lemma cong_diff_aux_int:
-  "[a = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow>
-    a \<ge> c \<Longrightarrow> b \<ge> d \<Longrightarrow> [tsub a c = tsub b d] (mod m)"
-  for a b c d :: int
-  by (metis cong_diff tsub_eq)
-
 lemma cong_diff_nat:
   "[a - c = b - d] (mod m)" if "[a = b] (mod m)" "[c = d] (mod m)"
-    and "a \<ge> c" "b \<ge> d" for a b c d m :: nat 
-  using that by (rule cong_diff_aux_int [transferred])
-
-lemma cong_diff_iff_cong_0_aux_int: "a \<ge> b \<Longrightarrow> [tsub a b = 0] (mod m) = [a = b] (mod m)"
-  for a b :: int
-  by (subst tsub_eq, assumption, rule cong_diff_iff_cong_0)
+    and "a \<ge> c" "b \<ge> d" for a b c d m :: nat
+proof -
+  have "[c + (a - c) = d + (b - d)] (mod m)"
+    using that by simp
+  with \<open>[c = d] (mod m)\<close> have "[c + (a - c) = c + (b - d)] (mod m)"
+    using mod_add_cong by (auto simp add: cong_def) fastforce
+  then show ?thesis
+    by (simp add: cong_def nat_mod_eq_iff)
+qed
 
 lemma cong_diff_iff_cong_0_nat:
-  fixes a b :: nat
-  assumes "a \<ge> b"
-  shows "[a - b = 0] (mod m) = [a = b] (mod m)"
-  using assms by (rule cong_diff_iff_cong_0_aux_int [transferred])
+  "[a - b = 0] (mod m) \<longleftrightarrow> [a = b] (mod m)" if "a \<ge> b" for a b :: nat
+  using that by (auto simp add: cong_def le_imp_diff_is_add dest: nat_mod_eq_lemma)
 
-lemma cong_altdef_nat: "a \<ge> b \<Longrightarrow> [a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
+lemma cong_diff_iff_cong_0_nat':
+  "[nat \<bar>int a - int b\<bar> = 0] (mod m) \<longleftrightarrow> [a = b] (mod m)"
+proof (cases "b \<le> a")
+  case True
+  then show ?thesis
+    by (simp add: nat_diff_distrib' cong_diff_iff_cong_0_nat [of b a m])
+next
+  case False
+  then have "a \<le> b"
+    by simp
+  then show ?thesis
+    by (simp add: nat_diff_distrib' cong_diff_iff_cong_0_nat [of a b m])
+      (auto simp add: cong_def)
+qed
+
+lemma cong_altdef_nat:
+  "a \<ge> b \<Longrightarrow> [a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
   for a b :: nat
   by (simp add: cong_0_iff [symmetric] cong_diff_iff_cong_0_nat)
 
-lemma cong_altdef_int: "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
+lemma cong_altdef_nat':
+  "[a = b] (mod m) \<longleftrightarrow> m dvd nat \<bar>int a - int b\<bar>"
+  by (simp add: cong_0_iff [symmetric] cong_diff_iff_cong_0_nat')
+
+lemma cong_altdef_int:
+  "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
   for a b :: int
   by (simp add: cong_0_iff [symmetric] cong_diff_iff_cong_0)
 
@@ -224,31 +226,47 @@ lemma cong_square_int:
   apply (auto simp add: field_simps)
   done
 
-lemma cong_mult_rcancel_int: "coprime k m \<Longrightarrow> [a * k = b * k] (mod m) = [a = b] (mod m)"
-  for a k m :: int
-  by (metis cong_altdef_int left_diff_distrib coprime_dvd_mult_iff gcd.commute)
+lemma cong_mult_rcancel_int:
+  "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
+  if "coprime k m" for a k m :: int
+  by (metis that cong_altdef_int left_diff_distrib coprime_dvd_mult_iff gcd.commute)
 
-lemma cong_mult_rcancel_nat: "coprime k m \<Longrightarrow> [a * k = b * k] (mod m) = [a = b] (mod m)"
-  for a k m :: nat
-  by (metis cong_mult_rcancel_int [transferred])
+lemma cong_mult_rcancel_nat:
+  "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
+  if "coprime k m" for a k m :: nat
+proof -
+  have "[a * k = b * k] (mod m) \<longleftrightarrow> m dvd nat \<bar>int (a * k) - int (b * k)\<bar>"
+    by (simp add: cong_altdef_nat')
+  also have "\<dots> \<longleftrightarrow> m dvd nat \<bar>(int a - int b) * int k\<bar>"
+    by (simp add: algebra_simps)
+  also have "\<dots> \<longleftrightarrow> m dvd nat \<bar>int a - int b\<bar> * k"
+    by (simp add: abs_mult nat_times_as_int)
+  also have "\<dots> \<longleftrightarrow> m dvd nat \<bar>int a - int b\<bar>"
+    by (rule coprime_dvd_mult_iff) (use \<open>coprime k m\<close> in \<open>simp add: ac_simps\<close>)
+  also have "\<dots> \<longleftrightarrow> [a = b] (mod m)"
+    by (simp add: cong_altdef_nat')
+  finally show ?thesis .
+qed
 
-lemma cong_mult_lcancel_nat: "coprime k m \<Longrightarrow> [k * a = k * b ] (mod m) = [a = b] (mod m)"
-  for a k m :: nat
-  by (simp add: mult.commute cong_mult_rcancel_nat)
+lemma cong_mult_lcancel_int:
+  "[k * a = k * b] (mod m) = [a = b] (mod m)"
+  if "coprime k m" for a k m :: int
+  using that by (simp add: cong_mult_rcancel_int ac_simps)
 
-lemma cong_mult_lcancel_int: "coprime k m \<Longrightarrow> [k * a = k * b] (mod m) = [a = b] (mod m)"
-  for a k m :: int
-  by (simp add: mult.commute cong_mult_rcancel_int)
+lemma cong_mult_lcancel_nat:
+  "[k * a = k * b] (mod m) = [a = b] (mod m)"
+  if "coprime k m" for a k m :: nat
+  using that by (simp add: cong_mult_rcancel_nat ac_simps)
 
 lemma coprime_cong_mult_int:
   "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
   for a b :: int
-  by (metis divides_mult cong_altdef_int)
+  by (simp add: cong_altdef_int divides_mult)
 
 lemma coprime_cong_mult_nat:
   "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
   for a b :: nat
-  by (metis coprime_cong_mult_int [transferred])
+  by (simp add: cong_altdef_nat' divides_mult)
 
 lemma cong_less_imp_eq_nat: "0 \<le> a \<Longrightarrow> a < m \<Longrightarrow> 0 \<le> b \<Longrightarrow> b < m \<Longrightarrow> [a = b] (mod m) \<Longrightarrow> a = b"
   for a b :: nat
@@ -292,13 +310,13 @@ next
     by (metis cong_def mult.commute nat_mod_eq_iff) 
 qed
 
+lemma cong_gcd_eq_nat: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
+  for a b :: nat
+  by (auto simp add: cong_def) (metis gcd_red_nat)
+
 lemma cong_gcd_eq_int: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
   for a b :: int
   by (auto simp add: cong_def) (metis gcd_red_int)
-
-lemma cong_gcd_eq_nat: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
-  for a b :: nat
-  by (metis cong_gcd_eq_int [transferred])
 
 lemma cong_imp_coprime_nat: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
   for a b :: nat

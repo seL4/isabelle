@@ -590,7 +590,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Termination
     ThreeDivides
     Transfer_Debug
-    Transfer_Ex
     Transfer_Int_Nat
     Transitive_Closure_Table_Ex
     Tree23

@@ -15,7 +15,6 @@ theory Main
     Conditionally_Complete_Lattices
     Binomial
     GCD
-    Nat_Transfer
 begin
 
 text \<open>
