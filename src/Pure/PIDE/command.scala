@@ -452,12 +452,16 @@ object Command
             val completion =
               if (Thy_Header.is_base_name(s)) {
                 val completed = Completion.completed(import_name.theory_base_name)
-                val qualifier = resources.theory_qualifier(node_name)
+                val qualifier = resources.session_base.theory_qualifier(node_name)
                 val dir = node_name.master_dir
                 for {
                   (_, known_name) <- resources.session_base.known.theories.toList
                   if completed(known_name.theory_base_name)
-                } yield resources.standard_import(resources, qualifier, dir, known_name.theory)
+                }
+                yield {
+                  resources.standard_import(
+                    resources.session_base, qualifier, dir, known_name.theory)
+                }
               }.sorted
               else Nil
             val msg =

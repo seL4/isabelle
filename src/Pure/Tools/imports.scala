@@ -113,24 +113,23 @@ object Imports
       {
         val info = selected_sessions(session_name)
         val session_base = deps(session_name)
-        val session_resources = new Resources(session_base)
 
         val declared_imports =
           selected_sessions.imports_requirements(List(session_name)).toSet
 
         val extra_imports =
           (for {
-            (_, a) <- session_resources.session_base.known.theories.iterator
-            if session_resources.theory_qualifier(a) == info.name
+            (_, a) <- session_base.known.theories.iterator
+            if session_base.theory_qualifier(a) == info.name
             b <- deps.all_known.get_file(a.path.file)
-            qualifier = session_resources.theory_qualifier(b)
+            qualifier = session_base.theory_qualifier(b)
             if !declared_imports.contains(qualifier)
           } yield qualifier).toSet
 
         val loaded_imports =
           selected_sessions.imports_requirements(
             session_base.loaded_theories.keys.map(a =>
-              session_resources.theory_qualifier(session_base.known.theories(a))))
+              session_base.theory_qualifier(session_base.known.theories(a))))
           .toSet - session_name
 
         val minimal_imports =
@@ -182,7 +181,7 @@ object Imports
           val imports_resources = new Resources(imports_base)
 
           def standard_import(qualifier: String, dir: String, s: String): String =
-            imports_resources.standard_import(session_resources, qualifier, dir, s)
+            imports_resources.standard_import(session_base, qualifier, dir, s)
 
           val updates_root =
             for {
@@ -193,10 +192,10 @@ object Imports
           val updates_theories =
             for {
               (_, name) <- session_base.known.theories_local.toList
-              if session_resources.theory_qualifier(name) == info.name
+              if session_base.theory_qualifier(name) == info.name
               (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
               upd <- update_name(session_base.overall_syntax.keywords, pos,
-                standard_import(session_resources.theory_qualifier(name), name.master_dir, _))
+                standard_import(session_base.theory_qualifier(name), name.master_dir, _))
             } yield upd
 
           updates_root ::: updates_theories

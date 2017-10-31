@@ -123,6 +123,9 @@ object Sessions
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
+    def theory_qualifier(name: Document.Node.Name): String =
+      global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
+
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
 
@@ -260,7 +263,7 @@ object Sessions
 
               def node(name: Document.Node.Name): Graph_Display.Node =
               {
-                val qualifier = resources.theory_qualifier(name)
+                val qualifier = imports_base.theory_qualifier(name)
                 if (qualifier == info.name)
                   Graph_Display.Node(name.theory_base_name, "theory." + name.theory)
                 else session_node(qualifier)

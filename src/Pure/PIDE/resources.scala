@@ -86,9 +86,6 @@ class Resources(
     roots ::: files
   }
 
-  def theory_qualifier(name: Document.Node.Name): String =
-    session_base.global_theories.getOrElse(name.theory, Long_Name.qualifier(name.theory))
-
   def theory_name(qualifier: String, theory: String): (Boolean, String) =
     if (session_base.loaded_theory(theory)) (true, theory)
     else {
@@ -118,10 +115,9 @@ class Resources(
     }
 
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
-    import_name(theory_qualifier(name), name.master_dir, s)
+    import_name(session_base.theory_qualifier(name), name.master_dir, s)
 
-  def standard_import(session_resources: Resources,
-    qualifier: String, dir: String, s: String): String =
+  def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
   {
     val name = import_name(qualifier, dir, s)
     val s1 =
@@ -131,7 +127,7 @@ class Resources(
           case None => s
           case Some(path) =>
             session_base.known.get_file(path.file) match {
-              case Some(name1) if session_resources.theory_qualifier(name1) != qualifier =>
+              case Some(name1) if base.theory_qualifier(name1) != qualifier =>
                 name1.theory
               case Some(name1) if Thy_Header.is_base_name(s) =>
                 name1.theory_base_name
