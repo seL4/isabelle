@@ -329,10 +329,12 @@ object Sessions
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
+    infos: List[Info] = Nil,
     inlined_files: Boolean = false,
-    all_known: Boolean = false): Base_Info =
+    all_known: Boolean = false,
+    required_session: Boolean = false): Base_Info =
   {
-    val full_sessions = load(options, dirs = dirs)
+    val full_sessions = load(options, dirs = dirs, infos = infos)
     val global_theories = full_sessions.global_theories
     val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
@@ -340,52 +342,61 @@ object Sessions
     val deps = Sessions.deps(sessions, global_theories, inlined_files = inlined_files)
     val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
 
-    new Base_Info(session, sessions, deps, base)
+    val other_session: Option[(String, List[Info])] =
+      if (required_session && !is_pure(session)) {
+        val info = sessions(session)
+
+        val parent_loaded =
+          info.parent match {
+            case Some(parent) => deps(parent).loaded_theories.defined(_)
+            case None => (_: String) => false
+          }
+        val imported_theories =
+          for {
+            thy <- base.loaded_theories.keys
+            if !parent_loaded(thy) && base.theory_qualifier(thy) != session
+          }
+          yield (List.empty[Options.Spec], List(((thy, Position.none), false)))
+
+        if (imported_theories.isEmpty) info.parent.map((_, Nil))
+        else {
+          val other_name = info.name + "(imports)"
+          Some((other_name,
+            List(
+              make_info(info.options,
+                dir_selected = false,
+                dir = info.dir,
+                chapter = info.chapter,
+                Session_Entry(
+                  pos = info.pos,
+                  name = other_name,
+                  groups = info.groups,
+                  path = ".",
+                  parent = info.parent,
+                  description = "All required theory imports from other sessions",
+                  options = Nil,
+                  imports = info.imports,
+                  theories = imported_theories,
+                  document_files = Nil)))))
+        }
+      }
+      else None
+
+    other_session match {
+      case None => new Base_Info(session, sessions, deps, base, infos)
+      case Some((other_name, more_infos)) =>
+        session_base_info(options, other_name, dirs = dirs, infos = more_infos ::: infos,
+          inlined_files = inlined_files, all_known = all_known)
+    }
   }
 
   final class Base_Info private [Sessions](
-    val session: String, val sessions: T, val deps: Deps, val base: Base)
+    val session: String, val sessions: T, val deps: Deps, val base: Base, val infos: List[Info])
   {
     override def toString: String = session
 
     def errors: List[String] = deps.errors
     def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
-
-    def imported_session: Option[Info] =
-    {
-      val info = sessions(session)
-
-      val parent_loaded =
-        info.parent match {
-          case Some(parent) => deps(parent).loaded_theories.defined(_)
-          case None => (_: String) => false
-        }
-      val imported_theories =
-        for {
-          thy <- base.loaded_theories.keys
-          if !parent_loaded(thy) && base.theory_qualifier(thy) != session
-        }
-        yield (List.empty[Options.Spec], List(((thy, Position.none), false)))
-
-      if (imported_theories.isEmpty) None
-      else
-        Some(
-          make_info(info.options,
-            dir_selected = false,
-            dir = info.dir,
-            chapter = info.chapter,
-            Session_Entry(
-              pos = info.pos,
-              name = info.name + "(base)",
-              groups = info.groups,
-              path = ".",
-              parent = info.parent,
-              description = "All required theories from other session imports",
-              options = Nil,
-              imports = info.imports,
-              theories = imported_theories,
-              document_files = Nil)))
-    }
   }
 
 
@@ -759,7 +770,10 @@ object Sessions
     (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
   }
 
-  def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): T =
+  def load(options: Options,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
+    infos: List[Info] = Nil): T =
   {
     def load_dir(select: Boolean, dir: Path): List[(Boolean, Path)] =
       load_root(select, dir) ::: load_roots(select, dir)
@@ -803,7 +817,7 @@ object Sessions
         }
       }).toList.map(_._2)
 
-    make(unique_roots.flatMap(p => read_root(options, p._1, p._2)))
+    make(unique_roots.flatMap(p => read_root(options, p._1, p._2)) ::: infos)
   }
 
 

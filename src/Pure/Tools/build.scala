@@ -354,6 +354,7 @@ object Build
     clean_build: Boolean = false,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
+    infos: List[Sessions.Info] = Nil,
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
     list_files: Boolean = false,
@@ -381,7 +382,7 @@ object Build
     /* session selection and dependencies */
 
     val full_sessions =
-      Sessions.load(build_options, dirs = dirs, select_dirs = select_dirs)
+      Sessions.load(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
 
     def sources_stamp(deps: Sessions.Deps, name: String): String =
     {
