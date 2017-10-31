@@ -129,7 +129,6 @@ declare -a SOURCES=(
   Thy/present.scala
   Thy/sessions.scala
   Thy/thy_header.scala
-  Thy/thy_info.scala
   Thy/thy_syntax.scala
   Tools/bibtex.scala
   Tools/build.scala

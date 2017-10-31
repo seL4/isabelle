@@ -222,7 +222,7 @@ object Sessions
             }
 
             val thy_deps =
-              resources.thy_info.dependencies(
+              resources.dependencies(
                 for { (_, thys) <- info.theories; (thy, pos) <- thys }
                 yield (resources.import_name(info.name, info.dir.implode, thy), pos))
 

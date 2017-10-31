@@ -216,7 +216,7 @@ class VSCode_Resources(
           (for ((_, model) <- st.models.iterator if model.is_theory)
            yield (model.node_name, Position.none)).toList
 
-        val thy_files = thy_info.dependencies(thys).names
+        val thy_files = dependencies(thys).names
 
 
         /* auxiliary files */
