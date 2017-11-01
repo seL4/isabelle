@@ -27,9 +27,10 @@ object JEdit_Resources
     new JEdit_Resources(JEdit_Sessions.session_base_info(options))
 }
 
-class JEdit_Resources private(session_base_info: Sessions.Base_Info)
+class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
   extends Resources(session_base_info.base.platform_path)
 {
+  def session_name: String = session_base_info.session
   def session_errors: List[String] = session_base_info.errors
 
 

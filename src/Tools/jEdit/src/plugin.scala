@@ -322,7 +322,7 @@ class Plugin extends EBPlugin
           init_view(view)
 
           PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
-            JEdit_Sessions.session_info(options.value).open_root).foreach(_.follow(view))
+            JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>

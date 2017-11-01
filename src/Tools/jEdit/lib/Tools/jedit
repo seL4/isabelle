@@ -97,10 +97,12 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
+  echo "    -B           use image with required theory imports from other sessions"
   echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
-  echo "    -R           open ROOT entry of logic session and use its parent"
+  echo "    -P           use parent session image"
+  echo "    -R           open ROOT entry of logic session"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
@@ -137,8 +139,10 @@ function failed()
 BUILD_ONLY=false
 BUILD_JARS="jars"
 ML_PROCESS_POLICY=""
+JEDIT_LOGIC_BASE=""
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC_ROOT=""
+JEDIT_LOGIC_PARENT=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 JEDIT_BUILD_MODE="normal"
@@ -146,14 +150,22 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:J:Rbd:fj:l:m:np:s" OPT
+  while getopts "BD:J:PRbd:fj:l:m:np:s" OPT
   do
     case "$OPT" in
+      B)
+        JEDIT_LOGIC_BASE="true"
+        JEDIT_LOGIC_PARENT=""
+        ;;
       D)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="-D$OPTARG"
         ;;
       J)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
+        ;;
+      P)
+        JEDIT_LOGIC_PARENT="true"
+        JEDIT_LOGIC_BASE=""
         ;;
       R)
         JEDIT_LOGIC_ROOT="true"
@@ -399,7 +411,8 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ROOT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_BASE JEDIT_LOGIC_PARENT \
+    JEDIT_LOGIC_ROOT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
