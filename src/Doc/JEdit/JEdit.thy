@@ -228,7 +228,7 @@ text \<open>
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
-    -B           use image with required theory imports from other sessions
+    -B           use base session image, with theories from other sessions
     -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
                  (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)

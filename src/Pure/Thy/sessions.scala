@@ -362,7 +362,7 @@ object Sessions
 
         if (required_theories.isEmpty) (info.parent.get, Nil)
         else {
-          val other_name = info.name + "(imports)"
+          val other_name = info.name + "(base)"
           (other_name,
             List(
               make_info(info.options,
