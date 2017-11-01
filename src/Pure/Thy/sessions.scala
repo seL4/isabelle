@@ -691,7 +691,7 @@ object Sessions
 
       val theories =
         $$$(THEORIES) ~!
-          ((options | success(Nil)) ~ rep(theory_entry)) ^^
+          ((options | success(Nil)) ~ rep1(theory_entry)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
       val document_files =
@@ -708,8 +708,8 @@ object Sessions
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
               (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
-              (($$$(SESSIONS) ~! rep(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
-              rep1(theories) ~
+              (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
+              rep(theories) ~
               (rep(document_files) ^^ (x => x.flatten))))) ^^
         { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
             Session_Entry(pos, a, b, c, d, e, f, g, h, i) }

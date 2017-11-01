@@ -127,7 +127,6 @@ session How_to_Prove_it (* FIXME (doc) *) in "How_to_Prove_it" = HOL +
 
 session Intro (doc) in "Intro" = Pure +
   options [document_variants = "intro"]
-  theories
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -272,7 +271,6 @@ session Locales (doc) in "Locales" = HOL +
 
 session Logics (doc) in "Logics" = Pure +
   options [document_variants = "logics"]
-  theories
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -328,7 +326,6 @@ session Main (doc) in "Main" = HOL +
 
 session Nitpick (doc) in "Nitpick" = Pure +
   options [document_variants = "nitpick"]
-  theories
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -364,7 +361,6 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
 
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
   options [document_variants = "sledgehammer"]
-  theories
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"

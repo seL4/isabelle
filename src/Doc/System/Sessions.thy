@@ -55,7 +55,7 @@ text \<open>
     @{syntax_def session_entry}: @'session' spec '='
       (@{syntax system_name} '+')? body
     ;
-    body: description? options? (theories+) \<newline> (document_files*)
+    body: description? options? (sessions?) (theories*) \<newline> (document_files*)
     ;
     spec: @{syntax system_name} groups? dir?
     ;
@@ -73,7 +73,7 @@ text \<open>
     ;
     sessions: @'sessions' (@{syntax system_name}+)
     ;
-    theories: @'theories' opts? (theory_entry*)
+    theories: @'theories' opts? (theory_entry+)
     ;
     theory_entry: @{syntax system_name} ('(' @'global' ')')?
     ;
