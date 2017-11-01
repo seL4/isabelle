@@ -638,7 +638,7 @@ object Sessions
   private val DOCUMENT_FILES = "document_files"
 
   lazy val root_syntax =
-    Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" + GLOBAL + IN +
+    Outer_Syntax.init + "(" + ")" + "+" + "," + "=" + "[" + "]" + GLOBAL + IN +
       (CHAPTER, Keyword.THY_DECL) +
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +

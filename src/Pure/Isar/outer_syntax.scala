@@ -16,7 +16,7 @@ object Outer_Syntax
 
   val empty: Outer_Syntax = new Outer_Syntax()
 
-  def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
+  lazy val init: Outer_Syntax = new Outer_Syntax(completion = Completion.init)
 
   def merge(syns: List[Outer_Syntax]): Outer_Syntax = (empty /: syns)(_ ++ _)
 

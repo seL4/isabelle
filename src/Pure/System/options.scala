@@ -72,12 +72,12 @@ object Options
   private val PREFS = PREFS_DIR + Path.basic("preferences")
 
   lazy val options_syntax =
-    Outer_Syntax.init() + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
+    Outer_Syntax.init + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
       (SECTION, Keyword.DOCUMENT_HEADING) +
       (PUBLIC, Keyword.BEFORE_COMMAND) +
       (OPTION, Keyword.THY_DECL)
 
-  lazy val prefs_syntax = Outer_Syntax.init() + "="
+  lazy val prefs_syntax = Outer_Syntax.init + "="
 
   trait Parser extends Parse.Parser
   {

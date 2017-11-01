@@ -38,15 +38,15 @@ object Isabelle
       "sml")              // Standard ML (not Isabelle/ML)
 
   private lazy val ml_syntax: Outer_Syntax =
-    Outer_Syntax.init().no_tokens.
+    Outer_Syntax.init.no_tokens.
       set_language_context(Completion.Language_Context.ML_outer)
 
   private lazy val sml_syntax: Outer_Syntax =
-    Outer_Syntax.init().no_tokens.
+    Outer_Syntax.init.no_tokens.
       set_language_context(Completion.Language_Context.SML_outer)
 
   private lazy val news_syntax: Outer_Syntax =
-    Outer_Syntax.init().no_tokens
+    Outer_Syntax.init.no_tokens
 
   def mode_syntax(mode: String): Option[Outer_Syntax] =
     mode match {

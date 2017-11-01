@@ -256,7 +256,8 @@ object Completion
   /* init */
 
   val empty: Completion = new Completion()
-  def init(): Completion =
+
+  lazy val init: Completion =
     empty.add_symbols.add_abbrevs(Completion.symbol_abbrevs ::: Completion.default_abbrevs)
 
 
