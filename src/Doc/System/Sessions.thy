@@ -52,12 +52,9 @@ text \<open>
     @{syntax_def session_chapter}: @'chapter' @{syntax name}
     ;
 
-    @{syntax_def session_entry}: @'session' spec '='
-      (@{syntax system_name} '+')? body
-    ;
-    body: description? options? (sessions?) (theories*) \<newline> (document_files*)
-    ;
-    spec: @{syntax system_name} groups? dir?
+    @{syntax_def session_entry}: @'session' @{syntax system_name} groups? dir? '=' \<newline>
+      (@{syntax system_name} '+')? description? options? \<newline>
+      (sessions?) (theories*) (document_files*)
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
