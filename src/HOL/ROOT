@@ -927,13 +927,15 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
     "Examples/Finite"
     "Examples/T2_Spaces"
 
-session HOLCF (main timing) in HOLCF = "HOL-Library" +
+session HOLCF (main timing) in HOLCF = HOL +
   description {*
     Author:     Franz Regensburger
     Author:     Brian Huffman
 
     HOLCF -- a semantic extension of HOL by the LCF logic.
   *}
+  sessions
+    "HOL-Library"
   theories
     HOLCF (global)
   document_files "root.tex"
