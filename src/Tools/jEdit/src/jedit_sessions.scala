@@ -91,8 +91,7 @@ object JEdit_Sessions
 
   def session_list(options: Options): List[String] =
   {
-    val sessions =
-      Sessions.load(options, dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos)
+    val sessions = Sessions.load(options, dirs = session_dirs())
     val (main_sessions, other_sessions) =
       sessions.imports_topological_order.partition(info => info.groups.contains("main"))
     main_sessions.map(_.name).sorted ::: other_sessions.map(_.name).sorted
@@ -111,7 +110,7 @@ object JEdit_Sessions
     GUI_Thread.require {}
 
     val entries =
-      new Logic_Entry("", "default (" + PIDE.resources.session_name + ")") ::
+      new Logic_Entry("", "default (" + logic_name(options.value) + ")") ::
         session_list(options.value).map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
