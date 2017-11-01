@@ -227,8 +227,8 @@ object Build
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
         def save_heap: String =
-          "ML_Heap.share_common_data (); ML_Heap.save_child " +
-            ML_Syntax.print_string_bytes(File.platform_path(output))
+          (if (info.theories.isEmpty) "" else "ML_Heap.share_common_data (); ") +
+            "ML_Heap.save_child " + ML_Syntax.print_string_bytes(File.platform_path(output))
 
         if (pide && !Sessions.is_pure(name)) {
           val resources = new Resources(deps(parent))
