@@ -325,42 +325,48 @@ object Sessions
 
   /* base info */
 
+  sealed case class Base_Info(
+    session: String,
+    sessions: T,
+    deps: Deps,
+    base: Base,
+    infos: List[Info])
+  {
+    def errors: List[String] = deps.errors
+    def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
+  }
+
   def session_base_info(
     options: Options,
     session: String,
     dirs: List[Path] = Nil,
-    infos: List[Info] = Nil,
     all_known: Boolean = false,
     required_session: Boolean = false): Base_Info =
   {
-    val full_sessions = load(options, dirs = dirs, infos = infos)
+    val full_sessions = load(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
-    val (_, selected_sessions) = full_sessions.selection(Selection(sessions = List(session)))
 
-    val sessions: T = if (all_known) full_sessions else selected_sessions
-    val deps = Sessions.deps(sessions, global_theories)
-    val base = if (all_known) deps(session).copy(known = deps.all_known) else deps(session)
+    val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
+    val info = selected_sessions(session)
 
-    val other_session: Option[(String, List[Info])] =
-      if (required_session && !is_pure(session)) {
-        val info = sessions(session)
+    val (session1, infos1) =
+      if (required_session && info.parent.isDefined) {
+        val deps = Sessions.deps(selected_sessions, global_theories)
+        val base = deps(session)
 
-        val parent_loaded =
-          info.parent match {
-            case Some(parent) => deps(parent).loaded_theories.defined(_)
-            case None => (_: String) => false
-          }
-        val imported_theories =
+        val parent_loaded = deps(info.parent.get).loaded_theories.defined(_)
+
+        val required_theories =
           for {
             thy <- base.loaded_theories.keys
             if !parent_loaded(thy) && base.theory_qualifier(thy) != session
           }
-          yield (List.empty[Options.Spec], List(((thy, Position.none), false)))
+          yield thy
 
-        if (imported_theories.isEmpty) info.parent.map((_, Nil))
+        if (required_theories.isEmpty) (info.parent.get, Nil)
         else {
           val other_name = info.name + "(imports)"
-          Some((other_name,
+          (other_name,
             List(
               make_info(info.options,
                 dir_selected = false,
@@ -372,30 +378,25 @@ object Sessions
                   groups = info.groups,
                   path = ".",
                   parent = info.parent,
-                  description = "All required theory imports from other sessions",
+                  description = "Required theory imports from other sessions",
                   options = Nil,
                   imports = info.imports,
-                  theories = imported_theories,
-                  document_files = Nil)))))
+                  theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
+                  document_files = Nil))))
         }
       }
-      else None
+      else (session, Nil)
 
-    other_session match {
-      case None => new Base_Info(session, sessions, deps, base, infos)
-      case Some((other_name, more_infos)) =>
-        session_base_info(options, other_name,
-          dirs = dirs, infos = more_infos ::: infos, all_known = all_known)
-    }
-  }
+    val full_sessions1 =
+      if (infos1.isEmpty) full_sessions
+      else load(options, dirs = dirs, infos = infos1)
+    val selected_sessions1 = full_sessions1.selection(Selection(sessions = List(session1)))._2
 
-  final class Base_Info private [Sessions](
-    val session: String, val sessions: T, val deps: Deps, val base: Base, val infos: List[Info])
-  {
-    override def toString: String = session
+    val sessions1 = if (all_known) full_sessions1 else selected_sessions1
+    val deps1 = Sessions.deps(sessions1, global_theories)
+    val base1 = if (all_known) deps1(session1).copy(known = deps1.all_known) else deps1(session1)
 
-    def errors: List[String] = deps.errors
-    def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
+    Base_Info(session1, sessions1, deps1, base1, infos1)
   }
 
 
