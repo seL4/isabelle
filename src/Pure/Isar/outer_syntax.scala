@@ -112,7 +112,8 @@ final class Outer_Syntax private(
       val keywords1 = keywords ++ other.keywords
       val completion1 = completion ++ other.completion
       val rev_abbrevs1 = Library.merge(rev_abbrevs, other.rev_abbrevs)
-      if ((keywords eq keywords1) && (completion eq completion1)) this
+      if ((keywords eq keywords1) && (completion eq completion1) && (rev_abbrevs eq rev_abbrevs1))
+        this
       else new Outer_Syntax(keywords1, completion1, rev_abbrevs1, language_context, has_tokens)
     }
 
