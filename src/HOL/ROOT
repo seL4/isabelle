@@ -371,7 +371,7 @@ session "HOL-ZF" in ZF = "HOL-Library" +
     Games
   document_files "root.tex"
 
-session "HOL-Imperative_HOL" in Imperative_HOL = "HOL-Library" +
+session "HOL-Imperative_HOL" (timing) in Imperative_HOL = "HOL-Library" +
   options [print_mode = "iff,no_brackets"]
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
