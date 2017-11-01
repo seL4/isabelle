@@ -335,9 +335,7 @@ object Sessions
     def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
   }
 
-  def session_base_info(
-    options: Options,
-    session: String,
+  def base_info(options: Options, session: String,
     dirs: List[Path] = Nil,
     all_known: Boolean = false,
     required_session: Boolean = false): Base_Info =

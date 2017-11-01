@@ -59,7 +59,7 @@ object JEdit_Sessions
   {
     val logic = logic_name(options)
 
-    Sessions.session_base_info(options,
+    Sessions.base_info(options,
       if (logic_parent) logic_info(options).flatMap(_.parent) getOrElse logic else logic,
       dirs = JEdit_Sessions.session_dirs(),
       all_known = true,

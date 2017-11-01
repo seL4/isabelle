@@ -269,7 +269,7 @@ class Server(
         }
 
         val session_base =
-          Sessions.session_base_info(
+          Sessions.base_info(
             options, session_name, dirs = session_dirs, all_known = all_known).check_base
         val resources = new VSCode_Resources(options, session_base, log)
           {
