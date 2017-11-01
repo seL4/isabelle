@@ -328,11 +328,10 @@ object Sessions
   sealed case class Base_Info(
     session: String,
     sessions: T,
-    deps: Deps,
+    errors: List[String],
     base: Base,
     infos: List[Info])
   {
-    def errors: List[String] = deps.errors
     def check_base: Base = if (errors.isEmpty) base else error(cat_lines(errors))
   }
 
@@ -396,7 +395,7 @@ object Sessions
     val deps1 = Sessions.deps(sessions1, global_theories)
     val base1 = if (all_known) deps1(session1).copy(known = deps1.all_known) else deps1(session1)
 
-    Base_Info(session1, sessions1, deps1, base1, infos1)
+    Base_Info(session1, sessions1, deps1.errors, base1, infos1)
   }
 
 
