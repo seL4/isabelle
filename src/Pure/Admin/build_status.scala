@@ -41,8 +41,7 @@ object Build_Status
               Build_Log.Session_Status.failed.toString)) +
           (if (only_sessions.isEmpty) ""
            else " AND " + SQL.member(Build_Log.Data.session_name.ident, only_sessions)) +
-          " AND " + SQL.enclose(sql) +
-          " ORDER BY " + Build_Log.Data.pull_date(afp))
+          " AND " + SQL.enclose(sql))
     }
   }
 
@@ -79,6 +78,9 @@ object Build_Status
     name: String, threads: Int, entries: List[Entry], ml_statistics: ML_Statistics)
   {
     require(entries.nonEmpty)
+
+    def sort_entries: Session =
+      copy(entries = entries.sortBy(entry => - entry.pull_date.unix_epoch))
 
     def head: Entry = entries.head
     def order: Long = - head.timing.elapsed.ms
@@ -261,7 +263,7 @@ object Build_Status
     val sorted_entries =
       (for {
         (name, sessions) <- data_entries.toList
-        sorted_sessions <- proper_list(sessions.toList.map(_._2).sortBy(_.order))
+        sorted_sessions <- proper_list(sessions.toList.map(p => p._2.sort_entries).sortBy(_.order))
       }
       yield {
         val hosts = get_hosts(name).toList.sorted
