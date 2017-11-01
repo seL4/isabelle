@@ -53,7 +53,54 @@ object JEdit_Sessions
     else Position.none
 
 
-  /* session base info */
+  /* logic selector */
+
+  private class Logic_Entry(val name: String, val description: String)
+  {
+    override def toString: String = description
+  }
+
+  def logic_selector(options: Options_Variable, autosave: Boolean): Option_Component =
+  {
+    GUI_Thread.require {}
+
+    val session_list =
+    {
+      val sessions = Sessions.load(options.value, dirs = session_dirs())
+      val (main_sessions, other_sessions) =
+        sessions.imports_topological_order.partition(info => info.groups.contains("main"))
+      main_sessions.map(_.name).sorted ::: other_sessions.map(_.name).sorted
+    }
+
+    val entries =
+      new Logic_Entry("", "default (" + logic_name(options.value) + ")") ::
+        session_list.map(name => new Logic_Entry(name, name))
+
+    val component = new ComboBox(entries) with Option_Component {
+      name = jedit_logic_option
+      val title = "Logic"
+      def load: Unit =
+      {
+        val logic = options.string(jedit_logic_option)
+        entries.find(_.name == logic) match {
+          case Some(entry) => selection.item = entry
+          case None =>
+        }
+      }
+      def save: Unit = options.string(jedit_logic_option) = selection.item.name
+    }
+
+    component.load()
+    if (autosave) {
+      component.listenTo(component.selection)
+      component.reactions += { case SelectionChanged(_) => component.save() }
+    }
+    component.tooltip = "Logic session name (change requires restart)"
+    component
+  }
+
+
+  /* session build process */
 
   def session_base_info(options: Options): Sessions.Base_Info =
   {
@@ -87,52 +134,5 @@ object JEdit_Sessions
         (space_explode(',', options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse,
       phase_changed = PIDE.plugin.session_phase_changed)
-  }
-
-  def session_list(options: Options): List[String] =
-  {
-    val sessions = Sessions.load(options, dirs = session_dirs())
-    val (main_sessions, other_sessions) =
-      sessions.imports_topological_order.partition(info => info.groups.contains("main"))
-    main_sessions.map(_.name).sorted ::: other_sessions.map(_.name).sorted
-  }
-
-
-  /* logic selector */
-
-  private class Logic_Entry(val name: String, val description: String)
-  {
-    override def toString: String = description
-  }
-
-  def logic_selector(options: Options_Variable, autosave: Boolean): Option_Component =
-  {
-    GUI_Thread.require {}
-
-    val entries =
-      new Logic_Entry("", "default (" + logic_name(options.value) + ")") ::
-        session_list(options.value).map(name => new Logic_Entry(name, name))
-
-    val component = new ComboBox(entries) with Option_Component {
-      name = jedit_logic_option
-      val title = "Logic"
-      def load: Unit =
-      {
-        val logic = options.string(jedit_logic_option)
-        entries.find(_.name == logic) match {
-          case Some(entry) => selection.item = entry
-          case None =>
-        }
-      }
-      def save: Unit = options.string(jedit_logic_option) = selection.item.name
-    }
-
-    component.load()
-    if (autosave) {
-      component.listenTo(component.selection)
-      component.reactions += { case SelectionChanged(_) => component.save() }
-    }
-    component.tooltip = "Logic session name (change requires restart)"
-    component
   }
 }
