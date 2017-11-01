@@ -356,12 +356,17 @@ final class Completion private(
     if (this eq other) this
     else if (is_empty) other
     else {
-      val keywords1 = (keywords /: other.keywords) { case (ks, k) => if (ks(k)) ks else ks + k }
+      val keywords1 =
+        if (keywords eq other.keywords) keywords
+        else if (keywords.isEmpty) other.keywords
+        else (keywords /: other.keywords) { case (ks, k) => if (ks(k)) ks else ks + k }
       val words_lex1 = words_lex ++ other.words_lex
       val words_map1 = words_map ++ other.words_map
       val abbrevs_lex1 = abbrevs_lex ++ other.abbrevs_lex
       val abbrevs_map1 = abbrevs_map ++ other.abbrevs_map
-      new Completion(keywords1, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
+      if ((keywords eq keywords1) && (words_lex eq words_lex1) && (words_map eq words_map1) &&
+        (abbrevs_lex eq abbrevs_lex1) && (abbrevs_map eq abbrevs_map1)) this
+      else new Completion(keywords1, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
     }
 
 
