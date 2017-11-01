@@ -123,6 +123,7 @@ object Isabelle_Cronjob
     options: String = "",
     args: String = "",
     afp: Boolean = false,
+    slow: Boolean = false,
     detect: SQL.Source = "")
   {
     def sql: SQL.Source =
@@ -131,7 +132,7 @@ object Isabelle_Cronjob
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
 
     def profile: Build_Status.Profile =
-      Build_Status.Profile(description, history = history, afp = afp, sql = sql)
+      Build_Status.Profile(description, history = history, afp = afp, slow = slow, sql = sql)
 
     def pick(
       options: Options,
@@ -261,6 +262,7 @@ object Isabelle_Cronjob
           options = "-m64 -M6 -U30000 -s10 -t AFP",
           args = "-g slow",
           afp = true,
+          slow = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
 
   private def remote_build_history(

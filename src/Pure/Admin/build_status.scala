@@ -22,7 +22,7 @@ object Build_Status
   /* data profiles */
 
   sealed case class Profile(
-    description: String, history: Int = 0, afp: Boolean = false, sql: String)
+    description: String, history: Int = 0, afp: Boolean = false, slow: Boolean = false, sql: String)
   {
     def days(options: Options): Int = options.int("build_log_history") max history
 
@@ -168,6 +168,7 @@ object Build_Status
             Build_Log.Settings.ML_PLATFORM,
             Build_Log.Data.session_name,
             Build_Log.Data.chapter,
+            Build_Log.Data.groups,
             Build_Log.Data.threads,
             Build_Log.Data.timing_elapsed,
             Build_Log.Data.timing_cpu,
@@ -191,6 +192,7 @@ object Build_Status
           while (res.next()) {
             val session_name = res.string(Build_Log.Data.session_name)
             val chapter = res.string(Build_Log.Data.chapter)
+            val groups = split_lines(res.string(Build_Log.Data.groups))
             val threads =
             {
               val threads1 =
@@ -248,7 +250,7 @@ object Build_Status
             val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
             val session = Session(session_name, threads, entry :: entries, ml_stats)
 
-            if (!afp || chapter == "AFP") {
+            if ((!afp || chapter == "AFP") && (!profile.slow || groups.contains("slow"))) {
               data_entries += (data_name -> (sessions + (session_name -> session)))
             }
           }
