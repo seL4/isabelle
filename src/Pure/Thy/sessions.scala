@@ -389,7 +389,7 @@ object Sessions
                   parent = ancestor,
                   description = "Required theory imports from other sessions",
                   options = Nil,
-                  imports = info.imports,
+                  imports = info.deps,
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
                   document_files = Nil))))
         }
