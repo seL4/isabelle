@@ -346,7 +346,8 @@ object Sessions
     val full_sessions = load(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
 
-    val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
+    val selected_sessions =
+      full_sessions.selection(Selection(sessions = session :: ancestor_session.toList))._2
     val info = selected_sessions(session)
     val ancestor = ancestor_session orElse info.parent
 
@@ -357,9 +358,11 @@ object Sessions
 
         val ancestor_loaded =
           deps.get(ancestor.get) match {
-            case None =>
+            case Some(ancestor_base)
+            if !selected_sessions.imports_requirements(List(ancestor.get)).contains(session) =>
+              ancestor_base.loaded_theories.defined(_)
+            case _ =>
               error("Bad ancestor " + quote(ancestor.get) + " for session " + quote(session))
-            case Some(ancestor_base) => ancestor_base.loaded_theories.defined(_)
           }
 
         val required_theories =

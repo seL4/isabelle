@@ -44,7 +44,9 @@ for session selection:
   - option -S sets up the development environment to edit the
     specified session: it abbreviates -B -F -R -l
 
-  Example: isabelle jedit -A HOL -S Formal_SSA -d '$AFP'
+  Examples:
+    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
+    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
 
 
 *** HOL ***
