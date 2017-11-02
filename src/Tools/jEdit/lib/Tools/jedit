@@ -97,6 +97,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
+  echo "    -A           specify ancestor for base session image (default: parent)"
   echo "    -B           use base session image, with theories from other sessions"
   echo "    -F           focus on selected logic session: ignore unrelated theories"
   echo "    -D NAME=X    set JVM system property"
@@ -141,6 +142,7 @@ function failed()
 BUILD_ONLY=false
 BUILD_JARS="jars"
 ML_PROCESS_POLICY=""
+JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_BASE=""
 JEDIT_LOGIC_FOCUS=""
 JEDIT_SESSION_DIRS=""
@@ -153,9 +155,12 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "BFD:J:PRS:bd:fj:l:m:np:s" OPT
+  while getopts "A:BFD:J:PRS:bd:fj:l:m:np:s" OPT
   do
     case "$OPT" in
+      A)
+        JEDIT_LOGIC_ANCESTOR="$OPTARG"
+        ;;
       B)
         JEDIT_LOGIC_BASE="true"
         JEDIT_LOGIC_PARENT=""
@@ -424,7 +429,7 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_BASE JEDIT_LOGIC_FOCUS \
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_BASE JEDIT_LOGIC_FOCUS \
     JEDIT_LOGIC_PARENT JEDIT_LOGIC_ROOT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"

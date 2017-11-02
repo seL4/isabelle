@@ -39,6 +39,7 @@ object JEdit_Sessions
       Isabelle_System.getenv("JEDIT_LOGIC"),
       options.string(jedit_logic_option))
 
+  def logic_ancestor: Option[String] = proper_string(Isabelle_System.getenv("JEDIT_LOGIC_ANCESTOR"))
   def logic_focus: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_FOCUS") == "true"
   def logic_base: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_BASE") == "true"
   def logic_parent: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_PARENT") == "true"
@@ -109,6 +110,7 @@ object JEdit_Sessions
         if (logic_parent) logic_info(options).flatMap(_.parent) getOrElse logic_name(options)
         else logic_name(options),
       dirs = JEdit_Sessions.session_dirs(),
+      ancestor_session = logic_ancestor,
       all_known = !logic_focus,
       focus_session = logic_focus,
       required_session = logic_base)

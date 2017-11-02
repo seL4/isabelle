@@ -152,6 +152,7 @@ object Sessions
   {
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
+    def get(name: String): Option[Base] = session_bases.get(name)
 
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
@@ -337,6 +338,7 @@ object Sessions
 
   def base_info(options: Options, session: String,
     dirs: List[Path] = Nil,
+    ancestor_session: Option[String] = None,
     all_known: Boolean = false,
     focus_session: Boolean = false,
     required_session: Boolean = false): Base_Info =
@@ -346,24 +348,30 @@ object Sessions
 
     val selected_sessions = full_sessions.selection(Selection(sessions = List(session)))._2
     val info = selected_sessions(session)
+    val ancestor = ancestor_session orElse info.parent
 
     val (session1, infos1) =
-      if (required_session && info.parent.isDefined) {
+      if (required_session && ancestor.isDefined) {
         val deps = Sessions.deps(selected_sessions, global_theories)
         val base = deps(session)
 
-        val parent_loaded = deps(info.parent.get).loaded_theories.defined(_)
+        val ancestor_loaded =
+          deps.get(ancestor.get) match {
+            case None =>
+              error("Bad ancestor " + quote(ancestor.get) + " for session " + quote(session))
+            case Some(ancestor_base) => ancestor_base.loaded_theories.defined(_)
+          }
 
         val required_theories =
           for {
             thy <- base.loaded_theories.keys
-            if !parent_loaded(thy) && base.theory_qualifier(thy) != session
+            if !ancestor_loaded(thy) && base.theory_qualifier(thy) != session
           }
           yield thy
 
-        if (required_theories.isEmpty) (info.parent.get, Nil)
+        if (required_theories.isEmpty) (ancestor.get, Nil)
         else {
-          val other_name = info.name + "(base)"
+          val other_name = info.name + "_base(" + ancestor.get + ")"
           (other_name,
             List(
               make_info(info.options,
@@ -375,7 +383,7 @@ object Sessions
                   name = other_name,
                   groups = info.groups,
                   path = ".",
-                  parent = info.parent,
+                  parent = ancestor,
                   description = "Required theory imports from other sessions",
                   options = Nil,
                   imports = info.imports,

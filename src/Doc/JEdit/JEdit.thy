@@ -228,6 +228,7 @@ text \<open>
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
+    -A           specify ancestor for base session image (default: parent)
     -B           use base session image, with theories from other sessions
     -F           focus on selected logic session: ignore unrelated theories
     -D NAME=X    set JVM system property
@@ -260,15 +261,14 @@ text \<open>
   The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for the selected
   session image.
 
-  Option \<^verbatim>\<open>-B\<close> and \<^verbatim>\<open>-P\<close> are mutually exclusive and modify the meaning of
-  option \<^verbatim>\<open>-l\<close> as follows: \<^verbatim>\<open>-B\<close> prepares a logic image on the spot, based on
-  the required theory imports from other sessions, or the parent session image
-  if all required theories are already present there. \<^verbatim>\<open>-P\<close> opens the parent
-  session image directly.
+  Option \<^verbatim>\<open>-P\<close> and \<^verbatim>\<open>-B\<close> and are mutually exclusive and modify the meaning of
+  option \<^verbatim>\<open>-l\<close> as follows. Option \<^verbatim>\<open>-P\<close> opens the parent session image. Option
+  \<^verbatim>\<open>-B\<close> prepares a logic image on the spot, based on the required theory
+  imports from other sessions, relative to an ancestor session given by option
+  \<^verbatim>\<open>-A\<close> (default: parent session).
 
-  Option \<^verbatim>\<open>-F\<close> focuses on the specified logic session, as resulting from
-  options \<^verbatim>\<open>-l\<close>, \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-P\<close>. The accessible name space of theories is
-  restricted to sessions that are connected to this session.
+  Option \<^verbatim>\<open>-F\<close> focuses on the effective logic session: the accessible
+  namespace of theories is restricted to sessions that are connected to it.
 
   Option \<^verbatim>\<open>-R\<close> opens the ROOT entry of the specified logic session in the
   editor. Option \<^verbatim>\<open>-S\<close> sets up the development environment to edit the
