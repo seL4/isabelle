@@ -34,9 +34,13 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 
 * Completion supports theory header imports.
 
-* The "isabelle jedit" command-line options -B or -P modify the meaning
-of -l to produce an image on the spot or use the session parent image.
-Option -R now only opens the session ROOT entry.
+* The command-line tool "isabelle jedit" provides more flexible options:
+  - options -B or -P modify the meaning of -l to produce an image on the
+    spot or use the session parent image
+  - option -F focuses on the specified logic session
+  - option -R has changed: it only opens the session ROOT entry
+  - option -S sets up the development environment to edit the
+    specified session: it abbreviates -B -F -R -l
 
 
 *** HOL ***

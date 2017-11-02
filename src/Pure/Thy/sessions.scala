@@ -338,6 +338,7 @@ object Sessions
   def base_info(options: Options, session: String,
     dirs: List[Path] = Nil,
     all_known: Boolean = false,
+    focus_session: Boolean = false,
     required_session: Boolean = false): Base_Info =
   {
     val full_sessions = load(options, dirs = dirs)
@@ -387,7 +388,12 @@ object Sessions
     val full_sessions1 =
       if (infos1.isEmpty) full_sessions
       else load(options, dirs = dirs, infos = infos1)
-    val selected_sessions1 = full_sessions1.selection(Selection(sessions = List(session1)))._2
+
+    val select_sessions1 =
+      if (focus_session) full_sessions1.imports_descendants(List(session1))
+      else List(session1)
+    val selected_sessions1 =
+      full_sessions1.selection(Selection(sessions = select_sessions1))._2
 
     val sessions1 = if (all_known) full_sessions1 else selected_sessions1
     val deps1 = Sessions.deps(sessions1, global_theories)

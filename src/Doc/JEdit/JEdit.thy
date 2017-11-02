@@ -229,11 +229,13 @@ text \<open>
 
   Options are:
     -B           use base session image, with theories from other sessions
+    -F           focus on selected logic session: ignore unrelated theories
     -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
                  (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)
     -P           use parent session image
     -R           open ROOT entry of logic session
+    -S NAME      edit specified logic session, same as -B -F -R -l NAME
     -b           build only
     -d DIR       include session directory
     -f           fresh build
@@ -264,6 +266,14 @@ text \<open>
   if all required theories are already present there. \<^verbatim>\<open>-P\<close> opens the parent
   session image directly.
 
+  Option \<^verbatim>\<open>-F\<close> focuses on the specified logic session, as resulting from
+  options \<^verbatim>\<open>-l\<close>, \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-P\<close>. The accessible name space of theories is
+  restricted to sessions that are connected to this session.
+
+  Option \<^verbatim>\<open>-R\<close> opens the ROOT entry of the specified logic session in the
+  editor. Option \<^verbatim>\<open>-S\<close> sets up the development environment to edit the
+  specified session: it abbreviates \<^verbatim>\<open>-B\<close> \<^verbatim>\<open>-F\<close> \<^verbatim>\<open>-R\<close> \<^verbatim>\<open>-l\<close>.
+
   The \<^verbatim>\<open>-m\<close> option specifies additional print modes for the prover process.
   Note that the system option @{system_option_ref jedit_print_mode} allows to
   do the same persistently (e.g.\ via the \<^emph>\<open>Plugin Options\<close> dialog of
@@ -276,9 +286,6 @@ text \<open>
 
   The \<^verbatim>\<open>-D\<close> option allows to define JVM system properties; this is passed
   directly to the underlying \<^verbatim>\<open>java\<close> process.
-
-  Option \<^verbatim>\<open>-R\<close> opens the ROOT entry of the specified logic session in the
-  editor.
 
   The \<^verbatim>\<open>-b\<close> and \<^verbatim>\<open>-f\<close> options control the self-build mechanism of
   Isabelle/jEdit. This is only relevant for building from sources, which also

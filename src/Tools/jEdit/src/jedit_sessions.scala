@@ -39,6 +39,7 @@ object JEdit_Sessions
       Isabelle_System.getenv("JEDIT_LOGIC"),
       options.string(jedit_logic_option))
 
+  def logic_focus: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_FOCUS") == "true"
   def logic_base: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_BASE") == "true"
   def logic_parent: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_PARENT") == "true"
 
@@ -103,15 +104,14 @@ object JEdit_Sessions
   /* session build process */
 
   def session_base_info(options: Options): Sessions.Base_Info =
-  {
-    val logic = logic_name(options)
-
     Sessions.base_info(options,
-      if (logic_parent) logic_info(options).flatMap(_.parent) getOrElse logic else logic,
+      session =
+        if (logic_parent) logic_info(options).flatMap(_.parent) getOrElse logic_name(options)
+        else logic_name(options),
       dirs = JEdit_Sessions.session_dirs(),
-      all_known = true,
+      all_known = !logic_focus,
+      focus_session = logic_focus,
       required_session = logic_base)
-  }
 
   def session_build(
     options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =
