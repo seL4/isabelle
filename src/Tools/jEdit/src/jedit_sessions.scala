@@ -106,10 +106,10 @@ object JEdit_Sessions
 
   def session_base_info(options: Options): Sessions.Base_Info =
     Sessions.base_info(options,
+      dirs = JEdit_Sessions.session_dirs(),
       session =
         if (logic_parent) logic_info(options).flatMap(_.parent) getOrElse logic_name(options)
         else logic_name(options),
-      dirs = JEdit_Sessions.session_dirs(),
       ancestor_session = logic_ancestor,
       all_known = !logic_focus,
       focus_session = logic_focus,
