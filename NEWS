@@ -38,7 +38,7 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
 * Completion supports theory header imports, using theory base name.
-E.g. "Prob" is completed to "HOL-Probability.Probability".
+E.g. "Prob" may be completed to "HOL-Probability.Probability".
 
 * The command-line tool "isabelle jedit" provides more flexible options
 for session selection:
