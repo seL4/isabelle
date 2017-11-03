@@ -122,12 +122,18 @@ object Build_PolyML
       """, redirect = true, echo = true).check
 
     val ldd_files =
-      if (Platform.is_linux) {
-        val libs = bash(root, "ldd target/bin/poly").check.out_lines
-        val Pattern = """\s*libgmp.*=>\s*(\S+).*""".r
-        for (Pattern(lib) <- libs) yield lib
+    {
+      val ldd_pattern =
+        if (Platform.is_linux) Some(("ldd", """\s*libgmp.*=>\s*(\S+).*""".r))
+        else if (Platform.is_macos) Some(("otool -L", """\s*(\S+libgmp.*dylib).*""".r))
+        else None
+      ldd_pattern match {
+        case Some((ldd, pattern)) =>
+          val lines = bash(root, ldd + " target/bin/poly").check.out_lines
+          for { line <- lines; List(lib) <- pattern.unapplySeq(line) } yield lib
+        case None => Nil
       }
-      else Nil
+    }
 
 
     /* sha1 library */
