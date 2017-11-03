@@ -687,7 +687,7 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
   theories
-    Probability (global)
+    Probability
   document_files "root.tex"
 
 session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
@@ -824,7 +824,7 @@ session "HOL-Word-SMT_Examples" (timing) in SMT_Examples = "HOL-Word" +
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
   theories
-    SPARK (global)
+    SPARK
 
 session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
   options [spark_prv = false]

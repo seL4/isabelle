@@ -4,7 +4,7 @@
 *)
 
 theory Sqrt
-imports SPARK
+imports "HOL-SPARK.SPARK"
 begin
 
 spark_open "sqrt/isqrt"

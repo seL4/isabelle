@@ -4,7 +4,7 @@
 *)
 
 theory Greatest_Common_Divisor
-imports SPARK
+imports "HOL-SPARK.SPARK"
 begin
 
 spark_proof_functions
