@@ -51,7 +51,7 @@ fun pow k l =
           in if r = 0 then l' else l' * l end;
   in
     if k < 0
-    then error "pow: negative exponent"
+    then IntInf.pow (l, k)
     else pw k l
   end;
 
