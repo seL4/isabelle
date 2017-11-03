@@ -125,9 +125,12 @@ text \<open>
   \isakeyword{theories} block separately.
 
   A theory name that is followed by \<open>(\<close>\isakeyword{global}\<open>)\<close> is treated
-  literally in other session specifications or theory imports. In contrast,
-  the default is to qualify theory names by the session name, in order to
-  ensure globally unique names in big session graphs.
+  literally in other session specifications or theory imports --- the normal
+  situation is to qualify theory names by the session name; this ensures
+  globally unique names in big session graphs. Global theories are usually the
+  entry points to major logic sessions: \<open>Pure\<close>, \<open>Main\<close>, \<open>Complex_Main\<close>,
+  \<open>HOLCF\<close>, \<open>IFOL\<close>, \<open>FOL\<close>, \<open>ZF\<close>, \<open>ZFC\<close> etc. Regular Isabelle applications
+  should not claim any global theory names.
 
   \<^descr> \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>base_dir) files\<close> lists
   source files for document preparation, typically \<^verbatim>\<open>.tex\<close> and \<^verbatim>\<open>.sty\<close> for

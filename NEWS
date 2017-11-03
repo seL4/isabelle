@@ -14,6 +14,11 @@ to refer to unqualified theories from the parent session.
 INCOMPATIBILITY for old developments that have not been updated to
 Isabelle2017 yet (using the "isabelle imports" tool).
 
+* Only the most fundamental theory names are global, usually the entry
+points to major logic sessions: Pure, Main, Complex_Main, HOLCF, IFOL,
+FOL, ZF, ZFC etc. INCOMPATIBILITY, need to use qualified names for
+formerly global "HOL-Probability.Probability" and "HOL-SPARK.SPARK".
+
 * Command 'external_file' declares the formal dependency on the given
 file name, such that the Isabelle build process knows about it, but
 without specific Prover IDE management.
@@ -32,7 +37,8 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Completion supports theory header imports.
+* Completion supports theory header imports, using theory base name.
+E.g. "Prob" is completed to "HOL-Probability.Probability".
 
 * The command-line tool "isabelle jedit" provides more flexible options
 for session selection:
