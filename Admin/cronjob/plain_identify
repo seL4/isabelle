@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Plain identify job for Isabelle + AFP
+#
+
+set -e
+
+source "$HOME/.bashrc"
+
+LANG=C
+
+REPOS_DIR="$HOME/cronjob/plain_identify_repos"
+ISABELLE_REPOS_SOURCE="http://isabelle.in.tum.de/repos/isabelle"
+AFP_REPOS_SOURCE="https://bitbucket.org/isa-afp/afp-devel"
+
+function setup_repos ()
+{
+  local NAME="$1"
+  local SOURCE="$2"
+  mkdir -p "$REPOS_DIR"
+  if [ ! -d "$REPOS_DIR/$NAME" ]; then
+    hg clone --noupdate -q "$SOURCE" "$REPOS_DIR/$NAME"
+  fi
+}
+
+function identify_repos ()
+{
+  local NAME="$1"
+  hg pull -R "$REPOS_DIR/$NAME" -q
+  local ID="$(hg tip -R "$REPOS_DIR/$NAME" --template "{node|short}")"
+  echo "$NAME version: $ID"
+}
+
+setup_repos "Isabelle" "$ISABELLE_REPOS_SOURCE"
+setup_repos "AFP" "$AFP_REPOS_SOURCE"
+
+NOW="$(date --rfc-3339=ns)"
+LOG_DIR="$HOME/cronjob/log/$(date -d "$NOW" "+%Y")"
+LOG_SECONDS="$(($(date -d "$NOW" +"%s") - $(date -d 'today 00:00:00' "+%s")))"
+LOG_NAME="plain_identify_$(date -d "$NOW" "+%Y-%m-%d").$(printf "%05d" "$LOG_SECONDS").log"
+
+mkdir -p "$LOG_DIR"
+
+{
+  echo -n "isabelle_identify: "
+  date -d "$NOW" "+%a %b %-d %H:%M:%S %Z %Y"
+  echo
+  identify_repos "Isabelle"
+  identify_repos "AFP"
+} > "$LOG_DIR/$LOG_NAME"

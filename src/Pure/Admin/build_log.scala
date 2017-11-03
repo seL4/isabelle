@@ -133,8 +133,8 @@ object Build_Log
 
     def is_log(file: JFile,
       prefixes: List[String] =
-        List(Build_History.log_prefix, Identify.log_prefix, Isatest.log_prefix,
-          AFP_Test.log_prefix, Jenkins.log_prefix),
+        List(Build_History.log_prefix, Identify.log_prefix, Identify.log_prefix2,
+          Isatest.log_prefix, AFP_Test.log_prefix, Jenkins.log_prefix),
       suffixes: List[String] = List(".log", ".log.gz", ".log.xz")): Boolean =
     {
       val name = file.getName
@@ -314,9 +314,11 @@ object Build_Log
   object Identify
   {
     val log_prefix = "isabelle_identify_"
+    val log_prefix2 = "plain_identify_"
 
     def engine(log_file: Log_File): String =
       if (log_file.name.startsWith(Jenkins.log_prefix)) "jenkins_identify"
+      else if (log_file.name.startsWith(log_prefix2)) "plain_identify"
       else "identify"
 
     def content(date: Date, isabelle_version: Option[String], afp_version: Option[String]): String =

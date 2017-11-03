@@ -1,12 +1,13 @@
 Administrative Isabelle cronjob at TUM
 ======================================
 
+- jobs: manual installation on target directory:
+    cp "$ISABELLE_HOME/Admin/cronjob/self_update "$HOME/cronjob/self_update"
+    cp "$ISABELLE_HOME/Admin/cronjob/plain_identify "$HOME/cronjob/plain_identify"
+
 - crontab: manual update on target machine
     crontab -l
     crontab -e
-
-- self_update: manual installation on target directory
-    cp "$ISABELLE_HOME/Admin/cronjob/self_update "$HOME/cronjob/self_update"
 
 - $HOME/cronjob/run/ -- run-time state
 
