@@ -65,3 +65,10 @@ fun lcms [] = 1
   | lcms (x :: xs) = abs (Library.foldl PolyML.IntInf.lcm (x, xs));
 
 end;
+
+(* FIXME workaround for Poly/ML 5.7.1 testing *)
+structure IntInf =
+struct
+  open IntInf;
+  fun pow (i, n) = Integer.pow n i;
+end
