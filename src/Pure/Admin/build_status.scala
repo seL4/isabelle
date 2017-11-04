@@ -487,6 +487,7 @@ Usage: isabelle build_status [OPTIONS]
     -D DIR       target directory (default """ + default_target_dir + """)
     -M           include full ML statistics
     -S SESSIONS  only given SESSIONS (comma separated)
+    -l DAYS      length of relevant history (default """ + options.int("build_log_history") + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
     -v           verbose
@@ -498,6 +499,7 @@ Usage: isabelle build_status [OPTIONS]
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "M" -> (_ => ml_statistics = true),
         "S:" -> (arg => only_sessions = space_explode(',', arg).toSet),
+        "l:" -> (arg => options = options + ("build_log_history=" + arg)),
         "o:" -> (arg => options = options + arg),
         "s:" -> (arg =>
           space_explode('x', arg).map(Value.Int.parse(_)) match {
