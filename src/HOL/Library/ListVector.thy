@@ -3,7 +3,7 @@
 section \<open>Lists as vectors\<close>
 
 theory ListVector
-imports HOL.List Main
+imports Main
 begin
 
 text\<open>\noindent

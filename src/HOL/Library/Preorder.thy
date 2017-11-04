@@ -3,7 +3,7 @@
 section \<open>Preorders with explicit equivalence relation\<close>
 
 theory Preorder
-imports HOL.Orderings
+imports Main
 begin
 
 class preorder_equiv = preorder

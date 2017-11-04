@@ -5,7 +5,7 @@
 section \<open>Groebner Basis Examples\<close>
 
 theory Groebner_Examples
-imports HOL.Groebner_Basis
+imports Main
 begin
 
 subsection \<open>Basic examples\<close>

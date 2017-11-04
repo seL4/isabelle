@@ -8,7 +8,7 @@ More on well-founded relations.
 section \<open>More on Well-Founded Relations\<close>
 
 theory Wellfounded_More
-imports HOL.Wellfounded Order_Relation_More
+imports Main Order_Relation_More
 begin
 
 subsection \<open>Well-founded recursion via genuine fixpoints\<close>

@@ -11,7 +11,7 @@ Additional contributions by Jeremy Avigad and Brian Huffman.
 section \<open>Sequences and Convergence (Nonstandard)\<close>
 
 theory HSEQ
-  imports HOL.Limits NatStar
+  imports Complex_Main NatStar
   abbrevs "--->" = "\<longlonglongrightarrow>\<^sub>N\<^sub>S"
 begin
 

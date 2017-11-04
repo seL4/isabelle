@@ -8,7 +8,7 @@ Converted to Isar and polished by lcp
 section\<open>Nonstandard Extensions of Transcendental Functions\<close>
 
 theory HTranscendental
-imports HOL.Transcendental HSeries HDeriv
+imports Complex_Main HSeries HDeriv
 begin
 
 definition
