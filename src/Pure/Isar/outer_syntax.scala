@@ -83,7 +83,7 @@ final class Outer_Syntax private(
 
   /* completion */
 
-  lazy val completion: Completion =
+  private lazy val completion: Completion =
   {
     val completion_keywords = (keywords.minor.iterator ++ keywords.major.iterator).toList
     val completion_abbrevs =
@@ -100,6 +100,18 @@ final class Outer_Syntax private(
             List((a1, b1), (a2, b1))
         })
     Completion.make(completion_keywords, completion_abbrevs)
+  }
+
+  def complete(
+    history: Completion.History,
+    unicode: Boolean,
+    explicit: Boolean,
+    start: Text.Offset,
+    text: CharSequence,
+    caret: Int,
+    context: Completion.Language_Context): Option[Completion.Result] =
+  {
+    completion.complete(history, unicode, explicit, start, text, caret, context)
   }
 
 

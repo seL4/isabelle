@@ -173,7 +173,7 @@ object Completion_Popup
           for {
             line_text <- JEdit_Lib.try_get_text(buffer, line_range)
             result <-
-              syntax.completion.complete(
+              syntax.complete(
                 history, unicode, explicit, line_start, line_text, caret - line_start, context)
           } yield result
 
@@ -483,7 +483,7 @@ object Completion_Popup
 
           val context = syntax.language_context
 
-          syntax.completion.complete(history, true, false, 0, text, caret, context) match {
+          syntax.complete(history, true, false, 0, text, caret, context) match {
             case Some(result) =>
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =

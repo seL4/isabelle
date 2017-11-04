@@ -97,7 +97,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
         val syntax = model.syntax()
         val syntax_completion =
-          syntax.completion.complete(history, unicode = false, explicit = true,
+          syntax.complete(history, unicode = false, explicit = true,
             line_start, doc.lines(line).text, caret - line_start,
             language_context(caret_range) getOrElse syntax.language_context)
 
