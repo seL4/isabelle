@@ -518,7 +518,9 @@ object Build_Log
     object Theory_Timing
     {
       def unapply(line: String): Option[(String, (String, Timing))] =
-        Library.try_unprefix(THEORY_TIMING_MARKER, line).map(log_file.parse_props(_)) match {
+      {
+        val line1 = line.replace('~', '-')
+        Library.try_unprefix(THEORY_TIMING_MARKER, line1).map(log_file.parse_props(_)) match {
           case Some((SESSION_NAME, name) :: props) =>
             (props, props) match {
               case (Markup.Name(thy), Markup.Timing_Properties(t)) => Some((name, thy -> t))
@@ -526,6 +528,7 @@ object Build_Log
             }
           case _ => None
         }
+      }
     }
 
     var chapter = Map.empty[String, String]
