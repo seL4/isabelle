@@ -253,12 +253,13 @@ object Completion
   }
 
 
-  /* init */
+  /* make */
 
   val empty: Completion = new Completion()
 
-  lazy val init: Completion =
-    empty.add_symbols.add_abbrevs(Completion.symbol_abbrevs ::: Completion.default_abbrevs)
+  def make(keywords: List[String], abbrevs: List[(String, String)]): Completion =
+    empty.add_symbols.add_keywords(keywords).add_abbrevs(
+      Completion.symbol_abbrevs ::: Completion.default_abbrevs ::: abbrevs)
 
 
   /* word parsers */
@@ -337,39 +338,12 @@ object Completion
 }
 
 final class Completion private(
-  protected val keywords: Set[String] = Set.empty,
-  protected val words_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  protected val words_map: Multi_Map[String, String] = Multi_Map.empty,
-  protected val abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  protected val abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty)
+  keywords: Set[String] = Set.empty,
+  words_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  words_map: Multi_Map[String, String] = Multi_Map.empty,
+  abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
+  abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty)
 {
-  /* merge */
-
-  def is_empty: Boolean =
-    keywords.isEmpty &&
-    words_lex.is_empty &&
-    words_map.isEmpty &&
-    abbrevs_lex.is_empty &&
-    abbrevs_map.isEmpty
-
-  def ++ (other: Completion): Completion =
-    if (this eq other) this
-    else if (is_empty) other
-    else {
-      val keywords1 =
-        if (keywords eq other.keywords) keywords
-        else if (keywords.isEmpty) other.keywords
-        else (keywords /: other.keywords) { case (ks, k) => if (ks(k)) ks else ks + k }
-      val words_lex1 = words_lex ++ other.words_lex
-      val words_map1 = words_map ++ other.words_map
-      val abbrevs_lex1 = abbrevs_lex ++ other.abbrevs_lex
-      val abbrevs_map1 = abbrevs_map ++ other.abbrevs_map
-      if ((keywords eq keywords1) && (words_lex eq words_lex1) && (words_map eq words_map1) &&
-        (abbrevs_lex eq abbrevs_lex1) && (abbrevs_map eq abbrevs_map1)) this
-      else new Completion(keywords1, words_lex1, words_map1, abbrevs_lex1, abbrevs_map1)
-    }
-
-
   /* keywords */
 
   private def is_symbol(name: String): Boolean = Symbol.names.isDefinedAt(name)
@@ -379,6 +353,13 @@ final class Completion private(
 
   def add_keyword(keyword: String): Completion =
     new Completion(keywords + keyword, words_lex, words_map, abbrevs_lex, abbrevs_map)
+
+  def add_keywords(names: List[String]): Completion =
+  {
+    val keywords1 = (keywords /: names) { case (ks, k) => if (ks(k)) ks else ks + k }
+    if (keywords eq keywords1) this
+    else new Completion(keywords1, words_lex, words_map, abbrevs_lex, abbrevs_map)
+  }
 
 
   /* symbols and abbrevs */

@@ -71,13 +71,13 @@ object Options
   private val PREFS_DIR = Path.explode("$ISABELLE_HOME_USER/etc")
   private val PREFS = PREFS_DIR + Path.basic("preferences")
 
-  lazy val options_syntax =
-    Outer_Syntax.init + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
+  val options_syntax =
+    Outer_Syntax.empty + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
       (SECTION, Keyword.DOCUMENT_HEADING) +
       (PUBLIC, Keyword.BEFORE_COMMAND) +
       (OPTION, Keyword.THY_DECL)
 
-  lazy val prefs_syntax = Outer_Syntax.init + "="
+  val prefs_syntax = Outer_Syntax.empty + "="
 
   trait Parser extends Parse.Parser
   {

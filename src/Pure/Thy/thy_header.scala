@@ -65,8 +65,8 @@ object Thy_Header extends Parse.Parser
   private val bootstrap_keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
 
-  lazy val bootstrap_syntax: Outer_Syntax =
-    Outer_Syntax.init.add_keywords(bootstrap_header)
+  val bootstrap_syntax: Outer_Syntax =
+    Outer_Syntax.empty.add_keywords(bootstrap_header)
 
 
   /* file name vs. theory name */

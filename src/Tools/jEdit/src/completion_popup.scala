@@ -421,7 +421,7 @@ object Completion_Popup
     name: String = null,
     instant_popups: Boolean = false,
     enter_adds_to_history: Boolean = true,
-    syntax: Outer_Syntax = Outer_Syntax.init) extends
+    syntax: Outer_Syntax = Outer_Syntax.empty) extends
     HistoryTextField(name, instant_popups, enter_adds_to_history)
   {
     text_field =>

@@ -240,5 +240,5 @@ sealed case class Document_Model(
   /* syntax */
 
   def syntax(): Outer_Syntax =
-    if (is_theory) session.recent_syntax(node_name) else Outer_Syntax.init
+    if (is_theory) session.recent_syntax(node_name) else Outer_Syntax.empty
 }
