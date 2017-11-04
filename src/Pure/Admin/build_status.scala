@@ -79,13 +79,13 @@ object Build_Status
   {
     require(entries.nonEmpty)
 
-    def sort_entries: Session =
-      copy(entries = entries.sortBy(entry => - entry.pull_date.unix_epoch))
+    lazy val sorted_entries: List[Entry] =
+      entries.sortBy(entry => - entry.pull_date.unix_epoch)
 
-    def head: Entry = entries.head
+    def head: Entry = sorted_entries.head
     def order: Long = - head.timing.elapsed.ms
 
-    def finished_entries: List[Entry] = entries.filter(_.finished)
+    def finished_entries: List[Entry] = sorted_entries.filter(_.finished)
     def finished_entries_size: Int =
       finished_entries.map(entry => entry.pull_date.unix_epoch).toSet.size
 
@@ -263,7 +263,7 @@ object Build_Status
     val sorted_entries =
       (for {
         (name, sessions) <- data_entries.toList
-        sorted_sessions <- proper_list(sessions.toList.map(p => p._2.sort_entries).sortBy(_.order))
+        sorted_sessions <- proper_list(sessions.toList.map(_._2).sortBy(_.order))
       }
       yield {
         val hosts = get_hosts(name).toList.sorted
