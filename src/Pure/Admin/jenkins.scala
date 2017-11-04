@@ -66,7 +66,6 @@ object Jenkins
 
   sealed case class Job_Info(
     job_name: String,
-    identify: Boolean,
     timestamp: Long,
     main_log: URL,
     session_logs: List[(String, String, URL)])
@@ -100,32 +99,21 @@ object Jenkins
     def download_log(store: Sessions.Store, dir: Path, progress: Progress = No_Progress)
     {
       val log_dir = dir + Build_Log.log_subdir(date)
-      val log_path = log_dir + (if (identify) log_filename else log_filename.ext("xz"))
+      val log_path = log_dir + log_filename.ext("xz")
 
       if (!log_path.is_file) {
         progress.echo(log_path.expand.implode)
         Isabelle_System.mkdirs(log_dir)
 
-        if (identify) {
-          val log_file = Build_Log.Log_File(main_log.toString, Url.read(main_log))
-          val isabelle_version = log_file.find_match(Build_Log.Jenkins.Isabelle_Version)
-          val afp_version = log_file.find_match(Build_Log.Jenkins.AFP_Version)
+        val ml_statistics =
+          session_logs.map(_._1).toSet.toList.sorted.flatMap(session_name =>
+            read_ml_statistics(store, session_name).
+              map(props => (Build_Log.SESSION_NAME -> session_name) :: props))
 
-          File.write(log_path,
-            Build_Log.Identify.content(date, isabelle_version, afp_version) + "\n" +
-              main_log.toString)
-        }
-        else {
-          val ml_statistics =
-            session_logs.map(_._1).toSet.toList.sorted.flatMap(session_name =>
-              read_ml_statistics(store, session_name).
-                map(props => (Build_Log.SESSION_NAME -> session_name) :: props))
-
-          File.write_xz(log_path,
-            terminate_lines(Url.read(main_log) ::
-              ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))),
-            XZ.options(6))
-        }
+        File.write_xz(log_path,
+          terminate_lines(Url.read(main_log) ::
+            ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))),
+          XZ.options(6))
       }
     }
   }
@@ -134,30 +122,24 @@ object Jenkins
   {
     val Session_Log = new Regex("""^.*/log/([^/]+)\.(db|gz)$""")
 
-    val identify = job_name == "identify"
-    val job = if (identify) "isabelle-nightly-slow" else job_name
-
     val infos =
       for {
         build <-
           JSON.array(
-            invoke(root() + "/job/" + job, "tree=allBuilds[number,timestamp,artifacts[*]]"),
+            invoke(root() + "/job/" + job_name, "tree=allBuilds[number,timestamp,artifacts[*]]"),
             "allBuilds").getOrElse(Nil)
         number <- JSON.int(build, "number")
         timestamp <- JSON.long(build, "timestamp")
       } yield {
-        val job_prefix = root() + "/job/" + job + "/" + number
+        val job_prefix = root() + "/job/" + job_name + "/" + number
         val main_log = Url(job_prefix + "/consoleText")
         val session_logs =
-          if (identify) Nil
-          else {
-            for {
-              artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
-              log_path <- JSON.string(artifact, "relativePath")
-              (name, ext) <- (log_path match { case Session_Log(a, b) => Some((a, b)) case _ => None })
-            } yield (name, ext, Url(job_prefix + "/artifact/" + log_path))
-          }
-        Job_Info(job_name, identify, timestamp, main_log, session_logs)
+          for {
+            artifact <- JSON.array(build, "artifacts").getOrElse(Nil)
+            log_path <- JSON.string(artifact, "relativePath")
+            (name, ext) <- (log_path match { case Session_Log(a, b) => Some((a, b)) case _ => None })
+          } yield (name, ext, Url(job_prefix + "/artifact/" + log_path))
+        Job_Info(job_name, timestamp, main_log, session_logs)
       }
 
     infos.sortBy(info => - info.timestamp)
