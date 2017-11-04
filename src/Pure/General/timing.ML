@@ -57,7 +57,6 @@ fun result (Start (real_timer, real_time, cpu_timer, cpu_times)) =
     val {nongc = {sys = sys2, usr = usr2}, gc = {sys = gc_sys2, usr = gc_usr2}} =
       Timer.checkCPUTimes cpu_timer;
 
-    open Time;
     val elapsed = real_time2 - real_time;
     val gc = gc_usr2 - gc_usr + gc_sys2 - gc_sys;
     val cpu = usr2 - usr + sys2 - sys + gc;
