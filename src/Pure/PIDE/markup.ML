@@ -507,9 +507,9 @@ val cpuN = "cpu";
 val gcN = "gc";
 
 fun timing_properties {elapsed, cpu, gc} =
- [(elapsedN, Time.toString elapsed),
-  (cpuN, Time.toString cpu),
-  (gcN, Time.toString gc)];
+ [(elapsedN, Value.print_time elapsed),
+  (cpuN, Value.print_time cpu),
+  (gcN, Value.print_time gc)];
 
 fun parse_timing_properties props =
  {elapsed = Properties.seconds props elapsedN,
@@ -526,7 +526,7 @@ val command_timingN = "command_timing";
 
 fun command_timing_properties {file, offset, name} elapsed =
  [(fileN, file), (offsetN, Value.print_int offset),
-  (nameN, name), (elapsedN, Time.toString elapsed)];
+  (nameN, name), (elapsedN, Value.print_time elapsed)];
 
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of

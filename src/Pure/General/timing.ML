@@ -84,9 +84,9 @@ fun is_relevant {elapsed, cpu, gc} =
   is_relevant_time gc;
 
 fun message {elapsed, cpu, gc} =
-  Time.toString elapsed ^ "s elapsed time, " ^
-  Time.toString cpu ^ "s cpu time, " ^
-  Time.toString gc ^ "s GC time" handle Time.Time => "";
+  Value.print_time elapsed ^ "s elapsed time, " ^
+  Value.print_time cpu ^ "s cpu time, " ^
+  Value.print_time gc ^ "s GC time" handle Time.Time => "";
 
 fun cond_timeit enabled msg e =
   if enabled then

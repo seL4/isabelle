@@ -37,6 +37,6 @@ fun apply timeout f x =
       else (Exn.release test; Exn.release result)
     end);
 
-fun print t = "Timeout after " ^ Time.toString t ^ "s";
+fun print t = "Timeout after " ^ Value.print_time t ^ "s";
 
 end;

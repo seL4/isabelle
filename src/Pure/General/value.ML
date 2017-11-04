@@ -13,10 +13,14 @@ sig
   val print_int: int -> string
   val parse_real: string -> real
   val print_real: real -> string
+  val parse_time: string -> Time.time
+  val print_time: Time.time -> string
 end;
 
 structure Value: VALUE =
 struct
+
+(* bool *)
 
 fun parse_bool "true" = true
   | parse_bool "false" = false
@@ -24,6 +28,8 @@ fun parse_bool "true" = true
 
 val print_bool = Bool.toString;
 
+
+(* nat and int *)
 
 fun parse_nat s =
   let val i = Int.fromString s in
@@ -42,6 +48,8 @@ fun parse_int s =
 val print_int = signed_string_of_int;
 
 
+(* real *)
+
 fun parse_real s =
   (case Real.fromString s of
     SOME x => x
@@ -53,5 +61,17 @@ fun print_real x =
       [a, b] => if forall_string (fn c => c = "0") b then a else s
     | _ => s)
   end;
+
+
+(* time *)
+
+fun parse_time s =
+  (case Time.fromString s of
+    SOME x => x
+  | NONE => raise Fail ("Bad time " ^ quote s));
+
+fun print_time x =
+  if x < Time.zeroTime then "-" ^ Time.toString (Time.zeroTime - x)
+  else Time.toString x;
 
 end;
