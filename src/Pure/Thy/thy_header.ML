@@ -141,7 +141,7 @@ val keyword_decl =
   Scan.optional (Parse.$$$ "::" |-- Parse.!!! keyword_spec) Keyword.no_spec
   >> (fn (names, spec) => map (rpair spec) names);
 
-val abbrevs = Scan.repeat1 (Parse.text -- (Parse.$$$ "=" |-- Parse.!!! Parse.text));
+val abbrevs = Parse.and_list1 (Parse.text -- (Parse.$$$ "=" |-- Parse.!!! Parse.text));
 
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 

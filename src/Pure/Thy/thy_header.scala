@@ -127,7 +127,7 @@ object Thy_Header extends Parse.Parser
       { case xs ~ yss => (xs :: yss).flatten }
 
     val abbrevs =
-      rep1(text ~ ($$$("=") ~! text) ^^ { case a ~ (_ ~ b) => (a, b) })
+      rep1sep(text ~ ($$$("=") ~! text) ^^ { case a ~ (_ ~ b) => (a, b) }, $$$("and"))
 
     val args =
       position(theory_name) ~

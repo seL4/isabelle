@@ -66,7 +66,7 @@ text \<open>
     ;
     keyword_decls: (@{syntax string} +) ('::' @{syntax name} @{syntax tags})?
     ;
-    abbrevs: @'abbrevs' ((text '=' text) +)
+    abbrevs: @'abbrevs' ((text '=' text) + @'and')
     ;
     @@{command thy_deps} (thy_bounds thy_bounds?)?
     ;

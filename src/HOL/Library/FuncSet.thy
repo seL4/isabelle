@@ -7,7 +7,7 @@ section \<open>Pi and Function Sets\<close>
 theory FuncSet
   imports Main
   abbrevs PiE = "Pi\<^sub>E"
-    PIE = "\<Pi>\<^sub>E"
+    and PIE = "\<Pi>\<^sub>E"
 begin
 
 definition Pi :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<Rightarrow> 'b) set"

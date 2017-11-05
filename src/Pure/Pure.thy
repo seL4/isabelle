@@ -92,18 +92,17 @@ keywords
   and "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
   and "named_theorems" :: thy_decl
-abbrevs
-  "===>" = "===>"  (*prevent replacement of very long arrows*)
-  "--->" = "\<midarrow>\<rightarrow>"
-  "default_sort" = ""
-  "simproc_setup" = ""
-  "hence" = ""
-  "hence" = "then have"
-  "thus" = ""
-  "thus" = "then show"
-  "apply_end" = ""
-  "realizers" = ""
-  "realizability" = ""
+abbrevs "===>" = "===>"  (*prevent replacement of very long arrows*)
+  and "--->" = "\<midarrow>\<rightarrow>"
+  and "default_sort" = ""
+  and "simproc_setup" = ""
+  and "hence" = ""
+  and "hence" = "then have"
+  and "thus" = ""
+  and "thus" = "then show"
+  and "apply_end" = ""
+  and "realizers" = ""
+  and "realizability" = ""
 begin
 
 section \<open>Isar commands\<close>
