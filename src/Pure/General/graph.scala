@@ -70,6 +70,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
 
   def keys_iterator: Iterator[Key] = iterator.map(_._1)
   def keys: List[Key] = keys_iterator.toList
+  def keys_set: Set[Key] = rep.keySet
 
   def dest: List[((Key, A), List[Key])] =
     (for ((x, (i, (_, succs))) <- iterator) yield ((x, i), succs.toList)).toList
