@@ -124,14 +124,14 @@ object Build
 
     def - (name: String): Queue =
       new Queue(graph.del_node(name),
-        order - name,  // FIXME scala-2.10.0 TreeSet problem!?
+        order - name,  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
         command_timings)
 
     def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
     {
       val it = order.iterator.dropWhile(name =>
         skip(name)
-          || !graph.defined(name)  // FIXME scala-2.10.0 TreeSet problem!?
+          || !graph.defined(name)  // FIXME scala-2.10.0 .. 2.12.4 TreeSet problem!?
           || !graph.is_minimal(name))
       if (it.hasNext) { val name = it.next; Some((name, graph.get_node(name))) }
       else None
