@@ -121,4 +121,3 @@ val rewrite_term_top = gen_rewrite_term false;
 open Pattern;
 
 end;
-
