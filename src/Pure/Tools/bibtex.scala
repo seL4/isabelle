@@ -52,7 +52,7 @@ object Bibtex
       Text.Info(r, name) <- rendering.citation(rendering.before_caret_range(caret))
       name1 <- Completion.clean_name(name)
 
-      original <- rendering.model.try_get_text(r)
+      original <- rendering.model.get_text(r)
       original1 <- Completion.clean_name(Library.perhaps_unquote(original))
 
       entries =

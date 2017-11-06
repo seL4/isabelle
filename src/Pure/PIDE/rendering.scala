@@ -251,7 +251,7 @@ abstract class Rendering(
     semantic_completion(completed_range, caret_range) match {
       case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
       case Some(Text.Info(range, names: Completion.Names)) =>
-        model.try_get_text(range) match {
+        model.get_text(range) match {
           case Some(original) => (false, names.complete(range, history, unicode, original))
           case None => (false, None)
         }
@@ -334,7 +334,7 @@ abstract class Rendering(
 
     for {
       r1 <- language_path(before_caret_range(caret))
-      s1 <- model.try_get_text(r1)
+      s1 <- model.get_text(r1)
       if is_wrapped(s1)
       r2 = Text.Range(r1.start + 1, r1.stop - 1)
       s2 = s1.substring(1, s1.length - 1)

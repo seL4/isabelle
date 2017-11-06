@@ -171,7 +171,7 @@ object JEdit_Lib
 
   /* get text */
 
-  def try_get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
+  def get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
@@ -262,7 +262,7 @@ object JEdit_Lib
       try {
         val p = text_area.offsetToXY(range.start)
         val (q, r) =
-          if (try_get_text(buffer, Text.Range(stop - 1, stop)) == Some("\n"))
+          if (get_text(buffer, Text.Range(stop - 1, stop)) == Some("\n"))
             (text_area.offsetToXY(stop - 1), char_width)
           else if (stop >= end)
             (text_area.offsetToXY(end), char_width * (stop - end))

@@ -309,7 +309,7 @@ object Isabelle
       val text1 =
         if (text_area.getSelectionCount == 0) {
           def pad(range: Text.Range): String =
-            if (JEdit_Lib.try_get_text(buffer, range) == Some("\n")) "" else "\n"
+            if (JEdit_Lib.get_text(buffer, range) == Some("\n")) "" else "\n"
 
           val caret = JEdit_Lib.caret_range(text_area)
           val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)

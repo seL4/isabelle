@@ -406,7 +406,7 @@ case class File_Model(
 {
   /* text */
 
-  def try_get_text(range: Text.Range): Option[String] =
+  def get_text(range: Text.Range): Option[String] =
     range.try_substring(content.text)
 
 
@@ -473,8 +473,8 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 {
   /* text */
 
-  def try_get_text(range: Text.Range): Option[String] =
-    JEdit_Lib.try_get_text(buffer, range)
+  def get_text(range: Text.Range): Option[String] =
+    JEdit_Lib.get_text(buffer, range)
 
 
   /* header */

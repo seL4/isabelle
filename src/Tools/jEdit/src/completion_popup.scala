@@ -171,7 +171,7 @@ object Completion_Popup
           val line_range = JEdit_Lib.line_range(buffer, text_area.getCaretLine)
           val line_start = line_range.start
           for {
-            line_text <- JEdit_Lib.try_get_text(buffer, line_range)
+            line_text <- JEdit_Lib.get_text(buffer, line_range)
             result <-
               syntax.complete(
                 history, unicode, explicit, line_start, line_text, caret - line_start, context)
@@ -192,7 +192,7 @@ object Completion_Popup
       val range = item.range
       if (buffer.isEditable) {
         JEdit_Lib.buffer_edit(buffer) {
-          JEdit_Lib.try_get_text(buffer, range) match {
+          JEdit_Lib.get_text(buffer, range) match {
             case Some(text) if text == item.original =>
               text_area.getSelectionAtOffset(text_area.getCaretPosition) match {
 

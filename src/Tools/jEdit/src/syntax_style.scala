@@ -147,7 +147,7 @@ object Syntax_Style
 
     text_area.getSelection.foreach(sel => {
       val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
-      JEdit_Lib.try_get_text(buffer, before) match {
+      JEdit_Lib.get_text(buffer, before) match {
         case Some(s) if HTML.is_control(s) =>
           text_area.extendSelection(before.start, before.stop)
         case _ =>

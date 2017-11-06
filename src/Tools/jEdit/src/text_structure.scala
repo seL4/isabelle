@@ -192,7 +192,7 @@ object Text_Structure
   def line_content(buffer: JEditBuffer, keywords: Keyword.Keywords,
     range: Text.Range, ctxt: Scan.Line_Context): (List[Token], Scan.Line_Context) =
   {
-    val text = JEdit_Lib.try_get_text(buffer, range).getOrElse("")
+    val text = JEdit_Lib.get_text(buffer, range).getOrElse("")
     val (toks, ctxt1) = Token.explode_line(keywords, text, ctxt)
     val toks1 = toks.filterNot(_.is_space)
     (toks1, ctxt1)

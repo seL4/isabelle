@@ -74,7 +74,7 @@ object Token_Markup
     val line_context = Line_Context.before(buffer, line)
     for {
       ctxt <- line_context.context
-      text <- JEdit_Lib.try_get_text(buffer, JEdit_Lib.line_range(buffer, line))
+      text <- JEdit_Lib.get_text(buffer, JEdit_Lib.line_range(buffer, line))
     } yield Token.explode_line(syntax.keywords, text, ctxt)._1
   }
 
@@ -175,7 +175,7 @@ object Token_Markup
           case None => buffer.getLength
         }
 
-      val text = JEdit_Lib.try_get_text(buffer, Text.Range(start, stop)).getOrElse("")
+      val text = JEdit_Lib.get_text(buffer, Text.Range(start, stop)).getOrElse("")
       val spans = syntax.parse_spans(text)
 
       (spans.iterator.scanLeft(start)(_ + _.length) zip spans.iterator).

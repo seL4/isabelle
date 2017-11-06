@@ -19,7 +19,7 @@ object VSCode_Spell_Checker
       (for {
         spell_checker <- rendering.resources.spell_checker.get.iterator
         spell_range <- rendering.spell_checker_ranges(model.content.text_range).iterator
-        text <- model.try_get_text(spell_range).iterator
+        text <- model.get_text(spell_range).iterator
         info <- spell_checker.marked_words(spell_range.start, text).iterator
       } yield info.range).toList
     Document_Model.Decoration.ranges("spell_checker", ranges)

@@ -345,7 +345,7 @@ class Rich_Text_Area(
             for {
               spell_checker <- PIDE.plugin.spell_checker.get
               spell_range <- rendering.spell_checker_ranges(line_range)
-              text <- JEdit_Lib.try_get_text(buffer, spell_range)
+              text <- JEdit_Lib.get_text(buffer, spell_range)
               info <- spell_checker.marked_words(spell_range.start, text)
               r <- JEdit_Lib.gfx_range(text_area, info.range)
             } {
@@ -544,7 +544,7 @@ class Rich_Text_Area(
             // search pattern
             for {
               regex <- search_pattern
-              text <- JEdit_Lib.try_get_text(buffer, line_range)
+              text <- JEdit_Lib.get_text(buffer, line_range)
               m <- regex.findAllMatchIn(text)
               range = Text.Range(m.start, m.end) + line_range.start
               r <- JEdit_Lib.gfx_range(text_area, range)

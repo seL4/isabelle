@@ -79,7 +79,7 @@ sealed case class Document_Model(
 
   /* content */
 
-  def try_get_text(range: Text.Range): Option[String] = content.doc.try_get_text(range)
+  def get_text(range: Text.Range): Option[String] = content.doc.get_text(range)
 
   def set_version(new_version: Long): Document_Model = copy(version = Some(new_version))
 
