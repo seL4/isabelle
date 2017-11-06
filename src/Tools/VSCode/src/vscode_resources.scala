@@ -91,15 +91,7 @@ class VSCode_Resources(
   def node_file(name: Document.Node.Name): JFile = new JFile(name.node)
 
   def node_name(file: JFile): Document.Node.Name =
-    session_base.known.get_file(file, bootstrap = true) getOrElse {
-      val node = file.getPath
-      theory_name(Sessions.DRAFT, Thy_Header.theory_name(node)) match {
-        case (true, theory) => Document.Node.Name.loaded_theory(theory)
-        case (false, theory) =>
-          val master_dir = if (theory == "") "" else file.getParent
-          Document.Node.Name(node, master_dir, theory)
-      }
-    }
+    thy_node_name(Sessions.DRAFT, file, bootstrap = true)
 
   override def append(dir: String, source_path: Path): String =
   {
