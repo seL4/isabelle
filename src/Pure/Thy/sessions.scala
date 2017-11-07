@@ -175,7 +175,7 @@ object Sessions
       }
   }
 
-  def deps(sessions: T,
+  def deps(sessions_structure: T,
       global_theories: Map[String, String],
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
@@ -203,11 +203,11 @@ object Sessions
     }
 
     val session_bases =
-      (Map.empty[String, Base] /: sessions.imports_topological_order)({
+      (Map.empty[String, Base] /: sessions_structure.imports_topological_order)({
         case (session_bases, session_name) =>
           if (progress.stopped) throw Exn.Interrupt()
 
-          val info = sessions(session_name)
+          val info = sessions_structure(session_name)
           try {
             val parent_base: Sessions.Base =
               info.parent match {
@@ -273,7 +273,8 @@ object Sessions
               }
 
               val imports_subgraph =
-                sessions.imports_graph.restrict(sessions.imports_graph.all_preds(info.deps).toSet)
+                sessions_structure.imports_graph.
+                  restrict(sessions_structure.imports_graph.all_preds(info.deps).toSet)
 
               val graph0 =
                 (Graph_Display.empty_graph /: imports_subgraph.topological_order)(
@@ -329,7 +330,7 @@ object Sessions
 
   sealed case class Base_Info(
     session: String,
-    sessions: T,
+    sessions_structure: T,
     errors: List[String],
     base: Base,
     infos: List[Info])
