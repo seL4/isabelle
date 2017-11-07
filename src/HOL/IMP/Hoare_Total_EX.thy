@@ -55,16 +55,13 @@ text{* The soundness theorem: *}
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
 proof(unfold hoare_tvalid_def, induction rule: hoaret.induct)
   case (While P c b)
-  {
-    fix n s
-    have "\<lbrakk> P n s \<rbrakk> \<Longrightarrow> \<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P 0 t"
-    proof(induction "n" arbitrary: s)
-      case 0 thus ?case using While.hyps(3) WhileFalse by blast
-    next
-      case (Suc n)
-      thus ?case by (meson While.IH While.hyps(2) WhileTrue)
-    qed
-  }
+  have "P n s \<Longrightarrow> \<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P 0 t" for n s
+  proof(induction "n" arbitrary: s)
+    case 0 thus ?case using While.hyps(3) WhileFalse by blast
+  next
+    case Suc
+    thus ?case by (meson While.IH While.hyps(2) WhileTrue)
+  qed
   thus ?case by auto
 next
   case If thus ?case by auto blast
@@ -125,11 +122,11 @@ next
   have c3: "\<forall>s. wpw b c 0 Q s \<longrightarrow> Q s" by simp
   have w2: "\<forall>n s. wpw b c (Suc n) Q s \<longrightarrow> bval b s" by simp
   have w3: "\<forall>s. wpw b c 0 Q s \<longrightarrow> \<not> bval b s" by simp
-  { fix n
-    have 1: "\<forall>s. wpw b c (Suc n) Q s \<longrightarrow> (\<exists>t. (c, s) \<Rightarrow> t \<and> wpw b c n Q t)"
-      by simp
-    note strengthen_pre[OF 1 While.IH[of "wpw b c n Q", unfolded wpt_def]]
-  }
+  have "\<turnstile>\<^sub>t {wpw b c (Suc n) Q} c {wpw b c n Q}" for n
+  proof -
+    have *: "\<forall>s. wpw b c (Suc n) Q s \<longrightarrow> (\<exists>t. (c, s) \<Rightarrow> t \<and> wpw b c n Q t)" by simp
+    show ?thesis by(rule strengthen_pre[OF * While.IH[of "wpw b c n Q", unfolded wpt_def]])
+  qed
   from conseq[OF c1 hoaret.While[OF this w2 w3] c3]
   show ?case .
 qed

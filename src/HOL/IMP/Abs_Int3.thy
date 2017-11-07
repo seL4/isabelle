@@ -187,21 +187,19 @@ and "P p0" and "f p0 \<le> p0" and "iter_narrow f p0 = Some p"
 shows "P p \<and> f p \<le> p"
 proof-
   let ?Q = "%p. P p \<and> f p \<le> p \<and> p \<le> p0"
-  { fix p assume "?Q p"
-    note P = conjunct1[OF this] and 12 = conjunct2[OF this]
+  have "?Q (p \<triangle> f p)" if Q: "?Q p" for p
+  proof auto
+    note P = conjunct1[OF Q] and 12 = conjunct2[OF Q]
     note 1 = conjunct1[OF 12] and 2 = conjunct2[OF 12]
     let ?p' = "p \<triangle> f p"
-    have "?Q ?p'"
-    proof auto
-      show "P ?p'" by (blast intro: P Pinv)
-      have "f ?p' \<le> f p" by(rule mono[OF `P (p \<triangle> f p)`  P narrow2_acom[OF 1]])
-      also have "\<dots> \<le> ?p'" by(rule narrow1_acom[OF 1])
-      finally show "f ?p' \<le> ?p'" .
-      have "?p' \<le> p" by (rule narrow2_acom[OF 1])
-      also have "p \<le> p0" by(rule 2)
-      finally show "?p' \<le> p0" .
-    qed
-  }
+    show "P ?p'" by (blast intro: P Pinv)
+    have "f ?p' \<le> f p" by(rule mono[OF `P (p \<triangle> f p)`  P narrow2_acom[OF 1]])
+    also have "\<dots> \<le> ?p'" by(rule narrow1_acom[OF 1])
+    finally show "f ?p' \<le> ?p'" .
+    have "?p' \<le> p" by (rule narrow2_acom[OF 1])
+    also have "p \<le> p0" by(rule 2)
+    finally show "?p' \<le> p0" .
+  qed
   thus ?thesis
     using while_option_rule[where P = ?Q, OF _ assms(6)[simplified iter_narrow_def]]
     by (blast intro: assms(4,5) le_refl)

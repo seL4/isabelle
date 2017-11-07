@@ -15,18 +15,18 @@ fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 
 lemma L_mono: "mono (L c)"
 proof-
-  { fix X Y have "X \<subseteq> Y \<Longrightarrow> L c X \<subseteq> L c Y"
-    proof(induction c arbitrary: X Y)
-      case (While b c)
-      show ?case
-      proof(simp, rule lfp_mono)
-        fix Z show "vars b \<union> X \<union> L c Z \<subseteq> vars b \<union> Y \<union> L c Z"
-          using While by auto
-      qed
-    next
-      case If thus ?case by(auto simp: subset_iff)
-    qed auto
-  } thus ?thesis by(rule monoI)
+  have "X \<subseteq> Y \<Longrightarrow> L c X \<subseteq> L c Y" for X Y
+  proof(induction c arbitrary: X Y)
+    case (While b c)
+    show ?case
+    proof(simp, rule lfp_mono)
+      fix Z show "vars b \<union> X \<union> L c Z \<subseteq> vars b \<union> Y \<union> L c Z"
+        using While by auto
+    qed
+  next
+    case If thus ?case by(auto simp: subset_iff)
+  qed auto
+  thus ?thesis by(rule monoI)
 qed
 
 lemma mono_union_L:

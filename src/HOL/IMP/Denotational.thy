@@ -90,9 +90,13 @@ qed
 lemma chain_iterates: fixes f :: "'a set \<Rightarrow> 'a set"
   assumes "mono f" shows "chain(\<lambda>n. (f^^n) {})"
 proof-
-  { fix n have "(f ^^ n) {} \<subseteq> (f ^^ Suc n) {}" using assms
-    by(induction n) (auto simp: mono_def) }
-  thus ?thesis by(auto simp: chain_def)
+  have "(f ^^ n) {} \<subseteq> (f ^^ Suc n) {}" for n
+  proof (induction n)
+    case 0 show ?case by simp
+  next
+    case (Suc n) thus ?case using assms by (auto simp: mono_def)
+  qed
+  thus ?thesis by(auto simp: chain_def assms)
 qed
 
 theorem lfp_if_cont:
@@ -112,8 +116,9 @@ proof
     finally show "f ?U \<subseteq> ?U" by simp
   qed
 next
-  { fix n p assume "f p \<subseteq> p"
-    have "(f^^n){} \<subseteq> p"
+  have "(f^^n){} \<subseteq> p" if "f p \<subseteq> p" for n p
+  proof -
+    show ?thesis
     proof(induction n)
       case 0 show ?case by simp
     next
@@ -121,7 +126,7 @@ next
       from monoD[OF mono_if_cont[OF assms] Suc] `f p \<subseteq> p`
       show ?case by simp
     qed
-  }
+  qed
   thus "?U \<subseteq> lfp f" by(auto simp: lfp_def)
 qed
 

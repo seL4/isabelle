@@ -95,14 +95,10 @@ text{* The soundness theorem: *}
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
 proof(unfold hoare_tvalid_def, induction rule: hoaret.induct)
   case (While P b T c)
-  {
-    fix s n
-    have "\<lbrakk> P s; T s n \<rbrakk> \<Longrightarrow> \<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P t \<and> \<not> bval b t"
-    proof(induction "n" arbitrary: s rule: less_induct)
-      case (less n)
-      thus ?case by (metis While.IH WhileFalse WhileTrue)
-    qed
-  }
+  have "\<lbrakk> P s; T s n \<rbrakk> \<Longrightarrow> \<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P t \<and> \<not> bval b t" for s n
+  proof(induction "n" arbitrary: s rule: less_induct)
+    case (less n) thus ?case by (metis While.IH WhileFalse WhileTrue)
+  qed
   thus ?case by auto
 next
   case If thus ?case by auto blast
@@ -176,12 +172,13 @@ next
   case (While b c)
   let ?w = "WHILE b DO c"
   let ?T = "Its b c"
-  have "\<forall>s. wp\<^sub>t ?w Q s \<longrightarrow> wp\<^sub>t ?w Q s \<and> (\<exists>n. Its b c s n)"
+  have 1: "\<forall>s. wp\<^sub>t ?w Q s \<longrightarrow> wp\<^sub>t ?w Q s \<and> (\<exists>n. Its b c s n)"
     unfolding wpt_def by (metis WHILE_Its)
-  moreover
-  { fix n
-    let ?R = "\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'<n. ?T s' n')"
-    { fix s t assume "bval b s" and "?T s n" and "(?w, s) \<Rightarrow> t" and "Q t"
+  let ?R = "\<lambda>n s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'<n. ?T s' n')"
+  have "\<forall>s. wp\<^sub>t ?w Q s \<and> bval b s \<and> ?T s n \<longrightarrow> wp\<^sub>t c (?R n) s" for n
+  proof -
+    have "wp\<^sub>t c (?R n) s" if "bval b s" and "?T s n" and "(?w, s) \<Rightarrow> t" and "Q t" for s t
+    proof -
       from `bval b s` and `(?w, s) \<Rightarrow> t` obtain s' where
         "(c,s) \<Rightarrow> s'" "(?w,s') \<Rightarrow> t" by auto
       from `(?w, s') \<Rightarrow> t` obtain n' where "?T s' n'"
@@ -189,16 +186,16 @@ next
       with `bval b s` and `(c, s) \<Rightarrow> s'` have "?T s (Suc n')" by (rule Its_Suc)
       with `?T s n` have "n = Suc n'" by (rule Its_fun)
       with `(c,s) \<Rightarrow> s'` and `(?w,s') \<Rightarrow> t` and `Q t` and `?T s' n'`
-      have "wp\<^sub>t c ?R s" by (auto simp: wpt_def)
-    }
-    hence "\<forall>s. wp\<^sub>t ?w Q s \<and> bval b s \<and> ?T s n \<longrightarrow> wp\<^sub>t c ?R s"
+      show ?thesis by (auto simp: wpt_def)
+    qed
+    thus ?thesis
       unfolding wpt_def by auto
       (* by (metis WhileE Its_Suc Its_fun WHILE_Its lessI) *) 
-    note strengthen_pre[OF this While.IH]
-  } note hoaret.While[OF this]
-  moreover have "\<forall>s. wp\<^sub>t ?w Q s \<and> \<not> bval b s \<longrightarrow> Q s"
+  qed
+  note 2 = hoaret.While[OF strengthen_pre[OF this While.IH]]
+  have "\<forall>s. wp\<^sub>t ?w Q s \<and> \<not> bval b s \<longrightarrow> Q s"
     by (auto simp add:wpt_def)
-  ultimately show ?case by (rule conseq)
+  with 1 2 show ?case by (rule conseq)
 qed
 
 

@@ -108,10 +108,11 @@ lemma succs_Cons:
   "succs (x#xs) n = isuccs x n \<union> succs xs (1+n)" (is "_ = ?x \<union> ?xs")
 proof 
   let ?isuccs = "\<lambda>p P n i::int. 0 \<le> i \<and> i < size P \<and> p \<in> isuccs (P!!i) (n+i)"
-  { fix p assume "p \<in> succs (x#xs) n"
-    then obtain i::int where isuccs: "?isuccs p (x#xs) n i"
+  have "p \<in> ?x \<union> ?xs" if assm: "p \<in> succs (x#xs) n" for p
+  proof -
+    from assm obtain i::int where isuccs: "?isuccs p (x#xs) n i"
       unfolding succs_def by auto     
-    have "p \<in> ?x \<union> ?xs" 
+    show ?thesis
     proof cases
       assume "i = 0" with isuccs show ?thesis by simp
     next
@@ -121,11 +122,12 @@ proof
       hence "p \<in> ?xs" unfolding succs_def by blast
       thus ?thesis .. 
     qed
-  } 
+  qed
   thus "succs (x#xs) n \<subseteq> ?x \<union> ?xs" ..
-  
-  { fix p assume "p \<in> ?x \<or> p \<in> ?xs"
-    hence "p \<in> succs (x#xs) n"
+
+  have "p \<in> succs (x#xs) n" if assm: "p \<in> ?x \<or> p \<in> ?xs" for p
+  proof -
+    from assm show ?thesis
     proof
       assume "p \<in> ?x" thus ?thesis by (fastforce simp: succs_def)
     next
@@ -136,7 +138,7 @@ proof
         by (simp add: algebra_simps)
       thus ?thesis unfolding succs_def by blast
     qed
-  }  
+  qed
   thus "?x \<union> ?xs \<subseteq> succs (x#xs) n" by blast
 qed
 
@@ -300,20 +302,19 @@ next
 
   note split_paired_Ex [simp del]
 
-  { assume "j0 \<in> {0 ..< size c}"
-    with j0 j rest c
-    have ?case
+  have ?case if assm: "j0 \<in> {0 ..< size c}"
+  proof -
+    from assm j0 j rest c show ?case
       by (fastforce dest!: Suc.IH intro!: exec_Suc)
-  } moreover {
-    assume "j0 \<notin> {0 ..< size c}"
-    moreover
+  qed
+  moreover
+  have ?case if assm: "j0 \<notin> {0 ..< size c}"
+  proof -
     from c j0 have "j0 \<in> succs c 0"
       by (auto dest: succs_iexec1 simp: exec1_def simp del: iexec.simps)
-    ultimately
-    have "j0 \<in> exits c" by (simp add: exits_def)
-    with c j0 rest
-    have ?case by fastforce
-  }
+    with assm have "j0 \<in> exits c" by (simp add: exits_def)
+    with c j0 rest show ?case by fastforce
+  qed
   ultimately
   show ?case by cases
 qed
@@ -560,14 +561,16 @@ next
   show ?case
   proof (induction n arbitrary: s rule: nat_less_induct)
     case (1 n)
-    
-    { assume "\<not> bval b s"
-      with "1.prems"
-      have ?case
-        by simp
-           (fastforce dest!: bcomp_exec_n bcomp_split simp: exec_n_simps)
-    } moreover {
-      assume b: "bval b s"
+
+    have ?case if assm: "\<not> bval b s"
+    proof -
+      from assm "1.prems"
+      show ?case
+        by simp (fastforce dest!: bcomp_split simp: exec_n_simps)
+    qed
+    moreover
+    have ?case if b: "bval b s"
+    proof -
       let ?c0 = "WHILE b DO c"
       let ?cs = "ccomp ?c0"
       let ?bs = "bcomp b False (size (ccomp c) + 1)"
@@ -579,7 +582,7 @@ next
         k:  "k \<le> n"
         by (fastforce dest!: bcomp_split)
       
-      have ?case
+      show ?case
       proof cases
         assume "ccomp c = []"
         with cs k
@@ -612,7 +615,7 @@ next
         ultimately
         show ?case using b by blast
       qed
-    }
+    qed
     ultimately show ?case by cases
   qed
 qed

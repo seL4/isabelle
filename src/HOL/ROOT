@@ -153,6 +153,7 @@ session "HOL-IMP" (timing) in IMP = "HOL-Library" +
     VCG
     Hoare_Total
     VCG_Total_EX
+    VCG_Total_EX2
     Collecting1
     Collecting_Examples
     Abs_Int_Tests

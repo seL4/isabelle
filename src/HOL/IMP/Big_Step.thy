@@ -178,8 +178,9 @@ lemma unfold_while:
 proof -
   -- "to show the equivalence, we look at the derivation tree for"
   -- "each side and from that construct a derivation tree for the other side"
-  { fix s t assume "(?w, s) \<Rightarrow> t"
-    hence  "(?iw, s) \<Rightarrow> t"
+  have "(?iw, s) \<Rightarrow> t" if assm: "(?w, s) \<Rightarrow> t" for s t
+  proof -
+    from assm show ?thesis
     proof cases --"rule inversion on \<open>(?w, s) \<Rightarrow> t\<close>"
       case WhileFalse
       thus ?thesis by blast
@@ -193,11 +194,12 @@ proof -
       -- "then the whole @{text IF}"
       with `bval b s` show ?thesis by (rule IfTrue)
     qed
-  }
+  qed
   moreover
   -- "now the other direction:"
-  { fix s t assume "(?iw, s) \<Rightarrow> t"
-    hence "(?w, s) \<Rightarrow> t"
+  have "(?w, s) \<Rightarrow> t" if assm: "(?iw, s) \<Rightarrow> t" for s t
+  proof -
+    from assm show ?thesis
     proof cases --"rule inversion on \<open>(?iw, s) \<Rightarrow> t\<close>"
       case IfFalse
       hence "s = t" using `(?iw, s) \<Rightarrow> t` by blast
@@ -212,7 +214,7 @@ proof -
       with `bval b s`
       show ?thesis by (rule WhileTrue)
     qed
-  }
+  qed
   ultimately
   show ?thesis by blast
 qed

@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory VCG_Total_EX
-imports "~~/src/HOL/IMP/Hoare_Total_EX"
+imports Hoare_Total_EX
 begin
 
 subsection "Verification Conditions for Total Correctness"
