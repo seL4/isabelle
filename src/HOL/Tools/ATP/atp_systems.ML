@@ -416,6 +416,29 @@ val leo2_config : atp_config =
 val leo2 = (leo2N, fn () => leo2_config)
 
 
+(* Leo-III *)
+
+(* include choice? Disabled now since its disabled for satallax as well. *)
+val leo3_thf1 = THF (Polymorphic, THF_Without_Choice)
+
+val leo3_config : atp_config =
+  {exec = K (["LEO3_HOME"], ["leo3"]),
+   arguments = fn _ => fn full_proofs => fn _ => fn timeout => fn file_name => fn _ =>
+     file_name ^ " " ^ "--atp cvc=$CVC4_SOLVER --atp e=\"$E_HOME\"/eprover \
+     \-p -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^
+     (if full_proofs then "--nleq --naeq " else ""),
+   proof_delims = tstp_proof_delims,
+   known_failures = known_szs_status_failures,
+   prem_role = Hypothesis,
+   best_slices =
+     (* FUDGE *)
+     K [(1.0, (((150, ""), leo3_thf1, "poly_native_higher", keep_lamsN, false), ""))],
+   best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
+   best_max_new_mono_instances = default_max_new_mono_instances}
+
+val leo3 = (leo3N, fn () => leo3_config)
+
+
 (* Satallax *)
 
 (* Choice is disabled until there is proper reconstruction for it. *)
@@ -431,7 +454,7 @@ val satallax_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((150, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -713,9 +736,12 @@ val remote_iprover_eq =
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.5.0", "1.4", "1.3", "1.2", "1"]
     (K (((40, ""), leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
+val remote_leo3 =
+  remotify_atp leo3 "Leo-III" ["1.1"]
+    (K (((150, ""), leo3_thf1, "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
-    (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+    (K (((150, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
     (K (((400, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
@@ -766,10 +792,10 @@ fun effective_term_order ctxt atp =
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
+  [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, leo3, satallax, spass, vampire,
    z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e, remote_e_sine,
-   remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire,
-   remote_snark, remote_pirate, remote_waldmeister, remote_waldmeister_new]
+   remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_leo3, remote_satallax,
+   remote_vampire, remote_snark, remote_pirate, remote_waldmeister, remote_waldmeister_new]
 
 val _ = Theory.setup (fold add_atp atps)
 

@@ -57,6 +57,7 @@ sig
   val iproverN : string
   val iprover_eqN : string
   val leo2N : string
+  val leo3N : string
   val pirateN : string
   val satallaxN : string
   val snarkN : string
@@ -126,6 +127,7 @@ val e_tofofN = "e_tofof"
 val iproverN = "iprover"
 val iprover_eqN = "iprover_eq"
 val leo2N = "leo2"
+val leo3N = "leo3"
 val pirateN = "pirate"
 val satallaxN = "satallax"
 val snarkN = "snark"
@@ -681,7 +683,7 @@ fun parse_z3_tptp_core_line x =
    >> map (core_inference z3_tptp_core_rule)) x
 
 fun parse_line local_name problem =
-  if local_name = leo2N then parse_tstp_thf0_line problem
+  if local_name = leo2N orelse local_name = leo3N then parse_tstp_thf0_line problem
   else if local_name = spassN then parse_spass_line
   else if local_name = pirateN then parse_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
