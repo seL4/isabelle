@@ -391,13 +391,13 @@ object Build
       SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
     }
 
+    val selection1 =
+      Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
+        exclude_sessions, session_groups, sessions) ++ selection
+
     val (selected_sessions, deps) =
     {
-      val selected_sessions0 =
-        full_sessions.selection(
-            Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
-              exclude_sessions, session_groups, sessions) ++ selection)
-
+      val selected_sessions0 = full_sessions.selection(selection1)
       val deps0 =
         Sessions.deps(selected_sessions0, full_sessions.global_theories,
           progress = progress, inlined_files = true, verbose = verbose,
@@ -450,7 +450,7 @@ object Build
 
     // optional cleanup
     if (clean_build) {
-      for (name <- full_sessions.build_descendants(selected_sessions.build_topological_order)) {
+      for (name <- full_sessions.build_descendants(full_sessions.build_selection(selection1))) {
         val files =
           List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
