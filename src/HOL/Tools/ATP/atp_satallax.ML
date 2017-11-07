@@ -56,7 +56,7 @@ val dummy_satallax_step = ((("~1", "tab_inh"), AAtom (ATerm(("False", []), [])))
 fun parse_tstp_thf0_satallax_line x =
   (((Scan.this_string tptp_thf
   -- $$ "(") |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-  -- parse_thf0_formula -- Scan.option parse_tstp_satallax_extra_arguments --| $$ ")" --| $$ ".")
+  -- parse_thf_formula -- Scan.option parse_tstp_satallax_extra_arguments --| $$ ")" --| $$ ".")
   || (Scan.this_string "tab_inh" |-- skip_term --| $$ ".")
      >> K dummy_satallax_step) x
 
@@ -409,7 +409,7 @@ fun parse_proof local_name problem =
          #> fst)
     else
       (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-        (Scan.finite Symbol.stopper (Scan.repeat1 (parse_tstp_thf0_satallax_line))))
+        (Scan.finite Symbol.stopper (Scan.repeat1 parse_tstp_thf0_satallax_line)))
         #> fst
         #> rev
         #> map to_satallax_step

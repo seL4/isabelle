@@ -91,7 +91,7 @@ sig
   val nasty_atp_proof : string Symtab.table -> string atp_proof -> string atp_proof
 
   val skip_term: string list -> string * string list
-  val parse_thf0_formula :string list ->
+  val parse_thf_formula :string list ->
     ('a, 'b, (string, string ATP_Problem.atp_type) ATP_Problem.atp_term, 'c) ATP_Problem.atp_formula *
     string list
   val dummy_atype : string ATP_Problem.atp_type
@@ -344,14 +344,24 @@ and parse_classes x = (parse_class ::: Scan.repeat ($$ "&" |-- parse_class)) x
 
 fun parse_type x =
   (($$ "(" |-- parse_type --| $$ ")"
+    || Scan.this_string tptp_pi_binder |-- $$ "[" |-- skip_term --| $$ "]" --| $$ ":" -- parse_type
+       >> (fn (_, ty) => ty (* currently ignoring type constructor declarations anyway *))
     || (scan_general_id -- Scan.optional ($$ "{" |-- parse_classes --| $$ "}") [])
         -- Scan.optional ($$ "(" |-- parse_types --| $$ ")") []
        >> AType)
-   -- Scan.option (($$ tptp_fun_type || $$ tptp_product_type) -- parse_type)
+   -- Scan.option (($$ tptp_app || $$ tptp_fun_type || $$ tptp_product_type) -- parse_type)
   >> (fn (a, NONE) => a
-       | (a, SOME (fun_or_product, b)) =>
-         if fun_or_product = tptp_fun_type then AFun (a, b)
-         else AType ((tptp_product_type, []), [a, b]))) x
+       | (a, SOME (bin_op, b)) =>
+         if bin_op = tptp_app then
+           (case a of
+             AType (s_clss, tys) => AType (s_clss, tys @ [b])
+           | _ => raise UNRECOGNIZED_ATP_PROOF ())
+         else if bin_op = tptp_fun_type then
+           AFun (a, b)
+         else if bin_op = tptp_product_type then
+           AType ((tptp_product_type, []), [a, b])
+         else
+           raise Fail "impossible case")) x
 and parse_types x =
   (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
 
@@ -527,8 +537,8 @@ fun parse_typed_var x =
      --| Scan.option (Scan.this_string ","))
    || $$ "(" |-- parse_typed_var --| $$ ")") x
 
-fun parse_simple_thf0_term x =
-  (parse_fo_quantifier -- ($$ "[" |-- parse_typed_var --| $$ "]" --| $$ ":") -- parse_thf0_term
+fun parse_simple_thf_term x =
+  (parse_fo_quantifier -- ($$ "[" |-- parse_typed_var --| $$ "]" --| $$ ":") -- parse_thf_term
       >> (fn ((q, ys), t) =>
           fold_rev
             (fn (var, ty) => fn r =>
@@ -538,23 +548,24 @@ fun parse_simple_thf0_term x =
                                 |> mk_simple_aterm)
                     else I))
             ys t)
-  || Scan.this_string tptp_not |-- parse_thf0_term >> mk_app (mk_simple_aterm tptp_not)
+  || Scan.this_string tptp_not |-- parse_thf_term >> mk_app (mk_simple_aterm tptp_not)
   || scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_type)
     >> (fn (var, typ_opt) => ATerm ((var, the_list typ_opt), []))
   || parse_ho_quantifier >> mk_simple_aterm
-  || $$ "(" |-- parse_thf0_term --| $$ ")"
+  || $$ "(" |-- parse_thf_term --| $$ ")"
   || parse_binary_op >> mk_simple_aterm) x
-and parse_thf0_term x =
-  (parse_simple_thf0_term -- Scan.option (parse_binary_op -- parse_thf0_term)
+and parse_thf_term x =
+  (parse_simple_thf_term -- Scan.option (parse_binary_op -- parse_thf_term)
     >> (fn (t1, SOME (c, t2)) =>
            if c = tptp_app then mk_app t1 t2 else mk_apps (mk_simple_aterm c) [t1, t2]
          | (t, NONE) => t)) x
 
-fun parse_thf0_formula x = (parse_thf0_term #>> remove_thf_app #>> AAtom) x
+fun parse_thf_formula x = (parse_thf_term #>> remove_thf_app #>> AAtom) x
 
-fun parse_tstp_thf0_line problem =
+fun parse_tstp_thf_line problem =
   (Scan.this_string tptp_thf -- $$ "(") |-- scan_general_id --| $$ ","
-  -- Symbol.scan_ascii_id --| $$ "," -- parse_thf0_formula -- parse_tstp_extra_arguments --| $$ ")"
+  -- Symbol.scan_ascii_id --| $$ "," -- (parse_thf_formula || skip_term >> K dummy_phi)
+     -- parse_tstp_extra_arguments --| $$ ")"
   --| $$ "."
   >> (fn (((num, role), phi), deps) =>
       let
@@ -683,7 +694,8 @@ fun parse_z3_tptp_core_line x =
    >> map (core_inference z3_tptp_core_rule)) x
 
 fun parse_line local_name problem =
-  if local_name = leo2N orelse local_name = leo3N then parse_tstp_thf0_line problem
+  (* Satallax is handled separately, in "atp_satallax.ML". *)
+  if local_name = leo2N orelse local_name = leo3N then parse_tstp_thf_line problem
   else if local_name = spassN then parse_spass_line
   else if local_name = pirateN then parse_pirate_line
   else if local_name = z3_tptpN then parse_z3_tptp_core_line
