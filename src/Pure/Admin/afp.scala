@@ -36,8 +36,8 @@ class AFP private(options: Options, val base_dir: Path)
   val sessions: List[String] = entries.flatMap(_.sessions)
 
   val sessions_structure: Sessions.T =
-    Sessions.load(options, dirs = List(main_dir)).
-      selection(Sessions.Selection(sessions = sessions.toList))._2
+    Sessions.load_structure(options, dirs = List(main_dir)).
+      selection(Sessions.Selection(sessions = sessions.toList))
 
 
   /* dependency graph */

@@ -99,8 +99,8 @@ object Imports
     select_dirs: List[Path] = Nil,
     verbose: Boolean = false) =
   {
-    val full_sessions = Sessions.load(options, dirs = dirs, select_dirs = select_dirs)
-    val (selected, selected_sessions) = full_sessions.selection(selection)
+    val full_sessions = Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
+    val selected_sessions = full_sessions.selection(selection)
 
     val deps =
       Sessions.deps(selected_sessions, full_sessions.global_theories,
@@ -109,41 +109,42 @@ object Imports
     val root_keywords = Sessions.root_syntax.keywords
 
     if (operation_imports) {
-      val report_imports: List[Report] = selected.map((session_name: String) =>
-      {
-        val info = selected_sessions(session_name)
-        val session_base = deps(session_name)
+      val report_imports: List[Report] =
+        selected_sessions.build_topological_order.map((session_name: String) =>
+          {
+            val info = selected_sessions(session_name)
+            val session_base = deps(session_name)
 
-        val declared_imports =
-          selected_sessions.imports_requirements(List(session_name)).toSet
+            val declared_imports =
+              selected_sessions.imports_requirements(List(session_name)).toSet
 
-        val extra_imports =
-          (for {
-            (_, a) <- session_base.known.theories.iterator
-            if session_base.theory_qualifier(a) == info.name
-            b <- deps.all_known.get_file(a.path.file)
-            qualifier = session_base.theory_qualifier(b)
-            if !declared_imports.contains(qualifier)
-          } yield qualifier).toSet
+            val extra_imports =
+              (for {
+                (_, a) <- session_base.known.theories.iterator
+                if session_base.theory_qualifier(a) == info.name
+                b <- deps.all_known.get_file(a.path.file)
+                qualifier = session_base.theory_qualifier(b)
+                if !declared_imports.contains(qualifier)
+              } yield qualifier).toSet
 
-        val loaded_imports =
-          selected_sessions.imports_requirements(
-            session_base.loaded_theories.keys.map(a =>
-              session_base.theory_qualifier(session_base.known.theories(a))))
-          .toSet - session_name
+            val loaded_imports =
+              selected_sessions.imports_requirements(
+                session_base.loaded_theories.keys.map(a =>
+                  session_base.theory_qualifier(session_base.known.theories(a))))
+              .toSet - session_name
 
-        val minimal_imports =
-          loaded_imports.filter(s1 =>
-            !loaded_imports.exists(s2 => selected_sessions.imports_graph.is_edge(s1, s2)))
+            val minimal_imports =
+              loaded_imports.filter(s1 =>
+                !loaded_imports.exists(s2 => selected_sessions.imports_graph.is_edge(s1, s2)))
 
-        def make_result(set: Set[String]): Option[List[String]] =
-          if (set.isEmpty) None
-          else Some(selected_sessions.imports_topological_order.map(_.name).filter(set))
+            def make_result(set: Set[String]): Option[List[String]] =
+              if (set.isEmpty) None
+              else Some(selected_sessions.imports_topological_order.filter(set))
 
-        Report(info, declared_imports, make_result(extra_imports),
-          if (loaded_imports == declared_imports - session_name) None
-          else make_result(minimal_imports))
-      })
+            Report(info, declared_imports, make_result(extra_imports),
+              if (loaded_imports == declared_imports - session_name) None
+              else make_result(minimal_imports))
+          })
 
       progress.echo("\nPotential session imports:")
       for {
@@ -172,34 +173,34 @@ object Imports
     if (operation_update) {
       progress.echo("\nUpdate theory imports" + update_message + ":")
       val updates =
-        selected.flatMap(session_name =>
-        {
-          val info = selected_sessions(session_name)
-          val session_base = deps(session_name)
-          val session_resources = new Resources(session_base)
-          val imports_base = session_base.get_imports
-          val imports_resources = new Resources(imports_base)
+        selected_sessions.build_topological_order.flatMap(session_name =>
+          {
+            val info = selected_sessions(session_name)
+            val session_base = deps(session_name)
+            val session_resources = new Resources(session_base)
+            val imports_base = session_base.get_imports
+            val imports_resources = new Resources(imports_base)
 
-          def standard_import(qualifier: String, dir: String, s: String): String =
-            imports_resources.standard_import(session_base, qualifier, dir, s)
+            def standard_import(qualifier: String, dir: String, s: String): String =
+              imports_resources.standard_import(session_base, qualifier, dir, s)
 
-          val updates_root =
-            for {
-              (_, pos) <- info.theories.flatMap(_._2)
-              upd <- update_name(root_keywords, pos, standard_import(info.name, info.dir.implode, _))
-            } yield upd
+            val updates_root =
+              for {
+                (_, pos) <- info.theories.flatMap(_._2)
+                upd <- update_name(root_keywords, pos, standard_import(info.name, info.dir.implode, _))
+              } yield upd
 
-          val updates_theories =
-            for {
-              (_, name) <- session_base.known.theories_local.toList
-              if session_base.theory_qualifier(name) == info.name
-              (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
-              upd <- update_name(session_base.overall_syntax.keywords, pos,
-                standard_import(session_base.theory_qualifier(name), name.master_dir, _))
-            } yield upd
+            val updates_theories =
+              for {
+                (_, name) <- session_base.known.theories_local.toList
+                if session_base.theory_qualifier(name) == info.name
+                (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
+                upd <- update_name(session_base.overall_syntax.keywords, pos,
+                  standard_import(session_base.theory_qualifier(name), name.master_dir, _))
+              } yield upd
 
-          updates_root ::: updates_theories
-        })
+            updates_root ::: updates_theories
+          })
 
       val file_updates = (Multi_Map.empty[JFile, Update] /: updates)(_ + _)
       val conflicts =
@@ -311,15 +312,14 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
           verbose = verbose)
       }
       else if (operation_update && incremental_update) {
-        val (selected, selected_sessions) =
-          Sessions.load(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
-        selected_sessions.imports_topological_order.foreach(info =>
-        {
-          imports(options, operation_update = operation_update, progress = progress,
-            update_message = " for session " + quote(info.name),
-            selection = Sessions.Selection(sessions = List(info.name)),
-            dirs = dirs ::: select_dirs, verbose = verbose)
-        })
+        Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
+          selection(selection).imports_topological_order.foreach(name =>
+            {
+              imports(options, operation_update = operation_update, progress = progress,
+                update_message = " for session " + quote(name),
+                selection = Sessions.Selection(sessions = List(name)),
+                dirs = dirs ::: select_dirs, verbose = verbose)
+            })
       }
     })
 }

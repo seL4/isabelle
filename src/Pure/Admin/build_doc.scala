@@ -22,13 +22,15 @@ object Build_Doc
     system_mode: Boolean = false,
     docs: List[String] = Nil): Int =
   {
+    val sessions_structure = Sessions.load_structure(options)
     val selection =
       for {
-        info <- Sessions.load(options).build_topological_order
+        name <- sessions_structure.build_topological_order
+        info = sessions_structure(name)
         if info.groups.contains("doc")
         doc = info.options.string("document_variants")
         if all_docs || docs.contains(doc)
-      } yield (doc, info.name)
+      } yield (doc, name)
 
     val selected_docs = selection.map(_._1)
     val sessions = selection.map(_._2)

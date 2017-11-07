@@ -175,7 +175,7 @@ object Sessions
       }
   }
 
-  def deps(sessions: T,
+  def deps(sessions_structure: T,
       global_theories: Map[String, String],
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
@@ -203,10 +203,11 @@ object Sessions
     }
 
     val session_bases =
-      (Map.empty[String, Base] /: sessions.imports_topological_order)({
-        case (session_bases, info) =>
+      (Map.empty[String, Base] /: sessions_structure.imports_topological_order)({
+        case (session_bases, session_name) =>
           if (progress.stopped) throw Exn.Interrupt()
 
+          val info = sessions_structure(session_name)
           try {
             val parent_base: Sessions.Base =
               info.parent match {
@@ -272,7 +273,8 @@ object Sessions
               }
 
               val imports_subgraph =
-                sessions.imports_graph.restrict(sessions.imports_graph.all_preds(info.deps).toSet)
+                sessions_structure.imports_graph.
+                  restrict(sessions_structure.imports_graph.all_preds(info.deps).toSet)
 
               val graph0 =
                 (Graph_Display.empty_graph /: imports_subgraph.topological_order)(
@@ -328,7 +330,7 @@ object Sessions
 
   sealed case class Base_Info(
     session: String,
-    sessions: T,
+    sessions_structure: T,
     errors: List[String],
     base: Base,
     infos: List[Info])
@@ -343,11 +345,11 @@ object Sessions
     focus_session: Boolean = false,
     required_session: Boolean = false): Base_Info =
   {
-    val full_sessions = load(options, dirs = dirs)
+    val full_sessions = load_structure(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
 
     val selected_sessions =
-      full_sessions.selection(Selection(sessions = session :: ancestor_session.toList))._2
+      full_sessions.selection(Selection(sessions = session :: ancestor_session.toList))
     val info = selected_sessions(session)
     val ancestor = ancestor_session orElse info.parent
 
@@ -398,13 +400,13 @@ object Sessions
 
     val full_sessions1 =
       if (infos1.isEmpty) full_sessions
-      else load(options, dirs = dirs, infos = infos1)
+      else load_structure(options, dirs = dirs, infos = infos1)
 
     val select_sessions1 =
       if (focus_session) full_sessions1.imports_descendants(List(session1))
       else List(session1)
     val selected_sessions1 =
-      full_sessions1.selection(Selection(sessions = select_sessions1))._2
+      full_sessions1.selection(Selection(sessions = select_sessions1))
 
     val sessions1 = if (all_known) full_sessions1 else selected_sessions1
     val deps1 = Sessions.deps(sessions1, global_theories)
@@ -509,43 +511,34 @@ object Sessions
         session_groups = Library.merge(session_groups, other.session_groups),
         sessions = Library.merge(sessions, other.sessions))
 
-    def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
+    def selected(graph: Graph[String, Info]): List[String] =
     {
-      val bad_sessions =
-        SortedSet((base_sessions ::: exclude_sessions ::: sessions).
-          filterNot(graph.defined(_)): _*).toList
-      if (bad_sessions.nonEmpty)
-        error("Undefined session(s): " + commas_quote(bad_sessions))
+      val select_group = session_groups.toSet
+      val select_session = sessions.toSet ++ graph.all_succs(base_sessions)
 
-      val excluded =
-      {
-        val exclude_group = exclude_session_groups.toSet
-        val exclude_group_sessions =
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if graph.get_node(name).groups.exists(exclude_group)
-          } yield name).toList
-        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
-      }
-
-      val pre_selected =
-      {
+      val selected0 =
         if (all_sessions) graph.keys
         else {
-          val select_group = session_groups.toSet
-          val select = sessions.toSet ++ graph.all_succs(base_sessions)
           (for {
             (name, (info, _)) <- graph.iterator
-            if info.dir_selected || select(name) || graph.get_node(name).groups.exists(select_group)
+            if info.dir_selected || select_session(name) ||
+              graph.get_node(name).groups.exists(select_group)
           } yield name).toList
         }
-      }.filterNot(excluded)
 
-      val selected =
-        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
-        else pre_selected
+      if (requirements) (graph.all_preds(selected0).toSet -- selected0).toList
+      else selected0
+    }
 
-      (selected, graph.restrict(graph.all_preds(selected).toSet))
+    def excluded(graph: Graph[String, Info]): List[String] =
+    {
+      val exclude_group = exclude_session_groups.toSet
+      val exclude_group_sessions =
+        (for {
+          (name, (info, _)) <- graph.iterator
+          if graph.get_node(name).groups.exists(exclude_group)
+        } yield name).toList
+      graph.all_succs(exclude_group_sessions ::: exclude_sessions)
     }
   }
 
@@ -594,9 +587,9 @@ object Sessions
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
 
+    def defined(name: String): Boolean = imports_graph.defined(name)
     def apply(name: String): Info = imports_graph.get_node(name)
-    def get(name: String): Option[Info] =
-      if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
+    def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
 
     def global_theories: Map[String, String] =
       (Thy_Header.bootstrap_global_theories.toMap /:
@@ -613,26 +606,34 @@ object Sessions
               }
           })
 
-    def selection(select: Selection): (List[String], T) =
+    def selection(sel: Selection): T =
     {
-      val (_, build_graph1) = select(build_graph)
-      val (selected, imports_graph1) = select(imports_graph)
-      (selected, new T(build_graph1, imports_graph1))
+      val bad_sessions =
+        SortedSet((sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions).
+          filterNot(defined(_)): _*).toList
+      if (bad_sessions.nonEmpty)
+        error("Undefined session(s): " + commas_quote(bad_sessions))
+
+      val excluded = sel.excluded(build_graph).toSet
+
+      def restrict(graph: Graph[String, Info]): Graph[String, Info] =
+      {
+        val sessions = graph.all_preds(sel.selected(graph)).filterNot(excluded)
+        graph.restrict(graph.all_preds(sessions).toSet)
+      }
+
+      new T(restrict(build_graph), restrict(imports_graph))
     }
 
-    def build_descendants(names: List[String]): List[String] =
-      build_graph.all_succs(names)
-    def build_requirements(names: List[String]): List[String] =
-      build_graph.all_preds(names).reverse
-    def build_topological_order: List[Info] =
-      build_graph.topological_order.map(apply(_))
+    def build_selection(sel: Selection): List[String] = sel.selected(build_graph)
+    def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
+    def build_requirements(ss: List[String]): List[String] = build_graph.all_preds(ss).reverse
+    def build_topological_order: List[String] = build_graph.topological_order
 
-    def imports_descendants(names: List[String]): List[String] =
-      imports_graph.all_succs(names)
-    def imports_requirements(names: List[String]): List[String] =
-      imports_graph.all_preds(names).reverse
-    def imports_topological_order: List[Info] =
-      imports_graph.topological_order.map(apply(_))
+    def imports_selection(sel: Selection): List[String] = sel.selected(imports_graph)
+    def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
+    def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds(ss).reverse
+    def imports_topological_order: List[String] = imports_graph.topological_order
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
@@ -784,7 +785,7 @@ object Sessions
     (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
   }
 
-  def load(options: Options,
+  def load_structure(options: Options,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     infos: List[Info] = Nil): T =
