@@ -204,9 +204,10 @@ object Sessions
 
     val session_bases =
       (Map.empty[String, Base] /: sessions.imports_topological_order)({
-        case (session_bases, info) =>
+        case (session_bases, session_name) =>
           if (progress.stopped) throw Exn.Interrupt()
 
+          val info = sessions(session_name)
           try {
             val parent_base: Sessions.Base =
               info.parent match {
@@ -624,15 +625,15 @@ object Sessions
       build_graph.all_succs(names)
     def build_requirements(names: List[String]): List[String] =
       build_graph.all_preds(names).reverse
-    def build_topological_order: List[Info] =
-      build_graph.topological_order.map(apply(_))
+    def build_topological_order: List[String] =
+      build_graph.topological_order
 
     def imports_descendants(names: List[String]): List[String] =
       imports_graph.all_succs(names)
     def imports_requirements(names: List[String]): List[String] =
       imports_graph.all_preds(names).reverse
-    def imports_topological_order: List[Info] =
-      imports_graph.topological_order.map(apply(_))
+    def imports_topological_order: List[String] =
+      imports_graph.topological_order
 
     override def toString: String =
       imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")

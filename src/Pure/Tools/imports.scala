@@ -138,7 +138,7 @@ object Imports
 
         def make_result(set: Set[String]): Option[List[String]] =
           if (set.isEmpty) None
-          else Some(selected_sessions.imports_topological_order.map(_.name).filter(set))
+          else Some(selected_sessions.imports_topological_order.filter(set))
 
         Report(info, declared_imports, make_result(extra_imports),
           if (loaded_imports == declared_imports - session_name) None
@@ -313,11 +313,11 @@ Usage: isabelle imports [OPTIONS] [SESSIONS ...]
       else if (operation_update && incremental_update) {
         val (selected, selected_sessions) =
           Sessions.load(options, dirs = dirs, select_dirs = select_dirs).selection(selection)
-        selected_sessions.imports_topological_order.foreach(info =>
+        selected_sessions.imports_topological_order.foreach(name =>
         {
           imports(options, operation_update = operation_update, progress = progress,
-            update_message = " for session " + quote(info.name),
-            selection = Sessions.Selection(sessions = List(info.name)),
+            update_message = " for session " + quote(name),
+            selection = Sessions.Selection(sessions = List(name)),
             dirs = dirs ::: select_dirs, verbose = verbose)
         })
       }
