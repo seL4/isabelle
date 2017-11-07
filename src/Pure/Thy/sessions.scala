@@ -595,17 +595,18 @@ object Sessions
         build_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
       }
 
+      val select_group = sel.session_groups.toSet
+      val select_session = sel.sessions.toSet ++ build_graph.all_succs(sel.base_sessions)
+
       def restrict(graph: Graph[String, Info]): Graph[String, Info] =
       {
         val selected0 =
         {
           if (sel.all_sessions) graph.keys
           else {
-            val select_group = sel.session_groups.toSet
-            val select = sel.sessions.toSet ++ build_graph.all_succs(sel.base_sessions)
             (for {
               (name, (info, _)) <- graph.iterator
-              if info.dir_selected || select(name) || apply(name).groups.exists(select_group)
+              if info.dir_selected || select_session(name) || apply(name).groups.exists(select_group)
             } yield name).toList
           }
         }.filterNot(excluded)
