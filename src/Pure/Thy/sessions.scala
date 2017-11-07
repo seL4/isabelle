@@ -345,7 +345,7 @@ object Sessions
     focus_session: Boolean = false,
     required_session: Boolean = false): Base_Info =
   {
-    val full_sessions = load(options, dirs = dirs)
+    val full_sessions = load_structure(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
 
     val selected_sessions =
@@ -400,7 +400,7 @@ object Sessions
 
     val full_sessions1 =
       if (infos1.isEmpty) full_sessions
-      else load(options, dirs = dirs, infos = infos1)
+      else load_structure(options, dirs = dirs, infos = infos1)
 
     val select_sessions1 =
       if (focus_session) full_sessions1.imports_descendants(List(session1))
@@ -784,7 +784,7 @@ object Sessions
     (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
   }
 
-  def load(options: Options,
+  def load_structure(options: Options,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     infos: List[Info] = Nil): T =

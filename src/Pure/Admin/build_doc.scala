@@ -22,7 +22,7 @@ object Build_Doc
     system_mode: Boolean = false,
     docs: List[String] = Nil): Int =
   {
-    val sessions_structure = Sessions.load(options)
+    val sessions_structure = Sessions.load_structure(options)
     val selection =
       for {
         name <- sessions_structure.build_topological_order

@@ -33,7 +33,7 @@ object ML_Process
       else {
         val selection = Sessions.Selection(sessions = List(logic_name))
         val selected_sessions =
-          sessions.getOrElse(Sessions.load(options, dirs = dirs)).selection(selection)
+          sessions.getOrElse(Sessions.load_structure(options, dirs = dirs)).selection(selection)
         selected_sessions.build_requirements(List(logic_name)).
           map(a => File.platform_path(store.heap(a)))
       }

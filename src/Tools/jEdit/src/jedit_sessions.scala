@@ -45,7 +45,10 @@ object JEdit_Sessions
   def logic_parent: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_PARENT") == "true"
 
   def logic_info(options: Options): Option[Sessions.Info] =
-    try { Sessions.load(session_options(options), dirs = session_dirs()).get(logic_name(options)) }
+    try {
+      Sessions.load_structure(session_options(options), dirs = session_dirs()).
+        get(logic_name(options))
+    }
     catch { case ERROR(_) => None }
 
   def logic_root(options: Options): Position.T =
@@ -68,7 +71,7 @@ object JEdit_Sessions
 
     val session_list =
     {
-      val sessions_structure = Sessions.load(options.value, dirs = session_dirs())
+      val sessions_structure = Sessions.load_structure(options.value, dirs = session_dirs())
       val (main_sessions, other_sessions) =
         sessions_structure.imports_topological_order.
           partition(name => sessions_structure(name).groups.contains("main"))

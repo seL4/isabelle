@@ -382,7 +382,7 @@ object Build
     /* session selection and dependencies */
 
     val full_sessions =
-      Sessions.load(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
+      Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
 
     def sources_stamp(deps: Sessions.Deps, name: String): String =
     {
