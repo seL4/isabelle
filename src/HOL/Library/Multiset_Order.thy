@@ -166,8 +166,7 @@ lemmas mult\<^sub>H\<^sub>O = mult_less_multiset\<^sub>H\<^sub>O[unfolded less_m
 
 end
 
-lemma less_multiset_less_multiset\<^sub>H\<^sub>O:
-  "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
+lemma less_multiset_less_multiset\<^sub>H\<^sub>O: "M < N \<longleftrightarrow> less_multiset\<^sub>H\<^sub>O M N"
   unfolding less_multiset_def mult\<^sub>H\<^sub>O less_multiset\<^sub>H\<^sub>O_def ..
 
 lemmas less_multiset\<^sub>D\<^sub>M = mult\<^sub>D\<^sub>M[folded less_multiset_def]
@@ -178,8 +177,8 @@ lemma subset_eq_imp_le_multiset:
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O
   by (simp add: less_le_not_le subseteq_mset_def)
 
-lemma le_multiset_right_total:
-  shows "M < add_mset x M"
+(* FIXME: "le" should be "less" in this and other names *)
+lemma le_multiset_right_total: "M < add_mset x M"
   unfolding less_eq_multiset_def less_multiset\<^sub>H\<^sub>O by simp
 
 lemma less_eq_multiset_empty_left[simp]:
@@ -190,16 +189,18 @@ lemma ex_gt_imp_less_multiset: "(\<exists>y. y \<in># N \<and> (\<forall>x. x \<
   unfolding less_multiset\<^sub>H\<^sub>O
   by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
 
-lemma less_eq_multiset_empty_right[simp]:
-  "M \<noteq> {#} \<Longrightarrow> \<not> M \<le> {#}"
+lemma less_eq_multiset_empty_right[simp]: "M \<noteq> {#} \<Longrightarrow> \<not> M \<le> {#}"
   by (metis less_eq_multiset_empty_left antisym)
 
+(* FIXME: "le" should be "less" in this and other names *)
 lemma le_multiset_empty_left[simp]: "M \<noteq> {#} \<Longrightarrow> {#} < M"
   by (simp add: less_multiset\<^sub>H\<^sub>O)
 
+(* FIXME: "le" should be "less" in this and other names *)
 lemma le_multiset_empty_right[simp]: "\<not> M < {#}"
   using subset_mset.le_zero_eq less_multiset\<^sub>D\<^sub>M by blast
 
+(* FIXME: "le" should be "less" in this and other names *)
 lemma union_le_diff_plus: "P \<subseteq># M \<Longrightarrow> N < P \<Longrightarrow> M - P + N < M"
   by (drule subset_mset.diff_add[symmetric]) (metis union_le_mono2)
 
