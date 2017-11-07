@@ -615,8 +615,8 @@ object Sessions
 
     def selection(select: Selection): (List[String], T) =
     {
+      val (_, build_graph1) = select(build_graph)
       val (selected, imports_graph1) = select(imports_graph)
-      val build_graph1 = build_graph.restrict(imports_graph1.keys_set)
       (selected, new T(build_graph1, imports_graph1))
     }
 
