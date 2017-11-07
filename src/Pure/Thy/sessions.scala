@@ -349,7 +349,7 @@ object Sessions
     val global_theories = full_sessions.global_theories
 
     val selected_sessions =
-      full_sessions.selection(Selection(sessions = session :: ancestor_session.toList))._2
+      full_sessions.selection(Selection(sessions = session :: ancestor_session.toList))
     val info = selected_sessions(session)
     val ancestor = ancestor_session orElse info.parent
 
@@ -406,7 +406,7 @@ object Sessions
       if (focus_session) full_sessions1.imports_descendants(List(session1))
       else List(session1)
     val selected_sessions1 =
-      full_sessions1.selection(Selection(sessions = select_sessions1))._2
+      full_sessions1.selection(Selection(sessions = select_sessions1))
 
     val sessions1 = if (all_known) full_sessions1 else selected_sessions1
     val deps1 = Sessions.deps(sessions1, global_theories)
@@ -510,45 +510,6 @@ object Sessions
         exclude_sessions = Library.merge(exclude_sessions, other.exclude_sessions),
         session_groups = Library.merge(session_groups, other.session_groups),
         sessions = Library.merge(sessions, other.sessions))
-
-    def apply(graph: Graph[String, Info]): (List[String], Graph[String, Info]) =
-    {
-      val bad_sessions =
-        SortedSet((base_sessions ::: exclude_sessions ::: sessions).
-          filterNot(graph.defined(_)): _*).toList
-      if (bad_sessions.nonEmpty)
-        error("Undefined session(s): " + commas_quote(bad_sessions))
-
-      val excluded =
-      {
-        val exclude_group = exclude_session_groups.toSet
-        val exclude_group_sessions =
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if graph.get_node(name).groups.exists(exclude_group)
-          } yield name).toList
-        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
-      }
-
-      val pre_selected =
-      {
-        if (all_sessions) graph.keys
-        else {
-          val select_group = session_groups.toSet
-          val select = sessions.toSet ++ graph.all_succs(base_sessions)
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if info.dir_selected || select(name) || graph.get_node(name).groups.exists(select_group)
-          } yield name).toList
-        }
-      }.filterNot(excluded)
-
-      val selected =
-        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
-        else pre_selected
-
-      (selected, graph.restrict(graph.all_preds(selected).toSet))
-    }
   }
 
   def make(infos: List[Info]): T =
@@ -596,9 +557,9 @@ object Sessions
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
 
+    def defined(name: String): Boolean = imports_graph.defined(name)
     def apply(name: String): Info = imports_graph.get_node(name)
-    def get(name: String): Option[Info] =
-      if (imports_graph.defined(name)) Some(imports_graph.get_node(name)) else None
+    def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
 
     def global_theories: Map[String, String] =
       (Thy_Header.bootstrap_global_theories.toMap /:
@@ -615,11 +576,48 @@ object Sessions
               }
           })
 
-    def selection(select: Selection): (List[String], T) =
+    def selection(sel: Selection): T =
     {
-      val (_, build_graph1) = select(build_graph)
-      val (selected, imports_graph1) = select(imports_graph)
-      (selected, new T(build_graph1, imports_graph1))
+      val bad_sessions =
+        SortedSet((sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions).
+          filterNot(defined(_)): _*).toList
+      if (bad_sessions.nonEmpty)
+        error("Undefined session(s): " + commas_quote(bad_sessions))
+
+      val excluded =
+      {
+        val exclude_group = sel.exclude_session_groups.toSet
+        val exclude_group_sessions =
+          (for {
+            (name, (info, _)) <- build_graph.iterator
+            if build_graph.get_node(name).groups.exists(exclude_group)
+          } yield name).toList
+        build_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
+      }
+
+      def restrict(graph: Graph[String, Info]): Graph[String, Info] =
+      {
+        val selected0 =
+        {
+          if (sel.all_sessions) graph.keys
+          else {
+            val select_group = sel.session_groups.toSet
+            val select = sel.sessions.toSet ++ build_graph.all_succs(sel.base_sessions)
+            (for {
+              (name, (info, _)) <- graph.iterator
+              if info.dir_selected || select(name) || apply(name).groups.exists(select_group)
+            } yield name).toList
+          }
+        }.filterNot(excluded)
+
+        val selected1 =
+          if (sel.requirements) (graph.all_preds(selected0).toSet -- selected0).toList
+          else selected0
+
+        graph.restrict(graph.all_preds(selected1).toSet)
+      }
+
+      new T(restrict(build_graph), restrict(imports_graph))
     }
 
     def build_descendants(names: List[String]): List[String] =

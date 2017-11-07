@@ -391,9 +391,9 @@ object Build
       SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
     }
 
-    val (selected, selected_sessions, deps) =
+    val (selected_sessions, deps) =
     {
-      val (selected0, selected_sessions0) =
+      val selected_sessions0 =
         full_sessions.selection(
             Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
               exclude_sessions, session_groups, sessions) ++ selection)
@@ -405,7 +405,7 @@ object Build
 
       if (soft_build && !fresh_build) {
         val outdated =
-          selected0.flatMap(name =>
+          selected_sessions0.build_topological_order.flatMap(name =>
             store.find_database(name) match {
               case Some(database) =>
                 using(SQLite.open_database(database))(store.read_build(_, name)) match {
@@ -415,14 +415,14 @@ object Build
                 }
               case None => Some(name)
             })
-        val (selected, selected_sessions) =
+        val selected_sessions =
           full_sessions.selection(Sessions.Selection(sessions = outdated))
         val deps =
           Sessions.deps(selected_sessions, full_sessions.global_theories, inlined_files = true)
             .check_errors
-        (selected, selected_sessions, deps)
+        (selected_sessions, deps)
       }
-      else (selected0, selected_sessions0, deps0)
+      else (selected_sessions0, deps0)
     }
 
 
@@ -450,7 +450,7 @@ object Build
 
     // optional cleanup
     if (clean_build) {
-      for (name <- full_sessions.build_descendants(selected)) {
+      for (name <- full_sessions.build_descendants(selected_sessions.build_topological_order)) {
         val files =
           List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
             map(store.output_dir + _).filter(_.is_file)
