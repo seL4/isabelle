@@ -609,13 +609,15 @@ object Sessions
               if info.dir_selected || select_session(name) || apply(name).groups.exists(select_group)
             } yield name).toList
           }
-        }.filterNot(excluded)
+        }
 
         val selected1 =
           if (sel.requirements) (graph.all_preds(selected0).toSet -- selected0).toList
           else selected0
 
-        graph.restrict(graph.all_preds(selected1).toSet)
+        val selected2 = graph.all_preds(selected1).filterNot(excluded)
+
+        graph.restrict(graph.all_preds(selected2).toSet)
       }
 
       new T(restrict(build_graph), restrict(imports_graph))
