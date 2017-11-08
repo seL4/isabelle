@@ -837,7 +837,7 @@ abbreviation arg_min_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Ri
 
 syntax
   "_arg_min" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
-    ("(3ARG'_MIN _ _./ _)" [0, 0, 10] 10)
+    ("(3ARG'_MIN _ _./ _)" [1000, 0, 10] 10)
 translations
   "ARG_MIN f x. P" \<rightleftharpoons> "CONST arg_min f (\<lambda>x. P)"
 
@@ -945,7 +945,7 @@ abbreviation arg_max_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Ri
 
 syntax
   "_arg_max" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
-    ("(3ARG'_MAX _ _./ _)" [0, 0, 10] 10)
+    ("(3ARG'_MAX _ _./ _)" [1000, 0, 10] 10)
 translations
   "ARG_MAX f x. P" \<rightleftharpoons> "CONST arg_max f (\<lambda>x. P)"
 
