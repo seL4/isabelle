@@ -805,7 +805,7 @@ fun prep_eqn strictness thy =
   apfst (meta_rewrite thy)
   #> generic_assert_eqn strictness thy false
   #> Option.map (fn eqn => (const_eqn thy (fst eqn), eqn));
-  
+
 fun prep_eqns strictness thy =
   map_filter (prep_eqn strictness thy)
   #> AList.group (op =);
@@ -1273,7 +1273,7 @@ fun type_interpretation f =
         thy
         |> Sign.root_path
         |> Sign.add_path (Long_Name.qualifier tyco)
-        |> f tyco 
+        |> f tyco
         |> Sign.restore_naming thy));
 
 fun datatype_interpretation f =
@@ -1459,7 +1459,7 @@ val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
 val declare_abstract_eqn =
   code_declaration Morphism.thm generic_declare_abstract_eqn;
 
-fun declare_aborting_global c = 
+fun declare_aborting_global c =
   modify_specs (register_fun_spec c aborting);
 
 fun declare_unimplemented_global c =
