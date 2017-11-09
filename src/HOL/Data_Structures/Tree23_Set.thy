@@ -108,6 +108,9 @@ fun del_min :: "'a tree23 \<Rightarrow> 'a * 'a up\<^sub>d" where
 "del_min (Node2 l a r) = (let (x,l') = del_min l in (x, node21 l' a r))" |
 "del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))"
 
+text \<open>In the base cases of \<open>del_min\<close> and \<open>del\<close> it is enough to check if one subtree is a \<open>Leaf\<close>,
+in which case balancedness implies that so are the others. Exercise.\<close>
+
 fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
 "del x Leaf = T\<^sub>d Leaf" |
 "del x (Node2 Leaf a Leaf) =
