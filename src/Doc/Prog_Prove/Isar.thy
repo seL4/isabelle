@@ -625,26 +625,21 @@ text_raw {* }
 The \isacom{moreover} version is no shorter but expresses the structure
 a bit more clearly and avoids new names.
 
-\subsection{Raw Proof Blocks}
+\subsection{Local Lemmas}
 
 Sometimes one would like to prove some lemma locally within a proof,
 a lemma that shares the current context of assumptions but that
 has its own assumptions and is generalized over its locally fixed
-variables at the end. This is what a \concept{raw proof block} does:
-\begin{quote}\index{$IMP053@@{text"{ ... }"} (proof block)}
-@{text"{"} \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
-\mbox{}\ \ \isacom{assume} @{text"A\<^sub>1 \<dots> A\<^sub>m"}\\
-\mbox{}\ \ $\vdots$\\
-\mbox{}\ \ \isacom{have} @{text"B"}\ \isasymproof\\
-@{text"}"}
+variables at the end. This is simply an extension of the basic
+\indexed{\isacom{have}}{have} construct:
+\begin{quote}
+\indexed{\isacom{have}}{have} @{text"B"}\
+ \indexed{\isacom{if}}{if} \<open>name:\<close> @{text"A\<^sub>1 \<dots> A\<^sub>m"}\
+ \indexed{\isacom{for}}{for} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
+\isasymproof
 \end{quote}
 proves @{text"\<lbrakk> A\<^sub>1; \<dots> ; A\<^sub>m \<rbrakk> \<Longrightarrow> B"}
 where all @{text"x\<^sub>i"} have been replaced by unknowns @{text"?x\<^sub>i"}.
-\begin{warn}
-The conclusion of a raw proof block is \emph{not} indicated by \isacom{show}
-but is simply the final \isacom{have}.
-\end{warn}
-
 As an example we prove a simple fact about divisibility on integers.
 The definition of @{text "dvd"} is @{thm dvd_def}.
 \end{isamarkuptext}%
@@ -652,24 +647,14 @@ The definition of @{text "dvd"} is @{thm dvd_def}.
 
 lemma fixes a b :: int assumes "b dvd (a+b)" shows "b dvd a"
 proof -
-  { fix k assume k: "a+b = b*k"
-    have "\<exists>k'. a = b*k'"
-    proof
-      show "a = b*(k - 1)" using k by(simp add: algebra_simps)
-    qed }
+  have "\<exists>k'. a = b*k'" if asm: "a+b = b*k" for k
+  proof
+    show "a = b*(k - 1)" using asm by(simp add: algebra_simps)
+  qed
   then show ?thesis using assms by(auto simp add: dvd_def)
 qed
 
-text{* Note that the result of a raw proof block has no name. In this example
-it was directly piped (via \isacom{then}) into the final proof, but it can
-also be named for later reference: you simply follow the block directly by a
-\isacom{note} command:
-\begin{quote}
-\indexed{\isacom{note}}{note} \ @{text"name = this"}
-\end{quote}
-This introduces a new name @{text name} that refers to @{text this},
-the fact just proved, in this case the preceding block. In general,
-\isacom{note} introduces a new name for one or more facts.
+text{*
 
 \subsection*{Exercises}
 
@@ -687,8 +672,8 @@ text{*
 \exercise
 Give a readable, structured proof of the following lemma:
 *}
-lemma "(\<exists>ys zs. xs = ys @ zs \<and> length ys = length zs)
-      \<or> (\<exists>ys zs. xs = ys @ zs \<and> length ys = length zs + 1)"
+lemma "\<exists>ys zs. xs = ys @ zs \<and>
+            (length ys = length zs \<or> length ys = length zs + 1)"
 (*<*)oops(*>*)
 text{*
 Hint: There are predefined functions @{const_typ take} and @{const_typ drop}
