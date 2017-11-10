@@ -201,63 +201,61 @@ done
 
 lemma invar_insert: "invar t \<Longrightarrow> invar(insert a t)"
 proof(induction t)
-  case (Node n l x r)
+  case N: (Node n l x r)
   hence il: "invar l" and ir: "invar r" by auto
-  note N = Node
+  note iil = N.IH(1)[OF il]
+  note iir = N.IH(2)[OF ir]
   let ?t = "Node n l x r"
   have "a < x \<or> a = x \<or> x < a" by auto
   moreover
-  { assume "a < x"
-    note iil = Node.IH(1)[OF il]
-    have ?case
-    proof (cases rule: lvl_insert[of a l])
-      case (Same) thus ?thesis
-        using \<open>a<x\<close> invar_NodeL[OF Node.prems iil Same]
-        by (simp add: skew_invar split_invar del: invar.simps)
+  have ?case if "a < x"
+  proof (cases rule: lvl_insert[of a l])
+    case (Same) thus ?thesis
+      using \<open>a<x\<close> invar_NodeL[OF N.prems iil Same]
+      by (simp add: skew_invar split_invar del: invar.simps)
+  next
+    case (Incr)
+    then obtain t1 w t2 where ial[simp]: "insert a l = Node n t1 w t2"
+      using N.prems by (auto simp: lvl_Suc_iff)
+    have l12: "lvl t1 = lvl t2"
+      by (metis Incr(1) ial lvl_insert_incr_iff tree.inject)
+    have "insert a ?t = split(skew(Node n (insert a l) x r))"
+      by(simp add: \<open>a<x\<close>)
+    also have "skew(Node n (insert a l) x r) = Node n t1 w (Node n t2 x r)"
+      by(simp)
+    also have "invar(split \<dots>)"
+    proof (cases r)
+      case Leaf
+      hence "l = Leaf" using N.prems by(auto simp: lvl_0_iff)
+      thus ?thesis using Leaf ial by simp
     next
-      case (Incr)
-      then obtain t1 w t2 where ial[simp]: "insert a l = Node n t1 w t2"
-        using Node.prems by (auto simp: lvl_Suc_iff)
-      have l12: "lvl t1 = lvl t2"
-        by (metis Incr(1) ial lvl_insert_incr_iff tree.inject)
-      have "insert a ?t = split(skew(Node n (insert a l) x r))"
-        by(simp add: \<open>a<x\<close>)
-      also have "skew(Node n (insert a l) x r) = Node n t1 w (Node n t2 x r)"
-        by(simp)
-      also have "invar(split \<dots>)"
-      proof (cases r)
-        case Leaf
-        hence "l = Leaf" using Node.prems by(auto simp: lvl_0_iff)
-        thus ?thesis using Leaf ial by simp
+      case [simp]: (Node m t3 y t4)
+      show ?thesis (*using N(3) iil l12 by(auto)*)
+      proof cases
+        assume "m = n" thus ?thesis using N(3) iil by(auto)
       next
-        case [simp]: (Node m t3 y t4)
-        show ?thesis (*using N(3) iil l12 by(auto)*)
-        proof cases
-          assume "m = n" thus ?thesis using N(3) iil by(auto)
-        next
-          assume "m \<noteq> n" thus ?thesis using N(3) iil l12 by(auto)
-        qed
+        assume "m \<noteq> n" thus ?thesis using N(3) iil l12 by(auto)
       qed
-      finally show ?thesis .
     qed
-  }
+    finally show ?thesis .
+  qed
   moreover
-  { assume "x < a"
-    note iir = Node.IH(2)[OF ir]
+  have ?case if "x < a"
+  proof -
     from \<open>invar ?t\<close> have "n = lvl r \<or> n = lvl r + 1" by auto
-    hence ?case
+    thus ?case
     proof
       assume 0: "n = lvl r"
       have "insert a ?t = split(skew(Node n l x (insert a r)))"
         using \<open>a>x\<close> by(auto)
       also have "skew(Node n l x (insert a r)) = Node n l x (insert a r)"
-        using Node.prems by(simp add: skew_case split: tree.split)
+        using N.prems by(simp add: skew_case split: tree.split)
       also have "invar(split \<dots>)"
       proof -
         from lvl_insert_sngl[OF ir sngl_if_invar[OF \<open>invar ?t\<close> 0], of a]
         obtain t1 y t2 where iar: "insert a r = Node n t1 y t2"
-          using Node.prems 0 by (auto simp: lvl_Suc_iff)
-        from Node.prems iar 0 iir
+          using N.prems 0 by (auto simp: lvl_Suc_iff)
+        from N.prems iar 0 iir
         show ?thesis by (auto simp: split_case split: tree.splits)
       qed
       finally show ?thesis .
@@ -267,7 +265,7 @@ proof(induction t)
       show ?thesis
       proof (cases rule: lvl_insert[of a r])
         case (Same)
-        show ?thesis using \<open>x<a\<close> il ir invar_NodeR[OF Node.prems 1 iir Same]
+        show ?thesis using \<open>x<a\<close> il ir invar_NodeR[OF N.prems 1 iir Same]
           by (auto simp add: skew_invar split_invar)
       next
         case (Incr)
@@ -275,8 +273,9 @@ proof(induction t)
           by (auto simp add: skew_invar split_invar split: if_splits)
       qed
     qed
-  }
-  moreover { assume "a = x" hence ?case using Node.prems by auto }
+  qed
+  moreover
+  have "a = x \<Longrightarrow> ?case" using N.prems by auto
   ultimately show ?case by blast
 qed simp
 

@@ -258,9 +258,9 @@ next
     then obtain t1 a t2 where [simp]: "t = N2 t1 a t2" and
       t1: "t1 \<in> T h" and t2: "t2 \<in> T h" and t12: "t1 \<in> B h \<or> t2 \<in> B h"
       by auto
-    { assume "x < a"
-      hence "?case \<longleftrightarrow> n2 (ins x t1) a t2 \<in> Bp (Suc h)" by simp
-      also have "\<dots>"
+    have ?case if "x < a"
+    proof -
+      have "n2 (ins x t1) a t2 \<in> Bp (Suc h)"
       proof cases
         assume "t1 \<in> B h"
         with t2 show ?thesis by (simp add: Suc.IH(1) n2_type)
@@ -269,12 +269,12 @@ next
         hence 1: "t1 \<in> U h" and 2: "t2 \<in> B h" using t1 t12 by auto
         show ?thesis by (metis Suc.IH(2)[OF 1] Bp_if_B[OF 2] n2_type)
       qed
-      finally have ?case .
-    }
+      with `x < a` show ?case by simp
+    qed
     moreover
-    { assume "a < x"
-      hence "?case \<longleftrightarrow> n2 t1 a (ins x t2) \<in> Bp (Suc h)" by simp
-      also have "\<dots>"
+    have ?case if "a < x"
+    proof -
+      have "n2 t1 a (ins x t2) \<in> Bp (Suc h)"
       proof cases
         assume "t2 \<in> B h"
         with t1 show ?thesis by (simp add: Suc.IH(1) n2_type)
@@ -283,12 +283,14 @@ next
         hence 1: "t1 \<in> B h" and 2: "t2 \<in> U h" using t2 t12 by auto
         show ?thesis by (metis Bp_if_B[OF 1] Suc.IH(2)[OF 2] n2_type)
       qed
-    }
-    moreover 
-    { assume "x = a"
+      with `a < x` show ?case by simp
+    qed
+    moreover
+    have ?case if "x = a"
+    proof -
       from 1 have "t \<in> Bp (Suc h)" by(rule Bp_if_B)
-      hence "?case" using `x = a` by simp
-    }
+      thus "?case" using `x = a` by simp
+    qed
     ultimately show ?case by auto
   next
     case 2 thus ?case using Suc(1) n1_type by fastforce }
@@ -398,61 +400,58 @@ proof (induction h arbitrary: x t)
   { case 1
     then obtain l a r where [simp]: "t = N2 l a r" and
       lr: "l \<in> T h" "r \<in> T h" "l \<in> B h \<or> r \<in> B h" by auto
-    { assume "x < a"
-      have ?case
-      proof cases
-        assume "l \<in> B h"
-        from n2_type3[OF Suc.IH(1)[OF this] lr(2)]
-        show ?thesis using `x<a` by(simp)
-      next
-        assume "l \<notin> B h"
-        hence "l \<in> U h" "r \<in> B h" using lr by auto
-        from n2_type1[OF Suc.IH(2)[OF this(1)] this(2)]
-        show ?thesis using `x<a` by(simp)
-      qed
-    } moreover
-    { assume "x > a"
-      have ?case
+    have ?case if "x < a"
+    proof cases
+      assume "l \<in> B h"
+      from n2_type3[OF Suc.IH(1)[OF this] lr(2)]
+      show ?thesis using `x<a` by(simp)
+    next
+      assume "l \<notin> B h"
+      hence "l \<in> U h" "r \<in> B h" using lr by auto
+      from n2_type1[OF Suc.IH(2)[OF this(1)] this(2)]
+      show ?thesis using `x<a` by(simp)
+    qed
+    moreover
+    have ?case if "x > a"
+    proof cases
+      assume "r \<in> B h"
+      from n2_type3[OF lr(1) Suc.IH(1)[OF this]]
+      show ?thesis using `x>a` by(simp)
+    next
+      assume "r \<notin> B h"
+      hence "l \<in> B h" "r \<in> U h" using lr by auto
+      from n2_type2[OF this(1) Suc.IH(2)[OF this(2)]]
+      show ?thesis using `x>a` by(simp)
+    qed
+    moreover
+    have ?case if [simp]: "x=a"
+    proof (cases "del_min r")
+      case None
+      show ?thesis
       proof cases
         assume "r \<in> B h"
-        from n2_type3[OF lr(1) Suc.IH(1)[OF this]]
-        show ?thesis using `x>a` by(simp)
+        with del_minNoneN0[OF this None] lr show ?thesis by(simp)
       next
         assume "r \<notin> B h"
-        hence "l \<in> B h" "r \<in> U h" using lr by auto
-        from n2_type2[OF this(1) Suc.IH(2)[OF this(2)]]
-        show ?thesis using `x>a` by(simp)
+        hence "r \<in> U h" using lr by auto
+        with del_minNoneN1[OF this None] lr(3) show ?thesis by (simp)
       qed
-    } moreover
-    { assume [simp]: "x=a"
-      have ?case
-      proof (cases "del_min r")
-        case None
-        show ?thesis
-        proof cases
-          assume "r \<in> B h"
-          with del_minNoneN0[OF this None] lr show ?thesis by(simp)
-        next
-          assume "r \<notin> B h"
-          hence "r \<in> U h" using lr by auto
-          with del_minNoneN1[OF this None] lr(3) show ?thesis by (simp)
-        qed
+    next
+      case [simp]: (Some br')
+      obtain b r' where [simp]: "br' = (b,r')" by fastforce
+      show ?thesis
+      proof cases
+        assume "r \<in> B h"
+        from del_min_type(1)[OF this] n2_type3[OF lr(1)]
+        show ?thesis by simp
       next
-        case [simp]: (Some br')
-        obtain b r' where [simp]: "br' = (b,r')" by fastforce
-        show ?thesis
-        proof cases
-          assume "r \<in> B h"
-          from del_min_type(1)[OF this] n2_type3[OF lr(1)]
-          show ?thesis by simp
-        next
-          assume "r \<notin> B h"
-          hence "l \<in> B h" and "r \<in> U h" using lr by auto
-          from del_min_type(2)[OF this(2)] n2_type2[OF this(1)]
-          show ?thesis by simp
-        qed
+        assume "r \<notin> B h"
+        hence "l \<in> B h" and "r \<in> U h" using lr by auto
+        from del_min_type(2)[OF this(2)] n2_type2[OF this(1)]
+        show ?thesis by simp
       qed
-    } ultimately show ?case by auto
+    qed
+    ultimately show ?case by auto
   }
   { case 2 with Suc.IH(1) show ?case by auto }
 qed auto
