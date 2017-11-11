@@ -22,7 +22,6 @@ object Mkroot
     session_name: String = "",
     session_dir: Path = Path.current,
     session_parent: String = "",
-    document: Boolean = false,
     title: String = "",
     author: String = "",
     progress: Progress = No_Progress)
@@ -36,7 +35,7 @@ object Mkroot
     if (root_path.file.exists) error("Cannot overwrite existing " + root_path)
 
     val document_path = session_dir + Path.explode("document")
-    if (document && document_path.file.exists) error("Cannot overwrite existing " + document_path)
+    if (document_path.file.exists) error("Cannot overwrite existing " + document_path)
 
     progress.echo("\nPreparing session " + quote(name) + " in " + session_dir)
 
@@ -46,29 +45,22 @@ object Mkroot
     progress.echo("  creating " + root_path)
 
     File.write(root_path,
-      "session " + root_name(name) + " = " + root_name(parent) + " +" +
-      (if (document) """
+      "session " + root_name(name) + " = " + root_name(parent) + """ +
   options [document = pdf, document_output = "output"]
-  theories [document = false]
-    (* Foo *)
-    (* Bar *)
+(*theories [document = false]
+    A
+    B
   theories
-    (* Baz *)
+    C
+    D*)
   document_files
     "root.tex"
-"""
-      else """
-  options [document = false]
-  theories
-    (* Foo *)
-    (* Bar *)
-    (* Baz *)
-"""))
+""")
 
 
     /* document directory */
 
-    if (document) {
+    {
       val root_tex = session_dir + Path.explode("document/root.tex")
       progress.echo("  creating " + root_tex)
 
@@ -157,19 +149,16 @@ Now use the following command line to build the session:
 
   val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory", args =>
   {
-    var document = false
     var session_name = ""
 
     val getopts = Getopts("""
 Usage: isabelle mkroot [OPTIONS] [DIR]
 
   Options are:
-    -d           enable document preparation
     -n NAME      alternative session name (default: DIR base name)
 
   Prepare session root DIR (default: current directory).
 """,
-      "d" -> (_ => document = true),
       "n:" -> (arg => session_name = arg))
 
     val more_args = getopts(args)
@@ -181,7 +170,6 @@ Usage: isabelle mkroot [OPTIONS] [DIR]
         case _ => getopts.usage()
       }
 
-    mkroot(session_name = session_name, session_dir = session_dir, document = document,
-      progress = new Console_Progress)
+    mkroot(session_name = session_name, session_dir = session_dir, progress = new Console_Progress)
   })
 }

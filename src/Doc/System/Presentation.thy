@@ -97,7 +97,6 @@ text \<open>
 \<open>Usage: isabelle mkroot [OPTIONS] [DIR]
 
   Options are:
-    -d           enable document preparation
     -n NAME      alternative session name (default: DIR base name)
 
   Prepare session root DIR (default: current directory).\<close>}
@@ -107,10 +106,9 @@ text \<open>
   sense that it does not overwrite existing files or directories. Earlier
   attempts to generate a session root need to be deleted manually.
 
-  \<^medskip>
-  Option \<^verbatim>\<open>-d\<close> indicates that the session shall be accompanied by a formal
-  document, with \<open>DIR\<close>\<^verbatim>\<open>/document/root.tex\<close> as its {\LaTeX} entry point (see
-  also \chref{ch:present}).
+  The generated session template will be accompanied by a formal document,
+  with \<open>DIR\<close>\<^verbatim>\<open>/document/root.tex\<close> as its {\LaTeX} entry point (see also
+  \chref{ch:present}).
 
   Option \<^verbatim>\<open>-n\<close> allows to specify an alternative session name; otherwise the
   base name of the given directory is used.
@@ -125,14 +123,13 @@ text \<open>
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  Produce session \<^verbatim>\<open>Test\<close> (with document preparation) within a separate
-  directory of the same name:
-  @{verbatim [display] \<open>isabelle mkroot -d Test && isabelle build -D Test\<close>}
+  Produce session \<^verbatim>\<open>Test\<close> within a separate directory of the same name:
+  @{verbatim [display] \<open>isabelle mkroot Test && isabelle build -D Test\<close>}
 
   \<^medskip>
   Upgrade the current directory into a session ROOT with document preparation,
   and build it:
-  @{verbatim [display] \<open>isabelle mkroot -d && isabelle build -D .\<close>}
+  @{verbatim [display] \<open>isabelle mkroot && isabelle build -D .\<close>}
 \<close>
 
 

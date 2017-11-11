@@ -351,7 +351,7 @@ text {*
   preparation) may be produced as follows:
 
 \begin{verbatim}
-  isabelle mkroot -d MySession
+  isabelle mkroot MySession
   isabelle build -D MySession
 \end{verbatim}
 
