@@ -264,7 +264,7 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
 
   private def remote_build_history(
-    rev: String, afp_rev: Option[String], i: Int, r: Remote_Build): Logger_Task =
+    rev: String, afp_rev: Option[String], i: Int, user_home: Boolean, r: Remote_Build): Logger_Task =
   {
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
@@ -285,6 +285,7 @@ object Isabelle_Cronjob
                   rev = rev,
                   afp_rev = afp_rev,
                   options =
+                    (if (user_home && r.shared_home) " -u /tmp/isabelle-isatest" else "") +
                     " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                     " -f " + r.options,
                   args = "-o timeout=10800 " + r.args)
@@ -438,7 +439,9 @@ object Isabelle_Cronjob
 
     val hg = Mercurial.repository(isabelle_repos)
     val hg_graph = hg.graph()
-    val rev = hg.id()
+
+    val user_home: String => Boolean =
+      hg_graph.all_succs(List("19b6091c2137")).contains(_)
 
     def history_base_filter(r: Remote_Build): Item => Boolean =
     {
@@ -463,8 +466,8 @@ object Isabelle_Cronjob
                   SEQ(
                     for {
                       (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
-                      (isabelle_rev, afp_rev) <- r.pick(logger.options, rev, history_base_filter(r))
-                    } yield remote_build_history(isabelle_rev, afp_rev, i, r)))),
+                      (rev, afp_rev) <- r.pick(logger.options, hg.id(), history_base_filter(r))
+                    } yield remote_build_history(rev, afp_rev, i, user_home(rev), r)))),
                 Logger_Task("jenkins_logs", _ =>
                   Jenkins.download_logs(Jenkins.build_log_jobs, main_dir)),
                 Logger_Task("build_log_database",
