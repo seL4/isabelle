@@ -96,6 +96,7 @@ object Build_History
 
   /** build_history **/
 
+  private val default_user_home = Path.explode("$USER_HOME")
   private val default_rev = "tip"
   private val default_multicore = (1, 1)
   private val default_heap = 1500
@@ -104,6 +105,7 @@ object Build_History
   def build_history(
     options: Options,
     root: Path,
+    user_home: Path = default_user_home,
     progress: Progress = No_Progress,
     rev: String = default_rev,
     afp_rev: Option[String] = None,
@@ -171,7 +173,8 @@ object Build_History
     /* main */
 
     val other_isabelle =
-      Other_Isabelle(root, isabelle_identifier = isabelle_identifier, progress = progress)
+      Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
+        user_home = user_home, progress = progress)
 
     val build_host = Isabelle_System.hostname()
     val build_history_date = Date.now()
@@ -228,7 +231,7 @@ object Build_History
       val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
       val build_result =
         Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
-          progress = build_out_progress)(
+          user_home = user_home, progress = build_out_progress)(
             "build " + Bash.strings(build_args1 ::: afp_sessions), redirect = true, echo = true,
             strict = false)
       val build_end = Date.now()
@@ -398,11 +401,12 @@ object Build_History
       var rev = default_rev
       var ml_statistics_step = 1
       var build_tags = List.empty[String]
+      var user_home = default_user_home
       var verbose = false
       var exit_code = false
 
       val getopts = Getopts("""
-Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
+Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 
   Options are:
     -A REV       include $ISABELLE_HOME/AFP repository at given revision
@@ -423,6 +427,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
     -r REV       update to revision (default: """ + default_rev + """)
     -s NUMBER    step size for ML statistics (0=none, 1=all, n=step, default: 1)
     -t TAG       free-form build tag (multiple occurrences possible)
+    -u DIR       alternative USER_HOME directory
     -v           verbose
     -x           return overall exit code from build processes
 
@@ -454,6 +459,7 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
         "r:" -> (arg => rev = arg),
         "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
         "t:" -> (arg => build_tags = build_tags ::: List(arg)),
+        "u:" -> (arg => user_home = Path.explode(arg)),
         "v" -> (_ => verbose = true),
         "x" -> (_ => exit_code = true))
 
@@ -467,11 +473,12 @@ Usage: isabelle build_history [OPTIONS] REPOSITORY [ARGS ...]
       val progress = new Console_Progress(stderr = true)
 
       val results =
-        build_history(Options.init(), root, progress = progress, rev = rev, afp_rev = afp_rev,
-          afp_partition = afp_partition, isabelle_identifier = isabelle_identifier,
-          ml_statistics_step = ml_statistics_step, components_base = components_base, fresh = fresh,
-          nonfree = nonfree, multicore_base = multicore_base, multicore_list = multicore_list,
-          arch_64 = arch_64, heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
+        build_history(Options.init(), root, user_home = user_home, progress = progress, rev = rev,
+          afp_rev = afp_rev, afp_partition = afp_partition,
+          isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
+          components_base = components_base, fresh = fresh, nonfree = nonfree,
+          multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
+          heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
           verbose = verbose, build_tags = build_tags, build_args = build_args)
 
