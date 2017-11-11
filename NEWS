@@ -98,6 +98,9 @@ pathologic instances. Minor INCOMPATIBILITY.
 for this session. There is no need to specify options [document = false]
 anymore.
 
+* The command-line tool "isabelle mkroot" now always produces a document
+outline: its options have been adapted accordingly. INCOMPATIBILITY.
+
 * Linux and Windows/Cygwin is for x86_64 only. Old 32bit platform
 support has been discontinued.
 

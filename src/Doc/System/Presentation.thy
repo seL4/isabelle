@@ -94,12 +94,15 @@ text \<open>
   The @{tool_def mkroot} tool configures a given directory as session root,
   with some \<^verbatim>\<open>ROOT\<close> file and optional document source directory. Its usage is:
   @{verbatim [display]
-\<open>Usage: isabelle mkroot [OPTIONS] [DIR]
+\<open>Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
 
   Options are:
-    -n NAME      alternative session name (default: DIR base name)
+    -A LATEX     provide author in LaTeX notation (default: user name)
+    -T LATEX     provide title in LaTeX notation (default: session name)
+    -n NAME      alternative session name (default: directory base name)
 
-  Prepare session root DIR (default: current directory).\<close>}
+  Prepare session root directory (default: current directory).
+\<close>}
 
   The results are placed in the given directory \<open>dir\<close>, which refers to the
   current directory by default. The @{tool mkroot} tool is conservative in the
@@ -107,16 +110,18 @@ text \<open>
   attempts to generate a session root need to be deleted manually.
 
   The generated session template will be accompanied by a formal document,
-  with \<open>DIR\<close>\<^verbatim>\<open>/document/root.tex\<close> as its {\LaTeX} entry point (see also
+  with \<open>DIRECTORY\<close>\<^verbatim>\<open>/document/root.tex\<close> as its {\LaTeX} entry point (see also
   \chref{ch:present}).
 
-  Option \<^verbatim>\<open>-n\<close> allows to specify an alternative session name; otherwise the
-  base name of the given directory is used.
+  Options \<^verbatim>\<open>-T\<close> and \<^verbatim>\<open>-A\<close> specify the document title and author explicitly,
+  using {\LaTeX} source notation.
+
+  Option \<^verbatim>\<open>-n\<close> specifies an alternative session name; otherwise the base name
+  of the given directory is used.
 
   \<^medskip>
   The implicit Isabelle settings variable @{setting ISABELLE_LOGIC} specifies
-  the parent session, and @{setting ISABELLE_DOCUMENT_FORMAT} the document
-  format to be filled filled into the generated \<^verbatim>\<open>ROOT\<close> file.
+  the parent session.
 \<close>
 
 

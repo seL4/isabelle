@@ -105,8 +105,7 @@ object Mkroot
 \begin{document}
 
 \title{""" + (proper_string(title) getOrElse latex_name(name)) + """}
-\author{""" +
-  (proper_string(author) getOrElse ("By " + latex_name(Isabelle_System.getenv("USER")))) + """}
+\author{""" + (proper_string(author) getOrElse latex_name(System.getProperty("user.name"))) + """}
 \maketitle
 
 \tableofcontents
@@ -149,16 +148,22 @@ Now use the following command line to build the session:
 
   val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory", args =>
   {
+    var author = ""
+    var title = ""
     var session_name = ""
 
     val getopts = Getopts("""
-Usage: isabelle mkroot [OPTIONS] [DIR]
+Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
 
   Options are:
-    -n NAME      alternative session name (default: DIR base name)
+    -A LATEX     provide author in LaTeX notation (default: user name)
+    -T LATEX     provide title in LaTeX notation (default: session name)
+    -n NAME      alternative session name (default: directory base name)
 
-  Prepare session root DIR (default: current directory).
+  Prepare session root directory (default: current directory).
 """,
+      "A:" -> (arg => author = arg),
+      "T:" -> (arg => title = arg),
       "n:" -> (arg => session_name = arg))
 
     val more_args = getopts(args)
@@ -170,6 +175,7 @@ Usage: isabelle mkroot [OPTIONS] [DIR]
         case _ => getopts.usage()
       }
 
-    mkroot(session_name = session_name, session_dir = session_dir, progress = new Console_Progress)
+    mkroot(session_name = session_name, session_dir = session_dir, author = author, title = title,
+      progress = new Console_Progress)
   })
 }
