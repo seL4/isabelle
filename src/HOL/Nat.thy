@@ -2087,6 +2087,34 @@ lemma n_less_n_mult_m: "0 < n \<Longrightarrow> Suc 0 < m \<Longrightarrow> n < 
   using mult_strict_left_mono [of 1 m n] by simp
 
 
+text \<open>Induction starting beyond zero\<close>
+
+lemma nat_induct_at_least [consumes 1, case_names base Suc]:
+  "P n" if "n \<ge> m" "P m" "\<And>n. n \<ge> m \<Longrightarrow> P n \<Longrightarrow> P (Suc n)"
+proof -
+  define q where "q = n - m"
+  with \<open>n \<ge> m\<close> have "n = m + q"
+    by simp
+  moreover have "P (m + q)"
+    by (induction q) (use that in simp_all)
+  ultimately show "P n"
+    by simp
+qed
+
+lemma nat_induct_non_zero [consumes 1, case_names 1 Suc]:
+  "P n" if "n > 0" "P 1" "\<And>n. n > 0 \<Longrightarrow> P n \<Longrightarrow> P (Suc n)"
+proof -
+  from \<open>n > 0\<close> have "n \<ge> 1"
+    by (cases n) simp_all
+  moreover note \<open>P 1\<close>
+  moreover have "\<And>n. n \<ge> 1 \<Longrightarrow> P n \<Longrightarrow> P (Suc n)"
+    using \<open>\<And>n. n > 0 \<Longrightarrow> P n \<Longrightarrow> P (Suc n)\<close>
+    by (simp add: Suc_le_eq)
+  ultimately show "P n"
+    by (rule nat_induct_at_least)
+qed
+
+
 text \<open>Specialized induction principles that work "backwards":\<close>
 
 lemma inc_induct [consumes 1, case_names base step]:
