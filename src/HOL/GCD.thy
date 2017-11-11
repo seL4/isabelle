@@ -142,12 +142,6 @@ subsection \<open>Abstract GCD and LCM\<close>
 class gcd = zero + one + dvd +
   fixes gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-begin
-
-abbreviation coprime :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  where "coprime x y \<equiv> gcd x y = 1"
-
-end
 
 class Gcd = gcd +
   fixes Gcd :: "'a set \<Rightarrow> 'a"
@@ -243,7 +237,8 @@ next
     by simp
 qed
 
-lemma is_unit_gcd [simp]: "is_unit (gcd a b) \<longleftrightarrow> coprime a b"
+lemma is_unit_gcd_iff [simp]:
+  "is_unit (gcd a b) \<longleftrightarrow> gcd a b = 1"
   by (cases "a = 0 \<and> b = 0") (auto simp add: unit_factor_gcd dest: is_unit_unit_factor)
 
 sublocale gcd: abel_semigroup gcd
@@ -279,7 +274,7 @@ proof
   show "gcd (normalize a) b = gcd a b" for a b
     using gcd_dvd1 [of "normalize a" b]
     by (auto intro: associated_eqI)
-  show "coprime 1 a" for a
+  show "gcd 1 a = 1" for a
     by (rule associated_eqI) simp_all
 qed simp_all
 
@@ -291,12 +286,6 @@ lemma gcd_left_idem: "gcd a (gcd a b) = gcd a b"
 
 lemma gcd_right_idem: "gcd (gcd a b) b = gcd a b"
   by (fact gcd.right_idem)
-
-lemma coprime_1_left: "coprime 1 a"
-  by (fact gcd.bottom_left_bottom)
-
-lemma coprime_1_right: "coprime a 1"
-  by (fact gcd.bottom_right_bottom)
 
 lemma gcd_mult_left: "gcd (c * a) (c * b) = normalize c * gcd a b"
 proof (cases "c = 0")
@@ -634,70 +623,6 @@ proof (rule gcdI)
     by (rule dvd_trans)
 qed
 
-lemma coprime_dvd_mult:
-  assumes "coprime a b" and "a dvd c * b"
-  shows "a dvd c"
-proof (cases "c = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have unit: "is_unit (unit_factor c)"
-    by simp
-  from \<open>coprime a b\<close> mult_gcd_left [of c a b]
-  have "gcd (c * a) (c * b) * unit_factor c = c"
-    by (simp add: ac_simps)
-  moreover from \<open>a dvd c * b\<close> have "a dvd gcd (c * a) (c * b) * unit_factor c"
-    by (simp add: dvd_mult_unit_iff unit)
-  ultimately show ?thesis
-    by simp
-qed
-
-lemma coprime_dvd_mult_iff: "coprime a c \<Longrightarrow> a dvd b * c \<longleftrightarrow> a dvd b"
-  by (auto intro: coprime_dvd_mult)
-
-lemma gcd_mult_cancel: "coprime c b \<Longrightarrow> gcd (c * a) b = gcd a b"
-  apply (rule associated_eqI)
-     apply (rule gcd_greatest)
-      apply (rule_tac b = c in coprime_dvd_mult)
-       apply (simp add: gcd.assoc)
-       apply (simp_all add: ac_simps)
-  done
-
-lemma coprime_crossproduct:
-  fixes a b c d :: 'a
-  assumes "coprime a d" and "coprime b c"
-  shows "normalize a * normalize c = normalize b * normalize d \<longleftrightarrow>
-    normalize a = normalize b \<and> normalize c = normalize d"
-    (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?rhs
-  then show ?lhs by simp
-next
-  assume ?lhs
-  from \<open>?lhs\<close> have "normalize a dvd normalize b * normalize d"
-    by (auto intro: dvdI dest: sym)
-  with \<open>coprime a d\<close> have "a dvd b"
-    by (simp add: coprime_dvd_mult_iff normalize_mult [symmetric])
-  from \<open>?lhs\<close> have "normalize b dvd normalize a * normalize c"
-    by (auto intro: dvdI dest: sym)
-  with \<open>coprime b c\<close> have "b dvd a"
-    by (simp add: coprime_dvd_mult_iff normalize_mult [symmetric])
-  from \<open>?lhs\<close> have "normalize c dvd normalize d * normalize b"
-    by (auto intro: dvdI dest: sym simp add: mult.commute)
-  with \<open>coprime b c\<close> have "c dvd d"
-    by (simp add: coprime_dvd_mult_iff gcd.commute normalize_mult [symmetric])
-  from \<open>?lhs\<close> have "normalize d dvd normalize c * normalize a"
-    by (auto intro: dvdI dest: sym simp add: mult.commute)
-  with \<open>coprime a d\<close> have "d dvd c"
-    by (simp add: coprime_dvd_mult_iff gcd.commute normalize_mult [symmetric])
-  from \<open>a dvd b\<close> \<open>b dvd a\<close> have "normalize a = normalize b"
-    by (rule associatedI)
-  moreover from \<open>c dvd d\<close> \<open>d dvd c\<close> have "normalize c = normalize d"
-    by (rule associatedI)
-  ultimately show ?rhs ..
-qed
-
 lemma gcd_add1 [simp]: "gcd (m + n) n = gcd m n"
   by (rule gcdI [symmetric]) (simp_all add: dvd_add_left_iff)
 
@@ -706,285 +631,6 @@ lemma gcd_add2 [simp]: "gcd m (m + n) = gcd m n"
 
 lemma gcd_add_mult: "gcd m (k * m + n) = gcd m n"
   by (rule gcdI [symmetric]) (simp_all add: dvd_add_right_iff)
-
-lemma coprimeI: "(\<And>l. l dvd a \<Longrightarrow> l dvd b \<Longrightarrow> l dvd 1) \<Longrightarrow> gcd a b = 1"
-  by (rule sym, rule gcdI) simp_all
-
-lemma coprime: "gcd a b = 1 \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> is_unit d)"
-  by (auto intro: coprimeI gcd_greatest dvd_gcdD1 dvd_gcdD2)
-
-lemma div_gcd_coprime:
-  assumes nz: "a \<noteq> 0 \<or> b \<noteq> 0"
-  shows "coprime (a div gcd a b) (b div gcd a b)"
-proof -
-  let ?g = "gcd a b"
-  let ?a' = "a div ?g"
-  let ?b' = "b div ?g"
-  let ?g' = "gcd ?a' ?b'"
-  have dvdg: "?g dvd a" "?g dvd b"
-    by simp_all
-  have dvdg': "?g' dvd ?a'" "?g' dvd ?b'"
-    by simp_all
-  from dvdg dvdg' obtain ka kb ka' kb' where
-    kab: "a = ?g * ka" "b = ?g * kb" "?a' = ?g' * ka'" "?b' = ?g' * kb'"
-    unfolding dvd_def by blast
-  from this [symmetric] have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'"
-    by (simp_all add: mult.assoc mult.left_commute [of "gcd a b"])
-  then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
-    by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)] dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
-  have "?g \<noteq> 0"
-    using nz by simp
-  moreover from gcd_greatest [OF dvdgg'] have "?g * ?g' dvd ?g" .
-  ultimately show ?thesis
-    using dvd_times_left_cancel_iff [of "gcd a b" _ 1] by simp
-qed
-
-lemma divides_mult:
-  assumes "a dvd c" and nr: "b dvd c" and "coprime a b"
-  shows "a * b dvd c"
-proof -
-  from \<open>b dvd c\<close> obtain b' where"c = b * b'" ..
-  with \<open>a dvd c\<close> have "a dvd b' * b"
-    by (simp add: ac_simps)
-  with \<open>coprime a b\<close> have "a dvd b'"
-    by (simp add: coprime_dvd_mult_iff)
-  then obtain a' where "b' = a * a'" ..
-  with \<open>c = b * b'\<close> have "c = (a * b) * a'"
-    by (simp add: ac_simps)
-  then show ?thesis ..
-qed
-
-lemma coprime_lmult:
-  assumes dab: "gcd d (a * b) = 1"
-  shows "gcd d a = 1"
-proof (rule coprimeI)
-  fix l
-  assume "l dvd d" and "l dvd a"
-  then have "l dvd a * b"
-    by simp
-  with \<open>l dvd d\<close> and dab show "l dvd 1"
-    by (auto intro: gcd_greatest)
-qed
-
-lemma coprime_rmult:
-  assumes dab: "gcd d (a * b) = 1"
-  shows "gcd d b = 1"
-proof (rule coprimeI)
-  fix l
-  assume "l dvd d" and "l dvd b"
-  then have "l dvd a * b"
-    by simp
-  with \<open>l dvd d\<close> and dab show "l dvd 1"
-    by (auto intro: gcd_greatest)
-qed
-
-lemma coprime_mult:
-  assumes "coprime d a"
-    and "coprime d b"
-  shows "coprime d (a * b)"
-  apply (subst gcd.commute)
-  using assms(1) apply (subst gcd_mult_cancel)
-   apply (subst gcd.commute)
-   apply assumption
-  apply (subst gcd.commute)
-  apply (rule assms(2))
-  done
-
-lemma coprime_mul_eq: "gcd d (a * b) = 1 \<longleftrightarrow> gcd d a = 1 \<and> gcd d b = 1"
-  using coprime_rmult[of d a b] coprime_lmult[of d a b] coprime_mult[of d a b]
-  by blast
-
-lemma coprime_mul_eq':
-  "coprime (a * b) d \<longleftrightarrow> coprime a d \<and> coprime b d"
-  using coprime_mul_eq [of d a b] by (simp add: gcd.commute)
-
-lemma gcd_coprime:
-  assumes c: "gcd a b \<noteq> 0"
-    and a: "a = a' * gcd a b"
-    and b: "b = b' * gcd a b"
-  shows "gcd a' b' = 1"
-proof -
-  from c have "a \<noteq> 0 \<or> b \<noteq> 0"
-    by simp
-  with div_gcd_coprime have "gcd (a div gcd a b) (b div gcd a b) = 1" .
-  also from assms have "a div gcd a b = a'"
-    using dvd_div_eq_mult local.gcd_dvd1 by blast
-  also from assms have "b div gcd a b = b'"
-    using dvd_div_eq_mult local.gcd_dvd1 by blast
-  finally show ?thesis .
-qed
-
-lemma coprime_power:
-  assumes "0 < n"
-  shows "gcd a (b ^ n) = 1 \<longleftrightarrow> gcd a b = 1"
-  using assms
-proof (induct n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  then show ?case
-    by (cases n) (simp_all add: coprime_mul_eq)
-qed
-
-lemma gcd_coprime_exists:
-  assumes "gcd a b \<noteq> 0"
-  shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> gcd a' b' = 1"
-  apply (rule_tac x = "a div gcd a b" in exI)
-  apply (rule_tac x = "b div gcd a b" in exI)
-  using assms
-  apply (auto intro: div_gcd_coprime)
-  done
-
-lemma coprime_exp: "gcd d a = 1 \<Longrightarrow> gcd d (a^n) = 1"
-  by (induct n) (simp_all add: coprime_mult)
-
-lemma coprime_exp_left: "coprime a b \<Longrightarrow> coprime (a ^ n) b"
-  by (induct n) (simp_all add: gcd_mult_cancel)
-
-lemma coprime_exp2:
-  assumes "coprime a b"
-  shows "coprime (a ^ n) (b ^ m)"
-proof (rule coprime_exp_left)
-  from assms show "coprime a (b ^ m)"
-    by (induct m) (simp_all add: gcd_mult_cancel gcd.commute [of a])
-qed
-
-lemma gcd_exp: "gcd (a ^ n) (b ^ n) = gcd a b ^ n"
-proof (cases "a = 0 \<and> b = 0")
-  case True
-  then show ?thesis
-    by (cases n) simp_all
-next
-  case False
-  then have "1 = gcd ((a div gcd a b) ^ n) ((b div gcd a b) ^ n)"
-    using coprime_exp2[OF div_gcd_coprime[of a b], of n n, symmetric] by simp
-  then have "gcd a b ^ n = gcd a b ^ n * \<dots>"
-    by simp
-  also note gcd_mult_distrib
-  also have "unit_factor (gcd a b ^ n) = 1"
-    using False by (auto simp add: unit_factor_power unit_factor_gcd)
-  also have "(gcd a b)^n * (a div gcd a b)^n = a^n"
-    apply (subst ac_simps)
-    apply (subst div_power)
-     apply simp
-    apply (rule dvd_div_mult_self)
-    apply (rule dvd_power_same)
-    apply simp
-    done
-  also have "(gcd a b)^n * (b div gcd a b)^n = b^n"
-    apply (subst ac_simps)
-    apply (subst div_power)
-     apply simp
-    apply (rule dvd_div_mult_self)
-    apply (rule dvd_power_same)
-    apply simp
-    done
-  finally show ?thesis by simp
-qed
-
-lemma coprime_common_divisor: "gcd a b = 1 \<Longrightarrow> a dvd a \<Longrightarrow> a dvd b \<Longrightarrow> is_unit a"
-  apply (subgoal_tac "a dvd gcd a b")
-   apply simp
-  apply (erule (1) gcd_greatest)
-  done
-
-lemma division_decomp:
-  assumes "a dvd b * c"
-  shows "\<exists>b' c'. a = b' * c' \<and> b' dvd b \<and> c' dvd c"
-proof (cases "gcd a b = 0")
-  case True
-  then have "a = 0 \<and> b = 0"
-    by simp
-  then have "a = 0 * c \<and> 0 dvd b \<and> c dvd c"
-    by simp
-  then show ?thesis by blast
-next
-  case False
-  let ?d = "gcd a b"
-  from gcd_coprime_exists [OF False]
-    obtain a' b' where ab': "a = a' * ?d" "b = b' * ?d" "gcd a' b' = 1"
-    by blast
-  from ab'(1) have "a' dvd a"
-    unfolding dvd_def by blast
-  with assms have "a' dvd b * c"
-    using dvd_trans [of a' a "b * c"] by simp
-  from assms ab'(1,2) have "a' * ?d dvd (b' * ?d) * c"
-    by simp
-  then have "?d * a' dvd ?d * (b' * c)"
-    by (simp add: mult_ac)
-  with \<open>?d \<noteq> 0\<close> have "a' dvd b' * c"
-    by simp
-  with coprime_dvd_mult[OF ab'(3)] have "a' dvd c"
-    by (subst (asm) ac_simps) blast
-  with ab'(1) have "a = ?d * a' \<and> ?d dvd b \<and> a' dvd c"
-    by (simp add: mult_ac)
-  then show ?thesis by blast
-qed
-
-lemma pow_divs_pow:
-  assumes ab: "a ^ n dvd b ^ n" and n: "n \<noteq> 0"
-  shows "a dvd b"
-proof (cases "gcd a b = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  let ?d = "gcd a b"
-  from n obtain m where m: "n = Suc m"
-    by (cases n) simp_all
-  from False have zn: "?d ^ n \<noteq> 0"
-    by (rule power_not_zero)
-  from gcd_coprime_exists [OF False]
-  obtain a' b' where ab': "a = a' * ?d" "b = b' * ?d" "gcd a' b' = 1"
-    by blast
-  from ab have "(a' * ?d) ^ n dvd (b' * ?d) ^ n"
-    by (simp add: ab'(1,2)[symmetric])
-  then have "?d^n * a'^n dvd ?d^n * b'^n"
-    by (simp only: power_mult_distrib ac_simps)
-  with zn have "a'^n dvd b'^n"
-    by simp
-  then have "a' dvd b'^n"
-    using dvd_trans[of a' "a'^n" "b'^n"] by (simp add: m)
-  then have "a' dvd b'^m * b'"
-    by (simp add: m ac_simps)
-  with coprime_dvd_mult[OF coprime_exp[OF ab'(3), of m]]
-  have "a' dvd b'" by (subst (asm) ac_simps) blast
-  then have "a' * ?d dvd b' * ?d"
-    by (rule mult_dvd_mono) simp
-  with ab'(1,2) show ?thesis
-    by simp
-qed
-
-lemma pow_divs_eq [simp]: "n \<noteq> 0 \<Longrightarrow> a ^ n dvd b ^ n \<longleftrightarrow> a dvd b"
-  by (auto intro: pow_divs_pow dvd_power_same)
-
-lemma coprime_plus_one [simp]: "gcd (n + 1) n = 1"
-  by (subst add_commute) simp
-
-lemma prod_coprime [rule_format]: "(\<forall>i\<in>A. gcd (f i) a = 1) \<longrightarrow> gcd (\<Prod>i\<in>A. f i) a = 1"
-  by (induct A rule: infinite_finite_induct) (auto simp add: gcd_mult_cancel)
-
-lemma prod_list_coprime: "(\<And>x. x \<in> set xs \<Longrightarrow> coprime x y) \<Longrightarrow> coprime (prod_list xs) y"
-  by (induct xs) (simp_all add: gcd_mult_cancel)
-
-lemma coprime_divisors:
-  assumes "d dvd a" "e dvd b" "gcd a b = 1"
-  shows "gcd d e = 1"
-proof -
-  from assms obtain k l where "a = d * k" "b = e * l"
-    unfolding dvd_def by blast
-  with assms have "gcd (d * k) (e * l) = 1"
-    by simp
-  then have "gcd (d * k) e = 1"
-    by (rule coprime_lmult)
-  also have "gcd (d * k) e = gcd e (d * k)"
-    by (simp add: ac_simps)
-  finally have "gcd e d = 1"
-    by (rule coprime_lmult)
-  then show ?thesis
-    by (simp add: ac_simps)
-qed
 
 lemma lcm_gcd_prod: "lcm a b * gcd a b = normalize (a * b)"
   by (simp add: lcm_gcd)
@@ -1005,9 +651,6 @@ lemmas lcm_0 = lcm_0_right
 lemma lcm_unique:
   "a dvd d \<and> b dvd d \<and> normalize d = d \<and> (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by rule (auto intro: lcmI simp: lcm_least lcm_eq_0_iff)
-
-lemma lcm_coprime: "gcd a b = 1 \<Longrightarrow> lcm a b = normalize (a * b)"
-  by (subst lcm_gcd) simp
 
 lemma lcm_proj1_if_dvd: "b dvd a \<Longrightarrow> lcm a b = normalize a"
   apply (cases "a = 0")
@@ -1058,7 +701,7 @@ proof-
 qed
 
 lemma dvd_productE:
-  assumes "p dvd (a * b)"
+  assumes "p dvd a * b"
   obtains x y where "p = x * y" "x dvd a" "y dvd b"
 proof (cases "a = 0")
   case True
@@ -1076,31 +719,10 @@ next
   ultimately show ?thesis by (rule that)
 qed
 
-lemma coprime_crossproduct':
-  fixes a b c d
-  assumes "b \<noteq> 0"
-  assumes unit_factors: "unit_factor b = unit_factor d"
-  assumes coprime: "coprime a b" "coprime c d"
-  shows "a * d = b * c \<longleftrightarrow> a = c \<and> b = d"
-proof safe
-  assume eq: "a * d = b * c"
-  hence "normalize a * normalize d = normalize c * normalize b"
-    by (simp only: normalize_mult [symmetric] mult_ac)
-  with coprime have "normalize b = normalize d"
-    by (subst (asm) coprime_crossproduct) simp_all
-  from this and unit_factors show "b = d"
-    by (rule normalize_unit_factor_eqI)
-  from eq have "a * d = c * d" by (simp only: \<open>b = d\<close> mult_ac)
-  with \<open>b \<noteq> 0\<close> \<open>b = d\<close> show "a = c" by simp
-qed (simp_all add: mult_ac)
-
 end
 
 class ring_gcd = comm_ring_1 + semiring_gcd
 begin
-
-lemma coprime_minus_one: "coprime (n - 1) n"
-  using coprime_plus_one[of "n - 1"] by (simp add: gcd.commute)
 
 lemma gcd_neg1 [simp]: "gcd (-a) b = gcd a b"
   by (rule sym, rule gcdI) (simp_all add: gcd_greatest)
@@ -1471,36 +1093,6 @@ lemma Lcm_singleton [simp]: "Lcm {a} = normalize a"
 lemma Lcm_2 [simp]: "Lcm {a, b} = lcm a b"
   by simp
 
-lemma Lcm_coprime:
-  assumes "finite A"
-    and "A \<noteq> {}"
-    and "\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> gcd a b = 1"
-  shows "Lcm A = normalize (\<Prod>A)"
-  using assms
-proof (induct rule: finite_ne_induct)
-  case singleton
-  then show ?case by simp
-next
-  case (insert a A)
-  have "Lcm (insert a A) = lcm a (Lcm A)"
-    by simp
-  also from insert have "Lcm A = normalize (\<Prod>A)"
-    by blast
-  also have "lcm a \<dots> = lcm a (\<Prod>A)"
-    by (cases "\<Prod>A = 0") (simp_all add: lcm_div_unit2)
-  also from insert have "gcd a (\<Prod>A) = 1"
-    by (subst gcd.commute, intro prod_coprime) auto
-  with insert have "lcm a (\<Prod>A) = normalize (\<Prod>(insert a A))"
-    by (simp add: lcm_coprime)
-  finally show ?case .
-qed
-
-lemma Lcm_coprime':
-  "card A \<noteq> 0 \<Longrightarrow>
-    (\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> gcd a b = 1) \<Longrightarrow>
-    Lcm A = normalize (\<Prod>A)"
-  by (rule Lcm_coprime) (simp_all add: card_eq_0_iff)
-
 lemma Gcd_1: "1 \<in> A \<Longrightarrow> Gcd A = 1"
   by (auto intro!: Gcd_eq_1_I)
 
@@ -1677,6 +1269,465 @@ lemma Lcm_set_eq_fold [code_unfold]:
 
 end
 
+
+subsection \<open>Coprimality\<close>
+
+context semiring_gcd
+begin
+
+lemma coprime_imp_gcd_eq_1 [simp]:
+  "gcd a b = 1" if "coprime a b"
+proof -
+  define t r s where "t = gcd a b" and "r = a div t" and "s = b div t"
+  then have "a = t * r" and "b = t * s"
+    by simp_all
+  with that have "coprime (t * r) (t * s)"
+    by simp
+  then show ?thesis
+    by (simp add: t_def)
+qed
+
+lemma gcd_eq_1_imp_coprime:
+  "coprime a b" if "gcd a b = 1"
+proof (rule coprimeI)
+  fix c
+  assume "c dvd a" and "c dvd b"
+  then have "c dvd gcd a b"
+    by (rule gcd_greatest)
+  with that show "is_unit c"
+    by simp
+qed
+
+lemma coprime_iff_gcd_eq_1 [presburger, code]:
+  "coprime a b \<longleftrightarrow> gcd a b = 1"
+  by rule (simp_all add: gcd_eq_1_imp_coprime)
+
+lemma is_unit_gcd [simp]:
+  "is_unit (gcd a b) \<longleftrightarrow> coprime a b"
+  by (simp add: coprime_iff_gcd_eq_1)
+
+lemma coprime_add_one_left [simp]: "coprime (a + 1) a"
+  by (simp add: gcd_eq_1_imp_coprime ac_simps)
+
+lemma coprime_add_one_right [simp]: "coprime a (a + 1)"
+  using coprime_add_one_left [of a] by (simp add: ac_simps)
+
+lemma coprime_mult_left_iff [simp]:
+  "coprime (a * b) c \<longleftrightarrow> coprime a c \<and> coprime b c"
+proof
+  assume "coprime (a * b) c"
+  with coprime_common_divisor [of "a * b" c]
+  have *: "is_unit d" if "d dvd a * b" and "d dvd c" for d
+    using that by blast
+  have "coprime a c"
+    by (rule coprimeI, rule *) simp_all
+  moreover have "coprime b c"
+    by (rule coprimeI, rule *) simp_all
+  ultimately show "coprime a c \<and> coprime b c" ..
+next
+  assume "coprime a c \<and> coprime b c"
+  then have "coprime a c" "coprime b c"
+    by simp_all
+  show "coprime (a * b) c"
+  proof (rule coprimeI)
+    fix d
+    assume "d dvd a * b"
+    then obtain r s where d: "d = r * s" "r dvd a" "s dvd b"
+      by (rule dvd_productE)
+    assume "d dvd c"
+    with d have "r * s dvd c"
+      by simp
+    then have "r dvd c" "s dvd c"
+      by (auto intro: dvd_mult_left dvd_mult_right)
+    from \<open>coprime a c\<close> \<open>r dvd a\<close> \<open>r dvd c\<close>
+    have "is_unit r"
+      by (rule coprime_common_divisor)
+    moreover from \<open>coprime b c\<close> \<open>s dvd b\<close> \<open>s dvd c\<close>
+    have "is_unit s"
+      by (rule coprime_common_divisor)
+    ultimately show "is_unit d"
+      by (simp add: d is_unit_mult_iff)
+  qed
+qed
+
+lemma coprime_mult_right_iff [simp]:
+  "coprime c (a * b) \<longleftrightarrow> coprime c a \<and> coprime c b"
+  using coprime_mult_left_iff [of a b c] by (simp add: ac_simps)
+
+lemma coprime_power_left_iff [simp]:
+  "coprime (a ^ n) b \<longleftrightarrow> coprime a b \<or> n = 0"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have "n > 0"
+    by simp
+  then show ?thesis
+    by (induction n rule: nat_induct_non_zero) simp_all
+qed
+
+lemma coprime_power_right_iff [simp]:
+  "coprime a (b ^ n) \<longleftrightarrow> coprime a b \<or> n = 0"
+  using coprime_power_left_iff [of b n a] by (simp add: ac_simps)
+
+lemma prod_coprime_left:
+  "coprime (\<Prod>i\<in>A. f i) a" if "\<And>i. i \<in> A \<Longrightarrow> coprime (f i) a"
+  using that by (induct A rule: infinite_finite_induct) simp_all
+
+lemma prod_coprime_right:
+  "coprime a (\<Prod>i\<in>A. f i)" if "\<And>i. i \<in> A \<Longrightarrow> coprime a (f i)"
+  using that prod_coprime_left [of A f a] by (simp add: ac_simps)
+
+lemma prod_list_coprime_left:
+  "coprime (prod_list xs) a" if "\<And>x. x \<in> set xs \<Longrightarrow> coprime x a"
+  using that by (induct xs) simp_all
+
+lemma prod_list_coprime_right:
+  "coprime a (prod_list xs)" if "\<And>x. x \<in> set xs \<Longrightarrow> coprime a x"
+  using that prod_list_coprime_left [of xs a] by (simp add: ac_simps)
+
+lemma coprime_dvd_mult_left_iff:
+  "a dvd b * c \<longleftrightarrow> a dvd b" if "coprime a c"
+proof
+  assume "a dvd b"
+  then show "a dvd b * c"
+    by simp
+next
+  assume "a dvd b * c"
+  show "a dvd b"
+  proof (cases "b = 0")
+    case True
+    then show ?thesis
+      by simp
+  next
+    case False
+    then have unit: "is_unit (unit_factor b)"
+      by simp
+    from \<open>coprime a c\<close> mult_gcd_left [of b a c]
+    have "gcd (b * a) (b * c) * unit_factor b = b"
+      by (simp add: ac_simps)
+    moreover from \<open>a dvd b * c\<close>
+    have "a dvd gcd (b * a) (b * c) * unit_factor b"
+      by (simp add: dvd_mult_unit_iff unit)
+    ultimately show ?thesis
+      by simp
+  qed
+qed
+
+lemma coprime_dvd_mult_right_iff:
+  "a dvd c * b \<longleftrightarrow> a dvd b" if "coprime a c"
+  using that coprime_dvd_mult_left_iff [of a c b] by (simp add: ac_simps)
+
+lemma divides_mult:
+  "a * b dvd c" if "a dvd c" and "b dvd c" and "coprime a b"
+proof -
+  from \<open>b dvd c\<close> obtain b' where "c = b * b'" ..
+  with \<open>a dvd c\<close> have "a dvd b' * b"
+    by (simp add: ac_simps)
+  with \<open>coprime a b\<close> have "a dvd b'"
+    by (simp add: coprime_dvd_mult_left_iff)
+  then obtain a' where "b' = a * a'" ..
+  with \<open>c = b * b'\<close> have "c = (a * b) * a'"
+    by (simp add: ac_simps)
+  then show ?thesis ..
+qed
+
+lemma div_gcd_coprime:
+  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
+  shows "coprime (a div gcd a b) (b div gcd a b)"
+proof -
+  let ?g = "gcd a b"
+  let ?a' = "a div ?g"
+  let ?b' = "b div ?g"
+  let ?g' = "gcd ?a' ?b'"
+  have dvdg: "?g dvd a" "?g dvd b"
+    by simp_all
+  have dvdg': "?g' dvd ?a'" "?g' dvd ?b'"
+    by simp_all
+  from dvdg dvdg' obtain ka kb ka' kb' where
+    kab: "a = ?g * ka" "b = ?g * kb" "?a' = ?g' * ka'" "?b' = ?g' * kb'"
+    unfolding dvd_def by blast
+  from this [symmetric] have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'"
+    by (simp_all add: mult.assoc mult.left_commute [of "gcd a b"])
+  then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
+    by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)] dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
+  have "?g \<noteq> 0"
+    using assms by simp
+  moreover from gcd_greatest [OF dvdgg'] have "?g * ?g' dvd ?g" .
+  ultimately show ?thesis
+    using dvd_times_left_cancel_iff [of "gcd a b" _ 1]
+    by simp (simp only: coprime_iff_gcd_eq_1)
+qed
+
+lemma gcd_coprime:
+  assumes c: "gcd a b \<noteq> 0"
+    and a: "a = a' * gcd a b"
+    and b: "b = b' * gcd a b"
+  shows "coprime a' b'"
+proof -
+  from c have "a \<noteq> 0 \<or> b \<noteq> 0"
+    by simp
+  with div_gcd_coprime have "coprime (a div gcd a b) (b div gcd a b)" .
+  also from assms have "a div gcd a b = a'"
+    using dvd_div_eq_mult local.gcd_dvd1 by blast
+  also from assms have "b div gcd a b = b'"
+    using dvd_div_eq_mult local.gcd_dvd1 by blast
+  finally show ?thesis .
+qed
+
+lemma gcd_coprime_exists:
+  assumes "gcd a b \<noteq> 0"
+  shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> coprime a' b'"
+  apply (rule_tac x = "a div gcd a b" in exI)
+  apply (rule_tac x = "b div gcd a b" in exI)
+  using assms
+  apply (auto intro: div_gcd_coprime)
+  done
+
+lemma pow_divides_pow_iff [simp]:
+  "a ^ n dvd b ^ n \<longleftrightarrow> a dvd b" if "n > 0"
+proof (cases "gcd a b = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  show ?thesis
+  proof
+    let ?d = "gcd a b"
+    from \<open>n > 0\<close> obtain m where m: "n = Suc m"
+      by (cases n) simp_all
+    from False have zn: "?d ^ n \<noteq> 0"
+      by (rule power_not_zero)
+    from gcd_coprime_exists [OF False]
+    obtain a' b' where ab': "a = a' * ?d" "b = b' * ?d" "coprime a' b'"
+      by blast
+    assume "a ^ n dvd b ^ n"
+    then have "(a' * ?d) ^ n dvd (b' * ?d) ^ n"
+      by (simp add: ab'(1,2)[symmetric])
+    then have "?d^n * a'^n dvd ?d^n * b'^n"
+      by (simp only: power_mult_distrib ac_simps)
+    with zn have "a' ^ n dvd b' ^ n"
+      by simp
+    then have "a' dvd b' ^ n"
+      using dvd_trans[of a' "a'^n" "b'^n"] by (simp add: m)
+    then have "a' dvd b' ^ m * b'"
+      by (simp add: m ac_simps)
+    moreover have "coprime a' (b' ^ n)"
+      using \<open>coprime a' b'\<close> by simp
+    then have "a' dvd b'"
+      using \<open>a' dvd b' ^ n\<close> coprime_dvd_mult_left_iff dvd_mult by blast
+    then have "a' * ?d dvd b' * ?d"
+      by (rule mult_dvd_mono) simp
+    with ab'(1,2) show "a dvd b"
+      by simp
+  next
+    assume "a dvd b"
+    with \<open>n > 0\<close> show "a ^ n dvd b ^ n"
+      by (induction rule: nat_induct_non_zero)
+        (simp_all add: mult_dvd_mono)
+  qed
+qed
+
+lemma coprime_crossproduct:
+  fixes a b c d :: 'a
+  assumes "coprime a d" and "coprime b c"
+  shows "normalize a * normalize c = normalize b * normalize d \<longleftrightarrow>
+    normalize a = normalize b \<and> normalize c = normalize d"
+    (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?rhs
+  then show ?lhs by simp
+next
+  assume ?lhs
+  from \<open>?lhs\<close> have "normalize a dvd normalize b * normalize d"
+    by (auto intro: dvdI dest: sym)
+  with \<open>coprime a d\<close> have "a dvd b"
+    by (simp add: coprime_dvd_mult_left_iff normalize_mult [symmetric])
+  from \<open>?lhs\<close> have "normalize b dvd normalize a * normalize c"
+    by (auto intro: dvdI dest: sym)
+  with \<open>coprime b c\<close> have "b dvd a"
+    by (simp add: coprime_dvd_mult_left_iff normalize_mult [symmetric])
+  from \<open>?lhs\<close> have "normalize c dvd normalize d * normalize b"
+    by (auto intro: dvdI dest: sym simp add: mult.commute)
+  with \<open>coprime b c\<close> have "c dvd d"
+    by (simp add: coprime_dvd_mult_left_iff coprime_commute normalize_mult [symmetric])
+  from \<open>?lhs\<close> have "normalize d dvd normalize c * normalize a"
+    by (auto intro: dvdI dest: sym simp add: mult.commute)
+  with \<open>coprime a d\<close> have "d dvd c"
+    by (simp add: coprime_dvd_mult_left_iff coprime_commute normalize_mult [symmetric])
+  from \<open>a dvd b\<close> \<open>b dvd a\<close> have "normalize a = normalize b"
+    by (rule associatedI)
+  moreover from \<open>c dvd d\<close> \<open>d dvd c\<close> have "normalize c = normalize d"
+    by (rule associatedI)
+  ultimately show ?rhs ..
+qed
+
+lemma coprime_crossproduct':
+  fixes a b c d
+  assumes "b \<noteq> 0"
+  assumes unit_factors: "unit_factor b = unit_factor d"
+  assumes coprime: "coprime a b" "coprime c d"
+  shows "a * d = b * c \<longleftrightarrow> a = c \<and> b = d"
+proof safe
+  assume eq: "a * d = b * c"
+  hence "normalize a * normalize d = normalize c * normalize b"
+    by (simp only: normalize_mult [symmetric] mult_ac)
+  with coprime have "normalize b = normalize d"
+    by (subst (asm) coprime_crossproduct) simp_all
+  from this and unit_factors show "b = d"
+    by (rule normalize_unit_factor_eqI)
+  from eq have "a * d = c * d" by (simp only: \<open>b = d\<close> mult_ac)
+  with \<open>b \<noteq> 0\<close> \<open>b = d\<close> show "a = c" by simp
+qed (simp_all add: mult_ac)
+
+lemma gcd_mult_left_left_cancel:
+  "gcd (c * a) b = gcd a b" if "coprime b c"
+proof -
+  have "coprime (gcd b (a * c)) c"
+    by (rule coprimeI) (auto intro: that coprime_common_divisor)
+  then have "gcd b (a * c) dvd a"
+    using coprime_dvd_mult_left_iff [of "gcd b (a * c)" c a]
+    by simp
+  then show ?thesis
+    by (auto intro: associated_eqI simp add: ac_simps)
+qed
+
+lemma gcd_mult_left_right_cancel:
+  "gcd (a * c) b = gcd a b" if "coprime b c"
+  using that gcd_mult_left_left_cancel [of b c a]
+  by (simp add: ac_simps)
+
+lemma gcd_mult_right_left_cancel:
+  "gcd a (c * b) = gcd a b" if "coprime a c"
+  using that gcd_mult_left_left_cancel [of a c b]
+  by (simp add: ac_simps)
+
+lemma gcd_mult_right_right_cancel:
+  "gcd a (b * c) = gcd a b" if "coprime a c"
+  using that gcd_mult_right_left_cancel [of a c b]
+  by (simp add: ac_simps)
+
+lemma gcd_exp [simp]:
+  "gcd (a ^ n) (b ^ n) = gcd a b ^ n"
+proof (cases "a = 0 \<and> b = 0 \<or> n = 0")
+  case True
+  then show ?thesis
+    by (cases n) simp_all
+next
+  case False
+  then have "coprime (a div gcd a b) (b div gcd a b)" and "n > 0"
+    by (auto intro: div_gcd_coprime)
+  then have "coprime ((a div gcd a b) ^ n) ((b div gcd a b) ^ n)"
+    by simp
+  then have "1 = gcd ((a div gcd a b) ^ n) ((b div gcd a b) ^ n)"
+    by simp
+  then have "gcd a b ^ n = gcd a b ^ n * \<dots>"
+    by simp
+  also note gcd_mult_distrib
+  also have "unit_factor (gcd a b ^ n) = 1"
+    using False by (auto simp add: unit_factor_power unit_factor_gcd)
+  also have "(gcd a b) ^ n * (a div gcd a b) ^ n = a ^ n"
+    by (simp add: ac_simps div_power dvd_power_same)
+  also have "(gcd a b) ^ n * (b div gcd a b) ^ n = b ^ n"
+    by (simp add: ac_simps div_power dvd_power_same)
+  finally show ?thesis by simp
+qed
+
+lemma division_decomp:
+  assumes "a dvd b * c"
+  shows "\<exists>b' c'. a = b' * c' \<and> b' dvd b \<and> c' dvd c"
+proof (cases "gcd a b = 0")
+  case True
+  then have "a = 0 \<and> b = 0"
+    by simp
+  then have "a = 0 * c \<and> 0 dvd b \<and> c dvd c"
+    by simp
+  then show ?thesis by blast
+next
+  case False
+  let ?d = "gcd a b"
+  from gcd_coprime_exists [OF False]
+    obtain a' b' where ab': "a = a' * ?d" "b = b' * ?d" "coprime a' b'"
+    by blast
+  from ab'(1) have "a' dvd a" ..
+  with assms have "a' dvd b * c"
+    using dvd_trans [of a' a "b * c"] by simp
+  from assms ab'(1,2) have "a' * ?d dvd (b' * ?d) * c"
+    by simp
+  then have "?d * a' dvd ?d * (b' * c)"
+    by (simp add: mult_ac)
+  with \<open>?d \<noteq> 0\<close> have "a' dvd b' * c"
+    by simp
+  then have "a' dvd c"
+    using \<open>coprime a' b'\<close> by (simp add: coprime_dvd_mult_right_iff)
+  with ab'(1) have "a = ?d * a' \<and> ?d dvd b \<and> a' dvd c"
+    by (simp add: ac_simps)
+  then show ?thesis by blast
+qed
+
+lemma lcm_coprime: "coprime a b \<Longrightarrow> lcm a b = normalize (a * b)"
+  by (subst lcm_gcd) simp
+
+end
+
+context ring_gcd
+begin
+
+lemma coprime_minus_left_iff [simp]:
+  "coprime (- a) b \<longleftrightarrow> coprime a b"
+  by (rule; rule coprimeI) (auto intro: coprime_common_divisor)
+
+lemma coprime_minus_right_iff [simp]:
+  "coprime a (- b) \<longleftrightarrow> coprime a b"
+  using coprime_minus_left_iff [of b a] by (simp add: ac_simps)
+
+lemma coprime_diff_one_left [simp]: "coprime (a - 1) a"
+  using coprime_add_one_right [of "a - 1"] by simp
+
+lemma coprime_doff_one_right [simp]: "coprime a (a - 1)"
+  using coprime_diff_one_left [of a] by (simp add: ac_simps)
+
+end
+
+context semiring_Gcd
+begin
+
+lemma Lcm_coprime:
+  assumes "finite A"
+    and "A \<noteq> {}"
+    and "\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> coprime a b"
+  shows "Lcm A = normalize (\<Prod>A)"
+  using assms
+proof (induct rule: finite_ne_induct)
+  case singleton
+  then show ?case by simp
+next
+  case (insert a A)
+  have "Lcm (insert a A) = lcm a (Lcm A)"
+    by simp
+  also from insert have "Lcm A = normalize (\<Prod>A)"
+    by blast
+  also have "lcm a \<dots> = lcm a (\<Prod>A)"
+    by (cases "\<Prod>A = 0") (simp_all add: lcm_div_unit2)
+  also from insert have "coprime a (\<Prod>A)"
+    by (subst coprime_commute, intro prod_coprime_left) auto
+  with insert have "lcm a (\<Prod>A) = normalize (\<Prod>(insert a A))"
+    by (simp add: lcm_coprime)
+  finally show ?case .
+qed
+
+lemma Lcm_coprime':
+  "card A \<noteq> 0 \<Longrightarrow>
+    (\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> coprime a b) \<Longrightarrow>
+    Lcm A = normalize (\<Prod>A)"
+  by (rule Lcm_coprime) (simp_all add: card_eq_0_iff)
+
+end
+
+
 subsection \<open>GCD and LCM on @{typ nat} and @{typ int}\<close>
 
 instantiation nat :: gcd
@@ -1715,9 +1766,6 @@ lemma gcd_nat_induct:
   using assms
    apply simp_all
   done
-
-
-text \<open>Specific to \<open>int\<close>.\<close>
 
 lemma gcd_eq_int_iff: "gcd k l = int n \<longleftrightarrow> gcd (nat \<bar>k\<bar>) (nat \<bar>l\<bar>) = n"
   by (simp add: gcd_int_def)
@@ -1949,19 +1997,6 @@ lemma gcd_mult_distrib_int: "\<bar>k\<bar> * gcd m n = gcd (k * m) (k * n)"
   for k m n :: int
   by (simp add: gcd_int_def abs_mult nat_mult_distrib gcd_mult_distrib_nat [symmetric])
 
-lemma coprime_crossproduct_nat:
-  fixes a b c d :: nat
-  assumes "coprime a d" and "coprime b c"
-  shows "a * c = b * d \<longleftrightarrow> a = b \<and> c = d"
-  using assms coprime_crossproduct [of a d b c] by simp
-
-lemma coprime_crossproduct_int:
-  fixes a b c d :: int
-  assumes "coprime a d" and "coprime b c"
-  shows "\<bar>a\<bar> * \<bar>c\<bar> = \<bar>b\<bar> * \<bar>d\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>b\<bar> \<and> \<bar>c\<bar> = \<bar>d\<bar>"
-  using assms coprime_crossproduct [of a d b c] by simp
-
-
 text \<open>\medskip Addition laws.\<close>
 
 (* TODO: add the other variations? *)
@@ -2064,53 +2099,33 @@ lemma gcd_code_int [code]: "gcd k l = \<bar>if l = 0 then k else gcd l (\<bar>k\
   for k l :: int
   by (simp add: gcd_int_def nat_mod_distrib gcd_non_0_nat)
 
+lemma coprime_Suc_left_nat [simp]:
+  "coprime (Suc n) n"
+  using coprime_add_one_left [of n] by simp
 
-subsection \<open>Coprimality\<close>
+lemma coprime_Suc_right_nat [simp]:
+  "coprime n (Suc n)"
+  using coprime_Suc_left_nat [of n] by (simp add: ac_simps)
 
-lemma coprime_nat: "coprime a b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
-  for a b :: nat
-  using coprime [of a b] by simp
+lemma coprime_diff_one_left_nat [simp]:
+  "coprime (n - 1) n" if "n > 0" for n :: nat
+  using that coprime_Suc_right_nat [of "n - 1"] by simp
 
-lemma coprime_Suc_0_nat: "coprime a b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = Suc 0)"
-  for a b :: nat
-  using coprime_nat by simp
+lemma coprime_diff_one_right_nat [simp]:
+  "coprime n (n - 1)" if "n > 0" for n :: nat
+  using that coprime_diff_one_left_nat [of n] by (simp add: ac_simps)
 
-lemma coprime_int: "coprime a b \<longleftrightarrow> (\<forall>d. d \<ge> 0 \<and> d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
-  for a b :: int
-  using gcd_unique_int [of 1 a b]
-  apply clarsimp
-  apply (erule subst)
-  apply (rule iffI)
-   apply force
-  using abs_dvd_iff abs_ge_zero apply blast
-  done
+lemma coprime_crossproduct_nat:
+  fixes a b c d :: nat
+  assumes "coprime a d" and "coprime b c"
+  shows "a * c = b * d \<longleftrightarrow> a = b \<and> c = d"
+  using assms coprime_crossproduct [of a d b c] by simp
 
-lemma pow_divides_eq_nat [simp]: "n > 0 \<Longrightarrow> a^n dvd b^n \<longleftrightarrow> a dvd b"
-  for a b n :: nat
-  using pow_divs_eq[of n] by simp
-
-lemma coprime_Suc_nat [simp]: "coprime (Suc n) n"
-  using coprime_plus_one[of n] by simp
-
-lemma coprime_minus_one_nat: "n \<noteq> 0 \<Longrightarrow> coprime (n - 1) n"
-  for n :: nat
-  using coprime_Suc_nat [of "n - 1"] gcd.commute [of "n - 1" n] by auto
-
-lemma coprime_common_divisor_nat: "coprime a b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> x = 1"
-  for a b :: nat
-  by (metis gcd_greatest_iff nat_dvd_1_iff_1)
-
-lemma coprime_common_divisor_int: "coprime a b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> \<bar>x\<bar> = 1"
-  for a b :: int
-  using gcd_greatest_iff [of x a b] by auto
-
-lemma invertible_coprime_nat: "x * y mod m = 1 \<Longrightarrow> coprime x m"
-  for m x y :: nat
-  by (metis coprime_lmult gcd_1_nat gcd.commute gcd_red_nat)
-
-lemma invertible_coprime_int: "x * y mod m = 1 \<Longrightarrow> coprime x m"
-  for m x y :: int
-  by (metis coprime_lmult gcd_1_int gcd.commute gcd_red_int)
+lemma coprime_crossproduct_int:
+  fixes a b c d :: int
+  assumes "coprime a d" and "coprime b c"
+  shows "\<bar>a\<bar> * \<bar>c\<bar> = \<bar>b\<bar> * \<bar>d\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>b\<bar> \<and> \<bar>c\<bar> = \<bar>d\<bar>"
+  using assms coprime_crossproduct [of a d b c] by simp
 
 
 subsection \<open>Bezout's theorem\<close>
@@ -2741,14 +2756,6 @@ lemma dvd_lcm_I1_int [simp]: "i dvd m \<Longrightarrow> i dvd lcm m n"
 lemma dvd_lcm_I2_int [simp]: "i dvd n \<Longrightarrow> i dvd lcm m n"
   for i m n :: int
   by (fact dvd_lcmI2)
-
-lemma coprime_exp2_nat [intro]: "coprime a b \<Longrightarrow> coprime (a^n) (b^m)"
-  for a b :: nat
-  by (fact coprime_exp2)
-
-lemma coprime_exp2_int [intro]: "coprime a b \<Longrightarrow> coprime (a^n) (b^m)"
-  for a b :: int
-  by (fact coprime_exp2)
 
 lemmas Gcd_dvd_nat [simp] = Gcd_dvd [where ?'a = nat]
 lemmas Gcd_dvd_int [simp] = Gcd_dvd [where ?'a = int]

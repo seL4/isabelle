@@ -125,6 +125,15 @@ lemma unit_imp_mod_eq_0:
   "a mod b = 0" if "is_unit b"
   using that by (simp add: mod_eq_0_iff_dvd unit_imp_dvd)
 
+lemma coprime_mod_left_iff [simp]:
+  "coprime (a mod b) b \<longleftrightarrow> coprime a b" if "b \<noteq> 0"
+  by (rule; rule coprimeI)
+    (use that in \<open>auto dest!: dvd_mod_imp_dvd coprime_common_divisor simp add: dvd_mod_iff\<close>)
+
+lemma coprime_mod_right_iff [simp]:
+  "coprime a (b mod a) \<longleftrightarrow> coprime a b" if "a \<noteq> 0"
+  using that coprime_mod_left_iff [of a b] by (simp add: ac_simps)
+
 end
 
 class euclidean_ring = idom_modulo + euclidean_semiring
@@ -533,6 +542,10 @@ proof -
   with that show thesis .
 qed
 
+lemma invertible_coprime:
+  "coprime a c" if "a * b mod c = 1"
+  by (rule coprimeI) (use that dvd_mod_iff [of _ c "a * b"] in auto)
+
 end
 
   
@@ -771,6 +784,18 @@ instance
   by standard (auto simp add: divide_nat_def ac_simps unit_factor_nat_def intro: Max_eqI)
 
 end
+
+lemma coprime_Suc_0_left [simp]:
+  "coprime (Suc 0) n"
+  using coprime_1_left [of n] by simp
+
+lemma coprime_Suc_0_right [simp]:
+  "coprime n (Suc 0)"
+  using coprime_1_right [of n] by simp
+
+lemma coprime_common_divisor_nat: "coprime a b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> x = 1"
+  for a b :: nat
+  by (drule coprime_common_divisor [of _ _ x]) simp_all
 
 instantiation nat :: unique_euclidean_semiring
 begin
@@ -1421,6 +1446,64 @@ next
 qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
+
+lemma coprime_int_iff [simp]:
+  "coprime (int m) (int n) \<longleftrightarrow> coprime m n" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  show ?Q
+  proof (rule coprimeI)
+    fix q
+    assume "q dvd m" "q dvd n"
+    then have "int q dvd int m" "int q dvd int n"
+      by (simp_all add: zdvd_int)
+    with \<open>?P\<close> have "is_unit (int q)"
+      by (rule coprime_common_divisor)
+    then show "is_unit q"
+      by simp
+  qed
+next
+  assume ?Q
+  show ?P
+  proof (rule coprimeI)
+    fix k
+    assume "k dvd int m" "k dvd int n"
+    then have "nat \<bar>k\<bar> dvd m" "nat \<bar>k\<bar> dvd n"
+      by (simp_all add: zdvd_int)
+    with \<open>?Q\<close> have "is_unit (nat \<bar>k\<bar>)"
+      by (rule coprime_common_divisor)
+    then show "is_unit k"
+      by simp
+  qed
+qed
+
+lemma coprime_abs_left_iff [simp]:
+  "coprime \<bar>k\<bar> l \<longleftrightarrow> coprime k l" for k l :: int
+  using coprime_normalize_left_iff [of k l] by simp
+
+lemma coprime_abs_right_iff [simp]:
+  "coprime k \<bar>l\<bar> \<longleftrightarrow> coprime k l" for k l :: int
+  using coprime_abs_left_iff [of l k] by (simp add: ac_simps)
+
+lemma coprime_nat_abs_left_iff [simp]:
+  "coprime (nat \<bar>k\<bar>) n \<longleftrightarrow> coprime k (int n)"
+proof -
+  define m where "m = nat \<bar>k\<bar>"
+  then have "\<bar>k\<bar> = int m"
+    by simp
+  moreover have "coprime k (int n) \<longleftrightarrow> coprime \<bar>k\<bar> (int n)"
+    by simp
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma coprime_nat_abs_right_iff [simp]:
+  "coprime n (nat \<bar>k\<bar>) \<longleftrightarrow> coprime (int n) k"
+  using coprime_nat_abs_left_iff [of k n] by (simp add: ac_simps)
+
+lemma coprime_common_divisor_int: "coprime a b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> \<bar>x\<bar> = 1"
+  for a b :: int
+  by (drule coprime_common_divisor [of _ _ x]) simp_all
 
 instantiation int :: idom_modulo
 begin

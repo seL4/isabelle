@@ -137,7 +137,7 @@ lemma lcm_eq_nitpick_lcm [nitpick_unfold]:
   by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 definition Frac :: "int \<times> int \<Rightarrow> bool" where
-  "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> gcd a b = 1"
+  "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> coprime a b"
 
 consts
   Abs_Frac :: "int \<times> int \<Rightarrow> 'a"

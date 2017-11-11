@@ -171,7 +171,7 @@ proof -
   hence "fract_poly (smult a q) = fract_poly (smult b p)" by (simp del: fract_poly_eq_iff)
   hence "smult b p = smult a q" by (simp only: fract_poly_eq_iff)
   moreover have "c = to_fract a / to_fract b" "coprime b a" "normalize b = b"
-    by (simp_all add: a_def b_def coprime_quot_of_fract gcd.commute
+    by (simp_all add: a_def b_def coprime_quot_of_fract [of c] ac_simps
           normalize_snd_quot_of_fract Fract_conv_to_fract [symmetric])
   ultimately show ?thesis by (intro that[of a b])
 qed
@@ -513,9 +513,12 @@ proof safe
    from fract_poly_smult_eqE[OF this] guess a b . note ab = this
    hence "content (smult a p) = content (smult b (q' * r'))" by (simp only:)
    with ab(4) have a: "a = normalize b" by (simp add: content_mult q r)
-   hence "normalize b = gcd a b" by simp
-   also from ab(3) have "\<dots> = 1" .
-   finally have "a = 1" "is_unit b" by (simp_all add: a normalize_1_iff)
+   then have "normalize b = gcd a b"
+     by simp
+   with \<open>coprime a b\<close> have "normalize b = 1"
+     by simp
+   then have "a = 1" "is_unit b"
+     by (simp_all add: a normalize_1_iff)
    
    note eq
    also from ab(1) \<open>a = 1\<close> have "cr * cg = to_fract b" by simp
@@ -676,7 +679,8 @@ proof -
     from fract_poly_smult_eqE[OF eq] guess a b . note ab = this
     from ab(2) have "content (smult a p) = content (smult b e)" by (simp only: )
     with assms content_e have "a = normalize b" by (simp add: ab(4))
-    with ab have ab': "a = 1" "is_unit b" by (simp_all add: normalize_1_iff)
+    with ab have ab': "a = 1" "is_unit b"
+      by (simp_all add: normalize_1_iff)
     with ab ab' have "c' = to_fract b" by auto
     from this and \<open>is_unit b\<close> show ?thesis by (rule that)
   qed

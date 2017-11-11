@@ -2155,6 +2155,42 @@ lemma image_replicate_mset [simp]:
   "image_mset f (replicate_mset n a) = replicate_mset n (f a)"
   by (induct n) simp_all
 
+lemma replicate_mset_msubseteq_iff:
+  "replicate_mset m a \<subseteq># replicate_mset n b \<longleftrightarrow> m = 0 \<or> a = b \<and> m \<le> n"
+  by (cases m)
+    (auto simp add: insert_subset_eq_iff count_le_replicate_mset_subset_eq [symmetric])
+
+lemma msubseteq_replicate_msetE:
+  assumes "A \<subseteq># replicate_mset n a"
+  obtains m where "m \<le> n" and "A = replicate_mset m a"
+proof (cases "n = 0")
+  case True
+  with assms that show thesis
+    by simp
+next
+  case False
+  from assms have "set_mset A \<subseteq> set_mset (replicate_mset n a)"
+    by (rule set_mset_mono)
+  with False have "set_mset A \<subseteq> {a}"
+    by simp
+  then have "\<exists>m. A = replicate_mset m a"
+  proof (induction A)
+    case empty
+    then show ?case
+      by simp
+  next
+    case (add b A)
+    then obtain m where "A = replicate_mset m a"
+      by auto
+    with add.prems show ?case
+      by (auto intro: exI [of _ "Suc m"])
+  qed
+  then obtain m where A: "A = replicate_mset m a" ..
+  with assms have "m \<le> n"
+    by (auto simp add: replicate_mset_msubseteq_iff)
+  then show thesis using A ..
+qed
+
 
 subsection \<open>Big operators\<close>
 

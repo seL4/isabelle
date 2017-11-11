@@ -87,17 +87,34 @@ subsection \<open>Law 6.111 of Concrete Mathematics\<close>
 
 lemma coprime_fib_Suc_nat: "coprime (fib n) (fib (Suc n))"
   apply (induct n rule: fib.induct)
-  apply auto
-  apply (metis gcd_add1 add.commute)
+    apply (simp_all add: coprime_iff_gcd_eq_1 algebra_simps)
+  apply (simp add: add.assoc [symmetric])
   done
 
-lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
-  apply (simp add: gcd.commute [of "fib m"])
-  apply (cases m)
-  apply (auto simp add: fib_add)
-  apply (metis gcd.commute mult.commute coprime_fib_Suc_nat
-    gcd_add_mult gcd_mult_cancel gcd.commute)
-  done
+lemma gcd_fib_add:
+  "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
+proof (cases m)
+  case 0
+  then show ?thesis
+    by simp
+next
+  case (Suc q)
+  from coprime_fib_Suc_nat [of q]
+  have "coprime (fib (Suc q)) (fib q)"
+    by (simp add: ac_simps)
+  have "gcd (fib q) (fib (Suc q)) = Suc 0"
+    using coprime_fib_Suc_nat [of q] by simp
+  then have *: "gcd (fib n * fib q) (fib n * fib (Suc q)) = fib n"
+    by (simp add: gcd_mult_distrib_nat [symmetric])
+  moreover have "gcd (fib (Suc q)) (fib n * fib q + fib (Suc n) * fib (Suc q)) =
+    gcd (fib (Suc q)) (fib n * fib q)"
+    using gcd_add_mult [of "fib (Suc q)"] by (simp add: ac_simps)
+  moreover have "gcd (fib (Suc q)) (fib n * fib (Suc q)) = fib (Suc q)"
+    by simp
+  ultimately show ?thesis
+    using Suc \<open>coprime (fib (Suc q)) (fib q)\<close>
+    by (auto simp add: fib_add algebra_simps gcd_mult_right_right_cancel)
+qed
 
 lemma gcd_fib_diff: "m \<le> n \<Longrightarrow> gcd (fib m) (fib (n - m)) = gcd (fib m) (fib n)"
   by (simp add: gcd_fib_add [symmetric, of _ "n-m"])

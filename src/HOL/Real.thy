@@ -1245,7 +1245,7 @@ qed
 
 lemma Rats_abs_nat_div_natE:
   assumes "x \<in> \<rat>"
-  obtains m n :: nat where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
+  obtains m n :: nat where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "coprime m n"
 proof -
   from \<open>x \<in> \<rat>\<close> obtain i :: int and n :: nat where "n \<noteq> 0" and "x = real_of_int i / real n"
     by (auto simp add: Rats_eq_int_div_nat)
@@ -1281,6 +1281,8 @@ proof -
     with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
     with gcd show ?thesis by auto
   qed
+  then have "coprime ?k ?l"
+    by (simp only: coprime_iff_gcd_eq_1)
   ultimately show ?thesis ..
 qed
 
@@ -1415,8 +1417,6 @@ lemma numeral_le_real_of_nat_iff [simp]: "numeral n \<le> real m \<longleftright
   for m :: nat
   by (metis not_le real_of_nat_less_numeral_iff)
 
-declare of_int_floor_le [simp]  (* FIXME duplicate!? *)
-
 lemma of_int_floor_cancel [simp]: "of_int \<lfloor>x\<rfloor> = x \<longleftrightarrow> (\<exists>n::int. x = of_int n)"
   by (metis floor_of_int)
 
@@ -1424,7 +1424,7 @@ lemma floor_eq: "real_of_int n < x \<Longrightarrow> x < real_of_int n + 1 \<Lon
   by linarith
 
 lemma floor_eq2: "real_of_int n \<le> x \<Longrightarrow> x < real_of_int n + 1 \<Longrightarrow> \<lfloor>x\<rfloor> = n"
-  by linarith
+  by (fact floor_unique)
 
 lemma floor_eq3: "real n < x \<Longrightarrow> x < real (Suc n) \<Longrightarrow> nat \<lfloor>x\<rfloor> = n"
   by linarith

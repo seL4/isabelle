@@ -116,13 +116,16 @@ proof -
   show ?thesis unfolding squarefree_factorial_semiring'[OF nz]
   proof
     fix p assume p: "p \<in> prime_factors (a * b)"
-    {
+    with nz have "prime p"
+      by (simp add: prime_factors_dvd)
+    have "\<not> (p dvd a \<and> p dvd b)"
+    proof
       assume "p dvd a \<and> p dvd b"
-      hence "p dvd gcd a b" by simp
-      also have "gcd a b = 1" by fact
-      finally have False using nz using p by (auto simp: prime_factors_dvd)
-    }
-    hence "\<not>(p dvd a \<and> p dvd b)" by blast
+      with \<open>coprime a b\<close> have "is_unit p"
+        by (auto intro: coprime_common_divisor)
+      with \<open>prime p\<close> show False
+        by simp
+    qed
     moreover from p have "p dvd a \<or> p dvd b" using nz 
       by (auto simp: prime_factors_dvd prime_dvd_mult_iff)
     ultimately show "multiplicity p (a * b) = 1" using nz p assms(2,3)
@@ -138,7 +141,7 @@ lemma squarefree_prod_coprime:
   shows   "squarefree (prod f A)"
   using assms 
   by (induction A rule: infinite_finite_induct) 
-     (auto intro!: squarefree_mult_coprime prod_coprime')
+     (auto intro!: squarefree_mult_coprime prod_coprime_right)
 
 lemma squarefree_powerD: "m > 0 \<Longrightarrow> squarefree (n ^ m) \<Longrightarrow> squarefree n"
   by (cases m) (auto dest: squarefree_multD)

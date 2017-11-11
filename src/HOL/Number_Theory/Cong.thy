@@ -229,7 +229,8 @@ lemma cong_square_int:
 lemma cong_mult_rcancel_int:
   "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
   if "coprime k m" for a k m :: int
-  by (metis that cong_altdef_int left_diff_distrib coprime_dvd_mult_iff gcd.commute)
+  using that by (simp add: cong_altdef_int)
+    (metis coprime_commute coprime_dvd_mult_right_iff mult.commute right_diff_distrib') 
 
 lemma cong_mult_rcancel_nat:
   "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
@@ -242,7 +243,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> m dvd nat \<bar>int a - int b\<bar> * k"
     by (simp add: abs_mult nat_times_as_int)
   also have "\<dots> \<longleftrightarrow> m dvd nat \<bar>int a - int b\<bar>"
-    by (rule coprime_dvd_mult_iff) (use \<open>coprime k m\<close> in \<open>simp add: ac_simps\<close>)
+    by (rule coprime_dvd_mult_left_iff) (use \<open>coprime k m\<close> in \<open>simp add: ac_simps\<close>)
   also have "\<dots> \<longleftrightarrow> [a = b] (mod m)"
     by (simp add: cong_altdef_nat')
   finally show ?thesis .
@@ -320,11 +321,11 @@ lemma cong_gcd_eq_int: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
 
 lemma cong_imp_coprime_nat: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
   for a b :: nat
-  by (auto simp add: cong_gcd_eq_nat)
+  by (auto simp add: cong_gcd_eq_nat coprime_iff_gcd_eq_1)
 
 lemma cong_imp_coprime_int: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
   for a b :: int
-  by (auto simp add: cong_gcd_eq_int)
+  by (auto simp add: cong_gcd_eq_int coprime_iff_gcd_eq_1)
 
 lemma cong_cong_mod_nat: "[a = b] (mod m) \<longleftrightarrow> [a mod m = b mod m] (mod m)"
   for a b :: nat
@@ -490,36 +491,24 @@ proof -
 qed
 
 lemma cong_solve_coprime_nat:
-  fixes a :: nat
-  assumes "coprime a n"
-  shows "\<exists>x. [a * x = 1] (mod n)"
-proof (cases "a = 0")
-  case True
-  with assms show ?thesis
-    by (simp add: cong_0_1_nat') 
-next
-  case False
-  with assms show ?thesis
-    by (metis cong_solve_nat)
-qed
+  "\<exists>x. [a * x = Suc 0] (mod n)" if "coprime a n"
+  using that cong_solve_nat [of a n] by (cases "a = 0") simp_all
 
-lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> \<exists>x. [a * x = 1] (mod n)"
-  apply (cases "a = 0")
-   apply auto
-   apply (cases "n \<ge> 0")
-    apply auto
-  apply (metis cong_solve_int)
-  done
+lemma cong_solve_coprime_int:
+  "\<exists>x. [a * x = 1] (mod n)" if "coprime a n" for a n x :: int
+  using that cong_solve_int [of a n] by (cases "a = 0")
+    (auto simp add: zabs_def split: if_splits)
 
 lemma coprime_iff_invertible_nat:
-  "m > 0 \<Longrightarrow> coprime a m = (\<exists>x. [a * x = Suc 0] (mod m))"
-  by (metis One_nat_def cong_gcd_eq_nat cong_solve_coprime_nat coprime_lmult gcd.commute gcd_Suc_0)
+  "m > 0 \<Longrightarrow> coprime a m \<longleftrightarrow> (\<exists>x. [a * x = Suc 0] (mod m))"
+  by (auto intro: cong_solve_coprime_nat)
+    (use cong_imp_coprime_nat cong_sym coprime_Suc_0_left coprime_mult_left_iff in blast)
 
-lemma coprime_iff_invertible_int: "m > 0 \<Longrightarrow> coprime a m \<longleftrightarrow> (\<exists>x. [a * x = 1] (mod m))"
+lemma coprime_iff_invertible_int:
+  "m > 0 \<Longrightarrow> coprime a m \<longleftrightarrow> (\<exists>x. [a * x = 1] (mod m))"
   for m :: int
-  apply (auto intro: cong_solve_coprime_int)
-  using cong_gcd_eq_int coprime_mul_eq' apply fastforce
-  done
+  by (auto intro: cong_solve_coprime_int)
+    (meson cong_imp_coprime_int cong_sym coprime_1_left coprime_mult_left_iff)
 
 lemma coprime_iff_invertible'_nat:
   "m > 0 \<Longrightarrow> coprime a m \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> x < m \<and> [a * x = Suc 0] (mod m))"
@@ -554,16 +543,16 @@ lemma cong_cong_prod_coprime_nat:
     and "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
   using that apply (induct A rule: infinite_finite_induct)
     apply auto
-  apply (metis One_nat_def coprime_cong_mult_nat gcd.commute prod_coprime)
+  apply (metis coprime_cong_mult_nat prod_coprime_right)
   done
 
-lemma cong_cong_prod_coprime_int [rule_format]:
+lemma cong_cong_prod_coprime_int:
   "[x = y] (mod (\<Prod>i\<in>A. m i))" if
     "(\<forall>i\<in>A. [(x::int) = y] (mod m i))"
     "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
   using that apply (induct A rule: infinite_finite_induct)
-  apply auto
-  apply (metis coprime_cong_mult_int gcd.commute prod_coprime)
+    apply auto
+  apply (metis coprime_cong_mult_int prod_coprime_right)
   done
 
 lemma binary_chinese_remainder_aux_nat:
@@ -574,7 +563,7 @@ proof -
   from cong_solve_coprime_nat [OF a] obtain x1 where 1: "[m1 * x1 = 1] (mod m2)"
     by auto
   from a have b: "coprime m2 m1"
-    by (subst gcd.commute)
+    by (simp add: ac_simps)
   from cong_solve_coprime_nat [OF b] obtain x2 where 2: "[m2 * x2 = 1] (mod m1)"
     by auto
   have "[m1 * x1 = 0] (mod m1)"
@@ -593,7 +582,7 @@ proof -
   from cong_solve_coprime_int [OF a] obtain x1 where 1: "[m1 * x1 = 1] (mod m2)"
     by auto
   from a have b: "coprime m2 m1"
-    by (subst gcd.commute)
+    by (simp add: ac_simps)
   from cong_solve_coprime_int [OF b] obtain x2 where 2: "[m2 * x2 = 1] (mod m1)"
     by auto
   have "[m1 * x1 = 0] (mod m1)"
@@ -730,8 +719,8 @@ proof (rule finite_set_choice, rule fin, rule ballI)
   fix i
   assume "i \<in> A"
   with cop have "coprime (\<Prod>j \<in> A - {i}. m j) (m i)"
-    by (intro prod_coprime) auto
-  then have "\<exists>x. [(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
+    by (intro prod_coprime_left) auto
+  then have "\<exists>x. [(\<Prod>j \<in> A - {i}. m j) * x = Suc 0] (mod m i)"
     by (elim cong_solve_coprime_nat)
   then obtain x where "[(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
     by auto
@@ -789,8 +778,8 @@ lemma coprime_cong_prod_nat:
   if "\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
     and "\<forall>i\<in>A. [x = y] (mod m i)" for x y :: nat
   using that apply (induct A rule: infinite_finite_induct)
-  apply auto
-  apply (metis One_nat_def coprime_cong_mult_nat gcd.commute prod_coprime)
+    apply auto
+  apply (metis coprime_cong_mult_nat prod_coprime_right)
   done
 
 lemma chinese_remainder_unique_nat:

@@ -245,9 +245,9 @@ lemma prime_power_cancel2:
   using prime_power_cancel [OF assms] assms by auto
 
 lemma prime_power_canonical:
-  fixes m::nat
+  fixes m :: nat
   assumes "prime p" "m > 0"
-  shows "\<exists>k n. \<not> p dvd n \<and> m = n * p^k"
+  shows "\<exists>k n. \<not> p dvd n \<and> m = n * p ^ k"
 using \<open>m > 0\<close>
 proof (induction m rule: less_induct)
   case (less m)
@@ -381,9 +381,9 @@ qed
 
 (* TODO: Generalise? *)
 lemma prime_power_mult_nat:
-  fixes p::nat
+  fixes p :: nat
   assumes p: "prime p" and xy: "x * y = p ^ k"
-  shows "\<exists>i j. x = p ^i \<and> y = p^ j"
+  shows "\<exists>i j. x = p ^ i \<and> y = p^ j"
 using xy
 proof(induct k arbitrary: x y)
   case 0 thus ?case apply simp by (rule exI[where x="0"], simp)
@@ -429,25 +429,10 @@ next
 qed
 
 lemma divides_primepow_nat:
-  fixes p::nat
+  fixes p :: nat
   assumes p: "prime p"
-  shows "d dvd p^k \<longleftrightarrow> (\<exists> i. i \<le> k \<and> d = p ^i)"
-proof
-  assume H: "d dvd p^k" then obtain e where e: "d*e = p^k"
-    unfolding dvd_def  apply (auto simp add: mult.commute) by blast
-  from prime_power_mult_nat[OF p e] obtain i j where ij: "d = p^i" "e=p^j" by blast
-  from e ij have "p^(i + j) = p^k" by (simp add: power_add)
-  hence "i + j = k" using p prime_gt_1_nat power_inject_exp[of p "i+j" k] by simp
-  hence "i \<le> k" by arith
-  with ij(1) show "\<exists>i\<le>k. d = p ^ i" by blast
-next
-  {fix i assume H: "i \<le> k" "d = p^i"
-    then obtain j where j: "k = i + j"
-      by (metis le_add_diff_inverse)
-    hence "p^k = p^j*d" using H(2) by (simp add: power_add)
-    hence "d dvd p^k" unfolding dvd_def by auto}
-  thus "\<exists>i\<le>k. d = p ^ i \<Longrightarrow> d dvd p ^ k" by blast
-qed
+  shows "d dvd p ^ k \<longleftrightarrow> (\<exists>i\<le>k. d = p ^ i)"
+  using assms divides_primepow [of p d k] by (auto intro: le_imp_power_dvd)
 
 
 subsection \<open>Chinese Remainder Theorem Variants\<close>
@@ -481,8 +466,8 @@ proof-
   from bezout_add_strong_nat[OF a, of b] bezout_add_strong_nat[OF b, of a]
   obtain d1 x1 y1 d2 x2 y2 where dxy1: "d1 dvd a" "d1 dvd b" "a * x1 = b * y1 + d1"
     and dxy2: "d2 dvd b" "d2 dvd a" "b * x2 = a * y2 + d2" by blast
-  then have d12: "d1 = 1" "d2 =1"
-    by (metis ab coprime_nat)+
+  then have d12: "d1 = 1" "d2 = 1"
+    using ab coprime_common_divisor_nat [of a b] by blast+
   let ?x = "v * a * x1 + u * b * x2"
   let ?q1 = "v * x1 + u * y2"
   let ?q2 = "v * y1 + u * x2"
@@ -497,14 +482,14 @@ text \<open>Primality\<close>
 lemma coprime_bezout_strong:
   fixes a::nat assumes "coprime a b"  "b \<noteq> 1"
   shows "\<exists>x y. a * x = b * y + 1"
-by (metis assms bezout_nat gcd_nat.left_neutral)
+  by (metis add.commute add.right_neutral assms(1) assms(2) chinese_remainder coprime_1_left coprime_1_right coprime_crossproduct_nat mult.commute mult.right_neutral mult_cancel_left)
 
 lemma bezout_prime:
   assumes p: "prime p" and pa: "\<not> p dvd a"
   shows "\<exists>x y. a*x = Suc (p*y)"
 proof -
   have ap: "coprime a p"
-    by (metis gcd.commute p pa prime_imp_coprime)
+    using coprime_commute p pa prime_imp_coprime by auto
   moreover from p have "p \<noteq> 1" by auto
   ultimately have "\<exists>x y. a * x = p * y + 1"
     by (rule coprime_bezout_strong)

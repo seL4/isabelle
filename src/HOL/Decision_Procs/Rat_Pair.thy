@@ -51,7 +51,8 @@ proof -
     from dvd_mult_div_cancel[OF gdvd(1)] dvd_mult_div_cancel[OF gdvd(2)] ab
     have nz': "?a' \<noteq> 0" "?b' \<noteq> 0" by - (rule notI, simp)+
     from ab have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith
-    from div_gcd_coprime[OF stupid] have gp1: "?g' = 1" .
+    from div_gcd_coprime[OF stupid] have gp1: "?g' = 1"
+      by simp
     from ab consider "b < 0" | "b > 0" by arith
     then show ?thesis
     proof cases
@@ -198,6 +199,8 @@ proof
     from \<open>a \<noteq> 0\<close> \<open>a' \<noteq> 0\<close> na nb
     have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"
       by (simp_all add: x y isnormNum_def add: gcd.commute)
+    then have "coprime a b" "coprime b a" "coprime a' b'" "coprime b' a'"
+      by (simp_all add: coprime_iff_gcd_eq_1)
     from eq have raw_dvd: "a dvd a' * b" "b dvd b' * a" "a' dvd a * b'" "b' dvd b * a'"
       apply -
       apply algebra
@@ -205,11 +208,11 @@ proof
       apply simp
       apply algebra
       done
-    from zdvd_antisym_abs[OF coprime_dvd_mult[OF gcd1(2) raw_dvd(2)]
-        coprime_dvd_mult[OF gcd1(4) raw_dvd(4)]]
-      have eq1: "b = b'" using pos by arith
-      with eq have "a = a'" using pos by simp
-      with eq1 show ?thesis by (simp add: x y)
+    then have eq1: "b = b'"
+      using pos \<open>coprime b a\<close> \<open>coprime b' a'\<close>
+      by (auto simp add: coprime_dvd_mult_left_iff intro: associated_eqI)
+    with eq have "a = a'" using pos by simp
+    with \<open>b = b'\<close> show ?thesis by (simp add: x y)
   qed
   show ?lhs if ?rhs
     using that by simp

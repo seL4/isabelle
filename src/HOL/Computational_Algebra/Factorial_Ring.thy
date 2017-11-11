@@ -13,12 +13,6 @@ begin
 
 subsection \<open>Irreducible and prime elements\<close>
 
-(* TODO: Move ? *)
-lemma (in semiring_gcd) prod_coprime' [rule_format]: 
-    "(\<forall>i\<in>A. gcd a (f i) = 1) \<longrightarrow> gcd a (\<Prod>i\<in>A. f i) = 1"
-  using prod_coprime[of A f a] by (simp add: gcd.commute)
-
-
 context comm_semiring_1
 begin
 
@@ -583,7 +577,7 @@ qed
 end
 
 
-subsection \<open>In a semiring with GCD, each irreducible element is a prime elements\<close>
+subsection \<open>In a semiring with GCD, each irreducible element is a prime element\<close>
 
 context semiring_gcd
 begin
@@ -620,23 +614,26 @@ lemma prime_imp_coprime:
   using assms by (simp add: prime_elem_imp_coprime)
 
 lemma prime_elem_imp_power_coprime:
-  "prime_elem p \<Longrightarrow> \<not>p dvd a \<Longrightarrow> coprime a (p ^ m)"
-  by (auto intro!: coprime_exp dest: prime_elem_imp_coprime simp: gcd.commute)
+  "prime_elem p \<Longrightarrow> \<not> p dvd a \<Longrightarrow> coprime a (p ^ m)"
+  by (cases "m > 0") (auto dest: prime_elem_imp_coprime simp add: ac_simps)
 
 lemma prime_imp_power_coprime:
-  "prime p \<Longrightarrow> \<not>p dvd a \<Longrightarrow> coprime a (p ^ m)"
-  by (simp add: prime_elem_imp_power_coprime)
+  "prime p \<Longrightarrow> \<not> p dvd a \<Longrightarrow> coprime a (p ^ m)"
+  by (rule prime_elem_imp_power_coprime) simp_all
 
 lemma prime_elem_divprod_pow:
   assumes p: "prime_elem p" and ab: "coprime a b" and pab: "p^n dvd a * b"
   shows   "p^n dvd a \<or> p^n dvd b"
   using assms
 proof -
-  from ab p have "\<not>p dvd a \<or> \<not>p dvd b"
-    by (auto simp: coprime prime_elem_def)
-  with p have "coprime (p^n) a \<or> coprime (p^n) b"
-    by (auto intro: prime_elem_imp_coprime coprime_exp_left)
-  with pab show ?thesis by (auto intro: coprime_dvd_mult simp: mult_ac)
+  from p have "\<not> is_unit p"
+    by simp
+  with ab p have "\<not> p dvd a \<or> \<not> p dvd b"
+    using not_coprimeI by blast
+  with p have "coprime (p ^ n) a \<or> coprime (p ^ n) b"
+    by (auto dest: prime_elem_imp_power_coprime simp add: ac_simps)
+  with pab show ?thesis
+    by (auto simp add: coprime_dvd_mult_left_iff coprime_dvd_mult_right_iff)
 qed
 
 lemma primes_coprime:
@@ -1524,6 +1521,27 @@ proof (rule inj_onI)
     with assms[of P] assms[of Q] PQ show "P = Q" by simp
 qed
 
+lemma divides_primepow:
+  assumes "prime p" and "a dvd p ^ n"
+  obtains m where "m \<le> n" and "normalize a = p ^ m"
+proof -
+  from assms have "a \<noteq> 0"
+    by auto
+  with assms
+  have "prod_mset (prime_factorization a) dvd prod_mset (prime_factorization (p ^ n))"
+    by (simp add: prod_mset_prime_factorization)
+  then have "prime_factorization a \<subseteq># prime_factorization (p ^ n)"
+    by (simp add: in_prime_factors_imp_prime prod_mset_dvd_prod_mset_primes_iff)
+  with assms have "prime_factorization a \<subseteq># replicate_mset n p"
+    by (simp add: prime_factorization_prime_power)
+  then obtain m where "m \<le> n" and "prime_factorization a = replicate_mset m p"
+    by (rule msubseteq_replicate_msetE)
+  then have "prod_mset (prime_factorization a) = prod_mset (replicate_mset m p)"
+    by simp
+  with \<open>a \<noteq> 0\<close> have "normalize a = p ^ m"
+    by (simp add: prod_mset_prime_factorization)
+  with \<open>m \<le> n\<close> show thesis ..
+qed
 
 
 subsection \<open>GCD and LCM computation with unique factorizations\<close>

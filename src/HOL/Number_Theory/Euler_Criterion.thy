@@ -65,7 +65,7 @@ private lemma P_lemma: assumes "x \<in> S1"
 proof -
   have "~ p dvd x" using assms zdvd_not_zless S1_def by auto
   hence co_xp: "coprime x p" using p_prime prime_imp_coprime_int[of p x] 
-    by (simp add: gcd.commute)
+    by (simp add: ac_simps)
   then obtain y' where y': "[x * y' = 1] (mod p)" using cong_solve_coprime_int by blast
   moreover define y where "y = y' * a mod p"
   ultimately have "[x * y = a] (mod p)" using mod_mult_right_eq[of x "y' * a" p]

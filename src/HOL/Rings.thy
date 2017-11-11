@@ -1161,6 +1161,108 @@ lemma div_mult_unit2:
   "is_unit c \<Longrightarrow> b dvd a \<Longrightarrow> a div (b * c) = a div b div c"
   by (rule dvd_div_mult2_eq) (simp_all add: mult_unit_dvd_iff)
 
+
+text \<open>Coprimality\<close>
+
+definition coprime :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  where "coprime a b \<longleftrightarrow> (\<forall>c. c dvd a \<longrightarrow> c dvd b \<longrightarrow> is_unit c)"
+
+lemma coprimeI:
+  assumes "\<And>c. c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> is_unit c"
+  shows "coprime a b"
+  using assms by (auto simp: coprime_def)
+
+lemma not_coprimeI:
+  assumes "c dvd a" and "c dvd b" and "\<not> is_unit c"
+  shows "\<not> coprime a b"
+  using assms by (auto simp: coprime_def)
+
+lemma coprime_common_divisor:
+  "is_unit c" if "coprime a b" and "c dvd a" and "c dvd b"
+  using that by (auto simp: coprime_def)
+
+lemma not_coprimeE:
+  assumes "\<not> coprime a b"
+  obtains c where "c dvd a" and "c dvd b" and "\<not> is_unit c"
+  using assms by (auto simp: coprime_def)
+
+lemma coprime_imp_coprime:
+  "coprime a b" if "coprime c d"
+    and "\<And>e. \<not> is_unit e \<Longrightarrow> e dvd a \<Longrightarrow> e dvd b \<Longrightarrow> e dvd c"
+    and "\<And>e. \<not> is_unit e \<Longrightarrow> e dvd a \<Longrightarrow> e dvd b \<Longrightarrow> e dvd d"
+proof (rule coprimeI)
+  fix e
+  assume "e dvd a" and "e dvd b"
+  with that have "e dvd c" and "e dvd d"
+    by (auto intro: dvd_trans)
+  with \<open>coprime c d\<close> show "is_unit e"
+    by (rule coprime_common_divisor)
+qed
+
+lemma coprime_divisors:
+  "coprime a b" if "a dvd c" "b dvd d" and "coprime c d"
+using \<open>coprime c d\<close> proof (rule coprime_imp_coprime)
+  fix e
+  assume "e dvd a" then show "e dvd c"
+    using \<open>a dvd c\<close> by (rule dvd_trans)
+  assume "e dvd b" then show "e dvd d"
+    using \<open>b dvd d\<close> by (rule dvd_trans)
+qed
+
+lemma coprime_self [simp]:
+  "coprime a a \<longleftrightarrow> is_unit a" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  then show ?Q
+    by (rule coprime_common_divisor) simp_all
+next
+  assume ?Q
+  show ?P
+    by (rule coprimeI) (erule dvd_unit_imp_unit, rule \<open>?Q\<close>)
+qed
+
+lemma coprime_commute [ac_simps]:
+  "coprime b a \<longleftrightarrow> coprime a b"
+  unfolding coprime_def by auto
+
+lemma is_unit_left_imp_coprime:
+  "coprime a b" if "is_unit a"
+proof (rule coprimeI)
+  fix c
+  assume "c dvd a"
+  with that show "is_unit c"
+    by (auto intro: dvd_unit_imp_unit)
+qed
+
+lemma is_unit_right_imp_coprime:
+  "coprime a b" if "is_unit b"
+  using that is_unit_left_imp_coprime [of b a] by (simp add: ac_simps)
+
+lemma coprime_1_left [simp]:
+  "coprime 1 a"
+  by (rule coprimeI)
+
+lemma coprime_1_right [simp]:
+  "coprime a 1"
+  by (rule coprimeI)
+
+lemma coprime_0_left_iff [simp]:
+  "coprime 0 a \<longleftrightarrow> is_unit a"
+  by (auto intro: coprimeI dvd_unit_imp_unit coprime_common_divisor [of 0 a a])
+
+lemma coprime_0_right_iff [simp]:
+  "coprime a 0 \<longleftrightarrow> is_unit a"
+  using coprime_0_left_iff [of a] by (simp add: ac_simps)
+
+lemma coprime_mult_self_left_iff [simp]:
+  "coprime (c * a) (c * b) \<longleftrightarrow> is_unit c \<and> coprime a b"
+  by (auto intro: coprime_common_divisor)
+    (rule coprimeI, auto intro: coprime_common_divisor simp add: dvd_mult_unit_iff')+
+
+lemma coprime_mult_self_right_iff [simp]:
+  "coprime (a * c) (b * c) \<longleftrightarrow> is_unit c \<and> coprime a b"
+  using coprime_mult_self_left_iff [of c a b] by (simp add: ac_simps)
+
 end
 
 class unit_factor =
@@ -1429,6 +1531,14 @@ lemma normalize_idem_imp_is_unit_iff:
   assumes "normalize a = a"
   shows "is_unit a \<longleftrightarrow> a = 1"
   using assms by (cases "a = 0") (auto dest: is_unit_normalize)
+
+lemma coprime_normalize_left_iff [simp]:
+  "coprime (normalize a) b \<longleftrightarrow> coprime a b"
+  by (rule; rule coprimeI) (auto intro: coprime_common_divisor)
+
+lemma coprime_normalize_right_iff [simp]:
+  "coprime a (normalize b) \<longleftrightarrow> coprime a b"
+  using coprime_normalize_left_iff [of b a] by (simp add: ac_simps)
 
 text \<open>
   We avoid an explicit definition of associated elements but prefer explicit
@@ -2435,8 +2545,8 @@ begin
 subclass ordered_ring_abs
   by standard (auto simp: abs_if not_less mult_less_0_iff)
 
-lemma abs_mult_self [simp]: "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
-  by (simp add: abs_if)
+lemma abs_mult_self: "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
+  by (fact abs_mult_self_eq)
 
 lemma abs_mult_less:
   assumes ac: "\<bar>a\<bar> < c"

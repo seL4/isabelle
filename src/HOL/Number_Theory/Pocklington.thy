@@ -11,18 +11,11 @@ begin
 subsection \<open>Lemmas about previously defined terms\<close>
 
 lemma prime_nat_iff'': "prime (p::nat) \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
-  unfolding prime_nat_iff
-proof safe
-  fix m
-  assume p: "p > 0" "p \<noteq> 1"
-    and m: "m dvd p" "m \<noteq> p"
-    and *: "\<forall>m. m > 0 \<and> m < p \<longrightarrow> coprime p m"
-  from p m have "m \<noteq> 0" by (intro notI) auto
-  moreover from p m have "m < p" by (auto dest: dvd_imp_le)
-  ultimately have "coprime p m"
-    using * by blast
-  with m show "m = 1" by simp
-qed (auto simp: prime_nat_iff simp del: One_nat_def intro!: prime_imp_coprime dest: dvd_imp_le)
+  apply (auto simp add: prime_nat_iff)
+   apply (rule coprimeI)
+   apply (auto dest: nat_dvd_not_less simp add: ac_simps)
+  apply (metis One_nat_def dvd_1_iff_1 dvd_pos_nat gcd_nat.order_iff is_unit_gcd linorder_neqE_nat nat_dvd_not_less)
+  done
 
 lemma finite_number_segment: "card { m. 0 < m \<and> m < n } = n - 1"
 proof -
@@ -46,7 +39,7 @@ next
   from bezout_add_strong_nat [OF this]
   obtain d x y where dxy: "d dvd a" "d dvd n" "a * x = n * y + d" by blast
   from dxy(1,2) have d1: "d = 1"
-    by (metis assms coprime_nat)
+    using assms coprime_common_divisor [of a n d] by simp
   with dxy(3) have "a * x * b = (n * y + 1) * b"
     by simp
   then have "a * (x * b) = n * (y * b) + b"
@@ -94,9 +87,9 @@ lemma cong_solve_unique_nontrivial:
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = a] (mod p)"
 proof -
   from pa have ap: "coprime a p"
-    by (metis gcd.commute)
-  have px: "coprime x p"
-    by (metis gcd.commute p prime_nat_iff'' x0 xp)
+    by (simp add: ac_simps)
+  from x0 xp p have px: "coprime x p"
+    by (auto simp add: prime_nat_iff'' ac_simps)
   obtain y where y: "y < p" "[x * y = a] (mod p)" "\<forall>z. z < p \<and> [x * z = a] (mod p) \<longrightarrow> z = y"
     by (metis cong_solve_unique neq0_conv p prime_gt_0_nat px)
   have "y \<noteq> 0"
@@ -104,8 +97,8 @@ proof -
     assume "y = 0"
     with y(2) have "p dvd a"
       using cong_dvd_iff by auto
-    then show False
-      by (metis gcd_nat.absorb1 not_prime_1 p pa)
+    with not_prime_1 p pa show False
+      by (auto simp add: gcd_nat.order_iff)
   qed
   with y show ?thesis
     by blast
@@ -128,9 +121,9 @@ proof -
   obtain x where x: "x < a * b" "[x = m] (mod a)" "[x = n] (mod b)" "\<forall>y. ?P y \<longrightarrow> y = x"
     by blast
   from ma nb x have "coprime x a" "coprime x b"
-    by (metis cong_gcd_eq_nat)+
+    using cong_imp_coprime_nat cong_sym by blast+
   then have "coprime x (a*b)"
-    by (metis coprime_mul_eq)
+    by simp
   with x show ?thesis
     by blast
 qed
@@ -164,7 +157,8 @@ proof -
       from dvd_mod_iff[OF d(2), of "a^m"] dam am1 show ?thesis
         by simp
     qed
-    then show ?thesis by blast
+    then show ?thesis
+      by (auto intro: coprimeI)
   qed
 qed
 
@@ -216,8 +210,8 @@ proof-
   from mod_less_divisor[of n 1] n01 have onen: "1 mod n = 1"
     by simp
   from lucas_coprime_lemma[OF n01(3) an1] cong_imp_coprime_nat an1
-  have an: "coprime a n" "coprime (a^(n - 1)) n"
-    by (auto simp add: coprime_exp gcd.commute)
+  have an: "coprime a n" "coprime (a ^ (n - 1)) n"
+    using \<open>n \<ge> 2\<close> by simp_all
   have False if H0: "\<exists>m. 0 < m \<and> m < n - 1 \<and> [a ^ m = 1] (mod n)" (is "EX m. ?P m")
   proof -
     from H0[unfolded nat_exists_least_iff[of ?P]] obtain m where
@@ -229,7 +223,7 @@ proof-
       let ?y = "a^ ((n - 1) div m * m)"
       note mdeq = div_mult_mod_eq[of "(n - 1)" m]
       have yn: "coprime ?y n"
-        by (metis an(1) coprime_exp gcd.commute)
+        using an(1) by (cases "(n - Suc 0) div m * m = 0") auto
       have "?y mod n = (a^m)^((n - 1) div m) mod n"
         by (simp add: algebra_simps power_mult)
       also have "\<dots> = (a^m mod n)^((n - 1) div m) mod n"
@@ -359,9 +353,11 @@ next
     next
       case (Suc d')
       then have d0: "d \<noteq> 0" by simp
-      from prem obtain p where p: "p dvd n" "p dvd a" "p \<noteq> 1" by auto
+      from prem obtain p where p: "p dvd n" "p dvd a" "p \<noteq> 1"
+        by (auto elim: not_coprimeE) 
       from \<open>?lhs\<close> obtain q1 q2 where q12: "a ^ d + n * q1 = 1 + n * q2"
-        by (metis prem d0 gcd.commute lucas_coprime_lemma)
+        using prem d0 lucas_coprime_lemma
+        by (auto elim: not_coprimeE simp add: ac_simps)
       then have "a ^ d + n * q1 - n * q2 = 1" by simp
       with dvd_diff_nat [OF dvd_add [OF divides_rexp]]  dvd_mult2 Suc p have "p dvd 1"
         by metis
@@ -398,8 +394,10 @@ next
   qed
 qed
 
-lemma order_divides_totient: "ord n a dvd totient n" if "coprime n a"
-  by (metis euler_theorem gcd.commute ord_divides that)
+lemma order_divides_totient:
+  "ord n a dvd totient n" if "coprime n a"
+  using that euler_theorem [of a n]
+  by (simp add: ord_divides [symmetric] ac_simps)
 
 lemma order_divides_expdiff:
   fixes n::nat and a::nat assumes na: "coprime n a"
@@ -412,11 +410,11 @@ proof -
     from na ed have "\<exists>c. d = e + c" by presburger
     then obtain c where c: "d = e + c" ..
     from na have an: "coprime a n"
-      by (metis gcd.commute)
-    have aen: "coprime (a^e) n"
-      by (metis coprime_exp gcd.commute na)
-    have acn: "coprime (a^c) n"
-      by (metis coprime_exp gcd.commute na)
+      by (simp add: ac_simps)
+    then have aen: "coprime (a ^ e) n"
+      by (cases "e > 0") simp_all
+    from an have acn: "coprime (a ^ c) n"
+      by (cases "c > 0") simp_all
     from c have "[a^d = a^e] (mod n) \<longleftrightarrow> [a^(e + c) = a^(e + 0)] (mod n)"
       by simp
     also have "\<dots> \<longleftrightarrow> [a^e* a^c = a^e *a^0] (mod n)" by (simp add: power_add)
@@ -620,8 +618,9 @@ proof -
       by (metis cong_to_1_nat exps)
     from nqr s s' have "(n - 1) div P = ord p (a^r) * t*r"
       using P0 by simp
-    with caP have "coprime (a^(ord p (a^r) * t*r) - 1) n" by simp
-    with p01 pn pd0 coprime_common_divisor_nat show False
+    with caP have "coprime (a ^ (ord p (a ^ r) * t * r) - 1) n"
+      by simp
+    with p01 pn pd0 coprime_common_divisor [of _ n p] show False
       by auto
   qed
   with d have o: "ord p (a^r) = q" by simp
@@ -632,12 +631,14 @@ proof -
     assume d: "d dvd p" "d dvd a" "d \<noteq> 1"
     from pp[unfolded prime_nat_iff] d have dp: "d = p" by blast
     from n have "n \<noteq> 0" by simp
-    then have False using d dp pn
-      by auto (metis One_nat_def Suc_pred an dvd_1_iff_1 gcd_greatest_iff lucas_coprime_lemma)
+    then have False using d dp pn an
+      by auto (metis One_nat_def Suc_lessI
+        \<open>1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> m = 1 \<or> m = p)\<close> \<open>a ^ (q * r) = p * l * k + 1\<close> add_diff_cancel_left' dvd_diff_nat dvd_power dvd_triv_left gcd_nat.trans nat_dvd_not_less nqr zero_less_diff zero_less_one) 
   }
-  then have cpa: "coprime p a" by auto
-  have arp: "coprime (a^r) p"
-    by (metis coprime_exp cpa gcd.commute)
+  then have cpa: "coprime p a"
+    by (auto intro: coprimeI)
+  then have arp: "coprime (a ^ r) p"
+    by (cases "r > 0") (simp_all add: ac_simps)
   from euler_theorem [OF arp, simplified ord_divides] o totient_eq have "q dvd (p - 1)"
     by simp
   then obtain d where d:"p - 1 = q * d"

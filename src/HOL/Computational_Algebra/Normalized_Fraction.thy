@@ -16,6 +16,15 @@ definition normalize_quot :: "'a :: {ring_gcd,idom_divide} \<times> 'a \<Rightar
   "normalize_quot = 
      (\<lambda>(a,b). if b = 0 then (0,1) else let d = gcd a b * unit_factor b in (a div d, b div d))" 
 
+lemma normalize_quot_zero [simp]:
+  "normalize_quot (a, 0) = (0, 1)"
+  by (simp add: normalize_quot_def)
+
+lemma normalize_quot_proj [simp]:
+  "fst (normalize_quot (a, b)) = a div (gcd a b * unit_factor b)"
+  "snd (normalize_quot (a, b)) = normalize b div gcd a b" if "b \<noteq> 0"
+  using that by (simp_all add: normalize_quot_def Let_def mult.commute [of _ "unit_factor b"] dvd_div_mult2_eq mult_unit_dvd_iff')
+
 definition normalized_fracts :: "('a :: {ring_gcd,idom_divide} \<times> 'a) set" where
   "normalized_fracts = {(a,b). coprime a b \<and> unit_factor b = 1}"
   
@@ -61,8 +70,8 @@ qed
   
 lemma coprime_normalize_quot:
   "coprime (fst (normalize_quot x)) (snd (normalize_quot x))"
-  by (simp add: normalize_quot_def case_prod_unfold Let_def
-        div_mult_unit2 gcd_div_unit1 gcd_div_unit2 div_gcd_coprime)
+  by (simp add: normalize_quot_def case_prod_unfold div_mult_unit2)
+    (metis coprime_mult_self_right_iff div_gcd_coprime unit_div_mult_self unit_factor_is_unit)
 
 lemma normalize_quot_in_normalized_fracts [simp]: "normalize_quot x \<in> normalized_fracts"
   by (simp add: normalized_fracts_def coprime_normalize_quot case_prod_unfold)
@@ -203,15 +212,26 @@ lemma normalize_quot_mult_coprime:
      and  "g \<equiv> fst (normalize_quot (c, b))" and "h \<equiv> snd (normalize_quot (c, b))"
   shows   "normalize_quot (a * c, b * d) = (e * g, f * h)"
 proof (rule normalize_quotI)
+  from assms have "gcd a b = 1" "gcd c d = 1"
+    by simp_all
   from assms have "b \<noteq> 0" "d \<noteq> 0" by auto
-  from normalize_quotE[OF \<open>b \<noteq> 0\<close>, of c] guess k . note k = this [folded assms]
-  from normalize_quotE[OF \<open>d \<noteq> 0\<close>, of a] guess l . note l = this [folded assms]
-  from k l show "a * c * (f * h) = b * d * (e * g)" by (simp_all)
+  with assms have "normalize b = b" "normalize d = d"
+    by (auto intro: normalize_unit_factor_eqI)
+  from normalize_quotE [OF \<open>b \<noteq> 0\<close>, of c] guess k .
+  note k = this [folded \<open>gcd a b = 1\<close> \<open>gcd c d = 1\<close> assms(3) assms(4)]
+  from normalize_quotE [OF \<open>d \<noteq> 0\<close>, of a] guess l .
+  note l = this [folded \<open>gcd a b = 1\<close> \<open>gcd c d = 1\<close> assms(3) assms(4)]
+  from k l show "a * c * (f * h) = b * d * (e * g)"
+    by (metis e_def f_def g_def h_def mult.commute mult.left_commute)
   from assms have [simp]: "unit_factor f = 1" "unit_factor h = 1"
     by simp_all
   from assms have "coprime e f" "coprime g h" by (simp_all add: coprime_normalize_quot)
-  with k l assms(1,2) show "(e * g, f * h) \<in> normalized_fracts"
-    by (simp add: normalized_fracts_def unit_factor_mult coprime_mul_eq coprime_mul_eq')
+  with k l assms(1,2) \<open>b \<noteq> 0\<close> \<open>d \<noteq> 0\<close> \<open>unit_factor b = 1\<close> \<open>unit_factor d = 1\<close>
+    \<open>normalize b = b\<close> \<open>normalize d = d\<close>
+  show "(e * g, f * h) \<in> normalized_fracts"
+    by (simp add: normalized_fracts_def unit_factor_mult e_def f_def g_def h_def
+      coprime_normalize_quot dvd_unit_factor_div unit_factor_gcd)
+      (metis coprime_mult_left_iff coprime_mult_right_iff)
 qed (insert assms(3,4), auto)
 
 lemma normalize_quot_mult:
@@ -230,8 +250,8 @@ lemma quot_of_fract_mult:
      (let (a,b) = quot_of_fract x; (c,d) = quot_of_fract y;
           (e,f) = normalize_quot (a,d); (g,h) = normalize_quot (c,b)
       in  (e*g, f*h))"
-  by transfer (simp_all add: Let_def case_prod_unfold normalize_quot_mult_coprime [symmetric]
-                 coprime_normalize_quot normalize_quot_mult [symmetric])
+  by transfer
+     (simp add: split_def Let_def coprime_normalize_quot normalize_quot_mult normalize_quot_mult_coprime)
   
 lemma normalize_quot_0 [simp]: 
     "normalize_quot (0, x) = (0, 1)" "normalize_quot (x, 0) = (0, 1)"
@@ -254,7 +274,9 @@ proof (rule normalize_quotI)
     by (simp add: div_unit_factor [symmetric] unit_div_mult_swap mult_ac del: div_unit_factor)
   have "coprime a' b'" by (simp add: a'_def b'_def coprime_normalize_quot)
   thus "(b' div unit_factor a', a' div unit_factor a') \<in> normalized_fracts"
-    using assms(1,2) d by (auto simp: normalized_fracts_def gcd_div_unit1 gcd_div_unit2 gcd.commute)
+    using assms(1,2) d
+    by (auto simp: normalized_fracts_def ac_simps)
+      (metis gcd.normalize_left_idem gcd_div_unit2 is_unit_gcd unit_factor_is_unit)
 qed fact+
   
 lemma quot_of_fract_inverse:
@@ -274,12 +296,19 @@ lemma normalize_quot_div_unit_left:
   shows "normalize_quot (x div u, y) = (x' div u, y')"
 proof (cases "y = 0")
   case False
-  from normalize_quotE[OF this, of x] guess d . note d = this[folded assms(2,3)]
-  from assms have "coprime x' y'" "unit_factor y' = 1" by (simp_all add: coprime_normalize_quot)
-  with False d \<open>is_unit u\<close> show ?thesis
-    by (intro normalize_quotI)
-       (auto simp: normalized_fracts_def unit_div_mult_swap unit_div_commute unit_div_cancel
-          gcd_div_unit1)
+  define v where "v = 1 div u"
+  with \<open>is_unit u\<close> have "is_unit v" and u: "\<And>a. a div u = a * v"
+    by simp_all
+  from \<open>is_unit v\<close> have "coprime v = top"
+    by (simp add: fun_eq_iff is_unit_left_imp_coprime)
+  from normalize_quotE[OF False, of x] guess d .
+  note d = this[folded assms(2,3)]
+  from assms have "coprime x' y'" "unit_factor y' = 1"
+    by (simp_all add: coprime_normalize_quot)
+  with d \<open>coprime v = top\<close> have "normalize_quot (x * v, y) = (x' * v, y')"
+    by (auto simp: normalized_fracts_def intro: normalize_quotI)
+  then show ?thesis
+    by (simp add: u)
 qed (simp_all add: assms)
 
 lemma normalize_quot_div_unit_right:
@@ -291,10 +320,8 @@ proof (cases "y = 0")
   case False
   from normalize_quotE[OF this, of x] guess d . note d = this[folded assms(2,3)]
   from assms have "coprime x' y'" "unit_factor y' = 1" by (simp_all add: coprime_normalize_quot)
-  with False d \<open>is_unit u\<close> show ?thesis
-    by (intro normalize_quotI)
-       (auto simp: normalized_fracts_def unit_div_mult_swap unit_div_commute unit_div_cancel
-          gcd_mult_unit1 unit_div_eq_0_iff mult.assoc [symmetric])
+  with d \<open>is_unit u\<close> show ?thesis
+    by (auto simp add: normalized_fracts_def is_unit_left_imp_coprime unit_div_eq_0_iff intro: normalize_quotI)
 qed (simp_all add: assms)
 
 lemma normalize_quot_normalize_left:

@@ -89,7 +89,10 @@ theorem.
 * Class linordered_semiring_1 covers zero_less_one also, ruling out
 pathologic instances. Minor INCOMPATIBILITY.
 
-* Removed nat-int transfer machinery.  Rare INCOMPATIBILITY.
+* Removed nat-int transfer machinery. Rare INCOMPATIBILITY.
+
+* Predicate coprime is now a real definition, not a mere
+abbreviation. INCOMPATIBILITY.
 
 
 *** System ***

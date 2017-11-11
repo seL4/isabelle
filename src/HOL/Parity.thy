@@ -318,6 +318,38 @@ lemma odd_two_times_div_two_succ [simp]:
   using mult_div_mod_eq [of 2 a]
   by (simp add: even_iff_mod_2_eq_zero)
 
+lemma coprime_left_2_iff_odd [simp]:
+  "coprime 2 a \<longleftrightarrow> odd a"
+proof
+  assume "odd a"
+  show "coprime 2 a"
+  proof (rule coprimeI)
+    fix b
+    assume "b dvd 2" "b dvd a"
+    then have "b dvd a mod 2"
+      by (auto intro: dvd_mod)
+    with \<open>odd a\<close> show "is_unit b"
+      by (simp add: mod_2_eq_odd)
+  qed
+next
+  assume "coprime 2 a"
+  show "odd a"
+  proof (rule notI)
+    assume "even a"
+    then obtain b where "a = 2 * b" ..
+    with \<open>coprime 2 a\<close> have "coprime 2 (2 * b)"
+      by simp
+    moreover have "\<not> coprime 2 (2 * b)"
+      by (rule not_coprimeI [of 2]) simp_all
+    ultimately show False
+      by blast
+  qed
+qed
+
+lemma coprime_right_2_iff_odd [simp]:
+  "coprime a 2 \<longleftrightarrow> odd a"
+  using coprime_left_2_iff_odd [of a] by (simp add: ac_simps)
+
 end
 
 class ring_parity = ring + semiring_parity

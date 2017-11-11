@@ -96,9 +96,9 @@ corecursive primes :: "nat \<Rightarrow> nat \<Rightarrow> nat stream"
 where "primes m n =
   (if (m = 0 \<and> n > 1) \<or> coprime m n then n \<lhd> primes (m * n) (n + 1) else primes m (n + 1))"
 apply (relation "measure (\<lambda>(m, n). if n = 0 then 1 else if coprime m n then 0 else m - n mod m)")
-apply (auto simp: mod_Suc intro: Suc_lessI )
-apply (metis One_nat_def coprime_Suc_nat gcd.commute gcd_red_nat)
-by (metis diff_less_mono2 lessI mod_less_divisor)
+   apply (auto simp: mod_Suc diff_less_mono2 intro: Suc_lessI elim!: not_coprimeE)
+   apply (metis dvd_1_iff_1 dvd_eq_mod_eq_0 mod_0 mod_Suc mod_Suc_eq mod_mod_cancel)
+  done
 
 corec facC :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat stream"
 where "facC n a i = (if i = 0 then a \<lhd> facC (n + 1) 1 (n + 1) else facC n (a * i) (i - 1))"

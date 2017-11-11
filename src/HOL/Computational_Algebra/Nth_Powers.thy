@@ -111,9 +111,10 @@ proof -
     ultimately show "n dvd multiplicity p a"
       by (auto simp: not_dvd_imp_multiplicity_0)
   qed
-  from A[of a b] assms show "is_nth_power n a" by (cases "n = 0") simp_all
-  from A[of b a] assms show "is_nth_power n b" 
-    by (cases "n = 0") (simp_all add: gcd.commute mult.commute)
+  from A [of a b] assms show "is_nth_power n a"
+    by (cases "n = 0") simp_all
+  from A [of b a] assms show "is_nth_power n b"
+    by (cases "n = 0") (simp_all add: ac_simps)
 qed
     
 lemma is_nth_power_mult_coprime_nat_iff:

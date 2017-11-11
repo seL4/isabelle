@@ -106,13 +106,9 @@ lemma res_one_eq: "\<one> = 1"
 
 lemma res_units_eq: "Units R = {x. 0 < x \<and> x < m \<and> coprime x m}"
   using m_gt_one
-  unfolding Units_def R_def residue_ring_def
-  apply auto
-    apply (subgoal_tac "x \<noteq> 0")
-     apply auto
-   apply (metis invertible_coprime_int)
+  apply (auto simp add: Units_def R_def residue_ring_def ac_simps invertible_coprime intro: ccontr)
   apply (subst (asm) coprime_iff_invertible'_int)
-   apply (auto simp add: cong_def mult.commute)
+   apply (auto simp add: cong_def)
   done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
@@ -220,6 +216,22 @@ sublocale residues_prime < residues p
 context residues_prime
 begin
 
+lemma p_coprime_left:
+  "coprime p a \<longleftrightarrow> \<not> p dvd a"
+  using p_prime by (auto intro: prime_imp_coprime dest: coprime_common_divisor)
+
+lemma p_coprime_right:
+  "coprime a p  \<longleftrightarrow> \<not> p dvd a"
+  using p_coprime_left [of a] by (simp add: ac_simps)
+
+lemma p_coprime_left_int:
+  "coprime (int p) a \<longleftrightarrow> \<not> int p dvd a"
+  using p_prime by (auto intro: prime_imp_coprime dest: coprime_common_divisor)
+
+lemma p_coprime_right_int:
+  "coprime a (int p) \<longleftrightarrow> \<not> int p dvd a"
+  using p_coprime_left_int [of a] by (simp add: ac_simps)
+
 lemma is_field: "field R"
 proof -
   have "0 < x \<Longrightarrow> x < int p \<Longrightarrow> coprime (int p) x" for x
@@ -231,9 +243,7 @@ qed
 
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (subst res_units_eq)
-  apply auto
-  apply (subst gcd.commute)
-  apply (auto simp add: p_prime prime_imp_coprime_int zdvd_not_zless)
+  apply (auto simp add: p_coprime_right_int zdvd_not_zless)
   done
 
 end
@@ -246,26 +256,27 @@ section \<open>Test cases: Euler's theorem and Wilson's theorem\<close>
 
 subsection \<open>Euler's theorem\<close>
 
-lemma (in residues) totient_eq: "totient (nat m) = card (Units R)"
+lemma (in residues) totatives_eq:
+  "totatives (nat m) = nat ` Units R"
 proof -
+  from m_gt_one have "\<bar>m\<bar> > 1"
+    by simp
+  then have "totatives (nat \<bar>m\<bar>) = nat ` abs ` Units R"
+    by (auto simp add: totatives_def res_units_eq image_iff le_less)
+      (use m_gt_one zless_nat_eq_int_zless in force)
+  moreover have "\<bar>m\<bar> = m" "abs ` Units R = Units R"
+    using m_gt_one by (auto simp add: res_units_eq image_iff)
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma (in residues) totient_eq:
+  "totient (nat m) = card (Units R)"
+proof  -
   have *: "inj_on nat (Units R)"
     by (rule inj_onI) (auto simp add: res_units_eq)
-  define m' where "m' = nat m"
-  from m_gt_one have "m = int m'" "m' > 1"
-    by (simp_all add: m'_def)
-  then have "x \<in> Units R \<longleftrightarrow> x \<in> int ` totatives m'" for x
-    unfolding res_units_eq
-    by (cases x; cases "x = m") (auto simp: totatives_def gcd_int_def)
-  then have "Units R = int ` totatives m'"
-    by blast
-  then have "totatives m' = nat ` Units R"
-    by (simp add: image_image)
-  then have "card (totatives (nat m)) = card (nat ` Units R)"
-    by (simp add: m'_def)
-  also have "\<dots> = card (Units R)"
-    using * card_image [of nat "Units R"] by auto
-  finally show ?thesis
-    by (simp add: totient_def)
+  then show ?thesis
+    by (simp add: totient_def totatives_eq card_image)
 qed
 
 lemma (in residues_prime) totient_eq: "totient p = p - 1"

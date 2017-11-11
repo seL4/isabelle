@@ -21,10 +21,6 @@ begin
 text_raw \<open>\<^footnote>\<open>Isar version by Gertrud Bauer. Original tactic script by Larry
   Paulson. A few proofs of laws taken from @{cite "Concrete-Math"}.\<close>\<close>
 
-
-declare One_nat_def [simp]
-
-
 subsection \<open>Fibonacci numbers\<close>
 
 fun fib :: "nat \<Rightarrow> nat"
@@ -65,12 +61,13 @@ proof (induct n rule: fib_induct)
   finally show "?P (n + 2)" .
 qed
 
-lemma gcd_fib_Suc_eq_1: "gcd (fib n) (fib (n + 1)) = 1"
+lemma coprime_fib_Suc: "coprime (fib n) (fib (n + 1))"
   (is "?P n")
 proof (induct n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp
   fix n
+  assume P: "coprime (fib (n + 1)) (fib (n + 1 + 1))"
   have "fib (n + 2 + 1) = fib (n + 1) + fib (n + 2)"
     by simp
   also have "\<dots> = fib (n + 2) + fib (n + 1)"
@@ -79,8 +76,10 @@ proof (induct n rule: fib_induct)
     by (rule gcd_add2)
   also have "\<dots> = gcd (fib (n + 1)) (fib (n + 1 + 1))"
     by (simp add: gcd.commute)
-  also assume "\<dots> = 1"
-  finally show "?P (n + 2)" .
+  also have "\<dots> = 1"
+    using P by simp
+  finally show "?P (n + 2)"
+    by (simp add: coprime_iff_gcd_eq_1)
 qed
 
 lemma gcd_mult_add: "(0::nat) < n \<Longrightarrow> gcd (n * k + m) n = gcd m n"
@@ -106,7 +105,8 @@ next
   also have "gcd \<dots> (fib (k + 1)) = gcd (fib k * fib n) (fib (k + 1))"
     by (simp add: gcd_mult_add)
   also have "\<dots> = gcd (fib n) (fib (k + 1))"
-    by (simp only: gcd_fib_Suc_eq_1 gcd_mult_cancel)
+    using coprime_fib_Suc [of k] gcd_mult_left_right_cancel [of "fib (k + 1)" "fib k" "fib n"]
+    by (simp add: ac_simps)
   also have "\<dots> = gcd (fib m) (fib n)"
     using Suc by (simp add: gcd.commute)
   finally show ?thesis .

@@ -1874,6 +1874,11 @@ lemma pairwise_subset: "pairwise P S \<Longrightarrow> T \<subseteq> S \<Longrig
 lemma pairwise_mono: "\<lbrakk>pairwise P A; \<And>x y. P x y \<Longrightarrow> Q x y\<rbrakk> \<Longrightarrow> pairwise Q A"
   by (auto simp: pairwise_def)
 
+lemma pairwise_imageI:
+  "pairwise P (f ` A)"
+  if "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> f x \<noteq> f y \<Longrightarrow> P (f x) (f y)"
+  using that by (auto intro: pairwiseI)
+
 lemma pairwise_image: "pairwise r (f ` s) \<longleftrightarrow> pairwise (\<lambda>x y. (f x \<noteq> f y) \<longrightarrow> r (f x) (f y)) s"
   by (force simp: pairwise_def)
 

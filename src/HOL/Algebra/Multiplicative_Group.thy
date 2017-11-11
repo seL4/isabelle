@@ -139,7 +139,7 @@ lemma dvd_nat_bounds :
 
 (* Deviates from the definition given in the library in number theory *)
 definition phi' :: "nat => nat"
-  where "phi' m = card {x. 1 \<le> x \<and> x \<le> m \<and> gcd x m = 1}"
+  where "phi' m = card {x. 1 \<le> x \<and> x \<le> m \<and> coprime x m}"
 
 notation (latex output)
   phi' ("\<phi> _")
@@ -148,8 +148,8 @@ lemma phi'_nonzero :
   assumes "m > 0"
   shows "phi' m > 0"
 proof -
-  have "1 \<in> {x. 1 \<le> x \<and> x \<le> m \<and> gcd x m = 1}" using assms by simp
-  hence "card {x. 1 \<le> x \<and> x \<le> m \<and> gcd x m = 1} > 0" by (auto simp: card_gt_0_iff)
+  have "1 \<in> {x. 1 \<le> x \<and> x \<le> m \<and> coprime x m}" using assms by simp
+  hence "card {x. 1 \<le> x \<and> x \<le> m \<and> coprime x m} > 0" by (auto simp: card_gt_0_iff)
   thus ?thesis unfolding phi'_def by simp
 qed
 
@@ -232,7 +232,7 @@ proof -
           by (simp add: gcd_mult_distrib_nat q ac_simps)
         hence "n div gcd (a * n div d) n = d*n div (d*(n div d))" using a by simp
         hence "a * n div d \<in> ?F"
-          using ge_1 le_n by (fastforce simp add: `d dvd n` dvd_mult_div_cancel)
+          using ge_1 le_n by (fastforce simp add: `d dvd n`)
       } thus "(\<lambda>a. a*n div d) ` ?RF \<subseteq> ?F" by blast
       { fix m l assume A: "m \<in> ?F" "l \<in> ?F" "m div gcd m n = l div gcd l n"
         hence "gcd m n = gcd l n" using dvd_div_eq_2[OF assms] by fastforce
@@ -256,7 +256,7 @@ proof -
     proof
       fix m assume m: "m \<in> ?R"
       thus "m \<in> ?L" using dvd_triv_right[of "n div gcd m n" "gcd m n"]
-        by (simp add: dvd_mult_div_cancel)
+        by simp
     qed
   qed fastforce
   finally show ?thesis by force
@@ -329,7 +329,7 @@ lemma finite_group_elem_finite_ord :
 lemma ord_min:
   assumes  "finite (carrier G)" "1 \<le> d" "a \<in> carrier G" "a (^) d = \<one>" shows "ord a \<le> d"
 proof -
-  def Ord \<equiv> "{d \<in> {1..order G}. a (^) d = \<one>}"
+  define Ord where "Ord = {d \<in> {1..order G}. a (^) d = \<one>}"
   have fin: "finite Ord" by (auto simp: Ord_def)
   have in_ord: "ord a \<in> Ord"
     using assms pow_ord_eq_1 ord_ge_1 ord_le_group_order by (auto simp: Ord_def)
@@ -411,7 +411,7 @@ proof
   show "?R \<subseteq> ?L" by blast
   { fix y assume "y \<in> ?L"
     then obtain x::nat where x:"y = a(^)x" by auto
-    def r \<equiv> "x mod ord a"
+    define r where "r = x mod ord a"
     then obtain q where q:"x = q * ord a + r" using mod_eqD by atomize_elim presburger
     hence "y = (a(^)ord a)(^)q \<otimes> a(^)r"
       using x assms by (simp add: mult.commute nat_pow_mult nat_pow_pow)
@@ -427,7 +427,7 @@ lemma ord_dvd_pow_eq_1 :
   assumes "finite (carrier G)" "a \<in> carrier G" "a (^) k = \<one>"
   shows "ord a dvd k"
 proof -
-  def r \<equiv> "k mod ord a"
+  define r where "r = k mod ord a"
   then obtain q where q:"k = q*ord a + r" using mod_eqD by atomize_elim presburger
   hence "a(^)k = (a(^)ord a)(^)q \<otimes> a(^)r"
       using assms by (simp add: mult.commute nat_pow_mult nat_pow_pow)
@@ -486,15 +486,16 @@ proof -
     proof -
       have "coprime (n div gcd n (ord a)) (ord a div gcd n (ord a))"
         using div_gcd_coprime[of n "ord a"] ge_1 by fastforce
-      thus ?thesis by (simp add: gcd.commute)
+      thus ?thesis by (simp add: ac_simps)
     qed
     have dvd_d:"(ord a div gcd n (ord a)) dvd d"
     proof -
       have "ord a div gcd n (ord a) dvd (n div gcd n (ord a)) * d" using prod_eq
         by (metis dvd_triv_right mult.commute)
       hence "ord a div gcd n (ord a) dvd d * (n div gcd n (ord a))"
-        by (simp add:  mult.commute)
-      thus ?thesis using coprime_dvd_mult[OF cp, of d] by fastforce
+        by (simp add: mult.commute)
+      then show ?thesis
+        using cp by (simp add: coprime_dvd_mult_left_iff)
     qed
     have "d > 0" using d_elem by simp
     hence "ord a div gcd n (ord a) \<le> d" using dvd_d by (simp add : Nat.dvd_imp_le)
@@ -744,7 +745,8 @@ lemma (in group)
   shows pow_ord_eq_ord_iff: "group.ord G (a (^) k) = ord a \<longleftrightarrow> coprime k (ord a)" (is "?L \<longleftrightarrow> ?R")
 proof
   assume A: ?L then show ?R
-    using assms ord_ge_1[OF assms] by (auto simp: nat_div_eq ord_pow_dvd_ord_elem)
+    using assms ord_ge_1 [OF assms]
+    by (auto simp: nat_div_eq ord_pow_dvd_ord_elem coprime_iff_gcd_eq_1)
 next
   assume ?R then show ?L
     using ord_pow_dvd_ord_elem[OF assms, of k] by auto

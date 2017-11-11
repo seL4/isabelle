@@ -15,7 +15,7 @@ begin
   
 definition totatives :: "nat \<Rightarrow> nat set" where
   "totatives n = {k \<in> {0<..n}. coprime k n}"
-  
+
 lemma in_totatives_iff: "k \<in> totatives n \<longleftrightarrow> k > 0 \<and> k \<le> n \<and> coprime k n"
   by (simp add: totatives_def)
   
@@ -60,7 +60,7 @@ lemma totatives_eq_empty_iff [simp]: "totatives n = {} \<longleftrightarrow> n =
 lemma minus_one_in_totatives:
   assumes "n \<ge> 2"
   shows "n - 1 \<in> totatives n"
-  using assms coprime_minus_one_nat [of n] by (simp add: in_totatives_iff)
+  using assms coprime_diff_one_left_nat [of n] by (simp add: in_totatives_iff)
 
 lemma totatives_prime_power_Suc:
   assumes "prime p"
@@ -72,7 +72,8 @@ next
   fix k assume k: "k \<in> {0<..p^Suc n}" "k \<notin> (\<lambda>m. p * m) ` {0<..p^n}"
   from k have "\<not>(p dvd k)" by (auto elim!: dvdE)
   hence "coprime k (p ^ Suc n)"
-    using prime_imp_coprime[OF assms, of k] by (intro coprime_exp) (simp_all add: gcd.commute)
+    using prime_imp_coprime [OF assms, of k]
+    by (cases "n > 0") (auto simp add: ac_simps)
   with k show "k \<in> totatives (p ^ Suc n)" by (simp add: totatives_def)
 qed (auto simp: totatives_def)
 
@@ -101,14 +102,15 @@ next
   proof safe
     fix x assume "x \<in> totatives (m1 * m2)"
     with assms show "x mod m1 \<in> totatives m1" "x mod m2 \<in> totatives m2"
-      by (auto simp: totatives_def coprime_mul_eq not_le simp del: One_nat_def intro!: Nat.gr0I)
+      using coprime_common_divisor [of x m1 m1] coprime_common_divisor [of x m2 m2]
+      by (auto simp add: in_totatives_iff mod_greater_zero_iff_not_dvd)
   next
     fix a b assume ab: "a \<in> totatives m1" "b \<in> totatives m2"
     with assms have ab': "a < m1" "b < m2" by (auto simp: totatives_less)
     with binary_chinese_remainder_unique_nat[OF assms(3), of a b] obtain x
       where x: "x < m1 * m2" "x mod m1 = a" "x mod m2 = b" by (auto simp: cong_def)
     from x ab assms(3) have "x \<in> totatives (m1 * m2)"
-      by (auto simp: totatives_def coprime_mul_eq simp del: One_nat_def intro!: Nat.gr0I)
+      by (auto intro: ccontr simp add: in_totatives_iff)
     with x show "(a, b) \<in> (\<lambda>x. (x mod m1, x mod m2)) ` totatives (m1*m2)" by blast
   qed
 qed
@@ -125,20 +127,17 @@ next
   show "(\<lambda>k. k * d) ` totatives (n div d) = {k\<in>{0<..n}. gcd k n = d}"
   proof (intro equalityI subsetI, goal_cases)
     case (1 k)
-    thus ?case using assms
-      by (auto elim!: dvdE simp: inj_on_def totatives_def mult.commute[of d]
-                                 gcd_mult_right gcd.commute)
+    then show ?case using assms
+      by (auto elim: dvdE simp add: in_totatives_iff ac_simps gcd_mult_right)
   next
     case (2 k)
     hence "d dvd k" by auto
     then obtain l where k: "k = l * d" by (elim dvdE) auto
-    from 2 and assms show ?case unfolding k
-      by (intro imageI) (auto simp: totatives_def gcd.commute mult.commute[of d] 
-                                    gcd_mult_right elim!: dvdE)
+    from 2 assms show ?case
+      using gcd_mult_right [of _ d l]
+      by (auto intro: gcd_eq_1_imp_coprime elim!: dvdE simp add: k image_iff in_totatives_iff ac_simps)
   qed
 qed
-
-
 
 definition totient :: "nat \<Rightarrow> nat" where
   "totient n = card (totatives n)"
@@ -272,7 +271,8 @@ next
   proof -
     from that have nz: "x \<noteq> 0" by (auto intro!: Nat.gr0I)
     from that and p have le: "x \<le> p" by (intro dvd_imp_le) auto
-    from that and nz have "\<not>coprime x p" by auto
+    from that and nz have "\<not>coprime x p"
+      by (auto elim: dvdE)
     hence "x \<notin> totatives p" by (simp add: totatives_def)
     also note *
     finally show False using that and le by auto
@@ -299,7 +299,8 @@ lemma totient_4 [simp]: "totient 4 = 2"
   by simp_all
     
 lemma totient_6 [simp]: "totient 6 = 2"
-  using totient_mult_coprime[of 2 3] by (simp add: gcd_non_0_nat)    
+  using totient_mult_coprime [of 2 3] coprime_add_one_right [of 2]
+  by simp
 
 lemma totient_even:
   assumes "n > 2"
@@ -314,11 +315,14 @@ proof (cases "\<exists>p. prime p \<and> p \<noteq> 2 \<and> p dvd n")
   have "p ^ k dvd n" unfolding k_def by (simp add: multiplicity_dvd)
   then obtain m where m: "n = p ^ k * m" by (elim dvdE)
   with assms have m_pos: "m > 0" by (auto intro!: Nat.gr0I)
-  from k_def m_pos p have "\<not>p dvd m"
+  from k_def m_pos p have "\<not> p dvd m"
     by (subst (asm) m) (auto intro!: Nat.gr0I simp: prime_elem_multiplicity_mult_distrib 
                           prime_elem_multiplicity_eq_zero_iff)
-  hence "coprime (p ^ k) m" by (intro coprime_exp_left prime_imp_coprime[OF p(1)])
-  thus ?thesis using p k_pos \<open>odd p\<close> 
+  with \<open>prime p\<close> have "coprime p m"
+    by (rule prime_imp_coprime)
+  with \<open>k > 0\<close> have "coprime (p ^ k) m"
+    by simp
+  then show ?thesis using p k_pos \<open>odd p\<close> 
     by (auto simp add: m totient_mult_coprime totient_prime_power)
 next
   case False
@@ -341,7 +345,7 @@ lemma totient_prod_coprime:
 proof (induction A rule: infinite_finite_induct)
   case (insert x A)
   have *: "coprime (prod f A) (f x)"
-  proof (rule prod_coprime)
+  proof (rule prod_coprime_left)
     fix y
     assume "y \<in> A"
     with \<open>x \<notin> A\<close> have "y \<noteq> x"
@@ -388,10 +392,12 @@ proof -
   proof (rule totient_prod_coprime)
     show "pairwise coprime ((\<lambda>p. p ^ multiplicity p n) ` prime_factors n)"
     proof (rule pairwiseI, clarify)
-      fix p q assume "p \<in># prime_factorization n" "q \<in># prime_factorization n" 
+      fix p q assume *: "p \<in># prime_factorization n" "q \<in># prime_factorization n" 
                      "p ^ multiplicity p n \<noteq> q ^ multiplicity q n"
-      thus "coprime (p ^ multiplicity p n) (q ^ multiplicity q n)"
-        by (intro coprime_exp2 primes_coprime[of p q]) auto
+      then have "multiplicity p n > 0" "multiplicity q n > 0"
+        by (simp_all add: prime_factors_multiplicity)
+      with * primes_coprime [of p q] show "coprime (p ^ multiplicity p n) (q ^ multiplicity q n)"
+        by auto
     qed
   next
     show "inj_on (\<lambda>p. p ^ multiplicity p n) (prime_factors n)"
@@ -475,20 +481,22 @@ lemma totient_mult: "totient (a * b) = totient a * totient b * gcd a b div totie
   by (subst totient_gcd [symmetric]) simp
 
 lemma of_nat_eq_1_iff: "of_nat x = (1 :: 'a :: {semiring_1, semiring_char_0}) \<longleftrightarrow> x = 1"
-  using of_nat_eq_iff[of x 1] by (simp del: of_nat_eq_iff)
+  by (fact of_nat_eq_1_iff)
 
 (* TODO Move *)
-lemma gcd_2_odd:
+lemma odd_imp_coprime_nat:
   assumes "odd (n::nat)"
-  shows   "gcd n 2 = 1"
+  shows   "coprime n 2"
 proof -
   from assms obtain k where n: "n = Suc (2 * k)" by (auto elim!: oddE)
-  have "coprime (Suc (2 * k)) (2 * k)" by (rule coprime_Suc_nat)
-  thus ?thesis using n by (subst (asm) coprime_mul_eq) simp_all
+  have "coprime (Suc (2 * k)) (2 * k)"
+    by (fact coprime_Suc_left_nat)
+  then show ?thesis using n
+    by simp
 qed
 
 lemma totient_double: "totient (2 * n) = (if even n then 2 * totient n else totient n)"
-  by (subst totient_mult) (auto simp: gcd.commute[of 2] gcd_2_odd)
+  by (simp add: totient_mult ac_simps odd_imp_coprime_nat)
 
 lemma totient_power_Suc: "totient (n ^ Suc m) = n ^ m * totient n"
 proof (induction m arbitrary: n)

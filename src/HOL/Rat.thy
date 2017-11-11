@@ -999,7 +999,7 @@ lemma rat_inverse_code [code abstract]:
 proof (cases p)
   case (Fract a b)
   then show ?thesis
-    by (cases "0::int" a rule: linorder_cases) (simp_all add: quotient_of_Fract gcd.commute)
+    by (cases "0::int" a rule: linorder_cases) (simp_all add: quotient_of_Fract ac_simps)
 qed
 
 lemma rat_divide_code [code abstract]:
@@ -1008,9 +1008,10 @@ lemma rat_divide_code [code abstract]:
      in normalize (a * d, c * b))"
   by (cases p, cases q) (simp add: quotient_of_Fract)
 
-lemma rat_abs_code [code abstract]: "quotient_of \<bar>p\<bar> = (let (a, b) = quotient_of p in (\<bar>a\<bar>, b))"
+lemma rat_abs_code [code abstract]:
+  "quotient_of \<bar>p\<bar> = (let (a, b) = quotient_of p in (\<bar>a\<bar>, b))"
   by (cases p) (simp add: quotient_of_Fract)
-
+  
 lemma rat_sgn_code [code abstract]: "quotient_of (sgn p) = (sgn (fst (quotient_of p)), 1)"
 proof (cases p)
   case (Fract a b)

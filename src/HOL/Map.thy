@@ -782,6 +782,20 @@ next
   with * \<open>x = (k, v)\<close> show ?case by simp
 qed
 
+lemma eq_key_imp_eq_value:
+  "v1 = v2"
+  if "distinct (map fst xs)" "(k, v1) \<in> set xs" "(k, v2) \<in> set xs"
+proof -
+  from that have "inj_on fst (set xs)"
+    by (simp add: distinct_map)
+  moreover have "fst (k, v1) = fst (k, v2)"
+    by simp
+  ultimately have "(k, v1) = (k, v2)"
+    by (rule inj_onD) (fact that)+
+  then show ?thesis
+    by simp
+qed
+
 lemma map_of_inject_set:
   assumes distinct: "distinct (map fst xs)" "distinct (map fst ys)"
   shows "map_of xs = map_of ys \<longleftrightarrow> set xs = set ys" (is "?lhs \<longleftrightarrow> ?rhs")

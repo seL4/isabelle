@@ -115,8 +115,9 @@ proof -
   proof -
     from p_a_relprime have "\<not> p dvd a"
       by (simp add: cong_altdef_int)
-    with p_prime have "coprime a (int p)"
-      by (subst gcd.commute, intro prime_imp_coprime) auto
+    with p_prime prime_imp_coprime [of _ "nat \<bar>a\<bar>"]
+    have "coprime a (int p)"
+      by (simp_all add: zdvd_int ac_simps)
     with a cong_mult_rcancel_int [of a "int p" x y] have "[x = y] (mod p)"
       by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
@@ -149,8 +150,9 @@ proof -
       using cong_def by blast
     from p_a_relprime have "\<not>p dvd a"
       by (simp add: cong_altdef_int)
-    with p_prime have "coprime a (int p)"
-      by (subst gcd.commute, intro prime_imp_coprime) auto
+    with p_prime prime_imp_coprime [of _ "nat \<bar>a\<bar>"]
+    have "coprime a (int p)"
+      by (simp_all add: zdvd_int ac_simps)  
     with a' cong_mult_rcancel_int [of a "int p" x y]
     have "[x = y] (mod p)" by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
@@ -219,13 +221,16 @@ lemma D_eq: "D = {x. \<exists>y \<in> A. (x = (y * a) mod p \<and> (y * a) mod p
   by (auto simp add: D_def C_def B_def A_def)
 
 lemma all_A_relprime:
-  assumes "x \<in> A"
-  shows "gcd x p = 1"
-  using p_prime A_ncong_p [OF assms]
-  by (auto simp: cong_altdef_int gcd.commute[of _ "int p"] intro!: prime_imp_coprime)
-
-lemma A_prod_relprime: "gcd (prod id A) p = 1"
-  by (metis id_def all_A_relprime prod_coprime)
+  "coprime x p" if "x \<in> A"
+proof -
+  from A_ncong_p [OF that] have "\<not> int p dvd x"
+    by (simp add: cong_altdef_int)
+  with p_prime show ?thesis
+    by (metis (no_types) coprime_commute prime_imp_coprime prime_nat_int_transfer)
+qed
+  
+lemma A_prod_relprime: "coprime (prod id A) p"
+  by (auto intro: prod_coprime_left all_A_relprime)
 
 
 subsection \<open>Relationships Between Gauss Sets\<close>
