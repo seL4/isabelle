@@ -110,6 +110,7 @@ object Isabelle_Tool
       Check_Sources.isabelle_tool,
       Doc.isabelle_tool,
       Imports.isabelle_tool,
+      Mkroot.isabelle_tool,
       ML_Process.isabelle_tool,
       NEWS.isabelle_tool,
       Options.isabelle_tool,
