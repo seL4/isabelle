@@ -7,7 +7,18 @@ Manage other Isabelle distributions.
 package isabelle
 
 
-class Other_Isabelle(progress: Progress, val isabelle_home: Path, val isabelle_identifier: String)
+object Other_Isabelle
+{
+  def apply(isabelle_home: Path,
+      isabelle_identifier: String,
+      progress: Progress = No_Progress): Other_Isabelle =
+    new Other_Isabelle(isabelle_home, isabelle_identifier, progress)
+}
+
+class Other_Isabelle(
+  val isabelle_home: Path,
+  val isabelle_identifier: String,
+  progress: Progress)
 {
   other_isabelle =>
 

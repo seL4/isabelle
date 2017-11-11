@@ -170,7 +170,8 @@ object Build_History
 
     /* main */
 
-    val other_isabelle = new Other_Isabelle(progress, root, isabelle_identifier)
+    val other_isabelle =
+      Other_Isabelle(root, isabelle_identifier = isabelle_identifier, progress = progress)
 
     val build_host = Isabelle_System.hostname()
     val build_history_date = Date.now()
@@ -226,9 +227,10 @@ object Build_History
       val build_start = Date.now()
       val build_args1 = List("-v", "-j" + processes) ::: afp_build_args ::: build_args
       val build_result =
-        (new Other_Isabelle(build_out_progress, root, isabelle_identifier))(
-          "build " + Bash.strings(build_args1 ::: afp_sessions), redirect = true, echo = true,
-          strict = false)
+        Other_Isabelle(root, isabelle_identifier = isabelle_identifier,
+          progress = build_out_progress)(
+            "build " + Bash.strings(build_args1 ::: afp_sessions), redirect = true, echo = true,
+            strict = false)
       val build_end = Date.now()
 
       val build_info: Build_Log.Build_Info =

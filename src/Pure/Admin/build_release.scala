@@ -163,7 +163,8 @@ object Build_Release
             execute_tar("xzf " + File.bash_path(bundle))
 
             val other_isabelle =
-              new Other_Isabelle(progress, tmp_dir + Path.explode(name), name + "-build")
+              Other_Isabelle(tmp_dir + Path.explode(name),
+                isabelle_identifier = name + "-build", progress = progress)
 
             other_isabelle.bash("bin/isabelle build" + jobs_option +
                 " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
