@@ -58,7 +58,7 @@ text \<open>
     \<^enum> The file @{path "$ISABELLE_HOME_USER/etc/settings"} (if it
     exists) is run in the same way as the site default settings. Note that the
     variable @{setting ISABELLE_HOME_USER} has already been set before ---
-    usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/IsabelleXXXX\<close>.
+    usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/Isabelle2017\<close>.
 
     Thus individual users may override the site-wide defaults. Typically, a
     user settings file contains only a few lines, with some assignments that
