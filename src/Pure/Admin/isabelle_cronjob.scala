@@ -275,6 +275,14 @@ object Isabelle_Cronjob
               val self_update = !r.shared_home
               val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
 
+              if (user_home && r.shared_home) {
+                ssh.execute("""
+if [ ! -e /tmp/isabelle-isatest/contrib ]
+then
+  mkdir -p /tmp/isabelle-isatest && ln -s /home/isabelle/contrib /tmp/isabelle-isatest
+fi""").check
+              }
+
               val results =
                 Build_History.remote_build_history(ssh,
                   isabelle_repos,
