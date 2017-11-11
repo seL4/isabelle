@@ -10,17 +10,24 @@ package isabelle
 object Other_Isabelle
 {
   def apply(isabelle_home: Path,
-      isabelle_identifier: String,
+      isabelle_identifier: String = "",
+      user_home: Path = Path.explode("$USER_HOME"),
       progress: Progress = No_Progress): Other_Isabelle =
-    new Other_Isabelle(isabelle_home, isabelle_identifier, progress)
+    new Other_Isabelle(isabelle_home, isabelle_identifier, user_home, progress)
 }
 
 class Other_Isabelle(
   val isabelle_home: Path,
   val isabelle_identifier: String,
+  user_home: Path,
   progress: Progress)
 {
   other_isabelle =>
+
+  override def toString: String = isabelle_home.toString
+
+  if (proper_string(System.getenv("ISABELLE_SETTINGS_PRESENT")).isDefined)
+    error("Cannot initialize with enclosing ISABELLE_SETTINGS_PRESENT")
 
 
   /* static system */
@@ -30,7 +37,9 @@ class Other_Isabelle(
       redirect: Boolean = false,
       echo: Boolean = false,
       strict: Boolean = true): Process_Result =
-    progress.bash(Isabelle_System.export_isabelle_identifier(isabelle_identifier) + script,
+    progress.bash(
+      "export USER_HOME=" + File.bash_path(user_home) + "\n" +
+      Isabelle_System.export_isabelle_identifier(isabelle_identifier) + script,
       env = null, cwd = isabelle_home.file, redirect = redirect, echo = echo, strict = strict)
 
   def apply(
