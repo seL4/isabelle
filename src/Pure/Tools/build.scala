@@ -71,7 +71,7 @@ object Build
       }
     }
 
-    def apply(progress: Progress, sessions: Sessions.T, store: Sessions.Store): Queue =
+    def apply(progress: Progress, sessions: Sessions.Structure, store: Sessions.Store): Queue =
     {
       val graph = sessions.build_graph
       val names = graph.keys
@@ -178,7 +178,7 @@ object Build
   private class Job(progress: Progress,
     name: String,
     val info: Sessions.Info,
-    sessions: Sessions.T,
+    sessions: Sessions.Structure,
     deps: Sessions.Deps,
     store: Sessions.Store,
     do_output: Boolean,

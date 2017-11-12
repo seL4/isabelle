@@ -23,7 +23,7 @@ object ML_Process
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None,
-    sessions: Option[Sessions.T] = None,
+    sessions: Option[Sessions.Structure] = None,
     session_base: Option[Sessions.Base] = None,
     store: Sessions.Store = Sessions.store()): Bash.Process =
   {

@@ -175,7 +175,7 @@ object Sessions
       }
   }
 
-  def deps(sessions_structure: T,
+  def deps(sessions_structure: Structure,
       global_theories: Map[String, String],
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
@@ -330,7 +330,7 @@ object Sessions
 
   sealed case class Base_Info(
     session: String,
-    sessions_structure: T,
+    sessions_structure: Structure,
     errors: List[String],
     base: Base,
     infos: List[Info])
@@ -542,7 +542,7 @@ object Sessions
     }
   }
 
-  def make(infos: List[Info]): T =
+  def make(infos: List[Info]): Structure =
   {
     def add_edges(graph: Graph[String, Info], kind: String, edges: Info => Traversable[String])
       : Graph[String, Info] =
@@ -577,10 +577,10 @@ object Sessions
     val graph1 = add_edges(graph0, "parent", _.parent)
     val graph2 = add_edges(graph1, "imports", _.imports)
 
-    new T(graph1, graph2)
+    new Structure(graph1, graph2)
   }
 
-  final class T private[Sessions](
+  final class Structure private[Sessions](
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
   {
@@ -606,7 +606,7 @@ object Sessions
               }
           })
 
-    def selection(sel: Selection): T =
+    def selection(sel: Selection): Structure =
     {
       val bad_sessions =
         SortedSet((sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions).
@@ -622,7 +622,7 @@ object Sessions
         graph.restrict(graph.all_preds(sessions).toSet)
       }
 
-      new T(restrict(build_graph), restrict(imports_graph))
+      new Structure(restrict(build_graph), restrict(imports_graph))
     }
 
     def build_selection(sel: Selection): List[String] = sel.selected(build_graph)
@@ -636,7 +636,7 @@ object Sessions
     def imports_topological_order: List[String] = imports_graph.topological_order
 
     override def toString: String =
-      imports_graph.keys_iterator.mkString("Sessions.T(", ", ", ")")
+      imports_graph.keys_iterator.mkString("Sessions.Structure(", ", ", ")")
   }
 
 
@@ -788,7 +788,7 @@ object Sessions
   def load_structure(options: Options,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    infos: List[Info] = Nil): T =
+    infos: List[Info] = Nil): Structure =
   {
     def load_dir(select: Boolean, dir: Path): List[(Boolean, Path)] =
       load_root(select, dir) ::: load_roots(select, dir)
