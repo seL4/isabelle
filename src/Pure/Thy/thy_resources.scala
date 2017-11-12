@@ -9,6 +9,43 @@ package isabelle
 
 object Thy_Resources
 {
+  /* PIDE session */
+
+  def start_session(
+    options: Options,
+    session_name: String,
+    session_dirs: List[Path] = Nil,
+    modes: List[String] = Nil,
+    log: Logger = No_Logger): Session =
+  {
+    val session_base = Sessions.base_info(options, session_name, dirs = session_dirs).check_base
+    val resources = new Thy_Resources(session_base, log = log)
+    val session = new Session(options, resources)
+
+    val session_error = Future.promise[String]
+    var session_phase: Session.Consumer[Session.Phase] = null
+    session_phase =
+      Session.Consumer(getClass.getName) {
+        case Session.Ready =>
+          session.phase_changed -= session_phase
+          session_error.fulfill("")
+        case Session.Terminated(result) if !result.ok =>
+          session.phase_changed -= session_phase
+          session_error.fulfill("Prover startup failed: return code " + result.rc)
+        case _ =>
+      }
+    session.phase_changed += session_phase
+
+    Isabelle_Process.start(session, options,
+      logic = session_name, dirs = session_dirs, modes = modes)
+
+    session_error.join match {
+      case "" => session
+      case msg => session.stop(); error(msg)
+    }
+  }
+
+
   /* internal state */
 
   sealed case class State(theories: Map[Document.Node.Name, Theory] = Map.empty)
