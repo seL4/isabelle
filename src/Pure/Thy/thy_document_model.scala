@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/thy_document_model.scala
     Author:     Makarius
 
-Document model for theory files: no edits, no blobs, no overlays.
+Document model for theory files: no blobs, no edits, no overlays.
 */
 
 package isabelle
@@ -9,12 +9,12 @@ package isabelle
 
 object Thy_Document_Model
 {
-  def read_file(session: Session, path: Path,
-    qualifier: String = Sessions.DRAFT,
+  def read_file(session: Session,
+    node_name: Document.Node.Name,
     node_visible: Boolean = false,
     node_required: Boolean = false): Thy_Document_Model =
   {
-    val node_name = session.resources.thy_node_name(qualifier, path.file)
+    val path = node_name.path
     if (!node_name.is_theory) error("Not a theory file: " + path)
     new Thy_Document_Model(session, node_name, File.read(path), node_visible, node_required)
   }
