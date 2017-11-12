@@ -11,11 +11,30 @@ object Thy_Resources
 {
   /* internal state */
 
-  sealed case class State(
-    models: Map[Document.Node.Name, Thy_Document_Model] = Map.empty)
+  sealed case class State(theories: Map[Document.Node.Name, Theory] = Map.empty)
+
+  final class Theory private[Thy_Resources](
+    val node_name: Document.Node.Name,
+    val node_header: Document.Node.Header,
+    val text: String)
   {
-    def update_models(changed: List[Thy_Document_Model]): State =
-      copy(models = models ++ changed.iterator.map(model => (model.node_name, model)))
+    override def toString: String = node_name.toString
+
+    def node_perspective: Document.Node.Perspective_Text =
+      Document.Node.Perspective(true, Text.Perspective.full, Document.Node.Overlays.empty)
+
+    def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
+    {
+      val text_edits =
+        if (old.isEmpty) Text.Edit.inserts(0, text)
+        else Text.Edit.replace(0, old.get.text, text)
+
+      if (text_edits.isEmpty) Nil
+      else
+        List(node_name -> Document.Node.Deps(node_header),
+          node_name -> Document.Node.Edits(text_edits),
+          node_name -> node_perspective)
+    }
   }
 }
 
@@ -25,6 +44,16 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
   resources =>
 
   private val state = Synchronized(Thy_Resources.State())
+
+  def read_thy(node_name: Document.Node.Name): Thy_Resources.Theory =
+  {
+    val path = node_name.path
+    if (!node_name.is_theory) error("Not a theory file: " + path)
+
+    val text = File.read(path)
+    val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
+    new Thy_Resources.Theory(node_name, node_header, text)
+  }
 
   def load_theories(
     session: Session,
@@ -37,20 +66,21 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
       yield (import_name(qualifier, master_dir, thy), pos)
 
     val dependencies = resources.dependencies(import_names).check_errors
-    val loaded_models = dependencies.names.map(Thy_Document_Model.read_file(session, _))
+    val loaded_theories = dependencies.names.map(read_thy(_))
 
     val edits =
       state.change_result(st =>
       {
-        val model_edits =
+        val theory_edits =
           for {
-            model <- loaded_models
-            edits = model.node_edits(st.models.get(model.node_name))
+            theory <- loaded_theories
+            node_name = theory.node_name
+            edits = theory.node_edits(st.theories.get(node_name))
             if edits.nonEmpty
-          } yield model -> edits
+          } yield ((node_name, theory), edits)
 
-        val st1 = st.update_models(model_edits.map(_._1))
-        (model_edits.flatMap(_._2), st1)
+        val st1 = st.copy(theories = st.theories ++ theory_edits.map(_._1))
+        (theory_edits.flatMap(_._2), st1)
       })
     session.update(Document.Blobs.empty, edits)
 
