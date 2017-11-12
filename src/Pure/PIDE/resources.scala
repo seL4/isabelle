@@ -253,6 +253,12 @@ class Resources(
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 
+    def check_errors: Dependencies =
+      errors match {
+        case Nil => this
+        case errs => error(cat_lines(errs))
+      }
+
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
       (session_base.loaded_theories /: entries)({ case (graph, entry) =>
         val name = entry.name.theory
