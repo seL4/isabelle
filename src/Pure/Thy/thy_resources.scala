@@ -49,14 +49,48 @@ object Thy_Resources
   }
 
   class Session private[Thy_Resources](
-    options: Options, override val resources: Thy_Resources)
-    extends isabelle.Session(options, resources)
+    session_options: Options,
+    override val resources: Thy_Resources) extends isabelle.Session(session_options, resources)
   {
     session =>
 
-    def load_theories(theories: List[(String, Position.T)],
-        qualifier: String = Sessions.DRAFT, master_dir: String = ""): List[Document.Node.Name] =
-      resources.load_theories(session, theories, qualifier = qualifier, master_dir = master_dir)
+    def use_theories(
+      theories: List[(String, Position.T)],
+      qualifier: String = Sessions.DRAFT,
+      master_dir: String = ""): (List[Document.Node.Name], Document.State) =
+    {
+      val requirements =
+        resources.load_theories(session, theories, qualifier = qualifier, master_dir = master_dir)
+      val state = consolidated_state(requirements)
+      (requirements, state)
+    }
+
+    def consolidated_state(requirements: List[Document.Node.Name]): Document.State =
+    {
+      val promise = Future.promise[Document.State]
+
+      def check_state
+      {
+        val state = session.current_state()
+        state.stable_tip_version match {
+          case Some(version) if requirements.forall(state.node_consolidated(version, _)) =>
+            try { promise.fulfill(state) }
+            catch { case _: IllegalStateException => }
+          case _ =>
+        }
+      }
+
+      val consumer =
+        Session.Consumer[Session.Commands_Changed](getClass.getName) {
+          case changed => if (requirements.exists(changed.nodes)) check_state
+        }
+
+      session.commands_changed += consumer
+      check_state
+      val state = promise.join
+      session.commands_changed -= consumer
+      state
+    }
   }
 
 
