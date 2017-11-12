@@ -249,7 +249,7 @@ class Resources(
       new Dependencies(rev_entries, seen + name)
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
-    def names: List[Document.Node.Name] = entries.map(_.name)
+    def theories: List[Document.Node.Name] = entries.map(_.name)
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 
@@ -276,15 +276,15 @@ class Resources(
 
     def loaded_files: List[(String, List[Path])] =
     {
-      names.map(_.theory) zip
+      theories.map(_.theory) zip
         Par_List.map((e: () => List[Path]) => e(),
-          names.map(name => resources.loaded_files(loaded_theories.get_node(name.theory), name)))
+          theories.map(name => resources.loaded_files(loaded_theories.get_node(name.theory), name)))
     }
 
     def imported_files: List[Path] =
     {
       val base_theories =
-        loaded_theories.all_preds(names.map(_.theory)).
+        loaded_theories.all_preds(theories.map(_.theory)).
           filter(session_base.loaded_theories.defined(_))
 
       base_theories.map(theory => session_base.known.theories(theory).path) :::

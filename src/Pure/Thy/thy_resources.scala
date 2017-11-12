@@ -66,7 +66,7 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
       yield (import_name(qualifier, master_dir, thy), pos)
 
     val dependencies = resources.dependencies(import_names).check_errors
-    val loaded_theories = dependencies.names.map(read_thy(_))
+    val loaded_theories = dependencies.theories.map(read_thy(_))
 
     val edits =
       state.change_result(st =>
@@ -84,6 +84,6 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
       })
     session.update(Document.Blobs.empty, edits)
 
-    dependencies.names
+    dependencies.theories
   }
 }

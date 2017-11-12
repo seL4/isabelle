@@ -234,7 +234,7 @@ object Sessions
 
             val overall_syntax = dependencies.overall_syntax
 
-            val theory_files = dependencies.names.map(_.path)
+            val theory_files = dependencies.theories.map(_.path)
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
@@ -294,7 +294,7 @@ object Sessions
 
             val known =
               Known.make(info.dir, List(imports_base),
-                theories = dependencies.names,
+                theories = dependencies.theories,
                 loaded_files = loaded_files)
 
             val sources_errors =
