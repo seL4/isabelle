@@ -19,24 +19,7 @@ class Resources(
 {
   resources =>
 
-
-  /* theory files */
-
   def thy_path(path: Path): Path = path.ext("thy")
-
-  def thy_node_name(qualifier: String, file: JFile, bootstrap: Boolean = false)
-    : Document.Node.Name =
-  {
-    session_base.known.get_file(file, bootstrap) getOrElse {
-      val node = file.getPath
-      theory_name(qualifier, Thy_Header.theory_name(node)) match {
-        case (true, theory) => Document.Node.Name.loaded_theory(theory)
-        case (false, theory) =>
-          val master_dir = if (theory == "") "" else file.getParent
-          Document.Node.Name(node, master_dir, theory)
-      }
-    }
-  }
 
 
   /* file-system operations */
