@@ -227,21 +227,21 @@ object Sessions
               progress.echo("Session " + info.chapter + "/" + info.name + groups)
             }
 
-            val thy_deps =
+            val dependencies =
               resources.dependencies(
                 for { (_, thys) <- info.theories; (thy, pos) <- thys }
                 yield (resources.import_name(info.name, info.dir.implode, thy), pos))
 
-            val overall_syntax = thy_deps.overall_syntax
+            val overall_syntax = dependencies.overall_syntax
 
-            val theory_files = thy_deps.names.map(_.path)
+            val theory_files = dependencies.names.map(_.path)
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
                   (Thy_Header.PURE -> resources.pure_files(overall_syntax, info.dir)) ::
-                    thy_deps.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
+                    dependencies.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
                 }
-                else thy_deps.loaded_files
+                else dependencies.loaded_files
               }
               else Nil
 
@@ -249,7 +249,7 @@ object Sessions
               (theory_files ::: loaded_files.flatMap(_._2) :::
                 info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
-            val imported_files = if (inlined_files) thy_deps.imported_files else Nil
+            val imported_files = if (inlined_files) dependencies.imported_files else Nil
 
             if (list_files)
               progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
@@ -283,7 +283,7 @@ object Sessions
                       val bs = imports_subgraph.imm_preds(session).toList.map(session_node(_))
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
-              (graph0 /: thy_deps.entries)(
+              (graph0 /: dependencies.entries)(
                 { case (g, entry) =>
                     val a = node(entry.name)
                     val bs =
@@ -294,7 +294,7 @@ object Sessions
 
             val known =
               Known.make(info.dir, List(imports_base),
-                theories = thy_deps.names,
+                theories = dependencies.names,
                 loaded_files = loaded_files)
 
             val sources_errors =
@@ -304,13 +304,13 @@ object Sessions
               Base(
                 pos = info.pos,
                 global_theories = global_theories,
-                loaded_theories = thy_deps.loaded_theories,
+                loaded_theories = dependencies.loaded_theories,
                 known = known,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = thy_deps.errors ::: sources_errors,
+                errors = dependencies.errors ::: sources_errors,
                 imports = Some(imports_base))
 
             session_bases + (info.name -> base)

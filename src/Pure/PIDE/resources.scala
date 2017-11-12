@@ -310,21 +310,23 @@ class Resources(
       "The error(s) above occurred for theory " + quote(name.theory) +
         required_by(initiators) + Position.here(pos)
 
-    val required1 = required + name
     if (required.seen(name)) required
-    else if (session_base.loaded_theory(name)) required1
     else {
-      try {
-        if (initiators.contains(name)) error(cycle_msg(initiators))
-        val header =
-          try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
-          catch { case ERROR(msg) => cat_error(msg, message) }
-        Document.Node.Entry(name, header) ::
-          require_thys(name :: initiators, required1, header.imports)
-      }
-      catch {
-        case e: Throwable =>
-          Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: required1
+      val required1 = required + name
+      if (session_base.loaded_theory(name)) required1
+      else {
+        try {
+          if (initiators.contains(name)) error(cycle_msg(initiators))
+          val header =
+            try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
+            catch { case ERROR(msg) => cat_error(msg, message) }
+          Document.Node.Entry(name, header) ::
+            require_thys(name :: initiators, required1, header.imports)
+        }
+        catch {
+          case e: Throwable =>
+            Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: required1
+        }
       }
     }
   }
