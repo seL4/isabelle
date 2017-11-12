@@ -29,7 +29,6 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
   def load_theories(
     session: Session,
     theories: List[(String, Position.T)],
-    visible: Boolean = false,
     qualifier: String = Sessions.DRAFT,
     master_dir: String = ""): List[Document.Node.Name] =
   {
@@ -38,10 +37,7 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
       yield (import_name(qualifier, master_dir, thy), pos)
 
     val dependencies = resources.dependencies(import_names).check_errors
-
-    val loaded_models =
-      dependencies.names.map(name =>
-        Thy_Document_Model.read_file(session, name, visible && import_names.contains(name)))
+    val loaded_models = dependencies.names.map(Thy_Document_Model.read_file(session, _))
 
     val edits =
       state.change_result(st =>
@@ -56,7 +52,6 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
         val st1 = st.update_models(model_edits.map(_._1))
         (model_edits.flatMap(_._2), st1)
       })
-
     session.update(Document.Blobs.empty, edits)
 
     dependencies.names

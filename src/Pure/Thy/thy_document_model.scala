@@ -9,21 +9,18 @@ package isabelle
 
 object Thy_Document_Model
 {
-  def read_file(session: Session,
-    node_name: Document.Node.Name,
-    node_visible: Boolean = false): Thy_Document_Model =
+  def read_file(session: Session, node_name: Document.Node.Name): Thy_Document_Model =
   {
     val path = node_name.path
     if (!node_name.is_theory) error("Not a theory file: " + path)
-    new Thy_Document_Model(session, node_name, File.read(path), node_visible)
+    new Thy_Document_Model(session, node_name, File.read(path))
   }
 }
 
 final class Thy_Document_Model private(
   val session: Session,
   val node_name: Document.Node.Name,
-  val text: String,
-  val node_visible: Boolean) extends Document.Model
+  val text: String) extends Document.Model
 {
   /* content */
 
@@ -45,11 +42,8 @@ final class Thy_Document_Model private(
 
   /* perspective */
 
-  def text_perspective: Text.Perspective =
-    if (node_visible) Text.Perspective.full else Text.Perspective.empty
-
   def node_perspective: Document.Node.Perspective_Text =
-    Document.Node.Perspective(node_required, text_perspective, Document.Node.Overlays.empty)
+    Document.Node.Perspective(node_required, Text.Perspective.full, Document.Node.Overlays.empty)
 
 
   /* edits */
@@ -60,7 +54,7 @@ final class Thy_Document_Model private(
       if (old.isEmpty) Text.Edit.inserts(0, text)
       else Text.Edit.replace(0, old.get.text, text)
 
-    if (text_edits.isEmpty && old.isDefined && old.get.node_perspective == node_perspective) Nil
+    if (text_edits.isEmpty) Nil
     else node_edits(node_header, text_edits, node_perspective)
   }
 
