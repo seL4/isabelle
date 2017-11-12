@@ -48,6 +48,17 @@ object Thy_Resources
     }
   }
 
+  class Session private[Thy_Resources](
+    options: Options, override val resources: Thy_Resources)
+    extends isabelle.Session(options, resources)
+  {
+    session =>
+
+    def load_theories(theories: List[(String, Position.T)],
+        qualifier: String = Sessions.DRAFT, master_dir: String = ""): List[Document.Node.Name] =
+      resources.load_theories(session, theories, qualifier = qualifier, master_dir = master_dir)
+  }
+
 
   /* internal state */
 
