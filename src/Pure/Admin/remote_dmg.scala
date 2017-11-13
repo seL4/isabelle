@@ -56,8 +56,8 @@ Usage: isabelle remote_dmg [OPTIONS] USER@HOST TAR_GZ_FILE DMG_FILE
             case _ => getopts.usage()
           }
 
-        val ssh = SSH.init_context(Options.init)
-        using(ssh.open_session(user = user, host = host, port = port))(
+        val options = Options.init
+        using(SSH.open_session(options, host = host, user = user, port = port))(
           remote_dmg(_, tar_gz_file, dmg_file, volume_name))
       }
     }, admin = true)

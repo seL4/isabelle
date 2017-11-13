@@ -70,6 +70,9 @@ object SSH
     new Context(options, jsch)
   }
 
+  def open_session(options: Options, host: String, user: String = "", port: Int = 0): Session =
+    init_context(options).open_session(host = host, user = user, port = port)
+
   class Context private[SSH](val options: Options, val jsch: JSch)
   {
     def update_options(new_options: Options): Context = new Context(new_options, jsch)
