@@ -94,6 +94,9 @@ object Mercurial
       ssh.execute(cmdline)
     }
 
+    def add(files: List[Path]): Unit =
+      hg.command("add", files.map(ssh.bash_path(_)).mkString(" "))
+
     def archive(target: String, rev: String = "", options: String = ""): Unit =
       hg.command("archive", opt_rev(rev) + " " + Bash.string(target), options).check
 
