@@ -98,6 +98,7 @@ text \<open>
 
   Options are:
     -A LATEX     provide author in LaTeX notation (default: user name)
+    -I           init Mercurial repository and add generated files
     -T LATEX     provide title in LaTeX notation (default: session name)
     -n NAME      alternative session name (default: directory base name)
 
@@ -115,6 +116,9 @@ text \<open>
 
   Options \<^verbatim>\<open>-T\<close> and \<^verbatim>\<open>-A\<close> specify the document title and author explicitly,
   using {\LaTeX} source notation.
+
+  Option \<^verbatim>\<open>-I\<close> initializes a Mercurial repository in the target directory, and
+  adds all generated files (without commit).
 
   Option \<^verbatim>\<open>-n\<close> specifies an alternative session name; otherwise the base name
   of the given directory is used.

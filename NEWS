@@ -104,6 +104,9 @@ anymore.
 * The command-line tool "isabelle mkroot" now always produces a document
 outline: its options have been adapted accordingly. INCOMPATIBILITY.
 
+* The command-line tool "isabelle mkroot -I" initializes a Mercurial
+repository for the generated session files.
+
 * Linux and Windows/Cygwin is for x86_64 only. Old 32bit platform
 support has been discontinued.
 

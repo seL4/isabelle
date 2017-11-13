@@ -22,6 +22,7 @@ object Mkroot
     session_name: String = "",
     session_dir: Path = Path.current,
     session_parent: String = "",
+    init_repos: Boolean = false,
     title: String = "",
     author: String = "",
     progress: Progress = No_Progress)
@@ -36,6 +37,9 @@ object Mkroot
 
     val document_path = session_dir + Path.explode("document")
     if (document_path.file.exists) error("Cannot overwrite existing " + document_path)
+
+    val root_tex = session_dir + Path.explode("document/root.tex")
+
 
     progress.echo("\nPreparing session " + quote(name) + " in " + session_dir)
 
@@ -61,7 +65,6 @@ object Mkroot
     /* document directory */
 
     {
-      val root_tex = session_dir + Path.explode("document/root.tex")
       progress.echo("  creating " + root_tex)
 
       Isabelle_System.mkdirs(root_tex.dir)
@@ -130,6 +133,33 @@ object Mkroot
     }
 
 
+    /* Mercurial repository */
+
+    if (init_repos) {
+      progress.echo("  \nInitializing Mercurial repository " + session_dir)
+
+      val hg = Mercurial.init_repository(session_dir)
+
+      val hg_ignore = session_dir + Path.explode(".hgignore")
+      File.write(hg_ignore,
+"""syntax: glob
+
+*~
+*.marks
+*.orig
+*.rej
+.DS_Store
+.swp
+
+syntax: regexp
+
+^output/
+""")
+
+      hg.add(List(root_path, root_tex, hg_ignore))
+    }
+
+
     /* notes */
 
     {
@@ -149,6 +179,7 @@ Now use the following command line to build the session:
   val isabelle_tool = Isabelle_Tool("mkroot", "prepare session root directory", args =>
   {
     var author = ""
+    var init_repos = false
     var title = ""
     var session_name = ""
 
@@ -157,12 +188,14 @@ Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
 
   Options are:
     -A LATEX     provide author in LaTeX notation (default: user name)
+    -I           init Mercurial repository and add generated files
     -T LATEX     provide title in LaTeX notation (default: session name)
     -n NAME      alternative session name (default: directory base name)
 
   Prepare session root directory (default: current directory).
 """,
       "A:" -> (arg => author = arg),
+      "I" -> (arg => init_repos = true),
       "T:" -> (arg => title = arg),
       "n:" -> (arg => session_name = arg))
 
@@ -175,7 +208,7 @@ Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
         case _ => getopts.usage()
       }
 
-    mkroot(session_name = session_name, session_dir = session_dir, author = author, title = title,
-      progress = new Console_Progress)
+    mkroot(session_name = session_name, session_dir = session_dir, init_repos = init_repos,
+      author = author, title = title, progress = new Console_Progress)
   })
 }
