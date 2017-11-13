@@ -294,7 +294,7 @@ object SSH
     }
     override def expand_path(path: Path): Path = path.expand_env(settings)
     def remote_path(path: Path): String = expand_path(path).implode
-    def bash_path(path: Path): String = Bash.string(remote_path(path))
+    override def bash_path(path: Path): String = Bash.string(remote_path(path))
 
     def chmod(permissions: Int, path: Path): Unit = sftp.chmod(permissions, remote_path(path))
     def mv(path1: Path, path2: Path): Unit = sftp.rename(remote_path(path1), remote_path(path2))
@@ -400,6 +400,7 @@ object SSH
     def prefix: String = ""
 
     def expand_path(path: Path): Path = path.expand
+    def bash_path(path: Path): String = File.bash_path(path)
     def is_file(path: Path): Boolean = path.is_file
     def is_dir(path: Path): Boolean = path.is_dir
     def mkdirs(path: Path): Unit = Isabelle_System.mkdirs(path)

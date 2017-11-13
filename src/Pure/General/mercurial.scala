@@ -52,23 +52,22 @@ object Mercurial
     find(ssh.expand_path(start))
   }
 
-  private def make_repository(root: Path, cmd: String, args: Repository => String,
-    ssh: SSH.System = SSH.Local): Repository =
+  private def make_repository(root: Path, cmd: String, args: String, ssh: SSH.System = SSH.Local)
+    : Repository =
   {
     val hg = new Repository(root, ssh)
     ssh.mkdirs(hg.root.dir)
-    hg.command(cmd, args(hg), repository = false).check
+    hg.command(cmd, args, repository = false).check
     hg
   }
 
   def init_repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
-    make_repository(root, "init", hg => File.bash_path(hg.root), ssh = ssh)
+    make_repository(root, "init", ssh.bash_path(root), ssh = ssh)
 
   def clone_repository(source: String, root: Path,
       rev: String = "", options: String = "", ssh: SSH.System = SSH.Local): Repository =
     make_repository(root, "clone",
-      hg => options + " " + Bash.string(source) + " " + File.bash_path(hg.root) + opt_rev(rev),
-      ssh = ssh)
+      options + " " + Bash.string(source) + " " + ssh.bash_path(root) + opt_rev(rev), ssh = ssh)
 
   def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository =
   {
@@ -90,7 +89,7 @@ object Mercurial
     {
       val cmdline =
         "\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
-          (if (repository) " --repository " + File.bash_path(root) else "") +
+          (if (repository) " --repository " + ssh.bash_path(root) else "") +
           " --noninteractive " + name + " " + options + " " + args
       ssh.execute(cmdline)
     }
