@@ -52,15 +52,23 @@ object Mercurial
     find(ssh.expand_path(start))
   }
 
-  def clone_repository(source: String, root: Path, rev: String = "", options: String = "",
+  private def make_repository(root: Path, cmd: String, args: Repository => String,
     ssh: SSH.System = SSH.Local): Repository =
   {
     val hg = new Repository(root, ssh)
     ssh.mkdirs(hg.root.dir)
-    hg.command("clone", Bash.string(source) + " " + File.bash_path(hg.root) + opt_rev(rev), options)
-      .check
+    hg.command(cmd, args(hg), repository = false).check
     hg
   }
+
+  def init_repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
+    make_repository(root, "init", hg => File.bash_path(hg.root), ssh = ssh)
+
+  def clone_repository(source: String, root: Path,
+      rev: String = "", options: String = "", ssh: SSH.System = SSH.Local): Repository =
+    make_repository(root, "clone",
+      hg => options + " " + Bash.string(source) + " " + File.bash_path(hg.root) + opt_rev(rev),
+      ssh = ssh)
 
   def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository =
   {
@@ -77,11 +85,12 @@ object Mercurial
 
     override def toString: String = ssh.prefix + root.implode
 
-    def command(name: String, args: String = "", options: String = ""): Process_Result =
+    def command(name: String, args: String = "", options: String = "",
+      repository: Boolean = true): Process_Result =
     {
       val cmdline =
         "\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
-          (if (name == "clone") "" else " --repository " + File.bash_path(root)) +
+          (if (repository) " --repository " + File.bash_path(root) else "") +
           " --noninteractive " + name + " " + options + " " + args
       ssh.execute(cmdline)
     }
