@@ -122,11 +122,12 @@ object Isabelle_Cronjob
     args: String = "",
     afp: Boolean = false,
     slow: Boolean = false,
+    more_hosts: List[String] = Nil,
     detect: SQL.Source = "")
   {
     def sql: SQL.Source =
       Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
-      Build_Log.Prop.build_host + " = " + SQL.string(host) +
+      SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
 
     def profile: Build_Status.Profile =
@@ -242,9 +243,9 @@ object Isabelle_Cronjob
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))),
     ) :::
     {
-      for { (host, n) <- List("lxbroy6" -> 1, "lxbroy7" -> 2) }
+      for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy7")) }
       yield {
-        List(Remote_Build("AFP", host = host,
+        List(Remote_Build("AFP", host = hosts.head, more_hosts = hosts.tail,
           options = "-m32 -M1x2 -t AFP -P" + n,
           args = "-N -X slow",
           afp = true,
