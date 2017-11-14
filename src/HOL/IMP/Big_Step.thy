@@ -206,13 +206,11 @@ proof -
       thus ?thesis using `\<not>bval b s` by blast
     next
       case IfTrue
-      with `(?iw, s) \<Rightarrow> t` have "(c;; ?w, s) \<Rightarrow> t" by auto
       -- "and for this, only the Seq-rule is applicable:"
-      then obtain s' where
+      from `(c;; ?w, s) \<Rightarrow> t` obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
-      -- "with this information, we can build a derivation tree for the @{text WHILE}"
-      with `bval b s`
-      show ?thesis by (rule WhileTrue)
+      -- "with this information, we can build a derivation tree for @{text WHILE}"
+      with `bval b s` show ?thesis by (rule WhileTrue)
     qed
   qed
   ultimately
