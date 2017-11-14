@@ -714,25 +714,23 @@ subsection \<open>Defining generators for abstract types\<close>
 
 ML_file "Tools/Quickcheck/abstract_generators.ML"
 
-(* FIXME instantiation char :: full_exhaustive
+instantiation char :: full_exhaustive
 begin
 
 definition full_exhaustive_char
 where
-  "full_exhaustive f i =
-     (if 0 < i then full_exhaustive_class.full_exhaustive
-       (\<lambda>(a, b). full_exhaustive_class.full_exhaustive
-          (\<lambda>(c, d).
-            f (char_of_nat (nat_of_nibble a * 16 + nat_of_nibble c),
-              \<lambda>_. Code_Evaluation.App (Code_Evaluation.App
-                 (Code_Evaluation.Const (STR ''String.char.Char'')
-                   (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
-                      (b ())) (d ()))) (i - 1)) (i - 1)
-    else None)"
+  "full_exhaustive_char f i =
+     (if 0 < i then
+      case f (0, \<lambda>_ :: unit. Code_Evaluation.Const (STR ''Groups.zero_class.zero'') (TYPEREP(char))) of
+          Some x \<Rightarrow> Some x
+      | None \<Rightarrow> full_exhaustive_class.full_exhaustive
+          (\<lambda>(num, t). f (char_of_nat (nat_of_num num), \<lambda>_ :: unit. Code_Evaluation.App (Code_Evaluation.Const (STR ''String.Char'') TYPEREP(num \<Rightarrow> char)) (t ())))
+          (min (i - 1) 8) (* generate at most 8 bits *)
+      else None)"
 
 instance ..
 
-end *)
+end
 
 hide_fact (open) orelse_def
 no_notation orelse  (infixr "orelse" 55)
