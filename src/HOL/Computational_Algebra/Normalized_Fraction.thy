@@ -20,7 +20,7 @@ lemma normalize_quot_zero [simp]:
   "normalize_quot (a, 0) = (0, 1)"
   by (simp add: normalize_quot_def)
 
-lemma normalize_quot_proj [simp]:
+lemma normalize_quot_proj:
   "fst (normalize_quot (a, b)) = a div (gcd a b * unit_factor b)"
   "snd (normalize_quot (a, b)) = normalize b div gcd a b" if "b \<noteq> 0"
   using that by (simp_all add: normalize_quot_def Let_def mult.commute [of _ "unit_factor b"] dvd_div_mult2_eq mult_unit_dvd_iff')
@@ -275,8 +275,7 @@ proof (rule normalize_quotI)
   have "coprime a' b'" by (simp add: a'_def b'_def coprime_normalize_quot)
   thus "(b' div unit_factor a', a' div unit_factor a') \<in> normalized_fracts"
     using assms(1,2) d
-    by (auto simp: normalized_fracts_def ac_simps)
-      (metis gcd.normalize_left_idem gcd_div_unit2 is_unit_gcd unit_factor_is_unit)
+    by (auto simp add: normalized_fracts_def ac_simps dvd_div_unit_iff elim: coprime_imp_coprime)
 qed fact+
   
 lemma quot_of_fract_inverse:
