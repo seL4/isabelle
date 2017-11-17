@@ -12,9 +12,6 @@ text_raw{*\snip{ASMstackdef}{1}{2}{% *}
 type_synonym stack = "val list"
 text_raw{*}%endsnip*}
 
-abbreviation "hd2 xs == hd(tl xs)"
-abbreviation "tl2 xs == tl(tl xs)"
-
 text{* \noindent Abbreviations are transparent: they are unfolded after
 parsing and folded back again before printing. Internally, they do not
 exist.*}
@@ -23,7 +20,7 @@ text_raw{*\snip{ASMexeconedef}{0}{1}{% *}
 fun exec1 :: "instr \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> stack" where
 "exec1 (LOADI n) _ stk  =  n # stk" |
 "exec1 (LOAD x) s stk  =  s(x) # stk" |
-"exec1  ADD _ stk  =  (hd2 stk + hd stk) # tl2 stk"
+"exec1  ADD _ (j # i # stk)  =  (i + j) # stk"
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{ASMexecdef}{1}{2}{% *}
