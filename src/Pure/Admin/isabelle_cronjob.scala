@@ -123,7 +123,8 @@ object Isabelle_Cronjob
     afp: Boolean = false,
     slow: Boolean = false,
     more_hosts: List[String] = Nil,
-    detect: SQL.Source = "")
+    detect: SQL.Source = "",
+    active: Boolean = true)
   {
     def sql: SQL.Source =
       Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
@@ -215,13 +216,16 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
             " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
           args = "-a",
-          detect = Build_Log.Prop.build_tags.undefined),
+          detect = Build_Log.Prop.build_tags.undefined,
+          active = false),
         Remote_Build("Mac OS X 10.9 Mavericks, quick_and_dirty", "macbroy2",
           options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty")),
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty"),
+          active = false),
         Remote_Build("Mac OS X 10.9 Mavericks, skip_proofs", "macbroy2",
           options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"))),
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
+          active = false)),
       List(
         Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
@@ -459,7 +463,7 @@ object Isabelle_Cronjob
           SEQ(List(build_release, build_history_base,
             PAR(List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
-                PAR(remote_builds.map(seq =>
+                PAR(remote_builds.map(_.filter(_.active)).map(seq =>
                   SEQ(
                     for {
                       (r, i) <- (if (seq.length <= 1) seq.map((_, -1)) else seq.zipWithIndex)
