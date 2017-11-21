@@ -957,6 +957,162 @@ lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
 lemma cos_arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Longrightarrow> cos (arg y) = 0"
   using cis_arg [of y] by (simp add: complex_eq_iff)
 
+subsection \<open>Complex n-th roots\<close>
+
+lemma bij_betw_roots_unity:
+  assumes "n > 0"
+  shows   "bij_betw (\<lambda>k. cis (2 * pi * real k / real n)) {..<n} {z. z ^ n = 1}" 
+    (is "bij_betw ?f _ _")
+  unfolding bij_betw_def
+proof (intro conjI)
+  show inj: "inj_on ?f {..<n}" unfolding inj_on_def
+  proof (safe, goal_cases)
+    case (1 k l)
+    hence kl: "k < n" "l < n" by simp_all
+    from 1 have "1 = ?f k / ?f l" by simp
+    also have "\<dots> = cis (2*pi*(real k - real l)/n)"
+      using assms by (simp add: field_simps cis_divide)
+    finally have "cos (2*pi*(real k - real l) / n) = 1"
+      by (simp add: complex_eq_iff)
+    then obtain m :: int where "2 * pi * (real k - real l) / real n = real_of_int m * 2 * pi"
+      by (subst (asm) cos_one_2pi_int) blast
+    hence "real_of_int (int k - int l) = real_of_int (m * int n)"
+      unfolding of_int_diff of_int_mult using assms by (simp add: divide_simps)
+    also note of_int_eq_iff
+    finally have *: "abs m * n = abs (int k - int l)" by (simp add: abs_mult)
+    also have "\<dots> < int n" using kl by linarith
+    finally have "m = 0" using assms by simp
+    with * show "k = l" by simp
+  qed
+
+  have subset: "?f ` {..<n} \<subseteq> {z. z ^ n = 1}"
+  proof safe
+    fix k :: nat
+    have "cis (2 * pi * real k / real n) ^ n = cis (2 * pi) ^ k"
+      using assms by (simp add: DeMoivre mult_ac)
+    also have "cis (2 * pi) = 1" by (simp add: complex_eq_iff)
+    finally show "?f k ^ n = 1" by simp
+  qed
+
+  have "n = card {..<n}" by simp
+  also from assms and subset have "\<dots> \<le> card {z::complex. z ^ n = 1}"
+    by (intro card_inj_on_le[OF inj]) (auto simp: finite_roots_unity)
+  finally have card: "card {z::complex. z ^ n = 1} = n"
+    using assms by (intro antisym card_roots_unity) auto
+
+  have "card (?f ` {..<n}) = card {z::complex. z ^ n = 1}" 
+    using card inj by (subst card_image) auto
+  with subset and assms show "?f ` {..<n} = {z::complex. z ^ n = 1}"
+    by (intro card_subset_eq finite_roots_unity) auto
+qed
+
+lemma card_roots_unity_eq:
+  assumes "n > 0"
+  shows   "card {z::complex. z ^ n = 1} = n"
+  using bij_betw_same_card [OF bij_betw_roots_unity [OF assms]] by simp
+
+lemma bij_betw_nth_root_unity:
+  fixes c :: complex and n :: nat
+  assumes c: "c \<noteq> 0" and n: "n > 0"
+  defines "c' \<equiv> root n (norm c) * cis (arg c / n)"
+  shows "bij_betw (\<lambda>z. c' * z) {z. z ^ n = 1} {z. z ^ n = c}"
+proof -
+  have "c' ^ n = of_real (root n (norm c) ^ n) * cis (arg c)"
+    unfolding of_real_power using n by (simp add: c'_def power_mult_distrib DeMoivre)
+  also from n have "root n (norm c) ^ n = norm c" by simp
+  also from c have "of_real \<dots> * cis (arg c) = c" by (simp add: cis_arg Complex.sgn_eq)
+  finally have [simp]: "c' ^ n = c" .
+
+  show ?thesis unfolding bij_betw_def inj_on_def
+  proof safe
+    fix z :: complex assume "z ^ n = 1"
+    hence "(c' * z) ^ n = c' ^ n" by (simp add: power_mult_distrib)
+    also have "c' ^ n = of_real (root n (norm c) ^ n) * cis (arg c)"
+      unfolding of_real_power using n by (simp add: c'_def power_mult_distrib DeMoivre)
+    also from n have "root n (norm c) ^ n = norm c" by simp
+    also from c have "\<dots> * cis (arg c) = c" by (simp add: cis_arg Complex.sgn_eq)
+    finally show "(c' * z) ^ n = c" .
+  next
+    fix z assume z: "c = z ^ n"
+    define z' where "z' = z / c'"
+    from c and n have "c' \<noteq> 0" by (auto simp: c'_def)
+    with n c have "z = c' * z'" and "z' ^ n = 1"
+      by (auto simp: z'_def power_divide z)
+    thus "z \<in> (\<lambda>z. c' * z) ` {z. z ^ n = 1}" by blast
+  qed (insert c n, auto simp: c'_def)
+qed
+
+lemma finite_nth_roots [intro]:
+  assumes "n > 0"
+  shows   "finite {z::complex. z ^ n = c}"
+proof (cases "c = 0")
+  case True
+  with assms have "{z::complex. z ^ n = c} = {0}" by auto
+  thus ?thesis by simp
+next
+  case False
+  from assms have "finite {z::complex. z ^ n = 1}" by (intro finite_roots_unity) simp_all
+  also have "?this \<longleftrightarrow> ?thesis"
+    by (rule bij_betw_finite, rule bij_betw_nth_root_unity) fact+
+  finally show ?thesis .
+qed
+
+lemma card_nth_roots:
+  assumes "c \<noteq> 0" "n > 0"
+  shows   "card {z::complex. z ^ n = c} = n"
+proof -
+  have "card {z. z ^ n = c} = card {z::complex. z ^ n = 1}"
+    by (rule sym, rule bij_betw_same_card, rule bij_betw_nth_root_unity) fact+
+  also have "\<dots> = n" by (rule card_roots_unity_eq) fact+
+  finally show ?thesis .
+qed
+
+lemma sum_roots_unity:
+  assumes "n > 1"
+  shows   "\<Sum>{z::complex. z ^ n = 1} = 0"
+proof -
+  define \<omega> where "\<omega> = cis (2 * pi / real n)"
+  have [simp]: "\<omega> \<noteq> 1"
+  proof
+    assume "\<omega> = 1"
+    with assms obtain k :: int where "2 * pi / real n = 2 * pi * of_int k"
+      by (auto simp: \<omega>_def complex_eq_iff cos_one_2pi_int)
+    with assms have "real n * of_int k = 1" by (simp add: field_simps)
+    also have "real n * of_int k = of_int (int n * k)" by simp
+    also have "1 = (of_int 1 :: real)" by simp
+    also note of_int_eq_iff
+    finally show False using assms by (auto simp: zmult_eq_1_iff)
+  qed
+
+  have "(\<Sum>z | z ^ n = 1. z :: complex) = (\<Sum>k<n. cis (2 * pi * real k / real n))"
+    using assms by (intro sum.reindex_bij_betw [symmetric] bij_betw_roots_unity) auto
+  also have "\<dots> = (\<Sum>k<n. \<omega> ^ k)"
+    by (intro sum.cong refl) (auto simp: \<omega>_def DeMoivre mult_ac)
+  also have "\<dots> = (\<omega> ^ n - 1) / (\<omega> - 1)"
+    by (subst geometric_sum) auto
+  also have "\<omega> ^ n - 1 = cis (2 * pi) - 1" using assms by (auto simp: \<omega>_def DeMoivre)
+  also have "\<dots> = 0" by (simp add: complex_eq_iff)
+  finally show ?thesis by simp
+qed
+
+lemma sum_nth_roots:
+  assumes "n > 1"
+  shows   "\<Sum>{z::complex. z ^ n = c} = 0"
+proof (cases "c = 0")
+  case True
+  with assms have "{z::complex. z ^ n = c} = {0}" by auto
+  also have "\<Sum>\<dots> = 0" by simp
+  finally show ?thesis .
+next
+  case False
+  define c' where "c' = root n (norm c) * cis (arg c / n)"
+  from False and assms have "(\<Sum>{z. z ^ n = c}) = (\<Sum>z | z ^ n = 1. c' * z)"
+    by (subst sum.reindex_bij_betw [OF bij_betw_nth_root_unity, symmetric])
+       (auto simp: sum_distrib_left finite_roots_unity c'_def)
+  also from assms have "\<dots> = 0"
+    by (simp add: sum_distrib_left [symmetric] sum_roots_unity)
+  finally show ?thesis .
+qed
 
 subsection \<open>Square root of complex numbers\<close>
 
