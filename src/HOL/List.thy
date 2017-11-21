@@ -3245,6 +3245,18 @@ proof(induct i j rule:upto.induct)
     unfolding upto.simps[of i j] by auto
 qed
 
+lemma upto_split1: 
+  "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> [i..k] = [i..j-1] @ [j..k]"
+proof (induction j rule: int_ge_induct)
+  case base thus ?case by (simp add: upto_rec1)
+next
+  case step thus ?case using upto_rec1 upto_rec2 by simp
+qed
+
+lemma upto_split2: 
+  "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> [i..k] = [i..j] @ [j+1..k]"
+using upto_rec1 upto_rec2 upto_split1 by auto
+
 text\<open>Tail recursive version for code generation:\<close>
 
 definition upto_aux :: "int \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
