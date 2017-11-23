@@ -1699,17 +1699,15 @@ lemma mod_self [simp]:
   using div_mult_mod_eq [of a a] by simp
 
 lemma dvd_imp_mod_0 [simp]:
-  assumes "a dvd b"
-  shows "b mod a = 0"
-  using assms minus_div_mult_eq_mod [of b a] by simp
+  "b mod a = 0" if "a dvd b"
+  using that minus_div_mult_eq_mod [of b a] by simp
 
 lemma mod_0_imp_dvd: 
-  assumes "a mod b = 0"
-  shows   "b dvd a"
+  "b dvd a" if "a mod b = 0"
 proof -
-  have "b dvd ((a div b) * b)" by simp
+  have "b dvd (a div b) * b" by simp
   also have "(a div b) * b = a"
-    using div_mult_mod_eq [of a b] by (simp add: assms)
+    using div_mult_mod_eq [of a b] by (simp add: that)
   finally show ?thesis .
 qed
 
