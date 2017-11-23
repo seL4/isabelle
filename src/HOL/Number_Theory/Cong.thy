@@ -154,9 +154,25 @@ lemma cong_minus_minus_iff:
   using cong_diff_iff_cong_0 [of b c a] cong_diff_iff_cong_0 [of "- b" "- c" a]
   by (simp add: cong_0_iff dvd_diff_commute)
 
-lemma cong_modulus_minus_iff: "[b = c] (mod - a) \<longleftrightarrow> [b = c] (mod a)"
+lemma cong_modulus_minus_iff:
+  "[b = c] (mod - a) \<longleftrightarrow> [b = c] (mod a)"
   using cong_diff_iff_cong_0 [of b c a] cong_diff_iff_cong_0 [of b c " -a"]
   by (simp add: cong_0_iff)
+
+lemma cong_iff_dvd_diff:
+  "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
+  by (simp add: cong_0_iff [symmetric] cong_diff_iff_cong_0)
+
+lemma cong_iff_lin:
+  "[a = b] (mod m) \<longleftrightarrow> (\<exists>k. b = a + m * k)" (is "?P \<longleftrightarrow> ?Q")
+proof -
+  have "?P \<longleftrightarrow> m dvd b - a"
+    by (simp add: cong_iff_dvd_diff dvd_diff_commute)
+  also have "\<dots> \<longleftrightarrow> ?Q"
+    by (auto simp add: algebra_simps elim!: dvdE)
+  finally show ?thesis
+    by simp
+qed
 
 end
 
@@ -215,16 +231,16 @@ lemma cong_altdef_nat':
 lemma cong_altdef_int:
   "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
   for a b :: int
-  by (simp add: cong_0_iff [symmetric] cong_diff_iff_cong_0)
+  by (fact cong_iff_dvd_diff)
 
 lemma cong_abs_int [simp]: "[x = y] (mod \<bar>m\<bar>) \<longleftrightarrow> [x = y] (mod m)"
   for x y :: int
-  by (simp add: cong_altdef_int)
+  by (simp add: cong_iff_dvd_diff)
 
 lemma cong_square_int:
   "prime p \<Longrightarrow> 0 < a \<Longrightarrow> [a * a = 1] (mod p) \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
   for a :: int
-  apply (simp only: cong_altdef_int)
+  apply (simp only: cong_iff_dvd_diff)
   apply (subst prime_dvd_mult_eq_int [symmetric], assumption)
   apply (auto simp add: field_simps)
   done
@@ -290,8 +306,7 @@ lemma cong_less_unique_int: "0 < m \<Longrightarrow> (\<exists>!b. 0 \<le> b \<a
 
 lemma cong_iff_lin_int: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k. b = a + m * k)"
   for a b :: int
-  by (auto simp add: cong_altdef_int algebra_simps elim!: dvdE)
-    (simp add: distrib_right [symmetric] add_eq_0_iff)
+  by (fact cong_iff_lin)
 
 lemma cong_iff_lin_nat: "([a = b] (mod m)) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
   (is "?lhs = ?rhs")
@@ -340,7 +355,7 @@ lemma cong_cong_mod_int: "[a = b] (mod m) \<longleftrightarrow> [a mod m = b mod
 
 lemma cong_minus_int [iff]: "[a = b] (mod - m) \<longleftrightarrow> [a = b] (mod m)"
   for a b :: int
-  by (metis cong_iff_lin_int minus_equation_iff mult_minus_left mult_minus_right)
+  by (fact cong_modulus_minus_iff)
 
 lemma cong_add_lcancel_nat: "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
   for a x y :: nat

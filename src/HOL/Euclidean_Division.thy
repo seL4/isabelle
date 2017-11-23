@@ -139,7 +139,7 @@ end
 class euclidean_ring = idom_modulo + euclidean_semiring
 begin
 
-lemma dvd_diff_commute:
+lemma dvd_diff_commute [ac_simps]:
   "a dvd c - b \<longleftrightarrow> a dvd b - c"
 proof -
   have "a dvd c - b \<longleftrightarrow> a dvd (c - b) * - 1"
