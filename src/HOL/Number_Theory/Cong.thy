@@ -558,50 +558,27 @@ lemma cong_cong_prod_coprime_int:
   apply (metis coprime_cong_mult_int prod_coprime_right)
   done
 
-lemma binary_chinese_remainder_aux_nat:
-  fixes m1 m2 :: nat
-  assumes a: "coprime m1 m2"
-  shows "\<exists>b1 b2. [b1 = 1] (mod m1) \<and> [b1 = 0] (mod m2) \<and> [b2 = 0] (mod m1) \<and> [b2 = 1] (mod m2)"
-proof -
-  from cong_solve_coprime_nat [OF a] obtain x1 where 1: "[m1 * x1 = 1] (mod m2)"
-    by auto
-  from a have b: "coprime m2 m1"
-    by (simp add: ac_simps)
-  from cong_solve_coprime_nat [OF b] obtain x2 where 2: "[m2 * x2 = 1] (mod m1)"
-    by auto
-  have "[m1 * x1 = 0] (mod m1)"
-    by (simp add: cong_mult_self_left)
-  moreover have "[m2 * x2 = 0] (mod m2)"
-    by (simp add: cong_mult_self_left)
-  ultimately show ?thesis
-    using 1 2 by blast
-qed
-
-lemma binary_chinese_remainder_aux_int:
-  fixes m1 m2 :: int
-  assumes a: "coprime m1 m2"
-  shows "\<exists>b1 b2. [b1 = 1] (mod m1) \<and> [b1 = 0] (mod m2) \<and> [b2 = 0] (mod m1) \<and> [b2 = 1] (mod m2)"
-proof -
-  from cong_solve_coprime_int [OF a] obtain x1 where 1: "[m1 * x1 = 1] (mod m2)"
-    by auto
-  from a have b: "coprime m2 m1"
-    by (simp add: ac_simps)
-  from cong_solve_coprime_int [OF b] obtain x2 where 2: "[m2 * x2 = 1] (mod m1)"
-    by auto
-  have "[m1 * x1 = 0] (mod m1)"
-    by (simp add: cong_mult_self_left)
-  moreover have "[m2 * x2 = 0] (mod m2)"
-    by (simp add: cong_mult_self_left)
-  ultimately show ?thesis
-    using 1 2 by blast
-qed
-
 lemma binary_chinese_remainder_nat:
   fixes m1 m2 :: nat
   assumes a: "coprime m1 m2"
   shows "\<exists>x. [x = u1] (mod m1) \<and> [x = u2] (mod m2)"
 proof -
-  from binary_chinese_remainder_aux_nat [OF a] obtain b1 b2
+  have "\<exists>b1 b2. [b1 = 1] (mod m1) \<and> [b1 = 0] (mod m2) \<and> [b2 = 0] (mod m1) \<and> [b2 = 1] (mod m2)"
+  proof -
+    from cong_solve_coprime_nat [OF a] obtain x1 where 1: "[m1 * x1 = 1] (mod m2)"
+      by auto
+    from a have b: "coprime m2 m1"
+      by (simp add: ac_simps)
+    from cong_solve_coprime_nat [OF b] obtain x2 where 2: "[m2 * x2 = 1] (mod m1)"
+      by auto
+    have "[m1 * x1 = 0] (mod m1)"
+      by (simp add: cong_mult_self_left)
+    moreover have "[m2 * x2 = 0] (mod m2)"
+      by (simp add: cong_mult_self_left)
+    ultimately show ?thesis
+      using 1 2 by blast
+  qed
+  then obtain b1 b2
     where "[b1 = 1] (mod m1)" and "[b1 = 0] (mod m2)"
       and "[b2 = 0] (mod m1)" and "[b2 = 1] (mod m2)"
     by blast
@@ -622,7 +599,22 @@ lemma binary_chinese_remainder_int:
   assumes a: "coprime m1 m2"
   shows "\<exists>x. [x = u1] (mod m1) \<and> [x = u2] (mod m2)"
 proof -
-  from binary_chinese_remainder_aux_int [OF a] obtain b1 b2
+  have "\<exists>b1 b2. [b1 = 1] (mod m1) \<and> [b1 = 0] (mod m2) \<and> [b2 = 0] (mod m1) \<and> [b2 = 1] (mod m2)"
+  proof -
+    from cong_solve_coprime_int [OF a] obtain x1 where 1: "[m1 * x1 = 1] (mod m2)"
+      by auto
+    from a have b: "coprime m2 m1"
+      by (simp add: ac_simps)
+    from cong_solve_coprime_int [OF b] obtain x2 where 2: "[m2 * x2 = 1] (mod m1)"
+      by auto
+    have "[m1 * x1 = 0] (mod m1)"
+     by (simp add: cong_mult_self_left)
+    moreover have "[m2 * x2 = 0] (mod m2)"
+      by (simp add: cong_mult_self_left)
+    ultimately show ?thesis
+      using 1 2 by blast
+  qed
+  then obtain b1 b2
     where "[b1 = 1] (mod m1)" and "[b1 = 0] (mod m2)"
       and "[b2 = 0] (mod m1)" and "[b2 = 1] (mod m2)"
     by blast
@@ -706,27 +698,6 @@ proof -
   with less 1 2 show ?thesis by auto
  qed
 
-lemma chinese_remainder_aux_nat:
-  fixes A :: "'a set"
-    and m :: "'a \<Rightarrow> nat"
-  assumes fin: "finite A"
-    and cop: "\<forall>i \<in> A. (\<forall>j \<in> A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
-  shows "\<exists>b. (\<forall>i \<in> A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j)))"
-proof (rule finite_set_choice, rule fin, rule ballI)
-  fix i
-  assume "i \<in> A"
-  with cop have "coprime (\<Prod>j \<in> A - {i}. m j) (m i)"
-    by (intro prod_coprime_left) auto
-  then have "\<exists>x. [(\<Prod>j \<in> A - {i}. m j) * x = Suc 0] (mod m i)"
-    by (elim cong_solve_coprime_nat)
-  then obtain x where "[(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
-    by auto
-  moreover have "[(\<Prod>j \<in> A - {i}. m j) * x = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
-    by (simp add: cong_0_iff)
-  ultimately show "\<exists>a. [a = 1] (mod m i) \<and> [a = 0] (mod prod m (A - {i}))"
-    by blast
-qed
-
 lemma chinese_remainder_nat:
   fixes A :: "'a set"
     and m :: "'a \<Rightarrow> nat"
@@ -735,8 +706,22 @@ lemma chinese_remainder_nat:
     and cop: "\<forall>i \<in> A. \<forall>j \<in> A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)"
   shows "\<exists>x. \<forall>i \<in> A. [x = u i] (mod m i)"
 proof -
-  from chinese_remainder_aux_nat [OF fin cop]
-  obtain b where b: "\<forall>i \<in> A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
+  have "\<exists>b. (\<forall>i \<in> A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j)))"
+  proof (rule finite_set_choice, rule fin, rule ballI)
+    fix i
+    assume "i \<in> A"
+    with cop have "coprime (\<Prod>j \<in> A - {i}. m j) (m i)"
+      by (intro prod_coprime_left) auto
+    then have "\<exists>x. [(\<Prod>j \<in> A - {i}. m j) * x = Suc 0] (mod m i)"
+      by (elim cong_solve_coprime_nat)
+    then obtain x where "[(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
+      by auto
+    moreover have "[(\<Prod>j \<in> A - {i}. m j) * x = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
+      by (simp add: cong_0_iff)
+    ultimately show "\<exists>a. [a = 1] (mod m i) \<and> [a = 0] (mod prod m (A - {i}))"
+      by blast
+  qed
+  then obtain b where b: "\<forall>i \<in> A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
     by blast
   let ?x = "\<Sum>i\<in>A. (u i) * (b i)"
   show ?thesis
