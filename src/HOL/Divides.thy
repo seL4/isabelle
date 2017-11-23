@@ -904,11 +904,11 @@ qed
   
 subsubsection \<open>Quotients of Signs\<close>
 
-lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"
-by (simp add: divide_int_def)
+lemma div_eq_minus1: "0 < b \<Longrightarrow> - 1 div b = - 1" for b :: int
+  by (simp add: divide_int_def)
 
-lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
-by (simp add: modulo_int_def)
+lemma zmod_minus1: "0 < b \<Longrightarrow> - 1 mod b = b - 1" for b :: int
+  by (auto simp add: modulo_int_def)
 
 lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
 apply (subgoal_tac "a div b \<le> -1", force)

@@ -13,9 +13,24 @@ context
   assumes p_a_relprime: "[a \<noteq> 0](mod p)"
 begin
 
-private lemma odd_p: "odd p" using p_ge_2 p_prime prime_odd_nat by blast
+private lemma odd_p: "odd p"
+  using p_ge_2 p_prime prime_odd_nat by blast
 
-private lemma p_minus_1_int: "int (p - 1) = int p - 1" using p_prime prime_ge_1_nat by force
+private lemma p_minus_1_int:
+  "int (p - 1) = int p - 1" using p_prime prime_ge_1_nat by force
+
+private lemma p_not_eq_Suc_0 [simp]:
+  "p \<noteq> Suc 0"
+  using p_ge_2 by simp
+
+private lemma one_mod_int_p_eq [simp]:
+  "1 mod int p = 1"
+proof -
+  from p_ge_2 have "int 1 mod int p = int 1"
+    by simp
+  then show ?thesis
+    by simp
+qed
 
 private lemma E_1:
   assumes "QuadRes (int p) a"
@@ -41,7 +56,7 @@ proof -
     moreover from odd_p have "\<bar>b\<bar> ^ (p - Suc 0) = b ^ (p - Suc 0)"
       by (simp add: power_even_abs)
     ultimately show ?thesis
-      by (simp add: zmod_int cong_def)
+      by (auto simp add: cong_def zmod_int)
   qed
   ultimately show ?thesis
     by (auto intro: cong_trans)
@@ -68,8 +83,10 @@ proof -
     by (simp add: ac_simps)
   then obtain y' where y': "[x * y' = 1] (mod p)" using cong_solve_coprime_int by blast
   moreover define y where "y = y' * a mod p"
-  ultimately have "[x * y = a] (mod p)" using mod_mult_right_eq[of x "y' * a" p]
-    cong_scalar_right [of "x * y'"] unfolding cong_def mult.assoc by auto
+  ultimately have "[x * y = a] (mod p)"
+    using mod_mult_right_eq [of x "y' * a" p]
+    cong_scalar_right [of "x * y'" 1 "int p" a]
+    by (auto simp add: cong_def ac_simps)
   moreover have "y \<in> {0 .. int p - 1}" unfolding y_def using p_ge_2 by auto
   hence "y \<in> S1" using calculation cong_altdef_int p_a_relprime S1_def by auto
   ultimately have "P x y" unfolding P_def by blast

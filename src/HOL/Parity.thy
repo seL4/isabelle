@@ -191,12 +191,11 @@ lemma mod_2_eq_odd:
 lemma one_mod_2_pow_eq [simp]:
   "1 mod (2 ^ n) = of_bool (n > 0)"
 proof -
-  have "1 mod (2 ^ n) = (of_bool (n > 0) :: nat)"
-    by (induct n) (simp_all add: mod_mult2_eq)
-  then have "of_nat (1 mod (2 ^ n)) = of_bool (n > 0)"
+  have "1 mod (2 ^ n) = of_nat (1 mod (2 ^ n))"
+    using of_nat_mod [of 1 "2 ^ n"] by simp
+  also have "\<dots> = of_bool (n > 0)"
     by simp
-  then show ?thesis
-    by (simp add: of_nat_mod)
+  finally show ?thesis .
 qed
 
 lemma even_of_nat [simp]:

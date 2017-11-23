@@ -1084,6 +1084,10 @@ lemma
   and Suc_mod_mult_self4 [simp]: "Suc (n * k + m) mod n = Suc m mod n"
   by (subst mod_Suc_eq [symmetric], simp add: mod_simps)+
 
+lemma Suc_0_mod_eq [simp]:
+  "Suc 0 mod n = of_bool (n \<noteq> Suc 0)"
+  by (cases n) simp_all
+
 context
   fixes m n q :: nat
 begin
