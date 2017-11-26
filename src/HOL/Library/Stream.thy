@@ -251,7 +251,7 @@ lemma sdrop_while_SCons[code]:
 
 lemma sdrop_while_sdrop_LEAST:
   assumes "\<exists>n. P (s !! n)"
-  shows "sdrop_while (Not o P) s = sdrop (LEAST n. P (s !! n)) s"
+  shows "sdrop_while (Not \<circ> P) s = sdrop (LEAST n. P (s !! n)) s"
 proof -
   from assms obtain m where "P (s !! m)" "\<And>n. P (s !! n) \<Longrightarrow> m \<le> n"
     and *: "(LEAST n. P (s !! n)) = m" by atomize_elim (auto intro: LeastI Least_le)
@@ -266,8 +266,8 @@ proof -
 qed
 
 primcorec sfilter where
-  "shd (sfilter P s) = shd (sdrop_while (Not o P) s)"
-| "stl (sfilter P s) = sfilter P (stl (sdrop_while (Not o P) s))"
+  "shd (sfilter P s) = shd (sdrop_while (Not \<circ> P) s)"
+| "stl (sfilter P s) = sfilter P (stl (sdrop_while (Not \<circ> P) s))"
 
 lemma sfilter_Stream: "sfilter P (x ## s) = (if P x then x ## sfilter P s else sfilter P s)"
 proof (cases "P x")

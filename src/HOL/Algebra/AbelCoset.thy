@@ -290,7 +290,7 @@ by (rule normal.inv_op_closed2 [OF a_normal,
 text\<open>Alternative characterization of normal subgroups\<close>
 lemma (in abelian_group) a_normal_inv_iff:
      "(N \<lhd> \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>) = 
-      (subgroup N \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> & (\<forall>x \<in> carrier G. \<forall>h \<in> N. x \<oplus> h \<oplus> (\<ominus> x) \<in> N))"
+      (subgroup N \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> \<and> (\<forall>x \<in> carrier G. \<forall>h \<in> N. x \<oplus> h \<oplus> (\<ominus> x) \<in> N))"
       (is "_ = ?rhs")
 by (rule group.normal_inv_iff [OF a_group,
     folded a_inv_def, simplified monoid_record_simps])

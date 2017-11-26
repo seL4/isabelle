@@ -71,7 +71,7 @@ val solver = Attrib.setup_config_string @{binding sat_solver} (K "cdclite");
 val counter = Unsynchronized.ref 0;
 
 val resolution_thm =
-  @{lemma "(P ==> False) ==> (~ P ==> False) ==> False" by (rule case_split)}
+  @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> (\<not> P \<Longrightarrow> False) \<Longrightarrow> False" by (rule case_split)}
 
 (* ------------------------------------------------------------------------- *)
 (* lit_ord: an order on integers that considers their absolute values only,  *)

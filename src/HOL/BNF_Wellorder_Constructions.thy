@@ -368,7 +368,7 @@ proof-
   where 1: "Well_order r \<and> Well_order r' \<and> Well_order r''" and
         "embed r r' f" and "embed r' r'' f'"
   using * ** unfolding ordLeq_def by blast
-  hence "embed r r'' (f' o f)"
+  hence "embed r r'' (f' \<circ> f)"
   using comp_embed[of r r' f r'' f'] by auto
   thus "r \<le>o r''" unfolding ordLeq_def using 1 by auto
 qed
@@ -389,7 +389,7 @@ proof-
   where 1: "Well_order r \<and> Well_order r' \<and> Well_order r''" and
         "iso r r' f" and 3: "iso r' r'' f'"
   using * ** unfolding ordIso_def by auto
-  hence "iso r r'' (f' o f)"
+  hence "iso r r'' (f' \<circ> f)"
   using comp_iso[of r r' f r'' f'] by auto
   thus "r =o r''" unfolding ordIso_def using 1 by auto
 qed
@@ -691,10 +691,10 @@ proof-
   ultimately
   have "f23 ` (f12 ` ?A1) < f23 ` ?A2" by (simp add: inj_on_strict_subset)
   moreover
-  {have "embed r1 r3 (f23 o f12)"
+  {have "embed r1 r3 (f23 \<circ> f12)"
    using 1 EMB23 0 by (auto simp add: comp_embed)
    hence "\<forall>a \<in> ?A1. f23(f12 a) = f13 a"
-   using EMB13 0 embed_unique[of r1 r3 "f23 o f12" f13] by auto
+   using EMB13 0 embed_unique[of r1 r3 "f23 \<circ> f12" f13] by auto
    hence "f23 ` (f12 ` ?A1) = f13 ` ?A1" by force
   }
   ultimately

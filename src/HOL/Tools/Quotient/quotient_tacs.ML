@@ -142,7 +142,7 @@ fun reflp_get ctxt =
   map_filter (fn th => if Thm.no_prems th then SOME (OF1 @{thm equivp_reflp} th) else NONE
     handle THM _ => NONE) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
 
-val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
+val eq_imp_rel = @{lemma "equivp R \<Longrightarrow> a = b \<longrightarrow> R a b" by (simp add: equivp_reflp)}
 
 fun eq_imp_rel_get ctxt =
   map (OF1 eq_imp_rel) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
@@ -569,10 +569,10 @@ fun gen_frees_tac ctxt =
    the Quot_True premise in 2nd records the lifted theorem
 *)
 val procedure_thm =
-  @{lemma  "[|A;
-              A --> B;
-              Quot_True D ==> B = C;
-              C = D|] ==> D"
+  @{lemma  "\<lbrakk>A;
+              A \<longrightarrow> B;
+              Quot_True D \<Longrightarrow> B = C;
+              C = D\<rbrakk> \<Longrightarrow> D"
       by (simp add: Quot_True_def)}
 
 (* in case of partial equivalence relations, this form of the 

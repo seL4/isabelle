@@ -196,19 +196,19 @@ context ord
 begin
 
 lemma greaterThanLessThan_iff [simp]:
-  "(i : {l<..<u}) = (l < i & i < u)"
+  "(i \<in> {l<..<u}) = (l < i \<and> i < u)"
 by (simp add: greaterThanLessThan_def)
 
 lemma atLeastLessThan_iff [simp]:
-  "(i : {l..<u}) = (l <= i & i < u)"
+  "(i \<in> {l..<u}) = (l \<le> i \<and> i < u)"
 by (simp add: atLeastLessThan_def)
 
 lemma greaterThanAtMost_iff [simp]:
-  "(i : {l<..u}) = (l < i & i <= u)"
+  "(i \<in> {l<..u}) = (l < i \<and> i \<le> u)"
 by (simp add: greaterThanAtMost_def)
 
 lemma atLeastAtMost_iff [simp]:
-  "(i : {l..u}) = (l <= i & i <= u)"
+  "(i \<in> {l..u}) = (l \<le> i \<and> i \<le> u)"
 by (simp add: atLeastAtMost_def)
 
 text \<open>The above four lemmas could be declared as iffs. Unfortunately this
@@ -234,11 +234,11 @@ lemma atLeastatMost_empty[simp]:
 by(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 
 lemma atLeastatMost_empty_iff[simp]:
-  "{a..b} = {} \<longleftrightarrow> (~ a <= b)"
+  "{a..b} = {} \<longleftrightarrow> (\<not> a \<le> b)"
 by auto (blast intro: order_trans)
 
 lemma atLeastatMost_empty_iff2[simp]:
-  "{} = {a..b} \<longleftrightarrow> (~ a <= b)"
+  "{} = {a..b} \<longleftrightarrow> (\<not> a \<le> b)"
 by auto (blast intro: order_trans)
 
 lemma atLeastLessThan_empty[simp]:
@@ -246,20 +246,20 @@ lemma atLeastLessThan_empty[simp]:
 by(auto simp: atLeastLessThan_def)
 
 lemma atLeastLessThan_empty_iff[simp]:
-  "{a..<b} = {} \<longleftrightarrow> (~ a < b)"
+  "{a..<b} = {} \<longleftrightarrow> (\<not> a < b)"
 by auto (blast intro: le_less_trans)
 
 lemma atLeastLessThan_empty_iff2[simp]:
-  "{} = {a..<b} \<longleftrightarrow> (~ a < b)"
+  "{} = {a..<b} \<longleftrightarrow> (\<not> a < b)"
 by auto (blast intro: le_less_trans)
 
 lemma greaterThanAtMost_empty[simp]: "l \<le> k ==> {k<..l} = {}"
 by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
 
-lemma greaterThanAtMost_empty_iff[simp]: "{k<..l} = {} \<longleftrightarrow> ~ k < l"
+lemma greaterThanAtMost_empty_iff[simp]: "{k<..l} = {} \<longleftrightarrow> \<not> k < l"
 by auto (blast intro: less_le_trans)
 
-lemma greaterThanAtMost_empty_iff2[simp]: "{} = {k<..l} \<longleftrightarrow> ~ k < l"
+lemma greaterThanAtMost_empty_iff2[simp]: "{} = {k<..l} \<longleftrightarrow> \<not> k < l"
 by auto (blast intro: less_le_trans)
 
 lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..<l} = {}"
@@ -271,13 +271,13 @@ by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
 lemma atLeastAtMost_singleton': "a = b \<Longrightarrow> {a .. b} = {a}" by simp
 
 lemma atLeastatMost_subset_iff[simp]:
-  "{a..b} <= {c..d} \<longleftrightarrow> (~ a <= b) | c <= a & b <= d"
+  "{a..b} \<le> {c..d} \<longleftrightarrow> (\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d"
 unfolding atLeastAtMost_def atLeast_def atMost_def
 by (blast intro: order_trans)
 
 lemma atLeastatMost_psubset_iff:
   "{a..b} < {c..d} \<longleftrightarrow>
-   ((~ a <= b) | c <= a & b <= d & (c < a | b < d))  &  c <= d"
+   ((\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d \<and> (c < a \<or> b < d)) \<and> c \<le> d"
 by(simp add: psubset_eq set_eq_iff less_le_not_le)(blast intro: order_trans)
 
 lemma Icc_eq_Icc[simp]:
@@ -294,11 +294,11 @@ proof
 qed simp
 
 lemma Icc_subset_Ici_iff[simp]:
-  "{l..h} \<subseteq> {l'..} = (~ l\<le>h \<or> l\<ge>l')"
+  "{l..h} \<subseteq> {l'..} = (\<not> l\<le>h \<or> l\<ge>l')"
 by(auto simp: subset_eq intro: order_trans)
 
 lemma Icc_subset_Iic_iff[simp]:
-  "{l..h} \<subseteq> {..h'} = (~ l\<le>h \<or> h\<le>h')"
+  "{l..h} \<subseteq> {..h'} = (\<not> l\<le>h \<or> h\<le>h')"
 by(auto simp: subset_eq intro: order_trans)
 
 lemma not_Ici_eq_empty[simp]: "{l..} \<noteq> {}"
@@ -462,7 +462,7 @@ lemma lessThan_non_empty[simp]: "{..< x} \<noteq> {}"
 end
 
 lemma (in linorder) atLeastLessThan_subset_iff:
-  "{a..<b} <= {c..<d} \<Longrightarrow> b <= a | c<=a & b<=d"
+  "{a..<b} \<subseteq> {c..<d} \<Longrightarrow> b \<le> a \<or> c\<le>a \<and> b\<le>d"
 apply (auto simp:subset_eq Ball_def)
 apply(frule_tac x=a in spec)
 apply(erule_tac x=d in allE)
@@ -1092,7 +1092,7 @@ done
 
 text \<open>A set of natural numbers is finite iff it is bounded.\<close>
 lemma finite_nat_set_iff_bounded:
-  "finite(N::nat set) = (EX m. ALL n:N. n<m)" (is "?F = ?B")
+  "finite(N::nat set) = (\<exists>m. \<forall>n\<in>N. n<m)" (is "?F = ?B")
 proof
   assume f:?F  show ?B
     using Max_ge[OF \<open>?F\<close>, simplified less_Suc_eq_le[symmetric]] by blast
@@ -1101,7 +1101,7 @@ next
 qed
 
 lemma finite_nat_set_iff_bounded_le:
-  "finite(N::nat set) = (EX m. ALL n:N. n<=m)"
+  "finite(N::nat set) = (\<exists>m. \<forall>n\<in>N. n<=m)"
 apply(simp add:finite_nat_set_iff_bounded)
 apply(blast dest:less_imp_le_nat le_imp_less_Suc)
 done
@@ -1177,8 +1177,8 @@ next
   proof
     fix x assume "x : ?B"
     then obtain i where i: "i : {k..n+k}" "x : M(i)" by auto
-    hence "i-k\<le>n & x : M((i-k)+k)" by auto
-    thus "x : ?A" by blast
+    hence "i-k\<le>n \<and> x \<in> M((i-k)+k)" by auto
+    thus "x \<in> ?A" by blast
   qed
 qed
 
@@ -1263,7 +1263,7 @@ lemma ex_bij_betw_finite_nat:
 by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
 
 lemma finite_same_card_bij:
-  "finite A \<Longrightarrow> finite B \<Longrightarrow> card A = card B \<Longrightarrow> EX h. bij_betw h A B"
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> card A = card B \<Longrightarrow> \<exists>h. bij_betw h A B"
 apply(drule ex_bij_betw_finite_nat)
 apply(drule ex_bij_betw_nat_finite)
 apply(auto intro!:bij_betw_trans)
@@ -1282,7 +1282,7 @@ proof
     using assms ex_bij_betw_finite_nat by blast
   moreover obtain g where "bij_betw g {0 ..< card B} B"
     using assms ex_bij_betw_nat_finite by blast
-  ultimately have "bij_betw (g o f) A B"
+  ultimately have "bij_betw (g \<circ> f) A B"
     by (auto simp: bij_betw_trans)
   thus "(\<exists>f. bij_betw f A B)" by blast
 qed (auto simp: bij_betw_same_card)
@@ -1297,11 +1297,11 @@ proof (safe intro!: card_inj_on_le)
   moreover obtain g where "inj_on g {0 ..< card B}" and 3: "g ` {0 ..< card B} = B"
   using FIN' ex_bij_betw_nat_finite unfolding bij_betw_def by force
   ultimately have "inj_on g (f ` A)" using subset_inj_on[of g _ "f ` A"] * by force
-  hence "inj_on (g o f) A" using 1 comp_inj_on by blast
+  hence "inj_on (g \<circ> f) A" using 1 comp_inj_on by blast
   moreover
   {have "{0 ..< card A} \<le> {0 ..< card B}" using * by force
    with 2 have "f ` A  \<le> {0 ..< card B}" by blast
-   hence "(g o f) ` A \<le> B" unfolding comp_def using 3 by force
+   hence "(g \<circ> f) ` A \<le> B" unfolding comp_def using 3 by force
   }
   ultimately show "(\<exists>f. inj_on f A \<and> f ` A \<le> B)" by blast
 qed (insert assms, auto)
@@ -1541,7 +1541,7 @@ lemma (in linorder) atLeastAtMost_diff_ends:
 subsubsection \<open>Some Subset Conditions\<close>
 
 lemma ivl_subset [simp]:
- "({i..<j} \<subseteq> {m..<n}) = (j \<le> i | m \<le> i & j \<le> (n::'a::linorder))"
+ "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<le> i \<and> j \<le> (n::'a::linorder))"
 apply(auto simp:linorder_not_le)
 apply(rule ccontr)
 apply(insert linorder_le_less_linear[of i n])
@@ -1809,7 +1809,7 @@ lemma sum_natinterval_difff:
 by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 
 lemma sum_nat_group: "(\<Sum>m<n::nat. sum f {m * k ..< m*k + k}) = sum f {..< n * k}"
-  apply (subgoal_tac "k = 0 | 0 < k", auto)
+  apply (subgoal_tac "k = 0 \<or> 0 < k", auto)
   apply (induct "n")
   apply (simp_all add: sum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
   done

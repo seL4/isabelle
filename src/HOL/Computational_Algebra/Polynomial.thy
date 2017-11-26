@@ -1094,7 +1094,7 @@ lemma poly_power [simp]: "poly (p ^ n) x = poly p x ^ n"
 lemma poly_prod: "poly (\<Prod>k\<in>A. p k) x = (\<Prod>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma degree_prod_sum_le: "finite S \<Longrightarrow> degree (prod f S) \<le> sum (degree o f) S"
+lemma degree_prod_sum_le: "finite S \<Longrightarrow> degree (prod f S) \<le> sum (degree \<circ> f) S"
 proof (induct S rule: finite_induct)
   case empty
   then show ?case by simp

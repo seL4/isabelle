@@ -18,13 +18,13 @@ begin
 lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X"
   by simp
 
-lemma empty_natural: "(\<lambda>_. {}) o f = image g o (\<lambda>_. {})"
+lemma empty_natural: "(\<lambda>_. {}) \<circ> f = image g \<circ> (\<lambda>_. {})"
   by (rule ext) simp
 
-lemma Union_natural: "Union o image (image f) = image f o Union"
+lemma Union_natural: "Union \<circ> image (image f) = image f \<circ> Union"
   by (rule ext) (auto simp only: comp_apply)
 
-lemma in_Union_o_assoc: "x \<in> (Union o gset o gmap) A \<Longrightarrow> x \<in> (Union o (gset o gmap)) A"
+lemma in_Union_o_assoc: "x \<in> (Union \<circ> gset \<circ> gmap) A \<Longrightarrow> x \<in> (Union \<circ> (gset \<circ> gmap)) A"
   by (unfold comp_assoc)
 
 lemma comp_single_set_bd:
@@ -66,7 +66,7 @@ lemma Union_image_insert: "\<Union>(f ` insert a B) = f a \<union> \<Union>(f ` 
 lemma Union_image_empty: "A \<union> \<Union>(f ` {}) = A"
   by simp
 
-lemma image_o_collect: "collect ((\<lambda>f. image g o f) ` F) = image g o collect F"
+lemma image_o_collect: "collect ((\<lambda>f. image g \<circ> f) ` F) = image g \<circ> collect F"
   by (rule ext) (auto simp add: collect_def)
 
 lemma conj_subset_def: "A \<subseteq> {x. P x \<and> Q x} = (A \<subseteq> {x. P x} \<and> A \<subseteq> {x. Q x})"
@@ -91,19 +91,19 @@ lemma vimage2p_relcompp_mono: "R OO S \<le> T \<Longrightarrow>
   vimage2p f g R OO vimage2p g h S \<le> vimage2p f h T"
   unfolding vimage2p_def by auto
 
-lemma type_copy_map_cong0: "M (g x) = N (h x) \<Longrightarrow> (f o M o g) x = (f o N o h) x"
+lemma type_copy_map_cong0: "M (g x) = N (h x) \<Longrightarrow> (f \<circ> M \<circ> g) x = (f \<circ> N \<circ> h) x"
   by auto
 
-lemma type_copy_set_bd: "(\<And>y. |S y| \<le>o bd) \<Longrightarrow> |(S o Rep) x| \<le>o bd"
+lemma type_copy_set_bd: "(\<And>y. |S y| \<le>o bd) \<Longrightarrow> |(S \<circ> Rep) x| \<le>o bd"
   by auto
 
 lemma vimage2p_cong: "R = S \<Longrightarrow> vimage2p f g R = vimage2p f g S"
   by simp
 
-lemma Ball_comp_iff: "(\<lambda>x. Ball (A x) f) o g = (\<lambda>x. Ball ((A o g) x) f)"
+lemma Ball_comp_iff: "(\<lambda>x. Ball (A x) f) \<circ> g = (\<lambda>x. Ball ((A \<circ> g) x) f)"
   unfolding o_def by auto
 
-lemma conj_comp_iff: "(\<lambda>x. P x \<and> Q x) o g = (\<lambda>x. (P o g) x \<and> (Q o g) x)"
+lemma conj_comp_iff: "(\<lambda>x. P x \<and> Q x) \<circ> g = (\<lambda>x. (P \<circ> g) x \<and> (Q \<circ> g) x)"
   unfolding o_def by auto
 
 context
@@ -111,26 +111,26 @@ context
   assumes type_copy: "type_definition Rep Abs UNIV"
 begin
 
-lemma type_copy_map_id0: "M = id \<Longrightarrow> Abs o M o Rep = id"
+lemma type_copy_map_id0: "M = id \<Longrightarrow> Abs \<circ> M \<circ> Rep = id"
   using type_definition.Rep_inverse[OF type_copy] by auto
 
-lemma type_copy_map_comp0: "M = M1 o M2 \<Longrightarrow> f o M o g = (f o M1 o Rep) o (Abs o M2 o g)"
+lemma type_copy_map_comp0: "M = M1 \<circ> M2 \<Longrightarrow> f \<circ> M \<circ> g = (f \<circ> M1 \<circ> Rep) \<circ> (Abs \<circ> M2 \<circ> g)"
   using type_definition.Abs_inverse[OF type_copy UNIV_I] by auto
 
-lemma type_copy_set_map0: "S o M = image f o S' \<Longrightarrow> (S o Rep) o (Abs o M o g) = image f o (S' o g)"
+lemma type_copy_set_map0: "S \<circ> M = image f \<circ> S' \<Longrightarrow> (S \<circ> Rep) \<circ> (Abs \<circ> M \<circ> g) = image f \<circ> (S' \<circ> g)"
   using type_definition.Abs_inverse[OF type_copy UNIV_I] by (auto simp: o_def fun_eq_iff)
 
-lemma type_copy_wit: "x \<in> (S o Rep) (Abs y) \<Longrightarrow> x \<in> S y"
+lemma type_copy_wit: "x \<in> (S \<circ> Rep) (Abs y) \<Longrightarrow> x \<in> S y"
   using type_definition.Abs_inverse[OF type_copy UNIV_I] by auto
 
 lemma type_copy_vimage2p_Grp_Rep: "vimage2p f Rep (Grp (Collect P) h) =
-    Grp (Collect (\<lambda>x. P (f x))) (Abs o h o f)"
+    Grp (Collect (\<lambda>x. P (f x))) (Abs \<circ> h \<circ> f)"
   unfolding vimage2p_def Grp_def fun_eq_iff
   by (auto simp: type_definition.Abs_inverse[OF type_copy UNIV_I]
    type_definition.Rep_inverse[OF type_copy] dest: sym)
 
 lemma type_copy_vimage2p_Grp_Abs:
-  "\<And>h. vimage2p g Abs (Grp (Collect P) h) = Grp (Collect (\<lambda>x. P (g x))) (Rep o h o g)"
+  "\<And>h. vimage2p g Abs (Grp (Collect P) h) = Grp (Collect (\<lambda>x. P (g x))) (Rep \<circ> h \<circ> g)"
   unfolding vimage2p_def Grp_def fun_eq_iff
   by (auto simp: type_definition.Abs_inverse[OF type_copy UNIV_I]
    type_definition.Rep_inverse[OF type_copy] dest: sym)

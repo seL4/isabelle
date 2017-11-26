@@ -271,7 +271,7 @@ qed
 subsubsection \<open>Make prime naively executable\<close>
 
 lemma prime_nat_iff':
-  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. ~ n dvd p)"
+  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)"
 proof safe
   assume "p > 1" and *: "\<forall>n\<in>{2..<p}. \<not>n dvd p"
   show "prime p" unfolding prime_nat_iff
@@ -286,7 +286,7 @@ proof safe
 qed (auto simp: prime_nat_iff)
 
 lemma prime_int_iff':
-  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. ~ n dvd p)" (is "?lhs = ?rhs")
+  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   thus "?rhs"
@@ -352,9 +352,9 @@ lemma bigger_prime: "\<exists>p. prime p \<and> p > (n::nat)"
 lemma primes_infinite: "\<not> (finite {(p::nat). prime p})"
 proof
   assume "finite {(p::nat). prime p}"
-  with Max_ge have "(EX b. (ALL x : {(p::nat). prime p}. x <= b))"
+  with Max_ge have "(\<exists>b. (\<forall>x \<in> {(p::nat). prime p}. x \<le> b))"
     by auto
-  then obtain b where "ALL (x::nat). prime x \<longrightarrow> x <= b"
+  then obtain b where "\<forall>(x::nat). prime x \<longrightarrow> x \<le> b"
     by auto
   with bigger_prime [of b] show False
     by auto

@@ -296,7 +296,7 @@ lemma euler_theorem:
   fixes a m :: nat
   assumes "coprime a m"
   shows "[a ^ totient m = 1] (mod m)"
-proof (cases "m = 0 | m = 1")
+proof (cases "m = 0 \<or> m = 1")
   case True
   then show ?thesis by auto
 next

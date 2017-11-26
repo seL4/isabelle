@@ -42,7 +42,7 @@ locale weak_partial_order = equivalence L for L (structure) +
 
 definition
   lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
-  where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
+  where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y \<and> x .\<noteq>\<^bsub>L\<^esub> y"
 
 
 subsubsection \<open>The order relation\<close>
@@ -65,7 +65,7 @@ end
 
 lemma weak_llessI:
   fixes R (structure)
-  assumes "x \<sqsubseteq> y" and "~(x .= y)"
+  assumes "x \<sqsubseteq> y" and "\<not>(x .= y)"
   shows "x \<sqsubset> y"
   using assms unfolding lless_def by simp
 
@@ -137,11 +137,11 @@ subsubsection \<open>Upper and lower bounds of a set\<close>
 
 definition
   Upper :: "[_, 'a set] => 'a set"
-  where "Upper L A = {u. (ALL x. x \<in> A \<inter> carrier L --> x \<sqsubseteq>\<^bsub>L\<^esub> u)} \<inter> carrier L"
+  where "Upper L A = {u. (\<forall>x. x \<in> A \<inter> carrier L \<longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> u)} \<inter> carrier L"
 
 definition
   Lower :: "[_, 'a set] => 'a set"
-  where "Lower L A = {l. (ALL x. x \<in> A \<inter> carrier L --> l \<sqsubseteq>\<^bsub>L\<^esub> x)} \<inter> carrier L"
+  where "Lower L A = {l. (\<forall>x. x \<in> A \<inter> carrier L \<longrightarrow> l \<sqsubseteq>\<^bsub>L\<^esub> x)} \<inter> carrier L"
 
 lemma Upper_closed [intro!, simp]:
   "Upper L A \<subseteq> carrier L"
@@ -320,11 +320,11 @@ subsubsection \<open>Least and greatest, as predicate\<close>
 
 definition
   least :: "[_, 'a, 'a set] => bool"
-  where "least L l A \<longleftrightarrow> A \<subseteq> carrier L & l \<in> A & (ALL x : A. l \<sqsubseteq>\<^bsub>L\<^esub> x)"
+  where "least L l A \<longleftrightarrow> A \<subseteq> carrier L \<and> l \<in> A \<and> (\<forall>x\<in>A. l \<sqsubseteq>\<^bsub>L\<^esub> x)"
 
 definition
   greatest :: "[_, 'a, 'a set] => bool"
-  where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
+  where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L \<and> g \<in> A \<and> (\<forall>x\<in>A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
 
 text (in weak_partial_order) \<open>Could weaken these to @{term "l \<in> carrier L \<and> l
   .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}.\<close>
@@ -601,7 +601,7 @@ lemma le_antisym [intro]:
   using weak_le_antisym unfolding eq_is_equal .
 
 lemma lless_eq:
-  "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y & x \<noteq> y"
+  "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
   unfolding lless_def by (simp add: eq_is_equal)
 
 lemma set_eq_is_eq: "A {.=} B \<longleftrightarrow> A = B"

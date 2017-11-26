@@ -673,7 +673,7 @@ lemma zdiv_zadd1_eq:
      "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)"
   by (fact div_add1_eq)
 
-lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
+lemma zmod_eq_0_iff: "(m mod d = 0) = (\<exists>q::int. m = d*q)"
 by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 
 (* REVISIT: should this be generalized to all semiring_div types? *)
@@ -769,20 +769,20 @@ subsubsection \<open>Splitting Rules for div and mod\<close>
 text\<open>The proofs of the two lemmas below are essentially identical\<close>
 
 lemma split_pos_lemma:
- "0<k ==>
-    P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i j)"
+ "0<k \<Longrightarrow>
+    P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i j)"
   by auto
 
 lemma split_neg_lemma:
- "k<0 ==>
-    P(n div k :: int)(n mod k) = (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i j)"
+ "k<0 \<Longrightarrow>
+    P(n div k :: int)(n mod k) = (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i j)"
   by auto
 
 lemma split_zdiv:
  "P(n div k :: int) =
-  ((k = 0 --> P 0) &
-   (0<k --> (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i)) &
-   (k<0 --> (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i)))"
+  ((k = 0 \<longrightarrow> P 0) \<and>
+   (0<k \<longrightarrow> (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i)) \<and>
+   (k<0 \<longrightarrow> (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i)))"
   apply (cases "k = 0")
   apply simp
 apply (simp only: linorder_neq_iff)
@@ -792,9 +792,9 @@ done
 
 lemma split_zmod:
  "P(n mod k :: int) =
-  ((k = 0 --> P n) &
-   (0<k --> (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P j)) &
-   (k<0 --> (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P j)))"
+  ((k = 0 \<longrightarrow> P n) \<and>
+   (0<k \<longrightarrow> (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P j)) \<and>
+   (k<0 \<longrightarrow> (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P j)))"
 apply (case_tac "k=0", simp)
 apply (simp only: linorder_neq_iff)
 apply (erule disjE)
@@ -955,7 +955,7 @@ lemma neg_imp_zdiv_neg_iff: "b < (0::int) ==> (a div b < 0) = (0 < a)"
 by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
 
 lemma nonneg1_imp_zdiv_pos_iff:
-  "(0::int) <= a \<Longrightarrow> (a div b > 0) = (a >= b & b>0)"
+  "(0::int) \<le> a \<Longrightarrow> (a div b > 0) = (a \<ge> b \<and> b>0)"
 apply rule
  apply rule
   using div_pos_pos_trivial[of a b]apply arith

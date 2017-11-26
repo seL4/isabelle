@@ -16,7 +16,7 @@ abbreviation
 
 definition \<comment>\<open>standard part map\<close>
   stc :: "hcomplex => hcomplex" where 
-  "stc x = (SOME r. x \<in> HFinite & r:SComplex & r \<approx> x)"
+  "stc x = (SOME r. x \<in> HFinite \<and> r\<in>SComplex \<and> r \<approx> x)"
 
 
 subsection\<open>Closure Laws for SComplex, the Standard Complex Numbers\<close>
@@ -63,7 +63,7 @@ done
 
 lemma SComplex_SReal_dense:
      "[| x \<in> SComplex; y \<in> SComplex; hcmod x < hcmod y  
-      |] ==> \<exists>r \<in> Reals. hcmod x< r & r < hcmod y"
+      |] ==> \<exists>r \<in> Reals. hcmod x< r \<and> r < hcmod y"
 apply (auto intro: SReal_dense simp add: SReal_hcmod_SComplex)
 done
 
@@ -350,7 +350,7 @@ apply (simp add: st_approx_self [THEN approx_sym])
 apply (simp add: Standard_HComplex st_SReal [unfolded Reals_eq_Standard])
 done
 
-lemma stc_part_Ex1: "x:HFinite ==> \<exists>!t. t \<in> SComplex &  x \<approx> t"
+lemma stc_part_Ex1: "x\<in>HFinite \<Longrightarrow> \<exists>!t. t \<in> SComplex \<and> x \<approx> t"
 apply (drule stc_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_complex)

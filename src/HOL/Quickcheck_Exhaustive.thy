@@ -336,7 +336,7 @@ definition
       enum = (Enum.enum :: 'a list)
     in
       check_all_n_lists
-        (\<lambda>(ys, yst). f (the o map_of (zip enum ys), mk_term yst))
+        (\<lambda>(ys, yst). f (the \<circ> map_of (zip enum ys), mk_term yst))
         (natural_of_nat (length enum)))"
 
 definition enum_term_of_fun :: "('a \<Rightarrow> 'b) itself \<Rightarrow> unit \<Rightarrow> term list"

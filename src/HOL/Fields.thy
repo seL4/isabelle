@@ -400,10 +400,10 @@ text\<open>This version builds in division by zero while also re-orienting
 lemma inverse_mult_distrib [simp]:
   "inverse (a * b) = inverse a * inverse b"
 proof cases
-  assume "a \<noteq> 0 & b \<noteq> 0"
+  assume "a \<noteq> 0 \<and> b \<noteq> 0"
   thus ?thesis by (simp add: nonzero_inverse_mult_distrib ac_simps)
 next
-  assume "~ (a \<noteq> 0 & b \<noteq> 0)"
+  assume "\<not> (a \<noteq> 0 \<and> b \<noteq> 0)"
   thus ?thesis by force
 qed
 
@@ -596,7 +596,7 @@ lemma inverse_le_imp_le:
   assumes invle: "inverse a \<le> inverse b" and apos: "0 < a"
   shows "b \<le> a"
 proof (rule classical)
-  assume "~ b \<le> a"
+  assume "\<not> b \<le> a"
   hence "a < b"  by (simp add: linorder_not_le)
   hence bpos: "0 < b"  by (blast intro: apos less_trans)
   hence "a * inverse a \<le> a * inverse b"
@@ -649,9 +649,9 @@ lemma less_imp_inverse_less:
   assumes less: "a < b" and apos:  "0 < a"
   shows "inverse b < inverse a"
 proof (rule ccontr)
-  assume "~ inverse b < inverse a"
+  assume "\<not> inverse b < inverse a"
   hence "inverse a \<le> inverse b" by simp
-  hence "~ (a < b)"
+  hence "\<not> (a < b)"
     by (simp add: not_less inverse_le_imp_le [OF _ apos])
   thus False by (rule notE [OF _ less])
 qed
@@ -1142,19 +1142,19 @@ lemma divide_less_cancel: "a / c < b / c \<longleftrightarrow> (0 < c \<longrigh
 text\<open>Simplify quotients that are compared with the value 1.\<close>
 
 lemma le_divide_eq_1:
-  "(1 \<le> b / a) = ((0 < a & a \<le> b) | (a < 0 & b \<le> a))"
+  "(1 \<le> b / a) = ((0 < a \<and> a \<le> b) \<or> (a < 0 \<and> b \<le> a))"
 by (auto simp add: le_divide_eq)
 
 lemma divide_le_eq_1:
-  "(b / a \<le> 1) = ((0 < a & b \<le> a) | (a < 0 & a \<le> b) | a=0)"
+  "(b / a \<le> 1) = ((0 < a \<and> b \<le> a) \<or> (a < 0 \<and> a \<le> b) \<or> a=0)"
 by (auto simp add: divide_le_eq)
 
 lemma less_divide_eq_1:
-  "(1 < b / a) = ((0 < a & a < b) | (a < 0 & b < a))"
+  "(1 < b / a) = ((0 < a \<and> a < b) \<or> (a < 0 \<and> b < a))"
 by (auto simp add: less_divide_eq)
 
 lemma divide_less_eq_1:
-  "(b / a < 1) = ((0 < a & b < a) | (a < 0 & a < b) | a=0)"
+  "(b / a < 1) = ((0 < a \<and> b < a) \<or> (a < 0 \<and> a < b) \<or> a=0)"
 by (auto simp add: divide_less_eq)
 
 lemma divide_nonneg_nonneg [simp]:
@@ -1208,11 +1208,11 @@ lemma divide_less_eq_1_neg [simp]:
 by (auto simp add: divide_less_eq)
 
 lemma eq_divide_eq_1 [simp]:
-  "(1 = b/a) = ((a \<noteq> 0 & a = b))"
+  "(1 = b/a) = ((a \<noteq> 0 \<and> a = b))"
 by (auto simp add: eq_divide_eq)
 
 lemma divide_eq_eq_1 [simp]:
-  "(b/a = 1) = ((a \<noteq> 0 & a = b))"
+  "(b/a = 1) = ((a \<noteq> 0 \<and> a = b))"
 by (auto simp add: divide_eq_eq)
 
 lemma abs_div_pos: "0 < y ==>
@@ -1221,10 +1221,10 @@ lemma abs_div_pos: "0 < y ==>
   apply (simp add: order_less_imp_le)
 done
 
-lemma zero_le_divide_abs_iff [simp]: "(0 \<le> a / \<bar>b\<bar>) = (0 \<le> a | b = 0)"
+lemma zero_le_divide_abs_iff [simp]: "(0 \<le> a / \<bar>b\<bar>) = (0 \<le> a \<or> b = 0)"
 by (auto simp: zero_le_divide_iff)
 
-lemma divide_le_0_abs_iff [simp]: "(a / \<bar>b\<bar> \<le> 0) = (a \<le> 0 | b = 0)"
+lemma divide_le_0_abs_iff [simp]: "(a / \<bar>b\<bar> \<le> 0) = (a \<le> 0 \<or> b = 0)"
 by (auto simp: divide_le_0_iff)
 
 lemma field_le_mult_one_interval:

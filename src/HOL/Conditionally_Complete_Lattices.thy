@@ -430,7 +430,7 @@ lemma complete_interval:
   assumes "a < b" and "P a" and "\<not> P b"
   shows "\<exists>c. a \<le> c \<and> c \<le> b \<and> (\<forall>x. a \<le> x \<and> x < c \<longrightarrow> P x) \<and>
              (\<forall>d. (\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x) \<longrightarrow> d \<le> c)"
-proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], auto)
+proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x}"], auto)
   show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
     by (rule cSup_upper, auto simp: bdd_above_def)
        (metis \<open>a < b\<close> \<open>\<not> P b\<close> linear less_le)
@@ -439,7 +439,7 @@ next
     apply (rule cSup_least)
     apply auto
     apply (metis less_le_not_le)
-    apply (metis \<open>a<b\<close> \<open>~ P b\<close> linear less_le)
+    apply (metis \<open>a<b\<close> \<open>\<not> P b\<close> linear less_le)
     done
 next
   fix x
@@ -454,7 +454,7 @@ next
     assume 0: "\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x"
     thus "d \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
       by (rule_tac cSup_upper, auto simp: bdd_above_def)
-         (metis \<open>a<b\<close> \<open>~ P b\<close> linear less_le)
+         (metis \<open>a<b\<close> \<open>\<not> P b\<close> linear less_le)
 qed
 
 end

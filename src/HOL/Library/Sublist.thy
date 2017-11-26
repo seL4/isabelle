@@ -1018,7 +1018,7 @@ lemma subseq_append [simp]:
   "subseq (xs @ zs) (ys @ zs) \<longleftrightarrow> subseq xs ys" (is "?l = ?r")
 proof
   { fix xs' ys' xs ys zs :: "'a list" assume "subseq xs' ys'"
-    then have "xs' = xs @ zs & ys' = ys @ zs \<longrightarrow> subseq xs ys"
+    then have "xs' = xs @ zs \<and> ys' = ys @ zs \<longrightarrow> subseq xs ys"
     proof (induct arbitrary: xs ys zs)
       case list_emb_Nil show ?case by simp
     next

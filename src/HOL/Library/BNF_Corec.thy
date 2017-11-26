@@ -31,17 +31,17 @@ lemma Grp_UNIV_id: "BNF_Def.Grp UNIV id = (op =)"
   unfolding BNF_Def.Grp_def by auto
 
 lemma sum_comp_cases:
-  assumes "f o Inl = g o Inl" and "f o Inr = g o Inr"
+  assumes "f \<circ> Inl = g \<circ> Inl" and "f \<circ> Inr = g \<circ> Inr"
   shows "f = g"
 proof (rule ext)
   fix a show "f a = g a"
     using assms unfolding comp_def fun_eq_iff by (cases a) auto
 qed
 
-lemma case_sum_Inl_Inr_L: "case_sum (f o Inl) (f o Inr) = f"
+lemma case_sum_Inl_Inr_L: "case_sum (f \<circ> Inl) (f \<circ> Inr) = f"
   by (metis case_sum_expand_Inr')
 
-lemma eq_o_InrI: "\<lbrakk>g o Inl = h; case_sum h f = g\<rbrakk> \<Longrightarrow> f = g o Inr"
+lemma eq_o_InrI: "\<lbrakk>g \<circ> Inl = h; case_sum h f = g\<rbrakk> \<Longrightarrow> f = g \<circ> Inr"
   by (auto simp: fun_eq_iff split: sum.splits)
 
 lemma id_bnf_o: "BNF_Composition.id_bnf \<circ> f = f"
@@ -63,7 +63,7 @@ lemma if_distrib_fun: "(if c then f else g) x = (if c then f x else g x)"
 
 subsection \<open>Coinduction\<close>
 
-lemma eq_comp_compI: "a o b = f o x \<Longrightarrow> x o c = id \<Longrightarrow> f = a o (b o c)"
+lemma eq_comp_compI: "a \<circ> b = f \<circ> x \<Longrightarrow> x \<circ> c = id \<Longrightarrow> f = a \<circ> (b \<circ> c)"
   unfolding fun_eq_iff by simp
 
 lemma self_bounded_weaken_left: "(a :: 'a :: semilattice_inf) \<le> inf a b \<Longrightarrow> a \<le> b"
@@ -159,7 +159,7 @@ lemma gen_cong_idem: "gen_cong (gen_cong R) = gen_cong R"
   by (simp add: antisym cong_gen_cong gen_cong_minimal leq_gen_cong)
 
 lemma gen_cong_rho:
-  "\<rho> = eval o f \<Longrightarrow> rel (gen_cong R) (f x) (f y) \<Longrightarrow> gen_cong R (\<rho> x) (\<rho> y)"
+  "\<rho> = eval \<circ> f \<Longrightarrow> rel (gen_cong R) (f x) (f y) \<Longrightarrow> gen_cong R (\<rho> x) (\<rho> y)"
   by (simp add: gen_cong_eval)
 lemma coinduction:
   assumes coind: "\<forall>R. R \<le> retr R \<longrightarrow> R \<le> op ="
@@ -181,7 +181,7 @@ context
   fixes rel eval rel' eval' retr emb
   assumes base: "cong rel eval retr"
   and step: "cong rel' eval' retr"
-  and emb: "eval' o emb = eval"
+  and emb: "eval' \<circ> emb = eval"
   and emb_transfer: "rel_fun (rel R) (rel' R) emb emb"
 begin
 

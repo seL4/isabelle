@@ -310,7 +310,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
             fun pred_set_tac ctxt =
               HEADGOAL (EVERY'
-                [rtac ctxt (pred_set_of_bnf bnf RS @{thm arg_cong[of _ _ "\<lambda>f. f o _"]} RS trans),
+                [rtac ctxt (pred_set_of_bnf bnf RS @{thm arg_cong[of _ _ "\<lambda>f. f \<circ> _"]} RS trans),
                 SELECT_GOAL (unfold_thms_tac ctxt (@{thms Ball_comp_iff conj_comp_iff})),
                 rtac ctxt refl]);
 

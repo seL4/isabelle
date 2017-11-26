@@ -23,7 +23,7 @@ fun less_eq_extended :: "'a extended \<Rightarrow> 'a extended \<Rightarrow> boo
 case_of_simps less_eq_extended_case: less_eq_extended.simps
 
 definition less_extended :: "'a extended \<Rightarrow> 'a extended \<Rightarrow> bool" where
-"((x::'a extended) < y) = (x \<le> y & \<not> y \<le> x)"
+"((x::'a extended) < y) = (x \<le> y \<and> \<not> y \<le> x)"
 
 instance
   by intro_classes (auto simp: less_extended_def less_eq_extended_case split: extended.splits)

@@ -389,7 +389,7 @@ using linear apply (blast intro: antisym)
 done
 
 lemma not_less_iff_gr_or_eq:
- "\<not>(x < y) \<longleftrightarrow> (x > y | x = y)"
+ "\<not>(x < y) \<longleftrightarrow> (x > y \<or> x = y)"
 apply(simp add:not_less le_less)
 apply blast
 done
@@ -745,14 +745,14 @@ syntax (input)
   "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3? _<=_./ _)" [0, 0, 10] 10)
 
 translations
-  "ALL x<y. P"   =>  "ALL x. x < y \<longrightarrow> P"
-  "EX x<y. P"    =>  "EX x. x < y \<and> P"
-  "ALL x<=y. P"  =>  "ALL x. x <= y \<longrightarrow> P"
-  "EX x<=y. P"   =>  "EX x. x <= y \<and> P"
-  "ALL x>y. P"   =>  "ALL x. x > y \<longrightarrow> P"
-  "EX x>y. P"    =>  "EX x. x > y \<and> P"
-  "ALL x>=y. P"  =>  "ALL x. x >= y \<longrightarrow> P"
-  "EX x>=y. P"   =>  "EX x. x >= y \<and> P"
+  "\<forall>x<y. P" \<rightharpoonup> "\<forall>x. x < y \<longrightarrow> P"
+  "\<exists>x<y. P" \<rightharpoonup> "\<exists>x. x < y \<and> P"
+  "\<forall>x\<le>y. P" \<rightharpoonup> "\<forall>x. x \<le> y \<longrightarrow> P"
+  "\<exists>x\<le>y. P" \<rightharpoonup> "\<exists>x. x \<le> y \<and> P"
+  "\<forall>x>y. P" \<rightharpoonup> "\<forall>x. x > y \<longrightarrow> P"
+  "\<exists>x>y. P" \<rightharpoonup> "\<exists>x. x > y \<and> P"
+  "\<forall>x\<ge>y. P" \<rightharpoonup> "\<forall>x. x \<ge> y \<longrightarrow> P"
+  "\<exists>x\<ge>y. P" \<rightharpoonup> "\<exists>x. x \<ge> y \<and> P"
 
 print_translation \<open>
 let
@@ -1001,22 +1001,22 @@ text \<open>These support proving chains of decreasing inequalities
     a >= b >= c ... in Isar proofs.\<close>
 
 lemma xt1 [no_atp]:
-  "a = b ==> b > c ==> a > c"
-  "a > b ==> b = c ==> a > c"
-  "a = b ==> b >= c ==> a >= c"
-  "a >= b ==> b = c ==> a >= c"
-  "(x::'a::order) >= y ==> y >= x ==> x = y"
-  "(x::'a::order) >= y ==> y >= z ==> x >= z"
-  "(x::'a::order) > y ==> y >= z ==> x > z"
-  "(x::'a::order) >= y ==> y > z ==> x > z"
-  "(a::'a::order) > b ==> b > a ==> P"
-  "(x::'a::order) > y ==> y > z ==> x > z"
-  "(a::'a::order) >= b ==> a ~= b ==> a > b"
-  "(a::'a::order) ~= b ==> a >= b ==> a > b"
-  "a = f b ==> b > c ==> (!!x y. x > y ==> f x > f y) ==> a > f c"
-  "a > b ==> f b = c ==> (!!x y. x > y ==> f x > f y) ==> f a > c"
-  "a = f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
-  "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==> f a >= c"
+  "a = b \<Longrightarrow> b > c \<Longrightarrow> a > c"
+  "a > b \<Longrightarrow> b = c \<Longrightarrow> a > c"
+  "a = b \<Longrightarrow> b \<ge> c \<Longrightarrow> a \<ge> c"
+  "a \<ge> b \<Longrightarrow> b = c \<Longrightarrow> a \<ge> c"
+  "(x::'a::order) \<ge> y \<Longrightarrow> y \<ge> x \<Longrightarrow> x = y"
+  "(x::'a::order) \<ge> y \<Longrightarrow> y \<ge> z \<Longrightarrow> x \<ge> z"
+  "(x::'a::order) > y \<Longrightarrow> y \<ge> z \<Longrightarrow> x > z"
+  "(x::'a::order) \<ge> y \<Longrightarrow> y > z \<Longrightarrow> x > z"
+  "(a::'a::order) > b \<Longrightarrow> b > a \<Longrightarrow> P"
+  "(x::'a::order) > y \<Longrightarrow> y > z \<Longrightarrow> x > z"
+  "(a::'a::order) \<ge> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> a > b"
+  "(a::'a::order) \<noteq> b \<Longrightarrow> a \<ge> b \<Longrightarrow> a > b"
+  "a = f b \<Longrightarrow> b > c \<Longrightarrow> (\<And>x y. x > y \<Longrightarrow> f x > f y) \<Longrightarrow> a > f c"
+  "a > b \<Longrightarrow> f b = c \<Longrightarrow> (\<And>x y. x > y \<Longrightarrow> f x > f y) \<Longrightarrow> f a > c"
+  "a = f b \<Longrightarrow> b \<ge> c \<Longrightarrow> (\<And>x y. x \<ge> y \<Longrightarrow> f x \<ge> f y) \<Longrightarrow> a \<ge> f c"
+  "a \<ge> b \<Longrightarrow> f b = c \<Longrightarrow> (\<And>x y. x \<ge> y \<Longrightarrow> f x \<ge> f y) \<Longrightarrow> f a \<ge> c"
   by auto
 
 lemma xt2 [no_atp]:

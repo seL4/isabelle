@@ -107,7 +107,7 @@ lemma Quotient3_part_equivp:
   by (metis Quotient3_rep_reflp Quotient3_symp Quotient3_transp part_equivpI)
 
 lemma abs_o_rep:
-  "Abs o Rep = id"
+  "Abs \<circ> Rep = id"
   unfolding fun_eq_iff
   by (simp add: Quotient3_abs_rep)
 
@@ -280,25 +280,25 @@ lemma bex_reg_eqv_range:
 
 (* Next four lemmas are unused *)
 lemma all_reg:
-  assumes a: "!x :: 'a. (P x --> Q x)"
+  assumes a: "\<forall>x :: 'a. (P x \<longrightarrow> Q x)"
   and     b: "All P"
   shows "All Q"
   using a b by fast
 
 lemma ex_reg:
-  assumes a: "!x :: 'a. (P x --> Q x)"
+  assumes a: "\<forall>x :: 'a. (P x \<longrightarrow> Q x)"
   and     b: "Ex P"
   shows "Ex Q"
   using a b by fast
 
 lemma ball_reg:
-  assumes a: "!x :: 'a. (x \<in> R --> P x --> Q x)"
+  assumes a: "\<forall>x :: 'a. (x \<in> R \<longrightarrow> P x \<longrightarrow> Q x)"
   and     b: "Ball R P"
   shows "Ball R Q"
   using a b by fast
 
 lemma bex_reg:
-  assumes a: "!x :: 'a. (x \<in> R --> P x --> Q x)"
+  assumes a: "\<forall>x :: 'a. (x \<in> R \<longrightarrow> P x \<longrightarrow> Q x)"
   and     b: "Bex R P"
   shows "Bex R Q"
   using a b by fast

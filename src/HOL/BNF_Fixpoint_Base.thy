@@ -46,7 +46,7 @@ next
   fix b
   have "b = f (g b)"
   using fg unfolding fun_eq_iff by simp
-  thus "EX a. b = f a" by blast
+  thus "\<exists>a. b = f a" by blast
 qed
 
 lemma case_sum_step:
@@ -248,27 +248,27 @@ lemma fst_convol': "fst (\<langle>f, g\<rangle> x) = f x"
 lemma snd_convol': "snd (\<langle>f, g\<rangle> x) = g x"
   using snd_convol unfolding convol_def by simp
 
-lemma convol_expand_snd: "fst o f = g \<Longrightarrow> \<langle>g, snd o f\<rangle> = f"
+lemma convol_expand_snd: "fst \<circ> f = g \<Longrightarrow> \<langle>g, snd \<circ> f\<rangle> = f"
   unfolding convol_def by auto
 
 lemma convol_expand_snd':
-  assumes "(fst o f = g)"
-  shows "h = snd o f \<longleftrightarrow> \<langle>g, h\<rangle> = f"
+  assumes "(fst \<circ> f = g)"
+  shows "h = snd \<circ> f \<longleftrightarrow> \<langle>g, h\<rangle> = f"
 proof -
-  from assms have *: "\<langle>g, snd o f\<rangle> = f" by (rule convol_expand_snd)
-  then have "h = snd o f \<longleftrightarrow> h = snd o \<langle>g, snd o f\<rangle>" by simp
-  moreover have "\<dots> \<longleftrightarrow> h = snd o f" by (simp add: snd_convol)
+  from assms have *: "\<langle>g, snd \<circ> f\<rangle> = f" by (rule convol_expand_snd)
+  then have "h = snd \<circ> f \<longleftrightarrow> h = snd \<circ> \<langle>g, snd \<circ> f\<rangle>" by simp
+  moreover have "\<dots> \<longleftrightarrow> h = snd \<circ> f" by (simp add: snd_convol)
   moreover have "\<dots> \<longleftrightarrow> \<langle>g, h\<rangle> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
   ultimately show ?thesis by simp
 qed
 
-lemma case_sum_expand_Inr_pointfree: "f o Inl = g \<Longrightarrow> case_sum g (f o Inr) = f"
+lemma case_sum_expand_Inr_pointfree: "f \<circ> Inl = g \<Longrightarrow> case_sum g (f \<circ> Inr) = f"
   by (auto split: sum.splits)
 
-lemma case_sum_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> case_sum g h = f"
+lemma case_sum_expand_Inr': "f \<circ> Inl = g \<Longrightarrow> h = f \<circ> Inr \<longleftrightarrow> case_sum g h = f"
   by (rule iffI) (auto simp add: fun_eq_iff split: sum.splits)
 
-lemma case_sum_expand_Inr: "f o Inl = g \<Longrightarrow> f x = case_sum g (f o Inr) x"
+lemma case_sum_expand_Inr: "f \<circ> Inl = g \<Longrightarrow> f x = case_sum g (f \<circ> Inr) x"
   by (auto split: sum.splits)
 
 lemma id_transfer: "rel_fun A A id id"

@@ -410,7 +410,7 @@ done
 text\<open>Alternative characterization of normal subgroups\<close>
 lemma (in group) normal_inv_iff:
      "(N \<lhd> G) = 
-      (subgroup N G & (\<forall>x \<in> carrier G. \<forall>h \<in> N. x \<otimes> h \<otimes> (inv x) \<in> N))"
+      (subgroup N G \<and> (\<forall>x \<in> carrier G. \<forall>h \<in> N. x \<otimes> h \<otimes> (inv x) \<in> N))"
       (is "_ = ?rhs")
 proof
   assume N: "N \<lhd> G"
@@ -476,7 +476,7 @@ proof (simp add: l_coset_def)
   assume "\<exists>h\<in>H. y = x \<otimes> h"
     and x: "x \<in> carrier G"
     and sb: "subgroup H G"
-  then obtain h' where h': "h' \<in> H & x \<otimes> h' = y" by blast
+  then obtain h' where h': "h' \<in> H \<and> x \<otimes> h' = y" by blast
   show "\<exists>h\<in>H. x = y \<otimes> h"
   proof
     show "x = y \<otimes> inv h'" using h' x sb
@@ -593,7 +593,7 @@ subsubsection\<open>An Equivalence Relation\<close>
 
 definition
   r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("rcong\<index> _")
-  where "rcong\<^bsub>G\<^esub> H = {(x,y). x \<in> carrier G & y \<in> carrier G & inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
+  where "rcong\<^bsub>G\<^esub> H = {(x,y). x \<in> carrier G \<and> y \<in> carrier G \<and> inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
 
 
 lemma (in subgroup) equiv_rcong:
@@ -784,7 +784,7 @@ text\<open>The next two lemmas support the proof of \<open>card_cosets_equal\<cl
 lemma (in group) inj_on_f:
     "\<lbrakk>H \<subseteq> carrier G;  a \<in> carrier G\<rbrakk> \<Longrightarrow> inj_on (\<lambda>y. y \<otimes> inv a) (H #> a)"
 apply (rule inj_onI)
-apply (subgoal_tac "x \<in> carrier G & y \<in> carrier G")
+apply (subgoal_tac "x \<in> carrier G \<and> y \<in> carrier G")
  prefer 2 apply (blast intro: r_coset_subset_G [THEN subsetD])
 apply (simp add: subsetD)
 done
@@ -898,7 +898,7 @@ text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
 definition
   kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
     \<comment>\<open>the kernel of a homomorphism\<close>
-  where "kernel G H h = {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
+  where "kernel G H h = {x. x \<in> carrier G \<and> h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
 apply (rule subgroup.intro) 

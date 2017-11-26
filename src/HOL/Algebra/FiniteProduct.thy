@@ -48,7 +48,7 @@ lemma foldSetD_imp_finite [simp]: "(A, x) \<in> foldSetD D f e ==> finite A"
 
 lemma finite_imp_foldSetD:
   "[| finite A; e \<in> D; !!x y. [| x \<in> A; y \<in> D |] ==> f x y \<in> D |] ==>
-   EX x. (A, x) \<in> foldSetD D f e"
+   \<exists>x. (A, x) \<in> foldSetD D f e"
 proof (induct set: finite)
   case empty then show ?case by auto
 next
@@ -89,7 +89,7 @@ lemma (in LCD) foldSetD_imp_finite [simp]:
   by (induct set: foldSetD) auto
 
 lemma (in LCD) finite_imp_foldSetD:
-  "[| finite A; A \<subseteq> B; e \<in> D |] ==> EX x. (A, x) \<in> foldSetD D f e"
+  "[| finite A; A \<subseteq> B; e \<in> D |] ==> \<exists>x. (A, x) \<in> foldSetD D f e"
 proof (induct set: finite)
   case empty then show ?case by auto
 next
@@ -102,8 +102,8 @@ next
 qed
 
 lemma (in LCD) foldSetD_determ_aux:
-  "e \<in> D ==> \<forall>A x. A \<subseteq> B & card A < n --> (A, x) \<in> foldSetD D f e -->
-    (\<forall>y. (A, y) \<in> foldSetD D f e --> y = x)"
+  "e \<in> D \<Longrightarrow> \<forall>A x. A \<subseteq> B \<and> card A < n \<longrightarrow> (A, x) \<in> foldSetD D f e \<longrightarrow>
+    (\<forall>y. (A, y) \<in> foldSetD D f e \<longrightarrow> y = x)"
   apply (induct n)
    apply (auto simp add: less_Suc_eq) (* slow *)
   apply (erule foldSetD.cases)
@@ -120,7 +120,7 @@ lemma (in LCD) foldSetD_determ_aux:
     prefer 2 apply (blast elim!: equalityE)
    apply blast
   txt \<open>case @{prop "xa \<notin> xb"}.\<close>
-  apply (subgoal_tac "Aa - {xb} = Ab - {xa} & xb \<in> Aa & xa \<in> Ab")
+  apply (subgoal_tac "Aa - {xb} = Ab - {xa} \<and> xb \<in> Aa \<and> xa \<in> Ab")
    prefer 2 apply (blast elim!: equalityE)
   apply clarify
   apply (subgoal_tac "Aa = insert xb Ab - {xa}")
@@ -166,9 +166,9 @@ lemma foldD_empty [simp]:
   by (unfold foldD_def) blast
 
 lemma (in LCD) foldD_insert_aux:
-  "[| x ~: A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
+  "[| x \<notin> A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
     ((insert x A, v) \<in> foldSetD D f e) =
-    (EX y. (A, y) \<in> foldSetD D f e & v = f x y)"
+    (\<exists>y. (A, y) \<in> foldSetD D f e \<and> v = f x y)"
   apply auto
   apply (rule_tac A1 = A in finite_imp_foldSetD [THEN exE])
      apply (fastforce dest: foldSetD_imp_finite)
@@ -291,7 +291,7 @@ definition
   finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b"
   where "finprod G f A =
    (if finite A
-    then foldD (carrier G) (mult G o f) \<one>\<^bsub>G\<^esub> A
+    then foldD (carrier G) (mult G \<circ> f) \<one>\<^bsub>G\<^esub> A
     else \<one>\<^bsub>G\<^esub>)"
 
 syntax
@@ -360,7 +360,7 @@ lemma funcset_Int_left [simp, intro]:
   by fast
 
 lemma funcset_Un_left [iff]:
-  "(f \<in> A Un B \<rightarrow> C) = (f \<in> A \<rightarrow> C & f \<in> B \<rightarrow> C)"
+  "(f \<in> A Un B \<rightarrow> C) = (f \<in> A \<rightarrow> C \<and> f \<in> B \<rightarrow> C)"
   by fast
 
 lemma finprod_Un_Int:

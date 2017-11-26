@@ -383,7 +383,7 @@ unfolding is_empty_def holds_eq
 by (rule unit_pred_cases) (auto elim: botE intro: singleI)
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
-  "map f P = P \<bind> (single o f)"
+  "map f P = P \<bind> (single \<circ> f)"
 
 lemma eval_map [simp]:
   "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"

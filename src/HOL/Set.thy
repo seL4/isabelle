@@ -837,7 +837,7 @@ lemma Diff_single_insert: "A - {x} \<subseteq> B \<Longrightarrow> A \<subseteq>
 lemma subset_Diff_insert: "A \<subseteq> B - insert x C \<longleftrightarrow> A \<subseteq> B - C \<and> x \<notin> A"
   by blast
 
-lemma doubleton_eq_iff: "{a, b} = {c, d} \<longleftrightarrow> a = c \<and> b = d \<or> a = d & b = c"
+lemma doubleton_eq_iff: "{a, b} = {c, d} \<longleftrightarrow> a = c \<and> b = d \<or> a = d \<and> b = c"
   by (blast elim: equalityE)
 
 lemma Un_singleton_iff: "A \<union> B = {x} \<longleftrightarrow> A = {} \<and> B = {x} \<or> A = {x} \<and> B = {} \<or> A = {x} \<and> B = {x}"
@@ -1584,7 +1584,7 @@ lemma bex_simps [simp, no_atp]:
   "\<And>A P Q. (\<exists>x\<in>A. P \<and> Q x) \<longleftrightarrow> (P \<and> (\<exists>x\<in>A. Q x))"
   "\<And>P. (\<exists>x\<in>{}. P x) \<longleftrightarrow> False"
   "\<And>P. (\<exists>x\<in>UNIV. P x) \<longleftrightarrow> (\<exists>x. P x)"
-  "\<And>a B P. (\<exists>x\<in>insert a B. P x) \<longleftrightarrow> (P a | (\<exists>x\<in>B. P x))"
+  "\<And>a B P. (\<exists>x\<in>insert a B. P x) \<longleftrightarrow> (P a \<or> (\<exists>x\<in>B. P x))"
   "\<And>P Q. (\<exists>x\<in>Collect Q. P x) \<longleftrightarrow> (\<exists>x. Q x \<and> P x)"
   "\<And>A P f. (\<exists>x\<in>f`A. P x) \<longleftrightarrow> (\<exists>x\<in>A. P (f x))"
   "\<And>A P. (\<not>(\<exists>x\<in>A. P x)) \<longleftrightarrow> (\<forall>x\<in>A. \<not> P x)"

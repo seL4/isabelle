@@ -15,21 +15,21 @@ subsection \<open>Negation Normal Form\<close>
 
 text \<open>de Morgan laws\<close>
 
-lemma not_conjD: "~(P&Q) ==> ~P | ~Q"
-  and not_disjD: "~(P|Q) ==> ~P & ~Q"
-  and not_notD: "~~P ==> P"
-  and not_allD: "!!P. ~(\<forall>x. P(x)) ==> \<exists>x. ~P(x)"
-  and not_exD: "!!P. ~(\<exists>x. P(x)) ==> \<forall>x. ~P(x)"
+lemma not_conjD: "\<not>(P\<and>Q) \<Longrightarrow> \<not>P \<or> \<not>Q"
+  and not_disjD: "\<not>(P\<or>Q) \<Longrightarrow> \<not>P \<and> \<not>Q"
+  and not_notD: "\<not>\<not>P \<Longrightarrow> P"
+  and not_allD: "\<And>P. \<not>(\<forall>x. P(x)) \<Longrightarrow> \<exists>x. \<not>P(x)"
+  and not_exD: "\<And>P. \<not>(\<exists>x. P(x)) \<Longrightarrow> \<forall>x. \<not>P(x)"
   by fast+
 
 text \<open>Removal of \<open>\<longrightarrow>\<close> and \<open>\<longleftrightarrow>\<close> (positive and negative occurrences)\<close>
 
-lemma imp_to_disjD: "P-->Q ==> ~P | Q"
-  and not_impD: "~(P-->Q) ==> P & ~Q"
-  and iff_to_disjD: "P=Q ==> (~P | Q) & (~Q | P)"
-  and not_iffD: "~(P=Q) ==> (P | Q) & (~P | ~Q)"
-    \<comment> \<open>Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF\<close>
-  and not_refl_disj_D: "x ~= x | P ==> P"
+lemma imp_to_disjD: "P\<longrightarrow>Q \<Longrightarrow> \<not>P \<or> Q"
+  and not_impD: "\<not>(P\<longrightarrow>Q) \<Longrightarrow> P \<and> \<not>Q"
+  and iff_to_disjD: "P=Q \<Longrightarrow> (\<not>P \<or> Q) \<and> (\<not>Q \<or> P)"
+  and not_iffD: "\<not>(P=Q) \<Longrightarrow> (P \<or> Q) \<and> (\<not>P \<or> \<not>Q)"
+    \<comment> \<open>Much more efficient than @{prop "(P \<and> \<not>Q) \<or> (Q \<and> \<not>P)"} for computing CNF\<close>
+  and not_refl_disj_D: "x \<noteq> x \<or> P \<Longrightarrow> P"
   by fast+
 
 
@@ -37,24 +37,24 @@ subsection \<open>Pulling out the existential quantifiers\<close>
 
 text \<open>Conjunction\<close>
 
-lemma conj_exD1: "!!P Q. (\<exists>x. P(x)) & Q ==> \<exists>x. P(x) & Q"
-  and conj_exD2: "!!P Q. P & (\<exists>x. Q(x)) ==> \<exists>x. P & Q(x)"
+lemma conj_exD1: "\<And>P Q. (\<exists>x. P(x)) \<and> Q \<Longrightarrow> \<exists>x. P(x) \<and> Q"
+  and conj_exD2: "\<And>P Q. P \<and> (\<exists>x. Q(x)) \<Longrightarrow> \<exists>x. P \<and> Q(x)"
   by fast+
 
 
 text \<open>Disjunction\<close>
 
-lemma disj_exD: "!!P Q. (\<exists>x. P(x)) | (\<exists>x. Q(x)) ==> \<exists>x. P(x) | Q(x)"
+lemma disj_exD: "\<And>P Q. (\<exists>x. P(x)) \<or> (\<exists>x. Q(x)) \<Longrightarrow> \<exists>x. P(x) \<or> Q(x)"
   \<comment> \<open>DO NOT USE with forall-Skolemization: makes fewer schematic variables!!\<close>
   \<comment> \<open>With ex-Skolemization, makes fewer Skolem constants\<close>
-  and disj_exD1: "!!P Q. (\<exists>x. P(x)) | Q ==> \<exists>x. P(x) | Q"
-  and disj_exD2: "!!P Q. P | (\<exists>x. Q(x)) ==> \<exists>x. P | Q(x)"
+  and disj_exD1: "\<And>P Q. (\<exists>x. P(x)) \<or> Q \<Longrightarrow> \<exists>x. P(x) \<or> Q"
+  and disj_exD2: "\<And>P Q. P \<or> (\<exists>x. Q(x)) \<Longrightarrow> \<exists>x. P \<or> Q(x)"
   by fast+
 
-lemma disj_assoc: "(P|Q)|R ==> P|(Q|R)"
-  and disj_comm: "P|Q ==> Q|P"
-  and disj_FalseD1: "False|P ==> P"
-  and disj_FalseD2: "P|False ==> P"
+lemma disj_assoc: "(P\<or>Q)\<or>R \<Longrightarrow> P\<or>(Q\<or>R)"
+  and disj_comm: "P\<or>Q \<Longrightarrow> Q\<or>P"
+  and disj_FalseD1: "False\<or>P \<Longrightarrow> P"
+  and disj_FalseD2: "P\<or>False \<Longrightarrow> P"
   by fast+
 
 
@@ -63,15 +63,15 @@ text\<open>Generation of contrapositives\<close>
 text\<open>Inserts negated disjunct after removing the negation; P is a literal.
   Model elimination requires assuming the negation of every attempted subgoal,
   hence the negated disjuncts.\<close>
-lemma make_neg_rule: "~P|Q ==> ((~P==>P) ==> Q)"
+lemma make_neg_rule: "\<not>P\<or>Q \<Longrightarrow> ((\<not>P\<Longrightarrow>P) \<Longrightarrow> Q)"
 by blast
 
 text\<open>Version for Plaisted's "Postive refinement" of the Meson procedure\<close>
-lemma make_refined_neg_rule: "~P|Q ==> (P ==> Q)"
+lemma make_refined_neg_rule: "\<not>P\<or>Q \<Longrightarrow> (P \<Longrightarrow> Q)"
 by blast
 
 text\<open>@{term P} should be a literal\<close>
-lemma make_pos_rule: "P|Q ==> ((P==>~P) ==> Q)"
+lemma make_pos_rule: "P\<or>Q \<Longrightarrow> ((P\<Longrightarrow>\<not>P) \<Longrightarrow> Q)"
 by blast
 
 text\<open>Versions of \<open>make_neg_rule\<close> and \<open>make_pos_rule\<close> that don't
@@ -79,15 +79,15 @@ insert new assumptions, for ordinary resolution.\<close>
 
 lemmas make_neg_rule' = make_refined_neg_rule
 
-lemma make_pos_rule': "[|P|Q; ~P|] ==> Q"
+lemma make_pos_rule': "\<lbrakk>P\<or>Q; \<not>P\<rbrakk> \<Longrightarrow> Q"
 by blast
 
 text\<open>Generation of a goal clause -- put away the final literal\<close>
 
-lemma make_neg_goal: "~P ==> ((~P==>P) ==> False)"
+lemma make_neg_goal: "\<not>P \<Longrightarrow> ((\<not>P\<Longrightarrow>P) \<Longrightarrow> False)"
 by blast
 
-lemma make_pos_goal: "P ==> ((P==>~P) ==> False)"
+lemma make_pos_goal: "P \<Longrightarrow> ((P\<Longrightarrow>\<not>P) \<Longrightarrow> False)"
 by blast
 
 
@@ -97,18 +97,17 @@ text\<open>There is a similarity to congruence rules. They are also useful in or
 
 (*NOTE: could handle conjunctions (faster?) by
     nf(th RS conjunct2) RS (nf(th RS conjunct1) RS conjI) *)
-lemma conj_forward: "[| P'&Q';  P' ==> P;  Q' ==> Q |] ==> P&Q"
+lemma conj_forward: "\<lbrakk>P'\<and>Q';  P' \<Longrightarrow> P;  Q' \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> P\<and>Q"
 by blast
 
-lemma disj_forward: "[| P'|Q';  P' ==> P;  Q' ==> Q |] ==> P|Q"
+lemma disj_forward: "\<lbrakk>P'\<or>Q';  P' \<Longrightarrow> P;  Q' \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> P\<or>Q"
 by blast
 
-lemma imp_forward: "[| P' \<longrightarrow> Q';  P ==> P';  Q' ==> Q |] ==> P \<longrightarrow> Q"
+lemma imp_forward: "\<lbrakk>P' \<longrightarrow> Q';  P \<Longrightarrow> P';  Q' \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> P \<longrightarrow> Q"
 by blast
 
 (*Version of @{text disj_forward} for removal of duplicate literals*)
-lemma disj_forward2:
-    "[| P'|Q';  P' ==> P;  [| Q'; P==>False |] ==> Q |] ==> P|Q"
+lemma disj_forward2: "\<lbrakk> P'\<or>Q';  P' \<Longrightarrow> P;  \<lbrakk>Q'; P\<Longrightarrow>False\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> P\<or>Q"
 apply blast 
 done
 

@@ -109,7 +109,7 @@ lemma map_option_eq_Some [iff]: "(map_option f xo = Some y) = (\<exists>z. xo = 
   by (simp add: map_option_case split: option.split)
 
 lemma map_option_o_case_sum [simp]:
-    "map_option f o case_sum g h = case_sum (map_option f o g) (map_option f o h)"
+    "map_option f \<circ> case_sum g h = case_sum (map_option f \<circ> g) (map_option f \<circ> h)"
   by (rule o_case_sum)
 
 lemma map_option_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map_option f x = map_option g y"

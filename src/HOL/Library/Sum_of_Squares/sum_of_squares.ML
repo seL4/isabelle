@@ -1018,8 +1018,8 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
           addsimps [@{thm power_divide}]
         val th =
           Thm.instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
-            (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
-             else @{lemma "(d=0 --> P) & (d ~= (0::real) --> P) ==> P" by blast})
+            (if ord then @{lemma "(d=0 \<longrightarrow> P) \<and> (d>0 \<longrightarrow> P) \<and> (d<(0::real) \<longrightarrow> P) \<Longrightarrow> P" by auto}
+             else @{lemma "(d=0 \<longrightarrow> P) \<and> (d \<noteq> (0::real) \<longrightarrow> P) \<Longrightarrow> P" by blast})
       in resolve_tac ctxt [th] i THEN Simplifier.asm_full_simp_tac simp_ctxt i end));
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);

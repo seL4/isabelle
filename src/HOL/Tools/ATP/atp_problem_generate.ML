@@ -1598,7 +1598,7 @@ fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
 
 (** Helper facts **)
 
-val not_ffalse = @{lemma "~ fFalse" by (unfold fFalse_def) fast}
+val not_ffalse = @{lemma "\<not> fFalse" by (unfold fFalse_def) fast}
 val ftrue = @{lemma "fTrue" by (unfold fTrue_def) fast}
 
 (* The Boolean indicates that a fairly sound type encoding is needed. *)
@@ -1624,13 +1624,13 @@ val helper_table =
            fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}
     |> map (pair Non_Rec_Def)),
    (("fconj", false),
-    @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q" by (unfold fconj_def) fast+}
+    @{lemma "\<not> P \<or> \<not> Q \<or> fconj P Q" "\<not> fconj P Q \<or> P" "\<not> fconj P Q \<or> Q" by (unfold fconj_def) fast+}
     |> map (pair General)),
    (("fdisj", false),
-    @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q" by (unfold fdisj_def) fast+}
+    @{lemma "\<not> P \<or> fdisj P Q" "\<not> Q \<or> fdisj P Q" "\<not> fdisj P Q \<or> P \<or> Q" by (unfold fdisj_def) fast+}
     |> map (pair General)),
    (("fimplies", false),
-    @{lemma "P | fimplies P Q" "~ Q | fimplies P Q" "~ fimplies P Q | ~ P | Q"
+    @{lemma "P \<or> fimplies P Q" "\<not> Q \<or> fimplies P Q" "\<not> fimplies P Q \<or> \<not> P \<or> Q"
         by (unfold fimplies_def) fast+}
     |> map (pair General)),
    (("fequal", true),
@@ -1642,8 +1642,8 @@ val helper_table =
     |> map (pair General)),
    (* Partial characterization of "fAll" and "fEx". A complete characterization
       would require the axiom of choice for replay with Metis. *)
-   (("fAll", false), [(General, @{lemma "~ fAll P | P x" by (auto simp: fAll_def)})]),
-   (("fEx", false), [(General, @{lemma "~ P x | fEx P" by (auto simp: fEx_def)})])]
+   (("fAll", false), [(General, @{lemma "\<not> fAll P \<or> P x" by (auto simp: fAll_def)})]),
+   (("fEx", false), [(General, @{lemma "\<not> P x \<or> fEx P" by (auto simp: fEx_def)})])]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 val completish_helper_table =

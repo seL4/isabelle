@@ -98,11 +98,11 @@ subsection \<open>Lattices\<close>
 
 locale weak_upper_semilattice = weak_partial_order +
   assumes sup_of_two_exists:
-    "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
+    "[| x \<in> carrier L; y \<in> carrier L |] ==> \<exists>s. least L s (Upper L {x, y})"
 
 locale weak_lower_semilattice = weak_partial_order +
   assumes inf_of_two_exists:
-    "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
+    "[| x \<in> carrier L; y \<in> carrier L |] ==> \<exists>s. greatest L s (Lower L {x, y})"
 
 locale weak_lattice = weak_upper_semilattice + weak_lower_semilattice
 
@@ -250,7 +250,7 @@ proof (unfold sup_def)
 qed
 
 lemma (in weak_upper_semilattice) finite_sup_least:
-  "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> least L (\<Squnion>A) (Upper L A)"
+  "[| finite A; A \<subseteq> carrier L; A \<noteq> {} |] ==> least L (\<Squnion>A) (Upper L A)"
 proof (induct set: finite)
   case empty
   then show ?case by simp
@@ -284,7 +284,7 @@ next
 qed
 
 lemma (in weak_upper_semilattice) finite_sup_closed [simp]:
-  "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> \<Squnion>A \<in> carrier L"
+  "[| finite A; A \<subseteq> carrier L; A \<noteq> {} |] ==> \<Squnion>A \<in> carrier L"
 proof (induct set: finite)
   case empty then show ?case by simp
 next
@@ -495,7 +495,7 @@ proof (unfold inf_def)
 qed
 
 lemma (in weak_lower_semilattice) finite_inf_greatest:
-  "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> greatest L (\<Sqinter>A) (Lower L A)"
+  "[| finite A; A \<subseteq> carrier L; A \<noteq> {} |] ==> greatest L (\<Sqinter>A) (Lower L A)"
 proof (induct set: finite)
   case empty then show ?case by simp
 next
@@ -528,7 +528,7 @@ next
 qed
 
 lemma (in weak_lower_semilattice) finite_inf_closed [simp]:
-  "[| finite A; A \<subseteq> carrier L; A ~= {} |] ==> \<Sqinter>A \<in> carrier L"
+  "[| finite A; A \<subseteq> carrier L; A \<noteq> {} |] ==> \<Sqinter>A \<in> carrier L"
 proof (induct set: finite)
   case empty then show ?case by simp
 next
@@ -611,7 +611,7 @@ sublocale weak_total_order \<subseteq> weak?: weak_lattice
 proof
   fix x y
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
-  show "EX s. least L s (Upper L {x, y})"
+  show "\<exists>s. least L s (Upper L {x, y})"
   proof -
     note total L
     moreover
@@ -631,7 +631,7 @@ proof
 next
   fix x y
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
-  show "EX i. greatest L i (Lower L {x, y})"
+  show "\<exists>i. greatest L i (Lower L {x, y})"
   proof -
     note total L
     moreover
@@ -687,14 +687,14 @@ subsection \<open>Lattices where \<open>eq\<close> is the Equality\<close>
 
 locale upper_semilattice = partial_order +
   assumes sup_of_two_exists:
-    "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
+    "[| x \<in> carrier L; y \<in> carrier L |] ==> \<exists>s. least L s (Upper L {x, y})"
 
 sublocale upper_semilattice \<subseteq> weak?: weak_upper_semilattice
   by unfold_locales (rule sup_of_two_exists)
 
 locale lower_semilattice = partial_order +
   assumes inf_of_two_exists:
-    "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
+    "[| x \<in> carrier L; y \<in> carrier L |] ==> \<exists>s. greatest L s (Lower L {x, y})"
 
 sublocale lower_semilattice \<subseteq> weak?: weak_lower_semilattice
   by unfold_locales (rule inf_of_two_exists)

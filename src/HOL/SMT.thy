@@ -371,7 +371,7 @@ lemma [z3_rule]:
   by auto
 
 lemma [z3_rule]:
-  "((P = Q) \<longrightarrow> R) = (R | (Q = (\<not> P)))"
+  "((P = Q) \<longrightarrow> R) = (R \<or> (Q = (\<not> P)))"
   by auto
 
 lemma [z3_rule]:

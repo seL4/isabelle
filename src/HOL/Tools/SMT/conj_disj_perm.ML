@@ -20,8 +20,8 @@ fun eq_from_impls thm1 thm2 = thm2 INCR_COMP (thm1 INCR_COMP @{thm iffI})
 
 fun add_lit thm = Termtab.update (HOLogic.dest_Trueprop (Thm.prop_of thm), thm)
 
-val ndisj1_rule = @{lemma "~(P | Q) ==> ~P" by auto}
-val ndisj2_rule = @{lemma "~(P | Q) ==> ~Q" by auto}
+val ndisj1_rule = @{lemma "\<not>(P \<or> Q) \<Longrightarrow> \<not>P" by auto}
+val ndisj2_rule = @{lemma "\<not>(P \<or> Q) \<Longrightarrow> \<not>Q" by auto}
 
 fun explode_thm thm =
   (case HOLogic.dest_Trueprop (Thm.prop_of thm) of
@@ -33,7 +33,7 @@ fun explode_thm thm =
 and explode_conj_thm rule1 rule2 thm lits =
   explode_thm (thm RS rule1) (explode_thm (thm RS rule2) (add_lit thm lits))
 
-val not_false_rule = @{lemma "~False" by auto}
+val not_false_rule = @{lemma "\<not>False" by auto}
 fun explode thm = explode_thm thm (add_lit not_false_rule (add_lit @{thm TrueI} Termtab.empty))
 
 fun find_dual_lit lits (@{const HOL.Not} $ t, thm) = Termtab.lookup lits t |> Option.map (pair thm)
@@ -41,8 +41,8 @@ fun find_dual_lit lits (@{const HOL.Not} $ t, thm) = Termtab.lookup lits t |> Op
 
 fun find_dual_lits lits = Termtab.get_first (find_dual_lit lits) lits
 
-val not_not_rule = @{lemma "P ==> ~~P" by auto}
-val ndisj_rule = @{lemma "~P ==> ~Q ==> ~(P | Q)" by auto}
+val not_not_rule = @{lemma "P \<Longrightarrow> \<not>\<not>P" by auto}
+val ndisj_rule = @{lemma "\<not>P \<Longrightarrow> \<not>Q \<Longrightarrow> \<not>(P \<or> Q)" by auto}
 
 fun join lits t =
   (case Termtab.lookup lits t of
@@ -63,8 +63,8 @@ fun prove_conj_disj_eq (clhs, crhs) =
     val thm2 = prove_conj_disj_imp crhs clhs
   in eq_from_impls thm1 thm2 end
 
-val not_not_false_rule = @{lemma "~~False ==> P" by auto}
-val not_true_rule = @{lemma "~True ==> P" by auto}
+val not_not_false_rule = @{lemma "\<not>\<not>False \<Longrightarrow> P" by auto}
+val not_true_rule = @{lemma "\<not>True \<Longrightarrow> P" by auto}
 
 fun prove_any_imp ct =
   (case Thm.term_of ct of
@@ -94,7 +94,7 @@ fun prove_contradiction_eq to_right (clhs, crhs) =
     val thm2 = if to_right then prove_any_imp crhs else prove_contradiction_imp crhs
   in eq_from_impls thm1 thm2 end
 
-val contrapos_rule = @{lemma "(~P) = (~Q) ==> P = Q" by auto}
+val contrapos_rule = @{lemma "(\<not>P) = (\<not>Q) \<Longrightarrow> P = Q" by auto}
 fun contrapos prove cp = contrapos_rule OF [prove (apply2 (Thm.apply @{cterm HOL.Not}) cp)]
 
 datatype kind = True | False | Conj | Disj | Other

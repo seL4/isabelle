@@ -22,7 +22,7 @@ subsection \<open>Type \<open>('key, 'value) alist\<close>\<close>
 typedef ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. (distinct \<circ> map fst) xs}"
   morphisms impl_of Alist
 proof
-  show "[] \<in> {xs. (distinct o map fst) xs}"
+  show "[] \<in> {xs. (distinct \<circ> map fst) xs}"
     by simp
 qed
 

@@ -15,7 +15,7 @@ ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
 
 subsection \<open>The datatype universe\<close>
 
-definition "Node = {p. EX f x k. p = (f :: nat => 'b + nat, x ::'a + nat) & f k = Inr 0}"
+definition "Node = {p. \<exists>f x k. p = (f :: nat => 'b + nat, x ::'a + nat) \<and> f k = Inr 0}"
 
 typedef ('a, 'b) node = "Node :: ((nat => 'b + nat) * ('a + nat)) set"
   morphisms Rep_Node Abs_Node
@@ -44,9 +44,9 @@ definition Scons :: "[('a, 'b) dtree, ('a, 'b) dtree] => ('a, 'b) dtree"
 
 (*Leaf nodes, with arbitrary or nat labels*)
 definition Leaf :: "'a => ('a, 'b) dtree"
-  where "Leaf == Atom o Inl"
+  where "Leaf == Atom \<circ> Inl"
 definition Numb :: "nat => ('a, 'b) dtree"
-  where "Numb == Atom o Inr"
+  where "Numb == Atom \<circ> Inr"
 
 (*Injections of the "disjoint sum"*)
 definition In0 :: "('a, 'b) dtree => ('a, 'b) dtree"
@@ -56,13 +56,13 @@ definition In1 :: "('a, 'b) dtree => ('a, 'b) dtree"
 
 (*Function spaces*)
 definition Lim :: "('b => ('a, 'b) dtree) => ('a, 'b) dtree"
-  where "Lim f == \<Union>{z. ? x. z = Push_Node (Inl x) ` (f x)}"
+  where "Lim f == \<Union>{z. \<exists>x. z = Push_Node (Inl x) ` (f x)}"
 
 (*the set of nodes with depth less than k*)
 definition ndepth :: "('a, 'b) node => nat"
   where "ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)"
 definition ntrunc :: "[nat, ('a, 'b) dtree] => ('a, 'b) dtree"
-  where "ntrunc k N == {n. n:N & ndepth(n)<k}"
+  where "ntrunc k N == {n. n:N \<and> ndepth(n)<k}"
 
 (*products and sums for the "universe"*)
 definition uprod :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set"
@@ -72,10 +72,10 @@ definition usum :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree se
 
 (*the corresponding eliminators*)
 definition Split :: "[[('a, 'b) dtree, ('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c"
-  where "Split c M == THE u. EX x y. M = Scons x y & u = c x y"
+  where "Split c M == THE u. \<exists>x y. M = Scons x y \<and> u = c x y"
 
 definition Case :: "[[('a, 'b) dtree]=>'c, [('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c"
-  where "Case c d M == THE u. (EX x . M = In0(x) & u = c(x)) | (EX y . M = In1(y) & u = d(y))"
+  where "Case c d M == THE u. (\<exists>x . M = In0(x) \<and> u = c(x)) \<or> (\<exists>y . M = In1(y) \<and> u = d(y))"
 
 
 (** equality for the "universe" **)
@@ -207,7 +207,7 @@ lemma Scons_inject:
     "[| Scons M N = Scons M' N';  [| M=M';  N=N' |] ==> P |] ==> P"
 by (iprover dest: Scons_inject1 Scons_inject2)
 
-lemma Scons_Scons_eq [iff]: "(Scons M N = Scons M' N') = (M=M' & N=N')"
+lemma Scons_Scons_eq [iff]: "(Scons M N = Scons M' N') = (M=M' \<and> N=N')"
 by (blast elim!: Scons_inject)
 
 (*** Distinctness involving Leaf and Numb ***)
@@ -241,7 +241,7 @@ lemma ndepth_K0: "ndepth (Abs_Node(%k. Inr 0, x)) = 0"
 by (simp add: ndepth_def  Node_K0_I [THEN Abs_Node_inverse] Least_equality)
 
 lemma ndepth_Push_Node_aux:
-     "case_nat (Inr (Suc i)) f k = Inr 0 --> Suc(LEAST x. f x = Inr 0) <= k"
+     "case_nat (Inr (Suc i)) f k = Inr 0 \<longrightarrow> Suc(LEAST x. f x = Inr 0) \<le> k"
 apply (induct_tac "k", auto)
 apply (erule Least_le)
 done
@@ -385,7 +385,7 @@ apply (rule_tac [!] ntrunc_subsetI [THEN [2] subset_trans], auto)
 done
 
 lemma ntrunc_o_equality: 
-    "[| !!k. (ntrunc(k) o h1) = (ntrunc(k) o h2) |] ==> h1=h2"
+    "[| !!k. (ntrunc(k) \<circ> h1) = (ntrunc(k) \<circ> h2) |] ==> h1=h2"
 apply (rule ntrunc_equality [THEN ext])
 apply (simp add: fun_eq_iff) 
 done

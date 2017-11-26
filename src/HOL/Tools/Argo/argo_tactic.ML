@@ -325,12 +325,12 @@ fun taut_and2_term i ts = [HOLogic.mk_not (mk_nary HOLogic.mk_conj ts), nth ts i
 fun taut_or1_term i ts = [mk_nary HOLogic.mk_disj ts, HOLogic.mk_not (nth ts i)]
 fun taut_or2_term ts = HOLogic.mk_not (mk_nary HOLogic.mk_disj ts) :: ts
 
-val iff_1_taut = @{lemma "P = Q | P | Q" by fast}
-val iff_2_taut = @{lemma "P = Q | (~P) | (~Q)" by fast}
-val iff_3_taut = @{lemma "~(P = Q) | (~P) | Q" by fast}
-val iff_4_taut = @{lemma "~(P = Q) | P | (~Q)" by fast}
-val ite_then_taut = @{lemma "~P | (if P then t else u) = t" by auto}
-val ite_else_taut = @{lemma "P | (if P then t else u) = u" by auto}
+val iff_1_taut = @{lemma "P = Q \<or> P \<or> Q" by fast}
+val iff_2_taut = @{lemma "P = Q \<or> (\<not>P) \<or> (\<not>Q)" by fast}
+val iff_3_taut = @{lemma "\<not>(P = Q) \<or> (\<not>P) \<or> Q" by fast}
+val iff_4_taut = @{lemma "\<not>(P = Q) \<or> P \<or> (\<not>Q)" by fast}
+val ite_then_taut = @{lemma "\<not>P \<or> (if P then t else u) = t" by auto}
+val ite_else_taut = @{lemma "P \<or> (if P then t else u) = u" by auto}
 
 fun taut_rule_of ctxt (Argo_Proof.Taut_And_1 n) = with_frees ctxt n taut_and1_term
   | taut_rule_of ctxt (Argo_Proof.Taut_And_2 (i, n)) = with_frees ctxt n (taut_and2_term i)
@@ -364,8 +364,8 @@ fun not_nary_conv rule i ct =
   if i > 1 then (Conv.rewr_conv rule then_conv Conv.arg_conv (not_nary_conv rule (i - 1))) ct
   else Conv.all_conv ct
 
-val flatten_and_thm = @{lemma "(P1 & P2) & P3 == P1 & P2 & P3" by simp}
-val flatten_or_thm = @{lemma "(P1 | P2) | P3 == P1 | P2 | P3" by simp}
+val flatten_and_thm = @{lemma "(P1 \<and> P2) \<and> P3 \<equiv> P1 \<and> P2 \<and> P3" by simp}
+val flatten_or_thm = @{lemma "(P1 \<or> P2) \<or> P3 \<equiv> P1 \<or> P2 \<or> P3" by simp}
 
 fun flatten_conv cv rule ct = (
   Conv.try_conv (Conv.arg_conv cv) then_conv
@@ -384,14 +384,14 @@ fun flat_disj_conv ct =
 fun explode rule1 rule2 thm =
   explode rule1 rule2 (thm RS rule1) @ explode rule1 rule2 (thm RS rule2) handle THM _ => [thm]
 val explode_conj = explode @{thm conjunct1} @{thm conjunct2}
-val explode_ndis = explode @{lemma "~(P | Q) ==> ~P" by auto} @{lemma "~(P | Q) ==> ~Q" by auto}
+val explode_ndis = explode @{lemma "\<not>(P \<or> Q) \<Longrightarrow> \<not>P" by auto} @{lemma "\<not>(P \<or> Q) \<Longrightarrow> \<not>Q" by auto}
 
 fun pick_false i thms = nth thms i
 
 fun pick_dual rule (i1, i2) thms =
   rule OF [nth thms i1, nth thms i2] handle THM _ => rule OF [nth thms i2, nth thms i1]
-val pick_dual_conj = pick_dual @{lemma "~P ==> P ==> False" by auto}
-val pick_dual_ndis = pick_dual @{lemma "~P ==> P ==> ~True" by auto}
+val pick_dual_conj = pick_dual @{lemma "\<not>P \<Longrightarrow> P \<Longrightarrow> False" by auto}
+val pick_dual_ndis = pick_dual @{lemma "\<not>P \<Longrightarrow> P \<Longrightarrow> \<not>True" by auto}
 
 fun join thm0 rule is thms =
   let
@@ -399,13 +399,13 @@ fun join thm0 rule is thms =
     val thms' = fold (fn i => cons (if 0 <= i andalso i < l then nth thms i else thm0)) is []
   in fold (fn thm => fn thm' => discharge2 thm thm' rule) (tl thms') (hd thms') end
 
-val join_conj = join @{lemma "True" by auto} @{lemma "P ==> Q ==> P & Q" by auto}
-val join_ndis = join @{lemma "~False" by auto} @{lemma "~P ==> ~Q ==> ~(P | Q)" by auto}
+val join_conj = join @{lemma "True" by auto} @{lemma "P \<Longrightarrow> Q \<Longrightarrow> P \<and> Q" by auto}
+val join_ndis = join @{lemma "\<not>False" by auto} @{lemma "\<not>P \<Longrightarrow> \<not>Q \<Longrightarrow> \<not>(P \<or> Q)" by auto}
 
-val false_thm = @{lemma "False ==> P" by auto}
-val ntrue_thm = @{lemma "~True ==> P" by auto}
-val iff_conj_thm = @{lemma "(P ==> Q) ==> (Q ==> P) ==> P = Q" by auto}
-val iff_ndis_thm = @{lemma "(~P ==> ~Q) ==> (~Q ==> ~P) ==> P = Q" by auto}
+val false_thm = @{lemma "False \<Longrightarrow> P" by auto}
+val ntrue_thm = @{lemma "\<not>True \<Longrightarrow> P" by auto}
+val iff_conj_thm = @{lemma "(P \<Longrightarrow> Q) \<Longrightarrow> (Q \<Longrightarrow> P) \<Longrightarrow> P = Q" by auto}
+val iff_ndis_thm = @{lemma "(\<not>P \<Longrightarrow> \<not>Q) \<Longrightarrow> (\<not>Q \<Longrightarrow> \<not>P) \<Longrightarrow> P = Q" by auto}
 
 fun iff_intro rule lf rf ct =
   let
@@ -421,21 +421,21 @@ fun sort_nary w f g (n, iss) = w (f (map hd iss)) (under_assumption (f (swap_ind
 val sort_conj = sort_nary with_conj join_conj explode_conj
 val sort_ndis = sort_nary with_ndis join_ndis explode_ndis 
 
-val not_true_thm = mk_rewr @{lemma "(~True) = False" by auto}
-val not_false_thm = mk_rewr @{lemma "(~False) = True" by auto}
-val not_not_thm = mk_rewr @{lemma "(~~P) = P" by auto}
-val not_and_thm = mk_rewr @{lemma "(~(P & Q)) = (~P | ~Q)" by auto}
-val not_or_thm = mk_rewr @{lemma "(~(P | Q)) = (~P & ~Q)" by auto}
+val not_true_thm = mk_rewr @{lemma "(\<not>True) = False" by auto}
+val not_false_thm = mk_rewr @{lemma "(\<not>False) = True" by auto}
+val not_not_thm = mk_rewr @{lemma "(\<not>\<not>P) = P" by auto}
+val not_and_thm = mk_rewr @{lemma "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" by auto}
+val not_or_thm = mk_rewr @{lemma "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)" by auto}
 val not_iff_thms = map mk_rewr
-  @{lemma "(~((~P) = Q)) = (P = Q)" "(~(P = (~Q))) = (P = Q)" "(~(P = Q)) = ((~P) = Q)" by auto}
+  @{lemma "(\<not>((\<not>P) = Q)) = (P = Q)" "(\<not>(P = (\<not>Q))) = (P = Q)" "(\<not>(P = Q)) = ((\<not>P) = Q)" by auto}
 val iff_true_thms = map mk_rewr @{lemma "(True = P) = P" "(P = True) = P" by auto}
-val iff_false_thms = map mk_rewr @{lemma "(False = P) = (~P)" "(P = False) = (~P)" by auto}
-val iff_not_not_thm = mk_rewr @{lemma "((~P) = (~Q)) = (P = Q)" by auto}
+val iff_false_thms = map mk_rewr @{lemma "(False = P) = (\<not>P)" "(P = False) = (\<not>P)" by auto}
+val iff_not_not_thm = mk_rewr @{lemma "((\<not>P) = (\<not>Q)) = (P = Q)" by auto}
 val iff_refl_thm = mk_rewr @{lemma "(P = P) = True" by auto}
 val iff_symm_thm = mk_rewr @{lemma "(P = Q) = (Q = P)" by auto}
-val iff_dual_thms = map mk_rewr @{lemma "(P = (~P)) = False" "((~P) = P) = False" by auto}
-val imp_thm = mk_rewr @{lemma "(P --> Q) = (~P | Q)" by auto}
-val ite_prop_thm = mk_rewr @{lemma "(If P Q R) = ((~P | Q) & (P | R) & (Q | R))" by auto}
+val iff_dual_thms = map mk_rewr @{lemma "(P = (\<not>P)) = False" "((\<not>P) = P) = False" by auto}
+val imp_thm = mk_rewr @{lemma "(P \<longrightarrow> Q) = (\<not>P \<or> Q)" by auto}
+val ite_prop_thm = mk_rewr @{lemma "(If P Q R) = ((\<not>P \<or> Q) \<and> (P \<or> R) \<and> (Q \<or> R))" by auto}
 val ite_true_thm = mk_rewr @{lemma "(If True t u) = t" by auto}
 val ite_false_thm = mk_rewr @{lemma "(If False t u) = u" by auto}
 val ite_eq_thm = mk_rewr @{lemma "(If P t t) = t" by auto}
@@ -494,8 +494,8 @@ fun replay_rewrite ctxt c thm = Conv.fconv_rule (HOLogic.Trueprop_conv (replay_c
 
 (* proof replay for clauses *)
 
-val prep_clause_rule = @{lemma "P ==> ~P ==> False" by fast}
-val extract_lit_rule = @{lemma "(~(P | Q) ==> False) ==> ~P ==> ~Q ==> False" by fast}
+val prep_clause_rule = @{lemma "P \<Longrightarrow> \<not>P \<Longrightarrow> False" by fast}
+val extract_lit_rule = @{lemma "(\<not>(P \<or> Q) \<Longrightarrow> False) \<Longrightarrow> \<not>P \<Longrightarrow> \<not>Q \<Longrightarrow> False" by fast}
 
 fun add_lit i thm lits =
   let val ct = Thm.cprem_of thm 1
@@ -518,7 +518,7 @@ fun replay_clause is thm = replay_with_lits is thm []
 
 (* proof replay for unit resolution *)
 
-val unit_rule = @{lemma "(P ==> False) ==> (~P ==> False) ==> False" by fast}
+val unit_rule = @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> (\<not>P \<Longrightarrow> False) \<Longrightarrow> False" by fast}
 val unit_rule_var = Thm.dest_arg (Thm.dest_arg1 (Thm.cprem_of unit_rule 1))
 val bogus_ct = @{cterm HOL.True}
 
@@ -538,7 +538,7 @@ fun replay_unit_res lit (pthm, plits) (nthm, nlits) =
 
 (* proof replay for hypothesis *)
 
-val dneg_rule = @{lemma "~~P ==> P" by auto}
+val dneg_rule = @{lemma "\<not>\<not>P \<Longrightarrow> P" by auto}
 
 fun replay_hyp i ct =
   if i < 0 then (Thm.assume ct, [(~i, ct)])
@@ -562,7 +562,7 @@ fun replay_refl ct = Thm.instantiate (Thm.match (refl_rule_var, ct)) refl_rule
 
 (* proof replay for symmetry *)
 
-val symm_rules = @{lemma "a = b ==> b = a" "~(a = b) ==> ~(b = a)" by simp_all}
+val symm_rules = @{lemma "a = b ==> b = a" "\<not>(a = b) \<Longrightarrow> \<not>(b = a)" by simp_all}
 
 fun replay_symm thm = hd (discharges thm symm_rules)
 
@@ -570,9 +570,9 @@ fun replay_symm thm = hd (discharges thm symm_rules)
 (* proof replay for transitivity *)
 
 val trans_rules = @{lemma
-  "~(a = b) ==> b = c ==> ~(a = c)"
-  "a = b ==> ~(b = c) ==> ~(a = c)"
-  "a = b ==> b = c ==> a = c"
+  "\<not>(a = b) \<Longrightarrow> b = c \<Longrightarrow> \<not>(a = c)"
+  "a = b \<Longrightarrow> \<not>(b = c) \<Longrightarrow> \<not>(a = c)"
+  "a = b \<Longrightarrow> b = c ==> a = c"
   by simp_all}
 
 fun replay_trans thm1 thm2 = hd (discharges thm2 (discharges thm1 trans_rules))
@@ -585,8 +585,8 @@ fun replay_cong thm1 thm2 = discharge thm2 (discharge thm1 @{thm cong})
 
 (* proof replay for substitution *)
 
-val subst_rule1 = @{lemma "~(p a) ==> p = q ==> a = b ==> ~(q b)" by simp}
-val subst_rule2 = @{lemma "p a ==> p = q ==> a = b ==> q b" by simp}
+val subst_rule1 = @{lemma "\<not>(p a) \<Longrightarrow> p = q \<Longrightarrow> a = b \<Longrightarrow> \<not>(q b)" by simp}
+val subst_rule2 = @{lemma "p a \<Longrightarrow> p = q \<Longrightarrow> a = b \<Longrightarrow> q b" by simp}
 
 fun replay_subst thm1 thm2 thm3 =
   subst_rule1 OF [thm1, thm2, thm3] handle THM _ => subst_rule2 OF [thm1, thm2, thm3]
@@ -596,8 +596,8 @@ fun replay_subst thm1 thm2 thm3 =
 
 structure Thm_Cache = Table(type key = Argo_Proof.proof_id val ord = Argo_Proof.proof_id_ord)
 
-val unclausify_rule1 = @{lemma "(~P ==> False) ==> P" by auto}
-val unclausify_rule2 = @{lemma "(P ==> False) ==> ~P" by auto}
+val unclausify_rule1 = @{lemma "(\<not>P \<Longrightarrow> False) \<Longrightarrow> P" by auto}
+val unclausify_rule2 = @{lemma "(P \<Longrightarrow> False) \<Longrightarrow> \<not>P" by auto}
 
 fun unclausify (thm, lits) ls =
   (case (Thm.prop_of thm, lits) of

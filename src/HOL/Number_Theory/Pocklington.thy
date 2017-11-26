@@ -212,7 +212,7 @@ proof-
   from lucas_coprime_lemma[OF n01(3) an1] cong_imp_coprime_nat an1
   have an: "coprime a n" "coprime (a ^ (n - 1)) n"
     using \<open>n \<ge> 2\<close> by simp_all
-  have False if H0: "\<exists>m. 0 < m \<and> m < n - 1 \<and> [a ^ m = 1] (mod n)" (is "EX m. ?P m")
+  have False if H0: "\<exists>m. 0 < m \<and> m < n - 1 \<and> [a ^ m = 1] (mod n)" (is "\<exists>m. ?P m")
   proof -
     from H0[unfolded nat_exists_least_iff[of ?P]] obtain m where
       m: "0 < m" "m < n - 1" "[a ^ m = 1] (mod n)" "\<forall>k <m. \<not>?P k"

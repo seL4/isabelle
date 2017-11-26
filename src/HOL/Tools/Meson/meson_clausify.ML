@@ -292,7 +292,7 @@ fun zap pos ct =
 fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths
 
 val cheat_choice =
-  @{prop "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)"}
+  @{prop "\<forall>x. \<exists>y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)"}
   |> Logic.varify_global
   |> Skip_Proof.make_thm @{theory}
 

@@ -36,7 +36,7 @@ lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
 
 lemma equiv_proj:
   assumes e: "equiv A R" and m: "z \<in> R"
-  shows "(proj R o fst) z = (proj R o snd) z"
+  shows "(proj R \<circ> fst) z = (proj R \<circ> snd) z"
 proof -
   from m have z: "(fst z, snd z) \<in> R" by auto
   with e have "\<And>x. (fst z, x) \<in> R \<Longrightarrow> (snd z, x) \<in> R" "\<And>x. (snd z, x) \<in> R \<Longrightarrow> (fst z, x) \<in> R"
@@ -139,10 +139,10 @@ lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a
 lemma fst_diag_id: "(fst \<circ> (\<lambda>x. (x, x))) z = id z" by simp
 lemma snd_diag_id: "(snd \<circ> (\<lambda>x. (x, x))) z = id z" by simp
 
-lemma fst_diag_fst: "fst o ((\<lambda>x. (x, x)) o fst) = fst" by auto
-lemma snd_diag_fst: "snd o ((\<lambda>x. (x, x)) o fst) = fst" by auto
-lemma fst_diag_snd: "fst o ((\<lambda>x. (x, x)) o snd) = snd" by auto
-lemma snd_diag_snd: "snd o ((\<lambda>x. (x, x)) o snd) = snd" by auto
+lemma fst_diag_fst: "fst \<circ> ((\<lambda>x. (x, x)) \<circ> fst) = fst" by auto
+lemma snd_diag_fst: "snd \<circ> ((\<lambda>x. (x, x)) \<circ> fst) = fst" by auto
+lemma fst_diag_snd: "fst \<circ> ((\<lambda>x. (x, x)) \<circ> snd) = snd" by auto
+lemma snd_diag_snd: "snd \<circ> ((\<lambda>x. (x, x)) \<circ> snd) = snd" by auto
 
 definition Succ where "Succ Kl kl = {k . kl @ [k] \<in> Kl}"
 definition Shift where "Shift Kl k = {kl. k # kl \<in> Kl}"

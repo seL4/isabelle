@@ -92,7 +92,7 @@ proof -
       unfolding bs[symmetric] distinct_card[OF distb] ..
     have ca: "CARD('a) = length as"
       unfolding as[symmetric] distinct_card[OF dista] ..
-    let ?xs = "map (\<lambda>ys. the o map_of (zip as ys)) (List.n_lists (length as) bs)"
+    let ?xs = "map (\<lambda>ys. the \<circ> map_of (zip as ys)) (List.n_lists (length as) bs)"
     have "UNIV = set ?xs"
     proof(rule UNIV_eq_I)
       fix f :: "'a \<Rightarrow> 'b"

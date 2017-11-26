@@ -340,7 +340,7 @@ qed
 
 lemma admissible_image:
   assumes pfun: "partial_function_definitions le lub"
-  assumes adm: "ccpo.admissible lub le (P o g)"
+  assumes adm: "ccpo.admissible lub le (P \<circ> g)"
   assumes inj: "\<And>x y. f x = f y \<Longrightarrow> x = y"
   assumes inv: "\<And>x. f (g x) = x"
   shows "ccpo.admissible (img_lub f g lub) (img_ord f le) P"
@@ -350,10 +350,10 @@ proof (rule ccpo.admissibleI)
     by (auto simp: img_ord_def intro: chainI dest: chainD)
   assume "A \<noteq> {}"
   assume P_A: "\<forall>x\<in>A. P x"
-  have "(P o g) (lub (f ` A))" using adm ch'
+  have "(P \<circ> g) (lub (f ` A))" using adm ch'
   proof (rule ccpo.admissibleD)
     fix x assume "x \<in> f ` A"
-    with P_A show "(P o g) x" by (auto simp: inj[OF inv])
+    with P_A show "(P \<circ> g) x" by (auto simp: inj[OF inv])
   qed(simp add: \<open>A \<noteq> {}\<close>)
   thus "P (img_lub f g lub A)" unfolding img_lub_def by simp
 qed

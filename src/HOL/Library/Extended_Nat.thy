@@ -602,9 +602,9 @@ lemma less_infinityE:
 by (induct n) auto
 
 lemma enat_less_induct:
-  assumes prem: "!!n. \<forall>m::enat. m < n --> P m ==> P n" shows "P n"
+  assumes prem: "\<And>n. \<forall>m::enat. m < n \<longrightarrow> P m \<Longrightarrow> P n" shows "P n"
 proof -
-  have P_enat: "!!k. P (enat k)"
+  have P_enat: "\<And>k. P (enat k)"
     apply (rule nat_less_induct)
     apply (rule prem, clarify)
     apply (erule less_enatE, simp)

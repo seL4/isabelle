@@ -83,7 +83,7 @@ local
   fun rewrite_conv _ [] = Conv.all_conv
     | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
 
-  val rewrite_true_rule = @{lemma "True == ~ False" by simp}
+  val rewrite_true_rule = @{lemma "True \<equiv> \<not> False" by simp}
   val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app, rewrite_true_rule]
 
   fun rewrite _ [] = I
@@ -142,8 +142,8 @@ end
 (* |- (EX x. P x) = P c     |- ~ (ALL x. P x) = ~ P c *)
 local
   val sk_rules = @{lemma
-    "c = (SOME x. P x) ==> (EX x. P x) = P c"
-    "c = (SOME x. ~ P x) ==> (~ (ALL x. P x)) = (~ P c)"
+    "c = (SOME x. P x) \<Longrightarrow> (\<exists>x. P x) = P c"
+    "c = (SOME x. \<not> P x) \<Longrightarrow> (\<not> (\<forall>x. P x)) = (\<not> P c)"
     by (metis someI_ex)+}
 in
 
@@ -155,12 +155,12 @@ fun discharge_sk_tac ctxt i st =
 
 end
 
-val true_thm = @{lemma "~False" by simp}
+val true_thm = @{lemma "\<not>False" by simp}
 fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl}, @{thm reflexive}, true_thm]
 
 val intro_def_rules = @{lemma
-  "(~ P | P) & (P | ~ P)"
-  "(P | ~ P) & (~ P | P)"
+  "(\<not> P \<or> P) \<and> (P \<or> \<not> P)"
+  "(P \<or> \<not> P) \<and> (\<not> P \<or> P)"
   by fast+}
 
 fun discharge_assms_tac ctxt rules =

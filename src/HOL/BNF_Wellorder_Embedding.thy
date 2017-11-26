@@ -128,7 +128,7 @@ qed
 lemma comp_embed:
 assumes WELL: "Well_order r" and
         EMB: "embed r r' f" and EMB': "embed r' r'' f'"
-shows "embed r r'' (f' o f)"
+shows "embed r r'' (f' \<circ> f)"
 proof(unfold embed_def, auto)
   fix a assume *: "a \<in> Field r"
   hence "bij_betw f (under r a) (under r' (f a))"
@@ -147,7 +147,7 @@ qed
 lemma comp_iso:
 assumes WELL: "Well_order r" and
         EMB: "iso r r' f" and EMB': "iso r' r'' f'"
-shows "iso r r'' (f' o f)"
+shows "iso r r'' (f' \<circ> f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed bij_betw_trans)
 
@@ -672,25 +672,25 @@ proof-
   have Well': "wo_rel r'" using WELL' unfolding wo_rel_def .
   (* Main proof *)
   obtain H where H_def: "H =
-  (\<lambda>h a. if False \<notin> (snd o h)`(underS r a) \<and> (fst o h)`(underS r a) \<noteq> Field r'
-                then (wo_rel.suc r' ((fst o h)`(underS r a)), True)
+  (\<lambda>h a. if False \<notin> (snd \<circ> h)`(underS r a) \<and> (fst \<circ> h)`(underS r a) \<noteq> Field r'
+                then (wo_rel.suc r' ((fst \<circ> h)`(underS r a)), True)
                 else (undefined, False))" by blast
   have Adm: "wo_rel.adm_wo r H"
   using Well
   proof(unfold wo_rel.adm_wo_def, clarify)
     fix h1::"'a \<Rightarrow> 'a' * bool" and h2::"'a \<Rightarrow> 'a' * bool" and x
     assume "\<forall>y\<in>underS r x. h1 y = h2 y"
-    hence "\<forall>y\<in>underS r x. (fst o h1) y = (fst o h2) y \<and>
-                          (snd o h1) y = (snd o h2) y" by auto
-    hence "(fst o h1)`(underS r x) = (fst o h2)`(underS r x) \<and>
-           (snd o h1)`(underS r x) = (snd o h2)`(underS r x)"
+    hence "\<forall>y\<in>underS r x. (fst \<circ> h1) y = (fst \<circ> h2) y \<and>
+                          (snd \<circ> h1) y = (snd \<circ> h2) y" by auto
+    hence "(fst \<circ> h1)`(underS r x) = (fst \<circ> h2)`(underS r x) \<and>
+           (snd \<circ> h1)`(underS r x) = (snd \<circ> h2)`(underS r x)"
       by (auto simp add: image_def)
     thus "H h1 x = H h2 x" by (simp add: H_def del: not_False_in_image_Ball)
   qed
   (* More constant definitions:  *)
   obtain h::"'a \<Rightarrow> 'a' * bool" and f::"'a \<Rightarrow> 'a'" and g::"'a \<Rightarrow> bool"
   where h_def: "h = wo_rel.worec r H" and
-        f_def: "f = fst o h" and g_def: "g = snd o h" by blast
+        f_def: "f = fst \<circ> h" and g_def: "g = snd \<circ> h" by blast
   obtain test where test_def:
   "test = (\<lambda> a. False \<notin> (g`(underS r a)) \<and> f`(underS r a) \<noteq> Field r')" by blast
   (*  *)
@@ -813,19 +813,19 @@ assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMB: "embed r r' f" and EMB': "embed r' r f'"
 shows "(\<forall>a \<in> Field r. f'(f a) = a) \<and> (\<forall>a' \<in> Field r'. f(f' a') = a')"
 proof-
-  have "embed r r (f' o f)" using assms
+  have "embed r r (f' \<circ> f)" using assms
   by(auto simp add: comp_embed)
   moreover have "embed r r id" using assms
   by (auto simp add: id_embed)
   ultimately have "\<forall>a \<in> Field r. f'(f a) = a"
-  using assms embed_unique[of r r "f' o f" id] id_def by auto
+  using assms embed_unique[of r r "f' \<circ> f" id] id_def by auto
   moreover
-  {have "embed r' r' (f o f')" using assms
+  {have "embed r' r' (f \<circ> f')" using assms
    by(auto simp add: comp_embed)
    moreover have "embed r' r' id" using assms
    by (auto simp add: id_embed)
    ultimately have "\<forall>a' \<in> Field r'. f(f' a') = a'"
-   using assms embed_unique[of r' r' "f o f'" id] id_def by auto
+   using assms embed_unique[of r' r' "f \<circ> f'" id] id_def by auto
   }
   ultimately show ?thesis by blast
 qed
@@ -836,11 +836,11 @@ assumes WELL: "Well_order r" and WELL': "Well_order r'" and
 shows "bij_betw f (Field r) (Field r')"
 proof-
   let ?A = "Field r"  let ?A' = "Field r'"
-  have "embed r r (g o f) \<and> embed r' r' (f o g)"
+  have "embed r r (g \<circ> f) \<and> embed r' r' (f \<circ> g)"
   using assms by (auto simp add: comp_embed)
   hence 1: "(\<forall>a \<in> ?A. g(f a) = a) \<and> (\<forall>a' \<in> ?A'. f(g a') = a')"
-  using WELL id_embed[of r] embed_unique[of r r "g o f" id]
-        WELL' id_embed[of r'] embed_unique[of r' r' "f o g" id]
+  using WELL id_embed[of r] embed_unique[of r r "g \<circ> f" id]
+        WELL' id_embed[of r'] embed_unique[of r' r' "f \<circ> g" id]
         id_def by auto
   have 2: "(\<forall>a \<in> ?A. f a \<in> ?A') \<and> (\<forall>a' \<in> ?A'. g a' \<in> ?A)"
   using assms embed_Field[of r r' f] embed_Field[of r' r g] by blast
@@ -883,9 +883,9 @@ qed
 lemma embedS_comp_embed:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embedS r r' f" and EMB': "embed r' r'' f'"
-shows "embedS r r'' (f' o f)"
+shows "embedS r r'' (f' \<circ> f)"
 proof-
-  let ?g = "(f' o f)"  let ?h = "inv_into (Field r) ?g"
+  let ?g = "(f' \<circ> f)"  let ?h = "inv_into (Field r) ?g"
   have 1: "embed r r' f \<and> \<not> (bij_betw f (Field r) (Field r'))"
   using EMB by (auto simp add: embedS_def)
   hence 2: "embed r r'' ?g"
@@ -894,7 +894,7 @@ proof-
   {assume "bij_betw ?g (Field r) (Field r'')"
    hence "embed r'' r ?h" using 2 WELL
    by (auto simp add: inv_into_Field_embed_bij_betw)
-   hence "embed r' r (?h o f')" using WELL' EMB'
+   hence "embed r' r (?h \<circ> f')" using WELL' EMB'
    by (auto simp add: comp_embed)
    hence "bij_betw f (Field r) (Field r')" using WELL WELL' 1
    by (auto simp add: embed_bothWays_Field_bij_betw)
@@ -906,9 +906,9 @@ qed
 lemma embed_comp_embedS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embed r r' f" and EMB': "embedS r' r'' f'"
-shows "embedS r r'' (f' o f)"
+shows "embedS r r'' (f' \<circ> f)"
 proof-
-  let ?g = "(f' o f)"  let ?h = "inv_into (Field r) ?g"
+  let ?g = "(f' \<circ> f)"  let ?h = "inv_into (Field r) ?g"
   have 1: "embed r' r'' f' \<and> \<not> (bij_betw f' (Field r') (Field r''))"
   using EMB' by (auto simp add: embedS_def)
   hence 2: "embed r r'' ?g"
@@ -917,7 +917,7 @@ proof-
   {assume "bij_betw ?g (Field r) (Field r'')"
    hence "embed r'' r ?h" using 2 WELL
    by (auto simp add: inv_into_Field_embed_bij_betw)
-   hence "embed r'' r' (f o ?h)" using WELL'' EMB
+   hence "embed r'' r' (f \<circ> ?h)" using WELL'' EMB
    by (auto simp add: comp_embed)
    hence "bij_betw f' (Field r') (Field r'')" using WELL' WELL'' 1
    by (auto simp add: embed_bothWays_Field_bij_betw)
@@ -929,28 +929,28 @@ qed
 lemma embed_comp_iso:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embed r r' f" and EMB': "iso r' r'' f'"
-shows "embed r r'' (f' o f)"
+shows "embed r r'' (f' \<circ> f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed)
 
 lemma iso_comp_embed:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "iso r r' f" and EMB': "embed r' r'' f'"
-shows "embed r r'' (f' o f)"
+shows "embed r r'' (f' \<circ> f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed)
 
 lemma embedS_comp_iso:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embedS r r' f" and EMB': "iso r' r'' f'"
-shows "embedS r r'' (f' o f)"
+shows "embedS r r'' (f' \<circ> f)"
 using assms unfolding iso_def
 by (auto simp add: embedS_comp_embed)
 
 lemma iso_comp_embedS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "iso r r' f" and EMB': "embedS r' r'' f'"
-shows "embedS r r'' (f' o f)"
+shows "embedS r r'' (f' \<circ> f)"
 using assms unfolding iso_def  using embed_comp_embedS
 by (auto simp add: embed_comp_embedS)
 

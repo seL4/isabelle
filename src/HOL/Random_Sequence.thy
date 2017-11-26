@@ -42,7 +42,7 @@ where
 
 definition map :: "('a => 'b) => 'a random_dseq => 'b random_dseq"
 where
-  "map f P = bind P (single o f)"
+  "map f P = bind P (single \<circ> f)"
 
 fun Random :: "(natural \<Rightarrow> Random.seed \<Rightarrow> (('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)) \<Rightarrow> 'a random_dseq"
 where
@@ -82,7 +82,7 @@ where
 
 definition pos_map :: "('a => 'b) => 'a pos_random_dseq => 'b pos_random_dseq"
 where
-  "pos_map f P = pos_bind P (pos_single o f)"
+  "pos_map f P = pos_bind P (pos_single \<circ> f)"
 
 fun iter :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
   \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
@@ -132,7 +132,7 @@ where
 
 definition neg_map :: "('a => 'b) => 'a neg_random_dseq => 'b neg_random_dseq"
 where
-  "neg_map f P = neg_bind P (neg_single o f)"
+  "neg_map f P = neg_bind P (neg_single \<circ> f)"
 
 definition pos_not_random_dseq :: "unit neg_random_dseq => unit pos_random_dseq"
 where

@@ -154,7 +154,7 @@ lemma hypnat_of_nat_one [simp]: "hypnat_of_nat (Suc 0) = 1"
 lemma hypnat_of_nat_Suc [simp]: "hypnat_of_nat (Suc n) = hypnat_of_nat n + 1"
   by transfer simp
 
-lemma of_nat_eq_add [rule_format]: "\<forall>d::hypnat. of_nat m = of_nat n + d --> d \<in> range of_nat"
+lemma of_nat_eq_add [rule_format]: "\<forall>d::hypnat. of_nat m = of_nat n + d \<longrightarrow> d \<in> range of_nat"
   apply (induct n)
    apply (auto simp add: add.assoc)
   apply (case_tac x)

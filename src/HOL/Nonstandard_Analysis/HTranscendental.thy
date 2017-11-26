@@ -370,7 +370,7 @@ apply (simp add: starfun_exp_ln_iff [THEN iffD2] HFinite_HInfinite_iff)
 done
 
 lemma starfun_exp_HInfinite_Infinitesimal_disj:
- "x \<in> HInfinite ==> ( *f* exp) x \<in> HInfinite | ( *f* exp) (x::hypreal) \<in> Infinitesimal"
+ "x \<in> HInfinite \<Longrightarrow> ( *f* exp) x \<in> HInfinite \<or> ( *f* exp) (x::hypreal) \<in> Infinitesimal"
 apply (insert linorder_linear [of x 0]) 
 apply (auto intro: starfun_exp_HInfinite starfun_exp_Infinitesimal)
 done

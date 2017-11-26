@@ -180,7 +180,7 @@ lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b
 lemma case_sum_o_inj: "case_sum f g \<circ> Inl = f" "case_sum f g \<circ> Inr = g"
   by auto
 
-lemma map_sum_o_inj: "map_sum f g o Inl = Inl o f" "map_sum f g o Inr = Inr o g"
+lemma map_sum_o_inj: "map_sum f g \<circ> Inl = Inl \<circ> f" "map_sum f g \<circ> Inr = Inr \<circ> g"
   by auto
 
 lemma card_order_csum_cone_cexp_def:
@@ -262,11 +262,11 @@ lemma eq_onp_mono0: "\<forall>x\<in>A. P x \<longrightarrow> Q x \<Longrightarro
 lemma eq_onp_True: "eq_onp (\<lambda>_. True) = (op =)"
   unfolding eq_onp_def by simp
 
-lemma Ball_image_comp: "Ball (f ` A) g = Ball A (g o f)"
+lemma Ball_image_comp: "Ball (f ` A) g = Ball A (g \<circ> f)"
   by auto
 
 lemma rel_fun_Collect_case_prodD:
-  "rel_fun A B f g \<Longrightarrow> X \<subseteq> Collect (case_prod A) \<Longrightarrow> x \<in> X \<Longrightarrow> B ((f o fst) x) ((g o snd) x)"
+  "rel_fun A B f g \<Longrightarrow> X \<subseteq> Collect (case_prod A) \<Longrightarrow> x \<in> X \<Longrightarrow> B ((f \<circ> fst) x) ((g \<circ> snd) x)"
   unfolding rel_fun_def by auto
 
 lemma eq_onp_mono_iff: "eq_onp P \<le> eq_onp Q \<longleftrightarrow> P \<le> Q"

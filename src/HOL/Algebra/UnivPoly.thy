@@ -42,7 +42,7 @@ declare bound.intro [intro!]
 lemma bound_below:
   assumes bound: "bound z m f" and nonzero: "f n \<noteq> z" shows "n \<le> m"
 proof (rule classical)
-  assume "~ ?thesis"
+  assume "\<not> ?thesis"
   then have "m < n" by arith
   with bound have "f n = z" ..
   with nonzero show ?thesis by contradiction
@@ -54,7 +54,7 @@ record ('a, 'p) up_ring = "('a, 'p) module" +
 
 definition
   up :: "('a, 'm) ring_scheme => (nat => 'a) set"
-  where "up R = {f. f \<in> UNIV \<rightarrow> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
+  where "up R = {f. f \<in> UNIV \<rightarrow> carrier R \<and> (\<exists>n. bound \<zero>\<^bsub>R\<^esub> n f)}"
 
 definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
   where "UP R = \<lparr>
@@ -72,7 +72,7 @@ text \<open>
 \<close>
 
 lemma mem_upI [intro]:
-  "[| !!n. f n \<in> carrier R; EX n. bound (zero R) n f |] ==> f \<in> up R"
+  "[| \<And>n. f n \<in> carrier R; \<exists>n. bound (zero R) n f |] ==> f \<in> up R"
   by (simp add: up_def Pi_def)
 
 lemma mem_upD [dest]:
@@ -82,7 +82,7 @@ lemma mem_upD [dest]:
 context ring
 begin
 
-lemma bound_upD [dest]: "f \<in> up R ==> EX n. bound \<zero> n f" by (simp add: up_def)
+lemma bound_upD [dest]: "f \<in> up R \<Longrightarrow> \<exists>n. bound \<zero> n f" by (simp add: up_def)
 
 lemma up_one_closed: "(\<lambda>n. if n = 0 then \<one> else \<zero>) \<in> up R" using up_def by force
 
@@ -97,7 +97,7 @@ proof
     by auto
 next
   assume UP: "p \<in> up R" "q \<in> up R"
-  show "EX n. bound \<zero> n (\<lambda>i. p i \<oplus> q i)"
+  show "\<exists>n. bound \<zero> n (\<lambda>i. p i \<oplus> q i)"
   proof -
     from UP obtain n where boundn: "bound \<zero> n p" by fast
     from UP obtain m where boundm: "bound \<zero> m q" by fast
@@ -117,7 +117,7 @@ proof
   assume R: "p \<in> up R"
   then obtain n where "bound \<zero> n p" by auto
   then have "bound \<zero> n (\<lambda>i. \<ominus> p i)" by auto
-  then show "EX n. bound \<zero> n (\<lambda>i. \<ominus> p i)" by auto
+  then show "\<exists>n. bound \<zero> n (\<lambda>i. \<ominus> p i)" by auto
 qed auto
 
 lemma up_minus_closed:
@@ -135,7 +135,7 @@ proof
     by (simp add: mem_upD  funcsetI)
 next
   assume UP: "p \<in> up R" "q \<in> up R"
-  show "EX n. bound \<zero> n (\<lambda>n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n-i))"
+  show "\<exists>n. bound \<zero> n (\<lambda>n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n-i))"
   proof -
     from UP obtain n where boundn: "bound \<zero> n p" by fast
     from UP obtain m where boundm: "bound \<zero> m q" by fast
@@ -751,33 +751,33 @@ proof -
 qed
 
 lemma deg_belowI:
-  assumes non_zero: "n ~= 0 ==> coeff P p n ~= \<zero>"
+  assumes non_zero: "n \<noteq> 0 \<Longrightarrow> coeff P p n \<noteq> \<zero>"
     and R: "p \<in> carrier P"
-  shows "n <= deg R p"
+  shows "n \<le> deg R p"
 \<comment> \<open>Logically, this is a slightly stronger version of
    @{thm [source] deg_aboveD}\<close>
 proof (cases "n=0")
   case True then show ?thesis by simp
 next
-  case False then have "coeff P p n ~= \<zero>" by (rule non_zero)
-  then have "~ deg R p < n" by (fast dest: deg_aboveD intro: R)
+  case False then have "coeff P p n \<noteq> \<zero>" by (rule non_zero)
+  then have "\<not> deg R p < n" by (fast dest: deg_aboveD intro: R)
   then show ?thesis by arith
 qed
 
 lemma lcoeff_nonzero_deg:
-  assumes deg: "deg R p ~= 0" and R: "p \<in> carrier P"
-  shows "coeff P p (deg R p) ~= \<zero>"
+  assumes deg: "deg R p \<noteq> 0" and R: "p \<in> carrier P"
+  shows "coeff P p (deg R p) \<noteq> \<zero>"
 proof -
-  from R obtain m where "deg R p <= m" and m_coeff: "coeff P p m ~= \<zero>"
+  from R obtain m where "deg R p \<le> m" and m_coeff: "coeff P p m \<noteq> \<zero>"
   proof -
-    have minus: "!!(n::nat) m. n ~= 0 ==> (n - Suc 0 < m) = (n <= m)"
+    have minus: "\<And>(n::nat) m. n \<noteq> 0 \<Longrightarrow> (n - Suc 0 < m) = (n \<le> m)"
       by arith
     from deg have "deg R p - 1 < (LEAST n. bound \<zero> n (coeff P p))"
       by (unfold deg_def P_def) simp
-    then have "~ bound \<zero> (deg R p - 1) (coeff P p)" by (rule not_less_Least)
-    then have "EX m. deg R p - 1 < m & coeff P p m ~= \<zero>"
+    then have "\<not> bound \<zero> (deg R p - 1) (coeff P p)" by (rule not_less_Least)
+    then have "\<exists>m. deg R p - 1 < m \<and> coeff P p m \<noteq> \<zero>"
       by (unfold bound_def) fast
-    then have "EX m. deg R p <= m & coeff P p m ~= \<zero>" by (simp add: deg minus)
+    then have "\<exists>m. deg R p \<le> m \<and> coeff P p m \<noteq> \<zero>" by (simp add: deg minus)
     then show ?thesis by (auto intro: that)
   qed
   with deg_belowI R have "deg R p = m" by fastforce
@@ -785,24 +785,24 @@ proof -
 qed
 
 lemma lcoeff_nonzero_nonzero:
-  assumes deg: "deg R p = 0" and nonzero: "p ~= \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P"
-  shows "coeff P p 0 ~= \<zero>"
+  assumes deg: "deg R p = 0" and nonzero: "p \<noteq> \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P"
+  shows "coeff P p 0 \<noteq> \<zero>"
 proof -
-  have "EX m. coeff P p m ~= \<zero>"
+  have "\<exists>m. coeff P p m \<noteq> \<zero>"
   proof (rule classical)
-    assume "~ ?thesis"
+    assume "\<not> ?thesis"
     with R have "p = \<zero>\<^bsub>P\<^esub>" by (auto intro: up_eqI)
     with nonzero show ?thesis by contradiction
   qed
-  then obtain m where coeff: "coeff P p m ~= \<zero>" ..
-  from this and R have "m <= deg R p" by (rule deg_belowI)
+  then obtain m where coeff: "coeff P p m \<noteq> \<zero>" ..
+  from this and R have "m \<le> deg R p" by (rule deg_belowI)
   then have "m = 0" by (simp add: deg)
   with coeff show ?thesis by simp
 qed
 
 lemma lcoeff_nonzero:
-  assumes neq: "p ~= \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P"
-  shows "coeff P p (deg R p) ~= \<zero>"
+  assumes neq: "p \<noteq> \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P"
+  shows "coeff P p (deg R p) \<noteq> \<zero>"
 proof (cases "deg R p = 0")
   case True with neq R show ?thesis by (simp add: lcoeff_nonzero_nonzero)
 next
@@ -810,55 +810,55 @@ next
 qed
 
 lemma deg_eqI:
-  "[| !!m. n < m ==> coeff P p m = \<zero>;
-      !!n. n ~= 0 ==> coeff P p n ~= \<zero>; p \<in> carrier P |] ==> deg R p = n"
+  "[| \<And>m. n < m \<Longrightarrow> coeff P p m = \<zero>;
+      \<And>n. n \<noteq> 0 \<Longrightarrow> coeff P p n \<noteq> \<zero>; p \<in> carrier P |] ==> deg R p = n"
 by (fast intro: le_antisym deg_aboveI deg_belowI)
 
 text \<open>Degree and polynomial operations\<close>
 
 lemma deg_add [simp]:
   "p \<in> carrier P \<Longrightarrow> q \<in> carrier P \<Longrightarrow>
-  deg R (p \<oplus>\<^bsub>P\<^esub> q) <= max (deg R p) (deg R q)"
+  deg R (p \<oplus>\<^bsub>P\<^esub> q) \<le> max (deg R p) (deg R q)"
 by(rule deg_aboveI)(simp_all add: deg_aboveD)
 
 lemma deg_monom_le:
-  "a \<in> carrier R ==> deg R (monom P a n) <= n"
+  "a \<in> carrier R \<Longrightarrow> deg R (monom P a n) \<le> n"
   by (intro deg_aboveI) simp_all
 
 lemma deg_monom [simp]:
-  "[| a ~= \<zero>; a \<in> carrier R |] ==> deg R (monom P a n) = n"
+  "[| a \<noteq> \<zero>; a \<in> carrier R |] ==> deg R (monom P a n) = n"
   by (fastforce intro: le_antisym deg_aboveI deg_belowI)
 
 lemma deg_const [simp]:
   assumes R: "a \<in> carrier R" shows "deg R (monom P a 0) = 0"
 proof (rule le_antisym)
-  show "deg R (monom P a 0) <= 0" by (rule deg_aboveI) (simp_all add: R)
+  show "deg R (monom P a 0) \<le> 0" by (rule deg_aboveI) (simp_all add: R)
 next
-  show "0 <= deg R (monom P a 0)" by (rule deg_belowI) (simp_all add: R)
+  show "0 \<le> deg R (monom P a 0)" by (rule deg_belowI) (simp_all add: R)
 qed
 
 lemma deg_zero [simp]:
   "deg R \<zero>\<^bsub>P\<^esub> = 0"
 proof (rule le_antisym)
-  show "deg R \<zero>\<^bsub>P\<^esub> <= 0" by (rule deg_aboveI) simp_all
+  show "deg R \<zero>\<^bsub>P\<^esub> \<le> 0" by (rule deg_aboveI) simp_all
 next
-  show "0 <= deg R \<zero>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
+  show "0 \<le> deg R \<zero>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
 qed
 
 lemma deg_one [simp]:
   "deg R \<one>\<^bsub>P\<^esub> = 0"
 proof (rule le_antisym)
-  show "deg R \<one>\<^bsub>P\<^esub> <= 0" by (rule deg_aboveI) simp_all
+  show "deg R \<one>\<^bsub>P\<^esub> \<le> 0" by (rule deg_aboveI) simp_all
 next
-  show "0 <= deg R \<one>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
+  show "0 \<le> deg R \<one>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
 qed
 
 lemma deg_uminus [simp]:
   assumes R: "p \<in> carrier P" shows "deg R (\<ominus>\<^bsub>P\<^esub> p) = deg R p"
 proof (rule le_antisym)
-  show "deg R (\<ominus>\<^bsub>P\<^esub> p) <= deg R p" by (simp add: deg_aboveI deg_aboveD R)
+  show "deg R (\<ominus>\<^bsub>P\<^esub> p) \<le> deg R p" by (simp add: deg_aboveI deg_aboveD R)
 next
-  show "deg R p <= deg R (\<ominus>\<^bsub>P\<^esub> p)"
+  show "deg R p \<le> deg R (\<ominus>\<^bsub>P\<^esub> p)"
     by (simp add: deg_belowI lcoeff_nonzero_deg
       inj_on_eq_iff [OF R.a_inv_inj, of _ "\<zero>", simplified] R)
 qed
@@ -868,7 +868,7 @@ text\<open>The following lemma is later \emph{overwritten} by the most
 
 lemma deg_smult_ring [simp]:
   "[| a \<in> carrier R; p \<in> carrier P |] ==>
-  deg R (a \<odot>\<^bsub>P\<^esub> p) <= (if a = \<zero> then 0 else deg R p)"
+  deg R (a \<odot>\<^bsub>P\<^esub> p) \<le> (if a = \<zero> then 0 else deg R p)"
   by (cases "a = \<zero>") (simp add: deg_aboveI deg_aboveD)+
 
 end
@@ -880,10 +880,10 @@ lemma deg_smult [simp]:
   assumes R: "a \<in> carrier R" "p \<in> carrier P"
   shows "deg R (a \<odot>\<^bsub>P\<^esub> p) = (if a = \<zero> then 0 else deg R p)"
 proof (rule le_antisym)
-  show "deg R (a \<odot>\<^bsub>P\<^esub> p) <= (if a = \<zero> then 0 else deg R p)"
+  show "deg R (a \<odot>\<^bsub>P\<^esub> p) \<le> (if a = \<zero> then 0 else deg R p)"
     using R by (rule deg_smult_ring)
 next
-  show "(if a = \<zero> then 0 else deg R p) <= deg R (a \<odot>\<^bsub>P\<^esub> p)"
+  show "(if a = \<zero> then 0 else deg R p) \<le> deg R (a \<odot>\<^bsub>P\<^esub> p)"
   proof (cases "a = \<zero>")
   qed (simp, simp add: deg_belowI lcoeff_nonzero_deg integral_iff R)
 qed
@@ -895,7 +895,7 @@ begin
 
 lemma deg_mult_ring:
   assumes R: "p \<in> carrier P" "q \<in> carrier P"
-  shows "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q"
+  shows "deg R (p \<otimes>\<^bsub>P\<^esub> q) \<le> deg R p + deg R q"
 proof (rule deg_aboveI)
   fix m
   assume boundm: "deg R p + deg R q < m"
@@ -919,16 +919,16 @@ context UP_domain
 begin
 
 lemma deg_mult [simp]:
-  "[| p ~= \<zero>\<^bsub>P\<^esub>; q ~= \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==>
+  "[| p \<noteq> \<zero>\<^bsub>P\<^esub>; q \<noteq> \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==>
   deg R (p \<otimes>\<^bsub>P\<^esub> q) = deg R p + deg R q"
 proof (rule le_antisym)
   assume "p \<in> carrier P" " q \<in> carrier P"
-  then show "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q" by (rule deg_mult_ring)
+  then show "deg R (p \<otimes>\<^bsub>P\<^esub> q) \<le> deg R p + deg R q" by (rule deg_mult_ring)
 next
   let ?s = "(\<lambda>i. coeff P p i \<otimes> coeff P q (deg R p + deg R q - i))"
-  assume R: "p \<in> carrier P" "q \<in> carrier P" and nz: "p ~= \<zero>\<^bsub>P\<^esub>" "q ~= \<zero>\<^bsub>P\<^esub>"
+  assume R: "p \<in> carrier P" "q \<in> carrier P" and nz: "p \<noteq> \<zero>\<^bsub>P\<^esub>" "q \<noteq> \<zero>\<^bsub>P\<^esub>"
   have less_add_diff: "!!(k::nat) n m. k < n ==> m < n + m - k" by arith
-  show "deg R p + deg R q <= deg R (p \<otimes>\<^bsub>P\<^esub> q)"
+  show "deg R p + deg R q \<le> deg R (p \<otimes>\<^bsub>P\<^esub> q)"
   proof (rule deg_belowI, simp add: R)
     have "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i)
       = (\<Oplus>i \<in> {..< deg R p} \<union> {deg R p .. deg R p + deg R q}. ?s i)"
@@ -942,7 +942,7 @@ next
       by (simp cong: R.finsum_cong add: deg_aboveD R Pi_def)
     finally have "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i)
       = coeff P p (deg R p) \<otimes> coeff P q (deg R q)" .
-    with nz show "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i) ~= \<zero>"
+    with nz show "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i) \<noteq> \<zero>"
       by (simp add: integral_iff lcoeff_nonzero R)
   qed (simp add: R)
 qed
@@ -969,7 +969,7 @@ proof (rule up_eqI)
   from R have RR: "!!i. (if i = k then coeff P p i else \<zero>) \<in> carrier R"
     by simp
   show "coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..deg R p}. ?s i) k = coeff P p k"
-  proof (cases "k <= deg R p")
+  proof (cases "k \<le> deg R p")
     case True
     hence "coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..deg R p}. ?s i) k =
           coeff P (\<Oplus>\<^bsub>P\<^esub> i \<in> {..k} \<union> {k<..deg R p}. ?s i) k"
@@ -1017,9 +1017,9 @@ subsection \<open>Polynomials over Integral Domains\<close>
 
 lemma domainI:
   assumes cring: "cring R"
-    and one_not_zero: "one R ~= zero R"
-    and integral: "!!a b. [| mult R a b = zero R; a \<in> carrier R;
-      b \<in> carrier R |] ==> a = zero R | b = zero R"
+    and one_not_zero: "one R \<noteq> zero R"
+    and integral: "\<And>a b. [| mult R a b = zero R; a \<in> carrier R;
+      b \<in> carrier R |] ==> a = zero R \<or> b = zero R"
   shows "domain R"
   by (auto intro!: domain.intro domain_axioms.intro cring.axioms assms
     del: disjCI)
@@ -1028,7 +1028,7 @@ context UP_domain
 begin
 
 lemma UP_one_not_zero:
-  "\<one>\<^bsub>P\<^esub> ~= \<zero>\<^bsub>P\<^esub>"
+  "\<one>\<^bsub>P\<^esub> \<noteq> \<zero>\<^bsub>P\<^esub>"
 proof
   assume "\<one>\<^bsub>P\<^esub> = \<zero>\<^bsub>P\<^esub>"
   hence "coeff P \<one>\<^bsub>P\<^esub> 0 = (coeff P \<zero>\<^bsub>P\<^esub> 0)" by simp
@@ -1037,17 +1037,17 @@ proof
 qed
 
 lemma UP_integral:
-  "[| p \<otimes>\<^bsub>P\<^esub> q = \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==> p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>"
+  "[| p \<otimes>\<^bsub>P\<^esub> q = \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==> p = \<zero>\<^bsub>P\<^esub> \<or> q = \<zero>\<^bsub>P\<^esub>"
 proof -
   fix p q
   assume pq: "p \<otimes>\<^bsub>P\<^esub> q = \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P" "q \<in> carrier P"
-  show "p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>"
+  show "p = \<zero>\<^bsub>P\<^esub> \<or> q = \<zero>\<^bsub>P\<^esub>"
   proof (rule classical)
-    assume c: "~ (p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>)"
+    assume c: "\<not> (p = \<zero>\<^bsub>P\<^esub> \<or> q = \<zero>\<^bsub>P\<^esub>)"
     with R have "deg R p + deg R q = deg R (p \<otimes>\<^bsub>P\<^esub> q)" by simp
     also from pq have "... = 0" by simp
     finally have "deg R p + deg R q = 0" .
-    then have f1: "deg R p = 0 & deg R q = 0" by simp
+    then have f1: "deg R p = 0 \<and> deg R q = 0" by simp
     from f1 R have "p = (\<Oplus>\<^bsub>P\<^esub> i \<in> {..0}. monom P (coeff P p i) i)"
       by (simp only: up_repr_le)
     also from R have "... = monom P (coeff P p 0) 0" by simp
@@ -1059,9 +1059,9 @@ proof -
     from R have "coeff P p 0 \<otimes> coeff P q 0 = coeff P (p \<otimes>\<^bsub>P\<^esub> q) 0" by simp
     also from pq have "... = \<zero>" by simp
     finally have "coeff P p 0 \<otimes> coeff P q 0 = \<zero>" .
-    with R have "coeff P p 0 = \<zero> | coeff P q 0 = \<zero>"
+    with R have "coeff P p 0 = \<zero> \<or> coeff P q 0 = \<zero>"
       by (simp add: R.integral_iff)
-    with p q show "p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>" by fastforce
+    with p q show "p = \<zero>\<^bsub>P\<^esub> \<or> q = \<zero>\<^bsub>P\<^esub>" by fastforce
   qed
 qed
 
@@ -1206,8 +1206,8 @@ text\<open>JE: I was considering using it in \<open>eval_ring_hom\<close>, but t
   maybe it is not that necessary.\<close>
 
 lemma (in ring_hom_ring) hom_finsum [simp]:
-  "f \<in> A \<rightarrow> carrier R ==>
-  h (finsum R f A) = finsum S (h o f) A"
+  "f \<in> A \<rightarrow> carrier R \<Longrightarrow>
+  h (finsum R f A) = finsum S (h \<circ> f) A"
   by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 context UP_pre_univ_prop
@@ -1429,9 +1429,9 @@ lemma ring_homD:
 
 theorem UP_universal_property:
   assumes S: "s \<in> carrier S"
-  shows "\<exists>!Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
-    Phi (monom P \<one> 1) = s &
-    (ALL r : carrier R. Phi (monom P r 0) = h r)"
+  shows "\<exists>!Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) \<and>
+    Phi (monom P \<one> 1) = s \<and>
+    (\<forall>r \<in> carrier R. Phi (monom P r 0) = h r)"
   using S eval_monom1
   apply (auto intro: eval_ring_hom eval_const eval_extensional)
   apply (rule extensionalityI)
@@ -1550,14 +1550,14 @@ text \<open>Jacobson's Theorem 2.14\<close>
 lemma long_div_theorem:
   assumes g_in_P [simp]: "g \<in> carrier P" and f_in_P [simp]: "f \<in> carrier P"
   and g_not_zero: "g \<noteq> \<zero>\<^bsub>P\<^esub>"
-  shows "\<exists> q r (k::nat). (q \<in> carrier P) \<and> (r \<in> carrier P) \<and> (lcoeff g)(^)\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> | deg R r < deg R g)"
+  shows "\<exists>q r (k::nat). (q \<in> carrier P) \<and> (r \<in> carrier P) \<and> (lcoeff g)(^)\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R g)"
   using f_in_P
 proof (induct "deg R f" arbitrary: "f" rule: nat_less_induct)
   case (1 f)
   note f_in_P [simp] = "1.prems"
   let ?pred = "(\<lambda> q r (k::nat).
     (q \<in> carrier P) \<and> (r \<in> carrier P)
-    \<and> (lcoeff g)(^)\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> | deg R r < deg R g))"
+    \<and> (lcoeff g)(^)\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R g))"
   let ?lg = "lcoeff g" and ?lf = "lcoeff f"
   show ?case
   proof (cases "deg R f < deg R g")

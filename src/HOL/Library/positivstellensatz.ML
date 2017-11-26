@@ -177,12 +177,12 @@ fun prove_hyp tha thb =
   if exists (curry op aconv (Thm.concl_of tha)) (Thm.hyps_of thb)  (* FIXME !? *)
   then Thm.equal_elim (Thm.symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
-val pth = @{lemma "(((x::real) < y) == (y - x > 0))" and "((x <= y) == (y - x >= 0))" and
-     "((x = y) == (x - y = 0))" and "((~(x < y)) == (x - y >= 0))" and
-     "((~(x <= y)) == (x - y > 0))" and "((~(x = y)) == (x - y > 0 | -(x - y) > 0))"
+val pth = @{lemma "(((x::real) < y) \<equiv> (y - x > 0))" and "((x \<le> y) \<equiv> (y - x \<ge> 0))" and
+     "((x = y) \<equiv> (x - y = 0))" and "((\<not>(x < y)) \<equiv> (x - y \<ge> 0))" and
+     "((\<not>(x \<le> y)) \<equiv> (x - y > 0))" and "((\<not>(x = y)) \<equiv> (x - y > 0 \<or> -(x - y) > 0))"
   by (atomize (full), auto simp add: less_diff_eq le_diff_eq not_less)};
 
-val pth_final = @{lemma "(~p ==> False) ==> p" by blast}
+val pth_final = @{lemma "(\<not>p \<Longrightarrow> False) \<Longrightarrow> p" by blast}
 val pth_add =
   @{lemma "(x = (0::real) ==> y = 0 ==> x + y = 0 )" and "( x = 0 ==> y >= 0 ==> x + y >= 0)" and
     "(x = 0 ==> y > 0 ==> x + y > 0)" and "(x >= 0 ==> y = 0 ==> x + y >= 0)" and
@@ -204,8 +204,8 @@ val pth_square = @{lemma "x * x >= (0::real)"  by simp};
 
 val weak_dnf_simps =
   List.take (@{thms simp_thms}, 34) @
-    @{lemma "((P & (Q | R)) = ((P&Q) | (P&R)))" and "((Q | R) & P) = ((Q&P) | (R&P))" and
-      "(P & Q) = (Q & P)" and "((P | Q) = (Q | P))" by blast+};
+    @{lemma "((P \<and> (Q \<or> R)) = ((P\<and>Q) \<or> (P\<and>R)))" and "((Q \<or> R) \<and> P) = ((Q\<and>P) \<or> (R\<and>P))" and
+      "(P \<and> Q) = (Q \<and> P)" and "((P \<or> Q) = (Q \<or> P))" by blast+};
 
 (*
 val nnfD_simps =
@@ -214,65 +214,65 @@ val nnfD_simps =
     "((~(P = Q)) = ((P & ~ Q) | (~P & Q)) )" and "((~ ~(P)) = P)" by blast+};
 *)
 
-val choice_iff = @{lemma "(ALL x. EX y. P x y) = (EX f. ALL x. P x (f x))" by metis};
+val choice_iff = @{lemma "(\<forall>x. \<exists>y. P x y) = (\<exists>f. \<forall>x. P x (f x))" by metis};
 val prenex_simps =
   map (fn th => th RS sym)
     ([@{thm "all_conj_distrib"}, @{thm "ex_disj_distrib"}] @
       @{thms "HOL.all_simps"(1-4)} @ @{thms "ex_simps"(1-4)});
 
 val real_abs_thms1 = @{lemma
-  "((-1 * \<bar>x::real\<bar> >= r) = (-1 * x >= r & 1 * x >= r))" and
-  "((-1 * \<bar>x\<bar> + a >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
-  "((a + -1 * \<bar>x\<bar> >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
-  "((a + -1 * \<bar>x\<bar> + b >= r) = (a + -1 * x + b >= r & a + 1 * x + b >= r))" and
-  "((a + b + -1 * \<bar>x\<bar> >= r) = (a + b + -1 * x >= r & a + b + 1 * x >= r))" and
-  "((a + b + -1 * \<bar>x\<bar> + c >= r) = (a + b + -1 * x + c >= r & a + b + 1 * x + c >= r))" and
-  "((-1 * max x y >= r) = (-1 * x >= r & -1 * y >= r))" and
-  "((-1 * max x y + a >= r) = (a + -1 * x >= r & a + -1 * y >= r))" and
-  "((a + -1 * max x y >= r) = (a + -1 * x >= r & a + -1 * y >= r))" and
-  "((a + -1 * max x y + b >= r) = (a + -1 * x + b >= r & a + -1 * y  + b >= r))" and
-  "((a + b + -1 * max x y >= r) = (a + b + -1 * x >= r & a + b + -1 * y >= r))" and
-  "((a + b + -1 * max x y + c >= r) = (a + b + -1 * x + c >= r & a + b + -1 * y  + c >= r))" and
-  "((1 * min x y >= r) = (1 * x >= r & 1 * y >= r))" and
-  "((1 * min x y + a >= r) = (a + 1 * x >= r & a + 1 * y >= r))" and
-  "((a + 1 * min x y >= r) = (a + 1 * x >= r & a + 1 * y >= r))" and
-  "((a + 1 * min x y + b >= r) = (a + 1 * x + b >= r & a + 1 * y  + b >= r))" and
-  "((a + b + 1 * min x y >= r) = (a + b + 1 * x >= r & a + b + 1 * y >= r))" and
-  "((a + b + 1 * min x y + c >= r) = (a + b + 1 * x + c >= r & a + b + 1 * y  + c >= r))" and
-  "((min x y >= r) = (x >= r &  y >= r))" and
-  "((min x y + a >= r) = (a + x >= r & a + y >= r))" and
-  "((a + min x y >= r) = (a + x >= r & a + y >= r))" and
-  "((a + min x y + b >= r) = (a + x + b >= r & a + y  + b >= r))" and
-  "((a + b + min x y >= r) = (a + b + x >= r & a + b + y >= r))" and
-  "((a + b + min x y + c >= r) = (a + b + x + c >= r & a + b + y + c >= r))" and
-  "((-1 * \<bar>x\<bar> > r) = (-1 * x > r & 1 * x > r))" and
-  "((-1 * \<bar>x\<bar> + a > r) = (a + -1 * x > r & a + 1 * x > r))" and
-  "((a + -1 * \<bar>x\<bar> > r) = (a + -1 * x > r & a + 1 * x > r))" and
-  "((a + -1 * \<bar>x\<bar> + b > r) = (a + -1 * x + b > r & a + 1 * x + b > r))" and
-  "((a + b + -1 * \<bar>x\<bar> > r) = (a + b + -1 * x > r & a + b + 1 * x > r))" and
-  "((a + b + -1 * \<bar>x\<bar> + c > r) = (a + b + -1 * x + c > r & a + b + 1 * x + c > r))" and
-  "((-1 * max x y > r) = ((-1 * x > r) & -1 * y > r))" and
-  "((-1 * max x y + a > r) = (a + -1 * x > r & a + -1 * y > r))" and
-  "((a + -1 * max x y > r) = (a + -1 * x > r & a + -1 * y > r))" and
-  "((a + -1 * max x y + b > r) = (a + -1 * x + b > r & a + -1 * y  + b > r))" and
-  "((a + b + -1 * max x y > r) = (a + b + -1 * x > r & a + b + -1 * y > r))" and
-  "((a + b + -1 * max x y + c > r) = (a + b + -1 * x + c > r & a + b + -1 * y  + c > r))" and
-  "((min x y > r) = (x > r &  y > r))" and
-  "((min x y + a > r) = (a + x > r & a + y > r))" and
-  "((a + min x y > r) = (a + x > r & a + y > r))" and
-  "((a + min x y + b > r) = (a + x + b > r & a + y  + b > r))" and
-  "((a + b + min x y > r) = (a + b + x > r & a + b + y > r))" and
-  "((a + b + min x y + c > r) = (a + b + x + c > r & a + b + y + c > r))"
+  "((-1 * \<bar>x::real\<bar> \<ge> r) = (-1 * x \<ge> r \<and> 1 * x \<ge> r))" and
+  "((-1 * \<bar>x\<bar> + a \<ge> r) = (a + -1 * x \<ge> r \<and> a + 1 * x \<ge> r))" and
+  "((a + -1 * \<bar>x\<bar> \<ge> r) = (a + -1 * x \<ge> r \<and> a + 1 * x \<ge> r))" and
+  "((a + -1 * \<bar>x\<bar> + b \<ge> r) = (a + -1 * x + b \<ge> r \<and> a + 1 * x + b \<ge> r))" and
+  "((a + b + -1 * \<bar>x\<bar> \<ge> r) = (a + b + -1 * x \<ge> r \<and> a + b + 1 * x \<ge> r))" and
+  "((a + b + -1 * \<bar>x\<bar> + c \<ge> r) = (a + b + -1 * x + c \<ge> r \<and> a + b + 1 * x + c \<ge> r))" and
+  "((-1 * max x y \<ge> r) = (-1 * x \<ge> r \<and> -1 * y \<ge> r))" and
+  "((-1 * max x y + a \<ge> r) = (a + -1 * x \<ge> r \<and> a + -1 * y \<ge> r))" and
+  "((a + -1 * max x y \<ge> r) = (a + -1 * x \<ge> r \<and> a + -1 * y \<ge> r))" and
+  "((a + -1 * max x y + b \<ge> r) = (a + -1 * x + b \<ge> r \<and> a + -1 * y  + b \<ge> r))" and
+  "((a + b + -1 * max x y \<ge> r) = (a + b + -1 * x \<ge> r \<and> a + b + -1 * y \<ge> r))" and
+  "((a + b + -1 * max x y + c \<ge> r) = (a + b + -1 * x + c \<ge> r \<and> a + b + -1 * y  + c \<ge> r))" and
+  "((1 * min x y \<ge> r) = (1 * x \<ge> r \<and> 1 * y \<ge> r))" and
+  "((1 * min x y + a \<ge> r) = (a + 1 * x \<ge> r \<and> a + 1 * y \<ge> r))" and
+  "((a + 1 * min x y \<ge> r) = (a + 1 * x \<ge> r \<and> a + 1 * y \<ge> r))" and
+  "((a + 1 * min x y + b \<ge> r) = (a + 1 * x + b \<ge> r \<and> a + 1 * y  + b \<ge> r))" and
+  "((a + b + 1 * min x y \<ge> r) = (a + b + 1 * x \<ge> r \<and> a + b + 1 * y \<ge> r))" and
+  "((a + b + 1 * min x y + c \<ge> r) = (a + b + 1 * x + c \<ge> r \<and> a + b + 1 * y  + c \<ge> r))" and
+  "((min x y \<ge> r) = (x \<ge> r \<and> y \<ge> r))" and
+  "((min x y + a \<ge> r) = (a + x \<ge> r \<and> a + y \<ge> r))" and
+  "((a + min x y \<ge> r) = (a + x \<ge> r \<and> a + y \<ge> r))" and
+  "((a + min x y + b \<ge> r) = (a + x + b \<ge> r \<and> a + y  + b \<ge> r))" and
+  "((a + b + min x y \<ge> r) = (a + b + x \<ge> r \<and> a + b + y \<ge> r))" and
+  "((a + b + min x y + c \<ge> r) = (a + b + x + c \<ge> r \<and> a + b + y + c \<ge> r))" and
+  "((-1 * \<bar>x\<bar> > r) = (-1 * x > r \<and> 1 * x > r))" and
+  "((-1 * \<bar>x\<bar> + a > r) = (a + -1 * x > r \<and> a + 1 * x > r))" and
+  "((a + -1 * \<bar>x\<bar> > r) = (a + -1 * x > r \<and> a + 1 * x > r))" and
+  "((a + -1 * \<bar>x\<bar> + b > r) = (a + -1 * x + b > r \<and> a + 1 * x + b > r))" and
+  "((a + b + -1 * \<bar>x\<bar> > r) = (a + b + -1 * x > r \<and> a + b + 1 * x > r))" and
+  "((a + b + -1 * \<bar>x\<bar> + c > r) = (a + b + -1 * x + c > r \<and> a + b + 1 * x + c > r))" and
+  "((-1 * max x y > r) = ((-1 * x > r) \<and> -1 * y > r))" and
+  "((-1 * max x y + a > r) = (a + -1 * x > r \<and> a + -1 * y > r))" and
+  "((a + -1 * max x y > r) = (a + -1 * x > r \<and> a + -1 * y > r))" and
+  "((a + -1 * max x y + b > r) = (a + -1 * x + b > r \<and> a + -1 * y  + b > r))" and
+  "((a + b + -1 * max x y > r) = (a + b + -1 * x > r \<and> a + b + -1 * y > r))" and
+  "((a + b + -1 * max x y + c > r) = (a + b + -1 * x + c > r \<and> a + b + -1 * y  + c > r))" and
+  "((min x y > r) = (x > r \<and> y > r))" and
+  "((min x y + a > r) = (a + x > r \<and> a + y > r))" and
+  "((a + min x y > r) = (a + x > r \<and> a + y > r))" and
+  "((a + min x y + b > r) = (a + x + b > r \<and> a + y  + b > r))" and
+  "((a + b + min x y > r) = (a + b + x > r \<and> a + b + y > r))" and
+  "((a + b + min x y + c > r) = (a + b + x + c > r \<and> a + b + y + c > r))"
   by auto};
 
-val abs_split' = @{lemma "P \<bar>x::'a::linordered_idom\<bar> == (x >= 0 & P x | x < 0 & P (-x))"
+val abs_split' = @{lemma "P \<bar>x::'a::linordered_idom\<bar> == (x \<ge> 0 \<and> P x \<or> x < 0 \<and> P (-x))"
   by (atomize (full)) (auto split: abs_split)};
 
-val max_split = @{lemma "P (max x y) == ((x::'a::linorder) <= y & P y | x > y & P x)"
-  by (atomize (full)) (cases "x <= y", auto simp add: max_def)};
+val max_split = @{lemma "P (max x y) \<equiv> ((x::'a::linorder) \<le> y \<and> P y \<or> x > y \<and> P x)"
+  by (atomize (full)) (cases "x \<le> y", auto simp add: max_def)};
 
-val min_split = @{lemma "P (min x y) == ((x::'a::linorder) <= y & P x | x > y & P y)"
-  by (atomize (full)) (cases "x <= y", auto simp add: min_def)};
+val min_split = @{lemma "P (min x y) \<equiv> ((x::'a::linorder) \<le> y \<and> P x \<or> x > y \<and> P y)"
+  by (atomize (full)) (cases "x \<le> y", auto simp add: min_def)};
 
 
          (* Miscellaneous *)

@@ -101,12 +101,12 @@ proof
   fix z :: "'a option"
   assume H: "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
   have "P None" by (rule H) simp
-  then have P_Some [case_names Some]: "P z" if "\<And>x. z = Some x \<Longrightarrow> (P o Some) x" for z
+  then have P_Some [case_names Some]: "P z" if "\<And>x. z = Some x \<Longrightarrow> (P \<circ> Some) x" for z
     using \<open>P None\<close> that by (cases z) simp_all
   show "P z"
   proof (cases z rule: P_Some)
     case (Some w)
-    show "(P o Some) w"
+    show "(P \<circ> Some) w"
     proof (induct rule: less_induct)
       case (less x)
       have "P (Some x)"
@@ -117,7 +117,7 @@ proof
         proof (cases y rule: P_Some)
           case (Some v)
           with \<open>y < Some x\<close> have "v < x" by simp
-          with less show "(P o Some) v" .
+          with less show "(P \<circ> Some) v" .
         qed
       qed
       then show ?case by simp

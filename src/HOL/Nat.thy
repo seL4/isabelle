@@ -360,10 +360,10 @@ lemma add_is_0 [iff]: "m + n = 0 \<longleftrightarrow> m = 0 \<and> n = 0"
   for m n :: nat
   by (cases m) simp_all
 
-lemma add_is_1: "m + n = Suc 0 \<longleftrightarrow> m = Suc 0 \<and> n = 0 | m = 0 \<and> n = Suc 0"
+lemma add_is_1: "m + n = Suc 0 \<longleftrightarrow> m = Suc 0 \<and> n = 0 \<or> m = 0 \<and> n = Suc 0"
   by (cases m) simp_all
 
-lemma one_is_add: "Suc 0 = m + n \<longleftrightarrow> m = Suc 0 \<and> n = 0 | m = 0 \<and> n = Suc 0"
+lemma one_is_add: "Suc 0 = m + n \<longleftrightarrow> m = Suc 0 \<and> n = 0 \<or> m = 0 \<and> n = Suc 0"
   by (rule trans, rule eq_commute, rule add_is_1)
 
 lemma add_eq_self_zero: "m + n = m \<Longrightarrow> n = 0"
@@ -735,7 +735,7 @@ lemma le_neq_implies_less: "m \<le> n \<Longrightarrow> m \<noteq> n \<Longright
   for m n :: nat
   unfolding less_le ..
 
-lemma nat_le_linear: "m \<le> n | n \<le> m"
+lemma nat_le_linear: "m \<le> n \<or> n \<le> m"
   for m n :: nat
   by (rule linear)
 

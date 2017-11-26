@@ -59,10 +59,10 @@ where
    in if Predicate.eval P' () then (Orderings.bot, s') else (Predicate.single (), s'))"
 
 definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> 'a random_pred"
-  where "Random g = scomp g (Pair o (Predicate.single o fst))"
+  where "Random g = scomp g (Pair \<circ> (Predicate.single \<circ> fst))"
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a random_pred \<Rightarrow> 'b random_pred"
-  where "map f P = bind P (single o f)"
+  where "map f P = bind P (single \<circ> f)"
 
 hide_const (open) iter' iter empty single bind union if_randompred
   iterate_upto not_randompred Random map

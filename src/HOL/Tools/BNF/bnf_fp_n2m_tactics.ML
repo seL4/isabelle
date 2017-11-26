@@ -69,8 +69,8 @@ fun mk_xtor_un_fold_unique_tac fp xtor_un_fold_defs map_arg_congs xtor_un_fold_o
   unfold_thms_tac ctxt xtor_un_fold_defs THEN
   HEADGOAL (REPEAT_DETERM o FIRST' [hyp_subst_tac_thin true ctxt, rtac ctxt refl,
     rtac ctxt conjI,
-    rtac ctxt @{thm arg_cong2[of _ _ _ _ "op o", OF refl]},
-    rtac ctxt @{thm arg_cong2[of _ _ _ _ "op o", OF _ refl]},
+    rtac ctxt @{thm arg_cong2[of _ _ _ _ "op \<circ>", OF refl]},
+    rtac ctxt @{thm arg_cong2[of _ _ _ _ "op \<circ>", OF _ refl]},
     resolve_tac ctxt map_arg_congs,
     resolve_tac ctxt fp_un_fold_uniques THEN_ALL_NEW case_fp fp (K all_tac) (rtac ctxt sym),
     SELECT_GOAL (CHANGED (unfold_thms_tac ctxt (flat [simp_thms, map_thms, map_defs,

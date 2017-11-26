@@ -78,7 +78,7 @@ private definition S2 :: "int set set" where "S2 = f ` S1"
 private lemma P_lemma: assumes "x \<in> S1"
   shows "\<exists>! y. P x y"
 proof -
-  have "~ p dvd x" using assms zdvd_not_zless S1_def by auto
+  have "\<not> p dvd x" using assms zdvd_not_zless S1_def by auto
   hence co_xp: "coprime x p" using p_prime prime_imp_coprime_int[of p x] 
     by (simp add: ac_simps)
   then obtain y' where y': "[x * y' = 1] (mod p)" using cong_solve_coprime_int by blast
@@ -110,11 +110,11 @@ private lemma f_1_lemma_2: assumes "x \<in> S1"
 private lemma f_lemma_1: assumes "x \<in> S1"
   shows "f x = f (f_1 x)" using f_def f_1_lemma_2[of x] assms by auto
 
-private lemma l1: assumes "~ QuadRes p a" "x \<in> S1"
+private lemma l1: assumes "\<not> QuadRes p a" "x \<in> S1"
   shows "x \<noteq> f_1 x"
   using f_1_lemma_1[of x] assms unfolding P_def QuadRes_def power2_eq_square by fastforce
 
-private lemma l2: assumes "~ QuadRes p a" "x \<in> S1"
+private lemma l2: assumes "\<not> QuadRes p a" "x \<in> S1"
   shows "[\<Prod> (f x) = a] (mod p)"
   using assms l1 f_1_lemma_1 P_def f_def by auto
 
@@ -165,7 +165,7 @@ case (Suc n)
     by simp blast 
 qed
 
-private lemma l11: assumes "~ QuadRes p a"
+private lemma l11: assumes "\<not> QuadRes p a"
   shows "card S2 = (p - 1) div 2"
 proof -
   have "sum card S2 = 2 * card S2"
@@ -175,11 +175,11 @@ proof -
   ultimately show ?thesis by linarith
 qed
 
-private lemma l12: assumes "~ QuadRes p a"
+private lemma l12: assumes "\<not> QuadRes p a"
   shows "[prod Prod S2 = a ^ ((p - 1) div 2)] (mod p)"
   using assms l2 l10 l11 unfolding S2_def by blast
 
-private lemma E_2: assumes "~ QuadRes p a"
+private lemma E_2: assumes "\<not> QuadRes p a"
   shows "[a ^ ((p - 1) div 2) = -1] (mod p)" using l9 l12 cong_trans cong_sym assms by blast
 
 lemma euler_criterion_aux: "[(Legendre a p) = a ^ ((p - 1) div 2)] (mod p)"

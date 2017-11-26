@@ -166,7 +166,7 @@ lemma UNIV:
   "x \<in> UNIV \<longleftrightarrow> True"
   "A \<subseteq> UNIV \<longleftrightarrow> True"
   "(\<forall>x \<in> UNIV. P x) \<longleftrightarrow> (\<forall>x. P x)"
-  "(EX x : UNIV. P x) \<longleftrightarrow> (EX x. P x)"
+  "(\<exists>x \<in> UNIV. P x) \<longleftrightarrow> (\<exists>x. P x)"
   "(True \<longrightarrow> Q) \<longleftrightarrow> Q"
   "(True \<Longrightarrow> PROP R) \<equiv> PROP R"
   by simp_all
@@ -247,7 +247,7 @@ proof -
   then show "(\<exists>x. a = x * p) \<or> (\<exists>x. b = x * p)"
     by (metis dvd_def mult.commute)
 next
-  assume "UNIV = {uu. EX x. uu = x * p}"
+  assume "UNIV = {uu. \<exists>x. uu = x * p}"
   then obtain x where "1 = x * p" by best
   then have "\<bar>p * x\<bar> = 1" by (simp add: mult.commute)
   then show False using prime

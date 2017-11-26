@@ -224,70 +224,70 @@ lemma abst_inj: "abst isom x = abst isom y \<longleftrightarrow> x = y"
 lemmas simps = Let_def repr_inv abst_inv repr_inj abst_inj
 
 lemma iso_tuple_access_update_fst_fst:
-  "f o h g = j o f \<Longrightarrow>
-    (f o iso_tuple_fst isom) o (iso_tuple_fst_update isom o h) g =
-      j o (f o iso_tuple_fst isom)"
+  "f \<circ> h g = j \<circ> f \<Longrightarrow>
+    (f \<circ> iso_tuple_fst isom) \<circ> (iso_tuple_fst_update isom \<circ> h) g =
+      j \<circ> (f \<circ> iso_tuple_fst isom)"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_fst_def simps
     fun_eq_iff)
 
 lemma iso_tuple_access_update_snd_snd:
-  "f o h g = j o f \<Longrightarrow>
-    (f o iso_tuple_snd isom) o (iso_tuple_snd_update isom o h) g =
-      j o (f o iso_tuple_snd isom)"
+  "f \<circ> h g = j \<circ> f \<Longrightarrow>
+    (f \<circ> iso_tuple_snd isom) \<circ> (iso_tuple_snd_update isom \<circ> h) g =
+      j \<circ> (f \<circ> iso_tuple_snd isom)"
   by (clarsimp simp: iso_tuple_snd_update_def iso_tuple_snd_def simps
     fun_eq_iff)
 
 lemma iso_tuple_access_update_fst_snd:
-  "(f o iso_tuple_fst isom) o (iso_tuple_snd_update isom o h) g =
-    id o (f o iso_tuple_fst isom)"
+  "(f \<circ> iso_tuple_fst isom) \<circ> (iso_tuple_snd_update isom \<circ> h) g =
+    id \<circ> (f \<circ> iso_tuple_fst isom)"
   by (clarsimp simp: iso_tuple_snd_update_def iso_tuple_fst_def simps
     fun_eq_iff)
 
 lemma iso_tuple_access_update_snd_fst:
-  "(f o iso_tuple_snd isom) o (iso_tuple_fst_update isom o h) g =
-    id o (f o iso_tuple_snd isom)"
+  "(f \<circ> iso_tuple_snd isom) \<circ> (iso_tuple_fst_update isom \<circ> h) g =
+    id \<circ> (f \<circ> iso_tuple_snd isom)"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_def simps
     fun_eq_iff)
 
 lemma iso_tuple_update_swap_fst_fst:
-  "h f o j g = j g o h f \<Longrightarrow>
-    (iso_tuple_fst_update isom o h) f o (iso_tuple_fst_update isom o j) g =
-      (iso_tuple_fst_update isom o j) g o (iso_tuple_fst_update isom o h) f"
+  "h f \<circ> j g = j g \<circ> h f \<Longrightarrow>
+    (iso_tuple_fst_update isom \<circ> h) f \<circ> (iso_tuple_fst_update isom \<circ> j) g =
+      (iso_tuple_fst_update isom \<circ> j) g \<circ> (iso_tuple_fst_update isom \<circ> h) f"
   by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose fun_eq_iff)
 
 lemma iso_tuple_update_swap_snd_snd:
-  "h f o j g = j g o h f \<Longrightarrow>
-    (iso_tuple_snd_update isom o h) f o (iso_tuple_snd_update isom o j) g =
-      (iso_tuple_snd_update isom o j) g o (iso_tuple_snd_update isom o h) f"
+  "h f \<circ> j g = j g \<circ> h f \<Longrightarrow>
+    (iso_tuple_snd_update isom \<circ> h) f \<circ> (iso_tuple_snd_update isom \<circ> j) g =
+      (iso_tuple_snd_update isom \<circ> j) g \<circ> (iso_tuple_snd_update isom \<circ> h) f"
   by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose fun_eq_iff)
 
 lemma iso_tuple_update_swap_fst_snd:
-  "(iso_tuple_snd_update isom o h) f o (iso_tuple_fst_update isom o j) g =
-    (iso_tuple_fst_update isom o j) g o (iso_tuple_snd_update isom o h) f"
+  "(iso_tuple_snd_update isom \<circ> h) f \<circ> (iso_tuple_fst_update isom \<circ> j) g =
+    (iso_tuple_fst_update isom \<circ> j) g \<circ> (iso_tuple_snd_update isom \<circ> h) f"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def
     simps fun_eq_iff)
 
 lemma iso_tuple_update_swap_snd_fst:
-  "(iso_tuple_fst_update isom o h) f o (iso_tuple_snd_update isom o j) g =
-    (iso_tuple_snd_update isom o j) g o (iso_tuple_fst_update isom o h) f"
+  "(iso_tuple_fst_update isom \<circ> h) f \<circ> (iso_tuple_snd_update isom \<circ> j) g =
+    (iso_tuple_snd_update isom \<circ> j) g \<circ> (iso_tuple_fst_update isom \<circ> h) f"
   by (clarsimp simp: iso_tuple_fst_update_def iso_tuple_snd_update_def simps
     fun_eq_iff)
 
 lemma iso_tuple_update_compose_fst_fst:
-  "h f o j g = k (f o g) \<Longrightarrow>
-    (iso_tuple_fst_update isom o h) f o (iso_tuple_fst_update isom o j) g =
-      (iso_tuple_fst_update isom o k) (f o g)"
+  "h f \<circ> j g = k (f \<circ> g) \<Longrightarrow>
+    (iso_tuple_fst_update isom \<circ> h) f \<circ> (iso_tuple_fst_update isom \<circ> j) g =
+      (iso_tuple_fst_update isom \<circ> k) (f \<circ> g)"
   by (clarsimp simp: iso_tuple_fst_update_def simps apfst_compose fun_eq_iff)
 
 lemma iso_tuple_update_compose_snd_snd:
-  "h f o j g = k (f o g) \<Longrightarrow>
-    (iso_tuple_snd_update isom o h) f o (iso_tuple_snd_update isom o j) g =
-      (iso_tuple_snd_update isom o k) (f o g)"
+  "h f \<circ> j g = k (f \<circ> g) \<Longrightarrow>
+    (iso_tuple_snd_update isom \<circ> h) f \<circ> (iso_tuple_snd_update isom \<circ> j) g =
+      (iso_tuple_snd_update isom \<circ> k) (f \<circ> g)"
   by (clarsimp simp: iso_tuple_snd_update_def simps apsnd_compose fun_eq_iff)
 
 lemma iso_tuple_surjective_proof_assist_step:
-  "iso_tuple_surjective_proof_assist v a (iso_tuple_fst isom o f) \<Longrightarrow>
-    iso_tuple_surjective_proof_assist v b (iso_tuple_snd isom o f) \<Longrightarrow>
+  "iso_tuple_surjective_proof_assist v a (iso_tuple_fst isom \<circ> f) \<Longrightarrow>
+    iso_tuple_surjective_proof_assist v b (iso_tuple_snd isom \<circ> f) \<Longrightarrow>
     iso_tuple_surjective_proof_assist v (iso_tuple_cons isom a b) f"
   by (clarsimp simp: iso_tuple_surjective_proof_assist_def simps
     iso_tuple_fst_def iso_tuple_snd_def iso_tuple_cons_def)
@@ -295,7 +295,7 @@ lemma iso_tuple_surjective_proof_assist_step:
 lemma iso_tuple_fst_update_accessor_cong_assist:
   assumes "iso_tuple_update_accessor_cong_assist f g"
   shows "iso_tuple_update_accessor_cong_assist
-    (iso_tuple_fst_update isom o f) (g o iso_tuple_fst isom)"
+    (iso_tuple_fst_update isom \<circ> f) (g \<circ> iso_tuple_fst isom)"
 proof -
   from assms have "f id = id"
     by (rule iso_tuple_update_accessor_cong_assist_id)
@@ -307,7 +307,7 @@ qed
 lemma iso_tuple_snd_update_accessor_cong_assist:
   assumes "iso_tuple_update_accessor_cong_assist f g"
   shows "iso_tuple_update_accessor_cong_assist
-    (iso_tuple_snd_update isom o f) (g o iso_tuple_snd isom)"
+    (iso_tuple_snd_update isom \<circ> f) (g \<circ> iso_tuple_snd isom)"
 proof -
   from assms have "f id = id"
     by (rule iso_tuple_update_accessor_cong_assist_id)
@@ -319,7 +319,7 @@ qed
 lemma iso_tuple_fst_update_accessor_eq_assist:
   assumes "iso_tuple_update_accessor_eq_assist f g a u a' v"
   shows "iso_tuple_update_accessor_eq_assist
-    (iso_tuple_fst_update isom o f) (g o iso_tuple_fst isom)
+    (iso_tuple_fst_update isom \<circ> f) (g \<circ> iso_tuple_fst isom)
     (iso_tuple_cons isom a b) u (iso_tuple_cons isom a' b) v"
 proof -
   from assms have "f id = id"
@@ -334,7 +334,7 @@ qed
 lemma iso_tuple_snd_update_accessor_eq_assist:
   assumes "iso_tuple_update_accessor_eq_assist f g b u b' v"
   shows "iso_tuple_update_accessor_eq_assist
-    (iso_tuple_snd_update isom o f) (g o iso_tuple_snd isom)
+    (iso_tuple_snd_update isom \<circ> f) (g \<circ> iso_tuple_snd isom)
     (iso_tuple_cons isom a b) u (iso_tuple_cons isom a b') v"
 proof -
   from assms have "f id = id"

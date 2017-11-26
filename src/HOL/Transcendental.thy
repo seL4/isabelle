@@ -4367,7 +4367,7 @@ lemma cos_one_sin_zero:
 lemma sin_times_pi_eq_0: "sin (x * pi) = 0 \<longleftrightarrow> x \<in> \<int>"
   by (simp add: sin_zero_iff_int2) (metis Ints_cases Ints_of_int)
 
-lemma cos_one_2pi: "cos x = 1 \<longleftrightarrow> (\<exists>n::nat. x = n * 2 * pi) | (\<exists>n::nat. x = - (n * 2 * pi))"
+lemma cos_one_2pi: "cos x = 1 \<longleftrightarrow> (\<exists>n::nat. x = n * 2 * pi) \<or> (\<exists>n::nat. x = - (n * 2 * pi))"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs

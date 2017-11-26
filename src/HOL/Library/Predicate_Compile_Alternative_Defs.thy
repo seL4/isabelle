@@ -15,11 +15,11 @@ declare inf_bool_def[abs_def, code_pred_inline]
 declare less_bool_def[abs_def, code_pred_inline]
 declare le_bool_def[abs_def, code_pred_inline]
 
-lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (op &)"
+lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (op \<and>)"
 by (rule eq_reflection) (auto simp add: fun_eq_iff min_def)
 
 lemma [code_pred_inline]: 
-  "((A::bool) ~= (B::bool)) = ((A & ~ B) | (B & ~ A))"
+  "((A::bool) \<noteq> (B::bool)) = ((A \<and> \<not> B) \<or> (B \<and> \<not> A))"
 by fast
 
 setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Let}]\<close>
@@ -45,7 +45,7 @@ lemma Diff[code_pred_inline]:
   by (simp add: fun_eq_iff)
 
 lemma subset_eq[code_pred_inline]:
-  "(P :: 'a => bool) < (Q :: 'a => bool) == ((\<exists>x. Q x \<and> (\<not> P x)) \<and> (\<forall> x. P x --> Q x))"
+  "(P :: 'a \<Rightarrow> bool) < (Q :: 'a \<Rightarrow> bool) \<equiv> ((\<exists>x. Q x \<and> (\<not> P x)) \<and> (\<forall>x. P x \<longrightarrow> Q x))"
   by (rule eq_reflection) (auto simp add: less_fun_def le_fun_def)
 
 lemma set_equality[code_pred_inline]:

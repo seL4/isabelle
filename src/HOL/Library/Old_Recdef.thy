@@ -13,8 +13,8 @@ begin
 
 subsection \<open>Lemmas for TFL\<close>
 
-lemma tfl_wf_induct: "ALL R. wf R -->
-       (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))"
+lemma tfl_wf_induct: "\<forall>R. wf R \<longrightarrow>
+       (\<forall>P. (\<forall>x. (\<forall>y. (y,x)\<in>R \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x. P x))"
 apply clarify
 apply (rule_tac r = R and P = P and a = x in wf_induct, assumption, blast)
 done
@@ -22,39 +22,39 @@ done
 lemma tfl_cut_def: "cut f r x \<equiv> (\<lambda>y. if (y,x) \<in> r then f y else undefined)"
   unfolding cut_def .
 
-lemma tfl_cut_apply: "ALL f R. (x,a):R --> (cut f R a)(x) = f(x)"
+lemma tfl_cut_apply: "\<forall>f R. (x,a)\<in>R \<longrightarrow> (cut f R a)(x) = f(x)"
 apply clarify
 apply (rule cut_apply, assumption)
 done
 
 lemma tfl_wfrec:
-     "ALL M R f. (f=wfrec R M) --> wf R --> (ALL x. f x = M (cut f R x) x)"
+     "\<forall>M R f. (f=wfrec R M) \<longrightarrow> wf R \<longrightarrow> (\<forall>x. f x = M (cut f R x) x)"
 apply clarify
 apply (erule wfrec)
 done
 
-lemma tfl_eq_True: "(x = True) --> x"
+lemma tfl_eq_True: "(x = True) \<longrightarrow> x"
   by blast
 
-lemma tfl_rev_eq_mp: "(x = y) --> y --> x"
+lemma tfl_rev_eq_mp: "(x = y) \<longrightarrow> y \<longrightarrow> x"
   by blast
 
-lemma tfl_simp_thm: "(x --> y) --> (x = x') --> (x' --> y)"
+lemma tfl_simp_thm: "(x \<longrightarrow> y) \<longrightarrow> (x = x') \<longrightarrow> (x' \<longrightarrow> y)"
   by blast
 
-lemma tfl_P_imp_P_iff_True: "P ==> P = True"
+lemma tfl_P_imp_P_iff_True: "P \<Longrightarrow> P = True"
   by blast
 
-lemma tfl_imp_trans: "(A --> B) ==> (B --> C) ==> (A --> C)"
+lemma tfl_imp_trans: "(A \<longrightarrow> B) \<Longrightarrow> (B \<longrightarrow> C) \<Longrightarrow> (A \<longrightarrow> C)"
   by blast
 
-lemma tfl_disj_assoc: "(a \<or> b) \<or> c == a \<or> (b \<or> c)"
+lemma tfl_disj_assoc: "(a \<or> b) \<or> c \<equiv> a \<or> (b \<or> c)"
   by simp
 
-lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
+lemma tfl_disjE: "P \<or> Q \<Longrightarrow> P \<longrightarrow> R \<Longrightarrow> Q \<longrightarrow> R \<Longrightarrow> R"
   by blast
 
-lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
+lemma tfl_exE: "\<exists>x. P x \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q \<Longrightarrow> Q"
   by blast
 
 ML_file "old_recdef.ML"

@@ -548,8 +548,8 @@ by auto
 
 lemma subset_Coset_empty_Set_empty [code]:
   "Coset t1 \<le> Set t2 \<longleftrightarrow> (case (RBT.impl_of t1, RBT.impl_of t2) of 
-    (rbt.Empty, rbt.Empty) => False |
-    (_, _) => Code.abort (STR ''non_empty_trees'') (\<lambda>_. Coset t1 \<le> Set t2))"
+    (rbt.Empty, rbt.Empty) \<Rightarrow> False |
+    (_, _) \<Rightarrow> Code.abort (STR ''non_empty_trees'') (\<lambda>_. Coset t1 \<le> Set t2))"
 proof -
   have *: "\<And>t. RBT.impl_of t = rbt.Empty \<Longrightarrow> t = RBT rbt.Empty"
     by (subst(asm) RBT_inverse[symmetric]) (auto simp: impl_of_inject)
@@ -568,7 +568,7 @@ lemma card_Set [code]:
   by (auto simp add: card.eq_fold intro: finite_fold_fold_keys comp_fun_commute_const)
 
 lemma sum_Set [code]:
-  "sum f (Set xs) = fold_keys (plus o f) xs 0"
+  "sum f (Set xs) = fold_keys (plus \<circ> f) xs 0"
 proof -
   have "comp_fun_commute (\<lambda>x. op + (f x))"
     by standard (auto simp: ac_simps)

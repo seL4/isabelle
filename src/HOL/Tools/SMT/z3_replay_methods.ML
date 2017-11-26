@@ -319,8 +319,8 @@ fun cong_basic ctxt thms t =
   end
 
 val cong_dest_rules = @{lemma
-  "(~ P | Q) & (P | ~ Q) ==> P = Q"
-  "(P | ~ Q) & (~ P | Q) ==> P = Q"
+  "(\<not> P \<or> Q) \<and> (P \<or> \<not> Q) \<Longrightarrow> P = Q"
+  "(P \<or> \<not> Q) \<and> (\<not> P \<or> Q) \<Longrightarrow> P = Q"
   by fast+}
 
 fun cong_full_core_tac ctxt =
@@ -342,10 +342,10 @@ fun cong ctxt thms = try_provers ctxt Z3_Proof.Monotonicity [
 (* quantifier introduction *)
 
 val quant_intro_rules = @{lemma
-  "(!!x. P x = Q x) ==> (ALL x. P x) = (ALL x. Q x)"
-  "(!!x. P x = Q x) ==> (EX x. P x) = (EX x. Q x)"
-  "(!!x. (~ P x) = Q x) ==> (~ (EX x. P x)) = (ALL x. Q x)"
-  "(!!x. (~ P x) = Q x) ==> (~ (ALL x. P x)) = (EX x. Q x)"
+  "(\<And>x. P x = Q x) ==> (\<forall>x. P x) = (\<forall>x. Q x)"
+  "(\<And>x. P x = Q x) ==> (\<exists>x. P x) = (\<exists>x. Q x)"
+  "(!!x. (\<not> P x) = Q x) \<Longrightarrow> (\<not>(\<exists>x. P x)) = (\<forall>x. Q x)"
+  "(\<And>x. (\<not> P x) = Q x) ==> (\<not>(\<forall>x. P x)) = (\<exists>x. Q x)"
   by fast+}
 
 fun quant_intro ctxt [thm] t =
@@ -476,8 +476,8 @@ fun push_quant _ _ _ = raise Fail "unsupported" (* FIXME *)
 
 (* elimination of unused bound variables *)
 
-val elim_all = @{lemma "P = Q ==> (ALL x. P) = Q" by fast}
-val elim_ex = @{lemma "P = Q ==> (EX x. P) = Q" by fast}
+val elim_all = @{lemma "P = Q \<Longrightarrow> (\<forall>x. P) = Q" by fast}
+val elim_ex = @{lemma "P = Q \<Longrightarrow> (\<exists>x. P) = Q" by fast}
 
 fun elim_unused_tac ctxt i st = (
   match_tac ctxt [@{thm refl}]
@@ -496,7 +496,7 @@ fun dest_eq_res _ _ _ = raise Fail "dest_eq_res" (* FIXME *)
 
 (* quantifier instantiation *)
 
-val quant_inst_rule = @{lemma "~P x | Q ==> ~(ALL x. P x) | Q" by fast}
+val quant_inst_rule = @{lemma "\<not>P x \<or> Q ==> \<not>(\<forall>x. P x) \<or> Q" by fast}
 
 fun quant_inst ctxt _ t = prove ctxt t (fn _ =>
   REPEAT_ALL_NEW (resolve_tac ctxt [quant_inst_rule])
@@ -507,8 +507,8 @@ fun quant_inst ctxt _ t = prove ctxt t (fn _ =>
 
 exception LEMMA of unit
 
-val intro_hyp_rule1 = @{lemma "(~P ==> Q) ==> P | Q" by fast}
-val intro_hyp_rule2 = @{lemma "(P ==> Q) ==> ~P | Q" by fast}
+val intro_hyp_rule1 = @{lemma "(\<not>P \<Longrightarrow> Q) \<Longrightarrow> P \<or> Q" by fast}
+val intro_hyp_rule2 = @{lemma "(P \<Longrightarrow> Q) \<Longrightarrow> \<not>P \<or> Q" by fast}
 
 fun norm_lemma thm =
   (thm COMP_INCR intro_hyp_rule1)
@@ -568,7 +568,7 @@ fun iff_true _ [thm] _ = thm RS iff_true_rule
 
 (* iff-false *)
 
-val iff_false_rule = @{lemma "~P ==> P = False" by fast}
+val iff_false_rule = @{lemma "\<not>P \<Longrightarrow> P = False" by fast}
 
 fun iff_false _ [thm] _ = thm RS iff_false_rule
   | iff_false ctxt thms t = replay_rule_error ctxt Z3_Proof.Iff_False thms t

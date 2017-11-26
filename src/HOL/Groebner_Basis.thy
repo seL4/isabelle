@@ -19,8 +19,8 @@ lemma nnf_simps: \<comment> \<open>FIXME shadows fact binding in @{theory HOL}\<
   by blast+
 
 lemma dnf:
-  "(P & (Q | R)) = ((P&Q) | (P&R))"
-  "((Q | R) & P) = ((Q&P) | (R&P))"
+  "(P \<and> (Q \<or> R)) = ((P\<and>Q) \<or> (P\<and>R))"
+  "((Q \<or> R) \<and> P) = ((Q\<and>P) \<or> (R\<and>P))"
   "(P \<and> Q) = (Q \<and> P)"
   "(P \<or> Q) = (Q \<or> P)"
   by blast+

@@ -517,7 +517,7 @@ fun mk_tupled_allIN_balanced 0 = @{thm unit_all_impI}
       val (tfrees, _) = BNF_Util.mk_TFrees n @{context};
       val T = mk_tupleT_balanced tfrees;
     in
-      @{thm asm_rl[of "ALL x. P x --> Q x" for P Q]}
+      @{thm asm_rl[of "\<forall>x. P x \<longrightarrow> Q x" for P Q]}
       |> Thm.instantiate' [SOME (Thm.ctyp_of @{context} T)] []
       |> Raw_Simplifier.rewrite_goals_rule @{context} @{thms split_paired_All[THEN eq_reflection]}
       |> (fn thm => impI RS funpow n (fn th => allI RS th) thm)

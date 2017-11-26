@@ -52,7 +52,7 @@ datatype (plugins only: code extraction) (dead 'a) narrowing_cons =
 
 primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
 where
-  "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (\<lambda>c. f o c) cs)"
+  "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (\<lambda>c. f \<circ> c) cs)"
 
 subsubsection \<open>From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms\<close>
 
@@ -111,8 +111,8 @@ where
 definition sum :: "'a narrowing => 'a narrowing => 'a narrowing"
 where
   "sum a b d =
-    (case a d of Narrowing_cons (Narrowing_sum_of_products ssa) ca => 
-      case b d of Narrowing_cons (Narrowing_sum_of_products ssb) cb =>
+    (case a d of Narrowing_cons (Narrowing_sum_of_products ssa) ca \<Rightarrow>
+      case b d of Narrowing_cons (Narrowing_sum_of_products ssb) cb \<Rightarrow>
       Narrowing_cons (Narrowing_sum_of_products (ssa @ ssb)) (ca @ cb))"
 
 lemma [fundef_cong]:
@@ -146,11 +146,11 @@ datatype (plugins only: code extraction) property =
 (* FIXME: hard-wired maximal depth of 100 here *)
 definition exists :: "('a :: {narrowing, partial_term_of} => property) => property"
 where
-  "exists f = (case narrowing (100 :: integer) of Narrowing_cons ty cs => Existential ty (\<lambda> t. f (conv cs t)) (partial_term_of (TYPE('a))))"
+  "exists f = (case narrowing (100 :: integer) of Narrowing_cons ty cs \<Rightarrow> Existential ty (\<lambda> t. f (conv cs t)) (partial_term_of (TYPE('a))))"
 
 definition "all" :: "('a :: {narrowing, partial_term_of} => property) => property"
 where
-  "all f = (case narrowing (100 :: integer) of Narrowing_cons ty cs => Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
+  "all f = (case narrowing (100 :: integer) of Narrowing_cons ty cs \<Rightarrow> Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
 
 subsubsection \<open>class \<open>is_testable\<close>\<close>
 

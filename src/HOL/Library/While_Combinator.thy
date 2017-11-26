@@ -12,8 +12,8 @@ begin
 subsection \<open>Partial version\<close>
 
 definition while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
-"while_option b c s = (if (\<exists>k. ~ b ((c ^^ k) s))
-   then Some ((c ^^ (LEAST k. ~ b ((c ^^ k) s))) s)
+"while_option b c s = (if (\<exists>k. \<not> b ((c ^^ k) s))
+   then Some ((c ^^ (LEAST k. \<not> b ((c ^^ k) s))) s)
    else None)"
 
 theorem while_option_unfold[code]:
@@ -21,42 +21,42 @@ theorem while_option_unfold[code]:
 proof cases
   assume "b s"
   show ?thesis
-  proof (cases "\<exists>k. ~ b ((c ^^ k) s)")
+  proof (cases "\<exists>k. \<not> b ((c ^^ k) s)")
     case True
-    then obtain k where 1: "~ b ((c ^^ k) s)" ..
+    then obtain k where 1: "\<not> b ((c ^^ k) s)" ..
     with \<open>b s\<close> obtain l where "k = Suc l" by (cases k) auto
-    with 1 have "~ b ((c ^^ l) (c s))" by (auto simp: funpow_swap1)
-    then have 2: "\<exists>l. ~ b ((c ^^ l) (c s))" ..
+    with 1 have "\<not> b ((c ^^ l) (c s))" by (auto simp: funpow_swap1)
+    then have 2: "\<exists>l. \<not> b ((c ^^ l) (c s))" ..
     from 1
-    have "(LEAST k. ~ b ((c ^^ k) s)) = Suc (LEAST l. ~ b ((c ^^ Suc l) s))"
+    have "(LEAST k. \<not> b ((c ^^ k) s)) = Suc (LEAST l. \<not> b ((c ^^ Suc l) s))"
       by (rule Least_Suc) (simp add: \<open>b s\<close>)
-    also have "... = Suc (LEAST l. ~ b ((c ^^ l) (c s)))"
+    also have "... = Suc (LEAST l. \<not> b ((c ^^ l) (c s)))"
       by (simp add: funpow_swap1)
     finally
     show ?thesis 
       using True 2 \<open>b s\<close> by (simp add: funpow_swap1 while_option_def)
   next
     case False
-    then have "~ (\<exists>l. ~ b ((c ^^ Suc l) s))" by blast
-    then have "~ (\<exists>l. ~ b ((c ^^ l) (c s)))"
+    then have "\<not> (\<exists>l. \<not> b ((c ^^ Suc l) s))" by blast
+    then have "\<not> (\<exists>l. \<not> b ((c ^^ l) (c s)))"
       by (simp add: funpow_swap1)
     with False  \<open>b s\<close> show ?thesis by (simp add: while_option_def)
   qed
 next
-  assume [simp]: "~ b s"
-  have least: "(LEAST k. ~ b ((c ^^ k) s)) = 0"
+  assume [simp]: "\<not> b s"
+  have least: "(LEAST k. \<not> b ((c ^^ k) s)) = 0"
     by (rule Least_equality) auto
   moreover 
-  have "\<exists>k. ~ b ((c ^^ k) s)" by (rule exI[of _ "0::nat"]) auto
+  have "\<exists>k. \<not> b ((c ^^ k) s)" by (rule exI[of _ "0::nat"]) auto
   ultimately show ?thesis unfolding while_option_def by auto 
 qed
 
 lemma while_option_stop2:
- "while_option b c s = Some t \<Longrightarrow> EX k. t = (c^^k) s \<and> \<not> b t"
+ "while_option b c s = Some t \<Longrightarrow> \<exists>k. t = (c^^k) s \<and> \<not> b t"
 apply(simp add: while_option_def split: if_splits)
 by (metis (lifting) LeastI_ex)
 
-lemma while_option_stop: "while_option b c s = Some t \<Longrightarrow> ~ b t"
+lemma while_option_stop: "while_option b c s = Some t \<Longrightarrow> \<not> b t"
 by(metis while_option_stop2)
 
 theorem while_option_rule:
@@ -65,13 +65,13 @@ theorem while_option_rule:
     and init: "P s"
   shows "P t"
 proof -
-  define k where "k = (LEAST k. ~ b ((c ^^ k) s))"
+  define k where "k = (LEAST k. \<not> b ((c ^^ k) s))"
   from assms have t: "t = (c ^^ k) s"
     by (simp add: while_option_def k_def split: if_splits)    
   have 1: "ALL i<k. b ((c ^^ i) s)"
     by (auto simp: k_def dest: not_less_Least)
 
-  { fix i assume "i <= k" then have "P ((c ^^ i) s)"
+  { fix i assume "i \<le> k" then have "P ((c ^^ i) s)"
       by (induct i) (auto simp: init step 1) }
   thus "P t" by (auto simp: t)
 qed
@@ -243,8 +243,8 @@ text\<open>Proving termination:\<close>
 
 theorem wf_while_option_Some:
   assumes "wf {(t, s). (P s \<and> b s) \<and> t = c s}"
-  and "!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s)" and "P s"
-  shows "EX t. while_option b c s = Some t"
+  and "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s)" and "P s"
+  shows "\<exists>t. while_option b c s = Some t"
 using assms(1,3)
 proof (induction s)
   case less thus ?case using assms(2)
@@ -264,8 +264,8 @@ proof -
 qed
 
 theorem measure_while_option_Some: fixes f :: "'s \<Rightarrow> nat"
-shows "(!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s) \<and> f(c s) < f s)
-  \<Longrightarrow> P s \<Longrightarrow> EX t. while_option b c s = Some t"
+shows "(\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s) \<and> f(c s) < f s)
+  \<Longrightarrow> P s \<Longrightarrow> \<exists>t. while_option b c s = Some t"
 by(blast intro: wf_while_option_Some[OF wf_if_measure, of P b f])
 
 text\<open>Kleene iteration starting from the empty set and assuming some finite

@@ -54,7 +54,7 @@ lemma bij_betwI':
   unfolding bij_betw_def inj_on_def by blast
 
 lemma surj_fun_eq:
-  assumes surj_on: "f ` X = UNIV" and eq_on: "\<forall>x \<in> X. (g1 o f) x = (g2 o f) x"
+  assumes surj_on: "f ` X = UNIV" and eq_on: "\<forall>x \<in> X. (g1 \<circ> f) x = (g2 \<circ> f) x"
   shows "g1 = g2"
 proof (rule ext)
   fix y

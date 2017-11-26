@@ -238,9 +238,9 @@ locale ring = abelian_group R + monoid R for R (structure) +
 locale cring = ring + comm_monoid R
 
 locale "domain" = cring +
-  assumes one_not_zero [simp]: "\<one> ~= \<zero>"
+  assumes one_not_zero [simp]: "\<one> \<noteq> \<zero>"
     and integral: "[| a \<otimes> b = \<zero>; a \<in> carrier R; b \<in> carrier R |] ==>
-                  a = \<zero> | b = \<zero>"
+                  a = \<zero> \<or> b = \<zero>"
 
 locale field = "domain" +
   assumes field_Units: "Units R = carrier R - {\<zero>}"
@@ -427,7 +427,7 @@ lemmas (in cring) cring_simprules
   a_lcomm m_lcomm r_distr l_null r_null l_minus r_minus
 
 lemma (in semiring) nat_pow_zero:
-  "(n::nat) ~= 0 ==> \<zero> (^) n = \<zero>"
+  "(n::nat) \<noteq> 0 \<Longrightarrow> \<zero> (^) n = \<zero>"
   by (induct n) simp_all
 
 context semiring begin
@@ -469,7 +469,7 @@ lemma
   fixes R (structure) and S (structure)
   assumes "ring R" "cring S"
   assumes RS: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier S" "d \<in> carrier S"
-  shows "a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^bsub>S\<^esub> d = d \<otimes>\<^bsub>S\<^esub> c"
+  shows "a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b \<and> c \<otimes>\<^bsub>S\<^esub> d = d \<otimes>\<^bsub>S\<^esub> c"
 proof -
   interpret ring R by fact
   interpret cring S by fact
@@ -513,27 +513,27 @@ subsection \<open>Integral Domains\<close>
 context "domain" begin
 
 lemma zero_not_one [simp]:
-  "\<zero> ~= \<one>"
+  "\<zero> \<noteq> \<one>"
   by (rule not_sym) simp
 
 lemma integral_iff: (* not by default a simp rule! *)
-  "[| a \<in> carrier R; b \<in> carrier R |] ==> (a \<otimes> b = \<zero>) = (a = \<zero> | b = \<zero>)"
+  "[| a \<in> carrier R; b \<in> carrier R |] ==> (a \<otimes> b = \<zero>) = (a = \<zero> \<or> b = \<zero>)"
 proof
   assume "a \<in> carrier R" "b \<in> carrier R" "a \<otimes> b = \<zero>"
-  then show "a = \<zero> | b = \<zero>" by (simp add: integral)
+  then show "a = \<zero> \<or> b = \<zero>" by (simp add: integral)
 next
-  assume "a \<in> carrier R" "b \<in> carrier R" "a = \<zero> | b = \<zero>"
+  assume "a \<in> carrier R" "b \<in> carrier R" "a = \<zero> \<or> b = \<zero>"
   then show "a \<otimes> b = \<zero>" by auto
 qed
 
 lemma m_lcancel:
-  assumes prem: "a ~= \<zero>"
+  assumes prem: "a \<noteq> \<zero>"
     and R: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier R"
   shows "(a \<otimes> b = a \<otimes> c) = (b = c)"
 proof
   assume eq: "a \<otimes> b = a \<otimes> c"
   with R have "a \<otimes> (b \<ominus> c) = \<zero>" by algebra
-  with R have "a = \<zero> | (b \<ominus> c) = \<zero>" by (simp add: integral_iff)
+  with R have "a = \<zero> \<or> (b \<ominus> c) = \<zero>" by (simp add: integral_iff)
   with prem and R have "b \<ominus> c = \<zero>" by auto 
   with R have "b = b \<ominus> (b \<ominus> c)" by algebra 
   also from R have "b \<ominus> (b \<ominus> c) = c" by algebra
@@ -543,7 +543,7 @@ next
 qed
 
 lemma m_rcancel:
-  assumes prem: "a ~= \<zero>"
+  assumes prem: "a \<noteq> \<zero>"
     and R: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier R"
   shows conc: "(b \<otimes> a = c \<otimes> a) = (b = c)"
 proof -
@@ -609,9 +609,9 @@ subsection \<open>Morphisms\<close>
 definition
   ring_hom :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme] => ('a => 'b) set"
   where "ring_hom R S =
-    {h. h \<in> carrier R \<rightarrow> carrier S &
-      (ALL x y. x \<in> carrier R & y \<in> carrier R -->
-        h (x \<otimes>\<^bsub>R\<^esub> y) = h x \<otimes>\<^bsub>S\<^esub> h y & h (x \<oplus>\<^bsub>R\<^esub> y) = h x \<oplus>\<^bsub>S\<^esub> h y) &
+    {h. h \<in> carrier R \<rightarrow> carrier S \<and>
+      (\<forall>x y. x \<in> carrier R \<and> y \<in> carrier R \<longrightarrow>
+        h (x \<otimes>\<^bsub>R\<^esub> y) = h x \<otimes>\<^bsub>S\<^esub> h y \<and> h (x \<oplus>\<^bsub>R\<^esub> y) = h x \<oplus>\<^bsub>S\<^esub> h y) \<and>
       h \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>}"
 
 lemma ring_hom_memI:
@@ -675,13 +675,13 @@ proof -
 qed
 
 lemma (in ring_hom_cring) hom_finsum [simp]:
-  "f \<in> A \<rightarrow> carrier R ==>
-  h (finsum R f A) = finsum S (h o f) A"
+  "f \<in> A \<rightarrow> carrier R \<Longrightarrow>
+  h (finsum R f A) = finsum S (h \<circ> f) A"
   by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 lemma (in ring_hom_cring) hom_finprod:
-  "f \<in> A \<rightarrow> carrier R ==>
-  h (finprod R f A) = finprod S (h o f) A"
+  "f \<in> A \<rightarrow> carrier R \<Longrightarrow>
+  h (finprod R f A) = finprod S (h \<circ> f) A"
   by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 declare ring_hom_cring.hom_finprod [simp]

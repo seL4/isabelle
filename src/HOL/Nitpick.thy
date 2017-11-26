@@ -150,10 +150,10 @@ definition one_frac :: 'a where
   "one_frac \<equiv> Abs_Frac (1, 1)"
 
 definition num :: "'a \<Rightarrow> int" where
-  "num \<equiv> fst o Rep_Frac"
+  "num \<equiv> fst \<circ> Rep_Frac"
 
 definition denom :: "'a \<Rightarrow> int" where
-  "denom \<equiv> snd o Rep_Frac"
+  "denom \<equiv> snd \<circ> Rep_Frac"
 
 function norm_frac :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
   "norm_frac a b =

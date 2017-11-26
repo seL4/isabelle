@@ -27,7 +27,7 @@ lemma ramsey2:
   (is "\<exists>r\<ge>1. ?R m n r")
 proof (induct k \<equiv> "m + n" arbitrary: m n)
   case 0
-  show ?case (is "EX r. ?Q r")
+  show ?case (is "\<exists>r. ?Q r")
   proof
     from 0 show "?Q 1"
       by (clarsimp simp: indep_def) (metis card.empty emptyE empty_subsetI)
@@ -35,7 +35,7 @@ proof (induct k \<equiv> "m + n" arbitrary: m n)
 next
   case (Suc k)
   consider "m = 0 \<or> n = 0" | "m \<noteq> 0" "n \<noteq> 0" by auto
-  then show ?case (is "EX r. ?Q r")
+  then show ?case (is "\<exists>r. ?Q r")
   proof cases
     case 1
     then have "?Q 1"

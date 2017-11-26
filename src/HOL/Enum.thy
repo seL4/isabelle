@@ -88,7 +88,7 @@ definition
   [code del]: "enum_the = The"
 
 lemma [code]:
-  "The P = (case filter P enum of [x] => x | _ => enum_the P)"
+  "The P = (case filter P enum of [x] \<Rightarrow> x | _ \<Rightarrow> enum_the P)"
 proof -
   {
     fix a
@@ -212,16 +212,16 @@ proof
   then have "\<exists> n. x : bacc r n"
   proof (induct x arbitrary: rule: acc.induct)
     case (accI x)
-    then have "\<forall>y. \<exists> n. (y, x) \<in> r --> y : bacc r n" by simp
+    then have "\<forall>y. \<exists> n. (y, x) \<in> r \<longrightarrow> y \<in> bacc r n" by simp
     from choice[OF this] obtain n where n: "\<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r (n y)" ..
-    obtain n where "\<And>y. (y, x) : r \<Longrightarrow> y : bacc r n"
+    obtain n where "\<And>y. (y, x) \<in> r \<Longrightarrow> y \<in> bacc r n"
     proof
-      fix y assume y: "(y, x) : r"
+      fix y assume y: "(y, x) \<in> r"
       with n have "y : bacc r (n y)" by auto
-      moreover have "n y <= Max ((%(y, x). n y) ` r)"
+      moreover have "n y <= Max ((\<lambda>(y, x). n y) ` r)"
         using y \<open>finite r\<close> by (auto intro!: Max_ge)
       note bacc_mono[OF this, of r]
-      ultimately show "y : bacc r (Max ((%(y, x). n y) ` r))" by auto
+      ultimately show "y : bacc r (Max ((\<lambda>(y, x). n y) ` r))" by auto
     qed
     then show ?case
       by (auto simp add: Let_def intro!: exI[of _ "Suc n"])
@@ -297,13 +297,13 @@ instantiation "fun" :: (enum, enum) enum
 begin
 
 definition
-  "enum = map (\<lambda>ys. the o map_of (zip (enum::'a list) ys)) (List.n_lists (length (enum::'a::enum list)) enum)"
+  "enum = map (\<lambda>ys. the \<circ> map_of (zip (enum::'a list) ys)) (List.n_lists (length (enum::'a::enum list)) enum)"
 
 definition
-  "enum_all P = all_n_lists (\<lambda>bs. P (the o map_of (zip enum bs))) (length (enum :: 'a list))"
+  "enum_all P = all_n_lists (\<lambda>bs. P (the \<circ> map_of (zip enum bs))) (length (enum :: 'a list))"
 
 definition
-  "enum_ex P = ex_n_lists (\<lambda>bs. P (the o map_of (zip enum bs))) (length (enum :: 'a list))"
+  "enum_ex P = ex_n_lists (\<lambda>bs. P (the \<circ> map_of (zip enum bs))) (length (enum :: 'a list))"
 
 instance proof
   show "UNIV = set (enum :: ('a \<Rightarrow> 'b) list)"
@@ -368,17 +368,17 @@ qed
 end
 
 lemma enum_fun_code [code]: "enum = (let enum_a = (enum :: 'a::{enum, equal} list)
-  in map (\<lambda>ys. the o map_of (zip enum_a ys)) (List.n_lists (length enum_a) enum))"
+  in map (\<lambda>ys. the \<circ> map_of (zip enum_a ys)) (List.n_lists (length enum_a) enum))"
   by (simp add: enum_fun_def Let_def)
 
 lemma enum_all_fun_code [code]:
   "enum_all P = (let enum_a = (enum :: 'a::{enum, equal} list)
-   in all_n_lists (\<lambda>bs. P (the o map_of (zip enum_a bs))) (length enum_a))"
+   in all_n_lists (\<lambda>bs. P (the \<circ> map_of (zip enum_a bs))) (length enum_a))"
   by (simp only: enum_all_fun_def Let_def)
 
 lemma enum_ex_fun_code [code]:
   "enum_ex P = (let enum_a = (enum :: 'a::{enum, equal} list)
-   in ex_n_lists (\<lambda>bs. P (the o map_of (zip enum_a bs))) (length enum_a))"
+   in ex_n_lists (\<lambda>bs. P (the \<circ> map_of (zip enum_a bs))) (length enum_a))"
   by (simp only: enum_ex_fun_def Let_def)
 
 instantiation set :: (enum) enum

@@ -77,7 +77,7 @@ lemma nat_mult_div_cancel1: "(0::nat) < k ==> (k*m) div (k*n) = (m div n)"
 by auto
 
 lemma nat_mult_dvd_cancel_disj[simp]:
-  "(k*m) dvd (k*n) = (k=0 | m dvd (n::nat))"
+  "(k*m) dvd (k*n) = (k=0 \<or> m dvd (n::nat))"
 by (auto simp: dvd_eq_mod_eq_0 mod_mult_mult1)
 
 lemma nat_mult_dvd_cancel1: "0 < k \<Longrightarrow> (k*m) dvd (k*n::nat) = (m dvd n)"

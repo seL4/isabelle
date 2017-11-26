@@ -241,8 +241,8 @@ val max_gt_thm = mk_rewr @{lemma "max (x::real) y = (if y <= x then x else y)"
   by (simp add: max_def)}
 val abs_thm = mk_rewr @{lemma "abs (x::real) = (if 0 <= x then x else -x)" by simp}
 val sub_eq_thm = mk_rewr @{lemma "((x::real) = y) = (x - y = 0)" by simp}
-val eq_le_thm = mk_rewr @{lemma "((x::real) = y) = ((x <= y) & (y <= x))" by (rule order_eq_iff)}
-val add_le_thm = mk_rewr @{lemma "((x::real) <= y) = (x + n <= y + n)" by simp}
+val eq_le_thm = mk_rewr @{lemma "((x::real) = y) = ((x \<le> y) \<and> (y \<le> x))" by (rule order_eq_iff)}
+val add_le_thm = mk_rewr @{lemma "((x::real) \<le> y) = (x + n \<le> y + n)" by simp}
 val add_lt_thm = mk_rewr @{lemma "((x::real) < y) = (x + n < y + n)" by simp}
 val sub_le_thm = mk_rewr @{lemma "((x::real) <= y) = (x - y <= 0)" by simp}
 val sub_lt_thm = mk_rewr @{lemma "((x::real) < y) = (x - y < 0)" by simp}
@@ -250,8 +250,8 @@ val pos_mul_le_thm = mk_rewr @{lemma "0 < n ==> ((x::real) <= y) = (n * x <= n *
 val neg_mul_le_thm = mk_rewr @{lemma "n < 0 ==> ((x::real) <= y) = (n * y <= n * x)" by simp}
 val pos_mul_lt_thm = mk_rewr @{lemma "0 < n ==> ((x::real) < y) = (n * x < n * y)" by simp}
 val neg_mul_lt_thm = mk_rewr @{lemma "n < 0 ==> ((x::real) < y) = (n * y < n * x)" by simp}
-val not_le_thm = mk_rewr @{lemma "(~((x::real) <= y)) = (y < x)" by auto}
-val not_lt_thm = mk_rewr @{lemma "(~((x::real) < y)) = (y <= x)" by auto}
+val not_le_thm = mk_rewr @{lemma "(\<not>((x::real) \<le> y)) = (y < x)" by auto}
+val not_lt_thm = mk_rewr @{lemma "(\<not>((x::real) < y)) = (y \<le> x)" by auto}
 
 fun replay_rewr _ Argo_Proof.Rewr_Neg = Conv.rewr_conv neg_thm
   | replay_rewr ctxt (Argo_Proof.Rewr_Add ps) = add_conv ctxt ps

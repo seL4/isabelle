@@ -323,8 +323,8 @@ proof -
     done
   then have "\<forall>x \<in> E. [(p-x) mod p = - x](mod p)"
     by (metis cong_def minus_mod_self1 mod_mod_trivial)
-  then have "[prod ((\<lambda>x. x mod p) o (op - p)) E = prod (uminus) E](mod p)"
-    using finite_E p_ge_2 cong_prod [of E "(\<lambda>x. x mod p) o (op - p)" uminus p]
+  then have "[prod ((\<lambda>x. x mod p) \<circ> (op - p)) E = prod (uminus) E](mod p)"
+    using finite_E p_ge_2 cong_prod [of E "(\<lambda>x. x mod p) \<circ> (op - p)" uminus p]
     by auto
   then have two: "[prod id F = prod (uminus) E](mod p)"
     by (metis FE cong_cong_mod_int cong_refl cong_prod minus_mod_self1)

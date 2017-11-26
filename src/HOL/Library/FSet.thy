@@ -510,7 +510,7 @@ lemma eq_ffilter:
   by transfer auto
 
 lemma pfsubset_ffilter:
-  "(\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| A & \<not> P x & Q x) \<Longrightarrow>
+  "(\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| A \<and> \<not> P x \<and> Q x) \<Longrightarrow>
     ffilter P A |\<subset>| ffilter Q A"
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
 

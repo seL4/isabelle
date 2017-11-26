@@ -1629,7 +1629,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         val theta =
           (funs ~~ @{map 2} mk_fun_insts Ts funs) @ (algs ~~ map (Thm.cterm_of lthy) dtors);
         val dtor_unfold_dtors = (dtor_unfold_unique_thm OF
-          map (fn thm => mk_trans (thm RS @{thm arg_cong2[of _ _ _ _ "op o", OF _ refl]})
+          map (fn thm => mk_trans (thm RS @{thm arg_cong2[of _ _ _ _ "op \<circ>", OF _ refl]})
             @{thm trans[OF id_o o_id[symmetric]]}) map_id0s)
           |> split_conj_thm |> map mk_sym;
       in

@@ -258,11 +258,11 @@ lemma dom_map_option_comp [simp]:
 
 subsection \<open>@{const map_option} related\<close>
 
-lemma map_option_o_empty [simp]: "map_option f o empty = empty"
+lemma map_option_o_empty [simp]: "map_option f \<circ> empty = empty"
 by (rule ext) simp
 
 lemma map_option_o_map_upd [simp]:
-  "map_option f o m(a\<mapsto>b) = (map_option f o m)(a\<mapsto>f b)"
+  "map_option f \<circ> m(a\<mapsto>b) = (map_option f \<circ> m)(a\<mapsto>f b)"
 by (rule ext) simp
 
 
@@ -299,7 +299,7 @@ lemma map_add_assoc[simp]: "m1 ++ (m2 ++ m3) = (m1 ++ m2) ++ m3"
 by (rule ext) (simp add: map_add_def split: option.split)
 
 lemma map_add_Some_iff:
-  "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)"
+  "((m ++ n) k = Some x) = (n k = Some x \<or> n k = None \<and> m k = Some x)"
 by (simp add: map_add_def split: option.split)
 
 lemma map_add_SomeD [dest!]:
@@ -309,7 +309,7 @@ by (rule map_add_Some_iff [THEN iffD1])
 lemma map_add_find_right [simp]: "n k = Some xx \<Longrightarrow> (m ++ n) k = Some xx"
 by (subst map_add_Some_iff) fast
 
-lemma map_add_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
+lemma map_add_None [iff]: "((m ++ n) k = None) = (n k = None \<and> m k = None)"
 by (simp add: map_add_def split: option.split)
 
 lemma map_add_upd[simp]: "f ++ g(x\<mapsto>y) = (f ++ g)(x\<mapsto>y)"

@@ -8,22 +8,22 @@ begin
 
 locale subseqs =
   fixes P::"nat\<Rightarrow>(nat\<Rightarrow>nat)\<Rightarrow>bool"
-  assumes ex_subseq: "\<And>n s. strict_mono (s::nat\<Rightarrow>nat) \<Longrightarrow> \<exists>r'. strict_mono r' \<and> P n (s o r')"
+  assumes ex_subseq: "\<And>n s. strict_mono (s::nat\<Rightarrow>nat) \<Longrightarrow> \<exists>r'. strict_mono r' \<and> P n (s \<circ> r')"
 begin
 
-definition reduce where "reduce s n = (SOME r'::nat\<Rightarrow>nat. strict_mono r' \<and> P n (s o r'))"
+definition reduce where "reduce s n = (SOME r'::nat\<Rightarrow>nat. strict_mono r' \<and> P n (s \<circ> r'))"
 
 lemma subseq_reduce[intro, simp]:
   "strict_mono s \<Longrightarrow> strict_mono (reduce s n)"
   unfolding reduce_def by (rule someI2_ex[OF ex_subseq]) auto
 
 lemma reduce_holds:
-  "strict_mono s \<Longrightarrow> P n (s o reduce s n)"
+  "strict_mono s \<Longrightarrow> P n (s \<circ> reduce s n)"
   unfolding reduce_def by (rule someI2_ex[OF ex_subseq]) (auto simp: o_def)
 
 primrec seqseq :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "seqseq 0 = id"
-| "seqseq (Suc n) = seqseq n o reduce (seqseq n) n"
+| "seqseq (Suc n) = seqseq n \<circ> reduce (seqseq n) n"
 
 lemma subseq_seqseq[intro, simp]: "strict_mono (seqseq n)"
 proof (induct n)
@@ -35,7 +35,7 @@ qed
 lemma seqseq_holds:
   "P n (seqseq (Suc n))"
 proof -
-  have "P n (seqseq n o reduce (seqseq n) n)"
+  have "P n (seqseq n \<circ> reduce (seqseq n) n)"
     by (intro reduce_holds subseq_seqseq)
   thus ?thesis by simp
 qed
@@ -57,14 +57,14 @@ lemma subseq_diagseq: "strict_mono diagseq"
 
 primrec fold_reduce where
   "fold_reduce n 0 = id"
-| "fold_reduce n (Suc k) = fold_reduce n k o reduce (seqseq (n + k)) (n + k)"
+| "fold_reduce n (Suc k) = fold_reduce n k \<circ> reduce (seqseq (n + k)) (n + k)"
 
 lemma subseq_fold_reduce[intro, simp]: "strict_mono (fold_reduce n k)"
 proof (induct k)
   case (Suc k) from strict_mono_o[OF this subseq_reduce] show ?case by (simp add: o_def)
 qed (simp add: strict_mono_def)
 
-lemma ex_subseq_reduce_index: "seqseq (n + k) = seqseq n o fold_reduce n k"
+lemma ex_subseq_reduce_index: "seqseq (n + k) = seqseq n \<circ> fold_reduce n k"
   by (induct k) simp_all
 
 lemma seqseq_fold_reduce: "seqseq n = fold_reduce 0 n"
@@ -73,20 +73,20 @@ lemma seqseq_fold_reduce: "seqseq n = fold_reduce 0 n"
 lemma diagseq_fold_reduce: "diagseq n = fold_reduce 0 n n"
   using seqseq_fold_reduce by (simp add: diagseq_def)
 
-lemma fold_reduce_add: "fold_reduce 0 (m + n) = fold_reduce 0 m o fold_reduce m n"
+lemma fold_reduce_add: "fold_reduce 0 (m + n) = fold_reduce 0 m \<circ> fold_reduce m n"
   by (induct n) simp_all
 
-lemma diagseq_add: "diagseq (k + n) = (seqseq k o (fold_reduce k n)) (k + n)"
+lemma diagseq_add: "diagseq (k + n) = (seqseq k \<circ> (fold_reduce k n)) (k + n)"
 proof -
   have "diagseq (k + n) = fold_reduce 0 (k + n) (k + n)"
     by (simp add: diagseq_fold_reduce)
-  also have "\<dots> = (seqseq k o fold_reduce k n) (k + n)"
+  also have "\<dots> = (seqseq k \<circ> fold_reduce k n) (k + n)"
     unfolding fold_reduce_add seqseq_fold_reduce ..
   finally show ?thesis .
 qed
 
 lemma diagseq_sub:
-  assumes "m \<le> n" shows "diagseq n = (seqseq m o (fold_reduce m (n - m))) n"
+  assumes "m \<le> n" shows "diagseq n = (seqseq m \<circ> (fold_reduce m (n - m))) n"
   using diagseq_add[of m "n - m"] assms by simp
 
 lemma subseq_diagonal_rest: "strict_mono (\<lambda>x. fold_reduce k x (k + x))"
@@ -100,12 +100,12 @@ proof
   finally show "?lhs < \<dots>" .
 qed
 
-lemma diagseq_seqseq: "diagseq o (op + k) = (seqseq k o (\<lambda>x. fold_reduce k x (k + x)))"
+lemma diagseq_seqseq: "diagseq \<circ> (op + k) = (seqseq k \<circ> (\<lambda>x. fold_reduce k x (k + x)))"
   by (auto simp: o_def diagseq_add)
 
 lemma diagseq_holds:
-  assumes subseq_stable: "\<And>r s n. strict_mono r \<Longrightarrow> P n s \<Longrightarrow> P n (s o r)"
-  shows "P k (diagseq o (op + (Suc k)))"
+  assumes subseq_stable: "\<And>r s n. strict_mono r \<Longrightarrow> P n s \<Longrightarrow> P n (s \<circ> r)"
+  shows "P k (diagseq \<circ> (op + (Suc k)))"
   unfolding diagseq_seqseq by (intro subseq_stable subseq_diagonal_rest seqseq_holds)
 
 end

@@ -22,12 +22,12 @@ record 'a monoid =  "'a partial_object" +
 
 definition
   m_inv :: "('a, 'b) monoid_scheme => 'a => 'a" ("inv\<index> _" [81] 80)
-  where "inv\<^bsub>G\<^esub> x = (THE y. y \<in> carrier G & x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
+  where "inv\<^bsub>G\<^esub> x = (THE y. y \<in> carrier G \<and> x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
 
 definition
   Units :: "_ => 'a set"
   \<comment>\<open>The set of invertible elements\<close>
-  where "Units G = {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
+  where "Units G = {y. y \<in> carrier G \<and> (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
   pow :: "[('a, 'm) monoid_scheme, 'a, 'b::semiring_1] => 'a"  (infixr "'(^')\<index>" 75)
@@ -277,7 +277,7 @@ proof -
     with x xG show "x \<otimes> \<one> = x" by simp
   qed
   have inv_ex:
-    "!!x. x \<in> carrier G ==> \<exists>y \<in> carrier G. y \<otimes> x = \<one> & x \<otimes> y = \<one>"
+    "\<And>x. x \<in> carrier G \<Longrightarrow> \<exists>y \<in> carrier G. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>"
   proof -
     fix x
     assume x: "x \<in> carrier G"
@@ -287,10 +287,10 @@ proof -
       by (simp add: m_assoc [symmetric] l_inv r_one)
     with x y have r_inv: "x \<otimes> y = \<one>"
       by simp
-    from x y show "\<exists>y \<in> carrier G. y \<otimes> x = \<one> & x \<otimes> y = \<one>"
+    from x y show "\<exists>y \<in> carrier G. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>"
       by (fast intro: l_inv r_inv)
   qed
-  then have carrier_subset_Units: "carrier G <= Units G"
+  then have carrier_subset_Units: "carrier G \<subseteq> Units G"
     by (unfold Units_def) fast
   show ?thesis
     by standard (auto simp: r_one m_assoc carrier_subset_Units)
@@ -305,9 +305,9 @@ lemma (in monoid) group_l_invI:
 lemma (in group) Units_eq [simp]:
   "Units G = carrier G"
 proof
-  show "Units G <= carrier G" by fast
+  show "Units G \<subseteq> carrier G" by fast
 next
-  show "carrier G <= Units G" by (rule Units)
+  show "carrier G \<subseteq> Units G" by (rule Units)
 qed
 
 lemma (in group) inv_closed [intro, simp]:
@@ -510,13 +510,13 @@ declare monoid.one_closed [iff] group.inv_closed [simp]
   monoid.l_one [simp] monoid.r_one [simp] group.inv_inv [simp]
 
 lemma subgroup_nonempty:
-  "~ subgroup {} G"
+  "\<not> subgroup {} G"
   by (blast dest: subgroup.one_closed)
 
 lemma (in subgroup) finite_imp_card_positive:
   "finite (carrier G) ==> 0 < card H"
 proof (rule classical)
-  assume "finite (carrier G)" and a: "~ 0 < card H"
+  assume "finite (carrier G)" and a: "\<not> 0 < card H"
   then have "finite H" by (blast intro: finite_subset [OF subset])
   with is_subgroup a have "subgroup {} G" by simp
   with subgroup_nonempty show ?thesis by contradiction
@@ -591,7 +591,7 @@ subsection \<open>Homomorphisms and Isomorphisms\<close>
 definition
   hom :: "_ => _ => ('a => 'b) set" where
   "hom G H =
-    {h. h \<in> carrier G \<rightarrow> carrier H &
+    {h. h \<in> carrier G \<rightarrow> carrier H \<and>
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
 lemma (in group) hom_compose:
@@ -600,9 +600,9 @@ by (fastforce simp add: hom_def compose_def)
 
 definition
   iso :: "_ => _ => ('a => 'b) set" (infixr "\<cong>" 60)
-  where "G \<cong> H = {h. h \<in> hom G H & bij_betw h (carrier G) (carrier H)}"
+  where "G \<cong> H = {h. h \<in> hom G H \<and> bij_betw h (carrier G) (carrier H)}"
 
-lemma iso_refl: "(%x. x) \<in> G \<cong> G"
+lemma iso_refl: "(\<lambda>x. x) \<in> G \<cong> G"
 by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
 lemma (in group) iso_sym:
@@ -798,15 +798,15 @@ apply (rule_tac group.inv_closed [OF subgroup_imp_group, simplified], assumption
 done
 
 theorem (in group) subgroups_Inter:
-  assumes subgr: "(!!H. H \<in> A ==> subgroup H G)"
-    and not_empty: "A ~= {}"
+  assumes subgr: "(\<And>H. H \<in> A \<Longrightarrow> subgroup H G)"
+    and not_empty: "A \<noteq> {}"
   shows "subgroup (\<Inter>A) G"
 proof (rule subgroupI)
   from subgr [THEN subgroup.subset] and not_empty
   show "\<Inter>A \<subseteq> carrier G" by blast
 next
   from subgr [THEN subgroup.one_closed]
-  show "\<Inter>A ~= {}" by blast
+  show "\<Inter>A \<noteq> {}" by blast
 next
   fix x assume "x \<in> \<Inter>A"
   with subgr [THEN subgroup.m_inv_closed]
@@ -828,7 +828,7 @@ next
   then show "\<exists>G. greatest ?L G (carrier ?L)" ..
 next
   fix A
-  assume L: "A \<subseteq> carrier ?L" and non_empty: "A ~= {}"
+  assume L: "A \<subseteq> carrier ?L" and non_empty: "A \<noteq> {}"
   then have Int_subgroup: "subgroup (\<Inter>A) G"
     by (fastforce intro: subgroups_Inter)
   have "greatest ?L (\<Inter>A) (Lower ?L A)" (is "greatest _ ?Int _")

@@ -99,7 +99,7 @@ val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 (* INFERENCE RULE: ASSUME *)
 
-val EXCLUDED_MIDDLE = @{lemma "P ==> ~ P ==> False" by (rule notE)}
+val EXCLUDED_MIDDLE = @{lemma "P \<Longrightarrow> \<not> P \<Longrightarrow> False" by (rule notE)}
 
 fun inst_excluded_middle ctxt i_atom =
   let
@@ -256,7 +256,7 @@ fun make_last i th =
    don't use this trick in general because it makes the proof object uglier than
    necessary. FIXME. *)
 fun negate_head ctxt th =
-  if exists (fn t => t aconv @{prop "~ False"}) (Thm.prems_of th) then
+  if exists (fn t => t aconv @{prop "\<not> False"}) (Thm.prems_of th) then
     (th RS @{thm select_FalseI})
     |> fold (rewrite_rule ctxt o single) @{thms not_atomize_select atomize_not_select}
   else
@@ -298,7 +298,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 
 (* INFERENCE RULE: REFL *)
 
-val REFL_THM = Thm.incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
+val REFL_THM = Thm.incr_indexes 2 @{lemma "t \<noteq> t \<Longrightarrow> False" by simp}
 
 val refl_x = Thm.cterm_of @{context} (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
@@ -312,8 +312,8 @@ fun refl_inference ctxt type_enc concealed sym_tab t =
 
 (* INFERENCE RULE: EQUALITY *)
 
-val subst_em = @{lemma "s = t ==> P s ==> ~ P t ==> False" by simp}
-val ssubst_em = @{lemma "s = t ==> P t ==> ~ P s ==> False" by simp}
+val subst_em = @{lemma "s = t \<Longrightarrow> P s \<Longrightarrow> \<not> P t \<Longrightarrow> False" by simp}
+val ssubst_em = @{lemma "s = t \<Longrightarrow> P t \<Longrightarrow> \<not> P s \<Longrightarrow> False" by simp}
 
 fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
   let val thy = Proof_Context.theory_of ctxt

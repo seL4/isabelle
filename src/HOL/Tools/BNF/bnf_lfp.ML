@@ -1279,7 +1279,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           (funs ~~ @{map 2} mk_fun_insts Ts funs) @ (algs ~~ map (Thm.cterm_of lthy) ctors);
         val ctor_fold_ctors = (ctor_fold_unique_thm OF
           map (fn thm => mk_trans @{thm id_o} (mk_sym (thm RS
-            @{thm trans[OF arg_cong2[of _ _ _ _ "op o", OF refl] o_id]}))) map_id0s)
+            @{thm trans[OF arg_cong2[of _ _ _ _ "op \<circ>", OF refl] o_id]}))) map_id0s)
           |> split_conj_thm |> map mk_sym;
       in
         infer_instantiate lthy theta ctor_fold_unique_thm

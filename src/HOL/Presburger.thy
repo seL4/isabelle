@@ -180,8 +180,8 @@ subsection\<open>Cooper's Theorem \<open>-\<infinity>\<close> and \<open>+\<infi
 
 subsubsection\<open>First some trivial facts about periodic sets or predicates\<close>
 lemma periodic_finite_ex:
-  assumes dpos: "(0::int) < d" and modd: "ALL x k. P x = P(x - k*d)"
-  shows "(EX x. P x) = (EX j : {1..d}. P j)"
+  assumes dpos: "(0::int) < d" and modd: "\<forall>x k. P x = P(x - k*d)"
+  shows "(\<exists>x. P x) = (\<exists>j \<in> {1..d}. P j)"
   (is "?LHS = ?RHS")
 proof
   assume ?LHS
@@ -219,7 +219,7 @@ lemma incr_lemma: "0 < (d::int) \<Longrightarrow> z < x + (\<bar>x - z\<bar> + 1
 
 lemma decr_mult_lemma:
   assumes dpos: "(0::int) < d" and minus: "\<forall>x. P x \<longrightarrow> P(x - d)" and knneg: "0 <= k"
-  shows "ALL x. P x \<longrightarrow> P(x - k*d)"
+  shows "\<forall>x. P x \<longrightarrow> P(x - k*d)"
 using knneg
 proof (induct rule:int_ge_induct)
   case base thus ?case by simp
@@ -235,25 +235,25 @@ qed
 
 lemma  minusinfinity:
   assumes dpos: "0 < d" and
-    P1eqP1: "ALL x k. P1 x = P1(x - k*d)" and ePeqP1: "EX z::int. ALL x. x < z \<longrightarrow> (P x = P1 x)"
-  shows "(EX x. P1 x) \<longrightarrow> (EX x. P x)"
+    P1eqP1: "\<forall>x k. P1 x = P1(x - k*d)" and ePeqP1: "\<exists>z::int. \<forall>x. x < z \<longrightarrow> (P x = P1 x)"
+  shows "(\<exists>x. P1 x) \<longrightarrow> (\<exists>x. P x)"
 proof
-  assume eP1: "EX x. P1 x"
+  assume eP1: "\<exists>x. P1 x"
   then obtain x where P1: "P1 x" ..
-  from ePeqP1 obtain z where P1eqP: "ALL x. x < z \<longrightarrow> (P x = P1 x)" ..
+  from ePeqP1 obtain z where P1eqP: "\<forall>x. x < z \<longrightarrow> (P x = P1 x)" ..
   let ?w = "x - (\<bar>x - z\<bar> + 1) * d"
   from dpos have w: "?w < z" by(rule decr_lemma)
   have "P1 x = P1 ?w" using P1eqP1 by blast
   also have "\<dots> = P(?w)" using w P1eqP by blast
   finally have "P ?w" using P1 by blast
-  thus "EX x. P x" ..
+  thus "\<exists>x. P x" ..
 qed
 
 lemma cpmi: 
   assumes dp: "0 < D" and p1:"\<exists>z. \<forall> x< z. P x = P' x"
-  and nb:"\<forall>x.(\<forall> j\<in> {1..D}. \<forall>(b::int) \<in> B. x \<noteq> b+j) --> P (x) --> P (x - D)"
+  and nb:"\<forall>x.(\<forall> j\<in> {1..D}. \<forall>(b::int) \<in> B. x \<noteq> b+j) \<longrightarrow> P (x) \<longrightarrow> P (x - D)"
   and pd: "\<forall> x k. P' x = P' (x-k*D)"
-  shows "(\<exists>x. P x) = ((\<exists> j\<in> {1..D} . P' j) | (\<exists> j \<in> {1..D}.\<exists> b\<in> B. P (b+j)))" 
+  shows "(\<exists>x. P x) = ((\<exists>j \<in> {1..D} . P' j) \<or> (\<exists>j \<in> {1..D}. \<exists> b \<in> B. P (b+j)))"
          (is "?L = (?R1 \<or> ?R2)")
 proof-
  {assume "?R2" hence "?L"  by blast}
@@ -263,11 +263,11 @@ proof-
  { fix x
    assume P: "P x" and H: "\<not> ?R2"
    {fix y assume "\<not> (\<exists>j\<in>{1..D}. \<exists>b\<in>B. P (b + j))" and P: "P y"
-     hence "~(EX (j::int) : {1..D}. EX (b::int) : B. y = b+j)" by auto
+     hence "\<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. y = b+j)" by auto
      with nb P  have "P (y - D)" by auto }
-   hence "ALL x.~(EX (j::int) : {1..D}. EX (b::int) : B. P(b+j)) --> P (x) --> P (x - D)" by blast
+   hence "\<forall>x. \<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P(b+j)) \<longrightarrow> P (x) \<longrightarrow> P (x - D)" by blast
    with H P have th: " \<forall>x. P x \<longrightarrow> P (x - D)" by auto
-   from p1 obtain z where z: "ALL x. x < z --> (P x = P' x)" by blast
+   from p1 obtain z where z: "\<forall>x. x < z \<longrightarrow> (P x = P' x)" by blast
    let ?y = "x - (\<bar>x - z\<bar> + 1)*D"
    have zp: "0 <= (\<bar>x - z\<bar> + 1)" by arith
    from dp have yz: "?y < z" using decr_lemma[OF dp] by simp   
@@ -284,7 +284,7 @@ lemma  plusinfinity:
     P1eqP1: "\<forall>x k. P' x = P'(x - k*d)" and ePeqP1: "\<exists> z. \<forall> x>z. P x = P' x"
   shows "(\<exists> x. P' x) \<longrightarrow> (\<exists> x. P x)"
 proof
-  assume eP1: "EX x. P' x"
+  assume eP1: "\<exists>x. P' x"
   then obtain x where P1: "P' x" ..
   from ePeqP1 obtain z where P1eqP: "\<forall>x>z. P x = P' x" ..
   let ?w' = "x + (\<bar>x - z\<bar> + 1) * d"
@@ -294,12 +294,12 @@ proof
   hence "P' x = P' ?w" using P1eqP1 by blast
   also have "\<dots> = P(?w)" using w P1eqP by blast
   finally have "P ?w" using P1 by blast
-  thus "EX x. P x" ..
+  thus "\<exists>x. P x" ..
 qed
 
 lemma incr_mult_lemma:
-  assumes dpos: "(0::int) < d" and plus: "ALL x::int. P x \<longrightarrow> P(x + d)" and knneg: "0 <= k"
-  shows "ALL x. P x \<longrightarrow> P(x + k*d)"
+  assumes dpos: "(0::int) < d" and plus: "\<forall>x::int. P x \<longrightarrow> P(x + d)" and knneg: "0 <= k"
+  shows "\<forall>x. P x \<longrightarrow> P(x + k*d)"
 using knneg
 proof (induct rule:int_ge_induct)
   case base thus ?case by simp
@@ -315,9 +315,9 @@ qed
 
 lemma cppi: 
   assumes dp: "0 < D" and p1:"\<exists>z. \<forall> x> z. P x = P' x"
-  and nb:"\<forall>x.(\<forall> j\<in> {1..D}. \<forall>(b::int) \<in> A. x \<noteq> b - j) --> P (x) --> P (x + D)"
+  and nb:"\<forall>x.(\<forall> j\<in> {1..D}. \<forall>(b::int) \<in> A. x \<noteq> b - j) \<longrightarrow> P (x) \<longrightarrow> P (x + D)"
   and pd: "\<forall> x k. P' x= P' (x-k*D)"
-  shows "(\<exists>x. P x) = ((\<exists> j\<in> {1..D} . P' j) | (\<exists> j \<in> {1..D}.\<exists> b\<in> A. P (b - j)))" (is "?L = (?R1 \<or> ?R2)")
+  shows "(\<exists>x. P x) = ((\<exists>j \<in> {1..D} . P' j) \<or> (\<exists> j \<in> {1..D}. \<exists> b\<in> A. P (b - j)))" (is "?L = (?R1 \<or> ?R2)")
 proof-
  {assume "?R2" hence "?L"  by blast}
  moreover
@@ -326,11 +326,11 @@ proof-
  { fix x
    assume P: "P x" and H: "\<not> ?R2"
    {fix y assume "\<not> (\<exists>j\<in>{1..D}. \<exists>b\<in>A. P (b - j))" and P: "P y"
-     hence "~(EX (j::int) : {1..D}. EX (b::int) : A. y = b - j)" by auto
+     hence "\<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> A. y = b - j)" by auto
      with nb P  have "P (y + D)" by auto }
-   hence "ALL x.~(EX (j::int) : {1..D}. EX (b::int) : A. P(b-j)) --> P (x) --> P (x + D)" by blast
+   hence "\<forall>x. \<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> A. P(b-j)) \<longrightarrow> P (x) \<longrightarrow> P (x + D)" by blast
    with H P have th: " \<forall>x. P x \<longrightarrow> P (x + D)" by auto
-   from p1 obtain z where z: "ALL x. x > z --> (P x = P' x)" by blast
+   from p1 obtain z where z: "\<forall>x. x > z \<longrightarrow> (P x = P' x)" by blast
    let ?y = "x + (\<bar>x - z\<bar> + 1)*D"
    have zp: "0 <= (\<bar>x - z\<bar> + 1)" by arith
    from dp have yz: "?y > z" using incr_lemma[OF dp] by simp

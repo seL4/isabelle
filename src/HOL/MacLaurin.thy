@@ -209,7 +209,7 @@ lemma Maclaurin_minus_objl:
   fixes n :: nat and h :: real
   shows
     "h < 0 \<and> n > 0 \<and> diff 0 = f \<and>
-      (\<forall>m t. m < n & h \<le> t & t \<le> 0 --> DERIV (diff m) t :> diff (Suc m) t) \<longrightarrow>
+      (\<forall>m t. m < n \<and> h \<le> t \<and> t \<le> 0 \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t) \<longrightarrow>
     (\<exists>t. h < t \<and> t < 0 \<and> f h = (\<Sum>m<n. diff m 0 / fact m * h ^ m) + diff n t / fact n * h ^ n)"
   by (blast intro: Maclaurin_minus)
 
@@ -373,7 +373,7 @@ qed
 
 subsection \<open>Version for Sine Function\<close>
 
-lemma mod_exhaust_less_4: "m mod 4 = 0 | m mod 4 = 1 | m mod 4 = 2 | m mod 4 = 3"
+lemma mod_exhaust_less_4: "m mod 4 = 0 \<or> m mod 4 = 1 \<or> m mod 4 = 2 \<or> m mod 4 = 3"
   for m :: nat
   by auto
 

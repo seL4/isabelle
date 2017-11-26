@@ -1138,7 +1138,7 @@ proof -
   }
   moreover
   {
-    assume "y = -\<infinity> | y = \<infinity>"
+    assume "y = -\<infinity> \<or> y = \<infinity>"
     then have ?thesis
       using assms[rule_format, of 1] by (cases x) auto
   }
@@ -2845,7 +2845,7 @@ lemma real_ereal_id: "real_of_ereal \<circ> ereal = id"
 proof -
   {
     fix x
-    have "(real_of_ereal o ereal) x = id x"
+    have "(real_of_ereal \<circ> ereal) x = id x"
       by auto
   }
   then show ?thesis

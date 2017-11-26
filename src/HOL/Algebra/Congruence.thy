@@ -52,15 +52,15 @@ definition
 
 abbreviation
   not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".\<noteq>\<index>" 50)
-  where "x .\<noteq>\<^bsub>S\<^esub> y == ~(x .=\<^bsub>S\<^esub> y)"
+  where "x .\<noteq>\<^bsub>S\<^esub> y \<equiv> \<not>(x .=\<^bsub>S\<^esub> y)"
 
 abbreviation
   not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<notin>\<index>" 50)
-  where "x .\<notin>\<^bsub>S\<^esub> A == ~(x .\<in>\<^bsub>S\<^esub> A)"
+  where "x .\<notin>\<^bsub>S\<^esub> A \<equiv> \<not>(x .\<in>\<^bsub>S\<^esub> A)"
 
 abbreviation
   set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.\<noteq>}\<index>" 50)
-  where "A {.\<noteq>}\<^bsub>S\<^esub> B == ~(A {.=}\<^bsub>S\<^esub> B)"
+  where "A {.\<noteq>}\<^bsub>S\<^esub> B \<equiv> \<not>(A {.=}\<^bsub>S\<^esub> B)"
 
 locale equivalence =
   fixes S (structure)

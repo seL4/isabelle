@@ -1627,12 +1627,10 @@ end;
 
 subsection \<open>Other simple lemmas and lemma duplicates\<close>
 
-lemma all_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow>
-    (ALL x. Q x \<longrightarrow> P x) = (ALL x. Q x \<longrightarrow> P' x)"
+lemma all_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow> (\<forall>x. Q x \<longrightarrow> P x) = (\<forall>x. Q x \<longrightarrow> P' x)"
   by auto
 
-lemma ex_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow>
-    (EX x. Q x \<and> P x) = (EX x. Q x \<and> P' x)"
+lemma ex_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow> (\<exists>x. Q x \<and> P x) = (\<exists>x. Q x \<and> P' x)"
   by auto
 
 lemma ex1_eq [iff]: "\<exists>!x. x = t" "\<exists>!x. t = x"

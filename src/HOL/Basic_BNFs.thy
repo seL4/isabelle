@@ -19,8 +19,8 @@ inductive_set setr :: "'a + 'b \<Rightarrow> 'b set" for s :: "'a + 'b" where
   "s = Inr x \<Longrightarrow> x \<in> setr s"
 
 lemma sum_set_defs[code]:
-  "setl = (\<lambda>x. case x of Inl z => {z} | _ => {})"
-  "setr = (\<lambda>x. case x of Inr z => {z} | _ => {})"
+  "setl = (\<lambda>x. case x of Inl z \<Rightarrow> {z} | _ \<Rightarrow> {})"
+  "setr = (\<lambda>x. case x of Inr z \<Rightarrow> {z} | _ \<Rightarrow> {})"
   by (auto simp: fun_eq_iff intro: setl.intros setr.intros elim: setl.cases setr.cases split: sum.splits)
 
 lemma rel_sum_simps[code, simp]:
@@ -52,7 +52,7 @@ proof -
   show "map_sum id id = id" by (rule map_sum.id)
 next
   fix f1 :: "'o \<Rightarrow> 's" and f2 :: "'p \<Rightarrow> 't" and g1 :: "'s \<Rightarrow> 'q" and g2 :: "'t \<Rightarrow> 'r"
-  show "map_sum (g1 o f1) (g2 o f2) = map_sum g1 g2 o map_sum f1 f2"
+  show "map_sum (g1 \<circ> f1) (g2 \<circ> f2) = map_sum g1 g2 \<circ> map_sum f1 f2"
     by (rule map_sum.comp[symmetric])
 next
   fix x and f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r" and g1 g2
@@ -66,11 +66,11 @@ next
   qed
 next
   fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
-  show "setl o map_sum f1 f2 = image f1 o setl"
+  show "setl \<circ> map_sum f1 f2 = image f1 \<circ> setl"
     by (rule ext, unfold o_apply) (simp add: sum_set_defs(1) split: sum.split)
 next
   fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
-  show "setr o map_sum f1 f2 = image f2 o setr"
+  show "setr \<circ> map_sum f1 f2 = image f2 \<circ> setr"
     by (rule ext, unfold o_apply) (simp add: sum_set_defs(2) split: sum.split)
 next
   show "card_order natLeq" by (rule natLeq_card_order)
@@ -149,7 +149,7 @@ proof (unfold prod_set_defs)
   show "map_prod id id = id" by (rule map_prod.id)
 next
   fix f1 f2 g1 g2
-  show "map_prod (g1 o f1) (g2 o f2) = map_prod g1 g2 o map_prod f1 f2"
+  show "map_prod (g1 \<circ> f1) (g2 \<circ> f2) = map_prod g1 g2 \<circ> map_prod f1 f2"
     by (rule map_prod.comp[symmetric])
 next
   fix x f1 f2 g1 g2
@@ -157,11 +157,11 @@ next
   thus "map_prod f1 f2 x = map_prod g1 g2 x" by (cases x) simp
 next
   fix f1 f2
-  show "(\<lambda>x. {fst x}) o map_prod f1 f2 = image f1 o (\<lambda>x. {fst x})"
+  show "(\<lambda>x. {fst x}) \<circ> map_prod f1 f2 = image f1 \<circ> (\<lambda>x. {fst x})"
     by (rule ext, unfold o_apply) simp
 next
   fix f1 f2
-  show "(\<lambda>x. {snd x}) o map_prod f1 f2 = image f2 o (\<lambda>x. {snd x})"
+  show "(\<lambda>x. {snd x}) \<circ> map_prod f1 f2 = image f2 \<circ> (\<lambda>x. {snd x})"
     by (rule ext, unfold o_apply) simp
 next
   show "card_order natLeq" by (rule natLeq_card_order)

@@ -387,8 +387,8 @@ using card_of_ordIso unfolding bij_betw_def inj_on_def by blast
 lemma card_of_image:
 "|f ` A| <=o |A|"
 proof(cases "A = {}", simp add: card_of_empty)
-  assume "A ~= {}"
-  hence "f ` A ~= {}" by auto
+  assume "A \<noteq> {}"
+  hence "f ` A \<noteq> {}" by auto
   thus "|f ` A| \<le>o |A|"
   using card_of_ordLeq2[of "f ` A" A] by auto
 qed
@@ -886,7 +886,7 @@ proof-
   moreover have "under r a \<le> Field r"
   using under_Field .
   ultimately have "under r a < Field r" by blast
-  then obtain b where 1: "b : Field r \<and> ~ (b,a) : r"
+  then obtain b where 1: "b \<in> Field r \<and> \<not> (b,a) \<in> r"
   unfolding under_def by blast
   moreover have ba: "b \<noteq> a"
   using 1 r unfolding card_order_on_def well_order_on_def
@@ -1100,7 +1100,7 @@ proof(cases "B = {}", simp add: card_of_Plus_empty1 card_of_Plus_empty2 ordIso_s
     using 3 infinite_imp_bij_betw2[of "?Inl ` A"] by auto
     moreover have "?A' = A <+> B" using Case1 by blast
     ultimately have "bij_betw g (?Inl ` A) (A <+> B)" by simp
-    hence "bij_betw (g o ?Inl) A (A <+> B)"
+    hence "bij_betw (g \<circ> ?Inl) A (A <+> B)"
     using 2 by (auto simp add: bij_betw_trans)
     thus ?thesis using card_of_ordIso ordIso_symmetric by blast
   next
@@ -1510,11 +1510,11 @@ definition cofinal where
 
 definition regularCard where
 "regularCard r \<equiv>
- ALL K. K \<le> Field r \<and> cofinal K r \<longrightarrow> |K| =o r"
+ \<forall>K. K \<le> Field r \<and> cofinal K r \<longrightarrow> |K| =o r"
 
 definition relChain where
 "relChain r As \<equiv>
- ALL i j. (i,j) \<in> r \<longrightarrow> As i \<le> As j"
+ \<forall>i j. (i,j) \<in> r \<longrightarrow> As i \<le> As j"
 
 lemma regularCard_UNION:
 assumes r: "Card_order r"   "regularCard r"
@@ -1523,17 +1523,17 @@ and Bsub: "B \<le> (UN i : Field r. As i)"
 and cardB: "|B| <o r"
 shows "EX i : Field r. B \<le> As i"
 proof-
-  let ?phi = "%b j. j : Field r \<and> b : As j"
-  have "ALL b : B. EX j. ?phi b j" using Bsub by blast
+  let ?phi = "\<lambda>b j. j \<in> Field r \<and> b \<in> As j"
+  have "\<forall>b\<in>B. \<exists>j. ?phi b j" using Bsub by blast
   then obtain f where f: "!! b. b : B \<Longrightarrow> ?phi b (f b)"
   using bchoice[of B ?phi] by blast
   let ?K = "f ` B"
-  {assume 1: "!! i. i : Field r \<Longrightarrow> ~ B \<le> As i"
+  {assume 1: "\<And>i. i \<in> Field r \<Longrightarrow> \<not> B \<le> As i"
    have 2: "cofinal ?K r"
    unfolding cofinal_def proof auto
      fix i assume i: "i : Field r"
      with 1 obtain b where b: "b : B \<and> b \<notin> As i" by blast
-     hence "i \<noteq> f b \<and> ~ (f b,i) : r"
+     hence "i \<noteq> f b \<and> \<not> (f b,i) \<in> r"
      using As f unfolding relChain_def by auto
      hence "i \<noteq> f b \<and> (i, f b) : r" using r
      unfolding card_order_on_def well_order_on_def linear_order_on_def

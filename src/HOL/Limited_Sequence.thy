@@ -171,8 +171,8 @@ where
 definition neg_not_seq :: "unit pos_dseq \<Rightarrow> unit neg_dseq"
 where
   "neg_not_seq x = (\<lambda>i. case Lazy_Sequence.yield (x i) of
-    None => Lazy_Sequence.hb_single ()
-  | Some ((), xq) => Lazy_Sequence.empty)"
+    None \<Rightarrow> Lazy_Sequence.hb_single ()
+  | Some ((), xq) \<Rightarrow> Lazy_Sequence.empty)"
 
 
 ML \<open>

@@ -14,9 +14,9 @@ section \<open>Complete Lattices\<close>
 
 locale weak_complete_lattice = weak_partial_order +
   assumes sup_exists:
-    "[| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
+    "[| A \<subseteq> carrier L |] ==> \<exists>s. least L s (Upper L A)"
     and inf_exists:
-    "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
+    "[| A \<subseteq> carrier L |] ==> \<exists>i. greatest L i (Lower L A)"
 
 sublocale weak_complete_lattice \<subseteq> weak_lattice
 proof
@@ -32,9 +32,9 @@ text \<open>Introduction rule: the usual definition of complete lattice\<close>
 
 lemma (in weak_partial_order) weak_complete_latticeI:
   assumes sup_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
+    "!!A. [| A \<subseteq> carrier L |] ==> \<exists>s. least L s (Upper L A)"
     and inf_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
+    "!!A. [| A \<subseteq> carrier L |] ==> \<exists>i. greatest L i (Lower L A)"
   shows "weak_complete_lattice L"
   by standard (auto intro: sup_exists inf_exists)
 
@@ -111,9 +111,9 @@ proof -
 qed
 
 theorem (in weak_partial_order) weak_complete_lattice_criterion1:
-  assumes top_exists: "EX g. greatest L g (carrier L)"
+  assumes top_exists: "\<exists>g. greatest L g (carrier L)"
     and inf_exists:
-      "!!A. [| A \<subseteq> carrier L; A ~= {} |] ==> EX i. greatest L i (Lower L A)"
+      "\<And>A. [| A \<subseteq> carrier L; A \<noteq> {} |] ==> \<exists>i. greatest L i (Lower L A)"
   shows "weak_complete_lattice L"
 proof (rule weak_complete_latticeI)
   from top_exists obtain top where top: "greatest L top (carrier L)" ..
@@ -121,7 +121,7 @@ proof (rule weak_complete_latticeI)
   assume L: "A \<subseteq> carrier L"
   let ?B = "Upper L A"
   from L top have "top \<in> ?B" by (fast intro!: Upper_memI intro: greatest_le)
-  then have B_non_empty: "?B ~= {}" by fast
+  then have B_non_empty: "?B \<noteq> {}" by fast
   have B_L: "?B \<subseteq> carrier L" by simp
   from inf_exists [OF B_L B_non_empty]
   obtain b where b_inf_B: "greatest L b (Lower L ?B)" ..
@@ -139,11 +139,11 @@ apply (rule least_UpperI)
  apply (rule L)
 apply (rule greatest_closed [OF b_inf_B])
 done
-  then show "EX s. least L s (Upper L A)" ..
+  then show "\<exists>s. least L s (Upper L A)" ..
 next
   fix A
   assume L: "A \<subseteq> carrier L"
-  show "EX i. greatest L i (Lower L A)"
+  show "\<exists>i. greatest L i (Lower L A)"
   proof (cases "A = {}")
     case True then show ?thesis
       by (simp add: top_exists)
@@ -547,9 +547,9 @@ subsection \<open>Complete lattices where @{text eq} is the Equality\<close>
 
 locale complete_lattice = partial_order +
   assumes sup_exists:
-    "[| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
+    "[| A \<subseteq> carrier L |] ==> \<exists>s. least L s (Upper L A)"
     and inf_exists:
-    "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
+    "[| A \<subseteq> carrier L |] ==> \<exists>i. greatest L i (Lower L A)"
 
 sublocale complete_lattice \<subseteq> lattice
 proof
@@ -578,16 +578,16 @@ text \<open>Introduction rule: the usual definition of complete lattice\<close>
 
 lemma (in partial_order) complete_latticeI:
   assumes sup_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX s. least L s (Upper L A)"
+    "!!A. [| A \<subseteq> carrier L |] ==> \<exists>s. least L s (Upper L A)"
     and inf_exists:
-    "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
+    "!!A. [| A \<subseteq> carrier L |] ==> \<exists>i. greatest L i (Lower L A)"
   shows "complete_lattice L"
   by standard (auto intro: sup_exists inf_exists)
 
 theorem (in partial_order) complete_lattice_criterion1:
-  assumes top_exists: "EX g. greatest L g (carrier L)"
+  assumes top_exists: "\<exists>g. greatest L g (carrier L)"
     and inf_exists:
-      "!!A. [| A \<subseteq> carrier L; A ~= {} |] ==> EX i. greatest L i (Lower L A)"
+      "!!A. [| A \<subseteq> carrier L; A \<noteq> {} |] ==> \<exists>i. greatest L i (Lower L A)"
   shows "complete_lattice L"
 proof (rule complete_latticeI)
   from top_exists obtain top where top: "greatest L top (carrier L)" ..
@@ -595,7 +595,7 @@ proof (rule complete_latticeI)
   assume L: "A \<subseteq> carrier L"
   let ?B = "Upper L A"
   from L top have "top \<in> ?B" by (fast intro!: Upper_memI intro: greatest_le)
-  then have B_non_empty: "?B ~= {}" by fast
+  then have B_non_empty: "?B \<noteq> {}" by fast
   have B_L: "?B \<subseteq> carrier L" by simp
   from inf_exists [OF B_L B_non_empty]
   obtain b where b_inf_B: "greatest L b (Lower L ?B)" ..
@@ -613,11 +613,11 @@ apply (rule least_UpperI)
  apply (rule L)
 apply (rule greatest_closed [OF b_inf_B])
 done
-  then show "EX s. least L s (Upper L A)" ..
+  then show "\<exists>s. least L s (Upper L A)" ..
 next
   fix A
   assume L: "A \<subseteq> carrier L"
-  show "EX i. greatest L i (Lower L A)"
+  show "\<exists>i. greatest L i (Lower L A)"
   proof (cases "A = {}")
     case True then show ?thesis
       by (simp add: top_exists)
@@ -1181,7 +1181,7 @@ next
   assume "B \<subseteq> carrier ?L"
   then have "least ?L (\<Union> B) (Upper ?L B)"
     by (fastforce intro!: least_UpperI simp: Upper_def)
-  then show "EX s. least ?L s (Upper ?L B)" ..
+  then show "\<exists>s. least ?L s (Upper ?L B)" ..
 next
   fix B
   assume "B \<subseteq> carrier ?L"
@@ -1189,7 +1189,7 @@ next
     txt \<open>@{term "\<Inter> B"} is not the infimum of @{term B}:
       @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! \<close>
     by (fastforce intro!: greatest_LowerI simp: Lower_def)
-  then show "EX i. greatest ?L i (Lower ?L B)" ..
+  then show "\<exists>i. greatest ?L i (Lower ?L B)" ..
 qed
 
 text \<open>Another example, that of the lattice of subgroups of a group,

@@ -47,7 +47,7 @@ val Suml_inject = @{thm Suml_inject};
 val Sumr_inject = @{thm Sumr_inject};
 
 val datatype_injI =
-  @{lemma "(!!x. ALL y. f x = f y --> x = y) ==> inj f" by (simp add: inj_on_def)};
+  @{lemma "(\<And>x. \<forall>y. f x = f y \<longrightarrow> x = y) \<Longrightarrow> inj f" by (simp add: inj_on_def)};
 
 
 (** proof of characteristic theorems **)

@@ -285,10 +285,10 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_and then HOLogic.conj
         else if s = tptp_implies then HOLogic.imp
         else if s = tptp_iff orelse s = tptp_equal then HOLogic.eq_const dummyT
-        else if s = tptp_not_iff orelse s = tptp_not_equal then @{term "%P Q. Q ~= P"}
-        else if s = tptp_if then @{term "%P Q. Q --> P"}
-        else if s = tptp_not_and then @{term "%P Q. ~ (P & Q)"}
-        else if s = tptp_not_or then @{term "%P Q. ~ (P | Q)"}
+        else if s = tptp_not_iff orelse s = tptp_not_equal then @{term "\<lambda>P Q. Q \<noteq> P"}
+        else if s = tptp_if then @{term "\<lambda>P Q. Q \<longrightarrow> P"}
+        else if s = tptp_not_and then @{term "\<lambda>P Q. \<not> (P \<and> Q)"}
+        else if s = tptp_not_or then @{term "\<lambda>P Q. \<not> (P \<or> Q)"}
         else if s = tptp_not then HOLogic.Not
         else if s = tptp_ho_forall then HOLogic.all_const dummyT
         else if s = tptp_ho_exists then HOLogic.exists_const dummyT

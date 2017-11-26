@@ -143,9 +143,9 @@ lemma starfun_eq_iff: "(( *f* f) = ( *f* g)) \<longleftrightarrow> f = g"
   by transfer (rule refl)
 
 lemma starfunNat_inverse_real_of_nat_Infinitesimal [simp]:
-  "N \<in> HNatInfinite \<Longrightarrow> ( *f* (%x. inverse (real x))) N \<in> Infinitesimal"
+  "N \<in> HNatInfinite \<Longrightarrow> ( *f* (\<lambda>x. inverse (real x))) N \<in> Infinitesimal"
   apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
-  apply (subgoal_tac "hypreal_of_hypnat N ~= 0")
+  apply (subgoal_tac "hypreal_of_hypnat N \<noteq> 0")
    apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat)
   done
 
