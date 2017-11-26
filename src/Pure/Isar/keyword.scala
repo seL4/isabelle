@@ -113,8 +113,6 @@ object Keyword
   }
 
   class Keywords private(
-    val minor: Scan.Lexicon = Scan.Lexicon.empty,
-    val major: Scan.Lexicon = Scan.Lexicon.empty,
     val kinds: Map[String, String] = Map.empty,
     val load_commands: Map[String, List[String]] = Map.empty)
   {
@@ -134,14 +132,12 @@ object Keyword
 
     /* merge */
 
-    def is_empty: Boolean = minor.is_empty && major.is_empty
+    def is_empty: Boolean = kinds.isEmpty
 
     def ++ (other: Keywords): Keywords =
       if (this eq other) this
       else if (is_empty) other
       else {
-        val minor1 = minor ++ other.minor
-        val major1 = major ++ other.major
         val kinds1 =
           if (kinds eq other.kinds) kinds
           else if (kinds.isEmpty) other.kinds
@@ -152,7 +148,7 @@ object Keyword
           else
             (load_commands /: other.load_commands) {
               case (m, e) => if (m.isDefinedAt(e._1)) m else m + e }
-        new Keywords(minor1, major1, kinds1, load_commands1)
+        new Keywords(kinds1, load_commands1)
       }
 
 
@@ -161,10 +157,6 @@ object Keyword
     def + (name: String, kind: String = "", exts: List[String] = Nil): Keywords =
     {
       val kinds1 = kinds + (name -> kind)
-      val (minor1, major1) =
-        if (kind == "" || kind == BEFORE_COMMAND || kind == QUASI_COMMAND)
-          (minor + name, major)
-        else (minor, major + name)
       val load_commands1 =
         if (kind == THY_LOAD) {
           if (!Symbol.iterator(name).forall(Symbol.is_ascii(_)))
@@ -172,7 +164,7 @@ object Keyword
           load_commands + (name -> exts)
         }
         else load_commands
-      new Keywords(minor1, major1, kinds1, load_commands1)
+      new Keywords(kinds1, load_commands1)
     }
 
     def add_keywords(header: Thy_Header.Keywords): Keywords =
@@ -207,5 +199,20 @@ object Keyword
 
     def load_commands_in(text: String): Boolean =
       load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+
+
+    /* lexicons */
+
+    private def make_lexicon(is_minor: Boolean): Scan.Lexicon =
+      (Scan.Lexicon.empty /: kinds)(
+        {
+          case (lex, (name, kind)) =>
+            if ((kind == "" || kind == BEFORE_COMMAND || kind == QUASI_COMMAND) == is_minor)
+              lex + name
+            else lex
+        })
+
+    lazy val minor: Scan.Lexicon = make_lexicon(true)
+    lazy val major: Scan.Lexicon = make_lexicon(false)
   }
 }
