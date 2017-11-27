@@ -19,288 +19,288 @@ val rews =
 
   (** eliminate meta-equality rules **)
 
-  [\<open>(equal_elim % x1 % x2 %%
-      (combination % TYPE('T1) % TYPE('T2) % Trueprop % x3 % A % B %%
-        (axm.reflexive % TYPE('T3) % x4) %% prf1)) ==
-    (iffD1 % A % B %%
-      (meta_eq_to_obj_eq % TYPE(bool) % A % B %% arity_type_bool %% prf1))\<close>,
+  [\<open>(equal_elim \<cdot> x1 \<cdot> x2 \<bullet>
+      (combination \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> Trueprop \<cdot> x3 \<cdot> A \<cdot> B \<bullet>
+        (axm.reflexive \<cdot> TYPE('T3) \<cdot> x4) \<bullet> prf1)) \<equiv>
+    (iffD1 \<cdot> A \<cdot> B \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE(bool) \<cdot> A \<cdot> B \<bullet> arity_type_bool \<bullet> prf1))\<close>,
 
-   \<open>(equal_elim % x1 % x2 %% (axm.symmetric % TYPE('T1) % x3 % x4 %%
-      (combination % TYPE('T2) % TYPE('T3) % Trueprop % x5 % A % B %%
-        (axm.reflexive % TYPE('T4) % x6) %% prf1))) ==
-    (iffD2 % A % B %%
-      (meta_eq_to_obj_eq % TYPE(bool) % A % B %% arity_type_bool %% prf1))\<close>,
+   \<open>(equal_elim \<cdot> x1 \<cdot> x2 \<bullet> (axm.symmetric \<cdot> TYPE('T1) \<cdot> x3 \<cdot> x4 \<bullet>
+      (combination \<cdot> TYPE('T2) \<cdot> TYPE('T3) \<cdot> Trueprop \<cdot> x5 \<cdot> A \<cdot> B \<bullet>
+        (axm.reflexive \<cdot> TYPE('T4) \<cdot> x6) \<bullet> prf1))) \<equiv>
+    (iffD2 \<cdot> A \<cdot> B \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE(bool) \<cdot> A \<cdot> B \<bullet> arity_type_bool \<bullet> prf1))\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('U) % x1 % x2 %% prfU %%
-      (combination % TYPE('T) % TYPE('U) % f % g % x % y %% prf1 %% prf2)) ==
-    (cong % TYPE('T) % TYPE('U) % f % g % x % y %%
-      (OfClass type_class % TYPE('T)) %% prfU %%
-      (meta_eq_to_obj_eq % TYPE('T => 'U) % f % g %% (OfClass type_class % TYPE('T => 'U)) %% prf1) %%
-      (meta_eq_to_obj_eq % TYPE('T) % x % y %% (OfClass type_class % TYPE('T)) %% prf2))\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('U) \<cdot> x1 \<cdot> x2 \<bullet> prfU \<bullet>
+      (combination \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<cdot> x \<cdot> y \<bullet> prf1 \<bullet> prf2)) \<equiv>
+    (cong \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<cdot> x \<cdot> y \<bullet>
+      (OfClass type_class \<cdot> TYPE('T)) \<bullet> prfU \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T \<Rightarrow> 'U) \<cdot> f \<cdot> g \<bullet> (OfClass type_class \<cdot> TYPE('T \<Rightarrow> 'U)) \<bullet> prf1) \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> (OfClass type_class \<cdot> TYPE('T)) \<bullet> prf2))\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T) % x1 % x2 %% prfT %%
-      (axm.transitive % TYPE('T) % x % y % z %% prf1 %% prf2)) ==
-    (HOL.trans % TYPE('T) % x % y % z %% prfT %%
-      (meta_eq_to_obj_eq % TYPE('T) % x % y %% prfT %% prf1) %%
-      (meta_eq_to_obj_eq % TYPE('T) % y % z %% prfT %% prf2))\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x1 \<cdot> x2 \<bullet> prfT \<bullet>
+      (axm.transitive \<cdot> TYPE('T) \<cdot> x \<cdot> y \<cdot> z \<bullet> prf1 \<bullet> prf2)) \<equiv>
+    (HOL.trans \<cdot> TYPE('T) \<cdot> x \<cdot> y \<cdot> z \<bullet> prfT \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet> prf1) \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> y \<cdot> z \<bullet> prfT \<bullet> prf2))\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T) % x % x %% prfT %% (axm.reflexive % TYPE('T) % x)) ==
-    (HOL.refl % TYPE('T) % x %% prfT)\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> x \<bullet> prfT \<bullet> (axm.reflexive \<cdot> TYPE('T) \<cdot> x)) \<equiv>
+    (HOL.refl \<cdot> TYPE('T) \<cdot> x \<bullet> prfT)\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T) % x % y %% prfT %%
-      (axm.symmetric % TYPE('T) % x % y %% prf)) ==
-    (sym % TYPE('T) % x % y %% prfT %% (meta_eq_to_obj_eq % TYPE('T) % x % y %% prfT %% prf))\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet>
+      (axm.symmetric \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prf)) \<equiv>
+    (sym \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet> (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet> prf))\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T => 'U) % x1 % x2 %% prfTU %%
-      (abstract_rule % TYPE('T) % TYPE('U) % f % g %% prf)) ==
-    (ext % TYPE('T) % TYPE('U) % f % g %%
-      (OfClass type_class % TYPE('T)) %% (OfClass type_class % TYPE('U)) %%
-      (Lam (x::'T). meta_eq_to_obj_eq % TYPE('U) % f x % g x %%
-         (OfClass type_class % TYPE('U)) %% (prf % x)))\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T \<Rightarrow> 'U) \<cdot> x1 \<cdot> x2 \<bullet> prfTU \<bullet>
+      (abstract_rule \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<bullet> prf)) \<equiv>
+    (ext \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<bullet>
+      (OfClass type_class \<cdot> TYPE('T)) \<bullet> (OfClass type_class \<cdot> TYPE('U)) \<bullet>
+      (\<^bold>\<lambda>(x::'T). meta_eq_to_obj_eq \<cdot> TYPE('U) \<cdot> f x \<cdot> g x \<bullet>
+         (OfClass type_class \<cdot> TYPE('U)) \<bullet> (prf \<cdot> x)))\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T) % x % y %% prfT %%
-      (eq_reflection % TYPE('T) % x % y %% prfT %% prf)) == prf\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet>
+      (eq_reflection \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet> prf)) \<equiv> prf\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T) % x1 % x2 %% prfT %% (equal_elim % x3 % x4 %%
-      (combination % TYPE('T) % TYPE(prop) % x7 % x8 % C % D %%
-        (combination % TYPE('T) % TYPE('T3) % op == % op == % A % B %%
-          (axm.reflexive % TYPE('T4) % op ==) %% prf1) %% prf2) %% prf3)) ==
-    (iffD1 % A = C % B = D %%
-      (cong % TYPE('T) % TYPE(bool) % op = A % op = B % C % D %%
-        prfT %% arity_type_bool %%
-        (cong % TYPE('T) % TYPE('T=>bool) %
-          (op = :: 'T=>'T=>bool) % (op = :: 'T=>'T=>bool) % A % B %%
-          prfT %% (OfClass type_class % TYPE('T=>bool)) %%
-          (HOL.refl % TYPE('T=>'T=>bool) % (op = :: 'T=>'T=>bool) %%
-             (OfClass type_class % TYPE('T=>'T=>bool))) %%
-          (meta_eq_to_obj_eq % TYPE('T) % A % B %% prfT %% prf1)) %%
-        (meta_eq_to_obj_eq % TYPE('T) % C % D %% prfT %% prf2)) %%
-      (meta_eq_to_obj_eq % TYPE('T) % A % C %% prfT %% prf3))\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x1 \<cdot> x2 \<bullet> prfT \<bullet> (equal_elim \<cdot> x3 \<cdot> x4 \<bullet>
+      (combination \<cdot> TYPE('T) \<cdot> TYPE(prop) \<cdot> x7 \<cdot> x8 \<cdot> C \<cdot> D \<bullet>
+        (combination \<cdot> TYPE('T) \<cdot> TYPE('T3) \<cdot> op \<equiv> \<cdot> op \<equiv> \<cdot> A \<cdot> B \<bullet>
+          (axm.reflexive \<cdot> TYPE('T4) \<cdot> op \<equiv>) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3)) \<equiv>
+    (iffD1 \<cdot> A = C \<cdot> B = D \<bullet>
+      (cong \<cdot> TYPE('T) \<cdot> TYPE(bool) \<cdot> op = A \<cdot> op = B \<cdot> C \<cdot> D \<bullet>
+        prfT \<bullet> arity_type_bool \<bullet>
+        (cong \<cdot> TYPE('T) \<cdot> TYPE('T\<Rightarrow>bool) \<cdot>
+          (op = :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> (op = :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> A \<cdot> B \<bullet>
+          prfT \<bullet> (OfClass type_class \<cdot> TYPE('T\<Rightarrow>bool)) \<bullet>
+          (HOL.refl \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> (op = :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<bullet>
+             (OfClass type_class \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool))) \<bullet>
+          (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> A \<cdot> B \<bullet> prfT \<bullet> prf1)) \<bullet>
+        (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> C \<cdot> D \<bullet> prfT \<bullet> prf2)) \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> A \<cdot> C \<bullet> prfT \<bullet> prf3))\<close>,
 
-   \<open>(meta_eq_to_obj_eq % TYPE('T) % x1 % x2 %% prfT %% (equal_elim % x3 % x4 %%
-      (axm.symmetric % TYPE('T2) % x5 % x6 %%
-        (combination % TYPE('T) % TYPE(prop) % x7 % x8 % C % D %%
-          (combination % TYPE('T) % TYPE('T3) % op == % op == % A % B %%
-            (axm.reflexive % TYPE('T4) % op ==) %% prf1) %% prf2)) %% prf3)) ==
-    (iffD2 % A = C % B = D %%
-      (cong % TYPE('T) % TYPE(bool) % op = A % op = B % C % D %%
-        prfT %% arity_type_bool %%
-        (cong % TYPE('T) % TYPE('T=>bool) %
-          (op = :: 'T=>'T=>bool) % (op = :: 'T=>'T=>bool) % A % B %%
-          prfT %% (OfClass type_class % TYPE('T=>bool)) %%
-          (HOL.refl % TYPE('T=>'T=>bool) % (op = :: 'T=>'T=>bool) %%
-             (OfClass type_class % TYPE('T=>'T=>bool))) %%
-          (meta_eq_to_obj_eq % TYPE('T) % A % B %% prfT %% prf1)) %%
-        (meta_eq_to_obj_eq % TYPE('T) % C % D %% prfT %% prf2)) %%
-      (meta_eq_to_obj_eq % TYPE('T) % B % D %% prfT %% prf3))\<close>,
+   \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x1 \<cdot> x2 \<bullet> prfT \<bullet> (equal_elim \<cdot> x3 \<cdot> x4 \<bullet>
+      (axm.symmetric \<cdot> TYPE('T2) \<cdot> x5 \<cdot> x6 \<bullet>
+        (combination \<cdot> TYPE('T) \<cdot> TYPE(prop) \<cdot> x7 \<cdot> x8 \<cdot> C \<cdot> D \<bullet>
+          (combination \<cdot> TYPE('T) \<cdot> TYPE('T3) \<cdot> op \<equiv> \<cdot> op \<equiv> \<cdot> A \<cdot> B \<bullet>
+            (axm.reflexive \<cdot> TYPE('T4) \<cdot> op \<equiv>) \<bullet> prf1) \<bullet> prf2)) \<bullet> prf3)) \<equiv>
+    (iffD2 \<cdot> A = C \<cdot> B = D \<bullet>
+      (cong \<cdot> TYPE('T) \<cdot> TYPE(bool) \<cdot> op = A \<cdot> op = B \<cdot> C \<cdot> D \<bullet>
+        prfT \<bullet> arity_type_bool \<bullet>
+        (cong \<cdot> TYPE('T) \<cdot> TYPE('T\<Rightarrow>bool) \<cdot>
+          (op = :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> (op = :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> A \<cdot> B \<bullet>
+          prfT \<bullet> (OfClass type_class \<cdot> TYPE('T\<Rightarrow>bool)) \<bullet>
+          (HOL.refl \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> (op = :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<bullet>
+             (OfClass type_class \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool))) \<bullet>
+          (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> A \<cdot> B \<bullet> prfT \<bullet> prf1)) \<bullet>
+        (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> C \<cdot> D \<bullet> prfT \<bullet> prf2)) \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> B \<cdot> D \<bullet> prfT \<bullet> prf3))\<close>,
 
    (** rewriting on bool: insert proper congruence rules for logical connectives **)
 
    (* All *)
 
-   \<open>(iffD1 % All P % All Q %% (cong % TYPE('T1) % TYPE('T2) % All % All % P % Q %% prfT1 %% prfT2 %%
-      (HOL.refl % TYPE('T3) % x1 %% prfT3) %%
-      (ext % TYPE('a) % TYPE(bool) % x2 % x3 %% prfa %% prfb %% prf)) %% prf') ==
-    (allI % TYPE('a) % Q %% prfa %%
-      (Lam x.
-          iffD1 % P x % Q x %% (prf % x) %%
-           (spec % TYPE('a) % P % x %% prfa %% prf')))\<close>,
+   \<open>(iffD1 \<cdot> All P \<cdot> All Q \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> All \<cdot> All \<cdot> P \<cdot> Q \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (HOL.refl \<cdot> TYPE('T3) \<cdot> x1 \<bullet> prfT3) \<bullet>
+      (ext \<cdot> TYPE('a) \<cdot> TYPE(bool) \<cdot> x2 \<cdot> x3 \<bullet> prfa \<bullet> prfb \<bullet> prf)) \<bullet> prf') \<equiv>
+    (allI \<cdot> TYPE('a) \<cdot> Q \<bullet> prfa \<bullet>
+      (\<^bold>\<lambda>x.
+          iffD1 \<cdot> P x \<cdot> Q x \<bullet> (prf \<cdot> x) \<bullet>
+           (spec \<cdot> TYPE('a) \<cdot> P \<cdot> x \<bullet> prfa \<bullet> prf')))\<close>,
 
-   \<open>(iffD2 % All P % All Q %% (cong % TYPE('T1) % TYPE('T2) % All % All % P % Q %% prfT1 %% prfT2 %%
-      (HOL.refl % TYPE('T3) % x1 %% prfT3) %%
-      (ext % TYPE('a) % TYPE(bool) % x2 % x3 %% prfa %% prfb %% prf)) %% prf') ==
-    (allI % TYPE('a) % P %% prfa %%
-      (Lam x.
-          iffD2 % P x % Q x %% (prf % x) %%
-           (spec % TYPE('a) % Q % x %% prfa %% prf')))\<close>,
+   \<open>(iffD2 \<cdot> All P \<cdot> All Q \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> All \<cdot> All \<cdot> P \<cdot> Q \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (HOL.refl \<cdot> TYPE('T3) \<cdot> x1 \<bullet> prfT3) \<bullet>
+      (ext \<cdot> TYPE('a) \<cdot> TYPE(bool) \<cdot> x2 \<cdot> x3 \<bullet> prfa \<bullet> prfb \<bullet> prf)) \<bullet> prf') \<equiv>
+    (allI \<cdot> TYPE('a) \<cdot> P \<bullet> prfa \<bullet>
+      (\<^bold>\<lambda>x.
+          iffD2 \<cdot> P x \<cdot> Q x \<bullet> (prf \<cdot> x) \<bullet>
+           (spec \<cdot> TYPE('a) \<cdot> Q \<cdot> x \<bullet> prfa \<bullet> prf')))\<close>,
 
    (* Ex *)
 
-   \<open>(iffD1 % Ex P % Ex Q %% (cong % TYPE('T1) % TYPE('T2) % Ex % Ex % P % Q %% prfT1 %% prfT2 %%
-      (HOL.refl % TYPE('T3) % x1 %% prfT3) %%
-      (ext % TYPE('a) % TYPE(bool) % x2 % x3 %% prfa %% prfb %% prf)) %% prf') ==
-    (exE % TYPE('a) % P % \<exists>x. Q x %% prfa %% prf' %%
-      (Lam x H : P x.
-          exI % TYPE('a) % Q % x %% prfa %%
-           (iffD1 % P x % Q x %% (prf % x) %% H)))\<close>,
+   \<open>(iffD1 \<cdot> Ex P \<cdot> Ex Q \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> Ex \<cdot> Ex \<cdot> P \<cdot> Q \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (HOL.refl \<cdot> TYPE('T3) \<cdot> x1 \<bullet> prfT3) \<bullet>
+      (ext \<cdot> TYPE('a) \<cdot> TYPE(bool) \<cdot> x2 \<cdot> x3 \<bullet> prfa \<bullet> prfb \<bullet> prf)) \<bullet> prf') \<equiv>
+    (exE \<cdot> TYPE('a) \<cdot> P \<cdot> \<exists>x. Q x \<bullet> prfa \<bullet> prf' \<bullet>
+      (\<^bold>\<lambda>x H : P x.
+          exI \<cdot> TYPE('a) \<cdot> Q \<cdot> x \<bullet> prfa \<bullet>
+           (iffD1 \<cdot> P x \<cdot> Q x \<bullet> (prf \<cdot> x) \<bullet> H)))\<close>,
 
-   \<open>(iffD2 % Ex P % Ex Q %% (cong % TYPE('T1) % TYPE('T2) % Ex % Ex % P % Q %% prfT1 %% prfT2 %%
-      (HOL.refl % TYPE('T3) % x1 %% prfT3) %%
-      (ext % TYPE('a) % TYPE(bool) % x2 % x3 %% prfa %% prfb %% prf)) %% prf') ==
-    (exE % TYPE('a) % Q % \<exists>x. P x %% prfa %% prf' %%
-      (Lam x H : Q x.
-          exI % TYPE('a) % P % x %% prfa %%
-           (iffD2 % P x % Q x %% (prf % x) %% H)))\<close>,
+   \<open>(iffD2 \<cdot> Ex P \<cdot> Ex Q \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> Ex \<cdot> Ex \<cdot> P \<cdot> Q \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (HOL.refl \<cdot> TYPE('T3) \<cdot> x1 \<bullet> prfT3) \<bullet>
+      (ext \<cdot> TYPE('a) \<cdot> TYPE(bool) \<cdot> x2 \<cdot> x3 \<bullet> prfa \<bullet> prfb \<bullet> prf)) \<bullet> prf') \<equiv>
+    (exE \<cdot> TYPE('a) \<cdot> Q \<cdot> \<exists>x. P x \<bullet> prfa \<bullet> prf' \<bullet>
+      (\<^bold>\<lambda>x H : Q x.
+          exI \<cdot> TYPE('a) \<cdot> P \<cdot> x \<bullet> prfa \<bullet>
+           (iffD2 \<cdot> P x \<cdot> Q x \<bullet> (prf \<cdot> x) \<bullet> H)))\<close>,
 
    (* \<and> *)
 
-   \<open>(iffD1 % A \<and> C % B \<and> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %% prfT1 %% prfT2 %%
-      (cong % TYPE('T3) % TYPE('T4) % op \<and> % op \<and> % A % B %% prfT3 %% prfT4 %%
-        (HOL.refl % TYPE('T5) % op \<and> %% prfT5) %% prf1) %% prf2) %% prf3) ==
-    (conjI % B % D %%
-      (iffD1 % A % B %% prf1 %% (conjunct1 % A % C %% prf3)) %%
-      (iffD1 % C % D %% prf2 %% (conjunct2 % A % C %% prf3)))\<close>,
+   \<open>(iffD1 \<cdot> A \<and> C \<cdot> B \<and> D \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (cong \<cdot> TYPE('T3) \<cdot> TYPE('T4) \<cdot> op \<and> \<cdot> op \<and> \<cdot> A \<cdot> B \<bullet> prfT3 \<bullet> prfT4 \<bullet>
+        (HOL.refl \<cdot> TYPE('T5) \<cdot> op \<and> \<bullet> prfT5) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (conjI \<cdot> B \<cdot> D \<bullet>
+      (iffD1 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> (conjunct1 \<cdot> A \<cdot> C \<bullet> prf3)) \<bullet>
+      (iffD1 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet> (conjunct2 \<cdot> A \<cdot> C \<bullet> prf3)))\<close>,
 
-   \<open>(iffD2 % A \<and> C % B \<and> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %% prfT1 %% prfT2 %%
-      (cong % TYPE('T3) % TYPE('T4) % op \<and> % op \<and> % A % B %% prfT3 %% prfT4 %%
-        (HOL.refl % TYPE('T5) % op \<and> %% prfT5) %% prf1) %% prf2) %% prf3) ==
-    (conjI % A % C %%
-      (iffD2 % A % B %% prf1 %% (conjunct1 % B % D %% prf3)) %%
-      (iffD2 % C % D %% prf2 %% (conjunct2 % B % D %% prf3)))\<close>,
+   \<open>(iffD2 \<cdot> A \<and> C \<cdot> B \<and> D \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (cong \<cdot> TYPE('T3) \<cdot> TYPE('T4) \<cdot> op \<and> \<cdot> op \<and> \<cdot> A \<cdot> B \<bullet> prfT3 \<bullet> prfT4 \<bullet>
+        (HOL.refl \<cdot> TYPE('T5) \<cdot> op \<and> \<bullet> prfT5) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (conjI \<cdot> A \<cdot> C \<bullet>
+      (iffD2 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> (conjunct1 \<cdot> B \<cdot> D \<bullet> prf3)) \<bullet>
+      (iffD2 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet> (conjunct2 \<cdot> B \<cdot> D \<bullet> prf3)))\<close>,
 
-   \<open>(cong % TYPE(bool) % TYPE(bool) % op \<and> A % op \<and> A % B % C %% prfb %% prfb %%
-      (HOL.refl % TYPE(bool=>bool) % op \<and> A %% prfbb)) ==
-    (cong % TYPE(bool) % TYPE(bool) % op \<and> A % op \<and> A % B % C %% prfb %% prfb %%
-      (cong % TYPE(bool) % TYPE(bool=>bool) %
-        (op \<and> :: bool=>bool=>bool) % (op \<and> :: bool=>bool=>bool) % A % A %%
-          prfb %% prfbb %%
-          (HOL.refl % TYPE(bool=>bool=>bool) % (op \<and> :: bool=>bool=>bool) %%
-             (OfClass type_class % TYPE(bool=>bool=>bool))) %%
-          (HOL.refl % TYPE(bool) % A %% prfb)))\<close>,
+   \<open>(cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op \<and> A \<cdot> op \<and> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot> op \<and> A \<bullet> prfbb)) \<equiv>
+    (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op \<and> A \<cdot> op \<and> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot>
+        (op \<and> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op \<and> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
+          prfb \<bullet> prfbb \<bullet>
+          (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op \<and> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
+             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+          (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (* \<or> *)
 
-   \<open>(iffD1 % A \<or> C % B \<or> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %% prfT1 %% prfT2 %%
-      (cong % TYPE('T3) % TYPE('T4) % op \<or> % op \<or> % A % B %% prfT3 %% prfT4 %%
-        (HOL.refl % TYPE('T5) % op \<or> %% prfT5) %% prf1) %% prf2) %% prf3) ==
-    (disjE % A % C % B \<or> D %% prf3 %%
-      (Lam H : A. disjI1 % B % D %% (iffD1 % A % B %% prf1 %% H)) %%
-      (Lam H : C. disjI2 % D % B %% (iffD1 % C % D %% prf2 %% H)))\<close>,
+   \<open>(iffD1 \<cdot> A \<or> C \<cdot> B \<or> D \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (cong \<cdot> TYPE('T3) \<cdot> TYPE('T4) \<cdot> op \<or> \<cdot> op \<or> \<cdot> A \<cdot> B \<bullet> prfT3 \<bullet> prfT4 \<bullet>
+        (HOL.refl \<cdot> TYPE('T5) \<cdot> op \<or> \<bullet> prfT5) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (disjE \<cdot> A \<cdot> C \<cdot> B \<or> D \<bullet> prf3 \<bullet>
+      (\<^bold>\<lambda>H : A. disjI1 \<cdot> B \<cdot> D \<bullet> (iffD1 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> H)) \<bullet>
+      (\<^bold>\<lambda>H : C. disjI2 \<cdot> D \<cdot> B \<bullet> (iffD1 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet> H)))\<close>,
 
-   \<open>(iffD2 % A \<or> C % B \<or> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %% prfT1 %% prfT2 %%
-      (cong % TYPE('T3) % TYPE('T4) % op \<or> % op \<or> % A % B %% prfT3 %% prfT4 %%
-        (HOL.refl % TYPE('T5) % op \<or> %% prfT5) %% prf1) %% prf2) %% prf3) ==
-    (disjE % B % D % A \<or> C %% prf3 %%
-      (Lam H : B. disjI1 % A % C %% (iffD2 % A % B %% prf1 %% H)) %%
-      (Lam H : D. disjI2 % C % A %% (iffD2 % C % D %% prf2 %% H)))\<close>,
+   \<open>(iffD2 \<cdot> A \<or> C \<cdot> B \<or> D \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (cong \<cdot> TYPE('T3) \<cdot> TYPE('T4) \<cdot> op \<or> \<cdot> op \<or> \<cdot> A \<cdot> B \<bullet> prfT3 \<bullet> prfT4 \<bullet>
+        (HOL.refl \<cdot> TYPE('T5) \<cdot> op \<or> \<bullet> prfT5) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (disjE \<cdot> B \<cdot> D \<cdot> A \<or> C \<bullet> prf3 \<bullet>
+      (\<^bold>\<lambda>H : B. disjI1 \<cdot> A \<cdot> C \<bullet> (iffD2 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> H)) \<bullet>
+      (\<^bold>\<lambda>H : D. disjI2 \<cdot> C \<cdot> A \<bullet> (iffD2 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet> H)))\<close>,
 
-   \<open>(cong % TYPE(bool) % TYPE(bool) % op \<or> A % op \<or> A % B % C %% prfb %% prfb %%
-      (HOL.refl % TYPE(bool=>bool) % op \<or> A %% prfbb)) ==
-    (cong % TYPE(bool) % TYPE(bool) % op \<or> A % op \<or> A % B % C %% prfb %% prfb %%
-      (cong % TYPE(bool) % TYPE(bool=>bool) %
-        (op \<or> :: bool=>bool=>bool) % (op \<or> :: bool=>bool=>bool) % A % A %%
-          prfb %% prfbb %%
-          (HOL.refl % TYPE(bool=>bool=>bool) % (op \<or> :: bool=>bool=>bool) %%
-             (OfClass type_class % TYPE(bool=>bool=>bool))) %%
-          (HOL.refl % TYPE(bool) % A %% prfb)))\<close>,
+   \<open>(cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op \<or> A \<cdot> op \<or> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot> op \<or> A \<bullet> prfbb)) \<equiv>
+    (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op \<or> A \<cdot> op \<or> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot>
+        (op \<or> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op \<or> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
+          prfb \<bullet> prfbb \<bullet>
+          (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op \<or> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
+             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+          (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (* \<longrightarrow> *)
 
-   \<open>(iffD1 % A \<longrightarrow> C % B \<longrightarrow> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %% prfT1 %% prfT2 %%
-      (cong % TYPE('T3) % TYPE('T4) % op \<longrightarrow> % op \<longrightarrow> % A % B %% prfT3 %% prfT4 %%
-        (HOL.refl % TYPE('T5) % op \<longrightarrow> %% prfT5) %% prf1) %% prf2) %% prf3) ==
-    (impI % B % D %% (Lam H: B. iffD1 % C % D %% prf2 %%
-      (mp % A % C %% prf3 %% (iffD2 % A % B %% prf1 %% H))))\<close>,
+   \<open>(iffD1 \<cdot> A \<longrightarrow> C \<cdot> B \<longrightarrow> D \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (cong \<cdot> TYPE('T3) \<cdot> TYPE('T4) \<cdot> op \<longrightarrow> \<cdot> op \<longrightarrow> \<cdot> A \<cdot> B \<bullet> prfT3 \<bullet> prfT4 \<bullet>
+        (HOL.refl \<cdot> TYPE('T5) \<cdot> op \<longrightarrow> \<bullet> prfT5) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (impI \<cdot> B \<cdot> D \<bullet> (\<^bold>\<lambda>H: B. iffD1 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet>
+      (mp \<cdot> A \<cdot> C \<bullet> prf3 \<bullet> (iffD2 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> H))))\<close>,
 
-   \<open>(iffD2 % A \<longrightarrow> C % B \<longrightarrow> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %% prfT1 %% prfT2 %%
-      (cong % TYPE('T3) % TYPE('T4) % op \<longrightarrow> % op \<longrightarrow> % A % B %% prfT3 %% prfT4 %%
-        (HOL.refl % TYPE('T5) % op \<longrightarrow> %% prfT5) %% prf1) %% prf2) %% prf3) ==
-    (impI % A % C %% (Lam H: A. iffD2 % C % D %% prf2 %%
-      (mp % B % D %% prf3 %% (iffD1 % A % B %% prf1 %% H))))\<close>,
+   \<open>(iffD2 \<cdot> A \<longrightarrow> C \<cdot> B \<longrightarrow> D \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (cong \<cdot> TYPE('T3) \<cdot> TYPE('T4) \<cdot> op \<longrightarrow> \<cdot> op \<longrightarrow> \<cdot> A \<cdot> B \<bullet> prfT3 \<bullet> prfT4 \<bullet>
+        (HOL.refl \<cdot> TYPE('T5) \<cdot> op \<longrightarrow> \<bullet> prfT5) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (impI \<cdot> A \<cdot> C \<bullet> (\<^bold>\<lambda>H: A. iffD2 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet>
+      (mp \<cdot> B \<cdot> D \<bullet> prf3 \<bullet> (iffD1 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> H))))\<close>,
 
-   \<open>(cong % TYPE(bool) % TYPE(bool) % op \<longrightarrow> A % op \<longrightarrow> A % B % C %% prfb %% prfb %%
-      (HOL.refl % TYPE(bool=>bool) % op \<longrightarrow> A %% prfbb)) ==
-    (cong % TYPE(bool) % TYPE(bool) % op \<longrightarrow> A % op \<longrightarrow> A % B % C %% prfb %% prfb %%
-      (cong % TYPE(bool) % TYPE(bool=>bool) %
-        (op \<longrightarrow> :: bool=>bool=>bool) % (op \<longrightarrow> :: bool=>bool=>bool) % A % A %%
-          prfb %% prfbb %%
-          (HOL.refl % TYPE(bool=>bool=>bool) % (op \<longrightarrow> :: bool=>bool=>bool) %%
-             (OfClass type_class % TYPE(bool=>bool=>bool))) %%
-          (HOL.refl % TYPE(bool) % A %% prfb)))\<close>,
+   \<open>(cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op \<longrightarrow> A \<cdot> op \<longrightarrow> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot> op \<longrightarrow> A \<bullet> prfbb)) \<equiv>
+    (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op \<longrightarrow> A \<cdot> op \<longrightarrow> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot>
+        (op \<longrightarrow> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op \<longrightarrow> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
+          prfb \<bullet> prfbb \<bullet>
+          (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op \<longrightarrow> :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
+             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+          (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (* \<not> *)
 
-   \<open>(iffD1 % \<not> P % \<not> Q %% (cong % TYPE('T1) % TYPE('T2) % Not % Not % P % Q %% prfT1 %% prfT2 %%
-      (HOL.refl % TYPE('T3) % Not %% prfT3) %% prf1) %% prf2) ==
-    (notI % Q %% (Lam H: Q.
-      notE % P % False %% prf2 %% (iffD2 % P % Q %% prf1 %% H)))\<close>,
+   \<open>(iffD1 \<cdot> \<not> P \<cdot> \<not> Q \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> Not \<cdot> Not \<cdot> P \<cdot> Q \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (HOL.refl \<cdot> TYPE('T3) \<cdot> Not \<bullet> prfT3) \<bullet> prf1) \<bullet> prf2) \<equiv>
+    (notI \<cdot> Q \<bullet> (\<^bold>\<lambda>H: Q.
+      notE \<cdot> P \<cdot> False \<bullet> prf2 \<bullet> (iffD2 \<cdot> P \<cdot> Q \<bullet> prf1 \<bullet> H)))\<close>,
 
-   \<open>(iffD2 % \<not> P % \<not> Q %% (cong % TYPE('T1) % TYPE('T2) % Not % Not % P % Q %% prfT1 %% prfT2 %%
-      (HOL.refl % TYPE('T3) % Not %% prfT3) %% prf1) %% prf2) ==
-    (notI % P %% (Lam H: P.
-      notE % Q % False %% prf2 %% (iffD1 % P % Q %% prf1 %% H)))\<close>,
+   \<open>(iffD2 \<cdot> \<not> P \<cdot> \<not> Q \<bullet> (cong \<cdot> TYPE('T1) \<cdot> TYPE('T2) \<cdot> Not \<cdot> Not \<cdot> P \<cdot> Q \<bullet> prfT1 \<bullet> prfT2 \<bullet>
+      (HOL.refl \<cdot> TYPE('T3) \<cdot> Not \<bullet> prfT3) \<bullet> prf1) \<bullet> prf2) \<equiv>
+    (notI \<cdot> P \<bullet> (\<^bold>\<lambda>H: P.
+      notE \<cdot> Q \<cdot> False \<bullet> prf2 \<bullet> (iffD1 \<cdot> P \<cdot> Q \<bullet> prf1 \<bullet> H)))\<close>,
 
    (* = *)
 
-   \<open>(iffD1 % B % D %%
-      (iffD1 % A = C % B = D %% (cong % TYPE(bool) % TYPE('T1) % x1 % x2 % C % D %% prfb %% prfT1 %%
-        (cong % TYPE(bool) % TYPE('T2) % op = % op = % A % B %% prfb %% prfT2 %%
-          (HOL.refl % TYPE('T3) % op = %% prfT3) %% prf1) %% prf2) %% prf3) %% prf4) ==
-    (iffD1 % C % D %% prf2 %%
-      (iffD1 % A % C %% prf3 %% (iffD2 % A % B %% prf1 %% prf4)))\<close>,
+   \<open>(iffD1 \<cdot> B \<cdot> D \<bullet>
+      (iffD1 \<cdot> A = C \<cdot> B = D \<bullet> (cong \<cdot> TYPE(bool) \<cdot> TYPE('T1) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfb \<bullet> prfT1 \<bullet>
+        (cong \<cdot> TYPE(bool) \<cdot> TYPE('T2) \<cdot> op = \<cdot> op = \<cdot> A \<cdot> B \<bullet> prfb \<bullet> prfT2 \<bullet>
+          (HOL.refl \<cdot> TYPE('T3) \<cdot> op = \<bullet> prfT3) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<bullet> prf4) \<equiv>
+    (iffD1 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet>
+      (iffD1 \<cdot> A \<cdot> C \<bullet> prf3 \<bullet> (iffD2 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> prf4)))\<close>,
 
-   \<open>(iffD2 % B % D %%
-      (iffD1 % A = C % B = D %% (cong % TYPE(bool) % TYPE('T1) % x1 % x2 % C % D %% prfb %% prfT1 %%
-        (cong % TYPE(bool) % TYPE('T2) % op = % op = % A % B %% prfb %% prfT2 %%
-          (HOL.refl % TYPE('T3) % op = %% prfT3) %% prf1) %% prf2) %% prf3) %% prf4) ==
-    (iffD1 % A % B %% prf1 %%
-      (iffD2 % A % C %% prf3 %% (iffD2 % C % D %% prf2 %% prf4)))\<close>,
+   \<open>(iffD2 \<cdot> B \<cdot> D \<bullet>
+      (iffD1 \<cdot> A = C \<cdot> B = D \<bullet> (cong \<cdot> TYPE(bool) \<cdot> TYPE('T1) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfb \<bullet> prfT1 \<bullet>
+        (cong \<cdot> TYPE(bool) \<cdot> TYPE('T2) \<cdot> op = \<cdot> op = \<cdot> A \<cdot> B \<bullet> prfb \<bullet> prfT2 \<bullet>
+          (HOL.refl \<cdot> TYPE('T3) \<cdot> op = \<bullet> prfT3) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<bullet> prf4) \<equiv>
+    (iffD1 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet>
+      (iffD2 \<cdot> A \<cdot> C \<bullet> prf3 \<bullet> (iffD2 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet> prf4)))\<close>,
 
-   \<open>(iffD1 % A % C %%
-      (iffD2 % A = C % B = D %% (cong % TYPE(bool) % TYPE('T1) % x1 % x2 % C % D %% prfb %% prfT1 %%
-        (cong % TYPE(bool) % TYPE('T2) % op = % op = % A % B %% prfb %% prfT2 %%
-          (HOL.refl % TYPE('T3) % op = %% prfT3) %% prf1) %% prf2) %% prf3) %% prf4)==
-    (iffD2 % C % D %% prf2 %%
-      (iffD1 % B % D %% prf3 %% (iffD1 % A % B %% prf1 %% prf4)))\<close>,
+   \<open>(iffD1 \<cdot> A \<cdot> C \<bullet>
+      (iffD2 \<cdot> A = C \<cdot> B = D \<bullet> (cong \<cdot> TYPE(bool) \<cdot> TYPE('T1) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfb \<bullet> prfT1 \<bullet>
+        (cong \<cdot> TYPE(bool) \<cdot> TYPE('T2) \<cdot> op = \<cdot> op = \<cdot> A \<cdot> B \<bullet> prfb \<bullet> prfT2 \<bullet>
+          (HOL.refl \<cdot> TYPE('T3) \<cdot> op = \<bullet> prfT3) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<bullet> prf4)\<equiv>
+    (iffD2 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet>
+      (iffD1 \<cdot> B \<cdot> D \<bullet> prf3 \<bullet> (iffD1 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> prf4)))\<close>,
 
-   \<open>(iffD2 % A % C %%
-      (iffD2 % A = C % B = D %% (cong % TYPE(bool) % TYPE('T1) % x1 % x2 % C % D %% prfb %% prfT1 %%
-        (cong % TYPE(bool) % TYPE('T2) % op = % op = % A % B %% prfb %% prfT2 %%
-          (HOL.refl % TYPE('T3) % op = %% prfT3) %% prf1) %% prf2) %% prf3) %% prf4) ==
-    (iffD2 % A % B %% prf1 %%
-      (iffD2 % B % D %% prf3 %% (iffD1 % C % D %% prf2 %% prf4)))\<close>,
+   \<open>(iffD2 \<cdot> A \<cdot> C \<bullet>
+      (iffD2 \<cdot> A = C \<cdot> B = D \<bullet> (cong \<cdot> TYPE(bool) \<cdot> TYPE('T1) \<cdot> x1 \<cdot> x2 \<cdot> C \<cdot> D \<bullet> prfb \<bullet> prfT1 \<bullet>
+        (cong \<cdot> TYPE(bool) \<cdot> TYPE('T2) \<cdot> op = \<cdot> op = \<cdot> A \<cdot> B \<bullet> prfb \<bullet> prfT2 \<bullet>
+          (HOL.refl \<cdot> TYPE('T3) \<cdot> op = \<bullet> prfT3) \<bullet> prf1) \<bullet> prf2) \<bullet> prf3) \<bullet> prf4) \<equiv>
+    (iffD2 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet>
+      (iffD2 \<cdot> B \<cdot> D \<bullet> prf3 \<bullet> (iffD1 \<cdot> C \<cdot> D \<bullet> prf2 \<bullet> prf4)))\<close>,
 
-   \<open>(cong % TYPE(bool) % TYPE(bool) % op = A % op = A % B % C %% prfb %% prfb %%
-      (HOL.refl % TYPE(bool=>bool) % op = A %% prfbb)) ==
-    (cong % TYPE(bool) % TYPE(bool) % op = A % op = A % B % C %% prfb %% prfb %%
-      (cong % TYPE(bool) % TYPE(bool=>bool) %
-        (op = :: bool=>bool=>bool) % (op = :: bool=>bool=>bool) % A % A %%
-          prfb %% prfbb %%
-          (HOL.refl % TYPE(bool=>bool=>bool) % (op = :: bool=>bool=>bool) %%
-             (OfClass type_class % TYPE(bool=>bool=>bool))) %%
-          (HOL.refl % TYPE(bool) % A %% prfb)))\<close>,
+   \<open>(cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op = A \<cdot> op = A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot> op = A \<bullet> prfbb)) \<equiv>
+    (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool) \<cdot> op = A \<cdot> op = A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prfb \<bullet>
+      (cong \<cdot> TYPE(bool) \<cdot> TYPE(bool\<Rightarrow>bool) \<cdot>
+        (op = :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op = :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
+          prfb \<bullet> prfbb \<bullet>
+          (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> (op = :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
+             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+          (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (** transitivity, reflexivity, and symmetry **)
 
-   \<open>(iffD1 % A % C %% (HOL.trans % TYPE(bool) % A % B % C %% prfb %% prf1 %% prf2) %% prf3) ==
-    (iffD1 % B % C %% prf2 %% (iffD1 % A % B %% prf1 %% prf3))\<close>,
+   \<open>(iffD1 \<cdot> A \<cdot> C \<bullet> (HOL.trans \<cdot> TYPE(bool) \<cdot> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prf1 \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (iffD1 \<cdot> B \<cdot> C \<bullet> prf2 \<bullet> (iffD1 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> prf3))\<close>,
 
-   \<open>(iffD2 % A % C %% (HOL.trans % TYPE(bool) % A % B % C %% prfb %% prf1 %% prf2) %% prf3) ==
-    (iffD2 % A % B %% prf1 %% (iffD2 % B % C %% prf2 %% prf3))\<close>,
+   \<open>(iffD2 \<cdot> A \<cdot> C \<bullet> (HOL.trans \<cdot> TYPE(bool) \<cdot> A \<cdot> B \<cdot> C \<bullet> prfb \<bullet> prf1 \<bullet> prf2) \<bullet> prf3) \<equiv>
+    (iffD2 \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> (iffD2 \<cdot> B \<cdot> C \<bullet> prf2 \<bullet> prf3))\<close>,
 
-   \<open>(iffD1 % A % A %% (HOL.refl % TYPE(bool) % A %% prfb) %% prf) == prf\<close>,
+   \<open>(iffD1 \<cdot> A \<cdot> A \<bullet> (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb) \<bullet> prf) \<equiv> prf\<close>,
 
-   \<open>(iffD2 % A % A %% (HOL.refl % TYPE(bool) % A %% prfb) %% prf) == prf\<close>,
+   \<open>(iffD2 \<cdot> A \<cdot> A \<bullet> (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb) \<bullet> prf) \<equiv> prf\<close>,
 
-   \<open>(iffD1 % A % B %% (sym % TYPE(bool) % B % A %% prfb %% prf)) == (iffD2 % B % A %% prf)\<close>,
+   \<open>(iffD1 \<cdot> A \<cdot> B \<bullet> (sym \<cdot> TYPE(bool) \<cdot> B \<cdot> A \<bullet> prfb \<bullet> prf)) \<equiv> (iffD2 \<cdot> B \<cdot> A \<bullet> prf)\<close>,
 
-   \<open>(iffD2 % A % B %% (sym % TYPE(bool) % B % A %% prfb %% prf)) == (iffD1 % B % A %% prf)\<close>,
+   \<open>(iffD2 \<cdot> A \<cdot> B \<bullet> (sym \<cdot> TYPE(bool) \<cdot> B \<cdot> A \<bullet> prfb \<bullet> prf)) \<equiv> (iffD1 \<cdot> B \<cdot> A \<bullet> prf)\<close>,
 
    (** normalization of HOL proofs **)
 
-   \<open>(mp % A % B %% (impI % A % B %% prf)) == prf\<close>,
+   \<open>(mp \<cdot> A \<cdot> B \<bullet> (impI \<cdot> A \<cdot> B \<bullet> prf)) \<equiv> prf\<close>,
 
-   \<open>(impI % A % B %% (mp % A % B %% prf)) == prf\<close>,
+   \<open>(impI \<cdot> A \<cdot> B \<bullet> (mp \<cdot> A \<cdot> B \<bullet> prf)) \<equiv> prf\<close>,
 
-   \<open>(spec % TYPE('a) % P % x %% prfa %% (allI % TYPE('a) % P %% prfa %% prf)) == prf % x\<close>,
+   \<open>(spec \<cdot> TYPE('a) \<cdot> P \<cdot> x \<bullet> prfa \<bullet> (allI \<cdot> TYPE('a) \<cdot> P \<bullet> prfa \<bullet> prf)) \<equiv> prf \<cdot> x\<close>,
 
-   \<open>(allI % TYPE('a) % P %% prfa %% (Lam x::'a. spec % TYPE('a) % P % x %% prfa %% prf)) == prf\<close>,
+   \<open>(allI \<cdot> TYPE('a) \<cdot> P \<bullet> prfa \<bullet> (\<^bold>\<lambda>x::'a. spec \<cdot> TYPE('a) \<cdot> P \<cdot> x \<bullet> prfa \<bullet> prf)) \<equiv> prf\<close>,
 
-   \<open>(exE % TYPE('a) % P % Q %% prfa %% (exI % TYPE('a) % P % x %% prfa %% prf1) %% prf2) == (prf2 % x %% prf1)\<close>,
+   \<open>(exE \<cdot> TYPE('a) \<cdot> P \<cdot> Q \<bullet> prfa \<bullet> (exI \<cdot> TYPE('a) \<cdot> P \<cdot> x \<bullet> prfa \<bullet> prf1) \<bullet> prf2) \<equiv> (prf2 \<cdot> x \<bullet> prf1)\<close>,
 
-   \<open>(exE % TYPE('a) % P % Q %% prfa %% prf %% (exI % TYPE('a) % P %% prfa)) == prf\<close>,
+   \<open>(exE \<cdot> TYPE('a) \<cdot> P \<cdot> Q \<bullet> prfa \<bullet> prf \<bullet> (exI \<cdot> TYPE('a) \<cdot> P \<bullet> prfa)) \<equiv> prf\<close>,
 
-   \<open>(disjE % P % Q % R %% (disjI1 % P % Q %% prf1) %% prf2 %% prf3) == (prf2 %% prf1)\<close>,
+   \<open>(disjE \<cdot> P \<cdot> Q \<cdot> R \<bullet> (disjI1 \<cdot> P \<cdot> Q \<bullet> prf1) \<bullet> prf2 \<bullet> prf3) \<equiv> (prf2 \<bullet> prf1)\<close>,
 
-   \<open>(disjE % P % Q % R %% (disjI2 % Q % P %% prf1) %% prf2 %% prf3) == (prf3 %% prf1)\<close>,
+   \<open>(disjE \<cdot> P \<cdot> Q \<cdot> R \<bullet> (disjI2 \<cdot> Q \<cdot> P \<bullet> prf1) \<bullet> prf2 \<bullet> prf3) \<equiv> (prf3 \<bullet> prf1)\<close>,
 
-   \<open>(conjunct1 % P % Q %% (conjI % P % Q %% prf1 %% prf2)) == prf1\<close>,
+   \<open>(conjunct1 \<cdot> P \<cdot> Q \<bullet> (conjI \<cdot> P \<cdot> Q \<bullet> prf1 \<bullet> prf2)) \<equiv> prf1\<close>,
 
-   \<open>(conjunct2 % P % Q %% (conjI % P % Q %% prf1 %% prf2)) == prf2\<close>,
+   \<open>(conjunct2 \<cdot> P \<cdot> Q \<bullet> (conjI \<cdot> P \<cdot> Q \<bullet> prf1 \<bullet> prf2)) \<equiv> prf2\<close>,
 
-   \<open>(iffD1 % A % B %% (iffI % A % B %% prf1 %% prf2)) == prf1\<close>,
+   \<open>(iffD1 \<cdot> A \<cdot> B \<bullet> (iffI \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> prf2)) \<equiv> prf1\<close>,
 
-   \<open>(iffD2 % A % B %% (iffI % A % B %% prf1 %% prf2)) == prf2\<close>];
+   \<open>(iffD2 \<cdot> A \<cdot> B \<bullet> (iffI \<cdot> A \<cdot> B \<bullet> prf1 \<bullet> prf2)) \<equiv> prf2\<close>];
 
 
 (** Replace congruence rules by substitution rules **)
