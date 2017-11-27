@@ -221,6 +221,9 @@ object ML_Lex
 
     /* antiquotations (line-oriented) */
 
+    def ml_cartouche_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_CARTOUCHE, x), c) }
+
     def ml_antiq_start(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
       ctxt match {
         case Scan.Finished => "@{" ^^ (x => (Token(Kind.ANTIQ_START, x), Antiq(Scan.Finished)))
@@ -257,7 +260,8 @@ object ML_Lex
       else
         ml_string_line(ctxt) |
           (ml_comment_line(ctxt) |
-            (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))
+            (ml_cartouche_line(ctxt) |
+              (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other)))))
     }
   }
 
