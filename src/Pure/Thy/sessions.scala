@@ -238,8 +238,9 @@ object Sessions
             val loaded_files =
               if (inlined_files) {
                 if (Sessions.is_pure(info.name)) {
-                  (Thy_Header.PURE -> resources.pure_files(overall_syntax, info.dir)) ::
-                    dependencies.loaded_files.filterNot(p => p._1 == Thy_Header.PURE)
+                  val pure_files = resources.pure_files(overall_syntax, info.dir)
+                  dependencies.loaded_files.map({ case (name, files) =>
+                    (name, if (name == Thy_Header.PURE) pure_files ::: files else files) })
                 }
                 else dependencies.loaded_files
               }
