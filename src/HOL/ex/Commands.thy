@@ -20,7 +20,8 @@ ML \<open>
       let
         val ctxt = Toplevel.context_of st;
         val t = Syntax.read_term ctxt s;
-      in Pretty.writeln (Syntax.pretty_term ctxt t) end)));
+        val ctxt' = Variable.auto_fixes t ctxt;
+      in Pretty.writeln (Syntax.pretty_term ctxt' t) end)));
 \<close>
 
 print_test x
