@@ -129,6 +129,10 @@ up-to-date status of a session.
 * Command-line tool "isabelle imports -I" also reports actual session
 imports. This helps to minimize the session dependency graph.
 
+* Update to current Poly/ML 5.7.1 with slightly improved performance and
+PIDE markup for identifier bindings.
+
+
 
 New in Isabelle2017 (October 2017)
 ----------------------------------
@@ -442,6 +446,7 @@ wrt. session structure. Examples for the main Isabelle distribution:
   isabelle imports -U -a
   isabelle imports -U -i -a
   isabelle imports -M -a -d '~~/src/Benchmarks'
+
 
 
 New in Isabelle2016-1 (December 2016)

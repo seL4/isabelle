@@ -85,6 +85,13 @@ else
   chmod $(umask -S) "$ISABELLE_HOME_USER"
 fi
 
+#POLYML_EXE
+if [ "$ISABELLE_PLATFORM_FAMILY" = "windows" ]; then
+  POLYML_EXE="$ML_HOME/poly.exe"
+else
+  POLYML_EXE="$ML_HOME/poly"
+fi
+
 #ML system identifier
 if [ -z "$ML_PLATFORM" ]; then
   ML_IDENTIFIER="$ML_SYSTEM"
