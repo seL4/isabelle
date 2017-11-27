@@ -343,7 +343,7 @@ fun mk_driver_polyml _ path _ value_name =
       "    ()\n" ^
       "  end;\n"
     val cmd =
-      "\"$ML_HOME/poly\" --use " ^ Bash.string (File.platform_path code_path) ^
+      "\"$POLYML_EXE\" --use " ^ Bash.string (File.platform_path code_path) ^
       " --use " ^ Bash.string (File.platform_path driver_path) ^
       " --eval " ^ Bash.string "main ()"
   in
