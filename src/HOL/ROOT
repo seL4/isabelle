@@ -68,7 +68,7 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
     Approximations
     Circle_Area
 
-session "HOL-Computational_Algebra" (timing) in "Computational_Algebra" = "HOL-Library" +
+session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "HOL-Library" +
   theories
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
@@ -204,7 +204,7 @@ session "HOL-Import" in Import = HOL +
   theories HOL_Light_Maps
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
-session "HOL-Number_Theory" (timing) in Number_Theory = "HOL-Computational_Algebra" +
+session "HOL-Number_Theory" (main timing) in Number_Theory = "HOL-Computational_Algebra" +
   description {*
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
