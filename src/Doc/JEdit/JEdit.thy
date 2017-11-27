@@ -2145,19 +2145,9 @@ text \<open>
   \<^item> \<^bold>\<open>Problem:\<close> Heap space of the JVM may fill up and render the Prover IDE
   unresponsive, e.g.\ when editing big Isabelle sessions with many theories.
 
-  \<^bold>\<open>Workaround:\<close> On a 64bit platform, ensure that the JVM runs in 64bit mode,
-  but the Isabelle/ML process remains in 32bit mode! Do not switch Isabelle/ML
-  into 64bit mode in the expectation to be ``more efficient'' --- this
-  requires 16--32\,GB to make sense.
-
-  For the JVM, always use the 64bit version. That is the default on all
-  platforms, except for Windows: the standard download is for win32, but there
-  is a separate download for win64. This implicitly provides a larger default
-  heap for the JVM.
-
-  Moreover, it is possible to increase JVM heap parameters explicitly, by
-  editing platform-specific files (for ``properties'' or ``options'') that are
-  associated with the main app bundle.
+  \<^bold>\<open>Workaround:\<close> Increase JVM heap parameters by editing platform-specific
+  files (for ``properties'' or ``options'') that are associated with the main
+  app bundle.
 
   Also note that jEdit provides a heap space monitor in the status line
   (bottom-right). Double-clicking on that causes full garbage-collection,
