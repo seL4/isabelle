@@ -211,18 +211,18 @@ object Isabelle_Cronjob
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
-        Remote_Build("Mac OS X 10.9 Mavericks", "macbroy2",
+        Remote_Build("Mac OS X", "macbroy2",
           options = "-m32 -M8" +
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
             " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
           args = "-a",
           detect = Build_Log.Prop.build_tags.undefined,
           history_base = "2c0f24e927dd"),
-        Remote_Build("Mac OS X 10.9 Mavericks, quick_and_dirty", "macbroy2",
+        Remote_Build("Mac OS X, quick_and_dirty", "macbroy2",
           options = "-m32 -M8 -t quick_and_dirty", args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("quick_and_dirty"),
           history_base = "2c0f24e927dd"),
-        Remote_Build("Mac OS X 10.9 Mavericks, skip_proofs", "macbroy2",
+        Remote_Build("Mac OS X, skip_proofs", "macbroy2",
           options = "-m32 -M8 -t skip_proofs", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
           history_base = "2c0f24e927dd")),
