@@ -93,11 +93,11 @@ class VSCode_Resources(
   def node_name(file: JFile): Document.Node.Name =
     session_base.known.get_file(file, bootstrap = true) getOrElse {
       val node = file.getPath
-      theory_name(Sessions.DRAFT, Thy_Header.theory_name(node)) match {
-        case (true, theory) => Document.Node.Name.loaded_theory(theory)
-        case (false, theory) =>
-          val master_dir = if (theory == "") "" else file.getParent
-          Document.Node.Name(node, master_dir, theory)
+      val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
+      if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+      else {
+        val master_dir = if (theory == "") "" else file.getParent
+        Document.Node.Name(node, master_dir, theory)
       }
     }
 

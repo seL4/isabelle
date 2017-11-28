@@ -108,26 +108,24 @@ fun theory_qualifier theory =
   | NONE => Long_Name.qualifier theory);
 
 fun theory_name qualifier theory =
-  if loaded_theory theory then (true, theory)
-  else
-    let val theory' =
-      if Long_Name.is_qualified theory orelse is_some (global_theory theory)
-      then theory
-      else Long_Name.qualify qualifier theory
-    in (false, theory') end;
+  if Long_Name.is_qualified theory orelse is_some (global_theory theory)
+  then theory
+  else Long_Name.qualify qualifier theory;
 
 fun import_name qualifier dir s =
-  (case theory_name qualifier (Thy_Header.import_name s) of
-    (true, theory) => {master_dir = Path.current, theory_name = theory}
-  | (false, theory) =>
-      let val node_name =
-        (case known_theory theory of
-          SOME node_name => node_name
-        | NONE =>
-            if Thy_Header.is_base_name s andalso Long_Name.is_qualified s
-            then Path.explode s
-            else File.full_path dir (thy_path (Path.expand (Path.explode s))))
-      in {master_dir = Path.dir node_name, theory_name = theory} end);
+  let val theory = theory_name qualifier (Thy_Header.import_name s) in
+    if loaded_theory theory then {master_dir = Path.current, theory_name = theory}
+    else
+      let
+        val node_name =
+          (case known_theory theory of
+            SOME node_name => node_name
+          | NONE =>
+              if Thy_Header.is_base_name s andalso Long_Name.is_qualified s
+              then Path.explode s
+              else File.full_path dir (thy_path (Path.expand (Path.explode s))));
+      in {master_dir = Path.dir node_name, theory_name = theory} end
+  end;
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 

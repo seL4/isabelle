@@ -86,33 +86,30 @@ class Resources(
     roots ::: files
   }
 
-  def theory_name(qualifier: String, theory: String): (Boolean, String) =
-    if (session_base.loaded_theory(theory)) (true, theory)
-    else {
-      val theory1 =
-        if (Long_Name.is_qualified(theory) || session_base.global_theories.isDefinedAt(theory))
-          theory
-        else Long_Name.qualify(qualifier, theory)
-      (false, theory1)
-    }
+  def theory_name(qualifier: String, theory: String): String =
+    if (Long_Name.is_qualified(theory) || session_base.global_theories.isDefinedAt(theory))
+      theory
+    else Long_Name.qualify(qualifier, theory)
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
-    theory_name(qualifier, Thy_Header.import_name(s)) match {
-      case (true, theory) => Document.Node.Name.loaded_theory(theory)
-      case (false, theory) =>
-        session_base.known_theory(theory) match {
-          case Some(node_name) => node_name
-          case None =>
-            if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
-              Document.Node.Name.loaded_theory(theory)
-            else {
-              val path = Path.explode(s)
-              val node = append(dir, thy_path(path))
-              val master_dir = append(dir, path.dir)
-              Document.Node.Name(node, master_dir, theory)
-            }
-        }
+  {
+    val theory = theory_name(qualifier, Thy_Header.import_name(s))
+    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+    else {
+      session_base.known_theory(theory) match {
+        case Some(node_name) => node_name
+        case None =>
+          if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
+            Document.Node.Name.loaded_theory(theory)
+          else {
+            val path = Path.explode(s)
+            val node = append(dir, thy_path(path))
+            val master_dir = append(dir, path.dir)
+            Document.Node.Name(node, master_dir, theory)
+          }
+      }
     }
+  }
 
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
     import_name(session_base.theory_qualifier(name), name.master_dir, s)
