@@ -120,8 +120,6 @@ ML \<open>
       in () end)));
 \<close>
 
-external_file "$POLYML_EXE"
-
 
 subsection \<open>Embedded ML text\<close>
 

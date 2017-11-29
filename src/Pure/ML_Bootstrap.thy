@@ -8,6 +8,9 @@ theory ML_Bootstrap
 imports Pure
 begin
 
+external_file "$POLYML_EXE"
+
+
 subsection \<open>Standard ML environment for virtual bootstrap\<close>
 
 setup \<open>Context.theory_map ML_Env.init_bootstrap\<close>
