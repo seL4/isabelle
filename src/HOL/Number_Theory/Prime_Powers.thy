@@ -6,7 +6,7 @@
 *)
 section \<open>Prime powers\<close>
 theory Prime_Powers
-  imports Complex_Main "HOL-Computational_Algebra.Primes"
+  imports Complex_Main "HOL-Computational_Algebra.Primes" "HOL-Library.FuncSet"
 begin
 
 definition aprimedivisor :: "'a :: normalization_semidom \<Rightarrow> 'a" where
@@ -210,6 +210,37 @@ lemma primepow_prime [simp]: "prime n \<Longrightarrow> primepow n"
 lemma primepow_prime_power [simp]: 
     "prime (p :: 'a :: factorial_semiring) \<Longrightarrow> primepow (p ^ n) \<longleftrightarrow> n > 0"
   by (subst primepow_power_iff) auto
+
+lemma bij_betw_primepows: 
+  "bij_betw (\<lambda>(p,k). p ^ Suc k :: 'a :: factorial_semiring) 
+     (Collect prime \<times> UNIV) (Collect primepow)"
+proof (rule bij_betwI [where ?g = "(\<lambda>n. (aprimedivisor n, multiplicity (aprimedivisor n) n - 1))"], 
+       goal_cases)
+  case 1
+  show "(\<lambda>(p, k). p ^ Suc k :: 'a) \<in> Collect prime \<times> UNIV \<rightarrow> Collect primepow"
+    by (auto intro!: primepow_prime_power simp del: power_Suc )
+next
+  case 2
+  show ?case
+    by (auto simp: primepow_def prime_aprimedivisor)
+next
+  case (3 n)
+  thus ?case
+    by (auto simp: aprimedivisor_prime_power simp del: power_Suc)
+next
+  case (4 n)
+  hence *: "0 < multiplicity (aprimedivisor n) n"
+    by (subst prime_multiplicity_gt_zero_iff)
+       (auto intro!: prime_imp_prime_elem aprimedivisor_dvd simp: primepow_def prime_aprimedivisor)
+  have "aprimedivisor n * aprimedivisor n ^ (multiplicity (aprimedivisor n) n - Suc 0) =
+          aprimedivisor n ^ Suc (multiplicity (aprimedivisor n) n - Suc 0)" by simp
+  also from * have "Suc (multiplicity (aprimedivisor n) n - Suc 0) =
+                      multiplicity (aprimedivisor n) n"
+    by (subst Suc_diff_Suc) (auto simp: prime_multiplicity_gt_zero_iff)
+  also have "aprimedivisor n ^ \<dots> = n"
+    using 4 by (subst primepow_decompose) auto
+  finally show ?case by auto
+qed
 
 (* TODO Generalise *)
 lemma primepow_multD:
