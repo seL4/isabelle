@@ -2836,6 +2836,16 @@ apply (erule continuous_on_subset)
 apply (simp add: subset_hull continuous_on_subset, assumption+)
 by (metis Diff_iff convex_contains_segment insert_absorb insert_subset interior_mono segment_convex_hull subset_hull)
 
+lemma holomorphic_convex_primitive':
+  fixes f :: "complex \<Rightarrow> complex"
+  assumes "convex s" and "open s" and "f holomorphic_on s"
+  shows   "\<exists>g. \<forall>x \<in> s. (g has_field_derivative f x) (at x within s)"
+proof (rule holomorphic_convex_primitive)
+  fix x assume "x \<in> interior s - {}"
+  with assms show "f field_differentiable at x"
+    by (auto intro!: holomorphic_on_imp_differentiable_at simp: interior_open)
+qed (insert assms, auto intro: holomorphic_on_imp_continuous_on)
+
 lemma Cauchy_theorem_convex:
     "\<lbrakk>continuous_on s f; convex s; finite k;
       \<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x;
@@ -7547,5 +7557,38 @@ apply (simp add: simply_connected_eq_contractible_path)
 apply (auto intro!: Cauchy_theorem_null_homotopic [where a = "pathstart g"]
                          homotopic_paths_imp_homotopic_loops)
 using valid_path_imp_path by blast
+
+lemma holomorphic_logarithm_exists:
+  assumes A: "convex A" "open A" 
+      and f: "f holomorphic_on A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
+      and z0: "z0 \<in> A"
+    obtains g where "g holomorphic_on A" and "\<And>x. x \<in> A \<Longrightarrow> exp (g x) = f x"
+proof -
+  note f' = holomorphic_derivI [OF f(1) A(2)]
+  from A have "\<exists>g. \<forall>x\<in>A. (g has_field_derivative (deriv f x / f x)) (at x within A)"
+    by (intro holomorphic_convex_primitive' holomorphic_intros f) auto
+  then obtain g where g: "\<And>x. x \<in> A \<Longrightarrow> (g has_field_derivative deriv f x / f x) (at x)"
+    using A by (auto simp: at_within_open[of _ A])
+
+  define h where "h = (\<lambda>x. -g z0 + ln (f z0) + g x)"
+  from g and A have g_holo: "g holomorphic_on A"
+    by (auto simp: holomorphic_on_def at_within_open[of _ A] field_differentiable_def)
+  hence h_holo: "h holomorphic_on A"
+    by (auto simp: h_def intro!: holomorphic_intros)
+  have "\<exists>c. \<forall>x\<in>A. f x / exp (h x) - 1 = c"
+  proof (rule DERIV_zero_constant, goal_cases)
+    case (2 x)
+    note [simp] = at_within_open[OF _ \<open>open A\<close>]
+    from 2 and z0 and f show ?case
+      by (auto simp: h_def exp_diff field_simps intro!: derivative_eq_intros g f')
+  qed fact+
+
+  then obtain c where c: "\<And>x. x \<in> A \<Longrightarrow> f x / exp (h x) - 1 = c"
+    by blast
+  from c[OF z0] and z0 and f have "c = 0"
+    by (simp add: h_def)
+  with c have "\<And>x. x \<in> A \<Longrightarrow> exp (h x) = f x" by simp
+  from that[OF h_holo this] show ?thesis .
+qed
 
 end
