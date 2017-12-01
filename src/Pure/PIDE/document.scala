@@ -439,6 +439,8 @@ object Document
   final class History private(
     val undo_list: List[Change] = List(Change.init))  // non-empty list
   {
+    override def toString: String = "History(" + undo_list.length + ")"
+
     def tip: Change = undo_list.head
     def + (change: Change): History = new History(change :: undo_list)
 
@@ -569,6 +571,8 @@ object Document
       val command_execs: Map[Document_ID.Command, List[Document_ID.Exec]] = Map.empty,
       val is_finished: Boolean = false)
     {
+      override def toString: String = "Assignment(" + command_execs.size + "," + is_finished + ")"
+
       def check_finished: Assignment = { require(is_finished); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
