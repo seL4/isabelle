@@ -44,8 +44,9 @@ object JSON
 
     def errorToken(msg: String): Token = Token(Kind.ERROR, msg)
 
-    override val whiteSpace = """\s+""".r
-    def whitespace: Parser[Any] = many(character(Symbol.is_ascii_blank(_)))
+    val white_space: String = " \t\n\r"
+    override val whiteSpace = ("[" + white_space + "]+").r
+    def whitespace: Parser[Any] = many(character(white_space.contains(_)))
 
     val letter: Parser[String] = one(character(Symbol.is_ascii_letter(_)))
     val letters1: Parser[String] = many1(character(Symbol.is_ascii_letter(_)))
@@ -66,7 +67,7 @@ object JSON
       '\"' ~> rep(string_body) <~ '\"' ^^ (cs => Token(Kind.STRING, cs.mkString))
 
     def string_body: Parser[Char] =
-      elem("", c => c != '\"' && c != '\\' && c != EofCh) | '\\' ~> string_escape
+      elem("", c => c > '\u001f' && c != '\"' && c != '\\' && c != EofCh) | '\\' ~> string_escape
 
     def string_escape: Parser[Char] =
       elem("", "\"\\/".contains(_)) |
@@ -81,7 +82,7 @@ object JSON
     /* number */
 
     def number: Parser[Token] =
-      opt("-" <~ whitespace) ~ number_body ~ opt(letter) ^^ {
+      opt("-") ~ number_body ~ opt(letter) ^^ {
         case a ~ b ~ None => Token(Kind.NUMBER, a.getOrElse("") + b)
         case a ~ b ~ Some(c) =>
           errorToken("Invalid number format: " + quote(a.getOrElse("") + b + c))
