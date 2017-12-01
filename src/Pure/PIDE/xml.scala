@@ -149,6 +149,8 @@ object XML
     private val table =
       Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
 
+    def size: Int = table.size
+
     private def lookup[A](x: A): Option[A] =
     {
       val ref = table.get(x)
