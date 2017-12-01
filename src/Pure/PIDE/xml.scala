@@ -7,7 +7,7 @@ Untyped XML trees and basic data representation.
 package isabelle
 
 
-import java.util.WeakHashMap
+import java.util.{Collections, WeakHashMap}
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -146,7 +146,8 @@ object XML
 
   class Cache(initial_size: Int = 131071, max_string: Int = 100)
   {
-    private var table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
+    private val table =
+      Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
 
     private def lookup[A](x: A): Option[A] =
     {
