@@ -341,6 +341,12 @@ object Document
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
 
+    def purge_hidden: Option[Nodes] =
+    {
+      val hidden = graph.keys_iterator.filter(is_hidden(_)).toList
+      if (hidden.isEmpty) None else Some(new Nodes((graph /: hidden)(_.del_node(_))))
+    }
+
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
@@ -349,10 +355,7 @@ object Document
         (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))
       val graph3 = (graph2 /: imports)((g, dep) => g.add_edge(dep, name))
-      new Nodes(
-        if (graph3.is_maximal(name) && node.is_empty) graph3.del_node(name)
-        else graph3.map_node(name, _ => node)
-      )
+      new Nodes(graph3.map_node(name, _ => node))
     }
 
     def iterator: Iterator[(Node.Name, Node)] =
@@ -389,6 +392,9 @@ object Document
     val nodes: Nodes = Nodes.empty)
   {
     override def toString: String = "Version(" + id + ")"
+
+    def purge_hidden: Option[Version] =
+      nodes.purge_hidden.map(nodes1 => new Version(id, nodes1))
   }
 
 
@@ -716,12 +722,16 @@ object Document
     def removed_versions(removed: List[Document_ID.Version]): State =
     {
       val versions1 = versions -- removed
+      val versions2 =
+        (versions1 /:
+          (for ((id, v) <- versions1.iterator; v1 <- v.purge_hidden) yield (id, v1)))(_ + _)
+
       val assignments1 = assignments -- removed
       var blobs1 = Set.empty[SHA1.Digest]
       var commands1 = Map.empty[Document_ID.Command, Command.State]
       var execs1 = Map.empty[Document_ID.Exec, Command.State]
       for {
-        (version_id, version) <- versions1.iterator
+        (version_id, version) <- versions2.iterator
         command_execs = assignments1(version_id).command_execs
         (_, node) <- version.nodes.iterator
         command <- node.commands.iterator
@@ -738,7 +748,7 @@ object Document
         }
       }
       copy(
-        versions = versions1,
+        versions = versions2,
         blobs = blobs1,
         commands = commands1,
         execs = execs1,
