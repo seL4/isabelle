@@ -341,11 +341,11 @@ object Document
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
 
-    def purge_hidden: Option[Nodes] =
-    {
-      val hidden = graph.keys_iterator.filter(is_hidden(_)).toList
-      if (hidden.isEmpty) None else Some(new Nodes((graph /: hidden)(_.del_node(_))))
-    }
+    def purge(pred: Node.Name => Boolean): Option[Nodes] =
+      graph.keys_iterator.filter(pred).toList match {
+        case Nil => None
+        case del => Some(new Nodes((graph /: del)(_.del_node(_))))
+      }
 
     def + (entry: (Node.Name, Node)): Nodes =
     {
@@ -385,6 +385,10 @@ object Document
   {
     val init: Version = new Version()
     def make(nodes: Nodes): Version = new Version(Document_ID.make(), nodes)
+
+    def purge(f: Version => Option[Version], versions: Map[Document_ID.Version, Version])
+      : Map[Document_ID.Version, Version] =
+      (versions /: (for ((id, v) <- versions.iterator; v1 <- f(v)) yield (id, v1)))(_ + _)
   }
 
   final class Version private(
@@ -394,7 +398,11 @@ object Document
     override def toString: String = "Version(" + id + ")"
 
     def purge_hidden: Option[Version] =
-      nodes.purge_hidden.map(nodes1 => new Version(id, nodes1))
+      nodes.purge(nodes.is_hidden(_)).map(new Version(id, _))
+
+    def purge_blobs(blobs: Set[Node.Name]): Option[Version] =
+      nodes.purge(name => nodes(name).get_blob.isDefined && !blobs.contains(name)).
+        map(new Version(id, _))
   }
 
 
@@ -721,23 +729,23 @@ object Document
 
     def removed_versions(removed: List[Document_ID.Version]): State =
     {
-      val versions1 = versions -- removed
-      val versions2 =
-        (versions1 /:
-          (for ((id, v) <- versions1.iterator; v1 <- v.purge_hidden) yield (id, v1)))(_ + _)
+      val versions1 = Version.purge(_.purge_hidden, versions -- removed)
 
       val assignments1 = assignments -- removed
+      var blobs1_names = Set.empty[Node.Name]
       var blobs1 = Set.empty[SHA1.Digest]
       var commands1 = Map.empty[Document_ID.Command, Command.State]
       var execs1 = Map.empty[Document_ID.Exec, Command.State]
       for {
-        (version_id, version) <- versions2.iterator
+        (version_id, version) <- versions1.iterator
         command_execs = assignments1(version_id).command_execs
         (_, node) <- version.nodes.iterator
         command <- node.commands.iterator
       } {
-        for ((_, digest) <- command.blobs_defined; if !blobs1.contains(digest))
+        for ((name, digest) <- command.blobs_defined) {
+          blobs1_names += name
           blobs1 += digest
+        }
 
         if (!commands1.isDefinedAt(command.id))
           commands.get(command.id).foreach(st => commands1 += (command.id -> st))
@@ -747,8 +755,9 @@ object Document
             execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
         }
       }
+
       copy(
-        versions = versions2,
+        versions = Version.purge(_.purge_blobs(blobs1_names), versions1),
         blobs = blobs1,
         commands = commands1,
         execs = execs1,
