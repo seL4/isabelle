@@ -1432,7 +1432,7 @@ lemma divide_int_unfold:
       then int (m div n)
       else - int (m div n + of_bool (\<not> n dvd m)))"
   by (auto simp add: divide_int_def sgn_0_0 sgn_1_pos sgn_mult abs_mult
-    nat_mult_distrib dvd_int_iff)
+    nat_mult_distrib)
 
 instance proof
   fix k :: int show "k div 0 = 0"
@@ -1460,7 +1460,7 @@ proof
     fix q
     assume "q dvd m" "q dvd n"
     then have "int q dvd int m" "int q dvd int n"
-      by (simp_all add: zdvd_int)
+      by simp_all
     with \<open>?P\<close> have "is_unit (int q)"
       by (rule coprime_common_divisor)
     then show "is_unit q"
@@ -1473,7 +1473,7 @@ next
     fix k
     assume "k dvd int m" "k dvd int n"
     then have "nat \<bar>k\<bar> dvd m" "nat \<bar>k\<bar> dvd n"
-      by (simp_all add: zdvd_int)
+      by simp_all
     with \<open>?Q\<close> have "is_unit (nat \<bar>k\<bar>)"
       by (rule coprime_common_divisor)
     then show "is_unit k"
@@ -1525,7 +1525,7 @@ lemma modulo_int_unfold:
       then sgn l * int (m mod n)
       else sgn l * (int (n * of_bool (\<not> n dvd m)) - int (m mod n)))"
   by (auto simp add: modulo_int_def sgn_0_0 sgn_1_pos sgn_mult abs_mult
-    nat_mult_distrib dvd_int_iff)
+    nat_mult_distrib)
 
 instance proof
   fix k l :: int
@@ -1574,7 +1574,7 @@ proof -
     by (blast intro: int_sgnE elim: that)
   with that show ?thesis
     by (simp add: modulo_int_unfold sgn_0_0 sgn_1_pos sgn_1_neg
-      sgn_mult mod_eq_0_iff_dvd int_dvd_iff)
+      sgn_mult mod_eq_0_iff_dvd)
 qed
 
 instance proof

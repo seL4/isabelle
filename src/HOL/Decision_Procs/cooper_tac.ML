@@ -61,7 +61,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 =
       put_simpset HOL_basic_ss ctxt
-      addsimps @{thms zdvd_int} @ [@{thm "of_nat_add"}, @{thm "of_nat_mult"}] @
+      addsimps @{thms int_dvd_int_iff [symmetric] of_nat_add of_nat_mult} @
         map (fn r => r RS sym) @{thms of_nat_numeral [where ?'a = int] int_int_eq zle_int of_nat_less_iff [where ?'a = int]}
       |> Splitter.add_split @{thm zdiff_int_split}
     (*simp rules for elimination of int n*)

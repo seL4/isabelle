@@ -84,7 +84,7 @@ fun mir_tac ctxt q =
             @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = put_simpset HOL_basic_ss ctxt
-      addsimps [@{thm "zdvd_int"}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] @ 
+      addsimps @{thms int_dvd_int_iff [symmetric] of_nat_add of_nat_mult} @ 
           map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff"}, @{thm nat_numeral}]
       |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)

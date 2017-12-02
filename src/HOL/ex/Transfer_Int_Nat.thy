@@ -86,7 +86,7 @@ lemma ZN_numeral [transfer_rule]:
   unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_dvd [transfer_rule]: "(ZN ===> ZN ===> op =) (op dvd) (op dvd)"
-  unfolding rel_fun_def ZN_def by (simp add: zdvd_int)
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_div [transfer_rule]: "(ZN ===> ZN ===> ZN) (op div) (op div)"
   unfolding rel_fun_def ZN_def by (simp add: zdiv_int)

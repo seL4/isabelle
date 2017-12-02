@@ -17,8 +17,9 @@ private lemma odd_p: "odd p"
   using p_ge_2 p_prime prime_odd_nat by blast
 
 private lemma p_minus_1_int:
-  "int (p - 1) = int p - 1" using p_prime prime_ge_1_nat by force
-
+  "int (p - 1) = int p - 1"
+  by (metis of_nat_1 of_nat_diff p_prime prime_ge_1_nat)
+  
 private lemma p_not_eq_Suc_0 [simp]:
   "p \<noteq> Suc 0"
   using p_ge_2 by simp
@@ -46,8 +47,9 @@ proof -
   proof -
     have "[nat \<bar>b\<bar> ^ (p - 1) = 1] (mod p)"
     using p_prime proof (rule fermat_theorem)
-      show "\<not> p dvd nat \<bar>b\<bar>"
-        by (metis b cong_altdef_int cong_dvd_iff diff_zero int_dvd_iff p_a_relprime p_prime prime_dvd_power_int_iff prime_nat_int_transfer rel_simps(51))
+      from b p_a_relprime show "\<not> p dvd nat \<bar>b\<bar>"
+        by (auto simp add: cong_altdef_int power2_eq_square)
+          (metis cong_altdef_int cong_dvd_iff dvd_mult2) 
     qed
     then have "nat \<bar>b\<bar> ^ (p - 1) mod p = 1 mod p"
       by (simp add: cong_def)

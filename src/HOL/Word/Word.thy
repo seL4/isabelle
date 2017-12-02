@@ -3997,22 +3997,50 @@ proof -
     done
 qed
 
-lemma word_roti_conv_mod': "word_roti n w = word_roti (n mod int (size w)) w"
-  apply (unfold word_rot_defs)
-  apply (cut_tac y="size w" in gt_or_eq_0)
-  apply (erule disjE)
-   apply simp_all
-  apply (safe intro!: abl_cong)
-   apply (rule rotater_eqs)
-   apply (simp add: word_size nat_mod_distrib)
-  apply (simp add: rotater_add [symmetric] rotate_gal [symmetric])
-  apply (rule rotater_eqs)
-  apply (simp add: word_size nat_mod_distrib)
-  apply (rule of_nat_eq_0_iff [THEN iffD1])
-  apply (auto simp add: not_le mod_eq_0_iff_dvd zdvd_int nat_add_distrib [symmetric])
-  using mod_mod_trivial mod_eq_dvd_iff
-  apply blast
-  done
+lemma word_roti_conv_mod':
+  "word_roti n w = word_roti (n mod int (size w)) w"
+proof (cases "size w = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  then have [simp]: "l mod int (size w) \<ge> 0" for l
+    by simp
+  then have *: "word_roti (n mod int (size w)) w = word_rotr (nat (n mod int (size w))) w"
+    by (simp add: word_roti_def)
+  show ?thesis
+  proof (cases "n \<ge> 0")
+    case True
+    then show ?thesis
+      apply (auto simp add: not_le *)
+      apply (auto simp add: word_rot_defs)
+      apply (safe intro!: abl_cong)
+      apply (rule rotater_eqs)
+      apply (simp add: word_size nat_mod_distrib)
+      done
+  next
+    case False
+    moreover define k where "k = - n"
+    ultimately have n: "n = - k"
+      by simp_all
+    from False show ?thesis
+      apply (auto simp add: not_le *)
+      apply (auto simp add: word_rot_defs)
+      apply (simp add: n)
+      apply (safe intro!: abl_cong)
+      apply (simp add: rotater_add [symmetric] rotate_gal [symmetric])
+      apply (rule rotater_eqs)
+      apply (simp add: word_size [symmetric, of w])
+      apply (rule of_nat_eq_0_iff [THEN iffD1])
+      apply (auto simp add: nat_add_distrib [symmetric] mod_eq_0_iff_dvd)
+      using dvd_nat_abs_iff [of "size w" "- k mod int (size w) + k"]
+      apply (simp add: algebra_simps)
+      apply (simp add: word_size)
+      apply (metis (no_types, hide_lams) add.right_inverse dvd_0_right dvd_mod_imp_dvd dvd_refl minus_dvd_iff minus_equation_iff mod_0 mod_add_eq mod_minus_eq)
+      done
+  qed
+qed
 
 lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]
 

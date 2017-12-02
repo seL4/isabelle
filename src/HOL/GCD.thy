@@ -1756,6 +1756,59 @@ instance ..
 
 end
 
+lemma gcd_int_int_eq [simp]:
+  "gcd (int m) (int n) = int (gcd m n)"
+  by (simp add: gcd_int_def)
+
+lemma gcd_nat_abs_left_eq [simp]:
+  "gcd (nat \<bar>k\<bar>) n = nat (gcd k (int n))"
+  by (simp add: gcd_int_def)
+
+lemma gcd_nat_abs_right_eq [simp]:
+  "gcd n (nat \<bar>k\<bar>) = nat (gcd (int n) k)"
+  by (simp add: gcd_int_def)
+
+lemma abs_gcd_int [simp]:
+  "\<bar>gcd x y\<bar> = gcd x y"
+  for x y :: int
+  by (simp only: gcd_int_def)
+
+lemma gcd_abs1_int [simp]:
+  "gcd \<bar>x\<bar> y = gcd x y"
+  for x y :: int
+  by (simp only: gcd_int_def) simp
+
+lemma gcd_abs2_int [simp]:
+  "gcd x \<bar>y\<bar> = gcd x y"
+  for x y :: int
+  by (simp only: gcd_int_def) simp
+
+lemma lcm_int_int_eq [simp]:
+  "lcm (int m) (int n) = int (lcm m n)"
+  by (simp add: lcm_int_def)
+
+lemma lcm_nat_abs_left_eq [simp]:
+  "lcm (nat \<bar>k\<bar>) n = nat (lcm k (int n))"
+  by (simp add: lcm_int_def)
+
+lemma lcm_nat_abs_right_eq [simp]:
+  "lcm n (nat \<bar>k\<bar>) = nat (lcm (int n) k)"
+  by (simp add: lcm_int_def)
+
+lemma lcm_abs1_int [simp]:
+  "lcm \<bar>x\<bar> y = lcm x y"
+  for x y :: int
+  by (simp only: lcm_int_def) simp
+
+lemma lcm_abs2_int [simp]:
+  "lcm x \<bar>y\<bar> = lcm x y"
+  for x y :: int
+  by (simp only: lcm_int_def) simp
+
+lemma abs_lcm_int [simp]: "\<bar>lcm i j\<bar> = lcm i j"
+  for i j :: int
+  by (simp only: lcm_int_def)
+
 lemma gcd_nat_induct:
   fixes m n :: nat
   assumes "\<And>m. P m 0"
@@ -1767,35 +1820,13 @@ lemma gcd_nat_induct:
    apply simp_all
   done
 
-lemma gcd_eq_int_iff: "gcd k l = int n \<longleftrightarrow> gcd (nat \<bar>k\<bar>) (nat \<bar>l\<bar>) = n"
-  by (simp add: gcd_int_def)
-
-lemma lcm_eq_int_iff: "lcm k l = int n \<longleftrightarrow> lcm (nat \<bar>k\<bar>) (nat \<bar>l\<bar>) = n"
-  by (simp add: lcm_int_def)
-
 lemma gcd_neg1_int [simp]: "gcd (- x) y = gcd x y"
   for x y :: int
-  by (simp add: gcd_int_def)
+  by (simp only: gcd_int_def) simp
 
 lemma gcd_neg2_int [simp]: "gcd x (- y) = gcd x y"
   for x y :: int
-  by (simp add: gcd_int_def)
-
-lemma abs_gcd_int [simp]: "\<bar>gcd x y\<bar> = gcd x y"
-  for x y :: int
-  by (simp add: gcd_int_def)
-
-lemma gcd_abs_int: "gcd x y = gcd \<bar>x\<bar> \<bar>y\<bar>"
-  for x y :: int
-  by (simp add: gcd_int_def)
-
-lemma gcd_abs1_int [simp]: "gcd \<bar>x\<bar> y = gcd x y"
-  for x y :: int
-  by (metis abs_idempotent gcd_abs_int)
-
-lemma gcd_abs2_int [simp]: "gcd x \<bar>y\<bar> = gcd x y"
-  for x y :: int
-  by (metis abs_idempotent gcd_abs_int)
+  by (simp only: gcd_int_def) simp
 
 lemma gcd_cases_int:
   fixes x y :: int
@@ -1812,27 +1843,11 @@ lemma gcd_ge_0_int [simp]: "gcd (x::int) y >= 0"
 
 lemma lcm_neg1_int: "lcm (- x) y = lcm x y"
   for x y :: int
-  by (simp add: lcm_int_def)
+  by (simp only: lcm_int_def) simp
 
 lemma lcm_neg2_int: "lcm x (- y) = lcm x y"
   for x y :: int
-  by (simp add: lcm_int_def)
-
-lemma lcm_abs_int: "lcm x y = lcm \<bar>x\<bar> \<bar>y\<bar>"
-  for x y :: int
-  by (simp add: lcm_int_def)
-
-lemma abs_lcm_int [simp]: "\<bar>lcm i j\<bar> = lcm i j"
-  for i j :: int
-  by (simp add:lcm_int_def)
-
-lemma lcm_abs1_int [simp]: "lcm \<bar>x\<bar> y = lcm x y"
-  for x y :: int
-  by (metis abs_idempotent lcm_int_def)
-
-lemma lcm_abs2_int [simp]: "lcm x \<bar>y\<bar> = lcm x y"
-  for x y :: int
-  by (metis abs_idempotent lcm_int_def)
+  by (simp only: lcm_int_def) simp
 
 lemma lcm_cases_int:
   fixes x y :: int
@@ -1845,7 +1860,7 @@ lemma lcm_cases_int:
 
 lemma lcm_ge_0_int [simp]: "lcm x y \<ge> 0"
   for x y :: int
-  by (simp add: lcm_int_def)
+  by (simp only: lcm_int_def)
 
 lemma gcd_0_nat: "gcd x 0 = x"
   for x :: nat
@@ -1861,7 +1876,7 @@ lemma gcd_0_left_nat: "gcd 0 x = x"
 
 lemma gcd_0_left_int [simp]: "gcd 0 x = \<bar>x\<bar>"
   for x :: int
-  by (auto simp:gcd_int_def)
+  by (auto simp: gcd_int_def)
 
 lemma gcd_red_nat: "gcd x y = gcd y (x mod y)"
   for x y :: nat
@@ -1923,9 +1938,20 @@ next
 qed (simp_all add: lcm_nat_def)
 
 instance int :: ring_gcd
-  by standard
-    (simp_all add: dvd_int_unfold_dvd_nat gcd_int_def lcm_int_def
-      zdiv_int nat_abs_mult_distrib [symmetric] lcm_gcd gcd_greatest)
+proof
+  fix k l r :: int
+  show "gcd k l dvd k" "gcd k l dvd l"
+    using gcd_dvd1 [of "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
+      gcd_dvd2 [of "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
+    by simp_all
+  show "lcm k l = normalize (k * l) div gcd k l"
+    using lcm_gcd [of "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
+    by (simp add: nat_eq_iff of_nat_div abs_mult)
+  assume "r dvd k" "r dvd l"
+  then show "r dvd gcd k l"
+    using gcd_greatest [of "nat \<bar>r\<bar>" "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
+    by simp
+qed simp
 
 lemma gcd_le1_nat [simp]: "a \<noteq> 0 \<Longrightarrow> gcd a b \<le> a"
   for a b :: nat
@@ -1975,7 +2001,7 @@ interpretation gcd_nat:
 
 lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd x y = \<bar>x\<bar>"
   for x y :: int
-  by (metis abs_dvd_iff gcd_0_left_int gcd_abs_int gcd_unique_int)
+  by (metis abs_dvd_iff gcd_0_left_int gcd_unique_int)
 
 lemma gcd_proj2_if_dvd_int [simp]: "y dvd x \<Longrightarrow> gcd x y = \<bar>y\<bar>"
   for x y :: int
@@ -1995,7 +2021,7 @@ lemma gcd_mult_distrib_nat: "k * gcd m n = gcd (k * m) (k * n)"
 
 lemma gcd_mult_distrib_int: "\<bar>k\<bar> * gcd m n = gcd (k * m) (k * n)"
   for k m n :: int
-  by (simp add: gcd_int_def abs_mult nat_mult_distrib gcd_mult_distrib_nat [symmetric])
+  using gcd_mult_distrib' [of k m n] by simp
 
 text \<open>\medskip Addition laws.\<close>
 
@@ -2097,7 +2123,7 @@ lemma gcd_is_Max_divisors_int: "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Lo
 
 lemma gcd_code_int [code]: "gcd k l = \<bar>if l = 0 then k else gcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
   for k l :: int
-  by (simp add: gcd_int_def nat_mod_distrib gcd_non_0_nat)
+  using gcd_red_int [of "\<bar>k\<bar>" "\<bar>l\<bar>"] by simp
 
 lemma coprime_Suc_left_nat [simp]:
   "coprime (Suc n) n"
@@ -2421,8 +2447,8 @@ subsection \<open>LCM properties on @{typ nat} and @{typ int}\<close>
 
 lemma lcm_altdef_int [code]: "lcm a b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
   for a b :: int
-  by (simp add: lcm_int_def lcm_nat_def zdiv_int gcd_int_def)
-
+  by (simp add: abs_mult lcm_gcd)
+  
 lemma prod_gcd_lcm_nat: "m * n = gcd m n * lcm m n"
   for m n :: nat
   unfolding lcm_nat_def
@@ -2439,11 +2465,11 @@ lemma prod_gcd_lcm_int: "\<bar>m\<bar> * \<bar>n\<bar> = gcd m n * lcm m n"
 
 lemma lcm_pos_nat: "m > 0 \<Longrightarrow> n > 0 \<Longrightarrow> lcm m n > 0"
   for m n :: nat
-  by (metis gr0I mult_is_0 prod_gcd_lcm_nat)
+  using lcm_eq_0_iff [of m n] by auto
 
 lemma lcm_pos_int: "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> lcm m n > 0"
   for m n :: int
-  by (simp add: lcm_int_def lcm_pos_nat)
+  by (simp add: less_le lcm_eq_0_iff)
 
 lemma dvd_pos_nat: "n > 0 \<Longrightarrow> m dvd n \<Longrightarrow> m > 0"  (* FIXME move *)
   for m n :: nat
@@ -2653,33 +2679,83 @@ lemma mult_inj_if_coprime_nat:
 
 subsubsection \<open>Setwise GCD and LCM for integers\<close>
 
-instantiation int :: semiring_Gcd
+instantiation int :: Gcd
 begin
 
-definition "Lcm M = int (LCM m\<in>M. (nat \<circ> abs) m)"
+definition Gcd_int :: "int set \<Rightarrow> int"
+  where "Gcd K = int (GCD k\<in>K. (nat \<circ> abs) k)"
 
-definition "Gcd M = int (GCD m\<in>M. (nat \<circ> abs) m)"
+definition Lcm_int :: "int set \<Rightarrow> int"
+  where "Lcm K = int (LCM k\<in>K. (nat \<circ> abs) k)"
 
-instance
-  by standard
-    (auto intro!: Gcd_dvd Gcd_greatest simp add: Gcd_int_def
-      Lcm_int_def int_dvd_iff dvd_int_iff dvd_int_unfold_dvd_nat [symmetric])
+instance ..
 
 end
 
-lemma abs_Gcd [simp]: "\<bar>Gcd K\<bar> = Gcd K"
+lemma Gcd_int_eq [simp]:
+  "(GCD n\<in>N. int n) = int (Gcd N)"
+  by (simp add: Gcd_int_def image_image)
+
+lemma Gcd_nat_abs_eq [simp]:
+  "(GCD k\<in>K. nat \<bar>k\<bar>) = nat (Gcd K)"
+  by (simp add: Gcd_int_def)
+
+lemma abs_Gcd_eq [simp]:
+  "\<bar>Gcd K\<bar> = Gcd K" for K :: "int set"
+  by (simp only: Gcd_int_def)
+
+lemma Gcd_int_greater_eq_0 [simp]:
+  "Gcd K \<ge> 0"
   for K :: "int set"
-  using normalize_Gcd [of K] by simp
+  using abs_ge_zero [of "Gcd K"] by simp
 
-lemma abs_Lcm [simp]: "\<bar>Lcm K\<bar> = Lcm K"
+lemma Gcd_abs_eq [simp]:
+  "(GCD k\<in>K. \<bar>k\<bar>) = Gcd K"
   for K :: "int set"
-  using normalize_Lcm [of K] by simp
+  by (simp only: Gcd_int_def image_image) simp
 
-lemma Gcm_eq_int_iff: "Gcd K = int n \<longleftrightarrow> Gcd ((nat \<circ> abs) ` K) = n"
-  by (simp add: Gcd_int_def comp_def image_image)
+lemma Lcm_int_eq [simp]:
+  "(LCM n\<in>N. int n) = int (Lcm N)"
+  by (simp add: Lcm_int_def image_image)
 
-lemma Lcm_eq_int_iff: "Lcm K = int n \<longleftrightarrow> Lcm ((nat \<circ> abs) ` K) = n"
-  by (simp add: Lcm_int_def comp_def image_image)
+lemma Lcm_nat_abs_eq [simp]:
+  "(LCM k\<in>K. nat \<bar>k\<bar>) = nat (Lcm K)"
+  by (simp add: Lcm_int_def)
+
+lemma abs_Lcm_eq [simp]:
+  "\<bar>Lcm K\<bar> = Lcm K" for K :: "int set"
+  by (simp only: Lcm_int_def)
+
+lemma Lcm_int_greater_eq_0 [simp]:
+  "Lcm K \<ge> 0"
+  for K :: "int set"
+  using abs_ge_zero [of "Lcm K"] by simp
+
+lemma Lcm_abs_eq [simp]:
+  "(LCM k\<in>K. \<bar>k\<bar>) = Lcm K"
+  for K :: "int set"
+  by (simp only: Lcm_int_def image_image) simp
+
+instance int :: semiring_Gcd
+proof
+  fix K :: "int set" and k :: int
+  show "Gcd K dvd k" and "k dvd Lcm K" if "k \<in> K"
+    using that Gcd_dvd [of "nat \<bar>k\<bar>" "(nat \<circ> abs) ` K"]
+      dvd_Lcm [of "nat \<bar>k\<bar>" "(nat \<circ> abs) ` K"]
+    by (simp_all add: comp_def)
+  show "k dvd Gcd K" if "\<And>l. l \<in> K \<Longrightarrow> k dvd l"
+  proof -
+    have "nat \<bar>k\<bar> dvd (GCD k\<in>K. nat \<bar>k\<bar>)"
+      by (rule Gcd_greatest) (use that in auto)
+    then show ?thesis by simp
+  qed
+  show "Lcm K dvd k" if "\<And>l. l \<in> K \<Longrightarrow> l dvd k"
+  proof -
+    have "(LCM k\<in>K. nat \<bar>k\<bar>) dvd nat \<bar>k\<bar>"
+      by (rule Lcm_least) (use that in auto)
+    then show ?thesis by simp
+  qed
+qed simp_all
 
 
 subsection \<open>GCD and LCM on @{typ integer}\<close>

@@ -665,14 +665,15 @@ next
   from ismaxcoeff_mono[OF H1 thh1] show ?case by simp
 qed simp_all
 
-lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow> ((\<bar>i\<bar> > 1 \<and> \<bar>j\<bar> > 1) \<or> (\<bar>i\<bar> = 0 \<and> \<bar>j\<bar> > 1) \<or> (\<bar>i\<bar> > 1 \<and> \<bar>j\<bar> = 0))"
-  apply (unfold gcd_int_def)
-  apply (cases "i = 0", simp_all)
-  apply (cases "j = 0", simp_all)
-  apply (cases "\<bar>i\<bar> = 1", simp_all)
-  apply (cases "\<bar>j\<bar> = 1", simp_all)
-  apply auto
-  done
+lemma zgcd_gt1:
+  "\<bar>i\<bar> > 1 \<and> \<bar>j\<bar> > 1 \<or> \<bar>i\<bar> = 0 \<and> \<bar>j\<bar> > 1 \<or> \<bar>i\<bar> > 1 \<and> \<bar>j\<bar> = 0"
+  if "gcd i j > 1" for i j :: int
+proof -
+  have "\<bar>k\<bar> \<le> 1 \<longleftrightarrow> k = - 1 \<or> k = 0 \<or> k = 1" for k :: int
+    by auto
+  with that show ?thesis
+    by (auto simp add: not_less)
+qed
 
 lemma numgcdh0:"numgcdh t m = 0 \<Longrightarrow>  m =0"
   by (induct t rule: numgcdh.induct) auto

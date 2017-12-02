@@ -811,7 +811,7 @@ local
 val ss1 =
   simpset_of (put_simpset comp_ss @{context}
     addsimps @{thms simp_thms} @ 
-            [@{thm "nat_numeral"} RS sym, @{thm "zdvd_int"}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] 
+            [@{thm "nat_numeral"} RS sym, @{thm int_dvd_int_iff [symmetric]}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] 
         @ map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff" [where ?'a = int]}]
     |> Splitter.add_split @{thm "zdiff_int_split"})
 

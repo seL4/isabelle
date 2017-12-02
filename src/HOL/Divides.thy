@@ -384,7 +384,7 @@ next
     by (cases l rule: int_cases3)
       (auto simp del: of_nat_mult of_nat_add
         simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
-        eucl_rel_int_iff divide_int_def modulo_int_def int_dvd_iff)
+        eucl_rel_int_iff divide_int_def modulo_int_def)
 next
   case (neg n)
   then show ?thesis
@@ -392,7 +392,7 @@ next
     by (cases l rule: int_cases3)
       (auto simp del: of_nat_mult of_nat_add
         simp add: mod_greater_zero_iff_not_dvd of_nat_mult [symmetric] of_nat_add [symmetric] algebra_simps
-        eucl_rel_int_iff divide_int_def modulo_int_def int_dvd_iff)
+        eucl_rel_int_iff divide_int_def modulo_int_def)
 qed
 
 lemma divmod_int_unique:
@@ -1155,7 +1155,7 @@ proof -
   with that have "int (m mod q) = int (n mod q) \<longleftrightarrow> int q dvd int (m - n)"
     by (simp only: of_nat_mod of_nat_diff)
   then show ?thesis
-    by (simp add: zdvd_int)
+    by simp
 qed
 
 lemma mod_eq_nat1E:

@@ -78,7 +78,7 @@ next
 qed (auto simp: totatives_def)
 
 lemma totatives_prime: "prime p \<Longrightarrow> totatives p = {0<..<p}"
-  using totatives_prime_power_Suc[of p 0] by fastforce
+  using totatives_prime_power_Suc [of p 0] by auto
 
 lemma bij_betw_totatives:
   assumes "m1 > 1" "m2 > 1" "coprime m1 m2"

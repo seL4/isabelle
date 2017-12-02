@@ -1499,43 +1499,64 @@ proof -
   then show ?thesis by simp
 qed
 
-theorem zdvd_int: "x dvd y \<longleftrightarrow> int x dvd int y"
+lemma int_dvd_int_iff [simp]:
+  "int m dvd int n \<longleftrightarrow> m dvd n"
 proof -
-  have "x dvd y" if "int y = int x * k" for k
+  have "m dvd n" if "int n = int m * k" for k
   proof (cases k)
-    case (nonneg n)
-    with that have "y = x * n"
+    case (nonneg q)
+    with that have "n = m * q"
       by (simp del: of_nat_mult add: of_nat_mult [symmetric])
     then show ?thesis ..
   next
-    case (neg n)
-    with that have "int y = int x * (- int (Suc n))"
+    case (neg q)
+    with that have "int n = int m * (- int (Suc q))"
       by simp
-    also have "\<dots> = - (int x * int (Suc n))"
+    also have "\<dots> = - (int m * int (Suc q))"
       by (simp only: mult_minus_right)
-    also have "\<dots> = - int (x * Suc n)"
+    also have "\<dots> = - int (m * Suc q)"
       by (simp only: of_nat_mult [symmetric])
-    finally have "- int (x * Suc n) = int y" ..
+    finally have "- int (m * Suc q) = int n" ..
     then show ?thesis
       by (simp only: negative_eq_positive) auto
   qed
-  then show ?thesis
-    by (auto elim!: dvdE simp only: dvd_triv_left of_nat_mult)
+  then show ?thesis by (auto simp add: dvd_def)
 qed
 
-lemma zdvd1_eq[simp]: "x dvd 1 \<longleftrightarrow> \<bar>x\<bar> = 1"
-  (is "?lhs \<longleftrightarrow> ?rhs")
+lemma dvd_nat_abs_iff [simp]:
+  "n dvd nat \<bar>k\<bar> \<longleftrightarrow> int n dvd k"
+proof -
+  have "n dvd nat \<bar>k\<bar> \<longleftrightarrow> int n dvd int (nat \<bar>k\<bar>)"
+    by (simp only: int_dvd_int_iff)
+  then show ?thesis
+    by simp
+qed
+
+lemma nat_abs_dvd_iff [simp]:
+  "nat \<bar>k\<bar> dvd n \<longleftrightarrow> k dvd int n"
+proof -
+  have "nat \<bar>k\<bar> dvd n \<longleftrightarrow> int (nat \<bar>k\<bar>) dvd int n"
+    by (simp only: int_dvd_int_iff)
+  then show ?thesis
+    by simp
+qed
+
+lemma zdvd1_eq [simp]: "x dvd 1 \<longleftrightarrow> \<bar>x\<bar> = 1" (is "?lhs \<longleftrightarrow> ?rhs")
   for x :: int
 proof
   assume ?lhs
-  then have "int (nat \<bar>x\<bar>) dvd int (nat 1)" by simp
-  then have "nat \<bar>x\<bar> dvd 1" by (simp add: zdvd_int)
-  then have "nat \<bar>x\<bar> = 1" by simp
-  then show ?rhs by (cases "x < 0") auto
+  then have "nat \<bar>x\<bar> dvd nat \<bar>1\<bar>"
+    by (simp only: nat_abs_dvd_iff) simp
+  then have "nat \<bar>x\<bar> = 1"
+    by simp
+  then show ?rhs
+    by (cases "x < 0") simp_all
 next
   assume ?rhs
-  then have "x = 1 \<or> x = - 1" by auto
-  then show ?lhs by (auto intro: dvdI)
+  then have "x = 1 \<or> x = - 1"
+    by auto
+  then show ?lhs
+    by (auto intro: dvdI)
 qed
 
 lemma zdvd_mult_cancel1:
@@ -1554,17 +1575,8 @@ next
     by (simp only: zdvd1_eq)
 qed
 
-lemma int_dvd_iff: "int m dvd z \<longleftrightarrow> m dvd nat \<bar>z\<bar>"
-  by (cases "z \<ge> 0") (simp_all add: zdvd_int)
-
-lemma dvd_int_iff: "z dvd int m \<longleftrightarrow> nat \<bar>z\<bar> dvd m"
-  by (cases "z \<ge> 0") (simp_all add: zdvd_int)
-
-lemma dvd_int_unfold_dvd_nat: "k dvd l \<longleftrightarrow> nat \<bar>k\<bar> dvd nat \<bar>l\<bar>"
-  by (simp add: dvd_int_iff [symmetric])
-
 lemma nat_dvd_iff: "nat z dvd m \<longleftrightarrow> (if 0 \<le> z then z dvd int m else m = 0)"
-  by (auto simp add: dvd_int_iff)
+  using nat_abs_dvd_iff [of z m] by (cases "z \<ge> 0") auto
 
 lemma eq_nat_nat_iff: "0 \<le> z \<Longrightarrow> 0 \<le> z' \<Longrightarrow> nat z = nat z' \<longleftrightarrow> z = z'"
   by (auto elim: nonneg_int_cases)
@@ -1603,7 +1615,7 @@ lemma nat_less_numeral_power_cancel_iff [simp]:
 lemma zdvd_imp_le: "z dvd n \<Longrightarrow> 0 < n \<Longrightarrow> z \<le> n"
   for n z :: int
   apply (cases n)
-   apply (auto simp add: dvd_int_iff)
+  apply auto
   apply (cases z)
    apply (auto simp add: dvd_imp_le)
   done

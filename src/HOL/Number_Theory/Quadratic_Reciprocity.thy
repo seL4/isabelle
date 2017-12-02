@@ -25,8 +25,8 @@ lemma odd_p: "odd p"
   using p_ge_2 p_prime prime_odd_nat by blast
 
 lemma p_ge_0: "0 < int p"
-  using p_prime not_prime_0[where 'a = nat] by fastforce+
-
+  by (simp add: p_prime prime_gt_0_nat)
+  
 lemma p_eq2: "int p = (2 * ((int p - 1) div 2)) + 1"
   using odd_p by simp
 
@@ -34,7 +34,7 @@ lemma odd_q: "odd q"
   using q_ge_2 q_prime prime_odd_nat by blast
 
 lemma q_ge_0: "0 < int q"
-  using q_prime not_prime_0[where 'a = nat] by fastforce+
+  by (simp add: q_prime prime_gt_0_nat)
 
 lemma q_eq2: "int q = (2 * ((int q - 1) div 2)) + 1"
   using odd_q by simp
@@ -93,7 +93,7 @@ definition "f = card F"
 
 lemma Gpq: "GAUSS p q"
   using p_prime pq_neq p_ge_2 q_prime
-  by (auto simp: GAUSS_def cong_altdef_int zdvd_int [symmetric] dest: primes_dvd_imp_eq)
+  by (auto simp: GAUSS_def cong_altdef_int dest: primes_dvd_imp_eq)
 
 lemma Gqp: "GAUSS q p"
   by (simp add: QRqp QR.Gpq)

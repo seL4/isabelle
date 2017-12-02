@@ -115,15 +115,11 @@ lemma prime_intI:
   "prime p" if "p \<ge> 2" and "\<And>m n. p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n" for p :: int
   using that by (auto intro!: primeI prime_elemI)
 
-lemma prime_elem_nat_iff:
+lemma prime_elem_nat_iff [simp]:
   "prime_elem n \<longleftrightarrow> prime n" for n :: nat
   by (simp add: prime_def)
 
-lemma prime_nat_iff_prime_elem:
-  "prime n \<longleftrightarrow> prime_elem n" for n :: nat
-  by (simp add: prime_elem_nat_iff)
-
-lemma prime_elem_iff_prime_abs:
+lemma prime_elem_iff_prime_abs [simp]:
   "prime_elem k \<longleftrightarrow> prime \<bar>k\<bar>" for k :: int
   by (auto intro: primeI)
 
@@ -137,14 +133,13 @@ proof
   proof (rule prime_natI)
     fix r s
     assume "n dvd r * s"
-    then have "int n dvd int (r * s)"
-      by (simp add: zdvd_int)
-    then have "int n dvd int r * int s"
+    with of_nat_dvd_iff [of n "r * s"] have "int n dvd int r * int s"
       by simp
     with \<open>?P\<close> have "int n dvd int r \<or> int n dvd int s"
-      by (auto dest: prime_dvd_mult_iff)
+      using prime_dvd_mult_iff [of "int n" "int r" "int s"]
+      by simp
     then show "n dvd r \<or> n dvd s"
-      by (simp add: zdvd_int)
+      by simp
   qed
 next
   assume ?Q
@@ -155,17 +150,18 @@ next
     fix r s
     assume "int n dvd r * s"
     then have "n dvd nat \<bar>r * s\<bar>"
-      by (simp add: zdvd_int)
+      by simp
     then have "n dvd nat \<bar>r\<bar> * nat \<bar>s\<bar>"
       by (simp add: nat_abs_mult_distrib)
     with \<open>?Q\<close> have "n dvd nat \<bar>r\<bar> \<or> n dvd nat \<bar>s\<bar>"
-      by (auto dest: prime_dvd_mult_iff)
+      using prime_dvd_mult_iff [of "n" "nat \<bar>r\<bar>" "nat \<bar>s\<bar>"]
+      by simp
     then show "int n dvd r \<or> int n dvd s"
-      by (simp add: zdvd_int)
+      by simp
   qed
 qed
 
-lemma prime_nat_iff_prime:
+lemma prime_nat_iff_prime [simp]:
   "prime (nat k) \<longleftrightarrow> prime k"
 proof (cases "k \<ge> 0")
   case True
@@ -177,17 +173,9 @@ next
     by (auto dest: prime_ge_2_int)
 qed
 
-lemma prime_elem_int_nat_transfer:
-  "prime_elem n \<longleftrightarrow> prime_elem (nat \<bar>n\<bar>)"
-  by (simp add: prime_elem_iff_prime_abs prime_elem_nat_iff prime_nat_iff_prime)
-
-lemma prime_elem_nat_int_transfer [simp]:
-  "prime_elem (int n) \<longleftrightarrow> prime_elem n"
-  by (simp add: prime_elem_nat_iff prime_elem_iff_prime_abs)
-
 lemma prime_int_nat_transfer:
   "prime k \<longleftrightarrow> k \<ge> 0 \<and> prime (nat k)"
-  by (auto simp add: prime_nat_iff_prime dest: prime_ge_2_int)
+  by (auto dest: prime_ge_2_int)
 
 lemma prime_nat_naiveI:
   "prime p" if "p \<ge> 2" and dvd: "\<And>n. n dvd p \<Longrightarrow> n = 1 \<or> n = p" for p :: nat
@@ -214,12 +202,12 @@ proof -
     with \<open>p \<ge> 2\<close> have "n dvd nat \<bar>p\<bar>"
       by simp
     then have "int n dvd p"
-      by (simp add: int_dvd_iff)
+      by simp
     with dvd [of "int n"] show "n = 1 \<or> n = nat p"
       by auto
   qed
   then show ?thesis
-    by (simp add: prime_nat_iff_prime)
+    by simp
 qed
 
 lemma prime_nat_iff:
@@ -242,9 +230,9 @@ lemma prime_int_iff:
   "prime (n::int) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m \<ge> 0 \<and> m dvd n \<longrightarrow> m = 1 \<or> m = n))"
 proof (intro iffI conjI allI impI; (elim conjE)?)
   assume *: "prime n"
-  hence irred: "irreducible n" by (simp add: prime_elem_imp_irreducible)
-  from * have "n \<ge> 0" "n \<noteq> 0" "n \<noteq> 1" 
-    by (auto simp: prime_def zabs_def not_less split: if_splits)
+  hence irred: "irreducible n" by (auto intro: prime_elem_imp_irreducible)
+  from * have "n \<ge> 0" "n \<noteq> 0" "n \<noteq> 1"
+    by (auto simp add: prime_ge_0_int)
   thus "n > 1" by presburger
   fix m assume "m dvd n" \<open>m \<ge> 0\<close>
   with irred have "m dvd 1 \<or> n dvd m" by (auto simp: irreducible_altdef)
@@ -256,7 +244,10 @@ next
   moreover have "\<forall>m. m dvd nat n \<longrightarrow> m = 1 \<or> m = nat n"
   proof (intro allI impI)
     fix m assume "m dvd nat n"
-    with \<open>n > 1\<close> have "int m dvd n" by (auto simp: int_dvd_iff)
+    with \<open>n > 1\<close> have "m dvd nat \<bar>n\<bar>"
+      by simp
+    then have "int m dvd n"
+      by simp
     with n(2) have "int m = 1 \<or> int m = n"
       using of_nat_0_le_iff by blast
     thus "m = 1 \<or> m = nat n" by auto
@@ -280,7 +271,7 @@ lemma prime_int_not_dvd:
   shows   "\<not>n dvd p"
 proof
   assume "n dvd p"
-  from assms(1) have "irreducible p" by (simp add: prime_elem_imp_irreducible)
+  from assms(1) have "irreducible p" by (auto intro: prime_elem_imp_irreducible)
   from irreducibleD'[OF this \<open>n dvd p\<close>] \<open>n dvd p\<close> \<open>p > n\<close> assms show False
     by (auto dest!: zdvd_imp_le)
 qed
@@ -297,10 +288,10 @@ lemma prime_int_altdef:
   unfolding prime_int_iff by blast
 
 lemma not_prime_eq_prod_nat:
-  assumes "m > 1" "\<not>prime (m::nat)"
+  assumes "m > 1" "\<not> prime (m::nat)"
   shows   "\<exists>n k. n = m * k \<and> 1 < m \<and> m < n \<and> 1 < k \<and> k < n"
   using assms irreducible_altdef[of m]
-  by (auto simp: prime_elem_iff_irreducible prime_def irreducible_altdef)
+  by (auto simp: prime_elem_iff_irreducible irreducible_altdef)
 
     
 subsection \<open>Largest exponent of a prime factor\<close>
@@ -380,15 +371,20 @@ proof safe
 qed (auto simp: prime_nat_iff)
 
 lemma prime_int_iff':
-  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)" (is "?lhs = ?rhs")
-proof
-  assume "?lhs"
-  thus "?rhs"
-      by (auto simp: prime_int_nat_transfer dvd_int_unfold_dvd_nat prime_nat_iff')
+  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)" (is "?P \<longleftrightarrow> ?Q")
+proof (cases "p \<ge> 0")
+  case True
+  have "?P \<longleftrightarrow> prime (nat p)"
+    by simp
+  also have "\<dots> \<longleftrightarrow> p > 1 \<and> (\<forall>n\<in>{2..<nat p}. \<not> n dvd nat \<bar>p\<bar>)"
+    using True by (simp add: prime_nat_iff')
+  also have "{2..<nat p} = nat ` {2..<p}"
+    using True int_eq_iff by fastforce 
+  finally show "?P \<longleftrightarrow> ?Q" by simp
 next
-  assume "?rhs"
-  thus "?lhs"
-    by (auto simp: prime_int_nat_transfer zdvd_int prime_nat_iff')
+  case False
+  then show ?thesis
+    by (auto simp add: prime_ge_0_int) 
 qed
 
 lemma prime_int_numeral_eq [simp]:
@@ -414,6 +410,24 @@ lemma prime_factor_nat:
   "n \<noteq> (1::nat) \<Longrightarrow> \<exists>p. prime p \<and> p dvd n"
   using prime_divisor_exists[of n]
   by (cases "n = 0") (auto intro: exI[of _ "2::nat"])
+
+lemma prime_factor_int:
+  fixes k :: int
+  assumes "\<bar>k\<bar> \<noteq> 1"
+  obtains p where "prime p" "p dvd k"
+proof (cases "k = 0")
+  case True
+  then have "prime (2::int)" and "2 dvd k"
+    by simp_all
+  with that show thesis
+    by blast
+next
+  case False
+  with assms prime_divisor_exists [of k] obtain p where "prime p" "p dvd k"
+    by auto
+  with that show thesis
+    by blast
+qed
 
 
 subsection \<open>Infinitely many primes\<close>
@@ -616,7 +630,7 @@ lemma prod_mset_prime_factorization_int:
 
 lemma prime_factorization_exists_nat:
   "n > 0 \<Longrightarrow> (\<exists>M. (\<forall>p::nat \<in> set_mset M. prime p) \<and> n = (\<Prod>i \<in># M. i))"
-  using prime_factorization_exists[of n] by (auto simp: prime_def)
+  using prime_factorization_exists[of n] by auto
 
 lemma prod_mset_prime_factorization_nat [simp]: 
   "(n::nat) > 0 \<Longrightarrow> prod_mset (prime_factorization n) = n"

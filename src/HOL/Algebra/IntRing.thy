@@ -248,10 +248,12 @@ proof -
     by (metis dvd_def mult.commute)
 next
   assume "UNIV = {uu. \<exists>x. uu = x * p}"
-  then obtain x where "1 = x * p" by best
-  then have "\<bar>p * x\<bar> = 1" by (simp add: mult.commute)
+  then obtain x where "1 = x * p"
+    by best
+  then have "\<bar>p * x\<bar> = 1"
+    by (simp add: ac_simps)
   then show False using prime
-    by (auto dest!: abs_zmult_eq_1 simp: prime_def)
+    by (auto simp add: abs_mult zmult_eq_1_iff)
 qed
 
 

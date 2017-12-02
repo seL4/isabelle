@@ -117,7 +117,7 @@ proof -
       by (simp add: cong_altdef_int)
     with p_prime prime_imp_coprime [of _ "nat \<bar>a\<bar>"]
     have "coprime a (int p)"
-      by (simp_all add: zdvd_int ac_simps)
+      by (simp_all add: ac_simps)
     with a cong_mult_rcancel_int [of a "int p" x y] have "[x = y] (mod p)"
       by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
@@ -152,7 +152,7 @@ proof -
       by (simp add: cong_altdef_int)
     with p_prime prime_imp_coprime [of _ "nat \<bar>a\<bar>"]
     have "coprime a (int p)"
-      by (simp_all add: zdvd_int ac_simps)  
+      by (simp_all add: ac_simps)  
     with a' cong_mult_rcancel_int [of a "int p" x y]
     have "[x = y] (mod p)" by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
