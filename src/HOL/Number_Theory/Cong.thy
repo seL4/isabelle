@@ -154,7 +154,7 @@ lemma cong_minus_minus_iff:
   using cong_diff_iff_cong_0 [of b c a] cong_diff_iff_cong_0 [of "- b" "- c" a]
   by (simp add: cong_0_iff dvd_diff_commute)
 
-lemma cong_modulus_minus_iff:
+lemma cong_modulus_minus_iff [iff]:
   "[b = c] (mod - a) \<longleftrightarrow> [b = c] (mod a)"
   using cong_diff_iff_cong_0 [of b c a] cong_diff_iff_cong_0 [of b c " -a"]
   by (simp add: cong_0_iff)
@@ -174,7 +174,84 @@ proof -
     by simp
 qed
 
+lemma cong_add_lcancel:
+  "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
+  by (simp add: cong_iff_lin algebra_simps)
+
+lemma cong_add_rcancel:
+  "[x + a = y + a] (mod n) \<longleftrightarrow> [x = y] (mod n)"
+  by (simp add: cong_iff_lin algebra_simps)
+
+lemma cong_add_lcancel_0:
+  "[a + x = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
+  using cong_add_lcancel [of a x 0 n] by simp
+
+lemma cong_add_rcancel_0:
+  "[x + a = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
+  using cong_add_rcancel [of x a 0 n] by simp
+
+lemma cong_dvd_modulus:
+  "[x = y] (mod n)" if "[x = y] (mod m)" and "n dvd m"
+  using that by (auto intro: dvd_trans simp add: cong_iff_dvd_diff)
+
+lemma cong_modulus_mult:
+  "[x = y] (mod m)" if "[x = y] (mod m * n)"
+  using that by (simp add: cong_iff_dvd_diff) (rule dvd_mult_left)
+
 end
+
+lemma cong_abs [simp]:
+  "[x = y] (mod \<bar>m\<bar>) \<longleftrightarrow> [x = y] (mod m)"
+  for x y :: "'a :: {unique_euclidean_ring, linordered_idom}"
+  by (simp add: cong_iff_dvd_diff)
+
+lemma cong_square:
+  "prime p \<Longrightarrow> 0 < a \<Longrightarrow> [a * a = 1] (mod p) \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
+  for a p :: "'a :: {normalization_semidom, linordered_idom, unique_euclidean_ring}"
+  by (auto simp add: cong_iff_dvd_diff square_diff_one_factored dest: prime_dvd_multD)
+
+lemma cong_mult_rcancel:
+  "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
+  if "coprime k m" for a k m :: "'a::{unique_euclidean_ring, ring_gcd}"
+  using that by (auto simp add: cong_iff_dvd_diff left_diff_distrib [symmetric] ac_simps coprime_dvd_mult_right_iff)
+
+lemma cong_mult_lcancel:
+  "[k * a = k * b] (mod m) = [a = b] (mod m)"
+  if "coprime k m" for a k m :: "'a::{unique_euclidean_ring, ring_gcd}"
+  using that cong_mult_rcancel [of k m a b] by (simp add: ac_simps)
+
+lemma coprime_cong_mult:
+  "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
+  for a b :: "'a :: {unique_euclidean_ring, semiring_gcd}"
+  by (simp add: cong_iff_dvd_diff divides_mult)
+
+lemma cong_gcd_eq:
+  "gcd a m = gcd b m" if "[a = b] (mod m)"
+  for a b :: "'a :: {unique_euclidean_semiring, euclidean_semiring_gcd}"
+proof (cases "m = 0")
+  case True
+  with that show ?thesis
+    by simp
+next
+  case False
+  moreover have "gcd (a mod m) m = gcd (b mod m) m"
+    using that by (simp add: cong_def)
+  ultimately show ?thesis
+    by simp
+qed 
+
+lemma cong_imp_coprime:
+  "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
+  for a b :: "'a :: {unique_euclidean_semiring, euclidean_semiring_gcd}"
+  by (auto simp add: coprime_iff_gcd_eq_1 dest: cong_gcd_eq)
+
+lemma cong_cong_prod_coprime:
+  "[x = y] (mod (\<Prod>i\<in>A. m i))" if
+    "(\<forall>i\<in>A. [x = y] (mod m i))"
+    "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
+  for x y :: "'a :: {unique_euclidean_ring, semiring_gcd}"
+  using that by (induct A rule: infinite_finite_induct)
+    (auto intro!: coprime_cong_mult prod_coprime_right)
 
 
 subsection \<open>Congruences on @{typ nat} and @{typ int}\<close>
@@ -228,29 +305,6 @@ lemma cong_altdef_nat':
   using cong_diff_iff_cong_0_nat' [of a b m]
   by (simp only: cong_0_iff [symmetric])
 
-lemma cong_altdef_int:
-  "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
-  for a b :: int
-  by (fact cong_iff_dvd_diff)
-
-lemma cong_abs_int [simp]: "[x = y] (mod \<bar>m\<bar>) \<longleftrightarrow> [x = y] (mod m)"
-  for x y :: int
-  by (simp add: cong_iff_dvd_diff)
-
-lemma cong_square_int:
-  "prime p \<Longrightarrow> 0 < a \<Longrightarrow> [a * a = 1] (mod p) \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
-  for a :: int
-  apply (simp only: cong_iff_dvd_diff)
-  apply (subst prime_dvd_mult_eq_int [symmetric], assumption)
-  apply (auto simp add: field_simps)
-  done
-
-lemma cong_mult_rcancel_int:
-  "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
-  if "coprime k m" for a k m :: int
-  using that by (simp add: cong_altdef_int)
-    (metis coprime_commute coprime_dvd_mult_right_iff mult.commute right_diff_distrib') 
-
 lemma cong_mult_rcancel_nat:
   "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
   if "coprime k m" for a k m :: nat
@@ -268,20 +322,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma cong_mult_lcancel_int:
-  "[k * a = k * b] (mod m) = [a = b] (mod m)"
-  if "coprime k m" for a k m :: int
-  using that by (simp add: cong_mult_rcancel_int ac_simps)
-
 lemma cong_mult_lcancel_nat:
   "[k * a = k * b] (mod m) = [a = b] (mod m)"
   if "coprime k m" for a k m :: nat
   using that by (simp add: cong_mult_rcancel_nat ac_simps)
-
-lemma coprime_cong_mult_int:
-  "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
-  for a b :: int
-  by (simp add: cong_altdef_int divides_mult)
 
 lemma coprime_cong_mult_nat:
   "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
@@ -304,10 +348,6 @@ lemma cong_less_unique_int: "0 < m \<Longrightarrow> (\<exists>!b. 0 \<le> b \<a
   for a m :: int
   by (auto simp: cong_def)  (metis mod_mod_trivial pos_mod_conj)
 
-lemma cong_iff_lin_int: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k. b = a + m * k)"
-  for a b :: int
-  by (fact cong_iff_lin)
-
 lemma cong_iff_lin_nat: "([a = b] (mod m)) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
   (is "?lhs = ?rhs")
   for a b :: nat
@@ -329,22 +369,6 @@ next
     by (metis cong_def mult.commute nat_mod_eq_iff) 
 qed
 
-lemma cong_gcd_eq_nat: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
-  for a b :: nat
-  by (auto simp add: cong_def) (metis gcd_red_nat)
-
-lemma cong_gcd_eq_int: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
-  for a b :: int
-  by (auto simp add: cong_def) (metis gcd_red_int)
-
-lemma cong_imp_coprime_nat: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
-  for a b :: nat
-  by (auto simp add: coprime_iff_gcd_eq_1 dest: cong_gcd_eq_nat)
-
-lemma cong_imp_coprime_int: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
-  for a b :: int
-  by (auto simp add: coprime_iff_gcd_eq_1 dest: cong_gcd_eq_int)
-
 lemma cong_cong_mod_nat: "[a = b] (mod m) \<longleftrightarrow> [a mod m = b mod m] (mod m)"
   for a b :: nat
   by simp
@@ -353,41 +377,21 @@ lemma cong_cong_mod_int: "[a = b] (mod m) \<longleftrightarrow> [a mod m = b mod
   for a b :: int
   by simp
 
-lemma cong_minus_int [iff]: "[a = b] (mod - m) \<longleftrightarrow> [a = b] (mod m)"
-  for a b :: int
-  by (fact cong_modulus_minus_iff)
-
 lemma cong_add_lcancel_nat: "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
   for a x y :: nat
   by (simp add: cong_iff_lin_nat)
-
-lemma cong_add_lcancel_int: "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
-  for a x y :: int
-  by (simp add: cong_iff_lin_int)
 
 lemma cong_add_rcancel_nat: "[x + a = y + a] (mod n) \<longleftrightarrow> [x = y] (mod n)"
   for a x y :: nat
   by (simp add: cong_iff_lin_nat)
 
-lemma cong_add_rcancel_int: "[x + a = y + a] (mod n) \<longleftrightarrow> [x = y] (mod n)"
-  for a x y :: int
-  by (simp add: cong_iff_lin_int)
-
 lemma cong_add_lcancel_0_nat: "[a + x = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
   for a x :: nat
   using cong_add_lcancel_nat [of a x 0 n] by simp
 
-lemma cong_add_lcancel_0_int: "[a + x = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
-  for a x :: int
-  using cong_add_lcancel_int [of a x 0 n] by simp
-
 lemma cong_add_rcancel_0_nat: "[x + a = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
   for a x :: nat
   using cong_add_rcancel_nat [of x a 0 n] by simp
-
-lemma cong_add_rcancel_0_int: "[x + a = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
-  for a x :: int
-  using cong_add_rcancel_int [of x a 0 n] by simp
 
 lemma cong_dvd_modulus_nat: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> [x = y] (mod n)"
   for x y :: nat
@@ -396,10 +400,6 @@ lemma cong_dvd_modulus_nat: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrig
   apply (rule_tac x= "k2 * k" in exI)
   apply (simp add: field_simps)
   done
-
-lemma cong_dvd_modulus_int: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> [x = y] (mod n)"
-  for x y :: int
-  by (auto simp add: cong_altdef_int dvd_def)
 
 lemma cong_to_1_nat:
   fixes a :: nat
@@ -455,7 +455,7 @@ lemma cong_solve_int: "a \<noteq> 0 \<Longrightarrow> \<exists>x. [a * x = gcd a
    apply (rule_tac x = "-1" in exI)
    apply auto
   apply (insert bezout_int [of a n], auto)
-  apply (metis cong_iff_lin_int mult.commute)
+  apply (metis cong_iff_lin mult.commute)
   done
 
 lemma cong_solve_dvd_nat:
@@ -553,25 +553,15 @@ lemma cong_cong_lcm_nat: "[x = y] (mod a) \<Longrightarrow> [x = y] (mod b) \<Lo
 
 lemma cong_cong_lcm_int: "[x = y] (mod a) \<Longrightarrow> [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   for x y :: int
-  by (auto simp add: cong_altdef_int lcm_least)
+  by (auto simp add: cong_iff_dvd_diff lcm_least)
 
 lemma cong_cong_prod_coprime_nat:
   "[x = y] (mod (\<Prod>i\<in>A. m i))" if
-    "(\<forall>i\<in>A. [(x::nat) = y] (mod m i))"
-    and "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
-  using that apply (induct A rule: infinite_finite_induct)
-    apply auto
-  apply (metis coprime_cong_mult_nat prod_coprime_right)
-  done
-
-lemma cong_cong_prod_coprime_int:
-  "[x = y] (mod (\<Prod>i\<in>A. m i))" if
-    "(\<forall>i\<in>A. [(x::int) = y] (mod m i))"
+    "(\<forall>i\<in>A. [x = y] (mod m i))"
     "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
-  using that apply (induct A rule: infinite_finite_induct)
-    apply auto
-  apply (metis coprime_cong_mult_int prod_coprime_right)
-  done
+  for x y :: nat
+  using that by (induct A rule: infinite_finite_induct)
+    (auto intro!: coprime_cong_mult_nat prod_coprime_right)
 
 lemma binary_chinese_remainder_nat:
   fixes m1 m2 :: nat
@@ -649,12 +639,6 @@ lemma cong_modulus_mult_nat: "[x = y] (mod m * n) \<Longrightarrow> [x = y] (mod
   apply (cases "y \<le> x")
    apply (auto simp add: cong_altdef_nat elim: dvd_mult_left)
   apply (metis cong_def mod_mult_cong_right)
-  done
-
-lemma cong_modulus_mult_int: "[x = y] (mod m * n) \<Longrightarrow> [x = y] (mod m)"
-  for x y :: int
-  apply (simp add: cong_altdef_int)
-  apply (erule dvd_mult_left)
   done
 
 lemma cong_less_modulus_unique_nat: "[x = y] (mod m) \<Longrightarrow> x < m \<Longrightarrow> y < m \<Longrightarrow> x = y"
@@ -810,5 +794,95 @@ proof -
   from less cong unique show ?thesis
     by blast
 qed
+
+
+subsection \<open>Aliasses\<close>
+
+lemma cong_altdef_int:
+  "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
+  for a b :: int
+  by (fact cong_iff_dvd_diff)
+
+lemma cong_iff_lin_int: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k. b = a + m * k)"
+  for a b :: int
+  by (fact cong_iff_lin)
+
+lemma cong_minus_int: "[a = b] (mod - m) \<longleftrightarrow> [a = b] (mod m)"
+  for a b :: int
+  by (fact cong_modulus_minus_iff)
+
+lemma cong_add_lcancel_int: "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
+  for a x y :: int
+  by (fact cong_add_lcancel)
+
+lemma cong_add_rcancel_int: "[x + a = y + a] (mod n) \<longleftrightarrow> [x = y] (mod n)"
+  for a x y :: int
+  by (fact cong_add_rcancel)
+
+lemma cong_add_lcancel_0_int:
+  "[a + x = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
+  for a x :: int
+  by (fact cong_add_lcancel_0)
+
+lemma cong_add_rcancel_0_int:
+  "[x + a = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
+  for a x :: int
+  by (fact cong_add_rcancel_0) 
+
+lemma cong_dvd_modulus_int: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> [x = y] (mod n)"
+  for x y :: int
+  by (fact cong_dvd_modulus)
+
+lemma cong_abs_int:
+  "[x = y] (mod \<bar>m\<bar>) \<longleftrightarrow> [x = y] (mod m)"
+  for x y :: int
+  by (fact cong_abs)
+
+lemma cong_square_int:
+  "prime p \<Longrightarrow> 0 < a \<Longrightarrow> [a * a = 1] (mod p) \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
+  for a :: int
+  by (fact cong_square)
+
+lemma cong_mult_rcancel_int:
+  "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
+  if "coprime k m" for a k m :: int
+  using that by (fact cong_mult_rcancel)
+
+lemma cong_mult_lcancel_int:
+  "[k * a = k * b] (mod m) = [a = b] (mod m)"
+  if "coprime k m" for a k m :: int
+  using that by (fact cong_mult_lcancel)
+
+lemma coprime_cong_mult_int:
+  "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
+  for a b :: int
+  by (fact coprime_cong_mult)
+
+lemma cong_gcd_eq_nat: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
+  for a b :: nat
+  by (fact cong_gcd_eq)
+
+lemma cong_gcd_eq_int: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
+  for a b :: int
+  by (fact cong_gcd_eq)
+
+lemma cong_imp_coprime_nat: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
+  for a b :: nat
+  by (fact cong_imp_coprime)
+
+lemma cong_imp_coprime_int: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
+  for a b :: int
+  by (fact cong_imp_coprime)
+
+lemma cong_cong_prod_coprime_int:
+  "[x = y] (mod (\<Prod>i\<in>A. m i))" if
+    "(\<forall>i\<in>A. [x = y] (mod m i))"
+    "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
+  for x y :: int
+  using that by (fact cong_cong_prod_coprime)
+
+lemma cong_modulus_mult_int: "[x = y] (mod m * n) \<Longrightarrow> [x = y] (mod m)"
+  for x y :: int
+  by (fact cong_modulus_mult)
 
 end
