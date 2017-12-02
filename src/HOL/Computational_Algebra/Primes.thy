@@ -42,6 +42,37 @@ theory Primes
 imports HOL.Binomial Euclidean_Algorithm
 begin
 
+subsection \<open>Primes on @{typ nat} and @{typ int}\<close>
+
+lemma Suc_0_not_prime_nat [simp]: "\<not> prime (Suc 0)"
+  using not_prime_1 [where ?'a = nat] by simp
+
+lemma prime_ge_2_nat:
+  "p \<ge> 2" if "prime p" for p :: nat
+proof -
+  from that have "p \<noteq> 0" and "p \<noteq> 1"
+    by (auto dest: prime_elem_not_zeroI prime_elem_not_unit)
+  then show ?thesis
+    by simp
+qed
+
+lemma prime_ge_2_int:
+  "p \<ge> 2" if "prime p" for p :: int
+proof -
+  from that have "prime_elem p" and "\<bar>p\<bar> = p"
+    by (auto dest: normalize_prime)
+  then have "p \<noteq> 0" and "\<bar>p\<bar> \<noteq> 1" and "p \<ge> 0"
+    by (auto dest: prime_elem_not_zeroI prime_elem_not_unit)
+  then show ?thesis
+    by simp
+qed
+
+lemma prime_ge_0_int: "prime p \<Longrightarrow> p \<ge> (0::int)"
+  using prime_ge_2_int [of p] by simp
+
+lemma prime_gt_0_nat: "prime p \<Longrightarrow> p > (0::nat)"
+  using prime_ge_2_nat [of p] by simp
+
 (* As a simp or intro rule,
 
      prime p \<Longrightarrow> p > 0
@@ -52,64 +83,160 @@ begin
      x > 0
      prime x
      x \<in># M   which is, unfortunately,
-     count M x > 0
+     count M x > 0  FIXME no, this is obsolete
 *)
 
-declare [[coercion int]]
-declare [[coercion_enabled]]
+lemma prime_gt_0_int: "prime p \<Longrightarrow> p > (0::int)"
+  using prime_ge_2_int [of p] by simp
 
-lemma Suc_0_not_prime_nat [simp]: "\<not> prime (Suc 0)"
-  using not_prime_1 [where ?'a = nat] by simp
+lemma prime_ge_1_nat: "prime p \<Longrightarrow> p \<ge> (1::nat)"
+  using prime_ge_2_nat [of p] by simp
+
+lemma prime_ge_Suc_0_nat: "prime p \<Longrightarrow> p \<ge> Suc 0"
+  using prime_ge_1_nat [of p] by simp
+
+lemma prime_ge_1_int: "prime p \<Longrightarrow> p \<ge> (1::int)"
+  using prime_ge_2_int [of p] by simp
+
+lemma prime_gt_1_nat: "prime p \<Longrightarrow> p > (1::nat)"
+  using prime_ge_2_nat [of p] by simp
+
+lemma prime_gt_Suc_0_nat: "prime p \<Longrightarrow> p > Suc 0"
+  using prime_gt_1_nat [of p] by simp
+
+lemma prime_gt_1_int: "prime p \<Longrightarrow> p > (1::int)"
+  using prime_ge_2_int [of p] by simp
+
+lemma prime_natI:
+  "prime p" if "p \<ge> 2" and "\<And>m n. p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n" for p :: nat
+  using that by (auto intro!: primeI prime_elemI)
+
+lemma prime_intI:
+  "prime p" if "p \<ge> 2" and "\<And>m n. p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n" for p :: int
+  using that by (auto intro!: primeI prime_elemI)
 
 lemma prime_elem_nat_iff:
-  "prime_elem (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
-proof safe
-  assume *: "prime_elem n"
-  from * have "n \<noteq> 0" "n \<noteq> 1" by (intro notI, simp del: One_nat_def)+
-  thus "n > 1" by (cases n) simp_all
+  "prime_elem n \<longleftrightarrow> prime n" for n :: nat
+  by (simp add: prime_def)
+
+lemma prime_nat_iff_prime_elem:
+  "prime n \<longleftrightarrow> prime_elem n" for n :: nat
+  by (simp add: prime_elem_nat_iff)
+
+lemma prime_elem_iff_prime_abs:
+  "prime_elem k \<longleftrightarrow> prime \<bar>k\<bar>" for k :: int
+  by (auto intro: primeI)
+
+lemma prime_nat_int_transfer [simp]:
+  "prime (int n) \<longleftrightarrow> prime n" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  then have "n \<ge> 2"
+    by (auto dest: prime_ge_2_int)
+  then show ?Q
+  proof (rule prime_natI)
+    fix r s
+    assume "n dvd r * s"
+    then have "int n dvd int (r * s)"
+      by (simp add: zdvd_int)
+    then have "int n dvd int r * int s"
+      by simp
+    with \<open>?P\<close> have "int n dvd int r \<or> int n dvd int s"
+      by (auto dest: prime_dvd_mult_iff)
+    then show "n dvd r \<or> n dvd s"
+      by (simp add: zdvd_int)
+  qed
+next
+  assume ?Q
+  then have "int n \<ge> 2"
+    by (auto dest: prime_ge_2_nat)
+  then show ?P
+  proof (rule prime_intI)
+    fix r s
+    assume "int n dvd r * s"
+    then have "n dvd nat \<bar>r * s\<bar>"
+      by (simp add: zdvd_int)
+    then have "n dvd nat \<bar>r\<bar> * nat \<bar>s\<bar>"
+      by (simp add: nat_abs_mult_distrib)
+    with \<open>?Q\<close> have "n dvd nat \<bar>r\<bar> \<or> n dvd nat \<bar>s\<bar>"
+      by (auto dest: prime_dvd_mult_iff)
+    then show "int n dvd r \<or> int n dvd s"
+      by (simp add: zdvd_int)
+  qed
+qed
+
+lemma prime_nat_iff_prime:
+  "prime (nat k) \<longleftrightarrow> prime k"
+proof (cases "k \<ge> 0")
+  case True
+  then show ?thesis
+    using prime_nat_int_transfer [of "nat k"] by simp
+next
+  case False
+  then show ?thesis
+    by (auto dest: prime_ge_2_int)
+qed
+
+lemma prime_elem_int_nat_transfer:
+  "prime_elem n \<longleftrightarrow> prime_elem (nat \<bar>n\<bar>)"
+  by (simp add: prime_elem_iff_prime_abs prime_elem_nat_iff prime_nat_iff_prime)
+
+lemma prime_elem_nat_int_transfer [simp]:
+  "prime_elem (int n) \<longleftrightarrow> prime_elem n"
+  by (simp add: prime_elem_nat_iff prime_elem_iff_prime_abs)
+
+lemma prime_int_nat_transfer:
+  "prime k \<longleftrightarrow> k \<ge> 0 \<and> prime (nat k)"
+  by (auto simp add: prime_nat_iff_prime dest: prime_ge_2_int)
+
+lemma prime_nat_naiveI:
+  "prime p" if "p \<ge> 2" and dvd: "\<And>n. n dvd p \<Longrightarrow> n = 1 \<or> n = p" for p :: nat
+proof (rule primeI, rule prime_elemI)
+  fix m n :: nat
+  assume "p dvd m * n"
+  then obtain r s where "p = r * s" "r dvd m" "s dvd n"
+    by (blast dest: division_decomp)
+  moreover have "r = 1 \<or> r = p"
+    using \<open>r dvd m\<close> \<open>p = r * s\<close> dvd [of r] by simp
+  ultimately show "p dvd m \<or> p dvd n"
+    by auto
+qed (use \<open>p \<ge> 2\<close> in simp_all)
+
+lemma prime_int_naiveI:
+  "prime p" if "p \<ge> 2" and dvd: "\<And>k. k dvd p \<Longrightarrow> \<bar>k\<bar> = 1 \<or> \<bar>k\<bar> = p" for p :: int
+proof -
+  from \<open>p \<ge> 2\<close> have "nat p \<ge> 2"
+    by simp
+  then have "prime (nat p)"
+  proof (rule prime_nat_naiveI)
+    fix n
+    assume "n dvd nat p"
+    with \<open>p \<ge> 2\<close> have "n dvd nat \<bar>p\<bar>"
+      by simp
+    then have "int n dvd p"
+      by (simp add: int_dvd_iff)
+    with dvd [of "int n"] show "n = 1 \<or> n = nat p"
+      by auto
+  qed
+  then show ?thesis
+    by (simp add: prime_nat_iff_prime)
+qed
+
+lemma prime_nat_iff:
+  "prime (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
+proof (safe intro!: prime_gt_1_nat)
+  assume "prime n"
+  then have *: "prime_elem n"
+    by simp
   fix m assume m: "m dvd n" "m \<noteq> n"
   from * \<open>m dvd n\<close> have "n dvd m \<or> is_unit m"
     by (intro irreducibleD' prime_elem_imp_irreducible)
   with m show "m = 1" by (auto dest: dvd_antisym)
 next
   assume "n > 1" "\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n"
-  thus "prime_elem n"
-    by (auto simp: prime_elem_iff_irreducible irreducible_altdef)
+  then show "prime n"
+    using prime_nat_naiveI [of n] by auto
 qed
-
-lemma prime_nat_iff_prime_elem: "prime (n :: nat) \<longleftrightarrow> prime_elem n"
-  by (simp add: prime_def)
-
-lemma prime_nat_iff:
-  "prime (n :: nat) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m dvd n \<longrightarrow> m = 1 \<or> m = n))"
-  by (simp add: prime_nat_iff_prime_elem prime_elem_nat_iff)
-
-lemma prime_elem_int_nat_transfer: "prime_elem (n::int) \<longleftrightarrow> prime_elem (nat (abs n))"
-proof
-  assume "prime_elem n"
-  thus "prime_elem (nat (abs n))" by (auto simp: prime_elem_def nat_dvd_iff)
-next
-  assume "prime_elem (nat (abs n))"
-  thus "prime_elem n"
-    by (auto simp: dvd_int_unfold_dvd_nat prime_elem_def abs_mult nat_mult_distrib)
-qed
-
-lemma prime_elem_nat_int_transfer [simp]: "prime_elem (int n) \<longleftrightarrow> prime_elem n"
-  by (auto simp: prime_elem_int_nat_transfer)
-
-lemma prime_nat_int_transfer [simp]: "prime (int n) \<longleftrightarrow> prime n"
-  by (auto simp: prime_elem_int_nat_transfer prime_def)
-
-lemma prime_int_nat_transfer: "prime (k::int) \<longleftrightarrow> k \<ge> 0 \<and> prime (nat k)"
-  by (auto simp: prime_elem_int_nat_transfer prime_def)
-
-lemma prime_elem_iff_prime_abs:
-  "prime_elem k \<longleftrightarrow> prime \<bar>k\<bar>" for k :: int
-  by (auto intro: primeI)
-
-lemma prime_nat_iff_prime:
-  "prime (nat k) \<longleftrightarrow> prime k"
-  by (cases "k \<ge> 0") (simp_all add: prime_int_nat_transfer)
 
 lemma prime_int_iff:
   "prime (n::int) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m \<ge> 0 \<and> m dvd n \<longrightarrow> m = 1 \<or> m = n))"
@@ -138,7 +265,6 @@ next
     unfolding prime_int_nat_transfer prime_nat_iff by auto
 qed
 
-
 lemma prime_nat_not_dvd:
   assumes "prime p" "p > n" "n \<noteq> (1::nat)"
   shows   "\<not>n dvd p"
@@ -165,39 +291,6 @@ lemma prime_odd_nat: "prime p \<Longrightarrow> p > (2::nat) \<Longrightarrow> o
 lemma prime_odd_int: "prime p \<Longrightarrow> p > (2::int) \<Longrightarrow> odd p"
   by (intro prime_int_not_dvd) auto
 
-lemma prime_ge_0_int: "prime p \<Longrightarrow> p \<ge> (0::int)"
-  unfolding prime_int_iff by auto
-
-lemma prime_gt_0_nat: "prime p \<Longrightarrow> p > (0::nat)"
-  unfolding prime_nat_iff by auto
-
-lemma prime_gt_0_int: "prime p \<Longrightarrow> p > (0::int)"
-  unfolding prime_int_iff by auto
-
-lemma prime_ge_1_nat: "prime p \<Longrightarrow> p \<ge> (1::nat)"
-  unfolding prime_nat_iff by auto
-
-lemma prime_ge_Suc_0_nat: "prime p \<Longrightarrow> p \<ge> Suc 0"
-  unfolding prime_nat_iff by auto
-
-lemma prime_ge_1_int: "prime p \<Longrightarrow> p \<ge> (1::int)"
-  unfolding prime_int_iff by auto
-
-lemma prime_gt_1_nat: "prime p \<Longrightarrow> p > (1::nat)"
-  unfolding prime_nat_iff by auto
-
-lemma prime_gt_Suc_0_nat: "prime p \<Longrightarrow> p > Suc 0"
-  unfolding prime_nat_iff by auto
-
-lemma prime_gt_1_int: "prime p \<Longrightarrow> p > (1::int)"
-  unfolding prime_int_iff by auto
-
-lemma prime_ge_2_nat: "prime p \<Longrightarrow> p \<ge> (2::nat)"
-  unfolding prime_nat_iff by auto
-
-lemma prime_ge_2_int: "prime p \<Longrightarrow> p \<ge> (2::int)"
-  unfolding prime_int_iff by auto
-
 lemma prime_int_altdef:
   "prime p = (1 < p \<and> (\<forall>m::int. m \<ge> 0 \<longrightarrow> m dvd p \<longrightarrow>
     m = 1 \<or> m = p))"
@@ -210,7 +303,8 @@ lemma not_prime_eq_prod_nat:
   by (auto simp: prime_elem_iff_irreducible prime_def irreducible_altdef)
 
     
-subsection\<open>Largest exponent of a prime factor\<close>
+subsection \<open>Largest exponent of a prime factor\<close>
+
 text\<open>Possibly duplicates other material, but avoid the complexities of multisets.\<close>
   
 lemma prime_power_cancel_less:
@@ -360,7 +454,7 @@ proof
     by auto
 qed
 
-subsection\<open>Powers of Primes\<close>
+subsection \<open>Powers of Primes\<close>
 
 text\<open>Versions for type nat only\<close>
 
