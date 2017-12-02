@@ -78,7 +78,7 @@ fun number_of ctxt T n =
   else Numeral.mk_cnumber (Thm.ctyp_of ctxt T) n;
 
 val setup =
-  Lin_Arith.add_inj_thms [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
+  Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
   #> Lin_Arith.add_lessD @{thm zless_imp_add1_zle}
   #> Lin_Arith.add_simps @{thms of_nat_simps of_int_simps}
   #> Lin_Arith.add_simps

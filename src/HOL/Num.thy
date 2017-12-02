@@ -695,6 +695,20 @@ lemma max_0_1 [simp]:
 
 end
 
+text \<open>Unfold \<open>min\<close> and \<open>max\<close> on numerals.\<close>
+
+lemmas max_number_of [simp] =
+  max_def [of "numeral u" "numeral v"]
+  max_def [of "numeral u" "- numeral v"]
+  max_def [of "- numeral u" "numeral v"]
+  max_def [of "- numeral u" "- numeral v"] for u v
+
+lemmas min_number_of [simp] =
+  min_def [of "numeral u" "numeral v"]
+  min_def [of "numeral u" "- numeral v"]
+  min_def [of "- numeral u" "numeral v"]
+  min_def [of "- numeral u" "- numeral v"] for u v
+
 
 subsubsection \<open>Multiplication and negation: class \<open>ring_1\<close>\<close>
 
@@ -1116,6 +1130,125 @@ declare (in neg_numeral) diff_numeral_simps [simp]
 declare (in neg_numeral) diff_numeral_special [simp]
 declare (in semiring_numeral) numeral_times_numeral [simp]
 declare (in ring_1) mult_neg_numeral_simps [simp]
+
+
+subsubsection \<open>Special Simplification for Constants\<close>
+
+text \<open>These distributive laws move literals inside sums and differences.\<close>
+
+lemmas distrib_right_numeral [simp] = distrib_right [of _ _ "numeral v"] for v
+lemmas distrib_left_numeral [simp] = distrib_left [of "numeral v"] for v
+lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ "numeral v"] for v
+lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of "numeral v"] for v
+
+text \<open>These are actually for fields, like real\<close>
+
+lemmas zero_less_divide_iff_numeral [simp, no_atp] = zero_less_divide_iff [of "numeral w"] for w
+lemmas divide_less_0_iff_numeral [simp, no_atp] = divide_less_0_iff [of "numeral w"] for w
+lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of "numeral w"] for w
+lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of "numeral w"] for w
+
+text \<open>Replaces \<open>inverse #nn\<close> by \<open>1/#nn\<close>.  It looks
+  strange, but then other simprocs simplify the quotient.\<close>
+
+lemmas inverse_eq_divide_numeral [simp] =
+  inverse_eq_divide [of "numeral w"] for w
+
+lemmas inverse_eq_divide_neg_numeral [simp] =
+  inverse_eq_divide [of "- numeral w"] for w
+
+text \<open>These laws simplify inequalities, moving unary minus from a term
+  into the literal.\<close>
+
+lemmas equation_minus_iff_numeral [no_atp] =
+  equation_minus_iff [of "numeral v"] for v
+
+lemmas minus_equation_iff_numeral [no_atp] =
+  minus_equation_iff [of _ "numeral v"] for v
+
+lemmas le_minus_iff_numeral [no_atp] =
+  le_minus_iff [of "numeral v"] for v
+
+lemmas minus_le_iff_numeral [no_atp] =
+  minus_le_iff [of _ "numeral v"] for v
+
+lemmas less_minus_iff_numeral [no_atp] =
+  less_minus_iff [of "numeral v"] for v
+
+lemmas minus_less_iff_numeral [no_atp] =
+  minus_less_iff [of _ "numeral v"] for v
+
+(* FIXME maybe simproc *)
+
+text \<open>Cancellation of constant factors in comparisons (\<open><\<close> and \<open>\<le>\<close>)\<close>
+
+lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of "numeral v"] for v
+lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ "numeral v"] for v
+lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of "numeral v"] for v
+lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ "numeral v"] for v
+
+text \<open>Multiplying out constant divisors in comparisons (\<open><\<close>, \<open>\<le>\<close> and \<open>=\<close>)\<close>
+
+named_theorems divide_const_simps "simplification rules to simplify comparisons involving constant divisors"
+
+lemmas le_divide_eq_numeral1 [simp,divide_const_simps] =
+  pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
+  neg_le_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+
+lemmas divide_le_eq_numeral1 [simp,divide_const_simps] =
+  pos_divide_le_eq [of "numeral w", OF zero_less_numeral]
+  neg_divide_le_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+
+lemmas less_divide_eq_numeral1 [simp,divide_const_simps] =
+  pos_less_divide_eq [of "numeral w", OF zero_less_numeral]
+  neg_less_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+
+lemmas divide_less_eq_numeral1 [simp,divide_const_simps] =
+  pos_divide_less_eq [of "numeral w", OF zero_less_numeral]
+  neg_divide_less_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+
+lemmas eq_divide_eq_numeral1 [simp,divide_const_simps] =
+  eq_divide_eq [of _ _ "numeral w"]
+  eq_divide_eq [of _ _ "- numeral w"] for w
+
+lemmas divide_eq_eq_numeral1 [simp,divide_const_simps] =
+  divide_eq_eq [of _ "numeral w"]
+  divide_eq_eq [of _ "- numeral w"] for w
+
+
+subsubsection \<open>Optional Simplification Rules Involving Constants\<close>
+
+text \<open>Simplify quotients that are compared with a literal constant.\<close>
+
+lemmas le_divide_eq_numeral [divide_const_simps] =
+  le_divide_eq [of "numeral w"]
+  le_divide_eq [of "- numeral w"] for w
+
+lemmas divide_le_eq_numeral [divide_const_simps] =
+  divide_le_eq [of _ _ "numeral w"]
+  divide_le_eq [of _ _ "- numeral w"] for w
+
+lemmas less_divide_eq_numeral [divide_const_simps] =
+  less_divide_eq [of "numeral w"]
+  less_divide_eq [of "- numeral w"] for w
+
+lemmas divide_less_eq_numeral [divide_const_simps] =
+  divide_less_eq [of _ _ "numeral w"]
+  divide_less_eq [of _ _ "- numeral w"] for w
+
+lemmas eq_divide_eq_numeral [divide_const_simps] =
+  eq_divide_eq [of "numeral w"]
+  eq_divide_eq [of "- numeral w"] for w
+
+lemmas divide_eq_eq_numeral [divide_const_simps] =
+  divide_eq_eq [of _ _ "numeral w"]
+  divide_eq_eq [of _ _ "- numeral w"] for w
+
+text \<open>Not good as automatic simprules because they cause case splits.\<close>
+
+lemmas [divide_const_simps] =
+  le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
+
 
 subsection \<open>Setting up simprocs\<close>
 

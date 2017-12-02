@@ -203,13 +203,6 @@ next
   then show ?rhs by simp
 qed
 
-lemmas int_distrib =
-  distrib_right [of z1 z2 w]
-  distrib_left [of w z1 z2]
-  left_diff_distrib [of z1 z2 w]
-  right_diff_distrib [of w z1 z2]
-  for z1 z2 w :: int
-
 
 subsection \<open>Embedding of the Integers into any \<open>ring_1\<close>: \<open>of_int\<close>\<close>
 
@@ -778,14 +771,6 @@ lemma int_of_nat_induct [case_names nonneg neg, induct type: int]:
   "(\<And>n. P (int n)) \<Longrightarrow> (\<And>n. P (- (int (Suc n)))) \<Longrightarrow> P z"
   by (cases z) auto
 
-lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
-  \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
-  by (fact Let_numeral) \<comment> \<open>FIXME drop\<close>
-
-lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
-  \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
-  by (fact Let_neg_numeral) \<comment> \<open>FIXME drop\<close>
-
 lemma sgn_mult_dvd_iff [simp]:
   "sgn r * l dvd k \<longleftrightarrow> l dvd k \<and> (r = 0 \<longrightarrow> k = 0)" for k l r :: int
   by (cases r rule: int_cases3) auto
@@ -810,20 +795,6 @@ proof -
     by (simp add: sgn_mult_abs)
   then show ?thesis ..
 qed
-
-text \<open>Unfold \<open>min\<close> and \<open>max\<close> on numerals.\<close>
-
-lemmas max_number_of [simp] =
-  max_def [of "numeral u" "numeral v"]
-  max_def [of "numeral u" "- numeral v"]
-  max_def [of "- numeral u" "numeral v"]
-  max_def [of "- numeral u" "- numeral v"] for u v
-
-lemmas min_number_of [simp] =
-  min_def [of "numeral u" "numeral v"]
-  min_def [of "numeral u" "- numeral v"]
-  min_def [of "- numeral u" "numeral v"]
-  min_def [of "- numeral u" "- numeral v"] for u v
 
 
 subsubsection \<open>Binary comparisons\<close>
@@ -857,8 +828,6 @@ qed
 
 subsubsection \<open>Comparisons, for Ordered Rings\<close>
 
-lemmas double_eq_0_iff = double_zero
-
 lemma odd_nonzero: "1 + z + z \<noteq> 0"
   for z :: int
 proof (cases z)
@@ -866,7 +835,7 @@ proof (cases z)
   have le: "0 \<le> z + z"
     by (simp add: nonneg add_increasing)
   then show ?thesis
-    using  le_imp_0_less [OF le] by (auto simp: add.assoc)
+    using le_imp_0_less [OF le] by (auto simp: ac_simps)
 next
   case (neg n)
   show ?thesis
@@ -1017,7 +986,7 @@ proof -
     assume ?lhs
     with a have "of_int (z + z) = (of_int 0 :: 'a)" by simp
     then have "z + z = 0" by (simp only: of_int_eq_iff)
-    then have "z = 0" by (simp only: double_eq_0_iff)
+    then have "z = 0" by (simp only: double_zero)
     with a show ?rhs by simp
   qed
 qed
@@ -1073,15 +1042,6 @@ lemma of_nat_prod [simp]: "of_nat (prod f A) = (\<Prod>x\<in>A. of_nat(f x))"
 
 lemma of_int_prod [simp]: "of_int (prod f A) = (\<Prod>x\<in>A. of_int(f x))"
   by (induct A rule: infinite_finite_induct) auto
-
-
-text \<open>Legacy theorems\<close>
-
-lemmas int_sum = of_nat_sum [where 'a=int]
-lemmas int_prod = of_nat_prod [where 'a=int]
-lemmas zle_int = of_nat_le_iff [where 'a=int]
-lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
-lemmas nonneg_eq_int = nonneg_int_cases
 
 
 subsection \<open>Setting up simplification procedures\<close>
@@ -1147,13 +1107,12 @@ text \<open>Simplify the term @{term "w + - z"}.\<close>
 lemma one_less_nat_eq [simp]: "Suc 0 < nat z \<longleftrightarrow> 1 < z"
   using zless_nat_conj [of 1 z] by auto
 
-text \<open>
-  This simplifies expressions of the form @{term "int n = z"} where
-  \<open>z\<close> is an integer literal.
-\<close>
-lemmas int_eq_iff_numeral [simp] = int_eq_iff [of _ "numeral v"] for v
+lemma int_eq_iff_numeral [simp]:
+  "int m = numeral v \<longleftrightarrow> m = numeral v"
+  by (simp add: int_eq_iff)
 
-lemma nat_abs_int_diff: "nat \<bar>int a - int b\<bar> = (if a \<le> b then b - a else a - b)"
+lemma nat_abs_int_diff:
+  "nat \<bar>int a - int b\<bar> = (if a \<le> b then b - a else a - b)"
   by auto
 
 lemma nat_int_add: "nat (int a + int b) = a + b"
@@ -1377,36 +1336,33 @@ qed
 
 subsection \<open>Intermediate value theorems\<close>
 
-lemma int_val_lemma: "(\<forall>i<n. \<bar>f (i + 1) - f i\<bar> \<le> 1) \<longrightarrow> f 0 \<le> k \<longrightarrow> k \<le> f n \<longrightarrow> (\<exists>i \<le> n. f i = k)"
-  for n :: nat and k :: int
-  unfolding One_nat_def
-  apply (induct n)
-   apply simp
-  apply (intro strip)
-  apply (erule impE)
-   apply simp
-  apply (erule_tac x = n in allE)
-  apply simp
-  apply (case_tac "k = f (Suc n)")
-   apply force
-  apply (erule impE)
-   apply (simp add: abs_if split: if_split_asm)
-  apply (blast intro: le_SucI)
-  done
-
-lemmas nat0_intermed_int_val = int_val_lemma [rule_format (no_asm)]
-
 lemma nat_intermed_int_val:
-  "\<forall>i. m \<le> i \<and> i < n \<longrightarrow> \<bar>f (i + 1) - f i\<bar> \<le> 1 \<Longrightarrow> m < n \<Longrightarrow>
-    f m \<le> k \<Longrightarrow> k \<le> f n \<Longrightarrow> \<exists>i. m \<le> i \<and> i \<le> n \<and> f i = k"
-    for f :: "nat \<Rightarrow> int" and k :: int
-  apply (cut_tac n = "n-m" and f = "\<lambda>i. f (i + m)" and k = k in int_val_lemma)
-  unfolding One_nat_def
-  apply simp
-  apply (erule exE)
-  apply (rule_tac x = "i+m" in exI)
-  apply arith
-  done
+  "\<exists>i. m \<le> i \<and> i \<le> n \<and> f i = k"
+  if "\<forall>i. m \<le> i \<and> i < n \<longrightarrow> \<bar>f (Suc i) - f i\<bar> \<le> 1"
+    "m \<le> n" "f m \<le> k" "k \<le> f n"
+  for m n :: nat and k :: int
+proof -
+  have "(\<forall>i<n. \<bar>f (Suc i) - f i\<bar> \<le> 1) \<Longrightarrow> f 0 \<le> k \<Longrightarrow> k \<le> f n
+    \<Longrightarrow> (\<exists>i \<le> n. f i = k)"
+  for n :: nat and f
+    apply (induct n)
+     apply auto
+    apply (erule_tac x = n in allE)
+    apply (case_tac "k = f (Suc n)")
+     apply (auto simp add: abs_if split: if_split_asm intro: le_SucI)
+    done
+  from this [of "n - m" "f \<circ> plus m"] that show ?thesis
+    apply auto
+    apply (rule_tac x = "m + i" in exI)
+    apply auto
+    done
+qed
+
+lemma nat0_intermed_int_val:
+  "\<exists>i\<le>n. f i = k"
+  if "\<forall>i<n. \<bar>f (i + 1) - f i\<bar> \<le> 1" "f 0 \<le> k" "k \<le> f n"
+  for n :: nat and k :: int
+  using nat_intermed_int_val [of 0 n f k] that by auto
 
 
 subsection \<open>Products and 1, by T. M. Rasmussen\<close>
@@ -1463,129 +1419,6 @@ proof
   then obtain i :: int where "1 = 2 * i" by (rule surjE)
   then show False by (simp add: pos_zmult_eq_1_iff)
 qed
-
-
-subsection \<open>Further theorems on numerals\<close>
-
-subsubsection \<open>Special Simplification for Constants\<close>
-
-text \<open>These distributive laws move literals inside sums and differences.\<close>
-
-lemmas distrib_right_numeral [simp] = distrib_right [of _ _ "numeral v"] for v
-lemmas distrib_left_numeral [simp] = distrib_left [of "numeral v"] for v
-lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ "numeral v"] for v
-lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of "numeral v"] for v
-
-text \<open>These are actually for fields, like real: but where else to put them?\<close>
-
-lemmas zero_less_divide_iff_numeral [simp, no_atp] = zero_less_divide_iff [of "numeral w"] for w
-lemmas divide_less_0_iff_numeral [simp, no_atp] = divide_less_0_iff [of "numeral w"] for w
-lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of "numeral w"] for w
-lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of "numeral w"] for w
-
-
-text \<open>Replaces \<open>inverse #nn\<close> by \<open>1/#nn\<close>.  It looks
-  strange, but then other simprocs simplify the quotient.\<close>
-
-lemmas inverse_eq_divide_numeral [simp] =
-  inverse_eq_divide [of "numeral w"] for w
-
-lemmas inverse_eq_divide_neg_numeral [simp] =
-  inverse_eq_divide [of "- numeral w"] for w
-
-text \<open>These laws simplify inequalities, moving unary minus from a term
-  into the literal.\<close>
-
-lemmas equation_minus_iff_numeral [no_atp] =
-  equation_minus_iff [of "numeral v"] for v
-
-lemmas minus_equation_iff_numeral [no_atp] =
-  minus_equation_iff [of _ "numeral v"] for v
-
-lemmas le_minus_iff_numeral [no_atp] =
-  le_minus_iff [of "numeral v"] for v
-
-lemmas minus_le_iff_numeral [no_atp] =
-  minus_le_iff [of _ "numeral v"] for v
-
-lemmas less_minus_iff_numeral [no_atp] =
-  less_minus_iff [of "numeral v"] for v
-
-lemmas minus_less_iff_numeral [no_atp] =
-  minus_less_iff [of _ "numeral v"] for v
-
-(* FIXME maybe simproc *)
-
-
-text \<open>Cancellation of constant factors in comparisons (\<open><\<close> and \<open>\<le>\<close>)\<close>
-
-lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of "numeral v"] for v
-lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ "numeral v"] for v
-lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of "numeral v"] for v
-lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ "numeral v"] for v
-
-
-text \<open>Multiplying out constant divisors in comparisons (\<open><\<close>, \<open>\<le>\<close> and \<open>=\<close>)\<close>
-
-named_theorems divide_const_simps "simplification rules to simplify comparisons involving constant divisors"
-
-lemmas le_divide_eq_numeral1 [simp,divide_const_simps] =
-  pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
-  neg_le_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
-
-lemmas divide_le_eq_numeral1 [simp,divide_const_simps] =
-  pos_divide_le_eq [of "numeral w", OF zero_less_numeral]
-  neg_divide_le_eq [of "- numeral w", OF neg_numeral_less_zero] for w
-
-lemmas less_divide_eq_numeral1 [simp,divide_const_simps] =
-  pos_less_divide_eq [of "numeral w", OF zero_less_numeral]
-  neg_less_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
-
-lemmas divide_less_eq_numeral1 [simp,divide_const_simps] =
-  pos_divide_less_eq [of "numeral w", OF zero_less_numeral]
-  neg_divide_less_eq [of "- numeral w", OF neg_numeral_less_zero] for w
-
-lemmas eq_divide_eq_numeral1 [simp,divide_const_simps] =
-  eq_divide_eq [of _ _ "numeral w"]
-  eq_divide_eq [of _ _ "- numeral w"] for w
-
-lemmas divide_eq_eq_numeral1 [simp,divide_const_simps] =
-  divide_eq_eq [of _ "numeral w"]
-  divide_eq_eq [of _ "- numeral w"] for w
-
-
-subsubsection \<open>Optional Simplification Rules Involving Constants\<close>
-
-text \<open>Simplify quotients that are compared with a literal constant.\<close>
-
-lemmas le_divide_eq_numeral [divide_const_simps] =
-  le_divide_eq [of "numeral w"]
-  le_divide_eq [of "- numeral w"] for w
-
-lemmas divide_le_eq_numeral [divide_const_simps] =
-  divide_le_eq [of _ _ "numeral w"]
-  divide_le_eq [of _ _ "- numeral w"] for w
-
-lemmas less_divide_eq_numeral [divide_const_simps] =
-  less_divide_eq [of "numeral w"]
-  less_divide_eq [of "- numeral w"] for w
-
-lemmas divide_less_eq_numeral [divide_const_simps] =
-  divide_less_eq [of _ _ "numeral w"]
-  divide_less_eq [of _ _ "- numeral w"] for w
-
-lemmas eq_divide_eq_numeral [divide_const_simps] =
-  eq_divide_eq [of "numeral w"]
-  eq_divide_eq [of "- numeral w"] for w
-
-lemmas divide_eq_eq_numeral [divide_const_simps] =
-  divide_eq_eq [of _ _ "numeral w"]
-  divide_eq_eq [of _ _ "- numeral w"] for w
-
-
-text \<open>Not good as automatic simprules because they cause case splits.\<close>
-lemmas [divide_const_simps] =
-  le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
 
 
 subsection \<open>The divides relation\<close>
@@ -1734,7 +1567,7 @@ lemma nat_dvd_iff: "nat z dvd m \<longleftrightarrow> (if 0 \<le> z then z dvd i
   by (auto simp add: dvd_int_iff)
 
 lemma eq_nat_nat_iff: "0 \<le> z \<Longrightarrow> 0 \<le> z' \<Longrightarrow> nat z = nat z' \<longleftrightarrow> z = z'"
-  by (auto elim!: nonneg_eq_int)
+  by (auto elim: nonneg_int_cases)
 
 lemma nat_power_eq: "0 \<le> z \<Longrightarrow> nat (z ^ n) = nat z ^ n"
   by (induct n) (simp_all add: nat_mult_distrib)
@@ -1977,4 +1810,22 @@ text \<open>De-register \<open>int\<close> as a quotient type:\<close>
 lifting_update int.lifting
 lifting_forget int.lifting
 
+
+subsection \<open>Duplicates\<close>
+
+lemmas int_sum = of_nat_sum [where 'a=int]
+lemmas int_prod = of_nat_prod [where 'a=int]
+lemmas zle_int = of_nat_le_iff [where 'a=int]
+lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
+lemmas nonneg_eq_int = nonneg_int_cases
+lemmas double_eq_0_iff = double_zero
+
+lemmas int_distrib =
+  distrib_right [of z1 z2 w]
+  distrib_left [of w z1 z2]
+  left_diff_distrib [of z1 z2 w]
+  right_diff_distrib [of w z1 z2]
+  for z1 z2 w :: int
+
 end
+
