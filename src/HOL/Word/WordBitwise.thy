@@ -415,9 +415,10 @@ struct
 
 val word_ss = simpset_of @{theory_context Word};
 
-fun mk_nat_clist ns = List.foldr
-  (uncurry (Thm.mk_binop @{cterm "Cons :: nat => _"}))
-  @{cterm "[] :: nat list"} ns;
+fun mk_nat_clist ns =
+  List.foldr
+    (uncurry (Thm.mk_binop @{cterm "Cons :: nat \<Rightarrow> _"}))
+    @{cterm "[] :: nat list"} ns;
 
 fun upt_conv ctxt ct =
   case Thm.term_of ct of
@@ -426,8 +427,9 @@ fun upt_conv ctxt ct =
         val (i, j) = apply2 (snd o HOLogic.dest_number) (n, m);
         val ns = map (Numeral.mk_cnumber @{ctyp nat}) (i upto (j - 1))
           |> mk_nat_clist;
-        val prop = Thm.mk_binop @{cterm "op = :: nat list => _"} ct ns
-                     |> Thm.apply @{cterm Trueprop};
+        val prop =
+          Thm.mk_binop @{cterm "op = :: nat list \<Rightarrow> _"} ct ns
+          |> Thm.apply @{cterm Trueprop};
       in
         try (fn () =>
           Goal.prove_internal ctxt [] prop
@@ -441,16 +443,19 @@ val expand_upt_simproc =
    {lhss = [@{term "upt x y"}], proc = K upt_conv};
 
 fun word_len_simproc_fn ctxt ct =
-  case Thm.term_of ct of
-    Const (@{const_name len_of}, _) $ t => (let
+  (case Thm.term_of ct of
+    Const (@{const_name len_of}, _) $ t =>
+     (let
         val T = fastype_of t |> dest_Type |> snd |> the_single
         val n = Numeral.mk_cnumber @{ctyp nat} (Word_Lib.dest_binT T);
-        val prop = Thm.mk_binop @{cterm "op = :: nat => _"} ct n
-                 |> Thm.apply @{cterm Trueprop};
-      in Goal.prove_internal ctxt [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
-             |> mk_meta_eq |> SOME end
-    handle TERM _ => NONE | TYPE _ => NONE)
-  | _ => NONE;
+        val prop =
+          Thm.mk_binop @{cterm "op = :: nat \<Rightarrow> _"} ct n
+          |> Thm.apply @{cterm Trueprop};
+      in
+        Goal.prove_internal ctxt [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
+        |> mk_meta_eq |> SOME
+      end handle TERM _ => NONE | TYPE _ => NONE)
+  | _ => NONE);
 
 val word_len_simproc =
   Simplifier.make_simproc @{context} "word_len"
@@ -462,21 +467,24 @@ val word_len_simproc =
 fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
   let
     val (f $ arg) = Thm.term_of ct;
-    val n = (case arg of @{term nat} $ n => n | n => n)
+    val n =
+      (case arg of @{term nat} $ n => n | n => n)
       |> HOLogic.dest_number |> snd;
-    val (i, j) = if n > n_sucs then (n_sucs, n - n_sucs)
-      else (n, 0);
-    val arg' = List.foldr (op $) (HOLogic.mk_number @{typ nat} j)
-        (replicate i @{term Suc});
+    val (i, j) = if n > n_sucs then (n_sucs, n - n_sucs) else (n, 0);
+    val arg' =
+      List.foldr (op $) (HOLogic.mk_number @{typ nat} j) (replicate i @{term Suc});
     val _ = if arg = arg' then raise TERM ("", []) else ();
-    fun propfn g = HOLogic.mk_eq (g arg, g arg')
+    fun propfn g =
+      HOLogic.mk_eq (g arg, g arg')
       |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt;
-    val eq1 = Goal.prove_internal ctxt [] (propfn I)
-      (K (simp_tac (put_simpset word_ss ctxt) 1));
-  in Goal.prove_internal ctxt [] (propfn (curry (op $) f))
+    val eq1 =
+      Goal.prove_internal ctxt [] (propfn I)
+        (K (simp_tac (put_simpset word_ss ctxt) 1));
+  in
+    Goal.prove_internal ctxt [] (propfn (curry (op $) f))
       (K (simp_tac (put_simpset HOL_ss ctxt addsimps [eq1]) 1))
-       |> mk_meta_eq |> SOME end
-    handle TERM _ => NONE;
+    |> mk_meta_eq |> SOME
+  end handle TERM _ => NONE;
 
 fun nat_get_Suc_simproc n_sucs ts =
   Simplifier.make_simproc @{context} "nat_get_Suc"

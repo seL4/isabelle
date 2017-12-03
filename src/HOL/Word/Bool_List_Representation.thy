@@ -117,7 +117,7 @@ lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
     bin_to_bl_aux n (numeral (Num.Bit1 w)) bl = bin_to_bl_aux (n - 1) (numeral w) (True # bl)"
   by (cases n) auto
 
-text \<open>Link between bin and bool list.\<close>
+text \<open>Link between \<open>bin\<close> and \<open>bool list\<close>.\<close>
 
 lemma bl_to_bin_aux_append: "bl_to_bin_aux (bs @ cs) w = bl_to_bin_aux cs (bl_to_bin_aux bs w)"
   by (induct bs arbitrary: w) auto
@@ -238,7 +238,7 @@ lemma bl_sbin_sign: "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = -1)"
 
 lemma bin_nth_of_bl_aux:
   "bin_nth (bl_to_bin_aux bl w) n =
-    (n < size bl \<and> rev bl ! n | n \<ge> length bl \<and> bin_nth w (n - size bl))"
+    (n < size bl \<and> rev bl ! n \<or> n \<ge> length bl \<and> bin_nth w (n - size bl))"
   apply (induct bl arbitrary: w)
    apply clarsimp
   apply clarsimp
@@ -298,8 +298,9 @@ proof (induct bs)
   case Nil
   then show ?case by simp
 next
-  case (Cons b bs) with bl_to_bin_lt2p_aux[where w=1]
-  show ?case unfolding bl_to_bin_def by simp
+  case (Cons b bs)
+  with bl_to_bin_lt2p_aux[where w=1] show ?case
+    by (simp add: bl_to_bin_def)
 qed
 
 lemma bl_to_bin_lt2p: "bl_to_bin bs < 2 ^ length bs"
@@ -509,11 +510,11 @@ lemma takefill_le': "n = m + k \<Longrightarrow> takefill x m (takefill x n l) =
 lemma length_takefill [simp]: "length (takefill fill n l) = n"
   by (simp add: takefill_alt)
 
-lemma take_takefill': "\<And>w n.  n = k + m \<Longrightarrow> take k (takefill fill n w) = takefill fill k w"
-  by (induct k) (auto split: list.split)
+lemma take_takefill': "n = k + m \<Longrightarrow> take k (takefill fill n w) = takefill fill k w"
+  by (induct k arbitrary: w n) (auto split: list.split)
 
-lemma drop_takefill: "\<And>w. drop k (takefill fill (m + k) w) = takefill fill m (drop k w)"
-  by (induct k) (auto split: list.split)
+lemma drop_takefill: "drop k (takefill fill (m + k) w) = takefill fill m (drop k w)"
+  by (induct k arbitrary: w) (auto split: list.split)
 
 lemma takefill_le [simp]: "m \<le> n \<Longrightarrow> takefill x m (takefill x n l) = takefill x m l"
   by (auto simp: le_iff_add takefill_le')
@@ -715,7 +716,7 @@ lemma rbl_add_app2: "length blb \<ge> length bla \<Longrightarrow> rbl_add bla (
   done
 
 lemma rbl_add_take2:
-  "length blb >= length bla ==> rbl_add bla (take (length bla) blb) = rbl_add bla blb"
+  "length blb \<ge> length bla \<Longrightarrow> rbl_add bla (take (length bla) blb) = rbl_add bla blb"
   apply (induct bla arbitrary: blb)
    apply simp
   apply clarsimp
@@ -1023,7 +1024,8 @@ proof (induct n nw w cs arbitrary: v bs rule: bin_rsplit_aux.induct)
     with \<open>length bs = length cs\<close> show ?thesis by simp
   next
     case False
-    from "1.hyps" \<open>m \<noteq> 0\<close> \<open>n \<noteq> 0\<close> have hyp: "\<And>v bs. length bs = Suc (length cs) \<Longrightarrow>
+    from "1.hyps" \<open>m \<noteq> 0\<close> \<open>n \<noteq> 0\<close>
+    have hyp: "\<And>v bs. length bs = Suc (length cs) \<Longrightarrow>
       length (bin_rsplit_aux n (m - n) v bs) =
       length (bin_rsplit_aux n (m - n) (fst (bin_split n w)) (snd (bin_split n w) # cs))"
       by auto

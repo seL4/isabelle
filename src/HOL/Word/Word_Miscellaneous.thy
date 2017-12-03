@@ -28,19 +28,19 @@ lemma rco_alt: "(f \<circ> g) ^^ n \<circ> f = f \<circ> (g \<circ> f) ^^ n"
   done
 
 lemma list_exhaust_size_gt0:
-  assumes y: "\<And>a list. y = a # list \<Longrightarrow> P"
+  assumes "\<And>a list. y = a # list \<Longrightarrow> P"
   shows "0 < length y \<Longrightarrow> P"
   apply (cases y)
    apply simp
-  apply (rule y)
+  apply (rule assms)
   apply fastforce
   done
 
 lemma list_exhaust_size_eq0:
-  assumes y: "y = [] \<Longrightarrow> P"
+  assumes "y = [] \<Longrightarrow> P"
   shows "length y = 0 \<Longrightarrow> P"
   apply (cases y)
-   apply (rule y)
+   apply (rule assms)
    apply simp
   apply simp
   done
@@ -307,7 +307,7 @@ lemma td_gal: "0 < c \<Longrightarrow> a \<ge> b * c \<longleftrightarrow> a div
 
 lemmas td_gal_lt = td_gal [simplified not_less [symmetric], simplified]
 
-lemmas div_mult_le = div_times_less_eq_dividend 
+lemmas div_mult_le = div_times_less_eq_dividend
 
 lemmas sdl = div_nat_eqI
 

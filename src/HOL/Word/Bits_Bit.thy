@@ -5,7 +5,7 @@
 section \<open>Bit operations in $\cal Z_2$\<close>
 
 theory Bits_Bit
-imports Bits "HOL-Library.Bit"
+  imports Bits "HOL-Library.Bit"
 begin
 
 instantiation bit :: bit
@@ -46,21 +46,21 @@ lemma bit_extra_simps [simp]:
   "x XOR 1 = NOT x"
   "x XOR 0 = x"
   for x :: bit
-  by (cases x, auto)+
+  by (cases x; auto)+
 
 lemma bit_ops_comm:
   "x AND y = y AND x"
   "x OR y = y OR x"
   "x XOR y = y XOR x"
   for x :: bit
-  by (cases y, auto)+
+  by (cases y; auto)+
 
 lemma bit_ops_same [simp]:
   "x AND x = x"
   "x OR x = x"
   "x XOR x = 0"
   for x :: bit
-  by (cases x, auto)+
+  by (cases x; auto)+
 
 lemma bit_not_not [simp]: "NOT (NOT x) = x"
   for x :: bit

@@ -6,15 +6,21 @@ Comparison on bit operations on integers.
 *)
 
 theory Bit_Comparison
-imports Bits_Int
+  imports Bits_Int
 begin
 
 lemma AND_lower [simp]:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> x"
   shows "0 \<le> x AND y"
   using assms
 proof (induct x arbitrary: y rule: bin_induct)
+  case 1
+  then show ?case by simp
+next
+  case 2
+  then show ?case by (simp only: Min_def)
+next
   case (3 bin bit)
   show ?case
   proof (cases y rule: bin_exhaust)
@@ -25,13 +31,10 @@ proof (induct x arbitrary: y rule: bin_induct)
     with 1 show ?thesis
       by simp (simp add: Bit_def)
   qed
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-qed simp
+qed
 
 lemma OR_lower [simp]:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> x" "0 \<le> y"
   shows "0 \<le> x OR y"
   using assms
@@ -51,7 +54,7 @@ proof (induct x arbitrary: y rule: bin_induct)
 qed simp_all
 
 lemma XOR_lower [simp]:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> x" "0 \<le> y"
   shows "0 \<le> x XOR y"
   using assms
@@ -74,7 +77,7 @@ next
 qed simp
 
 lemma AND_upper1 [simp]:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> x"
   shows "x AND y \<le> x"
   using assms
@@ -98,11 +101,17 @@ lemmas AND_upper1' [simp] = order_trans [OF AND_upper1]
 lemmas AND_upper1'' [simp] = order_le_less_trans [OF AND_upper1]
 
 lemma AND_upper2 [simp]:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> y"
   shows "x AND y \<le> y"
   using assms
 proof (induct y arbitrary: x rule: bin_induct)
+  case 1
+  then show ?case by simp
+next
+  case 2
+  then show ?case by (simp only: Min_def)
+next
   case (3 bin bit)
   show ?case
   proof (cases x rule: bin_exhaust)
@@ -113,16 +122,13 @@ proof (induct y arbitrary: x rule: bin_induct)
     with 1 show ?thesis
       by simp (simp add: Bit_def)
   qed
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-qed simp
+qed
 
 lemmas AND_upper2' [simp] = order_trans [OF AND_upper2]
 lemmas AND_upper2'' [simp] = order_le_less_trans [OF AND_upper2]
 
 lemma OR_upper:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> x" "x < 2 ^ n" "y < 2 ^ n"
   shows "x OR y < 2 ^ n"
   using assms
@@ -155,11 +161,17 @@ proof (induct x arbitrary: y n rule: bin_induct)
 qed simp_all
 
 lemma XOR_upper:
-  fixes x :: int and y :: int
+  fixes x y :: int
   assumes "0 \<le> x" "x < 2 ^ n" "y < 2 ^ n"
   shows "x XOR y < 2 ^ n"
   using assms
 proof (induct x arbitrary: y n rule: bin_induct)
+  case 1
+  then show ?case by simp
+next
+  case 2
+  then show ?case by (simp only: Min_def)
+next
   case (3 bin bit)
   show ?case
   proof (cases y rule: bin_exhaust)
@@ -185,9 +197,6 @@ proof (induct x arbitrary: y n rule: bin_induct)
         by simp (simp add: Bit_def)
     qed
   qed
-next
-  case 2
-  then show ?case by (simp only: Min_def)
-qed simp
+qed
 
 end
