@@ -1,4 +1,4 @@
-(*  Title:      HOL/Word/Examples/WordExamples.thy
+(*  Title:      HOL/Word/WordExamples.thy
     Authors:    Gerwin Klein and Thomas Sewell, NICTA
 
 Examples demonstrating and testing various word operations.
@@ -7,7 +7,7 @@ Examples demonstrating and testing various word operations.
 section "Examples of word operations"
 
 theory WordExamples
-  imports "HOL-Word.Word" "HOL-Word.WordBitwise"
+  imports WordBitwise
 begin
 
 type_synonym word32 = "32 word"

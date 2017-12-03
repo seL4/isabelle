@@ -786,10 +786,8 @@ session "HOL-Word" (main timing) in Word = HOL +
     Word
     WordBitwise
     Bit_Comparison
+    WordExamples
   document_files "root.bib" "root.tex"
-
-session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
-  theories WordExamples
 
 session "HOL-Statespace" in Statespace = HOL +
   theories [skip_proofs = false]
