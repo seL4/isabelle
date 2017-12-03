@@ -416,9 +416,8 @@ struct
 val word_ss = simpset_of @{theory_context Word};
 
 fun mk_nat_clist ns =
-  List.foldr
-    (uncurry (Thm.mk_binop @{cterm "Cons :: nat \<Rightarrow> _"}))
-    @{cterm "[] :: nat list"} ns;
+  fold_rev (Thm.mk_binop @{cterm "Cons :: nat \<Rightarrow> _"})
+    ns @{cterm "[] :: nat list"};
 
 fun upt_conv ctxt ct =
   case Thm.term_of ct of
@@ -471,8 +470,7 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
       (case arg of @{term nat} $ n => n | n => n)
       |> HOLogic.dest_number |> snd;
     val (i, j) = if n > n_sucs then (n_sucs, n - n_sucs) else (n, 0);
-    val arg' =
-      List.foldr (op $) (HOLogic.mk_number @{typ nat} j) (replicate i @{term Suc});
+    val arg' = funpow i HOLogic.mk_Suc (HOLogic.mk_number @{typ nat} j);
     val _ = if arg = arg' then raise TERM ("", []) else ();
     fun propfn g =
       HOLogic.mk_eq (g arg, g arg')
