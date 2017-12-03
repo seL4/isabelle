@@ -726,7 +726,7 @@ lemma linv: "inv(x) ** x = one"
 
 end
 
-sublocale lgrp < "def"?: dgrp
+sublocale lgrp < def?: dgrp
   rewrites one_equation: "dgrp.one(prod) = one" and inv_equation: "dgrp.inv(prod, x) = inv(x)"
 proof -
   show "dgrp(prod)" by unfold_locales

@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** General ***
 
+* The old 'def' command has been discontinued (legacy since
+Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
+object-logic equality or equivalence.
+
 * Session-qualified theory names are mandatory: it is no longer possible
 to refer to unqualified theories from the parent session.
 INCOMPATIBILITY for old developments that have not been updated to

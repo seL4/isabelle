@@ -128,7 +128,6 @@ text \<open>
     @{command_def "assume"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "presume"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "define"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
-    @{command_def "def"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
   \end{matharray}
 
   The logical proof context consists of fixed variables and assumptions. The
@@ -169,11 +168,6 @@ text \<open>
     ;
     @@{command define} @{syntax vars} @'where'
       (@{syntax props} + @'and') @{syntax for_fixes}
-    ;
-    @@{command def} (def + @'and')
-    ;
-    def: @{syntax thmdecl}? \<newline>
-      @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax term_pat}?
   \<close>}
 
   \<^descr> @{command "fix"}~\<open>x\<close> introduces a local variable \<open>x\<close> that is \<^emph>\<open>arbitrary,
@@ -207,9 +201,6 @@ text \<open>
   \<^medskip>
   It is also possible to abstract over local parameters as follows: \<^theory_text>\<open>define f
   :: "'a \<Rightarrow> 'b" where "f x = t" for x :: 'a\<close>.
-
-  \<^descr> \<^theory_text>\<open>def x \<equiv> t\<close> introduces a local (non-polymorphic) definition. This is an
-  old form of \<^theory_text>\<open>define x where "x = t"\<close>.
 \<close>
 
 

@@ -68,8 +68,6 @@ sig
   val presume_cmd: (binding * string option * mixfix) list ->
     (string * string list) list list -> (Attrib.binding * (string * string list) list) list ->
     state -> state
-  val def: (Thm.binding * ((binding * mixfix) * (term * term list))) list -> state -> state
-  val def_cmd: (Attrib.binding * ((binding * mixfix) * (string * string list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val note_thmss: (Thm.binding * (thm list * attribute list) list) list -> state -> state
@@ -675,37 +673,6 @@ val assume_cmd = assm_cmd Assumption.assume_export;
 
 val presume = assm Assumption.presume_export;
 val presume_cmd = assm_cmd Assumption.presume_export;
-
-end;
-
-
-(* def *)
-
-local
-
-fun gen_def prep_att prep_var prep_binds args state =
-  let
-    val _ = assert_forward state;
-    val (raw_name_atts, (raw_vars, raw_rhss)) = args |> split_list ||> split_list;
-    val name_atts = map (apsnd (map (prep_att (context_of state)))) raw_name_atts;
-  in
-    state
-    |> map_context_result (fold_map (fn (x, mx) => prep_var (x, NONE, mx)) raw_vars)
-    |>> map (fn (x, _, mx) => (x, mx))
-    |-> (fn vars =>
-      map_context_result (prep_binds false (map swap raw_rhss))
-      #-> (fn rhss =>
-        let
-          val defs = (vars ~~ (name_atts ~~ rhss)) |> map (fn ((x, mx), ((a, atts), rhs)) =>
-            ((x, mx), ((Thm.def_binding_optional x a, atts), rhs)));
-        in map_context_result (Local_Defs.define defs) end))
-    |-> (set_facts o map (#2 o #2))
-  end;
-
-in
-
-val def = gen_def (K I) Proof_Context.cert_var Proof_Context.match_bind;
-val def_cmd = gen_def Attrib.attribute_cmd Proof_Context.read_var Proof_Context.match_bind_cmd;
 
 end;
 
