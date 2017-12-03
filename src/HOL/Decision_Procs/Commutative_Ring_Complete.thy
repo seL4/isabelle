@@ -8,23 +8,25 @@ in normal form, the ring method is complete.
 section \<open>Proof of the relative completeness of method comm-ring\<close>
 
 theory Commutative_Ring_Complete
-imports Commutative_Ring
+  imports Commutative_Ring
 begin
 
 text \<open>Formalization of normal form\<close>
 fun isnorm :: "pol \<Rightarrow> bool"
-where
-  "isnorm (Pc c) \<longleftrightarrow> True"
-| "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"
-| "isnorm (Pinj i (Pinj j Q)) \<longleftrightarrow> False"
-| "isnorm (Pinj 0 P) \<longleftrightarrow> False"
-| "isnorm (Pinj i (PX Q1 j Q2)) \<longleftrightarrow> isnorm (PX Q1 j Q2)"
-| "isnorm (PX P 0 Q) \<longleftrightarrow> False"
-| "isnorm (PX (Pc c) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm Q"
-| "isnorm (PX (PX P1 j (Pc c)) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm (PX P1 j (Pc c)) \<and> isnorm Q"
-| "isnorm (PX P i Q) \<longleftrightarrow> isnorm P \<and> isnorm Q"
+  where
+    "isnorm (Pc c) \<longleftrightarrow> True"
+  | "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"
+  | "isnorm (Pinj i (Pinj j Q)) \<longleftrightarrow> False"
+  | "isnorm (Pinj 0 P) \<longleftrightarrow> False"
+  | "isnorm (Pinj i (PX Q1 j Q2)) \<longleftrightarrow> isnorm (PX Q1 j Q2)"
+  | "isnorm (PX P 0 Q) \<longleftrightarrow> False"
+  | "isnorm (PX (Pc c) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm Q"
+  | "isnorm (PX (PX P1 j (Pc c)) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm (PX P1 j (Pc c)) \<and> isnorm Q"
+  | "isnorm (PX P i Q) \<longleftrightarrow> isnorm P \<and> isnorm Q"
 
-(* Some helpful lemmas *)
+
+subsection \<open>Some helpful lemmas\<close>
+
 lemma norm_Pinj_0_False: "isnorm (Pinj 0 P) = False"
   by (cases P) auto
 
@@ -36,24 +38,24 @@ lemma norm_Pinj: "isnorm (Pinj i Q) \<Longrightarrow> isnorm Q"
 
 lemma norm_PX2: "isnorm (PX P i Q) \<Longrightarrow> isnorm Q"
   apply (cases i)
-  apply auto
+   apply auto
   apply (cases P)
-  apply auto
+    apply auto
   subgoal for \<dots> pol2 by (cases pol2) auto
   done
 
 lemma norm_PX1: "isnorm (PX P i Q) \<Longrightarrow> isnorm P"
   apply (cases i)
-  apply auto
+   apply auto
   apply (cases P)
-  apply auto
+    apply auto
   subgoal for \<dots> pol2 by (cases pol2) auto
   done
 
 lemma mkPinj_cn: "y \<noteq> 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mkPinj y Q)"
   apply (auto simp add: mkPinj_def norm_Pinj_0_False split: pol.split)
-  apply (rename_tac nat a, case_tac nat, auto simp add: norm_Pinj_0_False)
-  apply (rename_tac pol a, case_tac pol, auto)
+   apply (rename_tac nat a, case_tac nat, auto simp add: norm_Pinj_0_False)
+   apply (rename_tac pol a, case_tac pol, auto)
   apply (case_tac y, auto)
   done
 
@@ -65,9 +67,9 @@ proof (cases P)
   case (PX p1 y p2)
   with assms show ?thesis
     apply (cases x)
-    apply auto
+     apply auto
     apply (cases p2)
-    apply auto
+      apply auto
     done
 next
   case Pc
@@ -87,9 +89,9 @@ proof (cases P)
   case (PX p1 y p2)
   with assms show ?thesis
     apply (cases x)
-    apply auto
+     apply auto
     apply (cases p2)
-    apply auto
+      apply auto
     done
 next
   case Pc
@@ -101,7 +103,7 @@ next
     by (cases x) auto
 qed
 
-text \<open>mkPX conserves normalizedness (\<open>_cn\<close>)\<close>
+text \<open>\<open>mkPX\<close> conserves normalizedness (\<open>_cn\<close>)\<close>
 lemma mkPX_cn:
   assumes "x \<noteq> 0"
     and "isnorm P"
@@ -123,13 +125,13 @@ next
     by (auto simp add: norm_PX1[of P1 y P2] norm_PX2[of P1 y P2])
   from assms PX Y0 show ?thesis
     apply (cases x)
-    apply (auto simp add: mkPX_def norm_PXtrans2[of P1 y _ Q _])
+     apply (auto simp add: mkPX_def norm_PXtrans2[of P1 y _ Q _])
     apply (cases P2)
-    apply auto
+      apply auto
     done
 qed
 
-text \<open>add conserves normalizedness\<close>
+text \<open>\<open>add\<close> conserves normalizedness\<close>
 lemma add_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<langle>+\<rangle> Q)"
 proof (induct P Q rule: add.induct)
   case 1
@@ -138,17 +140,17 @@ next
   case (2 c i P2)
   then show ?case
     apply (cases P2)
-    apply simp_all
+      apply simp_all
     apply (cases i)
-    apply simp_all
+     apply simp_all
     done
 next
   case (3 i P2 c)
   then show ?case
     apply (cases P2)
-    apply simp_all
+      apply simp_all
     apply (cases i)
-    apply simp_all
+     apply simp_all
     done
 next
   case (4 c P2 i Q2)
@@ -156,9 +158,9 @@ next
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 4 show ?case
     apply (cases i)
-    apply simp
+     apply simp
     apply (cases P2)
-    apply auto
+      apply auto
     subgoal for \<dots> pol2 by (cases pol2) auto
     done
 next
@@ -167,9 +169,9 @@ next
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 5 show ?case
     apply (cases i)
-    apply simp
+     apply simp
     apply (cases P2)
-    apply auto
+      apply auto
     subgoal for \<dots> pol2 by (cases pol2) auto
     done
 next
@@ -326,7 +328,7 @@ next
   qed
 qed
 
-text \<open>mul concerves normalizedness\<close>
+text \<open>\<open>mul\<close> concerves normalizedness\<close>
 lemma mul_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<langle>*\<rangle> Q)"
 proof (induct P Q rule: mul.induct)
   case 1
@@ -335,17 +337,17 @@ next
   case (2 c i P2)
   then show ?case
     apply (cases P2)
-    apply simp_all
+      apply simp_all
     apply (cases i)
-    apply (simp_all add: mkPinj_cn)
+     apply (simp_all add: mkPinj_cn)
     done
 next
   case (3 i P2 c)
   then show ?case
     apply (cases P2)
-    apply simp_all
+      apply simp_all
     apply (cases i)
-    apply (simp_all add: mkPinj_cn)
+     apply (simp_all add: mkPinj_cn)
     done
 next
   case (4 c P2 i Q2)
@@ -353,9 +355,9 @@ next
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 4 show ?case
     apply (cases "c = 0")
-    apply simp_all
+     apply simp_all
     apply (cases "i = 0")
-    apply (simp_all add: mkPX_cn)
+     apply (simp_all add: mkPX_cn)
     done
 next
   case (5 P2 i Q2 c)
@@ -363,9 +365,9 @@ next
     by (auto simp only: norm_PX1[of P2 i Q2] norm_PX2[of P2 i Q2])
   with 5 show ?case
     apply (cases "c = 0")
-    apply simp_all
+     apply simp_all
     apply (cases "i = 0")
-    apply (simp_all add: mkPX_cn)
+     apply (simp_all add: mkPX_cn)
     done
 next
   case (6 x P2 y Q2)
@@ -381,9 +383,9 @@ next
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     from 6 xy y have "isnorm (Pinj d Q2)"
       apply (cases d)
-      apply simp
+       apply simp
       apply (cases Q2)
-      apply auto
+        apply auto
       done
     with 6 * ** y show ?thesis
       by (simp add: mkPinj_cn)
@@ -531,17 +533,14 @@ next
   case (Pinj i Q)
   then show ?case
     apply (cases Q)
-    apply (auto simp add: mkPX_cn mkPinj_cn)
+      apply (auto simp add: mkPX_cn mkPinj_cn)
     apply (cases i)
-    apply (auto simp add: mkPX_cn mkPinj_cn)
+     apply (auto simp add: mkPX_cn mkPinj_cn)
     done
 next
   case (PX P1 x P2)
   then have "x + x \<noteq> 0" "isnorm P2" "isnorm P1"
-    apply (cases x)
-    using PX
-    apply (auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2])
-    done
+    by (cases x) (use PX in \<open>auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2]\<close>)
   with PX have "isnorm (mkPX (Pc (1 + 1) \<langle>*\<rangle> P1 \<langle>*\<rangle> mkPinj (Suc 0) P2) x (Pc 0))"
     and "isnorm (mkPX (sqr P1) (x + x) (sqr P2))"
     by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
@@ -549,7 +548,7 @@ next
     by (auto simp add: add_cn mkPX_cn mkPinj_cn mul_cn)
 qed
 
-text \<open>pow conserves normalizedness\<close>
+text \<open>\<open>pow\<close> conserves normalizedness\<close>
 lemma pow_cn: "isnorm P \<Longrightarrow> isnorm (pow n P)"
 proof (induct n arbitrary: P rule: less_induct)
   case (less k)

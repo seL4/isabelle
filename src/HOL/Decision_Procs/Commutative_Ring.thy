@@ -7,10 +7,10 @@ Proving equalities in commutative rings done "right" in Isabelle/HOL.
 section \<open>Proving equalities in commutative rings\<close>
 
 theory Commutative_Ring
-imports
-  Conversions
-  Algebra_Aux
-  "HOL-Library.Code_Target_Numeral"
+  imports
+    Conversions
+    Algebra_Aux
+    "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>Syntax of multivariate polynomials (pol) and polynomial expressions.\<close>
@@ -31,10 +31,11 @@ datatype polex =
 
 text \<open>Interpretation functions for the shadow syntax.\<close>
 
-context cring begin
+context cring
+begin
 
-definition in_carrier :: "'a list \<Rightarrow> bool" where
-  "in_carrier xs = (\<forall>x\<in>set xs. x \<in> carrier R)"
+definition in_carrier :: "'a list \<Rightarrow> bool"
+  where "in_carrier xs \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> carrier R)"
 
 lemma in_carrier_Nil: "in_carrier []"
   by (simp add: in_carrier_def)
@@ -43,11 +44,10 @@ lemma in_carrier_Cons: "x \<in> carrier R \<Longrightarrow> in_carrier xs \<Long
   by (simp add: in_carrier_def)
 
 lemma drop_in_carrier [simp]: "in_carrier xs \<Longrightarrow> in_carrier (drop n xs)"
-  using set_drop_subset [of n xs]
-  by (auto simp add: in_carrier_def)
+  using set_drop_subset [of n xs] by (auto simp add: in_carrier_def)
 
 primrec head :: "'a list \<Rightarrow> 'a"
-where
+  where
     "head [] = \<zero>"
   | "head (x # xs) = x"
 
@@ -55,7 +55,7 @@ lemma head_closed [simp]: "in_carrier xs \<Longrightarrow> head xs \<in> carrier
   by (cases xs) (simp_all add: in_carrier_def)
 
 primrec Ipol :: "'a list \<Rightarrow> pol \<Rightarrow> 'a"
-where
+  where
     "Ipol l (Pc c) = \<guillemotleft>c\<guillemotright>"
   | "Ipol l (Pinj i P) = Ipol (drop i l) P"
   | "Ipol l (PX P x Q) = Ipol l P \<otimes> head l (^) x \<oplus> Ipol (drop 1 l) Q"
@@ -67,12 +67,11 @@ lemma Ipol_Pc:
   "Ipol l (Pc (- numeral n)) = \<ominus> \<guillemotleft>numeral n\<guillemotright>"
   by simp_all
 
-lemma Ipol_closed [simp]:
-  "in_carrier l \<Longrightarrow> Ipol l p \<in> carrier R"
+lemma Ipol_closed [simp]: "in_carrier l \<Longrightarrow> Ipol l p \<in> carrier R"
   by (induct p arbitrary: l) simp_all
 
 primrec Ipolex :: "'a list \<Rightarrow> polex \<Rightarrow> 'a"
-where
+  where
     "Ipolex l (Var n) = head (drop n l)"
   | "Ipolex l (Const i) = \<guillemotleft>i\<guillemotright>"
   | "Ipolex l (Add P Q) = Ipolex l P \<oplus> Ipolex l Q"
@@ -92,16 +91,14 @@ end
 text \<open>Create polynomial normalized polynomials given normalized inputs.\<close>
 
 definition mkPinj :: "nat \<Rightarrow> pol \<Rightarrow> pol"
-where
-  "mkPinj x P =
+  where "mkPinj x P =
     (case P of
       Pc c \<Rightarrow> Pc c
     | Pinj y P \<Rightarrow> Pinj (x + y) P
     | PX p1 y p2 \<Rightarrow> Pinj x P)"
 
 definition mkPX :: "pol \<Rightarrow> nat \<Rightarrow> pol \<Rightarrow> pol"
-where
-  "mkPX P i Q =
+  where "mkPX P i Q =
     (case P of
       Pc c \<Rightarrow> if c = 0 then mkPinj 1 Q else PX P i Q
     | Pinj j R \<Rightarrow> PX P i Q
@@ -110,7 +107,7 @@ where
 text \<open>Defining the basic ring operations on normalized polynomials\<close>
 
 function add :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>+\<rangle>" 65)
-where
+  where
     "Pc a \<langle>+\<rangle> Pc b = Pc (a + b)"
   | "Pc c \<langle>+\<rangle> Pinj i P = Pinj i (P \<langle>+\<rangle> Pc c)"
   | "Pinj i P \<langle>+\<rangle> Pc c = Pinj i (P \<langle>+\<rangle> Pc c)"
@@ -132,11 +129,11 @@ where
       (if x = y then mkPX (P1 \<langle>+\<rangle> Q1) x (P2 \<langle>+\<rangle> Q2)
        else (if x > y then mkPX (PX P1 (x - y) (Pc 0) \<langle>+\<rangle> Q1) y (P2 \<langle>+\<rangle> Q2)
          else mkPX (PX Q1 (y - x) (Pc 0) \<langle>+\<rangle> P1) x (P2 \<langle>+\<rangle> Q2)))"
-by pat_completeness auto
+  by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)") auto
 
 function mul :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>*\<rangle>" 70)
-where
+  where
     "Pc a \<langle>*\<rangle> Pc b = Pc (a * b)"
   | "Pc c \<langle>*\<rangle> Pinj i P =
       (if c = 0 then Pc 0 else mkPinj i (P \<langle>*\<rangle> Pc c))"
@@ -165,35 +162,32 @@ where
       mkPX (P1 \<langle>*\<rangle> Q1) (x + y) (P2 \<langle>*\<rangle> Q2) \<langle>+\<rangle>
         (mkPX (P1 \<langle>*\<rangle> mkPinj 1 Q2) x (Pc 0) \<langle>+\<rangle>
           (mkPX (Q1 \<langle>*\<rangle> mkPinj 1 P2) y (Pc 0)))"
-by pat_completeness auto
+  by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)")
   (auto simp add: mkPinj_def split: pol.split)
 
 text \<open>Negation\<close>
 primrec neg :: "pol \<Rightarrow> pol"
-where
+  where
     "neg (Pc c) = Pc (- c)"
   | "neg (Pinj i P) = Pinj i (neg P)"
   | "neg (PX P x Q) = PX (neg P) x (neg Q)"
 
 text \<open>Subtraction\<close>
 definition sub :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>-\<rangle>" 65)
-where
-  "sub P Q = P \<langle>+\<rangle> neg Q"
+  where "sub P Q = P \<langle>+\<rangle> neg Q"
 
 text \<open>Square for Fast Exponentiation\<close>
 primrec sqr :: "pol \<Rightarrow> pol"
-where
+  where
     "sqr (Pc c) = Pc (c * c)"
   | "sqr (Pinj i P) = mkPinj i (sqr P)"
-  | "sqr (PX A x B) = mkPX (sqr A) (x + x) (sqr B) \<langle>+\<rangle>
-      mkPX (Pc 2 \<langle>*\<rangle> A \<langle>*\<rangle> mkPinj 1 B) x (Pc 0)"
+  | "sqr (PX A x B) = mkPX (sqr A) (x + x) (sqr B) \<langle>+\<rangle> mkPX (Pc 2 \<langle>*\<rangle> A \<langle>*\<rangle> mkPinj 1 B) x (Pc 0)"
 
 text \<open>Fast Exponentiation\<close>
 
 fun pow :: "nat \<Rightarrow> pol \<Rightarrow> pol"
-where
-  pow_if [simp del]: "pow n P =
+  where pow_if [simp del]: "pow n P =
    (if n = 0 then Pc 1
     else if even n then pow (n div 2) (sqr P)
     else P \<langle>*\<rangle> pow (n div 2) (sqr P))"
@@ -214,7 +208,7 @@ lemma odd_pow: "odd n \<Longrightarrow> pow n P = P \<langle>*\<rangle> pow (n d
 text \<open>Normalization of polynomial expressions\<close>
 
 primrec norm :: "polex \<Rightarrow> pol"
-where
+  where
     "norm (Var n) =
        (if n = 0 then PX (Pc 1) 1 (Pc 0)
         else Pinj n (PX (Pc 1) 1 (Pc 0)))"
@@ -360,57 +354,52 @@ datatype mon =
   | Minj nat mon
   | MX nat mon
 
-primrec (in cring)
-  Imon :: "'a list \<Rightarrow> mon \<Rightarrow> 'a"
-where
+primrec (in cring) Imon :: "'a list \<Rightarrow> mon \<Rightarrow> 'a"
+  where
     "Imon l (Mc c) = \<guillemotleft>c\<guillemotright>"
   | "Imon l (Minj i M) = Imon (drop i l) M"
   | "Imon l (MX x M) = Imon (drop 1 l) M \<otimes> head l (^) x"
 
-lemma (in cring) Imon_closed [simp]:
-  "in_carrier l \<Longrightarrow> Imon l m \<in> carrier R"
+lemma (in cring) Imon_closed [simp]: "in_carrier l \<Longrightarrow> Imon l m \<in> carrier R"
   by (induct m arbitrary: l) simp_all
 
-definition
-  mkMinj :: "nat \<Rightarrow> mon \<Rightarrow> mon" where
-  "mkMinj i M = (case M of
-       Mc c \<Rightarrow> Mc c
-     | Minj j M \<Rightarrow> Minj (i + j) M
-     | _ \<Rightarrow> Minj i M)"
+definition mkMinj :: "nat \<Rightarrow> mon \<Rightarrow> mon"
+  where "mkMinj i M =
+    (case M of
+      Mc c \<Rightarrow> Mc c
+    | Minj j M \<Rightarrow> Minj (i + j) M
+    | _ \<Rightarrow> Minj i M)"
 
-definition
-  Minj_pred :: "nat \<Rightarrow> mon \<Rightarrow> mon" where
-  "Minj_pred i M = (if i = 1 then M else mkMinj (i - 1) M)"
+definition Minj_pred :: "nat \<Rightarrow> mon \<Rightarrow> mon"
+  where "Minj_pred i M = (if i = 1 then M else mkMinj (i - 1) M)"
 
 primrec mkMX :: "nat \<Rightarrow> mon \<Rightarrow> mon"
-where
-  "mkMX i (Mc c) = MX i (Mc c)"
-| "mkMX i (Minj j M) = (if j = 0 then mkMX i M else MX i (Minj_pred j M))"
-| "mkMX i (MX j M) = MX (i + j) M"
+  where
+    "mkMX i (Mc c) = MX i (Mc c)"
+  | "mkMX i (Minj j M) = (if j = 0 then mkMX i M else MX i (Minj_pred j M))"
+  | "mkMX i (MX j M) = MX (i + j) M"
 
-lemma (in cring) mkMinj_correct:
-  "Imon l (mkMinj i M) = Imon l (Minj i M)"
+lemma (in cring) mkMinj_correct: "Imon l (mkMinj i M) = Imon l (Minj i M)"
   by (simp add: mkMinj_def add.commute split: mon.split)
 
-lemma (in cring) Minj_pred_correct:
-  "0 < i \<Longrightarrow> Imon (drop 1 l) (Minj_pred i M) = Imon l (Minj i M)"
+lemma (in cring) Minj_pred_correct: "0 < i \<Longrightarrow> Imon (drop 1 l) (Minj_pred i M) = Imon l (Minj i M)"
   by (simp add: Minj_pred_def mkMinj_correct)
 
-lemma (in cring) mkMX_correct:
-  "in_carrier l \<Longrightarrow> Imon l (mkMX i M) = Imon l M \<otimes> head l (^) i"
-  by (induct M) (simp_all add: Minj_pred_correct [simplified] nat_pow_mult [symmetric] m_ac split: mon.split)
+lemma (in cring) mkMX_correct: "in_carrier l \<Longrightarrow> Imon l (mkMX i M) = Imon l M \<otimes> head l (^) i"
+  by (induct M)
+    (simp_all add: Minj_pred_correct [simplified] nat_pow_mult [symmetric] m_ac split: mon.split)
 
 fun cfactor :: "pol \<Rightarrow> int \<Rightarrow> pol \<times> pol"
-where
-  "cfactor (Pc c') c = (Pc (c' mod c), Pc (c' div c))"
-| "cfactor (Pinj i P) c =
-     (let (R, S) = cfactor P c
-      in (mkPinj i R, mkPinj i S))"
-| "cfactor (PX P i Q) c =
-     (let
-        (R1, S1) = cfactor P c;
-        (R2, S2) = cfactor Q c
-      in (mkPX R1 i R2, mkPX S1 i S2))"
+  where
+    "cfactor (Pc c') c = (Pc (c' mod c), Pc (c' div c))"
+  | "cfactor (Pinj i P) c =
+       (let (R, S) = cfactor P c
+        in (mkPinj i R, mkPinj i S))"
+  | "cfactor (PX P i Q) c =
+       (let
+          (R1, S1) = cfactor P c;
+          (R2, S2) = cfactor Q c
+        in (mkPX R1 i R2, mkPX S1 i S2))"
 
 lemma (in cring) cfactor_correct:
   "in_carrier l \<Longrightarrow> Ipol l P = Ipol l (fst (cfactor P c)) \<oplus> \<guillemotleft>c\<guillemotright> \<otimes> Ipol l (snd (cfactor P c))"
@@ -430,35 +419,35 @@ next
 qed
 
 fun mfactor :: "pol \<Rightarrow> mon \<Rightarrow> pol \<times> pol"
-where
-  "mfactor P (Mc c) = (if c = 1 then (Pc 0, P) else cfactor P c)"
-| "mfactor (Pc d) M = (Pc d, Pc 0)"
-| "mfactor (Pinj i P) (Minj j M) =
-     (if i = j then
-        let (R, S) = mfactor P M
-        in (mkPinj i R, mkPinj i S)
-      else if i < j then
-        let (R, S) = mfactor P (Minj (j - i) M)
-        in (mkPinj i R, mkPinj i S)
-      else (Pinj i P, Pc 0))"
-| "mfactor (Pinj i P) (MX j M) = (Pinj i P, Pc 0)"
-| "mfactor (PX P i Q) (Minj j M) =
-     (if j = 0 then mfactor (PX P i Q) M
-      else
-        let
-          (R1, S1) = mfactor P (Minj j M);
-          (R2, S2) = mfactor Q (Minj_pred j M)
-        in (mkPX R1 i R2, mkPX S1 i S2))"
-| "mfactor (PX P i Q) (MX j M) =
-     (if i = j then
-        let (R, S) = mfactor P (mkMinj 1 M)
-        in (mkPX R i Q, S)
-      else if i < j then
-        let (R, S) = mfactor P (MX (j - i) M)
-        in (mkPX R i Q, S)
-      else
-        let (R, S) = mfactor P (mkMinj 1 M)
-        in (mkPX R i Q, mkPX S (i - j) (Pc 0)))"
+  where
+    "mfactor P (Mc c) = (if c = 1 then (Pc 0, P) else cfactor P c)"
+  | "mfactor (Pc d) M = (Pc d, Pc 0)"
+  | "mfactor (Pinj i P) (Minj j M) =
+       (if i = j then
+          let (R, S) = mfactor P M
+          in (mkPinj i R, mkPinj i S)
+        else if i < j then
+          let (R, S) = mfactor P (Minj (j - i) M)
+          in (mkPinj i R, mkPinj i S)
+        else (Pinj i P, Pc 0))"
+  | "mfactor (Pinj i P) (MX j M) = (Pinj i P, Pc 0)"
+  | "mfactor (PX P i Q) (Minj j M) =
+       (if j = 0 then mfactor (PX P i Q) M
+        else
+          let
+            (R1, S1) = mfactor P (Minj j M);
+            (R2, S2) = mfactor Q (Minj_pred j M)
+          in (mkPX R1 i R2, mkPX S1 i S2))"
+  | "mfactor (PX P i Q) (MX j M) =
+       (if i = j then
+          let (R, S) = mfactor P (mkMinj 1 M)
+          in (mkPX R i Q, S)
+        else if i < j then
+          let (R, S) = mfactor P (MX (j - i) M)
+          in (mkPX R i Q, S)
+        else
+          let (R, S) = mfactor P (mkMinj 1 M)
+          in (mkPX R i Q, mkPX S (i - j) (Pc 0)))"
 
 lemmas mfactor_induct = mfactor.induct
   [case_names Mc Pc_Minj Pc_MX Pinj_Minj Pinj_MX PX_Minj PX_MX]
@@ -515,20 +504,20 @@ next
 qed
 
 primrec mon_of_pol :: "pol \<Rightarrow> mon option"
-where
-  "mon_of_pol (Pc c) = Some (Mc c)"
-| "mon_of_pol (Pinj i P) = (case mon_of_pol P of
-       None \<Rightarrow> None
-     | Some M \<Rightarrow> Some (mkMinj i M))"
-| "mon_of_pol (PX P i Q) =
-     (if Q = Pc 0 then (case mon_of_pol P of
-          None \<Rightarrow> None
-        | Some M \<Rightarrow> Some (mkMX i M))
-      else None)"
+  where
+    "mon_of_pol (Pc c) = Some (Mc c)"
+  | "mon_of_pol (Pinj i P) = (case mon_of_pol P of
+         None \<Rightarrow> None
+       | Some M \<Rightarrow> Some (mkMinj i M))"
+  | "mon_of_pol (PX P i Q) =
+       (if Q = Pc 0 then (case mon_of_pol P of
+            None \<Rightarrow> None
+          | Some M \<Rightarrow> Some (mkMX i M))
+        else None)"
 
 lemma (in cring) mon_of_pol_correct:
   assumes "in_carrier l"
-  and "mon_of_pol P = Some M"
+    and "mon_of_pol P = Some M"
   shows "Ipol l P = Imon l M"
   using assms
 proof (induct P arbitrary: M l)
@@ -539,81 +528,85 @@ proof (induct P arbitrary: M l)
 qed (auto simp add: mkMinj_correct split: option.split_asm)
 
 fun (in cring) Ipolex_polex_list :: "'a list \<Rightarrow> (polex \<times> polex) list \<Rightarrow> bool"
-where
-  "Ipolex_polex_list l [] = True"
-| "Ipolex_polex_list l ((P, Q) # pps) = ((Ipolex l P = Ipolex l Q) \<and> Ipolex_polex_list l pps)"
+  where
+    "Ipolex_polex_list l [] = True"
+  | "Ipolex_polex_list l ((P, Q) # pps) = ((Ipolex l P = Ipolex l Q) \<and> Ipolex_polex_list l pps)"
 
 fun (in cring) Imon_pol_list :: "'a list \<Rightarrow> (mon \<times> pol) list \<Rightarrow> bool"
-where
-  "Imon_pol_list l [] = True"
-| "Imon_pol_list l ((M, P) # mps) = ((Imon l M = Ipol l P) \<and> Imon_pol_list l mps)"
+  where
+    "Imon_pol_list l [] = True"
+  | "Imon_pol_list l ((M, P) # mps) = ((Imon l M = Ipol l P) \<and> Imon_pol_list l mps)"
 
 fun mk_monpol_list :: "(polex \<times> polex) list \<Rightarrow> (mon \<times> pol) list"
-where
-  "mk_monpol_list [] = []"
-| "mk_monpol_list ((P, Q) # pps) =
-     (case mon_of_pol (norm P) of
-        None \<Rightarrow> mk_monpol_list pps
-      | Some M \<Rightarrow> (M, norm Q) # mk_monpol_list pps)"
+  where
+    "mk_monpol_list [] = []"
+  | "mk_monpol_list ((P, Q) # pps) =
+       (case mon_of_pol (norm P) of
+          None \<Rightarrow> mk_monpol_list pps
+        | Some M \<Rightarrow> (M, norm Q) # mk_monpol_list pps)"
 
 lemma (in cring) mk_monpol_list_correct:
   "in_carrier l \<Longrightarrow> Ipolex_polex_list l pps \<Longrightarrow> Imon_pol_list l (mk_monpol_list pps)"
   by (induct pps rule: mk_monpol_list.induct)
-    (auto split: option.split
-       simp add: norm_ci [symmetric] mon_of_pol_correct [symmetric])
+    (auto split: option.split simp add: norm_ci [symmetric] mon_of_pol_correct [symmetric])
 
-definition ponesubst :: "pol \<Rightarrow> mon \<Rightarrow> pol \<Rightarrow> pol option" where
-  "ponesubst P1 M P2 =
-     (let (Q, R) = mfactor P1 M
-      in case R of
-          Pc c \<Rightarrow> if c = 0 then None else Some (add Q (mul P2 R))
-        | _ \<Rightarrow> Some (add Q (mul P2 R)))"
+definition ponesubst :: "pol \<Rightarrow> mon \<Rightarrow> pol \<Rightarrow> pol option"
+  where "ponesubst P1 M P2 =
+   (let (Q, R) = mfactor P1 M in
+    (case R of
+      Pc c \<Rightarrow> if c = 0 then None else Some (add Q (mul P2 R))
+    | _ \<Rightarrow> Some (add Q (mul P2 R))))"
 
 fun pnsubst1 :: "pol \<Rightarrow> mon \<Rightarrow> pol \<Rightarrow> nat \<Rightarrow> pol"
-where
-  "pnsubst1 P1 M P2 n = (case ponesubst P1 M P2 of
-       None \<Rightarrow> P1
-     | Some P3 \<Rightarrow> if n = 0 then P3 else pnsubst1 P3 M P2 (n - 1))"
+  where "pnsubst1 P1 M P2 n =
+    (case ponesubst P1 M P2 of
+      None \<Rightarrow> P1
+    | Some P3 \<Rightarrow> if n = 0 then P3 else pnsubst1 P3 M P2 (n - 1))"
 
 lemma pnsubst1_0 [simp]: "pnsubst1 P1 M P2 0 = (case ponesubst P1 M P2 of
   None \<Rightarrow> P1 | Some P3 \<Rightarrow> P3)"
   by (simp split: option.split)
 
-lemma pnsubst1_Suc [simp]: "pnsubst1 P1 M P2 (Suc n) = (case ponesubst P1 M P2 of
-  None \<Rightarrow> P1 | Some P3 \<Rightarrow> pnsubst1 P3 M P2 n)"
+lemma pnsubst1_Suc [simp]:
+  "pnsubst1 P1 M P2 (Suc n) =
+    (case ponesubst P1 M P2 of
+      None \<Rightarrow> P1
+    | Some P3 \<Rightarrow> pnsubst1 P3 M P2 n)"
   by (simp split: option.split)
 
 declare pnsubst1.simps [simp del]
 
-definition pnsubst :: "pol \<Rightarrow> mon \<Rightarrow> pol \<Rightarrow> nat \<Rightarrow> pol option" where
-  "pnsubst P1 M P2 n = (case ponesubst P1 M P2 of
-       None \<Rightarrow> None
-     | Some P3 \<Rightarrow> Some (pnsubst1 P3 M P2 n))"
+definition pnsubst :: "pol \<Rightarrow> mon \<Rightarrow> pol \<Rightarrow> nat \<Rightarrow> pol option"
+  where "pnsubst P1 M P2 n =
+    (case ponesubst P1 M P2 of
+      None \<Rightarrow> None
+    | Some P3 \<Rightarrow> Some (pnsubst1 P3 M P2 n))"
 
 fun psubstl1 :: "pol \<Rightarrow> (mon \<times> pol) list \<Rightarrow> nat \<Rightarrow> pol"
-where
-  "psubstl1 P1 [] n = P1"
-| "psubstl1 P1 ((M, P2) # mps) n = psubstl1 (pnsubst1 P1 M P2 n) mps n"
+  where
+    "psubstl1 P1 [] n = P1"
+  | "psubstl1 P1 ((M, P2) # mps) n = psubstl1 (pnsubst1 P1 M P2 n) mps n"
 
 fun psubstl :: "pol \<Rightarrow> (mon \<times> pol) list \<Rightarrow> nat \<Rightarrow> pol option"
-where
-  "psubstl P1 [] n = None"
-| "psubstl P1 ((M, P2) # mps) n = (case pnsubst P1 M P2 n of
-       None \<Rightarrow> psubstl P1 mps n
-     | Some P3 \<Rightarrow> Some (psubstl1 P3 mps n))"
+  where
+    "psubstl P1 [] n = None"
+  | "psubstl P1 ((M, P2) # mps) n =
+      (case pnsubst P1 M P2 n of
+        None \<Rightarrow> psubstl P1 mps n
+      | Some P3 \<Rightarrow> Some (psubstl1 P3 mps n))"
 
 fun pnsubstl :: "pol \<Rightarrow> (mon \<times> pol) list \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> pol"
-where
-  "pnsubstl P1 mps m n = (case psubstl P1 mps n of
-       None \<Rightarrow> P1
-     | Some P3 \<Rightarrow> if m = 0 then P3 else pnsubstl P3 mps (m - 1) n)"
+  where "pnsubstl P1 mps m n =
+    (case psubstl P1 mps n of
+      None \<Rightarrow> P1
+    | Some P3 \<Rightarrow> if m = 0 then P3 else pnsubstl P3 mps (m - 1) n)"
 
-lemma pnsubstl_0 [simp]: "pnsubstl P1 mps 0 n = (case psubstl P1 mps n of
-  None \<Rightarrow> P1 | Some P3 \<Rightarrow> P3)"
+lemma pnsubstl_0 [simp]:
+  "pnsubstl P1 mps 0 n = (case psubstl P1 mps n of None \<Rightarrow> P1 | Some P3 \<Rightarrow> P3)"
   by (simp split: option.split)
 
-lemma pnsubstl_Suc [simp]: "pnsubstl P1 mps (Suc m) n = (case psubstl P1 mps n of
-  None \<Rightarrow> P1 | Some P3 \<Rightarrow> pnsubstl P3 mps m n)"
+lemma pnsubstl_Suc [simp]:
+  "pnsubstl P1 mps (Suc m) n = (case psubstl P1 mps n of None \<Rightarrow> P1 | Some P3 \<Rightarrow> pnsubstl P3 mps m n)"
   by (simp split: option.split)
 
 declare pnsubstl.simps [simp del]
@@ -961,7 +954,8 @@ fun ring_tac in_prems thms ctxt =
 end
 \<close>
 
-context cring begin
+context cring
+begin
 
 local_setup \<open>
 Local_Theory.declaration {syntax = false, pervasive = false}

@@ -5,7 +5,7 @@
 section \<open>Rational numbers as pairs\<close>
 
 theory Rat_Pair
-imports Complex_Main
+  imports Complex_Main
 begin
 
 type_synonym Num = "int \<times> int"
@@ -20,8 +20,7 @@ definition isnormNum :: "Num \<Rightarrow> bool"
   where "isnormNum = (\<lambda>(a, b). if a = 0 then b = 0 else b > 0 \<and> gcd a b = 1)"
 
 definition normNum :: "Num \<Rightarrow> Num"
-where
-  "normNum = (\<lambda>(a,b).
+  where "normNum = (\<lambda>(a,b).
     (if a = 0 \<or> b = 0 then (0, 0)
      else
       (let g = gcd a b

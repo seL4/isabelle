@@ -5,16 +5,17 @@
 section \<open>Things that can be added to the Algebra library\<close>
 
 theory Algebra_Aux
-imports "HOL-Algebra.Ring"
+  imports "HOL-Algebra.Ring"
 begin
 
-definition of_natural :: "('a, 'm) ring_scheme \<Rightarrow> nat \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<^sub>\<nat>\<index>") where
-  "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> = (op \<oplus>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub> ^^ n) \<zero>\<^bsub>R\<^esub>"
+definition of_natural :: "('a, 'm) ring_scheme \<Rightarrow> nat \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<^sub>\<nat>\<index>")
+  where "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> = (op \<oplus>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub> ^^ n) \<zero>\<^bsub>R\<^esub>"
 
-definition of_integer :: "('a, 'm) ring_scheme \<Rightarrow> int \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<index>") where
-  "\<guillemotleft>i\<guillemotright>\<^bsub>R\<^esub> = (if 0 \<le> i then \<guillemotleft>nat i\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> else \<ominus>\<^bsub>R\<^esub> \<guillemotleft>nat (- i)\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub>)"
+definition of_integer :: "('a, 'm) ring_scheme \<Rightarrow> int \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<index>")
+  where "\<guillemotleft>i\<guillemotright>\<^bsub>R\<^esub> = (if 0 \<le> i then \<guillemotleft>nat i\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> else \<ominus>\<^bsub>R\<^esub> \<guillemotleft>nat (- i)\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub>)"
 
-context ring begin
+context ring
+begin
 
 lemma of_nat_0 [simp]: "\<guillemotleft>0\<guillemotright>\<^sub>\<nat> = \<zero>"
   by (simp add: of_natural_def)
@@ -39,10 +40,16 @@ lemma of_nat_add [simp]: "\<guillemotleft>m + n\<guillemotright>\<^sub>\<nat> = 
 
 lemma of_nat_diff [simp]: "n \<le> m \<Longrightarrow> \<guillemotleft>m - n\<guillemotright>\<^sub>\<nat> = \<guillemotleft>m\<guillemotright>\<^sub>\<nat> \<ominus> \<guillemotleft>n\<guillemotright>\<^sub>\<nat>"
 proof (induct m arbitrary: n)
-  case (Suc m)
-  note Suc' = this
+  case 0
+  then show ?case by (simp add: minus_eq)
+next
+  case Suc': (Suc m)
   show ?case
   proof (cases n)
+    case 0
+    then show ?thesis
+      by (simp add: minus_eq)
+  next
     case (Suc k)
     with Suc' have "\<guillemotleft>Suc m - Suc k\<guillemotright>\<^sub>\<nat> = \<guillemotleft>m\<guillemotright>\<^sub>\<nat> \<ominus> \<guillemotleft>k\<guillemotright>\<^sub>\<nat>" by simp
     also have "\<dots> = \<one> \<oplus> \<ominus> \<one> \<oplus> (\<guillemotleft>m\<guillemotright>\<^sub>\<nat> \<ominus> \<guillemotleft>k\<guillemotright>\<^sub>\<nat>)"
@@ -50,8 +57,8 @@ proof (induct m arbitrary: n)
     also have "\<dots> = \<guillemotleft>Suc m\<guillemotright>\<^sub>\<nat> \<ominus> \<guillemotleft>Suc k\<guillemotright>\<^sub>\<nat>"
       by (simp add: minus_eq minus_add a_ac)
     finally show ?thesis using Suc by simp
-  qed (simp add: minus_eq)
-qed (simp add: minus_eq)
+  qed
+qed
 
 lemma of_int_add [simp]: "\<guillemotleft>i + j\<guillemotright> = \<guillemotleft>i\<guillemotright> \<oplus> \<guillemotleft>j\<guillemotright>"
 proof (cases "0 \<le> i")
@@ -59,7 +66,8 @@ proof (cases "0 \<le> i")
   show ?thesis
   proof (cases "0 \<le> j")
     case True
-    with \<open>0 \<le> i\<close> show ?thesis by (simp add: of_integer_def nat_add_distrib)
+    with \<open>0 \<le> i\<close> show ?thesis
+      by (simp add: of_integer_def nat_add_distrib)
   next
     case False
     show ?thesis
@@ -112,7 +120,7 @@ next
     case False
     with \<open>\<not> 0 \<le> i\<close> show ?thesis
       by (simp add: of_integer_def nat_add_distrib minus_add diff_conv_add_uminus
-        del: add_uminus_conv_diff uminus_add_conv_diff)
+          del: add_uminus_conv_diff uminus_add_conv_diff)
   qed
 qed
 
@@ -171,7 +179,7 @@ lemma minus_0_l [simp]: "x \<in> carrier R \<Longrightarrow> \<zero> \<ominus> x
 
 lemma eq_diff0:
   assumes "x \<in> carrier R" "y \<in> carrier R"
-  shows "(x \<ominus> y = \<zero>) = (x = y)"
+  shows "x \<ominus> y = \<zero> \<longleftrightarrow> x = y"
 proof
   assume "x \<ominus> y = \<zero>"
   with assms have "x \<oplus> (\<ominus> y \<oplus> y) = y"
@@ -187,7 +195,7 @@ lemma power2_eq_square: "x \<in> carrier R \<Longrightarrow> x (^) (2::nat) = x 
 
 lemma eq_neg_iff_add_eq_0:
   assumes "x \<in> carrier R" "y \<in> carrier R"
-  shows "(x = \<ominus> y) = (x \<oplus> y = \<zero>)"
+  shows "x = \<ominus> y \<longleftrightarrow> x \<oplus> y = \<zero>"
 proof
   assume "x = \<ominus> y"
   with assms show "x \<oplus> y = \<zero>" by (simp add: l_neg)
@@ -201,7 +209,7 @@ qed
 
 lemma neg_equal_iff_equal:
   assumes x: "x \<in> carrier R" and y: "y \<in> carrier R"
-  shows "(\<ominus> x = \<ominus> y) = (x = y)"
+  shows "\<ominus> x = \<ominus> y \<longleftrightarrow> x = y"
 proof
   assume "\<ominus> x = \<ominus> y"
   then have "\<ominus> (\<ominus> x) = \<ominus> (\<ominus> y)" by simp
@@ -225,8 +233,8 @@ end
 lemma (in cring) of_int_power [simp]: "\<guillemotleft>i ^ n\<guillemotright> = \<guillemotleft>i\<guillemotright> (^) n"
   by (induct n) (simp_all add: m_ac)
 
-definition cring_class_ops :: "'a::comm_ring_1 ring" where
-  "cring_class_ops \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+definition cring_class_ops :: "'a::comm_ring_1 ring"
+  where "cring_class_ops \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
 
 lemma cring_class: "cring cring_class_ops"
   apply unfold_locales
@@ -274,17 +282,16 @@ lemmas class_simps = zero_class one_class plus_class minus_class uminus_class
   times_class power_class of_nat_class of_int_class carrier_class
 
 interpretation cring_class: cring "cring_class_ops::'a::comm_ring_1 ring"
-  rewrites
-    "(\<zero>\<^bsub>cring_class_ops\<^esub>::'a) = 0" and
-    "(\<one>\<^bsub>cring_class_ops\<^esub>::'a) = 1" and
-    "(x::'a) \<oplus>\<^bsub>cring_class_ops\<^esub> y = x + y" and
-    "(x::'a) \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y" and
-    "\<ominus>\<^bsub>cring_class_ops\<^esub> (x::'a) = - x" and
-    "(x::'a) \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y" and
-    "(x::'a) (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n" and
-    "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>cring_class_ops\<^esub> = of_nat n" and
-    "((\<guillemotleft>i\<guillemotright>\<^bsub>cring_class_ops\<^esub>)::'a) = of_int i" and
-    "(Int.of_int (numeral m)::'a) = numeral m"
+  rewrites "(\<zero>\<^bsub>cring_class_ops\<^esub>::'a) = 0"
+    and "(\<one>\<^bsub>cring_class_ops\<^esub>::'a) = 1"
+    and "(x::'a) \<oplus>\<^bsub>cring_class_ops\<^esub> y = x + y"
+    and "(x::'a) \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y"
+    and "\<ominus>\<^bsub>cring_class_ops\<^esub> (x::'a) = - x"
+    and "(x::'a) \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y"
+    and "(x::'a) (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n"
+    and "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>cring_class_ops\<^esub> = of_nat n"
+    and "((\<guillemotleft>i\<guillemotright>\<^bsub>cring_class_ops\<^esub>)::'a) = of_int i"
+    and "(Int.of_int (numeral m)::'a) = numeral m"
   by (simp_all add: cring_class class_simps)
 
 lemma (in domain) nat_pow_eq_0_iff [simp]:
@@ -302,12 +309,12 @@ proof
     by (simp add: integral_iff eq_neg_iff_add_eq_0 eq_diff0 r_neg)
 next
   assume "x = y \<or> x = \<ominus> y"
-  with assms show "x \<otimes> x = y \<otimes> y" by (auto simp add: l_minus r_minus)
+  with assms show "x \<otimes> x = y \<otimes> y"
+    by (auto simp add: l_minus r_minus)
 qed
 
-definition
-  m_div :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<oslash>\<index>" 70) where
-  "x \<oslash>\<^bsub>G\<^esub> y = (if y = \<zero>\<^bsub>G\<^esub> then \<zero>\<^bsub>G\<^esub> else x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y)"
+definition m_div :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<oslash>\<index>" 70)
+  where "x \<oslash>\<^bsub>G\<^esub> y = (if y = \<zero>\<^bsub>G\<^esub> then \<zero>\<^bsub>G\<^esub> else x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y)"
 
 context field
 begin
@@ -323,58 +330,62 @@ lemma r_inv [simp]: "x \<in> carrier R \<Longrightarrow> x \<noteq> \<zero> \<Lo
 
 lemma inverse_unique:
   assumes a: "a \<in> carrier R"
-  and b: "b \<in> carrier R"
-  and ab: "a \<otimes> b = \<one>"
+    and b: "b \<in> carrier R"
+    and ab: "a \<otimes> b = \<one>"
   shows "inv a = b"
 proof -
-  have "a \<noteq> \<zero>" using ab b by (cases "a = \<zero>") simp_all
-  moreover with a have "inv a \<otimes> (a \<otimes> b) = inv a" by (simp add: ab)
-  ultimately show ?thesis using a b by (simp add: m_assoc [symmetric])
+  from ab b have *: "a \<noteq> \<zero>"
+    by (cases "a = \<zero>") simp_all
+  with a have "inv a \<otimes> (a \<otimes> b) = inv a"
+    by (simp add: ab)
+  with a b * show ?thesis
+    by (simp add: m_assoc [symmetric])
 qed
 
-lemma nonzero_inverse_inverse_eq:
-  "a \<in> carrier R \<Longrightarrow> a \<noteq> \<zero> \<Longrightarrow> inv (inv a) = a"
+lemma nonzero_inverse_inverse_eq: "a \<in> carrier R \<Longrightarrow> a \<noteq> \<zero> \<Longrightarrow> inv (inv a) = a"
   by (rule inverse_unique) simp_all
 
 lemma inv_1 [simp]: "inv \<one> = \<one>"
   by (rule inverse_unique) simp_all
 
 lemma nonzero_inverse_mult_distrib:
-  assumes "a \<in> carrier R" and "b \<in> carrier R" and "a \<noteq> \<zero>" and "b \<noteq> \<zero>"
+  assumes "a \<in> carrier R" "b \<in> carrier R"
+    and "a \<noteq> \<zero>" "b \<noteq> \<zero>"
   shows "inv (a \<otimes> b) = inv b \<otimes> inv a"
 proof -
-  have "a \<otimes> (b \<otimes> inv b) \<otimes> inv a = \<one>" using assms by simp
-  hence eq: "a \<otimes> b \<otimes> (inv b \<otimes> inv a) = \<one>" using assms
+  from assms have "a \<otimes> (b \<otimes> inv b) \<otimes> inv a = \<one>"
+    by simp
+  with assms have eq: "a \<otimes> b \<otimes> (inv b \<otimes> inv a) = \<one>"
     by (simp only: m_assoc m_closed inv_closed assms)
-  from inverse_unique [OF _ _ eq] assms
-  show ?thesis by simp
+  from assms show ?thesis
+    using inverse_unique [OF _ _ eq] by simp
 qed
 
 lemma nonzero_imp_inverse_nonzero:
   assumes "a \<in> carrier R" and "a \<noteq> \<zero>"
   shows "inv a \<noteq> \<zero>"
 proof
-  assume ianz: "inv a = \<zero>"
-  from assms
-  have "\<one> = a \<otimes> inv a" by simp
-  also with assms have "... = \<zero>" by (simp add: ianz)
+  assume *: "inv a = \<zero>"
+  from assms have **: "\<one> = a \<otimes> inv a"
+    by simp
+  also from assms have "\<dots> = \<zero>" by (simp add: *)
   finally have "\<one> = \<zero>" .
-  thus False by (simp add: eq_commute)
+  then show False by (simp add: eq_commute)
 qed
 
 lemma nonzero_divide_divide_eq_left:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> c \<in> carrier R \<Longrightarrow> b \<noteq> \<zero> \<Longrightarrow> c \<noteq> \<zero> \<Longrightarrow>
-   a \<oslash> b \<oslash> c = a \<oslash> (b \<otimes> c)"
+    a \<oslash> b \<oslash> c = a \<oslash> (b \<otimes> c)"
   by (simp add: m_div_def nonzero_inverse_mult_distrib m_ac integral_iff)
 
 lemma nonzero_times_divide_eq:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> c \<in> carrier R \<Longrightarrow> d \<in> carrier R \<Longrightarrow>
-   b \<noteq> \<zero> \<Longrightarrow> d \<noteq> \<zero> \<Longrightarrow> (a \<oslash> b) \<otimes> (c \<oslash> d) = (a \<otimes> c) \<oslash> (b \<otimes> d)"
+    b \<noteq> \<zero> \<Longrightarrow> d \<noteq> \<zero> \<Longrightarrow> (a \<oslash> b) \<otimes> (c \<oslash> d) = (a \<otimes> c) \<oslash> (b \<otimes> d)"
   by (simp add: m_div_def nonzero_inverse_mult_distrib m_ac integral_iff)
 
 lemma nonzero_divide_divide_eq:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> c \<in> carrier R \<Longrightarrow> d \<in> carrier R \<Longrightarrow>
-   b \<noteq> \<zero> \<Longrightarrow> c \<noteq> \<zero> \<Longrightarrow> d \<noteq> \<zero> \<Longrightarrow> (a \<oslash> b) \<oslash> (c \<oslash> d) = (a \<otimes> d) \<oslash> (b \<otimes> c)"
+    b \<noteq> \<zero> \<Longrightarrow> c \<noteq> \<zero> \<Longrightarrow> d \<noteq> \<zero> \<Longrightarrow> (a \<oslash> b) \<oslash> (c \<oslash> d) = (a \<otimes> d) \<oslash> (b \<otimes> c)"
   by (simp add: m_div_def nonzero_inverse_mult_distrib
     nonzero_imp_inverse_nonzero nonzero_inverse_inverse_eq m_ac integral_iff)
 
@@ -382,8 +393,8 @@ lemma divide_1 [simp]: "x \<in> carrier R \<Longrightarrow> x \<oslash> \<one> =
   by (simp add: m_div_def)
 
 lemma add_frac_eq:
-  assumes "x \<in> carrier R" and "y \<in> carrier R" and "z \<in> carrier R" and "w \<in> carrier R"
-  and "y \<noteq> \<zero>" and "z \<noteq> \<zero>"
+  assumes "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R" "w \<in> carrier R"
+    and "y \<noteq> \<zero>" "z \<noteq> \<zero>"
   shows "x \<oslash> y \<oplus> w \<oslash> z = (x \<otimes> z \<oplus> w \<otimes> y) \<oslash> (y \<otimes> z)"
 proof -
   from assms
@@ -403,57 +414,56 @@ lemma minus_divide_left [simp]:
   by (simp add: m_div_def l_minus)
 
 lemma diff_frac_eq:
-  assumes "x \<in> carrier R" and "y \<in> carrier R" and "z \<in> carrier R" and "w \<in> carrier R"
-  and "y \<noteq> \<zero>" and "z \<noteq> \<zero>"
+  assumes "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R" "w \<in> carrier R"
+    and "y \<noteq> \<zero>" "z \<noteq> \<zero>"
   shows "x \<oslash> y \<ominus> w \<oslash> z = (x \<otimes> z \<ominus> w \<otimes> y) \<oslash> (y \<otimes> z)"
-  using assms
-  by (simp add: minus_eq l_minus add_frac_eq)
+  using assms by (simp add: minus_eq l_minus add_frac_eq)
 
 lemma nonzero_mult_divide_mult_cancel_left [simp]:
-  assumes "a \<in> carrier R" and "b \<in> carrier R" and "c \<in> carrier R"
-  and "b \<noteq> \<zero>" and "c \<noteq> \<zero>"
+  assumes "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier R"
+    and "b \<noteq> \<zero>" "c \<noteq> \<zero>"
   shows "(c \<otimes> a) \<oslash> (c \<otimes> b) = a \<oslash> b"
 proof -
   from assms have "(c \<otimes> a) \<oslash> (c \<otimes> b) = c \<otimes> a \<otimes> (inv b \<otimes> inv c)"
     by (simp add: m_div_def nonzero_inverse_mult_distrib integral_iff)
   also from assms have "\<dots> =  a \<otimes> inv b \<otimes> (inv c \<otimes> c)"
     by (simp add: m_ac)
-  also from assms have "\<dots> =  a \<otimes> inv b" by simp
-  finally show ?thesis using assms by (simp add: m_div_def)
+  also from assms have "\<dots> =  a \<otimes> inv b"
+    by simp
+  finally show ?thesis
+    using assms by (simp add: m_div_def)
 qed
 
 lemma times_divide_eq_left [simp]:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> c \<in> carrier R \<Longrightarrow> c \<noteq> \<zero> \<Longrightarrow>
-   (b \<oslash> c) \<otimes> a = b \<otimes> a \<oslash> c"
+    (b \<oslash> c) \<otimes> a = b \<otimes> a \<oslash> c"
   by (simp add: m_div_def m_ac)
 
 lemma times_divide_eq_right [simp]:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> c \<in> carrier R \<Longrightarrow> c \<noteq> \<zero> \<Longrightarrow>
-   a \<otimes> (b \<oslash> c) = a \<otimes> b \<oslash> c"
+    a \<otimes> (b \<oslash> c) = a \<otimes> b \<oslash> c"
   by (simp add: m_div_def m_ac)
 
 lemma nonzero_power_divide:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> b \<noteq> \<zero> \<Longrightarrow>
-   (a \<oslash> b) (^) (n::nat) = a (^) n \<oslash> b (^) n"
+    (a \<oslash> b) (^) (n::nat) = a (^) n \<oslash> b (^) n"
   by (induct n) (simp_all add: nonzero_divide_divide_eq_left)
 
 lemma r_diff_distr:
   "x \<in> carrier R \<Longrightarrow> y \<in> carrier R \<Longrightarrow> z \<in> carrier R \<Longrightarrow>
-   z \<otimes> (x \<ominus> y) = z \<otimes> x \<ominus> z \<otimes> y"
+    z \<otimes> (x \<ominus> y) = z \<otimes> x \<ominus> z \<otimes> y"
   by (simp add: minus_eq r_distr r_minus)
 
-lemma divide_zero_left [simp]:
-  "a \<in> carrier R \<Longrightarrow> a \<noteq> \<zero> \<Longrightarrow> \<zero> \<oslash> a = \<zero>"
+lemma divide_zero_left [simp]: "a \<in> carrier R \<Longrightarrow> a \<noteq> \<zero> \<Longrightarrow> \<zero> \<oslash> a = \<zero>"
   by (simp add: m_div_def)
 
 lemma divide_self: "a \<in> carrier R \<Longrightarrow> a \<noteq> \<zero> \<Longrightarrow> a \<oslash> a = \<one>"
   by (simp add: m_div_def)
 
 lemma divide_eq_0_iff:
-  assumes "a \<in> carrier R"
-  and "b \<in> carrier R"
-  and "b \<noteq> \<zero>"
-  shows "(a \<oslash> b = \<zero>) = (a = \<zero>)"
+  assumes "a \<in> carrier R" "b \<in> carrier R"
+    and "b \<noteq> \<zero>"
+  shows "a \<oslash> b = \<zero> \<longleftrightarrow> a = \<zero>"
 proof
   assume "a = \<zero>"
   with assms show "a \<oslash> b = \<zero>" by simp
@@ -471,7 +481,7 @@ end
 
 lemma field_class: "field (cring_class_ops::'a::field ring)"
   apply unfold_locales
-  apply (simp_all add: cring_class_ops_def)
+    apply (simp_all add: cring_class_ops_def)
   apply (auto simp add: Units_def)
   apply (rule_tac x="1 / x" in exI)
   apply simp
@@ -481,25 +491,24 @@ lemma div_class: "(x::'a::field) \<oslash>\<^bsub>cring_class_ops\<^esub> y = x 
   apply (simp add: m_div_def m_inv_def class_simps)
   apply (rule impI)
   apply (rule ssubst [OF the_equality, of _ "1 / y"])
-  apply simp_all
+    apply simp_all
   apply (drule conjunct2)
   apply (drule_tac f="\<lambda>x. x / y" in arg_cong)
   apply simp
   done
 
 interpretation field_class: field "cring_class_ops::'a::field ring"
-  rewrites
-    "(\<zero>\<^bsub>cring_class_ops\<^esub>::'a) = 0" and
-    "(\<one>\<^bsub>cring_class_ops\<^esub>::'a) = 1" and
-    "(x::'a) \<oplus>\<^bsub>cring_class_ops\<^esub> y = x + y" and
-    "(x::'a) \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y" and
-    "\<ominus>\<^bsub>cring_class_ops\<^esub> (x::'a) = - x" and
-    "(x::'a) \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y" and
-    "(x::'a) (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n" and
-    "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>cring_class_ops\<^esub> = of_nat n" and
-    "((\<guillemotleft>i\<guillemotright>\<^bsub>cring_class_ops\<^esub>)::'a) = of_int i" and
-    "(x::'a) \<oslash>\<^bsub>cring_class_ops\<^esub> y = x / y" and
-    "(Int.of_int (numeral m)::'a) = numeral m"
+  rewrites "(\<zero>\<^bsub>cring_class_ops\<^esub>::'a) = 0"
+    and "(\<one>\<^bsub>cring_class_ops\<^esub>::'a) = 1"
+    and "(x::'a) \<oplus>\<^bsub>cring_class_ops\<^esub> y = x + y"
+    and "(x::'a) \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y"
+    and "\<ominus>\<^bsub>cring_class_ops\<^esub> (x::'a) = - x"
+    and "(x::'a) \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y"
+    and "(x::'a) (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n"
+    and "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>cring_class_ops\<^esub> = of_nat n"
+    and "((\<guillemotleft>i\<guillemotright>\<^bsub>cring_class_ops\<^esub>)::'a) = of_int i"
+    and "(x::'a) \<oslash>\<^bsub>cring_class_ops\<^esub> y = x / y"
+    and "(Int.of_int (numeral m)::'a) = numeral m"
   by (simp_all add: field_class class_simps div_class)
 
 end
