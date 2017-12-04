@@ -61,6 +61,12 @@ for session selection:
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
 
+* Named control symbols (without special Unicode rendering) are shown as
+bold-italic keyword. This is particularly useful for the short form of
+antiquotations with control symbol: \<^name>\<open>argument\<close>. The action
+"isabelle.antiquoted_cartouche" turns an antiquotation with 0 or 1
+arguments into this format.
+
 
 *** HOL ***
 
