@@ -90,36 +90,50 @@ object Syntax_Style
     }
   }
 
+  private def control_style(sym: String): Option[Byte => Byte] =
+    if (sym == Symbol.sub_decoded) Some(subscript(_))
+    else if (sym == Symbol.sup_decoded) Some(superscript(_))
+    else if (sym == Symbol.bold_decoded) Some(bold(_))
+    else None
+
   def extended(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
-    def control_style(sym: String): Option[Byte => Byte] =
-      if (sym == Symbol.sub_decoded) Some(subscript(_))
-      else if (sym == Symbol.sup_decoded) Some(superscript(_))
-      else if (sym == Symbol.bold_decoded) Some(bold(_))
-      else None
-
     var result = Map[Text.Offset, Byte => Byte]()
     def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte)
     {
       for (i <- start until stop) result += (i -> style)
     }
+
     var offset = 0
     var control = ""
     for (sym <- Symbol.iterator(text)) {
+      val end_offset = offset + sym.length
+
       if (control_style(sym).isDefined) control = sym
       else if (control != "") {
         if (Symbol.is_controllable(sym) && !Symbol.fonts.isDefinedAt(sym)) {
           mark(offset - control.length, offset, _ => hidden)
-          mark(offset, offset + sym.length, control_style(control).get)
+          mark(offset, end_offset, control_style(control).get)
         }
         control = ""
       }
+
+      if (Symbol.is_control_encoded(sym)) {
+        val a = offset + Symbol.control_prefix.length
+        val b = end_offset - Symbol.control_suffix.length
+        mark(offset, a, _ => hidden)
+        mark(a, b, _ => JEditToken.KEYWORD4)
+        mark(b, end_offset, _ => hidden)
+      }
+
       Symbol.lookup_font(sym) match {
-        case Some(idx) => mark(offset, offset + sym.length, user_font(idx, _))
+        case Some(idx) => mark(offset, end_offset, user_font(idx, _))
         case _ =>
       }
-      offset += sym.length
+
+      offset = end_offset
     }
+
     result
   }
 
