@@ -204,6 +204,8 @@ object Rendering
       Markup.BAD)
 
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
+
+  val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
 }
 
 abstract class Rendering(
@@ -631,4 +633,13 @@ abstract class Rendering(
       }
     }
   }
+
+
+  /* antiquoted text */
+
+  def antiquoted(range: Text.Range): Option[Text.Range] =
+    snapshot.cumulate[Option[Text.Range]](range, None, Rendering.antiquoted_elements, _ =>
+      {
+        case (res, info) => if (res.isEmpty) Some(Some(info.range)) else None
+      }).headOption.flatMap(_.info)
 }

@@ -117,6 +117,11 @@
 	    isabelle.jedit.Isabelle.input_bsup(textArea);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.antiquoted_cartouche">
+	  <CODE>
+	    isabelle.jedit.Isabelle.antiquoted_cartouche(textArea);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.include-word">
 	  <CODE>
 	    isabelle.jedit.Isabelle.update_dictionary(textArea, true, false);

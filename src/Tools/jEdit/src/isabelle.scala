@@ -420,6 +420,36 @@ object Isabelle
   { enclose_input(text_area, Symbol.bsup_decoded, Symbol.esup_decoded) }
 
 
+  /* antiquoted cartouche */
+
+  def antiquoted_cartouche(text_area: TextArea)
+  {
+    val buffer = text_area.getBuffer
+    for {
+      doc_view <- Document_View.get(text_area)
+      rendering = doc_view.get_rendering()
+      caret_range = JEdit_Lib.caret_range(text_area)
+      antiq_range <- rendering.antiquoted(caret_range)
+      antiq_text <- JEdit_Lib.get_text(buffer, antiq_range)
+      body_text <- Antiquote.read_antiq_body(antiq_text)
+      (name, arg) <- Token.read_antiq_arg(Keyword.Keywords.empty, body_text)
+      if Symbol.is_ascii_identifier(name)
+    } {
+      val op_text =
+        Isabelle_Encoding.perhaps_decode(buffer,
+          Symbol.control_prefix + name + Symbol.control_suffix)
+      val arg_text =
+        if (arg.isEmpty) ""
+        else if (Isabelle_Encoding.is_active(buffer)) Symbol.cartouche_decoded(arg.get)
+        else Symbol.cartouche(arg.get)
+
+      buffer.remove(antiq_range.start, antiq_range.length)
+      text_area.moveCaretPosition(antiq_range.start)
+      text_area.setSelectedText(op_text + arg_text)
+    }
+  }
+
+
   /* spell-checker dictionary */
 
   def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean)
