@@ -23,7 +23,6 @@ object Syntax_Style
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
-  private val full_range = 6 * plain_range + 1
   private def check_range(i: Int) { require(0 <= i && i < plain_range) }
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
@@ -31,6 +30,7 @@ object Syntax_Style
   def bold(i: Byte): Byte = { check_range(i); (i + 3 * plain_range).toByte }
   def user_font(idx: Int, i: Byte): Byte = { check_range(i); (i + (4 + idx) * plain_range).toByte }
   val hidden: Byte = (6 * plain_range).toByte
+  val control: Byte = (hidden + JEditToken.DIGIT).toByte
 
   private def font_style(style: SyntaxStyle, f: Font => Font): SyntaxStyle =
     new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, f(style.getFont))
@@ -69,7 +69,10 @@ object Syntax_Style
 
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
-      val new_styles = new Array[SyntaxStyle](full_range)
+      val style0 = styles(0)
+      val font0 = style0.getFont
+
+      val new_styles = Array.fill[SyntaxStyle](java.lang.Byte.MAX_VALUE)(styles(0))
       for (i <- 0 until plain_range) {
         val style = styles(i)
         new_styles(i) = style
@@ -83,9 +86,14 @@ object Syntax_Style
       }
       new_styles(hidden) =
         new SyntaxStyle(hidden_color, null,
-          { val font = styles(0).getFont
-            GUI.transform_font(new Font(font.getFamily, 0, 1),
-              AffineTransform.getScaleInstance(1.0, font.getSize.toDouble)) })
+          GUI.transform_font(new Font(font0.getFamily, 0, 1),
+            AffineTransform.getScaleInstance(1.0, font0.getSize.toDouble)))
+      new_styles(control) =
+        new SyntaxStyle(style0.getForegroundColor, style0.getBackgroundColor,
+          { val font_style =
+              (if (font0.isItalic) 0 else Font.ITALIC) |
+              (if (font0.isBold) 0 else Font.BOLD)
+            new Font(font0.getFamily, font_style, font0.getSize) })
       new_styles
     }
   }
@@ -105,24 +113,24 @@ object Syntax_Style
     }
 
     var offset = 0
-    var control = ""
+    var control_sym = ""
     for (sym <- Symbol.iterator(text)) {
       val end_offset = offset + sym.length
 
-      if (control_style(sym).isDefined) control = sym
-      else if (control != "") {
+      if (control_style(sym).isDefined) control_sym = sym
+      else if (control_sym != "") {
         if (Symbol.is_controllable(sym) && !Symbol.fonts.isDefinedAt(sym)) {
-          mark(offset - control.length, offset, _ => hidden)
-          mark(offset, end_offset, control_style(control).get)
+          mark(offset - control_sym.length, offset, _ => hidden)
+          mark(offset, end_offset, control_style(control_sym).get)
         }
-        control = ""
+        control_sym = ""
       }
 
       if (Symbol.is_control_encoded(sym)) {
         val a = offset + Symbol.control_prefix.length
         val b = end_offset - Symbol.control_suffix.length
         mark(offset, a, _ => hidden)
-        mark(a, b, _ => JEditToken.KEYWORD4)
+        mark(a, b, _ => control)
         mark(b, end_offset, _ => hidden)
       }
 
