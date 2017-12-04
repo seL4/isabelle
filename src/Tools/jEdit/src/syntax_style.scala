@@ -154,7 +154,7 @@ object Syntax_Style
 
     val buffer = text_area.getBuffer
 
-    val control_decoded = Isabelle_Encoding.maybe_decode(buffer, control)
+    val control_decoded = Isabelle_Encoding.perhaps_decode(buffer, control)
 
     def update_style(text: String): String =
     {
