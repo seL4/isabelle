@@ -3226,6 +3226,9 @@ lemmas upto_rec_numeral [simp] =
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)
 
+lemma upto_Nil[simp]: "[i..j] = [] \<longleftrightarrow> j < i"
+by (simp add: upto.simps)
+
 lemma upto_rec1: "i \<le> j \<Longrightarrow> [i..j] = i#[i+1..j]"
 by(simp add: upto.simps)
 
@@ -3256,6 +3259,9 @@ qed
 lemma upto_split2: 
   "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> [i..k] = [i..j] @ [j+1..k]"
 using upto_rec1 upto_rec2 upto_split1 by auto
+
+lemma upto_split3: "\<lbrakk> i \<le> j; j \<le> k \<rbrakk> \<Longrightarrow> [i..k] = [i..j-1] @ j # [j+1..k]"
+using upto_rec1 upto_split1 by auto
 
 text\<open>Tail recursive version for code generation:\<close>
 
