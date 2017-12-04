@@ -17,6 +17,6 @@ object Isabelle_Encoding
   def is_active(buffer: JEditBuffer): Boolean =
     buffer.getStringProperty(JEditBuffer.ENCODING).asInstanceOf[String] == "UTF-8-Isabelle"
 
-  def maybe_decode(buffer: JEditBuffer, s: String): String =
+  def perhaps_decode(buffer: JEditBuffer, s: String): String =
     if (is_active(buffer)) Symbol.decode(s) else s
 }

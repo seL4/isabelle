@@ -563,6 +563,9 @@ object Symbol
   def is_open(sym: Symbol): Boolean = sym == open_decoded || sym == open
   def is_close(sym: Symbol): Boolean = sym == close_decoded || sym == close
 
+  def cartouche(s: String): String = open + s + close
+  def cartouche_decoded(s: String): String = open_decoded + s + close_decoded
+
 
   /* symbols for symbolic identifiers */
 
@@ -577,8 +580,14 @@ object Symbol
 
   /* control symbols */
 
+  val control_prefix = "\\<^"
+  val control_suffix = ">"
+
+  def is_control_encoded(sym: Symbol): Boolean =
+    sym.startsWith(control_prefix) && sym.endsWith(control_suffix)
+
   def is_control(sym: Symbol): Boolean =
-    (sym.startsWith("\\<^") && sym.endsWith(">")) || symbols.control_decoded.contains(sym)
+    is_control_encoded(sym) || symbols.control_decoded.contains(sym)
 
   def is_controllable(sym: Symbol): Boolean =
     !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) &&

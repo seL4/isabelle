@@ -54,4 +54,12 @@ object Antiquote
           Position.here(Position.Line(next.pos.line)))
     }
   }
+
+  def read_antiq_body(input: CharSequence): Option[String] =
+  {
+    read(input) match {
+      case List(Antiq(source)) => Some(source.substring(2, source.length - 1))
+      case _ => None
+    }
+  }
 }

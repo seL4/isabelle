@@ -45,6 +45,16 @@ object GUI_Thread
     else SwingUtilities.invokeLater(new Runnable { def run = body })
   }
 
+  def future[A](body: => A): Future[A] =
+  {
+    if (SwingUtilities.isEventDispatchThread()) Future.value(body)
+    else {
+      val promise = Future.promise[A]
+      later { promise.fulfill_result(Exn.capture(body)) }
+      promise
+    }
+  }
+
 
   /* delayed events */
 

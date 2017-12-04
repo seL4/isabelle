@@ -165,6 +165,16 @@ object Token
     else quote(name.replace("\"", "\\\""))
 
 
+  /* plain antiquotation (0 or 1 args) */
+
+  def read_antiq_arg(keywords: Keyword.Keywords, inp: CharSequence): Option[(String, Option[String])] =
+    explode(keywords, inp).filter(_.is_proper) match {
+      case List(t) if t.is_name => Some(t.content, None)
+      case List(t1, t2) if t1.is_name && t2.is_embedded => Some(t1.content, Some(t2.content))
+      case _ => None
+    }
+
+
   /* implode */
 
   def implode(toks: List[Token]): String =

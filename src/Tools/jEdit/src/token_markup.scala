@@ -271,10 +271,9 @@ object Token_Markup
         var offset = 0
         for ((style, token) <- styled_tokens) {
           val length = token.length
-          val end_offset = offset + length
-          if ((offset until end_offset) exists
-              (i => extended.isDefinedAt(i) || line.charAt(i) == '\t')) {
-            for (i <- offset until end_offset) {
+          val offsets = offset until (offset + length)
+          if (offsets.exists(i => extended.isDefinedAt(i) || line.charAt(i) == '\t')) {
+            for (i <- offsets) {
               val style1 =
                 extended.get(i) match {
                   case None => style
