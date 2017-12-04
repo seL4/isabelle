@@ -92,7 +92,6 @@ object Syntax_Style
 
   def extended(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
-    // FIXME Symbol.bsub_decoded etc.
     def control_style(sym: String): Option[Byte => Byte] =
       if (sym == Symbol.sub_decoded) Some(subscript(_))
       else if (sym == Symbol.sup_decoded) Some(superscript(_))
