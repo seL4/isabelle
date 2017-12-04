@@ -11,9 +11,6 @@ object Update_Cartouches
 {
   /* update cartouches */
 
-  private def cartouche(s: String): String =
-    Symbol.open + s + Symbol.close
-
   private val Verbatim_Body = """(?s)[ \t]*(.*?)[ \t]*""".r
 
   val Text_Antiq = """(?s)@\{\s*text\b\s*(.+)\}""".r
@@ -27,7 +24,7 @@ object Update_Cartouches
             ant match {
               case Antiquote.Antiq(Text_Antiq(body)) =>
                 Token.explode(Keyword.Keywords.empty, body).filterNot(_.is_space) match {
-                  case List(tok) => Antiquote.Control(cartouche(tok.content))
+                  case List(tok) => Antiquote.Control(Symbol.cartouche(tok.content))
                   case _ => ant
                 }
               case _ => ant
@@ -45,10 +42,10 @@ object Update_Cartouches
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
         yield {
-          if (tok.kind == Token.Kind.ALT_STRING) cartouche(tok.content)
+          if (tok.kind == Token.Kind.ALT_STRING) Symbol.cartouche(tok.content)
           else if (tok.kind == Token.Kind.VERBATIM) {
             tok.content match {
-              case Verbatim_Body(s) => cartouche(s)
+              case Verbatim_Body(s) => Symbol.cartouche(s)
               case s => tok.source
             }
           }
@@ -68,7 +65,7 @@ object Update_Cartouches
 
               if (content == content1) tok.source
               else if (tok.kind == Token.Kind.STRING) Outer_Syntax.quote_string(content1)
-              else cartouche(content1)
+              else Symbol.cartouche(content1)
             }
             else tok.source
           }).mkString

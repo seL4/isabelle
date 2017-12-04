@@ -563,6 +563,9 @@ object Symbol
   def is_open(sym: Symbol): Boolean = sym == open_decoded || sym == open
   def is_close(sym: Symbol): Boolean = sym == close_decoded || sym == close
 
+  def cartouche(s: String): String = open + s + close
+  def cartouche_decoded(s: String): String = open_decoded + s + close_decoded
+
 
   /* symbols for symbolic identifiers */
 
