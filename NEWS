@@ -68,6 +68,17 @@ antiquotations with control symbol: \<^name>\<open>argument\<close>. The action
 arguments into this format.
 
 
+*** Document preparation ***
+
+* System option "document_tags" specifies a default for otherwise
+untagged commands. This is occasionally useful to control the global
+visibility of commands via session options (e.g. in ROOT).
+
+* Document markup commands ('section', 'text' etc.) are implicitly
+tagged as "document" and visible by default. This avoids the application
+of option "document_tags" to these commands.
+
+
 *** HOL ***
 
 * SMT module:
