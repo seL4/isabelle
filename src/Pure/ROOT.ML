@@ -280,6 +280,7 @@ ML_file "System/isabelle_system.ML";
 (*theory documents*)
 ML_file "Thy/term_style.ML";
 ML_file "Isar/outer_syntax.ML";
+ML_file "ML/ml_antiquotations.ML";
 ML_file "Thy/thy_output.ML";
 ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";
@@ -311,7 +312,6 @@ ML_file "General/output_primitives_virtual.ML";
 subsection "Miscellaneous tools and packages for Pure Isabelle";
 
 ML_file "ML/ml_pp.ML";
-ML_file "ML/ml_antiquotations.ML";
 ML_file "ML/ml_thms.ML";
 ML_file "ML/ml_file.ML";
 
