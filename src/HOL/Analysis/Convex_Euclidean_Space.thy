@@ -279,7 +279,31 @@ lemma convex_halfspace_lt: "convex {x. inner a x < b}"
   by (auto simp: convex_bound_lt inner_add)
 
 lemma convex_halfspace_gt: "convex {x. inner a x > b}"
-   using convex_halfspace_lt[of "-a" "-b"] by auto
+  using convex_halfspace_lt[of "-a" "-b"] by auto
+
+lemma convex_halfspace_Re_ge: "convex {x. Re x \<ge> b}"
+  using convex_halfspace_ge[of b "1::complex"] by simp
+
+lemma convex_halfspace_Re_le: "convex {x. Re x \<le> b}"
+  using convex_halfspace_le[of "1::complex" b] by simp
+
+lemma convex_halfspace_Im_ge: "convex {x. Im x \<ge> b}"
+  using convex_halfspace_ge[of b \<i>] by simp
+
+lemma convex_halfspace_Im_le: "convex {x. Im x \<le> b}"
+  using convex_halfspace_le[of \<i> b] by simp
+
+lemma convex_halfspace_Re_gt: "convex {x. Re x > b}"
+  using convex_halfspace_gt[of b "1::complex"] by simp
+
+lemma convex_halfspace_Re_lt: "convex {x. Re x < b}"
+  using convex_halfspace_lt[of "1::complex" b] by simp
+
+lemma convex_halfspace_Im_gt: "convex {x. Im x > b}"
+  using convex_halfspace_gt[of b \<i>] by simp
+
+lemma convex_halfspace_Im_lt: "convex {x. Im x < b}"
+  using convex_halfspace_lt[of \<i> b] by simp
 
 lemma convex_real_interval [iff]:
   fixes a b :: "real"

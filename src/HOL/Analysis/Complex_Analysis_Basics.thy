@@ -367,6 +367,10 @@ lemma holomorphic_on_sum [holomorphic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) holomorphic_on s"
   unfolding holomorphic_on_def by (metis field_differentiable_sum)
 
+lemma holomorphic_on_prod [holomorphic_intros]:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. prod (\<lambda>i. f i x) I) holomorphic_on s"
+  by (induction I rule: infinite_finite_induct) (auto intro: holomorphic_intros)
+
 lemma holomorphic_pochhammer [holomorphic_intros]:
   "f holomorphic_on A \<Longrightarrow> (\<lambda>s. pochhammer (f s) n) holomorphic_on A"
   by (induction n) (auto intro!: holomorphic_intros simp: pochhammer_Suc)

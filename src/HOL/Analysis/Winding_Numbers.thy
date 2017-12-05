@@ -706,7 +706,7 @@ proof -
       - winding_number (subpath t 0 q +++ linepath (a - d) (a + e)) z"
       using z_notin_ed z_notin_0t \<open>0 \<le> t\<close> \<open>simple_path q\<close> \<open>t \<le> 1\<close>
       by (simp add: simple_path_imp_path qt q01 path_image_subpath_commute closed_segment_commute winding_number_join winding_number_reversepath [symmetric])
-    show "- complex_of_real d \<noteq> complex_of_real e"
+    show "- d \<noteq> e"
       using ad_not_ae by auto
     show "winding_number (subpath t 0 q +++ linepath (a - d) (a + e)) z \<noteq> 0"
       using z1 by auto

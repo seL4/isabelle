@@ -1,4 +1,4 @@
-(*  Title:    HOL/Library/Nonpos_Ints.thy
+  (*  Title:    HOL/Library/Nonpos_Ints.thy
     Author:   Manuel Eberl, TU München
 *)
 
@@ -237,7 +237,6 @@ lemma nonpos_Reals_cases:
 lemma uminus_nonneg_Reals_iff [simp]: "-x \<in> \<real>\<^sub>\<ge>\<^sub>0 \<longleftrightarrow> x \<in> \<real>\<^sub>\<le>\<^sub>0"
   apply (auto simp: nonpos_Reals_def nonneg_Reals_def)
   apply (metis nonpos_Reals_of_real_iff minus_minus neg_le_0_iff_le of_real_minus)
-  apply (metis neg_0_le_iff_le of_real_minus)
   done
 
 lemma uminus_nonpos_Reals_iff [simp]: "-x \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> x \<in> \<real>\<^sub>\<ge>\<^sub>0"

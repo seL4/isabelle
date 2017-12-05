@@ -1790,8 +1790,8 @@ lemma powr_of_real:
   shows "0 \<le> x \<Longrightarrow> of_real x powr (of_real y::complex) = of_real (x powr y)"
   by (simp_all add: powr_def exp_eq_polar)
 
-lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x > 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
-  by (metis linear not_le of_real_Re powr_of_real)
+lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x \<ge> 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
+  by (metis not_le of_real_Re powr_of_real)
 
 lemma norm_powr_real_mono:
     "\<lbrakk>w \<in> \<real>; 1 < Re w\<rbrakk>
@@ -1941,6 +1941,32 @@ proof (cases "a = 0")
 next
   case False
   with assms show ?thesis by (auto intro!: tendsto_powr_complex elim!: nonpos_Reals_cases)
+qed
+
+lemma tendsto_neg_powr_complex_of_real:
+  assumes "filterlim f at_top F" and "Re s < 0"
+  shows   "((\<lambda>x. complex_of_real (f x) powr s) \<longlongrightarrow> 0) F"
+proof -
+  have "((\<lambda>x. norm (complex_of_real (f x) powr s)) \<longlongrightarrow> 0) F"
+  proof (rule Lim_transform_eventually)
+    from assms(1) have "eventually (\<lambda>x. f x \<ge> 0) F"
+      by (auto simp: filterlim_at_top)
+    thus "eventually (\<lambda>x. f x powr Re s = norm (of_real (f x) powr s)) F"
+      by eventually_elim (simp add: norm_powr_real_powr)
+    from assms show "((\<lambda>x. f x powr Re s) \<longlongrightarrow> 0) F"
+      by (intro tendsto_neg_powr)
+  qed
+  thus ?thesis by (simp add: tendsto_norm_zero_iff)
+qed
+
+lemma tendsto_neg_powr_complex_of_nat:
+  assumes "filterlim f at_top F" and "Re s < 0"
+  shows   "((\<lambda>x. of_nat (f x) powr s) \<longlongrightarrow> 0) F"
+proof -
+  have "((\<lambda>x. of_real (real (f x)) powr s) \<longlongrightarrow> 0) F" using assms(2)
+    by (intro filterlim_compose[OF _ tendsto_neg_powr_complex_of_real]
+              filterlim_compose[OF _ assms(1)] filterlim_real_sequentially filterlim_ident) auto
+  thus ?thesis by simp
 qed
 
 lemma continuous_powr_complex:

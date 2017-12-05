@@ -2991,6 +2991,17 @@ proof -
     by (auto elim!: no_isolated_singularity)
 qed
 
+lemma not_is_pole_holomorphic:
+  assumes "open A" "x \<in> A" "f holomorphic_on A"
+  shows   "\<not>is_pole f x"
+proof -
+  have "continuous_on A f" by (intro holomorphic_on_imp_continuous_on) fact
+  with assms have "isCont f x" by (simp add: continuous_on_eq_continuous_at)
+  hence "f \<midarrow>x\<rightarrow> f x" by (simp add: isCont_def)
+  thus "\<not>is_pole f x" unfolding is_pole_def
+    using not_tendsto_and_filterlim_at_infinity[of "at x" f "f x"] by auto
+qed
+
 
 (*order of the zero of f at z*)
 definition zorder::"(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> nat" where

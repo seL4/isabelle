@@ -819,6 +819,11 @@ proof -
     unfolding measure_def \<open>?e\<close> by (simp add: enn2real_mult prod_nonneg)
 qed
 
+lemma lebesgue_real_scale:
+  assumes "c \<noteq> 0"
+  shows   "lebesgue = density (distr lebesgue lebesgue (\<lambda>x. c * x)) (\<lambda>x. ennreal \<bar>c\<bar>)"
+  using assms by (subst lebesgue_affine_euclidean[of "\<lambda>_. c" 0]) simp_all
+
 lemma divideR_right:
   fixes x y :: "'a::real_normed_vector"
   shows "r \<noteq> 0 \<Longrightarrow> y = x /\<^sub>R r \<longleftrightarrow> r *\<^sub>R y = x"

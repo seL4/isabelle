@@ -366,6 +366,12 @@ lemma inj_of_real: "inj of_real"
 lemmas of_real_eq_0_iff [simp] = of_real_eq_iff [of _ 0, simplified]
 lemmas of_real_eq_1_iff [simp] = of_real_eq_iff [of _ 1, simplified]
 
+lemma minus_of_real_eq_of_real_iff [simp]: "-of_real x = of_real y \<longleftrightarrow> -x = y"
+  using of_real_eq_iff[of "-x" y] by (simp only: of_real_minus)
+
+lemma of_real_eq_minus_of_real_iff [simp]: "of_real x = -of_real y \<longleftrightarrow> x = -y"
+  using of_real_eq_iff[of x "-y"] by (simp only: of_real_minus)
+
 lemma of_real_eq_id [simp]: "of_real = (id :: real \<Rightarrow> real)"
   by (rule ext) (simp add: of_real_def)
 
@@ -445,10 +451,7 @@ lemma Reals_add [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Lon
   done
 
 lemma Reals_minus [simp]: "a \<in> \<real> \<Longrightarrow> - a \<in> \<real>"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_minus [symmetric])
-  done
+  by (auto simp add: Reals_def)
 
 lemma Reals_diff [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a - b \<in> \<real>"
   apply (auto simp add: Reals_def)
