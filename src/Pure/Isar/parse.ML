@@ -15,7 +15,7 @@ sig
   val position: 'a parser -> ('a * Position.T) parser
   val input: 'a parser -> Input.source parser
   val inner_syntax: 'a parser -> string parser
-  val command_: string parser
+  val command: string parser
   val keyword: string parser
   val short_ident: string parser
   val long_ident: string parser
@@ -32,7 +32,7 @@ sig
   val verbatim: string parser
   val cartouche: string parser
   val eof: string parser
-  val command: string -> string parser
+  val command_name: string -> string parser
   val keyword_with: (string -> bool) -> string parser
   val keyword_markup: bool * Markup.T -> string -> string parser
   val keyword_improper: string -> string parser
@@ -173,7 +173,7 @@ fun kind k =
   group (fn () => Token.str_of_kind k)
     (RESET_VALUE (Scan.one (Token.is_kind k) >> Token.content_of));
 
-val command_ = kind Token.Command;
+val command = kind Token.Command;
 val keyword = kind Token.Keyword;
 val short_ident = kind Token.Ident;
 val long_ident = kind Token.Long_Ident;
@@ -189,7 +189,7 @@ val verbatim = kind Token.Verbatim;
 val cartouche = kind Token.Cartouche;
 val eof = kind Token.EOF;
 
-fun command x =
+fun command_name x =
   group (fn () => Token.str_of_kind Token.Command ^ " " ^ quote x)
     (RESET_VALUE (Scan.one (fn tok => Token.is_command tok andalso Token.content_of tok = x)))
   >> Token.content_of;

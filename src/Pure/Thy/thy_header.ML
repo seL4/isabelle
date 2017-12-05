@@ -160,19 +160,19 @@ end;
 (* read header *)
 
 val heading =
-  (Parse.command chapterN ||
-    Parse.command sectionN ||
-    Parse.command subsectionN ||
-    Parse.command subsubsectionN ||
-    Parse.command paragraphN ||
-    Parse.command subparagraphN ||
-    Parse.command textN ||
-    Parse.command txtN ||
-    Parse.command text_rawN) --
+  (Parse.command_name chapterN ||
+    Parse.command_name sectionN ||
+    Parse.command_name subsectionN ||
+    Parse.command_name subsubsectionN ||
+    Parse.command_name paragraphN ||
+    Parse.command_name subparagraphN ||
+    Parse.command_name textN ||
+    Parse.command_name txtN ||
+    Parse.command_name text_rawN) --
   Parse.tags -- Parse.!!! Parse.document_source;
 
 val header =
-  (Scan.repeat heading -- Parse.command theoryN -- Parse.tags) |-- Parse.!!! args;
+  (Scan.repeat heading -- Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 
 fun token_source pos =
   Symbol.explode
