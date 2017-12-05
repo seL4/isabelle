@@ -38,6 +38,8 @@ sig
   val no_spec: spec
   val before_command_spec: spec
   val quasi_command_spec: spec
+  val document_heading_spec: spec
+  val document_body_spec: spec
   type keywords
   val minor_keywords: keywords -> Scan.lexicon
   val major_keywords: keywords -> Scan.lexicon
@@ -127,6 +129,8 @@ type spec = (string * string list) * string list;
 val no_spec: spec = (("", []), []);
 val before_command_spec: spec = ((before_command, []), []);
 val quasi_command_spec: spec = ((quasi_command, []), []);
+val document_heading_spec: spec = (("document_heading", []), ["document"]);
+val document_body_spec: spec = (("document_body", []), ["document"]);
 
 type entry =
  {pos: Position.T,

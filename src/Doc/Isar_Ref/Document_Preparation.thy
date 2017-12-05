@@ -473,6 +473,7 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}{ll}
+    \<open>document\<close> & document markup commands \\
     \<open>theory\<close> & theory begin/end \\
     \<open>proof\<close> & all proof commands \\
     \<open>ML\<close> & all commands involving ML code \\

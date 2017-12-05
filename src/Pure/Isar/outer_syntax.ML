@@ -183,10 +183,10 @@ val before_command =
   Scan.option (Parse.position (Parse.private >> K true || Parse.qualified >> K false));
 
 fun parse_command thy =
-  Scan.ahead (before_command |-- Parse.position Parse.command_) :|-- (fn (name, pos) =>
+  Scan.ahead (before_command |-- Parse.position Parse.command) :|-- (fn (name, pos) =>
     let
       val keywords = Thy_Header.get_keywords thy;
-      val command_tags = Parse.command_ -- Parse.tags;
+      val command_tags = Parse.command -- Parse.tags;
       val tr0 =
         Toplevel.empty
         |> Toplevel.name name

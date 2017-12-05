@@ -77,15 +77,15 @@ val bootstrap_keywords =
      ((importsN, \<^here>), Keyword.quasi_command_spec),
      ((keywordsN, \<^here>), Keyword.quasi_command_spec),
      ((abbrevsN, \<^here>), Keyword.quasi_command_spec),
-     ((chapterN, \<^here>), ((Keyword.document_heading, []), [])),
-     ((sectionN, \<^here>), ((Keyword.document_heading, []), [])),
-     ((subsectionN, \<^here>), ((Keyword.document_heading, []), [])),
-     ((subsubsectionN, \<^here>), ((Keyword.document_heading, []), [])),
-     ((paragraphN, \<^here>), ((Keyword.document_heading, []), [])),
-     ((subparagraphN, \<^here>), ((Keyword.document_heading, []), [])),
-     ((textN, \<^here>), ((Keyword.document_body, []), [])),
-     ((txtN, \<^here>), ((Keyword.document_body, []), [])),
-     ((text_rawN, \<^here>), ((Keyword.document_raw, []), [])),
+     ((chapterN, \<^here>), Keyword.document_heading_spec),
+     ((sectionN, \<^here>), Keyword.document_heading_spec),
+     ((subsectionN, \<^here>), Keyword.document_heading_spec),
+     ((subsubsectionN, \<^here>), Keyword.document_heading_spec),
+     ((paragraphN, \<^here>), Keyword.document_heading_spec),
+     ((subparagraphN, \<^here>), Keyword.document_heading_spec),
+     ((textN, \<^here>), Keyword.document_body_spec),
+     ((txtN, \<^here>), Keyword.document_body_spec),
+     ((text_rawN, \<^here>), ((Keyword.document_raw, []), ["document"])),
      ((theoryN, \<^here>), ((Keyword.thy_begin, []), ["theory"])),
      (("ML", \<^here>), ((Keyword.thy_decl, []), ["ML"]))];
 
@@ -160,19 +160,19 @@ end;
 (* read header *)
 
 val heading =
-  (Parse.command chapterN ||
-    Parse.command sectionN ||
-    Parse.command subsectionN ||
-    Parse.command subsubsectionN ||
-    Parse.command paragraphN ||
-    Parse.command subparagraphN ||
-    Parse.command textN ||
-    Parse.command txtN ||
-    Parse.command text_rawN) --
+  (Parse.command_name chapterN ||
+    Parse.command_name sectionN ||
+    Parse.command_name subsectionN ||
+    Parse.command_name subsubsectionN ||
+    Parse.command_name paragraphN ||
+    Parse.command_name subparagraphN ||
+    Parse.command_name textN ||
+    Parse.command_name txtN ||
+    Parse.command_name text_rawN) --
   Parse.tags -- Parse.!!! Parse.document_source;
 
 val header =
-  (Scan.repeat heading -- Parse.command theoryN -- Parse.tags) |-- Parse.!!! args;
+  (Scan.repeat heading -- Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 
 fun token_source pos =
   Symbol.explode

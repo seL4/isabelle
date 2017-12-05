@@ -314,7 +314,8 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 
 in
 
-fun present_span keywords span state state' (tag_stack, active_tag, newline, buffer, present_cont) =
+fun present_span keywords document_tags span state state'
+    (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (tok, (flag, 0)) =>
         Buffer.add (output_token state' tok)
@@ -332,7 +333,7 @@ fun present_span keywords span state state' (tag_stack, active_tag, newline, buf
       if is_some tag' then tag'
       else if cmd_name = "end" andalso not (Toplevel.is_toplevel state') then NONE
       else
-        (case Keyword.command_tags keywords cmd_name of
+        (case Keyword.command_tags keywords cmd_name @ document_tags of
           default_tag :: _ => SOME default_tag
         | [] =>
             if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
@@ -486,8 +487,10 @@ fun present_thy thy command_results toks =
 
     (* present commands *)
 
+    val document_tags = space_explode "," (Options.default_string @{system_option document_tags});
+
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span keywords span st st');
+      Toplevel.setmp_thread_position tr (present_span keywords document_tags span st st');
 
     fun present _ [] = I
       | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;
