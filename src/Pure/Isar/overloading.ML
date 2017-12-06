@@ -92,7 +92,7 @@ fun rewrite_liberal thy unchecks t =
   | SOME t' => if t aconv t' then NONE else SOME t');
 
 val show_reverted_improvements =
-  Attrib.setup_config_bool @{binding "show_reverted_improvements"} (K true);
+  Attrib.setup_config_bool \<^binding>\<open>show_reverted_improvements\<close> (K true);
 
 fun improve_term_uncheck ts ctxt =
   let

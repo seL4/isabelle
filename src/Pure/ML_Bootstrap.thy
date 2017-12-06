@@ -34,7 +34,7 @@ ML \<open>
     \<close>
 \<close>
 
-ML \<open>@{assert} (not (can ML \<open>open RunCall\<close>))\<close>
+ML \<open>\<^assert> (not (can ML \<open>open RunCall\<close>))\<close>
 
 
 subsection \<open>Switch to bootstrap environment\<close>

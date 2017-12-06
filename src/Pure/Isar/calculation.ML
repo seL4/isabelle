@@ -126,11 +126,11 @@ val symmetric =
 (* concrete syntax *)
 
 val _ = Theory.setup
- (Attrib.setup @{binding trans} (Attrib.add_del trans_add trans_del)
+ (Attrib.setup \<^binding>\<open>trans\<close> (Attrib.add_del trans_add trans_del)
     "declaration of transitivity rule" #>
-  Attrib.setup @{binding sym} (Attrib.add_del sym_add sym_del)
+  Attrib.setup \<^binding>\<open>sym\<close> (Attrib.add_del sym_add sym_del)
     "declaration of symmetry rule" #>
-  Attrib.setup @{binding symmetric} (Scan.succeed symmetric)
+  Attrib.setup \<^binding>\<open>symmetric\<close> (Scan.succeed symmetric)
     "resolution with symmetry rule" #>
   Global_Theory.add_thms
    [((Binding.empty, transitive_thm), [trans_add]),

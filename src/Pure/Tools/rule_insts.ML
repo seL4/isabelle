@@ -182,7 +182,7 @@ val named_insts =
     -- Parse.for_fixes;
 
 val _ = Theory.setup
-  (Attrib.setup @{binding "where"}
+  (Attrib.setup \<^binding>\<open>where\<close>
     (Scan.lift named_insts >> (fn args =>
       Thm.rule_attribute [] (fn context => uncurry (where_rule (Context.proof_of context)) args)))
     "named instantiation of theorem");
@@ -202,7 +202,7 @@ val insts =
 in
 
 val _ = Theory.setup
-  (Attrib.setup @{binding "of"}
+  (Attrib.setup \<^binding>\<open>of\<close>
     (Scan.lift (insts -- Parse.for_fixes) >> (fn args =>
       Thm.rule_attribute [] (fn context => uncurry (of_rule (Context.proof_of context)) args)))
     "positional instantiation of theorem");
@@ -320,22 +320,22 @@ fun method inst_tac tac =
 (*warning: rule_tac etc. refer to dynamic subgoal context!*)
 
 val _ = Theory.setup
- (Method.setup @{binding rule_tac} (method res_inst_tac resolve_tac)
+ (Method.setup \<^binding>\<open>rule_tac\<close> (method res_inst_tac resolve_tac)
     "apply rule (dynamic instantiation)" #>
-  Method.setup @{binding erule_tac} (method eres_inst_tac eresolve_tac)
+  Method.setup \<^binding>\<open>erule_tac\<close> (method eres_inst_tac eresolve_tac)
     "apply rule in elimination manner (dynamic instantiation)" #>
-  Method.setup @{binding drule_tac} (method dres_inst_tac dresolve_tac)
+  Method.setup \<^binding>\<open>drule_tac\<close> (method dres_inst_tac dresolve_tac)
     "apply rule in destruct manner (dynamic instantiation)" #>
-  Method.setup @{binding frule_tac} (method forw_inst_tac forward_tac)
+  Method.setup \<^binding>\<open>frule_tac\<close> (method forw_inst_tac forward_tac)
     "apply rule in forward manner (dynamic instantiation)" #>
-  Method.setup @{binding cut_tac} (method cut_inst_tac (K cut_rules_tac))
+  Method.setup \<^binding>\<open>cut_tac\<close> (method cut_inst_tac (K cut_rules_tac))
     "cut rule (dynamic instantiation)" #>
-  Method.setup @{binding subgoal_tac}
+  Method.setup \<^binding>\<open>subgoal_tac\<close>
     (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.embedded_inner_syntax -- Parse.for_fixes) >>
       (fn (quant, (props, fixes)) => fn ctxt =>
         SIMPLE_METHOD'' quant (EVERY' (map (fn prop => subgoal_tac ctxt prop fixes) props))))
     "insert subgoal (dynamic instantiation)" #>
-  Method.setup @{binding thin_tac}
+  Method.setup \<^binding>\<open>thin_tac\<close>
     (Args.goal_spec -- Scan.lift (Args.embedded_inner_syntax -- Parse.for_fixes) >>
       (fn (quant, (prop, fixes)) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop fixes)))
     "remove premise (dynamic instantiation)");

@@ -487,7 +487,7 @@ fun present_thy thy command_results toks =
 
     (* present commands *)
 
-    val document_tags = space_explode "," (Options.default_string @{system_option document_tags});
+    val document_tags = space_explode "," (Options.default_string \<^system_option>\<open>document_tags\<close>);
 
     fun present_command tr span st st' =
       Toplevel.setmp_thread_position tr (present_span keywords document_tags span st st');
@@ -511,23 +511,23 @@ end;
 (* options *)
 
 val _ = Theory.setup
- (add_option @{binding show_types} (Config.put show_types o boolean) #>
-  add_option @{binding show_sorts} (Config.put show_sorts o boolean) #>
-  add_option @{binding show_structs} (Config.put show_structs o boolean) #>
-  add_option @{binding show_question_marks} (Config.put show_question_marks o boolean) #>
-  add_option @{binding show_abbrevs} (Config.put show_abbrevs o boolean) #>
-  add_option @{binding names_long} (Config.put Name_Space.names_long o boolean) #>
-  add_option @{binding names_short} (Config.put Name_Space.names_short o boolean) #>
-  add_option @{binding names_unique} (Config.put Name_Space.names_unique o boolean) #>
-  add_option @{binding eta_contract} (Config.put Syntax_Trans.eta_contract o boolean) #>
-  add_option @{binding display} (Config.put display o boolean) #>
-  add_option @{binding break} (Config.put break o boolean) #>
-  add_option @{binding quotes} (Config.put quotes o boolean) #>
-  add_option @{binding mode} (add_wrapper o Print_Mode.with_modes o single) #>
-  add_option @{binding margin} (Config.put margin o integer) #>
-  add_option @{binding indent} (Config.put indent o integer) #>
-  add_option @{binding source} (Config.put source o boolean) #>
-  add_option @{binding goals_limit} (Config.put Goal_Display.goals_limit o integer));
+ (add_option \<^binding>\<open>show_types\<close> (Config.put show_types o boolean) #>
+  add_option \<^binding>\<open>show_sorts\<close> (Config.put show_sorts o boolean) #>
+  add_option \<^binding>\<open>show_structs\<close> (Config.put show_structs o boolean) #>
+  add_option \<^binding>\<open>show_question_marks\<close> (Config.put show_question_marks o boolean) #>
+  add_option \<^binding>\<open>show_abbrevs\<close> (Config.put show_abbrevs o boolean) #>
+  add_option \<^binding>\<open>names_long\<close> (Config.put Name_Space.names_long o boolean) #>
+  add_option \<^binding>\<open>names_short\<close> (Config.put Name_Space.names_short o boolean) #>
+  add_option \<^binding>\<open>names_unique\<close> (Config.put Name_Space.names_unique o boolean) #>
+  add_option \<^binding>\<open>eta_contract\<close> (Config.put Syntax_Trans.eta_contract o boolean) #>
+  add_option \<^binding>\<open>display\<close> (Config.put display o boolean) #>
+  add_option \<^binding>\<open>break\<close> (Config.put break o boolean) #>
+  add_option \<^binding>\<open>quotes\<close> (Config.put quotes o boolean) #>
+  add_option \<^binding>\<open>mode\<close> (add_wrapper o Print_Mode.with_modes o single) #>
+  add_option \<^binding>\<open>margin\<close> (Config.put margin o integer) #>
+  add_option \<^binding>\<open>indent\<close> (Config.put indent o integer) #>
+  add_option \<^binding>\<open>source\<close> (Config.put source o boolean) #>
+  add_option \<^binding>\<open>goals_limit\<close> (Config.put Goal_Display.goals_limit o integer));
 
 
 (* basic pretty printing *)
@@ -647,20 +647,20 @@ fun basic_entity name scan = basic_entities name (scan >> single);
 in
 
 val _ = Theory.setup
- (basic_entities_style @{binding thm} (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
-  basic_entity @{binding prop} (Term_Style.parse -- Args.prop) pretty_term_style #>
-  basic_entity @{binding term} (Term_Style.parse -- Args.term) pretty_term_style #>
-  basic_entity @{binding term_type} (Term_Style.parse -- Args.term) pretty_term_typ #>
-  basic_entity @{binding typeof} (Term_Style.parse -- Args.term) pretty_term_typeof #>
-  basic_entity @{binding const} (Args.const {proper = true, strict = false}) pretty_const #>
-  basic_entity @{binding abbrev} (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
-  basic_entity @{binding typ} Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity @{binding locale} (Scan.lift (Parse.position Args.name)) pretty_locale #>
-  basic_entity @{binding class} (Scan.lift Args.embedded_inner_syntax) pretty_class #>
-  basic_entity @{binding type} (Scan.lift Args.embedded) pretty_type #>
-  basic_entities @{binding prf} Attrib.thms (pretty_prf false) #>
-  basic_entities @{binding full_prf} Attrib.thms (pretty_prf true) #>
-  basic_entity @{binding theory} (Scan.lift (Parse.position Args.name)) pretty_theory);
+ (basic_entities_style \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
+  basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
+  basic_entity \<^binding>\<open>term\<close> (Term_Style.parse -- Args.term) pretty_term_style #>
+  basic_entity \<^binding>\<open>term_type\<close> (Term_Style.parse -- Args.term) pretty_term_typ #>
+  basic_entity \<^binding>\<open>typeof\<close> (Term_Style.parse -- Args.term) pretty_term_typeof #>
+  basic_entity \<^binding>\<open>const\<close> (Args.const {proper = true, strict = false}) pretty_const #>
+  basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
+  basic_entity \<^binding>\<open>typ\<close> Args.typ_abbrev Syntax.pretty_typ #>
+  basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.name)) pretty_locale #>
+  basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
+  basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded) pretty_type #>
+  basic_entities \<^binding>\<open>prf\<close> Attrib.thms (pretty_prf false) #>
+  basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
+  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.name)) pretty_theory);
 
 end;
 

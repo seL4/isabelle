@@ -229,19 +229,19 @@ fun ML_antiq check_file ctxt (name, pos) =
 in
 
 val _ = Theory.setup
- (Thy_Output.antiquotation @{binding path} (Scan.lift (Parse.position Parse.path))
+ (Thy_Output.antiquotation \<^binding>\<open>path\<close> (Scan.lift (Parse.position Parse.path))
     (document_antiq NONE o #context) #>
-  Thy_Output.antiquotation @{binding file} (Scan.lift (Parse.position Parse.path))
+  Thy_Output.antiquotation \<^binding>\<open>file\<close> (Scan.lift (Parse.position Parse.path))
     (document_antiq (SOME File.check_file) o #context) #>
-  Thy_Output.antiquotation @{binding dir} (Scan.lift (Parse.position Parse.path))
+  Thy_Output.antiquotation \<^binding>\<open>dir\<close> (Scan.lift (Parse.position Parse.path))
     (document_antiq (SOME File.check_dir) o #context) #>
-  ML_Antiquotation.value @{binding path}
+  ML_Antiquotation.value \<^binding>\<open>path\<close>
     (Args.context -- Scan.lift (Parse.position Parse.path)
       >> uncurry (ML_antiq NONE)) #>
-  ML_Antiquotation.value @{binding file}
+  ML_Antiquotation.value \<^binding>\<open>file\<close>
     (Args.context -- Scan.lift (Parse.position Parse.path)
       >> uncurry (ML_antiq (SOME File.check_file))) #>
-  ML_Antiquotation.value @{binding dir}
+  ML_Antiquotation.value \<^binding>\<open>dir\<close>
     (Args.context -- Scan.lift (Parse.position Parse.path)
       >> uncurry (ML_antiq (SOME File.check_dir))));
 

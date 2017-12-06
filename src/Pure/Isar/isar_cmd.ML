@@ -211,9 +211,9 @@ val diag_state = Diag_State.get;
 val diag_goal = Proof.goal o Toplevel.proof_of o diag_state;
 
 val _ = Theory.setup
-  (ML_Antiquotation.value (Binding.qualify true "Isar" @{binding state})
+  (ML_Antiquotation.value (Binding.qualify true "Isar" \<^binding>\<open>state\<close>)
     (Scan.succeed "Isar_Cmd.diag_state ML_context") #>
-   ML_Antiquotation.value (Binding.qualify true "Isar" @{binding goal})
+   ML_Antiquotation.value (Binding.qualify true "Isar" \<^binding>\<open>goal\<close>)
     (Scan.succeed "Isar_Cmd.diag_goal ML_context"));
 
 

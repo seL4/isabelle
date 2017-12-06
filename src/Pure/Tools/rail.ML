@@ -374,7 +374,7 @@ fun output_rules state rules =
   in Latex.environment "railoutput" (implode (map output_rule rules)) end;
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding rail} (Scan.lift Args.text_input)
+  (Thy_Output.antiquotation \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
     (fn {state, context, ...} => output_rules state o read context));
 
 end;

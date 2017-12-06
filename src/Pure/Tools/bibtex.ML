@@ -12,12 +12,12 @@ end;
 structure Bibtex: BIBTEX =
 struct
 
-val cite_macro = Attrib.setup_config_string @{binding cite_macro} (K "cite");
+val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close> (K "cite");
 
 val _ =
   Theory.setup
-   (Thy_Output.add_option @{binding cite_macro} (Config.put cite_macro) #>
-    Thy_Output.antiquotation @{binding cite}
+   (Thy_Output.add_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
+    Thy_Output.antiquotation \<^binding>\<open>cite\<close>
       (Scan.lift
         (Scan.option (Parse.verbatim || Parse.cartouche) --
          Parse.and_list1 (Parse.position Args.name)))

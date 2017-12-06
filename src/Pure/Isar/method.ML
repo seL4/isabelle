@@ -266,7 +266,7 @@ end;
 
 (* rule etc. -- single-step refinements *)
 
-val rule_trace = Attrib.setup_config_bool @{binding rule_trace} (fn _ => false);
+val rule_trace = Attrib.setup_config_bool \<^binding>\<open>rule_trace\<close> (fn _ => false);
 
 fun trace ctxt rules =
   if Config.get ctxt rule_trace andalso not (null rules) then
@@ -795,13 +795,13 @@ val text_closure =
 (* theory setup *)
 
 val _ = Theory.setup
- (setup @{binding fail} (Scan.succeed (K fail)) "force failure" #>
-  setup @{binding succeed} (Scan.succeed (K succeed)) "succeed" #>
-  setup @{binding sleep} (Scan.lift Parse.real >> (fn s => fn _ => fn _ => sleep (seconds s)))
+ (setup \<^binding>\<open>fail\<close> (Scan.succeed (K fail)) "force failure" #>
+  setup \<^binding>\<open>succeed\<close> (Scan.succeed (K succeed)) "succeed" #>
+  setup \<^binding>\<open>sleep\<close> (Scan.lift Parse.real >> (fn s => fn _ => fn _ => sleep (seconds s)))
     "succeed after delay (in seconds)" #>
-  setup @{binding "-"} (Scan.succeed (K (SIMPLE_METHOD all_tac)))
+  setup \<^binding>\<open>-\<close> (Scan.succeed (K (SIMPLE_METHOD all_tac)))
     "insert current facts, nothing else" #>
-  setup @{binding goal_cases} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn _ =>
+  setup \<^binding>\<open>goal_cases\<close> (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn _ =>
     CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
       (case drop (Thm.nprems_of st) names of
         [] => NONE
@@ -813,36 +813,36 @@ val _ = Theory.setup
       |> (fn SOME msg => Seq.single (Seq.Error msg)
            | NONE => goal_cases_tac (map Token.content_of names) (ctxt, st)))))
     "bind cases for goals" #>
-  setup @{binding insert} (Attrib.thms >> (K o insert))
+  setup \<^binding>\<open>insert\<close> (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts" #>
-  setup @{binding intro} (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))
+  setup \<^binding>\<open>intro\<close> (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))
     "repeatedly apply introduction rules" #>
-  setup @{binding elim} (Attrib.thms >> (fn ths => fn ctxt => elim ctxt ths))
+  setup \<^binding>\<open>elim\<close> (Attrib.thms >> (fn ths => fn ctxt => elim ctxt ths))
     "repeatedly apply elimination rules" #>
-  setup @{binding unfold} (Attrib.thms >> unfold_meth) "unfold definitions" #>
-  setup @{binding fold} (Attrib.thms >> fold_meth) "fold definitions" #>
-  setup @{binding atomize} (Scan.lift (Args.mode "full") >> atomize)
+  setup \<^binding>\<open>unfold\<close> (Attrib.thms >> unfold_meth) "unfold definitions" #>
+  setup \<^binding>\<open>fold\<close> (Attrib.thms >> fold_meth) "fold definitions" #>
+  setup \<^binding>\<open>atomize\<close> (Scan.lift (Args.mode "full") >> atomize)
     "present local premises as object-level statements" #>
-  setup @{binding rule} (Attrib.thms >> (fn ths => fn ctxt => some_rule ctxt ths))
+  setup \<^binding>\<open>rule\<close> (Attrib.thms >> (fn ths => fn ctxt => some_rule ctxt ths))
     "apply some intro/elim rule" #>
-  setup @{binding erule} (xrule_meth erule) "apply rule in elimination manner (improper)" #>
-  setup @{binding drule} (xrule_meth drule) "apply rule in destruct manner (improper)" #>
-  setup @{binding frule} (xrule_meth frule) "apply rule in forward manner (improper)" #>
-  setup @{binding this} (Scan.succeed this) "apply current facts as rules" #>
-  setup @{binding fact} (Attrib.thms >> fact) "composition by facts from context" #>
-  setup @{binding assumption} (Scan.succeed assumption)
+  setup \<^binding>\<open>erule\<close> (xrule_meth erule) "apply rule in elimination manner (improper)" #>
+  setup \<^binding>\<open>drule\<close> (xrule_meth drule) "apply rule in destruct manner (improper)" #>
+  setup \<^binding>\<open>frule\<close> (xrule_meth frule) "apply rule in forward manner (improper)" #>
+  setup \<^binding>\<open>this\<close> (Scan.succeed this) "apply current facts as rules" #>
+  setup \<^binding>\<open>fact\<close> (Attrib.thms >> fact) "composition by facts from context" #>
+  setup \<^binding>\<open>assumption\<close> (Scan.succeed assumption)
     "proof by assumption, preferring facts" #>
-  setup @{binding rename_tac} (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
+  setup \<^binding>\<open>rename_tac\<close> (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
     (fn (quant, xs) => K (SIMPLE_METHOD'' quant (rename_tac xs))))
     "rename parameters of goal" #>
-  setup @{binding rotate_tac} (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
+  setup \<^binding>\<open>rotate_tac\<close> (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
     (fn (quant, i) => K (SIMPLE_METHOD'' quant (rotate_tac i))))
       "rotate assumptions of goal" #>
-  setup @{binding tactic} (parse_tactic >> (K o METHOD))
+  setup \<^binding>\<open>tactic\<close> (parse_tactic >> (K o METHOD))
     "ML tactic as proof method" #>
-  setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => CONTEXT_TACTIC o tac))
+  setup \<^binding>\<open>raw_tactic\<close> (parse_tactic >> (fn tac => fn _ => CONTEXT_TACTIC o tac))
     "ML tactic as raw proof method" #>
-  setup @{binding use}
+  setup \<^binding>\<open>use\<close>
     (Attrib.thms -- (Scan.lift (Parse.$$$ "in") |-- text_closure) >>
       (fn (thms, text) => fn ctxt => fn _ => evaluate_runtime text ctxt thms))
     "indicate method facts and context for method expression");
