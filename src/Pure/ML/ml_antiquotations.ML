@@ -41,7 +41,7 @@ val _ = Theory.setup
 
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding system_option}
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
       let
         val markup =
           Options.default_markup (name, pos) handle ERROR msg =>
@@ -57,13 +57,13 @@ val _ = Theory.setup
       in ML_Syntax.print_string name end)) #>
 
   ML_Antiquotation.value @{binding theory}
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
       (Theory.check ctxt (name, pos);
        "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name))
     || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
   ML_Antiquotation.value @{binding theory_context}
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
       (Theory.check ctxt (name, pos);
        "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))) #>
@@ -85,7 +85,7 @@ val _ = Theory.setup
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   ML_Antiquotation.inline @{binding method}
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
       ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
 
 
@@ -93,7 +93,7 @@ val _ = Theory.setup
 
 val _ = Theory.setup
  (ML_Antiquotation.inline @{binding locale}
-   (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+   (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
       Locale.check (Proof_Context.theory_of ctxt) (name, pos)
       |> ML_Syntax.print_string)));
 
@@ -260,14 +260,14 @@ end;
 
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding keyword}
-    (Args.context -- Scan.lift (Parse.position (Parse.name || Parse.keyword_with (K true)))
+    (Args.context -- Scan.lift (Parse.position (Parse.embedded || Parse.keyword_with (K true)))
       >> (fn (ctxt, (name, pos)) =>
         if Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name then
           (Context_Position.report ctxt pos (Token.keyword_markup (true, Markup.keyword2) name);
            "Parse.$$$ " ^ ML_Syntax.print_string name)
         else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
   ML_Antiquotation.value @{binding command_keyword}
-    (Args.context -- Scan.lift (Parse.position Parse.name) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift (Parse.position Parse.embedded) >> (fn (ctxt, (name, pos)) =>
       (case Keyword.command_markup (Thy_Header.get_keywords' ctxt) name of
         SOME markup =>
          (Context_Position.reports ctxt [(pos, markup), (pos, Markup.keyword1)];

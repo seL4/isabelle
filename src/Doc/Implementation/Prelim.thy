@@ -142,9 +142,9 @@ text %mlantiq \<open>
   \end{matharray}
 
   @{rail \<open>
-  @@{ML_antiquotation theory} name?
+  @@{ML_antiquotation theory} embedded?
   ;
-  @@{ML_antiquotation theory_context} name
+  @@{ML_antiquotation theory_context} embedded
   \<close>}
 
   \<^descr> \<open>@{theory}\<close> refers to the background theory of the current context --- as
@@ -938,7 +938,7 @@ text %mlantiq \<open>
   \end{matharray}
 
   @{rail \<open>
-  @@{ML_antiquotation binding} name
+  @@{ML_antiquotation binding} embedded
   \<close>}
 
   \<^descr> \<open>@{binding name}\<close> produces a binding with base name \<open>name\<close> and the source

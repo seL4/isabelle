@@ -41,7 +41,7 @@ fun check ctxt =
 
 val _ = Theory.setup
   (ML_Antiquotation.inline @{binding plugin}
-    (Args.context -- Scan.lift (Parse.position Args.name)
+    (Args.context -- Scan.lift (Parse.position Args.embedded)
       >> (ML_Syntax.print_string o uncurry check)));
 
 

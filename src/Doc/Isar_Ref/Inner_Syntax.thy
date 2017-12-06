@@ -1307,7 +1307,7 @@ text \<open>
   (@@{ML_antiquotation class_syntax} |
    @@{ML_antiquotation type_syntax} |
    @@{ML_antiquotation const_syntax} |
-   @@{ML_antiquotation syntax_const}) name
+   @@{ML_antiquotation syntax_const}) embedded
   \<close>}
 
   \<^descr> @{command parse_translation} etc. declare syntax translation functions to

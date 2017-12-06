@@ -113,7 +113,7 @@ val the_simproc = Name_Space.get o get_simprocs;
 
 val _ = Theory.setup
   (ML_Antiquotation.value @{binding simproc}
-    (Args.context -- Scan.lift (Parse.position Args.name)
+    (Args.context -- Scan.lift (Parse.position Args.embedded)
       >> (fn (ctxt, name) =>
         "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (check_simproc ctxt name))));
 
