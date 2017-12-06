@@ -139,14 +139,8 @@ lemma B_mod_2': "X = 2 \<Longrightarrow> (w BIT True) mod X = 1 \<and> (w BIT Fa
 lemma bin_ex_rl: "\<exists>w b. w BIT b = bin"
   by (metis bin_rl_simp)
 
-lemma bin_exhaust:
-  assumes that: "\<And>x b. bin = x BIT b \<Longrightarrow> Q"
-  shows "Q"
-  apply (insert bin_ex_rl [of bin])
-  apply (erule exE)+
-  apply (rule that)
-  apply force
-  done
+lemma bin_exhaust: "(\<And>x b. bin = x BIT b \<Longrightarrow> Q) \<Longrightarrow> Q"
+by (metis bin_ex_rl)
 
 primrec bin_nth
   where
