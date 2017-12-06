@@ -109,7 +109,7 @@ val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
 fun mono_tac ctxt =
   K (Local_Defs.unfold0_tac ctxt [@{thm curry_def}])
   THEN' (TRY o REPEAT_ALL_NEW
-   (resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems partial_function_mono}))
+   (resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>partial_function_mono\<close>))
      ORELSE' split_cases_tac ctxt));
 
 
@@ -135,7 +135,7 @@ fun head_conv cv ct =
 (*** currying transformation ***)
 
 fun curry_const (A, B, C) =
-  Const (@{const_name Product_Type.curry},
+  Const (\<^const_name>\<open>Product_Type.curry\<close>,
     [HOLogic.mk_prodT (A, B) --> C, A, B] ---> C);
 
 fun mk_curry f =
@@ -310,10 +310,10 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 val add_partial_function = gen_add_partial_function Specification.check_multi_specs;
 val add_partial_function_cmd = gen_add_partial_function Specification.read_multi_specs;
 
-val mode = @{keyword "("} |-- Parse.name --| @{keyword ")"};
+val mode = \<^keyword>\<open>(\<close> |-- Parse.name --| \<^keyword>\<open>)\<close>;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword partial_function} "define partial function"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>partial_function\<close> "define partial function"
     ((mode -- (Parse.vars -- (Parse.where_ |-- Parse_Spec.simple_spec)))
       >> (fn (mode, (vars, spec)) => add_partial_function_cmd mode vars spec #> #2));
 

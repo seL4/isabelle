@@ -48,11 +48,11 @@ end
 structure Meson : MESON =
 struct
 
-val trace = Attrib.setup_config_bool @{binding meson_trace} (K false)
+val trace = Attrib.setup_config_bool \<^binding>\<open>meson_trace\<close> (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
-val max_clauses = Attrib.setup_config_int @{binding meson_max_clauses} (K 60)
+val max_clauses = Attrib.setup_config_int \<^binding>\<open>meson_max_clauses\<close> (K 60)
 
 (*No known example (on 1-5-2007) needs even thirty*)
 val iter_deepen_limit = 50;
@@ -100,7 +100,7 @@ fun first_order_resolve ctxt thA thB =
     try (fn () =>
       let val thy = Proof_Context.theory_of ctxt
           val tmA = Thm.concl_of thA
-          val Const(@{const_name Pure.imp},_) $ tmB $ _ = Thm.prop_of thB
+          val Const(\<^const_name>\<open>Pure.imp\<close>,_) $ tmB $ _ = Thm.prop_of thB
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
@@ -121,18 +121,18 @@ fun protect_bound_var_names (t $ u) =
 
 fun fix_bound_var_names old_t new_t =
   let
-    fun quant_of @{const_name All} = SOME true
-      | quant_of @{const_name Ball} = SOME true
-      | quant_of @{const_name Ex} = SOME false
-      | quant_of @{const_name Bex} = SOME false
+    fun quant_of \<^const_name>\<open>All\<close> = SOME true
+      | quant_of \<^const_name>\<open>Ball\<close> = SOME true
+      | quant_of \<^const_name>\<open>Ex\<close> = SOME false
+      | quant_of \<^const_name>\<open>Bex\<close> = SOME false
       | quant_of _ = NONE
     val flip_quant = Option.map not
     fun some_eq (SOME x) (SOME y) = x = y
       | some_eq _ _ = false
     fun add_names quant (Const (quant_s, _) $ Abs (s, _, t')) =
         add_names quant t' #> some_eq quant (quant_of quant_s) ? cons s
-      | add_names quant (@{const Not} $ t) = add_names (flip_quant quant) t
-      | add_names quant (@{const implies} $ t1 $ t2) =
+      | add_names quant (\<^const>\<open>Not\<close> $ t) = add_names (flip_quant quant) t
+      | add_names quant (\<^const>\<open>implies\<close> $ t1 $ t2) =
         add_names (flip_quant quant) t1 #> add_names quant t2
       | add_names quant (t1 $ t2) = fold (add_names quant) [t1, t2]
       | add_names _ _ = I
@@ -169,7 +169,7 @@ fun tryres (th, rls) =
    workaround is to instantiate "?P := (%c. ... c ... c ... c ...)" manually. *)
 fun quant_resolve_tac ctxt th i st =
   case (Thm.concl_of st, Thm.prop_of th) of
-    (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
+    (\<^const>\<open>Trueprop\<close> $ (Var _ $ (c as Free _)), \<^const>\<open>Trueprop\<close> $ _) =>
     let
       val cc = Thm.cterm_of ctxt c
       val ct = Thm.dest_arg (Thm.cprop_of th)
@@ -197,21 +197,21 @@ fun forward_res ctxt nf st =
 (*Are any of the logical connectives in "bs" present in the term?*)
 fun has_conns bs =
   let fun has (Const _) = false
-        | has (Const(@{const_name Trueprop},_) $ p) = has p
-        | has (Const(@{const_name Not},_) $ p) = has p
-        | has (Const(@{const_name HOL.disj},_) $ p $ q) = member (op =) bs @{const_name HOL.disj} orelse has p orelse has q
-        | has (Const(@{const_name HOL.conj},_) $ p $ q) = member (op =) bs @{const_name HOL.conj} orelse has p orelse has q
-        | has (Const(@{const_name All},_) $ Abs(_,_,p)) = member (op =) bs @{const_name All} orelse has p
-        | has (Const(@{const_name Ex},_) $ Abs(_,_,p)) = member (op =) bs @{const_name Ex} orelse has p
+        | has (Const(\<^const_name>\<open>Trueprop\<close>,_) $ p) = has p
+        | has (Const(\<^const_name>\<open>Not\<close>,_) $ p) = has p
+        | has (Const(\<^const_name>\<open>HOL.disj\<close>,_) $ p $ q) = member (op =) bs \<^const_name>\<open>HOL.disj\<close> orelse has p orelse has q
+        | has (Const(\<^const_name>\<open>HOL.conj\<close>,_) $ p $ q) = member (op =) bs \<^const_name>\<open>HOL.conj\<close> orelse has p orelse has q
+        | has (Const(\<^const_name>\<open>All\<close>,_) $ Abs(_,_,p)) = member (op =) bs \<^const_name>\<open>All\<close> orelse has p
+        | has (Const(\<^const_name>\<open>Ex\<close>,_) $ Abs(_,_,p)) = member (op =) bs \<^const_name>\<open>Ex\<close> orelse has p
         | has _ = false
   in  has  end;
 
 
 (**** Clause handling ****)
 
-fun literals (Const(@{const_name Trueprop},_) $ P) = literals P
-  | literals (Const(@{const_name HOL.disj},_) $ P $ Q) = literals P @ literals Q
-  | literals (Const(@{const_name Not},_) $ P) = [(false,P)]
+fun literals (Const(\<^const_name>\<open>Trueprop\<close>,_) $ P) = literals P
+  | literals (Const(\<^const_name>\<open>HOL.disj\<close>,_) $ P $ Q) = literals P @ literals Q
+  | literals (Const(\<^const_name>\<open>Not\<close>,_) $ P) = [(false,P)]
   | literals P = [(true,P)];
 
 (*number of literals in a term*)
@@ -220,23 +220,23 @@ val nliterals = length o literals;
 
 (*** Tautology Checking ***)
 
-fun signed_lits_aux (Const (@{const_name HOL.disj}, _) $ P $ Q) (poslits, neglits) =
+fun signed_lits_aux (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ P $ Q) (poslits, neglits) =
       signed_lits_aux Q (signed_lits_aux P (poslits, neglits))
-  | signed_lits_aux (Const(@{const_name Not},_) $ P) (poslits, neglits) = (poslits, P::neglits)
+  | signed_lits_aux (Const(\<^const_name>\<open>Not\<close>,_) $ P) (poslits, neglits) = (poslits, P::neglits)
   | signed_lits_aux P (poslits, neglits) = (P::poslits, neglits);
 
 fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (Thm.concl_of th)) ([],[]);
 
 (*Literals like X=X are tautologous*)
-fun taut_poslit (Const(@{const_name HOL.eq},_) $ t $ u) = t aconv u
-  | taut_poslit (Const(@{const_name True},_)) = true
+fun taut_poslit (Const(\<^const_name>\<open>HOL.eq\<close>,_) $ t $ u) = t aconv u
+  | taut_poslit (Const(\<^const_name>\<open>True\<close>,_)) = true
   | taut_poslit _ = false;
 
 fun is_taut th =
   let val (poslits,neglits) = signed_lits th
   in  exists taut_poslit poslits
       orelse
-      exists (member (op aconv) neglits) (@{term False} :: poslits)
+      exists (member (op aconv) neglits) (\<^term>\<open>False\<close> :: poslits)
   end
   handle TERM _ => false;       (*probably dest_Trueprop on a weird theorem*)
 
@@ -256,18 +256,18 @@ fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
        case HOLogic.dest_Trueprop (Thm.concl_of th) of
-          (Const (@{const_name HOL.disj}, _) $ (Const (@{const_name HOL.disj}, _) $ _ $ _) $ _) =>
+          (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _) $ _) =>
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
-        | (Const (@{const_name HOL.disj}, _) $ (Const(@{const_name Not},_) $ (Const(@{const_name HOL.eq},_) $ t $ u)) $ _) =>
+        | (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ (Const(\<^const_name>\<open>Not\<close>,_) $ (Const(\<^const_name>\<open>HOL.eq\<close>,_) $ t $ u)) $ _) =>
             if eliminable(t,u)
             then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
             else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
-        | (Const (@{const_name HOL.disj}, _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
+        | (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
         | _ => (*not a disjunction*) th;
 
-fun notequal_lits_count (Const (@{const_name HOL.disj}, _) $ P $ Q) =
+fun notequal_lits_count (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ P $ Q) =
       notequal_lits_count P + notequal_lits_count Q
-  | notequal_lits_count (Const(@{const_name Not},_) $ (Const(@{const_name HOL.eq},_) $ _ $ _)) = 1
+  | notequal_lits_count (Const(\<^const_name>\<open>Not\<close>,_) $ (Const(\<^const_name>\<open>HOL.eq\<close>,_) $ _ $ _)) = 1
   | notequal_lits_count _ = 0;
 
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
@@ -312,26 +312,26 @@ fun estimated_num_clauses bound t =
   fun prod x y = if x < bound andalso y < bound then x*y else bound
   
   (*Estimate the number of clauses in order to detect infeasible theorems*)
-  fun signed_nclauses b (Const(@{const_name Trueprop},_) $ t) = signed_nclauses b t
-    | signed_nclauses b (Const(@{const_name Not},_) $ t) = signed_nclauses (not b) t
-    | signed_nclauses b (Const(@{const_name HOL.conj},_) $ t $ u) =
+  fun signed_nclauses b (Const(\<^const_name>\<open>Trueprop\<close>,_) $ t) = signed_nclauses b t
+    | signed_nclauses b (Const(\<^const_name>\<open>Not\<close>,_) $ t) = signed_nclauses (not b) t
+    | signed_nclauses b (Const(\<^const_name>\<open>HOL.conj\<close>,_) $ t $ u) =
         if b then sum (signed_nclauses b t) (signed_nclauses b u)
              else prod (signed_nclauses b t) (signed_nclauses b u)
-    | signed_nclauses b (Const(@{const_name HOL.disj},_) $ t $ u) =
+    | signed_nclauses b (Const(\<^const_name>\<open>HOL.disj\<close>,_) $ t $ u) =
         if b then prod (signed_nclauses b t) (signed_nclauses b u)
              else sum (signed_nclauses b t) (signed_nclauses b u)
-    | signed_nclauses b (Const(@{const_name HOL.implies},_) $ t $ u) =
+    | signed_nclauses b (Const(\<^const_name>\<open>HOL.implies\<close>,_) $ t $ u) =
         if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
              else sum (signed_nclauses (not b) t) (signed_nclauses b u)
-    | signed_nclauses b (Const(@{const_name HOL.eq}, Type ("fun", [T, _])) $ t $ u) =
+    | signed_nclauses b (Const(\<^const_name>\<open>HOL.eq\<close>, Type ("fun", [T, _])) $ t $ u) =
         if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
             if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
                           (prod (signed_nclauses (not b) u) (signed_nclauses b t))
                  else sum (prod (signed_nclauses b t) (signed_nclauses b u))
                           (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
         else 1
-    | signed_nclauses b (Const(@{const_name Ex}, _) $ Abs (_,_,t)) = signed_nclauses b t
-    | signed_nclauses b (Const(@{const_name All},_) $ Abs (_,_,t)) = signed_nclauses b t
+    | signed_nclauses b (Const(\<^const_name>\<open>Ex\<close>, _) $ Abs (_,_,t)) = signed_nclauses b t
+    | signed_nclauses b (Const(\<^const_name>\<open>All\<close>,_) $ Abs (_,_,t)) = signed_nclauses b t
     | signed_nclauses _ _ = 1; (* literal *)
  in signed_nclauses true t end
 
@@ -346,7 +346,7 @@ local
   val spec_var =
     Thm.dest_arg (Thm.dest_arg (#2 (Thm.dest_implies (Thm.cprop_of spec))))
     |> Thm.term_of |> dest_Var;
-  fun name_of (Const (@{const_name All}, _) $ Abs(x, _, _)) = x | name_of _ = Name.uu;
+  fun name_of (Const (\<^const_name>\<open>All\<close>, _) $ Abs(x, _, _)) = x | name_of _ = Name.uu;
 in  
   fun freeze_spec th ctxt =
     let
@@ -370,18 +370,18 @@ fun cnf old_skolem_ths ctxt (th, ths) =
   let val ctxt_ref = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (Thm.prop_of th)) then ths (*meta-level: ignore*)
-        else if not (has_conns [@{const_name All}, @{const_name Ex}, @{const_name HOL.conj}] (Thm.prop_of th))
+        else if not (has_conns [\<^const_name>\<open>All\<close>, \<^const_name>\<open>Ex\<close>, \<^const_name>\<open>HOL.conj\<close>] (Thm.prop_of th))
         then nodups ctxt th :: ths (*no work to do, terminate*)
         else case head_of (HOLogic.dest_Trueprop (Thm.concl_of th)) of
-            Const (@{const_name HOL.conj}, _) => (*conjunction*)
+            Const (\<^const_name>\<open>HOL.conj\<close>, _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
-          | Const (@{const_name All}, _) => (*universal quantifier*)
+          | Const (\<^const_name>\<open>All\<close>, _) => (*universal quantifier*)
                 let val (th', ctxt') = freeze_spec th (! ctxt_ref)
                 in  ctxt_ref := ctxt'; cnf_aux (th', ths) end
-          | Const (@{const_name Ex}, _) =>
+          | Const (\<^const_name>\<open>Ex\<close>, _) =>
               (*existential quantifier: Insert Skolem functions*)
               cnf_aux (apply_skolem_theorem (! ctxt_ref) (th, old_skolem_ths), ths)
-          | Const (@{const_name HOL.disj}, _) =>
+          | Const (\<^const_name>\<open>HOL.disj\<close>, _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
               (*There is one assumption, which gets bound to prem and then normalized via
@@ -409,8 +409,8 @@ fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
 
 (**** Generation of contrapositives ****)
 
-fun is_left (Const (@{const_name Trueprop}, _) $
-               (Const (@{const_name HOL.disj}, _) $ (Const (@{const_name HOL.disj}, _) $ _ $ _) $ _)) = true
+fun is_left (Const (\<^const_name>\<open>Trueprop\<close>, _) $
+               (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _) $ _)) = true
   | is_left _ = false;
 
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
@@ -431,8 +431,8 @@ fun make_goal th =   (*Must check for negative literal first!*)
 
 fun rigid t = not (is_Var (head_of t));
 
-fun ok4horn (Const (@{const_name Trueprop},_) $ (Const (@{const_name HOL.disj}, _) $ t $ _)) = rigid t
-  | ok4horn (Const (@{const_name Trueprop},_) $ t) = rigid t
+fun ok4horn (Const (\<^const_name>\<open>Trueprop\<close>,_) $ (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ t $ _)) = rigid t
+  | ok4horn (Const (\<^const_name>\<open>Trueprop\<close>,_) $ t) = rigid t
   | ok4horn _ = false;
 
 (*Create a meta-level Horn clause*)
@@ -466,7 +466,7 @@ val neg_clauses = filter is_negative;
 
 (***** MESON PROOF PROCEDURE *****)
 
-fun rhyps (Const(@{const_name Pure.imp},_) $ (Const(@{const_name Trueprop},_) $ A) $ phi,
+fun rhyps (Const(\<^const_name>\<open>Pure.imp\<close>,_) $ (Const(\<^const_name>\<open>Trueprop\<close>,_) $ A) $ phi,
            As) = rhyps(phi, A::As)
   | rhyps (_, As) = As;
 
@@ -511,8 +511,8 @@ fun size_of_subgoals st = fold_rev addconcl (Thm.prems_of st) 0;
 val nnf_rls = [imp_to_disjD, iff_to_disjD, not_conjD, not_disjD,
                not_impD, not_iffD, not_allD, not_exD, not_notD];
 
-fun ok4nnf (Const (@{const_name Trueprop},_) $ (Const (@{const_name Not}, _) $ t)) = rigid t
-  | ok4nnf (Const (@{const_name Trueprop},_) $ t) = rigid t
+fun ok4nnf (Const (\<^const_name>\<open>Trueprop\<close>,_) $ (Const (\<^const_name>\<open>Not\<close>, _) $ t)) = rigid t
+  | ok4nnf (Const (\<^const_name>\<open>Trueprop\<close>,_) $ t) = rigid t
   | ok4nnf _ = false;
 
 fun make_nnf1 ctxt th =
@@ -537,13 +537,12 @@ val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 val nnf_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps nnf_extra_simps
-    addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq},
-                 @{simproc let_simp}])
+    addsimprocs [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>, \<^simproc>\<open>neq\<close>, \<^simproc>\<open>let_simp\<close>])
 
 val presimplified_consts =
-  [@{const_name simp_implies}, @{const_name False}, @{const_name True},
-   @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}, @{const_name If},
-   @{const_name Let}]
+  [\<^const_name>\<open>simp_implies\<close>, \<^const_name>\<open>False\<close>, \<^const_name>\<open>True\<close>,
+   \<^const_name>\<open>Ex1\<close>, \<^const_name>\<open>Ball\<close>, \<^const_name>\<open>Bex\<close>, \<^const_name>\<open>If\<close>,
+   \<^const_name>\<open>Let\<close>]
 
 fun presimplify ctxt =
   rewrite_rule ctxt (map safe_mk_meta_eq nnf_simps)
@@ -563,7 +562,7 @@ fun choice_theorems thy =
 fun skolemize_with_choice_theorems ctxt choice_ths =
   let
     fun aux th =
-      if not (has_conns [@{const_name Ex}] (Thm.prop_of th)) then
+      if not (has_conns [\<^const_name>\<open>Ex\<close>] (Thm.prop_of th)) then
         th
       else
         tryres (th, choice_ths @
@@ -604,7 +603,7 @@ fun get_F_pattern T t u =
           end
       end
   in
-    if T = @{typ bool} then
+    if T = \<^typ>\<open>bool\<close> then
       NONE
     else case pat t u of
       (SOME T, p as _ $ _) => SOME (Abs (Name.uu, T, p))
@@ -617,8 +616,8 @@ val ext_cong_neq = @{thm ext_cong_neq}
 (* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
 fun cong_extensionalize_thm ctxt th =
   (case Thm.concl_of th of
-    @{const Trueprop} $ (@{const Not}
-        $ (Const (@{const_name HOL.eq}, Type (_, [T, _]))
+    \<^const>\<open>Trueprop\<close> $ (\<^const>\<open>Not\<close>
+        $ (Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _]))
            $ (t as _ $ _) $ (u as _ $ _))) =>
     (case get_F_pattern T t u of
       SOME p => th RS infer_instantiate ctxt [(("F", 0), Thm.cterm_of ctxt p)] ext_cong_neq
@@ -630,7 +629,7 @@ fun cong_extensionalize_thm ctxt th =
    proof in "Tarski" that relies on the current behavior. *)
 fun abs_extensionalize_conv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name HOL.eq}, _) $ _ $ Abs _ =>
+    Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ Abs _ =>
     ct |> (Conv.rewr_conv @{thm fun_eq_iff [THEN eq_reflection]}
            then_conv abs_extensionalize_conv ctxt)
   | _ $ _ => Conv.comb_conv (abs_extensionalize_conv ctxt) ct

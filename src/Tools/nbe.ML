@@ -35,7 +35,7 @@ struct
 
 (* generic non-sense *)
 
-val trace = Attrib.setup_config_bool @{binding "nbe_trace"} (K false);
+val trace = Attrib.setup_config_bool \<^binding>\<open>nbe_trace\<close> (K false);
 fun traced ctxt f x = if Config.get ctxt trace then (tracing (f x); x) else x;
 
 
@@ -80,7 +80,7 @@ local
 val get_triv_classes = map fst o Triv_Class_Data.get;
 
 val (_, triv_of_class) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding triv_of_class}, fn (thy, T, class) =>
+  (Thm.add_oracle (\<^binding>\<open>triv_of_class\<close>, fn (thy, T, class) =>
     Thm.global_cterm_of thy (Logic.mk_of_class (T, class)))));
 
 in
@@ -594,7 +594,7 @@ fun mk_equals ctxt lhs raw_rhs =
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding normalization_by_evaluation},
+  (Thm.add_oracle (\<^binding>\<open>normalization_by_evaluation\<close>,
     fn (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct) =>
       mk_equals ctxt ct (normalize_term nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
 

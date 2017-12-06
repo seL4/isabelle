@@ -6,6 +6,7 @@ LaTeX presentation elements -- based on outer lexical syntax.
 
 signature LATEX =
 sig
+  val output_name: string -> string
   val output_ascii: string -> string
   val latex_control: Symbol.symbol
   val is_latex_control: Symbol.symbol -> bool
@@ -13,6 +14,7 @@ sig
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
+  val output_syms: string -> string
   val output_token: Token.T -> string
   val begin_delim: string -> string
   val end_delim: string -> string
@@ -29,6 +31,27 @@ end;
 
 structure Latex: LATEX =
 struct
+
+(* output name for LaTeX macros *)
+
+val output_name =
+  translate_string
+    (fn "_" => "UNDERSCORE"
+      | "'" => "PRIME"
+      | "0" => "ZERO"
+      | "1" => "ONE"
+      | "2" => "TWO"
+      | "3" => "THREE"
+      | "4" => "FOUR"
+      | "5" => "FIVE"
+      | "6" => "SIX"
+      | "7" => "SEVEN"
+      | "8" => "EIGHT"
+      | "9" => "NINE"
+      | s => s);
+
+fun enclose_name bg en = enclose bg en o output_name;
+
 
 (* output verbatim ASCII *)
 
@@ -101,8 +124,8 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   (case Symbol.decode sym of
     Symbol.Char s => output_chr s
   | Symbol.UTF8 s => s
-  | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
-  | Symbol.Control s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
+  | Symbol.Sym s => if known_sym s then enclose_name "{\\isasym" "}" s else output_chrs sym
+  | Symbol.Control s => if known_ctrl s then enclose_name "\\isactrl" " " s else output_chrs sym
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
@@ -173,16 +196,16 @@ fun output_token tok =
 
 (* tags *)
 
-val begin_delim = enclose "%\n\\isadelim" "\n";
-val end_delim = enclose "%\n\\endisadelim" "\n";
-val begin_tag = enclose "%\n\\isatag" "\n";
-fun end_tag tg = enclose "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" tg;
+val begin_delim = enclose_name "%\n\\isadelim" "\n";
+val end_delim = enclose_name "%\n\\endisadelim" "\n";
+val begin_tag = enclose_name "%\n\\isatag" "\n";
+fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" tg;
 
 
 (* theory presentation *)
 
 fun environment name =
-  enclose ("%\n\\begin{" ^ name ^ "}%\n") ("%\n\\end{" ^ name ^ "}");
+  enclose ("%\n\\begin{" ^ output_name name ^ "}%\n") ("%\n\\end{" ^ output_name name ^ "}");
 
 val tex_trailer =
   "%%% Local Variables:\n\

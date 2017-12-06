@@ -22,9 +22,9 @@ fun mk_measures domT mfuns =
   let
     val relT = HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT))
     val mlexT = (domT --> HOLogic.natT) --> relT --> relT
-    fun mk_ms [] = Const (@{const_abbrev Set.empty}, relT)
+    fun mk_ms [] = Const (\<^const_abbrev>\<open>Set.empty\<close>, relT)
       | mk_ms (f::fs) =
-        Const (@{const_name mlex_prod}, mlexT) $ f $ mk_ms fs
+        Const (\<^const_name>\<open>mlex_prod\<close>, mlexT) $ f $ mk_ms fs
   in
     mk_ms mfuns
   end
@@ -70,13 +70,13 @@ fun mk_cell ctxt solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
     val goals = Thm.cterm_of ctxt o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
-    (case try_proof ctxt (goals @{const_name Orderings.less}) solve_tac of
+    (case try_proof ctxt (goals \<^const_name>\<open>Orderings.less\<close>) solve_tac of
       Solved thm => Less thm
     | Stuck thm =>
-        (case try_proof ctxt (goals @{const_name Orderings.less_eq}) solve_tac of
+        (case try_proof ctxt (goals \<^const_name>\<open>Orderings.less_eq\<close>) solve_tac of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
-            if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}] then False thm2
+            if Thm.prems_of thm2 = [HOLogic.Trueprop $ \<^term>\<open>False\<close>] then False thm2
             else None (thm2, thm)
         | _ => raise Match) (* FIXME *)
     | _ => raise Match)

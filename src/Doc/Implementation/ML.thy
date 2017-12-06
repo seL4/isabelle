@@ -695,7 +695,7 @@ text %mlantiq \<open>
   @{rail \<open>
   @@{ML_antiquotation make_string}
   ;
-  @@{ML_antiquotation print} @{syntax name}?
+  @@{ML_antiquotation print} embedded?
   \<close>}
 
   \<^descr> \<open>@{make_string}\<close> inlines a function to print arbitrary values similar to

@@ -100,7 +100,7 @@ fun get_decls fps T n Ts ctxt =
              (http://church.cims.nyu.edu/bugzilla3/show_bug.cgi?id=597). It should be removed once
              the bug is fixed. *)
           if forall (forall (forall (is_homogenously_nested_co_recursive))) ctrXs_Tsss andalso
-             forall (forall (forall (curry (op <>) @{typ bool})))
+             forall (forall (forall (curry (op <>) \<^typ>\<open>bool\<close>)))
                (map (map (map substAs)) ctrXs_Tsss) then
             get_ctr_sugar_decl ctr_sugar T Ts ctxt |>> map (pair fp)
           else
@@ -127,9 +127,9 @@ fun add_decls fps T (declss, ctxt) =
 
     fun add (TFree _) = I
       | add (TVar _) = I
-      | add (T as Type (@{type_name fun}, _)) =
+      | add (T as Type (\<^type_name>\<open>fun\<close>, _)) =
           fold add (Term.body_type T :: Term.binder_types T)
-      | add @{typ bool} = I
+      | add \<^typ>\<open>bool\<close> = I
       | add (T as Type (n, Ts)) = (fn (dss, ctxt1) =>
           if declared T declss orelse declared' T dss then
             (dss, ctxt1)

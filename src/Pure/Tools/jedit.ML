@@ -75,7 +75,7 @@ fun check_action (name, pos) =
 
 val _ =
   Theory.setup
-    (Thy_Output.antiquotation @{binding action} (Scan.lift (Parse.position Parse.embedded))
+    (Thy_Output.antiquotation \<^binding>\<open>action\<close> (Scan.lift (Parse.position Parse.embedded))
       (fn {context = ctxt, ...} => fn (name, pos) =>
        (if Context_Position.is_reported ctxt pos then ignore (check_action (name, pos)) else ();
         Thy_Output.verbatim_text ctxt name)));

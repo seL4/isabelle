@@ -489,38 +489,38 @@ end;
 (* theory setup *)
 
 val _ = Theory.setup
- (setup @{binding tagged} (Scan.lift (Args.name -- Args.name) >> Thm.tag) "tagged theorem" #>
-  setup @{binding untagged} (Scan.lift Args.name >> Thm.untag) "untagged theorem" #>
-  setup @{binding kind} (Scan.lift Args.name >> Thm.kind) "theorem kind" #>
-  setup @{binding THEN}
+ (setup \<^binding>\<open>tagged\<close> (Scan.lift (Args.name -- Args.name) >> Thm.tag) "tagged theorem" #>
+  setup \<^binding>\<open>untagged\<close> (Scan.lift Args.name >> Thm.untag) "untagged theorem" #>
+  setup \<^binding>\<open>kind\<close> (Scan.lift Args.name >> Thm.kind) "theorem kind" #>
+  setup \<^binding>\<open>THEN\<close>
     (Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- thm
       >> (fn (i, B) => Thm.rule_attribute [B] (fn _ => fn A => A RSN (i, B))))
     "resolution with rule" #>
-  setup @{binding OF}
+  setup \<^binding>\<open>OF\<close>
     (thms >> (fn Bs => Thm.rule_attribute Bs (fn _ => fn A => A OF Bs)))
     "rule resolved with facts" #>
-  setup @{binding rename_abs}
+  setup \<^binding>\<open>rename_abs\<close>
     (Scan.lift (Scan.repeat (Args.maybe Args.name)) >> (fn vs =>
       Thm.rule_attribute [] (K (Drule.rename_bvars' vs))))
     "rename bound variables in abstractions" #>
-  setup @{binding unfolded}
+  setup \<^binding>\<open>unfolded\<close>
     (thms >> (fn ths =>
       Thm.rule_attribute ths (fn context => Local_Defs.unfold (Context.proof_of context) ths)))
     "unfolded definitions" #>
-  setup @{binding folded}
+  setup \<^binding>\<open>folded\<close>
     (thms >> (fn ths =>
       Thm.rule_attribute ths (fn context => Local_Defs.fold (Context.proof_of context) ths)))
     "folded definitions" #>
-  setup @{binding consumes}
+  setup \<^binding>\<open>consumes\<close>
     (Scan.lift (Scan.optional Parse.int 1) >> Rule_Cases.consumes)
     "number of consumed facts" #>
-  setup @{binding constraints}
+  setup \<^binding>\<open>constraints\<close>
     (Scan.lift Parse.nat >> Rule_Cases.constraints)
     "number of equality constraints" #>
-  setup @{binding cases_open}
+  setup \<^binding>\<open>cases_open\<close>
     (Scan.succeed Rule_Cases.cases_open)
     "rule with open parameters" #>
-  setup @{binding case_names}
+  setup \<^binding>\<open>case_names\<close>
     (Scan.lift (Scan.repeat (Args.name --
       Scan.optional (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]") []))
       >> (fn cs =>
@@ -528,37 +528,37 @@ val _ = Theory.setup
           (map #1 cs)
           (map (map (the_default Rule_Cases.case_hypsN) o #2) cs)))
     "named rule cases" #>
-  setup @{binding case_conclusion}
+  setup \<^binding>\<open>case_conclusion\<close>
     (Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion)
     "named conclusion of rule cases" #>
-  setup @{binding params}
+  setup \<^binding>\<open>params\<close>
     (Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
     "named rule parameters" #>
-  setup @{binding rule_format}
+  setup \<^binding>\<open>rule_format\<close>
     (Scan.lift (Args.mode "no_asm")
       >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format))
     "result put into canonical rule format" #>
-  setup @{binding elim_format}
+  setup \<^binding>\<open>elim_format\<close>
     (Scan.succeed (Thm.rule_attribute [] (K Tactic.make_elim)))
     "destruct rule turned into elimination rule format" #>
-  setup @{binding no_vars}
+  setup \<^binding>\<open>no_vars\<close>
     (Scan.succeed (Thm.rule_attribute [] (fn context => fn th =>
       let
         val ctxt = Variable.set_body false (Context.proof_of context);
         val ((_, [th']), _) = Variable.import true [th] ctxt;
       in th' end)))
     "imported schematic variables" #>
-  setup @{binding atomize}
+  setup \<^binding>\<open>atomize\<close>
     (Scan.succeed Object_Logic.declare_atomize) "declaration of atomize rule" #>
-  setup @{binding rulify}
+  setup \<^binding>\<open>rulify\<close>
     (Scan.succeed Object_Logic.declare_rulify) "declaration of rulify rule" #>
-  setup @{binding rotated}
+  setup \<^binding>\<open>rotated\<close>
     (Scan.lift (Scan.optional Parse.int 1
       >> (fn n => Thm.rule_attribute [] (fn _ => rotate_prems n)))) "rotated theorem premises" #>
-  setup @{binding defn}
+  setup \<^binding>\<open>defn\<close>
     (add_del Local_Defs.defn_add Local_Defs.defn_del)
     "declaration of definitional transformations" #>
-  setup @{binding abs_def}
+  setup \<^binding>\<open>abs_def\<close>
     (Scan.succeed (Thm.rule_attribute [] (Local_Defs.abs_def_rule o Context.proof_of)))
     "abstract over free variables of definitional theorem" #>
 

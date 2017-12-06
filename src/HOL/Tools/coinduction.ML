@@ -82,7 +82,7 @@ fun coinduction_context_tactic raw_vars opt_raw_thms prems =
               names Ts raw_eqs;
             val phi = eqs @ map (HOLogic.dest_Trueprop o Thm.prop_of) prems
               |> try (Library.foldr1 HOLogic.mk_conj)
-              |> the_default @{term True}
+              |> the_default \<^term>\<open>True\<close>
               |> Ctr_Sugar_Util.list_exists_free vars
               |> Term.map_abs_vars (Variable.revert_fixed ctxt)
               |> fold_rev Term.absfree (names ~~ Ts)
@@ -159,7 +159,7 @@ in
 
 val _ =
   Theory.setup
-    (Method.setup @{binding coinduction}
+    (Method.setup \<^binding>\<open>coinduction\<close>
       (arbitrary -- Scan.option coinduct_rules >>
         (fn (arbitrary, opt_rules) => fn _ => fn facts =>
           Seq.DETERM (coinduction_context_tactic arbitrary opt_rules facts 1)))

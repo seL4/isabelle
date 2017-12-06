@@ -19,7 +19,7 @@ struct
 val named_theorems =
   Context.>>> (Context.map_theory_result
    (Named_Target.theory_init #>
-    Named_Theorems.declare @{binding atomize_elim} "atomize_elim rewrite rule" ##>
+    Named_Theorems.declare \<^binding>\<open>atomize_elim\<close> "atomize_elim rewrite rule" ##>
     Local_Theory.exit_global));
 
 
@@ -129,7 +129,7 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
 
 val _ =
   Theory.setup
-    (Method.setup @{binding atomize_elim} (Scan.succeed (SIMPLE_METHOD' o atomize_elim_tac))
+    (Method.setup \<^binding>\<open>atomize_elim\<close> (Scan.succeed (SIMPLE_METHOD' o atomize_elim_tac))
       "convert obtains statement to atomic object logic goal")
 
 end

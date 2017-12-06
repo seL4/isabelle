@@ -18,7 +18,7 @@ local
 fun mk_definitional [] arg = arg
   | mk_definitional ((thname, cname, covld) :: cos) (thy, thm) =
       (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (@{const_name Ex}, _) $ P =>
+        Const (\<^const_name>\<open>Ex\<close>, _) $ P =>
           let
             val ctype = domain_type (type_of P)
             val cname_full = Sign.intern_const thy cname
@@ -90,7 +90,7 @@ fun process_spec cos alt_props thy =
     fun proc_single prop =
       let
         val frees = Misc_Legacy.term_frees prop
-        val _ = forall (fn v => Sign.of_sort thy (type_of v, @{sort type})) frees
+        val _ = forall (fn v => Sign.of_sort thy (type_of v, \<^sort>\<open>type\<close>)) frees
           orelse error "Specificaton: Only free variables of sort 'type' allowed"
         val prop_closed = close_form prop
       in (prop_closed, frees) end
@@ -194,12 +194,12 @@ fun process_spec cos alt_props thy =
 
 (* outer syntax *)
 
-val opt_name = Scan.optional (Parse.name --| @{keyword ":"}) ""
+val opt_name = Scan.optional (Parse.name --| \<^keyword>\<open>:\<close>) ""
 val opt_overloaded = Parse.opt_keyword "overloaded"
 
 val _ =
-  Outer_Syntax.command @{command_keyword specification} "define constants by specification"
-    (@{keyword "("} |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| @{keyword ")"} --
+  Outer_Syntax.command \<^command_keyword>\<open>specification\<close> "define constants by specification"
+    (\<^keyword>\<open>(\<close> |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| \<^keyword>\<open>)\<close> --
       Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
       >> (fn (cos, alt_props) => Toplevel.theory_to_proof (process_spec cos alt_props)))
 

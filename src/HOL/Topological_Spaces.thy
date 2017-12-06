@@ -688,7 +688,7 @@ lemma (in topological_space) tendsto_eq_rhs: "(f \<longlongrightarrow> x) F \<Lo
 
 named_theorems tendsto_intros "introduction rules for tendsto"
 setup \<open>
-  Global_Theory.add_thms_dynamic (@{binding tendsto_eq_intros},
+  Global_Theory.add_thms_dynamic (\<^binding>\<open>tendsto_eq_intros\<close>,
     fn context =>
       Named_Theorems.get (Context.proof_of context) @{named_theorems tendsto_intros}
       |> map_filter (try (fn thm => @{thm tendsto_eq_rhs} OF [thm])))

@@ -29,7 +29,7 @@ struct
 
 (** misc tools **)
 
-val (trace, trace_setup) = Attrib.config_bool @{binding coherent_trace} (K false);
+val (trace, trace_setup) = Attrib.config_bool \<^binding>\<open>coherent_trace\<close> (K false);
 fun cond_trace ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ();
 
 datatype cl_prf =
@@ -227,7 +227,7 @@ fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt
 
 val _ = Theory.setup
   (trace_setup #>
-   Method.setup @{binding coherent}
+   Method.setup \<^binding>\<open>coherent\<close>
     (Attrib.thms >> (fn rules => fn ctxt =>
         METHOD (fn facts => HEADGOAL (coherent_tac ctxt (facts @ rules)))))
       "prove coherent formula");

@@ -60,12 +60,12 @@ end
 structure SAT : SAT =
 struct
 
-val trace = Attrib.setup_config_bool @{binding sat_trace} (K false);
+val trace = Attrib.setup_config_bool \<^binding>\<open>sat_trace\<close> (K false);
 
 fun cond_tracing ctxt msg =
   if Config.get ctxt trace then tracing (msg ()) else ();
 
-val solver = Attrib.setup_config_string @{binding sat_solver} (K "cdclite");
+val solver = Attrib.setup_config_string \<^binding>\<open>sat_solver\<close> (K "cdclite");
   (*see HOL/Tools/sat_solver.ML for possible values*)
 
 val counter = Unsynchronized.ref 0;
@@ -212,7 +212,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
   let
     fun index_of_literal chyp =
       (case (HOLogic.dest_Trueprop o Thm.term_of) chyp of
-        (Const (@{const_name Not}, _) $ atom) =>
+        (Const (\<^const_name>\<open>Not\<close>, _) $ atom) =>
           SOME (~ (the (Termtab.lookup atom_table atom)))
       | atom => SOME (the (Termtab.lookup atom_table atom)))
       handle TERM _ => NONE;  (* 'chyp' is not a literal *)
@@ -281,7 +281,7 @@ fun rawsat_thm ctxt clauses =
   let
     (* remove premises that equal "True" *)
     val clauses' = filter (fn clause =>
-      (not_equal @{term True} o HOLogic.dest_Trueprop o Thm.term_of) clause
+      (not_equal \<^term>\<open>True\<close> o HOLogic.dest_Trueprop o Thm.term_of) clause
         handle TERM ("dest_Trueprop", _) => true) clauses
     (* remove non-clausal premises -- of course this shouldn't actually   *)
     (* remove anything as long as 'rawsat_tac' is only called after the   *)
@@ -321,7 +321,7 @@ fun rawsat_thm ctxt clauses =
         val _ =
           cond_tracing ctxt
             (fn () => "quick_and_dirty is set: proof reconstruction skipped, using oracle instead")
-        val False_thm = Skip_Proof.make_thm_cterm @{cprop False}
+        val False_thm = Skip_Proof.make_thm_cterm \<^cprop>\<open>False\<close>
       in
         (* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
         (* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)

@@ -36,13 +36,13 @@ fun move_to_front path = Conv.every_conv
     [Conv.rewr_conv (Library.foldl (op RS) (rule0, path)),
      Conv.arg1_conv (Conv.repeat_conv (Conv.rewr_conv minus_minus))]
 
-fun add_atoms pos path (Const (@{const_name Groups.plus}, _) $ x $ y) =
+fun add_atoms pos path (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ x $ y) =
       add_atoms pos (add1::path) x #> add_atoms pos (add2::path) y
-  | add_atoms pos path (Const (@{const_name Groups.minus}, _) $ x $ y) =
+  | add_atoms pos path (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ x $ y) =
       add_atoms pos (sub1::path) x #> add_atoms (not pos) (sub2::path) y
-  | add_atoms pos path (Const (@{const_name Groups.uminus}, _) $ x) =
+  | add_atoms pos path (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ x) =
       add_atoms (not pos) (neg1::path) x
-  | add_atoms _ _ (Const (@{const_name Groups.zero}, _)) = I
+  | add_atoms _ _ (Const (\<^const_name>\<open>Groups.zero\<close>, _)) = I
   | add_atoms pos path x = cons ((pos, x), path)
 
 fun atoms t = add_atoms true [] t []

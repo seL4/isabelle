@@ -44,11 +44,11 @@ fun arith_tac ctxt =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding arith}
+    (Method.setup \<^binding>\<open>arith\<close>
       (Scan.succeed (fn ctxt =>
         METHOD (fn facts =>
           HEADGOAL
-            (Method.insert_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
+            (Method.insert_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>arith\<close>) @ facts)
               THEN' arith_tac ctxt))))
       "various arithmetic decision procedures");
 
@@ -58,11 +58,11 @@ val _ =
 fun mk_number T 1 = HOLogic.numeral_const T $ HOLogic.one_const
   | mk_number T n = HOLogic.mk_number T n;
 
-val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
+val mk_plus = HOLogic.mk_binop \<^const_name>\<open>Groups.plus\<close>;
 
 fun mk_minus t =
   let val T = Term.fastype_of t
-  in Const (@{const_name Groups.uminus}, T --> T) $ t end;
+  in Const (\<^const_name>\<open>Groups.uminus\<close>, T --> T) $ t end;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum T [] = mk_number T 0
@@ -74,9 +74,9 @@ fun long_mk_sum T [] = mk_number T 0
   | long_mk_sum T (t :: ts) = mk_plus (t, long_mk_sum T ts);
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (@{const_name Groups.plus}, _) $ t $ u, ts) =
+fun dest_summing (pos, Const (\<^const_name>\<open>Groups.plus\<close>, _) $ t $ u, ts) =
       dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (@{const_name Groups.minus}, _) $ t $ u, ts) =
+  | dest_summing (pos, Const (\<^const_name>\<open>Groups.minus\<close>, _) $ t $ u, ts) =
       dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) = (if pos then t else mk_minus t) :: ts;
 

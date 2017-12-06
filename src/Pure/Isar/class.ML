@@ -782,9 +782,9 @@ fun standard_tac ctxt facts =
   standard_intro_classes_tac ctxt facts;
 
 val _ = Theory.setup
- (Method.setup @{binding intro_classes} (Scan.succeed (METHOD o intro_classes_tac))
+ (Method.setup \<^binding>\<open>intro_classes\<close> (Scan.succeed (METHOD o intro_classes_tac))
     "back-chain introduction rules of classes" #>
-  Method.setup @{binding standard} (Scan.succeed (METHOD o standard_tac))
+  Method.setup \<^binding>\<open>standard\<close> (Scan.succeed (METHOD o standard_tac))
     "standard proof step: Pure intro/elim rule or class introduction");
 
 

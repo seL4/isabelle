@@ -19,7 +19,7 @@ fun meson_general_tac ctxt ths =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
+    (Method.setup \<^binding>\<open>meson\<close> (Attrib.thms >> (fn ths => fn ctxt =>
       SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
       "MESON resolution proof procedure")
 

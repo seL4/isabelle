@@ -187,16 +187,16 @@ fun dest_mem (Const ("Set.member", _) $ x $ A) = (x, A)
 
 (* logic *)
 
-val Trueprop = Const (@{const_name Trueprop}, boolT --> propT);
+val Trueprop = Const (\<^const_name>\<open>Trueprop\<close>, boolT --> propT);
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun dest_Trueprop (Const (@{const_name Trueprop}, _) $ P) = P
+fun dest_Trueprop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
 fun Trueprop_conv cv ct =
   (case Thm.term_of ct of
-    Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct
+    Const (\<^const_name>\<open>Trueprop\<close>, _) $ _ => Conv.arg_conv cv ct
   | _ => raise CTERM ("Trueprop_conv", [ct]))
 
 
@@ -220,10 +220,10 @@ fun conj_elims ctxt th =
   let val (th1, th2) = conj_elim ctxt th
   in conj_elims ctxt th1 @ conj_elims ctxt th2 end handle THM _ => [th];
 
-val conj = @{term HOL.conj}
-and disj = @{term HOL.disj}
-and imp = @{term implies}
-and Not = @{term Not};
+val conj = \<^term>\<open>HOL.conj\<close>
+and disj = \<^term>\<open>HOL.disj\<close>
+and imp = \<^term>\<open>implies\<close>
+and Not = \<^term>\<open>Not\<close>;
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
@@ -257,21 +257,21 @@ fun dest_not (Const ("HOL.Not", _) $ t) = t
 
 fun conj_conv cv1 cv2 ct =
   (case Thm.term_of ct of
-    Const (@{const_name HOL.conj}, _) $ _ $ _ =>
+    Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ =>
       Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
   | _ => raise CTERM ("conj_conv", [ct]));
 
 
-fun eq_const T = Const (@{const_name HOL.eq}, T --> T --> boolT);
+fun eq_const T = Const (\<^const_name>\<open>HOL.eq\<close>, T --> T --> boolT);
 
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
 fun eq_conv cv1 cv2 ct =
   (case Thm.term_of ct of
-    Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
+    Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
   | _ => raise CTERM ("eq_conv", [ct]));
 
 

@@ -35,8 +35,8 @@ fun is_zapped_var_name s =
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
-val cfalse = Thm.cterm_of @{theory_context HOL} @{term False};
-val ctp_false = Thm.cterm_of @{theory_context HOL} (HOLogic.mk_Trueprop @{term False});
+val cfalse = Thm.cterm_of \<^theory_context>\<open>HOL\<close> \<^term>\<open>False\<close>;
+val ctp_false = Thm.cterm_of \<^theory_context>\<open>HOL\<close> (HOLogic.mk_Trueprop \<^term>\<open>False\<close>);
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate
@@ -44,9 +44,9 @@ val ctp_false = Thm.cterm_of @{theory_context HOL} (HOLogic.mk_Trueprop @{term F
    "Sledgehammer_Util".) *)
 fun transform_elim_theorem th =
   (case Thm.concl_of th of    (*conclusion variable*)
-    @{const Trueprop} $ (Var (v as (_, @{typ bool}))) =>
+    \<^const>\<open>Trueprop\<close> $ (Var (v as (_, \<^typ>\<open>bool\<close>))) =>
       Thm.instantiate ([], [(v, cfalse)]) th
-  | Var (v as (_, @{typ prop})) =>
+  | Var (v as (_, \<^typ>\<open>prop\<close>)) =>
       Thm.instantiate ([], [(v, ctp_false)]) th
   | _ => th)
 
@@ -55,7 +55,7 @@ fun transform_elim_theorem th =
 
 fun mk_old_skolem_term_wrapper t =
   let val T = fastype_of t in
-    Const (@{const_name Meson.skolem}, T --> T) $ t
+    Const (\<^const_name>\<open>Meson.skolem\<close>, T --> T) $ t
   end
 
 fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
@@ -64,7 +64,7 @@ fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun old_skolem_defs th =
   let
-    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (_, T, p))) rhss =
+    fun dec_sko (Const (\<^const_name>\<open>Ex\<close>, _) $ (body as Abs (_, T, p))) rhss =
         (*Existential: declare a Skolem function, then insert into body and continue*)
         let
           val args = Misc_Legacy.term_frees body
@@ -75,20 +75,20 @@ fun old_skolem_defs th =
             |> mk_old_skolem_term_wrapper
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
-      | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) rhss =
+      | dec_sko (Const (\<^const_name>\<open>All\<close>,_) $ Abs (a, T, p)) rhss =
         (*Universal quant: insert a free variable into body and continue*)
         let val fname = singleton (Name.variant_list (Misc_Legacy.add_term_names (p, []))) a
         in dec_sko (subst_bound (Free(fname,T), p)) rhss end
-      | dec_sko (@{const conj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
-      | dec_sko (@{const disj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
-      | dec_sko (@{const Trueprop} $ p) rhss = dec_sko p rhss
+      | dec_sko (\<^const>\<open>conj\<close> $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko (\<^const>\<open>disj\<close> $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko (\<^const>\<open>Trueprop\<close> $ p) rhss = dec_sko p rhss
       | dec_sko _ rhss = rhss
   in  dec_sko (Thm.prop_of th) []  end;
 
 
 (**** REPLACING ABSTRACTIONS BY COMBINATORS ****)
 
-fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
+fun is_quasi_lambda_free (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) = true
   | is_quasi_lambda_free (t1 $ t2) =
     is_quasi_lambda_free t1 andalso is_quasi_lambda_free t2
   | is_quasi_lambda_free (Abs _) = false
@@ -98,7 +98,7 @@ fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
 fun abstract ctxt ct =
   let
       val Abs(x,_,body) = Thm.term_of ct
-      val Type (@{type_name fun}, [xT,bodyT]) = Thm.typ_of_cterm ct
+      val Type (\<^type_name>\<open>fun\<close>, [xT,bodyT]) = Thm.typ_of_cterm ct
       val cxT = Thm.ctyp_of ctxt xT
       val cbodyT = Thm.ctyp_of ctxt bodyT
       fun makeK () =
@@ -196,7 +196,7 @@ fun old_skolem_theorem_of_def ctxt rhs0 =
     val (hilbert, cabs) = ch |> Thm.dest_comb |>> Thm.term_of
     val T =
       case hilbert of
-        Const (_, Type (@{type_name fun}, [_, T])) => T
+        Const (_, Type (\<^type_name>\<open>fun\<close>, [_, T])) => T
       | _ => raise TERM ("old_skolem_theorem_of_def: expected \"Eps\"", [hilbert])
     val cex = Thm.cterm_of ctxt (HOLogic.exists_const T)
     val ex_tm = Thm.apply cTrueprop (Thm.apply cex cabs)
@@ -238,10 +238,10 @@ fun rename_bound_vars_to_be_zapped ax_no =
     fun aux (cluster as (cluster_no, cluster_skolem)) index_no pos t =
       case t of
         (t1 as Const (s, _)) $ Abs (s', T, t') =>
-        if s = @{const_name Pure.all} orelse s = @{const_name All} orelse
-           s = @{const_name Ex} then
+        if s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close> orelse
+           s = \<^const_name>\<open>Ex\<close> then
           let
-            val skolem = (pos = (s = @{const_name Ex}))
+            val skolem = (pos = (s = \<^const_name>\<open>Ex\<close>))
             val (cluster, index_no) =
               if skolem = cluster_skolem then (cluster, index_no)
               else ((cluster_no ||> cluster_skolem ? Integer.add 1, skolem), 0)
@@ -250,17 +250,17 @@ fun rename_bound_vars_to_be_zapped ax_no =
         else
           t
       | (t1 as Const (s, _)) $ t2 $ t3 =>
-        if s = @{const_name Pure.imp} orelse s = @{const_name HOL.implies} then
+        if s = \<^const_name>\<open>Pure.imp\<close> orelse s = \<^const_name>\<open>HOL.implies\<close> then
           t1 $ aux cluster index_no (not pos) t2 $ aux cluster index_no pos t3
-        else if s = @{const_name HOL.conj} orelse
-                s = @{const_name HOL.disj} then
+        else if s = \<^const_name>\<open>HOL.conj\<close> orelse
+                s = \<^const_name>\<open>HOL.disj\<close> then
           t1 $ aux cluster index_no pos t2 $ aux cluster index_no pos t3
         else
           t
       | (t1 as Const (s, _)) $ t2 =>
-        if s = @{const_name Trueprop} then
+        if s = \<^const_name>\<open>Trueprop\<close> then
           t1 $ aux cluster index_no pos t2
-        else if s = @{const_name Not} then
+        else if s = \<^const_name>\<open>Not\<close> then
           t1 $ aux cluster index_no (not pos) t2
         else
           t
@@ -271,28 +271,28 @@ fun zap pos ct =
   ct
   |> (case Thm.term_of ct of
         Const (s, _) $ Abs (s', _, _) =>
-        if s = @{const_name Pure.all} orelse s = @{const_name All} orelse
-           s = @{const_name Ex} then
+        if s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close> orelse
+           s = \<^const_name>\<open>Ex\<close> then
           Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd #> zap pos
         else
           Conv.all_conv
       | Const (s, _) $ _ $ _ =>
-        if s = @{const_name Pure.imp} orelse s = @{const_name implies} then
+        if s = \<^const_name>\<open>Pure.imp\<close> orelse s = \<^const_name>\<open>implies\<close> then
           Conv.combination_conv (Conv.arg_conv (zap (not pos))) (zap pos)
-        else if s = @{const_name conj} orelse s = @{const_name disj} then
+        else if s = \<^const_name>\<open>conj\<close> orelse s = \<^const_name>\<open>disj\<close> then
           Conv.combination_conv (Conv.arg_conv (zap pos)) (zap pos)
         else
           Conv.all_conv
       | Const (s, _) $ _ =>
-        if s = @{const_name Trueprop} then Conv.arg_conv (zap pos)
-        else if s = @{const_name Not} then Conv.arg_conv (zap (not pos))
+        if s = \<^const_name>\<open>Trueprop\<close> then Conv.arg_conv (zap pos)
+        else if s = \<^const_name>\<open>Not\<close> then Conv.arg_conv (zap (not pos))
         else Conv.all_conv
       | _ => Conv.all_conv)
 
 fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths
 
 val cheat_choice =
-  @{prop "\<forall>x. \<exists>y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)"}
+  \<^prop>\<open>\<forall>x. \<exists>y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)\<close>
   |> Logic.varify_global
   |> Skip_Proof.make_thm @{theory}
 
@@ -374,7 +374,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
        th ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate ([], [((("i", 0), @{typ nat}), Thm.cterm_of ctxt (HOLogic.mk_nat ax_no))])
+      Thm.instantiate ([], [((("i", 0), \<^typ>\<open>nat\<close>), Thm.cterm_of ctxt (HOLogic.mk_nat ax_no))])
                       (zero_var_indexes @{thm skolem_COMBK_D})
       RS Thm.implies_intr ct th
   in

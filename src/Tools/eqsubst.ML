@@ -413,7 +413,7 @@ fun eqsubst_asm_tac ctxt occs thms i st =
    the goal) as well as the theorems to use *)
 val _ =
   Theory.setup
-    (Method.setup @{binding subst}
+    (Method.setup \<^binding>\<open>subst\<close>
       (Scan.lift (Args.mode "asm" -- Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
         Attrib.thms >> (fn ((asm, occs), inthms) => fn ctxt =>
           SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)))

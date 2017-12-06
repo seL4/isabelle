@@ -118,7 +118,7 @@ val profile = Unsynchronized.ref false
 
 fun PROFILE msg = if !profile then timeap_msg msg else I
 
-val acc_const_name = @{const_name Wellfounded.accp}
+val acc_const_name = \<^const_name>\<open>Wellfounded.accp\<close>
 fun mk_acc domT R =
   Const (acc_const_name, (domT --> domT --> HOLogic.boolT) --> domT --> HOLogic.boolT) $ R
 
@@ -128,8 +128,8 @@ fun mk_acc domT R =
 fun split_def ctxt check_head geq =
   let
     fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
-    val qs = Term.strip_qnt_vars @{const_name Pure.all} geq
-    val imp = Term.strip_qnt_body @{const_name Pure.all} geq
+    val qs = Term.strip_qnt_vars \<^const_name>\<open>Pure.all\<close> geq
+    val imp = Term.strip_qnt_body \<^const_name>\<open>Pure.all\<close> geq
     val (gs, eq) = Logic.strip_horn imp
 
     val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
@@ -372,7 +372,7 @@ local
      || (Parse.reserved "no_partials" >> K No_Partials))
 
   fun config_parser default =
-    (Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 option_parser) --| @{keyword ")"}) [])
+    (Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 option_parser) --| \<^keyword>\<open>)\<close>) [])
      >> (fn opts => fold apply_opt opts default)
 in
   fun function_parser default_cfg =

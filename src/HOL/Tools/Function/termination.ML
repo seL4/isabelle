@@ -67,14 +67,14 @@ fun dest_tree split =
 
 
 (* concrete versions for sum types *)
-fun is_inj (Const (@{const_name Sum_Type.Inl}, _) $ _) = true
-  | is_inj (Const (@{const_name Sum_Type.Inr}, _) $ _) = true
+fun is_inj (Const (\<^const_name>\<open>Sum_Type.Inl\<close>, _) $ _) = true
+  | is_inj (Const (\<^const_name>\<open>Sum_Type.Inr\<close>, _) $ _) = true
   | is_inj _ = false
 
-fun dest_inl (Const (@{const_name Sum_Type.Inl}, _) $ t) = SOME t
+fun dest_inl (Const (\<^const_name>\<open>Sum_Type.Inl\<close>, _) $ t) = SOME t
   | dest_inl _ = NONE
 
-fun dest_inr (Const (@{const_name Sum_Type.Inr}, _) $ t) = SOME t
+fun dest_inr (Const (\<^const_name>\<open>Sum_Type.Inr\<close>, _) $ t) = SOME t
   | dest_inr _ = NONE
 
 
@@ -92,7 +92,7 @@ fun mk_skel ps =
   end
 
 (* compute list of types for nodes *)
-fun node_types sk T = dest_tree (fn Type (@{type_name Sum_Type.sum}, [LT, RT]) => (LT, RT)) sk T |> map snd
+fun node_types sk T = dest_tree (fn Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT]) => (LT, RT)) sk T |> map snd
 
 (* find index and raw term *)
 fun dest_inj (SLeaf i) trm = (i, trm)
@@ -125,11 +125,11 @@ fun mk_sumcases (sk, _, _, _, _) T fs =
 
 fun mk_sum_skel rel =
   let
-    val cs = Function_Lib.dest_binop_list @{const_name Lattices.sup} rel
-    fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
+    val cs = Function_Lib.dest_binop_list \<^const_name>\<open>Lattices.sup\<close> rel
+    fun collect_pats (Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (_, _, c)) =
       let
-        val (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ _)
-          = Term.strip_qnt_body @{const_name Ex} c
+        val (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ r $ l)) $ _)
+          = Term.strip_qnt_body \<^const_name>\<open>Ex\<close> c
       in cons r o cons l end
   in
     mk_skel (fold collect_pats cs [])
@@ -138,8 +138,8 @@ fun mk_sum_skel rel =
 fun prove_chain ctxt chain_tac (c1, c2) =
   let
     val goal =
-      HOLogic.mk_eq (HOLogic.mk_binop @{const_name Relation.relcomp} (c1, c2),
-        Const (@{const_abbrev Set.empty}, fastype_of c1))
+      HOLogic.mk_eq (HOLogic.mk_binop \<^const_name>\<open>Relation.relcomp\<close> (c1, c2),
+        Const (\<^const_abbrev>\<open>Set.empty\<close>, fastype_of c1))
       |> HOLogic.mk_Trueprop (* "C1 O C2 = {}" *)
   in
     (case Function_Lib.try_proof ctxt (Thm.cterm_of ctxt goal) chain_tac of
@@ -148,13 +148,13 @@ fun prove_chain ctxt chain_tac (c1, c2) =
   end
 
 
-fun dest_call' sk (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
+fun dest_call' sk (Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (_, _, c)) =
   let
-    val vs = Term.strip_qnt_vars @{const_name Ex} c
+    val vs = Term.strip_qnt_vars \<^const_name>\<open>Ex\<close> c
 
     (* FIXME: throw error "dest_call" for malformed terms *)
-    val (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ Gam)
-      = Term.strip_qnt_body @{const_name Ex} c
+    val (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ r $ l)) $ Gam)
+      = Term.strip_qnt_body \<^const_name>\<open>Ex\<close> c
     val (p, l') = dest_inj sk l
     val (q, r') = dest_inj sk r
   in
@@ -170,16 +170,16 @@ fun mk_desc ctxt tac vs Gam l r m1 m2 =
       try_proof ctxt (Thm.cterm_of ctxt
         (Logic.list_all (vs,
            Logic.mk_implies (HOLogic.mk_Trueprop Gam,
-             HOLogic.mk_Trueprop (Const (rel, @{typ "nat \<Rightarrow> nat \<Rightarrow> bool"})
+             HOLogic.mk_Trueprop (Const (rel, \<^typ>\<open>nat \<Rightarrow> nat \<Rightarrow> bool\<close>)
                $ (m2 $ r) $ (m1 $ l)))))) tac
   in
-    (case try @{const_name Orderings.less} of
+    (case try \<^const_name>\<open>Orderings.less\<close> of
       Solved thm => Less thm
     | Stuck thm =>
-        (case try @{const_name Orderings.less_eq} of
+        (case try \<^const_name>\<open>Orderings.less_eq\<close> of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
-            if Thm.prems_of thm2 = [HOLogic.Trueprop $ @{term False}]
+            if Thm.prems_of thm2 = [HOLogic.Trueprop $ \<^term>\<open>False\<close>]
             then False thm2 else None (thm2, thm)
         | _ => raise Match) (* FIXME *)
     | _ => raise Match)
@@ -225,13 +225,13 @@ fun get_descent (_, _, _, _, D) c m1 m2 =
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
   else case Thm.term_of (Thm.cprem_of st i) of
-    (_ $ (_ $ rel)) => tac (Function_Lib.dest_binop_list @{const_name Lattices.sup} rel, i) st
+    (_ $ (_ $ rel)) => tac (Function_Lib.dest_binop_list \<^const_name>\<open>Lattices.sup\<close> rel, i) st
   |_ => no_tac st
 
 type ttac = data -> int -> tactic
 
 fun TERMINATION ctxt atac tac =
-  SUBGOAL (fn (_ $ (Const (@{const_name wf}, wfT) $ rel), i) =>
+  SUBGOAL (fn (_ $ (Const (\<^const_name>\<open>wf\<close>, wfT) $ rel), i) =>
   let
     val (T, _) = HOLogic.dest_prodT (HOLogic.dest_setT (domain_type wfT))
   in
@@ -258,7 +258,7 @@ fun mk_pair_compr (T, qs, l, r, conds) =
     val pT = HOLogic.mk_prodT (T, T)
     val n = length qs
     val peq = HOLogic.eq_const pT $ Bound n $ (HOLogic.pair_const T T $ l $ r)
-    val conds' = if null conds then [@{term True}] else conds
+    val conds' = if null conds then [\<^term>\<open>True\<close>] else conds
   in
     HOLogic.Collect_const pT $
     Abs ("uu_", pT,
@@ -284,9 +284,9 @@ fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
 
     val relation =
       if null ineqs
-      then Const (@{const_abbrev Set.empty}, fastype_of rel)
+      then Const (\<^const_abbrev>\<open>Set.empty\<close>, fastype_of rel)
       else map mk_compr ineqs
-        |> foldr1 (HOLogic.mk_binop @{const_name Lattices.sup})
+        |> foldr1 (HOLogic.mk_binop \<^const_name>\<open>Lattices.sup\<close>)
 
     fun solve_membership_tac i =
       (EVERY' (replicate (i - 2) (resolve_tac ctxt @{thms UnI2}))  (* pick the right component of the union *)

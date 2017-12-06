@@ -266,7 +266,7 @@ fun print_rules ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_induct_rules}
+  Outer_Syntax.command \<^command_keyword>\<open>print_induct_rules\<close>
     "print induction and cases rules"
     (Scan.succeed (Toplevel.keep (print_rules o Toplevel.context_of)));
 
@@ -384,13 +384,13 @@ in
 
 val _ =
   Theory.local_setup
-   (Attrib.local_setup @{binding cases} (attrib cases_type cases_pred cases_del)
+   (Attrib.local_setup \<^binding>\<open>cases\<close> (attrib cases_type cases_pred cases_del)
       "declaration of cases rule" #>
-    Attrib.local_setup @{binding induct} (attrib induct_type induct_pred induct_del)
+    Attrib.local_setup \<^binding>\<open>induct\<close> (attrib induct_type induct_pred induct_del)
       "declaration of induction rule" #>
-    Attrib.local_setup @{binding coinduct} (attrib coinduct_type coinduct_pred coinduct_del)
+    Attrib.local_setup \<^binding>\<open>coinduct\<close> (attrib coinduct_type coinduct_pred coinduct_del)
       "declaration of coinduction rule" #>
-    Attrib.local_setup @{binding induct_simp} (Attrib.add_del induct_simp_add induct_simp_del)
+    Attrib.local_setup \<^binding>\<open>induct_simp\<close> (Attrib.add_del induct_simp_add induct_simp_del)
       "declaration of rules for simplifying induction or cases rules");
 
 end;
@@ -953,15 +953,15 @@ fun gen_induct_setup binding tac =
 
 val _ =
   Theory.local_setup
-    (Method.local_setup @{binding cases}
+    (Method.local_setup \<^binding>\<open>cases\<close>
       (Scan.lift (Args.mode no_simpN) --
         (Parse.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
         (fn (no_simp, (insts, opt_rule)) => fn _ =>
           CONTEXT_METHOD (fn facts =>
             Seq.DETERM (cases_context_tactic (not no_simp) insts opt_rule facts 1))))
       "case analysis on types or predicates/sets" #>
-    gen_induct_setup @{binding induct} induct_context_tactic #>
-     Method.local_setup @{binding coinduct}
+    gen_induct_setup \<^binding>\<open>induct\<close> induct_context_tactic #>
+     Method.local_setup \<^binding>\<open>coinduct\<close>
       (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule >>
         (fn ((insts, taking), opt_rule) => fn _ => fn facts =>
           Seq.DETERM (coinduct_context_tactic insts taking opt_rule facts 1)))

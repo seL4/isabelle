@@ -445,6 +445,7 @@ object Isabelle
 
       buffer.remove(antiq_range.start, antiq_range.length)
       text_area.moveCaretPosition(antiq_range.start)
+      text_area.selectNone
       text_area.setSelectedText(op_text + arg_text)
     }
   }

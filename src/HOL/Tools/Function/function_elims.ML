@@ -24,9 +24,9 @@ struct
 (* Extract a function and its arguments from a proposition that is
    either of the form "f x y z = ..." or, in case of function that
    returns a boolean, "f x y z" *)
-fun dest_funprop (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = (strip_comb lhs, rhs)
-  | dest_funprop (Const (@{const_name Not}, _) $ t) = (strip_comb t, @{term False})
-  | dest_funprop t = (strip_comb t, @{term True});
+fun dest_funprop (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = (strip_comb lhs, rhs)
+  | dest_funprop (Const (\<^const_name>\<open>Not\<close>, _) $ t) = (strip_comb t, \<^term>\<open>False\<close>)
+  | dest_funprop t = (strip_comb t, \<^term>\<open>True\<close>);
 
 local
 
@@ -34,9 +34,9 @@ fun propagate_tac ctxt i =
   let
     fun inspect eq =
       (case eq of
-        Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ Free x $ t) =>
+        Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Free x $ t) =>
           if Logic.occs (Free x, t) then raise Match else true
-      | Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ t $ Free x) =>
+      | Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ Free x) =>
           if Logic.occs (Free x, t) then raise Match else false
       | _ => raise Match);
     fun mk_eq thm =
@@ -68,7 +68,7 @@ fun mk_bool_elims ctxt elim =
       |> Tactic.rule_by_tactic ctxt (distinct_subgoals_tac THEN TRY (resolve_tac ctxt eq_boolI 1))
       |> Tactic.rule_by_tactic ctxt (distinct_subgoals_tac THEN ALLGOALS (bool_subst_tac ctxt));
   in
-    map mk_bool_elim [@{cterm True}, @{cterm False}]
+    map mk_bool_elim [\<^cterm>\<open>True\<close>, \<^cterm>\<open>False\<close>]
   end;
 
 in
@@ -86,7 +86,7 @@ fun mk_partial_elim_rules ctxt result =
         fun mk_funeq 0 T (acc_args, acc_lhs) =
               let val y = variant_free acc_lhs ("y", T)
               in (y, rev acc_args, HOLogic.mk_Trueprop (HOLogic.mk_eq (acc_lhs, y))) end
-          | mk_funeq n (Type (@{type_name fun}, [S, T])) (acc_args, acc_lhs) =
+          | mk_funeq n (Type (\<^type_name>\<open>fun\<close>, [S, T])) (acc_args, acc_lhs) =
               let val x = variant_free acc_lhs ("x", S)
               in mk_funeq (n - 1) T (x :: acc_args, acc_lhs $ x) end
           | mk_funeq _ _ _ = raise TERM ("Not a function", [f]);
@@ -111,7 +111,7 @@ fun mk_partial_elim_rules ctxt result =
         val args = HOLogic.mk_tuple arg_vars;
         val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
 
-        val P = Thm.cterm_of ctxt (variant_free prop ("P", @{typ bool}));
+        val P = Thm.cterm_of ctxt (variant_free prop ("P", \<^typ>\<open>bool\<close>));
         val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx + 1) args;
 
         val cprop = Thm.cterm_of ctxt prop;
@@ -137,7 +137,7 @@ fun mk_partial_elim_rules ctxt result =
           |> Thm.forall_intr (Thm.cterm_of ctxt rhs_var);
 
         val bool_elims =
-          if fastype_of rhs_var = @{typ bool}
+          if fastype_of rhs_var = \<^typ>\<open>bool\<close>
           then mk_bool_elims ctxt elim_stripped
           else [];
 

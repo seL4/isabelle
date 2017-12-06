@@ -39,7 +39,7 @@ val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
   Simplifier.make_simproc @{context} "strong_ind"
-   {lhss = [@{term "x::'a::{}"}],
+   {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
         fun close p t f =
@@ -47,20 +47,20 @@ fun strong_ind_simproc tab =
           in Thm.instantiate' [] (rev (map (SOME o Thm.cterm_of ctxt o Var) vs))
             (p (fold (Logic.all o Var) vs t) f)
           end;
-        fun mkop @{const_name HOL.conj} T x =
-              SOME (Const (@{const_name Lattices.inf}, T --> T --> T), x)
-          | mkop @{const_name HOL.disj} T x =
-              SOME (Const (@{const_name Lattices.sup}, T --> T --> T), x)
+        fun mkop \<^const_name>\<open>HOL.conj\<close> T x =
+              SOME (Const (\<^const_name>\<open>Lattices.inf\<close>, T --> T --> T), x)
+          | mkop \<^const_name>\<open>HOL.disj\<close> T x =
+              SOME (Const (\<^const_name>\<open>Lattices.sup\<close>, T --> T --> T), x)
           | mkop _ _ _ = NONE;
         fun mk_collect p T t =
           let val U = HOLogic.dest_setT T
           in HOLogic.Collect_const U $
             HOLogic.mk_ptupleabs (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
           end;
-        fun decomp (Const (s, _) $ ((m as Const (@{const_name Set.member},
+        fun decomp (Const (s, _) $ ((m as Const (\<^const_name>\<open>Set.member\<close>,
               Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
                 mkop s T (m, p, S, mk_collect p T (head_of u))
-          | decomp (Const (s, _) $ u $ ((m as Const (@{const_name Set.member},
+          | decomp (Const (s, _) $ u $ ((m as Const (\<^const_name>\<open>Set.member\<close>,
               Type (_, [_, Type (_, [T, _])]))) $ p $ S)) =
                 mkop s T (m, p, mk_collect p T (head_of u), S)
           | decomp _ = NONE;
@@ -241,7 +241,7 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
   in
     Simplifier.simplify
       (put_simpset HOL_basic_ss ctxt addsimps @{thms mem_Collect_eq case_prod_conv}
-        addsimprocs [@{simproc Collect_mem}]) thm''
+        addsimprocs [\<^simproc>\<open>Collect_mem\<close>]) thm''
       |> zero_var_indexes |> eta_contract_thm ctxt (equal p)
   end;
 
@@ -252,14 +252,14 @@ exception Malformed of string;
 
 fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
   (case Thm.prop_of thm of
-    Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, Type (_, [T, _])) $ lhs $ rhs) =>
+    Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ lhs $ rhs) =>
       (case body_type T of
-         @{typ bool} =>
+         \<^typ>\<open>bool\<close> =>
            let
              val thy = Context.theory_of context;
              val ctxt = Context.proof_of context;
              fun factors_of t fs = case strip_abs_body t of
-                 Const (@{const_name Set.member}, _) $ u $ S =>
+                 Const (\<^const_name>\<open>Set.member\<close>, _) $ u $ S =>
                    if is_Free S orelse is_Var S then
                      let val ps = HOLogic.flat_tuple_paths u
                      in (SOME ps, (S, ps) :: fs) end
@@ -269,7 +269,7 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
              val (pfs, fs) = fold_map factors_of ts [];
              val ((h', ts'), fs') = (case rhs of
                  Abs _ => (case strip_abs_body rhs of
-                     Const (@{const_name Set.member}, _) $ u $ S =>
+                     Const (\<^const_name>\<open>Set.member\<close>, _) $ u $ S =>
                        (strip_comb S, SOME (HOLogic.flat_tuple_paths u))
                    | _ => raise Malformed "member symbol on right-hand side expected")
                | _ => (strip_comb rhs, NONE))
@@ -384,7 +384,7 @@ fun to_set thms context thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps to_set_simps
-        addsimprocs [strong_ind_simproc pred_arities, @{simproc Collect_mem}]) |>
+        addsimprocs [strong_ind_simproc pred_arities, \<^simproc>\<open>Collect_mem\<close>]) |>
     Rule_Cases.save thm
   end;
 
@@ -401,7 +401,7 @@ fun add_ind_set_def
     val {set_arities, pred_arities, to_pred_simps, ...} =
       Data.get (Context.Proof lthy);
     fun infer (Abs (_, _, t)) = infer t
-      | infer (Const (@{const_name Set.member}, _) $ t $ u) =
+      | infer (Const (\<^const_name>\<open>Set.member\<close>, _) $ t $ u) =
           infer_arities thy set_arities (SOME (HOLogic.flat_tuple_paths t), u)
       | infer (t $ u) = infer t #> infer u
       | infer _ = I;
@@ -534,13 +534,13 @@ val mono_del = mono_att Inductive.mono_del;
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding pred_set_conv} (Scan.succeed pred_set_conv_att)
+   (Attrib.setup \<^binding>\<open>pred_set_conv\<close> (Scan.succeed pred_set_conv_att)
       "declare rules for converting between predicate and set notation" #>
-    Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att)
+    Attrib.setup \<^binding>\<open>to_set\<close> (Attrib.thms >> to_set_att)
       "convert rule to set notation" #>
-    Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att)
+    Attrib.setup \<^binding>\<open>to_pred\<close> (Attrib.thms >> to_pred_att)
       "convert rule to predicate notation" #>
-    Attrib.setup @{binding mono_set} (Attrib.add_del mono_add mono_del)
+    Attrib.setup \<^binding>\<open>mono_set\<close> (Attrib.add_del mono_add mono_del)
       "declare of monotonicity rule for set operators");
 
 
@@ -549,11 +549,11 @@ val _ =
 val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword inductive_set} "define inductive sets"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>inductive_set\<close> "define inductive sets"
     (ind_set_decl false);
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword coinductive_set} "define coinductive sets"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>coinductive_set\<close> "define coinductive sets"
     (ind_set_decl true);
 
 end;

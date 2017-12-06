@@ -160,30 +160,30 @@ fun merge_expectation (expect1, expect2) =
   if expect1 = expect2 then expect1 else No_Expectation;
 
 (*quickcheck configuration -- default parameters, test generators*)
-val batch_tester = Attrib.setup_config_string @{binding quickcheck_batch_tester} (K "");
-val size = Attrib.setup_config_int @{binding quickcheck_size} (K 10);
-val iterations = Attrib.setup_config_int @{binding quickcheck_iterations} (K 100);
-val depth = Attrib.setup_config_int @{binding quickcheck_depth} (K 10);
+val batch_tester = Attrib.setup_config_string \<^binding>\<open>quickcheck_batch_tester\<close> (K "");
+val size = Attrib.setup_config_int \<^binding>\<open>quickcheck_size\<close> (K 10);
+val iterations = Attrib.setup_config_int \<^binding>\<open>quickcheck_iterations\<close> (K 100);
+val depth = Attrib.setup_config_int \<^binding>\<open>quickcheck_depth\<close> (K 10);
 
-val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false);
-val locale = Attrib.setup_config_string @{binding quickcheck_locale} (K "interpret expand");
-val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true);
-val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false);
-val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0);
+val no_assms = Attrib.setup_config_bool \<^binding>\<open>quickcheck_no_assms\<close> (K false);
+val locale = Attrib.setup_config_string \<^binding>\<open>quickcheck_locale\<close> (K "interpret expand");
+val report = Attrib.setup_config_bool \<^binding>\<open>quickcheck_report\<close> (K true);
+val timing = Attrib.setup_config_bool \<^binding>\<open>quickcheck_timing\<close> (K false);
+val timeout = Attrib.setup_config_real \<^binding>\<open>quickcheck_timeout\<close> (K 30.0);
 
-val genuine_only = Attrib.setup_config_bool @{binding quickcheck_genuine_only} (K false);
-val abort_potential = Attrib.setup_config_bool @{binding quickcheck_abort_potential} (K false);
+val genuine_only = Attrib.setup_config_bool \<^binding>\<open>quickcheck_genuine_only\<close> (K false);
+val abort_potential = Attrib.setup_config_bool \<^binding>\<open>quickcheck_abort_potential\<close> (K false);
 
-val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false);
-val verbose = Attrib.setup_config_bool @{binding quickcheck_verbose} (K false);
-val tag = Attrib.setup_config_string @{binding quickcheck_tag} (K "");
+val quiet = Attrib.setup_config_bool \<^binding>\<open>quickcheck_quiet\<close> (K false);
+val verbose = Attrib.setup_config_bool \<^binding>\<open>quickcheck_verbose\<close> (K false);
+val tag = Attrib.setup_config_string \<^binding>\<open>quickcheck_tag\<close> (K "");
 
-val use_subtype = Attrib.setup_config_bool @{binding quickcheck_use_subtype} (K false);
+val use_subtype = Attrib.setup_config_bool \<^binding>\<open>quickcheck_use_subtype\<close> (K false);
 
 val allow_function_inversion =
-  Attrib.setup_config_bool @{binding quickcheck_allow_function_inversion} (K false);
-val finite_types = Attrib.setup_config_bool @{binding quickcheck_finite_types} (K true);
-val finite_type_size = Attrib.setup_config_int @{binding quickcheck_finite_type_size} (K 3);
+  Attrib.setup_config_bool \<^binding>\<open>quickcheck_allow_function_inversion\<close> (K false);
+val finite_types = Attrib.setup_config_bool \<^binding>\<open>quickcheck_finite_types\<close> (K true);
+val finite_type_size = Attrib.setup_config_int \<^binding>\<open>quickcheck_finite_type_size\<close> (K 3);
 
 datatype test_params = Test_Params of
   {default_type: typ list, expect : expectation};
@@ -343,7 +343,7 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
     val ctxt = Proof.context_of state;
     val thy = Proof.theory_of state;
 
-    fun strip (Const (@{const_name Pure.all}, _) $ Abs (_, _, t)) = strip t
+    fun strip (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (Thm.prop_of st) i;
@@ -522,19 +522,19 @@ fun quickcheck_cmd args i st =
 
 val parse_arg =
   Parse.name --
-    (Scan.optional (@{keyword "="} |--
+    (Scan.optional (\<^keyword>\<open>=\<close> |--
       (((Parse.name || Parse.float_number) >> single) ||
-        (@{keyword "["} |-- Parse.list1 Parse.name --| @{keyword "]"}))) ["true"]);
+        (\<^keyword>\<open>[\<close> |-- Parse.list1 Parse.name --| \<^keyword>\<open>]\<close>))) ["true"]);
 
 val parse_args =
-  @{keyword "["} |-- Parse.list1 parse_arg --| @{keyword "]"} || Scan.succeed [];
+  \<^keyword>\<open>[\<close> |-- Parse.list1 parse_arg --| \<^keyword>\<open>]\<close> || Scan.succeed [];
 
 val _ =
-  Outer_Syntax.command @{command_keyword quickcheck_params} "set parameters for random testing"
+  Outer_Syntax.command \<^command_keyword>\<open>quickcheck_params\<close> "set parameters for random testing"
     (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
 val _ =
-  Outer_Syntax.command @{command_keyword quickcheck}
+  Outer_Syntax.command \<^command_keyword>\<open>quickcheck\<close>
     "try to find counterexample for subgoal"
     (parse_args -- Scan.optional Parse.nat 1 >>
       (fn (args, i) => Toplevel.keep_proof (quickcheck_cmd args i)));
@@ -565,7 +565,7 @@ fun try_quickcheck auto state =
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN);
 
-val _ = Try.tool_setup (quickcheckN, (20, @{system_option auto_quickcheck}, try_quickcheck));
+val _ = Try.tool_setup (quickcheckN, (20, \<^system_option>\<open>auto_quickcheck\<close>, try_quickcheck));
 
 end;
 

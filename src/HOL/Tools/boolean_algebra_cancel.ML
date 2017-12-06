@@ -27,17 +27,17 @@ val inf0 = @{lemma "(a::'a::bounded_semilattice_inf_top) == inf a top" by (simp)
 
 fun move_to_front rule path = Conv.rewr_conv (Library.foldl (op RS) (rule, path))
 
-fun add_atoms sup pos path (t as Const (@{const_name Lattices.sup}, _) $ x $ y) =
+fun add_atoms sup pos path (t as Const (\<^const_name>\<open>Lattices.sup\<close>, _) $ x $ y) =
     if sup then
       add_atoms sup pos (sup1::path) x #> add_atoms sup pos (sup2::path) y
     else cons ((pos, t), path)
-  | add_atoms sup pos path (t as Const (@{const_name Lattices.inf}, _) $ x $ y) =
+  | add_atoms sup pos path (t as Const (\<^const_name>\<open>Lattices.inf\<close>, _) $ x $ y) =
     if not sup then
       add_atoms sup pos (inf1::path) x #> add_atoms sup pos (inf2::path) y
     else cons ((pos, t), path)
-  | add_atoms _ _ _ (Const (@{const_name Orderings.bot}, _)) = I
-  | add_atoms _ _ _ (Const (@{const_name Orderings.top}, _)) = I
-  | add_atoms _ pos path (Const (@{const_name Groups.uminus}, _) $ x) = cons ((not pos, x), path)
+  | add_atoms _ _ _ (Const (\<^const_name>\<open>Orderings.bot\<close>, _)) = I
+  | add_atoms _ _ _ (Const (\<^const_name>\<open>Orderings.top\<close>, _)) = I
+  | add_atoms _ pos path (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ x) = cons ((not pos, x), path)
   | add_atoms _ pos path x = cons ((pos, x), path);
 
 fun atoms sup pos t = add_atoms sup pos [] t []

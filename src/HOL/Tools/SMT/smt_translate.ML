@@ -199,21 +199,21 @@ fun eta_expand ctxt funcs =
         SOME k => Term.list_comb (t, ts) |> k <> length ts ? expf k (length ts) T
       | NONE => Term.list_comb (t, ts))
 
-    fun expand ((q as Const (@{const_name All}, _)) $ Abs a) = q $ abs_expand a
-      | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp expand T t
-      | expand (q as Const (@{const_name All}, T)) = exp2 T q
-      | expand ((q as Const (@{const_name Ex}, _)) $ Abs a) = q $ abs_expand a
-      | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp expand T t
-      | expand (q as Const (@{const_name Ex}, T)) = exp2 T q
-      | expand (Const (@{const_name Let}, T) $ t) =
+    fun expand ((q as Const (\<^const_name>\<open>All\<close>, _)) $ Abs a) = q $ abs_expand a
+      | expand ((q as Const (\<^const_name>\<open>All\<close>, T)) $ t) = q $ exp expand T t
+      | expand (q as Const (\<^const_name>\<open>All\<close>, T)) = exp2 T q
+      | expand ((q as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs a) = q $ abs_expand a
+      | expand ((q as Const (\<^const_name>\<open>Ex\<close>, T)) $ t) = q $ exp expand T t
+      | expand (q as Const (\<^const_name>\<open>Ex\<close>, T)) = exp2 T q
+      | expand (Const (\<^const_name>\<open>Let\<close>, T) $ t) =
           let val U = Term.domain_type (Term.range_type T)
           in Abs (Name.uu, U, Bound 0 $ Term.incr_boundvars 1 t) end
-      | expand (Const (@{const_name Let}, T)) =
+      | expand (Const (\<^const_name>\<open>Let\<close>, T)) =
           let val U = Term.domain_type (Term.range_type T)
           in Abs (Name.uu, Term.domain_type T, Abs (Name.uu, U, Bound 0 $ Bound 1)) end
       | expand t =
           (case Term.strip_comb t of
-            (Const (@{const_name Let}, _), t1 :: t2 :: ts) =>
+            (Const (\<^const_name>\<open>Let\<close>, _), t1 :: t2 :: ts) =>
             Term.betapplys (Term.betapply (expand t2, expand t1), map expand ts)
           | (u as Const (c as (_, T)), ts) =>
               (case SMT_Builtin.dest_builtin ctxt c ts of
@@ -252,12 +252,12 @@ local
 
   fun take_vars_into_account types t i =
     let
-      fun find_min j (T as Type (@{type_name fun}, [_, T'])) =
+      fun find_min j (T as Type (\<^type_name>\<open>fun\<close>, [_, T'])) =
           if j = i orelse Typtab.defined types T then j else find_min (j + 1) T'
         | find_min j _ = j
     in find_min 0 (Term.type_of t) end
 
-  fun app u (t, T) = (Const (@{const_name fun_app}, T --> T) $ t $ u, Term.range_type T)
+  fun app u (t, T) = (Const (\<^const_name>\<open>fun_app\<close>, T --> T) $ t $ u, Term.range_type T)
 
   fun apply i t T ts =
     let
@@ -288,11 +288,11 @@ fun intro_explicit_application ctxt funcs ts =
 
     fun traverse Ts t =
       (case Term.strip_comb t of
-        (q as Const (@{const_name All}, _), [Abs (x, T, u)]) =>
+        (q as Const (\<^const_name>\<open>All\<close>, _), [Abs (x, T, u)]) =>
           q $ Abs (x, T, in_trigger (T :: Ts) u)
-      | (q as Const (@{const_name Ex}, _), [Abs (x, T, u)]) =>
+      | (q as Const (\<^const_name>\<open>Ex\<close>, _), [Abs (x, T, u)]) =>
           q $ Abs (x, T, in_trigger (T :: Ts) u)
-      | (q as Const (@{const_name Let}, _), [u1, u2 as Abs _]) =>
+      | (q as Const (\<^const_name>\<open>Let\<close>, _), [u1, u2 as Abs _]) =>
           q $ traverse Ts u1 $ traverse Ts u2
       | (u as Const (c as (_, T)), ts) =>
           (case SMT_Builtin.dest_builtin ctxt c ts of
@@ -306,12 +306,12 @@ fun intro_explicit_application ctxt funcs ts =
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
-    and in_trigger Ts ((c as @{const trigger}) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
+    and in_trigger Ts ((c as \<^const>\<open>trigger\<close>) $ p $ t) = c $ in_pats Ts p $ traverse Ts t
       | in_trigger Ts t = traverse Ts t
     and in_pats Ts ps =
-      in_list @{typ "pattern symb_list"} (in_list @{typ pattern} (in_pat Ts)) ps
-    and in_pat Ts ((p as Const (@{const_name pat}, _)) $ t) = p $ traverse Ts t
-      | in_pat Ts ((p as Const (@{const_name nopat}, _)) $ t) = p $ traverse Ts t
+      in_list \<^typ>\<open>pattern symb_list\<close> (in_list \<^typ>\<open>pattern\<close> (in_pat Ts)) ps
+    and in_pat Ts ((p as Const (\<^const_name>\<open>pat\<close>, _)) $ t) = p $ traverse Ts t
+      | in_pat Ts ((p as Const (\<^const_name>\<open>nopat\<close>, _)) $ t) = p $ traverse Ts t
       | in_pat _ t = raise TERM ("bad pattern", [t])
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
   in map (traverse []) ts end
@@ -324,7 +324,7 @@ end
 (** map HOL formulas to FOL formulas (i.e., separate formulas froms terms) **)
 
 local
-  val is_quant = member (op =) [@{const_name All}, @{const_name Ex}]
+  val is_quant = member (op =) [\<^const_name>\<open>All\<close>, \<^const_name>\<open>Ex\<close>]
 
   val fol_rules = [
     Let_def,
@@ -343,9 +343,9 @@ fun folify ctxt =
 
     fun in_term pat t =
       (case Term.strip_comb t of
-        (@{const True}, []) => t
-      | (@{const False}, []) => t
-      | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
+        (\<^const>\<open>True\<close>, []) => t
+      | (\<^const>\<open>False\<close>, []) => t
+      | (u as Const (\<^const_name>\<open>If\<close>, _), [t1, t2, t3]) =>
           if pat then raise BAD_PATTERN () else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
       | (Const (c as (n, _)), ts) =>
           if is_builtin_conn_or_pred ctxt c ts orelse is_quant n then
@@ -355,16 +355,16 @@ fun folify ctxt =
       | (Free c, ts) => Term.list_comb (Free c, map (in_term pat) ts)
       | _ => t)
 
-    and in_pat ((p as Const (@{const_name pat}, _)) $ t) =
+    and in_pat ((p as Const (\<^const_name>\<open>pat\<close>, _)) $ t) =
           p $ in_term true t
-      | in_pat ((p as Const (@{const_name nopat}, _)) $ t) =
+      | in_pat ((p as Const (\<^const_name>\<open>nopat\<close>, _)) $ t) =
           p $ in_term true t
       | in_pat t = raise TERM ("bad pattern", [t])
 
     and in_pats ps =
-      in_list @{typ "pattern symb_list"} (SOME o in_list @{typ pattern} (try in_pat)) ps
+      in_list \<^typ>\<open>pattern symb_list\<close> (SOME o in_list \<^typ>\<open>pattern\<close> (try in_pat)) ps
 
-    and in_trigger ((c as @{const trigger}) $ p $ t) = c $ in_pats p $ in_form t
+    and in_trigger ((c as \<^const>\<open>trigger\<close>) $ p $ t) = c $ in_pats p $ in_form t
       | in_trigger t = in_form t
 
     and in_form t =
@@ -393,16 +393,16 @@ end
 (** utility functions **)
 
 val quantifier = (fn
-    @{const_name All} => SOME SForall
-  | @{const_name Ex} => SOME SExists
+    \<^const_name>\<open>All\<close> => SOME SForall
+  | \<^const_name>\<open>Ex\<close> => SOME SExists
   | _ => NONE)
 
 fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
       if q = qname then group_quant qname (T :: Ts) u else (Ts, t)
   | group_quant _ Ts t = (Ts, t)
 
-fun dest_pat (Const (@{const_name pat}, _) $ t) = (t, true)
-  | dest_pat (Const (@{const_name nopat}, _) $ t) = (t, false)
+fun dest_pat (Const (\<^const_name>\<open>pat\<close>, _) $ t) = (t, true)
+  | dest_pat (Const (\<^const_name>\<open>nopat\<close>, _) $ t) = (t, false)
   | dest_pat t = raise TERM ("bad pattern", [t])
 
 fun dest_pats [] = I
@@ -412,7 +412,7 @@ fun dest_pats [] = I
       | (ps, [false]) => cons (SNoPat ps)
       | _ => raise TERM ("bad multi-pattern", ts))
 
-fun dest_trigger (@{const trigger} $ tl $ t) =
+fun dest_trigger (\<^const>\<open>trigger\<close> $ tl $ t) =
       (rev (fold (dest_pats o SMT_Util.dest_symb_list) (SMT_Util.dest_symb_list tl) []), t)
   | dest_trigger t = ([], t)
 
@@ -501,17 +501,17 @@ fun translate ctxt smt_options comments ithms =
       ((empty_tr_context, ctxt), ts1)
       |-> (if null fp_kinds then no_dtyps else collect_co_datatypes fp_kinds)
 
-    fun is_binder (Const (@{const_name Let}, _) $ _) = true
+    fun is_binder (Const (\<^const_name>\<open>Let\<close>, _) $ _) = true
       | is_binder t = Lambda_Lifting.is_quantifier t
 
-    fun mk_trigger ((q as Const (@{const_name All}, _)) $ Abs (n, T, t)) =
+    fun mk_trigger ((q as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (n, T, t)) =
           q $ Abs (n, T, mk_trigger t)
-      | mk_trigger (eq as (Const (@{const_name HOL.eq}, T) $ lhs $ _)) =
-          Term.domain_type T --> @{typ pattern}
-          |> (fn T => Const (@{const_name pat}, T) $ lhs)
-          |> SMT_Util.mk_symb_list @{typ pattern} o single
-          |> SMT_Util.mk_symb_list @{typ "pattern symb_list"} o single
-          |> (fn t => @{const trigger} $ t $ eq)
+      | mk_trigger (eq as (Const (\<^const_name>\<open>HOL.eq\<close>, T) $ lhs $ _)) =
+          Term.domain_type T --> \<^typ>\<open>pattern\<close>
+          |> (fn T => Const (\<^const_name>\<open>pat\<close>, T) $ lhs)
+          |> SMT_Util.mk_symb_list \<^typ>\<open>pattern\<close> o single
+          |> SMT_Util.mk_symb_list \<^typ>\<open>pattern symb_list\<close> o single
+          |> (fn t => \<^const>\<open>trigger\<close> $ t $ eq)
       | mk_trigger t = t
 
     val (ctxt2, (ts3, ll_defs)) =

@@ -128,11 +128,11 @@ in
 
 val _ =
   Theory.setup
-   (Method.setup @{binding case_tac}
+   (Method.setup \<^binding>\<open>case_tac\<close>
       (Args.goal_spec -- Scan.lift (Args.embedded_inner_syntax -- Parse.for_fixes) -- opt_rule >>
         (fn ((quant, (s, xs)), r) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s xs r)))
       "unstructured case analysis on types" #>
-    Method.setup @{binding induct_tac}
+    Method.setup \<^binding>\<open>induct_tac\<close>
       (Args.goal_spec -- varss -- opt_rules >>
         (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt vs rs)))
       "unstructured induction on types");

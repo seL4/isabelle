@@ -28,23 +28,23 @@ ML_file "~~/src/Tools/eqsubst.ML"
 ML_file "~~/src/Provers/quantifier1.ML"
 ML_file "~~/src/Tools/atomize_elim.ML"
 ML_file "~~/src/Tools/cong_tac.ML"
-ML_file "~~/src/Tools/intuitionistic.ML" setup \<open>Intuitionistic.method_setup @{binding iprover}\<close>
+ML_file "~~/src/Tools/intuitionistic.ML" setup \<open>Intuitionistic.method_setup \<^binding>\<open>iprover\<close>\<close>
 ML_file "~~/src/Tools/project_rule.ML"
 ML_file "~~/src/Tools/subtyping.ML"
 ML_file "~~/src/Tools/case_product.ML"
 
 
-ML \<open>Plugin_Name.declare_setup @{binding extraction}\<close>
+ML \<open>Plugin_Name.declare_setup \<^binding>\<open>extraction\<close>\<close>
 
 ML \<open>
-  Plugin_Name.declare_setup @{binding quickcheck_random};
-  Plugin_Name.declare_setup @{binding quickcheck_exhaustive};
-  Plugin_Name.declare_setup @{binding quickcheck_bounded_forall};
-  Plugin_Name.declare_setup @{binding quickcheck_full_exhaustive};
-  Plugin_Name.declare_setup @{binding quickcheck_narrowing};
+  Plugin_Name.declare_setup \<^binding>\<open>quickcheck_random\<close>;
+  Plugin_Name.declare_setup \<^binding>\<open>quickcheck_exhaustive\<close>;
+  Plugin_Name.declare_setup \<^binding>\<open>quickcheck_bounded_forall\<close>;
+  Plugin_Name.declare_setup \<^binding>\<open>quickcheck_full_exhaustive\<close>;
+  Plugin_Name.declare_setup \<^binding>\<open>quickcheck_narrowing\<close>;
 \<close>
 ML \<open>
-  Plugin_Name.define_setup @{binding quickcheck}
+  Plugin_Name.define_setup \<^binding>\<open>quickcheck\<close>
    [@{plugin quickcheck_exhaustive},
     @{plugin quickcheck_random},
     @{plugin quickcheck_bounded_forall},
@@ -66,7 +66,7 @@ line of HOL systems) and later independently by Alexander Maletzky (for Isabelle
 
 subsubsection \<open>Core syntax\<close>
 
-setup \<open>Axclass.class_axiomatization (@{binding type}, [])\<close>
+setup \<open>Axclass.class_axiomatization (\<^binding>\<open>type\<close>, [])\<close>
 default_sort type
 setup \<open>Object_Logic.add_base_sort @{sort type}\<close>
 

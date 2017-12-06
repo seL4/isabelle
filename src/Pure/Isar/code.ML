@@ -1264,7 +1264,7 @@ fun print_codesetup thy =
 
 structure Codetype_Plugin = Plugin(type T = string);
 
-val codetype_plugin = Plugin_Name.declare_setup @{binding codetype};
+val codetype_plugin = Plugin_Name.declare_setup \<^binding>\<open>codetype\<close>;
 
 fun type_interpretation f =
   Codetype_Plugin.interpretation codetype_plugin
@@ -1539,7 +1539,7 @@ val _ = Theory.setup
       || Scan.succeed (code_attribute
           add_maybe_abs_eqn_liberal);
   in
-    Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
+    Attrib.setup \<^binding>\<open>code\<close> (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
   end);
 

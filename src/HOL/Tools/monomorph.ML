@@ -63,16 +63,16 @@ fun clear_grounds grounds = Symtab.map (K (K [])) grounds
 
 (* configuration options *)
 
-val max_rounds = Attrib.setup_config_int @{binding monomorph_max_rounds} (K 5)
+val max_rounds = Attrib.setup_config_int \<^binding>\<open>monomorph_max_rounds\<close> (K 5)
 
 val max_new_instances =
-  Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 500)
+  Attrib.setup_config_int \<^binding>\<open>monomorph_max_new_instances\<close> (K 500)
 
 val max_thm_instances =
-  Attrib.setup_config_int @{binding monomorph_max_thm_instances} (K 20)
+  Attrib.setup_config_int \<^binding>\<open>monomorph_max_thm_instances\<close> (K 20)
 
 val max_new_const_instances_per_round =
-  Attrib.setup_config_int @{binding monomorph_max_new_const_instances_per_round} (K 5)
+  Attrib.setup_config_int \<^binding>\<open>monomorph_max_new_const_instances_per_round\<close> (K 5)
 
 fun limit_rounds ctxt f =
   let

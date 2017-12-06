@@ -5,13 +5,8 @@ print "\\begin{supertabular}{ll\@{\\qquad}ll}\n";
 $eol = "&";
 
 while (<ARGV>) {
-    if (m/^\\newcommand\{\\(isasym|isactrl)([A-Za-z]+)\}/) {
-        if ($1 eq "isasym") {
-            print "\\verb,\\<$2>, & {\\isasym$2} $eol\n";
-        }
-        else {
-            print "\\verb,\\<^$2>, & {\\isactrl$2} $eol\n";
-        }
+    if (m/^\\newcommand\{\\isasym([A-Za-z]+)\}/) {
+        print "\\verb,\\<$1>, & {\\isasym$1} $eol\n";
         if ("$eol" eq "&") {
             $eol = "\\\\";
         } else {

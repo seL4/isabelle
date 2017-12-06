@@ -180,8 +180,8 @@ fun dest_builtin_fun ctxt (c as (_, T)) ts =
 
 fun dest_builtin_eq ctxt t u =
   let
-    val aT = TFree (Name.aT, @{sort type})
-    val c = (@{const_name HOL.eq}, aT --> aT --> @{typ bool})
+    val aT = TFree (Name.aT, \<^sort>\<open>type\<close>)
+    val c = (\<^const_name>\<open>HOL.eq\<close>, aT --> aT --> \<^typ>\<open>bool\<close>)
     fun mk ts = Term.list_comb (HOLogic.eq_const (Term.fastype_of (hd ts)), ts)
   in
     dest_builtin_fun ctxt c []
@@ -193,10 +193,10 @@ fun special_builtin_fun pred ctxt (c as (_, T)) ts =
     dest_builtin_fun ctxt c ts
   else NONE
 
-fun dest_builtin_pred ctxt = special_builtin_fun (equal @{typ bool} o fst) ctxt
+fun dest_builtin_pred ctxt = special_builtin_fun (equal \<^typ>\<open>bool\<close> o fst) ctxt
 
 fun dest_builtin_conn ctxt =
-  special_builtin_fun (forall (equal @{typ bool}) o (op ::)) ctxt
+  special_builtin_fun (forall (equal \<^typ>\<open>bool\<close>) o (op ::)) ctxt
 
 fun dest_builtin ctxt c ts =
   let val t = Term.list_comb (Const c, ts)

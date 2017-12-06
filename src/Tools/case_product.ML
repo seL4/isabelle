@@ -108,7 +108,7 @@ fun combine_annotated ctxt thm1 thm2 =
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding case_product}
+   (Attrib.setup \<^binding>\<open>case_product\<close>
       let
         fun combine_list ctxt = fold (fn x => fn y => combine_annotated ctxt y x)
       in

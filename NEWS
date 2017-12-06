@@ -78,6 +78,11 @@ visibility of commands via session options (e.g. in ROOT).
 tagged as "document" and visible by default. This avoids the application
 of option "document_tags" to these commands.
 
+* Isabelle names are mangled into LaTeX macro names to allow the full
+identifier syntax with underscore, prime, digits. This is relevant for
+antiquotations in control symbol notation, e.g. \<^const_name> becomes
+\isactrlconstUNDERSCOREname.
+
 
 *** HOL ***
 

@@ -21,9 +21,9 @@ in
 
 val _ =
   Theory.setup
-   (markdown_error @{binding item} #>
-    markdown_error @{binding enum} #>
-    markdown_error @{binding descr});
+   (markdown_error \<^binding>\<open>item\<close> #>
+    markdown_error \<^binding>\<open>enum\<close> #>
+    markdown_error \<^binding>\<open>descr\<close>);
 
 end;
 
@@ -32,10 +32,10 @@ end;
 
 val _ =
   Theory.setup
-   (Thy_Output.antiquotation @{binding noindent} (Scan.succeed ()) (K (K "\\noindent")) #>
-    Thy_Output.antiquotation @{binding smallskip} (Scan.succeed ()) (K (K "\\smallskip")) #>
-    Thy_Output.antiquotation @{binding medskip} (Scan.succeed ()) (K (K "\\medskip")) #>
-    Thy_Output.antiquotation @{binding bigskip} (Scan.succeed ()) (K (K "\\bigskip")));
+   (Thy_Output.antiquotation \<^binding>\<open>noindent\<close> (Scan.succeed ()) (K (K "\\noindent")) #>
+    Thy_Output.antiquotation \<^binding>\<open>smallskip\<close> (Scan.succeed ()) (K (K "\\smallskip")) #>
+    Thy_Output.antiquotation \<^binding>\<open>medskip\<close> (Scan.succeed ()) (K (K "\\medskip")) #>
+    Thy_Output.antiquotation \<^binding>\<open>bigskip\<close> (Scan.succeed ()) (K (K "\\bigskip")));
 
 
 (* control style *)
@@ -50,9 +50,9 @@ in
 
 val _ =
   Theory.setup
-   (control_antiquotation @{binding footnote} "\\footnote{" "}" #>
-    control_antiquotation @{binding emph} "\\emph{" "}" #>
-    control_antiquotation @{binding bold} "\\textbf{" "}");
+   (control_antiquotation \<^binding>\<open>footnote\<close> "\\footnote{" "}" #>
+    control_antiquotation \<^binding>\<open>emph\<close> "\\emph{" "}" #>
+    control_antiquotation \<^binding>\<open>bold\<close> "\\textbf{" "}");
 
 end;
 
@@ -72,8 +72,8 @@ in
 
 val _ =
   Theory.setup
-   (text_antiquotation @{binding text} #>
-    text_antiquotation @{binding cartouche});
+   (text_antiquotation \<^binding>\<open>text\<close> #>
+    text_antiquotation \<^binding>\<open>cartouche\<close>);
 
 end;
 
@@ -82,7 +82,7 @@ end;
 
 val _ =
   Theory.setup
-    (Thy_Output.antiquotation @{binding theory_text} (Scan.lift Args.text_input)
+    (Thy_Output.antiquotation \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
       (fn {context = ctxt, ...} => fn source =>
         let
           val _ =
@@ -122,8 +122,8 @@ fun goal_state name main = Thy_Output.antiquotation name (Scan.succeed ())
 in
 
 val _ = Theory.setup
- (goal_state @{binding goals} true #>
-  goal_state @{binding subgoals} false);
+ (goal_state \<^binding>\<open>goals\<close> true #>
+  goal_state \<^binding>\<open>subgoals\<close> false);
 
 end;
 
@@ -131,7 +131,7 @@ end;
 (* embedded lemma *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding lemma}
+  (Thy_Output.antiquotation \<^binding>\<open>lemma\<close>
     (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop --
       Scan.lift (Parse.position (Parse.reserved "by") -- Method.parse -- Scan.option Method.parse))
     (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
@@ -156,7 +156,7 @@ val _ = Theory.setup
 
 val _ =
   Theory.setup
-    (Thy_Output.antiquotation @{binding verbatim} (Scan.lift Args.text_input)
+    (Thy_Output.antiquotation \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
       (fn {context = ctxt, ...} => fn source =>
        (Context_Position.report ctxt (Input.pos_of source)
           (Markup.language_verbatim (Input.is_delimited source));
@@ -178,18 +178,18 @@ fun ml_enclose bg en source =
 in
 
 val _ = Theory.setup
- (ml_text @{binding ML} (ml_enclose "fn _ => (" ");") #>
-  ml_text @{binding ML_op} (ml_enclose "fn _ => (op " ");") #>
-  ml_text @{binding ML_type} (ml_enclose "val _ = NONE : (" ") option;") #>
-  ml_text @{binding ML_structure}
+ (ml_text \<^binding>\<open>ML\<close> (ml_enclose "fn _ => (" ");") #>
+  ml_text \<^binding>\<open>ML_op\<close> (ml_enclose "fn _ => (op " ");") #>
+  ml_text \<^binding>\<open>ML_type\<close> (ml_enclose "val _ = NONE : (" ") option;") #>
+  ml_text \<^binding>\<open>ML_structure\<close>
     (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
-  ml_text @{binding ML_functor}   (* FIXME formal treatment of functor name (!?) *)
+  ml_text \<^binding>\<open>ML_functor\<close>   (* FIXME formal treatment of functor name (!?) *)
     (fn source =>
       ML_Lex.read ("ML_Env.check_functor " ^
         ML_Syntax.print_string (Input.source_content source))) #>
 
-  ml_text @{binding ML_text} (K []));
+  ml_text \<^binding>\<open>ML_text\<close> (K []));
 
 end;
 
@@ -197,7 +197,7 @@ end;
 (* URLs *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding url} (Scan.lift (Parse.position Parse.embedded))
+  (Thy_Output.antiquotation \<^binding>\<open>url\<close> (Scan.lift (Parse.position Parse.embedded))
     (fn {context = ctxt, ...} => fn (name, pos) =>
       (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
        enclose "\\url{" "}" name)));
@@ -206,7 +206,7 @@ val _ = Theory.setup
 (* doc entries *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding doc} (Scan.lift (Parse.position Parse.embedded))
+  (Thy_Output.antiquotation \<^binding>\<open>doc\<close> (Scan.lift (Parse.position Parse.embedded))
     (fn {context = ctxt, ...} => fn (name, pos) =>
       (Context_Position.report ctxt pos (Markup.doc name);
         Thy_Output.output ctxt [Thy_Output.pretty_text ctxt name])));
@@ -220,11 +220,11 @@ fun entity_antiquotation name check output =
 
 val _ =
   Theory.setup
-   (entity_antiquotation @{binding command} Outer_Syntax.check_command
+   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command
      (enclose "\\isacommand{" "}" o Output.output) #>
-    entity_antiquotation @{binding method} Method.check_name
+    entity_antiquotation \<^binding>\<open>method\<close> Method.check_name
      (enclose "\\isa{" "}" o Output.output) #>
-    entity_antiquotation @{binding attribute} Attrib.check_name
+    entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name
      (enclose "\\isa{" "}" o Output.output));
 
 end;
