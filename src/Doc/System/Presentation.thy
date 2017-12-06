@@ -182,9 +182,9 @@ text \<open>
   pairs: ``\<^verbatim>\<open>+\<close>\<open>foo\<close>'' (or just ``\<open>foo\<close>'') means to keep, ``\<^verbatim>\<open>-\<close>\<open>foo\<close>'' to
   drop, and ``\<^verbatim>\<open>/\<close>\<open>foo\<close>'' to fold text tagged as \<open>foo\<close>. The builtin default is
   equivalent to the tag specification
-  ``\<^verbatim>\<open>+document,+theory,+proof,+ML,+visible,-invisible\<close>''; see also the {\LaTeX} macros
-  \<^verbatim>\<open>\isakeeptag\<close>, \<^verbatim>\<open>\isadroptag\<close>, and \<^verbatim>\<open>\isafoldtag\<close>, in
-  \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close>.
+  ``\<^verbatim>\<open>+document,+theory,+proof,+ML,+visible,-invisible,+important,+unimportant\<close>'';
+  see also the {\LaTeX} macros \<^verbatim>\<open>\isakeeptag\<close>, \<^verbatim>\<open>\isadroptag\<close>, and
+  \<^verbatim>\<open>\isafoldtag\<close>, in \<^file>\<open>~~/lib/texinputs/isabelle.sty\<close>.
 
   \<^medskip>
   Document preparation requires a \<^verbatim>\<open>document\<close> directory within the session
