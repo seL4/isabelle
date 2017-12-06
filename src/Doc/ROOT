@@ -1,5 +1,19 @@
 chapter Doc
 
+session Analysis (doc) in "../HOL/Analysis" = HOL +
+  options [document_variants = "analysis",
+    (*skip_proofs = true,*) quick_and_dirty,
+    document = pdf, document_output = "output",
+    document_variants = "document=-proof,-ML,+important,-unimportant",
+    document_tags = "unimportant"]
+  sessions
+    "HOL-Library"
+    "HOL-Computational_Algebra"
+  theories
+    Analysis
+  document_files
+    "root.tex"
+
 session Classes (doc) in "Classes" = HOL +
   options [document_variants = "classes", quick_and_dirty]
   theories [document = false] Setup
