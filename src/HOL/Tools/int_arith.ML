@@ -24,10 +24,10 @@ val zeroth = Thm.symmetric (mk_meta_eq @{thm of_int_0});
 
 val zero_to_of_int_zero_simproc =
   Simplifier.make_simproc @{context} "zero_to_of_int_zero_simproc"
-   {lhss = [@{term "0::'a::ring"}],
+   {lhss = [\<^term>\<open>0::'a::ring\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
-        if Thm.typ_of T = @{typ int} then NONE
+        if Thm.typ_of T = \<^typ>\<open>int\<close> then NONE
         else SOME (Thm.instantiate' [SOME T] [] zeroth)
       end};
 
@@ -35,20 +35,20 @@ val oneth = Thm.symmetric (mk_meta_eq @{thm of_int_1});
 
 val one_to_of_int_one_simproc =
   Simplifier.make_simproc @{context} "one_to_of_int_one_simproc"
-   {lhss = [@{term "1::'a::ring_1"}],
+   {lhss = [\<^term>\<open>1::'a::ring_1\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
-        if Thm.typ_of T = @{typ int} then NONE
+        if Thm.typ_of T = \<^typ>\<open>int\<close> then NONE
         else SOME (Thm.instantiate' [SOME T] [] oneth)
       end};
 
-fun check (Const (@{const_name Groups.one}, @{typ int})) = false
-  | check (Const (@{const_name Groups.one}, _)) = true
-  | check (Const (s, _)) = member (op =) [@{const_name HOL.eq},
-      @{const_name Groups.times}, @{const_name Groups.uminus},
-      @{const_name Groups.minus}, @{const_name Groups.plus},
-      @{const_name Groups.zero},
-      @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+fun check (Const (\<^const_name>\<open>Groups.one\<close>, \<^typ>\<open>int\<close>)) = false
+  | check (Const (\<^const_name>\<open>Groups.one\<close>, _)) = true
+  | check (Const (s, _)) = member (op =) [\<^const_name>\<open>HOL.eq\<close>,
+      \<^const_name>\<open>Groups.times\<close>, \<^const_name>\<open>Groups.uminus\<close>,
+      \<^const_name>\<open>Groups.minus\<close>, \<^const_name>\<open>Groups.plus\<close>,
+      \<^const_name>\<open>Groups.zero\<close>,
+      \<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>] s
   | check (a $ b) = check a andalso check b
   | check _ = false;
 
@@ -63,9 +63,9 @@ val conv_ss =
 val zero_one_idom_simproc =
   Simplifier.make_simproc @{context} "zero_one_idom_simproc"
    {lhss =
-      [@{term "(x::'a::ring_char_0) = y"},
-       @{term "(x::'a::linordered_idom) < y"},
-       @{term "(x::'a::linordered_idom) \<le> y"}],
+      [\<^term>\<open>(x::'a::ring_char_0) = y\<close>,
+       \<^term>\<open>(x::'a::linordered_idom) < y\<close>,
+       \<^term>\<open>(x::'a::linordered_idom) \<le> y\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       if check (Thm.term_of ct)
       then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
@@ -73,7 +73,7 @@ val zero_one_idom_simproc =
 
 
 fun number_of ctxt T n =
-  if not (Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort numeral}))
+  if not (Sign.of_sort (Proof_Context.theory_of ctxt) (T, \<^sort>\<open>numeral\<close>))
   then raise CTERM ("number_of", [])
   else Numeral.mk_cnumber (Thm.ctyp_of ctxt T) n;
 
@@ -85,7 +85,7 @@ val setup =
       [@{thm of_int_numeral}, @{thm nat_0}, @{thm nat_1}, @{thm diff_nat_numeral}, @{thm nat_numeral}]
   #> Lin_Arith.add_simprocs [zero_one_idom_simproc]
   #> Lin_Arith.set_number_of number_of
-  #> Lin_Arith.add_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT)
-  #> Lin_Arith.add_discrete_type @{type_name Int.int}
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, HOLogic.natT --> HOLogic.intT)
+  #> Lin_Arith.add_discrete_type \<^type_name>\<open>Int.int\<close>
 
 end;

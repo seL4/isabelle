@@ -70,7 +70,7 @@ fun mk_catchall fixes arity_of =
         val qs = map Free (Name.invent Name.context "a" n ~~ argTs)
       in
         HOLogic.mk_eq(list_comb (Free (fname, fT), qs),
-          Const (@{const_name undefined}, rT))
+          Const (\<^const_name>\<open>undefined\<close>, rT))
         |> HOLogic.mk_Trueprop
         |> fold_rev Logic.all qs
       end
@@ -171,7 +171,7 @@ fun add_fun_cmd a b c int = gen_add_fun (fn tac => Function.add_function_cmd a b
 
 
 val _ =
-  Outer_Syntax.local_theory' @{command_keyword fun}
+  Outer_Syntax.local_theory' \<^command_keyword>\<open>fun\<close>
     "define general recursive functions (short version)"
     (function_parser fun_config
       >> (fn (config, (fixes, specs)) => add_fun_cmd fixes specs config))

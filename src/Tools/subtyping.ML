@@ -882,7 +882,7 @@ fun coercion_infer_types ctxt raw_ts =
 
 (* term check *)
 
-val coercion_enabled = Attrib.setup_config_bool @{binding coercion_enabled} (K false);
+val coercion_enabled = Attrib.setup_config_bool \<^binding>\<open>coercion_enabled\<close> (K false);
 
 val _ =
   Theory.setup
@@ -1097,16 +1097,16 @@ val parse_coerce_args =
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding coercion}
+   (Attrib.setup \<^binding>\<open>coercion\<close>
       (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))
       "declaration of new coercions" #>
-    Attrib.setup @{binding coercion_delete}
+    Attrib.setup \<^binding>\<open>coercion_delete\<close>
       (Args.term >> (fn t => Thm.declaration_attribute (K (delete_coercion t))))
       "deletion of coercions" #>
-    Attrib.setup @{binding coercion_map}
+    Attrib.setup \<^binding>\<open>coercion_map\<close>
       (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
       "declaration of new map functions" #>
-    Attrib.setup @{binding coercion_args}
+    Attrib.setup \<^binding>\<open>coercion_args\<close>
       (Args.const {proper = false, strict = false} -- Scan.lift (Scan.repeat1 parse_coerce_args) >>
         (fn spec => Thm.declaration_attribute (K (map_coerce_args (Symtab.update spec)))))
       "declaration of new constants with coercion-invariant arguments");
@@ -1115,7 +1115,7 @@ val _ =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_coercions}
+  Outer_Syntax.command \<^command_keyword>\<open>print_coercions\<close>
     "print information about coercions"
     (Scan.succeed (Toplevel.keep (print_coercions o Toplevel.context_of)));
 

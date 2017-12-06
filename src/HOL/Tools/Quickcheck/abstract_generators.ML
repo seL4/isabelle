@@ -45,14 +45,14 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_r
       in (descr, vs, [tyco], name, ([name], []), ([Type (tyco, map TFree vs)], [])) end
     fun ensure_sort (sort, instantiate) =
       Quickcheck_Common.ensure_sort
-        (((@{sort typerep}, @{sort term_of}), sort), (the_descr, instantiate))
+        (((\<^sort>\<open>typerep\<close>, \<^sort>\<open>term_of\<close>), sort), (the_descr, instantiate))
         Old_Datatype_Aux.default_config [tyco]
   in
     thy
     |> ensure_sort
-        (@{sort full_exhaustive}, Exhaustive_Generators.instantiate_full_exhaustive_datatype)
-    |> ensure_sort (@{sort exhaustive}, Exhaustive_Generators.instantiate_exhaustive_datatype)
-    |> ensure_sort (@{sort random}, Random_Generators.instantiate_random_datatype)
+        (\<^sort>\<open>full_exhaustive\<close>, Exhaustive_Generators.instantiate_full_exhaustive_datatype)
+    |> ensure_sort (\<^sort>\<open>exhaustive\<close>, Exhaustive_Generators.instantiate_exhaustive_datatype)
+    |> ensure_sort (\<^sort>\<open>random\<close>, Random_Generators.instantiate_random_datatype)
     |> (case opt_pred of NONE => I
        | SOME t => Context.theory_map (Quickcheck_Common.register_predicate (t, tyco)))
   end
@@ -65,11 +65,11 @@ val quickcheck_generator_cmd =
     Syntax.read_term
 
 val _ =
-  Outer_Syntax.command @{command_keyword quickcheck_generator}
+  Outer_Syntax.command \<^command_keyword>\<open>quickcheck_generator\<close>
     "define quickcheck generators for abstract types"
     ((Parse.type_const --
-      Scan.option (Args.$$$ "predicate" |-- @{keyword ":"} |-- Parse.term)) --
-      (Args.$$$ "constructors" |-- @{keyword ":"} |-- Parse.list1 Parse.term)
+      Scan.option (Args.$$$ "predicate" |-- \<^keyword>\<open>:\<close> |-- Parse.term)) --
+      (Args.$$$ "constructors" |-- \<^keyword>\<open>:\<close> |-- Parse.list1 Parse.term)
       >> (fn ((tyco, opt_pred), constrs) =>
         Toplevel.theory (quickcheck_generator_cmd tyco opt_pred constrs)))
 

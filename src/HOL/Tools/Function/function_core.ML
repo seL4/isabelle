@@ -394,7 +394,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
     (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
     val ihyp = Logic.all_const domT $ Abs ("z", domT,
       Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
-        HOLogic.mk_Trueprop (Const (@{const_name Ex1}, (ranT --> boolT) --> boolT) $
+        HOLogic.mk_Trueprop (Const (\<^const_name>\<open>Ex1\<close>, (ranT --> boolT) --> boolT) $
           Abs ("y", ranT, G $ Bound 1 $ Bound 0))))
       |> Thm.cterm_of ctxt
 
@@ -494,7 +494,7 @@ fun define_function defname (fname, mixfix) domT ranT G default lthy =
       Thm.make_def_binding (Config.get lthy function_internals)
         (derived_name_suffix defname "_sumC")
     val f_def =
-      Abs ("x", domT, Const (@{const_name Fun_Def.THE_default}, ranT --> (ranT --> boolT) --> ranT)
+      Abs ("x", domT, Const (\<^const_name>\<open>Fun_Def.THE_default\<close>, ranT --> (ranT --> boolT) --> ranT)
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
@@ -777,10 +777,10 @@ fun mk_nest_term_rule ctxt globals R R_cases clauses =
     val R' = Free (Rn, fastype_of R)
 
     val Rrel = Free (Rn, HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
-    val inrel_R = Const (@{const_name Fun_Def.in_rel},
+    val inrel_R = Const (\<^const_name>\<open>Fun_Def.in_rel\<close>,
       HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
 
-    val wfR' = HOLogic.mk_Trueprop (Const (@{const_name Wellfounded.wfP},
+    val wfR' = HOLogic.mk_Trueprop (Const (\<^const_name>\<open>Wellfounded.wfP\<close>,
       (domT --> domT --> boolT) --> boolT) $ R')
       |> Thm.cterm_of ctxt' (* "wf R'" *)
 

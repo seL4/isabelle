@@ -275,8 +275,8 @@ val functor_ = gen_functor Syntax.check_term;
 val functor_cmd = gen_functor Syntax.read_term;
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword functor}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>functor\<close>
     "register operations managing the functorial structure of a type"
-    (Scan.option (Parse.name --| @{keyword ":"}) -- Parse.term >> uncurry functor_cmd);
+    (Scan.option (Parse.name --| \<^keyword>\<open>:\<close>) -- Parse.term >> uncurry functor_cmd);
 
 end;

@@ -140,7 +140,7 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
   end
 
 fun mk_wf R (IndScheme {T, ...}) =
-  HOLogic.Trueprop $ (Const (@{const_name wf}, mk_relT T --> HOLogic.boolT) $ R)
+  HOLogic.Trueprop $ (Const (\<^const_name>\<open>wf\<close>, mk_relT T --> HOLogic.boolT) $ R)
 
 fun mk_ineqs R thesisn (IndScheme {T, cases, branches}) =
   let
@@ -215,7 +215,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     val ihyp = Logic.all_const T $ Abs ("z", T,
       Logic.mk_implies
         (HOLogic.mk_Trueprop (
-          Const (@{const_name Set.member}, HOLogic.mk_prodT (T, T) --> mk_relT T --> HOLogic.boolT) 
+          Const (\<^const_name>\<open>Set.member\<close>, HOLogic.mk_prodT (T, T) --> mk_relT T --> HOLogic.boolT) 
           $ (HOLogic.pair_const T T $ Bound 0 $ x)
           $ R),
          HOLogic.mk_Trueprop (P_comp $ Bound 0)))

@@ -27,13 +27,13 @@ struct
 
 (** abstract syntax **)
 
-fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit \<Rightarrow> term"})
-val size = @{term "i::natural"};
-val size_pred = @{term "(i::natural) - 1"};
-val size' = @{term "j::natural"};
-val seed = @{term "s::Random.seed"};
+fun termifyT T = HOLogic.mk_prodT (T, \<^typ>\<open>unit \<Rightarrow> term\<close>)
+val size = \<^term>\<open>i::natural\<close>;
+val size_pred = \<^term>\<open>(i::natural) - 1\<close>;
+val size' = \<^term>\<open>j::natural\<close>;
+val seed = \<^term>\<open>s::Random.seed\<close>;
 
-val resultT =  @{typ "(bool \<times> term list) option"};
+val resultT =  \<^typ>\<open>(bool \<times> term list) option\<close>;
 
 
 (** typ "'a \<Rightarrow> 'b" **)
@@ -42,7 +42,7 @@ type seed = Random_Engine.seed;
 
 fun random_fun T1 T2 eq term_of random random_split seed =
   let
-    val fun_upd = Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
+    val fun_upd = Const (\<^const_name>\<open>fun_upd\<close>, (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
     val ((_, t2), seed') = random seed;
     val (seed'', seed''') = random_split seed';
 
@@ -96,8 +96,8 @@ fun random_aux_primrec eq lthy =
     val inst = Thm.instantiate_cterm ([(a_v, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
-    val eqs0 = [subst_v @{term "0::natural"} eq,
-      subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
+    val eqs0 = [subst_v \<^term>\<open>0::natural\<close> eq,
+      subst_v (\<^const>\<open>Code_Numeral.Suc\<close> $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, (_, eqs2)), lthy') = lthy
       |> BNF_LFP_Compat.primrec_simple
@@ -134,8 +134,8 @@ fun random_aux_primrec_multi auxname [eq] lthy =
           (aux_lhs, foldr1 HOLogic.mk_prod rhss);
         fun mk_proj t [T] = [t]
           | mk_proj t (Ts as T :: (Ts' as _ :: _)) =
-              Const (@{const_name fst}, foldr1 HOLogic.mk_prodT Ts --> T) $ t
-                :: mk_proj (Const (@{const_name snd},
+              Const (\<^const_name>\<open>fst\<close>, foldr1 HOLogic.mk_prodT Ts --> T) $ t
+                :: mk_proj (Const (\<^const_name>\<open>snd\<close>,
                   foldr1 HOLogic.mk_prodT Ts --> foldr1 HOLogic.mk_prodT Ts') $ t) Ts';
         val projs = mk_proj (aux_lhs) Ts;
         val proj_eqs = map2 (fn v => fn proj => (v, lambda arg proj)) vs projs;
@@ -193,9 +193,9 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
     val mk_const = curry (Sign.mk_const thy);
     val random_auxsN = map (prefix (random_auxN ^ "_")) (names @ auxnames);
     val rTs = Ts @ Us;
-    fun random_resultT T = @{typ Random.seed}
-      --> HOLogic.mk_prodT (termifyT T,@{typ Random.seed});
-    fun sizeT T = @{typ natural} --> @{typ natural} --> T;
+    fun random_resultT T = \<^typ>\<open>Random.seed\<close>
+      --> HOLogic.mk_prodT (termifyT T,\<^typ>\<open>Random.seed\<close>);
+    fun sizeT T = \<^typ>\<open>natural\<close> --> \<^typ>\<open>natural\<close> --> T;
     val random_auxT = sizeT o random_resultT;
     val random_auxs = map2 (fn s => fn rT => Free (s, random_auxT rT))
       random_auxsN rTs;
@@ -205,7 +205,7 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
         val T = Type (tyco, Ts);
         fun mk_random_fun_lift [] t = t
           | mk_random_fun_lift (fT :: fTs) t =
-              mk_const @{const_name random_fun_lift} [fTs ---> T, fT] $
+              mk_const \<^const_name>\<open>random_fun_lift\<close> [fTs ---> T, fT] $
                 mk_random_fun_lift fTs t;
         val t = mk_random_fun_lift fTs (nth random_auxs k $ size_pred $ size');
         val size = Option.map snd (Old_Datatype_Aux.find_shortest_path descr k)
@@ -221,16 +221,16 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
         val is_rec = exists is_some ks;
         val k = fold (fn NONE => I | SOME k => Integer.max k) ks 0;
         val vs = Name.invent_names Name.context "x" (map snd simple_tTs);
-        val tc = HOLogic.mk_return T @{typ Random.seed}
+        val tc = HOLogic.mk_return T \<^typ>\<open>Random.seed\<close>
           (HOLogic.mk_valtermify_app c vs simpleT);
         val t = HOLogic.mk_ST
-          (map2 (fn (t, _) => fn (v, T') => ((t, @{typ Random.seed}), SOME ((v, termifyT T')))) tTs vs)
-            tc @{typ Random.seed} (SOME T, @{typ Random.seed});
+          (map2 (fn (t, _) => fn (v, T') => ((t, \<^typ>\<open>Random.seed\<close>), SOME ((v, termifyT T')))) tTs vs)
+            tc \<^typ>\<open>Random.seed\<close> (SOME T, \<^typ>\<open>Random.seed\<close>);
         val tk = if is_rec
           then if k = 0 then size
-            else @{term "Quickcheck_Random.beyond :: natural \<Rightarrow> natural \<Rightarrow> natural"}
-             $ HOLogic.mk_number @{typ natural} k $ size
-          else @{term "1::natural"}
+            else \<^term>\<open>Quickcheck_Random.beyond :: natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+             $ HOLogic.mk_number \<^typ>\<open>natural\<close> k $ size
+          else \<^term>\<open>1::natural\<close>
       in (is_rec, HOLogic.mk_prod (tk, t)) end;
     fun sort_rec xs =
       map_filter (fn (true, t) => SOME t | _ =>  NONE) xs
@@ -239,9 +239,9 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
       |> (map o apfst) Type
       |> map (fn (T, cs) => (T, (sort_rec o map (mk_consexpr T)) cs));
     fun mk_select (rT, xs) =
-      mk_const @{const_name Quickcheck_Random.collapse} [@{typ Random.seed}, termifyT rT]
-      $ (mk_const @{const_name Random.select_weight} [random_resultT rT]
-        $ HOLogic.mk_list (HOLogic.mk_prodT (@{typ natural}, random_resultT rT)) xs)
+      mk_const \<^const_name>\<open>Quickcheck_Random.collapse\<close> [\<^typ>\<open>Random.seed\<close>, termifyT rT]
+      $ (mk_const \<^const_name>\<open>Random.select_weight\<close> [random_resultT rT]
+        $ HOLogic.mk_list (HOLogic.mk_prodT (\<^typ>\<open>natural\<close>, random_resultT rT)) xs)
           $ seed;
     val auxs_lhss = map (fn t => t $ size $ size' $ seed) random_auxs;
     val auxs_rhss = map mk_select gen_exprss;
@@ -253,8 +253,8 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
     fun mk_size_arg k = case Old_Datatype_Aux.find_shortest_path descr k
      of SOME (_, l) => if l = 0 then size
-          else @{term "max :: natural \<Rightarrow> natural \<Rightarrow> natural"}
-            $ HOLogic.mk_number @{typ natural} l $ size
+          else \<^term>\<open>max :: natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+            $ HOLogic.mk_number \<^typ>\<open>natural\<close> l $ size
       | NONE => size;
     val (random_auxs, auxs_eqs) = (apsnd o map) mk_prop_eq
       (mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us));
@@ -262,7 +262,7 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
       (HOLogic.mk_random T size, nth random_auxs k $ mk_size_arg k $ size)) Ts;
   in
     thy
-    |> Class.instantiation (tycos, vs, @{sort random})
+    |> Class.instantiation (tycos, vs, \<^sort>\<open>random\<close>)
     |> random_aux_specification prfx random_auxN auxs_eqs
     |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
     |-> (fn random_defs' => fold_map (fn random_def =>
@@ -305,88 +305,88 @@ fun mk_generator_expr ctxt (t, _) =
     val bounds = map_index (fn (i, ty) =>
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
     val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
-    val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
+    val terms = HOLogic.mk_list \<^typ>\<open>term\<close> (map (fn (_, i, _, _) => Bound i $ \<^term>\<open>()\<close>) bounds);
     val ([genuine_only_name], _) = Variable.variant_fixes ["genuine_only"] ctxt
-    val genuine_only = Free (genuine_only_name, @{typ bool})
-    val none_t = Const (@{const_name "None"}, resultT)
+    val genuine_only = Free (genuine_only_name, \<^typ>\<open>bool\<close>)
+    val none_t = Const (\<^const_name>\<open>None\<close>, resultT)
     val check = Quickcheck_Common.mk_safe_if genuine_only none_t (result, none_t,
-      fn genuine => @{term "Some :: bool * term list => (bool * term list) option"} $
+      fn genuine => \<^term>\<open>Some :: bool \<times> term list => (bool \<times> term list) option\<close> $
         HOLogic.mk_prod (Quickcheck_Common.reflect_bool genuine, terms))
-    val return = HOLogic.pair_const resultT @{typ Random.seed};
+    val return = HOLogic.pair_const resultT \<^typ>\<open>Random.seed\<close>;
     fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
-    fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
-    fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
+    fun mk_termtyp T = HOLogic.mk_prodT (T, \<^typ>\<open>unit \<Rightarrow> term\<close>);
+    fun mk_scomp T1 T2 sT f g = Const (\<^const_name>\<open>scomp\<close>,
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_case_prod T = Sign.mk_const thy
-      (@{const_name case_prod}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
+      (\<^const_name>\<open>case_prod\<close>, [T, \<^typ>\<open>unit \<Rightarrow> term\<close>, liftT resultT \<^typ>\<open>Random.seed\<close>]);
     fun mk_scomp_split T t t' =
-      mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
-        (mk_case_prod T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
+      mk_scomp (mk_termtyp T) resultT \<^typ>\<open>Random.seed\<close> t
+        (mk_case_prod T $ Abs ("", T, Abs ("", \<^typ>\<open>unit => term\<close>, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
-      (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
+      (Sign.mk_const thy (\<^const_name>\<open>Quickcheck_Random.random\<close>, [T]) $ Bound i);
   in
     lambda genuine_only
-      (Abs ("n", @{typ natural}, fold_rev mk_bindclause bounds (return $ check true)))
+      (Abs ("n", \<^typ>\<open>natural\<close>, fold_rev mk_bindclause bounds (return $ check true)))
   end;
 
 fun mk_reporting_generator_expr ctxt (t, _) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val resultT = @{typ "(bool * term list) option * (bool list * bool)"}
+    val resultT = \<^typ>\<open>(bool \<times> term list) option \<times> (bool list \<times> bool)\<close>
     val prop = fold_rev absfree (Term.add_frees t []) t
     val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1
     val bounds = map_index (fn (i, ty) =>
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
     val prop' = betapplys (prop, map (fn (i, _, _, _) => Bound i) bounds);
-    val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds)
+    val terms = HOLogic.mk_list \<^typ>\<open>term\<close> (map (fn (_, i, _, _) => Bound i $ \<^term>\<open>()\<close>) bounds)
     val (assms, concl) = Quickcheck_Common.strip_imp prop'
-    val return = HOLogic.pair_const resultT @{typ Random.seed};
+    val return = HOLogic.pair_const resultT \<^typ>\<open>Random.seed\<close>;
     fun mk_assms_report i =
-      HOLogic.mk_prod (@{term "None :: (bool * term list) option"},
+      HOLogic.mk_prod (\<^term>\<open>None :: (bool \<times> term list) option\<close>,
         HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT
-          (replicate i @{term True} @ replicate (length assms - i) @{term False}),
-        @{term False}))
+          (replicate i \<^term>\<open>True\<close> @ replicate (length assms - i) \<^term>\<open>False\<close>),
+        \<^term>\<open>False\<close>))
     fun mk_concl_report b =
-      HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT (replicate (length assms) @{term True}),
+      HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT (replicate (length assms) \<^term>\<open>True\<close>),
         Quickcheck_Common.reflect_bool b)
     val ([genuine_only_name], _) = Variable.variant_fixes ["genuine_only"] ctxt
-    val genuine_only = Free (genuine_only_name, @{typ bool})
-    val none_t = HOLogic.mk_prod (@{term "None :: (bool * term list) option"}, mk_concl_report true)
+    val genuine_only = Free (genuine_only_name, \<^typ>\<open>bool\<close>)
+    val none_t = HOLogic.mk_prod (\<^term>\<open>None :: (bool \<times> term list) option\<close>, mk_concl_report true)
     val concl_check = Quickcheck_Common.mk_safe_if genuine_only none_t (concl, none_t,
-      fn genuine => HOLogic.mk_prod (@{term "Some :: bool * term list => (bool * term list) option"} $
+      fn genuine => HOLogic.mk_prod (\<^term>\<open>Some :: bool \<times> term list => (bool \<times> term list) option\<close> $
         HOLogic.mk_prod (Quickcheck_Common.reflect_bool genuine, terms), mk_concl_report false))
     val check = fold_rev (fn (i, assm) => fn t => Quickcheck_Common.mk_safe_if genuine_only
       (mk_assms_report i) (HOLogic.mk_not assm, mk_assms_report i, t))
       (map_index I assms) concl_check
     fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
-    fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
-    fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
+    fun mk_termtyp T = HOLogic.mk_prodT (T, \<^typ>\<open>unit \<Rightarrow> term\<close>);
+    fun mk_scomp T1 T2 sT f g = Const (\<^const_name>\<open>scomp\<close>,
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_case_prod T = Sign.mk_const thy
-      (@{const_name case_prod}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
+      (\<^const_name>\<open>case_prod\<close>, [T, \<^typ>\<open>unit \<Rightarrow> term\<close>, liftT resultT \<^typ>\<open>Random.seed\<close>]);
     fun mk_scomp_split T t t' =
-      mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
-        (mk_case_prod T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
+      mk_scomp (mk_termtyp T) resultT \<^typ>\<open>Random.seed\<close> t
+        (mk_case_prod T $ Abs ("", T, Abs ("", \<^typ>\<open>unit \<Rightarrow> term\<close>, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
-      (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
+      (Sign.mk_const thy (\<^const_name>\<open>Quickcheck_Random.random\<close>, [T]) $ Bound i);
   in
     lambda genuine_only
-      (Abs ("n", @{typ natural}, fold_rev mk_bindclause bounds (return $ check true)))
+      (Abs ("n", \<^typ>\<open>natural\<close>, fold_rev mk_bindclause bounds (return $ check true)))
   end
 
 val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_generator_expr, 
-    absdummy @{typ bool} (absdummy @{typ natural}
-      @{term "Pair None :: Random.seed => (bool * term list) option * Random.seed"})),
-    @{typ "bool => natural => Random.seed => (bool * term list) option * Random.seed"})
+    absdummy \<^typ>\<open>bool\<close> (absdummy \<^typ>\<open>natural\<close>
+      \<^term>\<open>Pair None :: Random.seed \<Rightarrow> (bool \<times> term list) option \<times> Random.seed\<close>)),
+    \<^typ>\<open>bool \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> (bool \<times> term list) option \<times> Random.seed\<close>)
 
 val mk_parametric_reporting_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_reporting_generator_expr,
-    absdummy @{typ bool} (absdummy @{typ natural}
-      @{term "Pair (None, ([], False)) :: Random.seed =>
-        ((bool * term list) option * (bool list * bool)) * Random.seed"})),
-    @{typ "bool => natural => Random.seed => ((bool * term list) option * (bool list * bool)) * Random.seed"})
+    absdummy \<^typ>\<open>bool\<close> (absdummy \<^typ>\<open>natural\<close>
+      \<^term>\<open>Pair (None, ([], False)) :: Random.seed \<Rightarrow>
+        ((bool \<times> term list) option \<times> (bool list \<times> bool)) \<times> Random.seed\<close>)),
+    \<^typ>\<open>bool \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> ((bool \<times> term list) option \<times> (bool list \<times> bool)) \<times> Random.seed\<close>)
     
     
 (* single quickcheck report *)
@@ -468,8 +468,8 @@ fun compile_generator_expr ctxt ts =
     compiled genuine_only [Code_Numeral.natural_of_integer card, Code_Numeral.natural_of_integer size]
   end;
 
-val size_types = [@{type_name Enum.finite_1}, @{type_name Enum.finite_2},
-  @{type_name Enum.finite_3}, @{type_name Enum.finite_4}, @{type_name Enum.finite_5}];
+val size_types = [\<^type_name>\<open>Enum.finite_1\<close>, \<^type_name>\<open>Enum.finite_2\<close>,
+  \<^type_name>\<open>Enum.finite_3\<close>, \<^type_name>\<open>Enum.finite_4\<close>, \<^type_name>\<open>Enum.finite_5\<close>];
 
 fun size_matters_for _ Ts =
   not (forall (fn Type (tyco, []) => member (op =) size_types tyco | _ => false) Ts);
@@ -480,12 +480,12 @@ val test_goals =
   
 (** setup **)
 
-val active = Attrib.setup_config_bool @{binding quickcheck_random_active} (K false);
+val active = Attrib.setup_config_bool \<^binding>\<open>quickcheck_random_active\<close> (K false);
 
 val _ =
   Theory.setup
-   (Quickcheck_Common.datatype_interpretation @{plugin quickcheck_random}
-      (@{sort random}, instantiate_random_datatype) #>
+   (Quickcheck_Common.datatype_interpretation \<^plugin>\<open>quickcheck_random\<close>
+      (\<^sort>\<open>random\<close>, instantiate_random_datatype) #>
     Context.theory_map (Quickcheck.add_tester ("random", (active, test_goals))));
 
 end;

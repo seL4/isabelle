@@ -33,8 +33,8 @@ val unknownN = "none";
 
 (* preferences *)
 
-val max_solutions = Attrib.setup_config_int @{binding solve_direct_max_solutions} (K 5);
-val strict_warnings = Attrib.setup_config_bool @{binding solve_direct_strict_warnings} (K false);
+val max_solutions = Attrib.setup_config_int \<^binding>\<open>solve_direct_max_solutions\<close> (K 5);
+val strict_warnings = Attrib.setup_config_bool \<^binding>\<open>solve_direct_strict_warnings\<close> (K false);
 
 
 (* solve_direct command *)
@@ -90,7 +90,7 @@ fun do_solve_direct mode state =
 val solve_direct = do_solve_direct Normal
 
 val _ =
-  Outer_Syntax.command @{command_keyword solve_direct}
+  Outer_Syntax.command \<^command_keyword>\<open>solve_direct\<close>
     "try to solve conjectures directly with existing theorems"
     (Scan.succeed (Toplevel.keep_proof (ignore o solve_direct o Toplevel.proof_of)));
 

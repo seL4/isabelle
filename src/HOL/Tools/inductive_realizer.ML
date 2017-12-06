@@ -515,7 +515,7 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
       | SOME (SOME sets') => subtract (op =) sets' sets)
   end I);
 
-val _ = Theory.setup (Attrib.setup @{binding ind_realizer}
+val _ = Theory.setup (Attrib.setup \<^binding>\<open>ind_realizer\<close>
   ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
     Scan.option (Scan.lift (Args.colon) |--
       Scan.repeat1 (Args.const {proper = true, strict = true})))) >> rlz_attrib)

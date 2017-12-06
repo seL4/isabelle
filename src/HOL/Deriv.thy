@@ -51,7 +51,7 @@ setup \<open>
     fun eq_rule thm = get_first (try (fn eq_thm => eq_thm OF [thm])) eq_thms
   in
     Global_Theory.add_thms_dynamic
-      (@{binding derivative_eq_intros},
+      (\<^binding>\<open>derivative_eq_intros\<close>,
         fn context =>
           Named_Theorems.get (Context.proof_of context) @{named_theorems derivative_intros}
           |> map_filter eq_rule)

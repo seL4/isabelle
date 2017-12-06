@@ -106,7 +106,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
     context
     |> Data.map (map_solvers (Symtab.update (name, (info, []))))
     |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
-        (Scan.lift (@{keyword "="} |-- Args.name) >>
+        (Scan.lift (\<^keyword>\<open>=\<close> |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
         ("additional command line options for SMT solver " ^ quote name))
 
@@ -164,30 +164,30 @@ fun solver_options_of ctxt =
   in solver_info_of (K []) all_options ctxt end
 
 val setup_solver =
-  Attrib.setup @{binding smt_solver}
-    (Scan.lift (@{keyword "="} |-- Args.name) >>
+  Attrib.setup \<^binding>\<open>smt_solver\<close>
+    (Scan.lift (\<^keyword>\<open>=\<close> |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration"
 
 
 (* options *)
 
-val oracle = Attrib.setup_config_bool @{binding smt_oracle} (K true)
-val timeout = Attrib.setup_config_real @{binding smt_timeout} (K 30.0)
-val reconstruction_step_timeout = Attrib.setup_config_real @{binding smt_reconstruction_step_timeout} (K 10.0)
-val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
-val read_only_certificates = Attrib.setup_config_bool @{binding smt_read_only_certificates} (K false)
-val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
-val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
-val statistics = Attrib.setup_config_bool @{binding smt_statistics} (K false)
-val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
-val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
-val explicit_application = Attrib.setup_config_int @{binding smt_explicit_application} (K 1)
-val higher_order = Attrib.setup_config_bool @{binding smt_higher_order} (K false)
-val nat_as_int = Attrib.setup_config_bool @{binding smt_nat_as_int} (K false)
-val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
-val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
-val sat_solver = Attrib.setup_config_string @{binding smt_sat_solver} (K "cdclite")
+val oracle = Attrib.setup_config_bool \<^binding>\<open>smt_oracle\<close> (K true)
+val timeout = Attrib.setup_config_real \<^binding>\<open>smt_timeout\<close> (K 30.0)
+val reconstruction_step_timeout = Attrib.setup_config_real \<^binding>\<open>smt_reconstruction_step_timeout\<close> (K 10.0)
+val random_seed = Attrib.setup_config_int \<^binding>\<open>smt_random_seed\<close> (K 1)
+val read_only_certificates = Attrib.setup_config_bool \<^binding>\<open>smt_read_only_certificates\<close> (K false)
+val verbose = Attrib.setup_config_bool \<^binding>\<open>smt_verbose\<close> (K true)
+val trace = Attrib.setup_config_bool \<^binding>\<open>smt_trace\<close> (K false)
+val statistics = Attrib.setup_config_bool \<^binding>\<open>smt_statistics\<close> (K false)
+val monomorph_limit = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_limit\<close> (K 10)
+val monomorph_instances = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_instances\<close> (K 500)
+val explicit_application = Attrib.setup_config_int \<^binding>\<open>smt_explicit_application\<close> (K 1)
+val higher_order = Attrib.setup_config_bool \<^binding>\<open>smt_higher_order\<close> (K false)
+val nat_as_int = Attrib.setup_config_bool \<^binding>\<open>smt_nat_as_int\<close> (K false)
+val infer_triggers = Attrib.setup_config_bool \<^binding>\<open>smt_infer_triggers\<close> (K false)
+val debug_files = Attrib.setup_config_string \<^binding>\<open>smt_debug_files\<close> (K "")
+val sat_solver = Attrib.setup_config_string \<^binding>\<open>smt_sat_solver\<close> (K "cdclite")
 
 
 (* diagnostics *)
@@ -222,8 +222,8 @@ fun select_certificates name context = context |> Data.map (put_certs (
     |> SOME o Cache_IO.unsynchronized_init))
 
 val setup_certificates =
-  Attrib.setup @{binding smt_certificates}
-    (Scan.lift (@{keyword "="} |-- Args.name) >>
+  Attrib.setup \<^binding>\<open>smt_certificates\<close>
+    (Scan.lift (\<^keyword>\<open>=\<close> |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
     "SMT certificates configuration"
 
@@ -263,7 +263,7 @@ fun print_setup ctxt =
   end
 
 val _ =
-  Outer_Syntax.command @{command_keyword smt_status}
+  Outer_Syntax.command \<^command_keyword>\<open>smt_status\<close>
     "show the available SMT solvers, the currently selected SMT solver, \
     \and the values of SMT configuration options"
     (Scan.succeed (Toplevel.keep (print_setup o Toplevel.context_of)))

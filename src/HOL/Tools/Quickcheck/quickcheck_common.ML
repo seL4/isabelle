@@ -56,12 +56,12 @@ val define_foundationally = false
 
 (* HOLogic's term functions *)
 
-fun strip_imp (Const(@{const_name HOL.implies}, _) $ A $ B) = apfst (cons A) (strip_imp B)
+fun strip_imp (Const(\<^const_name>\<open>HOL.implies\<close>, _) $ A $ B) = apfst (cons A) (strip_imp B)
   | strip_imp A = ([], A)
 
-fun reflect_bool b = if b then @{term True} else @{term False}
+fun reflect_bool b = if b then \<^term>\<open>True\<close> else \<^term>\<open>False\<close>
 
-fun mk_undefined T = Const (@{const_name undefined}, T)
+fun mk_undefined T = Const (\<^const_name>\<open>undefined\<close>, T)
 
 
 (* testing functions: testing with increasing sizes (and cardinalities) *)
@@ -210,8 +210,8 @@ fun test_term_with_cardinality (name, (size_matters_for, compile)) ctxt catch_co
 
 fun get_finite_types ctxt =
   fst (chop (Config.get ctxt Quickcheck.finite_type_size)
-    [@{typ Enum.finite_1}, @{typ Enum.finite_2}, @{typ Enum.finite_3},
-     @{typ Enum.finite_4}, @{typ Enum.finite_5}])
+    [\<^typ>\<open>Enum.finite_1\<close>, \<^typ>\<open>Enum.finite_2\<close>, \<^typ>\<open>Enum.finite_3\<close>,
+     \<^typ>\<open>Enum.finite_4\<close>, \<^typ>\<open>Enum.finite_5\<close>])
 
 exception WELLSORTED of string
 
@@ -233,7 +233,7 @@ datatype wellsorted_error = Wellsorted_Error of string | Term of term * term lis
 
 (* minimalistic preprocessing *)
 
-fun strip_all (Const (@{const_name HOL.All}, _) $ Abs (a, T, t)) =
+fun strip_all (Const (\<^const_name>\<open>HOL.All\<close>, _) $ Abs (a, T, t)) =
       let val (a', t') = strip_all t
       in ((a, T) :: a', t') end
   | strip_all t = ([], t)
@@ -315,9 +315,9 @@ fun instantiate_goals ctxt insts goals =
 fun mk_safe_if genuine_only none (cond, then_t, else_t) genuine =
   let
     val T = fastype_of then_t
-    val if_t = Const (@{const_name If}, @{typ bool} --> T --> T --> T)
+    val if_t = Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T --> T --> T)
   in
-    Const (@{const_name "Quickcheck_Random.catch_match"}, T --> T --> T) $
+    Const (\<^const_name>\<open>Quickcheck_Random.catch_match\<close>, T --> T --> T) $
       (if_t $ cond $ then_t $ else_t genuine) $
       (if_t $ genuine_only $ none $ else_t false)
   end
@@ -429,7 +429,7 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
     end)
 
 fun ensure_common_sort_datatype (sort, instantiate) =
-  ensure_sort (((@{sort typerep}, @{sort term_of}), sort),
+  ensure_sort (((\<^sort>\<open>typerep\<close>, \<^sort>\<open>term_of\<close>), sort),
     (fn thy => BNF_LFP_Compat.the_descr thy compat_prefs, instantiate))
 
 fun datatype_interpretation name =
@@ -440,20 +440,20 @@ fun datatype_interpretation name =
 
 fun gen_mk_parametric_generator_expr ((mk_generator_expr, out_of_bounds), T) ctxt ts =
   let
-    val if_t = Const (@{const_name If}, @{typ bool} --> T --> T --> T)
+    val if_t = Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T --> T --> T)
     fun mk_if (index, (t, eval_terms)) else_t =
-      if_t $ (HOLogic.eq_const @{typ natural} $ Bound 0 $ HOLogic.mk_number @{typ natural} index) $
+      if_t $ (HOLogic.eq_const \<^typ>\<open>natural\<close> $ Bound 0 $ HOLogic.mk_number \<^typ>\<open>natural\<close> index) $
         (mk_generator_expr ctxt (t, eval_terms)) $ else_t
-  in absdummy @{typ natural} (fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds) end
+  in absdummy \<^typ>\<open>natural\<close> (fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds) end
 
 
 (** post-processing of function terms **)
 
-fun dest_fun_upd (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) = (t0, (t1, t2))
+fun dest_fun_upd (Const (\<^const_name>\<open>fun_upd\<close>, _) $ t0 $ t1 $ t2) = (t0, (t1, t2))
   | dest_fun_upd t = raise TERM ("dest_fun_upd", [t])
 
 fun mk_fun_upd T1 T2 (t1, t2) t =
-  Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2) $ t $ t1 $ t2
+  Const (\<^const_name>\<open>fun_upd\<close>, (T1 --> T2) --> T1 --> T2 --> T1 --> T2) $ t $ t1 $ t2
 
 fun dest_fun_upds t =
   (case try dest_fun_upd t of
@@ -465,26 +465,26 @@ fun dest_fun_upds t =
 
 fun make_fun_upds T1 T2 (tps, t) = fold_rev (mk_fun_upd T1 T2) tps t
 
-fun make_set T1 [] = Const (@{const_abbrev Set.empty}, T1 --> @{typ bool})
-  | make_set T1 ((_, @{const False}) :: tps) = make_set T1 tps
-  | make_set T1 ((t1, @{const True}) :: tps) =
-      Const (@{const_name insert}, T1 --> (T1 --> @{typ bool}) --> T1 --> @{typ bool}) $
+fun make_set T1 [] = Const (\<^const_abbrev>\<open>Set.empty\<close>, T1 --> \<^typ>\<open>bool\<close>)
+  | make_set T1 ((_, \<^const>\<open>False\<close>) :: tps) = make_set T1 tps
+  | make_set T1 ((t1, \<^const>\<open>True\<close>) :: tps) =
+      Const (\<^const_name>\<open>insert\<close>, T1 --> (T1 --> \<^typ>\<open>bool\<close>) --> T1 --> \<^typ>\<open>bool\<close>) $
         t1 $ (make_set T1 tps)
   | make_set T1 ((_, t) :: _) = raise TERM ("make_set", [t])
 
-fun make_coset T [] = Const (@{const_abbrev UNIV}, T --> @{typ bool})
+fun make_coset T [] = Const (\<^const_abbrev>\<open>UNIV\<close>, T --> \<^typ>\<open>bool\<close>)
   | make_coset T tps =
     let
-      val U = T --> @{typ bool}
-      fun invert @{const False} = @{const True}
-        | invert @{const True} = @{const False}
+      val U = T --> \<^typ>\<open>bool\<close>
+      fun invert \<^const>\<open>False\<close> = \<^const>\<open>True\<close>
+        | invert \<^const>\<open>True\<close> = \<^const>\<open>False\<close>
     in
-      Const (@{const_name "Groups.minus_class.minus"}, U --> U --> U) $
-        Const (@{const_abbrev UNIV}, U) $ make_set T (map (apsnd invert) tps)
+      Const (\<^const_name>\<open>Groups.minus_class.minus\<close>, U --> U --> U) $
+        Const (\<^const_abbrev>\<open>UNIV\<close>, U) $ make_set T (map (apsnd invert) tps)
     end
 
-fun make_map T1 T2 [] = Const (@{const_abbrev Map.empty}, T1 --> T2)
-  | make_map T1 T2 ((_, Const (@{const_name None}, _)) :: tps) = make_map T1 T2 tps
+fun make_map T1 T2 [] = Const (\<^const_abbrev>\<open>Map.empty\<close>, T1 --> T2)
+  | make_map T1 T2 ((_, Const (\<^const_name>\<open>None\<close>, _)) :: tps) = make_map T1 T2 tps
   | make_map T1 T2 ((t1, t2) :: tps) = mk_fun_upd T1 T2 (t1, t2) (make_map T1 T2 tps)
 
 fun post_process_term t =
@@ -498,21 +498,21 @@ fun post_process_term t =
         (c as Const (_, _), ts) => list_comb (c, map post_process_term ts))
   in
     (case fastype_of t of
-      Type (@{type_name fun}, [T1, T2]) =>
+      Type (\<^type_name>\<open>fun\<close>, [T1, T2]) =>
         (case try dest_fun_upds t of
           SOME (tps, t) =>
             (map (apply2 post_process_term) tps, map_Abs post_process_term t) |>
               (case T2 of
-                @{typ bool} =>
+                \<^typ>\<open>bool\<close> =>
                   (case t of
-                     Abs(_, _, @{const False}) => fst #> rev #> make_set T1
-                   | Abs(_, _, @{const True}) => fst #> rev #> make_coset T1
-                   | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> rev #> make_set T1
+                     Abs(_, _, \<^const>\<open>False\<close>) => fst #> rev #> make_set T1
+                   | Abs(_, _, \<^const>\<open>True\<close>) => fst #> rev #> make_coset T1
+                   | Abs(_, _, Const (\<^const_name>\<open>undefined\<close>, _)) => fst #> rev #> make_set T1
                    | _ => raise TERM ("post_process_term", [t]))
-              | Type (@{type_name option}, _) =>
+              | Type (\<^type_name>\<open>option\<close>, _) =>
                   (case t of
-                    Abs(_, _, Const (@{const_name None}, _)) => fst #> make_map T1 T2
-                  | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> make_map T1 T2
+                    Abs(_, _, Const (\<^const_name>\<open>None\<close>, _)) => fst #> make_map T1 T2
+                  | Abs(_, _, Const (\<^const_name>\<open>undefined\<close>, _)) => fst #> make_map T1 T2
                   | _ => make_fun_upds T1 T2)
               | _ => make_fun_upds T1 T2)
         | NONE => process_args t)

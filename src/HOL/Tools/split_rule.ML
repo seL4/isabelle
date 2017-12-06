@@ -17,7 +17,7 @@ struct
 (** split rules **)
 
 fun internal_case_prod_const (Ta, Tb, Tc) =
-  Const (@{const_name Product_Type.internal_case_prod},
+  Const (\<^const_name>\<open>Product_Type.internal_case_prod\<close>,
     [[Ta, Tb] ---> Tc, HOLogic.mk_prodT (Ta, Tb)] ---> Tc);
 
 fun eval_internal_split ctxt =
@@ -30,7 +30,7 @@ fun remove_internal_split ctxt = eval_internal_split ctxt o split_all ctxt;
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
-fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
+fun ap_split (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) T3 u =
       internal_case_prod_const (T1, T2, T3) $
       Abs ("v", T1,
           ap_split T2 T3
@@ -111,11 +111,11 @@ fun complete_split_rule ctxt rl =
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding split_format}
+   (Attrib.setup \<^binding>\<open>split_format\<close>
       (Scan.lift (Args.parens (Args.$$$ "complete")
         >> K (Thm.rule_attribute [] (complete_split_rule o Context.proof_of))))
       "split pair-typed subterms in premises, or function arguments" #>
-    Attrib.setup @{binding split_rule}
+    Attrib.setup \<^binding>\<open>split_rule\<close>
       (Scan.succeed (Thm.rule_attribute [] (split_rule o Context.proof_of)))
       "curries ALL function variables occurring in a rule's conclusion");
 

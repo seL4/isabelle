@@ -24,37 +24,37 @@ struct
 
 (* configurations *)
 
-val allow_existentials = Attrib.setup_config_bool @{binding quickcheck_allow_existentials} (K true)
-val finite_functions = Attrib.setup_config_bool @{binding quickcheck_finite_functions} (K true)
-val overlord = Attrib.setup_config_bool @{binding quickcheck_narrowing_overlord} (K false)
-val ghc_options = Attrib.setup_config_string @{binding quickcheck_narrowing_ghc_options} (K "")
+val allow_existentials = Attrib.setup_config_bool \<^binding>\<open>quickcheck_allow_existentials\<close> (K true)
+val finite_functions = Attrib.setup_config_bool \<^binding>\<open>quickcheck_finite_functions\<close> (K true)
+val overlord = Attrib.setup_config_bool \<^binding>\<open>quickcheck_narrowing_overlord\<close> (K false)
+val ghc_options = Attrib.setup_config_string \<^binding>\<open>quickcheck_narrowing_ghc_options\<close> (K "")
 
 
 (* partial_term_of instances *)
 
 fun mk_partial_term_of (x, T) =
-  Const (@{const_name Quickcheck_Narrowing.partial_term_of_class.partial_term_of},
-    Term.itselfT T --> @{typ narrowing_term} --> @{typ Code_Evaluation.term}) $ Logic.mk_type T $ x
+  Const (\<^const_name>\<open>Quickcheck_Narrowing.partial_term_of_class.partial_term_of\<close>,
+    Term.itselfT T --> \<^typ>\<open>narrowing_term\<close> --> \<^typ>\<open>Code_Evaluation.term\<close>) $ Logic.mk_type T $ x
 
 
 (** formal definition **)
 
 fun add_partial_term_of tyco raw_vs thy =
   let
-    val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs
+    val vs = map (fn (v, _) => (v, \<^sort>\<open>typerep\<close>)) raw_vs
     val ty = Type (tyco, map TFree vs)
     val lhs =
-      Const (@{const_name partial_term_of},
-        Term.itselfT ty --> @{typ narrowing_term} --> @{typ Code_Evaluation.term}) $
-      Free ("x", Term.itselfT ty) $ Free ("t", @{typ narrowing_term})
-    val rhs = @{term "undefined :: Code_Evaluation.term"}
+      Const (\<^const_name>\<open>partial_term_of\<close>,
+        Term.itselfT ty --> \<^typ>\<open>narrowing_term\<close> --> \<^typ>\<open>Code_Evaluation.term\<close>) $
+      Free ("x", Term.itselfT ty) $ Free ("t", \<^typ>\<open>narrowing_term\<close>)
+    val rhs = \<^term>\<open>undefined :: Code_Evaluation.term\<close>
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
     fun triv_name_of t =
       (fst o dest_Free o fst o strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) t ^
         "_triv"
   in
     thy
-    |> Class.instantiation ([tyco], vs, @{sort partial_term_of})
+    |> Class.instantiation ([tyco], vs, \<^sort>\<open>partial_term_of\<close>)
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition NONE [] [] ((Binding.name (triv_name_of eq), []), eq))
     |> snd
@@ -63,8 +63,8 @@ fun add_partial_term_of tyco raw_vs thy =
 
 fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
   let
-    val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort partial_term_of})
-      andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep}
+    val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>partial_term_of\<close>)
+      andalso Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>typerep\<close>
   in if need_inst then add_partial_term_of tyco raw_vs thy else thy end
 
 
@@ -72,14 +72,14 @@ fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
 
 fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
   let
-    val frees = map Free (Name.invent_names Name.context "a" (map (K @{typ narrowing_term}) tys))
+    val frees = map Free (Name.invent_names Name.context "a" (map (K \<^typ>\<open>narrowing_term\<close>) tys))
     val narrowing_term =
-      @{term Quickcheck_Narrowing.Narrowing_constructor} $ HOLogic.mk_number @{typ integer} i $
-        HOLogic.mk_list @{typ narrowing_term} (rev frees)
+      \<^term>\<open>Quickcheck_Narrowing.Narrowing_constructor\<close> $ HOLogic.mk_number \<^typ>\<open>integer\<close> i $
+        HOLogic.mk_list \<^typ>\<open>narrowing_term\<close> (rev frees)
     val rhs =
-      fold (fn u => fn t => @{term "Code_Evaluation.App"} $ t $ u)
+      fold (fn u => fn t => \<^term>\<open>Code_Evaluation.App\<close> $ t $ u)
         (map mk_partial_term_of (frees ~~ tys))
-        (@{term "Code_Evaluation.Const"} $ HOLogic.mk_literal c $ HOLogic.mk_typerep (tys ---> ty))
+        (\<^term>\<open>Code_Evaluation.Const\<close> $ HOLogic.mk_literal c $ HOLogic.mk_typerep (tys ---> ty))
     val insts =
       map (SOME o Thm.global_cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         [Free ("ty", Term.itselfT ty), narrowing_term, rhs]
@@ -93,16 +93,16 @@ fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
 fun add_partial_term_of_code tyco raw_vs raw_cs thy =
   let
     val algebra = Sign.classes_of thy
-    val vs = map (fn (v, sort) => (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs
+    val vs = map (fn (v, sort) => (v, curry (Sorts.inter_sort algebra) \<^sort>\<open>typerep\<close> sort)) raw_vs
     val ty = Type (tyco, map TFree vs)
     val cs =
       (map o apsnd o apsnd o map o map_atyps)
         (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs
-    val const = Axclass.param_of_inst thy (@{const_name partial_term_of}, tyco)
+    val const = Axclass.param_of_inst thy (\<^const_name>\<open>partial_term_of\<close>, tyco)
     val var_insts =
       map (SOME o Thm.global_cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
-        [Free ("ty", Term.itselfT ty), @{term "Quickcheck_Narrowing.Narrowing_variable p tt"},
-          @{term "Code_Evaluation.Free (STR ''_'')"} $ HOLogic.mk_typerep ty]
+        [Free ("ty", Term.itselfT ty), \<^term>\<open>Quickcheck_Narrowing.Narrowing_variable p tt\<close>,
+          \<^term>\<open>Code_Evaluation.Free (STR ''_'')\<close> $ HOLogic.mk_typerep ty]
     val var_eq =
       @{thm partial_term_of_anything}
       |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy ty)] var_insts
@@ -114,7 +114,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
   end
 
 fun ensure_partial_term_of_code (tyco, (raw_vs, cs)) thy =
-  let val has_inst = Sorts.has_instance (Sign.classes_of thy) tyco @{sort partial_term_of}
+  let val has_inst = Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>partial_term_of\<close>
   in if has_inst then add_partial_term_of_code tyco raw_vs cs thy else thy end
 
 
@@ -126,21 +126,21 @@ exception FUNCTION_TYPE
 
 val narrowingN = "narrowing"
 
-fun narrowingT T = @{typ integer} --> Type (@{type_name Quickcheck_Narrowing.narrowing_cons}, [T])
+fun narrowingT T = \<^typ>\<open>integer\<close> --> Type (\<^type_name>\<open>Quickcheck_Narrowing.narrowing_cons\<close>, [T])
 
-fun mk_cons c T = Const (@{const_name Quickcheck_Narrowing.cons}, T --> narrowingT T) $ Const (c, T)
+fun mk_cons c T = Const (\<^const_name>\<open>Quickcheck_Narrowing.cons\<close>, T --> narrowingT T) $ Const (c, T)
 
 fun mk_apply (T, t) (U, u) =
   let
     val (_, U') = dest_funT U
   in
-    (U', Const (@{const_name Quickcheck_Narrowing.apply},
+    (U', Const (\<^const_name>\<open>Quickcheck_Narrowing.apply\<close>,
       narrowingT U --> narrowingT T --> narrowingT U') $ u $ t)
   end
 
 fun mk_sum (t, u) =
   let val T = fastype_of t
-  in Const (@{const_name Quickcheck_Narrowing.sum}, T --> T --> T) $ t $ u end
+  in Const (\<^const_name>\<open>Quickcheck_Narrowing.sum\<close>, T --> T --> T) $ t $ u end
 
 
 (** deriving narrowing instances **)
@@ -148,7 +148,7 @@ fun mk_sum (t, u) =
 fun mk_equations descr vs narrowings =
   let
     fun mk_call T =
-      (T, Const (@{const_name "Quickcheck_Narrowing.narrowing_class.narrowing"}, narrowingT T))
+      (T, Const (\<^const_name>\<open>Quickcheck_Narrowing.narrowing_class.narrowing\<close>, narrowingT T))
     fun mk_aux_call fTs (k, _) (tyco, Ts) =
       let
         val T = Type (tyco, Ts)
@@ -181,7 +181,7 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
   in
     if not (contains_recursive_type_under_function_types descr) then
       thy
-      |> Class.instantiation (tycos, vs, @{sort narrowing})
+      |> Class.instantiation (tycos, vs, \<^sort>\<open>narrowing\<close>)
       |> Quickcheck_Common.define_functions
         (fn narrowings => mk_equations descr vs narrowings, NONE)
         prfx [] narrowingsN (map narrowingT (Ts @ Us))
@@ -348,29 +348,29 @@ fun finitize_functions (xTs, t) =
   let
     val (names, boundTs) = split_list xTs
     fun mk_eval_ffun dT rT =
-      Const (@{const_name "Quickcheck_Narrowing.eval_ffun"},
-        Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT]) --> dT --> rT)
+      Const (\<^const_name>\<open>Quickcheck_Narrowing.eval_ffun\<close>,
+        Type (\<^type_name>\<open>Quickcheck_Narrowing.ffun\<close>, [dT, rT]) --> dT --> rT)
     fun mk_eval_cfun dT rT =
-      Const (@{const_name "Quickcheck_Narrowing.eval_cfun"},
-        Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT]) --> dT --> rT)
-    fun eval_function (Type (@{type_name fun}, [dT, rT])) =
+      Const (\<^const_name>\<open>Quickcheck_Narrowing.eval_cfun\<close>,
+        Type (\<^type_name>\<open>Quickcheck_Narrowing.cfun\<close>, [rT]) --> dT --> rT)
+    fun eval_function (Type (\<^type_name>\<open>fun\<close>, [dT, rT])) =
           let
             val (rt', rT') = eval_function rT
           in
             (case dT of
-              Type (@{type_name fun}, _) =>
+              Type (\<^type_name>\<open>fun\<close>, _) =>
                 (fn t => absdummy dT (rt' (mk_eval_cfun dT rT' $ incr_boundvars 1 t $ Bound 0)),
-                  Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT']))
+                  Type (\<^type_name>\<open>Quickcheck_Narrowing.cfun\<close>, [rT']))
             | _ =>
                 (fn t => absdummy dT (rt' (mk_eval_ffun dT rT' $ incr_boundvars 1 t $ Bound 0)),
-                  Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT'])))
+                  Type (\<^type_name>\<open>Quickcheck_Narrowing.ffun\<close>, [dT, rT'])))
           end
-      | eval_function (T as Type (@{type_name prod}, [fT, sT])) =
+      | eval_function (T as Type (\<^type_name>\<open>prod\<close>, [fT, sT])) =
           let
             val (ft', fT') = eval_function fT
             val (st', sT') = eval_function sT
-            val T' = Type (@{type_name prod}, [fT', sT'])
-            val map_const = Const (@{const_name map_prod}, (fT' --> fT) --> (sT' --> sT) --> T' --> T)
+            val T' = Type (\<^type_name>\<open>prod\<close>, [fT', sT'])
+            val map_const = Const (\<^const_name>\<open>map_prod\<close>, (fT' --> fT) --> (sT' --> sT) --> T' --> T)
             fun apply_dummy T t = absdummy T (t (Bound 0))
           in
             (fn t => list_comb (map_const, [apply_dummy fT' ft', apply_dummy sT' st', t]), T')
@@ -382,11 +382,11 @@ fun finitize_functions (xTs, t) =
     (names ~~ boundTs', t')
   end
 
-fun dest_ffun (Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT])) = (dT, rT)
+fun dest_ffun (Type (\<^type_name>\<open>Quickcheck_Narrowing.ffun\<close>, [dT, rT])) = (dT, rT)
 
-fun eval_finite_functions (Const (@{const_name "Quickcheck_Narrowing.ffun.Constant"}, T) $ value) =
+fun eval_finite_functions (Const (\<^const_name>\<open>Quickcheck_Narrowing.ffun.Constant\<close>, T) $ value) =
       absdummy (fst (dest_ffun (body_type T))) (eval_finite_functions value)
-  | eval_finite_functions (Const (@{const_name "Quickcheck_Narrowing.ffun.Update"}, T) $ a $ b $ f) =
+  | eval_finite_functions (Const (\<^const_name>\<open>Quickcheck_Narrowing.ffun.Update\<close>, T) $ a $ b $ f) =
       let
         val (T1, T2) = dest_ffun (body_type T)
       in
@@ -407,29 +407,29 @@ val rewrs =
 
 fun make_pnf_term thy t = Pattern.rewrite_term thy rewrs [] t
 
-fun strip_quantifiers (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
-      apfst (cons (@{const_name Ex}, (x, T))) (strip_quantifiers t)
-  | strip_quantifiers (Const (@{const_name All}, _) $ Abs (x, T, t)) =
-      apfst (cons (@{const_name All}, (x, T))) (strip_quantifiers t)
+fun strip_quantifiers (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (x, T, t)) =
+      apfst (cons (\<^const_name>\<open>Ex\<close>, (x, T))) (strip_quantifiers t)
+  | strip_quantifiers (Const (\<^const_name>\<open>All\<close>, _) $ Abs (x, T, t)) =
+      apfst (cons (\<^const_name>\<open>All\<close>, (x, T))) (strip_quantifiers t)
   | strip_quantifiers t = ([], t)
 
 fun contains_existentials t =
-  exists (fn (Q, _) => Q = @{const_name Ex}) (fst (strip_quantifiers t))
+  exists (fn (Q, _) => Q = \<^const_name>\<open>Ex\<close>) (fst (strip_quantifiers t))
 
 fun mk_property qs t =
   let
-    fun enclose (@{const_name Ex}, (x, T)) t =
-          Const (@{const_name Quickcheck_Narrowing.exists},
-            (T --> @{typ property}) --> @{typ property}) $ Abs (x, T, t)
-      | enclose (@{const_name All}, (x, T)) t =
-          Const (@{const_name Quickcheck_Narrowing.all},
-            (T --> @{typ property}) --> @{typ property}) $ Abs (x, T, t)
-  in fold_rev enclose qs (@{term Quickcheck_Narrowing.Property} $ t) end
+    fun enclose (\<^const_name>\<open>Ex\<close>, (x, T)) t =
+          Const (\<^const_name>\<open>Quickcheck_Narrowing.exists\<close>,
+            (T --> \<^typ>\<open>property\<close>) --> \<^typ>\<open>property\<close>) $ Abs (x, T, t)
+      | enclose (\<^const_name>\<open>All\<close>, (x, T)) t =
+          Const (\<^const_name>\<open>Quickcheck_Narrowing.all\<close>,
+            (T --> \<^typ>\<open>property\<close>) --> \<^typ>\<open>property\<close>) $ Abs (x, T, t)
+  in fold_rev enclose qs (\<^term>\<open>Quickcheck_Narrowing.Property\<close> $ t) end
 
-fun mk_case_term ctxt p ((@{const_name Ex}, (x, T)) :: qs') (Existential_Counterexample cs) =
+fun mk_case_term ctxt p ((\<^const_name>\<open>Ex\<close>, (x, T)) :: qs') (Existential_Counterexample cs) =
       Case_Translation.make_case ctxt Case_Translation.Quiet Name.context (Free (x, T)) (map (fn (t, c) =>
         (t, mk_case_term ctxt (p - 1) qs' c)) cs)
-  | mk_case_term ctxt p ((@{const_name All}, _) :: qs') (Universal_Counterexample (t, c)) =
+  | mk_case_term ctxt p ((\<^const_name>\<open>All\<close>, _) :: qs') (Universal_Counterexample (t, c)) =
       if p = 0 then t else mk_case_term ctxt (p - 1) qs' c
 
 val post_process =
@@ -437,7 +437,7 @@ val post_process =
 
 fun mk_terms ctxt qs result =
   let
-    val ps = filter (fn (_, (@{const_name All}, _)) => true | _ => false) (map_index I qs)
+    val ps = filter (fn (_, (\<^const_name>\<open>All\<close>, _)) => true | _ => false) (map_index I qs)
   in
     map (fn (p, (_, (x, _))) => (x, mk_case_term ctxt p qs result)) ps
     |> map (apsnd post_process)
@@ -485,7 +485,7 @@ fun test_term ctxt catch_code_errors (t, _) =
         fun wrap f t = uncurry (fold_rev Term.abs) (f (strip_abs t))
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =
-          Const (@{const_name Quickcheck_Narrowing.ensure_testable},
+          Const (\<^const_name>\<open>Quickcheck_Narrowing.ensure_testable\<close>,
             fastype_of t --> fastype_of t) $ t
         fun is_genuine (SOME (true, _)) = true
           | is_genuine _ = false
@@ -531,14 +531,14 @@ fun test_goals ctxt catch_code_errors insts goals =
 
 (* setup *)
 
-val active = Attrib.setup_config_bool @{binding quickcheck_narrowing_active} (K false)
+val active = Attrib.setup_config_bool \<^binding>\<open>quickcheck_narrowing_active\<close> (K false)
 
 val _ =
   Theory.setup
    (Code.datatype_interpretation ensure_partial_term_of
     #> Code.datatype_interpretation ensure_partial_term_of_code
-    #> Quickcheck_Common.datatype_interpretation @{plugin quickcheck_narrowing}
-      (@{sort narrowing}, instantiate_narrowing_datatype)
+    #> Quickcheck_Common.datatype_interpretation \<^plugin>\<open>quickcheck_narrowing\<close>
+      (\<^sort>\<open>narrowing\<close>, instantiate_narrowing_datatype)
     #> Context.theory_map (Quickcheck.add_tester ("narrowing", (active, test_goals))))
 
 end

@@ -31,7 +31,7 @@ fun drop_fact_warning ctxt =
 (** instantiate elimination rules **)
 
 local
-  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.cterm_of @{context} @{const False})
+  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.cterm_of @{context} \<^const>\<open>False\<close>)
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
@@ -40,7 +40,7 @@ in
 
 fun instantiate_elim thm =
   (case Thm.concl_of thm of
-    @{const Trueprop} $ Var (_, @{typ bool}) => inst Thm.dest_arg cfalse thm
+    \<^const>\<open>Trueprop\<close> $ Var (_, \<^typ>\<open>bool\<close>) => inst Thm.dest_arg cfalse thm
   | Var _ => inst I cpfalse thm
   | _ => thm)
 
@@ -51,9 +51,9 @@ end
 
 fun norm_def thm =
   (case Thm.prop_of thm of
-    @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Abs _) =>
+    \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ Abs _) =>
       norm_def (thm RS @{thm fun_cong})
-  | Const (@{const_name Pure.eq}, _) $ _ $ Abs _ => norm_def (thm RS @{thm meta_eq_to_obj_eq})
+  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ Abs _ => norm_def (thm RS @{thm meta_eq_to_obj_eq})
   | _ => thm)
 
 
@@ -61,26 +61,26 @@ fun norm_def thm =
 
 fun atomize_conv ctxt ct =
   (case Thm.term_of ct of
-    @{const Pure.imp} $ _ $ _ =>
+    \<^const>\<open>Pure.imp\<close> $ _ $ _ =>
       Conv.binop_conv (atomize_conv ctxt) then_conv Conv.rewr_conv @{thm atomize_imp}
-  | Const (@{const_name Pure.eq}, _) $ _ $ _ =>
+  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _ =>
       Conv.binop_conv (atomize_conv ctxt) then_conv Conv.rewr_conv @{thm atomize_eq}
-  | Const (@{const_name Pure.all}, _) $ Abs _ =>
+  | Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs _ =>
       Conv.binder_conv (atomize_conv o snd) ctxt then_conv Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
   handle CTERM _ => Conv.all_conv ct
 
 val setup_atomize =
-  fold SMT_Builtin.add_builtin_fun_ext'' [@{const_name Pure.imp}, @{const_name Pure.eq},
-    @{const_name Pure.all}, @{const_name Trueprop}]
+  fold SMT_Builtin.add_builtin_fun_ext'' [\<^const_name>\<open>Pure.imp\<close>, \<^const_name>\<open>Pure.eq\<close>,
+    \<^const_name>\<open>Pure.all\<close>, \<^const_name>\<open>Trueprop\<close>]
 
 
 (** unfold special quantifiers **)
 
 val special_quant_table = [
-  (@{const_name Ex1}, @{thm Ex1_def_raw}),
-  (@{const_name Ball}, @{thm Ball_def_raw}),
-  (@{const_name Bex}, @{thm Bex_def_raw})]
+  (\<^const_name>\<open>Ex1\<close>, @{thm Ex1_def_raw}),
+  (\<^const_name>\<open>Ball\<close>, @{thm Ball_def_raw}),
+  (\<^const_name>\<open>Bex\<close>, @{thm Bex_def_raw})]
 
 local
   fun special_quant (Const (n, _)) = AList.lookup (op =) special_quant_table n
@@ -105,8 +105,8 @@ end
 local
   (*** check trigger syntax ***)
 
-  fun dest_trigger (Const (@{const_name pat}, _) $ _) = SOME true
-    | dest_trigger (Const (@{const_name nopat}, _) $ _) = SOME false
+  fun dest_trigger (Const (\<^const_name>\<open>pat\<close>, _) $ _) = SOME true
+    | dest_trigger (Const (\<^const_name>\<open>nopat\<close>, _) $ _) = SOME false
     | dest_trigger _ = NONE
 
   fun eq_list [] = false
@@ -120,9 +120,9 @@ local
 
   fun proper_quant inside f t =
     (case t of
-      Const (@{const_name All}, _) $ Abs (_, _, u) => proper_quant true f u
-    | Const (@{const_name Ex}, _) $ Abs (_, _, u) => proper_quant true f u
-    | @{const trigger} $ p $ u =>
+      Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, u) => proper_quant true f u
+    | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, u) => proper_quant true f u
+    | \<^const>\<open>trigger\<close> $ p $ u =>
         (if inside then f p else false) andalso proper_quant false f u
     | Abs (_, _, u) => proper_quant false f u
     | u1 $ u2 => proper_quant false f u1 andalso proper_quant false f u2
@@ -141,8 +141,8 @@ local
 
   fun dest_cond_eq ct =
     (case Thm.term_of ct of
-      Const (@{const_name HOL.eq}, _) $ _ $ _ => Thm.dest_binop ct
-    | @{const HOL.implies} $ _ $ _ => dest_cond_eq (Thm.dest_arg ct)
+      Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Thm.dest_binop ct
+    | \<^const>\<open>HOL.implies\<close> $ _ $ _ => dest_cond_eq (Thm.dest_arg ct)
     | _ => raise CTERM ("no equation", [ct]))
 
   fun get_constrs thy (Type (n, _)) = these (BNF_LFP_Compat.get_constrs thy n)
@@ -186,14 +186,14 @@ local
             Pattern.matches thy (t', u) andalso not (t aconv u))
         in not (Term.exists_subterm some_match u) end
 
-  val pat = SMT_Util.mk_const_pat @{theory} @{const_name pat} SMT_Util.destT1
+  val pat = SMT_Util.mk_const_pat @{theory} \<^const_name>\<open>pat\<close> SMT_Util.destT1
   fun mk_pat ct = Thm.apply (SMT_Util.instT' ct pat) ct
 
   fun mk_clist T =
     apply2 (Thm.cterm_of @{context}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
-  val mk_pat_list = mk_list (mk_clist @{typ pattern})
-  val mk_mpat_list = mk_list (mk_clist @{typ "pattern symb_list"})
+  val mk_pat_list = mk_list (mk_clist \<^typ>\<open>pattern\<close>)
+  val mk_mpat_list = mk_list (mk_clist \<^typ>\<open>pattern symb_list\<close>)
   fun mk_trigger ctss = mk_mpat_list (mk_pat_list mk_pat) ctss
 
   val trigger_eq = mk_meta_eq @{lemma "p = trigger t p" by (simp add: trigger_def)}
@@ -220,7 +220,7 @@ local
 
     in insert_trigger_conv (filter_mpats (get_mpats lhs)) ct end
 
-  fun has_trigger (@{const trigger} $ _ $ _) = true
+  fun has_trigger (\<^const>\<open>trigger\<close> $ _ $ _) = true
     | has_trigger _ = false
 
   fun try_trigger_conv cv ct =
@@ -238,7 +238,7 @@ fun trigger_conv ctxt =
 
 val setup_trigger =
   fold SMT_Builtin.add_builtin_fun_ext''
-    [@{const_name pat}, @{const_name nopat}, @{const_name trigger}]
+    [\<^const_name>\<open>pat\<close>, \<^const_name>\<open>nopat\<close>, \<^const_name>\<open>trigger\<close>]
 
 end
 
@@ -280,10 +280,10 @@ fun expand_head_conv cv ct =
 
 (** rewrite bool case expressions as if expressions **)
 
-val case_bool_entry = (@{const_name "bool.case_bool"}, @{thm case_bool_if})
+val case_bool_entry = (\<^const_name>\<open>bool.case_bool\<close>, @{thm case_bool_if})
 
 local
-  fun is_case_bool (Const (@{const_name "bool.case_bool"}, _)) = true
+  fun is_case_bool (Const (\<^const_name>\<open>bool.case_bool\<close>, _)) = true
     | is_case_bool _ = false
 
   fun unfold_conv _ =
@@ -294,7 +294,7 @@ in
 fun rewrite_case_bool_conv ctxt =
   SMT_Util.if_exists_conv is_case_bool (Conv.top_conv unfold_conv ctxt)
 
-val setup_case_bool = SMT_Builtin.add_builtin_fun_ext'' @{const_name "bool.case_bool"}
+val setup_case_bool = SMT_Builtin.add_builtin_fun_ext'' \<^const_name>\<open>bool.case_bool\<close>
 
 end
 
@@ -302,12 +302,12 @@ end
 (** unfold abs, min and max **)
 
 val abs_min_max_table = [
-  (@{const_name min}, @{thm min_def_raw}),
-  (@{const_name max}, @{thm max_def_raw}),
-  (@{const_name abs}, @{thm abs_if_raw})]
+  (\<^const_name>\<open>min\<close>, @{thm min_def_raw}),
+  (\<^const_name>\<open>max\<close>, @{thm max_def_raw}),
+  (\<^const_name>\<open>abs\<close>, @{thm abs_if_raw})]
 
 local
-  fun abs_min_max ctxt (Const (n, Type (@{type_name fun}, [T, _]))) =
+  fun abs_min_max ctxt (Const (n, Type (\<^type_name>\<open>fun\<close>, [T, _]))) =
         (case AList.lookup (op =) abs_min_max_table n of
           NONE => NONE
         | SOME thm => if SMT_Builtin.is_builtin_typ_ext ctxt T then SOME thm else NONE)
@@ -334,7 +334,7 @@ local
 
   val simple_nat_ops = [
     @{const less (nat)}, @{const less_eq (nat)},
-    @{const Suc}, @{const plus (nat)}, @{const minus (nat)}]
+    \<^const>\<open>Suc\<close>, @{const plus (nat)}, @{const minus (nat)}]
 
   val mult_nat_ops =
     [@{const times (nat)}, @{const divide (nat)}, @{const modulo (nat)}]
@@ -344,7 +344,7 @@ local
   val nat_consts = nat_ops @ [@{const numeral (nat)},
     @{const zero_class.zero (nat)}, @{const one_class.one (nat)}]
 
-  val nat_int_coercions = [@{const of_nat (int)}, @{const nat}]
+  val nat_int_coercions = [@{const of_nat (int)}, \<^const>\<open>nat\<close>]
 
   val builtin_nat_ops = nat_int_coercions @ simple_nat_ops
 
@@ -399,7 +399,7 @@ fun add_nat_embedding thms =
   if exists (uses_nat_int o Thm.prop_of) thms then (thms, nat_embedding) else (thms, [])
 
 val setup_nat_as_int =
-  SMT_Builtin.add_builtin_typ_ext (@{typ nat},
+  SMT_Builtin.add_builtin_typ_ext (\<^typ>\<open>nat\<close>,
     fn ctxt => K (Config.get ctxt SMT_Config.nat_as_int)) #>
   fold (SMT_Builtin.add_builtin_fun_ext' o Term.dest_Const) builtin_nat_ops
 
@@ -414,9 +414,9 @@ local
     rewrite - 0 into 0
   *)
 
-  fun is_irregular_number (Const (@{const_name numeral}, _) $ Const (@{const_name num.One}, _)) =
+  fun is_irregular_number (Const (\<^const_name>\<open>numeral\<close>, _) $ Const (\<^const_name>\<open>num.One\<close>, _)) =
         true
-    | is_irregular_number (Const (@{const_name uminus}, _) $ Const (@{const_name Groups.zero}, _)) =
+    | is_irregular_number (Const (\<^const_name>\<open>uminus\<close>, _) $ Const (\<^const_name>\<open>Groups.zero\<close>, _)) =
         true
     | is_irregular_number _ = false
 
@@ -478,12 +478,12 @@ fun apply_extra_norms ctxt ithms =
   in burrow_ids (fold (fn e => e ctxt) es o rpair []) ithms end
 
 local
-  val ignored = member (op =) [@{const_name All}, @{const_name Ex},
-    @{const_name Let}, @{const_name If}, @{const_name HOL.eq}]
+  val ignored = member (op =) [\<^const_name>\<open>All\<close>, \<^const_name>\<open>Ex\<close>,
+    \<^const_name>\<open>Let\<close>, \<^const_name>\<open>If\<close>, \<^const_name>\<open>HOL.eq\<close>]
 
   val schematic_consts_of =
     let
-      fun collect (@{const trigger} $ p $ t) = collect_trigger p #> collect t
+      fun collect (\<^const>\<open>trigger\<close> $ p $ t) = collect_trigger p #> collect t
         | collect (t $ u) = collect t #> collect u
         | collect (Abs (_, _, t)) = collect t
         | collect (t as Const (n, _)) =
@@ -492,8 +492,8 @@ local
       and collect_trigger t =
         let val dest = these o try SMT_Util.dest_symb_list
         in fold (fold collect_pat o dest) (dest t) end
-      and collect_pat (Const (@{const_name pat}, _) $ t) = collect t
-        | collect_pat (Const (@{const_name nopat}, _) $ t) = collect t
+      and collect_pat (Const (\<^const_name>\<open>pat\<close>, _) $ t) = collect t
+        | collect_pat (Const (\<^const_name>\<open>nopat\<close>, _) $ t) = collect t
         | collect_pat _ = I
     in (fn t => collect t Symtab.empty) end
 in

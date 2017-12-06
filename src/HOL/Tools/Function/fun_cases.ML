@@ -54,7 +54,7 @@ val fun_cases = gen_fun_cases (K I) Syntax.check_prop;
 val fun_cases_cmd = gen_fun_cases Attrib.check_src Syntax.read_prop;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword fun_cases}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>fun_cases\<close>
     "create simplified instances of elimination rules for function equations"
     (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo fun_cases_cmd));
 

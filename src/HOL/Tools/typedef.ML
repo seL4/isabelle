@@ -85,7 +85,7 @@ fun put_info name info =
 
 structure Typedef_Plugin = Plugin(type T = string);
 
-val typedef_plugin = Plugin_Name.declare_setup @{binding typedef};
+val typedef_plugin = Plugin_Name.declare_setup \<^binding>\<open>typedef\<close>;
 
 fun interpretation f =
   Typedef_Plugin.interpretation typedef_plugin
@@ -99,7 +99,7 @@ fun interpretation f =
 
 (* primitive typedef axiomatization -- for fresh typedecl *)
 
-val typedef_overloaded = Attrib.setup_config_bool @{binding typedef_overloaded} (K false);
+val typedef_overloaded = Attrib.setup_config_bool \<^binding>\<open>typedef_overloaded\<close> (K false);
 
 fun mk_inhabited A =
   let val T = HOLogic.dest_setT (Term.fastype_of A)
@@ -108,7 +108,7 @@ fun mk_inhabited A =
 fun mk_typedef newT oldT RepC AbsC A =
   let
     val typedefC =
-      Const (@{const_name type_definition},
+      Const (\<^const_name>\<open>type_definition\<close>,
         (newT --> oldT) --> (oldT --> newT) --> HOLogic.mk_setT oldT --> HOLogic.boolT);
   in Logic.mk_implies (mk_inhabited A, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ A)) end;
 
@@ -336,11 +336,11 @@ end;
 (** outer syntax **)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword typedef}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>typedef\<close>
     "HOL type definition (requires non-emptiness proof)"
     (Parse_Spec.overloaded -- Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
-      (@{keyword "="} |-- Parse.term) --
-      Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
+      (\<^keyword>\<open>=\<close> |-- Parse.term) --
+      Scan.option (\<^keyword>\<open>morphisms\<close> |-- Parse.!!! (Parse.binding -- Parse.binding))
     >> (fn (((((overloaded, vs), t), mx), A), opt_morphs) => fn lthy =>
         typedef_cmd {overloaded = overloaded} (t, vs, mx) A
           (SOME (make_morphisms t opt_morphs)) lthy));

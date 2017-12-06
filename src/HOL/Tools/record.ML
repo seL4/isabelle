@@ -73,7 +73,7 @@ val isoN = "_Tuple_Iso";
 val iso_tuple_intro = @{thm isomorphic_tuple_intro};
 val iso_tuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
-val tuple_iso_tuple = (@{const_name Record.tuple_iso_tuple}, @{thm tuple_iso_tuple});
+val tuple_iso_tuple = (\<^const_name>\<open>Record.tuple_iso_tuple\<close>, @{thm tuple_iso_tuple});
 
 structure Iso_Tuple_Thms = Theory_Data
 (
@@ -111,13 +111,13 @@ fun mk_cons_tuple (left, right) =
   let
     val (leftT, rightT) = (fastype_of left, fastype_of right);
     val prodT = HOLogic.mk_prodT (leftT, rightT);
-    val isomT = Type (@{type_name tuple_isomorphism}, [prodT, leftT, rightT]);
+    val isomT = Type (\<^type_name>\<open>tuple_isomorphism\<close>, [prodT, leftT, rightT]);
   in
-    Const (@{const_name Record.iso_tuple_cons}, isomT --> leftT --> rightT --> prodT) $
+    Const (\<^const_name>\<open>Record.iso_tuple_cons\<close>, isomT --> leftT --> rightT --> prodT) $
       Const (fst tuple_iso_tuple, isomT) $ left $ right
   end;
 
-fun dest_cons_tuple (Const (@{const_name Record.iso_tuple_cons}, _) $ Const _ $ t $ u) = (t, u)
+fun dest_cons_tuple (Const (\<^const_name>\<open>Record.iso_tuple_cons\<close>, _) $ Const _ $ t $ u) = (t, u)
   | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
 fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
@@ -149,7 +149,7 @@ fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
         [((Binding.concealed (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
-    val cons = Const (@{const_name Record.iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
+    val cons = Const (\<^const_name>\<open>Record.iso_tuple_cons\<close>, isomT --> leftT --> rightT --> absT);
 
     val thm_thy =
       cdef_thy
@@ -171,8 +171,8 @@ fun iso_tuple_intros_tac ctxt =
       val goal' = Envir.beta_eta_contract goal;
       val is =
         (case goal' of
-          Const (@{const_name Trueprop}, _) $
-            (Const (@{const_name isomorphic_tuple}, _) $ Const is) => is
+          Const (\<^const_name>\<open>Trueprop\<close>, _) $
+            (Const (\<^const_name>\<open>isomorphic_tuple\<close>, _) $ Const is) => is
         | _ => err "unexpected goal format" goal');
       val isthm =
         (case Symtab.lookup isthms (#1 is) of
@@ -202,7 +202,7 @@ val updacc_cong_idI = @{thm update_accessor_cong_assist_idI};
 val updacc_cong_triv = @{thm update_accessor_cong_assist_triv};
 val updacc_cong_from_eq = @{thm iso_tuple_update_accessor_cong_from_eq};
 
-val codegen = Attrib.setup_config_bool @{binding record_codegen} (K true);
+val codegen = Attrib.setup_config_bool \<^binding>\<open>record_codegen\<close> (K true);
 
 
 (** name components **)
@@ -229,7 +229,7 @@ fun varifyT idx = map_type_tfree (fn (a, S) => TVar ((a, idx), S));
 
 (* timing *)
 
-val timing = Attrib.setup_config_bool @{binding record_timing} (K false);
+val timing = Attrib.setup_config_bool \<^binding>\<open>record_timing\<close> (K false);
 fun timeit_msg ctxt s x = if Config.get ctxt timing then (warning s; timeit x) else x ();
 fun timing_msg ctxt s = if Config.get ctxt timing then warning s else ();
 
@@ -628,11 +628,11 @@ fun split_args (field :: fields) ((name, arg) :: fargs) =
   | split_args (_ :: _) [] = raise Fail "expecting more fields"
   | split_args _ _ = ([], []);
 
-fun field_type_tr ((Const (@{syntax_const "_field_type"}, _) $ Const (name, _) $ arg)) =
+fun field_type_tr ((Const (\<^syntax_const>\<open>_field_type\<close>, _) $ Const (name, _) $ arg)) =
       (name, arg)
   | field_type_tr t = raise TERM ("field_type_tr", [t]);
 
-fun field_types_tr (Const (@{syntax_const "_field_types"}, _) $ t $ u) =
+fun field_types_tr (Const (\<^syntax_const>\<open>_field_types\<close>, _) $ t $ u) =
       field_type_tr t :: field_types_tr u
   | field_types_tr t = [field_type_tr t];
 
@@ -673,17 +673,17 @@ fun record_field_types_tr more ctxt t =
     mk_ext (field_types_tr t)
   end;
 
-fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const @{type_syntax unit}) ctxt t
+fun record_type_tr ctxt [t] = record_field_types_tr (Syntax.const \<^type_syntax>\<open>unit\<close>) ctxt t
   | record_type_tr _ ts = raise TERM ("record_type_tr", ts);
 
 fun record_type_scheme_tr ctxt [t, more] = record_field_types_tr more ctxt t
   | record_type_scheme_tr _ ts = raise TERM ("record_type_scheme_tr", ts);
 
 
-fun field_tr ((Const (@{syntax_const "_field"}, _) $ Const (name, _) $ arg)) = (name, arg)
+fun field_tr ((Const (\<^syntax_const>\<open>_field\<close>, _) $ Const (name, _) $ arg)) = (name, arg)
   | field_tr t = raise TERM ("field_tr", [t]);
 
-fun fields_tr (Const (@{syntax_const "_fields"}, _) $ t $ u) = field_tr t :: fields_tr u
+fun fields_tr (Const (\<^syntax_const>\<open>_fields\<close>, _) $ t $ u) = field_tr t :: fields_tr u
   | fields_tr t = [field_tr t];
 
 fun record_fields_tr more ctxt t =
@@ -706,18 +706,18 @@ fun record_fields_tr more ctxt t =
       | mk_ext [] = more;
   in mk_ext (fields_tr t) end;
 
-fun record_tr ctxt [t] = record_fields_tr (Syntax.const @{const_syntax Unity}) ctxt t
+fun record_tr ctxt [t] = record_fields_tr (Syntax.const \<^const_syntax>\<open>Unity\<close>) ctxt t
   | record_tr _ ts = raise TERM ("record_tr", ts);
 
 fun record_scheme_tr ctxt [t, more] = record_fields_tr more ctxt t
   | record_scheme_tr _ ts = raise TERM ("record_scheme_tr", ts);
 
 
-fun field_update_tr (Const (@{syntax_const "_field_update"}, _) $ Const (name, _) $ arg) =
+fun field_update_tr (Const (\<^syntax_const>\<open>_field_update\<close>, _) $ Const (name, _) $ arg) =
       Syntax.const (suffix updateN name) $ Abs (Name.uu_, dummyT, arg)
   | field_update_tr t = raise TERM ("field_update_tr", [t]);
 
-fun field_updates_tr (Const (@{syntax_const "_field_updates"}, _) $ t $ u) =
+fun field_updates_tr (Const (\<^syntax_const>\<open>_field_updates\<close>, _) $ t $ u) =
       field_update_tr t :: field_updates_tr u
   | field_updates_tr t = [field_update_tr t];
 
@@ -729,28 +729,28 @@ in
 val _ =
   Theory.setup
    (Sign.parse_translation
-     [(@{syntax_const "_record_update"}, K record_update_tr),
-      (@{syntax_const "_record"}, record_tr),
-      (@{syntax_const "_record_scheme"}, record_scheme_tr),
-      (@{syntax_const "_record_type"}, record_type_tr),
-      (@{syntax_const "_record_type_scheme"}, record_type_scheme_tr)]);
+     [(\<^syntax_const>\<open>_record_update\<close>, K record_update_tr),
+      (\<^syntax_const>\<open>_record\<close>, record_tr),
+      (\<^syntax_const>\<open>_record_scheme\<close>, record_scheme_tr),
+      (\<^syntax_const>\<open>_record_type\<close>, record_type_tr),
+      (\<^syntax_const>\<open>_record_type_scheme\<close>, record_type_scheme_tr)]);
 
 end;
 
 
 (* print translations *)
 
-val type_abbr = Attrib.setup_config_bool @{binding record_type_abbr} (K true);
-val type_as_fields = Attrib.setup_config_bool @{binding record_type_as_fields} (K true);
+val type_abbr = Attrib.setup_config_bool \<^binding>\<open>record_type_abbr\<close> (K true);
+val type_as_fields = Attrib.setup_config_bool \<^binding>\<open>record_type_as_fields\<close> (K true);
 
 
 local
 
 (* FIXME early extern (!??) *)
 (* FIXME Syntax.free (??) *)
-fun field_type_tr' (c, t) = Syntax.const @{syntax_const "_field_type"} $ Syntax.const c $ t;
+fun field_type_tr' (c, t) = Syntax.const \<^syntax_const>\<open>_field_type\<close> $ Syntax.const c $ t;
 
-fun field_types_tr' (t, u) = Syntax.const @{syntax_const "_field_types"} $ t $ u;
+fun field_types_tr' (t, u) = Syntax.const \<^syntax_const>\<open>_field_types\<close> $ t $ u;
 
 fun record_type_tr' ctxt t =
   let
@@ -791,9 +791,9 @@ fun record_type_tr' ctxt t =
         (map (field_type_tr' o apsnd (Syntax_Phases.term_of_typ ctxt)) fields);
   in
     if not (Config.get ctxt type_as_fields) orelse null fields then raise Match
-    else if moreT = HOLogic.unitT then Syntax.const @{syntax_const "_record_type"} $ u
+    else if moreT = HOLogic.unitT then Syntax.const \<^syntax_const>\<open>_record_type\<close> $ u
     else
-      Syntax.const @{syntax_const "_record_type_scheme"} $ u $
+      Syntax.const \<^syntax_const>\<open>_record_type_scheme\<close> $ u $
         Syntax_Phases.term_of_typ ctxt moreT
   end;
 
@@ -847,8 +847,8 @@ end;
 local
 
 (* FIXME Syntax.free (??) *)
-fun field_tr' (c, t) = Syntax.const @{syntax_const "_field"} $ Syntax.const c $ t;
-fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
+fun field_tr' (c, t) = Syntax.const \<^syntax_const>\<open>_field\<close> $ Syntax.const c $ t;
+fun fields_tr' (t, u) = Syntax.const \<^syntax_const>\<open>_fields\<close> $ t $ u;
 
 fun record_tr' ctxt t =
   let
@@ -876,8 +876,8 @@ fun record_tr' ctxt t =
     val u = foldr1 fields_tr' (map field_tr' fields);
   in
     (case more of
-      Const (@{const_syntax Unity}, _) => Syntax.const @{syntax_const "_record"} $ u
-    | _ => Syntax.const @{syntax_const "_record_scheme"} $ u $ more)
+      Const (\<^const_syntax>\<open>Unity\<close>, _) => Syntax.const \<^syntax_const>\<open>_record\<close> $ u
+    | _ => Syntax.const \<^syntax_const>\<open>_record_scheme\<close> $ u $ more)
   end;
 
 in
@@ -903,7 +903,7 @@ fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
         SOME name =>
           (case try Syntax_Trans.const_abs_tr' k of
             SOME t =>
-              apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
+              apfst (cons (Syntax.const \<^syntax_const>\<open>_field_update\<close> $ Syntax.free name $ t))
                 (field_updates_tr' ctxt u)
           | NONE => ([], tm))
       | NONE => ([], tm))
@@ -913,8 +913,8 @@ fun record_update_tr' ctxt tm =
   (case field_updates_tr' ctxt tm of
     ([], _) => raise Match
   | (ts, u) =>
-      Syntax.const @{syntax_const "_record_update"} $ u $
-        foldr1 (fn (v, w) => Syntax.const @{syntax_const "_field_updates"} $ v $ w) (rev ts));
+      Syntax.const \<^syntax_const>\<open>_record_update\<close> $ u $
+        foldr1 (fn (v, w) => Syntax.const \<^syntax_const>\<open>_field_updates\<close> $ v $ w) (rev ts));
 
 in
 
@@ -938,7 +938,7 @@ fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
 
 fun mk_comp_id f =
   let val T = range_type (fastype_of f)
-  in HOLogic.mk_comp (Const (@{const_name Fun.id}, T --> T), f) end;
+  in HOLogic.mk_comp (Const (\<^const_name>\<open>Fun.id\<close>, T --> T), f) end;
 
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
@@ -1063,7 +1063,7 @@ in
 *)
 val simproc =
   Simplifier.make_simproc @{context} "record"
-   {lhss = [@{term "x::'a::{}"}],
+   {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1147,7 +1147,7 @@ fun get_upd_acc_cong_thm upd acc thy ss =
   both a more update and an update to a field within it.*)
 val upd_simproc =
   Simplifier.make_simproc @{context} "record_upd"
-   {lhss = [@{term "x::'a::{}"}],
+   {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1218,7 +1218,7 @@ val upd_simproc =
                 val (isnoop, skelf') = is_upd_noop s f term;
                 val funT = domain_type T;
                 fun mk_comp_local (f, f') =
-                  Const (@{const_name Fun.comp}, funT --> funT --> funT) $ f $ f';
+                  Const (\<^const_name>\<open>Fun.comp\<close>, funT --> funT --> funT) $ f $ f';
               in
                 if isnoop then
                   (upd $ skelf' $ lhs, rhs, vars,
@@ -1270,10 +1270,10 @@ end;
 *)
 val eq_simproc =
   Simplifier.make_simproc @{context} "record_eq"
-   {lhss = [@{term "r = s"}],
+   {lhss = [\<^term>\<open>r = s\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
-        Const (@{const_name HOL.eq}, Type (_, [T, _])) $ _ $ _ =>
+        Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ _ $ _ =>
           (case rec_id ~1 T of
             "" => NONE
           | name =>
@@ -1292,13 +1292,13 @@ val eq_simproc =
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
   Simplifier.make_simproc @{context} "record_split"
-   {lhss = [@{term "x::'a::{}"}],
+   {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
-          if quantifier = @{const_name Pure.all} orelse
-            quantifier = @{const_name All} orelse
-            quantifier = @{const_name Ex}
+          if quantifier = \<^const_name>\<open>Pure.all\<close> orelse
+            quantifier = \<^const_name>\<open>All\<close> orelse
+            quantifier = \<^const_name>\<open>Ex\<close>
           then
             (case rec_id ~1 T of
               "" => NONE
@@ -1310,9 +1310,9 @@ fun split_simproc P =
                     | SOME (all_thm, All_thm, Ex_thm, _) =>
                         SOME
                           (case quantifier of
-                            @{const_name Pure.all} => all_thm
-                          | @{const_name All} => All_thm RS @{thm eq_reflection}
-                          | @{const_name Ex} => Ex_thm RS @{thm eq_reflection}
+                            \<^const_name>\<open>Pure.all\<close> => all_thm
+                          | \<^const_name>\<open>All\<close> => All_thm RS @{thm eq_reflection}
+                          | \<^const_name>\<open>Ex\<close> => Ex_thm RS @{thm eq_reflection}
                           | _ => raise Fail "split_simproc"))
                   else NONE
                 end)
@@ -1321,7 +1321,7 @@ fun split_simproc P =
 
 val ex_sel_eq_simproc =
   Simplifier.make_simproc @{context} "ex_sel_eq"
-   {lhss = [@{term "Ex t"}],
+   {lhss = [\<^term>\<open>Ex t\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1335,23 +1335,23 @@ val ex_sel_eq_simproc =
                 else raise TERM ("", [x]);
               val sel' = Const (sel, Tsel) $ Bound 0;
               val (l, r) = if lr then (sel', x') else (x', sel');
-            in Const (@{const_name HOL.eq}, Teq) $ l $ r end
+            in Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ l $ r end
           else raise TERM ("", [Const (sel, Tsel)]);
 
-        fun dest_sel_eq (Const (@{const_name HOL.eq}, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
+        fun dest_sel_eq (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
               (true, Teq, (sel, Tsel), X)
-          | dest_sel_eq (Const (@{const_name HOL.eq}, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
+          | dest_sel_eq (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
               (false, Teq, (sel, Tsel), X)
           | dest_sel_eq _ = raise TERM ("", []);
       in
         (case t of
-          Const (@{const_name Ex}, Tex) $ Abs (s, T, t) =>
+          Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, t) =>
            (let
              val eq = mkeq (dest_sel_eq t) 0;
              val prop =
                Logic.list_all ([("r", T)],
                  Logic.mk_equals
-                  (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
+                  (Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, eq), \<^term>\<open>True\<close>));
             in
               SOME (Goal.prove_sorry_global thy [] [] prop
                 (fn _ => simp_tac (put_simpset (get_simpset thy) ctxt
@@ -1379,7 +1379,7 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = @{const_name Pure.all} orelse s = @{const_name All} orelse s = @{const_name Ex})
+          (s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close> orelse s = \<^const_name>\<open>Ex\<close>)
             andalso is_recT T
         | _ => false);
 
@@ -1427,11 +1427,11 @@ fun split_tac ctxt = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = @{const_name Pure.all} orelse s = @{const_name All}) andalso is_recT T
+          (s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close>) andalso is_recT T
         | _ => false);
 
-    fun is_all (Const (@{const_name Pure.all}, _) $ _) = ~1
-      | is_all (Const (@{const_name All}, _) $ _) = ~1
+    fun is_all (Const (\<^const_name>\<open>Pure.all\<close>, _) $ _) = ~1
+      | is_all (Const (\<^const_name>\<open>All\<close>, _) $ _) = ~1
       | is_all _ = 0;
   in
     if has_rec goal then
@@ -1586,10 +1586,10 @@ fun extension_definition overloaded name fields alphas zeta moreT more vars thy 
     val inject_prop =  (* FIXME local x x' *)
       let val vars_more' = map (fn (Free (x, T)) => Free (x ^ "'", T)) vars_more in
         HOLogic.mk_conj (HOLogic.eq_const extT $
-          mk_ext vars_more $ mk_ext vars_more', @{term True})
+          mk_ext vars_more $ mk_ext vars_more', \<^term>\<open>True\<close>)
         ===
         foldr1 HOLogic.mk_conj
-          (map HOLogic.mk_eq (vars_more ~~ vars_more') @ [@{term True}])
+          (map HOLogic.mk_eq (vars_more ~~ vars_more') @ [\<^term>\<open>True\<close>])
       end;
 
     val induct_prop = (fold_rev Logic.all vars_more (Trueprop (P $ ext)), Trueprop (P $ s));
@@ -1688,19 +1688,19 @@ fun mk_recordT extT =
 fun mk_random_eq tyco vs extN Ts =
   let
     (* FIXME local i etc. *)
-    val size = @{term "i::natural"};
-    fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
+    val size = \<^term>\<open>i::natural\<close>;
+    fun termifyT T = HOLogic.mk_prodT (T, \<^typ>\<open>unit \<Rightarrow> term\<close>);
     val T = Type (tyco, map TFree vs);
     val Tm = termifyT T;
     val params = Name.invent_names Name.context "x" Ts;
     val lhs = HOLogic.mk_random T size;
-    val tc = HOLogic.mk_return Tm @{typ Random.seed}
+    val tc = HOLogic.mk_return Tm \<^typ>\<open>Random.seed\<close>
       (HOLogic.mk_valtermify_app extN params T);
     val rhs =
       HOLogic.mk_ST
         (map (fn (v, T') =>
-          ((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, termifyT T'))) params)
-        tc @{typ Random.seed} (SOME Tm, @{typ Random.seed});
+          ((HOLogic.mk_random T' size, \<^typ>\<open>Random.seed\<close>), SOME (v, termifyT T'))) params)
+        tc \<^typ>\<open>Random.seed\<close> (SOME Tm, \<^typ>\<open>Random.seed\<close>);
   in
     (lhs, rhs)
   end
@@ -1708,16 +1708,16 @@ fun mk_random_eq tyco vs extN Ts =
 fun mk_full_exhaustive_eq tyco vs extN Ts =
   let
     (* FIXME local i etc. *)
-    val size = @{term "i::natural"};
-    fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
+    val size = \<^term>\<open>i::natural\<close>;
+    fun termifyT T = HOLogic.mk_prodT (T, \<^typ>\<open>unit \<Rightarrow> term\<close>);
     val T = Type (tyco, map TFree vs);
-    val test_function = Free ("f", termifyT T --> @{typ "(bool * term list) option"});
+    val test_function = Free ("f", termifyT T --> \<^typ>\<open>(bool \<times> term list) option\<close>);
     val params = Name.invent_names Name.context "x" Ts;
     fun full_exhaustiveT T =
-      (termifyT T --> @{typ "(bool * Code_Evaluation.term list) option"}) -->
-        @{typ natural} --> @{typ "(bool * Code_Evaluation.term list) option"};
+      (termifyT T --> \<^typ>\<open>(bool \<times> Code_Evaluation.term list) option\<close>) -->
+        \<^typ>\<open>natural\<close> --> \<^typ>\<open>(bool \<times> Code_Evaluation.term list) option\<close>;
     fun mk_full_exhaustive T =
-      Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"},
+      Const (\<^const_name>\<open>Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive\<close>,
         full_exhaustiveT T);
     val lhs = mk_full_exhaustive T $ test_function $ size;
     val tc = test_function $ (HOLogic.mk_valtermify_app extN params T);
@@ -1758,8 +1758,8 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     let
       val eq =
         HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
-           Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT)));
+          (Const (\<^const_name>\<open>HOL.equal\<close>, extT --> extT --> HOLogic.boolT),
+           Const (\<^const_name>\<open>HOL.eq\<close>, extT --> extT --> HOLogic.boolT)));
       fun tac ctxt eq_def =
         Class.intro_classes_tac ctxt []
         THEN rewrite_goals_tac ctxt [Simpdata.mk_eq eq_def]
@@ -1770,11 +1770,11 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       fun mk_eq_refl ctxt =
         @{thm equal_refl}
         |> Thm.instantiate
-          ([((("'a", 0), @{sort equal}), Thm.ctyp_of ctxt (Logic.varifyT_global extT))], [])
+          ([((("'a", 0), \<^sort>\<open>equal\<close>), Thm.ctyp_of ctxt (Logic.varifyT_global extT))], [])
         |> Axclass.unoverload ctxt;
-      val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
+      val ensure_random_record = ensure_sort_record (\<^sort>\<open>random\<close>, mk_random_eq);
       val ensure_exhaustive_record =
-        ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq);
+        ensure_sort_record (\<^sort>\<open>full_exhaustive\<close>, mk_full_exhaustive_eq);
       fun add_code eq_def thy =
         let
           val ctxt = Proof_Context.init_global thy;
@@ -1808,8 +1808,8 @@ fun add_ctr_sugar ctr exhaust inject sel_thms =
      distinct_discsss = [], exhaust_discs = [], exhaust_sels = [], collapses = [], expands = [],
      split_sels = [], split_sel_asms = [], case_eq_ifs = []};
 
-fun lhs_of_equation (Const (@{const_name Pure.eq}, _) $ t $ _) = t
-  | lhs_of_equation (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t $ _)) = t;
+fun lhs_of_equation (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ _) = t
+  | lhs_of_equation (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _)) = t;
 
 fun add_spec_rule rule =
   let val head = head_of (lhs_of_equation (Thm.prop_of rule)) in
@@ -1858,7 +1858,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
     val all_vars = parent_vars @ vars;
     val all_named_vars = (parent_names ~~ parent_vars) @ named_vars;
 
-    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", @{sort type});
+    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", \<^sort>\<open>type\<close>);
     val moreT = TFree zeta;
     val more = Free (moreN, moreT);
     val full_moreN = full (Binding.name moreN);
@@ -2408,18 +2408,18 @@ val print_record =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword record} "define extensible record"
+  Outer_Syntax.command \<^command_keyword>\<open>record\<close> "define extensible record"
     (Parse_Spec.overloaded -- (Parse.type_args_constrained -- Parse.binding) --
-      (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
+      (\<^keyword>\<open>=\<close> |-- Scan.option (Parse.typ --| \<^keyword>\<open>+\<close>) --
         Scan.repeat1 Parse.const_binding)
     >> (fn ((overloaded, x), (y, z)) =>
         Toplevel.theory (add_record_cmd {overloaded = overloaded} x y z)));
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) []
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_record} "print record definiton"
+  Outer_Syntax.command \<^command_keyword>\<open>print_record\<close> "print record definiton"
     (opt_modes -- Parse.typ >> print_record);
 
 end

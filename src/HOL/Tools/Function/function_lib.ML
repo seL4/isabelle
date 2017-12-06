@@ -50,7 +50,7 @@ fun plural sg pl [x] = sg
 
 
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
-fun dest_all_all (t as (Const (@{const_name Pure.all},_) $ _)) =
+fun dest_all_all (t as (Const (\<^const_name>\<open>Pure.all\<close>,_) $ _)) =
   let
     val (v,b) = Logic.dest_all t |> apfst Free
     val (vs, b') = dest_all_all b
@@ -129,7 +129,7 @@ fun regroup_conv ctxt neu cn ac is ct =
 
 (* instance for unions *)
 fun regroup_union_conv ctxt =
-  regroup_conv ctxt @{const_abbrev Set.empty} @{const_name Lattices.sup}
+  regroup_conv ctxt \<^const_abbrev>\<open>Set.empty\<close> \<^const_name>\<open>Lattices.sup\<close>
     (map (fn t => t RS eq_reflection)
       (@{thms Un_ac} @ @{thms Un_empty_right} @ @{thms Un_empty_left}))
 

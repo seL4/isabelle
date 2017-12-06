@@ -30,28 +30,28 @@ fun access_top_down {left, right, init} len i =
     {left = (fn f => f o left), right = (fn f => f o right), init = I} len i init
 
 (* Sum types *)
-fun mk_sumT LT RT = Type (@{type_name Sum_Type.sum}, [LT, RT])
+fun mk_sumT LT RT = Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT])
 fun mk_sumcase TL TR T l r =
-  Const (@{const_name sum.case_sum}, (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r
+  Const (\<^const_name>\<open>sum.case_sum\<close>, (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r
 
 val App = curry op $
 
 fun mk_inj ST n i =
   access_top_down
   { init = (ST, I : term -> term),
-    left = (fn (T as Type (@{type_name Sum_Type.sum}, [LT, RT]), inj) =>
-      (LT, inj o App (Const (@{const_name Inl}, LT --> T)))),
-    right =(fn (T as Type (@{type_name Sum_Type.sum}, [LT, RT]), inj) =>
-      (RT, inj o App (Const (@{const_name Inr}, RT --> T))))} n i
+    left = (fn (T as Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT]), inj) =>
+      (LT, inj o App (Const (\<^const_name>\<open>Inl\<close>, LT --> T)))),
+    right =(fn (T as Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT]), inj) =>
+      (RT, inj o App (Const (\<^const_name>\<open>Inr\<close>, RT --> T))))} n i
   |> snd
 
 fun mk_proj ST n i =
   access_top_down
   { init = (ST, I : term -> term),
-    left = (fn (T as Type (@{type_name Sum_Type.sum}, [LT, RT]), proj) =>
-      (LT, App (Const (@{const_name Sum_Type.projl}, T --> LT)) o proj)),
-    right =(fn (T as Type (@{type_name Sum_Type.sum}, [LT, RT]), proj) =>
-      (RT, App (Const (@{const_name Sum_Type.projr}, T --> RT)) o proj))} n i
+    left = (fn (T as Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT]), proj) =>
+      (LT, App (Const (\<^const_name>\<open>Sum_Type.projl\<close>, T --> LT)) o proj)),
+    right =(fn (T as Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT]), proj) =>
+      (RT, App (Const (\<^const_name>\<open>Sum_Type.projr\<close>, T --> RT)) o proj))} n i
   |> snd
 
 fun mk_sumcases T fs =

@@ -9,7 +9,7 @@ struct
 
 (* translating input terms *)
 
-fun trans_type _ @{typ Real.real} tcx = SOME (Argo_Expr.Real, tcx)
+fun trans_type _ \<^typ>\<open>Real.real\<close> tcx = SOME (Argo_Expr.Real, tcx)
   | trans_type _ _ _ = NONE
 
 fun trans_term f (@{const Groups.uminus_class.uminus (real)} $ t) tcx =
@@ -34,7 +34,7 @@ fun trans_term f (@{const Groups.uminus_class.uminus (real)} $ t) tcx =
       tcx |> f t1 ||>> f t2 |>> uncurry Argo_Expr.mk_le |> SOME
   | trans_term _ t tcx =
       (case try HOLogic.dest_number t of
-        SOME (@{typ Real.real}, n) => SOME (Argo_Expr.mk_num (Rat.of_int n), tcx)
+        SOME (\<^typ>\<open>Real.real\<close>, n) => SOME (Argo_Expr.mk_num (Rat.of_int n), tcx)
       | _ => NONE)
 
 
@@ -47,7 +47,7 @@ fun mk_divide t1 t2 = @{const Rings.divide_class.divide (real)} $ t1 $ t2
 fun mk_le t1 t2 = @{const Orderings.ord_class.less_eq (real)} $ t1 $ t2
 fun mk_lt t1 t2 = @{const Orderings.ord_class.less (real)} $ t1 $ t2
 
-fun mk_real_num i = HOLogic.mk_number @{typ Real.real} i
+fun mk_real_num i = HOLogic.mk_number \<^typ>\<open>Real.real\<close> i
 
 fun mk_number n =
   let val (p, q) = Rat.dest n
@@ -93,7 +93,7 @@ val div_nums_conv = nums_conv mk_divide (op /)
 fun inv_num_conv ctxt = nums_conv mk_divide (fn (_, n) => Rat.inv n) ctxt @1
 
 fun cmp_nums_conv ctxt b ct =
-  let val t = if b then @{const HOL.True} else @{const HOL.False}
+  let val t = if b then \<^const>\<open>HOL.True\<close> else \<^const>\<open>HOL.False\<close>
   in simp_conv ctxt (HOLogic.mk_eq (Thm.term_of ct, t)) ct end
 
 local

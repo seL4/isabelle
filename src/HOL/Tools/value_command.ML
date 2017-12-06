@@ -62,18 +62,18 @@ fun value_cmd some_name modes raw_t state =
   in Pretty.writeln p end;
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) [];
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) [];
 
 val opt_evaluator =
-  Scan.option (@{keyword "["} |-- Parse.name --| @{keyword "]"})
+  Scan.option (\<^keyword>\<open>[\<close> |-- Parse.name --| \<^keyword>\<open>]\<close>)
   
 val _ =
-  Outer_Syntax.command @{command_keyword value} "evaluate and print term"
+  Outer_Syntax.command \<^command_keyword>\<open>value\<close> "evaluate and print term"
     (opt_evaluator -- opt_modes -- Parse.term
       >> (fn ((some_name, modes), t) => Toplevel.keep (value_cmd some_name modes t)));
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding value}
+  (Thy_Output.antiquotation \<^binding>\<open>value\<close>
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
     (fn {source, context, ...} => fn ((some_name, style), t) => Thy_Output.output context
       (Thy_Output.maybe_pretty_source Thy_Output.pretty_term context source

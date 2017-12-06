@@ -23,17 +23,16 @@ struct
 fun add_term_of_inst tyco thy =
   let
     val ((raw_vs, _), _) = Code.get_type thy tyco;
-    val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
+    val vs = map (fn (v, _) => (v, \<^sort>\<open>typerep\<close>)) raw_vs;
     val ty = Type (tyco, map TFree vs);
-    val lhs = Const (@{const_name term_of}, ty --> @{typ term})
-      $ Free ("x", ty);
-    val rhs = @{term "undefined :: term"};
+    val lhs = Const (\<^const_name>\<open>term_of\<close>, ty --> \<^typ>\<open>term\<close>) $ Free ("x", ty);
+    val rhs = \<^term>\<open>undefined :: term\<close>;
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
     fun triv_name_of t = (fst o dest_Free o fst o strip_comb o fst
       o HOLogic.dest_eq o HOLogic.dest_Trueprop) t ^ "_triv";
   in
     thy
-    |> Class.instantiation ([tyco], vs, @{sort term_of})
+    |> Class.instantiation ([tyco], vs, \<^sort>\<open>term_of\<close>)
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition NONE [] [] ((Binding.name (triv_name_of eq), []), eq))
     |> snd
@@ -42,15 +41,15 @@ fun add_term_of_inst tyco thy =
 
 fun ensure_term_of_inst tyco thy =
   let
-    val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort term_of})
-      andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep};
+    val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>term_of\<close>)
+      andalso Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>typerep\<close>;
   in if need_inst then add_term_of_inst tyco thy else thy end;
 
 fun for_term_of_instance tyco vs f thy =
   let
     val algebra = Sign.classes_of thy;
   in
-    case try (Sorts.mg_domain algebra tyco) @{sort term_of} of
+    case try (Sorts.mg_domain algebra tyco) \<^sort>\<open>term_of\<close> of
       NONE => thy
     | SOME sorts => f tyco (map2 (fn (v, sort) => fn sort' =>
         (v, Sorts.inter_sort algebra (sort, sort'))) vs sorts) thy
@@ -95,7 +94,7 @@ fun ensure_term_of_code_datatype (tyco, (vs, cs)) =
 fun mk_abs_term_of_eq thy ty abs ty_rep proj =
   let
     val arg = Var (("x", 0), ty);
-    val rhs = Abs ("y", @{typ term}, HOLogic.reflect_term (Const (abs, ty_rep --> ty) $ Bound 0)) $
+    val rhs = Abs ("y", \<^typ>\<open>term\<close>, HOLogic.reflect_term (Const (abs, ty_rep --> ty) $ Bound 0)) $
       (HOLogic.mk_term_of ty_rep (Const (proj, ty --> ty_rep) $ arg))
       |> Thm.global_cterm_of thy;
     val cty = Thm.global_ctyp_of thy ty;
@@ -139,7 +138,7 @@ fun map_default f xs =
     else NONE
   end;
 
-fun subst_termify_app (Const (@{const_name termify}, _), [t]) =
+fun subst_termify_app (Const (\<^const_name>\<open>termify\<close>, _), [t]) =
       if not (Term.exists_subterm (fn Abs _ => true | _ => false) t)
       then if fold_aterms (fn Const _ => I | _ => K false) t true
         then SOME (HOLogic.reflect_term t)

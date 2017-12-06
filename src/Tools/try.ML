@@ -73,7 +73,7 @@ fun try_tools state =
     |> tap (fn NONE => writeln "Tried in vain" | _ => ());
 
 val _ =
-  Outer_Syntax.command @{command_keyword try}
+  Outer_Syntax.command \<^command_keyword>\<open>try\<close>
     "try a combination of automatic proving and disproving tools"
     (Scan.succeed (Toplevel.keep_proof (ignore o try_tools o Toplevel.proof_of)));
 
