@@ -142,10 +142,14 @@ lemma bin_ex_rl: "\<exists>w b. w BIT b = bin"
 lemma bin_exhaust: "(\<And>x b. bin = x BIT b \<Longrightarrow> Q) \<Longrightarrow> Q"
 by (metis bin_ex_rl)
 
-primrec bin_nth
+primrec bin_nth :: "int \<Rightarrow> nat \<Rightarrow> bool"
   where
     Z: "bin_nth w 0 \<longleftrightarrow> bin_last w"
   | Suc: "bin_nth w (Suc n) \<longleftrightarrow> bin_nth (bin_rest w) n"
+
+lemma bin_nth_eq_mod:
+  "bin_nth w n \<longleftrightarrow> odd (w div 2 ^ n)"
+  by (induction n arbitrary: w) (simp_all add: bin_last_def bin_rest_def odd_iff_mod_2_eq_one zdiv_zmult2_eq)
 
 lemma bin_abs_lem: "bin = (w BIT b) \<Longrightarrow> bin \<noteq> -1 \<longrightarrow> bin \<noteq> 0 \<longrightarrow> nat \<bar>w\<bar> < nat \<bar>bin\<bar>"
   apply clarsimp
@@ -266,27 +270,46 @@ primrec sbintrunc :: "nat \<Rightarrow> int \<Rightarrow> int"
     Z : "sbintrunc 0 bin = (if bin_last bin then -1 else 0)"
   | Suc : "sbintrunc (Suc n) bin = sbintrunc n (bin_rest bin) BIT (bin_last bin)"
 
-lemma sign_bintr: "bin_sign (bintrunc n w) = 0"
-  by (induct n arbitrary: w) auto
-
 lemma bintrunc_mod2p: "bintrunc n w = w mod 2 ^ n"
   by (induct n arbitrary: w) (auto simp add: bin_last_def bin_rest_def Bit_def zmod_zmult2_eq)
 
-lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
-  apply (induct n arbitrary: w)
-   apply (auto simp add: bin_last_odd bin_rest_def Bit_def elim!: evenE oddE)
-   apply (smt pos_zmod_mult_2 zle2p)
-  apply (simp add: mult_mod_right)
-  done
+lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n"
+proof (induction n arbitrary: w)
+  case 0
+  then show ?case
+    by (auto simp add: bin_last_odd odd_iff_mod_2_eq_one)
+next
+  case (Suc n)
+  moreover have "((bin_rest w + 2 ^ n) mod (2 * 2 ^ n) - 2 ^ n) BIT bin_last w =
+    (w + 2 * 2 ^ n) mod (4 * 2 ^ n) - 2 * 2 ^ n"
+  proof (cases w rule: parity_cases)
+    case even
+    then show ?thesis
+      by (simp add: bin_last_odd bin_rest_def Bit_B0_2t mult_mod_right)
+  next
+    case odd
+    then have "2 * (w div 2) = w - 1"
+      using minus_mod_eq_mult_div [of w 2] by simp
+    moreover have "(2 * 2 ^ n + w - 1) mod (2 * 2 * 2 ^ n) + 1 = (2 * 2 ^ n + w) mod (2 * 2 * 2 ^ n)"
+      using odd emep1 [of "2 * 2 ^ n + w - 1" "2 * 2 * 2 ^ n"] by simp
+    ultimately show ?thesis 
+      using odd by (simp add: bin_last_odd bin_rest_def Bit_B1_2t mult_mod_right) (simp add: algebra_simps)
+  qed
+  ultimately show ?case
+    by simp
+qed
 
 
 subsection "Simplifications for (s)bintrunc"
 
+lemma sign_bintr: "bin_sign (bintrunc n w) = 0"
+  by (simp add: bintrunc_mod2p bin_sign_def)
+
 lemma bintrunc_n_0 [simp]: "bintrunc n 0 = 0"
-  by (induct n) auto
+  by (simp add: bintrunc_mod2p)
 
 lemma sbintrunc_n_0 [simp]: "sbintrunc n 0 = 0"
-  by (induct n) auto
+  by (simp add: sbintrunc_mod2p)
 
 lemma sbintrunc_n_minus1 [simp]: "sbintrunc n (- 1) = -1"
   by (induct n) auto
