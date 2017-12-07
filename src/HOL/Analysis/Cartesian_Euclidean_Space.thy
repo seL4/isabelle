@@ -290,7 +290,7 @@ lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b
 
 lemma component_le_norm_cart: "\<bar>x$i\<bar> <= norm x"
   apply (simp add: norm_vec_def)
-  apply (rule member_le_setL2, simp_all)
+  apply (rule member_le_L2_set, simp_all)
   done
 
 lemma norm_bound_component_le_cart: "norm x <= e ==> \<bar>x$i\<bar> <= e"
@@ -300,7 +300,7 @@ lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
   by (metis component_le_norm_cart le_less_trans)
 
 lemma norm_le_l1_cart: "norm x <= sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
-  by (simp add: norm_vec_def setL2_le_sum)
+  by (simp add: norm_vec_def L2_set_le_sum)
 
 lemma scalar_mult_eq_scaleR: "c *s x = c *\<^sub>R x"
   unfolding scaleR_vec_def vector_scalar_mult_def by simp
@@ -984,7 +984,7 @@ proof
     { fix n
       assume n: "\<forall>i. dist (f (r n) $ i) (l $ i) < e / (real_of_nat (card ?d))"
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>?d. dist (f (r n) $ i) (l $ i))"
-        unfolding dist_vec_def using zero_le_dist by (rule setL2_le_sum)
+        unfolding dist_vec_def using zero_le_dist by (rule L2_set_le_sum)
       also have "\<dots> < (\<Sum>i\<in>?d. e / (real_of_nat (card ?d)))"
         by (rule sum_strict_mono) (simp_all add: n)
       finally have "dist (f (r n)) l < e" by simp

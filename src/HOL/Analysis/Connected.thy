@@ -2854,7 +2854,7 @@ qed
 lemma diameter_cbox:
   fixes a b::"'a::euclidean_space"
   shows "(\<forall>i \<in> Basis. a \<bullet> i \<le> b \<bullet> i) \<Longrightarrow> diameter (cbox a b) = dist a b"
-  by (force simp: diameter_def intro!: cSup_eq_maximum setL2_mono
+  by (force simp: diameter_def intro!: cSup_eq_maximum L2_set_mono
      simp: euclidean_dist_l2[where 'a='a] cbox_def dist_norm)
 
 subsection \<open>Separation between points and sets\<close>
@@ -5038,7 +5038,7 @@ subsection\<open>Componentwise limits and continuity\<close>
 
 text\<open>But is the premise really necessary? Need to generalise @{thm euclidean_dist_l2}\<close>
 lemma Euclidean_dist_upper: "i \<in> Basis \<Longrightarrow> dist (x \<bullet> i) (y \<bullet> i) \<le> dist x y"
-  by (metis (no_types) member_le_setL2 euclidean_dist_l2 finite_Basis)
+  by (metis (no_types) member_le_L2_set euclidean_dist_l2 finite_Basis)
 
 text\<open>But is the premise @{term \<open>i \<in> Basis\<close>} really necessary?\<close>
 lemma open_preimage_inner:
@@ -5087,17 +5087,17 @@ next
   proof clarify
     fix e::real
     assume "0 < e"
-    have *: "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e"
+    have *: "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e"
              if "\<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / real DIM('b)" for x
     proof -
-      have "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> sum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
-        by (simp add: setL2_le_sum)
+      have "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> sum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
+        by (simp add: L2_set_le_sum)
       also have "... < DIM('b) * (e / real DIM('b))"
         apply (rule sum_bounded_above_strict)
         using that by auto
       also have "... = e"
         by (simp add: field_simps)
-      finally show "setL2 (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e" .
+      finally show "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e" .
     qed
     have "\<forall>\<^sub>F x in F. \<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / DIM('b)"
       apply (rule R')
@@ -5516,7 +5516,7 @@ proof cases
     by (auto intro!: sum_mono simp: clamp_def dist_real_def abs_le_square_iff[symmetric])
   then show ?thesis
     by (auto intro: real_sqrt_le_mono
-      simp: euclidean_dist_l2[where y=x] euclidean_dist_l2[where y="clamp a b x"] setL2_def)
+      simp: euclidean_dist_l2[where y=x] euclidean_dist_l2[where y="clamp a b x"] L2_set_def)
 qed (auto simp: clamp_def)
 
 lemma clamp_continuous_at:

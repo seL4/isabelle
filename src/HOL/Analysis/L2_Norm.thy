@@ -8,74 +8,73 @@ theory L2_Norm
 imports Complex_Main
 begin
 
-definition
-  "setL2 f A = sqrt (\<Sum>i\<in>A. (f i)\<^sup>2)"
+definition "L2_set f A = sqrt (\<Sum>i\<in>A. (f i)\<^sup>2)"
 
-lemma setL2_cong:
-  "\<lbrakk>A = B; \<And>x. x \<in> B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setL2 f A = setL2 g B"
-  unfolding setL2_def by simp
+lemma L2_set_cong:
+  "\<lbrakk>A = B; \<And>x. x \<in> B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> L2_set f A = L2_set g B"
+  unfolding L2_set_def by simp
 
-lemma strong_setL2_cong:
-  "\<lbrakk>A = B; \<And>x. x \<in> B =simp=> f x = g x\<rbrakk> \<Longrightarrow> setL2 f A = setL2 g B"
-  unfolding setL2_def simp_implies_def by simp
+lemma strong_L2_set_cong:
+  "\<lbrakk>A = B; \<And>x. x \<in> B =simp=> f x = g x\<rbrakk> \<Longrightarrow> L2_set f A = L2_set g B"
+  unfolding L2_set_def simp_implies_def by simp
 
-lemma setL2_infinite [simp]: "\<not> finite A \<Longrightarrow> setL2 f A = 0"
-  unfolding setL2_def by simp
+lemma L2_set_infinite [simp]: "\<not> finite A \<Longrightarrow> L2_set f A = 0"
+  unfolding L2_set_def by simp
 
-lemma setL2_empty [simp]: "setL2 f {} = 0"
-  unfolding setL2_def by simp
+lemma L2_set_empty [simp]: "L2_set f {} = 0"
+  unfolding L2_set_def by simp
 
-lemma setL2_insert [simp]:
+lemma L2_set_insert [simp]:
   "\<lbrakk>finite F; a \<notin> F\<rbrakk> \<Longrightarrow>
-    setL2 f (insert a F) = sqrt ((f a)\<^sup>2 + (setL2 f F)\<^sup>2)"
-  unfolding setL2_def by (simp add: sum_nonneg)
+    L2_set f (insert a F) = sqrt ((f a)\<^sup>2 + (L2_set f F)\<^sup>2)"
+  unfolding L2_set_def by (simp add: sum_nonneg)
 
-lemma setL2_nonneg [simp]: "0 \<le> setL2 f A"
-  unfolding setL2_def by (simp add: sum_nonneg)
+lemma L2_set_nonneg [simp]: "0 \<le> L2_set f A"
+  unfolding L2_set_def by (simp add: sum_nonneg)
 
-lemma setL2_0': "\<forall>a\<in>A. f a = 0 \<Longrightarrow> setL2 f A = 0"
-  unfolding setL2_def by simp
+lemma L2_set_0': "\<forall>a\<in>A. f a = 0 \<Longrightarrow> L2_set f A = 0"
+  unfolding L2_set_def by simp
 
-lemma setL2_constant: "setL2 (\<lambda>x. y) A = sqrt (of_nat (card A)) * \<bar>y\<bar>"
-  unfolding setL2_def by (simp add: real_sqrt_mult)
+lemma L2_set_constant: "L2_set (\<lambda>x. y) A = sqrt (of_nat (card A)) * \<bar>y\<bar>"
+  unfolding L2_set_def by (simp add: real_sqrt_mult)
 
-lemma setL2_mono:
+lemma L2_set_mono:
   assumes "\<And>i. i \<in> K \<Longrightarrow> f i \<le> g i"
   assumes "\<And>i. i \<in> K \<Longrightarrow> 0 \<le> f i"
-  shows "setL2 f K \<le> setL2 g K"
-  unfolding setL2_def
+  shows "L2_set f K \<le> L2_set g K"
+  unfolding L2_set_def
   by (simp add: sum_nonneg sum_mono power_mono assms)
 
-lemma setL2_strict_mono:
+lemma L2_set_strict_mono:
   assumes "finite K" and "K \<noteq> {}"
   assumes "\<And>i. i \<in> K \<Longrightarrow> f i < g i"
   assumes "\<And>i. i \<in> K \<Longrightarrow> 0 \<le> f i"
-  shows "setL2 f K < setL2 g K"
-  unfolding setL2_def
+  shows "L2_set f K < L2_set g K"
+  unfolding L2_set_def
   by (simp add: sum_strict_mono power_strict_mono assms)
 
-lemma setL2_right_distrib:
-  "0 \<le> r \<Longrightarrow> r * setL2 f A = setL2 (\<lambda>x. r * f x) A"
-  unfolding setL2_def
+lemma L2_set_right_distrib:
+  "0 \<le> r \<Longrightarrow> r * L2_set f A = L2_set (\<lambda>x. r * f x) A"
+  unfolding L2_set_def
   apply (simp add: power_mult_distrib)
   apply (simp add: sum_distrib_left [symmetric])
   apply (simp add: real_sqrt_mult sum_nonneg)
   done
 
-lemma setL2_left_distrib:
-  "0 \<le> r \<Longrightarrow> setL2 f A * r = setL2 (\<lambda>x. f x * r) A"
-  unfolding setL2_def
+lemma L2_set_left_distrib:
+  "0 \<le> r \<Longrightarrow> L2_set f A * r = L2_set (\<lambda>x. f x * r) A"
+  unfolding L2_set_def
   apply (simp add: power_mult_distrib)
   apply (simp add: sum_distrib_right [symmetric])
   apply (simp add: real_sqrt_mult sum_nonneg)
   done
 
-lemma setL2_eq_0_iff: "finite A \<Longrightarrow> setL2 f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
-  unfolding setL2_def
+lemma L2_set_eq_0_iff: "finite A \<Longrightarrow> L2_set f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
+  unfolding L2_set_def
   by (simp add: sum_nonneg sum_nonneg_eq_0_iff)
 
-lemma setL2_triangle_ineq:
-  shows "setL2 (\<lambda>i. f i + g i) A \<le> setL2 f A + setL2 g A"
+lemma L2_set_triangle_ineq:
+  shows "L2_set (\<lambda>i. f i + g i) A \<le> L2_set f A + L2_set g A"
 proof (cases "finite A")
   case False
   thus ?thesis by simp
@@ -87,12 +86,12 @@ next
     show ?case by simp
   next
     case (insert x F)
-    hence "sqrt ((f x + g x)\<^sup>2 + (setL2 (\<lambda>i. f i + g i) F)\<^sup>2) \<le>
-           sqrt ((f x + g x)\<^sup>2 + (setL2 f F + setL2 g F)\<^sup>2)"
+    hence "sqrt ((f x + g x)\<^sup>2 + (L2_set (\<lambda>i. f i + g i) F)\<^sup>2) \<le>
+           sqrt ((f x + g x)\<^sup>2 + (L2_set f F + L2_set g F)\<^sup>2)"
       by (intro real_sqrt_le_mono add_left_mono power_mono insert
-                setL2_nonneg add_increasing zero_le_power2)
+                L2_set_nonneg add_increasing zero_le_power2)
     also have
-      "\<dots> \<le> sqrt ((f x)\<^sup>2 + (setL2 f F)\<^sup>2) + sqrt ((g x)\<^sup>2 + (setL2 g F)\<^sup>2)"
+      "\<dots> \<le> sqrt ((f x)\<^sup>2 + (L2_set f F)\<^sup>2) + sqrt ((g x)\<^sup>2 + (L2_set g F)\<^sup>2)"
       by (rule real_sqrt_sum_squares_triangle_ineq)
     finally show ?case
       using insert by simp
@@ -106,8 +105,8 @@ lemma sqrt_sum_squares_le_sum:
   apply simp
   done
 
-lemma setL2_le_sum [rule_format]:
-  "(\<forall>i\<in>A. 0 \<le> f i) \<longrightarrow> setL2 f A \<le> sum f A"
+lemma L2_set_le_sum [rule_format]:
+  "(\<forall>i\<in>A. 0 \<le> f i) \<longrightarrow> L2_set f A \<le> sum f A"
   apply (cases "finite A")
   apply (induct set: finite)
   apply simp
@@ -124,7 +123,7 @@ lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<^sup>2 + y\<^sup>2) \<le> \<bar>x\<
   apply simp
   done
 
-lemma setL2_le_sum_abs: "setL2 f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
+lemma L2_set_le_sum_abs: "L2_set f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
   apply (cases "finite A")
   apply (induct set: finite)
   apply simp
@@ -134,7 +133,7 @@ lemma setL2_le_sum_abs: "setL2 f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
   apply simp
   done
 
-lemma setL2_mult_ineq_lemma:
+lemma L2_set_mult_ineq_lemma:
   fixes a b c d :: real
   shows "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
 proof -
@@ -147,7 +146,7 @@ proof -
     by simp
 qed
 
-lemma setL2_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le> setL2 f A * setL2 g A"
+lemma L2_set_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le> L2_set f A * L2_set g A"
   apply (cases "finite A")
   apply (induct set: finite)
   apply simp
@@ -160,12 +159,12 @@ lemma setL2_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le>
   apply (simp add: power_mult_distrib)
   apply (simp add: distrib_left distrib_right)
   apply (rule ord_le_eq_trans)
-  apply (rule setL2_mult_ineq_lemma)
+  apply (rule L2_set_mult_ineq_lemma)
   apply simp_all
   done
 
-lemma member_le_setL2: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> f i \<le> setL2 f A"
-  unfolding setL2_def
+lemma member_le_L2_set: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> f i \<le> L2_set f A"
+  unfolding L2_set_def
   by (auto intro!: member_le_sum real_le_rsqrt)
 
 end

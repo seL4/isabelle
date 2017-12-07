@@ -342,7 +342,7 @@ instantiation vec :: (metric_space, finite) dist
 begin
 
 definition
-  "dist x y = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
+  "dist x y = L2_set (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
 instance ..
 end
@@ -364,19 +364,19 @@ instantiation vec :: (metric_space, finite) metric_space
 begin
 
 lemma dist_vec_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
-  unfolding dist_vec_def by (rule member_le_setL2) simp_all
+  unfolding dist_vec_def by (rule member_le_L2_set) simp_all
 
 instance proof
   fix x y :: "'a ^ 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
     unfolding dist_vec_def
-    by (simp add: setL2_eq_0_iff vec_eq_iff)
+    by (simp add: L2_set_eq_0_iff vec_eq_iff)
 next
   fix x y z :: "'a ^ 'b"
   show "dist x y \<le> dist x z + dist y z"
     unfolding dist_vec_def
-    apply (rule order_trans [OF _ setL2_triangle_ineq])
-    apply (simp add: setL2_mono dist_triangle2)
+    apply (rule order_trans [OF _ L2_set_triangle_ineq])
+    apply (simp add: L2_set_mono dist_triangle2)
     done
 next
   fix S :: "('a ^ 'b) set"
@@ -407,13 +407,13 @@ next
       define r where [abs_def]: "r i = e / sqrt (of_nat CARD('b))" for i :: 'b
       from \<open>0 < e\<close> have r: "\<forall>i. 0 < r i"
         unfolding r_def by simp_all
-      from \<open>0 < e\<close> have e: "e = setL2 r UNIV"
-        unfolding r_def by (simp add: setL2_constant)
+      from \<open>0 < e\<close> have e: "e = L2_set r UNIV"
+        unfolding r_def by (simp add: L2_set_constant)
       define A where "A i = {y. dist (x $ i) y < r i}" for i
       have "\<forall>i. open (A i) \<and> x $ i \<in> A i"
         unfolding A_def by (simp add: open_ball r)
       moreover have "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
-        by (simp add: A_def S dist_vec_def e setL2_strict_mono dist_commute)
+        by (simp add: A_def S dist_vec_def e L2_set_strict_mono dist_commute)
       ultimately show "\<exists>A. (\<forall>i. open (A i) \<and> x $ i \<in> A i) \<and>
         (\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S)" by metis
     qed
@@ -447,10 +447,10 @@ proof (rule metric_CauchyI)
   {
     fix m n :: nat
     assume "M \<le> m" "M \<le> n"
-    have "dist (X m) (X n) = setL2 (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
+    have "dist (X m) (X n) = L2_set (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
       unfolding dist_vec_def ..
     also have "\<dots> \<le> sum (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
-      by (rule setL2_le_sum [OF zero_le_dist])
+      by (rule L2_set_le_sum [OF zero_le_dist])
     also have "\<dots> < sum (\<lambda>i::'n. ?s) UNIV"
       by (rule sum_strict_mono, simp_all add: M \<open>M \<le> m\<close> \<open>M \<le> n\<close>)
     also have "\<dots> = r"
@@ -480,7 +480,7 @@ subsection \<open>Normed vector space\<close>
 instantiation vec :: (real_normed_vector, finite) real_normed_vector
 begin
 
-definition "norm x = setL2 (\<lambda>i. norm (x$i)) UNIV"
+definition "norm x = L2_set (\<lambda>i. norm (x$i)) UNIV"
 
 definition "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
 
@@ -488,15 +488,15 @@ instance proof
   fix a :: real and x y :: "'a ^ 'b"
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_vec_def
-    by (simp add: setL2_eq_0_iff vec_eq_iff)
+    by (simp add: L2_set_eq_0_iff vec_eq_iff)
   show "norm (x + y) \<le> norm x + norm y"
     unfolding norm_vec_def
-    apply (rule order_trans [OF _ setL2_triangle_ineq])
-    apply (simp add: setL2_mono norm_triangle_ineq)
+    apply (rule order_trans [OF _ L2_set_triangle_ineq])
+    apply (simp add: L2_set_mono norm_triangle_ineq)
     done
   show "norm (scaleR a x) = \<bar>a\<bar> * norm x"
     unfolding norm_vec_def
-    by (simp add: setL2_right_distrib)
+    by (simp add: L2_set_right_distrib)
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule sgn_vec_def)
   show "dist x y = norm (x - y)"
@@ -508,7 +508,7 @@ end
 
 lemma norm_nth_le: "norm (x $ i) \<le> norm x"
 unfolding norm_vec_def
-by (rule member_le_setL2) simp_all
+by (rule member_le_L2_set) simp_all
 
 lemma bounded_linear_vec_nth: "bounded_linear (\<lambda>x. x $ i)"
 apply standard
@@ -545,7 +545,7 @@ instance proof
     unfolding inner_vec_def
     by (simp add: vec_eq_iff sum_nonneg_eq_0_iff)
   show "norm x = sqrt (inner x x)"
-    unfolding inner_vec_def norm_vec_def setL2_def
+    unfolding inner_vec_def norm_vec_def L2_set_def
     by (simp add: power2_norm_eq_inner)
 qed
 

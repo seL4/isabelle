@@ -7262,7 +7262,7 @@ proof
       unfolding 2
       apply clarsimp
       apply (subst euclidean_dist_l2)
-      apply (rule order_trans [OF setL2_le_sum])
+      apply (rule order_trans [OF L2_set_le_sum])
       apply (rule zero_le_dist)
       unfolding e'
       apply (rule sum_mono)

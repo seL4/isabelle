@@ -1249,8 +1249,8 @@ lemma open_contains_cball_eq: "open S \<Longrightarrow> (\<forall>x. x \<in> S \
 
 lemma euclidean_dist_l2:
   fixes x y :: "'a :: euclidean_space"
-  shows "dist x y = setL2 (\<lambda>i. dist (x \<bullet> i) (y \<bullet> i)) Basis"
-  unfolding dist_norm norm_eq_sqrt_inner setL2_def
+  shows "dist x y = L2_set (\<lambda>i. dist (x \<bullet> i) (y \<bullet> i)) Basis"
+  unfolding dist_norm norm_eq_sqrt_inner L2_set_def
   by (subst euclidean_inner) (simp add: power2_eq_square inner_diff_left)
 
 lemma eventually_nhds_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>x. x \<in> ball z d) (nhds z)"
@@ -1358,7 +1358,7 @@ proof -
     fix y :: 'a
     assume *: "y \<in> box ?a ?b"
     have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2)"
-      unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
+      unfolding L2_set_def[symmetric] by (rule euclidean_dist_l2)
     also have "\<dots> < sqrt (\<Sum>(i::'a)\<in>Basis. e^2 / real (DIM('a)))"
     proof (rule real_sqrt_less_mono, rule sum_strict_mono)
       fix i :: "'a"
@@ -1460,7 +1460,7 @@ proof -
     fix y :: 'a
     assume *: "y \<in> cbox ?a ?b"
     have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2)"
-      unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
+      unfolding L2_set_def[symmetric] by (rule euclidean_dist_l2)
     also have "\<dots> < sqrt (\<Sum>(i::'a)\<in>Basis. e^2 / real (DIM('a)))"
     proof (rule real_sqrt_less_mono, rule sum_strict_mono)
       fix i :: "'a"
@@ -4579,7 +4579,7 @@ proof
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
         apply (subst euclidean_dist_l2)
         using zero_le_dist
-        apply (rule setL2_le_sum)
+        apply (rule L2_set_le_sum)
         done
       also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
         apply (rule sum_strict_mono)
