@@ -106,6 +106,8 @@ sig
   val theorem_cmd: Method.text option -> (thm list list -> context -> context) ->
     (string * string list) list list -> context -> state
   val global_qed: Method.text_range option * bool -> state -> context
+  val schematic_goal: state -> bool
+  val is_relevant: state -> bool
   val local_terminal_proof: Method.text_range * Method.text_range option -> state -> state
   val local_default_proof: state -> state
   val local_immediate_proof: state -> state
@@ -138,8 +140,6 @@ sig
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
-  val schematic_goal: state -> bool
-  val is_relevant: state -> bool
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
   val local_future_terminal_proof: Method.text_range * Method.text_range option -> state -> state
   val global_future_terminal_proof: Method.text_range * Method.text_range option -> state -> context
@@ -1125,6 +1125,19 @@ fun global_qed arg =
   global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
 
 
+(* relevant proof states *)
+
+fun schematic_goal state =
+  let val (_, {statement = (_, _, prop), ...}) = find_goal state
+  in Goal.is_schematic prop end;
+
+fun is_relevant state =
+  (case try find_goal state of
+    NONE => true
+  | SOME (_, {statement = (_, _, prop), goal, ...}) =>
+      Goal.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
+
+
 (* terminal proof steps *)
 
 local
@@ -1136,11 +1149,15 @@ fun terminal_proof qeds initial terminal state =
     val initial' = apfst check_closure initial;
     val terminal' = (apfst o Option.map o apfst) check_closure terminal;
   in
-    state
-    |> proof (SOME initial')
-    |> Seq.maps_results (qeds (#2 (#2 initial), terminal'))
-    |> Seq.the_result ""
-  end;
+    if Goal.skip_proofs_enabled () andalso not (is_relevant state) then
+      state
+      |> proof (SOME (Method.sorry_text false, #2 initial'))
+      |> Seq.maps_results (qeds (#2 (#2 initial), (NONE, #2 terminal)))
+    else
+      state
+      |> proof (SOME initial')
+      |> Seq.maps_results (qeds (#2 (#2 initial), terminal'))
+  end |> Seq.the_result "";
 
 in
 
@@ -1231,19 +1248,6 @@ end;
 
 
 (** future proofs **)
-
-(* relevant proof states *)
-
-fun schematic_goal state =
-  let val (_, {statement = (_, _, prop), ...}) = find_goal state
-  in Goal.is_schematic prop end;
-
-fun is_relevant state =
-  (case try find_goal state of
-    NONE => true
-  | SOME (_, {statement = (_, _, prop), goal, ...}) =>
-      Goal.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
-
 
 (* full proofs *)
 

@@ -83,6 +83,9 @@ identifier syntax with underscore, prime, digits. This is relevant for
 antiquotations in control symbol notation, e.g. \<^const_name> becomes
 \isactrlconstUNDERSCOREname.
 
+* Document preparation with skip_proofs option now preserves the content
+more accurately: only terminal proof steps ('by' etc.) are skipped.
+
 
 *** HOL ***
 
