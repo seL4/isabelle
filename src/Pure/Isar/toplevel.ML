@@ -455,7 +455,8 @@ fun begin_proof init = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
       val (finish, prf) = init int gthy;
-      val skip = Goal.skip_proofs_enabled ();
+      val document = Options.default_string "document";
+      val skip = (document = "" orelse document = "false") andalso Goal.skip_proofs_enabled ();
       val schematic_goal = try Proof.schematic_goal prf;
       val _ =
         if skip andalso schematic_goal = SOME true then
