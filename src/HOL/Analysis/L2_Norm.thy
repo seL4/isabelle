@@ -8,7 +8,7 @@ theory L2_Norm
 imports Complex_Main
 begin
 
-definition "L2_set f A = sqrt (\<Sum>i\<in>A. (f i)\<^sup>2)"
+definition %important "L2_set f A = sqrt (\<Sum>i\<in>A. (f i)\<^sup>2)"
 
 lemma L2_set_cong:
   "\<lbrakk>A = B; \<And>x. x \<in> B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> L2_set f A = L2_set g B"
@@ -73,9 +73,9 @@ lemma L2_set_eq_0_iff: "finite A \<Longrightarrow> L2_set f A = 0 \<longleftrigh
   unfolding L2_set_def
   by (simp add: sum_nonneg sum_nonneg_eq_0_iff)
 
-lemma L2_set_triangle_ineq:
-  shows "L2_set (\<lambda>i. f i + g i) A \<le> L2_set f A + L2_set g A"
-proof (cases "finite A")
+lemma %important L2_set_triangle_ineq:
+  "L2_set (\<lambda>i. f i + g i) A \<le> L2_set f A + L2_set g A"
+proof %unimportant (cases "finite A")
   case False
   thus ?thesis by simp
 next
