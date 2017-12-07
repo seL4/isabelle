@@ -576,7 +576,6 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Reflection_Examples
     Refute_Examples
     Rewrite_Examples
-    SAT_Examples
     SOS
     SOS_Cert
     Seq
@@ -601,6 +600,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Word_Type
     veriT_Preprocessing
   theories [skip_proofs = false]
+    SAT_Examples
     Meson_Test
 
 session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
