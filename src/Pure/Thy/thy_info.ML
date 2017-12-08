@@ -266,8 +266,7 @@ fun eval_thy document symbols last_timing update_time master_dir header text_pos
       let
         val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
       in
-        if exists (Toplevel.is_skipped_proof o #2) res then
-          warning ("Cannot present theory with skipped proofs: " ^ quote name)
+        if exists (Toplevel.is_skipped_proof o #2) res then ()
         else
           let val tex_source = Thy_Output.present_thy thy res toks |> Buffer.content;
           in if document then Present.theory_output thy tex_source else () end
