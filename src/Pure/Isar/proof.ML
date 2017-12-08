@@ -1151,7 +1151,7 @@ fun terminal_proof qeds initial terminal state =
   in
     if Goal.skip_proofs_enabled () andalso not (is_relevant state) then
       state
-      |> proof (SOME (Method.sorry_text false, #2 initial'))
+      |> proof (SOME (Method.sorry_text true, #2 initial'))
       |> Seq.maps_results (qeds (#2 (#2 initial), (NONE, #2 terminal)))
     else
       state
