@@ -8,6 +8,7 @@ imports
   Formal_Power_Series
   Fraction_Field
   Fundamental_Theorem_Algebra
+  Group_Closure
   Normalized_Fraction
   Nth_Powers
   Polynomial_FPS
