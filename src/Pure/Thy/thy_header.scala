@@ -85,7 +85,10 @@ object Thy_Header extends Parse.Parser
     s != "" && !s.exists("/\\:".contains(_))
 
   def import_name(s: String): String =
-    s match { case Import_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
+    s match {
+      case Import_Name(name) if !name.endsWith(".thy") => name
+      case _ => error("Malformed theory import: " + quote(s))
+    }
 
   def theory_name(s: String): String =
     s match {
