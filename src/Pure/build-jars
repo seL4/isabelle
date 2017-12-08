@@ -126,6 +126,7 @@ declare -a SOURCES=(
   System/progress.scala
   System/system_channel.scala
   Thy/html.scala
+  Thy/latex.scala
   Thy/present.scala
   Thy/sessions.scala
   Thy/thy_header.scala
