@@ -12,7 +12,7 @@ sig
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
-  val theory_output: theory -> string -> unit
+  val theory_output: Position.T -> theory -> string -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
   val display_drafts: Path.T list -> int
 end;
@@ -191,14 +191,14 @@ fun init symbols build info info_path doc document_output doc_variants doc_files
 fun isabelle_document {verbose, purge} format name tags dir =
   let
     val s = "isabelle document -o '" ^ format ^ "' \
-      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.bash_path dir ^ " 2>&1";
+      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.bash_path dir;
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
     val _ = if verbose then writeln s else ();
-    val (out, rc) = Isabelle_System.bash_output s;
+    val {out, err, rc, ...} = Bash.process s;
+    val _ = if verbose then writeln out else ();
     val _ =
       if not (File.exists doc_path) orelse rc <> 0 then
-        cat_error out ("Failed to build document " ^ quote (show_path doc_path))
-      else if verbose then writeln out
+        cat_error err ("Failed to build document " ^ quote (show_path doc_path))
       else ();
     val _ = if purge andalso rc = 0 then Isabelle_System.rm_tree dir else ();
   in doc_path end;
@@ -279,11 +279,11 @@ fun finish () =
 
 (* theory elements *)
 
-fun theory_output thy tex =
+fun theory_output pos thy tex =
   with_session_info () (fn _ =>
     if is_session_theory thy then
       let val name = Context.theory_name thy;
-      in change_theory_info name (fn (_, html) => (Latex.isabelle_theory name tex, html)) end
+      in change_theory_info name (fn (_, html) => (Latex.isabelle_theory pos name tex, html)) end
     else ());
 
 fun theory_link (curr_chapter, curr_session) thy =

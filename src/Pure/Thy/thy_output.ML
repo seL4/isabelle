@@ -218,23 +218,24 @@ fun output_text state {markdown} source =
     and output_block (Markdown.Par lines) = cat_lines (map output_line lines)
       | output_block (Markdown.List {kind, body, ...}) =
           Latex.environment (Markdown.print_kind kind) (output_blocks body);
-  in
-    if Toplevel.is_skipped_proof state then ""
-    else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
-    then
-      let
-        val ants = Antiquote.parse pos syms;
-        val reports = Antiquote.antiq_reports ants;
-        val blocks = Markdown.read_antiquotes ants;
-        val _ = if is_reported then Position.reports (reports @ Markdown.reports blocks) else ();
-      in output_blocks blocks end
-    else
-      let
-        val ants = Antiquote.parse pos (Symbol_Pos.trim_blanks syms);
-        val reports = Antiquote.antiq_reports ants;
-        val _ = if is_reported then Position.reports (reports @ Markdown.text_reports ants) else ();
-      in output_antiquotes ants end
-  end;
+
+    val output =
+      if Toplevel.is_skipped_proof state then ""
+      else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
+      then
+        let
+          val ants = Antiquote.parse pos syms;
+          val reports = Antiquote.antiq_reports ants;
+          val blocks = Markdown.read_antiquotes ants;
+          val _ = if is_reported then Position.reports (reports @ Markdown.reports blocks) else ();
+        in output_blocks blocks end
+      else
+        let
+          val ants = Antiquote.parse pos (Symbol_Pos.trim_blanks syms);
+          val reports = Antiquote.antiq_reports ants;
+          val _ = if is_reported then Position.reports (reports @ Markdown.text_reports ants) else ();
+        in output_antiquotes ants end;
+  in Latex.range_output pos output end;
 
 
 
@@ -271,7 +272,8 @@ fun output_token state tok =
   | Markup_Env_Token (cmd, source) =>
       Latex.environment ("isamarkup" ^ cmd) (output_text state {markdown = true} source)
   | Raw_Token source =>
-      "%\n" ^ output_text state {markdown = true} source ^ "\n");
+      let val output = "%\n" ^ output_text state {markdown = true} source
+      in if String.isSuffix "\n" output then output else output ^ "\n" end);
 
 
 (* command spans *)

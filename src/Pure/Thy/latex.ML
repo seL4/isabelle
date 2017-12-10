@@ -15,6 +15,9 @@ sig
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
+  val output_file: Position.T -> string
+  val output_range: Position.T -> string
+  val range_output: Position.T -> string -> string
   val output_token: Token.T -> string
   val begin_delim: string -> string
   val end_delim: string -> string
@@ -22,7 +25,7 @@ sig
   val end_tag: string -> string
   val environment: string -> string -> string
   val tex_trailer: string
-  val isabelle_theory: string -> string -> string
+  val isabelle_theory: Position.T -> string -> string -> string
   val symbol_source: (string -> bool) * (string -> bool) ->
     string -> Symbol.symbol list -> string
   val theory_entry: string -> string
@@ -170,28 +173,53 @@ val output_syms_antiq =
 end;
 
 
+(* output properties *)
+
+fun output_prop (a, b) = enclose "%:%" "%:%\n" (a ^ "=" ^ b);
+
+fun output_file pos =
+  (case Position.file_of pos of
+    NONE => ""
+  | SOME file => output_prop (Markup.fileN, file));
+
+fun output_range pos =
+  (case (Position.offset_of pos, Position.end_offset_of pos) of
+    (NONE, _) => ""
+  | (SOME i, NONE) => output_prop (Markup.rangeN, Value.print_int i)
+  | (SOME i, SOME j) => output_prop (Markup.rangeN, Value.print_int i ^ ":" ^ Value.print_int j));
+
+fun range_output _ "" = ""
+  | range_output pos output =
+      (case output_range pos of
+        "" => output
+      | range => split_lines output |> map (fn "" => "%\n" | line => line ^ range) |> implode);
+
+
 (* output token *)
 
 fun output_token tok =
-  let val s = Token.content_of tok in
-    if Token.is_kind Token.Comment tok then ""
-    else if Token.is_command tok then
-      "\\isacommand{" ^ output_syms s ^ "}"
-    else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
-      "\\isakeyword{" ^ output_syms s ^ "}"
-    else if Token.is_kind Token.String tok then
-      enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
-    else if Token.is_kind Token.Alt_String tok then
-      enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
-    else if Token.is_kind Token.Verbatim tok then
-      let
-        val ants = Antiquote.read (Token.input_of tok);
-        val out = implode (map output_syms_antiq ants);
-      in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
-    else if Token.is_kind Token.Cartouche tok then
-      enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
-    else output_syms s
-  end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+  let
+    val s = Token.content_of tok;
+    val output =
+      if Token.is_kind Token.Comment tok then ""
+      else if Token.is_command tok then
+        "\\isacommand{" ^ output_syms s ^ "}"
+      else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
+        "\\isakeyword{" ^ output_syms s ^ "}"
+      else if Token.is_kind Token.String tok then
+        enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
+      else if Token.is_kind Token.Alt_String tok then
+        enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
+      else if Token.is_kind Token.Verbatim tok then
+        let
+          val ants = Antiquote.read (Token.input_of tok);
+          val out = implode (map output_syms_antiq ants);
+        in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
+      else if Token.is_kind Token.Cartouche tok then
+        enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
+      else output_syms s;
+  in range_output (Token.pos_of tok) output end
+  handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 
 (* tags *)
@@ -213,13 +241,14 @@ val tex_trailer =
   \%%% TeX-master: \"root\"\n\
   \%%% End:\n";
 
-fun isabelle_theory name txt =
-  "%\n\\begin{isabellebody}%\n\
+fun isabelle_theory pos name txt =
+  output_file pos ^
+  "\\begin{isabellebody}%\n\
   \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
   "%\n\\end{isabellebody}%\n" ^ tex_trailer;
 
 fun symbol_source known name syms =
-  isabelle_theory name
+  isabelle_theory Position.none name
     ("\\isamarkupfile{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
       output_known_symbols known syms);
 

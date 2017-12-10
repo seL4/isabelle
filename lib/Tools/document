@@ -137,7 +137,9 @@ function prep_tags ()
     RC="$?"
   fi
 
-  if [ "$RC" -eq 0 -a -f "$ROOT_NAME.$OUTFORMAT" ]; then
+  if [ "$RC" -ne 0 ]; then
+    isabelle latex_errors -n "$ROOT_NAME"
+  elif [ -f "$ROOT_NAME.$OUTFORMAT" ]; then
     cp -f "$ROOT_NAME.$OUTFORMAT" "../$NAME.$OUTFORMAT"
   fi
 
