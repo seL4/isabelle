@@ -134,11 +134,11 @@ Usage: isabelle server [OPTIONS]
 
       if (operation_list) {
         for (entry <- using(SQLite.open_database(Data.database))(list(_)) if entry.active)
-          Console.println(entry.print)
+          Output.writeln(entry.print, stdout = true)
       }
       else {
         val (entry, thread) = start(name, port)
-        Console.println(entry.print)
+        Output.writeln(entry.print, stdout = true)
         thread.foreach(_.join)
       }
     })

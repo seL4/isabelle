@@ -185,13 +185,13 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
     }
 
     if (get_option != "")
-      Console.println(options.check_name(get_option).value)
+      Output.writeln(options.check_name(get_option).value, stdout = true)
 
     if (export_file != "")
       File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
 
     if (get_option == "" && export_file == "")
-      Console.println(options.print)
+      Output.writeln(options.print, stdout = true)
   })
 }
 

@@ -82,7 +82,7 @@ object Doc
 
   def view(path: Path)
   {
-    if (path.is_file) Console.println(Library.trim_line(File.read(path)))
+    if (path.is_file) Output.writeln(Library.trim_line(File.read(path)), stdout = true)
     else {
       val pdf = path.ext("pdf")
       if (pdf.is_file) Isabelle_System.pdf_viewer(pdf)
@@ -103,7 +103,7 @@ Usage: isabelle doc [DOC ...]
     val docs = getopts(args)
 
     val entries = contents()
-    if (docs.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
+    if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
     else {
       docs.foreach(doc =>
         entries.collectFirst { case Doc(name, _, path) if doc == name => path } match {
