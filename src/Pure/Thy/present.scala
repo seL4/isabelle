@@ -182,10 +182,7 @@ object Present
       "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root_name + "." + ext)
 
     def bash(script: String): Process_Result =
-    {
-      Output.writeln(script)  // FIXME
       Isabelle_System.bash(script, cwd = dir.file)
-    }
 
 
     /* prepare document */
@@ -212,7 +209,7 @@ object Present
 
     if (!result.ok) {
       cat_error(cat_lines(Latex.latex_errors(dir, root_name)),
-        "Document preparation failure in directory " + dir)
+        "Failed to build document in directory " + File.path(dir.absolute_file))
     }
 
     bash("[ -f " + root_bash(document_format) + " ] && cp -f " +
@@ -253,7 +250,10 @@ Usage: isabelle document [OPTIONS]
     val more_args = getopts(args)
     if (more_args.nonEmpty) getopts.usage()
 
-    build_document(document_dir = document_dir, document_name = document_name,
-      document_format = document_format, tags = tags)
+    try {
+      build_document(document_dir = document_dir, document_name = document_name,
+        document_format = document_format, tags = tags)
+    }
+    catch { case ERROR(msg) => Output.writeln(msg); sys.exit(1) }
   })
 }
