@@ -86,7 +86,9 @@ antiquotations in control symbol notation, e.g. \<^const_name> becomes
 * Document preparation with skip_proofs option now preserves the content
 more accurately: only terminal proof steps ('by' etc.) are skipped.
 
-* More explicit errors from latex process.
+* Command-line tool "isabelle document" has been re-implemented in
+Isabelle/Scala, with simplified arguments and explicit errors from the
+latex process. Minor INCOMPATIBILITY.
 
 
 *** HOL ***

@@ -16,6 +16,17 @@ object Latex
 {
   /** latex errors **/
 
+  def latex_errors(dir: Path, root_name: String): List[String] =
+  {
+    val root_log_path = dir + Path.explode(root_name).ext("log")
+    if (root_log_path.is_file) {
+      for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
+      yield "Latex error" + Position.here(pos) + ":\n" + cat_lines(split_lines(msg).map("  " + _))
+    }
+    else Nil
+  }
+
+
   /* generated .tex file */
 
   private val File_Pattern = """^.*%:%file=(.+)%:%$""".r
@@ -144,49 +155,4 @@ object Latex
 
     filter(Line.logical_lines(root_log), Nil)
   }
-
-
-  /* errors */
-
-  val default_root_name: String = "root"
-
-  def latex_errors(dir: Path = Path.current, root_name: String = default_root_name)
-  {
-    val root_log_path = dir + Path.explode(root_name).ext("log")
-    val errors =
-      if (root_log_path.is_file) {
-        for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
-        yield "Latex error" + Position.here(pos) + ":\n" + cat_lines(split_lines(msg).map("  " + _))
-      }
-      else Nil
-    if (errors.nonEmpty) Output.writeln(cat_lines(errors))
-  }
-
-
-  /* Isabelle tool wrapper */
-
-  val isabelle_tool =
-    Isabelle_Tool("latex_errors", "print latex errors for Isabelle document output", args =>
-  {
-    var dir = Path.current
-    var root_name = default_root_name
-
-    val getopts = Getopts("""
-Usage: isabelle latex_errors
-
-  Options are:
-    -d DIR       alternative document directory (default: current)
-    -n NAME      alternative root name (default: """ + quote(default_root_name) + """)
-
-  Print latex errors for Isabelle document output directory (with root.tex,
-  root.log etc.).
-""",
-      "d:" -> (arg => dir = Path.explode(arg)),
-      "n:" -> (arg => root_name = arg))
-
-    val more_args = getopts(args)
-    if (more_args.nonEmpty) getopts.usage()
-
-    latex_errors(dir = dir, root_name = root_name)
-  })
 }

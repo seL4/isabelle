@@ -190,11 +190,12 @@ fun init symbols build info info_path doc document_output doc_variants doc_files
 
 fun isabelle_document {verbose, purge} format name tags dir =
   let
-    val s = "isabelle document -o '" ^ format ^ "' \
-      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.bash_path dir;
+    val script =
+      "isabelle document -d " ^ File.bash_path dir ^ " -o " ^ Bash.string format ^
+        " -n " ^ Bash.string name ^ " -t " ^ Bash.string tags;
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
-    val _ = if verbose then writeln s else ();
-    val {out, err, rc, ...} = Bash.process s;
+    val _ = if verbose then writeln script else ();
+    val {out, err, rc, ...} = Bash.process script;
     val _ = if verbose then writeln out else ();
     val _ =
       if not (File.exists doc_path) orelse rc <> 0 then

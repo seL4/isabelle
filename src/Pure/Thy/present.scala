@@ -131,4 +131,144 @@ object Present
   {
     make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
   }
+
+
+
+  /** build document **/
+
+  val default_document_name = "document"
+  val default_document_format = "pdf"
+  val document_formats = List("pdf", "dvi")
+  def default_document_dir(name: String): Path = Path.explode("output") + Path.basic(name)
+
+  def document_tags(tags: List[String]): String =
+  {
+    cat_lines(
+      tags.map(tag =>
+        tag.toList match {
+          case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
+          case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
+          case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
+          case cs => "\\isafoldtag{" + cs.mkString + "}"
+        })) + "\n"
+  }
+
+  def build_document(
+    document_name: String = default_document_name,
+    document_format: String = default_document_format,
+    document_dir: Option[Path] = None,
+    clean: Boolean = false,
+    tags: List[String] = Nil)
+  {
+    if (!document_formats.contains(document_format))
+      error("Bad document output format: " + quote(document_format))
+
+    val dir = document_dir getOrElse default_document_dir(document_name)
+    if (!dir.is_dir) error("Bad document output directory " + dir)
+
+    val root_name =
+    {
+      val root1 = "root_" + document_name
+      if ((dir + Path.explode(root1).ext("tex")).is_file) root1 else "root"
+    }
+
+
+    /* bash scripts */
+
+    def root_bash(ext: String): String = Bash.string(root_name + "." + ext)
+
+    def latex_bash(fmt: String, ext: String = "tex"): String =
+      "isabelle latex -o " + Bash.string(fmt) + " " + Bash.string(root_name + "." + ext)
+
+    def bash(script: String): Process_Result =
+    {
+      Output.writeln(script)  // FIXME
+      Isabelle_System.bash(script, cwd = dir.file)
+    }
+
+
+    /* clean target */
+
+    val document_target = Path.parent + Path.explode(document_name).ext(document_format)
+
+    if (clean) {
+      bash("rm -f *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log " +
+        File.bash_path(document_target)).check
+    }
+
+
+    /* prepare document */
+
+    File.write(dir + Path.explode("isabelletags.sty"), document_tags(tags))
+
+    val result =
+      if ((dir + Path.explode("build")).is_file) {
+        bash("./build " + Bash.string(document_format) + " " + Bash.string(document_name))
+      }
+      else {
+        bash(
+          List(
+            latex_bash("sty"),
+            latex_bash(document_format),
+            "{ [ ! -f " + root_bash("bib") + " ] || " + latex_bash("bbl") + "; }",
+            "{ [ ! -f " + root_bash("idx") + " ] || " + latex_bash("idx") + "; }",
+            latex_bash(document_format),
+            latex_bash(document_format)).mkString(" && "))
+      }
+
+
+    /* result */
+
+    if (!result.ok) {
+      cat_error(cat_lines(Latex.latex_errors(dir, root_name)),
+        "Document preparation failure in directory " + dir)
+    }
+
+    bash("[ -f " + root_bash(document_format) + " ] && cp -f " +
+      root_bash(document_format) + " " + File.bash_path(document_target)).check
+
+    // beware!
+    if (clean) Isabelle_System.rm_tree(dir)
+  }
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool =
+    Isabelle_Tool("document", "prepare theory session document", args =>
+  {
+    var clean = false
+    var document_dir: Option[Path] = None
+    var document_name = default_document_name
+    var document_format = default_document_format
+    var tags: List[String] = Nil
+
+    val getopts = Getopts("""
+Usage: isabelle document [OPTIONS]
+
+  Options are:
+    -c           aggressive cleanup of -d DIR content
+    -d DIR       document output directory (default """ +
+      default_document_dir(default_document_name) + """)
+    -n NAME      document name (default """ + quote(default_document_name) + """)
+    -o FORMAT    document format: """ +
+      commas(document_formats.map(fmt =>
+        fmt + (if (fmt == default_document_format) " (default)" else ""))) + """
+    -t TAGS      markup for tagged regions
+
+  Prepare the theory session document in document directory, producing the
+  specified output format.
+""",
+      "c" -> (_ => clean = true),
+      "d:" -> (arg => document_dir = Some(Path.explode(arg))),
+      "n:" -> (arg => document_name = arg),
+      "o:" -> (arg => document_format = arg),
+      "t:" -> (arg => tags = space_explode(',', arg)))
+
+    val more_args = getopts(args)
+    if (more_args.nonEmpty) getopts.usage()
+
+    build_document(document_dir = document_dir, document_name = document_name,
+      document_format = document_format, clean = clean, tags = tags)
+  })
 }
