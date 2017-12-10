@@ -23,7 +23,7 @@ object Latex
   private val Range_Pattern1 = """^.*%:%range=(\d+)%:%$""".r
 
   def read_tex_file(tex_file: Path): Tex_File =
-    new Tex_File(tex_file, split_lines(File.read(tex_file)).toArray)
+    new Tex_File(tex_file, Line.logical_lines(File.read(tex_file)).toArray)
 
   final class Tex_File private[Latex](val tex_file: Path, tex_lines: Array[String])
   {
@@ -142,7 +142,7 @@ object Latex
       }
     }
 
-    filter(split_lines(root_log), Nil)
+    filter(Line.logical_lines(root_log), Nil)
   }
 
 
