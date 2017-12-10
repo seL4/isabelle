@@ -213,7 +213,7 @@ fun write_tex src name path =
   File.write_buffer (Path.append path (tex_path name)) src;
 
 fun write_tex_index tex_index path =
-  write_tex (index_buffer tex_index |> Buffer.add Latex.tex_trailer) doc_indexN path;
+  write_tex (index_buffer tex_index) doc_indexN path;
 
 fun finish () =
   with_session_info () (fn {name, chapter, info, info_path, doc_format,

@@ -24,7 +24,6 @@ sig
   val begin_tag: string -> string
   val end_tag: string -> string
   val environment: string -> string -> string
-  val tex_trailer: string
   val isabelle_theory: Position.T -> string -> string -> string
   val symbol_source: (string -> bool) * (string -> bool) ->
     string -> Symbol.symbol list -> string
@@ -235,17 +234,11 @@ fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}
 fun environment name =
   enclose ("%\n\\begin{" ^ output_name name ^ "}%\n") ("%\n\\end{" ^ output_name name ^ "}");
 
-val tex_trailer =
-  "%%% Local Variables:\n\
-  \%%% mode: latex\n\
-  \%%% TeX-master: \"root\"\n\
-  \%%% End:\n";
-
 fun isabelle_theory pos name txt =
   output_file pos ^
   "\\begin{isabellebody}%\n\
   \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
-  "%\n\\end{isabellebody}%\n" ^ tex_trailer;
+  "%\n\\end{isabellebody}%\n";
 
 fun symbol_source known name syms =
   isabelle_theory Position.none name
