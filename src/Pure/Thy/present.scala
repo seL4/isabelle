@@ -157,9 +157,10 @@ object Present
     document_name: String = default_document_name,
     document_format: String = default_document_format,
     document_dir: Option[Path] = None,
-    clean: Boolean = false,
     tags: List[String] = Nil)
   {
+    val document_target = Path.parent + Path.explode(document_name).ext(document_format)
+
     if (!document_formats.contains(document_format))
       error("Bad document output format: " + quote(document_format))
 
@@ -184,16 +185,6 @@ object Present
     {
       Output.writeln(script)  // FIXME
       Isabelle_System.bash(script, cwd = dir.file)
-    }
-
-
-    /* clean target */
-
-    val document_target = Path.parent + Path.explode(document_name).ext(document_format)
-
-    if (clean) {
-      bash("rm -f *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log " +
-        File.bash_path(document_target)).check
     }
 
 
@@ -226,9 +217,6 @@ object Present
 
     bash("[ -f " + root_bash(document_format) + " ] && cp -f " +
       root_bash(document_format) + " " + File.bash_path(document_target)).check
-
-    // beware!
-    if (clean) Isabelle_System.rm_tree(dir)
   }
 
 
@@ -237,7 +225,6 @@ object Present
   val isabelle_tool =
     Isabelle_Tool("document", "prepare theory session document", args =>
   {
-    var clean = false
     var document_dir: Option[Path] = None
     var document_name = default_document_name
     var document_format = default_document_format
@@ -247,7 +234,6 @@ object Present
 Usage: isabelle document [OPTIONS]
 
   Options are:
-    -c           aggressive cleanup of -d DIR content
     -d DIR       document output directory (default """ +
       default_document_dir(default_document_name) + """)
     -n NAME      document name (default """ + quote(default_document_name) + """)
@@ -259,7 +245,6 @@ Usage: isabelle document [OPTIONS]
   Prepare the theory session document in document directory, producing the
   specified output format.
 """,
-      "c" -> (_ => clean = true),
       "d:" -> (arg => document_dir = Some(Path.explode(arg))),
       "n:" -> (arg => document_name = arg),
       "o:" -> (arg => document_format = arg),
@@ -269,6 +254,6 @@ Usage: isabelle document [OPTIONS]
     if (more_args.nonEmpty) getopts.usage()
 
     build_document(document_dir = document_dir, document_name = document_name,
-      document_format = document_format, clean = clean, tags = tags)
+      document_format = document_format, tags = tags)
   })
 }
