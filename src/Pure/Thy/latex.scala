@@ -29,9 +29,13 @@ object Latex
 
   /* generated .tex file */
 
-  private val File_Pattern = """^.*%:%file=(.+)%:%$""".r
-  private val Range_Pattern2 = """^.*%:%range=(\d+):(\d+)%:%$""".r
-  private val Range_Pattern1 = """^.*%:%range=(\d+)%:%$""".r
+  private val File_Pattern = """^%:%file=(.+)%:%$""".r
+  private val Range_Pattern2 = """^*%:%range=(\d+):(\d+)%:%$""".r
+  private val Range_Pattern1 = """^*%:%range=(\d+)%:%$""".r
+  private val marker = "%:%"
+
+  def detect_marker(s: String): Boolean =
+    s.size > 6 && s.startsWith(marker) && s.endsWith(marker)
 
   def read_tex_file(tex_file: Path): Tex_File =
     new Tex_File(tex_file, Line.logical_lines(File.read(tex_file)).toArray)
@@ -59,12 +63,15 @@ object Latex
     lazy val source_chunk: Symbol.Text_Chunk =
       Symbol.Text_Chunk(source_content.text)
 
+    private def prev_lines_iterator(l: Int): Iterator[String] =
+      if (0 < l && l <= tex_lines.length) Range.inclusive(l - 1, 0, -1).iterator.map(tex_lines(_))
+      else Iterator.empty
+
     def source_position(l: Int): Option[Position.T] =
-      for {
-        file <- source_file
-        if 0 < l && l <= tex_lines.length
-        line = tex_lines(l - 1)
-        if line.endsWith("%:%")
+      (for {
+        file <- source_file.iterator
+        line <- prev_lines_iterator(l)
+        if detect_marker(line)
         symbol_range <-
           (line match {
             case Range_Pattern2(Value.Int(i), Value.Int(j)) => Some(Text.Range(i, j))
@@ -76,10 +83,10 @@ object Latex
       yield {
         Position.Line_File(source_content.position(range.start).line1, file.implode) :::
         Position.Range(symbol_range)
-      }
+      }).toStream.headOption
 
     def tex_position(line: Int): Position.T =
-        Position.Line_File(line, tex_file.implode)
+      Position.Line_File(line, tex_file.implode)
 
     def position(line: Int): Position.T =
       source_position(line) getOrElse tex_position(line)

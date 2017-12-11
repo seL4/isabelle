@@ -15,8 +15,6 @@ sig
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
-  val output_file: Position.T -> string
-  val output_range: Position.T -> string
   val range_output: Position.T -> string -> string
   val output_token: Token.T -> string
   val begin_delim: string -> string
@@ -172,14 +170,16 @@ val output_syms_antiq =
 end;
 
 
-(* output properties *)
+(* range marker *)
 
-fun output_prop (a, b) = enclose "%:%" "%:%\n" (a ^ "=" ^ b);
+local
 
-fun output_file pos =
-  (case Position.file_of pos of
-    NONE => ""
-  | SOME file => output_prop (Markup.fileN, file));
+val marker = "%:%";
+
+fun detect_marker s =
+  size s > 6 andalso String.isPrefix marker s andalso String.isSuffix marker s;
+
+fun output_prop (a, b) = enclose marker marker (a ^ "=" ^ b);
 
 fun output_range pos =
   (case (Position.offset_of pos, Position.end_offset_of pos) of
@@ -187,11 +187,25 @@ fun output_range pos =
   | (SOME i, NONE) => output_prop (Markup.rangeN, Value.print_int i)
   | (SOME i, SOME j) => output_prop (Markup.rangeN, Value.print_int i ^ ":" ^ Value.print_int j));
 
-fun range_output _ "" = ""
-  | range_output pos output =
-      (case output_range pos of
-        "" => output
-      | range => split_lines output |> map (fn "" => "%\n" | line => line ^ range) |> implode);
+fun range_line head range line =
+  if detect_marker line orelse forall_string (fn s => s = " " orelse s = "\t") line then line
+  else if head then "%\n" ^ range ^ "\n" ^ line
+  else range ^ "\n" ^ line;
+
+in
+
+fun range_output pos output =
+  (case (output_range pos, split_lines output) of
+    (_, []) => ""
+  | ("", _ :: _) => output
+  | (r, l :: ls) => cat_lines (range_line true r l :: map (range_line false r) ls));
+
+fun output_file pos =
+  (case Position.file_of pos of
+    NONE => ""
+  | SOME file => output_prop (Markup.fileN, file));
+
+end;
 
 
 (* output token *)
@@ -217,7 +231,7 @@ fun output_token tok =
       else if Token.is_kind Token.Cartouche tok then
         enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
       else output_syms s;
-  in range_output (Token.pos_of tok) output end
+  in output end
   handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 
@@ -236,7 +250,7 @@ fun environment name =
 
 fun isabelle_theory pos name txt =
   output_file pos ^
-  "\\begin{isabellebody}%\n\
+  "\n\\begin{isabellebody}%\n\
   \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
   "%\n\\end{isabellebody}%\n";
 
