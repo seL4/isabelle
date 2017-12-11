@@ -118,7 +118,7 @@ object Latex
           case Pattern(file, Value.Int(line), message) =>
             val path = File.standard_path(file)
             if (Path.is_wellformed(path)) {
-              val file = dir + Path.explode(path)
+              val file = (dir + Path.explode(path)).canonical
               if (file.is_file) Some((file, line, message)) else None
             }
             else None
@@ -141,7 +141,7 @@ object Latex
     {
       lines match {
         case File_Line_Error((file, line, msg1)) :: rest1 =>
-          val pos = tex_file_position((dir + file).canonical, line)
+          val pos = tex_file_position(file, line)
           rest1 match {
             case Line_Error((line2, msg2)) :: rest2 if line == line2 =>
               filter(rest2, (Exn.cat_message(msg1, msg2), pos) :: result)
