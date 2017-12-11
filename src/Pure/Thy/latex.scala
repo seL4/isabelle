@@ -79,7 +79,7 @@ object Latex
       }
 
     def tex_position(line: Int): Position.T =
-      Position.File(tex_file.implode) ::: Position.Line(line)
+        Position.Line_File(line, tex_file.implode)
 
     def position(line: Int): Position.T =
       source_position(line) getOrElse tex_position(line)
@@ -141,7 +141,7 @@ object Latex
     {
       lines match {
         case File_Line_Error((file, line, msg1)) :: rest1 =>
-          val pos = tex_file_position(file, line)
+          val pos = tex_file_position((dir + file).canonical, line)
           rest1 match {
             case Line_Error((line2, msg2)) :: rest2 if line == line2 =>
               filter(rest2, (Exn.cat_message(msg1, msg2), pos) :: result)
