@@ -422,7 +422,13 @@ lemma multiplicity_aprimedivisor_Suc_0_iff:
 
 definition mangoldt :: "nat \<Rightarrow> 'a :: real_algebra_1" where
   "mangoldt n = (if primepow n then of_real (ln (real (aprimedivisor n))) else 0)"
-  
+
+lemma mangoldt_0 [simp]: "mangoldt 0 = 0"
+  by (simp add: mangoldt_def)
+
+lemma mangoldt_Suc_0 [simp]: "mangoldt (Suc 0) = 0"
+  by (simp add: mangoldt_def)
+
 lemma of_real_mangoldt [simp]: "of_real (mangoldt n) = mangoldt n"
   by (simp add: mangoldt_def)
 
@@ -480,6 +486,10 @@ proof (cases "primepow n")
   hence "aprimedivisor n > 1" by (simp add: prime_gt_Suc_0_nat)
   with True show ?thesis by (auto simp: mangoldt_def abs_if)
 qed (auto simp: mangoldt_def)
+
+lemma Re_mangoldt [simp]: "Re (mangoldt n) = mangoldt n"
+  and Im_mangoldt [simp]: "Im (mangoldt n) = 0"
+  by (simp_all add: mangoldt_def)
 
 lemma abs_mangoldt [simp]: "abs (mangoldt n :: real) = mangoldt n"
   using norm_mangoldt[of n, where ?'a = real, unfolded real_norm_def] .
