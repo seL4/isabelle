@@ -197,10 +197,7 @@ fun isabelle_document {verbose, purge} format name tags dir =
     val _ = if verbose then writeln script else ();
     val {out, err, rc, ...} = Bash.process script;
     val _ = if verbose then writeln (trim_line (normalize_lines out)) else ();
-    val _ =
-      if not (File.exists doc_path) orelse rc <> 0 then
-        cat_error (trim_line err) ("Failed to build document " ^ quote (show_path doc_path))
-      else ();
+    val _ = if not (File.exists doc_path) orelse rc <> 0 then error (trim_line err) else ();
     val _ = if purge andalso rc = 0 then Isabelle_System.rm_tree dir else ();
   in doc_path end;
 

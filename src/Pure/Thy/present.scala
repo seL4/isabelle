@@ -209,7 +209,7 @@ object Present
 
     if (!result.ok) {
       cat_error(cat_lines(Latex.latex_errors(dir, root_name)),
-        "Failed to build document in directory " + File.path(dir.absolute_file))
+        "Failed to build document in " + File.path(dir.absolute_file))
     }
 
     bash("[ -f " + root_bash(document_format) + " ] && cp -f " +
