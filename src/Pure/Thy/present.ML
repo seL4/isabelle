@@ -194,11 +194,12 @@ fun isabelle_document {verbose, purge} format name tags dir =
       "isabelle document -d " ^ File.bash_path dir ^ " -o " ^ Bash.string format ^
         " -n " ^ Bash.string name ^ " -t " ^ Bash.string tags;
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
+    val _ = if purge then Isabelle_System.rm_tree dir else ();
     val _ = if verbose then writeln script else ();
     val {out, err, rc, ...} = Bash.process script;
     val _ = if verbose then writeln (trim_line (normalize_lines out)) else ();
     val _ = if not (File.exists doc_path) orelse rc <> 0 then error (trim_line err) else ();
-    val _ = if purge andalso rc = 0 then Isabelle_System.rm_tree dir else ();
+    val _ = if purge then Isabelle_System.rm_tree dir else ();
   in doc_path end;
 
 
