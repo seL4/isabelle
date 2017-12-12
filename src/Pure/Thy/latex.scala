@@ -96,7 +96,7 @@ object Latex
 
     object File_Line_Error
     {
-      val Pattern = """^(.*):(\d+): (.*)$""".r
+      val Pattern = """^(.*?\.\w\w\w):(\d+): (.*)$""".r
       def unapply(line: String): Option[(Path, Int, String)] =
         line match {
           case Pattern(file, Value.Int(line), message) =>
