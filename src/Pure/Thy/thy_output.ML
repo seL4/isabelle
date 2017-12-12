@@ -211,8 +211,7 @@ fun output_text state {markdown, mark_range} source =
     val output_antiquotes =
       map (fn ant =>
         eval_antiquote state ant
-        |> mark_range ? Latex.range_output (#1 (Antiquote.range [ant])))
-      #> cat_lines;
+        |> mark_range ? Latex.range_output (#1 (Antiquote.range [ant]))) #> implode;
 
     fun output_line line =
       (if Markdown.line_is_item line then "\\item " else "") ^
@@ -231,13 +230,13 @@ fun output_text state {markdown, mark_range} source =
         val reports = Antiquote.antiq_reports ants;
         val blocks = Markdown.read_antiquotes ants;
         val _ = if is_reported then Position.reports (reports @ Markdown.reports blocks) else ();
-      in "%\n" ^ output_blocks blocks end
+      in output_blocks blocks end
     else
       let
         val ants = Antiquote.parse pos (Symbol_Pos.trim_blanks syms);
         val reports = Antiquote.antiq_reports ants;
         val _ = if is_reported then Position.reports (reports @ Markdown.text_reports ants) else ();
-      in "%\n" ^ output_antiquotes ants end
+      in output_antiquotes ants end
   end;
 
 
@@ -273,7 +272,8 @@ fun present_token state tok =
   | Markup_Env_Token (cmd, source) =>
       Latex.environment ("isamarkup" ^ cmd)
         (output_text state {markdown = true, mark_range = true} source)
-  | Raw_Token source => output_text state {markdown = true, mark_range = true} source ^ "\n");
+  | Raw_Token source =>
+      "%\n" ^ output_text state {markdown = true, mark_range = true} source ^ "\n");
 
 
 (* command spans *)
