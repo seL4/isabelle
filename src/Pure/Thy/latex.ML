@@ -189,7 +189,7 @@ fun line_output pos output =
       (case take_prefix is_blank_line (split_lines output) of
         (_, []) => output
       | (blank, rest) =>
-          cat_lines blank ^ "%\n" ^
+          cat_lines blank ^ " %\n" ^
           output_prop (Markup.lineN, Value.print_int n) ^
           cat_lines rest));
 
