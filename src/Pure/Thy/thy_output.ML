@@ -24,7 +24,7 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
-  val output_text: Toplevel.state -> {markdown: bool, mark_range: bool} -> Input.source -> string
+  val output_text: Toplevel.state -> {markdown: bool, positions: bool} -> Input.source -> string
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
@@ -193,7 +193,7 @@ end;
 
 (* output text *)
 
-fun output_text state {markdown, mark_range} source =
+fun output_text state {markdown, positions} source =
   let
     val is_reported =
       (case try Toplevel.context_of state of
@@ -211,7 +211,7 @@ fun output_text state {markdown, mark_range} source =
     val output_antiquotes =
       map (fn ant =>
         eval_antiquote state ant
-        |> mark_range ? Latex.range_output (#1 (Antiquote.range [ant]))) #> implode;
+        |> positions ? Latex.line_output (#1 (Antiquote.range [ant]))) #> implode;
 
     fun output_line line =
       (if Markdown.line_is_item line then "\\item " else "") ^
@@ -265,15 +265,15 @@ val newline_token = basic_token Token.is_newline;
 fun present_token state tok =
   (case tok of
     No_Token => ""
-  | Basic_Token tok => Latex.output_token tok |> Latex.range_output (Token.pos_of tok)
+  | Basic_Token tok => Latex.output_token tok |> Latex.line_output (Token.pos_of tok)
   | Markup_Token (cmd, source) =>
       "%\n\\isamarkup" ^ cmd ^ "{" ^
-        output_text state {markdown = false, mark_range = true} source ^ "%\n}\n"
+        output_text state {markdown = false, positions = true} source ^ "%\n}\n"
   | Markup_Env_Token (cmd, source) =>
       Latex.environment ("isamarkup" ^ cmd)
-        (output_text state {markdown = true, mark_range = true} source)
+        (output_text state {markdown = true, positions = true} source)
   | Raw_Token source =>
-      "%\n" ^ output_text state {markdown = true, mark_range = true} source ^ "\n");
+      "%\n" ^ output_text state {markdown = true, positions = true} source ^ "\n");
 
 
 (* command spans *)
@@ -673,10 +673,10 @@ end;
 fun document_command {markdown} (loc, txt) =
   Toplevel.keep (fn state =>
     (case loc of
-      NONE => ignore (output_text state {markdown = markdown, mark_range = false} txt)
+      NONE => ignore (output_text state {markdown = markdown, positions = false} txt)
     | SOME (_, pos) =>
         error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
   Toplevel.present_local_theory loc (fn state =>
-    ignore (output_text state {markdown = markdown, mark_range = false} txt));
+    ignore (output_text state {markdown = markdown, positions = false} txt));
 
 end;

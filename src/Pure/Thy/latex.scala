@@ -30,12 +30,7 @@ object Latex
   /* generated .tex file */
 
   private val File_Pattern = """^%:%file=(.+)%:%$""".r
-  private val Range_Pattern2 = """^*%:%range=(\d+):(\d+)%:%$""".r
-  private val Range_Pattern1 = """^*%:%range=(\d+)%:%$""".r
-  private val marker = "%:%"
-
-  def detect_marker(s: String): Boolean =
-    s.size > 6 && s.startsWith(marker) && s.endsWith(marker)
+  private val Line_Pattern = """^*%:%line=(\d+)%:%$""".r
 
   def read_tex_file(tex_file: Path): Tex_File =
     new Tex_File(tex_file, Line.logical_lines(File.read(tex_file)).toArray)
@@ -44,52 +39,34 @@ object Latex
   {
     override def toString: String = tex_file.toString
 
-    val source_file: Option[Path] =
-      if (tex_lines.length > 0) {
+    val source_file: Option[String] =
+      if (tex_lines.nonEmpty) {
         tex_lines(0) match {
-          case File_Pattern(file) if Path.is_wellformed(file) && Path.explode(file).is_file =>
-            Some(Path.explode(file))
+          case File_Pattern(file) => Some(file)
           case _ => None
         }
       }
       else None
 
-    val source_content: Line.Document =
-      source_file match {
-        case Some(file) => Line.Document(Symbol.decode(File.read(file)))
-        case None => Line.Document.empty
-      }
-
-    lazy val source_chunk: Symbol.Text_Chunk =
-      Symbol.Text_Chunk(source_content.text)
-
     private def prev_lines_iterator(l: Int): Iterator[String] =
-      if (0 < l && l <= tex_lines.length) Range.inclusive(l - 1, 0, -1).iterator.map(tex_lines(_))
+      if (0 < l && l <= tex_lines.length)
+        Range.inclusive(l - 1, 0, -1).iterator.map(tex_lines(_))
       else Iterator.empty
 
     def source_position(l: Int): Option[Position.T] =
       (for {
         file <- source_file.iterator
-        line <- prev_lines_iterator(l)
-        if detect_marker(line)
-        symbol_range <-
-          (line match {
-            case Range_Pattern2(Value.Int(i), Value.Int(j)) => Some(Text.Range(i, j))
-            case Range_Pattern1(Value.Int(i)) => Some(Text.Range(i, i + 1))
+        s <- prev_lines_iterator(l)
+        line <-
+          (s match {
+            case Line_Pattern(Value.Int(line)) => Some(line)
             case _ => None
           })
-        range <- source_chunk.incorporate(symbol_range)
       }
-      yield {
-        Position.Line_File(source_content.position(range.start).line1, file.implode) :::
-        Position.Range(symbol_range)
-      }).toStream.headOption
-
-    def tex_position(line: Int): Position.T =
-      Position.Line_File(line, tex_file.implode)
+      yield { Position.Line_File(line, file) }).toStream.headOption
 
     def position(line: Int): Position.T =
-      source_position(line) getOrElse tex_position(line)
+      source_position(line) getOrElse Position.Line_File(line, tex_file.implode)
   }
 
 

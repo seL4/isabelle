@@ -54,7 +54,6 @@ sig
   val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
-  val rangeN: string
   val expressionN: string val expression: string -> T
   val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
@@ -336,8 +335,6 @@ val position_properties' = [fileN, idN];
 val position_properties = [lineN, offsetN, end_offsetN] @ position_properties';
 
 val (positionN, position) = markup_elem "position";
-
-val rangeN = "range";
 
 
 (* expression *)
