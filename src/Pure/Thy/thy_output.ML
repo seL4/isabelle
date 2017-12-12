@@ -262,18 +262,18 @@ val comment_token = basic_token Token.is_comment;
 val blank_token = basic_token Token.is_blank;
 val newline_token = basic_token Token.is_newline;
 
-fun present_token state tok =
+fun present_token {positions} state tok =
   (case tok of
     No_Token => ""
-  | Basic_Token tok => Latex.output_token tok |> Latex.line_output (Token.pos_of tok)
+  | Basic_Token tok => Latex.output_token tok |> positions ? Latex.line_output (Token.pos_of tok)
   | Markup_Token (cmd, source) =>
       "%\n\\isamarkup" ^ cmd ^ "{" ^
-        output_text state {markdown = false, positions = true} source ^ "%\n}\n"
+        output_text state {markdown = false, positions = positions} source ^ "%\n}\n"
   | Markup_Env_Token (cmd, source) =>
       Latex.environment ("isamarkup" ^ cmd)
-        (output_text state {markdown = true, positions = true} source)
+        (output_text state {markdown = true, positions = positions} source)
   | Raw_Token source =>
-      "%\n" ^ output_text state {markdown = true, positions = true} source ^ "\n");
+      "%\n" ^ output_text state {markdown = true, positions = positions} source ^ "\n");
 
 
 (* command spans *)
@@ -316,11 +316,11 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 
 in
 
-fun present_span keywords document_tags span state state'
+fun present_span positions keywords document_tags span state state'
     (tag_stack, active_tag, newline, buffer, present_cont) =
   let
     val present = fold (fn (tok, (flag, 0)) =>
-        Buffer.add (present_token state' tok)
+        Buffer.add (present_token positions state' tok)
         #> Buffer.add flag
       | _ => I);
 
@@ -413,6 +413,7 @@ in
 
 fun present_thy thy command_results toks =
   let
+    val positions = Options.default_bool \<^system_option>\<open>document_positions\<close>;
     val keywords = Thy_Header.get_keywords thy;
 
 
@@ -492,7 +493,8 @@ fun present_thy thy command_results toks =
     val document_tags = space_explode "," (Options.default_string \<^system_option>\<open>document_tags\<close>);
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span keywords document_tags span st st');
+      Toplevel.setmp_thread_position tr
+        (present_span {positions = positions} keywords document_tags span st st');
 
     fun present _ [] = I
       | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;
