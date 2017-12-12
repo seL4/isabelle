@@ -1223,4 +1223,32 @@ next
   ultimately show ?thesis by simp
 qed
 
+lemma summable_bounded_partials:
+  fixes f :: "nat \<Rightarrow> 'a :: {real_normed_vector,complete_space}"
+  assumes bound: "eventually (\<lambda>x0. \<forall>a\<ge>x0. \<forall>b>a. norm (sum f {a<..b}) \<le> g a) sequentially"
+  assumes g: "g \<longlonglongrightarrow> 0"
+  shows   "summable f" unfolding summable_iff_convergent'
+proof (intro Cauchy_convergent CauchyI', goal_cases)
+  case (1 \<epsilon>)
+  with g have "eventually (\<lambda>x. \<bar>g x\<bar> < \<epsilon>) sequentially"
+    by (auto simp: tendsto_iff)
+  from eventually_conj[OF this bound] obtain x0 where x0:
+    "\<And>x. x \<ge> x0 \<Longrightarrow> \<bar>g x\<bar> < \<epsilon>" "\<And>a b. x0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> norm (sum f {a<..b}) \<le> g a" 
+    unfolding eventually_at_top_linorder by auto
+
+  show ?case
+  proof (intro exI[of _ x0] allI impI)
+    fix m n assume mn: "x0 \<le> m" "m < n"
+    have "dist (sum f {..m}) (sum f {..n}) = norm (sum f {..n} - sum f {..m})"
+      by (simp add: dist_norm norm_minus_commute)
+    also have "sum f {..n} - sum f {..m} = sum f ({..n} - {..m})"
+      using mn by (intro Groups_Big.sum_diff [symmetric]) auto
+    also have "{..n} - {..m} = {m<..n}" using mn by auto
+    also have "norm (sum f {m<..n}) \<le> g m" using mn by (intro x0) auto
+    also have "\<dots> \<le> \<bar>g m\<bar>" by simp
+    also have "\<dots> < \<epsilon>" using mn by (intro x0) auto
+    finally show "dist (sum f {..m}) (sum f {..n}) < \<epsilon>" .
+  qed
+qed
+
 end

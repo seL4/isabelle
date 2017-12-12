@@ -256,6 +256,27 @@ next
     show "f abs_summable_on insert x A" by simp
 qed
 
+lemma abs_summable_sum: 
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x abs_summable_on B"
+  shows   "(\<lambda>y. \<Sum>x\<in>A. f x y) abs_summable_on B"
+  using assms unfolding abs_summable_on_def by (intro Bochner_Integration.integrable_sum)
+
+lemma abs_summable_Re: "f abs_summable_on A \<Longrightarrow> (\<lambda>x. Re (f x)) abs_summable_on A"
+  by (simp add: abs_summable_on_def)
+
+lemma abs_summable_Im: "f abs_summable_on A \<Longrightarrow> (\<lambda>x. Im (f x)) abs_summable_on A"
+  by (simp add: abs_summable_on_def)
+
+lemma abs_summable_on_finite_diff:
+  assumes "f abs_summable_on A" "A \<subseteq> B" "finite (B - A)"
+  shows   "f abs_summable_on B"
+proof -
+  have "f abs_summable_on (A \<union> (B - A))"
+    by (intro abs_summable_on_union assms abs_summable_on_finite)
+  also from assms have "A \<union> (B - A) = B" by blast
+  finally show ?thesis .
+qed
+
 lemma abs_summable_on_reindex_bij_betw:
   assumes "bij_betw g A B"
   shows   "(\<lambda>x. f (g x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on B"
@@ -406,6 +427,27 @@ lemma infsetsum_0 [simp]: "infsetsum (\<lambda>_. 0) A = 0"
 
 lemma infsetsum_all_0: "(\<And>x. x \<in> A \<Longrightarrow> f x = 0) \<Longrightarrow> infsetsum f A = 0"
   by simp
+
+lemma infsetsum_nonneg: "(\<And>x. x \<in> A \<Longrightarrow> f x \<ge> (0::real)) \<Longrightarrow> infsetsum f A \<ge> 0"
+  unfolding infsetsum_def by (rule Bochner_Integration.integral_nonneg) auto
+
+lemma sum_infsetsum:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x abs_summable_on B"
+  shows   "(\<Sum>x\<in>A. \<Sum>\<^sub>ay\<in>B. f x y) = (\<Sum>\<^sub>ay\<in>B. \<Sum>x\<in>A. f x y)"
+  using assms by (simp add: infsetsum_def abs_summable_on_def Bochner_Integration.integral_sum)
+
+lemma Re_infsetsum: "f abs_summable_on A \<Longrightarrow> Re (infsetsum f A) = (\<Sum>\<^sub>ax\<in>A. Re (f x))"
+  by (simp add: infsetsum_def abs_summable_on_def)
+
+lemma Im_infsetsum: "f abs_summable_on A \<Longrightarrow> Im (infsetsum f A) = (\<Sum>\<^sub>ax\<in>A. Im (f x))"
+  by (simp add: infsetsum_def abs_summable_on_def)
+
+lemma infsetsum_of_real: 
+  shows "infsetsum (\<lambda>x. of_real (f x) 
+           :: 'a :: {real_normed_algebra_1,banach,second_countable_topology,real_inner}) A = 
+             of_real (infsetsum f A)"
+  unfolding infsetsum_def
+  by (rule integral_bounded_linear'[OF bounded_linear_of_real bounded_linear_inner_left[of 1]]) auto
 
 lemma infsetsum_finite [simp]: "finite A \<Longrightarrow> infsetsum f A = (\<Sum>x\<in>A. f x)"
   by (simp add: infsetsum_def lebesgue_integral_count_space_finite)

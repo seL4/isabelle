@@ -379,6 +379,28 @@ lemma holomorphic_on_scaleR [holomorphic_intros]:
   "f holomorphic_on A \<Longrightarrow> (\<lambda>x. c *\<^sub>R f x) holomorphic_on A"
   by (auto simp: scaleR_conv_of_real intro!: holomorphic_intros)
 
+lemma holomorphic_on_Un [holomorphic_intros]:
+  assumes "f holomorphic_on A" "f holomorphic_on B" "open A" "open B"
+  shows   "f holomorphic_on (A \<union> B)"
+  using assms by (auto simp: holomorphic_on_def  at_within_open[of _ A] 
+                             at_within_open[of _ B]  at_within_open[of _ "A \<union> B"] open_Un)
+
+lemma holomorphic_on_If_Un [holomorphic_intros]:
+  assumes "f holomorphic_on A" "g holomorphic_on B" "open A" "open B"
+  assumes "\<And>z. z \<in> A \<Longrightarrow> z \<in> B \<Longrightarrow> f z = g z"
+  shows   "(\<lambda>z. if z \<in> A then f z else g z) holomorphic_on (A \<union> B)" (is "?h holomorphic_on _")
+proof (intro holomorphic_on_Un)
+  note \<open>f holomorphic_on A\<close>
+  also have "f holomorphic_on A \<longleftrightarrow> ?h holomorphic_on A"
+    by (intro holomorphic_cong) auto
+  finally show \<dots> .
+next
+  note \<open>g holomorphic_on B\<close>
+  also have "g holomorphic_on B \<longleftrightarrow> ?h holomorphic_on B"
+    using assms by (intro holomorphic_cong) auto
+  finally show \<dots> .
+qed (insert assms, auto)
+
 lemma DERIV_deriv_iff_field_differentiable:
   "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
   unfolding field_differentiable_def by (metis DERIV_imp_deriv)

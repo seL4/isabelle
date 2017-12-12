@@ -602,6 +602,9 @@ proof
     by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
 qed
 
+lemma prime_factorization_Suc_0 [simp]: "prime_factorization (Suc 0) = {#}"
+  unfolding One_nat_def [symmetric] using prime_factorization_1 .
+
 instance int :: normalization_euclidean_semiring ..
 
 instance int :: euclidean_ring_gcd
