@@ -270,6 +270,15 @@ function shuffle where
   by pat_completeness simp_all
 termination by lexicographic_order
 
+text\<open>Use only if you cannot use @{const Min} instead:\<close>
+fun min_list :: "'a::ord list \<Rightarrow> 'a" where
+"min_list (x # xs) = (case xs of [] \<Rightarrow> x | _ \<Rightarrow> min x (min_list xs))"
+
+text\<open>Returns first minimum:\<close>
+fun arg_min_list :: "('a \<Rightarrow> ('b::linorder)) \<Rightarrow> 'a list \<Rightarrow> 'a" where
+"arg_min_list f [x] = x" |
+"arg_min_list f (x#y#zs) = (let m = arg_min_list f (y#zs) in if f x \<le> f m then x else m)"
+
 text\<open>
 \begin{figure}[htbp]
 \fbox{
@@ -324,7 +333,9 @@ text\<open>
 @{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by simp}\\
 @{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate_def eval_nat_numeral)}\\
 @{lemma "replicate 4 a = [a,a,a,a]" by (simp add:eval_nat_numeral)}\\
-@{lemma "[2..<5] = [2,3,4]" by (simp add:eval_nat_numeral)}
+@{lemma "[2..<5] = [2,3,4]" by (simp add:eval_nat_numeral)}\\
+@{lemma "min_list [3,1,-2::int] = -2" by (simp)}\\
+@{lemma "arg_min_list (\<lambda>i. i*i) [3,-1,1,-2::int] = -1" by (simp)}
 \end{tabular}}
 \caption{Characteristic examples}
 \label{fig:Characteristic}
@@ -4794,6 +4805,14 @@ proof (rule nth_equalityI, safe)
   thus "transpose (map (map f) xs) ! i = map (map f) (transpose xs) ! i"
     by (simp add: nth_transpose filter_map comp_def)
 qed
+
+subsubsection \<open>@{const min} and @{const arg_min}\<close>
+
+lemma min_list_Min: "xs \<noteq> [] \<Longrightarrow> min_list xs = Min (set xs)"
+by (induction xs rule: induct_list012)(auto)
+
+lemma f_arg_min_list_f: "xs \<noteq> [] \<Longrightarrow> f (arg_min_list f xs) = Min (f ` (set xs))"
+by(induction f xs rule: arg_min_list.induct) (auto simp: min_def intro!: antisym)
 
 
 subsubsection \<open>(In)finiteness\<close>
