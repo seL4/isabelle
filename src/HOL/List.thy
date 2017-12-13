@@ -793,28 +793,13 @@ lemma length_induct:
   "(\<And>xs. \<forall>ys. length ys < length xs \<longrightarrow> P ys \<Longrightarrow> P xs) \<Longrightarrow> P xs"
 by (fact measure_induct)
 
+lemma induct_list012:
+  "\<lbrakk>P []; \<And>x. P [x]; \<And>x y zs. P (y # zs) \<Longrightarrow> P (x # y # zs)\<rbrakk> \<Longrightarrow> P xs"
+by induction_schema (pat_completeness, lexicographic_order)
+
 lemma list_nonempty_induct [consumes 1, case_names single cons]:
-  assumes "xs \<noteq> []"
-  assumes single: "\<And>x. P [x]"
-  assumes cons: "\<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)"
-  shows "P xs"
-using \<open>xs \<noteq> []\<close> proof (induct xs)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs)
-  show ?case
-  proof (cases xs)
-    case Nil
-    with single show ?thesis by simp
-  next
-    case Cons
-    show ?thesis
-    proof (rule cons)
-      from Cons show "xs \<noteq> []" by simp
-      with Cons.hyps show "P xs" .
-    qed
-  qed
-qed
+  "\<lbrakk> xs \<noteq> []; \<And>x. P [x]; \<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)\<rbrakk> \<Longrightarrow> P xs"
+by(induction xs rule: induct_list012) auto
 
 lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
   by (auto intro!: inj_onI)
@@ -1986,7 +1971,7 @@ lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1
 by(induct xs)(auto simp:neq_Nil_conv)
 
 lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
-by (induct xs, simp, case_tac xs, simp_all)
+by (induction xs rule: induct_list012) simp_all
 
 lemma last_list_update:
   "xs \<noteq> [] \<Longrightarrow> last(xs[k:=x]) = (if k = size xs - 1 then x else last xs)"
@@ -2430,11 +2415,7 @@ done
 
 lemma takeWhile_not_last:
   "distinct xs \<Longrightarrow> takeWhile (\<lambda>y. y \<noteq> last xs) xs = butlast xs"
-apply(induct xs)
- apply simp
-apply(case_tac xs)
-apply(auto)
-done
+by(induction xs rule: induct_list012) auto
 
 lemma takeWhile_cong [fundef_cong]:
   "[| l = k; !!x. x : set l ==> P x = Q x |]
@@ -3227,6 +3208,9 @@ lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)
 
 lemma upto_Nil[simp]: "[i..j] = [] \<longleftrightarrow> j < i"
+by (simp add: upto.simps)
+
+lemma upto_Nil2[simp]: "[] = [i..j] \<longleftrightarrow> j < i"
 by (simp add: upto.simps)
 
 lemma upto_rec1: "i \<le> j \<Longrightarrow> [i..j] = i#[i+1..j]"
@@ -4910,10 +4894,6 @@ subsection \<open>Sorting\<close>
 
 subsubsection \<open>@{const sorted_wrt}\<close>
 
-lemma sorted_wrt_induct:
-  "\<lbrakk>P []; \<And>x. P [x]; \<And>x y zs. P (y # zs) \<Longrightarrow> P (x # y # zs)\<rbrakk> \<Longrightarrow> P xs"
-by induction_schema (pat_completeness, lexicographic_order)
-
 lemma sorted_wrt_Cons:
 assumes "transp P"
 shows   "sorted_wrt P (x # xs) = ((\<forall>y \<in> set xs. P x y) \<and> sorted_wrt P xs)"
@@ -4921,7 +4901,7 @@ by(induction xs arbitrary: x)(auto intro: transpD[OF assms])
 
 lemma sorted_wrt_ConsI:
   "\<lbrakk> \<And>y. y \<in> set xs \<Longrightarrow> P x y; sorted_wrt P xs \<rbrakk> \<Longrightarrow> sorted_wrt P (x # xs)"
-by (induction xs rule: sorted_wrt_induct) simp_all
+by (induction xs rule: induct_list012) simp_all
 
 lemma sorted_wrt_append:
 assumes "transp P"
@@ -4931,15 +4911,15 @@ by (induction xs) (auto simp: sorted_wrt_Cons[OF assms])
 
 lemma sorted_wrt_backwards:
   "sorted_wrt P (xs @ [y, z]) = (P y z \<and> sorted_wrt P (xs @ [y]))"
-by (induction xs rule: sorted_wrt_induct) auto
+by (induction xs rule: induct_list012) auto
 
 lemma sorted_wrt_rev:
   "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
-by (induction xs rule: sorted_wrt_induct) (simp_all add: sorted_wrt_backwards)
+by (induction xs rule: induct_list012) (simp_all add: sorted_wrt_backwards)
 
 lemma sorted_wrt_mono:
   "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
-by(induction xs rule: sorted_wrt_induct)(auto)
+by(induction xs rule: induct_list012)(auto)
 
 text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
 
@@ -4976,7 +4956,7 @@ proof
   proof (induct xs rule: sorted.induct)
     case (Cons xs x) thus ?case by (cases xs) simp_all
   qed simp
-qed (induct xs rule: sorted_wrt_induct, simp_all)
+qed (induct xs rule: induct_list012, simp_all)
 
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"

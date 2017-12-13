@@ -53,12 +53,12 @@ lemma set_ins_list: "elems (ins_list x xs) = insert x (elems xs)"
 by(induction xs) auto
 
 lemma distinct_if_sorted: "sorted xs \<Longrightarrow> distinct xs"
-apply(induction xs rule: sorted_wrt_induct)
+apply(induction xs rule: induct_list012)
 apply auto
 by (metis in_set_conv_decomp_first less_imp_not_less sorted_mid_iff2)
 
 lemma sorted_ins_list: "sorted xs \<Longrightarrow> sorted(ins_list x xs)"
-by(induction xs rule: sorted_wrt_induct) auto
+by(induction xs rule: induct_list012) auto
 
 lemma ins_list_sorted: "sorted (xs @ [a]) \<Longrightarrow>
   ins_list x (xs @ a # ys) =
@@ -105,7 +105,7 @@ apply blast
 done
 
 lemma sorted_del_list: "sorted xs \<Longrightarrow> sorted(del_list x xs)"
-apply(induction xs rule: sorted_wrt_induct)
+apply(induction xs rule: induct_list012)
 apply auto
 by (meson order.strict_trans sorted_Cons_iff)
 
