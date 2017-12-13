@@ -4814,6 +4814,9 @@ by (induction xs rule: induct_list012)(auto)
 lemma f_arg_min_list_f: "xs \<noteq> [] \<Longrightarrow> f (arg_min_list f xs) = Min (f ` (set xs))"
 by(induction f xs rule: arg_min_list.induct) (auto simp: min_def intro!: antisym)
 
+lemma arg_min_list_in: "xs \<noteq> [] \<Longrightarrow> arg_min_list f xs \<in> set xs"
+by(induction xs rule: induct_list012) (auto simp: Let_def)
+
 
 subsubsection \<open>(In)finiteness\<close>
 
