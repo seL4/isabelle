@@ -116,15 +116,25 @@ object Latex
         }
     }
 
-    object Line_Error
-    {
-      val Pattern = """^l\.(\d+) (.*)$""".r
-      def unapply(line: String): Option[(Int, String)] =
-        line match {
-          case Pattern(Value.Int(line), message) => Some((line, message))
-          case _ => None
-        }
-    }
+    val More_Error =
+      List(
+        """l\.\d+""",
+        "<argument>",
+        "<template>",
+        "<recently read>",
+        "<to be read again>",
+        "<inserted text>",
+        "<output>",
+        "<everypar>",
+        "<everymath>",
+        "<everydisplay>",
+        "<everyhbox>",
+        "<everyvbox>",
+        "<everyjob>",
+        "<everycr>",
+        "<mark>",
+        "<everyeof>",
+        "<write>").mkString("^(?:", "|", ") (.*)$").r
 
     @tailrec def filter(lines: List[String], result: List[(String, Position.T)])
       : List[(String, Position.T)] =
@@ -133,7 +143,7 @@ object Latex
         case File_Line_Error((file, line, msg1)) :: rest1 =>
           val pos = tex_file_position(file, line)
           rest1 match {
-            case Line_Error((line2, msg2)) :: rest2 if line == line2 =>
+            case More_Error(msg2) :: rest2 =>
               filter(rest2, (Exn.cat_message(msg1, msg2), pos) :: result)
             case _ =>
               filter(rest1, (msg1, pos) :: result)
