@@ -832,8 +832,8 @@ definition is_arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightar
 definition arg_min :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
 "arg_min f P = (SOME x. is_arg_min f P x)"
 
-abbreviation arg_min_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
-"arg_min_on f S \<equiv> arg_min f (\<lambda>x. x \<in> S)"
+definition arg_min_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"arg_min_on f S = arg_min f (\<lambda>x. x \<in> S)"
 
 syntax
   "_arg_min" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
@@ -908,7 +908,7 @@ by auto
 
 lemma arg_min_SOME_Min:
   "finite S \<Longrightarrow> arg_min_on f S = (SOME y. y \<in> S \<and> f y = Min(f ` S))"
-unfolding arg_min_def is_arg_min_linorder
+unfolding arg_min_on_def arg_min_def is_arg_min_linorder
 apply(rule arg_cong[where f = Eps])
 apply (auto simp: fun_eq_iff intro: Min_eqI[symmetric])
 done
@@ -917,7 +917,7 @@ lemma arg_min_if_finite: fixes f :: "'a \<Rightarrow> 'b :: order"
 assumes "finite S" "S \<noteq> {}"
 shows  "arg_min_on f S \<in> S" and "\<not>(\<exists>x\<in>S. f x < f (arg_min_on f S))"
 using ex_is_arg_min_if_finite[OF assms, of f]
-unfolding arg_min_def is_arg_min_def
+unfolding arg_min_on_def arg_min_def is_arg_min_def
 by(auto dest!: someI_ex)
 
 lemma arg_min_least: fixes f :: "'a \<Rightarrow> 'b :: linorder"
@@ -940,8 +940,8 @@ definition is_arg_max :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightar
 definition arg_max :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
 "arg_max f P = (SOME x. is_arg_max f P x)"
 
-abbreviation arg_max_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
-"arg_max_on f S \<equiv> arg_max f (\<lambda>x. x \<in> S)"
+definition arg_max_on :: "('a \<Rightarrow> 'b::ord) \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"arg_max_on f S = arg_max f (\<lambda>x. x \<in> S)"
 
 syntax
   "_arg_max" :: "('a \<Rightarrow> 'b) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
