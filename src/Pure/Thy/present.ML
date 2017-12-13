@@ -188,18 +188,16 @@ fun init symbols build info info_path doc document_output doc_variants doc_files
 
 (* isabelle tool wrappers *)
 
-fun isabelle_document {verbose, purge} format name tags dir =
+fun isabelle_document {verbose} format name tags dir =
   let
     val script =
       "isabelle document -d " ^ File.bash_path dir ^ " -o " ^ Bash.string format ^
         " -n " ^ Bash.string name ^ " -t " ^ Bash.string tags;
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
-    val _ = if purge then Isabelle_System.rm_tree dir else ();
     val _ = if verbose then writeln script else ();
     val {out, err, rc, ...} = Bash.process script;
     val _ = if verbose then writeln (trim_line (normalize_lines out)) else ();
     val _ = if not (File.exists doc_path) orelse rc <> 0 then error (trim_line err) else ();
-    val _ = if purge then Isabelle_System.rm_tree dir else ();
   in doc_path end;
 
 
@@ -242,6 +240,8 @@ fun finish () =
     fun document_job doc_prefix backdrop (doc_name, tags) =
       let
         val doc_dir = Path.append doc_prefix (Path.basic doc_name);
+        fun purge () = if backdrop then Isabelle_System.rm_tree doc_dir else ();
+        val _ = purge ();
         val _ = Isabelle_System.mkdirs doc_dir;
         val _ =
           Isabelle_System.bash ("isabelle latex -o sty " ^
@@ -254,7 +254,7 @@ fun finish () =
             write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys;
       in
         fn () =>
-          (isabelle_document {verbose = true, purge = backdrop} doc_format doc_name tags doc_dir,
+          (isabelle_document {verbose = true} doc_format doc_name tags doc_dir before purge (),
             fn doc =>
               if verbose orelse not backdrop then
                 Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")
@@ -359,8 +359,7 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
 
-    val result =
-      isabelle_document {verbose = false, purge = true} "pdf" documentN "" doc_path;
+    val result = isabelle_document {verbose = false} "pdf" documentN "" doc_path;
 
     val target_dir = Path.explode "$ISABELLE_HOME_USER/tmp";
     val target = Path.explode "$ISABELLE_HOME_USER/tmp/drafts.pdf"

@@ -272,8 +272,7 @@ fun isabelle_body_delim name =
 fun isabelle_body name = isabelle_body_delim name |-> enclose_body;
 
 fun symbol_source known name syms =
-  isabelle_body_delim name
-  |-> enclose
+  uncurry enclose (isabelle_body_delim name)
     ("\\isamarkupfile{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
       output_known_symbols known syms);
 
