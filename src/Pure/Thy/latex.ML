@@ -57,12 +57,16 @@ fun output_text texts =
 fun output_positions file_pos texts =
   let
     fun position (a, b) = enclose "%:%" "%:%" (a ^ "=" ^ b);
+    fun add_position p positions =
+      let val s = position (apply2 Value.print_int p)
+      in positions |> s <> hd positions ? cons s end;
+
     fun output (Text (s, pos)) (positions, line) =
           let
             val positions' =
               (case Position.line_of pos of
                 NONE => positions
-              | SOME l => position (apply2 Value.print_int (line, l)) :: positions);
+              | SOME l => add_position (line, l) positions);
             val line' = fold_string (fn c => fn n => if c = "\n" then n + 1 else n) s line;
           in (positions', line') end
       | output (Block body) res = fold output body res;
