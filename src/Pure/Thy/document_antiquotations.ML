@@ -45,7 +45,7 @@ local
 fun control_antiquotation name s1 s2 =
   Thy_Output.antiquotation name (Scan.lift Args.cartouche_input)
     (fn {state, ...} =>
-      enclose s1 s2 o Thy_Output.output_text state {markdown = false, positions = false});
+      enclose s1 s2 o Latex.output_text o Thy_Output.output_text state {markdown = false});
 
 in
 

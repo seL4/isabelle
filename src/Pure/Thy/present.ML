@@ -12,7 +12,7 @@ sig
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
-  val theory_output: Position.T -> theory -> string -> unit
+  val theory_output: Position.T -> theory -> Latex.text list -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
   val display_drafts: Path.T list -> int
 end;
@@ -278,11 +278,15 @@ fun finish () =
 
 (* theory elements *)
 
-fun theory_output pos thy tex =
+fun theory_output pos thy body =
   with_session_info () (fn _ =>
     if is_session_theory thy then
-      let val name = Context.theory_name thy;
-      in change_theory_info name (fn (_, html) => (Latex.isabelle_theory pos name tex, html)) end
+      let val name = Context.theory_name thy in
+        (change_theory_info name o apfst)
+          (fn _ =>
+            let val latex = Latex.isabelle_body name body
+            in Latex.output_text latex ^ Latex.output_positions pos latex end)
+      end
     else ());
 
 fun theory_link (curr_chapter, curr_session) thy =

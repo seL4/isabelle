@@ -30,40 +30,46 @@ object Latex
   /* generated .tex file */
 
   private val File_Pattern = """^%:%file=(.+)%:%$""".r
-  private val Line_Pattern = """^*%:%line=(\d+)%:%$""".r
+  private val Line_Pattern = """^*%:%(\d+)=(\d+)%:%$""".r
 
   def read_tex_file(tex_file: Path): Tex_File =
-    new Tex_File(tex_file, Line.logical_lines(File.read(tex_file)).toArray)
+  {
+    val positions =
+      Line.logical_lines(File.read(tex_file)).reverse.
+        takeWhile(_ != "\\endinput").reverse
 
-  final class Tex_File private[Latex](val tex_file: Path, tex_lines: Array[String])
+    val source_file =
+      positions match {
+        case File_Pattern(file) :: _ => Some(file)
+        case _ => None
+      }
+
+    val source_lines =
+      if (source_file.isEmpty) Nil
+      else
+        positions.flatMap(line =>
+          line match {
+            case Line_Pattern(Value.Int(line), Value.Int(source_line)) => Some(line -> source_line)
+            case _ => None
+          })
+
+    new Tex_File(tex_file, source_file, source_lines)
+  }
+
+  final class Tex_File private[Latex](
+    tex_file: Path, source_file: Option[String], source_lines: List[(Int, Int)])
   {
     override def toString: String = tex_file.toString
 
-    val source_file: Option[String] =
-      if (tex_lines.nonEmpty) {
-        tex_lines(0) match {
-          case File_Pattern(file) => Some(file)
-          case _ => None
-        }
-      }
-      else None
-
-    private def prev_lines_iterator(l: Int): Iterator[String] =
-      if (0 < l && l <= tex_lines.length)
-        Range.inclusive(l - 1, 0, -1).iterator.map(tex_lines(_))
-      else Iterator.empty
-
     def source_position(l: Int): Option[Position.T] =
-      (for {
-        file <- source_file.iterator
-        s <- prev_lines_iterator(l)
-        line <-
-          (s match {
-            case Line_Pattern(Value.Int(line)) => Some(line)
-            case _ => None
-          })
+      source_file match {
+        case None => None
+        case Some(file) =>
+          val source_line =
+            (0 /: source_lines.iterator.takeWhile({ case (m, _) => m <= l }))(
+              { case (_, (_, n)) => n })
+          if (source_line == 0) None else Some(Position.Line_File(source_line, file))
       }
-      yield { Position.Line_File(line, file) }).toStream.headOption
 
     def position(line: Int): Position.T =
       source_position(line) getOrElse Position.Line_File(line, tex_file.implode)

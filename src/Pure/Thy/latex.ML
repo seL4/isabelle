@@ -6,6 +6,13 @@ LaTeX presentation elements -- based on outer lexical syntax.
 
 signature LATEX =
 sig
+  type text
+  val string: string -> text
+  val text: string * Position.T -> text
+  val block: text list -> text
+  val enclose_body: string -> string -> text list -> text list
+  val output_text: text list -> string
+  val output_positions: Position.T -> text list -> string
   val output_name: string -> string
   val output_ascii: string -> string
   val latex_control: Symbol.symbol
@@ -15,14 +22,14 @@ sig
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
-  val line_output: Position.T -> string -> string
   val output_token: Token.T -> string
   val begin_delim: string -> string
   val end_delim: string -> string
   val begin_tag: string -> string
   val end_tag: string -> string
+  val environment_block: string -> text list -> text
   val environment: string -> string -> string
-  val isabelle_theory: Position.T -> string -> string -> string
+  val isabelle_body: string -> text list -> text list
   val symbol_source: (string -> bool) * (string -> bool) ->
     string -> Symbol.symbol list -> string
   val theory_entry: string -> string
@@ -31,6 +38,46 @@ end;
 
 structure Latex: LATEX =
 struct
+
+(* text with positions *)
+
+abstype text = Text of string * Position.T | Block of text list
+with
+
+fun string s = Text (s, Position.none);
+val text = Text;
+val block = Block;
+
+fun output_text texts =
+  let
+    fun output (Text (s, _)) = Buffer.add s
+      | output (Block body) = fold output body;
+  in Buffer.empty |> fold output texts |> Buffer.content end;
+
+fun output_positions file_pos texts =
+  let
+    fun position (a, b) = enclose "%:%" "%:%" (a ^ "=" ^ b);
+    fun output (Text (s, pos)) (positions, line) =
+          let
+            val positions' =
+              (case Position.line_of pos of
+                NONE => positions
+              | SOME l => position (apply2 Value.print_int (line, l)) :: positions);
+            val line' = fold_string (fn c => fn n => if c = "\n" then n + 1 else n) s line;
+          in (positions', line') end
+      | output (Block body) res = fold output body res;
+  in
+    (case Position.file_of file_pos of
+      NONE => ""
+    | SOME file =>
+        ([position (Markup.fileN, file), "\\endinput"], 1)
+        |> fold output texts |> #1 |> rev |> cat_lines)
+  end;
+
+end;
+
+fun enclose_body bg en body = string bg :: body @ [string en];
+
 
 (* output name for LaTeX macros *)
 
@@ -170,30 +217,6 @@ val output_syms_antiq =
 end;
 
 
-(* positions *)
-
-fun output_prop (a, b) = enclose "%:%" "%:%\n" (a ^ "=" ^ b);
-
-fun output_file pos =
-  (case Position.file_of pos of
-    NONE => ""
-  | SOME file => output_prop (Markup.fileN, file));
-
-
-val is_blank_line = forall_string (fn s => s = " " orelse s = "\t");
-
-fun line_output pos output =
-  (case Position.line_of pos of
-    NONE => output
-  | SOME n =>
-      (case take_prefix is_blank_line (split_lines output) of
-        (_, []) => output
-      | (blank, rest) =>
-          cat_lines blank ^ " %\n" ^
-          output_prop (Markup.lineN, Value.print_int n) ^
-          cat_lines rest));
-
-
 (* output token *)
 
 fun output_token tok =
@@ -231,17 +254,22 @@ fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}
 
 (* theory presentation *)
 
-fun environment name =
-  enclose ("%\n\\begin{" ^ output_name name ^ "}%\n") ("%\n\\end{" ^ output_name name ^ "}");
+fun environment_delim name =
+ ("%\n\\begin{" ^ output_name name ^ "}%\n",
+  "%\n\\end{" ^ output_name name ^ "}");
 
-fun isabelle_theory pos name txt =
-  output_file pos ^
-  "\\begin{isabellebody}%\n\
-  \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
-  "%\n\\end{isabellebody}%\n";
+fun environment_block name = environment_delim name |-> enclose_body #> block;
+fun environment name = environment_delim name |-> enclose;
+
+fun isabelle_body_delim name =
+ ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n",
+  "%\n\\end{isabellebody}%\n");
+
+fun isabelle_body name = isabelle_body_delim name |-> enclose_body;
 
 fun symbol_source known name syms =
-  isabelle_theory Position.none name
+  isabelle_body_delim name
+  |-> enclose
     ("\\isamarkupfile{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
       output_known_symbols known syms);
 
