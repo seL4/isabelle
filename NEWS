@@ -88,7 +88,7 @@ more accurately: only terminal proof steps ('by' etc.) are skipped.
 
 * Command-line tool "isabelle document" has been re-implemented in
 Isabelle/Scala, with simplified arguments and explicit errors from the
-latex process. Minor INCOMPATIBILITY.
+latex and bibtex process. Minor INCOMPATIBILITY.
 
 
 *** HOL ***

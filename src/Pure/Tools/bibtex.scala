@@ -14,6 +14,30 @@ import scala.util.parsing.input.Reader
 
 object Bibtex
 {
+  /** bibtex errors **/
+
+  def bibtex_errors(dir: Path, root_name: String): List[String] =
+  {
+    val log_path = dir + Path.explode(root_name).ext("blg")
+    if (log_path.is_file) {
+      val Error = """^(.*)---line (\d+) of file (.+)""".r
+      Line.logical_lines(File.read(log_path)).flatMap(line =>
+        line match {
+          case Error(msg, Value.Int(l), file) =>
+            val path = File.standard_path(file)
+            if (Path.is_wellformed(path)) {
+              val pos = Position.Line_File(l, (dir + Path.explode(path)).canonical.implode)
+              Some("Bibtex error" + Position.here(pos) + ":\n  " + msg)
+            }
+            else None
+          case _ => None
+        })
+    }
+    else Nil
+  }
+
+
+
   /** document model **/
 
   def check_name(name: String): Boolean = name.endsWith(".bib")

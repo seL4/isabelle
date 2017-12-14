@@ -208,7 +208,8 @@ object Present
     /* result */
 
     if (!result.ok) {
-      cat_error(cat_lines(Latex.latex_errors(dir, root_name)),
+      cat_error(
+        cat_lines(Latex.latex_errors(dir, root_name) ::: Bibtex.bibtex_errors(dir, root_name)),
         "Failed to build document in " + File.path(dir.absolute_file))
     }
 
