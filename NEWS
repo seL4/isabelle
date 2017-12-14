@@ -165,6 +165,10 @@ imports. This helps to minimize the session dependency graph.
 * Update to current Poly/ML 5.7.1 with slightly improved performance and
 PIDE markup for identifier bindings.
 
+* ISABELLE_LATEX and ISABELLE_PDFLATEX now include platform-specific
+options for improved error reporting. Potential INCOMPATIBILITY with
+unusual LaTeX installations, may have to adapt these settings.
+
 
 
 New in Isabelle2017 (October 2017)
