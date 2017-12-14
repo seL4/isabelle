@@ -31,3 +31,11 @@ datatype illegal = Interrupt;
 
 structure Basic_Exn: BASIC_EXN = Exn;
 open Basic_Exn;
+
+structure String =
+struct
+  open String;
+  fun substring (s, i, n) =
+    if n = 1 then String.str (String.sub (s, i))
+    else String.substring (s, i, n);
+end;
