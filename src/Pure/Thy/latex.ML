@@ -6,6 +6,13 @@ LaTeX presentation elements -- based on outer lexical syntax.
 
 signature LATEX =
 sig
+  type text
+  val string: string -> text
+  val text: string * Position.T -> text
+  val block: text list -> text
+  val enclose_body: string -> string -> text list -> text list
+  val output_text: text list -> string
+  val output_positions: Position.T -> text list -> string
   val output_name: string -> string
   val output_ascii: string -> string
   val latex_control: Symbol.symbol
@@ -20,9 +27,9 @@ sig
   val end_delim: string -> string
   val begin_tag: string -> string
   val end_tag: string -> string
+  val environment_block: string -> text list -> text
   val environment: string -> string -> string
-  val tex_trailer: string
-  val isabelle_theory: string -> string -> string
+  val isabelle_body: string -> text list -> text list
   val symbol_source: (string -> bool) * (string -> bool) ->
     string -> Symbol.symbol list -> string
   val theory_entry: string -> string
@@ -31,6 +38,50 @@ end;
 
 structure Latex: LATEX =
 struct
+
+(* text with positions *)
+
+abstype text = Text of string * Position.T | Block of text list
+with
+
+fun string s = Text (s, Position.none);
+val text = Text;
+val block = Block;
+
+fun output_text texts =
+  let
+    fun output (Text (s, _)) = Buffer.add s
+      | output (Block body) = fold output body;
+  in Buffer.empty |> fold output texts |> Buffer.content end;
+
+fun output_positions file_pos texts =
+  let
+    fun position (a, b) = enclose "%:%" "%:%" (a ^ "=" ^ b);
+    fun add_position p positions =
+      let val s = position (apply2 Value.print_int p)
+      in positions |> s <> hd positions ? cons s end;
+
+    fun output (Text (s, pos)) (positions, line) =
+          let
+            val positions' =
+              (case Position.line_of pos of
+                NONE => positions
+              | SOME l => add_position (line, l) positions);
+            val line' = fold_string (fn c => fn n => if c = "\n" then n + 1 else n) s line;
+          in (positions', line') end
+      | output (Block body) res = fold output body res;
+  in
+    (case Position.file_of file_pos of
+      NONE => ""
+    | SOME file =>
+        ([position (Markup.fileN, file), "\\endinput"], 1)
+        |> fold output texts |> #1 |> rev |> cat_lines)
+  end;
+
+end;
+
+fun enclose_body bg en body = string bg :: body @ [string en];
+
 
 (* output name for LaTeX macros *)
 
@@ -173,25 +224,28 @@ end;
 (* output token *)
 
 fun output_token tok =
-  let val s = Token.content_of tok in
-    if Token.is_kind Token.Comment tok then ""
-    else if Token.is_command tok then
-      "\\isacommand{" ^ output_syms s ^ "}"
-    else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
-      "\\isakeyword{" ^ output_syms s ^ "}"
-    else if Token.is_kind Token.String tok then
-      enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
-    else if Token.is_kind Token.Alt_String tok then
-      enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
-    else if Token.is_kind Token.Verbatim tok then
-      let
-        val ants = Antiquote.read (Token.input_of tok);
-        val out = implode (map output_syms_antiq ants);
-      in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
-    else if Token.is_kind Token.Cartouche tok then
-      enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
-    else output_syms s
-  end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+  let
+    val s = Token.content_of tok;
+    val output =
+      if Token.is_kind Token.Comment tok then ""
+      else if Token.is_command tok then
+        "\\isacommand{" ^ output_syms s ^ "}"
+      else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
+        "\\isakeyword{" ^ output_syms s ^ "}"
+      else if Token.is_kind Token.String tok then
+        enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
+      else if Token.is_kind Token.Alt_String tok then
+        enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
+      else if Token.is_kind Token.Verbatim tok then
+        let
+          val ants = Antiquote.read (Token.input_of tok);
+          val out = implode (map output_syms_antiq ants);
+        in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
+      else if Token.is_kind Token.Cartouche tok then
+        enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
+      else output_syms s;
+  in output end
+  handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 
 (* tags *)
@@ -204,22 +258,21 @@ fun end_tag tg = enclose_name "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}
 
 (* theory presentation *)
 
-fun environment name =
-  enclose ("%\n\\begin{" ^ output_name name ^ "}%\n") ("%\n\\end{" ^ output_name name ^ "}");
+fun environment_delim name =
+ ("%\n\\begin{" ^ output_name name ^ "}%\n",
+  "%\n\\end{" ^ output_name name ^ "}");
 
-val tex_trailer =
-  "%%% Local Variables:\n\
-  \%%% mode: latex\n\
-  \%%% TeX-master: \"root\"\n\
-  \%%% End:\n";
+fun environment_block name = environment_delim name |-> enclose_body #> block;
+fun environment name = environment_delim name |-> enclose;
 
-fun isabelle_theory name txt =
-  "%\n\\begin{isabellebody}%\n\
-  \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
-  "%\n\\end{isabellebody}%\n" ^ tex_trailer;
+fun isabelle_body_delim name =
+ ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n",
+  "%\n\\end{isabellebody}%\n");
+
+fun isabelle_body name = isabelle_body_delim name |-> enclose_body;
 
 fun symbol_source known name syms =
-  isabelle_theory name
+  uncurry enclose (isabelle_body_delim name)
     ("\\isamarkupfile{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
       output_known_symbols known syms);
 

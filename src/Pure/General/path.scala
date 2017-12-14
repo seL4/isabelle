@@ -215,4 +215,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
 
   def absolute_file: JFile = File.absolute(file)
   def canonical_file: JFile = File.canonical(file)
+
+  def absolute: Path = File.path(absolute_file)
+  def canonical: Path = File.path(canonical_file)
 }

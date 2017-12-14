@@ -268,8 +268,8 @@ fun eval_thy document symbols last_timing update_time master_dir header text_pos
       in
         if exists (Toplevel.is_skipped_proof o #2) res then ()
         else
-          let val tex_source = Thy_Output.present_thy thy res toks |> Buffer.content;
-          in if document then Present.theory_output thy tex_source else () end
+          let val body = Thy_Output.present_thy thy res toks;
+          in if document then Present.theory_output text_pos thy body else () end
       end;
 
   in (thy, present, size text) end;

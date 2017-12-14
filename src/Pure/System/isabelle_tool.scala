@@ -114,6 +114,7 @@ object Isabelle_Tool
       ML_Process.isabelle_tool,
       NEWS.isabelle_tool,
       Options.isabelle_tool,
+      Present.isabelle_tool,
       Profiling_Report.isabelle_tool,
       Remote_DMG.isabelle_tool,
       Server.isabelle_tool,

@@ -110,7 +110,7 @@ class Scala_Console extends Shell("Scala")
 
   private def report_error(str: String)
   {
-    if (global_console == null || global_err == null) System.err.println(str)
+    if (global_console == null || global_err == null) isabelle.Output.writeln(str)
     else GUI_Thread.later { global_err.print(global_console.getErrorColor, str) }
   }
 

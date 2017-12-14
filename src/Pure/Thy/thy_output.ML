@@ -24,8 +24,9 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
-  val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> string
-  val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
+  val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> Latex.text list
+  val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
+    Token.T list -> Latex.text list
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -35,8 +36,8 @@ sig
   val string_of_margin: Proof.context -> Pretty.T -> string
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
-  val document_command: {markdown: bool} -> (xstring * Position.T) option * Input.source ->
-    Toplevel.transition -> Toplevel.transition
+  val document_command: {markdown: bool} ->
+    (xstring * Position.T) option * Input.source -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -208,18 +209,20 @@ fun output_text state {markdown} source =
         Position.report pos (Markup.language_document (Input.is_delimited source))
       else ();
 
-    val output_antiquotes = map (eval_antiquote state) #> implode;
+    val output_antiquotes =
+      map (fn ant => Latex.text (eval_antiquote state ant, #1 (Antiquote.range [ant])));
 
     fun output_line line =
-      (if Markdown.line_is_item line then "\\item " else "") ^
+      (if Markdown.line_is_item line then [Latex.string "\\item "] else []) @
         output_antiquotes (Markdown.line_content line);
 
-    fun output_blocks blocks = space_implode "\n\n" (map output_block blocks)
-    and output_block (Markdown.Par lines) = cat_lines (map output_line lines)
+    fun output_block (Markdown.Par lines) =
+          Latex.block (separate (Latex.string "\n") (map (Latex.block o output_line) lines))
       | output_block (Markdown.List {kind, body, ...}) =
-          Latex.environment (Markdown.print_kind kind) (output_blocks body);
+          Latex.environment_block (Markdown.print_kind kind) (output_blocks body)
+    and output_blocks blocks = separate (Latex.string "\n\n") (map output_block blocks);
   in
-    if Toplevel.is_skipped_proof state then ""
+    if Toplevel.is_skipped_proof state then []
     else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
     then
       let
@@ -259,19 +262,17 @@ val comment_token = basic_token Token.is_comment;
 val blank_token = basic_token Token.is_blank;
 val newline_token = basic_token Token.is_newline;
 
-
-(* output token *)
-
-fun output_token state tok =
+fun present_token state tok =
   (case tok of
-    No_Token => ""
-  | Basic_Token tok => Latex.output_token tok
+    No_Token => []
+  | Basic_Token tok => [Latex.text (Latex.output_token tok, Token.pos_of tok)]
   | Markup_Token (cmd, source) =>
-      "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text state {markdown = false} source ^ "%\n}\n"
+      Latex.string ("%\n\\isamarkup" ^ cmd ^ "{") ::
+        output_text state {markdown = false} source @ [Latex.string "%\n}\n"]
   | Markup_Env_Token (cmd, source) =>
-      Latex.environment ("isamarkup" ^ cmd) (output_text state {markdown = true} source)
+      [Latex.environment_block ("isamarkup" ^ cmd) (output_text state {markdown = true} source)]
   | Raw_Token source =>
-      "%\n" ^ output_text state {markdown = true} source ^ "\n");
+      Latex.string "%\n" :: output_text state {markdown = true} source @ [Latex.string "\n"]);
 
 
 (* command spans *)
@@ -305,7 +306,7 @@ fun err_bad_nesting pos =
 
 fun edge which f (x: string option, y) =
   if x = y then I
-  else (case which (x, y) of NONE => I | SOME txt => Buffer.add (f txt));
+  else (case which (x, y) of NONE => I | SOME txt => cons (Latex.string (f txt)));
 
 val begin_tag = edge #2 Latex.begin_tag;
 val end_tag = edge #1 Latex.end_tag;
@@ -315,11 +316,11 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 in
 
 fun present_span keywords document_tags span state state'
-    (tag_stack, active_tag, newline, buffer, present_cont) =
+    (tag_stack, active_tag, newline, latex, present_cont) =
   let
     val present = fold (fn (tok, (flag, 0)) =>
-        Buffer.add (output_token state' tok)
-        #> Buffer.add flag
+        fold cons (present_token state' tok)
+        #> cons (Latex.string flag)
       | _ => I);
 
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
@@ -353,8 +354,8 @@ fun present_span keywords document_tags span state state'
           tg :: tgs => (tg, tgs)
         | [] => err_bad_nesting (Position.here cmd_pos));
 
-    val buffer' =
-      buffer
+    val latex' =
+      latex
       |> end_tag edge
       |> close_delim (fst present_cont) edge
       |> snd present_cont
@@ -364,12 +365,12 @@ fun present_span keywords document_tags span state state'
     val present_cont' =
       if newline then (present (#3 srcs), present (#4 srcs))
       else (I, present (#3 srcs) #> present (#4 srcs));
-  in (tag_stack', active_tag', newline', buffer', present_cont') end;
+  in (tag_stack', active_tag', newline', latex', present_cont') end;
 
-fun present_trailer ((_, tags), active_tag, _, buffer, present_cont) =
+fun present_trailer ((_, tags), active_tag, _, latex, present_cont) =
   if not (null tags) then err_bad_nesting " at end of theory"
   else
-    buffer
+    latex
     |> end_tag (active_tag, NONE)
     |> close_delim (fst present_cont) (active_tag, NONE)
     |> snd present_cont;
@@ -490,15 +491,17 @@ fun present_thy thy command_results toks =
     val document_tags = space_explode "," (Options.default_string \<^system_option>\<open>document_tags\<close>);
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span keywords document_tags span st st');
+      Toplevel.setmp_thread_position tr
+        (present_span keywords document_tags span st st');
 
     fun present _ [] = I
       | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;
   in
     if length command_results = length spans then
-      ((NONE, []), NONE, true, Buffer.empty, (I, I))
+      ((NONE, []), NONE, true, [], (I, I))
       |> present Toplevel.toplevel (command_results ~~ spans)
       |> present_trailer
+      |> rev
     else error "Messed-up outer syntax for presentation"
   end;
 
@@ -668,12 +671,13 @@ end;
 
 (** document command **)
 
-fun document_command markdown (loc, txt) =
+fun document_command {markdown} (loc, txt) =
   Toplevel.keep (fn state =>
     (case loc of
-      NONE => ignore (output_text state markdown txt)
+      NONE => ignore (output_text state {markdown = markdown} txt)
     | SOME (_, pos) =>
         error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
-  Toplevel.present_local_theory loc (fn state => ignore (output_text state markdown txt));
+  Toplevel.present_local_theory loc (fn state =>
+    ignore (output_text state {markdown = markdown} txt));
 
 end;

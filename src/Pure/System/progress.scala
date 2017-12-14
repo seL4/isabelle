@@ -45,7 +45,7 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
 {
   override def echo(msg: String)
   {
-    if (stderr) Console.err.println(msg) else Console.println(msg)
+    Output.writeln(msg, stdout = !stderr)
   }
 
   override def theory(session: String, theory: String): Unit =

@@ -145,6 +145,7 @@ sig
   val unsuffix: string -> string -> string
   val trim_line: string -> string
   val trim_split_lines: string -> string list
+  val normalize_lines: string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
   val encode_lines: string -> string
@@ -722,6 +723,11 @@ fun trim_line s =
   else s;
 
 val trim_split_lines = trim_line #> split_lines #> map trim_line;
+
+fun normalize_lines str =
+  if exists_string (fn s => s = "\r") str then
+    split_lines str |> map trim_line |> cat_lines
+  else str;
 
 fun replicate_string (0: int) _ = ""
   | replicate_string 1 a = a
