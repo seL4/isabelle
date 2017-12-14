@@ -149,7 +149,7 @@ object Present
           case '/' :: cs => "\\isafoldtag{" + cs.mkString + "}"
           case '-' :: cs => "\\isadroptag{" + cs.mkString + "}"
           case '+' :: cs => "\\isakeeptag{" + cs.mkString + "}"
-          case cs => "\\isafoldtag{" + cs.mkString + "}"
+          case cs => "\\isakeeptag{" + cs.mkString + "}"
         })) + "\n"
   }
 
