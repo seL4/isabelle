@@ -189,6 +189,8 @@ object Present
 
     File.write(dir + Path.explode("isabelletags.sty"), document_tags(tags))
 
+    List("log", "blg").foreach(ext => (dir + Path.explode(root_name).ext(ext)).file.delete)
+
     val result =
       if ((dir + Path.explode("build")).is_file) {
         bash("./build " + Bash.string(document_format) + " " + Bash.string(document_name))
