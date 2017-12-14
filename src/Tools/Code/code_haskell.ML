@@ -494,11 +494,12 @@ fun add_monad target' raw_c_bind thy =
 
 val _ = Theory.setup
   (Code_Target.add_language
-    (target, { serializer = serializer, literals = literals,
+    (target, {serializer = serializer, literals = literals,
       check = { env_var = "ISABELLE_GHC", make_destination = I,
         make_command = fn module_name =>
           "\"$ISABELLE_GHC\" " ^ language_params  ^ " -odir build -hidir build -stubdir build -e \"\" " ^
-            module_name ^ ".hs" } })
+            module_name ^ ".hs"},
+      evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (

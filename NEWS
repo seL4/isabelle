@@ -127,6 +127,9 @@ pathologic instances. Minor INCOMPATIBILITY.
 * Predicate coprime is now a real definition, not a mere
 abbreviation. INCOMPATIBILITY.
 
+* Code generation: Code generation takes an explicit option
+"case_insensitive" to accomodate case-insensitive file systems.
+
 
 *** System ***
 

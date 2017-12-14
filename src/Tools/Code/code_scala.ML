@@ -7,7 +7,6 @@ Serializer for Scala.
 signature CODE_SCALA =
 sig
   val target: string
-  val case_insensitive: bool Config.T;
 end;
 
 structure Code_Scala : CODE_SCALA =
@@ -19,11 +18,6 @@ open Code_Printer;
 
 infixr 5 @@;
 infixr 5 @|;
-
-(** preliminary: option to circumvent clashes on case-insensitive file systems **)
-
-val case_insensitive = Attrib.setup_config_bool @{binding "scala_case_insensitive"} (K false);
-
 
 (** Scala serializer **)
 
@@ -339,9 +333,9 @@ fun pickup_instances_for_class program =
            | _ => I) program;
   in Symtab.lookup_list tab end;
 
-fun scala_program_of_program ctxt module_name reserved identifiers exports program =
+fun scala_program_of_program ctxt case_insensitive module_name reserved identifiers exports program =
   let
-    val variant = if Config.get ctxt case_insensitive
+    val variant = if case_insensitive
       then Code_Namespace.variant_case_insensitive
       else Name.variant;
     fun namify_module name_fragment ((nsp_class, nsp_object), nsp_common) =
@@ -389,13 +383,13 @@ fun scala_program_of_program ctxt module_name reserved identifiers exports progr
       exports program
   end;
 
-fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
+fun serialize_scala case_insensitive ctxt { module_name, reserved_syms, identifiers,
     includes, class_syntax, tyco_syntax, const_syntax } exports program =
   let
 
     (* build program *)
     val { deresolver, hierarchical_program = scala_program } =
-      scala_program_of_program ctxt module_name (Name.make_context reserved_syms)
+      scala_program_of_program ctxt case_insensitive module_name (Name.make_context reserved_syms)
         identifiers exports program;
 
     (* print statements *)
@@ -434,7 +428,8 @@ fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
   end;
 
 val serializer : Code_Target.serializer =
-  Code_Target.parse_args (Scan.succeed ()) #> K serialize_scala;
+  Code_Target.parse_args (Scan.optional (Args.$$$ "case_insensitive" >> K true) false
+    >> (fn case_insensitive => serialize_scala case_insensitive));
 
 val literals = let
   fun char_scala c = if c = "'" then "\\'"
@@ -464,7 +459,8 @@ val _ = Theory.setup
       check = { env_var = "SCALA_HOME",
         make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn _ =>
-          "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS ROOT.scala" } })
+          "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS ROOT.scala"},
+      evaluation_args = Token.explode Keyword.empty_keywords @{here} "case_insensitive"})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (

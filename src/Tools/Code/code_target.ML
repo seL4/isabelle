@@ -178,14 +178,15 @@ type serializer = Token.T list
   
 (** theory data **)
 
-type language = { serializer: serializer, literals: literals,
-  check: { env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string } }; 
+type language = {serializer: serializer, literals: literals,
+  check: {env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string},
+  evaluation_args: Token.T list}; 
 
 type ancestry = (string * (Code_Thingol.program -> Code_Thingol.program)) list;
 
 val merge_ancestry : ancestry * ancestry -> ancestry = AList.join (op =) (K snd);
 
-type target = { serial: serial, language: language, ancestry: ancestry };
+type target = {serial: serial, language: language, ancestry: ancestry};
 
 structure Targets = Theory_Data
 (
@@ -195,7 +196,7 @@ structure Targets = Theory_Data
   fun merge (targets1, targets2) : T =
     Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
       if #serial target1 = #serial target2 then
-      ({ serial = #serial target1, language = #language target1,
+      ({serial = #serial target1, language = #language target1,
         ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
         Code_Printer.merge_data (data1, data2))
       else error ("Incompatible targets: " ^ quote target_name) 
@@ -234,7 +235,8 @@ fun join_ancestry thy target_name =
   end;
 
 fun add_language (target_name, language) =
-  allocate_target target_name { serial = serial (), language = language, ancestry = [] };
+  allocate_target target_name {serial = serial (), language = language,
+    ancestry = []};
 
 fun add_derived_target (target_name, initial_ancestry) thy =
   let
@@ -251,8 +253,8 @@ fun add_derived_target (target_name, initial_ancestry) thy =
     val ancestry = fold1 (fn ancestry' => fn ancestry =>
       merge_ancestry (ancestry, ancestry')) ancestries;
   in
-    allocate_target target_name { serial = #serial supremum, language = #language supremum,
-      ancestry = ancestry } thy 
+    allocate_target target_name {serial = #serial supremum, language = #language supremum,
+      ancestry = ancestry} thy 
   end;
   
 fun map_data target_name f thy =
@@ -284,6 +286,8 @@ fun the_language ctxt =
   #language o fst o the o lookup_target_data (Proof_Context.theory_of ctxt);
 
 fun the_literals ctxt = #literals o the_language ctxt;
+
+fun the_evaluation_args ctxt = #evaluation_args o the_language ctxt;
 
 local
 
@@ -421,8 +425,9 @@ fun dynamic_compilation_text mounted_serializer prepared_program syms all_public
 
 fun compilation_text' ctxt target_name some_module_name program syms =
   let
+    val evaluation_args = the_evaluation_args ctxt target_name;
     val (mounted_serializer, (_, prepared_program)) =
-      mount_serializer ctxt target_name NONE (the_default generatedN some_module_name) [] program syms;
+      mount_serializer ctxt target_name NONE (the_default generatedN some_module_name) evaluation_args program syms;
   in
     Code_Preproc.timed_exec "serializing"
     (fn () => dynamic_compilation_text mounted_serializer prepared_program syms) ctxt

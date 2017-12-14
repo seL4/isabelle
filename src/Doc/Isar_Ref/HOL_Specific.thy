@@ -2405,10 +2405,14 @@ text \<open>
   generated in multiple files reflecting the module hierarchy. Omitting the
   file specification denotes standard output.
 
-  Serializers take an optional list of arguments in parentheses. For
-  \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>'' argument;
-  ``\<open>string_classes\<close>'' adds a ``\<^verbatim>\<open>deriving (Read, Show)\<close>'' clause to each
-  appropriate datatype declaration.
+  Serializers take an optional list of arguments in parentheses.
+
+  For \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>''
+  argument; ``\<open>string_classes\<close>'' adds a ``\<^verbatim>\<open>deriving (Read, Show)\<close>'' clause 
+  to each appropriate datatype declaration.
+
+  For \<^emph>\<open>Scala\<close>, ``\<open>case_insensitive\<close>'' avoids name clashes on
+  case-insensitive file systems.
 
   \<^descr> @{attribute (HOL) code} declare code equations for code generation.
   Variant \<open>code equation\<close> declares a conventional equation as code equation.

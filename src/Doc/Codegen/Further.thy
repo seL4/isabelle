@@ -90,6 +90,10 @@ text \<open>
   the type arguments are just appended.  Otherwise they are ignored;
   hence user-defined adaptations for polymorphic constants have to be
   designed very carefully to avoid ambiguity.
+
+  Note also that name clashes can occur when generating Scala code
+  to case-insensitive file systems; these can be avoid using the
+  ``\<open>(case_insensitive)\<close>'' option for @{command export_code}.
 \<close>
 
 
