@@ -24,7 +24,7 @@ object Bash
       case '\f' => "$'\\f'"
       case '\r' => "$'\\r'"
       case _ =>
-        if (Symbol.is_ascii_letter(ch) || Symbol.is_ascii_digit(ch) || "+-./:_".contains(ch))
+        if (Symbol.is_ascii_letter(ch) || Symbol.is_ascii_digit(ch) || "+,-./:_".contains(ch))
           Symbol.ascii(ch)
         else if (c < 0) "$'\\x" + Integer.toHexString(256 + c) + "'"
         else if (c < 16) "$'\\x0" + Integer.toHexString(c) + "'"

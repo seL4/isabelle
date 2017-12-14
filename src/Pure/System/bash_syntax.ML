@@ -24,7 +24,7 @@ fun string "" = "\"\""
           | "\r" => "$'\\r'"
           | _ =>
               if Symbol.is_ascii_letter ch orelse Symbol.is_ascii_digit ch orelse
-                exists_string (fn c => c = ch) "+-./:_" then ch
+                exists_string (fn c => c = ch) "+,-./:_" then ch
               else if c < 16 then "$'\\x0" ^ Int.fmt StringCvt.HEX c ^ "'"
               else if c < 32 orelse c >= 127 then "$'\\x" ^ Int.fmt StringCvt.HEX c ^ "'"
               else "\\" ^ ch)
