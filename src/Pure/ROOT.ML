@@ -5,7 +5,7 @@ ML_file "ML/ml_name_space.ML";
 
 section "Bootstrap phase 0: Poly/ML setup";
 
-ML_file "ML/ml_pervasive.ML";
+ML_file "ML/ml_init.ML";
 ML_file "ML/ml_system.ML";
 ML_file "System/distribution.ML";
 
