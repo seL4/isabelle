@@ -190,7 +190,7 @@ val fake = Digest;
 val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.str o quote o rep);
 
 fun digest_string str = digest_string_external str
-  handle CInterface.Foreign msg =>
+  handle Foreign.Foreign msg =>
     (warning (msg ^ "\nUsing slow ML implementation of SHA1.digest"); digest_string_internal str);
 
 val digest = Digest o digest_string;
