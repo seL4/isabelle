@@ -696,8 +696,8 @@ object Sessions
     private val session_entry: Parser[Session_Entry] =
     {
       val option =
-        option_name ~ opt($$$("=") ~! option_value ^^
-          { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
+        option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
+          { case x ~ y => (x, y) }
       val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
 
       val global =
@@ -713,8 +713,8 @@ object Sessions
 
       val document_files =
         $$$(DOCUMENT_FILES) ~!
-          (($$$("(") ~! ($$$(IN) ~! (path ~ $$$(")"))) ^^
-              { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
+          (($$$("(") ~! ($$$(IN) ~ path ~ $$$(")")) ^^
+              { case _ ~ (_ ~ x ~ _) => x } | success("document")) ~
             rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
 
       command(SESSION) ~!
