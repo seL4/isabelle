@@ -199,19 +199,15 @@ fun loaded_files_current thy =
 
 local
 
-fun err msg pos = error (msg ^ Position.here pos);
-
-fun gen_check_path check_file ctxt dir (name, pos) =
+fun gen_check check_file ctxt dir (name, pos) =
   let
-    val _ = Context_Position.report ctxt pos Markup.language_path;
+    fun err msg = error (msg ^ Position.here pos);
 
-    val path = Path.append dir (Path.explode name) handle ERROR msg => err msg pos;
-    val _ = Path.expand path handle ERROR msg => err msg pos;
+    val _ = Context_Position.report ctxt pos Markup.language_path;
+    val path = Path.append dir (Path.explode name) handle ERROR msg => err msg;
+    val _ = Path.expand path handle ERROR msg => err msg;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
-    val _ =
-      (case check_file of
-        NONE => path
-      | SOME check => (check path handle ERROR msg => err msg pos));
+    val _ = check_file path handle ERROR msg => err msg;
   in path end;
 
 fun document_antiq check ctxt (name, pos) =
@@ -231,9 +227,9 @@ fun ML_antiq check ctxt (name, pos) =
 
 in
 
-val check_path = gen_check_path NONE;
-val check_file = gen_check_path (SOME File.check_file);
-val check_dir = gen_check_path (SOME File.check_dir);
+val check_path = gen_check I;
+val check_file = gen_check File.check_file;
+val check_dir = gen_check File.check_dir;
 
 val _ = Theory.setup
  (Thy_Output.antiquotation \<^binding>\<open>path\<close> (Scan.lift (Parse.position Parse.path))
