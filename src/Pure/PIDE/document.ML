@@ -578,14 +578,18 @@ fun init_theory deps node span =
     val _ = Position.reports (map #2 parents_reports);
   in Resources.begin_theory master_dir header parents end;
 
-fun check_ml_root node =
-  if member (op =) Thy_Header.ml_roots (#1 (#name (#header (get_header node)))) then
-    let
-      val master_dir = master_directory node;
-      val header = #header (get_header node);
-      val parent = Thy_Info.get_theory Thy_Header.ml_bootstrapN;
-    in SOME (Resources.begin_theory master_dir header [parent]) end
-  else NONE;
+fun check_root_theory node =
+  let
+    val master_dir = master_directory node;
+    val header = #header (get_header node);
+    val header_name = #1 (#name header);
+    val parent =
+      if header_name = Sessions.root_name then
+        SOME (Thy_Info.get_theory Sessions.theory_name)
+      else if member (op =) Thy_Header.ml_roots header_name then
+        SOME (Thy_Info.get_theory Thy_Header.ml_bootstrapN)
+      else NONE;
+  in parent |> Option.map (fn thy => Resources.begin_theory master_dir header [thy]) end;
 
 fun check_theory full name node =
   is_some (Thy_Info.lookup_theory name) orelse
@@ -688,7 +692,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
               timeit ("Document.update " ^ name) (fn () =>
                 Runtime.exn_trace_system (fn () =>
                   let
-                    val ml_root = check_ml_root node;
+                    val root_theory = check_root_theory node;
                     val keywords = the_default (Session.get_keywords ()) (get_keywords node);
                     val imports = map (apsnd Future.join) deps;
                     val imports_result_changed = exists (#4 o #1 o #2) imports;
@@ -701,7 +705,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                         val node0 = node_of old_version name;
                         val init = init_theory imports node;
                         val proper_init =
-                          is_some ml_root orelse
+                          is_some root_theory orelse
                             check_theory false name node andalso
                             forall (fn (name, (_, node)) => check_theory true name node) imports;
 
@@ -712,7 +716,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                         val common_command_exec =
                           (case common of
                             SOME id => (id, the_default Command.no_exec (the_entry node id))
-                          | NONE => (Document_ID.none, Command.init_exec ml_root));
+                          | NONE => (Document_ID.none, Command.init_exec root_theory));
 
                         val (updated_execs, (command_id', exec'), _) =
                           (print_execs, common_command_exec, if initial then SOME init else NONE)

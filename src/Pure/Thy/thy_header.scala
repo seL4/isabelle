@@ -76,7 +76,8 @@ object Thy_Header extends Parse.Parser
   val ml_roots = List("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> "ML_Root")
   val bootstrap_thys = List(PURE, ML_BOOTSTRAP).map(a => a -> ("Bootstrap_" + a))
 
-  val bootstrap_global_theories = (ml_roots ::: bootstrap_thys).map(p => (p._2 -> PURE))
+  val bootstrap_global_theories =
+    (Sessions.root_name :: (ml_roots ::: bootstrap_thys).map(_._2)).map(_ -> PURE)
 
   private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
   private val File_Name = new Regex(""".*?([^/\\:]+)""")
@@ -94,7 +95,8 @@ object Thy_Header extends Parse.Parser
     s match {
       case Thy_File_Name(name) => bootstrap_name(name)
       case File_Name(name) =>
-        ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
+        if (name == Sessions.root_name) name
+        else ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
       case _ => ""
     }
 

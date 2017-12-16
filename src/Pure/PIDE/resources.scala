@@ -180,7 +180,8 @@ class Resources(
   def special_header(name: Document.Node.Name): Option[Document.Node.Header] =
   {
     val imports =
-      if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
+      if (name.theory == Sessions.root_name) List(import_name(name, Sessions.theory_name))
+      else if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
       else if (Thy_Header.is_bootstrap(name.theory)) List(import_name(name, Thy_Header.PURE))
       else Nil
     if (imports.isEmpty) None

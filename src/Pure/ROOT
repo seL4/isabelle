@@ -8,3 +8,4 @@ session Pure =
   theories
     Pure (global)
     ML_Bootstrap (global)
+    Sessions

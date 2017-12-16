@@ -20,7 +20,8 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val thy_path: Path.T -> Path.T
   val theory_qualifier: string -> string
-  val import_name: string -> Path.T -> string -> {master_dir: Path.T, theory_name: string}
+  val import_name: string -> Path.T -> string ->
+    {node_name: Path.T, master_dir: Path.T, theory_name: string}
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
@@ -117,7 +118,8 @@ fun theory_name qualifier theory =
 
 fun import_name qualifier dir s =
   let val theory = theory_name qualifier (Thy_Header.import_name s) in
-    if loaded_theory theory then {master_dir = Path.current, theory_name = theory}
+    if loaded_theory theory
+    then {node_name = Path.basic theory, master_dir = Path.current, theory_name = theory}
     else
       let
         val node_name =
@@ -127,7 +129,7 @@ fun import_name qualifier dir s =
               if Thy_Header.is_base_name s andalso Long_Name.is_qualified s
               then Path.explode s
               else File.full_path dir (thy_path (Path.expand (Path.explode s))));
-      in {master_dir = Path.dir node_name, theory_name = theory} end
+      in {node_name = node_name, master_dir = Path.dir node_name, theory_name = theory} end
   end;
 
 fun check_file dir file = File.check_file (File.full_path dir file);

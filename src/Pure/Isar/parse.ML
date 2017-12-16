@@ -67,6 +67,7 @@ sig
   val embedded: string parser
   val text: string parser
   val path: string parser
+  val session_name: string parser
   val theory_name: string parser
   val liberal_name: string parser
   val parname: string parser
@@ -109,6 +110,9 @@ sig
   val thm_sel: Facts.interval list parser
   val thm: (Facts.ref * Token.src list) parser
   val thms1: (Facts.ref * Token.src list) list parser
+  val option_name: string parser
+  val option_value: string parser
+  val options: ((string * Position.T) * (string * Position.T)) list parser
 end;
 
 structure Parse: PARSE =
@@ -272,6 +276,7 @@ val text = group (fn () => "text") (embedded || verbatim);
 
 val path = group (fn () => "file name/path specification") embedded;
 
+val session_name = group (fn () => "session name") name;
 val theory_name = group (fn () => "theory name") name;
 
 val liberal_name = keyword_with Token.ident_or_symbolic || name;
@@ -465,5 +470,17 @@ val thm =
     position name -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
 
 val thms1 = Scan.repeat1 thm;
+
+
+(* options *)
+
+val option_name = group (fn () => "option name") name;
+val option_value = group (fn () => "option value") ((token real || token name) >> Token.content_of);
+
+val option =
+  position option_name :-- (fn (_, pos) =>
+    Scan.optional ($$$ "=" |-- !!! (position option_value)) ("true", pos));
+
+val options = $$$ "[" |-- list1 option --| $$$ "]";
 
 end;

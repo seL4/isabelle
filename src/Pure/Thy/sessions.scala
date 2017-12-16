@@ -19,6 +19,9 @@ object Sessions
 {
   /* base info and source dependencies */
 
+  val root_name: String = "ROOT"
+  val theory_name: String = "Pure.Sessions"
+
   val DRAFT = "Draft"
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE

@@ -290,6 +290,7 @@ ML_file "PIDE/query_operation.ML";
 ML_file "PIDE/resources.ML";
 ML_file "Thy/present.ML";
 ML_file "Thy/thy_info.ML";
+ML_file "Thy/sessions.ML";
 ML_file "PIDE/session.ML";
 ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document.ML";

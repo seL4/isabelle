@@ -148,7 +148,7 @@ session Implementation (doc) in "Implementation" = "HOL" +
     Integration
     Isar
     Local_Theory
-    ML
+    "ML"
     Prelim
     Proof
     Syntax

@@ -44,6 +44,8 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* PIDE markup for session ROOT files.
+
 * Completion supports theory header imports, using theory base name.
 E.g. "Prob" may be completed to "HOL-Probability.Probability".
 

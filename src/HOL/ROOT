@@ -558,7 +558,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Lagrange
     List_to_Set_Comprehension_Examples
     LocaleTest2
-    ML
+    "ML"
     MergeSort
     MonoidGroup
     Multiquote
