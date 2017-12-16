@@ -456,7 +456,12 @@ object Sessions
       val session_options = options ++ entry.options
 
       val theories =
-        entry.theories.map({ case (opts, thys) => (session_options ++ opts, thys.map(_._1)) })
+        entry.theories.map({ case (opts, thys) =>
+          (session_options ++ opts,
+            thys.map({ case ((thy, pos), _) =>
+              if (thy == Sessions.root_name)
+                error("Bad theory name " + quote(thy) + Position.here(pos))
+              else (thy, pos) })) })
 
       val global_theories =
         for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
