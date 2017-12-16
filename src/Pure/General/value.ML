@@ -31,19 +31,21 @@ val print_bool = Bool.toString;
 
 (* nat and int *)
 
+val zero = ord "0";
+val nine = ord "9";
+
 fun parse_nat s =
-  let val i = Int.fromString s in
-    if is_none i orelse the i < 0
-    then raise Fail ("Bad natural number " ^ quote s)
-    else the i
-  end;
+  fold_string (fn c => fn n =>
+    let val i = ord c in
+      if zero <= i andalso i <= nine then 10 * n + (i - zero)
+      else raise Fail ("Bad natural number " ^ quote s)
+    end) s 0;
 
 fun parse_int s =
-  let val i = Int.fromString s in
-    if is_none i orelse String.isPrefix "~" s
-    then raise Fail ("Bad integer " ^ quote s)
-    else the i
-  end;
+  (case try (unprefix "-") s of
+    NONE => parse_nat s
+  | SOME s' => ~ (parse_nat s'))
+  handle Fail _ => raise Fail ("Bad integer " ^ quote s);
 
 val print_int = signed_string_of_int;
 
