@@ -372,6 +372,8 @@ session Sledgehammer (doc) in "Sledgehammer" = Pure +
 
 session System (doc) in "System" = Pure +
   options [document_variants = "system", thy_output_source]
+  sessions
+    "HOL-Library"
   theories
     Environment
     Sessions

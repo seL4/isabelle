@@ -102,7 +102,8 @@ object ML_Process
           def print_list(list: List[String]): String =
             ML_Syntax.print_list(ML_Syntax.print_string_bytes)(list)
           List("Resources.init_session_base" +
-            " {global_theories = " + print_table(base.global_theories.toList) +
+            " {sessions = " + print_list(base.known.sessions.toList) +
+            ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) +
             ", known_theories = " + print_table(base.dest_known_theories) + "}")
       }

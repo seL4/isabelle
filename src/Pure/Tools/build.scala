@@ -212,14 +212,14 @@ object Build
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
-                pair(list(pair(string, string)), pair(list(string),
-                list(pair(string, string))))))))))))))))(
+                pair(list(string), pair(list(pair(string, string)), pair(list(string),
+                list(pair(string, string)))))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
-                (info.theories,
+                (info.theories, (base.known.sessions.toList,
                 (base.global_theories.toList, (base.loaded_theories.keys,
-                base.dest_known_theories)))))))))))))))
+                base.dest_known_theories))))))))))))))))
             })
 
         val env =

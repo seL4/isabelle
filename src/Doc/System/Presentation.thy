@@ -69,9 +69,9 @@ text \<open>
   The presentation output will appear in \<^verbatim>\<open>$ISABELLE_BROWSER_INFO/FOL/FOL\<close> as
   reported by the above verbose invocation of the build process.
 
-  Many Isabelle sessions (such as \<^verbatim>\<open>HOL-Library\<close> in \<^dir>\<open>~~/src/HOL/Library\<close>)
-  also provide printable documents in PDF. These are prepared automatically as
-  well if enabled like this:
+  Many Isabelle sessions (such as \<^session>\<open>HOL-Library\<close> in
+  \<^dir>\<open>~~/src/HOL/Library\<close>) also provide printable documents in PDF. These are
+  prepared automatically as well if enabled like this:
   @{verbatim [display] \<open>isabelle build -o browser_info -o document=pdf -v -c HOL-Library\<close>}
 
   Enabling both browser info and document preparation simultaneously causes an

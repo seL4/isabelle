@@ -72,6 +72,7 @@ sig
   val wordsN: string val words: T
   val hiddenN: string val hidden: T
   val system_optionN: string
+  val sessionN: string
   val theoryN: string
   val classN: string
   val type_nameN: string
@@ -393,6 +394,8 @@ val (hiddenN, hidden) = markup_elem "hidden";
 (* misc entities *)
 
 val system_optionN = "system_option";
+
+val sessionN = "session";
 
 val theoryN = "theory";
 val classN = "class";
