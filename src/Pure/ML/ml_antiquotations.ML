@@ -42,19 +42,7 @@ val _ = Theory.setup
 val _ = Theory.setup
  (ML_Antiquotation.value \<^binding>\<open>system_option\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
-      let
-        val markup =
-          Options.default_markup (name, pos) handle ERROR msg =>
-            let
-              val completion =
-                Completion.make (name, pos) (fn completed =>
-                    Options.names (Options.default ())
-                    |> filter completed
-                    |> map (fn a => (a, ("system_option", a))));
-              val report = Markup.markup_report (Completion.reported_text completion);
-            in error (msg ^ report) end;
-        val _ = Context_Position.report ctxt pos markup;
-      in ML_Syntax.print_string name end)) #>
+      (Completion.check_option (Options.default ()) ctxt (name, pos) |> ML_Syntax.print_string))) #>
 
   ML_Antiquotation.value \<^binding>\<open>theory\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
