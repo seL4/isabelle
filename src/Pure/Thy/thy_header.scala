@@ -79,21 +79,21 @@ object Thy_Header extends Parse.Parser
   val bootstrap_global_theories = (ml_roots ::: bootstrap_thys).map(p => (p._2 -> PURE))
 
   private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
-  private val Import_Name = new Regex(""".*?([^/\\:]+)""")
+  private val File_Name = new Regex(""".*?([^/\\:]+)""")
 
   def is_base_name(s: String): Boolean =
     s != "" && !s.exists("/\\:".contains(_))
 
   def import_name(s: String): String =
     s match {
-      case Import_Name(name) if !name.endsWith(".thy") => name
+      case File_Name(name) if !name.endsWith(".thy") => name
       case _ => error("Malformed theory import: " + quote(s))
     }
 
   def theory_name(s: String): String =
     s match {
       case Thy_File_Name(name) => bootstrap_name(name)
-      case Import_Name(name) =>
+      case File_Name(name) =>
         ml_roots.collectFirst({ case (a, b) if a == name => b }).getOrElse("")
       case _ => ""
     }
