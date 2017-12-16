@@ -197,11 +197,9 @@ fun loaded_files_current thy =
       | SOME ((_, id'), _) => id = id'));
 
 
-(* antiquotations *)
+(* formal check *)
 
-local
-
-fun gen_check check_file ctxt dir (name, pos) =
+fun formal_check check_file ctxt dir (name, pos) =
   let
     fun err msg = error (msg ^ Position.here pos);
 
@@ -211,6 +209,15 @@ fun gen_check check_file ctxt dir (name, pos) =
     val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
     val _ = check_file path handle ERROR msg => err msg;
   in path end;
+
+val check_path = formal_check I;
+val check_file = formal_check File.check_file;
+val check_dir = formal_check File.check_dir;
+
+
+(* antiquotations *)
+
+local
 
 fun document_antiq check ctxt (name, pos) =
   let
@@ -228,10 +235,6 @@ fun ML_antiq check ctxt (name, pos) =
   in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end;
 
 in
-
-val check_path = gen_check I;
-val check_file = gen_check File.check_file;
-val check_dir = gen_check File.check_dir;
 
 val _ = Theory.setup
  (Thy_Output.antiquotation \<^binding>\<open>path\<close> (Scan.lift (Parse.position Parse.path))
