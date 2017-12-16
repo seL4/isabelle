@@ -12,6 +12,7 @@ sig
   val pos_of: source -> Position.T
   val range_of: source -> Position.range
   val source: bool -> Symbol_Pos.text -> Position.range -> source
+  val empty: source
   val string: string -> source
   val reset_pos: source -> source
   val source_explode: source -> Symbol_Pos.T list
@@ -35,6 +36,8 @@ fun range_of (Source {range, ...}) = range;
 
 fun source delimited text range =
   Source {delimited = delimited, text = text, range = range};
+
+val empty = source false "" Position.no_range;
 
 fun string text = source true text Position.no_range;
 
