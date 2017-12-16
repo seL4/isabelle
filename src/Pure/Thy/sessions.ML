@@ -42,18 +42,26 @@ val command_parser =
   Parse.session_name --
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! (Parse.position Parse.path)) (".", Position.none) --
-  (Parse.$$$ "=" |-- Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
-    Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
-    Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
-    Scan.optional (Parse.$$$ "sessions" |-- Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
-    Scan.repeat theories --
-    Scan.repeat document_files))
-  >> (fn (((session, _), dir), ((((((_, descr), options), _), theories), document_files))) =>
+  (Parse.$$$ "=" |--
+    Parse.!!! (Scan.option (Parse.position Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
+      Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
+      Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
+      Scan.optional (Parse.$$$ "sessions" |--
+        Parse.!!! (Scan.repeat1 (Parse.position Parse.session_name))) [] --
+      Scan.repeat theories --
+      Scan.repeat document_files))
+  >> (fn (((session, _), dir),
+          ((((((parent, descr), options), sessions), theories), document_files))) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;
         val thy = Toplevel.theory_of state;
         val session_dir = Resources.check_dir ctxt (Resources.master_directory thy) dir;
+
+        val _ =
+          (the_list parent @ sessions) |> List.app (fn arg =>
+            ignore (Resources.check_session ctxt arg)
+              handle ERROR msg => Output.error_message msg);
 
         val _ =
           Context_Position.report ctxt
@@ -62,7 +70,8 @@ val command_parser =
 
         val _ =
           (options @ maps #1 theories) |> List.app (fn (x, y) =>
-            ignore (Completion.check_option_value ctxt x y (Options.default ())));
+            ignore (Completion.check_option_value ctxt x y (Options.default ()))
+              handle ERROR msg => Output.error_message msg);
 
         val _ =
           maps #2 theories |> List.app (fn (s, pos) =>
