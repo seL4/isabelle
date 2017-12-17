@@ -259,8 +259,11 @@ fun mk_rel_transfer_tac ctxt in_rel rel_map rel_mono_strong =
     (HEADGOAL (hyp_subst_tac ctxt THEN' rtac ctxt refl) ORELSE
      REPEAT_DETERM (HEADGOAL (eresolve_tac ctxt (Tactic.make_elim (in_rel RS iffD1) ::
        @{thms exE conjE CollectE}))) THEN
-     HEADGOAL (hyp_subst_tac ctxt) THEN unfold_thms_tac ctxt rel_map THEN HEADGOAL (rtac ctxt iffI) THEN
-     last_tac iffD1 THEN last_tac iffD2)
+     HEADGOAL (hyp_subst_tac ctxt) THEN
+     REPEAT_DETERM (HEADGOAL (resolve_tac ctxt (maps (fn thm =>
+       [thm RS trans, thm RS @{thm trans[rotated, OF sym]}]) rel_map))) THEN
+     HEADGOAL (rtac ctxt iffI) THEN
+     last_tac iffD1 THEN  print_tac ctxt "baz" THEN last_tac iffD2)
   end;
 
 fun mk_map_transfer_tac ctxt rel_mono in_rel set_maps map_cong0 map_comp =

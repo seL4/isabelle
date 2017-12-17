@@ -1904,7 +1904,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} =>
                 HEADGOAL (rtac ctxt (pred_set RSN (2, pred_set RSN (2, box_equals)))) THEN
-                unfold_thms_tac ctxt (@{thm Ball_image_comp} :: map Lazy.force set_map) THEN
+                unfold_thms_tac ctxt
+                  (@{thms Ball_image_comp ball_empty} @ map Lazy.force set_map) THEN
                 HEADGOAL (rtac ctxt refl))
             |> Thm.close_derivation
           end;
