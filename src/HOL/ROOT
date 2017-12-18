@@ -537,6 +537,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Coherent
     Commands
     Computations
+    Conditional_Parametricity_Examples
     Cubic_Quartic
     Dedekind_Real
     Erdoes_Szekeres

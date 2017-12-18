@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* December 2017: Jan Gilcher, Andreas Lochbihler, Dmitriy Traytel
+  A new conditional paramertricity prover.
+
 * October 2017: Alexander Maletzky
   Derivation of axiom "iff" in HOL.thy from the other axioms.
 

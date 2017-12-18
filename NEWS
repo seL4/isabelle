@@ -99,6 +99,12 @@ latex and bibtex process. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* A new command parametric_constant for proving parametricity of
+  non-recursive definitions. For constants that are not fully parametric the
+  command will infer conditions on relations (e.g., bi_unique, bi_total, or
+  type class conditions such as "respects 0") sufficient for parametricity.
+  See ~~/src/HOL/ex/Conditional_Parametricity_Examples for some examples.
+
 * SMT module:
   - The 'smt_oracle' option is now necessary when using the 'smt' method
     with a solver other than Z3. INCOMPATIBILITY.
