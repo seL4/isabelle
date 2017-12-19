@@ -1486,10 +1486,10 @@ proof -
     by (metis first_countable_topology_class.countable_basis)
   define u where "u = (\<lambda>n. SOME z. z \<in> A n \<and> z > x)"
   have "\<exists>z. z \<in> U \<and> x < z" if "x \<in> U" "open U" for U
-    using open_right[OF `open U` `x \<in> U` `x < y`]
+    using open_right[OF \<open>open U\<close> \<open>x \<in> U\<close> \<open>x < y\<close>]
     by (meson atLeastLessThan_iff dense less_imp_le subset_eq)
   then have *: "u n \<in> A n \<and> x < u n" for n
-    using `x \<in> A n` `open (A n)` unfolding u_def by (metis (no_types, lifting) someI_ex)
+    using \<open>x \<in> A n\<close> \<open>open (A n)\<close> unfolding u_def by (metis (no_types, lifting) someI_ex)
   then have "u \<longlonglongrightarrow> x" using A(3) by simp
   then show ?thesis using * by auto
 qed
@@ -1504,10 +1504,10 @@ proof -
     by (metis first_countable_topology_class.countable_basis)
   define u where "u = (\<lambda>n. SOME z. z \<in> A n \<and> z < x)"
   have "\<exists>z. z \<in> U \<and> z < x" if "x \<in> U" "open U" for U
-    using open_left[OF `open U` `x \<in> U` `x > y`]
+    using open_left[OF \<open>open U\<close> \<open>x \<in> U\<close> \<open>x > y\<close>]
     by (meson dense greaterThanAtMost_iff less_imp_le subset_eq)
   then have *: "u n \<in> A n \<and> u n < x" for n
-    using `x \<in> A n` `open (A n)` unfolding u_def by (metis (no_types, lifting) someI_ex)
+    using \<open>x \<in> A n\<close> \<open>open (A n)\<close> unfolding u_def by (metis (no_types, lifting) someI_ex)
   then have "u \<longlonglongrightarrow> x" using A(3) by simp
   then show ?thesis using * by auto
 qed
@@ -3478,7 +3478,7 @@ proof (rule topological_space_class.openI)
     by (auto simp add: separation_t2)
   define T where "T = U \<times> V"
   have "open T" using * open_Times T_def by auto
-  moreover have "t \<in> T" unfolding T_def using `t = (x,y)` * by auto
+  moreover have "t \<in> T" unfolding T_def using \<open>t = (x,y)\<close> * by auto
   moreover have "T \<subseteq> {(x, y) | x y. x \<noteq> y}" unfolding T_def using * by auto
   ultimately show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. x \<noteq> y}" by auto
 qed
@@ -3501,18 +3501,18 @@ proof (rule topological_space_class.openI)
     then obtain z where z: "y < z \<and> z < x" by blast
     define T where "T = {z<..} \<times> {..<z}"
     have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def z `t = (x,y)` by auto
+    moreover have "t \<in> T" using T_def z \<open>t = (x,y)\<close> by auto
     moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def by auto
     ultimately show ?thesis by auto
   next
     assume "\<not>(\<exists>z. y < z \<and> z < x)"
     then have *: "{x ..} = {y<..}" "{..< x} = {..y}"
-      using `x > y` apply auto using leI by blast
+      using \<open>x > y\<close> apply auto using leI by blast
     define T where "T = {x ..} \<times> {.. y}"
     then have "T = {y<..} \<times> {..< x}" using * by simp
     then have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def `t = (x,y)` by auto
-    moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def using `x > y` by auto
+    moreover have "t \<in> T" using T_def \<open>t = (x,y)\<close> by auto
+    moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def using \<open>x > y\<close> by auto
     ultimately show ?thesis by auto
   qed
 qed
@@ -3535,18 +3535,18 @@ proof (rule topological_space_class.openI)
     then obtain z where z: "y > z \<and> z > x" by blast
     define T where "T = {..<z} \<times> {z<..}"
     have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def z `t = (x,y)` by auto
+    moreover have "t \<in> T" using T_def z \<open>t = (x,y)\<close> by auto
     moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def by auto
     ultimately show ?thesis by auto
   next
     assume "\<not>(\<exists>z. y > z \<and> z > x)"
     then have *: "{..x} = {..<y}" "{x<..} = {y..}"
-      using `x < y` apply auto using leI by blast
+      using \<open>x < y\<close> apply auto using leI by blast
     define T where "T = {..x} \<times> {y..}"
     then have "T = {..<y} \<times> {x<..}" using * by simp
     then have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def `t = (x,y)` by auto
-    moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def using `x < y` by auto
+    moreover have "t \<in> T" using T_def \<open>t = (x,y)\<close> by auto
+    moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def using \<open>x < y\<close> by auto
     ultimately show ?thesis by auto
   qed
 qed

@@ -97,7 +97,7 @@ qed
 lemma orbit_cycle_elem:
   assumes "distinct as" and "a \<in> set as"
   shows "orbit \<langle>as\<rangle> a = set as"
-  oops -- \<open>(we need rotation here\<close>
+  oops \<comment> \<open>(we need rotation here\<close>
 
 lemma order_cycle_elem:
   assumes "distinct as" and "a \<in> set as"

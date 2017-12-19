@@ -222,7 +222,7 @@ lemma
   by smt+
 
 
-section {* Natural numbers *}
+section \<open>Natural numbers\<close>
 
 declare [[smt_nat_as_int]]
 

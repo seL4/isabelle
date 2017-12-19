@@ -1273,7 +1273,7 @@ class semidom_divide_unit_factor = semidom_divide + unit_factor +
     and is_unit_unit_factor: "a dvd 1 \<Longrightarrow> unit_factor a = a"
     and unit_factor_is_unit: "a \<noteq> 0 \<Longrightarrow> unit_factor a dvd 1"
     and unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
-  -- \<open>This fine-grained hierarchy will later on allow lean normalization of polynomials\<close>
+  \<comment> \<open>This fine-grained hierarchy will later on allow lean normalization of polynomials\<close>
   
 class normalization_semidom = algebraic_semidom + semidom_divide_unit_factor +
   fixes normalize :: "'a \<Rightarrow> 'a"

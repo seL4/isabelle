@@ -1327,7 +1327,7 @@ proof -
   then show ?thesis ..
 qed
 
-lemmas even_times_iff = even_mult_iff -- \<open>FIXME duplicate\<close>
+lemmas even_times_iff = even_mult_iff \<comment> \<open>FIXME duplicate\<close>
 
 lemma mod_2_not_eq_zero_eq_one_nat:
   fixes n :: nat

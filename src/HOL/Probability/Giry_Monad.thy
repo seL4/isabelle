@@ -1746,19 +1746,19 @@ lemma bind_cong_AE:
   shows "bind M f = bind N g"
 proof cases
   assume "space N = {}" then show ?thesis
-    using `M = N` by (simp add: bind_empty)
+    using \<open>M = N\<close> by (simp add: bind_empty)
 next
   assume "space N \<noteq> {}"
-  show ?thesis unfolding `M = N`
+  show ?thesis unfolding \<open>M = N\<close>
   proof (rule measure_eqI)
     have *: "sets (N \<bind> f) = sets B"
-      using sets_bind[OF sets_kernel[OF f] `space N \<noteq> {}`] by simp
+      using sets_bind[OF sets_kernel[OF f] \<open>space N \<noteq> {}\<close>] by simp
     then show "sets (N \<bind> f) = sets (N \<bind> g)"
-      using sets_bind[OF sets_kernel[OF g] `space N \<noteq> {}`] by auto
+      using sets_bind[OF sets_kernel[OF g] \<open>space N \<noteq> {}\<close>] by auto
     fix A assume "A \<in> sets (N \<bind> f)"
     then have "A \<in> sets B"
       unfolding * .
-    with ae f g `space N \<noteq> {}` show "emeasure (N \<bind> f) A = emeasure (N \<bind> g) A"
+    with ae f g \<open>space N \<noteq> {}\<close> show "emeasure (N \<bind> f) A = emeasure (N \<bind> g) A"
       by (subst (1 2) emeasure_bind[where N=B]) (auto intro!: nn_integral_cong_AE)
   qed
 qed

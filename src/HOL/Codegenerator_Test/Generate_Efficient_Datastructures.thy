@@ -35,7 +35,7 @@ declare [[code drop:
 
 text \<open>
   If code generation fails with a message like
-  @{text \<open>"List.set" is not a constructor, on left hand side of equation: ...\<close>},
+  \<open>"List.set" is not a constructor, on left hand side of equation: ...\<close>,
   feel free to add an RBT implementation for the corrsponding operation
   of delete that code equation (see above).
 \<close>

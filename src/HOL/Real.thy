@@ -23,7 +23,7 @@ text \<open>
 
 subsection \<open>Preliminary lemmas\<close>
 
-text{*Useful in convergence arguments*}
+text\<open>Useful in convergence arguments\<close>
 lemma inverse_of_nat_le:
   fixes n::nat shows "\<lbrakk>n \<le> m; n\<noteq>0\<rbrakk> \<Longrightarrow> 1 / of_nat m \<le> (1::'a::linordered_field) / of_nat n"
   by (simp add: frac_le)

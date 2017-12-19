@@ -496,7 +496,7 @@ lemma Blinfun_eq_matrix: "bounded_linear f \<Longrightarrow> Blinfun f = blinfun
       cond_application_beta sum.delta' euclidean_representation
       cong: if_cong)
 
-text \<open>TODO: generalize (via @{text compact_cball})?\<close>
+text \<open>TODO: generalize (via \<open>compact_cball\<close>)?\<close>
 instance blinfun :: (euclidean_space, euclidean_space) heine_borel
 proof
   fix f :: "nat \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"

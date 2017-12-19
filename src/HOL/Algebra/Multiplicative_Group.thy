@@ -13,8 +13,8 @@ imports
   UnivPoly
 begin
 
-section {* Simplification Rules for Polynomials *}
-text_raw {* \label{sec:simp-rules} *}
+section \<open>Simplification Rules for Polynomials\<close>
+text_raw \<open>\label{sec:simp-rules}\<close>
 
 lemma (in ring_hom_cring) hom_sub[simp]:
   assumes "x \<in> carrier R" "y \<in> carrier R"
@@ -114,13 +114,13 @@ end
 
 
 
-section {* Properties of the Euler @{text \<phi>}-function *}
-text_raw {* \label{sec:euler-phi} *}
+section \<open>Properties of the Euler \<open>\<phi>\<close>-function\<close>
+text_raw \<open>\label{sec:euler-phi}\<close>
 
-text{*
+text\<open>
   In this section we prove that for every positive natural number the equation
   $\sum_{d | n}^n \varphi(d) = n$ holds.
-*}
+\<close>
 
 lemma dvd_div_ge_1 :
   fixes a b :: nat
@@ -156,7 +156,7 @@ qed
 lemma dvd_div_eq_1:
   fixes a b c :: nat
   assumes "c dvd a" "c dvd b" "a div c = b div c"
-  shows "a = b" using assms dvd_mult_div_cancel[OF `c dvd a`] dvd_mult_div_cancel[OF `c dvd b`]
+  shows "a = b" using assms dvd_mult_div_cancel[OF \<open>c dvd a\<close>] dvd_mult_div_cancel[OF \<open>c dvd b\<close>]
                 by presburger
 
 lemma dvd_div_eq_2:
@@ -167,7 +167,7 @@ lemma dvd_div_eq_2:
   have "a > 0" "a \<le> c" using dvd_nat_bounds[OF assms(1-2)] by auto
   have "a*(c div a) = c" using assms dvd_mult_div_cancel by fastforce
   also have "\<dots> = b*(c div a)" using assms dvd_mult_div_cancel by fastforce
-  finally show "a = b" using `c>0` dvd_div_ge_1[OF _ `a dvd c`] by fastforce
+  finally show "a = b" using \<open>c>0\<close> dvd_div_ge_1[OF _ \<open>a dvd c\<close>] by fastforce
 qed
 
 lemma div_mult_mono:
@@ -179,7 +179,7 @@ proof -
   thus ?thesis using assms by force
 qed
 
-text{*
+text\<open>
   We arrive at the main result of this section:
   For every positive natural number the equation $\sum_{d | n}^n \varphi(d) = n$ holds.
 
@@ -208,7 +208,7 @@ text{*
   and by showing
   @{term "(\<Union>d \<in> {d. d dvd n}. {m \<in> {1::nat .. n}. n div gcd m n = d}) \<supseteq> {1 .. n}"}
   (this is our counting argument) the thesis follows.
-*}
+\<close>
 lemma sum_phi'_factors :
  fixes n :: nat
  assumes "n > 0"
@@ -220,19 +220,19 @@ proof -
     proof (rule card_bij_eq)
       { fix a b assume "a * n div d = b * n div d"
         hence "a * (n div d) = b * (n div d)"
-          using dvd_div_mult[OF `d dvd n`] by (fastforce simp add: mult.commute)
-        hence "a = b" using dvd_div_ge_1[OF _ `d dvd n`] `n>0`
+          using dvd_div_mult[OF \<open>d dvd n\<close>] by (fastforce simp add: mult.commute)
+        hence "a = b" using dvd_div_ge_1[OF _ \<open>d dvd n\<close>] \<open>n>0\<close>
           by (simp add: mult.commute nat_mult_eq_cancel1)
       } thus "inj_on (\<lambda>a. a*n div d) ?RF" unfolding inj_on_def by blast
       { fix a assume a:"a\<in>?RF"
-        hence "a * (n div d) \<ge> 1" using `n>0` dvd_div_ge_1[OF _ `d dvd n`] by simp
-        hence ge_1:"a * n div d \<ge> 1" by (simp add: `d dvd n` div_mult_swap)
+        hence "a * (n div d) \<ge> 1" using \<open>n>0\<close> dvd_div_ge_1[OF _ \<open>d dvd n\<close>] by simp
+        hence ge_1:"a * n div d \<ge> 1" by (simp add: \<open>d dvd n\<close> div_mult_swap)
         have le_n:"a * n div d \<le> n" using div_mult_mono a by simp
         have "gcd (a * n div d) n = n div d * gcd a d"
           by (simp add: gcd_mult_distrib_nat q ac_simps)
         hence "n div gcd (a * n div d) n = d*n div (d*(n div d))" using a by simp
         hence "a * n div d \<in> ?F"
-          using ge_1 le_n by (fastforce simp add: `d dvd n`)
+          using ge_1 le_n by (fastforce simp add: \<open>d dvd n\<close>)
       } thus "(\<lambda>a. a*n div d) ` ?RF \<subseteq> ?F" by blast
       { fix m l assume A: "m \<in> ?F" "l \<in> ?F" "m div gcd m n = l div gcd l n"
         hence "gcd m n = gcd l n" using dvd_div_eq_2[OF assms] by fastforce
@@ -245,7 +245,7 @@ proof -
     qed force+
   } hence phi'_eq:"\<And>d. d dvd n \<Longrightarrow> phi' d = card {m \<in> {1 .. n}. n div gcd m n = d}"
       unfolding phi'_def by presburger
-  have fin:"finite {d. d dvd n}" using dvd_nat_bounds[OF `n>0`] by force
+  have fin:"finite {d. d dvd n}" using dvd_nat_bounds[OF \<open>n>0\<close>] by force
   have "(\<Sum>d | d dvd n. phi' d)
                  = card (\<Union>d \<in> {d. d dvd n}. {m \<in> {1 .. n}. n div gcd m n = d})"
     using card_UN_disjoint[OF fin, of "(\<lambda>d. {m \<in> {1 .. n}. n div gcd m n = d})"] phi'_eq
@@ -262,8 +262,8 @@ proof -
   finally show ?thesis by force
 qed
 
-section {* Order of an Element of a Group *}
-text_raw {* \label{sec:order-elem} *}
+section \<open>Order of an Element of a Group\<close>
+text_raw \<open>\label{sec:order-elem}\<close>
 
 
 context group begin
@@ -365,8 +365,8 @@ proof (rule inj_onI, rule ccontr)
 
     hence y_x:"y - x \<in> {d \<in> {1.. order G}. a (^) d = \<one>}" using y_x_range by blast
     have "min (y - x) (ord a) = ord a"
-      using Min.in_idem[OF `finite {d \<in> {1 .. order G} . a (^) d = \<one>}` y_x] ord_def by auto
-    with `y - x < ord a` have False by linarith
+      using Min.in_idem[OF \<open>finite {d \<in> {1 .. order G} . a (^) d = \<one>}\<close> y_x] ord_def by auto
+    with \<open>y - x < ord a\<close> have False by linarith
   }
   note X = this
 
@@ -392,13 +392,13 @@ proof (rule inj_onI, rule ccontr)
   moreover
   { assume "x = ord a" "y < ord a"
     hence "a (^) y = a (^) (0::nat)" using pow_ord_eq_1[OF assms] A by auto
-    hence "y=0" using ord_inj[OF assms] `y < ord a` unfolding inj_on_def by force
+    hence "y=0" using ord_inj[OF assms] \<open>y < ord a\<close> unfolding inj_on_def by force
     hence False using A by fastforce
   }
   moreover
   { assume "y = ord a" "x < ord a"
     hence "a (^) x = a (^) (0::nat)" using pow_ord_eq_1[OF assms] A by auto
-    hence "x=0" using ord_inj[OF assms] `x < ord a` unfolding inj_on_def by force
+    hence "x=0" using ord_inj[OF assms] \<open>x < ord a\<close> unfolding inj_on_def by force
     hence False using A by fastforce
   }
   ultimately show False using A  by force
@@ -418,7 +418,7 @@ proof
     hence "y = a(^)r" using assms by (simp add: pow_ord_eq_1)
     have "r < ord a" using ord_ge_1[OF assms] by (simp add: r_def)
     hence "r \<in> {0 .. ord a - 1}" by (force simp: r_def)
-    hence "y \<in> {a(^)x | x. x \<in> {0 .. ord a - 1}}" using `y=a(^)r` by blast
+    hence "y \<in> {a(^)x | x. x \<in> {0 .. ord a - 1}}" using \<open>y=a(^)r\<close> by blast
   }
   thus "?L \<subseteq> ?R" by auto
 qed
@@ -434,7 +434,7 @@ proof -
   hence "a(^)k = a(^)r" using assms by (simp add: pow_ord_eq_1)
   hence "a(^)r = \<one>" using assms(3) by simp
   have "r < ord a" using ord_ge_1[OF assms(1-2)] by (simp add: r_def)
-  hence "r = 0" using `a(^)r = \<one>` ord_def[of a] ord_min[of r a] assms(1-2) by linarith
+  hence "r = 0" using \<open>a(^)r = \<one>\<close> ord_def[of a] ord_min[of r a] assms(1-2) by linarith
   thus ?thesis using q by simp
 qed
 
@@ -463,13 +463,13 @@ proof -
   have ge_1:"ord a div gcd n (ord a) \<ge> 1"
   proof -
     have "gcd n (ord a) dvd ord a" by blast
-    thus ?thesis by (rule dvd_div_ge_1[OF `ord a \<ge> 1`])
+    thus ?thesis by (rule dvd_div_ge_1[OF \<open>ord a \<ge> 1\<close>])
   qed
   have "ord a \<le> order G" by (simp add: ord_le_group_order)
   have "ord a div gcd n (ord a) \<le> order G"
   proof -
     have "ord a div gcd n (ord a) \<le> ord a" by simp
-    thus ?thesis using `ord a \<le> order G` by linarith
+    thus ?thesis using \<open>ord a \<le> order G\<close> by linarith
   qed
   hence ord_gcd_elem:"ord a div gcd n (ord a) \<in> {d \<in> {1..order G}. (a(^)n) (^) d = \<one>}"
     using ge_1 pow_eq_1 by force
@@ -537,7 +537,7 @@ next
   hence x_in_carrier: "x \<in> carrier G" by auto
   then obtain d::nat where d:"x (^) d = \<one>" and "d\<ge>1"
     using finite_group_elem_finite_ord by auto
-  have inv_1:"x(^)(d - 1) \<otimes> x = \<one>" using `d\<ge>1` d nat_pow_Suc[of x "d - 1"] by simp
+  have inv_1:"x(^)(d - 1) \<otimes> x = \<one>" using \<open>d\<ge>1\<close> d nat_pow_Suc[of x "d - 1"] by simp
   have elem:"x (^) (d - 1) \<in> {a(^)i | i. i \<in> {0 .. ord a - 1}}"
   proof -
     obtain i::nat where i:"x = a(^)i" using x by auto
@@ -567,8 +567,8 @@ qed
 end
 
 
-section {* Number of Roots of a Polynomial *}
-text_raw {* \label{sec:number-roots} *}
+section \<open>Number of Roots of a Polynomial\<close>
+text_raw \<open>\label{sec:number-roots}\<close>
 
 
 definition mult_of :: "('a, 'b) ring_scheme \<Rightarrow> 'a monoid" where
@@ -674,15 +674,15 @@ next
                 \<and> card {a \<in> carrier R . eval R R id a q = \<zero>} \<le> x" using Suc q q_not_zero by blast
     have subs:"{a \<in> carrier R . eval R R id a f = \<zero>}
                 \<subseteq> {a \<in> carrier R . eval R R id a q = \<zero>} \<union> {a}" (is "?L \<subseteq> ?R \<union> {a}")
-      using a_carrier `q \<in> _`
+      using a_carrier \<open>q \<in> _\<close>
       by (auto simp: evalRR_simps lin_fac R.integral_iff)
     have "{a \<in> carrier R . eval R R id a f = \<zero>} \<subseteq> insert a {a \<in> carrier R . eval R R id a q = \<zero>}"
      using subs by auto
     hence "card {a \<in> carrier R . eval R R id a f = \<zero>} \<le>
            card (insert a {a \<in> carrier R . eval R R id a q = \<zero>})" using q_IH by (blast intro: card_mono)
-    also have "\<dots> \<le> deg R f" using q_IH `Suc x = _`
+    also have "\<dots> \<le> deg R f" using q_IH \<open>Suc x = _\<close>
       by (simp add: card_insert_if)
-    finally show ?thesis using q_IH `Suc x = _` using finite by force
+    finally show ?thesis using q_IH \<open>Suc x = _\<close> using finite by force
   next
     case False
     hence "card {a \<in> carrier R. eval R R id a f = \<zero>} = 0" using finite by auto
@@ -712,20 +712,20 @@ proof -
     by (auto simp: R.evalRR_simps)
   then have "card {x \<in> carrier R. x (^) d = \<one>} \<le>
         card {a \<in> carrier R. eval R R id a ?f = \<zero>}" using finite by (simp add : card_mono)
-  thus ?thesis using `deg R ?f = d` roots_bound by linarith
+  thus ?thesis using \<open>deg R ?f = d\<close> roots_bound by linarith
 qed
 
 
 
-section {* The Multiplicative Group of a Field *}
-text_raw {* \label{sec:mult-group} *}
+section \<open>The Multiplicative Group of a Field\<close>
+text_raw \<open>\label{sec:mult-group}\<close>
 
 
-text {*
+text \<open>
   In this section we show that the multiplicative group of a finite field
   is generated by a single element, i.e. it is cyclic. The proof is inspired
   by the first proof given in the survey~\cite{conrad-cyclicity}.
-*}
+\<close>
 
 lemma (in group) pow_order_eq_1:
   assumes "finite (carrier G)" "x \<in> carrier G" shows "x (^) order G = \<one>"
@@ -789,8 +789,8 @@ proof -
         using card_mono[OF finite, of "{\<zero>, \<one>}"] by (simp add: order_def)
       have "card {x \<in> carrier (mult_of R). x (^) d = \<one>} \<le> card {x \<in> carrier R. x (^) d = \<one>}"
         using finite by (auto intro: card_mono)
-      also have "\<dots> \<le> d" using `0 < order (mult_of R)` num_roots_le_deg[OF finite, of d]
-        by (simp add : dvd_pos_nat[OF _ `d dvd order (mult_of R)`])
+      also have "\<dots> \<le> d" using \<open>0 < order (mult_of R)\<close> num_roots_le_deg[OF finite, of d]
+        by (simp add : dvd_pos_nat[OF _ \<open>d dvd order (mult_of R)\<close>])
       finally show ?thesis using G.ord_inj'[OF finite' a] ord_a * by (simp add: card_image)
     qed
   qed
@@ -811,7 +811,7 @@ proof -
   hence "card ((\<lambda>n. a(^)n) ` {n \<in> {1 .. d}. group.ord (mult_of R) (a(^)n) = d})
          = card {k \<in> {1 .. d}. group.ord (mult_of R) (a(^)k) = d}"
          using card_image by blast
-  thus ?thesis using set_eq2 G.pow_ord_eq_ord_iff[OF finite' `a \<in> _`, unfolded ord_a]
+  thus ?thesis using set_eq2 G.pow_ord_eq_ord_iff[OF finite' \<open>a \<in> _\<close>, unfolded ord_a]
     by (simp add: phi'_def)
 qed
 

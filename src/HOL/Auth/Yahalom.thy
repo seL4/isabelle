@@ -234,9 +234,9 @@ lemma secrecy_lemma:
 apply (erule yahalom.induct, force,
        drule_tac [6] YM4_analz_knows_Spy)
 apply (simp_all add: pushes analz_insert_eq analz_insert_freshK) 
-  subgoal --\<open>Fake\<close> by spy_analz
-  subgoal --\<open>YM3\<close> by blast   
-  subgoal --\<open>Oops\<close> by  (blast dest: unique_session_keys)   
+  subgoal \<comment>\<open>Fake\<close> by spy_analz
+  subgoal \<comment>\<open>YM3\<close> by blast   
+  subgoal \<comment>\<open>Oops\<close> by  (blast dest: unique_session_keys)   
 done
 
 text\<open>Final version\<close>
@@ -314,8 +314,8 @@ apply (erule rev_mp, erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
          apply (analz_mono_contra, simp_all)
-  subgoal --\<open>Fake\<close> by blast
-  subgoal --\<open>YM3\<close> by blast   
+  subgoal \<comment>\<open>Fake\<close> by blast
+  subgoal \<comment>\<open>YM3\<close> by blast   
 txt\<open>YM4.  A is uncompromised because NB is secure
   A's certificate guarantees the existence of the Server message\<close>
 apply (blast dest!: Gets_imp_Says Crypt_Spy_analz_bad
@@ -397,10 +397,10 @@ txt\<open>For Oops, simplification proves @{prop "NBa\<noteq>NB"}.  By
   @{term Says_Server_KeyWithNonce}, we get @{prop "~ KeyWithNonce K NB
   evs"}; then simplification can apply the induction hypothesis with
   @{term "KK = {K}"}.\<close>
-  subgoal --\<open>Fake\<close> by spy_analz
-  subgoal --\<open>YM2\<close> by blast
-  subgoal --\<open>YM3\<close> by blast
-  subgoal --\<open>YM4: If @{prop "A \<in> bad"} then @{term NBa} is known, therefore @{prop "NBa \<noteq> NB"}.\<close>
+  subgoal \<comment>\<open>Fake\<close> by spy_analz
+  subgoal \<comment>\<open>YM2\<close> by blast
+  subgoal \<comment>\<open>YM3\<close> by blast
+  subgoal \<comment>\<open>YM4: If @{prop "A \<in> bad"} then @{term NBa} is known, therefore @{prop "NBa \<noteq> NB"}.\<close>
     by (metis A_trusts_YM3 Gets_imp_analz_Spy Gets_imp_knows_Spy KeyWithNonce_def
         Spy_analz_shrK analz.Fst analz.Snd analz_shrK_Decrypt parts.Fst parts.Inj)
 done
@@ -484,13 +484,13 @@ apply (erule yahalom.induct, force,
        frule_tac [6] YM4_analz_knows_Spy)
 apply (simp_all add: split_ifs pushes new_keys_not_analzd analz_insert_eq
                      analz_insert_freshK)
-  subgoal --\<open>Fake\<close> by spy_analz
-  subgoal --\<open>YM1: NB=NA is impossible anyway, but NA is secret because it is fresh!\<close> by blast
-  subgoal --\<open>YM2\<close> by blast
-  subgoal --\<open>YM3: because no NB can also be an NA\<close> 
+  subgoal \<comment>\<open>Fake\<close> by spy_analz
+  subgoal \<comment>\<open>YM1: NB=NA is impossible anyway, but NA is secret because it is fresh!\<close> by blast
+  subgoal \<comment>\<open>YM2\<close> by blast
+  subgoal \<comment>\<open>YM3: because no NB can also be an NA\<close> 
     by (blast dest!: no_nonce_YM1_YM2 dest: Gets_imp_Says Says_unique_NB)
-  subgoal --\<open>YM4: key K is visible to Spy, contradicting session key secrecy theorem\<close>
-    --\<open>Case analysis on whether Aa is bad;
+  subgoal \<comment>\<open>YM4: key K is visible to Spy, contradicting session key secrecy theorem\<close>
+    \<comment>\<open>Case analysis on whether Aa is bad;
             use \<open>Says_unique_NB\<close> to identify message components: @{term "Aa=A"}, @{term "Ba=B"}\<close>
     apply clarify
     apply (blast dest!: Says_unique_NB analz_shrK_Decrypt
@@ -498,7 +498,7 @@ apply (simp_all add: split_ifs pushes new_keys_not_analzd analz_insert_eq
                  dest: Gets_imp_Says Says_imp_spies Says_Server_imp_YM2
                        Spy_not_see_encrypted_key)
     done
-  subgoal --\<open>Oops case: if the nonce is betrayed now, show that the Oops event is
+  subgoal \<comment>\<open>Oops case: if the nonce is betrayed now, show that the Oops event is
     covered by the quantified Oops assumption.\<close>
     apply clarsimp
     apply (metis Says_Server_imp_YM2 Gets_imp_Says Says_Server_not_range Says_unique_NB no_nonce_YM1_YM2 parts.Snd single_Nonce_secrecy spies_partsEs(1))
@@ -596,10 +596,10 @@ theorem A_Said_YM3_lemma [rule_format]:
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
 apply (analz_mono_contra, simp_all)
-  subgoal --\<open>Fake\<close> by blast
-  subgoal --\<open>YM3 because the message @{term "Crypt K (Nonce NB)"} could not exist\<close>
+  subgoal \<comment>\<open>Fake\<close> by blast
+  subgoal \<comment>\<open>YM3 because the message @{term "Crypt K (Nonce NB)"} could not exist\<close>
      by (force dest!: Crypt_imp_keysFor)
-   subgoal --\<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message? If not, use the induction hypothesis,
+   subgoal \<comment>\<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message? If not, use the induction hypothesis,
                otherwise by unicity of session keys\<close>
      by (blast dest!: Gets_imp_Says A_trusts_YM3 B_trusts_YM4_shrK Crypt_Spy_analz_bad
              dest: Says_imp_knows_Spy [THEN parts.Inj] unique_session_keys)

@@ -1,6 +1,6 @@
 (* Author: Johannes Hölzl <hoelzl@in.tum.de> *)
 
-section {* Stopping times *}
+section \<open>Stopping times\<close>
 
 theory Stopping_Time
   imports "HOL-Analysis.Analysis"

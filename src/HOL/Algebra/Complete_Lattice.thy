@@ -543,7 +543,7 @@ qed
 end
 
 
-subsection \<open>Complete lattices where @{text eq} is the Equality\<close>
+subsection \<open>Complete lattices where \<open>eq\<close> is the Equality\<close>
 
 locale complete_lattice = partial_order +
   assumes sup_exists:

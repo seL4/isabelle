@@ -808,7 +808,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma continuous_on_LINT_pmf: -- \<open>This is dominated convergence!?\<close>
+lemma continuous_on_LINT_pmf: \<comment> \<open>This is dominated convergence!?\<close>
   fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes f: "\<And>i. i \<in> set_pmf M \<Longrightarrow> continuous_on A (f i)"
     and bnd: "\<And>a i. a \<in> A \<Longrightarrow> i \<in> set_pmf M \<Longrightarrow> norm (f i a) \<le> B"

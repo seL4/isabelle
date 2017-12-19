@@ -125,7 +125,7 @@ where
 
 code_pred predicate_where_argument_is_neg_condition_and_in_equation .
 
-text {* Another related example that required slight adjustment of the proof procedure *}
+text \<open>Another related example that required slight adjustment of the proof procedure\<close>
 
 inductive if_as_predicate :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
 where

@@ -380,7 +380,7 @@ lemma [z3_rule]:
   using assms by (metis mult_le_0_iff)
 
 
-subsection {* Linear arithmetic for natural numbers *}
+subsection \<open>Linear arithmetic for natural numbers\<close>
 
 declare [[smt_nat_as_int]]
 

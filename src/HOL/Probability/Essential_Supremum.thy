@@ -10,12 +10,12 @@ begin
 lemma ae_filter_eq_bot_iff: "ae_filter M = bot \<longleftrightarrow> emeasure M (space M) = 0"
   by (simp add: AE_iff_measurable trivial_limit_def)
 
-section {*The essential supremum*}
+section \<open>The essential supremum\<close>
 
-text {*In this paragraph, we define the essential supremum and give its basic properties. The
+text \<open>In this paragraph, we define the essential supremum and give its basic properties. The
 essential supremum of a function is its maximum value if one is allowed to throw away a set
 of measure $0$. It is convenient to define it to be infinity for non-measurable functions, as
-it allows for neater statements in general. This is a prerequisiste to define the space $L^\infty$.*}
+it allows for neater statements in general. This is a prerequisiste to define the space $L^\infty$.\<close>
 
 definition esssup::"'a measure \<Rightarrow> ('a \<Rightarrow> 'b::{second_countable_topology, dense_linorder, linorder_topology, complete_linorder}) \<Rightarrow> 'b"
   where "esssup M f = (if f \<in> borel_measurable M then Limsup (ae_filter M) f else top)"
@@ -56,14 +56,14 @@ next
   have *: "{x \<in> space M. f x > z} \<in> null_sets M" if "z > esssup M f" for z
   proof -
     have "\<exists>w. w < z \<and> emeasure M {x \<in> space M. f x > w} = 0"
-      using `z > esssup M f` f by (auto simp: esssup_eq Inf_less_iff)
+      using \<open>z > esssup M f\<close> f by (auto simp: esssup_eq Inf_less_iff)
     then obtain w where "w < z" "emeasure M {x \<in> space M. f x > w} = 0" by auto
     then have a: "{x \<in> space M. f x > w} \<in> null_sets M" by auto
-    have b: "{x \<in> space M. f x > z} \<subseteq> {x \<in> space M. f x > w}" using `w < z` by auto
+    have b: "{x \<in> space M. f x > z} \<subseteq> {x \<in> space M. f x > w}" using \<open>w < z\<close> by auto
     show ?thesis using null_sets_subset[OF a _ b] by simp
   qed
   obtain u::"nat \<Rightarrow> 'b" where u: "\<And>n. u n > esssup M f" "u \<longlonglongrightarrow> esssup M f"
-    using approx_from_above_dense_linorder[OF `esssup M f < top`] by auto
+    using approx_from_above_dense_linorder[OF \<open>esssup M f < top\<close>] by auto
   have "{x \<in> space M. f x > esssup M f} = (\<Union>n. {x \<in> space M. f x > u n})"
     using u apply auto
     apply (metis (mono_tags, lifting) order_tendsto_iff eventually_mono LIMSEQ_unique)

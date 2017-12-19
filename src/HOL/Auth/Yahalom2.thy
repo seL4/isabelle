@@ -144,9 +144,9 @@ lemma new_keys_not_used [simp]:
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
-subgoal --\<open>Fake\<close> by (force dest!: keysFor_parts_insert)
-subgoal --\<open>YM3 \<close>by blast
-subgoal --\<open>YM4\<close> by (fastforce dest!: Gets_imp_knows_Spy [THEN parts.Inj])
+subgoal \<comment>\<open>Fake\<close> by (force dest!: keysFor_parts_insert)
+subgoal \<comment>\<open>YM3 \<close>by blast
+subgoal \<comment>\<open>YM4\<close> by (fastforce dest!: Gets_imp_knows_Spy [THEN parts.Inj])
 done
 
 
@@ -400,10 +400,10 @@ lemma Auth_A_to_B_lemma [rule_format]:
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
 apply (analz_mono_contra, simp_all)
-  subgoal --\<open>Fake\<close> by blast
-  subgoal --\<open>YM3 because the message @{term "Crypt K (Nonce NB)"} could not exist\<close>
+  subgoal \<comment>\<open>Fake\<close> by blast
+  subgoal \<comment>\<open>YM3 because the message @{term "Crypt K (Nonce NB)"} could not exist\<close>
     by (force dest!: Crypt_imp_keysFor)
-  subgoal --\<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message? If not, use the induction hypothesis,
+  subgoal \<comment>\<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message? If not, use the induction hypothesis,
              otherwise by unicity of session keys\<close>
     by (blast dest!: B_trusts_YM4_shrK dest: secure_unique_session_keys)
 done

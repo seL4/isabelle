@@ -651,7 +651,7 @@ lemma zero_less_power2 [simp]: "0 < a\<^sup>2 \<longleftrightarrow> a \<noteq> 0
 lemma power2_less_0 [simp]: "\<not> a\<^sup>2 < 0"
   by (force simp add: power2_eq_square mult_less_0_iff)
 
-lemma power_abs: "\<bar>a ^ n\<bar> = \<bar>a\<bar> ^ n" -- \<open>FIXME simp?\<close>
+lemma power_abs: "\<bar>a ^ n\<bar> = \<bar>a\<bar> ^ n" \<comment> \<open>FIXME simp?\<close>
   by (induct n) (simp_all add: abs_mult)
 
 lemma power_sgn [simp]: "sgn (a ^ n) = sgn a ^ n"

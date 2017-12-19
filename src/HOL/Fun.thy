@@ -154,7 +154,7 @@ abbreviation inj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
 abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
   where "surj f \<equiv> range f = UNIV"
 
-translations -- \<open>The negated case:\<close>
+translations \<comment> \<open>The negated case:\<close>
   "\<not> CONST surj f" \<leftharpoondown> "CONST range f \<noteq> CONST UNIV"
 
 abbreviation bij :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
