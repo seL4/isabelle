@@ -122,9 +122,15 @@ fun generic_try0 mode timeout_opt quad st =
   let
     val st = Proof.map_contexts (silence_methods false) st;
     fun trd (_, _, t) = t;
-    fun par_map f =
-      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o apply2 trd)
-      else Par_List.get_some f #> the_list;
+    fun try_method method = method mode timeout_opt quad st;
+    fun get_message (_, command, ms) = "Found proof: " ^ Active.sendback_markup_command
+      ((if Thm.nprems_of (#goal (Proof.goal st)) = 1 then "by" else "apply") ^ " " ^ command) ^
+      " (" ^ time_string ms ^ ")";
+    val print_step = Option.map (tap (writeln o get_message));
+    val get_results =
+      if mode = Normal
+      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 trd)
+      else Par_List.get_some try_method #> the_list;
   in
     if mode = Normal then
       "Trying " ^ space_implode " " (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
@@ -132,7 +138,7 @@ fun generic_try0 mode timeout_opt quad st =
       |> writeln
     else
       ();
-    (case par_map (fn f => f mode timeout_opt quad st) apply_methods of
+    (case get_results apply_methods of
       [] =>
       (if mode = Normal then writeln "No proof found" else (); (false, (noneN, [])))
     | xs as (name, command, _) :: _ =>
