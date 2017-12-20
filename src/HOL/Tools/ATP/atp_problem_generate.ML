@@ -1796,7 +1796,7 @@ fun trans_lams_of_string ctxt type_enc lam_trans =
   else if lam_trans = combs_or_liftingN then
     lift_lams_part_1 ctxt type_enc
     ##> map (fn t => (case head_of (strip_qnt_body @{const_name All} t) of
-                       @{term "op =::bool => bool => bool"} => t
+                       @{term "op = ::bool => bool => bool"} => t
                      | _ => introduce_combinators ctxt (intentionalize_def t)))
     #> lift_lams_part_2 ctxt
   else if lam_trans = keep_lamsN then
