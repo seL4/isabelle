@@ -370,8 +370,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun eqT_elim th = Thm.equal_elim (Thm.symmetric th) @{thm TrueI}
     fun oprconv cv ct =
       let val g = Thm.dest_fun2 ct
-      in if g aconvc @{cterm "op <= :: real => _"}
-            orelse g aconvc @{cterm "op < :: real => _"}
+      in if g aconvc @{cterm "(op <=) :: real => _"}
+            orelse g aconvc @{cterm "(op <) :: real => _"}
          then arg_conv cv ct else arg1_conv cv ct
       end
 
@@ -406,13 +406,13 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           | Axiom_le n => nth les n
           | Axiom_lt n => nth lts n
           | Rational_eq x => eqT_elim(numeric_eq_conv(Thm.apply @{cterm Trueprop}
-                          (Thm.apply (Thm.apply @{cterm "op =::real => _"} (mk_numeric x))
+                          (Thm.apply (Thm.apply @{cterm "(op =)::real => _"} (mk_numeric x))
                                @{cterm "0::real"})))
           | Rational_le x => eqT_elim(numeric_ge_conv(Thm.apply @{cterm Trueprop}
-                          (Thm.apply (Thm.apply @{cterm "op <=::real => _"}
+                          (Thm.apply (Thm.apply @{cterm "(op <=)::real => _"}
                                      @{cterm "0::real"}) (mk_numeric x))))
           | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.apply @{cterm Trueprop}
-                      (Thm.apply (Thm.apply @{cterm "op <::real => _"} @{cterm "0::real"})
+                      (Thm.apply (Thm.apply @{cterm "(op <)::real => _"} @{cterm "0::real"})
                         (mk_numeric x))))
           | Square pt => square_rule (cterm_of_poly pt)
           | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
@@ -428,9 +428,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
     val concl = Thm.dest_arg o Thm.cprop_of
     fun is_binop opr ct = (Thm.dest_fun2 ct aconvc opr handle CTERM _ => false)
-    val is_req = is_binop @{cterm "op =:: real => _"}
-    val is_ge = is_binop @{cterm "op <=:: real => _"}
-    val is_gt = is_binop @{cterm "op <:: real => _"}
+    val is_req = is_binop @{cterm "(op =):: real => _"}
+    val is_ge = is_binop @{cterm "(op <=):: real => _"}
+    val is_gt = is_binop @{cterm "(op <):: real => _"}
     val is_conj = is_binop @{cterm HOL.conj}
     val is_disj = is_binop @{cterm HOL.disj}
     fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
@@ -476,7 +476,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun dest_binary b ct =
         if is_binop b ct then Thm.dest_binop ct
         else raise CTERM ("dest_binary",[b,ct])
-    val dest_eq = dest_binary @{cterm "op = :: real => _"}
+    val dest_eq = dest_binary @{cterm "(op =) :: real => _"}
     val neq_th = nth pth 5
     fun real_not_eq_conv ct =
       let
@@ -486,8 +486,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         val th_x = Drule.arg_cong_rule @{cterm "uminus :: real => _"} th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
         val th' = Drule.binop_cong_rule @{cterm HOL.disj}
-          (Drule.arg_cong_rule (Thm.apply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
-          (Drule.arg_cong_rule (Thm.apply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
+          (Drule.arg_cong_rule (Thm.apply @{cterm "(op <)::real=>_"} @{cterm "0::real"}) th_p)
+          (Drule.arg_cong_rule (Thm.apply @{cterm "(op <)::real=>_"} @{cterm "0::real"}) th_n)
       in Thm.transitive th th'
       end
     fun equal_implies_1_rule PQ =
