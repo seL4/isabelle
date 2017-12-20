@@ -2158,11 +2158,11 @@ lemma compactE: (*related to COMPACT_IMP_HEINE_BOREL in HOL Light*)
 
 lemma compactE_image:
   assumes "compact S"
-    and op: "\<And>T. T \<in> C \<Longrightarrow> open (f T)"
+    and opn: "\<And>T. T \<in> C \<Longrightarrow> open (f T)"
     and S: "S \<subseteq> (\<Union>c\<in>C. f c)"
   obtains C' where "C' \<subseteq> C" and "finite C'" and "S \<subseteq> (\<Union>c\<in>C'. f c)"
     apply (rule compactE[OF \<open>compact S\<close> S])
-    using op apply force
+    using opn apply force
     by (metis finite_subset_image)
 
 lemma compact_Int_closed [intro]:
