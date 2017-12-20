@@ -899,7 +899,7 @@ fun find_term bounds tm =
   | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ => find_args bounds tm
   | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _ => find_args bounds tm
   | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ => find_args bounds tm
-  | \<^term>\<open>op \<Longrightarrow>\<close> $_$_ => find_args bounds tm
+  | \<^term>\<open>Pure.imp\<close> $_$_ => find_args bounds tm
   | Const("op ==",_)$_$_ => find_args bounds tm  (* FIXME proper const name *)
   | \<^term>\<open>Trueprop\<close>$_ => find_term bounds (Thm.dest_arg tm)
   | _ => raise TERM ("find_term", []))
