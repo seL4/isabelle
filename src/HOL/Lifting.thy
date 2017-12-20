@@ -228,7 +228,7 @@ lemma UNIV_typedef_to_equivp:
   fixes Abs :: "'a \<Rightarrow> 'b"
   and Rep :: "'b \<Rightarrow> 'a"
   assumes "type_definition Rep Abs (UNIV::'a set)"
-  shows "equivp (op=::'a\<Rightarrow>'a\<Rightarrow>bool)"
+  shows "equivp (op= ::'a\<Rightarrow>'a\<Rightarrow>bool)"
 by (rule identity_equivp)
 
 lemma typedef_to_Quotient:
