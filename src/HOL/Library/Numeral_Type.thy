@@ -299,7 +299,7 @@ instance
     (auto simp add: less_eq_bit0_def less_bit0_def less_eq_bit1_def less_bit1_def Rep_bit0_inject Rep_bit1_inject)
 end
 
-lemma (in preorder) tranclp_less: "op <\<^sup>+\<^sup>+ = op <"
+lemma (in preorder) tranclp_less: "op < \<^sup>+\<^sup>+ = op <"
 by(auto simp add: fun_eq_iff intro: less_trans elim: tranclp.induct)
 
 instance bit0 and bit1 :: (finite) wellorder
