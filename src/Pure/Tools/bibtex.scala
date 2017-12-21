@@ -503,6 +503,7 @@ object Bibtex
       "unsortlist" -> "html-u")
 
   def html_output(bib: List[Path],
+    body: Boolean = false,
     citations: List[String] = List("*"),
     style: String = "empty",
     chronological: Boolean = false): String =
@@ -553,10 +554,21 @@ object Bibtex
 
       val html = File.read(tmp_dir + out_file)
 
-      cat_lines(
-        split_lines(html).
-          dropWhile(line => !line.startsWith("<!-- BEGIN BIBLIOGRAPHY")).reverse.
-          dropWhile(line => !line.startsWith("<!-- END BIBLIOGRAPHY")).reverse)
+      if (body) {
+        cat_lines(
+          split_lines(html).
+            dropWhile(line => !line.startsWith("<!-- BEGIN BIBLIOGRAPHY")).reverse.
+            dropWhile(line => !line.startsWith("<!-- END BIBLIOGRAPHY")).reverse)
+      }
+      else html
     })
+  }
+
+  def present(snapshot: Document.Snapshot): String =
+  {
+    Isabelle_System.with_tmp_file("bib", "bib") { bib =>
+      File.write(bib, snapshot.node.get_text)
+      html_output(List(bib), style = "unsortlist")
+    }
   }
 }

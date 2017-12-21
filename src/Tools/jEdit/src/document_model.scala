@@ -329,16 +329,19 @@ sealed abstract class Document_Model extends Document.Model
   {
     val snapshot = await_stable_snapshot()
 
-    HTML.output_document(
-      List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
-        css = "",
-        body =
-          if (is_theory)
-            List(HTML.chapter("Theory " + quote(node_name.theory_base_name)),
-              HTML.source(Present.theory_document(snapshot)))
-          else
-            List(HTML.chapter("File " + quote(node_name.node)),
-              HTML.source(Present.text_document(snapshot))))
+    if (is_bibtex) Bibtex.present(snapshot)
+    else {
+      HTML.output_document(
+        List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
+          css = "",
+          body =
+            if (is_theory)
+              List(HTML.chapter("Theory " + quote(node_name.theory_base_name)),
+                HTML.source(Present.theory_document(snapshot)))
+            else
+              List(HTML.chapter("File " + quote(node_name.node)),
+                HTML.source(Present.text_document(snapshot))))
+    }
   }
 
 
@@ -558,7 +561,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   def bibtex_entries: List[Text.Info[String]] =
     GUI_Thread.require {
-      if (Bibtex.check_name(node_name)) {
+      if (node_name.is_bibtex) {
         _bibtex_entries match {
           case Some(entries) => entries
           case None =>
