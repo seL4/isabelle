@@ -487,4 +487,76 @@ object Bibtex
     }
     (chunks.toList, ctxt)
   }
+
+
+
+  /** HTML output **/
+
+  private val output_styles =
+    List(
+      "empty" -> "html-n",
+      "plain" -> "html-n",
+      "alpha" -> "html-a",
+      "named" -> "html-n",
+      "paragraph" -> "html-n",
+      "unsort" -> "html-u",
+      "unsortlist" -> "html-u")
+
+  def html_output(bib: List[Path],
+    citations: List[String] = List("*"),
+    style: String = "empty",
+    chronological: Boolean = false): String =
+  {
+    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir =>
+    {
+      /* database files */
+
+      val bib_files = bib.map(path => path.split_ext._1)
+      val bib_names =
+      {
+        val names0 = bib_files.map(_.base_name)
+        if (Library.duplicates(names0).isEmpty) names0
+        else names0.zipWithIndex.map({ case (name, i) => (i + 1).toString + "-" + name })
+      }
+
+      for ((a, b) <- bib_files zip bib_names) {
+        File.copy(a.ext("bib"), tmp_dir + Path.basic(b).ext("bib"))
+      }
+
+
+      /* style file */
+
+      val bst =
+        output_styles.toMap.get(style) match {
+          case Some(base) => base + (if (chronological) "c" else "") + ".bst"
+          case None =>
+            error("Bad style for bibtex HTML output: " + quote(style) +
+              "\n(expected: " + commas_quote(output_styles.map(_._1)) + ")")
+        }
+      File.copy(Path.explode("$BIB2XHTML_HOME/bst") + Path.explode(bst), tmp_dir)
+
+
+      /* result */
+
+      val in_file = Path.explode("bib.aux")
+      val out_file = Path.explode("bib.html")
+
+      File.write(tmp_dir + in_file,
+        bib_names.mkString("\\bibdata{", ",", "}\n") +
+        citations.map(cite => "\\citation{" + cite + "}\n").mkString)
+
+      Isabelle_System.bash(
+        "\"$BIB2XHTML_HOME/main/bib2xhtml.pl\" -B \"$ISABELLE_BIBTEX\"" +
+          " -u -s " + Bash.string(style) + (if (chronological) " -c " else " ") +
+          File.bash_path(in_file) + " " + File.bash_path(out_file),
+        cwd = tmp_dir.file).check
+
+      val html = File.read(tmp_dir + out_file)
+
+      cat_lines(
+        split_lines(html).
+          dropWhile(line => !line.startsWith("<!-- BEGIN BIBLIOGRAPHY")).reverse.
+          dropWhile(line => !line.startsWith("<!-- END BIBLIOGRAPHY")).reverse)
+    })
+  }
 }
