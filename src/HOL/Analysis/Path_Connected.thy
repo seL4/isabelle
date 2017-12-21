@@ -2282,7 +2282,7 @@ lemma path_connected_2DIM_I:
   assumes 2: "2 \<le> DIM('N)" and pc: "path_connected {r. 0 \<le> r \<and> P r}"
   shows "path_connected {x. P(norm(x - a))}"
 proof -
-  have "{x. P(norm(x - a))} = op+a ` {x. P(norm x)}"
+  have "{x. P(norm(x - a))} = op+ a ` {x. P(norm x)}"
     by force
   moreover have "path_connected {x::'N. P(norm x)}"
   proof -
