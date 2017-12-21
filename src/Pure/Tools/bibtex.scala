@@ -568,7 +568,7 @@ object Bibtex
   {
     Isabelle_System.with_tmp_file("bib", "bib") { bib =>
       File.write(bib, snapshot.node.get_text)
-      html_output(List(bib), style = "unsortlist")
+      html_output(List(bib), style = "unsort")
     }
   }
 }
