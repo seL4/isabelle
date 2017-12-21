@@ -1263,6 +1263,16 @@ lemma coprime_mult_self_right_iff [simp]:
   "coprime (a * c) (b * c) \<longleftrightarrow> is_unit c \<and> coprime a b"
   using coprime_mult_self_left_iff [of c a b] by (simp add: ac_simps)
 
+lemma coprime_absorb_left:
+  assumes "x dvd y"
+  shows   "coprime x y \<longleftrightarrow> is_unit x"
+  using assms coprime_common_divisor is_unit_left_imp_coprime by auto
+
+lemma coprime_absorb_right:
+  assumes "y dvd x"
+  shows   "coprime x y \<longleftrightarrow> is_unit y"
+  using assms coprime_common_divisor is_unit_right_imp_coprime by auto
+
 end
 
 class unit_factor =

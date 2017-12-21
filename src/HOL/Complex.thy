@@ -204,6 +204,18 @@ qed
 lemma complex_Im_fact [simp]: "Im (fact n) = 0"
   by (subst of_nat_fact [symmetric]) (simp only: complex_Im_of_nat)
 
+lemma Re_prod_Reals: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<real>) \<Longrightarrow> Re (prod f A) = prod (\<lambda>x. Re (f x)) A"
+proof (induction A rule: infinite_finite_induct)
+  case (insert x A)
+  hence "Re (prod f (insert x A)) = Re (f x) * Re (prod f A) - Im (f x) * Im (prod f A)"
+    by simp
+  also from insert.prems have "f x \<in> \<real>" by simp
+  hence "Im (f x) = 0" by (auto elim!: Reals_cases)
+  also have "Re (prod f A) = (\<Prod>x\<in>A. Re (f x))" 
+    by (intro insert.IH insert.prems) auto
+  finally show ?case using insert.hyps by simp
+qed auto
+
 
 subsection \<open>The Complex Number $i$\<close>
 
@@ -510,6 +522,9 @@ lemma complex_cnj_zero [simp]: "cnj 0 = 0"
   by (simp add: complex_eq_iff)
 
 lemma complex_cnj_zero_iff [iff]: "cnj z = 0 \<longleftrightarrow> z = 0"
+  by (simp add: complex_eq_iff)
+
+lemma complex_cnj_one_iff [simp]: "cnj z = 1 \<longleftrightarrow> z = 1"
   by (simp add: complex_eq_iff)
 
 lemma complex_cnj_add [simp]: "cnj (x + y) = cnj x + cnj y"
