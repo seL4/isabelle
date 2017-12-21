@@ -9,8 +9,7 @@ package isabelle
 
 import java.io.{File => JFile}
 import java.nio.file.{Paths, FileSystemNotFoundException}
-import java.net.{URI, URISyntaxException}
-import java.net.{URL, MalformedURLException}
+import java.net.{URI, URISyntaxException, URL, MalformedURLException, URLDecoder, URLEncoder}
 import java.util.zip.GZIPInputStream
 
 
@@ -32,6 +31,12 @@ object Url
   def is_readable(name: String): Boolean =
     try { Url(name).openStream.close; true }
     catch { case ERROR(_) => false }
+
+
+  /* strings */
+
+  def decode(s: String): String = URLDecoder.decode(s, UTF8.charset_name)
+  def encode(s: String): String = URLEncoder.encode(s, UTF8.charset_name)
 
 
   /* read */

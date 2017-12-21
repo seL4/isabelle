@@ -7,7 +7,7 @@ HTTP server support.
 package isabelle
 
 
-import java.net.{InetAddress, InetSocketAddress, URI, URLDecoder}
+import java.net.{InetAddress, InetSocketAddress, URI}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 import scala.collection.immutable.SortedMap
@@ -74,9 +74,7 @@ object HTTP
     def decode_properties: Properties.T =
       space_explode('&', request.text).map(s =>
         space_explode('=', s) match {
-          case List(a, b) =>
-            URLDecoder.decode(a, UTF8.charset_name) ->
-            URLDecoder.decode(b, UTF8.charset_name)
+          case List(a, b) => Url.decode(a) -> Url.decode(b)
           case _ => error("Malformed key-value pair in HTTP/POST: " + quote(s))
         })
   }

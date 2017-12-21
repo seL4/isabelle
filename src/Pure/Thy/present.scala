@@ -128,9 +128,16 @@ object Present
     }
 
   def theory_document(snapshot: Document.Snapshot): XML.Body =
-  {
     make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
-  }
+
+
+  /* text document */
+
+  def text_document(snapshot: Document.Snapshot): XML.Body =
+    snapshot.node.get_text match {
+      case "" => Nil
+      case txt => List(XML.Text(Symbol.decode(txt)))
+    }
 
 
 

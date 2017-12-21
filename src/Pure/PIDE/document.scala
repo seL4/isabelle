@@ -119,6 +119,8 @@ object Document
 
       def path: Path = Path.explode(File.standard_path(node))
 
+      def is_bibtex: Boolean = Bibtex.check_name(node)
+
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
@@ -320,6 +322,12 @@ object Document
 
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
+
+    def get_text: String =
+      get_blob match {
+        case Some(blob) => blob.bytes.text
+        case None => command_iterator(0).map({ case (cmd, _) => cmd.source }).mkString
+      }
   }
 
 
@@ -528,6 +536,7 @@ object Document
 
     def node_required: Boolean
     def get_blob: Option[Blob]
+    def is_bibtex: Boolean = node_name.is_bibtex
     def bibtex_entries: List[Text.Info[String]]
 
     def node_edits(
