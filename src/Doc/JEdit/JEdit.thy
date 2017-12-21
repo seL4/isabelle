@@ -1899,7 +1899,7 @@ section \<open>Document preview\<close>
 
 text \<open>
   The action @{action_def isabelle.preview} opens an HTML preview of the
-  current theory document in the default web browser. The content is derived
+  current document node in the default web browser. The content is derived
   from the semantic markup produced by the prover, and thus depends on the
   status of formal processing.
 \<close>

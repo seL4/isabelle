@@ -289,28 +289,33 @@ object Document_Model
   def open_preview(view: View)
   {
     Document_Model.get(view.getBuffer) match {
-      case Some(model) if model.is_theory =>
-        PIDE.editor.hyperlink_url(
-          PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview/" +
-            model.node_name.theory).follow(view)
+      case Some(model) =>
+        val name = model.node_name
+        val url =
+          PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview?" +
+            Url.encode(if (name.is_theory) name.theory else name.node)
+        PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
   }
 
   def http_handlers(http_root: String): List[HTTP.Handler] =
   {
+    val fonts_root = http_root + "/fonts"
     val preview_root = http_root + "/preview"
+
     val preview =
       HTTP.get(preview_root, arg =>
         for {
-          theory <- Library.try_unprefix(preview_root + "/", arg.uri.toString)
+          url_name <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode(_))
           model <-
             get_models().iterator.collectFirst(
-              { case (node_name, model) if node_name.theory == theory => model })
+              { case (name, model)
+                if url_name == (if (name.is_theory) name.theory else name.node) => model })
         }
-        yield HTTP.Response.html(model.preview("../fonts")))
+        yield HTTP.Response.html(model.preview(fonts_root)))
 
-    List(HTTP.fonts(http_root + "/fonts"), preview)
+    List(HTTP.fonts(fonts_root), preview)
   }
 }
 
@@ -326,10 +331,14 @@ sealed abstract class Document_Model extends Document.Model
 
     HTML.output_document(
       List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
-      List(
-        HTML.chapter("Theory " + quote(node_name.theory_base_name)),
-        HTML.source(Present.theory_document(snapshot))),
-      css = "")
+        css = "",
+        body =
+          if (is_theory)
+            List(HTML.chapter("Theory " + quote(node_name.theory_base_name)),
+              HTML.source(Present.theory_document(snapshot)))
+          else
+            List(HTML.chapter("File " + quote(node_name.node)),
+              HTML.source(Present.text_document(snapshot))))
   }
 
 

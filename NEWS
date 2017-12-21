@@ -70,6 +70,9 @@ antiquotations with control symbol: \<^name>\<open>argument\<close>. The action
 "isabelle.antiquoted_cartouche" turns an antiquotation with 0 or 1
 arguments into this format.
 
+* Action "isabelle.preview" presents auxiliary text files as well.
+
+
 
 *** Document preparation ***
 

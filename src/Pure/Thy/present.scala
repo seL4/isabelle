@@ -128,8 +128,19 @@ object Present
     }
 
   def theory_document(snapshot: Document.Snapshot): XML.Body =
-  {
     make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
+
+
+  /* text document */
+
+  def text_document(snapshot: Document.Snapshot): XML.Body =
+  {
+    val text =
+      snapshot.node.get_blob match {
+        case Some(blob) => blob.bytes.text
+        case None => ""
+      }
+    if (text.isEmpty) Nil else List(XML.Text(Symbol.decode(text)))
   }
 
 
