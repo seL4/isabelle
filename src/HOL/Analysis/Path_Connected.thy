@@ -1738,7 +1738,7 @@ proof (clarsimp simp add: path_image_def)
     case True then show ?thesis
       by (simp add: path_component_refl_eq pathstart_def)
   next
-    case False have "continuous_on {0..1} (p o (op*y))"
+    case False have "continuous_on {0..1} (p o (op* y))"
       apply (rule continuous_intros)+
       using p [unfolded path_def] y
       apply (auto simp: mult_le_one intro: continuous_on_subset [of _ p])
@@ -2012,7 +2012,7 @@ next
     by (intro path_connected_continuous_image path_connected_punctured_universe assms)
   with eq have "path_connected (sphere (0::'a) r)"
     by auto
-  then have "path_connected(op +a ` (sphere (0::'a) r))"
+  then have "path_connected(op + a ` (sphere (0::'a) r))"
     by (simp add: path_connected_translation)
   then show ?thesis
     by (metis add.right_neutral sphere_translation)
@@ -2241,7 +2241,7 @@ lemma sphere_1D_doubleton:
   assumes "DIM('a) = 1" and "r > 0"
   obtains x y where "sphere a r = {x,y} \<and> dist x y = 2*r"
 proof -
-  have "sphere a r = op +a ` sphere 0 r"
+  have "sphere a r = op + a ` sphere 0 r"
     by (metis add.right_neutral sphere_translation)
   then show ?thesis
     using sphere_1D_doubleton_zero [OF assms]
@@ -2282,7 +2282,7 @@ lemma path_connected_2DIM_I:
   assumes 2: "2 \<le> DIM('N)" and pc: "path_connected {r. 0 \<le> r \<and> P r}"
   shows "path_connected {x. P(norm(x - a))}"
 proof -
-  have "{x. P(norm(x - a))} = op+a ` {x. P(norm x)}"
+  have "{x. P(norm(x - a))} = op+ a ` {x. P(norm x)}"
     by force
   moreover have "path_connected {x::'N. P(norm x)}"
   proof -
@@ -8262,10 +8262,10 @@ next
       by (meson Topological_Spaces.connected_continuous_image \<open>connected S\<close> homeomorphism_cont1 homeomorphism_of_subsets homhj hull_subset top_greatest)
     have hUS: "h ` U \<subseteq> h ` S"
       by (meson homeomorphism_imp_open_map homeomorphism_of_subsets homhj hull_subset opeS opeU open_UNIV openin_open_eq)
-    have op: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
+    have opn: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
       using homeomorphism_imp_open_map [OF homhj]  by simp
     have "open (h ` U)" "open (h ` S)"
-      by (auto intro: opeS opeU openin_trans op)
+      by (auto intro: opeS opeU openin_trans opn)
     then obtain f g where hom: "homeomorphism (h ` T) (h ` T) f g"
                  and f: "\<And>x. x \<in> h ` K \<Longrightarrow> f x \<in> h ` U"
                  and sub: "{x. \<not> (f x = x \<and> g x = x)} \<subseteq> h ` S"

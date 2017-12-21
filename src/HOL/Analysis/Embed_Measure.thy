@@ -189,7 +189,7 @@ lemma embed_measure_count_space:
   by(rule embed_measure_count_space')(erule subset_inj_on, simp)
 
 lemma sets_embed_measure_alt:
-    "inj f \<Longrightarrow> sets (embed_measure M f) = (op`f) ` sets M"
+    "inj f \<Longrightarrow> sets (embed_measure M f) = (op` f) ` sets M"
   by (auto simp: sets_embed_measure)
 
 lemma emeasure_embed_measure_image':
