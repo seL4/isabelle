@@ -4149,11 +4149,11 @@ lemma open_winding_number_levelsets:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
     shows "open {z. z \<notin> path_image \<gamma> \<and> winding_number \<gamma> z = k}"
 proof -
-  have op: "open (- path_image \<gamma>)"
+  have opn: "open (- path_image \<gamma>)"
     by (simp add: closed_path_image \<gamma> open_Compl)
   { fix z assume z: "z \<notin> path_image \<gamma>" and k: "k = winding_number \<gamma> z"
     obtain e where e: "e>0" "ball z e \<subseteq> - path_image \<gamma>"
-      using open_contains_ball [of "- path_image \<gamma>"] op z
+      using open_contains_ball [of "- path_image \<gamma>"] opn z
       by blast
     have "\<exists>e>0. \<forall>y. dist y z < e \<longrightarrow> y \<notin> path_image \<gamma> \<and> winding_number \<gamma> y = winding_number \<gamma> z"
       apply (rule_tac x=e in exI)

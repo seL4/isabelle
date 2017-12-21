@@ -8262,10 +8262,10 @@ next
       by (meson Topological_Spaces.connected_continuous_image \<open>connected S\<close> homeomorphism_cont1 homeomorphism_of_subsets homhj hull_subset top_greatest)
     have hUS: "h ` U \<subseteq> h ` S"
       by (meson homeomorphism_imp_open_map homeomorphism_of_subsets homhj hull_subset opeS opeU open_UNIV openin_open_eq)
-    have op: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
+    have opn: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
       using homeomorphism_imp_open_map [OF homhj]  by simp
     have "open (h ` U)" "open (h ` S)"
-      by (auto intro: opeS opeU openin_trans op)
+      by (auto intro: opeS opeU openin_trans opn)
     then obtain f g where hom: "homeomorphism (h ` T) (h ` T) f g"
                  and f: "\<And>x. x \<in> h ` K \<Longrightarrow> f x \<in> h ` U"
                  and sub: "{x. \<not> (f x = x \<and> g x = x)} \<subseteq> h ` S"

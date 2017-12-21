@@ -2266,7 +2266,7 @@ text\<open>From the proof of the Heine-Borel theorem: Lemma 2 in section 3.7, pa
 J. C. Burkill and H. Burkill. A Second Course in Mathematical Analysis (CUP, 2002)\<close>
 
 lemma Heine_Borel_lemma:
-  assumes "compact S" and Ssub: "S \<subseteq> \<Union>\<G>" and op: "\<And>G. G \<in> \<G> \<Longrightarrow> open G"
+  assumes "compact S" and Ssub: "S \<subseteq> \<Union>\<G>" and opn: "\<And>G. G \<in> \<G> \<Longrightarrow> open G"
   obtains e where "0 < e" "\<And>x. x \<in> S \<Longrightarrow> \<exists>G \<in> \<G>. ball x e \<subseteq> G"
 proof -
   have False if neg: "\<And>e. 0 < e \<Longrightarrow> \<exists>x \<in> S. \<forall>G \<in> \<G>. \<not> ball x e \<subseteq> G"
@@ -2280,7 +2280,7 @@ proof -
     then obtain G where "l \<in> G" "G \<in> \<G>"
       using Ssub by auto
     then obtain e where "0 < e" and e: "\<And>z. dist z l < e \<Longrightarrow> z \<in> G"
-      using op open_dist by blast
+      using opn open_dist by blast
     obtain N1 where N1: "\<And>n. n \<ge> N1 \<Longrightarrow> dist (f (r n)) l < e/2"
       using to_l apply (simp add: lim_sequentially)
       using \<open>0 < e\<close> half_gt_zero that by blast
@@ -4566,7 +4566,7 @@ lemma univ_second_countable_sequence:
 proof -
   obtain \<B> :: "'a set set"
   where "countable \<B>"
-    and op: "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+    and opn: "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
     and Un: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
     using univ_second_countable by blast
   have *: "infinite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
@@ -4593,7 +4593,7 @@ proof -
     done
   show ?thesis
     apply (rule that [OF \<open>inj f\<close> _ *])
-    apply (auto simp: \<open>\<B> = range f\<close> op)
+    apply (auto simp: \<open>\<B> = range f\<close> opn)
     done
 qed
 
