@@ -8,8 +8,8 @@ The general programming model is that of a stylized ML + Scala + POSIX
 environment, with as little system-specific code in user-space tools
 as possible.
 
-The basic Isabelle system infrastructure provides some facilities to
-make this work, e.g. see the ML and Scala modules File and Path, or
+The Isabelle system infrastructure provides some facilities to make
+this work, e.g. see the ML and Scala modules File and Path, or
 functions like Isabelle_System.bash.  The settings environment also
 provides some means for portability, e.g. the bash function
 "platform_path" to keep the impression that Windows/Cygwin adheres to
@@ -17,10 +17,10 @@ Isabelle/POSIX standards, although Poly/ML and the JVM are native on
 Windows.
 
 When producing add-on tools, it is important to stay within this clean
-room of Isabelle, and refrain from low-level access to the operating
-system. The Isabelle environment uses peculiar scripts for GNU bash and
-perl to get the plumbing right. This style should be imitated as far as
-possible.
+room of Isabelle, and refrain from non-portable access to operating
+system functions. The Isabelle environment uses peculiar scripts for
+GNU bash and perl to get the plumbing right. This style should be
+imitated as far as possible.
 
 
 Supported platforms
@@ -49,10 +49,11 @@ Fringe platforms like BSD or Solaris are not supported.
 64 bit vs. 32 bit platform personality
 --------------------------------------
 
-Isabelle requires 64 bit hardware running a 64 bit operating. Windows
-and Mac OS X allow x86 executables as well, but for Linux this requires
-separate installation of 32 bit shared libraries. The POSIX emulation on
-Windows via Cygwin64 is exclusively for x86_64.
+Isabelle requires 64 bit hardware running a 64 bit operating
+system. Windows and Mac OS X allow x86 executables as well, but for
+Linux this requires separate installation of 32 bit shared
+libraries. The POSIX emulation on Windows via Cygwin64 is exclusively
+for x86_64.
 
 ML works both for x86_64 and x86, and the latter is preferred for space
 and performance reasons. Java is always for x86_64 on all platforms.
