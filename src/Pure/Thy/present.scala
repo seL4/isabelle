@@ -134,14 +134,10 @@ object Present
   /* text document */
 
   def text_document(snapshot: Document.Snapshot): XML.Body =
-  {
-    val text =
-      snapshot.node.get_blob match {
-        case Some(blob) => blob.bytes.text
-        case None => ""
-      }
-    if (text.isEmpty) Nil else List(XML.Text(Symbol.decode(text)))
-  }
+    snapshot.node.get_text match {
+      case "" => Nil
+      case txt => List(XML.Text(Symbol.decode(txt)))
+    }
 
 
 

@@ -436,8 +436,6 @@ case class File_Model(
     if (is_theory) None
     else Some(Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty))
 
-  def is_bibtex: Boolean = Bibtex.check_name(node_name)
-
   def bibtex_entries: List[Text.Info[String]] =
     if (is_bibtex) content.bibtex_entries else Nil
 
