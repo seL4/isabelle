@@ -292,8 +292,8 @@ object Document_Model
       case Some(model) =>
         val name = model.node_name
         val url =
-          PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview?" +
-            Url.encode(name.node)
+          PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root +
+            "/preview?" + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
@@ -307,9 +307,8 @@ object Document_Model
     val preview =
       HTTP.get(preview_root, arg =>
         for {
-          node <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode(_))
-          model <-
-            get_models().iterator.collectFirst({ case (name, model) if name.node == node => model })
+          query <- Library.try_unprefix(preview_root + "?", arg.uri.toString)
+          model <- get(PIDE.resources.node_name(Url.decode(query)))
         }
         yield {
           val snapshot = model.await_stable_snapshot()
