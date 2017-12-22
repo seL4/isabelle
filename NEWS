@@ -42,7 +42,7 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
   isabelle build -D '~~/src/ZF'
 
 
-*** Prover IDE -- Isabelle/Scala/jEdit ***
+*** Isabelle/jEdit Prover IDE ***
 
 * PIDE markup for session ROOT files: allows to complete session names,
 follow links to theories and document files etc.
@@ -73,6 +73,11 @@ arguments into this format.
 * Action "isabelle.preview" is able to present more file formats,
 notably bibtex database files and plain text files.
 
+
+*** Isabelle/VSCode Prover IDE ***
+
+* HTML preview of theories and other file-formats similar to
+Isabelle/jEdit.
 
 
 *** Document preparation ***
