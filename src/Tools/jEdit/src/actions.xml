@@ -159,7 +159,12 @@
 	</ACTION>
 	<ACTION NAME="isabelle.preview">
 	  <CODE>
-	    isabelle.jedit.Document_Model.open_preview(view);
+	    isabelle.jedit.Document_Model.open_preview(view, false);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.draft">
+	  <CODE>
+	    isabelle.jedit.Document_Model.open_preview(view, true);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.keymap-merge">

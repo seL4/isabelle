@@ -73,6 +73,9 @@ arguments into this format.
 * Action "isabelle.preview" is able to present more file formats,
 notably bibtex database files and plain text files.
 
+* Action "isabelle.draft" is similar to "isabelle.preview", but shows a
+plain-text document draft.
+
 
 *** Isabelle/VSCode Prover IDE ***
 

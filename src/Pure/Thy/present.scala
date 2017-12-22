@@ -106,13 +106,13 @@ object Present
   sealed case class Preview(title: String, content: String)
 
   def preview(snapshot: Document.Snapshot,
-    plain: Boolean = false,
+    plain_text: Boolean = false,
     fonts_url: String => String = HTML.fonts_url()): Preview =
   {
     require(!snapshot.is_outdated)
 
     val name = snapshot.node_name
-    if (name.is_bibtex && !plain) {
+    if (name.is_bibtex && !plain_text) {
       val title = "Bibliography " + quote(name.path.base_name)
       val content =
         Isabelle_System.with_tmp_file("bib", "bib") { bib =>
@@ -123,7 +123,7 @@ object Present
     }
     else {
       val (title, body) =
-        if (name.is_theory && !plain)
+        if (name.is_theory && !plain_text)
           ("Theory " + quote(name.theory_base_name), pide_document(snapshot))
         else ("File " + quote(name.path.base_name), text_document(snapshot))
 
