@@ -111,8 +111,21 @@ object Present
   {
     require(!snapshot.is_outdated)
 
+    def output_document(title: String, body: XML.Body): String =
+      HTML.output_document(
+        List(
+          HTML.style(HTML.fonts_css(fonts_url) + File.read(HTML.isabelle_css)),
+          HTML.title(title)),
+        List(HTML.source(body)), css = "")
+
     val name = snapshot.node_name
-    if (name.is_bibtex && !plain_text) {
+    if (plain_text) {
+      val title = "File " + quote(name.path.base_name)
+      val source = Symbol.decode(snapshot.node.source)  // FIXME treat mixed encode/decode situation
+      val content = output_document(title, HTML.text(source))
+      Preview(title, content)
+    }
+    else if (name.is_bibtex) {
       val title = "Bibliography " + quote(name.path.base_name)
       val content =
         Isabelle_System.with_tmp_file("bib", "bib") { bib =>
@@ -122,22 +135,16 @@ object Present
       Preview(title, content)
     }
     else {
-      val (title, body) =
-        if (name.is_theory && !plain_text)
-          ("Theory " + quote(name.theory_base_name), pide_document(snapshot))
-        else ("File " + quote(name.path.base_name), text_document(snapshot))
-
-      val content =
-        HTML.output_document(
-          List(HTML.style(HTML.fonts_css(fonts_url) + File.read(HTML.isabelle_css)),
-            HTML.title(title)), List(HTML.source(body)), css = "")
-
+      val title =
+        if (name.is_theory) "Theory " + quote(name.theory_base_name)
+        else "File " + quote(name.path.base_name)
+      val content = output_document(title, pide_document(snapshot))
       Preview(title, content)
     }
   }
 
 
-  /* theory document */
+  /* PIDE document */
 
   private val document_span_elements =
     Rendering.foreground_elements ++ Rendering.text_color_elements + Markup.NUMERAL + Markup.COMMENT
@@ -165,15 +172,6 @@ object Present
 
   def pide_document(snapshot: Document.Snapshot): XML.Body =
     make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
-
-
-  /* text document */
-
-  def text_document(snapshot: Document.Snapshot): XML.Body =
-    snapshot.node.source match {
-      case "" => Nil
-      case txt => List(XML.Text(Symbol.decode(txt)))
-    }
 
 
 

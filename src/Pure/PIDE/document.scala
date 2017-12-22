@@ -821,17 +821,36 @@ object Document
 
     def markup_to_XML(
       version: Version,
-      node: Node,
+      node_name: Node.Name,
       range: Text.Range,
       elements: Markup.Elements): XML.Body =
     {
-      (for {
-        command <- node.commands.iterator
-        command_range <- command.range.try_restrict(range).iterator
-        markup =
-          command_markup(version, command, Command.Markup_Index.markup, command_range, elements)
-        tree <- markup.to_XML(command_range, command.source, elements).iterator
-      } yield tree).toList
+      val node = version.nodes(node_name)
+      if (node_name.is_theory) {
+        val markup_index = Command.Markup_Index.markup
+        (for {
+          command <- node.commands.iterator
+          command_range <- command.range.try_restrict(range).iterator
+          markup = command_markup(version, command, markup_index, command_range, elements)
+          tree <- markup.to_XML(command_range, command.source, elements).iterator
+        } yield tree).toList
+      }
+      else {
+        val node_source = Symbol.decode(node.source)  // FIXME treat mixed encode/decode situation
+        Text.Range(0, node_source.length).try_restrict(range) match {
+          case None => Nil
+          case Some(node_range) =>
+            val markup =
+              version.nodes.commands_loading(node_name).headOption match {
+                case None => Markup_Tree.empty
+                case Some(command) =>
+                  val chunk_name = Symbol.Text_Chunk.File(node_name.node)
+                  val markup_index = Command.Markup_Index(false, chunk_name)
+                  command_markup(version, command, markup_index, node_range, elements)
+              }
+            markup.to_XML(node_range, node_source, elements)
+        }
+      }
     }
 
     def node_consolidated(version: Version, name: Node.Name): Boolean =
@@ -910,7 +929,7 @@ object Document
           else version.nodes.commands_loading(other_node_name).headOption
 
         def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body =
-          state.markup_to_XML(version, node, range, elements)
+          state.markup_to_XML(version, node_name, range, elements)
 
 
         /* find command */
