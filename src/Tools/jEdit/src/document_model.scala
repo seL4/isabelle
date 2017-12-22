@@ -331,16 +331,15 @@ sealed abstract class Document_Model extends Document.Model
 
     if (is_bibtex) Bibtex.present(snapshot)
     else {
+      val (heading, body) =
+        if (is_theory)
+          ("Theory " + quote(node_name.theory_base_name), Present.theory_document(snapshot))
+        else ("File " + quote(node_name.path.base_name), Present.text_document(snapshot))
+
       HTML.output_document(
-        List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
-          css = "",
-          body =
-            if (is_theory)
-              List(HTML.chapter("Theory " + quote(node_name.theory_base_name)),
-                HTML.source(Present.theory_document(snapshot)))
-            else
-              List(HTML.chapter("File " + quote(node_name.node)),
-                HTML.source(Present.text_document(snapshot))))
+        List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css)),
+          HTML.title(heading)),
+          List(HTML.chapter(heading), HTML.source(body)))
     }
   }
 
