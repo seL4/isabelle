@@ -45,7 +45,7 @@ object Document
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, chunk: Symbol.Text_Chunk, changed: Boolean)
+  sealed case class Blob(bytes: Bytes, source: String, chunk: Symbol.Text_Chunk, changed: Boolean)
   {
     def unchanged: Blob = copy(changed = false)
   }
@@ -325,7 +325,7 @@ object Document
 
     def source: String =
       get_blob match {
-        case Some(blob) => blob.bytes.text
+        case Some(blob) => blob.source
         case None => command_iterator(0).map({ case (cmd, _) => cmd.source }).mkString
       }
   }
@@ -836,7 +836,7 @@ object Document
         } yield tree).toList
       }
       else {
-        val node_source = Symbol.decode(node.source)  // FIXME treat mixed encode/decode situation
+        val node_source = node.source
         Text.Range(0, node_source.length).try_restrict(range) match {
           case None => Nil
           case Some(node_range) =>

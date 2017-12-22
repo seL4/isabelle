@@ -121,8 +121,7 @@ object Present
     val name = snapshot.node_name
     if (plain_text) {
       val title = "File " + quote(name.path.base_name)
-      val source = Symbol.decode(snapshot.node.source)  // FIXME treat mixed encode/decode situation
-      val content = output_document(title, HTML.text(source))
+      val content = output_document(title, HTML.text(snapshot.node.source))
       Preview(title, content)
     }
     else if (name.is_bibtex) {

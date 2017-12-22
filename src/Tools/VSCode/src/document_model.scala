@@ -143,7 +143,7 @@ sealed case class Document_Model(
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
-    else Some((Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty)))
+    else Some((Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty)))
 
 
   /* bibtex entries */

@@ -419,7 +419,7 @@ case class File_Model(
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
-    else Some(Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty))
+    else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
   def bibtex_entries: List[Text.Info[String]] =
     if (is_bibtex) content.bibtex_entries else Nil
@@ -511,7 +511,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
   /* blob */
 
   // owned by GUI thread
-  private var _blob: Option[(Bytes, Symbol.Text_Chunk)] = None
+  private var _blob: Option[(Bytes, String, Symbol.Text_Chunk)] = None
 
   private def reset_blob(): Unit = GUI_Thread.require { _blob = None }
 
@@ -519,17 +519,19 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     GUI_Thread.require {
       if (is_theory) None
       else {
-        val (bytes, chunk) =
+        val (bytes, text, chunk) =
           _blob match {
             case Some(x) => x
             case None =>
               val bytes = PIDE.resources.make_file_content(buffer)
-              val chunk = Symbol.Text_Chunk(buffer.getSegment(0, buffer.getLength))
-              _blob = Some((bytes, chunk))
-              (bytes, chunk)
+              val text = buffer.getText(0, buffer.getLength)
+              val chunk = Symbol.Text_Chunk(text)
+              val x = (bytes, text, chunk)
+              _blob = Some(x)
+              x
           }
         val changed = pending_edits.nonEmpty
-        Some(Document.Blob(bytes, chunk, changed))
+        Some(Document.Blob(bytes, text, chunk, changed))
       }
     }
 
