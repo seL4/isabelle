@@ -134,7 +134,7 @@ object Present
   /* text document */
 
   def text_document(snapshot: Document.Snapshot): XML.Body =
-    snapshot.node.get_text match {
+    snapshot.node.source match {
       case "" => Nil
       case txt => List(XML.Text(Symbol.decode(txt)))
     }

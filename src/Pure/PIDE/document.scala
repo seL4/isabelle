@@ -323,7 +323,7 @@ object Document
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
 
-    def get_text: String =
+    def source: String =
       get_blob match {
         case Some(blob) => blob.bytes.text
         case None => command_iterator(0).map({ case (cmd, _) => cmd.source }).mkString

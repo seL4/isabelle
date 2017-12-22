@@ -567,7 +567,7 @@ object Bibtex
   def present(snapshot: Document.Snapshot): String =
   {
     Isabelle_System.with_tmp_file("bib", "bib") { bib =>
-      File.write(bib, snapshot.node.get_text)
+      File.write(bib, snapshot.node.source)
       html_output(List(bib), style = "unsort")
     }
   }
