@@ -583,6 +583,11 @@ object Symbol
   val control_prefix = "\\<^"
   val control_suffix = ">"
 
+  def control_name(sym: Symbol): Option[String] =
+    if (is_control_encoded(sym))
+      Some(sym.substring(control_prefix.length, sym.length - control_suffix.length))
+    else None
+
   def is_control_encoded(sym: Symbol): Boolean =
     sym.startsWith(control_prefix) && sym.endsWith(control_suffix)
 
