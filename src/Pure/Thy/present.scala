@@ -108,17 +108,23 @@ object Present
     require(!snapshot.is_outdated)
 
     val name = snapshot.node_name
-    if (name.is_bibtex && !plain) Bibtex.present(snapshot)
+    if (name.is_bibtex && !plain) {
+      val title = "Bibliography " + quote(name.path.base_name)
+      Isabelle_System.with_tmp_file("bib", "bib") { bib =>
+        File.write(bib, snapshot.node.source)
+        Bibtex.html_output(List(bib), style = "unsort", title = title)
+      }
+    }
     else {
-      val (heading, body) =
+      val (title, body) =
         if (name.is_theory && !plain)
           ("Theory " + quote(name.theory_base_name), pide_document(snapshot))
         else ("File " + quote(name.path.base_name), text_document(snapshot))
 
       HTML.output_document(
         List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css)),
-          HTML.title(heading)),
-          List(HTML.chapter(heading), HTML.source(body)))
+          HTML.title(title)),
+          List(HTML.chapter(title), HTML.source(body)))
     }
   }
 
