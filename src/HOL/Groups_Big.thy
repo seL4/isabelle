@@ -495,12 +495,12 @@ abbreviation Sum ("\<Sum>_" [1000] 999)
 
 end
 
-text \<open>Now: lot's of fancy syntax. First, @{term "sum (\<lambda>x. e) A"} is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
+text \<open>Now: lots of fancy syntax. First, @{term "sum (\<lambda>x. e) A"} is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
 syntax (ASCII)
-  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM _:_./ _)" [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM (_/:_)./ _)" [0, 51, 10] 10)
 syntax
-  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>(_/\<in>_)./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>i\<in>A. b" \<rightleftharpoons> "CONST sum (\<lambda>i. b) A"
 
@@ -1062,9 +1062,9 @@ abbreviation Prod ("\<Prod>_" [1000] 999)
 end
 
 syntax (ASCII)
-  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD _:_./ _)" [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD (_/:_)./ _)" [0, 51, 10] 10)
 syntax
-  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>(_/\<in>_)./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Prod>i\<in>A. b" == "CONST prod (\<lambda>i. b) A"
 

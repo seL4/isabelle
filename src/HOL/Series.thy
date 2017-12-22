@@ -564,6 +564,9 @@ lemma summable_divide: "summable f \<Longrightarrow> summable (\<lambda>n. f n /
 lemma suminf_divide: "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
   by (rule bounded_linear.suminf [OF bounded_linear_divide, symmetric])
 
+lemma summable_inverse_divide: "summable (inverse \<circ> f) \<Longrightarrow> summable (\<lambda>n. c / f n)"
+  by (auto dest: summable_mult [of _ c] simp: field_simps)
+
 lemma sums_mult_D: "(\<lambda>n. c * f n) sums a \<Longrightarrow> c \<noteq> 0 \<Longrightarrow> f sums (a/c)"
   using sums_mult_iff by fastforce
 
@@ -657,31 +660,52 @@ subsection \<open>Infinite summability on Banach spaces\<close>
 
 text \<open>Cauchy-type criterion for convergence of series (c.f. Harrison).\<close>
 
-lemma summable_Cauchy: "summable f \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n. norm (sum f {m..<n}) < e)"
+lemma summable_Cauchy: "summable f \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n. norm (sum f {m..<n}) < e)" (is "_ = ?rhs")
   for f :: "nat \<Rightarrow> 'a::banach"
-  apply (simp only: summable_iff_convergent Cauchy_convergent_iff [symmetric] Cauchy_iff)
-  apply safe
-   apply (drule spec)
-   apply (drule (1) mp)
-   apply (erule exE)
-   apply (rule_tac x="M" in exI)
-   apply clarify
-   apply (rule_tac x="m" and y="n" in linorder_le_cases)
-    apply (frule (1) order_trans)
-    apply (drule_tac x="n" in spec)
-    apply (drule (1) mp)
-    apply (drule_tac x="m" in spec)
-    apply (drule (1) mp)
-    apply (simp_all add: sum_diff [symmetric])
-  apply (drule spec)
-  apply (drule (1) mp)
-  apply (erule exE)
-  apply (rule_tac x="N" in exI)
-  apply clarify
-  apply (rule_tac x="m" and y="n" in linorder_le_cases)
-   apply (subst norm_minus_commute)
-   apply (simp_all add: sum_diff [symmetric])
-  done
+proof
+  assume f: "summable f"
+  show ?rhs
+  proof clarify
+    fix e :: real
+    assume "0 < e"
+    then obtain M where M: "\<And>m n. \<lbrakk>m\<ge>M; n\<ge>M\<rbrakk> \<Longrightarrow> norm (sum f {..<m} - sum f {..<n}) < e"
+      using f by (force simp add: summable_iff_convergent Cauchy_convergent_iff [symmetric] Cauchy_iff)
+    have "norm (sum f {m..<n}) < e" if "m \<ge> M" for m n
+    proof (cases m n rule: linorder_class.le_cases)
+      assume "m \<le> n"
+      then show ?thesis
+        by (metis (mono_tags, hide_lams) M atLeast0LessThan order_trans sum_diff_nat_ivl that zero_le)
+    next
+      assume "n \<le> m"
+      then show ?thesis
+        by (simp add: \<open>0 < e\<close>)
+    qed
+    then show "\<exists>N. \<forall>m\<ge>N. \<forall>n. norm (sum f {m..<n}) < e"
+      by blast
+  qed
+next
+  assume r: ?rhs
+  then show "summable f"
+    unfolding summable_iff_convergent Cauchy_convergent_iff [symmetric] Cauchy_iff
+  proof clarify
+    fix e :: real
+    assume "0 < e"
+    with r obtain N where N: "\<And>m n. m \<ge> N \<Longrightarrow> norm (sum f {m..<n}) < e"
+      by blast
+    have "norm (sum f {..<m} - sum f {..<n}) < e" if "m\<ge>N" "n\<ge>N" for m n
+    proof (cases m n rule: linorder_class.le_cases)
+      assume "m \<le> n"
+      then show ?thesis
+        by (metis Groups_Big.sum_diff N finite_lessThan lessThan_minus_lessThan lessThan_subset_iff norm_minus_commute \<open>m\<ge>N\<close>)
+    next
+      assume "n \<le> m"
+      then show ?thesis
+        by (metis Groups_Big.sum_diff N finite_lessThan lessThan_minus_lessThan lessThan_subset_iff \<open>n\<ge>N\<close>)
+    qed
+    then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (sum f {..<m} - sum f {..<n}) < e"
+      by blast
+  qed
+qed
 
 context
   fixes f :: "nat \<Rightarrow> 'a::banach"
@@ -708,23 +732,32 @@ lemma summable_norm: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (
 
 text \<open>Comparison tests.\<close>
 
-lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable f"
-  apply (simp add: summable_Cauchy)
-  apply safe
-  apply (drule_tac x="e" in spec)
-  apply safe
-  apply (rule_tac x = "N + Na" in exI)
-  apply safe
-  apply (rotate_tac 2)
-  apply (drule_tac x = m in spec)
-  apply auto
-  apply (rotate_tac 2)
-  apply (drule_tac x = n in spec)
-  apply (rule_tac y = "\<Sum>k=m..<n. norm (f k)" in order_le_less_trans)
-   apply (rule norm_sum)
-  apply (rule_tac y = "sum g {m..<n}" in order_le_less_trans)
-   apply (auto intro: sum_mono simp add: abs_less_iff)
-  done
+lemma summable_comparison_test: 
+  assumes fg: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n" and g: "summable g"
+  shows "summable f"
+proof -
+  obtain N where N: "\<And>n. n\<ge>N \<Longrightarrow> norm (f n) \<le> g n" 
+    using assms by blast
+  show ?thesis
+  proof (clarsimp simp add: summable_Cauchy)
+    fix e :: real
+    assume "0 < e"
+    then obtain Ng where Ng: "\<And>m n. m \<ge> Ng \<Longrightarrow> norm (sum g {m..<n}) < e" 
+      using g by (fastforce simp: summable_Cauchy)
+    with N have "norm (sum f {m..<n}) < e" if "m\<ge>max N Ng" for m n
+    proof -
+      have "norm (sum f {m..<n}) \<le> sum g {m..<n}"
+        using N that by (force intro: sum_norm_le)
+      also have "... \<le> norm (sum g {m..<n})"
+        by simp
+      also have "... < e"
+        using Ng that by auto
+      finally show ?thesis .
+    qed
+    then show "\<exists>N. \<forall>m\<ge>N. \<forall>n. norm (sum f {m..<n}) < e" 
+      by blast
+  qed
+qed
 
 lemma summable_comparison_test_ev:
   "eventually (\<lambda>n. norm (f n) \<le> g n) sequentially \<Longrightarrow> summable g \<Longrightarrow> summable f"

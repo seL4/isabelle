@@ -2522,7 +2522,7 @@ lemma powr_minus: "x powr (- a) = inverse (x powr a)"
   by (simp add: powr_def exp_minus [symmetric])
 
 lemma powr_minus_divide: "x powr (- a) = 1/(x powr a)"
-  for x a :: real
+      for a x :: "'a::{ln,real_normed_field}"
   by (simp add: divide_inverse powr_minus)
 
 lemma divide_powr_uminus: "a / b powr c = a * b powr (- c)"

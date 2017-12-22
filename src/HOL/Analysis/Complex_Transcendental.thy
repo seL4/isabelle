@@ -1851,9 +1851,35 @@ lemma field_differentiable_powr_right [derivative_intros]:
 using field_differentiable_def has_field_derivative_powr_right by blast
 
 lemma holomorphic_on_powr_right [holomorphic_intros]:
-    "f holomorphic_on s \<Longrightarrow> w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr (f z)) holomorphic_on s"
-  unfolding holomorphic_on_def field_differentiable_def
-  by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
+  assumes "f holomorphic_on s"
+  shows "(\<lambda>z. w powr (f z)) holomorphic_on s"
+proof (cases "w = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  with assms show ?thesis
+    unfolding holomorphic_on_def field_differentiable_def
+    by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
+qed
+
+lemma holomorphic_on_divide_gen [holomorphic_intros]:
+  assumes f: "f holomorphic_on s" and g: "g holomorphic_on s" and 0: "\<And>z z'. \<lbrakk>z \<in> s; z' \<in> s\<rbrakk> \<Longrightarrow> g z = 0 \<longleftrightarrow> g z' = 0"
+shows "(\<lambda>z. f z / g z) holomorphic_on s"
+proof (cases "\<exists>z\<in>s. g z = 0")
+  case True
+  with 0 have "g z = 0" if "z \<in> s" for z
+    using that by blast
+  then show ?thesis
+    using g holomorphic_transform by auto
+next
+  case False
+  with 0 have "g z \<noteq> 0" if "z \<in> s" for z
+    using that by blast
+  with holomorphic_on_divide show ?thesis
+    using f g by blast
+qed
 
 lemma norm_powr_real_powr:
   "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"

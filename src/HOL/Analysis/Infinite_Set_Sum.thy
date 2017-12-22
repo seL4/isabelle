@@ -175,6 +175,9 @@ lemma abs_summable_on_norm_iff [simp]:
 lemma abs_summable_on_normI: "f abs_summable_on A \<Longrightarrow> (\<lambda>x. norm (f x)) abs_summable_on A"
   by simp
 
+lemma abs_summable_complex_of_real [simp]: "(\<lambda>n. complex_of_real (f n)) abs_summable_on A \<longleftrightarrow> f abs_summable_on A"
+  by (simp add: abs_summable_on_def complex_of_real_integrable_eq)
+
 lemma abs_summable_on_comparison_test:
   assumes "g abs_summable_on A"
   assumes "\<And>x. x \<in> A \<Longrightarrow> norm (f x) \<le> norm (g x)"
@@ -226,6 +229,23 @@ qed
 lemma abs_summable_on_nat_iff':
   "f abs_summable_on (UNIV :: nat set) \<longleftrightarrow> summable (\<lambda>n. norm (f n))"
   by (subst abs_summable_on_nat_iff) auto
+
+lemma nat_abs_summable_on_comparison_test:
+  fixes f :: "nat \<Rightarrow> 'a :: {banach, second_countable_topology}"
+  assumes "g abs_summable_on I"
+  assumes "\<And>n. \<lbrakk>n\<ge>N; n \<in> I\<rbrakk> \<Longrightarrow> norm (f n) \<le> g n"
+  shows   "f abs_summable_on I"
+  using assms by (fastforce simp add: abs_summable_on_nat_iff intro: summable_comparison_test')
+
+lemma abs_summable_comparison_test_ev:
+  assumes "g abs_summable_on I"
+  assumes "eventually (\<lambda>x. x \<in> I \<longrightarrow> norm (f x) \<le> g x) sequentially"
+  shows   "f abs_summable_on I"
+  by (metis (no_types, lifting) nat_abs_summable_on_comparison_test eventually_at_top_linorder assms)
+
+lemma abs_summable_on_Cauchy:
+  "f abs_summable_on (UNIV :: nat set) \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n. (\<Sum>x = m..<n. norm (f x)) < e)"
+  by (simp add: abs_summable_on_nat_iff' summable_Cauchy sum_nonneg)
 
 lemma abs_summable_on_finite [simp]: "finite A \<Longrightarrow> f abs_summable_on A"
   unfolding abs_summable_on_def by (rule integrable_count_space)
