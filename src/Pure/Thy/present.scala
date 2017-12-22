@@ -103,17 +103,23 @@ object Present
 
   /** preview **/
 
-  def preview(fonts_dir: String, snapshot: Document.Snapshot, plain: Boolean = false): String =
+  sealed case class Preview(title: String, content: String)
+
+  def preview(snapshot: Document.Snapshot,
+    plain: Boolean = false,
+    fonts_url: String => String = HTML.fonts_url()): Preview =
   {
     require(!snapshot.is_outdated)
 
     val name = snapshot.node_name
     if (name.is_bibtex && !plain) {
       val title = "Bibliography " + quote(name.path.base_name)
-      Isabelle_System.with_tmp_file("bib", "bib") { bib =>
-        File.write(bib, snapshot.node.source)
-        Bibtex.html_output(List(bib), style = "unsort", title = title)
-      }
+      val content =
+        Isabelle_System.with_tmp_file("bib", "bib") { bib =>
+          File.write(bib, snapshot.node.source)
+          Bibtex.html_output(List(bib), style = "unsort", title = title)
+        }
+      Preview(title, content)
     }
     else {
       val (title, body) =
@@ -121,10 +127,12 @@ object Present
           ("Theory " + quote(name.theory_base_name), pide_document(snapshot))
         else ("File " + quote(name.path.base_name), text_document(snapshot))
 
-      HTML.output_document(
-        List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css)),
-          HTML.title(title)),
-          List(HTML.chapter(title), HTML.source(body)))
+      val content =
+        HTML.output_document(
+          List(HTML.style(HTML.fonts_css(fonts_url) + File.read(HTML.isabelle_css)),
+            HTML.title(title)), List(HTML.source(body)), css = "")
+
+      Preview(title, content)
     }
   }
 

@@ -312,7 +312,8 @@ object Document_Model
         }
         yield {
           val snapshot = model.await_stable_snapshot()
-          HTTP.Response.html(Present.preview(fonts_root, snapshot))
+          val preview = Present.preview(snapshot, fonts_url = HTML.fonts_dir(fonts_root))
+          HTTP.Response.html(preview.content)
         })
 
     List(HTTP.fonts(fonts_root), preview)

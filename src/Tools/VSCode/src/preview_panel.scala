@@ -30,8 +30,9 @@ class Preview_Panel(resources: VSCode_Resources)
               val snapshot = model.snapshot()
               if (snapshot.is_outdated) m
               else {
-                val (label, content) = make_preview(model, snapshot)
-                channel.write(Protocol.Preview_Response(file, column, label, content))
+                val preview = Present.preview(snapshot)
+                channel.write(
+                  Protocol.Preview_Response(file, column, preview.title, preview.content))
                 m - file
               }
             case None => m - file
@@ -39,16 +40,5 @@ class Preview_Panel(resources: VSCode_Resources)
         })
       (map1.nonEmpty, map1)
     })
-  }
-
-  def make_preview(model: Document_Model, snapshot: Document.Snapshot): (String, String) =
-  {
-    val label = "Preview " + quote(model.node_name.theory_base_name)
-    val content =
-      HTML.output_document(
-        List(HTML.style(HTML.fonts_css()), HTML.style_file(HTML.isabelle_css)),
-        List(HTML.source(Present.pide_document(snapshot))),
-        css = "")
-    (label, content)
   }
 }

@@ -25,6 +25,7 @@
     "activationEvents": [
         "onLanguage:isabelle",
         "onLanguage:isabelle-ml",
+        "onLanguage:bibtex",
         "onCommand:isabelle.preview",
         "onCommand:isabelle.preview-split",
         "onCommand:isabelle.preview-source"
@@ -107,7 +108,27 @@
                     "group": "navigation"
                 },
                 {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == bibtex",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
                     "when": "editorLangId == isabelle",
+                    "command": "isabelle.preview-split",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.preview-split",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == bibtex",
                     "command": "isabelle.preview-split",
                     "group": "navigation"
                 },
@@ -125,6 +146,16 @@
             "explorer/context": [
                 {
                     "when": "resourceLangId == isabelle",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == isabelle-ml",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == bibtex",
                     "command": "isabelle.preview",
                     "group": "navigation"
                 }
