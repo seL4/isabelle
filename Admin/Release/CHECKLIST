@@ -5,8 +5,6 @@ Checklist for official releases
 
 - check Admin/components;
 
-- test 'display_drafts' command;
-
 - test Isabelle/jEdit: print buffer
 
 - test "#!/usr/bin/env isabelle_scala_script";

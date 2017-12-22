@@ -254,8 +254,7 @@ text \<open>
 \<open>Usage: isabelle latex [OPTIONS] [FILE]
 
   Options are:
-    -o FORMAT    specify output format: pdf (default), dvi,
-                 bbl, idx, sty, syms
+    -o FORMAT    specify output format: pdf (default), dvi, bbl, idx, sty
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.\<close>}
@@ -269,9 +268,6 @@ text \<open>
   The \<^verbatim>\<open>sty\<close> output format causes the Isabelle style files to be updated from
   the distribution. This is useful in special situations where the document
   sources are to be processed another time by separate tools.
-
-  The \<^verbatim>\<open>syms\<close> output is for internal use; it generates lists of symbols that
-  are available without loading additional {\LaTeX} packages.
 \<close>
 
 

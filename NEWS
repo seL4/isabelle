@@ -41,6 +41,9 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 
   isabelle build -D '~~/src/ZF'
 
+* The command 'display_drafts' has been discontinued. INCOMPATIBILITY,
+use action "isabelle.draft" (or "print") in Isabelle/jEdit instead.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

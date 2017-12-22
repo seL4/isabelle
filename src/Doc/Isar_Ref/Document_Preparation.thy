@@ -613,21 +613,4 @@ text \<open>
   @{rail \<open>A + sep\<close>}
 \<close>
 
-
-section \<open>Draft presentation\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{command_def "display_drafts"}\<open>\<^sup>*\<close> & : & \<open>any \<rightarrow>\<close> \\
-  \end{matharray}
-
-  @{rail \<open>
-    @@{command display_drafts} (@{syntax name} +)
-  \<close>}
-
-  \<^descr> @{command "display_drafts"}~\<open>paths\<close> performs simple output of a given list
-  of raw source files. Only those symbols that do not require additional
-  {\LaTeX} packages are displayed properly, everything else is left verbatim.
-\<close>
-
 end
