@@ -47,7 +47,7 @@ class Preview_Panel(resources: VSCode_Resources)
     val content =
       HTML.output_document(
         List(HTML.style(HTML.fonts_css()), HTML.style_file(HTML.isabelle_css)),
-        List(HTML.source(Present.theory_document(snapshot))),
+        List(HTML.source(Present.pide_document(snapshot))),
         css = "")
     (label, content)
   }

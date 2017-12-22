@@ -313,7 +313,10 @@ object Document_Model
               { case (name, model)
                 if url_name == (if (name.is_theory) name.theory else name.node) => model })
         }
-        yield HTTP.Response.html(model.preview(fonts_root)))
+        yield {
+          val snapshot = model.await_stable_snapshot()
+          HTTP.Response.html(Present.preview(fonts_root, snapshot))
+        })
 
     List(HTTP.fonts(fonts_root), preview)
   }
@@ -321,29 +324,6 @@ object Document_Model
 
 sealed abstract class Document_Model extends Document.Model
 {
-  /* content */
-
-  def bibtex_entries: List[Text.Info[String]]
-
-  def preview(fonts_dir: String): String =
-  {
-    val snapshot = await_stable_snapshot()
-
-    if (is_bibtex) Bibtex.present(snapshot)
-    else {
-      val (heading, body) =
-        if (is_theory)
-          ("Theory " + quote(node_name.theory_base_name), Present.theory_document(snapshot))
-        else ("File " + quote(node_name.path.base_name), Present.text_document(snapshot))
-
-      HTML.output_document(
-        List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css)),
-          HTML.title(heading)),
-          List(HTML.chapter(heading), HTML.source(body)))
-    }
-  }
-
-
   /* perspective */
 
   def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = Nil
