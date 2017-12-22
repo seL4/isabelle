@@ -1902,6 +1902,9 @@ text \<open>
   current document node in the default web browser. The content is derived
   from the semantic markup produced by the prover, and thus depends on the
   status of formal processing.
+
+  Action @{action_def isabelle.draft} is similar to @{action
+  isabelle.preview}, but shows a plain-text document draft.
 \<close>
 
 

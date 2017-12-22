@@ -14,7 +14,6 @@ sig
   val finish: unit -> unit
   val theory_output: Position.T -> theory -> Latex.text list -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
-  val display_drafts: Path.T list -> int
 end;
 
 structure Present: PRESENT =
@@ -319,52 +318,5 @@ fun begin_theory update_time mk_text thy =
            add_tex_index (update_time, Latex.theory_entry name))
         else ();
     in Browser_Info.put {chapter = chapter, name = session_name} thy end);
-
-
-
-(** draft document output **)
-
-fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
-  let
-    fun prep_draft path i =
-      let
-        val base = Path.base path;
-        val name =
-          (case Path.implode (#1 (Path.split_ext base)) of
-            "" => "DUMMY"
-          | s => s)  ^ serial_string ();
-      in
-        if File.exists path then
-          (((name, base, File.read path), (i, Latex.theory_entry name)), i + 1)
-        else error ("Bad file: " ^ Path.print path)
-      end;
-    val (srcs, tex_index) = split_list (fst (fold_map prep_draft src_paths 0));
-
-    val doc_path = Path.append dir document_path;
-    val _ = Isabelle_System.mkdirs doc_path;
-    val root_path = Path.append doc_path (Path.basic "root.tex");
-    val _ = Isabelle_System.copy_file (Path.explode "~~/lib/texinputs/draft.tex") root_path;
-    val _ = Isabelle_System.bash ("isabelle latex -o sty " ^ File.bash_path root_path);
-    val _ = Isabelle_System.bash ("isabelle latex -o syms " ^ File.bash_path root_path);
-
-    fun known name =
-      let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
-      in member (op =) ss end;
-    val known_syms = known "syms.lst";
-    val known_ctrls = known "ctrls.lst";
-
-    val _ = srcs |> List.app (fn (name, base, txt) =>
-      Symbol.explode txt
-      |> Latex.symbol_source (known_syms, known_ctrls) (Path.implode base)
-      |> File.write (Path.append doc_path (tex_path name)));
-    val _ = write_tex_index tex_index doc_path;
-
-    val result = isabelle_document {verbose = false} "pdf" documentN "" doc_path;
-
-    val target_dir = Path.explode "$ISABELLE_HOME_USER/tmp";
-    val target = Path.explode "$ISABELLE_HOME_USER/tmp/drafts.pdf"
-    val _ = Isabelle_System.mkdirs target_dir;
-    val _ = Isabelle_System.copy_file result target;
-  in Isabelle_System.bash ("isabelle display " ^ File.bash_path target ^ " &") end);
 
 end;

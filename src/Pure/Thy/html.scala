@@ -56,7 +56,14 @@ object HTML
           case Some(html) =>
             output_hidden(output_string(sym)); s ++= html
           case None =>
-            output_string(sym)
+            if (hidden && Symbol.is_control_encoded(sym)) {
+              output_hidden(output_string(Symbol.control_prefix))
+              s ++= "<span class=\"control\">"
+              output_string(Symbol.control_name(sym).get)
+              s ++= "</span>"
+              output_hidden(output_string(Symbol.control_suffix))
+            }
+            else output_string(sym)
         }
       }
 

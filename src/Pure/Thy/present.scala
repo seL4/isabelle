@@ -101,7 +101,49 @@ object Present
   }
 
 
-  /* theory document */
+  /** preview **/
+
+  sealed case class Preview(title: String, content: String)
+
+  def preview(snapshot: Document.Snapshot,
+    plain_text: Boolean = false,
+    fonts_url: String => String = HTML.fonts_url()): Preview =
+  {
+    require(!snapshot.is_outdated)
+
+    def output_document(title: String, body: XML.Body): String =
+      HTML.output_document(
+        List(
+          HTML.style(HTML.fonts_css(fonts_url) + File.read(HTML.isabelle_css)),
+          HTML.title(title)),
+        List(HTML.source(body)), css = "")
+
+    val name = snapshot.node_name
+    if (plain_text) {
+      val title = "File " + quote(name.path.base_name)
+      val content = output_document(title, HTML.text(snapshot.node.source))
+      Preview(title, content)
+    }
+    else if (name.is_bibtex) {
+      val title = "Bibliography " + quote(name.path.base_name)
+      val content =
+        Isabelle_System.with_tmp_file("bib", "bib") { bib =>
+          File.write(bib, snapshot.node.source)
+          Bibtex.html_output(List(bib), style = "unsort", title = title)
+        }
+      Preview(title, content)
+    }
+    else {
+      val title =
+        if (name.is_theory) "Theory " + quote(name.theory_base_name)
+        else "File " + quote(name.path.base_name)
+      val content = output_document(title, pide_document(snapshot))
+      Preview(title, content)
+    }
+  }
+
+
+  /* PIDE document */
 
   private val document_span_elements =
     Rendering.foreground_elements ++ Rendering.text_color_elements + Markup.NUMERAL + Markup.COMMENT
@@ -127,17 +169,8 @@ object Present
         XML.Text(Symbol.decode(text))
     }
 
-  def theory_document(snapshot: Document.Snapshot): XML.Body =
+  def pide_document(snapshot: Document.Snapshot): XML.Body =
     make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
-
-
-  /* text document */
-
-  def text_document(snapshot: Document.Snapshot): XML.Body =
-    snapshot.node.get_text match {
-      case "" => Nil
-      case txt => List(XML.Text(Symbol.decode(txt)))
-    }
 
 
 

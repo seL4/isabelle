@@ -84,7 +84,7 @@ keywords
     "locale_deps" "class_deps" "thm_deps" "print_term_bindings"
     "print_facts" "print_cases" "print_statement" "thm" "prf" "full_prf"
     "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
-  and "display_drafts" "print_state" :: diag
+  and "print_state" :: diag
   and "welcome" :: diag
   and "end" :: thy_end % "theory"
   and "realizers" :: thy_decl
@@ -1207,12 +1207,6 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>welcome\<close> "print welcome message"
     (Scan.succeed (Toplevel.keep (fn _ => writeln (Session.welcome ()))));
-
-val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>display_drafts\<close>
-    "display raw source files with symbols"
-    (Scan.repeat1 Parse.path >> (fn names =>
-      Toplevel.keep (fn _ => ignore (Present.display_drafts (map Path.explode names)))));
 
 in end\<close>
 

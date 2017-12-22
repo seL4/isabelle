@@ -18,8 +18,6 @@ sig
   val latex_control: Symbol.symbol
   val is_latex_control: Symbol.symbol -> bool
   val embed_raw: string -> string
-  val output_known_symbols: (string -> bool) * (string -> bool) ->
-    Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
   val output_token: Token.T -> string
@@ -30,8 +28,6 @@ sig
   val environment_block: string -> text list -> text
   val environment: string -> string -> string
   val isabelle_body: string -> text list -> text list
-  val symbol_source: (string -> bool) * (string -> bool) ->
-    string -> Symbol.symbol list -> string
   val theory_entry: string -> string
   val latexN: string
 end;
@@ -169,14 +165,12 @@ fun output_chr " " = "\\ "
         SOME s => s
       | NONE => if Symbol.is_ascii_digit c then enclose "{\\isadigit{" "}}" c else c);
 
-val output_chrs = translate_string output_chr;
-
-fun output_known_sym (known_sym, known_ctrl) sym =
+fun output_sym sym =
   (case Symbol.decode sym of
     Symbol.Char s => output_chr s
   | Symbol.UTF8 s => s
-  | Symbol.Sym s => if known_sym s then enclose_name "{\\isasym" "}" s else output_chrs sym
-  | Symbol.Control s => if known_ctrl s then enclose_name "\\isactrl" " " s else output_chrs sym
+  | Symbol.Sym s => enclose_name "{\\isasym" "}" s
+  | Symbol.Control s => enclose_name "\\isactrl" " " s
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
@@ -186,10 +180,10 @@ val scan_latex_length =
   Scan.one (is_latex_control o Symbol_Pos.symbol) --
     Scan.option (Scan.permissive Symbol_Pos.scan_cartouche "") >> K 0;
 
-fun scan_latex known =
+val scan_latex =
   Scan.one (is_latex_control o Symbol_Pos.symbol) |--
     Symbol_Pos.scan_cartouche_content "Embedded LaTeX: " >> (implode o map Symbol_Pos.symbol) ||
-  Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> (output_known_sym known o Symbol_Pos.symbol);
+  Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> (output_sym o Symbol_Pos.symbol);
 
 fun read scan syms =
   Scan.read Symbol_Pos.stopper (Scan.repeat scan) (map (rpair Position.none) syms);
@@ -199,14 +193,13 @@ in
 fun length_symbols syms =
   fold Integer.add (these (read scan_latex_length syms)) 0;
 
-fun output_known_symbols known syms =
+fun output_symbols syms =
   if exists is_latex_control syms then
-    (case read (scan_latex known) syms of
+    (case read scan_latex syms of
       SOME ss => implode ss
     | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)))
-  else implode (map (output_known_sym known) syms);
+  else implode (map output_sym syms);
 
-val output_symbols = output_known_symbols (K true, K true);
 val output_syms = output_symbols o Symbol.explode;
 
 val output_syms_antiq =
@@ -265,16 +258,10 @@ fun environment_delim name =
 fun environment_block name = environment_delim name |-> enclose_body #> block;
 fun environment name = environment_delim name |-> enclose;
 
-fun isabelle_body_delim name =
- ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n",
-  "%\n\\end{isabellebody}%\n");
-
-fun isabelle_body name = isabelle_body_delim name |-> enclose_body;
-
-fun symbol_source known name syms =
-  uncurry enclose (isabelle_body_delim name)
-    ("\\isamarkupfile{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
-      output_known_symbols known syms);
+fun isabelle_body name =
+  enclose_body
+   ("%\n\\begin{isabellebody}%\n\\setisabellecontext{" ^ output_syms name ^ "}%\n")
+   "%\n\\end{isabellebody}%\n";
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 

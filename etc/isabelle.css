@@ -31,6 +31,7 @@ body {
 /* basic syntax markup */
 
 .hidden         { font-family: Vacuous; font-size: 1%; color: rgba(255,255,255,0); }
+.control        { font-weight: bold; font-style: italic; }
 
 .binding        { color: #336655; }
 .tfree          { color: #A020F0; }

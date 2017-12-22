@@ -25,6 +25,7 @@
     "activationEvents": [
         "onLanguage:isabelle",
         "onLanguage:isabelle-ml",
+        "onLanguage:bibtex",
         "onCommand:isabelle.preview",
         "onCommand:isabelle.preview-split",
         "onCommand:isabelle.preview-source"
@@ -107,7 +108,27 @@
                     "group": "navigation"
                 },
                 {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == bibtex",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
                     "when": "editorLangId == isabelle",
+                    "command": "isabelle.preview-split",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.preview-split",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == bibtex",
                     "command": "isabelle.preview-split",
                     "group": "navigation"
                 },
@@ -125,6 +146,16 @@
             "explorer/context": [
                 {
                     "when": "resourceLangId == isabelle",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == isabelle-ml",
+                    "command": "isabelle.preview",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceLangId == bibtex",
                     "command": "isabelle.preview",
                     "group": "navigation"
                 }
@@ -492,11 +523,11 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.43",
-        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.44",
+        "@types/node": "^7.0.51",
         "mocha": "^3.5.3",
-        "typescript": "^2.5.2",
-        "vscode": "^1.1.5"
+        "typescript": "^2.6.2",
+        "vscode": "^1.1.10"
     },
     "dependencies": {
         "vscode-languageclient": "~3.2.2"

@@ -286,14 +286,16 @@ object Document_Model
 
   /* HTTP preview */
 
-  def open_preview(view: View)
+  private val plain_text_prefix = "plain_text="
+
+  def open_preview(view: View, plain_text: Boolean)
   {
     Document_Model.get(view.getBuffer) match {
       case Some(model) =>
         val name = model.node_name
         val url =
           PIDE.plugin.http_server.url.toString + PIDE.plugin.http_root + "/preview?" +
-            Url.encode(if (name.is_theory) name.theory else name.node)
+            (if (plain_text) plain_text_prefix else "") + Url.encode(name.node)
         PIDE.editor.hyperlink_url(url).follow(view)
       case _ =>
     }
@@ -307,13 +309,17 @@ object Document_Model
     val preview =
       HTTP.get(preview_root, arg =>
         for {
-          url_name <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode(_))
-          model <-
-            get_models().iterator.collectFirst(
-              { case (name, model)
-                if url_name == (if (name.is_theory) name.theory else name.node) => model })
+          query <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode(_))
+          name = Library.perhaps_unprefix(plain_text_prefix, query)
+          model <- get(PIDE.resources.node_name(name))
         }
-        yield HTTP.Response.html(model.preview(fonts_root)))
+        yield {
+          val snapshot = model.await_stable_snapshot()
+          val preview =
+            Present.preview(snapshot, fonts_url = HTML.fonts_dir(fonts_root),
+              plain_text = query.startsWith(plain_text_prefix))
+          HTTP.Response.html(preview.content)
+        })
 
     List(HTTP.fonts(fonts_root), preview)
   }
@@ -321,30 +327,6 @@ object Document_Model
 
 sealed abstract class Document_Model extends Document.Model
 {
-  /* content */
-
-  def bibtex_entries: List[Text.Info[String]]
-
-  def preview(fonts_dir: String): String =
-  {
-    val snapshot = await_stable_snapshot()
-
-    if (is_bibtex) Bibtex.present(snapshot)
-    else {
-      HTML.output_document(
-        List(HTML.style(HTML.fonts_css(HTML.fonts_dir(fonts_dir)) + File.read(HTML.isabelle_css))),
-          css = "",
-          body =
-            if (is_theory)
-              List(HTML.chapter("Theory " + quote(node_name.theory_base_name)),
-                HTML.source(Present.theory_document(snapshot)))
-            else
-              List(HTML.chapter("File " + quote(node_name.node)),
-                HTML.source(Present.text_document(snapshot))))
-    }
-  }
-
-
   /* perspective */
 
   def document_view_ranges(snapshot: Document.Snapshot): List[Text.Range] = Nil
@@ -437,7 +419,7 @@ case class File_Model(
 
   def get_blob: Option[Document.Blob] =
     if (is_theory) None
-    else Some(Document.Blob(content.bytes, content.chunk, pending_edits.nonEmpty))
+    else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
   def bibtex_entries: List[Text.Info[String]] =
     if (is_bibtex) content.bibtex_entries else Nil
@@ -529,7 +511,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
   /* blob */
 
   // owned by GUI thread
-  private var _blob: Option[(Bytes, Symbol.Text_Chunk)] = None
+  private var _blob: Option[(Bytes, String, Symbol.Text_Chunk)] = None
 
   private def reset_blob(): Unit = GUI_Thread.require { _blob = None }
 
@@ -537,17 +519,19 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
     GUI_Thread.require {
       if (is_theory) None
       else {
-        val (bytes, chunk) =
+        val (bytes, text, chunk) =
           _blob match {
             case Some(x) => x
             case None =>
               val bytes = PIDE.resources.make_file_content(buffer)
-              val chunk = Symbol.Text_Chunk(buffer.getSegment(0, buffer.getLength))
-              _blob = Some((bytes, chunk))
-              (bytes, chunk)
+              val text = buffer.getText(0, buffer.getLength)
+              val chunk = Symbol.Text_Chunk(text)
+              val x = (bytes, text, chunk)
+              _blob = Some(x)
+              x
           }
         val changed = pending_edits.nonEmpty
-        Some(Document.Blob(bytes, chunk, changed))
+        Some(Document.Blob(bytes, text, chunk, changed))
       }
     }
 
