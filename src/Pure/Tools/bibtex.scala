@@ -494,7 +494,7 @@ object Bibtex
 
   private val output_styles =
     List(
-      "empty" -> "html-n",
+      "" -> "html-n",
       "plain" -> "html-n",
       "alpha" -> "html-a",
       "named" -> "html-n",
@@ -506,7 +506,7 @@ object Bibtex
     title: String = "Bibliography",
     body: Boolean = false,
     citations: List[String] = List("*"),
-    style: String = "empty",
+    style: String = "",
     chronological: Boolean = false): String =
   {
     Isabelle_System.with_tmp_dir("bibtex")(tmp_dir =>
@@ -549,7 +549,8 @@ object Bibtex
 
       Isabelle_System.bash(
         "\"$BIB2XHTML_HOME/main/bib2xhtml.pl\" -B \"$ISABELLE_BIBTEX\"" +
-          " -u -s " + Bash.string(style) + (if (chronological) " -c" else "") +
+          " -u -s " + Bash.string(proper_string(style) getOrElse "empty") +
+          (if (chronological) " -c" else "") +
           (if (title != "") " -h " + Bash.string(title) + " " else "") +
           " " + File.bash_path(in_file) + " " + File.bash_path(out_file),
         cwd = tmp_dir.file).check
