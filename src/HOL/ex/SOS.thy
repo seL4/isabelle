@@ -9,14 +9,14 @@ theory SOS
 imports "HOL-Library.Sum_of_Squares"
 begin
 
-lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<Longrightarrow> a < 0"
+lemma "(3::real) * x + 7 * a < 4 \<and> 3 < 2 * x \<Longrightarrow> a < 0"
   by sos
 
 lemma "a1 \<ge> 0 \<and> a2 \<ge> 0 \<and> (a1 * a1 + a2 * a2 = b1 * b1 + b2 * b2 + 2) \<and> (a1 * b1 + a2 * b2 = 0) \<longrightarrow>
     a1 * a2 - b1 * b2 \<ge> (0::real)"
   by sos
 
-lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<longrightarrow> a < 0"
+lemma "(3::real) * x + 7 * a < 4 \<and> 3 < 2 * x \<longrightarrow> a < 0"
   by sos
 
 lemma "(0::real) \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow>
@@ -120,7 +120,7 @@ lemma "(a::real) * x\<^sup>2 + b * x + c = 0 \<longrightarrow> b\<^sup>2 \<ge> 4
 lemma "(0::real) \<le> b \<and> 0 \<le> c \<and> 0 \<le> x \<and> 0 \<le> y \<and> x\<^sup>2 = c \<and> y\<^sup>2 = a\<^sup>2 * c + b \<longrightarrow> a * c \<le> y * x"
   by sos
 
-lemma "\<bar>x - z\<bar> \<le> e \<and> \<bar>y - z\<bar> \<le> e \<and> 0 \<le> u \<and> 0 \<le> v \<and> u + v = 1 --> \<bar>(u * x + v * y) - z\<bar> \<le> (e::real)"
+lemma "\<bar>x - z\<bar> \<le> e \<and> \<bar>y - z\<bar> \<le> e \<and> 0 \<le> u \<and> 0 \<le> v \<and> u + v = 1 \<longrightarrow> \<bar>(u * x + v * y) - z\<bar> \<le> (e::real)"
   by sos
 
 lemma "(x::real) - y - 2 * x^4 = 0 \<and> 0 \<le> x \<and> x \<le> 2 \<and> 0 \<le> y \<and> y \<le> 3 \<longrightarrow> y\<^sup>2 - 7 * y - 12 * x + 17 \<ge> 0"

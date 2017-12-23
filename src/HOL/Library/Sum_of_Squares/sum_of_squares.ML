@@ -48,8 +48,8 @@ fun round_rat r =
   in s (if x2 >= b then d + 1 else d) end
 
 
-val trace = Attrib.setup_config_bool @{binding sos_trace} (K false);
-val debug = Attrib.setup_config_bool @{binding sos_debug} (K false);
+val trace = Attrib.setup_config_bool \<^binding>\<open>sos_trace\<close> (K false);
+val debug = Attrib.setup_config_bool \<^binding>\<open>sos_debug\<close> (K false);
 
 fun trace_message ctxt msg =
   if Config.get ctxt trace orelse Config.get ctxt debug then tracing (msg ()) else ();
@@ -218,14 +218,14 @@ fun poly_variables p =
 (* Conversion from HOL term.                                                 *)
 
 local
-  val neg_tm = @{cterm "uminus :: real => _"}
-  val add_tm = @{cterm "op + :: real => _"}
-  val sub_tm = @{cterm "op - :: real => _"}
-  val mul_tm = @{cterm "op * :: real => _"}
-  val inv_tm = @{cterm "inverse :: real => _"}
-  val div_tm = @{cterm "op / :: real => _"}
-  val pow_tm = @{cterm "op ^ :: real => _"}
-  val zero_tm = @{cterm "0:: real"}
+  val neg_tm = \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close>
+  val add_tm = \<^cterm>\<open>op + :: real \<Rightarrow> _\<close>
+  val sub_tm = \<^cterm>\<open>op - :: real \<Rightarrow> _\<close>
+  val mul_tm = \<^cterm>\<open>op * :: real \<Rightarrow> _\<close>
+  val inv_tm = \<^cterm>\<open>inverse :: real \<Rightarrow> _\<close>
+  val div_tm = \<^cterm>\<open>op / :: real \<Rightarrow> _\<close>
+  val pow_tm = \<^cterm>\<open>op ^ :: real \<Rightarrow> _\<close>
+  val zero_tm = \<^cterm>\<open>0:: real\<close>
   val is_numeral = can (HOLogic.dest_number o Thm.term_of)
   fun poly_of_term tm =
     if tm aconvc zero_tm then poly_0
@@ -270,7 +270,7 @@ local
         end handle CTERM ("dest_comb",_) => poly_var tm)
 in
   val poly_of_term = fn tm =>
-    if type_of (Thm.term_of tm) = @{typ real}
+    if type_of (Thm.term_of tm) = \<^typ>\<open>real\<close>
     then poly_of_term tm
     else error "poly_of_term: term does not have real type"
 end;
@@ -757,7 +757,7 @@ fun real_nonlinear_prover proof_method ctxt =
   let
     val {add = _, mul = _, neg = _, pow = _, sub = _, main = real_poly_conv} =
       Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+        (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))
         simple_cterm_ord
     fun mainf cert_choice translator (eqs, les, lts) =
       let
@@ -861,15 +861,15 @@ local
       by (atomize (full)) (simp add: field_simps)})
   fun substitutable_monomial fvs tm =
     (case Thm.term_of tm of
-      Free (_, @{typ real}) =>
+      Free (_, \<^typ>\<open>real\<close>) =>
         if not (member (op aconvc) fvs tm) then (@1, tm)
         else raise Failure "substitutable_monomial"
-    | @{term "op * :: real => _"} $ _ $ (Free _) =>
+    | \<^term>\<open>op * :: real \<Rightarrow> _\<close> $ _ $ (Free _) =>
         if RealArith.is_ratconst (Thm.dest_arg1 tm) andalso
           not (member (op aconvc) fvs (Thm.dest_arg tm))
         then (RealArith.dest_ratconst (Thm.dest_arg1 tm), Thm.dest_arg tm)
         else raise Failure "substitutable_monomial"
-    | @{term "op + :: real => _"}$_$_ =>
+    | \<^term>\<open>op + :: real \<Rightarrow> _\<close>$_$_ =>
          (substitutable_monomial (Drule.cterm_add_frees (Thm.dest_arg tm) fvs) (Thm.dest_arg1 tm)
            handle Failure _ =>
             substitutable_monomial (Drule.cterm_add_frees (Thm.dest_arg1 tm) fvs) (Thm.dest_arg tm))
@@ -882,7 +882,7 @@ local
       if v aconvc w then th
       else
         (case Thm.term_of w of
-          @{term "op + :: real => _"} $ _ $ _ =>
+          \<^term>\<open>op + :: real \<Rightarrow> _\<close> $ _ $ _ =>
             if Thm.dest_arg1 w aconvc v then shuffle2 th
             else isolate_variable v (shuffle1 th)
         | _ => error "isolate variable : This should not happen?")
@@ -893,7 +893,7 @@ fun real_nonlinear_subst_prover prover ctxt =
   let
     val {add = _, mul = real_poly_mul_conv, neg = _, pow = _, sub = _, main = real_poly_conv} =
       Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+        (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))
         simple_cterm_ord
 
     fun make_substitution th =
@@ -901,14 +901,14 @@ fun real_nonlinear_subst_prover prover ctxt =
         val (c,v) = substitutable_monomial [] (Thm.dest_arg1(concl th))
         val th1 =
           Drule.arg_cong_rule
-            (Thm.apply @{cterm "op * :: real => _"} (RealArith.cterm_of_rat (Rat.inv c)))
+            (Thm.apply \<^cterm>\<open>op * :: real \<Rightarrow> _\<close> (RealArith.cterm_of_rat (Rat.inv c)))
             (mk_meta_eq th)
         val th2 = fconv_rule (binop_conv (real_poly_mul_conv ctxt)) th1
       in fconv_rule (arg_conv (real_poly_conv ctxt)) (isolate_variable v th2) end
 
     fun oprconv cv ct =
       let val g = Thm.dest_fun2 ct in
-        if g aconvc @{cterm "op <= :: real => _"} orelse g aconvc @{cterm "op < :: real => _"}
+        if g aconvc \<^cterm>\<open>op \<le> :: real \<Rightarrow> _\<close> orelse g aconvc \<^cterm>\<open>op < :: real \<Rightarrow> _\<close>
         then arg_conv cv ct else arg1_conv cv ct
       end
     fun mainf cert_choice translator =
@@ -921,7 +921,7 @@ fun real_nonlinear_subst_prover prover ctxt =
             in
               substfirst
                 (filter_out
-                  (fn t => (Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of) t aconvc @{cterm "0::real"})
+                  (fn t => (Thm.dest_arg1 o Thm.dest_arg o Thm.cprop_of) t aconvc \<^cterm>\<open>0::real\<close>)
                   (map modify eqs),
                   map modify les,
                   map modify lts)
@@ -938,21 +938,21 @@ fun real_sos prover ctxt =
 end;
 
 val known_sos_constants =
-  [@{term "op ==>"}, @{term "Trueprop"},
-   @{term HOL.False}, @{term HOL.implies}, @{term HOL.conj}, @{term HOL.disj},
-   @{term "Not"}, @{term "op = :: bool => _"},
-   @{term "All :: (real => _) => _"}, @{term "Ex :: (real => _) => _"},
-   @{term "op = :: real => _"}, @{term "op < :: real => _"},
-   @{term "op <= :: real => _"},
-   @{term "op + :: real => _"}, @{term "op - :: real => _"},
-   @{term "op * :: real => _"}, @{term "uminus :: real => _"},
-   @{term "op / :: real => _"}, @{term "inverse :: real => _"},
-   @{term "op ^ :: real => _"}, @{term "abs :: real => _"},
-   @{term "min :: real => _"}, @{term "max :: real => _"},
-   @{term "0::real"}, @{term "1::real"},
-   @{term "numeral :: num => nat"},
-   @{term "numeral :: num => real"},
-   @{term "Num.Bit0"}, @{term "Num.Bit1"}, @{term "Num.One"}];
+  [\<^term>\<open>op \<Longrightarrow>\<close>, \<^term>\<open>Trueprop\<close>,
+   \<^term>\<open>HOL.False\<close>, \<^term>\<open>HOL.implies\<close>, \<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>,
+   \<^term>\<open>Not\<close>, \<^term>\<open>op = :: bool \<Rightarrow> _\<close>,
+   \<^term>\<open>All :: (real \<Rightarrow> _) \<Rightarrow> _\<close>, \<^term>\<open>Ex :: (real \<Rightarrow> _) \<Rightarrow> _\<close>,
+   \<^term>\<open>op = :: real \<Rightarrow> _\<close>, \<^term>\<open>op < :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>op \<le> :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>op + :: real \<Rightarrow> _\<close>, \<^term>\<open>op - :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>op * :: real \<Rightarrow> _\<close>, \<^term>\<open>uminus :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>op / :: real \<Rightarrow> _\<close>, \<^term>\<open>inverse :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>op ^ :: real \<Rightarrow> _\<close>, \<^term>\<open>abs :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>min :: real \<Rightarrow> _\<close>, \<^term>\<open>max :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>0::real\<close>, \<^term>\<open>1::real\<close>,
+   \<^term>\<open>numeral :: num \<Rightarrow> nat\<close>,
+   \<^term>\<open>numeral :: num \<Rightarrow> real\<close>,
+   \<^term>\<open>Num.Bit0\<close>, \<^term>\<open>Num.Bit1\<close>, \<^term>\<open>Num.One\<close>];
 
 fun check_sos kcts ct =
   let
@@ -963,12 +963,12 @@ fun check_sos kcts ct =
       else ()
     val fs = Term.add_frees t []
     val _ =
-      if exists (fn ((_,T)) => not (T = @{typ "real"})) fs
+      if exists (fn ((_,T)) => not (T = \<^typ>\<open>real\<close>)) fs
       then error "SOS: not sos. Variables with type not real"
       else ()
     val vs = Term.add_vars t []
     val _ =
-      if exists (fn ((_,T)) => not (T = @{typ "real"})) vs
+      if exists (fn ((_,T)) => not (T = \<^typ>\<open>real\<close>)) vs
       then error "SOS: not sos. Variables with type not real"
       else ()
     val ukcs = subtract (fn (t,p) => Const p aconv t) kcts (Term.add_consts t [])
@@ -996,13 +996,13 @@ local
 in
   fun get_denom b ct =
     (case Thm.term_of ct of
-      @{term "op / :: real => _"} $ _ $ _ =>
+      \<^term>\<open>op / :: real \<Rightarrow> _\<close> $ _ $ _ =>
         if is_numeral (Thm.dest_arg ct)
         then get_denom b (Thm.dest_arg1 ct)
         else default_SOME (get_denom b) (get_denom b (Thm.dest_arg ct)) (Thm.dest_arg ct, b)
-    | @{term "op < :: real => _"} $ _ $ _ =>
+    | \<^term>\<open>op < :: real \<Rightarrow> _\<close> $ _ $ _ =>
         lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
-    | @{term "op <= :: real => _"} $ _ $ _ =>
+    | \<^term>\<open>op \<le> :: real \<Rightarrow> _\<close> $ _ $ _ =>
         lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
     | _ $ _ => lift_SOME (get_denom b) (get_denom b (Thm.dest_fun ct)) (Thm.dest_arg ct)
     | _ => NONE)

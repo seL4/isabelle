@@ -370,7 +370,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun eqT_elim th = Thm.equal_elim (Thm.symmetric th) @{thm TrueI}
     fun oprconv cv ct =
       let val g = Thm.dest_fun2 ct
-      in if g aconvc \<^cterm>\<open>(op <=) :: real \<Rightarrow> _\<close>
+      in if g aconvc \<^cterm>\<open>(op \<le>) :: real \<Rightarrow> _\<close>
             orelse g aconvc \<^cterm>\<open>(op <) :: real \<Rightarrow> _\<close>
          then arg_conv cv ct else arg1_conv cv ct
       end
@@ -409,7 +409,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
                           (Thm.apply (Thm.apply \<^cterm>\<open>(op =)::real \<Rightarrow> _\<close> (mk_numeric x))
                                \<^cterm>\<open>0::real\<close>)))
           | Rational_le x => eqT_elim(numeric_ge_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                          (Thm.apply (Thm.apply \<^cterm>\<open>(op <=)::real \<Rightarrow> _\<close>
+                          (Thm.apply (Thm.apply \<^cterm>\<open>(op \<le>)::real \<Rightarrow> _\<close>
                                      \<^cterm>\<open>0::real\<close>) (mk_numeric x))))
           | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
                       (Thm.apply (Thm.apply \<^cterm>\<open>(op <)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>)
@@ -429,7 +429,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     val concl = Thm.dest_arg o Thm.cprop_of
     fun is_binop opr ct = (Thm.dest_fun2 ct aconvc opr handle CTERM _ => false)
     val is_req = is_binop \<^cterm>\<open>(op =):: real \<Rightarrow> _\<close>
-    val is_ge = is_binop \<^cterm>\<open>(op <=):: real \<Rightarrow> _\<close>
+    val is_ge = is_binop \<^cterm>\<open>(op \<le>):: real \<Rightarrow> _\<close>
     val is_gt = is_binop \<^cterm>\<open>(op <):: real \<Rightarrow> _\<close>
     val is_conj = is_binop \<^cterm>\<open>HOL.conj\<close>
     val is_disj = is_binop \<^cterm>\<open>HOL.disj\<close>
