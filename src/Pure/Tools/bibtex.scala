@@ -38,6 +38,86 @@ object Bibtex
 
 
 
+  /** check database **/
+
+  sealed case class Message(is_error: Boolean, msg: String, pos: Position.T)
+  {
+    def output: Unit =
+      if (is_error)
+        Output.error_message("Bibtex error" + Position.here(pos) + ":\n  " + msg)
+      else Output.warning("Bibtex warning" + Position.here(pos) + ":\n  " + msg)
+  }
+
+  def check_database(bib_file: Path): List[Message] =
+  {
+    val chunks = parse(Line.normalize(File.read(bib_file)))
+
+    val tokens = new mutable.ListBuffer[(Token, Position.T)]
+    var line = 1
+    var offset = 1
+    var chunk_pos = Map.empty[String, Position.T]
+    val file_pos = bib_file.expand.position
+
+    def token_pos(tok: Token): Position.T =
+      Position.Offset(offset) ::: Position.End_Offset(offset + tok.source.length) :::
+      Position.Line(line) ::: file_pos
+
+    def advance_pos(tok: Token)
+    {
+      for (s <- Symbol.iterator(tok.source)) {
+        if (Symbol.is_newline(s)) line += 1
+        offset += 1
+      }
+    }
+
+    def get_line_pos(l: Int): Position.T =
+      if (0 < l && l <= tokens.length) tokens(l - 1)._2 else Position.none
+
+    for (chunk <- chunks) {
+      val name = chunk.name
+      if (name != "" && !chunk_pos.isDefinedAt(name)) {
+        chunk_pos += (name -> token_pos(chunk.tokens.head))
+      }
+      for (tok <- chunk.tokens) {
+        tokens += (tok.copy(source = tok.source.replace("\n", " ")) -> token_pos(tok))
+        advance_pos(tok)
+      }
+    }
+
+    Isabelle_System.with_tmp_dir("bibtex")(tmp_dir =>
+    {
+      File.write(tmp_dir + Path.explode("root.bib"),
+        tokens.iterator.map(p => p._1.source).mkString("", "\n", "\n"))
+      File.write(tmp_dir + Path.explode("root.aux"),
+        "\\bibstyle{plain}\n\\bibdata{root}\n\\citation{*}")
+      Isabelle_System.bash("\"$ISABELLE_BIBTEX\" root", cwd = tmp_dir.file)
+
+      val Error = """^(.*)---line (\d+) of file root.bib$""".r
+      val Warning = """^Warning--(.+)$""".r
+      val Warning_Line = """--line (\d+) of file root.bib$""".r
+      val Warning_in_Chunk = """^Warning--(.+) in (.+)$""".r
+
+      val log_file = tmp_dir + Path.explode("root.blg")
+      val lines = if (log_file.is_file) Line.logical_lines(File.read(log_file)) else Nil
+
+      lines.zip(lines.tail ::: List("")).flatMap(
+        {
+          case (Error(msg, Value.Int(l)), _) =>
+            Some(Message(true, msg, get_line_pos(l)))
+          case (Warning_in_Chunk(msg, name), _) if chunk_pos.isDefinedAt(name) =>
+            Some(Message(false, Word.capitalize(msg + " in entry " + quote(name)), chunk_pos(name)))
+          case (Warning(msg), Warning_Line(Value.Int(l))) =>
+            Some(Message(false, Word.capitalize(msg), get_line_pos(l)))
+          case (Warning(msg), _) =>
+            Some(Message(false, Word.capitalize(msg), Position.none))
+          case _ => None
+        }
+      )
+    })
+  }
+
+
+
   /** document model **/
 
   def check_name(name: String): Boolean = name.endsWith(".bib")
