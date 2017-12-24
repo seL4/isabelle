@@ -56,9 +56,8 @@ object Bibtex
     var line = 1
     var offset = 1
 
-    def token_pos(tok: Token): Position.T =
-      Position.Offset(offset) ::: Position.End_Offset(offset + tok.source.length) :::
-      Position.Line(line)
+    def make_pos(length: Int): Position.T =
+      Position.Offset(offset) ::: Position.End_Offset(offset + length) ::: Position.Line(line)
 
     def advance_pos(tok: Token)
     {
@@ -74,10 +73,10 @@ object Bibtex
     for (chunk <- chunks) {
       val name = chunk.name
       if (name != "" && !chunk_pos.isDefinedAt(name)) {
-        chunk_pos += (name -> token_pos(chunk.tokens.head))
+        chunk_pos += (name -> make_pos(chunk.heading_length))
       }
       for (tok <- chunk.tokens) {
-        tokens += (tok.copy(source = tok.source.replace("\n", " ")) -> token_pos(tok))
+        tokens += (tok.copy(source = tok.source.replace("\n", " ")) -> make_pos(tok.source.length))
         advance_pos(tok)
       }
     }
@@ -320,8 +319,10 @@ object Bibtex
     def is_ignored: Boolean =
       kind == Token.Kind.SPACE ||
       kind == Token.Kind.COMMENT
-    def is_malformed: Boolean = kind ==
-      Token.Kind.ERROR
+    def is_malformed: Boolean =
+      kind == Token.Kind.ERROR
+    def is_open: Boolean =
+      kind == Token.Kind.KEYWORD && (source == "{" || source == "(")
   }
 
   case class Chunk(kind: String, tokens: List[Token])
@@ -348,6 +349,10 @@ object Bibtex
         case Some(tok :: _) if tok.is_name => tok.source
         case _ => ""
       }
+
+    def heading_length: Int =
+      if (name == "") 1
+      else (0 /: tokens.takeWhile(tok => !tok.is_open)){ case (n, tok) => n + tok.source.length }
 
     def is_ignored: Boolean = kind == "" && tokens.forall(_.is_ignored)
     def is_malformed: Boolean = kind == "" || tokens.exists(_.is_malformed)
