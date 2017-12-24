@@ -283,7 +283,6 @@ ML_file "Isar/outer_syntax.ML";
 ML_file "ML/ml_antiquotations.ML";
 ML_file "Thy/thy_output.ML";
 ML_file "Thy/document_antiquotations.ML";
-ML_file "Thy/bibtex.ML";
 ML_file "General/graph_display.ML";
 ML_file "pure_syn.ML";
 ML_file "PIDE/command.ML";
@@ -307,6 +306,7 @@ ML_file "System/system_channel.ML";
 ML_file "System/message_channel.ML";
 ML_file "System/isabelle_process.ML";
 ML_file "System/invoke_scala.ML";
+ML_file "Thy/bibtex.ML";
 ML_file "PIDE/protocol.ML";
 ML_file "General/output_primitives_virtual.ML";
 

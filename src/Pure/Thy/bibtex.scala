@@ -48,19 +48,17 @@ object Bibtex
       else Output.warning("Bibtex warning" + Position.here(pos) + ":\n  " + msg)
   }
 
-  def check_database(bib_file: Path): List[Message] =
+  def check_database(database: String): List[Message] =
   {
-    val chunks = parse(Line.normalize(File.read(bib_file)))
-
+    val chunks = parse(Line.normalize(database))
+    var chunk_pos = Map.empty[String, Position.T]
     val tokens = new mutable.ListBuffer[(Token, Position.T)]
     var line = 1
     var offset = 1
-    var chunk_pos = Map.empty[String, Position.T]
-    val file_pos = bib_file.expand.position
 
     def token_pos(tok: Token): Position.T =
       Position.Offset(offset) ::: Position.End_Offset(offset + tok.source.length) :::
-      Position.Line(line) ::: file_pos
+      Position.Line(line)
 
     def advance_pos(tok: Token)
     {
@@ -114,6 +112,18 @@ object Bibtex
         }
       )
     })
+  }
+
+  def check_database_yxml(database: String): String =
+  {
+    val messages = check_database(database)
+
+    {
+      import XML.Encode._
+      def encode_message(message: Message): XML.Body =
+        triple(bool, string, properties)(message.is_error, message.msg, message.pos)
+      YXML.string_of_body(list[Message](encode_message _)(messages))
+    }
   }
 
 

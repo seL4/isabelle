@@ -6,11 +6,40 @@ BibTeX support.
 
 signature BIBTEX =
 sig
+  type message = {is_error: bool, msg: string, pos: Position.T}
+  val check_database: Position.T -> string -> message list
+  val check_database_output: Position.T -> string -> unit
   val cite_macro: string Config.T
 end;
 
 structure Bibtex: BIBTEX =
 struct
+
+(* check database *)
+
+type message = {is_error: bool, msg: string, pos: Position.T};
+
+fun check_database pos0 database =
+  Invoke_Scala.method "isabelle.Bibtex.check_database_yxml" database
+  |> YXML.parse_body
+  |> let open XML.Decode in list (triple bool string properties) end
+  |> map (fn (is_error, msg, pos) =>
+      {is_error = is_error, msg = msg,
+        pos = Position.of_properties (pos @ Position.properties_of pos0)});
+
+fun check_database_output pos0 database =
+  let
+    val messages = check_database pos0 database;
+    val (errors, warnings) = List.partition #is_error messages;
+  in
+    errors |> List.app (fn {msg, pos, ...} =>
+      Output.error_message ("Bibtex error" ^ Position.here pos ^ ":\n  " ^ msg));
+    warnings |> List.app (fn {msg, pos, ...} =>
+      warning ("Bibtex warning" ^ Position.here pos ^ ":\n  " ^ msg))
+  end;
+
+
+(* document antiquotations *)
 
 val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close> (K "cite");
 
