@@ -1515,6 +1515,11 @@ lemma borel_measurable_complex_iff:
   apply auto
   done
 
+lemma powr_real_measurable [measurable]:
+  assumes "f \<in> measurable M borel" "g \<in> measurable M borel"
+  shows   "(\<lambda>x. f x powr g x :: real) \<in> measurable M borel"
+  using assms by (simp_all add: powr_def)
+
 lemma measurable_of_bool[measurable]: "of_bool \<in> count_space UNIV \<rightarrow>\<^sub>M borel"
   by simp
 

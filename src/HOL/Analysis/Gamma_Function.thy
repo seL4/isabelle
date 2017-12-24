@@ -1653,7 +1653,10 @@ lemma ln_Gamma_real_conv_fact: "n > 0 \<Longrightarrow> ln_Gamma (real n) = ln (
   using Gamma_fact[of "n - 1", where 'a = real]
   by (simp add: ln_Gamma_real_pos of_nat_diff Ln_of_real [symmetric])
 
-lemma Gamma_real_pos: "x > (0::real) \<Longrightarrow> Gamma x > 0"
+lemma Gamma_real_pos [simp, intro]: "x > (0::real) \<Longrightarrow> Gamma x > 0"
+  by (simp add: Gamma_real_pos_exp)
+
+lemma Gamma_real_nonneg [simp, intro]: "x > (0::real) \<Longrightarrow> Gamma x \<ge> 0"
   by (simp add: Gamma_real_pos_exp)
 
 lemma has_field_derivative_ln_Gamma_real [derivative_intros]:
@@ -2985,6 +2988,170 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Gamma_conv_nn_integral_real:
+  assumes "s > (0::real)"
+  shows   "Gamma s = nn_integral lborel (\<lambda>t. ennreal (indicator {0..} t * t powr (s - 1) / exp t))"
+  using nn_integral_has_integral_lebesgue[OF _ Gamma_integral_real[OF assms]] by simp
+
+lemma integrable_Beta:
+  assumes "a > 0" "b > (0::real)"
+  shows   "set_integrable lborel {0..1} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+proof -
+  define C where "C = max 1 ((1/2) powr (b - 1))"
+  define D where "D = max 1 ((1/2) powr (a - 1))"
+  have C: "(1 - x) powr (b - 1) \<le> C" if "x \<in> {0..1/2}" for x
+  proof (cases "b < 1")
+    case False
+    with that have "(1 - x) powr (b - 1) \<le> (1 powr (b - 1))" by (intro powr_mono2) auto
+    thus ?thesis by (auto simp: C_def)
+  qed (insert that, auto simp: max.coboundedI1 max.coboundedI2 powr_mono2' powr_mono2 C_def)
+  have D: "x powr (a - 1) \<le> D" if "x \<in> {1/2..1}" for x
+  proof (cases "a < 1")
+    case False
+    with that have "x powr (a - 1) \<le> (1 powr (a - 1))" by (intro powr_mono2) auto
+    thus ?thesis by (auto simp: D_def)
+  next
+    case True
+  qed (insert that, auto simp: max.coboundedI1 max.coboundedI2 powr_mono2' powr_mono2 D_def)
+  have [simp]: "C \<ge> 0" "D \<ge> 0" by (simp_all add: C_def D_def)
+
+  have I1: "set_integrable lborel {0..1 / 2} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+  proof (rule Bochner_Integration.integrable_bound[OF _ _ AE_I2])
+    have "(\<lambda>t. t powr (a - 1)) integrable_on {0..1 / 2}"
+      by (rule integrable_on_powr_from_0) (use assms in auto)
+    hence "(\<lambda>t. t powr (a - 1)) absolutely_integrable_on {0..1 / 2}"
+      by (subst absolutely_integrable_on_iff_nonneg) auto
+    from integrable_mult_right[OF this, of C]
+      show "set_integrable lborel {0..1 / 2} (\<lambda>t. C * t powr (a - 1))"
+      by (subst (asm) integrable_completion) (auto simp: mult_ac)
+  next
+    fix x :: real
+    have "x powr (a - 1) * (1 - x) powr (b - 1) \<le> x powr (a - 1) * C" if "x \<in> {0..1/2}"
+      using that by (intro mult_left_mono powr_mono2 C) auto
+    thus "norm (indicator {0..1/2} x *\<^sub>R (x powr (a - 1) * (1 - x) powr (b - 1))) \<le>
+            norm (indicator {0..1/2} x *\<^sub>R (C * x powr (a - 1)))"
+      by (auto simp: indicator_def abs_mult mult_ac)
+  qed (auto intro!: AE_I2 simp: indicator_def)
+
+  have I2: "set_integrable lborel {1 / 2..1} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+  proof (rule Bochner_Integration.integrable_bound[OF _ _ AE_I2])
+    have "(\<lambda>t. t powr (b - 1)) integrable_on {0..1/2}"
+      by (rule integrable_on_powr_from_0) (use assms in auto)
+    hence "(\<lambda>t. t powr (b - 1)) integrable_on (cbox 0 (1/2))" by simp
+    from integrable_affinity[OF this, of "-1" 1]
+      have "(\<lambda>t. (1 - t) powr (b - 1)) integrable_on {1/2..1}" by simp
+    hence "(\<lambda>t. (1 - t) powr (b - 1)) absolutely_integrable_on {1/2..1}"
+      by (subst absolutely_integrable_on_iff_nonneg) auto
+    from integrable_mult_right[OF this, of D]
+      show "set_integrable lborel {1 / 2..1} (\<lambda>t. D * (1 - t) powr (b - 1))"
+      by (subst (asm) integrable_completion) (auto simp: mult_ac)
+  next
+    fix x :: real
+    have "x powr (a - 1) * (1 - x) powr (b - 1) \<le> D * (1 - x) powr (b - 1)" if "x \<in> {1/2..1}"
+      using that by (intro mult_right_mono powr_mono2 D) auto
+    thus "norm (indicator {1/2..1} x *\<^sub>R (x powr (a - 1) * (1 - x) powr (b - 1))) \<le>
+            norm (indicator {1/2..1} x *\<^sub>R (D * (1 - x) powr (b - 1)))"
+      by (auto simp: indicator_def abs_mult mult_ac)
+  qed (auto intro!: AE_I2 simp: indicator_def)
+
+  have "set_integrable lborel ({0..1/2} \<union> {1/2..1}) (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+    by (intro set_integrable_Un I1 I2) auto
+  also have "{0..1/2} \<union> {1/2..1} = {0..(1::real)}" by auto
+  finally show ?thesis .
+qed
+
+lemma integrable_Beta':
+  assumes "a > 0" "b > (0::real)"
+  shows   "(\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1)) integrable_on {0..1}"
+  using integrable_Beta[OF assms] by (rule set_borel_integral_eq_integral)
+
+lemma has_integral_Beta_real:
+  assumes a: "a > 0" and b: "b > (0 :: real)"
+  shows "((\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1)) has_integral Beta a b) {0..1}"
+proof -
+  define B where "B = integral {0..1} (\<lambda>x. x powr (a - 1) * (1 - x) powr (b - 1))"
+  have [simp]: "B \<ge> 0" unfolding B_def using a b
+    by (intro integral_nonneg integrable_Beta') auto
+  from a b have "ennreal (Gamma a * Gamma b) =
+    (\<integral>\<^sup>+ t. ennreal (indicator {0..} t * t powr (a - 1) / exp t) \<partial>lborel) *
+    (\<integral>\<^sup>+ t. ennreal (indicator {0..} t * t powr (b - 1) / exp t) \<partial>lborel)"
+    by (subst ennreal_mult') (simp_all add: Gamma_conv_nn_integral_real)
+  also have "\<dots> = (\<integral>\<^sup>+t. \<integral>\<^sup>+u. ennreal (indicator {0..} t * t powr (a - 1) / exp t) *
+                            ennreal (indicator {0..} u * u powr (b - 1) / exp u) \<partial>lborel \<partial>lborel)"
+    by (simp add: nn_integral_cmult nn_integral_multc)
+  also have "\<dots> = (\<integral>\<^sup>+t. \<integral>\<^sup>+u. ennreal (indicator ({0..}\<times>{0..}) (t,u) * t powr (a - 1) * u powr (b - 1)
+                            / exp (t + u)) \<partial>lborel \<partial>lborel)"
+    by (intro nn_integral_cong)
+       (auto simp: indicator_def divide_ennreal ennreal_mult' [symmetric] exp_add)
+  also have "\<dots> = (\<integral>\<^sup>+t. \<integral>\<^sup>+u. ennreal (indicator ({0..}\<times>{t..}) (t,u) * t powr (a - 1) * 
+                              (u - t) powr (b - 1) / exp u) \<partial>lborel \<partial>lborel)"
+  proof (rule nn_integral_cong, goal_cases)
+    case (1 t)
+    have "(\<integral>\<^sup>+u. ennreal (indicator ({0..}\<times>{0..}) (t,u) * t powr (a - 1) * 
+                              u powr (b - 1) / exp (t + u)) \<partial>distr lborel borel (op + (-t))) =
+               (\<integral>\<^sup>+u. ennreal (indicator ({0..}\<times>{t..}) (t,u) * t powr (a - 1) * 
+                              (u - t) powr (b - 1) / exp u) \<partial>lborel)"
+      by (subst nn_integral_distr) (auto intro!: nn_integral_cong simp: indicator_def)
+    thus ?case by (subst (asm) lborel_distr_plus)
+  qed
+  also have "\<dots> = (\<integral>\<^sup>+u. \<integral>\<^sup>+t. ennreal (indicator ({0..}\<times>{t..}) (t,u) * t powr (a - 1) * 
+                              (u - t) powr (b - 1) / exp u) \<partial>lborel \<partial>lborel)"
+    by (subst lborel_pair.Fubini')
+       (auto simp: case_prod_unfold indicator_def cong: measurable_cong_sets)
+  also have "\<dots> = (\<integral>\<^sup>+u. \<integral>\<^sup>+t. ennreal (indicator {0..u} t * t powr (a - 1) * (u - t) powr (b - 1)) *
+                              ennreal (indicator {0..} u / exp u) \<partial>lborel \<partial>lborel)"
+    by (intro nn_integral_cong) (auto simp: indicator_def ennreal_mult' [symmetric])
+  also have "\<dots> = (\<integral>\<^sup>+u. (\<integral>\<^sup>+t. ennreal (indicator {0..u} t * t powr (a - 1) * (u - t) powr (b - 1)) 
+                          \<partial>lborel) * ennreal (indicator {0..} u / exp u) \<partial>lborel)"
+    by (subst nn_integral_multc [symmetric]) auto 
+  also have "\<dots> = (\<integral>\<^sup>+u. (\<integral>\<^sup>+t. ennreal (indicator {0..u} t * t powr (a - 1) * (u - t) powr (b - 1)) 
+                          \<partial>lborel) * ennreal (indicator {0<..} u / exp u) \<partial>lborel)"
+    by (intro nn_integral_cong_AE eventually_mono[OF AE_lborel_singleton[of 0]]) 
+       (auto simp: indicator_def)
+  also have "\<dots> = (\<integral>\<^sup>+u. ennreal B * ennreal (indicator {0..} u / exp u * u powr (a + b - 1)) \<partial>lborel)"
+  proof (intro nn_integral_cong, goal_cases)
+    case (1 u)
+    show ?case
+    proof (cases "u > 0")
+      case True
+      have "(\<integral>\<^sup>+t. ennreal (indicator {0..u} t * t powr (a - 1) * (u - t) powr (b - 1)) \<partial>lborel) = 
+              (\<integral>\<^sup>+t. ennreal (indicator {0..1} t * (u * t) powr (a - 1) * (u - u * t) powr (b - 1)) 
+                \<partial>distr lborel borel (op * (1 / u)))" (is "_ = nn_integral _ ?f")
+        using True
+        by (subst nn_integral_distr) (auto simp: indicator_def field_simps intro!: nn_integral_cong)
+      also have "distr lborel borel (op * (1 / u)) = density lborel (\<lambda>_. u)"
+        using \<open>u > 0\<close> by (subst lborel_distr_mult) auto
+      also have "nn_integral \<dots> ?f = (\<integral>\<^sup>+x. ennreal (indicator {0..1} x * (u * (u * x) powr (a - 1) *
+                                              (u * (1 - x)) powr (b - 1))) \<partial>lborel)" using \<open>u > 0\<close>
+        by (subst nn_integral_density) (auto simp: ennreal_mult' [symmetric] algebra_simps)
+      also have "\<dots> = (\<integral>\<^sup>+x. ennreal (u powr (a + b - 1)) * 
+                            ennreal (indicator {0..1} x * x powr (a - 1) *
+                                       (1 - x) powr (b - 1)) \<partial>lborel)" using \<open>u > 0\<close> a b
+        by (intro nn_integral_cong)
+           (auto simp: indicator_def powr_mult powr_add powr_diff mult_ac ennreal_mult' [symmetric])
+      also have "\<dots> = ennreal (u powr (a + b - 1)) * 
+                        (\<integral>\<^sup>+x. ennreal (indicator {0..1} x * x powr (a - 1) *
+                                         (1 - x) powr (b - 1)) \<partial>lborel)"
+        by (subst nn_integral_cmult) auto
+      also have "((\<lambda>x. x powr (a - 1) * (1 - x) powr (b - 1)) has_integral 
+                   integral {0..1} (\<lambda>x. x powr (a - 1) * (1 - x) powr (b - 1))) {0..1}"
+        using a b by (intro integrable_integral integrable_Beta')
+      from nn_integral_has_integral_lebesgue[OF _ this] a b
+        have "(\<integral>\<^sup>+x. ennreal (indicator {0..1} x * x powr (a - 1) *
+                         (1 - x) powr (b - 1)) \<partial>lborel) = B" by (simp add: mult_ac B_def)
+      finally show ?thesis using \<open>u > 0\<close> by (simp add: ennreal_mult' [symmetric] mult_ac)
+    qed auto
+  qed
+  also have "\<dots> = ennreal B * ennreal (Gamma (a + b))"
+    using a b by (subst nn_integral_cmult) (auto simp: Gamma_conv_nn_integral_real)
+  also have "\<dots> = ennreal (B * Gamma (a + b))"
+    by (subst (1 2) mult.commute, intro ennreal_mult' [symmetric]) (use a b in auto)
+  finally have "B = Beta a b" using a b Gamma_real_pos[of "a + b"]
+    by (subst (asm) ennreal_inj) (auto simp: field_simps Beta_def Gamma_eq_zero_iff)
+  moreover have "(\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1)) integrable_on {0..1}"
+    by (intro integrable_Beta' a b)
+  ultimately show ?thesis by (simp add: has_integral_iff B_def)
+qed
 
 
 subsection \<open>The Weierstraß product formula for the sine\<close>

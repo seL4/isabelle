@@ -69,7 +69,6 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
 session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations
-    Circle_Area
 
 session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "HOL-Library" +
   theories
