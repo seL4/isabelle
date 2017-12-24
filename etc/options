@@ -238,6 +238,9 @@ option ssh_connect_timeout : real = 60
 option ssh_alive_interval : real = 30
   -- "time interval to keep SSH server connection alive (seconds)"
 
+option ssh_alive_count_max : int = 3
+  -- "maximum number of messages to keep SSH server connection alive"
+
 
 section "Build Log Database"
 

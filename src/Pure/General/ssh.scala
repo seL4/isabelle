@@ -44,6 +44,9 @@ object SSH
   def alive_interval(options: Options): Int =
     options.seconds("ssh_alive_interval").ms.toInt
 
+  def alive_count_max(options: Options): Int =
+    options.int("ssh_alive_count_max")
+
 
   /* init context */
 
@@ -85,6 +88,7 @@ object SSH
 
       session.setUserInfo(No_User_Info)
       session.setServerAliveInterval(alive_interval(options))
+      session.setServerAliveCountMax(alive_count_max(options))
       session.setConfig("MaxAuthTries", "3")
 
       if (options.bool("ssh_compression")) {
