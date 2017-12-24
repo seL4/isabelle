@@ -125,6 +125,7 @@ declare -a SOURCES=(
   System/process_result.scala
   System/progress.scala
   System/system_channel.scala
+  Thy/bibtex.scala
   Thy/html.scala
   Thy/latex.scala
   Thy/present.scala
@@ -132,7 +133,6 @@ declare -a SOURCES=(
   Thy/thy_header.scala
   Thy/thy_resources.scala
   Thy/thy_syntax.scala
-  Tools/bibtex.scala
   Tools/build.scala
   Tools/build_docker.scala
   Tools/check_keywords.scala

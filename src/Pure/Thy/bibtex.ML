@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/bibtex.ML
+(*  Title:      Pure/Thy/bibtex.ML
     Author:     Makarius
 
 BibTeX support.

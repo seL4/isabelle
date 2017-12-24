@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/bibtex.scala
+/*  Title:      Pure/Thy/bibtex.scala
     Author:     Makarius
 
 BibTeX support.
