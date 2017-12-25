@@ -7,7 +7,7 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * December 2017: Jan Gilcher, Andreas Lochbihler, Dmitriy Traytel
-  A new conditional paramertricity prover.
+  A new conditional parametricity prover.
 
 * October 2017: Alexander Maletzky
   Derivation of axiom "iff" in HOL.thy from the other axioms.
