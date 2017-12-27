@@ -24,6 +24,7 @@ sig
   val line_file_only: int -> string -> T
   val line_file: int -> string -> T
   val line: int -> T
+  val get_props: T -> Properties.T
   val id: string -> T
   val id_only: string -> T
   val get_id: T -> string option
@@ -130,6 +131,8 @@ fun file name = Pos ((1, 1, 0), file_name name);
 fun line_file_only i name = Pos ((i, 0, 0), file_name name);
 fun line_file i name = Pos ((i, 1, 0), file_name name);
 fun line i = line_file i "";
+
+fun get_props (Pos (_, props)) = props;
 
 fun id id = Pos ((0, 1, 0), [(Markup.idN, id)]);
 fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);

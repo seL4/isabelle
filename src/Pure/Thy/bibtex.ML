@@ -24,8 +24,7 @@ fun check_database pos0 database =
   |> YXML.parse_body
   |> let open XML.Decode in list (triple bool string properties) end
   |> map (fn (is_error, msg, pos) =>
-      {is_error = is_error, msg = msg,
-        pos = Position.of_properties (pos @ Position.properties_of pos0)});
+      {is_error = is_error, msg = msg, pos = Position.of_properties (pos @ Position.get_props pos0)});
 
 fun check_database_output pos0 database =
   let
