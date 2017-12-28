@@ -189,7 +189,7 @@ class Resources(
   }
 
   def is_hidden(name: Document.Node.Name): Boolean =
-    !name.is_theory || name.theory == Sessions.root_name || Bibtex.is_bibtex_theory(name)
+    !name.is_theory || name.theory == Sessions.root_name || name.is_bibtex_theory
 
 
   /* blobs */

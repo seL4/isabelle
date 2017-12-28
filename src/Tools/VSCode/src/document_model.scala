@@ -59,7 +59,7 @@ object Document_Model
 
   def init(session: Session, editor: Server.Editor, node_name: Document.Node.Name): Document_Model =
     Document_Model(session, editor, node_name, Content.empty,
-      node_required = Bibtex.is_bibtex_theory(node_name))
+      node_required = node_name.is_bibtex_theory)
 }
 
 sealed case class Document_Model(

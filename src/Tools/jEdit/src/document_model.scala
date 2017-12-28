@@ -385,7 +385,7 @@ object File_Model
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
-    val node_required1 = node_required || Bibtex.is_bibtex_theory(node_name)
+    val node_required1 = node_required || node_name.is_bibtex_theory
     File_Model(session, node_name, file, content, node_required1, last_perspective, pending_edits)
   }
 }

@@ -120,6 +120,7 @@ object Document
       def path: Path = Path.explode(File.standard_path(node))
 
       def is_bibtex: Boolean = Bibtex.is_bibtex(node)
+      def is_bibtex_theory: Boolean = Bibtex.is_bibtex(theory)
 
       def is_theory: Boolean = theory.nonEmpty
 

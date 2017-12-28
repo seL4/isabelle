@@ -134,7 +134,6 @@ object Bibtex
   /* bibtex files */
 
   def is_bibtex(name: String): Boolean = name.endsWith(".bib")
-  def is_bibtex_theory(name: Document.Node.Name): Boolean = is_bibtex(name.theory)
 
   private val node_suffix: String = "bibtex_file"
 
