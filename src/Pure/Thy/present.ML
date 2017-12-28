@@ -28,8 +28,6 @@ val html_ext = Path.ext "html";
 val html_path = html_ext o Path.basic;
 val index_path = Path.basic "index.html";
 val readme_html_path = Path.basic "README.html";
-val documentN = "document";
-val document_path = Path.basic documentN;
 val doc_indexN = "session";
 val session_graph_path = Path.basic "session_graph.pdf";
 
