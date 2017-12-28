@@ -75,6 +75,8 @@ class VSCode_Resources(
     log: Logger = No_Logger)
   extends Resources(session_base, log = log)
 {
+  resources =>
+
   private val state = Synchronized(VSCode_Resources.State())
 
 
@@ -96,7 +98,7 @@ class VSCode_Resources(
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
       if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
       else {
-        val master_dir = if (theory == "") "" else file.getParent
+        val master_dir = file.getParent
         Document.Node.Name(node, master_dir, theory)
       }
     }
@@ -120,8 +122,12 @@ class VSCode_Resources(
   /* file content */
 
   def read_file_content(file: JFile): Option[String] =
-    try { Some(Line.normalize(File.read(file))) }
-    catch { case ERROR(_) => None }
+  {
+    Bibtex.make_theory_content(file) orElse {
+      try { Some(Line.normalize(File.read(file))) }
+      catch { case ERROR(_) => None }
+    }
+  }
 
   def get_file_content(file: JFile): Option[String] =
     get_model(file) match {
@@ -216,7 +222,13 @@ class VSCode_Resources(
           (for ((_, model) <- st.models.iterator if model.is_theory)
            yield (model.node_name, Position.none)).toList
 
-        val thy_files = dependencies(thys).theories
+        val thy_files1 = resources.dependencies(thys).theories
+
+        val thy_files2 =
+          (for {
+            (_, model) <- st.models.iterator if model.node_name.is_bibtex
+            thy_name <- Bibtex.make_theory_name(resources, model.node_name)
+          } yield thy_name).toList
 
 
         /* auxiliary files */
@@ -237,7 +249,7 @@ class VSCode_Resources(
 
         val loaded_models =
           (for {
-            node_name <- thy_files.iterator ++ aux_files.iterator
+            node_name <- thy_files1.iterator ++ thy_files2.iterator ++ aux_files.iterator
             file = node_file(node_name)
             if !st.models.isDefinedAt(file)
             text <- { file_watcher.register_parent(file); read_file_content(file) }

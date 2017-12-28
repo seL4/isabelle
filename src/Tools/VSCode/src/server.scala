@@ -439,6 +439,7 @@ class Server(
           case Protocol.Exit(()) => exit()
           case Protocol.DidOpenTextDocument(file, _, version, text) =>
             change_document(file, version, List(Protocol.TextDocumentChange(None, text)))
+            delay_load.invoke()
           case Protocol.DidChangeTextDocument(file, version, changes) =>
             change_document(file, version, changes)
           case Protocol.DidCloseTextDocument(file) => close_document(file)
