@@ -161,10 +161,14 @@ class Resources(
           error("Bad theory name " + quote(name) +
             " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
             Completion.report_theories(pos, List(base_name)))
-        if (Sessions.exclude_theory(name))
-          error("Bad theory name " + quote(name) + Position.here(pos))
 
-        val imports = header.imports.map({ case (s, pos) => (import_name(node_name, s), pos) })
+        val imports =
+          header.imports.map({ case (s, pos) =>
+            val name = import_name(node_name, s)
+            if (Sessions.exclude_theory(name.theory_base_name))
+              error("Bad theory name " + quote(name.theory_base_name) + Position.here(pos))
+            (name, pos)
+          })
         Document.Node.Header(imports, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
