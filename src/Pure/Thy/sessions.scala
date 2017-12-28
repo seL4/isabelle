@@ -30,7 +30,7 @@ object Sessions
   def exclude_session(name: String): Boolean = name == "" || name == DRAFT
 
   def exclude_theory(name: String): Boolean =
-    name == root_name || name == "README" || name == "index"
+    name == root_name || name == "README" || name == "index" || name == "bib"
 
 
   /* base info and source dependencies */

@@ -85,6 +85,12 @@ object Thy_Header extends Parse.Parser
   def is_base_name(s: String): Boolean =
     s != "" && !s.exists("/\\:".contains(_))
 
+  def file_name(s: String): Option[String] =
+    s match {
+      case File_Name(s) => Some(s)
+      case _ => None
+    }
+
   def import_name(s: String): String =
     s match {
       case File_Name(name) if !name.endsWith(".thy") => name

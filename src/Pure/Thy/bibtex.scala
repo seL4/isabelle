@@ -7,6 +7,8 @@ BibTeX support.
 package isabelle
 
 
+import java.io.{File => JFile}
+
 import scala.collection.mutable
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
@@ -129,7 +131,39 @@ object Bibtex
 
   /** document model **/
 
-  def check_name(name: String): Boolean = name.endsWith(".bib")
+  /* bibtex files */
+
+  def is_bibtex(name: String): Boolean = name.endsWith(".bib")
+  def is_bibtex_theory(name: Document.Node.Name): Boolean = is_bibtex(name.theory)
+
+  private val node_suffix: String = "bibtex_file"
+
+  def make_theory_name(resources: Resources, name: Document.Node.Name): Option[Document.Node.Name] =
+  {
+    Thy_Header.file_name(name.node) match {
+      case Some(bib_name) if is_bibtex(bib_name) =>
+        val thy_node = resources.append(name.node, Path.explode(node_suffix))
+        Some(Document.Node.Name(thy_node, name.master_dir, bib_name))
+      case _ => None
+    }
+  }
+
+  def make_theory_content(bib_name: String): Option[String] =
+    if (is_bibtex(bib_name)) {
+      Some("""theory "bib" imports Pure begin bibtex_file """ + quote(bib_name) + """ end""")
+    }
+    else None
+
+  def make_theory_content(file: JFile): Option[String] =
+    if (file.getName == node_suffix) {
+      val parent = file.getParentFile
+      if (parent != null && is_bibtex(parent.getName)) make_theory_content(parent.getName)
+      else None
+    }
+    else None
+
+
+  /* entries */
 
   def entries(text: String): List[Text.Info[String]] =
   {

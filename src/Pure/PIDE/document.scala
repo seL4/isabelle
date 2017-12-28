@@ -119,7 +119,7 @@ object Document
 
       def path: Path = Path.explode(File.standard_path(node))
 
-      def is_bibtex: Boolean = Bibtex.check_name(node)
+      def is_bibtex: Boolean = Bibtex.is_bibtex(node)
 
       def is_theory: Boolean = theory.nonEmpty
 

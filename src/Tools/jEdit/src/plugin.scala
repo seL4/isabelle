@@ -126,7 +126,13 @@ class Plugin extends EBPlugin
           val thys =
             (for ((node_name, model) <- models.iterator if model.is_theory)
               yield (node_name, Position.none)).toList
-          val thy_files = resources.dependencies(thys).theories
+          val thy_files1 = resources.dependencies(thys).theories
+
+          val thy_files2 =
+            (for {
+              (name, _) <- models.iterator if name.is_bibtex
+              thy_name <- Bibtex.make_theory_name(resources, name)
+            } yield thy_name).toList
 
           val aux_files =
             if (options.bool("jedit_auto_resolve")) {
@@ -141,7 +147,7 @@ class Plugin extends EBPlugin
             }
             else Nil
 
-          (thy_files ::: aux_files).filterNot(models.isDefinedAt(_))
+          (thy_files1 ::: thy_files2 ::: aux_files).filterNot(models.isDefinedAt(_))
         }
         if (required_files.nonEmpty) {
           try {

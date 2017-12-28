@@ -35,7 +35,7 @@ object JEdit_Bibtex
       case text_area: TextArea =>
         text_area.getBuffer match {
           case buffer: Buffer
-          if (Bibtex.check_name(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable) =>
+          if (Bibtex.is_bibtex(JEdit_Lib.buffer_name(buffer)) && buffer.isEditable) =>
             val menu = new JMenu("BibTeX entries")
             for (entry <- Bibtex.known_entries) {
               val item = new JMenuItem(entry.kind)
