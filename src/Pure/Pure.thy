@@ -111,17 +111,14 @@ subsection \<open>Other files\<close>
 
 ML \<open>
 local
-  fun check_path ctxt (s, pos) =
-    let
-      val _ = Context_Position.report ctxt pos Markup.language_path;
-      val path = Path.explode s;
-      val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
-    in () end;
-
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>external_file\<close> "formal dependency on external file"
       (Parse.position Parse.path >> (fn path => Toplevel.keep (fn st =>
-        check_path (Toplevel.context_of st) path)));
+        let
+          val ctxt = Toplevel.context_of st;
+          val thy = Toplevel.theory_of st;
+          val _ = Resources.check_path ctxt (Resources.master_directory thy) path;
+        in () end)));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>bibtex_file\<close> "check bibtex database file in Prover IDE"
@@ -129,7 +126,8 @@ local
         Toplevel.keep (fn st =>
           let
             val ctxt = Toplevel.context_of st;
-            val _ = check_path ctxt path;
+            val thy = Toplevel.theory_of st;
+            val _ = Resources.check_path ctxt (Resources.master_directory thy) path;
             val _ =
               (case Token.get_files tok of
                 [Exn.Res {lines, pos, ...}] => Bibtex.check_database_output pos (cat_lines lines)
