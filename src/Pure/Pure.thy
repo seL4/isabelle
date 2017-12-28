@@ -20,7 +20,7 @@ keywords
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "alias" "type_alias" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
-  and "external_file" :: thy_load
+  and "external_file" "bibtex_file" :: thy_load
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" :: thy_decl % "ML"
@@ -107,18 +107,35 @@ begin
 
 section \<open>Isar commands\<close>
 
-subsection \<open>External file dependencies\<close>
+subsection \<open>Other files\<close>
 
 ML \<open>
-  Outer_Syntax.command \<^command_keyword>\<open>external_file\<close> "formal dependency on external file"
-    (Parse.position Parse.path >> (fn (s, pos) => Toplevel.keep (fn st =>
-      let
-        val ctxt = Toplevel.context_of st;
-        val _ = Context_Position.report ctxt pos Markup.language_path;
-        val path = Path.explode s;
-        val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
-      in () end)));
-\<close>
+local
+  fun check_path ctxt (s, pos) =
+    let
+      val _ = Context_Position.report ctxt pos Markup.language_path;
+      val path = Path.explode s;
+      val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
+    in () end;
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>external_file\<close> "formal dependency on external file"
+      (Parse.position Parse.path >> (fn path => Toplevel.keep (fn st =>
+        check_path (Toplevel.context_of st) path)));
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>bibtex_file\<close> "check bibtex database file in Prover IDE"
+      (Scan.ahead Parse.not_eof -- Parse.position Parse.path >> (fn (tok, path) =>
+        Toplevel.keep (fn st =>
+          let
+            val ctxt = Toplevel.context_of st;
+            val _ = check_path ctxt path;
+            val _ =
+              (case Token.get_files tok of
+                [Exn.Res {lines, pos, ...}] => Bibtex.check_database_output pos (cat_lines lines)
+              | _ => ());
+          in () end)));
+in end\<close>
 
 
 subsection \<open>Embedded ML text\<close>
