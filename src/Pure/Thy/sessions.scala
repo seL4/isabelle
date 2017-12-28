@@ -17,7 +17,7 @@ import scala.collection.mutable
 
 object Sessions
 {
-  /* base info and source dependencies */
+  /* session and theory names */
 
   val root_name: String = "ROOT"
   val theory_name: String = "Pure.Sessions"
@@ -25,6 +25,14 @@ object Sessions
   val DRAFT = "Draft"
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
+
+
+  def exclude_session(name: String): Boolean = name == "" || name == DRAFT
+
+  def exclude_theory(name: String): Boolean = name == root_name
+
+
+  /* base info and source dependencies */
 
   object Known
   {
@@ -457,7 +465,7 @@ object Sessions
     try {
       val name = entry.name
 
-      if (name == "" || name == DRAFT) error("Bad session name")
+      if (exclude_session(name)) error("Bad session name")
       if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
@@ -467,7 +475,7 @@ object Sessions
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts,
             thys.map({ case ((thy, pos), _) =>
-              if (thy == Sessions.root_name)
+              if (exclude_theory(thy))
                 error("Bad theory name " + quote(thy) + Position.here(pos))
               else (thy, pos) })) })
 
