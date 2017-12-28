@@ -188,6 +188,9 @@ class Resources(
     else Some(Document.Node.Header(imports.map((_, Position.none))))
   }
 
+  def is_hidden(name: Document.Node.Name): Boolean =
+    !name.is_theory || name.theory == Sessions.root_name
+
 
   /* blobs */
 
