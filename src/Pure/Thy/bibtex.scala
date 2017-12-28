@@ -130,7 +130,6 @@ object Bibtex
   /** document model **/
 
   def check_name(name: String): Boolean = name.endsWith(".bib")
-  def check_name(name: Document.Node.Name): Boolean = check_name(name.node)
 
   def entries(text: String): List[Text.Info[String]] =
   {
