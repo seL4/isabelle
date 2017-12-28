@@ -280,7 +280,7 @@ object Document_Model
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val bibtex_entries: List[Text.Info[String]] =
       try { Bibtex.entries(text) }
-      catch { case ERROR(msg) => Output.warning(msg); Nil }
+      catch { case ERROR(_) => Nil }
   }
 
 
