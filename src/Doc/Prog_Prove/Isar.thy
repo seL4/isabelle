@@ -505,7 +505,7 @@ The command \isakeyword{finally} is short for \isakeyword{also from} \<open>calc
 Therefore the \isakeyword{also} hidden in \isakeyword{finally} sets \<open>calculation\<close>
 to \<open>t\<^sub>1 < t\<^sub>4\<close> and the final ``\texttt{.}'' succeeds.
 
-For more information on this style of proof see \cite{BauerW-TPHOLs01}.
+For more information on this style of proof see @{cite "BauerW-TPHOLs01"}.
 \fi
 
 \section{Streamlining Proofs}

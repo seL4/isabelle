@@ -56,7 +56,7 @@ ML \<open>
 subsection \<open>Primitive logic\<close>
 
 text \<open>
-The definition of the logic is based on Mike Gordon's technical report \cite{Gordon-TR68} that
+The definition of the logic is based on Mike Gordon's technical report @{cite "Gordon-TR68"} that
 describes the first implementation of HOL. However, there are a number of differences.
 In particular, we start with the definite description operator and introduce Hilbert's \<open>\<epsilon>\<close> operator
 only much later. Moreover, axiom \<open>(P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P) \<longrightarrow> (P = Q)\<close> is derived from the other
