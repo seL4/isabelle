@@ -6,8 +6,8 @@ BibTeX support.
 
 signature BIBTEX =
 sig
-  type message = {is_error: bool, msg: string, pos: Position.T}
-  val check_database: Position.T -> string -> message list
+  val check_database:
+    Position.T -> string -> (string * Position.T) list * (string * Position.T) list
   val check_database_output: Position.T -> string -> unit
   val cite_macro: string Config.T
 end;
@@ -17,23 +17,19 @@ struct
 
 (* check database *)
 
-type message = {is_error: bool, msg: string, pos: Position.T};
+type message = string * Position.T;
 
 fun check_database pos0 database =
   Invoke_Scala.method "isabelle.Bibtex.check_database_yxml" database
   |> YXML.parse_body
-  |> let open XML.Decode in list (triple bool string properties) end
-  |> map (fn (is_error, msg, pos) =>
-      {is_error = is_error, msg = msg, pos = Position.of_properties (pos @ Position.get_props pos0)});
+  |> let open XML.Decode in pair (list (pair string properties)) (list (pair string properties)) end
+  |> (apply2 o map o apsnd) (fn pos => Position.of_properties (pos @ Position.get_props pos0));
 
 fun check_database_output pos0 database =
-  let
-    val messages = check_database pos0 database;
-    val (errors, warnings) = List.partition #is_error messages;
-  in
-    errors |> List.app (fn {msg, pos, ...} =>
+  let val (errors, warnings) = check_database pos0 database in
+    errors |> List.app (fn (msg, pos) =>
       Output.error_message ("Bibtex error" ^ Position.here pos ^ ":\n  " ^ msg));
-    warnings |> List.app (fn {msg, pos, ...} =>
+    warnings |> List.app (fn (msg, pos) =>
       warning ("Bibtex warning" ^ Position.here pos ^ ":\n  " ^ msg))
   end;
 

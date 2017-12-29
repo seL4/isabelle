@@ -44,15 +44,7 @@ object Bibtex
 
   /** check database **/
 
-  sealed case class Message(is_error: Boolean, msg: String, pos: Position.T)
-  {
-    def output: Unit =
-      if (is_error)
-        Output.error_message("Bibtex error" + Position.here(pos) + ":\n  " + msg)
-      else Output.warning("Bibtex warning" + Position.here(pos) + ":\n  " + msg)
-  }
-
-  def check_database(database: String): List[Message] =
+  def check_database(database: String): (List[(String, Position.T)], List[(String, Position.T)]) =
   {
     val chunks = parse(Line.normalize(database))
     var chunk_pos = Map.empty[String, Position.T]
@@ -101,32 +93,29 @@ object Bibtex
       val log_file = tmp_dir + Path.explode("root.blg")
       val lines = if (log_file.is_file) Line.logical_lines(File.read(log_file)) else Nil
 
-      lines.zip(lines.tail ::: List("")).flatMap(
-        {
-          case (Error(msg, Value.Int(l)), _) =>
-            Some(Message(true, msg, get_line_pos(l)))
-          case (Warning_in_Chunk(msg, name), _) if chunk_pos.isDefinedAt(name) =>
-            Some(Message(false, Word.capitalize(msg + " in entry " + quote(name)), chunk_pos(name)))
-          case (Warning(msg), Warning_Line(Value.Int(l))) =>
-            Some(Message(false, Word.capitalize(msg), get_line_pos(l)))
-          case (Warning(msg), _) =>
-            Some(Message(false, Word.capitalize(msg), Position.none))
-          case _ => None
-        }
-      )
+      val (errors, warnings) =
+        lines.zip(lines.tail ::: List("")).flatMap(
+          {
+            case (Error(msg, Value.Int(l)), _) =>
+              Some((true, (msg, get_line_pos(l))))
+            case (Warning_in_Chunk(msg, name), _) if chunk_pos.isDefinedAt(name) =>
+              Some((false, (Word.capitalize(msg + " in entry " + quote(name)), chunk_pos(name))))
+            case (Warning(msg), Warning_Line(Value.Int(l))) =>
+              Some((false, (Word.capitalize(msg), get_line_pos(l))))
+            case (Warning(msg), _) =>
+              Some((false, (Word.capitalize(msg), Position.none)))
+            case _ => None
+          }
+        ).partition(_._1)
+      (errors.map(_._2), warnings.map(_._2))
     })
   }
 
   def check_database_yxml(database: String): String =
   {
-    val messages = check_database(database)
-
-    {
-      import XML.Encode._
-      def encode_message(message: Message): XML.Body =
-        triple(bool, string, properties)(message.is_error, message.msg, message.pos)
-      YXML.string_of_body(list[Message](encode_message _)(messages))
-    }
+    import XML.Encode._
+    YXML.string_of_body(pair(list(pair(string, properties)), list(pair(string, properties)))(
+      check_database(database)))
   }
 
 
