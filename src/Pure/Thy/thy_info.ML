@@ -16,6 +16,7 @@ sig
   val use_theories:
     {document: bool,
      symbols: HTML.symbols,
+     bibtex_entries: string list,
      last_timing: Toplevel.transition -> Time.time,
      qualifier: string,
      master_dir: Path.T} -> (string * Position.T) list -> unit
@@ -242,7 +243,8 @@ fun excursion keywords master_dir last_timing init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun eval_thy document symbols last_timing update_time master_dir header text_pos text parents =
+fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master_dir header
+    text_pos text parents =
   let
     val (name, _) = #name header;
     val keywords =
@@ -255,7 +257,7 @@ fun eval_thy document symbols last_timing update_time master_dir header text_pos
 
     fun init () =
       Resources.begin_theory master_dir header parents
-      |> Present.begin_theory update_time
+      |> Present.begin_theory bibtex_entries update_time
         (fn () => implode (map (HTML.present_span symbols keywords) spans));
 
     val (results, thy) =
@@ -282,8 +284,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy document symbols last_timing
-    initiators update_time deps text (name, pos) keywords parents =
+fun load_thy context initiators update_time deps text (name, pos) keywords parents =
   let
     val _ = remove_thy name;
     val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -304,7 +305,7 @@ fun load_thy document symbols last_timing
 
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
-      eval_thy document symbols last_timing update_time dir header text_pos text
+      eval_thy context update_time dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
     val timing_result = Timing.result timing_start;
@@ -336,10 +337,9 @@ fun check_deps dir name =
 
 in
 
-fun require_thys document symbols last_timing initiators qualifier dir strs tasks =
-      fold_map (require_thy document symbols last_timing initiators qualifier dir) strs tasks
-      |>> forall I
-and require_thy document symbols last_timing initiators qualifier dir (s, require_pos) tasks =
+fun require_thys context initiators qualifier dir strs tasks =
+      fold_map (require_thy context initiators qualifier dir) strs tasks |>> forall I
+and require_thy context initiators qualifier dir (s, require_pos) tasks =
   let
     val {master_dir, theory_name, ...} = Resources.import_name qualifier dir s;
   in
@@ -360,8 +360,7 @@ and require_thy document symbols last_timing initiators qualifier dir (s, requir
 
           val parents = map (#theory_name o Resources.import_name qualifier' dir' o #1) imports;
           val (parents_current, tasks') =
-            require_thys document symbols last_timing (theory_name :: initiators)
-              qualifier' dir' imports tasks;
+            require_thys context (theory_name :: initiators) qualifier' dir' imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
@@ -373,8 +372,8 @@ and require_thy document symbols last_timing initiators qualifier dir (s, requir
                   let
                     val update_time = serial ();
                     val load =
-                      load_thy document symbols last_timing initiators update_time dep
-                        text (theory_name, theory_pos) keywords;
+                      load_thy context initiators update_time
+                        dep text (theory_name, theory_pos) keywords;
                   in Task (parents, load) end);
 
           val tasks'' = new_entry theory_name parents task tasks';
@@ -386,16 +385,19 @@ end;
 
 (* use theories *)
 
-fun use_theories {document, symbols, last_timing, qualifier, master_dir} imports =
+fun use_theories {document, symbols, bibtex_entries, last_timing, qualifier, master_dir} imports =
   let
-    val (_, tasks) =
-      require_thys document symbols last_timing [] qualifier master_dir imports String_Graph.empty;
+    val context =
+      {document = document, symbols = symbols, bibtex_entries = bibtex_entries,
+        last_timing = last_timing};
+    val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty;
   in if Multithreading.enabled () then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
   use_theories
-    {document = false, symbols = HTML.no_symbols, last_timing = K Time.zeroTime,
-     qualifier = Resources.default_qualifier, master_dir = Path.current}
+    {document = false, symbols = HTML.no_symbols, bibtex_entries = [],
+      last_timing = K Time.zeroTime, qualifier = Resources.default_qualifier,
+      master_dir = Path.current}
     [(name, Position.none)];
 
 

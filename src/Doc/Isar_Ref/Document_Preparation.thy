@@ -301,7 +301,8 @@ text \<open>
   active hyperlink within the text.
 
   \<^descr> \<open>@{cite name}\<close> produces a citation \<^verbatim>\<open>\cite{name}\<close> in {\LaTeX}, where the
-  name refers to some Bib{\TeX} database entry.
+  name refers to some Bib{\TeX} database entry. This is only checked in
+  batch-mode session builds.
 
   The variant \<open>@{cite \<open>opt\<close> name}\<close> produces \<^verbatim>\<open>\cite[opt]{name}\<close> with some
   free-form optional argument. Multiple names are output with commas, e.g.

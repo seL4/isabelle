@@ -103,6 +103,9 @@ identifier syntax with underscore, prime, digits. This is relevant for
 antiquotations in control symbol notation, e.g. \<^const_name> becomes
 \isactrlconstUNDERSCOREname.
 
+* Document antiquotation @{cite} now checks the given Bibtex entries
+against the Bibtex database files -- only in batch-mode session builds.
+
 * Document antiquotation @{session name} checks and prints the given
 session name verbatim.
 

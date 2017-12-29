@@ -321,6 +321,10 @@ object Sessions
             val sources_errors =
               for (p <- session_files if !p.is_file) yield "No such file: " + p
 
+            val bibtex_errors =
+              try { info.bibtex_entries; Nil }
+              catch { case ERROR(msg) => List(msg) }
+
             val base =
               Base(
                 pos = info.pos,
@@ -331,7 +335,7 @@ object Sessions
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = dependencies.errors ::: sources_errors,
+                errors = dependencies.errors ::: sources_errors ::: bibtex_errors,
                 imports = Some(imports_base))
 
             session_bases + (info.name -> base)
@@ -458,6 +462,13 @@ object Sessions
     def deps: List[String] = parent.toList ::: imports
 
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+
+    def bibtex_entries: List[Text.Info[String]] =
+      (for {
+        (document_dir, file) <- document_files.iterator
+        if Bibtex.is_bibtex(file.base_name)
+        info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
+      } yield info).toList
   }
 
   def make_info(options: Options, dir_selected: Boolean, dir: Path, chapter: String,

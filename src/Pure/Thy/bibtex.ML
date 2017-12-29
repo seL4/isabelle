@@ -51,6 +51,14 @@ val _ =
          Parse.and_list1 (Parse.position Args.name)))
       (fn {context = ctxt, ...} => fn (opt, citations) =>
         let
+          val thy = Proof_Context.theory_of ctxt;
+          val bibtex_entries = Present.get_bibtex_entries thy;
+          val _ =
+            if null bibtex_entries andalso Context.theory_name thy <> Context.PureN then ()
+            else
+              citations |> List.app (fn (name, pos) =>
+                if member (op =) bibtex_entries name then ()
+                else error ("Unknown Bibtex entry " ^ quote name ^ Position.here pos));
           val _ =
             Context_Position.reports ctxt
               (map (fn (name, pos) => (pos, Markup.citation name)) citations);

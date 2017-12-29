@@ -6,6 +6,7 @@ Theory presentation: HTML and PDF-LaTeX documents.
 
 signature PRESENT =
 sig
+  val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
   val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
@@ -13,7 +14,7 @@ sig
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
   val theory_output: Position.T -> theory -> Latex.text list -> unit
-  val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
+  val begin_theory: string list -> int -> (unit -> HTML.text) -> theory -> theory
 end;
 
 structure Present: PRESENT =
@@ -39,15 +40,16 @@ fun show_path path = Path.implode (Path.expand (File.full_path Path.current path
 
 structure Browser_Info = Theory_Data
 (
-  type T = {chapter: string, name: string};
-  val empty = {chapter = "Unsorted", name = "Unknown"}: T;
+  type T = {chapter: string, name: string, bibtex_entries: string list};
+  val empty = {chapter = "Unsorted", name = "Unknown", bibtex_entries = []}: T;
   fun extend _ = empty;
   fun merge _ = empty;
 );
 
 val _ = Theory.setup
-  (Browser_Info.put {chapter = Context.PureN, name = Context.PureN});
+  (Browser_Info.put {chapter = Context.PureN, name = Context.PureN, bibtex_entries = []});
 
+val get_bibtex_entries = #bibtex_entries o Browser_Info.get;
 
 
 (** global browser info state **)
@@ -288,7 +290,7 @@ fun theory_output pos thy body =
 
 fun theory_link (curr_chapter, curr_session) thy =
   let
-    val {chapter, name = session} = Browser_Info.get thy;
+    val {chapter, name = session, ...} = Browser_Info.get thy;
     val link = html_path (Context.theory_name thy);
   in
     if curr_session = session then SOME link
@@ -298,7 +300,7 @@ fun theory_link (curr_chapter, curr_session) thy =
     else SOME (Path.appends [Path.parent, Path.parent, Path.basic chapter, Path.basic session, link])
   end;
 
-fun begin_theory update_time mk_text thy =
+fun begin_theory bibtex_entries update_time mk_text thy =
   with_session_info thy (fn {symbols, name = session_name, chapter, ...} =>
     let
       val name = Context.theory_name thy;
@@ -315,6 +317,8 @@ fun begin_theory update_time mk_text thy =
           (add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name));
            add_tex_index (update_time, Latex.theory_entry name))
         else ();
-    in Browser_Info.put {chapter = chapter, name = session_name} thy end);
+    in
+      Browser_Info.put {chapter = chapter, name = session_name, bibtex_entries = bibtex_entries} thy
+    end);
 
 end;

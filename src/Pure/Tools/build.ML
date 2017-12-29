@@ -103,7 +103,7 @@ fun protocol_message props output =
 
 (* build theories *)
 
-fun build_theories symbols last_timing qualifier master_dir (options, thys) =
+fun build_theories symbols bibtex_entries last_timing qualifier master_dir (options, thys) =
   let
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
@@ -116,6 +116,7 @@ fun build_theories symbols last_timing qualifier master_dir (options, thys) =
         (Thy_Info.use_theories {
           document = Present.document_enabled (Options.string options "document"),
           symbols = symbols,
+          bibtex_entries = bibtex_entries,
           last_timing = last_timing,
           qualifier = qualifier,
           master_dir = master_dir}
@@ -151,7 +152,8 @@ datatype args = Args of
   sessions: string list,
   global_theories: (string * string) list,
   loaded_theories: string list,
-  known_theories: (string * string) list};
+  known_theories: (string * string) list,
+  bibtex_entries: string list};
 
 fun decode_args yxml =
   let
@@ -159,13 +161,14 @@ fun decode_args yxml =
     val position = Position.of_properties o properties;
     val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
       (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
-      (theories, (sessions, (global_theories, (loaded_theories, known_theories))))))))))))))) =
+      (theories, (sessions, (global_theories, (loaded_theories,
+      (known_theories, bibtex_entries)))))))))))))))) =
       pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
-              (pair (list string) (pair (list (pair string string))
-                (pair (list string) (list (pair string string))))))))))))))))
+              (pair (list string) (pair (list (pair string string)) (pair (list string)
+                (pair (list (pair string string)) (list string))))))))))))))))
       (YXML.parse_body yxml);
   in
     Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
@@ -174,12 +177,12 @@ fun decode_args yxml =
       graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
       name = name, master_dir = Path.explode master_dir, theories = theories, sessions = sessions,
       global_theories = global_theories, loaded_theories = loaded_theories,
-      known_theories = known_theories}
+      known_theories = known_theories, bibtex_entries = bibtex_entries}
   end;
 
 fun build_session (Args {symbol_codes, command_timings, do_output, verbose, browser_info,
     document_files, graph_file, parent_name, chapter, name, master_dir, theories, sessions,
-    global_theories, loaded_theories, known_theories}) =
+    global_theories, loaded_theories, known_theories, bibtex_entries}) =
   let
     val symbols = HTML.make_symbols symbol_codes;
 
@@ -209,7 +212,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
 
     val res1 =
       theories |>
-        (List.app (build_theories symbols last_timing name master_dir)
+        (List.app (build_theories symbols bibtex_entries last_timing name master_dir)
           |> session_timing name verbose
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
