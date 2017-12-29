@@ -312,13 +312,15 @@ fun begin_theory bibtex_entries update_time mk_text thy =
       val html_source = HTML.theory symbols name parent_specs (mk_text ());
       val _ = init_theory_info name (make_theory_info ("", html_source));
 
-      val _ =
+      val bibtex_entries' =
         if is_session_theory thy then
           (add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name));
-           add_tex_index (update_time, Latex.theory_entry name))
-        else ();
+           add_tex_index (update_time, Latex.theory_entry name);
+           bibtex_entries)
+        else [];
     in
-      Browser_Info.put {chapter = chapter, name = session_name, bibtex_entries = bibtex_entries} thy
+      thy
+      |> Browser_Info.put {chapter = chapter, name = session_name, bibtex_entries = bibtex_entries'}
     end);
 
 end;
