@@ -22,10 +22,12 @@ object Bibtex
   {
     val log_path = dir + Path.explode(root_name).ext("blg")
     if (log_path.is_file) {
-      val Error = """^(.*)---line (\d+) of file (.+)""".r
+      val Error1 = """^(I couldn't open database file .+)$""".r
+      val Error2 = """^(.+)---line (\d+) of file (.+)""".r
       Line.logical_lines(File.read(log_path)).flatMap(line =>
         line match {
-          case Error(msg, Value.Int(l), file) =>
+          case Error1(msg) => Some("Bibtex error: " + msg)
+          case Error2(msg, Value.Int(l), file) =>
             val path = File.standard_path(file)
             if (Path.is_wellformed(path)) {
               val pos = Position.Line_File(l, (dir + Path.explode(path)).canonical.implode)
