@@ -44,6 +44,10 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 * The command 'display_drafts' has been discontinued. INCOMPATIBILITY,
 use action "isabelle.draft" (or "print") in Isabelle/jEdit instead.
 
+* Isabelle symbol "\<hyphen>" is rendered as explicit Unicode hyphen U+2010, to
+avoid unclear meaning of the old "soft hyphen" U+00AD. Rare
+INCOMPATIBILITY, e.g. copy-paste of historic Isabelle HTML output.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

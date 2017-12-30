@@ -326,7 +326,7 @@
 \<angle>                code: 0x002220
 \<copyright>            code: 0x0000a9
 \<registered>           code: 0x0000ae
-\<hyphen>               code: 0x0000ad  group: punctuation
+\<hyphen>               code: 0x002010  group: punctuation
 \<inverse>              code: 0x0000af  group: punctuation
 \<onequarter>           code: 0x0000bc  group: digit
 \<onehalf>              code: 0x0000bd  group: digit
