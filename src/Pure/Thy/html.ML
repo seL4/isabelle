@@ -24,7 +24,9 @@ struct
 
 (* common markup *)
 
-fun span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
+fun span "" = ("<span>", "</span>")
+  | span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
+
 val enclose_span = uncurry enclose o span;
 
 val hidden = enclose_span Markup.hiddenN;
