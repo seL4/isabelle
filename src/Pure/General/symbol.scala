@@ -504,6 +504,7 @@ object Symbol
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
   def codes: List[(Symbol, Int)] = symbols.codes
 
+  lazy val is_code: Int => Boolean = codes.map(_._2).toSet
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 

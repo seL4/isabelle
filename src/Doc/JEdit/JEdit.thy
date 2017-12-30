@@ -504,16 +504,26 @@ text \<open>
 \<close>
 
 paragraph \<open>Encoding.\<close>
+
 text \<open>Technically, the Unicode interpretation of Isabelle symbols is an
   \<^emph>\<open>encoding\<close> called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit (\<^emph>\<open>not\<close> in the underlying
   JVM). It is provided by the Isabelle Base plugin and enabled by default for
-  all source files in Isabelle/jEdit. Sometimes such defaults are reset
-  accidentally, or malformed UTF-8 sequences in the text force jEdit to fall
-  back on a different encoding like \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim
-  ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text buffer instead of its Unicode rendering
-  ``\<open>\<alpha>\<close>''. The jEdit menu operation \<^emph>\<open>File~/ Reload with Encoding~/
-  UTF-8-Isabelle\<close> helps to resolve such problems (after repairing malformed
-  parts of the text). \<close>
+  all source files in Isabelle/jEdit.
+
+  Sometimes such defaults are reset accidentally, or malformed UTF-8 sequences
+  in the text force jEdit to fall back on a different encoding like
+  \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text
+  buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation
+  \<^emph>\<open>File~/ Reload with Encoding~/ UTF-8-Isabelle\<close> helps to resolve such
+  problems (after repairing malformed parts of the text).
+
+  If the loaded text already contains Unicode sequences that are in conflict
+  with the Isabelle symbol encoding, the fallback-encoding UTF-8 is used and
+  Isabelle symbols remain in literal \<^verbatim>\<open>\<symbol>\<close> form. The jEdit menu
+  operation \<^emph>\<open>Utilities~/ Buffer Options~/ Character encoding\<close> allows to
+  enforce the UTF-8-Isabelle, but this will also change original Unicode
+  text into Isabelle symbols when saving the file!
+\<close>
 
 paragraph \<open>Font.\<close>
 text \<open>Correct rendering via Unicode requires a font that contains glyphs for
