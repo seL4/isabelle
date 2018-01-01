@@ -469,15 +469,15 @@ fun runtime_code' ctxt some_module_name named_tycos named_consts computation_Ts 
       Code_Target.compilation_text' ctxt target some_module_name program''
         (map Code_Symbol.Type_Constructor named_tycos @ map Code_Symbol.Constant consts' @ deps) true vs_ty_evals;
         (*FIXME constrain signature*)
-    fun deresolve_const c = case (deresolve o Code_Symbol.Constant) c of
-          NONE => error ("Constant " ^ (quote o Code.string_of_const thy) c ^
-            "\nhas a user-defined serialization")
-        | SOME c' => c';
     fun deresolve_tyco tyco = case (deresolve o Code_Symbol.Type_Constructor) tyco of
           NONE => error ("Type " ^ quote (Proof_Context.markup_type ctxt tyco) ^
             "\nhas a user-defined serialization")
         | SOME c' => c';
-    val tyco_names =  map deresolve_const named_tycos;
+    fun deresolve_const c = case (deresolve o Code_Symbol.Constant) c of
+          NONE => error ("Constant " ^ (quote o Code.string_of_const thy) c ^
+            "\nhas a user-defined serialization")
+        | SOME c' => c';
+    val tyco_names =  map deresolve_tyco named_tycos;
     val const_names = map deresolve_const named_consts;
     val generated_code = space_implode "\n\n" (map snd ml_modules);
     val (of_term_code, of_term_names) =
