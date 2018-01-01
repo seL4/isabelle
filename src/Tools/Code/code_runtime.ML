@@ -598,16 +598,18 @@ fun print_computation_check ctxt =
 
 
 fun add_all_constrs ctxt (dT as Type (tyco, Ts)) =
-  let
-    val ((vs, constrs), _) = Code.get_type (Proof_Context.theory_of ctxt) tyco;
-    val subst_TFree = the o AList.lookup (op =) (map fst vs ~~ Ts);
-    val cs = map (fn (c, (_, Ts')) =>
-      (c, (map o map_atyps) (fn TFree (v, _) => subst_TFree v) Ts'
-        ---> dT)) constrs;
-  in
-    union (op =) cs
-    #> fold (add_all_constrs ctxt) Ts
-  end;
+  case Code.get_type (Proof_Context.theory_of ctxt) tyco of
+    ((vs, constrs), false) =>
+      let
+        val subst_TFree = the o AList.lookup (op =) (map fst vs ~~ Ts);
+        val cs = map (fn (c, (_, Ts')) =>
+          (c, (map o map_atyps) (fn TFree (v, _) => subst_TFree v) Ts'
+            ---> dT)) constrs;
+      in
+        union (op =) cs
+        #> fold (add_all_constrs ctxt) Ts
+      end
+  | (_, true) => I;
 
 fun prep_spec ctxt (raw_ts, raw_dTs) =
   let
