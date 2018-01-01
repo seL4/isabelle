@@ -8,52 +8,52 @@ signature VALUE_COMMAND =
 sig
   val value: Proof.context -> term -> term
   val value_select: string -> Proof.context -> term -> term
-  val value_cmd: string option -> string list -> string -> Toplevel.state -> unit
-  val add_evaluator: string * (Proof.context -> term -> term) -> theory -> theory
+  val value_cmd: xstring -> string list -> string -> Toplevel.state -> unit
+  val add_evaluator: binding * (Proof.context -> term -> term) 
+    -> theory -> string * theory
 end;
 
 structure Value_Command : VALUE_COMMAND =
 struct
+
+structure Evaluators = Theory_Data
+(
+  type T = (Proof.context -> term -> term) Name_Space.table;
+  val empty = Name_Space.empty_table "evaluator";
+  val extend = I;
+  val merge = Name_Space.merge_tables;
+)
+
+fun add_evaluator (b, evaluator) thy =
+  let
+    val (name, tab') = Name_Space.define (Context.Theory thy) true
+      (b, evaluator) (Evaluators.get thy);
+    val thy' = Evaluators.put tab' thy;
+  in (name, thy') end;
+
+fun intern_evaluator ctxt raw_name =
+  if raw_name = "" then ""
+  else Name_Space.intern (Name_Space.space_of_table
+    (Evaluators.get (Proof_Context.theory_of ctxt))) raw_name;
 
 fun default_value ctxt t =
   if null (Term.add_frees t [])
   then Code_Evaluation.dynamic_value_strict ctxt t
   else Nbe.dynamic_value ctxt t;
 
-structure Evaluator = Theory_Data
-(
-  type T = (string * (Proof.context -> term -> term)) list;
-  val empty = [("default", default_value)];
-  val extend = I;
-  fun merge data : T = AList.merge (op =) (K true) data;
-)
-
-val add_evaluator = Evaluator.map o AList.update (op =);
-
 fun value_select name ctxt =
-  case AList.lookup (op =) (Evaluator.get (Proof_Context.theory_of ctxt)) name
-   of NONE => error ("No such evaluator: " ^ name)
-    | SOME f => f ctxt;
+  if name = ""
+  then default_value ctxt
+  else Name_Space.get (Evaluators.get (Proof_Context.theory_of ctxt)) name ctxt;
 
-fun value ctxt =
-  let
-    val evaluators = Evaluator.get (Proof_Context.theory_of ctxt)
-  in
-    if null evaluators
-    then error "No evaluators"
-    else (snd o snd o split_last) evaluators ctxt
-  end;
+val value = value_select "";
 
-fun value_maybe_select some_name =
-  case some_name
-    of NONE => value
-     | SOME name => value_select name;
-  
-fun value_cmd some_name modes raw_t state =
+fun value_cmd raw_name modes raw_t state =
   let
     val ctxt = Toplevel.context_of state;
+    val name = intern_evaluator ctxt raw_name;
     val t = Syntax.read_term ctxt raw_t;
-    val t' = value_maybe_select some_name ctxt t;
+    val t' = value_select name ctxt t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t' ctxt;
     val p = Print_Mode.with_modes modes (fn () =>
@@ -65,21 +65,21 @@ val opt_modes =
   Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) [];
 
 val opt_evaluator =
-  Scan.option (\<^keyword>\<open>[\<close> |-- Parse.name --| \<^keyword>\<open>]\<close>)
+  Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.name --| \<^keyword>\<open>]\<close>) "";
   
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>value\<close> "evaluate and print term"
     (opt_evaluator -- opt_modes -- Parse.term
-      >> (fn ((some_name, modes), t) => Toplevel.keep (value_cmd some_name modes t)));
+      >> (fn ((name, modes), t) => Toplevel.keep (value_cmd name modes t)));
 
 val _ = Theory.setup
   (Thy_Output.antiquotation \<^binding>\<open>value\<close>
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
-    (fn {source, context, ...} => fn ((some_name, style), t) => Thy_Output.output context
+    (fn {source, context, ...} => fn ((name, style), t) => Thy_Output.output context
       (Thy_Output.maybe_pretty_source Thy_Output.pretty_term context source
-        [style (value_maybe_select some_name context t)]))
-  #> add_evaluator ("simp", Code_Simp.dynamic_value)
-  #> add_evaluator ("nbe", Nbe.dynamic_value)
-  #> add_evaluator ("code", Code_Evaluation.dynamic_value_strict));
+        [style (value_select name context t)]))
+  #> add_evaluator (\<^binding>\<open>simp\<close>, Code_Simp.dynamic_value) #> snd
+  #> add_evaluator (\<^binding>\<open>nbe\<close>, Nbe.dynamic_value) #> snd
+  #> add_evaluator (\<^binding>\<open>code\<close>, Code_Evaluation.dynamic_value_strict) #> snd);
 
 end;

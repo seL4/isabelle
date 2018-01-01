@@ -593,7 +593,7 @@ val _ =
      (ocamlN, (evaluate_in_ocaml, Code_ML.target_OCaml)),
      (ghcN, (evaluate_in_ghc, target_Haskell)),
      (scalaN, (evaluate_in_scala, target_Scala))]
-  #> fold (fn target => Value_Command.add_evaluator (target, eval_term target))
+  #> fold (fn target => Value_Command.add_evaluator (Binding.name target, eval_term target) #> snd)
       [polymlN, mltonN, smlnjN, ocamlN, ghcN, scalaN])
 
 end
