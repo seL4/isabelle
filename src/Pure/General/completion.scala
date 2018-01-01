@@ -367,8 +367,15 @@ final class Completion private(
   def add_symbols: Completion =
   {
     val words =
-      (for ((sym, _) <- Symbol.names.toList) yield (sym, sym)) :::
-      (for ((sym, name) <- Symbol.names.toList) yield ("\\" + name, sym))
+      Symbol.names.toList.flatMap({ case (sym, (name, argument)) =>
+        val word = "\\" + name
+        val seps =
+          if (argument == Symbol.ARGUMENT_CARTOUCHE) List("")
+          else if (argument == Symbol.ARGUMENT_SPACE_CARTOUCHE) List(" ")
+          else Nil
+        List(sym -> sym, word -> sym) :::
+          seps.map(sep => word -> (sym + sep + "\\<open>\u0007\\<close>"))
+      })
 
     new Completion(
       keywords,

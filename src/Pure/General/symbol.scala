@@ -300,6 +300,9 @@ object Symbol
 
   /** symbol interpretation **/
 
+  val ARGUMENT_CARTOUCHE = "cartouche"
+  val ARGUMENT_SPACE_CARTOUCHE = "space_cartouche"
+
   private lazy val symbols =
   {
     val contents =
@@ -350,10 +353,18 @@ object Symbol
 
     val properties: Map[Symbol, Properties.T] = Map(symbols: _*)
 
-    val names: Map[Symbol, String] =
+    val names: Map[Symbol, (String, String)] =
     {
-      val name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
-      Map((for ((sym @ name(a), _) <- symbols) yield sym -> a): _*)
+      val Name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
+      val Argument = new Properties.String("argument")
+      def argument(sym: Symbol, props: Properties.T): String =
+        props match {
+          case Argument(arg) =>
+            if (arg == ARGUMENT_CARTOUCHE || arg == ARGUMENT_SPACE_CARTOUCHE) arg
+            else error("Bad argument: " + quote(arg) + " for symbol " + quote(sym))
+          case _ => ""
+        }
+      Map((for ((sym @ Name(a), props) <- symbols) yield sym -> (a, argument(sym, props))): _*)
     }
 
     val groups: List[(String, List[Symbol])] =
@@ -376,12 +387,12 @@ object Symbol
       val Code = new Properties.String("code")
       for {
         (sym, props) <- symbols
-        code =
+        code <-
           props match {
             case Code(s) =>
-              try { Integer.decode(s).intValue }
+              try { Some(Integer.decode(s).intValue) }
               catch { case _: NumberFormatException => error("Bad code for symbol " + sym) }
-            case _ => error("Missing code for symbol " + sym)
+            case _ => None
           }
       } yield {
         if (code < 128) error("Illegal ASCII code for symbol " + sym)
@@ -499,7 +510,7 @@ object Symbol
   /* tables */
 
   def properties: Map[Symbol, Properties.T] = symbols.properties
-  def names: Map[Symbol, String] = symbols.names
+  def names: Map[Symbol, (String, String)] = symbols.names
   def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
   def codes: List[(Symbol, Int)] = symbols.codes

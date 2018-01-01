@@ -358,7 +358,7 @@
 \<some>                 code: 0x0003f5
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
-\<comment>              code: 0x002015  group: document  font: IsabelleText
+\<comment>              code: 0x002015  group: document  argument: space_cartouche  font: IsabelleText
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<^here>                code: 0x002302  font: IsabelleText
@@ -370,19 +370,56 @@
 \<^item>                code: 0x0025aa  group: document  font: IsabelleText
 \<^enum>                code: 0x0025b8  group: document  font: IsabelleText
 \<^descr>               code: 0x0027a7  group: document  font: IsabelleText
-\<^footnote>            code: 0x00204b  group: document  font: IsabelleText
-\<^verbatim>            code: 0x0025a9  group: document  font: IsabelleText
-\<^theory_text>         code: 0x002b1a  group: document  font: IsabelleText
-\<^emph>                code: 0x002217  group: document  font: IsabelleText
-\<^bold>                code: 0x002759  group: control  group: document  font: IsabelleText
+\<^footnote>            code: 0x00204b  group: document  argument: cartouche  font: IsabelleText
+\<^verbatim>            code: 0x0025a9  group: document  argument: cartouche  font: IsabelleText
+\<^theory_text>         code: 0x002b1a  group: document  argument: cartouche  font: IsabelleText
+\<^emph>                code: 0x002217  group: document  argument: cartouche  font: IsabelleText
+\<^bold>                code: 0x002759  group: control  argument: cartouche  group: document  font: IsabelleText
 \<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
 \<^sup>                 code: 0x0021e7  group: control  font: IsabelleText
 \<^bsub>                code: 0x0021d8  group: control_block  font: IsabelleText  abbrev: =_(
 \<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
 \<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
 \<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
-\<^file>                code: 0x01F5CF  group: icon  font: IsabelleText
-\<^dir>                 code: 0x01F5C0  group: icon  font: IsabelleText
-\<^url>                 code: 0x01F310  group: icon  font: IsabelleText
-\<^doc>                 code: 0x01F4D3  group: icon  font: IsabelleText
-\<^action>              code: 0x00261b  group: icon  font: IsabelleText
+\<^file>                code: 0x01F5CF  group: icon  argument: cartouche  font: IsabelleText
+\<^dir>                 code: 0x01F5C0  group: icon  argument: cartouche  font: IsabelleText
+\<^url>                 code: 0x01F310  group: icon  argument: cartouche  font: IsabelleText
+\<^doc>                 code: 0x01F4D3  group: icon  argument: cartouche  font: IsabelleText
+\<^action>              code: 0x00261b  group: icon  argument: cartouche  font: IsabelleText
+\<^assert>
+\<^binding>             argument: cartouche
+\<^class>               argument: cartouche
+\<^class_syntax>        argument: cartouche
+\<^command_keyword>     argument: cartouche
+\<^const_abbrev>        argument: cartouche
+\<^const_name>          argument: cartouche
+\<^const_syntax>        argument: cartouche
+\<^context>
+\<^cprop>               argument: cartouche
+\<^cterm>               argument: cartouche
+\<^ctyp>                argument: cartouche
+\<^keyword>             argument: cartouche
+\<^locale>              argument: cartouche
+\<^make_string>
+\<^method>              argument: cartouche
+\<^named_theorems>      argument: cartouche
+\<^nonterminal>         argument: cartouche
+\<^path>                argument: cartouche
+\<^plugin>              argument: cartouche
+\<^print>
+\<^prop>                argument: cartouche
+\<^simproc>             argument: cartouche
+\<^sort>                argument: cartouche
+\<^syntax_const>        argument: cartouche
+\<^system_option>       argument: cartouche
+\<^term>                argument: cartouche
+\<^theory>              argument: cartouche
+\<^theory_context>      argument: cartouche
+\<^typ>                 argument: cartouche
+\<^type_abbrev>         argument: cartouche
+\<^type_name>           argument: cartouche
+\<^type_syntax>         argument: cartouche
+\<^code>                argument: cartouche
+\<^computation>         argument: cartouche
+\<^computation_conv>    argument: cartouche
+\<^computation_check>   argument: cartouche
