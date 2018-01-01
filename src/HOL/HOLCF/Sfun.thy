@@ -5,30 +5,25 @@
 section \<open>The Strict Function Type\<close>
 
 theory Sfun
-imports Cfun
+  imports Cfun
 begin
 
-pcpodef ('a, 'b) sfun (infixr "\<rightarrow>!" 0)
-  = "{f :: 'a \<rightarrow> 'b. f\<cdot>\<bottom> = \<bottom>}"
-by simp_all
+pcpodef ('a, 'b) sfun (infixr "\<rightarrow>!" 0) = "{f :: 'a \<rightarrow> 'b. f\<cdot>\<bottom> = \<bottom>}"
+  by simp_all
 
 type_notation (ASCII)
   sfun  (infixr "->!" 0)
 
 text \<open>TODO: Define nice syntax for abstraction, application.\<close>
 
-definition
-  sfun_abs :: "('a \<rightarrow> 'b) \<rightarrow> ('a \<rightarrow>! 'b)"
-where
-  "sfun_abs = (\<Lambda> f. Abs_sfun (strictify\<cdot>f))"
+definition sfun_abs :: "('a \<rightarrow> 'b) \<rightarrow> ('a \<rightarrow>! 'b)"
+  where "sfun_abs = (\<Lambda> f. Abs_sfun (strictify\<cdot>f))"
 
-definition
-  sfun_rep :: "('a \<rightarrow>! 'b) \<rightarrow> 'a \<rightarrow> 'b"
-where
-  "sfun_rep = (\<Lambda> f. Rep_sfun f)"
+definition sfun_rep :: "('a \<rightarrow>! 'b) \<rightarrow> 'a \<rightarrow> 'b"
+  where "sfun_rep = (\<Lambda> f. Rep_sfun f)"
 
 lemma sfun_rep_beta: "sfun_rep\<cdot>f = Rep_sfun f"
-  unfolding sfun_rep_def by (simp add: cont_Rep_sfun)
+  by (simp add: sfun_rep_def cont_Rep_sfun)
 
 lemma sfun_rep_strict1 [simp]: "sfun_rep\<cdot>\<bottom> = \<bottom>"
   unfolding sfun_rep_beta by (rule Rep_sfun_strict)
@@ -54,9 +49,9 @@ lemma sfun_rep_sfun_abs [simp]: "sfun_rep\<cdot>(sfun_abs\<cdot>f) = strictify\<
   done
 
 lemma sfun_eq_iff: "f = g \<longleftrightarrow> sfun_rep\<cdot>f = sfun_rep\<cdot>g"
-by (simp add: sfun_rep_def cont_Rep_sfun Rep_sfun_inject)
+  by (simp add: sfun_rep_def cont_Rep_sfun Rep_sfun_inject)
 
 lemma sfun_below_iff: "f \<sqsubseteq> g \<longleftrightarrow> sfun_rep\<cdot>f \<sqsubseteq> sfun_rep\<cdot>g"
-by (simp add: sfun_rep_def cont_Rep_sfun below_sfun_def)
+  by (simp add: sfun_rep_def cont_Rep_sfun below_sfun_def)
 
 end

@@ -5,7 +5,7 @@
 section \<open>Profinite and bifinite cpos\<close>
 
 theory Bifinite
-imports Map_Functions Cprod Sprod Sfun Up "HOL-Library.Countable"
+  imports Map_Functions Cprod Sprod Sfun Up "HOL-Library.Countable"
 begin
 
 default_sort cpo
