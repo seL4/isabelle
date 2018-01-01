@@ -58,7 +58,7 @@ fun mk_eq_True (_: Proof.context) r =
 
 fun lift_meta_eq_to_obj_eq ctxt i st =
   let
-    fun count_imp (Const (@{const_name HOL.simp_implies}, _) $ P $ Q) = 1 + count_imp Q
+    fun count_imp (Const (@{const_name HOL.simp_implies}, _) $ _ $ P) = 1 + count_imp P
       | count_imp _ = 0;
     val j = count_imp (Logic.strip_assums_concl (Thm.term_of (Thm.cprem_of st i)))
   in
