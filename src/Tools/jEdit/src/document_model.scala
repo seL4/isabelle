@@ -546,7 +546,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   def bibtex_entries: List[Text.Info[String]] =
     GUI_Thread.require {
-      if (node_name.is_bibtex) {
+      if (is_bibtex) {
         _bibtex_entries match {
           case Some(entries) => entries
           case None =>
