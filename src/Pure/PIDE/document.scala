@@ -538,6 +538,7 @@ object Document
     def node_required: Boolean
     def get_blob: Option[Blob]
     def is_bibtex: Boolean = node_name.is_bibtex
+    def is_bibtex_theory: Boolean = node_name.is_bibtex_theory
     def bibtex_entries: List[Text.Info[String]]
 
     def node_edits(
