@@ -449,8 +449,9 @@ case class File_Model(
   }
 
   def purge_edits(doc_blobs: Document.Blobs): Option[List[Document.Edit_Text]] =
-    if (node_required || !Document.Node.is_no_perspective_text(last_perspective) ||
-        pending_edits.nonEmpty) None
+    if (pending_edits.nonEmpty ||
+        !is_bibtex_theory &&
+          (node_required || !Document.Node.is_no_perspective_text(last_perspective))) None
     else {
       val text_edits = List(Text.Edit.remove(0, content.text))
       Some(node_edits(Document.Node.no_header, text_edits, Document.Node.no_perspective_text))
