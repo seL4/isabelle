@@ -1216,17 +1216,6 @@ rarely an issue, except in proof texts that refer to variable names in the
 @{text "[where \<dots>]"} attribute. The solution is to use the more robust
 @{text "[of \<dots>]"} syntax.
 \end{itemize}
-
-%FIXME old_datatype no longer exists
-The old command is still available as \keyw{old_datatype} in theory
-\<^file>\<open>~~/src/HOL/Library/Old_Datatype.thy\<close>. However, there is no general
-way to register old-style datatypes as new-style datatypes. If the objective
-is to define new-style datatypes with nested recursion through old-style
-datatypes, the old-style datatypes can be registered as a BNF
-(Section~\ref{sec:registering-bounded-natural-functors}). If the objective is
-to derive discriminators and selectors, this can be achieved using
-@{command free_constructors}
-(Section~\ref{sec:deriving-destructors-and-theorems-for-free-constructors}).
 \<close>
 
 
