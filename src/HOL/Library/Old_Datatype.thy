@@ -9,9 +9,6 @@ theory Old_Datatype
 imports Main
 begin
 
-ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
-ML_file "~~/src/HOL/Tools/inductive_realizer.ML"
-
 
 subsection \<open>The datatype universe\<close>
 

@@ -19,7 +19,7 @@ session "HOL-Proofs" (timing) = Pure +
   sessions
     "HOL-Library"
   theories
-    "HOL-Library.Old_Datatype"
+    "HOL-Library.Realizers"
 
 session "HOL-Library" (main timing) in Library = HOL +
   description {*
@@ -52,6 +52,7 @@ session "HOL-Library" (main timing) in Library = HOL +
     (*legacy tools*)
     Old_Datatype
     Old_Recdef
+    Realizers
     Refute
   document_files "root.bib" "root.tex"
 
