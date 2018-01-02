@@ -60,12 +60,12 @@ datatype line =
     is_empty: bool,
     indent: int,
     item: kind option,
-    item_pos: Position.T,
+    bullet_pos: Position.T,
     content: Antiquote.text_antiquote list};
 
 val eof_line =
   Line {source = [Antiquote.Text [(Symbol.eof, Position.none)]],
-    is_empty = false, indent = 0, item = NONE, item_pos = Position.none, content = []};
+    is_empty = false, indent = 0, item = NONE, bullet_pos = Position.none, content = []};
 
 fun line_source (Line {source, ...}) = source;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
@@ -100,9 +100,9 @@ fun read_marker source =
       (control as Antiquote.Control {name = (name, pos), body = [], ...}) :: rest =>
         let
           val item = AList.lookup (op =) kinds name;
-          val item_pos = if is_some item then pos else Position.none;
+          val bullet_pos = if is_some item then pos else Position.none;
           val (_, rest') = strip_spaces (if is_some item then rest else control :: rest);
-        in ((indent, item, item_pos), rest') end
+        in ((indent, item, bullet_pos), rest') end
     | _ => ((indent, NONE, Position.none), source'))
   end;
 
@@ -111,10 +111,10 @@ in
 fun make_line source =
   let
     val _ = check_blanks source;
-    val ((indent, item, item_pos), content) = read_marker source;
+    val ((indent, item, bullet_pos), content) = read_marker source;
   in
     Line {source = source, is_empty = is_empty source, indent = indent,
-      item = item, item_pos = item_pos, content = content}
+      item = item, bullet_pos = bullet_pos, content = content}
   end;
 
 val empty_line = make_line [];
@@ -129,6 +129,9 @@ datatype block = Par of line list | List of {indent: int, kind: kind, body: bloc
 fun block_lines (Par lines) = lines
   | block_lines (List {body, ...}) = maps block_lines body;
 
+fun block_source (Par lines) = maps line_source lines
+  | block_source (List {body, ...}) = maps line_source (maps block_lines body);
+
 fun block_range (Par lines) = Antiquote.range (maps line_content lines)
   | block_range (List {body, ...}) = Antiquote.range (maps line_source (maps block_lines body));
 
@@ -141,6 +144,13 @@ fun block_list indent0 kind0 (List {indent, kind, body}) =
   | block_list _ _ _ = NONE;
 
 val is_list = fn List _ => true | _ => false;
+
+val is_item = fn Par (line :: _) => line_is_item line | _ => false;
+
+fun list_items [] = []
+  | list_items (item :: rest) =
+      let val (item_rest, rest') = take_prefix (not o is_item) rest;
+      in (item :: item_rest) :: list_items rest' end;
 
 
 (* read document *)
@@ -193,16 +203,23 @@ val text_reports =
 
 local
 
-fun line_reports depth (Line {item_pos, content, ...}) =
-  cons (item_pos, Markup.markdown_item depth) #> append (text_reports content);
+val block_pos = #1 o block_range;
+val item_pos = #1 o Antiquote.range o maps block_source;
+
+fun line_reports depth (Line {bullet_pos, content, ...}) =
+  cons (bullet_pos, Markup.markdown_bullet depth) #> append (text_reports content);
+
+fun item_reports blocks =
+  cons (item_pos blocks, Markup.markdown_item);
 
 fun block_reports depth block =
   (case block of
     Par lines =>
-      cons (#1 (block_range block), Markup.markdown_paragraph) #>
+      cons (block_pos block, Markup.markdown_paragraph) #>
       fold (line_reports depth) lines
   | List {kind, body, ...} =>
-      cons (#1 (block_range block), Markup.markdown_list (print_kind kind)) #>
+      cons (block_pos block, Markup.markdown_list (print_kind kind)) #>
+      fold item_reports (list_items body) #>
       fold (block_reports (depth + 1)) body);
 
 in

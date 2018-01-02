@@ -20,7 +20,7 @@ object Rendering
   {
     // background
     val unprocessed1, running1, bad, intensify, entity, active, active_result,
-      markdown_item1, markdown_item2, markdown_item3, markdown_item4 = Value
+      markdown_bullet1, markdown_bullet2, markdown_bullet3, markdown_bullet4 = Value
     val background_colors = values
 
     // foreground
@@ -187,7 +187,7 @@ object Rendering
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
       Markup.BAD + Markup.INTENSIFY + Markup.ENTITY +
-      Markup.Markdown_Item.name ++ active_elements
+      Markup.Markdown_Bullet.name ++ active_elements
 
   val foreground_elements = Markup.Elements(foreground.keySet)
 
@@ -197,7 +197,8 @@ object Rendering
     Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
       Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
       Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH,
-      Markup.Markdown_List.name) ++ Markup.Elements(tooltip_descriptions.keySet)
+      Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
+      Markup.Elements(tooltip_descriptions.keySet)
 
   val tooltip_message_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
@@ -387,13 +388,13 @@ abstract class Rendering(
                   case Markup.Entity.Ref(i) if focus(i) => Some((Nil, Some(Rendering.Color.entity)))
                   case _ => None
                 }
-              case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
+              case (_, Text.Info(_, XML.Elem(Markup.Markdown_Bullet(depth), _))) =>
                 val color =
                   depth % 4 match {
-                    case 1 => Rendering.Color.markdown_item1
-                    case 2 => Rendering.Color.markdown_item2
-                    case 3 => Rendering.Color.markdown_item3
-                    case _ => Rendering.Color.markdown_item4
+                    case 1 => Rendering.Color.markdown_bullet1
+                    case 2 => Rendering.Color.markdown_bullet2
+                    case 3 => Rendering.Color.markdown_bullet3
+                    case _ => Rendering.Color.markdown_bullet4
                   }
                 Some((Nil, Some(color)))
               case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
@@ -591,6 +592,8 @@ abstract class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(info + (r0, true, XML.Text("Markdown: paragraph")))
+          case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), _))) =>
+            Some(info + (r0, true, XML.Text("Markdown: item")))
           case (info, Text.Info(r0, XML.Elem(Markup.Markdown_List(kind), _))) =>
             Some(info + (r0, true, XML.Text("Markdown: " + kind)))
 

@@ -120,7 +120,7 @@ object JEdit_Rendering
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.CLASS_PARAMETER, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
-      Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name)
+      Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name)
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION,

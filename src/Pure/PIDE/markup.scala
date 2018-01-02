@@ -296,8 +296,9 @@ object Markup
   /* Markdown document structure */
 
   val MARKDOWN_PARAGRAPH = "markdown_paragraph"
+  val MARKDOWN_ITEM = "markdown_item"
   val Markdown_List = new Markup_String("markdown_list", "kind")
-  val Markdown_Item = new Markup_Int("markdown_item", "depth")
+  val Markdown_Bullet = new Markup_Int("markdown_bullet", "depth")
 
 
   /* ML */
