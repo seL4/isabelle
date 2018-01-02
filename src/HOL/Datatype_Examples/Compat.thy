@@ -27,38 +27,6 @@ fun get_descrs thy lens T_name =
   |> tap (check_lens lens);
 \<close>
 
-old_datatype 'a old_lst = Old_Nl | Old_Cns 'a "'a old_lst"
-
-text \<open>
-A few tests to make sure that \<open>old_datatype\<close> works as expected:
-\<close>
-
-primrec old_len :: "'a old_lst \<Rightarrow> nat" where
-  "old_len Old_Nl = 0"
-| "old_len (Old_Cns _ xs) = Suc (old_len xs)"
-
-export_code old_len checking SML OCaml? Haskell? Scala
-
-lemma "Old_Nl = Old_Cns x xs"
-  nitpick (* [expect = genuine] *)
-  quickcheck [exhaustive, expect = counterexample]
-  quickcheck [random, expect = counterexample]
-  quickcheck [narrowing (* , expect = counterexample *)]
-  oops
-
-lemma "old_len xs = size xs"
-  by (induct xs) auto
-
-ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name old_lst}\<close>
-
-datatype 'a lst = Nl | Cns 'a "'a lst"
-
-ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name lst}\<close>
-
-datatype_compat lst
-
-ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name lst}\<close>
-
 datatype 'b w = W | W' "'b w \<times> 'b list"
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name w}\<close>
@@ -71,7 +39,7 @@ datatype ('c, 'b) s = L 'c | R 'b
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name s}\<close>
 
-datatype 'd x = X | X' "('d x lst, 'd list) s"
+datatype 'd x = X | X' "('d x list, 'd list) s"
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name x}\<close>
 
@@ -87,7 +55,7 @@ ML \<open>get_descrs @{theory} (3, 3, 1) @{type_name x}\<close>
 thm x.induct x.rec
 thm compat_x.induct compat_x.rec
 
-datatype 'a tttre = TTTre 'a "'a tttre lst lst lst"
+datatype 'a tttre = TTTre 'a "'a tttre list list list"
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name tttre}\<close>
 
@@ -98,7 +66,7 @@ ML \<open>get_descrs @{theory} (4, 4, 1) @{type_name tttre}\<close>
 thm tttre.induct tttre.rec
 thm compat_tttre.induct compat_tttre.rec
 
-datatype 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre lst"
+datatype 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre list"
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name ftre}\<close>
 
@@ -109,7 +77,7 @@ ML \<open>get_descrs @{theory} (2, 2, 1) @{type_name ftre}\<close>
 thm ftre.induct ftre.rec
 thm compat_ftre.induct compat_ftre.rec
 
-datatype 'a btre = BTre 'a "'a btre lst" "'a btre lst"
+datatype 'a btre = BTre 'a "'a btre list" "'a btre list"
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name btre}\<close>
 
@@ -130,7 +98,7 @@ datatype_compat foo bar
 ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name foo}\<close>
 ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name bar}\<close>
 
-datatype 'a tre = Tre 'a "'a tre lst"
+datatype 'a tre = Tre 'a "'a tre list"
 
 ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name tre}\<close>
 
@@ -188,14 +156,6 @@ datatype_compat bar' foo'
 
 ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name foo'}\<close>
 ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name bar'}\<close>
-
-old_datatype funky = Funky "funky tre" | Funky'
-
-ML \<open>get_descrs @{theory} (3, 3, 3) @{type_name funky}\<close>
-
-old_datatype fnky = Fnky "nat tre"
-
-ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name fnky}\<close>
 
 datatype tree = Tree "tree foo"
 
