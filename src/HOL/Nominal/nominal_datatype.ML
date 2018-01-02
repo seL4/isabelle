@@ -28,10 +28,6 @@ val finite_emptyI = @{thm finite.emptyI};
 val finite_Diff = @{thm finite_Diff};
 val finite_Un = @{thm finite_Un};
 val Un_iff = @{thm Un_iff};
-val In0_eq = @{thm In0_eq};
-val In1_eq = @{thm In1_eq};
-val In0_not_In1 = @{thm In0_not_In1};
-val In1_not_In0 = @{thm In1_not_In0};
 val Un_assoc = @{thm Un_assoc};
 val Collect_disj_eq = @{thm Collect_disj_eq};
 val Collect_False_empty = @{thm empty_def [THEN sym, THEN eq_reflection]};
@@ -850,9 +846,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     (* prove distinctness theorems *)
 
     val distinct_props = Old_Datatype_Prop.make_distincts descr';
-    val dist_rewrites = map2 (fn rep_thms => fn dist_lemma =>
-      dist_lemma :: rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0])
-        constr_rep_thmss dist_lemmas;
+    val dist_rewrites = map2 (fn rep_thms => fn dist_lemma => dist_lemma :: rep_thms)
+      constr_rep_thmss dist_lemmas;
 
     fun prove_distinct_thms _ [] = []
       | prove_distinct_thms (p as (rep_thms, dist_lemma)) (t :: ts) =
