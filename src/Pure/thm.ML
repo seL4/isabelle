@@ -1803,10 +1803,10 @@ fun extern_oracles verbose ctxt =
   map #1 (Name_Space.markup_table verbose ctxt (Oracles.get (Proof_Context.theory_of ctxt)));
 
 fun add_oracle (b, oracle) thy =
-    let
-      val (name, tab') = Name_Space.define (Context.Theory thy) true (b, ()) (Oracles.get thy);
-      val thy' = Oracles.put tab' thy;
-    in ((name, invoke_oracle thy' name oracle), thy') end;
+  let
+    val (name, tab') = Name_Space.define (Context.Theory thy) true (b, ()) (Oracles.get thy);
+    val thy' = Oracles.put tab' thy;
+  in ((name, invoke_oracle thy' name oracle), thy') end;
 
 end;
 
