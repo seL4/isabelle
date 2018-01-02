@@ -5,7 +5,7 @@
 section \<open>Quotient and remainder\<close>
 
 theory QuotRem
-imports "HOL-Library.Old_Datatype" Util
+imports Util "HOL-Library.Realizers"
 begin
 
 text \<open>Derivation of quotient and remainder using program extraction.\<close>

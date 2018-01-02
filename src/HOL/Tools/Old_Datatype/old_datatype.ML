@@ -18,7 +18,6 @@ sig
   val check_specs: spec list -> theory -> spec list * Proof.context
   val add_datatype: config -> spec list -> theory -> string list * theory
   val add_datatype_cmd: config -> spec_cmd list -> theory -> string list * theory
-  val spec_cmd: spec_cmd parser
 end;
 
 structure Old_Datatype : OLD_DATATYPE =

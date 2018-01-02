@@ -10,8 +10,8 @@ theory Euclid
 imports
   "HOL-Computational_Algebra.Primes"
   Util
-  "HOL-Library.Old_Datatype"
   "HOL-Library.Code_Target_Numeral"
+  "HOL-Library.Realizers"
 begin
 
 text \<open>
