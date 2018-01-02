@@ -246,7 +246,7 @@ fun add_dummies f [] _ thy =
       thy
       |> f (map snd dts)
       |-> (fn dtinfo => pair (map fst dts, SOME dtinfo))
-    handle Old_Datatype_Aux.Datatype_Empty name' =>
+    handle BNF_FP_Util.EMPTY_DATATYPE name' =>
       let
         val name = Long_Name.base_name name';
         val dname = singleton (Name.variant_list used) "Dummy";
@@ -308,15 +308,15 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     val ((dummies, some_dt_names), thy2) =
       thy1
-      |> add_dummies (Old_Datatype.add_datatype {strict = false, quiet = false})
+      |> add_dummies (BNF_LFP_Compat.add_datatype [BNF_LFP_Compat.Kill_Type_Args])
         (map (pair false) dts) []
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;
     val dt_names = these some_dt_names;
-    val case_thms = map (#case_rewrites o Old_Datatype_Data.the_info thy2) dt_names;
+    val case_thms = map (#case_rewrites o BNF_LFP_Compat.the_info thy2 []) dt_names;
     val rec_thms =
       if null dt_names then []
-      else #rec_rewrites (Old_Datatype_Data.the_info thy2 (hd dt_names));
+      else #rec_rewrites (BNF_LFP_Compat.the_info thy2 [] (hd dt_names));
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) rec_thms);
     val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>
