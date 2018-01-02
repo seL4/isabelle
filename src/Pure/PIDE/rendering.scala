@@ -197,7 +197,8 @@ object Rendering
     Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
       Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
       Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH,
-      Markup.Markdown_List.name) ++ Markup.Elements(tooltip_descriptions.keySet)
+      Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
+      Markup.Elements(tooltip_descriptions.keySet)
 
   val tooltip_message_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
@@ -591,6 +592,8 @@ abstract class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(info + (r0, true, XML.Text("Markdown: paragraph")))
+          case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), _))) =>
+            Some(info + (r0, true, XML.Text("Markdown: item")))
           case (info, Text.Info(r0, XML.Elem(Markup.Markdown_List(kind), _))) =>
             Some(info + (r0, true, XML.Text("Markdown: " + kind)))
 

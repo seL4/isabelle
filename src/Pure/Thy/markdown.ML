@@ -129,6 +129,9 @@ datatype block = Par of line list | List of {indent: int, kind: kind, body: bloc
 fun block_lines (Par lines) = lines
   | block_lines (List {body, ...}) = maps block_lines body;
 
+fun block_source (Par lines) = maps line_source lines
+  | block_source (List {body, ...}) = maps line_source (maps block_lines body);
+
 fun block_range (Par lines) = Antiquote.range (maps line_content lines)
   | block_range (List {body, ...}) = Antiquote.range (maps line_source (maps block_lines body));
 
@@ -141,6 +144,13 @@ fun block_list indent0 kind0 (List {indent, kind, body}) =
   | block_list _ _ _ = NONE;
 
 val is_list = fn List _ => true | _ => false;
+
+val is_item = fn Par (line :: _) => line_is_item line | _ => false;
+
+fun list_items [] = []
+  | list_items (item :: rest) =
+      let val (item_rest, rest') = take_prefix (not o is_item) rest;
+      in (item :: item_rest) :: list_items rest' end;
 
 
 (* read document *)
@@ -193,16 +203,23 @@ val text_reports =
 
 local
 
+val block_pos = #1 o block_range;
+val item_pos = #1 o Antiquote.range o maps block_source;
+
 fun line_reports depth (Line {bullet_pos, content, ...}) =
   cons (bullet_pos, Markup.markdown_bullet depth) #> append (text_reports content);
+
+fun item_reports blocks =
+  cons (item_pos blocks, Markup.markdown_item);
 
 fun block_reports depth block =
   (case block of
     Par lines =>
-      cons (#1 (block_range block), Markup.markdown_paragraph) #>
+      cons (block_pos block, Markup.markdown_paragraph) #>
       fold (line_reports depth) lines
   | List {kind, body, ...} =>
-      cons (#1 (block_range block), Markup.markdown_list (print_kind kind)) #>
+      cons (block_pos block, Markup.markdown_list (print_kind kind)) #>
+      fold item_reports (list_items body) #>
       fold (block_reports (depth + 1)) body);
 
 in
