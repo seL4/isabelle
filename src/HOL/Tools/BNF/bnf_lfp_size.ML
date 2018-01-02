@@ -376,7 +376,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         |> Spec_Rules.add Spec_Rules.Equational (size_consts, size_simps)
         |> Spec_Rules.add Spec_Rules.Equational (overloaded_size_consts, overloaded_size_simps)
         |> Code.declare_default_eqns (map (rpair true) (flat size_thmss))
-          (*Ideally, this would only be issued if the "code" plugin is enabled.*)
+          (*Ideally, this would be issued only if the "code" plugin is enabled.*)
         |> Local_Theory.notes notes;
 
       val phi0 = substitute_noted_thm noted;
@@ -386,8 +386,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         (fn phi => Data.map (@{fold 3} (fn T_name => fn Const (size_name, _) =>
             fn overloaded_size_def =>
                let val morph = Morphism.thm (phi0 $> phi) in
-                 Symtab.update (T_name, (size_name, (morph overloaded_size_def, map morph size_simps,
-                   maps (map morph) size_gen_o_map_thmss)))
+                 Symtab.update (T_name, (size_name, (morph overloaded_size_def,
+                   map morph overloaded_size_simps, maps (map morph) size_gen_o_map_thmss)))
                end)
            T_names size_consts overloaded_size_defs))
     end
