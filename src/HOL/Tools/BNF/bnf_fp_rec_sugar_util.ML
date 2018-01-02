@@ -172,9 +172,8 @@ fun unexpected_corec_call_in ctxt ats t =
   error_at ctxt ats ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
 fun unsupported_case_around_corec_call ctxt ats t =
   error_at ctxt ats ("Unsupported corecursive call under case expression " ^
-    quote (Syntax.string_of_term ctxt t) ^ "\n(Define " ^
-    quote (Syntax.string_of_typ ctxt (domain_type (fastype_of t))) ^
-    " with discriminators and selectors to circumvent this limitation)");
+    quote (Syntax.string_of_term ctxt t) ^
+    "\n(Define datatype with discriminators and selectors to circumvent this limitation)");
 
 fun no_equation_for_ctr_warning ctxt ats ctr =
   warning_at ctxt ats ("No equation for constructor " ^ quote (Syntax.string_of_term ctxt ctr));
