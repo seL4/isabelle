@@ -1217,6 +1217,7 @@ rarely an issue, except in proof texts that refer to variable names in the
 @{text "[of \<dots>]"} syntax.
 \end{itemize}
 
+%FIXME old_datatype no longer exists
 The old command is still available as \keyw{old_datatype} in theory
 \<^file>\<open>~~/src/HOL/Library/Old_Datatype.thy\<close>. However, there is no general
 way to register old-style datatypes as new-style datatypes. If the objective

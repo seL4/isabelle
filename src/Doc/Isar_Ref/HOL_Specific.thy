@@ -712,13 +712,10 @@ section \<open>Old-style datatypes \label{sec:hol-datatype}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "old_datatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def (HOL) "old_rep_datatype"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) old_datatype} (spec + @'and')
-    ;
     @@{command (HOL) old_rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
     ;
 
@@ -726,9 +723,6 @@ text \<open>
     ;
     cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
   \<close>}
-
-  \<^descr> @{command (HOL) "old_datatype"} defines old-style inductive
-  datatypes in HOL.
 
   \<^descr> @{command (HOL) "old_rep_datatype"} represents existing types as
   old-style datatypes.
