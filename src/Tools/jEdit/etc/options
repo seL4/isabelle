@@ -132,10 +132,10 @@ option inner_comment_color : string = "CC0000FF"
 option dynamic_color : string = "7BA428FF"
 option class_parameter_color : string = "D2691EFF"
 
-option markdown_item1_color : string = "DAFEDAFF"
-option markdown_item2_color : string = "FFF0CCFF"
-option markdown_item3_color : string = "E7E7FFFF"
-option markdown_item4_color : string = "FFE0F0FF"
+option markdown_bullet1_color : string = "DAFEDAFF"
+option markdown_bullet2_color : string = "FFF0CCFF"
+option markdown_bullet3_color : string = "E7E7FFFF"
+option markdown_bullet4_color : string = "FFE0F0FF"
 
 
 section "Icons"

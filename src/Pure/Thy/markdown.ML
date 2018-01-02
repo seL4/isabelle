@@ -60,12 +60,12 @@ datatype line =
     is_empty: bool,
     indent: int,
     item: kind option,
-    item_pos: Position.T,
+    bullet_pos: Position.T,
     content: Antiquote.text_antiquote list};
 
 val eof_line =
   Line {source = [Antiquote.Text [(Symbol.eof, Position.none)]],
-    is_empty = false, indent = 0, item = NONE, item_pos = Position.none, content = []};
+    is_empty = false, indent = 0, item = NONE, bullet_pos = Position.none, content = []};
 
 fun line_source (Line {source, ...}) = source;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
@@ -100,9 +100,9 @@ fun read_marker source =
       (control as Antiquote.Control {name = (name, pos), body = [], ...}) :: rest =>
         let
           val item = AList.lookup (op =) kinds name;
-          val item_pos = if is_some item then pos else Position.none;
+          val bullet_pos = if is_some item then pos else Position.none;
           val (_, rest') = strip_spaces (if is_some item then rest else control :: rest);
-        in ((indent, item, item_pos), rest') end
+        in ((indent, item, bullet_pos), rest') end
     | _ => ((indent, NONE, Position.none), source'))
   end;
 
@@ -111,10 +111,10 @@ in
 fun make_line source =
   let
     val _ = check_blanks source;
-    val ((indent, item, item_pos), content) = read_marker source;
+    val ((indent, item, bullet_pos), content) = read_marker source;
   in
     Line {source = source, is_empty = is_empty source, indent = indent,
-      item = item, item_pos = item_pos, content = content}
+      item = item, bullet_pos = bullet_pos, content = content}
   end;
 
 val empty_line = make_line [];
@@ -193,8 +193,8 @@ val text_reports =
 
 local
 
-fun line_reports depth (Line {item_pos, content, ...}) =
-  cons (item_pos, Markup.markdown_item depth) #> append (text_reports content);
+fun line_reports depth (Line {bullet_pos, content, ...}) =
+  cons (bullet_pos, Markup.markdown_bullet depth) #> append (text_reports content);
 
 fun block_reports depth block =
   (case block of

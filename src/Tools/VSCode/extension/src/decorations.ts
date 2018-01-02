@@ -17,10 +17,10 @@ const background_colors = [
   "intensify",
   "quoted",
   "antiquoted",
-  "markdown_item1",
-  "markdown_item2",
-  "markdown_item3",
-  "markdown_item4"
+  "markdown_bullet1",
+  "markdown_bullet2",
+  "markdown_bullet3",
+  "markdown_bullet4"
 ]
 
 const foreground_colors = [

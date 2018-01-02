@@ -266,35 +266,35 @@
                     "type": "string",
                     "default": "rgba(204, 136, 0, 0.20)"
                 },
-                "isabelle.markdown_item1_light_color": {
+                "isabelle.markdown_bullet1_light_color": {
                     "type": "string",
                     "default": "rgba(218, 254, 218, 1.00)"
                 },
-                "isabelle.markdown_item1_dark_color": {
+                "isabelle.markdown_bullet1_dark_color": {
                     "type": "string",
                     "default": "rgba(5, 199, 5, 0.20)"
                 },
-                "isabelle.markdown_item2_light_color": {
+                "isabelle.markdown_bullet2_light_color": {
                     "type": "string",
                     "default": "rgba(255, 240, 204, 1.00)"
                 },
-                "isabelle.markdown_item2_dark_color": {
+                "isabelle.markdown_bullet2_dark_color": {
                     "type": "string",
                     "default": "rgba(204, 143, 0, 0.20)"
                 },
-                "isabelle.markdown_item3_light_color": {
+                "isabelle.markdown_bullet3_light_color": {
                     "type": "string",
                     "default": "rgba(231, 231, 255, 1.00)"
                 },
-                "isabelle.markdown_item3_dark_color": {
+                "isabelle.markdown_bullet3_dark_color": {
                     "type": "string",
                     "default": "rgba(0, 0, 204, 0.20)"
                 },
-                "isabelle.markdown_item4_light_color": {
+                "isabelle.markdown_bullet4_light_color": {
                     "type": "string",
                     "default": "rgba(255, 224, 240, 1.00)"
                 },
-                "isabelle.markdown_item4_dark_color": {
+                "isabelle.markdown_bullet4_dark_color": {
                     "type": "string",
                     "default": "rgba(204, 0, 105, 0.20)"
                 },
