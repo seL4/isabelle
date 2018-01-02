@@ -2094,9 +2094,14 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
 val nominal_datatype = gen_nominal_datatype Old_Datatype.check_specs;
 val nominal_datatype_cmd = gen_nominal_datatype Old_Datatype.read_specs;
 
+val spec_cmd =
+  Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
+  (@{keyword "="} |-- Parse.enum1 "|" (Parse.binding -- Scan.repeat Parse.typ -- Parse.opt_mixfix))
+  >> (fn (((vs, t), mx), cons) => ((t, vs, mx), map Scan.triple1 cons));
+
 val _ =
   Outer_Syntax.command @{command_keyword nominal_datatype} "define nominal datatypes"
-    (Parse.and_list1 Old_Datatype.spec_cmd >>
+    (Parse.and_list1 spec_cmd >>
       (Toplevel.theory o nominal_datatype_cmd Old_Datatype_Aux.default_config));
 
 end
