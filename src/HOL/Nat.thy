@@ -2456,6 +2456,8 @@ instance ..
 
 end
 
+lemmas size_nat = size_nat_def
+
 
 subsection \<open>Code module namespace\<close>
 

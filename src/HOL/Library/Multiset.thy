@@ -3869,7 +3869,7 @@ lemmas rel_mset_induct[case_names empty add, induct pred: rel_mset] =
 
 subsection \<open>Size setup\<close>
 
-lemma multiset_size_o_map: "size_multiset g \<circ> image_mset f = size_multiset (g \<circ> f)"
+lemma size_multiset_o_map: "size_multiset g \<circ> image_mset f = size_multiset (g \<circ> f)"
   apply (rule ext)
   subgoal for x by (induct x) auto
   done
@@ -3879,7 +3879,7 @@ setup \<open>
     @{thm size_multiset_overloaded_def}
     @{thms size_multiset_empty size_multiset_single size_multiset_union size_empty size_single
       size_union}
-    @{thms multiset_size_o_map}
+    @{thms size_multiset_o_map}
 \<close>
 
 subsection \<open>Lemmas about Size\<close>

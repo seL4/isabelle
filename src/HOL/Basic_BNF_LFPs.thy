@@ -104,14 +104,7 @@ lemma rel_prod_sel: "rel_prod R1 R2 p q = (R1 (fst p) (fst q) \<and> R2 (snd p) 
 
 ML_file "Tools/BNF/bnf_lfp_basic_sugar.ML"
 
-ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"
-
-lemma size_bool[code]: "size (b :: bool) = 0"
-  by (cases b) auto
-
-declare prod.size[no_atp]
-
-lemmas size_nat = size_nat_def
+declare prod.size [no_atp]
 
 hide_const (open) xtor ctor_rec
 
