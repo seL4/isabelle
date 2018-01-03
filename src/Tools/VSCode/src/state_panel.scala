@@ -70,7 +70,7 @@ class State_Panel private(val server: Server)
                 HTML.style_file(HTML.isabelle_css),
                 HTML.script(controls_script)),
               List(controls, HTML.source(text)),
-              css = "")
+              css = "", structural = true)
           output(content)
         })
 

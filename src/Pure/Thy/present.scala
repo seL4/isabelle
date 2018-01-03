@@ -116,7 +116,7 @@ object Present
         List(
           HTML.style(HTML.fonts_css(fonts_url) + File.read(HTML.isabelle_css)),
           HTML.title(title)),
-        List(HTML.source(body)), css = "")
+        List(HTML.source(body)), css = "", structural = false)
 
     val name = snapshot.node_name
     if (plain_text) {
@@ -160,7 +160,9 @@ object Present
     }
 
   private def html_class(c: String, html: XML.Body): XML.Tree =
-    if (html_div(html)) HTML.div(c, html) else HTML.span(c, html)
+    if (html.forall(_ == HTML.no_text)) HTML.no_text
+    else if (html_div(html)) HTML.div(c, html)
+    else HTML.span(c, html)
 
   private def make_html(xml: XML.Body): XML.Body =
     xml map {

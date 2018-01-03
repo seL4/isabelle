@@ -97,7 +97,7 @@ object HTML
     Set("head", "body", "meta", "div", "pre", "p", "title", "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "dl", "li", "dt", "dd")
 
-  def output(body: XML.Body, s: StringBuilder, hidden: Boolean)
+  def output(body: XML.Body, s: StringBuilder, hidden: Boolean, structural: Boolean)
   {
     def elem(markup: Markup)
     {
@@ -116,22 +116,22 @@ object HTML
         case XML.Elem(markup, Nil) =>
           s += '<'; elem(markup); s ++= "/>"
         case XML.Elem(markup, ts) =>
-          if (structural_elements(markup.name)) s += '\n'
+          if (structural && structural_elements(markup.name)) s += '\n'
           s += '<'; elem(markup); s += '>'
           ts.foreach(tree)
           s ++= "</"; s ++= markup.name; s += '>'
-          if (structural_elements(markup.name)) s += '\n'
+          if (structural && structural_elements(markup.name)) s += '\n'
         case XML.Text(txt) =>
           output(txt, s, hidden = hidden, permissive = true)
       }
     body.foreach(tree)
   }
 
-  def output(body: XML.Body, hidden: Boolean): String =
-    Library.make_string(output(body, _, hidden))
+  def output(body: XML.Body, hidden: Boolean, structural: Boolean): String =
+    Library.make_string(output(body, _, hidden, structural))
 
-  def output(tree: XML.Tree, hidden: Boolean): String =
-    output(List(tree), hidden)
+  def output(tree: XML.Tree, hidden: Boolean, structural: Boolean): String =
+    output(List(tree), hidden, structural)
 
 
   /* attributes */
@@ -333,14 +333,17 @@ object HTML
       List("http-equiv" -> "Content-Type", "content" -> "text/html; charset=utf-8")), Nil)
 
   def output_document(head: XML.Body, body: XML.Body,
-    css: String = "isabelle.css", hidden: Boolean = true): String =
+    css: String = "isabelle.css",
+    hidden: Boolean = true,
+    structural: Boolean = true): String =
   {
     cat_lines(
       List(header,
         output(
           XML.elem("head", head_meta :: (if (css == "") Nil else List(style_file(css))) ::: head),
-          hidden = hidden),
-        output(XML.elem("body", body), hidden = hidden)))
+          hidden = hidden, structural = structural),
+        output(XML.elem("body", body),
+          hidden = hidden, structural = structural)))
   }
 
 
@@ -389,9 +392,12 @@ object HTML
   }
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    css: String = isabelle_css.base_name, hidden: Boolean = true)
+    css: String = isabelle_css.base_name,
+    hidden: Boolean = true,
+    structural: Boolean = true)
   {
     init_dir(dir)
-    File.write(dir + Path.basic(name), output_document(head, body, css = css, hidden = hidden))
+    File.write(dir + Path.basic(name),
+      output_document(head, body, css = css, hidden = hidden, structural = structural))
   }
 }
