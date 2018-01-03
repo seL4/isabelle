@@ -579,13 +579,13 @@ fun print_code ctxt const =
 
 fun print_computation kind ctxt T =
   print (fn { of_term_for_typ, ... } => fn prfx =>
-    space_implode " " [
+    enclose "(" ")" (space_implode " " [
       kind,
       "(Context.proof_of (Context.the_generic_context ()))",
       Long_Name.implode [prfx, generated_computationN, covered_constsN],
       (ML_Syntax.atomic o ML_Syntax.print_typ) T,
       Long_Name.append prfx (of_term_for_typ T)
-    ]) ctxt;
+    ])) ctxt;
 
 fun print_computation_check ctxt =
   print (fn { of_term_for_typ, ... } => fn prfx =>
