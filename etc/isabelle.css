@@ -23,6 +23,7 @@ body {
 
 .theories { background-color: #FFFFFF; padding: 10px; }
 .sessions { background-color: #FFFFFF; padding: 10px; }
+.document { white-space: normal; font-family: sans-serif; }
 
 .name     { font-style: italic; }
 .filename { font-family: fixed; }

@@ -145,32 +145,51 @@ object Present
 
   /* PIDE document */
 
-  private val document_span_elements =
-    Rendering.foreground_elements ++ Rendering.text_color_elements + Markup.NUMERAL + Markup.COMMENT
+  private val document_elements =
+    Rendering.foreground_elements ++ Rendering.text_color_elements ++ Rendering.markdown_elements +
+    Markup.NUMERAL + Markup.COMMENT + Markup.LANGUAGE
+
+  private val div_elements =
+    Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.enum.name,
+      HTML.descr.name)
+
+  private def html_div(html: XML.Body): Boolean =
+    html exists {
+      case XML.Elem(markup, body) => div_elements.contains(markup.name) || html_div(body)
+      case XML.Text(_) => false
+    }
+
+  private def html_class(c: String, html: XML.Body): XML.Tree =
+    if (html_div(html)) HTML.div(c, html) else HTML.span(c, html)
 
   private def make_html(xml: XML.Body): XML.Body =
     xml map {
-      case XML.Wrapped_Elem(markup, body1, body2) =>
-        XML.Wrapped_Elem(markup, make_html(body1), make_html(body2))
+      case XML.Elem(Markup(Markup.LANGUAGE, Markup.Name(Markup.Language.DOCUMENT)), body) =>
+        html_class(Markup.Language.DOCUMENT, make_html(body))
+      case XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), body) => HTML.par(make_html(body))
+      case XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), body) => HTML.item(make_html(body))
+      case XML.Elem(Markup(Markup.Markdown_Bullet.name, _), _) => HTML.no_text
+      case XML.Elem(Markup.Markdown_List(kind), body) =>
+        if (kind == Markup.ENUMERATE) HTML.enum(make_html(body)) else HTML.list(make_html(body))
       case XML.Elem(markup, body) =>
         val name = markup.name
         val html =
           markup.properties match {
             case Markup.Kind(kind) if kind == Markup.COMMAND || kind == Markup.KEYWORD =>
-              List(HTML.span(kind, make_html(body)))
+              List(html_class(kind, make_html(body)))
             case _ =>
               make_html(body)
           }
         Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
-          case Some(c) => HTML.span(c.toString, html)
-          case None => HTML.span(name, html)
+          case Some(c) => html_class(c.toString, html)
+          case None => html_class(name, html)
         }
       case XML.Text(text) =>
         XML.Text(Symbol.decode(text))
     }
 
   def pide_document(snapshot: Document.Snapshot): XML.Body =
-    make_html(snapshot.markup_to_XML(Text.Range.full, document_span_elements))
+    make_html(snapshot.markup_to_XML(Text.Range.full, document_elements))
 
 
 

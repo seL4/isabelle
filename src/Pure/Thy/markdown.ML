@@ -43,9 +43,9 @@ struct
 
 datatype kind = Itemize | Enumerate | Description;
 
-fun print_kind Itemize = "itemize"
-  | print_kind Enumerate = "enumerate"
-  | print_kind Description = "description";
+fun print_kind Itemize = Markup.itemizeN
+  | print_kind Enumerate = Markup.enumerateN
+  | print_kind Description = Markup.descriptionN;
 
 val kinds = [("item", Itemize), ("enum", Enumerate), ("descr", Description)];
 

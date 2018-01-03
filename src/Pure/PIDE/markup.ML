@@ -123,8 +123,11 @@ sig
   val text_foldN: string val text_fold: T
   val markdown_paragraphN: string val markdown_paragraph: T
   val markdown_itemN: string val markdown_item: T
-  val markdown_listN: string val markdown_list: string -> T
   val markdown_bulletN: string val markdown_bullet: int -> T
+  val markdown_listN: string val markdown_list: string -> T
+  val itemizeN: string
+  val enumerateN: string
+  val descriptionN: string
   val inputN: string val input: bool -> Properties.T -> T
   val command_keywordN: string val command_keyword: T
   val commandN: string val command_properties: T -> T
@@ -475,8 +478,12 @@ val (text_foldN, text_fold) = markup_elem "text_fold";
 
 val (markdown_paragraphN, markdown_paragraph) = markup_elem "markdown_paragraph";
 val (markdown_itemN, markdown_item) = markup_elem "markdown_item";
-val (markdown_listN, markdown_list) = markup_string "markdown_list" kindN;
 val (markdown_bulletN, markdown_bullet) = markup_int "markdown_bullet" "depth";
+val (markdown_listN, markdown_list) = markup_string "markdown_list" kindN;
+
+val itemizeN = "itemize";
+val enumerateN = "enumerate";
+val descriptionN = "description";
 
 
 (* formal input *)

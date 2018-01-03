@@ -207,6 +207,10 @@ object Rendering
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
 
   val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
+
+  val markdown_elements =
+    Markup.Elements(Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,
+      Markup.Markdown_Bullet.name)
 }
 
 abstract class Rendering(

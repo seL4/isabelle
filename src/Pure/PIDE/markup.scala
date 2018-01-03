@@ -161,6 +161,7 @@ object Markup
   val LANGUAGE = "language"
   object Language
   {
+    val DOCUMENT = "document"
     val ML = "ML"
     val SML = "SML"
     val PATH = "path"
@@ -297,8 +298,12 @@ object Markup
 
   val MARKDOWN_PARAGRAPH = "markdown_paragraph"
   val MARKDOWN_ITEM = "markdown_item"
-  val Markdown_List = new Markup_String("markdown_list", "kind")
   val Markdown_Bullet = new Markup_Int("markdown_bullet", "depth")
+  val Markdown_List = new Markup_String("markdown_list", "kind")
+
+  val ITEMIZE = "itemize"
+  val ENUMERATE = "enumerate"
+  val DESCRIPTION = "description"
 
 
   /* ML */

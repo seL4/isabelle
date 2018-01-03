@@ -153,6 +153,7 @@ object HTML
   /* structured markup operators */
 
   def text(txt: String): XML.Body = if (txt.isEmpty) Nil else List(XML.Text(txt))
+  val no_text: XML.Tree = XML.Text("")
   val break: XML.Body = List(XML.elem("br"))
 
   class Operator(val name: String)
@@ -176,6 +177,12 @@ object HTML
   val emph = new Operator("em")
   val bold = new Operator("b")
   val code = new Operator("code")
+  val item = new Operator("li")
+  val list = new Operator("ul")
+  val enum = new Operator("ol")
+  val descr = new Operator("dl")
+  val dt = new Operator("dt")
+  val dd = new Operator("dd")
 
   val title = new Heading("title")
   val chapter = new Heading("h1")
@@ -185,14 +192,10 @@ object HTML
   val paragraph = new Heading("h5")
   val subparagraph = new Heading("h6")
 
-  def itemize(items: List[XML.Body]): XML.Elem =
-    XML.elem("ul", items.map(XML.elem("li", _)))
-
-  def enumerate(items: List[XML.Body]): XML.Elem =
-    XML.elem("ol", items.map(XML.elem("li", _)))
-
+  def itemize(items: List[XML.Body]): XML.Elem = list(items.map(item(_)))
+  def enumerate(items: List[XML.Body]): XML.Elem = enum(items.map(item(_)))
   def description(items: List[(XML.Body, XML.Body)]): XML.Elem =
-    XML.elem("dl", items.flatMap({ case (x, y) => List(XML.elem("dt", x), XML.elem("dd", y)) }))
+    descr(items.flatMap({ case (x, y) => List(dt(x), dd(y)) }))
 
   def link(href: String, body: XML.Body = Nil): XML.Elem =
     XML.Elem(Markup("a", List("href" -> href)), if (body.isEmpty) text(href) else body)
