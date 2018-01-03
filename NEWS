@@ -146,6 +146,10 @@ some examples.
     presence of higher-order quantifiers. An 'smt_explicit_application'
     option has been added to control this. INCOMPATIBILITY.
 
+* Datatypes:
+  - The legacy command 'old_datatype', provided by
+    '~~/src/HOL/Library/Old_Datatype.thy', has been removed. INCOMPATIBILITY.
+
 * Theory HOL-Computational_Algebra.Polynomial_Factorial does not provide
 instances of rat, real, complex as factorial rings etc. Import
 HOL-Computational_Algebra.Field_as_Ring explicitly in case of need.
