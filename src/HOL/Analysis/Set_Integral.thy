@@ -99,6 +99,19 @@ proof -
     by (simp add: indicator_inter_arith[symmetric] Int_absorb2)
 qed
 
+lemma set_integrable_restrict_space:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes f: "set_integrable M S f" and T: "T \<in> sets (restrict_space M S)"
+  shows "set_integrable M T f"
+proof -
+  obtain T' where T_eq: "T = S \<inter> T'" and "T' \<in> sets M" using T by (auto simp: sets_restrict_space)
+
+  have \<open>integrable M (\<lambda>x. indicator T' x *\<^sub>R (indicator S x *\<^sub>R f x))\<close>
+    by (rule integrable_mult_indicator; fact)
+  then show ?thesis
+    unfolding T_eq indicator_inter_arith by (simp add: ac_simps)
+qed
+
 (* TODO: integral_cmul_indicator should be named set_integral_const *)
 (* TODO: borel_integrable_atLeastAtMost should be named something like set_integrable_Icc_isCont *)
 
