@@ -39,7 +39,7 @@ primrec (in field) feval :: "'a list \<Rightarrow> fexpr \<Rightarrow> 'a"
   | "feval xs (FMul a b) = feval xs a \<otimes> feval xs b"
   | "feval xs (FNeg a) = \<ominus> feval xs a"
   | "feval xs (FDiv a b) = feval xs a \<oslash> feval xs b"
-  | "feval xs (FPow a n) = feval xs a (^) n"
+  | "feval xs (FPow a n) = feval xs a [^] n"
 
 lemma (in field) feval_Cnst:
   "feval xs (FCnst 0) = \<zero>"
@@ -96,7 +96,7 @@ fun (in field) peval :: "'a list \<Rightarrow> pexpr \<Rightarrow> 'a"
   | "peval xs (PExpr1 (PSub a b)) = peval xs a \<ominus> peval xs b"
   | "peval xs (PExpr1 (PNeg a)) = \<ominus> peval xs a"
   | "peval xs (PExpr2 (PMul a b)) = peval xs a \<otimes> peval xs b"
-  | "peval xs (PExpr2 (PPow a n)) = peval xs a (^) n"
+  | "peval xs (PExpr2 (PPow a n)) = peval xs a [^] n"
 
 lemma (in field) peval_Cnst:
   "peval xs (PExpr1 (PCnst 0)) = \<zero>"
@@ -264,7 +264,7 @@ lemma (in field) isin_correct:
 
 lemma (in field) isin_correct':
   "in_carrier xs \<Longrightarrow> isin e n e' 1 = Some (p, e'') \<Longrightarrow>
-    peval xs e' = peval xs e (^) (n - p) \<otimes> peval xs e''"
+    peval xs e' = peval xs e [^] (n - p) \<otimes> peval xs e''"
   "in_carrier xs \<Longrightarrow> isin e n e' 1 = Some (p, e'') \<Longrightarrow> p \<le> n"
   using isin_correct [where m = 1] by simp_all
 

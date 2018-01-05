@@ -30,7 +30,7 @@ definition
   where "Units G = {y. y \<in> carrier G \<and> (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
-  pow :: "[('a, 'm) monoid_scheme, 'a, 'b::semiring_1] => 'a"  (infixr "'(^')\<index>" 75)
+  pow :: "[('a, 'm) monoid_scheme, 'a, 'b::semiring_1] => 'a"  (infixr "[^]\<index>" 75)
 
 overloading nat_pow == "pow :: [_, 'a, nat] => 'a"
 begin
@@ -44,7 +44,7 @@ begin
     in if z < 0 then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z))"
 end
 
-lemma int_pow_int: "x (^)\<^bsub>G\<^esub> (int n) = x (^)\<^bsub>G\<^esub> n"
+lemma int_pow_int: "x [^]\<^bsub>G\<^esub> (int n) = x [^]\<^bsub>G\<^esub> n"
 by(simp add: int_pow_def nat_pow_def)
 
 locale monoid =
@@ -196,27 +196,27 @@ by auto
 text \<open>Power\<close>
 
 lemma (in monoid) nat_pow_closed [intro, simp]:
-  "x \<in> carrier G ==> x (^) (n::nat) \<in> carrier G"
+  "x \<in> carrier G ==> x [^] (n::nat) \<in> carrier G"
   by (induct n) (simp_all add: nat_pow_def)
 
 lemma (in monoid) nat_pow_0 [simp]:
-  "x (^) (0::nat) = \<one>"
+  "x [^] (0::nat) = \<one>"
   by (simp add: nat_pow_def)
 
 lemma (in monoid) nat_pow_Suc [simp]:
-  "x (^) (Suc n) = x (^) n \<otimes> x"
+  "x [^] (Suc n) = x [^] n \<otimes> x"
   by (simp add: nat_pow_def)
 
 lemma (in monoid) nat_pow_one [simp]:
-  "\<one> (^) (n::nat) = \<one>"
+  "\<one> [^] (n::nat) = \<one>"
   by (induct n) simp_all
 
 lemma (in monoid) nat_pow_mult:
-  "x \<in> carrier G ==> x (^) (n::nat) \<otimes> x (^) m = x (^) (n + m)"
+  "x \<in> carrier G ==> x [^] (n::nat) \<otimes> x [^] m = x [^] (n + m)"
   by (induct m) (simp_all add: m_assoc [THEN sym])
 
 lemma (in monoid) nat_pow_pow:
-  "x \<in> carrier G ==> (x (^) n) (^) m = x (^) (n * m::nat)"
+  "x \<in> carrier G ==> (x [^] n) [^] m = x [^] (n * m::nat)"
   by (induct m) (simp, simp add: nat_pow_mult add.commute)
 
 
@@ -406,33 +406,33 @@ lemma (in group) inv_solve_right:
 text \<open>Power\<close>
 
 lemma (in group) int_pow_def2:
-  "a (^) (z::int) = (if z < 0 then inv (a (^) (nat (-z))) else a (^) (nat z))"
+  "a [^] (z::int) = (if z < 0 then inv (a [^] (nat (-z))) else a [^] (nat z))"
   by (simp add: int_pow_def nat_pow_def Let_def)
 
 lemma (in group) int_pow_0 [simp]:
-  "x (^) (0::int) = \<one>"
+  "x [^] (0::int) = \<one>"
   by (simp add: int_pow_def2)
 
 lemma (in group) int_pow_one [simp]:
-  "\<one> (^) (z::int) = \<one>"
+  "\<one> [^] (z::int) = \<one>"
   by (simp add: int_pow_def2)
 
 (* The following are contributed by Joachim Breitner *)
 
 lemma (in group) int_pow_closed [intro, simp]:
-  "x \<in> carrier G ==> x (^) (i::int) \<in> carrier G"
+  "x \<in> carrier G ==> x [^] (i::int) \<in> carrier G"
   by (simp add: int_pow_def2)
 
 lemma (in group) int_pow_1 [simp]:
-  "x \<in> carrier G \<Longrightarrow> x (^) (1::int) = x"
+  "x \<in> carrier G \<Longrightarrow> x [^] (1::int) = x"
   by (simp add: int_pow_def2)
 
 lemma (in group) int_pow_neg:
-  "x \<in> carrier G \<Longrightarrow> x (^) (-i::int) = inv (x (^) i)"
+  "x \<in> carrier G \<Longrightarrow> x [^] (-i::int) = inv (x [^] i)"
   by (simp add: int_pow_def2)
 
 lemma (in group) int_pow_mult:
-  "x \<in> carrier G \<Longrightarrow> x (^) (i + j::int) = x (^) i \<otimes> x (^) j"
+  "x \<in> carrier G \<Longrightarrow> x [^] (i + j::int) = x [^] i \<otimes> x [^] j"
 proof -
   have [simp]: "-i - j = -j - i" by simp
   assume "x : carrier G" then
@@ -441,7 +441,7 @@ proof -
 qed
 
 lemma (in group) int_pow_diff:
-  "x \<in> carrier G \<Longrightarrow> x (^) (n - m :: int) = x (^) n \<otimes> inv (x (^) m)"
+  "x \<in> carrier G \<Longrightarrow> x [^] (n - m :: int) = x [^] n \<otimes> inv (x [^] m)"
 by(simp only: diff_conv_add_uminus int_pow_mult int_pow_neg)
 
 lemma (in group) inj_on_multc: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. x \<otimes> c) (carrier G)"
@@ -676,7 +676,7 @@ qed
 
 (* Contributed by Joachim Breitner *)
 lemma (in group) int_pow_is_hom:
-  "x \<in> carrier G \<Longrightarrow> (op(^) x) \<in> hom \<lparr> carrier = UNIV, mult = op +, one = 0::int \<rparr> G "
+  "x \<in> carrier G \<Longrightarrow> (op[^] x) \<in> hom \<lparr> carrier = UNIV, mult = op +, one = 0::int \<rparr> G "
   unfolding hom_def by (simp add: int_pow_mult)
 
 
@@ -737,7 +737,7 @@ qed*)
 
 lemma (in comm_monoid) nat_pow_distr:
   "[| x \<in> carrier G; y \<in> carrier G |] ==>
-  (x \<otimes> y) (^) (n::nat) = x (^) n \<otimes> y (^) n"
+  (x \<otimes> y) [^] (n::nat) = x [^] n \<otimes> y [^] n"
   by (induct n) (simp, simp add: m_ac)
 
 locale comm_group = comm_monoid + group

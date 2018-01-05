@@ -149,7 +149,7 @@ lemma one_cong: "\<one> = 1 mod m"
   using m_gt_one by (auto simp: R_def residue_ring_def)
 
 (* FIXME revise algebra library to use 1? *)
-lemma pow_cong: "(x mod m) (^) n = x^n mod m"
+lemma pow_cong: "(x mod m) [^] n = x^n mod m"
   using m_gt_one
   apply (induct n)
   apply (auto simp add: nat_pow_def one_cong)
@@ -413,12 +413,12 @@ proof -
   have car: "carrier (residue_ring (int p)) - {\<zero>\<^bsub>residue_ring (int p)\<^esub>} = {1 .. int p - 1}"
     by (auto simp add: R.zero_cong R.res_carrier_eq)
 
-  have "x (^)\<^bsub>residue_ring (int p)\<^esub> i = x ^ i mod (int p)"
+  have "x [^]\<^bsub>residue_ring (int p)\<^esub> i = x ^ i mod (int p)"
     if "x \<in> {1 .. int p - 1}" for x and i :: nat
     using that R.pow_cong[of x i] by auto
   moreover
   obtain a where a: "a \<in> {1 .. int p - 1}"
-    and a_gen: "{1 .. int p - 1} = {a(^)\<^bsub>residue_ring (int p)\<^esub>i|i::nat . i \<in> UNIV}"
+    and a_gen: "{1 .. int p - 1} = {a[^]\<^bsub>residue_ring (int p)\<^esub>i|i::nat . i \<in> UNIV}"
     using field.finite_field_mult_group_has_gen[OF R.is_field]
     by (auto simp add: car[symmetric] carrier_mult_of)
   moreover

@@ -58,7 +58,7 @@ primrec Ipol :: "'a list \<Rightarrow> pol \<Rightarrow> 'a"
   where
     "Ipol l (Pc c) = \<guillemotleft>c\<guillemotright>"
   | "Ipol l (Pinj i P) = Ipol (drop i l) P"
-  | "Ipol l (PX P x Q) = Ipol l P \<otimes> head l (^) x \<oplus> Ipol (drop 1 l) Q"
+  | "Ipol l (PX P x Q) = Ipol l P \<otimes> head l [^] x \<oplus> Ipol (drop 1 l) Q"
 
 lemma Ipol_Pc:
   "Ipol l (Pc 0) = \<zero>"
@@ -77,7 +77,7 @@ primrec Ipolex :: "'a list \<Rightarrow> polex \<Rightarrow> 'a"
   | "Ipolex l (Add P Q) = Ipolex l P \<oplus> Ipolex l Q"
   | "Ipolex l (Sub P Q) = Ipolex l P \<ominus> Ipolex l Q"
   | "Ipolex l (Mul P Q) = Ipolex l P \<otimes> Ipolex l Q"
-  | "Ipolex l (Pow p n) = Ipolex l p (^) n"
+  | "Ipolex l (Pow p n) = Ipolex l p [^] n"
   | "Ipolex l (Neg P) = \<ominus> Ipolex l P"
 
 lemma Ipolex_Const:
@@ -302,7 +302,7 @@ lemma sqr_ci: "in_carrier ls \<Longrightarrow> Ipol ls (sqr P) = Ipol ls P \<oti
        a_ac m_ac nat_pow_mult [symmetric] of_int_2)
 
 text \<open>Power\<close>
-lemma pow_ci: "in_carrier ls \<Longrightarrow> Ipol ls (pow n P) = Ipol ls P (^) n"
+lemma pow_ci: "in_carrier ls \<Longrightarrow> Ipol ls (pow n P) = Ipol ls P [^] n"
 proof (induct n arbitrary: P rule: less_induct)
   case (less k)
   consider "k = 0" | "k > 0" by arith
@@ -313,7 +313,7 @@ proof (induct n arbitrary: P rule: less_induct)
   next
     case 2
     then have "k div 2 < k" by arith
-    with less have *: "Ipol ls (pow (k div 2) (sqr P)) = Ipol ls (sqr P) (^) (k div 2)"
+    with less have *: "Ipol ls (pow (k div 2) (sqr P)) = Ipol ls (sqr P) [^] (k div 2)"
       by simp
     show ?thesis
     proof (cases "even k")
@@ -358,7 +358,7 @@ primrec (in cring) Imon :: "'a list \<Rightarrow> mon \<Rightarrow> 'a"
   where
     "Imon l (Mc c) = \<guillemotleft>c\<guillemotright>"
   | "Imon l (Minj i M) = Imon (drop i l) M"
-  | "Imon l (MX x M) = Imon (drop 1 l) M \<otimes> head l (^) x"
+  | "Imon l (MX x M) = Imon (drop 1 l) M \<otimes> head l [^] x"
 
 lemma (in cring) Imon_closed [simp]: "in_carrier l \<Longrightarrow> Imon l m \<in> carrier R"
   by (induct m arbitrary: l) simp_all
@@ -385,7 +385,7 @@ lemma (in cring) mkMinj_correct: "Imon l (mkMinj i M) = Imon l (Minj i M)"
 lemma (in cring) Minj_pred_correct: "0 < i \<Longrightarrow> Imon (drop 1 l) (Minj_pred i M) = Imon l (Minj i M)"
   by (simp add: Minj_pred_def mkMinj_correct)
 
-lemma (in cring) mkMX_correct: "in_carrier l \<Longrightarrow> Imon l (mkMX i M) = Imon l M \<otimes> head l (^) i"
+lemma (in cring) mkMX_correct: "in_carrier l \<Longrightarrow> Imon l (mkMX i M) = Imon l M \<otimes> head l [^] i"
   by (induct M)
     (simp_all add: Minj_pred_correct [simplified] nat_pow_mult [symmetric] m_ac split: mon.split)
 
@@ -485,18 +485,18 @@ next
 next
   case (PX_MX P i Q j M)
   from \<open>in_carrier l\<close>
-  have eq1: "(Imon (drop (Suc 0) l) M \<otimes> head l (^) (j - i)) \<otimes>
-    Ipol l (snd (mfactor P (MX (j - i) M))) \<otimes> head l (^) i =
+  have eq1: "(Imon (drop (Suc 0) l) M \<otimes> head l [^] (j - i)) \<otimes>
+    Ipol l (snd (mfactor P (MX (j - i) M))) \<otimes> head l [^] i =
     Imon (drop (Suc 0) l) M \<otimes>
     Ipol l (snd (mfactor P (MX (j - i) M))) \<otimes>
-    (head l (^) (j - i) \<otimes> head l (^) i)"
+    (head l [^] (j - i) \<otimes> head l [^] i)"
     by (simp add: m_ac)
   from \<open>in_carrier l\<close>
-  have eq2: "(Imon (drop (Suc 0) l) M \<otimes> head l (^) j) \<otimes>
-    (Ipol l (snd (mfactor P (mkMinj (Suc 0) M))) \<otimes> head l (^) (i - j)) =
+  have eq2: "(Imon (drop (Suc 0) l) M \<otimes> head l [^] j) \<otimes>
+    (Ipol l (snd (mfactor P (mkMinj (Suc 0) M))) \<otimes> head l [^] (i - j)) =
     Imon (drop (Suc 0) l) M \<otimes>
     Ipol l (snd (mfactor P (mkMinj (Suc 0) M))) \<otimes>
-    (head l (^) (i - j) \<otimes> head l (^) j)"
+    (head l [^] (i - j) \<otimes> head l [^] j)"
     by (simp add: m_ac)
   from PX_MX \<open>in_carrier l\<close> show ?case
     by (simp add: mkPX_ci mkMinj_correct l_distr eq1 eq2 split_beta nat_pow_mult)

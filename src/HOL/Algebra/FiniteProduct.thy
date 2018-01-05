@@ -502,12 +502,12 @@ qed (auto simp add: Pi_def)
 
 lemma finprod_const:
   assumes a [simp]: "a : carrier G"
-    shows "finprod G (%x. a) A = a (^) card A"
+    shows "finprod G (%x. a) A = a [^] card A"
 proof (induct A rule: infinite_finite_induct)
   case (insert b A)
   show ?case 
   proof (subst finprod_insert[OF insert(1-2)])
-    show "a \<otimes> (\<Otimes>x\<in>A. a) = a (^) card (insert b A)"
+    show "a \<otimes> (\<Otimes>x\<in>A. a) = a [^] card (insert b A)"
       by (insert insert, auto, subst m_comm, auto)
   qed auto
 qed auto

@@ -146,13 +146,13 @@ text \<open>Usually, if this rule causes a failed congruence proof error,
 
 lemmas finsum_reindex = add.finprod_reindex
 
-(* The following would be wrong.  Needed is the equivalent of (^) for addition,
+(* The following would be wrong.  Needed is the equivalent of [^] for addition,
   or indeed the canonical embedding from Nat into the monoid.
 
 lemma finsum_const:
   assumes fin [simp]: "finite A"
       and a [simp]: "a : carrier G"
-    shows "finsum G (%x. a) A = a (^) card A"
+    shows "finsum G (%x. a) A = a [^] card A"
   using fin apply induct
   apply force
   apply (subst finsum_insert)
@@ -427,7 +427,7 @@ lemmas (in cring) cring_simprules
   a_lcomm m_lcomm r_distr l_null r_null l_minus r_minus
 
 lemma (in semiring) nat_pow_zero:
-  "(n::nat) \<noteq> 0 \<Longrightarrow> \<zero> (^) n = \<zero>"
+  "(n::nat) \<noteq> 0 \<Longrightarrow> \<zero> [^] n = \<zero>"
   by (induct n) simp_all
 
 context semiring begin

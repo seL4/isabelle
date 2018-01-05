@@ -190,7 +190,7 @@ next
   with assms show "x \<ominus> y = \<zero>" by (simp add: minus_eq r_neg)
 qed
 
-lemma power2_eq_square: "x \<in> carrier R \<Longrightarrow> x (^) (2::nat) = x \<otimes> x"
+lemma power2_eq_square: "x \<in> carrier R \<Longrightarrow> x [^] (2::nat) = x \<otimes> x"
   by (simp add: numeral_eq_Suc)
 
 lemma eq_neg_iff_add_eq_0:
@@ -230,7 +230,7 @@ lemma mult2: "x \<in> carrier R \<Longrightarrow> x \<oplus> x = \<guillemotleft
 
 end
 
-lemma (in cring) of_int_power [simp]: "\<guillemotleft>i ^ n\<guillemotright> = \<guillemotleft>i\<guillemotright> (^) n"
+lemma (in cring) of_int_power [simp]: "\<guillemotleft>i ^ n\<guillemotright> = \<guillemotleft>i\<guillemotright> [^] n"
   by (induct n) (simp_all add: m_ac)
 
 definition cring_class_ops :: "'a::comm_ring_1 ring"
@@ -267,7 +267,7 @@ lemma uminus_class: "\<ominus>\<^bsub>cring_class_ops\<^esub> x = - x"
 lemma minus_class: "x \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y"
   by (simp add: a_minus_def carrier_class plus_class uminus_class)
 
-lemma power_class: "x (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n"
+lemma power_class: "x [^]\<^bsub>cring_class_ops\<^esub> n = x ^ n"
   by (induct n) (simp_all add: one_class times_class
     monoid.nat_pow_0 [OF comm_monoid.axioms(1) [OF cring.axioms(2) [OF cring_class]]]
     monoid.nat_pow_Suc [OF comm_monoid.axioms(1) [OF cring.axioms(2) [OF cring_class]]])
@@ -288,14 +288,14 @@ interpretation cring_class: cring "cring_class_ops::'a::comm_ring_1 ring"
     and "(x::'a) \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y"
     and "\<ominus>\<^bsub>cring_class_ops\<^esub> (x::'a) = - x"
     and "(x::'a) \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y"
-    and "(x::'a) (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n"
+    and "(x::'a) [^]\<^bsub>cring_class_ops\<^esub> n = x ^ n"
     and "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>cring_class_ops\<^esub> = of_nat n"
     and "((\<guillemotleft>i\<guillemotright>\<^bsub>cring_class_ops\<^esub>)::'a) = of_int i"
     and "(Int.of_int (numeral m)::'a) = numeral m"
   by (simp_all add: cring_class class_simps)
 
 lemma (in domain) nat_pow_eq_0_iff [simp]:
-  "a \<in> carrier R \<Longrightarrow> (a (^) (n::nat) = \<zero>) = (a = \<zero> \<and> n \<noteq> 0)"
+  "a \<in> carrier R \<Longrightarrow> (a [^] (n::nat) = \<zero>) = (a = \<zero> \<and> n \<noteq> 0)"
   by (induct n) (auto simp add: integral_iff)
 
 lemma (in domain) square_eq_iff:
@@ -446,7 +446,7 @@ lemma times_divide_eq_right [simp]:
 
 lemma nonzero_power_divide:
   "a \<in> carrier R \<Longrightarrow> b \<in> carrier R \<Longrightarrow> b \<noteq> \<zero> \<Longrightarrow>
-    (a \<oslash> b) (^) (n::nat) = a (^) n \<oslash> b (^) n"
+    (a \<oslash> b) [^] (n::nat) = a [^] n \<oslash> b [^] n"
   by (induct n) (simp_all add: nonzero_divide_divide_eq_left)
 
 lemma r_diff_distr:
@@ -504,7 +504,7 @@ interpretation field_class: field "cring_class_ops::'a::field ring"
     and "(x::'a) \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y"
     and "\<ominus>\<^bsub>cring_class_ops\<^esub> (x::'a) = - x"
     and "(x::'a) \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y"
-    and "(x::'a) (^)\<^bsub>cring_class_ops\<^esub> n = x ^ n"
+    and "(x::'a) [^]\<^bsub>cring_class_ops\<^esub> n = x ^ n"
     and "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>cring_class_ops\<^esub> = of_nat n"
     and "((\<guillemotleft>i\<guillemotright>\<^bsub>cring_class_ops\<^esub>)::'a) = of_int i"
     and "(x::'a) \<oslash>\<^bsub>cring_class_ops\<^esub> y = x / y"

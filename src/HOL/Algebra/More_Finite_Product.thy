@@ -82,14 +82,14 @@ lemma (in ring) finite_ring_finite_units [intro]: "finite (carrier R) \<Longrigh
 
 lemma (in monoid) units_of_pow:
   fixes n :: nat
-  shows "x \<in> Units G \<Longrightarrow> x (^)\<^bsub>units_of G\<^esub> n = x (^)\<^bsub>G\<^esub> n"
+  shows "x \<in> Units G \<Longrightarrow> x [^]\<^bsub>units_of G\<^esub> n = x [^]\<^bsub>G\<^esub> n"
   apply (induct n)
   apply (auto simp add: units_group group.is_monoid
     monoid.nat_pow_0 monoid.nat_pow_Suc units_of_one units_of_mult)
   done
 
 lemma (in cring) units_power_order_eq_one:
-  "finite (Units R) \<Longrightarrow> a \<in> Units R \<Longrightarrow> a (^) card(Units R) = \<one>"
+  "finite (Units R) \<Longrightarrow> a \<in> Units R \<Longrightarrow> a [^] card(Units R) = \<one>"
   apply (subst units_of_carrier [symmetric])
   apply (subst units_of_one [symmetric])
   apply (subst units_of_pow [symmetric])

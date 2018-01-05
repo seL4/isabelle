@@ -1175,7 +1175,7 @@ definition
   eval :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme,
            'a => 'b, 'b, nat => 'a] => 'b"
   where "eval R S phi s = (\<lambda>p \<in> carrier (UP R).
-    \<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+    \<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
 
 context UP
 begin
@@ -1183,7 +1183,7 @@ begin
 lemma eval_on_carrier:
   fixes S (structure)
   shows "p \<in> carrier P ==>
-  eval R S phi s p = (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+  eval R S phi s p = (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
   by (unfold eval_def, fold P_def) simp
 
 lemma eval_extensional:
@@ -1227,35 +1227,35 @@ next
   then show "eval R S h s (p \<oplus>\<^bsub>P\<^esub> q) = eval R S h s p \<oplus>\<^bsub>S\<^esub> eval R S h s q"
   proof (simp only: eval_on_carrier P.a_closed)
     from S R have
-      "(\<Oplus>\<^bsub>S \<^esub>i\<in>{..deg R (p \<oplus>\<^bsub>P\<^esub> q)}. h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
+      "(\<Oplus>\<^bsub>S \<^esub>i\<in>{..deg R (p \<oplus>\<^bsub>P\<^esub> q)}. h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) =
       (\<Oplus>\<^bsub>S \<^esub>i\<in>{..deg R (p \<oplus>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<oplus>\<^bsub>P\<^esub> q)<..max (deg R p) (deg R q)}.
-        h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+        h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp cong: S.finsum_cong
         add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def del: coeff_add)
     also from R have "... =
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..max (deg R p) (deg R q)}.
-          h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+          h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp add: ivl_disj_un_one)
     also from R S have "... =
-      (\<Oplus>\<^bsub>S\<^esub>i\<in>{..max (deg R p) (deg R q)}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub>i\<in>{..max (deg R p) (deg R q)}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      (\<Oplus>\<^bsub>S\<^esub>i\<in>{..max (deg R p) (deg R q)}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub>i\<in>{..max (deg R p) (deg R q)}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp cong: S.finsum_cong
         add: S.l_distr deg_aboveD ivl_disj_int_one Pi_def)
     also have "... =
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p} \<union> {deg R p<..max (deg R p) (deg R q)}.
-          h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
+          h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q} \<union> {deg R q<..max (deg R p) (deg R q)}.
-          h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+          h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp only: ivl_disj_un_one max.cobounded1 max.cobounded2)
     also from R S have "... =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp cong: S.finsum_cong
         add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def)
     finally show
-      "(\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R (p \<oplus>\<^bsub>P\<^esub> q)}. h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
-      (\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)" .
+      "(\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R (p \<oplus>\<^bsub>P\<^esub> q)}. h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) =
+      (\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub>i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)" .
   qed
 next
   show "eval R S h s \<one>\<^bsub>P\<^esub> = \<one>\<^bsub>S\<^esub>"
@@ -1266,31 +1266,31 @@ next
   then show "eval R S h s (p \<otimes>\<^bsub>P\<^esub> q) = eval R S h s p \<otimes>\<^bsub>S\<^esub> eval R S h s q"
   proof (simp only: eval_on_carrier UP_mult_closed)
     from R S have
-      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
+      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<otimes>\<^bsub>P\<^esub> q)<..deg R p + deg R q}.
-        h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+        h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp cong: S.finsum_cong
         add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def
         del: coeff_mult)
     also from R have "... =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp only: ivl_disj_un_one deg_mult_ring)
     also from R S have "... =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}.
          \<Oplus>\<^bsub>S\<^esub> k \<in> {..i}.
            h (coeff P p k) \<otimes>\<^bsub>S\<^esub> h (coeff P q (i - k)) \<otimes>\<^bsub>S\<^esub>
-           (s (^)\<^bsub>S\<^esub> k \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> (i - k)))"
+           (s [^]\<^bsub>S\<^esub> k \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> (i - k)))"
       by (simp cong: S.finsum_cong add: S.nat_pow_mult Pi_def
         S.m_ac S.finsum_rdistr)
     also from R S have "... =
-      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
       by (simp add: S.cauchy_product [THEN sym] bound.intro deg_aboveD S.m_ac
         Pi_def)
     finally show
-      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)" .
+      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) =
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)" .
   qed
 qed
 
@@ -1314,13 +1314,13 @@ lemma (in UP_pre_univ_prop) eval_monom1:
   shows "eval R S h s (monom P \<one> 1) = s"
 proof (simp only: eval_on_carrier monom_closed R.one_closed)
    from S have
-    "(\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R (monom P \<one> 1)}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
+    "(\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R (monom P \<one> 1)}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) =
     (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R (monom P \<one> 1)} \<union> {deg R (monom P \<one> 1)<..1}.
-      h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
     by (simp cong: S.finsum_cong del: coeff_monom
       add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def)
   also have "... =
-    (\<Oplus>\<^bsub>S\<^esub> i \<in> {..1}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+    (\<Oplus>\<^bsub>S\<^esub> i \<in> {..1}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i)"
     by (simp only: ivl_disj_un_one deg_monom_le R.one_closed)
   also have "... = s"
   proof (cases "s = \<zero>\<^bsub>S\<^esub>")
@@ -1329,7 +1329,7 @@ proof (simp only: eval_on_carrier monom_closed R.one_closed)
     case False then show ?thesis by (simp add: S Pi_def)
   qed
   finally show "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (monom P \<one> 1)}.
-    h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) = s" .
+    h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> i) = s" .
 qed
 
 end
@@ -1342,7 +1342,7 @@ sublocale UP_univ_prop < ring_hom_cring P S Eval
 
 lemma (in UP_cring) monom_pow:
   assumes R: "a \<in> carrier R"
-  shows "(monom P a n) (^)\<^bsub>P\<^esub> m = monom P (a (^) m) (n * m)"
+  shows "(monom P a n) [^]\<^bsub>P\<^esub> m = monom P (a [^] m) (n * m)"
 proof (induct m)
   case 0 from R show ?case by simp
 next
@@ -1351,25 +1351,25 @@ next
 qed
 
 lemma (in ring_hom_cring) hom_pow [simp]:
-  "x \<in> carrier R ==> h (x (^) n) = h x (^)\<^bsub>S\<^esub> (n::nat)"
+  "x \<in> carrier R ==> h (x [^] n) = h x [^]\<^bsub>S\<^esub> (n::nat)"
   by (induct n) simp_all
 
 lemma (in UP_univ_prop) Eval_monom:
-  "r \<in> carrier R ==> Eval (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
+  "r \<in> carrier R ==> Eval (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> n"
 proof -
   assume R: "r \<in> carrier R"
-  from R have "Eval (monom P r n) = Eval (monom P r 0 \<otimes>\<^bsub>P\<^esub> (monom P \<one> 1) (^)\<^bsub>P\<^esub> n)"
+  from R have "Eval (monom P r n) = Eval (monom P r 0 \<otimes>\<^bsub>P\<^esub> (monom P \<one> 1) [^]\<^bsub>P\<^esub> n)"
     by (simp del: monom_mult add: monom_mult [THEN sym] monom_pow)
   also
   from R eval_monom1 [where s = s, folded Eval_def]
-  have "... = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
+  have "... = h r \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> n"
     by (simp add: eval_const [where s = s, folded Eval_def])
   finally show ?thesis .
 qed
 
 lemma (in UP_pre_univ_prop) eval_monom:
   assumes R: "r \<in> carrier R" and S: "s \<in> carrier S"
-  shows "eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
+  shows "eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s [^]\<^bsub>S\<^esub> n"
 proof -
   interpret UP_univ_prop R S h P s "eval R S h s"
     using UP_pre_univ_prop_axioms P_def R S
@@ -1411,11 +1411,11 @@ proof -
   interpret ring_hom_cring P S Phi by fact
   interpret ring_hom_cring P S Psi by fact
   have "Phi p =
-      Phi (\<Oplus>\<^bsub>P \<^esub>i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
+      Phi (\<Oplus>\<^bsub>P \<^esub>i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 [^]\<^bsub>P\<^esub> i)"
     by (simp add: up_repr P monom_mult [THEN sym] monom_pow del: monom_mult)
   also
   have "... =
-      Psi (\<Oplus>\<^bsub>P \<^esub>i\<in>{..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
+      Psi (\<Oplus>\<^bsub>P \<^esub>i\<in>{..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 [^]\<^bsub>P\<^esub> i)"
     by (simp add: Phi Psi P Pi_def comp_def)
   also have "... = Psi p"
     by (simp add: up_repr P monom_mult [THEN sym] monom_pow del: monom_mult)
@@ -1445,7 +1445,7 @@ text\<open>JE: The following lemma was added by me; it might be even lifted to a
 context monoid
 begin
 
-lemma nat_pow_eone[simp]: assumes x_in_G: "x \<in> carrier G" shows "x (^) (1::nat) = x"
+lemma nat_pow_eone[simp]: assumes x_in_G: "x \<in> carrier G" shows "x [^] (1::nat) = x"
   using nat_pow_Suc [of x 0] unfolding nat_pow_0 [of x] unfolding l_one [OF x_in_G] by simp
 
 end
@@ -1550,14 +1550,14 @@ text \<open>Jacobson's Theorem 2.14\<close>
 lemma long_div_theorem:
   assumes g_in_P [simp]: "g \<in> carrier P" and f_in_P [simp]: "f \<in> carrier P"
   and g_not_zero: "g \<noteq> \<zero>\<^bsub>P\<^esub>"
-  shows "\<exists>q r (k::nat). (q \<in> carrier P) \<and> (r \<in> carrier P) \<and> (lcoeff g)(^)\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R g)"
+  shows "\<exists>q r (k::nat). (q \<in> carrier P) \<and> (r \<in> carrier P) \<and> (lcoeff g)[^]\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R g)"
   using f_in_P
 proof (induct "deg R f" arbitrary: "f" rule: nat_less_induct)
   case (1 f)
   note f_in_P [simp] = "1.prems"
   let ?pred = "(\<lambda> q r (k::nat).
     (q \<in> carrier P) \<and> (r \<in> carrier P)
-    \<and> (lcoeff g)(^)\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R g))"
+    \<and> (lcoeff g)[^]\<^bsub>R\<^esub>k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R g))"
   let ?lg = "lcoeff g" and ?lf = "lcoeff f"
   show ?case
   proof (cases "deg R f < deg R g")
@@ -1585,7 +1585,7 @@ proof (induct "deg R f" arbitrary: "f" rule: nat_less_induct)
       next
         case False note deg_f_nzero = False
         {
-          have exist: "lcoeff g (^) ?k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> \<ominus>\<^bsub>P\<^esub> ?f1"
+          have exist: "lcoeff g [^] ?k \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> \<ominus>\<^bsub>P\<^esub> ?f1"
             by (simp add: minus_add r_neg sym [
               OF a_assoc [of "g \<otimes>\<^bsub>P\<^esub> ?q" "\<ominus>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q)" "lcoeff g \<odot>\<^bsub>P\<^esub> f"]])
           have deg_remainder_l_f: "deg R (\<ominus>\<^bsub>P\<^esub> ?f1) < deg R f"
@@ -1611,28 +1611,28 @@ proof (induct "deg R f" arbitrary: "f" rule: nat_less_induct)
             qed (simp_all add: deg_f_nzero)
           qed
           then obtain q' r' k'
-            where rem_desc: "?lg (^) (k'::nat) \<odot>\<^bsub>P\<^esub> (\<ominus>\<^bsub>P\<^esub> ?f1) = g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r'"
+            where rem_desc: "?lg [^] (k'::nat) \<odot>\<^bsub>P\<^esub> (\<ominus>\<^bsub>P\<^esub> ?f1) = g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r'"
             and rem_deg: "(r' = \<zero>\<^bsub>P\<^esub> \<or> deg R r' < deg R g)"
             and q'_in_carrier: "q' \<in> carrier P" and r'_in_carrier: "r' \<in> carrier P"
             using "1.hyps" using f1_in_carrier by blast
           show ?thesis
-          proof (rule exI3 [of _ "((?lg (^) k') \<odot>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> q')" r' "Suc k'"], intro conjI)
-            show "(?lg (^) (Suc k')) \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> ((?lg (^) k') \<odot>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> q') \<oplus>\<^bsub>P\<^esub> r'"
+          proof (rule exI3 [of _ "((?lg [^] k') \<odot>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> q')" r' "Suc k'"], intro conjI)
+            show "(?lg [^] (Suc k')) \<odot>\<^bsub>P\<^esub> f = g \<otimes>\<^bsub>P\<^esub> ((?lg [^] k') \<odot>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> q') \<oplus>\<^bsub>P\<^esub> r'"
             proof -
-              have "(?lg (^) (Suc k')) \<odot>\<^bsub>P\<^esub> f = (?lg (^) k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> \<ominus>\<^bsub>P\<^esub> ?f1)"
+              have "(?lg [^] (Suc k')) \<odot>\<^bsub>P\<^esub> f = (?lg [^] k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> \<ominus>\<^bsub>P\<^esub> ?f1)"
                 using smult_assoc1 [OF _ _ f_in_P] using exist by simp
-              also have "\<dots> = (?lg (^) k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q) \<oplus>\<^bsub>P\<^esub> ((?lg (^) k') \<odot>\<^bsub>P\<^esub> ( \<ominus>\<^bsub>P\<^esub> ?f1))"
+              also have "\<dots> = (?lg [^] k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q) \<oplus>\<^bsub>P\<^esub> ((?lg [^] k') \<odot>\<^bsub>P\<^esub> ( \<ominus>\<^bsub>P\<^esub> ?f1))"
                 using UP_smult_r_distr by simp
-              also have "\<dots> = (?lg (^) k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q) \<oplus>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r')"
+              also have "\<dots> = (?lg [^] k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q) \<oplus>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r')"
                 unfolding rem_desc ..
-              also have "\<dots> = (?lg (^) k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q) \<oplus>\<^bsub>P\<^esub> g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r'"
-                using sym [OF a_assoc [of "?lg (^) k' \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q)" "g \<otimes>\<^bsub>P\<^esub> q'" "r'"]]
+              also have "\<dots> = (?lg [^] k') \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q) \<oplus>\<^bsub>P\<^esub> g \<otimes>\<^bsub>P\<^esub> q' \<oplus>\<^bsub>P\<^esub> r'"
+                using sym [OF a_assoc [of "?lg [^] k' \<odot>\<^bsub>P\<^esub> (g \<otimes>\<^bsub>P\<^esub> ?q)" "g \<otimes>\<^bsub>P\<^esub> q'" "r'"]]
                 using r'_in_carrier q'_in_carrier by simp
-              also have "\<dots> = (?lg (^) k') \<odot>\<^bsub>P\<^esub> (?q \<otimes>\<^bsub>P\<^esub> g) \<oplus>\<^bsub>P\<^esub> q' \<otimes>\<^bsub>P\<^esub> g \<oplus>\<^bsub>P\<^esub> r'"
+              also have "\<dots> = (?lg [^] k') \<odot>\<^bsub>P\<^esub> (?q \<otimes>\<^bsub>P\<^esub> g) \<oplus>\<^bsub>P\<^esub> q' \<otimes>\<^bsub>P\<^esub> g \<oplus>\<^bsub>P\<^esub> r'"
                 using q'_in_carrier by (auto simp add: m_comm)
-              also have "\<dots> = (((?lg (^) k') \<odot>\<^bsub>P\<^esub> ?q) \<otimes>\<^bsub>P\<^esub> g) \<oplus>\<^bsub>P\<^esub> q' \<otimes>\<^bsub>P\<^esub> g \<oplus>\<^bsub>P\<^esub> r'"
+              also have "\<dots> = (((?lg [^] k') \<odot>\<^bsub>P\<^esub> ?q) \<otimes>\<^bsub>P\<^esub> g) \<oplus>\<^bsub>P\<^esub> q' \<otimes>\<^bsub>P\<^esub> g \<oplus>\<^bsub>P\<^esub> r'"
                 using smult_assoc2 q'_in_carrier "1.prems" by auto
-              also have "\<dots> = ((?lg (^) k') \<odot>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> q') \<otimes>\<^bsub>P\<^esub> g \<oplus>\<^bsub>P\<^esub> r'"
+              also have "\<dots> = ((?lg [^] k') \<odot>\<^bsub>P\<^esub> ?q \<oplus>\<^bsub>P\<^esub> q') \<otimes>\<^bsub>P\<^esub> g \<oplus>\<^bsub>P\<^esub> r'"
                 using sym [OF l_distr] and q'_in_carrier by auto
               finally show ?thesis using m_comm q'_in_carrier by auto
             qed
@@ -1740,7 +1740,7 @@ proof -
   from deg_minus_monom [OF a R_not_trivial]
   have deg_g_nzero: "deg R ?g \<noteq> 0" by simp
   have "\<exists>q r (k::nat). q \<in> carrier P \<and> r \<in> carrier P \<and>
-    lcoeff ?g (^) k \<odot>\<^bsub>P\<^esub> f = ?g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R ?g)"
+    lcoeff ?g [^] k \<odot>\<^bsub>P\<^esub> f = ?g \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> r \<and> (r = \<zero>\<^bsub>P\<^esub> \<or> deg R r < deg R ?g)"
     using long_div_theorem [OF _ f deg_nzero_nzero [OF deg_g_nzero]] a
     by auto
   then show ?thesis
