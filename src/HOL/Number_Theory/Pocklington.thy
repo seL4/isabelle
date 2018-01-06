@@ -372,7 +372,7 @@ next
     have eqo: "[(a^?o)^?q = 1] (mod n)"
       using cong_pow ord_works by fastforce
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
-    then have op: "?o > 0" by simp
+    then have opos: "?o > 0" by simp
     from div_mult_mod_eq[of d "ord n a"] \<open>?lhs\<close>
     have "[a^(?o*?q + ?r) = 1] (mod n)"
       by (simp add: cong_def mult.commute)
@@ -387,7 +387,7 @@ next
       then show ?thesis by (simp add: dvd_eq_mod_eq_0)
     next
       case False
-      with mod_less_divisor[OF op, of d] have r0o:"?r >0 \<and> ?r < ?o" by simp
+      with mod_less_divisor[OF opos, of d] have r0o:"?r >0 \<and> ?r < ?o" by simp
       from conjunct2[OF ord_works[of a n], rule_format, OF r0o] th
       show ?thesis by blast
     qed
