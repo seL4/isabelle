@@ -1555,8 +1555,8 @@ text \<open>
   quantifiers are transferred.
 
   \<^descr> @{attribute (HOL) relator_eq} attribute collects identity laws for
-  relators of various type constructors, e.g. @{term "rel_set (op =) = (op
-  =)"}. The @{method (HOL) transfer} method uses these lemmas to infer
+  relators of various type constructors, e.g. @{term "rel_set (op =) = (op =)"}.
+  The @{method (HOL) transfer} method uses these lemmas to infer
   transfer rules for non-polymorphic constants on the fly. For examples see
   \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
   is proved automatically if the involved type is BNF without dead variables.
