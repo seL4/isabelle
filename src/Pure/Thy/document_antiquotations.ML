@@ -101,7 +101,7 @@ val _ =
           val indentation =
             Latex.output_symbols (replicate (Config.get ctxt Thy_Output.indent) Symbol.space);
         in
-          implode (map Latex.output_token toks) |>
+          implode (map Thy_Output.output_token toks) |>
            (if Config.get ctxt Thy_Output.display then
               split_lines #> map (prefix indentation) #> cat_lines #>
               Latex.environment "isabelle"

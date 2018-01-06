@@ -25,6 +25,7 @@ sig
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
   val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> Latex.text list
+  val output_token: Token.T -> string
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
     Token.T list -> Latex.text list
   val pretty_text: Proof.context -> string -> Pretty.T
@@ -245,6 +246,48 @@ fun output_text state {markdown} source =
 
 (*NB: arranging white space around command spans is a black art*)
 
+
+(* Isar tokens *)
+
+local
+
+val output_syms_antiq =
+  (fn Antiquote.Text ss => Latex.output_symbols_pos ss
+    | Antiquote.Control {name = (name, _), body, ...} =>
+        "\\isaantiqcontrol{" ^ Latex.output_symbols (Symbol.explode name) ^ "}" ^
+        Latex.output_symbols_pos body
+    | Antiquote.Antiq {body, ...} =>
+        enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.output_symbols_pos body));
+
+in
+
+fun output_token tok =
+  let
+    val s = Token.content_of tok;
+    val output =
+      if Token.is_kind Token.Comment tok then ""
+      else if Token.is_command tok then
+        "\\isacommand{" ^ Latex.output_syms s ^ "}"
+      else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
+        "\\isakeyword{" ^ Latex.output_syms s ^ "}"
+      else if Token.is_kind Token.String tok then
+        enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (Latex.output_syms s)
+      else if Token.is_kind Token.Alt_String tok then
+        enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (Latex.output_syms s)
+      else if Token.is_kind Token.Verbatim tok then
+        let
+          val ants = Antiquote.read (Token.input_of tok);
+          val out = implode (map output_syms_antiq ants);
+        in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
+      else if Token.is_kind Token.Cartouche tok then
+        enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (Latex.output_syms s)
+      else Latex.output_syms s;
+  in output end
+  handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+
+end;
+
+
 (* presentation tokens *)
 
 datatype token =
@@ -265,7 +308,7 @@ val newline_token = basic_token Token.is_newline;
 fun present_token state tok =
   (case tok of
     No_Token => []
-  | Basic_Token tok => [Latex.text (Latex.output_token tok, Token.pos_of tok)]
+  | Basic_Token tok => [Latex.text (output_token tok, Token.pos_of tok)]
   | Markup_Token (cmd, source) =>
       Latex.string ("%\n\\isamarkup" ^ cmd ^ "{") ::
         output_text state {markdown = false} source @ [Latex.string "%\n}\n"]

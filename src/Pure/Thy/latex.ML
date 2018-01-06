@@ -19,8 +19,8 @@ sig
   val is_latex_control: Symbol.symbol -> bool
   val embed_raw: string -> string
   val output_symbols: Symbol.symbol list -> string
+  val output_symbols_pos: Symbol_Pos.T list -> string
   val output_syms: string -> string
-  val output_token: Token.T -> string
   val begin_delim: string -> string
   val end_delim: string -> string
   val begin_tag: string -> string
@@ -200,45 +200,10 @@ fun output_symbols syms =
     | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)))
   else implode (map output_sym syms);
 
+val output_symbols_pos = output_symbols o map Symbol_Pos.symbol;
 val output_syms = output_symbols o Symbol.explode;
 
-val output_syms_antiq =
-  (fn Antiquote.Text ss => output_symbols (map Symbol_Pos.symbol ss)
-    | Antiquote.Control {name = (name, _), body, ...} =>
-        "\\isaantiqcontrol{" ^ output_symbols (Symbol.explode name) ^ "}" ^
-        output_symbols (map Symbol_Pos.symbol body)
-    | Antiquote.Antiq {body, ...} =>
-        enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
-          (output_symbols (map Symbol_Pos.symbol body)));
-
 end;
-
-
-(* output token *)
-
-fun output_token tok =
-  let
-    val s = Token.content_of tok;
-    val output =
-      if Token.is_kind Token.Comment tok then ""
-      else if Token.is_command tok then
-        "\\isacommand{" ^ output_syms s ^ "}"
-      else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
-        "\\isakeyword{" ^ output_syms s ^ "}"
-      else if Token.is_kind Token.String tok then
-        enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
-      else if Token.is_kind Token.Alt_String tok then
-        enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
-      else if Token.is_kind Token.Verbatim tok then
-        let
-          val ants = Antiquote.read (Token.input_of tok);
-          val out = implode (map output_syms_antiq ants);
-        in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
-      else if Token.is_kind Token.Cartouche tok then
-        enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
-      else output_syms s;
-  in output end
-  handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 
 (* tags *)
