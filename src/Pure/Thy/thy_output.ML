@@ -25,7 +25,7 @@ sig
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
   val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> Latex.text list
-  val output_token: Token.T -> string
+  val output_token: Token.T -> Latex.text list
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
     Token.T list -> Latex.text list
   val pretty_text: Proof.context -> string -> Pretty.T
@@ -282,7 +282,7 @@ fun output_token tok =
       else if Token.is_kind Token.Cartouche tok then
         enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (Latex.output_syms s)
       else Latex.output_syms s;
-  in output end
+  in [Latex.text (output, Token.pos_of tok)] end
   handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 end;
@@ -308,7 +308,7 @@ val newline_token = basic_token Token.is_newline;
 fun present_token state tok =
   (case tok of
     No_Token => []
-  | Basic_Token tok => [Latex.text (output_token tok, Token.pos_of tok)]
+  | Basic_Token tok => output_token tok
   | Markup_Token (cmd, source) =>
       Latex.string ("%\n\\isamarkup" ^ cmd ^ "{") ::
         output_text state {markdown = false} source @ [Latex.string "%\n}\n"]
