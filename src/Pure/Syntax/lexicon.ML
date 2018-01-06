@@ -21,8 +21,8 @@ sig
   val scan_tvar: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val is_tid: string -> bool
   datatype token_kind =
-    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy |
-    FloatSy | StrSy | StringSy | Cartouche | Space | Comment | EOF
+    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
+    StrSy | StringSy | Cartouche | Space | Comment | Comment_Cartouche| EOF
   datatype token = Token of token_kind * string * Position.range
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
@@ -112,8 +112,8 @@ fun is_tid s =
 (** datatype token **)
 
 datatype token_kind =
-  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy |
-  FloatSy | StrSy | StringSy | Cartouche | Space | Comment | EOF;
+  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy | StrSy |
+  StringSy | Cartouche | Space | Comment | Comment_Cartouche | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
@@ -122,6 +122,7 @@ fun pos_of_token (Token (_, _, (pos, _))) = pos;
 
 fun is_proper (Token (Space, _, _)) = false
   | is_proper (Token (Comment, _, _)) = false
+  | is_proper (Token (Comment_Cartouche, _, _)) = false
   | is_proper _ = true;
 
 
@@ -170,6 +171,7 @@ val token_kind_markup =
   | StringSy => Markup.inner_string
   | Cartouche => Markup.inner_cartouche
   | Comment => Markup.inner_comment
+  | Comment_Cartouche => Markup.inner_comment
   | _ => Markup.empty;
 
 fun report_of_token (Token (kind, s, (pos, _))) =
@@ -244,6 +246,12 @@ fun implode_str ss = enclose "''" "''" (implode (map (fn "'" => "\\'" | s => s) 
 val explode_str = explode_literal scan_str_body;
 
 
+(* comment cartouche *)
+
+val scan_comment_cartouche =
+  $$$ "\<comment>" @@@ Scan.many (Symbol.is_blank o Symbol_Pos.symbol) @@@
+    !!! "cartouche expected after \"\<comment>\"" (Symbol_Pos.scan_cartouche err_prefix);
+
 
 (** tokenize **)
 
@@ -270,6 +278,7 @@ fun tokenize lex xids syms =
     val scan_token =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
       Symbol_Pos.scan_comment err_prefix >> token Comment ||
+      scan_comment_cartouche >> token Comment_Cartouche ||
       Scan.max token_leq scan_lit scan_val ||
       scan_string >> token StringSy ||
       scan_str >> token StrSy ||
