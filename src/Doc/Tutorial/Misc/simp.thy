@@ -388,7 +388,7 @@ rev [] \(\equiv\) []
 [1]Rewriting:
 rev [] \(\equiv\) []
 
-[1]Applying instance of rewrite rule "List.op @.append_Nil":
+[1]Applying instance of rewrite rule "List.append.append_Nil":
 [] @ ?y \(\equiv\) ?y
 
 [1]Rewriting:
