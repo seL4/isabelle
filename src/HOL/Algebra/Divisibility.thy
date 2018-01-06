@@ -145,7 +145,7 @@ definition factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "divides\<index>" 6
 definition associated :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "\<sim>\<index>" 55)
   where "a \<sim>\<^bsub>G\<^esub> b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> b divides\<^bsub>G\<^esub> a"
 
-abbreviation "division_rel G \<equiv> \<lparr>carrier = carrier G, eq = op \<sim>\<^bsub>G\<^esub>, le = op divides\<^bsub>G\<^esub>\<rparr>"
+abbreviation "division_rel G \<equiv> \<lparr>carrier = carrier G, eq = op \<sim>\<^bsub>G\<^esub>, le = (op divides\<^bsub>G\<^esub>)\<rparr>"
 
 definition properfactor :: "[_, 'a, 'a] \<Rightarrow> bool"
   where "properfactor G a b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> \<not>(b divides\<^bsub>G\<^esub> a)"
