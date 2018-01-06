@@ -759,7 +759,7 @@ end
 
 text \<open>Interpreted versions\<close>
 
-lemma "0 = glob_one (op +)" by (rule int.def.one_def)
+lemma "0 = glob_one ((op +))" by (rule int.def.one_def)
 lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
 
 text \<open>Roundup applies rewrite morphisms at declaration level in DFS tree\<close>
