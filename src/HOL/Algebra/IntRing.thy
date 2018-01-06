@@ -23,7 +23,7 @@ done
 subsection \<open>\<open>\<Z>\<close>: The Set of Integers as Algebraic Structure\<close>
 
 abbreviation int_ring :: "int ring" ("\<Z>")
-  where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+  where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = (op +)\<rparr>"
 
 lemma int_Zcarr [intro!, simp]: "k \<in> carrier \<Z>"
   by simp
