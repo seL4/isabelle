@@ -12,7 +12,7 @@ begin
     txt \<open>\normalsize The second goal is shown by unfolding the
       definition of @{term "partial_order.less"}.\<close>
     show "partial_order.less op \<le> x y = (x < y)"
-      unfolding partial_order.less_def [OF \<open>partial_order op \<le>\<close>]
+      unfolding partial_order.less_def [OF \<open>partial_order (op \<le>)\<close>]
       by auto
   qed
 
