@@ -51,6 +51,7 @@ object ML_Lex
     val STRING = Value("quoted string")
     val SPACE = Value("white space")
     val COMMENT = Value("comment text")
+    val COMMENT_CARTOUCHE = Value("comment cartouche")
     val CONTROL = Value("control symbol antiquotation")
     val ANTIQ = Value("antiquotation")
     val ANTIQ_START = Value("antiquotation: start")
@@ -67,7 +68,7 @@ object ML_Lex
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
     def is_space: Boolean = kind == Kind.SPACE
-    def is_comment: Boolean = kind == Kind.COMMENT
+    def is_comment: Boolean = kind == Kind.COMMENT || kind == Kind.COMMENT_CARTOUCHE
   }
 
 
@@ -143,6 +144,13 @@ object ML_Lex
 
     private def ml_comment_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
       comment_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT, x), c) }
+
+    private val ml_comment_cartouche: Parser[Token] =
+      comment_cartouche ^^ (x => Token(Kind.COMMENT_CARTOUCHE, x))
+
+    private def ml_comment_cartouche_line(ctxt: Scan.Line_Context)
+        : Parser[(Token, Scan.Line_Context)] =
+      comment_cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT_CARTOUCHE, x), c) }
 
 
     private def other_token: Parser[Token] =
@@ -244,18 +252,21 @@ object ML_Lex
 
     /* token */
 
-    def token: Parser[Token] = ml_char | (ml_string | (ml_comment | other_token))
+    def token: Parser[Token] =
+      ml_char | (ml_string | (ml_comment | (ml_comment_cartouche | other_token)))
 
     def token_line(SML: Boolean, ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
     {
       val other = (ml_char | other_token) ^^ (x => (x, Scan.Finished))
 
       if (SML) ml_string_line(ctxt) | (ml_comment_line(ctxt) | other)
-      else
+      else {
         ml_string_line(ctxt) |
           (ml_comment_line(ctxt) |
-            (ml_cartouche_line(ctxt) |
-              (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other)))))
+            (ml_comment_cartouche_line(ctxt) |
+              (ml_cartouche_line(ctxt) |
+                (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))))
+      }
     }
   }
 

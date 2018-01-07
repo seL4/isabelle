@@ -27,6 +27,8 @@ object Scan
   case class Quoted(quote: String) extends Line_Context
   case object Verbatim extends Line_Context
   case class Cartouche(depth: Int) extends Line_Context
+  case object Comment_Prefix extends Line_Context
+  case class Cartouche_Comment(depth: Int) extends Line_Context
   case class Comment(depth: Int) extends Line_Context
 
 
@@ -226,6 +228,34 @@ object Scan
           Library.try_unprefix(Symbol.open, source) getOrElse err()
       Library.try_unsuffix(Symbol.close_decoded, source1) orElse
         Library.try_unsuffix(Symbol.close, source1) getOrElse err()
+    }
+
+    def comment_prefix: Parser[String] =
+      (Symbol.comment | Symbol.comment_decoded) ~ many(Symbol.is_blank) ^^
+        { case a ~ b => a + b.mkString }
+
+    def comment_cartouche: Parser[String] =
+      comment_prefix ~ cartouche ^^ { case a ~ b => a + b }
+
+    def comment_cartouche_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
+    {
+      def cartouche_context(d: Int): Line_Context =
+        if (d == 0) Finished else Cartouche_Comment(d)
+
+      ctxt match {
+        case Finished =>
+          comment_prefix ~ opt(cartouche_depth(0)) ^^ {
+            case a ~ None => (a, Comment_Prefix)
+            case a ~ Some((c, d)) => (a + c, cartouche_context(d)) }
+        case Comment_Prefix =>
+          many1(Symbol.is_blank) ~ opt(cartouche_depth(0)) ^^ {
+            case b ~ None => (b.mkString, Comment_Prefix)
+            case b ~ Some((c, d)) => (b.mkString + c, cartouche_context(d)) } |
+          cartouche_depth(0) ^^ { case (c, d) => (c, cartouche_context(d)) }
+        case Cartouche_Comment(depth) =>
+          cartouche_depth(depth) ^^ { case (c, d) => (c, cartouche_context(d)) }
+        case _ => failure("")
+      }
     }
 
 
