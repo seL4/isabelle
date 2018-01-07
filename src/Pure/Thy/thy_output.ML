@@ -246,10 +246,6 @@ fun output_text state {markdown} source =
 
 (* output tokens with comments *)
 
-fun output_markup state cmd source =
-  Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
-    (output_text state {markdown = false} source);
-
 local
 
 fun output_symbols syms =
@@ -257,8 +253,9 @@ fun output_symbols syms =
 
 fun output_symbols_comment state (is_comment, syms) =
   if is_comment then
-    output_markup state "cmt"
-      (Input.source true (Symbol_Pos.implode syms) (Symbol_Pos.range syms))
+    Latex.enclose_body ("%\n\\isamarkupcmt{") "}"
+      (output_text state {markdown = false}
+        (Input.source true (Symbol_Pos.implode syms) (Symbol_Pos.range syms)))
   else output_symbols syms;
 
 val scan_symbols_comment =
@@ -338,7 +335,9 @@ fun present_token state tok =
   (case tok of
     No_Token => []
   | Basic_Token tok => output_token state tok
-  | Markup_Token (cmd, source) => output_markup state cmd source
+  | Markup_Token (cmd, source) =>
+      Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
+        (output_text state {markdown = false} source)
   | Markup_Env_Token (cmd, source) =>
       [Latex.environment_block ("isamarkup" ^ cmd) (output_text state {markdown = true} source)]
   | Raw_Token source =>
