@@ -251,19 +251,6 @@ local
 fun output_symbols syms =
   [Latex.text (Latex.output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms))];
 
-fun output_symbols_comment state (is_comment, syms) =
-  if is_comment then
-    Latex.enclose_body ("%\n\\isamarkupcmt{") "}"
-      (output_text state {markdown = false}
-        (Input.source true (Symbol_Pos.implode syms) (Symbol_Pos.range syms)))
-  else output_symbols syms;
-
-val scan_symbols_comment =
-  Scan.many1 (fn (s, _) => s <> Symbol.comment andalso Symbol.not_eof s) >> pair false ||
-  (Symbol_Pos.$$ Symbol.comment ::: Scan.many (Symbol.is_blank o Symbol_Pos.symbol)) --
-    Scan.option (Symbol_Pos.scan_cartouche_content "Document token error: ")
-      >> (fn (syms, NONE) => (false, syms) | (_, SOME syms) => (true, syms));
-
 val output_symbols_antiq =
   (fn Antiquote.Text syms => output_symbols syms
     | Antiquote.Control {name = (name, _), body, ...} =>
@@ -272,12 +259,26 @@ val output_symbols_antiq =
     | Antiquote.Antiq {body, ...} =>
         Latex.enclose_body "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (output_symbols body));
 
+fun output_symbols_comment state {antiq} (is_comment, syms) =
+  if is_comment then
+    Latex.enclose_body ("%\n\\isamarkupcmt{") "}"
+      (output_text state {markdown = false}
+        (Input.source true (Symbol_Pos.implode syms) (Symbol_Pos.range syms)))
+  else if antiq then maps output_symbols_antiq (Antiquote.parse (#1 (Symbol_Pos.range syms)) syms)
+  else output_symbols syms;
+
+val scan_symbols_comment =
+  Scan.many1 (fn (s, _) => s <> Symbol.comment andalso Symbol.not_eof s) >> pair false ||
+  (Symbol_Pos.$$ Symbol.comment ::: Scan.many (Symbol.is_blank o Symbol_Pos.symbol)) --
+    Scan.option (Symbol_Pos.scan_cartouche_content "Document token error: ")
+      >> (fn (syms, NONE) => (false, syms) | (_, SOME syms) => (true, syms));
+
 in
 
-fun output_body state bg en syms =
+fun output_body state antiq bg en syms =
   (if exists (fn (s, _) => s = Symbol.comment) syms then
     (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_symbols_comment) syms of
-      SOME res => maps (output_symbols_comment state) res
+      SOME res => maps (output_symbols_comment state {antiq = antiq}) res
     | NONE => output_symbols syms)
    else output_symbols syms) |> Latex.enclose_body bg en
 and output_token state tok =
@@ -285,20 +286,19 @@ and output_token state tok =
     val syms = Input.source_explode (Token.input_of tok);
     val output =
       if Token.is_kind Token.Comment tok then []
-      else if Token.is_command tok then output_body state "\\isacommand{" "}" syms
+      else if Token.is_command tok then output_body state false "\\isacommand{" "}" syms
       else if Token.is_kind Token.Keyword tok andalso
         Symbol.is_ascii_identifier (Token.content_of tok)
-      then output_body state "\\isakeyword{" "}" syms
+      then output_body state false "\\isakeyword{" "}" syms
       else if Token.is_kind Token.String tok then
-        output_body state "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" syms
+        output_body state false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" syms
       else if Token.is_kind Token.Alt_String tok then
-        output_body state "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" syms
+        output_body state false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" syms
       else if Token.is_kind Token.Verbatim tok then
-        Latex.enclose_body "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
-          (maps output_symbols_antiq (Antiquote.read (Token.input_of tok)))
+        output_body state true "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" syms
       else if Token.is_kind Token.Cartouche tok then
-        output_body state "{\\isacartoucheopen}" "{\\isacartoucheclose}" syms
-      else output_body state "" "" syms;
+        output_body state false "{\\isacartoucheopen}" "{\\isacartoucheclose}" syms
+      else output_body state false "" "" syms;
   in output end
   handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
