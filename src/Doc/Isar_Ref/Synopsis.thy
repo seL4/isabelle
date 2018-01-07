@@ -952,10 +952,10 @@ text \<open>
 notepad
 begin
   assume r:
-    "A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow>  (* assumptions *)
-      (\<And>x y. B\<^sub>1 x y \<Longrightarrow> C\<^sub>1 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 1 *)
-      (\<And>x y. B\<^sub>2 x y \<Longrightarrow> C\<^sub>2 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 2 *)
-      R  (* main conclusion *)"
+    "A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow>  \<comment> \<open>assumptions\<close>
+      (\<And>x y. B\<^sub>1 x y \<Longrightarrow> C\<^sub>1 x y \<Longrightarrow> R) \<Longrightarrow>  \<comment> \<open>case 1\<close>
+      (\<And>x y. B\<^sub>2 x y \<Longrightarrow> C\<^sub>2 x y \<Longrightarrow> R) \<Longrightarrow>  \<comment> \<open>case 2\<close>
+      R  \<comment> \<open>main conclusion\<close>"
 
   have A\<^sub>1 and A\<^sub>2 \<proof>
   then have R

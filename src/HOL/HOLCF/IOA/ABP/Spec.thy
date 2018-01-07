@@ -22,7 +22,7 @@ definition
         in
         case fst(snd(tr))
         of
-        Next =>  t=s |            (* Note that there is condition as in Sender *)
+        Next =>  t=s |           \<comment> \<open>Note that there is condition as in Sender\<close>
         S_msg(m) => t = s@[m]  |
         R_msg(m) => s = (m#t)  |
         S_pkt(pkt) => False |

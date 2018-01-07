@@ -725,7 +725,7 @@ where
           Some x \<Rightarrow> Some x
       | None \<Rightarrow> full_exhaustive_class.full_exhaustive
           (\<lambda>(num, t). f (char_of_nat (nat_of_num num), \<lambda>_ :: unit. Code_Evaluation.App (Code_Evaluation.Const (STR ''String.Char'') TYPEREP(num \<Rightarrow> char)) (t ())))
-          (min (i - 1) 8) (* generate at most 8 bits *)
+          (min (i - 1) 8) \<comment> \<open>generate at most 8 bits\<close>
       else None)"
 
 instance ..
