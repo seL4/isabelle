@@ -246,12 +246,6 @@ fun implode_str ss = enclose "''" "''" (implode (map (fn "'" => "\\'" | s => s) 
 val explode_str = explode_literal scan_str_body;
 
 
-(* comment cartouche *)
-
-val scan_comment_cartouche =
-  $$$ "\<comment>" @@@ Scan.many (Symbol.is_blank o Symbol_Pos.symbol) @@@
-    !!! "cartouche expected after \"\<comment>\"" (Symbol_Pos.scan_cartouche err_prefix);
-
 
 (** tokenize **)
 
@@ -278,7 +272,7 @@ fun tokenize lex xids syms =
     val scan_token =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
       Symbol_Pos.scan_comment err_prefix >> token Comment ||
-      scan_comment_cartouche >> token Comment_Cartouche ||
+      Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment_Cartouche ||
       Scan.max token_leq scan_lit scan_val ||
       scan_string >> token StringSy ||
       scan_str >> token StrSy ||

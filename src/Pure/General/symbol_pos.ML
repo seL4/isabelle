@@ -34,6 +34,7 @@ sig
   val scan_cartouche: string -> T list -> T list * T list
   val scan_cartouche_content: string -> T list -> T list * T list
   val recover_cartouche: T list -> T list * T list
+  val scan_comment_cartouche: string -> T list -> T list * T list
   val scan_comment: string -> T list -> T list * T list
   val scan_comment_body: string -> T list -> T list * T list
   val recover_comment: T list -> T list * T list
@@ -214,6 +215,11 @@ fun scan_cartouche_content err_prefix =
   scan_cartouche err_prefix >> cartouche_content;
 
 val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
+
+fun scan_comment_cartouche err_prefix =
+  $$$ Symbol.comment @@@ Scan.many (Symbol.is_blank o symbol) @@@
+  !!! (fn () => err_prefix ^ "cartouche expected after " ^ quote Symbol.comment)
+    (scan_cartouche err_prefix);
 
 
 (* ML-style comments *)
