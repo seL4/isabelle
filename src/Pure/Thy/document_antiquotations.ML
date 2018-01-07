@@ -84,7 +84,7 @@ end;
 val _ =
   Theory.setup
     (Thy_Output.antiquotation \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
-      (fn {context = ctxt, ...} => fn source =>
+      (fn {state, context = ctxt, ...} => fn source =>
         let
           val _ =
             Context_Position.report ctxt (Input.pos_of source)
@@ -101,7 +101,7 @@ val _ =
           val indentation =
             Latex.output_symbols (replicate (Config.get ctxt Thy_Output.indent) Symbol.space);
         in
-          Latex.output_text (maps Thy_Output.output_token toks) |>
+          Latex.output_text (maps (Thy_Output.output_token state) toks) |>
            (if Config.get ctxt Thy_Output.display then
               split_lines #> map (prefix indentation) #> cat_lines #>
               Latex.environment "isabelle"

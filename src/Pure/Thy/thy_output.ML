@@ -25,7 +25,7 @@ sig
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
   val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> Latex.text list
-  val output_token: Token.T -> Latex.text list
+  val output_token: Toplevel.state -> Token.T -> Latex.text list
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
     Token.T list -> Latex.text list
   val pretty_text: Proof.context -> string -> Pretty.T
@@ -193,6 +193,9 @@ fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
 end;
 
 
+
+(** document output **)
+
 (* output text *)
 
 fun output_text state {markdown} source =
@@ -241,15 +244,28 @@ fun output_text state {markdown} source =
   end;
 
 
+(* output tokens with comments *)
 
-(** present theory source **)
-
-(*NB: arranging white space around command spans is a black art*)
-
-
-(* Isar tokens *)
+fun output_markup state cmd source =
+  Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
+    (output_text state {markdown = false} source);
 
 local
+
+fun output_symbols syms =
+  [Latex.text (Latex.output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms))];
+
+fun output_symbols_comment state (is_comment, syms) =
+  if is_comment then
+    output_markup state "cmt"
+      (Input.source true (Symbol_Pos.implode syms) (Symbol_Pos.range syms))
+  else output_symbols syms;
+
+val scan_symbols_comment =
+  Scan.many1 (fn (s, _) => s <> Symbol.comment andalso Symbol.not_eof s) >> pair false ||
+  (Symbol_Pos.$$ Symbol.comment ::: Scan.many (Symbol.is_blank o Symbol_Pos.symbol)) --
+    Scan.option (Symbol_Pos.scan_cartouche_content "Document token error: ")
+      >> (fn (syms, NONE) => (false, syms) | (_, SOME syms) => (true, syms));
 
 val output_syms_antiq =
   (fn Antiquote.Text ss => Latex.output_symbols_pos ss
@@ -261,31 +277,44 @@ val output_syms_antiq =
 
 in
 
-fun output_token tok =
+fun output_body state bg en syms =
+  (if exists (fn (s, _) => s = Symbol.comment) syms then
+    (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_symbols_comment) syms of
+      SOME res => maps (output_symbols_comment state) res
+    | NONE => output_symbols syms)
+   else output_symbols syms) |> Latex.enclose_body bg en
+and output_token state tok =
   let
-    val s = Token.content_of tok;
+    val syms = Input.source_explode (Token.input_of tok);
     val output =
-      if Token.is_kind Token.Comment tok then ""
-      else if Token.is_command tok then
-        "\\isacommand{" ^ Latex.output_syms s ^ "}"
-      else if Token.is_kind Token.Keyword tok andalso Symbol.is_ascii_identifier s then
-        "\\isakeyword{" ^ Latex.output_syms s ^ "}"
+      if Token.is_kind Token.Comment tok then []
+      else if Token.is_command tok then output_body state "\\isacommand{" "}" syms
+      else if Token.is_kind Token.Keyword tok andalso
+        Symbol.is_ascii_identifier (Token.content_of tok)
+      then output_body state "\\isakeyword{" "}" syms
       else if Token.is_kind Token.String tok then
-        enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (Latex.output_syms s)
+        output_body state "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" syms
       else if Token.is_kind Token.Alt_String tok then
-        enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (Latex.output_syms s)
+        output_body state "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" syms
       else if Token.is_kind Token.Verbatim tok then
         let
+          val pos = Token.pos_of tok;
           val ants = Antiquote.read (Token.input_of tok);
           val out = implode (map output_syms_antiq ants);
-        in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
+        in [Latex.text (enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out, pos)] end
       else if Token.is_kind Token.Cartouche tok then
-        enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (Latex.output_syms s)
-      else Latex.output_syms s;
-  in [Latex.text (output, Token.pos_of tok)] end
+        output_body state "{\\isacartoucheopen}" "{\\isacartoucheclose}" syms
+      else output_body state "" "" syms;
+  in output end
   handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 end;
+
+
+
+(** present theory source **)
+
+(*NB: arranging white space around command spans is a black art*)
 
 
 (* presentation tokens *)
@@ -308,10 +337,8 @@ val newline_token = basic_token Token.is_newline;
 fun present_token state tok =
   (case tok of
     No_Token => []
-  | Basic_Token tok => output_token tok
-  | Markup_Token (cmd, source) =>
-      Latex.string ("%\n\\isamarkup" ^ cmd ^ "{") ::
-        output_text state {markdown = false} source @ [Latex.string "%\n}\n"]
+  | Basic_Token tok => output_token state tok
+  | Markup_Token (cmd, source) => output_markup state cmd source
   | Markup_Env_Token (cmd, source) =>
       [Latex.environment_block ("isamarkup" ^ cmd) (output_text state {markdown = true} source)]
   | Raw_Token source =>

@@ -10,7 +10,8 @@ New in this Isabelle version
 *** General ***
 
 * Inner syntax comments may be written as "\<comment> \<open>text\<close>", similar to
-marginal comments in outer syntax.
+marginal comments in outer syntax: antiquotations are supported as usual
+(wrt. the overall command context).
 
 * The old 'def' command has been discontinued (legacy since
 Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
