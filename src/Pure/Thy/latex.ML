@@ -76,7 +76,9 @@ fun output_positions file_pos texts =
 
 end;
 
-fun enclose_body bg en body = string bg :: body @ [string en];
+fun enclose_body bg en body =
+  (if bg = "" then [] else [string bg]) @ body @
+  (if en = "" then [] else [string en]);
 
 
 (* output name for LaTeX macros *)
