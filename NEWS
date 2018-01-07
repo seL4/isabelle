@@ -9,10 +9,6 @@ New in this Isabelle version
 
 *** General ***
 
-* Inner syntax comments may be written as "\<comment> \<open>text\<close>", similar to
-marginal comments in outer syntax: antiquotations are supported as usual
-(wrt. the overall command context).
-
 * The old 'def' command has been discontinued (legacy since
 Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
 object-logic equality or equivalence.
@@ -106,6 +102,11 @@ Isabelle/jEdit.
 
 
 *** Document preparation ***
+
+* Embedded languages such as inner syntax and ML may contain formal
+comments of the form "\<comment> \<open>text\<close>". As in marginal comments of outer
+syntax, antiquotations are interpreted wrt. the presentation context of
+the enclosing command.
 
 * System option "document_tags" specifies a default for otherwise
 untagged commands. This is occasionally useful to control the global
