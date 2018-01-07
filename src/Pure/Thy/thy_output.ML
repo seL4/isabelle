@@ -314,7 +314,7 @@ end;
 (* presentation tokens *)
 
 datatype token =
-    No_Token
+    Ignore_Token
   | Basic_Token of Token.T
   | Markup_Token of string * Input.source
   | Markup_Env_Token of string * Input.source
@@ -330,7 +330,7 @@ val newline_token = basic_token Token.is_newline;
 
 fun present_token state tok =
   (case tok of
-    No_Token => []
+    Ignore_Token => []
   | Basic_Token tok => output_token state tok
   | Markup_Token (cmd, source) =>
       Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
@@ -484,7 +484,7 @@ fun present_thy thy command_results toks =
     (* tokens *)
 
     val ignored = Scan.state --| ignore
-      >> (fn d => (NONE, (No_Token, ("", d))));
+      >> (fn d => (NONE, (Ignore_Token, ("", d))));
 
     fun markup pred mk flag = Scan.peek (fn d =>
       improper |--
