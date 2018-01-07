@@ -145,16 +145,6 @@ object ML_Lex
       comment_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT, x), c) }
 
 
-    /* delimited token */
-
-    private def delimited_token: Parser[Token] =
-      ml_char | (ml_string | ml_comment)
-
-    private val recover_delimited: Parser[Token] =
-      (recover_ml_char | (recover_ml_string | (recover_cartouche | recover_comment))) ^^
-        (x => Token(Kind.ERROR, x))
-
-
     private def other_token: Parser[Token] =
     {
       /* identifiers */
@@ -214,7 +204,11 @@ object ML_Lex
 
       val bad = one(_ => true) ^^ (x => Token(Kind.ERROR, x))
 
-      space | (ml_control | (recover_delimited | (ml_antiq |
+      val recover =
+        (recover_ml_char | (recover_ml_string | (recover_cartouche | recover_comment))) ^^
+          (x => Token(Kind.ERROR, x))
+
+      space | (ml_control | (recover | (ml_antiq |
         (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad))))
     }
 
@@ -250,7 +244,7 @@ object ML_Lex
 
     /* token */
 
-    def token: Parser[Token] = delimited_token | other_token
+    def token: Parser[Token] = ml_char | (ml_string | (ml_comment | other_token))
 
     def token_line(SML: Boolean, ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
     {

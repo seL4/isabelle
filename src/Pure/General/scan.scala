@@ -203,17 +203,16 @@ object Scan
 
     def cartouche_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
     {
-      val depth =
-        ctxt match {
-          case Finished => 0
-          case Cartouche(d) => d
-          case _ => -1
-        }
-      if (depth >= 0)
-        cartouche_depth(depth) ^^
-          { case (x, 0) => (x, Finished)
-            case (x, d) => (x, Cartouche(d)) }
-      else failure("")
+      def cartouche_context(d: Int): Line_Context =
+        if (d == 0) Finished else Cartouche(d)
+
+      ctxt match {
+        case Finished =>
+          cartouche_depth(0) ^^ { case (c, d) => (c, cartouche_context(d)) }
+        case Cartouche(depth) =>
+          cartouche_depth(depth) ^^ { case (c, d) => (c, cartouche_context(d)) }
+        case _ => failure("")
+      }
     }
 
     val recover_cartouche: Parser[String] =
