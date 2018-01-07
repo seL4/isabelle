@@ -103,6 +103,11 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
+* Embedded languages such as inner syntax and ML may contain formal
+comments of the form "\<comment> \<open>text\<close>". As in marginal comments of outer
+syntax, antiquotations are interpreted wrt. the presentation context of
+the enclosing command.
+
 * System option "document_tags" specifies a default for otherwise
 untagged commands. This is occasionally useful to control the global
 visibility of commands via session options (e.g. in ROOT).

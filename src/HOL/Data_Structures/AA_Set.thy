@@ -29,7 +29,7 @@ fun skew :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 
 fun split :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 "split (Node lva t1 a (Node lvb t2 b (Node lvc t3 c t4))) =
-   (if lva = lvb \<and> lvb = lvc (* lva = lvc suffices *)
+   (if lva = lvb \<and> lvb = lvc \<comment> \<open>\<open>lva = lvc\<close> suffices\<close>
     then Node (lva+1) (Node lva t1 a t2) b (Node lva t3 c t4)
     else Node lva t1 a (Node lvb t2 b (Node lvc t3 c t4)))" |
 "split t = t"

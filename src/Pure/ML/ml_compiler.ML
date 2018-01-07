@@ -173,8 +173,12 @@ fun eval (flags: flags) pos toks =
       if #SML flags then String.explode
       else maps (String.explode o Symbol.esc) o Symbol.explode;
 
+    fun token_content tok =
+      if ML_Lex.is_comment tok then NONE
+      else SOME (input_explode (ML_Lex.check_content_of tok), tok);
+
     val input_buffer =
-      Unsynchronized.ref (toks |> map (`(input_explode o ML_Lex.check_content_of)));
+      Unsynchronized.ref (map_filter token_content toks);
 
     fun get () =
       (case ! input_buffer of

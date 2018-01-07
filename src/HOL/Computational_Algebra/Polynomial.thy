@@ -2893,7 +2893,7 @@ fun divide_poly_main :: "'a \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Righta
   where
     "divide_poly_main lc q r d dr (Suc n) =
       (let cr = coeff r dr; a = cr div lc; mon = monom a n in
-        if False \<or> a * lc = cr then (* False \<or> is only because of problem in function-package *)
+        if False \<or> a * lc = cr then \<comment> \<open>\<open>False \<or>\<close> is only because of problem in function-package\<close>
           divide_poly_main
             lc
             (q + mon)
