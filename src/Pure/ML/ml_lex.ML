@@ -178,6 +178,7 @@ end;
 open Basic_Symbol_Pos;
 
 val err_prefix = "SML lexical error: ";
+val err_prefix' = "Isabelle/ML lexical error: ";
 
 fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
@@ -299,7 +300,7 @@ val scan_ml =
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
   Symbol_Pos.scan_comment err_prefix >> token Comment ||
-  Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment_Cartouche ||
+  Symbol_Pos.scan_comment_cartouche err_prefix' >> token Comment_Cartouche ||
   Scan.max token_leq
    (Scan.literal lexicon >> token Keyword)
    (scan_word >> token Word ||
