@@ -167,7 +167,7 @@ text \<open>
   run.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-d\<close> specifies an laternative document output directory. The default
+  Option \<^verbatim>\<open>-d\<close> specifies an alternative document output directory. The default
   is \<^verbatim>\<open>output/document\<close> (derived from the document name). Note that the result
   will appear in the parent of this directory.
 
