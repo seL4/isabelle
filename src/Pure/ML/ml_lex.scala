@@ -153,6 +153,37 @@ object ML_Lex
       comment_cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT_CARTOUCHE, x), c) }
 
 
+    /* antiquotations (line-oriented) */
+
+    def ml_cartouche_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_CARTOUCHE, x), c) }
+
+    def ml_antiq_start(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      ctxt match {
+        case Scan.Finished => "@{" ^^ (x => (Token(Kind.ANTIQ_START, x), Antiq(Scan.Finished)))
+        case _ => failure("")
+      }
+
+    def ml_antiq_stop(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      ctxt match {
+        case Antiq(Scan.Finished) => "}" ^^ (x => (Token(Kind.ANTIQ_STOP, x), Scan.Finished))
+        case _ => failure("")
+      }
+
+    def ml_antiq_body(context: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      context match {
+        case Antiq(ctxt) =>
+          (if (ctxt == Scan.Finished) antiq_other ^^ (x => (Token(Kind.ANTIQ_OTHER, x), context))
+           else failure("")) |
+          quoted_line("\"", ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_STRING, x), Antiq(c)) } |
+          quoted_line("`", ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_ALT_STRING, x), Antiq(c)) } |
+          cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_CARTOUCHE, x), Antiq(c)) }
+        case _ => failure("")
+      }
+
+
+    /* token */
+
     private def other_token: Parser[Token] =
     {
       /* identifiers */
@@ -219,38 +250,6 @@ object ML_Lex
       space | (ml_control | (recover | (ml_antiq |
         (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad))))
     }
-
-
-    /* antiquotations (line-oriented) */
-
-    def ml_cartouche_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-      cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_CARTOUCHE, x), c) }
-
-    def ml_antiq_start(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-      ctxt match {
-        case Scan.Finished => "@{" ^^ (x => (Token(Kind.ANTIQ_START, x), Antiq(Scan.Finished)))
-        case _ => failure("")
-      }
-
-    def ml_antiq_stop(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-      ctxt match {
-        case Antiq(Scan.Finished) => "}" ^^ (x => (Token(Kind.ANTIQ_STOP, x), Scan.Finished))
-        case _ => failure("")
-      }
-
-    def ml_antiq_body(context: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-      context match {
-        case Antiq(ctxt) =>
-          (if (ctxt == Scan.Finished) antiq_other ^^ (x => (Token(Kind.ANTIQ_OTHER, x), context))
-           else failure("")) |
-          quoted_line("\"", ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_STRING, x), Antiq(c)) } |
-          quoted_line("`", ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_ALT_STRING, x), Antiq(c)) } |
-          cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_CARTOUCHE, x), Antiq(c)) }
-        case _ => failure("")
-      }
-
-
-    /* token */
 
     def token: Parser[Token] =
       ml_char | (ml_string | (ml_comment | (ml_comment_cartouche | other_token)))
