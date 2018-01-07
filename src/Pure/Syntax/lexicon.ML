@@ -22,7 +22,7 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
-    StrSy | StringSy | Cartouche | Space | Comment | Comment_Cartouche| EOF
+    StrSy | StringSy | Cartouche | Space | Comment | Comment_Cartouche | EOF
   datatype token = Token of token_kind * string * Position.range
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
