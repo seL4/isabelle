@@ -264,13 +264,13 @@ val scan_symbols_comment =
     Scan.option (Symbol_Pos.scan_cartouche_content "Document token error: ")
       >> (fn (syms, NONE) => (false, syms) | (_, SOME syms) => (true, syms));
 
-val output_syms_antiq =
-  (fn Antiquote.Text ss => Latex.output_symbols_pos ss
+val output_symbols_antiq =
+  (fn Antiquote.Text syms => output_symbols syms
     | Antiquote.Control {name = (name, _), body, ...} =>
-        "\\isaantiqcontrol{" ^ Latex.output_symbols (Symbol.explode name) ^ "}" ^
-        Latex.output_symbols_pos body
+        Latex.string ("\\isaantiqcontrol{" ^ Latex.output_symbols (Symbol.explode name) ^ "}") ::
+          output_symbols body
     | Antiquote.Antiq {body, ...} =>
-        enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (Latex.output_symbols_pos body));
+        Latex.enclose_body "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (output_symbols body));
 
 in
 
@@ -294,11 +294,8 @@ and output_token state tok =
       else if Token.is_kind Token.Alt_String tok then
         output_body state "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" syms
       else if Token.is_kind Token.Verbatim tok then
-        let
-          val pos = Token.pos_of tok;
-          val ants = Antiquote.read (Token.input_of tok);
-          val out = implode (map output_syms_antiq ants);
-        in [Latex.text (enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out, pos)] end
+        Latex.enclose_body "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
+          (maps output_symbols_antiq (Antiquote.read (Token.input_of tok)))
       else if Token.is_kind Token.Cartouche tok then
         output_body state "{\\isacartoucheopen}" "{\\isacartoucheclose}" syms
       else output_body state "" "" syms;

@@ -19,7 +19,6 @@ sig
   val is_latex_control: Symbol.symbol -> bool
   val embed_raw: string -> string
   val output_symbols: Symbol.symbol list -> string
-  val output_symbols_pos: Symbol_Pos.T list -> string
   val output_syms: string -> string
   val begin_delim: string -> string
   val end_delim: string -> string
@@ -202,7 +201,6 @@ fun output_symbols syms =
     | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)))
   else implode (map output_sym syms);
 
-val output_symbols_pos = output_symbols o map Symbol_Pos.symbol;
 val output_syms = output_symbols o Symbol.explode;
 
 end;
