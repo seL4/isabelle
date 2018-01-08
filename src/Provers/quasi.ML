@@ -361,7 +361,7 @@ fun dfs eq_comp g u v =
     fun update (x,l) = let val _ = pred := (x,l) ::(!pred) in () end;
 
     in if been_visited v then ()
-    else (app (fn (v',l) => if been_visited v' then () else (
+    else (List.app (fn (v',l) => if been_visited v' then () else (
        update (v',l);
        dfs_visit v'; ()) )) (adjacent eq_comp g u')
      end

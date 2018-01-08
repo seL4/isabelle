@@ -687,7 +687,7 @@ fun scc_term G =
   (* DFS on the graph; apply dfs_visit to each vertex in
      the graph, checking first to make sure the vertex is
      as yet unvisited. *)
-  app (fn u => if been_visited u then ()
+  List.app (fn u => if been_visited u then ()
         else (dfs_visit G u; ()))  (members G);
   visited := [];
 
@@ -765,7 +765,7 @@ fun dfs eq_comp g u v =
     fun update (x,l) = let val _ = pred := (x,l) ::(!pred) in () end;
 
     in if been_visited v then ()
-    else (app (fn (v',l) => if been_visited v' then () else (
+    else (List.app (fn (v',l) => if been_visited v' then () else (
        update (v',l);
        dfs_visit v'; ()) )) (adjacent eq_comp g u')
      end

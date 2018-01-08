@@ -73,9 +73,9 @@ fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
   let
     val ts = map (hol_term_of_metis ctxt type_enc sym_tab) fol_tms
     val _ = trace_msg ctxt (fn () => "  calling type inference:")
-    val _ = app (fn t => trace_msg ctxt (fn () => Syntax.string_of_term ctxt t)) ts
+    val _ = List.app (fn t => trace_msg ctxt (fn () => Syntax.string_of_term ctxt t)) ts
     val ts' = ts |> polish_hol_terms ctxt concealed
-    val _ = app (fn t => trace_msg ctxt
+    val _ = List.app (fn t => trace_msg ctxt
                   (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                             " of type " ^ Syntax.string_of_typ ctxt (type_of t))) ts'
   in ts' end
