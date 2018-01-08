@@ -288,24 +288,22 @@ fun output_body state antiq bg en syms =
   | NONE => output_symbols syms) |> Latex.enclose_body bg en
 and output_token state tok =
   let
-    val syms = Input.source_explode (Token.input_of tok);
-    val output =
-      if Token.is_kind Token.Comment tok then []
-      else if Token.is_command tok then output_body state false "\\isacommand{" "}" syms
-      else if Token.is_kind Token.Keyword tok andalso
-        Symbol.is_ascii_identifier (Token.content_of tok)
-      then output_body state false "\\isakeyword{" "}" syms
-      else if Token.is_kind Token.String tok then
-        output_body state false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" syms
-      else if Token.is_kind Token.Alt_String tok then
-        output_body state false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" syms
-      else if Token.is_kind Token.Verbatim tok then
-        output_body state true "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" syms
-      else if Token.is_kind Token.Cartouche tok then
-        output_body state false "{\\isacartoucheopen}" "{\\isacartoucheclose}" syms
-      else output_body state false "" "" syms;
-  in output end
-  handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+    fun output antiq bg en =
+      output_body state antiq bg en (Input.source_explode (Token.input_of tok));
+  in
+    (case Token.kind_of tok of
+      Token.Comment => []
+    | Token.Command => output false "\\isacommand{" "}"
+    | Token.Keyword =>
+        if Symbol.is_ascii_identifier (Token.content_of tok)
+        then output false "\\isakeyword{" "}"
+        else output false "" ""
+    | Token.String => output false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}"
+    | Token.Alt_String => output false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}"
+    | Token.Verbatim => output true "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
+    | Token.Cartouche => output false "{\\isacartoucheopen}" "{\\isacartoucheclose}"
+    | _ => output false "" "")
+  end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 fun check_comments state =
   read_symbols_comment #> (Option.app o List.app) (fn (is_comment, syms) =>
