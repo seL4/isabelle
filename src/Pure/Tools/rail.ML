@@ -17,7 +17,7 @@ sig
     Terminal of bool * string |
     Antiquote of bool * Antiquote.antiq
   val read: Proof.context -> Input.source -> (string Antiquote.antiquote * rail) list
-  val output_rules: Toplevel.state -> (string Antiquote.antiquote * rail) list -> string
+  val output_rules: Proof.context -> (string Antiquote.antiquote * rail) list -> string
 end;
 
 structure Rail: RAIL =
@@ -330,9 +330,9 @@ and vertical_range (Bar cats) y =
 
 in
 
-fun output_rules state rules =
+fun output_rules ctxt rules =
   let
-    val output_antiq = Thy_Output.eval_antiquote state o Antiquote.Antiq;
+    val output_antiq = Thy_Output.eval_antiquote ctxt o Antiquote.Antiq;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"
@@ -375,7 +375,7 @@ fun output_rules state rules =
 
 val _ = Theory.setup
   (Thy_Output.antiquotation \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
-    (fn {state, context, ...} => output_rules state o read context));
+    (fn {context = ctxt, ...} => output_rules ctxt o read ctxt));
 
 end;
 

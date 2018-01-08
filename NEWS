@@ -108,6 +108,10 @@ comments of the form "\<comment> \<open>text\<close>". As in marginal comments o
 syntax, antiquotations are interpreted wrt. the presentation context of
 the enclosing command.
 
+* Outside of the inner theory body, the default presentation context is
+theory Pure. Thus elementary antiquotations may be used in markup
+commands (e.g. 'chapter', 'section', 'text') and formal comments.
+
 * System option "document_tags" specifies a default for otherwise
 untagged commands. This is occasionally useful to control the global
 visibility of commands via session options (e.g. in ROOT).

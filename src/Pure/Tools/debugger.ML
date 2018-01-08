@@ -276,7 +276,7 @@ val _ =
             if Command.eval_finished eval then
               let
                 val st = Command.eval_result_state eval;
-                val ctxt = Toplevel.presentation_context_of st
+                val ctxt = Toplevel.presentation_context st
                   handle Toplevel.UNDEF => err ();
               in
                 (case ML_Env.get_breakpoint (Context.Proof ctxt) breakpoint of

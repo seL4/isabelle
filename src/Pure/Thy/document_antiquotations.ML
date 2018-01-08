@@ -44,8 +44,8 @@ local
 
 fun control_antiquotation name s1 s2 =
   Thy_Output.antiquotation name (Scan.lift Args.cartouche_input)
-    (fn {state, ...} =>
-      enclose s1 s2 o Latex.output_text o Thy_Output.output_text state {markdown = false});
+    (fn {context = ctxt, ...} =>
+      enclose s1 s2 o Latex.output_text o Thy_Output.output_text ctxt {markdown = false});
 
 in
 
@@ -84,7 +84,7 @@ end;
 val _ =
   Theory.setup
     (Thy_Output.antiquotation \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
-      (fn {state, context = ctxt, ...} => fn source =>
+      (fn {context = ctxt, ...} => fn source =>
         let
           val _ =
             Context_Position.report ctxt (Input.pos_of source)
@@ -101,7 +101,7 @@ val _ =
           val indentation =
             Latex.output_symbols (replicate (Config.get ctxt Thy_Output.indent) Symbol.space);
         in
-          Latex.output_text (maps (Thy_Output.output_token state) toks) |>
+          Latex.output_text (maps (Thy_Output.output_token ctxt) toks) |>
            (if Config.get ctxt Thy_Output.display then
               split_lines #> map (prefix indentation) #> cat_lines #>
               Latex.environment "isabelle"
@@ -114,11 +114,11 @@ val _ =
 local
 
 fun goal_state name main = Thy_Output.antiquotation name (Scan.succeed ())
-  (fn {state, context = ctxt, ...} => fn () =>
+  (fn {context = ctxt, ...} => fn () =>
     Thy_Output.output ctxt
       [Goal_Display.pretty_goal
         (Config.put Goal_Display.show_main_goal main ctxt)
-        (#goal (Proof.goal (Toplevel.proof_of state)))]);
+        (#goal (Proof.goal (Toplevel.proof_of (Toplevel.presentation_state ctxt))))]);
 
 in
 

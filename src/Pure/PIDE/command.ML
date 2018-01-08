@@ -200,13 +200,13 @@ fun check_error e =
     if Exn.is_interrupt exn then Exn.reraise exn
     else Runtime.exn_messages exn;
 
-fun check_cmts span tr st' =
+fun check_cmts ctxt span tr =
   Toplevel.setmp_thread_position tr
     (fn () =>
       (span |> maps (fn tok =>
-        check_error (fn () => Thy_Output.check_token_comments st' tok))) @
+        check_error (fn () => Thy_Output.check_token_comments ctxt tok))) @
       (Outer_Syntax.side_comments span |> maps (fn tok =>
-        check_error (fn () => Thy_Output.output_text st' {markdown = false} (Token.input_of tok)))))
+        check_error (fn () => Thy_Output.output_text ctxt {markdown = false} (Token.input_of tok)))))
     ();
 
 fun report tr m =
@@ -239,7 +239,13 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
     val _ = command_indent tr st;
     val _ = status tr Markup.running;
     val (errs1, result) = run keywords true tr st;
-    val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
+    val errs2 =
+      (case result of
+        NONE => []
+      | SOME st' =>
+          (case try Toplevel.presentation_context st' of
+            NONE => []
+          | SOME ctxt' => check_cmts ctxt' span tr));
     val errs = errs1 @ errs2;
     val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
   in

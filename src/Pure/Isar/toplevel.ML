@@ -16,7 +16,6 @@ sig
   val is_proof: state -> bool
   val is_skipped_proof: state -> bool
   val level: state -> int
-  val presentation_context_of: state -> Proof.context
   val previous_context_of: state -> Proof.context option
   val context_of: state -> Proof.context
   val generic_theory_of: state -> generic_theory
@@ -24,6 +23,8 @@ sig
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
   val end_theory: Position.T -> state -> theory
+  val presentation_context: state -> Proof.context
+  val presentation_state: Proof.context -> state
   val pretty_context: state -> Pretty.T list
   val pretty_state: state -> Pretty.T list
   val string_of_state: state -> string
@@ -154,12 +155,6 @@ fun is_skipped_proof state = not (is_toplevel state) andalso skipped_proof_node 
 
 fun node_case f g state = cases_node f g (node_of state);
 
-fun presentation_context_of state =
-  (case try node_of state of
-    SOME (Theory (_, SOME ctxt)) => ctxt
-  | SOME node => context_node node
-  | NONE => raise UNDEF);
-
 fun previous_context_of (State (_, NONE)) = NONE
   | previous_context_of (State (_, SOME prev)) = SOME (context_node prev);
 
@@ -176,6 +171,30 @@ fun proof_position_of state =
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
   | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.here pos)
   | end_theory pos (State (SOME _, _)) = error ("Unfinished theory" ^ Position.here pos);
+
+
+(* presentation context *)
+
+structure Presentation_State = Proof_Data
+(
+  type T = state option;
+  fun init _ = NONE;
+);
+
+fun presentation_context state =
+  (case try node_of state of
+    SOME (Theory (_, SOME ctxt)) => ctxt
+  | SOME node => context_node node
+  | NONE =>
+      (case try Theory.get_pure () of
+        SOME thy => Proof_Context.init_global thy
+      | NONE => raise UNDEF))
+  |> Presentation_State.put (SOME state);
+
+fun presentation_state ctxt =
+  (case Presentation_State.get ctxt of
+    NONE => generic_theory_toplevel (Context.Proof ctxt)
+  | SOME state => state);
 
 
 (* print state *)
@@ -580,7 +599,7 @@ in
 fun transition int tr st =
   let
     val (st', opt_err) =
-      Context.setmp_generic_context (try (Context.Proof o presentation_context_of) st)
+      Context.setmp_generic_context (try (Context.Proof o presentation_context) st)
         (fn () => app int tr st) ();
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info
@@ -704,7 +723,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
                       val (result, result_state) =
                         State (SOME (Proof (prf', (finish, orig_gthy))), prev)
                         |> fold_map (element_result keywords) body_elems ||> command end_tr;
-                    in (Result_List result, presentation_context_of result_state) end))
+                    in (Result_List result, presentation_context result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
 
             val forked_proof =
@@ -717,7 +736,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
               |> command (head_tr |> reset_trans |> forked_proof);
             val end_result = Result (end_tr, st'');
             val result =
-              Result_List [head_result, Result.get (presentation_context_of st''), end_result];
+              Result_List [head_result, Result.get (presentation_context st''), end_result];
           in (result, st'') end
       end;
 
