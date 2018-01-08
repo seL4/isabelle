@@ -254,7 +254,7 @@ fun output_symbols syms =
 val output_symbols_antiq =
   (fn Antiquote.Text syms => output_symbols syms
     | Antiquote.Control {name = (name, _), body, ...} =>
-        Latex.string ("\\isaantiqcontrol{" ^ Latex.output_symbols (Symbol.explode name) ^ "}") ::
+        Latex.string (Latex.output_symbols [Symbol.encode (Symbol.Control name)]) ::
           output_symbols body
     | Antiquote.Antiq {body, ...} =>
         Latex.enclose_body "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (output_symbols body));
