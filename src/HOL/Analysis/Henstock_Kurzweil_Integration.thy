@@ -6078,6 +6078,86 @@ lemma has_integral_norm_bound_integral_component:
   using assms
   by auto
 
+
+lemma uniformly_convergent_improper_integral:
+  fixes f :: "'b \<Rightarrow> real \<Rightarrow> 'a :: {banach}"
+  assumes deriv: "\<And>x. x \<ge> a \<Longrightarrow> (G has_field_derivative g x) (at x within {a..})"
+  assumes integrable: "\<And>a' b x. x \<in> A \<Longrightarrow> a' \<ge> a \<Longrightarrow> b \<ge> a' \<Longrightarrow> f x integrable_on {a'..b}"
+  assumes G: "convergent G"
+  assumes le: "\<And>y x. y \<in> A \<Longrightarrow> x \<ge> a \<Longrightarrow> norm (f y x) \<le> g x"
+  shows   "uniformly_convergent_on A (\<lambda>b x. integral {a..b} (f x))"
+proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI', goal_cases)
+  case (1 \<epsilon>)
+  from G have "Cauchy G"
+    by (auto intro!: convergent_Cauchy)
+  with 1 obtain M where M: "dist (G (real m)) (G (real n)) < \<epsilon>" if "m \<ge> M" "n \<ge> M" for m n
+    by (force simp: Cauchy_def)
+  define M' where "M' = max (nat \<lceil>a\<rceil>) M"
+
+  show ?case
+  proof (rule exI[of _ M'], safe, goal_cases)
+    case (1 x m n)
+    have M': "M' \<ge> a" "M' \<ge> M" unfolding M'_def by linarith+
+    have int_g: "(g has_integral (G (real n) - G (real m))) {real m..real n}"
+      using 1 M' by (intro fundamental_theorem_of_calculus) 
+                    (auto simp: has_field_derivative_iff_has_vector_derivative [symmetric] 
+                          intro!: DERIV_subset[OF deriv])
+    have int_f: "f x integrable_on {a'..real n}" if "a' \<ge> a" for a'
+      using that 1 by (cases "a' \<le> real n") (auto intro: integrable)
+
+    have "dist (integral {a..real m} (f x)) (integral {a..real n} (f x)) =
+            norm (integral {a..real n} (f x) - integral {a..real m} (f x))"
+      by (simp add: dist_norm norm_minus_commute)
+    also have "integral {a..real m} (f x) + integral {real m..real n} (f x) = 
+                 integral {a..real n} (f x)"
+      using M' and 1 by (intro integral_combine int_f) auto
+    hence "integral {a..real n} (f x) - integral {a..real m} (f x) = 
+             integral {real m..real n} (f x)"
+      by (simp add: algebra_simps)
+    also have "norm \<dots> \<le> integral {real m..real n} g"
+      using le 1 M' int_f int_g by (intro integral_norm_bound_integral) auto 
+    also from int_g have "integral {real m..real n} g = G (real n) - G (real m)"
+      by (simp add: has_integral_iff)
+    also have "\<dots> \<le> dist (G m) (G n)" 
+      by (simp add: dist_norm)
+    also from 1 and M' have "\<dots> < \<epsilon>"
+      by (intro M) auto
+    finally show ?case .
+  qed
+qed
+
+lemma uniformly_convergent_improper_integral':
+  fixes f :: "'b \<Rightarrow> real \<Rightarrow> 'a :: {banach, real_normed_algebra}"
+  assumes deriv: "\<And>x. x \<ge> a \<Longrightarrow> (G has_field_derivative g x) (at x within {a..})"
+  assumes integrable: "\<And>a' b x. x \<in> A \<Longrightarrow> a' \<ge> a \<Longrightarrow> b \<ge> a' \<Longrightarrow> f x integrable_on {a'..b}"
+  assumes G: "convergent G"
+  assumes le: "eventually (\<lambda>x. \<forall>y\<in>A. norm (f y x) \<le> g x) at_top"
+  shows   "uniformly_convergent_on A (\<lambda>b x. integral {a..b} (f x))"
+proof -
+  from le obtain a'' where le: "\<And>y x. y \<in> A \<Longrightarrow> x \<ge> a'' \<Longrightarrow> norm (f y x) \<le> g x"
+    by (auto simp: eventually_at_top_linorder)
+  define a' where "a' = max a a''"
+
+  have "uniformly_convergent_on A (\<lambda>b x. integral {a'..real b} (f x))"
+  proof (rule uniformly_convergent_improper_integral)
+    fix t assume t: "t \<ge> a'"
+    hence "(G has_field_derivative g t) (at t within {a..})"
+      by (intro deriv) (auto simp: a'_def)
+    moreover have "{a'..} \<subseteq> {a..}" unfolding a'_def by auto
+    ultimately show "(G has_field_derivative g t) (at t within {a'..})"
+      by (rule DERIV_subset)
+  qed (insert le, auto simp: a'_def intro: integrable G)
+  hence "uniformly_convergent_on A (\<lambda>b x. integral {a..a'} (f x) + integral {a'..real b} (f x))" 
+    (is ?P) by (intro uniformly_convergent_add) auto
+  also have "eventually (\<lambda>x. \<forall>y\<in>A. integral {a..a'} (f y) + integral {a'..x} (f y) =
+                   integral {a..x} (f y)) sequentially"
+    by (intro eventually_mono [OF eventually_ge_at_top[of "nat \<lceil>a'\<rceil>"]] ballI integral_combine)
+       (auto simp: a'_def intro: integrable)
+  hence "?P \<longleftrightarrow> ?thesis"
+    by (intro uniformly_convergent_cong) simp_all
+  finally show ?thesis .
+qed
+
 subsection \<open>differentiation under the integral sign\<close>
 
 lemma integral_continuous_on_param:
@@ -6282,6 +6362,15 @@ proof -
     apply (auto simp: has_field_derivative_def * split_beta intro!: continuous_intros)
     done
 qed
+
+lemma leibniz_rule_field_differentiable:
+  fixes f::"'a::{real_normed_field, banach} \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'a"
+  assumes "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> ((\<lambda>x. f x t) has_field_derivative fx x t) (at x within U)"
+  assumes "\<And>x. x \<in> U \<Longrightarrow> (f x) integrable_on cbox a b"
+  assumes "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). fx x t)"
+  assumes "x0 \<in> U" "convex U"
+  shows "(\<lambda>x. integral (cbox a b) (f x)) field_differentiable at x0 within U"
+  using leibniz_rule_field_derivative[OF assms] by (auto simp: field_differentiable_def)
 
 
 subsection \<open>Exchange uniform limit and integral\<close>

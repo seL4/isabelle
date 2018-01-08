@@ -401,6 +401,16 @@ next
   finally show \<dots> .
 qed (insert assms, auto)
 
+lemma leibniz_rule_holomorphic:
+  fixes f::"complex \<Rightarrow> 'b::euclidean_space \<Rightarrow> complex"
+  assumes "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> ((\<lambda>x. f x t) has_field_derivative fx x t) (at x within U)"
+  assumes "\<And>x. x \<in> U \<Longrightarrow> (f x) integrable_on cbox a b"
+  assumes "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). fx x t)"
+  assumes "convex U"
+  shows "(\<lambda>x. integral (cbox a b) (f x)) holomorphic_on U"
+  using leibniz_rule_field_differentiable[OF assms(1-3) _ assms(4)]
+  by (auto simp: holomorphic_on_def)
+
 lemma DERIV_deriv_iff_field_differentiable:
   "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
   unfolding field_differentiable_def by (metis DERIV_imp_deriv)

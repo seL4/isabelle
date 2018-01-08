@@ -483,6 +483,9 @@ lemma neg_one_odd_power [simp]: "odd n \<Longrightarrow> (- 1) ^ n = - 1"
 lemma neg_one_power_add_eq_neg_one_power_diff: "k \<le> n \<Longrightarrow> (- 1) ^ (n + k) = (- 1) ^ (n - k)"
   by (cases "even (n + k)") auto
 
+lemma minus_one_power_iff: "(- 1) ^ n = (if even n then 1 else - 1)"
+  by (induct n) auto
+
 end
 
 context linordered_idom

@@ -1217,7 +1217,7 @@ lemma field_differentiable_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Long
   using field_differentiable_def has_field_derivative_Ln by blast
 
 lemma field_differentiable_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0
-         \<Longrightarrow> Ln field_differentiable (at z within s)"
+         \<Longrightarrow> Ln field_differentiable (at z within S)"
   using field_differentiable_at_Ln field_differentiable_within_subset by blast
 
 lemma continuous_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) Ln"
@@ -1227,14 +1227,33 @@ lemma isCont_Ln' [simp]:
    "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. Ln (f x)) z"
   by (blast intro: isCont_o2 [OF _ continuous_at_Ln])
 
-lemma continuous_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within s) Ln"
+lemma continuous_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within S) Ln"
   using continuous_at_Ln continuous_at_imp_continuous_within by blast
 
-lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on s Ln"
+lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> S \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on S Ln"
   by (simp add: continuous_at_imp_continuous_on continuous_within_Ln)
 
-lemma holomorphic_on_Ln [holomorphic_intros]: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on s"
+lemma continuous_on_Ln' [continuous_intros]: 
+  "continuous_on S f \<Longrightarrow> (\<And>z. z \<in> S \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on S (\<lambda>x. Ln (f x))"
+  by (rule continuous_on_compose2[OF continuous_on_Ln, of "UNIV - nonpos_Reals" S f]) auto
+
+lemma holomorphic_on_Ln [holomorphic_intros]: "(\<And>z. z \<in> S \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on S"
   by (simp add: field_differentiable_within_Ln holomorphic_on_def)
+
+lemma tendsto_Ln [tendsto_intros]:
+  fixes L F
+  assumes "(f \<longlongrightarrow> L) F" "L \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  shows   "((\<lambda>x. Ln (f x)) \<longlongrightarrow> Ln L) F"
+proof -
+  have "nhds L \<ge> filtermap f F"
+    using assms(1) by (simp add: filterlim_def)
+  moreover have "\<forall>\<^sub>F y in nhds L. y \<in> - \<real>\<^sub>\<le>\<^sub>0"
+    using eventually_nhds_in_open[of "- \<real>\<^sub>\<le>\<^sub>0" L] assms by (auto simp: open_Compl)
+  ultimately have "\<forall>\<^sub>F y in filtermap f F. y \<in> - \<real>\<^sub>\<le>\<^sub>0" by (rule filter_leD)
+  moreover have "continuous_on (-\<real>\<^sub>\<le>\<^sub>0) Ln" by (rule continuous_on_Ln) auto
+  ultimately show ?thesis using continuous_on_tendsto_compose[of "- \<real>\<^sub>\<le>\<^sub>0" Ln f L F] assms
+    by (simp add: eventually_filtermap)
+qed
 
 lemma divide_ln_mono:
   fixes x y::real
