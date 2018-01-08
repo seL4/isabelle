@@ -10,7 +10,6 @@ sig
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
-  val pure_theory: unit -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
   val use_theories:
@@ -101,8 +100,6 @@ fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
   | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
-
-fun pure_theory () = get_theory Context.PureN;
 
 val get_imports = Resources.imports_of o get_theory;
 

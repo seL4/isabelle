@@ -574,7 +574,7 @@ fun init_theory deps node span =
         |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy))));
 
     val parents =
-      if null parents_reports then [Thy_Info.pure_theory ()] else map #1 parents_reports;
+      if null parents_reports then [Theory.get_pure ()] else map #1 parents_reports;
     val _ = Position.reports (map #2 parents_reports);
   in Resources.begin_theory master_dir header parents end;
 

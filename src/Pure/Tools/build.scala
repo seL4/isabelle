@@ -265,7 +265,8 @@ object Build
           val eval =
             "Command_Line.tool0 (fn () => (" +
             "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file)) +
-            (if (do_output) "; " + save_heap else "") + "));"
+            (if (Sessions.is_pure(name)) "; Theory.install_pure (Thy_Info.get_theory Context.PureN)"
+             else "") + (if (do_output) "; " + save_heap else "") + "));"
 
           val process =
             if (Sessions.is_pure(name)) {

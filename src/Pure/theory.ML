@@ -11,6 +11,8 @@ sig
   val nodes_of: theory -> theory list
   val setup: (theory -> theory) -> unit
   val local_setup: (Proof.context -> Proof.context) -> unit
+  val get_pure: unit -> theory
+  val install_pure: theory -> unit
   val get_markup: theory -> Markup.T
   val check: Proof.context -> string * Position.T -> theory
   val axiom_table: theory -> term Name_Space.table
@@ -44,6 +46,10 @@ fun nodes_of thy = thy :: ancestors_of thy;
 
 fun setup f = Context.>> (Context.map_theory f);
 fun local_setup f = Context.>> (Context.map_proof f);
+
+val pure: theory Single_Assignment.var = Single_Assignment.var "pure";
+fun get_pure () = the (Single_Assignment.peek pure);
+fun install_pure thy = Single_Assignment.assign pure thy;
 
 
 

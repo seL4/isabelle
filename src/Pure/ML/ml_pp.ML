@@ -12,19 +12,19 @@ val _ =
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm Thy_Info.pure_theory);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm Theory.get_pure);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm Thy_Info.pure_theory);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm Theory.get_pure);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp Thy_Info.pure_theory);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp Theory.get_pure);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ Thy_Info.pure_theory);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ Theory.get_pure);
 
 
 local
