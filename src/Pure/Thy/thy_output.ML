@@ -273,17 +273,17 @@ val scan_symbols_comment =
     Scan.option (Symbol_Pos.scan_cartouche_content "Document token error: ")
       >> (fn (syms, NONE) => (false, syms) | (_, SOME syms) => (true, syms));
 
-val read_symbols_comment =
-  Scan.read Symbol_Pos.stopper (Scan.repeat scan_symbols_comment);
+fun read_symbols_comment syms =
+  if exists (fn (s, _) => s = Symbol.comment) syms then
+    Scan.read Symbol_Pos.stopper (Scan.repeat scan_symbols_comment) syms
+  else NONE;
 
 in
 
 fun output_body state antiq bg en syms =
-  (if exists (fn (s, _) => s = Symbol.comment) syms then
-    (case read_symbols_comment syms of
-      SOME res => maps (output_symbols_comment state {antiq = antiq}) res
-    | NONE => output_symbols syms)
-   else output_symbols syms) |> Latex.enclose_body bg en
+  (case read_symbols_comment syms of
+    SOME res => maps (output_symbols_comment state {antiq = antiq}) res
+  | NONE => output_symbols syms) |> Latex.enclose_body bg en
 and output_token state tok =
   let
     val syms = Input.source_explode (Token.input_of tok);
