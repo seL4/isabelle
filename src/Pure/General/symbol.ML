@@ -45,6 +45,7 @@ sig
   datatype sym =
     Char of string | UTF8 of string | Sym of string | Control of string | Malformed of string | EOF
   val decode: symbol -> sym
+  val encode: sym -> symbol
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
   val is_letter: symbol -> bool
@@ -210,6 +211,13 @@ fun decode s =
   else if is_malformed s then Malformed s
   else if is_control s then Control (String.substring (s, 3, size s - 4))
   else Sym (String.substring (s, 2, size s - 3));
+
+fun encode (Char s) = s
+  | encode (UTF8 s) = s
+  | encode (Sym s) = "\092<" ^ s ^ ">"
+  | encode (Control s) = "\092<^" ^ s ^ ">"
+  | encode (Malformed s) = s
+  | encode EOF = "";
 
 
 (* standard symbol kinds *)
