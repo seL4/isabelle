@@ -141,7 +141,7 @@ ML \<open>
   Outer_Syntax.command
     @{command_keyword text_cartouche} ""
     (Parse.opt_target -- Parse.input Parse.cartouche
-      >> Thy_Output.document_command {markdown = true})
+      >> Pure_Syn.document_command {markdown = true})
 \<close>
 
 text_cartouche
