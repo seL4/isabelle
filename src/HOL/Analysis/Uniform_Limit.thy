@@ -108,8 +108,7 @@ proof (rule tendstoI)
     using eventually_happens by (metis \<open>\<not>trivial_limit F\<close>)
 qed
 
-lemma
-  tendsto_uniform_limitI:
+lemma tendsto_uniform_limitI:
   assumes "uniform_limit S f l F"
   assumes "x \<in> S"
   shows "((\<lambda>y. f y x) \<longlongrightarrow> l x) F"
@@ -184,6 +183,12 @@ lemma uniform_limit_cong':
   shows   "uniform_limit X f h F \<longleftrightarrow> uniform_limit X g i F"
   using assms by (intro uniform_limit_cong always_eventually) blast+
 
+lemma uniformly_convergent_cong:
+  assumes "eventually (\<lambda>x. \<forall>y\<in>A. f x y = g x y) sequentially" "A = B"
+  shows "uniformly_convergent_on A f \<longleftrightarrow> uniformly_convergent_on B g"
+  unfolding uniformly_convergent_on_def assms(2) [symmetric]
+  by (intro iff_exI uniform_limit_cong eventually_mono [OF assms(1)]) auto
+
 lemma uniformly_convergent_uniform_limit_iff:
   "uniformly_convergent_on X f \<longleftrightarrow> uniform_limit X f (\<lambda>x. lim (\<lambda>n. f n x)) sequentially"
 proof
@@ -202,6 +207,10 @@ lemma uniformly_convergentI: "uniform_limit X f l sequentially \<Longrightarrow>
 
 lemma uniformly_convergent_on_empty [iff]: "uniformly_convergent_on {} f"
   by (simp add: uniformly_convergent_on_def uniform_limit_sequentially_iff)
+
+lemma uniformly_convergent_on_const [simp,intro]:
+  "uniformly_convergent_on A (\<lambda>_. c)"
+  by (auto simp: uniformly_convergent_on_def uniform_limit_iff intro!: exI[of _ c])
 
 text\<open>Cauchy-type criteria for uniform convergence.\<close>
 
@@ -400,6 +409,17 @@ proof (rule uniform_limitI)
   from uniform_limitD[OF assms this]
   show "\<forall>\<^sub>F n in F. \<forall>x\<in>X. dist (f (g n x)) (f (l x)) < e"
     by eventually_elim (metis le_less_trans mult.commute pos_less_divide_eq K)
+qed
+
+lemma (in bounded_linear) uniformly_convergent_on:
+  assumes "uniformly_convergent_on A g"
+  shows   "uniformly_convergent_on A (\<lambda>x y. f (g x y))"
+proof -
+  from assms obtain l where "uniform_limit A g l sequentially"
+    unfolding uniformly_convergent_on_def by blast
+  hence "uniform_limit A (\<lambda>x y. f (g x y)) (\<lambda>x. f (l x)) sequentially"
+    by (rule uniform_limit)
+  thus ?thesis unfolding uniformly_convergent_on_def by blast
 qed
 
 lemmas bounded_linear_uniform_limit_intros[uniform_limit_intros] =

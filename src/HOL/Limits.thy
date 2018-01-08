@@ -1081,6 +1081,77 @@ proof safe
   qed
 qed force
 
+lemma filterlim_at_infinity_imp_norm_at_top:
+  fixes F
+  assumes "filterlim f at_infinity F"
+  shows   "filterlim (\<lambda>x. norm (f x)) at_top F"
+proof -
+  {
+    fix r :: real 
+    have "\<forall>\<^sub>F x in F. r \<le> norm (f x)" using filterlim_at_infinity[of 0 f F] assms 
+      by (cases "r > 0") 
+         (auto simp: not_less intro: always_eventually order.trans[OF _ norm_ge_zero])
+  }
+  thus ?thesis by (auto simp: filterlim_at_top)
+qed
+  
+lemma filterlim_norm_at_top_imp_at_infinity:
+  fixes F
+  assumes "filterlim (\<lambda>x. norm (f x)) at_top F"
+  shows   "filterlim f at_infinity F"
+  using filterlim_at_infinity[of 0 f F] assms by (auto simp: filterlim_at_top)
+
+lemma filterlim_norm_at_top: "filterlim norm at_top at_infinity"
+  by (rule filterlim_at_infinity_imp_norm_at_top) (rule filterlim_ident)
+
+lemma eventually_not_equal_at_infinity:
+  "eventually (\<lambda>x. x \<noteq> (a :: 'a :: {real_normed_vector})) at_infinity"
+proof -
+  from filterlim_norm_at_top[where 'a = 'a]
+    have "\<forall>\<^sub>F x in at_infinity. norm a < norm (x::'a)" by (auto simp: filterlim_at_top_dense)
+  thus ?thesis by eventually_elim auto
+qed
+
+lemma filterlim_int_of_nat_at_topD:
+  fixes F
+  assumes "filterlim (\<lambda>x. f (int x)) F at_top"
+  shows   "filterlim f F at_top"
+proof -
+  have "filterlim (\<lambda>x. f (int (nat x))) F at_top"
+    by (rule filterlim_compose[OF assms filterlim_nat_sequentially])
+  also have "?this \<longleftrightarrow> filterlim f F at_top"
+    by (intro filterlim_cong refl eventually_mono [OF eventually_ge_at_top[of "0::int"]]) auto
+  finally show ?thesis .
+qed
+
+lemma filterlim_int_sequentially [tendsto_intros]:
+  "filterlim int at_top sequentially"
+  unfolding filterlim_at_top
+proof
+  fix C :: int
+  show "eventually (\<lambda>n. int n \<ge> C) at_top"
+    using eventually_ge_at_top[of "nat \<lceil>C\<rceil>"] by eventually_elim linarith
+qed
+
+lemma filterlim_real_of_int_at_top [tendsto_intros]:
+  "filterlim real_of_int at_top at_top"
+  unfolding filterlim_at_top
+proof
+  fix C :: real
+  show "eventually (\<lambda>n. real_of_int n \<ge> C) at_top"
+    using eventually_ge_at_top[of "\<lceil>C\<rceil>"] by eventually_elim linarith
+qed
+
+lemma filterlim_abs_real: "filterlim (abs::real \<Rightarrow> real) at_top at_top"
+proof (subst filterlim_cong[OF refl refl])
+  from eventually_ge_at_top[of "0::real"] show "eventually (\<lambda>x::real. \<bar>x\<bar> = x) at_top"
+    by eventually_elim simp
+qed (simp_all add: filterlim_ident)
+
+lemma filterlim_of_real_at_infinity [tendsto_intros]:
+  "filterlim (of_real :: real \<Rightarrow> 'a :: real_normed_algebra_1) at_infinity at_top"
+  by (intro filterlim_norm_at_top_imp_at_infinity) (auto simp: filterlim_abs_real)
+    
 lemma not_tendsto_and_filterlim_at_infinity:
   fixes c :: "'a::real_normed_vector"
   assumes "F \<noteq> bot"
@@ -1533,6 +1604,14 @@ lemma filterlim_pow_at_bot_odd:
   fixes f :: "real \<Rightarrow> real"
   shows "0 < n \<Longrightarrow> LIM x F. f x :> at_bot \<Longrightarrow> odd n \<Longrightarrow> LIM x F. (f x)^n :> at_bot"
   using filterlim_pow_at_top[of n "\<lambda>x. - f x" F] by (simp add: filterlim_uminus_at_bot)
+
+lemma filterlim_power_at_infinity [tendsto_intros]:
+  fixes F and f :: "'a \<Rightarrow> 'b :: real_normed_div_algebra"
+  assumes "filterlim f at_infinity F" "n > 0"
+  shows   "filterlim (\<lambda>x. f x ^ n) at_infinity F"
+  by (rule filterlim_norm_at_top_imp_at_infinity)
+     (auto simp: norm_power intro!: filterlim_pow_at_top assms 
+           intro: filterlim_at_infinity_imp_norm_at_top)
 
 lemma filterlim_tendsto_add_at_top:
   assumes f: "(f \<longlongrightarrow> c) F"
