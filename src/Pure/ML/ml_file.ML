@@ -18,6 +18,11 @@ fun command SML debug files = Toplevel.generic_theory (fn gthy =>
     val [{src_path, lines, digest, pos}: Token.file] = files (Context.theory_of gthy);
     val provide = Resources.provide (src_path, digest);
     val source = Input.source true (cat_lines lines) (pos, pos);
+
+    val _ =
+      Thy_Output.check_comments (Toplevel.generic_theory_toplevel gthy)
+        (Input.source_explode source);
+
     val flags =
       {SML = SML, exchange = false, redirect = true, verbose = true,
         debug = debug, writeln = writeln, warning = warning};

@@ -195,14 +195,19 @@ fun run keywords int tr st =
       (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;
 
+fun check_error e =
+  (e (); []) handle exn =>
+    if Exn.is_interrupt exn then Exn.reraise exn
+    else Runtime.exn_messages exn;
+
 fun check_cmts span tr st' =
   Toplevel.setmp_thread_position tr
     (fn () =>
-      Outer_Syntax.side_comments span |> maps (fn cmt =>
-        (Thy_Output.output_text st' {markdown = false} (Token.input_of cmt); [])
-          handle exn =>
-            if Exn.is_interrupt exn then Exn.reraise exn
-            else Runtime.exn_messages exn)) ();
+      (span |> maps (fn tok =>
+        check_error (fn () => Thy_Output.check_token_comments st' tok))) @
+      (Outer_Syntax.side_comments span |> maps (fn tok =>
+        check_error (fn () => Thy_Output.output_text st' {markdown = false} (Token.input_of tok)))))
+    ();
 
 fun report tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) ();

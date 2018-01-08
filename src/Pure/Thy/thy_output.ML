@@ -25,6 +25,8 @@ sig
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
   val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> Latex.text list
+  val check_comments: Toplevel.state -> Symbol_Pos.T list -> unit
+  val check_token_comments: Toplevel.state -> Token.T -> unit
   val output_token: Toplevel.state -> Token.T -> Latex.text list
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
     Token.T list -> Latex.text list
@@ -304,6 +306,14 @@ and output_token state tok =
       else output_body state false "" "" syms;
   in output end
   handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+
+fun check_comments state =
+  read_symbols_comment #> (Option.app o List.app) (fn (is_comment, syms) =>
+    (output_symbols_comment state {antiq = false} (is_comment, syms);
+     if is_comment then check_comments state syms else ()));
+
+fun check_token_comments state tok =
+  check_comments state (Input.source_explode (Token.input_of tok));
 
 end;
 
