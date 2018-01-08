@@ -8,6 +8,7 @@ signature TOPLEVEL =
 sig
   exception UNDEF
   type state
+  val generic_theory_toplevel: generic_theory -> state
   val theory_toplevel: theory -> state
   val toplevel: state
   val is_toplevel: state -> bool
@@ -120,7 +121,8 @@ val context_node = cases_node Context.proof_of Proof.context_of;
 
 datatype state = State of node option * node option;  (*current, previous*)
 
-fun theory_toplevel thy = State (SOME (Theory (Context.Theory thy, NONE)), NONE);
+fun generic_theory_toplevel gthy = State (SOME (Theory (gthy, NONE)), NONE);
+val theory_toplevel = generic_theory_toplevel o Context.Theory;
 
 val toplevel = State (NONE, NONE);
 
