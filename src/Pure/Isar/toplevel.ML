@@ -114,8 +114,6 @@ fun cases_node f _ (Theory (gthy, _)) = f gthy
   | cases_node _ g (Proof (prf, _)) = g (Proof_Node.current prf)
   | cases_node f _ (Skipped_Proof (_, (gthy, _))) = f gthy;
 
-val context_node = cases_node Context.proof_of Proof.context_of;
-
 
 (* datatype state *)
 
@@ -183,7 +181,7 @@ structure Presentation_State = Proof_Data
 fun presentation_context state =
   (case try node_of state of
     SOME (Theory (_, SOME ctxt)) => ctxt
-  | SOME node => context_node node
+  | SOME node => cases_node Context.proof_of Proof.context_of node
   | NONE =>
       (case try Theory.get_pure () of
         SOME thy => Proof_Context.init_global thy
