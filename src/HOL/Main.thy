@@ -17,11 +17,6 @@ theory Main
     GCD
 begin
 
-text \<open>
-  Classical Higher-order Logic -- only ``Main'', excluding real and
-  complex numbers etc.
-\<close>
-
 no_notation
   bot ("\<bottom>") and
   top ("\<top>") and
