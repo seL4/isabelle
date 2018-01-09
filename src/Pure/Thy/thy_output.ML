@@ -1,28 +1,11 @@
 (*  Title:      Pure/Thy/thy_output.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Theory document output with antiquotations.
+Theory document output.
 *)
 
 signature THY_OUTPUT =
 sig
-  val display: bool Config.T
-  val quotes: bool Config.T
-  val margin: int Config.T
-  val indent: int Config.T
-  val source: bool Config.T
-  val break: bool Config.T
-  val modes: string Config.T
-  val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
-  val add_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
-  val check_command: Proof.context -> xstring * Position.T -> string
-  val check_option: Proof.context -> xstring * Position.T -> string
-  val print_antiquotations: bool -> Proof.context -> unit
-  val antiquotation: binding -> 'a context_parser ->
-    ({source: Token.src, context: Proof.context} -> 'a -> string) -> theory -> theory
-  val boolean: string -> bool
-  val integer: string -> int
-  val eval_antiquote: Proof.context -> Antiquote.text_antiquote -> string
   val output_text: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val check_token_comments: Proof.context -> Token.T -> unit
@@ -43,152 +26,6 @@ end;
 structure Thy_Output: THY_OUTPUT =
 struct
 
-(** options **)
-
-val display = Attrib.setup_option_bool ("thy_output_display", \<^here>);
-val break = Attrib.setup_option_bool ("thy_output_break", \<^here>);
-val quotes = Attrib.setup_option_bool ("thy_output_quotes", \<^here>);
-val margin = Attrib.setup_option_int ("thy_output_margin", \<^here>);
-val indent = Attrib.setup_option_int ("thy_output_indent", \<^here>);
-val source = Attrib.setup_option_bool ("thy_output_source", \<^here>);
-val modes = Attrib.setup_option_string ("thy_output_modes", \<^here>);
-
-
-structure Wrappers = Proof_Data
-(
-  type T = ((unit -> string) -> unit -> string) list;
-  fun init _ = [];
-);
-
-fun add_wrapper wrapper = Wrappers.map (cons wrapper);
-
-val wrap = Wrappers.get #> fold (fn wrapper => fn f => wrapper f);
-
-
-
-(** maintain global antiquotations **)
-
-structure Antiquotations = Theory_Data
-(
-  type T =
-    (Token.src -> Proof.context -> string) Name_Space.table *
-      (string -> Proof.context -> Proof.context) Name_Space.table;
-  val empty : T =
-    (Name_Space.empty_table Markup.document_antiquotationN,
-      Name_Space.empty_table Markup.document_antiquotation_optionN);
-  val extend = I;
-  fun merge ((commands1, options1), (commands2, options2)) : T =
-    (Name_Space.merge_tables (commands1, commands2),
-      Name_Space.merge_tables (options1, options2));
-);
-
-val get_antiquotations = Antiquotations.get o Proof_Context.theory_of;
-
-fun add_command name cmd thy = thy
-  |> Antiquotations.map (apfst (Name_Space.define (Context.Theory thy) true (name, cmd) #> snd));
-
-fun add_option name opt thy = thy
-  |> Antiquotations.map (apsnd (Name_Space.define (Context.Theory thy) true (name, opt) #> snd));
-
-fun check_command ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt));
-
-fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
-
-fun command src ctxt =
-  let val (src', f) = Token.check_src ctxt (#1 o get_antiquotations) src
-  in f src' ctxt end;
-
-fun option ((xname, pos), s) ctxt =
-  let
-    val (_, opt) =
-      Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt)) (xname, pos);
-  in opt s ctxt end;
-
-fun print_antiquotations verbose ctxt =
-  let
-    val (commands, options) = get_antiquotations ctxt;
-    val command_names = map #1 (Name_Space.markup_table verbose ctxt commands);
-    val option_names = map #1 (Name_Space.markup_table verbose ctxt options);
-  in
-    [Pretty.big_list "document antiquotations:" (map Pretty.mark_str command_names),
-     Pretty.big_list "document antiquotation options:" (map Pretty.mark_str option_names)]
-  end |> Pretty.writeln_chunks;
-
-fun antiquotation name scan body =
-  add_command name
-    (fn src => fn ctxt =>
-      let val (x, ctxt') = Token.syntax scan src ctxt
-      in body {source = src, context = ctxt'} x end);
-
-
-
-(** syntax of antiquotations **)
-
-(* option values *)
-
-fun boolean "" = true
-  | boolean "true" = true
-  | boolean "false" = false
-  | boolean s = error ("Bad boolean value: " ^ quote s);
-
-fun integer s =
-  let
-    fun int ss =
-      (case Library.read_int ss of (i, []) => i
-      | _ => error ("Bad integer value: " ^ quote s));
-  in (case Symbol.explode s of "-" :: ss => ~ (int ss) | ss => int ss) end;
-
-
-(* outer syntax *)
-
-local
-
-val property =
-  Parse.position Parse.name -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.name) "";
-
-val properties =
-  Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.enum "," property --| Parse.$$$ "]")) [];
-
-in
-
-val antiq =
-  Parse.!!!
-    (Parse.token Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
-  >> (fn ((name, props), args) => (props, name :: args));
-
-end;
-
-
-(* eval antiquote *)
-
-local
-
-fun eval_antiq ctxt (opts, src) =
-  let
-    val preview_ctxt = fold option opts ctxt;
-    val print_ctxt = Context_Position.set_visible false preview_ctxt;
-
-    fun cmd ctxt = wrap ctxt (fn () => command src ctxt) ();
-    val _ = cmd preview_ctxt;
-    val print_modes = space_explode "," (Config.get print_ctxt modes) @ [Latex.latexN];
-  in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
-
-in
-
-fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
-  | eval_antiquote ctxt (Antiquote.Control {name, body, ...}) =
-      eval_antiq ctxt
-        ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
-  | eval_antiquote ctxt (Antiquote.Antiq {range = (pos, _), body, ...}) =
-      let val keywords = Thy_Header.get_keywords' ctxt;
-      in eval_antiq ctxt (Token.read_antiq keywords antiq (body, pos)) end;
-
-end;
-
-
-
-(** document output **)
-
 (* output text *)
 
 fun output_text ctxt {markdown} source =
@@ -199,7 +36,8 @@ fun output_text ctxt {markdown} source =
     val _ = Context_Position.report ctxt pos (Markup.language_document (Input.is_delimited source));
 
     val output_antiquotes =
-      map (fn ant => Latex.text (eval_antiquote ctxt ant, #1 (Antiquote.range [ant])));
+      map (fn ant =>
+        Latex.text (Document_Antiquotation.evaluate ctxt ant, #1 (Antiquote.range [ant])));
 
     fun output_line line =
       (if Markdown.line_is_item line then [Latex.string "\\item "] else []) @
@@ -572,34 +410,12 @@ end;
 
 
 
-(** setup default output **)
-
-(* options *)
-
-val _ = Theory.setup
- (add_option \<^binding>\<open>show_types\<close> (Config.put show_types o boolean) #>
-  add_option \<^binding>\<open>show_sorts\<close> (Config.put show_sorts o boolean) #>
-  add_option \<^binding>\<open>show_structs\<close> (Config.put show_structs o boolean) #>
-  add_option \<^binding>\<open>show_question_marks\<close> (Config.put show_question_marks o boolean) #>
-  add_option \<^binding>\<open>show_abbrevs\<close> (Config.put show_abbrevs o boolean) #>
-  add_option \<^binding>\<open>names_long\<close> (Config.put Name_Space.names_long o boolean) #>
-  add_option \<^binding>\<open>names_short\<close> (Config.put Name_Space.names_short o boolean) #>
-  add_option \<^binding>\<open>names_unique\<close> (Config.put Name_Space.names_unique o boolean) #>
-  add_option \<^binding>\<open>eta_contract\<close> (Config.put Syntax_Trans.eta_contract o boolean) #>
-  add_option \<^binding>\<open>display\<close> (Config.put display o boolean) #>
-  add_option \<^binding>\<open>break\<close> (Config.put break o boolean) #>
-  add_option \<^binding>\<open>quotes\<close> (Config.put quotes o boolean) #>
-  add_option \<^binding>\<open>mode\<close> (add_wrapper o Print_Mode.with_modes o single) #>
-  add_option \<^binding>\<open>margin\<close> (Config.put margin o integer) #>
-  add_option \<^binding>\<open>indent\<close> (Config.put indent o integer) #>
-  add_option \<^binding>\<open>source\<close> (Config.put source o boolean) #>
-  add_option \<^binding>\<open>goals_limit\<close> (Config.put Goal_Display.goals_limit o integer));
-
+(** standard output operations **)
 
 (* basic pretty printing *)
 
 fun perhaps_trim ctxt =
-  not (Config.get ctxt display) ? Symbol.trim_blanks;
+  not (Config.get ctxt Document_Antiquotation.thy_output_display) ? Symbol.trim_blanks;
 
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (perhaps_trim ctxt) o split_lines;
@@ -608,55 +424,6 @@ fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
-fun pretty_term_style ctxt (style, t) =
-  pretty_term ctxt (style t);
-
-fun pretty_thm_style ctxt (style, th) =
-  pretty_term ctxt (style (Thm.full_prop_of th));
-
-fun pretty_term_typ ctxt (style, t) =
-  let val t' = style t
-  in pretty_term ctxt (Type.constraint (Term.fastype_of t') t') end;
-
-fun pretty_term_typeof ctxt (style, t) =
-  Syntax.pretty_typ ctxt (Term.fastype_of (style t));
-
-fun pretty_const ctxt c =
-  let
-    val t = Const (c, Consts.type_scheme (Proof_Context.consts_of ctxt) c)
-      handle TYPE (msg, _, _) => error msg;
-    val ([t'], _) = Variable.import_terms true [t] ctxt;
-  in pretty_term ctxt t' end;
-
-fun pretty_abbrev ctxt s =
-  let
-    val t = Syntax.read_term (Proof_Context.set_mode Proof_Context.mode_abbrev ctxt) s;
-    fun err () = error ("Abbreviated constant expected: " ^ Syntax.string_of_term ctxt t);
-    val (head, args) = Term.strip_comb t;
-    val (c, T) = Term.dest_Const head handle TERM _ => err ();
-    val (U, u) = Consts.the_abbreviation (Proof_Context.consts_of ctxt) c
-      handle TYPE _ => err ();
-    val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
-    val eq = Logic.mk_equals (t, t');
-    val ctxt' = Variable.auto_fixes eq ctxt;
-  in Proof_Context.pretty_term_abbrev ctxt' eq end;
-
-fun pretty_locale ctxt (name, pos) =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in (Pretty.str o Locale.extern thy o Locale.check thy) (name, pos) end;
-
-fun pretty_class ctxt =
-  Pretty.str o Proof_Context.extern_class ctxt o Proof_Context.read_class ctxt;
-
-fun pretty_type ctxt s =
-  let val Type (name, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s
-  in Pretty.str (Proof_Context.extern_type ctxt name) end;
-
-fun pretty_prf full ctxt = Proof_Syntax.pretty_clean_proof_of ctxt full;
-
-fun pretty_theory ctxt (name, pos) = (Theory.check ctxt (name, pos); Pretty.str name);
-
 
 (* default output *)
 
@@ -664,21 +431,24 @@ val str_of_source = space_implode " " o map Token.unparse o Token.args_of_src;
 
 fun maybe_pretty_source pretty ctxt src xs =
   map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)
-  |> (if Config.get ctxt source then K [pretty_text ctxt (str_of_source src)] else I);
+  |> (if Config.get ctxt Document_Antiquotation.thy_output_source
+      then K [pretty_text ctxt (str_of_source src)] else I);
 
-fun string_of_margin ctxt = Pretty.string_of_margin (Config.get ctxt margin);
+fun string_of_margin ctxt =
+  Pretty.string_of_margin (Config.get ctxt Document_Antiquotation.thy_output_margin);
 
 fun output ctxt prts =
   prts
-  |> Config.get ctxt quotes ? map Pretty.quote
-  |> (if Config.get ctxt display then
-        map (Pretty.indent (Config.get ctxt indent) #> string_of_margin ctxt #> Output.output)
+  |> Config.get ctxt Document_Antiquotation.thy_output_quotes ? map Pretty.quote
+  |> (if Config.get ctxt Document_Antiquotation.thy_output_display then
+        map (Pretty.indent (Config.get ctxt Document_Antiquotation.thy_output_indent)
+          #> string_of_margin ctxt #> Output.output)
         #> space_implode "\\isasep\\isanewline%\n"
         #> Latex.environment "isabelle"
       else
         map
-          ((if Config.get ctxt break then string_of_margin ctxt else Pretty.unformatted_string_of)
-            #> Output.output)
+          ((if Config.get ctxt Document_Antiquotation.thy_output_break
+            then string_of_margin ctxt else Pretty.unformatted_string_of) #> Output.output)
         #> space_implode "\\isasep\\isanewline%\n"
         #> enclose "\\isa{" "}");
 
@@ -686,48 +456,14 @@ fun output ctxt prts =
 (* verbatim text *)
 
 fun verbatim_text ctxt =
-  if Config.get ctxt display then
-    split_lines #> map (prefix (Symbol.spaces (Config.get ctxt indent))) #> cat_lines #>
+  if Config.get ctxt Document_Antiquotation.thy_output_display then
+    split_lines #>
+    map (prefix (Symbol.spaces (Config.get ctxt Document_Antiquotation.thy_output_indent))) #>
+    cat_lines #>
     Latex.output_ascii #> Latex.environment "isabellett"
   else
     split_lines #>
     map (Latex.output_ascii #> enclose "\\isatt{" "}") #>
     space_implode "\\isasep\\isanewline%\n";
-
-
-(* antiquotations for basic entities *)
-
-local
-
-fun basic_entities name scan pretty =
-  antiquotation name scan (fn {source, context = ctxt, ...} =>
-    output ctxt o maybe_pretty_source pretty ctxt source);
-
-fun basic_entities_style name scan pretty =
-  antiquotation name scan (fn {source, context = ctxt, ...} => fn (style, xs) =>
-    output ctxt
-      (maybe_pretty_source (fn ctxt => fn x => pretty ctxt (style, x)) ctxt source xs));
-
-fun basic_entity name scan = basic_entities name (scan >> single);
-
-in
-
-val _ = Theory.setup
- (basic_entities_style \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
-  basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
-  basic_entity \<^binding>\<open>term\<close> (Term_Style.parse -- Args.term) pretty_term_style #>
-  basic_entity \<^binding>\<open>term_type\<close> (Term_Style.parse -- Args.term) pretty_term_typ #>
-  basic_entity \<^binding>\<open>typeof\<close> (Term_Style.parse -- Args.term) pretty_term_typeof #>
-  basic_entity \<^binding>\<open>const\<close> (Args.const {proper = true, strict = false}) pretty_const #>
-  basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
-  basic_entity \<^binding>\<open>typ\<close> Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.name)) pretty_locale #>
-  basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
-  basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded) pretty_type #>
-  basic_entities \<^binding>\<open>prf\<close> Attrib.thms (pretty_prf false) #>
-  basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
-  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.name)) pretty_theory);
-
-end;
 
 end;

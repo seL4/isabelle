@@ -332,7 +332,7 @@ in
 
 fun output_rules ctxt rules =
   let
-    val output_antiq = Thy_Output.eval_antiquote ctxt o Antiquote.Antiq;
+    val output_antiq = Document_Antiquotation.evaluate ctxt o Antiquote.Antiq;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"
@@ -374,7 +374,7 @@ fun output_rules ctxt rules =
   in Latex.environment "railoutput" (implode (map output_rule rules)) end;
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
+  (Document_Antiquotation.setup \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
     (fn {context = ctxt, ...} => output_rules ctxt o read ctxt));
 
 end;

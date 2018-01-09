@@ -983,7 +983,7 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
   end;
 
 fun fp_antiquote_setup binding =
-  Thy_Output.antiquotation binding (Args.type_name {proper = true, strict = true})
+  Document_Antiquotation.setup binding (Args.type_name {proper = true, strict = true})
     (fn {source = src, context = ctxt, ...} => fn fcT_name =>
        (case Ctr_Sugar.ctr_sugar_of ctxt fcT_name of
          NONE => error ("Not a known freely generated type name: " ^ quote fcT_name)

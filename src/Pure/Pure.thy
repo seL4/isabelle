@@ -1145,7 +1145,7 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_antiquotations\<close>
     "print document antiquotations"
     (Parse.opt_bang >> (fn b =>
-      Toplevel.keep (Thy_Output.print_antiquotations b o Toplevel.context_of)));
+      Toplevel.keep (Document_Antiquotation.print_antiquotations b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_ML_antiquotations\<close>

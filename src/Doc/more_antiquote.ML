@@ -20,7 +20,7 @@ fun class_spec ctxt s =
 in
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation @{binding class_spec} (Scan.lift Args.name)
+  Theory.setup (Document_Antiquotation.setup @{binding class_spec} (Scan.lift Args.name)
     (fn {context, ...} => class_spec context));
 
 end;
@@ -53,7 +53,7 @@ fun pretty_code_thm ctxt raw_const =
 in
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation @{binding code_thms} Args.term
+  Theory.setup (Document_Antiquotation.setup @{binding code_thms} Args.term
     (fn {context, ...} => pretty_code_thm context));
 
 end;

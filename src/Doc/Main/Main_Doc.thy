@@ -10,7 +10,7 @@ setup \<open>
        else error "term_type_only: type mismatch";
        Syntax.pretty_typ ctxt T)
   in
-    Thy_Output.antiquotation @{binding term_type_only}
+    Document_Antiquotation.setup @{binding term_type_only}
       (Args.term -- Args.typ_abbrev)
       (fn {source, context = ctxt, ...} => fn arg =>
         Thy_Output.output ctxt
@@ -18,7 +18,7 @@ setup \<open>
   end
 \<close>
 setup \<open>
-  Thy_Output.antiquotation @{binding expanded_typ} (Args.typ >> single)
+  Document_Antiquotation.setup @{binding expanded_typ} (Args.typ >> single)
     (fn {source, context, ...} => Thy_Output.output context o
       Thy_Output.maybe_pretty_source Syntax.pretty_typ context source)
 \<close>

@@ -257,13 +257,13 @@ fun ML_antiq check ctxt (name, pos) =
 in
 
 val _ = Theory.setup
- (Thy_Output.antiquotation \<^binding>\<open>session\<close> (Scan.lift (Parse.position Parse.embedded))
+ (Document_Antiquotation.setup \<^binding>\<open>session\<close> (Scan.lift (Parse.position Parse.embedded))
     (fn {context = ctxt, ...} => Thy_Output.verbatim_text ctxt o check_session ctxt) #>
-  Thy_Output.antiquotation \<^binding>\<open>path\<close> (Scan.lift (Parse.position Parse.path))
+  Document_Antiquotation.setup \<^binding>\<open>path\<close> (Scan.lift (Parse.position Parse.path))
     (document_antiq check_path o #context) #>
-  Thy_Output.antiquotation \<^binding>\<open>file\<close> (Scan.lift (Parse.position Parse.path))
+  Document_Antiquotation.setup \<^binding>\<open>file\<close> (Scan.lift (Parse.position Parse.path))
     (document_antiq check_file o #context) #>
-  Thy_Output.antiquotation \<^binding>\<open>dir\<close> (Scan.lift (Parse.position Parse.path))
+  Document_Antiquotation.setup \<^binding>\<open>dir\<close> (Scan.lift (Parse.position Parse.path))
     (document_antiq check_dir o #context) #>
   ML_Antiquotation.value \<^binding>\<open>path\<close>
     (Args.context -- Scan.lift (Parse.position Parse.path) >> uncurry (ML_antiq check_path)) #>

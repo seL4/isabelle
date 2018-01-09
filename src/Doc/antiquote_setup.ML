@@ -73,7 +73,7 @@ fun ml_name txt =
 fun prep_ml source =
   (Input.source_content source, ML_Lex.read_source false source);
 
-fun index_ml name kind ml = Thy_Output.antiquotation name
+fun index_ml name kind ml = Document_Antiquotation.setup name
   (Scan.lift (Args.text_input -- Scan.option (Args.colon |-- Args.text_input)))
   (fn {context = ctxt, ...} => fn (source1, opt_source2) =>
     let
@@ -119,17 +119,18 @@ end;
 (* named theorems *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation @{binding named_thms}
+  Theory.setup (Document_Antiquotation.setup @{binding named_thms}
     (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
     (fn {context = ctxt, ...} =>
       map (apfst (Thy_Output.pretty_thm ctxt))
-      #> (if Config.get ctxt Thy_Output.quotes then map (apfst Pretty.quote) else I)
-      #> (if Config.get ctxt Thy_Output.display
+      #> (if Config.get ctxt Document_Antiquotation.thy_output_quotes
+          then map (apfst Pretty.quote) else I)
+      #> (if Config.get ctxt Document_Antiquotation.thy_output_display
           then
             map (fn (p, name) =>
               Output.output
                 (Thy_Output.string_of_margin ctxt
-                  (Pretty.indent (Config.get ctxt Thy_Output.indent) p)) ^
+                  (Pretty.indent (Config.get ctxt Document_Antiquotation.thy_output_indent) p)) ^
               "\\rulename{" ^
               Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name)) ^ "}")
             #> space_implode "\\par\\smallskip%\n"
@@ -160,7 +161,7 @@ fun check_system_option ctxt (name, pos) =
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup binding index =
-  Thy_Output.antiquotation
+  Document_Antiquotation.setup
     (binding |> Binding.map_name (fn name => name ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref")))
     (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Parse.position Args.name))
@@ -204,8 +205,8 @@ val _ =
     entity_antiqs no_check "" @{binding fact} #>
     entity_antiqs no_check "" @{binding variable} #>
     entity_antiqs no_check "" @{binding case} #>
-    entity_antiqs Thy_Output.check_command "" @{binding antiquotation} #>
-    entity_antiqs Thy_Output.check_option "" @{binding antiquotation_option} #>
+    entity_antiqs Document_Antiquotation.check "" @{binding antiquotation} #>
+    entity_antiqs Document_Antiquotation.check_option "" @{binding antiquotation_option} #>
     entity_antiqs no_check "isasystem" @{binding setting} #>
     entity_antiqs check_system_option "isasystem" @{binding system_option} #>
     entity_antiqs no_check "" @{binding inference} #>

@@ -281,6 +281,7 @@ ML_file "System/isabelle_system.ML";
 ML_file "Thy/term_style.ML";
 ML_file "Isar/outer_syntax.ML";
 ML_file "ML/ml_antiquotations.ML";
+ML_file "Thy/document_antiquotation.ML";
 ML_file "Thy/thy_output.ML";
 ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";

@@ -104,7 +104,7 @@ setup\<open>
             Pretty.brk 1, Syntax.pretty_typ ctxt (fastype_of tc)]
       end
   in
-    Thy_Output.antiquotation @{binding "const_typ"}
+    Document_Antiquotation.setup @{binding "const_typ"}
      (Scan.lift Args.embedded_inner_syntax)
        (fn {source = src, context = ctxt, ...} => fn arg =>
           Thy_Output.output ctxt

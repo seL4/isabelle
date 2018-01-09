@@ -510,7 +510,7 @@ val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$
 in
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding code_stmts}
+  (Document_Antiquotation.setup @{binding code_stmts}
     (parse_const_terms --
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
