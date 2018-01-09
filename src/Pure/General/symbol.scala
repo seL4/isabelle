@@ -514,6 +514,14 @@ object Symbol
   def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
   def codes: List[(Symbol, Int)] = symbols.codes
+  def groups_code: List[(String, List[Symbol])] =
+  {
+    val has_code = codes.iterator.map(_._1).toSet
+    groups.flatMap({ case (group, symbols) =>
+      val symbols1 = symbols.filter(has_code)
+      if (symbols1.isEmpty) None else Some((group, symbols1))
+    })
+  }
 
   lazy val is_code: Int => Boolean = codes.map(_._2).toSet
   def decode(text: String): String = symbols.decode(text)

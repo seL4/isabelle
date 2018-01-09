@@ -127,8 +127,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     layout(search_field) = BorderPanel.Position.North
     layout(new ScrollPane(results_panel)) = BorderPanel.Position.Center
 
-    val search_space =
-      (for (sym <- Symbol.names.keysIterator) yield (sym, Word.lowercase(sym))).toList
+    val search_space = for ((sym, _) <- Symbol.codes) yield (sym, Word.lowercase(sym))
     val search_delay =
       GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
         val search_words = Word.explode(Word.lowercase(search_field.text))
@@ -155,7 +154,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     pages += new TabbedPane.Page("abbrevs", abbrevs_panel)
 
     pages ++=
-      Symbol.groups.map({ case (group, symbols) =>
+      Symbol.groups_code.map({ case (group, symbols) =>
         val control = group == "control"
         new TabbedPane.Page(group,
           new ScrollPane(Wrap_Panel(
