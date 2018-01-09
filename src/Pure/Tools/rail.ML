@@ -84,7 +84,6 @@ fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 fun reports_of_token (Token ((pos, _), (Keyword, x))) =
       map (pair pos) (the_list (Symtab.lookup keywords x) @ Completion.suppress_abbrevs x)
   | reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
-  | reports_of_token (Token ((pos, _), (Comment, _))) = [(pos, Markup.inner_comment)]
   | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports [Antiquote.Antiq antiq]
   | reports_of_token _ = [];
 

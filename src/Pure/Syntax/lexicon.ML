@@ -171,7 +171,6 @@ val token_kind_markup =
   | StringSy => Markup.inner_string
   | Cartouche => Markup.inner_cartouche
   | Comment => Markup.inner_comment
-  | Comment_Cartouche => Markup.inner_comment
   | _ => Markup.empty;
 
 fun report_of_token (Token (kind, s, (pos, _))) =

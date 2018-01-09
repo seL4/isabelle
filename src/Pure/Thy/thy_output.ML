@@ -128,8 +128,16 @@ and output_token ctxt tok =
 
 fun check_comments ctxt =
   read_symbols_comment #> (Option.app o List.app) (fn (is_comment, syms) =>
-    (output_symbols_comment ctxt {antiq = false} (is_comment, syms);
-     if is_comment then check_comments ctxt syms else ()));
+    let
+      val pos = #1 (Symbol_Pos.range syms);
+      val _ =
+        if is_comment then
+          Context_Position.reports ctxt
+            [(pos, Markup.language_document true),
+             (pos, Markup.cartouche)]
+        else ();
+      val _ = output_symbols_comment ctxt {antiq = false} (is_comment, syms);
+    in if is_comment then check_comments ctxt syms else () end);
 
 fun check_token_comments ctxt tok =
   check_comments ctxt (Input.source_explode (Token.input_of tok));
