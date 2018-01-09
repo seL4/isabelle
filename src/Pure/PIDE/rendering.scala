@@ -355,17 +355,30 @@ abstract class Rendering(
 
   /* spell checker */
 
-  private lazy val spell_checker_elements =
-    Markup.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
+  private lazy val spell_checker_include =
+    Markup.Elements(space_explode(',', options.string("spell_checker_include")): _*)
 
-  def spell_checker_ranges(range: Text.Range): List[Text.Range] =
-    snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
+  private lazy val spell_checker_elements =
+    spell_checker_include ++
+      Markup.Elements(space_explode(',', options.string("spell_checker_exclude")): _*)
+
+  def spell_checker(range: Text.Range): List[Text.Info[Text.Range]] =
+  {
+    val result =
+      snapshot.select(range, spell_checker_elements, _ =>
+        {
+          case info =>
+            Some(
+              if (spell_checker_include(info.info.name))
+                Some(snapshot.convert(info.range))
+              else None)
+        })
+    for (Text.Info(range, Some(range1)) <- result)
+      yield Text.Info(range, range1)
+  }
 
   def spell_checker_point(range: Text.Range): Option[Text.Range] =
-    snapshot.select(range, spell_checker_elements, _ =>
-      {
-        case info => Some(snapshot.convert(info.range))
-      }).headOption.map(_.info)
+    spell_checker(range).headOption.map(_.info)
 
 
   /* text background */

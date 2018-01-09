@@ -51,6 +51,10 @@ INCOMPATIBILITY, e.g. copy-paste of historic Isabelle HTML output.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* System options "spell_checker_include" and "spell_checker_exclude"
+supersede former "spell_checker_elements" to determine regions of text
+that are subject to spell-checking. Minor INCOMPATIBILITY.
+
 * PIDE markup for session ROOT files: allows to complete session names,
 follow links to theories and document files etc.
 

@@ -1673,9 +1673,13 @@ text \<open>
   permanent dictionary updates is stored in the directory @{path
   "$ISABELLE_HOME_USER/dictionaries"}, in a separate file for each dictionary.
 
-  \<^item> @{system_option_def spell_checker_elements} specifies a comma-separated
+  \<^item> @{system_option_def spell_checker_include} specifies a comma-separated
   list of markup elements that delimit words in the source that is subject to
   spell-checking, including various forms of comments.
+
+  \<^item> @{system_option_def spell_checker_exclude} specifies a comma-separated
+  list of markup elements that disable spell-checking (e.g.\ in nested
+  antiquotations).
 \<close>
 
 

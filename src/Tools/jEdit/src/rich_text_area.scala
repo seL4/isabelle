@@ -344,9 +344,9 @@ class Rich_Text_Area(
             // spell checker
             for {
               spell_checker <- PIDE.plugin.spell_checker.get
-              spell_range <- rendering.spell_checker_ranges(line_range)
-              text <- JEdit_Lib.get_text(buffer, spell_range)
-              info <- spell_checker.marked_words(spell_range.start, text)
+              spell <- rendering.spell_checker(line_range)
+              text <- JEdit_Lib.get_text(buffer, spell.range)
+              info <- spell_checker.marked_words(spell.range.start, text)
               r <- JEdit_Lib.gfx_range(text_area, info.range)
             } {
               gfx.setColor(rendering.spell_checker_color)

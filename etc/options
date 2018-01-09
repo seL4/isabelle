@@ -214,8 +214,11 @@ public option spell_checker : bool = true
 public option spell_checker_dictionary : string = "en"
   -- "spell-checker dictionary name"
 
-public option spell_checker_elements : string = "words,comment,inner_comment,ML_comment,SML_comment"
-  -- "relevant markup elements for spell-checker, separated by commas"
+public option spell_checker_include : string = "words,comment,inner_comment,ML_comment,SML_comment"
+  -- "included markup elements for spell-checker (separated by commas)"
+
+public option spell_checker_exclude : string = "antiquoted"
+  -- "excluded markup elements for spell-checker (separated by commas)"
 
 
 section "Secure Shell"

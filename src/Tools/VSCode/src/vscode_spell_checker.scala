@@ -18,9 +18,9 @@ object VSCode_Spell_Checker
     val ranges =
       (for {
         spell_checker <- rendering.resources.spell_checker.get.iterator
-        spell_range <- rendering.spell_checker_ranges(model.content.text_range).iterator
-        text <- model.get_text(spell_range).iterator
-        info <- spell_checker.marked_words(spell_range.start, text).iterator
+        spell <- rendering.spell_checker(model.content.text_range).iterator
+        text <- model.get_text(spell.range).iterator
+        info <- spell_checker.marked_words(spell.range.start, text).iterator
       } yield info.range).toList
     Document_Model.Decoration.ranges("spell_checker", ranges)
   }
