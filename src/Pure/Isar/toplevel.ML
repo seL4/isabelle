@@ -15,7 +15,7 @@ sig
   val is_proof: state -> bool
   val is_skipped_proof: state -> bool
   val level: state -> int
-  val previous_context_of: state -> Proof.context option
+  val previous_theory_of: state -> theory option
   val context_of: state -> Proof.context
   val generic_theory_of: state -> generic_theory
   val theory_of: state -> theory
@@ -153,8 +153,9 @@ fun is_skipped_proof state = not (is_toplevel state) andalso skipped_proof_node 
 
 fun node_case f g state = cases_node f g (node_of state);
 
-fun previous_context_of (State (_, NONE)) = NONE
-  | previous_context_of (State (_, SOME prev)) = SOME (context_node prev);
+fun previous_theory_of (State (_, NONE)) = NONE
+  | previous_theory_of (State (_, SOME prev)) =
+      SOME (cases_node Context.theory_of Proof.theory_of prev);
 
 val context_of = node_case Context.proof_of Proof.context_of;
 val generic_theory_of = node_case I (Context.Proof o Proof.context_of);

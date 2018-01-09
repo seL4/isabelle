@@ -226,8 +226,8 @@ fun pretty_theorems verbose st =
     let
       val ctxt = Toplevel.context_of st;
       val prev_thys =
-        (case Toplevel.previous_context_of st of
-          SOME prev => [Proof_Context.theory_of prev]
+        (case Toplevel.previous_theory_of st of
+          SOME thy => [thy]
         | NONE => Theory.parents_of (Proof_Context.theory_of ctxt));
     in Proof_Display.pretty_theorems_diff verbose prev_thys ctxt end;
 
