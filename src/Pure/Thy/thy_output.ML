@@ -84,16 +84,17 @@ val output_symbols_antiq =
 
 fun output_symbols_comment ctxt {antiq} (is_comment, syms) =
   if is_comment then
-    Latex.enclose_body ("%\n\\isamarkupcmt{") "}"
-      (output_text ctxt {markdown = false}
-        (Input.source true (Symbol_Pos.implode syms) (Symbol_Pos.range syms)))
+    let
+      val content = Symbol_Pos.cartouche_content syms;
+      val source = Input.source true (Symbol_Pos.implode content) (Symbol_Pos.range content);
+    in Latex.enclose_body "%\n\\isamarkupcmt{" "}" (output_text ctxt {markdown = false} source) end
   else if antiq then maps output_symbols_antiq (Antiquote.parse (#1 (Symbol_Pos.range syms)) syms)
   else output_symbols syms;
 
 val scan_symbols_comment =
   Scan.many1 (fn (s, _) => s <> Symbol.comment andalso Symbol.not_eof s) >> pair false ||
   (Symbol_Pos.$$ Symbol.comment ::: Scan.many (Symbol.is_blank o Symbol_Pos.symbol)) --
-    Scan.option (Symbol_Pos.scan_cartouche_content "Document token error: ")
+    Scan.option (Symbol_Pos.scan_cartouche "Document token error: ")
       >> (fn (syms, NONE) => (false, syms) | (_, SOME syms) => (true, syms));
 
 fun read_symbols_comment syms =
