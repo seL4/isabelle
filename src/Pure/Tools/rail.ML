@@ -44,7 +44,7 @@ val keywords =
 (* datatype token *)
 
 datatype kind =
-  Keyword | Ident | String | Antiq of Antiquote.antiq | EOF;
+  Keyword | Ident | String | Space | Comment | Antiq of Antiquote.antiq | EOF;
 
 datatype token = Token of Position.range * (kind * string);
 
@@ -59,6 +59,10 @@ fun range_of (toks as tok :: _) =
 fun kind_of (Token (_, (k, _))) = k;
 fun content_of (Token (_, (_, x))) = x;
 
+fun is_proper (Token (_, (Space, _))) = false
+  | is_proper (Token (_, (Comment, _))) = false
+  | is_proper _ = true;
+
 
 (* diagnostics *)
 
@@ -66,6 +70,8 @@ val print_kind =
  fn Keyword => "rail keyword"
   | Ident => "identifier"
   | String => "single-quoted string"
+  | Space => "white space"
+  | Comment => "formal comment"
   | Antiq _ => "antiquotation"
   | EOF => "end-of-input";
 
@@ -75,9 +81,10 @@ fun print (Token ((pos, _), (k, x))) =
 
 fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 
-fun reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
-  | reports_of_token (Token ((pos, _), (Keyword, x))) =
+fun reports_of_token (Token ((pos, _), (Keyword, x))) =
       map (pair pos) (the_list (Symtab.lookup keywords x) @ Completion.suppress_abbrevs x)
+  | reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
+  | reports_of_token (Token ((pos, _), (Comment, _))) = [(pos, Markup.inner_comment)]
   | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports [Antiquote.Antiq antiq]
   | reports_of_token _ = [];
 
@@ -111,7 +118,8 @@ val scan_keyword =
 val err_prefix = "Rail lexical error: ";
 
 val scan_token =
-  scan_space >> K [] ||
+  scan_space >> token Space ||
+  Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment ||
   Antiquote.scan_antiq >> antiq_token ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||
@@ -301,7 +309,7 @@ fun read ctxt source =
     val _ = Context_Position.report ctxt (Input.pos_of source) Markup.language_rail;
     val toks = tokenize (Input.source_explode source);
     val _ = Context_Position.reports ctxt (maps reports_of_token toks);
-    val rules = parse_rules toks;
+    val rules = parse_rules (filter is_proper toks);
     val _ = Position.reports (maps (reports_of_tree ctxt o #2) rules);
   in map (apsnd prepare_tree) rules end;
 
