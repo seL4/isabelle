@@ -165,12 +165,18 @@ fun syn_ext_types type_decls =
 val binder_stamp = stamp ();
 val binder_name = suffix "_binder";
 
+fun mk_prefix sy =
+  let
+    fun star1 sys = (fst(hd sys) = "*");
+    val sy' = Input.source_explode (Input.reset_pos sy); 
+    val lpar = Symbol_Pos.explode0 ("'(" ^ (if star1 sy' then " " else ""));
+    val rpar = Symbol_Pos.explode0 ((if star1(rev sy') then " " else "") ^ "')")
+ in lpar @ sy' @ rpar end
+
 fun syn_ext_consts logical_types const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 pos =
-      [Syntax_Ext.Mfix
-        (Symbol_Pos.explode0 "op " @ Input.source_explode (Input.reset_pos sy),
-          ty, c, [], 1000, Position.none),
+      [Syntax_Ext.Mfix (mk_prefix sy, ty, c, [], 1000, Position.none),
        Syntax_Ext.Mfix
         (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
           ty, c, [p1, p2], p3, pos)];

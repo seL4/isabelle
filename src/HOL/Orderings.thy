@@ -132,9 +132,9 @@ class ord =
 begin
 
 notation
-  less_eq  ("op \<le>") and
+  less_eq  ("'(\<le>')") and
   less_eq  ("(_/ \<le> _)"  [51, 51] 50) and
-  less  ("op <") and
+  less  ("'(<')") and
   less  ("(_/ < _)"  [51, 51] 50)
 
 abbreviation (input)
@@ -146,7 +146,7 @@ abbreviation (input)
   where "x > y \<equiv> y < x"
 
 notation (ASCII)
-  less_eq  ("op <=") and
+  less_eq  ("'(<=')") and
   less_eq  ("(_/ <= _)" [51, 51] 50)
 
 notation (input)
@@ -215,7 +215,7 @@ by (rule less_asym)
 text \<open>Dual order\<close>
 
 lemma dual_preorder:
-  "class.preorder (op \<ge>) (op >)"
+  "class.preorder (\<ge>) (>)"
   by standard (auto simp add: less_le_not_le intro: order_trans)
 
 end
@@ -348,7 +348,7 @@ begin
 text \<open>Dual order\<close>
 
 lemma dual_order:
-  "class.order (op \<ge>) (op >)"
+  "class.order (\<ge>) (>)"
   using dual_order.ordering_axioms by (rule ordering_orderI)
 
 end
@@ -430,7 +430,7 @@ lemma linorder_less_wlog[case_names less refl sym]:
 text \<open>Dual order\<close>
 
 lemma dual_linorder:
-  "class.linorder (op \<ge>) (op >)"
+  "class.linorder (\<ge>) (>)"
 by (rule class.linorder.intro, rule dual_order) (unfold_locales, rule linear)
 
 end
@@ -473,7 +473,7 @@ struct
 (* context data *)
 
 fun struct_eq ((s1: string, ts1), (s2, ts2)) =
-  s1 = s2 andalso eq_list (op aconv) (ts1, ts2);
+  s1 = s2 andalso eq_list (aconv) (ts1, ts2);
 
 structure Data = Generic_Data
 (
@@ -575,83 +575,83 @@ text \<open>Declarations to set up transitivity reasoner of partial and linear o
 context order
 begin
 
-(* The type constraint on @{term op =} below is necessary since the operation
+(* The type constraint on @{term (=}) below is necessary since the operation
    is not a parameter of the locale. *)
 
-declare less_irrefl [THEN notE, order add less_reflE: order "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool" "op <=" "op <"]
+declare less_irrefl [THEN notE, order add less_reflE: order "(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool" "(<=)" "(<)"]
 
-declare order_refl  [order add le_refl: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare order_refl  [order add le_refl: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_imp_le [order add less_imp_le: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_imp_le [order add less_imp_le: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare antisym [order add eqI: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare antisym [order add eqI: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare eq_refl [order add eqD1: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare eq_refl [order add eqD1: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare sym [THEN eq_refl, order add eqD2: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare sym [THEN eq_refl, order add eqD2: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_trans [order add less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_trans [order add less_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_le_trans [order add less_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_le_trans [order add less_le_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare le_less_trans [order add le_less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare le_less_trans [order add le_less_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare order_trans [order add le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare order_trans [order add le_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare le_neq_trans [order add le_neq_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare le_neq_trans [order add le_neq_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare neq_le_trans [order add neq_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare neq_le_trans [order add neq_le_trans: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_imp_neq [order add less_imp_neq: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_imp_neq [order add less_imp_neq: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare eq_neq_eq_imp_neq [order add eq_neq_eq_imp_neq: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare eq_neq_eq_imp_neq [order add eq_neq_eq_imp_neq: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare not_sym [order add not_sym: order "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare not_sym [order add not_sym: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
 end
 
 context linorder
 begin
 
-declare [[order del: order "op = :: 'a => 'a => bool" "op <=" "op <"]]
+declare [[order del: order "(=) :: 'a => 'a => bool" "(<=)" "(<)"]]
 
-declare less_irrefl [THEN notE, order add less_reflE: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_irrefl [THEN notE, order add less_reflE: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare order_refl [order add le_refl: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare order_refl [order add le_refl: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_imp_le [order add less_imp_le: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_imp_le [order add less_imp_le: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare not_less [THEN iffD2, order add not_lessI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare not_less [THEN iffD2, order add not_lessI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare not_le [THEN iffD2, order add not_leI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare not_le [THEN iffD2, order add not_leI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare not_less [THEN iffD1, order add not_lessD: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare not_less [THEN iffD1, order add not_lessD: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare not_le [THEN iffD1, order add not_leD: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare not_le [THEN iffD1, order add not_leD: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare antisym [order add eqI: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare antisym [order add eqI: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare eq_refl [order add eqD1: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare eq_refl [order add eqD1: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare sym [THEN eq_refl, order add eqD2: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare sym [THEN eq_refl, order add eqD2: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_trans [order add less_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_trans [order add less_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_le_trans [order add less_le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_le_trans [order add less_le_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare le_less_trans [order add le_less_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare le_less_trans [order add le_less_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare order_trans [order add le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare order_trans [order add le_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare le_neq_trans [order add le_neq_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare le_neq_trans [order add le_neq_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare neq_le_trans [order add neq_le_trans: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare neq_le_trans [order add neq_le_trans: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare less_imp_neq [order add less_imp_neq: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare less_imp_neq [order add less_imp_neq: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare eq_neq_eq_imp_neq [order add eq_neq_eq_imp_neq: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare eq_neq_eq_imp_neq [order add eq_neq_eq_imp_neq: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
-declare not_sym [order add not_sym: linorder "op = :: 'a => 'a => bool" "op <=" "op <"]
+declare not_sym [order add not_sym: linorder "(=) :: 'a => 'a => bool" "(<=)" "(<)"]
 
 end
 
@@ -783,7 +783,7 @@ let
   fun tr' q = (q, fn _ =>
     (fn [Const (@{syntax_const "_bound"}, _) $ Free (v, T),
         Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
-        (case AList.lookup (op =) trans (q, c, d) of
+        (case AList.lookup (=) trans (q, c, d) of
           NONE => raise Match
         | SOME (l, g) =>
             if matches_bound v t andalso not (contains_var v u) then mk (v, T) l u P

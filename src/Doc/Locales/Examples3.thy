@@ -5,9 +5,9 @@ begin
 subsection \<open>Third Version: Local Interpretation
   \label{sec:local-interpretation}\<close>
 
-text \<open>In the above example, the fact that @{term "op \<le>"} is a partial
+text \<open>In the above example, the fact that @{term "(\<le>)"} is a partial
   order for the integers was used in the second goal to
-  discharge the premise in the definition of @{text "op \<sqsubset>"}.  In
+  discharge the premise in the definition of @{text "(\<sqsubset>)"}.  In
   general, proofs of the equations not only may involve definitions
   from the interpreted locale but arbitrarily complex arguments in the
   context of the locale.  Therefore it would be convenient to have the
@@ -16,12 +16,12 @@ text \<open>In the above example, the fact that @{term "op \<le>"} is a partial
   The command for local interpretations is \isakeyword{interpret}.  We
   repeat the example from the previous section to illustrate this.\<close>
 
-  interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+  interpretation %visible int: partial_order "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"
     rewrites "int.less x y = (x < y)"
   proof -
-    show "partial_order (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
+    show "partial_order ((\<le>) :: int \<Rightarrow> int \<Rightarrow> bool)"
       by unfold_locales auto
-    then interpret int: partial_order "op \<le> :: [int, int] \<Rightarrow> bool" .
+    then interpret int: partial_order "(\<le>) :: [int, int] \<Rightarrow> bool" .
     show "int.less x y = (x < y)"
       unfolding int.less_def by auto
   qed
@@ -46,11 +46,11 @@ text \<open>Further interpretations are necessary for
   elaborate interpretation proof.  Note that the equations are named
   so they can be used in a later example.\<close>
 
-  interpretation %visible int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+  interpretation %visible int: lattice "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"
     rewrites int_min_eq: "int.meet x y = min x y"
       and int_max_eq: "int.join x y = max x y"
   proof -
-    show "lattice (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
+    show "lattice ((\<le>) :: int \<Rightarrow> int \<Rightarrow> bool)"
       txt \<open>\normalsize We have already shown that this is a partial
         order,\<close>
       apply unfold_locales
@@ -68,17 +68,17 @@ text \<open>Further interpretations are necessary for
     txt \<open>\normalsize In order to show the equations, we put ourselves
       in a situation where the lattice theorems can be used in a
       convenient way.\<close>
-    then interpret int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool" .
+    then interpret int: lattice "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool" .
     show "int.meet x y = min x y"
       by (bestsimp simp: int.meet_def int.is_inf_def)
     show "int.join x y = max x y"
       by (bestsimp simp: int.join_def int.is_sup_def)
   qed
 
-text \<open>Next follows that @{text "op \<le>"} is a total order, again for
+text \<open>Next follows that @{text "(\<le>)"} is a total order, again for
   the integers.\<close>
 
-  interpretation %visible int: total_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+  interpretation %visible int: total_order "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"
     by unfold_locales arith
 
 text \<open>Theorems that are available in the theory at this point are shown in
@@ -115,9 +115,9 @@ text \<open>Theorems that are available in the theory at this point are shown in
   the \isakeyword{sublocale} command.  Existing interpretations are
   skipped avoiding duplicate work.
 \item
-  The predicate @{term "op <"} appears in theorem @{thm [source]
+  The predicate @{term "(<)"} appears in theorem @{thm [source]
   int.less_total}
-  although an equation for the replacement of @{text "op \<sqsubset>"} was only
+  although an equation for the replacement of @{text "(\<sqsubset>)"} was only
   given in the interpretation of @{text partial_order}.  The
   interpretation equations are pushed downwards the hierarchy for
   related interpretations --- that is, for interpretations that share
@@ -132,7 +132,7 @@ text \<open>The interpretations for a locale $n$ within the current
   outputs the following:
 \begin{small}
 \begin{alltt}
-  int : partial_order "op \(\le\)"
+  int : partial_order "(\(\le\))"
 \end{alltt}
 \end{small}
   Of course, there is only one interpretation.
@@ -220,8 +220,8 @@ text (in order_preserving) \<open>Here are examples of theorems that are
   \hspace*{1em}@{thm [source] le'.less_le_trans}:
   @{thm [display, indent=4] le'.less_le_trans}
   While there is infix syntax for the strict operation associated with
-  @{term "op \<sqsubseteq>"}, there is none for the strict version of @{term
-  "op \<preceq>"}.  The syntax @{text "\<sqsubset>"} for @{text less} is only
+  @{term "(\<sqsubseteq>)"}, there is none for the strict version of @{term
+  "(\<preceq>)"}.  The syntax @{text "\<sqsubset>"} for @{text less} is only
   available for the original instance it was declared for.  We may
   introduce infix syntax for @{text le'.less} with the following declaration:\<close>
 
@@ -390,7 +390,7 @@ text \<open>There are situations where an interpretation is not possible
   certain conditions are fulfilled.  Take, for example, the function
   @{text "\<lambda>i. n * i"} that scales its argument by a constant factor.
   This function is order preserving (and even a lattice endomorphism)
-  with respect to @{term "op \<le>"} provided @{text "n \<ge> 0"}.
+  with respect to @{term "(\<le>)"} provided @{text "n \<ge> 0"}.
 
   It is not possible to express this using a global interpretation,
   because it is in general unspecified whether~@{term n} is
@@ -412,14 +412,14 @@ text \<open>It is again convenient to make the interpretation in an
   lattice endomorphisms.\<close>
 
   sublocale non_negative \<subseteq>
-      order_preserving "op \<le>" "op \<le>" "\<lambda>i. n * i"
+      order_preserving "(\<le>)" "(\<le>)" "\<lambda>i. n * i"
     using non_neg by unfold_locales (rule mult_left_mono)
 
 text \<open>While the proof of the previous interpretation
-  is straightforward from monotonicity lemmas for~@{term "op *"}, the
+  is straightforward from monotonicity lemmas for~@{term "( * )"}, the
   second proof follows a useful pattern.\<close>
 
-  sublocale %visible non_negative \<subseteq> lattice_end "op \<le>" "\<lambda>i. n * i"
+  sublocale %visible non_negative \<subseteq> lattice_end "(\<le>)" "\<lambda>i. n * i"
   proof (unfold_locales, unfold int_min_eq int_max_eq)
     txt \<open>\normalsize Unfolding the locale predicates \emph{and} the
       interpretation equations immediately yields two subgoals that

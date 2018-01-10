@@ -77,7 +77,7 @@ text (in partial_order) \<open>The parameter of this locale is~@{text le},
 \begin{small}
 \begin{alltt}
   \isakeyword{fixes} le :: "'a \(\Rightarrow\) 'a \(\Rightarrow\)  bool" (\isakeyword{infixl} "\(\sqsubseteq\)" 50)
-  \isakeyword{assumes} "partial_order op \(\sqsubseteq\)"
+  \isakeyword{assumes} "partial_order (\(\sqsubseteq\))"
   \isakeyword{notes} assumption
     refl [intro, simp] = `?x \(\sqsubseteq\) ?x`
     \isakeyword{and}

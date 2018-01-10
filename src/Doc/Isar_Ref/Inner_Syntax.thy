@@ -439,9 +439,11 @@ text \<open>
   the delimiter is preceded by a space and followed by a space or line break;
   the entire phrase is a pretty printing block.
 
-  The alternative notation \<^verbatim>\<open>op\<close>~\<open>sy\<close> is introduced in addition. Thus any
-  infix operator may be written in prefix form (as in ML), independently of
-  the number of arguments in the term.
+  The alternative notation \<^verbatim>\<open>(\<close>\<open>sy\<close>\<^verbatim>\<open>)\<close> is introduced in addition. Thus any
+  infix operator may be written in prefix form (as in Haskell), independently of
+  the number of arguments in the term. To avoid conflict with the comment brackets
+  \<^verbatim>\<open>(*\<close> and \<^verbatim>\<open>*)\<close>, infix operators that begin or end with a \<^verbatim>\<open>*\<close> require
+  extra spaces, e.g. \<^verbatim>\<open>( * )\<close>.
 \<close>
 
 
@@ -698,8 +700,8 @@ text \<open>
     & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>(999)\<close> \\
     & \<open>|\<close> & \<^verbatim>\<open>%\<close> \<open>pttrns\<close> \<^verbatim>\<open>.\<close> \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
     & \<open>|\<close> & \<open>\<lambda>\<close> \<open>pttrns\<close> \<^verbatim>\<open>.\<close> \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
-    & \<open>|\<close> & \<^verbatim>\<open>op\<close> \<^verbatim>\<open>==\<close>~~\<open>|\<close>~~\<^verbatim>\<open>op\<close> \<open>\<equiv>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>op\<close> \<^verbatim>\<open>&&&\<close> \\
-    & \<open>|\<close> & \<^verbatim>\<open>op\<close> \<^verbatim>\<open>==>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>op\<close> \<open>\<Longrightarrow>\<close> \\
+    & \<open>|\<close> & \<^verbatim>\<open>(==)\<close>~~\<open>|\<close>~~\<^verbatim>\<open>(\<close>\<open>\<equiv>\<close>\<^verbatim>\<open>)\<close>~~\<open>|\<close>~~\<^verbatim>\<open>(&&&)\<close> \\
+    & \<open>|\<close> & \<^verbatim>\<open>(==>)\<close>~~\<open>|\<close>~~\<^verbatim>\<open>(\<close>\<open>\<Longrightarrow>\<close>\<^verbatim>\<open>)\<close> \\
     & \<open>|\<close> & \<^verbatim>\<open>TYPE\<close> \<^verbatim>\<open>(\<close> \<open>type\<close> \<^verbatim>\<open>)\<close> \\\\
 
   @{syntax_def (inner) idt} & = & \<^verbatim>\<open>(\<close> \<open>idt\<close> \<^verbatim>\<open>)\<close>~~\<open>|  id  |\<close>~~\<^verbatim>\<open>_\<close> \\

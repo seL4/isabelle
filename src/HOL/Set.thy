@@ -20,19 +20,19 @@ axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comme
     and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
 
 notation
-  member  ("op \<in>") and
+  member  ("'(\<in>')") and
   member  ("(_/ \<in> _)" [51, 51] 50)
 
 abbreviation not_member
   where "not_member x A \<equiv> \<not> (x \<in> A)" \<comment> "non-membership"
 notation
-  not_member  ("op \<notin>") and
+  not_member  ("'(\<notin>')") and
   not_member  ("(_/ \<notin> _)" [51, 51] 50)
 
 notation (ASCII)
-  member  ("op :") and
+  member  ("'(:')") and
   member  ("(_/ : _)" [51, 51] 50) and
-  not_member  ("op ~:") and
+  not_member  ("'(~:')") and
   not_member  ("(_/ ~: _)" [51, 51] 50)
 
 
@@ -155,9 +155,9 @@ abbreviation subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "subset_eq \<equiv> less_eq"
 
 notation
-  subset  ("op \<subset>") and
+  subset  ("'(\<subset>')") and
   subset  ("(_/ \<subset> _)" [51, 51] 50) and
-  subset_eq  ("op \<subseteq>") and
+  subset_eq  ("'(\<subseteq>')") and
   subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50)
 
 abbreviation (input)
@@ -169,15 +169,15 @@ abbreviation (input)
   "supset_eq \<equiv> greater_eq"
 
 notation
-  supset  ("op \<supset>") and
+  supset  ("'(\<supset>')") and
   supset  ("(_/ \<supset> _)" [51, 51] 50) and
-  supset_eq  ("op \<supseteq>") and
+  supset_eq  ("'(\<supseteq>')") and
   supset_eq  ("(_/ \<supseteq> _)" [51, 51] 50)
 
 notation (ASCII output)
-  subset  ("op <") and
+  subset  ("'(<')") and
   subset  ("(_/ < _)" [51, 51] 50) and
-  subset_eq  ("op <=") and
+  subset_eq  ("'(<=')") and
   subset_eq  ("(_/ <= _)" [51, 51] 50)
 
 definition Ball :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -254,7 +254,7 @@ print_translation \<open>
       (fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
           Const (c, _) $
             (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', T)) $ n) $ P] =>
-          (case AList.lookup (op =) trans (q, c, d) of
+          (case AList.lookup (=) trans (q, c, d) of
             NONE => raise Match
           | SOME l => mk v (v', T) l n P)
         | _ => raise Match));
@@ -305,7 +305,7 @@ let
         | check (Const (@{const_syntax HOL.conj}, _) $
               (Const (@{const_syntax HOL.eq}, _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
-            subset (op =) (0 upto (n - 1), add_loose_bnos (e, 0, []))
+            subset (=) (0 upto (n - 1), add_loose_bnos (e, 0, []))
         | check _ = false;
 
         fun tr' (_ $ abs) =
@@ -653,7 +653,7 @@ lemma Compl_eq: "- A = {x. \<not> x \<in> A}"
 subsubsection \<open>Binary intersection\<close>
 
 abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "\<inter>" 70)
-  where "op \<inter> \<equiv> inf"
+  where "(\<inter>) \<equiv> inf"
 
 notation (ASCII)
   inter  (infixl "Int" 70)
@@ -957,7 +957,7 @@ lemma ball_imageD: "\<forall>x\<in>f ` A. P x \<Longrightarrow> \<forall>x\<in>A
 lemma bex_imageD: "\<exists>x\<in>f ` A. P x \<Longrightarrow> \<exists>x\<in>A. P (f x)"
   by auto
 
-lemma image_add_0 [simp]: "op + (0::'a::comm_monoid_add) ` S = S"
+lemma image_add_0 [simp]: "(+) (0::'a::comm_monoid_add) ` S = S"
   by auto
 
 

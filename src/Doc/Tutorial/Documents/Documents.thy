@@ -44,10 +44,10 @@ text {*
   \noindent Now @{text "xor A B"} and @{text "A [+] B"} refer to the
   same expression internally.  Any curried function with at least two
   arguments may be given infix syntax.  For partial applications with
-  fewer than two operands, there is a notation using the prefix~@{text
-  op}.  For instance, @{text xor} without arguments is represented as
-  @{text "op [+]"}; together with ordinary function application, this
-  turns @{text "xor A"} into @{text "op [+] A"}.
+  fewer than two operands, the operator is enclosed in parentheses.
+  For instance, @{text xor} without arguments is represented as
+  @{text "([+])"}; together with ordinary function application, this
+  turns @{text "xor A"} into @{text "([+]) A"}.
 
   The keyword \isakeyword{infixl} seen above specifies an
   infix operator that is nested to the \emph{left}: in iterated

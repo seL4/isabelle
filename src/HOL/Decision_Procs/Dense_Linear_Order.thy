@@ -394,12 +394,12 @@ lemma exists_neq[no_atp]: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t 
 lemmas dlo_simps[no_atp] = order_refl less_irrefl not_less not_le exists_neq
   le_less neq_iff linear less_not_permute
 
-lemma axiom[no_atp]: "class.unbounded_dense_linorder (op \<le>) (op <)"
+lemma axiom[no_atp]: "class.unbounded_dense_linorder (\<le>) (<)"
   by (rule unbounded_dense_linorder_axioms)
 lemma atoms[no_atp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
-    and "TERM (op = :: 'a \<Rightarrow> _)" .
+    and "TERM ((=) :: 'a \<Rightarrow> _)" .
 
 declare axiom[langford qe: dlo_qe_bnds dlo_qe_nolb dlo_qe_noub gather: gather_start gather_simps atoms: atoms]
 declare dlo_simps[langfordsimp]
@@ -438,9 +438,9 @@ locale linorder_stupid_syntax = linorder
 begin
 
 notation
-  less_eq  ("op \<sqsubseteq>") and
+  less_eq  ("'(\<sqsubseteq>')") and
   less_eq  ("(_/ \<sqsubseteq> _)" [51, 51] 50) and
-  less  ("op \<sqsubset>") and
+  less  ("'(\<sqsubset>')") and
   less  ("(_/ \<sqsubset> _)"  [51, 51] 50)
 
 end
@@ -705,7 +705,7 @@ lemma ferrack_axiom[no_atp]: "constr_dense_linorder less_eq less between"
 lemma atoms[no_atp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
-    and "TERM (op = :: 'a \<Rightarrow> _)" .
+    and "TERM ((=) :: 'a \<Rightarrow> _)" .
 
 declare ferrack_axiom [ferrack minf: minf_thms pinf: pinf_thms
     nmi: nmi_thms npi: npi_thms lindense:
@@ -716,7 +716,7 @@ let
   fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
   fun generic_whatis phi =
     let
-      val [lt, le] = map (Morphism.term phi) [@{term "op \<sqsubset>"}, @{term "op \<sqsubseteq>"}]
+      val [lt, le] = map (Morphism.term phi) [@{term "(\<sqsubset>)"}, @{term "(\<sqsubseteq>)"}]
       fun h x t =
         case Thm.term_of t of
           Const(@{const_name HOL.eq}, _)$y$z =>
@@ -885,7 +885,7 @@ lemma sum_eq:
   using eq_diff_eq[where a= x and b=t and c=0] by simp
 
 interpretation class_dense_linordered_field: constr_dense_linorder
-  "op \<le>" "op <" "\<lambda>x y. 1/2 * ((x::'a::linordered_field) + y)"
+  "(\<le>)" "(<)" "\<lambda>x y. 1/2 * ((x::'a::linordered_field) + y)"
   by unfold_locales (dlo, dlo, auto)
 
 declaration \<open>

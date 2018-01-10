@@ -9,6 +9,15 @@ New in this Isabelle version
 
 *** General ***
 
+* The "op <infix-op>" syntax for infix opertors has been replaced by
+"(<infix-op>)". INCOMPATIBILITY.
+There is an Isabelle tool "update_op" that converts theory and ML files
+to the new syntax. Because it is based on regular expression matching,
+the result may need a bit of manual postprocessing. Invoking "isabelle
+update_op" converts all files in the current directory (recursively).
+In case you want to exclude conversion of ML files (because the tool
+frequently also converts ML's "op" syntax), use option "-m".
+
 * The old 'def' command has been discontinued (legacy since
 Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
 object-logic equality or equivalence.

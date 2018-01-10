@@ -22,7 +22,7 @@ definition
   where "a_inv R = m_inv \<lparr>carrier = carrier R, mult = add R, one = zero R\<rparr>"
 
 definition
-  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
+  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" ("(_ \<ominus>\<index> _)" [65,66] 65)
   where "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid =

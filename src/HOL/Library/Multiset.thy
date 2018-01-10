@@ -148,22 +148,22 @@ abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"
   where "Melem a M \<equiv> a \<in> set_mset M"
 
 notation
-  Melem  ("op \<in>#") and
+  Melem  ("'(\<in>#')") and
   Melem  ("(_/ \<in># _)" [51, 51] 50)
 
 notation  (ASCII)
-  Melem  ("op :#") and
+  Melem  ("'(:#')") and
   Melem  ("(_/ :# _)" [51, 51] 50)
 
 abbreviation not_Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"
   where "not_Melem a M \<equiv> a \<notin> set_mset M"
 
 notation
-  not_Melem  ("op \<notin>#") and
+  not_Melem  ("'(\<notin>#')") and
   not_Melem  ("(_/ \<notin># _)" [51, 51] 50)
 
 notation  (ASCII)
-  not_Melem  ("op ~:#") and
+  not_Melem  ("'(~:#')") and
   not_Melem  ("(_/ ~:# _)" [51, 51] 50)
 
 context
@@ -533,11 +533,11 @@ notation (ASCII)
   supseteq_mset  (infix ">=#" 50) and
   supset_mset  (infix ">#" 50)
 
-interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
+interpretation subset_mset: ordered_ab_semigroup_add_imp_le "(+)" "(-)" "(\<subseteq>#)" "(\<subset>#)"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
-interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "op +" 0 "op -" "op \<subseteq>#" "op \<subset>#"
+interpretation subset_mset: ordered_ab_semigroup_monoid_add_imp_le "(+)" 0 "(-)" "(\<subseteq>#)" "(\<subset>#)"
   by standard
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
@@ -556,7 +556,7 @@ lemma mset_subset_eq_exists_conv: "(A::'a multiset) \<subseteq># B \<longleftrig
    apply (auto intro: multiset_eq_iff [THEN iffD2])
   done
 
-interpretation subset_mset: ordered_cancel_comm_monoid_diff "op +" 0 "op \<subseteq>#" "op \<subset>#" "op -"
+interpretation subset_mset: ordered_cancel_comm_monoid_diff "(+)" 0 "(\<subseteq>#)" "(\<subset>#)" "(-)"
   by standard (simp, fact mset_subset_eq_exists_conv)
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
@@ -690,27 +690,27 @@ subsubsection \<open>Intersection and bounded union\<close>
 definition inf_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" (infixl "\<inter>#" 70) where
   multiset_inter_def: "inf_subset_mset A B = A - (A - B)"
 
-interpretation subset_mset: semilattice_inf inf_subset_mset "op \<subseteq>#" "op \<subset>#"
+interpretation subset_mset: semilattice_inf inf_subset_mset "(\<subseteq>#)" "(\<subset>#)"
 proof -
   have [simp]: "m \<le> n \<Longrightarrow> m \<le> q \<Longrightarrow> m \<le> n - (n - q)" for m n q :: nat
     by arith
-  show "class.semilattice_inf op \<inter># op \<subseteq># op \<subset>#"
+  show "class.semilattice_inf (\<inter>#) (\<subseteq>#) (\<subset>#)"
     by standard (auto simp add: multiset_inter_def subseteq_mset_def)
 qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 definition sup_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"(infixl "\<union>#" 70)
   where "sup_subset_mset A B = A + (B - A)" \<comment> \<open>FIXME irregular fact name\<close>
 
-interpretation subset_mset: semilattice_sup sup_subset_mset "op \<subseteq>#" "op \<subset>#"
+interpretation subset_mset: semilattice_sup sup_subset_mset "(\<subseteq>#)" "(\<subset>#)"
 proof -
   have [simp]: "m \<le> n \<Longrightarrow> q \<le> n \<Longrightarrow> m + (q - m) \<le> n" for m n q :: nat
     by arith
-  show "class.semilattice_sup op \<union># op \<subseteq># op \<subset>#"
+  show "class.semilattice_sup (\<union>#) (\<subseteq>#) (\<subset>#)"
     by standard (auto simp add: sup_subset_mset_def subseteq_mset_def)
 qed \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
-interpretation subset_mset: bounded_lattice_bot "op \<inter>#" "op \<subseteq>#" "op \<subset>#"
-  "op \<union>#" "{#}"
+interpretation subset_mset: bounded_lattice_bot "(\<inter>#)" "(\<subseteq>#)" "(\<subset>#)"
+  "(\<union>#)" "{#}"
   by standard auto
     \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
@@ -1120,7 +1120,7 @@ lemma count_Sup_multiset_nonempty:
   using assms by (simp add: Sup_multiset_def Abs_multiset_inverse Sup_multiset_in_multiset)
 
 
-interpretation subset_mset: conditionally_complete_lattice Inf Sup "op \<inter>#" "op \<subseteq>#" "op \<subset>#" "op \<union>#"
+interpretation subset_mset: conditionally_complete_lattice Inf Sup "(\<inter>#)" "(\<subseteq>#)" "(\<subset>#)" "(\<union>#)"
 proof
   fix X :: "'a multiset" and A
   assume "X \<in> A"
@@ -1244,7 +1244,7 @@ proof -
   with assms show ?thesis by (simp add: in_Sup_multiset_iff)
 qed
 
-interpretation subset_mset: distrib_lattice "op \<inter>#" "op \<subseteq>#" "op \<subset>#" "op \<union>#"
+interpretation subset_mset: distrib_lattice "(\<inter>#)" "(\<subseteq>#)" "(\<subset>#)" "(\<union>#)"
 proof
   fix A B C :: "'a multiset"
   show "A \<union># (B \<inter># C) = A \<union># B \<inter># (A \<union># C)"
@@ -2269,12 +2269,12 @@ lemma union_disjoint:
 end
 end
 
-lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute (op + :: 'a multiset \<Rightarrow> _ \<Rightarrow> _)"
+lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute ((+) :: 'a multiset \<Rightarrow> _ \<Rightarrow> _)"
   by standard (simp add: add_ac comp_def)
 
 declare comp_fun_commute.fold_mset_add_mset[OF comp_fun_commute_plus_mset, simp]
 
-lemma in_mset_fold_plus_iff[iff]: "x \<in># fold_mset (op +) M NN \<longleftrightarrow> x \<in># M \<or> (\<exists>N. N \<in># NN \<and> x \<in># N)"
+lemma in_mset_fold_plus_iff[iff]: "x \<in># fold_mset (+) M NN \<longleftrightarrow> x \<in># M \<or> (\<exists>N. N \<in># NN \<and> x \<in># N)"
   by (induct NN) auto
 
 context comm_monoid_add
@@ -2626,7 +2626,7 @@ next
   have "\<And>x P. P (f x) ?pivot \<and> f l = f x \<longleftrightarrow> P (f l) ?pivot \<and> f l = f x" by auto
   then have "\<And>P. [x \<leftarrow> sort_key f xs . P (f x) ?pivot \<and> f l = f x] =
     [x \<leftarrow> sort_key f xs. P (f l) ?pivot \<and> f l = f x]" by simp
-  note *** = this [of "op <"] this [of "op >"] this [of "op ="]
+  note *** = this [of "(<)"] this [of "(>)"] this [of "(=)"]
   show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]"
   proof (cases "f l" ?pivot rule: linorder_cases)
     case less
@@ -2998,7 +2998,7 @@ subsection \<open>Quasi-executable version of the multiset extension\<close>
 text \<open>
   Predicate variants of \<open>mult\<close> and the reflexive closure of \<open>mult\<close>, which are
   executable whenever the given predicate \<open>P\<close> is. Together with the standard
-  code equations for \<open>op \<inter>#\<close> and \<open>op -\<close> this should yield quadratic
+  code equations for \<open>(\<inter>#\<close>) and \<open>(-\<close>) this should yield quadratic
   (with respect to calls to \<open>P\<close>) implementations of \<open>multp\<close> and \<open>multeqp\<close>.
 \<close>
 
@@ -3346,10 +3346,10 @@ declaration \<open>
           let
             val (maybe_opt, ps) =
               Nitpick_Model.dest_plain_fun t'
-              ||> op ~~
+              ||> (~~)
               ||> map (apsnd (snd o HOLogic.dest_number))
             fun elems_for t =
-              (case AList.lookup (op =) ps t of
+              (case AList.lookup (=) ps t of
                 SOME n => replicate n t
               | NONE => [Const (maybe_name, elem_T --> elem_T) $ t])
           in
@@ -3438,7 +3438,7 @@ declare size_mset [code]
 
 fun subset_eq_mset_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where
   "subset_eq_mset_impl [] ys = Some (ys \<noteq> [])"
-| "subset_eq_mset_impl (Cons x xs) ys = (case List.extract (op = x) ys of
+| "subset_eq_mset_impl (Cons x xs) ys = (case List.extract ((=) x) ys of
      None \<Rightarrow> None
    | Some (ys1,_,ys2) \<Rightarrow> subset_eq_mset_impl xs (ys1 @ ys2))"
 
@@ -3451,7 +3451,7 @@ proof (induct xs arbitrary: ys)
 next
   case (Cons x xs ys)
   show ?case
-  proof (cases "List.extract (op = x) ys")
+  proof (cases "List.extract ((=) x) ys")
     case None
     hence x: "x \<notin> set ys" by (simp add: extract_None_iff)
     {
@@ -3510,8 +3510,8 @@ proof -
 qed
 
 text \<open>
-  Exercise for the casual reader: add implementations for @{term "op \<le>"}
-  and @{term "op <"} (multiset order).
+  Exercise for the casual reader: add implementations for @{term "(\<le>)"}
+  and @{term "(<)"} (multiset order).
 \<close>
 
 text \<open>Quickcheck generators\<close>
@@ -3668,7 +3668,7 @@ proof -
     unfolding comp_def by (rule ext) (simp add: comp_def image_mset.compositionality)
   show "(\<And>z. z \<in> set_mset X \<Longrightarrow> f z = g z) \<Longrightarrow> image_mset f X = image_mset g X" for f g X
     by (induct X) simp_all
-  show "set_mset \<circ> image_mset f = op ` f \<circ> set_mset" for f
+  show "set_mset \<circ> image_mset f = (`) f \<circ> set_mset" for f
     by auto
   show "card_order natLeq"
     by (rule natLeq_card_order)
