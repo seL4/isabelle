@@ -10,7 +10,9 @@ New in this Isabelle version
 *** General ***
 
 * The "op <infix-op>" syntax for infix opertors has been replaced by
-"(<infix-op>)". INCOMPATIBILITY.
+"(<infix-op>)". If <infix-op> begins or ends with a "*", there needs to
+be a space between the "*" and the corresponding parenthesis.
+INCOMPATIBILITY.
 There is an Isabelle tool "update_op" that converts theory and ML files
 to the new syntax. Because it is based on regular expression matching,
 the result may need a bit of manual postprocessing. Invoking "isabelle
