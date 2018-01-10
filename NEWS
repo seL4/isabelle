@@ -9,7 +9,7 @@ New in this Isabelle version
 
 *** General ***
 
-* The "op <infix-op>" syntax for infix opertors has been replaced by
+* The "op <infix-op>" syntax for infix operators has been replaced by
 "(<infix-op>)". If <infix-op> begins or ends with a "*", there needs to
 be a space between the "*" and the corresponding parenthesis.
 INCOMPATIBILITY.
