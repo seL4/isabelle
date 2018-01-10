@@ -349,7 +349,7 @@ proof (cases "space N = {}")
       (\<lambda>M'. emeasure M' (f -` A \<inter> space M)) \<in> borel_measurable (subprob_algebra M)"
       by (intro measurable_cong)
          (auto simp: emeasure_distr space_subprob_algebra
-               intro!: arg_cong2[where f=emeasure] sets_eq_imp_space_eq arg_cong2[where f="op \<inter>"])
+               intro!: arg_cong2[where f=emeasure] sets_eq_imp_space_eq arg_cong2[where f="(\<inter>)"])
     also have "\<dots>"
       using A by (intro measurable_emeasure_subprob_algebra) simp
     finally show "(\<lambda>M'. emeasure (distr M' N f) A) \<in> borel_measurable (subprob_algebra M)" .

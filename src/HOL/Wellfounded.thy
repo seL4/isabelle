@@ -500,7 +500,7 @@ lemma wf_iff_acyclic_if_finite: "finite r \<Longrightarrow> wf r = acyclic r"
 
 subsection \<open>@{typ nat} is well-founded\<close>
 
-lemma less_nat_rel: "op < = (\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+"
+lemma less_nat_rel: "(<) = (\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+"
 proof (rule ext, rule ext, rule iffI)
   fix n m :: nat
   show "(\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+ m n" if "m < n"

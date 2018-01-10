@@ -12,10 +12,10 @@ imports "HOL-Library.FuncSet"
 begin
 
 (* For Christoph Benzmüller *)
-lemma "x < 1 \<and> ((op =) = (op =)) \<Longrightarrow> ((op =) = (op =)) \<and> x < (2::nat)"
+lemma "x < 1 \<and> ((=) = (=)) \<Longrightarrow> ((=) = (=)) \<and> x < (2::nat)"
 by (metis nat_1_add_1 trans_less_add2)
 
-lemma "(op = ) = (\<lambda>x y. y = x)"
+lemma "((=) ) = (\<lambda>x y. y = x)"
 by metis
 
 consts

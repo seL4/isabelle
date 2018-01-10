@@ -66,21 +66,21 @@ lemma not_mono_on_subset: "T \<subseteq> S \<Longrightarrow> \<not> mono_on f R 
 unfolding mono_on_def by blast
 
 lemma [simp]:
-  "reflp (op \<le> :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
-  "reflp (op \<ge> :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
-  "transp (op \<le> :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
-  "transp (op \<ge> :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
+  "reflp ((\<le>) :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
+  "reflp ((\<ge>) :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
+  "transp ((\<le>) :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
+  "transp ((\<ge>) :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
 unfolding reflp_def transp_def by auto
 
 subsection \<open>The Erdoes-Szekeres Theorem following Seidenberg's (1959) argument\<close>
 
 lemma Erdoes_Szekeres:
   fixes f :: "_ \<Rightarrow> 'a::linorder"
-  shows "(\<exists>S. S \<subseteq> {0..m * n} \<and> card S = m + 1 \<and> mono_on f (op \<le>) S) \<or>
-         (\<exists>S. S \<subseteq> {0..m * n} \<and> card S = n + 1 \<and> mono_on f (op \<ge>) S)"
+  shows "(\<exists>S. S \<subseteq> {0..m * n} \<and> card S = m + 1 \<and> mono_on f (\<le>) S) \<or>
+         (\<exists>S. S \<subseteq> {0..m * n} \<and> card S = n + 1 \<and> mono_on f (\<ge>) S)"
 proof (rule ccontr)
   let ?max_subseq = "\<lambda>R k. Max (card ` {S. S \<subseteq> {0..k} \<and> mono_on f R S \<and> k \<in> S})"
-  define phi where "phi k = (?max_subseq (op \<le>) k, ?max_subseq (op \<ge>) k)" for k
+  define phi where "phi k = (?max_subseq (\<le>) k, ?max_subseq (\<ge>) k)" for k
 
   have one_member: "\<And>R k. reflp R \<Longrightarrow> {k} \<in> {S. S \<subseteq> {0..k} \<and> mono_on f R S \<and> k \<in> S}" by auto
 
@@ -114,9 +114,9 @@ proof (rule ccontr)
   } note bounds = this
 
   assume contraposition: "\<not> ?thesis"
-  from contraposition bounds[of "op \<le>" "m"] bounds[of "op \<ge>" "n"]
-    have "\<And>k. k \<le> m * n \<Longrightarrow> 1 \<le> ?max_subseq (op \<le>) k \<and> ?max_subseq (op \<le>) k \<le> m"
-    and  "\<And>k. k \<le> m * n \<Longrightarrow> 1 \<le> ?max_subseq (op \<ge>) k \<and> ?max_subseq (op \<ge>) k \<le> n"
+  from contraposition bounds[of "(\<le>)" "m"] bounds[of "(\<ge>)" "n"]
+    have "\<And>k. k \<le> m * n \<Longrightarrow> 1 \<le> ?max_subseq (\<le>) k \<and> ?max_subseq (\<le>) k \<le> m"
+    and  "\<And>k. k \<le> m * n \<Longrightarrow> 1 \<le> ?max_subseq (\<ge>) k \<and> ?max_subseq (\<ge>) k \<le> n"
     using reflp_def by simp+
   from this have "\<forall>i \<in> {0..m * n}. phi i \<in> {1..m} \<times> {1..n}"
     unfolding phi_def by auto
@@ -146,13 +146,13 @@ proof (rule ccontr)
         by (auto intro!: imageI) (auto simp add: \<open>finite S\<close>)
       from this S(2) have "?max_subseq R i < ?max_subseq R j" by (auto intro: Max_gr)
     } note max_subseq_increase = this
-    have "?max_subseq (op \<le>) i < ?max_subseq (op \<le>) j \<or> ?max_subseq (op \<ge>) i < ?max_subseq (op \<ge>) j"
+    have "?max_subseq (\<le>) i < ?max_subseq (\<le>) j \<or> ?max_subseq (\<ge>) i < ?max_subseq (\<ge>) j"
     proof (cases "f j \<ge> f i")
       case True
-      from this max_subseq_increase[of "op \<le>", simplified] show ?thesis by simp
+      from this max_subseq_increase[of "(\<le>)", simplified] show ?thesis by simp
     next
       case False
-      from this max_subseq_increase[of "op \<ge>", simplified] show ?thesis by simp
+      from this max_subseq_increase[of "(\<ge>)", simplified] show ?thesis by simp
     qed
     from this have "phi i \<noteq> phi j" using phi_def by auto
   }

@@ -51,7 +51,7 @@ lemma fps_one_nth [simp]: "1 $ n = (if n = 0 then 1 else 0)"
 
 instantiation fps :: (plus) plus
 begin
-  definition fps_plus_def: "op + = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n + g $ n))"
+  definition fps_plus_def: "(+) = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n + g $ n))"
   instance ..
 end
 
@@ -60,7 +60,7 @@ lemma fps_add_nth [simp]: "(f + g) $ n = f $ n + g $ n"
 
 instantiation fps :: (minus) minus
 begin
-  definition fps_minus_def: "op - = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n - g $ n))"
+  definition fps_minus_def: "(-) = (\<lambda>f g. Abs_fps (\<lambda>n. f $ n - g $ n))"
   instance ..
 end
 
@@ -78,7 +78,7 @@ lemma fps_neg_nth [simp]: "(- f) $ n = - (f $ n)"
 
 instantiation fps :: ("{comm_monoid_add, times}") times
 begin
-  definition fps_times_def: "op * = (\<lambda>f g. Abs_fps (\<lambda>n. \<Sum>i=0..n. f $ i * g $ (n - i)))"
+  definition fps_times_def: "( * ) = (\<lambda>f g. Abs_fps (\<lambda>n. \<Sum>i=0..n. f $ i * g $ (n - i)))"
   instance ..
 end
 
@@ -151,7 +151,7 @@ lemma fps_mult_commute_lemma:
   fixes n :: nat
     and f :: "nat \<Rightarrow> nat \<Rightarrow> 'a::comm_monoid_add"
   shows "(\<Sum>i=0..n. f i (n - i)) = (\<Sum>i=0..n. f (n - i) i)"
-  by (rule sum.reindex_bij_witness[where i="op - n" and j="op - n"]) auto
+  by (rule sum.reindex_bij_witness[where i="(-) n" and j="(-) n"]) auto
 
 instance fps :: (comm_semiring_0) ab_semigroup_mult
 proof
@@ -1563,10 +1563,10 @@ proof -
         of_nat i* f $ i * g $ ((n + 1) - i)"
     have s0: "sum (\<lambda>i. of_nat i * f $ i * g $ (n + 1 - i)) ?Zn1 =
       sum (\<lambda>i. of_nat (n + 1 - i) * f $ (n + 1 - i) * g $ i) ?Zn1"
-       by (rule sum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
+       by (rule sum.reindex_bij_witness[where i="(-) (n + 1)" and j="(-) (n + 1)"]) auto
     have s1: "sum (\<lambda>i. f $ i * g $ (n + 1 - i)) ?Zn1 =
       sum (\<lambda>i. f $ (n + 1 - i) * g $ i) ?Zn1"
-       by (rule sum.reindex_bij_witness[where i="op - (n + 1)" and j="op - (n + 1)"]) auto
+       by (rule sum.reindex_bij_witness[where i="(-) (n + 1)" and j="(-) (n + 1)"]) auto
     have "(f * ?D g + ?D f * g)$n = (?D g * f + ?D f * g)$n"
       by (simp only: mult.commute)
     also have "\<dots> = (\<Sum>i = 0..n. ?g i)"
@@ -2040,7 +2040,7 @@ subsubsection \<open>Rule 2\<close>
   (* If f reprents {a_n} and P is a polynomial, then
         P(xD) f represents {P(n) a_n}*)
 
-definition "fps_XD = op * fps_X \<circ> fps_deriv"
+definition "fps_XD = ( * ) fps_X \<circ> fps_deriv"
 
 lemma fps_XD_add[simp]:"fps_XD (a + b) = fps_XD a + fps_XD (b :: 'a::comm_ring_1 fps)"
   by (simp add: fps_XD_def field_simps)
@@ -2115,10 +2115,10 @@ proof -
   let ?fps_X = "1 - (fps_X::'a fps)"
   have th0: "?fps_X $ 0 \<noteq> 0"
     by simp
-  have "a /?fps_X = ?fps_X *  Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) * inverse ?fps_X"
+  have "a /?fps_X = ?fps_X *  Abs_fps (\<lambda>n::nat. sum (($) a) {0..n}) * inverse ?fps_X"
     using fps_divide_fps_X_minus1_sum_lemma[of a, symmetric] th0
     by (simp add: fps_divide_def mult.assoc)
-  also have "\<dots> = (inverse ?fps_X * ?fps_X) * Abs_fps (\<lambda>n::nat. sum (op $ a) {0..n}) "
+  also have "\<dots> = (inverse ?fps_X * ?fps_X) * Abs_fps (\<lambda>n::nat. sum (($) a) {0..n}) "
     by (simp add: ac_simps)
   finally show ?thesis
     by (simp add: inverse_mult_eq_1[OF th0])

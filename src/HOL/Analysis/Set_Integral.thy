@@ -310,7 +310,7 @@ proof -
     by (auto intro!: set_integral_Un set_integrable_subset[OF f])
   also have "\<dots> = (LINT x:A|M. f x) + (LINT x:B|M. f x)"
     using ae
-    by (intro arg_cong2[where f="op+"] set_integral_cong_set)
+    by (intro arg_cong2[where f="(+)"] set_integral_cong_set)
        (auto intro!: set_borel_measurable_subset[OF f'])
   finally show ?thesis .
 qed

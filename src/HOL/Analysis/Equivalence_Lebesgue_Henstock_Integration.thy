@@ -1041,10 +1041,10 @@ lemma starlike_negligible:
       and eq1: "\<And>c x. \<lbrakk>(a + c *\<^sub>R x) \<in> S; 0 \<le> c; a + x \<in> S\<rbrakk> \<Longrightarrow> c = 1"
     shows "negligible S"
 proof -
-  have "negligible (op + (-a) ` S)"
+  have "negligible ((+) (-a) ` S)"
   proof (subst negligible_on_intervals, intro allI)
     fix u v
-    show "negligible (op + (- a) ` S \<inter> cbox u v)"
+    show "negligible ((+) (- a) ` S \<inter> cbox u v)"
       unfolding negligible_iff_null_sets
       apply (rule starlike_negligible_compact)
        apply (simp add: assms closed_translation closed_Int_compact, clarify)
@@ -1831,7 +1831,7 @@ proof -
           qed
           also have "\<dots> = (\<Sum>(i,l) \<in> d \<times> snd ` p. norm (integral (i\<inter>l) f))"
             by (simp add: sum.cartesian_product)
-          also have "\<dots> = (\<Sum>x \<in> d \<times> snd ` p. norm (integral (case_prod op \<inter> x) f))"
+          also have "\<dots> = (\<Sum>x \<in> d \<times> snd ` p. norm (integral (case_prod (\<inter>) x) f))"
             by (force simp: split_def intro!: sum.cong)
           also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
           proof -

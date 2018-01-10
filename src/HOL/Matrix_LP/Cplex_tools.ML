@@ -969,10 +969,10 @@ fun load_glpkResult name =
     val header = readHeader ()
 
     val result =
-        case AList.lookup (op =) header "STATUS" of
+        case AList.lookup (=) header "STATUS" of
         SOME "INFEASIBLE" => Infeasible
           | SOME "UNBOUNDED" => Unbounded
-          | SOME "OPTIMAL" => Optimal (the (AList.lookup (op =) header "OBJECTIVE"),
+          | SOME "OPTIMAL" => Optimal (the (AList.lookup (=) header "OBJECTIVE"),
                        (skip_until_sep ();
                         skip_until_sep ();
                         load_values ()))
@@ -1115,10 +1115,10 @@ fun load_cplexResult name =
     val header = readHeader ()
 
     val result =
-        case AList.lookup (op =) header "STATUS" of
+        case AList.lookup (=) header "STATUS" of
         SOME "INFEASIBLE" => Infeasible
           | SOME "NONOPTIMAL" => Unbounded
-          | SOME "OPTIMAL" => Optimal (the (AList.lookup (op =) header "OBJECTIVE"),
+          | SOME "OPTIMAL" => Optimal (the (AList.lookup (=) header "OBJECTIVE"),
                        (skip_paragraph ();
                         skip_paragraph ();
                         skip_paragraph ();

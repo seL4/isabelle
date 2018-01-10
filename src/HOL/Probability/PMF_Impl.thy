@@ -145,14 +145,14 @@ lemma pmf_of_multiset_impl_code_alt:
   assumes "A \<noteq> {#}"
   shows   "pmf_of_multiset_impl A =
              (let p = 1 / real (size A)
-              in  fold_mset (\<lambda>x. Mapping.map_default x 0 (op + p)) Mapping.empty A)"
+              in  fold_mset (\<lambda>x. Mapping.map_default x 0 ((+) p)) Mapping.empty A)"
 proof -
   define p where "p = 1 / real (size A)"
-  interpret comp_fun_commute "\<lambda>x. Mapping.map_default x 0 (op + p)"
+  interpret comp_fun_commute "\<lambda>x. Mapping.map_default x 0 ((+) p)"
     unfolding Mapping.map_default_def [abs_def]
     by (standard, intro mapping_eqI ext) 
        (simp_all add: o_def lookup_map_entry' lookup_default' lookup_default_def)
-  let ?m = "fold_mset (\<lambda>x. Mapping.map_default x 0 (op + p)) Mapping.empty A"
+  let ?m = "fold_mset (\<lambda>x. Mapping.map_default x 0 ((+) p)) Mapping.empty A"
   have keys: "Mapping.keys ?m = set_mset A" by (induction A) simp_all
   have lookup: "Mapping.lookup_default 0 ?m x = real (count A x) * p" for x
     by (induction A)
@@ -197,12 +197,12 @@ lemma keys_mapping_of_pmf [simp]: "Mapping.keys (mapping_of_pmf p) = set_pmf p"
 
 
 definition fold_combine_plus where
-  "fold_combine_plus = comm_monoid_set.F (Mapping.combine (op + :: real \<Rightarrow> _)) Mapping.empty"
+  "fold_combine_plus = comm_monoid_set.F (Mapping.combine ((+) :: real \<Rightarrow> _)) Mapping.empty"
 
 context
 begin
 
-interpretation fold_combine_plus: combine_mapping_abel_semigroup "op + :: real \<Rightarrow> _"
+interpretation fold_combine_plus: combine_mapping_abel_semigroup "(+) :: real \<Rightarrow> _"
   by unfold_locales (simp_all add: add_ac)
   
 qualified lemma lookup_default_fold_combine_plus: 
@@ -219,7 +219,7 @@ qualified lemma keys_fold_combine_plus:
   by (simp add: fold_combine_plus_def fold_combine_plus.keys_fold_combine)
 
 qualified lemma fold_combine_plus_code [code]:
-  "fold_combine_plus g (set xs) = foldr (\<lambda>x. Mapping.combine op+ (g x)) (remdups xs) Mapping.empty"
+  "fold_combine_plus g (set xs) = foldr (\<lambda>x. Mapping.combine (+) (g x)) (remdups xs) Mapping.empty"
   by (simp add: fold_combine_plus_def fold_combine_plus.fold_combine_code)
 
 private lemma lookup_default_0_map_values:
@@ -231,7 +231,7 @@ private lemma lookup_default_0_map_values:
 qualified lemma mapping_of_bind_pmf:
   assumes "finite (set_pmf p)"
   shows   "mapping_of_pmf (bind_pmf p f) = 
-             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. op * (pmf p x)) 
+             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. ( * ) (pmf p x)) 
                (mapping_of_pmf (f x))) (set_pmf p)"
   using assms
   by (intro mapping_of_pmfI')
@@ -268,7 +268,7 @@ lemma bind_pmf_aux_correct:
 lemma bind_pmf_aux_code_aux:
   assumes "finite A"
   shows   "bind_pmf_aux p f A = 
-             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. op * (pmf p x))
+             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. ( * ) (pmf p x))
                (mapping_of_pmf (f x))) A" (is "?lhs = ?rhs")
 proof (intro mapping_eqI'[where d = 0])
   fix x assume "x \<in> Mapping.keys ?lhs"
@@ -287,7 +287,7 @@ qed (insert assms, simp_all add: keys_fold_combine_plus)
 
 lemma bind_pmf_aux_code [code]:
   "bind_pmf_aux p f (set xs) = 
-     fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. op * (pmf p x))
+     fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. ( * ) (pmf p x))
                (mapping_of_pmf (f x))) (set xs)"
   by (rule bind_pmf_aux_code_aux) simp_all
 
@@ -536,7 +536,7 @@ definition (in term_syntax)
              'a pmf \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "pmfify A x =  
     Code_Evaluation.valtermify pmf_of_multiset {\<cdot>} 
-      (Code_Evaluation.valtermify (op +) {\<cdot>} A {\<cdot>} 
+      (Code_Evaluation.valtermify (+) {\<cdot>} A {\<cdot>} 
        (Code_Evaluation.valtermify single {\<cdot>} x))"
 
 

@@ -572,7 +572,7 @@ simproc_setup finite_1_eq ("x::finite_1") = \<open>
 
 instantiation finite_1 :: complete_boolean_algebra
 begin
-definition [simp]: "op - = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "(-) = (\<lambda>_ _. a\<^sub>1)"
 definition [simp]: "uminus = (\<lambda>_. a\<^sub>1)"
 instance by intro_classes simp_all
 end
@@ -584,9 +584,9 @@ instantiation finite_1 ::
 begin
 definition [simp]: "Groups.zero = a\<^sub>1"
 definition [simp]: "Groups.one = a\<^sub>1"
-definition [simp]: "op + = (\<lambda>_ _. a\<^sub>1)"
-definition [simp]: "op * = (\<lambda>_ _. a\<^sub>1)"
-definition [simp]: "op mod = (\<lambda>_ _. a\<^sub>1)" 
+definition [simp]: "(+) = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "( * ) = (\<lambda>_ _. a\<^sub>1)"
+definition [simp]: "(mod) = (\<lambda>_ _. a\<^sub>1)" 
 definition [simp]: "abs = (\<lambda>_. a\<^sub>1)"
 definition [simp]: "sgn = (\<lambda>_. a\<^sub>1)"
 definition [simp]: "inverse = (\<lambda>_. a\<^sub>1)"
@@ -688,10 +688,10 @@ definition [simp]: "0 = a\<^sub>1"
 definition [simp]: "1 = a\<^sub>2"
 definition "x + y = (case (x, y) of (a\<^sub>1, a\<^sub>1) \<Rightarrow> a\<^sub>1 | (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>1 | _ \<Rightarrow> a\<^sub>2)"
 definition "uminus = (\<lambda>x :: finite_2. x)"
-definition "op - = (op + :: finite_2 \<Rightarrow> _)"
+definition "(-) = ((+) :: finite_2 \<Rightarrow> _)"
 definition "x * y = (case (x, y) of (a\<^sub>2, a\<^sub>2) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
 definition "inverse = (\<lambda>x :: finite_2. x)"
-definition "divide = (op * :: finite_2 \<Rightarrow> _)"
+definition "divide = (( * ) :: finite_2 \<Rightarrow> _)"
 definition "x mod y = (case (x, y) of (a\<^sub>2, a\<^sub>1) \<Rightarrow> a\<^sub>2 | _ \<Rightarrow> a\<^sub>1)"
 definition "abs = (\<lambda>x :: finite_2. x)"
 definition "sgn = (\<lambda>x :: finite_2. x)"

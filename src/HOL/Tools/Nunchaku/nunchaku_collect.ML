@@ -530,7 +530,7 @@ fun specialize_definition_type thy x def0 =
     val def = specialize_type thy x def0;
     val lhs = lhs_of_equation def;
   in
-    if exists_Const (curry (op =) x) lhs then def else raise Fail "cannot specialize"
+    if exists_Const (curry (=) x) lhs then def else raise Fail "cannot specialize"
   end;
 
 fun definition_of thy (x as (s, _)) =

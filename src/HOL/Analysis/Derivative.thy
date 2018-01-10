@@ -91,7 +91,7 @@ lemma has_derivative_within_open:
 lemma has_derivative_right:
   fixes f :: "real \<Rightarrow> real"
     and y :: "real"
-  shows "(f has_derivative (op * y)) (at x within ({x <..} \<inter> I)) \<longleftrightarrow>
+  shows "(f has_derivative (( * ) y)) (at x within ({x <..} \<inter> I)) \<longleftrightarrow>
     ((\<lambda>t. (f x - f t) / (x - t)) \<longlongrightarrow> y) (at x within ({x <..} \<inter> I))"
 proof -
   have "((\<lambda>t. (f t - (f x + y * (t - x))) / \<bar>t - x\<bar>) \<longlongrightarrow> 0) (at x within ({x<..} \<inter> I)) \<longleftrightarrow>
@@ -245,7 +245,7 @@ lemma differentiable_on_scaleR [derivative_intros, simp]:
 
 lemma has_derivative_sqnorm_at [derivative_intros, simp]:
    "((\<lambda>x. (norm x)\<^sup>2) has_derivative (\<lambda>x. 2 *\<^sub>R (a \<bullet> x))) (at a)"
-using has_derivative_bilinear_at [of id id a id id "op  \<bullet>"]
+using has_derivative_bilinear_at [of id id a id id "(\<bullet>)"]
 by (auto simp: inner_commute dot_square_norm bounded_bilinear_inner)
 
 lemma differentiable_sqnorm_at [derivative_intros, simp]:
@@ -1112,7 +1112,7 @@ lemma
   shows "norm (f (x0 + a) - f x0) \<le> norm a * B"
 proof -
   let ?G = "(\<lambda>x. x0 + x *\<^sub>R a) ` {0..1}"
-  have "?G = op + x0 ` (\<lambda>x. x *\<^sub>R a) ` {0..1}" by auto
+  have "?G = (+) x0 ` (\<lambda>x. x *\<^sub>R a) ` {0..1}" by auto
   also have "convex \<dots>"
     by (intro convex_translation convex_scaled convex_real_interval)
   finally have "convex ?G" .
@@ -1164,7 +1164,7 @@ lemma has_field_derivative_zero_constant:
   assumes "convex s" "\<And>x. x \<in> s \<Longrightarrow> (f has_field_derivative 0) (at x within s)"
   shows   "\<exists>c. \<forall>x\<in>s. f (x) = (c :: 'a :: real_normed_field)"
 proof (rule has_derivative_zero_constant)
-  have A: "op * 0 = (\<lambda>_. 0 :: 'a)" by (intro ext) simp
+  have A: "( * ) 0 = (\<lambda>_. 0 :: 'a)" by (intro ext) simp
   fix x assume "x \<in> s" thus "(f has_derivative (\<lambda>h. 0)) (at x within s)"
     using assms(2)[of x] by (simp add: has_field_derivative_def A)
 qed fact
@@ -2292,9 +2292,9 @@ proof -
   then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
     "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
   from g[OF x] show "summable (\<lambda>n. f n x)" by (auto simp: summable_def)
-  from g(2)[OF x] have g': "(g has_derivative op * (g' x)) (at x)"
+  from g(2)[OF x] have g': "(g has_derivative ( * ) (g' x)) (at x)"
     by (simp add: has_field_derivative_def s)
-  have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
+  have "((\<lambda>x. \<Sum>n. f n x) has_derivative ( * ) (g' x)) (at x)"
     by (rule has_derivative_transform_within_open[OF g' \<open>open s\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)" unfolding differentiable_def
@@ -2645,7 +2645,7 @@ lemma field_differentiable_at_within:
   unfolding field_differentiable_def
   by (metis DERIV_subset top_greatest)
 
-lemma field_differentiable_linear [simp,derivative_intros]: "(op * c) field_differentiable F"
+lemma field_differentiable_linear [simp,derivative_intros]: "(( * ) c) field_differentiable F"
 proof -
   show ?thesis
     unfolding field_differentiable_def has_field_derivative_def mult_commute_abs
@@ -2675,7 +2675,7 @@ lemma field_differentiable_add [derivative_intros]:
   by (metis field_differentiable_add)
 
 lemma field_differentiable_add_const [simp,derivative_intros]:
-     "op + c field_differentiable F"
+     "(+) c field_differentiable F"
   by (simp add: field_differentiable_add)
 
 lemma field_differentiable_sum [derivative_intros]:

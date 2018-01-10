@@ -110,7 +110,7 @@ txt{*
 @{subgoals[display,indent=0]}
 Again, simplification produces a term suitable for @{thm[source]prod.split}
 as above. If you are worried about the strange form of the premise:
-@{text"case_prod (op =)"} is short for @{term"\<lambda>(x,y). x=y"}.
+@{text"case_prod (=)"} is short for @{term"\<lambda>(x,y). x=y"}.
 The same proof procedure works for
 *}
 

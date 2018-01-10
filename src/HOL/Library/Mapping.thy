@@ -223,7 +223,7 @@ begin
 lemma [transfer_rule]:
   assumes [transfer_rule]: "bi_total A"
     and [transfer_rule]: "bi_unique B"
-  shows "(pcr_mapping A B ===> pcr_mapping A B ===> op=) HOL.eq HOL.equal"
+  shows "(pcr_mapping A B ===> pcr_mapping A B ===> (=)) HOL.eq HOL.equal"
   unfolding equal by transfer_prover
 
 lemma of_alist_transfer [transfer_rule]:

@@ -107,10 +107,10 @@ qed (auto intro!: pred_eqI)
 end
 
 definition single :: "'a \<Rightarrow> 'a pred" where
-  "single x = Pred ((op =) x)"
+  "single x = Pred ((=) x)"
 
 lemma eval_single [simp]:
-  "eval (single x) = (op =) x"
+  "eval (single x) = (=) x"
   by (simp add: single_def)
 
 definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<bind>" 70) where

@@ -276,11 +276,11 @@ proof -
   thus ?thesis by (simp_all add: comp_def)
 qed
 
-lemmas simple_function_add[intro, simp] = simple_function_compose2[where h="op +"]
-  and simple_function_diff[intro, simp] = simple_function_compose2[where h="op -"]
+lemmas simple_function_add[intro, simp] = simple_function_compose2[where h="(+)"]
+  and simple_function_diff[intro, simp] = simple_function_compose2[where h="(-)"]
   and simple_function_uminus[intro, simp] = simple_function_compose[where g="uminus"]
-  and simple_function_mult[intro, simp] = simple_function_compose2[where h="op *"]
-  and simple_function_div[intro, simp] = simple_function_compose2[where h="op /"]
+  and simple_function_mult[intro, simp] = simple_function_compose2[where h="( * )"]
+  and simple_function_div[intro, simp] = simple_function_compose2[where h="(/)"]
   and simple_function_inverse[intro, simp] = simple_function_compose[where g="inverse"]
   and simple_function_max[intro, simp] = simple_function_compose2[where h=max]
 
@@ -760,7 +760,7 @@ proof -
     using assms by (intro simple_function_partition) auto
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, indicator A x::ennreal))`space M.
     if snd y = 1 then fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A) else 0)"
-    by (auto simp: indicator_def split: if_split_asm intro!: arg_cong2[where f="op *"] arg_cong2[where f=emeasure] sum.cong)
+    by (auto simp: indicator_def split: if_split_asm intro!: arg_cong2[where f="( * )"] arg_cong2[where f=emeasure] sum.cong)
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, 1::ennreal))`A. fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A))"
     using assms by (subst sum.If_cases) (auto intro!: simple_functionD(1) simp: eq)
   also have "\<dots> = (\<Sum>y\<in>fst`(\<lambda>x. (f x, 1::ennreal))`A. y * emeasure M (f -` {y} \<inter> space M \<inter> A))"
@@ -1873,7 +1873,7 @@ qed simp
 
 lemma nn_integral_monotone_convergence_SUP_nat:
   fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ennreal"
-  assumes chain: "Complete_Partial_Order.chain op \<le> (f ` Y)"
+  assumes chain: "Complete_Partial_Order.chain (\<le>) (f ` Y)"
   and nonempty: "Y \<noteq> {}"
   shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space UNIV) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space UNIV))"
   (is "?lhs = ?rhs" is "integral\<^sup>N ?M _ = _")
@@ -1913,7 +1913,7 @@ next
         case True
         let ?Y = "I ` {..<m}"
         have "f ` ?Y \<subseteq> f ` Y" using I by auto
-        with chain have chain': "Complete_Partial_Order.chain op \<le> (f ` ?Y)" by(rule chain_subset)
+        with chain have chain': "Complete_Partial_Order.chain (\<le>) (f ` ?Y)" by(rule chain_subset)
         hence "Sup (f ` ?Y) \<in> f ` ?Y"
           by(rule ccpo_class.in_chain_finite)(auto simp add: True lessThan_empty_iff)
         then obtain m' where "m' < m" and m': "(SUP i:?Y. f i) = f (I m')" by auto

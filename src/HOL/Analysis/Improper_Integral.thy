@@ -967,7 +967,7 @@ next
                 by (simp add: sum.union_disjoint T''_eq disj \<open>finite A\<close> \<open>finite B\<close>)
               also have "... = (\<Sum>(x,K) \<in> A. norm (integral K h - integral K f)) +
                                (\<Sum>(x,K) \<in> B. norm (?CI K h x + integral K f))"
-                by (auto simp: A_def B_def f norm_minus_commute intro!: sum.cong arg_cong2 [where f= "op+"])
+                by (auto simp: A_def B_def f norm_minus_commute intro!: sum.cong arg_cong2 [where f= "(+)"])
               also have "... \<le> (\<Sum>(x,K)\<in>A. norm (integral K h)) +
                                  (\<Sum>(x,K)\<in>(\<lambda>(x,K). (x,K \<inter> {x. x \<bullet> i \<le> c})) ` A. norm (integral K h))
                              + ((\<Sum>(x,K)\<in>B. norm (?CI K h x)) +

@@ -582,13 +582,13 @@ lemma alw_ev_stl: "alw (ev P) (stl \<omega>) \<longleftrightarrow> alw (ev P) \<
 lemma holds_Stream: "holds P (x ## s) \<longleftrightarrow> P x"
   by simp
 
-lemma holds_eq1[simp]: "holds (op = x) = HLD {x}"
+lemma holds_eq1[simp]: "holds ((=) x) = HLD {x}"
   by rule (auto simp: HLD_iff)
 
 lemma holds_eq2[simp]: "holds (\<lambda>y. y = x) = HLD {x}"
   by rule (auto simp: HLD_iff)
 
-lemma not_holds_eq[simp]: "holds (- op = x) = not (HLD {x})"
+lemma not_holds_eq[simp]: "holds (- (=) x) = not (HLD {x})"
   by rule (auto simp: HLD_iff)
 
 text \<open>Strong until\<close>

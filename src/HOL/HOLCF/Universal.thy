@@ -47,7 +47,7 @@ lemma node_gt2: "\<lbrakk>finite S; b \<in> S\<rbrakk> \<Longrightarrow> b < nod
 unfolding node_def less_Suc_eq_le set_encode_def
 apply (rule order_trans [OF _ le_prod_encode_2])
 apply (rule order_trans [OF _ le_prod_encode_2])
-apply (rule order_trans [where y="sum (op ^ 2) {b}"])
+apply (rule order_trans [where y="sum ((^) 2) {b}"])
 apply (simp add: nat_less_power2 [THEN order_less_imp_le])
 apply (erule sum_mono2, simp, simp)
 done
@@ -263,7 +263,7 @@ begin
 
 definition
   compact_le_def:
-    "(op \<sqsubseteq>) \<equiv> (\<lambda>x y. Rep_compact_basis x \<sqsubseteq> Rep_compact_basis y)"
+    "(\<sqsubseteq>) \<equiv> (\<lambda>x y. Rep_compact_basis x \<sqsubseteq> Rep_compact_basis y)"
 
 instance ..
 end

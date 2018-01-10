@@ -472,7 +472,7 @@ lemma equivp_equiv: "equiv UNIV A \<longleftrightarrow> equivp (\<lambda>x y. (x
 lemma equivp_reflp_symp_transp: "equivp R \<longleftrightarrow> reflp R \<and> symp R \<and> transp R"
   by (auto intro: equivpI elim: equivpE)
 
-lemma identity_equivp: "equivp (op =)"
+lemma identity_equivp: "equivp (=)"
   by (auto intro: equivpI reflpI sympI transpI)
 
 lemma equivp_reflp: "equivp R \<Longrightarrow> R x x"

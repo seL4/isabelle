@@ -160,7 +160,7 @@ fun check_formulas tsp =
   let
     fun is_type_actually_monotonic T =
       Nitpick_Mono.formulas_monotonic hol_ctxt binarize T tsp
-    val free_Ts = fold Term.add_tfrees (op @ tsp) [] |> map TFree
+    val free_Ts = fold Term.add_tfrees ((@) tsp) [] |> map TFree
     val (mono_free_Ts, nonmono_free_Ts) =
       Timeout.apply mono_timeout
           (List.partition is_type_actually_monotonic) free_Ts

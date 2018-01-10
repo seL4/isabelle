@@ -569,7 +569,7 @@ proof
 qed (auto simp: assms intro!: blinfun.comp)
 
 lemma transfer_bounded_bilinear_bounded_linear[transfer_rule]:
-  "(rel_fun (rel_fun op = (pcr_blinfun op = op =)) op =) bounded_bilinear bounded_linear"
+  "(rel_fun (rel_fun (=) (pcr_blinfun (=) (=))) (=)) bounded_bilinear bounded_linear"
   by (auto simp: pcr_blinfun_def cr_blinfun_def rel_fun_def OO_def
     intro!: transfer_bounded_bilinear_bounded_linearI)
 
@@ -623,7 +623,7 @@ lemma blinfun_apply_snd_blinfun[simp]: "blinfun_apply snd_blinfun = snd"
 lift_definition blinfun_compose::
   "'a::real_normed_vector \<Rightarrow>\<^sub>L 'b::real_normed_vector \<Rightarrow>
     'c::real_normed_vector \<Rightarrow>\<^sub>L 'a \<Rightarrow>
-    'c \<Rightarrow>\<^sub>L 'b" (infixl "o\<^sub>L" 55) is "op o"
+    'c \<Rightarrow>\<^sub>L 'b" (infixl "o\<^sub>L" 55) is "(o)"
   parametric comp_transfer
   unfolding o_def
   by (rule bounded_linear_compose)
@@ -635,7 +635,7 @@ lemma norm_blinfun_compose:
   "norm (f o\<^sub>L g) \<le> norm f * norm g"
   by transfer (rule onorm_compose)
 
-lemma bounded_bilinear_blinfun_compose[bounded_bilinear]: "bounded_bilinear op o\<^sub>L"
+lemma bounded_bilinear_blinfun_compose[bounded_bilinear]: "bounded_bilinear (o\<^sub>L)"
   by unfold_locales
     (auto intro!: blinfun_eqI exI[where x=1] simp: blinfun.bilinear_simps norm_blinfun_compose)
 
@@ -645,7 +645,7 @@ lemma blinfun_compose_zero[simp]:
   by (auto simp: blinfun.bilinear_simps intro!: blinfun_eqI)
 
 
-lift_definition blinfun_inner_right::"'a::real_inner \<Rightarrow> 'a \<Rightarrow>\<^sub>L real" is "op \<bullet>"
+lift_definition blinfun_inner_right::"'a::real_inner \<Rightarrow> 'a \<Rightarrow>\<^sub>L real" is "(\<bullet>)"
   by (rule bounded_linear_inner_right)
 declare blinfun_inner_right.rep_eq[simp]
 
@@ -661,7 +661,7 @@ lemma bounded_linear_blinfun_inner_left[bounded_linear]: "bounded_linear blinfun
   by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_inner])
 
 
-lift_definition blinfun_scaleR_right::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_vector" is "op *\<^sub>R"
+lift_definition blinfun_scaleR_right::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_vector" is "( *\<^sub>R)"
   by (rule bounded_linear_scaleR_right)
 declare blinfun_scaleR_right.rep_eq[simp]
 
@@ -677,7 +677,7 @@ lemma bounded_linear_blinfun_scaleR_left[bounded_linear]: "bounded_linear blinfu
   by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_scaleR])
 
 
-lift_definition blinfun_mult_right::"'a \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_algebra" is "op *"
+lift_definition blinfun_mult_right::"'a \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_algebra" is "( * )"
   by (rule bounded_linear_mult_right)
 declare blinfun_mult_right.rep_eq[simp]
 

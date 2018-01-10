@@ -47,11 +47,11 @@ lemma compactE':
   assumes "compact S" "\<forall>n\<ge>m. f n \<in> S"
   obtains l r where "l \<in> S" "strict_mono (r::nat\<Rightarrow>nat)" "((f \<circ> r) \<longlongrightarrow> l) sequentially"
 proof atomize_elim
-  have "strict_mono (op + m)" by (simp add: strict_mono_def)
+  have "strict_mono ((+) m)" by (simp add: strict_mono_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto
   from seq_compactE[OF \<open>compact S\<close>[unfolded compact_eq_seq_compact_metric] this] guess l r .
   hence "l \<in> S" "strict_mono ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) \<longlonglongrightarrow> l"
-    using strict_mono_o[OF \<open>strict_mono (op + m)\<close> \<open>strict_mono r\<close>] by (auto simp: o_def)
+    using strict_mono_o[OF \<open>strict_mono ((+) m)\<close> \<open>strict_mono r\<close>] by (auto simp: o_def)
   thus "\<exists>l r. l \<in> S \<and> strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l" by blast
 qed
 
@@ -74,7 +74,7 @@ qed
 
 lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^sub>F n) \<longlonglongrightarrow> l"
 proof -
-  obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^sub>F n) \<longlonglongrightarrow> l"
+  obtain l where "(\<lambda>i. ((f o (diagseq o (+) (Suc n))) i)\<^sub>F n) \<longlonglongrightarrow> l"
   proof (atomize_elim, rule diagseq_holds)
     fix r s n
     assume "strict_mono (r :: nat \<Rightarrow> nat)"
@@ -296,8 +296,8 @@ proof (rule emeasure_lim)
       have "(\<Sum>i = 1..n. 2 powr - real i) = (\<Sum>i = 1..<Suc n. (1/2) ^ i)"
         by (rule sum.cong) (auto simp: powr_realpow powr_divide power_divide powr_minus_divide)
       also have "{1..<Suc n} = {..<Suc n} - {0}" by auto
-      also have "sum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
-        sum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: sum_diff1)
+      also have "sum ((^) (1 / 2::real)) ({..<Suc n} - {0}) =
+        sum ((^) (1 / 2)) ({..<Suc n}) - 1" by (auto simp: sum_diff1)
       also have "\<dots> < 1" by (subst geometric_sum) auto
       finally show "(\<Sum>i = 1..n. 2 powr - enn2real i) < 1" by simp
     qed (auto simp: r enn2real_positive_iff)

@@ -259,7 +259,7 @@ fun uniq_assume_tac ctxt =
           and concl = discard_proof (Logic.strip_assums_concl prem)
       in
           if exists (fn hyp => hyp aconv concl) hyps
-          then case distinct (op =) (filter (fn hyp => Term.could_unify (hyp, concl)) hyps) of
+          then case distinct (=) (filter (fn hyp => Term.could_unify (hyp, concl)) hyps) of
                    [_] => assume_tac ctxt i
                  |  _  => no_tac
           else no_tac
@@ -522,7 +522,7 @@ schematic_goal pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P
 lemmas pred_congs = pred1_cong pred2_cong pred3_cong
 
 (*special case for the equality predicate!*)
-lemmas eq_cong = pred2_cong [where P = "op ="]
+lemmas eq_cong = pred2_cong [where P = "(=)"]
 
 
 (*** Simplifications of assumed implications.

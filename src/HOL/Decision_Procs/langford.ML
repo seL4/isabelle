@@ -145,7 +145,7 @@ fun proc ctxt ct =
               case ndx of
                 [] => NONE
               | _ =>
-                conj_aci_rule (Thm.mk_binop @{cterm "op \<equiv> :: prop => _"} Pp
+                conj_aci_rule (Thm.mk_binop @{cterm "(\<equiv>) :: prop => _"} Pp
                   (Thm.apply @{cterm Trueprop} (list_conj (ndx @ dx))))
                 |> Thm.abstract_rule xn x
                 |> Drule.arg_cong_rule e
@@ -156,7 +156,7 @@ fun proc ctxt ct =
                 |> SOME
             end
         | _ =>
-            conj_aci_rule (Thm.mk_binop @{cterm "op \<equiv> :: prop => _"} Pp
+            conj_aci_rule (Thm.mk_binop @{cterm "(\<equiv>) :: prop => _"} Pp
               (Thm.apply @{cterm Trueprop} (list_conj (eqs @ neqs))))
             |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e
             |> Conv.fconv_rule

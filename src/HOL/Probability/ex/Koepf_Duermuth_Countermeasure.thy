@@ -194,7 +194,7 @@ definition OB :: "'key \<times> 'message list \<Rightarrow> 'observation list" w
 definition t :: "'observation list \<Rightarrow> 'observation \<Rightarrow> nat" where
   t_def2: "t seq obs = card { i. i < length seq \<and> seq ! i = obs}"
 
-lemma t_def: "t seq obs = length (filter (op = obs) seq)"
+lemma t_def: "t seq obs = length (filter ((=) obs) seq)"
   unfolding t_def2 length_filter_conv_card by (subst eq_commute) simp
 
 lemma card_T_bound: "card ((t\<circ>OB)`msgs) \<le> (n+1)^card observations"

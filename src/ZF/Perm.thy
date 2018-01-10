@@ -398,7 +398,7 @@ lemma comp_mem_injD2:
 apply (unfold inj_def surj_def, safe)
 apply (rule_tac x1 = x in bspec [THEN bexE])
 apply (erule_tac [3] x1 = w in bspec [THEN bexE], assumption+, safe)
-apply (rule_tac t = "op ` (g) " in subst_context)
+apply (rule_tac t = "(`) (g) " in subst_context)
 apply (erule asm_rl bspec [THEN bspec, THEN mp])+
 apply (simp (no_asm_simp))
 done

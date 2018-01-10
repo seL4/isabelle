@@ -19,8 +19,8 @@ text \<open>
   Section~\ref{sec:local-interpretation}.
 
   As an example, consider the type of integers @{typ int}.  The
-  relation @{term "op \<le>"} is a total order over @{typ int}.  We start
-  with the interpretation that @{term "op \<le>"} is a partial order.  The
+  relation @{term "(\<le>)"} is a total order over @{typ int}.  We start
+  with the interpretation that @{term "(\<le>)"} is a partial order.  The
   facilities of the interpretation command are explored gradually in
   three versions.
 \<close>
@@ -32,11 +32,11 @@ subsection \<open>First Version: Replacement of Parameters Only
 text \<open>
   The command \isakeyword{interpretation} is for the interpretation of
   locale in theories.  In the following example, the parameter of locale
-  @{text partial_order} is replaced by @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow>
+  @{text partial_order} is replaced by @{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow>
   bool"} and the locale instance is interpreted in the current
   theory.\<close>
 
-  interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
+  interpretation %visible int: partial_order "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"
 txt \<open>\normalsize
   The argument of the command is a simple \emph{locale expression}
   consisting of the name of the interpreted locale, which is
@@ -70,17 +70,17 @@ text \<open>Not only does the above interpretation qualify theorem names.
   The prefix @{text int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
   qualified name @{text int.less} is short for
-  the interpretation of the definition, which is @{text "partial_order.less op \<le>"}.
+  the interpretation of the definition, which is @{text "partial_order.less (\<le>)"}.
   Qualified name and expanded form may be used almost
   interchangeably.%
-\footnote{Since @{term "op \<le>"} is polymorphic, for @{text "partial_order.less op \<le>"} a
+\footnote{Since @{term "(\<le>)"} is polymorphic, for @{text "partial_order.less (\<le>)"} a
   more general type will be inferred than for @{text int.less} which
   is over type @{typ int}.}
   The former is preferred on output, as for example in the theorem
   @{thm [source] int.less_le_trans}: @{thm [display, indent=2]
   int.less_le_trans}
   Both notations for the strict order are not satisfactory.  The
-  constant @{term "op <"} is the strict order for @{typ int}.
+  constant @{term "(<)"} is the strict order for @{typ int}.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the

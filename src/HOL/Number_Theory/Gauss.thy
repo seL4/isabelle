@@ -169,7 +169,7 @@ qed
 
 lemma inj_on_pminusx_E: "inj_on (\<lambda>x. p - x) E"
   apply (auto simp add: E_def C_def B_def A_def)
-  apply (rule inj_on_inverseI [where g = "op - (int p)"])
+  apply (rule inj_on_inverseI [where g = "(-) (int p)"])
   apply auto
   done
 
@@ -315,7 +315,7 @@ lemma prod_D_F_eq_prod_A: "prod id D * prod id F = prod id A"
 
 lemma prod_F_zcong: "[prod id F = ((-1) ^ (card E)) * prod id E] (mod p)"
 proof -
-  have FE: "prod id F = prod (op - p) E"
+  have FE: "prod id F = prod ((-) p) E"
     apply (auto simp add: F_def)
     apply (insert finite_E inj_on_pminusx_E)
     apply (drule prod.reindex)
@@ -323,8 +323,8 @@ proof -
     done
   then have "\<forall>x \<in> E. [(p-x) mod p = - x](mod p)"
     by (metis cong_def minus_mod_self1 mod_mod_trivial)
-  then have "[prod ((\<lambda>x. x mod p) \<circ> (op - p)) E = prod (uminus) E](mod p)"
-    using finite_E p_ge_2 cong_prod [of E "(\<lambda>x. x mod p) \<circ> (op - p)" uminus p]
+  then have "[prod ((\<lambda>x. x mod p) \<circ> ((-) p)) E = prod (uminus) E](mod p)"
+    using finite_E p_ge_2 cong_prod [of E "(\<lambda>x. x mod p) \<circ> ((-) p)" uminus p]
     by auto
   then have two: "[prod id F = prod (uminus) E](mod p)"
     by (metis FE cong_cong_mod_int cong_refl cong_prod minus_mod_self1)

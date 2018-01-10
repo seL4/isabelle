@@ -59,7 +59,7 @@ theorem correctness:
   assumes "dc \<in> dining_cryptographers"
   shows "result dc \<longleftrightarrow> (payer dc \<noteq> None)"
 proof -
-  let ?XOR = "\<lambda>f l. foldl (op \<noteq>) False (map f [0..<l])"
+  let ?XOR = "\<lambda>f l. foldl (\<noteq>) False (map f [0..<l])"
 
   have foldl_coin:
     "\<not> ?XOR (\<lambda>c. coin dc c \<noteq> coin dc (c + 1)) n"

@@ -32,7 +32,7 @@ subsection \<open>Product type is a partial order\<close>
 instantiation prod :: (below, below) below
 begin
 
-definition below_prod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
+definition below_prod_def: "(\<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
 
 instance ..
 

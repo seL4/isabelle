@@ -580,7 +580,7 @@ lemma carrier_mult_of: "carrier (mult_of R) = carrier R - {\<zero>\<^bsub>R\<^es
 lemma mult_mult_of: "mult (mult_of R) = mult R"
  by (simp add: mult_of_def)
 
-lemma nat_pow_mult_of: "op [^]\<^bsub>mult_of R\<^esub> = (op [^]\<^bsub>R\<^esub> :: _ \<Rightarrow> nat \<Rightarrow> _)"
+lemma nat_pow_mult_of: "([^]\<^bsub>mult_of R\<^esub>) = (([^]\<^bsub>R\<^esub>) :: _ \<Rightarrow> nat \<Rightarrow> _)"
   by (simp add: mult_of_def fun_eq_iff nat_pow_def)
 
 lemma one_mult_of: "\<one>\<^bsub>mult_of R\<^esub> = \<one>\<^bsub>R\<^esub>"
@@ -762,7 +762,7 @@ proof -
   note mult_of_simps[simp]
   have finite': "finite (carrier (mult_of R))" using finite by (rule finite_mult_of)
 
-  interpret G:group "mult_of R" rewrites "op [^]\<^bsub>mult_of R\<^esub> = (op [^] :: _ \<Rightarrow> nat \<Rightarrow> _)" and "\<one>\<^bsub>mult_of R\<^esub> = \<one>"
+  interpret G:group "mult_of R" rewrites "([^]\<^bsub>mult_of R\<^esub>) = (([^]) :: _ \<Rightarrow> nat \<Rightarrow> _)" and "\<one>\<^bsub>mult_of R\<^esub> = \<one>"
     by (rule field_mult_group) simp_all
 
   from exists
@@ -826,7 +826,7 @@ proof -
   have finite': "finite (carrier (mult_of R))" using finite by (rule finite_mult_of)
 
   interpret G: group "mult_of R" rewrites
-      "op [^]\<^bsub>mult_of R\<^esub> = (op [^] :: _ \<Rightarrow> nat \<Rightarrow> _)" and "\<one>\<^bsub>mult_of R\<^esub> = \<one>"
+      "([^]\<^bsub>mult_of R\<^esub>) = (([^]) :: _ \<Rightarrow> nat \<Rightarrow> _)" and "\<one>\<^bsub>mult_of R\<^esub> = \<one>"
     by (rule field_mult_group) (simp_all add: fun_eq_iff nat_pow_def)
 
   let ?N = "\<lambda> x . card {a \<in> carrier (mult_of R). group.ord (mult_of R) a  = x}"

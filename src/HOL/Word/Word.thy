@@ -164,7 +164,7 @@ setup_lifting Quotient_word reflp_word
 text \<open>TODO: The next lemma could be generated automatically.\<close>
 
 lemma uint_transfer [transfer_rule]:
-  "(rel_fun pcr_word op =) (bintrunc (len_of TYPE('a))) (uint :: 'a::len0 word \<Rightarrow> int)"
+  "(rel_fun pcr_word (=)) (bintrunc (len_of TYPE('a))) (uint :: 'a::len0 word \<Rightarrow> int)"
   unfolding rel_fun_def word.pcr_cr_eq cr_word_def
   by (simp add: no_bintr_alt1 uint_word_of_int)
 
@@ -264,16 +264,16 @@ lift_definition zero_word :: "'a word" is "0" .
 
 lift_definition one_word :: "'a word" is "1" .
 
-lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op +"
+lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(+)"
   by (auto simp add: bintrunc_mod2p intro: mod_add_cong)
 
-lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op -"
+lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(-)"
   by (auto simp add: bintrunc_mod2p intro: mod_diff_cong)
 
 lift_definition uminus_word :: "'a word \<Rightarrow> 'a word" is uminus
   by (auto simp add: bintrunc_mod2p intro: mod_minus_cong)
 
-lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "op *"
+lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "( * )"
   by (auto simp add: bintrunc_mod2p intro: mod_mult_cong)
 
 definition word_div_def: "a div b = word_of_int (uint a div uint b)"
@@ -572,8 +572,8 @@ lemma word_neg_numeral_alt: "- numeral b = word_of_int (- numeral b)"
 declare word_neg_numeral_alt [symmetric, code_abbrev]
 
 lemma word_numeral_transfer [transfer_rule]:
-  "(rel_fun op = pcr_word) numeral numeral"
-  "(rel_fun op = pcr_word) (- numeral) (- numeral)"
+  "(rel_fun (=) pcr_word) numeral numeral"
+  "(rel_fun (=) pcr_word) (- numeral) (- numeral)"
   apply (simp_all add: rel_fun_def word.pcr_cr_eq cr_word_def)
   using word_numeral_alt [symmetric] word_neg_numeral_alt [symmetric] by auto
 
@@ -2163,7 +2163,7 @@ lemma test_bit_wi [simp]:
   by (simp add: word_test_bit_def word_ubin.eq_norm nth_bintr)
 
 lemma word_test_bit_transfer [transfer_rule]:
-  "(rel_fun pcr_word (rel_fun op = op =))
+  "(rel_fun pcr_word (rel_fun (=) (=)))
     (\<lambda>x n. n < len_of TYPE('a) \<and> bin_nth x n) (test_bit :: 'a::len0 word \<Rightarrow> _)"
   unfolding rel_fun_def word.pcr_cr_eq cr_word_def by simp
 
@@ -2314,15 +2314,15 @@ lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)"
   unfolding to_bl_def word_log_defs bl_not_bin
   by (simp add: word_ubin.eq_norm)
 
-lemma bl_word_xor: "to_bl (v XOR w) = map2 op \<noteq> (to_bl v) (to_bl w)"
+lemma bl_word_xor: "to_bl (v XOR w) = map2 (\<noteq>) (to_bl v) (to_bl w)"
   unfolding to_bl_def word_log_defs bl_xor_bin
   by (simp add: word_ubin.eq_norm)
 
-lemma bl_word_or: "to_bl (v OR w) = map2 op \<or> (to_bl v) (to_bl w)"
+lemma bl_word_or: "to_bl (v OR w) = map2 (\<or>) (to_bl v) (to_bl w)"
   unfolding to_bl_def word_log_defs bl_or_bin
   by (simp add: word_ubin.eq_norm)
 
-lemma bl_word_and: "to_bl (v AND w) = map2 op \<and> (to_bl v) (to_bl w)"
+lemma bl_word_and: "to_bl (v AND w) = map2 (\<and>) (to_bl v) (to_bl w)"
   unfolding to_bl_def word_log_defs bl_and_bin
   by (simp add: word_ubin.eq_norm)
 
@@ -2452,7 +2452,7 @@ lemma td_ext_nth [OF refl refl refl, unfolded word_size]:
 
 interpretation test_bit:
   td_ext
-    "op !! :: 'a::len0 word \<Rightarrow> nat \<Rightarrow> bool"
+    "(!!) :: 'a::len0 word \<Rightarrow> nat \<Rightarrow> bool"
     set_bits
     "{f. \<forall>i. f i \<longrightarrow> i < len_of TYPE('a::len0)}"
     "(\<lambda>h i. h i \<and> i < len_of TYPE('a::len0))"
@@ -2987,7 +2987,7 @@ lemma zip_replicate: "n \<ge> length ys \<Longrightarrow> zip (replicate n x) ys
 lemma align_lem_or [rule_format] :
   "\<forall>x m. length x = n + m \<longrightarrow> length y = n + m \<longrightarrow>
     drop m x = replicate n False \<longrightarrow> take m y = replicate m False \<longrightarrow>
-    map2 op | x y = take m x @ drop m y"
+    map2 (|) x y = take m x @ drop m y"
   apply (induct y)
    apply force
   apply clarsimp
@@ -3002,7 +3002,7 @@ lemma align_lem_or [rule_format] :
 lemma align_lem_and [rule_format] :
   "\<forall>x m. length x = n + m \<longrightarrow> length y = n + m \<longrightarrow>
     drop m x = replicate n False \<longrightarrow> take m y = replicate m False \<longrightarrow>
-    map2 op \<and> x y = replicate (n + m) False"
+    map2 (\<and>) x y = replicate (n + m) False"
   apply (induct y)
    apply force
   apply clarsimp
@@ -3683,7 +3683,7 @@ lemma test_bit_rcat:
    apply (auto simp: test_bit_bl word_size td_gal_lt_len [THEN iffD2, THEN nth_rcat_lem])
   done
 
-lemma foldl_eq_foldr: "foldl op + x xs = foldr op + (x # xs) 0"
+lemma foldl_eq_foldr: "foldl (+) x xs = foldr (+) (x # xs) 0"
   for x :: "'a::comm_monoid_add"
   by (induct xs arbitrary: x) (auto simp: add.assoc)
 
@@ -4195,7 +4195,7 @@ lemma word_and_not [simp]: "x AND NOT x = 0"
 lemma word_or_not [simp]: "x OR NOT x = max_word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
-lemma word_boolean: "boolean (op AND) (op OR) bitNOT 0 max_word"
+lemma word_boolean: "boolean (AND) (OR) bitNOT 0 max_word"
   apply (rule boolean.intro)
            apply (rule word_bw_assocs)
           apply (rule word_bw_assocs)
@@ -4209,14 +4209,14 @@ lemma word_boolean: "boolean (op AND) (op OR) bitNOT 0 max_word"
   apply (rule word_or_not)
   done
 
-interpretation word_bool_alg: boolean "op AND" "op OR" bitNOT 0 max_word
+interpretation word_bool_alg: boolean "(AND)" "(OR)" bitNOT 0 max_word
   by (rule word_boolean)
 
 lemma word_xor_and_or: "x XOR y = x AND NOT y OR NOT x AND y"
   for x y :: "'a::len0 word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
-interpretation word_bool_alg: boolean_xor "op AND" "op OR" bitNOT 0 max_word "op XOR"
+interpretation word_bool_alg: boolean_xor "(AND)" "(OR)" bitNOT 0 max_word "(XOR)"
   apply (rule boolean_xor.intro)
    apply (rule word_boolean)
   apply (rule boolean_xor_axioms.intro)
@@ -4270,11 +4270,11 @@ lemma bl_and_mask:
   shows "to_bl (w AND mask n) = replicate n' False @ drop n' (to_bl w)"
 proof -
   note [simp] = map_replicate_True map_replicate_False
-  have "to_bl (w AND mask n) = map2 op \<and> (to_bl w) (to_bl (mask n::'a::len word))"
+  have "to_bl (w AND mask n) = map2 (\<and>) (to_bl w) (to_bl (mask n::'a::len word))"
     by (simp add: bl_word_and)
   also have "to_bl w = take n' (to_bl w) @ drop n' (to_bl w)"
     by simp
-  also have "map2 op \<and> \<dots> (to_bl (mask n::'a::len word)) =
+  also have "map2 (\<and>) \<dots> (to_bl (mask n::'a::len word)) =
       replicate n' False @ drop n' (to_bl w)"
     unfolding to_bl_mask n'_def map2_def by (subst zip_append) auto
   finally show ?thesis .
@@ -4285,7 +4285,7 @@ lemma drop_rev_takefill:
     drop (n - length xs) (rev (takefill False n (rev xs))) = xs"
   by (simp add: takefill_alt rev_take)
 
-lemma map_nth_0 [simp]: "map (op !! (0::'a::len0 word)) xs = replicate (length xs) False"
+lemma map_nth_0 [simp]: "map ((!!) (0::'a::len0 word)) xs = replicate (length xs) False"
   by (induct xs) auto
 
 lemma uint_plus_if_size:
@@ -4433,11 +4433,11 @@ lemma word_rec_Pred: "n \<noteq> 0 \<Longrightarrow> word_rec z s n = s (n - 1) 
 lemma word_rec_in: "f (word_rec z (\<lambda>_. f) n) = word_rec (f z) (\<lambda>_. f) n"
   by (induct n) (simp_all add: word_rec_0 word_rec_Suc)
 
-lemma word_rec_in2: "f n (word_rec z f n) = word_rec (f 0 z) (f \<circ> op + 1) n"
+lemma word_rec_in2: "f n (word_rec z f n) = word_rec (f 0 z) (f \<circ> (+) 1) n"
   by (induct n) (simp_all add: word_rec_0 word_rec_Suc)
 
 lemma word_rec_twice:
-  "m \<le> n \<Longrightarrow> word_rec z f n = word_rec (word_rec z f (n - m)) (f \<circ> op + (n - m)) m"
+  "m \<le> n \<Longrightarrow> word_rec z f n = word_rec (word_rec z f (n - m)) (f \<circ> (+) (n - m)) m"
   apply (erule rev_mp)
   apply (rule_tac x=z in spec)
   apply (rule_tac x=f in spec)
@@ -4455,7 +4455,7 @@ lemma word_rec_twice:
   apply (simp add: word_rec_Suc word_rec_in2)
   apply (erule impE)
    apply uint_arith
-  apply (drule_tac x="x \<circ> op + 1" in spec)
+  apply (drule_tac x="x \<circ> (+) 1" in spec)
   apply (drule_tac x="x 0 xa" in spec)
   apply simp
   apply (rule_tac t="\<lambda>a. x (1 + (n - m + a))" and s="\<lambda>a. x (1 + (n - m) + a)" in subst)

@@ -68,7 +68,7 @@ using Inr_cont_par[of tr1 tr2] unfolding vimage_def by auto
 subsection\<open>Structural Coinduction Proofs\<close>
 
 lemma rel_set_rel_sum_eq[simp]:
-"rel_set (rel_sum (op =) \<phi>) A1 A2 \<longleftrightarrow>
+"rel_set (rel_sum (=) \<phi>) A1 A2 \<longleftrightarrow>
  Inl -` A1 = Inl -` A2 \<and> rel_set \<phi> (Inr -` A1) (Inr -` A2)"
 unfolding rel_set_rel_sum rel_set_eq ..
 

@@ -523,7 +523,7 @@ fun simple_choose ctxt v th =
   Free(s,_) => s
  | Var ((s,_),_) => s
  | _ => "x"
- fun mk_eq s t = Thm.apply (Thm.apply \<^cterm>\<open>op \<equiv> :: bool \<Rightarrow> _\<close> s) t
+ fun mk_eq s t = Thm.apply (Thm.apply \<^cterm>\<open>(\<equiv>) :: bool \<Rightarrow> _\<close> s) t
  fun mk_exists ctxt v th = Drule.arg_cong_rule (ext ctxt (Thm.typ_of_cterm v))
    (Thm.abstract_rule (getname v) v th)
  fun simp_ex_conv ctxt =
@@ -601,7 +601,7 @@ let
     else tm::acc ;
 
 fun grobify_term vars tm =
-((if not (member (op aconvc) vars tm) then raise CTERM ("Not a variable", [tm]) else
+((if not (member (aconvc) vars tm) then raise CTERM ("Not a variable", [tm]) else
      [(@1, map (fn i => if i aconvc tm then 1 else 0) vars)])
 handle  CTERM _ =>
  ((let val x = dest_const tm
@@ -823,7 +823,7 @@ val poly_eq_ss =
   val th1 = (the (get_first (try (isolate_variable vars)) cjs)
              handle Option.Option => raise CTERM ("unwind_polys_conv",[tm]))
   val eq = Thm.lhs_of th1
-  val bod' = list_mk_binop \<^cterm>\<open>HOL.conj\<close> (eq::(remove op aconvc eq cjs))
+  val bod' = list_mk_binop \<^cterm>\<open>HOL.conj\<close> (eq::(remove (aconvc) eq cjs))
   val th2 = conj_ac_rule (mk_eq bod bod')
   val th3 =
     Thm.transitive th2
@@ -900,7 +900,7 @@ fun find_term bounds tm =
   | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _ => find_args bounds tm
   | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ => find_args bounds tm
   | \<^term>\<open>Pure.imp\<close> $_$_ => find_args bounds tm
-  | Const("op ==",_)$_$_ => find_args bounds tm  (* FIXME proper const name *)
+  | Const("(==)",_)$_$_ => find_args bounds tm  (* FIXME proper const name *)
   | \<^term>\<open>Trueprop\<close>$_ => find_term bounds (Thm.dest_arg tm)
   | _ => raise TERM ("find_term", []))
 and find_args bounds tm =

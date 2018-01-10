@@ -497,7 +497,7 @@ proof -
   have "ennreal (norm (?s - ?t)) = norm (simple_bochner_integral M (\<lambda>x. s x - t x))"
     using s t by (subst simple_bochner_integral_diff) auto
   also have "\<dots> \<le> simple_bochner_integral M (\<lambda>x. norm (s x - t x))"
-    using simple_bochner_integrable_compose2[of "op -" M "s" "t"] s t
+    using simple_bochner_integrable_compose2[of "(-)" M "s" "t"] s t
     by (auto intro!: simple_bochner_integral_norm_bound)
   also have "\<dots> = (\<integral>\<^sup>+x. norm (s x - t x) \<partial>M)"
     using simple_bochner_integrable_compose2[of "\<lambda>x y. norm (x - y)" M "s" "t"] s t
@@ -1855,7 +1855,7 @@ proof -
 
   have sf[measurable]: "\<And>i. simple_function M (s' i)"
     unfolding s'_def using s(1)
-    by (intro simple_function_compose2[where h="op *\<^sub>R"] simple_function_indicator) auto
+    by (intro simple_function_compose2[where h="( *\<^sub>R)"] simple_function_indicator) auto
 
   { fix i
     have "\<And>z. {y. s' i z = y \<and> y \<in> s' i ` space M \<and> y \<noteq> 0 \<and> z \<in> space M} =
@@ -2282,7 +2282,7 @@ lemma integrable_density:
   shows "integrable (density M g) f \<longleftrightarrow> integrable M (\<lambda>x. g x *\<^sub>R f x)"
   unfolding integrable_iff_bounded using nn
   apply (simp add: nn_integral_density less_top[symmetric])
-  apply (intro arg_cong2[where f="op ="] refl nn_integral_cong_AE)
+  apply (intro arg_cong2[where f="(=)"] refl nn_integral_cong_AE)
   apply (auto simp: ennreal_mult)
   done
 

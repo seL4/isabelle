@@ -375,7 +375,7 @@ subsection \<open>Powers with Hypernatural Exponents\<close>
 
 text \<open>Hypernatural powers of hyperreals.\<close>
 definition pow :: "'a::power star \<Rightarrow> nat star \<Rightarrow> 'a star"  (infixr "pow" 80)
-  where hyperpow_def [transfer_unfold]: "R pow N = ( *f2* op ^) R N"
+  where hyperpow_def [transfer_unfold]: "R pow N = ( *f2* (^)) R N"
 
 lemma Standard_hyperpow [simp]: "r \<in> Standard \<Longrightarrow> n \<in> Standard \<Longrightarrow> r pow n \<in> Standard"
   by (simp add: hyperpow_def)

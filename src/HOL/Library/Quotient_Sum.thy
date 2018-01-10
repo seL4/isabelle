@@ -23,7 +23,7 @@ lemma map_sum_id [id_simps]:
   by (simp add: id_def map_sum.identity fun_eq_iff)
 
 lemma rel_sum_eq [id_simps]:
-  "rel_sum (op =) (op =) = (op =)"
+  "rel_sum (=) (=) = (=)"
   by (rule sum.rel_eq)
 
 lemma reflp_rel_sum:

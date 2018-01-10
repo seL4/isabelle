@@ -96,7 +96,7 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  member (op =) ["max", "show_all", "whack", "eval", "need", "atoms",
+  member (=) ["max", "show_all", "whack", "eval", "need", "atoms",
                  "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",

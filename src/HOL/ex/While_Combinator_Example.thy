@@ -17,7 +17,7 @@ theorem lfp_conv_while:
     lfp f = fst (while (\<lambda>(A, fA). A \<noteq> fA) (\<lambda>(A, fA). (fA, f fA)) ({}, f {}))"
 apply (rule_tac P = "\<lambda>(A, B). (A \<subseteq> U \<and> B = f A \<and> A \<subseteq> B \<and> B \<subseteq> lfp f)" and
                 r = "((Pow U \<times> UNIV) \<times> (Pow U \<times> UNIV)) \<inter>
-                     inv_image finite_psubset (op - U o fst)" in while_rule)
+                     inv_image finite_psubset ((-) U o fst)" in while_rule)
    apply (subst lfp_unfold)
     apply assumption
    apply (simp add: monoD)

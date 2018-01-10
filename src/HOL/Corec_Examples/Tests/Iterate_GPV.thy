@@ -21,10 +21,10 @@ declare gpv.rel_eq [relator_eq]
 
 primcorec bind_gpv :: "('a, 'out, 'in) gpv \<Rightarrow> ('a \<Rightarrow> ('b, 'out, 'in) gpv) \<Rightarrow> ('b, 'out, 'in) gpv"
 where
-  "bind_gpv r f = GPV (map_spmf (map_generat id id (op \<circ> (case_sum id (\<lambda>r. bind_gpv r f))))
+  "bind_gpv r f = GPV (map_spmf (map_generat id id ((\<circ>) (case_sum id (\<lambda>r. bind_gpv r f))))
      (bind_spmf (the_gpv r)
       (case_generat
-        (\<lambda>x. map_spmf (map_generat id id (op \<circ> Inl)) (the_gpv (f x)))
+        (\<lambda>x. map_spmf (map_generat id id ((\<circ>) Inl)) (the_gpv (f x)))
         (\<lambda>out c. return_spmf (IO out (\<lambda>input. Inr (c input)))))))"
 
 context includes lifting_syntax begin
@@ -44,10 +44,10 @@ lemma [friend_of_corec_simps]:
   by (cases x) auto
 
 friend_of_corec bind_gpv :: "('a, 'out, 'in) gpv \<Rightarrow> ('a \<Rightarrow> ('a, 'out, 'in) gpv) \<Rightarrow> ('a, 'out, 'in) gpv"
-where "bind_gpv r f = GPV (map_spmf (map_generat id id (op \<circ> (case_sum id (\<lambda>r. bind_gpv r f))))
+where "bind_gpv r f = GPV (map_spmf (map_generat id id ((\<circ>) (case_sum id (\<lambda>r. bind_gpv r f))))
      (bind_spmf (the_gpv r)
       (case_generat
-        (\<lambda>x. map_spmf (map_generat id id (op \<circ> Inl)) (the_gpv (f x)))
+        (\<lambda>x. map_spmf (map_generat id id ((\<circ>) Inl)) (the_gpv (f x)))
         (\<lambda>out c. return_spmf (IO out (\<lambda>input. Inr (c input)))))))"
 apply(rule bind_gpv.ctr)
 apply transfer_prover

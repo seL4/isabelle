@@ -19,7 +19,7 @@ lemma hpfinite_witness: "\<epsilon> \<in> {x. 0 \<le> x \<and> x \<in> HFinite}"
 
 
 definition powhr :: "hypreal \<Rightarrow> hypreal \<Rightarrow> hypreal"  (infixr "powhr" 80)
-  where [transfer_unfold]: "x powhr a = starfun2 (op powr) x a"
+  where [transfer_unfold]: "x powhr a = starfun2 (powr) x a"
 
 definition hlog :: "hypreal \<Rightarrow> hypreal \<Rightarrow> hypreal"
   where [transfer_unfold]: "hlog a x = starfun2 log a x"

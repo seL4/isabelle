@@ -19,7 +19,7 @@ text \<open>'a is a contravariant type variable and we are able to map over this
   in the following four definitions. This example is based on HOL/Fun.thy.\<close>
 
 quotient_type
-('a, 'b) fun' (infixr "\<rightarrow>" 55) = "'a \<Rightarrow> 'b" / "op =" 
+('a, 'b) fun' (infixr "\<rightarrow>" 55) = "'a \<Rightarrow> 'b" / "(=)" 
   by (simp add: identity_equivp)
 
 quotient_definition "comp' :: ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"  is
@@ -41,7 +41,7 @@ subsection \<open>Co/Contravariant type variables\<close>
 text \<open>'a is a covariant and contravariant type variable in the same time.
   The following example is a bit artificial. We haven't had a natural one yet.\<close>
 
-quotient_type 'a endofun = "'a \<Rightarrow> 'a" / "op =" by (simp add: identity_equivp)
+quotient_type 'a endofun = "'a \<Rightarrow> 'a" / "(=)" by (simp add: identity_equivp)
 
 definition map_endofun' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> ('a => 'a) \<Rightarrow> ('b => 'b)"
   where "map_endofun' f g e = map_fun g f e"
@@ -58,7 +58,7 @@ proof -
     by (auto simp: map_endofun_def map_endofun'_def map_fun_def fun_eq_iff)
   
   have a:"\<forall> x. rep_endofun (abs_endofun x) = x" using Quotient3_endofun 
-    Quotient3_rep_abs[of "(op =)" abs_endofun rep_endofun] by blast
+    Quotient3_rep_abs[of "(=)" abs_endofun rep_endofun] by blast
   show "\<And>f g h i. map_endofun f g \<circ> map_endofun h i = map_endofun (f \<circ> h) (i \<circ> g)"
     by (auto simp: map_endofun_def map_endofun'_def map_fun_def fun_eq_iff) (simp add: a o_assoc) 
 qed
@@ -108,7 +108,7 @@ quotient_definition "endofun_id_id :: ('a endofun) endofun" is "id :: ('a \<Righ
 term  endofun_id_id
 thm  endofun_id_id_def
 
-quotient_type 'a endofun' = "'a endofun" / "op =" by (simp add: identity_equivp)
+quotient_type 'a endofun' = "'a endofun" / "(=)" by (simp add: identity_equivp)
 
 text \<open>We have to map "'a endofun" to "('a endofun') endofun", i.e., mapping (lifting)
   over a type variable which is a covariant and contravariant type variable.\<close>

@@ -124,7 +124,7 @@ lemma sum_not_0: "sum f A \<noteq> 0 \<Longrightarrow> \<exists>a \<in> A. f a \
   by (rule ccontr) auto
 
 lemma subset_translation_eq [simp]:
-    fixes a :: "'a::real_vector" shows "op + a ` s \<subseteq> op + a ` t \<longleftrightarrow> s \<subseteq> t"
+    fixes a :: "'a::real_vector" shows "(+) a ` s \<subseteq> (+) a ` t \<longleftrightarrow> s \<subseteq> t"
   by auto
 
 lemma translate_inj_on:
@@ -714,7 +714,7 @@ lemma convex_affinity:
   assumes "convex S"
   shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` S)"
 proof -
-  have "(\<lambda>x. a + c *\<^sub>R x) ` S = op + a ` op *\<^sub>R c ` S"
+  have "(\<lambda>x. a + c *\<^sub>R x) ` S = (+) a ` ( *\<^sub>R) c ` S"
     by auto
   then show ?thesis
     using convex_translation[OF convex_scaling[OF assms], of a c] by auto
@@ -1330,12 +1330,12 @@ lemma closure_bounded_linear_image:
 
 lemma closure_scaleR:
   fixes S :: "'a::real_normed_vector set"
-  shows "(op *\<^sub>R c) ` (closure S) = closure ((op *\<^sub>R c) ` S)"
+  shows "(( *\<^sub>R) c) ` (closure S) = closure ((( *\<^sub>R) c) ` S)"
 proof
-  show "(op *\<^sub>R c) ` (closure S) \<subseteq> closure ((op *\<^sub>R c) ` S)"
+  show "(( *\<^sub>R) c) ` (closure S) \<subseteq> closure ((( *\<^sub>R) c) ` S)"
     using bounded_linear_scaleR_right
     by (rule closure_bounded_linear_image_subset)
-  show "closure ((op *\<^sub>R c) ` S) \<subseteq> (op *\<^sub>R c) ` (closure S)"
+  show "closure ((( *\<^sub>R) c) ` S) \<subseteq> (( *\<^sub>R) c) ` (closure S)"
     by (intro closure_minimal image_mono closure_subset closed_scaling closed_closure)
 qed
 
@@ -2154,7 +2154,7 @@ lemma cone_Union[intro]: "(\<forall>s\<in>f. cone s) \<longrightarrow> cone (\<U
 
 lemma cone_iff:
   assumes "S \<noteq> {}"
-  shows "cone S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
+  shows "cone S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (( *\<^sub>R) c) ` S = S)"
 proof -
   {
     assume "cone S"
@@ -2164,7 +2164,7 @@ proof -
       {
         fix x
         assume "x \<in> S"
-        then have "x \<in> (op *\<^sub>R c) ` S"
+        then have "x \<in> (( *\<^sub>R) c) ` S"
           unfolding image_def
           using \<open>cone S\<close> \<open>c>0\<close> mem_cone[of S x "1/c"]
             exI[of "(\<lambda>t. t \<in> S \<and> x = c *\<^sub>R t)" "(1 / c) *\<^sub>R x"]
@@ -2173,19 +2173,19 @@ proof -
       moreover
       {
         fix x
-        assume "x \<in> (op *\<^sub>R c) ` S"
+        assume "x \<in> (( *\<^sub>R) c) ` S"
         then have "x \<in> S"
           using \<open>cone S\<close> \<open>c > 0\<close>
           unfolding cone_def image_def \<open>c > 0\<close> by auto
       }
-      ultimately have "(op *\<^sub>R c) ` S = S" by auto
+      ultimately have "(( *\<^sub>R) c) ` S = S" by auto
     }
-    then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
+    then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (( *\<^sub>R) c) ` S = S)"
       using \<open>cone S\<close> cone_contains_0[of S] assms by auto
   }
   moreover
   {
-    assume a: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
+    assume a: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (( *\<^sub>R) c) ` S = S)"
     {
       fix x
       assume "x \<in> S"
@@ -2271,9 +2271,9 @@ proof (cases "S = {}")
   then show ?thesis by auto
 next
   case False
-  then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` S = S)"
+  then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` S = S)"
     using cone_iff[of S] assms by auto
-  then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` closure S = closure S)"
+  then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` closure S = closure S)"
     using closure_subset by (auto simp add: closure_scaleR)
   then show ?thesis
     using False cone_iff[of "closure S"] by auto
@@ -3344,7 +3344,7 @@ lemma affine_dependent_translation:
 proof -
   obtain x where x: "x \<in> S \<and> x \<in> affine hull (S - {x})"
     using assms affine_dependent_def by auto
-  have "op + a ` (S - {x}) = op + a ` S - {a + x}"
+  have "(+) a ` (S - {x}) = (+) a ` S - {a + x}"
     by auto
   then have "a + x \<in> affine hull ((\<lambda>x. a + x) ` S - {a + x})"
     using affine_hull_translation[of a "S - {x}"] x by auto
@@ -3409,7 +3409,7 @@ lemma affine_dependent_iff_dependent:
   assumes "a \<notin> S"
   shows "affine_dependent (insert a S) \<longleftrightarrow> dependent ((\<lambda>x. -a + x) ` S)"
 proof -
-  have "(op + (- a) ` S) = {x - a| x . x : S}" by auto
+  have "((+) (- a) ` S) = {x - a| x . x : S}" by auto
   then show ?thesis
     using affine_dependent_translation_eq[of "(insert a S)" "-a"]
       affine_dependent_imp_dependent2 assms
@@ -3448,7 +3448,7 @@ proof -
     then have "insert 0 ((\<lambda>x. -a+x) ` (s - {a})) = (\<lambda>x. -a+x) ` s"
       by auto
     then have "span ((\<lambda>x. -a+x) ` (s - {a}))=span ((\<lambda>x. -a+x) ` s)"
-      using span_insert_0[of "op + (- a) ` (s - {a})"] by (auto simp del: uminus_add_conv_diff)
+      using span_insert_0[of "(+) (- a) ` (s - {a})"] by (auto simp del: uminus_add_conv_diff)
     moreover have "{x - a |x. x \<in> (s - {a})} = ((\<lambda>x. -a+x) ` (s - {a}))"
       by auto
     moreover have "insert a (s - {a}) = insert a s"
@@ -4024,14 +4024,14 @@ next
   case False
   then obtain c S' where "c \<notin> S'" "S = insert c S'"
     by (meson equals0I mk_disjoint_insert)
-  have "dim (op + (-c) ` S) < DIM('a)"
+  have "dim ((+) (-c) ` S) < DIM('a)"
     by (metis \<open>S = insert c S'\<close> aff_dim_eq_dim assms hull_inc insertI1 of_nat_less_imp_less)
-  then obtain a where "a \<noteq> 0" "span (op + (-c) ` S) \<subseteq> {x. a \<bullet> x = 0}"
+  then obtain a where "a \<noteq> 0" "span ((+) (-c) ` S) \<subseteq> {x. a \<bullet> x = 0}"
     using lowdim_subset_hyperplane by blast
   moreover
-  have "a \<bullet> w = a \<bullet> c" if "span (op + (- c) ` S) \<subseteq> {x. a \<bullet> x = 0}" "w \<in> S" for w
+  have "a \<bullet> w = a \<bullet> c" if "span ((+) (- c) ` S) \<subseteq> {x. a \<bullet> x = 0}" "w \<in> S" for w
   proof -
-    have "w-c \<in> span (op + (- c) ` S)"
+    have "w-c \<in> span ((+) (- c) ` S)"
       by (simp add: span_superset \<open>w \<in> S\<close>)
     with that have "w-c \<in> {x. a \<bullet> x = 0}"
       by blast
@@ -4235,7 +4235,7 @@ proof -
     unfolding cball_def dist_norm by auto
   then have "aff_dim (cball (0 :: 'n::euclidean_space) e) \<le> aff_dim (cball a e)"
     using aff_dim_translation_eq[of a "cball 0 e"]
-          aff_dim_subset[of "op + a ` cball 0 e" "cball a e"]
+          aff_dim_subset[of "(+) a ` cball 0 e" "cball a e"]
     by auto
   moreover have "aff_dim (cball (0 :: 'n::euclidean_space) e) = int (DIM('n))"
     using hull_inc[of "(0 :: 'n::euclidean_space)" "cball 0 e"]
@@ -4805,7 +4805,7 @@ proof -
     assume "S \<noteq> {}"
     then obtain L where L: "subspace L" "affine_parallel S L"
       using assms affine_parallel_subspace[of S] by auto
-    then obtain a where a: "S = (op + a ` L)"
+    then obtain a where a: "S = ((+) a ` L)"
       using affine_parallel_def[of L S] affine_parallel_commut by auto
     from L have "closed L" using closed_subspace by auto
     then have "closed S"
@@ -5000,7 +5000,7 @@ proof -
       translation_assoc[of "-a" "a"]
     by auto
   then have "((\<lambda>x. a + x) ` rel_interior S) \<supseteq> rel_interior ((\<lambda>x. a + x) ` S)"
-    using translation_inverse_subset[of a "rel_interior (op + a ` S)" "rel_interior S"]
+    using translation_inverse_subset[of a "rel_interior ((+) a ` S)" "rel_interior S"]
     by auto
   then show ?thesis
     using rel_interior_translation_aux[of a S] by auto
@@ -5141,7 +5141,7 @@ lemma affine_hull_substd_basis:
   shows "affine hull (insert 0 d) = {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
   (is "affine hull (insert 0 ?A) = ?B")
 proof -
-  have *: "\<And>A. op + (0::'a) ` A = A" "\<And>A. op + (- (0::'a)) ` A = A"
+  have *: "\<And>A. (+) (0::'a) ` A = A" "\<And>A. (+) (- (0::'a)) ` A = A"
     by auto
   show ?thesis
     unfolding affine_hull_insert_span_gen span_substd_basis[OF assms,symmetric] * ..
@@ -5982,7 +5982,7 @@ next
       unfolding k_def
     proof (subst less_cSUP_iff)
       show "T \<noteq> {}" by fact
-      show "bdd_above (op \<bullet> a ` T)"
+      show "bdd_above ((\<bullet>) a ` T)"
         using ab[rule_format, of y] \<open>y \<in> S\<close>
         by (intro bdd_aboveI2[where M="inner a y - b"]) (auto simp: field_simps intro: less_imp_le)
     qed (auto intro!: bexI[of _ x] \<open>0<b\<close>)
@@ -6073,7 +6073,7 @@ proof -
     using assms(3-5) by fastforce
   then have *: "\<And>x y. x \<in> t \<Longrightarrow> y \<in> s \<Longrightarrow> inner a y \<le> inner a x"
     by (force simp add: inner_diff)
-  then have bdd: "bdd_above ((op \<bullet> a)`s)"
+  then have bdd: "bdd_above (((\<bullet>) a)`s)"
     using \<open>t \<noteq> {}\<close> by (auto intro: bdd_aboveI2[OF *])
   show ?thesis
     using \<open>a\<noteq>0\<close>
@@ -6209,19 +6209,19 @@ proof (cases "S = {}")
   then show ?thesis by auto
 next
   case False
-  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` S = S)"
+  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` S = S)"
     using cone_iff[of S] assms by auto
   {
     fix c :: real
     assume "c > 0"
-    then have "op *\<^sub>R c ` (convex hull S) = convex hull (op *\<^sub>R c ` S)"
+    then have "( *\<^sub>R) c ` (convex hull S) = convex hull (( *\<^sub>R) c ` S)"
       using convex_hull_scaling[of _ S] by auto
     also have "\<dots> = convex hull S"
       using * \<open>c > 0\<close> by auto
-    finally have "op *\<^sub>R c ` (convex hull S) = convex hull S"
+    finally have "( *\<^sub>R) c ` (convex hull S) = convex hull S"
       by auto
   }
-  then have "0 \<in> convex hull S" "\<And>c. c > 0 \<Longrightarrow> (op *\<^sub>R c ` (convex hull S)) = (convex hull S)"
+  then have "0 \<in> convex hull S" "\<And>c. c > 0 \<Longrightarrow> (( *\<^sub>R) c ` (convex hull S)) = (convex hull S)"
     using * hull_subset[of S convex] by auto
   then show ?thesis
     using \<open>S \<noteq> {}\<close> cone_iff[of "convex hull S"] by auto
@@ -7030,7 +7030,7 @@ lemma cbox_image_unit_interval:
   fixes a :: "'a::euclidean_space"
   assumes "cbox a b \<noteq> {}"
     shows "cbox a b =
-           op + a ` (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k) ` cbox 0 One"
+           (+) a ` (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k) ` cbox 0 One"
 using assms
 apply (simp add: box_ne_empty image_stretch_interval cbox_translation [symmetric])
 apply (simp add: min_def max_def algebra_simps sum_subtractf euclidean_representation)
@@ -7048,7 +7048,7 @@ next
     by (blast intro: unit_cube_convex_hull)
   have lin: "linear (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k)"
     by (rule linear_compose_sum) (auto simp: algebra_simps linearI)
-  have "finite (op + a ` (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k) ` s)"
+  have "finite ((+) a ` (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k) ` s)"
     by (rule finite_imageI \<open>finite s\<close>)+
   then show ?thesis
     apply (rule that)

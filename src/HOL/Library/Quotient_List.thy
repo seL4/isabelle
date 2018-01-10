@@ -15,10 +15,10 @@ lemma map_id [id_simps]:
   by (fact List.map.id)
 
 lemma list_all2_eq [id_simps]:
-  "list_all2 (op =) = (op =)"
+  "list_all2 (=) = (=)"
 proof (rule ext)+
   fix xs ys
-  show "list_all2 (op =) xs ys \<longleftrightarrow> xs = ys"
+  show "list_all2 (=) xs ys \<longleftrightarrow> xs = ys"
     by (induct xs ys rule: list_induct2') simp_all
 qed
 
@@ -79,12 +79,12 @@ declare [[mapQ3 list = (list_all2, list_quotient3)]]
 
 lemma cons_prs [quot_preserve]:
   assumes q: "Quotient3 R Abs Rep"
-  shows "(Rep ---> (map Rep) ---> (map Abs)) (op #) = (op #)"
+  shows "(Rep ---> (map Rep) ---> (map Abs)) (#) = (#)"
   by (auto simp add: fun_eq_iff comp_def Quotient3_abs_rep [OF q])
 
 lemma cons_rsp [quot_respect]:
   assumes q: "Quotient3 R Abs Rep"
-  shows "(R ===> list_all2 R ===> list_all2 R) (op #) (op #)"
+  shows "(R ===> list_all2 R ===> list_all2 R) (#) (#)"
   by auto
 
 lemma nil_prs [quot_preserve]:
@@ -116,7 +116,7 @@ lemma map_rsp [quot_respect]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
-  and   "((R1 ===> op =) ===> (list_all2 R1) ===> op =) map map"
+  and   "((R1 ===> (=)) ===> (list_all2 R1) ===> (=)) map map"
   unfolding list_all2_eq [symmetric] by (rule list.map_transfer)+
 
 lemma foldr_prs_aux:
@@ -167,7 +167,7 @@ lemma list_all2_rsp:
     auto simp: list_all2_Cons1 list_all2_Cons2 r)
 
 lemma [quot_respect]:
-  "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
+  "((R ===> R ===> (=)) ===> list_all2 R ===> list_all2 R ===> (=)) list_all2 list_all2"
   by (rule list.rel_transfer)
 
 lemma [quot_preserve]:

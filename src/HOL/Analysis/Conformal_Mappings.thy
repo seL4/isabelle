@@ -1141,10 +1141,10 @@ proof -
       done
     with \<open>e>0\<close> show ?thesis by force
   qed
-  have "inj (op * (deriv f \<xi>))"
+  have "inj (( * ) (deriv f \<xi>))"
     using dnz by simp
-  then obtain g' where g': "linear g'" "g' \<circ> op * (deriv f \<xi>) = id"
-    using linear_injective_left_inverse [of "op * (deriv f \<xi>)"]
+  then obtain g' where g': "linear g'" "g' \<circ> ( * ) (deriv f \<xi>) = id"
+    using linear_injective_left_inverse [of "( * ) (deriv f \<xi>)"]
     by (auto simp: linear_times)
   show ?thesis
     apply (rule has_derivative_locally_injective [OF S, where f=f and f' = "\<lambda>z h. deriv f z * h" and g' = g'])
@@ -2093,10 +2093,10 @@ next
     apply (simp add: C_def False fo)
     apply (simp add: derivative_intros dfa complex_derivative_chain)
     done
-  have sb1: "op * (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1
+  have sb1: "( * ) (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1
              \<subseteq> f ` ball a r"
     using \<open>0 < r\<close> by (auto simp: dist_norm norm_mult C_def False)
-  have sb2: "ball (C * r * b) r' \<subseteq> op * (C * r) ` ball b t"
+  have sb2: "ball (C * r * b) r' \<subseteq> ( * ) (C * r) ` ball b t"
              if "1 / 12 < t" for b t
   proof -
     have *: "r * cmod (deriv f a) / 12 \<le> r * (t * cmod (deriv f a))"
@@ -2602,7 +2602,7 @@ next
     by (metis DiffD2 Ints_cases insertI1 subset_eq valid_path_imp_path)
   define p_circ where "p_circ \<equiv> circlepath p (h p)"
   define p_circ_pt where "p_circ_pt \<equiv> linepath (p+h p) (p+h p)"
-  define n_circ where "n_circ \<equiv> \<lambda>n. (op +++ p_circ ^^ n) p_circ_pt"
+  define n_circ where "n_circ \<equiv> \<lambda>n. ((+++) p_circ ^^ n) p_circ_pt"
   define cp where "cp \<equiv> if n\<ge>0 then reversepath (n_circ (nat n)) else n_circ (nat (- n))"
   have n_circ:"valid_path (n_circ k)"
       "winding_number (n_circ k) p = k"
@@ -3861,7 +3861,7 @@ proof -
           then show "h field_differentiable at (\<gamma> x)" 
             unfolding t_def field_differentiable_def by blast
         qed
-      then have " (op / 1 has_contour_integral 0) (h \<circ> \<gamma>)
+      then have " ((/) 1 has_contour_integral 0) (h \<circ> \<gamma>)
           = ((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"
         unfolding has_contour_integral
         apply (intro has_integral_spike_eq[OF negligible_finite, OF \<open>finite spikes\<close>])

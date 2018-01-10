@@ -236,7 +236,7 @@ lemma piecewise_differentiable_diff:
 
 lemma continuous_on_joinpaths_D1:
     "continuous_on {0..1} (g1 +++ g2) \<Longrightarrow> continuous_on {0..1} g1"
-  apply (rule continuous_on_eq [of _ "(g1 +++ g2) o (op*(inverse 2))"])
+  apply (rule continuous_on_eq [of _ "(g1 +++ g2) o (( * )(inverse 2))"])
   apply (rule continuous_intros | simp)+
   apply (auto elim!: continuous_on_subset simp: joinpaths_def)
   done
@@ -251,10 +251,10 @@ lemma continuous_on_joinpaths_D2:
 lemma piecewise_differentiable_D1:
     "(g1 +++ g2) piecewise_differentiable_on {0..1} \<Longrightarrow> g1 piecewise_differentiable_on {0..1}"
   apply (clarsimp simp add: piecewise_differentiable_on_def dest!: continuous_on_joinpaths_D1)
-  apply (rule_tac x="insert 1 ((op*2)`s)" in exI)
+  apply (rule_tac x="insert 1 ((( * )2)`s)" in exI)
   apply simp
   apply (intro ballI)
-  apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (op*(inverse 2))"
+  apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (( * )(inverse 2))"
        in differentiable_transform_within)
   apply (auto simp: dist_real_def joinpaths_def)
   apply (rule differentiable_chain_within derivative_intros | simp)+
@@ -537,40 +537,40 @@ proof -
              and co12: "continuous_on ({0..1} - s) (\<lambda>x. vector_derivative (g1 +++ g2) (at x))"
              and g12D: "\<forall>x\<in>{0..1} - s. g1 +++ g2 differentiable at x"
     using assms  by (auto simp: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
-  then have g1D: "g1 differentiable at x" if "x \<in> {0..1} - insert 1 (op * 2 ` s)" for x
-    apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (op*(inverse 2))" in differentiable_transform_within)
+  then have g1D: "g1 differentiable at x" if "x \<in> {0..1} - insert 1 (( * ) 2 ` s)" for x
+    apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (( * )(inverse 2))" in differentiable_transform_within)
     using that
     apply (simp_all add: dist_real_def joinpaths_def)
     apply (rule differentiable_chain_at derivative_intros | force)+
     done
-  have [simp]: "vector_derivative (g1 \<circ> op * 2) (at (x/2)) = 2 *\<^sub>R vector_derivative g1 (at x)"
-               if "x \<in> {0..1} - insert 1 (op * 2 ` s)" for x
+  have [simp]: "vector_derivative (g1 \<circ> ( * ) 2) (at (x/2)) = 2 *\<^sub>R vector_derivative g1 (at x)"
+               if "x \<in> {0..1} - insert 1 (( * ) 2 ` s)" for x
     apply (subst vector_derivative_chain_at)
     using that
     apply (rule derivative_eq_intros g1D | simp)+
     done
   have "continuous_on ({0..1/2} - insert (1/2) s) (\<lambda>x. vector_derivative (g1 +++ g2) (at x))"
     using co12 by (rule continuous_on_subset) force
-  then have coDhalf: "continuous_on ({0..1/2} - insert (1/2) s) (\<lambda>x. vector_derivative (g1 o op*2) (at x))"
+  then have coDhalf: "continuous_on ({0..1/2} - insert (1/2) s) (\<lambda>x. vector_derivative (g1 o ( * )2) (at x))"
     apply (rule continuous_on_eq [OF _ vector_derivative_at])
-    apply (rule_tac f="g1 o op*2" and d="dist x (1/2)" in has_vector_derivative_transform_within)
+    apply (rule_tac f="g1 o ( * )2" and d="dist x (1/2)" in has_vector_derivative_transform_within)
     apply (simp_all add: dist_norm joinpaths_def vector_derivative_works [symmetric])
     apply (force intro: g1D differentiable_chain_at)
     apply auto
     done
-  have "continuous_on ({0..1} - insert 1 (op * 2 ` s))
-                      ((\<lambda>x. 1/2 * vector_derivative (g1 o op*2) (at x)) o op*(1/2))"
+  have "continuous_on ({0..1} - insert 1 (( * ) 2 ` s))
+                      ((\<lambda>x. 1/2 * vector_derivative (g1 o ( * )2) (at x)) o ( * )(1/2))"
     apply (rule continuous_intros)+
     using coDhalf
     apply (simp add: scaleR_conv_of_real image_set_diff image_image)
     done
-  then have con_g1: "continuous_on ({0..1} - insert 1 (op * 2 ` s)) (\<lambda>x. vector_derivative g1 (at x))"
+  then have con_g1: "continuous_on ({0..1} - insert 1 (( * ) 2 ` s)) (\<lambda>x. vector_derivative g1 (at x))"
     by (rule continuous_on_eq) (simp add: scaleR_conv_of_real)
   have "continuous_on {0..1} g1"
     using continuous_on_joinpaths_D1 assms piecewise_C1_differentiable_on_def by blast
   with \<open>finite s\<close> show ?thesis
     apply (clarsimp simp add: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
-    apply (rule_tac x="insert 1 ((op*2)`s)" in exI)
+    apply (rule_tac x="insert 1 ((( * )2)`s)" in exI)
     apply (simp add: g1D con_g1)
   done
 qed
@@ -785,7 +785,7 @@ lemma valid_path_imp_reverse:
 proof -
   obtain s where "finite s" "g C1_differentiable_on ({0..1} - s)"
     using assms by (auto simp: valid_path_def piecewise_C1_differentiable_on_def)
-  then have "finite (op - 1 ` s)" "(reversepath g C1_differentiable_on ({0..1} - op - 1 ` s))"
+  then have "finite ((-) 1 ` s)" "(reversepath g C1_differentiable_on ({0..1} - (-) 1 ` s))"
     apply (auto simp: reversepath_def)
     apply (rule C1_differentiable_compose [of "\<lambda>x::real. 1-x" _ g, unfolded o_def])
     apply (auto simp: C1_differentiable_on_eq)
@@ -805,7 +805,7 @@ lemma has_contour_integral_reversepath:
     shows "(f has_contour_integral (-i)) (reversepath g)"
 proof -
   { fix s x
-    assume xs: "g C1_differentiable_on ({0..1} - s)" "x \<notin> op - 1 ` s" "0 \<le> x" "x \<le> 1"
+    assume xs: "g C1_differentiable_on ({0..1} - s)" "x \<notin> (-) 1 ` s" "0 \<le> x" "x \<le> 1"
       have "vector_derivative (\<lambda>x. g (1 - x)) (at x within {0..1}) =
             - vector_derivative g (at (1 - x) within {0..1})"
       proof -
@@ -870,7 +870,7 @@ proof -
     using assms
     apply (auto simp: valid_path_def piecewise_C1_differentiable_on_def continuous_on_joinpaths)
     apply (rule continuous_intros | simp)+
-    apply (force intro: finite_vimageI [where h = "op*2"] inj_onI)
+    apply (force intro: finite_vimageI [where h = "( * )2"] inj_onI)
     done
   moreover have "(g2 o (\<lambda>x. 2*x-1)) piecewise_C1_differentiable_on {1/2..1}"
     apply (rule piecewise_C1_differentiable_compose)
@@ -941,9 +941,9 @@ proof -
     apply (auto simp: algebra_simps vector_derivative_works)
     done
   have "((\<lambda>x. f ((g1 +++ g2) x) * vector_derivative (g1 +++ g2) (at x)) has_integral i1) {0..1/2}"
-    apply (rule has_integral_spike_finite [OF _ _ i1, of "insert (1/2) (op*2 -` s1)"])
+    apply (rule has_integral_spike_finite [OF _ _ i1, of "insert (1/2) (( * )2 -` s1)"])
     using s1
-    apply (force intro: finite_vimageI [where h = "op*2"] inj_onI)
+    apply (force intro: finite_vimageI [where h = "( * )2"] inj_onI)
     apply (clarsimp simp add: joinpaths_def scaleR_conv_of_real mult_ac g1)
     done
   moreover have "((\<lambda>x. f ((g1 +++ g2) x) * vector_derivative (g1 +++ g2) (at x)) has_integral i2) {1/2..1}"
@@ -1437,7 +1437,7 @@ proof -
       by (simp add: has_vector_derivative_def scaleR_conv_of_real)
     have "(f has_field_derivative (f' (g x))) (at (g x) within g ` {a..b})"
       using assms by (metis a atLeastAtMost_iff b DERIV_subset image_subset_iff less_eq_real_def)
-    then have fdiff: "(f has_derivative op * (f' (g x))) (at (g x) within g ` {a..b})"
+    then have fdiff: "(f has_derivative ( * ) (f' (g x))) (at (g x) within g ` {a..b})"
       by (simp add: has_field_derivative_def)
     have "((\<lambda>x. f (g x)) has_vector_derivative f' (g x) * vector_derivative g (at x within {a..b})) (at x within {a..b})"
       using diff_chain_within [OF gdiff fdiff]
@@ -3589,11 +3589,11 @@ lemma winding_number_negatepath:
   assumes \<gamma>: "valid_path \<gamma>" and 0: "0 \<notin> path_image \<gamma>"
   shows "winding_number(uminus \<circ> \<gamma>) 0 = winding_number \<gamma> 0"
 proof -
-  have "op / 1 contour_integrable_on \<gamma>"
+  have "(/) 1 contour_integrable_on \<gamma>"
     using "0" \<gamma> contour_integrable_inversediff by fastforce
-  then have "((\<lambda>z. 1/z) has_contour_integral contour_integral \<gamma> (op / 1)) \<gamma>"
+  then have "((\<lambda>z. 1/z) has_contour_integral contour_integral \<gamma> ((/) 1)) \<gamma>"
     by (rule has_contour_integral_integral)
-  then have "((\<lambda>z. 1 / - z) has_contour_integral - contour_integral \<gamma> (op / 1)) \<gamma>"
+  then have "((\<lambda>z. 1 / - z) has_contour_integral - contour_integral \<gamma> ((/) 1)) \<gamma>"
     using has_contour_integral_neg by auto
   then show ?thesis
     using assms
@@ -5914,7 +5914,7 @@ proof (induction n arbitrary: z)
   case 0 then show ?case by simp
 next
   case (Suc n z)
-  have holo0: "f holomorphic_on op * u ` s"
+  have holo0: "f holomorphic_on ( * ) u ` s"
     by (meson fg f holomorphic_on_subset image_subset_iff)
   have holo1: "(\<lambda>w. f (u * w)) holomorphic_on s"
     apply (rule holomorphic_on_compose [where g=f, unfolded o_def])
@@ -5942,7 +5942,7 @@ next
     apply (blast intro: fg)
     done
   also have "... = u * u ^ n * deriv ((deriv ^^ n) f) (u * z)"
-      apply (subst complex_derivative_chain [where g = "(deriv ^^ n) f" and f = "op* u", unfolded o_def])
+      apply (subst complex_derivative_chain [where g = "(deriv ^^ n) f" and f = "( * ) u", unfolded o_def])
       apply (rule derivative_intros)
       using Suc.prems field_differentiable_def f fg has_field_derivative_higher_deriv t apply blast
       apply (simp add: deriv_linear)

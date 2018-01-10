@@ -30,7 +30,7 @@ lemma random_permutation_of_set:
                return_pmf (x#xs)
              }" (is "?lhs = ?rhs")
 proof -
-  from assms have "permutations_of_set A = (\<Union>x\<in>A. op # x ` permutations_of_set (A - {x}))"
+  from assms have "permutations_of_set A = (\<Union>x\<in>A. (#) x ` permutations_of_set (A - {x}))"
     by (simp add: permutations_of_set_nonempty)
   also from assms have "pmf_of_set \<dots> = ?rhs"
     by (subst pmf_of_set_UN[where n = "fact (card A - 1)"])
@@ -77,7 +77,7 @@ proof (induction f x A rule: fold_random_permutation.induct [case_names empty in
             pmf_of_set A \<bind> (\<lambda>a. fold_random_permutation f (f a x) (A - {a}))" by simp
   also from remove
     have "\<dots> = pmf_of_set A \<bind> (\<lambda>a. map_pmf (foldl (\<lambda>x y. f y x) x)
-                 (map_pmf (op # a) (pmf_of_set (permutations_of_set (A - {a})))))"
+                 (map_pmf ((#) a) (pmf_of_set (permutations_of_set (A - {a})))))"
       by (intro bind_pmf_cong) (simp_all add: pmf.map_comp o_def)
   also from remove have "\<dots> = map_pmf (foldl (\<lambda>x y. f y x) x) (pmf_of_set (permutations_of_set A))"
     by (simp_all add: random_permutation_of_set map_bind_pmf map_pmf_def [symmetric])

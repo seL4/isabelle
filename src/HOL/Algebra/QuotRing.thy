@@ -115,7 +115,7 @@ done
 
 text \<open>This is a ring homomorphism\<close>
 
-lemma (in ideal) rcos_ring_hom: "(op +> I) \<in> ring_hom R (R Quot I)"
+lemma (in ideal) rcos_ring_hom: "((+>) I) \<in> ring_hom R (R Quot I)"
 apply (rule ring_hom_memI)
    apply (simp add: FactRing_def a_rcosetsI[OF a_subset])
   apply (simp add: FactRing_def rcoset_mult_add)
@@ -123,7 +123,7 @@ apply (rule ring_hom_memI)
 apply (simp add: FactRing_def)
 done
 
-lemma (in ideal) rcos_ring_hom_ring: "ring_hom_ring R (R Quot I) (op +> I)"
+lemma (in ideal) rcos_ring_hom_ring: "ring_hom_ring R (R Quot I) ((+>) I)"
 apply (rule ring_hom_ringI)
      apply (rule is_ring, rule quotient_is_ring)
    apply (simp add: FactRing_def a_rcosetsI[OF a_subset])
@@ -151,7 +151,7 @@ qed
 text \<open>Cosets as a ring homomorphism on crings\<close>
 lemma (in ideal) rcos_ring_hom_cring:
   assumes "cring R"
-  shows "ring_hom_cring R (R Quot I) (op +> I)"
+  shows "ring_hom_cring R (R Quot I) ((+>) I)"
 proof -
   interpret cring R by fact
   show ?thesis
@@ -203,7 +203,7 @@ qed
 
 text \<open>Generating right cosets of a prime ideal is a homomorphism
         on commutative rings\<close>
-lemma (in primeideal) rcos_ring_hom_cring: "ring_hom_cring R (R Quot I) (op +> I)"
+lemma (in primeideal) rcos_ring_hom_cring: "ring_hom_cring R (R Quot I) ((+>) I)"
   by (rule rcos_ring_hom_cring) (rule is_cring)
 
 

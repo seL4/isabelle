@@ -182,7 +182,7 @@ lemma [intro]:
   by (induct n, auto)
 
 lemma lesubstep_type_simple:
-  "a <=[Product.le (op =) r] b \<Longrightarrow> a \<le>|r| b"
+  "a <=[Product.le (=) r] b \<Longrightarrow> a \<le>|r| b"
   apply (unfold lesubstep_type_def)
   apply clarify
   apply (simp add: set_conv_nth)

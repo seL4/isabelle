@@ -348,7 +348,7 @@ lemma linear_ord_iso:
 apply (simp add: linear_def ord_iso_def, safe)
 apply (drule_tac x1 = "f`x" and x = "f`y" in bspec [THEN bspec])
 apply (safe elim!: bij_is_fun [THEN apply_type])
-apply (drule_tac t = "op ` (converse (f))" in subst_context)
+apply (drule_tac t = "(`) (converse (f))" in subst_context)
 apply (simp add: left_inverse_bij)
 done
 

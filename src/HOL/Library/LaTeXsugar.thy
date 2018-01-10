@@ -118,7 +118,7 @@ let
     let
       val rhs_vars = Term.add_vars rhs [];
       fun dummy (v as Var (ixn as (_, T))) =
-            if member (op = ) rhs_vars ixn then v else Const (@{const_name DUMMY}, T)
+            if member ((=) ) rhs_vars ixn then v else Const (@{const_name DUMMY}, T)
         | dummy (t $ u) = dummy t $ dummy u
         | dummy (Abs (n, T, b)) = Abs (n, T, dummy b)
         | dummy t = t;

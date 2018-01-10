@@ -13,7 +13,7 @@ subsection \<open>Auxiliary constants and lemmas over @{type map}\<close>
 context includes lifting_syntax begin
 
 abbreviation rel_map :: "('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
-"rel_map f \<equiv> op = ===> rel_option f"
+"rel_map f \<equiv> (=) ===> rel_option f"
 
 lemma map_empty_transfer[transfer_rule]: "rel_map A Map.empty Map.empty"
 by transfer_prover
@@ -57,7 +57,7 @@ qed
 lemma ran_alt_def: "ran m = (the \<circ> m) ` dom m"
 unfolding ran_def dom_def by force
 
-lemma dom_transfer[transfer_rule]: "(rel_map A ===> op =) dom dom"
+lemma dom_transfer[transfer_rule]: "(rel_map A ===> (=)) dom dom"
 proof
   fix m n
   assume "rel_map A m n"
@@ -76,7 +76,7 @@ definition map_upd :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<rightharpoonup> '
 "map_upd k v m = m(k \<mapsto> v)"
 
 lemma map_upd_transfer[transfer_rule]:
-  "(op = ===> A ===> rel_map A ===> rel_map A) map_upd map_upd"
+  "((=) ===> A ===> rel_map A ===> rel_map A) map_upd map_upd"
 unfolding map_upd_def[abs_def]
 by transfer_prover
 
@@ -91,7 +91,7 @@ proof
 qed
 
 lemma map_filter_transfer[transfer_rule]:
-  "(op = ===> rel_map A ===> rel_map A) map_filter map_filter"
+  "((=) ===> rel_map A ===> rel_map A) map_filter map_filter"
 unfolding map_filter_def[abs_def]
 by transfer_prover
 
@@ -111,7 +111,7 @@ definition map_drop :: "'a \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow>
 "map_drop a = map_filter (\<lambda>a'. a' \<noteq> a)"
 
 lemma map_drop_transfer[transfer_rule]:
-  "(op = ===> rel_map A ===> rel_map A) map_drop map_drop"
+  "((=) ===> rel_map A ===> rel_map A) map_drop map_drop"
 unfolding map_drop_def[abs_def]
 by transfer_prover
 
@@ -119,7 +119,7 @@ definition map_drop_set :: "'a set \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rig
 "map_drop_set A = map_filter (\<lambda>a. a \<notin> A)"
 
 lemma map_drop_set_transfer[transfer_rule]:
-  "(op = ===> rel_map A ===> rel_map A) map_drop_set map_drop_set"
+  "((=) ===> rel_map A ===> rel_map A) map_drop_set map_drop_set"
 unfolding map_drop_set_def[abs_def]
 by transfer_prover
 
@@ -127,12 +127,12 @@ definition map_restrict_set :: "'a set \<Rightarrow> ('a \<rightharpoonup> 'b) \
 "map_restrict_set A = map_filter (\<lambda>a. a \<in> A)"
 
 lemma map_restrict_set_transfer[transfer_rule]:
-  "(op = ===> rel_map A ===> rel_map A) map_restrict_set map_restrict_set"
+  "((=) ===> rel_map A ===> rel_map A) map_restrict_set map_restrict_set"
 unfolding map_restrict_set_def[abs_def]
 by transfer_prover
 
 lemma map_add_transfer[transfer_rule]:
-  "(rel_map A ===> rel_map A ===> rel_map A) op ++ op ++"
+  "(rel_map A ===> rel_map A ===> rel_map A) (++) (++)"
 unfolding map_add_def[abs_def]
 by transfer_prover
 
@@ -140,7 +140,7 @@ definition map_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> (
 "map_pred P m \<longleftrightarrow> (\<forall>x. case m x of None \<Rightarrow> True | Some y \<Rightarrow> P x y)"
 
 lemma map_pred_transfer[transfer_rule]:
-  "((op = ===> A ===> op =) ===> rel_map A ===> op =) map_pred map_pred"
+  "(((=) ===> A ===> (=)) ===> rel_map A ===> (=)) map_pred map_pred"
 unfolding map_pred_def[abs_def]
 by transfer_prover
 
@@ -149,7 +149,7 @@ definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Righta
 
 lemma map_of_transfer[transfer_rule]:
   includes lifting_syntax
-  shows "(list_all2 (rel_prod op = A) ===> rel_map A) map_of map_of"
+  shows "(list_all2 (rel_prod (=) A) ===> rel_map A) map_of map_of"
 unfolding map_of_def by transfer_prover
 
 definition set_of_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) set" where
@@ -696,16 +696,16 @@ declare fmap.pred_mono[mono]
 context includes lifting_syntax begin
 
 lemma fmmap_transfer[transfer_rule]:
-  "(op = ===> pcr_fmap op = op = ===> pcr_fmap op = op =) (\<lambda>f. op \<circ> (map_option f)) fmmap"
+  "((=) ===> pcr_fmap (=) (=) ===> pcr_fmap (=) (=)) (\<lambda>f. (\<circ>) (map_option f)) fmmap"
   unfolding fmmap_def
   by (rule rel_funI ext)+ (auto simp: fmap.Abs_fmap_inverse fmap.pcr_cr_eq cr_fmap_def)
 
 lemma fmran'_transfer[transfer_rule]:
-  "(pcr_fmap op = op = ===> op =) (\<lambda>x. UNION (range x) set_option) fmran'"
+  "(pcr_fmap (=) (=) ===> (=)) (\<lambda>x. UNION (range x) set_option) fmran'"
   unfolding fmran'_def fmap.pcr_cr_eq cr_fmap_def by fastforce
 
 lemma fmrel_transfer[transfer_rule]:
-  "(op = ===> pcr_fmap op = op = ===> pcr_fmap op = op = ===> op =) rel_map fmrel"
+  "((=) ===> pcr_fmap (=) (=) ===> pcr_fmap (=) (=) ===> (=)) rel_map fmrel"
   unfolding fmrel_def fmap.pcr_cr_eq cr_fmap_def vimage2p_def by fastforce
 
 end
@@ -1000,7 +1000,7 @@ lemma fmadd_transfer[transfer_rule]:
   by (intro fmrel_addI rel_funI)
 
 lemma fmupd_transfer[transfer_rule]:
-  "(op = ===> P ===> fmrel P ===> fmrel P) fmupd fmupd"
+  "((=) ===> P ===> fmrel P ===> fmrel P) fmupd fmupd"
   by auto
 
 end
@@ -1095,7 +1095,7 @@ definition "equal_fmap \<equiv> fmrel HOL.equal"
 
 instance proof
   fix m n :: "('a, 'b) fmap"
-  have "fmrel op = m n \<longleftrightarrow> (m = n)"
+  have "fmrel (=) m n \<longleftrightarrow> (m = n)"
     by transfer' (simp add: option.rel_eq rel_fun_eq)
   then show "equal_class.equal m n \<longleftrightarrow> (m = n)"
     unfolding equal_fmap_def

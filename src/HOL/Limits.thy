@@ -712,7 +712,7 @@ lemma continuous_on_diff [continuous_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
   unfolding continuous_on_def by (auto intro: tendsto_diff)
 
-lemma continuous_on_op_minus: "continuous_on (s::'a::topological_group_add set) (op - x)"
+lemma continuous_on_op_minus: "continuous_on (s::'a::topological_group_add set) ((-) x)"
   by (rule continuous_intros | simp)+
 
 instance real_normed_vector < topological_ab_group_add

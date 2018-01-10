@@ -280,7 +280,7 @@ All the syntactic convenience provided by \keyw{primcorec} is also supported by
 @{command corec}, @{command corecursive}, and @{command friend_of_corec}. In
 particular, nesting through the function type can be expressed using
 @{text \<lambda>}-abstractions and function applications rather than through composition
-(@{term "op \<circ>"}, the map function for @{text \<Rightarrow>}). For example:
+(@{term "(\<circ>)"}, the map function for @{text \<Rightarrow>}). For example:
 \<close>
 
     codatatype 'a language =
@@ -892,7 +892,7 @@ subsection \<open>\textit{transfer_prover_eq}
 
 text \<open>
 The @{method transfer_prover_eq} proof method replaces the equality relation
-@{term "op ="} with compound relator expressions according to
+@{term "(=)"} with compound relator expressions according to
 @{thm [source] relator_eq} before calling @{method transfer_prover} on the
 current subgoal. It tends to work better than plain @{method transfer_prover} on
 the parametricity proof obligations of @{command corecursive} and

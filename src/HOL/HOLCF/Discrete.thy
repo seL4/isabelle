@@ -15,7 +15,7 @@ subsection \<open>Discrete cpo class instance\<close>
 instantiation discr :: (type) discrete_cpo
 begin
 
-definition "(op \<sqsubseteq> :: 'a discr \<Rightarrow> 'a discr \<Rightarrow> bool) = (op =)"
+definition "((\<sqsubseteq>) :: 'a discr \<Rightarrow> 'a discr \<Rightarrow> bool) = (=)"
 
 instance
   by standard (simp add: below_discr_def)

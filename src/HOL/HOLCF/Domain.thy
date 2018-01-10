@@ -97,7 +97,7 @@ lemma typedef_domain_class:
   fixes Abs :: "udom \<Rightarrow> 'a::pcpo"
   fixes t :: "udom defl"
   assumes type: "type_definition Rep Abs (defl_set t)"
-  assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+  assumes below: "(\<sqsubseteq>) \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
   assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
   assumes prj: "prj \<equiv> (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
   assumes defl: "defl \<equiv> (\<lambda> a::'a itself. t)"

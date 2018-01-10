@@ -567,7 +567,7 @@ proof -
     where "b = 8428294561696506782041394632 / 503593538783547230635598424135"
   \<comment> \<open>The introduction of this constant prevents the simplifier from applying solvers that
       we don't want. We want it to simply evaluate the terms to rational constants.}\<close>
-  define eq :: "real \<Rightarrow> real \<Rightarrow> bool" where "eq = op ="
+  define eq :: "real \<Rightarrow> real \<Rightarrow> bool" where "eq = (=)"
 
   \<comment> \<open>Splitting the computation into several steps has the advantage that simplification can
       be done in parallel\<close>
@@ -679,7 +679,7 @@ proof -
            337877029279505250241149903214554249587517250716358486542628059"
   let ?pi'' = "3882327391761098513316067116522233897127356523627918964967729040413954225768920394233198626889767468122598417405434625348404038165437924058179155035564590497837027530349 /
                1235783190199688165469648572769847552336447197542738425378629633275352407743112409829873464564018488572820294102599160968781449606552922108667790799771278860366957772800"
-  define eq :: "real \<Rightarrow> real \<Rightarrow> bool" where "eq = op ="
+  define eq :: "real \<Rightarrow> real \<Rightarrow> bool" where "eq = (=)"
 
   have "abs (pi - pi_approx2 4) \<le> inverse (2^183)" by (rule pi_approx2') simp_all
   also have "pi_approx2 4 = 48 * arctan_approx 24 (1 / 18) +

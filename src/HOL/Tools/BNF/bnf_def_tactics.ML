@@ -210,7 +210,7 @@ fun mk_rel_OO_le_tac ctxt rel_OO_Grps rel_eq map_cong0 map_comp set_maps =
           rtac ctxt @{thm image_subsetI}, rtac ctxt nthO_in, etac ctxt set_mp, assume_tac ctxt]) set_maps;
     val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac
       else rtac ctxt (hd rel_OO_Grps RS ord_eq_le_trans) THEN'
-        rtac ctxt (@{thm arg_cong2[of _ _ _ _ "op OO"]} OF (replicate 2 (hd rel_OO_Grps RS sym)) RSN
+        rtac ctxt (@{thm arg_cong2[of _ _ _ _ "(OO)"]} OF (replicate 2 (hd rel_OO_Grps RS sym)) RSN
           (2, ord_le_eq_trans));
   in
     if null set_maps then rtac ctxt (rel_eq RS @{thm leq_OOI}) 1
@@ -409,6 +409,6 @@ fun mk_pred_transfer_tac ctxt n in_rel pred_map pred_cong =
     REPEAT_DETERM o eresolve_tac ctxt @{thms exE conjE CollectE}, hyp_subst_tac ctxt,
     rtac ctxt (box_equals OF [@{thm _}, pred_map RS sym, pred_map RS sym]),
     rtac ctxt (refl RS pred_cong), REPEAT_DETERM_N n o
-      (etac ctxt @{thm rel_fun_Collect_case_prodD[where B="op ="]} THEN_ALL_NEW assume_tac ctxt)]);
+      (etac ctxt @{thm rel_fun_Collect_case_prodD[where B="(=)"]} THEN_ALL_NEW assume_tac ctxt)]);
 
 end;

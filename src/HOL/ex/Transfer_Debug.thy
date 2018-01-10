@@ -30,7 +30,7 @@ apply transfer
    relation. An experienced user could notice that |\<in>| was transferred to |\<in>| by a 
    a default reflexivity transfer rule (because there was not any genuine transfer rule for |\<in>|)
    and fBall was transferred to Ball using the transfer relation pcr_fset. Therefore transfer
-   is looking for a transfer rule for |\<subseteq>| with a transfer relation that mixes op= and pcr_fset.
+   is looking for a transfer rule for |\<subseteq>| with a transfer relation that mixes (=) and pcr_fset.
    This situation might be confusing because the real problem (a missing transfer rule) propagates
    during the transferring algorithm and manifests later in an obfuscated way. Fortunately,
    we could inspect the behavior of transfer in a more interactive way to pin down the real problem.
@@ -47,7 +47,7 @@ apply transfer_step
 oops
 
 (* We provide a transfer rule for |\<in>|. *)
-lemma [transfer_rule]: "bi_unique A \<Longrightarrow> rel_fun A (rel_fun (pcr_fset A) op =) op \<in> op |\<in>|"
+lemma [transfer_rule]: "bi_unique A \<Longrightarrow> rel_fun A (rel_fun (pcr_fset A) (=)) (\<in>) (|\<in>|)"
 by (rule fmember.transfer)
 
 lemma "(A |\<subseteq>| B) = fBall A (\<lambda>x. x |\<in>| B)"
@@ -80,8 +80,8 @@ apply transfer_step
    which transfers UNIV to UNIV and assumes that the transfer relation has to be bi-total.
    The problem is that at this point the transfer relation is not known (it is represented by
    a schematic variable ?R) and therefore in order to discharge the assumption "bi_total ?R", ?R is
-   instantiated to op=. If the relation had been known (we wish pcr_fset op=, which is not bi-total),
-   the assumption bi_total pcr_fset op= could not have been discharged and the tool would have 
+   instantiated to (=.) If the relation had been known (we wish pcr_fset (=), which is not bi-total),
+   the assumption bi_total pcr_fset (=) could not have been discharged and the tool would have 
    backtracked and chosen Lifting.right_total_UNIV_transfer, which assumes only right-totalness 
    (and pcr_fset is right-total).
 *)

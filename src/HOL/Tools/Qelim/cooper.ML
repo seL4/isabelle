@@ -21,16 +21,16 @@ struct
 type entry = simpset * term list;
 
 val allowed_consts = 
-  [@{term "op + :: int => _"}, @{term "op + :: nat => _"},
-   @{term "op - :: int => _"}, @{term "op - :: nat => _"},
-   @{term "op * :: int => _"}, @{term "op * :: nat => _"},
-   @{term "op div :: int => _"}, @{term "op div :: nat => _"},
-   @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
+  [@{term "(+) :: int => _"}, @{term "(+) :: nat => _"},
+   @{term "(-) :: int => _"}, @{term "(-) :: nat => _"},
+   @{term "( * ) :: int => _"}, @{term "( * ) :: nat => _"},
+   @{term "(div) :: int => _"}, @{term "(div) :: nat => _"},
+   @{term "(mod) :: int => _"}, @{term "(mod) :: nat => _"},
    @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, 
-   @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
-   @{term "op < :: int => _"}, @{term "op < :: nat => _"},
-   @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
-   @{term "op dvd :: int => _"}, @{term "op dvd :: nat => _"},
+   @{term "(=) :: int => _"}, @{term "(=) :: nat => _"}, @{term "(=) :: bool => _"},
+   @{term "(<) :: int => _"}, @{term "(<) :: nat => _"},
+   @{term "(<=) :: int => _"}, @{term "(<=) :: nat => _"},
+   @{term "(dvd) :: int => _"}, @{term "(dvd) :: nat => _"},
    @{term "abs :: int => _"},
    @{term "max :: int => _"}, @{term "max :: nat => _"},
    @{term "min :: int => _"}, @{term "min :: nat => _"},
@@ -170,9 +170,9 @@ val inst' = fn cts => Thm.instantiate' [] (map SOME cts);
 val infDTrue = Thm.instantiate' [] [SOME true_tm] infDP;
 val infDFalse = Thm.instantiate' [] [SOME false_tm] infDP;
 
-val cadd =  @{cterm "op + :: int => _"}
-val cmulC =  @{cterm "op * :: int => _"}
-val cminus =  @{cterm "op - :: int => _"}
+val cadd =  @{cterm "(+) :: int => _"}
+val cmulC =  @{cterm "( * ) :: int => _"}
+val cminus =  @{cterm "(-) :: int => _"}
 val cone =  @{cterm "1 :: int"}
 val [addC, mulC, subC] = map Thm.term_of [cadd, cmulC, cminus]
 val [zero, one] = [@{term "0 :: int"}, @{term "1 :: int"}];
@@ -340,7 +340,7 @@ fun linearize_conv ctxt vs ct = case Thm.term_of ct of
        RS eq_reflection
       else Thm.reflexive ct;
 
-val dvdc = @{cterm "op dvd :: int => _"};
+val dvdc = @{cterm "(dvd) :: int => _"};
 
 fun unify ctxt q =
  let
@@ -374,7 +374,7 @@ fun unify ctxt q =
     val th =
      Simplifier.rewrite (put_simpset lin_ss ctxt)
       (Thm.apply @{cterm Trueprop} (Thm.apply @{cterm "Not"}
-           (Thm.apply (Thm.apply @{cterm "op = :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x))
+           (Thm.apply (Thm.apply @{cterm "(=) :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x))
            @{cterm "0::int"})))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
   val notz =
@@ -479,7 +479,7 @@ let
  val dp =
    let val th = Simplifier.rewrite (put_simpset lin_ss ctxt)
       (Thm.apply @{cterm Trueprop}
-           (Thm.apply (Thm.apply @{cterm "op < :: int => _"} @{cterm "0::int"}) cd))
+           (Thm.apply (Thm.apply @{cterm "(<) :: int => _"} @{cterm "0::int"}) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
     (* A and B set *)
    local
@@ -582,8 +582,8 @@ fun conv ctxt p =
 
 fun add_bools t =
   let
-    val ops = [@{term "op = :: int => _"}, @{term "op < :: int => _"}, @{term "op <= :: int => _"},
-      @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, @{term "op = :: bool => _"},
+    val ops = [@{term "(=) :: int => _"}, @{term "(<) :: int => _"}, @{term "(<=) :: int => _"},
+      @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, @{term "(=) :: bool => _"},
       @{term "Not"}, @{term "All :: (int => _) => _"},
       @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}];
     val is_op = member (op =) ops;
@@ -632,7 +632,7 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
       Proc.Or (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name HOL.implies}, _) $ t1 $ t2) =
       Proc.Imp (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (@{term "op = :: bool => _ "} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(=) :: bool => _ "} $ t1 $ t2) =
       Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name Not}, _) $ t') =
       Proc.NOT (fm_of_term ps vs t')
@@ -640,7 +640,7 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
       Proc.E (uncurry (fm_of_term ps) (descend vs abs))
   | fm_of_term ps vs (Const (@{const_name All}, _) $ Abs abs) =
       Proc.A (uncurry (fm_of_term ps) (descend vs abs))
-  | fm_of_term ps vs (@{term "op = :: int => _"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(=) :: int => _"} $ t1 $ t2) =
       Proc.Eq (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term ps vs (Const (@{const_name Orderings.less_eq}, _) $ t1 $ t2) =
       Proc.Le (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
@@ -658,11 +658,11 @@ fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT (Proc.integer_of_
   | term_of_num vs (Proc.Neg t') =
       @{term "uminus :: int => _"} $ term_of_num vs t'
   | term_of_num vs (Proc.Add (t1, t2)) =
-      @{term "op + :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
+      @{term "(+) :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Sub (t1, t2)) =
-      @{term "op - :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
+      @{term "(-) :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Mul (i, t2)) =
-      @{term "op * :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
+      @{term "( * ) :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
   | term_of_num vs (Proc.CN (n, i, t')) =
       term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
@@ -671,15 +671,15 @@ fun term_of_fm ps vs Proc.T = @{term True}
   | term_of_fm ps vs (Proc.And (t1, t2)) = HOLogic.conj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Or (t1, t2)) = HOLogic.disj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Imp (t1, t2)) = HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
-  | term_of_fm ps vs (Proc.Iff (t1, t2)) = @{term "op = :: bool => _"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (Proc.Iff (t1, t2)) = @{term "(=) :: bool => _"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.NOT t') = HOLogic.Not $ term_of_fm ps vs t'
-  | term_of_fm ps vs (Proc.Eq t') = @{term "op = :: int => _ "} $ term_of_num vs t'$ @{term "0::int"}
+  | term_of_fm ps vs (Proc.Eq t') = @{term "(=) :: int => _ "} $ term_of_num vs t'$ @{term "0::int"}
   | term_of_fm ps vs (Proc.NEq t') = term_of_fm ps vs (Proc.NOT (Proc.Eq t'))
-  | term_of_fm ps vs (Proc.Lt t') = @{term "op < :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
-  | term_of_fm ps vs (Proc.Le t') = @{term "op <= :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
-  | term_of_fm ps vs (Proc.Gt t') = @{term "op < :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
-  | term_of_fm ps vs (Proc.Ge t') = @{term "op <= :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
-  | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "op dvd :: int => _ "} $
+  | term_of_fm ps vs (Proc.Lt t') = @{term "(<) :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
+  | term_of_fm ps vs (Proc.Le t') = @{term "(<=) :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
+  | term_of_fm ps vs (Proc.Gt t') = @{term "(<) :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.Ge t') = @{term "(<=) :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "(dvd) :: int => _ "} $
       HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t'
   | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.NOT (Proc.Dvd (i, t')))
   | term_of_fm ps vs (Proc.Closed n) = nth ps (Proc.integer_of_nat n)
@@ -732,7 +732,7 @@ fun thin_prems_tac ctxt P =
      val q = if P c then c else @{cterm "False"}
      val ng = fold_rev (fn (a,v) => fn t => Thm.apply a (Thm.lambda v t)) qvs 
          (fold_rev (fn p => fn q => Thm.apply (Thm.apply @{cterm HOL.implies} p) q) qs q)
-     val g = Thm.apply (Thm.apply @{cterm "op ==>"} (Thm.apply @{cterm "Trueprop"} ng)) p'
+     val g = Thm.apply (Thm.apply @{cterm "(==>)"} (Thm.apply @{cterm "Trueprop"} ng)) p'
      val ntac = (case qs of [] => q aconvc @{cterm "False"}
                          | _ => false)
     in 
@@ -765,7 +765,7 @@ local
   if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of_cterm t))
   then false 
   else case Thm.term_of t of 
-    c$l$r => if member (op =) [@{term"op *::int => _"}, @{term"op *::nat => _"}] c
+    c$l$r => if member (=) [@{term"( * )::int => _"}, @{term"( * )::nat => _"}] c
              then not (isnum l orelse isnum r)
              else not (member (op aconv) cts c)
   | c$_ => not (member (op aconv) cts c)

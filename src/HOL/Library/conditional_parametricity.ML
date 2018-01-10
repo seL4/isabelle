@@ -390,7 +390,7 @@ fun mk_is_equality t =
   Const (@{const_name is_equality}, Term.fastype_of t --> HOLogic.boolT) $ t;
 
 val is_equality_lemma =
-  @{lemma "(!!R. is_equality R ==> PROP (P R)) == PROP (P (op =))"
+  @{lemma "(!!R. is_equality R ==> PROP (P R)) == PROP (P (=))"
     by (unfold is_equality_def, rule, drule meta_spec,
       erule meta_mp, rule HOL.refl, simp)};
 
@@ -398,7 +398,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
   let
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
-    (* Only consider "op =" at non-base types *)
+    (* Only consider "(=)" at non-base types *)
     fun is_eq (Const (@{const_name HOL.eq}, Type ("fun", [T, _]))) =
         (case T of Type (_, []) => false | _ => true)
       | is_eq _ = false

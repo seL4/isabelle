@@ -2165,14 +2165,14 @@ proof -
         unfolding dist_norm
         using norm_scaleR[of c "(1 / c) *\<^sub>R y - x", unfolded scaleR_right_diff_distrib, unfolded scaleR_scaleR] assms(1)
           assms(1)[unfolded zero_less_abs_iff[symmetric]] by (simp del:zero_less_abs_iff)
-      then have "y \<in> op *\<^sub>R c ` s"
-        using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "op *\<^sub>R c"]
+      then have "y \<in> ( *\<^sub>R) c ` s"
+        using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "( *\<^sub>R) c"]
         using e[THEN spec[where x="(1 / c) *\<^sub>R y"]]
         using assms(1)
         unfolding dist_norm scaleR_scaleR
         by auto
     }
-    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> op *\<^sub>R c ` s"
+    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> ( *\<^sub>R) c ` s"
       apply (rule_tac x="e * \<bar>c\<bar>" in exI, auto)
       done
   }
@@ -2199,7 +2199,7 @@ proof -
     have "continuous (at x) (\<lambda>x. x - a)"
       by (intro continuous_diff continuous_ident continuous_const)
   }
-  moreover have "{x. x - a \<in> S} = op + a ` S"
+  moreover have "{x. x - a \<in> S} = (+) a ` S"
     by force
   ultimately show ?thesis
     by (metis assms continuous_open_vimage vimage_def)
@@ -2212,10 +2212,10 @@ lemma open_affinity:
 proof -
   have *: "(\<lambda>x. a + c *\<^sub>R x) = (\<lambda>x. a + x) \<circ> (\<lambda>x. c *\<^sub>R x)"
     unfolding o_def ..
-  have "op + a ` op *\<^sub>R c ` S = (op + a \<circ> op *\<^sub>R c) ` S"
+  have "(+) a ` ( *\<^sub>R) c ` S = ((+) a \<circ> ( *\<^sub>R) c) ` S"
     by auto
   then show ?thesis
-    using assms open_translation[of "op *\<^sub>R c ` S" a]
+    using assms open_translation[of "( *\<^sub>R) c ` S" a]
     unfolding *
     by auto
 qed
@@ -2225,13 +2225,13 @@ lemma interior_translation:
   shows "interior ((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (interior S)"
 proof (rule set_eqI, rule)
   fix x
-  assume "x \<in> interior (op + a ` S)"
-  then obtain e where "e > 0" and e: "ball x e \<subseteq> op + a ` S"
+  assume "x \<in> interior ((+) a ` S)"
+  then obtain e where "e > 0" and e: "ball x e \<subseteq> (+) a ` S"
     unfolding mem_interior by auto
   then have "ball (x - a) e \<subseteq> S"
     unfolding subset_eq Ball_def mem_ball dist_norm
     by (auto simp: diff_diff_eq)
-  then show "x \<in> op + a ` interior S"
+  then show "x \<in> (+) a ` interior S"
     unfolding image_iff
     apply (rule_tac x="x - a" in bexI)
     unfolding mem_interior
@@ -2240,7 +2240,7 @@ proof (rule set_eqI, rule)
     done
 next
   fix x
-  assume "x \<in> op + a ` interior S"
+  assume "x \<in> (+) a ` interior S"
   then obtain y e where "e > 0" and e: "ball y e \<subseteq> S" and y: "x = a + y"
     unfolding image_iff Bex_def mem_interior by auto
   {
@@ -2251,12 +2251,12 @@ next
       using e[unfolded subset_eq, THEN bspec[where x="z - a"]]
       unfolding mem_ball dist_norm y group_add_class.diff_diff_eq2 *
       by auto
-    then have "z \<in> op + a ` S"
+    then have "z \<in> (+) a ` S"
       unfolding image_iff by (auto intro!: bexI[where x="z - a"])
   }
-  then have "ball x e \<subseteq> op + a ` S"
+  then have "ball x e \<subseteq> (+) a ` S"
     unfolding subset_eq by auto
-  then show "x \<in> interior (op + a ` S)"
+  then show "x \<in> interior ((+) a ` S)"
     unfolding mem_interior using \<open>e > 0\<close> by auto
 qed
 
@@ -2574,7 +2574,7 @@ lemma compact_affinity:
   assumes "compact s"
   shows "compact ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof -
-  have "op + a ` op *\<^sub>R c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s"
+  have "(+) a ` ( *\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s"
     by auto
   then show ?thesis
     using compact_translation[OF compact_scaling[OF assms], of a c] by auto
@@ -3007,7 +3007,7 @@ lemma closed_translation:
   assumes "closed S"
   shows "closed ((\<lambda>x. a + x) ` S)"
 proof -
-  have "(\<Union>x\<in> {a}. \<Union>y \<in> S. {x + y}) = (op + a ` S)" by auto
+  have "(\<Union>x\<in> {a}. \<Union>y \<in> S. {x + y}) = ((+) a ` S)" by auto
   then show ?thesis
     using compact_closed_sums[OF compact_sing[of a] assms] by auto
 qed
@@ -3038,7 +3038,7 @@ lemma closure_translation:
   fixes a :: "'a::real_normed_vector"
   shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
 proof -
-  have *: "op + a ` (- s) = - op + a ` s"
+  have *: "(+) a ` (- s) = - (+) a ` s"
     apply auto
     unfolding image_iff
     apply (rule_tac x="x - a" in bexI, auto)
@@ -3058,7 +3058,7 @@ lemma frontier_translation:
 
 lemma sphere_translation:
   fixes a :: "'n::euclidean_space"
-  shows "sphere (a+c) r = op+ a ` sphere c r"
+  shows "sphere (a+c) r = (+) a ` sphere c r"
 apply safe
 apply (rule_tac x="x-a" in image_eqI)
 apply (auto simp: dist_norm algebra_simps)
@@ -3066,7 +3066,7 @@ done
 
 lemma cball_translation:
   fixes a :: "'n::euclidean_space"
-  shows "cball (a+c) r = op+ a ` cball c r"
+  shows "cball (a+c) r = (+) a ` cball c r"
 apply safe
 apply (rule_tac x="x-a" in image_eqI)
 apply (auto simp: dist_norm algebra_simps)
@@ -3074,7 +3074,7 @@ done
 
 lemma ball_translation:
   fixes a :: "'n::euclidean_space"
-  shows "ball (a+c) r = op+ a ` ball c r"
+  shows "ball (a+c) r = (+) a ` ball c r"
 apply safe
 apply (rule_tac x="x-a" in image_eqI)
 apply (auto simp: dist_norm algebra_simps)
@@ -3420,7 +3420,7 @@ lemma homeomorphismI [intro?]:
 
 lemma homeomorphism_translation:
   fixes a :: "'a :: real_normed_vector"
-  shows "homeomorphism (op + a ` S) S (op + (- a)) (op + a)"
+  shows "homeomorphism ((+) a ` S) S ((+) (- a)) ((+) a)"
 unfolding homeomorphism_def by (auto simp: algebra_simps continuous_intros)
 
 lemma homeomorphism_ident: "homeomorphism T T (\<lambda>a. a) (\<lambda>a. a)"
@@ -3639,7 +3639,7 @@ lemma homeomorphic_affinity:
   assumes "c \<noteq> 0"
   shows "s homeomorphic ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof -
-  have *: "op + a ` op *\<^sub>R c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
+  have *: "(+) a ` ( *\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
   show ?thesis
     using homeomorphic_trans
     using homeomorphic_scaling[OF assms, of s]
@@ -4540,9 +4540,9 @@ proof -
     proof
       show "countable ((\<lambda>C. S \<inter> C) ` \<C>)"
         by (simp add: \<open>countable \<C>\<close>)
-      show "\<And>C. C \<in> op \<inter> S ` \<C> \<Longrightarrow> openin (subtopology euclidean S) C"
+      show "\<And>C. C \<in> (\<inter>) S ` \<C> \<Longrightarrow> openin (subtopology euclidean S) C"
         using ope by auto
-      show "\<And>T. openin (subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>\<subseteq>op \<inter> S ` \<C>. T = \<Union>\<U>"
+      show "\<And>T. openin (subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>\<subseteq>(\<inter>) S ` \<C>. T = \<Union>\<U>"
         by (metis \<C> image_mono inf_Sup openin_open)
     qed
   qed

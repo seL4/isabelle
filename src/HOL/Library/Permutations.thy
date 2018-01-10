@@ -1261,9 +1261,9 @@ lemma setum_permutations_compose_left:
   (is "?lhs = ?rhs")
 proof -
   let ?S = "{p. p permutes S}"
-  have *: "?rhs = sum (f \<circ> (op \<circ> q)) ?S"
+  have *: "?rhs = sum (f \<circ> ((\<circ>) q)) ?S"
     by (simp add: o_def)
-  have **: "inj_on (op \<circ> q) ?S"
+  have **: "inj_on ((\<circ>) q) ?S"
   proof (auto simp add: inj_on_def)
     fix p r
     assume "p permutes S"
@@ -1274,7 +1274,7 @@ proof -
     with permutes_inj[OF q, unfolded inj_iff] show "p = r"
       by simp
   qed
-  have "(op \<circ> q) ` ?S = ?S"
+  have "((\<circ>) q) ` ?S = ?S"
     using image_compose_permutations_left[OF q] by auto
   with * sum.reindex[OF **, of f] show ?thesis
     by (simp only:)

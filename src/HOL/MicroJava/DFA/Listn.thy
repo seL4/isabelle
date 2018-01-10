@@ -35,7 +35,7 @@ abbreviation
 
 primrec coalesce :: "'a err list \<Rightarrow> 'a list err" where
   "coalesce [] = OK[]"
-| "coalesce (ex#exs) = Err.sup (op #) ex (coalesce exs)"
+| "coalesce (ex#exs) = Err.sup (#) ex (coalesce exs)"
 
 definition sl :: "nat \<Rightarrow> 'a sl \<Rightarrow> 'a list sl" where
 "sl n == %(A,r,f). (list n A, le r, map2 f)"
@@ -404,7 +404,7 @@ apply (simp (no_asm) add: plussub_def Err.sup_def lift2_def split: err.split)
 apply force
 done 
 
-lemma lem: "\<And>x xs. x +_(op #) xs = x#xs"
+lemma lem: "\<And>x xs. x +_(#) xs = x#xs"
   by (simp add: plussub_def)
 
 lemma coalesce_eq_OK1_D [rule_format]:

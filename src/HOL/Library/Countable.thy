@@ -180,7 +180,7 @@ ML \<open>
         val pred_names = #names (fst induct_info)
         val induct_thms = #inducts (snd induct_info)
         val alist = pred_names ~~ induct_thms
-        val induct_thm = the (AList.lookup (op =) alist pred_name)
+        val induct_thm = the (AList.lookup (=) alist pred_name)
         val vars = rev (Term.add_vars (Thm.prop_of induct_thm) [])
         val insts = vars |> map (fn (_, T) => try (Thm.cterm_of ctxt)
           (Const (@{const_name Countable.finite_item}, T)))

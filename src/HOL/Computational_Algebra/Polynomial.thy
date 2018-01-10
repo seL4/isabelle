@@ -891,7 +891,7 @@ lemma smult_pCons [simp]: "smult a (pCons b p) = pCons (a * b) (smult a p)"
 lemma smult_monom: "smult a (monom b n) = monom (a * b) n"
   by (induct n) (simp_all add: monom_0 monom_Suc)
 
-lemma smult_Poly: "smult c (Poly xs) = Poly (map (op * c) xs)"
+lemma smult_Poly: "smult c (Poly xs) = Poly (map (( * ) c) xs)"
   by (auto simp: poly_eq_iff nth_default_def)
 
 lemma degree_smult_eq [simp]: "degree (smult a p) = (if a = 0 then 0 else degree p)"
@@ -1161,7 +1161,7 @@ lemma coeff_map_poly:
       simp del: upt_Suc)
 
 lemma coeffs_map_poly [code abstract]:
-  "coeffs (map_poly f p) = strip_while (op = 0) (map f (coeffs p))"
+  "coeffs (map_poly f p) = strip_while ((=) 0) (map f (coeffs p))"
   by (simp add: map_poly_def)
 
 lemma coeffs_map_poly':
@@ -1949,7 +1949,7 @@ proof (induction "degree p" arbitrary: p rule: less_induct)
 qed
 
 lemma dropWhile_replicate_append:
-  "dropWhile (op = a) (replicate n a @ ys) = dropWhile (op = a) ys"
+  "dropWhile ((=) a) (replicate n a @ ys) = dropWhile ((=) a) ys"
   by (induct n) simp_all
 
 lemma Poly_append_replicate_0: "Poly (xs @ replicate n 0) = Poly xs"
@@ -2233,8 +2233,8 @@ lemma poly_cutoff_1 [simp]: "poly_cutoff n 1 = (if n = 0 then 0 else 1)"
   by (simp add: poly_eq_iff coeff_poly_cutoff)
 
 lemma coeffs_poly_cutoff [code abstract]:
-  "coeffs (poly_cutoff n p) = strip_while (op = 0) (take n (coeffs p))"
-proof (cases "strip_while (op = 0) (take n (coeffs p)) = []")
+  "coeffs (poly_cutoff n p) = strip_while ((=) 0) (take n (coeffs p))"
+proof (cases "strip_while ((=) 0) (take n (coeffs p)) = []")
   case True
   then have "coeff (poly_cutoff n p) k = 0" for k
     unfolding coeff_poly_cutoff
@@ -2245,9 +2245,9 @@ proof (cases "strip_while (op = 0) (take n (coeffs p)) = []")
     by (subst True) simp_all
 next
   case False
-  have "no_trailing (op = 0) (strip_while (op = 0) (take n (coeffs p)))"
+  have "no_trailing ((=) 0) (strip_while ((=) 0) (take n (coeffs p)))"
     by simp
-  with False have "last (strip_while (op = 0) (take n (coeffs p))) \<noteq> 0"
+  with False have "last (strip_while ((=) 0) (take n (coeffs p))) \<noteq> 0"
     unfolding no_trailing_unfold by auto
   then show ?thesis
     by (intro coeffs_eqI)
@@ -2261,7 +2261,7 @@ definition reflect_poly :: "'a::zero poly \<Rightarrow> 'a poly"
   where "reflect_poly p = Poly (rev (coeffs p))"
 
 lemma coeffs_reflect_poly [code abstract]:
-  "coeffs (reflect_poly p) = rev (dropWhile (op = 0) (coeffs p))"
+  "coeffs (reflect_poly p) = rev (dropWhile ((=) 0) (coeffs p))"
   by (simp add: reflect_poly_def)
 
 lemma reflect_poly_0 [simp]: "reflect_poly 0 = 0"
@@ -3803,10 +3803,10 @@ fun pseudo_divmod_main_list ::
   where
     "pseudo_divmod_main_list lc q r d (Suc n) =
       (let
-        rr = map (op * lc) r;
+        rr = map (( * ) lc) r;
         a = hd r;
-        qqq = cCons a (map (op * lc) q);
-        rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (op * a) d))
+        qqq = cCons a (map (( * ) lc) q);
+        rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (( * ) a) d))
        in pseudo_divmod_main_list lc qqq rrr d n)"
   | "pseudo_divmod_main_list lc q r d 0 = (q, r)"
 
@@ -3814,9 +3814,9 @@ fun pseudo_mod_main_list :: "'a::comm_ring_1 \<Rightarrow> 'a list \<Rightarrow>
   where
     "pseudo_mod_main_list lc r d (Suc n) =
       (let
-        rr = map (op * lc) r;
+        rr = map (( * ) lc) r;
         a = hd r;
-        rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (op * a) d))
+        rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (( * ) a) d))
        in pseudo_mod_main_list lc rrr d n)"
   | "pseudo_mod_main_list lc r d 0 = r"
 
@@ -3828,7 +3828,7 @@ fun divmod_poly_one_main_list ::
       (let
         a = hd r;
         qqq = cCons a q;
-        rr = tl (if a = 0 then r else minus_poly_rev_list r (map (op * a) d))
+        rr = tl (if a = 0 then r else minus_poly_rev_list r (map (( * ) a) d))
        in divmod_poly_one_main_list qqq rr d n)"
   | "divmod_poly_one_main_list q r d 0 = (q, r)"
 
@@ -3837,7 +3837,7 @@ fun mod_poly_one_main_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<Righ
     "mod_poly_one_main_list r d (Suc n) =
       (let
         a = hd r;
-        rr = tl (if a = 0 then r else minus_poly_rev_list r (map (op * a) d))
+        rr = tl (if a = 0 then r else minus_poly_rev_list r (map (( * ) a) d))
        in mod_poly_one_main_list rr d n)"
   | "mod_poly_one_main_list r d 0 = r"
 
@@ -3858,7 +3858,7 @@ definition pseudo_mod_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<Righ
         re = pseudo_mod_main_list (hd rq) (rev p) rq (1 + length p - length q)
        in rev re))"
 
-lemma minus_zero_does_nothing: "minus_poly_rev_list x (map (op * 0) y) = x"
+lemma minus_zero_does_nothing: "minus_poly_rev_list x (map (( * ) 0) y) = x"
   for x :: "'a::ring list"
   by (induct x y rule: minus_poly_rev_list.induct) auto
 
@@ -3866,8 +3866,8 @@ lemma length_minus_poly_rev_list [simp]: "length (minus_poly_rev_list xs ys) = l
   by (induct xs ys rule: minus_poly_rev_list.induct) auto
 
 lemma if_0_minus_poly_rev_list:
-  "(if a = 0 then x else minus_poly_rev_list x (map (op * a) y)) =
-    minus_poly_rev_list x (map (op * a) y)"
+  "(if a = 0 then x else minus_poly_rev_list x (map (( * ) a) y)) =
+    minus_poly_rev_list x (map (( * ) a) y)"
   for a :: "'a::ring"
   by(cases "a = 0") (simp_all add: minus_zero_does_nothing)
 
@@ -3909,7 +3909,7 @@ lemma smult_monom_mult: "smult a (monom b n * f) = monom (a * b) n * f"
 
 lemma head_minus_poly_rev_list:
   "length d \<le> length r \<Longrightarrow> d \<noteq> [] \<Longrightarrow>
-    hd (minus_poly_rev_list (map (op * (last d)) r) (map (op * (hd r)) (rev d))) = 0"
+    hd (minus_poly_rev_list (map (( * ) (last d)) r) (map (( * ) (hd r)) (rev d))) = 0"
   for d r :: "'a::comm_ring list"
 proof (induct r)
   case Nil
@@ -3919,7 +3919,7 @@ next
   then show ?case by (cases "rev d") (simp_all add: ac_simps)
 qed
 
-lemma Poly_map: "Poly (map (op * a) p) = smult a (Poly p)"
+lemma Poly_map: "Poly (map (( * ) a) p) = smult a (Poly p)"
 proof (induct p)
   case Nil
   then show ?case by simp
@@ -3947,9 +3947,9 @@ proof (induct n arbitrary: r q)
   with \<open>d \<noteq> []\<close> have "r \<noteq> []"
     using Suc_leI length_greater_0_conv list.size(3) by fastforce
   let ?a = "(hd (rev r))"
-  let ?rr = "map (op * lc) (rev r)"
-  let ?rrr = "rev (tl (minus_poly_rev_list ?rr (map (op * ?a) (rev d))))"
-  let ?qq = "cCons ?a (map (op * lc) q)"
+  let ?rr = "map (( * ) lc) (rev r)"
+  let ?rrr = "rev (tl (minus_poly_rev_list ?rr (map (( * ) ?a) (rev d))))"
+  let ?qq = "cCons ?a (map (( * ) lc) q)"
   from * Suc(3) have n: "n = (1 + length r - length d - 1)"
     by simp
   from * have rr_val:"(length ?rrr) = (length r - 1)"
@@ -3982,12 +3982,12 @@ proof (induct n arbitrary: r q)
     case 2
     show ?case
     proof (subst Poly_on_rev_starting_with_0, goal_cases)
-      show "hd (minus_poly_rev_list (map (op * lc) (rev r)) (map (op * (hd (rev r))) (rev d))) = 0"
+      show "hd (minus_poly_rev_list (map (( * ) lc) (rev r)) (map (( * ) (hd (rev r))) (rev d))) = 0"
         by (fold lc, subst head_minus_poly_rev_list, insert * \<open>d \<noteq> []\<close>, auto)
       from * have "length d \<le> length r"
         by simp
       then show "smult lc (Poly r) - monom (coeff (Poly r) (length r - 1)) n * Poly d =
-          Poly (rev (minus_poly_rev_list (map (op * lc) (rev r)) (map (op * (hd (rev r))) (rev d))))"
+          Poly (rev (minus_poly_rev_list (map (( * ) lc) (rev r)) (map (( * ) (hd (rev r))) (rev d))))"
         by (fold rev_map) (auto simp add: n smult_monom_mult Poly_map hd_rev [symmetric]
             minus_poly_rev_list)
     qed
@@ -4092,9 +4092,9 @@ lemma pdivmod_via_pseudo_divmod_list:
         let
           cf = coeffs f;
           ilc = inverse (last cg);
-          ch = map (op * ilc) cg;
+          ch = map (( * ) ilc) cg;
           (q, r) = pseudo_divmod_main_list 1 [] (rev cf) (rev ch) (1 + length cf - length cg)
-        in (poly_of_list (map (op * ilc) q), poly_of_list (rev r)))"
+        in (poly_of_list (map (( * ) ilc) q), poly_of_list (rev r)))"
 proof -
   note d = pdivmod_via_pseudo_divmod pseudo_divmod_impl pseudo_divmod_list_def
   show ?thesis
@@ -4113,10 +4113,10 @@ proof -
     have id2: "hd (rev (coeffs (smult ilc g))) = 1"
       by (subst hd_rev, insert id ilc, auto simp: coeffs_smult, subst last_map, auto simp: id ilc_def)
     have id3: "length (coeffs (smult ilc g)) = length (coeffs g)"
-      "rev (coeffs (smult ilc g)) = rev (map (op * ilc) (coeffs g))"
+      "rev (coeffs (smult ilc g)) = rev (map (( * ) ilc) (coeffs g))"
       unfolding coeffs_smult using ilc by auto
     obtain q r where pair:
-      "pseudo_divmod_main_list 1 [] (rev (coeffs f)) (rev (map (op * ilc) (coeffs g)))
+      "pseudo_divmod_main_list 1 [] (rev (coeffs f)) (rev (map (( * ) ilc) (coeffs g)))
         (1 + length (coeffs f) - length (coeffs g)) = (q, r)"
       by force
     show ?thesis
@@ -4129,7 +4129,7 @@ qed
 lemma pseudo_divmod_main_list_1: "pseudo_divmod_main_list 1 = divmod_poly_one_main_list"
 proof (intro ext, goal_cases)
   case (1 q r d n)
-  have *: "map (op * 1) xs = xs" for xs :: "'a list"
+  have *: "map (( * ) 1) xs = xs" for xs :: "'a list"
     by (induct xs) auto
   show ?case
     by (induct n arbitrary: q r d) (auto simp: * Let_def)
@@ -4143,7 +4143,7 @@ fun divide_poly_main_list :: "'a::idom_divide \<Rightarrow> 'a list \<Rightarrow
         in if cr = 0 then divide_poly_main_list lc (cCons cr q) (tl r) d n else let
         a = cr div lc;
         qq = cCons a q;
-        rr = minus_poly_rev_list r (map (op * a) d)
+        rr = minus_poly_rev_list r (map (( * ) a) d)
        in if hd rr = 0 then divide_poly_main_list lc qq (tl rr) d n else [])"
   | "divide_poly_main_list lc q r d 0 = q"
 
@@ -4153,7 +4153,7 @@ lemma divide_poly_main_list_simp [simp]:
       cr = hd r;
       a = cr div lc;
       qq = cCons a q;
-      rr = minus_poly_rev_list r (map (op * a) d)
+      rr = minus_poly_rev_list r (map (( * ) a) d)
      in if hd rr = 0 then divide_poly_main_list lc qq (tl rr) d n else [])"
   by (simp add: Let_def minus_zero_does_nothing)
 
@@ -4182,7 +4182,7 @@ lemma mod_poly_code [code]:
         let
           cf = coeffs f;
           ilc = inverse (last cg);
-          ch = map (op * ilc) cg;
+          ch = map (( * ) ilc) cg;
           r = mod_poly_one_main_list (rev cf) (rev ch) (1 + length cf - length cg)
         in poly_of_list (rev r))"
   (is "_ = ?rhs")
@@ -4201,14 +4201,14 @@ definition div_field_poly_impl :: "'a :: field poly \<Rightarrow> 'a poly \<Righ
         let
           cf = coeffs f;
           ilc = inverse (last cg);
-          ch = map (op * ilc) cg;
+          ch = map (( * ) ilc) cg;
           q = fst (divmod_poly_one_main_list [] (rev cf) (rev ch) (1 + length cf - length cg))
-        in poly_of_list ((map (op * ilc) q)))"
+        in poly_of_list ((map (( * ) ilc) q)))"
 
 text \<open>We do not declare the following lemma as code equation, since then polynomial division
   on non-fields will no longer be executable. However, a code-unfold is possible, since
   \<open>div_field_poly_impl\<close> is a bit more efficient than the generic polynomial division.\<close>
-lemma div_field_poly_impl[code_unfold]: "op div = div_field_poly_impl"
+lemma div_field_poly_impl[code_unfold]: "(div) = div_field_poly_impl"
 proof (intro ext)
   fix f g :: "'a poly"
   have "fst (f div g, f mod g) = div_field_poly_impl f g"
@@ -4251,7 +4251,7 @@ proof (induct "n" arbitrary: r q)
     with r d have id:
       "?thesis \<longleftrightarrow>
         Poly (divide_poly_main_list lc (cCons (lcr div lc) q)
-          (rev (rev (minus_poly_rev_list (rev rr) (rev (map (op * (lcr div lc)) dd))))) (rev d) n) =
+          (rev (rev (minus_poly_rev_list (rev rr) (rev (map (( * ) (lcr div lc)) dd))))) (rev d) n) =
           divide_poly_main lc
             (monom 1 (Suc n) * Poly q + monom (lcr div lc) n)
             (Poly r - monom (lcr div lc) n * Poly d)

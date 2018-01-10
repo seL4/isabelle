@@ -527,7 +527,7 @@ next
                         and gh: "\<And>x. x \<in> rel_frontier D \<Longrightarrow> g x = h x"
           by (metis *)
         have "D \<inter> E \<subseteq> rel_frontier D"
-             if "E \<in> \<G> \<union> {D. Bex \<F> (op face_of D) \<and> aff_dim D < int p}" for E
+             if "E \<in> \<G> \<union> {D. Bex \<F> ((face_of) D) \<and> aff_dim D < int p}" for E
         proof (rule face_of_subset_rel_frontier)
           show "D \<inter> E face_of D"
             using that \<open>C \<in> \<F>\<close> \<open>D face_of C\<close> face
@@ -2173,21 +2173,21 @@ next
   case False
   obtain a b where "a \<in> S" "a \<in> U" "b \<in> V"
     using False fim ope openin_contains_cball by fastforce
-  have "openin (subtopology euclidean (op + (- b) ` V)) ((op + (- b) \<circ> f \<circ> op + a) ` op + (- a) ` S)"
+  have "openin (subtopology euclidean ((+) (- b) ` V)) (((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S)"
   proof (rule invariance_of_domain_subspaces)
-    show "openin (subtopology euclidean (op + (- a) ` U)) (op + (- a) ` S)"
+    show "openin (subtopology euclidean ((+) (- a) ` U)) ((+) (- a) ` S)"
       by (metis ope homeomorphism_imp_open_map homeomorphism_translation translation_galois)
-    show "subspace (op + (- a) ` U)"
+    show "subspace ((+) (- a) ` U)"
       by (simp add: \<open>a \<in> U\<close> affine_diffs_subspace \<open>affine U\<close>)
-    show "subspace (op + (- b) ` V)"
+    show "subspace ((+) (- b) ` V)"
       by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace \<open>affine V\<close>)
-    show "dim (op + (- b) ` V) \<le> dim (op + (- a) ` U)"
+    show "dim ((+) (- b) ` V) \<le> dim ((+) (- a) ` U)"
       by (metis \<open>a \<in> U\<close> \<open>b \<in> V\<close> aff_dim_eq_dim affine_hull_eq aff of_nat_le_iff)
-    show "continuous_on (op + (- a) ` S) (op + (- b) \<circ> f \<circ> op + a)"
+    show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
       by (metis contf continuous_on_compose homeomorphism_cont2 homeomorphism_translation translation_galois)
-    show "(op + (- b) \<circ> f \<circ> op + a) ` op + (- a) ` S \<subseteq> op + (- b) ` V"
+    show "((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S \<subseteq> (+) (- b) ` V"
       using fim by auto
-    show "inj_on (op + (- b) \<circ> f \<circ> op + a) (op + (- a) ` S)"
+    show "inj_on ((+) (- b) \<circ> f \<circ> (+) a) ((+) (- a) ` S)"
       by (auto simp: inj_on_def) (meson inj_onD injf)
   qed
   then show ?thesis
@@ -2204,19 +2204,19 @@ corollary invariance_of_dimension_affine_sets:
 proof -
   obtain a b where "a \<in> S" "a \<in> U" "b \<in> V"
     using \<open>S \<noteq> {}\<close> fim ope openin_contains_cball by fastforce
-  have "dim (op + (- a) ` U) \<le> dim (op + (- b) ` V)"
+  have "dim ((+) (- a) ` U) \<le> dim ((+) (- b) ` V)"
   proof (rule invariance_of_dimension_subspaces)
-    show "openin (subtopology euclidean (op + (- a) ` U)) (op + (- a) ` S)"
+    show "openin (subtopology euclidean ((+) (- a) ` U)) ((+) (- a) ` S)"
       by (metis ope homeomorphism_imp_open_map homeomorphism_translation translation_galois)
-    show "subspace (op + (- a) ` U)"
+    show "subspace ((+) (- a) ` U)"
       by (simp add: \<open>a \<in> U\<close> affine_diffs_subspace \<open>affine U\<close>)
-    show "subspace (op + (- b) ` V)"
+    show "subspace ((+) (- b) ` V)"
       by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace \<open>affine V\<close>)
-    show "continuous_on (op + (- a) ` S) (op + (- b) \<circ> f \<circ> op + a)"
+    show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
       by (metis contf continuous_on_compose homeomorphism_cont2 homeomorphism_translation translation_galois)
-    show "(op + (- b) \<circ> f \<circ> op + a) ` op + (- a) ` S \<subseteq> op + (- b) ` V"
+    show "((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S \<subseteq> (+) (- b) ` V"
       using fim by auto
-    show "inj_on (op + (- b) \<circ> f \<circ> op + a) (op + (- a) ` S)"
+    show "inj_on ((+) (- b) \<circ> f \<circ> (+) a) ((+) (- a) ` S)"
       by (auto simp: inj_on_def) (meson inj_onD injf)
   qed (use \<open>S \<noteq> {}\<close> in auto)
   then show ?thesis
@@ -2762,7 +2762,7 @@ next
   case False
   then obtain a b where "a \<in> S" "b \<in> T"
     by blast
-  then have "subspace (op + (- a) ` S)" "subspace (op + (- b) ` T)"
+  then have "subspace ((+) (- a) ` S)" "subspace ((+) (- b) ` T)"
     using affine_diffs_subspace assms by blast+
   then show ?thesis
     by (metis affine_imp_convex assms homeomorphic_affine_sets homeomorphic_convex_sets)
@@ -3539,12 +3539,12 @@ next
       by (intro conjI contg continuous_intros)
     show "(complex_of_real \<circ> g) ` S \<subseteq> \<real>"
       by auto
-    show "continuous_on \<real> (exp \<circ> op*\<i>)"
+    show "continuous_on \<real> (exp \<circ> ( * )\<i>)"
       by (intro continuous_intros)
-    show "(exp \<circ> op*\<i>) ` \<real> \<subseteq> sphere 0 1"
+    show "(exp \<circ> ( * )\<i>) ` \<real> \<subseteq> sphere 0 1"
       by (auto simp: complex_is_Real_iff)
   qed (auto simp: convex_Reals convex_imp_contractible)
-  moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> op*\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
+  moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> ( * )\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
     by (simp add: g)
   ultimately show ?lhs
     apply (rule_tac x=a in exI)

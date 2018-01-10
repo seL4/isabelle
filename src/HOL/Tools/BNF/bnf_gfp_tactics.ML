@@ -109,7 +109,7 @@ val sum_case_cong_weak = @{thm sum.case_cong_weak};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 val Collect_splitD_set_mp = @{thm Collect_case_prodD[OF set_mp]};
 val rev_bspec = Drule.rotate_prems 1 bspec;
-val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]};
+val Un_cong = @{thm arg_cong2[of _ _ _ _ "(\<union>)"]};
 val converse_shift = @{thm converse_subset_swap} RS iffD1;
 
 fun mk_coalg_set_tac ctxt coalg_def =
@@ -807,10 +807,10 @@ fun mk_map_comp0_tac ctxt maps map_comp0s map_unique =
     EVERY' (map2 (fn map_thm => fn map_comp0 =>
       EVERY' (map (rtac ctxt)
         [@{thm comp_assoc[symmetric]} RS trans,
-        @{thm arg_cong2[of _ _ _ _ "op \<circ>"]} OF [map_thm, refl] RS trans,
+        @{thm arg_cong2[of _ _ _ _ "(\<circ>)"]} OF [map_thm, refl] RS trans,
         @{thm comp_assoc[symmetric]} RS sym RS trans, map_thm RS arg_cong RS trans,
         @{thm comp_assoc[symmetric]} RS trans,
-        @{thm arg_cong2[of _ _ _ _ "op \<circ>"]} OF [map_comp0 RS sym, refl]]))
+        @{thm arg_cong2[of _ _ _ _ "(\<circ>)"]} OF [map_comp0 RS sym, refl]]))
     maps map_comp0s)] 1;
 
 fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_map0ss set_Jsetss

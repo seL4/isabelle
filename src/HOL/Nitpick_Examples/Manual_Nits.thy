@@ -81,7 +81,7 @@ lemma "P Suc"
 nitpick [expect = none]
 oops
 
-lemma "P ((op +)::nat\<Rightarrow>nat\<Rightarrow>nat)"
+lemma "P ((+)::nat\<Rightarrow>nat\<Rightarrow>nat)"
 nitpick [card nat = 1, expect = genuine]
 nitpick [card nat = 2, expect = none]
 oops

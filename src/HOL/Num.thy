@@ -540,7 +540,7 @@ lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
   by (induct n) (simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
 
 lemma numeral_unfold_funpow:
-  "numeral k = (op + 1 ^^ numeral k) 0"
+  "numeral k = ((+) 1 ^^ numeral k) 0"
   unfolding of_nat_def [symmetric] by simp
 
 end

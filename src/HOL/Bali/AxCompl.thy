@@ -119,7 +119,7 @@ definition
   remember_init_state :: "state assn" ("\<doteq>")
   where "\<doteq> \<equiv> \<lambda>Y s Z. s = Z"
 
-lemma remember_init_state_def2 [simp]: "\<doteq> Y = op ="
+lemma remember_init_state_def2 [simp]: "\<doteq> Y = (=)"
 apply (unfold remember_init_state_def)
 apply (simp (no_asm))
 done

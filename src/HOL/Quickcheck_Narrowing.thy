@@ -33,7 +33,7 @@ setup \<open>
     fun print _ = Code_Haskell.print_numeral "Prelude.Int";
   in
     Numeral.add_code @{const_name Code_Numeral.Pos} I print target
-    #> Numeral.add_code @{const_name Code_Numeral.Neg} (op ~) print target
+    #> Numeral.add_code @{const_name Code_Numeral.Neg} (~) print target
   end
 \<close>
 

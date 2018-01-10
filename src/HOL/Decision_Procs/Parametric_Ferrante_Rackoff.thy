@@ -4066,7 +4066,7 @@ fun term_of_fm T fs ps @{code T} = @{term True}
 fun frpar_procedure alternative T ps fm =
   let
     val frpar = if alternative then @{code frpar2} else @{code frpar};
-    val fs = subtract (op aconv) (map Free (Term.add_frees fm [])) ps;
+    val fs = subtract (aconv) (map Free (Term.add_frees fm [])) ps;
     val eval = term_of_fm T fs ps o frpar o fm_of_term fs ps;
     val t = HOLogic.dest_Trueprop fm;
   in HOLogic.mk_Trueprop (HOLogic.mk_eq (t, eval t)) end;

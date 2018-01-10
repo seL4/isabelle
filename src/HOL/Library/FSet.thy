@@ -39,7 +39,7 @@ definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where
 lemma less_fset_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
-  shows "((pcr_fset A) ===> (pcr_fset A) ===> op =) op \<subset> op <"
+  shows "((pcr_fset A) ===> (pcr_fset A) ===> (=)) (\<subset>) (<)"
   unfolding less_fset_def[abs_def] psubset_eq[abs_def] by transfer_prover
 
 
@@ -103,7 +103,7 @@ parametric Sup_fset_transfer by simp
 lemma finite_Sup: "\<exists>z. finite z \<and> (\<forall>a. a \<in> X \<longrightarrow> a \<le> z) \<Longrightarrow> finite (Sup X)"
 by (auto intro: finite_subset)
 
-lemma transfer_bdd_below[transfer_rule]: "(rel_set (pcr_fset op =) ===> op =) bdd_below bdd_below"
+lemma transfer_bdd_below[transfer_rule]: "(rel_set (pcr_fset (=)) ===> (=)) bdd_below bdd_below"
   by auto
 
 end
@@ -754,9 +754,9 @@ sublocale fsum: comm_monoid_fset plus 0
   defines fsum = fsum.F
   rewrites "comm_monoid_set.F plus 0 = sum"
 proof -
-  show "comm_monoid_fset op + 0" by standard
+  show "comm_monoid_fset (+) 0" by standard
 
-  show "comm_monoid_set.F op + 0 = sum" unfolding sum_def ..
+  show "comm_monoid_set.F (+) 0 = sum" unfolding sum_def ..
 qed
 
 end
@@ -800,7 +800,7 @@ sublocale fMin: semilattice_order_fset min less_eq less
   defines fMin = fMin.F
   rewrites "semilattice_set.F min = Min"
 proof -
-  show "semilattice_order_fset min op \<le> op <" by standard
+  show "semilattice_order_fset min (\<le>) (<)" by standard
 
   show "semilattice_set.F min = Min" unfolding Min_def ..
 qed
@@ -809,7 +809,7 @@ sublocale fMax: semilattice_order_fset max greater_eq greater
   defines fMax = fMax.F
   rewrites "semilattice_set.F max = Max"
 proof -
-  show "semilattice_order_fset max op \<ge> op >"
+  show "semilattice_order_fset max (\<ge>) (>)"
     by standard
 
   show "semilattice_set.F max = Max"
@@ -1015,11 +1015,11 @@ lemma fimage_transfer [transfer_rule]:
   unfolding rel_fun_def rel_fset_alt_def by simp blast
 
 lemma fBall_transfer [transfer_rule]:
-  "(rel_fset A ===> (A ===> op =) ===> op =) fBall fBall"
+  "(rel_fset A ===> (A ===> (=)) ===> (=)) fBall fBall"
   unfolding rel_fset_alt_def rel_fun_def by blast
 
 lemma fBex_transfer [transfer_rule]:
-  "(rel_fset A ===> (A ===> op =) ===> op =) fBex fBex"
+  "(rel_fset A ===> (A ===> (=)) ===> (=)) fBex fBex"
   unfolding rel_fset_alt_def rel_fun_def by blast
 
 (* FIXME transfer doesn't work here *)
@@ -1030,7 +1030,7 @@ lemma fPow_transfer [transfer_rule]:
   by blast
 
 lemma rel_fset_transfer [transfer_rule]:
-  "((A ===> B ===> op =) ===> rel_fset A ===> rel_fset B ===> op =)
+  "((A ===> B ===> (=)) ===> rel_fset A ===> rel_fset B ===> (=))
     rel_fset rel_fset"
   unfolding rel_fun_def
   using rel_set_transfer[unfolded rel_fun_def,rule_format, Transfer.transferred, where A = A and B = B]
@@ -1045,7 +1045,7 @@ text \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>
 
 lemma fmember_transfer [transfer_rule]:
   assumes "bi_unique A"
-  shows "(A ===> rel_fset A ===> op =) (op |\<in>|) (op |\<in>|)"
+  shows "(A ===> rel_fset A ===> (=)) (|\<in>|) (|\<in>|)"
   using assms unfolding rel_fun_def rel_fset_alt_def bi_unique_def by metis
 
 lemma finter_transfer [transfer_rule]:
@@ -1056,13 +1056,13 @@ lemma finter_transfer [transfer_rule]:
 
 lemma fminus_transfer [transfer_rule]:
   assumes "bi_unique A"
-  shows "(rel_fset A ===> rel_fset A ===> rel_fset A) (op |-|) (op |-|)"
+  shows "(rel_fset A ===> rel_fset A ===> rel_fset A) (|-|) (|-|)"
   using assms unfolding rel_fun_def
   using Diff_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma fsubset_transfer [transfer_rule]:
   assumes "bi_unique A"
-  shows "(rel_fset A ===> rel_fset A ===> op =) (op |\<subseteq>|) (op |\<subseteq>|)"
+  shows "(rel_fset A ===> rel_fset A ===> (=)) (|\<subseteq>|) (|\<subseteq>|)"
   using assms unfolding rel_fun_def
   using subset_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
@@ -1085,12 +1085,12 @@ lemma fInf_transfer [transfer_rule]:
 
 lemma ffilter_transfer [transfer_rule]:
   assumes "bi_unique A"
-  shows "((A ===> op=) ===> rel_fset A ===> rel_fset A) ffilter ffilter"
+  shows "((A ===> (=)) ===> rel_fset A ===> rel_fset A) ffilter ffilter"
   using assms unfolding rel_fun_def
   using Lifting_Set.filter_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma card_transfer [transfer_rule]:
-  "bi_unique A \<Longrightarrow> (rel_fset A ===> op =) fcard fcard"
+  "bi_unique A \<Longrightarrow> (rel_fset A ===> (=)) fcard fcard"
   unfolding rel_fun_def
   using card_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 

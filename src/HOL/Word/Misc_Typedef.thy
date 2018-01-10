@@ -17,7 +17,7 @@ lemma tdD1: "type_definition Rep Abs A \<Longrightarrow> \<forall>x. Rep x \<in>
   and tdD3: "type_definition Rep Abs A \<Longrightarrow> \<forall>y. y \<in> A \<longrightarrow> Rep (Abs y) = y"
   by (auto simp: type_definition_def)
 
-lemma td_nat_int: "type_definition int nat (Collect (op \<le> 0))"
+lemma td_nat_int: "type_definition int nat (Collect ((\<le>) 0))"
   unfolding type_definition_def by auto
 
 context type_definition
@@ -75,7 +75,7 @@ lemma fns4: "Rep \<circ> fa \<circ> Abs = fr \<Longrightarrow> Rep \<circ> fa = 
 
 end
 
-interpretation nat_int: type_definition int nat "Collect (op \<le> 0)"
+interpretation nat_int: type_definition int nat "Collect ((\<le>) 0)"
   by (rule td_nat_int)
 
 declare

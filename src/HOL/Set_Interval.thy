@@ -932,14 +932,14 @@ corollary image_Suc_lessThan:
   by (simp add: lessThan_atLeast0 atLeastLessThanSuc_atLeastAtMost)
   
 lemma image_diff_atLeastAtMost [simp]:
-  fixes d::"'a::linordered_idom" shows "(op - d ` {a..b}) = {d-b..d-a}"
+  fixes d::"'a::linordered_idom" shows "((-) d ` {a..b}) = {d-b..d-a}"
   apply auto
   apply (rule_tac x="d-x" in rev_image_eqI, auto)
   done
 
 lemma image_mult_atLeastAtMost [simp]:
   fixes d::"'a::linordered_field"
-  assumes "d>0" shows "(op * d ` {a..b}) = {d*a..d*b}"
+  assumes "d>0" shows "(( * ) d ` {a..b}) = {d*a..d*b}"
   using assms
   by (auto simp: field_simps mult_le_cancel_right intro: rev_image_eqI [where x="x/d" for x])
 
@@ -2357,7 +2357,7 @@ qed
 lemma sum_atLeastAtMost_code:
   "sum f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a + acc) a b 0"
 proof -
-  have "comp_fun_commute (\<lambda>a. op + (f a))"
+  have "comp_fun_commute (\<lambda>a. (+) (f a))"
     by unfold_locales (auto simp: o_def add_ac)
   thus ?thesis
     by (simp add: sum.eq_fold fold_atLeastAtMost_nat o_def)
@@ -2366,7 +2366,7 @@ qed
 lemma prod_atLeastAtMost_code:
   "prod f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a * acc) a b 1"
 proof -
-  have "comp_fun_commute (\<lambda>a. op * (f a))"
+  have "comp_fun_commute (\<lambda>a. ( * ) (f a))"
     by unfold_locales (auto simp: o_def mult_ac)
   thus ?thesis
     by (simp add: prod.eq_fold fold_atLeastAtMost_nat o_def)

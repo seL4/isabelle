@@ -59,7 +59,7 @@ by (metis_exhaust B_def C_def int_le_0_imp_le_1 predicate1I)
 
 text \<open>Proxies for logical constants\<close>
 
-lemma "id (op =) x x"
+lemma "id (=) x x"
 sledgehammer [type_enc = erased, expect = none] (id_apply)
 sledgehammer [type_enc = poly_tags??, expect = some] (id_apply)
 sledgehammer [type_enc = poly_tags, expect = some] (id_apply)

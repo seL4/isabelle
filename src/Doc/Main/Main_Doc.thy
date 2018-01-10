@@ -297,7 +297,7 @@ Type synonym \ @{typ"'a rel"} \<open>=\<close> @{expanded_typ "'a rel"}
 @{const Transitive_Closure.trancl} & @{term_type_only Transitive_Closure.trancl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
 @{const Transitive_Closure.reflcl} & @{term_type_only Transitive_Closure.reflcl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
 @{const Transitive_Closure.acyclic} & @{term_type_only Transitive_Closure.acyclic "('a*'a)set\<Rightarrow>bool"}\\
-@{const compower} & @{term_type_only "op ^^ :: ('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set" "('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set"}\\
+@{const compower} & @{term_type_only "(^^) :: ('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set" "('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set"}\\
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -345,15 +345,15 @@ overloaded operators:
 \<^bigskip>
 
 \begin{tabular}{@ {} lllllll @ {}}
-@{term "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
-@{term "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
-@{term "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
-@{term "op ^ :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
-@{term "op div :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
-@{term "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
-@{term "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"}\\
-@{term "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"} &
-@{term "op < :: nat \<Rightarrow> nat \<Rightarrow> bool"} &
+@{term "(+) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
+@{term "(-) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
+@{term "( * ) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
+@{term "(^) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
+@{term "(div) :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
+@{term "(mod) :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
+@{term "(dvd) :: nat \<Rightarrow> nat \<Rightarrow> bool"}\\
+@{term "(\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool"} &
+@{term "(<) :: nat \<Rightarrow> nat \<Rightarrow> bool"} &
 @{term "min :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "max :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "Min :: nat set \<Rightarrow> nat"} &
@@ -362,8 +362,8 @@ overloaded operators:
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Nat.of_nat} & @{typeof Nat.of_nat}\\
-@{term "op ^^ :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"} &
-  @{term_type_only "op ^^ :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"}
+@{term "(^^) :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"} &
+  @{term_type_only "(^^) :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"}
 \end{tabular}
 
 \section*{Int}
@@ -372,16 +372,16 @@ Type @{typ int}
 \<^bigskip>
 
 \begin{tabular}{@ {} llllllll @ {}}
-@{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} &
-@{term "op - :: int \<Rightarrow> int \<Rightarrow> int"} &
+@{term "(+) :: int \<Rightarrow> int \<Rightarrow> int"} &
+@{term "(-) :: int \<Rightarrow> int \<Rightarrow> int"} &
 @{term "uminus :: int \<Rightarrow> int"} &
-@{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} &
-@{term "op ^ :: int \<Rightarrow> nat \<Rightarrow> int"} &
-@{term "op div :: int \<Rightarrow> int \<Rightarrow> int"}&
-@{term "op mod :: int \<Rightarrow> int \<Rightarrow> int"}&
-@{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"}\\
-@{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} &
-@{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} &
+@{term "( * ) :: int \<Rightarrow> int \<Rightarrow> int"} &
+@{term "(^) :: int \<Rightarrow> nat \<Rightarrow> int"} &
+@{term "(div) :: int \<Rightarrow> int \<Rightarrow> int"}&
+@{term "(mod) :: int \<Rightarrow> int \<Rightarrow> int"}&
+@{term "(dvd) :: int \<Rightarrow> int \<Rightarrow> bool"}\\
+@{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"} &
+@{term "(<) :: int \<Rightarrow> int \<Rightarrow> bool"} &
 @{term "min :: int \<Rightarrow> int \<Rightarrow> int"} &
 @{term "max :: int \<Rightarrow> int \<Rightarrow> int"} &
 @{term "Min :: int set \<Rightarrow> int"} &

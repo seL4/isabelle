@@ -330,11 +330,11 @@ lemma "(x \<equiv> Pure.all) \<Longrightarrow> False"
 nitpick [expect = genuine]
 oops
 
-lemma "(x \<equiv> (op \<equiv>)) \<Longrightarrow> False"
+lemma "(x \<equiv> (\<equiv>)) \<Longrightarrow> False"
 nitpick [expect = genuine]
 oops
 
-lemma "(x \<equiv> (op \<Longrightarrow>)) \<Longrightarrow> False"
+lemma "(x \<equiv> (\<Longrightarrow>)) \<Longrightarrow> False"
 nitpick [expect = genuine]
 oops
 
@@ -384,11 +384,11 @@ lemma "x \<in> {x. P x}"
 nitpick [expect = genuine]
 oops
 
-lemma "P (op \<in>)"
+lemma "P (\<in>)"
 nitpick [expect = genuine]
 oops
 
-lemma "P (op \<in> x)"
+lemma "P ((\<in>) x)"
 nitpick [expect = genuine]
 oops
 

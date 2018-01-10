@@ -55,17 +55,17 @@ code_printing
     and (OCaml) "Pervasives.(<)"
 
 code_printing
-  constant "op + :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
+  constant "(+) :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
     (SML) "Real.+ ((_), (_))"
     and (OCaml) "Pervasives.( +. )"
 
 code_printing
-  constant "op * :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
+  constant "( * ) :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
     (SML) "Real.* ((_), (_))"
     and (OCaml) "Pervasives.( *. )"
 
 code_printing
-  constant "op - :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
+  constant "(-) :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
     (SML) "Real.- ((_), (_))"
     and (OCaml) "Pervasives.( -. )"
 
@@ -75,7 +75,7 @@ code_printing
     and (OCaml) "Pervasives.( ~-. )"
 
 code_printing
-  constant "op / :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
+  constant "(/) :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
     (SML) "Real.'/ ((_), (_))"
     and (OCaml) "Pervasives.( '/. )"
 

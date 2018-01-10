@@ -188,22 +188,22 @@ next
 qed auto
 
 bnf "'a \<Rightarrow> 'b"
-  map: "op \<circ>"
+  map: "(\<circ>)"
   sets: range
   bd: "natLeq +c |UNIV :: 'a set|"
-  rel: "rel_fun op ="
+  rel: "rel_fun (=)"
   pred: "pred_fun (\<lambda>_. True)"
 proof
   fix f show "id \<circ> f = id f" by simp
 next
-  fix f g show "op \<circ> (g \<circ> f) = op \<circ> g \<circ> op \<circ> f"
+  fix f g show "(\<circ>) (g \<circ> f) = (\<circ>) g \<circ> (\<circ>) f"
   unfolding comp_def[abs_def] ..
 next
   fix x f g
   assume "\<And>z. z \<in> range x \<Longrightarrow> f z = g z"
   thus "f \<circ> x = g \<circ> x" by auto
 next
-  fix f show "range \<circ> op \<circ> f = op ` f \<circ> range"
+  fix f show "range \<circ> (\<circ>) f = (`) f \<circ> range"
     by (auto simp add: fun_eq_iff)
 next
   show "card_order (natLeq +c |UNIV| )" (is "_ (_ +c ?U)")
@@ -222,10 +222,10 @@ next
   finally show "|range f| \<le>o natLeq +c ?U" .
 next
   fix R S
-  show "rel_fun op = R OO rel_fun op = S \<le> rel_fun op = (R OO S)" by (auto simp: rel_fun_def)
+  show "rel_fun (=) R OO rel_fun (=) S \<le> rel_fun (=) (R OO S)" by (auto simp: rel_fun_def)
 next
   fix R
-  show "rel_fun op = R = (\<lambda>x y.
+  show "rel_fun (=) R = (\<lambda>x y.
     \<exists>z. range z \<subseteq> {(x, y). R x y} \<and> fst \<circ> z = x \<and> snd \<circ> z = y)"
   unfolding rel_fun_def subset_iff by (force simp: fun_eq_iff[symmetric])
 qed (auto simp: pred_fun_def)

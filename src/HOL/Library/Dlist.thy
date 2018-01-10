@@ -316,7 +316,7 @@ qed
 qualified lift_definition set :: "'a dlist \<Rightarrow> 'a set" is List.set .
 
 qualified lemma map_transfer [transfer_rule]:
-  "(rel_fun op = (rel_fun (pcr_dlist op =) (pcr_dlist op =))) (\<lambda>f x. remdups (List.map f x)) Dlist.map"
+  "(rel_fun (=) (rel_fun (pcr_dlist (=)) (pcr_dlist (=)))) (\<lambda>f x. remdups (List.map f x)) Dlist.map"
 by(simp add: rel_fun_def dlist.pcr_cr_eq cr_dlist_def Dlist.map_def remdups_remdups)
 
 bnf "'a dlist"

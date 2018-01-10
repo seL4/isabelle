@@ -88,7 +88,7 @@ next
   then show "map_bset f X = map_bset g X" by transfer force
 next
   fix f
-  show "set_bset \<circ> map_bset f = op ` f \<circ> set_bset" by (rule ext, transfer) auto
+  show "set_bset \<circ> map_bset f = (`) f \<circ> set_bset" by (rule ext, transfer) auto
 next
   fix X :: "'a set['k]"
   show "|set_bset X| \<le>o natLeq +c |UNIV :: 'k set|"
@@ -169,7 +169,7 @@ lemma rel_bset_of_option[simp]:
   by transfer (auto simp: rel_set_def split: option.splits)
 
 lemma rel_bgraph[simp]:
-  "rel_bset (rel_prod (op =) R) (bgraph f1) (bgraph f2) = rel_fun (op =) (rel_option R) f1 f2"
+  "rel_bset (rel_prod (=) R) (bgraph f1) (bgraph f2) = rel_fun (=) (rel_option R) f1 f2"
   apply transfer
   apply (auto simp: rel_fun_def rel_option_iff rel_set_def split: option.splits)
   using option.collapse apply fastforce+
@@ -195,7 +195,7 @@ lift_definition bCollect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set['a set
   apply (rule ordLeq_csum2[OF card_of_Card_order])
   done
 
-lift_definition bmember :: "'a \<Rightarrow> 'a set['k] \<Rightarrow> bool" is "op \<in>" .
+lift_definition bmember :: "'a \<Rightarrow> 'a set['k] \<Rightarrow> bool" is "(\<in>)" .
 
 lemma bmember_bCollect[simp]: "bmember a (bCollect P) = P a"
   by transfer simp

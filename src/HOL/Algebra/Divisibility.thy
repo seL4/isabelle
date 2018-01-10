@@ -145,7 +145,7 @@ definition factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "divides\<index>" 6
 definition associated :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "\<sim>\<index>" 55)
   where "a \<sim>\<^bsub>G\<^esub> b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> b divides\<^bsub>G\<^esub> a"
 
-abbreviation "division_rel G \<equiv> \<lparr>carrier = carrier G, eq = op \<sim>\<^bsub>G\<^esub>, le = (op divides\<^bsub>G\<^esub>)\<rparr>"
+abbreviation "division_rel G \<equiv> \<lparr>carrier = carrier G, eq = (\<sim>\<^bsub>G\<^esub>), le = (divides\<^bsub>G\<^esub>)\<rparr>"
 
 definition properfactor :: "[_, 'a, 'a] \<Rightarrow> bool"
   where "properfactor G a b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> \<not>(b divides\<^bsub>G\<^esub> a)"
@@ -857,13 +857,13 @@ subsection \<open>Factorization and Factorial Monoids\<close>
 subsubsection \<open>Function definitions\<close>
 
 definition factors :: "[_, 'a list, 'a] \<Rightarrow> bool"
-  where "factors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> = a"
+  where "factors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (\<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> = a"
 
 definition wfactors ::"[_, 'a list, 'a] \<Rightarrow> bool"
-  where "wfactors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (op \<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
+  where "wfactors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (\<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
 
 abbreviation list_assoc :: "('a,_) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44)
-  where "list_assoc G \<equiv> list_all2 (op \<sim>\<^bsub>G\<^esub>)"
+  where "list_assoc G \<equiv> list_all2 (\<sim>\<^bsub>G\<^esub>)"
 
 definition essentially_equal :: "[_, 'a list, 'a list] \<Rightarrow> bool"
   where "essentially_equal G fs1 fs2 \<longleftrightarrow> (\<exists>fs1'. fs1 <~~> fs1' \<and> fs1' [\<sim>]\<^bsub>G\<^esub> fs2)"
@@ -1043,12 +1043,12 @@ text \<open>Multiplication of factors in a list\<close>
 
 lemma (in monoid) multlist_closed [simp, intro]:
   assumes ascarr: "set fs \<subseteq> carrier G"
-  shows "foldr (op \<otimes>) fs \<one> \<in> carrier G"
+  shows "foldr (\<otimes>) fs \<one> \<in> carrier G"
   using ascarr by (induct fs) simp_all
 
 lemma  (in comm_monoid) multlist_dividesI (*[intro]*):
   assumes "f \<in> set fs" and "f \<in> carrier G" and "set fs \<subseteq> carrier G"
-  shows "f divides (foldr (op \<otimes>) fs \<one>)"
+  shows "f divides (foldr (\<otimes>) fs \<one>)"
   using assms
   apply (induct fs)
    apply simp
@@ -1062,7 +1062,7 @@ lemma  (in comm_monoid) multlist_dividesI (*[intro]*):
 lemma (in comm_monoid_cancel) multlist_listassoc_cong:
   assumes "fs [\<sim>] fs'"
     and "set fs \<subseteq> carrier G" and "set fs' \<subseteq> carrier G"
-  shows "foldr (op \<otimes>) fs \<one> \<sim> foldr (op \<otimes>) fs' \<one>"
+  shows "foldr (\<otimes>) fs \<one> \<sim> foldr (\<otimes>) fs' \<one>"
   using assms
 proof (induct fs arbitrary: fs', simp)
   case (Cons a as fs')
@@ -1073,16 +1073,16 @@ proof (induct fs arbitrary: fs', simp)
     assume "a \<sim> b"
       and acarr: "a \<in> carrier G" and bcarr: "b \<in> carrier G"
       and ascarr: "set as \<subseteq> carrier G"
-    then have p: "a \<otimes> foldr op \<otimes> as \<one> \<sim> b \<otimes> foldr op \<otimes> as \<one>"
+    then have p: "a \<otimes> foldr (\<otimes>) as \<one> \<sim> b \<otimes> foldr (\<otimes>) as \<one>"
       by (fast intro: mult_cong_l)
     also
     assume "as [\<sim>] bs"
       and bscarr: "set bs \<subseteq> carrier G"
-      and "\<And>fs'. \<lbrakk>as [\<sim>] fs'; set fs' \<subseteq> carrier G\<rbrakk> \<Longrightarrow> foldr op \<otimes> as \<one> \<sim> foldr op \<otimes> fs' \<one>"
-    then have "foldr op \<otimes> as \<one> \<sim> foldr op \<otimes> bs \<one>" by simp
-    with ascarr bscarr bcarr have "b \<otimes> foldr op \<otimes> as \<one> \<sim> b \<otimes> foldr op \<otimes> bs \<one>"
+      and "\<And>fs'. \<lbrakk>as [\<sim>] fs'; set fs' \<subseteq> carrier G\<rbrakk> \<Longrightarrow> foldr (\<otimes>) as \<one> \<sim> foldr (\<otimes>) fs' \<one>"
+    then have "foldr (\<otimes>) as \<one> \<sim> foldr (\<otimes>) bs \<one>" by simp
+    with ascarr bscarr bcarr have "b \<otimes> foldr (\<otimes>) as \<one> \<sim> b \<otimes> foldr (\<otimes>) bs \<one>"
       by (fast intro: mult_cong_r)
-    finally show "a \<otimes> foldr op \<otimes> as \<one> \<sim> b \<otimes> foldr op \<otimes> bs \<one>"
+    finally show "a \<otimes> foldr (\<otimes>) as \<one> \<sim> b \<otimes> foldr (\<otimes>) bs \<one>"
       by (simp add: ascarr bscarr acarr bcarr)
   qed
 qed
@@ -1090,21 +1090,21 @@ qed
 lemma (in comm_monoid) multlist_perm_cong:
   assumes prm: "as <~~> bs"
     and ascarr: "set as \<subseteq> carrier G"
-  shows "foldr (op \<otimes>) as \<one> = foldr (op \<otimes>) bs \<one>"
+  shows "foldr (\<otimes>) as \<one> = foldr (\<otimes>) bs \<one>"
   using prm ascarr
   apply (induct, simp, clarsimp simp add: m_ac, clarsimp)
 proof clarsimp
   fix xs ys zs
   assume "xs <~~> ys"  "set xs \<subseteq> carrier G"
   then have "set ys \<subseteq> carrier G" by (rule perm_closed)
-  moreover assume "set ys \<subseteq> carrier G \<Longrightarrow> foldr op \<otimes> ys \<one> = foldr op \<otimes> zs \<one>"
-  ultimately show "foldr op \<otimes> ys \<one> = foldr op \<otimes> zs \<one>" by simp
+  moreover assume "set ys \<subseteq> carrier G \<Longrightarrow> foldr (\<otimes>) ys \<one> = foldr (\<otimes>) zs \<one>"
+  ultimately show "foldr (\<otimes>) ys \<one> = foldr (\<otimes>) zs \<one>" by simp
 qed
 
 lemma (in comm_monoid_cancel) multlist_ee_cong:
   assumes "essentially_equal G fs fs'"
     and "set fs \<subseteq> carrier G" and "set fs' \<subseteq> carrier G"
-  shows "foldr (op \<otimes>) fs \<one> \<sim> foldr (op \<otimes>) fs' \<one>"
+  shows "foldr (\<otimes>) fs \<one> \<sim> foldr (\<otimes>) fs' \<one>"
   using assms
   apply (elim essentially_equalE)
   apply (simp add: multlist_perm_cong multlist_listassoc_cong perm_closed)
@@ -1116,27 +1116,27 @@ subsubsection \<open>Factorization in irreducible elements\<close>
 lemma wfactorsI:
   fixes G (structure)
   assumes "\<forall>f\<in>set fs. irreducible G f"
-    and "foldr (op \<otimes>) fs \<one> \<sim> a"
+    and "foldr (\<otimes>) fs \<one> \<sim> a"
   shows "wfactors G fs a"
   using assms unfolding wfactors_def by simp
 
 lemma wfactorsE:
   fixes G (structure)
   assumes wf: "wfactors G fs a"
-    and e: "\<lbrakk>\<forall>f\<in>set fs. irreducible G f; foldr (op \<otimes>) fs \<one> \<sim> a\<rbrakk> \<Longrightarrow> P"
+    and e: "\<lbrakk>\<forall>f\<in>set fs. irreducible G f; foldr (\<otimes>) fs \<one> \<sim> a\<rbrakk> \<Longrightarrow> P"
   shows "P"
   using wf unfolding wfactors_def by (fast dest: e)
 
 lemma (in monoid) factorsI:
   assumes "\<forall>f\<in>set fs. irreducible G f"
-    and "foldr (op \<otimes>) fs \<one> = a"
+    and "foldr (\<otimes>) fs \<one> = a"
   shows "factors G fs a"
   using assms unfolding factors_def by simp
 
 lemma factorsE:
   fixes G (structure)
   assumes f: "factors G fs a"
-    and e: "\<lbrakk>\<forall>f\<in>set fs. irreducible G f; foldr (op \<otimes>) fs \<one> = a\<rbrakk> \<Longrightarrow> P"
+    and e: "\<lbrakk>\<forall>f\<in>set fs. irreducible G f; foldr (\<otimes>) fs \<one> = a\<rbrakk> \<Longrightarrow> P"
   shows "P"
   using f unfolding factors_def by (simp add: e)
 
@@ -1185,14 +1185,14 @@ next
   from fs wf have "irreducible G f" by (simp add: wfactors_def)
   then have fnunit: "f \<notin> Units G" by (fast elim: irreducibleE)
 
-  from fs wf have a: "f \<otimes> foldr (op \<otimes>) fs' \<one> \<sim> a" by (simp add: wfactors_def)
+  from fs wf have a: "f \<otimes> foldr (\<otimes>) fs' \<one> \<sim> a" by (simp add: wfactors_def)
 
   note aunit
   also from fs wf
-  have a: "f \<otimes> foldr (op \<otimes>) fs' \<one> \<sim> a" by (simp add: wfactors_def)
-  have "a \<sim> f \<otimes> foldr (op \<otimes>) fs' \<one>"
+  have a: "f \<otimes> foldr (\<otimes>) fs' \<one> \<sim> a" by (simp add: wfactors_def)
+  have "a \<sim> f \<otimes> foldr (\<otimes>) fs' \<one>"
     by (simp add: Units_closed[OF aunit] a[symmetric])
-  finally have "f \<otimes> foldr (op \<otimes>) fs' \<one> \<in> Units G" by simp
+  finally have "f \<otimes> foldr (\<otimes>) fs' \<one> \<in> Units G" by simp
   then have "f \<in> Units G" by (intro unit_factor[of f], simp+)
   with fnunit show ?thesis by contradiction
 qed
@@ -1209,10 +1209,10 @@ lemma (in comm_monoid_cancel) wfactors_listassoc_cong_l:
   apply (elim wfactorsE, intro wfactorsI)
    apply (metis assms(2) assms(4) assms(5) irrlist_listassoc_cong)
 proof -
-  from asc[symmetric] have "foldr op \<otimes> fs' \<one> \<sim> foldr op \<otimes> fs \<one>"
+  from asc[symmetric] have "foldr (\<otimes>) fs' \<one> \<sim> foldr (\<otimes>) fs \<one>"
     by (simp add: multlist_listassoc_cong carr)
-  also assume "foldr op \<otimes> fs \<one> \<sim> a"
-  finally show "foldr op \<otimes> fs' \<one> \<sim> a" by (simp add: carr)
+  also assume "foldr (\<otimes>) fs \<one> \<sim> a"
+  finally show "foldr (\<otimes>) fs' \<one> \<sim> a" by (simp add: carr)
 qed
 
 lemma (in comm_monoid) wfactors_perm_cong_l:
@@ -1251,8 +1251,8 @@ lemma (in monoid) wfactors_cong_r [trans]:
   shows "wfactors G fs a'"
   using fac
 proof (elim wfactorsE, intro wfactorsI)
-  assume "foldr op \<otimes> fs \<one> \<sim> a" also note aa'
-  finally show "foldr op \<otimes> fs \<one> \<sim> a'" by simp
+  assume "foldr (\<otimes>) fs \<one> \<sim> a" also note aa'
+  finally show "foldr (\<otimes>) fs \<one> \<sim> a'" by simp
 qed
 
 
@@ -1296,11 +1296,11 @@ lemma (in comm_monoid) perm_wfactorsD:
   using afs bfs
 proof (elim wfactorsE)
   from prm have [simp]: "set bs \<subseteq> carrier G" by (simp add: perm_closed)
-  assume "foldr op \<otimes> as \<one> \<sim> a"
-  then have "a \<sim> foldr op \<otimes> as \<one>" by (rule associated_sym, simp+)
+  assume "foldr (\<otimes>) as \<one> \<sim> a"
+  then have "a \<sim> foldr (\<otimes>) as \<one>" by (rule associated_sym, simp+)
   also from prm
-  have "foldr op \<otimes> as \<one> = foldr op \<otimes> bs \<one>" by (rule multlist_perm_cong, simp)
-  also assume "foldr op \<otimes> bs \<one> \<sim> b"
+  have "foldr (\<otimes>) as \<one> = foldr (\<otimes>) bs \<one>" by (rule multlist_perm_cong, simp)
+  also assume "foldr (\<otimes>) bs \<one> \<sim> b"
   finally show "a \<sim> b" by simp
 qed
 
@@ -1313,11 +1313,11 @@ lemma (in comm_monoid_cancel) listassoc_wfactorsD:
   shows "a \<sim> b"
   using afs bfs
 proof (elim wfactorsE)
-  assume "foldr op \<otimes> as \<one> \<sim> a"
-  then have "a \<sim> foldr op \<otimes> as \<one>" by (rule associated_sym, simp+)
+  assume "foldr (\<otimes>) as \<one> \<sim> a"
+  then have "a \<sim> foldr (\<otimes>) as \<one>" by (rule associated_sym, simp+)
   also from assoc
-  have "foldr op \<otimes> as \<one> \<sim> foldr op \<otimes> bs \<one>" by (rule multlist_listassoc_cong, simp+)
-  also assume "foldr op \<otimes> bs \<one> \<sim> b"
+  have "foldr (\<otimes>) as \<one> \<sim> foldr (\<otimes>) bs \<one>" by (rule multlist_listassoc_cong, simp+)
+  also assume "foldr (\<otimes>) bs \<one> \<sim> b"
   finally show "a \<sim> b" by simp
 qed
 
@@ -2912,10 +2912,10 @@ subsubsection \<open>Primeness condition\<close>
 lemma (in comm_monoid_cancel) multlist_prime_pos:
   assumes carr: "a \<in> carrier G"  "set as \<subseteq> carrier G"
     and aprime: "prime G a"
-    and "a divides (foldr (op \<otimes>) as \<one>)"
+    and "a divides (foldr (\<otimes>) as \<one>)"
   shows "\<exists>i<length as. a divides (as!i)"
 proof -
-  have r[rule_format]: "set as \<subseteq> carrier G \<and> a divides (foldr (op \<otimes>) as \<one>)
+  have r[rule_format]: "set as \<subseteq> carrier G \<and> a divides (foldr (\<otimes>) as \<one>)
     \<longrightarrow> (\<exists>i. i < length as \<and> a divides (as!i))"
     apply (induct as)
      apply clarsimp defer 1
@@ -2928,10 +2928,10 @@ proof -
       by (elim primeE, simp)
   next
     fix aa as
-    assume ih[rule_format]: "a divides foldr op \<otimes> as \<one> \<longrightarrow> (\<exists>i<length as. a divides as ! i)"
+    assume ih[rule_format]: "a divides foldr (\<otimes>) as \<one> \<longrightarrow> (\<exists>i<length as. a divides as ! i)"
       and carr': "aa \<in> carrier G"  "set as \<subseteq> carrier G"
-      and "a divides aa \<otimes> foldr op \<otimes> as \<one>"
-    with carr aprime have "a divides aa \<or> a divides foldr op \<otimes> as \<one>"
+      and "a divides aa \<otimes> foldr (\<otimes>) as \<one>"
+    with carr aprime have "a divides aa \<or> a divides foldr (\<otimes>) as \<one>"
       by (intro prime_divides) simp+
     then show "\<exists>i<Suc (length as). a divides (aa # as) ! i"
     proof
@@ -2940,7 +2940,7 @@ proof -
       have "0 < Suc (length as)" by simp
       with p1 show ?thesis by fast
     next
-      assume "a divides foldr op \<otimes> as \<one>"
+      assume "a divides foldr (\<otimes>) as \<one>"
       from ih [OF this] obtain i where "a divides as ! i" and len: "i < length as" by auto
       then have p1: "a divides (aa#as) ! (Suc i)" by simp
       from len have "Suc i < Suc (length as)" by simp
@@ -2998,9 +2998,9 @@ next
     note carr [simp] = acarr ahcarr ascarr as'carr a'carr
 
     note ahdvda
-    also from afs' have "a divides (foldr (op \<otimes>) as' \<one>)"
+    also from afs' have "a divides (foldr (\<otimes>) as' \<one>)"
       by (elim wfactorsE associatedE, simp)
-    finally have "ah divides (foldr (op \<otimes>) as' \<one>)"
+    finally have "ah divides (foldr (\<otimes>) as' \<one>)"
       by simp
     with ahprime have "\<exists>i<length as'. ah divides as'!i"
       by (intro multlist_prime_pos) simp_all

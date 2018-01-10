@@ -9,7 +9,7 @@ theory Algebra_Aux
 begin
 
 definition of_natural :: "('a, 'm) ring_scheme \<Rightarrow> nat \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<^sub>\<nat>\<index>")
-  where "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> = (op \<oplus>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub> ^^ n) \<zero>\<^bsub>R\<^esub>"
+  where "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> = ((\<oplus>\<^bsub>R\<^esub>) \<one>\<^bsub>R\<^esub> ^^ n) \<zero>\<^bsub>R\<^esub>"
 
 definition of_integer :: "('a, 'm) ring_scheme \<Rightarrow> int \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<index>")
   where "\<guillemotleft>i\<guillemotright>\<^bsub>R\<^esub> = (if 0 \<le> i then \<guillemotleft>nat i\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> else \<ominus>\<^bsub>R\<^esub> \<guillemotleft>nat (- i)\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub>)"
@@ -234,7 +234,7 @@ lemma (in cring) of_int_power [simp]: "\<guillemotleft>i ^ n\<guillemotright> = 
   by (induct n) (simp_all add: m_ac)
 
 definition cring_class_ops :: "'a::comm_ring_1 ring"
-  where "cring_class_ops \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = (op +)\<rparr>"
+  where "cring_class_ops \<equiv> \<lparr>carrier = UNIV, mult = ( * ), one = 1, zero = 0, add = (+)\<rparr>"
 
 lemma cring_class: "cring cring_class_ops"
   apply unfold_locales

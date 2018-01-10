@@ -13,7 +13,7 @@ subsection \<open>Contravariant set map (vimage) and set relator, rules for the 
 definition "rel_vset R xs ys \<equiv> \<forall>x y. R x y \<longrightarrow> x \<in> xs \<longleftrightarrow> y \<in> ys"
 
 lemma rel_vset_eq [id_simps]:
-  "rel_vset op = = op ="
+  "rel_vset (=) = (=)"
   by (subst fun_eq_iff, subst fun_eq_iff) (simp add: set_eq_iff rel_vset_def)
 
 lemma rel_vset_equivp:
@@ -49,55 +49,55 @@ lemma empty_set_rsp[quot_respect]:
 
 lemma collect_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "((R ===> op =) ===> rel_vset R) Collect Collect"
+  shows "((R ===> (=)) ===> rel_vset R) Collect Collect"
   by (intro rel_funI) (simp add: rel_fun_def rel_vset_def)
 
 lemma collect_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
-  shows "((Abs ---> id) ---> op -` Rep) Collect = Collect"
+  shows "((Abs ---> id) ---> (-`) Rep) Collect = Collect"
   unfolding fun_eq_iff
   by (simp add: Quotient3_abs_rep[OF assms])
 
 lemma union_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "(rel_vset R ===> rel_vset R ===> rel_vset R) op \<union> op \<union>"
+  shows "(rel_vset R ===> rel_vset R ===> rel_vset R) (\<union>) (\<union>)"
   by (intro rel_funI) (simp add: rel_vset_def)
 
 lemma union_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
-  shows "(op -` Abs ---> op -` Abs ---> op -` Rep) op \<union> = op \<union>"
+  shows "((-`) Abs ---> (-`) Abs ---> (-`) Rep) (\<union>) = (\<union>)"
   unfolding fun_eq_iff
   by (simp add: Quotient3_abs_rep[OF set_quotient[OF assms]])
 
 lemma diff_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "(rel_vset R ===> rel_vset R ===> rel_vset R) op - op -"
+  shows "(rel_vset R ===> rel_vset R ===> rel_vset R) (-) (-)"
   by (intro rel_funI) (simp add: rel_vset_def)
 
 lemma diff_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
-  shows "(op -` Abs ---> op -` Abs ---> op -` Rep) op - = op -"
+  shows "((-`) Abs ---> (-`) Abs ---> (-`) Rep) (-) = (-)"
   unfolding fun_eq_iff
   by (simp add: Quotient3_abs_rep[OF set_quotient[OF assms]] vimage_Diff)
 
 lemma inter_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
-  shows "(rel_vset R ===> rel_vset R ===> rel_vset R) op \<inter> op \<inter>"
+  shows "(rel_vset R ===> rel_vset R ===> rel_vset R) (\<inter>) (\<inter>)"
   by (intro rel_funI) (auto simp add: rel_vset_def)
 
 lemma inter_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
-  shows "(op -` Abs ---> op -` Abs ---> op -` Rep) op \<inter> = op \<inter>"
+  shows "((-`) Abs ---> (-`) Abs ---> (-`) Rep) (\<inter>) = (\<inter>)"
   unfolding fun_eq_iff
   by (simp add: Quotient3_abs_rep[OF set_quotient[OF assms]])
 
 lemma mem_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
-  shows "(Rep ---> op -` Abs ---> id) op \<in> = op \<in>"
+  shows "(Rep ---> (-`) Abs ---> id) (\<in>) = (\<in>)"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF assms])
 
 lemma mem_rsp[quot_respect]:
-  shows "(R ===> rel_vset R ===> op =) op \<in> op \<in>"
+  shows "(R ===> rel_vset R ===> (=)) (\<in>) (\<in>)"
   by (intro rel_funI) (simp add: rel_vset_def)
 
 end

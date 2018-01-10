@@ -537,7 +537,7 @@ val _ = Context.>>
 (* setup fixed reflexivity rules *)
 
 val _ = Context.>> (fold add_reflexivity_rule 
-  @{thms order_refl[of "op="] eq_onp_le_eq Quotient_composition_le_eq Quotient_composition_ge_eq
+  @{thms order_refl[of "(=)"] eq_onp_le_eq Quotient_composition_le_eq Quotient_composition_ge_eq
     bi_unique_OO bi_total_OO right_unique_OO right_total_OO left_unique_OO left_total_OO})
 
 (* outer syntax commands *)

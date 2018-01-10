@@ -39,9 +39,9 @@ where "bind_spmf x f = undefined x (\<lambda>a. case a of None \<Rightarrow> ret
 
 friend_of_corec bind_gpv'
 where "bind_gpv' r f =
-GPV' (map_spmf (map_generat id id (op \<circ> (case_sum id (\<lambda>r. bind_gpv' r f))))
+GPV' (map_spmf (map_generat id id ((\<circ>) (case_sum id (\<lambda>r. bind_gpv' r f))))
       (bind_spmf (the_gpv r)
-        (case_generat (\<lambda>x. map_spmf (map_generat id id (op \<circ> Inl)) (the_gpv' (f x)))
+        (case_generat (\<lambda>x. map_spmf (map_generat id id ((\<circ>) Inl)) (the_gpv' (f x)))
           (\<lambda>out c. return_spmf (IO out (\<lambda>input. Inr (c input)))))))"
   sorry
 

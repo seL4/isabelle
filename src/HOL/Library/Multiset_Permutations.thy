@@ -85,7 +85,7 @@ lemma permutations_of_multiset_empty [simp]: "permutations_of_multiset {#} = {[]
 lemma permutations_of_multiset_nonempty: 
   assumes nonempty: "A \<noteq> {#}"
   shows   "permutations_of_multiset A = 
-             (\<Union>x\<in>set_mset A. (op # x) ` permutations_of_multiset (A - {#x#}))" (is "_ = ?rhs")
+             (\<Union>x\<in>set_mset A. ((#) x) ` permutations_of_multiset (A - {#x#}))" (is "_ = ?rhs")
 proof safe
   fix xs assume "xs \<in> permutations_of_multiset A"
   hence mset_xs: "mset xs = A" by (simp add: permutations_of_multiset_def)
@@ -186,7 +186,7 @@ lemma card_permutations_of_multiset_aux:
 proof (induction A rule: multiset_remove_induct)
   case (remove A)
   have "card (permutations_of_multiset A) = 
-          card (\<Union>x\<in>set_mset A. op # x ` permutations_of_multiset (A - {#x#}))"
+          card (\<Union>x\<in>set_mset A. (#) x ` permutations_of_multiset (A - {#x#}))"
     by (simp add: permutations_of_multiset_nonempty remove.hyps)
   also have "\<dots> = (\<Sum>x\<in>set_mset A. card (permutations_of_multiset (A - {#x#})))"
     by (subst card_UN_disjoint) (auto simp: card_image)
@@ -353,7 +353,7 @@ declare length_remove1 [termination_simp]
 
 fun permutations_of_list_impl where
   "permutations_of_list_impl xs = (if xs = [] then [[]] else
-     List.bind (remdups xs) (\<lambda>x. map (op # x) (permutations_of_list_impl (remove1 x xs))))"
+     List.bind (remdups xs) (\<lambda>x. map ((#) x) (permutations_of_list_impl (remove1 x xs))))"
 
 fun permutations_of_list_impl_aux where
   "permutations_of_list_impl_aux acc xs = (if xs = [] then [acc] else
@@ -368,7 +368,7 @@ lemma permutations_of_list_impl_Nil [simp]:
 
 lemma permutations_of_list_impl_nonempty:
   "xs \<noteq> [] \<Longrightarrow> permutations_of_list_impl xs = 
-     List.bind (remdups xs) (\<lambda>x. map (op # x) (permutations_of_list_impl (remove1 x xs)))"
+     List.bind (remdups xs) (\<lambda>x. map ((#) x) (permutations_of_list_impl (remove1 x xs)))"
   by (subst permutations_of_list_impl.simps) simp_all
 
 lemma set_permutations_of_list_impl:

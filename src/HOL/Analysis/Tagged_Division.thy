@@ -1838,7 +1838,7 @@ lemma additive_tagged_division_1:
 proof -
   let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
   interpret operative_real plus 0 ?f
-    rewrites "comm_monoid_set.F op + 0 = sum"
+    rewrites "comm_monoid_set.F (+) 0 = sum"
     by standard[1] (auto simp add: sum_def)
   have p_td: "p tagged_division_of cbox a b"
     using assms(2) box_real(2) by presburger

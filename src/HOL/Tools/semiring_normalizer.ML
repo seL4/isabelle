@@ -124,7 +124,7 @@ val semiring_funs =
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_One}))};
 
-val divide_const = Thm.cterm_of @{context} (Logic.varify_global @{term "op /"});
+val divide_const = Thm.cterm_of @{context} (Logic.varify_global @{term "(/)"});
 val [divide_tvar] = Term.add_tvars (Thm.term_of divide_const) [];
 
 val field_funs =

@@ -56,10 +56,10 @@ end
 instantiation st :: ("{order_top,wn}")wn
 begin
 
-lift_definition widen_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (op \<nabla>)"
+lift_definition widen_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (\<nabla>)"
 by(auto simp: eq_st_def)
 
-lift_definition narrow_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (op \<triangle>)"
+lift_definition narrow_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (\<triangle>)"
 by(auto simp: eq_st_def)
 
 instance
@@ -113,13 +113,13 @@ where
 
 instantiation acom :: (widen)widen
 begin
-definition "widen_acom = map2_acom (op \<nabla>)"
+definition "widen_acom = map2_acom (\<nabla>)"
 instance ..
 end
 
 instantiation acom :: (narrow)narrow
 begin
-definition "narrow_acom = map2_acom (op \<triangle>)"
+definition "narrow_acom = map2_acom (\<triangle>)"
 instance ..
 end
 
@@ -255,7 +255,7 @@ qed
 end
 
 global_interpretation Abs_Int_wn
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 defines AI_wn_ivl = AI_wn
@@ -540,7 +540,7 @@ by(auto simp add: m_rep_def narrow_rep_def is_empty_rep_def empty_rep_def \<gamm
 
 
 global_interpretation Abs_Int_wn_measure
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 and m = m_ivl and n = n_ivl and h = 3

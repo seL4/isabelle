@@ -33,7 +33,7 @@ lemma injective_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total T"
   assumes [transfer_rule]: "bi_unique T"
-  shows "((T ===> op =) ===> op=) (injective_on (Collect(Domainp T))) injective"
+  shows "((T ===> (=)) ===> (=)) (injective_on (Collect(Domainp T))) injective"
   unfolding injective_on_def[abs_def] injective_def[abs_def] by transfer_prover
 
 text\<open>Similarly, we define the relativization of the internalization
@@ -44,7 +44,7 @@ definition finite_on :: "'a set => bool" where "finite_on A = finite A"
 lemma class_finite_transfer[transfer_rule]:
   assumes [transfer_rule]: "right_total (T::'a\<Rightarrow>'b\<Rightarrow>bool)"
   assumes [transfer_rule]: "bi_unique T"
-  shows "op= (finite_on (Collect(Domainp T))) (class.finite TYPE('b))"
+  shows "(=) (finite_on (Collect(Domainp T))) (class.finite TYPE('b))"
   unfolding finite_on_def class.finite_def by transfer_prover
 
 text\<open>The aforementioned development can be automated. The main part is already automated

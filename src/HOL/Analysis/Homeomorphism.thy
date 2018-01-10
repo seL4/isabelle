@@ -549,31 +549,31 @@ corollary
       and starlike_compact_projective2:
             "S homeomorphic cball a 1 \<inter> affine hull S"
 proof -
-  have 1: "compact (op+ (-a) ` S)" by (meson assms compact_translation)
-  have 2: "0 \<in> rel_interior (op+ (-a) ` S)"
+  have 1: "compact ((+) (-a) ` S)" by (meson assms compact_translation)
+  have 2: "0 \<in> rel_interior ((+) (-a) ` S)"
     by (simp add: a rel_interior_translation)
-  have 3: "open_segment 0 x \<subseteq> rel_interior (op+ (-a) ` S)" if "x \<in> (op+ (-a) ` S)" for x
+  have 3: "open_segment 0 x \<subseteq> rel_interior ((+) (-a) ` S)" if "x \<in> ((+) (-a) ` S)" for x
   proof -
     have "x+a \<in> S" using that by auto
     then have "open_segment a (x+a) \<subseteq> rel_interior S" by (metis star)
     then show ?thesis using open_segment_translation
       using rel_interior_translation by fastforce
   qed
-  have "S - rel_interior S homeomorphic (op+ (-a) ` S) - rel_interior (op+ (-a) ` S)"
+  have "S - rel_interior S homeomorphic ((+) (-a) ` S) - rel_interior ((+) (-a) ` S)"
     by (metis rel_interior_translation translation_diff homeomorphic_translation)
-  also have "... homeomorphic sphere 0 1 \<inter> affine hull (op+ (-a) ` S)"
+  also have "... homeomorphic sphere 0 1 \<inter> affine hull ((+) (-a) ` S)"
     by (rule starlike_compact_projective1_0 [OF 1 2 3])
-  also have "... = op+ (-a) ` (sphere a 1 \<inter> affine hull S)"
+  also have "... = (+) (-a) ` (sphere a 1 \<inter> affine hull S)"
     by (metis affine_hull_translation left_minus sphere_translation translation_Int)
   also have "... homeomorphic sphere a 1 \<inter> affine hull S"
     using homeomorphic_translation homeomorphic_sym by blast
   finally show "S - rel_interior S homeomorphic sphere a 1 \<inter> affine hull S" .
 
-  have "S homeomorphic (op+ (-a) ` S)"
+  have "S homeomorphic ((+) (-a) ` S)"
     by (metis homeomorphic_translation)
-  also have "... homeomorphic cball 0 1 \<inter> affine hull (op+ (-a) ` S)"
+  also have "... homeomorphic cball 0 1 \<inter> affine hull ((+) (-a) ` S)"
     by (rule starlike_compact_projective2_0 [OF 1 2 3])
-  also have "... = op+ (-a) ` (cball a 1 \<inter> affine hull S)"
+  also have "... = (+) (-a) ` (cball a 1 \<inter> affine hull S)"
     by (metis affine_hull_translation left_minus cball_translation translation_Int)
   also have "... homeomorphic cball a 1 \<inter> affine hull S"
     using homeomorphic_translation homeomorphic_sym by blast
@@ -623,13 +623,13 @@ next
   have starT: "\<And>x. x \<in> T \<Longrightarrow> open_segment b x \<subseteq> rel_interior T"
     using rel_interior_closure_convex_segment
           b \<open>convex T\<close> closure_subset subsetCE by blast
-  let ?aS = "op+ (-a) ` S" and ?bT = "op+ (-b) ` T"
+  let ?aS = "(+) (-a) ` S" and ?bT = "(+) (-b) ` T"
   have 0: "0 \<in> affine hull ?aS" "0 \<in> affine hull ?bT"
     by (metis a b subsetD hull_inc image_eqI left_minus rel_interior_subset)+
   have subs: "subspace (span ?aS)" "subspace (span ?bT)"
     by (rule subspace_span)+
   moreover
-  have "dim (span (op + (- a) ` S)) = dim (span (op + (- b) ` T))"
+  have "dim (span ((+) (- a) ` S)) = dim (span ((+) (- b) ` T))"
     by (metis 0 aff_dim_translation_eq aff_dim_zero affeq dim_span nat_int)
   ultimately obtain f g where "linear f" "linear g"
                 and fim: "f ` span ?aS = span ?bT"
@@ -649,9 +649,9 @@ next
     by (metis b affine_hull_span_0 subsetD hull_inc image_eqI left_minus rel_interior_subset)
   have "S homeomorphic cball a 1 \<inter> affine hull S"
     by (rule starlike_compact_projective2 [OF \<open>compact S\<close> a starS])
-  also have "... homeomorphic op+ (-a) ` (cball a 1 \<inter> affine hull S)"
+  also have "... homeomorphic (+) (-a) ` (cball a 1 \<inter> affine hull S)"
     by (metis homeomorphic_translation)
-  also have "... = cball 0 1 \<inter> op+ (-a) ` (affine hull S)"
+  also have "... = cball 0 1 \<inter> (+) (-a) ` (affine hull S)"
     by (auto simp: dist_norm)
   also have "... = cball 0 1 \<inter> span ?aS"
     using eqspanS affine_hull_translation by blast
@@ -666,9 +666,9 @@ next
          using gim gno apply (force simp:, clarify)
         by (metis IntI fim1 gf image_eqI)
     qed (auto simp: fg gf)
-  also have "... = cball 0 1 \<inter> op+ (-b) ` (affine hull T)"
+  also have "... = cball 0 1 \<inter> (+) (-b) ` (affine hull T)"
     using eqspanT affine_hull_translation by blast
-  also have "... = op+ (-b) ` (cball b 1 \<inter> affine hull T)"
+  also have "... = (+) (-b) ` (cball b 1 \<inter> affine hull T)"
     by (auto simp: dist_norm)
   also have "... homeomorphic (cball b 1 \<inter> affine hull T)"
     by (metis homeomorphic_translation homeomorphic_sym)
@@ -678,9 +678,9 @@ next
 
   have "S - rel_interior S homeomorphic sphere a 1 \<inter> affine hull S"
     by (rule starlike_compact_projective1 [OF \<open>compact S\<close> a starS])
-  also have "... homeomorphic op+ (-a) ` (sphere a 1 \<inter> affine hull S)"
+  also have "... homeomorphic (+) (-a) ` (sphere a 1 \<inter> affine hull S)"
     by (metis homeomorphic_translation)
-  also have "... = sphere 0 1 \<inter> op+ (-a) ` (affine hull S)"
+  also have "... = sphere 0 1 \<inter> (+) (-a) ` (affine hull S)"
     by (auto simp: dist_norm)
   also have "... = sphere 0 1 \<inter> span ?aS"
     using eqspanS affine_hull_translation by blast
@@ -695,9 +695,9 @@ next
         using gim gno apply (force simp:, clarify)
         by (metis IntI fim1 gf image_eqI)
     qed (auto simp: fg gf)
-  also have "... = sphere 0 1 \<inter> op+ (-b) ` (affine hull T)"
+  also have "... = sphere 0 1 \<inter> (+) (-b) ` (affine hull T)"
     using eqspanT affine_hull_translation by blast
-  also have "... = op+ (-b) ` (sphere b 1 \<inter> affine hull T)"
+  also have "... = (+) (-b) ` (sphere b 1 \<inter> affine hull T)"
     by (auto simp: dist_norm)
   also have "... homeomorphic (sphere b 1 \<inter> affine hull T)"
     by (metis homeomorphic_translation homeomorphic_sym)
@@ -833,11 +833,11 @@ proof -
   then have inj: "inj (\<lambda>x::'a. x /\<^sub>R norm (a - b))"
     by (simp add: inj_on_def)
   have "((sphere a r \<inter> T) - {b}) homeomorphic
-        op+ (-a) ` ((sphere a r \<inter> T) - {b})"
+        (+) (-a) ` ((sphere a r \<inter> T) - {b})"
     by (rule homeomorphic_translation)
-  also have "... homeomorphic op *\<^sub>R (inverse r) ` op + (- a) ` (sphere a r \<inter> T - {b})"
+  also have "... homeomorphic ( *\<^sub>R) (inverse r) ` (+) (- a) ` (sphere a r \<inter> T - {b})"
     by (metis \<open>0 < r\<close> homeomorphic_scaling inverse_inverse_eq inverse_zero less_irrefl)
-  also have "... = sphere 0 1 \<inter> (op *\<^sub>R (inverse r) ` op + (- a) ` T) - {(b - a) /\<^sub>R r}"
+  also have "... = sphere 0 1 \<inter> (( *\<^sub>R) (inverse r) ` (+) (- a) ` T) - {(b - a) /\<^sub>R r}"
     using assms by (auto simp: dist_norm norm_minus_commute divide_simps)
   also have "... homeomorphic p"
     apply (rule homeomorphic_punctured_affine_sphere_affine_01)
@@ -928,27 +928,27 @@ next
   then obtain a where "a \<in> S" by auto
   obtain i::'n where i: "i \<in> Basis" "i \<noteq> 0"
     using SOME_Basis Basis_zero by force
-  have "0 \<in> affine hull (op + (- a) ` S)"
+  have "0 \<in> affine hull ((+) (- a) ` S)"
     by (simp add: \<open>a \<in> S\<close> hull_inc)
-  then have "dim (op + (- a) ` S) = aff_dim (op + (- a) ` S)"
+  then have "dim ((+) (- a) ` S) = aff_dim ((+) (- a) ` S)"
     by (simp add: aff_dim_zero)
   also have "... < DIM('n)"
     by (simp add: aff_dim_translation_eq assms)
-  finally have dd: "dim (op + (- a) ` S) < DIM('n)"
+  finally have dd: "dim ((+) (- a) ` S) < DIM('n)"
     by linarith
   obtain T where "subspace T" and Tsub: "T \<subseteq> {x. i \<bullet> x = 0}"
-             and dimT: "dim T = dim (op + (- a) ` S)"
-    apply (rule choose_subspace_of_subspace [of "dim (op + (- a) ` S)" "{x::'n. i \<bullet> x = 0}"])
+             and dimT: "dim T = dim ((+) (- a) ` S)"
+    apply (rule choose_subspace_of_subspace [of "dim ((+) (- a) ` S)" "{x::'n. i \<bullet> x = 0}"])
      apply (simp add: dim_hyperplane [OF \<open>i \<noteq> 0\<close>])
      apply (metis DIM_positive Suc_pred dd not_le not_less_eq_eq)
     apply (metis span_eq subspace_hyperplane)
     done
-  have "subspace (span (op + (- a) ` S))"
+  have "subspace (span ((+) (- a) ` S))"
     using subspace_span by blast
   then obtain h k where "linear h" "linear k"
-               and heq: "h ` span (op + (- a) ` S) = T"
-               and keq:"k ` T = span (op + (- a) ` S)"
-               and hinv [simp]:  "\<And>x. x \<in> span (op + (- a) ` S) \<Longrightarrow> k(h x) = x"
+               and heq: "h ` span ((+) (- a) ` S) = T"
+               and keq:"k ` T = span ((+) (- a) ` S)"
+               and hinv [simp]:  "\<And>x. x \<in> span ((+) (- a) ` S) \<Longrightarrow> k(h x) = x"
                and kinv [simp]:  "\<And>x. x \<in> T \<Longrightarrow> h(k x) = x"
     apply (rule isometries_subspaces [OF _ \<open>subspace T\<close>])
     apply (auto simp: dimT)
@@ -964,38 +964,38 @@ next
     by (metis DIM_positive Suc_eq_plus1 add.left_neutral diff_add_cancel not_le not_less_eq_eq of_nat_1 of_nat_diff)
   then obtain f g where fg: "homeomorphism (sphere 0 1 - {i}) {x. i \<bullet> x = 0} f g"
     by (force simp: homeomorphic_def)
-  have "h ` op + (- a) ` S \<subseteq> T"
+  have "h ` (+) (- a) ` S \<subseteq> T"
     using heq span_clauses(1) span_linear_image by blast
-  then have "g ` h ` op + (- a) ` S \<subseteq> g ` {x. i \<bullet> x = 0}"
+  then have "g ` h ` (+) (- a) ` S \<subseteq> g ` {x. i \<bullet> x = 0}"
     using Tsub by (simp add: image_mono)
   also have "... \<subseteq> sphere 0 1 - {i}"
     by (simp add: fg [unfolded homeomorphism_def])
-  finally have gh_sub_sph: "(g \<circ> h) ` op + (- a) ` S \<subseteq> sphere 0 1 - {i}"
+  finally have gh_sub_sph: "(g \<circ> h) ` (+) (- a) ` S \<subseteq> sphere 0 1 - {i}"
     by (metis image_comp)
-  then have gh_sub_cb: "(g \<circ> h) ` op + (- a) ` S \<subseteq> cball 0 1"
+  then have gh_sub_cb: "(g \<circ> h) ` (+) (- a) ` S \<subseteq> cball 0 1"
     by (metis Diff_subset order_trans sphere_cball)
   have [simp]: "\<And>u. u \<in> S \<Longrightarrow> norm (g (h (u - a))) = 1"
     using gh_sub_sph [THEN subsetD] by (auto simp: o_def)
-  have ghcont: "continuous_on (op + (- a) ` S) (\<lambda>x. g (h x))"
+  have ghcont: "continuous_on ((+) (- a) ` S) (\<lambda>x. g (h x))"
     apply (rule continuous_on_compose2 [OF homeomorphism_cont2 [OF fg] hcont], force)
     done
-  have kfcont: "continuous_on ((g \<circ> h \<circ> op + (- a)) ` S) (\<lambda>x. k (f x))"
+  have kfcont: "continuous_on ((g \<circ> h \<circ> (+) (- a)) ` S) (\<lambda>x. k (f x))"
     apply (rule continuous_on_compose2 [OF kcont])
     using homeomorphism_cont1 [OF fg] gh_sub_sph apply (force intro: continuous_on_subset, blast)
     done
-  have "S homeomorphic op + (- a) ` S"
+  have "S homeomorphic (+) (- a) ` S"
     by (simp add: homeomorphic_translation)
-  also have Shom: "\<dots> homeomorphic (g \<circ> h) ` op + (- a) ` S"
+  also have Shom: "\<dots> homeomorphic (g \<circ> h) ` (+) (- a) ` S"
     apply (simp add: homeomorphic_def homeomorphism_def)
     apply (rule_tac x="g \<circ> h" in exI)
     apply (rule_tac x="k \<circ> f" in exI)
     apply (auto simp: ghcont kfcont span_clauses(1) homeomorphism_apply2 [OF fg] image_comp)
     apply (force simp: o_def homeomorphism_apply2 [OF fg] span_clauses(1))
     done
-  finally have Shom: "S homeomorphic (g \<circ> h) ` op + (- a) ` S" .
+  finally have Shom: "S homeomorphic (g \<circ> h) ` (+) (- a) ` S" .
   show ?thesis
-    apply (rule_tac U = "ball 0 1 \<union> image (g o h) (op + (- a) ` S)"
-                and T = "image (g o h) (op + (- a) ` S)"
+    apply (rule_tac U = "ball 0 1 \<union> image (g o h) ((+) (- a) ` S)"
+                and T = "image (g o h) ((+) (- a) ` S)"
                     in that)
     apply (rule convex_intermediate_ball [of 0 1], force)
     using gh_sub_cb apply force
@@ -2210,26 +2210,26 @@ proof -
                 and pq'_eq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p (q' t) = (f \<circ> g +++ reversepath g') t"
         using covering_space_lift_homotopic_path [OF cov homotopic_paths_sym [OF homS] \<open>path q\<close> piq refl refl]
         by auto
-      have "q' t = (h \<circ> op *\<^sub>R 2) t" if "0 \<le> t" "t \<le> 1/2" for t
-      proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> op *\<^sub>R 2" "{0..1/2}" "f \<circ> g \<circ> op *\<^sub>R 2" t])
-        show "q' 0 = (h \<circ> op *\<^sub>R 2) 0"
+      have "q' t = (h \<circ> ( *\<^sub>R) 2) t" if "0 \<le> t" "t \<le> 1/2" for t
+      proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> ( *\<^sub>R) 2" "{0..1/2}" "f \<circ> g \<circ> ( *\<^sub>R) 2" t])
+        show "q' 0 = (h \<circ> ( *\<^sub>R) 2) 0"
           by (metis \<open>pathstart q' = pathstart q\<close> comp_def g h pastq pathstart_def pth_4(2))
-        show "continuous_on {0..1/2} (f \<circ> g \<circ> op *\<^sub>R 2)"
+        show "continuous_on {0..1/2} (f \<circ> g \<circ> ( *\<^sub>R) 2)"
           apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
           using g(2) path_image_def by fastforce+
-        show "(f \<circ> g \<circ> op *\<^sub>R 2) ` {0..1/2} \<subseteq> S"
+        show "(f \<circ> g \<circ> ( *\<^sub>R) 2) ` {0..1/2} \<subseteq> S"
           using g(2) path_image_def fim by fastforce
-        show "(h \<circ> op *\<^sub>R 2) ` {0..1/2} \<subseteq> C"
+        show "(h \<circ> ( *\<^sub>R) 2) ` {0..1/2} \<subseteq> C"
           using h path_image_def by fastforce
         show "q' ` {0..1/2} \<subseteq> C"
           using \<open>path_image q' \<subseteq> C\<close> path_image_def by fastforce
-        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> op *\<^sub>R 2) x = p (q' x)"
+        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> ( *\<^sub>R) 2) x = p (q' x)"
           by (auto simp: joinpaths_def pq'_eq)
-        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> op *\<^sub>R 2) x = p ((h \<circ> op *\<^sub>R 2) x)"
+        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> ( *\<^sub>R) 2) x = p ((h \<circ> ( *\<^sub>R) 2) x)"
           by (simp add: phg)
         show "continuous_on {0..1/2} q'"
           by (simp add: continuous_on_path \<open>path q'\<close>)
-        show "continuous_on {0..1/2} (h \<circ> op *\<^sub>R 2)"
+        show "continuous_on {0..1/2} (h \<circ> ( *\<^sub>R) 2)"
           apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path h\<close>], force)
           done
       qed (use that in auto)

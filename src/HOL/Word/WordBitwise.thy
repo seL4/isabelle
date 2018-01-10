@@ -39,13 +39,13 @@ text \<open>Breaking up word equalities into equalities on their
 lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
   by simp
 
-lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 op \<or> (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 (\<or>) (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def zip_rev bl_word_or rev_map)
 
-lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 op \<and> (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 (\<and>) (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def zip_rev bl_word_and rev_map)
 
-lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 op \<noteq> (rev (to_bl x)) (rev (to_bl y))"
+lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 (\<noteq>) (rev (to_bl x)) (rev (to_bl y))"
   by (simp add: map2_def zip_rev bl_word_xor rev_map)
 
 lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
@@ -206,10 +206,10 @@ lemma rbl_word_scast:
   done
 
 definition rbl_mul :: "bool list \<Rightarrow> bool list \<Rightarrow> bool list"
-  where "rbl_mul xs ys = foldr (\<lambda>x sm. rbl_plus False (map (op \<and> x) ys) (False # sm)) xs []"
+  where "rbl_mul xs ys = foldr (\<lambda>x sm. rbl_plus False (map ((\<and>) x) ys) (False # sm)) xs []"
 
 lemma rbl_mul_simps:
-  "rbl_mul (x # xs) ys = rbl_plus False (map (op \<and> x) ys) (False # rbl_mul xs ys)"
+  "rbl_mul (x # xs) ys = rbl_plus False (map ((\<and>) x) ys) (False # rbl_mul xs ys)"
   "rbl_mul [] ys = []"
   by (simp_all add: rbl_mul_def)
 
@@ -238,7 +238,7 @@ next
     for x y :: "'a word"
     by (simp add: rbl_word_plus[symmetric])
 
-  have mult_bit: "to_bl (of_bl [z] * y) = map (op \<and> z) (to_bl y)"
+  have mult_bit: "to_bl (of_bl [z] * y) = map ((\<and>) z) (to_bl y)"
     by (cases z) (simp cong: map_cong, simp add: map_replicate_const cong: map_cong)
 
   have shiftl: "of_bl xs * 2 * y = (of_bl xs * y) << 1" for xs
@@ -392,13 +392,13 @@ lemma rev_bin_to_bl_simps:
   apply (simp_all add: bin_to_bl_zero_aux bin_to_bl_minus1_aux)
   done
 
-lemma to_bl_upt: "to_bl x = rev (map (op !! x) [0 ..< size x])"
+lemma to_bl_upt: "to_bl x = rev (map ((!!) x) [0 ..< size x])"
   apply (rule nth_equalityI)
    apply (simp add: word_size)
   apply (auto simp: to_bl_nth word_size nth_rev)
   done
 
-lemma rev_to_bl_upt: "rev (to_bl x) = map (op !! x) [0 ..< size x]"
+lemma rev_to_bl_upt: "rev (to_bl x) = map ((!!) x) [0 ..< size x]"
   by (simp add: to_bl_upt)
 
 lemma upt_eq_list_intros:
@@ -427,7 +427,7 @@ fun upt_conv ctxt ct =
         val ns = map (Numeral.mk_cnumber @{ctyp nat}) (i upto (j - 1))
           |> mk_nat_clist;
         val prop =
-          Thm.mk_binop @{cterm "op = :: nat list \<Rightarrow> _"} ct ns
+          Thm.mk_binop @{cterm "(=) :: nat list \<Rightarrow> _"} ct ns
           |> Thm.apply @{cterm Trueprop};
       in
         try (fn () =>
@@ -448,7 +448,7 @@ fun word_len_simproc_fn ctxt ct =
         val T = fastype_of t |> dest_Type |> snd |> the_single
         val n = Numeral.mk_cnumber @{ctyp nat} (Word_Lib.dest_binT T);
         val prop =
-          Thm.mk_binop @{cterm "op = :: nat \<Rightarrow> _"} ct n
+          Thm.mk_binop @{cterm "(=) :: nat \<Rightarrow> _"} ct n
           |> Thm.apply @{cterm Trueprop};
       in
         Goal.prove_internal ctxt [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
@@ -479,7 +479,7 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
       Goal.prove_internal ctxt [] (propfn I)
         (K (simp_tac (put_simpset word_ss ctxt) 1));
   in
-    Goal.prove_internal ctxt [] (propfn (curry (op $) f))
+    Goal.prove_internal ctxt [] (propfn (curry ($) f))
       (K (simp_tac (put_simpset HOL_ss ctxt addsimps [eq1]) 1))
     |> mk_meta_eq |> SOME
   end handle TERM _ => NONE;
@@ -529,7 +529,7 @@ fun tac ctxt =
   let
     val (ss, sss) = expand_word_eq_sss;
   in
-    foldr1 (op THEN_ALL_NEW)
+    foldr1 (THEN_ALL_NEW)
       ((CHANGED o safe_full_simp_tac (put_simpset ss ctxt)) ::
         map (fn ss => safe_full_simp_tac (put_simpset ss ctxt)) sss)
   end;

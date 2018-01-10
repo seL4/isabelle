@@ -144,7 +144,7 @@ next
        (auto simp: mult_ac ennreal_mult' [symmetric] indicator_def intro!: nn_integral_cong)
   also have "(\<integral>\<^sup>+ (y::real). indicator {-r..r} y * (sqrt (r ^ 2 - y ^ 2)) ^ card A \<partial>lborel) =
                (\<integral>\<^sup>+ (y::real). r ^ card A * indicator {-1..1} y * (sqrt (1 - y ^ 2)) ^ card A  
-               \<partial>(distr lborel borel (op * (1/r))))" using \<open>r > 0\<close>
+               \<partial>(distr lborel borel (( * ) (1/r))))" using \<open>r > 0\<close>
     by (subst nn_integral_distr)
        (auto simp: indicator_def field_simps real_sqrt_divide intro!: nn_integral_cong)
   also have "\<dots> = (\<integral>\<^sup>+ x. ennreal (r ^ Suc (card A)) * 

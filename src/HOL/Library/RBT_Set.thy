@@ -570,7 +570,7 @@ lemma card_Set [code]:
 lemma sum_Set [code]:
   "sum f (Set xs) = fold_keys (plus \<circ> f) xs 0"
 proof -
-  have "comp_fun_commute (\<lambda>x. op + (f x))"
+  have "comp_fun_commute (\<lambda>x. (+) (f x))"
     by standard (auto simp: ac_simps)
   then show ?thesis 
     by (auto simp add: sum.eq_fold finite_fold_fold_keys o_def)

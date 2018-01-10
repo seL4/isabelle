@@ -110,8 +110,8 @@ proof (rule tendsto_lowerbound)
   show "eventually (\<lambda>h. (f (x + h) - f x) / h \<ge> 0) (at 0)"
   proof (subst eventually_at_topological, intro exI conjI ballI impI)
     have "open (interior A)" by simp
-    hence "open (op + (-x) ` interior A)" by (rule open_translation)
-    also have "(op + (-x) ` interior A) = ?A'" by auto
+    hence "open ((+) (-x) ` interior A)" by (rule open_translation)
+    also have "((+) (-x) ` interior A) = ?A'" by auto
     finally show "open ?A'" .
   next
     from \<open>x \<in> interior A\<close> show "0 \<in> ?A'" by auto
@@ -1701,7 +1701,7 @@ lemma borel_measurable_enn2real[measurable (raw)]:
 
 definition [simp]: "is_borel f M \<longleftrightarrow> f \<in> borel_measurable M"
 
-lemma is_borel_transfer[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) op = is_borel is_borel"
+lemma is_borel_transfer[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) (=) is_borel is_borel"
   unfolding is_borel_def[abs_def]
 proof (safe intro!: rel_funI ext dest!: rel_fun_eq_pcr_ennreal[THEN iffD1])
   fix f and M :: "'a measure"

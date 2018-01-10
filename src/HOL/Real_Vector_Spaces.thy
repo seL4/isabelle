@@ -1412,7 +1412,7 @@ lemma linear_imp_scaleR:
 
 corollary real_linearD:
   fixes f :: "real \<Rightarrow> real"
-  assumes "linear f" obtains c where "f = op* c"
+  assumes "linear f" obtains c where "f = ( * ) c"
   by (rule linear_imp_scaleR [OF assms]) (force simp: scaleR_conv_of_real)
 
 lemma linear_times_of_real: "linear (\<lambda>x. a * of_real x)"
@@ -1549,7 +1549,7 @@ lemma flip: "bounded_bilinear (\<lambda>x y. y ** x)"
 
 lemma comp1:
   assumes "bounded_linear g"
-  shows "bounded_bilinear (\<lambda>x. op ** (g x))"
+  shows "bounded_bilinear (\<lambda>x. ( ** ) (g x))"
 proof unfold_locales
   interpret g: bounded_linear g by fact
   show "\<And>a a' b. g (a + a') ** b = g a ** b + g a' ** b"
@@ -1651,7 +1651,7 @@ proof -
   qed
 qed
 
-lemma bounded_bilinear_mult: "bounded_bilinear (op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
+lemma bounded_bilinear_mult: "bounded_bilinear (( * ) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
   apply (rule bounded_bilinear.intro)
       apply (rule distrib_right)
      apply (rule distrib_left)

@@ -290,7 +290,7 @@ fun cterm_of_rat x =
     val (a, b) = Rat.dest x
   in
     if b = 1 then Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a
-    else Thm.apply (Thm.apply \<^cterm>\<open>op / :: real \<Rightarrow> _\<close>
+    else Thm.apply (Thm.apply \<^cterm>\<open>(/) :: real \<Rightarrow> _\<close>
       (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a))
       (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> b)
   end;
@@ -324,7 +324,7 @@ fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
 
 (* Map back polynomials to HOL.                         *)
 
-fun cterm_of_varpow x k = if k = 1 then x else Thm.apply (Thm.apply \<^cterm>\<open>op ^ :: real \<Rightarrow> _\<close> x)
+fun cterm_of_varpow x k = if k = 1 then x else Thm.apply (Thm.apply \<^cterm>\<open>(^) :: real \<Rightarrow> _\<close> x)
   (Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> k)
 
 fun cterm_of_monomial m =
@@ -333,13 +333,13 @@ fun cterm_of_monomial m =
     let
       val m' = FuncUtil.dest_monomial m
       val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' []
-    in foldr1 (fn (s, t) => Thm.apply (Thm.apply \<^cterm>\<open>op * :: real \<Rightarrow> _\<close> s) t) vps
+    in foldr1 (fn (s, t) => Thm.apply (Thm.apply \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close> s) t) vps
     end
 
 fun cterm_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
   else if c = @1 then cterm_of_monomial m
-  else Thm.apply (Thm.apply \<^cterm>\<open>op *::real \<Rightarrow> _\<close> (cterm_of_rat c)) (cterm_of_monomial m);
+  else Thm.apply (Thm.apply \<^cterm>\<open>( * )::real \<Rightarrow> _\<close> (cterm_of_rat c)) (cterm_of_monomial m);
 
 fun cterm_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then \<^cterm>\<open>0::real\<close>
@@ -347,7 +347,7 @@ fun cterm_of_poly p =
     let
       val cms = map cterm_of_cmonomial
         (sort (prod_ord FuncUtil.monomial_order (K EQUAL)) (FuncUtil.Monomialfunc.dest p))
-    in foldr1 (fn (t1, t2) => Thm.apply(Thm.apply \<^cterm>\<open>op + :: real \<Rightarrow> _\<close> t1) t2) cms
+    in foldr1 (fn (t1, t2) => Thm.apply(Thm.apply \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close> t1) t2) cms
     end;
 
 (* A general real arithmetic prover *)
@@ -370,8 +370,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun eqT_elim th = Thm.equal_elim (Thm.symmetric th) @{thm TrueI}
     fun oprconv cv ct =
       let val g = Thm.dest_fun2 ct
-      in if g aconvc \<^cterm>\<open>(op \<le>) :: real \<Rightarrow> _\<close>
-            orelse g aconvc \<^cterm>\<open>(op <) :: real \<Rightarrow> _\<close>
+      in if g aconvc \<^cterm>\<open>((\<le>)) :: real \<Rightarrow> _\<close>
+            orelse g aconvc \<^cterm>\<open>((<)) :: real \<Rightarrow> _\<close>
          then arg_conv cv ct else arg1_conv cv ct
       end
 
@@ -406,13 +406,13 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           | Axiom_le n => nth les n
           | Axiom_lt n => nth lts n
           | Rational_eq x => eqT_elim(numeric_eq_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                          (Thm.apply (Thm.apply \<^cterm>\<open>(op =)::real \<Rightarrow> _\<close> (mk_numeric x))
+                          (Thm.apply (Thm.apply \<^cterm>\<open>((=))::real \<Rightarrow> _\<close> (mk_numeric x))
                                \<^cterm>\<open>0::real\<close>)))
           | Rational_le x => eqT_elim(numeric_ge_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                          (Thm.apply (Thm.apply \<^cterm>\<open>(op \<le>)::real \<Rightarrow> _\<close>
+                          (Thm.apply (Thm.apply \<^cterm>\<open>((\<le>))::real \<Rightarrow> _\<close>
                                      \<^cterm>\<open>0::real\<close>) (mk_numeric x))))
           | Rational_lt x => eqT_elim(numeric_gt_conv(Thm.apply \<^cterm>\<open>Trueprop\<close>
-                      (Thm.apply (Thm.apply \<^cterm>\<open>(op <)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>)
+                      (Thm.apply (Thm.apply \<^cterm>\<open>((<))::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>)
                         (mk_numeric x))))
           | Square pt => square_rule (cterm_of_poly pt)
           | Eqmul(pt,p) => emul_rule (cterm_of_poly pt) (translate p)
@@ -428,9 +428,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
     val concl = Thm.dest_arg o Thm.cprop_of
     fun is_binop opr ct = (Thm.dest_fun2 ct aconvc opr handle CTERM _ => false)
-    val is_req = is_binop \<^cterm>\<open>(op =):: real \<Rightarrow> _\<close>
-    val is_ge = is_binop \<^cterm>\<open>(op \<le>):: real \<Rightarrow> _\<close>
-    val is_gt = is_binop \<^cterm>\<open>(op <):: real \<Rightarrow> _\<close>
+    val is_req = is_binop \<^cterm>\<open>((=)):: real \<Rightarrow> _\<close>
+    val is_ge = is_binop \<^cterm>\<open>((\<le>)):: real \<Rightarrow> _\<close>
+    val is_gt = is_binop \<^cterm>\<open>((<)):: real \<Rightarrow> _\<close>
     val is_conj = is_binop \<^cterm>\<open>HOL.conj\<close>
     val is_disj = is_binop \<^cterm>\<open>HOL.disj\<close>
     fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
@@ -476,7 +476,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun dest_binary b ct =
         if is_binop b ct then Thm.dest_binop ct
         else raise CTERM ("dest_binary",[b,ct])
-    val dest_eq = dest_binary \<^cterm>\<open>(op =) :: real \<Rightarrow> _\<close>
+    val dest_eq = dest_binary \<^cterm>\<open>((=)) :: real \<Rightarrow> _\<close>
     val neq_th = nth pth 5
     fun real_not_eq_conv ct =
       let
@@ -486,8 +486,8 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         val th_x = Drule.arg_cong_rule \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close> th_p
         val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
         val th' = Drule.binop_cong_rule \<^cterm>\<open>HOL.disj\<close>
-          (Drule.arg_cong_rule (Thm.apply \<^cterm>\<open>(op <)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>) th_p)
-          (Drule.arg_cong_rule (Thm.apply \<^cterm>\<open>(op <)::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>) th_n)
+          (Drule.arg_cong_rule (Thm.apply \<^cterm>\<open>((<))::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>) th_p)
+          (Drule.arg_cong_rule (Thm.apply \<^cterm>\<open>((<))::real \<Rightarrow> _\<close> \<^cterm>\<open>0::real\<close>) th_n)
       in Thm.transitive th th'
       end
     fun equal_implies_1_rule PQ =
@@ -683,9 +683,9 @@ local
         else
           let val (opr,l) = Thm.dest_comb lop
           in
-            if opr aconvc \<^cterm>\<open>op + :: real \<Rightarrow> _\<close>
+            if opr aconvc \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close>
             then linear_add (lin_of_hol l) (lin_of_hol r)
-            else if opr aconvc \<^cterm>\<open>op * :: real \<Rightarrow> _\<close>
+            else if opr aconvc \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close>
                     andalso is_ratconst l then FuncUtil.Ctermfunc.onefunc (r, dest_ratconst l)
             else FuncUtil.Ctermfunc.onefunc (ct, @1)
           end

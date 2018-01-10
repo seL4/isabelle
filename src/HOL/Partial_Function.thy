@@ -13,20 +13,20 @@ named_theorems partial_function_mono "monotonicity rules for partial function de
 ML_file "Tools/Function/partial_function.ML"
 
 lemma (in ccpo) in_chain_finite:
-  assumes "Complete_Partial_Order.chain op \<le> A" "finite A" "A \<noteq> {}"
+  assumes "Complete_Partial_Order.chain (\<le>) A" "finite A" "A \<noteq> {}"
   shows "\<Squnion>A \<in> A"
 using assms(2,1,3)
 proof induction
   case empty thus ?case by simp
 next
   case (insert x A)
-  note chain = \<open>Complete_Partial_Order.chain op \<le> (insert x A)\<close>
+  note chain = \<open>Complete_Partial_Order.chain (\<le>) (insert x A)\<close>
   show ?case
   proof(cases "A = {}")
     case True thus ?thesis by simp
   next
     case False
-    from chain have chain': "Complete_Partial_Order.chain op \<le> A"
+    from chain have chain': "Complete_Partial_Order.chain (\<le>) A"
       by(rule chain_subset) blast
     hence "\<Squnion>A \<in> A" using False by(rule insert.IH)
     show ?thesis
@@ -48,8 +48,8 @@ next
 qed
 
 lemma (in ccpo) admissible_chfin:
-  "(\<forall>S. Complete_Partial_Order.chain op \<le> S \<longrightarrow> finite S)
-  \<Longrightarrow> ccpo.admissible Sup op \<le> P"
+  "(\<forall>S. Complete_Partial_Order.chain (\<le>) S \<longrightarrow> finite S)
+  \<Longrightarrow> ccpo.admissible Sup (\<le>) P"
 using in_chain_finite by (blast intro: ccpo.admissibleI)
 
 subsection \<open>Axiomatic setup\<close>

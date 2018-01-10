@@ -356,7 +356,7 @@ lemma chain_mono:
 
 subsubsection \<open>Results for the proper subset relation\<close>
 
-interpretation subset: pred_on "A" "op \<subset>" for A .
+interpretation subset: pred_on "A" "(\<subset>)" for A .
 
 lemma subset_maxchain_max:
   assumes "subset.maxchain A C"

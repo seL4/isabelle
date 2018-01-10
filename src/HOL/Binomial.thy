@@ -377,15 +377,15 @@ proof (cases "k \<le> n")
   case False
   then have "n < k"
     by (simp add: not_le)
-  then have "0 \<in> (op - n) ` {0..<k}"
+  then have "0 \<in> ((-) n) ` {0..<k}"
     by auto
-  then have "prod (op - n) {0..<k} = 0"
+  then have "prod ((-) n) {0..<k} = 0"
     by (auto intro: prod_zero)
   with \<open>n < k\<close> show ?thesis
     by (simp add: binomial_eq_0 gbinomial_prod_rev prod_zero)
 next
   case True
-  from True have *: "prod (op - n) {0..<k} = \<Prod>{Suc (n - k)..n}"
+  from True have *: "prod ((-) n) {0..<k} = \<Prod>{Suc (n - k)..n}"
     by (intro prod.reindex_bij_witness[of _ "\<lambda>i. n - i" "\<lambda>i. n - i"]) auto
   from True have "n choose k = fact n div (fact k * fact (n - k))"
     by (rule binomial_fact')
@@ -1252,15 +1252,15 @@ lemma card_disjoint_shuffle:
 using assms
 proof (induction xs ys rule: shuffle.induct)
   case (3 x xs y ys)
-  have "shuffle (x # xs) (y # ys) = op # x ` shuffle xs (y # ys) \<union> op # y ` shuffle (x # xs) ys"
+  have "shuffle (x # xs) (y # ys) = (#) x ` shuffle xs (y # ys) \<union> (#) y ` shuffle (x # xs) ys"
     by (rule shuffle.simps)
-  also have "card \<dots> = card (op # x ` shuffle xs (y # ys)) + card (op # y ` shuffle (x # xs) ys)"
+  also have "card \<dots> = card ((#) x ` shuffle xs (y # ys)) + card ((#) y ` shuffle (x # xs) ys)"
     by (rule card_Un_disjoint) (insert "3.prems", auto)
-  also have "card (op # x ` shuffle xs (y # ys)) = card (shuffle xs (y # ys))"
+  also have "card ((#) x ` shuffle xs (y # ys)) = card (shuffle xs (y # ys))"
     by (rule card_image) auto
   also have "\<dots> = (length xs + length (y # ys)) choose length xs"
     using "3.prems" by (intro "3.IH") auto
-  also have "card (op # y ` shuffle (x # xs) ys) = card (shuffle (x # xs) ys)"
+  also have "card ((#) y ` shuffle (x # xs) ys) = card (shuffle (x # xs) ys)"
     by (rule card_image) auto
   also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
     using "3.prems" by (intro "3.IH") auto
@@ -1304,7 +1304,7 @@ lemma binomial_code [code]:
   "(n choose k) =
       (if k > n then 0
        else if 2 * k > n then (n choose (n - k))
-       else (fold_atLeastAtMost_nat (op * ) (n-k+1) n 1 div fact k))"
+       else (fold_atLeastAtMost_nat (( * ) ) (n-k+1) n 1 div fact k))"
 proof -
   {
     assume "k \<le> n"

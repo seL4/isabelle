@@ -86,7 +86,7 @@ val ord_eq_le_trans = @{thm ord_eq_le_trans};
 val subset_trans = @{thm subset_trans};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 val rev_bspec = Drule.rotate_prems 1 bspec;
-val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]};
+val Un_cong = @{thm arg_cong2[of _ _ _ _ "(\<union>)"]};
 val relChainD = @{thm iffD2[OF meta_eq_to_obj_eq[OF relChain_def]]};
 
 fun mk_alg_set_tac ctxt alg_def =

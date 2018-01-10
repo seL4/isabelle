@@ -331,7 +331,7 @@ qed
 
 subsection \<open>Preprocessor Inlining\<close>
 
-definition "equals == (op =)"
+definition "equals == (=)"
  
 inductive zerozero' :: "nat * nat => bool" where
   "equals (x, y) (0, 0) ==> zerozero' (x, y)"

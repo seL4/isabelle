@@ -12,9 +12,9 @@ begin
 text \<open>Bitwise logical operators\<close>
 
 spark_proof_functions
-  bit__and (integer, integer) : integer = "op AND"
-  bit__or (integer, integer) : integer = "op OR"
-  bit__xor (integer, integer) : integer = "op XOR"
+  bit__and (integer, integer) : integer = "(AND)"
+  bit__or (integer, integer) : integer = "(OR)"
+  bit__xor (integer, integer) : integer = "(XOR)"
 
 lemmas [simp] =
   OR_upper [of _ 8, simplified zle_diff1_eq [symmetric], simplified]

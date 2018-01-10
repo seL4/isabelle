@@ -904,7 +904,7 @@ val _ = @{assert} (max_int_floored 0 [1, 3, 5] = 5)
 fun max_index_floored min l =
   let
     val max = max_int_floored min l
-  in find_index (pair max #> op =) l end
+  in find_index (pair max #> (=)) l end
 \<close>
 
 ML \<open>

@@ -15,7 +15,7 @@ declare inf_bool_def[abs_def, code_pred_inline]
 declare less_bool_def[abs_def, code_pred_inline]
 declare le_bool_def[abs_def, code_pred_inline]
 
-lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (op \<and>)"
+lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (\<and>)"
 by (rule eq_reflection) (auto simp add: fun_eq_iff min_def)
 
 lemma [code_pred_inline]: 
@@ -103,16 +103,16 @@ let
     in
       absdummy @{typ nat} (absdummy @{typ nat}
         (Const (@{const_name "If"}, @{typ bool} --> T --> T --> T) $
-          (@{term "op > :: nat => nat => bool"} $ Bound 1 $ Bound 0) $
+          (@{term "(>) :: nat => nat => bool"} $ Bound 1 $ Bound 0) $
           Predicate_Compile_Aux.mk_empty compfuns @{typ nat} $
           Predicate_Compile_Aux.mk_single compfuns
-          (@{term "op - :: nat => nat => nat"} $ Bound 0 $ Bound 1)))
+          (@{term "(-) :: nat => nat => nat"} $ Bound 0 $ Bound 1)))
     end
   fun enumerate_addups_nat compfuns (_ : typ) =
     absdummy @{typ nat} (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ "nat * nat"}
     (absdummy @{typ natural} (@{term "Pair :: nat => nat => nat * nat"} $
       (@{term "nat_of_natural"} $ Bound 0) $
-      (@{term "op - :: nat => nat => nat"} $ Bound 1 $ (@{term "nat_of_natural"} $ Bound 0))),
+      (@{term "(-) :: nat => nat => nat"} $ Bound 1 $ (@{term "nat_of_natural"} $ Bound 0))),
       @{term "0 :: natural"}, @{term "natural_of_nat"} $ Bound 0))
   fun enumerate_nats compfuns  (_ : typ) =
     let
@@ -121,10 +121,10 @@ let
     in
       absdummy @{typ nat} (absdummy @{typ nat}
         (Const (@{const_name If}, @{typ bool} --> T --> T --> T) $
-          (@{term "op = :: nat => nat => bool"} $ Bound 0 $ @{term "0::nat"}) $
+          (@{term "(=) :: nat => nat => bool"} $ Bound 0 $ @{term "0::nat"}) $
           (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ nat} (@{term "nat_of_natural"},
             @{term "0::natural"}, @{term "natural_of_nat"} $ Bound 1)) $
-            (single_const $ (@{term "op + :: nat => nat => nat"} $ Bound 1 $ Bound 0))))
+            (single_const $ (@{term "(+) :: nat => nat => nat"} $ Bound 1 $ Bound 0))))
     end
 in
   Core_Data.force_modes_and_compilations @{const_name plus_eq_nat}

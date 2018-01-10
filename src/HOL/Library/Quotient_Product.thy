@@ -15,7 +15,7 @@ lemma map_prod_id [id_simps]:
   by (simp add: fun_eq_iff)
 
 lemma rel_prod_eq [id_simps]:
-  shows "rel_prod (op =) (op =) = (op =)"
+  shows "rel_prod (=) (=) = (=)"
   by (simp add: fun_eq_iff)
 
 lemma prod_equivp [quot_equiv]:
@@ -77,7 +77,7 @@ lemma snd_prs [quot_preserve]:
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q2])
 
 lemma case_prod_rsp [quot_respect]:
-  shows "((R1 ===> R2 ===> (op =)) ===> (rel_prod R1 R2) ===> (op =)) case_prod case_prod"
+  shows "((R1 ===> R2 ===> (=)) ===> (rel_prod R1 R2) ===> (=)) case_prod case_prod"
   by (rule case_prod_transfer)
 
 lemma split_prs [quot_preserve]:
@@ -87,8 +87,8 @@ lemma split_prs [quot_preserve]:
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
 
 lemma [quot_respect]:
-  shows "((R2 ===> R2 ===> op =) ===> (R1 ===> R1 ===> op =) ===>
-  rel_prod R2 R1 ===> rel_prod R2 R1 ===> op =) rel_prod rel_prod"
+  shows "((R2 ===> R2 ===> (=)) ===> (R1 ===> R1 ===> (=)) ===>
+  rel_prod R2 R1 ===> rel_prod R2 R1 ===> (=)) rel_prod rel_prod"
   by (rule prod.rel_transfer)
 
 lemma [quot_preserve]:

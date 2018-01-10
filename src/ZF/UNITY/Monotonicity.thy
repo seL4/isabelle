@@ -102,7 +102,7 @@ done
 (** Monotonicity of \<union> **)
 
 lemma mono_Un [iff]: 
-     "mono2(Pow(A), SetLe(A), Pow(A), SetLe(A), Pow(A), SetLe(A), op Un)"
+     "mono2(Pow(A), SetLe(A), Pow(A), SetLe(A), Pow(A), SetLe(A), (Un))"
 by (unfold mono2_def SetLe_def, auto)
 
 (* Monotonicity of multiset union *)

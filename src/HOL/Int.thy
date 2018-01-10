@@ -74,7 +74,7 @@ abbreviation int :: "nat \<Rightarrow> int"
 lemma int_def: "int n = Abs_Integ (n, 0)"
   by (induct n) (simp add: zero_int.abs_eq, simp add: one_int.abs_eq plus_int.abs_eq)
 
-lemma int_transfer [transfer_rule]: "(rel_fun (op =) pcr_int) (\<lambda>n. (n, 0)) int"
+lemma int_transfer [transfer_rule]: "(rel_fun (=) pcr_int) (\<lambda>n. (n, 0)) int"
   by (simp add: rel_fun_def int.pcr_cr_eq cr_int_def int_def)
 
 lemma int_diff_cases: obtains (diff) m n where "z = int m - int n"

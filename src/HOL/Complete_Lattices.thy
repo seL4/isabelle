@@ -128,7 +128,7 @@ proof
     by (auto intro: Inf_greatest simp only: Inf_empty [symmetric])
 qed
 
-lemma dual_complete_lattice: "class.complete_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
+lemma dual_complete_lattice: "class.complete_lattice Sup Inf sup (\<ge>) (>) inf \<top> \<bottom>"
   by (auto intro!: class.complete_lattice.intro dual_lattice)
     (unfold_locales, (fact Inf_empty Sup_empty Sup_upper Sup_least Inf_lower Inf_greatest)+)
 
@@ -465,7 +465,7 @@ lemma inf_SUP: "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<
   by (simp add: inf_Sup)
 
 lemma dual_complete_distrib_lattice:
-  "class.complete_distrib_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
+  "class.complete_distrib_lattice Sup Inf sup (\<ge>) (>) inf \<top> \<bottom>"
   apply (rule class.complete_distrib_lattice.intro)
    apply (fact dual_complete_lattice)
   apply (rule class.complete_distrib_lattice_axioms.intro)
@@ -528,7 +528,7 @@ class complete_boolean_algebra = boolean_algebra + complete_distrib_lattice
 begin
 
 lemma dual_complete_boolean_algebra:
-  "class.complete_boolean_algebra Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
+  "class.complete_boolean_algebra Sup Inf sup (\<ge>) (>) inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
   by (rule class.complete_boolean_algebra.intro,
       rule dual_complete_distrib_lattice,
       rule dual_boolean_algebra)
@@ -560,7 +560,7 @@ class complete_linorder = linorder + complete_lattice
 begin
 
 lemma dual_complete_linorder:
-  "class.complete_linorder Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
+  "class.complete_linorder Sup Inf sup (\<ge>) (>) inf \<top> \<bottom>"
   by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
 
 lemma complete_linorder_inf_min: "inf = min"
@@ -1205,7 +1205,7 @@ lemma image_UN: "f ` UNION A B = (\<Union>x\<in>A. f ` B x)"
 lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
-lemma inj_on_image: "inj_on f (\<Union>A) \<Longrightarrow> inj_on (op ` f) A"
+lemma inj_on_image: "inj_on f (\<Union>A) \<Longrightarrow> inj_on ((`) f) A"
   unfolding inj_on_def by blast
 
 

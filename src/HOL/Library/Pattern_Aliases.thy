@@ -60,7 +60,7 @@ fun strip_all t =
   | SOME (var, t) => apfst (cons var) (strip_all t)
 
 fun all_Frees t =
-  fold_aterms (fn Free (x, t) => insert op = (x, t) | _ => I) t []
+  fold_aterms (fn Free (x, t) => insert (=) (x, t) | _ => I) t []
 
 fun subst_once (old, new) t =
   let
@@ -120,7 +120,7 @@ fun check_pattern_syntax t =
 
         val res = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs', rhs'))
 
-        val frees = filter (member op = vars) (all_Frees res)
+        val frees = filter (member (=) vars) (all_Frees res)
       in fold (fn v => Logic.dependent_all_name ("", v)) (map Free frees) res end
   | _ => t
 

@@ -320,7 +320,7 @@ lemma length_strip_while_le:
     (simp add: strip_while_def length_dropWhile_le del: length_rev)
 
 lemma nth_default_strip_while_dflt [simp]:
-  "nth_default dflt (strip_while (op = dflt) xs) = nth_default dflt xs"
+  "nth_default dflt (strip_while ((=) dflt) xs) = nth_default dflt xs"
   by (induct xs rule: rev_induct) auto
 
 lemma nth_default_eq_iff:

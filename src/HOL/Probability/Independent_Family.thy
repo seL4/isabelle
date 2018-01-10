@@ -338,7 +338,7 @@ lemma (in prob_space) indep_var_eq:
       (sigma_sets (space M) { X -` A \<inter> space M | A. A \<in> sets S})
       (sigma_sets (space M) { Y -` A \<inter> space M | A. A \<in> sets T})"
   unfolding indep_var_def indep_vars_def indep_set_def UNIV_bool
-  by (intro arg_cong2[where f="op \<and>"] arg_cong2[where f=indep_sets] ext)
+  by (intro arg_cong2[where f="(\<and>)"] arg_cong2[where f=indep_sets] ext)
      (auto split: bool.split)
 
 lemma (in prob_space) indep_sets2_eq:
@@ -1165,7 +1165,7 @@ proof-
   also have "...=  prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
     by (auto intro!: indep_varD[where Ma=N and Mb=N])
   also have "... = \<P>(x in M. X x \<in> A) * \<P>(x in M. Y x \<in> B)"
-    by (auto intro!: arg_cong2[where f= "op *"] arg_cong[where f= prob])
+    by (auto intro!: arg_cong2[where f= "( * )"] arg_cong[where f= prob])
   finally show ?thesis .
 qed
 

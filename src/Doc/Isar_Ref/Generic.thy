@@ -387,7 +387,7 @@ text \<open>
 lemma "0 + (x + 0) = x + 0 + 0" apply simp? oops
 
 text \<open>
-  The above attempt \<^emph>\<open>fails\<close>, because @{term "0"} and @{term "op +"} in the
+  The above attempt \<^emph>\<open>fails\<close>, because @{term "0"} and @{term "(+)"} in the
   HOL library are declared as generic type class operations, without stating
   any algebraic laws yet. More specific types are required to get access to
   certain standard simplifications of the theory context, e.g.\ like this:\<close>

@@ -310,12 +310,12 @@ proof (induct al)
       using Cons(2) by auto
     note IH = Cons(1)[OF inv]
     define Ys where "Ys = Abs_multiset (count_of ys)"
-    have id: "Abs_multiset (count_of ((a, n) # ys)) = ((op + {# a #}) ^^ n) Ys"
+    have id: "Abs_multiset (count_of ((a, n) # ys)) = (((+) {# a #}) ^^ n) Ys"
       unfolding Ys_def
     proof (rule multiset_eqI, unfold count)
       fix c
       show "count_of ((a, n) # ys) c =
-        count ((op + {#a#} ^^ n) (Abs_multiset (count_of ys))) c" (is "?l = ?r")
+        count (((+) {#a#} ^^ n) (Abs_multiset (count_of ys))) c" (is "?l = ?r")
       proof (cases "c = a")
         case False
         then show ?thesis
@@ -372,18 +372,18 @@ qed
 
 end
 
-(* we cannot use (\<lambda>a n. op + (a * n)) for folding, since * is not defined
+(* we cannot use (\<lambda>a n. (+) (a * n)) for folding, since * is not defined
    in comm_monoid_add *)
-lemma sum_mset_Bag[code]: "sum_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((op + a) ^^ n)) 0 ms"
+lemma sum_mset_Bag[code]: "sum_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. (((+) a) ^^ n)) 0 ms"
   unfolding sum_mset.eq_fold
   apply (rule comp_fun_commute.DAList_Multiset_fold)
   apply unfold_locales
   apply (auto simp: ac_simps)
   done
 
-(* we cannot use (\<lambda>a n. op * (a ^ n)) for folding, since ^ is not defined
+(* we cannot use (\<lambda>a n. ( * ) (a ^ n)) for folding, since ^ is not defined
    in comm_monoid_mult *)
-lemma prod_mset_Bag[code]: "prod_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((op * a) ^^ n)) 1 ms"
+lemma prod_mset_Bag[code]: "prod_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((( * ) a) ^^ n)) 1 ms"
   unfolding prod_mset.eq_fold
   apply (rule comp_fun_commute.DAList_Multiset_fold)
   apply unfold_locales
@@ -396,7 +396,7 @@ proof -
   show ?thesis by (induct A) auto
 qed
 
-lemma size_Bag[code]: "size (Bag ms) = DAList_Multiset.fold (\<lambda>a n. op + n) 0 ms"
+lemma size_Bag[code]: "size (Bag ms) = DAList_Multiset.fold (\<lambda>a n. (+) n) 0 ms"
   unfolding size_fold
 proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, simp)
   fix a n x

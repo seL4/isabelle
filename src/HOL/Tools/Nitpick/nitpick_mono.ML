@@ -574,7 +574,7 @@ fun solve tac_timeout max_var (comps, clauses) =
         (* use the first ML solver (to avoid startup overhead) *)
         val (ml_solvers, nonml_solvers) =
           SAT_Solver.get_solvers ()
-          |> List.partition (member (op =) ["dptsat", "cdclite"] o fst)
+          |> List.partition (member (=) ["dptsat", "cdclite"] o fst)
         val res =
           if null nonml_solvers then
             Timeout.apply tac_timeout (snd (hd ml_solvers)) prop
@@ -604,7 +604,7 @@ fun string_for_bound ctxt Ms (j, aa) =
   string_for_mtype (nth Ms (length Ms - j - 1))
 
 fun string_for_free relevant_frees ((s, _), M) =
-  if member (op =) relevant_frees s then SOME (s ^ " : " ^ string_for_mtype M)
+  if member (=) relevant_frees s then SOME (s ^ " : " ^ string_for_mtype M)
   else NONE
 
 fun string_for_mcontext ctxt t ({bound_Ms, frame, frees, ...} : mcontext) =

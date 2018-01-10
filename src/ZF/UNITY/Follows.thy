@@ -325,13 +325,13 @@ lemma increasing_Un:
      "[| F \<in> Increasing.increasing(Pow(A), SetLe(A), f);
          F \<in> Increasing.increasing(Pow(A), SetLe(A), g) |]
      ==> F \<in> Increasing.increasing(Pow(A), SetLe(A), %x. f(x) \<union> g(x))"
-by (rule_tac h = "op Un" in imp_increasing_comp2, auto)
+by (rule_tac h = "(Un)" in imp_increasing_comp2, auto)
 
 lemma Increasing_Un:
      "[| F \<in> Increasing(Pow(A), SetLe(A), f);
          F \<in> Increasing(Pow(A), SetLe(A), g) |]
      ==> F \<in> Increasing(Pow(A), SetLe(A), %x. f(x) \<union> g(x))"
-by (rule_tac h = "op Un" in imp_Increasing_comp2, auto)
+by (rule_tac h = "(Un)" in imp_Increasing_comp2, auto)
 
 lemma Always_Un:
      "[| F \<in> Always({s \<in> state. f1(s) \<subseteq> f(s)});
@@ -343,7 +343,7 @@ lemma Follows_Un:
 "[| F \<in> Follows(Pow(A), SetLe(A), f1, f);
      F \<in> Follows(Pow(A), SetLe(A), g1, g) |]
      ==> F \<in> Follows(Pow(A), SetLe(A), %s. f1(s) \<union> g1(s), %s. f(s) \<union> g(s))"
-by (rule_tac h = "op Un" in imp_Follows_comp2, auto)
+by (rule_tac h = "(Un)" in imp_Follows_comp2, auto)
 
 (** Multiset union properties (with the MultLe ordering) **)
 

@@ -18,9 +18,9 @@ lemma face_ofD: "\<lbrakk>T face_of S; x \<in> open_segment a b; a \<in> S; b \<
   unfolding face_of_def by blast
 
 lemma face_of_translation_eq [simp]:
-    "(op + a ` T face_of op + a ` S) \<longleftrightarrow> T face_of S"
+    "((+) a ` T face_of (+) a ` S) \<longleftrightarrow> T face_of S"
 proof -
-  have *: "\<And>a T S. T face_of S \<Longrightarrow> (op + a ` T face_of op + a ` S)"
+  have *: "\<And>a T S. T face_of S \<Longrightarrow> ((+) a ` T face_of (+) a ` S)"
     apply (simp add: face_of_def Ball_def, clarify)
     apply (drule open_segment_translation_eq [THEN iffD1])
     using inj_image_mem_iff inj_add_left apply metis
@@ -1125,7 +1125,7 @@ next
           and ab: "\<And>x. x \<in> closure(convex hull {x. x extreme_point_of S}) \<Longrightarrow> b < a \<bullet> x"
       using separating_hyperplane_closed_point [of "closure(convex hull {x. x extreme_point_of S})"]
       by blast
-    have "continuous_on S (op \<bullet> a)"
+    have "continuous_on S ((\<bullet>) a)"
       by (rule continuous_intros)+
     then obtain m where "m \<in> S" and m: "\<And>y. y \<in> S \<Longrightarrow> a \<bullet> m \<le> a \<bullet> y"
       using continuous_attains_inf [of S "\<lambda>x. a \<bullet> x"] \<open>compact S\<close> \<open>u \<in> S\<close>
@@ -1206,9 +1206,9 @@ proof
   show "S \<subseteq> convex hull {x. x extreme_point_of S}"
   proof
     fix a assume [simp]: "a \<in> S"
-    have 1: "compact (op + (- a) ` S)"
+    have 1: "compact ((+) (- a) ` S)"
       by (simp add: \<open>compact S\<close> compact_translation)
-    have 2: "convex (op + (- a) ` S)"
+    have 2: "convex ((+) (- a) ` S)"
       by (simp add: \<open>convex S\<close> convex_translation)
     show a_invex: "a \<in> convex hull {x. x extreme_point_of S}"
       using Krein_Milman_Minkowski_aux [OF refl 1 2]
@@ -1630,9 +1630,9 @@ lemma finite_polytope_faces:
 proof -
   obtain v where "finite v" "S = convex hull v"
     using assms polytope_def by auto
-  have "finite (op hull convex ` {T. T \<subseteq> v})"
+  have "finite ((hull) convex ` {T. T \<subseteq> v})"
     by (simp add: \<open>finite v\<close>)
-  moreover have "{F. F face_of S} \<subseteq> (op hull convex ` {T. T \<subseteq> v})"
+  moreover have "{F. F face_of S} \<subseteq> ((hull) convex ` {T. T \<subseteq> v})"
     by (metis (no_types, lifting) \<open>finite v\<close> \<open>S = convex hull v\<close> face_of_convex_hull_subset finite_imp_compact image_eqI mem_Collect_eq subsetI)
   ultimately show ?thesis
     by (blast intro: finite_subset)
@@ -2503,9 +2503,9 @@ proof -
       case 1 then show ?thesis .
     next
       case 2
-      have "Collect (op \<in> x) \<notin> Collect (op \<in> (\<Union>{A. A facet_of S}))"
+      have "Collect ((\<in>) x) \<notin> Collect ((\<in>) (\<Union>{A. A facet_of S}))"
         using xnot by fastforce
-      then have "F \<notin> Collect (op \<in> h)"
+      then have "F \<notin> Collect ((\<in>) h)"
         using 2 \<open>x \<in> S\<close> facet by blast
       with \<open>h \<in> F\<close> have "\<Inter>F \<subseteq> S \<inter> {x. a h \<bullet> x = b h}" by blast
       with 2 that \<open>x \<in> \<Inter>F\<close> show ?thesis
@@ -2661,7 +2661,7 @@ proof -
     apply (auto simp: \<open>bij h\<close> bij_is_surj image_f_inv_f)
     done
   have "inj h" using bij_is_inj assms by blast
-  then have injim: "inj_on (op ` h) A" for A
+  then have injim: "inj_on ((`) h) A" for A
     by (simp add: inj_on_def inj_image_eq_iff)
   show ?thesis
     using \<open>linear h\<close> \<open>inj h\<close>

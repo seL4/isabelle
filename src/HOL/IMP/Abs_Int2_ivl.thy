@@ -303,7 +303,7 @@ lemma add_mono_Fin_le:
 by(drule (1) add_mono) simp
 
 global_interpretation Val_semilattice
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 proof (standard, goal_cases)
   case 1 thus ?case by transfer (simp add: le_iff_subset)
 next
@@ -319,7 +319,7 @@ qed
 
 
 global_interpretation Val_lattice_gamma
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 defines aval_ivl = aval'
 proof (standard, goal_cases)
   case 1 show ?case by(simp add: \<gamma>_inf)
@@ -328,7 +328,7 @@ next
 qed
 
 global_interpretation Val_inv
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 proof (standard, goal_cases)
@@ -351,7 +351,7 @@ next
 qed
 
 global_interpretation Abs_Int_inv
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 defines inv_aval_ivl = inv_aval'
@@ -385,7 +385,7 @@ apply(auto simp: below_rep_def le_iff_subset split: if_splits prod.split)
 by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
 
 global_interpretation Abs_Int_inv_mono
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "(+)"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 proof (standard, goal_cases)

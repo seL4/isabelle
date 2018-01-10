@@ -160,7 +160,7 @@ lemma hypnat_induct:
   "\<And>n. ( *p* P) (0::hypnat) \<Longrightarrow> (\<And>n. ( *p* P) n \<Longrightarrow> ( *p* P) (n + 1)) \<Longrightarrow> ( *p* P) n"
   by transfer (induct_tac n, auto)
 
-lemma starP2_eq_iff: "( *p2* (op =)) = (op =)"
+lemma starP2_eq_iff: "( *p2* (=)) = (=)"
   by transfer (rule refl)
 
 lemma starP2_eq_iff2: "( *p2* (\<lambda>x y. x = y)) X Y \<longleftrightarrow> X = Y"

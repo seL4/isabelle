@@ -113,11 +113,11 @@ lemma list_all2_refl':
 
 lemma compose_list_refl:
   assumes q: "equivp R"
-  shows "(list_all2 R OOO op \<approx>) r r"
+  shows "(list_all2 R OOO (\<approx>)) r r"
 proof
   have *: "r \<approx> r" by (rule equivp_reflp[OF fset_equivp])
   show "list_all2 R r r" by (rule list_all2_refl'[OF q])
-  with * show "(op \<approx> OO list_all2 R) r r" ..
+  with * show "((\<approx>) OO list_all2 R) r r" ..
 qed
 
 lemma map_list_eq_cong: "b \<approx> ba \<Longrightarrow> map f b \<approx> map f ba"
@@ -126,7 +126,7 @@ lemma map_list_eq_cong: "b \<approx> ba \<Longrightarrow> map f b \<approx> map 
 lemma quotient_compose_list_g:
   assumes q: "Quotient3 R Abs Rep"
   and     e: "equivp R"
-  shows  "Quotient3 ((list_all2 R) OOO (op \<approx>))
+  shows  "Quotient3 ((list_all2 R) OOO (\<approx>))
     (abs_fset \<circ> (map Abs)) ((map Rep) \<circ> rep_fset)"
   unfolding Quotient3_def comp_def
 proof (intro conjI allI)
@@ -135,17 +135,17 @@ proof (intro conjI allI)
     by (simp add: abs_o_rep[OF q] Quotient3_abs_rep[OF Quotient3_fset] List.map.id)
   have b: "list_all2 R (map Rep (rep_fset a)) (map Rep (rep_fset a))"
     by (rule list_all2_refl'[OF e])
-  have c: "(op \<approx> OO list_all2 R) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
+  have c: "((\<approx>) OO list_all2 R) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
     by (rule, rule equivp_reflp[OF fset_equivp]) (rule b)
-  show "(list_all2 R OOO op \<approx>) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
+  show "(list_all2 R OOO (\<approx>)) (map Rep (rep_fset a)) (map Rep (rep_fset a))"
     by (rule, rule list_all2_refl'[OF e]) (rule c)
-  show "(list_all2 R OOO op \<approx>) r s = ((list_all2 R OOO op \<approx>) r r \<and>
-        (list_all2 R OOO op \<approx>) s s \<and> abs_fset (map Abs r) = abs_fset (map Abs s))"
+  show "(list_all2 R OOO (\<approx>)) r s = ((list_all2 R OOO (\<approx>)) r r \<and>
+        (list_all2 R OOO (\<approx>)) s s \<and> abs_fset (map Abs r) = abs_fset (map Abs s))"
   proof (intro iffI conjI)
-    show "(list_all2 R OOO op \<approx>) r r" by (rule compose_list_refl[OF e])
-    show "(list_all2 R OOO op \<approx>) s s" by (rule compose_list_refl[OF e])
+    show "(list_all2 R OOO (\<approx>)) r r" by (rule compose_list_refl[OF e])
+    show "(list_all2 R OOO (\<approx>)) s s" by (rule compose_list_refl[OF e])
   next
-    assume a: "(list_all2 R OOO op \<approx>) r s"
+    assume a: "(list_all2 R OOO (\<approx>)) r s"
     then have b: "map Abs r \<approx> map Abs s"
     proof (elim relcomppE)
       fix b ba
@@ -162,26 +162,26 @@ proof (intro conjI allI)
     then show "abs_fset (map Abs r) = abs_fset (map Abs s)"
       using Quotient3_rel[OF Quotient3_fset] by blast
   next
-    assume a: "(list_all2 R OOO op \<approx>) r r \<and> (list_all2 R OOO op \<approx>) s s
+    assume a: "(list_all2 R OOO (\<approx>)) r r \<and> (list_all2 R OOO (\<approx>)) s s
       \<and> abs_fset (map Abs r) = abs_fset (map Abs s)"
-    then have s: "(list_all2 R OOO op \<approx>) s s" by simp
+    then have s: "(list_all2 R OOO (\<approx>)) s s" by simp
     have d: "map Abs r \<approx> map Abs s"
       by (subst Quotient3_rel [OF Quotient3_fset, symmetric]) (simp add: a)
     have b: "map Rep (map Abs r) \<approx> map Rep (map Abs s)"
       by (rule map_list_eq_cong[OF d])
     have y: "list_all2 R (map Rep (map Abs s)) s"
       by (fact rep_abs_rsp_left[OF list_quotient3[OF q], OF list_all2_refl'[OF e, of s]])
-    have c: "(op \<approx> OO list_all2 R) (map Rep (map Abs r)) s"
+    have c: "((\<approx>) OO list_all2 R) (map Rep (map Abs r)) s"
       by (rule relcomppI) (rule b, rule y)
     have z: "list_all2 R r (map Rep (map Abs r))"
       by (fact rep_abs_rsp[OF list_quotient3[OF q], OF list_all2_refl'[OF e, of r]])
-    then show "(list_all2 R OOO op \<approx>) r s"
+    then show "(list_all2 R OOO (\<approx>)) r s"
       using a c relcomppI by simp
   qed
 qed
 
 lemma quotient_compose_list[quot_thm]:
-  shows  "Quotient3 ((list_all2 op \<approx>) OOO (op \<approx>))
+  shows  "Quotient3 ((list_all2 (\<approx>)) OOO (\<approx>))
     (abs_fset \<circ> (map abs_fset)) ((map rep_fset) \<circ> rep_fset)"
   by (rule quotient_compose_list_g, rule Quotient3_fset, rule list_eq_equivp)
 
@@ -350,9 +350,9 @@ quotient_definition
   is fold_once by (rule fold_once_set_equiv)
 
 lemma concat_rsp_pre:
-  assumes a: "list_all2 op \<approx> x x'"
+  assumes a: "list_all2 (\<approx>) x x'"
   and     b: "x' \<approx> y'"
-  and     c: "list_all2 op \<approx> y' y"
+  and     c: "list_all2 (\<approx>) y' y"
   and     d: "\<exists>x\<in>set x. xa \<in> set x"
   shows "\<exists>x\<in>set y. xa \<in> set x"
 proof -
@@ -369,12 +369,12 @@ quotient_definition
   is concat 
 proof (elim relcomppE)
 fix a b ba bb
-  assume a: "list_all2 op \<approx> a ba"
-  with list_symp [OF list_eq_symp] have a': "list_all2 op \<approx> ba a" by (rule sympE)
+  assume a: "list_all2 (\<approx>) a ba"
+  with list_symp [OF list_eq_symp] have a': "list_all2 (\<approx>) ba a" by (rule sympE)
   assume b: "ba \<approx> bb"
   with list_eq_symp have b': "bb \<approx> ba" by (rule sympE)
-  assume c: "list_all2 op \<approx> bb b"
-  with list_symp [OF list_eq_symp] have c': "list_all2 op \<approx> b bb" by (rule sympE)
+  assume c: "list_all2 (\<approx>) bb b"
+  with list_symp [OF list_eq_symp] have c': "list_all2 (\<approx>) b bb" by (rule sympE)
   have "\<forall>x. (\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
   proof
     fix x
@@ -398,11 +398,11 @@ quotient_definition
 subsection \<open>Compositional respectfulness and preservation lemmas\<close>
 
 lemma Nil_rsp2 [quot_respect]: 
-  shows "(list_all2 op \<approx> OOO op \<approx>) Nil Nil"
+  shows "(list_all2 (\<approx>) OOO (\<approx>)) Nil Nil"
   by (rule compose_list_refl, rule list_eq_equivp)
 
 lemma Cons_rsp2 [quot_respect]:
-  shows "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) Cons Cons"
+  shows "((\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>)) Cons Cons"
   apply (auto intro!: rel_funI)
   apply (rule_tac b="x # b" in relcomppI)
   apply auto
@@ -418,14 +418,14 @@ lemma Nil_prs2 [quot_preserve]:
 lemma Cons_prs2 [quot_preserve]:
   assumes q: "Quotient3 R1 Abs1 Rep1"
   and     r: "Quotient3 R2 Abs2 Rep2"
-  shows "(Rep1 ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) (op #) = (id ---> Rep2 ---> Abs2) (op #)"
+  shows "(Rep1 ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) (#) = (id ---> Rep2 ---> Abs2) (#)"
   by (auto simp add: fun_eq_iff comp_def Quotient3_abs_rep [OF q])
 
 lemma append_prs2 [quot_preserve]:
   assumes q: "Quotient3 R1 Abs1 Rep1"
   and     r: "Quotient3 R2 Abs2 Rep2"
-  shows "((map Rep1 \<circ> Rep2) ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) op @ =
-    (Rep2 ---> Rep2 ---> Abs2) op @"
+  shows "((map Rep1 \<circ> Rep2) ---> (map Rep1 \<circ> Rep2) ---> (Abs2 \<circ> map Abs1)) (@) =
+    (Rep2 ---> Rep2 ---> Abs2) (@)"
   by (simp add: fun_eq_iff abs_o_rep[OF q] List.map.id)
 
 lemma list_all2_app_l:
@@ -435,14 +435,14 @@ lemma list_all2_app_l:
   using a b by (induct z) (auto elim: reflpE)
 
 lemma append_rsp2_pre0:
-  assumes a:"list_all2 op \<approx> x x'"
-  shows "list_all2 op \<approx> (x @ z) (x' @ z)"
+  assumes a:"list_all2 (\<approx>) x x'"
+  shows "list_all2 (\<approx>) (x @ z) (x' @ z)"
   using a apply (induct x x' rule: list_induct2')
   by simp_all (rule list_all2_refl'[OF list_eq_equivp])
 
 lemma append_rsp2_pre1:
-  assumes a:"list_all2 op \<approx> x x'"
-  shows "list_all2 op \<approx> (z @ x) (z @ x')"
+  assumes a:"list_all2 (\<approx>) x x'"
+  shows "list_all2 (\<approx>) (z @ x) (z @ x')"
   using a apply (induct x x' arbitrary: z rule: list_induct2')
   apply (rule list_all2_refl'[OF list_eq_equivp])
   apply (simp_all del: list_eq_def)
@@ -451,9 +451,9 @@ lemma append_rsp2_pre1:
   done
 
 lemma append_rsp2_pre:
-  assumes "list_all2 op \<approx> x x'"
-    and "list_all2 op \<approx> z z'"
-  shows "list_all2 op \<approx> (x @ z) (x' @ z')"
+  assumes "list_all2 (\<approx>) x x'"
+    and "list_all2 (\<approx>) z z'"
+  shows "list_all2 (\<approx>) (x @ z) (x' @ z')"
   using assms by (rule list_all2_appendI)
 
 lemma compositional_rsp3:
@@ -463,17 +463,17 @@ lemma compositional_rsp3:
      (metis (full_types) assms rel_funE relcomppI)
 
 lemma append_rsp2 [quot_respect]:
-  "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"
+  "(list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>)) append append"
   by (intro compositional_rsp3)
      (auto intro!: rel_funI simp add: append_rsp2_pre)
 
 lemma map_rsp2 [quot_respect]:
-  "((op \<approx> ===> op \<approx>) ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) map map"
+  "(((\<approx>) ===> (\<approx>)) ===> list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>)) map map"
 proof (auto intro!: rel_funI)
   fix f f' :: "'a list \<Rightarrow> 'b list"
   fix xa ya x y :: "'a list list"
-  assume fs: "(op \<approx> ===> op \<approx>) f f'" and x: "list_all2 op \<approx> xa x" and xy: "set x = set y" and y: "list_all2 op \<approx> y ya"
-  have a: "(list_all2 op \<approx>) (map f xa) (map f x)"
+  assume fs: "((\<approx>) ===> (\<approx>)) f f'" and x: "list_all2 (\<approx>) xa x" and xy: "set x = set y" and y: "list_all2 (\<approx>) y ya"
+  have a: "(list_all2 (\<approx>)) (map f xa) (map f x)"
     using x
     by (induct xa x rule: list_induct2')
        (simp_all, metis fs rel_funE list_eq_def)
@@ -481,11 +481,11 @@ proof (auto intro!: rel_funI)
     using xy fs
     by (induct x y rule: list_induct2')
        (simp_all, metis image_insert)
-  have c: "(list_all2 op \<approx>) (map f y) (map f' ya)"
+  have c: "(list_all2 (\<approx>)) (map f y) (map f' ya)"
     using y fs
     by (induct y ya rule: list_induct2')
        (simp_all, metis apply_rsp' list_eq_def)
-  show "(list_all2 op \<approx> OOO op \<approx>) (map f xa) (map f' ya)"
+  show "(list_all2 (\<approx>) OOO (\<approx>)) (map f xa) (map f' ya)"
     by (metis a b c list_eq_def relcomppI)
 qed
 

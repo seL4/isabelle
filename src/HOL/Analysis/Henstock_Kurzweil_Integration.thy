@@ -1396,7 +1396,7 @@ qed
 
 lemma operative_integralI:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  shows "operative (lift_option op +) (Some 0)
+  shows "operative (lift_option (+)) (Some 0)
     (\<lambda>i. if f integrable_on i then Some (integral i f) else None)"
 proof -
   interpret comm_monoid "lift_option plus" "Some (0::'b)"
@@ -1408,7 +1408,7 @@ proof -
     fix k :: 'a
     assume k: "k \<in> Basis"
     show "(if f integrable_on cbox a b then Some (integral (cbox a b) f) else None) =
-          lift_option op + (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
+          lift_option (+) (if f integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c} then Some (integral (cbox a b \<inter> {x. x \<bullet> k \<le> c}) f) else None)
           (if f integrable_on cbox a b \<inter> {x. c \<le> x \<bullet> k} then Some (integral (cbox a b \<inter> {x. c \<le> x \<bullet> k}) f) else None)"
     proof (cases "f integrable_on cbox a b")
       case True
@@ -2176,11 +2176,11 @@ proof clarify
         unfolding sum_distrib_left by (metis divide_inverse inverse_eq_divide power_one_over)
       also have "\<dots> < e/2 * 2"
       proof (rule mult_strict_left_mono)
-        have "sum (op ^ (1/2)) {..N + 1} = sum (op ^ (1/2::real)) {..<N + 2}"
+        have "sum ((^) (1/2)) {..N + 1} = sum ((^) (1/2::real)) {..<N + 2}"
           using lessThan_Suc_atMost by auto
         also have "... < 2"
           by (auto simp: geometric_sum)
-        finally show "sum (op ^ (1/2::real)) {..N + 1} < 2" .
+        finally show "sum ((^) (1/2::real)) {..N + 1} < 2" .
       qed (use \<open>0 < e\<close> in auto)
       finally  show ?thesis by auto
     qed
@@ -2479,9 +2479,9 @@ proof -
   qed
 qed
 
-lemma comm_monoid_set_F_and: "comm_monoid_set.F op \<and> True f s \<longleftrightarrow> (finite s \<longrightarrow> (\<forall>x\<in>s. f x))"
+lemma comm_monoid_set_F_and: "comm_monoid_set.F (\<and>) True f s \<longleftrightarrow> (finite s \<longrightarrow> (\<forall>x\<in>s. f x))"
 proof -
-  interpret bool: comm_monoid_set "op \<and>" True
+  interpret bool: comm_monoid_set "(\<and>)" True
     proof qed auto
   show ?thesis
     by (induction s rule: infinite_finite_induct) auto
@@ -2587,8 +2587,8 @@ next
     fix e :: real
     assume e: "e > 0"
     {
-      assume "\<forall>e>0. ?P e op <"
-      then show "?P (e * content (cbox a b)) op \<le>"
+      assume "\<forall>e>0. ?P e (<)"
+      then show "?P (e * content (cbox a b)) (\<le>)"
         apply (erule_tac x="e * content (cbox a b)" in allE)
         apply (erule impE)
         defer
@@ -2598,8 +2598,8 @@ next
         done
     }
     {
-      assume "\<forall>e>0. ?P (e * content (cbox a b)) op \<le>"
-      then show "?P e op <"
+      assume "\<forall>e>0. ?P (e * content (cbox a b)) (\<le>)"
+      then show "?P e (<)"
         apply (erule_tac x="e/2 / content (cbox a b)" in allE)
         apply (erule impE)
         defer
@@ -2983,7 +2983,7 @@ proof -
     "\<lambda>i. if f integrable_on i then Some (integral i f) else None"
     using operative_integralI by (rule operative_realI)
   from \<open>a \<le> c\<close> \<open>c \<le> b\<close> ac cb coalesce_less_eq
-  have *: "lift_option op +
+  have *: "lift_option (+)
              (if f integrable_on {a..c} then Some (integral {a..c} f) else None)
              (if f integrable_on {c..b} then Some (integral {c..b} f) else None) =
             (if f integrable_on {a..b} then Some (integral {a..b} f) else None)"
@@ -4609,9 +4609,9 @@ qed (simp add: negligible_Int)
 
 lemma negligible_translation:
   assumes "negligible S"
-    shows "negligible (op + c ` S)"
+    shows "negligible ((+) c ` S)"
 proof -
-  have inj: "inj (op + c)"
+  have inj: "inj ((+) c)"
     by simp
   show ?thesis
   using assms
@@ -4620,9 +4620,9 @@ proof -
     assume "\<forall>x y. (indicator S has_integral 0) (cbox x y)"
     then have *: "(indicator S has_integral 0) (cbox (a-c) (b-c))"
       by (meson Diff_iff assms has_integral_negligible indicator_simps(2))
-    have eq: "indicator (op + c ` S) = (\<lambda>x. indicator S (x - c))"
+    have eq: "indicator ((+) c ` S) = (\<lambda>x. indicator S (x - c))"
       by (force simp add: indicator_def)
-    show "(indicator (op + c ` S) has_integral 0) (cbox a b)"
+    show "(indicator ((+) c ` S) has_integral 0) (cbox a b)"
       using has_integral_affinity [OF *, of 1 "-c"]
             cbox_translation [of "c" "-c+a" "-c+b"]
       by (simp add: eq add.commute)
@@ -4630,7 +4630,7 @@ proof -
 qed
 
 lemma negligible_translation_rev:
-  assumes "negligible (op + c ` S)"
+  assumes "negligible ((+) c ` S)"
     shows "negligible S"
 by (metis negligible_translation [OF assms, of "-c"] translation_galois)
 
@@ -4838,8 +4838,8 @@ next
       using real_arch_simple by blast
     have "ball 0 B \<subseteq> ?cube n" if n: "n \<ge> N" for n
     proof -
-      have "sum (op *\<^sub>R (- real n)) Basis \<bullet> i \<le> x \<bullet> i \<and>
-            x \<bullet> i \<le> sum (op *\<^sub>R (real n)) Basis \<bullet> i"
+      have "sum (( *\<^sub>R) (- real n)) Basis \<bullet> i \<le> x \<bullet> i \<and>
+            x \<bullet> i \<le> sum (( *\<^sub>R) (real n)) Basis \<bullet> i"
         if "norm x < B" "i \<in> Basis" for x i::'n
           using Basis_le_norm[of i x] n N that by (auto simp add: field_simps sum_negf)
       then show ?thesis
@@ -4874,7 +4874,7 @@ next
         fix x :: 'n
         assume x: "x \<in> ball 0 B"
         have "\<lbrakk>norm (0 - x) < B; i \<in> Basis\<rbrakk>
-              \<Longrightarrow> sum (op *\<^sub>R (-n)) Basis \<bullet> i\<le> x \<bullet> i \<and> x \<bullet> i \<le> sum (op *\<^sub>R n) Basis \<bullet> i" for i
+              \<Longrightarrow> sum (( *\<^sub>R) (-n)) Basis \<bullet> i\<le> x \<bullet> i \<and> x \<bullet> i \<le> sum (( *\<^sub>R) n) Basis \<bullet> i" for i
           using Basis_le_norm[of i x] n by (auto simp add: field_simps sum_negf)
         then show "x \<in> ?cube n"
           using x by (auto simp: mem_box dist_norm)
@@ -5925,7 +5925,7 @@ lemma monotone_convergence_decreasing:
     and bou: "bounded (range(\<lambda>k. integral S (f k)))"
   shows "g integrable_on S \<and> (\<lambda>k. integral S (f k)) \<longlonglongrightarrow> integral S g"
 proof -
-  have *: "range(\<lambda>k. integral S (\<lambda>x. - f k x)) = op *\<^sub>R (- 1) ` (range(\<lambda>k. integral S (f k)))"
+  have *: "range(\<lambda>k. integral S (\<lambda>x. - f k x)) = ( *\<^sub>R) (- 1) ` (range(\<lambda>k. integral S (f k)))"
     by force
   have "(\<lambda>x. - g x) integrable_on S \<and> (\<lambda>k. integral S (\<lambda>x. - f k x)) \<longlonglongrightarrow> integral S (\<lambda>x. - g x)"
   proof (rule monotone_convergence_increasing)

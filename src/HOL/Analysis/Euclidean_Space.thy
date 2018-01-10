@@ -242,7 +242,7 @@ qed
 
 lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('a) + DIM('b)"
   unfolding Basis_prod_def
-  by (subst card_Un_disjoint) (auto intro!: card_image arg_cong2[where f="op +"] inj_onI)
+  by (subst card_Un_disjoint) (auto intro!: card_image arg_cong2[where f="(+)"] inj_onI)
 
 end
 

@@ -154,7 +154,7 @@ end
 bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
   bd: natLeq
-  rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
+  rel: "(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
   by (auto simp add: natLeq_card_order natLeq_cinfinite)
 
 definition id_bnf :: "'a \<Rightarrow> 'a" where

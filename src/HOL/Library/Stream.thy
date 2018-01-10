@@ -86,7 +86,7 @@ lemma in_streams: "stl s \<in> streams S \<Longrightarrow> shd s \<in> S \<Longr
 lemma streamsE: "s \<in> streams A \<Longrightarrow> (shd s \<in> A \<Longrightarrow> stl s \<in> streams A \<Longrightarrow> P) \<Longrightarrow> P"
   by (erule streams.cases) simp_all
 
-lemma Stream_image: "x ## y \<in> (op ## x') ` Y \<longleftrightarrow> x = x' \<and> y \<in> Y"
+lemma Stream_image: "x ## y \<in> ((##) x') ` Y \<longleftrightarrow> x = x' \<and> y \<in> Y"
   by auto
 
 lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Longrightarrow> w @- s \<in> streams A"

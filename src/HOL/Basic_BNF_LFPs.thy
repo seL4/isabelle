@@ -30,7 +30,7 @@ lemma xtor_induct: "(\<And>x. P (xtor x)) \<Longrightarrow> P z"
 lemma xtor_xtor: "xtor (xtor x) = x"
   unfolding xtor_def by (rule refl)
 
-lemmas xtor_inject = xtor_rel[of "op ="]
+lemmas xtor_inject = xtor_rel[of "(=)"]
 
 lemma xtor_rel_induct: "(\<And>x y. vimage2p id_bnf id_bnf R x y \<Longrightarrow> IR (xtor x) (xtor y)) \<Longrightarrow> R \<le> IR"
   unfolding xtor_def vimage2p_def id_bnf_def ..
@@ -96,7 +96,7 @@ lemma rel_sum_sel: "rel_sum R1 R2 a b = (isl a = isl b \<and>
   (\<not> isl a \<longrightarrow> \<not> isl b \<longrightarrow> R2 (projr a) (projr b)))"
   by (cases a b rule: sum.exhaust[case_product sum.exhaust]) simp_all
 
-lemma isl_transfer: "rel_fun (rel_sum A B) (op =) isl isl"
+lemma isl_transfer: "rel_fun (rel_sum A B) (=) isl isl"
   unfolding rel_fun_def rel_sum_sel by simp
 
 lemma rel_prod_sel: "rel_prod R1 R2 p q = (R1 (fst p) (fst q) \<and> R2 (snd p) (snd q))"

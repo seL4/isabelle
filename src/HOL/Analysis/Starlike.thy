@@ -1277,13 +1277,13 @@ proof -
       using as(3)
       unfolding substdbasis_expansion_unique[OF assms]
       by auto
-    then have **: "sum u ?D = sum (op \<bullet> x) ?D"
+    then have **: "sum u ?D = sum ((\<bullet>) x) ?D"
       apply -
       apply (rule sum.cong)
       using assms
       apply auto
       done
-    have "(\<forall>i\<in>Basis. 0 \<le> x\<bullet>i) \<and> sum (op \<bullet> x) ?D \<le> 1"
+    have "(\<forall>i\<in>Basis. 0 \<le> x\<bullet>i) \<and> sum ((\<bullet>) x) ?D \<le> 1"
     proof (rule,rule)
       fix i :: 'a
       assume i: "i \<in> Basis"
@@ -1296,11 +1296,11 @@ proof -
         using \<open>(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)\<close>[rule_format, OF i] by auto
       ultimately show "0 \<le> x\<bullet>i" by auto
     qed (insert as(2)[unfolded **], auto)
-    then show "(\<forall>i\<in>Basis. 0 \<le> x\<bullet>i) \<and> sum (op \<bullet> x) ?D \<le> 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)"
+    then show "(\<forall>i\<in>Basis. 0 \<le> x\<bullet>i) \<and> sum ((\<bullet>) x) ?D \<le> 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)"
       using \<open>(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)\<close> by auto
   next
     fix x :: "'a::euclidean_space"
-    assume as: "\<forall>i\<in>Basis. 0 \<le> x \<bullet> i" "sum (op \<bullet> x) ?D \<le> 1" "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)"
+    assume as: "\<forall>i\<in>Basis. 0 \<le> x \<bullet> i" "sum ((\<bullet>) x) ?D \<le> 1" "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)"
     show "\<exists>u. (\<forall>x\<in>?D. 0 \<le> u x) \<and> sum u ?D \<le> 1 \<and> (\<Sum>x\<in>?D. u x *\<^sub>R x) = x"
       using as d
       unfolding substdbasis_expansion_unique[OF assms]
@@ -1329,8 +1329,8 @@ lemma interior_std_simplex:
 proof -
   fix x :: 'a
   fix e
-  assume "e > 0" and as: "\<forall>xa. dist x xa < e \<longrightarrow> (\<forall>x\<in>Basis. 0 \<le> xa \<bullet> x) \<and> sum (op \<bullet> xa) Basis \<le> 1"
-  show "(\<forall>xa\<in>Basis. 0 < x \<bullet> xa) \<and> sum (op \<bullet> x) Basis < 1"
+  assume "e > 0" and as: "\<forall>xa. dist x xa < e \<longrightarrow> (\<forall>x\<in>Basis. 0 \<le> xa \<bullet> x) \<and> sum ((\<bullet>) xa) Basis \<le> 1"
+  show "(\<forall>xa\<in>Basis. 0 < x \<bullet> xa) \<and> sum ((\<bullet>) x) Basis < 1"
     apply safe
   proof -
     fix i :: 'a
@@ -1346,12 +1346,12 @@ proof -
     have "\<And>i. i \<in> Basis \<Longrightarrow> (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis)) \<bullet> i =
       x\<bullet>i + (if i = (SOME i. i\<in>Basis) then e/2 else 0)"
       by (auto simp: SOME_Basis inner_Basis inner_simps)
-    then have *: "sum (op \<bullet> (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis))) Basis =
+    then have *: "sum ((\<bullet>) (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis))) Basis =
       sum (\<lambda>i. x\<bullet>i + (if (SOME i. i\<in>Basis) = i then e/2 else 0)) Basis"
       apply (rule_tac sum.cong)
       apply auto
       done
-    have "sum (op \<bullet> x) Basis < sum (op \<bullet> (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis))) Basis"
+    have "sum ((\<bullet>) x) Basis < sum ((\<bullet>) (x + (e / 2) *\<^sub>R (SOME i. i\<in>Basis))) Basis"
       unfolding * sum.distrib
       using \<open>e > 0\<close> DIM_positive[where 'a='a]
       apply (subst sum.delta')
@@ -1362,18 +1362,18 @@ proof -
       apply (drule_tac as[rule_format])
       apply auto
       done
-    finally show "sum (op \<bullet> x) Basis < 1" by auto
+    finally show "sum ((\<bullet>) x) Basis < 1" by auto
   qed
 next
   fix x :: 'a
-  assume as: "\<forall>i\<in>Basis. 0 < x \<bullet> i" "sum (op \<bullet> x) Basis < 1"
+  assume as: "\<forall>i\<in>Basis. 0 < x \<bullet> i" "sum ((\<bullet>) x) Basis < 1"
   obtain a :: 'b where "a \<in> UNIV" using UNIV_witness ..
-  let ?d = "(1 - sum (op \<bullet> x) Basis) / real (DIM('a))"
-  show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> sum (op \<bullet> y) Basis \<le> 1"
-  proof (rule_tac x="min (Min ((op \<bullet> x) ` Basis)) D" for D in exI, intro conjI impI allI)
+  let ?d = "(1 - sum ((\<bullet>) x) Basis) / real (DIM('a))"
+  show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> sum ((\<bullet>) y) Basis \<le> 1"
+  proof (rule_tac x="min (Min (((\<bullet>) x) ` Basis)) D" for D in exI, intro conjI impI allI)
     fix y
-    assume y: "dist x y < min (Min (op \<bullet> x ` Basis)) ?d"
-    have "sum (op \<bullet> y) Basis \<le> sum (\<lambda>i. x\<bullet>i + ?d) Basis"
+    assume y: "dist x y < min (Min ((\<bullet>) x ` Basis)) ?d"
+    have "sum ((\<bullet>) y) Basis \<le> sum (\<lambda>i. x\<bullet>i + ?d) Basis"
     proof (rule sum_mono)
       fix i :: 'a
       assume i: "i \<in> Basis"
@@ -1389,7 +1389,7 @@ next
     also have "\<dots> \<le> 1"
       unfolding sum.distrib sum_constant
       by (auto simp add: Suc_le_eq)
-    finally show "sum (op \<bullet> y) Basis \<le> 1" .
+    finally show "sum ((\<bullet>) y) Basis \<le> 1" .
     show "(\<forall>i\<in>Basis. 0 \<le> y \<bullet> i)"
     proof safe
       fix i :: 'a
@@ -1405,11 +1405,11 @@ next
         by (auto simp: inner_simps)
     qed
   next
-    have "Min ((op \<bullet> x) ` Basis) > 0"
+    have "Min (((\<bullet>) x) ` Basis) > 0"
       using as by simp
     moreover have "?d > 0"
       using as by (auto simp: Suc_le_eq)
-    ultimately show "0 < min (Min (op \<bullet> x ` Basis)) ((1 - sum (op \<bullet> x) Basis) / real DIM('a))"
+    ultimately show "0 < min (Min ((\<bullet>) x ` Basis)) ((1 - sum ((\<bullet>) x) Basis) / real DIM('a))"
       by linarith
   qed 
 qed
@@ -1436,7 +1436,7 @@ proof -
     show "0 < ?a \<bullet> i"
       unfolding **[OF i] by (auto simp add: Suc_le_eq DIM_positive)
   next
-    have "sum (op \<bullet> ?a) ?D = sum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
+    have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
       apply (rule sum.cong)
       apply rule
       apply auto
@@ -1444,7 +1444,7 @@ proof -
     also have "\<dots> < 1"
       unfolding sum_constant divide_inverse[symmetric]
       by (auto simp add: field_simps)
-    finally show "sum (op \<bullet> ?a) ?D < 1" by auto
+    finally show "sum ((\<bullet>) ?a) ?D < 1" by auto
   qed
 qed
 
@@ -1478,11 +1478,11 @@ proof -
         "ball x e \<inter> {xa. (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> xa\<bullet>i = 0)} \<subseteq> convex hull (insert 0 ?p)"
         using mem_rel_interior_ball[of x "convex hull (insert 0 ?p)"] h0 by auto
       then have as: "\<forall>xa. dist x xa < e \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> xa\<bullet>i = 0) \<longrightarrow>
-        (\<forall>i\<in>d. 0 \<le> xa \<bullet> i) \<and> sum (op \<bullet> xa) d \<le> 1"
+        (\<forall>i\<in>d. 0 \<le> xa \<bullet> i) \<and> sum ((\<bullet>) xa) d \<le> 1"
         unfolding ball_def unfolding substd_simplex[OF assms] using assms by auto
       have x0: "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0)"
         using x rel_interior_subset  substd_simplex[OF assms] by auto
-      have "(\<forall>i\<in>d. 0 < x \<bullet> i) \<and> sum (op \<bullet> x) d < 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0)"
+      have "(\<forall>i\<in>d. 0 < x \<bullet> i) \<and> sum ((\<bullet>) x) d < 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0)"
         apply rule
         apply rule
       proof -
@@ -1509,14 +1509,14 @@ proof -
           by auto
         have "\<And>i. i \<in> Basis \<Longrightarrow> (x + (e / 2) *\<^sub>R a) \<bullet> i = x\<bullet>i + (if i = a then e/2 else 0)"
           using a d by (auto simp: inner_simps inner_Basis)
-        then have *: "sum (op \<bullet> (x + (e / 2) *\<^sub>R a)) d =
+        then have *: "sum ((\<bullet>) (x + (e / 2) *\<^sub>R a)) d =
           sum (\<lambda>i. x\<bullet>i + (if a = i then e/2 else 0)) d"
           using d by (intro sum.cong) auto
         have "a \<in> Basis"
           using \<open>a \<in> d\<close> d by auto
         then have h1: "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> (x + (e / 2) *\<^sub>R a) \<bullet> i = 0)"
           using x0 d \<open>a\<in>d\<close> by (auto simp add: inner_add_left inner_Basis)
-        have "sum (op \<bullet> x) d < sum (op \<bullet> (x + (e / 2) *\<^sub>R a)) d"
+        have "sum ((\<bullet>) x) d < sum ((\<bullet>) (x + (e / 2) *\<^sub>R a)) d"
           unfolding * sum.distrib
           using \<open>e > 0\<close> \<open>a \<in> d\<close>
           using \<open>finite d\<close>
@@ -1524,7 +1524,7 @@ proof -
         also have "\<dots> \<le> 1"
           using ** h1 as[rule_format, of "x + (e / 2) *\<^sub>R a"]
           by auto
-        finally show "sum (op \<bullet> x) d < 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0)"
+        finally show "sum ((\<bullet>) x) d < 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0)"
           using x0 by auto
       qed
     }
@@ -1543,28 +1543,28 @@ proof -
         unfolding substd_simplex[OF assms] by fastforce
       obtain a where a: "a \<in> d"
         using \<open>d \<noteq> {}\<close> by auto
-      let ?d = "(1 - sum (op \<bullet> x) d) / real (card d)"
+      let ?d = "(1 - sum ((\<bullet>) x) d) / real (card d)"
       have "0 < card d" using \<open>d \<noteq> {}\<close> \<open>finite d\<close>
         by (simp add: card_gt_0_iff)
-      have "Min ((op \<bullet> x) ` d) > 0"
+      have "Min (((\<bullet>) x) ` d) > 0"
         using as \<open>d \<noteq> {}\<close> \<open>finite d\<close> by (simp add: Min_gr_iff)
       moreover have "?d > 0" using as using \<open>0 < card d\<close> by auto
-      ultimately have h3: "min (Min ((op \<bullet> x) ` d)) ?d > 0"
+      ultimately have h3: "min (Min (((\<bullet>) x) ` d)) ?d > 0"
         by auto
 
       have "x \<in> rel_interior (convex hull (insert 0 ?p))"
         unfolding rel_interior_ball mem_Collect_eq h0
         apply (rule,rule h2)
         unfolding substd_simplex[OF assms]
-        apply (rule_tac x="min (Min ((op \<bullet> x) ` d)) ?d" in exI)
+        apply (rule_tac x="min (Min (((\<bullet>) x) ` d)) ?d" in exI)
         apply (rule, rule h3)
         apply safe
         unfolding mem_ball
       proof -
         fix y :: 'a
-        assume y: "dist x y < min (Min (op \<bullet> x ` d)) ?d"
+        assume y: "dist x y < min (Min ((\<bullet>) x ` d)) ?d"
         assume y2: "\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> y\<bullet>i = 0"
-        have "sum (op \<bullet> y) d \<le> sum (\<lambda>i. x\<bullet>i + ?d) d"
+        have "sum ((\<bullet>) y) d \<le> sum (\<lambda>i. x\<bullet>i + ?d) d"
         proof (rule sum_mono)
           fix i
           assume "i \<in> d"
@@ -1581,7 +1581,7 @@ proof -
         also have "\<dots> \<le> 1"
           unfolding sum.distrib sum_constant  using \<open>0 < card d\<close>
           by auto
-        finally show "sum (op \<bullet> y) d \<le> 1" .
+        finally show "sum ((\<bullet>) y) d \<le> 1" .
 
         fix i :: 'a
         assume i: "i \<in> Basis"
@@ -1590,7 +1590,7 @@ proof -
           case True
           have "norm (x - y) < x\<bullet>i"
             using y[unfolded min_less_iff_conj dist_norm, THEN conjunct1]
-            using Min_gr_iff[of "op \<bullet> x ` d" "norm (x - y)"] \<open>0 < card d\<close> \<open>i:d\<close>
+            using Min_gr_iff[of "(\<bullet>) x ` d" "norm (x - y)"] \<open>0 < card d\<close> \<open>i:d\<close>
             by (simp add: card_gt_0_iff)
           then show "0 \<le> y\<bullet>i"
             using Basis_le_norm[OF i, of "x - y"] and as(1)[rule_format]
@@ -1600,7 +1600,7 @@ proof -
     }
     ultimately have
       "\<And>x. x \<in> rel_interior (convex hull insert 0 d) \<longleftrightarrow>
-        x \<in> {x. (\<forall>i\<in>d. 0 < x \<bullet> i) \<and> sum (op \<bullet> x) d < 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)}"
+        x \<in> {x. (\<forall>i\<in>d. 0 < x \<bullet> i) \<and> sum ((\<bullet>) x) d < 1 \<and> (\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)}"
       by blast
     then show ?thesis by (rule set_eqI)
   qed
@@ -1645,12 +1645,12 @@ proof -
       by auto
     finally show "0 < ?a \<bullet> i" by auto
   next
-    have "sum (op \<bullet> ?a) ?D = sum (\<lambda>i. inverse (2 * real (card d))) ?D"
+    have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real (card d))) ?D"
       by (rule sum.cong) (rule refl, rule **)
     also have "\<dots> < 1"
       unfolding sum_constant divide_real_def[symmetric]
       by (auto simp add: field_simps)
-    finally show "sum (op \<bullet> ?a) ?D < 1" by auto
+    finally show "sum ((\<bullet>) ?a) ?D < 1" by auto
   next
     fix i
     assume "i \<in> Basis" and "i \<notin> d"
@@ -1748,10 +1748,10 @@ proof -
   {
     assume "S \<noteq> {}"
     then obtain a where "a \<in> S" by auto
-    then have "0 \<in> op + (-a) ` S"
+    then have "0 \<in> (+) (-a) ` S"
       using assms exI[of "(\<lambda>x. x \<in> S \<and> - a + x = 0)" a] by auto
-    then have "rel_interior (op + (-a) ` S) \<noteq> {}"
-      using rel_interior_convex_nonempty_aux[of "op + (-a) ` S"]
+    then have "rel_interior ((+) (-a) ` S) \<noteq> {}"
+      using rel_interior_convex_nonempty_aux[of "(+) (-a) ` S"]
         convex_translation[of S "-a"] assms
       by auto
     then have "rel_interior S \<noteq> {}"
@@ -2958,22 +2958,22 @@ qed
 lemma rel_interior_scaleR:
   fixes S :: "'n::euclidean_space set"
   assumes "c \<noteq> 0"
-  shows "(op *\<^sub>R c) ` (rel_interior S) = rel_interior ((op *\<^sub>R c) ` S)"
-  using rel_interior_injective_linear_image[of "(op *\<^sub>R c)" S]
-    linear_conv_bounded_linear[of "op *\<^sub>R c"] linear_scaleR injective_scaleR[of c] assms
+  shows "(( *\<^sub>R) c) ` (rel_interior S) = rel_interior ((( *\<^sub>R) c) ` S)"
+  using rel_interior_injective_linear_image[of "(( *\<^sub>R) c)" S]
+    linear_conv_bounded_linear[of "( *\<^sub>R) c"] linear_scaleR injective_scaleR[of c] assms
   by auto
 
 lemma rel_interior_convex_scaleR:
   fixes S :: "'n::euclidean_space set"
   assumes "convex S"
-  shows "(op *\<^sub>R c) ` (rel_interior S) = rel_interior ((op *\<^sub>R c) ` S)"
+  shows "(( *\<^sub>R) c) ` (rel_interior S) = rel_interior ((( *\<^sub>R) c) ` S)"
   by (metis assms linear_scaleR rel_interior_convex_linear_image)
 
 lemma convex_rel_open_scaleR:
   fixes S :: "'n::euclidean_space set"
   assumes "convex S"
     and "rel_open S"
-  shows "convex ((op *\<^sub>R c) ` S) \<and> rel_open ((op *\<^sub>R c) ` S)"
+  shows "convex ((( *\<^sub>R) c) ` S) \<and> rel_open ((( *\<^sub>R) c) ` S)"
   by (metis assms convex_scaling rel_interior_convex_scaleR rel_open_def)
 
 lemma convex_rel_open_finite_inter:
@@ -3142,10 +3142,10 @@ proof (cases "S = {}")
     by (simp add: rel_interior_empty cone_0)
 next
   case False
-  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` S = S)"
+  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` S = S)"
     using cone_iff[of S] assms by auto
   then have *: "0 \<in> ({0} \<union> rel_interior S)"
-    and "\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` ({0} \<union> rel_interior S) = ({0} \<union> rel_interior S)"
+    and "\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` ({0} \<union> rel_interior S) = ({0} \<union> rel_interior S)"
     by (auto simp add: rel_interior_scaleR)
   then show ?thesis
     using cone_iff[of "{0} \<union> rel_interior S"] by auto
@@ -3155,7 +3155,7 @@ lemma rel_interior_convex_cone_aux:
   fixes S :: "'m::euclidean_space set"
   assumes "convex S"
   shows "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} \<times> S)) \<longleftrightarrow>
-    c > 0 \<and> x \<in> ((op *\<^sub>R c) ` (rel_interior S))"
+    c > 0 \<and> x \<in> ((( *\<^sub>R) c) ` (rel_interior S))"
 proof (cases "S = {}")
   case True
   then show ?thesis
@@ -3188,9 +3188,9 @@ next
   {
     fix c :: real
     assume "c > 0"
-    then have "f c = (op *\<^sub>R c ` S)"
+    then have "f c = (( *\<^sub>R) c ` S)"
       using f_def cone_hull_expl[of "{1 :: real} \<times> S"] by auto
-    then have "rel_interior (f c) = op *\<^sub>R c ` rel_interior S"
+    then have "rel_interior (f c) = ( *\<^sub>R) c ` rel_interior S"
       using rel_interior_convex_scaleR[of S c] assms by auto
   }
   then show ?thesis using * ** by auto
@@ -5154,9 +5154,9 @@ next
     let ?\<C> = "insert (U \<union> V) ((\<lambda>S. N - S) ` \<F>)"
     obtain \<D> where "\<D> \<subseteq> ?\<C>" "finite \<D>" "K \<subseteq> \<Union>\<D>"
     proof (rule compactE [OF \<open>compact K\<close>])
-      show "K \<subseteq> \<Union>insert (U \<union> V) (op - N ` \<F>)"
+      show "K \<subseteq> \<Union>insert (U \<union> V) ((-) N ` \<F>)"
         using \<open>K \<subseteq> N\<close> ABeq \<open>A \<subseteq> U\<close> \<open>B \<subseteq> V\<close> by auto
-      show "\<And>B. B \<in> insert (U \<union> V) (op - N ` \<F>) \<Longrightarrow> open B"
+      show "\<And>B. B \<in> insert (U \<union> V) ((-) N ` \<F>) \<Longrightarrow> open B"
         by (auto simp:  \<open>open U\<close> \<open>open V\<close> open_Un \<open>open N\<close> cc compact_imp_closed open_Diff)
     qed
     then have "finite(\<D> - {U \<union> V})"
@@ -5195,7 +5195,7 @@ next
               by auto
           next
             assume "N - X \<subseteq> N - J"
-            with J have "N - X \<union> UNION \<H> (op - N) \<subseteq> N - J"
+            with J have "N - X \<union> UNION \<H> ((-) N) \<subseteq> N - J"
               by auto
             with \<open>J \<in> \<H>\<close> show ?thesis
               by blast
@@ -5234,9 +5234,9 @@ proof -
     using X by blast
   moreover have "connected (\<Inter>T\<in>\<F>. X \<inter> T)"
   proof (rule connected_chain)
-    show "\<And>T. T \<in> op \<inter> X ` \<F> \<Longrightarrow> compact T \<and> connected T"
+    show "\<And>T. T \<in> (\<inter>) X ` \<F> \<Longrightarrow> compact T \<and> connected T"
       using cc X by auto (metis inf.absorb2 inf.orderE local.linear)
-    show "\<And>S T. S \<in> op \<inter> X ` \<F> \<and> T \<in> op \<inter> X ` \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    show "\<And>S T. S \<in> (\<inter>) X ` \<F> \<and> T \<in> (\<inter>) X ` \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
       using local.linear by blast
   qed
   ultimately show ?thesis
@@ -5599,7 +5599,7 @@ next
     using assms interior_subset by blast
   then obtain e where "e > 0" and e: "cball a e \<subseteq> T"
     using mem_interior_cball by blast
-  have *: "x \<in> op + a ` span ((\<lambda>x. x - a) ` (S \<inter> T))" if "x \<in> S" for x
+  have *: "x \<in> (+) a ` span ((\<lambda>x. x - a) ` (S \<inter> T))" if "x \<in> S" for x
   proof (cases "x = a")
     case True with that span_0 eq_add_iff image_def mem_Collect_eq show ?thesis
       by blast
@@ -5870,19 +5870,19 @@ next
     done
   next
     case False
-    have xc_im: "x \<in> op + c ` {y. a \<bullet> y = 0}" if "a \<bullet> x = a \<bullet> c" for a x
+    have xc_im: "x \<in> (+) c ` {y. a \<bullet> y = 0}" if "a \<bullet> x = a \<bullet> c" for a x
     proof -
       have "\<exists>y. a \<bullet> y = 0 \<and> c + y = x"
         by (metis that add.commute diff_add_cancel inner_commute inner_diff_left right_minus_eq)
-      then show "x \<in> op + c ` {y. a \<bullet> y = 0}"
+      then show "x \<in> (+) c ` {y. a \<bullet> y = 0}"
         by blast
     qed
     have 2: "span ((\<lambda>x. x - c) ` S) = {x. a \<bullet> x = 0}"
-         if "op + c ` span ((\<lambda>x. x - c) ` S) = {x. a \<bullet> x = b}" for a b
+         if "(+) c ` span ((\<lambda>x. x - c) ` S) = {x. a \<bullet> x = b}" for a b
     proof -
       have "b = a \<bullet> c"
         using span_0 that by fastforce
-      with that have "op + c ` span ((\<lambda>x. x - c) ` S) = {x. a \<bullet> x = a \<bullet> c}"
+      with that have "(+) c ` span ((\<lambda>x. x - c) ` S) = {x. a \<bullet> x = a \<bullet> c}"
         by simp
       then have "span ((\<lambda>x. x - c) ` S) = (\<lambda>x. x - c) ` {x. a \<bullet> x = a \<bullet> c}"
         by (metis (no_types) image_cong translation_galois uminus_add_conv_diff)
@@ -6183,21 +6183,21 @@ lemma separating_hyperplane_set_point_inaff:
                 and "\<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b"
 proof -
 from separating_hyperplane_set_0_inspan [of "image (\<lambda>x. -z + x) S"]
-  have "convex (op + (- z) ` S)"
+  have "convex ((+) (- z) ` S)"
     by (simp add: \<open>convex S\<close>)
-  moreover have "op + (- z) ` S \<noteq> {}"
+  moreover have "(+) (- z) ` S \<noteq> {}"
     by (simp add: \<open>S \<noteq> {}\<close>)
-  moreover have "0 \<notin> op + (- z) ` S"
+  moreover have "0 \<notin> (+) (- z) ` S"
     using zno by auto
-  ultimately obtain a where "a \<in> span (op + (- z) ` S)" "a \<noteq> 0"
-                  and a:  "\<And>x. x \<in> (op + (- z) ` S) \<Longrightarrow> 0 \<le> a \<bullet> x"
+  ultimately obtain a where "a \<in> span ((+) (- z) ` S)" "a \<noteq> 0"
+                  and a:  "\<And>x. x \<in> ((+) (- z) ` S) \<Longrightarrow> 0 \<le> a \<bullet> x"
     using separating_hyperplane_set_0_inspan [of "image (\<lambda>x. -z + x) S"]
     by blast
   then have szx: "\<And>x. x \<in> S \<Longrightarrow> a \<bullet> z \<le> a \<bullet> x"
     by (metis (no_types, lifting) imageI inner_minus_right inner_right_distrib minus_add neg_le_0_iff_le neg_le_iff_le real_add_le_0_iff)
   show ?thesis
     apply (rule_tac a=a and b = "a  \<bullet> z" in that, simp_all)
-    using \<open>a \<in> span (op + (- z) ` S)\<close> affine_hull_insert_span_gen apply blast
+    using \<open>a \<in> span ((+) (- z) ` S)\<close> affine_hull_insert_span_gen apply blast
     apply (simp_all add: \<open>a \<noteq> 0\<close> szx)
     done
 qed
@@ -6216,7 +6216,7 @@ proof -
     by (auto simp: rel_interior_eq_empty convex_rel_interior)
   have le_ay: "a \<bullet> x \<le> a \<bullet> y" if "y \<in> S" for y
   proof -
-    have con: "continuous_on (closure (rel_interior S)) (op \<bullet> a)"
+    have con: "continuous_on (closure (rel_interior S)) ((\<bullet>) a)"
       by (rule continuous_intros continuous_on_subset | blast)+
     have y: "y \<in> closure (rel_interior S)"
       using \<open>convex S\<close> closure_def convex_closure_rel_interior \<open>y \<in> S\<close>
@@ -6701,17 +6701,17 @@ next
   obtain c where "c \<in> S" and c: "a \<bullet> c = b"
     using assms by force
   with affine_diffs_subspace [OF \<open>affine S\<close>]
-  have "subspace (op + (- c) ` S)" by blast
-  then have aff: "affine (op + (- c) ` S)"
+  have "subspace ((+) (- c) ` S)" by blast
+  then have aff: "affine ((+) (- c) ` S)"
     by (simp add: subspace_imp_affine)
-  have 0: "0 \<in> op + (- c) ` S"
+  have 0: "0 \<in> (+) (- c) ` S"
     by (simp add: \<open>c \<in> S\<close>)
-  obtain d where "d \<in> S" and "a \<bullet> d \<noteq> b" and dc: "d-c \<in> op + (- c) ` S"
+  obtain d where "d \<in> S" and "a \<bullet> d \<noteq> b" and dc: "d-c \<in> (+) (- c) ` S"
     using assms by auto
   then have adc: "a \<bullet> (d - c) \<noteq> 0"
     by (simp add: c inner_diff_right)
-  let ?U = "op + (c+c) ` {x + y |x y. x \<in> op + (- c) ` S \<and> a \<bullet> y = 0}"
-  have "u + v \<in> op + (c + c) ` {x + v |x v. x \<in> op + (- c) ` S \<and> a \<bullet> v = 0}"
+  let ?U = "(+) (c+c) ` {x + y |x y. x \<in> (+) (- c) ` S \<and> a \<bullet> y = 0}"
+  have "u + v \<in> (+) (c + c) ` {x + v |x v. x \<in> (+) (- c) ` S \<and> a \<bullet> v = 0}"
               if "u \<in> S" "b = a \<bullet> v" for u v
     apply (rule_tac x="u+v-c-c" in image_eqI)
     apply (simp_all add: algebra_simps)
@@ -6724,7 +6724,7 @@ next
     by (metis add.left_commute c inner_right_distrib pth_d)
   ultimately have "{x + y |x y. x \<in> S \<and> a \<bullet> y = b} = ?U"
     by (fastforce simp: algebra_simps)
-  also have "... = op + (c+c) ` UNIV"
+  also have "... = (+) (c+c) ` UNIV"
     by (simp add: affine_hyperplane_sums_eq_UNIV_0 [OF aff 0 dc adc])
   also have "... = UNIV"
     by (simp add: translation_UNIV)
@@ -6856,14 +6856,14 @@ proposition aff_dim_sums_Int:
     shows "aff_dim {x + y| x y. x \<in> S \<and> y \<in> T} = (aff_dim S + aff_dim T) - aff_dim(S \<inter> T)"
 proof -
   obtain a where a: "a \<in> S" "a \<in> T" using assms by force
-  have aff: "affine (op+ (-a) ` S)"  "affine (op+ (-a) ` T)"
+  have aff: "affine ((+) (-a) ` S)"  "affine ((+) (-a) ` T)"
     using assms by (auto simp: affine_translation [symmetric])
-  have zero: "0 \<in> (op+ (-a) ` S)"  "0 \<in> (op+ (-a) ` T)"
+  have zero: "0 \<in> ((+) (-a) ` S)"  "0 \<in> ((+) (-a) ` T)"
     using a assms by auto
-  have [simp]: "{x + y |x y. x \<in> op + (- a) ` S \<and> y \<in> op + (- a) ` T} =
-        op + (- 2 *\<^sub>R a) ` {x + y| x y. x \<in> S \<and> y \<in> T}"
+  have [simp]: "{x + y |x y. x \<in> (+) (- a) ` S \<and> y \<in> (+) (- a) ` T} =
+        (+) (- 2 *\<^sub>R a) ` {x + y| x y. x \<in> S \<and> y \<in> T}"
     by (force simp: algebra_simps scaleR_2)
-  have [simp]: "op + (- a) ` S \<inter> op + (- a) ` T = op + (- a) ` (S \<inter> T)"
+  have [simp]: "(+) (- a) ` S \<inter> (+) (- a) ` T = (+) (- a) ` (S \<inter> T)"
     by auto
   show ?thesis
     using aff_dim_sums_Int_0 [OF aff zero]
@@ -7457,11 +7457,11 @@ proof (cases "S \<inter> T = {}")
 next
   case False
   then obtain z where z: "z \<in> S \<inter> T" by blast
-  then have "subspace (op + (- z) ` S)"
+  then have "subspace ((+) (- z) ` S)"
     by (meson IntD1 affine_diffs_subspace \<open>affine S\<close>)
-  moreover have "int (dim (op + (- z) ` T)) < int (dim (op + (- z) ` S))"
+  moreover have "int (dim ((+) (- z) ` T)) < int (dim ((+) (- z) ` S))"
     using z less by (simp add: aff_dim_eq_dim [symmetric] hull_inc)
-  ultimately have "closure((op + (- z) ` S) - (op + (- z) ` T)) = (op + (- z) ` S)"
+  ultimately have "closure(((+) (- z) ` S) - ((+) (- z) ` T)) = ((+) (- z) ` S)"
     by (simp add: dense_complement_subspace)
   then show ?thesis
     by (metis closure_translation translation_diff translation_invert)
@@ -7535,19 +7535,19 @@ next
   then obtain z where "z \<in> S" and z: "a \<bullet> z = b"
     using assms by auto
   with affine_diffs_subspace [OF \<open>affine S\<close>]
-  have sub: "subspace (op + (- z) ` S)" by blast
-  then have aff: "affine (op + (- z) ` S)" and span: "span (op + (- z) ` S) = (op + (- z) ` S)"
+  have sub: "subspace ((+) (- z) ` S)" by blast
+  then have aff: "affine ((+) (- z) ` S)" and span: "span ((+) (- z) ` S) = ((+) (- z) ` S)"
     by (auto simp: subspace_imp_affine)
-  obtain a' a'' where a': "a' \<in> span (op + (- z) ` S)" and a: "a = a' + a''"
-                  and "\<And>w. w \<in> span (op + (- z) ` S) \<Longrightarrow> orthogonal a'' w"
-      using orthogonal_subspace_decomp_exists [of "op + (- z) ` S" "a"] by metis
+  obtain a' a'' where a': "a' \<in> span ((+) (- z) ` S)" and a: "a = a' + a''"
+                  and "\<And>w. w \<in> span ((+) (- z) ` S) \<Longrightarrow> orthogonal a'' w"
+      using orthogonal_subspace_decomp_exists [of "(+) (- z) ` S" "a"] by metis
   then have "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> (w-z) = 0"
     by (simp add: imageI orthogonal_def span)
   then have a'': "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> w = (a - a') \<bullet> z"
     by (simp add: a inner_diff_right)
   then have ba'': "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> w = b - a' \<bullet> z"
     by (simp add: inner_diff_left z)
-  have "\<And>w. w \<in> op + (- z) ` S \<Longrightarrow> (w + a') \<in> op + (- z) ` S"
+  have "\<And>w. w \<in> (+) (- z) ` S \<Longrightarrow> (w + a') \<in> (+) (- z) ` S"
     by (metis subspace_add a' span_eq sub)
   then have Sclo: "\<And>w. w \<in> S \<Longrightarrow> (w + a') \<in> S"
     by fastforce
@@ -7705,25 +7705,25 @@ proof (cases "d = -1 \<or> S={}")
 next
   case False
   with assms obtain a where "a \<in> S" "0 \<le> d" by auto
-  with assms have ss: "subspace (op + (- a) ` S)"
+  with assms have ss: "subspace ((+) (- a) ` S)"
     by (simp add: affine_diffs_subspace)
-  have "nat d \<le> dim (op + (- a) ` S)"
+  have "nat d \<le> dim ((+) (- a) ` S)"
     by (metis aff_dim_subspace aff_dim_translation_eq dle nat_int nat_mono ss)
-  then obtain T where "subspace T" and Tsb: "T \<subseteq> span (op + (- a) ` S)"
+  then obtain T where "subspace T" and Tsb: "T \<subseteq> span ((+) (- a) ` S)"
                   and Tdim: "dim T = nat d"
-    using choose_subspace_of_subspace [of "nat d" "op + (- a) ` S"] by blast
+    using choose_subspace_of_subspace [of "nat d" "(+) (- a) ` S"] by blast
   then have "affine T"
     using subspace_affine by blast
-  then have "affine (op + a ` T)"
+  then have "affine ((+) a ` T)"
     by (metis affine_hull_eq affine_hull_translation)
-  moreover have "op + a ` T \<subseteq> S"
+  moreover have "(+) a ` T \<subseteq> S"
   proof -
-    have "T \<subseteq> op + (- a) ` S"
+    have "T \<subseteq> (+) (- a) ` S"
       by (metis (no_types) span_eq Tsb ss)
-    then show "op + a ` T \<subseteq> S"
+    then show "(+) a ` T \<subseteq> S"
       using add_ac by auto
   qed
-  moreover have "aff_dim (op + a ` T) = d"
+  moreover have "aff_dim ((+) a ` T) = d"
     by (simp add: aff_dim_subspace Tdim \<open>0 \<le> d\<close> \<open>subspace T\<close> aff_dim_translation_eq)
   ultimately show ?thesis
     by (rule that)

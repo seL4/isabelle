@@ -39,7 +39,7 @@ subsection\<open>Basic componentwise operations on vectors.\<close>
 instantiation vec :: (times, finite) times
 begin
 
-definition "op * \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
+definition "( * ) \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
 instance ..
 
 end
@@ -714,9 +714,9 @@ proof -
       unfolding matrix_vector_mul_assoc B matrix_vector_mul_lid . }
   moreover
   { assume A: "\<forall>x y. A *v x = A *v y \<longrightarrow> x = y"
-    hence i: "inj (op *v A)" unfolding inj_on_def by auto
+    hence i: "inj (( *v) A)" unfolding inj_on_def by auto
     from linear_injective_left_inverse[OF matrix_vector_mul_linear i]
-    obtain g where g: "linear g" "g \<circ> op *v A = id" by blast
+    obtain g where g: "linear g" "g \<circ> ( *v) A = id" by blast
     have "matrix g ** A = mat 1"
       unfolding matrix_eq matrix_vector_mul_lid matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
       using g(2) by (simp add: fun_eq_iff)
@@ -738,11 +738,11 @@ proof -
     { fix x :: "real ^ 'm"
       have "A *v (B *v x) = x"
         by (simp add: matrix_vector_mul_lid matrix_vector_mul_assoc AB) }
-    hence "surj (op *v A)" unfolding surj_def by metis }
+    hence "surj (( *v) A)" unfolding surj_def by metis }
   moreover
-  { assume sf: "surj (op *v A)"
+  { assume sf: "surj (( *v) A)"
     from linear_surjective_right_inverse[OF matrix_vector_mul_linear sf]
-    obtain g:: "real ^'m \<Rightarrow> real ^'n" where g: "linear g" "op *v A \<circ> g = id"
+    obtain g:: "real ^'m \<Rightarrow> real ^'n" where g: "linear g" "( *v) A \<circ> g = id"
       by blast
 
     have "A ** (matrix g) = mat 1"
@@ -878,7 +878,7 @@ lemma matrix_left_right_inverse:
 proof -
   { fix A A' :: "real ^'n^'n"
     assume AA': "A ** A' = mat 1"
-    have sA: "surj (op *v A)"
+    have sA: "surj (( *v) A)"
       unfolding surj_def
       apply clarify
       apply (rule_tac x="(A' *v y)" in exI)
@@ -1235,7 +1235,7 @@ lemma cube_convex_hull_cart:
     where "finite s" "cbox (x - (\<chi> i. d)) (x + (\<chi> i. d)) = convex hull s"
 proof -
   from assms obtain s where "finite s"
-    and "cbox (x - sum (op *\<^sub>R d) Basis) (x + sum (op *\<^sub>R d) Basis) = convex hull s"
+    and "cbox (x - sum (( *\<^sub>R) d) Basis) (x + sum (( *\<^sub>R) d) Basis) = convex hull s"
     by (rule cube_convex_hull)
   with that[of s] show thesis
     by (simp add: const_vector_cart)

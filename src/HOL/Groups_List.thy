@@ -124,7 +124,7 @@ lemma (in monoid_add) length_concat:
   by (induct xss) simp_all
 
 lemma (in monoid_add) length_product_lists:
-  "length (product_lists xss) = foldr op * (map length xss) 1"
+  "length (product_lists xss) = foldr ( * ) (map length xss) 1"
 proof (induct xss)
   case (Cons xs xss) then show ?case by (induct xs) (auto simp: length_concat o_def)
 qed simp
@@ -234,7 +234,7 @@ lemma (in monoid_add) interv_sum_list_conv_sum_set_int:
 text \<open>General equivalence between @{const sum_list} and @{const sum}\<close>
 lemma (in monoid_add) sum_list_sum_nth:
   "sum_list xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
-  using interv_sum_list_conv_sum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
+  using interv_sum_list_conv_sum_set_nat [of "(!) xs" 0 "length xs"] by (simp add: map_nth)
 
 lemma sum_list_map_eq_sum_count:
   "sum_list (map f xs) = sum (\<lambda>x. count_list xs x * f x) (set xs)"
@@ -292,7 +292,7 @@ text \<open>Summation of a strictly ascending sequence with length \<open>n\<clo
 lemma sorted_wrt_less_sum_mono_lowerbound:
   fixes f :: "nat \<Rightarrow> ('b::ordered_comm_monoid_add)"
   assumes mono: "\<And>x y. x\<le>y \<Longrightarrow> f x \<le> f y"
-  shows "sorted_wrt (op <) ns \<Longrightarrow>
+  shows "sorted_wrt (<) ns \<Longrightarrow>
     (\<Sum>i\<in>{0..<length ns}. f i) \<le> (\<Sum>i\<leftarrow>ns. f i)"
 proof (induction ns rule: rev_induct)
   case Nil
@@ -355,7 +355,7 @@ lemma sum_set_upt_conv_sum_list_nat [code_unfold]:
 lemma sum_list_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "A 0 0"
-  assumes [transfer_rule]: "(A ===> A ===> A) op + op +"
+  assumes [transfer_rule]: "(A ===> A ===> A) (+) (+)"
   shows "(list_all2 A ===> A) sum_list sum_list"
   unfolding sum_list.eq_foldr [abs_def]
   by transfer_prover

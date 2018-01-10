@@ -12,7 +12,7 @@ text \<open>Is a list sorted without duplicates, i.e., wrt @{text"<"}?
 Could go into theory List under a name like @{term sorted_less}.\<close>
 
 abbreviation sorted :: "'a::linorder list \<Rightarrow> bool" where
-"sorted \<equiv> sorted_wrt (op <)"
+"sorted \<equiv> sorted_wrt (<)"
 
 lemma sorted_cons: "sorted (x#xs) \<Longrightarrow> sorted xs"
 by(simp add: sorted_wrt_Cons)

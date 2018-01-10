@@ -274,7 +274,7 @@ next
       then have "q * Max {m. m * m \<le> n} = Max (times q ` {m. m * m \<le> n})"
         using sqrt_aux [of n] by (auto simp add: power2_eq_square intro: mono_Max_commute)
       then have "Max {m. m * m \<le> n} * q = Max (times q ` {m. m * m \<le> n})" by (simp add: ac_simps)
-      moreover have "finite (op * q ` {m. m * m \<le> n})"
+      moreover have "finite (( * ) q ` {m. m * m \<le> n})"
         by (metis (mono_tags) finite_imageI finite_less_ub le_square)
       moreover have "\<exists>x. x * x \<le> n"
         by (metis \<open>q * q \<le> n\<close>)
@@ -282,7 +282,7 @@ next
         by simp (metis \<open>q * q \<le> n\<close> le_cases mult_le_mono1 mult_le_mono2 order_trans)
     qed
   qed
-  then have "Max (op * (Max {m. m * m \<le> n}) ` {m. m * m \<le> n}) \<le> n"
+  then have "Max (( * ) (Max {m. m * m \<le> n}) ` {m. m * m \<le> n}) \<le> n"
     apply (subst Max_le_iff)
       apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
      apply auto

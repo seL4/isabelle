@@ -140,10 +140,10 @@ lemma traverse_comp[simp]: "traverse_list (g \<circ> f) xs = traverse_list g (ma
 by (induction xs) auto
 
 abbreviation mono_state :: "('s::preorder, 'a) state \<Rightarrow> bool" where
-"mono_state \<equiv> state_io_rel (op \<le>)"
+"mono_state \<equiv> state_io_rel (\<le>)"
 
 abbreviation strict_mono_state :: "('s::preorder, 'a) state \<Rightarrow> bool" where
-"strict_mono_state \<equiv> state_io_rel (op <)"
+"strict_mono_state \<equiv> state_io_rel (<)"
 
 corollary strict_mono_implies_mono: "strict_mono_state m \<Longrightarrow> mono_state m"
 unfolding state_io_rel_def

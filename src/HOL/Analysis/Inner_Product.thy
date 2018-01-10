@@ -239,7 +239,7 @@ subsection \<open>Class instances\<close>
 instantiation real :: real_inner
 begin
 
-definition inner_real_def [simp]: "inner = op *"
+definition inner_real_def [simp]: "inner = ( * )"
 
 instance
 proof

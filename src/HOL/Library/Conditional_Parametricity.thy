@@ -17,11 +17,11 @@ qualified definition Rel_match :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Ri
 named_theorems parametricity_preprocess
 
 lemma bi_unique_Rel_match [parametricity_preprocess]:
-  "bi_unique A = Rel_match (A ===> A ===> op =) op = op ="
+  "bi_unique A = Rel_match (A ===> A ===> (=)) (=) (=)"
   unfolding bi_unique_alt_def2 Rel_match_def ..
 
 lemma bi_total_Rel_match [parametricity_preprocess]:
-  "bi_total A = Rel_match ((A ===> op =) ===> op =) All All"
+  "bi_total A = Rel_match ((A ===> (=)) ===> (=)) All All"
   unfolding bi_total_alt_def2 Rel_match_def ..
 
 lemma is_equality_Rel: "is_equality A \<Longrightarrow> Transfer.Rel A t t"

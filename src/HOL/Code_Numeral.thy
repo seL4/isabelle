@@ -634,7 +634,7 @@ code_printing
 setup \<open>
   fold (fn target =>
     Numeral.add_code @{const_name Code_Numeral.Pos} I Code_Printer.literal_numeral target
-    #> Numeral.add_code @{const_name Code_Numeral.Neg} (op ~) Code_Printer.literal_numeral target)
+    #> Numeral.add_code @{const_name Code_Numeral.Neg} (~) Code_Printer.literal_numeral target)
     ["SML", "OCaml", "Haskell", "Scala"]
 \<close>
 

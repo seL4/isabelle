@@ -14,7 +14,7 @@ instantiation list :: (po) po
 begin
 
 definition
-  "xs \<sqsubseteq> ys \<longleftrightarrow> list_all2 (op \<sqsubseteq>) xs ys"
+  "xs \<sqsubseteq> ys \<longleftrightarrow> list_all2 (\<sqsubseteq>) xs ys"
 
 instance proof
   fix xs :: "'a list"

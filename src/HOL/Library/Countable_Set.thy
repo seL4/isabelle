@@ -342,7 +342,7 @@ proof -  show thesis
 qed
 
 lemma transfer_countable[transfer_rule]:
-  "bi_unique R \<Longrightarrow> rel_fun (rel_set R) op = countable countable"
+  "bi_unique R \<Longrightarrow> rel_fun (rel_set R) (=) countable countable"
   by (rule rel_funI, erule (1) bi_unique_rel_set_lemma)
      (auto dest: countable_image_inj_on)
 

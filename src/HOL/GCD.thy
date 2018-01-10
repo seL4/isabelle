@@ -996,25 +996,25 @@ lemma dvd_GcdD: "x dvd Gcd A \<Longrightarrow> y \<in> A \<Longrightarrow> x dvd
 lemma dvd_Gcd_iff: "x dvd Gcd A \<longleftrightarrow> (\<forall>y\<in>A. x dvd y)"
   by (blast dest: dvd_GcdD intro: Gcd_greatest)
 
-lemma Gcd_mult: "Gcd (op * c ` A) = normalize c * Gcd A"
+lemma Gcd_mult: "Gcd (( * ) c ` A) = normalize c * Gcd A"
 proof (cases "c = 0")
   case True
   then show ?thesis by auto
 next
   case [simp]: False
-  have "Gcd (op * c ` A) div c dvd Gcd A"
+  have "Gcd (( * ) c ` A) div c dvd Gcd A"
     by (intro Gcd_greatest, subst div_dvd_iff_mult)
        (auto intro!: Gcd_greatest Gcd_dvd simp: mult.commute[of _ c])
-  then have "Gcd (op * c ` A) dvd c * Gcd A"
+  then have "Gcd (( * ) c ` A) dvd c * Gcd A"
     by (subst (asm) div_dvd_iff_mult) (auto intro: Gcd_greatest simp: mult_ac)
   also have "c * Gcd A = (normalize c * Gcd A) * unit_factor c"
     by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
-  also have "Gcd (op * c ` A) dvd \<dots> \<longleftrightarrow> Gcd (op * c ` A) dvd normalize c * Gcd A"
+  also have "Gcd (( * ) c ` A) dvd \<dots> \<longleftrightarrow> Gcd (( * ) c ` A) dvd normalize c * Gcd A"
     by (simp add: dvd_mult_unit_iff)
-  finally have "Gcd (op * c ` A) dvd normalize c * Gcd A" .
-  moreover have "normalize c * Gcd A dvd Gcd (op * c ` A)"
+  finally have "Gcd (( * ) c ` A) dvd normalize c * Gcd A" .
+  moreover have "normalize c * Gcd A dvd Gcd (( * ) c ` A)"
     by (intro Gcd_greatest) (auto intro: mult_dvd_mono Gcd_dvd)
-  ultimately have "normalize (Gcd (op * c ` A)) = normalize (normalize c * Gcd A)"
+  ultimately have "normalize (Gcd (( * ) c ` A)) = normalize (normalize c * Gcd A)"
     by (rule associatedI)
   then show ?thesis
     by (simp add: normalize_mult)
@@ -1035,10 +1035,10 @@ lemma Lcm_dvd_iff: "Lcm A dvd x \<longleftrightarrow> (\<forall>y\<in>A. y dvd x
 
 lemma Lcm_mult:
   assumes "A \<noteq> {}"
-  shows "Lcm (op * c ` A) = normalize c * Lcm A"
+  shows "Lcm (( * ) c ` A) = normalize c * Lcm A"
 proof (cases "c = 0")
   case True
-  with assms have "op * c ` A = {0}"
+  with assms have "( * ) c ` A = {0}"
     by auto
   with True show ?thesis by auto
 next
@@ -1047,23 +1047,23 @@ next
     by blast
   have "c dvd c * x"
     by simp
-  also from x have "c * x dvd Lcm (op * c ` A)"
+  also from x have "c * x dvd Lcm (( * ) c ` A)"
     by (intro dvd_Lcm) auto
-  finally have dvd: "c dvd Lcm (op * c ` A)" .
+  finally have dvd: "c dvd Lcm (( * ) c ` A)" .
 
-  have "Lcm A dvd Lcm (op * c ` A) div c"
+  have "Lcm A dvd Lcm (( * ) c ` A) div c"
     by (intro Lcm_least dvd_mult_imp_div)
       (auto intro!: Lcm_least dvd_Lcm simp: mult.commute[of _ c])
-  then have "c * Lcm A dvd Lcm (op * c ` A)"
+  then have "c * Lcm A dvd Lcm (( * ) c ` A)"
     by (subst (asm) dvd_div_iff_mult) (auto intro!: Lcm_least simp: mult_ac dvd)
   also have "c * Lcm A = (normalize c * Lcm A) * unit_factor c"
     by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
-  also have "\<dots> dvd Lcm (op * c ` A) \<longleftrightarrow> normalize c * Lcm A dvd Lcm (op * c ` A)"
+  also have "\<dots> dvd Lcm (( * ) c ` A) \<longleftrightarrow> normalize c * Lcm A dvd Lcm (( * ) c ` A)"
     by (simp add: mult_unit_dvd_iff)
-  finally have "normalize c * Lcm A dvd Lcm (op * c ` A)" .
-  moreover have "Lcm (op * c ` A) dvd normalize c * Lcm A"
+  finally have "normalize c * Lcm A dvd Lcm (( * ) c ` A)" .
+  moreover have "Lcm (( * ) c ` A) dvd normalize c * Lcm A"
     by (intro Lcm_least) (auto intro: mult_dvd_mono dvd_Lcm)
-  ultimately have "normalize (normalize c * Lcm A) = normalize (Lcm (op * c ` A))"
+  ultimately have "normalize (normalize c * Lcm A) = normalize (Lcm (( * ) c ` A))"
     by (rule associatedI)
   then show ?thesis
     by (simp add: normalize_mult)

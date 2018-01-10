@@ -43,7 +43,7 @@ definition
   where "(x \<sqsubset> y) = (x \<sqsubseteq> y & x ~= y)"
 
 theorem abs_test:
-  "op \<sqsubset> = (%x y. x \<sqsubset> y)"
+  "(\<sqsubset>) = (%x y. x \<sqsubset> y)"
   by simp
 
 definition
@@ -468,15 +468,15 @@ qed
 
 subsubsection \<open>Total order \<open><=\<close> on @{typ int}\<close>
 
-interpretation int: dpo "op <= :: [int, int] => bool"
-  rewrites "(dpo.less (op <=) (x::int) y) = (x < y)"
+interpretation int: dpo "(<=) :: [int, int] => bool"
+  rewrites "(dpo.less (<=) (x::int) y) = (x < y)"
   txt \<open>We give interpretation for less, but not \<open>is_inf\<close> and \<open>is_sub\<close>.\<close>
 proof -
-  show "dpo (op <= :: [int, int] => bool)"
+  show "dpo ((<=) :: [int, int] => bool)"
     proof qed auto
-  then interpret int: dpo "op <= :: [int, int] => bool" .
+  then interpret int: dpo "(<=) :: [int, int] => bool" .
     txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
-  show "(dpo.less (op <=) (x::int) y) = (x < y)"
+  show "(dpo.less (<=) (x::int) y) = (x < y)"
     by (unfold int.less_def) auto
 qed
 
@@ -484,34 +484,34 @@ thm int.circular
 lemma "\<lbrakk> (x::int) \<le> y; y \<le> z; z \<le> x\<rbrakk> \<Longrightarrow> x = y \<and> y = z"
   apply (rule int.circular) apply assumption apply assumption apply assumption done
 thm int.abs_test
-lemma "(op < :: [int, int] => bool) = op <"
+lemma "((<) :: [int, int] => bool) = (<)"
   apply (rule int.abs_test) done
 
-interpretation int: dlat "op <= :: [int, int] => bool"
-  rewrites meet_eq: "dlat.meet (op <=) (x::int) y = min x y"
-    and join_eq: "dlat.join (op <=) (x::int) y = max x y"
+interpretation int: dlat "(<=) :: [int, int] => bool"
+  rewrites meet_eq: "dlat.meet (<=) (x::int) y = min x y"
+    and join_eq: "dlat.join (<=) (x::int) y = max x y"
 proof -
-  show "dlat (op <= :: [int, int] => bool)"
+  show "dlat ((<=) :: [int, int] => bool)"
     apply unfold_locales
     apply (unfold int.is_inf_def int.is_sup_def)
     apply arith+
     done
-  then interpret int: dlat "op <= :: [int, int] => bool" .
+  then interpret int: dlat "(<=) :: [int, int] => bool" .
   txt \<open>Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation.\<close>
-  show "dlat.meet (op <=) (x::int) y = min x y"
+  show "dlat.meet (<=) (x::int) y = min x y"
     apply (unfold int.meet_def)
     apply (rule the_equality)
     apply (unfold int.is_inf_def)
     by auto
-  show "dlat.join (op <=) (x::int) y = max x y"
+  show "dlat.join (<=) (x::int) y = max x y"
     apply (unfold int.join_def)
     apply (rule the_equality)
     apply (unfold int.is_sup_def)
     by auto
 qed
 
-interpretation int: dlo "op <= :: [int, int] => bool"
+interpretation int: dlo "(<=) :: [int, int] => bool"
   proof qed arith
 
 text \<open>Interpreted theorems from the locales, involving defined terms.\<close>
@@ -524,45 +524,45 @@ thm int.less_total text \<open>from dlo\<close>
 
 subsubsection \<open>Total order \<open><=\<close> on @{typ nat}\<close>
 
-interpretation nat: dpo "op <= :: [nat, nat] => bool"
-  rewrites "dpo.less (op <=) (x::nat) y = (x < y)"
+interpretation nat: dpo "(<=) :: [nat, nat] => bool"
+  rewrites "dpo.less (<=) (x::nat) y = (x < y)"
   txt \<open>We give interpretation for less, but not \<open>is_inf\<close> and \<open>is_sub\<close>.\<close>
 proof -
-  show "dpo (op <= :: [nat, nat] => bool)"
+  show "dpo ((<=) :: [nat, nat] => bool)"
     proof qed auto
-  then interpret nat: dpo "op <= :: [nat, nat] => bool" .
+  then interpret nat: dpo "(<=) :: [nat, nat] => bool" .
     txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
-  show "dpo.less (op <=) (x::nat) y = (x < y)"
+  show "dpo.less (<=) (x::nat) y = (x < y)"
     apply (unfold nat.less_def)
     apply auto
     done
 qed
 
-interpretation nat: dlat "op <= :: [nat, nat] => bool"
-  rewrites "dlat.meet (op <=) (x::nat) y = min x y"
-    and "dlat.join (op <=) (x::nat) y = max x y"
+interpretation nat: dlat "(<=) :: [nat, nat] => bool"
+  rewrites "dlat.meet (<=) (x::nat) y = min x y"
+    and "dlat.join (<=) (x::nat) y = max x y"
 proof -
-  show "dlat (op <= :: [nat, nat] => bool)"
+  show "dlat ((<=) :: [nat, nat] => bool)"
     apply unfold_locales
     apply (unfold nat.is_inf_def nat.is_sup_def)
     apply arith+
     done
-  then interpret nat: dlat "op <= :: [nat, nat] => bool" .
+  then interpret nat: dlat "(<=) :: [nat, nat] => bool" .
   txt \<open>Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation.\<close>
-  show "dlat.meet (op <=) (x::nat) y = min x y"
+  show "dlat.meet (<=) (x::nat) y = min x y"
     apply (unfold nat.meet_def)
     apply (rule the_equality)
     apply (unfold nat.is_inf_def)
     by auto
-  show "dlat.join (op <=) (x::nat) y = max x y"
+  show "dlat.join (<=) (x::nat) y = max x y"
     apply (unfold nat.join_def)
     apply (rule the_equality)
     apply (unfold nat.is_sup_def)
     by auto
 qed
 
-interpretation nat: dlo "op <= :: [nat, nat] => bool"
+interpretation nat: dlo "(<=) :: [nat, nat] => bool"
   proof qed arith
 
 text \<open>Interpreted theorems from the locales, involving defined terms.\<close>
@@ -575,25 +575,25 @@ thm nat.less_total text \<open>from ldo\<close>
 
 subsubsection \<open>Lattice \<open>dvd\<close> on @{typ nat}\<close>
 
-interpretation nat_dvd: dpo "op dvd :: [nat, nat] => bool"
-  rewrites "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
+interpretation nat_dvd: dpo "(dvd) :: [nat, nat] => bool"
+  rewrites "dpo.less (dvd) (x::nat) y = (x dvd y & x ~= y)"
   txt \<open>We give interpretation for less, but not \<open>is_inf\<close> and \<open>is_sub\<close>.\<close>
 proof -
-  show "dpo (op dvd :: [nat, nat] => bool)"
+  show "dpo ((dvd) :: [nat, nat] => bool)"
     proof qed (auto simp: dvd_def)
-  then interpret nat_dvd: dpo "op dvd :: [nat, nat] => bool" .
+  then interpret nat_dvd: dpo "(dvd) :: [nat, nat] => bool" .
     txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
-  show "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
+  show "dpo.less (dvd) (x::nat) y = (x dvd y & x ~= y)"
     apply (unfold nat_dvd.less_def)
     apply auto
     done
 qed
 
-interpretation nat_dvd: dlat "op dvd :: [nat, nat] => bool"
-  rewrites "dlat.meet (op dvd) (x::nat) y = gcd x y"
-    and "dlat.join (op dvd) (x::nat) y = lcm x y"
+interpretation nat_dvd: dlat "(dvd) :: [nat, nat] => bool"
+  rewrites "dlat.meet (dvd) (x::nat) y = gcd x y"
+    and "dlat.join (dvd) (x::nat) y = lcm x y"
 proof -
-  show "dlat (op dvd :: [nat, nat] => bool)"
+  show "dlat ((dvd) :: [nat, nat] => bool)"
     apply unfold_locales
     apply (unfold nat_dvd.is_inf_def nat_dvd.is_sup_def)
     apply (rule_tac x = "gcd x y" in exI)
@@ -601,15 +601,15 @@ proof -
     apply (rule_tac x = "lcm x y" in exI)
     apply (auto intro: dvd_lcm1 dvd_lcm2 lcm_least)
     done
-  then interpret nat_dvd: dlat "op dvd :: [nat, nat] => bool" .
+  then interpret nat_dvd: dlat "(dvd) :: [nat, nat] => bool" .
   txt \<open>Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation.\<close>
-  show "dlat.meet (op dvd) (x::nat) y = gcd x y"
+  show "dlat.meet (dvd) (x::nat) y = gcd x y"
     apply (unfold nat_dvd.meet_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_inf_def)
     by auto
-  show "dlat.join (op dvd) (x::nat) y = lcm x y"
+  show "dlat.join (dvd) (x::nat) y = lcm x y"
     apply (unfold nat_dvd.join_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_sup_def)
@@ -738,7 +738,7 @@ end
 
 
 locale Dgrp = Dmonoid +
-  assumes unit [intro, simp]: "Dmonoid.unit (op **) one x"
+  assumes unit [intro, simp]: "Dmonoid.unit (( ** )) one x"
 
 begin
 
@@ -834,16 +834,16 @@ end
 
 subsubsection \<open>Interpretation of Functions\<close>
 
-interpretation Dfun: Dmonoid "op o" "id :: 'a => 'a"
-  rewrites "Dmonoid.unit (op o) id f = bij (f::'a => 'a)"
-(*    and "Dmonoid.inv (op o) id" = "inv :: ('a => 'a) => ('a => 'a)" *)
+interpretation Dfun: Dmonoid "(o)" "id :: 'a => 'a"
+  rewrites "Dmonoid.unit (o) id f = bij (f::'a => 'a)"
+(*    and "Dmonoid.inv (o) id" = "inv :: ('a => 'a) => ('a => 'a)" *)
 proof -
-  show "Dmonoid op o (id :: 'a => 'a)" proof qed (simp_all add: o_assoc)
+  show "Dmonoid (o) (id :: 'a => 'a)" proof qed (simp_all add: o_assoc)
   note Dmonoid = this
 (*
-  from this interpret Dmonoid "op o" "id :: 'a => 'a" .
+  from this interpret Dmonoid "(o)" "id :: 'a => 'a" .
 *)
-  show "Dmonoid.unit (op o) (id :: 'a => 'a) f = bij f"
+  show "Dmonoid.unit (o) (id :: 'a => 'a) f = bij f"
     apply (unfold Dmonoid.unit_def [OF Dmonoid])
     apply rule apply clarify
   proof -
@@ -884,19 +884,19 @@ lemma unit_id:
   "(f :: unit => unit) = id"
   by rule simp
 
-interpretation Dfun: Dgrp "op o" "id :: unit => unit"
-  rewrites "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
+interpretation Dfun: Dgrp "(o)" "id :: unit => unit"
+  rewrites "Dmonoid.inv (o) id f = inv (f :: unit => unit)"
 proof -
-  have "Dmonoid op o (id :: 'a => 'a)" ..
+  have "Dmonoid (o) (id :: 'a => 'a)" ..
   note Dmonoid = this
 
-  show "Dgrp (op o) (id :: unit => unit)"
+  show "Dgrp (o) (id :: unit => unit)"
 apply unfold_locales
 apply (unfold Dmonoid.unit_def [OF Dmonoid])
 apply (insert unit_id)
 apply simp
 done
-  show "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
+  show "Dmonoid.inv (o) id f = inv (f :: unit => unit)"
 apply (unfold Dmonoid.inv_def [OF Dmonoid])
 apply (insert unit_id)
 apply simp

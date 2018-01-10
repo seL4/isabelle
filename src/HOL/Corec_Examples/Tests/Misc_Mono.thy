@@ -149,7 +149,7 @@ codatatype tree =
 consts integerize_tree_list :: "'a list \<Rightarrow> int"
 
 lemma integerize_tree_list_transfer[transfer_rule]:
-  "rel_fun (list_all2 R) op = integerize_tree_list integerize_tree_list"
+  "rel_fun (list_all2 R) (=) integerize_tree_list integerize_tree_list"
   sorry
 
 corec (friend) f10a where

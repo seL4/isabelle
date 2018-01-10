@@ -9,7 +9,7 @@ declare Let_def[code_pred_inline]
 lemma [code_pred_inline]: "insert == (%y A x. y = x | A x)"
 by (auto simp add: insert_iff[unfolded mem_def] fun_eq_iff intro!: eq_reflection)
 
-lemma [code_pred_inline]: "(op -) == (%A B x. A x \<and> \<not> B x)"
+lemma [code_pred_inline]: "(-) == (%A B x. A x \<and> \<not> B x)"
 by (auto simp add: Diff_iff[unfolded mem_def] fun_eq_iff intro!: eq_reflection)
 
 instantiation room :: small_lazy

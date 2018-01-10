@@ -40,9 +40,9 @@ applying functions to arguments. If @{text f} is a function of type
 
 \begin{warn}
 There are many predefined infix symbols like @{text "+"} and @{text"\<le>"}.
-The name of the corresponding binary function is @{term"op +"},
+The name of the corresponding binary function is @{term"(+)"},
 not just @{text"+"}. That is, @{term"x + y"} is nice surface syntax
-(``syntactic sugar'') for \noquotes{@{term[source]"op + x y"}}.
+(``syntactic sugar'') for \noquotes{@{term[source]"(+) x y"}}.
 \end{warn}
 
 HOL also supports some basic constructs from functional programming:

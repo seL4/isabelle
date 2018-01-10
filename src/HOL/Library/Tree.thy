@@ -83,7 +83,7 @@ fun bst_wrt :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a tree \
  bst_wrt P l \<and> bst_wrt P r \<and> (\<forall>x\<in>set_tree l. P x a) \<and> (\<forall>x\<in>set_tree r. P a x)"
 
 abbreviation bst :: "('a::linorder) tree \<Rightarrow> bool" where
-"bst \<equiv> bst_wrt (op <)"
+"bst \<equiv> bst_wrt (<)"
 
 fun (in linorder) heap :: "'a tree \<Rightarrow> bool" where
 "heap Leaf = True" |
@@ -440,15 +440,15 @@ subsection \<open>Binary Search Tree\<close>
 lemma bst_wrt_mono: "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> bst_wrt P t \<Longrightarrow> bst_wrt Q t"
 by (induction t) (auto)
 
-lemma bst_wrt_le_if_bst: "bst t \<Longrightarrow> bst_wrt (op \<le>) t"
+lemma bst_wrt_le_if_bst: "bst t \<Longrightarrow> bst_wrt (\<le>) t"
 using bst_wrt_mono less_imp_le by blast
 
-lemma bst_wrt_le_iff_sorted: "bst_wrt (op \<le>) t \<longleftrightarrow> sorted (inorder t)"
+lemma bst_wrt_le_iff_sorted: "bst_wrt (\<le>) t \<longleftrightarrow> sorted (inorder t)"
 apply (induction t)
  apply(simp)
 by (fastforce simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
 
-lemma bst_iff_sorted_wrt_less: "bst t \<longleftrightarrow> sorted_wrt (op <) (inorder t)"
+lemma bst_iff_sorted_wrt_less: "bst t \<longleftrightarrow> sorted_wrt (<) (inorder t)"
 apply (induction t)
  apply simp
 apply (fastforce simp: sorted_wrt_Cons sorted_wrt_append)

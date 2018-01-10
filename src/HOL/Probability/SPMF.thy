@@ -77,8 +77,8 @@ inductive_simps ord_option_simps [simp]:
   "ord_option ord (Some x) None"
 
 inductive_simps ord_option_eq_simps [simp]:
-  "ord_option op = None y"
-  "ord_option op = (Some x) y"
+  "ord_option (=) None y"
+  "ord_option (=) (Some x) y"
 
 lemma ord_option_reflI: "(\<And>y. y \<in> set_option x \<Longrightarrow> ord y y) \<Longrightarrow> ord_option ord x x"
 by(cases x) simp_all
@@ -124,7 +124,7 @@ lemma lub_option_least:
 using Y
 by(cases y)(auto 4 3 simp add: lub_option_def intro: lub_least[OF ord_option_chainD] dest: upper)
 
-lemma lub_map_option: "lub_option lub (map_option f ` Y) = lub_option (lub \<circ> op ` f) Y"
+lemma lub_map_option: "lub_option lub (map_option f ` Y) = lub_option (lub \<circ> (`) f) Y"
 apply(auto simp add: lub_option_def)
 apply(erule notE)
 apply(rule arg_cong[where f=lub])
@@ -161,15 +161,15 @@ context includes lifting_syntax
 begin
 
 definition rel_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool"
-where "rel_pred R A B = (R ===> op =) (\<lambda>x. x \<in> A) (\<lambda>y. y \<in> B)"
+where "rel_pred R A B = (R ===> (=)) (\<lambda>x. x \<in> A) (\<lambda>y. y \<in> B)"
 
-lemma rel_predI: "(R ===> op =) (\<lambda>x. x \<in> A) (\<lambda>y. y \<in> B) \<Longrightarrow> rel_pred R A B"
+lemma rel_predI: "(R ===> (=)) (\<lambda>x. x \<in> A) (\<lambda>y. y \<in> B) \<Longrightarrow> rel_pred R A B"
 by(simp add: rel_pred_def)
 
 lemma rel_predD: "\<lbrakk> rel_pred R A B; R x y \<rbrakk> \<Longrightarrow> x \<in> A \<longleftrightarrow> y \<in> B"
 by(simp add: rel_pred_def rel_fun_def)
 
-lemma Collect_parametric: "((A ===> op =) ===> rel_pred A) Collect Collect"
+lemma Collect_parametric: "((A ===> (=)) ===> rel_pred A) Collect Collect"
   \<comment> \<open>Declare this rule as @{attribute transfer_rule} only locally
       because it blows up the search space for @{method transfer}
       (in combination with @{thm [source] Collect_transfer})\<close>
@@ -179,27 +179,27 @@ end
 
 subsubsection \<open>Monotonicity rules\<close>
 
-lemma monotone_gfp_eadd1: "monotone op \<ge> op \<ge> (\<lambda>x. x + y :: enat)"
+lemma monotone_gfp_eadd1: "monotone (\<ge>) (\<ge>) (\<lambda>x. x + y :: enat)"
 by(auto intro!: monotoneI)
 
-lemma monotone_gfp_eadd2: "monotone op \<ge> op \<ge> (\<lambda>y. x + y :: enat)"
+lemma monotone_gfp_eadd2: "monotone (\<ge>) (\<ge>) (\<lambda>y. x + y :: enat)"
 by(auto intro!: monotoneI)
 
 lemma mono2mono_gfp_eadd[THEN gfp.mono2mono2, cont_intro, simp]:
-  shows monotone_eadd: "monotone (rel_prod op \<ge> op \<ge>) op \<ge> (\<lambda>(x, y). x + y :: enat)"
+  shows monotone_eadd: "monotone (rel_prod (\<ge>) (\<ge>)) (\<ge>) (\<lambda>(x, y). x + y :: enat)"
 by(simp add: monotone_gfp_eadd1 monotone_gfp_eadd2)
 
 lemma eadd_gfp_partial_function_mono [partial_function_mono]:
-  "\<lbrakk> monotone (fun_ord op \<ge>) op \<ge> f; monotone (fun_ord op \<ge>) op \<ge> g \<rbrakk>
-  \<Longrightarrow> monotone (fun_ord op \<ge>) op \<ge> (\<lambda>x. f x + g x :: enat)"
+  "\<lbrakk> monotone (fun_ord (\<ge>)) (\<ge>) f; monotone (fun_ord (\<ge>)) (\<ge>) g \<rbrakk>
+  \<Longrightarrow> monotone (fun_ord (\<ge>)) (\<ge>) (\<lambda>x. f x + g x :: enat)"
 by(rule mono2mono_gfp_eadd)
 
 lemma mono2mono_ereal[THEN lfp.mono2mono]:
-  shows monotone_ereal: "monotone op \<le> op \<le> ereal"
+  shows monotone_ereal: "monotone (\<le>) (\<le>) ereal"
 by(rule monotoneI) simp
 
 lemma mono2mono_ennreal[THEN lfp.mono2mono]:
-  shows monotone_ennreal: "monotone op \<le> op \<le> ennreal"
+  shows monotone_ennreal: "monotone (\<le>) (\<le>) ennreal"
 by(rule monotoneI)(simp add: ennreal_leI)
 
 subsubsection \<open>Bijections\<close>
@@ -719,7 +719,7 @@ by(simp_all add: fun_eq_iff pmf.rel_map option.rel_map[abs_def])
 lemma spmf_rel_conversep: "rel_spmf R\<inverse>\<inverse> = (rel_spmf R)\<inverse>\<inverse>"
 by(simp add: option.rel_conversep pmf.rel_conversep)
 
-lemma spmf_rel_eq: "rel_spmf op = = op ="
+lemma spmf_rel_eq: "rel_spmf (=) = (=)"
 by(simp add: pmf.rel_eq option.rel_eq)
 
 context includes lifting_syntax
@@ -736,7 +736,7 @@ lemma map_spmf_parametric: "((A ===> B) ===> rel_spmf A ===> rel_spmf B) map_spm
 by transfer_prover
 
 lemma rel_spmf_parametric:
-  "((A ===> B ===> op =) ===> rel_spmf A ===> rel_spmf B ===> op =) rel_spmf rel_spmf"
+  "((A ===> B ===> (=)) ===> rel_spmf A ===> rel_spmf B ===> (=)) rel_spmf rel_spmf"
 by transfer_prover
 
 lemma set_spmf_parametric [transfer_rule]:
@@ -766,7 +766,7 @@ begin
 
 text \<open>We do not yet have a relator for @{typ "'a measure"}, so we combine @{const measure} and @{const measure_pmf}\<close>
 lemma measure_pmf_parametric:
-  "(rel_pmf A ===> rel_pred A ===> op =) (\<lambda>p. measure (measure_pmf p)) (\<lambda>q. measure (measure_pmf q))"
+  "(rel_pmf A ===> rel_pred A ===> (=)) (\<lambda>p. measure (measure_pmf p)) (\<lambda>q. measure (measure_pmf q))"
 proof(rule rel_funI)+
   fix p q X Y
   assume "rel_pmf A p q" and "rel_pred A X Y"
@@ -777,7 +777,7 @@ proof(rule rel_funI)+
 qed
 
 lemma measure_spmf_parametric:
-  "(rel_spmf A ===> rel_pred A ===> op =) (\<lambda>p. measure (measure_spmf p)) (\<lambda>q. measure (measure_spmf q))"
+  "(rel_spmf A ===> rel_pred A ===> (=)) (\<lambda>p. measure (measure_spmf p)) (\<lambda>q. measure (measure_spmf q))"
 unfolding measure_measure_spmf_conv_measure_pmf[abs_def]
 apply(rule rel_funI)+
 apply(erule measure_pmf_parametric[THEN rel_funD, THEN rel_funD])
@@ -1183,7 +1183,7 @@ proof(rule rel_pmf.intros)
       also have "\<dots> = (\<integral>\<^sup>+ x. ennreal (pmf pq (x, Some y)) * indicator (range Some) x \<partial>count_space UNIV) + pmf pq (None, Some y)"
         by(subst nn_integral_add)(simp_all)
       also have "\<dots> = (\<integral>\<^sup>+ x. ennreal (spmf p y) * indicator {Some y} x \<partial>count_space UNIV) + (spmf q y - spmf p y)"
-        by(auto simp add: pq_def pmf_embed_pmf[OF f] one_ereal_def[symmetric] simp del: nn_integral_indicator_singleton intro!: arg_cong2[where f="op +"] nn_integral_cong split: option.split)
+        by(auto simp add: pq_def pmf_embed_pmf[OF f] one_ereal_def[symmetric] simp del: nn_integral_indicator_singleton intro!: arg_cong2[where f="(+)"] nn_integral_cong split: option.split)
       also have "\<dots> = spmf q y" by(simp add: ennreal_minus[symmetric] le)
       finally show ?thesis using Some by simp
     qed
@@ -1192,7 +1192,7 @@ proof(rule rel_pmf.intros)
 qed
 
 lemma ord_spmf_eq_leD:
-  assumes "ord_spmf op = p q"
+  assumes "ord_spmf (=) p q"
   shows "spmf p x \<le> spmf q x"
 proof(cases "x \<in> set_spmf p")
   case False
@@ -1200,7 +1200,7 @@ proof(cases "x \<in> set_spmf p")
 next
   case True
   from assms obtain pq
-    where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> ord_option op = x y"
+    where pq: "\<And>x y. (x, y) \<in> set_pmf pq \<Longrightarrow> ord_option (=) x y"
     and p: "p = map_pmf fst pq"
     and q: "q = map_pmf snd pq" by cases auto
   have "ennreal (spmf p x) = integral\<^sup>N pq (indicator (fst -` {Some x}))"
@@ -1213,17 +1213,17 @@ next
   finally show ?thesis by simp
 qed
 
-lemma ord_spmf_eqD_set_spmf: "ord_spmf op = p q \<Longrightarrow> set_spmf p \<subseteq> set_spmf q"
+lemma ord_spmf_eqD_set_spmf: "ord_spmf (=) p q \<Longrightarrow> set_spmf p \<subseteq> set_spmf q"
 by(rule subsetI)(drule_tac x=x in ord_spmf_eq_leD, auto simp add: in_set_spmf_iff_spmf)
 
 lemma ord_spmf_eqD_emeasure:
-  "ord_spmf op = p q \<Longrightarrow> emeasure (measure_spmf p) A \<le> emeasure (measure_spmf q) A"
+  "ord_spmf (=) p q \<Longrightarrow> emeasure (measure_spmf p) A \<le> emeasure (measure_spmf q) A"
 by(auto intro!: nn_integral_mono split: split_indicator dest: ord_spmf_eq_leD simp add: nn_integral_measure_spmf nn_integral_indicator[symmetric])
 
-lemma ord_spmf_eqD_measure_spmf: "ord_spmf op = p q \<Longrightarrow> measure_spmf p \<le> measure_spmf q"
+lemma ord_spmf_eqD_measure_spmf: "ord_spmf (=) p q \<Longrightarrow> measure_spmf p \<le> measure_spmf q"
   by (subst le_measure) (auto simp: ord_spmf_eqD_emeasure)
 
-subsection \<open>CCPO structure for the flat ccpo @{term "ord_option op ="}\<close>
+subsection \<open>CCPO structure for the flat ccpo @{term "ord_option (=)"}\<close>
 
 context fixes Y :: "'a spmf set" begin
 
@@ -1234,23 +1234,23 @@ where "lub_spmf = embed_spmf (\<lambda>x. enn2real (SUP p : Y. ennreal (spmf p x
 lemma lub_spmf_empty [simp]: "SPMF.lub_spmf {} = return_pmf None"
 by(simp add: SPMF.lub_spmf_def bot_ereal_def)
 
-context assumes chain: "Complete_Partial_Order.chain (ord_spmf op =) Y" begin
+context assumes chain: "Complete_Partial_Order.chain (ord_spmf (=)) Y" begin
 
-lemma chain_ord_spmf_eqD: "Complete_Partial_Order.chain (op \<le>) ((\<lambda>p x. ennreal (spmf p x)) ` Y)"
+lemma chain_ord_spmf_eqD: "Complete_Partial_Order.chain (\<le>) ((\<lambda>p x. ennreal (spmf p x)) ` Y)"
   (is "Complete_Partial_Order.chain _ (?f ` _)")
 proof(rule chainI)
   fix f g
   assume "f \<in> ?f ` Y" "g \<in> ?f ` Y"
   then obtain p q where f: "f = ?f p" "p \<in> Y" and g: "g = ?f q" "q \<in> Y" by blast
-  from chain \<open>p \<in> Y\<close> \<open>q \<in> Y\<close> have "ord_spmf op = p q \<or> ord_spmf op = q p" by(rule chainD)
+  from chain \<open>p \<in> Y\<close> \<open>q \<in> Y\<close> have "ord_spmf (=) p q \<or> ord_spmf (=) q p" by(rule chainD)
   thus "f \<le> g \<or> g \<le> f"
   proof
-    assume "ord_spmf op = p q"
+    assume "ord_spmf (=) p q"
     hence "\<And>x. spmf p x \<le> spmf q x" by(rule ord_spmf_eq_leD)
     hence "f \<le> g" unfolding f g by(auto intro: le_funI)
     thus ?thesis ..
   next
-    assume "ord_spmf op = q p"
+    assume "ord_spmf (=) q p"
     hence "\<And>x. spmf q x \<le> spmf p x" by(rule ord_spmf_eq_leD)
     hence "g \<le> f" unfolding f g by(auto intro: le_funI)
     thus ?thesis ..
@@ -1258,7 +1258,7 @@ proof(rule chainI)
 qed
 
 lemma ord_spmf_eq_pmf_None_eq:
-  assumes le: "ord_spmf op = p q"
+  assumes le: "ord_spmf (=) p q"
   and None: "pmf p None = pmf q None"
   shows "p = q"
 proof(rule spmf_eqI)
@@ -1276,7 +1276,7 @@ proof(rule spmf_eqI)
 qed
 
 lemma ord_spmf_eqD_pmf_None:
-  assumes "ord_spmf op = x y"
+  assumes "ord_spmf (=) x y"
   shows "pmf x None \<ge> pmf y None"
 using assms
 apply cases
@@ -1292,16 +1292,16 @@ lemma spmf_chain_countable: "countable (\<Union>p\<in>Y. set_spmf p)"
 proof(cases "Y = {}")
   case Y: False
   show ?thesis
-  proof(cases "\<exists>x\<in>Y. \<forall>y\<in>Y. ord_spmf op = y x")
+  proof(cases "\<exists>x\<in>Y. \<forall>y\<in>Y. ord_spmf (=) y x")
     case True
-    then obtain x where x: "x \<in> Y" and upper: "\<And>y. y \<in> Y \<Longrightarrow> ord_spmf op = y x" by blast
+    then obtain x where x: "x \<in> Y" and upper: "\<And>y. y \<in> Y \<Longrightarrow> ord_spmf (=) y x" by blast
     hence "(\<Union>x\<in>Y. set_spmf x) \<subseteq> set_spmf x" by(auto dest: ord_spmf_eqD_set_spmf)
     thus ?thesis by(rule countable_subset) simp
   next
     case False
     define N :: "'a option pmf \<Rightarrow> real" where "N p = pmf p None" for p
 
-    have N_less_imp_le_spmf: "\<lbrakk> x \<in> Y; y \<in> Y; N y < N x \<rbrakk> \<Longrightarrow> ord_spmf op = x y" for x y
+    have N_less_imp_le_spmf: "\<lbrakk> x \<in> Y; y \<in> Y; N y < N x \<rbrakk> \<Longrightarrow> ord_spmf (=) x y" for x y
       using chainD[OF chain, of x y] ord_spmf_eqD_pmf_None[of x y] ord_spmf_eqD_pmf_None[of y x]
       by (auto simp: N_def)
     have N_eq_imp_eq: "\<lbrakk> x \<in> Y; y \<in> Y; N y = N x \<rbrakk> \<Longrightarrow> x = y" for x y
@@ -1315,7 +1315,7 @@ proof(cases "Y = {}")
       { fix y
         assume "y \<in> Y"
         with ** consider "N x < N y" | "N x = N y" by(auto simp add: not_less le_less)
-        hence "ord_spmf op = y x" using \<open>y \<in> Y\<close> \<open>x \<in> Y\<close>
+        hence "ord_spmf (=) y x" using \<open>y \<in> Y\<close> \<open>x \<in> Y\<close>
           by cases(auto dest: N_less_imp_le_spmf N_eq_imp_eq intro: ord_spmf_reflI) }
       with False \<open>x \<in> Y\<close> show False by blast
     qed
@@ -1394,7 +1394,7 @@ unfolding spmf_lub_spmf by(subst ennreal_SUP)(simp_all add: SUP_spmf_neq_top' de
 
 lemma lub_spmf_upper:
   assumes p: "p \<in> Y"
-  shows "ord_spmf op = p lub_spmf"
+  shows "ord_spmf (=) p lub_spmf"
 proof(rule ord_pmf_increaseI)
   fix x
   from p have [simp]: "Y \<noteq> {}" by auto
@@ -1405,8 +1405,8 @@ proof(rule ord_pmf_increaseI)
 qed simp
 
 lemma lub_spmf_least:
-  assumes z: "\<And>x. x \<in> Y \<Longrightarrow> ord_spmf op = x z"
-  shows "ord_spmf op = lub_spmf z"
+  assumes z: "\<And>x. x \<in> Y \<Longrightarrow> ord_spmf (=) x z"
+  shows "ord_spmf (=) lub_spmf z"
 proof(cases "Y = {}")
   case nonempty: False
   show ?thesis
@@ -1451,9 +1451,9 @@ proof -
   proof(rule nn_integral_monotone_convergence_SUP_countable)
     have "(\<lambda>i x. ennreal (spmf i x) * indicator A x) ` Y = (\<lambda>f x. f x * indicator A x) ` (\<lambda>p x. ennreal (spmf p x)) ` Y"
       by(simp add: image_image)
-    also have "Complete_Partial_Order.chain op \<le> \<dots>" using chain_ord_spmf_eqD
+    also have "Complete_Partial_Order.chain (\<le>) \<dots>" using chain_ord_spmf_eqD
       by(rule chain_imageI)(auto simp add: le_fun_def split: split_indicator)
-    finally show "Complete_Partial_Order.chain op \<le> ((\<lambda>i x. ennreal (spmf i x) * indicator A x) ` Y)" .
+    finally show "Complete_Partial_Order.chain (\<le>) ((\<lambda>i x. ennreal (spmf i x) * indicator A x) ` Y)" .
   qed simp
   also have "\<dots> = (SUP y:Y. \<integral>\<^sup>+ x. ennreal (spmf y x) * indicator A x \<partial>count_space UNIV)"
     by(auto simp add: nn_integral_count_space_indicator set_lub_spmf spmf_eq_0_set_spmf split: split_indicator intro!: SUP_cong nn_integral_cong)
@@ -1484,7 +1484,7 @@ lemma measure_spmf_lub_spmf:
   shows "measure_spmf lub_spmf = (SUP p:Y. measure_spmf p)" (is "?lhs = ?rhs")
 proof(rule measure_eqI)
   from assms obtain p where p: "p \<in> Y" by auto
-  from chain have chain': "Complete_Partial_Order.chain op \<le> (measure_spmf ` Y)"
+  from chain have chain': "Complete_Partial_Order.chain (\<le>) (measure_spmf ` Y)"
     by(rule chain_imageI)(rule ord_spmf_eqD_measure_spmf)
   show "sets ?lhs = sets ?rhs"
     using Y by (subst sets_SUP) auto
@@ -1496,7 +1496,7 @@ end
 
 end
 
-lemma partial_function_definitions_spmf: "partial_function_definitions (ord_spmf op =) lub_spmf"
+lemma partial_function_definitions_spmf: "partial_function_definitions (ord_spmf (=)) lub_spmf"
   (is "partial_function_definitions ?R _")
 proof
   fix x show "?R x x" by(simp add: ord_spmf_reflI)
@@ -1521,10 +1521,10 @@ next
     by(cases "Y = {}")(simp_all add: lub_spmf_least)
 qed
 
-lemma ccpo_spmf: "class.ccpo lub_spmf (ord_spmf op =) (mk_less (ord_spmf op =))"
+lemma ccpo_spmf: "class.ccpo lub_spmf (ord_spmf (=)) (mk_less (ord_spmf (=)))"
 by(rule ccpo partial_function_definitions_spmf)+
 
-interpretation spmf: partial_function_definitions "ord_spmf op =" "lub_spmf"
+interpretation spmf: partial_function_definitions "ord_spmf (=)" "lub_spmf"
   rewrites "lub_spmf {} \<equiv> return_pmf None"
 by(rule partial_function_definitions_spmf) simp
 
@@ -1535,15 +1535,15 @@ declaration \<open>Partial_Function.init "spmf" @{term spmf.fixp_fun}
 declare spmf.leq_refl[simp]
 declare admissible_leI[OF ccpo_spmf, cont_intro]
 
-abbreviation "mono_spmf \<equiv> monotone (fun_ord (ord_spmf op =)) (ord_spmf op =)"
+abbreviation "mono_spmf \<equiv> monotone (fun_ord (ord_spmf (=))) (ord_spmf (=))"
 
 lemma lub_spmf_const [simp]: "lub_spmf {p} = p"
 by(rule spmf_eqI)(simp add: spmf_lub_spmf[OF ccpo.chain_singleton[OF ccpo_spmf]])
 
 lemma bind_spmf_mono':
-  assumes fg: "ord_spmf op = f g"
-  and hk: "\<And>x :: 'a. ord_spmf op = (h x) (k x)"
-  shows "ord_spmf op = (f \<bind> h) (g \<bind> k)"
+  assumes fg: "ord_spmf (=) f g"
+  and hk: "\<And>x :: 'a. ord_spmf (=) (h x) (k x)"
+  shows "ord_spmf (=) (f \<bind> h) (g \<bind> k)"
 unfolding bind_spmf_def using assms(1)
 by(rule rel_pmf_bindI)(auto split: option.split simp add: hk)
 
@@ -1552,33 +1552,33 @@ lemma bind_spmf_mono [partial_function_mono]:
   shows "mono_spmf (\<lambda>f. bind_spmf (B f) (\<lambda>y. C y f))"
 proof (rule monotoneI)
   fix f g :: "'a \<Rightarrow> 'b spmf"
-  assume fg: "fun_ord (ord_spmf op =) f g"
-  with mf have "ord_spmf op = (B f) (B g)" by (rule monotoneD[of _ _ _ f g])
-  moreover from mg have "\<And>y'. ord_spmf op = (C y' f) (C y' g)"
+  assume fg: "fun_ord (ord_spmf (=)) f g"
+  with mf have "ord_spmf (=) (B f) (B g)" by (rule monotoneD[of _ _ _ f g])
+  moreover from mg have "\<And>y'. ord_spmf (=) (C y' f) (C y' g)"
     by (rule monotoneD) (rule fg)
-  ultimately show "ord_spmf op = (bind_spmf (B f) (\<lambda>y. C y f)) (bind_spmf (B g) (\<lambda>y'. C y' g))"
+  ultimately show "ord_spmf (=) (bind_spmf (B f) (\<lambda>y. C y f)) (bind_spmf (B g) (\<lambda>y'. C y' g))"
     by(rule bind_spmf_mono')
 qed
 
-lemma monotone_bind_spmf1: "monotone (ord_spmf op =) (ord_spmf op =) (\<lambda>y. bind_spmf y g)"
+lemma monotone_bind_spmf1: "monotone (ord_spmf (=)) (ord_spmf (=)) (\<lambda>y. bind_spmf y g)"
 by(rule monotoneI)(simp add: bind_spmf_mono' ord_spmf_reflI)
 
 lemma monotone_bind_spmf2:
-  assumes g: "\<And>x. monotone ord (ord_spmf op =) (\<lambda>y. g y x)"
-  shows "monotone ord (ord_spmf op =) (\<lambda>y. bind_spmf p (g y))"
+  assumes g: "\<And>x. monotone ord (ord_spmf (=)) (\<lambda>y. g y x)"
+  shows "monotone ord (ord_spmf (=)) (\<lambda>y. bind_spmf p (g y))"
 by(rule monotoneI)(auto intro: bind_spmf_mono' monotoneD[OF g] ord_spmf_reflI)
 
 lemma bind_lub_spmf:
-  assumes chain: "Complete_Partial_Order.chain (ord_spmf op =) Y"
+  assumes chain: "Complete_Partial_Order.chain (ord_spmf (=)) Y"
   shows "bind_spmf (lub_spmf Y) f = lub_spmf ((\<lambda>p. bind_spmf p f) ` Y)" (is "?lhs = ?rhs")
 proof(cases "Y = {}")
   case Y: False
   show ?thesis
   proof(rule spmf_eqI)
     fix i
-    have chain': "Complete_Partial_Order.chain op \<le> ((\<lambda>p x. ennreal (spmf p x * spmf (f x) i)) ` Y)"
+    have chain': "Complete_Partial_Order.chain (\<le>) ((\<lambda>p x. ennreal (spmf p x * spmf (f x) i)) ` Y)"
       using chain by(rule chain_imageI)(auto simp add: le_fun_def dest: ord_spmf_eq_leD intro: mult_right_mono)
-    have chain'': "Complete_Partial_Order.chain (ord_spmf op =) ((\<lambda>p. p \<bind> f) ` Y)"
+    have chain'': "Complete_Partial_Order.chain (ord_spmf (=)) ((\<lambda>p. p \<bind> f) ` Y)"
       using chain by(rule chain_imageI)(auto intro!: monotoneI bind_spmf_mono' ord_spmf_reflI)
     let ?M = "count_space (set_spmf (lub_spmf Y))"
     have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ x. ennreal (spmf (lub_spmf Y) x) * ennreal (spmf (f x) i) \<partial>?M"
@@ -1595,16 +1595,16 @@ proof(cases "Y = {}")
 qed simp
 
 lemma map_lub_spmf:
-  "Complete_Partial_Order.chain (ord_spmf op =) Y
+  "Complete_Partial_Order.chain (ord_spmf (=)) Y
   \<Longrightarrow> map_spmf f (lub_spmf Y) = lub_spmf (map_spmf f ` Y)"
 unfolding map_spmf_conv_bind_spmf[abs_def] by(simp add: bind_lub_spmf o_def)
 
-lemma mcont_bind_spmf1: "mcont lub_spmf (ord_spmf op =) lub_spmf (ord_spmf op =) (\<lambda>y. bind_spmf y f)"
+lemma mcont_bind_spmf1: "mcont lub_spmf (ord_spmf (=)) lub_spmf (ord_spmf (=)) (\<lambda>y. bind_spmf y f)"
 using monotone_bind_spmf1 by(rule mcontI)(rule contI, simp add: bind_lub_spmf)
 
 lemma bind_lub_spmf2:
   assumes chain: "Complete_Partial_Order.chain ord Y"
-  and g: "\<And>y. monotone ord (ord_spmf op =) (g y)"
+  and g: "\<And>y. monotone ord (ord_spmf (=)) (g y)"
   shows "bind_spmf x (\<lambda>y. lub_spmf (g y ` Y)) = lub_spmf ((\<lambda>p. bind_spmf x (\<lambda>y. g y p)) ` Y)"
   (is "?lhs = ?rhs")
 proof(cases "Y = {}")
@@ -1612,11 +1612,11 @@ proof(cases "Y = {}")
   show ?thesis
   proof(rule spmf_eqI)
     fix i
-    have chain': "\<And>y. Complete_Partial_Order.chain (ord_spmf op =) (g y ` Y)"
+    have chain': "\<And>y. Complete_Partial_Order.chain (ord_spmf (=)) (g y ` Y)"
       using chain g[THEN monotoneD] by(rule chain_imageI)
-    have chain'': "Complete_Partial_Order.chain op \<le> ((\<lambda>p y. ennreal (spmf x y * spmf (g y p) i)) ` Y)"
+    have chain'': "Complete_Partial_Order.chain (\<le>) ((\<lambda>p y. ennreal (spmf x y * spmf (g y p) i)) ` Y)"
       using chain by(rule chain_imageI)(auto simp add: le_fun_def dest: ord_spmf_eq_leD monotoneD[OF g] intro!: mult_left_mono)
-    have chain''': "Complete_Partial_Order.chain (ord_spmf op =) ((\<lambda>p. bind_spmf x (\<lambda>y. g y p)) ` Y)"
+    have chain''': "Complete_Partial_Order.chain (ord_spmf (=)) ((\<lambda>p. bind_spmf x (\<lambda>y. g y p)) ` Y)"
       using chain by(rule chain_imageI)(rule monotone_bind_spmf2[OF g, THEN monotoneD])
 
     have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ y. (SUP p:Y. ennreal (spmf x y * spmf (g y p) i)) \<partial>count_space (set_spmf x)"
@@ -1633,18 +1633,18 @@ proof(cases "Y = {}")
 qed simp
 
 lemma mcont_bind_spmf [cont_intro]:
-  assumes f: "mcont luba orda lub_spmf (ord_spmf op =) f"
-  and g: "\<And>y. mcont luba orda lub_spmf (ord_spmf op =) (g y)"
-  shows "mcont luba orda lub_spmf (ord_spmf op =) (\<lambda>x. bind_spmf (f x) (\<lambda>y. g y x))"
+  assumes f: "mcont luba orda lub_spmf (ord_spmf (=)) f"
+  and g: "\<And>y. mcont luba orda lub_spmf (ord_spmf (=)) (g y)"
+  shows "mcont luba orda lub_spmf (ord_spmf (=)) (\<lambda>x. bind_spmf (f x) (\<lambda>y. g y x))"
 proof(rule spmf.mcont2mcont'[OF _ _ f])
   fix z
-  show "mcont lub_spmf (ord_spmf op =) lub_spmf (ord_spmf op =) (\<lambda>x. bind_spmf x (\<lambda>y. g y z))"
+  show "mcont lub_spmf (ord_spmf (=)) lub_spmf (ord_spmf (=)) (\<lambda>x. bind_spmf x (\<lambda>y. g y z))"
     by(rule mcont_bind_spmf1)
 next
   fix x
   let ?f = "\<lambda>z. bind_spmf x (\<lambda>y. g y z)"
-  have "monotone orda (ord_spmf op =) ?f" using mcont_mono[OF g] by(rule monotone_bind_spmf2)
-  moreover have "cont luba orda lub_spmf (ord_spmf op =) ?f"
+  have "monotone orda (ord_spmf (=)) ?f" using mcont_mono[OF g] by(rule monotone_bind_spmf2)
+  moreover have "cont luba orda lub_spmf (ord_spmf (=)) ?f"
   proof(rule contI)
     fix Y
     assume chain: "Complete_Partial_Order.chain orda Y" and Y: "Y \<noteq> {}"
@@ -1654,7 +1654,7 @@ next
       by(rule bind_lub_spmf2)(rule mcont_mono[OF g])
     finally show "bind_spmf x (\<lambda>y. g y (luba Y)) = \<dots>" .
   qed
-  ultimately show "mcont luba orda lub_spmf (ord_spmf op =) ?f" by(rule mcontI)
+  ultimately show "mcont luba orda lub_spmf (ord_spmf (=)) ?f" by(rule mcontI)
 qed
 
 lemma bind_pmf_mono [partial_function_mono]:
@@ -1665,34 +1665,34 @@ lemma map_spmf_mono [partial_function_mono]: "mono_spmf B \<Longrightarrow> mono
 unfolding map_spmf_conv_bind_spmf by(rule bind_spmf_mono) simp_all
 
 lemma mcont_map_spmf [cont_intro]:
-  "mcont luba orda lub_spmf (ord_spmf op =) g
-  \<Longrightarrow> mcont luba orda lub_spmf (ord_spmf op =) (\<lambda>x. map_spmf f (g x))"
+  "mcont luba orda lub_spmf (ord_spmf (=)) g
+  \<Longrightarrow> mcont luba orda lub_spmf (ord_spmf (=)) (\<lambda>x. map_spmf f (g x))"
 unfolding map_spmf_conv_bind_spmf by(rule mcont_bind_spmf) simp_all
 
-lemma monotone_set_spmf: "monotone (ord_spmf op =) op \<subseteq> set_spmf"
+lemma monotone_set_spmf: "monotone (ord_spmf (=)) (\<subseteq>) set_spmf"
 by(rule monotoneI)(rule ord_spmf_eqD_set_spmf)
 
-lemma cont_set_spmf: "cont lub_spmf (ord_spmf op =) Union op \<subseteq> set_spmf"
+lemma cont_set_spmf: "cont lub_spmf (ord_spmf (=)) Union (\<subseteq>) set_spmf"
 by(rule contI)(subst set_lub_spmf; simp)
 
 lemma mcont2mcont_set_spmf[THEN mcont2mcont, cont_intro]:
-  shows mcont_set_spmf: "mcont lub_spmf (ord_spmf op =) Union op \<subseteq> set_spmf"
+  shows mcont_set_spmf: "mcont lub_spmf (ord_spmf (=)) Union (\<subseteq>) set_spmf"
 by(rule mcontI monotone_set_spmf cont_set_spmf)+
 
-lemma monotone_spmf: "monotone (ord_spmf op =) op \<le> (\<lambda>p. spmf p x)"
+lemma monotone_spmf: "monotone (ord_spmf (=)) (\<le>) (\<lambda>p. spmf p x)"
 by(rule monotoneI)(simp add: ord_spmf_eq_leD)
 
-lemma cont_spmf: "cont lub_spmf (ord_spmf op =) Sup op \<le> (\<lambda>p. spmf p x)"
+lemma cont_spmf: "cont lub_spmf (ord_spmf (=)) Sup (\<le>) (\<lambda>p. spmf p x)"
 by(rule contI)(simp add: spmf_lub_spmf)
 
-lemma mcont_spmf: "mcont lub_spmf (ord_spmf op =) Sup op \<le> (\<lambda>p. spmf p x)"
+lemma mcont_spmf: "mcont lub_spmf (ord_spmf (=)) Sup (\<le>) (\<lambda>p. spmf p x)"
 by(rule mcontI monotone_spmf cont_spmf)+
 
-lemma cont_ennreal_spmf: "cont lub_spmf (ord_spmf op =) Sup op \<le> (\<lambda>p. ennreal (spmf p x))"
+lemma cont_ennreal_spmf: "cont lub_spmf (ord_spmf (=)) Sup (\<le>) (\<lambda>p. ennreal (spmf p x))"
 by(rule contI)(simp add: ennreal_spmf_lub_spmf)
 
 lemma mcont2mcont_ennreal_spmf [THEN mcont2mcont, cont_intro]:
-  shows mcont_ennreal_spmf: "mcont lub_spmf (ord_spmf op =) Sup op \<le> (\<lambda>p. ennreal (spmf p x))"
+  shows mcont_ennreal_spmf: "mcont lub_spmf (ord_spmf (=)) Sup (\<le>) (\<lambda>p. ennreal (spmf p x))"
 by(rule mcontI mono2mono_ennreal monotone_spmf cont_ennreal_spmf)+
 
 lemma nn_integral_map_spmf [simp]: "nn_integral (measure_spmf (map_spmf f p)) g = nn_integral (measure_spmf p) (g \<circ> f)"
@@ -1756,7 +1756,7 @@ proof(rule rel_pmf_measureI)
 qed
 
 lemma admissible_rel_spmf:
-  "ccpo.admissible (prod_lub lub_spmf lub_spmf) (rel_prod (ord_spmf op =) (ord_spmf op =)) (case_prod (rel_spmf R))"
+  "ccpo.admissible (prod_lub lub_spmf lub_spmf) (rel_prod (ord_spmf (=)) (ord_spmf (=))) (case_prod (rel_spmf R))"
   (is "ccpo.admissible ?lub ?ord ?P")
 proof(rule ccpo.admissibleI)
   fix Y
@@ -1764,8 +1764,8 @@ proof(rule ccpo.admissibleI)
     and Y: "Y \<noteq> {}"
     and R: "\<forall>(p, q) \<in> Y. rel_spmf R p q"
   from R have R: "\<And>p q. (p, q) \<in> Y \<Longrightarrow> rel_spmf R p q" by auto
-  have chain1: "Complete_Partial_Order.chain (ord_spmf op =) (fst ` Y)"
-    and chain2: "Complete_Partial_Order.chain (ord_spmf op =) (snd ` Y)"
+  have chain1: "Complete_Partial_Order.chain (ord_spmf (=)) (fst ` Y)"
+    and chain2: "Complete_Partial_Order.chain (ord_spmf (=)) (snd ` Y)"
     using chain by(rule chain_imageI; clarsimp)+
   from Y have Y1: "fst ` Y \<noteq> {}" and Y2: "snd ` Y \<noteq> {}" by auto
 
@@ -1787,7 +1787,7 @@ proof(rule ccpo.admissibleI)
 qed
 
 lemma admissible_rel_spmf_mcont [cont_intro]:
-  "\<lbrakk> mcont lub ord lub_spmf (ord_spmf op =) f; mcont lub ord lub_spmf (ord_spmf op =) g \<rbrakk>
+  "\<lbrakk> mcont lub ord lub_spmf (ord_spmf (=)) f; mcont lub ord lub_spmf (ord_spmf (=)) g \<rbrakk>
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. rel_spmf R (f x) (g x))"
 by(rule admissible_subst[OF admissible_rel_spmf, where f="\<lambda>x. (f x, g x)", simplified])(rule mcont_Pair)
 
@@ -1795,10 +1795,10 @@ context includes lifting_syntax
 begin
 
 lemma fixp_spmf_parametric':
-  assumes f: "\<And>x. monotone (ord_spmf op =) (ord_spmf op =) F"
-  and g: "\<And>x. monotone (ord_spmf op =) (ord_spmf op =) G"
+  assumes f: "\<And>x. monotone (ord_spmf (=)) (ord_spmf (=)) F"
+  and g: "\<And>x. monotone (ord_spmf (=)) (ord_spmf (=)) G"
   and param: "(rel_spmf R ===> rel_spmf R) F G"
-  shows "(rel_spmf R) (ccpo.fixp lub_spmf (ord_spmf op =) F) (ccpo.fixp lub_spmf (ord_spmf op =) G)"
+  shows "(rel_spmf R) (ccpo.fixp lub_spmf (ord_spmf (=)) F) (ccpo.fixp lub_spmf (ord_spmf (=)) G)"
 by(rule parallel_fixp_induct[OF ccpo_spmf ccpo_spmf _ f g])(auto intro: param[THEN rel_funD])
 
 lemma fixp_spmf_parametric:
@@ -1808,7 +1808,7 @@ lemma fixp_spmf_parametric:
   shows "(A ===> rel_spmf R) (spmf.fixp_fun F) (spmf.fixp_fun G)"
 using f g
 proof(rule parallel_fixp_induct_1_1[OF partial_function_definitions_spmf partial_function_definitions_spmf _ _ reflexive reflexive, where P="(A ===> rel_spmf R)"])
-  show "ccpo.admissible (prod_lub (fun_lub lub_spmf) (fun_lub lub_spmf)) (rel_prod (fun_ord (ord_spmf op =)) (fun_ord (ord_spmf op =))) (\<lambda>x. (A ===> rel_spmf R) (fst x) (snd x))"
+  show "ccpo.admissible (prod_lub (fun_lub lub_spmf) (fun_lub lub_spmf)) (rel_prod (fun_ord (ord_spmf (=))) (fun_ord (ord_spmf (=)))) (\<lambda>x. (A ===> rel_spmf R) (fst x) (snd x))"
     unfolding rel_fun_def
     apply(rule admissible_all admissible_imp admissible_rel_spmf_mcont)+
     apply(rule spmf.mcont2mcont[OF mcont_call])
@@ -2075,9 +2075,9 @@ qed
 abbreviation coin_spmf :: "bool spmf"
 where "coin_spmf \<equiv> spmf_of_set UNIV"
 
-lemma map_eq_const_coin_spmf: "map_spmf (op = c) coin_spmf = coin_spmf"
+lemma map_eq_const_coin_spmf: "map_spmf ((=) c) coin_spmf = coin_spmf"
 proof -
-  have "inj (op \<longleftrightarrow> c)" "range (op \<longleftrightarrow> c) = UNIV" by(auto intro: inj_onI)
+  have "inj ((\<longleftrightarrow>) c)" "range ((\<longleftrightarrow>) c) = UNIV" by(auto intro: inj_onI)
   then show ?thesis by simp
 qed
 
@@ -2714,11 +2714,11 @@ lemma assumes "rel_spmf (\<lambda>x y. bad1 x = bad2 y \<and> (\<not> bad2 y \<l
   and fundamental_lemma: "\<bar>measure (measure_spmf p) {x. A x} - measure (measure_spmf q) {y. B y}\<bar> \<le>
     measure (measure_spmf p) {x. bad1 x}" (is ?fundamental)
 proof -
-  have good: "rel_fun ?A op = (\<lambda>x. A x \<and> \<not> bad1 x) (\<lambda>y. B y \<and> \<not> bad2 y)" by(auto simp add: rel_fun_def)
+  have good: "rel_fun ?A (=) (\<lambda>x. A x \<and> \<not> bad1 x) (\<lambda>y. B y \<and> \<not> bad2 y)" by(auto simp add: rel_fun_def)
   from assms have 1: "measure (measure_spmf p) {x. A x \<and> \<not> bad1 x} = measure (measure_spmf q) {y. B y \<and> \<not> bad2 y}"
     by(rule measure_spmf_parametric[THEN rel_funD, THEN rel_funD])(rule Collect_parametric[THEN rel_funD, OF good])
 
-  have bad: "rel_fun ?A op = bad1 bad2" by(simp add: rel_fun_def)
+  have bad: "rel_fun ?A (=) bad1 bad2" by(simp add: rel_fun_def)
   show 2: ?bad using assms
     by(rule measure_spmf_parametric[THEN rel_funD, THEN rel_funD])(rule Collect_parametric[THEN rel_funD, OF bad])
 

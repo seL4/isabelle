@@ -152,11 +152,11 @@ lemma succs_shift:
   by (fastforce simp: succs_def isuccs_def split: instr.split)
   
 lemma inj_op_plus [simp]:
-  "inj (op + (i::int))"
+  "inj ((+) (i::int))"
   by (metis add_minus_cancel inj_on_inverseI)
 
 lemma succs_set_shift [simp]:
-  "op + i ` succs xs 0 = succs xs i"
+  "(+) i ` succs xs 0 = succs xs i"
   by (force simp: succs_shift [where n=i, symmetric] intro: set_eqI)
 
 lemma succs_append [simp]:
@@ -165,7 +165,7 @@ lemma succs_append [simp]:
 
 
 lemma exits_append [simp]:
-  "exits (xs @ ys) = exits xs \<union> (op + (size xs)) ` exits ys - 
+  "exits (xs @ ys) = exits xs \<union> ((+) (size xs)) ` exits ys - 
                      {0..<size xs + size ys}" 
   by (auto simp: exits_def image_set_diff)
   
@@ -174,7 +174,7 @@ lemma exits_single:
   by (auto simp: exits_def succs_def)
   
 lemma exits_Cons:
-  "exits (x # xs) = (isuccs x 0 - {0}) \<union> (op + 1) ` exits xs - 
+  "exits (x # xs) = (isuccs x 0 - {0}) \<union> ((+) 1) ` exits xs - 
                      {0..<1 + size xs}" 
   using exits_append [of "[x]" xs]
   by (simp add: exits_single)

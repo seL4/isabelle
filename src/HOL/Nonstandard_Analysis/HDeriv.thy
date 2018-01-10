@@ -303,7 +303,7 @@ text \<open>Differentiation of natural number powers.\<close>
 lemma NSDERIV_Id [simp]: "NSDERIV (\<lambda>x. x) x :> 1"
   by (simp add: NSDERIV_NSLIM_iff NSLIM_def del: divide_self_if)
 
-lemma NSDERIV_cmult_Id [simp]: "NSDERIV (op * c) x :> c"
+lemma NSDERIV_cmult_Id [simp]: "NSDERIV (( * ) c) x :> c"
   using NSDERIV_Id [THEN NSDERIV_cmult] by simp
 
 lemma NSDERIV_inverse:

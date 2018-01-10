@@ -56,7 +56,7 @@ fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) alias_params s orelse
   AList.defined (op =) negated_alias_params s orelse
-  member (op =) ["atoms", "card", "eval", "expect"] s orelse
+  member (=) ["atoms", "card", "eval", "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
     ["atoms", "card", "dont_whack", "mono", "non_mono", "non_wf", "wf", "whack"];
 

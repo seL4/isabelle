@@ -62,9 +62,9 @@ lemma measurable_stream_space2:
 proof (rule measurable_vimage_algebra2)
   show "f \<in> space N \<rightarrow> streams (space M)"
     using f_snth[THEN measurable_space] by (auto simp add: streams_iff_sset sset_range)
-  show "(\<lambda>x. op !! (f x)) \<in> measurable N (Pi\<^sub>M UNIV (\<lambda>i. M))"
+  show "(\<lambda>x. (!!) (f x)) \<in> measurable N (Pi\<^sub>M UNIV (\<lambda>i. M))"
   proof (rule measurable_PiM_single')
-    show "(\<lambda>x. op !! (f x)) \<in> space N \<rightarrow> UNIV \<rightarrow>\<^sub>E space M"
+    show "(\<lambda>x. (!!) (f x)) \<in> space N \<rightarrow> UNIV \<rightarrow>\<^sub>E space M"
       using f_snth[THEN measurable_space] by auto
   qed (rule f_snth)
 qed
@@ -305,7 +305,7 @@ lemma sets_restrict_stream_space:
 
 primrec sstart :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a stream set" where
   "sstart S [] = streams S"
-| [simp del]: "sstart S (x # xs) = op ## x ` sstart S xs"
+| [simp del]: "sstart S (x # xs) = (##) x ` sstart S xs"
 
 lemma in_sstart[simp]: "s \<in> sstart S (x # xs) \<longleftrightarrow> shd s = x \<and> stl s \<in> sstart S xs"
   by (cases s) (auto simp: sstart.simps(2))
@@ -391,7 +391,7 @@ proof -
       show ?case
       proof cases
         assume "x = y"
-        then have "sstart S (x # xs) \<inter> sstart S (y # ys) = op ## x ` (sstart S xs \<inter> sstart S ys)"
+        then have "sstart S (x # xs) \<inter> sstart S (y # ys) = (##) x ` (sstart S xs \<inter> sstart S ys)"
           by (auto simp: image_iff intro!: stream.collapse[symmetric])
         also have "\<dots> \<in> sstart S ` lists S \<union> {{}}"
           using 4 by (auto simp: sstart.simps(2)[symmetric] del: in_listsD)

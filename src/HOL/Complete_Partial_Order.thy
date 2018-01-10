@@ -51,7 +51,7 @@ lemma chainE:
 lemma chain_empty: "chain ord {}"
   by (simp add: chain_def)
 
-lemma chain_equality: "chain op = A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x = y)"
+lemma chain_equality: "chain (=) A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. x = y)"
   by (auto simp add: chain_def)
 
 lemma chain_subset: "chain ord A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> chain ord B"
@@ -72,11 +72,11 @@ text \<open>
 \<close>
 
 class ccpo = order + Sup +
-  assumes ccpo_Sup_upper: "chain (op \<le>) A \<Longrightarrow> x \<in> A \<Longrightarrow> x \<le> Sup A"
-  assumes ccpo_Sup_least: "chain (op \<le>) A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup A \<le> z"
+  assumes ccpo_Sup_upper: "chain (\<le>) A \<Longrightarrow> x \<in> A \<Longrightarrow> x \<le> Sup A"
+  assumes ccpo_Sup_least: "chain (\<le>) A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup A \<le> z"
 begin
 
-lemma chain_singleton: "Complete_Partial_Order.chain op \<le> {x}"
+lemma chain_singleton: "Complete_Partial_Order.chain (\<le>) {x}"
   by (rule chainI) simp
 
 lemma ccpo_Sup_singleton [simp]: "\<Squnion>{x} = x"
@@ -92,17 +92,17 @@ inductive_set iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set"
   for f :: "'a \<Rightarrow> 'a"
   where
     step: "x \<in> iterates f \<Longrightarrow> f x \<in> iterates f"
-  | Sup: "chain (op \<le>) M \<Longrightarrow> \<forall>x\<in>M. x \<in> iterates f \<Longrightarrow> Sup M \<in> iterates f"
+  | Sup: "chain (\<le>) M \<Longrightarrow> \<forall>x\<in>M. x \<in> iterates f \<Longrightarrow> Sup M \<in> iterates f"
 
 end
 
-lemma iterates_le_f: "x \<in> iterates f \<Longrightarrow> monotone (op \<le>) (op \<le>) f \<Longrightarrow> x \<le> f x"
+lemma iterates_le_f: "x \<in> iterates f \<Longrightarrow> monotone (\<le>) (\<le>) f \<Longrightarrow> x \<le> f x"
   by (induct x rule: iterates.induct)
     (force dest: monotoneD intro!: ccpo_Sup_upper ccpo_Sup_least)+
 
 lemma chain_iterates:
-  assumes f: "monotone (op \<le>) (op \<le>) f"
-  shows "chain (op \<le>) (iterates f)" (is "chain _ ?C")
+  assumes f: "monotone (\<le>) (\<le>) f"
+  shows "chain (\<le>) (iterates f)" (is "chain _ ?C")
 proof (rule chainI)
   fix x y
   assume "x \<in> ?C" "y \<in> ?C"
@@ -117,7 +117,7 @@ proof (rule chainI)
       with IH f show ?case by (auto dest: monotoneD)
     next
       case (Sup M)
-      then have chM: "chain (op \<le>) M"
+      then have chM: "chain (\<le>) M"
         and IH': "\<And>z. z \<in> M \<Longrightarrow> f x \<le> z \<or> z \<le> f x" by auto
       show "f x \<le> Sup M \<or> Sup M \<le> f x"
       proof (cases "\<exists>z\<in>M. f x \<le> z")
@@ -164,13 +164,13 @@ definition fixp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
   where "fixp f = Sup (iterates f)"
 
 lemma iterates_fixp:
-  assumes f: "monotone (op \<le>) (op \<le>) f"
+  assumes f: "monotone (\<le>) (\<le>) f"
   shows "fixp f \<in> iterates f"
   unfolding fixp_def
   by (simp add: iterates.Sup chain_iterates f)
 
 lemma fixp_unfold:
-  assumes f: "monotone (op \<le>) (op \<le>) f"
+  assumes f: "monotone (\<le>) (\<le>) f"
   shows "fixp f = f (fixp f)"
 proof (rule antisym)
   show "fixp f \<le> f (fixp f)"
@@ -182,7 +182,7 @@ proof (rule antisym)
 qed
 
 lemma fixp_lowerbound:
-  assumes f: "monotone (op \<le>) (op \<le>) f"
+  assumes f: "monotone (\<le>) (\<le>) f"
     and z: "f z \<le> z"
   shows "fixp f \<le> z"
   unfolding fixp_def
@@ -228,8 +228,8 @@ lemma admissibleD:
 setup \<open>Sign.map_naming Name_Space.parent_path\<close>
 
 lemma (in ccpo) fixp_induct:
-  assumes adm: "ccpo.admissible Sup (op \<le>) P"
-  assumes mono: "monotone (op \<le>) (op \<le>) f"
+  assumes adm: "ccpo.admissible Sup (\<le>) P"
+  assumes mono: "monotone (\<le>) (\<le>) f"
   assumes bot: "P (Sup {})"
   assumes step: "\<And>x. P x \<Longrightarrow> P (f x)"
   shows "P (fixp f)"
@@ -284,12 +284,12 @@ begin
 
 lemma admissible_disj:
   fixes P Q :: "'a \<Rightarrow> bool"
-  assumes P: "ccpo.admissible Sup (op \<le>) (\<lambda>x. P x)"
-  assumes Q: "ccpo.admissible Sup (op \<le>) (\<lambda>x. Q x)"
-  shows "ccpo.admissible Sup (op \<le>) (\<lambda>x. P x \<or> Q x)"
+  assumes P: "ccpo.admissible Sup (\<le>) (\<lambda>x. P x)"
+  assumes Q: "ccpo.admissible Sup (\<le>) (\<lambda>x. Q x)"
+  shows "ccpo.admissible Sup (\<le>) (\<lambda>x. P x \<or> Q x)"
 proof (rule ccpo.admissibleI)
   fix A :: "'a set"
-  assume chain: "chain (op \<le>) A"
+  assume chain: "chain (\<le>) A"
   assume A: "A \<noteq> {}" and P_Q: "\<forall>x\<in>A. P x \<or> Q x"
   have "(\<exists>x\<in>A. P x) \<and> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y) \<or> (\<exists>x\<in>A. Q x) \<and> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> Q y)"
     (is "?P \<or> ?Q" is "?P1 \<and> ?P2 \<or> _")
@@ -330,7 +330,7 @@ proof (rule ccpo.admissibleI)
   moreover
   have "Sup A = Sup {x \<in> A. P x}" if "\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y" for P
   proof (rule antisym)
-    have chain_P: "chain (op \<le>) {x \<in> A. P x}"
+    have chain_P: "chain (\<le>) {x \<in> A. P x}"
       by (rule chain_compr [OF chain])
     show "Sup A \<le> Sup {x \<in> A. P x}"
       apply (rule ccpo_Sup_least [OF chain])
@@ -368,7 +368,7 @@ lemma lfp_eq_fixp:
   assumes mono: "mono f"
   shows "lfp f = fixp f"
 proof (rule antisym)
-  from mono have f': "monotone (op \<le>) (op \<le>) f"
+  from mono have f': "monotone (\<le>) (\<le>) f"
     unfolding mono_def monotone_def .
   show "lfp f \<le> fixp f"
     by (rule lfp_lowerbound, subst fixp_unfold [OF f'], rule order_refl)

@@ -27,7 +27,7 @@ lemma inject_refine: "g (f x) = x \<Longrightarrow> g (f y) = y \<Longrightarrow
 lemma convol_apply: "BNF_Def.convol f g x = (f x, g x)"
   unfolding convol_def ..
 
-lemma Grp_UNIV_id: "BNF_Def.Grp UNIV id = (op =)"
+lemma Grp_UNIV_id: "BNF_Def.Grp UNIV id = (=)"
   unfolding BNF_Def.Grp_def by auto
 
 lemma sum_comp_cases:
@@ -162,9 +162,9 @@ lemma gen_cong_rho:
   "\<rho> = eval \<circ> f \<Longrightarrow> rel (gen_cong R) (f x) (f y) \<Longrightarrow> gen_cong R (\<rho> x) (\<rho> y)"
   by (simp add: gen_cong_eval)
 lemma coinduction:
-  assumes coind: "\<forall>R. R \<le> retr R \<longrightarrow> R \<le> op ="
+  assumes coind: "\<forall>R. R \<le> retr R \<longrightarrow> R \<le> (=)"
   assumes cih: "R \<le> retr (gen_cong R)"
-  shows "R \<le> op ="
+  shows "R \<le> (=)"
   apply (rule order_trans[OF leq_gen_cong mp[OF spec[OF coind]]])
   apply (rule self_bounded_weaken_left[OF gen_cong_minimal])
    apply (rule inf_greatest[OF leq_gen_cong cih])

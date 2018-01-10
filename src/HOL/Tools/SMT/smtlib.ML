@@ -67,7 +67,7 @@ fun read_bin l cs = read_raw is_bin l cs |>> Num o fst o read_radix_int 2
 
 (* hex numbers *)
 
-val is_hex = member (op =) (raw_explode "0123456789abcdefABCDEF")
+val is_hex = member (=) (raw_explode "0123456789abcdefABCDEF")
 
 fun within c1 c2 c = (ord c1 <= ord c andalso ord c <= ord c2)
 

@@ -646,8 +646,8 @@ open Code_Thingol;
 
 val imp_program =
   let
-    val is_bind = curry (op =) @{const_name bind};
-    val is_return = curry (op =) @{const_name return};
+    val is_bind = curry (=) @{const_name bind};
+    val is_return = curry (=) @{const_name return};
     val dummy_name = "";
     val dummy_case_term = IVar NONE;
     (*assumption: dummy values are not relevant for serialization*)

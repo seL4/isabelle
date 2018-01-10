@@ -980,7 +980,7 @@ proof -
       by (intro sum.mono_neutral_cong_left) (auto intro: X)
     also have "\<dots> = (\<Sum>z\<in>{z. X x z \<noteq> 0}. X x z *\<^sub>R z) + (\<Sum>z\<in>{z. X y z \<noteq> 0}. X y z *\<^sub>R z)"
       by (auto simp add: scaleR_add_left sum.distrib
-               intro!: arg_cong2[where f="op +"]  sum.mono_neutral_cong_right X)
+               intro!: arg_cong2[where f="(+)"]  sum.mono_neutral_cong_right X)
     also have "\<dots> = x + y"
       by (simp add: X(3)[symmetric])
     also have "\<dots> = (\<Sum>z | X (x + y) z \<noteq> 0. X (x + y) z *\<^sub>R z)"
@@ -1024,7 +1024,7 @@ proof -
     show "g (x + y) = g x + g y"
       unfolding g_def X_add *
       by (auto simp add: scaleR_add_left sum.distrib
-               intro!: arg_cong2[where f="op +"]  sum.mono_neutral_cong_right X)
+               intro!: arg_cong2[where f="(+)"]  sum.mono_neutral_cong_right X)
   next
     show "g (r *\<^sub>R x) = r *\<^sub>R g x" for r x
       by (auto simp add: g_def X_cmult scaleR_sum_right intro!: sum.mono_neutral_cong_left X)
@@ -1398,7 +1398,7 @@ lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> x \<bullet> x = 1"
   by (simp add: norm_eq_sqrt_inner)
 
 
-text\<open>Equality of vectors in terms of @{term "op \<bullet>"} products.\<close>
+text\<open>Equality of vectors in terms of @{term "(\<bullet>)"} products.\<close>
 
 lemma linear_componentwise:
   fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_inner"

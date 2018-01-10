@@ -799,7 +799,7 @@ apply clarify
 done
 
 (* unused *)
-lemma ax_nochange_lemma: "\<lbrakk>P Y s; All (op = w)\<rbrakk> \<Longrightarrow> P w s"
+lemma ax_nochange_lemma: "\<lbrakk>P Y s; All ((=) w)\<rbrakk> \<Longrightarrow> P w s"
 apply auto
 done
 

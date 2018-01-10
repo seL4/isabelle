@@ -51,7 +51,7 @@ abbreviation reflcl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
   where "r\<^sup>= \<equiv> r \<union> Id"
 
 abbreviation reflclp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(_\<^sup>=\<^sup>=)" [1000] 1000)
-  where "r\<^sup>=\<^sup>= \<equiv> sup r op ="
+  where "r\<^sup>=\<^sup>= \<equiv> sup r (=)"
 
 notation (ASCII)
   rtrancl  ("(_^*)" [1000] 999) and
@@ -79,7 +79,7 @@ lemma reflclp_idemp [simp]: "(P\<^sup>=\<^sup>=)\<^sup>=\<^sup>= = P\<^sup>=\<^s
 
 subsection \<open>Reflexive-transitive closure\<close>
 
-lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
+lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) (=)) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
   by (auto simp add: fun_eq_iff)
 
 lemma r_into_rtrancl [intro]: "\<And>p. p \<in> r \<Longrightarrow> p \<in> r\<^sup>*"
@@ -223,7 +223,7 @@ lemma rtrancl_r_diff_Id: "(r - Id)\<^sup>* = r\<^sup>*"
   apply blast
   done
 
-lemma rtranclp_r_diff_Id: "(inf r op \<noteq>)\<^sup>*\<^sup>* = r\<^sup>*\<^sup>*"
+lemma rtranclp_r_diff_Id: "(inf r (\<noteq>))\<^sup>*\<^sup>* = r\<^sup>*\<^sup>*"
   apply (rule sym)
   apply (rule rtranclp_subset)
    apply blast+

@@ -66,7 +66,7 @@ fun invar_btree :: "'a::linorder tree \<Rightarrow> bool" where
 
 definition invar_bheap :: "'a::linorder heap \<Rightarrow> bool" where
 "invar_bheap ts
-  \<longleftrightarrow> (\<forall>t\<in>set ts. invar_btree t) \<and> (sorted_wrt (op <) (map rank ts))"
+  \<longleftrightarrow> (\<forall>t\<in>set ts. invar_btree t) \<and> (sorted_wrt (<) (map rank ts))"
 
 text \<open>Ordering (heap) invariant\<close>
 fun invar_otree :: "'a::linorder tree \<Rightarrow> bool" where
@@ -390,7 +390,7 @@ text \<open>Last step of functional correctness proof: combine all the above lem
 to show that binomial heaps satisfy the specification of priority queues with merge.\<close>
 
 interpretation binheap: Priority_Queue_Merge
-  where empty = "[]" and is_empty = "op = []" and insert = insert
+  where empty = "[]" and is_empty = "(=) []" and insert = insert
   and get_min = get_min and del_min = del_min and merge = merge
   and invar = invar and mset = mset_heap
 proof (unfold_locales, goal_cases)
@@ -453,14 +453,14 @@ lemma size_mset_bheap:
   shows "2^length ts \<le> size (mset_heap ts) + 1"
 proof -
   from \<open>invar_bheap ts\<close> have 
-    ASC: "sorted_wrt (op <) (map rank ts)" and
+    ASC: "sorted_wrt (<) (map rank ts)" and
     TINV: "\<forall>t\<in>set ts. invar_btree t"
     unfolding invar_bheap_def by auto
       
   have "(2::nat)^length ts = (\<Sum>i\<in>{0..<length ts}. 2^i) + 1" 
     by (simp add: sum_power2)
   also have "\<dots> \<le> (\<Sum>t\<leftarrow>ts. 2^rank t) + 1"
-    using sorted_wrt_less_sum_mono_lowerbound[OF _ ASC, of "op ^ (2::nat)"]
+    using sorted_wrt_less_sum_mono_lowerbound[OF _ ASC, of "(^) (2::nat)"]
     using power_increasing[where a="2::nat"]  
     by (auto simp: o_def)
   also have "\<dots> = (\<Sum>t\<leftarrow>ts. size (mset_tree t)) + 1" using TINV   

@@ -163,7 +163,7 @@ lemma measurable_pair_iff:
 
 lemma measurable_split_conv:
   "(\<lambda>(x, y). f x y) \<in> measurable A B \<longleftrightarrow> (\<lambda>x. f (fst x) (snd x)) \<in> measurable A B"
-  by (intro arg_cong2[where f="op \<in>"]) auto
+  by (intro arg_cong2[where f="(\<in>)"]) auto
 
 lemma measurable_pair_swap': "(\<lambda>(x,y). (y, x)) \<in> measurable (M1 \<Otimes>\<^sub>M M2) (M2 \<Otimes>\<^sub>M M1)"
   by (auto intro!: measurable_Pair simp: measurable_split_conv)

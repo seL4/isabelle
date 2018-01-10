@@ -299,7 +299,7 @@ instance
     (auto simp add: less_eq_bit0_def less_bit0_def less_eq_bit1_def less_bit1_def Rep_bit0_inject Rep_bit1_inject)
 end
 
-lemma (in preorder) tranclp_less: "op < \<^sup>+\<^sup>+ = op <"
+lemma (in preorder) tranclp_less: "(<) \<^sup>+\<^sup>+ = (<)"
 by(auto simp add: fun_eq_iff intro: less_trans elim: tranclp.induct)
 
 instance bit0 and bit1 :: (finite) wellorder
@@ -324,7 +324,7 @@ code_datatype Num0
 
 instantiation num0 :: equal begin
 definition equal_num0 :: "num0 \<Rightarrow> num0 \<Rightarrow> bool"
-  where "equal_num0 = op ="
+  where "equal_num0 = (=)"
 instance by intro_classes (simp add: equal_num0_def)
 end
 
@@ -336,7 +336,7 @@ code_datatype "1 :: num1"
 
 instantiation num1 :: equal begin
 definition equal_num1 :: "num1 \<Rightarrow> num1 \<Rightarrow> bool"
-  where "equal_num1 = op ="
+  where "equal_num1 = (=)"
 instance by intro_classes (simp add: equal_num1_def)
 end
 

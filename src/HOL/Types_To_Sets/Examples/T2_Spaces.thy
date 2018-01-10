@@ -32,7 +32,7 @@ definition topological_space_on_with :: "'a set \<Rightarrow> ('a set \<Rightarr
 lemma topological_space_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total T" "bi_unique T"
-  shows "((rel_set T ===> op=) ===> op=) (topological_space_on_with (Collect (Domainp T)))
+  shows "((rel_set T ===> (=)) ===> (=)) (topological_space_on_with (Collect (Domainp T)))
     class.topological_space"
   unfolding topological_space_on_with_def[abs_def] class.topological_space_def[abs_def]
   apply transfer_prover_start
@@ -47,7 +47,7 @@ definition t2_space_on_with :: "'a set \<Rightarrow> ('a set \<Rightarrow> bool)
 lemma t2_space_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total T" "bi_unique T"
-  shows "((rel_set T ===> op=) ===> op=) (t2_space_on_with (Collect (Domainp T))) class.t2_space"
+  shows "((rel_set T ===> (=)) ===> (=)) (t2_space_on_with (Collect (Domainp T))) class.t2_space"
   unfolding t2_space_on_with_def[abs_def] class.t2_space_def[abs_def]
     class.t2_space_axioms_def[abs_def]
   apply transfer_prover_start
@@ -67,7 +67,7 @@ definition closed_on_with :: "'a set \<Rightarrow> ('a set \<Rightarrow> bool) \
 lemma closed_with_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total T" "bi_unique T"
-  shows "((rel_set T ===> op=) ===> rel_set T===> op=) (closed_on_with (Collect (Domainp T)))
+  shows "((rel_set T ===> (=)) ===> rel_set T===> (=)) (closed_on_with (Collect (Domainp T)))
     closed_with"
   unfolding closed_with_def closed_on_with_def by transfer_prover
 
@@ -89,7 +89,7 @@ lemma compact_on_with_subset_trans: "(\<forall>C\<subseteq>Pow A. (\<forall>c\<i
 lemma compact_with_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total T" "bi_unique T"
-  shows "((rel_set T ===> op=) ===> rel_set T===> op=) (compact_on_with (Collect (Domainp T)))
+  shows "((rel_set T ===> (=)) ===> rel_set T===> (=)) (compact_on_with (Collect (Domainp T)))
     compact_with"
   unfolding compact_with_def compact_on_with_def
   apply transfer_prover_start

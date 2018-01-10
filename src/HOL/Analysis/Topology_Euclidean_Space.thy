@@ -1141,7 +1141,7 @@ lemma cball_diff_eq_sphere: "cball a r - ball a r =  sphere a r"
 
 lemma image_add_ball [simp]:
   fixes a :: "'a::real_normed_vector"
-  shows "op + b ` ball a r = ball (a+b) r"
+  shows "(+) b ` ball a r = ball (a+b) r"
 apply (intro equalityI subsetI)
 apply (force simp: dist_norm)
 apply (rule_tac x="x-b" in image_eqI)
@@ -1150,7 +1150,7 @@ done
 
 lemma image_add_cball [simp]:
   fixes a :: "'a::real_normed_vector"
-  shows "op + b ` cball a r = cball (a+b) r"
+  shows "(+) b ` cball a r = cball (a+b) r"
 apply (intro equalityI subsetI)
 apply (force simp: dist_norm)
 apply (rule_tac x="x-b" in image_eqI)
@@ -5565,9 +5565,9 @@ text \<open>This gives a simple derivation of limit component bounds.\<close>
 
 lemma open_box[intro]: "open (box a b)"
 proof -
-  have "open (\<Inter>i\<in>Basis. (op \<bullet> i) -` {a \<bullet> i <..< b \<bullet> i})"
+  have "open (\<Inter>i\<in>Basis. ((\<bullet>) i) -` {a \<bullet> i <..< b \<bullet> i})"
     by (auto intro!: continuous_open_vimage continuous_inner continuous_ident continuous_const)
-  also have "(\<Inter>i\<in>Basis. (op \<bullet> i) -` {a \<bullet> i <..< b \<bullet> i}) = box a b"
+  also have "(\<Inter>i\<in>Basis. ((\<bullet>) i) -` {a \<bullet> i <..< b \<bullet> i}) = box a b"
     by (auto simp: box_def inner_commute)
   finally show ?thesis .
 qed

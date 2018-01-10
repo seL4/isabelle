@@ -266,7 +266,7 @@ fun splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 function shuffle where
   "shuffle [] ys = {ys}"
 | "shuffle xs [] = {xs}"
-| "shuffle (x # xs) (y # ys) = op # x ` shuffle xs (y # ys) \<union> op # y ` shuffle (x # xs) ys"
+| "shuffle (x # xs) (y # ys) = (#) x ` shuffle xs (y # ys) \<union> (#) y ` shuffle (x # xs) ys"
   by pat_completeness simp_all
 termination by lexicographic_order
 
@@ -815,7 +815,7 @@ by(induction xs rule: induct_list012) auto
 lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
   by (auto intro!: inj_onI)
 
-lemma inj_on_Cons1 [simp]: "inj_on (op # x) A"
+lemma inj_on_Cons1 [simp]: "inj_on ((#) x) A"
 by(simp add: inj_on_def)
 
 subsubsection \<open>@{const length}\<close>
@@ -937,8 +937,8 @@ fun list_neq ctxt ct =
           (K (simp_tac (put_simpset ss ctxt) 1));
       in SOME (thm RS @{thm neq_if_length_neq}) end
   in
-    if m < n andalso submultiset (op aconv) (ls,rs) orelse
-       n < m andalso submultiset (op aconv) (rs,ls)
+    if m < n andalso submultiset (aconv) (ls,rs) orelse
+       n < m andalso submultiset (aconv) (rs,ls)
     then prove_neq() else NONE
   end;
 in K list_neq end;
@@ -2790,7 +2790,7 @@ apply (case_tac ys, auto)
 done
 
 lemma list_all2_eq:
-  "xs = ys \<longleftrightarrow> list_all2 (op =) xs ys"
+  "xs = ys \<longleftrightarrow> list_all2 (=) xs ys"
 by (induct xs ys rule: list_induct2') auto
 
 lemma list_eq_iff_zip_eq:
@@ -2802,14 +2802,14 @@ by(auto simp add: list_all2_conv_all_nth set_conv_nth)
 
 lemma zip_assoc:
   "zip xs (zip ys zs) = map (\<lambda>((x, y), z). (x, y, z)) (zip (zip xs ys) zs)"
-by(rule list_all2_all_nthI[where P="op =", unfolded list.rel_eq]) simp_all
+by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
 
 lemma zip_commute: "zip xs ys = map (\<lambda>(x, y). (y, x)) (zip ys xs)"
-by(rule list_all2_all_nthI[where P="op =", unfolded list.rel_eq]) simp_all
+by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
 
 lemma zip_left_commute:
   "zip xs (zip ys zs) = map (\<lambda>(y, (x, z)). (x, y, z)) (zip ys (zip xs zs))"
-by(rule list_all2_all_nthI[where P="op =", unfolded list.rel_eq]) simp_all
+by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
 
 lemma zip_replicate2: "zip xs (replicate n y) = map (\<lambda>x. (x, y)) (take n xs)"
 by(subst zip_commute)(simp add: zip_replicate1)
@@ -3409,7 +3409,7 @@ by (rule inj_onI) (simp add: nth_eq_iff_index_eq)
 
 lemma bij_betw_nth:
   assumes "distinct xs" "A = {..<length xs}" "B = set xs"
-  shows   "bij_betw (op ! xs) A B"
+  shows   "bij_betw ((!) xs) A B"
   using assms unfolding bij_betw_def
   by (auto intro!: inj_on_nth simp: set_conv_nth)
 
@@ -3609,9 +3609,9 @@ proof
       have id: "{0 ..< length (?x1 zs)} = insert 0 (?Succ ` {0 ..< length zs})"
         using zsne by (cases ?cond, auto)
       { fix i  assume "i < Suc (length xs)"
-        hence "Suc i \<in> {0..<Suc (Suc (length xs))} \<inter> Collect (op < 0)" by auto
+        hence "Suc i \<in> {0..<Suc (Suc (length xs))} \<inter> Collect ((<) 0)" by auto
         from imageI[OF this, of "\<lambda>i. ?Succ (f (i - Suc 0))"]
-        have "?Succ (f i) \<in> (\<lambda>i. ?Succ (f (i - Suc 0))) ` ({0..<Suc (Suc (length xs))} \<inter> Collect (op < 0))" by auto
+        have "?Succ (f i) \<in> (\<lambda>i. ?Succ (f (i - Suc 0))) ` ({0..<Suc (Suc (length xs))} \<inter> Collect ((<) 0))" by auto
       }
       then show "?f ` {0 ..< length ?xs} = {0 ..< length (?x1  zs)}"
         unfolding id f_xs_zs[symmetric] by auto
@@ -4608,16 +4608,16 @@ qed simp_all
 lemma shuffle_commutes: "shuffle xs ys = shuffle ys xs"
   by (induction xs ys rule: shuffle.induct) (simp_all add: Un_commute)
 
-lemma Cons_shuffle_subset1: "op # x ` shuffle xs ys \<subseteq> shuffle (x # xs) ys"
+lemma Cons_shuffle_subset1: "(#) x ` shuffle xs ys \<subseteq> shuffle (x # xs) ys"
   by (cases ys) auto
 
-lemma Cons_shuffle_subset2: "op # y ` shuffle xs ys \<subseteq> shuffle xs (y # ys)"
+lemma Cons_shuffle_subset2: "(#) y ` shuffle xs ys \<subseteq> shuffle xs (y # ys)"
   by (cases xs) auto
 
 lemma filter_shuffle:
   "filter P ` shuffle xs ys = shuffle (filter P xs) (filter P ys)"
 proof -
-  have *: "filter P ` op # x ` A = (if P x then op # x ` filter P ` A else filter P ` A)" for x A
+  have *: "filter P ` (#) x ` A = (if P x then (#) x ` filter P ` A else filter P ` A)" for x A
     by (auto simp: image_image)
   show ?thesis
   by (induction xs ys rule: shuffle.induct)
@@ -4661,14 +4661,14 @@ proof (induction xs)
   show ?case
   proof (cases "P x")
     case True
-    hence "x # xs \<in> op # x ` shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
+    hence "x # xs \<in> (#) x ` shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
       by (intro imageI Cons.IH)
     also have "\<dots> \<subseteq> shuffle (filter P (x # xs)) (filter (\<lambda>x. \<not>P x) (x # xs))"
       by (simp add: True Cons_shuffle_subset1)
     finally show ?thesis .
   next
     case False
-    hence "x # xs \<in> op # x ` shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
+    hence "x # xs \<in> (#) x ` shuffle (filter P xs) (filter (\<lambda>x. \<not>P x) xs)"
       by (intro imageI Cons.IH)
     also have "\<dots> \<subseteq> shuffle (filter P (x # xs)) (filter (\<lambda>x. \<not>P x) (x # xs))"
       by (simp add: False Cons_shuffle_subset2)
@@ -4945,13 +4945,13 @@ by(induction xs rule: induct_list012)(auto)
 
 text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
 
-lemma sorted_wrt_upt[simp]: "sorted_wrt (op <) [0..<n]"
+lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [0..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
 
 text \<open>Each element is greater or equal to its index:\<close>
 
 lemma sorted_wrt_less_idx:
-  "sorted_wrt (op <) ns \<Longrightarrow> i < length ns \<Longrightarrow> i \<le> ns!i"
+  "sorted_wrt (<) ns \<Longrightarrow> i < length ns \<Longrightarrow> i \<le> ns!i"
 proof (induction ns arbitrary: i rule: rev_induct)
   case Nil thus ?case by simp
 next
@@ -4972,9 +4972,9 @@ apply(induction xs arbitrary: x)
  apply simp
 by simp (blast intro: order_trans)
 
-lemma sorted_iff_wrt: "sorted xs = sorted_wrt (op \<le>) xs"
+lemma sorted_iff_wrt: "sorted xs = sorted_wrt (\<le>) xs"
 proof
-  assume "sorted xs" thus "sorted_wrt (op \<le>) xs"
+  assume "sorted xs" thus "sorted_wrt (\<le>) xs"
   proof (induct xs rule: sorted.induct)
     case (Cons xs x) thus ?case by (cases xs) simp_all
   qed simp
@@ -5267,17 +5267,17 @@ lemma insort_remove1:
   assumes "a \<in> set xs" and "sorted xs"
   shows "insort a (remove1 a xs) = xs"
 proof (rule insort_key_remove1)
-  define n where "n = length (filter (op = a) xs) - 1"
+  define n where "n = length (filter ((=) a) xs) - 1"
   from \<open>a \<in> set xs\<close> show "a \<in> set xs" .
   from \<open>sorted xs\<close> show "sorted (map (\<lambda>x. x) xs)" by simp
-  from \<open>a \<in> set xs\<close> have "a \<in> set (filter (op = a) xs)" by auto
-  then have "set (filter (op = a) xs) \<noteq> {}" by auto
-  then have "filter (op = a) xs \<noteq> []" by (auto simp only: set_empty)
-  then have "length (filter (op = a) xs) > 0" by simp
-  then have n: "Suc n = length (filter (op = a) xs)" by (simp add: n_def)
+  from \<open>a \<in> set xs\<close> have "a \<in> set (filter ((=) a) xs)" by auto
+  then have "set (filter ((=) a) xs) \<noteq> {}" by auto
+  then have "filter ((=) a) xs \<noteq> []" by (auto simp only: set_empty)
+  then have "length (filter ((=) a) xs) > 0" by simp
+  then have n: "Suc n = length (filter ((=) a) xs)" by (simp add: n_def)
   moreover have "replicate (Suc n) a = a # replicate n a"
     by simp
-  ultimately show "hd (filter (op = a) xs) = a" by (simp add: replicate_length_filter)
+  ultimately show "hd (filter ((=) a) xs) = a" by (simp add: replicate_length_filter)
 qed
 
 lemma finite_sorted_distinct_unique:
@@ -7055,7 +7055,7 @@ code_reserved OCaml
 subsubsection \<open>Use convenient predefined operations\<close>
 
 code_printing
-  constant "op @" \<rightharpoonup>
+  constant "(@)" \<rightharpoonup>
     (SML) infixr 7 "@"
     and (OCaml) infixr 6 "@"
     and (Haskell) infixr 5 "++"
@@ -7229,7 +7229,7 @@ lemma rev_transfer [transfer_rule]:
   unfolding List.rev_def by transfer_prover
 
 lemma filter_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> list_all2 A) filter filter"
+  "((A ===> (=)) ===> list_all2 A ===> list_all2 A) filter filter"
   unfolding List.filter_def by transfer_prover
 
 lemma fold_transfer [transfer_rule]:
@@ -7249,23 +7249,23 @@ lemma concat_transfer [transfer_rule]:
   unfolding List.concat_def by transfer_prover
 
 lemma drop_transfer [transfer_rule]:
-  "(op = ===> list_all2 A ===> list_all2 A) drop drop"
+  "((=) ===> list_all2 A ===> list_all2 A) drop drop"
   unfolding List.drop_def by transfer_prover
 
 lemma take_transfer [transfer_rule]:
-  "(op = ===> list_all2 A ===> list_all2 A) take take"
+  "((=) ===> list_all2 A ===> list_all2 A) take take"
   unfolding List.take_def by transfer_prover
 
 lemma list_update_transfer [transfer_rule]:
-  "(list_all2 A ===> op = ===> A ===> list_all2 A) list_update list_update"
+  "(list_all2 A ===> (=) ===> A ===> list_all2 A) list_update list_update"
   unfolding list_update_def by transfer_prover
 
 lemma takeWhile_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> list_all2 A) takeWhile takeWhile"
+  "((A ===> (=)) ===> list_all2 A ===> list_all2 A) takeWhile takeWhile"
   unfolding takeWhile_def by transfer_prover
 
 lemma dropWhile_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> list_all2 A) dropWhile dropWhile"
+  "((A ===> (=)) ===> list_all2 A ===> list_all2 A) dropWhile dropWhile"
   unfolding dropWhile_def by transfer_prover
 
 lemma zip_transfer [transfer_rule]:
@@ -7286,7 +7286,7 @@ lemma insert_transfer [transfer_rule]:
   unfolding List.insert_def [abs_def] by transfer_prover
 
 lemma find_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> rel_option A) List.find List.find"
+  "((A ===> (=)) ===> list_all2 A ===> rel_option A) List.find List.find"
   unfolding List.find_def by transfer_prover
 
 lemma those_transfer [transfer_rule]:
@@ -7305,7 +7305,7 @@ lemma removeAll_transfer [transfer_rule]:
 
 lemma distinct_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(list_all2 A ===> op =) distinct distinct"
+  shows "(list_all2 A ===> (=)) distinct distinct"
   unfolding distinct_def by transfer_prover
 
 lemma remdups_transfer [transfer_rule]:
@@ -7320,11 +7320,11 @@ lemma remdups_adj_transfer [transfer_rule]:
   qed (auto simp: remdups_adj_Cons assms[unfolded bi_unique_def] split: list.splits)
 
 lemma replicate_transfer [transfer_rule]:
-  "(op = ===> A ===> list_all2 A) replicate replicate"
+  "((=) ===> A ===> list_all2 A) replicate replicate"
   unfolding replicate_def by transfer_prover
 
 lemma length_transfer [transfer_rule]:
-  "(list_all2 A ===> op =) length length"
+  "(list_all2 A ===> (=)) length length"
   unfolding size_list_overloaded_def size_list_def by transfer_prover
 
 lemma rotate1_transfer [transfer_rule]:
@@ -7332,11 +7332,11 @@ lemma rotate1_transfer [transfer_rule]:
   unfolding rotate1_def by transfer_prover
 
 lemma rotate_transfer [transfer_rule]:
-  "(op = ===> list_all2 A ===> list_all2 A) rotate rotate"
+  "((=) ===> list_all2 A ===> list_all2 A) rotate rotate"
   unfolding rotate_def [abs_def] by transfer_prover
 
 lemma nths_transfer [transfer_rule]:
-  "(list_all2 A ===> rel_set (op =) ===> list_all2 A) nths nths"
+  "(list_all2 A ===> rel_set (=) ===> list_all2 A) nths nths"
   unfolding nths_def [abs_def] by transfer_prover
 
 lemma subseqs_transfer [transfer_rule]:
@@ -7344,7 +7344,7 @@ lemma subseqs_transfer [transfer_rule]:
   unfolding subseqs_def [abs_def] by transfer_prover
 
 lemma partition_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> rel_prod (list_all2 A) (list_all2 A))
+  "((A ===> (=)) ===> list_all2 A ===> rel_prod (list_all2 A) (list_all2 A))
     partition partition"
   unfolding partition_def by transfer_prover
 
@@ -7371,15 +7371,15 @@ lemma listset_transfer [transfer_rule]:
   unfolding listset_def by transfer_prover
 
 lemma null_transfer [transfer_rule]:
-  "(list_all2 A ===> op =) List.null List.null"
+  "(list_all2 A ===> (=)) List.null List.null"
   unfolding rel_fun_def List.null_def by auto
 
 lemma list_all_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> op =) list_all list_all"
+  "((A ===> (=)) ===> list_all2 A ===> (=)) list_all list_all"
   unfolding list_all_iff [abs_def] by transfer_prover
 
 lemma list_ex_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> op =) list_ex list_ex"
+  "((A ===> (=)) ===> list_all2 A ===> (=)) list_ex list_ex"
   unfolding list_ex_iff [abs_def] by transfer_prover
 
 lemma splice_transfer [transfer_rule]:
@@ -7403,8 +7403,8 @@ proof (intro rel_funI, goal_cases)
     have [transfer_rule]: "rel_set (list_all2 A) (shuffle xs (y # ys)) (shuffle xs'' ys')" and
          [transfer_rule]: "rel_set (list_all2 A) (shuffle (x # xs) ys) (shuffle xs' ys'')"
       using "3.prems" by (auto intro!: "3.IH" simp: xs' ys')
-    have "rel_set (list_all2 A) (op # x ` shuffle xs (y # ys) \<union> op # y ` shuffle (x # xs) ys)
-               (op # x' ` shuffle xs'' ys' \<union> op # y' ` shuffle xs' ys'')" by transfer_prover
+    have "rel_set (list_all2 A) ((#) x ` shuffle xs (y # ys) \<union> (#) y ` shuffle (x # xs) ys)
+               ((#) x' ` shuffle xs'' ys' \<union> (#) y' ` shuffle xs' ys'')" by transfer_prover
     thus ?case by (simp add: xs' ys')
   qed (auto simp: rel_set_def)
 qed
@@ -7416,12 +7416,12 @@ unfolding rtrancl_def by transfer_prover
 
 lemma monotone_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_total A"
-  shows "((A ===> A ===> op =) ===> (B ===> B ===> op =) ===> (A ===> B) ===> op =) monotone monotone"
+  shows "((A ===> A ===> (=)) ===> (B ===> B ===> (=)) ===> (A ===> B) ===> (=)) monotone monotone"
 unfolding monotone_def[abs_def] by transfer_prover
 
 lemma fun_ord_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_total C"
-  shows "((A ===> B ===> op =) ===> (C ===> A) ===> (C ===> B) ===> op =) fun_ord fun_ord"
+  shows "((A ===> B ===> (=)) ===> (C ===> A) ===> (C ===> B) ===> (=)) fun_ord fun_ord"
 unfolding fun_ord_def[abs_def] by transfer_prover
 
 lemma fun_lub_parametric [transfer_rule]:

@@ -1410,7 +1410,7 @@ text \<open>
 \noindent
 The same principle applies for arbitrary type constructors through which
 recursion is possible. Notably, the map function for the function type
-(@{text \<Rightarrow>}) is simply composition (@{text "op \<circ>"}):
+(@{text \<Rightarrow>}) is simply composition (@{text "(\<circ>)"}):
 \<close>
 
     primrec (*<*)(in early) (*>*)relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
@@ -1436,7 +1436,7 @@ text \<open>\blankline\<close>
 text \<open>
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
-@{term "op \<circ>"} are necessary. The examples below illustrate the case where
+@{term "(\<circ>)"} are necessary. The examples below illustrate the case where
 $n = 2$:
 \<close>
 
@@ -1446,7 +1446,7 @@ text \<open>\blankline\<close>
 
     primrec (*<*)(in early) (*>*)relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)"
-    | "relabel_ft2 f (FTNode2 g) = FTNode2 (op \<circ> (op \<circ> (relabel_ft2 f)) g)"
+    | "relabel_ft2 f (FTNode2 g) = FTNode2 ((\<circ>) ((\<circ>) (relabel_ft2 f)) g)"
 
 text \<open>\blankline\<close>
 
@@ -2264,7 +2264,7 @@ function translates a DFA into a state machine:
 text \<open>
 \noindent
 The map function for the function type (@{text \<Rightarrow>}) is composition
-(@{text "op \<circ>"}). For convenience, corecursion through functions can
+(@{text "(\<circ>)"}). For convenience, corecursion through functions can
 also be expressed using $\lambda$-abstractions and function application rather
 than through composition. For example:
 \<close>
@@ -2291,7 +2291,7 @@ text \<open>\blankline\<close>
 text \<open>
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
-@{term "op \<circ>"} are necessary. The examples below illustrate the case where
+@{term "(\<circ>)"} are necessary. The examples below illustrate the case where
 $n = 2$:
 \<close>
 
@@ -2303,7 +2303,7 @@ text \<open>\blankline\<close>
     primcorec
       (*<*)(in early) (*>*)sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
     where
-      "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (op \<circ> (op \<circ> (sm2_of_dfa \<delta> F)) (\<delta> q))"
+      "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) ((\<circ>) ((\<circ>) (sm2_of_dfa \<delta> F)) (\<delta> q))"
 
 text \<open>\blankline\<close>
 
@@ -2782,7 +2782,7 @@ text \<open>\blankline\<close>
 
 text \<open>\blankline\<close>
 
-    lift_definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" is "op \<circ>" .
+    lift_definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" is "(\<circ>)" .
     lift_definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" is range .
 
 text \<open>\blankline\<close>
@@ -2795,7 +2795,7 @@ text \<open>\blankline\<close>
     lift_definition
       rel_fn :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn \<Rightarrow> bool"
     is
-      "rel_fun (op =)" .
+      "rel_fun (=)" .
 
 text \<open>\blankline\<close>
 
@@ -2819,7 +2819,7 @@ text \<open>\blankline\<close>
         by transfer auto
     next
       fix f :: "'a \<Rightarrow> 'b"
-      show "set_fn \<circ> map_fn f = op ` f \<circ> set_fn"
+      show "set_fn \<circ> map_fn f = (`) f \<circ> set_fn"
         by transfer (auto simp add: comp_def)
     next
       show "card_order (natLeq +c |UNIV :: 'd set| )"

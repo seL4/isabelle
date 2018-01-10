@@ -344,7 +344,7 @@ fun actual_params ctxt override =
     val maxtime = read_int (allparams, "maxtime")
     val satsolver = read_string (allparams, "satsolver")
     val no_assms = read_bool (allparams, "no_assms")
-    val expect = the_default "" (AList.lookup (op =) allparams "expect")
+    val expect = the_default "" (AList.lookup (=) allparams "expect")
     (* all remaining parameters of the form "string=int" are collected in *)
     (* 'sizes'                                                            *)
     (* TODO: it is currently not possible to specify a size for a type    *)
@@ -1053,7 +1053,7 @@ fun find_model ctxt
             val fm_ax = Prop_Logic.all (map toTrue (tl intrs))
             val fm = Prop_Logic.all [#wellformed args, fm_ax, fm_u]
             val _ =
-              (if member (op =) ["cdclite"] satsolver andalso Context_Position.is_visible ctxt then
+              (if member (=) ["cdclite"] satsolver andalso Context_Position.is_visible ctxt then
                 warning ("Using SAT solver " ^ quote satsolver ^
                          "; for better performance, consider installing an \
                          \external solver.")

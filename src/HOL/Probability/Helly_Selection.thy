@@ -54,7 +54,7 @@ proof -
       (Suc n + k))) k) (r n)) = (\<lambda>k. f (nat.seqseq (Suc n) k) (r n)) \<circ>
       (\<lambda>k. nat.fold_reduce (Suc n) k (Suc n + k))"
       by auto
-    have 2: "?P n (d \<circ> (op + (Suc n)))"
+    have 2: "?P n (d \<circ> ((+) (Suc n)))"
       unfolding d_def nat.diagseq_seqseq 1
       by (intro convergent_subseq_convergent Pn_seqseq nat.subseq_diagonal_rest)
     then obtain L where 3: "(\<lambda>na. f (d (na + Suc n)) (r n)) \<longlonglongrightarrow> L"

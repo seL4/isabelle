@@ -217,7 +217,7 @@ lemma algebra_single_set:
 subsubsection \<open>Restricted algebras\<close>
 
 abbreviation (in algebra)
-  "restricted_space A \<equiv> (op \<inter> A) ` M"
+  "restricted_space A \<equiv> ((\<inter>) A) ` M"
 
 lemma (in algebra) restricted_algebra:
   assumes "A \<in> M" shows "algebra A (restricted_space A)"
@@ -617,11 +617,11 @@ qed
 
 lemma sigma_sets_Int:
   assumes "A \<in> sigma_sets sp st" "A \<subseteq> sp"
-  shows "op \<inter> A ` sigma_sets sp st = sigma_sets A (op \<inter> A ` st)"
+  shows "(\<inter>) A ` sigma_sets sp st = sigma_sets A ((\<inter>) A ` st)"
 proof (intro equalityI subsetI)
-  fix x assume "x \<in> op \<inter> A ` sigma_sets sp st"
+  fix x assume "x \<in> (\<inter>) A ` sigma_sets sp st"
   then obtain y where "y \<in> sigma_sets sp st" "x = y \<inter> A" by auto
-  then have "x \<in> sigma_sets (A \<inter> sp) (op \<inter> A ` st)"
+  then have "x \<in> sigma_sets (A \<inter> sp) ((\<inter>) A ` st)"
   proof (induct arbitrary: x)
     case (Compl a)
     then show ?case
@@ -632,11 +632,11 @@ proof (intro equalityI subsetI)
       by (auto intro!: sigma_sets.Union
                simp add: UN_extend_simps simp del: UN_simps)
   qed (auto intro!: sigma_sets.intros(2-))
-  then show "x \<in> sigma_sets A (op \<inter> A ` st)"
+  then show "x \<in> sigma_sets A ((\<inter>) A ` st)"
     using \<open>A \<subseteq> sp\<close> by (simp add: Int_absorb2)
 next
-  fix x assume "x \<in> sigma_sets A (op \<inter> A ` st)"
-  then show "x \<in> op \<inter> A ` sigma_sets sp st"
+  fix x assume "x \<in> sigma_sets A ((\<inter>) A ` st)"
+  then show "x \<in> (\<inter>) A ` sigma_sets sp st"
   proof induct
     case (Compl a)
     then obtain x where "a = A \<inter> x" "x \<in> sigma_sets sp st" by auto
@@ -2087,7 +2087,7 @@ qed (simp add: vimage_algebra_def emeasure_sigma)
 subsubsection \<open>Restricted Space Sigma Algebra\<close>
 
 definition restrict_space where
-  "restrict_space M \<Omega> = measure_of (\<Omega> \<inter> space M) ((op \<inter> \<Omega>) ` sets M) (emeasure M)"
+  "restrict_space M \<Omega> = measure_of (\<Omega> \<inter> space M) (((\<inter>) \<Omega>) ` sets M) (emeasure M)"
 
 lemma space_restrict_space: "space (restrict_space M \<Omega>) = \<Omega> \<inter> space M"
   using sets.sets_into_space unfolding restrict_space_def by (subst space_measure_of) auto
@@ -2095,10 +2095,10 @@ lemma space_restrict_space: "space (restrict_space M \<Omega>) = \<Omega> \<inte
 lemma space_restrict_space2: "\<Omega> \<in> sets M \<Longrightarrow> space (restrict_space M \<Omega>) = \<Omega>"
   by (simp add: space_restrict_space sets.sets_into_space)
 
-lemma sets_restrict_space: "sets (restrict_space M \<Omega>) = (op \<inter> \<Omega>) ` sets M"
+lemma sets_restrict_space: "sets (restrict_space M \<Omega>) = ((\<inter>) \<Omega>) ` sets M"
   unfolding restrict_space_def
 proof (subst sets_measure_of)
-  show "op \<inter> \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)"
+  show "(\<inter>) \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)"
     by (auto dest: sets.sets_into_space)
   have "sigma_sets (\<Omega> \<inter> space M) {((\<lambda>x. x) -` X) \<inter> (\<Omega> \<inter> space M) | X. X \<in> sets M} =
     (\<lambda>X. X \<inter> (\<Omega> \<inter> space M)) ` sets M"
@@ -2106,9 +2106,9 @@ proof (subst sets_measure_of)
        (auto simp add: sets.sigma_sets_eq)
   moreover have "{((\<lambda>x. x) -` X) \<inter> (\<Omega> \<inter> space M) | X. X \<in> sets M} = (\<lambda>X. X \<inter> (\<Omega> \<inter> space M)) `  sets M"
     by auto
-  moreover have "(\<lambda>X. X \<inter> (\<Omega> \<inter> space M)) `  sets M = (op \<inter> \<Omega>) ` sets M"
+  moreover have "(\<lambda>X. X \<inter> (\<Omega> \<inter> space M)) `  sets M = ((\<inter>) \<Omega>) ` sets M"
     by (intro image_cong) (auto dest: sets.sets_into_space)
-  ultimately show "sigma_sets (\<Omega> \<inter> space M) (op \<inter> \<Omega> ` sets M) = op \<inter> \<Omega> ` sets M"
+  ultimately show "sigma_sets (\<Omega> \<inter> space M) ((\<inter>) \<Omega> ` sets M) = (\<inter>) \<Omega> ` sets M"
     by simp
 qed
 

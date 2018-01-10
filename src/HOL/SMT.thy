@@ -133,14 +133,14 @@ lemma nat_one_as_int:
   by simp
 
 lemma nat_numeral_as_int: "numeral = (\<lambda>i. nat (numeral i))" by simp
-lemma nat_less_as_int: "op < = (\<lambda>a b. int a < int b)" by simp
-lemma nat_leq_as_int: "op \<le> = (\<lambda>a b. int a \<le> int b)" by simp
+lemma nat_less_as_int: "(<) = (\<lambda>a b. int a < int b)" by simp
+lemma nat_leq_as_int: "(\<le>) = (\<lambda>a b. int a \<le> int b)" by simp
 lemma Suc_as_int: "Suc = (\<lambda>a. nat (int a + 1))" by (rule ext) simp
-lemma nat_plus_as_int: "op + = (\<lambda>a b. nat (int a + int b))" by (rule ext)+ simp
-lemma nat_minus_as_int: "op - = (\<lambda>a b. nat (int a - int b))" by (rule ext)+ simp
-lemma nat_times_as_int: "op * = (\<lambda>a b. nat (int a * int b))" by (simp add: nat_mult_distrib)
-lemma nat_div_as_int: "op div = (\<lambda>a b. nat (int a div int b))" by (simp add: nat_div_distrib)
-lemma nat_mod_as_int: "op mod = (\<lambda>a b. nat (int a mod int b))" by (simp add: nat_mod_distrib)
+lemma nat_plus_as_int: "(+) = (\<lambda>a b. nat (int a + int b))" by (rule ext)+ simp
+lemma nat_minus_as_int: "(-) = (\<lambda>a b. nat (int a - int b))" by (rule ext)+ simp
+lemma nat_times_as_int: "( * ) = (\<lambda>a b. nat (int a * int b))" by (simp add: nat_mult_distrib)
+lemma nat_div_as_int: "(div) = (\<lambda>a b. nat (int a div int b))" by (simp add: nat_div_distrib)
+lemma nat_mod_as_int: "(mod) = (\<lambda>a b. nat (int a mod int b))" by (simp add: nat_mod_distrib)
 
 lemma int_Suc: "int (Suc n) = int n + 1" by simp
 lemma int_plus: "int (n + m) = int n + int m" by (rule of_nat_add)

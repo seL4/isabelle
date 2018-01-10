@@ -33,7 +33,7 @@ where
   "plus_int_raw (x, y) (u, v) = (x + u, y + v)"
 
 quotient_definition
-  "(op +) :: (int \<Rightarrow> int \<Rightarrow> int)" is "plus_int_raw" by auto
+  "(+) :: (int \<Rightarrow> int \<Rightarrow> int)" is "plus_int_raw" by auto
 
 fun
   uminus_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -78,7 +78,7 @@ lemma times_int_raw_snd:
 done
 
 quotient_definition
-  "(op *) :: (int \<Rightarrow> int \<Rightarrow> int)" is "times_int_raw"
+  "(( * )) :: (int \<Rightarrow> int \<Rightarrow> int)" is "times_int_raw"
   apply(rule equivp_transp[OF int_equivp])
   apply(rule times_int_raw_fst)
   apply(assumption)
@@ -92,7 +92,7 @@ where
   "le_int_raw (x, y) (u, v) = (x+v \<le> u+y)"
 
 quotient_definition
-  le_int_def: "(op \<le>) :: int \<Rightarrow> int \<Rightarrow> bool" is "le_int_raw" by auto
+  le_int_def: "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool" is "le_int_raw" by auto
 
 definition
   less_int_def: "(z::int) < w = (z \<le> w \<and> z \<noteq> w)"

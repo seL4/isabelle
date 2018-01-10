@@ -52,7 +52,7 @@ ML \<open>none 2 @{prop "(x::'a \<times> 'a) = y \<longrightarrow> P x y = P y x
 ML \<open>none 4 @{prop "\<exists>x::'a \<times> 'a. x = y \<longrightarrow> P x = P y"}\<close>
 ML \<open>none 2 @{prop "(x::'a \<Rightarrow> 'a) = y \<longrightarrow> P x = P y"}\<close>
 ML \<open>none 2 @{prop "\<exists>x::'a \<Rightarrow> 'a. x = y \<longrightarrow> P x = P y"}\<close>
-ML \<open>genuine 1 @{prop "(op =) X = Ex"}\<close>
+ML \<open>genuine 1 @{prop "(=) X = Ex"}\<close>
 ML \<open>none 2 @{prop "\<forall>x::'a \<Rightarrow> 'a. x = x"}\<close>
 ML \<open>none 1 @{prop "x = y"}\<close>
 ML \<open>genuine 1 @{prop "x \<longleftrightarrow> y"}\<close>

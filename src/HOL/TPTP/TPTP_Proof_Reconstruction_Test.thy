@@ -737,13 +737,13 @@ fun pre_classify_failures [] alist = alist
   | pre_classify_failures ((stock, _, _) :: xs) alist =
       let
         val inf = annotation_or_id stock
-        val count = AList.lookup (op =) alist inf
+        val count = AList.lookup (=) alist inf
       in
         if is_none count
         then pre_classify_failures xs ((inf, 1) :: alist)
         else
           pre_classify_failures xs
-           (AList.update (op =) (inf, the count + 1) alist)
+           (AList.update (=) (inf, the count + 1) alist)
       end
 
 fun classify_failures (Whole_proof (_, Nonempty (SOME (((_, _), inferences))))) = pre_classify_failures inferences []

@@ -142,13 +142,13 @@ end
 
 instantiation vec :: (plus, finite) plus
 begin
-  definition "op + \<equiv> (\<lambda> x y. (\<chi> i. x$i + y$i))"
+  definition "(+) \<equiv> (\<lambda> x y. (\<chi> i. x$i + y$i))"
   instance ..
 end
 
 instantiation vec :: (minus, finite) minus
 begin
-  definition "op - \<equiv> (\<lambda> x y. (\<chi> i. x$i - y$i))"
+  definition "(-) \<equiv> (\<lambda> x y. (\<chi> i. x$i - y$i))"
   instance ..
 end
 

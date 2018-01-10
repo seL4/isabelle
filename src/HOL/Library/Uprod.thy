@@ -56,7 +56,7 @@ by transfer auto
 lemma uprod_split_asm: "P (case_uprod f x) \<longleftrightarrow> \<not> (\<exists>a b. x = Upair a b \<and> \<not> P (apply_commute f a b))"
 by transfer auto
 
-lift_definition not_equal :: "('a, bool) commute" is "op \<noteq>" by auto
+lift_definition not_equal :: "('a, bool) commute" is "(\<noteq>)" by auto
 
 lemma apply_not_equal [simp]: "apply_commute not_equal x y \<longleftrightarrow> x \<noteq> y"
 by transfer simp
@@ -93,7 +93,7 @@ lemma map_uprod_simps [simp, code]: "map_uprod f (Upair x y) = Upair (f x) (f y)
 by transfer simp
 
 private lemma rel_uprod_transfer':
-  "((A ===> B ===> op =) ===> rel_prod A A ===> rel_prod B B ===> op =)
+  "((A ===> B ===> (=)) ===> rel_prod A A ===> rel_prod B B ===> (=))
    (\<lambda>R (a, b) (c, d). R a c \<and> R b d \<or> R a d \<and> R b c) (\<lambda>R (a, b) (c, d). R a c \<and> R b d \<or> R a d \<and> R b c)"
 by transfer_prover
 
@@ -125,7 +125,7 @@ proof -
     unfolding fun_eq_iff by transfer auto
   show "map_uprod f x = map_uprod g x" if "\<And>z. z \<in> set_uprod x \<Longrightarrow> f z = g z" 
     for f :: "'a \<Rightarrow> 'b" and g x using that by transfer auto
-  show "set_uprod \<circ> map_uprod f = op ` f \<circ> set_uprod" for f :: "'a \<Rightarrow> 'b" by transfer auto
+  show "set_uprod \<circ> map_uprod f = (`) f \<circ> set_uprod" for f :: "'a \<Rightarrow> 'b" by transfer auto
   show "card_order natLeq" by(rule natLeq_card_order)
   show "BNF_Cardinal_Arithmetic.cinfinite natLeq" by(rule natLeq_cinfinite)
   show "ordLeq3 (card_of (set_uprod x)) natLeq" for x :: "'a uprod"
@@ -142,7 +142,7 @@ by(simp add: pred_uprod_def)
 instantiation uprod :: (equal) equal begin
 
 definition equal_uprod :: "'a uprod \<Rightarrow> 'a uprod \<Rightarrow> bool"
-where "equal_uprod = op ="
+where "equal_uprod = (=)"
 
 lemma equal_uprod_code [code]:
   "HOL.equal (Upair x y) (Upair z u) \<longleftrightarrow> x = z \<and> y = u \<or> x = u \<and> y = z"

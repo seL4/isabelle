@@ -81,7 +81,7 @@ where "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a cset)"
 lemma less_cset_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
-  shows "((pcr_cset A) ===> (pcr_cset A) ===> op =) op \<subset> op <"
+  shows "((pcr_cset A) ===> (pcr_cset A) ===> (=)) (\<subset>) (<)"
 unfolding less_cset_def[abs_def] psubset_eq[abs_def] by transfer_prover
 
 lift_definition sup_cset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset"
@@ -104,12 +104,12 @@ abbreviation cUn :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" where 
 abbreviation cInt :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" where "cInt xs ys \<equiv> inf xs ys"
 abbreviation cDiff :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" where "cDiff xs ys \<equiv> minus xs ys"
 
-lift_definition cin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" is "op \<in>" parametric member_transfer
+lift_definition cin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" is "(\<in>)" parametric member_transfer
   .
 lift_definition cinsert :: "'a \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is insert parametric Lifting_Set.insert_transfer
   by (rule countable_insert)
 abbreviation csingle :: "'a \<Rightarrow> 'a cset" where "csingle x \<equiv> cinsert x cempty"
-lift_definition cimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cset \<Rightarrow> 'b cset" is "op `" parametric image_transfer
+lift_definition cimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cset \<Rightarrow> 'b cset" is "(`)" parametric image_transfer
   by (rule countable_image)
 lift_definition cBall :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer .
 lift_definition cBex :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer .
@@ -480,15 +480,15 @@ lemma cimage_parametric [transfer_rule]:
   unfolding rel_fun_def rel_cset_iff by blast
 
 lemma cBall_parametric [transfer_rule]:
-  "(rel_cset A ===> (A ===> op =) ===> op =) cBall cBall"
+  "(rel_cset A ===> (A ===> (=)) ===> (=)) cBall cBall"
   unfolding rel_cset_iff rel_fun_def by blast
 
 lemma cBex_parametric [transfer_rule]:
-  "(rel_cset A ===> (A ===> op =) ===> op =) cBex cBex"
+  "(rel_cset A ===> (A ===> (=)) ===> (=)) cBex cBex"
   unfolding rel_cset_iff rel_fun_def by blast
 
 lemma rel_cset_parametric [transfer_rule]:
-  "((A ===> B ===> op =) ===> rel_cset A ===> rel_cset B ===> op =) rel_cset rel_cset"
+  "((A ===> B ===> (=)) ===> rel_cset A ===> rel_cset B ===> (=)) rel_cset rel_cset"
   unfolding rel_fun_def
   using rel_set_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred, where A = A and B = B]
   by simp
@@ -496,7 +496,7 @@ lemma rel_cset_parametric [transfer_rule]:
 text \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>
 
 lemma cin_parametric [transfer_rule]:
-  "bi_unique A \<Longrightarrow> (A ===> rel_cset A ===> op =) cin cin"
+  "bi_unique A \<Longrightarrow> (A ===> rel_cset A ===> (=)) cin cin"
 unfolding rel_fun_def rel_cset_iff bi_unique_def by metis
 
 lemma cInt_parametric [transfer_rule]:
@@ -511,7 +511,7 @@ unfolding rel_fun_def
 using Diff_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma csubset_parametric [transfer_rule]:
-  "bi_unique A \<Longrightarrow> (rel_cset A ===> rel_cset A ===> op =) csubset_eq csubset_eq"
+  "bi_unique A \<Longrightarrow> (rel_cset A ===> rel_cset A ===> (=)) csubset_eq csubset_eq"
 unfolding rel_fun_def
 using subset_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
@@ -595,7 +595,7 @@ next
   fix C f g assume eq: "\<And>a. a \<in> rcset C \<Longrightarrow> f a = g a"
   thus "cimage f C = cimage g C" including cset.lifting by transfer force
 next
-  fix f show "rcset \<circ> cimage f = op ` f \<circ> rcset" including cset.lifting by transfer' fastforce
+  fix f show "rcset \<circ> cimage f = (`) f \<circ> rcset" including cset.lifting by transfer' fastforce
 next
   show "card_order natLeq" by (rule natLeq_card_order)
 next

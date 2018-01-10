@@ -59,7 +59,7 @@ qed
 end
 
 lemma less_eq_acom_annos:
-  "C1 \<le> C2 \<longleftrightarrow> strip C1 = strip C2 \<and> list_all2 (op \<le>) (annos C1) (annos C2)"
+  "C1 \<le> C2 \<longleftrightarrow> strip C1 = strip C2 \<and> list_all2 (\<le>) (annos C1) (annos C2)"
 by(auto simp add: less_eq_acom_def anno_def list_all2_conv_all_nth size_annos_same2)
 
 lemma SKIP_le[simp]: "SKIP {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = SKIP {S'} \<and> S \<le> S')"

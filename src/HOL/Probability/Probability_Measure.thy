@@ -438,7 +438,7 @@ lemma (in prob_space) cond_prob_eq_AE:
   assumes Q: "AE x in M. Q x \<longleftrightarrow> Q' x" "{x\<in>space M. Q x} \<in> events" "{x\<in>space M. Q' x} \<in> events"
   shows "cond_prob M P Q = cond_prob M P' Q'"
   using P Q
-  by (auto simp: cond_prob_def intro!: arg_cong2[where f="op /"] prob_eq_AE sets.sets_Collect_conj)
+  by (auto simp: cond_prob_def intro!: arg_cong2[where f="(/)"] prob_eq_AE sets.sets_Collect_conj)
 
 
 lemma (in prob_space) joint_distribution_Times_le_fst:

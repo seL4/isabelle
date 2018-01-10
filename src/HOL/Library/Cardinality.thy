@@ -387,8 +387,8 @@ subsection \<open>Code setup for sets\<close>
 
 text \<open>
   Implement @{term "CARD('a)"} via @{term card_UNIV} and provide
-  implementations for @{term "finite"}, @{term "card"}, @{term "op \<subseteq>"}, 
-  and @{term "op ="}if the calling context already provides @{class finite_UNIV}
+  implementations for @{term "finite"}, @{term "card"}, @{term "(\<subseteq>)"}, 
+  and @{term "(=)"}if the calling context already provides @{class finite_UNIV}
   and @{class card_UNIV} instances. If we implemented the latter
   always via @{term card_UNIV}, we would require instances of essentially all 
   element types, i.e., a lot of instantiation proofs and -- at run time --
@@ -441,7 +441,7 @@ by(simp_all add: List.card_set card_Compl card_UNIV)
 
 
 qualified definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-where [simp, code del, code_abbrev]: "subset' = op \<subseteq>"
+where [simp, code del, code_abbrev]: "subset' = (\<subseteq>)"
 
 lemma subset'_code [code]:
   "subset' A (List.coset ys) \<longleftrightarrow> (\<forall>y \<in> set ys. y \<notin> A)"
@@ -451,7 +451,7 @@ by(auto simp add: Let_def card_gt_0_iff dest: card_eq_UNIV_imp_eq_UNIV intro: ar
   (metis finite_compl finite_set rev_finite_subset)
 
 qualified definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-where [simp, code del, code_abbrev]: "eq_set = op ="
+where [simp, code del, code_abbrev]: "eq_set = (=)"
 
 lemma eq_set_code [code]:
   fixes ys

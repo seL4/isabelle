@@ -84,7 +84,7 @@ The following lemmas are not strictly necessary but they help the
 \textit{specialize} optimization.
 \<close>
 
-lemma The_psimp[nitpick_psimp]: "P = (op =) x \<Longrightarrow> The P = x"
+lemma The_psimp[nitpick_psimp]: "P = (=) x \<Longrightarrow> The P = x"
   by auto
 
 lemma Eps_psimp[nitpick_psimp]:

@@ -60,12 +60,12 @@ notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text \<open>
   Given two transformations @{term f} and @{term g}, they may be
-  directly composed using the @{term "op \<circ>>"} combinator, forming a
+  directly composed using the @{term "(\<circ>>)"} combinator, forming a
   forward composition: @{prop "(f \<circ>> g) s = f (g s)"}.
 
   After any yielding transformation, we bind the side result
   immediately using a lambda abstraction.  This is the purpose of the
-  @{term "op \<circ>\<rightarrow>"} combinator: @{prop "(f \<circ>\<rightarrow> (\<lambda>x. g)) s = (let (x, s')
+  @{term "(\<circ>\<rightarrow>)"} combinator: @{prop "(f \<circ>\<rightarrow> (\<lambda>x. g)) s = (let (x, s')
   = f s in g s')"}.
 
   For queries, the existing @{term "Let"} is appropriate.

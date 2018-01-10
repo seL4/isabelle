@@ -131,10 +131,10 @@ lemma rel_fun_def_butlast:
 lemma subst_eq_imp: "(\<forall>a b. a = b \<longrightarrow> P a b) \<equiv> (\<forall>a. P a a)"
   by auto
 
-lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
+lemma eq_subset: "(=) \<le> (\<lambda>a b. P a b \<or> a = b)"
   by auto
 
-lemma eq_le_Grp_id_iff: "(op = \<le> Grp (Collect R) id) = (All R)"
+lemma eq_le_Grp_id_iff: "((=) \<le> Grp (Collect R) id) = (All R)"
   unfolding Grp_def id_apply by blast
 
 lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f x) (f y)) \<equiv>
@@ -211,10 +211,10 @@ lemma eq_ifI: "(P \<longrightarrow> t = u1) \<Longrightarrow> (\<not> P \<longri
   by simp
 
 lemma comp_transfer:
-  "rel_fun (rel_fun B C) (rel_fun (rel_fun A B) (rel_fun A C)) (op \<circ>) (op \<circ>)"
+  "rel_fun (rel_fun B C) (rel_fun (rel_fun A B) (rel_fun A C)) (\<circ>) (\<circ>)"
   unfolding rel_fun_def by simp
 
-lemma If_transfer: "rel_fun (op =) (rel_fun A (rel_fun A A)) If If"
+lemma If_transfer: "rel_fun (=) (rel_fun A (rel_fun A A)) If If"
   unfolding rel_fun_def by simp
 
 lemma Abs_transfer:

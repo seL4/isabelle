@@ -320,11 +320,11 @@ lemma "(x == Pure.all) \<Longrightarrow> False"
 refute [expect = genuine]
 oops
 
-lemma "(x == (op ==)) \<Longrightarrow> False"
+lemma "(x == (==)) \<Longrightarrow> False"
 refute [expect = genuine]
 oops
 
-lemma "(x == (op \<Longrightarrow>)) \<Longrightarrow> False"
+lemma "(x == (\<Longrightarrow>)) \<Longrightarrow> False"
 refute [expect = genuine]
 oops
 
@@ -376,11 +376,11 @@ lemma "x : {x. P x}"
 refute
 oops
 
-lemma "P op:"
+lemma "P (:)"
 refute
 oops
 
-lemma "P (op: x)"
+lemma "P ((:) x)"
 refute
 oops
 

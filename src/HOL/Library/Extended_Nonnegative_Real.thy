@@ -266,8 +266,8 @@ lift_definition Inf_ennreal :: "ennreal set \<Rightarrow> ennreal" is "Inf"
 lift_definition Sup_ennreal :: "ennreal set \<Rightarrow> ennreal" is "sup 0 \<circ> Sup"
   by auto
 
-lift_definition less_eq_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> bool" is "op \<le>" .
-lift_definition less_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> bool" is "op <" .
+lift_definition less_eq_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> bool" is "(\<le>)" .
+lift_definition less_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> bool" is "(<)" .
 
 instance
   by standard
@@ -278,7 +278,7 @@ end
 lemma pcr_ennreal_enn2ereal[simp]: "pcr_ennreal (enn2ereal x) x"
   by (simp add: ennreal.pcr_cr_eq cr_ennreal_def)
 
-lemma rel_fun_eq_pcr_ennreal: "rel_fun op = pcr_ennreal f g \<longleftrightarrow> f = enn2ereal \<circ> g"
+lemma rel_fun_eq_pcr_ennreal: "rel_fun (=) pcr_ennreal f g \<longleftrightarrow> f = enn2ereal \<circ> g"
   by (auto simp: rel_fun_def ennreal.pcr_cr_eq cr_ennreal_def)
 
 instantiation ennreal :: infinity
@@ -297,8 +297,8 @@ begin
 
 lift_definition one_ennreal :: ennreal is 1 by simp
 lift_definition zero_ennreal :: ennreal is 0 by simp
-lift_definition plus_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "op +" by simp
-lift_definition times_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "op *" by simp
+lift_definition plus_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "(+)" by simp
+lift_definition times_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "( * )" by simp
 
 instance
   by standard (transfer; auto simp: field_simps ereal_right_distrib)+
@@ -335,7 +335,7 @@ lemma ennreal_zero_less_one: "0 < (1::ennreal)" \<comment> \<open>TODO: remove \
 
 instance ennreal :: dioid
 proof (standard; transfer)
-  fix a b :: ereal assume "0 \<le> a" "0 \<le> b" then show "(a \<le> b) = (\<exists>c\<in>Collect (op \<le> 0). b = a + c)"
+  fix a b :: ereal assume "0 \<le> a" "0 \<le> b" then show "(a \<le> b) = (\<exists>c\<in>Collect ((\<le>) 0). b = a + c)"
     unfolding ereal_ex_split Bex_def
     by (cases a b rule: ereal2_cases) (auto intro!: exI[of _ "real_of_ereal (b - a)"])
 qed
@@ -369,9 +369,9 @@ lemma ereal_ennreal_cases:
   obtains b where "0 \<le> a" "a = enn2ereal b" | "a < 0"
   using e2ennreal'_inverse[of a, symmetric] by (cases "0 \<le> a") (auto intro: enn2ereal_nonneg)
 
-lemma rel_fun_liminf[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal liminf liminf"
+lemma rel_fun_liminf[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal liminf liminf"
 proof -
-  have "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal (\<lambda>x. sup 0 (liminf x)) liminf"
+  have "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal (\<lambda>x. sup 0 (liminf x)) liminf"
     unfolding liminf_SUP_INF[abs_def] by (transfer_prover_start, transfer_step+; simp)
   then show ?thesis
     apply (subst (asm) (2) rel_fun_def)
@@ -380,9 +380,9 @@ proof -
     done
 qed
 
-lemma rel_fun_limsup[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal limsup limsup"
+lemma rel_fun_limsup[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal limsup limsup"
 proof -
-  have "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal (\<lambda>x. INF n. sup 0 (SUP i:{n..}. x i)) limsup"
+  have "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal (\<lambda>x. INF n. sup 0 (SUP i:{n..}. x i)) limsup"
     unfolding limsup_INF_SUP[abs_def] by (transfer_prover_start, transfer_step+; simp)
   then show ?thesis
     unfolding limsup_INF_SUP[abs_def]
@@ -399,7 +399,7 @@ lemma sum_enn2ereal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \
   by (induction I rule: infinite_finite_induct) (auto simp: sum_nonneg zero_ennreal.rep_eq plus_ennreal.rep_eq)
 
 lemma transfer_e2ennreal_sum [transfer_rule]:
-  "rel_fun (rel_fun op = pcr_ennreal) (rel_fun op = pcr_ennreal) sum sum"
+  "rel_fun (rel_fun (=) pcr_ennreal) (rel_fun (=) pcr_ennreal) sum sum"
   by (auto intro!: rel_funI simp: rel_fun_eq_pcr_ennreal comp_def)
 
 lemma enn2ereal_of_nat[simp]: "enn2ereal (of_nat n) = ereal n"
@@ -1231,7 +1231,7 @@ proof
   proof transfer
     fix x y :: ereal assume "0 \<le> x" and *: "x < y"
     moreover from dense[OF *] guess z ..
-    ultimately show "\<exists>z\<in>Collect (op \<le> 0). x < z \<and> z < y"
+    ultimately show "\<exists>z\<in>Collect ((\<le>) 0). x < z \<and> z < y"
       by (intro bexI[of _ z]) auto
   qed
 qed (rule open_ennreal_def)
@@ -1297,7 +1297,7 @@ lemma sup_continuous_divide_ennreal[order_continuous_intros]:
   unfolding divide_ennreal_def by (rule sup_continuous_mult_right_ennreal)
 
 lemma transfer_enn2ereal_continuous_on [transfer_rule]:
-  "rel_fun (op =) (rel_fun (rel_fun op = pcr_ennreal) op =) continuous_on continuous_on"
+  "rel_fun (=) (rel_fun (rel_fun (=) pcr_ennreal) (=)) continuous_on continuous_on"
 proof -
   have "continuous_on A f" if "continuous_on A (\<lambda>x. enn2ereal (f x))" for A and f :: "'a \<Rightarrow> ennreal"
     using continuous_on_compose2[OF continuous_on_e2ennreal[of "{0..}"] that]
@@ -1311,7 +1311,7 @@ proof -
 qed
 
 lemma transfer_sup_continuous[transfer_rule]:
-  "(rel_fun (rel_fun (op =) pcr_ennreal) op =) sup_continuous sup_continuous"
+  "(rel_fun (rel_fun (=) pcr_ennreal) (=)) sup_continuous sup_continuous"
 proof (safe intro!: rel_funI dest!: rel_fun_eq_pcr_ennreal[THEN iffD1])
   show "sup_continuous (enn2ereal \<circ> f) \<Longrightarrow> sup_continuous f" for f :: "'a \<Rightarrow> _"
     using sup_continuous_e2ennreal[of "enn2ereal \<circ> f"] by simp
@@ -1355,7 +1355,7 @@ lemma continuous_on_inverse_ennreal[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> ennreal"
   shows "continuous_on A f \<Longrightarrow> continuous_on A (\<lambda>x. inverse (f x))"
 proof (transfer fixing: A)
-  show "pred_fun top  (op \<le> 0) f \<Longrightarrow> continuous_on A (\<lambda>x. inverse (f x))" if "continuous_on A f"
+  show "pred_fun top  ((\<le>) 0) f \<Longrightarrow> continuous_on A (\<lambda>x. inverse (f x))" if "continuous_on A f"
     for f :: "'a \<Rightarrow> ereal"
     using continuous_on_compose2[OF continuous_on_inverse_ereal that] by (auto simp: subset_eq)
 qed
@@ -1395,7 +1395,7 @@ lemma sums_enn2ereal[simp]: "(\<lambda>i. enn2ereal (f i)) sums enn2ereal x \<lo
 lemma suminf_enn2ereal[simp]: "(\<Sum>i. enn2ereal (f i)) = enn2ereal (suminf f)"
   by (rule sums_unique[symmetric]) (simp add: summable_sums)
 
-lemma transfer_e2ennreal_suminf [transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal suminf suminf"
+lemma transfer_e2ennreal_suminf [transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal suminf suminf"
   by (auto simp: rel_funI rel_fun_eq_pcr_ennreal comp_def)
 
 lemma ennreal_suminf_cmult[simp]: "(\<Sum>i. r * f i) = r * (\<Sum>i. f i::ennreal)"

@@ -339,7 +339,7 @@ end
 instantiation literal :: equal
 begin
 
-lift_definition equal_literal :: "literal \<Rightarrow> literal \<Rightarrow> bool" is "op =" .
+lift_definition equal_literal :: "literal \<Rightarrow> literal \<Rightarrow> bool" is "(=)" .
 
 instance by intro_classes (transfer, simp)
 

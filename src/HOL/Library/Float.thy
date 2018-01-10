@@ -199,13 +199,13 @@ declare zero_float.rep_eq[simp]
 lift_definition one_float :: float is 1 by simp
 declare one_float.rep_eq[simp]
 
-lift_definition plus_float :: "float \<Rightarrow> float \<Rightarrow> float" is "op +" by simp
+lift_definition plus_float :: "float \<Rightarrow> float \<Rightarrow> float" is "(+)" by simp
 declare plus_float.rep_eq[simp]
 
-lift_definition times_float :: "float \<Rightarrow> float \<Rightarrow> float" is "op *" by simp
+lift_definition times_float :: "float \<Rightarrow> float \<Rightarrow> float" is "( * )" by simp
 declare times_float.rep_eq[simp]
 
-lift_definition minus_float :: "float \<Rightarrow> float \<Rightarrow> float" is "op -" by simp
+lift_definition minus_float :: "float \<Rightarrow> float \<Rightarrow> float" is "(-)" by simp
 declare minus_float.rep_eq[simp]
 
 lift_definition uminus_float :: "float \<Rightarrow> float" is "uminus" by simp
@@ -217,12 +217,12 @@ declare abs_float.rep_eq[simp]
 lift_definition sgn_float :: "float \<Rightarrow> float" is sgn by simp
 declare sgn_float.rep_eq[simp]
 
-lift_definition equal_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op = :: real \<Rightarrow> real \<Rightarrow> bool" .
+lift_definition equal_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "(=) :: real \<Rightarrow> real \<Rightarrow> bool" .
 
-lift_definition less_eq_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op \<le>" .
+lift_definition less_eq_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "(\<le>)" .
 declare less_eq_float.rep_eq[simp]
 
-lift_definition less_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op <" .
+lift_definition less_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "(<)" .
 declare less_float.rep_eq[simp]
 
 instance
@@ -290,14 +290,14 @@ lemma float_numeral[simp]: "real_of_float (numeral x :: float) = numeral x"
   done
 
 lemma transfer_numeral [transfer_rule]:
-  "rel_fun (op =) pcr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
+  "rel_fun (=) pcr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
   by (simp add: rel_fun_def float.pcr_cr_eq cr_float_def)
 
 lemma float_neg_numeral[simp]: "real_of_float (- numeral x :: float) = - numeral x"
   by simp
 
 lemma transfer_neg_numeral [transfer_rule]:
-  "rel_fun (op =) pcr_float (- numeral :: _ \<Rightarrow> real) (- numeral :: _ \<Rightarrow> float)"
+  "rel_fun (=) pcr_float (- numeral :: _ \<Rightarrow> real) (- numeral :: _ \<Rightarrow> float)"
   by (simp add: rel_fun_def float.pcr_cr_eq cr_float_def)
 
 lemma float_of_numeral[simp]: "numeral k = float_of (numeral k)"
@@ -592,17 +592,17 @@ qualified lemma compute_float_sgn[code]:
   "sgn (Float m1 e1) = (if 0 < m1 then 1 else if m1 < 0 then -1 else 0)"
   by transfer (simp add: sgn_mult)
 
-lift_definition is_float_pos :: "float \<Rightarrow> bool" is "op < 0 :: real \<Rightarrow> bool" .
+lift_definition is_float_pos :: "float \<Rightarrow> bool" is "(<) 0 :: real \<Rightarrow> bool" .
 
 qualified lemma compute_is_float_pos[code]: "is_float_pos (Float m e) \<longleftrightarrow> 0 < m"
   by transfer (auto simp add: zero_less_mult_iff not_le[symmetric, of _ 0])
 
-lift_definition is_float_nonneg :: "float \<Rightarrow> bool" is "op \<le> 0 :: real \<Rightarrow> bool" .
+lift_definition is_float_nonneg :: "float \<Rightarrow> bool" is "(\<le>) 0 :: real \<Rightarrow> bool" .
 
 qualified lemma compute_is_float_nonneg[code]: "is_float_nonneg (Float m e) \<longleftrightarrow> 0 \<le> m"
   by transfer (auto simp add: zero_le_mult_iff not_less[symmetric, of _ 0])
 
-lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "op = 0 :: real \<Rightarrow> bool" .
+lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "(=) 0 :: real \<Rightarrow> bool" .
 
 qualified lemma compute_is_float_zero[code]: "is_float_zero (Float m e) \<longleftrightarrow> 0 = m"
   by transfer (auto simp add: is_float_zero_def)
@@ -1337,7 +1337,7 @@ lift_definition power_down_fl :: "nat \<Rightarrow> float \<Rightarrow> nat \<Ri
   by (induct_tac rule: power_down.induct) simp_all
 
 lemma power_float_transfer[transfer_rule]:
-  "(rel_fun pcr_float (rel_fun op = pcr_float)) op ^ op ^"
+  "(rel_fun pcr_float (rel_fun (=) pcr_float)) (^) (^)"
   unfolding power_def
   by transfer_prover
 

@@ -99,7 +99,7 @@ done
 instantiation st :: (semilattice_sup_top) semilattice_sup_top
 begin
 
-lift_definition sup_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (op \<squnion>)"
+lift_definition sup_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (\<squnion>)"
 by (simp add: eq_st_def)
 
 lift_definition top_st :: "'a st" is "[]" .

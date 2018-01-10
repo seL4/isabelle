@@ -1140,7 +1140,7 @@ text \<open>
 \<close>
 
 definition simp_implies :: "prop \<Rightarrow> prop \<Rightarrow> prop"  (infixr "=simp=>" 1)
-  where "simp_implies \<equiv> op \<Longrightarrow>"
+  where "simp_implies \<equiv> (\<Longrightarrow>)"
 
 lemma simp_impliesI:
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"
@@ -1607,7 +1607,7 @@ struct
     type T = ((term -> bool) * stamp) list;
     val empty = [];
     val extend = I;
-    fun merge data : T = Library.merge (eq_snd op =) data;
+    fun merge data : T = Library.merge (eq_snd (=)) data;
   );
   fun add m = Data.map (cons (m, stamp ()));
   fun matches thy t = exists (fn (m, _) => m t) (Data.get thy);
@@ -1804,13 +1804,13 @@ class equal =
   assumes equal_eq: "equal x y \<longleftrightarrow> x = y"
 begin
 
-lemma equal: "equal = (op =)"
+lemma equal: "equal = (=)"
   by (rule ext equal_eq)+
 
 lemma equal_refl: "equal x x \<longleftrightarrow> True"
   unfolding equal by rule+
 
-lemma eq_equal: "(op =) \<equiv> equal"
+lemma eq_equal: "(=) \<equiv> equal"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule equal_eq)
 
 end
@@ -1890,7 +1890,7 @@ lemma equal_itself_code [code]: "equal TYPE('a) TYPE('a) \<longleftrightarrow> T
 
 setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a::type \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
 
-lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)"
+lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> (((=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)"
   (is "?ofclass \<equiv> ?equal")
 proof
   assume "PROP ?ofclass"

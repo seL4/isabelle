@@ -58,7 +58,7 @@ where
      })}"
   by pat_completeness auto
 termination
-  by (relation "measure ((op -) 1001)") auto
+  by (relation "measure ((-) 1001)") auto
 
 definition mk_word :: "Random.seed \<Rightarrow> letter list \<times> Random.seed"
   where "mk_word = mk_word_aux 0"

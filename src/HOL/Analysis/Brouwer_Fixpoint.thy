@@ -146,7 +146,7 @@ proof -
     by (subst card_Un_disjoint[symmetric])
        (auto simp: nF_def intro!: sum.cong arg_cong[where f=card])
   also have "\<dots> = 1 * card {f\<in>F. compo' f \<and> bnd f} + 2 * card {f\<in>F. compo' f \<and> \<not> bnd f}"
-    using assms(4,5) by (fastforce intro!: arg_cong2[where f="op +"] sum_multicount)
+    using assms(4,5) by (fastforce intro!: arg_cong2[where f="(+)"] sum_multicount)
   finally have "odd ((\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) + card {s\<in>S. compo s})"
     using assms(6,8) by simp
   moreover have "(\<Sum>s | s \<in> S \<and> \<not> compo s. nF s) =
@@ -4221,13 +4221,13 @@ proof -
         show "ANR (C \<inter> \<Union>\<U>)"
           unfolding Int_Union
         proof (rule Suc)
-          show "finite (op \<inter> C ` \<U>)"
+          show "finite ((\<inter>) C ` \<U>)"
             by (simp add: insert.hyps(1))
-          show "\<And>Ca. Ca \<in> op \<inter> C ` \<U> \<Longrightarrow> closed Ca"
+          show "\<And>Ca. Ca \<in> (\<inter>) C ` \<U> \<Longrightarrow> closed Ca"
             by (metis (no_types, hide_lams) Suc.prems(2) closed_Int subsetD imageE insert.prems insertI1 insertI2)
-          show "\<And>Ca. Ca \<in> op \<inter> C ` \<U> \<Longrightarrow> convex Ca"
+          show "\<And>Ca. Ca \<in> (\<inter>) C ` \<U> \<Longrightarrow> convex Ca"
             by (metis (mono_tags, lifting) Suc.prems(3) convex_Int imageE insert.prems insert_subset subsetCE)
-          show "card (op \<inter> C ` \<U>) < n"
+          show "card ((\<inter>) C ` \<U>) < n"
           proof -
             have "card \<T> \<le> n"
               by (meson Suc.prems(4) not_less not_less_eq)

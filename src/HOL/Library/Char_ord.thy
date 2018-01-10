@@ -51,15 +51,15 @@ context includes literal.lifting
 begin
 
 lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
-  is "ord.lexordp op <" .
+  is "ord.lexordp (<)" .
 
 lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
-  is "ord.lexordp_eq op <" .
+  is "ord.lexordp_eq (<)" .
 
 instance
 proof -
-  interpret linorder "ord.lexordp_eq op <" "ord.lexordp op < :: string \<Rightarrow> string \<Rightarrow> bool"
-    by (rule linorder.lexordp_linorder[where less_eq="op \<le>"]) unfold_locales
+  interpret linorder "ord.lexordp_eq (<)" "ord.lexordp (<) :: string \<Rightarrow> string \<Rightarrow> bool"
+    by (rule linorder.lexordp_linorder[where less_eq="(\<le>)"]) unfold_locales
   show "PROP ?thesis"
     by intro_classes (transfer, simp add: less_le_not_le linear)+
 qed
@@ -69,11 +69,11 @@ end
 end
 
 lemma less_literal_code [code]:
-  "op < = (\<lambda>xs ys. ord.lexordp op < (String.explode xs) (String.explode ys))"
+  "(<) = (\<lambda>xs ys. ord.lexordp (<) (String.explode xs) (String.explode ys))"
   by (simp add: less_literal.rep_eq fun_eq_iff)
 
 lemma less_eq_literal_code [code]:
-  "op \<le> = (\<lambda>xs ys. ord.lexordp_eq op < (String.explode xs) (String.explode ys))"
+  "(\<le>) = (\<lambda>xs ys. ord.lexordp_eq (<) (String.explode xs) (String.explode ys))"
   by (simp add: less_eq_literal.rep_eq fun_eq_iff)
 
 lifting_update literal.lifting

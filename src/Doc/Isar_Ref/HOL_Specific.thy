@@ -1452,7 +1452,7 @@ text \<open>
   \<open>Quotient_thm\<close>). Optional theorems \<open>pcr_def\<close> and \<open>pcr_cr_eq_thm\<close> can be
   specified to register the parametrized correspondence relation for \<open>\<tau>\<close>.
   E.g.\ for @{typ "'a dlist"}, \<open>pcr_def\<close> is \<open>pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
-  cr_dlist\<close> and \<open>pcr_cr_eq_thm\<close> is \<open>pcr_dlist (op =) = (op =)\<close>. This attribute
+  cr_dlist\<close> and \<open>pcr_cr_eq_thm\<close> is \<open>pcr_dlist (=) = (=)\<close>. This attribute
   is rather used for low-level manipulation with set-up of the Lifting package
   because using of the bundle \<open>\<tau>.lifting\<close> together with the commands @{command
   (HOL) lifting_forget} and @{command (HOL) lifting_update} is preferred for
@@ -1539,7 +1539,7 @@ text \<open>
   Lemmas involving predicates on relations can also be registered using the
   same attribute. For example:
 
-    \<open>bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct\<close> \\
+    \<open>bi_unique A \<Longrightarrow> (list_all2 A ===> (=)) distinct distinct\<close> \\
     \<open>\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (rel_prod A B)\<close>
 
   Preservation of predicates on relations (\<open>bi_unique, bi_total, right_unique,
@@ -1555,7 +1555,7 @@ text \<open>
   quantifiers are transferred.
 
   \<^descr> @{attribute (HOL) relator_eq} attribute collects identity laws for
-  relators of various type constructors, e.g. @{term "rel_set (op =) = (op =)"}.
+  relators of various type constructors, e.g. @{term "rel_set (=) = (=)"}.
   The @{method (HOL) transfer} method uses these lemmas to infer
   transfer rules for non-polymorphic constants on the fly. For examples see
   \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
@@ -1894,7 +1894,7 @@ text \<open>
     @{term "Quickcheck_Narrowing.sum (Quickcheck_Narrowing.cons [])
               (Quickcheck_Narrowing.apply
                 (Quickcheck_Narrowing.apply
-                  (Quickcheck_Narrowing.cons (op #))
+                  (Quickcheck_Narrowing.cons (#))
                   narrowing)
                 narrowing)"}.
     If a symbolic variable of type @{typ "_ list"} is evaluated, it is
@@ -1909,7 +1909,7 @@ text \<open>
     "Quickcheck_Narrowing.Narrowing_constructor i args"}, where @{term "i ::
     integer"} denotes the index in the sum of refinements. In the above
     example for lists, @{term "0"} corresponds to @{term "[]"} and @{term "1"}
-    to @{term "op #"}.
+    to @{term "(#)"}.
 
     The command @{command (HOL) "code_datatype"} sets up @{const
     partial_term_of} such that the @{term "i"}-th refinement is interpreted as

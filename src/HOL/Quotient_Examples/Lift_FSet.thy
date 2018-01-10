@@ -30,7 +30,7 @@ begin
 
 lemma list_eq_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(list_all2 A ===> list_all2 A ===> op =) list_eq list_eq"
+  shows "(list_all2 A ===> list_all2 A ===> (=)) list_eq list_eq"
   unfolding list_eq_def [abs_def] by transfer_prover
 
 quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
@@ -90,7 +90,7 @@ qed
 
 lemma member_transfer:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(A ===> list_all2 A ===> op=) (\<lambda>x xs. x \<in> set xs) (\<lambda>x xs. x \<in> set xs)"
+  shows "(A ===> list_all2 A ===> (=)) (\<lambda>x xs. x \<in> set xs) (\<lambda>x xs. x \<in> set xs)"
 by transfer_prover
 
 end

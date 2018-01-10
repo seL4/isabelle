@@ -38,7 +38,7 @@ lemma disjointD:
   "disjoint A \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}"
   unfolding disjoint_def by auto
 
-lemma disjoint_image: "inj_on f (\<Union>A) \<Longrightarrow> disjoint A \<Longrightarrow> disjoint (op ` f ` A)"
+lemma disjoint_image: "inj_on f (\<Union>A) \<Longrightarrow> disjoint A \<Longrightarrow> disjoint ((`) f ` A)"
   unfolding inj_on_def disjoint_def by blast
 
 lemma assumes "disjoint (A \<union> B)"
@@ -276,15 +276,15 @@ proof -
     by (auto simp add: partition_on_def pairwise_def intro!: F_disjnt)
 qed
 
-lemma partition_on_restrict: "partition_on A P \<Longrightarrow> partition_on (B \<inter> A) (op \<inter> B ` P - {{}})"
+lemma partition_on_restrict: "partition_on A P \<Longrightarrow> partition_on (B \<inter> A) ((\<inter>) B ` P - {{}})"
   by (intro partition_on_transform) (auto simp: disjnt_def)
 
-lemma partition_on_vimage: "partition_on A P \<Longrightarrow> partition_on (f -` A) (op -` f ` P - {{}})"
+lemma partition_on_vimage: "partition_on A P \<Longrightarrow> partition_on (f -` A) ((-`) f ` P - {{}})"
   by (intro partition_on_transform) (auto simp: disjnt_def)
 
 lemma partition_on_inj_image:
   assumes P: "partition_on A P" and f: "inj_on f A"
-  shows "partition_on (f ` A) (op ` f ` P - {{}})"
+  shows "partition_on (f ` A) ((`) f ` P - {{}})"
 proof (rule partition_on_transform[OF P])
   show "p \<in> P \<Longrightarrow> q \<in> P \<Longrightarrow> disjnt p q \<Longrightarrow> disjnt (f ` p) (f ` q)" for p q
     using f[THEN inj_onD] P[THEN partition_onD1] by (auto simp: disjnt_def)

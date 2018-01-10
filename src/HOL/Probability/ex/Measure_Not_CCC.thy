@@ -32,7 +32,7 @@ abbreviation BOOL :: "bool measure" where
 lemma measurable_const_iff: "(\<lambda>x. c) \<in> measurable A B \<longleftrightarrow> (space A = {} \<or> c \<in> space B)"
   by (auto simp: measurable_def)
 
-lemma measurable_eq[measurable]: "(op = x) \<in> measurable COCOUNT BOOL"
+lemma measurable_eq[measurable]: "((=) x) \<in> measurable COCOUNT BOOL"
   unfolding pred_def by (auto simp: COCOUNT_def)
 
 lemma COCOUNT_eq: "A \<in> COCOUNT \<longleftrightarrow> countable A \<or> countable (UNIV - A)"

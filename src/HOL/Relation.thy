@@ -214,7 +214,7 @@ lemma refl_on_def' [nitpick_unfold, code]:
   "refl_on A r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<in> A \<and> y \<in> A) \<and> (\<forall>x \<in> A. (x, x) \<in> r)"
   by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
 
-lemma reflp_equality [simp]: "reflp op ="
+lemma reflp_equality [simp]: "reflp (=)"
   by (simp add: reflp_def)
 
 lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<longrightarrow> Q x y) \<Longrightarrow> reflp Q"
@@ -423,7 +423,7 @@ lemma trans_join [code]: "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> 
 lemma transp_trans: "transp r \<longleftrightarrow> trans {(x, y). r x y}"
   by (simp add: trans_def transp_def)
 
-lemma transp_equality [simp]: "transp op ="
+lemma transp_equality [simp]: "transp (=)"
   by (auto intro: transpI)
 
 lemma trans_empty [simp]: "trans {}"
@@ -441,16 +441,16 @@ lemma transp_singleton [simp]: "transp (\<lambda>x y. x = a \<and> y = a)"
 context preorder
 begin
 
-lemma transp_le[simp]: "transp (op \<le>)"
+lemma transp_le[simp]: "transp (\<le>)"
 by(auto simp add: transp_def intro: order_trans)
 
-lemma transp_less[simp]: "transp (op <)"
+lemma transp_less[simp]: "transp (<)"
 by(auto simp add: transp_def intro: less_trans)
 
-lemma transp_ge[simp]: "transp (op \<ge>)"
+lemma transp_ge[simp]: "transp (\<ge>)"
 by(auto simp add: transp_def intro: order_trans)
 
-lemma transp_gr[simp]: "transp (op >)"
+lemma transp_gr[simp]: "transp (>)"
 by(auto simp add: transp_def intro: less_trans)
 
 end
@@ -704,10 +704,10 @@ lemma relcomp_unfold: "r O s = {(x, z). \<exists>y. (x, y) \<in> r \<and> (y, z)
 lemma relcompp_apply: "(R OO S) a c \<longleftrightarrow> (\<exists>b. R a b \<and> S b c)"
   unfolding relcomp_unfold [to_pred] ..
 
-lemma eq_OO: "op = OO R = R"
+lemma eq_OO: "(=) OO R = R"
   by blast
 
-lemma OO_eq: "R OO op = = R"
+lemma OO_eq: "R OO (=) = R"
   by blast
 
 
@@ -839,10 +839,10 @@ lemma finite_converse [iff]: "finite (r\<inverse>) = finite r"
   unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
   by (auto elim: finite_imageD simp: inj_on_def)
 
-lemma conversep_noteq [simp]: "(op \<noteq>)\<inverse>\<inverse> = op \<noteq>"
+lemma conversep_noteq [simp]: "(\<noteq>)\<inverse>\<inverse> = (\<noteq>)"
   by (auto simp add: fun_eq_iff)
 
-lemma conversep_eq [simp]: "(op =)\<inverse>\<inverse> = op ="
+lemma conversep_eq [simp]: "(=)\<inverse>\<inverse> = (=)"
   by (auto simp add: fun_eq_iff)
 
 lemma converse_unfold [code]: "r\<inverse> = {(y, x). (x, y) \<in> r}"

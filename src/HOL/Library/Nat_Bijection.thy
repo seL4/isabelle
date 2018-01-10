@@ -272,7 +272,7 @@ qed
 subsubsection \<open>From sets to naturals\<close>
 
 definition set_encode :: "nat set \<Rightarrow> nat"
-  where "set_encode = sum (op ^ 2)"
+  where "set_encode = sum ((^) 2)"
 
 lemma set_encode_empty [simp]: "set_encode {} = 0"
   by (simp add: set_encode_def)

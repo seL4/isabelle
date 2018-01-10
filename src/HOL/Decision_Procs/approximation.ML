@@ -105,9 +105,9 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
 
 fun calculated_subterms (@{const Trueprop} $ t) = calculated_subterms t
   | calculated_subterms (@{const HOL.implies} $ _ $ t) = calculated_subterms t
-  | calculated_subterms (@{term "op <= :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
-  | calculated_subterms (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
-  | calculated_subterms (@{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ t1 $
+  | calculated_subterms (@{term "(<=) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
+  | calculated_subterms (@{term "(<) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
+  | calculated_subterms (@{term "(:) :: real \<Rightarrow> real set \<Rightarrow> bool"} $ t1 $
                          (@{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ t2 $ t3)) = [t1, t2, t3]
   | calculated_subterms t = raise TERM ("calculated_subterms", [t])
 
@@ -246,7 +246,7 @@ fun approx_form prec ctxt t =
          |> approximate ctxt
          |> HOLogic.dest_list
          |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
-         |> map (fn (elem, s) => @{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
+         |> map (fn (elem, s) => @{term "(:) :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
          |> foldr1 HOLogic.mk_conj))
 
 fun approx_arith prec ctxt t = realify t

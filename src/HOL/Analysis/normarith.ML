@@ -24,9 +24,9 @@ struct
      Const(@{const_name norm}, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
    | _ => acc
  fun find_normedterms t acc = case Thm.term_of t of
-    @{term "op + :: real => _"}$_$_ =>
+    @{term "(+) :: real => _"}$_$_ =>
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
-      | @{term "op * :: real => _"}$_$_ =>
+      | @{term "( * ) :: real => _"}$_$_ =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
             augment_norm (dest_ratconst (Thm.dest_arg1 t) >= @0)
                       (Thm.dest_arg t) acc
@@ -82,8 +82,8 @@ fun vector_lincomb t = case Thm.term_of t of
    | SOME _ => fns) ts []
 
 fun replacenegnorms cv t = case Thm.term_of t of
-  @{term "op + :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
-| @{term "op * :: real => _"}$_$_ =>
+  @{term "(+) :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
+| @{term "( * ) :: real => _"}$_$_ =>
     if dest_ratconst (Thm.dest_arg1 t) < @0 then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
 (*
@@ -149,7 +149,7 @@ fun cterm_of_rat x =
 let val (a, b) = Rat.dest x
 in
  if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
-  else Thm.apply (Thm.apply @{cterm "op / :: real => _"}
+  else Thm.apply (Thm.apply @{cterm "(/) :: real => _"}
                    (Numeral.mk_cnumber @{ctyp "real"} a))
         (Numeral.mk_cnumber @{ctyp "real"} b)
 end;

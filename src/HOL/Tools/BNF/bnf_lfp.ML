@@ -537,8 +537,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "s" sTs
       ||>> mk_Frees "i" (replicate n suc_bdT)
       ||>> (fn ctxt => apfst the_single (mk_fresh_names ctxt 1 "Asi"))
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "i") suc_bdT
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "j") suc_bdT;
+      ||>> yield_singleton (apfst (~~) oo mk_Frees' "i") suc_bdT
+      ||>> yield_singleton (apfst (~~) oo mk_Frees' "j") suc_bdT;
 
     val suc_bd_limit_thm =
       let
@@ -764,7 +764,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       lthy
       |> mk_Frees "IIB" II_BTs
       ||>> mk_Frees "IIs" II_sTs
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "i") IIT
+      ||>> yield_singleton (apfst (~~) oo mk_Frees' "i") IIT
       ||>> mk_Frees "x" init_FTs;
 
     val II = HOLogic.mk_Collect (fst iidx', IIT, list_exists_free (II_Bs @ II_ss)
@@ -816,7 +816,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       |> mk_Frees "B" BTs
       ||>> mk_Frees "s" sTs
       ||>> mk_Frees "f" (map (fn T => Asuc_bdT --> T) activeAs)
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "i") IIT
+      ||>> yield_singleton (apfst (~~) oo mk_Frees' "i") IIT
       ||>> mk_Frees "ix" active_initTs
       ||>> mk_Frees' "x" init_FTs
       ||>> mk_Frees "f" init_fTs
@@ -941,7 +941,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val ((ss, (fold_f, fold_f')), _) =
       lthy
       |> mk_Frees "s" sTs
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "f") foldT;
+      ||>> yield_singleton (apfst (~~) oo mk_Frees' "f") foldT;
 
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
     val ctor_def_bind = rpair [] o Binding.concealed o Thm.def_binding o ctor_bind;
@@ -1279,7 +1279,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           (funs ~~ @{map 2} mk_fun_insts Ts funs) @ (algs ~~ map (Thm.cterm_of lthy) ctors);
         val ctor_fold_ctors = (ctor_fold_unique_thm OF
           map (fn thm => mk_trans @{thm id_o} (mk_sym (thm RS
-            @{thm trans[OF arg_cong2[of _ _ _ _ "op \<circ>", OF refl] o_id]}))) map_id0s)
+            @{thm trans[OF arg_cong2[of _ _ _ _ "(\<circ>)", OF refl] o_id]}))) map_id0s)
           |> split_conj_thm |> map mk_sym;
       in
         infer_instantiate lthy theta ctor_fold_unique_thm

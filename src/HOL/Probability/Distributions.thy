@@ -374,7 +374,7 @@ lemma (in prob_space) exponential_distributed_memoryless:
   shows "\<P>(x in M. a + t < X x \<bar> a < X x) = \<P>(x in M. t < X x)"
 proof -
   have "\<P>(x in M. a + t < X x \<bar> a < X x) = \<P>(x in M. a + t < X x) / \<P>(x in M. a < X x)"
-    using \<open>0 \<le> t\<close> by (auto simp: cond_prob_def intro!: arg_cong[where f=prob] arg_cong2[where f="op /"])
+    using \<open>0 \<le> t\<close> by (auto simp: cond_prob_def intro!: arg_cong[where f=prob] arg_cong2[where f="(/)"])
   also have "\<dots> = exp (- (a + t) * l) / exp (- a * l)"
     using a t by (simp add: exponential_distributedD_gt[OF D _ l])
   also have "\<dots> = exp (- t * l)"

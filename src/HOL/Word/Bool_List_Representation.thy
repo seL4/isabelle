@@ -415,8 +415,8 @@ lemma bl_xor_aux_bin:
   done
 
 lemma bl_or_aux_bin:
-  "map2 (op \<or>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
-    bin_to_bl_aux n (v OR w) (map2 (op \<or>) bs cs)"
+  "map2 (\<or>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
+    bin_to_bl_aux n (v OR w) (map2 (\<or>) bs cs)"
   apply (induct n arbitrary: v w bs cs)
    apply simp
   apply (case_tac v rule: bin_exhaust)
@@ -425,8 +425,8 @@ lemma bl_or_aux_bin:
   done
 
 lemma bl_and_aux_bin:
-  "map2 (op \<and>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
-    bin_to_bl_aux n (v AND w) (map2 (op \<and>) bs cs)"
+  "map2 (\<and>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
+    bin_to_bl_aux n (v AND w) (map2 (\<and>) bs cs)"
   apply (induct n arbitrary: v w bs cs)
    apply simp
   apply (case_tac v rule: bin_exhaust)
@@ -440,10 +440,10 @@ lemma bl_not_aux_bin: "map Not (bin_to_bl_aux n w cs) = bin_to_bl_aux n (NOT w) 
 lemma bl_not_bin: "map Not (bin_to_bl n w) = bin_to_bl n (NOT w)"
   by (simp add: bin_to_bl_def bl_not_aux_bin)
 
-lemma bl_and_bin: "map2 (op \<and>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v AND w)"
+lemma bl_and_bin: "map2 (\<and>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v AND w)"
   by (simp add: bin_to_bl_def bl_and_aux_bin)
 
-lemma bl_or_bin: "map2 (op \<or>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v OR w)"
+lemma bl_or_bin: "map2 (\<or>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v OR w)"
   by (simp add: bin_to_bl_def bl_or_aux_bin)
 
 lemma bl_xor_bin: "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v XOR w)"
@@ -652,7 +652,7 @@ lemma bl_of_nth_nth_le: "n \<le> length xs \<Longrightarrow> bl_of_nth n (nth (r
   apply simp
   done
 
-lemma bl_of_nth_nth [simp]: "bl_of_nth (length xs) (op ! (rev xs)) = xs"
+lemma bl_of_nth_nth [simp]: "bl_of_nth (length xs) ((!) (rev xs)) = xs"
   by (simp add: bl_of_nth_nth_le)
 
 lemma size_rbl_pred: "length (rbl_pred bl) = length bl"
@@ -833,8 +833,8 @@ lemma bin_rcat_bl: "bin_rcat n wl = bl_to_bin (concat (map (bin_to_bl n) wl))"
 lemmas bin_rsplit_aux_simps = bin_rsplit_aux.simps bin_rsplitl_aux.simps
 lemmas rsplit_aux_simps = bin_rsplit_aux_simps
 
-lemmas th_if_simp1 = if_split [where P = "op = l", THEN iffD1, THEN conjunct1, THEN mp] for l
-lemmas th_if_simp2 = if_split [where P = "op = l", THEN iffD1, THEN conjunct2, THEN mp] for l
+lemmas th_if_simp1 = if_split [where P = "(=) l", THEN iffD1, THEN conjunct1, THEN mp] for l
+lemmas th_if_simp2 = if_split [where P = "(=) l", THEN iffD1, THEN conjunct2, THEN mp] for l
 
 lemmas rsplit_aux_simp1s = rsplit_aux_simps [THEN th_if_simp1]
 

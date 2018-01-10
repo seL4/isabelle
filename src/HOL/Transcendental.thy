@@ -1902,7 +1902,7 @@ proof -
       using geometric_sums[OF \<open>norm (1 - x) < 1\<close>] by (rule sums_unique)
     also have "\<dots> = suminf (?f' x)"
       unfolding power_mult_distrib[symmetric]
-      by (rule arg_cong[where f=suminf], rule arg_cong[where f="op ^"], auto)
+      by (rule arg_cong[where f=suminf], rule arg_cong[where f="(^)"], auto)
     finally have "DERIV ln x :> suminf (?f' x)"
       using DERIV_ln[OF \<open>0 < x\<close>] unfolding divide_inverse by auto
     moreover
@@ -5622,7 +5622,7 @@ proof -
       by (simp only: power_mult)
   qed
 
-  have sums_even: "op sums f = op sums (\<lambda> n. if even n then f (n div 2) else 0)"
+  have sums_even: "(sums) f = (sums) (\<lambda> n. if even n then f (n div 2) else 0)"
     for f :: "nat \<Rightarrow> real"
   proof -
     have "f sums x = (\<lambda> n. if even n then f (n div 2) else 0) sums x" for x :: real

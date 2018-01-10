@@ -335,7 +335,7 @@ end
 context lattice
 begin
 
-lemma dual_lattice: "class.lattice sup (op \<ge>) (op >) inf"
+lemma dual_lattice: "class.lattice sup (\<ge>) (>) inf"
   by (rule class.lattice.intro,
       rule dual_semilattice,
       rule class.semilattice_sup.intro,
@@ -437,7 +437,7 @@ lemma inf_sup_distrib1: "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squn
 lemma inf_sup_distrib2: "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
   by (simp add: inf_commute inf_sup_distrib1)
 
-lemma dual_distrib_lattice: "class.distrib_lattice sup (op \<ge>) (op >) inf"
+lemma dual_distrib_lattice: "class.distrib_lattice sup (\<ge>) (>) inf"
   by (rule class.distrib_lattice.intro, rule dual_lattice)
     (unfold_locales, fact inf_sup_distrib1)
 

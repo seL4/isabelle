@@ -171,8 +171,8 @@ done
 
 declare exec_eval.intros[intro!]
 
-lemma MGF_Loop: "\<forall>Z. A \<turnstile> {op = Z} c {\<lambda>t. \<exists>n. Z -c-n\<rightarrow> t} \<Longrightarrow> 
-  A \<turnstile> {op = Z} While (x) c {\<lambda>t. \<exists>n. Z -While (x) c-n\<rightarrow> t}"
+lemma MGF_Loop: "\<forall>Z. A \<turnstile> {(=) Z} c {\<lambda>t. \<exists>n. Z -c-n\<rightarrow> t} \<Longrightarrow> 
+  A \<turnstile> {(=) Z} While (x) c {\<lambda>t. \<exists>n. Z -While (x) c-n\<rightarrow> t}"
 apply (rule_tac P' = "\<lambda>Z s. (Z,s) \<in> ({(s,t). \<exists>n. s<x> \<noteq> Null \<and> s -c-n\<rightarrow> t})^*"
        in hoare_ehoare.Conseq)
 apply  (rule allI)

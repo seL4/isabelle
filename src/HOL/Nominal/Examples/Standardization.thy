@@ -122,7 +122,7 @@ subsection \<open>Application of a term to a list of terms\<close>
 
 abbreviation
   list_application :: "lam \<Rightarrow> lam list \<Rightarrow> lam"  (infixl "\<degree>\<degree>" 150) where
-  "t \<degree>\<degree> ts \<equiv> foldl (op \<degree>) t ts"
+  "t \<degree>\<degree> ts \<equiv> foldl (\<degree>) t ts"
 
 lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> ts) = (r = s)"
   by (induct ts rule: rev_induct) (auto simp add: lam.inject)
@@ -175,7 +175,7 @@ lemma ex_head_tail:
   done
 
 lemma size_apps [simp]:
-  "size (r \<degree>\<degree> rs) = size r + foldl (op +) 0 (map size rs) + length rs"
+  "size (r \<degree>\<degree> rs) = size r + foldl (+) 0 (map size rs) + length rs"
   by (induct rs rule: rev_induct) auto
 
 lemma lem0: "(0::nat) < k \<Longrightarrow> m \<le> n \<Longrightarrow> m < n + k"
@@ -436,7 +436,7 @@ inductive
   sred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>s" 50)
   and sredlist :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>s]" 50)
 where
-  "s [\<rightarrow>\<^sub>s] t \<equiv> listrelp op \<rightarrow>\<^sub>s s t"
+  "s [\<rightarrow>\<^sub>s] t \<equiv> listrelp (\<rightarrow>\<^sub>s) s t"
 | Var: "rs [\<rightarrow>\<^sub>s] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>s Var x \<degree>\<degree> rs'"
 | Abs: "x \<sharp> (ss, ss') \<Longrightarrow> r \<rightarrow>\<^sub>s r' \<Longrightarrow> ss [\<rightarrow>\<^sub>s] ss' \<Longrightarrow> (Lam [x].r) \<degree>\<degree> ss \<rightarrow>\<^sub>s (Lam [x].r') \<degree>\<degree> ss'"
 | Beta: "x \<sharp> (s, ss, t) \<Longrightarrow> r[x::=s] \<degree>\<degree> ss \<rightarrow>\<^sub>s t \<Longrightarrow> (Lam [x].r) \<degree> s \<degree>\<degree> ss \<rightarrow>\<^sub>s t"
@@ -530,7 +530,7 @@ lemma lemma1':
   by (induct arbitrary: r r') (auto intro: lemma1)
 
 lemma listrelp_betas:
-  assumes ts: "listrelp op \<rightarrow>\<^sub>\<beta>\<^sup>* ts ts'"
+  assumes ts: "listrelp (\<rightarrow>\<^sub>\<beta>\<^sup>*) ts ts'"
   shows "\<And>t t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> t \<degree>\<degree> ts \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<degree>\<degree> ts'" using ts
   by induct auto
 
@@ -746,7 +746,7 @@ inductive
   lred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>l" 50)
   and lredlist :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>l]" 50)
 where
-  "s [\<rightarrow>\<^sub>l] t \<equiv> listrelp op \<rightarrow>\<^sub>l s t"
+  "s [\<rightarrow>\<^sub>l] t \<equiv> listrelp (\<rightarrow>\<^sub>l) s t"
 | Var: "rs [\<rightarrow>\<^sub>l] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>l Var x \<degree>\<degree> rs'"
 | Abs: "r \<rightarrow>\<^sub>l r' \<Longrightarrow> (Lam [x].r) \<rightarrow>\<^sub>l (Lam [x].r')"
 | Beta: "r[x::=s] \<degree>\<degree> ss \<rightarrow>\<^sub>l t \<Longrightarrow> (Lam [x].r) \<degree> s \<degree>\<degree> ss \<rightarrow>\<^sub>l t"

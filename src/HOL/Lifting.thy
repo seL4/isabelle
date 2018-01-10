@@ -78,7 +78,7 @@ lemma Quotient_rep_abs: "R r r \<Longrightarrow> R (Rep (Abs r)) r"
   using a unfolding Quotient_def
   by blast
 
-lemma Quotient_rep_abs_eq: "R t t \<Longrightarrow> R \<le> op= \<Longrightarrow> Rep (Abs t) = t"
+lemma Quotient_rep_abs_eq: "R t t \<Longrightarrow> R \<le> (=) \<Longrightarrow> Rep (Abs t) = t"
   using a unfolding Quotient_def
   by blast
 
@@ -118,7 +118,7 @@ by (metis Quotient_rep_reflp Quotient_symp Quotient_transp part_equivpI)
 
 end
 
-lemma identity_quotient: "Quotient (op =) id id (op =)"
+lemma identity_quotient: "Quotient (=) id id (=)"
 unfolding Quotient_def by simp
 
 text \<open>TODO: Use one of these alternatives as the real definition.\<close>
@@ -217,7 +217,7 @@ lemma in_respects: "x \<in> Respects R \<longleftrightarrow> R x x"
 lemma UNIV_typedef_to_Quotient:
   assumes "type_definition Rep Abs UNIV"
   and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
-  shows "Quotient (op =) Abs Rep T"
+  shows "Quotient (=) Abs Rep T"
 proof -
   interpret type_definition Rep Abs UNIV by fact
   from Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
@@ -228,7 +228,7 @@ lemma UNIV_typedef_to_equivp:
   fixes Abs :: "'a \<Rightarrow> 'b"
   and Rep :: "'b \<Rightarrow> 'a"
   assumes "type_definition Rep Abs (UNIV::'a set)"
-  shows "equivp (op= ::'a\<Rightarrow>'a\<Rightarrow>bool)"
+  shows "equivp ((=) ::'a\<Rightarrow>'a\<Rightarrow>bool)"
 by (rule identity_equivp)
 
 lemma typedef_to_Quotient:
@@ -284,7 +284,7 @@ lemma Quotient_right_unique: "right_unique T"
 lemma Quotient_right_total: "right_total T"
   using 1 unfolding Quotient_alt_def right_total_def by metis
 
-lemma Quotient_rel_eq_transfer: "(T ===> T ===> op =) R (op =)"
+lemma Quotient_rel_eq_transfer: "(T ===> T ===> (=)) R (=)"
   using 1 unfolding Quotient_alt_def rel_fun_def by simp
 
 lemma Quotient_abs_induct:
@@ -306,7 +306,7 @@ lemma Quotient_left_total: "left_total T"
 lemma Quotient_bi_total: "bi_total T"
   using 1 2 unfolding Quotient_alt_def bi_total_def reflp_def by auto
 
-lemma Quotient_id_abs_transfer: "(op = ===> T) (\<lambda>x. x) Abs"
+lemma Quotient_id_abs_transfer: "((=) ===> T) (\<lambda>x. x) Abs"
   using 1 2 unfolding Quotient_alt_def reflp_def rel_fun_def by simp
 
 lemma Quotient_total_abs_induct: "(\<And>y. P (Abs y)) \<Longrightarrow> P x"
@@ -343,7 +343,7 @@ lemma typedef_right_total: "right_total T"
   using T_def type Quotient_right_total typedef_to_Quotient
   by blast
 
-lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
+lemma typedef_rep_transfer: "(T ===> (=)) (\<lambda>x. x) Rep"
   unfolding rel_fun_def T_def by simp
 
 end
@@ -366,21 +366,21 @@ using r_R Quotient_cr_rel[OF q] unfolding left_total_def by (auto elim: reflpE)
 
 lemma Quotient_composition_ge_eq:
   assumes "left_total T"
-  assumes "R \<ge> op="
-  shows "(T OO R OO T\<inverse>\<inverse>) \<ge> op="
+  assumes "R \<ge> (=)"
+  shows "(T OO R OO T\<inverse>\<inverse>) \<ge> (=)"
 using assms unfolding left_total_def by fast
 
 lemma Quotient_composition_le_eq:
   assumes "left_unique T"
-  assumes "R \<le> op="
-  shows "(T OO R OO T\<inverse>\<inverse>) \<le> op="
+  assumes "R \<le> (=)"
+  shows "(T OO R OO T\<inverse>\<inverse>) \<le> (=)"
 using assms unfolding left_unique_def by blast
 
 lemma eq_onp_le_eq:
-  "eq_onp P \<le> op=" unfolding eq_onp_def by blast
+  "eq_onp P \<le> (=)" unfolding eq_onp_def by blast
 
 lemma reflp_ge_eq:
-  "reflp R \<Longrightarrow> R \<ge> op=" unfolding reflp_def by blast
+  "reflp R \<Longrightarrow> R \<ge> (=)" unfolding reflp_def by blast
 
 text \<open>Proving a parametrized correspondence relation\<close>
 
@@ -391,19 +391,19 @@ definition  NEG :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \
 "NEG A B \<equiv> B \<le> A"
 
 lemma pos_OO_eq:
-  shows "POS (A OO op=) A"
+  shows "POS (A OO (=)) A"
 unfolding POS_def OO_def by blast
 
 lemma pos_eq_OO:
-  shows "POS (op= OO A) A"
+  shows "POS ((=) OO A) A"
 unfolding POS_def OO_def by blast
 
 lemma neg_OO_eq:
-  shows "NEG (A OO op=) A"
+  shows "NEG (A OO (=)) A"
 unfolding NEG_def OO_def by auto
 
 lemma neg_eq_OO:
-  shows "NEG (op= OO A) A"
+  shows "NEG ((=) OO A) A"
 unfolding NEG_def OO_def by blast
 
 lemma POS_trans:
@@ -487,7 +487,7 @@ subsection \<open>Domains\<close>
 
 lemma composed_equiv_rel_eq_onp:
   assumes "left_unique R"
-  assumes "(R ===> op=) P P'"
+  assumes "(R ===> (=)) P P'"
   assumes "Domainp R = P''"
   shows "(R OO eq_onp P' OO R\<inverse>\<inverse>) = eq_onp (inf P'' P)"
 using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def rel_fun_def eq_onp_def
@@ -496,14 +496,14 @@ fun_eq_iff by blast
 lemma composed_equiv_rel_eq_eq_onp:
   assumes "left_unique R"
   assumes "Domainp R = P"
-  shows "(R OO op= OO R\<inverse>\<inverse>) = eq_onp P"
+  shows "(R OO (=) OO R\<inverse>\<inverse>) = eq_onp P"
 using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def eq_onp_def
 fun_eq_iff is_equality_def by metis
 
 lemma pcr_Domainp_par_left_total:
   assumes "Domainp B = P"
   assumes "left_total A"
-  assumes "(A ===> op=) P' P"
+  assumes "(A ===> (=)) P' P"
   shows "Domainp (A OO B) = P'"
 using assms
 unfolding Domainp_iff[abs_def] OO_def bi_unique_def left_total_def rel_fun_def
@@ -512,7 +512,7 @@ by (fast intro: fun_eq_iff)
 lemma pcr_Domainp_par:
 assumes "Domainp B = P2"
 assumes "Domainp A = P1"
-assumes "(A ===> op=) P2' P2"
+assumes "(A ===> (=)) P2' P2"
 shows "Domainp (A OO B) = (inf P1 P2')"
 using assms unfolding rel_fun_def Domainp_iff[abs_def] OO_def
 by (fast intro: fun_eq_iff)

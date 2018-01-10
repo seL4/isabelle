@@ -324,7 +324,7 @@ fun intro_image_tac ctxt =
   resolve_tac ctxt @{thms image_eqI}
   THEN' (REPEAT_DETERM1 o
       (resolve_tac ctxt @{thms refl}
-      ORELSE' resolve_tac ctxt @{thms arg_cong2 [OF refl, where f = "op =", OF prod.case, THEN iffD2]}
+      ORELSE' resolve_tac ctxt @{thms arg_cong2 [OF refl, where f = "(=)", OF prod.case, THEN iffD2]}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
         (HOLogic.Trueprop_conv
           (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq case_prod_beta)))))) ctxt)))
@@ -356,7 +356,7 @@ fun tac1_of_formula ctxt (Int (fm1, fm2)) =
       ORELSE' (resolve_tac ctxt @{thms image_eqI} THEN'
     (REPEAT_DETERM o
       (resolve_tac ctxt @{thms refl}
-      ORELSE' resolve_tac ctxt @{thms arg_cong2[OF refl, where f = "op =", OF prod.case, THEN iffD2]})))
+      ORELSE' resolve_tac ctxt @{thms arg_cong2[OF refl, where f = "(=)", OF prod.case, THEN iffD2]})))
       ORELSE' resolve_tac ctxt @{thms UNIV_I}
       ORELSE' resolve_tac ctxt @{thms iffD2[OF Compl_iff]}
       ORELSE' assume_tac ctxt)

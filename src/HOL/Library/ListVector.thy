@@ -13,7 +13,7 @@ Is only a vector space if restricted to lists of the same length.\<close>
 text\<open>Multiplication with a scalar:\<close>
 
 abbreviation scale :: "('a::times) \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "*\<^sub>s" 70)
-where "x *\<^sub>s xs \<equiv> map (op * x) xs"
+where "x *\<^sub>s xs \<equiv> map (( * ) x) xs"
 
 lemma scale1[simp]: "(1::'a::monoid_mult) *\<^sub>s xs = xs"
 by (induct xs) simp_all
@@ -31,7 +31,7 @@ instantiation list :: ("{zero, plus}") plus
 begin
 
 definition
-  list_add_def: "op + = zipwith0 (op +)"
+  list_add_def: "(+) = zipwith0 (+)"
 
 instance ..
 
@@ -51,7 +51,7 @@ instantiation list :: ("{zero,minus}") minus
 begin
 
 definition
-  list_diff_def: "op - = zipwith0 (op -)"
+  list_diff_def: "(-) = zipwith0 (-)"
 
 instance ..
 

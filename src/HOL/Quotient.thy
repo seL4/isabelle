@@ -25,7 +25,7 @@ where
   "r1 OOO r2 \<equiv> r1 OO r2 OO r1"
 
 lemma eq_comp_r:
-  shows "((op =) OOO R) = R"
+  shows "((=) OOO R) = R"
   by (auto simp add: fun_eq_iff)
 
 context includes lifting_syntax
@@ -132,7 +132,7 @@ lemma rep_abs_rsp_left:
 end
 
 lemma identity_quotient3:
-  "Quotient3 (op =) id id"
+  "Quotient3 (=) id id"
   unfolding Quotient3_def id_def
   by blast
 
@@ -364,17 +364,17 @@ lemma babs_reg_eqv:
 
 (* 3 lemmas needed for proving repabs_inj *)
 lemma ball_rsp:
-  assumes a: "(R ===> (op =)) f g"
+  assumes a: "(R ===> (=)) f g"
   shows "Ball (Respects R) f = Ball (Respects R) g"
   using a by (auto simp add: Ball_def in_respects elim: rel_funE)
 
 lemma bex_rsp:
-  assumes a: "(R ===> (op =)) f g"
+  assumes a: "(R ===> (=)) f g"
   shows "(Bex (Respects R) f = Bex (Respects R) g)"
   using a by (auto simp add: Bex_def in_respects elim: rel_funE)
 
 lemma bex1_rsp:
-  assumes a: "(R ===> (op =)) f g"
+  assumes a: "(R ===> (=)) f g"
   shows "Ex1 (\<lambda>x. x \<in> Respects R \<and> f x) = Ex1 (\<lambda>x. x \<in> Respects R \<and> g x)"
   using a by (auto elim: rel_funE simp add: Ex1_def in_respects) 
 
@@ -438,7 +438,7 @@ lemma bex1_rel_aux2:
 
 lemma bex1_rel_rsp:
   assumes a: "Quotient3 R absf repf"
-  shows "((R ===> op =) ===> op =) (Bex1_rel R) (Bex1_rel R)"
+  shows "((R ===> (=)) ===> (=)) (Bex1_rel R) (Bex1_rel R)"
   apply (simp add: rel_fun_def)
   apply clarify
   apply rule
@@ -509,7 +509,7 @@ subsection \<open>Various respects and preserve lemmas\<close>
 
 lemma quot_rel_rsp:
   assumes a: "Quotient3 R Abs Rep"
-  shows "(R ===> R ===> op =) R R"
+  shows "(R ===> R ===> (=)) R R"
   apply(rule rel_funI)+
   apply(rule equals_rsp[OF a])
   apply(assumption)+
@@ -519,14 +519,14 @@ lemma o_prs:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
   and     q3: "Quotient3 R3 Abs3 Rep3"
-  shows "((Abs2 ---> Rep3) ---> (Abs1 ---> Rep2) ---> (Rep1 ---> Abs3)) op \<circ> = op \<circ>"
-  and   "(id ---> (Abs1 ---> id) ---> Rep1 ---> id) op \<circ> = op \<circ>"
+  shows "((Abs2 ---> Rep3) ---> (Abs1 ---> Rep2) ---> (Rep1 ---> Abs3)) (\<circ>) = (\<circ>)"
+  and   "(id ---> (Abs1 ---> id) ---> Rep1 ---> id) (\<circ>) = (\<circ>)"
   using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2] Quotient3_abs_rep[OF q3]
   by (simp_all add: fun_eq_iff)
 
 lemma o_rsp:
-  "((R2 ===> R3) ===> (R1 ===> R2) ===> (R1 ===> R3)) op \<circ> op \<circ>"
-  "(op = ===> (R1 ===> op =) ===> R1 ===> op =) op \<circ> op \<circ>"
+  "((R2 ===> R3) ===> (R1 ===> R2) ===> (R1 ===> R3)) (\<circ>) (\<circ>)"
+  "((=) ===> (R1 ===> (=)) ===> R1 ===> (=)) (\<circ>) (\<circ>)"
   by (force elim: rel_funE)+
 
 lemma cond_prs:
@@ -542,7 +542,7 @@ lemma if_prs:
 
 lemma if_rsp:
   assumes q: "Quotient3 R Abs Rep"
-  shows "(op = ===> R ===> R ===> R) If If"
+  shows "((=) ===> R ===> R ===> R) If If"
   by force
 
 lemma let_prs:
@@ -712,8 +712,8 @@ lemma OOO_eq_quotient3:
   fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
   fixes Abs2 :: "'b \<Rightarrow> 'c" and Rep2 :: "'c \<Rightarrow> 'b"
   assumes R1: "Quotient3 R1 Abs1 Rep1"
-  assumes R2: "Quotient3 op= Abs2 Rep2"
-  shows "Quotient3 (R1 OOO op=) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
+  assumes R2: "Quotient3 (=) Abs2 Rep2"
+  shows "Quotient3 (R1 OOO (=)) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
 using assms
 by (rule OOO_quotient3) auto
 

@@ -65,7 +65,7 @@ term "True = (1::nat)"
 
 term "(1::nat) = (True = (1::nat))"
 
-term "op = (True = (1::nat))"
+term "(=) (True = (1::nat))"
 
 term "[1::nat,True]"
 

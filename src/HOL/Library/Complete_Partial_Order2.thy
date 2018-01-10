@@ -10,12 +10,12 @@ begin
 
 lemma chain_transfer [transfer_rule]:
   includes lifting_syntax
-  shows "((A ===> A ===> op =) ===> rel_set A ===> op =) Complete_Partial_Order.chain Complete_Partial_Order.chain"
+  shows "((A ===> A ===> (=)) ===> rel_set A ===> (=)) Complete_Partial_Order.chain Complete_Partial_Order.chain"
 unfolding chain_def[abs_def] by transfer_prover
 
 lemma linorder_chain [simp, intro!]:
   fixes Y :: "_ :: linorder set"
-  shows "Complete_Partial_Order.chain op \<le> Y"
+  shows "Complete_Partial_Order.chain (\<le>) Y"
 by(auto intro: chainI)
 
 lemma fun_lub_apply: "\<And>Sup. fun_lub Sup Y x = Sup ((\<lambda>f. f x) ` Y)"
@@ -47,15 +47,15 @@ by(auto 4 3 simp add: chain_def)
 
 context ccpo begin
 
-lemma ccpo_fun: "class.ccpo (fun_lub Sup) (fun_ord op \<le>) (mk_less (fun_ord op \<le>))"
+lemma ccpo_fun: "class.ccpo (fun_lub Sup) (fun_ord (\<le>)) (mk_less (fun_ord (\<le>)))"
   by standard (auto 4 3 simp add: mk_less_def fun_ord_def fun_lub_apply
     intro: order.trans antisym chain_imageI ccpo_Sup_upper ccpo_Sup_least)
 
-lemma ccpo_Sup_below_iff: "Complete_Partial_Order.chain op \<le> Y \<Longrightarrow> Sup Y \<le> x \<longleftrightarrow> (\<forall>y\<in>Y. y \<le> x)"
+lemma ccpo_Sup_below_iff: "Complete_Partial_Order.chain (\<le>) Y \<Longrightarrow> Sup Y \<le> x \<longleftrightarrow> (\<forall>y\<in>Y. y \<le> x)"
 by(fast intro: order_trans[OF ccpo_Sup_upper] ccpo_Sup_least)
 
 lemma Sup_minus_bot: 
-  assumes chain: "Complete_Partial_Order.chain op \<le> A"
+  assumes chain: "Complete_Partial_Order.chain (\<le>) A"
   shows "\<Squnion>(A - {\<Squnion>{}}) = \<Squnion>A"
     (is "?lhs = ?rhs")
 proof (rule antisym)
@@ -71,14 +71,14 @@ qed
 
 lemma mono_lub:
   fixes le_b (infix "\<sqsubseteq>" 60)
-  assumes chain: "Complete_Partial_Order.chain (fun_ord op \<le>) Y"
-  and mono: "\<And>f. f \<in> Y \<Longrightarrow> monotone le_b op \<le> f"
-  shows "monotone op \<sqsubseteq> op \<le> (fun_lub Sup Y)"
+  assumes chain: "Complete_Partial_Order.chain (fun_ord (\<le>)) Y"
+  and mono: "\<And>f. f \<in> Y \<Longrightarrow> monotone le_b (\<le>) f"
+  shows "monotone (\<sqsubseteq>) (\<le>) (fun_lub Sup Y)"
 proof(rule monotoneI)
   fix x y
   assume "x \<sqsubseteq> y"
 
-  have chain'': "\<And>x. Complete_Partial_Order.chain op \<le> ((\<lambda>f. f x) ` Y)"
+  have chain'': "\<And>x. Complete_Partial_Order.chain (\<le>) ((\<lambda>f. f x) ` Y)"
     using chain by(rule chain_imageI)(simp add: fun_ord_def)
   then show "fun_lub Sup Y x \<le> fun_lub Sup Y y" unfolding fun_lub_apply
   proof(rule ccpo_Sup_least)
@@ -96,7 +96,7 @@ qed
 context
   fixes le_b (infix "\<sqsubseteq>" 60) and Y f
   assumes chain: "Complete_Partial_Order.chain le_b Y" 
-  and mono1: "\<And>y. y \<in> Y \<Longrightarrow> monotone le_b op \<le> (\<lambda>x. f x y)"
+  and mono1: "\<And>y. y \<in> Y \<Longrightarrow> monotone le_b (\<le>) (\<lambda>x. f x y)"
   and mono2: "\<And>x a b. \<lbrakk> x \<in> Y; a \<sqsubseteq> b; a \<in> Y; b \<in> Y \<rbrakk> \<Longrightarrow> f x a \<le> f x b"
 begin
 
@@ -104,7 +104,7 @@ lemma Sup_mono:
   assumes le: "x \<sqsubseteq> y" and x: "x \<in> Y" and y: "y \<in> Y"
   shows "\<Squnion>(f x ` Y) \<le> \<Squnion>(f y ` Y)" (is "_ \<le> ?rhs")
 proof(rule ccpo_Sup_least)
-  from chain show chain': "Complete_Partial_Order.chain op \<le> (f x ` Y)" when "x \<in> Y" for x
+  from chain show chain': "Complete_Partial_Order.chain (\<le>) (f x ` Y)" when "x \<in> Y" for x
     by(rule chain_imageI) (insert that, auto dest: mono2)
 
   fix x'
@@ -118,11 +118,11 @@ qed(rule x)
 
 lemma diag_Sup: "\<Squnion>((\<lambda>x. \<Squnion>(f x ` Y)) ` Y) = \<Squnion>((\<lambda>x. f x x) ` Y)" (is "?lhs = ?rhs")
 proof(rule antisym)
-  have chain1: "Complete_Partial_Order.chain op \<le> ((\<lambda>x. \<Squnion>(f x ` Y)) ` Y)"
+  have chain1: "Complete_Partial_Order.chain (\<le>) ((\<lambda>x. \<Squnion>(f x ` Y)) ` Y)"
     using chain by(rule chain_imageI)(rule Sup_mono)
-  have chain2: "\<And>y'. y' \<in> Y \<Longrightarrow> Complete_Partial_Order.chain op \<le> (f y' ` Y)" using chain
+  have chain2: "\<And>y'. y' \<in> Y \<Longrightarrow> Complete_Partial_Order.chain (\<le>) (f y' ` Y)" using chain
     by(rule chain_imageI)(auto dest: mono2)
-  have chain3: "Complete_Partial_Order.chain op \<le> ((\<lambda>x. f x x) ` Y)"
+  have chain3: "Complete_Partial_Order.chain (\<le>) ((\<lambda>x. f x x) ` Y)"
     using chain by(rule chain_imageI)(auto intro: monotoneD[OF mono1] mono2 order.trans)
 
   show "?lhs \<le> ?rhs" using chain1
@@ -162,12 +162,12 @@ end
 
 lemma Sup_image_mono_le:
   fixes le_b (infix "\<sqsubseteq>" 60) and Sup_b ("\<Or>_" [900] 900)
-  assumes ccpo: "class.ccpo Sup_b op \<sqsubseteq> lt_b"
-  assumes chain: "Complete_Partial_Order.chain op \<sqsubseteq> Y"
+  assumes ccpo: "class.ccpo Sup_b (\<sqsubseteq>) lt_b"
+  assumes chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
   and mono: "\<And>x y. \<lbrakk> x \<sqsubseteq> y; x \<in> Y \<rbrakk> \<Longrightarrow> f x \<le> f y"
   shows "Sup (f ` Y) \<le> f (\<Or>Y)"
 proof(rule ccpo_Sup_least)
-  show "Complete_Partial_Order.chain op \<le> (f ` Y)"
+  show "Complete_Partial_Order.chain (\<le>) (f ` Y)"
     using chain by(rule chain_imageI)(rule mono)
 
   fix x
@@ -180,9 +180,9 @@ qed
 
 lemma swap_Sup:
   fixes le_b (infix "\<sqsubseteq>" 60)
-  assumes Y: "Complete_Partial_Order.chain op \<sqsubseteq> Y"
-  and Z: "Complete_Partial_Order.chain (fun_ord op \<le>) Z"
-  and mono: "\<And>f. f \<in> Z \<Longrightarrow> monotone op \<sqsubseteq> op \<le> f"
+  assumes Y: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
+  and Z: "Complete_Partial_Order.chain (fun_ord (\<le>)) Z"
+  and mono: "\<And>f. f \<in> Z \<Longrightarrow> monotone (\<sqsubseteq>) (\<le>) f"
   shows "\<Squnion>((\<lambda>x. \<Squnion>(x ` Y)) ` Z) = \<Squnion>((\<lambda>x. \<Squnion>((\<lambda>f. f x) ` Z)) ` Y)"
   (is "?lhs = ?rhs")
 proof(cases "Y = {}")
@@ -191,27 +191,27 @@ proof(cases "Y = {}")
     by (simp add: image_constant_conv cong del: strong_SUP_cong)
 next
   case False
-  have chain1: "\<And>f. f \<in> Z \<Longrightarrow> Complete_Partial_Order.chain op \<le> (f ` Y)"
+  have chain1: "\<And>f. f \<in> Z \<Longrightarrow> Complete_Partial_Order.chain (\<le>) (f ` Y)"
     by(rule chain_imageI[OF Y])(rule monotoneD[OF mono])
-  have chain2: "Complete_Partial_Order.chain op \<le> ((\<lambda>x. \<Squnion>(x ` Y)) ` Z)" using Z
+  have chain2: "Complete_Partial_Order.chain (\<le>) ((\<lambda>x. \<Squnion>(x ` Y)) ` Z)" using Z
   proof(rule chain_imageI)
     fix f g
     assume "f \<in> Z" "g \<in> Z"
-      and "fun_ord op \<le> f g"
+      and "fun_ord (\<le>) f g"
     from chain1[OF \<open>f \<in> Z\<close>] show "\<Squnion>(f ` Y) \<le> \<Squnion>(g ` Y)"
     proof(rule ccpo_Sup_least)
       fix x
       assume "x \<in> f ` Y"
       then obtain y where "y \<in> Y" "x = f y" by blast note this(2)
-      also have "\<dots> \<le> g y" using \<open>fun_ord op \<le> f g\<close> by(simp add: fun_ord_def)
+      also have "\<dots> \<le> g y" using \<open>fun_ord (\<le>) f g\<close> by(simp add: fun_ord_def)
       also have "\<dots> \<le> \<Squnion>(g ` Y)" using chain1[OF \<open>g \<in> Z\<close>]
         by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> Y\<close>)
       finally show "x \<le> \<Squnion>(g ` Y)" .
     qed
   qed
-  have chain3: "\<And>x. Complete_Partial_Order.chain op \<le> ((\<lambda>f. f x) ` Z)"
+  have chain3: "\<And>x. Complete_Partial_Order.chain (\<le>) ((\<lambda>f. f x) ` Z)"
     using Z by(rule chain_imageI)(simp add: fun_ord_def)
-  have chain4: "Complete_Partial_Order.chain op \<le> ((\<lambda>x. \<Squnion>((\<lambda>f. f x) ` Z)) ` Y)"
+  have chain4: "Complete_Partial_Order.chain (\<le>) ((\<lambda>x. \<Squnion>((\<lambda>f. f x) ` Z)) ` Y)"
     using Y
   proof(rule chain_imageI)
     fix f x y
@@ -268,9 +268,9 @@ next
 qed
 
 lemma fixp_mono:
-  assumes fg: "fun_ord op \<le> f g"
-  and f: "monotone op \<le> op \<le> f"
-  and g: "monotone op \<le> op \<le> g"
+  assumes fg: "fun_ord (\<le>) f g"
+  and f: "monotone (\<le>) (\<le>) f"
+  and g: "monotone (\<le>) (\<le>) g"
   shows "ccpo_class.fixp f \<le> ccpo_class.fixp g"
 unfolding fixp_def
 proof(rule ccpo_Sup_least)
@@ -289,22 +289,22 @@ qed(rule chain_iterates[OF f])
 context fixes ordb :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix "\<sqsubseteq>" 60) begin
 
 lemma iterates_mono:
-  assumes f: "f \<in> ccpo.iterates (fun_lub Sup) (fun_ord op \<le>) F"
-  and mono: "\<And>f. monotone op \<sqsubseteq> op \<le> f \<Longrightarrow> monotone op \<sqsubseteq> op \<le> (F f)"
-  shows "monotone op \<sqsubseteq> op \<le> f"
+  assumes f: "f \<in> ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
+  and mono: "\<And>f. monotone (\<sqsubseteq>) (\<le>) f \<Longrightarrow> monotone (\<sqsubseteq>) (\<le>) (F f)"
+  shows "monotone (\<sqsubseteq>) (\<le>) f"
 using f
 by(induction rule: ccpo.iterates.induct[OF ccpo_fun, consumes 1, case_names step Sup])(blast intro: mono mono_lub)+
 
 lemma fixp_preserves_mono:
-  assumes mono: "\<And>x. monotone (fun_ord op \<le>) op \<le> (\<lambda>f. F f x)"
-  and mono2: "\<And>f. monotone op \<sqsubseteq> op \<le> f \<Longrightarrow> monotone op \<sqsubseteq> op \<le> (F f)"
-  shows "monotone op \<sqsubseteq> op \<le> (ccpo.fixp (fun_lub Sup) (fun_ord op \<le>) F)"
+  assumes mono: "\<And>x. monotone (fun_ord (\<le>)) (\<le>) (\<lambda>f. F f x)"
+  and mono2: "\<And>f. monotone (\<sqsubseteq>) (\<le>) f \<Longrightarrow> monotone (\<sqsubseteq>) (\<le>) (F f)"
+  shows "monotone (\<sqsubseteq>) (\<le>) (ccpo.fixp (fun_lub Sup) (fun_ord (\<le>)) F)"
   (is "monotone _ _ ?fixp")
 proof(rule monotoneI)
-  have mono: "monotone (fun_ord op \<le>) (fun_ord op \<le>) F"
+  have mono: "monotone (fun_ord (\<le>)) (fun_ord (\<le>)) F"
     by(rule monotoneI)(auto simp add: fun_ord_def intro: monotoneD[OF mono])
-  let ?iter = "ccpo.iterates (fun_lub Sup) (fun_ord op \<le>) F"
-  have chain: "\<And>x. Complete_Partial_Order.chain op \<le> ((\<lambda>f. f x) ` ?iter)"
+  let ?iter = "ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
+  have chain: "\<And>x. Complete_Partial_Order.chain (\<le>) ((\<lambda>f. f x) ` ?iter)"
     by(rule chain_imageI[OF ccpo.chain_iterates[OF ccpo_fun mono]])(simp add: fun_ord_def)
 
   fix x y
@@ -417,10 +417,10 @@ by(auto simp add: monotone_def fun_ord_def)
 
 context preorder begin
 
-lemma transp_le [simp, cont_intro]: "transp op \<le>"
+lemma transp_le [simp, cont_intro]: "transp (\<le>)"
 by(rule transpI)(rule order_trans)
 
-lemma monotone_const [simp, cont_intro]: "monotone ord op \<le> (\<lambda>_. c)"
+lemma monotone_const [simp, cont_intro]: "monotone ord (\<le>) (\<lambda>_. c)"
 by(rule monotoneI) simp
 
 end
@@ -517,21 +517,21 @@ by(auto simp add: monotone_fun_ord_apply cont_fun_lub_apply mcont_def)
 
 context ccpo begin
 
-lemma cont_const [simp, cont_intro]: "cont luba orda Sup op \<le> (\<lambda>x. c)"
+lemma cont_const [simp, cont_intro]: "cont luba orda Sup (\<le>) (\<lambda>x. c)"
 by (rule contI) (simp add: image_constant_conv cong del: strong_SUP_cong)
 
 lemma mcont_const [cont_intro, simp]:
-  "mcont luba orda Sup op \<le> (\<lambda>x. c)"
+  "mcont luba orda Sup (\<le>) (\<lambda>x. c)"
 by(simp add: mcont_def)
 
 lemma cont_apply:
-  assumes 2: "\<And>x. cont lubb ordb Sup op \<le> (\<lambda>y. f x y)"
+  assumes 2: "\<And>x. cont lubb ordb Sup (\<le>) (\<lambda>y. f x y)"
   and t: "cont luba orda lubb ordb (\<lambda>x. t x)"
-  and 1: "\<And>y. cont luba orda Sup op \<le> (\<lambda>x. f x y)"
+  and 1: "\<And>y. cont luba orda Sup (\<le>) (\<lambda>x. f x y)"
   and mono: "monotone orda ordb (\<lambda>x. t x)"
-  and mono2: "\<And>x. monotone ordb op \<le> (\<lambda>y. f x y)"
-  and mono1: "\<And>y. monotone orda op \<le> (\<lambda>x. f x y)"
-  shows "cont luba orda Sup op \<le> (\<lambda>x. f x (t x))"
+  and mono2: "\<And>x. monotone ordb (\<le>) (\<lambda>y. f x y)"
+  and mono1: "\<And>y. monotone orda (\<le>) (\<lambda>x. f x y)"
+  shows "cont luba orda Sup (\<le>) (\<lambda>x. f x (t x))"
 proof
   fix Y
   assume chain: "Complete_Partial_Order.chain orda Y" and "Y \<noteq> {}"
@@ -543,15 +543,15 @@ proof
 qed
 
 lemma mcont2mcont':
-  "\<lbrakk> \<And>x. mcont lub' ord' Sup op \<le> (\<lambda>y. f x y);
-     \<And>y. mcont lub ord Sup op \<le> (\<lambda>x. f x y);
+  "\<lbrakk> \<And>x. mcont lub' ord' Sup (\<le>) (\<lambda>y. f x y);
+     \<And>y. mcont lub ord Sup (\<le>) (\<lambda>x. f x y);
      mcont lub ord lub' ord' (\<lambda>y. t y) \<rbrakk>
-  \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. f x (t x))"
+  \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x (t x))"
 unfolding mcont_def by(blast intro: transp_le monotone2monotone cont_apply)
 
 lemma mcont2mcont:
-  "\<lbrakk>mcont lub' ord' Sup op \<le> (\<lambda>x. f x); mcont lub ord lub' ord' (\<lambda>x. t x)\<rbrakk> 
-  \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. f (t x))"
+  "\<lbrakk>mcont lub' ord' Sup (\<le>) (\<lambda>x. f x); mcont lub ord lub' ord' (\<lambda>x. t x)\<rbrakk> 
+  \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f (t x))"
 by(rule mcont2mcont'[OF _ mcont_const]) 
 
 context
@@ -560,12 +560,12 @@ context
 begin
 
 lemma cont_fun_lub_Sup:
-  assumes chainM: "Complete_Partial_Order.chain (fun_ord op \<le>) M"
-  and mcont [rule_format]: "\<forall>f\<in>M. mcont lub op \<sqsubseteq> Sup op \<le> f"
-  shows "cont lub op \<sqsubseteq> Sup op \<le> (fun_lub Sup M)"
+  assumes chainM: "Complete_Partial_Order.chain (fun_ord (\<le>)) M"
+  and mcont [rule_format]: "\<forall>f\<in>M. mcont lub (\<sqsubseteq>) Sup (\<le>) f"
+  shows "cont lub (\<sqsubseteq>) Sup (\<le>) (fun_lub Sup M)"
 proof(rule contI)
   fix Y
-  assume chain: "Complete_Partial_Order.chain op \<sqsubseteq> Y"
+  assume chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
     and Y: "Y \<noteq> {}"
   from swap_Sup[OF chain chainM mcont[THEN mcont_mono]]
   show "fun_lub Sup M (\<Or>Y) = \<Squnion>(fun_lub Sup M ` Y)"
@@ -573,29 +573,29 @@ proof(rule contI)
 qed
 
 lemma mcont_fun_lub_Sup:
-  "\<lbrakk> Complete_Partial_Order.chain (fun_ord op \<le>) M;
-    \<forall>f\<in>M. mcont lub ord Sup op \<le> f \<rbrakk>
-  \<Longrightarrow> mcont lub op \<sqsubseteq> Sup op \<le> (fun_lub Sup M)"
+  "\<lbrakk> Complete_Partial_Order.chain (fun_ord (\<le>)) M;
+    \<forall>f\<in>M. mcont lub ord Sup (\<le>) f \<rbrakk>
+  \<Longrightarrow> mcont lub (\<sqsubseteq>) Sup (\<le>) (fun_lub Sup M)"
 by(simp add: mcont_def cont_fun_lub_Sup mono_lub)
 
 lemma iterates_mcont:
-  assumes f: "f \<in> ccpo.iterates (fun_lub Sup) (fun_ord op \<le>) F"
-  and mono: "\<And>f. mcont lub op \<sqsubseteq> Sup op \<le> f \<Longrightarrow> mcont lub op \<sqsubseteq> Sup op \<le> (F f)"
-  shows "mcont lub op \<sqsubseteq> Sup op \<le> f"
+  assumes f: "f \<in> ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
+  and mono: "\<And>f. mcont lub (\<sqsubseteq>) Sup (\<le>) f \<Longrightarrow> mcont lub (\<sqsubseteq>) Sup (\<le>) (F f)"
+  shows "mcont lub (\<sqsubseteq>) Sup (\<le>) f"
 using f
 by(induction rule: ccpo.iterates.induct[OF ccpo_fun, consumes 1, case_names step Sup])(blast intro: mono mcont_fun_lub_Sup)+
 
 lemma fixp_preserves_mcont:
-  assumes mono: "\<And>x. monotone (fun_ord op \<le>) op \<le> (\<lambda>f. F f x)"
-  and mcont: "\<And>f. mcont lub op \<sqsubseteq> Sup op \<le> f \<Longrightarrow> mcont lub op \<sqsubseteq> Sup op \<le> (F f)"
-  shows "mcont lub op \<sqsubseteq> Sup op \<le> (ccpo.fixp (fun_lub Sup) (fun_ord op \<le>) F)"
+  assumes mono: "\<And>x. monotone (fun_ord (\<le>)) (\<le>) (\<lambda>f. F f x)"
+  and mcont: "\<And>f. mcont lub (\<sqsubseteq>) Sup (\<le>) f \<Longrightarrow> mcont lub (\<sqsubseteq>) Sup (\<le>) (F f)"
+  shows "mcont lub (\<sqsubseteq>) Sup (\<le>) (ccpo.fixp (fun_lub Sup) (fun_ord (\<le>)) F)"
   (is "mcont _ _ _ _ ?fixp")
 unfolding mcont_def
 proof(intro conjI monotoneI contI)
-  have mono: "monotone (fun_ord op \<le>) (fun_ord op \<le>) F"
+  have mono: "monotone (fun_ord (\<le>)) (fun_ord (\<le>)) F"
     by(rule monotoneI)(auto simp add: fun_ord_def intro: monotoneD[OF mono])
-  let ?iter = "ccpo.iterates (fun_lub Sup) (fun_ord op \<le>) F"
-  have chain: "\<And>x. Complete_Partial_Order.chain op \<le> ((\<lambda>f. f x) ` ?iter)"
+  let ?iter = "ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
+  have chain: "\<And>x. Complete_Partial_Order.chain (\<le>) ((\<lambda>f. f x) ` ?iter)"
     by(rule chain_imageI[OF ccpo.chain_iterates[OF ccpo_fun mono]])(simp add: fun_ord_def)
 
   {
@@ -616,7 +616,7 @@ proof(intro conjI monotoneI contI)
     qed
   next
     fix Y
-    assume chain: "Complete_Partial_Order.chain op \<sqsubseteq> Y"
+    assume chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
       and Y: "Y \<noteq> {}"
     { fix f
       assume "f \<in> ?iter"
@@ -634,19 +634,19 @@ end
 
 context
   fixes F :: "'c \<Rightarrow> 'c" and U :: "'c \<Rightarrow> 'b \<Rightarrow> 'a" and C :: "('b \<Rightarrow> 'a) \<Rightarrow> 'c" and f
-  assumes mono: "\<And>x. monotone (fun_ord op \<le>) op \<le> (\<lambda>f. U (F (C f)) x)"
-  and eq: "f \<equiv> C (ccpo.fixp (fun_lub Sup) (fun_ord op \<le>) (\<lambda>f. U (F (C f))))"
+  assumes mono: "\<And>x. monotone (fun_ord (\<le>)) (\<le>) (\<lambda>f. U (F (C f)) x)"
+  and eq: "f \<equiv> C (ccpo.fixp (fun_lub Sup) (fun_ord (\<le>)) (\<lambda>f. U (F (C f))))"
   and inverse: "\<And>f. U (C f) = f"
 begin
 
 lemma fixp_preserves_mono_uc:
-  assumes mono2: "\<And>f. monotone ord op \<le> (U f) \<Longrightarrow> monotone ord op \<le> (U (F f))"
-  shows "monotone ord op \<le> (U f)"
+  assumes mono2: "\<And>f. monotone ord (\<le>) (U f) \<Longrightarrow> monotone ord (\<le>) (U (F f))"
+  shows "monotone ord (\<le>) (U f)"
 using fixp_preserves_mono[OF mono mono2] by(subst eq)(simp add: inverse)
 
 lemma fixp_preserves_mcont_uc:
-  assumes mcont: "\<And>f. mcont lubb ordb Sup op \<le> (U f) \<Longrightarrow> mcont lubb ordb Sup op \<le> (U (F f))"
-  shows "mcont lubb ordb Sup op \<le> (U f)"
+  assumes mcont: "\<And>f. mcont lubb ordb Sup (\<le>) (U f) \<Longrightarrow> mcont lubb ordb Sup (\<le>) (U (F f))"
+  shows "mcont lubb ordb Sup (\<le>) (U f)"
 using fixp_preserves_mcont[OF mono mcont] by(subst eq)(simp add: inverse)
 
 end
@@ -673,22 +673,22 @@ lemma (in preorder) monotone_if_bot:
   fixes bot
   assumes mono: "\<And>x y. \<lbrakk> x \<le> y; \<not> (x \<le> bound) \<rbrakk> \<Longrightarrow> ord (f x) (f y)"
   and bot: "\<And>x. \<not> x \<le> bound \<Longrightarrow> ord bot (f x)" "ord bot bot"
-  shows "monotone op \<le> ord (\<lambda>x. if x \<le> bound then bot else f x)"
+  shows "monotone (\<le>) ord (\<lambda>x. if x \<le> bound then bot else f x)"
 by(rule monotoneI)(auto intro: bot intro: mono order_trans)
 
 lemma (in ccpo) mcont_if_bot:
   fixes bot and lub ("\<Or>_" [900] 900) and ord (infix "\<sqsubseteq>" 60)
-  assumes ccpo: "class.ccpo lub op \<sqsubseteq> lt"
+  assumes ccpo: "class.ccpo lub (\<sqsubseteq>) lt"
   and mono: "\<And>x y. \<lbrakk> x \<le> y; \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
-  and cont: "\<And>Y. \<lbrakk> Complete_Partial_Order.chain op \<le> Y; Y \<noteq> {}; \<And>x. x \<in> Y \<Longrightarrow> \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f (\<Squnion>Y) = \<Or>(f ` Y)"
+  and cont: "\<And>Y. \<lbrakk> Complete_Partial_Order.chain (\<le>) Y; Y \<noteq> {}; \<And>x. x \<in> Y \<Longrightarrow> \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f (\<Squnion>Y) = \<Or>(f ` Y)"
   and bot: "\<And>x. \<not> x \<le> bound \<Longrightarrow> bot \<sqsubseteq> f x"
-  shows "mcont Sup op \<le> lub op \<sqsubseteq> (\<lambda>x. if x \<le> bound then bot else f x)" (is "mcont _ _ _ _ ?g")
+  shows "mcont Sup (\<le>) lub (\<sqsubseteq>) (\<lambda>x. if x \<le> bound then bot else f x)" (is "mcont _ _ _ _ ?g")
 proof(intro mcontI contI)
-  interpret c: ccpo lub "op \<sqsubseteq>" lt by(fact ccpo)
-  show "monotone op \<le> op \<sqsubseteq> ?g" by(rule monotone_if_bot)(simp_all add: mono bot)
+  interpret c: ccpo lub "(\<sqsubseteq>)" lt by(fact ccpo)
+  show "monotone (\<le>) (\<sqsubseteq>) ?g" by(rule monotone_if_bot)(simp_all add: mono bot)
 
   fix Y
-  assume chain: "Complete_Partial_Order.chain op \<le> Y" and Y: "Y \<noteq> {}"
+  assume chain: "Complete_Partial_Order.chain (\<le>) Y" and Y: "Y \<noteq> {}"
   show "?g (\<Squnion>Y) = \<Or>(?g ` Y)"
   proof(cases "Y \<subseteq> {x. x \<le> bound}")
     case True
@@ -699,7 +699,7 @@ proof(intro mcontI contI)
   next
     case False
     let ?Y = "Y \<inter> {x. \<not> x \<le> bound}"
-    have chain': "Complete_Partial_Order.chain op \<le> ?Y"
+    have chain': "Complete_Partial_Order.chain (\<le>) ?Y"
       using chain by(rule chain_subset) simp
 
     from False obtain y where ybound: "\<not> y \<le> bound" and y: "y \<in> Y" by blast
@@ -726,9 +726,9 @@ proof(intro mcontI contI)
       thus ?thesis by(rule arg_cong)
     next
       case False
-      have chain'': "Complete_Partial_Order.chain op \<sqsubseteq> (insert bot (f ` ?Y))"
+      have chain'': "Complete_Partial_Order.chain (\<sqsubseteq>) (insert bot (f ` ?Y))"
         using chain by(auto intro!: chainI bot dest: chainD intro: mono)
-      hence chain''': "Complete_Partial_Order.chain op \<sqsubseteq> (f ` ?Y)" by(rule chain_subset) blast
+      hence chain''': "Complete_Partial_Order.chain (\<sqsubseteq>) (f ` ?Y)" by(rule chain_subset) blast
       have "bot \<sqsubseteq> \<Or>(f ` ?Y)" using y ybound by(blast intro: c.order_trans[OF bot] c.ccpo_Sup_upper[OF chain'''])
       hence "\<Or>(insert bot (f ` ?Y)) \<sqsubseteq> \<Or>(f ` ?Y)" using chain''
         by(auto intro: c.ccpo_Sup_least c.ccpo_Sup_upper[OF chain''']) 
@@ -822,7 +822,7 @@ lemma admissible_imp [cont_intro]:
 by(rule ccpo.admissibleI)(auto dest: ccpo.admissibleD)
 
 lemma admissible_not_mem' [THEN admissible_subst, cont_intro, simp]:
-  shows admissible_not_mem: "ccpo.admissible Union op \<subseteq> (\<lambda>A. x \<notin> A)"
+  shows admissible_not_mem: "ccpo.admissible Union (\<subseteq>) (\<lambda>A. x \<notin> A)"
 by(rule ccpo.admissibleI) auto
 
 lemma admissible_eqI:
@@ -847,8 +847,8 @@ by(subst iff_conv_conj_imp)(rule admissible_conj)
 context ccpo begin
 
 lemma admissible_leI:
-  assumes f: "mcont luba orda Sup op \<le> (\<lambda>x. f x)"
-  and g: "mcont luba orda Sup op \<le> (\<lambda>x. g x)"
+  assumes f: "mcont luba orda Sup (\<le>) (\<lambda>x. f x)"
+  and g: "mcont luba orda Sup (\<le>) (\<lambda>x. g x)"
   shows "ccpo.admissible luba orda (\<lambda>x. f x \<le> g x)"
 proof(rule ccpo.admissibleI)
   fix A
@@ -858,14 +858,14 @@ proof(rule ccpo.admissibleI)
   have "f (luba A) = \<Squnion>(f ` A)" by(simp add: mcont_contD[OF f] chain False)
   also have "\<dots> \<le> \<Squnion>(g ` A)"
   proof(rule ccpo_Sup_least)
-    from chain show "Complete_Partial_Order.chain op \<le> (f ` A)"
+    from chain show "Complete_Partial_Order.chain (\<le>) (f ` A)"
       by(rule chain_imageI)(rule mcont_monoD[OF f])
     
     fix x
     assume "x \<in> f ` A"
     then obtain y where "y \<in> A" "x = f y" by blast note this(2)
     also have "f y \<le> g y" using le \<open>y \<in> A\<close> by simp
-    also have "Complete_Partial_Order.chain op \<le> (g ` A)"
+    also have "Complete_Partial_Order.chain (\<le>) (g ` A)"
       using chain by(rule chain_imageI)(rule mcont_monoD[OF g])
     hence "g y \<le> \<Squnion>(g ` A)" by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> A\<close>)
     finally show "x \<le> \<dots>" .
@@ -878,9 +878,9 @@ end
 
 lemma admissible_leI:
   fixes ord (infix "\<sqsubseteq>" 60) and lub ("\<Or>_" [900] 900)
-  assumes "class.ccpo lub op \<sqsubseteq> (mk_less op \<sqsubseteq>)"
-  and "mcont luba orda lub op \<sqsubseteq> (\<lambda>x. f x)"
-  and "mcont luba orda lub op \<sqsubseteq> (\<lambda>x. g x)"
+  assumes "class.ccpo lub (\<sqsubseteq>) (mk_less (\<sqsubseteq>))"
+  and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. f x)"
+  and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. g x)"
   shows "ccpo.admissible luba orda (\<lambda>x. f x \<sqsubseteq> g x)"
 using assms by(rule ccpo.admissible_leI)
 
@@ -888,12 +888,12 @@ declare ccpo_class.admissible_leI[cont_intro]
 
 context ccpo begin
 
-lemma admissible_not_below: "ccpo.admissible Sup op \<le> (\<lambda>x. \<not> op \<le> x y)"
+lemma admissible_not_below: "ccpo.admissible Sup (\<le>) (\<lambda>x. \<not> (\<le>) x y)"
 by(rule ccpo.admissibleI)(simp add: ccpo_Sup_below_iff)
 
 end
 
-lemma (in preorder) preorder [cont_intro, simp]: "class.preorder op \<le> (mk_less op \<le>)"
+lemma (in preorder) preorder [cont_intro, simp]: "class.preorder (\<le>) (mk_less (\<le>))"
 by(unfold_locales)(auto simp add: mk_less_def intro: order_trans)
 
 context partial_function_definitions begin
@@ -918,20 +918,20 @@ setup \<open>Sign.map_naming Name_Space.parent_path\<close>
 context ccpo begin
 
 lemma compactI:
-  assumes "ccpo.admissible Sup op \<le> (\<lambda>y. \<not> x \<le> y)"
-  shows "ccpo.compact Sup op \<le> x"
+  assumes "ccpo.admissible Sup (\<le>) (\<lambda>y. \<not> x \<le> y)"
+  shows "ccpo.compact Sup (\<le>) x"
 using assms
 proof(rule ccpo.compact.intros)
   have neq: "(\<lambda>y. x \<noteq> y) = (\<lambda>y. \<not> x \<le> y \<or> \<not> y \<le> x)" by(auto)
-  show "ccpo.admissible Sup op \<le> (\<lambda>y. x \<noteq> y)"
+  show "ccpo.admissible Sup (\<le>) (\<lambda>y. x \<noteq> y)"
     by(subst neq)(rule admissible_disj admissible_not_below assms)+
 qed
 
 lemma compact_bot:
   assumes "x = Sup {}"
-  shows "ccpo.compact Sup op \<le> x"
+  shows "ccpo.compact Sup (\<le>) x"
 proof(rule compactI)
-  show "ccpo.admissible Sup op \<le> (\<lambda>y. \<not> x \<le> y)" using assms
+  show "ccpo.admissible Sup (\<le>) (\<lambda>y. \<not> x \<le> y)" using assms
     by(auto intro!: ccpo.admissibleI intro: ccpo_Sup_least chain_empty)
 qed
 
@@ -954,14 +954,14 @@ end
 context ccpo begin
 
 lemma fixp_strong_induct:
-  assumes [cont_intro]: "ccpo.admissible Sup op \<le> P"
-  and mono: "monotone op \<le> op \<le> f"
+  assumes [cont_intro]: "ccpo.admissible Sup (\<le>) P"
+  and mono: "monotone (\<le>) (\<le>) f"
   and bot: "P (\<Squnion>{})"
   and step: "\<And>x. \<lbrakk> x \<le> ccpo_class.fixp f; P x \<rbrakk> \<Longrightarrow> P (f x)"
   shows "P (ccpo_class.fixp f)"
 proof(rule fixp_induct[where P="\<lambda>x. x \<le> ccpo_class.fixp f \<and> P x", THEN conjunct2])
   note [cont_intro] = admissible_leI
-  show "ccpo.admissible Sup op \<le> (\<lambda>x. x \<le> ccpo_class.fixp f \<and> P x)" by simp
+  show "ccpo.admissible Sup (\<le>) (\<lambda>x. x \<le> ccpo_class.fixp f \<and> P x)" by simp
 next
   show "\<Squnion>{} \<le> ccpo_class.fixp f \<and> P (\<Squnion>{})"
     by(auto simp add: bot intro: ccpo_Sup_least chain_empty)
@@ -997,7 +997,7 @@ done
 
 end
 
-subsection \<open>@{term "op ="} as order\<close>
+subsection \<open>@{term "(=)"} as order\<close>
 
 definition lub_singleton :: "('a set \<Rightarrow> 'a) \<Rightarrow> bool"
 where "lub_singleton lub \<longleftrightarrow> (\<forall>a. lub {a} = a)"
@@ -1015,12 +1015,12 @@ lemma (in partial_function_definitions) lub_singleton [cont_intro, simp]: "lub_s
 by(rule ccpo.lub_singleton)(rule Partial_Function.ccpo[OF partial_function_definitions_axioms])
 
 lemma preorder_eq [cont_intro, simp]:
-  "class.preorder op = (mk_less op =)"
+  "class.preorder (=) (mk_less (=))"
 by(unfold_locales)(simp_all add: mk_less_def)
 
 lemma monotone_eqI [cont_intro]:
   assumes "class.preorder ord (mk_less ord)"
-  shows "monotone op = ord f"
+  shows "monotone (=) ord f"
 proof -
   interpret preorder ord "mk_less ord" by fact
   show ?thesis by(simp add: monotone_def)
@@ -1029,10 +1029,10 @@ qed
 lemma cont_eqI [cont_intro]: 
   fixes f :: "'a \<Rightarrow> 'b"
   assumes "lub_singleton lub"
-  shows "cont the_Sup op = lub ord f"
+  shows "cont the_Sup (=) lub ord f"
 proof(rule contI)
   fix Y :: "'a set"
-  assume "Complete_Partial_Order.chain op = Y" "Y \<noteq> {}"
+  assume "Complete_Partial_Order.chain (=) Y" "Y \<noteq> {}"
   then obtain a where "Y = {a}" by(auto simp add: chain_def)
   thus "f (the_Sup Y) = lub (f ` Y)" using assms
     by(simp add: the_Sup_def lub_singleton_def)
@@ -1040,7 +1040,7 @@ qed
 
 lemma mcont_eqI [cont_intro, simp]:
   "\<lbrakk> class.preorder ord (mk_less ord); lub_singleton lub \<rbrakk>
-  \<Longrightarrow> mcont the_Sup op = lub ord f"
+  \<Longrightarrow> mcont the_Sup (=) lub ord f"
 by(simp add: mcont_def cont_eqI monotone_eqI)
 
 subsection \<open>ccpo for products\<close>
@@ -1242,12 +1242,12 @@ using cont_prodD2[OF assms] by simp
 context ccpo begin
 
 lemma cont_prodI: 
-  assumes mono: "monotone (rel_prod orda ordb) op \<le> f"
-  and cont1: "\<And>x. cont lubb ordb Sup op \<le> (\<lambda>y. f (x, y))"
-  and cont2: "\<And>y. cont luba orda Sup op \<le> (\<lambda>x. f (x, y))"
+  assumes mono: "monotone (rel_prod orda ordb) (\<le>) f"
+  and cont1: "\<And>x. cont lubb ordb Sup (\<le>) (\<lambda>y. f (x, y))"
+  and cont2: "\<And>y. cont luba orda Sup (\<le>) (\<lambda>x. f (x, y))"
   and "class.preorder orda (mk_less orda)"
   and "class.preorder ordb (mk_less ordb)"
-  shows "cont (prod_lub luba lubb) (rel_prod orda ordb) Sup op \<le> f"
+  shows "cont (prod_lub luba lubb) (rel_prod orda ordb) Sup (\<le>) f"
 proof(rule contI)
   interpret a: preorder orda "mk_less orda" by fact 
   interpret b: preorder ordb "mk_less ordb" by fact
@@ -1271,20 +1271,20 @@ proof(rule contI)
 qed
 
 lemma cont_case_prodI:
-  assumes "monotone (rel_prod orda ordb) op \<le> (case_prod f)"
-  and "\<And>x. cont lubb ordb Sup op \<le> (\<lambda>y. f x y)"
-  and "\<And>y. cont luba orda Sup op \<le> (\<lambda>x. f x y)"
+  assumes "monotone (rel_prod orda ordb) (\<le>) (case_prod f)"
+  and "\<And>x. cont lubb ordb Sup (\<le>) (\<lambda>y. f x y)"
+  and "\<And>y. cont luba orda Sup (\<le>) (\<lambda>x. f x y)"
   and "class.preorder orda (mk_less orda)"
   and "class.preorder ordb (mk_less ordb)"
-  shows "cont (prod_lub luba lubb) (rel_prod orda ordb) Sup op \<le> (case_prod f)"
+  shows "cont (prod_lub luba lubb) (rel_prod orda ordb) Sup (\<le>) (case_prod f)"
 by(rule cont_prodI)(simp_all add: assms)
 
 lemma cont_case_prod_iff:
-  "\<lbrakk> monotone (rel_prod orda ordb) op \<le> (case_prod f);
+  "\<lbrakk> monotone (rel_prod orda ordb) (\<le>) (case_prod f);
      class.preorder orda (mk_less orda); lub_singleton luba;
      class.preorder ordb (mk_less ordb); lub_singleton lubb \<rbrakk>
-  \<Longrightarrow> cont (prod_lub luba lubb) (rel_prod orda ordb) Sup op \<le> (case_prod f) \<longleftrightarrow>
-   (\<forall>x. cont lubb ordb Sup op \<le> (\<lambda>y. f x y)) \<and> (\<forall>y. cont luba orda Sup op \<le> (\<lambda>x. f x y))"
+  \<Longrightarrow> cont (prod_lub luba lubb) (rel_prod orda ordb) Sup (\<le>) (case_prod f) \<longleftrightarrow>
+   (\<forall>x. cont lubb ordb Sup (\<le>) (\<lambda>y. f x y)) \<and> (\<forall>y. cont luba orda Sup (\<le>) (\<lambda>x. f x y))"
 by(blast dest: cont_case_prodD1 cont_case_prodD2 intro: cont_case_prodI)
 
 end
@@ -1339,18 +1339,18 @@ subsection \<open>Complete lattices as ccpo\<close>
 
 context complete_lattice begin
 
-lemma complete_lattice_ccpo: "class.ccpo Sup op \<le> op <"
+lemma complete_lattice_ccpo: "class.ccpo Sup (\<le>) (<)"
 by(unfold_locales)(fast intro: Sup_upper Sup_least)+
 
-lemma complete_lattice_ccpo': "class.ccpo Sup op \<le> (mk_less op \<le>)"
+lemma complete_lattice_ccpo': "class.ccpo Sup (\<le>) (mk_less (\<le>))"
 by(unfold_locales)(auto simp add: mk_less_def intro: Sup_upper Sup_least)
 
 lemma complete_lattice_partial_function_definitions: 
-  "partial_function_definitions op \<le> Sup"
+  "partial_function_definitions (\<le>) Sup"
 by(unfold_locales)(auto intro: Sup_least Sup_upper)
 
 lemma complete_lattice_partial_function_definitions_dual:
-  "partial_function_definitions op \<ge> Inf"
+  "partial_function_definitions (\<ge>) Inf"
 by(unfold_locales)(auto intro: Inf_lower Inf_greatest)
 
 lemmas [cont_intro, simp] =
@@ -1358,32 +1358,32 @@ lemmas [cont_intro, simp] =
   Partial_Function.ccpo[OF complete_lattice_partial_function_definitions_dual]
 
 lemma mono2mono_inf:
-  assumes f: "monotone ord op \<le> (\<lambda>x. f x)" 
-  and g: "monotone ord op \<le> (\<lambda>x. g x)"
-  shows "monotone ord op \<le> (\<lambda>x. f x \<sqinter> g x)"
+  assumes f: "monotone ord (\<le>) (\<lambda>x. f x)" 
+  and g: "monotone ord (\<le>) (\<lambda>x. g x)"
+  shows "monotone ord (\<le>) (\<lambda>x. f x \<sqinter> g x)"
 by(auto 4 3 dest: monotoneD[OF f] monotoneD[OF g] intro: le_infI1 le_infI2 intro!: monotoneI)
 
-lemma mcont_const [simp]: "mcont lub ord Sup op \<le> (\<lambda>_. c)"
+lemma mcont_const [simp]: "mcont lub ord Sup (\<le>) (\<lambda>_. c)"
 by(rule ccpo.mcont_const[OF complete_lattice_ccpo])
 
 lemma mono2mono_sup:
-  assumes f: "monotone ord op \<le> (\<lambda>x. f x)"
-  and g: "monotone ord op \<le> (\<lambda>x. g x)"
-  shows "monotone ord op \<le> (\<lambda>x. f x \<squnion> g x)"
+  assumes f: "monotone ord (\<le>) (\<lambda>x. f x)"
+  and g: "monotone ord (\<le>) (\<lambda>x. g x)"
+  shows "monotone ord (\<le>) (\<lambda>x. f x \<squnion> g x)"
 by(auto 4 3 intro!: monotoneI intro: sup.coboundedI1 sup.coboundedI2 dest: monotoneD[OF f] monotoneD[OF g])
 
 lemma Sup_image_sup: 
   assumes "Y \<noteq> {}"
-  shows "\<Squnion>(op \<squnion> x ` Y) = x \<squnion> \<Squnion>Y"
+  shows "\<Squnion>((\<squnion>) x ` Y) = x \<squnion> \<Squnion>Y"
 proof(rule Sup_eqI)
   fix y
-  assume "y \<in> op \<squnion> x ` Y"
+  assume "y \<in> (\<squnion>) x ` Y"
   then obtain z where "y = x \<squnion> z" and "z \<in> Y" by blast
   from \<open>z \<in> Y\<close> have "z \<le> \<Squnion>Y" by(rule Sup_upper)
   with _ show "y \<le> x \<squnion> \<Squnion>Y" unfolding \<open>y = x \<squnion> z\<close> by(rule sup_mono) simp
 next
   fix y
-  assume upper: "\<And>z. z \<in> op \<squnion> x ` Y \<Longrightarrow> z \<le> y"
+  assume upper: "\<And>z. z \<in> (\<squnion>) x ` Y \<Longrightarrow> z \<le> y"
   show "x \<squnion> \<Squnion>Y \<le> y" unfolding Sup_insert[symmetric]
   proof(rule Sup_least)
     fix z
@@ -1396,16 +1396,16 @@ next
   qed
 qed
 
-lemma mcont_sup1: "mcont Sup op \<le> Sup op \<le> (\<lambda>y. x \<squnion> y)"
+lemma mcont_sup1: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>y. x \<squnion> y)"
 by(auto 4 3 simp add: mcont_def sup.coboundedI1 sup.coboundedI2 intro!: monotoneI contI intro: Sup_image_sup[symmetric])
 
-lemma mcont_sup2: "mcont Sup op \<le> Sup op \<le> (\<lambda>x. x \<squnion> y)"
+lemma mcont_sup2: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>x. x \<squnion> y)"
 by(subst sup_commute)(rule mcont_sup1)
 
 lemma mcont2mcont_sup [cont_intro, simp]:
-  "\<lbrakk> mcont lub ord Sup op \<le> (\<lambda>x. f x);
-     mcont lub ord Sup op \<le> (\<lambda>x. g x) \<rbrakk>
-  \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. f x \<squnion> g x)"
+  "\<lbrakk> mcont lub ord Sup (\<le>) (\<lambda>x. f x);
+     mcont lub ord Sup (\<le>) (\<lambda>x. g x) \<rbrakk>
+  \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x \<squnion> g x)"
 by(best intro: ccpo.mcont2mcont'[OF complete_lattice_ccpo] mcont_sup1 mcont_sup2 ccpo.mcont_const[OF complete_lattice_ccpo])
 
 end
@@ -1414,84 +1414,84 @@ lemmas [cont_intro] = admissible_leI[OF complete_lattice_ccpo']
 
 context complete_distrib_lattice begin
 
-lemma mcont_inf1: "mcont Sup op \<le> Sup op \<le> (\<lambda>y. x \<sqinter> y)"
+lemma mcont_inf1: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>y. x \<sqinter> y)"
 by(auto intro: monotoneI contI simp add: le_infI2 inf_Sup mcont_def)
 
-lemma mcont_inf2: "mcont Sup op \<le> Sup op \<le> (\<lambda>x. x \<sqinter> y)"
+lemma mcont_inf2: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>x. x \<sqinter> y)"
 by(auto intro: monotoneI contI simp add: le_infI1 Sup_inf mcont_def)
 
 lemma mcont2mcont_inf [cont_intro, simp]:
-  "\<lbrakk> mcont lub ord Sup op \<le> (\<lambda>x. f x);
-    mcont lub ord Sup op \<le> (\<lambda>x. g x) \<rbrakk>
-  \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. f x \<sqinter> g x)"
+  "\<lbrakk> mcont lub ord Sup (\<le>) (\<lambda>x. f x);
+    mcont lub ord Sup (\<le>) (\<lambda>x. g x) \<rbrakk>
+  \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x \<sqinter> g x)"
 by(best intro: ccpo.mcont2mcont'[OF complete_lattice_ccpo] mcont_inf1 mcont_inf2 ccpo.mcont_const[OF complete_lattice_ccpo])
 
 end
 
-interpretation lfp: partial_function_definitions "op \<le> :: _ :: complete_lattice \<Rightarrow> _" Sup
+interpretation lfp: partial_function_definitions "(\<le>) :: _ :: complete_lattice \<Rightarrow> _" Sup
 by(rule complete_lattice_partial_function_definitions)
 
 declaration \<open>Partial_Function.init "lfp" @{term lfp.fixp_fun} @{term lfp.mono_body}
   @{thm lfp.fixp_rule_uc} @{thm lfp.fixp_induct_uc} NONE\<close>
 
-interpretation gfp: partial_function_definitions "op \<ge> :: _ :: complete_lattice \<Rightarrow> _" Inf
+interpretation gfp: partial_function_definitions "(\<ge>) :: _ :: complete_lattice \<Rightarrow> _" Inf
 by(rule complete_lattice_partial_function_definitions_dual)
 
 declaration \<open>Partial_Function.init "gfp" @{term gfp.fixp_fun} @{term gfp.mono_body}
   @{thm gfp.fixp_rule_uc} @{thm gfp.fixp_induct_uc} NONE\<close>
 
 lemma insert_mono [partial_function_mono]:
-   "monotone (fun_ord op \<subseteq>) op \<subseteq> A \<Longrightarrow> monotone (fun_ord op \<subseteq>) op \<subseteq> (\<lambda>y. insert x (A y))"
+   "monotone (fun_ord (\<subseteq>)) (\<subseteq>) A \<Longrightarrow> monotone (fun_ord (\<subseteq>)) (\<subseteq>) (\<lambda>y. insert x (A y))"
 by(rule monotoneI)(auto simp add: fun_ord_def dest: monotoneD)
 
 lemma mono2mono_insert [THEN lfp.mono2mono, cont_intro, simp]:
-  shows monotone_insert: "monotone op \<subseteq> op \<subseteq> (insert x)"
+  shows monotone_insert: "monotone (\<subseteq>) (\<subseteq>) (insert x)"
 by(rule monotoneI) blast
 
 lemma mcont2mcont_insert[THEN lfp.mcont2mcont, cont_intro, simp]:
-  shows mcont_insert: "mcont Union op \<subseteq> Union op \<subseteq> (insert x)"
+  shows mcont_insert: "mcont Union (\<subseteq>) Union (\<subseteq>) (insert x)"
 by(blast intro: mcontI contI monotone_insert)
 
 lemma mono2mono_image [THEN lfp.mono2mono, cont_intro, simp]:
-  shows monotone_image: "monotone op \<subseteq> op \<subseteq> (op ` f)"
+  shows monotone_image: "monotone (\<subseteq>) (\<subseteq>) ((`) f)"
 by(rule monotoneI) blast
 
-lemma cont_image: "cont Union op \<subseteq> Union op \<subseteq> (op ` f)"
+lemma cont_image: "cont Union (\<subseteq>) Union (\<subseteq>) ((`) f)"
 by(rule contI)(auto)
 
 lemma mcont2mcont_image [THEN lfp.mcont2mcont, cont_intro, simp]:
-  shows mcont_image: "mcont Union op \<subseteq> Union op \<subseteq> (op ` f)"
+  shows mcont_image: "mcont Union (\<subseteq>) Union (\<subseteq>) ((`) f)"
 by(blast intro: mcontI monotone_image cont_image)
 
 context complete_lattice begin
 
 lemma monotone_Sup [cont_intro, simp]:
-  "monotone ord op \<subseteq> f \<Longrightarrow> monotone ord op \<le> (\<lambda>x. \<Squnion>f x)"
+  "monotone ord (\<subseteq>) f \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. \<Squnion>f x)"
 by(blast intro: monotoneI Sup_least Sup_upper dest: monotoneD)
 
 lemma cont_Sup:
-  assumes "cont lub ord Union op \<subseteq> f"
-  shows "cont lub ord Sup op \<le> (\<lambda>x. \<Squnion>f x)"
+  assumes "cont lub ord Union (\<subseteq>) f"
+  shows "cont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>f x)"
 apply(rule contI)
 apply(simp add: contD[OF assms])
 apply(blast intro: Sup_least Sup_upper order_trans antisym)
 done
 
-lemma mcont_Sup: "mcont lub ord Union op \<subseteq> f \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. \<Squnion>f x)"
+lemma mcont_Sup: "mcont lub ord Union (\<subseteq>) f \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>f x)"
 unfolding mcont_def by(blast intro: monotone_Sup cont_Sup)
 
 lemma monotone_SUP:
-  "\<lbrakk> monotone ord op \<subseteq> f; \<And>y. monotone ord op \<le> (\<lambda>x. g x y) \<rbrakk> \<Longrightarrow> monotone ord op \<le> (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
+  "\<lbrakk> monotone ord (\<subseteq>) f; \<And>y. monotone ord (\<le>) (\<lambda>x. g x y) \<rbrakk> \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
 by(rule monotoneI)(blast dest: monotoneD intro: Sup_upper order_trans intro!: Sup_least)
 
 lemma monotone_SUP2:
-  "(\<And>y. y \<in> A \<Longrightarrow> monotone ord op \<le> (\<lambda>x. g x y)) \<Longrightarrow> monotone ord op \<le> (\<lambda>x. \<Squnion>y\<in>A. g x y)"
+  "(\<And>y. y \<in> A \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. g x y)) \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. \<Squnion>y\<in>A. g x y)"
 by(rule monotoneI)(blast intro: Sup_upper order_trans dest: monotoneD intro!: Sup_least)
 
 lemma cont_SUP:
-  assumes f: "mcont lub ord Union op \<subseteq> f"
-  and g: "\<And>y. mcont lub ord Sup op \<le> (\<lambda>x. g x y)"
-  shows "cont lub ord Sup op \<le> (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
+  assumes f: "mcont lub ord Union (\<subseteq>) f"
+  and g: "\<And>y. mcont lub ord Sup (\<le>) (\<lambda>x. g x y)"
+  shows "cont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
 proof(rule contI)
   fix Y
   assume chain: "Complete_Partial_Order.chain ord Y"
@@ -1555,21 +1555,21 @@ proof(rule contI)
 qed
 
 lemma mcont_SUP [cont_intro, simp]:
-  "\<lbrakk> mcont lub ord Union op \<subseteq> f; \<And>y. mcont lub ord Sup op \<le> (\<lambda>x. g x y) \<rbrakk>
-  \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
+  "\<lbrakk> mcont lub ord Union (\<subseteq>) f; \<And>y. mcont lub ord Sup (\<le>) (\<lambda>x. g x y) \<rbrakk>
+  \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
 by(blast intro: mcontI cont_SUP monotone_SUP mcont_mono)
 
 end
 
 lemma admissible_Ball [cont_intro, simp]:
   "\<lbrakk> \<And>x. ccpo.admissible lub ord (\<lambda>A. P A x);
-     mcont lub ord Union op \<subseteq> f;
+     mcont lub ord Union (\<subseteq>) f;
      class.ccpo lub ord (mk_less ord) \<rbrakk>
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>A. \<forall>x\<in>f A. P A x)"
 unfolding Ball_def by simp
 
 lemma admissible_Bex'[THEN admissible_subst, cont_intro, simp]:
-  shows admissible_Bex: "ccpo.admissible Union op \<subseteq> (\<lambda>A. \<exists>x\<in>A. P x)"
+  shows admissible_Bex: "ccpo.admissible Union (\<subseteq>) (\<lambda>A. \<exists>x\<in>A. P x)"
 by(rule ccpo.admissibleI)(auto)
 
 subsection \<open>Parallel fixpoint induction\<close>

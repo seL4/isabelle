@@ -96,7 +96,7 @@ primrec sp\<^sub>\<mu>_comp2R  where
 
 primrec sp\<^sub>\<mu>_comp2 (infixl "o\<^sup>*\<^sub>\<mu>" 65) where
   "Put b sp o\<^sup>*\<^sub>\<mu> fsp = Put b (sp, In fsp)"
-| "Get f o\<^sup>*\<^sub>\<mu> fsp = sp\<^sub>\<mu>_comp2R (op o\<^sup>*\<^sub>\<mu> o f) fsp"
+| "Get f o\<^sup>*\<^sub>\<mu> fsp = sp\<^sub>\<mu>_comp2R ((o\<^sup>*\<^sub>\<mu>) o f) fsp"
 
 primcorec sp\<^sub>\<nu>_comp2 (infixl "o\<^sup>*\<^sub>\<nu>" 65) where
   "out (sp o\<^sup>*\<^sub>\<nu> sp') = map_sp\<^sub>\<mu> id (\<lambda>(sp, sp'). sp o\<^sup>*\<^sub>\<nu> sp') (out sp o\<^sup>*\<^sub>\<mu> out sp')"
@@ -159,7 +159,7 @@ by (tactic \<open>
   end
 \<close>)
 
-lemma sp\<^sub>\<mu>_rel_self: "\<lbrakk>op = \<le> R1; op = \<le> R2\<rbrakk> \<Longrightarrow> rel_sp\<^sub>\<mu> R1 R2 x x"
+lemma sp\<^sub>\<mu>_rel_self: "\<lbrakk>(=) \<le> R1; (=) \<le> R2\<rbrakk> \<Longrightarrow> rel_sp\<^sub>\<mu> R1 R2 x x"
   by (erule (1) predicate2D[OF sp\<^sub>\<mu>.rel_mono]) (simp only: sp\<^sub>\<mu>.rel_eq)
 
 lemma sp\<^sub>\<nu>_comp_sp\<^sub>\<nu>_comp2: "sp o\<^sub>\<nu> sp' = sp o\<^sup>*\<^sub>\<nu> sp'"

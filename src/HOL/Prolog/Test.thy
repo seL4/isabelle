@@ -210,7 +210,7 @@ lemma "? P. eq P (True & True) & P"
   apply (prolog prog_Test)
   done
 
-lemma "? P. eq P op | & P k True"
+lemma "? P. eq P (|) & P k True"
   apply (prolog prog_Test)
   done
 

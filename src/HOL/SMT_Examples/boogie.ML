@@ -132,14 +132,14 @@ fun parse_expr _ (["true"] :: ls) = (@{term True}, ls)
       in repeat (parse_expr cx) n ls |>> curry Term.list_comb t end
   | parse_expr cx (("label" :: _) :: ls) = parse_expr cx ls
   | parse_expr _ (["int-num", n] :: ls) = (HOLogic.mk_number @{typ int} (as_int n), ls)
-  | parse_expr cx (["<"] :: ls) = parse_bin_expr cx (mk_binary @{term "op < :: int => _"}) ls
-  | parse_expr cx (["<="] :: ls) = parse_bin_expr cx (mk_binary @{term "op <= :: int => _"}) ls
-  | parse_expr cx ([">"] :: ls) = parse_bin_expr cx (mk_binary @{term "op < :: int => _"}o swap) ls
+  | parse_expr cx (["<"] :: ls) = parse_bin_expr cx (mk_binary @{term "(<) :: int => _"}) ls
+  | parse_expr cx (["<="] :: ls) = parse_bin_expr cx (mk_binary @{term "(<=) :: int => _"}) ls
+  | parse_expr cx ([">"] :: ls) = parse_bin_expr cx (mk_binary @{term "(<) :: int => _"}o swap) ls
   | parse_expr cx ([">="] :: ls) =
-      parse_bin_expr cx (mk_binary @{term "op <= :: int => _"} o swap) ls
-  | parse_expr cx (["+"] :: ls) = parse_bin_expr cx (mk_binary @{term "op + :: int => _"}) ls
-  | parse_expr cx (["-"] :: ls) = parse_bin_expr cx (mk_binary @{term "op - :: int => _"}) ls
-  | parse_expr cx (["*"] :: ls) = parse_bin_expr cx (mk_binary @{term "op * :: int => _"}) ls
+      parse_bin_expr cx (mk_binary @{term "(<=) :: int => _"} o swap) ls
+  | parse_expr cx (["+"] :: ls) = parse_bin_expr cx (mk_binary @{term "(+) :: int => _"}) ls
+  | parse_expr cx (["-"] :: ls) = parse_bin_expr cx (mk_binary @{term "(-) :: int => _"}) ls
+  | parse_expr cx (["*"] :: ls) = parse_bin_expr cx (mk_binary @{term "( * ) :: int => _"}) ls
   | parse_expr cx (["/"] :: ls) = parse_bin_expr cx (mk_binary @{term boogie_div}) ls
   | parse_expr cx (["%"] :: ls) = parse_bin_expr cx (mk_binary @{term boogie_mod}) ls
   | parse_expr cx (["select", n] :: ls) =
@@ -188,7 +188,7 @@ fun parse_func cx arity n ls =
   let
     val ((Ts, atts), ls') =
       ls |> repeat (parse_type cx) arity ||>> repeat (parse_attr cx) n
-    val unique = member (op =) atts "unique"
+    val unique = member (=) atts "unique"
   in ((split_last Ts, unique), ls') end
 
 fun parse_decl (("type-decl" :: name :: _) :: ls) cx = (ls, add_type name cx)

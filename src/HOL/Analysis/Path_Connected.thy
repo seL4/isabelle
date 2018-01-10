@@ -1659,7 +1659,7 @@ lemma path_connected_translation:
   fixes a :: "'a :: topological_group_add"
   shows "path_connected ((\<lambda>x. a + x) ` S) = path_connected S"
 proof -
-  have "\<forall>x y. op + (x::'a) ` op + (0 - x) ` y = y"
+  have "\<forall>x y. (+) (x::'a) ` (+) (0 - x) ` y = y"
     by (simp add: image_image)
   then show ?thesis
     by (metis (no_types) path_connected_translationI)
@@ -1738,7 +1738,7 @@ proof (clarsimp simp add: path_image_def)
     case True then show ?thesis
       by (simp add: path_component_refl_eq pathstart_def)
   next
-    case False have "continuous_on {0..1} (p o (op* y))"
+    case False have "continuous_on {0..1} (p o (( * ) y))"
       apply (rule continuous_intros)+
       using p [unfolded path_def] y
       apply (auto simp: mult_le_one intro: continuous_on_subset [of _ p])
@@ -2012,7 +2012,7 @@ next
     by (intro path_connected_continuous_image path_connected_punctured_universe assms)
   with eq have "path_connected (sphere (0::'a) r)"
     by auto
-  then have "path_connected(op + a ` (sphere (0::'a) r))"
+  then have "path_connected((+) a ` (sphere (0::'a) r))"
     by (simp add: path_connected_translation)
   then show ?thesis
     by (metis add.right_neutral sphere_translation)
@@ -2241,7 +2241,7 @@ lemma sphere_1D_doubleton:
   assumes "DIM('a) = 1" and "r > 0"
   obtains x y where "sphere a r = {x,y} \<and> dist x y = 2*r"
 proof -
-  have "sphere a r = op + a ` sphere 0 r"
+  have "sphere a r = (+) a ` sphere 0 r"
     by (metis add.right_neutral sphere_translation)
   then show ?thesis
     using sphere_1D_doubleton_zero [OF assms]
@@ -2282,7 +2282,7 @@ lemma path_connected_2DIM_I:
   assumes 2: "2 \<le> DIM('N)" and pc: "path_connected {r. 0 \<le> r \<and> P r}"
   shows "path_connected {x. P(norm(x - a))}"
 proof -
-  have "{x. P(norm(x - a))} = op+ a ` {x. P(norm x)}"
+  have "{x. P(norm(x - a))} = (+) a ` {x. P(norm x)}"
     by force
   moreover have "path_connected {x::'N. P(norm x)}"
   proof -
@@ -6534,13 +6534,13 @@ proof (cases "S = {} \<or> T = {}")
 next
   case False
   then obtain a b where ab: "a \<in> S" "b \<in> T" by auto
-  then have ss: "subspace (op + (- a) ` S)" "subspace (op + (- b) ` T)"
+  then have ss: "subspace ((+) (- a) ` S)" "subspace ((+) (- b) ` T)"
     using affine_diffs_subspace assms by blast+
-  have dd: "dim (op + (- a) ` S) = dim (op + (- b) ` T)"
+  have dd: "dim ((+) (- a) ` S) = dim ((+) (- b) ` T)"
     using assms ab  by (simp add: aff_dim_eq_dim  [OF hull_inc] image_def)
-  have "S homeomorphic (op + (- a) ` S)"
+  have "S homeomorphic ((+) (- a) ` S)"
     by (simp add: homeomorphic_translation)
-  also have "... homeomorphic (op + (- b) ` T)"
+  also have "... homeomorphic ((+) (- b) ` T)"
     by (rule homeomorphic_subspaces [OF ss dd])
   also have "... homeomorphic T"
     using homeomorphic_sym homeomorphic_translation by auto
@@ -6792,7 +6792,7 @@ using assms homeomorphic_sym linear_homeomorphic_image by auto
 
 lemma homotopy_eqv_translation:
     fixes S :: "'a::real_normed_vector set"
-    shows "op + a ` S homotopy_eqv S"
+    shows "(+) a ` S homotopy_eqv S"
   apply (rule homeomorphic_imp_homotopy_eqv)
   using homeomorphic_translation homeomorphic_sym by blast
 

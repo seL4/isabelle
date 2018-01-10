@@ -27,7 +27,7 @@ qed
 setup_lifting type_definition_perm
 
 notation "apply" (infixl "\<langle>$\<rangle>" 999)
-no_notation "apply" ("op \<langle>$\<rangle>")
+no_notation "apply" ("(\<langle>$\<rangle>)")
 
 lemma bij_apply [simp]:
   "bij (apply f)"
@@ -804,7 +804,7 @@ begin
   notation swap       ("\<langle>_\<leftrightarrow>_\<rangle>")
   notation cycle      ("\<langle>_\<rangle>")
   notation "apply"    (infixl "\<langle>$\<rangle>" 999)
-  no_notation "apply" ("op \<langle>$\<rangle>")
+  no_notation "apply" ("(\<langle>$\<rangle>)")
 end
 
 unbundle no_permutation_syntax

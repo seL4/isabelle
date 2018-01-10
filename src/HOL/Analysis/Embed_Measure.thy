@@ -159,15 +159,15 @@ proof -
   from assms(1) interpret sigma_finite_measure M .
   from sigma_finite_countable obtain A where
       A_props: "countable A" "A \<subseteq> sets M" "\<Union>A = space M" "\<And>X. X\<in>A \<Longrightarrow> emeasure M X \<noteq> \<infinity>" by blast
-  from A_props have "countable (op ` f`A)" by auto
+  from A_props have "countable ((`) f`A)" by auto
   moreover
-  from inj and A_props have "op ` f`A \<subseteq> sets (embed_measure M f)"
+  from inj and A_props have "(`) f`A \<subseteq> sets (embed_measure M f)"
     by (auto simp: sets_embed_measure)
   moreover
-  from A_props and inj have "\<Union>(op ` f`A) = space (embed_measure M f)"
+  from A_props and inj have "\<Union>((`) f`A) = space (embed_measure M f)"
     by (auto simp: space_embed_measure intro!: imageI)
   moreover
-  from A_props and inj have "\<forall>a\<in>op ` f ` A. emeasure (embed_measure M f) a \<noteq> \<infinity>"
+  from A_props and inj have "\<forall>a\<in>(`) f ` A. emeasure (embed_measure M f) a \<noteq> \<infinity>"
     by (intro ballI, subst emeasure_embed_measure)
        (auto simp: inj_vimage_image_eq intro: in_sets_embed_measure)
   ultimately show ?thesis by - (standard, blast)
@@ -189,7 +189,7 @@ lemma embed_measure_count_space:
   by(rule embed_measure_count_space')(erule subset_inj_on, simp)
 
 lemma sets_embed_measure_alt:
-    "inj f \<Longrightarrow> sets (embed_measure M f) = (op` f) ` sets M"
+    "inj f \<Longrightarrow> sets (embed_measure M f) = ((`) f) ` sets M"
   by (auto simp: sets_embed_measure)
 
 lemma emeasure_embed_measure_image':
@@ -210,7 +210,7 @@ lemma embed_measure_eq_iff:
   assumes "inj f"
   shows "embed_measure A f = embed_measure B f \<longleftrightarrow> A = B" (is "?M = ?N \<longleftrightarrow> _")
 proof
-  from assms have I: "inj (op` f)" by (auto intro: injI dest: injD)
+  from assms have I: "inj ((`) f)" by (auto intro: injI dest: injD)
   assume asm: "?M = ?N"
   hence "sets (embed_measure A f) = sets (embed_measure B f)" by simp
   with assms have "sets A = sets B" by (simp only: I inj_image_eq_iff sets_embed_measure_alt)
@@ -369,7 +369,7 @@ lemma AE_embed_measure:
 lemma nn_integral_monotone_convergence_SUP_countable:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> ennreal"
   assumes nonempty: "Y \<noteq> {}"
-  and chain: "Complete_Partial_Order.chain op \<le> (f ` Y)"
+  and chain: "Complete_Partial_Order.chain (\<le>) (f ` Y)"
   and countable: "countable B"
   shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space B) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space B))"
   (is "?lhs = ?rhs")
@@ -383,7 +383,7 @@ proof -
     by(simp add: nn_integral_count_space_indicator ennreal_indicator[symmetric] SUP_mult_right_ennreal nonempty)
   also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. ?f i x \<partial>count_space UNIV)"
   proof(rule nn_integral_monotone_convergence_SUP_nat)
-    show "Complete_Partial_Order.chain op \<le> (?f ` Y)"
+    show "Complete_Partial_Order.chain (\<le>) (?f ` Y)"
       by(rule chain_imageI[OF chain, unfolded image_image])(auto intro!: le_funI split: split_indicator dest: le_funD)
   qed fact
   also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. f i (from_nat_into B x) \<partial>count_space (to_nat_on B ` B))"

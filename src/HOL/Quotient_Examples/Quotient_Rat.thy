@@ -41,13 +41,13 @@ fun times_rat_raw where
   "times_rat_raw (a :: int, b :: int) (c, d) = (a * c, b * d)"
 
 quotient_definition
-  "(op *) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult.assoc mult.left_commute)
+  "(( * )) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult.assoc mult.left_commute)
 
 fun plus_rat_raw where
   "plus_rat_raw (a :: int, b :: int) (c, d) = (a * d + c * b, b * d)"
 
 quotient_definition
-  "(op +) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is plus_rat_raw 
+  "(+) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is plus_rat_raw 
   by (auto simp add: mult.commute mult.left_commute int_distrib(2))
 
 fun uminus_rat_raw where
@@ -63,7 +63,7 @@ fun le_rat_raw where
   "le_rat_raw (a :: int, b) (c, d) \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
 
 quotient_definition
-  "(op \<le>) :: rat \<Rightarrow> rat \<Rightarrow> bool" is "le_rat_raw"
+  "(\<le>) :: rat \<Rightarrow> rat \<Rightarrow> bool" is "le_rat_raw"
 proof -
   {
     fix a b c d e f g h :: int

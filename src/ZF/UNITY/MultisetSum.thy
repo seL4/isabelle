@@ -21,12 +21,12 @@ definition
 
 definition
   msetsum :: "[i=>i, i, i]=>i"  where
-  "msetsum(g, C, B) == normalize(general_setsum(C, Mult(B), 0, op +#, g))"
+  "msetsum(g, C, B) == normalize(general_setsum(C, Mult(B), 0, (+#), g))"
 
 
 definition  (* sum for naturals *)
   nsetsum :: "[i=>i, i] =>i"  where
-  "nsetsum(g, C) == general_setsum(C, nat, 0, op #+, g)"
+  "nsetsum(g, C) == general_setsum(C, nat, 0, (#+), g)"
 
 
 lemma mset_of_normalize: "mset_of(normalize(M)) \<subseteq> mset_of(M)"
@@ -51,7 +51,7 @@ done
 lemma lcomm_mono: "[| C\<subseteq>A; lcomm(A, B, f) |] ==> lcomm(C, B,f)"
 by (auto simp add: lcomm_def, blast)
 
-lemma munion_lcomm [simp]: "lcomm(Mult(A), Mult(A), op +#)"
+lemma munion_lcomm [simp]: "lcomm(Mult(A), Mult(A), (+#))"
 by (auto simp add: lcomm_def Mult_iff_multiset munion_lcommute)
 
 (** msetsum **)

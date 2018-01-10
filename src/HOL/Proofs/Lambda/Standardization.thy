@@ -23,7 +23,7 @@ inductive
   sred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>s" 50)
   and sredlist :: "dB list \<Rightarrow> dB list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>s]" 50)
 where
-  "s [\<rightarrow>\<^sub>s] t \<equiv> listrelp op \<rightarrow>\<^sub>s s t"
+  "s [\<rightarrow>\<^sub>s] t \<equiv> listrelp (\<rightarrow>\<^sub>s) s t"
 | Var: "rs [\<rightarrow>\<^sub>s] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>s Var x \<degree>\<degree> rs'"
 | Abs: "r \<rightarrow>\<^sub>s r' \<Longrightarrow> ss [\<rightarrow>\<^sub>s] ss' \<Longrightarrow> Abs r \<degree>\<degree> ss \<rightarrow>\<^sub>s Abs r' \<degree>\<degree> ss'"
 | Beta: "r[s/0] \<degree>\<degree> ss \<rightarrow>\<^sub>s t \<Longrightarrow> Abs r \<degree> s \<degree>\<degree> ss \<rightarrow>\<^sub>s t"
@@ -98,7 +98,7 @@ next
 qed
 
 lemma listrelp_betas:
-  assumes ts: "listrelp op \<rightarrow>\<^sub>\<beta>\<^sup>* ts ts'"
+  assumes ts: "listrelp (\<rightarrow>\<^sub>\<beta>\<^sup>*) ts ts'"
   shows "\<And>t t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> t \<degree>\<degree> ts \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<degree>\<degree> ts'" using ts
   by induct auto
 
@@ -246,7 +246,7 @@ inductive
   lred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>l" 50)
   and lredlist :: "dB list \<Rightarrow> dB list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>l]" 50)
 where
-  "s [\<rightarrow>\<^sub>l] t \<equiv> listrelp op \<rightarrow>\<^sub>l s t"
+  "s [\<rightarrow>\<^sub>l] t \<equiv> listrelp (\<rightarrow>\<^sub>l) s t"
 | Var: "rs [\<rightarrow>\<^sub>l] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>l Var x \<degree>\<degree> rs'"
 | Abs: "r \<rightarrow>\<^sub>l r' \<Longrightarrow> Abs r \<rightarrow>\<^sub>l Abs r'"
 | Beta: "r[s/0] \<degree>\<degree> ss \<rightarrow>\<^sub>l t \<Longrightarrow> Abs r \<degree> s \<degree>\<degree> ss \<rightarrow>\<^sub>l t"

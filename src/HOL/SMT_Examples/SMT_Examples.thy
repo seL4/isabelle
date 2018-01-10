@@ -435,7 +435,7 @@ lemma
   by smt+
 
 lemma True using let_rsp by smt
-lemma "le = op \<le> \<Longrightarrow> le (3::int) 42" by smt
+lemma "le = (\<le>) \<Longrightarrow> le (3::int) 42" by smt
 lemma "map (\<lambda>i::int. i + 1) [0, 1] = [1, 2]" by (smt list.map)
 lemma "(ALL x. P x) \<or> ~ All P" by smt
 

@@ -16,11 +16,11 @@ lemma [import_const T]:
   by simp
 
 lemma [import_const "/\\"]:
-  "(op \<and>) = (\<lambda>p q. (\<lambda>f. f p q :: bool) = (\<lambda>f. f True True))"
+  "(\<and>) = (\<lambda>p q. (\<lambda>f. f p q :: bool) = (\<lambda>f. f True True))"
   by metis
 
 lemma [import_const "==>"]:
-  "(op \<longrightarrow>) = (\<lambda>(p::bool) q::bool. (p \<and> q) = p)"
+  "(\<longrightarrow>) = (\<lambda>(p::bool) q::bool. (p \<and> q) = p)"
   by auto
 
 lemma [import_const "!"]:
@@ -32,7 +32,7 @@ lemma [import_const "?"]:
   by auto
 
 lemma [import_const "\\/"]:
-  "(op \<or>) = (\<lambda>p q. \<forall>r. (p \<longrightarrow> r) \<longrightarrow> (q \<longrightarrow> r) \<longrightarrow> r)"
+  "(\<or>) = (\<lambda>p q. \<forall>r. (p \<longrightarrow> r) \<longrightarrow> (q \<longrightarrow> r) \<longrightarrow> r)"
   by auto
 
 lemma [import_const F]:
@@ -61,7 +61,7 @@ lemma [import_const COND]:
   unfolding fun_eq_iff by auto
 
 lemma [import_const o]:
-  "(op \<circ>) = (\<lambda>(f::'B \<Rightarrow> 'C) g x::'A. f (g x))"
+  "(\<circ>) = (\<lambda>(f::'B \<Rightarrow> 'C) g x::'A. f (g x))"
   unfolding fun_eq_iff by simp
 
 lemma [import_const I]: "id = (\<lambda>x::'A. x)"
@@ -166,11 +166,11 @@ lemma LT[import_const "<" : less]:
   by auto
 
 lemma DEF_GE[import_const ">=" : greater_eq]:
-  "(op \<ge>) = (\<lambda>x y :: nat. y \<le> x)"
+  "(\<ge>) = (\<lambda>x y :: nat. y \<le> x)"
   by simp
 
 lemma DEF_GT[import_const ">" : greater]:
-  "(op >) = (\<lambda>x y :: nat. y < x)"
+  "(>) = (\<lambda>x y :: nat. y < x)"
   by simp
 
 lemma DEF_MAX[import_const "MAX"]:

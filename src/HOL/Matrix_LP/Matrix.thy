@@ -1457,7 +1457,7 @@ instantiation matrix :: ("{plus, zero}") plus
 begin
 
 definition
-  plus_matrix_def: "A + B = combine_matrix (op +) A B"
+  plus_matrix_def: "A + B = combine_matrix (+) A B"
 
 instance ..
 
@@ -1477,7 +1477,7 @@ instantiation matrix :: ("{minus, zero}") minus
 begin
 
 definition
-  diff_matrix_def: "A - B = combine_matrix (op -) A B"
+  diff_matrix_def: "A - B = combine_matrix (-) A B"
 
 instance ..
 
@@ -1487,7 +1487,7 @@ instantiation matrix :: ("{plus, times, zero}") times
 begin
 
 definition
-  times_matrix_def: "A * B = mult_matrix (op *) (op +) A B"
+  times_matrix_def: "A * B = mult_matrix (( * )) (+) A B"
 
 instance ..
 
@@ -1623,7 +1623,7 @@ lemma Rep_matrix_add[simp]:
   by (simp add: plus_matrix_def)
 
 lemma Rep_matrix_mult: "Rep_matrix ((a::('a::semiring_0) matrix) * b) j i = 
-  foldseq (op +) (% k.  (Rep_matrix a j k) * (Rep_matrix b k i)) (max (ncols a) (nrows b))"
+  foldseq (+) (% k.  (Rep_matrix a j k) * (Rep_matrix b k i)) (max (ncols a) (nrows b))"
 apply (simp add: times_matrix_def)
 apply (simp add: Rep_mult_matrix)
 done
@@ -1795,7 +1795,7 @@ lemma move_matrix_mult: "move_matrix ((A::('a::semiring_0) matrix)*B) j i = (mov
 by (simp add: move_matrix_ortho[of "A*B"] move_matrix_col_mult move_matrix_row_mult)
 
 definition scalar_mult :: "('a::ring) \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix" where
-  "scalar_mult a m == apply_matrix (op * a) m"
+  "scalar_mult a m == apply_matrix (( * ) a) m"
 
 lemma scalar_mult_zero[simp]: "scalar_mult y 0 = 0" 
 by (simp add: scalar_mult_def)

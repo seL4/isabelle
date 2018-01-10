@@ -28,7 +28,7 @@ instantiation u :: (cpo) below
 begin
 
 definition below_up_def:
-  "(op \<sqsubseteq>) \<equiv>
+  "(\<sqsubseteq>) \<equiv>
     (\<lambda>x y.
       (case x of
         Ibottom \<Rightarrow> True

@@ -217,7 +217,7 @@ subsection \<open>Prefixes\<close>
 
 primrec prefixes where
 "prefixes [] = [[]]" |
-"prefixes (x#xs) = [] # map (op # x) (prefixes xs)"
+"prefixes (x#xs) = [] # map ((#) x) (prefixes xs)"
 
 lemma in_set_prefixes[simp]: "xs \<in> set (prefixes ys) \<longleftrightarrow> prefix xs ys"
 proof (induct xs arbitrary: ys)
@@ -362,7 +362,7 @@ lemma Longest_common_prefix_Nil: "[] \<in> L \<Longrightarrow> Longest_common_pr
 using Longest_common_prefix_prefix prefix_Nil by blast
 
 lemma Longest_common_prefix_image_Cons: "L \<noteq> {} \<Longrightarrow>
-  Longest_common_prefix (op # x ` L) = x # Longest_common_prefix L"
+  Longest_common_prefix ((#) x ` L) = x # Longest_common_prefix L"
 apply(rule Longest_common_prefix_eq)
   apply(simp)
  apply (simp add: Longest_common_prefix_prefix)
@@ -373,7 +373,7 @@ by(metis Longest_common_prefix_longest[of L] Cons_prefix_Cons Nitpick.size_list_
 lemma Longest_common_prefix_eq_Cons: assumes "L \<noteq> {}" "[] \<notin> L"  "\<forall>xs\<in>L. hd xs = x"
 shows "Longest_common_prefix L = x # Longest_common_prefix {ys. x#ys \<in> L}"
 proof -
-  have "L = op # x ` {ys. x#ys \<in> L}" using assms(2,3)
+  have "L = (#) x ` {ys. x#ys \<in> L}" using assms(2,3)
     by (auto simp: image_def)(metis hd_Cons_tl)
   thus ?thesis
     by (metis Longest_common_prefix_image_Cons image_is_empty assms(1))
@@ -925,7 +925,7 @@ lemma list_emb_code [code]:
 subsection \<open>Subsequences (special case of homeomorphic embedding)\<close>
 
 abbreviation subseq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  where "subseq xs ys \<equiv> list_emb (op =) xs ys"
+  where "subseq xs ys \<equiv> list_emb (=) xs ys"
   
 definition strict_subseq where "strict_subseq xs ys \<longleftrightarrow> xs \<noteq> ys \<and> subseq xs ys"
 
@@ -1035,7 +1035,7 @@ proof
       { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using list_emb_Cons2 by auto}
       moreover
       { fix us assume "xs=x#us" "ys=[]" then have ?case using list_emb_Cons2(2) by bestsimp }
-      ultimately show ?case using \<open>op = x y\<close> by (auto simp: Cons_eq_append_conv)
+      ultimately show ?case using \<open>(=) x y\<close> by (auto simp: Cons_eq_append_conv)
     qed }
   moreover assume ?l
   ultimately show ?r by blast
@@ -1211,7 +1211,7 @@ lemma sublist_append:
 
 primrec sublists :: "'a list \<Rightarrow> 'a list list" where
   "sublists [] = [[]]"
-| "sublists (x # xs) = sublists xs @ map (op # x) (prefixes xs)"
+| "sublists (x # xs) = sublists xs @ map ((#) x) (prefixes xs)"
 
 lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublist xs ys" 
   by (induction ys arbitrary: xs) (auto simp: sublist_Cons_right prefix_Cons)
@@ -1313,48 +1313,48 @@ qed
 
 lemma prefix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) prefix prefix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) prefix prefix"  
   unfolding prefix_primrec by transfer_prover
     
 lemma suffix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) suffix suffix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) suffix suffix"  
   unfolding suffix_to_prefix [abs_def] by transfer_prover
 
 lemma sublist_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) sublist sublist"
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) sublist sublist"
   unfolding sublist_primrec by transfer_prover
 
 lemma parallel_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) parallel parallel"
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) parallel parallel"
   unfolding parallel_def by transfer_prover
     
 
 
 lemma list_emb_transfer [transfer_rule]:
-  "((A ===> A ===> op =) ===> list_all2 A ===> list_all2 A ===> op =) list_emb list_emb"
+  "((A ===> A ===> (=)) ===> list_all2 A ===> list_all2 A ===> (=)) list_emb list_emb"
   unfolding list_emb_primrec by transfer_prover
 
 lemma strict_prefix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_prefix strict_prefix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_prefix strict_prefix"  
   unfolding strict_prefix_def by transfer_prover
     
 lemma strict_suffix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_suffix strict_suffix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_suffix strict_suffix"  
   unfolding strict_suffix_def by transfer_prover
     
 lemma strict_subseq_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_subseq strict_subseq"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_subseq strict_subseq"  
   unfolding strict_subseq_def by transfer_prover
     
 lemma strict_sublist_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> op =) strict_sublist strict_sublist"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_sublist strict_sublist"  
   unfolding strict_sublist_def by transfer_prover
 
 lemma prefixes_transfer [transfer_rule]:

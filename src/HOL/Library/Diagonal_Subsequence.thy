@@ -100,12 +100,12 @@ proof
   finally show "?lhs < \<dots>" .
 qed
 
-lemma diagseq_seqseq: "diagseq \<circ> (op + k) = (seqseq k \<circ> (\<lambda>x. fold_reduce k x (k + x)))"
+lemma diagseq_seqseq: "diagseq \<circ> ((+) k) = (seqseq k \<circ> (\<lambda>x. fold_reduce k x (k + x)))"
   by (auto simp: o_def diagseq_add)
 
 lemma diagseq_holds:
   assumes subseq_stable: "\<And>r s n. strict_mono r \<Longrightarrow> P n s \<Longrightarrow> P n (s \<circ> r)"
-  shows "P k (diagseq \<circ> (op + (Suc k)))"
+  shows "P k (diagseq \<circ> ((+) (Suc k)))"
   unfolding diagseq_seqseq by (intro subseq_stable subseq_diagonal_rest seqseq_holds)
 
 end

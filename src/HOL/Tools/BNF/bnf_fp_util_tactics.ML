@@ -30,7 +30,7 @@ fun mk_xtor_un_fold_xtor_tac ctxt xtor_un_fold_unique map_id0s inverses =
   ALLGOALS (rtac ctxt refl);
 
 fun mk_conj_arg_congN 1 = @{thm DEADID.rel_mono_strong}
-  | mk_conj_arg_congN n = mk_conj_arg_congN (n - 1) RSN (2, @{thm arg_cong2[of _ _ _ _ "op \<and>"]});
+  | mk_conj_arg_congN n = mk_conj_arg_congN (n - 1) RSN (2, @{thm arg_cong2[of _ _ _ _ "(\<and>)"]});
 
 fun mk_xtor_co_rec_id_tac ctxt xtor_un_fold_xtors xtor_un_fold_unique xtor_un_folds map_comps =
   HEADGOAL (rtac ctxt (mk_conj_arg_congN (length xtor_un_fold_xtors) RS iffD1 OF

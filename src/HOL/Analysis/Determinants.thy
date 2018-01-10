@@ -819,7 +819,7 @@ proof -
       unfolding matrix_right_invertible_independent_rows
       by blast
     have *: "\<And>(a::real^'n) b. a + b = 0 \<Longrightarrow> -a = b"
-      apply (drule_tac f="op + (- a)" in cong[OF refl])
+      apply (drule_tac f="(+) (- a)" in cong[OF refl])
       apply (simp only: ab_left_minus add.assoc[symmetric])
       apply simp
       done

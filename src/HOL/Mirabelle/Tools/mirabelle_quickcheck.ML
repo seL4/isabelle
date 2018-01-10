@@ -12,7 +12,7 @@ fun done _ _ = ()
 
 fun run args id ({pre, timeout, log, ...}: Mirabelle.run_args) =
   let
-    val has_valid_key = member (op =) ["iterations", "size", "generator"] o fst
+    val has_valid_key = member (=) ["iterations", "size", "generator"] o fst
     val quickcheck = Quickcheck.quickcheck (map (apsnd single) (filter has_valid_key args)) 1
   in
     (case Timeout.apply timeout quickcheck pre of

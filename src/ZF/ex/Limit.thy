@@ -542,22 +542,22 @@ proof (simp add: isub_def, safe)
   qed
   moreover
   have "M ` n \<in> nat \<rightarrow> set(D)" by (blast intro: DM n matrix_fun [THEN apply_type])
-  ultimately show "rel(D, lub(D, Lambda(nat, op `(M ` n))), y)"  by simp
+  ultimately show "rel(D, lub(D, Lambda(nat, (`)(M ` n))), y)"  by simp
 qed
 
 lemma matrix_chain_lub:
     "[|matrix(D,M); cpo(D)|] ==> chain(D,\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))"
 proof (simp add: chain_def, intro conjI ballI)
   assume "matrix(D, M)" "cpo(D)"
-  thus "(\<lambda>x\<in>nat. lub(D, Lambda(nat, op `(M ` x)))) \<in> nat \<rightarrow> set(D)"
+  thus "(\<lambda>x\<in>nat. lub(D, Lambda(nat, (`)(M ` x)))) \<in> nat \<rightarrow> set(D)"
     by (force intro: islub_in cpo_lub chainI lam_type matrix_in matrix_rel_0_1)
 next
   fix n
   assume DD: "matrix(D, M)" "cpo(D)" "n \<in> nat"
   hence "dominate(D, M ` n, M ` succ(n))"
     by (force simp add: dominate_def intro: matrix_rel_1_0)
-  with DD show "rel(D, lub(D, Lambda(nat, op `(M ` n))),
-               lub(D, Lambda(nat, op `(M ` succ(n)))))"
+  with DD show "rel(D, lub(D, Lambda(nat, (`)(M ` n))),
+               lub(D, Lambda(nat, (`)(M ` succ(n)))))"
     by (simp add: matrix_chain_left [THEN chain_fun, THEN eta]
       dominate_islub cpo_lub matrix_chain_left chain_fun)
 qed
@@ -566,8 +566,8 @@ lemma isub_eq:
   assumes DM: "matrix(D, M)" and D: "cpo(D)"
   shows "isub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m)),y) \<longleftrightarrow> isub(D,(\<lambda>n \<in> nat. M`n`n),y)"
 proof
-  assume isub: "isub(D, \<lambda>n\<in>nat. lub(D, Lambda(nat, op `(M ` n))), y)"
-  hence dom: "dominate(D, \<lambda>n\<in>nat. M ` n ` n, \<lambda>n\<in>nat. lub(D, Lambda(nat, op `(M ` n))))"
+  assume isub: "isub(D, \<lambda>n\<in>nat. lub(D, Lambda(nat, (`)(M ` n))), y)"
+  hence dom: "dominate(D, \<lambda>n\<in>nat. M ` n ` n, \<lambda>n\<in>nat. lub(D, Lambda(nat, (`)(M ` n))))"
     using DM D
     by (simp add: dominate_def, intro ballI bexI,
         simp_all add: matrix_chain_left [THEN chain_fun, THEN eta] islub_ub cpo_lub matrix_chain_left)
@@ -576,7 +576,7 @@ proof
           simp_all add: matrix_chain_diag chain_fun matrix_chain_lub)
 next
   assume isub: "isub(D, \<lambda>n\<in>nat. M ` n ` n, y)"
-  thus "isub(D, \<lambda>n\<in>nat. lub(D, Lambda(nat, op `(M ` n))), y)"  using DM D
+  thus "isub(D, \<lambda>n\<in>nat. lub(D, Lambda(nat, (`)(M ` n))), y)"  using DM D
     by (simp add: isub_lemma)
 qed
 

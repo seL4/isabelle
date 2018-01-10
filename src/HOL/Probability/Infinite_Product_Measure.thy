@@ -341,7 +341,7 @@ proof (rule PiM_eq)
     using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
   with J have "?f -` ?X \<inter> space (S \<Otimes>\<^sub>M S) =
     (prod_emb ?I ?M (J \<inter> {..<i}) (\<Pi>\<^sub>E j\<in>J \<inter> {..<i}. E j)) \<times>
-    (prod_emb ?I ?M ((op + i) -` J) (\<Pi>\<^sub>E j\<in>(op + i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
+    (prod_emb ?I ?M (((+) i) -` J) (\<Pi>\<^sub>E j\<in>((+) i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
    by (auto simp: space_pair_measure space_PiM prod_emb_def all_conj_distrib PiE_iff
                split: split_comb_seq split_comb_seq_asm)
   then have "emeasure ?D ?X = emeasure (S \<Otimes>\<^sub>M S) (?E \<times> ?F)"
@@ -349,7 +349,7 @@ proof (rule PiM_eq)
        (auto intro!: sets_PiM_I simp: split_beta' J)
   also have "\<dots> = emeasure S ?E * emeasure S ?F"
     using J by (intro P.emeasure_pair_measure_Times)  (auto intro!: sets_PiM_I finite_vimageI simp: inj_on_def)
-  also have "emeasure S ?F = (\<Prod>j\<in>(op + i) -` J. emeasure M (E (i + j)))"
+  also have "emeasure S ?F = (\<Prod>j\<in>((+) i) -` J. emeasure M (E (i + j)))"
     using J by (intro emeasure_PiM_emb) (simp_all add: finite_vimageI inj_on_def)
   also have "\<dots> = (\<Prod>j\<in>J - (J \<inter> {..<i}). emeasure M (E j))"
     by (rule prod.reindex_cong [of "\<lambda>x. x - i"])

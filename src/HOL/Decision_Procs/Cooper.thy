@@ -2386,7 +2386,7 @@ oracle linzqe_oracle = \<open>
 let
 
 fun num_of_term vs (t as Free (xn, xT)) =
-      (case AList.lookup (op =) vs t of
+      (case AList.lookup (=) vs t of
         NONE => error "Variable not found in the list!"
       | SOME n => @{code Bound} (@{code nat_of_integer} n))
   | num_of_term vs @{term "0::int"} = @{code C} (@{code int_of_integer} 0)
@@ -2398,11 +2398,11 @@ fun num_of_term vs (t as Free (xn, xT)) =
       @{code C} (@{code int_of_integer} (~(HOLogic.dest_numeral t)))
   | num_of_term vs (Bound i) = @{code Bound} (@{code nat_of_integer} i)
   | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')
-  | num_of_term vs (@{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+  | num_of_term vs (@{term "(+) :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       @{code Add} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "op - :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+  | num_of_term vs (@{term "(-) :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       @{code Sub} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+  | num_of_term vs (@{term "( * ) :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       (case try HOLogic.dest_number t1 of
         SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t2)
       | NONE =>
@@ -2413,17 +2413,17 @@ fun num_of_term vs (t as Free (xn, xT)) =
 
 fun fm_of_term ps vs @{term True} = @{code T}
   | fm_of_term ps vs @{term False} = @{code F}
-  | fm_of_term ps vs (@{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(<) :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term ps vs (@{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term ps vs (@{term "op = :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(=) :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term ps vs (@{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(dvd) :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
       (case try HOLogic.dest_number t1 of
         SOME (_, i) => @{code Dvd} (@{code int_of_integer} i, num_of_term vs t2)
       | NONE => error "num_of_term: unsupported dvd")
-  | fm_of_term ps vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term "(=) :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term HOL.conj} $ t1 $ t2) =
       @{code And} (fm_of_term ps vs t1, fm_of_term ps vs t2)
@@ -2451,11 +2451,11 @@ fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code intege
         val q = @{code integer_of_nat} n
       in fst (the (find_first (fn (_, m) => q = m) vs)) end
   | term_of_num vs (@{code Neg} t') = @{term "uminus :: int \<Rightarrow> int"} $ term_of_num vs t'
-  | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $
+  | term_of_num vs (@{code Add} (t1, t2)) = @{term "(+) :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Sub} (t1, t2)) = @{term "op - :: int \<Rightarrow> int \<Rightarrow> int"} $
+  | term_of_num vs (@{code Sub} (t1, t2)) = @{term "(-) :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Mul} (i, t2)) = @{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $
+  | term_of_num vs (@{code Mul} (i, t2)) = @{term "( * ) :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs (@{code C} i) $ term_of_num vs t2
   | term_of_num vs (@{code CN} (n, i, t)) =
       term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));
@@ -2463,19 +2463,19 @@ fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code intege
 fun term_of_fm ps vs @{code T} = @{term True}
   | term_of_fm ps vs @{code F} = @{term False}
   | term_of_fm ps vs (@{code Lt} t) =
-      @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
+      @{term "(<) :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
   | term_of_fm ps vs (@{code Le} t) =
-      @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
+      @{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
   | term_of_fm ps vs (@{code Gt} t) =
-      @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} $ @{term "0::int"} $ term_of_num vs t
+      @{term "(<) :: int \<Rightarrow> int \<Rightarrow> bool"} $ @{term "0::int"} $ term_of_num vs t
   | term_of_fm ps vs (@{code Ge} t) =
-      @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} $ @{term "0::int"} $ term_of_num vs t
+      @{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"} $ @{term "0::int"} $ term_of_num vs t
   | term_of_fm ps vs (@{code Eq} t) =
-      @{term "op = :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
+      @{term "(=) :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
   | term_of_fm ps vs (@{code NEq} t) =
       term_of_fm ps vs (@{code NOT} (@{code Eq} t))
   | term_of_fm ps vs (@{code Dvd} (i, t)) =
-      @{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs (@{code C} i) $ term_of_num vs t
+      @{term "(dvd) :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs (@{code C} i) $ term_of_num vs t
   | term_of_fm ps vs (@{code NDvd} (i, t)) =
       term_of_fm ps vs (@{code NOT} (@{code Dvd} (i, t)))
   | term_of_fm ps vs (@{code NOT} t') =
@@ -2487,7 +2487,7 @@ fun term_of_fm ps vs @{code T} = @{term True}
   | term_of_fm ps vs (@{code Imp} (t1, t2)) =
       HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (@{code Iff} (t1, t2)) =
-      @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+      @{term "(=) :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (@{code Closed} n) =
       let
         val q = @{code integer_of_nat} n
@@ -2497,22 +2497,22 @@ fun term_of_fm ps vs @{code T} = @{term True}
 fun term_bools acc t =
   let
     val is_op =
-      member (op =) [@{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies},
-      @{term "op = :: bool \<Rightarrow> _"},
-      @{term "op = :: int \<Rightarrow> _"}, @{term "op < :: int \<Rightarrow> _"},
-      @{term "op \<le> :: int \<Rightarrow> _"}, @{term "Not"}, @{term "All :: (int \<Rightarrow> _) \<Rightarrow> _"},
+      member (=) [@{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies},
+      @{term "(=) :: bool \<Rightarrow> _"},
+      @{term "(=) :: int \<Rightarrow> _"}, @{term "(<) :: int \<Rightarrow> _"},
+      @{term "(\<le>) :: int \<Rightarrow> _"}, @{term "Not"}, @{term "All :: (int \<Rightarrow> _) \<Rightarrow> _"},
       @{term "Ex :: (int \<Rightarrow> _) \<Rightarrow> _"}, @{term "True"}, @{term "False"}]
     fun is_ty t = not (fastype_of t = HOLogic.boolT)
   in
     (case t of
       (l as f $ a) $ b =>
         if is_ty t orelse is_op t then term_bools (term_bools acc l) b
-        else insert (op aconv) t acc
+        else insert (aconv) t acc
     | f $ a =>
         if is_ty t orelse is_op t then term_bools (term_bools acc f) a
-        else insert (op aconv) t acc
+        else insert (aconv) t acc
     | Abs p => term_bools acc (snd (Syntax_Trans.variant_abs p))  (* FIXME !? *)
-    | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc)
+    | _ => if is_ty t orelse is_op t then acc else insert (aconv) t acc)
   end;
 
 in

@@ -287,11 +287,11 @@ lemma nth_less_prefix_length:
      (auto simp: prefix_length_def nth_Cons split: if_splits nat.splits)
 (* END TODO *)
   
-lemma poly_subdegree_code [code]: "poly_subdegree p = prefix_length (op = 0) (coeffs p)"
+lemma poly_subdegree_code [code]: "poly_subdegree p = prefix_length ((=) 0) (coeffs p)"
 proof (cases "p = 0")
   case False
   note [simp] = this
-  define n where "n = prefix_length (op = 0) (coeffs p)"
+  define n where "n = prefix_length ((=) 0) (coeffs p)"
   from False have "\<exists>k. coeff p k \<noteq> 0" by (auto simp: poly_eq_iff)
   hence ex: "\<exists>x\<in>set (coeffs p). x \<noteq> 0" by (auto simp: coeffs_def)
   hence n_less: "n < length (coeffs p)" and nonzero: "coeffs p ! n \<noteq> 0" 
@@ -300,10 +300,10 @@ proof (cases "p = 0")
   proof (intro subdegreeI)
     from n_less have "fps_of_poly p $ n = coeffs p ! n"
       by (subst coeffs_nth) (simp_all add: degree_eq_length_coeffs)
-    with nonzero show "fps_of_poly p $ prefix_length (op = 0) (coeffs p) \<noteq> 0"
+    with nonzero show "fps_of_poly p $ prefix_length ((=) 0) (coeffs p) \<noteq> 0"
       unfolding n_def by simp
   next
-    fix k assume A: "k < prefix_length (op = 0) (coeffs p)"
+    fix k assume A: "k < prefix_length ((=) 0) (coeffs p)"
     also have "\<dots> \<le> length (coeffs p)" by (rule prefix_length_le_length)
     finally show "fps_of_poly p $ k = 0"
       using nth_less_prefix_length[OF A]

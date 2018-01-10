@@ -84,7 +84,7 @@ lemma vimage_comp: "f -` (g -` x) = (g \<circ> f) -` x"
 lemma image_eq_imp_comp: "f ` A = g ` B \<Longrightarrow> (h \<circ> f) ` A = (h \<circ> g) ` B"
   by (auto simp: comp_def elim!: equalityE)
 
-lemma image_bind: "f ` (Set.bind A g) = Set.bind A (op ` f \<circ> g)"
+lemma image_bind: "f ` (Set.bind A g) = Set.bind A ((`) f \<circ> g)"
   by (auto simp add: Set.bind_def)
 
 lemma bind_image: "Set.bind (f ` A) g = Set.bind A (g \<circ> f)"

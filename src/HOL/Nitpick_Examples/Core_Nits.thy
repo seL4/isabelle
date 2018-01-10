@@ -318,7 +318,7 @@ lemma "I = (\<lambda>x. x) \<Longrightarrow> Pure.all P \<equiv> Pure.all (\<lam
 nitpick [expect = none]
 by auto
 
-lemma "x \<equiv> (op \<equiv>) \<Longrightarrow> False"
+lemma "x \<equiv> (\<equiv>) \<Longrightarrow> False"
 nitpick [card = 1, expect = genuine]
 oops
 
@@ -334,11 +334,11 @@ lemma "P x = Q x \<Longrightarrow> P x \<equiv> Q x"
 nitpick [card = 1-10, expect = none]
 by auto
 
-lemma "x \<equiv> (op \<Longrightarrow>) \<Longrightarrow> False"
+lemma "x \<equiv> (\<Longrightarrow>) \<Longrightarrow> False"
 nitpick [expect = genuine]
 oops
 
-lemma "I \<equiv> (\<lambda>x. x) \<Longrightarrow> (op \<Longrightarrow> x) \<equiv> (\<lambda>y. (op \<Longrightarrow> x (I y)))"
+lemma "I \<equiv> (\<lambda>x. x) \<Longrightarrow> ((\<Longrightarrow>) x) \<equiv> (\<lambda>y. ((\<Longrightarrow>) x (I y)))"
 nitpick [expect = none]
 by auto
 
@@ -458,8 +458,8 @@ lemma "x = y \<and> y = z \<Longrightarrow> x = z"
 nitpick [expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> (op \<and>) = (\<lambda>x. op \<and> (I x))"
-      "I = (\<lambda>x. x) \<Longrightarrow> (op \<and>) = (\<lambda>x y. x \<and> (I y))"
+lemma "I = (\<lambda>x. x) \<Longrightarrow> (\<and>) = (\<lambda>x. (\<and>) (I x))"
+      "I = (\<lambda>x. x) \<Longrightarrow> (\<and>) = (\<lambda>x y. x \<and> (I y))"
 nitpick [expect = none]
 by auto
 
@@ -471,7 +471,7 @@ lemma "a \<and> b \<Longrightarrow> a" "a \<and> b \<Longrightarrow> b"
 nitpick [expect = none]
 by auto
 
-lemma "(op \<longrightarrow>) = (\<lambda>x. op\<longrightarrow> x)" "(op\<longrightarrow> ) = (\<lambda>x y. x \<longrightarrow> y)"
+lemma "(\<longrightarrow>) = (\<lambda>x. (\<longrightarrow>) x)" "((\<longrightarrow>) ) = (\<lambda>x y. x \<longrightarrow> y)"
 nitpick [expect = none]
 by auto
 
@@ -583,7 +583,7 @@ lemma "x \<notin> UNIV"
 nitpick [expect = genuine]
 oops
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<in> = (\<lambda>x. (op \<in> (I x)))"
+lemma "I = (\<lambda>x. x) \<Longrightarrow> (\<in>) = (\<lambda>x. ((\<in>) (I x)))"
 nitpick [expect = none]
 apply (rule ext)
 apply (rule ext)
@@ -610,7 +610,7 @@ lemma "((x, x), (x, x)) \<in> rtrancl {}"
 nitpick [card = 1-5, expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<union> = (\<lambda>x. op \<union> (I x))"
+lemma "I = (\<lambda>x. x) \<Longrightarrow> (\<union>) = (\<lambda>x. (\<union>) (I x))"
 nitpick [card = 1-5, expect = none]
 by auto
 
@@ -618,7 +618,7 @@ lemma "a \<in> A \<Longrightarrow> a \<in> (A \<union> B)" "b \<in> B \<Longrigh
 nitpick [expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<inter> = (\<lambda>x. op \<inter> (I x))"
+lemma "I = (\<lambda>x. x) \<Longrightarrow> (\<inter>) = (\<lambda>x. (\<inter>) (I x))"
 nitpick [card = 1-5, expect = none]
 by auto
 
@@ -630,7 +630,7 @@ lemma "x \<in> ((A::'a set) - B) \<longleftrightarrow> x \<in> A \<and> x \<noti
 nitpick [card = 1-5, expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<subset> = (\<lambda>x. op \<subset> (I x))"
+lemma "I = (\<lambda>x. x) \<Longrightarrow> (\<subset>) = (\<lambda>x. (\<subset>) (I x))"
 nitpick [card = 1-5, expect = none]
 by auto
 

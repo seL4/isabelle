@@ -42,7 +42,7 @@ subsubsection \<open>Equivalence with Set Cardinality\<close>
 
 lemma Collect_on_transfer:
   assumes "rel_set R X Y"
-  shows "rel_fun (rel_fun R op =) (rel_set R) (\<lambda>P. {x\<in>X. P x}) (\<lambda>P. {y\<in>Y. P y})"
+  shows "rel_fun (rel_fun R (=)) (rel_set R) (\<lambda>P. {x\<in>X. P x}) (\<lambda>P. {y\<in>Y. P y})"
   using assms unfolding rel_fun_def rel_set_def by fast
 
 lemma rel_fun_trans:
@@ -55,19 +55,19 @@ lemma rel_fun_trans2:
   by (auto simp: rel_fun_def) 
 
 lemma rel_fun_trans2':
-  "rel_fun R (op =) f1 f1' \<Longrightarrow> rel_fun R (op =) f2 f2' \<Longrightarrow>
-    rel_fun R (op =) (\<lambda>x. g (f1 x) (f2 x)) (\<lambda>y. g (f1' y) (f2' y))"
+  "rel_fun R (=) f1 f1' \<Longrightarrow> rel_fun R (=) f2 f2' \<Longrightarrow>
+    rel_fun R (=) (\<lambda>x. g (f1 x) (f2 x)) (\<lambda>y. g (f1' y) (f2' y))"
   by (auto simp: rel_fun_def)
 
-lemma rel_fun_const: "rel_fun R (op =) (\<lambda>x. a) (\<lambda>y. a)"
+lemma rel_fun_const: "rel_fun R (=) (\<lambda>x. a) (\<lambda>y. a)"
   by auto
 
 lemma rel_fun_conj:
-  "rel_fun R (op =) f f' \<Longrightarrow> rel_fun R (op =) g g' \<Longrightarrow> rel_fun R (op =) (\<lambda>x. f x \<and> g x) (\<lambda>y. f' y \<and> g' y)"
+  "rel_fun R (=) f f' \<Longrightarrow> rel_fun R (=) g g' \<Longrightarrow> rel_fun R (=) (\<lambda>x. f x \<and> g x) (\<lambda>y. f' y \<and> g' y)"
   by (auto simp: rel_fun_def)
 
 lemma rel_fun_ball:
-  "(\<And>i. i \<in> I \<Longrightarrow> rel_fun R (op =) (f i) (f' i)) \<Longrightarrow> rel_fun R (op =) (\<lambda>x. \<forall>i\<in>I. f i x) (\<lambda>y. \<forall>i\<in>I. f' i y)"
+  "(\<And>i. i \<in> I \<Longrightarrow> rel_fun R (=) (f i) (f' i)) \<Longrightarrow> rel_fun R (=) (\<lambda>x. \<forall>i\<in>I. f i x) (\<lambda>y. \<forall>i\<in>I. f' i y)"
   by (auto simp: rel_fun_def rel_set_def)
 
 lemma
@@ -101,7 +101,7 @@ proof -
   ultimately have total_R: "rel_set R (extensional {1..a+b}) (Pow {0..<a+b})"
     by (auto simp: rel_set_def)
 
-  have P: "rel_fun R (rel_fun P op =) (\<lambda>f x. f x = A) (\<lambda>V y. y \<in> V)"
+  have P: "rel_fun R (rel_fun P (=)) (\<lambda>f x. f x = A) (\<lambda>V y. y \<in> V)"
     by (auto simp: P_def R_def Suc_le_eq gr0_conv_Suc rel_fun_def)
 
   have eq_B: "x = B \<longleftrightarrow> x \<noteq> A" for x
@@ -118,7 +118,7 @@ proof -
   note transfers = rel_fun_const card_transfer[THEN rel_funD, OF unique_R] rel_fun_conj rel_fun_ball
     Collect_on_transfer[THEN rel_funD, OF total_R] Collect_on_transfer[THEN rel_funD, OF total_P]
     rel_fun_trans[OF card_transfer, OF unique_P] rel_fun_trans[OF Collect_on_transfer[OF total_P]]
-    rel_fun_trans2'[where g="op ="] rel_fun_trans2'[where g="op <"] rel_fun_trans2'[where g="op -"]
+    rel_fun_trans2'[where g="(=)"] rel_fun_trans2'[where g="(<)"] rel_fun_trans2'[where g="(-)"]
 
   have "all_countings a b = card {f \<in> extensional {1..a + b}. card {x \<in> {1..a + b}. f x = A} = a}"
     using card_B by (simp add: all_countings_def PiE_iff vote.nchotomy cong: conj_cong)
@@ -227,7 +227,7 @@ next
       also have "\<dots> = (Suc a * a + (Suc a * Suc b - Suc b * b)) - Suc a * Suc b"
         using \<open>b<a\<close> by (intro add_diff_assoc2 mult_mono) auto
       also have "\<dots> = (Suc a * a + Suc a * Suc b) - Suc b * b - Suc a * Suc b"
-        using \<open>b<a\<close> by (intro arg_cong2[where f="op -"] add_diff_assoc mult_mono) auto
+        using \<open>b<a\<close> by (intro arg_cong2[where f="(-)"] add_diff_assoc mult_mono) auto
       also have "\<dots> = (Suc a * Suc (a + b)) - (Suc b * Suc (a + b))"
         by (simp add: sign_simps)
       finally have rearrange: "Suc a * (a - Suc b) + (Suc a - b) * Suc b = (Suc a - Suc b) * Suc (a + b)"

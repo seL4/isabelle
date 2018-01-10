@@ -74,9 +74,9 @@ open BNF_Util
 open BNF_FP_Util
 
 val case_sum_transfer = @{thm case_sum_transfer};
-val case_sum_transfer_eq = @{thm case_sum_transfer[of "op =" _ "op =", simplified sum.rel_eq]};
+val case_sum_transfer_eq = @{thm case_sum_transfer[of "(=)" _ "(=)", simplified sum.rel_eq]};
 val case_prod_transfer = @{thm case_prod_transfer};
-val case_prod_transfer_eq = @{thm case_prod_transfer[of "op =" "op =", simplified prod.rel_eq]};
+val case_prod_transfer_eq = @{thm case_prod_transfer[of "(=)" "(=)", simplified prod.rel_eq]};
 
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
@@ -252,11 +252,11 @@ fun mk_corec_transfer_tac ctxt actives passives type_definitions corec_defs dtor
 
     val Inl_Inr_Pair_tac = REPEAT_DETERM o (resolve_tac ctxt
       [mk_rel_funDN 1 @{thm Inl_transfer},
-       mk_rel_funDN 1 @{thm Inl_transfer[of "op =" "op =", simplified sum.rel_eq]},
+       mk_rel_funDN 1 @{thm Inl_transfer[of "(=)" "(=)", simplified sum.rel_eq]},
        mk_rel_funDN 1 @{thm Inr_transfer},
-       mk_rel_funDN 1 @{thm Inr_transfer[of "op =" "op =", simplified sum.rel_eq]},
+       mk_rel_funDN 1 @{thm Inr_transfer[of "(=)" "(=)", simplified sum.rel_eq]},
        mk_rel_funDN 2 @{thm Pair_transfer},
-       mk_rel_funDN 2 @{thm Pair_transfer[of "op =" "op =", simplified prod.rel_eq]}]);
+       mk_rel_funDN 2 @{thm Pair_transfer[of "(=)" "(=)", simplified prod.rel_eq]}]);
 
     fun mk_unfold_If_tac total pos =
       HEADGOAL (Inl_Inr_Pair_tac THEN'

@@ -2348,7 +2348,7 @@ proof (cases "A \<in> sets M")
   case True
   show ?thesis
   proof (rule emeasure_measure_of[OF restrict_space_def])
-    show "op \<inter> \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)" "A \<in> sets (restrict_space M \<Omega>)"
+    show "(\<inter>) \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)" "A \<in> sets (restrict_space M \<Omega>)"
       using \<open>A \<subseteq> \<Omega>\<close> \<open>A \<in> sets M\<close> sets.space_closed by (auto simp: sets_restrict_space)
     show "positive (sets (restrict_space M \<Omega>)) (emeasure M)"
       by (auto simp: positive_def)
@@ -2427,7 +2427,7 @@ proof -
   from sigma_finite_countable obtain C
     where C: "countable C" "C \<subseteq> sets M" "(\<Union>C) = space M" "\<forall>a\<in>C. emeasure M a \<noteq> \<infinity>"
     by blast
-  let ?C = "op \<inter> A ` C"
+  let ?C = "(\<inter>) A ` C"
   from C have "countable ?C" "?C \<subseteq> sets (restrict_space M A)" "(\<Union>?C) = space (restrict_space M A)"
     by(auto simp add: sets_restrict_space space_restrict_space)
   moreover {
@@ -2861,7 +2861,7 @@ proof -
       also have "\<dots> = ?S (\<Union>i. X i)"
         unfolding UN_extend_simps(4)
         by (auto simp add: suminf_add[symmetric] Diff_eq[symmetric] simp del: UN_simps
-                 intro!: SUP_cong arg_cong2[where f="op +"] suminf_emeasure
+                 intro!: SUP_cong arg_cong2[where f="(+)"] suminf_emeasure
                          disjoint_family_on_bisimulation[OF \<open>disjoint_family X\<close>])
       finally show "(\<Sum>i. ?S (X i)) = ?S (\<Union>i. X i)" .
     qed
@@ -3395,13 +3395,13 @@ qed
 
 lemma emeasure_SUP_chain:
   assumes sets: "\<And>i. i \<in> A \<Longrightarrow> sets (M i) = sets N" "X \<in> sets N"
-  assumes ch: "Complete_Partial_Order.chain op \<le> (M ` A)" and "A \<noteq> {}"
+  assumes ch: "Complete_Partial_Order.chain (\<le>) (M ` A)" and "A \<noteq> {}"
   shows "emeasure (SUP i:A. M i) X = (SUP i:A. emeasure (M i) X)"
 proof (subst emeasure_SUP[OF sets \<open>A \<noteq> {}\<close>])
   show "(SUP J:{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (SUPREMUM J M) X) = (SUP i:A. emeasure (M i) X)"
   proof (rule SUP_eq)
     fix J assume "J \<in> {J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}"
-    then have J: "Complete_Partial_Order.chain op \<le> (M ` J)" "finite J" "J \<noteq> {}" and "J \<subseteq> A"
+    then have J: "Complete_Partial_Order.chain (\<le>) (M ` J)" "finite J" "J \<noteq> {}" and "J \<subseteq> A"
       using ch[THEN chain_subset, of "M`J"] by auto
     with in_chain_finite[OF J(1)] obtain j where "j \<in> J" "(SUP j:J. M j) = M j"
       by auto

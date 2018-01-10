@@ -176,7 +176,7 @@ lemma le_cofinite: "F \<le> cofinite"
 lemma singleton: "\<not> eventually (\<lambda>x. x = a) F"
   by (rule finite) simp
 
-lemma singleton': "\<not> eventually (op = a) F"
+lemma singleton': "\<not> eventually ((=) a) F"
   by (rule finite) simp
 
 lemma ultrafilter: "ultrafilter F" ..

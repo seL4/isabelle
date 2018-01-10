@@ -22,7 +22,7 @@ record 'a gorder = "'a eq_object" +
 abbreviation inv_gorder :: "_ \<Rightarrow> 'a gorder" where
   "inv_gorder L \<equiv>
    \<lparr> carrier = carrier L,
-     eq = op .=\<^bsub>L\<^esub>,
+     eq = (.=\<^bsub>L\<^esub>),
      le = (\<lambda> x y. y \<sqsubseteq>\<^bsub>L \<^esub>x) \<rparr>"
 
 lemma inv_gorder_inv:
@@ -591,7 +591,7 @@ definition commuting :: "('a, 'c) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 
 subsection \<open>Partial orders where \<open>eq\<close> is the Equality\<close>
 
 locale partial_order = weak_partial_order +
-  assumes eq_is_equal: "op .= = op ="
+  assumes eq_is_equal: "(.=) = (=)"
 begin
 
 declare weak_le_antisym [rule del]

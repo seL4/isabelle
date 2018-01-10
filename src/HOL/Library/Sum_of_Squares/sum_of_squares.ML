@@ -219,12 +219,12 @@ fun poly_variables p =
 
 local
   val neg_tm = \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close>
-  val add_tm = \<^cterm>\<open>op + :: real \<Rightarrow> _\<close>
-  val sub_tm = \<^cterm>\<open>op - :: real \<Rightarrow> _\<close>
-  val mul_tm = \<^cterm>\<open>op * :: real \<Rightarrow> _\<close>
+  val add_tm = \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close>
+  val sub_tm = \<^cterm>\<open>(-) :: real \<Rightarrow> _\<close>
+  val mul_tm = \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close>
   val inv_tm = \<^cterm>\<open>inverse :: real \<Rightarrow> _\<close>
-  val div_tm = \<^cterm>\<open>op / :: real \<Rightarrow> _\<close>
-  val pow_tm = \<^cterm>\<open>op ^ :: real \<Rightarrow> _\<close>
+  val div_tm = \<^cterm>\<open>(/) :: real \<Rightarrow> _\<close>
+  val pow_tm = \<^cterm>\<open>(^) :: real \<Rightarrow> _\<close>
   val zero_tm = \<^cterm>\<open>0:: real\<close>
   val is_numeral = can (HOLogic.dest_number o Thm.term_of)
   fun poly_of_term tm =
@@ -864,12 +864,12 @@ local
       Free (_, \<^typ>\<open>real\<close>) =>
         if not (member (op aconvc) fvs tm) then (@1, tm)
         else raise Failure "substitutable_monomial"
-    | \<^term>\<open>op * :: real \<Rightarrow> _\<close> $ _ $ (Free _) =>
+    | \<^term>\<open>( * ) :: real \<Rightarrow> _\<close> $ _ $ (Free _) =>
         if RealArith.is_ratconst (Thm.dest_arg1 tm) andalso
           not (member (op aconvc) fvs (Thm.dest_arg tm))
         then (RealArith.dest_ratconst (Thm.dest_arg1 tm), Thm.dest_arg tm)
         else raise Failure "substitutable_monomial"
-    | \<^term>\<open>op + :: real \<Rightarrow> _\<close>$_$_ =>
+    | \<^term>\<open>(+) :: real \<Rightarrow> _\<close>$_$_ =>
          (substitutable_monomial (Drule.cterm_add_frees (Thm.dest_arg tm) fvs) (Thm.dest_arg1 tm)
            handle Failure _ =>
             substitutable_monomial (Drule.cterm_add_frees (Thm.dest_arg1 tm) fvs) (Thm.dest_arg tm))
@@ -882,7 +882,7 @@ local
       if v aconvc w then th
       else
         (case Thm.term_of w of
-          \<^term>\<open>op + :: real \<Rightarrow> _\<close> $ _ $ _ =>
+          \<^term>\<open>(+) :: real \<Rightarrow> _\<close> $ _ $ _ =>
             if Thm.dest_arg1 w aconvc v then shuffle2 th
             else isolate_variable v (shuffle1 th)
         | _ => error "isolate variable : This should not happen?")
@@ -901,14 +901,14 @@ fun real_nonlinear_subst_prover prover ctxt =
         val (c,v) = substitutable_monomial [] (Thm.dest_arg1(concl th))
         val th1 =
           Drule.arg_cong_rule
-            (Thm.apply \<^cterm>\<open>op * :: real \<Rightarrow> _\<close> (RealArith.cterm_of_rat (Rat.inv c)))
+            (Thm.apply \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close> (RealArith.cterm_of_rat (Rat.inv c)))
             (mk_meta_eq th)
         val th2 = fconv_rule (binop_conv (real_poly_mul_conv ctxt)) th1
       in fconv_rule (arg_conv (real_poly_conv ctxt)) (isolate_variable v th2) end
 
     fun oprconv cv ct =
       let val g = Thm.dest_fun2 ct in
-        if g aconvc \<^cterm>\<open>op \<le> :: real \<Rightarrow> _\<close> orelse g aconvc \<^cterm>\<open>op < :: real \<Rightarrow> _\<close>
+        if g aconvc \<^cterm>\<open>(\<le>) :: real \<Rightarrow> _\<close> orelse g aconvc \<^cterm>\<open>(<) :: real \<Rightarrow> _\<close>
         then arg_conv cv ct else arg1_conv cv ct
       end
     fun mainf cert_choice translator =
@@ -938,16 +938,16 @@ fun real_sos prover ctxt =
 end;
 
 val known_sos_constants =
-  [\<^term>\<open>op \<Longrightarrow>\<close>, \<^term>\<open>Trueprop\<close>,
+  [\<^term>\<open>(\<Longrightarrow>)\<close>, \<^term>\<open>Trueprop\<close>,
    \<^term>\<open>HOL.False\<close>, \<^term>\<open>HOL.implies\<close>, \<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>,
-   \<^term>\<open>Not\<close>, \<^term>\<open>op = :: bool \<Rightarrow> _\<close>,
+   \<^term>\<open>Not\<close>, \<^term>\<open>(=) :: bool \<Rightarrow> _\<close>,
    \<^term>\<open>All :: (real \<Rightarrow> _) \<Rightarrow> _\<close>, \<^term>\<open>Ex :: (real \<Rightarrow> _) \<Rightarrow> _\<close>,
-   \<^term>\<open>op = :: real \<Rightarrow> _\<close>, \<^term>\<open>op < :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>op \<le> :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>op + :: real \<Rightarrow> _\<close>, \<^term>\<open>op - :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>op * :: real \<Rightarrow> _\<close>, \<^term>\<open>uminus :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>op / :: real \<Rightarrow> _\<close>, \<^term>\<open>inverse :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>op ^ :: real \<Rightarrow> _\<close>, \<^term>\<open>abs :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>(=) :: real \<Rightarrow> _\<close>, \<^term>\<open>(<) :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>(\<le>) :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>(+) :: real \<Rightarrow> _\<close>, \<^term>\<open>(-) :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>( * ) :: real \<Rightarrow> _\<close>, \<^term>\<open>uminus :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>(/) :: real \<Rightarrow> _\<close>, \<^term>\<open>inverse :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>(^) :: real \<Rightarrow> _\<close>, \<^term>\<open>abs :: real \<Rightarrow> _\<close>,
    \<^term>\<open>min :: real \<Rightarrow> _\<close>, \<^term>\<open>max :: real \<Rightarrow> _\<close>,
    \<^term>\<open>0::real\<close>, \<^term>\<open>1::real\<close>,
    \<^term>\<open>numeral :: num \<Rightarrow> nat\<close>,
@@ -996,13 +996,13 @@ local
 in
   fun get_denom b ct =
     (case Thm.term_of ct of
-      \<^term>\<open>op / :: real \<Rightarrow> _\<close> $ _ $ _ =>
+      \<^term>\<open>(/) :: real \<Rightarrow> _\<close> $ _ $ _ =>
         if is_numeral (Thm.dest_arg ct)
         then get_denom b (Thm.dest_arg1 ct)
         else default_SOME (get_denom b) (get_denom b (Thm.dest_arg ct)) (Thm.dest_arg ct, b)
-    | \<^term>\<open>op < :: real \<Rightarrow> _\<close> $ _ $ _ =>
+    | \<^term>\<open>(<) :: real \<Rightarrow> _\<close> $ _ $ _ =>
         lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
-    | \<^term>\<open>op \<le> :: real \<Rightarrow> _\<close> $ _ $ _ =>
+    | \<^term>\<open>(\<le>) :: real \<Rightarrow> _\<close> $ _ $ _ =>
         lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
     | _ $ _ => lift_SOME (get_denom b) (get_denom b (Thm.dest_fun ct)) (Thm.dest_arg ct)
     | _ => NONE)

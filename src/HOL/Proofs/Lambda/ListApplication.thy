@@ -9,7 +9,7 @@ theory ListApplication imports Lambda begin
 
 abbreviation
   list_application :: "dB => dB list => dB"  (infixl "\<degree>\<degree>" 150) where
-  "t \<degree>\<degree> ts == foldl (op \<degree>) t ts"
+  "t \<degree>\<degree> ts == foldl (\<degree>) t ts"
 
 lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> ts) = (r = s)"
   by (induct ts rule: rev_induct) auto
@@ -75,7 +75,7 @@ lemma ex_head_tail:
   done
 
 lemma size_apps [simp]:
-  "size (r \<degree>\<degree> rs) = size r + foldl (op +) 0 (map size rs) + length rs"
+  "size (r \<degree>\<degree> rs) = size r + foldl (+) 0 (map size rs) + length rs"
   by (induct rs rule: rev_induct) auto
 
 lemma lem0: "[| (0::nat) < k; m <= n |] ==> m < n + k"

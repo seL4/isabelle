@@ -447,9 +447,9 @@ lemma bind_map_pmf: "bind_pmf (map_pmf f M) g = bind_pmf M (\<lambda>x. g (f x))
   by (simp add: map_pmf_def bind_assoc_pmf bind_return_pmf)
 
 lemma map_pmf_transfer[transfer_rule]:
-  "rel_fun op = (rel_fun cr_pmf cr_pmf) (\<lambda>f M. distr M (count_space UNIV) f) map_pmf"
+  "rel_fun (=) (rel_fun cr_pmf cr_pmf) (\<lambda>f M. distr M (count_space UNIV) f) map_pmf"
 proof -
-  have "rel_fun op = (rel_fun pmf_as_measure.cr_pmf pmf_as_measure.cr_pmf)
+  have "rel_fun (=) (rel_fun pmf_as_measure.cr_pmf pmf_as_measure.cr_pmf)
      (\<lambda>f M. M \<bind> (return (count_space UNIV) o f)) map_pmf"
     unfolding map_pmf_def[abs_def] comp_def by transfer_prover
   then show ?thesis
@@ -476,7 +476,7 @@ lemma map_pmf_comp: "map_pmf f (map_pmf g M) = map_pmf (\<lambda>x. f (g x)) M"
 lemma map_pmf_cong: "p = q \<Longrightarrow> (\<And>x. x \<in> set_pmf q \<Longrightarrow> f x = g x) \<Longrightarrow> map_pmf f p = map_pmf g q"
   unfolding map_pmf_def by (rule bind_pmf_cong) auto
 
-lemma pmf_set_map: "set_pmf \<circ> map_pmf f = op ` f \<circ> set_pmf"
+lemma pmf_set_map: "set_pmf \<circ> map_pmf f = (`) f \<circ> set_pmf"
   by (auto simp add: comp_def fun_eq_iff map_pmf_def)
 
 lemma set_map_pmf[simp]: "set_pmf (map_pmf f M) = f`set_pmf M"
@@ -1326,7 +1326,7 @@ proof -
   show "\<And>f g::'a \<Rightarrow> 'b. \<And>p. (\<And>x. x \<in> set_pmf p \<Longrightarrow> f x = g x) \<Longrightarrow> map_pmf f p = map_pmf g p"
     by (intro map_pmf_cong refl)
 
-  show "\<And>f::'a \<Rightarrow> 'b. set_pmf \<circ> map_pmf f = op ` f \<circ> set_pmf"
+  show "\<And>f::'a \<Rightarrow> 'b. set_pmf \<circ> map_pmf f = (`) f \<circ> set_pmf"
     by (rule pmf_set_map)
 
   show "(card_of (set_pmf p), natLeq) \<in> ordLeq" for p :: "'s pmf"
@@ -1630,7 +1630,7 @@ lemma rel_pmf_antisym:
   shows "p = q"
 proof -
   from 1 2 refl trans have "rel_pmf (inf R R\<inverse>\<inverse>) p q" by(rule rel_pmf_inf)
-  also have "inf R R\<inverse>\<inverse> = op ="
+  also have "inf R R\<inverse>\<inverse> = (=)"
     using refl antisym by (auto intro!: ext simp add: reflpD dest: antisympD)
   finally show ?thesis unfolding pmf.rel_eq .
 qed

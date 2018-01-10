@@ -306,7 +306,7 @@ val _ =
          Free ("x", @{typ "'a"})))
   in
     @{assert}
-      ((@{term "! x. All (op = x)"}
+      ((@{term "! x. All ((=) x)"}
         |> strip_top_All_vars)
        = answer)
   end

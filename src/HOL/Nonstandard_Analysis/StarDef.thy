@@ -304,7 +304,7 @@ lemma starP2_star_of [simp]: "( *p2* P) (star_of x) = *p* P x"
 subsection \<open>Internal sets\<close>
 
 definition Iset :: "'a set star \<Rightarrow> 'a star set"
-  where "Iset A = {x. ( *p2* op \<in>) x A}"
+  where "Iset A = {x. ( *p2* (\<in>)) x A}"
 
 lemma Iset_star_n: "(star_n X \<in> Iset (star_n A)) = (eventually (\<lambda>n. X n \<in> A n) \<U>)"
   by (simp add: Iset_def starP2_star_n)
@@ -407,13 +407,13 @@ end
 
 instantiation star :: (plus) plus
 begin
-  definition star_add_def: "(op +) \<equiv> *f2* (op +)"
+  definition star_add_def: "(+) \<equiv> *f2* (+)"
   instance ..
 end
 
 instantiation star :: (times) times
 begin
-  definition star_mult_def: "(op *) \<equiv> *f2* (op *)"
+  definition star_mult_def: "(( * )) \<equiv> *f2* (( * ))"
   instance ..
 end
 
@@ -425,7 +425,7 @@ end
 
 instantiation star :: (minus) minus
 begin
-  definition star_diff_def: "(op -) \<equiv> *f2* (op -)"
+  definition star_diff_def: "(-) \<equiv> *f2* (-)"
   instance ..
 end
 
@@ -457,14 +457,14 @@ instance star :: (Rings.dvd) Rings.dvd ..
 
 instantiation star :: (modulo) modulo
 begin
-  definition star_mod_def: "(op mod) \<equiv> *f2* (op mod)"
+  definition star_mod_def: "(mod) \<equiv> *f2* (mod)"
   instance ..
 end
 
 instantiation star :: (ord) ord
 begin
-  definition star_le_def: "(op \<le>) \<equiv> *p2* (op \<le>)"
-  definition star_less_def: "(op <) \<equiv> *p2* (op <)"
+  definition star_le_def: "(\<le>) \<equiv> *p2* (\<le>)"
+  definition star_less_def: "(<) \<equiv> *p2* (<)"
   instance ..
 end
 
@@ -841,7 +841,7 @@ instance star :: (semidom_modulo) semidom_modulo
 
 subsection \<open>Power\<close>
 
-lemma star_power_def [transfer_unfold]: "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
+lemma star_power_def [transfer_unfold]: "(^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
 proof (rule eq_reflection, rule ext, rule ext)
   show "x ^ n = ( *f* (\<lambda>x. x ^ n)) x" for n :: nat and x :: "'a star"
   proof (induct n arbitrary: x)

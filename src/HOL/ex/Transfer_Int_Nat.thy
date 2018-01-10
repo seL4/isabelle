@@ -35,63 +35,63 @@ lemma ZN_0 [transfer_rule]: "ZN 0 0"
 lemma ZN_1 [transfer_rule]: "ZN 1 1"
   unfolding ZN_def by simp
 
-lemma ZN_add [transfer_rule]: "(ZN ===> ZN ===> ZN) (op +) (op +)"
+lemma ZN_add [transfer_rule]: "(ZN ===> ZN ===> ZN) (+) (+)"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) (op *) (op *)"
+lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) (( * )) (( * ))"
   unfolding rel_fun_def ZN_def by simp
 
 definition tsub :: "int \<Rightarrow> int \<Rightarrow> int"
   where "tsub k l = max 0 (k - l)"
 
-lemma ZN_diff [transfer_rule]: "(ZN ===> ZN ===> ZN) tsub (op -)"
+lemma ZN_diff [transfer_rule]: "(ZN ===> ZN ===> ZN) tsub (-)"
   unfolding rel_fun_def ZN_def by (auto simp add: of_nat_diff tsub_def)
 
-lemma ZN_power [transfer_rule]: "(ZN ===> op = ===> ZN) (op ^) (op ^)"
+lemma ZN_power [transfer_rule]: "(ZN ===> (=) ===> ZN) (^) (^)"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_nat_id [transfer_rule]: "(ZN ===> op =) nat id"
+lemma ZN_nat_id [transfer_rule]: "(ZN ===> (=)) nat id"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_id_int [transfer_rule]: "(ZN ===> op =) id int"
+lemma ZN_id_int [transfer_rule]: "(ZN ===> (=)) id int"
   unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_All [transfer_rule]:
-  "((ZN ===> op =) ===> op =) (Ball {0..}) All"
+  "((ZN ===> (=)) ===> (=)) (Ball {0..}) All"
   unfolding rel_fun_def ZN_def by (auto dest: zero_le_imp_eq_int)
 
 lemma ZN_transfer_forall [transfer_rule]:
-  "((ZN ===> op =) ===> op =) (transfer_bforall (\<lambda>x. 0 \<le> x)) transfer_forall"
+  "((ZN ===> (=)) ===> (=)) (transfer_bforall (\<lambda>x. 0 \<le> x)) transfer_forall"
   unfolding transfer_forall_def transfer_bforall_def
   unfolding rel_fun_def ZN_def by (auto dest: zero_le_imp_eq_int)
 
-lemma ZN_Ex [transfer_rule]: "((ZN ===> op =) ===> op =) (Bex {0..}) Ex"
+lemma ZN_Ex [transfer_rule]: "((ZN ===> (=)) ===> (=)) (Bex {0..}) Ex"
   unfolding rel_fun_def ZN_def Bex_def atLeast_iff
   by (metis zero_le_imp_eq_int of_nat_0_le_iff)
 
-lemma ZN_le [transfer_rule]: "(ZN ===> ZN ===> op =) (op \<le>) (op \<le>)"
+lemma ZN_le [transfer_rule]: "(ZN ===> ZN ===> (=)) (\<le>) (\<le>)"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_less [transfer_rule]: "(ZN ===> ZN ===> op =) (op <) (op <)"
+lemma ZN_less [transfer_rule]: "(ZN ===> ZN ===> (=)) (<) (<)"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_eq [transfer_rule]: "(ZN ===> ZN ===> op =) (op =) (op =)"
+lemma ZN_eq [transfer_rule]: "(ZN ===> ZN ===> (=)) (=) (=)"
   unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_Suc [transfer_rule]: "(ZN ===> ZN) (\<lambda>x. x + 1) Suc"
   unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_numeral [transfer_rule]:
-  "(op = ===> ZN) numeral numeral"
+  "((=) ===> ZN) numeral numeral"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_dvd [transfer_rule]: "(ZN ===> ZN ===> op =) (op dvd) (op dvd)"
+lemma ZN_dvd [transfer_rule]: "(ZN ===> ZN ===> (=)) (dvd) (dvd)"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_div [transfer_rule]: "(ZN ===> ZN ===> ZN) (op div) (op div)"
+lemma ZN_div [transfer_rule]: "(ZN ===> ZN ===> ZN) (div) (div)"
   unfolding rel_fun_def ZN_def by (simp add: zdiv_int)
 
-lemma ZN_mod [transfer_rule]: "(ZN ===> ZN ===> ZN) (op mod) (op mod)"
+lemma ZN_mod [transfer_rule]: "(ZN ===> ZN ===> ZN) (mod) (mod)"
   unfolding rel_fun_def ZN_def by (simp add: zmod_int)
 
 lemma ZN_gcd [transfer_rule]: "(ZN ===> ZN ===> ZN) gcd gcd"

@@ -966,7 +966,7 @@ lemma nat_mult_max_right: "m * max n q = max (m * n) (m * q)"
     (auto dest: mult_left_le_imp_le mult_left_less_imp_less le_less_trans)
 
 
-subsubsection \<open>Additional theorems about @{term "op \<le>"}\<close>
+subsubsection \<open>Additional theorems about @{term "(\<le>)"}\<close>
 
 text \<open>Complete induction, aka course-of-values induction\<close>
 
@@ -1523,7 +1523,7 @@ lemma comp_funpow: "comp f ^^ n = comp (f ^^ n)"
   for f :: "'a \<Rightarrow> 'a"
   by (induct n) simp_all
 
-lemma Suc_funpow[simp]: "Suc ^^ n = (op + n)"
+lemma Suc_funpow[simp]: "Suc ^^ n = ((+) n)"
   by (induct n) simp_all
 
 lemma id_funpow[simp]: "id ^^ n = id"

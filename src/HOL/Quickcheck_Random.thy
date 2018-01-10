@@ -136,7 +136,7 @@ definition random_fun_lift :: "(Random.seed \<Rightarrow> ('b \<times> (unit \<R
   \<Rightarrow> Random.seed \<Rightarrow> (('a::term_of \<Rightarrow> 'b::typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 where
   "random_fun_lift f =
-    random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Evaluation.term_of f Random.split_seed"
+    random_fun_aux TYPEREP('a) TYPEREP('b) (=) Code_Evaluation.term_of f Random.split_seed"
 
 instantiation "fun" :: ("{equal, term_of}", random) random
 begin

@@ -68,7 +68,7 @@ locale lgrp = semi +
     and linv: "inv(x) ** x = one"
 print_locale! lgrp thm lgrp_def lgrp_axioms_def
 
-locale add_lgrp = semi "op ++" for sum (infixl "++" 60) +
+locale add_lgrp = semi "(++)" for sum (infixl "++" 60) +
   fixes zero and neg
   assumes lzero: "zero ++ x = x"
     and lneg: "neg(x) ++ x = zero"
@@ -106,7 +106,7 @@ definition lor (infixl "||" 50) where
 end
 print_locale! logic
 
-locale use_decl = l: logic + semi "op ||"
+locale use_decl = l: logic + semi "(||)"
 print_locale! use_decl thm use_decl_def
 
 locale extra_type =
@@ -376,7 +376,7 @@ definition greater :: "'a => 'a => o" (infix ">>" 50) where
 
 end
 
-sublocale order_with_def < dual: order' "op >>"
+sublocale order_with_def < dual: order' "(>>)"
   apply unfold_locales
   unfolding greater_def
   apply (rule refl) apply (blast intro: trans)
@@ -438,13 +438,13 @@ print_locale! trivial  (* No instance for y created (subsumed). *)
 
 subsection \<open>Sublocale, then interpretation in theory\<close>
 
-interpretation int?: lgrp "op +" "0" "minus"
+interpretation int?: lgrp "(+)" "0" "minus"
 proof unfold_locales
 qed (rule int_assoc int_zero int_minus)+
 
 thm int.assoc int.semi_axioms
 
-interpretation int2?: semi "op +"
+interpretation int2?: semi "(+)"
   by unfold_locales  (* subsumed, thm int2.assoc not generated *)
 
 ML \<open>(Global_Theory.get_thms @{theory} "int2.assoc";
@@ -457,7 +457,7 @@ thm int.lone int.right.rone
 
 subsection \<open>Interpretation in theory, then sublocale\<close>
 
-interpretation fol: logic "op +" "minus"
+interpretation fol: logic "(+)" "minus"
   by unfold_locales (rule int_assoc int_minus2)+
 
 locale logic2 =
@@ -503,11 +503,11 @@ definition lor_o (infixl "||" 50) where
 
 end
 
-interpretation x: logic_o "op \<and>" "Not"
+interpretation x: logic_o "(\<and>)" "Not"
   rewrites bool_logic_o: "x.lor_o(x, y) \<longleftrightarrow> x \<or> y"
 proof -
-  show bool_logic_o: "PROP logic_o(op \<and>, Not)" by unfold_locales fast+
-  show "logic_o.lor_o(op \<and>, Not, x, y) \<longleftrightarrow> x \<or> y"
+  show bool_logic_o: "PROP logic_o((\<and>), Not)" by unfold_locales fast+
+  show "logic_o.lor_o((\<and>), Not, x, y) \<longleftrightarrow> x \<or> y"
     by (unfold logic_o.lor_o_def [OF bool_logic_o]) fast
 qed
 
@@ -759,8 +759,8 @@ end
 
 text \<open>Interpreted versions\<close>
 
-lemma "0 = glob_one ((op +))" by (rule int.def.one_def)
-lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
+lemma "0 = glob_one ((+))" by (rule int.def.one_def)
+lemma "- x = glob_inv((+), x)" by (rule int.def.inv_def)
 
 text \<open>Roundup applies rewrite morphisms at declaration level in DFS tree\<close>
 
@@ -792,18 +792,18 @@ section \<open>Interpretation in proofs\<close>
 
 lemma True
 proof
-  interpret "local": lgrp "op +" "0" "minus"
+  interpret "local": lgrp "(+)" "0" "minus"
     by unfold_locales  (* subsumed *)
   {
     fix zero :: int
     assume "!!x. zero + x = x" "!!x. (-x) + x = zero"
-    then interpret local_fixed: lgrp "op +" zero "minus"
+    then interpret local_fixed: lgrp "(+)" zero "minus"
       by unfold_locales
     thm local_fixed.lone
-    print_dependencies! lgrp "op +" 0 minus + lgrp "op +" zero minus
+    print_dependencies! lgrp "(+)" 0 minus + lgrp "(+)" zero minus
   }
   assume "!!x zero. zero + x = x" "!!x zero. (-x) + x = zero"
-  then interpret local_free: lgrp "op +" zero "minus" for zero
+  then interpret local_free: lgrp "(+)" zero "minus" for zero
     by unfold_locales
   thm local_free.lone [where ?zero = 0]
 qed

@@ -22,7 +22,7 @@ named_theorems cancelation_simproc_eq_elim \<open>These theorems are here to hel
   (e.g., \<open>Suc _ = 0\<close>).\<close>
 
 definition iterate_add :: \<open>nat \<Rightarrow> 'a::cancel_comm_monoid_add \<Rightarrow> 'a\<close> where
-  \<open>iterate_add n a = ((op + a) ^^ n) 0\<close>
+  \<open>iterate_add n a = (((+) a) ^^ n) 0\<close>
 
 lemma iterate_add_simps[simp]:
   \<open>iterate_add 0 a = 0\<close>

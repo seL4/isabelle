@@ -596,7 +596,7 @@ proof -
       proof (cases "k=1")
         case True
         then have "\<exists>x. k * x + l \<noteq> a + x" for a
-          using l non [of a] ext [of f "op + a"]
+          using l non [of a] ext [of f "(+) a"]
           by (metis add.commute diff_eq_eq)
         with True show ?thesis by auto
       next

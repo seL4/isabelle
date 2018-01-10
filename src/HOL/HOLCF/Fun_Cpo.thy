@@ -14,7 +14,7 @@ subsection \<open>Full function space is a partial order\<close>
 instantiation "fun"  :: (type, below) below
 begin
 
-definition below_fun_def: "(op \<sqsubseteq>) \<equiv> (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x)"
+definition below_fun_def: "(\<sqsubseteq>) \<equiv> (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x)"
 
 instance ..
 end

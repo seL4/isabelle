@@ -604,7 +604,7 @@ apply (erule_tac x = "(None,y)" for y in allE)
 apply clarify
 done
 
-lemma state_not_single: "All (op = (x::state)) \<Longrightarrow> R"
+lemma state_not_single: "All ((=) (x::state)) \<Longrightarrow> R"
 apply (drule_tac x = "(if abrupt x = None then Some x' else None, y)" for x' y in spec)
 apply clarsimp
 done

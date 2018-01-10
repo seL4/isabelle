@@ -57,7 +57,7 @@ lemma rel_setI:
   using assms unfolding rel_set_def by simp
 
 lemma predicate2_transferD:
-   "\<lbrakk>rel_fun R1 (rel_fun R2 (op =)) P Q; a \<in> A; b \<in> B; A \<subseteq> {(x, y). R1 x y}; B \<subseteq> {(x, y). R2 x y}\<rbrakk> \<Longrightarrow>
+   "\<lbrakk>rel_fun R1 (rel_fun R2 (=)) P Q; a \<in> A; b \<in> B; A \<subseteq> {(x, y). R1 x y}; B \<subseteq> {(x, y). R2 x y}\<rbrakk> \<Longrightarrow>
    P (fst a) (fst b) \<longleftrightarrow> Q (snd a) (snd b)"
   unfolding rel_fun_def by (blast dest!: Collect_case_prodD)
 
@@ -102,13 +102,13 @@ lemma convol_mem_GrpI:
 definition csquare where
   "csquare A f1 f2 p1 p2 \<longleftrightarrow> (\<forall> a \<in> A. f1 (p1 a) = f2 (p2 a))"
 
-lemma eq_alt: "op = = Grp UNIV id"
+lemma eq_alt: "(=) = Grp UNIV id"
   unfolding Grp_def by auto
 
-lemma leq_conversepI: "R = op = \<Longrightarrow> R \<le> R^--1"
+lemma leq_conversepI: "R = (=) \<Longrightarrow> R \<le> R^--1"
   by auto
 
-lemma leq_OOI: "R = op = \<Longrightarrow> R \<le> R OO R"
+lemma leq_OOI: "R = (=) \<Longrightarrow> R \<le> R OO R"
   by auto
 
 lemma OO_Grp_alt: "(Grp A f)^--1 OO Grp A g = (\<lambda>x y. \<exists>z. z \<in> A \<and> f z = x \<and> g z = y)"
@@ -217,13 +217,13 @@ lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a
 lemma comp_apply_eq: "f (g x) = h (k x) \<Longrightarrow> (f \<circ> g) x = (h \<circ> k) x"
   unfolding comp_apply by assumption
 
-lemma refl_ge_eq: "(\<And>x. R x x) \<Longrightarrow> op = \<le> R"
+lemma refl_ge_eq: "(\<And>x. R x x) \<Longrightarrow> (=) \<le> R"
   by auto
 
-lemma ge_eq_refl: "op = \<le> R \<Longrightarrow> R x x"
+lemma ge_eq_refl: "(=) \<le> R \<Longrightarrow> R x x"
   by auto
 
-lemma reflp_eq: "reflp R = (op = \<le> R)"
+lemma reflp_eq: "reflp R = ((=) \<le> R)"
   by (auto simp: reflp_def fun_eq_iff)
 
 lemma transp_relcompp: "transp r \<longleftrightarrow> r OO r \<le> r"
@@ -244,7 +244,7 @@ lemma eq_onp_Grp: "eq_onp P = BNF_Def.Grp (Collect P) id"
 lemma eq_onp_to_eq: "eq_onp P x y \<Longrightarrow> x = y"
   by (simp add: eq_onp_def)
 
-lemma eq_onp_top_eq_eq: "eq_onp top = op ="
+lemma eq_onp_top_eq_eq: "eq_onp top = (=)"
   by (simp add: eq_onp_def)
 
 lemma eq_onp_same_args: "eq_onp P x x = P x"
@@ -259,7 +259,7 @@ lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
 lemma eq_onp_mono0: "\<forall>x\<in>A. P x \<longrightarrow> Q x \<Longrightarrow> \<forall>x\<in>A. \<forall>y\<in>A. eq_onp P x y \<longrightarrow> eq_onp Q x y"
   unfolding eq_onp_def by auto
 
-lemma eq_onp_True: "eq_onp (\<lambda>_. True) = (op =)"
+lemma eq_onp_True: "eq_onp (\<lambda>_. True) = (=)"
   unfolding eq_onp_def by simp
 
 lemma Ball_image_comp: "Ball (f ` A) g = Ball A (g \<circ> f)"
