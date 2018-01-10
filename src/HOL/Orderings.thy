@@ -132,10 +132,8 @@ class ord =
 begin
 
 notation
-  less_eq  ("'(\<le>')") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50) and
-  less  ("'(<')") and
-  less  ("(_/ < _)"  [51, 51] 50)
+  less_eq  (infix "\<le>" 50) and
+  less  (infix "<" 50)
 
 abbreviation (input)
   greater_eq  (infix "\<ge>" 50)
@@ -146,8 +144,7 @@ abbreviation (input)
   where "x > y \<equiv> y < x"
 
 notation (ASCII)
-  less_eq  ("'(<=')") and
-  less_eq  ("(_/ <= _)" [51, 51] 50)
+  less_eq  (infix "<=" 50)
 
 notation (input)
   greater_eq  (infix ">=" 50)

@@ -20,20 +20,16 @@ axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comme
     and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
 
 notation
-  member  ("'(\<in>')") and
-  member  ("(_/ \<in> _)" [51, 51] 50)
+  member  (infix "\<in>" 50)
 
 abbreviation not_member
   where "not_member x A \<equiv> \<not> (x \<in> A)" \<comment> "non-membership"
 notation
-  not_member  ("'(\<notin>')") and
-  not_member  ("(_/ \<notin> _)" [51, 51] 50)
+  not_member  (infix "\<notin>" 50)
 
 notation (ASCII)
-  member  ("'(:')") and
-  member  ("(_/ : _)" [51, 51] 50) and
-  not_member  ("'(~:')") and
-  not_member  ("(_/ ~: _)" [51, 51] 50)
+  member  (infix ":" 50) and
+  not_member  (infix "~:" 50)
 
 
 text \<open>Set comprehensions\<close>
