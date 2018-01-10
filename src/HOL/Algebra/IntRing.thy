@@ -172,27 +172,27 @@ lemma UNIV:
   by simp_all
 
 interpretation int (* FIXME [unfolded UNIV] *) :
-  partial_order "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
-  rewrites "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> = UNIV"
-    and "le \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x \<le> y)"
-    and "lless \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x < y)"
+  partial_order "\<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr>"
+  rewrites "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> = UNIV"
+    and "le \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> x y = (x \<le> y)"
+    and "lless \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> x y = (x < y)"
 proof -
-  show "partial_order \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
+  show "partial_order \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr>"
     by standard simp_all
-  show "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> = UNIV"
+  show "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> = UNIV"
     by simp
-  show "le \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x \<le> y)"
+  show "le \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> x y = (x \<le> y)"
     by simp
-  show "lless \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x < y)"
+  show "lless \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> x y = (x < y)"
     by (simp add: lless_def) auto
 qed
 
 interpretation int (* FIXME [unfolded UNIV] *) :
-  lattice "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
-  rewrites "join \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = max x y"
-    and "meet \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = min x y"
+  lattice "\<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr>"
+  rewrites "join \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> x y = max x y"
+    and "meet \<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr> x y = min x y"
 proof -
-  let ?Z = "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
+  let ?Z = "\<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr>"
   show "lattice ?Z"
     apply unfold_locales
     apply (simp add: least_def Upper_def)
@@ -214,7 +214,7 @@ proof -
 qed
 
 interpretation int (* [unfolded UNIV] *) :
-  total_order "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
+  total_order "\<lparr>carrier = UNIV::int set, eq = op =, le = (op \<le>)\<rparr>"
   by standard clarsimp
 
 

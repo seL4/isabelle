@@ -5942,7 +5942,7 @@ next
     apply (blast intro: fg)
     done
   also have "... = u * u ^ n * deriv ((deriv ^^ n) f) (u * z)"
-      apply (subst complex_derivative_chain [where g = "(deriv ^^ n) f" and f = "op*u", unfolded o_def])
+      apply (subst complex_derivative_chain [where g = "(deriv ^^ n) f" and f = "op* u", unfolded o_def])
       apply (rule derivative_intros)
       using Suc.prems field_differentiable_def f fg has_field_derivative_higher_deriv t apply blast
       apply (simp add: deriv_linear)

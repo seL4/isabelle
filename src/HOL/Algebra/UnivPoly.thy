@@ -1808,7 +1808,7 @@ lemma UP_pre_univ_propI:
 
 definition
   INTEG :: "int ring"
-  where "INTEG = \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+  where "INTEG = \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = (op +)\<rparr>"
 
 lemma INTEG_cring: "cring INTEG"
   by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
