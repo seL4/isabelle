@@ -1607,7 +1607,7 @@ struct
     type T = ((term -> bool) * stamp) list;
     val empty = [];
     val extend = I;
-    fun merge data : T = Library.merge (eq_snd (=)) data;
+    fun merge data : T = Library.merge (eq_snd (op =)) data;
   );
   fun add m = Data.map (cons (m, stamp ()));
   fun matches thy t = exists (fn (m, _) => m t) (Data.get thy);

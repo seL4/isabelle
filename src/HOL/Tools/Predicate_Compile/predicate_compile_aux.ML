@@ -1034,7 +1034,7 @@ fun peephole_optimisation thy intro =
     val process =
       rewrite_rule ctxt (Named_Theorems.get ctxt @{named_theorems code_pred_simp})
     fun process_False intro_t =
-      if member (=) (Logic.strip_imp_prems intro_t) @{prop "False"}
+      if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"}
       then NONE else SOME intro_t
     fun process_True intro_t =
       map_filter_premises (fn p => if p = @{prop True} then NONE else SOME p) intro_t

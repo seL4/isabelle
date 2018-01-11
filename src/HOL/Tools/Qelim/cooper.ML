@@ -765,7 +765,7 @@ local
   if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of_cterm t))
   then false 
   else case Thm.term_of t of 
-    c$l$r => if member (=) [@{term"( * )::int => _"}, @{term"( * )::nat => _"}] c
+    c$l$r => if member (op =) [@{term"( * )::int => _"}, @{term"( * )::nat => _"}] c
              then not (isnum l orelse isnum r)
              else not (member (op aconv) cts c)
   | c$_ => not (member (op aconv) cts c)

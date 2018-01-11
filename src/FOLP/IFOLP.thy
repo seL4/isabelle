@@ -259,7 +259,7 @@ fun uniq_assume_tac ctxt =
           and concl = discard_proof (Logic.strip_assums_concl prem)
       in
           if exists (fn hyp => hyp aconv concl) hyps
-          then case distinct (=) (filter (fn hyp => Term.could_unify (hyp, concl)) hyps) of
+          then case distinct (op =) (filter (fn hyp => Term.could_unify (hyp, concl)) hyps) of
                    [_] => assume_tac ctxt i
                  |  _  => no_tac
           else no_tac

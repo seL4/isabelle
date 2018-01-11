@@ -339,7 +339,7 @@ struct
     o (map (map literal_from_int))
     o clauses
     o (map int_from_string)
-    o (maps (String.tokens (member (=) [#" ", #"\t", #"\n"])))
+    o (maps (String.tokens (member (op =) [#" ", #"\t", #"\n"])))
     o filter_preamble
     o filter (fn l => l <> "")
     o split_lines

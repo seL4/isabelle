@@ -199,7 +199,7 @@ fun analyze_mapper ctxt input_mapper =
       | add_tycos _ = I;
     val tycos = add_tycos T [];
     val tyco = if tycos = ["fun"] then "fun"
-      else case remove (=) "fun" tycos
+      else case remove (op =) "fun" tycos
        of [tyco] => tyco
         | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ ctxt T);
   in (mapper, T, tyco) end;

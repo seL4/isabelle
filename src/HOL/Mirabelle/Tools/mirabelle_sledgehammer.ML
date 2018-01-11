@@ -472,7 +472,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val e_selection_heuristic = AList.lookup (op =) args e_selection_heuristicK
     val term_order = AList.lookup (op =) args term_orderK
     val force_sos = AList.lookup (op =) args force_sosK
-      |> Option.map (curry (<>) "false")
+      |> Option.map (curry (op <>) "false")
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     (* always use a hard timeout, but give some slack so that the automatic

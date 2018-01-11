@@ -711,9 +711,9 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
     val decls =
       func_decls @ pred_decls @ datatype_decls @ sort_decls @ subclass_decls
     val axioms =
-      filt (formula (curry (<>) Conjecture)) |> separate [""] |> flat
+      filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
     val conjs =
-      filt (formula (curry (=) Conjecture)) |> separate [""] |> flat
+      filt (formula (curry (op =) Conjecture)) |> separate [""] |> flat
     val settings =
       (if is_lpo then ["set_flag(Ordering, 1)."] else []) @
       (if gen_prec then

@@ -42,7 +42,7 @@ declare lvar_def [simp]
 
 ML \<open>
 fun inst1_tac ctxt s t xs st =
-  (case AList.lookup (=) (rev (Term.add_var_names (Thm.prop_of st) [])) s of
+  (case AList.lookup (op =) (rev (Term.add_var_names (Thm.prop_of st) [])) s of
     SOME i => PRIMITIVE (Rule_Insts.read_instantiate ctxt [(((s, i), Position.none), t)] xs) st
   | NONE => Seq.empty);
 

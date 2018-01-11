@@ -188,7 +188,7 @@ fun parse_func cx arity n ls =
   let
     val ((Ts, atts), ls') =
       ls |> repeat (parse_type cx) arity ||>> repeat (parse_attr cx) n
-    val unique = member (=) atts "unique"
+    val unique = member (op =) atts "unique"
   in ((split_last Ts, unique), ls') end
 
 fun parse_decl (("type-decl" :: name :: _) :: ls) cx = (ls, add_type name cx)

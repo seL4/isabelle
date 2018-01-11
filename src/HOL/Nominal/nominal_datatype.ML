@@ -1444,7 +1444,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val big_rec_name = big_name ^ "_rec_set";
     val rec_set_names' =
       if length descr'' = 1 then [big_rec_name] else
-        map ((curry (^) (big_rec_name ^ "_")) o string_of_int)
+        map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr''));
     val rec_set_names =  map (Sign.full_bname thy10) rec_set_names';
 
@@ -2030,7 +2030,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val big_reccomb_name = space_implode "_" new_type_names ^ "_rec";
     val reccomb_names = map (Sign.full_bname thy11)
       (if length descr'' = 1 then [big_reccomb_name] else
-        (map ((curry (^) (big_reccomb_name ^ "_")) o string_of_int)
+        (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
           (1 upto (length descr''))));
     val reccombs = map (fn ((name, T), T') => list_comb
       (Const (name, rec_fn_Ts @ [T] ---> T'), rec_fns))

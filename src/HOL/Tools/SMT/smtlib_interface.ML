@@ -146,7 +146,7 @@ fun sdtyp (fp, dtyps) =
 
 fun serialize smt_options comments {logic, sorts, dtyps, funcs} ts =
   let
-    val unsat_core = member (=) smt_options (":produce-unsat-cores", "true")
+    val unsat_core = member (op =) smt_options (":produce-unsat-cores", "true")
   in
     Buffer.empty
     |> fold (Buffer.add o enclose "; " "\n") comments

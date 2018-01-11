@@ -549,12 +549,12 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "s'" s'Ts
       ||>> mk_Frees "s''" s''Ts
       ||>> mk_Frees "f" fTs
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "Rtuple") all_sbisT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "Rtuple") all_sbisT
       ||>> mk_Frees "R" setRTs
       ||>> mk_Frees "R" setRTs
       ||>> mk_Frees "R'" setR'Ts
       ||>> mk_Frees "R" setsRTs
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "i") idxT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "i") idxT
       ||>> yield_singleton (mk_Frees "I") (HOLogic.mk_setT idxT)
       ||>> mk_Frees "Ri" (map (fn T => idxT --> T) setRTs);
 
@@ -831,17 +831,17 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       |> mk_Frees' "b" activeAs
       ||>> mk_Frees "b" activeAs
       ||>> mk_Frees "s" sTs
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "n") HOLogic.natT
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "sumx") sum_sbdT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "sumx") sum_sbdT
       ||>> mk_Frees' "k" sbdTs
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "kl") sum_sbd_listT
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "kl") sum_sbd_listT
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "Kl") sum_sbd_list_setT
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "lab") (sum_sbd_listT --> sbdFT)
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "Kl_lab") treeT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "kl") sum_sbd_listT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "kl") sum_sbd_listT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "Kl") sum_sbd_list_setT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "lab") (sum_sbd_listT --> sbdFT)
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "Kl_lab") treeT
       ||>> mk_Frees "x" bdFTs
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "rec") Lev_recT
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "rec") rv_recT;
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "rec") Lev_recT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "rec") rv_recT;
 
     val (k, k') = (hd kks, hd kks')
 
@@ -1128,8 +1128,8 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "b" activeAs
       ||>> mk_Frees "b" activeAs
       ||>> mk_Frees "s" sTs
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "n") HOLogic.natT
-      ||>> yield_singleton (apfst (~~) oo mk_Frees' "kl") sum_sbd_listT;
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "kl") sum_sbd_listT;
 
     val (length_Lev_thms, length_Lev'_thms) =
       let
@@ -1687,7 +1687,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
         val uTs = map2 (curry op -->) Ts Ts';
         val (((((nat, nat'), (Jzs, Jzs')), (hrecs, hrecs')), (fs, fs')), _) =
           lthy
-          |> yield_singleton (apfst (~~) oo mk_Frees' "n") HOLogic.natT
+          |> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
           ||>> mk_Frees' "z" Ts
           ||>> mk_Frees' "rec" hrecTs
           ||>> mk_Frees' "f" fTs;
@@ -1798,7 +1798,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
             (Jys, Jys')), (Jys_copy, Jys'_copy)), (ys_copy, ys'_copy)), Kss), names_lthy) =
           lthy
           |> mk_Frees' "y" passiveAs
-          ||>> yield_singleton (apfst (~~) oo mk_Frees' "n") HOLogic.natT
+          ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
           ||>> mk_Frees' "z" Ts
           ||>> mk_Frees "y" Ts'
           ||>> mk_Frees "z'" Ts

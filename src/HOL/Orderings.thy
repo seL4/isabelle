@@ -473,7 +473,7 @@ struct
 (* context data *)
 
 fun struct_eq ((s1: string, ts1), (s2, ts2)) =
-  s1 = s2 andalso eq_list (aconv) (ts1, ts2);
+  s1 = s2 andalso eq_list (op aconv) (ts1, ts2);
 
 structure Data = Generic_Data
 (

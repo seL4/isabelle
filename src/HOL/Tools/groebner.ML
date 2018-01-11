@@ -601,7 +601,7 @@ let
     else tm::acc ;
 
 fun grobify_term vars tm =
-((if not (member (aconvc) vars tm) then raise CTERM ("Not a variable", [tm]) else
+((if not (member (op aconvc) vars tm) then raise CTERM ("Not a variable", [tm]) else
      [(@1, map (fn i => if i aconvc tm then 1 else 0) vars)])
 handle  CTERM _ =>
  ((let val x = dest_const tm
@@ -823,7 +823,7 @@ val poly_eq_ss =
   val th1 = (the (get_first (try (isolate_variable vars)) cjs)
              handle Option.Option => raise CTERM ("unwind_polys_conv",[tm]))
   val eq = Thm.lhs_of th1
-  val bod' = list_mk_binop \<^cterm>\<open>HOL.conj\<close> (eq::(remove (aconvc) eq cjs))
+  val bod' = list_mk_binop \<^cterm>\<open>HOL.conj\<close> (eq::(remove (op aconvc) eq cjs))
   val th2 = conj_ac_rule (mk_eq bod bod')
   val th3 =
     Thm.transitive th2

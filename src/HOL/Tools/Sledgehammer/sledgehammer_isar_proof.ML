@@ -284,15 +284,15 @@ fun string_of_isar_proof ctxt0 i n proof =
     fun of_label l = if l = no_label then "" else string_of_label l ^ ": "
 
     fun of_obtain qs nr =
-      (if nr > 1 orelse (nr = 1 andalso member (=) qs Then) then "ultimately "
-       else if nr = 1 orelse member (=) qs Then then "then "
+      (if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then "ultimately "
+       else if nr = 1 orelse member (op =) qs Then then "then "
        else "") ^ "obtain"
 
-    fun of_show_have qs = if member (=) qs Show then "show" else "have"
-    fun of_thus_hence qs = if member (=) qs Show then "then show" else "then have"
+    fun of_show_have qs = if member (op =) qs Show then "show" else "have"
+    fun of_thus_hence qs = if member (op =) qs Show then "then show" else "then have"
 
     fun of_have qs nr =
-      if nr > 1 orelse (nr = 1 andalso member (=) qs Then) then "ultimately " ^ of_show_have qs
+      if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then "ultimately " ^ of_show_have qs
       else if nr = 1 orelse member (op =) qs Then then of_thus_hence qs
       else of_show_have qs
 
@@ -344,7 +344,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       end
     and of_subproofs _ _ _ [] = ""
       | of_subproofs ind ctxt qs subs =
-        (if member (=) qs Then then of_moreover ind else "") ^
+        (if member (op =) qs Then then of_moreover ind else "") ^
         space_implode (of_moreover ind) (map (of_subproof ind ctxt) subs)
     and add_step_pre ind qs subs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subs ^ of_indent ind, ctxt)

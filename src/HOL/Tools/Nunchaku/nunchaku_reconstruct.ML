@@ -52,7 +52,7 @@ val unparsableN = "unparsable";
 
 val nun_arrow_exploded = String.explode nun_arrow;
 
-val is_ty_meta = member (=) (String.explode "()->,");
+val is_ty_meta = member (op =) (String.explode "()->,");
 
 fun next_token_lowlevel [] = (End_of_Stream, [])
   | next_token_lowlevel (c :: cs) =

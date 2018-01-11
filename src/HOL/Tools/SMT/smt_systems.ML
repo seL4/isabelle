@@ -37,7 +37,7 @@ fun on_first_line test_outcome solver_name lines =
   in (test_outcome solver_name l, ls) end
 
 fun on_first_non_unsupported_line test_outcome solver_name lines =
-  on_first_line test_outcome solver_name (filter (curry (<>) "unsupported") lines)
+  on_first_line test_outcome solver_name (filter (curry (op <>) "unsupported") lines)
 
 (* CVC3 *)
 

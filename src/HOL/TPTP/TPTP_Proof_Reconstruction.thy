@@ -189,7 +189,7 @@ fun inst_parametermatch_tac ctxt thms i = fn st =>
                    |> FIRST')
         val attempts = map instantiate parameters
       in
-        (fold (curry (APPEND')) attempts (K no_tac)) i st
+        (fold (curry (op APPEND')) attempts (K no_tac)) i st
       end
   end
 
@@ -227,7 +227,7 @@ fun nominal_inst_parametermatch_tac ctxt thm i = fn st =>
       in
         if is_none quantified_var then no_tac st
         else
-          if member (=) parameters (the quantified_var |> fst) then
+          if member (op =) parameters (the quantified_var |> fst) then
             instantiates (the quantified_var |> fst) i st
           else
             K no_tac i st
@@ -664,7 +664,7 @@ fun forall_neg_tac candidate_consts ctxt i = fn st =>
               else
                 space_implode " " l
                 |> pair " "
-                |> (^))
+                |> (op ^))
 
   in
     if null gls orelse null candidate_consts then no_tac st
@@ -675,7 +675,7 @@ fun forall_neg_tac candidate_consts ctxt i = fn st =>
             @{thm leo2_skolemise}
         val attempts = map instantiate candidate_consts
       in
-        (fold (curry (APPEND')) attempts (K no_tac)) i st
+        (fold (curry (op APPEND')) attempts (K no_tac)) i st
       end
   end
 \<close>
@@ -799,7 +799,7 @@ fun find_skolem_term ctxt consts_candidate arity = fn st =>
   in
     map (strip_top_All_vars #> snd) conclusions
     |> maps (get_skolem_terms [] [])
-    |> distinct (=)
+    |> distinct (op =)
   end
 \<close>
 
@@ -827,9 +827,9 @@ fun instantiate_skols ctxt consts_candidates i = fn st =>
             (*the parameters we will concern ourselves with*)
             val params' =
               Term.add_frees lhs []
-              |> distinct (=)
+              |> distinct (op =)
             (*check to make sure that params' <= params*)
-            val _ = @{assert} (forall (member (=) params) params')
+            val _ = @{assert} (forall (member (op =) params) params')
             val skolem_const_ty =
               let
                 val (skolem_const_prety, no_params) =
@@ -871,7 +871,7 @@ doesn't work with polymorphism (for which we'd need to use type unification) -- 
           val (arg_ty, val_ty) = Term.dest_funT cur_ty
           (*now find a param of type arg_ty*)
           val (candidate_param, params') =
-            find_and_remove (snd #> pair arg_ty #> (=)) params
+            find_and_remove (snd #> pair arg_ty #> (op =)) params
         in
           use_candidate target_ty params' (candidate_param :: acc) val_ty
         end
@@ -948,7 +948,7 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
     val tactic =
       if is_none var_opt then no_tac
       else
-        fold (curry (APPEND))
+        fold (curry (op APPEND))
           (map (instantiate_tac (dest_Var (Thm.term_of (the var_opt)))) skolem_cts) no_tac
   in
     tactic st
@@ -1408,7 +1408,7 @@ fun can_feature x l =
         fold_options opt_list
         |> flat
         |> pair sought_sublist
-        |> subset (=)
+        |> subset (op =)
   in
     case x of
         CleanUp l' =>
@@ -1423,7 +1423,7 @@ fun can_feature x l =
       | InnerLoopOnce l' =>
           map sublist_of_inner_loop_once l
           |> check_sublist l'
-      | _ => exists (curry (=) x) l
+      | _ => exists (curry (op =) x) l
   end;
 
 fun loop_can_feature loop_feats l =
@@ -1586,7 +1586,7 @@ fun extcnf_combined_main ctxt feats consts_diff =
     fun extcnf_combined_tac' ctxt i = fn st =>
       let
         val skolem_consts_used_so_far = which_skolem_concs_used ctxt st
-        val consts_diff' = subtract (=) skolem_consts_used_so_far consts_diff
+        val consts_diff' = subtract (op =) skolem_consts_used_so_far consts_diff
 
         fun feat_to_tac feat =
           case feat of
@@ -1692,7 +1692,7 @@ fun clause_consts_diff thm =
       #> uncurry TPTP_Reconstruct.new_consts_between
       #> filter
            (fn Const (n, _) =>
-             not (member (=) interpreted_consts n))
+             not (member (op =) interpreted_consts n))
   in
     if head_of t = Logic.implies then do_diff t
     else []
@@ -1731,8 +1731,8 @@ fun remove_redundant_quantification ctxt i = fn st =>
             val (conc_prefix, conc_body) = sep_prefix conc_clause
           in
             if null hyp_prefix orelse
-              member (=) conc_prefix (hd hyp_prefix) orelse
-              member (=)  (Term.add_frees hyp_body []) (hd hyp_prefix) then
+              member (op =) conc_prefix (hd hyp_prefix) orelse
+              member (op =)  (Term.add_frees hyp_body []) (hd hyp_prefix) then
               no_tac st
             else
               Rule_Insts.eres_inst_tac ctxt [((("x", 0), Position.none), "(@X. False)")] []
@@ -1800,7 +1800,7 @@ fun remove_redundant_quantification_in_lit ctxt i = fn st =>
                        |> apfst rev)
               in
                 if null hyp_lit_prefix orelse
-                  member (=)  (Term.add_frees hyp_lit_body []) (hd hyp_lit_prefix) then
+                  member (op =)  (Term.add_frees hyp_lit_body []) (hd hyp_lit_prefix) then
                   no_tac st
                 else
                   dresolve_tac ctxt @{thms drop_redundant_literal_qtfr} i st
@@ -2042,14 +2042,14 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
        []
 
     val source_inf_opt =
-      AList.lookup (=) (#meta pannot)
+      AList.lookup (op =) (#meta pannot)
       #> the
       #> #source_inf_opt
 
     (*FIXME integrate this with other lookup code, or in the early analysis*)
     local
       fun node_is_of_role role node =
-        AList.lookup (=) (#meta pannot) node |> the
+        AList.lookup (op =) (#meta pannot) node |> the
         |> #role
         |> (fn role' => role = role')
 
@@ -2081,7 +2081,7 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
                              map snd (values ())
                            end
                          else
-                         map (fn node => AList.lookup (=) (values ()) node |> the) x)
+                         map (fn node => AList.lookup (op =) (values ()) node |> the) x)
                 | _ => []
          end
 

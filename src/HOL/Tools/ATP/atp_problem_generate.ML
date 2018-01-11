@@ -1036,7 +1036,7 @@ fun mangled_const_name type_enc =
   #> raw_mangled_const_name generic_mangled_type_name
 
 val parse_mangled_ident =
-  Scan.many1 (not o member (=) ["(", ")", ","]) >> implode
+  Scan.many1 (not o member (op =) ["(", ")", ","]) >> implode
 
 fun parse_mangled_type x =
   (parse_mangled_ident

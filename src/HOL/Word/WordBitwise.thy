@@ -479,7 +479,7 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
       Goal.prove_internal ctxt [] (propfn I)
         (K (simp_tac (put_simpset word_ss ctxt) 1));
   in
-    Goal.prove_internal ctxt [] (propfn (curry ($) f))
+    Goal.prove_internal ctxt [] (propfn (curry (op $) f))
       (K (simp_tac (put_simpset HOL_ss ctxt addsimps [eq1]) 1))
     |> mk_meta_eq |> SOME
   end handle TERM _ => NONE;
@@ -529,7 +529,7 @@ fun tac ctxt =
   let
     val (ss, sss) = expand_word_eq_sss;
   in
-    foldr1 (THEN_ALL_NEW)
+    foldr1 (op THEN_ALL_NEW)
       ((CHANGED o safe_full_simp_tac (put_simpset ss ctxt)) ::
         map (fn ss => safe_full_simp_tac (put_simpset ss ctxt)) sss)
   end;

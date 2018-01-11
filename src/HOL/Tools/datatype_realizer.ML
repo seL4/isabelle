@@ -34,7 +34,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
 
     val rec_result_Ts = map (fn ((i, _), P) =>
-        if member (=) is i then TFree ("'" ^ P, @{sort type}) else HOLogic.unitT)
+        if member (op =) is i then TFree ("'" ^ P, @{sort type}) else HOLogic.unitT)
       (descr ~~ pnames);
 
     fun make_pred i T U r x =

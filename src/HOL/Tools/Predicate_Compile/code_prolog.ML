@@ -603,7 +603,7 @@ fun mk_depth_limited rel_names ((rel_name, ts), prem) =
       | has_positive_recursive_prems _ = false
     fun mk_lim_prem (Conj prems) = Conj (map mk_lim_prem prems)
       | mk_lim_prem (p as Rel (rel, ts)) =
-        if member (=) rel_names rel then Rel (mk_lim_rel_name rel, Var "Lim" :: ts) else p
+        if member (op =) rel_names rel then Rel (mk_lim_rel_name rel, Var "Lim" :: ts) else p
       | mk_lim_prem p = p
   in
     if has_positive_recursive_prems prem then

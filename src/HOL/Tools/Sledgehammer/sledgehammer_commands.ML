@@ -98,7 +98,7 @@ fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) alias_params s orelse
   AList.defined (op =) negated_alias_params s orelse
-  member (=) property_dependent_params s orelse s = "expect"
+  member (op =) property_dependent_params s orelse s = "expect"
 
 fun is_prover_list ctxt s =
   (case space_explode " " s of
