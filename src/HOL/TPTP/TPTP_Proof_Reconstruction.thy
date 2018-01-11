@@ -990,7 +990,7 @@ fun extuni_dec_n ctxt arity =
   let
     val _ = @{assert} (arity > 0)
     val is =
-      upto (1, arity)
+      1 upto arity
       |> map Int.toString
     val arg_tys = map (fn i => TFree ("arg" ^ i ^ "_ty", @{sort type})) is
     val res_ty = TFree ("res" ^ "_ty", @{sort type})
@@ -1263,7 +1263,7 @@ fun mk_standard_cnf ctxt kind arity =
   let
     val _ = @{assert} (arity > 0)
     val vars =
-      upto (1, arity + 1)
+      1 upto (arity + 1)
       |> map (fn i => Free ("x" ^ Int.toString i, HOLogic.boolT))
 
     val consequent = hd vars
