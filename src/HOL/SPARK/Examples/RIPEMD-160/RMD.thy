@@ -9,7 +9,7 @@ imports "HOL-Word.Word"
 begin
 
 
-(* all operations are defined on 32-bit words *)
+\<comment> \<open>all operations are defined on 32-bit words\<close>
 
 type_synonym word32 = "32 word"
 type_synonym byte = "8 word"
@@ -18,7 +18,7 @@ type_synonym chain = "word32 * word32 * word32 * word32 * word32"
 type_synonym block = "nat \<Rightarrow> word32"
 type_synonym message = "nat \<Rightarrow> block"
 
-(* nonlinear functions at bit level *)
+\<comment> \<open>nonlinear functions at bit level\<close>
 
 definition f::"[nat, word32, word32, word32] => word32"
 where
@@ -31,7 +31,7 @@ where
   else 0)"
 
 
-(* added constants (hexadecimal) *)
+\<comment> \<open>added constants (hexadecimal)\<close>
 
 definition K::"nat => word32"
 where
@@ -54,7 +54,7 @@ where
   else 0)"
 
 
-(* selection of message word *)
+\<comment> \<open>selection of message word\<close>
 
 definition r_list :: "nat list"
   where "r_list = [
@@ -81,7 +81,7 @@ definition r' :: perm
   where "r' j = r'_list ! j"
 
 
-(* amount for rotate left (rol) *)
+\<comment> \<open>amount for rotate left (rol)\<close>
 
 definition s_list :: "nat list"
   where "s_list = [
@@ -108,7 +108,7 @@ definition s' :: perm
   where "s' j = s'_list ! j"
 
 
-(* Initial value (hexadecimal *)
+\<comment> \<open>Initial value (hexadecimal)\<close>
 
 definition h0_0::word32 where "h0_0 = 0x67452301"
 definition h1_0::word32 where "h1_0 = 0xEFCDAB89"
@@ -126,11 +126,11 @@ definition step_l ::
   where
   "step_l X c j =
     (let (A, B, C, D, E) = c in
-    ((* A *) E,
-     (* B *) word_rotl (s j) (A + f j B C D + X (r j) + K j) + E,
-     (* C *) B,
-     (* D *) word_rotl 10 C,
-     (* E *) D))"
+    (\<comment> \<open>\<open>A:\<close>\<close> E,
+     \<comment> \<open>\<open>B:\<close>\<close> word_rotl (s j) (A + f j B C D + X (r j) + K j) + E,
+     \<comment> \<open>\<open>C:\<close>\<close> B,
+     \<comment> \<open>\<open>D:\<close>\<close> word_rotl 10 C,
+     \<comment> \<open>\<open>E:\<close>\<close> D))"
 
 definition step_r ::
   "[ block,
@@ -140,11 +140,11 @@ definition step_r ::
 where
   "step_r X c' j =
     (let (A', B', C', D', E') = c' in
-    ((* A' *) E',
-     (* B' *) word_rotl (s' j) (A' + f (79 - j) B' C' D' + X (r' j) + K' j) + E',
-     (* C' *) B',
-     (* D' *) word_rotl 10 C',
-     (* E' *) D'))"
+    (\<comment> \<open>\<open>A':\<close>\<close> E',
+     \<comment> \<open>\<open>B':\<close>\<close> word_rotl (s' j) (A' + f (79 - j) B' C' D' + X (r' j) + K' j) + E',
+     \<comment> \<open>\<open>C':\<close>\<close> B',
+     \<comment> \<open>\<open>D':\<close>\<close> word_rotl 10 C',
+     \<comment> \<open>\<open>E':\<close>\<close> D'))"
 
 definition step_both ::
   "[ block, chain * chain, nat ] \<Rightarrow> chain * chain"
@@ -159,11 +159,11 @@ definition round::"[ block, chain ] \<Rightarrow> chain"
   where "round X h =
     (let (h0, h1, h2, h3, h4) = h in
      let ((A, B, C, D, E), (A', B', C', D', E')) = steps X (h, h) 80 in
-      ((* h0 *) h1 + C + D',
-       (* h1 *) h2 + D + E',
-       (* h2 *) h3 + E + A',
-       (* h3 *) h4 + A + B',
-       (* h4 *) h0 + B + C'))"
+      (\<comment> \<open>\<open>h0:\<close>\<close> h1 + C + D',
+       \<comment> \<open>\<open>h1:\<close>\<close> h2 + D + E',
+       \<comment> \<open>\<open>h2:\<close>\<close> h3 + E + A',
+       \<comment> \<open>\<open>h3:\<close>\<close> h4 + A + B',
+       \<comment> \<open>\<open>h4:\<close>\<close> h0 + B + C'))"
 
 definition rmd_body::"[ message, chain, nat ] => chain"
 where

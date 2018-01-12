@@ -8,7 +8,7 @@ theory RMD_Specification
 imports RMD "HOL-SPARK.SPARK"
 begin
 
-(* bit operations *)
+\<comment> \<open>bit operations\<close>
 
 abbreviation rotate_left :: "int \<Rightarrow> int \<Rightarrow> int" where
   "rotate_left i w == uint (word_rotl (nat i) (word_of_int w::word32))"
@@ -17,7 +17,7 @@ spark_proof_functions
   wordops__rotate_left = rotate_left
 
 
-(* Conversions for proof functions *)
+\<comment> \<open>Conversions for proof functions\<close>
 abbreviation k_l_spec :: " int => int " where
   "k_l_spec j == uint (K (nat j))"
 abbreviation k_r_spec :: " int => int " where

@@ -324,8 +324,8 @@ proof -
   have "0 <= (79::int)" by simp
   note step_from_hyp [OF
     step_hyp
-    H2 H4 H6 H8 H10 H2 H4 H6 H8 H10 (* upper bounds *)
-    H1 H3 H5 H7 H9  H1 H3 H5 H7 H9  (* lower bounds *)
+    H2 H4 H6 H8 H10 H2 H4 H6 H8 H10 \<comment> \<open>upper bounds\<close>
+    H1 H3 H5 H7 H9  H1 H3 H5 H7 H9  \<comment> \<open>lower bounds\<close>
   ]
   from this[OF x_lower x_upper x_lower' x_upper' \<open>0 <= 0\<close> \<open>0 <= 79\<close>]
     \<open>0 \<le> ca\<close> \<open>0 \<le> ce\<close> x_lower x_lower'
