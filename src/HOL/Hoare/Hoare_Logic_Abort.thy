@@ -61,7 +61,7 @@ print_translation
   \<open>[(@{const_syntax Valid}, K (Hoare_Syntax.spec_tr' @{syntax_const "_hoare_abort"}))]\<close>
 
 
-(*** The proof rules ***)
+section \<open>The proof rules\<close>
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
 by (auto simp:Valid_def)
@@ -115,17 +115,18 @@ method_setup vcg_simp = \<open>
     SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
   "verification condition generator plus simplification"
 
-(* Special syntax for guarded statements and guarded array updates: *)
-
+\<comment> \<open>Special syntax for guarded statements and guarded array updates:\<close>
 syntax
   "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
   "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
 translations
   "P \<rightarrow> c" == "IF P THEN c ELSE CONST Abort FI"
   "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"
-  (* reverse translation not possible because of duplicate "a" *)
+  \<comment> \<open>reverse translation not possible because of duplicate \<open>a\<close>\<close>
 
-text\<open>Note: there is no special syntax for guarded array access. Thus
-you must write \<open>j < length a \<rightarrow> a[i] := a!j\<close>.\<close>
+text \<open>
+  Note: there is no special syntax for guarded array access. Thus
+  you must write \<open>j < length a \<rightarrow> a[i] := a!j\<close>.
+\<close>
 
 end

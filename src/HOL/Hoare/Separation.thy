@@ -156,7 +156,7 @@ text\<open>So far we have unfolded the separation logic connectives in
 proofs. Here comes a simple example of a program proof that uses a law
 of separation logic instead.\<close>
 
-(* a law of separation logic *)
+\<comment> \<open>a law of separation logic\<close>
 lemma star_comm: "P ** Q = Q ** P"
   by(auto simp add:star_def ortho_def dest: map_add_comm)
 

@@ -1,15 +1,15 @@
 (*  Title:      HOL/Hoare/Examples.thy
     Author:     Norbert Galm
     Copyright   1998 TUM
-
-Various examples.
 *)
+
+chapter \<open>Various examples\<close>
 
 theory Examples imports Hoare_Logic Arith2 begin
 
-(*** ARITHMETIC ***)
+section \<open>ARITHMETIC\<close>
 
-(** multiplication by successive addition **)
+subsection \<open>multiplication by successive addition\<close>
 
 lemma multiply_by_add: "VARS m s a b
   {a=A & b=B}
@@ -53,7 +53,8 @@ apply vcg_simp
  apply (auto simp add:int_distrib)
 done
 
-(** Euclid's algorithm for GCD **)
+
+subsection \<open>Euclid's algorithm for GCD\<close>
 
 lemma Euclid_GCD: "VARS a b
  {0<A & 0<B}
@@ -63,7 +64,7 @@ lemma Euclid_GCD: "VARS a b
  DO IF a<b THEN b := b-a ELSE a := a-b FI OD
  {a = gcd A B}"
 apply vcg
-(*Now prove the verification conditions*)
+  \<comment> \<open>Now prove the verification conditions\<close>
   apply auto
   apply(simp add: gcd_diff_r less_imp_le)
  apply(simp add: linorder_not_less gcd_diff_l)
@@ -78,19 +79,22 @@ lemma Euclid_GCD_time: "VARS a b t
  DO IF a<b THEN b := b-a; t := t+1 ELSE a := a-b; t := t+1 FI OD
  {a = gcd A B & t \<le> max A B + 2}"
 apply vcg
-(*Now prove the verification conditions*)
+  \<comment> \<open>Now prove the verification conditions\<close>
   apply auto
   apply(simp add: gcd_diff_r less_imp_le)
  apply(simp add: linorder_not_less gcd_diff_l)
 apply(erule gcd_nnn)
 done
 
-(** Dijkstra's extension of Euclid's algorithm for simultaneous GCD and SCM **)
-(* From E.W. Disjkstra. Selected Writings on Computing, p 98 (EWD474),
-   where it is given without the invariant. Instead of defining scm
-   explicitly we have used the theorem scm x y = x*y/gcd x y and avoided
-   division by mupltiplying with gcd x y.
-*)
+
+subsection \<open>Dijkstra's extension of Euclid's algorithm for simultaneous GCD and SCM\<close>
+
+text \<open>
+  From E.W. Disjkstra. Selected Writings on Computing, p 98 (EWD474),
+  where it is given without the invariant. Instead of defining \<open>scm\<close>
+  explicitly we have used the theorem \<open>scm x y = x * y / gcd x y\<close> and avoided
+  division by mupltiplying with \<open>gcd x y\<close>.
+\<close>
 
 lemmas distribs =
   diff_mult_distrib diff_mult_distrib2 add_mult_distrib add_mult_distrib2
@@ -107,7 +111,8 @@ apply vcg
 apply(simp add: distribs gcd_nnn)
 done
 
-(** Power by iterated squaring and multiplication **)
+
+subsection \<open>Power by iterated squaring and multiplication\<close>
 
 lemma power_by_mult: "VARS a b c
  {a=A & b=B}
@@ -126,7 +131,8 @@ apply(case_tac "b")
 apply simp
 done
 
-(** Factorial **)
+
+subsection \<open>Factorial\<close>
 
 lemma factorial: "VARS a b
  {a=A}
@@ -178,9 +184,10 @@ apply(subgoal_tac "i = Suc n")
 apply arith
 done
 
-(** Square root **)
 
-(* the easy way: *)
+subsection \<open>Square root\<close>
+
+\<comment> \<open>the easy way:\<close>
 
 lemma sqrt: "VARS r x
  {True}
@@ -202,8 +209,7 @@ lemma sqrt_time: "VARS r t
 apply vcg_simp
 done
 
-(* without multiplication *)
-
+\<comment> \<open>without multiplication\<close>
 lemma sqrt_without_multiplication: "VARS u w r
  {x=X}
  u := 1; w := 1; r := (0::nat);
@@ -215,7 +221,7 @@ apply vcg_simp
 done
 
 
-(*** LISTS ***)
+section \<open>LISTS\<close>
 
 lemma imperative_reverse: "VARS y x
  {x=X}
@@ -270,9 +276,10 @@ apply auto
 done
 
 
-(*** ARRAYS ***)
+section \<open>ARRAYS\<close>
 
-(* Search for a key *)
+subsection \<open>Search for a key\<close>
+
 lemma zero_search: "VARS A i
  {True}
  i := 0;
@@ -297,15 +304,15 @@ apply vcg_simp
 apply(blast elim!: less_SucE)
 done
 
-(* 
-The `partition' procedure for quicksort.
-`A' is the array to be sorted (modelled as a list).
-Elements of A must be of class order to infer at the end
-that the elements between u and l are equal to pivot.
+text \<open>
+  The \<open>partition\<close> procedure for quicksort.
+    \<^item> \<open>A\<close> is the array to be sorted (modelled as a list).
+    \<^item> Elements of \<open>A\<close> must be of class order to infer at the end
+      that the elements between u and l are equal to pivot.
 
-Ambiguity warnings of parser are due to := being used
-both for assignment and list update.
-*)
+  Ambiguity warnings of parser are due to \<open>:=\<close> being used
+  both for assignment and list update.
+\<close>
 lemma lem: "m - Suc 0 < n ==> m < Suc n"
 by arith
 
@@ -327,7 +334,7 @@ lemma Partition:
      IF l <= u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI
   OD
  {leq A u & (!k. u<k & k<l --> A!k = pivot) & geq A l}"
-(* expand and delete abbreviations first *)
+\<comment> \<open>expand and delete abbreviations first\<close>
 apply (simp)
 apply (erule thin_rl)+
 apply vcg_simp

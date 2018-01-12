@@ -203,20 +203,20 @@ theorem SchorrWaiteAlgorithm:
  t := root; p := Null;
  WHILE p \<noteq> Null \<or> t \<noteq> Null \<and> \<not> t^.m
  INV {\<exists>stack.
-          List (S c l r) p stack \<and>                                         (*i1*)
-          (\<forall>x \<in> set stack. m x) \<and>                                        (*i2*)
-          R = reachable (relS{l, r}) {t,p} \<and>                           (*i3*)
-          (\<forall>x. x \<in> R \<and> \<not>m x \<longrightarrow>                                        (*i4*)
+          List (S c l r) p stack \<and>                                      \<comment> \<open>\<open>i1\<close>\<close>
+          (\<forall>x \<in> set stack. m x) \<and>                                       \<comment> \<open>\<open>i2\<close>\<close>
+          R = reachable (relS{l, r}) {t,p} \<and>                            \<comment> \<open>\<open>i3\<close>\<close>
+          (\<forall>x. x \<in> R \<and> \<not>m x \<longrightarrow>                                         \<comment> \<open>\<open>i4\<close>\<close>
                  x \<in> reachable (relS{l,r}|m) ({t}\<union>set(map r stack))) \<and>
-          (\<forall>x. m x \<longrightarrow> x \<in> R) \<and>                                         (*i5*)
-          (\<forall>x. x \<notin> set stack \<longrightarrow> r x = iR x \<and> l x = iL x) \<and>       (*i6*)
-          (stkOk c l r iL iR t stack)                                    (*i7*) }
+          (\<forall>x. m x \<longrightarrow> x \<in> R) \<and>                                         \<comment> \<open>\<open>i5\<close>\<close>
+          (\<forall>x. x \<notin> set stack \<longrightarrow> r x = iR x \<and> l x = iL x) \<and>             \<comment> \<open>\<open>i6\<close>\<close>
+          (stkOk c l r iL iR t stack)                                   \<comment> \<open>\<open>i7\<close>\<close>}
  DO IF t = Null \<or> t^.m
       THEN IF p^.c
-               THEN q := t; t := p; p := p^.r; t^.r := q               (*pop*)
-               ELSE q := t; t := p^.r; p^.r := p^.l;                      (*swing*)
+               THEN q := t; t := p; p := p^.r; t^.r := q                \<comment> \<open>\<open>pop\<close>\<close>
+               ELSE q := t; t := p^.r; p^.r := p^.l;                    \<comment> \<open>\<open>swing\<close>\<close>
                         p^.l := q; p^.c := True          FI    
-      ELSE q := p; p := t; t := t^.l; p^.l := q;                         (*push*)
+      ELSE q := p; p := t; t := t^.l; p^.l := q;                        \<comment> \<open>\<open>push\<close>\<close>
                p^.m := True; p^.c := False            FI       OD
  {(\<forall>x. (x \<in> R) = m x) \<and> (r = iR \<and> l = iL) }"
   (is "VARS c m l r t p q root {?Pre c m l r root} (?c1; ?c2; ?c3) {?Post c m l r}")
