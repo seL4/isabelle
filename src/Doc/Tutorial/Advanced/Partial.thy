@@ -1,6 +1,6 @@
 (*<*)theory Partial imports While_Combinator begin(*>*)
 
-text{*\noindent Throughout this tutorial, we have emphasized
+text\<open>\noindent Throughout this tutorial, we have emphasized
 that all functions in HOL are total.  We cannot hope to define
 truly partial functions, but must make them total.  A straightforward
 method is to lift the result type of the function from $\tau$ to
@@ -23,29 +23,29 @@ alternative.
 We have already seen an instance of underdefinedness by means of
 non-exhaustive pattern matching: the definition of @{term last} in
 \S\ref{sec:fun}. The same is allowed for \isacommand{primrec}
-*}
+\<close>
 
 consts hd :: "'a list \<Rightarrow> 'a"
 primrec "hd (x#xs) = x"
 
-text{*\noindent
+text\<open>\noindent
 although it generates a warning.
 Even ordinary definitions allow underdefinedness, this time by means of
 preconditions:
-*}
+\<close>
 
 definition subtract :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "n \<le> m \<Longrightarrow> subtract m n \<equiv> m - n"
 
-text{*
+text\<open>
 The rest of this section is devoted to the question of how to define
 partial recursive functions by other means than non-exhaustive pattern
 matching.
-*}
+\<close>
 
-subsubsection{*Guarded Recursion*}
+subsubsection\<open>Guarded Recursion\<close>
 
-text{* 
+text\<open>
 \index{recursion!guarded}%
 Neither \isacommand{primrec} nor \isacommand{recdef} allow to
 prefix an equation with a condition in the way ordinary definitions do
@@ -59,14 +59,14 @@ which has no definition. Thus we know nothing about its value,
 which is ideal for specifying underdefined functions on top of it.
 
 As a simple example we define division on @{typ nat}:
-*}
+\<close>
 
 consts divi :: "nat \<times> nat \<Rightarrow> nat"
 recdef divi "measure(\<lambda>(m,n). m)"
   "divi(m,0) = arbitrary"
   "divi(m,n) = (if m < n then 0 else divi(m-n,n)+1)"
 
-text{*\noindent Of course we could also have defined
+text\<open>\noindent Of course we could also have defined
 @{term"divi(m,0)"} to be some specific number, for example 0. The
 latter option is chosen for the predefined @{text div} function, which
 simplifies proofs at the expense of deviating from the
@@ -83,14 +83,14 @@ This may be viewed as a fixed point finder or as the second half of the well
 known \emph{Union-Find} algorithm.
 The snag is that it may not terminate if @{term f} has non-trivial cycles.
 Phrased differently, the relation
-*}
+\<close>
 
 definition step1 :: "('a \<Rightarrow> 'a) \<Rightarrow> ('a \<times> 'a)set" where
   "step1 f \<equiv> {(y,x). y = f x \<and> y \<noteq> x}"
 
-text{*\noindent
+text\<open>\noindent
 must be well-founded. Thus we make the following definition:
-*}
+\<close>
 
 consts find :: "('a \<Rightarrow> 'a) \<times> 'a \<Rightarrow> 'a"
 recdef find "same_fst (\<lambda>f. wf(step1 f)) step1"
@@ -99,7 +99,7 @@ recdef find "same_fst (\<lambda>f. wf(step1 f)) step1"
                 else arbitrary)"
 (hints recdef_simp: step1_def)
 
-text{*\noindent
+text\<open>\noindent
 The recursion equation itself should be clear enough: it is our aborted
 first attempt augmented with a check that there are no non-trivial loops.
 To express the required well-founded relation we employ the
@@ -122,29 +122,29 @@ as specified in the \isacommand{hints} above.
 
 Normally you will then derive the following conditional variant from
 the recursion equation:
-*}
+\<close>
 
 lemma [simp]:
   "wf(step1 f) \<Longrightarrow> find(f,x) = (if f x = x then x else find(f, f x))"
 by simp
 
-text{*\noindent Then you should disable the original recursion equation:*}
+text\<open>\noindent Then you should disable the original recursion equation:\<close>
 
 declare find.simps[simp del]
 
-text{*
+text\<open>
 Reasoning about such underdefined functions is like that for other
 recursive functions.  Here is a simple example of recursion induction:
-*}
+\<close>
 
 lemma "wf(step1 f) \<longrightarrow> f(find(f,x)) = find(f,x)"
 apply(induct_tac f x rule: find.induct)
 apply simp
 done
 
-subsubsection{*The {\tt\slshape while} Combinator*}
+subsubsection\<open>The {\tt\slshape while} Combinator\<close>
 
-text{*If the recursive function happens to be tail recursive, its
+text\<open>If the recursive function happens to be tail recursive, its
 definition becomes a triviality if based on the predefined \cdx{while}
 combinator.  The latter lives in the Library theory \thydx{While_Combinator}.
 % which is not part of {text Main} but needs to
@@ -158,13 +158,13 @@ That is, @{term"while b c s"} is equivalent to the imperative program
 \end{verbatim}
 In general, @{term s} will be a tuple or record.  As an example
 consider the following definition of function @{const find}:
-*}
+\<close>
 
 definition find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
   "find2 f x \<equiv>
    fst(while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,f x))"
 
-text{*\noindent
+text\<open>\noindent
 The loop operates on two ``local variables'' @{term x} and @{term x'}
 containing the ``current'' and the ``next'' value of function @{term f}.
 They are initialized with the global @{term x} and @{term"f x"}. At the
@@ -185,7 +185,7 @@ Let us now prove that @{const find2} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.
 Only the final premise of @{thm[source]while_rule} is left unproved
 by @{text auto} but falls to @{text simp}:
-*}
+\<close>
 
 lemma lem: "wf(step1 f) \<Longrightarrow>
   \<exists>y. while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,f x) = (y,y) \<and>
@@ -196,16 +196,16 @@ apply auto
 apply(simp add: inv_image_def step1_def)
 done
 
-text{*
+text\<open>
 The theorem itself is a simple consequence of this lemma:
-*}
+\<close>
 
 theorem "wf(step1 f) \<Longrightarrow> f(find2 f x) = find2 f x"
 apply(drule_tac x = x in lem)
 apply(auto simp add: find2_def)
 done
 
-text{* Let us conclude this section on partial functions by a
+text\<open>Let us conclude this section on partial functions by a
 discussion of the merits of the @{term while} combinator. We have
 already seen that the advantage of not having to
 provide a termination argument when defining a function via @{term
@@ -219,6 +219,6 @@ function body.  Unless @{term dom} is trivial, this leads to a
 definition that is impossible to execute or prohibitively slow.
 Thus, if you are aiming for an efficiently executable definition
 of a partial function, you are likely to need @{term while}.
-*}
+\<close>
 
 (*<*)end(*>*)

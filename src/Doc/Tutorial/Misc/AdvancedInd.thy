@@ -2,29 +2,29 @@
 theory AdvancedInd imports Main begin
 (*>*)
 
-text{*\noindent
+text\<open>\noindent
 Now that we have learned about rules and logic, we take another look at the
 finer points of induction.  We consider two questions: what to do if the
 proposition to be proved is not directly amenable to induction
 (\S\ref{sec:ind-var-in-prems}), and how to utilize (\S\ref{sec:complete-ind})
 and even derive (\S\ref{sec:derive-ind}) new induction schemas. We conclude
 with an extended example of induction (\S\ref{sec:CTL-revisited}).
-*}
+\<close>
 
-subsection{*Massaging the Proposition*}
+subsection\<open>Massaging the Proposition\<close>
 
-text{*\label{sec:ind-var-in-prems}
+text\<open>\label{sec:ind-var-in-prems}
 Often we have assumed that the theorem to be proved is already in a form
 that is amenable to induction, but sometimes it isn't.
 Here is an example.
 Since @{term"hd"} and @{term"last"} return the first and last element of a
 non-empty list, this lemma looks easy to prove:
-*}
+\<close>
 
 lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
 apply(induct_tac xs)
 
-txt{*\noindent
+txt\<open>\noindent
 But induction produces the warning
 \begin{quote}\tt
 Induction variable occurs also among premises!
@@ -51,14 +51,14 @@ Thus we should state the lemma as an ordinary
 implication~(@{text"\<longrightarrow>"}), letting
 \attrdx{rule_format} (\S\ref{sec:forward}) convert the
 result to the usual @{text"\<Longrightarrow>"} form:
-*}
+\<close>
 (*<*)oops(*>*)
 lemma hd_rev [rule_format]: "xs \<noteq> [] \<longrightarrow> hd(rev xs) = last xs"
 (*<*)
 apply(induct_tac xs)
 (*>*)
 
-txt{*\noindent
+txt\<open>\noindent
 This time, induction leaves us with a trivial base case:
 @{subgoals[display,indent=0,goals_limit=1]}
 And @{text"auto"} completes the proof.
@@ -109,12 +109,12 @@ $C$ on the free variables of $t$ has been made explicit.
 Unfortunately, this induction schema cannot be expressed as a
 single theorem because it depends on the number of free variables in $t$ ---
 the notation $\overline{y}$ is merely an informal device.
-*}
+\<close>
 (*<*)by auto(*>*)
 
-subsection{*Beyond Structural and Recursion Induction*}
+subsection\<open>Beyond Structural and Recursion Induction\<close>
 
-text{*\label{sec:complete-ind}
+text\<open>\label{sec:complete-ind}
 So far, inductive proofs were by structural induction for
 primitive recursive functions and recursion induction for total recursive
 functions. But sometimes structural induction is awkward and there is no
@@ -130,12 +130,12 @@ holds for all $m<n$. In Isabelle, this is the theorem \tdx{nat_less_induct}:
 @{thm[display]"nat_less_induct"[no_vars]}
 As an application, we prove a property of the following
 function:
-*}
+\<close>
 
 axiomatization f :: "nat \<Rightarrow> nat"
   where f_ax: "f(f(n)) < f(Suc(n))" for n :: nat
 
-text{*
+text\<open>
 \begin{warn}
 We discourage the use of axioms because of the danger of
 inconsistencies.  Axiom @{text f_ax} does
@@ -148,35 +148,35 @@ development, you should replace axioms by theorems.
 The axiom for @{term"f"} implies @{prop"n <= f n"}, which can
 be proved by induction on \mbox{@{term"f n"}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:
-*}
+\<close>
 
 lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i"
 
-txt{*\noindent
+txt\<open>\noindent
 To perform induction on @{term k} using @{thm[source]nat_less_induct}, we use
 the same general induction method as for recursion induction (see
 \S\ref{sec:fun-induction}):
-*}
+\<close>
 
 apply(induct_tac k rule: nat_less_induct)
 
-txt{*\noindent
+txt\<open>\noindent
 We get the following proof state:
 @{subgoals[display,indent=0,margin=65]}
 After stripping the @{text"\<forall>i"}, the proof continues with a case
 distinction on @{term"i"}. The case @{prop"i = (0::nat)"} is trivial and we focus on
 the other case:
-*}
+\<close>
 
 apply(rule allI)
 apply(case_tac i)
  apply(simp)
-txt{*
+txt\<open>
 @{subgoals[display,indent=0]}
-*}
+\<close>
 by(blast intro!: f_ax Suc_leI intro: le_less_trans)
 
-text{*\noindent
+text\<open>\noindent
 If you find the last step puzzling, here are the two lemmas it employs:
 \begin{isabelle}
 @{thm Suc_leI[no_vars]}
@@ -203,19 +203,19 @@ translate the internal proof into a human-readable format.  Automatic
 proofs are easy to write but hard to read and understand.
 
 The desired result, @{prop"i <= f i"}, follows from @{thm[source]f_incr_lem}:
-*}
+\<close>
 
 lemmas f_incr = f_incr_lem[rule_format, OF refl]
 
-text{*\noindent
+text\<open>\noindent
 The final @{thm[source]refl} gets rid of the premise @{text"?k = f ?i"}. 
 We could have included this derivation in the original statement of the lemma:
-*}
+\<close>
 
 lemma f_incr[rule_format, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<le> f i"
 (*<*)oops(*>*)
 
-text{*
+text\<open>
 \begin{exercise}
 From the axiom and lemma for @{term"f"}, show that @{term"f"} is the
 identity function.
@@ -235,32 +235,32 @@ induction on the length of a list\indexbold{*length_induct}
 which is a special case of @{thm[source]measure_induct}
 @{thm[display]measure_induct[no_vars]}
 where @{term f} may be any function into type @{typ nat}.
-*}
+\<close>
 
-subsection{*Derivation of New Induction Schemas*}
+subsection\<open>Derivation of New Induction Schemas\<close>
 
-text{*\label{sec:derive-ind}
+text\<open>\label{sec:derive-ind}
 \index{induction!deriving new schemas}%
 Induction schemas are ordinary theorems and you can derive new ones
 whenever you wish.  This section shows you how, using the example
 of @{thm[source]nat_less_induct}. Assume we only have structural induction
 available for @{typ"nat"} and want to derive complete induction.  We
 must generalize the statement as shown:
-*}
+\<close>
 
 lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> \<forall>m<n. P m"
 apply(induct_tac n)
 
-txt{*\noindent
+txt\<open>\noindent
 The base case is vacuously true. For the induction step (@{prop"m <
 Suc n"}) we distinguish two cases: case @{prop"m < n"} is true by induction
 hypothesis and case @{prop"m = n"} follows from the assumption, again using
 the induction hypothesis:
-*}
+\<close>
  apply(blast)
 by(blast elim: less_SucE)
 
-text{*\noindent
+text\<open>\noindent
 The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 @{thm[display]"less_SucE"[no_vars]}
 
@@ -270,16 +270,16 @@ lemma: instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"}
 and remove the trivial condition @{prop"n < Suc n"}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
-*}
+\<close>
 
 theorem nat_less_induct: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Longrightarrow> P n"
 by(insert induct_lem, blast)
 
-text{*
+text\<open>
 HOL already provides the mother of
 all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
 example theorem @{thm[source]nat_less_induct} is
 a special case of @{thm[source]wf_induct} where @{term r} is @{text"<"} on
 @{typ nat}. The details can be found in theory \isa{Wellfounded_Recursion}.
-*}
+\<close>
 (*<*)end(*>*)

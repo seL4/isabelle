@@ -23,7 +23,7 @@ fun delete :: "'a::linorder \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b)
    GT \<Rightarrow> balL l (a,b) (delete x r))"
 
 
-subsection {* Functional Correctness Proofs *}
+subsection \<open>Functional Correctness Proofs\<close>
 
 theorem inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"

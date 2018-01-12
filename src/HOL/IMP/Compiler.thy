@@ -7,32 +7,32 @@ begin
 
 subsection "List setup"
 
-text {* 
+text \<open>
   In the following, we use the length of lists as integers 
   instead of natural numbers. Instead of converting @{typ nat}
   to @{typ int} explicitly, we tell Isabelle to coerce @{typ nat}
   automatically when necessary.
-*}
+\<close>
 declare [[coercion_enabled]] 
 declare [[coercion "int :: nat \<Rightarrow> int"]]
 
-text {* 
+text \<open>
   Similarly, we will want to access the ith element of a list, 
   where @{term i} is an @{typ int}.
-*}
+\<close>
 fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl "!!" 100) where
 "(x # xs) !! i = (if i = 0 then x else xs !! (i - 1))"
 
-text {*
+text \<open>
   The only additional lemma we need about this function 
   is indexing over append:
-*}
+\<close>
 lemma inth_append [simp]:
   "0 \<le> i \<Longrightarrow>
   (xs @ ys) !! i = (if i < size xs then xs !! i else ys !! (i - size xs))"
 by (induction xs arbitrary: i) (auto simp: algebra_simps)
 
-text{* We hide coercion @{const int} applied to @{const length}: *}
+text\<open>We hide coercion @{const int} applied to @{const length}:\<close>
 
 abbreviation (output)
   "isize xs == int (length xs)"
@@ -42,11 +42,11 @@ notation isize ("size")
 
 subsection "Instructions and Stack Machine"
 
-text_raw{*\snip{instrdef}{0}{1}{% *}
+text_raw\<open>\snip{instrdef}{0}{1}{%\<close>
 datatype instr = 
   LOADI int | LOAD vname | ADD | STORE vname |
   JMP int | JMPLESS int | JMPGE int
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
 type_synonym stack = "val list"
 type_synonym config = "int \<times> state \<times> stack"
@@ -91,11 +91,11 @@ values
     (0, <''x'' := 3, ''y'' := 4>, []) \<rightarrow>* (i,t,stk)}"
 
 
-subsection{* Verification infrastructure *}
+subsection\<open>Verification infrastructure\<close>
 
-text{* Below we need to argue about the execution of code that is embedded in
+text\<open>Below we need to argue about the execution of code that is embedded in
 larger programs. For this purpose we show that execution is preserved by
-appending code to the left or right of a program. *}
+appending code to the left or right of a program.\<close>
 
 lemma iexec_shift [simp]: 
   "((n+i',s',stk') = iexec x (n+i,s,stk)) = ((i',s',stk') = iexec x (i,s,stk))"
@@ -122,13 +122,13 @@ lemma exec_appendL:
   P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow>* (size(P')+i',s',stk')"
   by (induction rule: exec_induct) (blast intro: star.step exec1_appendL)+
 
-text{* Now we specialise the above lemmas to enable automatic proofs of
+text\<open>Now we specialise the above lemmas to enable automatic proofs of
 @{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
 pieces of code that we already know how they execute (by induction), combined
 by @{text "@"} and @{text "#"}. Backward jumps are not supported.
 The details should be skipped on a first reading.
 
-If we have just executed the first instruction of the program, drop it: *}
+If we have just executed the first instruction of the program, drop it:\<close>
 
 lemma exec_Cons_1 [intro]:
   "P \<turnstile> (0,s,stk) \<rightarrow>* (j,t,stk') \<Longrightarrow>
@@ -144,8 +144,8 @@ lemma exec_appendL_if[intro]:
    \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')"
 by (drule exec_appendL[where P'=P']) simp
 
-text{* Split the execution of a compound program up into the execution of its
-parts: *}
+text\<open>Split the execution of a compound program up into the execution of its
+parts:\<close>
 
 lemma exec_append_trans[intro]:
   fixes i' i'' j'' :: int
@@ -246,7 +246,7 @@ next
   let ?cb = "bcomp b False (size ?cc + 1)"
   let ?cw = "ccomp(WHILE b DO c)"
   have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (size ?cb,s1,stk)"
-    using `bval b s1` by fastforce
+    using \<open>bval b s1\<close> by fastforce
   moreover
   have "?cw \<turnstile> (size ?cb,s1,stk) \<rightarrow>* (size ?cb + size ?cc,s2,stk)"
     using WhileTrue.IH(1) by fastforce

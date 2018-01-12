@@ -4,15 +4,15 @@ begin
 
 subsection "Finite number of reachable commands"
 
-text{* This theory shows that in the small-step semantics one can only reach
+text\<open>This theory shows that in the small-step semantics one can only reach
 a finite number of commands from any given command. Hence one can see the
 command component of a small-step configuration as a combination of the
-program to be executed and a pc. *}
+program to be executed and a pc.\<close>
 
 definition reachable :: "com \<Rightarrow> com set" where
 "reachable c = {c'. \<exists>s t. (c,s) \<rightarrow>* (c',t)}"
 
-text{* Proofs need induction on the length of a small-step reduction sequence. *}
+text\<open>Proofs need induction on the length of a small-step reduction sequence.\<close>
 
 fun small_stepsn :: "com * state \<Rightarrow> nat \<Rightarrow> com * state \<Rightarrow> bool"
     ("_ \<rightarrow>'(_') _" [55,0,55] 55) where
@@ -132,8 +132,8 @@ proof(induction n arbitrary: s rule: less_induct)
           assume "\<exists>s2 m1 m2. (c, s) \<rightarrow>(m1) (SKIP, s2) \<and>
             (WHILE b DO c, s2) \<rightarrow>(m2) (c2, t) \<and> m1 + m2 < n3" (is "\<exists>x y z. ?P x y z")
           then obtain s2 m1 m2 where "?P s2 m1 m2" by blast
-          with `n2 = Suc n3` `n1 = Suc n2`have "m2 < n1" by arith
-          from less.IH[OF this] `?P s2 m1 m2` show ?thesis by blast
+          with \<open>n2 = Suc n3\<close> \<open>n1 = Suc n2\<close>have "m2 < n1" by arith
+          from less.IH[OF this] \<open>?P s2 m1 m2\<close> show ?thesis by blast
         qed
       next
         assume "(iw', s') = (SKIP, s)"

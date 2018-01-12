@@ -8,18 +8,18 @@ begin
 
 subsubsection "Hoare Logic for Total Correctness --- Separate Termination Relation"
 
-text{* Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
-works if execution is deterministic (which it is in our case). *}
+text\<open>Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
+works if execution is deterministic (which it is in our case).\<close>
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
   ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
 "\<Turnstile>\<^sub>t {P}c{Q}  \<longleftrightarrow>  (\<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t))"
 
-text{* Provability of Hoare triples in the proof system for total
+text\<open>Provability of Hoare triples in the proof system for total
 correctness is written @{text"\<turnstile>\<^sub>t {P}c{Q}"} and defined
 inductively. The rules for @{text"\<turnstile>\<^sub>t"} differ from those for
 @{text"\<turnstile>"} only in the one place where nontermination can arise: the
-@{term While}-rule. *}
+@{term While}-rule.\<close>
 
 inductive
   hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})" 50)
@@ -42,17 +42,17 @@ While:
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>s. Q s \<longrightarrow> Q' s  \<rbrakk> \<Longrightarrow>
            \<turnstile>\<^sub>t {P'}c{Q'}"
 
-text{* The @{term While}-rule is like the one for partial correctness but it
+text\<open>The @{term While}-rule is like the one for partial correctness but it
 requires additionally that with every execution of the loop body some measure
 relation @{term[source]"T :: state \<Rightarrow> nat \<Rightarrow> bool"} decreases.
-The following functional version is more intuitive: *}
+The following functional version is more intuitive:\<close>
 
 lemma While_fun:
   "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> n = f s} c {\<lambda>s. P s \<and> f s < n}\<rbrakk>
    \<Longrightarrow> \<turnstile>\<^sub>t {P} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}"
   by (rule While [where T="\<lambda>s n. n = f s", simplified])
 
-text{* Building in the consequence rule: *}
+text\<open>Building in the consequence rule:\<close>
 
 lemma strengthen_pre:
   "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s;  \<turnstile>\<^sub>t {P} c {Q} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P'} c {Q}"
@@ -72,7 +72,7 @@ shows "\<turnstile>\<^sub>t {P} WHILE b DO c {Q}"
 by(blast intro: assms(1) weaken_post[OF While_fun assms(2)])
 
 
-text{* Our standard example: *}
+text\<open>Our standard example:\<close>
 
 lemma "\<turnstile>\<^sub>t {\<lambda>s. s ''x'' = i} ''y'' ::= N 0;; wsum {\<lambda>s. s ''y'' = sum i}"
 apply(rule Seq)
@@ -90,7 +90,7 @@ apply simp
 done
 
 
-text{* The soundness theorem: *}
+text\<open>The soundness theorem:\<close>
 
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
 proof(unfold hoare_tvalid_def, induction rule: hoaret.induct)
@@ -105,10 +105,10 @@ next
 qed fastforce+
 
 
-text{*
+text\<open>
 The completeness proof proceeds along the same lines as the one for partial
 correctness. First we have to strengthen our notion of weakest precondition
-to take termination into account: *}
+to take termination into account:\<close>
 
 definition wpt :: "com \<Rightarrow> assn \<Rightarrow> assn" ("wp\<^sub>t") where
 "wp\<^sub>t c Q  =  (\<lambda>s. \<exists>t. (c,s) \<Rightarrow> t \<and> Q t)"
@@ -133,15 +133,15 @@ apply auto
 done
 
 
-text{* Now we define the number of iterations @{term "WHILE b DO c"} needs to
+text\<open>Now we define the number of iterations @{term "WHILE b DO c"} needs to
 terminate when started in state @{text s}. Because this is a truly partial
-function, we define it as an (inductive) relation first: *}
+function, we define it as an (inductive) relation first:\<close>
 
 inductive Its :: "bexp \<Rightarrow> com \<Rightarrow> state \<Rightarrow> nat \<Rightarrow> bool" where
 Its_0: "\<not> bval b s \<Longrightarrow> Its b c s 0" |
 Its_Suc: "\<lbrakk> bval b s;  (c,s) \<Rightarrow> s';  Its b c s' n \<rbrakk> \<Longrightarrow> Its b c s (Suc n)"
 
-text{* The relation is in fact a function: *}
+text\<open>The relation is in fact a function:\<close>
 
 lemma Its_fun: "Its b c s n \<Longrightarrow> Its b c s n' \<Longrightarrow> n=n'"
 proof(induction arbitrary: n' rule:Its.induct)
@@ -150,7 +150,7 @@ next
   case Its_Suc thus ?case by(metis Its.cases big_step_determ)
 qed
 
-text{* For all terminating loops, @{const Its} yields a result: *}
+text\<open>For all terminating loops, @{const Its} yields a result:\<close>
 
 lemma WHILE_Its: "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> \<exists>n. Its b c s n"
 proof(induction "WHILE b DO c" s t rule: big_step_induct)
@@ -179,13 +179,13 @@ next
   proof -
     have "wp\<^sub>t c (?R n) s" if "bval b s" and "?T s n" and "(?w, s) \<Rightarrow> t" and "Q t" for s t
     proof -
-      from `bval b s` and `(?w, s) \<Rightarrow> t` obtain s' where
+      from \<open>bval b s\<close> and \<open>(?w, s) \<Rightarrow> t\<close> obtain s' where
         "(c,s) \<Rightarrow> s'" "(?w,s') \<Rightarrow> t" by auto
-      from `(?w, s') \<Rightarrow> t` obtain n' where "?T s' n'"
+      from \<open>(?w, s') \<Rightarrow> t\<close> obtain n' where "?T s' n'"
         by (blast dest: WHILE_Its)
-      with `bval b s` and `(c, s) \<Rightarrow> s'` have "?T s (Suc n')" by (rule Its_Suc)
-      with `?T s n` have "n = Suc n'" by (rule Its_fun)
-      with `(c,s) \<Rightarrow> s'` and `(?w,s') \<Rightarrow> t` and `Q t` and `?T s' n'`
+      with \<open>bval b s\<close> and \<open>(c, s) \<Rightarrow> s'\<close> have "?T s (Suc n')" by (rule Its_Suc)
+      with \<open>?T s n\<close> have "n = Suc n'" by (rule Its_fun)
+      with \<open>(c,s) \<Rightarrow> s'\<close> and \<open>(?w,s') \<Rightarrow> t\<close> and \<open>Q t\<close> and \<open>?T s' n'\<close>
       show ?thesis by (auto simp: wpt_def)
     qed
     thus ?thesis
@@ -199,11 +199,11 @@ next
 qed
 
 
-text{*\noindent In the @{term While}-case, @{const Its} provides the obvious
+text\<open>\noindent In the @{term While}-case, @{const Its} provides the obvious
 termination argument.
 
 The actual completeness theorem follows directly, in the same manner
-as for partial correctness: *}
+as for partial correctness:\<close>
 
 theorem hoaret_complete: "\<Turnstile>\<^sub>t {P}c{Q} \<Longrightarrow> \<turnstile>\<^sub>t {P}c{Q}"
 apply(rule strengthen_pre[OF _ wpt_is_pre])

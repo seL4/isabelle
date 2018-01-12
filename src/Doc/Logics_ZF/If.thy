@@ -12,35 +12,35 @@ definition "if" :: "[o,o,o]=>o" where
 
 lemma ifI:
     "[| P ==> Q; ~P ==> R |] ==> if(P,Q,R)"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (simp add: if_def)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply blast
 done
 
 lemma ifE:
    "[| if(P,Q,R);  [| P; Q |] ==> S; [| ~P; R |] ==> S |] ==> S"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (simp add: if_def)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply blast
 done
 
 lemma if_commute: "if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule iffI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule ifE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule ifE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule ifI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule ifI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
-text{*Trying again from the beginning in order to use @{text blast}*}
+text\<open>Trying again from the beginning in order to use @{text blast}\<close>
 declare ifI [intro!]
 declare ifE [elim!]
 
@@ -49,34 +49,34 @@ by blast
 
 
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by blast
 
-text{*Trying again from the beginning in order to prove from the definitions*}
+text\<open>Trying again from the beginning in order to prove from the definitions\<close>
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (simp add: if_def)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply blast
 done
 
 
-text{*An invalid formula.  High-level rules permit a simpler diagnosis*}
+text\<open>An invalid formula.  High-level rules permit a simpler diagnosis\<close>
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply auto
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 (*The next step will fail unless subgoals remain*)
 apply (tactic all_tac)
 oops
 
-text{*Trying again from the beginning in order to prove from the definitions*}
+text\<open>Trying again from the beginning in order to prove from the definitions\<close>
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (simp add: if_def)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (auto) 
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 (*The next step will fail unless subgoals remain*)
 apply (tactic all_tac)
 oops

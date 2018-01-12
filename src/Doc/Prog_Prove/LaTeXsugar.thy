@@ -43,7 +43,7 @@ syntax (IfThenNoBox output)
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("_ /\<^latex>\<open>{\\normalsize \\,\<close>and\<^latex>\<open>\\,}\<close>/ _")
   "_asm" :: "prop \<Rightarrow> asms" ("_")
 
-setup{*
+setup\<open>
   let
     fun pretty ctxt c =
       let val tc = Proof_Context.read_const {proper = true, strict = false} ctxt c
@@ -57,7 +57,7 @@ setup{*
           Thy_Output.output ctxt
             (Thy_Output.maybe_pretty_source pretty ctxt src [arg]))
   end;
-*}
+\<close>
 
 end
 (*>*)

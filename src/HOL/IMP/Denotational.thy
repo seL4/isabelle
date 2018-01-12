@@ -30,7 +30,7 @@ proof-
   finally show ?thesis .
 qed
 
-text{* Equivalence of denotational and big-step semantics: *}
+text\<open>Equivalence of denotational and big-step semantics:\<close>
 
 lemma D_if_big_step:  "(c,s) \<Rightarrow> t \<Longrightarrow> (s,t) \<in> D(c)"
 proof (induction rule: big_step_induct)
@@ -79,10 +79,10 @@ lemma mono_if_cont: fixes f :: "'a set \<Rightarrow> 'b set"
 proof
   fix a b :: "'a set" assume "a \<subseteq> b"
   let ?S = "\<lambda>n::nat. if n=0 then a else b"
-  have "chain ?S" using `a \<subseteq> b` by(auto simp: chain_def)
+  have "chain ?S" using \<open>a \<subseteq> b\<close> by(auto simp: chain_def)
   hence "f(UN n. ?S n) = (UN n. f(?S n))"
     using assms by(simp add: cont_def)
-  moreover have "(UN n. ?S n) = b" using `a \<subseteq> b` by (auto split: if_splits)
+  moreover have "(UN n. ?S n) = b" using \<open>a \<subseteq> b\<close> by (auto split: if_splits)
   moreover have "(UN n. f(?S n)) = f a \<union> f b" by (auto split: if_splits)
   ultimately show "f a \<subseteq> f b" by (metis Un_upper1)
 qed
@@ -123,7 +123,7 @@ next
       case 0 show ?case by simp
     next
       case Suc
-      from monoD[OF mono_if_cont[OF assms] Suc] `f p \<subseteq> p`
+      from monoD[OF mono_if_cont[OF assms] Suc] \<open>f p \<subseteq> p\<close>
       show ?case by simp
     qed
   qed
@@ -134,7 +134,7 @@ lemma cont_W: "cont(W b r)"
 by(auto simp: cont_def W_def)
 
 
-subsection{*The denotational semantics is deterministic*}
+subsection\<open>The denotational semantics is deterministic\<close>
 
 lemma single_valued_UN_chain:
   assumes "chain S" "(\<And>n. single_valued (S n))"

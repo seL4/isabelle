@@ -1,45 +1,45 @@
 (*<*)
 theory Trie imports Main begin
 (*>*)
-text{*
+text\<open>
 To minimize running time, each node of a trie should contain an array that maps
 letters to subtries. We have chosen a
 representation where the subtries are held in an association list, i.e.\ a
 list of (letter,trie) pairs.  Abstracting over the alphabet @{typ"'a"} and the
 values @{typ"'v"} we define a trie as follows:
-*}
+\<close>
 
 datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list"
 
-text{*\noindent
+text\<open>\noindent
 \index{datatypes!and nested recursion}%
 The first component is the optional value, the second component the
 association list of subtries.  This is an example of nested recursion involving products,
 which is fine because products are datatypes as well.
 We define two selector functions:
-*}
+\<close>
 
 primrec "value" :: "('a,'v)trie \<Rightarrow> 'v option" where
 "value(Trie ov al) = ov"
 primrec alist :: "('a,'v)trie \<Rightarrow> ('a * ('a,'v)trie)list" where
 "alist(Trie ov al) = al"
 
-text{*\noindent
+text\<open>\noindent
 Association lists come with a generic lookup function.  Its result
 involves type @{text option} because a lookup can fail:
-*}
+\<close>
 
 primrec assoc :: "('key * 'val)list \<Rightarrow> 'key \<Rightarrow> 'val option" where
 "assoc [] x = None" |
 "assoc (p#ps) x =
    (let (a,b) = p in if a=x then Some b else assoc ps x)"
 
-text{*
+text\<open>
 Now we can define the lookup function for tries. It descends into the trie
 examining the letters of the search string one by one. As
 recursion on lists is simpler than on tries, let us express this as primitive
 recursion on the search string argument:
-*}
+\<close>
 
 primrec lookup :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v option" where
 "lookup t [] = value t" |
@@ -47,21 +47,21 @@ primrec lookup :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v option" wh
                       None \<Rightarrow> None
                     | Some at \<Rightarrow> lookup at as)"
 
-text{*
+text\<open>
 As a first simple property we prove that looking up a string in the empty
 trie @{term"Trie None []"} always returns @{const None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:
-*}
+\<close>
 
 lemma [simp]: "lookup (Trie None []) as = None"
 apply(case_tac as, simp_all)
 done
 
-text{*
+text\<open>
 Things begin to get interesting with the definition of an update function
 that adds a new (string, value) pair to a trie, overwriting the old value
 associated with that string:
-*}
+\<close>
 
 primrec update:: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)trie" where
 "update t []     v = Trie (Some v) (alist t)" |
@@ -70,7 +70,7 @@ primrec update:: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarro
                 None \<Rightarrow> Trie None [] | Some at \<Rightarrow> at)
     in Trie (value t) ((a,update tt as v) # alist t))"
 
-text{*\noindent
+text\<open>\noindent
 The base case is obvious. In the recursive case the subtrie
 @{term tt} associated with the first letter @{term a} is extracted,
 recursively updated, and then placed in front of the association list.
@@ -81,23 +81,23 @@ optimizations!
 Before we start on any proofs about @{const update} we tell the simplifier to
 expand all @{text let}s and to split all @{text case}-constructs over
 options:
-*}
+\<close>
 
 declare Let_def[simp] option.split[split]
 
-text{*\noindent
+text\<open>\noindent
 The reason becomes clear when looking (probably after a failed proof
 attempt) at the body of @{const update}: it contains both
 @{text let} and a case distinction over type @{text option}.
 
 Our main goal is to prove the correct interaction of @{const update} and
 @{const lookup}:
-*}
+\<close>
 
 theorem "\<forall>t v bs. lookup (update t as v) bs =
                     (if as=bs then Some v else lookup t bs)"
 
-txt{*\noindent
+txt\<open>\noindent
 Our plan is to induct on @{term as}; hence the remaining variables are
 quantified. From the definitions it is clear that induction on either
 @{term as} or @{term bs} is required. The choice of @{term as} is 
@@ -105,10 +105,10 @@ guided by the intuition that simplification of @{const lookup} might be easier
 if @{const update} has already been simplified, which can only happen if
 @{term as} is instantiated.
 The start of the proof is conventional:
-*}
+\<close>
 apply(induct_tac as, auto)
 
-txt{*\noindent
+txt\<open>\noindent
 Unfortunately, this time we are left with three intimidating looking subgoals:
 \begin{isabelle}
 ~1.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
@@ -118,11 +118,11 @@ Unfortunately, this time we are left with three intimidating looking subgoals:
 Clearly, if we want to make headway we have to instantiate @{term bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:
-*}
+\<close>
 apply(case_tac[!] bs, auto)
 done
 
-text{*\noindent
+text\<open>\noindent
 \index{subgoal numbering}%
 All methods ending in @{text tac} take an optional first argument that
 specifies the range of subgoals they are applied to, where @{text"[!]"} means
@@ -158,7 +158,7 @@ sense and solves the proof.
   with @{typ"'a \<Rightarrow> ('a,'v)trie option"}.
 \end{exercise}
 
-*}
+\<close>
 
 (*<*)
 

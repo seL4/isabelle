@@ -1,26 +1,26 @@
 (*<*)
 theory natsum imports Main begin
 (*>*)
-text{*\noindent
+text\<open>\noindent
 In particular, there are @{text"case"}-expressions, for example
 @{term[display]"case n of 0 => 0 | Suc m => m"}
 primitive recursion, for example
-*}
+\<close>
 
 primrec sum :: "nat \<Rightarrow> nat" where
 "sum 0 = 0" |
 "sum (Suc n) = Suc n + sum n"
 
-text{*\noindent
+text\<open>\noindent
 and induction, for example
-*}
+\<close>
 
 lemma "sum n + sum n = n*(Suc n)"
 apply(induct_tac n)
 apply(auto)
 done
 
-text{*\newcommand{\mystar}{*%
+text\<open>\newcommand{\mystar}{*%
 }
 \index{arithmetic operations!for \protect\isa{nat}}%
 The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
@@ -73,40 +73,40 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
 Both @{text auto} and @{text simp}
 (a method introduced below, \S\ref{sec:Simplification}) prove 
 simple arithmetic goals automatically:
-*}
+\<close>
 
 lemma "\<lbrakk> \<not> m < n; m < n + (1::nat) \<rbrakk> \<Longrightarrow> m = n"
 (*<*)by(auto)(*>*)
 
-text{*\noindent
+text\<open>\noindent
 For efficiency's sake, this built-in prover ignores quantified formulae,
 many logical connectives, and all arithmetic operations apart from addition.
 In consequence, @{text auto} and @{text simp} cannot prove this slightly more complex goal:
-*}
+\<close>
 
 lemma "m \<noteq> (n::nat) \<Longrightarrow> m < n \<or> n < m"
 (*<*)by(arith)(*>*)
 
-text{*\noindent The method \methdx{arith} is more general.  It attempts to
+text\<open>\noindent The method \methdx{arith} is more general.  It attempts to
 prove the first subgoal provided it is a \textbf{linear arithmetic} formula.
 Such formulas may involve the usual logical connectives (@{text"\<not>"},
 @{text"\<and>"}, @{text"\<or>"}, @{text"\<longrightarrow>"}, @{text"="},
 @{text"\<forall>"}, @{text"\<exists>"}), the relations @{text"="},
 @{text"\<le>"} and @{text"<"}, and the operations @{text"+"}, @{text"-"},
-@{term min} and @{term max}.  For example, *}
+@{term min} and @{term max}.  For example,\<close>
 
 lemma "min i (max j (k*k)) = max (min (k*k) i) (min i (j::nat))"
 apply(arith)
 (*<*)done(*>*)
 
-text{*\noindent
+text\<open>\noindent
 succeeds because @{term"k*k"} can be treated as atomic. In contrast,
-*}
+\<close>
 
 lemma "n*n = n+1 \<Longrightarrow> n=0"
 (*<*)oops(*>*)
 
-text{*\noindent
+text\<open>\noindent
 is not proved by @{text arith} because the proof relies 
 on properties of multiplication. Only multiplication by numerals (which is
 the same as iterated addition) is taken into account.
@@ -122,7 +122,7 @@ by case distinctions, again blowing up the running time.
 If the formula involves quantifiers, @{text arith} may take
 super-exponential time and space.
 \end{warn}
-*}
+\<close>
 
 (*<*)
 end

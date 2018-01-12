@@ -4,9 +4,9 @@ lemma "((\<exists>x. \<forall>y. p(x)=p(y)) = ((\<exists>x. q(x))=(\<forall>y. p
        ((\<exists>x. \<forall>y. q(x)=q(y)) = ((\<exists>x. p(x))=(\<forall>y. q(y))))"
 by blast
 
-text{*\noindent Until now, we have proved everything using only induction and
+text\<open>\noindent Until now, we have proved everything using only induction and
 simplification.  Substantial proofs require more elaborate types of
-inference.*}
+inference.\<close>
 
 lemma "(\<forall>x. honest(x) \<and> industrious(x) \<longrightarrow> healthy(x)) \<and>  
        \<not> (\<exists>x. grocer(x) \<and> healthy(x)) \<and> 
@@ -20,13 +20,13 @@ lemma "(\<Union>i\<in>I. A(i)) \<inter> (\<Union>j\<in>J. B(j)) =
         (\<Union>i\<in>I. \<Union>j\<in>J. A(i) \<inter> B(j))"
 by blast
 
-text {*
+text \<open>
 @{thm[display] mult_is_0}
  \rulename{mult_is_0}}
 
 @{thm[display] finite_Un}
  \rulename{finite_Un}}
-*}
+\<close>
 
 
 lemma [iff]: "(xs@ys = []) = (xs=[] & ys=[])"

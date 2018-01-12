@@ -118,7 +118,7 @@ value "show_acom (steps test6_const 13)"
 value "show_acom (the(AI_const test6_const))"
 
 
-text{* Monotonicity: *}
+text\<open>Monotonicity:\<close>
 
 global_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
@@ -126,7 +126,7 @@ proof (standard, goal_cases)
   case 1 thus ?case by(auto simp: plus_const_cases split: const.split)
 qed
 
-text{* Termination: *}
+text\<open>Termination:\<close>
 
 definition m_const :: "const \<Rightarrow> nat" where
 "m_const x = (if x = Any then 0 else 1)"

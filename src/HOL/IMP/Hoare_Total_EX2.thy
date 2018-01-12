@@ -6,12 +6,12 @@ begin
 
 subsubsection "Hoare Logic for Total Correctness --- With Logical Variables"
 
-text{* This is the standard set of rules that you find in many publications.
+text\<open>This is the standard set of rules that you find in many publications.
 In the while-rule, a logical variable is needed to remember the pre-value
 of the variant (an expression that decreases by one with each iteration).
 In this theory, logical variables are modeled explicitly.
 A simpler (but not quite as flexible) approach is found in theory \<open>Hoare_Total_EX\<close>:
-pre and post-condition are connected via a universally quantified HOL variable. *}
+pre and post-condition are connected via a universally quantified HOL variable.\<close>
 
 type_synonym lvname = string
 type_synonym assn2 = "(lvname \<Rightarrow> nat) \<Rightarrow> state \<Rightarrow> bool"
@@ -42,7 +42,7 @@ While:
 conseq: "\<lbrakk> \<forall>l s. P' l s \<longrightarrow> P l s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>l s. Q l s \<longrightarrow> Q' l s  \<rbrakk> \<Longrightarrow>
            \<turnstile>\<^sub>t {P'}c{Q'}"
 
-text{* Building in the consequence rule: *}
+text\<open>Building in the consequence rule:\<close>
 
 lemma strengthen_pre:
   "\<lbrakk> \<forall>l s. P' l s \<longrightarrow> P l s;  \<turnstile>\<^sub>t {P} c {Q} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P'} c {Q}"
@@ -55,7 +55,7 @@ by (metis conseq)
 lemma Assign': "\<forall>l s. P l s \<longrightarrow> Q l (s[a/x]) \<Longrightarrow> \<turnstile>\<^sub>t {P} x ::= a {Q}"
 by (simp add: strengthen_pre[OF _ Assign])
 
-text{* The soundness theorem: *}
+text\<open>The soundness theorem:\<close>
 
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
 proof(unfold hoare_tvalid_def, induction rule: hoaret.induct)
@@ -92,8 +92,8 @@ lemma [simp]:
 by (auto simp: wpt_def fun_eq_iff)
 
 
-text{* Function @{text wpw} computes the weakest precondition of a While-loop
-that is unfolded a fixed number of times. *}
+text\<open>Function @{text wpw} computes the weakest precondition of a While-loop
+that is unfolded a fixed number of times.\<close>
 
 fun wpw :: "bexp \<Rightarrow> com \<Rightarrow> nat \<Rightarrow> assn2 \<Rightarrow> assn2" where
 "wpw b c 0 Q l s = (\<not> bval b s \<and> Q l s)" |

@@ -7,17 +7,17 @@ begin
 
 subsection "The Variables in an Expression"
 
-text{* We need to collect the variables in both arithmetic and boolean
+text\<open>We need to collect the variables in both arithmetic and boolean
 expressions. For a change we do not introduce two functions, e.g.\ @{text
 avars} and @{text bvars}, but we overload the name @{text vars}
-via a \emph{type class}, a device that originated with Haskell: *}
+via a \emph{type class}, a device that originated with Haskell:\<close>
  
 class vars =
 fixes vars :: "'a \<Rightarrow> vname set"
 
-text{* This defines a type class ``vars'' with a single
+text\<open>This defines a type class ``vars'' with a single
 function of (coincidentally) the same name. Then we define two separated
-instances of the class, one for @{typ aexp} and one for @{typ bexp}: *}
+instances of the class, one for @{typ aexp} and one for @{typ bexp}:\<close>
 
 instantiation aexp :: vars
 begin

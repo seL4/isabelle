@@ -4,7 +4,7 @@ imports LaTeXsugar
 begin
 declare [[quick_and_dirty]]
 (*>*)
-text{*
+text\<open>
 Apply-scripts are unreadable and hard to maintain. The language of choice
 for larger proofs is \concept{Isar}. The two key features of Isar are:
 \begin{itemize}
@@ -14,7 +14,7 @@ you need to state what you are proving at any given point.
 \end{itemize}
 Whereas apply-scripts are like assembly language programs, Isar proofs
 are like structured programs with comments. A typical Isar proof looks like this:
-*}text{*
+\<close>text\<open>
 \begin{tabular}{@ {}l}
 \isacom{proof}\\
 \quad\isacom{assume} @{text"\""}$\mathit{formula}_0$@{text"\""}\\
@@ -24,7 +24,7 @@ are like structured programs with comments. A typical Isar proof looks like this
 \quad\isacom{show} @{text"\""}$\mathit{formula}_{n+1}$@{text"\""} \quad\isacom{by} @{text \<dots>}\\
 \isacom{qed}
 \end{tabular}
-*}text{*
+\<close>text\<open>
 It proves $\mathit{formula}_0 \Longrightarrow \mathit{formula}_{n+1}$
 (provided each proof step succeeds).
 The intermediate \isacom{have} statements are merely stepping stones
@@ -89,7 +89,7 @@ writing @{text"f.simps(2)"}, whole sublists by writing @{text"f.simps(2-4)"}.
 We show a number of proofs of Cantor's theorem that a function from a set to
 its powerset cannot be surjective, illustrating various features of Isar. The
 constant @{const surj} is predefined.
-*}
+\<close>
 
 lemma "\<not> surj(f :: 'a \<Rightarrow> 'a set)"
 proof
@@ -99,7 +99,7 @@ proof
   from 2 show "False" by blast
 qed
 
-text{*
+text\<open>
 The \isacom{proof} command lacks an explicit method by which to perform
 the proof. In such cases Isabelle tries to use some standard introduction
 rule, in the above case for @{text"\<not>"}:
@@ -125,7 +125,7 @@ next step, piping the previously proved fact into the next proof, like
 in a UNIX pipe. In such cases the predefined name @{text this} can be used
 to refer to the proposition proved in the previous step. This allows us to
 eliminate all labels from our proof (we suppress the \isacom{lemma} statement):
-*}
+\<close>
 (*<*)
 lemma "\<not> surj(f :: 'a \<Rightarrow> 'a set)"
 (*>*)
@@ -135,7 +135,7 @@ proof
   from this show "False" by blast
 qed
 
-text{* We have also taken the opportunity to compress the two \isacom{have}
+text\<open>We have also taken the opportunity to compress the two \isacom{have}
 steps into one.
 
 To compact the text further, Isar has a few convenient abbreviations:
@@ -150,7 +150,7 @@ To compact the text further, Isar has a few convenient abbreviations:
 
 \noindent
 With the help of these abbreviations the proof becomes
-*}
+\<close>
 (*<*)
 lemma "\<not> surj(f :: 'a \<Rightarrow> 'a set)"
 (*>*)
@@ -159,7 +159,7 @@ proof
   hence "\<exists>a. {x. x \<notin> f x} = f a" by(auto simp: surj_def)
   thus "False" by blast
 qed
-text{*
+text\<open>
 
 There are two further linguistic variations:
 \medskip
@@ -180,14 +180,14 @@ behind the proposition.
 Lemmas can also be stated in a more structured fashion. To demonstrate this
 feature with Cantor's theorem, we rephrase \noquotes{@{prop[source]"\<not> surj f"}}
 a little:
-*}
+\<close>
 
 lemma
   fixes f :: "'a \<Rightarrow> 'a set"
   assumes s: "surj f"
   shows "False"
 
-txt{* The optional \isacom{fixes} part allows you to state the types of
+txt\<open>The optional \isacom{fixes} part allows you to state the types of
 variables up front rather than by decorating one of their occurrences in the
 formula with a type constraint. The key advantage of the structured format is
 the \isacom{assumes} part that allows you to name each assumption; multiple
@@ -195,7 +195,7 @@ assumptions can be separated by \isacom{and}. The
 \isacom{shows} part gives the goal. The actual theorem that will come out of
 the proof is \noquotes{@{prop[source]"surj f \<Longrightarrow> False"}}, but during the proof the assumption
 \noquotes{@{prop[source]"surj f"}} is available under the name @{text s} like any other fact.
-*}
+\<close>
 
 proof -
   have "\<exists> a. {x. x \<notin> f x} = f a" using s
@@ -203,7 +203,7 @@ proof -
   thus "False" by blast
 qed
 
-text{*
+text\<open>
 \begin{warn}
 Note the hyphen after the \isacom{proof} command.
 It is the null method that does nothing to the goal. Leaving it out would be asking
@@ -235,42 +235,42 @@ We start with two forms of \concept{case analysis}:
 starting from a formula @{text P} we have the two cases @{text P} and
 @{prop"~P"}, and starting from a fact @{prop"P \<or> Q"}
 we have the two cases @{text P} and @{text Q}:
-*}text_raw{*
+\<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "R" proof-(*>*)
 show "R"
 proof cases
   assume "P"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "R" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 next
   assume "\<not> P"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "R" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)oops(*>*)
-text_raw {* }
+text_raw \<open>}
 \end{minipage}\index{cases@@{text cases}}
 &
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "R" proof-(*>*)
-have "P \<or> Q" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+have "P \<or> Q" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 then show "R"
 proof
   assume "P"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "R" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 next
   assume "Q"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "R" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "R" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 \end{tabular}
 \medskip
@@ -278,19 +278,19 @@ text_raw {* }
 How to prove a logical equivalence:
 \end{isamarkuptext}%
 \isa{%
-*}
+\<close>
 (*<*)lemma "P\<longleftrightarrow>Q" proof-(*>*)
 show "P \<longleftrightarrow> Q"
 proof
   assume "P"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "Q" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "Q" (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 next
   assume "Q"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "P" (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
-text_raw {* }
+text_raw \<open>}
 \medskip
 \begin{isamarkuptext}%
 Proofs by contradiction (@{thm[source] ccontr} stands for ``classical contradiction''):
@@ -298,30 +298,30 @@ Proofs by contradiction (@{thm[source] ccontr} stands for ``classical contradict
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "\<not> P" proof-(*>*)
 show "\<not> P"
 proof
   assume "P"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "False" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "False" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 &
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "P" proof-(*>*)
 show "P"
 proof (rule ccontr)
   assume "\<not>P"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "False" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "False" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 \end{tabular}
 \medskip
@@ -331,30 +331,30 @@ How to prove quantified formulas:
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "ALL x. P x" proof-(*>*)
 show "\<forall>x. P(x)"
 proof
   fix x
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P(x)" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "P(x)" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 &
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "EX x. P(x)" proof-(*>*)
 show "\<exists>x. P(x)"
 proof
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "P(witness)" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "P(witness)" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed
 (*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 \end{tabular}
 \medskip
@@ -369,12 +369,12 @@ term for which we can prove that it satisfies @{text P}.
 
 How to reason forward from \noquotes{@{prop[source] "\<exists>x. P(x)"}}:
 \end{isamarkuptext}%
-*}
+\<close>
 (*<*)lemma True proof- assume 1: "EX x. P x"(*>*)
-have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw{*\ \isasymproof\\*}
+have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw\<open>\ \isasymproof\\\<close>
 then obtain x where p: "P(x)" by blast
 (*<*)oops(*>*)
-text{*
+text\<open>
 After the \indexed{\isacom{obtain}}{obtain} step, @{text x} (we could have chosen any name)
 is a fixed local
 variable, and @{text p} is the name of the fact
@@ -382,7 +382,7 @@ variable, and @{text p} is the name of the fact
 This pattern works for one or more @{text x}.
 As an example of the \isacom{obtain} command, here is the proof of
 Cantor's theorem in more detail:
-*}
+\<close>
 
 lemma "\<not> surj(f :: 'a \<Rightarrow> 'a set)"
 proof
@@ -393,7 +393,7 @@ proof
   thus "False" by blast
 qed
 
-text_raw{*
+text_raw\<open>
 \begin{isamarkuptext}%
 
 Finally, how to prove set equality and subset relationship:
@@ -401,31 +401,31 @@ Finally, how to prove set equality and subset relationship:
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "A = (B::'a set)" proof-(*>*)
 show "A = B"
 proof
-  show "A \<subseteq> B" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  show "A \<subseteq> B" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 next
-  show "B \<subseteq> A" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  show "B \<subseteq> A" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 &
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "A <= (B::'a set)" proof-(*>*)
 show "A \<subseteq> B"
 proof
   fix x
   assume "x \<in> A"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "x \<in> B" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "x \<in> B" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 \end{tabular}
 \begin{isamarkuptext}%
@@ -522,34 +522,34 @@ matches the pattern against the formula, thus instantiating the unknowns in
 the pattern for later use. As an example, consider the proof pattern for
 @{text"\<longleftrightarrow>"}:
 \end{isamarkuptext}%
-*}
+\<close>
 (*<*)lemma "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" proof-(*>*)
 show "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" (is "?L \<longleftrightarrow> ?R")
 proof
   assume "?L"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "?R" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "?R" (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 next
   assume "?R"
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show "?L" (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show "?L" (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
 
-text{* Instead of duplicating @{text"formula\<^sub>i"} in the text, we introduce
+text\<open>Instead of duplicating @{text"formula\<^sub>i"} in the text, we introduce
 the two abbreviations @{text"?L"} and @{text"?R"} by pattern matching.
 Pattern matching works wherever a formula is stated, in particular
 with \isacom{have} and \isacom{lemma}.
 
 The unknown \indexed{@{text"?thesis"}}{thesis} is implicitly matched against any goal stated by
-\isacom{lemma} or \isacom{show}. Here is a typical example: *}
+\isacom{lemma} or \isacom{show}. Here is a typical example:\<close>
 
 lemma "formula"
 proof -
-  text_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
-  show ?thesis (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
+  show ?thesis (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 qed
 
-text{* 
+text\<open>
 Unknowns can also be instantiated with \indexed{\isacom{let}}{let} commands
 \begin{quote}
 \isacom{let} @{text"?t"} = @{text"\""}\textit{some-big-term}@{text"\""}
@@ -588,37 +588,37 @@ They refer to the fact not by name but by value.
 Sometimes one needs a number of facts to enable some deduction. Of course
 one can name these facts individually, as shown on the right,
 but one can also combine them with \isacom{moreover}, as shown on the left:
-*}text_raw{*
+\<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "P" proof-(*>*)
-have "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
-moreover have "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+have "P\<^sub>1" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
+moreover have "P\<^sub>2" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 moreover
-text_raw{*\\$\vdots$\\\hspace{-1.4ex}*}(*<*)have "True" ..(*>*)
-moreover have "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
-ultimately have "P"  (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+text_raw\<open>\\$\vdots$\\\hspace{-1.4ex}\<close>(*<*)have "True" ..(*>*)
+moreover have "P\<^sub>n" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
+ultimately have "P"  (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 (*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 &
 \qquad
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "P" proof-(*>*)
-have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
-have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)text_raw{*\ \isasymproof*}
-text_raw{*\\$\vdots$\\\hspace{-1.4ex}*}
-have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
-from lab\<^sub>1 lab\<^sub>2 text_raw{*\ $\dots$\\*}
-have "P"  (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
+have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\<close>
+text_raw\<open>\\$\vdots$\\\hspace{-1.4ex}\<close>
+have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
+from lab\<^sub>1 lab\<^sub>2 text_raw\<open>\ $\dots$\\\<close>
+have "P"  (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 (*<*)oops(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 \end{tabular}
 \begin{isamarkuptext}%
@@ -643,7 +643,7 @@ where all @{text"x\<^sub>i"} have been replaced by unknowns @{text"?x\<^sub>i"}.
 As an example we prove a simple fact about divisibility on integers.
 The definition of @{text "dvd"} is @{thm dvd_def}.
 \end{isamarkuptext}%
-*}
+\<close>
 
 lemma fixes a b :: int assumes "b dvd (a+b)" shows "b dvd a"
 proof -
@@ -654,28 +654,28 @@ proof -
   then show ?thesis using assms by(auto simp add: dvd_def)
 qed
 
-text{*
+text\<open>
 
 \subsection*{Exercises}
 
 \exercise
 Give a readable, structured proof of the following lemma:
-*}
+\<close>
 lemma assumes T: "\<forall>x y. T x y \<or> T y x"
   and A: "\<forall>x y. A x y \<and> A y x \<longrightarrow> x = y"
   and TA: "\<forall>x y. T x y \<longrightarrow> A x y" and "A x y"
   shows "T x y"
 (*<*)oops(*>*)
-text{*
+text\<open>
 \endexercise
 
 \exercise
 Give a readable, structured proof of the following lemma:
-*}
+\<close>
 lemma "\<exists>ys zs. xs = ys @ zs \<and>
             (length ys = length zs \<or> length ys = length zs + 1)"
 (*<*)oops(*>*)
-text{*
+text\<open>
 Hint: There are predefined functions @{const_typ take} and @{const_typ drop}
 such that @{text"take k [x\<^sub>1,\<dots>] = [x\<^sub>1,\<dots>,x\<^sub>k]"} and
 @{text"drop k [x\<^sub>1,\<dots>] = [x\<^bsub>k+1\<^esub>,\<dots>]"}. Let sledgehammer find and apply
@@ -692,7 +692,7 @@ We have seen case analysis on formulas. Now we want to distinguish
 which form some term takes: is it @{text 0} or of the form @{term"Suc n"},
 is it @{term"[]"} or of the form @{term"x#xs"}, etc. Here is a typical example
 proof by case analysis on the form of @{text xs}:
-*}
+\<close>
 
 lemma "length(tl xs) = length xs - 1"
 proof (cases xs)
@@ -703,7 +703,7 @@ next
   thus ?thesis by simp
 qed
 
-text{*\index{cases@@{text"cases"}|(}Function @{text tl} (''tail'') is defined by @{thm list.sel(2)} and
+text\<open>\index{cases@@{text"cases"}|(}Function @{text tl} (''tail'') is defined by @{thm list.sel(2)} and
 @{thm list.sel(3)}. Note that the result type of @{const length} is @{typ nat}
 and @{prop"0 - 1 = (0::nat)"}.
 
@@ -721,7 +721,7 @@ This is equivalent to the explicit \isacom{fix}-\isacom{assume} line
 but also gives the assumption @{text"\"t = C x\<^sub>1 \<dots> x\<^sub>n\""} a name: @{text C},
 like the constructor.
 Here is the \isacom{case} version of the proof above:
-*}
+\<close>
 (*<*)lemma "length(tl xs) = length xs - 1"(*>*)
 proof (cases xs)
   case Nil
@@ -731,7 +731,7 @@ next
   thus ?thesis by simp
 qed
 
-text{* Remember that @{text Nil} and @{text Cons} are the alphanumeric names
+text\<open>Remember that @{text Nil} and @{text Cons} are the alphanumeric names
 for @{text"[]"} and @{text"#"}. The names of the assumptions
 are not used because they are directly piped (via \isacom{thus})
 into the proof of the claim.
@@ -745,7 +745,7 @@ We illustrate structural induction with an example based on natural numbers:
 the sum (@{text"\<Sum>"}) of the first @{text n} natural numbers
 (@{text"{0..n::nat}"}) is equal to \mbox{@{term"n*(n+1) div 2::nat"}}.
 Never mind the details, just focus on the pattern:
-*}
+\<close>
 
 lemma "\<Sum>{0..n::nat} = n*(n+1) div 2"
 proof (induction n)
@@ -755,10 +755,10 @@ next
   thus "\<Sum>{0..Suc n} = Suc n*(Suc n+1) div 2" by simp
 qed
 
-text{* Except for the rewrite steps, everything is explicitly given. This
+text\<open>Except for the rewrite steps, everything is explicitly given. This
 makes the proof easily readable, but the duplication means it is tedious to
 write and maintain. Here is how pattern
-matching can completely avoid any duplication: *}
+matching can completely avoid any duplication:\<close>
 
 lemma "\<Sum>{0..n::nat} = n*(n+1) div 2" (is "?P n")
 proof (induction n)
@@ -768,7 +768,7 @@ next
   thus "?P(Suc n)" by simp
 qed
 
-text{* The first line introduces an abbreviation @{text"?P n"} for the goal.
+text\<open>The first line introduces an abbreviation @{text"?P n"} for the goal.
 Pattern matching @{text"?P n"} with the goal instantiates @{text"?P"} to the
 function @{term"\<lambda>n. \<Sum>{0..n::nat} = n*(n+1) div 2"}.  Now the proposition to
 be proved in the base case can be written as @{text"?P 0"}, the induction
@@ -777,7 +777,7 @@ hypothesis as @{text"?P n"}, and the conclusion of the induction step as
 
 Induction also provides the \isacom{case} idiom that abbreviates
 the \isacom{fix}-\isacom{assume} step. The above proof becomes
-*}
+\<close>
 (*<*)lemma "\<Sum>{0..n::nat} = n*(n+1) div 2"(*>*)
 proof (induction n)
   case 0
@@ -787,29 +787,29 @@ next
   thus ?case by simp
 qed
 
-text{*
+text\<open>
 The unknown @{text"?case"}\index{case?@@{text"?case"}|(} is set in each case to the required
 claim, i.e., @{text"?P 0"} and \mbox{@{text"?P(Suc n)"}} in the above proof,
 without requiring the user to define a @{text "?P"}. The general
 pattern for induction over @{typ nat} is shown on the left-hand side:
-*}text_raw{*
+\<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
-*}
+\<close>
 (*<*)lemma "P(n::nat)" proof -(*>*)
 show "P(n)"
 proof (induction n)
   case 0
-  text_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}\<close>
+  show ?case (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 next
   case (Suc n)
-  text_raw{*\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*) text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\\mbox{}\ \ $\vdots$\\\mbox{}\hspace{-1ex}\<close>
+  show ?case (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 &
 \begin{minipage}[t]{.4\textwidth}
@@ -824,8 +824,8 @@ text_raw {* }
 \end{minipage}
 \end{tabular}
 \medskip
-*}
-text{*
+\<close>
+text\<open>
 On the right side you can see what the \isacom{case} command
 on the left stands for.
 
@@ -910,7 +910,7 @@ and the following rule induction.
 
 Recall the inductive and recursive definitions of even numbers in
 \autoref{sec:inductive-defs}:
-*}
+\<close>
 
 inductive ev :: "nat \<Rightarrow> bool" where
 ev0: "ev 0" |
@@ -921,13 +921,13 @@ fun evn :: "nat \<Rightarrow> bool" where
 "evn (Suc 0) = False" |
 "evn (Suc(Suc n)) = evn n"
 
-text{* We recast the proof of @{prop"ev n \<Longrightarrow> evn n"} in Isar. The
+text\<open>We recast the proof of @{prop"ev n \<Longrightarrow> evn n"} in Isar. The
 left column shows the actual proof text, the right column shows
-the implicit effect of the two \isacom{case} commands:*}text_raw{*
+the implicit effect of the two \isacom{case} commands:\<close>text_raw\<open>
 \begin{tabular}{@ {}l@ {\qquad}l@ {}}
 \begin{minipage}[t]{.5\textwidth}
 \isa{%
-*}
+\<close>
 
 lemma "ev n \<Longrightarrow> evn n"
 proof(induction rule: ev.induct)
@@ -941,7 +941,7 @@ next
   thus ?case by simp
 qed
 
-text_raw {* }
+text_raw \<open>}
 \end{minipage}
 &
 \begin{minipage}[t]{.5\textwidth}
@@ -957,8 +957,8 @@ text_raw {* }
 \end{minipage}
 \end{tabular}
 \medskip
-*}
-text{*
+\<close>
+text\<open>
 The proof resembles structural induction, but the induction rule is given
 explicitly and the names of the cases are the names of the rules in the
 inductive definition.
@@ -986,7 +986,7 @@ The name @{text m} is an arbitrary choice. As a result,
 case @{thm[source] evSS} is derived from a renamed version of
 rule @{thm[source] evSS}: @{text"ev m \<Longrightarrow> ev(Suc(Suc m))"}.
 Here is an example with a (contrived) intermediate step that refers to @{text m}:
-*}
+\<close>
 
 lemma "ev n \<Longrightarrow> evn n"
 proof(induction rule: ev.induct)
@@ -994,16 +994,16 @@ proof(induction rule: ev.induct)
 next
   case (evSS m)
   have "evn(Suc(Suc m)) = evn m" by simp
-  thus ?case using `evn m` by blast
+  thus ?case using \<open>evn m\<close> by blast
 qed
 
-text{*
+text\<open>
 \indent
 In general, let @{text I} be a (for simplicity unary) inductively defined
 predicate and let the rules in the definition of @{text I}
 be called @{text "rule\<^sub>1"}, \dots, @{text "rule\<^sub>n"}. A proof by rule
 induction follows this pattern:\index{inductionrule@@{text"induction ... rule:"}}
-*}
+\<close>
 
 (*<*)
 inductive I where rule\<^sub>1: "I()" |  rule\<^sub>2: "I()" |  rule\<^sub>n: "I()"
@@ -1011,21 +1011,21 @@ lemma "I x \<Longrightarrow> P x" proof-(*>*)
 show "I x \<Longrightarrow> P x"
 proof(induction rule: I.induct)
   case rule\<^sub>1
-  text_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}\<close>
+  show ?case (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 next
-  text_raw{*\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
+  text_raw\<open>\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}\<close>
 (*<*)
   case rule\<^sub>2
   show ?case sorry
 (*>*)
 next
   case rule\<^sub>n
-  text_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
-  show ?case (*<*)sorry(*>*)text_raw{*\ \isasymproof\\*}
+  text_raw\<open>\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}\<close>
+  show ?case (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
 
-text{*
+text\<open>
 One can provide explicit variable names by writing
 \isacom{case}~@{text"(rule\<^sub>i x\<^sub>1 \<dots> x\<^sub>k)"}, thus renaming the first @{text k}
 free variables in rule @{text i} to @{text"x\<^sub>1 \<dots> x\<^sub>k"},
@@ -1071,7 +1071,7 @@ The realisation in Isabelle is a case analysis.
 A simple example is the proof that @{prop"ev n \<Longrightarrow> ev (n - 2)"}. We
 already went through the details informally in \autoref{sec:Logic:even}. This
 is the Isar proof:
-*}
+\<close>
 (*<*)
 notepad
 begin fix n
@@ -1087,7 +1087,7 @@ begin fix n
 end
 (*>*)
 
-text{* The key point here is that a case analysis over some inductively
+text\<open>The key point here is that a case analysis over some inductively
 defined predicate is triggered by piping the given fact
 (here: \isacom{from}~@{text this}) into a proof by @{text cases}.
 Let us examine the assumptions available in each case. In case @{text ev0}
@@ -1101,7 +1101,7 @@ rule inversion applied to @{prop"ev(Suc 0)"}: neither rule @{text ev0} nor
 rule @{text evSS} can yield @{prop"ev(Suc 0)"} because @{text"Suc 0"} unifies
 neither with @{text 0} nor with @{term"Suc(Suc n)"}. Impossible cases do not
 have to be proved. Hence we can prove anything from @{prop"ev(Suc 0)"}:
-*}
+\<close>
 (*<*)
 notepad begin fix P
 (*>*)
@@ -1110,14 +1110,14 @@ notepad begin fix P
 end
 (*>*)
 
-text{* That is, @{prop"ev(Suc 0)"} is simply not provable: *}
+text\<open>That is, @{prop"ev(Suc 0)"} is simply not provable:\<close>
 
 lemma "\<not> ev(Suc 0)"
 proof
   assume "ev(Suc 0)" then show False by cases
 qed
 
-text{* Normally not all cases will be impossible. As a simple exercise,
+text\<open>Normally not all cases will be impossible. As a simple exercise,
 prove that \mbox{@{prop"\<not> ev(Suc(Suc(Suc 0)))"}.}
 
 \subsection{Advanced Rule Induction}
@@ -1147,23 +1147,23 @@ need to see the expanded version of the lemma. This is what we need to write:
 \isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}\index{inductionrule@@{text"induction ... rule:"}}\index{arbitrary@@{text"arbitrary:"}}
 \end{isabelle}
 Like for rule inversion, cases that are impossible because of constructor clashes
-will not show up at all. Here is a concrete example: *}
+will not show up at all. Here is a concrete example:\<close>
 
 lemma "ev (Suc m) \<Longrightarrow> \<not> ev m"
 proof(induction "Suc m" arbitrary: m rule: ev.induct)
   fix n assume IH: "\<And>m. n = Suc m \<Longrightarrow> \<not> ev m"
   show "\<not> ev (Suc n)"
-  proof --"contradiction"
+  proof \<comment>"contradiction"
     assume "ev(Suc n)"
     thus False
-    proof cases --"rule inversion"
+    proof cases \<comment>"rule inversion"
       fix k assume "n = Suc k" "ev k"
       thus False using IH by auto
     qed
   qed
 qed
 
-text{*
+text\<open>
 Remarks:
 \begin{itemize}
 \item 
@@ -1200,12 +1200,12 @@ as they are for the simpler
 
 \exercise
 Give a structured proof by rule inversion:
-*}
+\<close>
 
 lemma assumes a: "ev(Suc(Suc n))" shows "ev n"
 (*<*)oops(*>*)
 
-text{*
+text\<open>
 \endexercise
 
 \begin{exercise}
@@ -1236,7 +1236,7 @@ is true iff (informally) @{text"S (a\<^sup>n @ w)"}. Formally, prove that
 @{const replicate} @{text"::"} @{typ"nat \<Rightarrow> 'a \<Rightarrow> 'a list"} is predefined
 and @{term"replicate n x"} yields the list @{text"[x, \<dots>, x]"} of length @{text n}.
 \end{exercise}
-*}
+\<close>
 
 (*<*)
 end

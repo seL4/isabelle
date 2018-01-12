@@ -1,8 +1,8 @@
 (*<*)theory Star imports Main begin(*>*)
 
-section{*The Reflexive Transitive Closure*}
+section\<open>The Reflexive Transitive Closure\<close>
 
-text{*\label{sec:rtc}
+text\<open>\label{sec:rtc}
 \index{reflexive transitive closure!defining inductively|(}%
 An inductive definition may accept parameters, so it can express 
 functions that yield sets.
@@ -12,7 +12,7 @@ reflexive transitive closure.  This concept was already
 introduced in \S\ref{sec:Relations}, where the operator @{text"\<^sup>*"} was
 defined as a least fixed point because inductive definitions were not yet
 available. But now they are:
-*}
+\<close>
 
 inductive_set
   rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
@@ -21,7 +21,7 @@ where
   rtc_refl[iff]:  "(x,x) \<in> r*"
 | rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
-text{*\noindent
+text\<open>\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
 @{text"rtc r"} we can write @{term"r*"}. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately given the
@@ -36,12 +36,12 @@ be sufficiently intuitive but it is certainly not the only possible one:
 for a start, it does not even mention transitivity.
 The rest of this section is devoted to proving that it is equivalent to
 the standard definition. We start with a simple lemma:
-*}
+\<close>
 
 lemma [intro]: "(x,y) \<in> r \<Longrightarrow> (x,y) \<in> r*"
 by(blast intro: rtc_step)
 
-text{*\noindent
+text\<open>\noindent
 Although the lemma itself is an unremarkable consequence of the basic rules,
 it has the advantage that it can be declared an introduction rule without the
 danger of killing the automatic tactics because @{term"r*"} occurs only in
@@ -61,12 +61,12 @@ premises. In general, rule induction for an $n$-ary inductive relation $R$
 expects a premise of the form $(x@1,\dots,x@n) \in R$.
 
 Now we turn to the inductive proof of transitivity:
-*}
+\<close>
 
 lemma rtc_trans: "\<lbrakk> (x,y) \<in> r*; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 apply(erule rtc.induct)
 
-txt{*\noindent
+txt\<open>\noindent
 Unfortunately, even the base case is a problem:
 @{subgoals[display,indent=0,goals_limit=1]}
 We have to abandon this proof attempt.
@@ -85,12 +85,12 @@ depend on its second parameter at all. The reason is that in our original
 goal, of the pair @{term"(x,y)"} only @{term x} appears also in the
 conclusion, but not @{term y}. Thus our induction statement is too
 general. Fortunately, it can easily be specialized:
-transfer the additional premise @{prop"(y,z):r*"} into the conclusion:*}
+transfer the additional premise @{prop"(y,z):r*"} into the conclusion:\<close>
 (*<*)oops(*>*)
 lemma rtc_trans[rule_format]:
   "(x,y) \<in> r* \<Longrightarrow> (y,z) \<in> r* \<longrightarrow> (x,z) \<in> r*"
 
-txt{*\noindent
+txt\<open>\noindent
 This is not an obscure trick but a generally applicable heuristic:
 \begin{quote}\em
 When proving a statement by rule induction on $(x@1,\dots,x@n) \in R$,
@@ -101,24 +101,24 @@ A similar heuristic for other kinds of inductions is formulated in
 \S\ref{sec:ind-var-in-prems}. The @{text rule_format} directive turns
 @{text"\<longrightarrow>"} back into @{text"\<Longrightarrow>"}: in the end we obtain the original
 statement of our lemma.
-*}
+\<close>
 
 apply(erule rtc.induct)
 
-txt{*\noindent
+txt\<open>\noindent
 Now induction produces two subgoals which are both proved automatically:
 @{subgoals[display,indent=0]}
-*}
+\<close>
 
  apply(blast)
 apply(blast intro: rtc_step)
 done
 
-text{*
+text\<open>
 Let us now prove that @{term"r*"} is really the reflexive transitive closure
 of @{term r}, i.e.\ the least reflexive and transitive
 relation containing @{term r}. The latter is easily formalized
-*}
+\<close>
 
 inductive_set
   rtc2 :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"
@@ -128,10 +128,10 @@ where
 | "(x,x) \<in> rtc2 r"
 | "\<lbrakk> (x,y) \<in> rtc2 r; (y,z) \<in> rtc2 r \<rbrakk> \<Longrightarrow> (x,z) \<in> rtc2 r"
 
-text{*\noindent
+text\<open>\noindent
 and the equivalence of the two definitions is easily shown by the obvious rule
 inductions:
-*}
+\<close>
 
 lemma "(x,y) \<in> rtc2 r \<Longrightarrow> (x,y) \<in> r*"
 apply(erule rtc2.induct)
@@ -146,7 +146,7 @@ apply(erule rtc.induct)
 apply(blast intro: rtc2.intros)
 done
 
-text{*
+text\<open>
 So why did we start with the first definition? Because it is simpler. It
 contains only two rules, and the single step rule is simpler than
 transitivity.  As a consequence, @{thm[source]rtc.induct} is simpler than
@@ -164,7 +164,7 @@ Repeat the development of this section, but starting with a definition of
 @{term rtc} where @{thm[source]rtc_step} is replaced by its converse as shown
 in exercise~\ref{ex:converse-rtc-step}.
 \end{exercise}
-*}
+\<close>
 (*<*)
 lemma rtc_step2[rule_format]: "(x,y) : r* \<Longrightarrow> (y,z) : r --> (x,z) : r*"
 apply(erule rtc.induct)

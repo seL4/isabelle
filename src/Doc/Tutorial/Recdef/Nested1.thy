@@ -2,7 +2,7 @@
 theory Nested1 imports Nested0 begin
 (*>*)
 
-text{*\noindent
+text\<open>\noindent
 Although the definition of @{term trev} below is quite natural, we will have
 to overcome a minor difficulty in convincing Isabelle of its termination.
 It is precisely this difficulty that is the \textit{raison d'\^etre} of
@@ -11,13 +11,13 @@ this subsection.
 Defining @{term trev} by \isacommand{recdef} rather than \isacommand{primrec}
 simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:
-*}
+\<close>
 
 recdef (*<*)(permissive)(*>*)trev "measure size"
  "trev (Var x)    = Var x"
  "trev (App f ts) = App f (rev(map trev ts))"
 
-text{*\noindent
+text\<open>\noindent
 Remember that function @{term size} is defined for each \isacommand{datatype}.
 However, the definition does not succeed. Isabelle complains about an
 unproved termination condition
@@ -36,7 +36,7 @@ continue with our definition.  Below we return to the question of how
 \isacommand{recdef} knows about @{term map}.
 
 The termination condition is easily proved by induction:
-*}
+\<close>
 
 (*<*)
 end

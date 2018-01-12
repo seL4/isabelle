@@ -48,7 +48,7 @@ by auto
 lemma L_While_X: "X \<subseteq> L (WHILE b DO c) X"
 by auto
 
-text{* Disable L WHILE equation and reason only with L WHILE constraints *}
+text\<open>Disable L WHILE equation and reason only with L WHILE constraints\<close>
 declare L.simps(5)[simp del]
 
 subsection "Correctness"
@@ -74,16 +74,16 @@ next
   case (IfTrue b s c1 s' c2)
   hence "s = t on vars b" "s = t on L c1 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue.IH[OF `s = t on L c1 X`] obtain t' where
+  from IfTrue.IH[OF \<open>s = t on L c1 X\<close>] obtain t' where
     "(c1, t) \<Rightarrow> t'" "s' = t' on X" by auto
-  thus ?case using `bval b t` by auto
+  thus ?case using \<open>bval b t\<close> by auto
 next
   case (IfFalse b s c2 s' c1)
   hence "s = t on vars b" "s = t on L c2 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse.IH[OF `s = t on L c2 X`] obtain t' where
+  from IfFalse.IH[OF \<open>s = t on L c2 X\<close>] obtain t' where
     "(c2, t) \<Rightarrow> t'" "s' = t' on X" by auto
-  thus ?case using `~bval b t` by auto
+  thus ?case using \<open>~bval b t\<close> by auto
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
@@ -92,7 +92,7 @@ next
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
-  from `bval b s1` WhileTrue.prems have "bval b t1"
+  from \<open>bval b s1\<close> WhileTrue.prems have "bval b t1"
     by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
   have "s1 = t1 on L c (L ?w X)" using L_While_pfp WhileTrue.prems
     by (blast)
@@ -100,13 +100,13 @@ next
     "(c, t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
   from WhileTrue.IH(2)[OF this(2)] obtain t3 where "(?w,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
-  with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
+  with \<open>bval b t1\<close> \<open>(c, t1) \<Rightarrow> t2\<close> show ?case by auto
 qed
 
 
 subsection "Program Optimization"
 
-text{* Burying assignments to dead variables: *}
+text\<open>Burying assignments to dead variables:\<close>
 fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury SKIP X = SKIP" |
 "bury (x ::= a) X = (if x \<in> X then x ::= a else SKIP)" |
@@ -114,9 +114,9 @@ fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury (IF b THEN c\<^sub>1 ELSE c\<^sub>2) X = IF b THEN bury c\<^sub>1 X ELSE bury c\<^sub>2 X" |
 "bury (WHILE b DO c) X = WHILE b DO bury c (L (WHILE b DO c) X)"
 
-text{* We could prove the analogous lemma to @{thm[source]L_correct}, and the
+text\<open>We could prove the analogous lemma to @{thm[source]L_correct}, and the
 proof would be very similar. However, we phrase it as a semantics
-preservation property: *}
+preservation property:\<close>
 
 theorem bury_correct:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
@@ -139,16 +139,16 @@ next
   case (IfTrue b s c1 s' c2)
   hence "s = t on vars b" "s = t on L c1 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue.IH[OF `s = t on L c1 X`] obtain t' where
+  from IfTrue.IH[OF \<open>s = t on L c1 X\<close>] obtain t' where
     "(bury c1 X, t) \<Rightarrow> t'" "s' =t' on X" by auto
-  thus ?case using `bval b t` by auto
+  thus ?case using \<open>bval b t\<close> by auto
 next
   case (IfFalse b s c2 s' c1)
   hence "s = t on vars b" "s = t on L c2 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse.IH[OF `s = t on L c2 X`] obtain t' where
+  from IfFalse.IH[OF \<open>s = t on L c2 X\<close>] obtain t' where
     "(bury c2 X, t) \<Rightarrow> t'" "s' = t' on X" by auto
-  thus ?case using `~bval b t` by auto
+  thus ?case using \<open>~bval b t\<close> by auto
 next
   case (WhileFalse b s c)
   hence "~ bval b t" by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
@@ -157,7 +157,7 @@ next
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
-  from `bval b s1` WhileTrue.prems have "bval b t1"
+  from \<open>bval b s1\<close> WhileTrue.prems have "bval b t1"
     by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
   have "s1 = t1 on L c (L ?w X)"
     using L_While_pfp WhileTrue.prems by blast
@@ -166,14 +166,14 @@ next
   from WhileTrue.IH(2)[OF this(2)] obtain t3
     where "(bury ?w X,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
-  with `bval b t1` `(bury c (L ?w X), t1) \<Rightarrow> t2` show ?case by auto
+  with \<open>bval b t1\<close> \<open>(bury c (L ?w X), t1) \<Rightarrow> t2\<close> show ?case by auto
 qed
 
 corollary final_bury_correct: "(c,s) \<Rightarrow> s' \<Longrightarrow> (bury c UNIV,s) \<Rightarrow> s'"
 using bury_correct[of c s s' UNIV]
 by (auto simp: fun_eq_iff[symmetric])
 
-text{* Now the opposite direction. *}
+text\<open>Now the opposite direction.\<close>
 
 lemma SKIP_bury[simp]:
   "SKIP = bury c X \<longleftrightarrow> c = SKIP | (EX x a. c = x::=a & x \<notin> X)"
@@ -221,9 +221,9 @@ next
   have "s = t on vars b" "s = t on L c1 X" using IfTrue.prems c by auto
   from bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
   note IH = IfTrue.hyps(3)
-  from IH[OF bc1 `s = t on L c1 X`] obtain t' where
+  from IH[OF bc1 \<open>s = t on L c1 X\<close>] obtain t' where
     "(c1, t) \<Rightarrow> t'" "s' =t' on X" by auto
-  thus ?case using c `bval b t` by auto
+  thus ?case using c \<open>bval b t\<close> by auto
 next
   case (IfFalse b s bc2 s' bc1)
   then obtain c1 c2 where c: "c = IF b THEN c1 ELSE c2"
@@ -231,9 +231,9 @@ next
   have "s = t on vars b" "s = t on L c2 X" using IfFalse.prems c by auto
   from bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
   note IH = IfFalse.hyps(3)
-  from IH[OF bc2 `s = t on L c2 X`] obtain t' where
+  from IH[OF bc2 \<open>s = t on L c2 X\<close>] obtain t' where
     "(c2, t) \<Rightarrow> t'" "s' =t' on X" by auto
-  thus ?case using c `~bval b t` by auto
+  thus ?case using c \<open>~bval b t\<close> by auto
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
@@ -244,7 +244,7 @@ next
   case (WhileTrue b s1 bc' s2 s3 w X t1)
   then obtain c' where w: "w = WHILE b DO c'"
     and bc': "bc' = bury c' (L (WHILE b DO c') X)" by auto
-  from `bval b s1` WhileTrue.prems w have "bval b t1"
+  from \<open>bval b s1\<close> WhileTrue.prems w have "bval b t1"
     by auto (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
   note IH = WhileTrue.hyps(3,5)
   have "s1 = t1 on L c' (L w X)"
@@ -254,7 +254,7 @@ next
   from IH(2)[OF WhileTrue.hyps(6), of t2] w this(2) obtain t3
     where "(w,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
-  with `bval b t1` `(c', t1) \<Rightarrow> t2` w show ?case by auto
+  with \<open>bval b t1\<close> \<open>(c', t1) \<Rightarrow> t2\<close> w show ?case by auto
 qed
 
 corollary final_bury_correct2: "(bury c UNIV,s) \<Rightarrow> s' \<Longrightarrow> (c,s) \<Rightarrow> s'"

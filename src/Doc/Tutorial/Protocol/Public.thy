@@ -10,13 +10,13 @@ theory Public imports Event
 begin
 (*>*)
 
-text {*
+text \<open>
 The function
 @{text pubK} maps agents to their public keys.  The function
 @{text priK} maps agents to their private keys.  It is merely
 an abbreviation (cf.\ \S\ref{sec:abbreviations}) defined in terms of
 @{text invKey} and @{text pubK}.
-*}
+\<close>
 
 consts pubK :: "agent \<Rightarrow> key"
 abbreviation priK :: "agent \<Rightarrow> key"
@@ -37,7 +37,7 @@ primrec initState where
 end
 (*>*)
 
-text {*
+text \<open>
 \noindent
 The set @{text bad} consists of those agents whose private keys are known to
 the spy.
@@ -45,7 +45,7 @@ the spy.
 Two axioms are asserted about the public-key cryptosystem. 
 No two agents have the same public key, and no private key equals
 any public key.
-*}
+\<close>
 
 axiomatization where
   inj_pubK:        "inj pubK" and
@@ -156,16 +156,16 @@ lemma insert_Key_image: "insert (Key K) (Key`KK Un C) = Key ` (insert K KK) Un C
 (*Specialized methods*)
 
 (*Tactic for possibility theorems*)
-ML {*
+ML \<open>
 fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
     (ALLGOALS (simp_tac (ctxt delsimps [used_Says]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac ctxt [refl, conjI, @{thm Nonce_supply}]));
-*}
+\<close>
 
-method_setup possibility = {* Scan.succeed (SIMPLE_METHOD o possibility_tac) *}
+method_setup possibility = \<open>Scan.succeed (SIMPLE_METHOD o possibility_tac)\<close>
     "for proving possibility theorems"
 
 end

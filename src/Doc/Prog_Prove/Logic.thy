@@ -3,7 +3,7 @@ theory Logic
 imports LaTeXsugar
 begin
 (*>*)
-text{*
+text\<open>
 \vspace{-5ex}
 \section{Formulas}
 
@@ -147,11 +147,11 @@ See @{cite "Nipkow-Main"} for the wealth of further predefined functions in theo
 
 \exercise
 Start from the data type of binary trees defined earlier:
-*}
+\<close>
 
 datatype 'a tree = Tip | Node "'a tree" 'a "'a tree"
 
-text{*
+text\<open>
 Define a function @{text "set ::"} @{typ "'a tree \<Rightarrow> 'a set"}
 that returns the elements in a tree and a function
 @{text "ord ::"} @{typ "int tree \<Rightarrow> bool"}
@@ -169,7 +169,7 @@ same tree should be returned. Prove correctness of @{text ins}:
 So far we have only seen @{text simp} and \indexed{@{text auto}}{auto}: Both perform
 rewriting, both can also prove linear arithmetic facts (no multiplication),
 and @{text auto} is also able to prove simple logical or set-theoretic goals:
-*}
+\<close>
 
 lemma "\<forall>x. \<exists>y. x = y"
 by auto
@@ -177,7 +177,7 @@ by auto
 lemma "A \<subseteq> B \<inter> C \<Longrightarrow> A \<subseteq> B \<union> C"
 by auto
 
-text{* where
+text\<open>where
 \begin{quote}
 \isacom{by} \textit{proof-method}
 \end{quote}
@@ -200,13 +200,13 @@ A proof method that is still incomplete but tries harder than @{text auto} is
 subgoal only, and it can be modified like @{text auto}, e.g.,
 with @{text "simp add"}. Here is a typical example of what @{text fastforce}
 can do:
-*}
+\<close>
 
 lemma "\<lbrakk> \<forall>xs \<in> A. \<exists>ys. xs = ys @ ys;  us \<in> A \<rbrakk>
    \<Longrightarrow> \<exists>n. length us = n+n"
 by fastforce
 
-text{* This lemma is out of reach for @{text auto} because of the
+text\<open>This lemma is out of reach for @{text auto} because of the
 quantifiers.  Even @{text fastforce} fails when the quantifier structure
 becomes more complicated. In a few cases, its slow version @{text force}
 succeeds where @{text fastforce} fails.
@@ -215,7 +215,7 @@ The method of choice for complex logical goals is \indexed{@{text blast}}{blast}
 following example, @{text T} and @{text A} are two binary predicates. It
 is shown that if @{text T} is total, @{text A} is antisymmetric and @{text T} is
 a subset of @{text A}, then @{text A} is a subset of @{text T}:
-*}
+\<close>
 
 lemma
   "\<lbrakk> \<forall>x y. T x y \<or> T y x;
@@ -224,7 +224,7 @@ lemma
    \<Longrightarrow> \<forall>x y. A x y \<longrightarrow> T x y"
 by blast
 
-text{*
+text\<open>
 We leave it to the reader to figure out why this lemma is true.
 Method @{text blast}
 \begin{itemize}
@@ -245,16 +245,16 @@ proof. Some of these ATPs are part of the Isabelle installation, others are
 queried over the internet. If successful, a proof command is generated and can
 be inserted into your proof.  The biggest win of \isacom{sledgehammer} is
 that it will take into account the whole lemma library and you do not need to
-feed in any lemma explicitly. For example,*}
+feed in any lemma explicitly. For example,\<close>
 
 lemma "\<lbrakk> xs @ ys = ys @ xs;  length xs = length ys \<rbrakk> \<Longrightarrow> xs = ys"
 
-txt{* cannot be solved by any of the standard proof methods, but
-\isacom{sledgehammer} finds the following proof: *}
+txt\<open>cannot be solved by any of the standard proof methods, but
+\isacom{sledgehammer} finds the following proof:\<close>
 
 by (metis append_eq_conv_conj)
 
-text{* We do not explain how the proof was found but what this command
+text\<open>We do not explain how the proof was found but what this command
 means. For a start, Isabelle does not trust external tools (and in particular
 not the translations from Isabelle's logic to those tools!)
 and insists on a proof that it can check. This is what \indexed{@{text metis}}{metis} does.
@@ -286,12 +286,12 @@ connectives @{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"}, @{text"\<longright
 because it does not involve multiplication, although multiplication with
 numbers, e.g., @{text"2*n"}, is allowed. Such formulas can be proved by
 \indexed{@{text arith}}{arith}:
-*}
+\<close>
 
 lemma "\<lbrakk> (a::nat) \<le> x + b; 2*x < c \<rbrakk> \<Longrightarrow> 2*a + 1 \<le> 2*b + c"
 by arith
 
-text{* In fact, @{text auto} and @{text simp} can prove many linear
+text\<open>In fact, @{text auto} and @{text simp} can prove many linear
 arithmetic formulas already, like the one above, by calling a weak but fast
 version of @{text arith}. Hence it is usually not necessary to invoke
 @{text arith} explicitly.
@@ -425,12 +425,12 @@ specific calls of @{text blast} and friends. For example,
 @{thm[source] le_trans}, transitivity of @{text"\<le>"} on type @{typ nat},
 is not an introduction rule by default because of the disastrous effect
 on the search space, but can be useful in specific situations:
-*}
+\<close>
 
 lemma "\<lbrakk> (a::nat) \<le> b; b \<le> c; c \<le> d; d \<le> e \<rbrakk> \<Longrightarrow> a \<le> e"
 by(blast intro: le_trans)
 
-text{*
+text\<open>
 Of course this is just an example and could be proved by @{text arith}, too.
 
 \subsection{Forward Proof}
@@ -459,11 +459,11 @@ and there can be multiple argument theorems @{text r\<^sub>1} to @{text r\<^sub>
 by unifying and thus proving @{text "A\<^sub>i"} with @{text "r\<^sub>i"}, @{text"i = 1\<dots>m"}.
 Here is an example, where @{thm[source]refl} is the theorem
 @{thm[show_question_marks] refl}:
-*}
+\<close>
 
 thm conjI[OF refl[of "a"] refl[of "b"]]
 
-text{* yields the theorem @{thm conjI[OF refl[of "a"] refl[of "b"]]}.
+text\<open>yields the theorem @{thm conjI[OF refl[of "a"] refl[of "b"]]}.
 The command \isacom{thm} merely displays the result.
 
 Forward reasoning also makes sense in connection with proof states.
@@ -474,12 +474,12 @@ forward fashion. If @{text r} is of the form \mbox{@{text "A \<Longrightarrow> B
 allows proof search to reason forward with @{text r}, i.e.,
 to replace an assumption @{text A'}, where @{text A'} unifies with @{text A},
 with the correspondingly instantiated @{text B}. For example, @{thm[source,show_question_marks] Suc_leD} is the theorem \mbox{@{thm Suc_leD}}, which works well for forward reasoning:
-*}
+\<close>
 
 lemma "Suc(Suc(Suc a)) \<le> b \<Longrightarrow> a \<le> b"
 by(blast dest: Suc_leD)
 
-text{* In this particular example we could have backchained with
+text\<open>In this particular example we could have backchained with
 @{thm[source] Suc_leD}, too, but because the premise is more complicated than the conclusion this can easily lead to nontermination.
 
 %\subsection{Finding Theorems}
@@ -516,14 +516,14 @@ Here is a simple example of an inductively defined predicate:
 The operative word ``inductive'' means that these are the only even numbers.
 In Isabelle we give the two rules the names @{text ev0} and @{text evSS}
 and write
-*}
+\<close>
 
 inductive ev :: "nat \<Rightarrow> bool" where
 ev0:    "ev 0" |
 evSS:  (*<*)"ev n \<Longrightarrow> ev (Suc(Suc n))"(*>*)
-text_raw{* @{prop[source]"ev n \<Longrightarrow> ev (n + 2)"} *}
+text_raw\<open>@{prop[source]"ev n \<Longrightarrow> ev (n + 2)"}\<close>
 
-text{* To get used to inductive definitions, we will first prove a few
+text\<open>To get used to inductive definitions, we will first prove a few
 properties of @{const ev} informally before we descend to the Isabelle level.
 
 How do we prove that some number is even, e.g., @{prop "ev 4"}? Simply by combining the defining rules for @{const ev}:
@@ -535,14 +535,14 @@ How do we prove that some number is even, e.g., @{prop "ev 4"}? Simply by combin
 
 Showing that all even numbers have some property is more complicated.  For
 example, let us prove that the inductive definition of even numbers agrees
-with the following recursive one:*}
+with the following recursive one:\<close>
 
 fun evn :: "nat \<Rightarrow> bool" where
 "evn 0 = True" |
 "evn (Suc 0) = False" |
 "evn (Suc(Suc n)) = evn n"
 
-text{* We prove @{prop"ev m \<Longrightarrow> evn m"}.  That is, we
+text\<open>We prove @{prop"ev m \<Longrightarrow> evn m"}.  That is, we
 assume @{prop"ev m"} and by induction on the form of its derivation
 prove @{prop"evn m"}. There are two cases corresponding to the two rules
 for @{const ev}:
@@ -606,60 +606,60 @@ The simplest way to prove @{prop"ev(Suc(Suc(Suc(Suc 0))))"} is in a forward
 direction: @{text "evSS[OF evSS[OF ev0]]"} yields the theorem @{thm evSS[OF
 evSS[OF ev0]]}. Alternatively, you can also prove it as a lemma in backwards
 fashion. Although this is more verbose, it allows us to demonstrate how each
-rule application changes the proof state: *}
+rule application changes the proof state:\<close>
 
 lemma "ev(Suc(Suc(Suc(Suc 0))))"
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,goals_limit=1]}
-*}
+\<close>
 apply(rule evSS)
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,goals_limit=1]}
-*}
+\<close>
 apply(rule evSS)
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,goals_limit=1]}
-*}
+\<close>
 apply(rule ev0)
 done
 
-text{* \indent
+text\<open>\indent
 Rule induction is applied by giving the induction rule explicitly via the
-@{text"rule:"} modifier:\index{inductionrule@@{text"induction ... rule:"}}*}
+@{text"rule:"} modifier:\index{inductionrule@@{text"induction ... rule:"}}\<close>
 
 lemma "ev m \<Longrightarrow> evn m"
 apply(induction rule: ev.induct)
 by(simp_all)
 
-text{* Both cases are automatic. Note that if there are multiple assumptions
+text\<open>Both cases are automatic. Note that if there are multiple assumptions
 of the form @{prop"ev t"}, method @{text induction} will induct on the leftmost
 one.
 
 As a bonus, we also prove the remaining direction of the equivalence of
 @{const ev} and @{const evn}:
-*}
+\<close>
 
 lemma "evn n \<Longrightarrow> ev n"
 apply(induction n rule: evn.induct)
 
-txt{* This is a proof by computation induction on @{text n} (see
+txt\<open>This is a proof by computation induction on @{text n} (see
 \autoref{sec:recursive-funs}) that sets up three subgoals corresponding to
 the three equations for @{const evn}:
 @{subgoals[display,indent=0]}
 The first and third subgoals follow with @{thm[source]ev0} and @{thm[source]evSS}, and the second subgoal is trivially true because @{prop"evn(Suc 0)"} is @{const False}:
-*}
+\<close>
 
 by (simp_all add: ev0 evSS)
 
-text{* The rules for @{const ev} make perfect simplification and introduction
+text\<open>The rules for @{const ev} make perfect simplification and introduction
 rules because their premises are always smaller than the conclusion. It
 makes sense to turn them into simplification and introduction rules
 permanently, to enhance proof automation. They are named @{thm[source] ev.intros}
-\index{intros@@{text".intros"}} by Isabelle: *}
+\index{intros@@{text".intros"}} by Isabelle:\<close>
 
 declare ev.intros[simp,intro]
 
-text{* The rules of an inductive definition are not simplification rules by
+text\<open>The rules of an inductive definition are not simplification rules by
 default because, in contrast to recursive functions, there is no termination
 requirement for inductive definitions.
 
@@ -707,13 +707,13 @@ the relation @{term"star r"}. Think @{term"r^*"} when you see @{term"star
 r"}, because @{text"star r"} is meant to be the reflexive transitive closure.
 That is, @{prop"star r x y"} is meant to be true if from @{text x} we can
 reach @{text y} in finitely many @{text r} steps. This concept is naturally
-defined inductively: *}
+defined inductively:\<close>
 
 inductive star :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  for r where
 refl:  "star r x x" |
 step:  "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
-text{* The base case @{thm[source] refl} is reflexivity: @{term "x=y"}. The
+text\<open>The base case @{thm[source] refl} is reflexivity: @{term "x=y"}. The
 step case @{thm[source]step} combines an @{text r} step (from @{text x} to
 @{text y}) and a @{term"star r"} step (from @{text y} to @{text z}) into a
 @{term"star r"} step (from @{text x} to @{text z}).
@@ -723,7 +723,7 @@ further parameters of @{const star}, which change. As a result, Isabelle
 generates a simpler induction rule.
 
 By definition @{term"star r"} is reflexive. It is also transitive, but we
-need rule induction to prove that: *}
+need rule induction to prove that:\<close>
 
 lemma star_trans: "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 apply(induction rule: star.induct)
@@ -732,15 +732,15 @@ defer
 apply(rename_tac u x y)
 defer
 (*>*)
-txt{* The induction is over @{prop"star r x y"} (the first matching assumption)
+txt\<open>The induction is over @{prop"star r x y"} (the first matching assumption)
 and we try to prove \mbox{@{prop"star r y z \<Longrightarrow> star r x z"}},
 which we abbreviate by @{prop"P x y"}. These are our two subgoals:
 @{subgoals[display,indent=0]}
 The first one is @{prop"P x x"}, the result of case @{thm[source]refl},
 and it is trivial:\index{assumption@@{text assumption}}
-*}
+\<close>
 apply(assumption)
-txt{* Let us examine subgoal @{text 2}, case @{thm[source] step}.
+txt\<open>Let us examine subgoal @{text 2}, case @{thm[source] step}.
 Assumptions @{prop"r u x"} and \mbox{@{prop"star r x y"}}
 are the premises of rule @{thm[source]step}.
 Assumption @{prop"star r y z \<Longrightarrow> star r x z"} is \mbox{@{prop"P x y"}},
@@ -749,11 +749,11 @@ which we do by assuming @{prop"star r y z"} and proving @{prop"star r u z"}.
 The proof itself is straightforward: from \mbox{@{prop"star r y z"}} the IH
 leads to @{prop"star r x z"} which, together with @{prop"r u x"},
 leads to \mbox{@{prop"star r u z"}} via rule @{thm[source]step}:
-*}
+\<close>
 apply(metis step)
 done
 
-text{*\index{rule induction|)}
+text\<open>\index{rule induction|)}
 
 \subsection{The General Case}
 
@@ -804,13 +804,13 @@ and prove that @{prop "rev xs = xs"} if @{text xs} is a palindrome.
 
 \exercise
 We could also have defined @{const star} as follows:
-*}
+\<close>
 
 inductive star' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
 refl': "star' r x x" |
 step': "star' r x y \<Longrightarrow> r y z \<Longrightarrow> star' r x z"
 
-text{*
+text\<open>
 The single @{text r} step is performed after rather than before the @{text star'}
 steps. Prove @{prop "star' r x y \<Longrightarrow> star r x y"} and
 @{prop "star r x y \<Longrightarrow> star' r x y"}. You may need lemmas.
@@ -877,7 +877,7 @@ cannot cause stack underflow: \ @{text "ok n (comp a) ?"} \ for
 some suitable value of @{text "?"}.
 \end{exercise}
 \fi
-*}
+\<close>
 (*<*)
 end
 (*>*)

@@ -1,56 +1,56 @@
-section{*Examples of Intuitionistic Reasoning*}
+section\<open>Examples of Intuitionistic Reasoning\<close>
 
 theory IFOL_examples imports IFOL begin
 
-text{*Quantifier example from the book Logic and Computation*}
+text\<open>Quantifier example from the book Logic and Computation\<close>
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule impI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule allI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule exI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule exE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule allE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
-txt{*Now @{text "apply assumption"} fails*}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+txt\<open>Now @{text "apply assumption"} fails\<close>
 oops
 
-text{*Trying again, with the same first two steps*}
+text\<open>Trying again, with the same first two steps\<close>
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule impI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule allI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule exE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule exI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule allE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply assumption
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 done
 
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
-by (tactic {*IntPr.fast_tac @{context} 1*})
+by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text{*Example of Dyckhoff's method*}
+text\<open>Example of Dyckhoff's method\<close>
 lemma "~ ~ ((P-->Q) | (Q-->P))"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (unfold not_def)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule impI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule disj_impE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule imp_impE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
  apply (erule imp_impE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply assumption 
 apply (erule FalseE)+
 done

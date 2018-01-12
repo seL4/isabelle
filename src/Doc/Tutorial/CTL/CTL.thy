@@ -1,14 +1,14 @@
 (*<*)theory CTL imports Base begin(*>*)
 
-subsection{*Computation Tree Logic --- CTL*}
+subsection\<open>Computation Tree Logic --- CTL\<close>
 
-text{*\label{sec:CTL}
+text\<open>\label{sec:CTL}
 \index{CTL|(}%
 The semantics of PDL only needs reflexive transitive closure.
 Let us be adventurous and introduce a more expressive temporal operator.
 We extend the datatype
 @{text formula} by a new constructor
-*}
+\<close>
 (*<*)
 datatype formula = Atom "atom"
                   | Neg formula
@@ -17,23 +17,23 @@ datatype formula = Atom "atom"
                   | EF formula(*>*)
                   | AF formula
 
-text{*\noindent
+text\<open>\noindent
 which stands for ``\emph{A}lways in the \emph{F}uture'':
 on all infinite paths, at some point the formula holds.
 Formalizing the notion of an infinite path is easy
 in HOL: it is simply a function from @{typ nat} to @{typ state}.
-*}
+\<close>
 
 definition Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set" where
 "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}"
 
-text{*\noindent
+text\<open>\noindent
 This definition allows a succinct statement of the semantics of @{const AF}:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
 a new datatype and a new function.}
-*}
+\<close>
 (*<*)
 primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80) where
 "s \<Turnstile> Atom a  =  (a \<in> L s)" |
@@ -44,18 +44,18 @@ primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnsti
 (*>*)
 "s \<Turnstile> AF f    = (\<forall>p \<in> Paths s. \<exists>i. p i \<Turnstile> f)"
 
-text{*\noindent
+text\<open>\noindent
 Model checking @{const AF} involves a function which
 is just complicated enough to warrant a separate definition:
-*}
+\<close>
 
 definition af :: "state set \<Rightarrow> state set \<Rightarrow> state set" where
 "af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}"
 
-text{*\noindent
+text\<open>\noindent
 Now we define @{term "mc(AF f)"} as the least set @{term T} that includes
 @{term"mc f"} and all states all of whose direct successors are in @{term T}:
-*}
+\<close>
 (*<*)
 primrec mc :: "formula \<Rightarrow> state set" where
 "mc(Atom a)  = {s. a \<in> L s}" |
@@ -65,10 +65,10 @@ primrec mc :: "formula \<Rightarrow> state set" where
 "mc(EF f)    = lfp(\<lambda>T. mc f \<union> M\<inverse> `` T)"|(*>*)
 "mc(AF f)    = lfp(af(mc f))"
 
-text{*\noindent
+text\<open>\noindent
 Because @{const af} is monotone in its second argument (and also its first, but
 that is irrelevant), @{term"af A"} has a least fixed point:
-*}
+\<close>
 
 lemma mono_af: "mono(af A)"
 apply(simp add: mono_def af_def)
@@ -96,16 +96,16 @@ apply(erule converse_rtrancl_induct)
 apply(subst lfp_unfold[OF mono_ef])
 by(blast)
 (*>*)
-text{*
+text\<open>
 All we need to prove now is  @{prop"mc(AF f) = {s. s \<Turnstile> AF f}"}, which states
 that @{term mc} and @{text"\<Turnstile>"} agree for @{const AF}\@.
 This time we prove the two inclusions separately, starting
 with the easy one:
-*}
+\<close>
 
 theorem AF_lemma1: "lfp(af A) \<subseteq> {s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A}"
 
-txt{*\noindent
+txt\<open>\noindent
 In contrast to the analogous proof for @{const EF}, and just
 for a change, we do not use fixed point induction.  Park-induction,
 named after David Park, is weaker but sufficient for this proof:
@@ -114,24 +114,24 @@ named after David Park, is weaker but sufficient for this proof:
 \end{center}
 The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
 a decision that \isa{auto} takes for us:
-*}
+\<close>
 apply(rule lfp_lowerbound)
 apply(auto simp add: af_def Paths_def)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
 In this remaining case, we set @{term t} to @{term"p(1::nat)"}.
 The rest is automatic, which is surprising because it involves
 finding the instantiation @{term"\<lambda>i::nat. p(i+1)"}
 for @{text"\<forall>p"}.
-*}
+\<close>
 
 apply(erule_tac x = "p 1" in allE)
 apply(auto)
 done
 
 
-text{*
+text\<open>
 The opposite inclusion is proved by contradiction: if some state
 @{term s} is not in @{term"lfp(af A)"}, then we can construct an
 infinite @{term A}-avoiding path starting from~@{term s}. The reason is
@@ -143,7 +143,7 @@ A)"}}. Iterating this argument yields the promised infinite
 
 The one-step argument in the sketch above
 is proved by a variant of contraposition:
-*}
+\<close>
 
 lemma not_in_lfp_afD:
  "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t) \<in> M \<and> t \<notin> lfp(af A))"
@@ -152,20 +152,20 @@ apply(subst lfp_unfold[OF mono_af])
 apply(simp add: af_def)
 done
 
-text{*\noindent
+text\<open>\noindent
 We assume the negation of the conclusion and prove @{term"s : lfp(af A)"}.
 Unfolding @{const lfp} once and
 simplifying with the definition of @{const af} finishes the proof.
 
 Now we iterate this process. The following construction of the desired
 path is parameterized by a predicate @{term Q} that should hold along the path:
-*}
+\<close>
 
 primrec path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> state)" where
 "path s Q 0 = s" |
 "path s Q (Suc n) = (SOME t. (path s Q n,t) \<in> M \<and> Q t)"
 
-text{*\noindent
+text\<open>\noindent
 Element @{term"n+1::nat"} on this path is some arbitrary successor
 @{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that @{text"SOME t. R t"}
 is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
@@ -175,43 +175,43 @@ suitable @{term t} does exist.
 
 Let us show that if each state @{term s} that satisfies @{term Q}
 has a successor that again satisfies @{term Q}, then there exists an infinite @{term Q}-path:
-*}
+\<close>
 
 lemma infinity_lemma:
   "\<lbrakk> Q s; \<forall>s. Q s \<longrightarrow> (\<exists> t. (s,t) \<in> M \<and> Q t) \<rbrakk> \<Longrightarrow>
    \<exists>p\<in>Paths s. \<forall>i. Q(p i)"
 
-txt{*\noindent
+txt\<open>\noindent
 First we rephrase the conclusion slightly because we need to prove simultaneously
 both the path property and the fact that @{term Q} holds:
-*}
+\<close>
 
 apply(subgoal_tac
   "\<exists>p. s = p 0 \<and> (\<forall>i::nat. (p i, p(i+1)) \<in> M \<and> Q(p i))")
 
-txt{*\noindent
+txt\<open>\noindent
 From this proposition the original goal follows easily:
-*}
+\<close>
 
  apply(simp add: Paths_def, blast)
 
-txt{*\noindent
+txt\<open>\noindent
 The new subgoal is proved by providing the witness @{term "path s Q"} for @{term p}:
-*}
+\<close>
 
 apply(rule_tac x = "path s Q" in exI)
 apply(clarsimp)
 
-txt{*\noindent
+txt\<open>\noindent
 After simplification and clarification, the subgoal has the following form:
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
 It invites a proof by induction on @{term i}:
-*}
+\<close>
 
 apply(induct_tac i)
  apply(simp)
 
-txt{*\noindent
+txt\<open>\noindent
 After simplification, the base case boils down to
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
 The conclusion looks exceedingly trivial: after all, @{term t} is chosen such that @{prop"(s,t):M"}
@@ -223,11 +223,11 @@ When we apply this theorem as an introduction rule, @{text"?P x"} becomes
 two subgoals: @{prop"EX a. (s, a) : M & Q a"}, which follows from the assumptions, and
 @{prop"(s, x) : M & Q x ==> (s,x) : M"}, which is trivial. Thus it is not surprising that
 @{text fast} can prove the base case quickly:
-*}
+\<close>
 
  apply(fast intro: someI2_ex)
 
-txt{*\noindent
+txt\<open>\noindent
 What is worth noting here is that we have used \methdx{fast} rather than
 @{text blast}.  The reason is that @{text blast} would fail because it cannot
 cope with @{thm[source]someI2_ex}: unifying its conclusion with the current
@@ -242,7 +242,7 @@ The induction step is similar, but more involved, because now we face nested
 occurrences of @{text SOME}. As a result, @{text fast} is no longer able to
 solve the subgoal and we apply @{thm[source]someI2_ex} by hand.  We merely
 show the proof commands but do not describe the details:
-*}
+\<close>
 
 apply(simp)
 apply(rule someI2_ex)
@@ -252,7 +252,7 @@ apply(rule someI2_ex)
 apply(blast)
 done
 
-text{*
+text\<open>
 Function @{const path} has fulfilled its purpose now and can be forgotten.
 It was merely defined to provide the witness in the proof of the
 @{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
@@ -261,7 +261,7 @@ the term
 @{term[display]"rec_nat s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)"}
 is extensionally equal to @{term"path s Q"},
 where @{term rec_nat} is the predefined primitive recursor on @{typ nat}.
-*}
+\<close>
 (*<*)
 lemma
 "\<lbrakk> Q s; \<forall> s. Q s \<longrightarrow> (\<exists> t. (s,t)\<in>M \<and> Q t) \<rbrakk> \<Longrightarrow>
@@ -284,37 +284,37 @@ apply(rule someI2_ex)
 by(blast)
 (*>*)
 
-text{*
+text\<open>
 At last we can prove the opposite direction of @{thm[source]AF_lemma1}:
-*}
+\<close>
 
 theorem AF_lemma2: "{s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A} \<subseteq> lfp(af A)"
 
-txt{*\noindent
+txt\<open>\noindent
 The proof is again pointwise and then by contraposition:
-*}
+\<close>
 
 apply(rule subsetI)
 apply(erule contrapos_pp)
 apply simp
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,goals_limit=1]}
 Applying the @{thm[source]infinity_lemma} as a destruction rule leaves two subgoals, the second
 premise of @{thm[source]infinity_lemma} and the original subgoal:
-*}
+\<close>
 
 apply(drule infinity_lemma)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 Both are solved automatically:
-*}
+\<close>
 
  apply(auto dest: not_in_lfp_afD)
 done
 
-text{*
+text\<open>
 If you find these proofs too complicated, we recommend that you read
 \S\ref{sec:CTL-revisited}, where we show how inductive definitions lead to
 simpler arguments.
@@ -322,20 +322,20 @@ simpler arguments.
 The main theorem is proved as for PDL, except that we also derive the
 necessary equality @{text"lfp(af A) = ..."} by combining
 @{thm[source]AF_lemma1} and @{thm[source]AF_lemma2} on the spot:
-*}
+\<close>
 
 theorem "mc f = {s. s \<Turnstile> f}"
 apply(induct_tac f)
 apply(auto simp add: EF_lemma equalityI[OF AF_lemma1 AF_lemma2])
 done
 
-text{*
+text\<open>
 
 The language defined above is not quite CTL\@. The latter also includes an
 until-operator @{term"EU f g"} with semantics ``there \emph{E}xists a path
 where @{term f} is true \emph{U}ntil @{term g} becomes true''.  We need
 an auxiliary function:
-*}
+\<close>
 
 primrec
 until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> state list \<Rightarrow> bool" where
@@ -345,7 +345,7 @@ until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> sta
  eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set" where
 "eusem A B \<equiv> {s. \<exists>p. until A B s p}"(*>*)
 
-text{*\noindent
+text\<open>\noindent
 Expressing the semantics of @{term EU} is now straightforward:
 @{prop[display]"s \<Turnstile> EU f g = (\<exists>p. until {t. t \<Turnstile> f} {t. t \<Turnstile> g} s p)"}
 Note that @{term EU} is not definable in terms of the other operators!
@@ -362,7 +362,7 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
 For more CTL exercises see, for example, Huth and Ryan @{cite "Huth-Ryan-book"}.
-*}
+\<close>
 
 (*<*)
 definition eufix :: "state set \<Rightarrow> state set \<Rightarrow> state set \<Rightarrow> state set" where
@@ -435,7 +435,7 @@ done
 *)
 (*>*)
 
-text{* Let us close this section with a few words about the executability of
+text\<open>Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
 implemented. Only @{const lfp} requires a little thought.  Fortunately, theory
@@ -445,5 +445,5 @@ function~@{term F}, the value of \mbox{@{term"lfp F"}} can be computed by
 iterated application of @{term F} to~@{term"{}"} until a fixed point is
 reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
-\index{CTL|)} *}
+\index{CTL|)}\<close>
 (*<*)end(*>*)

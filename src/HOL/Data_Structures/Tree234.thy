@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* 2-3-4 Trees *}
+section \<open>2-3-4 Trees\<close>
 
 theory Tree234
 imports Main
@@ -36,7 +36,7 @@ instance ..
 
 end
 
-text{* Balanced: *}
+text\<open>Balanced:\<close>
 fun bal :: "'a tree234 \<Rightarrow> bool" where
 "bal Leaf = True" |
 "bal (Node2 l _ r) = (bal l & bal r & height l = height r)" |

@@ -1,8 +1,8 @@
 (*<*)theory Typedefs imports Main begin(*>*)
 
-section{*Introducing New Types*}
+section\<open>Introducing New Types\<close>
 
-text{*\label{sec:adv-typedef}
+text\<open>\label{sec:adv-typedef}
 For most applications, a combination of predefined types like @{typ bool} and
 @{text"\<Rightarrow>"} with recursive datatypes and records is quite sufficient. Very
 occasionally you may feel the need for a more advanced type.  If you
@@ -12,19 +12,19 @@ standard means, then read on.
   Types in HOL must be non-empty; otherwise the quantifier rules would be
   unsound, because $\exists x.\ x=x$ is a theorem.
 \end{warn}
-*}
+\<close>
 
-subsection{*Declaring New Types*}
+subsection\<open>Declaring New Types\<close>
 
-text{*\label{sec:typedecl}
+text\<open>\label{sec:typedecl}
 \index{types!declaring|(}%
 \index{typedecl@\isacommand {typedecl} (command)}%
 The most trivial way of introducing a new type is by a \textbf{type
-declaration}: *}
+declaration}:\<close>
 
 typedecl my_new_type
 
-text{*\noindent
+text\<open>\noindent
 This does not define @{typ my_new_type} at all but merely introduces its
 name. Thus we know nothing about this type, except that it is
 non-empty. Such declarations without definitions are
@@ -39,23 +39,23 @@ practice, however, the resulting clutter can make types hard to read.
 If you are looking for a quick and dirty way of introducing a new type
 together with its properties: declare the type and state its properties as
 axioms. Example:
-*}
+\<close>
 
 axiomatization where
 just_one: "\<exists>x::my_new_type. \<forall>y. x = y"
 
-text{*\noindent
+text\<open>\noindent
 However, we strongly discourage this approach, except at explorative stages
 of your development. It is extremely easy to write down contradictory sets of
 axioms, in which case you will be able to prove everything but it will mean
 nothing.  In the example above, the axiomatic approach is
 unnecessary: a one-element type called @{typ unit} is already defined in HOL.
 \index{types!declaring|)}
-*}
+\<close>
 
-subsection{*Defining New Types*}
+subsection\<open>Defining New Types\<close>
 
-text{*\label{sec:typedef}
+text\<open>\label{sec:typedef}
 \index{types!defining|(}%
 \index{typedecl@\isacommand {typedef} (command)|(}%
 Now we come to the most general means of safely introducing a new type, the
@@ -67,22 +67,22 @@ non-empty subset of an existing type.
 
 Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:
-*}
+\<close>
 
 typedef three = "{0::nat, 1, 2}"
 
-txt{*\noindent
+txt\<open>\noindent
 In order to enforce that the representing set on the right-hand side is
 non-empty, this definition actually starts a proof to that effect:
 @{subgoals[display,indent=0]}
 Fortunately, this is easy enough to show, even \isa{auto} could do it.
 In general, one has to provide a witness, in our case 0:
-*}
+\<close>
 
 apply(rule_tac x = 0 in exI)
 by simp
 
-text{*
+text\<open>
 This type definition introduces the new type @{typ three} and asserts
 that it is a copy of the set @{term"{0::nat,1,2}"}. This assertion
 is expressed via a bijection between the \emph{type} @{typ three} and the
@@ -125,13 +125,13 @@ two levels.
 \end{itemize}
 In our example it suffices to give the three elements of type @{typ three}
 names:
-*}
+\<close>
 
 definition A :: three where "A \<equiv> Abs_three 0"
 definition B :: three where "B \<equiv> Abs_three 1"
 definition C :: three where "C \<equiv> Abs_three 2"
 
-text{*
+text\<open>
 So far, everything was easy. But it is clear that reasoning about @{typ
 three} will be hell if we have to go back to @{typ nat} every time. Thus our
 aim must be to raise our level of abstraction by deriving enough theorems
@@ -169,45 +169,45 @@ replaced by the name of the type in question.
 Distinctness of @{term A}, @{term B} and @{term C} follows immediately
 if we expand their definitions and rewrite with the injectivity
 of @{term Abs_three}:
-*}
+\<close>
 
 lemma "A \<noteq> B \<and> B \<noteq> A \<and> A \<noteq> C \<and> C \<noteq> A \<and> B \<noteq> C \<and> C \<noteq> B"
 by(simp add: Abs_three_inject A_def B_def C_def)
 
-text{*\noindent
+text\<open>\noindent
 Of course we rely on the simplifier to solve goals like @{prop"(0::nat) \<noteq> 1"}.
 
 The fact that @{term A}, @{term B} and @{term C} exhaust type @{typ three} is
 best phrased as a case distinction theorem: if you want to prove @{prop"P x"}
 (where @{term x} is of type @{typ three}) it suffices to prove @{prop"P A"},
-@{prop"P B"} and @{prop"P C"}: *}
+@{prop"P B"} and @{prop"P C"}:\<close>
 
 lemma three_cases: "\<lbrakk> P A; P B; P C \<rbrakk> \<Longrightarrow> P x"
 
-txt{*\noindent Again this follows easily using the induction principle stemming from the type definition:*}
+txt\<open>\noindent Again this follows easily using the induction principle stemming from the type definition:\<close>
 
 apply(induct_tac x)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0]}
 Simplification leads to the disjunction @{prop"y
 = 0 \<or> y = 1 \<or> y = (2::nat)"} which \isa{auto} separates into three
-subgoals, each of which is easily solved by simplification: *}
+subgoals, each of which is easily solved by simplification:\<close>
 
 apply(auto simp add: A_def B_def C_def)
 done
 
-text{*\noindent
+text\<open>\noindent
 This concludes the derivation of the characteristic theorems for
 type @{typ three}.
 
 The attentive reader has realized long ago that the
 above lengthy definition can be collapsed into one line:
-*}
+\<close>
 
 datatype better_three = A | B | C
 
-text{*\noindent
+text\<open>\noindent
 In fact, the \isacommand{datatype} command performs internally more or less
 the same derivations as we did, which gives you some idea what life would be
 like without \isacommand{datatype}.
@@ -232,6 +232,6 @@ You can now forget about the representation and work solely in terms of the
 abstract functions $F$ and properties $P$.%
 \index{typedecl@\isacommand {typedef} (command)|)}%
 \index{types!defining|)}
-*}
+\<close>
 
 (*<*)end(*>*)

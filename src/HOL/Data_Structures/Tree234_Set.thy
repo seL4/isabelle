@@ -283,7 +283,7 @@ subsection \<open>Balancedness\<close>
 
 subsubsection "Proofs for insert"
 
-text{* First a standard proof that @{const ins} preserves @{const bal}. *}
+text\<open>First a standard proof that @{const ins} preserves @{const bal}.\<close>
 
 instantiation up\<^sub>i :: (type)height
 begin
@@ -300,8 +300,8 @@ lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> heigh
 by (induct t) (auto split!: if_split up\<^sub>i.split)
 
 
-text{* Now an alternative proof (by Brian Huffman) that runs faster because
-two properties (balance and height) are combined in one predicate. *}
+text\<open>Now an alternative proof (by Brian Huffman) that runs faster because
+two properties (balance and height) are combined in one predicate.\<close>
 
 inductive full :: "nat \<Rightarrow> 'a tree234 \<Rightarrow> bool" where
 "full 0 Leaf" |
@@ -348,11 +348,11 @@ lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
 lemma bal_iff_full: "bal t \<longleftrightarrow> (\<exists>n. full n t)"
   by (auto elim!: bal_imp_full full_imp_bal)
 
-text {* The @{const "insert"} function either preserves the height of the
+text \<open>The @{const "insert"} function either preserves the height of the
 tree, or increases it by one. The constructor returned by the @{term
 "insert"} function determines which: A return value of the form @{term
 "T\<^sub>i t"} indicates that the height will be the same. A value of the
-form @{term "Up\<^sub>i l p r"} indicates an increase in height. *}
+form @{term "Up\<^sub>i l p r"} indicates an increase in height.\<close>
 
 primrec full\<^sub>i :: "nat \<Rightarrow> 'a up\<^sub>i \<Rightarrow> bool" where
 "full\<^sub>i n (T\<^sub>i t) \<longleftrightarrow> full n t" |
@@ -361,7 +361,7 @@ primrec full\<^sub>i :: "nat \<Rightarrow> 'a up\<^sub>i \<Rightarrow> bool" whe
 lemma full\<^sub>i_ins: "full n t \<Longrightarrow> full\<^sub>i n (ins a t)"
 by (induct rule: full.induct) (auto, auto split: up\<^sub>i.split)
 
-text {* The @{const insert} operation preserves balance. *}
+text \<open>The @{const insert} operation preserves balance.\<close>
 
 lemma bal_insert: "bal t \<Longrightarrow> bal (insert a t)"
 unfolding bal_iff_full insert_def

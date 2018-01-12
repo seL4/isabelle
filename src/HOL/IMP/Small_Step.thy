@@ -23,7 +23,7 @@ abbreviation
   small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
 where "x \<rightarrow>* y == star small_step x y"
 
-subsection{* Executability *}
+subsection\<open>Executability\<close>
 
 code_pred small_step .
 
@@ -32,23 +32,23 @@ values "{(c',map t [''x'',''y'',''z'']) |c' t.
     <''x'' := 3, ''y'' := 7, ''z'' := 5>) \<rightarrow>* (c',t)}"
 
 
-subsection{* Proof infrastructure *}
+subsection\<open>Proof infrastructure\<close>
 
-subsubsection{* Induction rules *}
+subsubsection\<open>Induction rules\<close>
 
-text{* The default induction rule @{thm[source] small_step.induct} only works
+text\<open>The default induction rule @{thm[source] small_step.induct} only works
 for lemmas of the form @{text"a \<rightarrow> b \<Longrightarrow> \<dots>"} where @{text a} and @{text b} are
 not already pairs @{text"(DUMMY,DUMMY)"}. We can generate a suitable variant
 of @{thm[source] small_step.induct} for pairs by ``splitting'' the arguments
-@{text"\<rightarrow>"} into pairs: *}
+@{text"\<rightarrow>"} into pairs:\<close>
 lemmas small_step_induct = small_step.induct[split_format(complete)]
 
 
-subsubsection{* Proof automation *}
+subsubsection\<open>Proof automation\<close>
 
 declare small_step.intros[simp,intro]
 
-text{* Rule inversion: *}
+text\<open>Rule inversion:\<close>
 
 inductive_cases SkipE[elim!]: "(SKIP,s) \<rightarrow> ct"
 thm SkipE
@@ -60,7 +60,7 @@ inductive_cases IfE[elim!]: "(IF b THEN c1 ELSE c2,s) \<rightarrow> ct"
 inductive_cases WhileE[elim]: "(WHILE b DO c, s) \<rightarrow> ct"
 
 
-text{* A simple property: *}
+text\<open>A simple property:\<close>
 lemma deterministic:
   "cs \<rightarrow> cs' \<Longrightarrow> cs \<rightarrow> cs'' \<Longrightarrow> cs'' = cs'"
 apply(induction arbitrary: cs'' rule: small_step.induct)
@@ -83,8 +83,8 @@ lemma seq_comp:
    \<Longrightarrow> (c1;;c2, s1) \<rightarrow>* (SKIP,s3)"
 by(blast intro: star.step star_seq2 star_trans)
 
-text{* The following proof corresponds to one on the board where one would
-show chains of @{text "\<rightarrow>"} and @{text "\<rightarrow>*"} steps. *}
+text\<open>The following proof corresponds to one on the board where one would
+show chains of @{text "\<rightarrow>"} and @{text "\<rightarrow>*"} steps.\<close>
 
 lemma big_to_small:
   "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP,t)"
@@ -130,7 +130,7 @@ next
   ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,t)" by (metis star.simps)
 qed
 
-text{* Each case of the induction can be proved automatically: *}
+text\<open>Each case of the induction can be proved automatically:\<close>
 lemma  "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP,t)"
 proof (induction rule: big_step.induct)
   case Skip show ?case by blast
@@ -163,9 +163,9 @@ apply (induction cs "(SKIP,t)" rule: star.induct)
 apply (auto intro: small1_big_continue)
 done
 
-text {*
+text \<open>
   Finally, the equivalence theorem:
-*}
+\<close>
 theorem big_iff_small:
   "cs \<Rightarrow> t = cs \<rightarrow>* (SKIP,t)"
 by(metis big_to_small small_to_big)
@@ -184,16 +184,16 @@ done
 lemma final_iff_SKIP: "final (c,s) = (c = SKIP)"
 by (metis SkipE finalD final_def)
 
-text{* Now we can show that @{text"\<Rightarrow>"} yields a final state iff @{text"\<rightarrow>"}
-terminates: *}
+text\<open>Now we can show that @{text"\<Rightarrow>"} yields a final state iff @{text"\<rightarrow>"}
+terminates:\<close>
 
 lemma big_iff_small_termination:
   "(EX t. cs \<Rightarrow> t) \<longleftrightarrow> (EX cs'. cs \<rightarrow>* cs' \<and> final cs')"
 by(simp add: big_iff_small final_iff_SKIP)
 
-text{* This is the same as saying that the absence of a big step result is
+text\<open>This is the same as saying that the absence of a big step result is
 equivalent with absence of a terminating small step sequence, i.e.\ with
 nontermination.  Since @{text"\<rightarrow>"} is determininistic, there is no difference
-between may and must terminate. *}
+between may and must terminate.\<close>
 
 end

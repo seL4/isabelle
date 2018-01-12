@@ -3,16 +3,16 @@ theory Types_and_funs
 imports Main
 begin
 (*>*)
-text{*
+text\<open>
 \vspace{-5ex}
 \section{Type and Function Definitions}
 
 Type synonyms are abbreviations for existing types, for example
-\index{string@@{text string}}*}
+\index{string@@{text string}}\<close>
 
 type_synonym string = "char list"
 
-text{*
+text\<open>
 Type synonyms are expanded after parsing and are not present in internal representation and output. They are mere conveniences for the reader.
 
 \subsection{Datatypes}
@@ -54,22 +54,22 @@ with case expressions\index{case expression}\index{case expression@@{text "case 
 Case expressions must be enclosed in parentheses.
 
 As an example of a datatype beyond @{typ nat} and @{text list}, consider binary trees:
-*}
+\<close>
 
 datatype 'a tree = Tip | Node  "'a tree"  'a  "'a tree"
 
-text{* with a mirror function: *}
+text\<open>with a mirror function:\<close>
 
 fun mirror :: "'a tree \<Rightarrow> 'a tree" where
 "mirror Tip = Tip" |
 "mirror (Node l a r) = Node (mirror r) a (mirror l)"
 
-text{* The following lemma illustrates induction: *}
+text\<open>The following lemma illustrates induction:\<close>
 
 lemma "mirror(mirror t) = t"
 apply(induction t)
 
-txt{* yields
+txt\<open>yields
 @{subgoals[display]}
 The induction step contains two induction hypotheses, one for each subtree.
 An application of @{text auto} finishes the proof.
@@ -81,7 +81,7 @@ type @{typ 'a}. To make sure that @{const None} is distinct from all the
 elements of @{typ 'a}, you wrap them up in @{const Some} and call
 the new type @{typ"'a option"}. A typical application is a lookup function
 on a list of key-value pairs, often called an association list:
-*}
+\<close>
 (*<*)
 apply auto
 done
@@ -90,7 +90,7 @@ fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup [] x = None" |
 "lookup ((a,b) # ps) x = (if a = x then Some b else lookup ps x)"
 
-text{*
+text\<open>
 Note that @{text"\<tau>\<^sub>1 * \<tau>\<^sub>2"} is the type of pairs, also written @{text"\<tau>\<^sub>1 \<times> \<tau>\<^sub>2"}.
 Pairs can be taken apart either by pattern matching (as above) or with the
 projection functions @{const fst} and @{const snd}: @{thm fst_conv[of x y]} and @{thm snd_conv[of x y]}.
@@ -101,23 +101,23 @@ is short for @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^s
 \subsection{Definitions}
 
 Non-recursive functions can be defined as in the following example:
-\index{definition@\isacom{definition}}*}
+\index{definition@\isacom{definition}}\<close>
 
 definition sq :: "nat \<Rightarrow> nat" where
 "sq n = n * n"
 
-text{* Such definitions do not allow pattern matching but only
+text\<open>Such definitions do not allow pattern matching but only
 @{text"f x\<^sub>1 \<dots> x\<^sub>n = t"}, where @{text f} does not occur in @{text t}.
 
 \subsection{Abbreviations}
 
 Abbreviations are similar to definitions:
-\index{abbreviation@\isacom{abbreviation}}*}
+\index{abbreviation@\isacom{abbreviation}}\<close>
 
 abbreviation sq' :: "nat \<Rightarrow> nat" where
 "sq' n \<equiv> n * n"
 
-text{* The key difference is that @{const sq'} is only syntactic sugar:
+text\<open>The key difference is that @{const sq'} is only syntactic sugar:
 after parsing, @{term"sq' t"} is replaced by \mbox{@{term"t*t"}};
 before printing, every occurrence of @{term"u*u"} is replaced by
 \mbox{@{term"sq' u"}}.  Internally, @{const sq'} does not exist.
@@ -153,14 +153,14 @@ see~@{cite Krauss}.
 Functions defined with \isacom{fun} come with their own induction schema
 that mirrors the recursion schema and is derived from the termination
 order. For example,
-*}
+\<close>
 
 fun div2 :: "nat \<Rightarrow> nat" where
 "div2 0 = 0" |
 "div2 (Suc 0) = 0" |
 "div2 (Suc(Suc n)) = Suc(div2 n)"
 
-text{* does not just define @{const div2} but also proves a
+text\<open>does not just define @{const div2} but also proves a
 customized induction rule:
 \[
 \inferrule{
@@ -170,12 +170,12 @@ customized induction rule:
 {\mbox{@{thm (concl) div2.induct[of _ "m"]}}}
 \]
 This customized induction rule can simplify inductive proofs. For example,
-*}
+\<close>
 
 lemma "div2(n) = n div 2"
 apply(induction n rule: div2.induct)
 
-txt{* (where the infix @{text div} is the predefined division operation)
+txt\<open>(where the infix @{text div} is the predefined division operation)
 yields the subgoals
 @{subgoals[display,margin=65]}
 An application of @{text auto} finishes the proof.
@@ -260,7 +260,7 @@ because it calls append for each element of the list and
 append is linear in its first argument.  A linear time version of
 @{const rev} requires an extra argument where the result is accumulated
 gradually, using only~@{text"#"}:
-*}
+\<close>
 (*<*)
 apply auto
 done
@@ -269,7 +269,7 @@ fun itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "itrev []        ys = ys" |
 "itrev (x#xs) ys = itrev xs (x#ys)"
 
-text{* The behaviour of @{const itrev} is simple: it reverses
+text\<open>The behaviour of @{const itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and it returns that second argument when the first one becomes
 empty. Note that @{const itrev} is tail-recursive: it can be
@@ -277,17 +277,17 @@ compiled into a loop; no stack is necessary for executing it.
 
 Naturally, we would like to show that @{const itrev} does indeed reverse
 its first argument provided the second one is empty:
-*}
+\<close>
 
 lemma "itrev xs [] = rev xs"
 
-txt{* There is no choice as to the induction variable:
-*}
+txt\<open>There is no choice as to the induction variable:
+\<close>
 
 apply(induction xs)
 apply(auto)
 
-txt{*
+txt\<open>
 Unfortunately, this attempt does not prove
 the induction step:
 @{subgoals[display,margin=70]}
@@ -299,11 +299,11 @@ This example suggests a heuristic:
 \end{quote}
 Of course one cannot do this naively: @{prop"itrev xs ys = rev xs"} is
 just not true.  The correct generalization is
-*}
+\<close>
 (*<*)oops(*>*)
 lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induction xs, auto)(*>*)
-txt{*
+txt\<open>
 If @{text ys} is replaced by @{term"[]"}, the right-hand side simplifies to
 @{term"rev xs"}, as required.
 In this instance it was easy to guess the right generalization.
@@ -320,21 +320,21 @@ but the induction hypothesis needs to be applied with
 @{term"a # ys"} instead of @{text ys}. Hence we prove the theorem
 for all @{text ys} instead of a fixed one. We can instruct induction
 to perform this generalization for us by adding @{text "arbitrary: ys"}\index{arbitrary@@{text"arbitrary:"}}.
-*}
+\<close>
 (*<*)oops
 lemma "itrev xs ys = rev xs @ ys"
 (*>*)
 apply(induction xs arbitrary: ys)
 
-txt{* The induction hypothesis in the induction step is now universally quantified over @{text ys}:
+txt\<open>The induction hypothesis in the induction step is now universally quantified over @{text ys}:
 @{subgoals[display,margin=65]}
 Thus the proof succeeds:
-*}
+\<close>
 
 apply auto
 done
 
-text{*
+text\<open>
 This leads to another heuristic for generalization:
 \begin{quote}
 \emph{Generalize induction by generalizing all free
@@ -547,7 +547,7 @@ any information, neither in the inner nodes nor in the leaves.
 Define a function @{text "nodes :: tree0 \<Rightarrow> nat"} that counts the number of
 all nodes (inner nodes and leaves) in such a tree.
 Consider the following recursive function:
-*}
+\<close>
 (*<*)
 datatype tree0 = Tip | Node tree0 tree0
 (*>*)
@@ -555,7 +555,7 @@ fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
 "explode 0 t = t" |
 "explode (Suc n) t = explode n (Node t t)"
 
-text {*
+text \<open>
 Find an equation expressing the size of a tree after exploding it
 (\noquotes{@{term [source] "nodes (explode n t)"}}) as a function
 of @{term "nodes t"} and @{text n}. Prove your equation.
@@ -569,11 +569,11 @@ takes care of common algebraic properties of the arithmetic operators.
 \exercise
 Define arithmetic expressions in one variable over integers (type @{typ int})
 as a data type:
-*}
+\<close>
 
 datatype exp = Var | Const int | Add exp exp | Mult exp exp
 
-text{*
+text\<open>
 Define a function \noquotes{@{term [source]"eval :: exp \<Rightarrow> int \<Rightarrow> int"}}
 such that @{term"eval e x"} evaluates @{text e} at the value
 @{text x}.
@@ -589,7 +589,7 @@ functions. Prove that @{text coeffs} preserves the value of the expression:
 \mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
 Hint: consider the hint in Exercise~\ref{exe:tree0}.
 \endexercise
-*}
+\<close>
 (*<*)
 end
 (*>*)

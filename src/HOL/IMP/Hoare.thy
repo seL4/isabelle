@@ -47,10 +47,10 @@ lemma weaken_post:
   "\<lbrakk> \<turnstile> {P} c {Q};  \<forall>s. Q s \<longrightarrow> Q' s \<rbrakk> \<Longrightarrow>  \<turnstile> {P} c {Q'}"
 by (blast intro: conseq)
 
-text{* The assignment and While rule are awkward to use in actual proofs
+text\<open>The assignment and While rule are awkward to use in actual proofs
 because their pre and postcondition are of a very special form and the actual
 goal would have to match this form exactly. Therefore we derive two variants
-with arbitrary pre and postconditions. *}
+with arbitrary pre and postconditions.\<close>
 
 lemma Assign': "\<forall>s. P s \<longrightarrow> Q(s[a/x]) \<Longrightarrow> \<turnstile> {P} x ::= a {Q}"
 by (simp add: strengthen_pre[OF _ Assign])

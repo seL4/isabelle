@@ -6,11 +6,11 @@ begin
 ML_file "../antiquote_setup.ML"
 (*>*)
 
-chapter {* Some Isar language elements *}
+chapter \<open>Some Isar language elements\<close>
 
-section {* Type checking *}
+section \<open>Type checking\<close>
 
-text {*
+text \<open>
   The ZF logic is essentially untyped, so the concept of ``type
   checking'' is performed as logical reasoning about set-membership
   statements.  A special method assists users in this task; a version
@@ -39,14 +39,14 @@ text {*
   the context.
 
   \end{description}
-*}
+\<close>
 
 
-section {* (Co)Inductive sets and datatypes *}
+section \<open>(Co)Inductive sets and datatypes\<close>
 
-subsection {* Set definitions *}
+subsection \<open>Set definitions\<close>
 
-text {*
+text \<open>
   In ZF everything is a set.  The generic inductive package also
   provides a specific view for ``datatype'' specifications.
   Coinductive definitions are available in both cases, too.
@@ -97,12 +97,12 @@ text {*
   See @{cite "isabelle-ZF"} for further information on inductive
   definitions in ZF, but note that this covers the old-style theory
   format.
-*}
+\<close>
 
 
-subsection {* Primitive recursive functions *}
+subsection \<open>Primitive recursive functions\<close>
 
-text {*
+text \<open>
   \begin{matharray}{rcl}
     @{command_def (ZF) "primrec"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
@@ -110,12 +110,12 @@ text {*
   @{rail \<open>
     @@{command (ZF) primrec} (@{syntax thmdecl}? @{syntax prop} +)
   \<close>}
-*}
+\<close>
 
 
-subsection {* Cases and induction: emulating tactic scripts *}
+subsection \<open>Cases and induction: emulating tactic scripts\<close>
 
-text {*
+text \<open>
   The following important tactical tools of Isabelle/ZF have been
   ported to Isar.  These should not be used in proper proof texts.
 
@@ -133,6 +133,6 @@ text {*
     ;
     @@{command (ZF) inductive_cases} (@{syntax thmdecl}? (@{syntax prop} +) + @'and')
   \<close>}
-*}
+\<close>
 
 end

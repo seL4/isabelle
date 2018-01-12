@@ -2,7 +2,7 @@
 theory prime_def imports Main begin
 consts prime :: "nat \<Rightarrow> bool"
 (*>*)
-text{*
+text\<open>
 \begin{warn}
 A common mistake when writing definitions is to introduce extra free
 variables on the right-hand side.  Consider the following, flawed definition
@@ -14,7 +14,7 @@ right-hand side, which would introduce an inconsistency (why?).
 The correct version is
 @{term[display,quotes]"prime(p) == 1 < p & (!m. m dvd p --> (m=1 | m=p))"}
 \end{warn}
-*}
+\<close>
 (*<*)
 end
 (*>*)

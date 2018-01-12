@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Implementing Ordered Sets *}
+section \<open>Implementing Ordered Sets\<close>
 
 theory Set_by_Ordered
 imports List_Ins_Del

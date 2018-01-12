@@ -3,7 +3,7 @@ theory How_to_Prove_it
 imports Complex_Main
 begin
 (*>*)
-text{*
+text\<open>
 \chapter{@{theory Main}}
 
 \section{Natural numbers}
@@ -34,12 +34,12 @@ Solution: simplify with the lemma @{thm[source] numeral_eq_Suc}.
 
 \noindent
 Example:
-*}
+\<close>
 
 lemma fixes x :: int shows "x ^ 3 = x * x * x"
 by (simp add: numeral_eq_Suc)
 
-text{* This is a typical situation: function ``@{text"^"}'' is defined
+text\<open>This is a typical situation: function ``@{text"^"}'' is defined
 by pattern matching on @{const Suc} but is applied to a numeral.
 
 Note: simplification with @{thm[source] numeral_eq_Suc} will convert all numerals.
@@ -80,7 +80,7 @@ handle full linear arithmetic (on @{typ nat}, @{typ int} including quantifiers).
 But what to do when proper multiplication is involved?
 At this point it can be helpful to simplify with the lemma list
 @{thm [source] algebra_simps}. Examples:
-*}
+\<close>
 
 lemma fixes x :: int
   shows "(x + y) * (y - z) = (y - z) * x + y * (y-z)"
@@ -90,7 +90,7 @@ lemma fixes x :: "'a :: comm_ring"
   shows "(x + y) * (y - z) = (y - z) * x + y * (y-z)"
 by(simp add: algebra_simps)
 
-text{*
+text\<open>
 Rewriting with @{thm[source] algebra_simps} has the following effect:
 terms are rewritten into a normal form by multiplying out,
 rearranging sums and products into some canonical order.
@@ -101,33 +101,33 @@ This works for concrete types like @{typ int} as well as for classes like
 and @{class comm_ring}) this yields a decision procedure for equality.
 
 Additional function and predicate symbols are not a problem either:
-*}
+\<close>
 
 lemma fixes f :: "int \<Rightarrow> int" shows "2 * f(x*y) - f(y*x) < f(y*x) + 1"
 by(simp add: algebra_simps)
 
-text{* Here @{thm[source]algebra_simps} merely has the effect of rewriting
+text\<open>Here @{thm[source]algebra_simps} merely has the effect of rewriting
 @{term"y*x"} to @{term"x*y"} (or the other way around). This yields
 a problem of the form @{prop"2*t - t < t + (1::int)"} and we are back in the
 realm of linear arithmetic.
 
 Because @{thm[source]algebra_simps} multiplies out, terms can explode.
 If one merely wants to bring sums or products into a canonical order
-it suffices to rewrite with @{thm [source] ac_simps}: *}
+it suffices to rewrite with @{thm [source] ac_simps}:\<close>
 
 lemma fixes f :: "int \<Rightarrow> int" shows "f(x*y*z) - f(z*x*y) = 0"
 by(simp add: ac_simps)
 
-text{* The lemmas @{thm[source]algebra_simps} take care of addition, subtraction
+text\<open>The lemmas @{thm[source]algebra_simps} take care of addition, subtraction
 and multiplication (algebraic structures up to rings) but ignore division (fields).
 The lemmas @{thm[source]field_simps} also deal with division:
-*}
+\<close>
 
 lemma fixes x :: real shows "x+z \<noteq> 0 \<Longrightarrow> 1 + y/(x+z) = (x+y+z)/(x+z)"
 by(simp add: field_simps)
 
-text{* Warning: @{thm[source]field_simps} can blow up your terms
-beyond recognition. *}
+text\<open>Warning: @{thm[source]field_simps} can blow up your terms
+beyond recognition.\<close>
 
 (*<*)
 end

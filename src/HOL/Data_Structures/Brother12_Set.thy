@@ -234,7 +234,7 @@ done
 lemma Bp_if_B: "t \<in> B h \<Longrightarrow> t \<in> Bp h"
 by (cases h rule: Bp.cases) simp_all
 
-text{* An automatic proof: *}
+text\<open>An automatic proof:\<close>
 
 lemma
   "(t \<in> B h \<longrightarrow> ins x t \<in> Bp h) \<and> (t \<in> U h \<longrightarrow> ins x t \<in> T h)"
@@ -243,7 +243,7 @@ apply(induction h arbitrary: t)
 apply (fastforce simp: Bp_if_B n2_type dest: n1_type)
 done
 
-text{* A detailed proof: *}
+text\<open>A detailed proof:\<close>
 
 lemma ins_type:
 shows "t \<in> B h \<Longrightarrow> ins x t \<in> Bp h" and "t \<in> U h \<Longrightarrow> ins x t \<in> T h"
@@ -269,7 +269,7 @@ next
         hence 1: "t1 \<in> U h" and 2: "t2 \<in> B h" using t1 t12 by auto
         show ?thesis by (metis Suc.IH(2)[OF 1] Bp_if_B[OF 2] n2_type)
       qed
-      with `x < a` show ?case by simp
+      with \<open>x < a\<close> show ?case by simp
     qed
     moreover
     have ?case if "a < x"
@@ -283,13 +283,13 @@ next
         hence 1: "t1 \<in> B h" and 2: "t2 \<in> U h" using t2 t12 by auto
         show ?thesis by (metis Bp_if_B[OF 1] Suc.IH(2)[OF 2] n2_type)
       qed
-      with `a < x` show ?case by simp
+      with \<open>a < x\<close> show ?case by simp
     qed
     moreover
     have ?case if "x = a"
     proof -
       from 1 have "t \<in> Bp (Suc h)" by(rule Bp_if_B)
-      thus "?case" using `x = a` by simp
+      thus "?case" using \<open>x = a\<close> by simp
     qed
     ultimately show ?case by auto
   next
@@ -404,24 +404,24 @@ proof (induction h arbitrary: x t)
     proof cases
       assume "l \<in> B h"
       from n2_type3[OF Suc.IH(1)[OF this] lr(2)]
-      show ?thesis using `x<a` by(simp)
+      show ?thesis using \<open>x<a\<close> by(simp)
     next
       assume "l \<notin> B h"
       hence "l \<in> U h" "r \<in> B h" using lr by auto
       from n2_type1[OF Suc.IH(2)[OF this(1)] this(2)]
-      show ?thesis using `x<a` by(simp)
+      show ?thesis using \<open>x<a\<close> by(simp)
     qed
     moreover
     have ?case if "x > a"
     proof cases
       assume "r \<in> B h"
       from n2_type3[OF lr(1) Suc.IH(1)[OF this]]
-      show ?thesis using `x>a` by(simp)
+      show ?thesis using \<open>x>a\<close> by(simp)
     next
       assume "r \<notin> B h"
       hence "l \<in> B h" "r \<in> U h" using lr by auto
       from n2_type2[OF this(1) Suc.IH(2)[OF this(2)]]
-      show ?thesis using `x>a` by(simp)
+      show ?thesis using \<open>x>a\<close> by(simp)
     qed
     moreover
     have ?case if [simp]: "x=a"

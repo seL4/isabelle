@@ -3,7 +3,7 @@ theory Fundata imports Main begin
 (*>*)
 datatype (dead 'a,'i) bigtree = Tip | Br 'a "'i \<Rightarrow> ('a,'i)bigtree"
 
-text{*\noindent
+text\<open>\noindent
 Parameter @{typ"'a"} is the type of values stored in
 the @{term Br}anches of the tree, whereas @{typ"'i"} is the index
 type over which the tree branches. If @{typ"'i"} is instantiated to
@@ -17,14 +17,14 @@ root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely @{term"Tip"}s as further subtrees.
 
 Function @{term"map_bt"} applies a function to all labels in a @{text"bigtree"}:
-*}
+\<close>
 
 primrec map_bt :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a,'i)bigtree \<Rightarrow> ('b,'i)bigtree"
 where
 "map_bt f Tip      = Tip" |
 "map_bt f (Br a F) = Br (f a) (\<lambda>i. map_bt f (F i))"
 
-text{*\noindent This is a valid \isacommand{primrec} definition because the
+text\<open>\noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of @{term"map_bt"} involve only subtrees of
 @{term"F"}, which is itself a subterm of the left-hand side. Thus termination
 is assured.  The seasoned functional programmer might try expressing
@@ -32,18 +32,18 @@ is assured.  The seasoned functional programmer might try expressing
 however will reject.  Applying @{term"map_bt"} to only one of its arguments
 makes the termination proof less obvious.
 
-The following lemma has a simple proof by induction:  *}
+The following lemma has a simple proof by induction:\<close>
 
 lemma "map_bt (g o f) T = map_bt g (map_bt f T)"
 apply(induct_tac T, simp_all)
 done
 (*<*)lemma "map_bt (g o f) T = map_bt g (map_bt f T)"
 apply(induct_tac T, rename_tac[2] F)(*>*)
-txt{*\noindent
+txt\<open>\noindent
 Because of the function type, the proof state after induction looks unusual.
 Notice the quantified induction hypothesis:
 @{subgoals[display,indent=0]}
-*}
+\<close>
 (*<*)
 oops
 end

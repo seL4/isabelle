@@ -3,57 +3,57 @@ theory Relations imports Main begin
 (*Id is only used in UNITY*)
 (*refl, antisym,trans,univalent,\<dots> ho hum*)
 
-text{*
+text\<open>
 @{thm[display] Id_def[no_vars]}
 \rulename{Id_def}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] relcomp_unfold[no_vars]}
 \rulename{relcomp_unfold}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] R_O_Id[no_vars]}
 \rulename{R_O_Id}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] relcomp_mono[no_vars]}
 \rulename{relcomp_mono}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] converse_iff[no_vars]}
 \rulename{converse_iff}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] converse_relcomp[no_vars]}
 \rulename{converse_relcomp}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] Image_iff[no_vars]}
 \rulename{Image_iff}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] Image_UN[no_vars]}
 \rulename{Image_UN}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] Domain_iff[no_vars]}
 \rulename{Domain_iff}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] Range_iff[no_vars]}
 \rulename{Range_iff}
-*}
+\<close>
 
-text{*
+text\<open>
 @{thm[display] relpow.simps[no_vars]}
 \rulename{relpow.simps}
 
@@ -83,15 +83,15 @@ text{*
 
 @{thm[display] trancl_converse[no_vars]}
 \rulename{trancl_converse}
-*}
+\<close>
 
-text{*Relations.  transitive closure*}
+text\<open>Relations.  transitive closure\<close>
 
 lemma rtrancl_converseD: "(x,y) \<in> (r\<inverse>)\<^sup>* \<Longrightarrow> (y,x) \<in> r\<^sup>*"
 apply (erule rtrancl_induct)
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
  apply (rule rtrancl_refl)
 apply (blast intro: rtrancl_trans)
 done
@@ -108,44 +108,44 @@ by (auto intro: rtrancl_converseI dest: rtrancl_converseD)
 
 lemma rtrancl_converse: "(r\<inverse>)\<^sup>* = (r\<^sup>*)\<inverse>"
 apply (intro equalityI subsetI)
-txt{*
+txt\<open>
 after intro rules
 
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply clarify
-txt{*
+txt\<open>
 after splitting
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 oops
 
 
 lemma "(\<forall>u v. (u,v) \<in> A \<longrightarrow> u=v) \<Longrightarrow> A \<subseteq> Id"
 apply (rule subsetI)
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 after subsetI
-*}
+\<close>
 apply clarify
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 subgoals after clarify
-*}
+\<close>
 by blast
 
 
 
 
-text{*rejects*}
+text\<open>rejects\<close>
 
 lemma "(a \<in> {z. P z} \<union> {y. Q y}) = P a \<or> Q a"
 apply (blast)
 done
 
-text{*Pow, Inter too little used*}
+text\<open>Pow, Inter too little used\<close>
 
 lemma "(A \<subset> B) = (A \<subseteq> B \<and> A \<noteq> B)"
 apply (simp add: psubset_eq)

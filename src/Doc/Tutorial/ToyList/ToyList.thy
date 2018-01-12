@@ -2,12 +2,12 @@ theory ToyList
 imports Main
 begin
 
-text{*\noindent
+text\<open>\noindent
 HOL already has a predefined theory of lists called @{text List} ---
 @{text ToyList} is merely a small fragment of it chosen as an example.
 To avoid some ambiguities caused by defining lists twice, we manipulate
 the concrete syntax and name space of theory @{theory Main} as follows.
-*}
+\<close>
 
 no_notation Nil ("[]") and Cons (infixr "#" 65) and append (infixr "@" 65)
 hide_type list
@@ -16,7 +16,7 @@ hide_const rev
 datatype 'a list = Nil                          ("[]")
                  | Cons 'a "'a list"            (infixr "#" 65)
 
-text{*\noindent
+text\<open>\noindent
 The datatype\index{datatype@\isacommand {datatype} (command)}
 \tydx{list} introduces two
 constructors \cdx{Nil} and \cdx{Cons}, the
@@ -45,7 +45,7 @@ The @{text 65} is the priority of the infix @{text"#"}.
 \end{warn}
 Next, two functions @{text"app"} and \cdx{rev} are defined recursively,
 in this order, because Isabelle insists on definition before use:
-*}
+\<close>
 
 primrec app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
 "[] @ ys       = ys" |
@@ -55,7 +55,7 @@ primrec rev :: "'a list \<Rightarrow> 'a list" where
 "rev []        = []" |
 "rev (x # xs)  = (rev xs) @ (x # [])"
 
-text{*\noindent
+text\<open>\noindent
 Each function definition is of the form
 \begin{center}
 \isacommand{primrec} \textit{name} @{text"::"} \textit{type} \textit{(optional syntax)} \isakeyword{where} \textit{equations}
@@ -116,17 +116,17 @@ Assuming you have processed the declarations and definitions of
 \texttt{ToyList} presented so far, you may want to test your
 functions by running them. For example, what is the value of
 @{term"rev(True#False#[])"}? Command
-*}
+\<close>
 
 value "rev (True # False # [])"
 
-text{* \noindent yields the correct result @{term"False # True # []"}.
+text\<open>\noindent yields the correct result @{term"False # True # []"}.
 But we can go beyond mere functional programming and evaluate terms with
-variables in them, executing functions symbolically: *}
+variables in them, executing functions symbolically:\<close>
 
 value "rev (a # b # c # [])"
 
-text{*\noindent yields @{term"c # b # a # []"}.
+text\<open>\noindent yields @{term"c # b # a # []"}.
 
 \section{An Introductory Proof}
 \label{sec:intro-proof}
@@ -140,11 +140,11 @@ also the typical proof process.
 
 Our goal is to show that reversing a list twice produces the original
 list.
-*}
+\<close>
 
 theorem rev_rev [simp]: "rev(rev xs) = xs"
 
-txt{*\index{theorem@\isacommand {theorem} (command)|bold}%
+txt\<open>\index{theorem@\isacommand {theorem} (command)|bold}%
 \noindent
 This \isacommand{theorem} command does several things:
 \begin{itemize}
@@ -179,11 +179,11 @@ set the flag \isa{Proof.show_main_goal}\index{*show_main_goal (flag)}
 Let us now get back to @{prop"rev(rev xs) = xs"}. Properties of recursively
 defined functions are best established by induction. In this case there is
 nothing obvious except induction on @{term"xs"}:
-*}
+\<close>
 
 apply(induct_tac xs)
 
-txt{*\noindent\index{*induct_tac (method)}%
+txt\<open>\noindent\index{*induct_tac (method)}%
 This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
 @{term"tac"} stands for \textbf{tactic},\index{tactics}
 a synonym for ``theorem proving function''.
@@ -211,11 +211,11 @@ are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymrbrakk}{$Isabrr} and separated by semicolons.
 
 Let us try to solve both goals automatically:
-*}
+\<close>
 
 apply(auto)
 
-txt{*\noindent
+txt\<open>\noindent
 This command tells Isabelle to apply a proof strategy called
 @{text"auto"} to all subgoals. Essentially, @{text"auto"} tries to
 simplify the subgoals.  In our case, subgoal~1 is solved completely (thanks
@@ -223,22 +223,22 @@ to the equation @{prop"rev [] = []"}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 @{subgoals[display,indent=0,margin=70]}
 In order to simplify this subgoal further, a lemma suggests itself.
-*}
+\<close>
 (*<*)
 oops
 (*>*)
 
-subsubsection{*First Lemma*}
+subsubsection\<open>First Lemma\<close>
 
-text{*
+text\<open>
 \indexbold{abandoning a proof}\indexbold{proofs!abandoning}
 After abandoning the above proof attempt (at the shell level type
 \commdx{oops}) we start a new proof:
-*}
+\<close>
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)"
 
-txt{*\noindent The keywords \commdx{theorem} and
+txt\<open>\noindent The keywords \commdx{theorem} and
 \commdx{lemma} are interchangeable and merely indicate
 the importance we attach to a proposition.  Therefore we use the words
 \emph{theorem} and \emph{lemma} pretty much interchangeably, too.
@@ -246,46 +246,46 @@ the importance we attach to a proposition.  Therefore we use the words
 There are two variables that we could induct on: @{term"xs"} and
 @{term"ys"}. Because @{text"@"} is defined by recursion on
 the first argument, @{term"xs"} is the correct one:
-*}
+\<close>
 
 apply(induct_tac xs)
 
-txt{*\noindent
+txt\<open>\noindent
 This time not even the base case is solved automatically:
-*}
+\<close>
 
 apply(auto)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,goals_limit=1]}
 Again, we need to abandon this proof attempt and prove another simple lemma
 first. In the future the step of abandoning an incomplete proof before
 embarking on the proof of a lemma usually remains implicit.
-*}
+\<close>
 (*<*)
 oops
 (*>*)
 
-subsubsection{*Second Lemma*}
+subsubsection\<open>Second Lemma\<close>
 
-text{*
+text\<open>
 We again try the canonical proof procedure:
-*}
+\<close>
 
 lemma app_Nil2 [simp]: "xs @ [] = xs"
 apply(induct_tac xs)
 apply(auto)
 
-txt{*
+txt\<open>
 \noindent
 It works, yielding the desired message @{text"No subgoals!"}:
 @{goals[display,indent=0]}
 We still need to confirm that the proof is now finished:
-*}
+\<close>
 
 done
 
-text{*\noindent
+text\<open>\noindent
 As a result of that final \commdx{done}, Isabelle associates the lemma just proved
 with its name. In this tutorial, we sometimes omit to show that final \isacommand{done}
 if it is obvious from the context that the proof is finished.
@@ -298,13 +298,13 @@ replaced by the unknown @{text"?xs"}, just as explained in
 \S\ref{sec:variables}.
 
 Going back to the proof of the first lemma
-*}
+\<close>
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)"
 apply(induct_tac xs)
 apply(auto)
 
-txt{*
+txt\<open>
 \noindent
 we find that this time @{text"auto"} solves the base case, but the
 induction step merely simplifies to
@@ -316,44 +316,44 @@ in their \isacommand{infixr} annotation). Thus the conclusion really is
 ~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))
 \end{isabelle}
 and the missing lemma is associativity of @{text"@"}.
-*}
+\<close>
 (*<*)oops(*>*)
 
-subsubsection{*Third Lemma*}
+subsubsection\<open>Third Lemma\<close>
 
-text{*
+text\<open>
 Abandoning the previous attempt, the canonical proof procedure
 succeeds without further ado.
-*}
+\<close>
 
 lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
 apply(induct_tac xs)
 apply(auto)
 done
 
-text{*
+text\<open>
 \noindent
 Now we can prove the first lemma:
-*}
+\<close>
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)"
 apply(induct_tac xs)
 apply(auto)
 done
 
-text{*\noindent
+text\<open>\noindent
 Finally, we prove our main theorem:
-*}
+\<close>
 
 theorem rev_rev [simp]: "rev(rev xs) = xs"
 apply(induct_tac xs)
 apply(auto)
 done
 
-text{*\noindent
+text\<open>\noindent
 The final \commdx{end} tells Isabelle to close the current theory because
 we are finished with its development:%
 \index{*rev (constant)|)}\index{append function|)}
-*}
+\<close>
 
 end

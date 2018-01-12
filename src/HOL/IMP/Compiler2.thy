@@ -4,16 +4,16 @@ theory Compiler2
 imports Compiler
 begin
 
-text {*
+text \<open>
 The preservation of the source code semantics is already shown in the 
 parent theory @{theory Compiler}. This here shows the second direction.
-*}
+\<close>
 
-section {* Compiler Correctness, Reverse Direction *}
+section \<open>Compiler Correctness, Reverse Direction\<close>
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
-text {* Execution in @{term n} steps for simpler induction *}
+text \<open>Execution in @{term n} steps for simpler induction\<close>
 primrec 
   exec_n :: "instr list \<Rightarrow> config \<Rightarrow> nat \<Rightarrow> config \<Rightarrow> bool" 
   ("_/ \<turnstile> (_ \<rightarrow>^_/ _)" [65,0,1000,55] 55)
@@ -21,26 +21,26 @@ where
   "P \<turnstile> c \<rightarrow>^0 c' = (c'=c)" |
   "P \<turnstile> c \<rightarrow>^(Suc n) c'' = (\<exists>c'. (P \<turnstile> c \<rightarrow> c') \<and> P \<turnstile> c' \<rightarrow>^n c'')"
 
-text {* The possible successor PCs of an instruction at position @{term n} *}
-text_raw{*\snip{isuccsdef}{0}{1}{% *}
+text \<open>The possible successor PCs of an instruction at position @{term n}\<close>
+text_raw\<open>\snip{isuccsdef}{0}{1}{%\<close>
 definition isuccs :: "instr \<Rightarrow> int \<Rightarrow> int set" where
 "isuccs i n = (case i of
   JMP j \<Rightarrow> {n + 1 + j} |
   JMPLESS j \<Rightarrow> {n + 1 + j, n + 1} |
   JMPGE j \<Rightarrow> {n + 1 + j, n + 1} |
   _ \<Rightarrow> {n +1})"
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
-text {* The possible successors PCs of an instruction list *}
+text \<open>The possible successors PCs of an instruction list\<close>
 definition succs :: "instr list \<Rightarrow> int \<Rightarrow> int set" where
 "succs P n = {s. \<exists>i::int. 0 \<le> i \<and> i < size P \<and> s \<in> isuccs (P!!i) (n+i)}" 
 
-text {* Possible exit PCs of a program *}
+text \<open>Possible exit PCs of a program\<close>
 definition exits :: "instr list \<Rightarrow> int set" where
 "exits P = succs P 0 - {0..< size P}"
 
   
-subsection {* Basic properties of @{term exec_n} *}
+subsection \<open>Basic properties of @{term exec_n}\<close>
 
 lemma exec_n_exec:
   "P \<turnstile> c \<rightarrow>^n c' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c'"
@@ -69,7 +69,7 @@ lemma exec1_exec_n [intro!]:
   by (cases c') simp
 
 
-subsection {* Concrete symbolic execution steps *}
+subsection \<open>Concrete symbolic execution steps\<close>
 
 lemma exec_n_step:
   "n \<noteq> n' \<Longrightarrow> 
@@ -89,7 +89,7 @@ lemma exec_n_end:
 lemmas exec_n_simps = exec_n_step exec_n_end
 
 
-subsection {* Basic properties of @{term succs} *}
+subsection \<open>Basic properties of @{term succs}\<close>
 
 lemma succs_simps [simp]: 
   "succs [ADD] n = {n + 1}"
@@ -261,7 +261,7 @@ lemma ccomp_exitsD [dest!]:
   using ccomp_exits by auto
 
 
-subsection {* Splitting up machine executions *}
+subsection \<open>Splitting up machine executions\<close>
 
 lemma exec1_split:
   fixes i j :: int
@@ -333,9 +333,9 @@ lemma exec_n_drop_right:
      (auto dest: exec_n_split [where P="[]", simplified])
   
 
-text {*
+text \<open>
   Dropping the left context of a potentially incomplete execution of @{term c}.
-*}
+\<close>
 
 lemma exec1_drop_left:
   fixes i n :: int
@@ -366,14 +366,14 @@ next
     step: "P @ P' \<turnstile> (i, s, stk) \<rightarrow> (i', s'', stk'')" and
     rest: "P @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^k (n, s', stk')"
     by auto
-  from step `size P \<le> i`
+  from step \<open>size P \<le> i\<close>
   have *: "P' \<turnstile> (i - size P, s, stk) \<rightarrow> (i' - size P, s'', stk'')" 
     by (rule exec1_drop_left)
   then have "i' - size P \<in> succs P' 0"
     by (fastforce dest!: succs_iexec1 simp: exec1_def simp del: iexec.simps)
-  with `exits P' \<subseteq> {0..}`
+  with \<open>exits P' \<subseteq> {0..}\<close>
   have "size P \<le> i'" by (auto simp: exits_def)
-  from rest this `exits P' \<subseteq> {0..}`     
+  from rest this \<open>exits P' \<subseteq> {0..}\<close>     
   have "P' \<turnstile> (i' - size P, s'', stk'') \<rightarrow>^k (n - size P, s', stk')"
     by (rule Suc.IH)
   with * show ?case by auto
@@ -420,7 +420,7 @@ next
 qed
 
 
-subsection {* Correctness theorem *}
+subsection \<open>Correctness theorem\<close>
 
 lemma acomp_neq_Nil [simp]:
   "acomp a \<noteq> []"
@@ -522,7 +522,7 @@ next
   let ?cs = "ccomp ?if"
   let ?bcomp = "bcomp b False (size (ccomp c1) + 1)"
   
-  from `?cs \<turnstile> (0,s,stk) \<rightarrow>^n (size ?cs,t,stk')`
+  from \<open>?cs \<turnstile> (0,s,stk) \<rightarrow>^n (size ?cs,t,stk')\<close>
   obtain i' :: int and k m s'' stk'' where
     cs: "?cs \<turnstile> (i',s'',stk'') \<rightarrow>^m (size ?cs,t,stk')" and
         "?bcomp \<turnstile> (0,s,stk) \<rightarrow>^k (i', s'', stk'')" 

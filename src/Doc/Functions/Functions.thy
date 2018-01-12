@@ -1095,11 +1095,11 @@ proof
   let ?R = "measure (\<lambda>x. 101 - x)"
   show "wf ?R" ..
 
-  fix n :: nat assume "\<not> 100 < n" -- "Assumptions for both calls"
+  fix n :: nat assume "\<not> 100 < n" \<comment> "Assumptions for both calls"
 
-  thus "(n + 11, n) \<in> ?R" by simp -- "Inner call"
+  thus "(n + 11, n) \<in> ?R" by simp \<comment> "Inner call"
 
-  assume inner_trm: "f91_dom (n + 11)" -- "Outer call"
+  assume inner_trm: "f91_dom (n + 11)" \<comment> "Outer call"
   with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
   with \<open>\<not> 100 < n\<close> show "(f91 (n + 11), n) \<in> ?R" by simp
 qed

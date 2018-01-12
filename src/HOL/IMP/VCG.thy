@@ -4,8 +4,8 @@ theory VCG imports Hoare begin
 
 subsection "Verification Conditions"
 
-text{* Annotated commands: commands where loops are annotated with
-invariants. *}
+text\<open>Annotated commands: commands where loops are annotated with
+invariants.\<close>
 
 datatype acom =
   Askip                  ("SKIP") |
@@ -16,7 +16,7 @@ datatype acom =
 
 notation com.SKIP ("SKIP")
 
-text{* Strip annotations: *}
+text\<open>Strip annotations:\<close>
 
 fun strip :: "acom \<Rightarrow> com" where
 "strip SKIP = SKIP" |
@@ -25,7 +25,7 @@ fun strip :: "acom \<Rightarrow> com" where
 "strip (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = (IF b THEN strip C\<^sub>1 ELSE strip C\<^sub>2)" |
 "strip ({_} WHILE b DO C) = (WHILE b DO strip C)"
 
-text{* Weakest precondition from annotated commands: *}
+text\<open>Weakest precondition from annotated commands:\<close>
 
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre SKIP Q = Q" |
@@ -35,7 +35,7 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
   (\<lambda>s. if bval b s then pre C\<^sub>1 Q s else pre C\<^sub>2 Q s)" |
 "pre ({I} WHILE b DO C) Q = I"
 
-text{* Verification condition: *}
+text\<open>Verification condition:\<close>
 
 fun vc :: "acom \<Rightarrow> assn \<Rightarrow> bool" where
 "vc SKIP Q = True" |
@@ -48,14 +48,14 @@ fun vc :: "acom \<Rightarrow> assn \<Rightarrow> bool" where
     vc C I)"
 
 
-text {* Soundness: *}
+text \<open>Soundness:\<close>
 
 lemma vc_sound: "vc C Q \<Longrightarrow> \<turnstile> {pre C Q} strip C {Q}"
 proof(induction C arbitrary: Q)
   case (Awhile I b C)
   show ?case
   proof(simp, rule While')
-    from `vc (Awhile I b C) Q`
+    from \<open>vc (Awhile I b C) Q\<close>
     have vc: "vc C I" and IQ: "\<forall>s. I s \<and> \<not> bval b s \<longrightarrow> Q s" and
          pre: "\<forall>s. I s \<and> bval b s \<longrightarrow> pre C I s" by simp_all
     have "\<turnstile> {pre C I} strip C {I}" by(rule Awhile.IH[OF vc])
@@ -70,7 +70,7 @@ corollary vc_sound':
 by (metis strengthen_pre vc_sound)
 
 
-text{* Completeness: *}
+text\<open>Completeness:\<close>
 
 lemma pre_mono:
   "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> pre C P s \<Longrightarrow> pre C P' s"

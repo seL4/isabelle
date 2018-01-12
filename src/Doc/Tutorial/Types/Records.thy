@@ -1,11 +1,11 @@
 
-section {* Records \label{sec:records} *}
+section \<open>Records \label{sec:records}\<close>
 
 (*<*)
 theory Records imports Main begin
 (*>*)
 
-text {*
+text \<open>
   \index{records|(}%
   Records are familiar from programming languages.  A record of $n$
   fields is essentially an $n$-tuple, but the record's components have
@@ -26,97 +26,97 @@ text {*
   work on all possible extensions of a given type scheme; polymorphism
   takes care of structural sub-typing behind the scenes.  There are
   also explicit coercion functions between fixed record types.
-*}
+\<close>
 
 
-subsection {* Record Basics *}
+subsection \<open>Record Basics\<close>
 
-text {*
+text \<open>
   Record types are not primitive in Isabelle and have a delicate
   internal representation @{cite "NaraschewskiW-TPHOLs98"}, based on
   nested copies of the primitive product type.  A \commdx{record}
   declaration introduces a new record type scheme by specifying its
   fields, which are packaged internally to hold up the perception of
   the record as a distinguished entity.  Here is a simple example:
-*}
+\<close>
 
 record point =
   Xcoord :: int
   Ycoord :: int
 
-text {*\noindent
+text \<open>\noindent
   Records of type @{typ point} have two fields named @{const Xcoord}
   and @{const Ycoord}, both of type~@{typ int}.  We now define a
   constant of type @{typ point}:
-*}
+\<close>
 
 definition pt1 :: point where
 "pt1 \<equiv> (| Xcoord = 999, Ycoord = 23 |)"
 
-text {*\noindent
+text \<open>\noindent
   We see above the ASCII notation for record brackets.  You can also
   use the symbolic brackets @{text \<lparr>} and @{text \<rparr>}.  Record type
   expressions can be also written directly with individual fields.
   The type name above is merely an abbreviation.
-*}
+\<close>
 
 definition pt2 :: "\<lparr>Xcoord :: int, Ycoord :: int\<rparr>" where
 "pt2 \<equiv> \<lparr>Xcoord = -45, Ycoord = 97\<rparr>"
 
-text {*
+text \<open>
   For each field, there is a \emph{selector}\index{selector!record}
   function of the same name.  For example, if @{text p} has type @{typ
   point} then @{text "Xcoord p"} denotes the value of the @{text
   Xcoord} field of~@{text p}.  Expressions involving field selection
   of explicit records are simplified automatically:
-*}
+\<close>
 
 lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b\<rparr> = a"
   by simp
 
-text {*
+text \<open>
   The \emph{update}\index{update!record} operation is functional.  For
   example, @{term "p\<lparr>Xcoord := 0\<rparr>"} is a record whose @{const Xcoord}
   value is zero and whose @{const Ycoord} value is copied from~@{text
   p}.  Updates of explicit records are also simplified automatically:
-*}
+\<close>
 
 lemma "\<lparr>Xcoord = a, Ycoord = b\<rparr>\<lparr>Xcoord := 0\<rparr> =
          \<lparr>Xcoord = 0, Ycoord = b\<rparr>"
   by simp
 
-text {*
+text \<open>
   \begin{warn}
   Field names are declared as constants and can no longer be used as
   variables.  It would be unwise, for example, to call the fields of
   type @{typ point} simply @{text x} and~@{text y}.
   \end{warn}
-*}
+\<close>
 
 
-subsection {* Extensible Records and Generic Operations *}
+subsection \<open>Extensible Records and Generic Operations\<close>
 
-text {*
+text \<open>
   \index{records!extensible|(}%
 
   Now, let us define coloured points (type @{text cpoint}) to be
   points extended with a field @{text col} of type @{text colour}:
-*}
+\<close>
 
 datatype colour = Red | Green | Blue
 
 record cpoint = point +
   col :: colour
 
-text {*\noindent
+text \<open>\noindent
   The fields of this new type are @{const Xcoord}, @{text Ycoord} and
   @{text col}, in that order.
-*}
+\<close>
 
 definition cpt1 :: cpoint where
 "cpt1 \<equiv> \<lparr>Xcoord = 999, Ycoord = 23, col = Green\<rparr>"
 
-text {*
+text \<open>
   We can define generic operations that work on arbitrary
   instances of a record scheme, e.g.\ covering @{typ point}, @{typ
   cpoint}, and any further extensions.  Every record structure has an
@@ -127,12 +127,12 @@ text {*
   implicitly set to @{text "()"}, the empty tuple, which has type
   @{typ unit}.  Within the record brackets, you can refer to the
   @{text more} field by writing ``@{text "\<dots>"}'' (three dots):
-*}
+\<close>
 
 lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b, \<dots> = p\<rparr> = a"
   by simp
 
-text {*
+text \<open>
   This lemma applies to any record whose first two fields are @{text
   Xcoord} and~@{const Ycoord}.  Note that @{text "\<lparr>Xcoord = a, Ycoord
   = b, \<dots> = ()\<rparr>"} is exactly the same as @{text "\<lparr>Xcoord = a, Ycoord
@@ -142,12 +142,12 @@ text {*
 
   The @{text more} pseudo-field may be manipulated directly as well,
   but the identifier needs to be qualified:
-*}
+\<close>
 
 lemma "point.more cpt1 = \<lparr>col = Green\<rparr>"
   by (simp add: cpt1_def)
 
-text {*\noindent
+text \<open>\noindent
   We see that the colour part attached to this @{typ point} is a
   rudimentary record in its own right, namely @{text "\<lparr>col =
   Green\<rparr>"}.  In order to select or update @{text col}, this fragment
@@ -176,33 +176,33 @@ text {*\noindent
   In the following example we define two operations --- methods, if we
   regard records as objects --- to get and set any point's @{text
   Xcoord} field.
-*}
+\<close>
 
 definition getX :: "'a point_scheme \<Rightarrow> int" where
 "getX r \<equiv> Xcoord r"
 definition setX :: "'a point_scheme \<Rightarrow> int \<Rightarrow> 'a point_scheme" where
 "setX r a \<equiv> r\<lparr>Xcoord := a\<rparr>"
 
-text {*
+text \<open>
   Here is a generic method that modifies a point, incrementing its
   @{const Xcoord} field.  The @{text Ycoord} and @{text more} fields
   are copied across.  It works for any record type scheme derived from
   @{typ point} (including @{typ cpoint} etc.):
-*}
+\<close>
 
 definition incX :: "'a point_scheme \<Rightarrow> 'a point_scheme" where
 "incX r \<equiv>
   \<lparr>Xcoord = Xcoord r + 1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
 
-text {*
+text \<open>
   Generic theorems can be proved about generic methods.  This trivial
   lemma relates @{const incX} to @{text getX} and @{text setX}:
-*}
+\<close>
 
 lemma "incX r = setX r (getX r + 1)"
   by (simp add: getX_def setX_def incX_def)
 
-text {*
+text \<open>
   \begin{warn}
   If you use the symbolic record brackets @{text \<lparr>} and @{text \<rparr>},
   then you must also use the symbolic ellipsis, ``@{text \<dots>}'', rather
@@ -211,30 +211,30 @@ text {*
   more distinct on screen than they are on paper.)
   \end{warn}%
   \index{records!extensible|)}
-*}
+\<close>
 
 
-subsection {* Record Equality *}
+subsection \<open>Record Equality\<close>
 
-text {*
+text \<open>
   Two records are equal\index{equality!of records} if all pairs of
   corresponding fields are equal.  Concrete record equalities are
   simplified automatically:
-*}
+\<close>
 
 lemma "(\<lparr>Xcoord = a, Ycoord = b\<rparr> = \<lparr>Xcoord = a', Ycoord = b'\<rparr>) =
     (a = a' \<and> b = b')"
   by simp
 
-text {*
+text \<open>
   The following equality is similar, but generic, in that @{text r}
   can be any instance of @{typ "'a point_scheme"}:
-*}
+\<close>
 
 lemma "r\<lparr>Xcoord := a, Ycoord := b\<rparr> = r\<lparr>Ycoord := b, Xcoord := a\<rparr>"
   by simp
 
-text {*\noindent
+text \<open>\noindent
   We see above the syntax for iterated updates.  We could equivalently
   have written the left-hand side as @{text "r\<lparr>Xcoord := a\<rparr>\<lparr>Ycoord :=
   b\<rparr>"}.
@@ -242,80 +242,80 @@ text {*\noindent
   Record equality is \emph{extensional}:
   \index{extensionality!for records} a record is determined entirely
   by the values of its fields.
-*}
+\<close>
 
 lemma "r = \<lparr>Xcoord = Xcoord r, Ycoord = Ycoord r\<rparr>"
   by simp
 
-text {*\noindent
+text \<open>\noindent
   The generic version of this equality includes the pseudo-field
   @{text more}:
-*}
+\<close>
 
 lemma "r = \<lparr>Xcoord = Xcoord r, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
   by simp
 
-text {*
+text \<open>
   The simplifier can prove many record equalities
   automatically, but general equality reasoning can be tricky.
   Consider proving this obvious fact:
-*}
+\<close>
 
 lemma "r\<lparr>Xcoord := a\<rparr> = r\<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
   apply simp?
   oops
 
-text {*\noindent
+text \<open>\noindent
   Here the simplifier can do nothing, since general record equality is
   not eliminated automatically.  One way to proceed is by an explicit
   forward step that applies the selector @{const Xcoord} to both sides
   of the assumed record equality:
-*}
+\<close>
 
 lemma "r\<lparr>Xcoord := a\<rparr> = r\<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
   apply (drule_tac f = Xcoord in arg_cong)
-  txt {* @{subgoals [display, indent = 0, margin = 65]}
+  txt \<open>@{subgoals [display, indent = 0, margin = 65]}
     Now, @{text simp} will reduce the assumption to the desired
-    conclusion. *}
+    conclusion.\<close>
   apply simp
   done
 
-text {*
+text \<open>
   The @{text cases} method is preferable to such a forward proof.  We
   state the desired lemma again:
-*}
+\<close>
 
 lemma "r\<lparr>Xcoord := a\<rparr> = r\<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
 
-  txt {* The \methdx{cases} method adds an equality to replace the
+  txt \<open>The \methdx{cases} method adds an equality to replace the
   named record term by an explicit record expression, listing all
   fields.  It even includes the pseudo-field @{text more}, since the
-  record equality stated here is generic for all extensions. *}
+  record equality stated here is generic for all extensions.\<close>
 
   apply (cases r)
 
-  txt {* @{subgoals [display, indent = 0, margin = 65]} Again, @{text
+  txt \<open>@{subgoals [display, indent = 0, margin = 65]} Again, @{text
   simp} finishes the proof.  Because @{text r} is now represented as
   an explicit record construction, the updates can be applied and the
   record equality can be replaced by equality of the corresponding
-  fields (due to injectivity). *}
+  fields (due to injectivity).\<close>
 
   apply simp
   done
 
-text {*
+text \<open>
   The generic cases method does not admit references to locally bound
   parameters of a goal.  In longer proof scripts one might have to
   fall back on the primitive @{text rule_tac} used together with the
   internal field representation rules of records.  The above use of
   @{text "(cases r)"} would become @{text "(rule_tac r = r in
   point.cases_scheme)"}.
-*}
+\<close>
 
 
-subsection {* Extending and Truncating Records *}
+subsection \<open>Extending and Truncating Records\<close>
 
-text {*
+text \<open>
   Each record declaration introduces a number of derived operations to
   refer collectively to a record's fields and to convert between fixed
   record types.  They can, for instance, convert between types @{typ
@@ -361,33 +361,33 @@ text {*
   extending an ordinary point.  Function @{text point.extend} augments
   @{text pt1} with a colour value, which is converted into an
   appropriate record fragment by @{text cpoint.fields}.
-*}
+\<close>
 
 definition cpt2 :: cpoint where
 "cpt2 \<equiv> point.extend pt1 (cpoint.fields Green)"
 
-text {*
+text \<open>
   The coloured points @{const cpt1} and @{text cpt2} are equal.  The
   proof is trivial, by unfolding all the definitions.  We deliberately
   omit the definition of~@{text pt1} in order to reveal the underlying
   comparison on type @{typ point}.
-*}
+\<close>
 
 lemma "cpt1 = cpt2"
   apply (simp add: cpt1_def cpt2_def point.defs cpoint.defs)
-  txt {* @{subgoals [display, indent = 0, margin = 65]} *}
+  txt \<open>@{subgoals [display, indent = 0, margin = 65]}\<close>
   apply (simp add: pt1_def)
   done
 
-text {*
+text \<open>
   In the example below, a coloured point is truncated to leave a
   point.  We use the @{text truncate} function of the target record.
-*}
+\<close>
 
 lemma "point.truncate cpt2 = pt1"
   by (simp add: pt1_def cpt2_def point.defs)
 
-text {*
+text \<open>
   \begin{exercise}
   Extend record @{typ cpoint} to have a further field, @{text
   intensity}, of type~@{typ nat}.  Experiment with generic operations
@@ -401,7 +401,7 @@ text {*
   Model a small class hierarchy using records.
   \end{exercise}
   \index{records|)}
-*}
+\<close>
 
 (*<*)
 end

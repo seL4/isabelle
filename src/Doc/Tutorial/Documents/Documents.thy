@@ -2,9 +2,9 @@
 theory Documents imports Main begin
 (*>*)
 
-section {* Concrete Syntax \label{sec:concrete-syntax} *}
+section \<open>Concrete Syntax \label{sec:concrete-syntax}\<close>
 
-text {*
+text \<open>
   The core concept of Isabelle's framework for concrete syntax is that
   of \bfindex{mixfix annotations}.  Associated with any kind of
   constant declaration, mixfixes affect both the grammar productions
@@ -19,12 +19,12 @@ text {*
 
   Below we introduce a few simple syntax declaration
   forms that already cover many common situations fairly well.
-*}
+\<close>
 
 
-subsection {* Infix Annotations *}
+subsection \<open>Infix Annotations\<close>
 
-text {*
+text \<open>
   Syntax annotations may be included wherever constants are declared,
   such as \isacommand{definition} and \isacommand{primrec} --- and also
   \isacommand{datatype}, which declares constructor operations.
@@ -35,12 +35,12 @@ text {*
   Infix declarations\index{infix annotations} provide a useful special
   case of mixfixes.  The following example of the exclusive-or
   operation on boolean values illustrates typical infix declarations.
-*}
+\<close>
 
 definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]" 60)
 where "A [+] B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
-text {*
+text \<open>
   \noindent Now @{text "xor A B"} and @{text "A [+] B"} refer to the
   same expression internally.  Any curried function with at least two
   arguments may be given infix syntax.  For partial applications with
@@ -75,12 +75,12 @@ text {*
   below 50; algebraic ones (like @{text "+"} and @{text "*"}) are
   above 50.  User syntax should strive to coexist with common HOL
   forms, or use the mostly unused range 100--900.
-*}
+\<close>
 
 
-subsection {* Mathematical Symbols \label{sec:syntax-symbols} *}
+subsection \<open>Mathematical Symbols \label{sec:syntax-symbols}\<close>
 
-text {*
+text \<open>
   Concrete syntax based on ASCII characters has inherent limitations.
   Mathematical notation demands a larger repertoire of glyphs.
   Several standards of extended character sets have been proposed over
@@ -133,39 +133,39 @@ text {*
 
   Replacing our previous definition of @{text xor} by the
   following specifies an Isabelle symbol for the new operator:
-*}
+\<close>
 
 (*<*)
 hide_const xor
-setup {* Sign.add_path "version1" *}
+setup \<open>Sign.add_path "version1"\<close>
 (*>*)
 definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
 where "A \<oplus> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 (*<*)
-setup {* Sign.local_path *}
+setup \<open>Sign.local_path\<close>
 (*>*)
 
-text {*
+text \<open>
   It is possible to provide alternative syntax forms
   through the \bfindex{print mode} concept~@{cite "isabelle-isar-ref"}.  By
   convention, the mode of ``$xsymbols$'' is enabled whenever
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now
   consider the following hybrid declaration of @{text xor}:
-*}
+\<close>
 
 (*<*)
 hide_const xor
-setup {* Sign.add_path "version2" *}
+setup \<open>Sign.add_path "version2"\<close>
 (*>*)
 definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
 where "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
 notation (xsymbols) xor (infixl "\<oplus>\<ignore>" 60)
 (*<*)
-setup {* Sign.local_path *}
+setup \<open>Sign.local_path\<close>
 (*>*)
 
-text {*\noindent
+text \<open>\noindent
 The \commdx{notation} command associates a mixfix
 annotation with a known constant.  The print mode specification,
 here @{text "(xsymbols)"}, is optional.
@@ -174,17 +174,17 @@ We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in input, while
 output uses the nicer syntax of $xsymbols$ whenever that print mode is
 active.  Such an arrangement is particularly useful for interactive
 development, where users may type ASCII text and see mathematical
-symbols displayed during proofs.  *}
+symbols displayed during proofs.\<close>
 
 
-subsection {* Prefix Annotations *}
+subsection \<open>Prefix Annotations\<close>
 
-text {*
+text \<open>
   Prefix syntax annotations\index{prefix annotation} are another form
   of mixfixes @{cite "isabelle-isar-ref"}, without any template arguments or
   priorities --- just some literal syntax.  The following example
   associates common symbols with the constructors of a datatype.
-*}
+\<close>
 
 datatype currency =
     Euro nat    ("\<euro>")
@@ -192,7 +192,7 @@ datatype currency =
   | Yen nat     ("\<yen>")
   | Dollar nat  ("$")
 
-text {*
+text \<open>
   \noindent Here the mixfix annotations on the rightmost column happen
   to consist of a single Isabelle symbol each: \verb,\,\verb,<euro>,,
   \verb,\,\verb,<pounds>,, \verb,\,\verb,<yen>,, and \verb,$,.  Recall
@@ -204,12 +204,12 @@ text {*
   Commission.
 
   Prefix syntax works the same way for other commands that introduce new constants, e.g. \isakeyword{primrec}.
-*}
+\<close>
 
 
-subsection {* Abbreviations \label{sec:abbreviations} *}
+subsection \<open>Abbreviations \label{sec:abbreviations}\<close>
 
-text{* Mixfix syntax annotations merely decorate particular constant
+text\<open>Mixfix syntax annotations merely decorate particular constant
 application forms with concrete syntax, for instance replacing
 @{text "xor A B"} by @{text "A \<oplus> B"}.  Occasionally, the relationship
 between some piece of notation and its internal form is more
@@ -223,12 +223,12 @@ simple mechanism for syntactic macros.
 A typical use of abbreviations is to introduce relational notation for
 membership in a set of pairs, replacing @{text "(x, y) \<in> sim"} by
 @{text "x \<approx> y"}. We assume that a constant @{text sim } of type
-@{typ"('a \<times> 'a) set"} has been introduced at this point. *}
+@{typ"('a \<times> 'a) set"} has been introduced at this point.\<close>
 (*<*)consts sim :: "('a \<times> 'a) set"(*>*)
 abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix "\<approx>" 50)
 where "x \<approx> y  \<equiv>  (x, y) \<in> sim"
 
-text {* \noindent The given meta-equality is used as a rewrite rule
+text \<open>\noindent The given meta-equality is used as a rewrite rule
 after parsing (replacing \mbox{@{prop"x \<approx> y"}} by @{text"(x,y) \<in>
 sim"}) and before printing (turning @{text"(x,y) \<in> sim"} back into
 \mbox{@{prop"x \<approx> y"}}). The name of the dummy constant @{text "sim2"}
@@ -238,14 +238,14 @@ Another common application of abbreviations is to
 provide variant versions of fundamental relational expressions, such
 as @{text \<noteq>} for negated equalities.  The following declaration
 stems from Isabelle/HOL itself:
-*}
+\<close>
 
 abbreviation not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "~=\<ignore>" 50)
 where "x ~=\<ignore> y  \<equiv>  \<not> (x = y)"
 
 notation (xsymbols) not_equal (infix "\<noteq>\<ignore>" 50)
 
-text {* \noindent The notation @{text \<noteq>} is introduced separately to restrict it
+text \<open>\noindent The notation @{text \<noteq>} is introduced separately to restrict it
 to the \emph{xsymbols} mode.
 
 Abbreviations are appropriate when the defined concept is a
@@ -257,12 +257,12 @@ definitions.
 Abbreviations are a simplified form of the general concept of
 \emph{syntax translations}; even heavier transformations may be
 written in ML @{cite "isabelle-isar-ref"}.
-*}
+\<close>
 
 
-section {* Document Preparation \label{sec:document-preparation} *}
+section \<open>Document Preparation \label{sec:document-preparation}\<close>
 
-text {*
+text \<open>
   Isabelle/Isar is centered around the concept of \bfindex{formal
   proof documents}\index{documents|bold}.  The outcome of a formal
   development effort is meant to be a human-readable record, presented
@@ -279,27 +279,27 @@ text {*
 
   Here is an example to illustrate the idea of Isabelle document
   preparation.
-*}
+\<close>
 
-text_raw {* \begin{quotation} *}
+text_raw \<open>\begin{quotation}\<close>
 
-text {*
+text \<open>
   The following datatype definition of @{text "'a bintree"} models
   binary trees with nodes being decorated by elements of type @{typ
   'a}.
-*}
+\<close>
 
 datatype 'a bintree =
      Leaf | Branch 'a  "'a bintree"  "'a bintree"
 
-text {*
+text \<open>
   \noindent The datatype induction rule generated here is of the form
   @{thm [indent = 1, display] bintree.induct [no_vars]}
-*}
+\<close>
 
-text_raw {* \end{quotation} *}
+text_raw \<open>\end{quotation}\<close>
 
-text {*
+text \<open>
   \noindent The above document output has been produced as follows:
 
   \begin{ttbox}
@@ -324,12 +324,12 @@ text {*
   to formal entities by means of ``antiquotations'' (such as
   \texttt{\at}\verb,{text "'a bintree"}, or
   \texttt{\at}\verb,{typ 'a},), see also \S\ref{sec:doc-prep-text}.
-*}
+\<close>
 
 
-subsection {* Isabelle Sessions *}
+subsection \<open>Isabelle Sessions\<close>
 
-text {*
+text \<open>
   In contrast to the highly interactive mode of Isabelle/Isar theory
   development, the document preparation stage essentially works in
   batch-mode.  An Isabelle \bfindex{session} consists of a collection
@@ -412,12 +412,12 @@ text {*
   Isabelle batch session leaves the generated sources in their target
   location, identified by the accompanying error message.  This lets
   you trace {\LaTeX} problems with the generated files at hand.
-*}
+\<close>
 
 
-subsection {* Structure Markup *}
+subsection \<open>Structure Markup\<close>
 
-text {*
+text \<open>
   The large-scale structure of Isabelle documents follows existing
   {\LaTeX} conventions, with chapters, sections, subsubsections etc.
   The Isar language includes separate \bfindex{markup commands}, which
@@ -460,12 +460,12 @@ text {*
 
   end
   \end{ttbox}
-*}
+\<close>
 
 
-subsection {* Formal Comments and Antiquotations \label{sec:doc-prep-text} *}
+subsection \<open>Formal Comments and Antiquotations \label{sec:doc-prep-text}\<close>
 
-text {*
+text \<open>
   Isabelle \bfindex{source comments}, which are of the form
   \verb,(,\verb,*,~@{text \<dots>}~\verb,*,\verb,),, essentially act like
   white space and do not really contribute to the content.  They
@@ -481,14 +481,14 @@ text {*
   \verb,{,\verb,*,~@{text \<dots>}~\verb,*,\verb,}, as before.  Multiple
   marginal comments may be given at the same time.  Here is a simple
   example:
-*}
+\<close>
 
 lemma "A --> A"
-  -- "a triviality of propositional logic"
-  -- "(should not really bother)"
-  by (rule impI) -- "implicit assumption step involved here"
+  \<comment> "a triviality of propositional logic"
+  \<comment> "(should not really bother)"
+  by (rule impI) \<comment> "implicit assumption step involved here"
 
-text {*
+text \<open>
   \noindent The above output has been produced as follows:
 
 \begin{verbatim}
@@ -593,12 +593,12 @@ text {\ttlbrace}*
   document very easily, independently of the term language of
   Isabelle.  Manual {\LaTeX} code would leave more control over the
   typesetting, but is also slightly more tedious.
-*}
+\<close>
 
 
-subsection {* Interpretation of Symbols \label{sec:doc-prep-symbols} *}
+subsection \<open>Interpretation of Symbols \label{sec:doc-prep-symbols}\<close>
 
-text {*
+text \<open>
   As has been pointed out before (\S\ref{sec:syntax-symbols}),
   Isabelle symbols are the smallest syntactic entities --- a
   straightforward generalization of ASCII characters.  While Isabelle
@@ -640,12 +640,12 @@ text {*
   quotes are not printed at all.  The resulting quality of typesetting
   is quite good, so this should be the default style for work that
   gets distributed to a broader audience.
-*}
+\<close>
 
 
-subsection {* Suppressing Output \label{sec:doc-prep-suppress} *}
+subsection \<open>Suppressing Output \label{sec:doc-prep-suppress}\<close>
 
-text {*
+text \<open>
   By default, Isabelle's document system generates a {\LaTeX} file for
   each theory that gets loaded while running the session.  The
   generated \texttt{session.tex} will include all of these in order of
@@ -683,11 +683,11 @@ text {*
   commands involving ML code).  Users may add their own tags using the
   \verb,%,\emph{tag} notation right after a command name.  In the
   subsequent example we hide a particularly irrelevant proof:
-*}
+\<close>
 
 lemma "x = x" by %invisible (simp)
 
-text {*
+text \<open>
   The original source has been ``\verb,lemma "x = x" by %invisible (simp),''.
   Tags observe the structure of proofs; adjacent commands with the
   same tag are joined into a single region.  The Isabelle document
@@ -705,12 +705,12 @@ text {*
   of the theory, of course.  For example, we may hide parts of a proof
   that seem unfit for general public inspection.  The following
   ``fully automatic'' proof is actually a fake:
-*}
+\<close>
 
 lemma "x \<noteq> (0::int) \<Longrightarrow> 0 < x * x"
   by (auto(*<*)simp add: zero_less_mult_iff(*>*))
 
-text {*
+text \<open>
   \noindent The real source of the proof has been as follows:
 
 \begin{verbatim}
@@ -722,7 +722,7 @@ text {*
   should not misrepresent the underlying theory development.  It is
   easy to invalidate the visible text by hiding references to
   questionable axioms, for example.
-*}
+\<close>
 
 (*<*)
 end

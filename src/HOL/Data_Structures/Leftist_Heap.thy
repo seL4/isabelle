@@ -24,7 +24,7 @@ fun rk :: "'a lheap \<Rightarrow> nat" where
 "rk Leaf = 0" |
 "rk (Node n _ _ _) = n"
 
-text{* The invariants: *}
+text\<open>The invariants:\<close>
 
 fun (in linorder) heap :: "('a,'b) tree \<Rightarrow> bool" where
 "heap Leaf = True" |
@@ -111,7 +111,7 @@ proof(induction l r rule: merge.induct)
     hence "ltree (merge ?t1 ?t2) = ltree (node l1 a1 (merge r1 ?t2))" by simp
     also have "\<dots> = (ltree l1 \<and> ltree(merge r1 ?t2))"
       by(simp add: ltree_node)
-    also have "..." using "3.prems" "3.IH"(1)[OF `a1 \<le> a2`] by (simp)
+    also have "..." using "3.prems" "3.IH"(1)[OF \<open>a1 \<le> a2\<close>] by (simp)
     finally show ?thesis .
   next (* analogous but automatic *)
     assume "\<not> a1 \<le> a2"

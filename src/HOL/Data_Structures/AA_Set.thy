@@ -69,13 +69,13 @@ definition adjust :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
                \<Rightarrow> Node (lva+1) (Node (lv-1) l x t2) a
                     (split (Node (if sngl t1 then lva else lva+1) t3 b t4)))))"
 
-text{* In the paper, the last case of @{const adjust} is expressed with the help of an
+text\<open>In the paper, the last case of @{const adjust} is expressed with the help of an
 incorrect auxiliary function \texttt{nlvl}.
 
 Function @{text del_max} below is called \texttt{dellrg} in the paper.
 The latter is incorrect for two reasons: \texttt{dellrg} is meant to delete the largest
 element but recurses on the left instead of the right subtree; the invariant
-is not restored.*}
+is not restored.\<close>
 
 fun del_max :: "'a aa_tree \<Rightarrow> 'a aa_tree * 'a" where
 "del_max (Node lv l a Leaf) = (l,a)" |
@@ -269,7 +269,7 @@ proof(induction t)
           by (auto simp add: skew_invar split_invar)
       next
         case (Incr)
-        thus ?thesis using invar_NodeR2[OF `invar ?t` Incr(2) 1 iir] 1 \<open>x < a\<close>
+        thus ?thesis using invar_NodeR2[OF \<open>invar ?t\<close> Incr(2) 1 iir] 1 \<open>x < a\<close>
           by (auto simp add: skew_invar split_invar split: if_splits)
       qed
     qed

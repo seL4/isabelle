@@ -9,25 +9,25 @@ recdef trev "measure size"
  "trev (Var x) = Var x"
  "trev (App f ts) = App f (rev(map trev ts))"
 (*>*)
-text{*\noindent
+text\<open>\noindent
 By making this theorem a simplification rule, \isacommand{recdef}
 applies it automatically and the definition of @{term"trev"}
 succeeds now. As a reward for our effort, we can now prove the desired
 lemma directly.  We no longer need the verbose
 induction schema for type @{text"term"} and can use the simpler one arising from
 @{term"trev"}:
-*}
+\<close>
 
 lemma "trev(trev t) = t"
 apply(induct_tac t rule: trev.induct)
-txt{*
+txt\<open>
 @{subgoals[display,indent=0]}
 Both the base case and the induction step fall to simplification:
-*}
+\<close>
 
 by(simp_all add: rev_map sym[OF map_compose] cong: map_cong)
 
-text{*\noindent
+text\<open>\noindent
 If the proof of the induction step mystifies you, we recommend that you go through
 the chain of simplification steps in detail; you will probably need the help of
 @{text"simp_trace"}. Theorem @{thm[source]map_cong} is discussed below.
@@ -65,7 +65,7 @@ rules for other higher-order functions on lists are similar.  If you get
 into a situation where you need to supply \isacommand{recdef} with new
 congruence rules, you can append a hint after the end of
 the recursion equations:\cmmdx{hints}
-*}
+\<close>
 (*<*)
 consts dummy :: "nat => nat"
 recdef dummy "{}"
@@ -73,19 +73,19 @@ recdef dummy "{}"
 (*>*)
 (hints recdef_cong: map_cong)
 
-text{*\noindent
+text\<open>\noindent
 Or you can declare them globally
 by giving them the \attrdx{recdef_cong} attribute:
-*}
+\<close>
 
 declare map_cong[recdef_cong]
 
-text{*
+text\<open>
 The @{text cong} and @{text recdef_cong} attributes are
 intentionally kept apart because they control different activities, namely
 simplification and making recursive definitions.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.
-*}
+\<close>
 (*<*)end(*>*)

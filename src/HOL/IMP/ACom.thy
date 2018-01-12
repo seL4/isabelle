@@ -17,7 +17,7 @@ datatype 'a acom =
 
 notation com.SKIP ("SKIP")
 
-text_raw{*\snip{stripdef}{1}{1}{% *}
+text_raw\<open>\snip{stripdef}{1}{1}{%\<close>
 fun strip :: "'a acom \<Rightarrow> com" where
 "strip (SKIP {P}) = SKIP" |
 "strip (x ::= e {P}) = x ::= e" |
@@ -25,18 +25,18 @@ fun strip :: "'a acom \<Rightarrow> com" where
 "strip (IF b THEN {P\<^sub>1} C\<^sub>1 ELSE {P\<^sub>2} C\<^sub>2 {P}) =
   IF b THEN strip C\<^sub>1 ELSE strip C\<^sub>2" |
 "strip ({I} WHILE b DO {P} C {Q}) = WHILE b DO strip C"
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
-text_raw{*\snip{asizedef}{1}{1}{% *}
+text_raw\<open>\snip{asizedef}{1}{1}{%\<close>
 fun asize :: "com \<Rightarrow> nat" where
 "asize SKIP = 1" |
 "asize (x ::= e) = 1" |
 "asize (C\<^sub>1;;C\<^sub>2) = asize C\<^sub>1 + asize C\<^sub>2" |
 "asize (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = asize C\<^sub>1 + asize C\<^sub>2 + 3" |
 "asize (WHILE b DO C) = asize C + 3"
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
-text_raw{*\snip{annotatedef}{1}{1}{% *}
+text_raw\<open>\snip{annotatedef}{1}{1}{%\<close>
 definition shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a" where
 "shift f n = (\<lambda>p. f(p+n))"
 
@@ -50,9 +50,9 @@ fun annotate :: "(nat \<Rightarrow> 'a) \<Rightarrow> com \<Rightarrow> 'a acom"
   {f(asize c\<^sub>1 + asize c\<^sub>2 + 2)}" |
 "annotate f (WHILE b DO c) =
   {f 0} WHILE b DO {f 1} annotate (shift f 2) c {f(asize c + 2)}"
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
-text_raw{*\snip{annosdef}{1}{1}{% *}
+text_raw\<open>\snip{annosdef}{1}{1}{%\<close>
 fun annos :: "'a acom \<Rightarrow> 'a list" where
 "annos (SKIP {P}) = [P]" |
 "annos (x ::= e {P}) = [P]" |
@@ -60,7 +60,7 @@ fun annos :: "'a acom \<Rightarrow> 'a list" where
 "annos (IF b THEN {P\<^sub>1} C\<^sub>1 ELSE {P\<^sub>2} C\<^sub>2 {Q}) =
   P\<^sub>1 # annos C\<^sub>1 @  P\<^sub>2 # annos C\<^sub>2 @ [Q]" |
 "annos ({I} WHILE b DO {P} C {Q}) = I # P # annos C @ [Q]"
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
 definition anno :: "'a acom \<Rightarrow> nat \<Rightarrow> 'a" where
 "anno C p = annos C ! p"
@@ -68,7 +68,7 @@ definition anno :: "'a acom \<Rightarrow> nat \<Rightarrow> 'a" where
 definition post :: "'a acom \<Rightarrow>'a" where
 "post C = last(annos C)"
 
-text_raw{*\snip{mapacomdef}{1}{2}{% *}
+text_raw\<open>\snip{mapacomdef}{1}{2}{%\<close>
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
 "map_acom f (SKIP {P}) = SKIP {f P}" |
 "map_acom f (x ::= e {P}) = x ::= e {f P}" |
@@ -78,7 +78,7 @@ fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b ac
   {f Q}" |
 "map_acom f ({I} WHILE b DO {P} C {Q}) =
   {f I} WHILE b DO {f P} map_acom f C {f Q}"
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
 
 lemma annos_ne: "annos C \<noteq> []"

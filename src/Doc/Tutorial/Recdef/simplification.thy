@@ -2,7 +2,7 @@
 theory simplification imports Main begin
 (*>*)
 
-text{*
+text\<open>
 Once we have proved all the termination conditions, the \isacommand{recdef} 
 recursion equations become simplification rules, just as with
 \isacommand{primrec}. In most cases this works fine, but there is a subtle
@@ -10,13 +10,13 @@ problem that must be mentioned: simplification may not
 terminate because of automatic splitting of @{text "if"}.
 \index{*if expressions!splitting of}
 Let us look at an example:
-*}
+\<close>
 
 consts gcd :: "nat\<times>nat \<Rightarrow> nat"
 recdef gcd "measure (\<lambda>(m,n).n)"
   "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 
-text{*\noindent
+text\<open>\noindent
 According to the measure function, the second argument should decrease with
 each recursive call. The resulting termination condition
 @{term[display]"n ~= (0::nat) ==> m mod n < n"}
@@ -48,7 +48,7 @@ approach: you will often have to invoke the rule explicitly when
 If possible, the definition should be given by pattern matching on the left
 rather than @{text "if"} on the right. In the case of @{term gcd} the
 following alternative definition suggests itself:
-*}
+\<close>
 
 consts gcd1 :: "nat\<times>nat \<Rightarrow> nat"
 recdef gcd1 "measure (\<lambda>(m,n).n)"
@@ -56,27 +56,27 @@ recdef gcd1 "measure (\<lambda>(m,n).n)"
   "gcd1 (m, n) = gcd1(n, m mod n)"
 
 
-text{*\noindent
+text\<open>\noindent
 The order of equations is important: it hides the side condition
 @{prop"n ~= (0::nat)"}.  Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
 A simple alternative is to replace @{text "if"} by @{text case}, 
 which is also available for @{typ bool} and is not split automatically:
-*}
+\<close>
 
 consts gcd2 :: "nat\<times>nat \<Rightarrow> nat"
 recdef gcd2 "measure (\<lambda>(m,n).n)"
   "gcd2(m,n) = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2(n,m mod n))"
 
-text{*\noindent
+text\<open>\noindent
 This is probably the neatest solution next to pattern matching, and it is
 always available.
 
 A final alternative is to replace the offending simplification rules by
 derived conditional ones. For @{term gcd} it means we have to prove
 these lemmas:
-*}
+\<close>
 
 lemma [simp]: "gcd (m, 0) = m"
 apply(simp)
@@ -86,11 +86,11 @@ lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd(m, n) = gcd(n, m mod n)"
 apply(simp)
 done
 
-text{*\noindent
+text\<open>\noindent
 Simplification terminates for these proofs because the condition of the @{text
 "if"} simplifies to @{term True} or @{term False}.
 Now we can disable the original simplification rule:
-*}
+\<close>
 
 declare gcd.simps [simp del]
 

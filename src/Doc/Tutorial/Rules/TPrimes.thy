@@ -8,10 +8,10 @@ fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "gcd m n = (if n=0 then m else gcd n (m mod n))"
 
 
-text {*Now in Basic.thy!
+text \<open>Now in Basic.thy!
 @{thm[display]"dvd_def"}
 \rulename{dvd_def}
-*}
+\<close>
 
 
 (*** Euclid's Algorithm ***)
@@ -29,30 +29,30 @@ declare gcd.simps [simp del]
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 lemma gcd_dvd_both: "(gcd m n dvd m) \<and> (gcd m n dvd n)"
 apply (induct_tac m n rule: gcd.induct)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (case_tac "n=0")
-txt{*subgoals after the case tac
+txt\<open>subgoals after the case tac
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (simp_all) 
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (blast dest: dvd_mod_imp_dvd)
 
 
 
-text {*
+text \<open>
 @{thm[display] dvd_mod_imp_dvd}
 \rulename{dvd_mod_imp_dvd}
 
 @{thm[display] dvd_trans}
 \rulename{dvd_trans}
-*}
+\<close>
 
 lemmas gcd_dvd1 [iff] = gcd_dvd_both [THEN conjunct1]
 lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2]
 
 
-text {*
+text \<open>
 \begin{quote}
 @{thm[display] gcd_dvd1}
 \rulename{gcd_dvd1}
@@ -60,7 +60,7 @@ text {*
 @{thm[display] gcd_dvd2}
 \rulename{gcd_dvd2}
 \end{quote}
-*}
+\<close>
 
 (*Maximality: for all m,n,k naturals, 
                 if k divides m and k divides n then k divides gcd(m,n)*)
@@ -68,16 +68,16 @@ lemma gcd_greatest [rule_format]:
       "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd m n"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n=0")
-txt{*subgoals after the case tac
+txt\<open>subgoals after the case tac
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (simp_all add: dvd_mod)
 done
 
-text {*
+text \<open>
 @{thm[display] dvd_mod}
 \rulename{dvd_mod}
-*}
+\<close>
 
 (*just checking the claim that case_tac "n" works too*)
 lemma "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd m n"
@@ -110,7 +110,7 @@ apply (blast intro: dvd_antisym)
 done
 
 
-text {*
+text \<open>
 @{thm[display] dvd_antisym}
 \rulename{dvd_antisym}
 
@@ -123,7 +123,7 @@ goal\ (lemma\ is_gcd_unique):\isanewline
 \ \ \ \ \ \ \ n\ dvd\ a\ \isasymand \ n\ dvd\ b\ \isasymand \ (\isasymforall d.\ d\ dvd\ a\ \isasymand \ d\ dvd\ b\ \isasymlongrightarrow \ d\ dvd\ n)\isasymrbrakk \isanewline
 \ \ \ \ \isasymLongrightarrow \ m\ =\ n
 \end{isabelle}
-*}
+\<close>
 
 lemma gcd_assoc: "gcd (gcd k m) n = gcd k (gcd m n)"
   apply (rule is_gcd_unique)
@@ -132,7 +132,7 @@ lemma gcd_assoc: "gcd (gcd k m) n = gcd k (gcd m n)"
   apply (blast intro: dvd_trans)
   done
 
-text{*
+text\<open>
 \begin{isabelle}
 proof\ (prove):\ step\ 3\isanewline
 \isanewline
@@ -141,7 +141,7 @@ gcd\ (gcd\ (k,\ m),\ n)\ =\ gcd\ (k,\ gcd\ (m,\ n))\isanewline
 \ 1.\ gcd\ (k,\ gcd\ (m,\ n))\ dvd\ k\ \isasymand \isanewline
 \ \ \ \ gcd\ (k,\ gcd\ (m,\ n))\ dvd\ m\ \isasymand \ gcd\ (k,\ gcd\ (m,\ n))\ dvd\ n
 \end{isabelle}
-*}
+\<close>
 
 
 lemma gcd_dvd_gcd_mult: "gcd m n dvd gcd (k*m) n"

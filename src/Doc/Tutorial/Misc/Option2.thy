@@ -4,14 +4,14 @@ hide_const None Some
 hide_type option
 (*>*)
 
-text{*\indexbold{*option (type)}\indexbold{*None (constant)}%
+text\<open>\indexbold{*option (type)}\indexbold{*None (constant)}%
 \indexbold{*Some (constant)}
 Our final datatype is very simple but still eminently useful:
-*}
+\<close>
 
 datatype 'a option = None | Some 'a
 
-text{*\noindent
+text\<open>\noindent
 Frequently one needs to add a distinguished element to some existing type.
 For example, type @{text"t option"} can model the result of a computation that
 may either terminate with an error (represented by @{const None}) or return
@@ -21,7 +21,7 @@ Similarly, @{typ nat} extended with $\infty$ can be modeled by type
 customized constructors like @{term Error} and @{term Infinity},
 but it is often simpler to use @{text option}. For an application see
 \S\ref{sec:Trie}.
-*}
+\<close>
 (*<*)
 (*
 definition infplus :: "nat option \<Rightarrow> nat option \<Rightarrow> nat option" where

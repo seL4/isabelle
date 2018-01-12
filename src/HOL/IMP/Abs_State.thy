@@ -10,15 +10,15 @@ fun fun_rep :: "('a::top) st_rep \<Rightarrow> vname \<Rightarrow> 'a" where
 "fun_rep [] = (\<lambda>x. \<top>)" |
 "fun_rep ((x,a)#ps) = (fun_rep ps) (x := a)"
 
-lemma fun_rep_map_of[code]: --"original def is too slow"
+lemma fun_rep_map_of[code]: \<comment>"original def is too slow"
   "fun_rep ps = (%x. case map_of ps x of None \<Rightarrow> \<top> | Some a \<Rightarrow> a)"
 by(induction ps rule: fun_rep.induct) auto
 
 definition eq_st :: "('a::top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool" where
 "eq_st S1 S2 = (fun_rep S1 = fun_rep S2)"
 
-hide_type st  --"hide previous def to avoid long names"
-declare [[typedef_overloaded]] --"allow quotient types to depend on classes"
+hide_type st  \<comment>"hide previous def to avoid long names"
+declare [[typedef_overloaded]] \<comment>"allow quotient types to depend on classes"
 
 quotient_type 'a st = "('a::top) st_rep" / eq_st
 morphisms rep_st St

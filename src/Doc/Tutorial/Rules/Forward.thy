@@ -1,12 +1,12 @@
 theory Forward imports TPrimes begin
 
-text{*\noindent
+text\<open>\noindent
 Forward proof material: of, OF, THEN, simplify, rule_format.
-*}
+\<close>
 
-text{*\noindent
+text\<open>\noindent
 SKIP most developments...
-*}
+\<close>
 
 (** Commutativity **)
 
@@ -29,13 +29,13 @@ lemma gcd_1_left [simp]: "gcd (Suc 0) m = Suc 0"
 apply (simp add: gcd_commute [of "Suc 0"])
 done
 
-text{*\noindent
+text\<open>\noindent
 as far as HERE.
-*}
+\<close>
 
-text{*\noindent
+text\<open>\noindent
 SKIP THIS PROOF
-*}
+\<close>
 
 lemma gcd_mult_distrib2: "k * gcd m n = gcd (k*m) (k*n)"
 apply (induct_tac m n rule: gcd.induct)
@@ -45,14 +45,14 @@ apply (case_tac "k=0")
 apply simp_all
 done
 
-text {*
+text \<open>
 @{thm[display] gcd_mult_distrib2}
 \rulename{gcd_mult_distrib2}
-*}
+\<close>
 
-text{*\noindent
+text\<open>\noindent
 of, simplified
-*}
+\<close>
 
 
 lemmas gcd_mult_0 = gcd_mult_distrib2 [of k 1]
@@ -64,7 +64,7 @@ lemmas where2 = gcd_mult_distrib2 [where m=1 and k=1]
 
 lemmas where3 = gcd_mult_distrib2 [where m=1 and k="j+k"]
 
-text {*
+text \<open>
 example using ``of'':
 @{thm[display] gcd_mult_distrib2 [of _ 1]}
 
@@ -82,7 +82,7 @@ example using ``where'', ``and'':
 
 @{thm[display] sym}
 \rulename{sym}
-*}
+\<close>
 
 lemmas gcd_mult0 = gcd_mult_1 [THEN sym]
       (*not quite right: we need ?k but this gives k*)
@@ -90,9 +90,9 @@ lemmas gcd_mult0 = gcd_mult_1 [THEN sym]
 lemmas gcd_mult0' = gcd_mult_distrib2 [of k 1, simplified, THEN sym]
       (*better in one step!*)
 
-text {*
+text \<open>
 more legible, and variables properly generalized
-*}
+\<close>
 
 lemma gcd_mult [simp]: "gcd k (k*n) = k"
 by (rule gcd_mult_distrib2 [of k 1, simplified, THEN sym])
@@ -101,15 +101,15 @@ by (rule gcd_mult_distrib2 [of k 1, simplified, THEN sym])
 lemmas gcd_self0 = gcd_mult [of k 1, simplified]
 
 
-text {*
+text \<open>
 @{thm[display] gcd_mult}
 \rulename{gcd_mult}
 
 @{thm[display] gcd_self0}
 \rulename{gcd_self0}
-*}
+\<close>
 
-text {*
+text \<open>
 Rules handy with THEN
 
 @{thm[display] iffD1}
@@ -117,18 +117,18 @@ Rules handy with THEN
 
 @{thm[display] iffD2}
 \rulename{iffD2}
-*}
+\<close>
 
 
-text {*
+text \<open>
 again: more legible, and variables properly generalized
-*}
+\<close>
 
 lemma gcd_self [simp]: "gcd k k = k"
 by (rule gcd_mult [of k 1, simplified])
 
 
-text{*
+text\<open>
 NEXT SECTION: Methods for Forward Proof
 
 NEW
@@ -136,48 +136,48 @@ NEW
 theorem arg_cong, useful in forward steps
 @{thm[display] arg_cong[no_vars]}
 \rulename{arg_cong}
-*}
+\<close>
 
 lemma "2 \<le> u \<Longrightarrow> u*m \<noteq> Suc(u*n)"
 apply (intro notI)
-txt{*
+txt\<open>
 before using arg_cong
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (drule_tac f="\<lambda>x. x mod u" in arg_cong)
-txt{*
+txt\<open>
 after using arg_cong
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (simp add: mod_Suc)
 done
 
-text{*
+text\<open>
 have just used this rule:
 @{thm[display] mod_Suc[no_vars]}
 \rulename{mod_Suc}
 
 @{thm[display] mult_le_mono1[no_vars]}
 \rulename{mult_le_mono1}
-*}
+\<close>
 
 
-text{*
+text\<open>
 example of "insert"
-*}
+\<close>
 
 lemma relprime_dvd_mult:
       "\<lbrakk> gcd k n = 1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m"
 apply (insert gcd_mult_distrib2 [of m k n])
-txt{*@{subgoals[display,indent=0,margin=65]}*}
+txt\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply simp
-txt{*@{subgoals[display,indent=0,margin=65]}*}
+txt\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule_tac t="m" in ssubst)
 apply simp
 done
 
 
-text {*
+text \<open>
 @{thm[display] relprime_dvd_mult}
 \rulename{relprime_dvd_mult}
 
@@ -185,7 +185,7 @@ Another example of "insert"
 
 @{thm[display] div_mult_mod_eq}
 \rulename{div_mult_mod_eq}
-*}
+\<close>
 
 (*MOVED to Force.thy, which now depends only on Divides.thy
 lemma div_mult_self_is_m: "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
@@ -197,7 +197,7 @@ by (auto intro: relprime_dvd_mult elim: dvdE)
 lemma relprime_20_81: "gcd 20 81 = 1"
 by (simp add: gcd.simps)
 
-text {*
+text \<open>
 Examples of 'OF'
 
 @{thm[display] relprime_dvd_mult}
@@ -214,20 +214,20 @@ Examples of 'OF'
 @{thm[display] dvd_add [OF dvd_refl dvd_refl]}
 
 @{thm[display] dvd_add [OF _ dvd_refl]}
-*}
+\<close>
 
 lemma "\<lbrakk>(z::int) < 37; 66 < 2*z; z*z \<noteq> 1225; Q(34); Q(36)\<rbrakk> \<Longrightarrow> Q(z)"
 apply (subgoal_tac "z = 34 \<or> z = 36")
-txt{*
+txt\<open>
 the tactic leaves two subgoals:
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply blast
 apply (subgoal_tac "z \<noteq> 35")
-txt{*
+txt\<open>
 the tactic leaves two subgoals:
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply arith
 apply force
 done

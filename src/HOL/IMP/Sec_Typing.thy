@@ -27,7 +27,7 @@ inductive_cases [elim!]:
   "l \<turnstile> x ::= a"  "l \<turnstile> c\<^sub>1;;c\<^sub>2"  "l \<turnstile> IF b THEN c\<^sub>1 ELSE c\<^sub>2"  "l \<turnstile> WHILE b DO c"
 
 
-text{* An important property: anti-monotonicity. *}
+text\<open>An important property: anti-monotonicity.\<close>
 
 lemma anti_mono: "\<lbrakk> l \<turnstile> c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile> c"
 apply(induction arbitrary: l' rule: sec_type.induct)
@@ -73,60 +73,60 @@ proof(induction arbitrary: t t' rule: big_step_induct)
 next
   case (Assign x a s)
   have [simp]: "t' = t(x := aval a t)" using Assign by auto
-  have "sec x >= sec a" using `0 \<turnstile> x ::= a` by auto
+  have "sec x >= sec a" using \<open>0 \<turnstile> x ::= a\<close> by auto
   show ?case
   proof auto
     assume "sec x \<le> l"
-    with `sec x >= sec a` have "sec a \<le> l" by arith
+    with \<open>sec x >= sec a\<close> have "sec a \<le> l" by arith
     thus "aval a s = aval a t"
-      by (rule aval_eq_if_eq_le[OF `s = t (\<le> l)`])
+      by (rule aval_eq_if_eq_le[OF \<open>s = t (\<le> l)\<close>])
   next
     fix y assume "y \<noteq> x" "sec y \<le> l"
-    thus "s y = t y" using `s = t (\<le> l)` by simp
+    thus "s y = t y" using \<open>s = t (\<le> l)\<close> by simp
   qed
 next
   case Seq thus ?case by blast
 next
   case (IfTrue b s c1 s' c2)
-  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using `0 \<turnstile> IF b THEN c1 ELSE c2` by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using \<open>0 \<turnstile> IF b THEN c1 ELSE c2\<close> by auto
   show ?case
   proof cases
     assume "sec b \<le> l"
-    hence "s = t (\<le> sec b)" using `s = t (\<le> l)` by auto
-    hence "bval b t" using `bval b s` by(simp add: bval_eq_if_eq_le)
-    with IfTrue.IH IfTrue.prems(1,3) `sec b \<turnstile> c1`  anti_mono
+    hence "s = t (\<le> sec b)" using \<open>s = t (\<le> l)\<close> by auto
+    hence "bval b t" using \<open>bval b s\<close> by(simp add: bval_eq_if_eq_le)
+    with IfTrue.IH IfTrue.prems(1,3) \<open>sec b \<turnstile> c1\<close>  anti_mono
     show ?thesis by auto
   next
     assume "\<not> sec b \<le> l"
     have 1: "sec b \<turnstile> IF b THEN c1 ELSE c2"
-      by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c1` `sec b \<turnstile> c2`)
-    from confinement[OF `(c1, s) \<Rightarrow> s'` `sec b \<turnstile> c1`] `\<not> sec b \<le> l`
+      by(rule sec_type.intros)(simp_all add: \<open>sec b \<turnstile> c1\<close> \<open>sec b \<turnstile> c2\<close>)
+    from confinement[OF \<open>(c1, s) \<Rightarrow> s'\<close> \<open>sec b \<turnstile> c1\<close>] \<open>\<not> sec b \<le> l\<close>
     have "s = s' (\<le> l)" by auto
     moreover
-    from confinement[OF `(IF b THEN c1 ELSE c2, t) \<Rightarrow> t'` 1] `\<not> sec b \<le> l`
+    from confinement[OF \<open>(IF b THEN c1 ELSE c2, t) \<Rightarrow> t'\<close> 1] \<open>\<not> sec b \<le> l\<close>
     have "t = t' (\<le> l)" by auto
-    ultimately show "s' = t' (\<le> l)" using `s = t (\<le> l)` by auto
+    ultimately show "s' = t' (\<le> l)" using \<open>s = t (\<le> l)\<close> by auto
   qed
 next
   case (IfFalse b s c2 s' c1)
-  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using `0 \<turnstile> IF b THEN c1 ELSE c2` by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using \<open>0 \<turnstile> IF b THEN c1 ELSE c2\<close> by auto
   show ?case
   proof cases
     assume "sec b \<le> l"
-    hence "s = t (\<le> sec b)" using `s = t (\<le> l)` by auto
-    hence "\<not> bval b t" using `\<not> bval b s` by(simp add: bval_eq_if_eq_le)
-    with IfFalse.IH IfFalse.prems(1,3) `sec b \<turnstile> c2` anti_mono
+    hence "s = t (\<le> sec b)" using \<open>s = t (\<le> l)\<close> by auto
+    hence "\<not> bval b t" using \<open>\<not> bval b s\<close> by(simp add: bval_eq_if_eq_le)
+    with IfFalse.IH IfFalse.prems(1,3) \<open>sec b \<turnstile> c2\<close> anti_mono
     show ?thesis by auto
   next
     assume "\<not> sec b \<le> l"
     have 1: "sec b \<turnstile> IF b THEN c1 ELSE c2"
-      by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c1` `sec b \<turnstile> c2`)
-    from confinement[OF big_step.IfFalse[OF IfFalse(1,2)] 1] `\<not> sec b \<le> l`
+      by(rule sec_type.intros)(simp_all add: \<open>sec b \<turnstile> c1\<close> \<open>sec b \<turnstile> c2\<close>)
+    from confinement[OF big_step.IfFalse[OF IfFalse(1,2)] 1] \<open>\<not> sec b \<le> l\<close>
     have "s = s' (\<le> l)" by auto
     moreover
-    from confinement[OF `(IF b THEN c1 ELSE c2, t) \<Rightarrow> t'` 1] `\<not> sec b \<le> l`
+    from confinement[OF \<open>(IF b THEN c1 ELSE c2, t) \<Rightarrow> t'\<close> 1] \<open>\<not> sec b \<le> l\<close>
     have "t = t' (\<le> l)" by auto
-    ultimately show "s' = t' (\<le> l)" using `s = t (\<le> l)` by auto
+    ultimately show "s' = t' (\<le> l)" using \<open>s = t (\<le> l)\<close> by auto
   qed
 next
   case (WhileFalse b s c)
@@ -134,52 +134,52 @@ next
   show ?case
   proof cases
     assume "sec b \<le> l"
-    hence "s = t (\<le> sec b)" using `s = t (\<le> l)` by auto
-    hence "\<not> bval b t" using `\<not> bval b s` by(simp add: bval_eq_if_eq_le)
+    hence "s = t (\<le> sec b)" using \<open>s = t (\<le> l)\<close> by auto
+    hence "\<not> bval b t" using \<open>\<not> bval b s\<close> by(simp add: bval_eq_if_eq_le)
     with WhileFalse.prems(1,3) show ?thesis by auto
   next
     assume "\<not> sec b \<le> l"
     have 1: "sec b \<turnstile> WHILE b DO c"
-      by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c`)
-    from confinement[OF `(WHILE b DO c, t) \<Rightarrow> t'` 1] `\<not> sec b \<le> l`
+      by(rule sec_type.intros)(simp_all add: \<open>sec b \<turnstile> c\<close>)
+    from confinement[OF \<open>(WHILE b DO c, t) \<Rightarrow> t'\<close> 1] \<open>\<not> sec b \<le> l\<close>
     have "t = t' (\<le> l)" by auto
-    thus "s = t' (\<le> l)" using `s = t (\<le> l)` by auto
+    thus "s = t' (\<le> l)" using \<open>s = t (\<le> l)\<close> by auto
   qed
 next
   case (WhileTrue b s1 c s2 s3 t1 t3)
   let ?w = "WHILE b DO c"
-  have "sec b \<turnstile> c" using `0 \<turnstile> WHILE b DO c` by auto
+  have "sec b \<turnstile> c" using \<open>0 \<turnstile> WHILE b DO c\<close> by auto
   show ?case
   proof cases
     assume "sec b \<le> l"
-    hence "s1 = t1 (\<le> sec b)" using `s1 = t1 (\<le> l)` by auto
+    hence "s1 = t1 (\<le> sec b)" using \<open>s1 = t1 (\<le> l)\<close> by auto
     hence "bval b t1"
-      using `bval b s1` by(simp add: bval_eq_if_eq_le)
+      using \<open>bval b s1\<close> by(simp add: bval_eq_if_eq_le)
     then obtain t2 where "(c,t1) \<Rightarrow> t2" "(?w,t2) \<Rightarrow> t3"
-      using `(?w,t1) \<Rightarrow> t3` by auto
-    from WhileTrue.IH(2)[OF `(?w,t2) \<Rightarrow> t3` `0 \<turnstile> ?w`
-      WhileTrue.IH(1)[OF `(c,t1) \<Rightarrow> t2` anti_mono[OF `sec b \<turnstile> c`]
-        `s1 = t1 (\<le> l)`]]
+      using \<open>(?w,t1) \<Rightarrow> t3\<close> by auto
+    from WhileTrue.IH(2)[OF \<open>(?w,t2) \<Rightarrow> t3\<close> \<open>0 \<turnstile> ?w\<close>
+      WhileTrue.IH(1)[OF \<open>(c,t1) \<Rightarrow> t2\<close> anti_mono[OF \<open>sec b \<turnstile> c\<close>]
+        \<open>s1 = t1 (\<le> l)\<close>]]
     show ?thesis by simp
   next
     assume "\<not> sec b \<le> l"
-    have 1: "sec b \<turnstile> ?w" by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c`)
-    from confinement[OF big_step.WhileTrue[OF WhileTrue.hyps] 1] `\<not> sec b \<le> l`
+    have 1: "sec b \<turnstile> ?w" by(rule sec_type.intros)(simp_all add: \<open>sec b \<turnstile> c\<close>)
+    from confinement[OF big_step.WhileTrue[OF WhileTrue.hyps] 1] \<open>\<not> sec b \<le> l\<close>
     have "s1 = s3 (\<le> l)" by auto
     moreover
-    from confinement[OF `(WHILE b DO c, t1) \<Rightarrow> t3` 1] `\<not> sec b \<le> l`
+    from confinement[OF \<open>(WHILE b DO c, t1) \<Rightarrow> t3\<close> 1] \<open>\<not> sec b \<le> l\<close>
     have "t1 = t3 (\<le> l)" by auto
-    ultimately show "s3 = t3 (\<le> l)" using `s1 = t1 (\<le> l)` by auto
+    ultimately show "s3 = t3 (\<le> l)" using \<open>s1 = t1 (\<le> l)\<close> by auto
   qed
 qed
 
 
 subsection "The Standard Typing System"
 
-text{* The predicate @{prop"l \<turnstile> c"} is nicely intuitive and executable. The
+text\<open>The predicate @{prop"l \<turnstile> c"} is nicely intuitive and executable. The
 standard formulation, however, is slightly different, replacing the maximum
 computation by an antimonotonicity rule. We introduce the standard system now
-and show the equivalence with our formulation. *}
+and show the equivalence with our formulation.\<close>
 
 inductive sec_type' :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile>'' _)" [0,0] 50) where
 Skip':

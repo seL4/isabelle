@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Lists Sorted wrt $<$ *}
+section \<open>Lists Sorted wrt $<$\<close>
 
 theory Sorted_Less
 imports Less_False

@@ -141,7 +141,7 @@ proof(induction t)
           by (auto simp add: skew_invar split_invar)
       next
         case (Incr)
-        thus ?thesis using invar_NodeR2[OF `invar ?t` Incr(2) 1 iir] 1 \<open>x < a\<close>
+        thus ?thesis using invar_NodeR2[OF \<open>invar ?t\<close> Incr(2) 1 iir] 1 \<open>x < a\<close>
           by (auto simp add: skew_invar split_invar split: if_splits)
       qed
     qed
@@ -193,7 +193,7 @@ proof (induction t)
 qed (simp add: post_del_def)
 
 
-subsection {* Functional Correctness Proofs *}
+subsection \<open>Functional Correctness Proofs\<close>
 
 theorem inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"

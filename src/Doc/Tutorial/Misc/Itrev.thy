@@ -5,9 +5,9 @@ begin
 declare [[names_unique = false]]
 (*>*)
 
-section{*Induction Heuristics*}
+section\<open>Induction Heuristics\<close>
 
-text{*\label{sec:InductionHeuristics}
+text\<open>\label{sec:InductionHeuristics}
 \index{induction heuristics|(}%
 The purpose of this section is to illustrate some simple heuristics for
 inductive proofs. The first one we have already mentioned in our initial
@@ -43,13 +43,13 @@ because it calls function @{text"@"} for each element of the list and
 @{text"@"} is linear in its first argument.  A linear time version of
 @{term"rev"} reqires an extra argument where the result is accumulated
 gradually, using only~@{text"#"}:
-*}
+\<close>
 
 primrec itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "itrev []     ys = ys" |
 "itrev (x#xs) ys = itrev xs (x#ys)"
 
-text{*\noindent
+text\<open>\noindent
 The behaviour of \cdx{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and returning that second argument when the first one becomes
@@ -58,17 +58,17 @@ compiled into a loop.
 
 Naturally, we would like to show that @{term"itrev"} does indeed reverse
 its first argument provided the second one is empty:
-*}
+\<close>
 
 lemma "itrev xs [] = rev xs"
 
-txt{*\noindent
+txt\<open>\noindent
 There is no choice as to the induction variable, and we immediately simplify:
-*}
+\<close>
 
 apply(induct_tac xs, simp_all)
 
-txt{*\noindent
+txt\<open>\noindent
 Unfortunately, this attempt does not prove
 the induction step:
 @{subgoals[display,indent=0,margin=70]}
@@ -80,11 +80,11 @@ This example suggests a heuristic:
 \end{quote}
 Of course one cannot do this na\"{\i}vely: @{term"itrev xs ys = rev xs"} is
 just not true.  The correct generalization is
-*}
+\<close>
 (*<*)oops(*>*)
 lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induct_tac xs, simp_all)(*>*)
-txt{*\noindent
+txt\<open>\noindent
 If @{term"ys"} is replaced by @{term"[]"}, the right-hand side simplifies to
 @{term"rev xs"}, as required.
 
@@ -100,14 +100,14 @@ intuition to generalize: the problem is that @{term"ys"} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
 @{term"a # ys"} instead of @{term"ys"}. Hence we prove the theorem
 for all @{term"ys"} instead of a fixed one:
-*}
+\<close>
 (*<*)oops(*>*)
 lemma "\<forall>ys. itrev xs ys = rev xs @ ys"
 (*<*)
 by(induct_tac xs, simp_all)
 (*>*)
 
-text{*\noindent
+text\<open>\noindent
 This time induction on @{term"xs"} followed by simplification succeeds. This
 leads to another heuristic for generalization:
 \begin{quote}
@@ -139,7 +139,7 @@ the problem at hand and is beyond simple rules of thumb.
 Additionally, you can read \S\ref{sec:advanced-ind}
 to learn about some advanced techniques for inductive proofs.%
 \index{induction heuristics|)}
-*}
+\<close>
 (*<*)
 declare [[names_unique = true]]
 end

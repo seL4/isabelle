@@ -79,11 +79,11 @@ IfFalse:
 
 code_pred (modes: i => i => o => bool) big_step .
 
-text{* Example: natural numbers encoded as objects with a predecessor
+text\<open>Example: natural numbers encoded as objects with a predecessor
 field. Null is zero. Method succ adds an object in front, method add
 adds as many objects in front as the parameter specifies.
 
-First, the method bodies: *}
+First, the method bodies:\<close>
 
 definition
 "m_succ  =  (''s'' ::= New)\<bullet>''pred'' ::= V ''this''; V ''s''"
@@ -93,19 +93,19 @@ definition "m_add =
   THEN V ''this''
   ELSE V ''this''\<bullet>''succ''<Null>\<bullet>''add''<V ''param''\<bullet>''pred''>"
 
-text{* The method environment: *}
+text\<open>The method environment:\<close>
 definition
 "menv = (\<lambda>m. Null)(''succ'' := m_succ, ''add'' := m_add)"
 
-text{* The main code, adding 1 and 2: *}
+text\<open>The main code, adding 1 and 2:\<close>
 definition "main =
   ''1'' ::= Null\<bullet>''succ''<Null>;
   ''2'' ::= V ''1''\<bullet>''succ''<Null>;
   V ''2'' \<bullet> ''add'' <V ''1''>"
 
-text{* Execution of semantics. The final variable environment and store are
+text\<open>Execution of semantics. The final variable environment and store are
 converted into lists of references based on given lists of variable and field
-names to extract. *}
+names to extract.\<close>
 
 values
  "{(r, map ve' [''1'',''2''], map (\<lambda>n. map (s' n)[''pred'']) [0..<n])|

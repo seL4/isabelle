@@ -46,7 +46,7 @@ using L_While_unfold by blast
 lemma L_While_X: "X \<subseteq> L (WHILE b DO c) X"
 using L_While_unfold by blast
 
-text{* Disable @{text "L WHILE"} equation and reason only with @{text "L WHILE"} constraints: *}
+text\<open>Disable @{text "L WHILE"} equation and reason only with @{text "L WHILE"} constraints:\<close>
 declare L.simps(5)[simp del]
 
 
@@ -73,16 +73,16 @@ next
   case (IfTrue b s c1 s' c2)
   hence "s = t on vars b" and "s = t on L c1 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue.IH[OF `s = t on L c1 X`] obtain t' where
+  from IfTrue.IH[OF \<open>s = t on L c1 X\<close>] obtain t' where
     "(c1, t) \<Rightarrow> t'" "s' = t' on X" by auto
-  thus ?case using `bval b t` by auto
+  thus ?case using \<open>bval b t\<close> by auto
 next
   case (IfFalse b s c2 s' c1)
   hence "s = t on vars b" "s = t on L c2 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse.IH[OF `s = t on L c2 X`] obtain t' where
+  from IfFalse.IH[OF \<open>s = t on L c2 X\<close>] obtain t' where
     "(c2, t) \<Rightarrow> t'" "s' = t' on X" by auto
-  thus ?case using `~bval b t` by auto
+  thus ?case using \<open>~bval b t\<close> by auto
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
@@ -91,7 +91,7 @@ next
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
-  from `bval b s1` WhileTrue.prems have "bval b t1"
+  from \<open>bval b s1\<close> WhileTrue.prems have "bval b t1"
     by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
   have "s1 = t1 on L c (L ?w X)" using  L_While_pfp WhileTrue.prems
     by (blast)
@@ -99,7 +99,7 @@ next
     "(c, t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
   from WhileTrue.IH(2)[OF this(2)] obtain t3 where "(?w,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
-  with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
+  with \<open>bval b t1\<close> \<open>(c, t1) \<Rightarrow> t2\<close> show ?case by auto
 qed
 
 
@@ -114,11 +114,11 @@ proof(induction c arbitrary: X)
   thus ?case by (simp add: L.simps(5))
 qed auto
 
-text{* Make @{const L} executable by replacing @{const lfp} with the @{const
+text\<open>Make @{const L} executable by replacing @{const lfp} with the @{const
 while} combinator from theory @{theory While_Combinator}. The @{const while}
 combinator obeys the recursion equation
 @{thm[display] While_Combinator.while_unfold[no_vars]}
-and is thus executable. *}
+and is thus executable.\<close>
 
 lemma L_While: fixes b c X
 assumes "finite X" defines "f == \<lambda>Y. vars b \<union> X \<union> L c Y"
@@ -132,7 +132,7 @@ proof -
     fix Y show "Y \<subseteq> ?V \<Longrightarrow> f Y \<subseteq> ?V"
       unfolding f_def using L_subset_vars[of c] by blast
   next
-    show "finite ?V" using `finite X` by simp
+    show "finite ?V" using \<open>finite X\<close> by simp
   qed
   thus ?thesis by (simp add: f_def L.simps(5))
 qed
@@ -147,11 +147,11 @@ lemma L_While_set: "L (WHILE b DO c) (set xs) =
    in while (\<lambda>Y. f Y \<noteq> Y) f {})"
 by(rule L_While_let, simp)
 
-text{* Replace the equation for @{text "L (WHILE \<dots>)"} by the executable @{thm[source] L_While_set}: *}
+text\<open>Replace the equation for @{text "L (WHILE \<dots>)"} by the executable @{thm[source] L_While_set}:\<close>
 lemmas [code] = L.simps(1-4) L_While_set
-text{* Sorry, this syntax is odd. *}
+text\<open>Sorry, this syntax is odd.\<close>
 
-text{* A test: *}
+text\<open>A test:\<close>
 lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x'';; ''x'' ::= V ''z''
   in L (WHILE b DO c) {''y''}) = {''x'', ''y'', ''z''}"
 by eval
@@ -159,14 +159,14 @@ by eval
 
 subsection "Limiting the number of iterations"
 
-text{* The final parameter is the default value: *}
+text\<open>The final parameter is the default value:\<close>
 
 fun iter :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "iter f 0 p d = d" |
 "iter f (Suc n) p d = (if f p = p then p else iter f n (f p) d)"
 
-text{* A version of @{const L} with a bounded number of iterations (here: 2)
-in the WHILE case: *}
+text\<open>A version of @{const L} with a bounded number of iterations (here: 2)
+in the WHILE case:\<close>
 
 fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "Lb SKIP X = X" |
@@ -175,7 +175,7 @@ fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "Lb (IF b THEN c\<^sub>1 ELSE c\<^sub>2) X = vars b \<union> Lb c\<^sub>1 X \<union> Lb c\<^sub>2 X" |
 "Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> rvars c \<union> X)"
 
-text{* @{const Lb} (and @{const iter}) is not monotone! *}
+text\<open>@{const Lb} (and @{const iter}) is not monotone!\<close>
 lemma "let w = WHILE Bc False DO (''x'' ::= V ''y'';; ''z'' ::= V ''x'')
   in \<not> (Lb w {''z''} \<subseteq> Lb w {''y'',''z''})"
 by eval

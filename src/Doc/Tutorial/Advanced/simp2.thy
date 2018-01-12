@@ -2,19 +2,19 @@
 theory simp2 imports Main begin
 (*>*)
 
-section{*Simplification*}
+section\<open>Simplification\<close>
 
-text{*\label{sec:simplification-II}\index{simplification|(}
+text\<open>\label{sec:simplification-II}\index{simplification|(}
 This section describes features not covered until now.  It also
 outlines the simplification process itself, which can be helpful
 when the simplifier does not do what you expect of it.
-*}
+\<close>
 
-subsection{*Advanced Features*}
+subsection\<open>Advanced Features\<close>
 
-subsubsection{*Congruence Rules*}
+subsubsection\<open>Congruence Rules\<close>
 
-text{*\label{sec:simp-cong}
+text\<open>\label{sec:simp-cong}
 While simplifying the conclusion $Q$
 of $P \Imp Q$, it is legal to use the assumption $P$.
 For $\Imp$ this policy is hardwired, but 
@@ -62,11 +62,11 @@ The congruence rule @{thm[source]conj_cong}
 \par\noindent
 is occasionally useful but is not a default rule; you have to declare it explicitly.
 \end{warn}
-*}
+\<close>
 
-subsubsection{*Permutative Rewrite Rules*}
+subsubsection\<open>Permutative Rewrite Rules\<close>
 
-text{*
+text\<open>
 \index{rewrite rules!permutative|bold}%
 An equation is a \textbf{permutative rewrite rule} if the left-hand
 side and right-hand side are the same up to renaming of variables.  The most
@@ -105,20 +105,20 @@ lexicographically:
 Note that ordered rewriting for @{text"+"} and @{text"*"} on numbers is rarely
 necessary because the built-in arithmetic prover often succeeds without
 such tricks.
-*}
+\<close>
 
-subsection{*How the Simplifier Works*}
+subsection\<open>How the Simplifier Works\<close>
 
-text{*\label{sec:SimpHow}
+text\<open>\label{sec:SimpHow}
 Roughly speaking, the simplifier proceeds bottom-up: subterms are simplified
 first.  A conditional equation is only applied if its condition can be
 proved, again by simplification.  Below we explain some special features of
 the rewriting process. 
-*}
+\<close>
 
-subsubsection{*Higher-Order Patterns*}
+subsubsection\<open>Higher-Order Patterns\<close>
 
-text{*\index{simplification rule|(}
+text\<open>\index{simplification rule|(}
 So far we have pretended the simplifier can deal with arbitrary
 rewrite rules. This is not quite true.  For reasons of feasibility,
 the simplifier expects the
@@ -153,11 +153,11 @@ introduced conditions may be hard to solve.
   
 There is no restriction on the form of the right-hand
 sides.  They may not contain extraneous term or type variables, though.
-*}
+\<close>
 
-subsubsection{*The Preprocessor*}
+subsubsection\<open>The Preprocessor\<close>
 
-text{*\label{sec:simp-preprocessor}
+text\<open>\label{sec:simp-preprocessor}
 When a theorem is declared a simplification rule, it need not be a
 conditional equation already.  The simplifier will turn it into a set of
 conditional equations automatically.  For example, @{prop"f x =
@@ -183,7 +183,7 @@ is converted into the three rules
 \end{center}
 \index{simplification rule|)}
 \index{simplification|)}
-*}
+\<close>
 (*<*)
 end
 (*>*)

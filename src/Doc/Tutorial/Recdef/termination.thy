@@ -2,7 +2,7 @@
 theory "termination" imports examples begin
 (*>*)
 
-text{*
+text\<open>
 When a function~$f$ is defined via \isacommand{recdef}, Isabelle tries to prove
 its termination with the help of the user-supplied measure.  Each of the examples
 above is simple enough that Isabelle can automatically prove that the
@@ -14,14 +14,14 @@ the same function. What is more, those equations are automatically declared as
 simplification rules.
 
 Isabelle may fail to prove the termination condition for some
-recursive call.  Let us try to define Quicksort:*}
+recursive call.  Let us try to define Quicksort:\<close>
 
 consts qs :: "nat list \<Rightarrow> nat list"
 recdef(*<*)(permissive)(*>*) qs "measure length"
  "qs [] = []"
  "qs(x#xs) = qs(filter (\<lambda>y. y\<le>x) xs) @ [x] @ qs(filter (\<lambda>y. x<y) xs)"
 
-text{*\noindent where @{term filter} is predefined and @{term"filter P xs"}
+text\<open>\noindent where @{term filter} is predefined and @{term"filter P xs"}
 is the list of elements of @{term xs} satisfying @{term P}.
 This definition of @{term qs} fails, and Isabelle prints an error message
 showing you what it was unable to prove:
@@ -38,7 +38,7 @@ Now we retry the above definition but supply the lemma(s) just found (or
 proved). Because \isacommand{recdef}'s termination prover involves
 simplification, we include in our second attempt a hint: the
 \attrdx{recdef_simp} attribute says to use @{thm[source]less_Suc_eq_le} as a
-simplification rule.\cmmdx{hints}  *}
+simplification rule.\cmmdx{hints}\<close>
 
 (*<*)global consts qs :: "nat list \<Rightarrow> nat list" (*>*)
 recdef qs "measure length"
@@ -46,25 +46,25 @@ recdef qs "measure length"
  "qs(x#xs) = qs(filter (\<lambda>y. y\<le>x) xs) @ [x] @ qs(filter (\<lambda>y. x<y) xs)"
 (hints recdef_simp: less_Suc_eq_le)
 (*<*)local(*>*)
-text{*\noindent
+text\<open>\noindent
 This time everything works fine. Now @{thm[source]qs.simps} contains precisely
 the stated recursion equations for @{text qs} and they have become
 simplification rules.
 Thus we can automatically prove results such as this one:
-*}
+\<close>
 
 theorem "qs[2,3,0] = qs[3,0,2]"
 apply(simp)
 done
 
-text{*\noindent
+text\<open>\noindent
 More exciting theorems require induction, which is discussed below.
 
 If the termination proof requires a lemma that is of general use, you can
 turn it permanently into a simplification rule, in which case the above
 \isacommand{hint} is not necessary. But in the case of
 @{thm[source]less_Suc_eq_le} this would be of dubious value.
-*}
+\<close>
 (*<*)
 end
 (*>*)

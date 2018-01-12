@@ -2,9 +2,9 @@
 ML_file "../../antiquote_setup.ML" 
 (*>*)
 
-section{* The Set of Even Numbers *}
+section\<open>The Set of Even Numbers\<close>
 
-text {*
+text \<open>
 \index{even numbers!defining inductively|(}%
 The set of even numbers can be inductively defined as the least set
 containing 0 and closed under the operation $+2$.  Obviously,
@@ -12,20 +12,20 @@ containing 0 and closed under the operation $+2$.  Obviously,
 We shall prove below that the two formulations coincide.  On the way we
 shall examine the primary means of reasoning about inductively defined
 sets: rule induction.
-*}
+\<close>
 
-subsection{* Making an Inductive Definition *}
+subsection\<open>Making an Inductive Definition\<close>
 
-text {*
+text \<open>
 Using \commdx{inductive\protect\_set}, we declare the constant @{text even} to be
 a set of natural numbers with the desired properties.
-*}
+\<close>
 
 inductive_set even :: "nat set" where
 zero[intro!]: "0 \<in> even" |
 step[intro!]: "n \<in> even \<Longrightarrow> (Suc (Suc n)) \<in> even"
 
-text {*
+text \<open>
 An inductive definition consists of introduction rules.  The first one
 above states that 0 is even; the second states that if $n$ is even, then so
 is~$n+2$.  Given this declaration, Isabelle generates a fixed point
@@ -44,16 +44,16 @@ directing the classical reasoner to
 apply them aggressively. Obviously, regarding 0 as even is safe.  The
 @{text step} rule is also safe because $n+2$ is even if and only if $n$ is
 even.  We prove this equivalence later.
-*}
+\<close>
 
-subsection{*Using Introduction Rules*}
+subsection\<open>Using Introduction Rules\<close>
 
-text {*
+text \<open>
 Our first lemma states that numbers of the form $2\times k$ are even.
 Introduction rules are used to show that specific values belong to the
 inductive set.  Such proofs typically involve 
 induction, perhaps over some other inductive set.
-*}
+\<close>
 
 lemma two_times_even[intro!]: "2*k \<in> even"
 apply (induct_tac k)
@@ -63,7 +63,7 @@ done
 lemma "2*k \<in> even"
 apply (induct_tac k)
 (*>*)
-txt {*
+txt \<open>
 \noindent
 The first step is induction on the natural number @{text k}, which leaves
 two subgoals:
@@ -75,14 +75,14 @@ Our ultimate goal is to prove the equivalence between the traditional
 definition of @{text even} (using the divides relation) and our inductive
 definition.  One direction of this equivalence is immediate by the lemma
 just proved, whose @{text "intro!"} attribute ensures it is applied automatically.
-*}
+\<close>
 (*<*)oops(*>*)
 lemma dvd_imp_even: "2 dvd n \<Longrightarrow> n \<in> even"
 by (auto simp add: dvd_def)
 
-subsection{* Rule Induction \label{sec:rule-induction} *}
+subsection\<open>Rule Induction \label{sec:rule-induction}\<close>
 
-text {*
+text \<open>
 \index{rule induction|(}%
 From the definition of the set
 @{term even}, Isabelle has
@@ -102,56 +102,56 @@ the least set containing @{text 0} and closed under~@{term Suc}.
 Induction is the usual way of proving a property of the elements of an
 inductively defined set.  Let us prove that all members of the set
 @{term even} are multiples of two.
-*}
+\<close>
 
 lemma even_imp_dvd: "n \<in> even \<Longrightarrow> 2 dvd n"
-txt {*
+txt \<open>
 We begin by applying induction.  Note that @{text even.induct} has the form
 of an elimination rule, so we use the method @{text erule}.  We get two
 subgoals:
-*}
+\<close>
 apply (erule even.induct)
-txt {*
+txt \<open>
 @{subgoals[display,indent=0]}
 We unfold the definition of @{text dvd} in both subgoals, proving the first
 one and simplifying the second:
-*}
+\<close>
 apply (simp_all add: dvd_def)
-txt {*
+txt \<open>
 @{subgoals[display,indent=0]}
 The next command eliminates the existential quantifier from the assumption
 and replaces @{text n} by @{text "2 * k"}.
-*}
+\<close>
 apply clarify
-txt {*
+txt \<open>
 @{subgoals[display,indent=0]}
 To conclude, we tell Isabelle that the desired value is
 @{term "Suc k"}.  With this hint, the subgoal falls to @{text simp}.
-*}
+\<close>
 apply (rule_tac x = "Suc k" in exI, simp)
 (*<*)done(*>*)
 
-text {*
+text \<open>
 Combining the previous two results yields our objective, the
 equivalence relating @{term even} and @{text dvd}. 
 %
 %we don't want [iff]: discuss?
-*}
+\<close>
 
 theorem even_iff_dvd: "(n \<in> even) = (2 dvd n)"
 by (blast intro: dvd_imp_even even_imp_dvd)
 
 
-subsection{* Generalization and Rule Induction \label{sec:gen-rule-induction} *}
+subsection\<open>Generalization and Rule Induction \label{sec:gen-rule-induction}\<close>
 
-text {*
+text \<open>
 \index{generalizing for induction}%
 Before applying induction, we typically must generalize
 the induction formula.  With rule induction, the required generalization
 can be hard to find and sometimes requires a complete reformulation of the
 problem.  In this  example, our first attempt uses the obvious statement of
 the result.  It fails:
-*}
+\<close>
 
 lemma "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"
 apply (erule even.induct)
@@ -160,7 +160,7 @@ oops
 lemma "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"
 apply (erule even.induct)
 (*>*)
-txt {*
+txt \<open>
 Rule induction finds no occurrences of @{term "Suc(Suc n)"} in the
 conclusion, which it therefore leaves unchanged.  (Look at
 @{text even.induct} to see why this happens.)  We have these subgoals:
@@ -171,7 +171,7 @@ How to deal with such situations
 in general is described in {\S}\ref{sec:ind-var-in-prems} below.
 In the current case the solution is easy because
 we have the necessary inverse, subtraction:
-*}
+\<close>
 (*<*)oops(*>*)
 lemma even_imp_even_minus_2: "n \<in> even \<Longrightarrow> n - 2 \<in> even"
 apply (erule even.induct)
@@ -181,7 +181,7 @@ done
 lemma "n \<in>  even \<Longrightarrow> n - 2 \<in> even"
 apply (erule even.induct)
 (*>*)
-txt {*
+txt \<open>
 This lemma is trivially inductive.  Here are the subgoals:
 @{subgoals[display,indent=0]}
 The first is trivial because @{text "0 - 2"} simplifies to @{text 0}, which is
@@ -191,24 +191,24 @@ even.  The second is trivial too: @{term "Suc (Suc n) - 2"} simplifies to
 
 \medskip
 Using our lemma, we can easily prove the result we originally wanted:
-*}
+\<close>
 (*<*)oops(*>*)
 lemma Suc_Suc_even_imp_even: "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"
 by (drule even_imp_even_minus_2, simp)
 
-text {*
+text \<open>
 We have just proved the converse of the introduction rule @{text even.step}.
 This suggests proving the following equivalence.  We give it the
 \attrdx{iff} attribute because of its obvious value for simplification.
-*}
+\<close>
 
 lemma [iff]: "((Suc (Suc n)) \<in> even) = (n \<in> even)"
 by (blast dest: Suc_Suc_even_imp_even)
 
 
-subsection{* Rule Inversion \label{sec:rule-inversion} *}
+subsection\<open>Rule Inversion \label{sec:rule-inversion}\<close>
 
-text {*
+text \<open>
 \index{rule inversion|(}%
 Case analysis on an inductive definition is called \textbf{rule
 inversion}.  It is frequently used in proofs about operational
@@ -232,11 +232,11 @@ specific patterns.  For example, if @{term a} has the form
 @{term "Suc(Suc n)"} then the first case becomes irrelevant, while the second
 case tells us that @{term n} belongs to @{term even}.  Isabelle will generate
 this instance for us:
-*}
+\<close>
 
 inductive_cases Suc_Suc_cases [elim!]: "Suc(Suc n) \<in> even"
 
-text {*
+text \<open>
 The \commdx{inductive\protect\_cases} command generates an instance of
 the @{text cases} rule for the supplied pattern and gives it the supplied name:
 @{named_thms [display,indent=0] Suc_Suc_cases [no_vars] (Suc_Suc_cases)}
@@ -265,13 +265,13 @@ it introduces is disjoint from those of the other introduction rules.
 
 For one-off applications of rule inversion, use the \methdx{ind_cases} method. 
 Here is an example:
-*}
+\<close>
 
 (*<*)lemma "Suc(Suc n) \<in> even \<Longrightarrow> P"(*>*)
 apply (ind_cases "Suc(Suc n) \<in> even")
 (*<*)oops(*>*)
 
-text {*
+text \<open>
 The specified instance of the @{text cases} rule is generated, then applied
 as an elimination rule.
 
@@ -285,6 +285,6 @@ The even numbers example has shown how inductive definitions can be
 used.  Later examples will show that they are actually worth using.%
 \index{rule inversion|)}%
 \index{even numbers!defining inductively|)}
-*}
+\<close>
 
 (*<*)end(*>*)

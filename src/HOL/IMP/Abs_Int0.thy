@@ -6,9 +6,9 @@ begin
 
 subsection "Orderings"
 
-text{* The basic type classes @{class order}, @{class semilattice_sup} and @{class order_top} are
+text\<open>The basic type classes @{class order}, @{class semilattice_sup} and @{class order_top} are
 defined in @{theory Main}, more precisely in theories @{theory Orderings} and @{theory Lattices}.
-If you view this theory with jedit, just click on the names to get there. *}
+If you view this theory with jedit, just click on the names to get there.\<close>
 
 class semilattice_sup_top = semilattice_sup + order_top
 
@@ -148,7 +148,7 @@ fun \<gamma>_option :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a option \<Righ
 "\<gamma>_option \<gamma> None = {}" |
 "\<gamma>_option \<gamma> (Some a) = \<gamma> a"
 
-text{* The interface for abstract values: *}
+text\<open>The interface for abstract values:\<close>
 
 locale Val_semilattice =
 fixes \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
@@ -161,9 +161,9 @@ and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
 
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
-text{* The for-clause (here and elsewhere) only serves the purpose of fixing
+text\<open>The for-clause (here and elsewhere) only serves the purpose of fixing
 the name of the type parameter @{typ 'av} which would otherwise be renamed to
-@{typ 'a}. *}
+@{typ 'a}.\<close>
 
 locale Abs_Int_fun = Val_semilattice where \<gamma>=\<gamma>
   for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
@@ -210,7 +210,7 @@ by(induction S1 S2 rule: less_eq_option.induct)(simp_all add: mono_gamma_s)
 lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^sub>c C1 \<le> \<gamma>\<^sub>c C2"
 by (simp add: less_eq_acom_def mono_gamma_o size_annos anno_map_acom size_annos_same[of C1 C2])
 
-text{* Correctness: *}
+text\<open>Correctness:\<close>
 
 lemma aval'_correct: "s : \<gamma>\<^sub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_fun_def)
@@ -232,7 +232,7 @@ lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  --"transfer the pfp'"
+  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  \<comment>"transfer the pfp'"
   proof(rule order_trans)
     show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' \<top> C)" by(rule step_step')
     show "... \<le> \<gamma>\<^sub>c C" by (metis mono_gamma_c[OF pfp'])
@@ -299,7 +299,7 @@ proof(simp add: pfp_def, rule wf_while_option_Some[where P = "%x. I x & x \<le> 
   show "wf {(y,x). ((I x \<and> x \<le> f x) \<and> \<not> f x \<le> x) \<and> y = f x}"
     by(rule wf_subset[OF wf_measure[of m]]) (auto simp: m I)
 next
-  show "I x0 \<and> x0 \<le> f x0" using `I x0` `x0 \<le> f x0` by blast
+  show "I x0 \<and> x0 \<le> f x0" using \<open>I x0\<close> \<open>x0 \<le> f x0\<close> by blast
 next
   fix x assume "I x \<and> x \<le> f x" thus "I(f x) \<and> f x \<le> f(f x)"
     by (blast intro: I mono)
@@ -331,7 +331,7 @@ by(cases opt)(auto simp add: m_s_h le_SucI dest: m_s_h)
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^sub>c") where
 "m_c C = sum_list (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
-text{* Upper complexity bound: *}
+text\<open>Upper complexity bound:\<close>
 lemma m_c_h: "m_c C \<le> size(annos C) * (h * card(vars C) + 1)"
 proof-
   let ?X = "vars C" let ?n = "card ?X" let ?a = "size(annos C)"
@@ -351,11 +351,11 @@ locale Measure_fun = Measure1_fun where m=m
 assumes m2: "x < y \<Longrightarrow> m x > m y"
 begin
 
-text{* The predicates @{text "top_on_ty a X"} that follow describe that any abstract
+text\<open>The predicates @{text "top_on_ty a X"} that follow describe that any abstract
 state in @{text a} maps all variables in @{text X} to @{term \<top>}.
 This is an important invariant for the termination proof where we argue that only
 the finitely many variables in the program change. That the others do not change
-follows because they remain @{term \<top>}. *}
+follows because they remain @{term \<top>}.\<close>
 
 fun top_on_st :: "'av st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>s") where
 "top_on_st S X = (\<forall>x\<in>X. S x = \<top>)"
@@ -409,7 +409,7 @@ proof-
   from assms(2,3,4) have "EX x:X. S1 x < S2 x"
     by(simp add: fun_eq_iff) (metis Compl_iff le_neq_trans)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S2 x)" by (metis m2)
-  from sum_strict_mono_ex1[OF `finite X` 1 2]
+  from sum_strict_mono_ex1[OF \<open>finite X\<close> 1 2]
   show "(\<Sum>x\<in>X. m (S2 x)) < (\<Sum>x\<in>X. m (S1 x))" .
 qed
 
@@ -450,7 +450,7 @@ proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def les
     using i(1) top(2) by(simp add: top_on_acom_def size_annos_same[OF strip_eq])
   from i have "m_o (annos C1 ! i) ?X > m_o (annos C2 ! i) ?X" (is "?P i")
     by (metis 0 less_option_def m_o2[OF finite_cvars topo1] topo2)
-  hence 2: "\<exists>i < size(annos C2). ?P i" using `i < size(annos C2)` by blast
+  hence 2: "\<exists>i < size(annos C2). ?P i" using \<open>i < size(annos C2)\<close> by blast
   have "(\<Sum>i<size(annos C2). m_o (annos C2 ! i) ?X)
          < (\<Sum>i<size(annos C2). m_o (annos C1 ! i) ?X)"
     apply(rule sum_strict_mono_ex1) using 1 2 by (auto)
@@ -480,7 +480,7 @@ done
 
 end
 
-text{* Problem: not executable because of the comparison of abstract states,
-i.e. functions, in the pre-fixpoint computation. *}
+text\<open>Problem: not executable because of the comparison of abstract states,
+i.e. functions, in the pre-fixpoint computation.\<close>
 
 end

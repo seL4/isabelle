@@ -1,36 +1,36 @@
 (*<*)theory Axioms imports Overloading Setup begin(*>*)
 
-subsection {* Axioms *}
+subsection \<open>Axioms\<close>
 
-text {* Attaching axioms to our classes lets us reason on the level of
+text \<open>Attaching axioms to our classes lets us reason on the level of
 classes.  The results will be applicable to all types in a class, just
 as in axiomatic mathematics.
 
 \begin{warn}
 Proofs in this section use structured \emph{Isar} proofs, which are not
 covered in this tutorial; but see @{cite "Nipkow-TYPES02"}.%
-\end{warn} *}
+\end{warn}\<close>
 
-subsubsection {* Semigroups *}
+subsubsection \<open>Semigroups\<close>
 
-text{* We specify \emph{semigroups} as subclass of @{class plus}: *}
+text\<open>We specify \emph{semigroups} as subclass of @{class plus}:\<close>
 
 class semigroup = plus +
   assumes assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
 
-text {* \noindent This @{command class} specification requires that
+text \<open>\noindent This @{command class} specification requires that
 all instances of @{class semigroup} obey @{fact "assoc:"}~@{prop
 [source] "\<And>x y z :: 'a::semigroup. (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"}.
 
 We can use this class axiom to derive further abstract theorems
-relative to class @{class semigroup}: *}
+relative to class @{class semigroup}:\<close>
 
 lemma assoc_left:
   fixes x y z :: "'a::semigroup"
   shows "x \<oplus> (y \<oplus> z) = (x \<oplus> y) \<oplus> z"
   using assoc by (rule sym)
 
-text {* \noindent The @{class semigroup} constraint on type @{typ
+text \<open>\noindent The @{class semigroup} constraint on type @{typ
 "'a"} restricts instantiations of @{typ "'a"} to types of class
 @{class semigroup} and during the proof enables us to use the fact
 @{fact assoc} whose type parameter is itself constrained to class
@@ -38,15 +38,15 @@ text {* \noindent The @{class semigroup} constraint on type @{typ
 can be proved in the abstract and freely reused for each instance.
 
 On instantiation, we have to give a proof that the given operations
-obey the class axioms: *}
+obey the class axioms:\<close>
 
 instantiation nat :: semigroup
 begin
 
 instance proof
 
-txt {* \noindent The proof opens with a default proof step, which for
-instance judgements invokes method @{method intro_classes}. *}
+txt \<open>\noindent The proof opens with a default proof step, which for
+instance judgements invokes method @{method intro_classes}.\<close>
 
 
   fix m n q :: nat
@@ -56,8 +56,8 @@ qed
 
 end
 
-text {* \noindent Again, the interesting things enter the stage with
-parametric types: *}
+text \<open>\noindent Again, the interesting things enter the stage with
+parametric types:\<close>
 
 instantiation prod :: (semigroup, semigroup) semigroup
 begin
@@ -67,30 +67,30 @@ instance proof
   show "p\<^sub>1 \<oplus> p\<^sub>2 \<oplus> p\<^sub>3 = p\<^sub>1 \<oplus> (p\<^sub>2 \<oplus> p\<^sub>3)"
     by (cases p\<^sub>1, cases p\<^sub>2, cases p\<^sub>3) (simp add: assoc)
 
-txt {* \noindent Associativity of product semigroups is established
+txt \<open>\noindent Associativity of product semigroups is established
 using the hypothetical associativity @{fact assoc} of the type
 components, which holds due to the @{class semigroup} constraints
 imposed on the type components by the @{command instance} proposition.
 Indeed, this pattern often occurs with parametric types and type
-classes. *}
+classes.\<close>
 
 qed
 
 end
 
-subsubsection {* Monoids *}
+subsubsection \<open>Monoids\<close>
 
-text {* We define a subclass @{text monoidl} (a semigroup with a
+text \<open>We define a subclass @{text monoidl} (a semigroup with a
 left-hand neutral) by extending @{class semigroup} with one additional
-parameter @{text neutral} together with its property: *}
+parameter @{text neutral} together with its property:\<close>
 
 class monoidl = semigroup +
   fixes neutral :: "'a" ("\<zero>")
   assumes neutl: "\<zero> \<oplus> x = x"
 
-text {* \noindent Again, we prove some instances, by providing
+text \<open>\noindent Again, we prove some instances, by providing
 suitable parameter definitions and proofs for the additional
-specifications. *}
+specifications.\<close>
 
 instantiation nat :: monoidl
 begin
@@ -106,11 +106,11 @@ qed
 
 end
 
-text {* \noindent In contrast to the examples above, we here have both
+text \<open>\noindent In contrast to the examples above, we here have both
 specification of class operations and a non-trivial instance proof.
 
 This covers products as well:
-*}
+\<close>
 
 instantiation prod :: (monoidl, monoidl) monoidl
 begin
@@ -126,27 +126,27 @@ qed
 
 end
 
-text {* \noindent Fully-fledged monoids are modelled by another
+text \<open>\noindent Fully-fledged monoids are modelled by another
 subclass which does not add new parameters but tightens the
-specification: *}
+specification:\<close>
 
 class monoid = monoidl +
   assumes neutr: "x \<oplus> \<zero> = x"
 
-text {* \noindent Corresponding instances for @{typ nat} and products
-are left as an exercise to the reader. *}
+text \<open>\noindent Corresponding instances for @{typ nat} and products
+are left as an exercise to the reader.\<close>
 
-subsubsection {* Groups *}
+subsubsection \<open>Groups\<close>
 
-text {* \noindent To finish our small algebra example, we add a @{text
-group} class: *}
+text \<open>\noindent To finish our small algebra example, we add a @{text
+group} class:\<close>
 
 class group = monoidl +
   fixes inv :: "'a \<Rightarrow> 'a" ("\<div> _" [81] 80)
   assumes invl: "\<div> x \<oplus> x = \<zero>"
 
-text {* \noindent We continue with a further example for abstract
-proofs relative to type classes: *}
+text \<open>\noindent We continue with a further example for abstract
+proofs relative to type classes:\<close>
 
 lemma left_cancel:
   fixes x y z :: "'a::group"
@@ -161,9 +161,9 @@ next
   then show "x \<oplus> y = x \<oplus> z" by simp
 qed
 
-text {* \noindent Any @{text "group"} is also a @{text "monoid"}; this
+text \<open>\noindent Any @{text "group"} is also a @{text "monoid"}; this
 can be made explicit by claiming an additional subclass relation,
-together with a proof of the logical difference: *}
+together with a proof of the logical difference:\<close>
 
 instance group \<subseteq> monoid
 proof
@@ -174,7 +174,7 @@ proof
   then show "x \<oplus> \<zero> = x" by (simp add: left_cancel)
 qed
 
-text {* \noindent The proof result is propagated to the type system,
+text \<open>\noindent The proof result is propagated to the type system,
 making @{text group} an instance of @{text monoid} by adding an
 additional edge to the graph of subclass relation; see also
 Figure~\ref{fig:subclass}.
@@ -208,11 +208,11 @@ Figure~\ref{fig:subclass}.
    \label{fig:subclass}
  \end{center}
 \end{figure}
-*}
+\<close>
 
-subsubsection {* Inconsistencies *}
+subsubsection \<open>Inconsistencies\<close>
 
-text {* The reader may be wondering what happens if we attach an
+text \<open>The reader may be wondering what happens if we attach an
 inconsistent set of axioms to a class. So far we have always avoided
 to add new axioms to HOL for fear of inconsistencies and suddenly it
 seems that we are throwing all caution to the wind. So why is there no
@@ -230,12 +230,12 @@ non-empty.
 
 Even if each individual class is consistent, intersections of
 (unrelated) classes readily become inconsistent in practice. Now we
-know this need not worry us. *}
+know this need not worry us.\<close>
 
 
-subsubsection{* Syntactic Classes and Predefined Overloading *}
+subsubsection\<open>Syntactic Classes and Predefined Overloading\<close>
 
-text {* In our algebra example, we have started with a \emph{syntactic
+text \<open>In our algebra example, we have started with a \emph{syntactic
 class} @{class plus} which only specifies operations but no axioms; it
 would have been also possible to start immediately with class @{class
 semigroup}, specifying the @{text "\<oplus>"} operation and associativity at
@@ -256,6 +256,6 @@ Table~\ref{tab:overloading} in the appendix.  Section
 Further note that classes may contain axioms but \emph{no} operations.
 An example is class @{class finite} from theory @{theory Finite_Set}
 which specifies a type to be finite: @{lemma [source] "finite (UNIV :: 'a::finite
-set)" by (fact finite_UNIV)}. *}
+set)" by (fact finite_UNIV)}.\<close>
 
 (*<*)end(*>*)

@@ -35,9 +35,9 @@ apply (drule mp)
  apply assumption
 done
 
-text {*
+text \<open>
 by eliminates uses of assumption and done
-*}
+\<close>
 
 lemma imp_uncurry': "P \<longrightarrow> Q \<longrightarrow> R \<Longrightarrow> P \<and> Q \<longrightarrow> R"
 apply (rule impI)
@@ -47,21 +47,21 @@ apply (drule mp)
 by (drule mp)
 
 
-text {*
+text \<open>
 substitution
 
 @{thm[display] ssubst}
 \rulename{ssubst}
-*}
+\<close>
 
 lemma "\<lbrakk> x = f x; P(f x) \<rbrakk> \<Longrightarrow> P x"
 by (erule ssubst)
 
-text {*
+text \<open>
 also provable by simp (re-orients)
-*}
+\<close>
 
-text {*
+text \<open>
 the subst method
 
 @{thm[display] mult.commute}
@@ -69,17 +69,17 @@ the subst method
 
 this would fail:
 apply (simp add: mult.commute) 
-*}
+\<close>
 
 
 lemma "\<lbrakk>P x y z; Suc x < y\<rbrakk> \<Longrightarrow> f z = x*y"
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (subst mult.commute) 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 oops
 
 (*exercise involving THEN*)
@@ -90,11 +90,11 @@ oops
 
 lemma "\<lbrakk>x = f x; triple (f x) (f x) x\<rbrakk> \<Longrightarrow> triple x x x"
 apply (erule ssubst) 
-  --{* @{subgoals[display,indent=0,margin=65]} *}
-back --{* @{subgoals[display,indent=0,margin=65]} *}
-back --{* @{subgoals[display,indent=0,margin=65]} *}
-back --{* @{subgoals[display,indent=0,margin=65]} *}
-back --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply assumption
 done
 
@@ -102,9 +102,9 @@ lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> tripl
 apply (erule ssubst, assumption)
 done
 
-text{*
+text\<open>
 or better still 
-*}
+\<close>
 
 lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> triple x x x"
 by (erule ssubst)
@@ -120,7 +120,7 @@ lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> tripl
 by (erule_tac P="\<lambda>u. triple u u x" in ssubst)
 
 
-text {*
+text \<open>
 negation
 
 @{thm[display] notI}
@@ -143,41 +143,41 @@ negation
 
 @{thm[display] contrapos_nn}
 \rulename{contrapos_nn}
-*}
+\<close>
 
 
 lemma "\<lbrakk>\<not>(P\<longrightarrow>Q); \<not>(R\<longrightarrow>Q)\<rbrakk> \<Longrightarrow> R"
 apply (erule_tac Q="R\<longrightarrow>Q" in contrapos_np)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (intro impI)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (erule notE)
 
-text {*
+text \<open>
 @{thm[display] disjCI}
 \rulename{disjCI}
-*}
+\<close>
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
 apply (intro disjCI conjI)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 
 apply (elim conjE disjE)
  apply assumption
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 
 by (erule contrapos_np, rule conjI)
-text{*
+text\<open>
 proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{6}}\isanewline
 \isanewline
 goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
 {\isacharparenleft}P\ {\isasymor}\ Q{\isacharparenright}\ {\isasymand}\ R\ {\isasymLongrightarrow}\ P\ {\isasymor}\ Q\ {\isasymand}\ R\isanewline
 \ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}R{\isacharsemicolon}\ Q{\isacharsemicolon}\ {\isasymnot}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}R{\isacharsemicolon}\ Q{\isacharsemicolon}\ {\isasymnot}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ R
-*}
+\<close>
 
 
-text{*rule_tac, etc.*}
+text\<open>rule_tac, etc.\<close>
 
 
 lemma "P&Q"
@@ -185,23 +185,23 @@ apply (rule_tac P=P and Q=Q in conjI)
 oops
 
 
-text{*unification failure trace *}
+text\<open>unification failure trace\<close>
 
 declare [[unify_trace_failure = true]]
 
 lemma "P(a, f(b, g(e,a), b), a) \<Longrightarrow> P(a, f(b, g(c,a), b), a)"
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 apply assumption
 Clash: e =/= c
 
 Clash: == =/= Trueprop
-*}
+\<close>
 oops
 
 lemma "\<forall>x y. P(x,y) --> P(y,x)"
 apply auto
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 apply assumption
 
@@ -209,15 +209,15 @@ Clash: bound variable x (depth 1) =/= bound variable y (depth 0)
 
 Clash: == =/= Trueprop
 Clash: == =/= Trueprop
-*}
+\<close>
 oops
 
 declare [[unify_trace_failure = false]]
 
 
-text{*Quantifiers*}
+text\<open>Quantifiers\<close>
 
-text {*
+text \<open>
 @{thm[display] allI}
 \rulename{allI}
 
@@ -226,7 +226,7 @@ text {*
 
 @{thm[display] spec}
 \rulename{spec}
-*}
+\<close>
 
 lemma "\<forall>x. P x \<longrightarrow> P x"
 apply (rule allI)
@@ -237,74 +237,74 @@ apply (rule impI, rule allI)
 apply (drule spec)
 by (drule mp)
 
-text{*rename_tac*}
+text\<open>rename_tac\<close>
 lemma "x < y \<Longrightarrow> \<forall>x y. P x (f y)"
 apply (intro allI)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rename_tac v w)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule mp, assumption)
 apply (drule spec)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (drule mp)
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (f x); P a\<rbrakk> \<Longrightarrow> P(f (f a))"
 by blast
 
 
-text{*
-the existential quantifier*}
+text\<open>
+the existential quantifier\<close>
 
-text {*
+text \<open>
 @{thm[display]"exI"}
 \rulename{exI}
 
 @{thm[display]"exE"}
 \rulename{exE}
-*}
+\<close>
 
 
-text{*
-instantiating quantifiers explicitly by rule_tac and erule_tac*}
+text\<open>
+instantiating quantifiers explicitly by rule_tac and erule_tac\<close>
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule mp, assumption)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule_tac x = "h a" in spec)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (drule mp)
 
-text {*
+text \<open>
 @{thm[display]"dvd_def"}
 \rulename{dvd_def}
-*}
+\<close>
 
 lemma mult_dvd_mono: "\<lbrakk>i dvd m; j dvd n\<rbrakk> \<Longrightarrow> i*j dvd (m*n :: nat)"
 apply (simp add: dvd_def)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule exE) 
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule exE) 
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rename_tac l)
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule_tac x="k*l" in exI) 
-        --{* @{subgoals[display,indent=0,margin=65]} *}
+        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply simp
 done
 
-text{*
-Hilbert-epsilon theorems*}
+text\<open>
+Hilbert-epsilon theorems\<close>
 
-text{*
+text\<open>
 @{thm[display] the_equality[no_vars]}
 \rulename{the_equality}
 
@@ -330,29 +330,29 @@ needed for examples
 
 @{thm[display] order_antisym[no_vars]}
 \rulename{order_antisym}
-*}
+\<close>
 
 
 lemma "inv Suc (Suc n) = n"
 by (simp add: inv_def)
 
-text{*but we know nothing about inv Suc 0*}
+text\<open>but we know nothing about inv Suc 0\<close>
 
 theorem Least_equality:
      "\<lbrakk> P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x \<rbrakk> \<Longrightarrow> (LEAST x. P(x)) = k"
 apply (simp add: Least_def)
  
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
    
 apply (rule the_equality)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 first subgoal is existence; second is uniqueness
-*}
+\<close>
 by (auto intro: order_antisym)
 
 
@@ -360,19 +360,19 @@ theorem axiom_of_choice:
      "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
 apply (rule exI, rule allI)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 state after intro rules
-*}
+\<close>
 apply (drule spec, erule exE)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 applying @text{someI} automatically instantiates
 @{term f} to @{term "\<lambda>x. SOME y. P x y"}
-*}
+\<close>
 
 by (rule someI)
 
@@ -385,7 +385,7 @@ theorem axiom_of_choice': "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<e
 apply (rule exI [of _  "\<lambda>x. SOME y. P x y"])
 by (blast intro: someI)
 
-text{*end of Epsilon section*}
+text\<open>end of Epsilon section\<close>
 
 
 lemma "(\<exists>x. P x) \<or> (\<exists>x. Q x) \<Longrightarrow> \<exists>x. P x \<or> Q x"
@@ -433,11 +433,11 @@ oops
 
 lemma "\<forall>y. R y y \<Longrightarrow> \<exists>x. \<forall>y. R x y"
 apply (rule exI) 
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule allI) 
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule spec) 
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
 lemma "\<forall>x. \<exists>y. x=y"

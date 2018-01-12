@@ -1,8 +1,8 @@
 (*<*)theory Base imports Main begin(*>*)
 
-section{*Case Study: Verified Model Checking*}
+section\<open>Case Study: Verified Model Checking\<close>
 
-text{*\label{sec:VMC}
+text\<open>\label{sec:VMC}
 This chapter ends with a case study concerning model checking for 
 Computation Tree Logic (CTL), a temporal logic.
 Model checking is a popular technique for the verification of finite
@@ -54,11 +54,11 @@ starting from $s_0$, $q$ always holds,'' which is false.
 
 Abstracting from this concrete example, we assume there is a type of
 states:
-*}
+\<close>
 
 typedecl state
 
-text{*\noindent
+text\<open>\noindent
 Command \commdx{typedecl} merely declares a new type but without
 defining it (see \S\ref{sec:typedecl}). Thus we know nothing
 about the type other than its existence. That is exactly what we need
@@ -67,25 +67,25 @@ course it would have been more generic to make @{typ state} a type
 parameter of everything but declaring @{typ state} globally as above
 reduces clutter.  Similarly we declare an arbitrary but fixed
 transition system, i.e.\ a relation between states:
-*}
+\<close>
 
 consts M :: "(state \<times> state)set"
 
-text{*\noindent
+text\<open>\noindent
 This is Isabelle's way of declaring a constant without defining it.
 Finally we introduce a type of atomic propositions
-*}
+\<close>
 
 typedecl "atom"
 
-text{*\noindent
+text\<open>\noindent
 and a \emph{labelling function}
-*}
+\<close>
 
 consts L :: "state \<Rightarrow> atom set"
 
-text{*\noindent
+text\<open>\noindent
 telling us which atomic propositions are true in each state.
-*}
+\<close>
 
 (*<*)end(*>*)

@@ -1,30 +1,30 @@
-section{*Examples of Classical Reasoning*}
+section\<open>Examples of Classical Reasoning\<close>
 
 theory FOL_examples imports FOL begin
 
 lemma "EX y. ALL x. P(y)-->P(x)"
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule exCI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule allI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule impI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule allE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
-txt{*see below for @{text allI} combined with @{text swap}*}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+txt\<open>see below for @{text allI} combined with @{text swap}\<close>
 apply (erule allI [THEN [2] swap])
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule impI)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule notE)
-  --{* @{subgoals[display,indent=0,margin=65]} *}
+  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply assumption
 done
 
-text {*
+text \<open>
 @{thm[display] allI [THEN [2] swap]}
-*}
+\<close>
 
 lemma "EX y. ALL x. P(y)-->P(x)"
 by blast

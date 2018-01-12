@@ -193,7 +193,7 @@ proof-
     note 1 = conjunct1[OF 12] and 2 = conjunct2[OF 12]
     let ?p' = "p \<triangle> f p"
     show "P ?p'" by (blast intro: P Pinv)
-    have "f ?p' \<le> f p" by(rule mono[OF `P (p \<triangle> f p)`  P narrow2_acom[OF 1]])
+    have "f ?p' \<le> f p" by(rule mono[OF \<open>P (p \<triangle> f p)\<close>  P narrow2_acom[OF 1]])
     also have "\<dots> \<le> ?p'" by(rule narrow1_acom[OF 1])
     finally show "f ?p' \<le> ?p'" .
     have "?p' \<le> p" by (rule narrow2_acom[OF 1])
@@ -267,9 +267,9 @@ subsubsection "Tests"
 definition "step_up_ivl n = ((\<lambda>C. C \<nabla> step_ivl \<top> C)^^n)"
 definition "step_down_ivl n = ((\<lambda>C. C \<triangle> step_ivl \<top> C)^^n)"
 
-text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
+text\<open>For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
 the loop took to execute. In contrast, @{const AI_wn_ivl} converges in a
-constant number of steps: *}
+constant number of steps:\<close>
 
 value "show_acom (step_up_ivl 1 (bot test3_ivl))"
 value "show_acom (step_up_ivl 2 (bot test3_ivl))"
@@ -286,7 +286,7 @@ value "show_acom (step_down_ivl 4 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom_opt (AI_wn_ivl test3_ivl)"
 
 
-text{* Now all the analyses terminate: *}
+text\<open>Now all the analyses terminate:\<close>
 
 value "show_acom_opt (AI_wn_ivl test4_ivl)"
 value "show_acom_opt (AI_wn_ivl test5_ivl)"
@@ -322,11 +322,11 @@ lemma top_on_acom_narrow:
   \<Longrightarrow> top_on_acom (C1 \<triangle> C2 :: _ st option acom) X"
 by(auto simp add: narrow_acom_def top_on_acom_def)(metis top_on_opt_narrow in_set_zipE)
 
-text{* The assumptions for widening and narrowing differ because during
+text\<open>The assumptions for widening and narrowing differ because during
 narrowing we have the invariant @{prop"y \<le> x"} (where @{text y} is the next
 iterate), but during widening there is no such invariant, there we only have
 that not yet @{prop"y \<le> x"}. This complicates the termination proof for
-widening. *}
+widening.\<close>
 
 locale Measure_wn = Measure1 where m=m
   for m :: "'av::{order_top,wn} \<Rightarrow> nat" +
@@ -359,7 +359,7 @@ proof-
     by(auto simp add: Ball_def)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S1 x \<nabla> S2 x)"
     using assms(3) m_widen by blast
-  from sum_strict_mono_ex1[OF `finite X` 1 2]
+  from sum_strict_mono_ex1[OF \<open>finite X\<close> 1 2]
   show ?thesis .
 qed
 
@@ -413,7 +413,7 @@ proof-
   hence 2: "\<exists>x\<in>X. n(S1 x \<triangle> S2 x) < n(S1 x)"
     by (metis assms(3-5) eq_iff less_le_not_le n_narrow)
   show ?thesis
-    apply(rule sum_strict_mono_ex1[OF `finite X`]) using 1 2 by blast+
+    apply(rule sum_strict_mono_ex1[OF \<open>finite X\<close>]) using 1 2 by blast+
 qed
 
 lemma n_s_narrow: "finite X \<Longrightarrow> fun S1 = fun S2 on -X \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1
@@ -469,7 +469,7 @@ and m_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> ~ C2 \<
 and "P C" shows "EX C'. iter_widen f C = Some C'"
 proof(simp add: iter_widen_def,
       rule measure_while_option_Some[where P = P and f=m])
-  show "P C" by(rule `P C`)
+  show "P C" by(rule \<open>P C\<close>)
 next
   fix C assume "P C" "\<not> f C \<le> C" thus "P (C \<nabla> f C) \<and> m (C \<nabla> f C) < m C"
     by(simp add: P_f P_widen m_widen)
@@ -552,7 +552,7 @@ next
   case 3 thus ?case by(rule m_ivl_widen)
 next
   case 4 from 4(2) show ?case by(rule n_ivl_narrow)
-  -- "note that the first assms is unnecessary for intervals"
+  \<comment> "note that the first assms is unnecessary for intervals"
 qed
 
 lemma iter_winden_step_ivl_termination:
@@ -585,8 +585,8 @@ done
 
 subsubsection "Counterexamples"
 
-text{* Widening is increasing by assumption, but @{prop"x \<le> f x"} is not an invariant of widening.
-It can already be lost after the first step: *}
+text\<open>Widening is increasing by assumption, but @{prop"x \<le> f x"} is not an invariant of widening.
+It can already be lost after the first step:\<close>
 
 lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"
 and "x \<le> f x" and "\<not> f x \<le> x" shows "x \<nabla> f x \<le> f(x \<nabla> f x)"
@@ -601,9 +601,9 @@ but x widen f x = 3, f 3 = 2, but not 3 <= 2
 *)
 oops
 
-text{* Widening terminates but may converge more slowly than Kleene iteration.
+text\<open>Widening terminates but may converge more slowly than Kleene iteration.
 In the following model, Kleene iteration goes from 0 to the least pfp
-in one step but widening takes 2 steps to reach a strictly larger pfp: *}
+in one step but widening takes 2 steps to reach a strictly larger pfp:\<close>
 lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"
 and "x \<le> f x" and "\<not> f x \<le> x" and "f(f x) \<le> f x"
 shows "f(x \<nabla> f x) \<le> x \<nabla> f x"

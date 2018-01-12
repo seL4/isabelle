@@ -10,9 +10,9 @@ type_synonym level = nat
 class sec =
 fixes sec :: "'a \<Rightarrow> nat"
 
-text{* The security/confidentiality level of each variable is globally fixed
+text\<open>The security/confidentiality level of each variable is globally fixed
 for simplicity. For the sake of examples --- the general theory does not rely
-on it! --- a variable of length @{text n} has security level @{text n}: *}
+on it! --- a variable of length @{text n} has security level @{text n}:\<close>
 
 instantiation list :: (type)sec
 begin

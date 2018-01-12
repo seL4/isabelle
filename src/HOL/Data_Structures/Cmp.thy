@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow, Daniel Stüwe *)
 
-section {* Three-Way Comparison *}
+section \<open>Three-Way Comparison\<close>
 
 theory Cmp
 imports Main

@@ -32,8 +32,8 @@ lemmas big_step_induct = big_step.induct[split_format(complete)]
 
 subsection "Soundness wrt Big Steps"
 
-text{* Note the special form of the induction because one of the arguments
-of the inductive predicate is not a variable but the term @{term"Some s"}: *}
+text\<open>Note the special form of the induction because one of the arguments
+of the inductive predicate is not a variable but the term @{term"Some s"}:\<close>
 
 theorem Sound:
   "\<lbrakk> (c,Some s) \<Rightarrow> s';  D A c A';  A \<subseteq> dom s \<rbrakk>
@@ -55,7 +55,7 @@ next
     by auto (metis bval_Some option.simps(3) order_trans)
 next
   case (WhileTrue b s c s' s'')
-  from `D A (WHILE b DO c) A'` obtain A' where "D A c A'" by blast
+  from \<open>D A (WHILE b DO c) A'\<close> obtain A' where "D A c A'" by blast
   then obtain t' where "s' = Some t'" "A \<subseteq> dom t'"
     by (metis D_incr WhileTrue(3,7) subset_trans)
   from WhileTrue(5)[OF this(1) WhileTrue(6) this(2)] show ?case .

@@ -2,7 +2,7 @@
 ML_file "../../antiquote_setup.ML"
 (*>*)
 
-text {*
+text \<open>
 The premises of introduction rules may contain universal quantifiers and
 monotone functions.  A universal quantifier lets the rule 
 refer to any number of instances of 
@@ -10,11 +10,11 @@ the inductively defined set.  A monotone function lets the rule refer
 to existing constructions (such as ``list of'') over the inductively defined
 set.  The examples below show how to use the additional expressiveness
 and how to reason from the resulting definitions.
-*}
+\<close>
 
-subsection{* Universal Quantifiers in Introduction Rules \label{sec:gterm-datatype} *}
+subsection\<open>Universal Quantifiers in Introduction Rules \label{sec:gterm-datatype}\<close>
 
-text {*
+text \<open>
 \index{ground terms example|(}%
 \index{quantifiers!and inductive definitions|(}%
 As a running example, this section develops the theory of \textbf{ground
@@ -23,19 +23,19 @@ symbols but not variables. To simplify matters further, we regard a
 constant as a function applied to the null argument  list.  Let us declare a
 datatype @{text gterm} for the type of ground  terms. It is a type constructor
 whose argument is a type of  function symbols. 
-*}
+\<close>
 
 datatype 'f gterm = Apply 'f "'f gterm list"
 
-text {*
+text \<open>
 To try it out, we declare a datatype of some integer operations: 
 integer constants, the unary minus operator and the addition 
 operator.
-*}
+\<close>
 
 datatype integer_op = Number int | UnaryMinus | Plus
 
-text {*
+text \<open>
 Now the type @{typ "integer_op gterm"} denotes the ground 
 terms built over those symbols.
 
@@ -56,7 +56,7 @@ expresses that every element of @{text args} belongs
 to our inductively defined set: is a ground term 
 over~@{text F}.  The function @{term set} denotes the set of elements in a given 
 list. 
-*}
+\<close>
 
 inductive_set
   gterms :: "'f set \<Rightarrow> 'f gterm set"
@@ -65,11 +65,11 @@ where
 step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> gterms F;  f \<in> F\<rbrakk>
                \<Longrightarrow> (Apply f args) \<in> gterms F"
 
-text {*
+text \<open>
 To demonstrate a proof from this definition, let us 
 show that the function @{term gterms}
 is \textbf{monotone}.  We shall need this concept shortly.
-*}
+\<close>
 
 lemma gterms_mono: "F\<subseteq>G \<Longrightarrow> gterms F \<subseteq> gterms G"
 apply clarify
@@ -81,7 +81,7 @@ lemma gterms_mono: "F\<subseteq>G \<Longrightarrow> gterms F \<subseteq> gterms 
 apply clarify
 apply (erule gterms.induct)
 (*>*)
-txt{*
+txt\<open>
 Intuitively, this theorem says that
 enlarging the set of function symbols enlarges the set of ground 
 terms. The proof is a trivial rule induction.
@@ -92,9 +92,9 @@ apply rule induction. Here is the resulting subgoal:
 The assumptions state that @{text f} belongs 
 to~@{text F}, which is included in~@{text G}, and that every element of the list @{text args} is
 a ground term over~@{text G}.  The @{text blast} method finds this chain of reasoning easily.  
-*}
+\<close>
 (*<*)oops(*>*)
-text {*
+text \<open>
 \begin{warn}
 Why do we call this function @{text gterms} instead 
 of @{text gterm}?  A constant may have the same name as a type.  However,
@@ -113,7 +113,7 @@ of all symbols.  In the inductive step, we have a list @{text args} of such
 terms and a function  symbol~@{text f}. If the length of the list matches the
 function's arity  then applying @{text f} to @{text args} yields a well-formed
 term.
-*}
+\<close>
 
 inductive_set
   well_formed_gterm :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
@@ -123,16 +123,16 @@ step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> well_formed_gterm ari
                 length args = arity f\<rbrakk>
                \<Longrightarrow> (Apply f args) \<in> well_formed_gterm arity"
 
-text {*
+text \<open>
 The inductive definition neatly captures the reasoning above.
 The universal quantification over the
 @{text set} of arguments expresses that all of them are well-formed.%
 \index{quantifiers!and inductive definitions|)}
-*}
+\<close>
 
-subsection{* Alternative Definition Using a Monotone Function *}
+subsection\<open>Alternative Definition Using a Monotone Function\<close>
 
-text {*
+text \<open>
 \index{monotone functions!and inductive definitions|(}% 
 An inductive definition may refer to the
 inductively defined  set through an arbitrary monotone function.  To
@@ -148,7 +148,7 @@ In the inductive definition of well-formed terms, examine the one
 introduction rule.  The first premise states that @{text args} belongs to
 the @{text lists} of well-formed terms.  This formulation is more
 direct, if more obscure, than using a universal quantifier.
-*}
+\<close>
 
 inductive_set
   well_formed_gterm' :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
@@ -159,7 +159,7 @@ step[intro!]: "\<lbrakk>args \<in> lists (well_formed_gterm' arity);
                \<Longrightarrow> (Apply f args) \<in> well_formed_gterm' arity"
 monos lists_mono
 
-text {*
+text \<open>
 We cite the theorem @{text lists_mono} to justify 
 using the function @{term lists}.%
 \footnote{This particular theorem is installed by default already, but we
@@ -194,15 +194,15 @@ applications of the rule remain valid as new terms are constructed.
 Further lists of well-formed
 terms become available and none are taken away.%
 \index{monotone functions!and inductive definitions|)} 
-*}
+\<close>
 
-subsection{* A Proof of Equivalence *}
+subsection\<open>A Proof of Equivalence\<close>
 
-text {*
+text \<open>
 We naturally hope that these two inductive definitions of ``well-formed'' 
 coincide.  The equality can be proved by separate inclusions in 
 each direction.  Each is a trivial rule induction. 
-*}
+\<close>
 
 lemma "well_formed_gterm arity \<subseteq> well_formed_gterm' arity"
 apply clarify
@@ -214,7 +214,7 @@ lemma "well_formed_gterm arity \<subseteq> well_formed_gterm' arity"
 apply clarify
 apply (erule well_formed_gterm.induct)
 (*>*)
-txt {*
+txt \<open>
 The @{text clarify} method gives
 us an element of @{term "well_formed_gterm arity"} on which to perform 
 induction.  The resulting subgoal can be proved automatically:
@@ -222,7 +222,7 @@ induction.  The resulting subgoal can be proved automatically:
 This proof resembles the one given in
 {\S}\ref{sec:gterm-datatype} above, especially in the form of the
 induction hypothesis.  Next, we consider the opposite inclusion:
-*}
+\<close>
 (*<*)oops(*>*)
 lemma "well_formed_gterm' arity \<subseteq> well_formed_gterm arity"
 apply clarify
@@ -234,7 +234,7 @@ lemma "well_formed_gterm' arity \<subseteq> well_formed_gterm arity"
 apply clarify
 apply (erule well_formed_gterm'.induct)
 (*>*)
-txt {*
+txt \<open>
 The proof script is virtually identical,
 but the subgoal after applying induction may be surprising:
 @{subgoals[display,indent=0,margin=65]}
@@ -257,13 +257,13 @@ This example is typical of how monotone functions
 distribute over intersection.  Monotonicity implies one direction of
 this set equality; we have this theorem:
 @{named_thms [display,indent=0] mono_Int [no_vars] (mono_Int)}
-*}
+\<close>
 (*<*)oops(*>*)
 
 
-subsection{* Another Example of Rule Inversion *}
+subsection\<open>Another Example of Rule Inversion\<close>
 
-text {*
+text \<open>
 \index{rule inversion|(}%
 Does @{term gterms} distribute over intersection?  We have proved that this
 function is monotone, so @{text mono_Int} gives one of the inclusions.  The
@@ -271,20 +271,20 @@ opposite inclusion asserts that if @{term t} is a ground term over both of the
 sets
 @{term F} and~@{term G} then it is also a ground term over their intersection,
 @{term "F \<inter> G"}.
-*}
+\<close>
 
 lemma gterms_IntI:
      "t \<in> gterms F \<Longrightarrow> t \<in> gterms G \<longrightarrow> t \<in> gterms (F\<inter>G)"
 (*<*)oops(*>*)
-text {*
+text \<open>
 Attempting this proof, we get the assumption 
 @{term "Apply f args \<in> gterms G"}, which cannot be broken down. 
 It looks like a job for rule inversion:\cmmdx{inductive\protect\_cases}
-*}
+\<close>
 
 inductive_cases gterm_Apply_elim [elim!]: "Apply f args \<in> gterms F"
 
-text {*
+text \<open>
 Here is the result.
 @{named_thms [display,indent=0,margin=50] gterm_Apply_elim [no_vars] (gterm_Apply_elim)}
 This rule replaces an assumption about @{term "Apply f args"} by 
@@ -295,7 +295,7 @@ It can be applied repeatedly as an elimination rule without looping, so we
 have given the @{text "elim!"} attribute. 
 
 Now we can prove the other half of that distributive law.
-*}
+\<close>
 
 lemma gterms_IntI [rule_format, intro!]:
      "t \<in> gterms F \<Longrightarrow> t \<in> gterms G \<longrightarrow> t \<in> gterms (F\<inter>G)"
@@ -306,7 +306,7 @@ done
 lemma "t \<in> gterms F \<Longrightarrow> t \<in> gterms G \<longrightarrow> t \<in> gterms (F\<inter>G)"
 apply (erule gterms.induct)
 (*>*)
-txt {*
+txt \<open>
 The proof begins with rule induction over the definition of
 @{term gterms}, which leaves a single subgoal:  
 @{subgoals[display,indent=0,margin=65]}
@@ -320,13 +320,13 @@ All of this reasoning is done by @{text blast}.
 
 \smallskip
 Our distributive law is a trivial consequence of previously-proved results:
-*}
+\<close>
 (*<*)oops(*>*)
 lemma gterms_Int_eq [simp]:
      "gterms (F \<inter> G) = gterms F \<inter> gterms G"
 by (blast intro!: mono_Int monoI gterms_mono)
 
-text_raw {*
+text_raw \<open>
 \index{rule inversion|)}%
 \index{ground terms example|)}
 
@@ -339,7 +339,7 @@ ranging over type symbols, we can represent a function's type by a
 list of argument types paired with the result type. 
 Complete this inductive definition:
 \begin{isabelle}
-*}
+\<close>
 
 inductive_set
   well_typed_gterm :: "('f \<Rightarrow> 't list * 't) \<Rightarrow> ('f gterm * 't)set"
@@ -352,15 +352,15 @@ step[intro!]:
      \<Longrightarrow> (Apply f (map fst args), rtype) 
          \<in> well_typed_gterm sig"
 (*>*)
-text_raw {*
+text_raw \<open>
 \end{isabelle}
 \end{exercise}
 \end{isamarkuptext}
-*}
+\<close>
 
 (*<*)
 
-text{*the following declaration isn't actually used*}
+text\<open>the following declaration isn't actually used\<close>
 primrec
   integer_arity :: "integer_op \<Rightarrow> nat"
 where
@@ -368,7 +368,7 @@ where
 | "integer_arity UnaryMinus        = 1"
 | "integer_arity Plus              = 2"
 
-text{* the rest isn't used: too complicated.  OK for an exercise though.*}
+text\<open>the rest isn't used: too complicated.  OK for an exercise though.\<close>
 
 inductive_set
   integer_signature :: "(integer_op * (unit list * unit)) set"

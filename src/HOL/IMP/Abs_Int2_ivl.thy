@@ -124,7 +124,7 @@ qed
 
 end
 
-text{* Implement (naive) executable equality: *}
+text\<open>Implement (naive) executable equality:\<close>
 instantiation ivl :: equal
 begin
 
@@ -362,7 +362,7 @@ and aval_ivl' = aval''
 ..
 
 
-text{* Monotonicity: *}
+text\<open>Monotonicity:\<close>
 
 lemma mono_plus_ivl: "iv1 \<le> iv2 \<Longrightarrow> iv3 \<le> iv4 \<Longrightarrow> iv1+iv3 \<le> iv2+(iv4::ivl)"
 apply transfer
@@ -405,7 +405,7 @@ subsubsection "Tests"
 
 value "show_acom_opt (AI_ivl test1_ivl)"
 
-text{* Better than @{text AI_const}: *}
+text\<open>Better than @{text AI_const}:\<close>
 value "show_acom_opt (AI_ivl test3_const)"
 value "show_acom_opt (AI_ivl test4_const)"
 value "show_acom_opt (AI_ivl test6_const)"
@@ -418,8 +418,8 @@ value "show_acom (steps test2_ivl 1)"
 value "show_acom (steps test2_ivl 2)"
 value "show_acom (steps test2_ivl 3)"
 
-text{* Fixed point reached in 2 steps.
- Not so if the start value of x is known: *}
+text\<open>Fixed point reached in 2 steps.
+ Not so if the start value of x is known:\<close>
 
 value "show_acom_opt (AI_ivl test3_ivl)"
 value "show_acom (steps test3_ivl 0)"
@@ -429,17 +429,17 @@ value "show_acom (steps test3_ivl 3)"
 value "show_acom (steps test3_ivl 4)"
 value "show_acom (steps test3_ivl 5)"
 
-text{* Takes as many iterations as the actual execution. Would diverge if
+text\<open>Takes as many iterations as the actual execution. Would diverge if
 loop did not terminate. Worse still, as the following example shows: even if
 the actual execution terminates, the analysis may not. The value of y keeps
-decreasing as the analysis is iterated, no matter how long: *}
+decreasing as the analysis is iterated, no matter how long:\<close>
 
 value "show_acom (steps test4_ivl 50)"
 
-text{* Relationships between variables are NOT captured: *}
+text\<open>Relationships between variables are NOT captured:\<close>
 value "show_acom_opt (AI_ivl test5_ivl)"
 
-text{* Again, the analysis would not terminate: *}
+text\<open>Again, the analysis would not terminate:\<close>
 value "show_acom (steps test6_ivl 50)"
 
 end

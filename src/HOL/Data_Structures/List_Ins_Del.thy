@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* List Insertion and Deletion *}
+section \<open>List Insertion and Deletion\<close>
 
 theory List_Ins_Del
 imports Sorted_Less
@@ -26,10 +26,10 @@ lemma sorted_snoc_iff:
   "sorted(xs @ [x]) = (sorted xs \<and> (\<forall>y \<in> elems xs. y < x))"
 by(simp add: elems_eq_set sorted_wrt_append)
 
-text{* The above two rules introduce quantifiers. It turns out
+text\<open>The above two rules introduce quantifiers. It turns out
 that in practice this is not a problem because of the simplicity of
 the "isin" functions that implement @{const elems}. Nevertheless
-it is possible to avoid the quantifiers with the help of some rewrite rules: *}
+it is possible to avoid the quantifiers with the help of some rewrite rules:\<close>
 
 lemma sorted_ConsD: "sorted (y # xs) \<Longrightarrow> x \<le> y \<Longrightarrow> x \<notin> elems xs"
 by (auto simp: sorted_Cons_iff)

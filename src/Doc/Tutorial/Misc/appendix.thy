@@ -2,7 +2,7 @@
 imports Main
 begin(*>*)
 
-text{*
+text\<open>
 \begin{table}[htbp]
 \begin{center}
 \begin{tabular}{lll}
@@ -28,6 +28,6 @@ Constant & Type & Syntax \\
 \label{tab:overloading}
 \end{center}
 \end{table}
-*}
+\<close>
 
 (*<*)end(*>*)

@@ -45,10 +45,10 @@ next
   case (If b c1 c2)
   then obtain M1 M2 where "vars b \<subseteq> A" "D A c1 M1" "D A c2 M2" "M = M1 \<inter> M2"
     by auto
-  with If.IH `A \<subseteq> A'` obtain M1' M2'
+  with If.IH \<open>A \<subseteq> A'\<close> obtain M1' M2'
     where "D A' c1 M1'" "D A' c2 M2'" and "M1 \<subseteq> M1'" "M2 \<subseteq> M2'" by metis
   hence "D A' (IF b THEN c1 ELSE c2) (M1' \<inter> M2')" and "M \<subseteq> M1' \<inter> M2'"
-    using `vars b \<subseteq> A` `A \<subseteq> A'` `M = M1 \<inter> M2` by(fastforce intro: D.intros)+
+    using \<open>vars b \<subseteq> A\<close> \<open>A \<subseteq> A'\<close> \<open>M = M1 \<inter> M2\<close> by(fastforce intro: D.intros)+
   thus ?case by metis
 next
   case While thus ?case by auto (metis D.intros(5) subset_trans)
@@ -61,8 +61,8 @@ proof (induction arbitrary: A rule: small_step_induct)
   then obtain A' where A': "vars b \<subseteq> dom s" "A = dom s" "D (dom s) c A'" by blast
   then obtain A'' where "D A' c A''" by (metis D_incr D_mono)
   with A' have "D (dom s) (IF b THEN c;; WHILE b DO c ELSE SKIP) (dom s)"
-    by (metis D.If[OF `vars b \<subseteq> dom s` D.Seq[OF `D (dom s) c A'` D.While[OF _ `D A' c A''`]] D.Skip] D_incr Int_absorb1 subset_trans)
-  thus ?case by (metis D_incr `A = dom s`)
+    by (metis D.If[OF \<open>vars b \<subseteq> dom s\<close> D.Seq[OF \<open>D (dom s) c A'\<close> D.While[OF _ \<open>D A' c A''\<close>]] D.Skip] D_incr Int_absorb1 subset_trans)
+  thus ?case by (metis D_incr \<open>A = dom s\<close>)
 next
   case Seq2 thus ?case by auto (metis D_mono D.intros(3))
 qed (auto intro: D.intros)

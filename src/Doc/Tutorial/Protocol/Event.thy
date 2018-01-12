@@ -7,7 +7,7 @@ Datatype of events; function "spies"; freshness
     stores are visible to him
 *)(*<*)
 
-section{*Theory of Events for Security Protocols*}
+section\<open>Theory of Events for Security Protocols\<close>
 
 theory Event imports Message begin
 
@@ -20,10 +20,10 @@ datatype
         | Notes agent       msg
        
 consts 
-  bad    :: "agent set"                         -- {* compromised agents *}
+  bad    :: "agent set"                         \<comment> \<open>compromised agents\<close>
 
 
-text{*The constant "spies" is retained for compatibility's sake*}
+text\<open>The constant "spies" is retained for compatibility's sake\<close>
 
 primrec
   knows :: "agent => event list => msg set"
@@ -50,7 +50,7 @@ abbreviation (input)
   spies  :: "event list => msg set" where
   "spies == knows Spy"
 
-text{*Spy has access to his own key for spoof messages, but Server is secure*}
+text\<open>Spy has access to his own key for spoof messages, but Server is secure\<close>
 specification (bad)
   Spy_in_bad     [iff]: "Spy \<in> bad"
   Server_not_bad [iff]: "Server \<notin> bad"
@@ -73,9 +73,9 @@ where
                         Says A B X => parts {X} \<union> used evs
                       | Gets A X   => used evs
                       | Notes A X  => parts {X} \<union> used evs)"
-    --{*The case for @{term Gets} seems anomalous, but @{term Gets} always
+    \<comment>\<open>The case for @{term Gets} seems anomalous, but @{term Gets} always
         follows @{term Says} in real protocols.  Seems difficult to change.
-        See @{text Gets_correct} in theory @{text "Guard/Extensions.thy"}. *}
+        See @{text Gets_correct} in theory @{text "Guard/Extensions.thy"}.\<close>
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs --> X \<in> used evs"
 apply (induct_tac evs)
@@ -88,7 +88,7 @@ apply (auto split: event.split)
 done
 
 
-subsection{*Function @{term knows}*}
+subsection\<open>Function @{term knows}\<close>
 
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
@@ -99,8 +99,8 @@ lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
 by simp
 
-text{*Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}*}
+text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
+      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =  
           (if A:bad then insert X (knows Spy evs) else knows Spy evs)"
@@ -121,7 +121,7 @@ lemma knows_Spy_subset_knows_Spy_Gets:
      "knows Spy evs \<subseteq> knows Spy (Gets A X # evs)"
 by (simp add: subset_insertI)
 
-text{*Spy sees what is sent on the traffic*}
+text\<open>Spy sees what is sent on the traffic\<close>
 lemma Says_imp_knows_Spy [rule_format]:
      "Says A B X \<in> set evs --> X \<in> knows Spy evs"
 apply (induct_tac "evs")
@@ -135,21 +135,21 @@ apply (simp_all (no_asm_simp) split: event.split)
 done
 
 
-text{*Elimination rules: derive contradictions from old Says events containing
-  items known to be fresh*}
+text\<open>Elimination rules: derive contradictions from old Says events containing
+  items known to be fresh\<close>
 lemmas knows_Spy_partsEs =
      Says_imp_knows_Spy [THEN parts.Inj, elim_format] 
      parts.Body [elim_format]
 
 lemmas Says_imp_analz_Spy = Says_imp_knows_Spy [THEN analz.Inj]
 
-text{*Compatibility for the old "spies" function*}
+text\<open>Compatibility for the old "spies" function\<close>
 lemmas spies_partsEs = knows_Spy_partsEs
 lemmas Says_imp_spies = Says_imp_knows_Spy
 lemmas parts_insert_spies = parts_insert_knows_A [of _ Spy]
 
 
-subsection{*Knowledge of Agents*}
+subsection\<open>Knowledge of Agents\<close>
 
 lemma knows_Says: "knows A (Says A B X # evs) = insert X (knows A evs)"
 by simp
@@ -171,21 +171,21 @@ by (simp add: subset_insertI)
 lemma knows_subset_knows_Gets: "knows A evs \<subseteq> knows A (Gets A' X # evs)"
 by (simp add: subset_insertI)
 
-text{*Agents know what they say*}
+text\<open>Agents know what they say\<close>
 lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs --> X \<in> knows A evs"
 apply (induct_tac "evs")
 apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
-text{*Agents know what they note*}
+text\<open>Agents know what they note\<close>
 lemma Notes_imp_knows [rule_format]: "Notes A X \<in> set evs --> X \<in> knows A evs"
 apply (induct_tac "evs")
 apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
-text{*Agents know what they receive*}
+text\<open>Agents know what they receive\<close>
 lemma Gets_imp_knows_agents [rule_format]:
      "A \<noteq> Spy --> Gets A X \<in> set evs --> X \<in> knows A evs"
 apply (induct_tac "evs")
@@ -193,8 +193,8 @@ apply (simp_all (no_asm_simp) split: event.split)
 done
 
 
-text{*What agents DIFFERENT FROM Spy know 
-  was either said, or noted, or got, or known initially*}
+text\<open>What agents DIFFERENT FROM Spy know 
+  was either said, or noted, or got, or known initially\<close>
 lemma knows_imp_Says_Gets_Notes_initState [rule_format]:
      "[| X \<in> knows A evs; A \<noteq> Spy |] ==> EX B.  
   Says A B X \<in> set evs | Gets A X \<in> set evs | Notes A X \<in> set evs | X \<in> initState A"
@@ -204,8 +204,8 @@ apply (simp_all (no_asm_simp) split: event.split)
 apply blast
 done
 
-text{*What the Spy knows -- for the time being --
-  was either said or noted, or known initially*}
+text\<open>What the Spy knows -- for the time being --
+  was either said or noted, or known initially\<close>
 lemma knows_Spy_imp_Says_Notes_initState [rule_format]:
      "[| X \<in> knows Spy evs |] ==> EX A B.  
   Says A B X \<in> set evs | Notes A X \<in> set evs | X \<in> initState Spy"
@@ -241,15 +241,15 @@ apply simp
 apply (blast intro: initState_into_used)
 done
 
-text{*NOTE REMOVAL--laws above are cleaner, as they don't involve "case"*}
+text\<open>NOTE REMOVAL--laws above are cleaner, as they don't involve "case"\<close>
 declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
 
-text{*For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) --> P"}
+text\<open>For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) --> P"}
   New events added by induction to "evs" are discarded.  Provided 
   this information isn't needed, the proof will be much shorter, since
-  it will omit complicated reasoning about @{term analz}.*}
+  it will omit complicated reasoning about @{term analz}.\<close>
 
 lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Says [THEN analz_mono, THEN contra_subsetD]
@@ -259,12 +259,12 @@ lemmas analz_mono_contra =
 lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y evs
 
 ML
-{*
+\<open>
 fun analz_mono_contra_tac ctxt =
   resolve_tac ctxt @{thms analz_impI} THEN' 
   REPEAT1 o (dresolve_tac ctxt @{thms analz_mono_contra})
   THEN' mp_tac ctxt
-*}
+\<close>
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
 by (induct e, auto simp: knows_Cons)
@@ -275,7 +275,7 @@ apply (blast intro: knows_subset_knows_Cons [THEN subsetD])
 done
 
 
-text{*For proving @{text new_keys_not_used}*}
+text\<open>For proving @{text new_keys_not_used}\<close>
 lemma keysFor_parts_insert:
      "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |] 
       ==> K \<in> keysFor (parts (G \<union> H)) | Key (invKey K) \<in> parts H" 
@@ -284,16 +284,16 @@ by (force
            analz_subset_parts [THEN keysFor_mono, THEN [2] rev_subsetD]
     intro: analz_subset_parts [THEN subsetD] parts_mono [THEN [2] rev_subsetD])
 
-method_setup analz_mono_contra = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt))) *}
+method_setup analz_mono_contra = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt)))\<close>
     "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
-subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
+subsubsection\<open>Useful for case analysis on whether a hash is a spoof or not\<close>
 
 lemmas syan_impI = impI [where P = "Y \<notin> synth (analz (knows Spy evs))"] for Y evs
 
 ML
-{*
+\<open>
 val knows_Cons = @{thm knows_Cons};
 val used_Nil = @{thm used_Nil};
 val used_Cons = @{thm used_Cons};
@@ -339,16 +339,16 @@ fun synth_analz_mono_contra_tac ctxt =
       @{thm knows_Spy_subset_knows_Spy_Gets} RS @{thm synth_analz_mono} RS @{thm contra_subsetD}])
   THEN'
   mp_tac ctxt
-*}
+\<close>
 
-method_setup synth_analz_mono_contra = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (synth_analz_mono_contra_tac ctxt))) *}
+method_setup synth_analz_mono_contra = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (synth_analz_mono_contra_tac ctxt)))\<close>
     "for proving theorems of the form X \<notin> synth (analz (knows Spy evs)) --> P"
 (*>*)
 
-section{* Event Traces \label{sec:events} *}
+section\<open>Event Traces \label{sec:events}\<close>
 
-text {*
+text \<open>
 The system's behaviour is formalized as a set of traces of
 \emph{events}.  The most important event, @{text "Says A B X"}, expresses
 $A\to B : X$, which is the attempt by~$A$ to send~$B$ the message~$X$.
@@ -379,7 +379,7 @@ learn by decryption
 \item @{term "synth (analz (knows Spy evs))"} is everything that the spy
 could generate
 \end{itemize}
-*}
+\<close>
 
 (*<*)
 end

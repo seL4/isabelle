@@ -190,14 +190,14 @@ next
   case (WhileTrue b s1 c' s2 s3)
   from WhileTrue.prems(1) obtain I P C' Q where "C = {I} WHILE b DO {P} C' {Q}" "strip C' = c'"
     by(auto simp: strip_eq_While)
-  from WhileTrue.prems(3) `C = _`
+  from WhileTrue.prems(3) \<open>C = _\<close>
   have "step P C' \<le> C'"  "{s \<in> I. bval b s} \<le> P"  "S \<le> I"  "step (post C') C \<le> C"
     by (auto simp: step_def post_def)
   have "step {s \<in> I. bval b s} C' \<le> C'"
-    by (rule order_trans[OF mono2_step[OF order_refl `{s \<in> I. bval b s} \<le> P`] `step P C' \<le> C'`])
-  have "s1: {s:I. bval b s}" using `s1 \<in> S` `S \<subseteq> I` `bval b s1` by auto
-  note s2_in_post_C' = WhileTrue.IH(1)[OF `strip C' = c'` this `step {s \<in> I. bval b s} C' \<le> C'`]
-  from WhileTrue.IH(2)[OF WhileTrue.prems(1) s2_in_post_C' `step (post C') C \<le> C`]
+    by (rule order_trans[OF mono2_step[OF order_refl \<open>{s \<in> I. bval b s} \<le> P\<close>] \<open>step P C' \<le> C'\<close>])
+  have "s1: {s:I. bval b s}" using \<open>s1 \<in> S\<close> \<open>S \<subseteq> I\<close> \<open>bval b s1\<close> by auto
+  note s2_in_post_C' = WhileTrue.IH(1)[OF \<open>strip C' = c'\<close> this \<open>step {s \<in> I. bval b s} C' \<le> C'\<close>]
+  from WhileTrue.IH(2)[OF WhileTrue.prems(1) s2_in_post_C' \<open>step (post C') C \<le> C\<close>]
   show ?case .
 next
   case (WhileFalse b s1 c') thus ?case

@@ -1,7 +1,7 @@
 theory Recur imports Main begin
 
 
-text{*
+text\<open>
 @{thm[display] mono_def[no_vars]}
 \rulename{mono_def}
 
@@ -22,9 +22,9 @@ text{*
 
 @{thm[display] coinduct[no_vars]}
 \rulename{coinduct}
-*}
+\<close>
 
-text{*\noindent
+text\<open>\noindent
 A relation $<$ is
 \bfindex{wellfounded} if it has no infinite descending chain $\cdots <
 a@2 < a@1 < a@0$. Clearly, a function definition is total iff the set
@@ -43,9 +43,9 @@ induction|see{induction, wellfounded}} (@{thm[source]wf_induct}):
 @{thm[display]wf_induct[no_vars]}
 where @{term"wf r"} means that the relation @{term r} is wellfounded
 
-*}
+\<close>
 
-text{*
+text\<open>
 
 @{thm[display] wf_induct[no_vars]}
 \rulename{wf_induct}
@@ -74,7 +74,7 @@ text{*
 @{thm[display] wf_lex_prod[no_vars]}
 \rulename{wf_lex_prod}
 
-*}
+\<close>
 
 end
 

@@ -4,37 +4,37 @@ begin
 
 subsection "Test Programs"
 
-text{* For constant propagation: *}
+text\<open>For constant propagation:\<close>
 
-text{* Straight line code: *}
+text\<open>Straight line code:\<close>
 definition "test1_const =
  ''y'' ::= N 7;;
  ''z'' ::= Plus (V ''y'') (N 2);;
  ''y'' ::= Plus (V ''x'') (N 0)"
 
-text{* Conditional: *}
+text\<open>Conditional:\<close>
 definition "test2_const =
  IF Less (N 41) (V ''x'') THEN ''x'' ::= N 5 ELSE ''x'' ::= N 5"
 
-text{* Conditional, test is relevant: *}
+text\<open>Conditional, test is relevant:\<close>
 definition "test3_const =
  ''x'' ::= N 42;;
  IF Less (N 41) (V ''x'') THEN ''x'' ::= N 5 ELSE ''x'' ::= N 6"
 
-text{* While: *}
+text\<open>While:\<close>
 definition "test4_const =
  ''x'' ::= N 0;; WHILE Bc True DO ''x'' ::= N 0"
 
-text{* While, test is relevant: *}
+text\<open>While, test is relevant:\<close>
 definition "test5_const =
  ''x'' ::= N 0;; WHILE Less (V ''x'') (N 1) DO ''x'' ::= N 1"
 
-text{* Iteration is needed: *}
+text\<open>Iteration is needed:\<close>
 definition "test6_const =
   ''x'' ::= N 0;; ''y'' ::= N 0;; ''z'' ::= N 2;;
   WHILE Less (V ''x'') (N 1) DO (''x'' ::= V ''y'';; ''y'' ::= V ''z'')"
 
-text{* For intervals: *}
+text\<open>For intervals:\<close>
 
 definition "test1_ivl =
  ''y'' ::= N 7;;

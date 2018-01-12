@@ -7,7 +7,7 @@ begin
 no_translations
   ("prop") "P \<and> Q \<Longrightarrow> R" <= ("prop") "P \<Longrightarrow> Q \<Longrightarrow> R"
 (*>*)
-text{*
+text\<open>
 \section{Introduction}
 
 This document is for those Isabelle users who have mastered
@@ -142,13 +142,13 @@ If you would rather never see question marks, simply put
 \end{quote}
 into the relevant \texttt{ROOT} file, just before the \texttt{theories} for that session.
 The rest of this document is produced with this flag set to \texttt{false}.
-*}
+\<close>
 
 (*<*)declare [[show_question_marks = false]](*>*)
 
-subsection {*Qualified names*}
+subsection \<open>Qualified names\<close>
 
-text{* If there are multiple declarations of the same name, Isabelle prints
+text\<open>If there are multiple declarations of the same name, Isabelle prints
 the qualified name, for example @{text "T.length"}, where @{text T} is the
 theory it is defined in, to distinguish it from the predefined @{const[source]
 "List.length"}. In case there is no danger of confusion, you can insist on
@@ -201,10 +201,10 @@ It expects a list of names or underscores, similar to the \texttt{of} attribute:
 \end{quote}
 
 Sometimes Isabelle $\eta$-contracts terms, for example in the following definition:
-*}
+\<close>
 fun eta where
 "eta (x \<cdot> xs) = (\<forall>y \<in> set xs. x < y)"
-text{*
+text\<open>
 \noindent
 If you now print the defining equation, the result is not what you hoped for:
 \begin{quote}
@@ -287,12 +287,12 @@ yields
 When displaying theorems with the \texttt{display} option, for example as in
 \verb!@!\verb!{thm[display] refl}! @{thm[display] refl} the theorem is
 set in small font. It uses the \LaTeX-macro \verb!\isastyle!,
-which is also the style that regular theory text is set in, e.g. *}
+which is also the style that regular theory text is set in, e.g.\<close>
 
 lemma "t = t"
 (*<*)oops(*>*)
 
-text{* \noindent Otherwise \verb!\isastyleminor! is used,
+text\<open>\noindent Otherwise \verb!\isastyleminor! is used,
 which does not modify the font size (assuming you stick to the default
 \verb!\isabellestyle{it}! in \texttt{root.tex}). If you prefer
 normal font size throughout your text, include
@@ -447,23 +447,23 @@ likely to be too long and detailed to be included in conference
 papers, but some key lemmas might be of interest.
 It is usually easiest to put them in figures like the one in Fig.\
 \ref{fig:proof}. This was achieved with the \isakeyword{text\_raw} command:
-*}
-text_raw {*
+\<close>
+text_raw \<open>
   \begin{figure}
   \begin{center}\begin{minipage}{0.6\textwidth}  
   \isastyleminor\isamarkuptrue
-*}
+\<close>
 lemma True
 proof -
-  -- "pretty trivial"
+  \<comment> "pretty trivial"
   show True by force
 qed
-text_raw {*    
+text_raw \<open>
   \end{minipage}\end{center}
   \caption{Example proof in a figure.}\label{fig:proof}
   \end{figure}
-*}
-text {*
+\<close>
+text \<open>
 
 \begin{quote}
 \small
@@ -574,7 +574,7 @@ you can just write \verb!@!\verb!{const_typ myconst}! using the new antiquotatio
 \texttt{const\_typ} defined in \texttt{LaTeXsugar}. For example,
 \verb!@!\verb!{const_typ length}! produces @{const_typ length}.
 
-*}
+\<close>
 
 (*<*)
 end

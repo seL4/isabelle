@@ -1,12 +1,12 @@
 (*<*)theory WFrec imports Main begin(*>*)
 
-text{*\noindent
+text\<open>\noindent
 So far, all recursive definitions were shown to terminate via measure
 functions. Sometimes this can be inconvenient or
 impossible. Fortunately, \isacommand{recdef} supports much more
 general definitions. For example, termination of Ackermann's function
 can be shown by means of the \rmindex{lexicographic product} @{text"<*lex*>"}:
-*}
+\<close>
 
 consts ack :: "nat\<times>nat \<Rightarrow> nat"
 recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
@@ -14,7 +14,7 @@ recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
   "ack(Suc m,0)     = ack(m, 1)"
   "ack(Suc m,Suc n) = ack(m,ack(Suc m,n))"
 
-text{*\noindent
+text\<open>\noindent
 The lexicographic product decreases if either its first component
 decreases (as in the second equation and in the outer call in the
 third equation) or its first component stays the same and the second
@@ -39,7 +39,7 @@ example, @{term"measure f"} is always well-founded.   The lexicographic
 product of two well-founded relations is again well-founded, which we relied
 on when defining Ackermann's function above.
 Of course the lexicographic product can also be iterated:
-*}
+\<close>
 
 consts contrived :: "nat \<times> nat \<times> nat \<Rightarrow> nat"
 recdef contrived
@@ -49,7 +49,7 @@ recdef contrived
 "contrived(Suc i,0,0) = contrived(i,i,i)"
 "contrived(0,0,0)     = 0"
 
-text{*
+text\<open>
 Lexicographic products of measure functions already go a long
 way. Furthermore, you may embed a type in an
 existing well-founded relation via the inverse image construction @{term
@@ -64,42 +64,42 @@ It is also possible to use your own well-founded relations with
 \isacommand{recdef}.  For example, the greater-than relation can be made
 well-founded by cutting it off at a certain point.  Here is an example
 of a recursive function that calls itself with increasing values up to ten:
-*}
+\<close>
 
 consts f :: "nat \<Rightarrow> nat"
 recdef (*<*)(permissive)(*>*)f "{(i,j). j<i \<and> i \<le> (10::nat)}"
 "f i = (if 10 \<le> i then 0 else i * f(Suc i))"
 
-text{*\noindent
+text\<open>\noindent
 Since \isacommand{recdef} is not prepared for the relation supplied above,
 Isabelle rejects the definition.  We should first have proved that
 our relation was well-founded:
-*}
+\<close>
 
 lemma wf_greater: "wf {(i,j). j<i \<and> i \<le> (N::nat)}"
 
-txt{*\noindent
+txt\<open>\noindent
 The proof is by showing that our relation is a subset of another well-founded
 relation: one given by a measure function.\index{*wf_subset (theorem)}
-*}
+\<close>
 
 apply (rule wf_subset [of "measure (\<lambda>k::nat. N-k)"], blast)
 
-txt{*
+txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 \noindent
 The inclusion remains to be proved. After unfolding some definitions, 
 we are left with simple arithmetic that is dispatched automatically.
-*}
+\<close>
 
 by (clarify, simp add: measure_def inv_image_def)
 
-text{*\noindent
+text\<open>\noindent
 
 Armed with this lemma, we use the \attrdx{recdef_wf} attribute to attach a
 crucial hint\cmmdx{hints} to our definition:
-*}
+\<close>
 (*<*)
 consts g :: "nat \<Rightarrow> nat"
 recdef g "{(i,j). j<i \<and> i \<le> (10::nat)}"
@@ -107,13 +107,13 @@ recdef g "{(i,j). j<i \<and> i \<le> (10::nat)}"
 (*>*)
 (hints recdef_wf: wf_greater)
 
-text{*\noindent
+text\<open>\noindent
 Alternatively, we could have given @{text "measure (\<lambda>k::nat. 10-k)"} for the
 well-founded relation in our \isacommand{recdef}.  However, the arithmetic
 goal in the lemma above would have arisen instead in the \isacommand{recdef}
 termination proof, where we have less control.  A tailor-made termination
 relation makes even more sense when it can be used in several function
 declarations.
-*}
+\<close>
 
 (*<*)end(*>*)

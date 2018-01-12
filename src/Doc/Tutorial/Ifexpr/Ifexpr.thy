@@ -2,26 +2,26 @@
 theory Ifexpr imports Main begin
 (*>*)
 
-subsection{*Case Study: Boolean Expressions*}
+subsection\<open>Case Study: Boolean Expressions\<close>
 
-text{*\label{sec:boolex}\index{boolean expressions example|(}
+text\<open>\label{sec:boolex}\index{boolean expressions example|(}
 The aim of this case study is twofold: it shows how to model boolean
 expressions and some algorithms for manipulating them, and it demonstrates
 the constructs introduced above.
-*}
+\<close>
 
-subsubsection{*Modelling Boolean Expressions*}
+subsubsection\<open>Modelling Boolean Expressions\<close>
 
-text{*
+text\<open>
 We want to represent boolean expressions built up from variables and
 constants by negation and conjunction. The following datatype serves exactly
 that purpose:
-*}
+\<close>
 
 datatype boolex = Const bool | Var nat | Neg boolex
                 | And boolex boolex
 
-text{*\noindent
+text\<open>\noindent
 The two constants are represented by @{term"Const True"} and
 @{term"Const False"}. Variables are represented by terms of the form
 @{term"Var n"}, where @{term"n"} is a natural number (type @{typ"nat"}).
@@ -34,7 +34,7 @@ The value of a boolean expression depends on the value of its variables.
 Hence the function @{text"value"} takes an additional parameter, an
 \emph{environment} of type @{typ"nat => bool"}, which maps variables to their
 values:
-*}
+\<close>
 
 primrec "value" :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool" where
 "value (Const b) env = b" |
@@ -42,20 +42,20 @@ primrec "value" :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> 
 "value (Neg b)   env = (\<not> value b env)" |
 "value (And b c) env = (value b env \<and> value c env)"
 
-text{*\noindent
+text\<open>\noindent
 \subsubsection{If-Expressions}
 
 An alternative and often more efficient (because in a certain sense
 canonical) representation are so-called \emph{If-expressions} built up
 from constants (@{term"CIF"}), variables (@{term"VIF"}) and conditionals
 (@{term"IF"}):
-*}
+\<close>
 
 datatype ifex = CIF bool | VIF nat | IF ifex ifex ifex
 
-text{*\noindent
+text\<open>\noindent
 The evaluation of If-expressions proceeds as for @{typ"boolex"}:
-*}
+\<close>
 
 primrec valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool" where
 "valif (CIF b)    env = b" |
@@ -63,13 +63,13 @@ primrec valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool
 "valif (IF b t e) env = (if valif b env then valif t env
                                         else valif e env)"
 
-text{*
+text\<open>
 \subsubsection{Converting Boolean and If-Expressions}
 
 The type @{typ"boolex"} is close to the customary representation of logical
 formulae, whereas @{typ"ifex"} is designed for efficiency. It is easy to
 translate from @{typ"boolex"} into @{typ"ifex"}:
-*}
+\<close>
 
 primrec bool2if :: "boolex \<Rightarrow> ifex" where
 "bool2if (Const b) = CIF b" |
@@ -77,22 +77,22 @@ primrec bool2if :: "boolex \<Rightarrow> ifex" where
 "bool2if (Neg b)   = IF (bool2if b) (CIF False) (CIF True)" |
 "bool2if (And b c) = IF (bool2if b) (bool2if c) (CIF False)"
 
-text{*\noindent
+text\<open>\noindent
 At last, we have something we can verify: that @{term"bool2if"} preserves the
 value of its argument:
-*}
+\<close>
 
 lemma "valif (bool2if b) env = value b env"
 
-txt{*\noindent
+txt\<open>\noindent
 The proof is canonical:
-*}
+\<close>
 
 apply(induct_tac b)
 apply(auto)
 done
 
-text{*\noindent
+text\<open>\noindent
 In fact, all proofs in this case study look exactly like this. Hence we do
 not show them below.
 
@@ -102,7 +102,7 @@ must be a constant or variable. Such a normal form can be computed by
 repeatedly replacing a subterm of the form @{term"IF (IF b x y) z u"} by
 @{term"IF b (IF x z u) (IF y z u)"}, which has the same value. The following
 primitive recursive functions perform this task:
-*}
+\<close>
 
 primrec normif :: "ifex \<Rightarrow> ifex \<Rightarrow> ifex \<Rightarrow> ifex" where
 "normif (CIF b)    t e = IF (CIF b) t e" |
@@ -114,18 +114,18 @@ primrec norm :: "ifex \<Rightarrow> ifex" where
 "norm (VIF x)    = VIF x" |
 "norm (IF b t e) = normif b (norm t) (norm e)"
 
-text{*\noindent
+text\<open>\noindent
 Their interplay is tricky; we leave it to you to develop an
 intuitive understanding. Fortunately, Isabelle can help us to verify that the
 transformation preserves the value of the expression:
-*}
+\<close>
 
 theorem "valif (norm b) env = valif b env"(*<*)oops(*>*)
 
-text{*\noindent
+text\<open>\noindent
 The proof is canonical, provided we first show the following simplification
 lemma, which also helps to understand what @{term"normif"} does:
-*}
+\<close>
 
 lemma [simp]:
   "\<forall>t e. valif (normif b t e) env = valif (IF b t e) env"
@@ -137,13 +137,13 @@ theorem "valif (norm b) env = valif b env"
 apply(induct_tac b)
 by(auto)
 (*>*)
-text{*\noindent
+text\<open>\noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
 of the theorem shown above because of the @{text"[simp]"} attribute.
 
 But how can we be sure that @{term"norm"} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality:
-*}
+\<close>
 
 primrec normal :: "ifex \<Rightarrow> bool" where
 "normal(CIF b) = True" |
@@ -151,10 +151,10 @@ primrec normal :: "ifex \<Rightarrow> bool" where
 "normal(IF b t e) = (normal t \<and> normal e \<and>
      (case b of CIF b \<Rightarrow> True | VIF x \<Rightarrow> True | IF x y z \<Rightarrow> False))"
 
-text{*\noindent
+text\<open>\noindent
 Now we prove @{term"normal(norm b)"}. Of course, this requires a lemma about
 normality of @{term"normif"}:
-*}
+\<close>
 
 lemma [simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)"
 (*<*)
@@ -166,7 +166,7 @@ apply(induct_tac b)
 by(auto)
 (*>*)
 
-text{*\medskip
+text\<open>\medskip
 How do we come up with the required lemmas? Try to prove the main theorems
 without them and study carefully what @{text auto} leaves unproved. This 
 can provide the clue.  The necessity of universal quantification
@@ -181,7 +181,7 @@ can provide the clue.  The necessity of universal quantification
   equalities (@{text"="}).)
 \end{exercise}
 \index{boolean expressions example|)}
-*}
+\<close>
 (*<*)
 
 primrec normif2 :: "ifex => ifex => ifex => ifex" where

@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Association List Update and Deletion *}
+section \<open>Association List Update and Deletion\<close>
 
 theory AList_Upd_Del
 imports Sorted_Less
@@ -8,8 +8,8 @@ begin
 
 abbreviation "sorted1 ps \<equiv> sorted(map fst ps)"
 
-text{* Define own @{text map_of} function to avoid pulling in an unknown
-amount of lemmas implicitly (via the simpset). *}
+text\<open>Define own @{text map_of} function to avoid pulling in an unknown
+amount of lemmas implicitly (via the simpset).\<close>
 
 hide_const (open) map_of
 

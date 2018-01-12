@@ -6,11 +6,11 @@ begin
 
 subsubsection "Hoare Logic for Total Correctness --- \<open>nat\<close>-Indexed Invariant"
 
-text{* This is the standard set of rules that you find in many publications.
+text\<open>This is the standard set of rules that you find in many publications.
 The While-rule is different from the one in Concrete Semantics in that the
 invariant is indexed by natural numbers and goes down by 1 with
 every iteration. The completeness proof is easier but the rule is harder
-to apply in program proofs. *}
+to apply in program proofs.\<close>
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
   ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
@@ -37,7 +37,7 @@ While:
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>s. Q s \<longrightarrow> Q' s  \<rbrakk> \<Longrightarrow>
            \<turnstile>\<^sub>t {P'}c{Q'}"
 
-text{* Building in the consequence rule: *}
+text\<open>Building in the consequence rule:\<close>
 
 lemma strengthen_pre:
   "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s;  \<turnstile>\<^sub>t {P} c {Q} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P'} c {Q}"
@@ -50,7 +50,7 @@ by (metis conseq)
 lemma Assign': "\<forall>s. P s \<longrightarrow> Q(s[a/x]) \<Longrightarrow> \<turnstile>\<^sub>t {P} x ::= a {Q}"
 by (simp add: strengthen_pre[OF _ Assign])
 
-text{* The soundness theorem: *}
+text\<open>The soundness theorem:\<close>
 
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
 proof(unfold hoare_tvalid_def, induction rule: hoaret.induct)
@@ -91,8 +91,8 @@ apply auto
 done
 
 
-text{* Function @{text wpw} computes the weakest precondition of a While-loop
-that is unfolded a fixed number of times. *}
+text\<open>Function @{text wpw} computes the weakest precondition of a While-loop
+that is unfolded a fixed number of times.\<close>
 
 fun wpw :: "bexp \<Rightarrow> com \<Rightarrow> nat \<Rightarrow> assn \<Rightarrow> assn" where
 "wpw b c 0 Q s = (\<not> bval b s \<and> Q s)" |

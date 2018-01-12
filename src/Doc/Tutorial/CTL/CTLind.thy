@@ -1,8 +1,8 @@
 (*<*)theory CTLind imports CTL begin(*>*)
 
-subsection{*CTL Revisited*}
+subsection\<open>CTL Revisited\<close>
 
-text{*\label{sec:CTL-revisited}
+text\<open>\label{sec:CTL-revisited}
 \index{CTL|(}%
 The purpose of this section is twofold: to demonstrate
 some of the induction principles and heuristics discussed above and to
@@ -22,7 +22,7 @@ then @{prop"s \<in> lfp(af A)"}. We prove this by inductively defining the set
 A}-avoiding path:
 % Second proof of opposite direction, directly by well-founded induction
 % on the initial segment of M that avoids A.
-*}
+\<close>
 
 inductive_set
   Avoid :: "state \<Rightarrow> state set \<Rightarrow> state set"
@@ -31,7 +31,7 @@ where
     "s \<in> Avoid s A"
   | "\<lbrakk> t \<in> Avoid s A; t \<notin> A; (t,u) \<in> M \<rbrakk> \<Longrightarrow> u \<in> Avoid s A"
 
-text{*
+text\<open>
 It is easy to see that for any infinite @{term A}-avoiding path @{term f}
 with @{prop"f(0::nat) \<in> Avoid s A"} there is an infinite @{term A}-avoiding path
 starting with @{term s} because (by definition of @{const Avoid}) there is a
@@ -40,7 +40,7 @@ The proof is by induction on @{prop"f(0::nat) \<in> Avoid s A"}. However,
 this requires the following
 reformulation, as explained in \S\ref{sec:ind-var-in-prems} above;
 the @{text rule_format} directive undoes the reformulation after the proof.
-*}
+\<close>
 
 lemma ex_infinite_path[rule_format]:
   "t \<in> Avoid s A  \<Longrightarrow>
@@ -52,7 +52,7 @@ apply(drule_tac x = "\<lambda>i. case i of 0 \<Rightarrow> t | Suc i \<Rightarro
 apply(simp_all add: Paths_def split: nat.split)
 done
 
-text{*\noindent
+text\<open>\noindent
 The base case (@{prop"t = s"}) is trivial and proved by @{text blast}.
 In the induction step, we have an infinite @{term A}-avoiding path @{term f}
 starting from @{term u}, a successor of @{term t}. Now we simply instantiate
@@ -66,12 +66,12 @@ path starts from @{term s}, we want to show @{prop"s \<in> lfp(af A)"}. For the
 inductive proof this must be generalized to the statement that every point @{term t}
 ``between'' @{term s} and @{term A}, in other words all of @{term"Avoid s A"},
 is contained in @{term"lfp(af A)"}:
-*}
+\<close>
 
 lemma Avoid_in_lfp[rule_format(no_asm)]:
   "\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)"
 
-txt{*\noindent
+txt\<open>\noindent
 The proof is by induction on the ``distance'' between @{term t} and @{term
 A}. Remember that @{prop"lfp(af A) = A \<union> M\<inverse> `` lfp(af A)"}.
 If @{term t} is already in @{term A}, then @{prop"t \<in> lfp(af A)"} is
@@ -85,14 +85,14 @@ on~@{term M} restricted to @{term"Avoid s A - A"}, roughly speaking:
 As we shall see presently, the absence of infinite @{term A}-avoiding paths
 starting from @{term s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:
-*}
+\<close>
 
 apply(subgoal_tac "wf{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}")
  apply(erule_tac a = t in wf_induct)
  apply(clarsimp)
 (*<*)apply(rename_tac t)(*>*)
 
-txt{*\noindent
+txt\<open>\noindent
 @{subgoals[display,indent=0,margin=65]}
 Now the induction hypothesis states that if @{prop"t \<notin> A"}
 then all successors of @{term t} that are in @{term"Avoid s A"} are in
@@ -104,13 +104,13 @@ the second
 @{term"Avoid s A"}, because we also assume @{prop"t \<in> Avoid s A"}.
 Hence, by the induction hypothesis, all successors of @{term t} are indeed in
 @{term"lfp(af A)"}. Mechanically:
-*}
+\<close>
 
  apply(subst lfp_unfold[OF mono_af])
  apply(simp (no_asm) add: af_def)
  apply(blast intro: Avoid.intros)
 
-txt{*
+txt\<open>
 Having proved the main goal, we return to the proof obligation that the 
 relation used above is indeed well-founded. This is proved by contradiction: if
 the relation is not well-founded then there exists an infinite @{term
@@ -119,7 +119,7 @@ A}-avoiding path all in @{term"Avoid s A"}, by theorem
 @{thm[display]wf_iff_no_infinite_down_chain[no_vars]}
 From lemma @{thm[source]ex_infinite_path} the existence of an infinite
 @{term A}-avoiding path starting in @{term s} follows, contradiction.
-*}
+\<close>
 
 apply(erule contrapos_pp)
 apply(simp add: wf_iff_no_infinite_down_chain)
@@ -128,7 +128,7 @@ apply(rule ex_infinite_path)
 apply(auto simp add: Paths_def)
 done
 
-text{*
+text\<open>
 The @{text"(no_asm)"} modifier of the @{text"rule_format"} directive in the
 statement of the lemma means
 that the assumption is left unchanged; otherwise the @{text"\<forall>p"} 
@@ -139,7 +139,7 @@ into a @{text"\<And>p"}, which would complicate matters below. As it is,
 The main theorem is simply the corollary where @{prop"t = s"},
 when the assumption @{prop"t \<in> Avoid s A"} is trivially true
 by the first @{const Avoid}-rule. Isabelle confirms this:%
-\index{CTL|)}*}
+\index{CTL|)}\<close>
 
 theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)"
 by(auto elim: Avoid_in_lfp intro: Avoid.intros)

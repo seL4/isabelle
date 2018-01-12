@@ -6,12 +6,12 @@ Version incorporating Lowe's fix (inclusion of B's identity in round 2).
 *)(*<*)
 theory NS_Public imports Public begin(*>*)
 
-section{* Modelling the Protocol \label{sec:modelling} *}
+section\<open>Modelling the Protocol \label{sec:modelling}\<close>
 
-text_raw {*
+text_raw \<open>
 \begin{figure}
 \begin{isabelle}
-*}
+\<close>
 
 inductive_set ns_public :: "event list set"
   where
@@ -40,13 +40,13 @@ inductive_set ns_public :: "event list set"
               \<in> set evs3\<rbrakk>
           \<Longrightarrow> Says A B (Crypt (pubK B) (Nonce NB)) # evs3 \<in> ns_public"
 
-text_raw {*
+text_raw \<open>
 \end{isabelle}
 \caption{An Inductive Protocol Definition}\label{fig:ns_public}
 \end{figure}
-*}
+\<close>
 
-text {*
+text \<open>
 Let us formalize the Needham-Schroeder public-key protocol, as corrected by
 Lowe:
 \begin{alignat*%
@@ -84,9 +84,9 @@ protocol.
 Benefits of this approach are simplicity and clarity.  The semantic model
 is set theory, proofs are by induction and the translation from the informal
 notation to the inductive rules is straightforward. 
-*}
+\<close>
 
-section{* Proving Elementary Properties \label{sec:regularity} *}
+section\<open>Proving Elementary Properties \label{sec:regularity}\<close>
 
 (*<*)
 declare knows_Spy_partsEs [elim]
@@ -109,7 +109,7 @@ by possibility
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
 (*>*)
 
-text {*
+text \<open>
 Secrecy properties can be hard to prove.  The conclusion of a typical
 secrecy theorem is 
 @{term "X \<notin> analz (knows Spy evs)"}.  The difficulty arises from
@@ -124,13 +124,13 @@ compromised agents.  The statement uses @{text parts}: the very presence of
 @{text A}'s private key in a message, whether protected by encryption or
 not, is enough to confirm that @{text A} is compromised.  The proof, like
 nearly all protocol proofs, is by induction over traces.
-*}
+\<close>
 
 lemma Spy_see_priK [simp]:
       "evs \<in> ns_public
        \<Longrightarrow> (Key (priK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 apply (erule ns_public.induct, simp_all)
-txt {*
+txt \<open>
 The induction yields five subgoals, one for each rule in the definition of
 @{text ns_public}.  The idea is to prove that the protocol property holds initially
 (rule @{text Nil}), is preserved by each of the legitimate protocol steps (rules
@@ -141,7 +141,7 @@ The proof is trivial.  No legitimate protocol rule sends any keys
 at all, so only @{text Fake} is relevant. Indeed, simplification leaves
 only the @{text Fake} case, as indicated by the variable name @{text evsf}:
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 by blast
 (*<*)
 lemma Spy_analz_priK [simp]:
@@ -149,7 +149,7 @@ lemma Spy_analz_priK [simp]:
 by auto
 (*>*)
 
-text {*
+text \<open>
 The @{text Fake} case is proved automatically.  If
 @{term "priK A"} is in the extended trace then either (1) it was already in the
 original trace or (2) it was
@@ -165,7 +165,7 @@ and he doesn't know this particular value.  The proof script is short:
 induction, simplification, @{text blast}.  The first line uses the rule
 @{text rev_mp} to prepare the induction by moving two assumptions into the 
 induction formula.
-*}
+\<close>
 
 lemma no_nonce_NS1_NS2:
     "\<lbrakk>Crypt (pubK C) \<lbrace>NA', Nonce NA, Agent D\<rbrace> \<in> parts (knows Spy evs);
@@ -177,11 +177,11 @@ apply (erule ns_public.induct, simp_all)
 apply (blast intro: analz_insertI)+
 done
 
-text {*
+text \<open>
 The following unicity lemma states that, if \isa{NA} is secret, then its
 appearance in any instance of message~1 determines the other components. 
 The proof is similar to the previous one.
-*}
+\<close>
 
 lemma unique_NA:
      "\<lbrakk>Crypt(pubK B)  \<lbrace>Nonce NA, Agent A \<rbrace> \<in> parts(knows Spy evs);
@@ -196,7 +196,7 @@ apply (blast intro: analz_insertI)+
 done
 (*>*)
 
-section{* Proving Secrecy Theorems \label{sec:secrecy} *}
+section\<open>Proving Secrecy Theorems \label{sec:secrecy}\<close>
 
 (*<*)
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure
@@ -264,21 +264,21 @@ apply (blast intro: analz_insertI)+
 done
 (*>*)
 
-text {*
+text \<open>
 The secrecy theorems for Bob (the second participant) are especially
 important because they fail for the original protocol.  The following
 theorem states that if Bob sends message~2 to Alice, and both agents are
 uncompromised, then Bob's nonce will never reach the spy.
-*}
+\<close>
 
 theorem Spy_not_see_NB [dest]:
  "\<lbrakk>Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>) \<in> set evs;
    A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
   \<Longrightarrow> Nonce NB \<notin> analz (knows Spy evs)"
-txt {*
+txt \<open>
 To prove it, we must formulate the induction properly (one of the
 assumptions mentions~@{text evs}), apply induction, and simplify:
-*}
+\<close>
 
 apply (erule rev_mp, erule ns_public.induct, simp_all)
 (*<*)
@@ -288,7 +288,7 @@ apply (blast intro: no_nonce_NS1_NS2)
 apply (blast intro: no_nonce_NS1_NS2)
 (*>*)
 
-txt {*
+txt \<open>
 The proof states are too complicated to present in full.  
 Let's examine the simplest subgoal, that for message~1.  The following
 event has just occurred:
@@ -335,7 +335,7 @@ following one asserts a form of \emph{authenticity}: if
 @{text B} has sent an instance of message~2 to~@{text A} and has received the
 expected reply, then that reply really originated with~@{text A}.  The
 proof is a simple induction.
-*}
+\<close>
 
 (*<*)
 by (blast intro: no_nonce_NS1_NS2)
@@ -368,7 +368,7 @@ theorem B_trusts_protocol [rule_format]:
 by (erule ns_public.induct, auto)
 (*>*)
 
-text {*
+text \<open>
 From similar assumptions, we can prove that @{text A} started the protocol
 run by sending an instance of message~1 involving the nonce~@{text NA}\@. 
 For this theorem, the conclusion is 
@@ -395,6 +395,6 @@ correctly~@{cite "paulson-yahalom"}.  Proofs of real-world protocols follow
 the strategy illustrated above, but the subgoals can
 be much bigger and there are more of them.
 \index{protocols!security|)}
-*}
+\<close>
 
 (*<*)end(*>*)

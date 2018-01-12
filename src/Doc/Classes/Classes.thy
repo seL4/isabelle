@@ -558,12 +558,12 @@ text \<open>
 context %quote semigroup
 begin
 
-term %quote "x \<otimes> y" -- \<open>example 1\<close>
-term %quote "(x::nat) \<otimes> y" -- \<open>example 2\<close>
+term %quote "x \<otimes> y" \<comment> \<open>example 1\<close>
+term %quote "(x::nat) \<otimes> y" \<comment> \<open>example 2\<close>
 
 end  %quote
 
-term %quote "x \<otimes> y" -- \<open>example 3\<close>
+term %quote "x \<otimes> y" \<comment> \<open>example 3\<close>
 
 text \<open>
   \<^noindent> Here in example 1, the term refers to the local class

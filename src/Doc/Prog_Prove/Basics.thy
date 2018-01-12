@@ -3,7 +3,7 @@ theory Basics
 imports Main
 begin
 (*>*)
-text{*
+text\<open>
 This chapter introduces HOL as a functional programming language and shows
 how to prove properties of functional programs by induction.
 
@@ -149,7 +149,7 @@ refers to it frequently. You should tick the ``Proof state'' box
 to see the proof state in the output window.
 \end{warn}
 \fi
-*}
+\<close>
 (*<*)
 end
 (*>*)

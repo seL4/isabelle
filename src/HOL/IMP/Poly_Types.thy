@@ -4,7 +4,7 @@ subsection "Type Variables"
 
 datatype ty = Ity | Rty | TV nat
 
-text{* Everything else remains the same. *}
+text\<open>Everything else remains the same.\<close>
 
 type_synonym tyenv = "vname \<Rightarrow> ty"
 
@@ -42,7 +42,7 @@ fun tsubst :: "(nat \<Rightarrow> ty) \<Rightarrow> ty \<Rightarrow> ty" where
 "tsubst S t = t"
 
 
-subsection{* Typing is Preserved by Substitution *}
+subsection\<open>Typing is Preserved by Substitution\<close>
 
 lemma subst_atyping: "E \<turnstile>p a : t \<Longrightarrow> tsubst S \<circ> E \<turnstile>p a : tsubst S t"
 apply(induction rule: atyping.induct)

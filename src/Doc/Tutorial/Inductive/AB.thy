@@ -1,8 +1,8 @@
 (*<*)theory AB imports Main begin(*>*)
 
-section{*Case Study: A Context Free Grammar*}
+section\<open>Case Study: A Context Free Grammar\<close>
 
-text{*\label{sec:CFG}
+text\<open>\label{sec:CFG}
 \index{grammars!defining inductively|(}%
 Grammars are nothing but shorthands for inductive definitions of nonterminals
 which represent sets of strings. For example, the production
@@ -21,24 +21,24 @@ the original proof @{cite \<open>p.\ts81\<close> HopcroftUllman} and our formal 
 
 We start by fixing the alphabet, which consists only of @{term a}'s
 and~@{term b}'s:
-*}
+\<close>
 
 datatype alfa = a | b
 
-text{*\noindent
+text\<open>\noindent
 For convenience we include the following easy lemmas as simplification rules:
-*}
+\<close>
 
 lemma [simp]: "(x \<noteq> a) = (x = b) \<and> (x \<noteq> b) = (x = a)"
 by (case_tac x, auto)
 
-text{*\noindent
+text\<open>\noindent
 Words over this alphabet are of type @{typ"alfa list"}, and
 the three nonterminals are declared as sets of such words.
 The productions above are recast as a \emph{mutual} inductive
 definition\index{inductive definition!simultaneous}
 of @{term S}, @{term A} and~@{term B}:
-*}
+\<close>
 
 inductive_set
   S :: "alfa list set" and
@@ -55,31 +55,31 @@ where
 | "w \<in> S            \<Longrightarrow> b#w   \<in> B"
 | "\<lbrakk> v \<in> B; w \<in> B \<rbrakk> \<Longrightarrow> a#v@w \<in> B"
 
-text{*\noindent
+text\<open>\noindent
 First we show that all words in @{term S} contain the same number of @{term
 a}'s and @{term b}'s. Since the definition of @{term S} is by mutual
 induction, so is the proof: we show at the same time that all words in
 @{term A} contain one more @{term a} than @{term b} and all words in @{term
 B} contain one more @{term b} than @{term a}.
-*}
+\<close>
 
 lemma correctness:
   "(w \<in> S \<longrightarrow> size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b])     \<and>
    (w \<in> A \<longrightarrow> size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b] + 1) \<and>
    (w \<in> B \<longrightarrow> size[x\<leftarrow>w. x=b] = size[x\<leftarrow>w. x=a] + 1)"
 
-txt{*\noindent
+txt\<open>\noindent
 These propositions are expressed with the help of the predefined @{term
 filter} function on lists, which has the convenient syntax @{text"[x\<leftarrow>xs. P
 x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
 holds. Remember that on lists @{text size} and @{text length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:
-*}
+\<close>
 
 by (rule S_A_B.induct, auto)
 
-text{*\noindent
+text\<open>\noindent
 This may seem surprising at first, and is indeed an indication of the power
 of inductive definitions. But it is also quite straightforward. For example,
 consider the production $A \to b A A$: if $v,w \in A$ and the elements of $A$
@@ -109,13 +109,13 @@ move to the right. At this point we also start generalizing from @{term a}'s
 and @{term b}'s to an arbitrary property @{term P}. Otherwise we would have
 to prove the desired lemma twice, once as stated above and once with the
 roles of @{term a}'s and @{term b}'s interchanged.
-*}
+\<close>
 
 lemma step1: "\<forall>i < size w.
   \<bar>(int(size[x\<leftarrow>take (i+1) w. P x])-int(size[x\<leftarrow>take (i+1) w. \<not>P x]))
    - (int(size[x\<leftarrow>take i w. P x])-int(size[x\<leftarrow>take i w. \<not>P x]))\<bar> \<le> 1"
 
-txt{*\noindent
+txt\<open>\noindent
 The lemma is a bit hard to read because of the coercion function
 @{text"int :: nat \<Rightarrow> int"}. It is required because @{term size} returns
 a natural number, but subtraction on type~@{typ nat} will do the wrong thing.
@@ -126,34 +126,34 @@ is what remains after that prefix has been dropped from @{term xs}.
 The proof is by induction on @{term w}, with a trivial base case, and a not
 so trivial induction step. Since it is essentially just arithmetic, we do not
 discuss it.
-*}
+\<close>
 
 apply(induct_tac w)
 apply(auto simp add: abs_if take_Cons split: nat.split)
 done
 
-text{*
+text\<open>
 Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:
-*}
+\<close>
 
 lemma part1:
  "size[x\<leftarrow>w. P x] = size[x\<leftarrow>w. \<not>P x]+2 \<Longrightarrow>
   \<exists>i\<le>size w. size[x\<leftarrow>take i w. P x] = size[x\<leftarrow>take i w. \<not>P x]+1"
 
-txt{*\noindent
+txt\<open>\noindent
 This is proved by @{text force} with the help of the intermediate value theorem,
 instantiated appropriately and with its first premise disposed of by lemma
 @{thm[source]step1}:
-*}
+\<close>
 
 apply(insert nat0_intermed_int_val[OF step1, of "P" "w" "1"])
 by force
 
-text{*\noindent
+text\<open>\noindent
 
 Lemma @{thm[source]part1} tells us only about the prefix @{term"take i w"}.
 An easy lemma deals with the suffix @{term"drop i w"}:
-*}
+\<close>
 
 
 lemma part2:
@@ -163,7 +163,7 @@ lemma part2:
    \<Longrightarrow> size[x\<leftarrow>drop i w. P x] = size[x\<leftarrow>drop i w. \<not>P x]+1"
 by(simp del: append_take_drop_id)
 
-text{*\noindent
+text\<open>\noindent
 In the proof we have disabled the normally useful lemma
 \begin{isabelle}
 @{thm append_take_drop_id[no_vars]}
@@ -174,34 +174,34 @@ to allow the simplifier to apply the following lemma instead:
 
 To dispose of trivial cases automatically, the rules of the inductive
 definition are declared simplification rules:
-*}
+\<close>
 
 declare S_A_B.intros[simp]
 
-text{*\noindent
+text\<open>\noindent
 This could have been done earlier but was not necessary so far.
 
 The completeness theorem tells us that if a word has the same number of
 @{term a}'s and @{term b}'s, then it is in @{term S}, and similarly 
 for @{term A} and @{term B}:
-*}
+\<close>
 
 theorem completeness:
   "(size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b]     \<longrightarrow> w \<in> S) \<and>
    (size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
    (size[x\<leftarrow>w. x=b] = size[x\<leftarrow>w. x=a] + 1 \<longrightarrow> w \<in> B)"
 
-txt{*\noindent
+txt\<open>\noindent
 The proof is by induction on @{term w}. Structural induction would fail here
 because, as we can see from the grammar, we need to make bigger steps than
 merely appending a single letter at the front. Hence we induct on the length
 of @{term w}, using the induction rule @{thm[source]length_induct}:
-*}
+\<close>
 
 apply(induct_tac w rule: length_induct)
 apply(rename_tac w)
 
-txt{*\noindent
+txt\<open>\noindent
 The @{text rule} parameter tells @{text induct_tac} explicitly which induction
 rule to use. For details see \S\ref{sec:complete-ind} below.
 In this case the result is that we may assume the lemma already
@@ -210,13 +210,13 @@ the induction variable we rename it back to @{text w}.
 
 The proof continues with a case distinction on @{term w},
 on whether @{term w} is empty or not.
-*}
+\<close>
 
 apply(case_tac w)
  apply(simp_all)
 (*<*)apply(rename_tac x v)(*>*)
 
-txt{*\noindent
+txt\<open>\noindent
 Simplification disposes of the base case and leaves only a conjunction
 of two step cases to be proved:
 if @{prop"w = a#v"} and @{prop[display]"size[x\<in>v. x=a] = size[x\<in>v. x=b]+2"} then
@@ -226,49 +226,49 @@ We only consider the first case in detail.
 After breaking the conjunction up into two cases, we can apply
 @{thm[source]part1} to the assumption that @{term w} contains two more @{term
 a}'s than @{term b}'s.
-*}
+\<close>
 
 apply(rule conjI)
  apply(clarify)
  apply(frule part1[of "\<lambda>x. x=a", simplified])
  apply(clarify)
-txt{*\noindent
+txt\<open>\noindent
 This yields an index @{prop"i \<le> length v"} such that
 @{prop[display]"length [x\<leftarrow>take i v . x = a] = length [x\<leftarrow>take i v . x = b] + 1"}
 With the help of @{thm[source]part2} it follows that
 @{prop[display]"length [x\<leftarrow>drop i v . x = a] = length [x\<leftarrow>drop i v . x = b] + 1"}
-*}
+\<close>
 
  apply(drule part2[of "\<lambda>x. x=a", simplified])
   apply(assumption)
 
-txt{*\noindent
+txt\<open>\noindent
 Now it is time to decompose @{term v} in the conclusion @{prop"b#v \<in> A"}
 into @{term"take i v @ drop i v"},
-*}
+\<close>
 
  apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id])
 
-txt{*\noindent
+txt\<open>\noindent
 (the variables @{term n1} and @{term t} are the result of composing the
 theorems @{thm[source]subst} and @{thm[source]append_take_drop_id})
 after which the appropriate rule of the grammar reduces the goal
 to the two subgoals @{prop"take i v \<in> A"} and @{prop"drop i v \<in> A"}:
-*}
+\<close>
 
  apply(rule S_A_B.intros)
 
-txt{*
+txt\<open>
 Both subgoals follow from the induction hypothesis because both @{term"take i
 v"} and @{term"drop i v"} are shorter than @{term w}:
-*}
+\<close>
 
   apply(force simp add: min_less_iff_disj)
  apply(force split: nat_diff_split)
 
-txt{*
+txt\<open>
 The case @{prop"w = b#v"} is proved analogously:
-*}
+\<close>
 
 apply(clarify)
 apply(frule part1[of "\<lambda>x. x=b", simplified])
@@ -280,7 +280,7 @@ apply(rule S_A_B.intros)
  apply(force simp add: min_less_iff_disj)
 by(force simp add: min_less_iff_disj split: nat_diff_split)
 
-text{*
+text\<open>
 We conclude this section with a comparison of our proof with 
 Hopcroft\index{Hopcroft, J. E.} and Ullman's\index{Ullman, J. D.}
 @{cite \<open>p.\ts81\<close> HopcroftUllman}.
@@ -304,6 +304,6 @@ even have overlooked the slight difficulty lurking in the omitted
 cases.  Such errors are found in many pen-and-paper proofs when they
 are scrutinized formally.%
 \index{grammars!defining inductively|)}
-*}
+\<close>
 
 (*<*)end(*>*)

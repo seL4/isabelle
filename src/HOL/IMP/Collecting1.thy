@@ -4,9 +4,9 @@ begin
 
 subsection "A small step semantics on annotated commands"
 
-text{* The idea: the state is propagated through the annotated command as an
+text\<open>The idea: the state is propagated through the annotated command as an
 annotation @{term "{s}"}, all other annotations are @{term "{}"}. It is easy
-to show that this semantics approximates the collecting semantics. *}
+to show that this semantics approximates the collecting semantics.\<close>
 
 lemma step_preserves_le:
   "\<lbrakk> step S cs = cs; S' \<subseteq> S; cs' \<le> cs \<rbrakk> \<Longrightarrow>
@@ -32,7 +32,7 @@ shows "steps s (strip cs) n \<le> cs"
 proof-
   let ?bot = "annotate (\<lambda>p. {}) (strip cs)"
   have "?bot \<le> cs" by(induction cs) auto
-  from step_preserves_le[OF assms(1)_ this, of "{s}"] `s:S`
+  from step_preserves_le[OF assms(1)_ this, of "{s}"] \<open>s:S\<close>
   have 1: "step {s} ?bot \<le> cs" by simp
   from steps_empty_preserves_le[OF assms(1) 1]
   show ?thesis by(simp add: steps_def)

@@ -2,7 +2,7 @@
 theory case_exprs imports Main begin
 (*>*)
 
-text{*
+text\<open>
 \subsection{Case Expressions}
 \label{sec:case-expressions}\index{*case expressions}%
 HOL also features \isa{case}-expressions for analyzing
@@ -50,20 +50,20 @@ Induction is invoked by \methdx{induct_tac}, as we have seen above;
 it works for any datatype.  In some cases, induction is overkill and a case
 distinction over all constructors of the datatype suffices.  This is performed
 by \methdx{case_tac}.  Here is a trivial example:
-*}
+\<close>
 
 lemma "(case xs of [] \<Rightarrow> [] | y#ys \<Rightarrow> xs) = xs"
 apply(case_tac xs)
 
-txt{*\noindent
+txt\<open>\noindent
 results in the proof state
 @{subgoals[display,indent=0,margin=65]}
 which is solved automatically:
-*}
+\<close>
 
 apply(auto)
 (*<*)done(*>*)
-text{*
+text\<open>
 Note that we do not need to give a lemma a name if we do not intend to refer
 to it explicitly in the future.
 Other basic laws about a datatype are applied automatically during
@@ -81,7 +81,7 @@ simplification, so no special methods are provided for them.
   the @{term xs} as a new free variable distinct from the bound
   @{term xs} in the goal.
 \end{warn}
-*}
+\<close>
 
 (*<*)
 end

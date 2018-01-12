@@ -8,29 +8,29 @@ subsection "Parity Analysis"
 
 datatype parity = Even | Odd | Either
 
-text{* Instantiation of class @{class order} with type @{typ parity}: *}
+text\<open>Instantiation of class @{class order} with type @{typ parity}:\<close>
 
 instantiation parity :: order
 begin
 
-text{* First the definition of the interface function @{text"\<le>"}. Note that
+text\<open>First the definition of the interface function @{text"\<le>"}. Note that
 the header of the definition must refer to the ascii name @{const less_eq} of the
 constants as @{text less_eq_parity} and the definition is named @{text
-less_eq_parity_def}.  Inside the definition the symbolic names can be used. *}
+less_eq_parity_def}.  Inside the definition the symbolic names can be used.\<close>
 
 definition less_eq_parity where
 "x \<le> y = (y = Either \<or> x=y)"
 
-text{* We also need @{text"<"}, which is defined canonically: *}
+text\<open>We also need @{text"<"}, which is defined canonically:\<close>
 
 definition less_parity where
 "x < y = (x \<le> y \<and> \<not> y \<le> (x::parity))"
 
-text{*\noindent(The type annotation is necessary to fix the type of the polymorphic predicates.)
+text\<open>\noindent(The type annotation is necessary to fix the type of the polymorphic predicates.)
 
 Now the instance proof, i.e.\ the proof that the definition fulfills
 the axioms (assumptions) of the class. The initial proof-step generates the
-necessary proof obligations. *}
+necessary proof obligations.\<close>
 
 instance
 proof
@@ -47,7 +47,7 @@ qed
 
 end
 
-text{* Instantiation of class @{class semilattice_sup_top} with type @{typ parity}: *}
+text\<open>Instantiation of class @{class semilattice_sup_top} with type @{typ parity}:\<close>
 
 instantiation parity :: semilattice_sup_top
 begin
@@ -58,11 +58,11 @@ definition sup_parity where
 definition top_parity where
 "\<top> = Either"
 
-text{* Now the instance proof. This time we take a shortcut with the help of
+text\<open>Now the instance proof. This time we take a shortcut with the help of
 proof method @{text goal_cases}: it creates cases 1 ... n for the subgoals
 1 ... n; in case i, i is also the name of the assumptions of subgoal i and
 @{text "case?"} refers to the conclusion of subgoal i.
-The class axioms are presented in the same order as in the class definition. *}
+The class axioms are presented in the same order as in the class definition.\<close>
 
 instance
 proof (standard, goal_cases)
@@ -78,10 +78,10 @@ qed
 end
 
 
-text{* Now we define the functions used for instantiating the abstract
+text\<open>Now we define the functions used for instantiating the abstract
 interpretation locales. Note that the Isabelle terminology is
 \emph{interpretation}, not \emph{instantiation} of locales, but we use
-instantiation to avoid confusion with abstract interpretation.  *}
+instantiation to avoid confusion with abstract interpretation.\<close>
 
 fun \<gamma>_parity :: "parity \<Rightarrow> val set" where
 "\<gamma>_parity Even = {i. i mod 2 = 0}" |
@@ -99,12 +99,12 @@ fun plus_parity :: "parity \<Rightarrow> parity \<Rightarrow> parity" where
 "plus_parity Either y  = Either" |
 "plus_parity x Either  = Either"
 
-text{* First we instantiate the abstract value interface and prove that the
-functions on type @{typ parity} have all the necessary properties: *}
+text\<open>First we instantiate the abstract value interface and prove that the
+functions on type @{typ parity} have all the necessary properties:\<close>
 
 global_interpretation Val_semilattice
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-proof (standard, goal_cases) txt{* subgoals are the locale axioms *}
+proof (standard, goal_cases) txt\<open>subgoals are the locale axioms\<close>
   case 1 thus ?case by(auto simp: less_eq_parity_def)
 next
   case 2 show ?case by(auto simp: top_parity_def)
@@ -116,14 +116,14 @@ next
       (auto simp add: mod_add_eq [symmetric])
 qed
 
-text{* In case 4 we needed to refer to particular variables.
+text\<open>In case 4 we needed to refer to particular variables.
 Writing (i x y z) fixes the names of the variables in case i to be x, y and z
 in the left-to-right order in which the variables occur in the subgoal.
-Underscores are anonymous placeholders for variable names we don't care to fix. *}
+Underscores are anonymous placeholders for variable names we don't care to fix.\<close>
 
-text{* Instantiating the abstract interpretation locale requires no more
+text\<open>Instantiating the abstract interpretation locale requires no more
 proofs (they happened in the instatiation above) but delivers the
-instantiated abstract interpreter which we call @{text AI_parity}: *}
+instantiated abstract interpreter which we call @{text AI_parity}:\<close>
 
 global_interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity

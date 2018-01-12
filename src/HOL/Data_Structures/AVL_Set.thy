@@ -14,7 +14,7 @@ begin
 
 type_synonym 'a avl_tree = "('a,nat) tree"
 
-text {* Invariant: *}
+text \<open>Invariant:\<close>
 
 fun avl :: "'a avl_tree \<Rightarrow> bool" where
 "avl Leaf = True" |
@@ -80,9 +80,9 @@ fun delete :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree"
      GT \<Rightarrow> balL l a (delete x r))"
 
 
-subsection {* Functional Correctness Proofs *}
+subsection \<open>Functional Correctness Proofs\<close>
 
-text{* Very different from the AFP/AVL proofs *}
+text\<open>Very different from the AFP/AVL proofs\<close>
 
 
 subsubsection "Proofs for insert"
@@ -137,12 +137,12 @@ next
 qed (rule TrueI)+
 
 
-subsection {* AVL invariants *}
+subsection \<open>AVL invariants\<close>
 
-text{* Essentially the AFP/AVL proofs *}
+text\<open>Essentially the AFP/AVL proofs\<close>
 
 
-subsubsection {* Insertion maintains AVL balance *}
+subsubsection \<open>Insertion maintains AVL balance\<close>
 
 declare Let_def [simp]
 
@@ -222,7 +222,7 @@ qed
 
 (* It appears that these two properties need to be proved simultaneously: *)
 
-text{* Insertion maintains the AVL property: *}
+text\<open>Insertion maintains the AVL property:\<close>
 
 theorem avl_insert_aux:
   assumes "avl t"
@@ -244,7 +244,7 @@ proof (induction t)
       with Node 1 show ?thesis by (auto simp add:avl_balL)
     next
       case False
-      with Node 1 `x\<noteq>a` show ?thesis by (auto simp add:avl_balR)
+      with Node 1 \<open>x\<noteq>a\<close> show ?thesis by (auto simp add:avl_balR)
     qed
   qed
   case 2
@@ -259,7 +259,7 @@ proof (induction t)
       case True
       with Node 2 show ?thesis
       proof(cases "height (insert x l) = height r + 2")
-        case False with Node 2 `x < a` show ?thesis by (auto simp: height_balL2)
+        case False with Node 2 \<open>x < a\<close> show ?thesis by (auto simp: height_balL2)
       next
         case True 
         hence "(height (balL (insert x l) a r) = height r + 2) \<or>
@@ -268,10 +268,10 @@ proof (induction t)
         thus ?thesis
         proof
           assume ?A
-          with 2 `x < a` show ?thesis by (auto)
+          with 2 \<open>x < a\<close> show ?thesis by (auto)
         next
           assume ?B
-          with True 1 Node(2) `x < a` show ?thesis by (simp) arith
+          with True 1 Node(2) \<open>x < a\<close> show ?thesis by (simp) arith
         qed
       qed
     next
@@ -279,7 +279,7 @@ proof (induction t)
       with Node 2 show ?thesis 
       proof(cases "height (insert x r) = height l + 2")
         case False
-        with Node 2 `\<not>x < a` show ?thesis by (auto simp: height_balR2)
+        with Node 2 \<open>\<not>x < a\<close> show ?thesis by (auto simp: height_balR2)
       next
         case True 
         hence "(height (balR l a (insert x r)) = height l + 2) \<or>
@@ -288,10 +288,10 @@ proof (induction t)
         thus ?thesis 
         proof
           assume ?A
-          with 2 `\<not>x < a` show ?thesis by (auto)
+          with 2 \<open>\<not>x < a\<close> show ?thesis by (auto)
         next
           assume ?B
-          with True 1 Node(4) `\<not>x < a` show ?thesis by (simp) arith
+          with True 1 Node(4) \<open>\<not>x < a\<close> show ?thesis by (simp) arith
         qed
       qed
     qed
@@ -299,7 +299,7 @@ proof (induction t)
 qed simp_all
 
 
-subsubsection {* Deletion maintains AVL balance *}
+subsubsection \<open>Deletion maintains AVL balance\<close>
 
 lemma avl_del_max:
   assumes "avl x" and "x \<noteq> Leaf"
@@ -317,7 +317,7 @@ next
   case (Node h l a r)
   case 2
   let ?r' = "fst (del_max r)"
-  from `avl x` Node 2 have "avl l" and "avl r" by simp_all
+  from \<open>avl x\<close> Node 2 have "avl l" and "avl r" by simp_all
   thus ?case using Node 2 height_balL[of l ?r' a] height_balL2[of l ?r' a]
     apply (auto split:prod.splits simp del:avl.simps) by arith+
 qed auto
@@ -331,13 +331,13 @@ proof (cases t rule:del_root_cases)
   let ?l = "Node lh ll ln lr"
   let ?r = "Node rh rl rn rr"
   let ?l' = "fst (del_max ?l)"
-  from `avl t` and Node_Node have "avl ?r" by simp
-  from `avl t` and Node_Node have "avl ?l" by simp
+  from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
+  from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
   hence "avl(?l')" "height ?l = height(?l') \<or>
          height ?l = height(?l') + 1" by (rule avl_del_max,simp)+
-  with `avl t` Node_Node have "height ?l' = height ?r \<or> height ?l' = height ?r + 1
+  with \<open>avl t\<close> Node_Node have "height ?l' = height ?r \<or> height ?l' = height ?r + 1
             \<or> height ?r = height ?l' + 1 \<or> height ?r = height ?l' + 2" by fastforce
-  with `avl ?l'` `avl ?r` have "avl(balR ?l' (snd(del_max ?l)) ?r)"
+  with \<open>avl ?l'\<close> \<open>avl ?r\<close> have "avl(balR ?l' (snd(del_max ?l)) ?r)"
     by (rule avl_balR)
   with Node_Node show ?thesis by (auto split:prod.splits)
 qed simp_all
@@ -352,19 +352,19 @@ proof (cases t rule: del_root_cases)
   let ?r = "Node rh rl rn rr"
   let ?l' = "fst (del_max ?l)"
   let ?t' = "balR ?l' (snd(del_max ?l)) ?r"
-  from `avl t` and Node_Node have "avl ?r" by simp
-  from `avl t` and Node_Node have "avl ?l" by simp
+  from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
+  from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
   hence "avl(?l')"  by (rule avl_del_max,simp)
-  have l'_height: "height ?l = height ?l' \<or> height ?l = height ?l' + 1" using `avl ?l` by (intro avl_del_max) auto
-  have t_height: "height t = 1 + max (height ?l) (height ?r)" using `avl t` Node_Node by simp
-  have "height t = height ?t' \<or> height t = height ?t' + 1" using  `avl t` Node_Node
+  have l'_height: "height ?l = height ?l' \<or> height ?l = height ?l' + 1" using \<open>avl ?l\<close> by (intro avl_del_max) auto
+  have t_height: "height t = 1 + max (height ?l) (height ?r)" using \<open>avl t\<close> Node_Node by simp
+  have "height t = height ?t' \<or> height t = height ?t' + 1" using  \<open>avl t\<close> Node_Node
   proof(cases "height ?r = height ?l' + 2")
     case False
-    show ?thesis using l'_height t_height False by (subst  height_balR2[OF `avl ?l'` `avl ?r` False])+ arith
+    show ?thesis using l'_height t_height False by (subst  height_balR2[OF \<open>avl ?l'\<close> \<open>avl ?r\<close> False])+ arith
   next
     case True
     show ?thesis
-    proof(cases rule: disjE[OF height_balR[OF True `avl ?l'` `avl ?r`, of "snd (del_max ?l)"]])
+    proof(cases rule: disjE[OF height_balR[OF True \<open>avl ?l'\<close> \<open>avl ?r\<close>, of "snd (del_max ?l)"]])
       case 1
       thus ?thesis using l'_height t_height True by arith
     next
@@ -375,7 +375,7 @@ proof (cases t rule: del_root_cases)
   thus ?thesis using Node_Node by (auto split:prod.splits)
 qed simp_all
 
-text{* Deletion maintains the AVL property: *}
+text\<open>Deletion maintains the AVL property:\<close>
 
 theorem avl_delete_aux:
   assumes "avl t" 
@@ -396,7 +396,7 @@ proof (induct t)
       with Node 1 show ?thesis by (auto simp add:avl_balR)
     next
       case False
-      with Node 1 `x\<noteq>n` show ?thesis by (auto simp add:avl_balL)
+      with Node 1 \<open>x\<noteq>n\<close> show ?thesis by (auto simp add:avl_balL)
     qed
   qed
   case 2
@@ -414,7 +414,7 @@ proof (induct t)
       case True
       show ?thesis
       proof(cases "height r = height (delete x l) + 2")
-        case False with Node 1 `x < n` show ?thesis by(auto simp: balR_def)
+        case False with Node 1 \<open>x < n\<close> show ?thesis by(auto simp: balR_def)
       next
         case True 
         hence "(height (balR (delete x l) n r) = height (delete x l) + 2) \<or>
@@ -423,17 +423,17 @@ proof (induct t)
         thus ?thesis 
         proof
           assume ?A
-          with `x < n` Node 2 show ?thesis by(auto simp: balR_def)
+          with \<open>x < n\<close> Node 2 show ?thesis by(auto simp: balR_def)
         next
           assume ?B
-          with `x < n` Node 2 show ?thesis by(auto simp: balR_def)
+          with \<open>x < n\<close> Node 2 show ?thesis by(auto simp: balR_def)
         qed
       qed
     next
       case False
       show ?thesis
       proof(cases "height l = height (delete x r) + 2")
-        case False with Node 1 `\<not>x < n` `x \<noteq> n` show ?thesis by(auto simp: balL_def)
+        case False with Node 1 \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> show ?thesis by(auto simp: balL_def)
       next
         case True 
         hence "(height (balL l n (delete x r)) = height (delete x r) + 2) \<or>
@@ -442,10 +442,10 @@ proof (induct t)
         thus ?thesis 
         proof
           assume ?A
-          with `\<not>x < n` `x \<noteq> n` Node 2 show ?thesis by(auto simp: balL_def)
+          with \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> Node 2 show ?thesis by(auto simp: balL_def)
         next
           assume ?B
-          with `\<not>x < n` `x \<noteq> n` Node 2 show ?thesis by(auto simp: balL_def)
+          with \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> Node 2 show ?thesis by(auto simp: balL_def)
         qed
       qed
     qed

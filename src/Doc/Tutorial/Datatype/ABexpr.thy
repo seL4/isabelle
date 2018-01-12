@@ -2,7 +2,7 @@
 theory ABexpr imports Main begin
 (*>*)
 
-text{*
+text\<open>
 \index{datatypes!mutually recursive}%
 Sometimes it is necessary to define two datatypes that depend on each
 other. This is called \textbf{mutual recursion}. As an example consider a
@@ -15,7 +15,7 @@ language of arithmetic and boolean expressions where
   comparisons like ``$m<n$''.
 \end{itemize}
 In Isabelle this becomes
-*}
+\<close>
 
 datatype 'a aexp = IF   "'a bexp" "'a aexp" "'a aexp"
                  | Sum  "'a aexp" "'a aexp"
@@ -26,14 +26,14 @@ and      'a bexp = Less "'a aexp" "'a aexp"
                  | And  "'a bexp" "'a bexp"
                  | Neg  "'a bexp"
 
-text{*\noindent
+text\<open>\noindent
 Type @{text"aexp"} is similar to @{text"expr"} in \S\ref{sec:ExprCompiler},
 except that we have added an @{text IF} constructor,
 fixed the values to be of type @{typ"nat"} and declared the two binary
 operations @{text Sum} and @{term"Diff"}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is given by two evaluation functions:
-*}
+\<close>
 
 primrec evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat" and
          evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool" where
@@ -48,7 +48,7 @@ primrec evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat
 "evalb (And b1 b2) env = (evalb b1 env \<and> evalb b2 env)" |
 "evalb (Neg b) env = (\<not> evalb b env)"
 
-text{*\noindent
+text\<open>\noindent
 
 Both take an expression and an environment (a mapping from variables
 @{typ"'a"} to values @{typ"nat"}) and return its arithmetic/boolean
@@ -60,7 +60,7 @@ equations need not be split into two groups;
 the empty line is purely for readability.
 
 In the same fashion we also define two functions that perform substitution:
-*}
+\<close>
 
 primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp" and
          substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp" where
@@ -75,7 +75,7 @@ primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow
 "substb s (And b1 b2) = And (substb s b1) (substb s b2)" |
 "substb s (Neg b) = Neg (substb s b)"
 
-text{*\noindent
+text\<open>\noindent
 Their first argument is a function mapping variables to expressions, the
 substitution. It is applied to all variables in the second argument. As a
 result, the type of variables in the expression may change from @{typ"'a"}
@@ -89,19 +89,19 @@ of $s(x)$ under $env$. If you try to prove this separately for arithmetic or
 boolean expressions (by induction), you find that you always need the other
 theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:
-*}
+\<close>
 
 lemma "evala (substa s a) env = evala a (\<lambda>x. evala (s x) env) \<and>
         evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)"
 apply(induct_tac a and b)
 
-txt{*\noindent The resulting 8 goals (one for each constructor) are proved in one fell swoop:
-*}
+txt\<open>\noindent The resulting 8 goals (one for each constructor) are proved in one fell swoop:
+\<close>
 
 apply simp_all
 (*<*)done(*>*)
 
-text{*
+text\<open>
 In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
 an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
@@ -121,7 +121,7 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex} and read the discussion
   of type annotations following lemma @{text subst_id} below).
 \end{exercise}
-*}
+\<close>
 (*<*)
 primrec norma :: "'a aexp \<Rightarrow> 'a aexp" and
         normb :: "'a bexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp" where

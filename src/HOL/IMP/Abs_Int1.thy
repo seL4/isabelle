@@ -6,7 +6,7 @@ begin
 
 subsection "Computable Abstract Interpretation"
 
-text{* Abstract interpretation over type @{text st} instead of functions. *}
+text\<open>Abstract interpretation over type @{text st} instead of functions.\<close>
 
 context Gamma_semilattice
 begin
@@ -48,7 +48,7 @@ lemma strip_step'[simp]: "strip(step' S C) = strip C"
 by(simp add: step'_def)
 
 
-text{* Correctness: *}
+text\<open>Correctness:\<close>
 
 lemma step_step': "step (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' S C)"
 unfolding step_def step'_def
@@ -59,7 +59,7 @@ lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  --"transfer the pfp'"
+  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  \<comment>"transfer the pfp'"
   proof(rule order_trans)
     show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' \<top> C)" by(rule step_step')
     show "... \<le> \<gamma>\<^sub>c C" by (metis mono_gamma_c[OF pfp'])
@@ -120,7 +120,7 @@ by(auto simp add: m_o_def m_s_h le_SucI split: option.split dest:m_s_h)
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^sub>c") where
 "m_c C = sum_list (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
-text{* Upper complexity bound: *}
+text\<open>Upper complexity bound:\<close>
 lemma m_c_h: "m_c C \<le> size(annos C) * (h * card(vars C) + 1)"
 proof-
   let ?X = "vars C" let ?n = "card ?X" let ?a = "size(annos C)"
@@ -191,7 +191,7 @@ proof-
   from assms(2,3,4) have "EX x:X. S1 x < S2 x"
     by(simp add: fun_eq_iff) (metis Compl_iff le_neq_trans)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S2 x)" by (metis m2)
-  from sum_strict_mono_ex1[OF `finite X` 1 2]
+  from sum_strict_mono_ex1[OF \<open>finite X\<close> 1 2]
   show "(\<Sum>x\<in>X. m (S2 x)) < (\<Sum>x\<in>X. m (S1 x))" .
 qed
 
@@ -234,7 +234,7 @@ proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def les
     using i(1) top(2) by(simp add: top_on_acom_def size_annos_same[OF strip_eq])
   from i have "m_o (annos C1 ! i) ?X > m_o (annos C2 ! i) ?X" (is "?P i")
     by (metis 0 less_option_def m_o2[OF finite_cvars topo1] topo2)
-  hence 2: "\<exists>i < size(annos C2). ?P i" using `i < size(annos C2)` by blast
+  hence 2: "\<exists>i < size(annos C2). ?P i" using \<open>i < size(annos C2)\<close> by blast
   have "(\<Sum>i<size(annos C2). m_o (annos C2 ! i) ?X)
          < (\<Sum>i<size(annos C2). m_o (annos C1 ! i) ?X)"
     apply(rule sum_strict_mono_ex1) using 1 2 by (auto)

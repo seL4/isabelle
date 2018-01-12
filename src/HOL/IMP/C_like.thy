@@ -51,7 +51,7 @@ code_pred big_step .
 
 declare [[values_timeout = 3600]]
 
-text{* Examples: *}
+text\<open>Examples:\<close>
 
 definition
 "array_sum =
@@ -59,7 +59,7 @@ definition
  DO ( N 2 ::= Plus (!(N 2)) (!(!(N 0)));
       N 0 ::= Plus (!(N 0)) (N 1) )"
 
-text {* To show the first n variables in a @{typ "nat \<Rightarrow> nat"} state: *}
+text \<open>To show the first n variables in a @{typ "nat \<Rightarrow> nat"} state:\<close>
 definition 
   "list t n = map t [0 ..< n]"
 

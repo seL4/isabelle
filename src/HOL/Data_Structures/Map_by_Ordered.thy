@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section {* Implementing Ordered Maps *}
+section \<open>Implementing Ordered Maps\<close>
 
 theory Map_by_Ordered
 imports AList_Upd_Del

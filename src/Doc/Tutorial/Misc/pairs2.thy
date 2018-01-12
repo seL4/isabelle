@@ -1,7 +1,7 @@
 (*<*)
 theory pairs2 imports Main begin
 (*>*)
-text{*\label{sec:pairs}\index{pairs and tuples}
+text\<open>\label{sec:pairs}\index{pairs and tuples}
 HOL also has ordered pairs: \isa{($a@1$,$a@2$)} is of type $\tau@1$
 \indexboldpos{\isasymtimes}{$Isatype} $\tau@2$ provided each $a@i$ is of type
 $\tau@i$. The functions \cdx{fst} and
@@ -29,7 +29,7 @@ Tuples with more than two or three components become unwieldy;
 records are preferable.
 \end{itemize}
 For more information on pairs and records see Chapter~\ref{ch:more-types}.
-*}
+\<close>
 (*<*)
 end
 (*>*)

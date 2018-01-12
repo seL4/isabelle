@@ -2,8 +2,8 @@ section "A Typed Language"
 
 theory Types imports Star Complex_Main begin
 
-text {* We build on @{theory Complex_Main} instead of @{theory Main} to access
-the real numbers. *}
+text \<open>We build on @{theory Complex_Main} instead of @{theory Main} to access
+the real numbers.\<close>
 
 subsection "Arithmetic Expressions"
 
@@ -12,9 +12,9 @@ datatype val = Iv int | Rv real
 type_synonym vname = string
 type_synonym state = "vname \<Rightarrow> val"
 
-text_raw{*\snip{aexptDef}{0}{2}{% *}
+text_raw\<open>\snip{aexptDef}{0}{2}{%\<close>
 datatype aexp =  Ic int | Rc real | V vname | Plus aexp aexp
-text_raw{*}%endsnip*}
+text_raw\<open>}%endsnip\<close>
 
 inductive taval :: "aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool" where
 "taval (Ic i) s (Iv i)" |
@@ -87,10 +87,10 @@ declare atyping.intros [intro!]
 inductive_cases [elim!]:
   "\<Gamma> \<turnstile> V x : \<tau>" "\<Gamma> \<turnstile> Ic i : \<tau>" "\<Gamma> \<turnstile> Rc r : \<tau>" "\<Gamma> \<turnstile> Plus a1 a2 : \<tau>"
 
-text{* Warning: the ``:'' notation leads to syntactic ambiguities,
+text\<open>Warning: the ``:'' notation leads to syntactic ambiguities,
 i.e. multiple parse trees, because ``:'' also stands for set membership.
 In most situations Isabelle's type system will reject all but one parse tree,
-but will still inform you of the potential ambiguity. *}
+but will still inform you of the potential ambiguity.\<close>
 
 inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix "\<turnstile>" 50)
 where
@@ -184,10 +184,10 @@ next
   show ?case
   proof(cases bv)
     assume "bv"
-    with `tbval b s bv` show ?case by simp (metis IfTrue)
+    with \<open>tbval b s bv\<close> show ?case by simp (metis IfTrue)
   next
     assume "\<not>bv"
-    with `tbval b s bv` show ?case by simp (metis IfFalse)
+    with \<open>tbval b s bv\<close> show ?case by simp (metis IfFalse)
   qed
 next
   case While_ty show ?case by (metis While)

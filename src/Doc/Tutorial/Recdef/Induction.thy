@@ -2,7 +2,7 @@
 theory Induction imports examples simplification begin
 (*>*)
 
-text{*
+text\<open>
 Assuming we have defined our function such that Isabelle could prove
 termination and that the recursion equations (or some suitable derived
 equations) are simplification rules, we might like to prove something about
@@ -17,29 +17,29 @@ requires you to prove for each \isacommand{recdef} equation that the property
 you are trying to establish holds for the left-hand side provided it holds
 for all recursive calls on the right-hand side. Here is a simple example
 involving the predefined @{term"map"} functional on lists:
-*}
+\<close>
 
 lemma "map f (sep(x,xs)) = sep(f x, map f xs)"
 
-txt{*\noindent
+txt\<open>\noindent
 Note that @{term"map f xs"}
 is the result of applying @{term"f"} to all elements of @{term"xs"}. We prove
 this lemma by recursion induction over @{term"sep"}:
-*}
+\<close>
 
 apply(induct_tac x xs rule: sep.induct)
 
-txt{*\noindent
+txt\<open>\noindent
 The resulting proof state has three subgoals corresponding to the three
 clauses for @{term"sep"}:
 @{subgoals[display,indent=0]}
 The rest is pure simplification:
-*}
+\<close>
 
 apply simp_all
 done
 
-text{*
+text\<open>
 Try proving the above lemma by structural induction, and you find that you
 need an additional case distinction. What is worse, the names of variables
 are invented by Isabelle and have nothing to do with the names in the
@@ -64,7 +64,7 @@ It merely says that in order to prove a property @{term"P"} of @{term"u"} and
 empty list, the singleton list, and the list with at least two elements.
 The final case has an induction hypothesis:  you may assume that @{term"P"}
 holds for the tail of that list.
-*}
+\<close>
 
 (*<*)
 end

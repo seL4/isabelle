@@ -130,24 +130,24 @@ proof (induction h arbitrary: x t)
     proof cases
       assume "l \<in> B h"
       from n2_type3[OF Suc.IH(1)[OF this] lr(2)]
-      show ?thesis using `x<a` by(simp)
+      show ?thesis using \<open>x<a\<close> by(simp)
     next
       assume "l \<notin> B h"
       hence "l \<in> U h" "r \<in> B h" using lr by auto
       from n2_type1[OF Suc.IH(2)[OF this(1)] this(2)]
-      show ?thesis using `x<a` by(simp)
+      show ?thesis using \<open>x<a\<close> by(simp)
     qed
     moreover
     have ?case if "x > a"
     proof cases
       assume "r \<in> B h"
       from n2_type3[OF lr(1) Suc.IH(1)[OF this]]
-      show ?thesis using `x>a` by(simp)
+      show ?thesis using \<open>x>a\<close> by(simp)
     next
       assume "r \<notin> B h"
       hence "l \<in> B h" "r \<in> U h" using lr by auto
       from n2_type2[OF this(1) Suc.IH(2)[OF this(2)]]
-      show ?thesis using `x>a` by(simp)
+      show ?thesis using \<open>x>a\<close> by(simp)
     qed
     moreover
     have ?case if [simp]: "x=a"

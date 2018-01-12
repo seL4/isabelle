@@ -6,8 +6,8 @@ begin
 
 subsection "Verification Conditions for Total Correctness"
 
-text{* Annotated commands: commands where loops are annotated with
-invariants. *}
+text\<open>Annotated commands: commands where loops are annotated with
+invariants.\<close>
 
 datatype acom =
   Askip                  ("SKIP") |
@@ -19,7 +19,7 @@ datatype acom =
 
 notation com.SKIP ("SKIP")
 
-text{* Strip annotations: *}
+text\<open>Strip annotations:\<close>
 
 fun strip :: "acom \<Rightarrow> com" where
 "strip SKIP = SKIP" |
@@ -28,7 +28,7 @@ fun strip :: "acom \<Rightarrow> com" where
 "strip (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = (IF b THEN strip C\<^sub>1 ELSE strip C\<^sub>2)" |
 "strip ({_} WHILE b DO C) = (WHILE b DO strip C)"
 
-text{* Weakest precondition from annotated commands: *}
+text\<open>Weakest precondition from annotated commands:\<close>
 
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre SKIP Q = Q" |
@@ -38,7 +38,7 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
   (\<lambda>s. if bval b s then pre C\<^sub>1 Q s else pre C\<^sub>2 Q s)" |
 "pre ({I} WHILE b DO C) Q = (\<lambda>s. EX n. I n s)"
 
-text{* Verification condition: *}
+text\<open>Verification condition:\<close>
 
 fun vc :: "acom \<Rightarrow> assn \<Rightarrow> bool" where
 "vc SKIP Q = True" |

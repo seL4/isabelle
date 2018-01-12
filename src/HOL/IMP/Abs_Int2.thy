@@ -83,14 +83,14 @@ fun inv_aval' :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarro
  (let (a1,a2) = inv_plus' a (aval'' e1 S) (aval'' e2 S)
   in inv_aval' e1 a1 (inv_aval' e2 a2 S))"
 
-text{* The test for @{const bot} in the @{const V}-case is important: @{const
+text\<open>The test for @{const bot} in the @{const V}-case is important: @{const
 bot} indicates that a variable has no possible values, i.e.\ that the current
 program point is unreachable. But then the abstract state should collapse to
 @{const None}. Put differently, we maintain the invariant that in an abstract
 state of the form @{term"Some s"}, all variables are mapped to non-@{const
 bot} values. Otherwise the (pointwise) sup of two abstract states, one of
 which contains @{const bot} values, may produce too large a result, thus
-making the analysis less precise. *}
+making the analysis less precise.\<close>
 
 
 fun inv_bval' :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
@@ -108,7 +108,7 @@ proof(induction e arbitrary: a S)
   case N thus ?case by simp (metis test_num')
 next
   case (V x)
-  obtain S' where "S = Some S'" and "s : \<gamma>\<^sub>s S'" using `s : \<gamma>\<^sub>o S`
+  obtain S' where "S = Some S'" and "s : \<gamma>\<^sub>s S'" using \<open>s : \<gamma>\<^sub>o S\<close>
     by(auto simp: in_gamma_option_iff)
   moreover hence "s x : \<gamma> (fun S' x)"
     by(simp add: \<gamma>_st_def)
@@ -170,7 +170,7 @@ lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  --"transfer the pfp'"
+  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  \<comment>"transfer the pfp'"
   proof(rule order_trans)
     show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' \<top> C)" by(rule step_step')
     show "... \<le> \<gamma>\<^sub>c C" by (metis mono_gamma_c[OF pfp'])

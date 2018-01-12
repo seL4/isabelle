@@ -88,17 +88,17 @@ proof (induction rule: big_step_induct)
   hence IH: "P s2 \<Longrightarrow> (WHILE b' DO c', s2) \<Rightarrow> s3" by auto
   from WhileTrue.prems
   have "P \<Turnstile> b <\<sim>> b'" by simp
-  with `bval b s1` `P s1`
+  with \<open>bval b s1\<close> \<open>P s1\<close>
   have "bval b' s1" by (simp add: bequiv_up_to_def)
   moreover
   from WhileTrue.prems
   have "P \<Turnstile> c \<sim> c'" by simp
-  with `bval b s1` `P s1` `(c, s1) \<Rightarrow> s2`
+  with \<open>bval b s1\<close> \<open>P s1\<close> \<open>(c, s1) \<Rightarrow> s2\<close>
   have "(c', s1) \<Rightarrow> s2" by (simp add: equiv_up_to_def)
   moreover
   from WhileTrue.prems
   have "\<And>s s'. (c,s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s'" by simp
-  with `P s1` `bval b s1` `(c, s1) \<Rightarrow> s2`
+  with \<open>P s1\<close> \<open>bval b s1\<close> \<open>(c, s1) \<Rightarrow> s2\<close>
   have "P s2" by simp
   hence "(WHILE b' DO c', s2) \<Rightarrow> s3" by (rule IH)
   ultimately

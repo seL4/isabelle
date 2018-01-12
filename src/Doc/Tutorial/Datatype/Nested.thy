@@ -2,7 +2,7 @@
 theory Nested imports ABexpr begin
 (*>*)
 
-text{*
+text\<open>
 \index{datatypes!and nested recursion}%
 So far, all datatypes had the property that on the right-hand side of their
 definition they occurred only at the top-level: directly below a
@@ -10,11 +10,11 @@ constructor. Now we consider \emph{nested recursion}, where the recursive
 datatype occurs nested in some other datatype (but not inside itself!).
 Consider the following model of terms
 where function symbols can be applied to a list of arguments:
-*}
+\<close>
 (*<*)hide_const Var(*>*)
 datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list"
 
-text{*\noindent
+text\<open>\noindent
 Note that we need to quote @{text term} on the left to avoid confusion with
 the Isabelle command \isacommand{term}.
 Parameter @{typ"'v"} is the type of variables and @{typ"'f"} the type of
@@ -41,7 +41,7 @@ nested recursion.
 
 Let us define a substitution function on terms. Because terms involve term
 lists, we need to define two substitution functions simultaneously:
-*}
+\<close>
 
 primrec
 subst :: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term      \<Rightarrow> ('v,'f)term" and
@@ -54,7 +54,7 @@ where
 "substs s [] = []" |
 "substs s (t # ts) = subst s t # substs s ts"
 
-text{*\noindent
+text\<open>\noindent
 Individual equations in a \commdx{primrec} definition may be
 named as shown for @{thm[source]subst_App}.
 The significance of this device will become apparent below.
@@ -63,14 +63,14 @@ Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
 the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:
-*}
+\<close>
 
 lemma subst_id(*<*)(*referred to from ABexpr*)(*>*): "subst  Var t  = (t ::('v,'f)term)  \<and>
                   substs Var ts = (ts::('v,'f)term list)"
 apply(induct_tac t and ts rule: subst.induct substs.induct, simp_all)
 done
 
-text{*\noindent
+text\<open>\noindent
 Note that @{term Var} is the identity substitution because by definition it
 leaves variables unchanged: @{prop"subst Var (Var x) = Var x"}. Note also
 that the type annotations are necessary because otherwise there is nothing in
@@ -100,7 +100,7 @@ where @{term"map"} is the standard list function such that
 @{text"map f [x1,...,xn] = [f x1,...,f xn]"}. This is true, but Isabelle
 insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:
-*}
+\<close>
 (*<*)
 (* Exercise 1: *)
 lemma "subst  ((subst f) \<circ> g) t  = subst  f (subst g t) \<and>
@@ -133,14 +133,14 @@ lemma [simp]: "subst s (App f ts) = App f (map (subst s) ts)"
 apply(induct_tac ts, simp_all)
 done
 
-text{*\noindent
+text\<open>\noindent
 What is more, we can now disable the old defining equation as a
 simplification rule:
-*}
+\<close>
 
 declare subst_App [simp del]
 
-text{*\noindent The advantage is that now we have replaced @{const
+text\<open>\noindent The advantage is that now we have replaced @{const
 substs} by @{const map}, we can profit from the large number of
 pre-proved lemmas about @{const map}.  Unfortunately, inductive proofs
 about type @{text term} are still awkward because they expect a
@@ -155,5 +155,5 @@ separate tutorial~@{cite "isabelle-function"}.
 Of course, you may also combine mutual and nested recursion of datatypes. For example,
 constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: @{text Sum}~@{typ[quotes]"'a aexp list"}.
-*}
+\<close>
 (*<*)end(*>*)

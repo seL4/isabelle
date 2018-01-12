@@ -2,19 +2,19 @@
 theory fun0 imports Main begin
 (*>*)
 
-text{*
+text\<open>
 \subsection{Definition}
 \label{sec:fun-examples}
 
 Here is a simple example, the \rmindex{Fibonacci function}:
-*}
+\<close>
 
 fun fib :: "nat \<Rightarrow> nat" where
 "fib 0 = 0" |
 "fib (Suc 0) = 1" |
 "fib (Suc(Suc x)) = fib x + fib (Suc x)"
 
-text{*\noindent
+text\<open>\noindent
 This resembles ordinary functional programming languages. Note the obligatory
 \isacommand{where} and \isa{|}. Command \isacommand{fun} declares and
 defines the function in one go. Isabelle establishes termination automatically
@@ -22,35 +22,35 @@ because @{const fib}'s argument decreases in every recursive call.
 
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:
-*}
+\<close>
 
 fun sep :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "sep a []     = []" |
 "sep a [x]    = [x]" |
 "sep a (x#y#zs) = x # a # sep a (y#zs)"
 
-text{*\noindent
+text\<open>\noindent
 This time the length of the list decreases with the
 recursive call; the first argument is irrelevant for termination.
 
 Pattern matching\index{pattern matching!and \isacommand{fun}}
 need not be exhaustive and may employ wildcards:
-*}
+\<close>
 
 fun last :: "'a list \<Rightarrow> 'a" where
 "last [x]      = x" |
 "last (_#y#zs) = last (y#zs)"
 
-text{*
+text\<open>
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:
-*}
+\<close>
 
 fun sep1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "sep1 a (x#y#zs) = x # a # sep1 a (y#zs)" |
 "sep1 _ xs       = xs"
 
-text{*\noindent
+text\<open>\noindent
 To guarantee that the second equation can only be applied if the first
 one does not match, Isabelle internally replaces the second equation
 by the two possibilities that are left: @{prop"sep1 a [] = []"} and
@@ -59,13 +59,13 @@ by the two possibilities that are left: @{prop"sep1 a [] = []"} and
 
 Because of its pattern matching syntax, \isacommand{fun} is also useful
 for the definition of non-recursive functions:
-*}
+\<close>
 
 fun swap12 :: "'a list \<Rightarrow> 'a list" where
 "swap12 (x#y#zs) = y#x#zs" |
 "swap12 zs       = zs"
 
-text{*
+text\<open>
 After a function~$f$ has been defined via \isacommand{fun},
 its defining equations (or variants derived from them) are available
 under the name $f$@{text".simps"} as theorems.
@@ -87,14 +87,14 @@ recursive call.
 More generally, \isacommand{fun} allows any \emph{lexicographic
 combination} of size measures in case there are multiple
 arguments. For example, the following version of \rmindex{Ackermann's
-function} is accepted: *}
+function} is accepted:\<close>
 
 fun ack2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "ack2 n 0 = Suc n" |
 "ack2 0 (Suc m) = ack2 (Suc 0) m" |
 "ack2 (Suc n) (Suc m) = ack2 (ack2 n (Suc m)) m"
 
-text{* The order of arguments has no influence on whether
+text\<open>The order of arguments has no influence on whether
 \isacommand{fun} can prove termination of a function. For more details
 see elsewhere~@{cite bulwahnKN07}.
 
@@ -108,12 +108,12 @@ problem that must be mentioned: simplification may not
 terminate because of automatic splitting of @{text "if"}.
 \index{*if expressions!splitting of}
 Let us look at an example:
-*}
+\<close>
 
 fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "gcd m n = (if n=0 then m else gcd n (m mod n))"
 
-text{*\noindent
+text\<open>\noindent
 The second argument decreases with each recursive call.
 The termination condition
 @{prop[display]"n ~= (0::nat) ==> m mod n < n"}
@@ -145,32 +145,32 @@ approach: you will often have to invoke the rule explicitly when
 If possible, the definition should be given by pattern matching on the left
 rather than @{text "if"} on the right. In the case of @{term gcd} the
 following alternative definition suggests itself:
-*}
+\<close>
 
 fun gcd1 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "gcd1 m 0 = m" |
 "gcd1 m n = gcd1 n (m mod n)"
 
-text{*\noindent
+text\<open>\noindent
 The order of equations is important: it hides the side condition
 @{prop"n ~= (0::nat)"}.  Unfortunately, not all conditionals can be
 expressed by pattern matching.
 
 A simple alternative is to replace @{text "if"} by @{text case}, 
 which is also available for @{typ bool} and is not split automatically:
-*}
+\<close>
 
 fun gcd2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "gcd2 m n = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2 n (m mod n))"
 
-text{*\noindent
+text\<open>\noindent
 This is probably the neatest solution next to pattern matching, and it is
 always available.
 
 A final alternative is to replace the offending simplification rules by
 derived conditional ones. For @{term gcd} it means we have to prove
 these lemmas:
-*}
+\<close>
 
 lemma [simp]: "gcd m 0 = m"
 apply(simp)
@@ -180,15 +180,15 @@ lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd m n = gcd n (m mod n)"
 apply(simp)
 done
 
-text{*\noindent
+text\<open>\noindent
 Simplification terminates for these proofs because the condition of the @{text
 "if"} simplifies to @{term True} or @{term False}.
 Now we can disable the original simplification rule:
-*}
+\<close>
 
 declare gcd.simps [simp del]
 
-text{*
+text\<open>
 \index{induction!recursion|(}
 \index{recursion induction|(}
 
@@ -207,29 +207,29 @@ requires you to prove for each \isacommand{fun} equation that the property
 you are trying to establish holds for the left-hand side provided it holds
 for all recursive calls on the right-hand side. Here is a simple example
 involving the predefined @{term"map"} functional on lists:
-*}
+\<close>
 
 lemma "map f (sep x xs) = sep (f x) (map f xs)"
 
-txt{*\noindent
+txt\<open>\noindent
 Note that @{term"map f xs"}
 is the result of applying @{term"f"} to all elements of @{term"xs"}. We prove
 this lemma by recursion induction over @{term"sep"}:
-*}
+\<close>
 
 apply(induct_tac x xs rule: sep.induct)
 
-txt{*\noindent
+txt\<open>\noindent
 The resulting proof state has three subgoals corresponding to the three
 clauses for @{term"sep"}:
 @{subgoals[display,indent=0]}
 The rest is pure simplification:
-*}
+\<close>
 
 apply simp_all
 done
 
-text{*\noindent The proof goes smoothly because the induction rule
+text\<open>\noindent The proof goes smoothly because the induction rule
 follows the recursion of @{const sep}.  Try proving the above lemma by
 structural induction, and you find that you need an additional case
 distinction.
@@ -255,7 +255,7 @@ The final case has an induction hypothesis:  you may assume that @{term"P"}
 holds for the tail of that list.
 \index{induction!recursion|)}
 \index{recursion induction|)}
-*}
+\<close>
 (*<*)
 end
 (*>*)
