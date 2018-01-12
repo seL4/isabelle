@@ -4,7 +4,9 @@
 
   A filter describing the points x such that f(x) tends to some other filter.
 *)
-section \<open>The `going\_to' filter\<close>
+
+section \<open>The \<open>going_to\<close> filter\<close>
+
 theory Going_To_Filter
   imports Complex_Main
 begin
@@ -18,7 +20,7 @@ abbreviation going_to :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Righta
     where "f going_to F \<equiv> f going_to F within UNIV"
 
 text \<open>
-  The `going\_to' filter is, in a sense, the opposite of @{term filtermap}. 
+  The \<open>going_to\<close> filter is, in a sense, the opposite of @{term filtermap}. 
   It corresponds to the intuition of, given a function $f: A \to B$ and a filter $F$ on the 
   range of $B$, looking at such values of $x$ that $f(x)$ approaches $F$. This can be 
   written as @{term "f going_to F"}.
@@ -27,7 +29,7 @@ text \<open>
   of infinity (i.\,e.\ all values sufficiently far away from the zero). This can also be written
   as @{term "norm going_to at_top"}.
 
-  Additionally, the `going\_to' filter can be restricted with an optional `within' parameter.
+  Additionally, the \<open>going_to\<close> filter can be restricted with an optional `within' parameter.
   For instance, if one would would want to consider the filter of complex numbers near infinity
   that do not lie on the negative real line, one could write 
   @{term "norm going_to at_top within - complex_of_real ` {..0}"}.
