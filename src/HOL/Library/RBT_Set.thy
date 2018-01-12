@@ -126,14 +126,15 @@ unfolding fold_keys_def including rbt.lifting by transfer (rule rbt_foldi_fold_d
 
 subsection \<open>folding over non empty trees and selecting the minimal and maximal element\<close>
 
-(** concrete **)
+subsubsection \<open>concrete\<close>
 
-(* The concrete part is here because it's probably not general enough to be moved to RBT_Impl *)
+text \<open>The concrete part is here because it's probably not general enough to be moved to \<open>RBT_Impl\<close>\<close>
 
 definition rbt_fold1_keys :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a::linorder, 'b) RBT_Impl.rbt \<Rightarrow> 'a" 
   where "rbt_fold1_keys f t = List.fold f (tl(RBT_Impl.keys t)) (hd(RBT_Impl.keys t))"
 
-(* minimum *)
+
+paragraph \<open>minimum\<close>
 
 definition rbt_min :: "('a::linorder, unit) RBT_Impl.rbt \<Rightarrow> 'a" 
   where "rbt_min t = rbt_fold1_keys min t"
@@ -229,7 +230,8 @@ proof -
       Min.set_eq_fold [symmetric] Min_eqI rbt_min_opt_in_set)
 qed
 
-(* maximum *)
+
+paragraph \<open>maximum\<close>
 
 definition rbt_max :: "('a::linorder, unit) RBT_Impl.rbt \<Rightarrow> 'a" 
   where "rbt_max t = rbt_fold1_keys max t"
@@ -331,7 +333,7 @@ proof -
 qed
 
 
-(** abstract **)
+subsubsection \<open>abstract\<close>
 
 context includes rbt.lifting begin
 lift_definition fold1_keys :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> 'a"
@@ -351,7 +353,8 @@ proof -
     by (auto simp: fold1_keys_def_alt set_keys fold_def_alt non_empty_keys set_eq_fold [symmetric])
 qed
 
-(* minimum *)
+
+paragraph \<open>minimum\<close>
 
 lift_definition r_min :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_min .
 
@@ -388,7 +391,8 @@ proof -
     done
 qed
 
-(* maximum *)
+
+paragraph \<open>maximum\<close>
 
 lift_definition r_max :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_max .
 

@@ -21,7 +21,7 @@ for
 context
 begin
 
-(*for code generation only*)
+\<comment> \<open>for code generation only\<close>
 qualified definition smember :: "'a \<Rightarrow> 'a stream \<Rightarrow> bool" where
   [code_abbrev]: "smember x s \<longleftrightarrow> x \<in> sset s"
 

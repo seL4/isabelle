@@ -181,7 +181,7 @@ proof (intro antisym)
     by (intro cSUP_upper bdd_above_image_mono assms) (auto simp: mono_def)
 qed
 
-(*These generalise their counterparts in Nat.linordered_semidom_class*)
+\<comment> \<open>These generalise their counterparts in \<open>Nat.linordered_semidom_class\<close>\<close>
 lemma of_nat_less[simp]:
   "m < n \<Longrightarrow> of_nat m < (of_nat n::'a::{linordered_nonzero_semiring, semiring_char_0})"
   by (auto simp: less_le)

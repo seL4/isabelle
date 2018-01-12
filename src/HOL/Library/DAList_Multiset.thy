@@ -372,8 +372,7 @@ qed
 
 end
 
-(* we cannot use (\<lambda>a n. (+) (a * n)) for folding, since * is not defined
-   in comm_monoid_add *)
+\<comment> \<open>we cannot use \<open>\<lambda>a n. (+) (a * n)\<close> for folding, since \<open>( * )\<close> is not defined in \<open>comm_monoid_add\<close>\<close>
 lemma sum_mset_Bag[code]: "sum_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. (((+) a) ^^ n)) 0 ms"
   unfolding sum_mset.eq_fold
   apply (rule comp_fun_commute.DAList_Multiset_fold)
@@ -381,8 +380,7 @@ lemma sum_mset_Bag[code]: "sum_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a 
   apply (auto simp: ac_simps)
   done
 
-(* we cannot use (\<lambda>a n. ( * ) (a ^ n)) for folding, since ^ is not defined
-   in comm_monoid_mult *)
+\<comment> \<open>we cannot use \<open>\<lambda>a n. ( * ) (a ^ n)\<close> for folding, since \<open>(^)\<close> is not defined in \<open>comm_monoid_mult\<close>\<close>
 lemma prod_mset_Bag[code]: "prod_mset (Bag ms) = DAList_Multiset.fold (\<lambda>a n. ((( * ) a) ^^ n)) 1 ms"
   unfolding prod_mset.eq_fold
   apply (rule comp_fun_commute.DAList_Multiset_fold)

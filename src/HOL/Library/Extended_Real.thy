@@ -4091,7 +4091,7 @@ qed
 
 subsubsection \<open>Tests for code generator\<close>
 
-(* A small list of simple arithmetic expressions *)
+text \<open>A small list of simple arithmetic expressions.\<close>
 
 value "- \<infinity> :: ereal"
 value "\<bar>-\<infinity>\<bar> :: ereal"

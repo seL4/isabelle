@@ -28,7 +28,8 @@ by (cases "length xl \<le> length yl") (metis, metis assms nat_le_linear shift_p
 
 section\<open>Linear temporal logic\<close>
 
-(* Propositional connectives: *)
+text \<open>Propositional connectives:\<close>
+
 abbreviation (input) IMPL (infix "impl" 60)
 where "\<phi> impl \<psi> \<equiv> \<lambda> xs. \<phi> xs \<longrightarrow> \<psi> xs"
 
@@ -55,7 +56,8 @@ by blast
 
 lemma non_not[simp]: "not (not \<phi>) = \<phi>" by simp
 
-(* Temporal (LTL) connectives: *)
+text \<open>Temporal (LTL) connectives:\<close>
+
 fun holds where "holds P xs \<longleftrightarrow> P (shd xs)"
 fun nxt where "nxt \<phi> xs = \<phi> (stl xs)"
 
@@ -76,7 +78,7 @@ step: "ev \<phi> (stl xs) \<Longrightarrow> ev \<phi> xs"
 coinductive alw for \<phi> where
 alw: "\<lbrakk>\<phi> xs; alw \<phi> (stl xs)\<rbrakk> \<Longrightarrow> alw \<phi> xs"
 
-(* weak until: *)
+\<comment> \<open>weak until:\<close>
 coinductive UNTIL (infix "until" 60) for \<phi> \<psi> where
 base: "\<psi> xs \<Longrightarrow> (\<phi> until \<psi>) xs"
 |
@@ -377,7 +379,7 @@ next
   thus ?L by (induct rule: sset_induct) (simp_all add: ev.base ev.step)
 qed
 
-(* LTL as a program logic: *)
+text \<open>LTL as a program logic:\<close>
 lemma alw_invar:
 assumes "\<phi> xs" and "alw (\<phi> impl nxt \<phi>) xs"
 shows "alw \<phi> xs"

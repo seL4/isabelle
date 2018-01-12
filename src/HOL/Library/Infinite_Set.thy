@@ -188,7 +188,7 @@ lemma MOST_SucI: "MOST n. P n \<Longrightarrow> MOST n. P (Suc n)"
 lemma MOST_ge_nat: "MOST n::nat. m \<le> n"
   by (simp add: cofinite_eq_sequentially)
 
-(* legacy names *)
+\<comment> \<open>legacy names\<close>
 lemma Inf_many_def: "Inf_many P \<longleftrightarrow> infinite {x. P x}" by (fact frequently_cofinite)
 lemma Alm_all_def: "Alm_all P \<longleftrightarrow> \<not> (INFM x. \<not> P x)" by simp
 lemma INFM_iff_infinite: "(INFM x. P x) \<longleftrightarrow> infinite {x. P x}" by (fact frequently_cofinite)

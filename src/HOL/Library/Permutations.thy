@@ -1054,7 +1054,7 @@ next
   qed
 qed
 
-(* Prove image_mset_eq_implies_permutes *)
+\<comment> \<open>Prove \<open>image_mset_eq_implies_permutes\<close> ...\<close>
 lemma image_mset_eq_implies_permutes:
   fixes f :: "'a \<Rightarrow> 'b"
   assumes "finite A"
@@ -1114,7 +1114,7 @@ qed
 lemma mset_set_upto_eq_mset_upto: "mset_set {..<n} = mset [0..<n]"
   by (induct n) (auto simp: add.commute lessThan_Suc)
 
-(* and derive the existing property: *)
+\<comment> \<open>... and derive the existing property:\<close>
 lemma mset_eq_permutation:
   fixes xs ys :: "'a list"
   assumes mset_eq: "mset xs = mset ys"

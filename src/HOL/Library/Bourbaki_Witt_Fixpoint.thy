@@ -357,7 +357,7 @@ using chain_iterates_above[OF a] fun_pow_iterates_above
 by (blast intro: ChainsI dest: in_ChainsD)
 
 lemma fixp_above_Kleene_iter:
-  assumes "\<forall>M \<in> Chains leq. finite M" (* convenient but surely not necessary *)
+  assumes "\<forall>M \<in> Chains leq. finite M"  \<comment> \<open>convenient but surely not necessary\<close>
   assumes "(f ^^ Suc k) a = (f ^^ k) a"
   shows "fixp_above a = (f ^^ k) a"
 proof(rule leq_antisym)

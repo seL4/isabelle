@@ -1081,8 +1081,7 @@ lemma fold_code [code]:
   "fold f (Branch c lt k v rt) x = fold f rt (f k v (fold f lt x))"
 by(simp_all)
 
-(* fold with continuation predicate *)
-
+\<comment> \<open>fold with continuation predicate\<close>
 fun foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" 
   where
   "foldi c f Empty s = s" |

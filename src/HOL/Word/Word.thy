@@ -527,10 +527,12 @@ lemma td_ext_sint:
          2 ^ (len_of TYPE('a) - 1))"
   using td_ext_sbin [where ?'a = 'a] by (simp add: no_sbintr_alt2)
 
-(* We do sint before sbin, before sint is the user version
-   and interpretations do not produce thm duplicates. I.e.
-   we get the name word_sint.Rep_eqD, but not word_sbin.Req_eqD,
-   because the latter is the same thm as the former *)
+text \<open>
+  We do \<open>sint\<close> before \<open>sbin\<close>, before \<open>sint\<close> is the user version
+  and interpretations do not produce thm duplicates. I.e.
+  we get the name \<open>word_sint.Rep_eqD\<close>, but not \<open>word_sbin.Req_eqD\<close>,
+  because the latter is the same thm as the former.
+\<close>
 interpretation word_sint:
   td_ext
     "sint ::'a::len word \<Rightarrow> int"
@@ -765,7 +767,7 @@ lemma bin_nth_sint:
   apply (auto simp add: nth_sbintr)
   done
 
-(* type definitions theorem for in terms of equivalent bool list *)
+\<comment> \<open>type definitions theorem for in terms of equivalent bool list\<close>
 lemma td_bl:
   "type_definition
     (to_bl :: 'a::len0 word \<Rightarrow> bool list)
@@ -862,7 +864,7 @@ lemma uint_bl_bin: "bl_to_bin (bin_to_bl (len_of TYPE('a)) (uint x)) = uint x"
   for x :: "'a::len0 word"
   by (rule trans [OF bin_bl_bin word_ubin.norm_Rep])
 
-(* naturals *)
+\<comment> \<open>naturals\<close>
 lemma uints_unats: "uints n = int ` unats n"
   apply (unfold unats_def uints_num)
   apply safe
@@ -898,8 +900,10 @@ lemma num_abs_sbintr:
     word_of_int (sbintrunc (len_of TYPE('a::len) - 1) (numeral x))"
   by (simp only: word_sbin.Abs_norm word_numeral_alt)
 
-(** cast - note, no arg for new length, as it's determined by type of result,
-  thus in "cast w = w, the type means cast to length of w! **)
+text \<open>
+  \<open>cast\<close> -- note, no arg for new length, as it's determined by type of result,
+  thus in \<open>cast w = w\<close>, the type means cast to length of \<open>w\<close>!
+\<close>
 
 lemma ucast_id: "ucast w = w"
   by (auto simp: ucast_def)
@@ -914,8 +918,7 @@ lemma nth_ucast: "(ucast w::'a::len0 word) !! n = (w !! n \<and> n < len_of TYPE
   by (simp add: ucast_def test_bit_bin word_ubin.eq_norm nth_bintr word_size)
     (fast elim!: bin_nth_uint_imp)
 
-(* for literal u(s)cast *)
-
+\<comment> \<open>literal u(s)cast\<close>
 lemma ucast_bintr [simp]:
   "ucast (numeral w :: 'a::len0 word) =
     word_of_int (bintrunc (len_of TYPE('a)) (numeral w))"
@@ -1171,7 +1174,7 @@ lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
 lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
   by (simp add: ucast_def)
 
-(* now, to get the weaker results analogous to word_div/mod_def *)
+\<comment> \<open>now, to get the weaker results analogous to \<open>word_div\<close>/\<open>mod_def\<close>\<close>
 
 
 subsection \<open>Transferring goals from words to ints\<close>
@@ -1244,7 +1247,7 @@ lemma word_sp_01 [simp]:
   "word_succ (- 1) = 0 \<and> word_succ 0 = 1 \<and> word_pred 0 = - 1 \<and> word_pred 1 = 0"
   by (simp_all add: word_succ_p1 word_pred_m1)
 
-(* alternative approach to lifting arithmetic equalities *)
+\<comment> \<open>alternative approach to lifting arithmetic equalities\<close>
 lemma word_of_int_Ex: "\<exists>y. x = word_of_int y"
   by (rule_tac x="uint x" in exI) simp
 
@@ -1421,11 +1424,11 @@ lemmas uint_arith_simps =
   word_uint.Rep_inject [symmetric]
   uint_sub_if' uint_plus_if'
 
-(* use this to stop, eg, 2 ^ len_of TYPE(32) being simplified *)
+\<comment> \<open>use this to stop, eg. \<open>2 ^ len_of TYPE(32)\<close> being simplified\<close>
 lemma power_False_cong: "False \<Longrightarrow> a ^ b = c ^ d"
   by auto
 
-(* uint_arith_tac: reduce to arithmetic on int, try to solve by arith *)
+\<comment> \<open>\<open>uint_arith_tac\<close>: reduce to arithmetic on int, try to solve by arith\<close>
 ML \<open>
 fun uint_arith_simpset ctxt =
   ctxt addsimps @{thms uint_arith_simps}
@@ -1641,7 +1644,7 @@ lemma udvd_incr2_K:
   apply simp
   done
 
-(* links with rbl operations *)
+\<comment> \<open>links with \<open>rbl\<close> operations\<close>
 lemma word_succ_rbl: "to_bl w = bl \<Longrightarrow> to_bl (word_succ w) = rev (rbl_succ (rev bl))"
   apply (unfold word_succ_def)
   apply clarify
@@ -1690,8 +1693,10 @@ lemmas word_le_0_iff [simp] =
 lemma word_of_int_nat: "0 \<le> x \<Longrightarrow> word_of_int x = of_nat (nat x)"
   by (simp add: word_of_int)
 
-(* note that iszero_def is only for class comm_semiring_1_cancel,
-   which requires word length >= 1, ie 'a::len word *)
+text \<open>
+  note that \<open>iszero_def\<close> is only for class \<open>comm_semiring_1_cancel\<close>,
+  which requires word length \<open>\<ge> 1\<close>, ie \<open>'a::len word\<close>
+\<close>
 lemma iszero_word_no [simp]:
   "iszero (numeral bin :: 'a::len word) =
     iszero (bintrunc (len_of TYPE('a)) (numeral bin))"
@@ -1907,8 +1912,7 @@ lemmas unat_arith_simps =
   word_unat.Rep_inject [symmetric]
   unat_sub_if' unat_plus_if' unat_div unat_mod
 
-(* unat_arith_tac: tactic to reduce word arithmetic to nat,
-   try to solve via arith *)
+\<comment> \<open>\<open>unat_arith_tac\<close>: tactic to reduce word arithmetic to \<open>nat\<close>, try to solve via \<open>arith\<close>\<close>
 ML \<open>
 fun unat_arith_simpset ctxt =
   ctxt addsimps @{thms unat_arith_simps}
@@ -2087,14 +2091,13 @@ subsection \<open>Bitwise Operations on Words\<close>
 
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
 
-(* following definitions require both arithmetic and bit-wise word operations *)
+\<comment> \<open>following definitions require both arithmetic and bit-wise word operations\<close>
 
-(* to get word_no_log_defs from word_log_defs, using bin_log_bintrs *)
+\<comment> \<open>to get \<open>word_no_log_defs\<close> from \<open>word_log_defs\<close>, using \<open>bin_log_bintrs\<close>\<close>
 lemmas wils1 = bin_log_bintrs [THEN word_ubin.norm_eq_iff [THEN iffD1],
   folded word_ubin.eq_norm, THEN eq_reflection]
 
-(* the binary operations only *)
-(* BH: why is this needed? *)
+\<comment> \<open>the binary operations only\<close>  (* BH: why is this needed? *)
 lemmas word_log_binary_defs =
   word_and_def word_or_def word_xor_def
 
@@ -2201,9 +2204,7 @@ lemma nth_0 [simp]: "\<not> (0 :: 'a::len0 word) !! n"
 lemma nth_minus1 [simp]: "(-1 :: 'a::len0 word) !! n \<longleftrightarrow> n < len_of TYPE('a)"
   by transfer simp
 
-(* get from commutativity, associativity etc of int_and etc
-  to same for word_and etc *)
-
+\<comment> \<open>get from commutativity, associativity etc of \<open>int_and\<close> etc to same for \<open>word_and etc\<close>\<close>
 lemmas bwsimps =
   wi_hom_add
   word_wi_log_defs
@@ -2670,9 +2671,11 @@ lemma nth_shiftr: "(w >> m) !! n = w !! (n + m)"
    apply (auto simp add: nth_shiftr1)
   done
 
-(* see paper page 10, (1), (2), shiftr1_def is of the form of (1),
-  where f (ie bin_rest) takes normal arguments to normal results,
-  thus we get (2) from (1) *)
+text \<open>
+  see paper page 10, (1), (2), \<open>shiftr1_def\<close> is of the form of (1),
+  where \<open>f\<close> (ie \<open>bin_rest\<close>) takes normal arguments to normal results,
+  thus we get (2) from (1)
+\<close>
 
 lemma uint_shiftr1: "uint (shiftr1 w) = bin_rest (uint w)"
   apply (unfold shiftr1_def word_ubin.eq_norm bin_rest_trunc_i)
@@ -2774,7 +2777,7 @@ lemma bl_shiftl1: "to_bl (shiftl1 w) = tl (to_bl w) @ [False]"
   for w :: "'a::len word"
   by (simp add: shiftl1_bl word_rep_drop drop_Suc drop_Cons') (fast intro!: Suc_leI)
 
-(* Generalized version of bl_shiftl1. Maybe this one should replace it? *)
+\<comment> \<open>Generalized version of \<open>bl_shiftl1\<close>. Maybe this one should replace it?\<close>
 lemma bl_shiftl1': "to_bl (shiftl1 w) = tl (to_bl w @ [False])"
   by (simp add: shiftl1_bl word_rep_drop drop_Suc del: drop_append)
 
@@ -2788,7 +2791,7 @@ lemma bl_shiftr1: "to_bl (shiftr1 w) = False # butlast (to_bl w)"
   for w :: "'a::len word"
   by (simp add: shiftr1_bl word_rep_drop len_gt_0 [THEN Suc_leI])
 
-(* Generalized version of bl_shiftr1. Maybe this one should replace it? *)
+\<comment> \<open>Generalized version of \<open>bl_shiftr1\<close>. Maybe this one should replace it?\<close>
 lemma bl_shiftr1': "to_bl (shiftr1 w) = butlast (False # to_bl w)"
   apply (rule word_bl.Abs_inverse')
    apply (simp del: butlast.simps)
@@ -2909,7 +2912,7 @@ lemma shiftl_zero_size: "size x \<le> n \<Longrightarrow> x << n = 0"
   apply (clarsimp simp add: shiftl_bl word_size test_bit_of_bl nth_append)
   done
 
-(* note - the following results use 'a::len word < number_ring *)
+\<comment> \<open>note -- the following results use \<open>'a::len word < number_ring\<close>\<close>
 
 lemma shiftl1_2t: "shiftl1 w = 2 * w"
   for w :: "'a::len word"
@@ -3719,7 +3722,7 @@ lemma length_word_rsplit_even_size:
 
 lemmas length_word_rsplit_exp_size' = refl [THEN length_word_rsplit_exp_size]
 
-(* alternative proof of word_rcat_rsplit *)
+\<comment> \<open>alternative proof of \<open>word_rcat_rsplit\<close>\<close>
 lemmas tdle = times_div_less_eq_dividend
 lemmas dtle = xtr4 [OF tdle mult.commute]
 
@@ -4047,7 +4050,7 @@ lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]
 
 subsubsection \<open>"Word rotation commutes with bit-wise operations\<close>
 
-(* using locale to not pollute lemma namespace *)
+\<comment> \<open>using locale to not pollute lemma namespace\<close>
 locale word_rotate
 begin
 

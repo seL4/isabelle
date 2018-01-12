@@ -609,7 +609,7 @@ lemma nth_2p_bin: "bin_nth (2 ^ n) m = (m = n)"
     apply (auto simp: Bit_B0_2t [symmetric])
   done
 
-(*for use when simplifying with bin_nth_Bit*)
+\<comment> \<open>for use when simplifying with \<open>bin_nth_Bit\<close>\<close>
 lemma ex_eq_or: "(\<exists>m. n = Suc m \<and> (m = k \<or> P m)) \<longleftrightarrow> n = Suc k \<or> (\<exists>m. n = Suc m \<and> P m)"
   by auto
 

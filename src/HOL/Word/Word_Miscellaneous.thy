@@ -95,8 +95,7 @@ lemma if_same_eq: "(If p x y  = (If p u v)) = (if p then x = u else y = v)"
 lemma if_same_eq_not: "(If p x y = (\<not> If p u v)) = (if p then x = (\<not> u) else y = (\<not> v))"
   by auto
 
-(* note - if_Cons can cause blowup in the size, if p is complex,
-  so make a simproc *)
+\<comment> \<open>note -- \<open>if_Cons\<close> can cause blowup in the size, if \<open>p\<close> is complex, so make a simproc\<close>
 lemma if_Cons: "(if p then x # xs else y # ys) = If p x y # If p xs ys"
   by auto
 

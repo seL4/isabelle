@@ -147,15 +147,16 @@ lemmas norm_norm [simp] = norm_comps
 lemma fns5: "Rep \<circ> fa \<circ> Abs = fr \<Longrightarrow> fr \<circ> norm = fr \<and> norm \<circ> fr = fr"
   by (fold eq_norm') auto
 
-(* following give conditions for converses to td_fns1
-  the condition (norm \<circ> fr \<circ> norm = fr \<circ> norm) says that
-  fr takes normalised arguments to normalised results,
-  (norm \<circ> fr \<circ> norm = norm \<circ> fr) says that fr
-  takes norm-equivalent arguments to norm-equivalent results,
-  (fr \<circ> norm = fr) says that fr
-  takes norm-equivalent arguments to the same result, and
-  (norm \<circ> fr = fr) says that fr takes any argument to a normalised result
-  *)
+text \<open>
+  following give conditions for converses to \<open>td_fns1\<close>
+  \<^item> the condition \<open>norm \<circ> fr \<circ> norm = fr \<circ> norm\<close> says that
+    \<open>fr\<close> takes normalised arguments to normalised results
+  \<^item> \<open>norm \<circ> fr \<circ> norm = norm \<circ> fr\<close> says that \<open>fr\<close>
+    takes norm-equivalent arguments to norm-equivalent results
+  \<^item> \<open>fr \<circ> norm = fr\<close> says that \<open>fr\<close>
+    takes norm-equivalent arguments to the same result
+  \<^item> \<open>norm \<circ> fr = fr\<close> says that \<open>fr\<close> takes any argument to a normalised result
+\<close>
 lemma fns2: "Abs \<circ> fr \<circ> Rep = fa \<Longrightarrow> norm \<circ> fr \<circ> norm = fr \<circ> norm \<longleftrightarrow> Rep \<circ> fa = fr \<circ> Rep"
   apply (fold eq_norm')
   apply safe

@@ -839,7 +839,7 @@ lemmas th_if_simp2 = if_split [where P = "(=) l", THEN iffD1, THEN conjunct2, TH
 lemmas rsplit_aux_simp1s = rsplit_aux_simps [THEN th_if_simp1]
 
 lemmas rsplit_aux_simp2ls = rsplit_aux_simps [THEN th_if_simp2]
-(* these safe to [simp add] as require calculating m - n *)
+\<comment> \<open>these safe to \<open>[simp add]\<close> as require calculating \<open>m - n\<close>\<close>
 lemmas bin_rsplit_aux_simp2s [simp] = rsplit_aux_simp2ls [unfolded Let_def]
 lemmas rbscl = bin_rsplit_aux_simp2s (2)
 

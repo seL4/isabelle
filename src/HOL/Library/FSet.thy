@@ -1204,7 +1204,7 @@ lifting_forget fset.lifting
 
 subsection \<open>Advanced relator customization\<close>
 
-(* Set vs. sum relators: *)
+text \<open>Set vs. sum relators:\<close>
 
 lemma rel_set_rel_sum[simp]:
 "rel_set (rel_sum \<chi> \<phi>) A1 A2 \<longleftrightarrow>
