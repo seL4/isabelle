@@ -22,8 +22,9 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
-    StrSy | StringSy | Cartouche | Space | Comment | Comment_Cartouche | EOF
+    StrSy | StringSy | Cartouche | Space | Cancel | Comment | Comment_Cartouche | EOF
   datatype token = Token of token_kind * string * Position.range
+  val kind_of_token: token -> token_kind
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
   val is_proper: token -> bool
@@ -113,17 +114,17 @@ fun is_tid s =
 
 datatype token_kind =
   Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy | StrSy |
-  StringSy | Cartouche | Space | Comment | Comment_Cartouche | EOF;
+  StringSy | Cartouche | Space | Cancel | Comment | Comment_Cartouche | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
+fun kind_of_token (Token (k, _, _)) = k;
 fun str_of_token (Token (_, s, _)) = s;
 fun pos_of_token (Token (_, _, (pos, _))) = pos;
 
-fun is_proper (Token (Space, _, _)) = false
-  | is_proper (Token (Comment, _, _)) = false
-  | is_proper (Token (Comment_Cartouche, _, _)) = false
-  | is_proper _ = true;
+val is_proper =
+  kind_of_token #>
+  (fn Space => false | Cancel => false | Comment => false | Comment_Cartouche => false | _ => true);
 
 
 (* stopper *)
@@ -131,9 +132,7 @@ fun is_proper (Token (Space, _, _)) = false
 fun mk_eof pos = Token (EOF, "", (pos, Position.none));
 val eof = mk_eof Position.none;
 
-fun is_eof (Token (EOF, _, _)) = true
-  | is_eof _ = false;
-
+fun is_eof tok = kind_of_token tok = EOF;
 val stopper = Scan.stopper (K eof) is_eof;
 
 
@@ -191,9 +190,8 @@ fun matching_tokens (Token (Literal, x, _), Token (Literal, y, _)) = x = y
 
 (* valued_token *)
 
-fun valued_token (Token (Literal, _, _)) = false
-  | valued_token (Token (EOF, _, _)) = false
-  | valued_token _ = true;
+val valued_token =
+  kind_of_token #> (fn Literal => false | EOF => false | _ => true);
 
 
 (* predef_term *)
@@ -248,7 +246,7 @@ val explode_str = explode_literal scan_str_body;
 
 (** tokenize **)
 
-fun token_leq (Token (_, s1, _), Token (_, s2, _)) = s1 <= s2;
+val token_leq = op <= o apply2 str_of_token;
 fun token kind ss = Token (kind, Symbol_Pos.content ss, Symbol_Pos.range ss);
 
 fun tokenize lex xids syms =
@@ -270,6 +268,7 @@ fun tokenize lex xids syms =
 
     val scan_token =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
+      Symbol_Pos.scan_cancel_cartouche Symbol.cancel >> token Cancel ||
       Symbol_Pos.scan_comment err_prefix >> token Comment ||
       Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment_Cartouche ||
       Scan.max token_leq scan_lit scan_val ||

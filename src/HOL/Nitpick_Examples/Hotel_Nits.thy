@@ -44,7 +44,7 @@ enter_room:
 "\<lbrakk>s \<in> reach; (k,k') \<in> cards s g; roomk s r \<in> {k,k'}\<rbrakk> \<Longrightarrow>
  s\<lparr>isin := (isin s)(r := isin s r \<union> {g}),
    roomk := (roomk s)(r := k'),
-   safe := (safe s)(r := owns s r = Some g \<and> isin s r = {} \<comment> \<open>\<open>\<and> k' = currk s r\<close>\<close>
+   safe := (safe s)(r := owns s r = Some g \<and> isin s r = {} \<^cancel>\<open>\<and> k' = currk s r\<close>
                          \<or> safe s r)\<rparr> \<in> reach" |
 exit_room:
 "\<lbrakk>s \<in> reach; g \<in> isin s r\<rbrakk> \<Longrightarrow> s\<lparr>isin := (isin s)(r := isin s r - {g})\<rparr> \<in> reach"

@@ -388,6 +388,7 @@
 \<^action>              code: 0x00261b  group: icon  argument: cartouche  font: IsabelleText
 \<^assert>
 \<^binding>             argument: cartouche
+\<^cancel>              argument: cartouche
 \<^class>               argument: cartouche
 \<^class_syntax>        argument: cartouche
 \<^command_keyword>     argument: cartouche

@@ -116,9 +116,9 @@ object Latex
         }
     }
 
+    val Line_Error = """^l\.\d+ (.*)$""".r
     val More_Error =
       List(
-        """l\.\d+""",
         "<argument>",
         "<template>",
         "<recently read>",
@@ -136,18 +136,26 @@ object Latex
         "<everyeof>",
         "<write>").mkString("^(?:", "|", ") (.*)$").r
 
+    def error_suffix1(lines: List[String]): Option[String] =
+    {
+      val lines1 = lines.take(20).takeWhile({ case File_Line_Error(_) => false case _ => true })
+      lines1.zipWithIndex.collectFirst({
+        case (Line_Error(msg), i) => cat_lines(lines1.take(i) ::: List(msg)) })
+    }
+    def error_suffix2(lines: List[String]): Option[String] =
+      lines match {
+        case More_Error(msg) :: _ => Some(msg)
+        case _ => None
+      }
+
     @tailrec def filter(lines: List[String], result: List[(String, Position.T)])
       : List[(String, Position.T)] =
     {
       lines match {
         case File_Line_Error((file, line, msg1)) :: rest1 =>
           val pos = tex_file_position(file, line)
-          rest1 match {
-            case More_Error(msg2) :: rest2 =>
-              filter(rest2, (Exn.cat_message(msg1, msg2), pos) :: result)
-            case _ =>
-              filter(rest1, (msg1, pos) :: result)
-          }
+          val msg2 = error_suffix1(rest1) orElse error_suffix2(rest1) getOrElse ""
+          filter(rest1, (Exn.cat_message(msg1, msg2), pos) :: result)
         case _ :: rest => filter(rest, result)
         case Nil => result.reverse
       }
