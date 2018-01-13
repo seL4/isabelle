@@ -109,7 +109,8 @@ object Latex
             val path = File.standard_path(file)
             if (Path.is_wellformed(path)) {
               val file = (dir + Path.explode(path)).canonical
-              if (file.is_file) Some((file, line, message)) else None
+              val msg = Library.perhaps_unprefix("LaTeX Error: ", message)
+              if (file.is_file) Some((file, line, msg)) else None
             }
             else None
           case _ => None
@@ -136,11 +137,17 @@ object Latex
         "<everyeof>",
         "<write>").mkString("^(?:", "|", ") (.*)$").r
 
+    val error_ignore =
+      Set(
+        "See the LaTeX manual or LaTeX Companion for explanation.",
+        "Type  H <return>  for immediate help.")
+
     def error_suffix1(lines: List[String]): Option[String] =
     {
       val lines1 = lines.take(20).takeWhile({ case File_Line_Error(_) => false case _ => true })
       lines1.zipWithIndex.collectFirst({
-        case (Line_Error(msg), i) => cat_lines(lines1.take(i) ::: List(msg)) })
+        case (Line_Error(msg), i) =>
+          cat_lines(lines1.take(i).filterNot(error_ignore) ::: List(msg)) })
     }
     def error_suffix2(lines: List[String]): Option[String] =
       lines match {
