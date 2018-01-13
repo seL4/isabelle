@@ -442,7 +442,7 @@ sorry
 primrec insort\<^sub>1 where
 "insort\<^sub>1 \<Lambda> x = N x 1 \<Lambda> \<Lambda>" |
 "insort\<^sub>1 (N y k t u) x =
- (* (split \<circ> skew) *) (N y k (if x < y then insort\<^sub>1 t x else t)
+ \<^cancel>\<open>(split \<circ> skew)\<close> (N y k (if x < y then insort\<^sub>1 t x else t)
                              (if x > y then insort\<^sub>1 u x else u))"
 
 theorem wf_insort\<^sub>1: "wf t \<Longrightarrow> wf (insort\<^sub>1 t x)"

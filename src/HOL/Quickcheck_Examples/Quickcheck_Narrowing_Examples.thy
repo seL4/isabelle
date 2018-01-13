@@ -177,7 +177,7 @@ definition
 fun l_bal where
 "l_bal(n, MKT ln ll lr h, r) =
  (if ht ll < ht lr
-  then case lr of ET \<Rightarrow> ET (* impossible *)
+  then case lr of ET \<Rightarrow> ET \<comment> \<open>impossible\<close>
                 | MKT lrn lrr lrl lrh \<Rightarrow>
                   mkt lrn (mkt ln ll lrl) (mkt n lrr r)
   else mkt ln ll (mkt n lr r))"
@@ -185,7 +185,7 @@ fun l_bal where
 fun r_bal where
 "r_bal(n, l, MKT rn rl rr h) =
  (if ht rl > ht rr
-  then case rl of ET \<Rightarrow> ET (* impossible *)
+  then case rl of ET \<Rightarrow> ET \<comment> \<open>impossible\<close>
                 | MKT rln rll rlr h \<Rightarrow> mkt rln (mkt n l rll) (mkt rn rlr rr)
   else mkt rn (mkt n l rl) rr)"
 

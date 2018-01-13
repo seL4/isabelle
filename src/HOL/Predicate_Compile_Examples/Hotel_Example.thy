@@ -52,7 +52,7 @@ where
   "roomk [] r = initk r"
 | "roomk (e#s) r = (let k = roomk s r in
     case e of Check_in g r' c \<Rightarrow> k
-            | Enter g r' (x,y) \<Rightarrow> if r' = r (*& x = k*) then y else k
+            | Enter g r' (x,y) \<Rightarrow> if r' = r \<^cancel>\<open>\<and> x = k\<close> then y else k
             | Exit g r \<Rightarrow> k)"
 
 primrec isin :: "event list \<Rightarrow> room \<Rightarrow> guest set"
