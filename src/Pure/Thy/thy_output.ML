@@ -124,7 +124,7 @@ fun output_symbols_operator ctxt {antiq} (operator, syms) =
         val source = Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body);
       in
         output_text ctxt {markdown = false} source
-        |> Latex.enclose_body "%\n\\isamarkupcmt{" "}"
+        |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
       end);
 
 in
