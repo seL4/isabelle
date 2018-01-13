@@ -191,7 +191,7 @@ fun isabelle_document {verbose} format name tags dir =
   let
     val script =
       "isabelle document -d " ^ File.bash_path dir ^ " -o " ^ Bash.string format ^
-        " -n " ^ Bash.string name ^ " -t " ^ Bash.string tags;
+        " -n " ^ Bash.string name ^ (if tags = "" then "" else " -t " ^ Bash.string tags);
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
     val _ = if verbose then writeln script else ();
     val {out, err, rc, ...} = Bash.process script;
