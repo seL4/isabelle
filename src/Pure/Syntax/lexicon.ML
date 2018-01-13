@@ -22,7 +22,7 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
-    StrSy | StringSy | Cartouche | Space | Comment | Comment_Cartouche | EOF
+    StrSy | StringSy | Cartouche | Space | Cancel | Comment | Comment_Cartouche | EOF
   datatype token = Token of token_kind * string * Position.range
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
@@ -114,7 +114,7 @@ fun is_tid s =
 
 datatype token_kind =
   Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy | StrSy |
-  StringSy | Cartouche | Space | Comment | Comment_Cartouche | EOF;
+  StringSy | Cartouche | Space | Cancel | Comment | Comment_Cartouche | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
@@ -124,7 +124,7 @@ fun pos_of_token (Token (_, _, (pos, _))) = pos;
 
 val is_proper =
   kind_of_token #>
-  (fn Space => false | Comment => false | Comment_Cartouche => false | _ => true);
+  (fn Space => false | Cancel => false | Comment => false | Comment_Cartouche => false | _ => true);
 
 
 (* stopper *)
@@ -268,6 +268,7 @@ fun tokenize lex xids syms =
 
     val scan_token =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
+      Symbol_Pos.scan_cancel_cartouche Symbol.cancel >> token Cancel ||
       Symbol_Pos.scan_comment err_prefix >> token Comment ||
       Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment_Cartouche ||
       Scan.max token_leq scan_lit scan_val ||
