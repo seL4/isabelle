@@ -359,6 +359,7 @@
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
 \<comment>              code: 0x002015  group: document  argument: space_cartouche  font: IsabelleText
+\<^cancel>              code: 0x002326  group: document  argument: cartouche  font: IsabelleText
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<^here>                code: 0x002302  font: IsabelleText
@@ -388,7 +389,6 @@
 \<^action>              code: 0x00261b  group: icon  argument: cartouche  font: IsabelleText
 \<^assert>
 \<^binding>             argument: cartouche
-\<^cancel>              argument: cartouche
 \<^class>               argument: cartouche
 \<^class_syntax>        argument: cartouche
 \<^command_keyword>     argument: cartouche

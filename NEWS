@@ -118,9 +118,8 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
-* \<^cancel>\<open>text\<close> marks unused text within inner syntax: it is ignored
-within the formal language, but shown in the document with strike-out
-style.
+* \<^cancel>\<open>text\<close> cancels unused text within inner syntax: it is ignored within
+the formal language, but shown in the document with strike-out style.
 
 * Embedded languages such as inner syntax and ML may contain formal
 comments of the form "\<comment> \<open>text\<close>". As in marginal comments of outer
