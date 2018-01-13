@@ -145,6 +145,10 @@ object Latex
           rest1 match {
             case More_Error(msg2) :: rest2 =>
               filter(rest2, (Exn.cat_message(msg1, msg2), pos) :: result)
+            case msg2 :: rest2
+            if msg1.startsWith("Undefined control sequence") &&
+                msg2.startsWith("\\") && msg2.containsSlice("->") =>
+              filter(rest2, (Exn.cat_message(msg1, msg2), pos) :: result)
             case _ =>
               filter(rest1, (msg1, pos) :: result)
           }
