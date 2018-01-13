@@ -41,9 +41,6 @@
 
 \newenvironment{isaantiq}{{\isacharat\isacharbraceleft}}{{\isacharbraceright}}
 
-\newcommand{\isamarkupcancel}[1]{\xout{#1}}  %requires \usepackage[normalem]{ulem}
-%OR: \newcommand{\isamarkupcancel}[1]{{\color{gray}{\isacharverbatimopen}#1{\isacharverbatimclose}}}  %requires \usepackage{xcolor}
-
 \newdimen\isa@parindent\newdimen\isa@parskip
 
 \newenvironment{isabellebody}{%
@@ -237,6 +234,12 @@
 \def\isastyleminortt{\tt}%
 \def\isastylescript{\footnotesize\sl}%
 }
+
+
+% cancel text
+
+\usepackage[normalem]{ulem}
+\newcommand{\isamarkupcancel}[1]{\xout{#1}}
 
 
 % tagged regions
