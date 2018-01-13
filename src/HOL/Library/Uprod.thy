@@ -209,7 +209,7 @@ proof(cases "finite (UNIV :: 'a set)")
   also have "\<dots> = sum Suc {0..<?A}"
     by (subst card_SigmaI) simp_all
   also have "\<dots> = sum of_nat {Suc 0..?A}"
-    using sum.atLeast_lessThan_reindex [symmetric, of Suc 0 ?A id]
+    using sum.atLeastLessThan_reindex [symmetric, of Suc 0 ?A id]
     by (simp del: sum_op_ivl_Suc add: atLeastLessThanSuc_atLeastAtMost)
   also have "\<dots> = ?A * (?A + 1) div 2"
     using gauss_sum_from_Suc_0 [of ?A, where ?'a = nat] by simp

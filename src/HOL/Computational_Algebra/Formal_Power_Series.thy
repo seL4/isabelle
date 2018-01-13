@@ -4238,7 +4238,7 @@ proof -
           apply (simp add: pochhammer_minus field_simps)
           using \<open>k \<le> n\<close> apply (simp add: fact_split [of k n])
           apply (simp add: pochhammer_prod)
-          using prod.atLeast_lessThan_shift_bounds [where ?'a = 'a, of "\<lambda>i. 1 + of_nat i" 0 "n - k" k]
+          using prod.atLeastLessThan_shift_bounds [where ?'a = 'a, of "\<lambda>i. 1 + of_nat i" 0 "n - k" k]
           apply (auto simp add: of_nat_diff field_simps)
           done
         have th20: "?m1 n * ?p b n = prod (\<lambda>i. b - of_nat i) {0..m}"
@@ -4247,7 +4247,7 @@ proof -
           done
         have th21:"pochhammer (b - of_nat n + 1) k = prod (\<lambda>i. b - of_nat i) {n - k .. n - 1}"
           using kn apply (simp add: pochhammer_prod_rev m h prod.atLeast_Suc_atMost_Suc_shift)
-          using prod.atLeast_atMost_shift_0 [of "m - h" m, where ?'a = 'a]
+          using prod.atLeastAtMost_shift_0 [of "m - h" m, where ?'a = 'a]
           apply (auto simp add: of_nat_diff field_simps)
           done
         have "?m1 n * ?p b n =

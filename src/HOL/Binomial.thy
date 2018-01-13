@@ -322,7 +322,7 @@ lemma sum_choose_diagonal:
   shows "(\<Sum>k=0..m. (n - k) choose (m - k)) = Suc n choose m"
 proof -
   have "(\<Sum>k=0..m. (n-k) choose (m - k)) = (\<Sum>k=0..m. (n - m + k) choose k)"
-    using sum.atLeast_atMost_rev [of "\<lambda>k. (n - k) choose (m - k)" 0 m] assms
+    using sum.atLeastAtMost_rev [of "\<lambda>k. (n - k) choose (m - k)" 0 m] assms
       by simp
   also have "\<dots> = Suc (n - m + m) choose m"
     by (rule sum_choose_lower)
@@ -940,7 +940,7 @@ proof -
   also have "\<dots> = (\<Sum>k = 0..m. (2 * m + 1 choose (m - k)))"
     by (intro sum.cong[OF refl], subst binomial_symmetric) simp_all
   also have "\<dots> = (\<Sum>k = 0..m. (2 * m + 1 choose k))"
-    using sum.atLeast_atMost_rev [of "\<lambda>k. 2 * m + 1 choose (m - k)" 0 m]
+    using sum.atLeastAtMost_rev [of "\<lambda>k. 2 * m + 1 choose (m - k)" 0 m]
     by simp
   also have "\<dots> + \<dots> = 2 * \<dots>"
     by simp

@@ -26,7 +26,7 @@ lemma fact_prod_Suc: "fact n = of_nat (prod Suc {0..<n})"
       atLeastLessThanSuc_atLeastAtMost)
 
 lemma fact_prod_rev: "fact n = of_nat (\<Prod>i = 0..<n. n - i)"
-  using prod.atLeast_atMost_rev [of "\<lambda>i. i" 1 n]
+  using prod.atLeastAtMost_rev [of "\<lambda>i. i" 1 n]
   by (cases n)
     (simp_all add: fact_prod_Suc prod.atLeast_Suc_atMost_Suc_shift
       atLeastLessThanSuc_atLeastAtMost)
@@ -191,7 +191,7 @@ definition pochhammer :: "'a \<Rightarrow> nat \<Rightarrow> 'a"
   where pochhammer_prod: "pochhammer a n = prod (\<lambda>i. a + of_nat i) {0..<n}"
 
 lemma pochhammer_prod_rev: "pochhammer a n = prod (\<lambda>i. a + of_nat (n - i)) {1..n}"
-  using prod.atLeast_lessThan_rev_at_least_Suc_atMost [of "\<lambda>i. a + of_nat i" 0 n]
+  using prod.atLeastLessThan_rev_at_least_Suc_atMost [of "\<lambda>i. a + of_nat i" 0 n]
   by (simp add: pochhammer_prod)
 
 lemma pochhammer_Suc_prod: "pochhammer a (Suc n) = prod (\<lambda>i. a + of_nat i) {0..n}"

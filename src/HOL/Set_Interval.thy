@@ -218,7 +218,7 @@ alone.\<close>
 lemma greaterThanLessThan_eq: "{ a <..< b} = { a <..} \<inter> {..< b }"
   by auto
 
-lemma (in order) atLeast_lessThan_eq_atLeast_atMost_diff:
+lemma (in order) atLeastLessThan_eq_atLeastAtMost_diff:
   "{a..<b} = {a..b} - {b}"
   by (auto simp add: atLeastLessThan_def atLeastAtMost_def)
 
@@ -869,7 +869,7 @@ subsubsection \<open>Image\<close>
 context linordered_semidom
 begin
 
-lemma image_add_atLeast_atMost [simp]:
+lemma image_add_atLeastAtMost [simp]:
   "plus k ` {i..j} = {i + k..j + k}" (is "?A = ?B")
 proof
   show "?A \<subseteq> ?B"
@@ -899,28 +899,28 @@ next
   qed
 qed
 
-lemma image_add_atLeast_atMost' [simp]:
+lemma image_add_atLeastAtMost' [simp]:
   "(\<lambda>n. n + k) ` {i..j} = {i + k..j + k}"
   by (simp add: add.commute [of _ k])
 
-lemma image_add_atLeast_lessThan [simp]:
+lemma image_add_atLeastLessThan [simp]:
   "plus k ` {i..<j} = {i + k..<j + k}"
-  by (simp add: image_set_diff atLeast_lessThan_eq_atLeast_atMost_diff ac_simps)
+  by (simp add: image_set_diff atLeastLessThan_eq_atLeastAtMost_diff ac_simps)
 
-lemma image_add_atLeast_lessThan' [simp]:
+lemma image_add_atLeastLessThan' [simp]:
   "(\<lambda>n. n + k) ` {i..<j} = {i + k..<j + k}"
   by (simp add: add.commute [of _ k])
 
 end
 
-lemma image_Suc_atLeast_atMost [simp]:
+lemma image_Suc_atLeastAtMost [simp]:
   "Suc ` {i..j} = {Suc i..Suc j}"
-  using image_add_atLeast_atMost [of 1 i j]
+  using image_add_atLeastAtMost [of 1 i j]
     by (simp only: plus_1_eq_Suc) simp
 
-lemma image_Suc_atLeast_lessThan [simp]:
+lemma image_Suc_atLeastLessThan [simp]:
   "Suc ` {i..<j} = {Suc i..<Suc j}"
-  using image_add_atLeast_lessThan [of 1 i j]
+  using image_add_atLeastLessThan [of 1 i j]
     by (simp only: plus_1_eq_Suc) simp
 
 corollary image_Suc_atMost:
@@ -1009,11 +1009,11 @@ proof safe
   qed
 qed auto
 
-lemma image_int_atLeast_lessThan:
+lemma image_int_atLeastLessThan:
   "int ` {a..<b} = {int a..<int b}"
   by (auto intro!: image_eqI [where x = "nat x" for x])
 
-lemma image_int_atLeast_atMost:
+lemma image_int_atLeastAtMost:
   "int ` {a..b} = {int a..int b}"
   by (auto intro!: image_eqI [where x = "nat x" for x])
 
@@ -1568,7 +1568,7 @@ end
 context comm_monoid_set
 begin
 
-lemma atLeast_lessThan_reindex:
+lemma atLeastLessThan_reindex:
   "F g {h m..<h n} = F (g \<circ> h) {m..<n}"
   if "bij_betw h {m..<n} {h m..<h n}" for m n ::nat
 proof -
@@ -1578,7 +1578,7 @@ proof -
     using reindex [of h "{m..<n}" g] by simp
 qed
 
-lemma atLeast_atMost_reindex:
+lemma atLeastAtMost_reindex:
   "F g {h m..h n} = F (g \<circ> h) {m..n}"
   if "bij_betw h {m..n} {h m..h n}" for m n ::nat
 proof -
@@ -1588,37 +1588,37 @@ proof -
     using reindex [of h "{m..n}" g] by simp
 qed
 
-lemma atLeast_lessThan_shift_bounds:
+lemma atLeastLessThan_shift_bounds:
   "F g {m + k..<n + k} = F (g \<circ> plus k) {m..<n}"
   for m n k :: nat
-  using atLeast_lessThan_reindex [of "plus k" m n g]
+  using atLeastLessThan_reindex [of "plus k" m n g]
   by (simp add: ac_simps)
 
-lemma atLeast_atMost_shift_bounds:
+lemma atLeastAtMost_shift_bounds:
   "F g {m + k..n + k} = F (g \<circ> plus k) {m..n}"
   for m n k :: nat
-  using atLeast_atMost_reindex [of "plus k" m n g]
+  using atLeastAtMost_reindex [of "plus k" m n g]
   by (simp add: ac_simps)
 
 lemma atLeast_Suc_lessThan_Suc_shift:
   "F g {Suc m..<Suc n} = F (g \<circ> Suc) {m..<n}"
-  using atLeast_lessThan_shift_bounds [of _ _ 1]
+  using atLeastLessThan_shift_bounds [of _ _ 1]
   by (simp add: plus_1_eq_Suc)
 
 lemma atLeast_Suc_atMost_Suc_shift:
   "F g {Suc m..Suc n} = F (g \<circ> Suc) {m..n}"
-  using atLeast_atMost_shift_bounds [of _ _ 1]
+  using atLeastAtMost_shift_bounds [of _ _ 1]
   by (simp add: plus_1_eq_Suc)
 
 lemma atLeast_int_lessThan_int_shift:
   "F g {int m..<int n} = F (g \<circ> int) {m..<n}"
-  by (rule atLeast_lessThan_reindex)
-    (simp add: image_int_atLeast_lessThan)
+  by (rule atLeastLessThan_reindex)
+    (simp add: image_int_atLeastLessThan)
 
 lemma atLeast_int_atMost_int_shift:
   "F g {int m..int n} = F (g \<circ> int) {m..n}"
-  by (rule atLeast_atMost_reindex)
-    (simp add: image_int_atLeast_atMost)
+  by (rule atLeastAtMost_reindex)
+    (simp add: image_int_atLeastAtMost)
 
 lemma atLeast0_lessThan_Suc:
   "F g {0..<Suc n} = F g {0..<n} \<^bold>* g n"
@@ -1641,35 +1641,35 @@ lemma ivl_cong:
     \<Longrightarrow> F g {a..<b} = F h {c..<d}"
   by (rule cong) simp_all
 
-lemma atLeast_lessThan_shift_0:
+lemma atLeastLessThan_shift_0:
   fixes m n p :: nat
   shows "F g {m..<n} = F (g \<circ> plus m) {0..<n - m}"
-  using atLeast_lessThan_shift_bounds [of g 0 m "n - m"]
+  using atLeastLessThan_shift_bounds [of g 0 m "n - m"]
   by (cases "m \<le> n") simp_all
 
-lemma atLeast_atMost_shift_0:
+lemma atLeastAtMost_shift_0:
   fixes m n p :: nat
   assumes "m \<le> n"
   shows "F g {m..n} = F (g \<circ> plus m) {0..n - m}"
-  using assms atLeast_atMost_shift_bounds [of g 0 m "n - m"] by simp
+  using assms atLeastAtMost_shift_bounds [of g 0 m "n - m"] by simp
 
-lemma atLeast_lessThan_concat:
+lemma atLeastLessThan_concat:
   fixes m n p :: nat
   shows "m \<le> n \<Longrightarrow> n \<le> p \<Longrightarrow> F g {m..<n} \<^bold>* F g {n..<p} = F g {m..<p}"
   by (simp add: union_disjoint [symmetric] ivl_disj_un)
 
-lemma atLeast_lessThan_rev:
+lemma atLeastLessThan_rev:
   "F g {n..<m} = F (\<lambda>i. g (m + n - Suc i)) {n..<m}"
   by (rule reindex_bij_witness [where i="\<lambda>i. m + n - Suc i" and j="\<lambda>i. m + n - Suc i"], auto)
 
-lemma atLeast_atMost_rev:
+lemma atLeastAtMost_rev:
   fixes n m :: nat
   shows "F g {n..m} = F (\<lambda>i. g (m + n - i)) {n..m}"
   by (rule reindex_bij_witness [where i="\<lambda>i. m + n - i" and j="\<lambda>i. m + n - i"]) auto
 
-lemma atLeast_lessThan_rev_at_least_Suc_atMost:
+lemma atLeastLessThan_rev_at_least_Suc_atMost:
   "F g {n..<m} = F (\<lambda>i. g (m + n - i)) {Suc n..m}"
-  unfolding atLeast_lessThan_rev [of g n m]
+  unfolding atLeastLessThan_rev [of g n m]
   by (cases m) (simp_all add: atLeast_Suc_atMost_Suc_shift atLeastLessThanSuc_atLeastAtMost)
 
 end
@@ -1792,7 +1792,7 @@ proof-
     atLeastSucAtMost_greaterThanAtMost)
 qed
 
-lemmas sum_add_nat_ivl = sum.atLeast_lessThan_concat
+lemmas sum_add_nat_ivl = sum.atLeastLessThan_concat
 
 lemma sum_diff_nat_ivl:
 fixes f :: "nat \<Rightarrow> 'a::ab_group_add"

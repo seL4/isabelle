@@ -42,7 +42,7 @@ proof  -
     have "(\<Sum>j<k + i. f j) = (\<Sum>j=i..<k + i. f j) + (\<Sum>j=0..<i. f j)"
       by (subst sum.union_disjoint[symmetric]) (auto intro!: sum.cong)
     also have "(\<Sum>j=i..<k + i. f j) = (\<Sum>j\<in>(\<lambda>n. n + i)`{0..<k}. f j)"
-      unfolding image_add_atLeast_lessThan by simp
+      unfolding image_add_atLeastLessThan by simp
     finally have "(\<Sum>j<k + i. f j) = (\<Sum>n<k. f (n + i)) + (\<Sum>j<i. f j)"
       by (auto simp: inj_on_def atLeast0LessThan sum.reindex) }
   ultimately have "(\<lambda>k. (\<Sum>n<k + i. f n)) \<longlonglongrightarrow> l + (\<Sum>j<i. f j)"
