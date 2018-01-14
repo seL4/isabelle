@@ -223,6 +223,15 @@ object Library
   def take_prefix[A](pred: A => Boolean, xs: List[A]): (List[A], List[A]) =
     (xs.takeWhile(pred), xs.dropWhile(pred))
 
+  def take_suffix[A](pred: A => Boolean, xs: List[A]): (List[A], List[A]) =
+  {
+    val rev_xs = xs.reverse
+    (rev_xs.dropWhile(pred).reverse, rev_xs.takeWhile(pred).reverse)
+  }
+
+  def trim[A](pred: A => Boolean, xs: List[A]): List[A] =
+    take_suffix(pred, take_prefix(pred, xs)._2)._1
+
   def member[A, B](xs: List[A])(x: B): Boolean = xs.contains(x)
   def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs
   def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
