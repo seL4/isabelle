@@ -360,6 +360,7 @@
 \<newline>              code: 0x0023ce
 \<comment>              code: 0x002015  group: document  argument: space_cartouche  font: IsabelleText
 \<^cancel>              code: 0x002326  group: document  argument: cartouche  font: IsabelleText
+\<^latex>                               group: document  argument: cartouche
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<^here>                code: 0x002302  font: IsabelleText
