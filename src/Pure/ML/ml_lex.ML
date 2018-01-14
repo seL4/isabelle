@@ -291,12 +291,11 @@ local
 
 fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss));
 
-val scan_ml =
- (scan_char >> token Char ||
+val scan_sml =
+  scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
   Symbol_Pos.scan_comment err_prefix >> token (Comment NONE) ||
-  Comment.scan >> (fn (kind, ss) => token (Comment (SOME kind)) ss) ||
   Scan.max token_leq
    (Scan.literal lexicon >> token Keyword)
    (scan_word >> token Word ||
@@ -304,15 +303,14 @@ val scan_ml =
     scan_int >> token Int ||
     scan_long_ident >> token Long_Ident ||
     scan_ident >> token Ident ||
-    scan_type_var >> token Type_Var));
-
-val scan_sml = scan_ml >> Antiquote.Text;
+    scan_type_var >> token Type_Var);
 
 val scan_ml_antiq =
+  Comment.scan >> (fn (kind, ss) => Antiquote.Text (token (Comment (SOME kind)) ss)) ||
   Antiquote.scan_control >> Antiquote.Control ||
   Antiquote.scan_antiq >> Antiquote.Antiq ||
   scan_rat_antiq >> Antiquote.Antiq ||
-  scan_ml >> Antiquote.Text;
+  scan_sml >> Antiquote.Text;
 
 fun recover msg =
  (recover_char ||
@@ -336,7 +334,7 @@ fun gen_read SML pos text =
           val pos2 = Position.advance Symbol.space pos1;
         in [Antiquote.Text (Token (Position.range (pos1, pos2), (Space, Symbol.space)))] end;
 
-    val scan = if SML then scan_sml else scan_ml_antiq;
+    val scan = if SML then scan_sml >> Antiquote.Text else scan_ml_antiq;
     fun check (Antiquote.Text tok) = (check_content_of tok; if SML then () else warn tok)
       | check _ = ();
     val input =
@@ -355,7 +353,7 @@ in
 
 fun source src =
   Symbol_Pos.source (Position.line 1) src
-  |> Source.source Symbol_Pos.stopper (Scan.recover (Scan.bulk (!!! "bad input" scan_ml)) recover);
+  |> Source.source Symbol_Pos.stopper (Scan.recover (Scan.bulk (!!! "bad input" scan_sml)) recover);
 
 val tokenize = Symbol.explode #> Source.of_list #> source #> Source.exhaust;
 
