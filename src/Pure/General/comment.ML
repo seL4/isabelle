@@ -7,9 +7,9 @@ Formal comments.
 signature COMMENT =
 sig
   datatype kind = Comment | Cancel
-  val scan_comment: Symbol_Pos.T list -> (kind * Symbol_Pos.T list) * Symbol_Pos.T list
-  val scan_cancel: Symbol_Pos.T list -> (kind * Symbol_Pos.T list) * Symbol_Pos.T list
-  val scan: Symbol_Pos.T list -> (kind * Symbol_Pos.T list) * Symbol_Pos.T list
+  val scan_comment: (kind * Symbol_Pos.T list) scanner
+  val scan_cancel: (kind * Symbol_Pos.T list) scanner
+  val scan: (kind * Symbol_Pos.T list) scanner
   val read_body: Symbol_Pos.T list -> (kind option * Symbol_Pos.T list) list option
 end;
 

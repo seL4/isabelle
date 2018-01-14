@@ -13,9 +13,9 @@ sig
   val range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: 'a antiquote list -> Position.report list
-  val scan_control: Symbol_Pos.T list -> control * Symbol_Pos.T list
-  val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
-  val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
+  val scan_control: control scanner
+  val scan_antiq: antiq scanner
+  val scan_antiquote: text_antiquote scanner
   val parse: Position.T -> Symbol_Pos.T list -> text_antiquote list
   val read: Input.source -> text_antiquote list
 end;

@@ -7,11 +7,8 @@ Symbols with explicit position information.
 signature SYMBOL_POS =
 sig
   type T = Symbol.symbol * Position.T
+  type 'a scanner = T list -> 'a * T list
   val symbol: T -> Symbol.symbol
-  val $$ : Symbol.symbol -> T list -> T * T list
-  val ~$$ : Symbol.symbol -> T list -> T * T list
-  val $$$ : Symbol.symbol -> T list -> T list * T list
-  val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
   val range: T list -> Position.range
   val split_lines: T list -> T list list
@@ -19,24 +16,28 @@ sig
   val trim_lines: T list -> T list
   val is_eof: T -> bool
   val stopper: T Scan.stopper
-  val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
-  val scan_pos: T list -> Position.T * T list
-  val scan_string_q: string -> T list -> (Position.T * (T list * Position.T)) * T list
-  val scan_string_qq: string -> T list -> (Position.T * (T list * Position.T)) * T list
-  val scan_string_bq: string -> T list -> (Position.T * (T list * Position.T)) * T list
-  val recover_string_q: T list -> T list * T list
-  val recover_string_qq: T list -> T list * T list
-  val recover_string_bq: T list -> T list * T list
+  val !!! : Scan.message -> 'a scanner -> 'a scanner
+  val $$ : Symbol.symbol -> T scanner
+  val ~$$ : Symbol.symbol -> T scanner
+  val $$$ : Symbol.symbol -> T list scanner
+  val ~$$$ : Symbol.symbol -> T list scanner
+  val scan_pos: Position.T scanner
+  val scan_string_q: string -> (Position.T * (T list * Position.T)) scanner
+  val scan_string_qq: string -> (Position.T * (T list * Position.T)) scanner
+  val scan_string_bq: string -> (Position.T * (T list * Position.T)) scanner
+  val recover_string_q: T list scanner
+  val recover_string_qq: T list scanner
+  val recover_string_bq: T list scanner
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
   val cartouche_content: T list -> T list
-  val scan_cartouche: string -> T list -> T list * T list
-  val scan_cartouche_content: string -> T list -> T list * T list
-  val recover_cartouche: T list -> T list * T list
-  val scan_comment: string -> T list -> T list * T list
-  val scan_comment_body: string -> T list -> T list * T list
-  val recover_comment: T list -> T list * T list
+  val scan_cartouche: string -> T list scanner
+  val scan_cartouche_content: string -> T list scanner
+  val recover_cartouche: T list scanner
+  val scan_comment: string -> T list scanner
+  val scan_comment_body: string -> T list scanner
+  val recover_comment: T list scanner
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   type text = string
@@ -44,10 +45,10 @@ sig
   val implode_range: Position.range -> T list -> text * Position.range
   val explode: text * Position.T -> T list
   val explode0: string -> T list
-  val scan_ident: T list -> T list * T list
+  val scan_ident: T list scanner
   val is_identifier: string -> bool
-  val scan_nat: T list -> T list * T list
-  val scan_float: T list -> T list * T list
+  val scan_nat: T list scanner
+  val scan_float: T list scanner
 end;
 
 structure Symbol_Pos: SYMBOL_POS =
@@ -56,6 +57,7 @@ struct
 (* type T *)
 
 type T = Symbol.symbol * Position.T;
+type 'a scanner = T list -> 'a * T list;
 
 fun symbol ((s, _): T) = s;
 
@@ -97,7 +99,7 @@ val stopper =
 
 (* basic scanners *)
 
-fun !!! text scan =
+fun !!! text (scan: 'a scanner) =
   let
     fun get_pos [] = " (end-of-input)"
       | get_pos ((_, pos) :: _) = Position.here pos;
@@ -317,3 +319,5 @@ struct
   val $$$ = Symbol_Pos.$$$;
   val ~$$$ = Symbol_Pos.~$$$;
 end;
+
+type 'a scanner = 'a Symbol_Pos.scanner;

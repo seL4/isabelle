@@ -12,13 +12,13 @@ sig
     val free: string -> term
     val var: indexname -> term
   end
-  val scan_id: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_longid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_tid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_hex: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_bin: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_var: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_tvar: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_id: Symbol_Pos.T list scanner
+  val scan_longid: Symbol_Pos.T list scanner
+  val scan_tid: Symbol_Pos.T list scanner
+  val scan_hex: Symbol_Pos.T list scanner
+  val scan_bin: Symbol_Pos.T list scanner
+  val scan_var: Symbol_Pos.T list scanner
+  val scan_tvar: Symbol_Pos.T list scanner
   val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
