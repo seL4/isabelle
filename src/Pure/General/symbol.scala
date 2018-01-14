@@ -132,6 +132,9 @@ object Symbol
 
   def length(text: CharSequence): Int = iterator(text).length
 
+  def trim_blanks(text: CharSequence): String =
+    Library.trim(is_blank(_), explode(text)).mkString
+
 
   /* decoding offsets */
 
