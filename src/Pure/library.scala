@@ -148,12 +148,6 @@ object Library
   def isolate_substring(s: String): String = new String(s.toCharArray)
 
 
-  /* cartouche */
-
-  def cartouche(s: String): String = Symbol.open + s + Symbol.close
-  def cartouche_decoded(s: String): String = Symbol.open_decoded + s + Symbol.close_decoded
-
-
   /* quote */
 
   def quote(s: String): String = "\"" + s + "\""

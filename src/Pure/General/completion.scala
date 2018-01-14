@@ -220,7 +220,7 @@ object Completion
           val replacement =
             List(original, xname1).map(Token.explode(Keyword.Keywords.empty, _)) match {
               case List(List(tok), _) if tok.kind == Token.Kind.CARTOUCHE =>
-                Library.cartouche_decoded(xname1)
+                Symbol.cartouche_decoded(xname1)
               case List(_, List(tok)) if tok.is_name => xname1
               case _ => quote(xname1)
             }

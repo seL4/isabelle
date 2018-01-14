@@ -21,7 +21,7 @@ object Update_Comments
           rest.dropWhile(_.is_space) match {
             case tok1 :: rest1 if tok1.is_text =>
               val txt = Symbol.trim_blanks(tok1.content)
-              update(rest1, (Symbol.comment + Symbol.space + Library.cartouche(txt)) :: result)
+              update(rest1, (Symbol.comment + Symbol.space + Symbol.cartouche(txt)) :: result)
             case _ => update(rest, tok.source :: result)
           }
         case tok :: rest => update(rest, tok.source :: result)
