@@ -6,9 +6,11 @@ Formal comments.
 
 signature COMMENT =
 sig
-  datatype kind = Comment | Cancel
+  datatype kind = Comment | Cancel | Latex
+  val markup: kind -> Markup.T
   val scan_comment: (kind * Symbol_Pos.T list) scanner
   val scan_cancel: (kind * Symbol_Pos.T list) scanner
+  val scan_latex: (kind * Symbol_Pos.T list) scanner
   val scan: (kind * Symbol_Pos.T list) scanner
   val read_body: Symbol_Pos.T list -> (kind option * Symbol_Pos.T list) list option
 end;
@@ -18,14 +20,16 @@ struct
 
 (* kinds *)
 
-datatype kind = Comment | Cancel;
+datatype kind = Comment | Cancel | Latex;
 
 val kinds =
-  [(Comment, {symbol = Symbol.comment, blanks = true}),
-   (Cancel, {symbol = Symbol.cancel, blanks = false})];
+  [(Comment, {symbol = Symbol.comment, blanks = true, markup = Markup.language_document true}),
+   (Cancel, {symbol = Symbol.cancel, blanks = false, markup = Markup.language_text true}),
+   (Latex, {symbol = Symbol.latex, blanks = false, markup = Markup.language_latex true})];
 
 val get_kind = the o AList.lookup (op =) kinds;
 val print_kind = quote o #symbol o get_kind;
+val markup = #markup o get_kind;
 
 fun is_symbol sym = exists (fn (_, {symbol, ...}) => symbol = sym) kinds;
 
@@ -41,7 +45,7 @@ val err_prefix = "Error in formal comment: ";
 val scan_blanks = Scan.many (Symbol.is_blank o Symbol_Pos.symbol);
 
 fun scan_symbol kind =
-  let val {blanks, symbol} = get_kind kind
+  let val {blanks, symbol, ...} = get_kind kind
   in if blanks then $$$ symbol @@@ scan_blanks else $$$ symbol end;
 
 fun scan_strict kind =
@@ -57,11 +61,12 @@ in
 
 val scan_comment = scan_strict Comment;
 val scan_cancel = scan_strict Cancel;
-val scan = scan_comment || scan_cancel;
+val scan_latex = scan_strict Latex;
+val scan = scan_comment || scan_cancel || scan_latex;
 
 val scan_body =
   Scan.many1 (fn (s, _) => not (is_symbol s) andalso Symbol.not_eof s) >> pair NONE ||
-  scan_permissive Comment || scan_permissive Cancel;
+  scan_permissive Comment || scan_permissive Cancel || scan_permissive Latex;
 
 fun read_body syms =
   if exists (is_symbol o Symbol_Pos.symbol) syms then

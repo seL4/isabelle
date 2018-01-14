@@ -71,6 +71,9 @@ fun output_text ctxt {markdown} source =
 
 local
 
+fun output_latex syms =
+  [Latex.text (Symbol_Pos.content syms, #1 (Symbol_Pos.range syms))];
+
 fun output_symbols syms =
   [Latex.text (Latex.output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms))];
 
@@ -98,7 +101,9 @@ fun output_symbols_comment ctxt {antiq} (comment, syms) =
       end
   | (SOME Comment.Cancel, _) =>
       output_symbols (Symbol_Pos.cartouche_content syms)
-      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}");
+      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
+  | (SOME Comment.Latex, _) =>
+      output_latex (Symbol_Pos.cartouche_content syms));
 
 in
 
@@ -129,13 +134,9 @@ fun check_comments ctxt =
   Comment.read_body #> (Option.app o List.app) (fn (comment, syms) =>
     let
       val pos = #1 (Symbol_Pos.range syms);
-      val markup =
-        comment |> Option.map
-          (fn Comment.Comment => Markup.language_document true
-            | Comment.Cancel => Markup.language_text true);
       val _ =
-        markup |> Option.app (fn m =>
-          Context_Position.reports ctxt [(pos, m), (pos, Markup.cartouche)]);
+        comment |> Option.app (fn kind =>
+          Context_Position.reports ctxt [(pos, Comment.markup kind), (pos, Markup.cartouche)]);
       val _ = output_symbols_comment ctxt {antiq = false} (comment, syms);
     in if comment = SOME Comment.Comment then check_comments ctxt syms else () end);
 
