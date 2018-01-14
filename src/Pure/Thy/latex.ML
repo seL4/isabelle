@@ -15,9 +15,6 @@ sig
   val output_positions: Position.T -> text list -> string
   val output_name: string -> string
   val output_ascii: string -> string
-  val latex_control: Symbol.symbol
-  val is_latex_control: Symbol.symbol -> bool
-  val embed_raw: string -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
   val begin_delim: string -> string
@@ -115,11 +112,6 @@ val output_ascii =
 
 (* output symbols *)
 
-val latex_control = "\<^latex>";
-fun is_latex_control s = s = latex_control;
-
-val embed_raw = prefix latex_control o cartouche;
-
 local
 
 val char_table =
@@ -175,15 +167,16 @@ fun output_sym sym =
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
+open Basic_Symbol_Pos;
+
 val scan_latex_length =
-  Scan.many1 (fn (s, _) => Symbol.not_eof s andalso not (is_latex_control s))
+  Scan.many1 (fn (s, _) => s <> Symbol.latex andalso Symbol.not_eof s)
     >> (Symbol.length o map Symbol_Pos.symbol) ||
-  Scan.one (is_latex_control o Symbol_Pos.symbol) --
-    Scan.option (Scan.permissive Symbol_Pos.scan_cartouche "") >> K 0;
+  $$ Symbol.latex -- Scan.option (Scan.permissive Symbol_Pos.scan_cartouche "") >> K 0;
 
 val scan_latex =
-  Scan.one (is_latex_control o Symbol_Pos.symbol) |--
-    Symbol_Pos.scan_cartouche_content "Embedded LaTeX: " >> (implode o map Symbol_Pos.symbol) ||
+  $$ Symbol.latex |-- Symbol_Pos.scan_cartouche_content "Embedded LaTeX: "
+    >> (implode o map Symbol_Pos.symbol) ||
   Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> (output_sym o Symbol_Pos.symbol);
 
 fun read scan syms =
@@ -195,7 +188,7 @@ fun length_symbols syms =
   fold Integer.add (these (read scan_latex_length syms)) 0;
 
 fun output_symbols syms =
-  if exists is_latex_control syms then
+  if member (op =) syms Symbol.latex then
     (case read scan_latex syms of
       SOME ss => implode ss
     | NONE => error ("Malformed embedded LaTeX: " ^ quote (Symbol.beginning 10 syms)))
@@ -249,7 +242,7 @@ fun latex_markup (s, _) =
 fun latex_indent "" _ = ""
   | latex_indent s _ = enclose "\\isaindent{" "}" s;
 
-val _ = Output.add_mode latexN latex_output embed_raw;
+val _ = Output.add_mode latexN latex_output (prefix Symbol.latex o cartouche);
 val _ = Markup.add_mode latexN latex_markup;
 val _ = Pretty.add_mode latexN latex_indent;
 
