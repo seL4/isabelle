@@ -22,7 +22,7 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
-    StrSy | StringSy | Cartouche | Space | Cancel | Comment | Comment_Cartouche | EOF
+    StrSy | StringSy | Cartouche | Space | Comment of Comment.kind option | EOF
   datatype token = Token of token_kind * string * Position.range
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
@@ -114,7 +114,7 @@ fun is_tid s =
 
 datatype token_kind =
   Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy | StrSy |
-  StringSy | Cartouche | Space | Cancel | Comment | Comment_Cartouche | EOF;
+  StringSy | Cartouche | Space | Comment of Comment.kind option | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
@@ -122,9 +122,7 @@ fun kind_of_token (Token (k, _, _)) = k;
 fun str_of_token (Token (_, s, _)) = s;
 fun pos_of_token (Token (_, _, (pos, _))) = pos;
 
-val is_proper =
-  kind_of_token #>
-  (fn Space => false | Cancel => false | Comment => false | Comment_Cartouche => false | _ => true);
+val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 
 
 (* stopper *)
@@ -169,7 +167,7 @@ val token_kind_markup =
   | StrSy => Markup.inner_string
   | StringSy => Markup.inner_string
   | Cartouche => Markup.inner_cartouche
-  | Comment => Markup.inner_comment
+  | Comment NONE => Markup.inner_comment
   | _ => Markup.empty;
 
 fun report_of_token (Token (kind, s, (pos, _))) =
@@ -268,9 +266,8 @@ fun tokenize lex xids syms =
 
     val scan_token =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
-      Symbol_Pos.scan_cancel_cartouche Symbol.cancel >> token Cancel ||
-      Symbol_Pos.scan_comment err_prefix >> token Comment ||
-      Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment_Cartouche ||
+      Symbol_Pos.scan_comment err_prefix >> token (Comment NONE) ||
+      Comment.scan >> (fn (kind, ss) => token (Comment (SOME kind)) ss) ||
       Scan.max token_leq scan_lit scan_val ||
       scan_string >> token StringSy ||
       scan_str >> token StrSy ||

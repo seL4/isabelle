@@ -9,7 +9,7 @@ sig
   val keywords: string list
   datatype token_kind =
     Keyword | Ident | Long_Ident | Type_Var | Word | Int | Real | Char | String |
-    Space | Comment | Comment_Cartouche | Error of string | EOF
+    Space | Comment of Comment.kind option | Error of string | EOF
   eqtype token
   val stopper: token Scan.stopper
   val is_regular: token -> bool
@@ -64,7 +64,7 @@ val lexicon = Scan.make_lexicon (map raw_explode keywords);
 
 datatype token_kind =
   Keyword | Ident | Long_Ident | Type_Var | Word | Int | Real | Char | String |
-  Space | Comment | Comment_Cartouche | Error of string | EOF;
+  Space | Comment of Comment.kind option | Error of string | EOF;
 
 datatype token = Token of Position.range * (token_kind * string);
 
@@ -108,12 +108,10 @@ fun is_regular (Token (_, (Error _, _))) = false
   | is_regular _ = true;
 
 fun is_improper (Token (_, (Space, _))) = true
-  | is_improper (Token (_, (Comment, _))) = true
-  | is_improper (Token (_, (Comment_Cartouche, _))) = true
+  | is_improper (Token (_, (Comment _, _))) = true
   | is_improper _ = false;
 
-fun is_comment (Token (_, (Comment, _))) = true
-  | is_comment (Token (_, (Comment_Cartouche, _))) = true
+fun is_comment (Token (_, (Comment _, _))) = true
   | is_comment _ = false;
 
 fun warn tok =
@@ -152,8 +150,7 @@ fun token_kind_markup SML =
   | Real => (Markup.ML_numeral, "")
   | Char => (Markup.ML_char, "")
   | String => (if SML then Markup.SML_string else Markup.ML_string, "")
-  | Comment => (if SML then Markup.SML_comment else Markup.ML_comment, "")
-  | Comment_Cartouche => (if SML then Markup.SML_comment else Markup.ML_comment, "")
+  | Comment _ => (if SML then Markup.SML_comment else Markup.ML_comment, "")
   | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
 
@@ -178,7 +175,6 @@ end;
 open Basic_Symbol_Pos;
 
 val err_prefix = "SML lexical error: ";
-val err_prefix' = "Isabelle/ML lexical error: ";
 
 fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
@@ -299,8 +295,8 @@ val scan_ml =
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
-  Symbol_Pos.scan_comment err_prefix >> token Comment ||
-  Symbol_Pos.scan_comment_cartouche err_prefix' >> token Comment_Cartouche ||
+  Symbol_Pos.scan_comment err_prefix >> token (Comment NONE) ||
+  Comment.scan >> (fn (kind, ss) => token (Comment (SOME kind)) ss) ||
   Scan.max token_leq
    (Scan.literal lexicon >> token Keyword)
    (scan_word >> token Word ||

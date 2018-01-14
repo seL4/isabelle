@@ -1,0 +1,73 @@
+(*  Title:      Pure/General/comment.ML
+    Author:     Makarius
+
+Formal comments.
+*)
+
+signature COMMENT =
+sig
+  datatype kind = Comment | Cancel
+  val scan_comment: Symbol_Pos.T list -> (kind * Symbol_Pos.T list) * Symbol_Pos.T list
+  val scan_cancel: Symbol_Pos.T list -> (kind * Symbol_Pos.T list) * Symbol_Pos.T list
+  val scan: Symbol_Pos.T list -> (kind * Symbol_Pos.T list) * Symbol_Pos.T list
+  val read_body: Symbol_Pos.T list -> (kind option * Symbol_Pos.T list) list option
+end;
+
+structure Comment: COMMENT =
+struct
+
+(* kinds *)
+
+datatype kind = Comment | Cancel;
+
+val kinds =
+  [(Comment, {symbol = Symbol.comment, blanks = true}),
+   (Cancel, {symbol = Symbol.cancel, blanks = false})];
+
+val get_kind = the o AList.lookup (op =) kinds;
+val print_kind = quote o #symbol o get_kind;
+
+fun is_symbol sym = exists (fn (_, {symbol, ...}) => symbol = sym) kinds;
+
+
+(* scan *)
+
+local
+
+open Basic_Symbol_Pos;
+
+val err_prefix = "Error in formal comment: ";
+
+val scan_blanks = Scan.many (Symbol.is_blank o Symbol_Pos.symbol);
+
+fun scan_symbol kind =
+  let val {blanks, symbol} = get_kind kind
+  in if blanks then $$$ symbol @@@ scan_blanks else $$$ symbol end;
+
+fun scan_strict kind =
+  scan_symbol kind @@@
+    Symbol_Pos.!!! (fn () => err_prefix ^ "cartouche expected after " ^ print_kind kind)
+      (Symbol_Pos.scan_cartouche err_prefix) >> pair kind;
+
+fun scan_permissive kind =
+  scan_symbol kind -- Scan.option (Symbol_Pos.scan_cartouche err_prefix) >>
+    (fn (ss, NONE) => (NONE, ss) | (_, SOME ss) => (SOME kind, ss));
+
+in
+
+val scan_comment = scan_strict Comment;
+val scan_cancel = scan_strict Cancel;
+val scan = scan_comment || scan_cancel;
+
+val scan_body =
+  Scan.many1 (fn (s, _) => not (is_symbol s) andalso Symbol.not_eof s) >> pair NONE ||
+  scan_permissive Comment || scan_permissive Cancel;
+
+fun read_body syms =
+  if exists (is_symbol o Symbol_Pos.symbol) syms then
+    Scan.read Symbol_Pos.stopper (Scan.repeat scan_body) syms
+  else NONE;
+
+end;
+
+end;

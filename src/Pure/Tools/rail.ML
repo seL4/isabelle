@@ -44,7 +44,7 @@ val keywords =
 (* datatype token *)
 
 datatype kind =
-  Keyword | Ident | String | Space | Comment | Antiq of Antiquote.antiq | EOF;
+  Keyword | Ident | String | Space | Comment of Comment.kind | Antiq of Antiquote.antiq | EOF;
 
 datatype token = Token of Position.range * (kind * string);
 
@@ -60,7 +60,7 @@ fun kind_of (Token (_, (k, _))) = k;
 fun content_of (Token (_, (_, x))) = x;
 
 fun is_proper (Token (_, (Space, _))) = false
-  | is_proper (Token (_, (Comment, _))) = false
+  | is_proper (Token (_, (Comment _, _))) = false
   | is_proper _ = true;
 
 
@@ -71,7 +71,7 @@ val print_kind =
   | Ident => "identifier"
   | String => "single-quoted string"
   | Space => "white space"
-  | Comment => "formal comment"
+  | Comment _ => "formal comment"
   | Antiq _ => "antiquotation"
   | EOF => "end-of-input";
 
@@ -118,7 +118,7 @@ val err_prefix = "Rail lexical error: ";
 
 val scan_token =
   scan_space >> token Space ||
-  Symbol_Pos.scan_comment_cartouche err_prefix >> token Comment ||
+  Comment.scan >> (fn (kind, ss) => token (Comment kind) ss)||
   Antiquote.scan_antiq >> antiq_token ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||

@@ -44,6 +44,7 @@ ML_file "General/symbol.ML";
 ML_file "General/position.ML";
 ML_file "General/symbol_pos.ML";
 ML_file "General/input.ML";
+ML_file "General/comment.ML";
 ML_file "General/antiquote.ML";
 ML_file "ML/ml_lex.ML";
 ML_file "ML/ml_compiler1.ML";

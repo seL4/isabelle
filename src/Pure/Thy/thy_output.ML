@@ -67,34 +67,7 @@ fun output_text ctxt {markdown} source =
   end;
 
 
-(* output tokens with operators *)
-
-datatype operator = No_Operator | Cancel | Comment;
-
-local
-
-open Basic_Symbol_Pos;
-
-fun is_operator sym = sym = Symbol.cancel orelse sym = Symbol.comment;
-
-fun scan_operator blanks operator_symbol operator =
-  (if blanks then $$$ operator_symbol @@@ Symbol_Pos.scan_blanks else $$$ operator_symbol) --
-    Scan.option (Symbol_Pos.scan_cartouche "Document token error: ")
-      >> (fn (syms, NONE) => (No_Operator, syms) | (_, SOME syms) => (operator, syms));
-
-val scan_symbols_operator =
-  Scan.many1 (fn (s, _) => not (is_operator s) andalso Symbol.not_eof s) >> pair No_Operator ||
-  scan_operator false Symbol.cancel Cancel ||
-  scan_operator true Symbol.comment Comment;
-
-in
-
-fun read_symbols_operator syms =
-  if exists (is_operator o Symbol_Pos.symbol) syms then
-    Scan.read Symbol_Pos.stopper (Scan.repeat scan_symbols_operator) syms
-  else NONE;
-
-end;
+(* output tokens with formal comments *)
 
 local
 
@@ -109,29 +82,29 @@ val output_symbols_antiq =
     | Antiquote.Antiq {body, ...} =>
         Latex.enclose_body "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (output_symbols body));
 
-fun output_symbols_operator ctxt {antiq} (operator, syms) =
-  (case (operator, antiq) of
-    (No_Operator, false) => output_symbols syms
-  | (No_Operator, true) =>
+fun output_symbols_comment ctxt {antiq} (comment, syms) =
+  (case (comment, antiq) of
+    (NONE, false) => output_symbols syms
+  | (NONE, true) =>
       Antiquote.parse (#1 (Symbol_Pos.range syms)) syms
       |> maps output_symbols_antiq
-  | (Cancel, _) =>
-      output_symbols (Symbol_Pos.cartouche_content syms)
-      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
-  | (Comment, _) =>
+  | (SOME Comment.Comment, _) =>
       let
         val body = Symbol_Pos.cartouche_content syms;
         val source = Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body);
       in
         output_text ctxt {markdown = false} source
         |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
-      end);
+      end
+  | (SOME Comment.Cancel, _) =>
+      output_symbols (Symbol_Pos.cartouche_content syms)
+      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}");
 
 in
 
 fun output_body ctxt antiq bg en syms =
-  (case read_symbols_operator syms of
-    SOME res => maps (output_symbols_operator ctxt {antiq = antiq}) res
+  (case Comment.read_body syms of
+    SOME res => maps (output_symbols_comment ctxt {antiq = antiq}) res
   | NONE => output_symbols syms) |> Latex.enclose_body bg en
 and output_token ctxt tok =
   let
@@ -153,19 +126,18 @@ and output_token ctxt tok =
   end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 fun check_comments ctxt =
-  read_symbols_operator #> (Option.app o List.app) (fn (operator, syms) =>
+  Comment.read_body #> (Option.app o List.app) (fn (comment, syms) =>
     let
       val pos = #1 (Symbol_Pos.range syms);
       val markup =
-        (case operator of
-          No_Operator => NONE
-        | Cancel => SOME (Markup.language_text true)
-        | Comment => SOME (Markup.language_document true));
+        comment |> Option.map
+          (fn Comment.Comment => Markup.language_document true
+            | Comment.Cancel => Markup.language_text true);
       val _ =
         markup |> Option.app (fn m =>
           Context_Position.reports ctxt [(pos, m), (pos, Markup.cartouche)]);
-      val _ = output_symbols_operator ctxt {antiq = false} (operator, syms);
-    in if operator = Comment then check_comments ctxt syms else () end);
+      val _ = output_symbols_comment ctxt {antiq = false} (comment, syms);
+    in if comment = SOME Comment.Comment then check_comments ctxt syms else () end);
 
 fun check_token_comments ctxt tok =
   check_comments ctxt (Input.source_explode (Token.input_of tok));

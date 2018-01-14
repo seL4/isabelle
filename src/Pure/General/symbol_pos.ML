@@ -34,9 +34,6 @@ sig
   val scan_cartouche: string -> T list -> T list * T list
   val scan_cartouche_content: string -> T list -> T list * T list
   val recover_cartouche: T list -> T list * T list
-  val scan_blanks: T list -> T list * T list
-  val scan_cancel_cartouche: string -> T list -> T list * T list
-  val scan_comment_cartouche: string -> T list -> T list * T list
   val scan_comment: string -> T list -> T list * T list
   val scan_comment_body: string -> T list -> T list * T list
   val recover_comment: T list -> T list * T list
@@ -217,19 +214,6 @@ fun scan_cartouche_content err_prefix =
   scan_cartouche err_prefix >> cartouche_content;
 
 val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
-
-
-(* operator with cartouche argument *)
-
-val scan_blanks = Scan.many (Symbol.is_blank o symbol);
-
-fun scan_operator_cartouche blanks operator_symbol err_prefix =
-  (if blanks then $$$ operator_symbol @@@ scan_blanks else $$$ operator_symbol) @@@
-    !!! (fn () => err_prefix ^ "cartouche expected after " ^ quote operator_symbol)
-      (scan_cartouche err_prefix);
-
-val scan_cancel_cartouche = scan_operator_cartouche false Symbol.cancel;
-val scan_comment_cartouche = scan_operator_cartouche true Symbol.comment;
 
 
 (* ML-style comments *)
