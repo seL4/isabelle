@@ -285,7 +285,7 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     kind == Token.Kind.VAR ||
     kind == Token.Kind.TYPE_IDENT ||
     kind == Token.Kind.TYPE_VAR
-  def is_text: Boolean = is_name || kind == Token.Kind.VERBATIM || kind == Token.Kind.CARTOUCHE
+  def is_text: Boolean = is_embedded || kind == Token.Kind.VERBATIM
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_comment: Boolean = kind == Token.Kind.COMMENT
   def is_improper: Boolean = is_space || is_comment
