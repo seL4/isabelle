@@ -148,6 +148,7 @@ declare -a SOURCES=(
   Tools/spell_checker.scala
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
+  Tools/update_comments.scala
   Tools/update_header.scala
   Tools/update_then.scala
   Tools/update_theorems.scala

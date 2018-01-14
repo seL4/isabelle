@@ -119,6 +119,7 @@ object Isabelle_Tool
       Remote_DMG.isabelle_tool,
       Server.isabelle_tool,
       Update_Cartouches.isabelle_tool,
+      Update_Comments.isabelle_tool,
       Update_Header.isabelle_tool,
       Update_Then.isabelle_tool,
       Update_Theorems.isabelle_tool,

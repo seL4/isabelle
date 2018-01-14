@@ -212,6 +212,12 @@ abbreviation. INCOMPATIBILITY.
 
 *** System ***
 
+* The command-line tool "isabelle update_comments" normalizes formal
+comments in outer syntax as follows: \<comment> \<open>text\<close> (whith a single space to
+approximate the appearance in document output). This is more specific
+than former "isabelle update_cartouches -c": the latter tool option has
+been discontinued.
+
 * Session ROOT entry: empty 'document_files' means there is no document
 for this session. There is no need to specify options [document = false]
 anymore.

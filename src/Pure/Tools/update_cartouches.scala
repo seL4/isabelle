@@ -34,11 +34,11 @@ object Update_Cartouches
     }
   }
 
-  def update_cartouches(replace_comment: Boolean, replace_text: Boolean, path: Path)
+  def update_cartouches(replace_text: Boolean, path: Path)
   {
     val text0 = File.read(path)
 
-    // outer syntax cartouches and comment markers
+    // outer syntax cartouches
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
         yield {
@@ -49,7 +49,6 @@ object Update_Cartouches
               case s => tok.source
             }
           }
-          else if (replace_comment && tok.source == "--") Symbol.comment
           else tok.source
         }
       ).mkString
@@ -84,14 +83,12 @@ object Update_Cartouches
   val isabelle_tool =
     Isabelle_Tool("update_cartouches", "update theory syntax to use cartouches", args =>
     {
-      var replace_comment = false
       var replace_text = false
 
       val getopts = Getopts("""
 Usage: isabelle update_cartouches [FILES|DIRS...]
 
   Options are:
-    -c           replace comment marker "--" by symbol "\<comment>"
     -t           replace @{text} antiquotations within text tokens
 
   Recursively find .thy files and update theory syntax to use cartouches
@@ -99,7 +96,6 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
 
   Old versions of files are preserved by appending "~~".
 """,
-        "c" -> (_ => replace_comment = true),
         "t" -> (_ => replace_text = true))
 
       val specs = getopts(args)
@@ -108,6 +104,6 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
       for {
         spec <- specs
         file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_cartouches(replace_comment, replace_text, Path.explode(File.standard_path(file)))
+      } update_cartouches(replace_text, Path.explode(File.standard_path(file)))
     })
 }
