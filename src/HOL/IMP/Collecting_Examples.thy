@@ -31,10 +31,12 @@ subsection "Examples"
 
 definition "c0 = WHILE Less (V ''x'') (N 3)
                 DO ''x'' ::= Plus (V ''x'') (N 2)"
-definition C0 :: "state set acom" where "C0 = annotate (%p. {}) c0"
+
+definition C0 :: "state set acom" where "C0 = annotate (\<lambda>p. {}) c0"
 
 text\<open>Collecting semantics:\<close>
 
+value "show_acom (((step {<>}) ^^ 0) C0)"
 value "show_acom (((step {<>}) ^^ 1) C0)"
 value "show_acom (((step {<>}) ^^ 2) C0)"
 value "show_acom (((step {<>}) ^^ 3) C0)"
