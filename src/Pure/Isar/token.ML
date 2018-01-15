@@ -289,7 +289,7 @@ val token_kind_markup =
   | Alt_String => (Markup.alt_string, "")
   | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
-  | Comment NONE => (Markup.comment, "")
+  | Comment _ => (Markup.comment, "")
   | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
 
