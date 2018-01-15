@@ -273,12 +273,22 @@ end;
 
 (* side-comments *)
 
+local
+
+fun is_cmt tok = Token.kind_of tok = Token.Comment (SOME Comment.Comment);
+
 fun cmts (t1 :: t2 :: toks) =
       if Token.keyword_with (fn s => s = "--" orelse s = Symbol.comment) t1 then t2 :: cmts toks
+      else if is_cmt t1 then t1 :: cmts (t2 :: toks)
       else cmts (t2 :: toks)
   | cmts _ = [];
 
-val side_comments = filter Token.is_proper #> cmts;
+in
+
+val side_comments =
+  cmts o filter_out (fn tok => Token.is_informal_comment tok orelse Token.is_space tok);
+
+end;
 
 
 (* check commands *)

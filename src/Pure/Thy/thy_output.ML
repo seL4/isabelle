@@ -117,7 +117,7 @@ and output_token ctxt tok =
       output_body ctxt antiq bg en (Input.source_explode (Token.input_of tok));
   in
     (case Token.kind_of tok of
-      Token.Comment => []
+      Token.Comment NONE => []
     | Token.Command => output false "\\isacommand{" "}"
     | Token.Keyword =>
         if Symbol.is_ascii_identifier (Token.content_of tok)
@@ -151,6 +151,12 @@ end;
 
 (*NB: arranging white space around command spans is a black art*)
 
+val is_white = Token.is_space orf Token.is_informal_comment;
+val is_black = not o is_white;
+
+val is_white_comment = Token.is_informal_comment;
+val is_black_comment = Token.is_formal_comment;
+
 
 (* presentation tokens *)
 
@@ -164,8 +170,8 @@ datatype token =
 fun basic_token pred (Basic_Token tok) = pred tok
   | basic_token _ _ = false;
 
-val improper_token = basic_token Token.is_improper;
-val comment_token = basic_token Token.is_comment;
+val white_token = basic_token is_white;
+val white_comment_token = basic_token is_white_comment;
 val blank_token = basic_token Token.is_blank;
 val newline_token = basic_token Token.is_newline;
 
@@ -197,9 +203,9 @@ fun make_span cmd src =
       | take_newline [] = ([], [], false);
     val (((src_prefix, src_main), src_suffix1), (src_suffix2, src_appendix, newline)) =
       src
-      |> take_prefix (improper_token o fst)
-      ||>> take_suffix (improper_token o fst)
-      ||>> take_prefix (comment_token o fst)
+      |> take_prefix (white_token o fst)
+      ||>> take_suffix (white_token o fst)
+      ||>> take_prefix (white_comment_token o fst)
       ||> take_newline;
   in Span (cmd, (src_prefix, src_main, src_suffix1 @ src_suffix2, src_appendix), newline) end;
 
@@ -296,9 +302,9 @@ val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
 
 val space_proper =
-  Scan.one Token.is_blank -- Scan.many Token.is_comment -- Scan.one Token.is_proper;
+  Scan.one Token.is_blank -- Scan.many is_white_comment -- Scan.one is_black;
 
-val is_improper = not o (Token.is_proper orf Token.is_begin_ignore orf Token.is_end_ignore);
+val is_improper = not o (is_black orf Token.is_begin_ignore orf Token.is_end_ignore);
 val improper = Scan.many is_improper;
 val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper));
 val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one Token.is_blank));
@@ -349,6 +355,8 @@ fun present_thy thy command_results toks =
             (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
+      Scan.one is_black_comment >>
+        (fn tok => (NONE, (Basic_Token tok, ("", d)))) ||
       (Parse.$$$ "--" || Parse.$$$ Symbol.comment) |--
         Parse.!!!! (improper |-- Parse.document_source) >>
         (fn source => (NONE, (Markup_Token ("cmt", source), ("", d)))));
@@ -373,13 +381,13 @@ fun present_thy thy command_results toks =
     val cmd = Scan.one (is_some o fst);
     val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
 
-    val comments = Scan.many (comment_token o fst o snd);
+    val white_comments = Scan.many (white_comment_token o fst o snd);
     val blank = Scan.one (blank_token o fst o snd);
     val newline = Scan.one (newline_token o fst o snd);
     val before_cmd =
-      Scan.option (newline -- comments) --
-      Scan.option (newline -- comments) --
-      Scan.option (blank -- comments) -- cmd;
+      Scan.option (newline -- white_comments) --
+      Scan.option (newline -- white_comments) --
+      Scan.option (blank -- white_comments) -- cmd;
 
     val span =
       Scan.repeat non_cmd -- cmd --

@@ -11,7 +11,7 @@ sig
     Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
     Float | Space |
     (*delimited content*)
-    String | Alt_String | Verbatim | Cartouche | Comment |
+    String | Alt_String | Verbatim | Cartouche | Comment of Comment.kind option |
     (*special content*)
     Error of string | EOF
   val str_of_kind: kind -> string
@@ -44,6 +44,8 @@ sig
   val is_proper: T -> bool
   val is_improper: T -> bool
   val is_comment: T -> bool
+  val is_informal_comment: T -> bool
+  val is_formal_comment: T -> bool
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
   val is_error: T -> bool
@@ -116,7 +118,7 @@ datatype kind =
   Command | Keyword | Ident | Long_Ident | Sym_Ident | Var | Type_Ident | Type_Var | Nat |
   Float | Space |
   (*delimited content*)
-  String | Alt_String | Verbatim | Cartouche | Comment |
+  String | Alt_String | Verbatim | Cartouche | Comment of Comment.kind option |
   (*special content*)
   Error of string | EOF;
 
@@ -136,7 +138,8 @@ val str_of_kind =
   | Alt_String => "back-quoted string"
   | Verbatim => "verbatim text"
   | Cartouche => "text cartouche"
-  | Comment => "comment text"
+  | Comment NONE => "informal comment"
+  | Comment (SOME _) => "formal comment"
   | Error _ => "bad input"
   | EOF => "end-of-input";
 
@@ -144,7 +147,13 @@ val immediate_kinds =
   Vector.fromList
     [Command, Keyword, Ident, Long_Ident, Sym_Ident, Var, Type_Ident, Type_Var, Nat, Float, Space];
 
-val delimited_kind = member (op =) [String, Alt_String, Verbatim, Cartouche, Comment];
+val delimited_kind =
+  (fn String => true
+    | Alt_String => true
+    | Verbatim => true
+    | Cartouche => true
+    | Comment _ => true
+    | _ => false);
 
 
 (* datatype token *)
@@ -220,18 +229,24 @@ fun ident_with pred (Token (_, (Ident, x), _)) = pred x
   | ident_with _ _ = false;
 
 fun is_proper (Token (_, (Space, _), _)) = false
-  | is_proper (Token (_, (Comment, _), _)) = false
+  | is_proper (Token (_, (Comment _, _), _)) = false
   | is_proper _ = true;
 
 val is_improper = not o is_proper;
 
-fun is_comment (Token (_, (Comment, _), _)) = true
+fun is_comment (Token (_, (Comment _, _), _)) = true
   | is_comment _ = false;
 
-fun is_begin_ignore (Token (_, (Comment, "<"), _)) = true
+fun is_informal_comment (Token (_, (Comment NONE, _), _)) = true
+  | is_informal_comment _ = false;
+
+fun is_formal_comment (Token (_, (Comment (SOME _), _), _)) = true
+  | is_formal_comment _ = false;
+
+fun is_begin_ignore (Token (_, (Comment NONE, "<"), _)) = true
   | is_begin_ignore _ = false;
 
-fun is_end_ignore (Token (_, (Comment, ">"), _)) = true
+fun is_end_ignore (Token (_, (Comment NONE, ">"), _)) = true
   | is_end_ignore _ = false;
 
 fun is_error (Token (_, (Error _, _), _)) = true
@@ -274,7 +289,7 @@ val token_kind_markup =
   | Alt_String => (Markup.alt_string, "")
   | Verbatim => (Markup.verbatim, "")
   | Cartouche => (Markup.cartouche, "")
-  | Comment => (Markup.comment, "")
+  | Comment NONE => (Markup.comment, "")
   | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
 
@@ -321,7 +336,7 @@ fun unparse (Token (_, (kind, x), _)) =
   | Alt_String => Symbol_Pos.quote_string_bq x
   | Verbatim => enclose "{*" "*}" x
   | Cartouche => cartouche x
-  | Comment => enclose "(*" "*)" x
+  | Comment NONE => enclose "(*" "*)" x
   | EOF => ""
   | _ => x);
 
@@ -608,7 +623,8 @@ fun scan_token keywords = !!! "bad input"
     Symbol_Pos.scan_string_bq err_prefix >> token_range Alt_String ||
     scan_verbatim >> token_range Verbatim ||
     scan_cartouche >> token_range Cartouche ||
-    scan_comment >> token_range Comment ||
+    scan_comment >> token_range (Comment NONE) ||
+    (Comment.scan_cancel || Comment.scan_latex) >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
     scan_space >> token Space ||
     (Scan.max token_leq
       (Scan.max token_leq
