@@ -50,8 +50,8 @@ object ML_Lex
     val CHAR = Value("character")
     val STRING = Value("quoted string")
     val SPACE = Value("white space")
-    val COMMENT = Value("comment text")
-    val COMMENT_CARTOUCHE = Value("comment cartouche")
+    val INFORMAL_COMMENT = Value("informal comment")
+    val FORMAL_COMMENT = Value("formal comment")
     val CONTROL = Value("control symbol antiquotation")
     val ANTIQ = Value("antiquotation")
     val ANTIQ_START = Value("antiquotation: start")
@@ -68,7 +68,7 @@ object ML_Lex
     def is_keyword: Boolean = kind == Kind.KEYWORD
     def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
     def is_space: Boolean = kind == Kind.SPACE
-    def is_comment: Boolean = kind == Kind.COMMENT || kind == Kind.COMMENT_CARTOUCHE
+    def is_comment: Boolean = kind == Kind.INFORMAL_COMMENT || kind == Kind.FORMAL_COMMENT
   }
 
 
@@ -78,7 +78,7 @@ object ML_Lex
   case object ML_String extends Scan.Line_Context
   case class Antiq(ctxt: Scan.Line_Context) extends Scan.Line_Context
 
-  private object Parsers extends Scan.Parsers with Antiquote.Parsers
+  private object Parsers extends Scan.Parsers with Antiquote.Parsers with Comment.Parsers
   {
     /* string material */
 
@@ -140,17 +140,17 @@ object ML_Lex
     /* ML comment */
 
     private val ml_comment: Parser[Token] =
-      comment ^^ (x => Token(Kind.COMMENT, x))
+      comment ^^ (x => Token(Kind.INFORMAL_COMMENT, x))
 
     private def ml_comment_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-      comment_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT, x), c) }
+      comment_line(ctxt) ^^ { case (x, c) => (Token(Kind.INFORMAL_COMMENT, x), c) }
 
-    private val ml_comment_cartouche: Parser[Token] =
-      comment_cartouche ^^ (x => Token(Kind.COMMENT_CARTOUCHE, x))
+    private val ml_formal_comment: Parser[Token] =
+      comment_cartouche ^^ (x => Token(Kind.FORMAL_COMMENT, x))
 
-    private def ml_comment_cartouche_line(ctxt: Scan.Line_Context)
+    private def ml_formal_comment_line(ctxt: Scan.Line_Context)
         : Parser[(Token, Scan.Line_Context)] =
-      comment_cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT_CARTOUCHE, x), c) }
+      comment_cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.FORMAL_COMMENT, x), c) }
 
 
     /* antiquotations (line-oriented) */
@@ -252,7 +252,7 @@ object ML_Lex
     }
 
     def token: Parser[Token] =
-      ml_char | (ml_string | (ml_comment | (ml_comment_cartouche | other_token)))
+      ml_char | (ml_string | (ml_comment | (ml_formal_comment | other_token)))
 
     def token_line(SML: Boolean, ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
     {
@@ -262,7 +262,7 @@ object ML_Lex
       else {
         ml_string_line(ctxt) |
           (ml_comment_line(ctxt) |
-            (ml_comment_cartouche_line(ctxt) |
+            (ml_formal_comment_line(ctxt) |
               (ml_cartouche_line(ctxt) |
                 (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))))
       }

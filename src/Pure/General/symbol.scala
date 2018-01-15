@@ -486,10 +486,8 @@ object Symbol
 
     val newline_decoded = decode(newline)
     val comment_decoded = decode(comment)
-
-
-    /* cartouches */
-
+    val cancel_decoded = decode(cancel)
+    val latex_decoded = decode(latex)
     val open_decoded = decode(open)
     val close_decoded = decode(close)
 
@@ -561,7 +559,7 @@ object Symbol
   def is_blank(sym: Symbol): Boolean = symbols.blanks.contains(sym)
 
 
-  /* misc symbols */
+  /* symbolic newline */
 
   val newline: Symbol = "\\<newline>"
   def newline_decoded: Symbol = symbols.newline_decoded
@@ -571,8 +569,20 @@ object Symbol
       (for (s <- iterator(str)) yield { if (s == "\n") newline_decoded else s }).mkString
     else str
 
+
+  /* formal comments */
+
   val comment: Symbol = "\\<comment>"
   def comment_decoded: Symbol = symbols.comment_decoded
+  def is_comment(sym: Symbol): Boolean = sym == comment || sym == comment_decoded
+
+  val cancel: Symbol = "\\<^cancel>"
+  def cancel_decoded: Symbol = symbols.cancel_decoded
+  def is_cancel(sym: Symbol): Boolean = sym == cancel || sym == cancel_decoded
+
+  val latex: Symbol = "\\<^latex>"
+  def latex_decoded: Symbol = symbols.latex_decoded
+  def is_latex(sym: Symbol): Boolean = sym == latex || sym == latex_decoded
 
 
   /* cartouches */
