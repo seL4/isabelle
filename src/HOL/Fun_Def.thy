@@ -295,7 +295,7 @@ ML_file "Tools/Function/scnp_solve.ML"
 ML_file "Tools/Function/scnp_reconstruct.ML"
 ML_file "Tools/Function/fun_cases.ML"
 
-ML_val \<comment> "setup inactive"
+ML_val \<comment> \<open>setup inactive\<close>
 \<open>
   Context.theory_map (Function_Common.set_termination_prover
     (K (ScnpReconstruct.decomp_scnp_tac [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])))

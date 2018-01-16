@@ -2106,7 +2106,7 @@ proof (elim irreducibleE, intro primeI)
 qed
 
 
-\<comment>"A version using @{const factors}, more complicated"
+\<comment> \<open>A version using @{const factors}, more complicated\<close>
 lemma (in factorial_monoid) factors_irreducible_prime:
   assumes pirr: "irreducible G p"
     and pcarr: "p \<in> carrier G"

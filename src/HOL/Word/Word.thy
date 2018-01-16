@@ -68,7 +68,7 @@ definition unat :: "'a::len0 word \<Rightarrow> nat"
   where "unat w = nat (uint w)"
 
 definition uints :: "nat \<Rightarrow> int set"
-  \<comment> "the sets of integers representing the words"
+  \<comment> \<open>the sets of integers representing the words\<close>
   where "uints n = range (bintrunc n)"
 
 definition sints :: "nat \<Rightarrow> int set"
@@ -87,7 +87,7 @@ definition norm_sint :: "nat \<Rightarrow> int \<Rightarrow> int"
   where "norm_sint n w = (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
 
 definition scast :: "'a::len word \<Rightarrow> 'b::len word"
-  \<comment> "cast a word to a different length"
+  \<comment> \<open>cast a word to a different length\<close>
   where "scast w = word_of_int (sint w)"
 
 definition ucast :: "'a::len0 word \<Rightarrow> 'b::len0 word"
@@ -115,7 +115,7 @@ lemma lens_not_0 [iff]:
   by auto
 
 definition source_size :: "('a::len0 word \<Rightarrow> 'b) \<Rightarrow> nat"
-  \<comment> "whether a cast (or other) function is to a longer or shorter length"
+  \<comment> \<open>whether a cast (or other) function is to a longer or shorter length\<close>
   where [code del]: "source_size c = (let arb = undefined; x = c arb in size arb)"
 
 definition target_size :: "('a \<Rightarrow> 'b::len0 word) \<Rightarrow> nat"
@@ -385,7 +385,7 @@ definition shiftl1 :: "'a word \<Rightarrow> 'a word"
   where "shiftl1 w = word_of_int (uint w BIT False)"
 
 definition shiftr1 :: "'a word \<Rightarrow> 'a word"
-  \<comment> "shift right as unsigned or as signed, ie logical or arithmetic"
+  \<comment> \<open>shift right as unsigned or as signed, ie logical or arithmetic\<close>
   where "shiftr1 w = word_of_int (bin_rest (uint w))"
 
 definition shiftl_def: "w << n = (shiftl1 ^^ n) w"
@@ -480,7 +480,7 @@ definition word_rsplit :: "'a::len0 word \<Rightarrow> 'b::len word list"
   where "word_rsplit w = map word_of_int (bin_rsplit (len_of TYPE('b)) (len_of TYPE('a), uint w))"
 
 definition max_word :: "'a::len word"
-  \<comment> "Largest representable machine integer."
+  \<comment> \<open>Largest representable machine integer.\<close>
   where "max_word = word_of_int (2 ^ len_of TYPE('a) - 1)"
 
 lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
@@ -3308,8 +3308,8 @@ lemma slice_take': "slice n w = of_bl (take (size w - n) (to_bl w))"
 
 lemmas slice_take = slice_take' [unfolded word_size]
 
-\<comment> "shiftr to a word of the same size is just slice,
-    slice is just shiftr then ucast"
+\<comment> \<open>shiftr to a word of the same size is just slice,
+    slice is just shiftr then ucast\<close>
 lemmas shiftr_slice = trans [OF shiftr_bl [THEN meta_eq_to_obj_eq] slice_take [symmetric]]
 
 lemma slice_shiftr: "slice n w = ucast (w >> n)"
@@ -3519,7 +3519,7 @@ lemma word_split_bl_eq:
    apply (rule refl conjI)+
   done
 
-\<comment> "keep quantifiers for use in simplification"
+\<comment> \<open>keep quantifiers for use in simplification\<close>
 lemma test_bit_split':
   "word_split c = (a, b) \<longrightarrow>
     (\<forall>n m.
@@ -3560,7 +3560,7 @@ lemma test_bit_split_eq:
 lemma word_cat_id: "word_cat a b = b"
   by (simp add: word_cat_bin' word_ubin.inverse_norm)
 
-\<comment> "limited hom result"
+\<comment> \<open>limited hom result\<close>
 lemma word_cat_hom:
   "len_of TYPE('a::len0) \<le> len_of TYPE('b::len0) + len_of TYPE('c::len0) \<Longrightarrow>
     (word_cat (word_of_int w :: 'b word) (b :: 'c word) :: 'a word) =
@@ -3696,7 +3696,7 @@ lemmas test_bit_rsplit_alt =
   trans [OF nth_rev_alt [THEN test_bit_cong]
   test_bit_rsplit [OF refl asm_rl diff_Suc_less]]
 
-\<comment> "lazy way of expressing that u and v, and su and sv, have same types"
+\<comment> \<open>lazy way of expressing that u and v, and su and sv, have same types\<close>
 lemma word_rsplit_len_indep [OF refl refl refl refl]:
   "[u,v] = p \<Longrightarrow> [su,sv] = q \<Longrightarrow> word_rsplit u = su \<Longrightarrow>
     word_rsplit v = sv \<Longrightarrow> length su = length sv"
@@ -3932,7 +3932,7 @@ lemma rotate_map2:
   by (induct n) (auto intro!: lth)
 
 
-\<comment> "corresponding equalities for word rotation"
+\<comment> \<open>corresponding equalities for word rotation\<close>
 
 lemma to_bl_rotl: "to_bl (word_rotl n w) = rotate n (to_bl w)"
   by (simp add: word_bl.Abs_inverse' word_rotl_def)

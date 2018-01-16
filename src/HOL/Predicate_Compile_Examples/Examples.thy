@@ -235,7 +235,7 @@ text \<open>thanks to Elke Salecker\<close>
 
 type_synonym vname = nat
 type_synonym vvalue = int
-type_synonym var_assign = "vname \<Rightarrow> vvalue"  \<comment>"variable assignment"
+type_synonym var_assign = "vname \<Rightarrow> vvalue"  \<comment> \<open>variable assignment\<close>
 
 datatype ir_expr = 
   IrConst vvalue
@@ -264,7 +264,7 @@ values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) 
 
 subsection \<open>Another semantics\<close>
 
-type_synonym name = nat \<comment>"For simplicity in examples"
+type_synonym name = nat \<comment> \<open>For simplicity in examples\<close>
 type_synonym state' = "name \<Rightarrow> nat"
 
 datatype aexp = N nat | V name | Plus aexp aexp

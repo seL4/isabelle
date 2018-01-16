@@ -70,7 +70,7 @@ definition
 
 definition
   diamond   :: "('a * 'a)set \<Rightarrow> bool" where
-    \<comment>\<open>confluence; Lambda/Commutation treats this more abstractly\<close>
+    \<comment> \<open>confluence; Lambda/Commutation treats this more abstractly\<close>
   "diamond(r) = (\<forall>x y. (x,y) \<in> r --> 
                   (\<forall>y'. (x,y') \<in> r --> 
                     (\<exists>z. (y,z) \<in> r & (y',z) \<in> r)))"

@@ -95,7 +95,7 @@ primrec
                   | C_Gets C X   => used evs
                   | Outpts C A X  => parts{X} \<union> (used evs)
                   | A_Gets A X   => used evs)"
-    \<comment>\<open>@{term Gets} always follows @{term Says} in real protocols. 
+    \<comment> \<open>@{term Gets} always follows @{term Says} in real protocols. 
        Likewise, @{term C_Gets} will always have to follow @{term Inputs}
        and @{term A_Gets} will always have to follow @{term Outpts}\<close>
 

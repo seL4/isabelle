@@ -20,12 +20,12 @@ theory ProgressSets imports Transformers begin
 subsection \<open>Complete Lattices and the Operator @{term cl}\<close>
 
 definition lattice :: "'a set set => bool" where
-   \<comment>\<open>Meier calls them closure sets, but they are just complete lattices\<close>
+   \<comment> \<open>Meier calls them closure sets, but they are just complete lattices\<close>
    "lattice L ==
          (\<forall>M. M \<subseteq> L --> \<Inter>M \<in> L) & (\<forall>M. M \<subseteq> L --> \<Union>M \<in> L)"
 
 definition cl :: "['a set set, 'a set] => 'a set" where
-   \<comment>\<open>short for ``closure''\<close>
+   \<comment> \<open>short for ``closure''\<close>
    "cl L r == \<Inter>{x. x\<in>L & r \<subseteq> x}"
 
 lemma UNIV_in_lattice: "lattice L ==> UNIV \<in> L"
@@ -156,8 +156,8 @@ text\<open>Part of the proof of the claim at the bottom of page 97.  It's
 proved separately because the argument requires a generalization over
 all @{term "act \<in> Acts F"}.\<close>
 lemma lattice_awp_lemma:
-  assumes TXC:  "T\<inter>X \<in> C" \<comment>\<open>induction hypothesis in theorem below\<close>
-      and BsubX:  "B \<subseteq> X"   \<comment>\<open>holds in inductive step\<close>
+  assumes TXC:  "T\<inter>X \<in> C" \<comment> \<open>induction hypothesis in theorem below\<close>
+      and BsubX:  "B \<subseteq> X"   \<comment> \<open>holds in inductive step\<close>
       and latt: "lattice C"
       and TC:   "T \<in> C"
       and BC:   "B \<in> C"
@@ -175,8 +175,8 @@ done
 
 text\<open>Remainder of the proof of the claim at the bottom of page 97.\<close>
 lemma lattice_lemma:
-  assumes TXC:  "T\<inter>X \<in> C" \<comment>\<open>induction hypothesis in theorem below\<close>
-      and BsubX:  "B \<subseteq> X"   \<comment>\<open>holds in inductive step\<close>
+  assumes TXC:  "T\<inter>X \<in> C" \<comment> \<open>induction hypothesis in theorem below\<close>
+      and BsubX:  "B \<subseteq> X"   \<comment> \<open>holds in inductive step\<close>
       and act:  "act \<in> Acts F"
       and latt: "lattice C"
       and TC:   "T \<in> C"
@@ -204,7 +204,7 @@ done
 
 text\<open>Induction step for the main lemma\<close>
 lemma progress_induction_step:
-  assumes TXC:  "T\<inter>X \<in> C" \<comment>\<open>induction hypothesis in theorem below\<close>
+  assumes TXC:  "T\<inter>X \<in> C" \<comment> \<open>induction hypothesis in theorem below\<close>
       and act:  "act \<in> Acts F"
       and Xwens: "X \<in> wens_set F B"
       and latt: "lattice C"
@@ -444,7 +444,7 @@ theorem decoupling_via_aux:
   assumes leadsTo: "F \<in> A leadsTo B"
       and prog: "{X. G' \<in> stable X} \<in> progress_set F UNIV B"
       and GG':  "G \<le> G'"  
-               \<comment>\<open>Beware!  This is the converse of the refinement relation!\<close>
+               \<comment> \<open>Beware!  This is the converse of the refinement relation!\<close>
   shows "F\<squnion>G \<in> A leadsTo B"
 proof -
   from prog have stable: "G' \<in> stable B"

@@ -594,7 +594,7 @@ definition
   "Lset(i) == transrec(i, %x f. \<Union>y\<in>x. DPow(f`y))"
 
 definition
-  L :: "i=>o" where \<comment>\<open>Kunen's definition VI 1.5, page 167\<close>
+  L :: "i=>o" where \<comment> \<open>Kunen's definition VI 1.5, page 167\<close>
   "L(x) == \<exists>i. Ord(i) & x \<in> Lset(i)"
 
 text\<open>NOT SUITABLE FOR REWRITING -- RECURSIVE!\<close>
@@ -837,7 +837,7 @@ done
 
 text\<open>The rank function for the constructible universe\<close>
 definition
-  lrank :: "i=>i" where \<comment>\<open>Kunen's definition VI 1.7\<close>
+  lrank :: "i=>i" where \<comment> \<open>Kunen's definition VI 1.7\<close>
   "lrank(x) == \<mu> i. x \<in> Lset(succ(i))"
 
 lemma L_I: "[|x \<in> Lset(i); Ord(i)|] ==> L(x)"

@@ -26,7 +26,7 @@ where
   KeyCryptKey_Nil:
     "KeyCryptKey DK K [] = False"
 | KeyCryptKey_Cons:
-      \<comment>\<open>Says is the only important case.
+      \<comment> \<open>Says is the only important case.
         1st case: CR5, where KC3 encrypts KC2.
         2nd case: any use of priEK C.
         Revision 1.12 has a more complicated version with separate treatment of
@@ -51,7 +51,7 @@ where
   KeyCryptNonce_Nil:
     "KeyCryptNonce EK K [] = False"
 | KeyCryptNonce_Cons:
-  \<comment>\<open>Says is the only important case.
+  \<comment> \<open>Says is the only important case.
     1st case: CR3, where KC1 encrypts NC2 (distinct from CR5 due to EXH);
     2nd case: CR5, where KC3 encrypts NC3;
     3rd case: CR6, where KC2 encrypts NC3;
@@ -59,8 +59,7 @@ where
     5th case: any use of @{term "priEK C"} (including CardSecret).
     NB the only Nonces we need to keep secret are CardSecret and NonceCCA.
     But we can't prove \<open>Nonce_compromise\<close> unless the relation covers ALL
-        nonces that the protocol keeps secret.
-\<close>
+        nonces that the protocol keeps secret.\<close>
   "KeyCryptNonce DK N (ev # evs) =
    (KeyCryptNonce DK N evs |
     (case ev of
@@ -91,22 +90,22 @@ inductive_set
   set_cr :: "event list set"
 where
 
-  Nil:    \<comment>\<open>Initial trace is empty\<close>
+  Nil:    \<comment> \<open>Initial trace is empty\<close>
           "[] \<in> set_cr"
 
-| Fake:    \<comment>\<open>The spy MAY say anything he CAN say.\<close>
+| Fake:    \<comment> \<open>The spy MAY say anything he CAN say.\<close>
            "[| evsf \<in> set_cr; X \<in> synth (analz (knows Spy evsf)) |]
             ==> Says Spy B X  # evsf \<in> set_cr"
 
-| Reception: \<comment>\<open>If A sends a message X to B, then B might receive it\<close>
+| Reception: \<comment> \<open>If A sends a message X to B, then B might receive it\<close>
              "[| evsr \<in> set_cr; Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_cr"
 
-| SET_CR1: \<comment>\<open>CardCInitReq: C initiates a run, sending a nonce to CCA\<close>
+| SET_CR1: \<comment> \<open>CardCInitReq: C initiates a run, sending a nonce to CCA\<close>
              "[| evs1 \<in> set_cr;  C = Cardholder k;  Nonce NC1 \<notin> used evs1 |]
               ==> Says C (CA i) \<lbrace>Agent C, Nonce NC1\<rbrace> # evs1 \<in> set_cr"
 
-| SET_CR2: \<comment>\<open>CardCInitRes: CA responds sending NC1 and its certificates\<close>
+| SET_CR2: \<comment> \<open>CardCInitRes: CA responds sending NC1 and its certificates\<close>
              "[| evs2 \<in> set_cr;
                  Gets (CA i) \<lbrace>Agent C, Nonce NC1\<rbrace> \<in> set evs2 |]
               ==> Says (CA i) C
@@ -116,7 +115,7 @@ where
                     # evs2 \<in> set_cr"
 
 | SET_CR3:
-   \<comment>\<open>RegFormReq: C sends his PAN and a new nonce to CA.
+   \<comment> \<open>RegFormReq: C sends his PAN and a new nonce to CA.
    C verifies that
     - nonce received is the same as that sent;
     - certificates are signed by RCA;
@@ -140,7 +139,7 @@ where
        # evs3 \<in> set_cr"
 
 | SET_CR4:
-    \<comment>\<open>RegFormRes:
+    \<comment> \<open>RegFormRes:
     CA responds sending NC2 back with a new nonce NCA, after checking that
      - the digital envelope is correctly encrypted by @{term "pubEK (CA i)"}
      - the entire message is encrypted with the same key found inside the
@@ -156,7 +155,7 @@ where
        # evs4 \<in> set_cr"
 
 | SET_CR5:
-   \<comment>\<open>CertReq: C sends his PAN, a new nonce, its proposed public signature key
+   \<comment> \<open>CertReq: C sends his PAN, a new nonce, its proposed public signature key
        and its half of the secret value to CA.
        We now assume that C has a fixed key pair, and he submits (pubSK C).
        The protocol does not require this key to be fresh.
@@ -183,13 +182,12 @@ where
     # evs5 \<in> set_cr"
 
 
-  \<comment>\<open>CertRes: CA responds sending NC3 back with its half of the secret value,
+  \<comment> \<open>CertRes: CA responds sending NC3 back with its half of the secret value,
    its signature certificate and the new cardholder signature
    certificate.  CA checks to have never certified the key proposed by C.
    NOTE: In Merchant Registration, the corresponding rule (4)
    uses the "sign" primitive. The encryption below is actually @{term EncK}, 
-   which is just @{term "Crypt K (sign SK X)"}.
-\<close>
+   which is just @{term "Crypt K (sign SK X)"}.\<close>
 
 | SET_CR6:
 "[| evs6 \<in> set_cr;
@@ -343,8 +341,8 @@ apply (erule rev_mp)
 apply (erule set_cr.induct)
 apply (frule_tac [8] Gets_certificate_valid)
 apply (frule_tac [6] Gets_certificate_valid, simp_all)
-apply (force dest!: usedI keysFor_parts_insert) \<comment>\<open>Fake\<close>
-apply (blast,auto)  \<comment>\<open>Others\<close>
+apply (force dest!: usedI keysFor_parts_insert) \<comment> \<open>Fake\<close>
+apply (blast,auto)  \<comment> \<open>Others\<close>
 done
 
 
@@ -553,8 +551,8 @@ lemma symKey_compromise [rule_format (no_asm)]:
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI) +
 apply (rule_tac [!] impI [THEN Key_analz_image_Key_lemma, THEN impI])+
-apply (valid_certificate_tac [8]) \<comment>\<open>for message 5\<close>
-apply (valid_certificate_tac [6]) \<comment>\<open>for message 5\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
+apply (valid_certificate_tac [6]) \<comment> \<open>for message 5\<close>
 apply (erule_tac [9] msg6_KeyCryptKey_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un imp_disjL
@@ -563,10 +561,10 @@ apply (simp_all
               K_fresh_not_KeyCryptKey
               DK_fresh_not_KeyCryptKey ball_conj_distrib
               analz_image_priEK disj_simps)
-  \<comment>\<open>9 seconds on a 1.6GHz machine\<close>
+  \<comment> \<open>9 seconds on a 1.6GHz machine\<close>
 apply spy_analz
-apply blast  \<comment>\<open>3\<close>
-apply blast  \<comment>\<open>5\<close>
+apply blast  \<comment> \<open>3\<close>
+apply blast  \<comment> \<open>5\<close>
 done
 
 text\<open>The remaining quantifiers seem to be essential.
@@ -579,8 +577,8 @@ lemma symKey_secrecy [rule_format]:
                 Cardholder c \<notin> bad -->
                 Key K \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct)
-apply (frule_tac [8] Gets_certificate_valid) \<comment>\<open>for message 5\<close>
-apply (frule_tac [6] Gets_certificate_valid) \<comment>\<open>for message 3\<close>
+apply (frule_tac [8] Gets_certificate_valid) \<comment> \<open>for message 5\<close>
+apply (frule_tac [6] Gets_certificate_valid) \<comment> \<open>for message 3\<close>
 apply (erule_tac [11] msg6_KeyCryptKey_disj [THEN disjE])
 apply (simp_all del: image_insert image_Un imp_disjL
          add: symKey_compromise fresh_notin_analz_knows_Spy
@@ -589,8 +587,8 @@ apply (simp_all del: image_insert image_Un imp_disjL
               K_fresh_not_KeyCryptKey
               DK_fresh_not_KeyCryptKey
               analz_image_priEK)
-  \<comment>\<open>2.5 seconds on a 1.6GHz machine\<close>
-apply spy_analz  \<comment>\<open>Fake\<close>
+  \<comment> \<open>2.5 seconds on a 1.6GHz machine\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
 apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)
 done
 
@@ -680,7 +678,7 @@ lemma not_KeyCryptNonce_cardSK [rule_format (no_asm)]:
      "[|cardSK \<notin> symKeys;  \<forall>C. cardSK \<noteq> priEK C;  evs \<in> set_cr|] ==>
       Key cardSK \<notin> analz (knows Spy evs) --> ~ KeyCryptNonce cardSK N evs"
 apply (erule set_cr.induct, analz_mono_contra, simp_all)
-apply (blast dest: not_KeyCryptKey_cardSK)  \<comment>\<open>6\<close>
+apply (blast dest: not_KeyCryptKey_cardSK)  \<comment> \<open>6\<close>
 done
 
 subsubsection\<open>Lemmas for message 5 and 6:
@@ -723,8 +721,8 @@ lemma Nonce_compromise [rule_format (no_asm)]:
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Nonce_analz_image_Key_lemma])+
-apply (frule_tac [8] Gets_certificate_valid) \<comment>\<open>for message 5\<close>
-apply (frule_tac [6] Gets_certificate_valid) \<comment>\<open>for message 3\<close>
+apply (frule_tac [8] Gets_certificate_valid) \<comment> \<open>for message 5\<close>
+apply (frule_tac [6] Gets_certificate_valid) \<comment> \<open>for message 3\<close>
 apply (frule_tac [11] msg6_KeyCryptNonce_disj)
 apply (erule_tac [13] disjE)
 apply (simp_all del: image_insert image_Un
@@ -734,13 +732,13 @@ apply (simp_all del: image_insert image_Un
               N_fresh_not_KeyCryptNonce
               DK_fresh_not_KeyCryptNonce K_fresh_not_KeyCryptKey
               ball_conj_distrib analz_image_priEK)
-  \<comment>\<open>14 seconds on a 1.6GHz machine\<close>
-apply spy_analz  \<comment>\<open>Fake\<close>
-apply blast  \<comment>\<open>3\<close>
-apply blast  \<comment>\<open>5\<close>
+  \<comment> \<open>14 seconds on a 1.6GHz machine\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
+apply blast  \<comment> \<open>3\<close>
+apply blast  \<comment> \<open>5\<close>
 txt\<open>Message 6\<close>
 apply (metis symKey_compromise)
-  \<comment>\<open>cardSK compromised\<close>
+  \<comment> \<open>cardSK compromised\<close>
 txt\<open>Simplify again--necessary because the previous simplification introduces
   some logical connectives\<close> 
 apply (force simp del: image_insert image_Un imp_disjL
@@ -773,12 +771,12 @@ lemma KC2_secure_lemma [rule_format]:
                Cardholder k \<notin> bad & CA i \<notin> bad)"
 apply (erule_tac P = "U \<in> H" for H in rev_mp)
 apply (erule set_cr.induct)
-apply (valid_certificate_tac [8])  \<comment>\<open>for message 5\<close>
+apply (valid_certificate_tac [8])  \<comment> \<open>for message 5\<close>
 apply (simp_all del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_knows_absorb
               analz_knows_absorb2 notin_image_iff)
-  \<comment>\<open>4 seconds on a 1.6GHz machine\<close>
-apply (simp_all (no_asm_simp)) \<comment>\<open>leaves 4 subgoals\<close>
+  \<comment> \<open>4 seconds on a 1.6GHz machine\<close>
+apply (simp_all (no_asm_simp)) \<comment> \<open>leaves 4 subgoals\<close>
 apply (blast intro!: analz_insertI)+
 done
 
@@ -798,8 +796,8 @@ lemma CardSecret_secrecy_lemma [rule_format]:
              \<in> parts (knows Spy evs) -->
           Nonce CardSecret \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
-apply (valid_certificate_tac [8]) \<comment>\<open>for message 5\<close>
-apply (valid_certificate_tac [6]) \<comment>\<open>for message 5\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
+apply (valid_certificate_tac [6]) \<comment> \<open>for message 5\<close>
 apply (frule_tac [9] msg6_KeyCryptNonce_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un imp_disjL
@@ -809,15 +807,15 @@ apply (simp_all
               N_fresh_not_KeyCryptNonce DK_fresh_not_KeyCryptNonce
               ball_conj_distrib Nonce_compromise symKey_compromise
               analz_image_priEK)
-  \<comment>\<open>2.5 seconds on a 1.6GHz machine\<close>
-apply spy_analz  \<comment>\<open>Fake\<close>
+  \<comment> \<open>2.5 seconds on a 1.6GHz machine\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
 apply (simp_all (no_asm_simp))
-apply blast  \<comment>\<open>1\<close>
-apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  \<comment>\<open>2\<close>
-apply blast  \<comment>\<open>3\<close>
-apply (blast dest: NC2_not_CardSecret Gets_imp_knows_Spy [THEN analz.Inj] analz_symKeys_Decrypt)  \<comment>\<open>4\<close>
-apply blast  \<comment>\<open>5\<close>
-apply (blast dest: KC2_secrecy)+  \<comment>\<open>Message 6: two cases\<close>
+apply blast  \<comment> \<open>1\<close>
+apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  \<comment> \<open>2\<close>
+apply blast  \<comment> \<open>3\<close>
+apply (blast dest: NC2_not_CardSecret Gets_imp_knows_Spy [THEN analz.Inj] analz_symKeys_Decrypt)  \<comment> \<open>4\<close>
+apply blast  \<comment> \<open>5\<close>
+apply (blast dest: KC2_secrecy)+  \<comment> \<open>Message 6: two cases\<close>
 done
 
 
@@ -864,8 +862,8 @@ lemma NonceCCA_secrecy_lemma [rule_format]:
              \<in> parts (knows Spy evs) -->
           Nonce NonceCCA \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
-apply (valid_certificate_tac [8]) \<comment>\<open>for message 5\<close>
-apply (valid_certificate_tac [6]) \<comment>\<open>for message 5\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
+apply (valid_certificate_tac [6]) \<comment> \<open>for message 5\<close>
 apply (frule_tac [9] msg6_KeyCryptNonce_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un imp_disjL
@@ -875,14 +873,14 @@ apply (simp_all
               N_fresh_not_KeyCryptNonce DK_fresh_not_KeyCryptNonce
               ball_conj_distrib Nonce_compromise symKey_compromise
               analz_image_priEK)
-  \<comment>\<open>3 seconds on a 1.6GHz machine\<close>
-apply spy_analz  \<comment>\<open>Fake\<close>
-apply blast  \<comment>\<open>1\<close>
-apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  \<comment>\<open>2\<close>
-apply blast  \<comment>\<open>3\<close>
-apply (blast dest: NC2_not_NonceCCA)  \<comment>\<open>4\<close>
-apply blast  \<comment>\<open>5\<close>
-apply (blast dest: KC2_secrecy)+  \<comment>\<open>Message 6: two cases\<close>
+  \<comment> \<open>3 seconds on a 1.6GHz machine\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
+apply blast  \<comment> \<open>1\<close>
+apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  \<comment> \<open>2\<close>
+apply blast  \<comment> \<open>3\<close>
+apply (blast dest: NC2_not_NonceCCA)  \<comment> \<open>4\<close>
+apply blast  \<comment> \<open>5\<close>
+apply (blast dest: KC2_secrecy)+  \<comment> \<open>Message 6: two cases\<close>
 done
 
 
@@ -935,16 +933,16 @@ lemma analz_image_pan [rule_format]:
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI impI)+
 apply (rule_tac [!] analz_image_pan_lemma)
-apply (valid_certificate_tac [8]) \<comment>\<open>for message 5\<close>
-apply (valid_certificate_tac [6]) \<comment>\<open>for message 5\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
+apply (valid_certificate_tac [6]) \<comment> \<open>for message 5\<close>
 apply (erule_tac [9] msg6_cardSK_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un
          add: analz_image_keys_simps disjoint_image_iff
               notin_image_iff analz_image_priEK)
-  \<comment>\<open>6 seconds on a 1.6GHz machine\<close>
+  \<comment> \<open>6 seconds on a 1.6GHz machine\<close>
 apply spy_analz
-apply (simp add: insert_absorb)  \<comment>\<open>6\<close>
+apply (simp add: insert_absorb)  \<comment> \<open>6\<close>
 done
 
 lemma analz_insert_pan:
@@ -966,18 +964,18 @@ lemma pan_confidentiality:
       & (CA i) \<in> bad"
 apply (erule rev_mp)
 apply (erule set_cr.induct)
-apply (valid_certificate_tac [8]) \<comment>\<open>for message 5\<close>
-apply (valid_certificate_tac [6]) \<comment>\<open>for message 5\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
+apply (valid_certificate_tac [6]) \<comment> \<open>for message 5\<close>
 apply (erule_tac [9] msg6_cardSK_disj [THEN disjE])
 apply (simp_all
          del: image_insert image_Un
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff analz_image_priEK)
-  \<comment>\<open>3.5 seconds on a 1.6GHz machine\<close>
-apply spy_analz  \<comment>\<open>fake\<close>
-apply blast  \<comment>\<open>3\<close>
-apply blast  \<comment>\<open>5\<close>
-apply (simp (no_asm_simp) add: insert_absorb)  \<comment>\<open>6\<close>
+  \<comment> \<open>3.5 seconds on a 1.6GHz machine\<close>
+apply spy_analz  \<comment> \<open>fake\<close>
+apply blast  \<comment> \<open>3\<close>
+apply blast  \<comment> \<open>5\<close>
+apply (simp (no_asm_simp) add: insert_absorb)  \<comment> \<open>6\<close>
 done
 
 

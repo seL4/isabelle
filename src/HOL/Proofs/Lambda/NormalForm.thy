@@ -146,7 +146,7 @@ lemma subst_Var_NF: "NF t \<Longrightarrow> NF (t[Var i/j])"
 
 lemma app_Var_NF: "NF t \<Longrightarrow> \<exists>t'. t \<degree> Var i \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
   apply (induct set: NF)
-  apply (simplesubst app_last)  \<comment>\<open>Using \<open>subst\<close> makes extraction fail\<close>
+  apply (simplesubst app_last)  \<comment> \<open>Using \<open>subst\<close> makes extraction fail\<close>
   apply (rule exI)
   apply (rule conjI)
   apply (rule rtranclp.rtrancl_refl)

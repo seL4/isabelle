@@ -67,7 +67,7 @@ qed
 
 subsubsection \<open>Choice principles\<close>
 
-lemma ex_new_if_finite: \<comment> "does not depend on def of finite at all"
+lemma ex_new_if_finite: \<comment> \<open>does not depend on def of finite at all\<close>
   assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
   shows "\<exists>a::'a. a \<notin> A"
 proof -

@@ -19,8 +19,8 @@ by (metis Un_commute Un_left_absorb)
 type_synonym key = nat
 
 consts
-  all_symmetric :: bool        \<comment>\<open>true if all keys are symmetric\<close>
-  invKey        :: "key=>key"  \<comment>\<open>inverse of a symmetric key\<close>
+  all_symmetric :: bool        \<comment> \<open>true if all keys are symmetric\<close>
+  invKey        :: "key=>key"  \<comment> \<open>inverse of a symmetric key\<close>
 
 specification (invKey)
   invKey [simp]: "invKey (invKey K) = K"
@@ -34,17 +34,17 @@ text\<open>The inverse of a symmetric key is itself; that of a public key
 definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 
-datatype  \<comment>\<open>We allow any number of friendly agents\<close>
+datatype  \<comment> \<open>We allow any number of friendly agents\<close>
   agent = Server | Friend nat | Spy
 
 datatype
-     msg = Agent  agent     \<comment>\<open>Agent names\<close>
-         | Number nat       \<comment>\<open>Ordinary integers, timestamps, ...\<close>
-         | Nonce  nat       \<comment>\<open>Unguessable nonces\<close>
-         | Key    key       \<comment>\<open>Crypto keys\<close>
-         | Hash   msg       \<comment>\<open>Hashing\<close>
-         | MPair  msg msg   \<comment>\<open>Compound messages\<close>
-         | Crypt  key msg   \<comment>\<open>Encryption, public- or shared-key\<close>
+     msg = Agent  agent     \<comment> \<open>Agent names\<close>
+         | Number nat       \<comment> \<open>Ordinary integers, timestamps, ...\<close>
+         | Nonce  nat       \<comment> \<open>Unguessable nonces\<close>
+         | Key    key       \<comment> \<open>Crypto keys\<close>
+         | Hash   msg       \<comment> \<open>Hashing\<close>
+         | MPair  msg msg   \<comment> \<open>Compound messages\<close>
+         | Crypt  key msg   \<comment> \<open>Encryption, public- or shared-key\<close>
 
 
 text\<open>Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...\<close>
@@ -56,11 +56,11 @@ translations
 
 
 definition HPair :: "[msg,msg] => msg" ("(4Hash[_] /_)" [0, 1000]) where
-    \<comment>\<open>Message Y paired with a MAC computed with the help of X\<close>
+    \<comment> \<open>Message Y paired with a MAC computed with the help of X\<close>
     "Hash[X] Y == \<lbrace> Hash\<lbrace>X,Y\<rbrace>, Y\<rbrace>"
 
 definition keysFor :: "msg set => key set" where
-    \<comment>\<open>Keys useful to decrypt elements of a message set\<close>
+    \<comment> \<open>Keys useful to decrypt elements of a message set\<close>
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
 

@@ -7,7 +7,7 @@ for r where
 refl:  "star r x x" |
 step:  "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
-hide_fact (open) refl step  \<comment>"names too generic"
+hide_fact (open) refl step  \<comment> \<open>names too generic\<close>
 
 lemma star_trans:
   "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"

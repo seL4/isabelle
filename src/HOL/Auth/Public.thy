@@ -132,17 +132,17 @@ well as asymmetric keys.  The theory \<open>Shared\<close> assumes that all keys
 are symmetric.\<close>
 
 consts
-  shrK    :: "agent => key"    \<comment>\<open>long-term shared keys\<close>
+  shrK    :: "agent => key"    \<comment> \<open>long-term shared keys\<close>
 
 specification (shrK)
   inj_shrK: "inj shrK"
-  \<comment>\<open>No two agents have the same long-term key\<close>
+  \<comment> \<open>No two agents have the same long-term key\<close>
    apply (rule exI [of _ "case_agent 0 (\<lambda>n. n + 2) 1"]) 
    apply (simp add: inj_on_def split: agent.split) 
    done
 
 axiomatization where
-  sym_shrK [iff]: "shrK X \<in> symKeys" \<comment>\<open>All shared keys are symmetric\<close>
+  sym_shrK [iff]: "shrK X \<in> symKeys" \<comment> \<open>All shared keys are symmetric\<close>
 
 text\<open>Injectiveness: Agents' long-term keys are distinct.\<close>
 lemmas shrK_injective = inj_shrK [THEN inj_eq]
@@ -394,7 +394,7 @@ lemma analz_image_freshK_lemma:
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 lemmas analz_image_freshK_simps =
-       simp_thms mem_simps \<comment>\<open>these two allow its use with \<open>only:\<close>\<close>
+       simp_thms mem_simps \<comment> \<open>these two allow its use with \<open>only:\<close>\<close>
        disj_comms 
        image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
        analz_insert_eq Un_upper2 [THEN analz_mono, THEN subsetD]

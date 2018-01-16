@@ -3795,7 +3795,7 @@ proof -
     { fix u v x
       assume uv: "sum u t = 1" "\<forall>x\<in>s. 0 \<le> v x" "sum v s = 1"
                  "(\<Sum>x\<in>s. v x *\<^sub>R x) = (\<Sum>v\<in>t. u v *\<^sub>R v)" "x \<in> t"
-      then have s: "s = (s - t) \<union> t" \<comment>\<open>split into separate cases\<close>
+      then have s: "s = (s - t) \<union> t" \<comment> \<open>split into separate cases\<close>
         using assms by auto
       have [simp]: "(\<Sum>x\<in>t. v x *\<^sub>R x) + (\<Sum>x\<in>s - t. v x *\<^sub>R x) = (\<Sum>x\<in>t. u x *\<^sub>R x)"
                    "sum v t + sum v (s - t) = 1"
@@ -3913,7 +3913,7 @@ next
       using assms by (simp add: aff_independent_finite)
     { fix a b and d::real
       assume ab: "a \<in> s" "b \<in> s" "a \<noteq> b"
-      then have s: "s = (s - {a,b}) \<union> {a,b}" \<comment>\<open>split into separate cases\<close>
+      then have s: "s = (s - {a,b}) \<union> {a,b}" \<comment> \<open>split into separate cases\<close>
         by auto
       have "(\<Sum>x\<in>s. if x = a then - d else if x = b then d else 0) = 0"
            "(\<Sum>x\<in>s. (if x = a then - d else if x = b then d else 0) *\<^sub>R x) = d *\<^sub>R b - d *\<^sub>R a"

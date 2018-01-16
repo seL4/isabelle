@@ -8,8 +8,8 @@ section "Types, class Declarations, and whole programs"
 theory Decl imports Term begin
 
 datatype ty
-  = NT           \<comment>\<open>null type\<close>
-  | Class cname  \<comment>\<open>class type\<close>
+  = NT           \<comment> \<open>null type\<close>
+  | Class cname  \<comment> \<open>class type\<close>
 
 text\<open>Field declaration\<close>
 type_synonym fdecl           
@@ -45,9 +45,9 @@ translations
   (type) "prog " \<leftharpoondown> (type) "cdecl list"
 
 axiomatization
-  Prog    :: prog       \<comment>\<open>program as a global value\<close>
+  Prog    :: prog       \<comment> \<open>program as a global value\<close>
 and
-  Object  :: cname      \<comment>\<open>name of root class\<close>
+  Object  :: cname      \<comment> \<open>name of root class\<close>
 
 
 definition "class" :: "cname \<rightharpoonup> class" where

@@ -1296,7 +1296,7 @@ by(rule rev_cases[of xs]) auto
 
 subsubsection \<open>@{const set}\<close>
 
-declare list.set[code_post]  \<comment>"pretty output"
+declare list.set[code_post]  \<comment> \<open>pretty output\<close>
 
 lemma finite_set [iff]: "finite (set xs)"
 by (induct xs) auto

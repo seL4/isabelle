@@ -8,17 +8,17 @@ section\<open>Distributed Resource Management System: the Client\<close>
 theory Client imports "../Rename" AllocBase begin
 
 type_synonym
-  tokbag = nat     \<comment>\<open>tokbags could be multisets...or any ordered type?\<close>
+  tokbag = nat     \<comment> \<open>tokbags could be multisets...or any ordered type?\<close>
 
 record state =
-  giv :: "tokbag list" \<comment>\<open>input history: tokens granted\<close>
-  ask :: "tokbag list" \<comment>\<open>output history: tokens requested\<close>
-  rel :: "tokbag list" \<comment>\<open>output history: tokens released\<close>
-  tok :: tokbag        \<comment>\<open>current token request\<close>
+  giv :: "tokbag list" \<comment> \<open>input history: tokens granted\<close>
+  ask :: "tokbag list" \<comment> \<open>output history: tokens requested\<close>
+  rel :: "tokbag list" \<comment> \<open>output history: tokens released\<close>
+  tok :: tokbag        \<comment> \<open>current token request\<close>
 
 record 'a state_d =
   state +  
-  dummy :: 'a          \<comment>\<open>new variables\<close>
+  dummy :: 'a          \<comment> \<open>new variables\<close>
 
 
 (*Array indexing is translated to list indexing as A[n] == A!(n-1). *)

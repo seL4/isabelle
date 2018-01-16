@@ -24,7 +24,7 @@ lemma WHILE_rule_sound:
   apply (unfold hoare_valid_def)
   apply (simp (no_asm))
   apply (rule fix_ind)
-    apply (simp (no_asm)) \<comment> "simplifier with enhanced \<open>adm\<close>-tactic"
+    apply (simp (no_asm)) \<comment> \<open>simplifier with enhanced \<open>adm\<close>-tactic\<close>
    apply (simp (no_asm))
   apply (simp (no_asm))
   apply blast

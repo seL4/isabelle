@@ -45,11 +45,11 @@ definition
    "all_distinct(l) == all_distinct0(l)=1"
   
 definition  
-  state_of :: "i =>i" \<comment>\<open>coersion from anyting to state\<close>  where
+  state_of :: "i =>i" \<comment> \<open>coersion from anyting to state\<close>  where
    "state_of(s) == if s \<in> state then s else st0"
 
 definition
-  lift :: "i =>(i=>i)" \<comment>\<open>simplifies the expression of programs\<close>  where
+  lift :: "i =>(i=>i)" \<comment> \<open>simplifies the expression of programs\<close>  where
    "lift(x) == %s. s`x"
 
 text\<open>function to show that the set of variables is infinite\<close>

@@ -73,7 +73,7 @@ text \<open>
 datatype perm =
     Readable
   | Writable
-  | Executable    \<comment> "(ignored)"
+  | Executable    \<comment> \<open>(ignored)\<close>
 
 type_synonym perms = "perm set"
 
@@ -875,11 +875,11 @@ lemma
   apply (unfold bogus_def bogus_path_def)
   apply (drule transitions_consD, rule transition.intros,
       (force simp add: eval)+, (simp add: eval)?)+
-    \<comment> "evaluate all operations"
+    \<comment> \<open>evaluate all operations\<close>
   apply (drule transitions_nilD)
-    \<comment> "reach final result"
+    \<comment> \<open>reach final result\<close>
   apply (simp add: invariant_def eval)
-    \<comment> "check the invariant"
+    \<comment> \<open>check the invariant\<close>
   done
 
 text \<open>

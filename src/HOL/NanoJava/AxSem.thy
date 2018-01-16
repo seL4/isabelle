@@ -72,13 +72,13 @@ where
                   Impl (D,m) {Q} ==>
              A \<turnstile> {P} Meth (C,m) {Q}"
 
-  \<comment>\<open>\<open>\<Union>Z\<close> instead of \<open>\<forall>Z\<close> in the conclusion and\\
+  \<comment> \<open>\<open>\<Union>Z\<close> instead of \<open>\<forall>Z\<close> in the conclusion and\\
        Z restricted to type state due to limitations of the inductive package\<close>
 | Impl: "\<forall>Z::state. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
                             (\<lambda>Cm. (P Z Cm, body Cm, Q Z Cm))`Ms ==>
                       A |\<turnstile> (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms"
 
-\<comment>\<open>structural rules\<close>
+\<comment> \<open>structural rules\<close>
 
 | Asm:  "   a \<in> A ==> A |\<turnstile> {a}"
 
@@ -86,12 +86,12 @@ where
 
 | ConjE: "[|A |\<turnstile> C; c \<in> C |] ==> A |\<turnstile> {c}"
 
-  \<comment>\<open>Z restricted to type state due to limitations of the inductive package\<close>
+  \<comment> \<open>Z restricted to type state due to limitations of the inductive package\<close>
 | Conseq:"[| \<forall>Z::state. A \<turnstile> {P' Z} c {Q' Z};
              \<forall>s t. (\<forall>Z. P' Z s --> Q' Z t) --> (P s --> Q t) |] ==>
             A \<turnstile> {P} c {Q }"
 
-  \<comment>\<open>Z restricted to type state due to limitations of the inductive package\<close>
+  \<comment> \<open>Z restricted to type state due to limitations of the inductive package\<close>
 | eConseq:"[| \<forall>Z::state. A \<turnstile>\<^sub>e {P' Z} e {Q' Z};
              \<forall>s v t. (\<forall>Z. P' Z s --> Q' Z v t) --> (P s --> Q v t) |] ==>
             A \<turnstile>\<^sub>e {P} e {Q }"

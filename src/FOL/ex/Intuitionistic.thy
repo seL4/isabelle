@@ -82,12 +82,12 @@ text \<open>The following are classically but not constructively valid.
   The attempt to prove them terminates quickly!\<close>
 lemma "((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P"
 apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
 oops
 
 lemma "(P \<and> Q \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> R) \<or> (Q \<longrightarrow> R)"
 apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
 oops
 
 
@@ -121,7 +121,7 @@ text\<open>Problem 1.1\<close>
 lemma
   "(\<forall>x. \<exists>y. \<forall>z. p(x) \<and> q(y) \<and> r(z)) \<longleftrightarrow>
     (\<forall>z. \<exists>y. \<forall>x. p(x) \<and> q(y) \<and> r(z))"
-  by (tactic \<open>IntPr.best_dup_tac @{context} 1\<close>)  \<comment>\<open>SLOW\<close>
+  by (tactic \<open>IntPr.best_dup_tac @{context} 1\<close>)  \<comment> \<open>SLOW\<close>
 
 text\<open>Problem 3.1\<close>
 lemma "\<not> (\<exists>x. \<forall>y. mem(y,x) \<longleftrightarrow> \<not> mem(x,x))"
@@ -239,28 +239,28 @@ text \<open>The attempt to prove them terminates quickly!\<close>
 
 lemma "((\<forall>x. P(x)) \<longrightarrow> Q) \<longrightarrow> (\<exists>x. P(x) \<longrightarrow> Q)"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-  apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+  apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
   oops
 
 lemma "(P \<longrightarrow> (\<exists>x. Q(x))) \<longrightarrow> (\<exists>x. P \<longrightarrow> Q(x))"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-  apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+  apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
   oops
 
 lemma "(\<forall>x. P(x) \<or> Q) \<longrightarrow> ((\<forall>x. P(x)) \<or> Q)"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-  apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+  apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
   oops
 
 lemma "(\<forall>x. \<not> \<not> P(x)) \<longrightarrow> \<not> \<not> (\<forall>x. P(x))"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-  apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+  apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
   oops
 
 text \<open>Classically but not intuitionistically valid.  Proved by a bug in 1986!\<close>
 lemma "\<exists>x. Q(x) \<longrightarrow> (\<forall>x. Q(x))"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
-  apply (rule asm_rl) \<comment>\<open>Checks that subgoals remain: proof failed.\<close>
+  apply (rule asm_rl) \<comment> \<open>Checks that subgoals remain: proof failed.\<close>
   oops
 
 
@@ -326,7 +326,7 @@ lemma
   "(\<not> \<not> (\<exists>x. p(x)) \<longleftrightarrow> \<not> \<not> (\<exists>x. q(x))) \<and>
     (\<forall>x. \<forall>y. p(x) \<and> q(y) \<longrightarrow> (r(x) \<longleftrightarrow> s(y)))
   \<longrightarrow> ((\<forall>x. p(x) \<longrightarrow> r(x)) \<longleftrightarrow> (\<forall>x. q(x) \<longrightarrow> s(x)))"
-  oops  \<comment>\<open>NOT PROVED\<close>
+  oops  \<comment> \<open>NOT PROVED\<close>
 
 text\<open>27\<close>
 lemma
@@ -398,7 +398,7 @@ lemma
         (\<forall>x z. \<not> P(x,z) \<longrightarrow> (\<exists>y. Q(y,z))) \<and>
         (\<not> \<not> (\<exists>x y. Q(x,y)) \<longrightarrow> (\<forall>x. R(x,x)))
     \<longrightarrow> \<not> \<not> (\<forall>x. \<exists>y. R(x,y))"
-  oops  \<comment>\<open>NOT PROVED\<close>
+  oops  \<comment> \<open>NOT PROVED\<close>
 
 text\<open>39\<close>
 lemma "\<not> (\<exists>x. \<forall>y. F(y,x) \<longleftrightarrow> \<not> F(y,y))"

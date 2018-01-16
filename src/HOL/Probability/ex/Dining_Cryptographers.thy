@@ -64,7 +64,7 @@ proof -
   have foldl_coin:
     "\<not> ?XOR (\<lambda>c. coin dc c \<noteq> coin dc (c + 1)) n"
   proof -
-    define n' where "n' = n" \<comment> "Need to hide n, as it is hidden in coin"
+    define n' where "n' = n" \<comment> \<open>Need to hide n, as it is hidden in coin\<close>
     have "?XOR (\<lambda>c. coin dc c \<noteq> coin dc (c + 1)) n'
         = (coin dc 0 \<noteq> coin dc n')"
       by (induct n') auto
@@ -81,7 +81,7 @@ proof -
   next
     assume "\<exists>k<n. payer dc = Some k"
     then obtain k where "k < n" and "payer dc = Some k" by auto
-    define l where "l = n" \<comment> "Need to hide n, as it is hidden in coin, payer etc."
+    define l where "l = n" \<comment> \<open>Need to hide n, as it is hidden in coin, payer etc.\<close>
     have "?XOR (\<lambda>c. (payer dc = Some c) \<noteq> (coin dc c \<noteq> coin dc (c + 1))) l =
         ((k < l) \<noteq> ?XOR (\<lambda>c. (coin dc c \<noteq> coin dc (c + 1))) l)"
       using \<open>payer dc = Some k\<close> by (induct l) auto

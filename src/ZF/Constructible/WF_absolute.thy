@@ -60,7 +60,7 @@ by (blast del: subsetI
 
 definition
   rtran_closure_mem :: "[i=>o,i,i,i] => o" where
-    \<comment>\<open>The property of belonging to \<open>rtran_closure(r)\<close>\<close>
+    \<comment> \<open>The property of belonging to \<open>rtran_closure(r)\<close>\<close>
     "rtran_closure_mem(M,A,r,p) ==
               \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
                omega(M,nnat) & n\<in>nnat & successor(M,n,n') &

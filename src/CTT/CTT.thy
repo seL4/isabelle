@@ -239,12 +239,10 @@ where
 
 
   \<comment> \<open>The type T\<close>
-  \<comment> \<open>
-    Martin-Löf's book (page 68) discusses elimination and computation.
+  \<comment> \<open>Martin-Löf's book (page 68) discusses elimination and computation.
     Elimination can be derived by computation and equality of types,
     but with an extra premise \<open>C(x)\<close> type \<open>x:T\<close>.
-    Also computation can be derived from elimination.
-  \<close>
+    Also computation can be derived from elimination.\<close>
 
   TF: "T type" and
   TI: "tt : T" and

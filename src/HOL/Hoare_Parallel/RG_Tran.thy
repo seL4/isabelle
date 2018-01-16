@@ -178,20 +178,20 @@ lemma cptn_onlyif_cptn_mod_aux [rule_format]:
   \<longrightarrow> (Some a, s) # (Q, t) # xs \<in> cptn_mod"
 apply(induct a)
 apply simp_all
-\<comment>\<open>basic\<close>
+\<comment> \<open>basic\<close>
 apply clarify
 apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,rule Basic,simp)
 apply clarify
 apply(erule ctran.cases,simp_all)
-\<comment>\<open>Seq1\<close>
+\<comment> \<open>Seq1\<close>
 apply(rule_tac xs="[(None,ta)]" in CptnModSeq2)
   apply(erule CptnModNone)
   apply(rule CptnModOne)
  apply simp
 apply simp
 apply(simp add:lift_def)
-\<comment>\<open>Seq2\<close>
+\<comment> \<open>Seq2\<close>
 apply(erule_tac x=sa in allE)
 apply(erule_tac x="Some P2" in allE)
 apply(erule allE,erule impE, assumption)
@@ -208,12 +208,12 @@ apply(erule_tac CptnModSeq2)
   apply (simp add:last_length)
  apply (simp add:last_length)
 apply(simp add:lift_def)
-\<comment>\<open>Cond\<close>
+\<comment> \<open>Cond\<close>
 apply clarify
 apply(erule ctran.cases,simp_all)
 apply(force elim: CptnModCondT)
 apply(force elim: CptnModCondF)
-\<comment>\<open>While\<close>
+\<comment> \<open>While\<close>
 apply  clarify
 apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,erule WhileF,simp)
@@ -223,7 +223,7 @@ apply (erule disjE)
  apply(force elim:CptnModWhile1)
 apply clarify
 apply(force simp add:last_length elim:CptnModWhile2)
-\<comment>\<open>await\<close>
+\<comment> \<open>await\<close>
 apply clarify
 apply(erule ctran.cases,simp_all)
 apply(rule CptnModNone,erule Await,simp+)
@@ -295,7 +295,7 @@ apply(erule cptn_mod.induct)
       apply(erule CondT,simp)
     apply(rule CptnComp)
      apply(erule CondF,simp)
-\<comment>\<open>Seq1\<close>
+\<comment> \<open>Seq1\<close>
 apply(erule cptn.cases,simp_all)
   apply(rule CptnOne)
  apply clarify
@@ -315,7 +315,7 @@ apply(rule CptnComp)
  apply(rule Seq2,simp)
 apply(drule_tac P=P1 in lift_is_cptn)
 apply(simp add:lift_def)
-\<comment>\<open>Seq2\<close>
+\<comment> \<open>Seq2\<close>
 apply(rule cptn_append_is_cptn)
   apply(drule_tac P=P1 in lift_is_cptn)
   apply(simp add:lift_def)
@@ -325,12 +325,12 @@ apply(frule_tac P=P1 in last_lift)
  apply(rule last_fst_esp)
  apply (simp add:last_length)
 apply(simp add:Cons_lift lift_def split_def last_conv_nth)
-\<comment>\<open>While1\<close>
+\<comment> \<open>While1\<close>
 apply(rule CptnComp)
  apply(rule WhileT,simp)
 apply(drule_tac P="While b P" in lift_is_cptn)
 apply(simp add:lift_def)
-\<comment>\<open>While2\<close>
+\<comment> \<open>While2\<close>
 apply(rule CptnComp)
  apply(rule WhileT,simp)
 apply(rule cptn_append_is_cptn)
@@ -496,7 +496,7 @@ apply(simp add:conjoin_def compat_label_def)
 apply clarify
 apply(erule_tac x="0" and P="\<lambda>j. H j \<longrightarrow> (P j \<or> Q j)" for H P Q in all_dupE, simp)
 apply(erule disjE)
-\<comment>\<open>first step is a Component step\<close>
+\<comment> \<open>first step is a Component step\<close>
  apply clarify 
  apply simp
  apply(subgoal_tac "a=(xs[i:=(fst(clist!i!0))])")
@@ -516,7 +516,7 @@ apply(erule disjE)
   apply(erule etranE,simp)
  apply(rule ParCptnComp)
   apply(erule ParComp,simp)
-\<comment>\<open>applying the induction hypothesis\<close>
+\<comment> \<open>applying the induction hypothesis\<close>
  apply(erule_tac x="xs[i := fst (clist ! i ! 0)]" in allE)
  apply(erule_tac x="snd (clist ! i ! 0)" in allE)
  apply(erule mp)
@@ -630,7 +630,7 @@ apply(erule disjE)
    apply(erule_tac x=ia and P="\<lambda>j. H j \<longrightarrow> (length (s j) = t)" for H s t in allE,force)
   apply force
  apply(erule_tac x=ia and P="\<lambda>j. H j \<longrightarrow> (length (s j) = t)" for H s t in allE,force)
-\<comment>\<open>first step is an environmental step\<close>
+\<comment> \<open>first step is an environmental step\<close>
 apply clarify
 apply(erule par_etran.cases)
 apply simp

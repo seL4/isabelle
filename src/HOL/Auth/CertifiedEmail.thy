@@ -31,20 +31,20 @@ definition "response" :: "agent => agent => nat => msg" where
 inductive_set certified_mail :: "event list set"
   where
 
-  Nil: \<comment>\<open>The empty trace\<close>
+  Nil: \<comment> \<open>The empty trace\<close>
      "[] \<in> certified_mail"
 
-| Fake: \<comment>\<open>The Spy may say anything he can say.  The sender field is correct,
+| Fake: \<comment> \<open>The Spy may say anything he can say.  The sender field is correct,
           but agents don't use that information.\<close>
       "[| evsf \<in> certified_mail; X \<in> synth(analz(spies evsf))|] 
        ==> Says Spy B X # evsf \<in> certified_mail"
 
-| FakeSSL: \<comment>\<open>The Spy may open SSL sessions with TTP, who is the only agent
+| FakeSSL: \<comment> \<open>The Spy may open SSL sessions with TTP, who is the only agent
     equipped with the necessary credentials to serve as an SSL server.\<close>
          "[| evsfssl \<in> certified_mail; X \<in> synth(analz(spies evsfssl))|]
           ==> Notes TTP \<lbrace>Agent Spy, Agent TTP, X\<rbrace> # evsfssl \<in> certified_mail"
 
-| CM1: \<comment>\<open>The sender approaches the recipient.  The message is a number.\<close>
+| CM1: \<comment> \<open>The sender approaches the recipient.  The message is a number.\<close>
  "[|evs1 \<in> certified_mail;
     Key K \<notin> used evs1;
     K \<in> symKeys;
@@ -55,7 +55,7 @@ inductive_set certified_mail :: "event list set"
                  Number cleartext, Nonce q, S2TTP\<rbrace> # evs1 
         \<in> certified_mail"
 
-| CM2: \<comment>\<open>The recipient records @{term S2TTP} while transmitting it and her
+| CM2: \<comment> \<open>The recipient records @{term S2TTP} while transmitting it and her
      password to @{term TTP} over an SSL channel.\<close>
  "[|evs2 \<in> certified_mail;
     Gets R \<lbrace>Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
@@ -66,7 +66,7 @@ inductive_set certified_mail :: "event list set"
    Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, Key(RPwd R), hr\<rbrace> # evs2
       \<in> certified_mail"
 
-| CM3: \<comment>\<open>@{term TTP} simultaneously reveals the key to the recipient and gives
+| CM3: \<comment> \<open>@{term TTP} simultaneously reveals the key to the recipient and gives
          a receipt to the sender.  The SSL channel does not authenticate 
          the client (@{term R}), but @{term TTP} accepts the message only 
          if the given password is that of the claimed sender, @{term R}.

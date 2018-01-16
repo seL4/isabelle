@@ -1341,8 +1341,7 @@ lemmas [simp] =
   if_False
   if_cancel
   if_eq_cancel
-  imp_disjL \<comment>
-   \<open>In general it seems wrong to add distributive laws by default: they
+  imp_disjL \<comment> \<open>In general it seems wrong to add distributive laws by default: they
     might cause exponential blow-up.  But \<open>imp_disjL\<close> has been in for a while
     and cannot be removed without affecting existing proofs.  Moreover,
     rewriting by \<open>(P \<or> Q \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (Q \<longrightarrow> R))\<close> might be justified on the

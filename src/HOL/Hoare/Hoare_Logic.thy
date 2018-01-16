@@ -92,7 +92,7 @@ done
 lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
-lemmas AbortRule = SkipRule  \<comment> "dummy version"
+lemmas AbortRule = SkipRule  \<comment> \<open>dummy version\<close>
 ML_file "hoare_tac.ML"
 
 method_setup vcg = \<open>

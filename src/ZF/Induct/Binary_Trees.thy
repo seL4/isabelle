@@ -21,11 +21,11 @@ lemma Br_neq_left: "l \<in> bt(A) ==> Br(x, l, r) \<noteq> l"
   by (induct arbitrary: x r set: bt) auto
 
 lemma Br_iff: "Br(a, l, r) = Br(a', l', r') \<longleftrightarrow> a = a' & l = l' & r = r'"
-  \<comment> "Proving a freeness theorem."
+  \<comment> \<open>Proving a freeness theorem.\<close>
   by (fast elim!: bt.free_elims)
 
 inductive_cases BrE: "Br(a, l, r) \<in> bt(A)"
-  \<comment> "An elimination rule, for type-checking."
+  \<comment> \<open>An elimination rule, for type-checking.\<close>
 
 text \<open>
   \medskip Lemmas to justify using @{term bt} in other recursive type

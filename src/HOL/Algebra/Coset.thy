@@ -85,7 +85,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 
 lemma (in group) coset_join2:
      "\<lbrakk>x \<in> carrier G;  subgroup H G;  x\<in>H\<rbrakk> \<Longrightarrow> H #> x = H"
-  \<comment>\<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
+  \<comment> \<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in monoid) r_coset_subset_G:
@@ -831,7 +831,7 @@ subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
   FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65)
-    \<comment>\<open>Actually defined for groups rather than monoids\<close>
+    \<comment> \<open>Actually defined for groups rather than monoids\<close>
    where "FactGroup G H = \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 
 lemma (in normal) setmult_closed:
@@ -897,7 +897,7 @@ text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
 
 definition
   kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
-    \<comment>\<open>the kernel of a homomorphism\<close>
+    \<comment> \<open>the kernel of a homomorphism\<close>
   where "kernel G H h = {x. x \<in> carrier G \<and> h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"

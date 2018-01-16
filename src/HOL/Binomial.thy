@@ -1194,7 +1194,7 @@ proof -
 qed
 
 lemma card_length_sum_list: "card {l::nat list. size l = m \<and> sum_list l = N} = (N + m - 1) choose N"
-  \<comment> "by Holden Lee, tidied by Tobias Nipkow"
+  \<comment> \<open>by Holden Lee, tidied by Tobias Nipkow\<close>
 proof (cases m)
   case 0
   then show ?thesis
@@ -1205,7 +1205,7 @@ next
     by (simp add: Suc)
   then show ?thesis
   proof (induct "N + m - 1" arbitrary: N m)
-    case 0  \<comment> "In the base case, the only solution is [0]."
+    case 0  \<comment> \<open>In the base case, the only solution is [0].\<close>
     have [simp]: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
       by (auto simp: length_Suc_conv)
     have "m = 1 \<and> N = 0"

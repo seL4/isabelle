@@ -57,7 +57,7 @@ text \<open>
 \<close>
 
 domain 'a d7 = d7a "'a d7 \<oplus> int lift" | d7b "'a \<otimes> 'a d7" | d7c (lazy "'a d7 \<rightarrow> 'a")
-  \<comment> "Indirect recursion detected, skipping proofs of (co)induction rules"
+  \<comment> \<open>Indirect recursion detected, skipping proofs of (co)induction rules\<close>
 
 text \<open>Note that \<open>d7.induct\<close> is absent.\<close>
 
@@ -94,12 +94,12 @@ text \<open>Induction rules for flat datatypes have no admissibility side-condit
 domain 'a flattree = Tip | Branch "'a flattree" "'a flattree"
 
 lemma "\<lbrakk>P \<bottom>; P Tip; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>; P x; P y\<rbrakk> \<Longrightarrow> P (Branch\<cdot>x\<cdot>y)\<rbrakk> \<Longrightarrow> P x"
-by (rule flattree.induct) \<comment> "no admissibility requirement"
+by (rule flattree.induct) \<comment> \<open>no admissibility requirement\<close>
 
 text \<open>Trivial datatypes will produce a warning message.\<close>
 
 domain triv = Triv triv triv
-  \<comment> "domain \<open>Domain_ex.triv\<close> is empty!"
+  \<comment> \<open>domain \<open>Domain_ex.triv\<close> is empty!\<close>
 
 lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
 

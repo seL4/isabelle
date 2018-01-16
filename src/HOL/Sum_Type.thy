@@ -212,7 +212,7 @@ subsection \<open>The Disjoint Sum of Sets\<close>
 definition Plus :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a + 'b) set"  (infixr "<+>" 65)
   where "A <+> B = Inl ` A \<union> Inr ` B"
 
-hide_const (open) Plus \<comment> "Valuable identifier"
+hide_const (open) Plus \<comment> \<open>Valuable identifier\<close>
 
 lemma InlI [intro!]: "a \<in> A \<Longrightarrow> Inl a \<in> A <+> B"
   by (simp add: Plus_def)

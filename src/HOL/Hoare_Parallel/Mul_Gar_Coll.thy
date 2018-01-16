@@ -249,12 +249,12 @@ lemma Mul_Propagate_Black:
 apply(unfold Mul_Propagate_Black_def)
 apply annhoare
 apply(simp_all add:Mul_PBInv_def mul_collector_defs Mul_Auxk_def Graph6 Graph7 Graph8 Graph12 mul_collector_defs Queue_def)
-\<comment>\<open>8 subgoals left\<close>
+\<comment> \<open>8 subgoals left\<close>
 apply force
 apply force
 apply force
 apply(force simp add:BtoW_def Graph_defs)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply(simp add: mul_collector_defs Graph12 Graph6 Graph7 Graph8)
 apply(disjE_tac)
@@ -269,7 +269,7 @@ apply(case_tac "M x! k x=Black")
   apply(force)
  apply(force)
 apply(rule disjI2, rule disjI1, erule subset_psubset_trans, erule Graph11, force)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply clarify
 apply(conjI_tac)
 apply(disjE_tac)
@@ -278,7 +278,7 @@ apply clarify
 apply(erule less_SucE)
  apply force
 apply (simp add:BtoW_def)
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply clarify
 apply simp
 apply(disjE_tac)
@@ -342,11 +342,11 @@ lemma Mul_Count:
 apply (unfold Mul_Count_def)
 apply annhoare
 apply(simp_all add:Mul_CountInv_def mul_collector_defs Mul_Auxk_def Graph6 Graph7 Graph8 Graph12 mul_collector_defs Queue_def)
-\<comment>\<open>7 subgoals left\<close>
+\<comment> \<open>7 subgoals left\<close>
 apply force
 apply force
 apply force
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply(conjI_tac)
 apply(disjE_tac)
@@ -357,7 +357,7 @@ apply(erule less_SucE)
  back
  apply force
 apply force
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply clarify
 apply(conjI_tac)
 apply(disjE_tac)
@@ -369,9 +369,9 @@ apply(erule less_SucE)
 apply simp
 apply(rotate_tac -1)
 apply (force simp add:Blacks_def)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply force
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply clarify
 apply(drule_tac x = "ind x" in le_imp_less_or_eq)
 apply (simp_all add:Blacks_def)
@@ -566,7 +566,7 @@ lemma Mul_interfree_Propagate_Black_Redirect_Edge: "\<lbrakk>0\<le>j; j<n\<rbrak
 apply (unfold mul_modules)
 apply interfree_aux
 apply(simp_all add:mul_mutator_defs mul_collector_defs Mul_PBInv_def nth_list_update Graph6)
-\<comment>\<open>7 subgoals left\<close>
+\<comment> \<open>7 subgoals left\<close>
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -574,7 +574,7 @@ apply(disjE_tac)
 apply(rule conjI)
  apply(rule impI,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(rule impI,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -582,7 +582,7 @@ apply(disjE_tac)
 apply(rule conjI)
  apply(rule impI,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(rule impI,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -606,7 +606,7 @@ apply(rule conjI)
  apply(force simp add:Queue_def less_Suc_eq_le less_length_filter_update)
 apply(rule impI,rule disjI2,rule disjI2,rule disjI1, erule le_less_trans)
 apply(force simp add:Queue_def less_Suc_eq_le less_length_filter_update)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -630,7 +630,7 @@ apply(rule conjI)
  apply(force simp add:Queue_def less_Suc_eq_le less_length_filter_update)
 apply(rule impI,rule disjI2,rule disjI2,rule disjI1, erule le_less_trans)
 apply(force simp add:Queue_def less_Suc_eq_le less_length_filter_update)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -686,7 +686,7 @@ apply(disjE_tac)
  apply (force simp add: nth_list_update)
 apply(rule impI, (rule disjI2)+, erule le_trans)
 apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply clarify
 apply(rule conjI)
  apply(disjE_tac)
@@ -756,7 +756,7 @@ apply(disjE_tac)
  apply(rule disjI1, erule less_le_trans)
  apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply force
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -795,7 +795,7 @@ lemma Mul_interfree_Propagate_Black_Color_Target: "\<lbrakk>0\<le>j; j<n\<rbrakk
 apply (unfold mul_modules)
 apply interfree_aux
 apply(simp_all add: mul_collector_defs mul_mutator_defs)
-\<comment>\<open>7 subgoals left\<close>
+\<comment> \<open>7 subgoals left\<close>
 apply clarify
 apply (simp add:Graph7 Graph8 Graph12)
 apply(disjE_tac)
@@ -805,7 +805,7 @@ apply(disjE_tac)
   apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update Graph10)
  apply((rule disjI2)+,erule subset_psubset_trans, erule Graph11, simp)
 apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply clarify
 apply (simp add:Graph7 Graph8 Graph12)
 apply(disjE_tac)
@@ -815,7 +815,7 @@ apply(disjE_tac)
   apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update Graph10)
  apply((rule disjI2)+,erule subset_psubset_trans, erule Graph11, simp)
 apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply clarify
 apply (simp add:mul_collector_defs Mul_PBInv_def Graph7 Graph8 Graph12)
 apply(disjE_tac)
@@ -833,7 +833,7 @@ apply(case_tac "M x!(T (Muts x!j))=Black")
  apply(erule le_trans)
  apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update Graph10)
 apply(rule disjI2,rule disjI1,erule subset_psubset_trans, erule Graph11, simp)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply (simp add:mul_collector_defs Mul_PBInv_def Graph7 Graph8 Graph12)
 apply(disjE_tac)
@@ -851,7 +851,7 @@ apply(case_tac "M x!(T (Muts x!j))=Black")
  apply(erule le_trans)
  apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update Graph10)
 apply(rule disjI2,rule disjI1,erule subset_psubset_trans, erule Graph11, simp)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply clarify
 apply (simp add:mul_collector_defs Mul_PBInv_def Graph7 Graph8 Graph12)
 apply(case_tac "M x!(T (Muts x!j))=Black")
@@ -866,7 +866,7 @@ apply(case_tac "M x!(T (Muts x!j))=Black")
 apply(rule conjI)
  apply(rule disjI2,rule disjI1, erule subset_psubset_trans,simp add:Graph11)
 apply (force simp add:nth_list_update)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply clarify
 apply(simp add:Mul_Auxk_def Graph7 Graph8 Graph12)
 apply(case_tac "M x!(T (Muts x!j))=Black")
@@ -887,7 +887,7 @@ apply(case_tac "M x!(T (Muts x!j))=Black")
 apply(rule conjI)
  apply(rule disjI2,rule disjI1, erule subset_psubset_trans,simp add:Graph11)
 apply (force simp add:nth_list_update)
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply clarify
 apply (simp add:mul_collector_defs Mul_PBInv_def Graph7 Graph8 Graph12)
 apply(case_tac "M x!(T (Muts x!j))=Black")
@@ -914,7 +914,7 @@ lemma Mul_interfree_Count_Redirect_Edge: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longri
   interfree_aux (Some(Mul_Count n ),{},Some(Mul_Redirect_Edge j n))"
 apply (unfold mul_modules)
 apply interfree_aux
-\<comment>\<open>9 subgoals left\<close>
+\<comment> \<open>9 subgoals left\<close>
 apply(simp add:mul_mutator_defs mul_collector_defs Mul_CountInv_def Graph6)
 apply clarify
 apply disjE_tac
@@ -928,9 +928,9 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
-\<comment>\<open>8 subgoals left\<close>
+\<comment> \<open>8 subgoals left\<close>
 apply(simp add:mul_mutator_defs nth_list_update)
-\<comment>\<open>7 subgoals left\<close>
+\<comment> \<open>7 subgoals left\<close>
 apply(simp add:mul_mutator_defs mul_collector_defs)
 apply clarify
 apply disjE_tac
@@ -944,7 +944,7 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply(simp add:mul_mutator_defs mul_collector_defs Mul_CountInv_def)
 apply clarify
 apply disjE_tac
@@ -958,7 +958,7 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply(simp add:mul_mutator_defs mul_collector_defs Mul_CountInv_def)
 apply clarify
 apply disjE_tac
@@ -972,7 +972,7 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply(simp add:mul_mutator_defs mul_collector_defs Mul_CountInv_def)
 apply clarify
 apply disjE_tac
@@ -986,9 +986,9 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply(simp add:mul_mutator_defs nth_list_update)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply(simp add:mul_mutator_defs mul_collector_defs Mul_CountInv_def)
 apply clarify
 apply disjE_tac
@@ -1002,7 +1002,7 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply(simp add:mul_mutator_defs nth_list_update)
 done
 
@@ -1019,7 +1019,7 @@ lemma Mul_interfree_Count_Color_Target: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longrig
 apply (unfold mul_modules)
 apply interfree_aux
 apply(simp_all add:mul_collector_defs mul_mutator_defs Mul_CountInv_def)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12)
@@ -1033,7 +1033,7 @@ apply disjE_tac
  apply((rule disjI2)+,(erule subset_psubset_trans)+, simp add: Graph11)
 apply (simp add: Graph7 Graph8 Graph12)
 apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12)
@@ -1047,7 +1047,7 @@ apply disjE_tac
  apply((rule disjI2)+,(erule subset_psubset_trans)+, simp add: Graph11)
 apply (simp add: Graph7 Graph8 Graph12)
 apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12)
@@ -1061,7 +1061,7 @@ apply disjE_tac
  apply((rule disjI2)+,(erule subset_psubset_trans)+, simp add: Graph11)
 apply (simp add: Graph7 Graph8 Graph12)
 apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12)
@@ -1075,7 +1075,7 @@ apply disjE_tac
  apply((rule disjI2)+,(erule subset_psubset_trans)+, simp add: Graph11)
 apply (simp add: Graph7 Graph8 Graph12)
 apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12 nth_list_update)
@@ -1093,7 +1093,7 @@ apply (simp add: Graph7 Graph8 Graph12)
 apply(rule conjI)
  apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
 apply (simp add: nth_list_update)
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12)
@@ -1171,11 +1171,11 @@ apply interfree_aux
 apply(simp_all add:mul_collector_mutator_interfree)
 apply(unfold mul_modules mul_collector_defs mul_mutator_defs)
 apply(tactic  \<open>TRYALL (interfree_aux_tac @{context})\<close>)
-\<comment>\<open>42 subgoals left\<close>
+\<comment> \<open>42 subgoals left\<close>
 apply (clarify,simp add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)+
-\<comment>\<open>24 subgoals left\<close>
+\<comment> \<open>24 subgoals left\<close>
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
-\<comment>\<open>14 subgoals left\<close>
+\<comment> \<open>14 subgoals left\<close>
 apply(tactic \<open>TRYALL (clarify_tac @{context})\<close>)
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 apply(tactic \<open>TRYALL (resolve_tac @{context} [conjI])\<close>)
@@ -1184,57 +1184,57 @@ apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
 apply(tactic \<open>TRYALL (eresolve_tac @{context} [conjE])\<close>)
 apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
 apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
-\<comment>\<open>72 subgoals left\<close>
+\<comment> \<open>72 subgoals left\<close>
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
-\<comment>\<open>35 subgoals left\<close>
+\<comment> \<open>35 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI1],
     resolve_tac @{context} [subset_trans],
     eresolve_tac @{context} @{thms Graph3},
     force_tac @{context},
     assume_tac @{context}])\<close>)
-\<comment>\<open>28 subgoals left\<close>
+\<comment> \<open>28 subgoals left\<close>
 apply(tactic \<open>TRYALL (eresolve_tac @{context} [conjE])\<close>)
 apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
-\<comment>\<open>34 subgoals left\<close>
+\<comment> \<open>34 subgoals left\<close>
 apply(rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(case_tac [!] "M x!(T (Muts x ! j))=Black")
 apply(simp_all add:Graph10)
-\<comment>\<open>47 subgoals left\<close>
+\<comment> \<open>47 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[REPEAT o resolve_tac @{context} [disjI2],
     eresolve_tac @{context} @{thms subset_psubset_trans},
     eresolve_tac @{context} @{thms Graph11},
     force_tac @{context}])\<close>)
-\<comment>\<open>41 subgoals left\<close>
+\<comment> \<open>41 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
     resolve_tac @{context} [disjI1],
     eresolve_tac @{context} @{thms le_trans},
     force_tac (@{context} addsimps @{thms Queue_def less_Suc_eq_le le_length_filter_update})])\<close>)
-\<comment>\<open>35 subgoals left\<close>
+\<comment> \<open>35 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
     resolve_tac @{context} [disjI1],
     eresolve_tac @{context} @{thms psubset_subset_trans},
     resolve_tac @{context} @{thms Graph9},
     force_tac @{context}])\<close>)
-\<comment>\<open>31 subgoals left\<close>
+\<comment> \<open>31 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
     resolve_tac @{context} [disjI1],
     eresolve_tac @{context} @{thms subset_psubset_trans},
     eresolve_tac @{context} @{thms Graph11},
     force_tac @{context}])\<close>)
-\<comment>\<open>29 subgoals left\<close>
+\<comment> \<open>29 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[REPEAT o resolve_tac @{context} [disjI2],
     eresolve_tac @{context} @{thms subset_psubset_trans},
     eresolve_tac @{context} @{thms subset_psubset_trans},
     eresolve_tac @{context} @{thms Graph11},
     force_tac @{context}])\<close>)
-\<comment>\<open>25 subgoals left\<close>
+\<comment> \<open>25 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
     resolve_tac @{context} [disjI2],
     resolve_tac @{context} [disjI1],
     eresolve_tac @{context} @{thms le_trans},
     force_tac (@{context} addsimps @{thms Queue_def less_Suc_eq_le le_length_filter_update})])\<close>)
-\<comment>\<open>10 subgoals left\<close>
+\<comment> \<open>10 subgoals left\<close>
 apply(rule disjI2,rule disjI2,rule conjI,erule less_le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update, rule disjI1, rule less_imp_le, erule less_le_trans, force simp add:Queue_def less_Suc_eq_le le_length_filter_update)+
 done
 
@@ -1247,9 +1247,9 @@ apply interfree_aux
 apply(simp_all add:mul_collector_mutator_interfree)
 apply(unfold mul_modules mul_collector_defs mul_mutator_defs)
 apply(tactic  \<open>TRYALL (interfree_aux_tac @{context})\<close>)
-\<comment>\<open>76 subgoals left\<close>
+\<comment> \<open>76 subgoals left\<close>
 apply (clarsimp simp add: nth_list_update)+
-\<comment>\<open>56 subgoals left\<close>
+\<comment> \<open>56 subgoals left\<close>
 apply (clarsimp simp add: Mul_AppendInv_def Append_to_free0 nth_list_update)+
 done
 
@@ -1269,7 +1269,7 @@ lemma Mul_Gar_Coll:
  COEND
  \<lbrace>False\<rbrace>"
 apply oghoare
-\<comment>\<open>Strengthening the precondition\<close>
+\<comment> \<open>Strengthening the precondition\<close>
 apply(rule Int_greatest)
  apply (case_tac n)
   apply(force simp add: Mul_Collector_def mul_mutator_defs mul_collector_defs nth_append)
@@ -1279,15 +1279,15 @@ apply clarify
 apply(case_tac i)
  apply(simp add:Mul_Collector_def mul_mutator_defs mul_collector_defs nth_append)
 apply(simp add: Mul_Mutator_def mul_mutator_defs mul_collector_defs nth_append nth_map_upt)
-\<comment>\<open>Collector\<close>
+\<comment> \<open>Collector\<close>
 apply(rule Mul_Collector)
-\<comment>\<open>Mutator\<close>
+\<comment> \<open>Mutator\<close>
 apply(erule Mul_Mutator)
-\<comment>\<open>Interference freedom\<close>
+\<comment> \<open>Interference freedom\<close>
 apply(simp add:Mul_interfree_Collector_Mutator)
 apply(simp add:Mul_interfree_Mutator_Collector)
 apply(simp add:Mul_interfree_Mutator_Mutator)
-\<comment>\<open>Weakening of the postcondition\<close>
+\<comment> \<open>Weakening of the postcondition\<close>
 apply(case_tac n)
  apply(simp add:Mul_Collector_def mul_mutator_defs mul_collector_defs nth_append)
 apply(simp add:Mul_Mutator_def mul_mutator_defs mul_collector_defs nth_append)

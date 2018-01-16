@@ -731,12 +731,12 @@ sublocale lgrp < def?: dgrp
 proof -
   show "dgrp(prod)" by unfold_locales
   from this interpret d: dgrp .
-  \<comment> Unit
+  \<comment> \<open>Unit\<close>
   have "dgrp.one(prod) = glob_one(prod)" by (rule d.one_def)
   also have "... = glob_one(prod) ** one" by (simp add: rone)
   also have "... = one" by (simp add: glob_lone)
   finally show "dgrp.one(prod) = one" .
-  \<comment> Inverse
+  \<comment> \<open>Inverse\<close>
   then have "dgrp.inv(prod, x) ** x = inv(x) ** x" by (simp add: glob_linv d.linv linv)
   then show "dgrp.inv(prod, x) = inv(x)" by (simp add: rcancel)
 qed

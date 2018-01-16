@@ -52,11 +52,11 @@ definition
 
 definition
   LEAST_FP :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("LFP\<index>") where
-  "LEAST_FP L f = \<Sqinter>\<^bsub>L\<^esub> {u \<in> carrier L. f u \<sqsubseteq>\<^bsub>L\<^esub> u}"    \<comment>\<open>least fixed point\<close>
+  "LEAST_FP L f = \<Sqinter>\<^bsub>L\<^esub> {u \<in> carrier L. f u \<sqsubseteq>\<^bsub>L\<^esub> u}"    \<comment> \<open>least fixed point\<close>
 
 definition
   GREATEST_FP:: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("GFP\<index>") where
-  "GREATEST_FP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    \<comment>\<open>greatest fixed point\<close>
+  "GREATEST_FP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    \<comment> \<open>greatest fixed point\<close>
 
 
 subsection \<open>Dual operators\<close>

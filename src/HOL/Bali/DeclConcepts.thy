@@ -250,28 +250,28 @@ by (cases m) (simp add: mhead_def member_is_static_simp)
 
 definition
   decliface :: "qtname \<times> 'a decl_scheme \<Rightarrow> qtname" where
-  "decliface = fst"          \<comment>\<open>get the interface component\<close>
+  "decliface = fst"          \<comment> \<open>get the interface component\<close>
 
 definition
   mbr :: "qtname \<times> memberdecl \<Rightarrow> memberdecl" where
-  "mbr = snd"            \<comment>\<open>get the memberdecl component\<close>
+  "mbr = snd"            \<comment> \<open>get the memberdecl component\<close>
 
 definition
   mthd :: "'b \<times> 'a \<Rightarrow> 'a" where
-  "mthd = snd"              \<comment>\<open>get the method component\<close>
-    \<comment>\<open>also used for mdecl, mhead\<close>
+  "mthd = snd"              \<comment> \<open>get the method component\<close>
+    \<comment> \<open>also used for mdecl, mhead\<close>
 
 definition
   fld :: "'b \<times> 'a decl_scheme \<Rightarrow> 'a decl_scheme" where
-  "fld = snd"               \<comment>\<open>get the field component\<close>
-    \<comment>\<open>also used for \<open>((vname \<times> qtname)\<times> field)\<close>\<close>
+  "fld = snd"               \<comment> \<open>get the field component\<close>
+    \<comment> \<open>also used for \<open>((vname \<times> qtname)\<times> field)\<close>\<close>
 
 \<comment> \<open>some mnemotic selectors for \<open>(vname \<times> qtname)\<close>\<close>
 
 definition
   fname:: "vname \<times> 'a \<Rightarrow> vname"
   where "fname = fst"
-    \<comment>\<open>also used for fdecl\<close>
+    \<comment> \<open>also used for fdecl\<close>
 
 definition
   declclassf:: "(vname \<times> qtname) \<Rightarrow> qtname"
@@ -326,7 +326,7 @@ by (simp add: fname_def)
 lemma declclassf_simp[simp]:"declclassf (n,c) = c"
 by (simp add: declclassf_def)
 
-  \<comment>\<open>some mnemotic selectors for \<open>(vname \<times> qtname)\<close>\<close>
+  \<comment> \<open>some mnemotic selectors for \<open>(vname \<times> qtname)\<close>\<close>
 
 definition
   fldname :: "vname \<times> qtname \<Rightarrow> vname"

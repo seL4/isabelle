@@ -13,11 +13,11 @@ typedecl vertex
   
 definition symcl :: "(vertex*vertex)set=>(vertex*vertex)set" where
   "symcl r == r \<union> (r^-1)"
-    \<comment>\<open>symmetric closure: removes the orientation of a relation\<close>
+    \<comment> \<open>symmetric closure: removes the orientation of a relation\<close>
 
 definition neighbors :: "[vertex, (vertex*vertex)set]=>vertex set" where
   "neighbors i r == ((r \<union> r^-1)``{i}) - {i}"
-    \<comment>\<open>Neighbors of a vertex i\<close>
+    \<comment> \<open>Neighbors of a vertex i\<close>
 
 definition R :: "[vertex, (vertex*vertex)set]=>vertex set" where
   "R i r == r``{i}"
@@ -27,7 +27,7 @@ definition A :: "[vertex, (vertex*vertex)set]=>vertex set" where
 
 definition reach :: "[vertex, (vertex*vertex)set]=> vertex set" where
   "reach i r == (r^+)``{i}"
-    \<comment>\<open>reachable and above vertices: the original notation was R* and A*\<close>
+    \<comment> \<open>reachable and above vertices: the original notation was R* and A*\<close>
 
 definition above :: "[vertex, (vertex*vertex)set]=> vertex set" where
   "above i r == ((r^-1)^+)``{i}"  
@@ -36,18 +36,18 @@ definition reverse :: "[vertex, (vertex*vertex) set]=>(vertex*vertex)set" where
   "reverse i r == (r - {(x,y). x=i | y=i} \<inter> r) \<union> ({(x,y). x=i|y=i} \<inter> r)^-1"
 
 definition derive1 :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" where
-    \<comment>\<open>The original definition\<close>
+    \<comment> \<open>The original definition\<close>
   "derive1 i r q == symcl r = symcl q &
                     (\<forall>k k'. k\<noteq>i & k'\<noteq>i -->((k,k'):r) = ((k,k'):q)) &
                     A i r = {} & R i q = {}"
 
 definition derive :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" where
-    \<comment>\<open>Our alternative definition\<close>
+    \<comment> \<open>Our alternative definition\<close>
   "derive i r q == A i r = {} & (q = reverse i r)"
 
 axiomatization where
   finite_vertex_univ:  "finite (UNIV :: vertex set)"
-    \<comment>\<open>we assume that the universe of vertices is finite\<close>
+    \<comment> \<open>we assume that the universe of vertices is finite\<close>
 
 declare derive_def [simp] derive1_def [simp] symcl_def [simp] 
         A_def [simp] R_def [simp] 

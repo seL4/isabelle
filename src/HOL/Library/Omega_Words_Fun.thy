@@ -529,20 +529,20 @@ theorem limit_is_suffix:
 proof -
   have "\<exists>k. range (suffix k x) \<subseteq> limit x"
   proof -
-    \<comment> "The set of letters that are not in the limit is certainly finite."
+    \<comment> \<open>The set of letters that are not in the limit is certainly finite.\<close>
     from fin have "finite (range x - limit x)"
       by simp
-    \<comment> "Moreover, any such letter occurs only finitely often"
+    \<comment> \<open>Moreover, any such letter occurs only finitely often\<close>
     moreover
     have "\<forall>a \<in> range x - limit x. finite (x -` {a})"
       by (auto simp add: limit_vimage)
-    \<comment> "Thus, there are only finitely many occurrences of such letters."
+    \<comment> \<open>Thus, there are only finitely many occurrences of such letters.\<close>
     ultimately have "finite (UN a : range x - limit x. x -` {a})"
       by (blast intro: finite_UN_I)
-    \<comment> "Therefore these occurrences are within some initial interval."
+    \<comment> \<open>Therefore these occurrences are within some initial interval.\<close>
     then obtain k where "(UN a : range x - limit x. x -` {a}) \<subseteq> {..<k}"
       by (blast dest: finite_nat_bounded)
-    \<comment> "This is just the bound we are looking for."
+    \<comment> \<open>This is just the bound we are looking for.\<close>
     hence "\<forall>m. k \<le> m \<longrightarrow> x m \<in> limit x"
       by (auto simp add: limit_vimage)
     hence "range (suffix k x) \<subseteq> limit x"
@@ -624,11 +624,11 @@ next
     fix a assume a: "a \<in> set w"
     then obtain k where k: "k < length w \<and> w!k = a"
       by (auto simp add: set_conv_nth)
-    \<comment> "the following bound is terrible, but it simplifies the proof"
+    \<comment> \<open>the following bound is terrible, but it simplifies the proof\<close>
     from nempty k have "\<forall>m. w\<^sup>\<omega> ((Suc m)*(length w) + k) = a"
       by (simp add: mod_add_left_eq [symmetric])
     moreover
-    \<comment> "why is the following so hard to prove??"
+    \<comment> \<open>why is the following so hard to prove??\<close>
     have "\<forall>m. m < (Suc m)*(length w) + k"
     proof
       fix m
@@ -672,10 +672,10 @@ lemma limit_o_inv:
   shows "\<exists>a \<in> (f -` {x}). a \<in> limit w"
 proof (rule ccontr)
   assume contra: "\<not> ?thesis"
-  \<comment> "hence, every element in the pre-image occurs only finitely often"
+  \<comment> \<open>hence, every element in the pre-image occurs only finitely often\<close>
   then have "\<forall>a \<in> (f -` {x}). finite {n. w n = a}"
     by (simp add: limit_def Inf_many_def)
-  \<comment> "so there are only finitely many occurrences of any such element"
+  \<comment> \<open>so there are only finitely many occurrences of any such element\<close>
   with fin have "finite (\<Union> a \<in> (f -` {x}). {n. w n = a})"
     by auto
   \<comment> \<open>these are precisely those positions where $x$ occurs in $f \circ w$\<close>
@@ -683,7 +683,7 @@ proof (rule ccontr)
   have "(\<Union> a \<in> (f -` {x}). {n. w n = a}) = {n. f(w n) = x}"
     by auto
   ultimately
-  \<comment> "so $x$ can occur only finitely often in the translated word"
+  \<comment> \<open>so $x$ can occur only finitely often in the translated word\<close>
   have "finite {n. f(w n) = x}"
     by simp
   \<comment> \<open>\ldots\ which yields a contradiction\<close>

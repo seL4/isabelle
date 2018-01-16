@@ -669,9 +669,9 @@ notepad
 begin
   assume a: A and b: B
   thm conjI
-  thm conjI [of A B]  \<comment> "instantiation"
-  thm conjI [of A B, OF a b]  \<comment> "instantiation and composition"
-  thm conjI [OF a b]  \<comment> "composition via unification (trivial)"
+  thm conjI [of A B]  \<comment> \<open>instantiation\<close>
+  thm conjI [of A B, OF a b]  \<comment> \<open>instantiation and composition\<close>
+  thm conjI [OF a b]  \<comment> \<open>composition via unification (trivial)\<close>
   thm conjI [OF \<open>A\<close> \<open>B\<close>]
 
   thm conjI [OF disjI1]
@@ -704,9 +704,9 @@ begin
       fix x
       assume "A x"
       show "B x" \<proof>
-    } \<comment> "implicit block structure made explicit"
+    } \<comment> \<open>implicit block structure made explicit\<close>
     note \<open>\<And>x. A x \<Longrightarrow> B x\<close>
-      \<comment> "side exit for the resulting rule"
+      \<comment> \<open>side exit for the resulting rule\<close>
   qed
 end
 
@@ -722,10 +722,10 @@ notepad
 begin
   assume r\<^sub>1: "A \<Longrightarrow> B \<Longrightarrow> C"  \<comment> \<open>simple rule (Horn clause)\<close>
 
-  have A \<proof>  \<comment> "prefix of facts via outer sub-proof"
+  have A \<proof>  \<comment> \<open>prefix of facts via outer sub-proof\<close>
   then have C
   proof (rule r\<^sub>1)
-    show B \<proof>  \<comment> "remaining rule premises via inner sub-proof"
+    show B \<proof>  \<comment> \<open>remaining rule premises via inner sub-proof\<close>
   qed
 
   have C

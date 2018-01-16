@@ -37,10 +37,10 @@ definition
      distr_follows(A, In, iIn, Out) \<inter> distr_allowed_acts(Out)"
 
 locale distr =
-  fixes In  \<comment>\<open>items to distribute\<close>
-    and iIn \<comment>\<open>destinations of items to distribute\<close>
-    and Out \<comment>\<open>distributed items\<close>
-    and A   \<comment>\<open>the type of items being distributed\<close>
+  fixes In  \<comment> \<open>items to distribute\<close>
+    and iIn \<comment> \<open>destinations of items to distribute\<close>
+    and Out \<comment> \<open>distributed items\<close>
+    and A   \<comment> \<open>the type of items being distributed\<close>
     and D
  assumes
      var_assumes [simp]:  "In \<in> var & iIn \<in> var & (\<forall>n. Out(n):var)"

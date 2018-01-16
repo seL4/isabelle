@@ -196,7 +196,7 @@ lemma unique_session_keys:
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule otway.induct, simp_all)
-apply blast+  \<comment>\<open>OR3 and OR4\<close>
+apply blast+  \<comment> \<open>OR3 and OR4\<close>
 done
 
 
@@ -259,11 +259,11 @@ lemma NA_Crypt_imp_Server_msg [rule_format]:
                            Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs)"
 apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all, blast)
-  subgoal \<comment>\<open>OR1: by freshness\<close>
+  subgoal \<comment> \<open>OR1: by freshness\<close>
     by blast  
-  subgoal \<comment>\<open>OR3\<close>
+  subgoal \<comment> \<open>OR3\<close>
     by (blast dest!: no_nonce_OR1_OR2 intro: unique_NA)
-  subgoal \<comment>\<open>OR4\<close>
+  subgoal \<comment> \<open>OR4\<close>
     by (blast intro!: Crypt_imp_OR1) 
 done
 
@@ -296,15 +296,15 @@ lemma secrecy_lemma:
       Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs -->
       Key K \<notin> analz (knows Spy evs)"
   apply (erule otway.induct, force, simp_all)
-  subgoal \<comment>\<open>Fake\<close>
+  subgoal \<comment> \<open>Fake\<close>
     by spy_analz
-  subgoal \<comment>\<open>OR2\<close>
+  subgoal \<comment> \<open>OR2\<close>
     by (drule OR2_analz_knows_Spy) (auto simp: analz_insert_eq)
-  subgoal \<comment>\<open>OR3\<close>
+  subgoal \<comment> \<open>OR3\<close>
     by (auto simp add: analz_insert_freshK pushes)
-  subgoal \<comment>\<open>OR4\<close>
+  subgoal \<comment> \<open>OR4\<close>
     by (drule OR4_analz_knows_Spy) (auto simp: analz_insert_eq)
-  subgoal \<comment>\<open>Oops\<close>
+  subgoal \<comment> \<open>Oops\<close>
     by (auto simp add: Says_Server_message_form analz_insert_freshK unique_session_keys)
   done
 
@@ -372,7 +372,7 @@ lemma unique_NB:
 apply (erule rev_mp, erule rev_mp)
 apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast+  \<comment>\<open>Fake, OR2\<close>
+apply blast+  \<comment> \<open>Fake, OR2\<close>
 done
 
 text\<open>If the encrypted message appears, and B has used Nonce NB,
@@ -390,13 +390,13 @@ lemma NB_Crypt_imp_Server_msg [rule_format]:
                     \<in> set evs)"
 apply simp
 apply (erule otway.induct, force, simp_all)
-  subgoal \<comment>\<open>Fake\<close>
+  subgoal \<comment> \<open>Fake\<close>
     by blast 
-  subgoal \<comment>\<open>OR2\<close>
+  subgoal \<comment> \<open>OR2\<close>
     by (force dest!: OR2_parts_knows_Spy)
-  subgoal \<comment>\<open>OR3\<close>
-    by (blast dest: unique_NB dest!: no_nonce_OR1_OR2)  \<comment>\<open>OR3\<close>
-  subgoal \<comment>\<open>OR4\<close>
+  subgoal \<comment> \<open>OR3\<close>
+    by (blast dest: unique_NB dest!: no_nonce_OR1_OR2)  \<comment> \<open>OR3\<close>
+  subgoal \<comment> \<open>OR4\<close>
     by (blast dest!: Crypt_imp_OR2) 
 done
 

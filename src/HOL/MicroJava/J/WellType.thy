@@ -38,14 +38,14 @@ definition more_spec :: "'c prog \<Rightarrow> (ty \<times> 'x) \<times> ty list
                                 list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'"
 
 definition appl_methds :: "'c prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> ((ty \<times> ty) \<times> ty list) set"
-  \<comment> "applicable methods, cf. 15.11.2.1"
+  \<comment> \<open>applicable methods, cf. 15.11.2.1\<close>
   where "appl_methds G C == \<lambda>(mn, pTs).
                      {((Class md,rT),pTs') |md rT mb pTs'.
                       method (G,C)  (mn, pTs') = Some (md,rT,mb) \<and>
                       list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'}"
 
 definition max_spec :: "'c prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> ((ty \<times> ty) \<times> ty list) set"
-  \<comment> "maximally specific methods, cf. 15.11.2.2"
+  \<comment> \<open>maximally specific methods, cf. 15.11.2.2\<close>
   where "max_spec G C sig == {m. m \<in>appl_methds G C sig \<and> 
                                        (\<forall>m'\<in>appl_methds G C sig.
                                          more_spec G m' m --> m' = m)}"
@@ -96,8 +96,8 @@ done
 
 type_synonym
   java_mb = "vname list \<times> (vname \<times> ty) list \<times> stmt \<times> expr"
-\<comment> "method body with parameter names, local variables, block, result expression."
-\<comment> "local variables might include This, which is hidden anyway"
+\<comment> \<open>method body with parameter names, local variables, block, result expression.\<close>
+\<comment> \<open>local variables might include This, which is hidden anyway\<close>
   
 inductive
   ty_expr :: "'c env => expr => ty => bool" ("_ \<turnstile> _ :: _" [51, 51, 51] 50)
@@ -106,19 +106,19 @@ inductive
 where
   
   NewC: "[| is_class (prg E) C |] ==>
-         E\<turnstile>NewC C::Class C"  \<comment> "cf. 15.8"
+         E\<turnstile>NewC C::Class C"  \<comment> \<open>cf. 15.8\<close>
 
-  \<comment> "cf. 15.15"
+  \<comment> \<open>cf. 15.15\<close>
 | Cast: "[| E\<turnstile>e::C; is_class (prg E) D;
             prg E\<turnstile>C\<preceq>? Class D |] ==>
          E\<turnstile>Cast D e:: Class D"
 
-  \<comment> "cf. 15.7.1"
+  \<comment> \<open>cf. 15.7.1\<close>
 | Lit:    "[| typeof (\<lambda>v. None) x = Some T |] ==>
          E\<turnstile>Lit x::T"
 
   
-  \<comment> "cf. 15.13.1"
+  \<comment> \<open>cf. 15.13.1\<close>
 | LAcc: "[| localT E v = Some T; is_type (prg E) T |] ==>
          E\<turnstile>LAcc v::T"
 
@@ -128,42 +128,42 @@ where
                         else T' = T \<and> T = PrimT Integer|] ==>
             E\<turnstile>BinOp bop e1 e2::T'"
 
-  \<comment> "cf. 15.25, 15.25.1"
+  \<comment> \<open>cf. 15.25, 15.25.1\<close>
 | LAss: "[| v ~= This;
             E\<turnstile>LAcc v::T;
             E\<turnstile>e::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>v::=e::T'"
 
-  \<comment> "cf. 15.10.1"
+  \<comment> \<open>cf. 15.10.1\<close>
 | FAcc: "[| E\<turnstile>a::Class C; 
             field (prg E,C) fn = Some (fd,fT) |] ==>
             E\<turnstile>{fd}a..fn::fT"
 
-  \<comment> "cf. 15.25, 15.25.1"
+  \<comment> \<open>cf. 15.25, 15.25.1\<close>
 | FAss: "[| E\<turnstile>{fd}a..fn::T;
             E\<turnstile>v        ::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>{fd}a..fn:=v::T'"
 
 
-  \<comment> "cf. 15.11.1, 15.11.2, 15.11.3"
+  \<comment> \<open>cf. 15.11.1, 15.11.2, 15.11.3\<close>
 | Call: "[| E\<turnstile>a::Class C;
             E\<turnstile>ps[::]pTs;
             max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')} |] ==>
          E\<turnstile>{C}a..mn({pTs'}ps)::rT"
 
-\<comment> "well-typed expression lists"
+\<comment> \<open>well-typed expression lists\<close>
 
-  \<comment> "cf. 15.11.???"
+  \<comment> \<open>cf. 15.11.???\<close>
 | Nil: "E\<turnstile>[][::][]"
 
-  \<comment> "cf. 15.11.???"
+  \<comment> \<open>cf. 15.11.???\<close>
 | Cons:"[| E\<turnstile>e::T;
            E\<turnstile>es[::]Ts |] ==>
         E\<turnstile>e#es[::]T#Ts"
 
-\<comment> "well-typed statements"
+\<comment> \<open>well-typed statements\<close>
 
 | Skip:"E\<turnstile>Skip\<surd>"
 
@@ -174,13 +174,13 @@ where
            E\<turnstile>s2\<surd> |] ==>
         E\<turnstile>s1;; s2\<surd>"
 
-  \<comment> "cf. 14.8"
+  \<comment> \<open>cf. 14.8\<close>
 | Cond:"[| E\<turnstile>e::PrimT Boolean;
            E\<turnstile>s1\<surd>;
            E\<turnstile>s2\<surd> |] ==>
          E\<turnstile>If(e) s1 Else s2\<surd>"
 
-  \<comment> "cf. 14.10"
+  \<comment> \<open>cf. 14.10\<close>
 | Loop:"[| E\<turnstile>e::PrimT Boolean;
            E\<turnstile>s\<surd> |] ==>
         E\<turnstile>While(e) s\<surd>"

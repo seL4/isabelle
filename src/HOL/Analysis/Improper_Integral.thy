@@ -1501,7 +1501,7 @@ next
       using bounded_integrals_over_subintervals [OF int_gab] unfolding bounded_pos real_norm_def by blast
     show "(\<lambda>x. f x \<bullet> j) absolutely_integrable_on cbox a b"
       using g
-    proof     \<comment>\<open>A lot of duplication in the two proofs\<close>
+    proof     \<comment> \<open>A lot of duplication in the two proofs\<close>
       assume fg [rule_format]: "\<forall>x\<in>cbox a b. f x \<bullet> j \<le> g x"
       have "(\<lambda>x. (f x \<bullet> j)) = (\<lambda>x. g x - (g x - (f x \<bullet> j)))"
         by simp

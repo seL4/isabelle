@@ -349,7 +349,7 @@ lemma comp_method [rule_format (no_asm)]:
         apply (simp add: map_of_map2)
         apply (simp (no_asm_simp) add: compMethod_def split_beta)
 
-       \<comment> "remaining subgoals"
+       \<comment> \<open>remaining subgoals\<close>
        apply (auto intro: inv_f_eq simp add: inj_on_def is_class_def)
   done
 

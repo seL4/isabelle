@@ -46,12 +46,12 @@ where
 | "G\<turnstile>s \<midarrow>e=\<succ>vf \<midarrow>n\<rightarrow>    s' \<equiv> G\<turnstile>s \<midarrow>In2  e\<succ>\<midarrow>n\<rightarrow> (In2 vf,  s')"
 | "G\<turnstile>s \<midarrow>e\<doteq>\<succ>v  \<midarrow>n\<rightarrow>    s' \<equiv> G\<turnstile>s \<midarrow>In3  e\<succ>\<midarrow>n\<rightarrow> (In3 v ,  s')"
 
-\<comment>\<open>propagation of abrupt completion\<close>
+\<comment> \<open>propagation of abrupt completion\<close>
 
 | Abrupt:   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (undefined3 t,(Some xc,s))"
 
 
-\<comment>\<open>evaluation of variables\<close>
+\<comment> \<open>evaluation of variables\<close>
 
 | LVar: "G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<midarrow>n\<rightarrow> Norm s"
 
@@ -67,7 +67,7 @@ where
 
 
 
-\<comment>\<open>evaluation of expressions\<close>
+\<comment> \<open>evaluation of expressions\<close>
 
 | NewC: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>halloc (CInst C)\<succ>a\<rightarrow> s2\<rbrakk> \<Longrightarrow>
@@ -129,7 +129,7 @@ where
          G\<turnstile>Norm s0 \<midarrow>Body D c
           -\<succ>the (locals (store s2) Result)\<midarrow>n\<rightarrow>abupd (absorb Ret) s3"
 
-\<comment>\<open>evaluation of expression lists\<close>
+\<comment> \<open>evaluation of expression lists\<close>
 
 | Nil:
                                 "G\<turnstile>Norm s0 \<midarrow>[]\<doteq>\<succ>[]\<midarrow>n\<rightarrow> Norm s0"
@@ -139,7 +139,7 @@ where
                              G\<turnstile>Norm s0 \<midarrow>e#es\<doteq>\<succ>v#vs\<midarrow>n\<rightarrow> s2"
 
 
-\<comment>\<open>execution of statements\<close>
+\<comment> \<open>execution of statements\<close>
 
 | Skip:                             "G\<turnstile>Norm s \<midarrow>Skip\<midarrow>n\<rightarrow> Norm s"
 

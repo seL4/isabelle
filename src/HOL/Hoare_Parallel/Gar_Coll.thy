@@ -162,7 +162,7 @@ apply(simp_all add:Graph6 Graph7 Graph8 Graph12)
       apply force
      apply force
     apply force
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply(simp add:Proper_Edges_def Proper_Roots_def Graph6 Graph7 Graph8 Graph12)
 apply (erule disjE)
@@ -188,10 +188,10 @@ apply(rule disjI1)
 apply(erule subset_psubset_trans)
 apply(erule Graph11)
 apply fast
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply force
 apply force
-\<comment>\<open>last\<close>
+\<comment> \<open>last\<close>
 apply clarify
 apply simp
 apply(subgoal_tac "ind x = length (E x)")
@@ -246,10 +246,10 @@ apply(simp_all add: Graph6 Graph7 Graph8 Graph12)
        apply force
       apply force
      apply force
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply clarify
 apply(simp add:BtoW_def Proper_Edges_def)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply clarify
 apply(simp add:Proper_Edges_def Graph6 Graph7 Graph8 Graph12)
 apply (erule disjE)
@@ -286,7 +286,7 @@ apply(rule disjI1)
 apply(erule subset_psubset_trans)
 apply(erule Graph11)
 apply fast
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply clarify
 apply(simp add:Proper_Edges_def Graph6 Graph7 Graph8 Graph12)
 apply (erule disjE)
@@ -303,7 +303,7 @@ apply (erule less_SucE)
   apply arith
  apply (simp add: BtoW_def)
 apply (simp add: BtoW_def)
-\<comment>\<open>last\<close>
+\<comment> \<open>last\<close>
 apply clarify
 apply simp
 apply(subgoal_tac "ind x = length (E x)")
@@ -520,7 +520,7 @@ lemma interfree_Propagate_Black_Redirect_Edge:
   "interfree_aux (Some Propagate_Black, {}, Some Redirect_Edge)"
 apply (unfold modules )
 apply interfree_aux
-\<comment>\<open>11 subgoals left\<close>
+\<comment> \<open>11 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(clarify, simp add:abbrev Graph6 Graph12)
@@ -535,7 +535,7 @@ apply(rule conjI)
  apply (force simp add:BtoW_def)
 apply(erule Graph4)
    apply simp+
-\<comment>\<open>7 subgoals left\<close>
+\<comment> \<open>7 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(erule conjE)+
 apply(erule disjE, erule disjI1, rule disjI2, rule allI, (rule impI)+, case_tac "R=i", rule conjI, erule sym)
@@ -547,7 +547,7 @@ apply(rule conjI)
  apply (force simp add:BtoW_def)
 apply(erule Graph4)
    apply simp+
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(erule conjE)+
 apply(rule conjI)
@@ -562,9 +562,9 @@ apply(rule conjI)
     apply simp+
 apply(simp add:BtoW_def nth_list_update)
 apply force
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(rule conjI)
  apply(erule disjE, erule disjI1, rule disjI2, rule allI, (rule impI)+, case_tac "R=i", rule conjI, erule sym)
@@ -588,9 +588,9 @@ apply(rule impI, rule impI, erule disjE, erule disjI1, case_tac "R = (ind x)" ,c
   apply simp+
  apply(force simp add:BtoW_def)
 apply(force simp add:BtoW_def)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12)
 apply(erule disjE, erule disjI1, rule disjI2, rule allI, (rule impI)+, case_tac "R=i", rule conjI, erule sym)
  apply clarify
@@ -615,21 +615,21 @@ lemma interfree_Propagate_Black_Color_Target:
   "interfree_aux (Some Propagate_Black, {}, Some Color_Target)"
 apply (unfold modules )
 apply interfree_aux
-\<comment>\<open>11 subgoals left\<close>
+\<comment> \<open>11 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)+
 apply(erule conjE)+
 apply(erule disjE,rule disjI1,erule psubset_subset_trans,erule Graph9,
       case_tac "M x!T=Black", rule disjI2,rotate_tac -1, simp add: Graph10, clarify,
       erule allE, erule impE, assumption, erule impE, assumption,
       simp add:BtoW_def, rule disjI1, erule subset_psubset_trans, erule Graph11, force)
-\<comment>\<open>7 subgoals left\<close>
+\<comment> \<open>7 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
 apply(erule conjE)+
 apply(erule disjE,rule disjI1,erule psubset_subset_trans,erule Graph9,
       case_tac "M x!T=Black", rule disjI2,rotate_tac -1, simp add: Graph10, clarify,
       erule allE, erule impE, assumption, erule impE, assumption,
       simp add:BtoW_def, rule disjI1, erule subset_psubset_trans, erule Graph11, force)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
 apply clarify
 apply (rule conjI)
@@ -638,9 +638,9 @@ apply (rule conjI)
       erule allE, erule impE, assumption, erule impE, assumption,
       simp add:BtoW_def, rule disjI1, erule subset_psubset_trans, erule Graph11, force)
 apply(simp add:nth_list_update)
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
 apply (rule conjI)
  apply(erule disjE,rule disjI1,erule psubset_subset_trans,erule Graph9,
@@ -651,15 +651,15 @@ apply(rule conjI)
 apply(simp add:nth_list_update)
 apply(rule impI,rule impI, case_tac "M x!T=Black",rotate_tac -1, force simp add: BtoW_def Graph10,
       erule subset_psubset_trans, erule Graph11, force)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
 apply(erule disjE,rule disjI1,erule psubset_subset_trans,erule Graph9,
       case_tac "M x!T=Black", rule disjI2,rotate_tac -1, simp add: Graph10, clarify,
       erule allE, erule impE, assumption, erule impE, assumption,
       simp add:BtoW_def, rule disjI1, erule subset_psubset_trans, erule Graph11, force)
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply(simp add:abbrev)
 done
 
@@ -674,9 +674,9 @@ lemma interfree_Count_Redirect_Edge:
   "interfree_aux (Some Count, {}, Some Redirect_Edge)"
 apply (unfold modules)
 apply interfree_aux
-\<comment>\<open>9 subgoals left\<close>
+\<comment> \<open>9 subgoals left\<close>
 apply(simp_all add:abbrev Graph6 Graph12)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph6 Graph12,
       erule disjE,erule disjI1,rule disjI2,rule subset_trans, erule Graph3,force,force)+
 done
@@ -693,17 +693,17 @@ lemma interfree_Count_Color_Target:
   "interfree_aux (Some Count, {}, Some Color_Target)"
 apply (unfold modules )
 apply interfree_aux
-\<comment>\<open>9 subgoals left\<close>
+\<comment> \<open>9 subgoals left\<close>
 apply(simp_all add:abbrev Graph7 Graph8 Graph12)
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 apply(clarify,simp add:abbrev Graph7 Graph8 Graph12,
       erule disjE, erule disjI1, rule disjI2,erule subset_trans, erule Graph9)+
-\<comment>\<open>2 subgoals left\<close>
+\<comment> \<open>2 subgoals left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
 apply(rule conjI)
  apply(erule disjE, erule disjI1, rule disjI2,erule subset_trans, erule Graph9)
 apply(simp add:nth_list_update)
-\<comment>\<open>1 subgoal left\<close>
+\<comment> \<open>1 subgoal left\<close>
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12,
       erule disjE, erule disjI1, rule disjI2,erule subset_trans, erule Graph9)
 done
@@ -769,9 +769,9 @@ apply interfree_aux
 apply(simp_all add:collector_mutator_interfree)
 apply(unfold modules collector_defs Mut_init_def)
 apply(tactic  \<open>TRYALL (interfree_aux_tac @{context})\<close>)
-\<comment>\<open>32 subgoals left\<close>
+\<comment> \<open>32 subgoals left\<close>
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
-\<comment>\<open>20 subgoals left\<close>
+\<comment> \<open>20 subgoals left\<close>
 apply(tactic\<open>TRYALL (clarify_tac @{context})\<close>)
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
@@ -800,10 +800,10 @@ apply interfree_aux
 apply(simp_all add:collector_mutator_interfree)
 apply(unfold modules collector_defs Mut_init_def)
 apply(tactic  \<open>TRYALL (interfree_aux_tac @{context})\<close>)
-\<comment>\<open>64 subgoals left\<close>
+\<comment> \<open>64 subgoals left\<close>
 apply(simp_all add:nth_list_update Invariants Append_to_free0)+
 apply(tactic\<open>TRYALL (clarify_tac @{context})\<close>)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply force
 apply(simp add:Append_to_free2)
 apply force

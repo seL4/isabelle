@@ -20,27 +20,27 @@ lemmas indicates the possibility of this attack.\<close>
 
 inductive_set otway :: "event list set"
   where
-   Nil: \<comment>\<open>The empty trace\<close>
+   Nil: \<comment> \<open>The empty trace\<close>
         "[] \<in> otway"
 
- | Fake: \<comment>\<open>The Spy may say anything he can say.  The sender field is correct,
+ | Fake: \<comment> \<open>The Spy may say anything he can say.  The sender field is correct,
             but agents don't use that information.\<close>
          "[| evsf \<in> otway;  X \<in> synth (analz (knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> otway"
 
         
- | Reception: \<comment>\<open>A message that has been sent can be received by the
+ | Reception: \<comment> \<open>A message that has been sent can be received by the
                   intended recipient.\<close>
               "[| evsr \<in> otway;  Says A B X \<in>set evsr |]
                ==> Gets B X # evsr \<in> otway"
 
- | OR1:  \<comment>\<open>Alice initiates a protocol run\<close>
+ | OR1:  \<comment> \<open>Alice initiates a protocol run\<close>
          "[| evs1 \<in> otway;  Nonce NA \<notin> used evs1 |]
           ==> Says A B \<lbrace>Nonce NA, Agent A, Agent B,
                          Crypt (shrK A) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
                  # evs1 \<in> otway"
 
- | OR2:  \<comment>\<open>Bob's response to Alice's message.
+ | OR2:  \<comment> \<open>Bob's response to Alice's message.
              This variant of the protocol does NOT encrypt NB.\<close>
          "[| evs2 \<in> otway;  Nonce NB \<notin> used evs2;
              Gets B \<lbrace>Nonce NA, Agent A, Agent B, X\<rbrace> \<in> set evs2 |]
@@ -49,7 +49,7 @@ inductive_set otway :: "event list set"
                     Crypt (shrK B) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
                  # evs2 \<in> otway"
 
- | OR3:  \<comment>\<open>The Server receives Bob's message and checks that the three NAs
+ | OR3:  \<comment> \<open>The Server receives Bob's message and checks that the three NAs
            match.  Then he sends a new session key to Bob with a packet for
            forwarding to Alice.\<close>
          "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
@@ -65,7 +65,7 @@ inductive_set otway :: "event list set"
                     Crypt (shrK B) \<lbrace>Nonce NB, Key KAB\<rbrace>\<rbrace>
                  # evs3 \<in> otway"
 
- | OR4:  \<comment>\<open>Bob receives the Server's (?) message and compares the Nonces with
+ | OR4:  \<comment> \<open>Bob receives the Server's (?) message and compares the Nonces with
              those in the message he previously sent the Server.
              Need @{term "B \<noteq> Server"} because we allow messages to self.\<close>
          "[| evs4 \<in> otway;  B \<noteq> Server;
@@ -76,7 +76,7 @@ inductive_set otway :: "event list set"
                \<in> set evs4 |]
           ==> Says B A \<lbrace>Nonce NA, X\<rbrace> # evs4 \<in> otway"
 
- | Oops: \<comment>\<open>This message models possible leaks of session keys.  The nonces
+ | Oops: \<comment> \<open>This message models possible leaks of session keys.  The nonces
              identify the protocol run.\<close>
          "[| evso \<in> otway;
              Says Server B \<lbrace>Nonce NA, X, Crypt (shrK B) \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>
@@ -202,7 +202,7 @@ lemma unique_session_keys:
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule otway.induct, simp_all)
-apply blast+  \<comment>\<open>OR3 and OR4\<close>
+apply blast+  \<comment> \<open>OR3 and OR4\<close>
 done
 
 
@@ -221,8 +221,8 @@ apply (frule_tac [7] Says_Server_message_form)
 apply (drule_tac [6] OR4_analz_knows_Spy)
 apply (drule_tac [4] OR2_analz_knows_Spy)
 apply (simp_all add: analz_insert_eq analz_insert_freshK pushes)
-apply spy_analz  \<comment>\<open>Fake\<close>
-apply (blast dest: unique_session_keys)+  \<comment>\<open>OR3, OR4, Oops\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
+apply (blast dest: unique_session_keys)+  \<comment> \<open>OR3, OR4, Oops\<close>
 done
 
 
@@ -266,11 +266,11 @@ lemma "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
                   Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs)"
 apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast  \<comment>\<open>Fake\<close>
-apply blast  \<comment>\<open>OR1: it cannot be a new Nonce, contradiction.\<close>
+apply blast  \<comment> \<open>Fake\<close>
+apply blast  \<comment> \<open>OR1: it cannot be a new Nonce, contradiction.\<close>
 txt\<open>OR3 and OR4\<close>
 apply (simp_all add: ex_disj_distrib)
- prefer 2 apply (blast intro!: Crypt_imp_OR1)  \<comment>\<open>OR4\<close>
+ prefer 2 apply (blast intro!: Crypt_imp_OR1)  \<comment> \<open>OR4\<close>
 txt\<open>OR3\<close>
 apply clarify
 (*The hypotheses at this point suggest an attack in which nonce NB is used

@@ -75,19 +75,19 @@ lemma "(| xpos = m, ypos = n, ... = p |) (| xpos:= 0 |) = (| xpos = 0, ypos = n,
 text \<open>\medskip Equality of records.\<close>
 
 lemma "n = n' ==> p = p' ==> (| xpos = n, ypos = p |) = (| xpos = n', ypos = p' |)"
-  \<comment> "introduction of concrete record equality"
+  \<comment> \<open>introduction of concrete record equality\<close>
   by simp
 
 lemma "(| xpos = n, ypos = p |) = (| xpos = n', ypos = p' |) ==> n = n'"
-  \<comment> "elimination of concrete record equality"
+  \<comment> \<open>elimination of concrete record equality\<close>
   by simp
 
 lemma "r (| xpos := n |) (| ypos := m |) = r (| ypos := m |) (| xpos := n |)"
-  \<comment> "introduction of abstract record equality"
+  \<comment> \<open>introduction of abstract record equality\<close>
   by simp
 
 lemma "r (| xpos := n |) = r (| xpos := n' |) ==> n = n'"
-  \<comment> "elimination of abstract record equality (manual proof)"
+  \<comment> \<open>elimination of abstract record equality (manual proof)\<close>
 proof -
   assume "r (| xpos := n |) = r (| xpos := n' |)" (is "?lhs = ?rhs")
   then have "xpos ?lhs = xpos ?rhs" by simp

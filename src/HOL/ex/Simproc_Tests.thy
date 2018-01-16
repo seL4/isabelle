@@ -346,7 +346,7 @@ notepad begin
 end
 
 lemma shows "a*(b*c)/(y*z) = d*(b::'a::linordered_field)*(x*a)/z"
-oops \<comment> "FIXME: need simproc to cover this case"
+oops \<comment> \<open>FIXME: need simproc to cover this case\<close>
 
 subsection \<open>\<open>divide_cancel_factor\<close>\<close>
 
@@ -374,7 +374,7 @@ end
 lemma
   fixes a b c d x y z :: "'a::linordered_field"
   shows "a*(b*c)/(y*z) = d*(b)*(x*a)/z"
-oops \<comment> "FIXME: need simproc to cover this case"
+oops \<comment> \<open>FIXME: need simproc to cover this case\<close>
 
 subsection \<open>\<open>linordered_ring_less_cancel_factor\<close>\<close>
 
@@ -444,7 +444,7 @@ lemma
   fixes x :: "'a::{linordered_field}"
   shows "2/3 * x + x / 3 = uu"
 apply (tactic \<open>test @{context} [@{simproc field_combine_numerals}]\<close>)?
-oops \<comment> "FIXME: test fails"
+oops \<comment> \<open>FIXME: test fails\<close>
 
 subsection \<open>\<open>nat_combine_numerals\<close>\<close>
 

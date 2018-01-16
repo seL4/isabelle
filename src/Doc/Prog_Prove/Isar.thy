@@ -1153,10 +1153,10 @@ lemma "ev (Suc m) \<Longrightarrow> \<not> ev m"
 proof(induction "Suc m" arbitrary: m rule: ev.induct)
   fix n assume IH: "\<And>m. n = Suc m \<Longrightarrow> \<not> ev m"
   show "\<not> ev (Suc n)"
-  proof \<comment>"contradiction"
+  proof \<comment> \<open>contradiction\<close>
     assume "ev(Suc n)"
     thus False
-    proof cases \<comment>"rule inversion"
+    proof cases \<comment> \<open>rule inversion\<close>
       fix k assume "n = Suc k" "ev k"
       thus False using IH by auto
     qed

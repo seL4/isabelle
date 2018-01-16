@@ -17,24 +17,24 @@ type_synonym command = "vertex=>(state*state)set"
   
 consts
   init :: "(vertex*vertex)set"  
-  \<comment>\<open>the initial state\<close>
+  \<comment> \<open>the initial state\<close>
 
 text\<open>Following the definitions given in section 4.4\<close>
 
 definition highest :: "[vertex, (vertex*vertex)set]=>bool"
   where "highest i r \<longleftrightarrow> A i r = {}"
-    \<comment>\<open>i has highest priority in r\<close>
+    \<comment> \<open>i has highest priority in r\<close>
   
 definition lowest :: "[vertex, (vertex*vertex)set]=>bool"
   where "lowest i r \<longleftrightarrow> R i r = {}"
-    \<comment>\<open>i has lowest priority in r\<close>
+    \<comment> \<open>i has lowest priority in r\<close>
 
 definition act :: command
   where "act i = {(s, s'). s'=reverse i s & highest i s}"
 
 definition Component :: "vertex=>state program"
   where "Component i = mk_total_program({init}, {act i}, UNIV)"
-    \<comment>\<open>All components start with the same initial state\<close>
+    \<comment> \<open>All components start with the same initial state\<close>
 
 
 text\<open>Some Abbreviations\<close>
@@ -49,11 +49,11 @@ definition Acyclic :: "state set"
 
 
 definition Maximal :: "state set"
-    \<comment>\<open>Every ``above'' set has a maximal vertex\<close>
+    \<comment> \<open>Every ``above'' set has a maximal vertex\<close>
   where "Maximal = (\<Inter>i. {s. ~highest i s-->(\<exists>j \<in> above i  s. highest j s)})"
 
 definition Maximal' :: "state set"
-    \<comment>\<open>Maximal vertex: equivalent definition\<close>
+    \<comment> \<open>Maximal vertex: equivalent definition\<close>
   where "Maximal' = (\<Inter>i. Highest i Un (\<Union>j. {s. j \<in> above i s} Int Highest j))"
 
   

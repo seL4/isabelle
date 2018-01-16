@@ -702,7 +702,7 @@ lemma subtype_reflexivity_semiautomated:
 using a b
 apply(nominal_induct T avoiding: \<Gamma> rule: ty.strong_induct)
 apply(auto simp add: ty.supp abs_supp supp_atm closed_in_def)
-  \<comment>\<open>Too bad that this instantiation cannot be found automatically by
+  \<comment> \<open>Too bad that this instantiation cannot be found automatically by
   \isakeyword{auto}; \isakeyword{blast} would find it if we had not used 
   an explicit definition for \<open>closed_in_def\<close>.\<close>
 apply(drule_tac x="(TVarB tyvrs ty2)#\<Gamma>" in meta_spec)
@@ -969,7 +969,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
     qed
   } note transitivity_lemma = this  
 
-  { \<comment>\<open>The transitivity proof is now by the auxiliary lemma.\<close>
+  { \<comment> \<open>The transitivity proof is now by the auxiliary lemma.\<close>
     case 1 
     from \<open>\<Gamma> \<turnstile> S <: Q\<close> and \<open>\<Gamma> \<turnstile> Q <: T\<close>
     show "\<Gamma> \<turnstile> S <: T" by (rule transitivity_lemma) 

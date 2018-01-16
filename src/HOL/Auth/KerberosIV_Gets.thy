@@ -18,7 +18,7 @@ abbreviation
 
 axiomatization where
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
-   \<comment>\<open>Tgs is secure --- we already know that Kas is secure\<close>
+   \<comment> \<open>Tgs is secure --- we already know that Kas is secure\<close>
 
 definition
  (* authKeys are those contained in an authTicket *)
@@ -1057,7 +1057,7 @@ apply (simp_all del: image_insert
         add: analz_image_freshK_simps AKcryptSK_Says shrK_not_AKcryptSK
              Oops2_not_AKcryptSK Auth_fresh_not_AKcryptSK
        Serv_fresh_not_AKcryptSK Says_Tgs_AKcryptSK Spy_analz_shrK)
-  \<comment>\<open>18 seconds on a 1.8GHz machine??\<close>
+  \<comment> \<open>18 seconds on a 1.8GHz machine??\<close>
 txt\<open>Fake\<close> 
 apply spy_analz
 txt\<open>Reception\<close>
@@ -1211,7 +1211,7 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbIV_gets.induct)
 apply (rule_tac [10] impI)+
-  \<comment>\<open>The Oops1 case is unusual: must simplify
+  \<comment> \<open>The Oops1 case is unusual: must simplify
     @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
    \<open>analz_mono_contra\<close> weaken it to
    @{term "Authkey \<notin> analz (spies evs)"},

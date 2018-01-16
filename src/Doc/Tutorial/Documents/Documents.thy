@@ -484,9 +484,9 @@ text \<open>
 \<close>
 
 lemma "A --> A"
-  \<comment> "a triviality of propositional logic"
-  \<comment> "(should not really bother)"
-  by (rule impI) \<comment> "implicit assumption step involved here"
+  \<comment> \<open>a triviality of propositional logic\<close>
+  \<comment> \<open>(should not really bother)\<close>
+  by (rule impI) \<comment> \<open>implicit assumption step involved here\<close>
 
 text \<open>
   \noindent The above output has been produced as follows:

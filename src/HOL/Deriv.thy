@@ -1216,14 +1216,14 @@ proof -
   then show ?thesis
   proof cases
     case 1
-    \<comment>\<open>@{term f} attains its maximum within the interval\<close>
+    \<comment> \<open>@{term f} attains its maximum within the interval\<close>
     obtain d where d: "0 < d" and bound: "\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
       using lemma_interval [OF 1] by blast
     then have bound': "\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> f y \<le> f x"
       using x_max by blast
     obtain l where der: "DERIV f x :> l"
       using differentiableD [OF dif [OF conjI [OF 1]]] ..
-    \<comment>\<open>the derivative at a local maximum is zero\<close>
+    \<comment> \<open>the derivative at a local maximum is zero\<close>
     have "l = 0"
       by (rule DERIV_local_max [OF der d bound'])
     with 1 der show ?thesis by auto

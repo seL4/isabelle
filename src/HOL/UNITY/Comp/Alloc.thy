@@ -12,52 +12,52 @@ begin
 subsection\<open>State definitions.  OUTPUT variables are locals\<close>
 
 record clientState =
-  giv :: "nat list"   \<comment>\<open>client's INPUT history:  tokens GRANTED\<close>
-  ask :: "nat list"   \<comment>\<open>client's OUTPUT history: tokens REQUESTED\<close>
-  rel :: "nat list"   \<comment>\<open>client's OUTPUT history: tokens RELEASED\<close>
+  giv :: "nat list"   \<comment> \<open>client's INPUT history:  tokens GRANTED\<close>
+  ask :: "nat list"   \<comment> \<open>client's OUTPUT history: tokens REQUESTED\<close>
+  rel :: "nat list"   \<comment> \<open>client's OUTPUT history: tokens RELEASED\<close>
 
 record 'a clientState_d =
   clientState +
-  dummy :: 'a       \<comment>\<open>dummy field for new variables\<close>
+  dummy :: 'a       \<comment> \<open>dummy field for new variables\<close>
 
 definition
-  \<comment>\<open>DUPLICATED FROM Client.thy, but with "tok" removed\<close>
-  \<comment>\<open>Maybe want a special theory section to declare such maps\<close>
+  \<comment> \<open>DUPLICATED FROM Client.thy, but with "tok" removed\<close>
+  \<comment> \<open>Maybe want a special theory section to declare such maps\<close>
   non_dummy :: "'a clientState_d => clientState"
   where "non_dummy s = (|giv = giv s, ask = ask s, rel = rel s|)"
 
 definition
-  \<comment>\<open>Renaming map to put a Client into the standard form\<close>
+  \<comment> \<open>Renaming map to put a Client into the standard form\<close>
   client_map :: "'a clientState_d => clientState*'a"
   where "client_map = funPair non_dummy dummy"
 
 
 record allocState =
-  allocGiv :: "nat => nat list"   \<comment>\<open>OUTPUT history: source of "giv" for i\<close>
-  allocAsk :: "nat => nat list"   \<comment>\<open>INPUT: allocator's copy of "ask" for i\<close>
-  allocRel :: "nat => nat list"   \<comment>\<open>INPUT: allocator's copy of "rel" for i\<close>
+  allocGiv :: "nat => nat list"   \<comment> \<open>OUTPUT history: source of "giv" for i\<close>
+  allocAsk :: "nat => nat list"   \<comment> \<open>INPUT: allocator's copy of "ask" for i\<close>
+  allocRel :: "nat => nat list"   \<comment> \<open>INPUT: allocator's copy of "rel" for i\<close>
 
 record 'a allocState_d =
   allocState +
-  dummy    :: 'a                \<comment>\<open>dummy field for new variables\<close>
+  dummy    :: 'a                \<comment> \<open>dummy field for new variables\<close>
 
 record 'a systemState =
   allocState +
-  client :: "nat => clientState"  \<comment>\<open>states of all clients\<close>
-  dummy  :: 'a                    \<comment>\<open>dummy field for new variables\<close>
+  client :: "nat => clientState"  \<comment> \<open>states of all clients\<close>
+  dummy  :: 'a                    \<comment> \<open>dummy field for new variables\<close>
 
 
-\<comment>\<open>* Resource allocation system specification *\<close>
+\<comment> \<open>* Resource allocation system specification *\<close>
 
 definition
-  \<comment>\<open>spec (1)\<close>
+  \<comment> \<open>spec (1)\<close>
   system_safety :: "'a systemState program set"
   where "system_safety =
      Always {s. (\<Sum>i \<in> lessThan Nclients. (tokens o giv o sub i o client)s)
      \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o rel o sub i o client)s)}"
 
 definition
-  \<comment>\<open>spec (2)\<close>
+  \<comment> \<open>spec (2)\<close>
   system_progress :: "'a systemState program set"
   where "system_progress = (INT i : lessThan Nclients.
                         INT h.
@@ -68,20 +68,20 @@ definition
   system_spec :: "'a systemState program set"
   where "system_spec = system_safety Int system_progress"
 
-\<comment>\<open>* Client specification (required) **\<close>
+\<comment> \<open>* Client specification (required) **\<close>
 
 definition
-  \<comment>\<open>spec (3)\<close>
+  \<comment> \<open>spec (3)\<close>
   client_increasing :: "'a clientState_d program set"
   where "client_increasing = UNIV guarantees  Increasing ask Int Increasing rel"
 
 definition
-  \<comment>\<open>spec (4)\<close>
+  \<comment> \<open>spec (4)\<close>
   client_bounded :: "'a clientState_d program set"
   where "client_bounded = UNIV guarantees  Always {s. ALL elt : set (ask s). elt \<le> NbT}"
 
 definition
-  \<comment>\<open>spec (5)\<close>
+  \<comment> \<open>spec (5)\<close>
   client_progress :: "'a clientState_d program set"
   where "client_progress =
          Increasing giv  guarantees
@@ -89,12 +89,12 @@ definition
                  LeadsTo {s. tokens h \<le> (tokens o rel) s})"
 
 definition
-  \<comment>\<open>spec: preserves part\<close>
+  \<comment> \<open>spec: preserves part\<close>
   client_preserves :: "'a clientState_d program set"
   where "client_preserves = preserves giv Int preserves clientState_d.dummy"
 
 definition
-  \<comment>\<open>environmental constraints\<close>
+  \<comment> \<open>environmental constraints\<close>
   client_allowed_acts :: "'a clientState_d program set"
   where "client_allowed_acts =
        {F. AllowedActs F =
@@ -105,17 +105,17 @@ definition
   where "client_spec = client_increasing Int client_bounded Int client_progress
                     Int client_allowed_acts Int client_preserves"
 
-\<comment>\<open>* Allocator specification (required) *\<close>
+\<comment> \<open>* Allocator specification (required) *\<close>
 
 definition
-  \<comment>\<open>spec (6)\<close>
+  \<comment> \<open>spec (6)\<close>
   alloc_increasing :: "'a allocState_d program set"
   where "alloc_increasing =
          UNIV  guarantees
          (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
 definition
-  \<comment>\<open>spec (7)\<close>
+  \<comment> \<open>spec (7)\<close>
   alloc_safety :: "'a allocState_d program set"
   where "alloc_safety =
          (INT i : lessThan Nclients. Increasing (sub i o allocRel))
@@ -124,7 +124,7 @@ definition
          \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocRel)s)}"
 
 definition
-  \<comment>\<open>spec (8)\<close>
+  \<comment> \<open>spec (8)\<close>
   alloc_progress :: "'a allocState_d program set"
   where "alloc_progress =
          (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
@@ -151,13 +151,13 @@ definition
     looked at.*)
 
 definition
-  \<comment>\<open>spec: preserves part\<close>
+  \<comment> \<open>spec: preserves part\<close>
   alloc_preserves :: "'a allocState_d program set"
   where "alloc_preserves = preserves allocRel Int preserves allocAsk Int
                         preserves allocState_d.dummy"
 
 definition
-  \<comment>\<open>environmental constraints\<close>
+  \<comment> \<open>environmental constraints\<close>
   alloc_allowed_acts :: "'a allocState_d program set"
   where "alloc_allowed_acts =
        {F. AllowedActs F =
@@ -168,17 +168,17 @@ definition
   where "alloc_spec = alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_allowed_acts Int alloc_preserves"
 
-\<comment>\<open>* Network specification *\<close>
+\<comment> \<open>* Network specification *\<close>
 
 definition
-  \<comment>\<open>spec (9.1)\<close>
+  \<comment> \<open>spec (9.1)\<close>
   network_ask :: "'a systemState program set"
   where "network_ask = (INT i : lessThan Nclients.
                         Increasing (ask o sub i o client)  guarantees
                         ((sub i o allocAsk) Fols (ask o sub i o client)))"
 
 definition
-  \<comment>\<open>spec (9.2)\<close>
+  \<comment> \<open>spec (9.2)\<close>
   network_giv :: "'a systemState program set"
   where "network_giv = (INT i : lessThan Nclients.
                         Increasing (sub i o allocGiv)
@@ -186,7 +186,7 @@ definition
                         ((giv o sub i o client) Fols (sub i o allocGiv)))"
 
 definition
-  \<comment>\<open>spec (9.3)\<close>
+  \<comment> \<open>spec (9.3)\<close>
   network_rel :: "'a systemState program set"
   where "network_rel = (INT i : lessThan Nclients.
                         Increasing (rel o sub i o client)
@@ -194,7 +194,7 @@ definition
                         ((sub i o allocRel) Fols (rel o sub i o client)))"
 
 definition
-  \<comment>\<open>spec: preserves part\<close>
+  \<comment> \<open>spec: preserves part\<close>
   network_preserves :: "'a systemState program set"
   where "network_preserves =
        preserves allocGiv  Int
@@ -202,7 +202,7 @@ definition
                                    preserves (ask o sub i o client))"
 
 definition
-  \<comment>\<open>environmental constraints\<close>
+  \<comment> \<open>environmental constraints\<close>
   network_allowed_acts :: "'a systemState program set"
   where "network_allowed_acts =
        {F. AllowedActs F =
@@ -218,7 +218,7 @@ definition
                      network_preserves"
 
 
-\<comment>\<open>* State mappings *\<close>
+\<comment> \<open>* State mappings *\<close>
 definition
   sysOfAlloc :: "((nat => clientState) * 'a) allocState_d => 'a systemState"
   where "sysOfAlloc = (%s. let (cl,xtr) = allocState_d.dummy s

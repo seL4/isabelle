@@ -31,7 +31,7 @@ lemma
   shows "x > 1 \<Longrightarrow> x \<le> 2 ^ 20 * log 2 x + 1 \<and> (sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
   using [[quickcheck_approximation_custom_seed = 1]]
   using [[quickcheck_approximation_epsilon = 0.00000001]]
-    \<comment>\<open>avoids spurious counterexamples in approximate computation of @{term "(sin x)\<^sup>2 + (cos x)\<^sup>2"}
+    \<comment> \<open>avoids spurious counterexamples in approximate computation of @{term "(sin x)\<^sup>2 + (cos x)\<^sup>2"}
       and therefore avoids expensive failing attempts for certification\<close>
   quickcheck[approximation, expect=counterexample, size=20]
   oops

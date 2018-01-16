@@ -458,7 +458,7 @@ apply(rule conjI)
   apply(subgoal_tac "x\<in> cp (Some(Await b P)) s")
   apply(erule_tac i=i in unique_ctran_Await,force,simp_all)
   apply(simp add:cp_def)
-\<comment>\<open>here starts the different part.\<close>
+\<comment> \<open>here starts the different part.\<close>
  apply(erule ctran.cases,simp_all)
  apply(drule Star_imp_cptn)
  apply clarify
@@ -740,7 +740,7 @@ apply(case_tac "\<exists>i<length x. fst(x!i)=Some Q")
   apply (simp del:list.map)
   apply(simp only:last_lift_not_None)
  apply simp
-\<comment>\<open>\<open>\<exists>i<length x. fst (x ! i) = Some Q\<close>\<close>
+\<comment> \<open>\<open>\<exists>i<length x. fst (x ! i) = Some Q\<close>\<close>
 apply(erule exE)
 apply(drule_tac n=i and P="\<lambda>i. i < length x \<and> fst (x ! i) = Some Q" in Ex_first_occurrence)
 apply clarify
@@ -882,13 +882,13 @@ lemma While_sound_aux [rule_format]:
 apply(erule cptn_mod.induct)
 apply safe
 apply (simp_all del:last.simps)
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply(simp add:comm_def)
-\<comment>\<open>4 subgoals left\<close>
+\<comment> \<open>4 subgoals left\<close>
 apply(rule etran_in_comm)
 apply(erule mp)
 apply(erule tl_of_assum_in_assum,simp)
-\<comment>\<open>While-None\<close>
+\<comment> \<open>While-None\<close>
 apply(ind_cases "((Some (While b P), s), None, t) \<in> ctran" for s t)
 apply(simp add:comm_def)
 apply(simp add:cptn_iff_cptn_mod [THEN sym])
@@ -913,7 +913,7 @@ apply(frule_tac j="0" and k="length ((None, s) # xs) - 1" and p=post in stabilit
  apply simp
 apply clarify
 apply (simp add:last_length)
-\<comment>\<open>WhileOne\<close>
+\<comment> \<open>WhileOne\<close>
 apply(thin_tac "P = While b P \<longrightarrow> Q" for Q)
 apply(rule ctran_in_comm,simp)
 apply(simp add:Cons_lift del:list.map)
@@ -949,23 +949,23 @@ apply(rule conjI)
  apply(case_tac "fst(xs!i)")
   apply force
  apply force
-\<comment>\<open>last=None\<close>
+\<comment> \<open>last=None\<close>
 apply clarify
 apply(subgoal_tac "(map (lift (While b P)) ((Some P, sa) # xs))\<noteq>[]")
  apply(drule last_conv_nth)
  apply (simp del:list.map)
  apply(simp only:last_lift_not_None)
 apply simp
-\<comment>\<open>WhileMore\<close>
+\<comment> \<open>WhileMore\<close>
 apply(thin_tac "P = While b P \<longrightarrow> Q" for Q)
 apply(rule ctran_in_comm,simp del:last.simps)
-\<comment>\<open>metiendo la hipotesis antes de dividir la conclusion.\<close>
+\<comment> \<open>metiendo la hipotesis antes de dividir la conclusion.\<close>
 apply(subgoal_tac "(Some (While b P), snd (last ((Some P, sa) # xs))) # ys \<in> assum (pre, rely)")
  apply (simp del:last.simps)
  prefer 2
  apply(erule assum_after_body)
   apply (simp del:last.simps)+
-\<comment>\<open>lo de antes.\<close>
+\<comment> \<open>lo de antes.\<close>
 apply(simp add:comm_def del:list.map last.simps)
 apply(rule conjI)
  apply clarify
@@ -1001,7 +1001,7 @@ apply(rule conjI)
   apply(case_tac "fst(xs!i)")
    apply force
  apply force
-\<comment>\<open>\<open>i \<ge> length xs\<close>\<close>
+\<comment> \<open>\<open>i \<ge> length xs\<close>\<close>
 apply(subgoal_tac "i-length xs <length ys")
  prefer 2
  apply arith
@@ -1012,7 +1012,7 @@ apply(case_tac "i=length xs")
  apply(erule mp)
  apply(case_tac "last((Some P, sa) # xs)")
  apply(simp add:lift_def del:last.simps)
-\<comment>\<open>\<open>i>length xs\<close>\<close>
+\<comment> \<open>\<open>i>length xs\<close>\<close>
 apply(case_tac "i-length xs")
  apply arith
 apply(simp add:nth_append del:list.map last.simps)
@@ -1021,7 +1021,7 @@ apply(subgoal_tac "i- Suc (length xs)=nat")
  prefer 2
  apply arith
 apply simp
-\<comment>\<open>last=None\<close>
+\<comment> \<open>last=None\<close>
 apply clarify
 apply(case_tac ys)
  apply(simp add:Cons_lift del:list.map last.simps)
@@ -1107,16 +1107,16 @@ lemma two:
   \<longrightarrow> (snd(clist!i!j), snd(clist!i!Suc j)) \<in> Guar(xs!i)"
 apply(unfold par_cp_def)
 apply (rule ccontr)
-\<comment>\<open>By contradiction:\<close>
+\<comment> \<open>By contradiction:\<close>
 apply simp
 apply(erule exE)
-\<comment>\<open>the first c-tran that does not satisfy the guarantee-condition is from \<open>\<sigma>_i\<close> at step \<open>m\<close>.\<close>
+\<comment> \<open>the first c-tran that does not satisfy the guarantee-condition is from \<open>\<sigma>_i\<close> at step \<open>m\<close>.\<close>
 apply(drule_tac n=j and P="\<lambda>j. \<exists>i. H i j" for H in Ex_first_occurrence)
 apply(erule exE)
 apply clarify
-\<comment>\<open>\<open>\<sigma>_i \<in> A(pre, rely_1)\<close>\<close>
+\<comment> \<open>\<open>\<sigma>_i \<in> A(pre, rely_1)\<close>\<close>
 apply(subgoal_tac "take (Suc (Suc m)) (clist!i) \<in> assum(Pre(xs!i), Rely(xs!i))")
-\<comment>\<open>but this contradicts \<open>\<Turnstile> \<sigma>_i sat [pre_i,rely_i,guar_i,post_i]\<close>\<close>
+\<comment> \<open>but this contradicts \<open>\<Turnstile> \<sigma>_i sat [pre_i,rely_i,guar_i,post_i]\<close>\<close>
  apply(erule_tac x=i and P="\<lambda>i. H i \<longrightarrow> \<Turnstile> (J i) sat [I i,K i,M i,N i]" for H J I K M N in allE,erule impE,assumption)
  apply(simp add:com_validity_def)
  apply(erule_tac x=s in allE)
@@ -1142,9 +1142,9 @@ apply simp
 apply(simp add:conjoin_def compat_label_def)
 apply clarify
 apply(erule_tac x=ia and P="\<lambda>j. H j \<longrightarrow> (P j) \<or> Q j" for H P Q in allE,simp)
-\<comment>\<open>each etran in \<open>\<sigma>_1[0\<dots>m]\<close> corresponds to\<close>
+\<comment> \<open>each etran in \<open>\<sigma>_1[0\<dots>m]\<close> corresponds to\<close>
 apply(erule disjE)
-\<comment>\<open>a c-tran in some \<open>\<sigma>_{ib}\<close>\<close>
+\<comment> \<open>a c-tran in some \<open>\<sigma>_{ib}\<close>\<close>
  apply clarify
  apply(case_tac "i=ib",simp)
   apply(erule etranE,simp)
@@ -1160,7 +1160,7 @@ apply(erule disjE)
  apply(simp add:same_state_def)
  apply(erule_tac x=i and P="\<lambda>j. (T j) \<longrightarrow> (\<forall>i. (H j i) \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in all_dupE)
  apply(erule_tac x=ib and P="\<lambda>j. (T j) \<longrightarrow> (\<forall>i. (H j i) \<longrightarrow> (snd (d j i))=(snd (e j i)))" for T H d e in allE,simp)
-\<comment>\<open>or an e-tran in \<open>\<sigma>\<close>,
+\<comment> \<open>or an e-tran in \<open>\<sigma>\<close>,
 therefore it satisfies \<open>rely \<or> guar_{ib}\<close>\<close>
 apply (force simp add:par_assum_def same_state_def)
 done

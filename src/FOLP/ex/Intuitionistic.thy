@@ -138,7 +138,7 @@ schematic_goal "?p : ~~((P-->Q) | (Q-->P))"
 
 text "Problem ~~17"
 schematic_goal "?p : ~~(((P & (Q-->R))-->S) <-> ((~P | Q | S) & (~P | ~R | S)))"
-  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)  \<comment> slow
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)  \<comment> \<open>slow\<close>
 
 
 subsection \<open>Examples with quantifiers\<close>
@@ -261,7 +261,7 @@ schematic_goal "?p : (ALL x. P(x) & (Q(x)|R(x))-->S(x)) &
         (ALL x. S(x) & R(x) --> L(x)) &  
         (ALL x. M(x) --> R(x))   
     --> (ALL x. P(x) & M(x) --> L(x))"
-  by (tactic "IntPr.best_tac @{context} 1") \<comment> slow
+  by (tactic "IntPr.best_tac @{context} 1") \<comment> \<open>slow\<close>
 
 text "Problem 39"
 schematic_goal "?p : ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))"
@@ -270,7 +270,7 @@ schematic_goal "?p : ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))"
 text "Problem 40.  AMENDED"
 schematic_goal "?p : (EX y. ALL x. F(x,y) <-> F(x,x)) -->   
               ~(ALL x. EX y. ALL z. F(z,y) <-> ~ F(z,x))"
-  by (tactic "IntPr.best_tac @{context} 1") \<comment> slow
+  by (tactic "IntPr.best_tac @{context} 1") \<comment> \<open>slow\<close>
 
 text "Problem 44"
 schematic_goal "?p : (ALL x. f(x) -->                                    

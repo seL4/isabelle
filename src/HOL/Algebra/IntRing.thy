@@ -59,14 +59,14 @@ interpretation int: monoid \<Z>
     and "one \<Z> = 1"
     and "pow \<Z> x n = x^n"
 proof -
-  \<comment> "Specification"
+  \<comment> \<open>Specification\<close>
   show "monoid \<Z>" by standard auto
   then interpret int: monoid \<Z> .
 
-  \<comment> "Carrier"
+  \<comment> \<open>Carrier\<close>
   show "carrier \<Z> = UNIV" by simp
 
-  \<comment> "Operations"
+  \<comment> \<open>Operations\<close>
   { fix x y show "mult \<Z> x y = x * y" by simp }
   show "one \<Z> = 1" by simp
   show "pow \<Z> x n = x^n" by (induct n) simp_all
@@ -75,11 +75,11 @@ qed
 interpretation int: comm_monoid \<Z>
   rewrites "finprod \<Z> f A = prod f A"
 proof -
-  \<comment> "Specification"
+  \<comment> \<open>Specification\<close>
   show "comm_monoid \<Z>" by standard auto
   then interpret int: comm_monoid \<Z> .
 
-  \<comment> "Operations"
+  \<comment> \<open>Operations\<close>
   { fix x y have "mult \<Z> x y = x * y" by simp }
   note mult = this
   have one: "one \<Z> = 1" by simp
@@ -93,14 +93,14 @@ interpretation int: abelian_monoid \<Z>
     and int_add_eq: "add \<Z> x y = x + y"
     and int_finsum_eq: "finsum \<Z> f A = sum f A"
 proof -
-  \<comment> "Specification"
+  \<comment> \<open>Specification\<close>
   show "abelian_monoid \<Z>" by standard auto
   then interpret int: abelian_monoid \<Z> .
 
-  \<comment> "Carrier"
+  \<comment> \<open>Carrier\<close>
   show "carrier \<Z> = UNIV" by simp
 
-  \<comment> "Operations"
+  \<comment> \<open>Operations\<close>
   { fix x y show "add \<Z> x y = x + y" by simp }
   note add = this
   show zero: "zero \<Z> = 0"
@@ -121,7 +121,7 @@ interpretation int: abelian_group \<Z>
     and int_a_inv_eq: "a_inv \<Z> x = - x"
     and int_a_minus_eq: "a_minus \<Z> x y = x - y"
 proof -
-  \<comment> "Specification"
+  \<comment> \<open>Specification\<close>
   show "abelian_group \<Z>"
   proof (rule abelian_groupI)
     fix x
@@ -130,7 +130,7 @@ proof -
       by simp arith
   qed auto
   then interpret int: abelian_group \<Z> .
-  \<comment> "Operations"
+  \<comment> \<open>Operations\<close>
   { fix x y have "add \<Z> x y = x + y" by simp }
   note add = this
   have zero: "zero \<Z> = 0" by simp

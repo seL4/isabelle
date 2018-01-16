@@ -44,20 +44,20 @@ instance ..
 
 end
 
- \<comment> "exceptions"
+ \<comment> \<open>exceptions\<close>
 datatype 
   xcpt   
   = NullPointer
   | ClassCast
   | OutOfMemory
 
-\<comment> "class names"
+\<comment> \<open>class names\<close>
 datatype cname  
   = Object 
   | Xcpt xcpt 
   | Cname cnam 
 
-typedecl vnam   \<comment> "variable or field name"
+typedecl vnam   \<comment> \<open>variable or field name\<close>
 
 instantiation vnam :: equal
 begin
@@ -92,7 +92,7 @@ instance ..
 
 end
 
-typedecl mname  \<comment> "method name"
+typedecl mname  \<comment> \<open>method name\<close>
 
 instantiation mname :: equal
 begin
@@ -127,26 +127,26 @@ instance ..
 
 end
 
-\<comment> "names for \<open>This\<close> pointer and local/field variables"
+\<comment> \<open>names for \<open>This\<close> pointer and local/field variables\<close>
 datatype vname 
   = This
   | VName vnam
 
-\<comment> "primitive type, cf. 4.2"
+\<comment> \<open>primitive type, cf. 4.2\<close>
 datatype prim_ty 
-  = Void          \<comment> "'result type' of void methods"
+  = Void          \<comment> \<open>'result type' of void methods\<close>
   | Boolean
   | Integer
 
-\<comment> "reference type, cf. 4.3"
+\<comment> \<open>reference type, cf. 4.3\<close>
 datatype ref_ty   
-  = NullT         \<comment> "null type, cf. 4.1"
-  | ClassT cname  \<comment> "class type"
+  = NullT         \<comment> \<open>null type, cf. 4.1\<close>
+  | ClassT cname  \<comment> \<open>class type\<close>
 
-\<comment> "any type, cf. 4.1"
+\<comment> \<open>any type, cf. 4.1\<close>
 datatype ty 
-  = PrimT prim_ty \<comment> "primitive type"
-  | RefT  ref_ty  \<comment> "reference type"
+  = PrimT prim_ty \<comment> \<open>primitive type\<close>
+  | RefT  ref_ty  \<comment> \<open>reference type\<close>
 
 abbreviation NT :: ty
   where "NT == RefT NullT"

@@ -141,13 +141,13 @@ primrec mirror :: "'a tree \<Rightarrow> 'a tree" where
 theorem "plant (rev (leaves xt)) = mirror xt"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-    \<comment>\<open>Wrong!\<close> 
+    \<comment> \<open>Wrong!\<close> 
   oops
 
 theorem "plant((leaves xt) @ (leaves yt)) = Branch xt yt"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-    \<comment>\<open>Wrong!\<close> 
+    \<comment> \<open>Wrong!\<close> 
   oops
 
 datatype 'a ntree = Tip "'a" | Node "'a" "'a ntree" "'a ntree"
@@ -163,7 +163,7 @@ primrec root :: "'a ntree \<Rightarrow> 'a" where
 theorem "hd (inOrder xt) = root xt"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-  \<comment>\<open>Wrong!\<close> 
+  \<comment> \<open>Wrong!\<close> 
   oops
 
 

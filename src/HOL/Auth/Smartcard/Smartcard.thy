@@ -25,9 +25,9 @@ axiomatization
   Pairkey :: "agent * agent => nat" and
   pairK   :: "agent * agent => key"
 where
-  inj_shrK: "inj shrK" and  \<comment>\<open>No two smartcards store the same key\<close>
-  inj_crdK: "inj crdK" and  \<comment>\<open>Nor do two cards\<close>
-  inj_pin : "inj pin" and   \<comment>\<open>Nor do two agents have the same pin\<close>
+  inj_shrK: "inj shrK" and  \<comment> \<open>No two smartcards store the same key\<close>
+  inj_crdK: "inj crdK" and  \<comment> \<open>Nor do two cards\<close>
+  inj_pin : "inj pin" and   \<comment> \<open>Nor do two agents have the same pin\<close>
 
   (*pairK is injective on each component, if we assume encryption to be a PRF
     or at least collision free *)
@@ -340,7 +340,7 @@ by blast
     erase occurrences of forwarded message components (X). **)
 
 lemmas analz_image_freshK_simps =
-       simp_thms mem_simps \<comment>\<open>these two allow its use with \<open>only:\<close>\<close>
+       simp_thms mem_simps \<comment> \<open>these two allow its use with \<open>only:\<close>\<close>
        disj_comms 
        image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
        analz_insert_eq Un_upper2 [THEN analz_mono, THEN [2] rev_subsetD]

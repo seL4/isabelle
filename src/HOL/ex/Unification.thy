@@ -379,10 +379,10 @@ proof
   show "wf ?R" by simp
 
   fix M N M' N' :: "'a trm"
-  show "((M, M'), (M \<cdot> N, M' \<cdot> N')) \<in> ?R" \<comment> "Inner call"
+  show "((M, M'), (M \<cdot> N, M' \<cdot> N')) \<in> ?R" \<comment> \<open>Inner call\<close>
     by (rule measures_lesseq) (auto intro: card_mono)
 
-  fix \<theta>                                   \<comment> "Outer call"
+  fix \<theta>                                   \<comment> \<open>Outer call\<close>
   assume inner: "unify_dom (M, M')"
     "unify M M' = Some \<theta>"
 
@@ -417,7 +417,7 @@ subsection \<open>Unification returns a Most General Unifier\<close>
 lemma unify_computes_MGU:
   "unify M N = Some \<sigma> \<Longrightarrow> MGU \<sigma> M N"
 proof (induct M N arbitrary: \<sigma> rule: unify.induct)
-  case (7 M N M' N' \<sigma>) \<comment> "The interesting case"
+  case (7 M N M' N' \<sigma>) \<comment> \<open>The interesting case\<close>
 
   then obtain \<theta>1 \<theta>2 
     where "unify M M' = Some \<theta>1"

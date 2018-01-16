@@ -980,7 +980,7 @@ next
     proof -
       have f0: "(f \<longlongrightarrow> 0) at_infinity"
       proof -
-        have DIM_complex[intro]: "2 \<le> DIM(complex)"  \<comment>\<open>should not be necessary!\<close>
+        have DIM_complex[intro]: "2 \<le> DIM(complex)"  \<comment> \<open>should not be necessary!\<close>
           by simp
         have "continuous_on (inverse ` (ball 0 r - {0})) f"
           using continuous_on_subset holf holomorphic_on_imp_continuous_on by blast

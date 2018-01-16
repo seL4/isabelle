@@ -55,7 +55,7 @@ lemma subst1_aexp:
   "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a"
 and subst1_bexp:
   "evalb env (substb (Var (v := a')) b) = evalb (env (v := evala env a')) b"
-    \<comment>  \<open>one variable\<close>
+    \<comment> \<open>one variable\<close>
   by (induct a and b) simp_all
 
 lemma subst_all_aexp:

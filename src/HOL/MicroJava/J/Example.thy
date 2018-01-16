@@ -135,7 +135,7 @@ done
 lemma map_of_Cons2 [simp]: "aa\<noteq>k ==> map_of ((k,bb)#ps) aa = map_of ps aa"
 apply (simp (no_asm_simp))
 done
-declare map_of_Cons [simp del] \<comment> "sic!"
+declare map_of_Cons [simp del] \<comment> \<open>sic!\<close>
 
 lemma class_tprg_Object [simp]: "class tprg Object = Some (undefined, [], [])"
 apply (unfold ObjectC_def class_def)
@@ -377,25 +377,25 @@ done
 lemmas t = ty_expr_ty_exprs_wt_stmt.intros
 schematic_goal wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
-apply (rule ty_expr_ty_exprs_wt_stmt.intros) \<comment> ";;"
-apply  (rule t) \<comment> "Expr"
-apply  (rule t) \<comment> "LAss"
+apply (rule ty_expr_ty_exprs_wt_stmt.intros) \<comment> \<open>;;\<close>
+apply  (rule t) \<comment> \<open>Expr\<close>
+apply  (rule t) \<comment> \<open>LAss\<close>
 apply    simp \<comment> \<open>\<open>e \<noteq> This\<close>\<close>
-apply    (rule t) \<comment> "LAcc"
+apply    (rule t) \<comment> \<open>LAcc\<close>
 apply     (simp (no_asm))
 apply    (simp (no_asm))
-apply   (rule t) \<comment> "NewC"
+apply   (rule t) \<comment> \<open>NewC\<close>
 apply   (simp (no_asm))
 apply  (simp (no_asm))
-apply (rule t) \<comment> "Expr"
-apply (rule t) \<comment> "Call"
-apply   (rule t) \<comment> "LAcc"
+apply (rule t) \<comment> \<open>Expr\<close>
+apply (rule t) \<comment> \<open>Call\<close>
+apply   (rule t) \<comment> \<open>LAcc\<close>
 apply    (simp (no_asm))
 apply   (simp (no_asm))
-apply  (rule t) \<comment> "Cons"
-apply   (rule t) \<comment> "Lit"
+apply  (rule t) \<comment> \<open>Cons\<close>
+apply   (rule t) \<comment> \<open>Lit\<close>
 apply   (simp (no_asm))
-apply  (rule t) \<comment> "Nil"
+apply  (rule t) \<comment> \<open>Nil\<close>
 apply (simp (no_asm))
 apply (rule max_spec_foo_Base)
 done
@@ -408,38 +408,38 @@ schematic_goal exec_test:
 " [|new_Addr (heap (snd s0)) = (a, None)|] ==>  
   tprg\<turnstile>s0 -test-> ?s"
 apply (unfold test_def)
-\<comment> "?s = s3 "
-apply (rule e) \<comment> ";;"
-apply  (rule e) \<comment> "Expr"
-apply  (rule e) \<comment> "LAss"
-apply   (rule e) \<comment> "NewC"
+\<comment> \<open>?s = s3\<close>
+apply (rule e) \<comment> \<open>;;\<close>
+apply  (rule e) \<comment> \<open>Expr\<close>
+apply  (rule e) \<comment> \<open>LAss\<close>
+apply   (rule e) \<comment> \<open>NewC\<close>
 apply    force
 apply   force
 apply  (simp (no_asm))
 apply (erule thin_rl)
-apply (rule e) \<comment> "Expr"
-apply (rule e) \<comment> "Call"
-apply       (rule e) \<comment> "LAcc"
+apply (rule e) \<comment> \<open>Expr\<close>
+apply (rule e) \<comment> \<open>Call\<close>
+apply       (rule e) \<comment> \<open>LAcc\<close>
 apply      force
-apply     (rule e) \<comment> "Cons"
-apply      (rule e) \<comment> "Lit"
-apply     (rule e) \<comment> "Nil"
+apply     (rule e) \<comment> \<open>Cons\<close>
+apply      (rule e) \<comment> \<open>Lit\<close>
+apply     (rule e) \<comment> \<open>Nil\<close>
 apply    (simp (no_asm))
 apply   (force simp add: foo_Ext_def)
 apply  (simp (no_asm))
-apply  (rule e) \<comment> "Expr"
-apply  (rule e) \<comment> "FAss"
-apply       (rule e) \<comment> "Cast"
-apply        (rule e) \<comment> "LAcc"
+apply  (rule e) \<comment> \<open>Expr\<close>
+apply  (rule e) \<comment> \<open>FAss\<close>
+apply       (rule e) \<comment> \<open>Cast\<close>
+apply        (rule e) \<comment> \<open>LAcc\<close>
 apply       (simp (no_asm))
 apply      (simp (no_asm))
 apply     (simp (no_asm))
-apply     (rule e) \<comment> "XcptE"
+apply     (rule e) \<comment> \<open>XcptE\<close>
 apply    (simp (no_asm))
 apply   (rule surjective_pairing [symmetric, THEN[2]trans], subst prod.inject, force)
 apply  (simp (no_asm))
 apply (simp (no_asm))
-apply (rule e) \<comment> "XcptE"
+apply (rule e) \<comment> \<open>XcptE\<close>
 done
 
 end

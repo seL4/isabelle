@@ -348,10 +348,10 @@ apply (rule_tac P = "%(ss,w).
  r = "{(ss',ss) . ss <[r] ss'} <*lex*> finite_psubset"
        in while_rule)
 
-\<comment> "Invariant holds initially:"
+\<comment> \<open>Invariant holds initially:\<close>
 apply (simp add:stables_def)
 
-\<comment> "Invariant is preserved:"
+\<comment> \<open>Invariant is preserved:\<close>
 apply(simp add: stables_def split_paired_all)
 apply(rename_tac ss w)
 apply(subgoal_tac "(SOME p. p \<in> w) \<in> w")
@@ -393,16 +393,16 @@ apply (rule conjI)
 apply (blast dest!: boundedD)
 
 
-\<comment> "Postcondition holds upon termination:"
+\<comment> \<open>Postcondition holds upon termination:\<close>
 apply(clarsimp simp add: stables_def split_paired_all)
 
-\<comment> "Well-foundedness of the termination relation:"
+\<comment> \<open>Well-foundedness of the termination relation:\<close>
 apply (rule wf_lex_prod)
  apply (insert orderI [THEN acc_le_listI])
  apply (simp add: acc_def lesssub_def wfP_wf_eq [symmetric])
 apply (rule wf_finite_psubset) 
 
-\<comment> "Loop decreases along termination relation:"
+\<comment> \<open>Loop decreases along termination relation:\<close>
 apply(simp add: stables_def split_paired_all)
 apply(rename_tac ss w)
 apply(subgoal_tac "(SOME p. p \<in> w) \<in> w")

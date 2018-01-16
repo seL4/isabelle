@@ -21,15 +21,15 @@ subsection\<open>Defining the Predicate Transformers @{term wp},
    @{term awp} and  @{term wens}\<close>
 
 definition wp :: "[('a*'a) set, 'a set] => 'a set" where  
-    \<comment>\<open>Dijkstra's weakest-precondition operator (for an individual command)\<close>
+    \<comment> \<open>Dijkstra's weakest-precondition operator (for an individual command)\<close>
     "wp act B == - (act^-1 `` (-B))"
 
 definition awp :: "['a program, 'a set] => 'a set" where
-    \<comment>\<open>Dijkstra's weakest-precondition operator (for a program)\<close>
+    \<comment> \<open>Dijkstra's weakest-precondition operator (for a program)\<close>
     "awp F B == (\<Inter>act \<in> Acts F. wp act B)"
 
 definition wens :: "['a program, ('a*'a) set, 'a set] => 'a set" where
-    \<comment>\<open>The weakest-ensures transformer\<close>
+    \<comment> \<open>The weakest-ensures transformer\<close>
     "wens F act B == gfp(\<lambda>X. (wp act B \<inter> awp F (B \<union> X)) \<union> B)"
 
 text\<open>The fundamental theorem for wp\<close>
@@ -119,7 +119,7 @@ done
 text\<open>Assertion 4.17 in the thesis\<close>
 lemma Diff_wens_constrains: "F \<in> (wens F act A - A) co wens F act A"
 by (simp add: wens_def gfp_def wp_def awp_def constrains_def, blast)
-  \<comment>\<open>Proved instantly, yet remarkably fragile. If \<open>Un_subset_iff\<close>
+  \<comment> \<open>Proved instantly, yet remarkably fragile. If \<open>Un_subset_iff\<close>
       is declared as an iff-rule, then it's almost impossible to prove. 
       One proof is via \<open>meson\<close> after expanding all definitions, but it's
       slow!\<close>

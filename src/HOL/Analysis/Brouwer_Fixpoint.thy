@@ -130,7 +130,7 @@ subsection \<open>The key "counting" observation, somewhat abstracted.\<close>
 lemma kuhn_counting_lemma:
   fixes bnd compo compo' face S F
   defines "nF s == card {f\<in>F. face f s \<and> compo' f}"
-  assumes [simp, intro]: "finite F" \<comment> "faces" and [simp, intro]: "finite S" \<comment> "simplices"
+  assumes [simp, intro]: "finite F" \<comment> \<open>faces\<close> and [simp, intro]: "finite S" \<comment> \<open>simplices\<close>
     and "\<And>f. f \<in> F \<Longrightarrow> bnd f \<Longrightarrow> card {s\<in>S. face f s} = 1"
     and "\<And>f. f \<in> F \<Longrightarrow> \<not> bnd f \<Longrightarrow> card {s\<in>S. face f s} = 2"
     and "\<And>s. s \<in> S \<Longrightarrow> compo s \<Longrightarrow> nF s = 1"
@@ -2572,7 +2572,7 @@ proof -
         moreover have False if "1 < dd (x - a)"
           using x that dd2 [of "x - a" 1] \<open>x \<noteq> a\<close> closure_affine_hull
           by (auto simp: rel_frontier_def)
-        ultimately have "dd (x - a) = 1" \<comment>\<open>similar to another proof above\<close>
+        ultimately have "dd (x - a) = 1" \<comment> \<open>similar to another proof above\<close>
           by fastforce
         with that show ?thesis
           by (simp add: rel_frontier_def)

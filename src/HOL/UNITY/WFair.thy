@@ -34,7 +34,7 @@ is the impossibility law for leads-to.
 
 definition
 
-  \<comment>\<open>This definition specifies conditional fairness.  The rest of the theory
+  \<comment> \<open>This definition specifies conditional fairness.  The rest of the theory
       is generic to all forms of fairness.  To get weak fairness, conjoin
       the inclusion below with @{term "A \<subseteq> Domain act"}, which specifies 
       that the action is enabled over all of @{term A}.\<close>
@@ -48,7 +48,7 @@ definition
 
 inductive_set
   leads :: "'a program => ('a set * 'a set) set"
-    \<comment>\<open>LEADS-TO constant for the inductive definition\<close>
+    \<comment> \<open>LEADS-TO constant for the inductive definition\<close>
   for F :: "'a program"
   where
 
@@ -60,11 +60,11 @@ inductive_set
 
 
 definition leadsTo :: "['a set, 'a set] => 'a program set" (infixl "leadsTo" 60) where
-     \<comment>\<open>visible version of the LEADS-TO relation\<close>
+     \<comment> \<open>visible version of the LEADS-TO relation\<close>
     "A leadsTo B == {F. (A,B) \<in> leads F}"
   
 definition wlt :: "['a program, 'a set] => 'a set" where
-     \<comment>\<open>predicate transformer: the largest set that leads to @{term B}\<close>
+     \<comment> \<open>predicate transformer: the largest set that leads to @{term B}\<close>
     "wlt F B == \<Union>{A. F \<in> A leadsTo B}"
 
 notation leadsTo  (infixl "\<longmapsto>" 60)

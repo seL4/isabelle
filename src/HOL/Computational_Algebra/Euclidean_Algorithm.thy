@@ -69,8 +69,7 @@ qualified lemma gcd_mod:
 qualified definition lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
   where "lcm a b = normalize (a * b) div gcd a b"
 
-qualified definition Lcm :: "'a set \<Rightarrow> 'a" \<comment>
-    \<open>Somewhat complicated definition of Lcm that has the advantage of working
+qualified definition Lcm :: "'a set \<Rightarrow> 'a" \<comment> \<open>Somewhat complicated definition of Lcm that has the advantage of working
     for infinite sets as well\<close>
   where
   [code del]: "Lcm A = (if \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) then

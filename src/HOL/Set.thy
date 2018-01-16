@@ -14,8 +14,8 @@ subsection \<open>Sets as predicates\<close>
 
 typedecl 'a set
 
-axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comment> "comprehension"
-  and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> "membership"
+axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comment> \<open>comprehension\<close>
+  and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> \<open>membership\<close>
   where mem_Collect_eq [iff, code_unfold]: "member a (Collect P) = P a"
     and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
 
@@ -24,7 +24,7 @@ notation
   member  ("(_/ \<in> _)" [51, 51] 50)
 
 abbreviation not_member
-  where "not_member x A \<equiv> \<not> (x \<in> A)" \<comment> "non-membership"
+  where "not_member x A \<equiv> \<not> (x \<in> A)" \<comment> \<open>non-membership\<close>
 notation
   not_member  ("'(\<notin>')") and
   not_member  ("(_/ \<notin> _)" [51, 51] 50)
@@ -181,10 +181,10 @@ notation (ASCII output)
   subset_eq  ("(_/ <= _)" [51, 51] 50)
 
 definition Ball :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   \<comment> "bounded universal quantifiers"
+  where "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   \<comment> \<open>bounded universal quantifiers\<close>
 
 definition Bex :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
-  where "Bex A P \<longleftrightarrow> (\<exists>x. x \<in> A \<and> P x)"   \<comment> "bounded existential quantifiers"
+  where "Bex A P \<longleftrightarrow> (\<exists>x. x \<in> A \<and> P x)"   \<comment> \<open>bounded existential quantifiers\<close>
 
 syntax (ASCII)
   "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3ALL (_/:_)./ _)" [0, 0, 10] 10)

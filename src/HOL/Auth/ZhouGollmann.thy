@@ -21,7 +21,7 @@ abbreviation f_con :: nat where "f_con == 4"
 
 
 definition broken :: "agent set" where    
-    \<comment>\<open>the compromised honest agents; TTP is included as it's not allowed to
+    \<comment> \<open>the compromised honest agents; TTP is included as it's not allowed to
         use the protocol\<close>
    "broken == bad - {Spy}"
 

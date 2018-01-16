@@ -10,7 +10,7 @@ section \<open>Bijections of a Set, Permutation and Automorphism Groups\<close>
 
 definition
   Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"
-    \<comment>\<open>Only extensional functions, since otherwise we get too many.\<close>
+    \<comment> \<open>Only extensional functions, since otherwise we get too many.\<close>
    where "Bij S = extensional S \<inter> {f. bij_betw f S S}"
 
 definition

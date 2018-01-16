@@ -2078,7 +2078,7 @@ next
     }
     then have pcx: "path_component (- s) x (a + C *\<^sub>R (x - a))"
       by (force simp: closed_segment_def intro!: path_connected_linepath)
-    define D where "D = B / norm(y - a)"  \<comment>\<open>massive duplication with the proof above\<close>
+    define D where "D = B / norm(y - a)"  \<comment> \<open>massive duplication with the proof above\<close>
     { fix u
       assume u: "(1 - u) *\<^sub>R y + u *\<^sub>R (a + D *\<^sub>R (y - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have DD: "1 \<le> 1 + (D - 1) * u"

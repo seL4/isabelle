@@ -10,7 +10,7 @@ theory JVMExec imports JVMExecInstr JVMExceptions begin
 
 fun
   exec :: "jvm_prog \<times> jvm_state => jvm_state option"
-\<comment> "exec is not recursive. fun is just used for pattern matching"
+\<comment> \<open>exec is not recursive. fun is just used for pattern matching\<close>
 where
   "exec (G, xp, hp, []) = None"
 

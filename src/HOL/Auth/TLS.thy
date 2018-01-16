@@ -72,14 +72,14 @@ abbreviation
 
 specification (PRF)
   inj_PRF: "inj PRF"
-  \<comment>\<open>the pseudo-random function is collision-free\<close>
+  \<comment> \<open>the pseudo-random function is collision-free\<close>
    apply (rule exI [of _ "%(x,y,z). prod_encode(x, prod_encode(y,z))"])
    apply (simp add: inj_on_def prod_encode_eq)
    done
 
 specification (sessionK)
   inj_sessionK: "inj sessionK"
-  \<comment>\<open>sessionK is collision-free; also, no clientK clashes with any serverK.\<close>
+  \<comment> \<open>sessionK is collision-free; also, no clientK clashes with any serverK.\<close>
    apply (rule exI [of _ 
          "%((x,y,z), r). prod_encode(case_role 0 1 r, 
                            prod_encode(x, prod_encode(y,z)))"])
@@ -87,25 +87,25 @@ specification (sessionK)
    done
 
 axiomatization where
-  \<comment>\<open>sessionK makes symmetric keys\<close>
+  \<comment> \<open>sessionK makes symmetric keys\<close>
   isSym_sessionK: "sessionK nonces \<in> symKeys" and
 
-  \<comment>\<open>sessionK never clashes with a long-term symmetric key  
+  \<comment> \<open>sessionK never clashes with a long-term symmetric key  
      (they don't exist in TLS anyway)\<close>
   sessionK_neq_shrK [iff]: "sessionK nonces \<noteq> shrK A"
 
 
 inductive_set tls :: "event list set"
   where
-   Nil:  \<comment>\<open>The initial, empty trace\<close>
+   Nil:  \<comment> \<open>The initial, empty trace\<close>
          "[] \<in> tls"
 
- | Fake: \<comment>\<open>The Spy may say anything he can say.  The sender field is correct,
+ | Fake: \<comment> \<open>The Spy may say anything he can say.  The sender field is correct,
           but agents don't use that information.\<close>
          "[| evsf \<in> tls;  X \<in> synth (analz (spies evsf)) |]
           ==> Says Spy B X # evsf \<in> tls"
 
- | SpyKeys: \<comment>\<open>The spy may apply @{term PRF} and @{term sessionK}
+ | SpyKeys: \<comment> \<open>The spy may apply @{term PRF} and @{term sessionK}
                 to available nonces\<close>
          "[| evsSK \<in> tls;
              {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
@@ -113,7 +113,7 @@ inductive_set tls :: "event list set"
                            Key (sessionK((NA,NB,M),role))\<rbrace> # evsSK \<in> tls"
 
  | ClientHello:
-         \<comment>\<open>(7.4.1.2)
+         \<comment> \<open>(7.4.1.2)
            PA represents \<open>CLIENT_VERSION\<close>, \<open>CIPHER_SUITES\<close> and \<open>COMPRESSION_METHODS\<close>.
            It is uninterpreted but will be confirmed in the FINISHED messages.
            NA is CLIENT RANDOM, while SID is \<open>SESSION_ID\<close>.
@@ -125,7 +125,7 @@ inductive_set tls :: "event list set"
                 # evsCH  \<in>  tls"
 
  | ServerHello:
-         \<comment>\<open>7.4.1.3 of the TLS Internet-Draft
+         \<comment> \<open>7.4.1.3 of the TLS Internet-Draft
            PB represents \<open>CLIENT_VERSION\<close>, \<open>CIPHER_SUITE\<close> and \<open>COMPRESSION_METHOD\<close>.
            SERVER CERTIFICATE (7.4.2) is always present.
            \<open>CERTIFICATE_REQUEST\<close> (7.4.4) is implied.\<close>
@@ -135,11 +135,11 @@ inductive_set tls :: "event list set"
           ==> Says B A \<lbrace>Nonce NB, Number SID, Number PB\<rbrace> # evsSH  \<in>  tls"
 
  | Certificate:
-         \<comment>\<open>SERVER (7.4.2) or CLIENT (7.4.6) CERTIFICATE.\<close>
+         \<comment> \<open>SERVER (7.4.2) or CLIENT (7.4.6) CERTIFICATE.\<close>
          "evsC \<in> tls ==> Says B A (certificate B (pubK B)) # evsC  \<in>  tls"
 
  | ClientKeyExch:
-         \<comment>\<open>CLIENT KEY EXCHANGE (7.4.7).
+         \<comment> \<open>CLIENT KEY EXCHANGE (7.4.7).
            The client, A, chooses PMS, the PREMASTER SECRET.
            She encrypts PMS using the supplied KB, which ought to be pubK B.
            We assume @{term "PMS \<notin> range PRF"} because a clash betweem the PMS
@@ -154,7 +154,7 @@ inductive_set tls :: "event list set"
               # evsCX  \<in>  tls"
 
  | CertVerify:
-        \<comment>\<open>The optional Certificate Verify (7.4.8) message contains the
+        \<comment> \<open>The optional Certificate Verify (7.4.8) message contains the
           specific components listed in the security analysis, F.1.1.2.
           It adds the pre-master-secret, which is also essential!
           Checking the signature, which is the only use of A's certificate,
@@ -165,12 +165,12 @@ inductive_set tls :: "event list set"
           ==> Says A B (Crypt (priK A) (Hash\<lbrace>Nonce NB, Agent B, Nonce PMS\<rbrace>))
               # evsCV  \<in>  tls"
 
-        \<comment>\<open>Finally come the FINISHED messages (7.4.8), confirming PA and PB
+        \<comment> \<open>Finally come the FINISHED messages (7.4.8), confirming PA and PB
           among other things.  The master-secret is PRF(PMS,NA,NB).
           Either party may send its message first.\<close>
 
  | ClientFinished:
-        \<comment>\<open>The occurrence of \<open>Notes A \<lbrace>Agent B, Nonce PMS\<rbrace>\<close> stops the
+        \<comment> \<open>The occurrence of \<open>Notes A \<lbrace>Agent B, Nonce PMS\<rbrace>\<close> stops the
           rule's applying when the Spy has satisfied the \<open>Says A B\<close> by
           repaying messages sent by the true client; in that case, the
           Spy does not know PMS and could not send ClientFinished.  One
@@ -189,7 +189,7 @@ inductive_set tls :: "event list set"
               # evsCF  \<in>  tls"
 
  | ServerFinished:
-        \<comment>\<open>Keeping A' and A'' distinct means B cannot even check that the
+        \<comment> \<open>Keeping A' and A'' distinct means B cannot even check that the
           two messages originate from the same source.\<close>
          "[| evsSF \<in> tls;
              Says A' B  \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>
@@ -204,7 +204,7 @@ inductive_set tls :: "event list set"
               # evsSF  \<in>  tls"
 
  | ClientAccepts:
-        \<comment>\<open>Having transmitted ClientFinished and received an identical
+        \<comment> \<open>Having transmitted ClientFinished and received an identical
           message encrypted with serverK, the client stores the parameters
           needed to resume this session.  The "Notes A ..." premise is
           used to prove \<open>Notes_master_imp_Crypt_PMS\<close>.\<close>
@@ -220,7 +220,7 @@ inductive_set tls :: "event list set"
              Notes A \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> # evsCA  \<in>  tls"
 
  | ServerAccepts:
-        \<comment>\<open>Having transmitted ServerFinished and received an identical
+        \<comment> \<open>Having transmitted ServerFinished and received an identical
           message encrypted with clientK, the server stores the parameters
           needed to resume this session.  The "Says A'' B ..." premise is
           used to prove \<open>Notes_master_imp_Crypt_PMS\<close>.\<close>
@@ -237,7 +237,7 @@ inductive_set tls :: "event list set"
              Notes B \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> # evsSA  \<in>  tls"
 
  | ClientResume:
-         \<comment>\<open>If A recalls the \<open>SESSION_ID\<close>, then she sends a FINISHED
+         \<comment> \<open>If A recalls the \<open>SESSION_ID\<close>, then she sends a FINISHED
              message using the new nonces and stored MASTER SECRET.\<close>
          "[| evsCR \<in> tls;
              Says A  B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>: set evsCR;
@@ -250,7 +250,7 @@ inductive_set tls :: "event list set"
               # evsCR  \<in>  tls"
 
  | ServerResume:
-         \<comment>\<open>Resumption (7.3):  If B finds the \<open>SESSION_ID\<close> then he can 
+         \<comment> \<open>Resumption (7.3):  If B finds the \<open>SESSION_ID\<close> then he can 
              send a FINISHED message using the recovered MASTER SECRET\<close>
          "[| evsSR \<in> tls;
              Says A' B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>: set evsSR;
@@ -263,7 +263,7 @@ inductive_set tls :: "event list set"
                 \<in>  tls"
 
  | Oops:
-         \<comment>\<open>The most plausible compromise is of an old session key.  Losing
+         \<comment> \<open>The most plausible compromise is of an old session key.  Losing
            the MASTER SECRET or PREMASTER SECRET is more serious but
            rather unlikely.  The assumption @{term "A\<noteq>Spy"} is essential: 
            otherwise the Spy could learn session keys merely by 

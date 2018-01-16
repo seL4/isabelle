@@ -1439,7 +1439,7 @@ proof -
   then show "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k" by auto
 qed
 
-\<comment> "The following 3 lemmas are due to Brian Huffman"
+\<comment> \<open>The following 3 lemmas are due to Brian Huffman\<close>
 lemma LeastI_ex: "\<exists>x. P x \<Longrightarrow> P (Least P)"
   by (erule exE) (erule LeastI)
 

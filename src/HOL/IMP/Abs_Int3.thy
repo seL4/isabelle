@@ -552,7 +552,7 @@ next
   case 3 thus ?case by(rule m_ivl_widen)
 next
   case 4 from 4(2) show ?case by(rule n_ivl_narrow)
-  \<comment> "note that the first assms is unnecessary for intervals"
+  \<comment> \<open>note that the first assms is unnecessary for intervals\<close>
 qed
 
 lemma iter_winden_step_ivl_termination:

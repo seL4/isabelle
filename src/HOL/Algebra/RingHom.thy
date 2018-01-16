@@ -102,7 +102,7 @@ qed
 
 subsection \<open>The Kernel of a Ring Homomorphism\<close>
 
-\<comment>"the kernel of a ring homomorphism is an ideal"
+\<comment> \<open>the kernel of a ring homomorphism is an ideal\<close>
 lemma (in ring_hom_ring) kernel_is_ideal:
   shows "ideal (a_kernel R S h) R"
 apply (rule idealI)

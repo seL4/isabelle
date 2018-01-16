@@ -71,7 +71,7 @@ lemma problem_26:
 \<close>
   oops
 
-lemma problem_43:  \<comment> "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
+lemma problem_43:  \<comment> \<open>NOW PROVED AUTOMATICALLY!!\<close>  (*16 Horn clauses*)
   "(\<forall>x. \<forall>y. q x y = (\<forall>z. p z x = (p z y::bool))) --> (\<forall>x. (\<forall>y. q x y = (q y x::bool)))"
   apply (rule ccontr)
   ML_prf \<open>

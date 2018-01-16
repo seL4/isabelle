@@ -38,9 +38,9 @@ locale reflection =
   defines "M(x) == \<exists>a. Ord(a) & x \<in> Mset(a)"
       and "Reflects(Cl,P,Q) == Closed_Unbounded(Cl) &
                               (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x)))"
-  fixes F0 \<comment>\<open>ordinal for a specific value @{term y}\<close>
-  fixes FF \<comment>\<open>sup over the whole level, @{term "y\<in>Mset(a)"}\<close>
-  fixes ClEx \<comment>\<open>Reflecting ordinals for the formula @{term "\<exists>z. P"}\<close>
+  fixes F0 \<comment> \<open>ordinal for a specific value @{term y}\<close>
+  fixes FF \<comment> \<open>sup over the whole level, @{term "y\<in>Mset(a)"}\<close>
+  fixes ClEx \<comment> \<open>Reflecting ordinals for the formula @{term "\<exists>z. P"}\<close>
   defines "F0(P,y) == \<mu> b. (\<exists>z. M(z) & P(<y,z>)) \<longrightarrow>
                                (\<exists>z\<in>Mset(b). P(<y,z>))"
       and "FF(P)   == \<lambda>a. \<Union>y\<in>Mset(a). F0(P,y)"
@@ -136,9 +136,9 @@ done
 text\<open>Locale for the induction hypothesis\<close>
 
 locale ex_reflection = reflection +
-  fixes P  \<comment>"the original formula"
-  fixes Q  \<comment>"the reflected formula"
-  fixes Cl \<comment>"the class of reflecting ordinals"
+  fixes P  \<comment> \<open>the original formula\<close>
+  fixes Q  \<comment> \<open>the reflected formula\<close>
+  fixes Cl \<comment> \<open>the class of reflecting ordinals\<close>
   assumes Cl_reflects: "[| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x)"
 
 lemma (in ex_reflection) ClEx_downward:

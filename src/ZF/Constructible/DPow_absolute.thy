@@ -510,7 +510,7 @@ text\<open>Relativization of the Operator @{term Lset}\<close>
 
 definition
   is_Lset :: "[i=>o, i, i] => o" where
-   \<comment>\<open>We can use the term language below because @{term is_Lset} will
+   \<comment> \<open>We can use the term language below because @{term is_Lset} will
        not have to be internalized: it isn't used in any instance of
        separation.\<close>
    "is_Lset(M,a,z) == is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
@@ -570,7 +570,7 @@ lemma transrec_rep_Reflects:
                       is_DPow'(##Lset(i),gy,z), r) & 
                       big_union(##Lset(i),r,u), mr, v, y))]" 
 apply (simp only: rex_setclass_is_bex [symmetric])
-  \<comment>\<open>Convert \<open>\<exists>y\<in>Lset(i)\<close> to \<open>\<exists>y[##Lset(i)]\<close> within the body
+  \<comment> \<open>Convert \<open>\<exists>y\<in>Lset(i)\<close> to \<open>\<exists>y[##Lset(i)]\<close> within the body
        of the @{term is_wfrec} application.\<close>
 apply (intro FOL_reflections function_reflections 
           is_wfrec_reflection Replace_reflection DPow'_reflection) 

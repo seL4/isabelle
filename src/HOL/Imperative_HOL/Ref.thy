@@ -61,7 +61,7 @@ subsection \<open>Properties\<close>
 text \<open>Primitives\<close>
 
 lemma noteq_sym: "r =!= s \<Longrightarrow> s =!= r"
-  and unequal [simp]: "r \<noteq> r' \<longleftrightarrow> r =!= r'" \<comment> "same types!"
+  and unequal [simp]: "r \<noteq> r' \<longleftrightarrow> r =!= r'" \<comment> \<open>same types!\<close>
   by (auto simp add: noteq_def)
 
 lemma noteq_irrefl: "r =!= r \<Longrightarrow> False"

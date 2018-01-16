@@ -17,7 +17,7 @@ text \<open>
 
 lemmas [simp] =
   ring_distribs
-  diff_mult_distrib diff_mult_distrib2 \<comment>\<open>for type nat\<close>
+  diff_mult_distrib diff_mult_distrib2 \<comment> \<open>for type nat\<close>
 
 
 text \<open>\<^medskip> The sum of the first \<open>n\<close> odd numbers equals \<open>n\<close> squared.\<close>

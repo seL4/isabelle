@@ -19,17 +19,17 @@ design issues:
 
 subsubsection "objects"
 
-datatype  obj_tag =     \<comment>\<open>tag for generic object\<close>
-          CInst qtname  \<comment>\<open>class instance\<close>
-        | Arr  ty int   \<comment>\<open>array with component type and length\<close>
-    \<comment>\<open>| CStat qtname   the tag is irrelevant for a class object,
+datatype  obj_tag =     \<comment> \<open>tag for generic object\<close>
+          CInst qtname  \<comment> \<open>class instance\<close>
+        | Arr  ty int   \<comment> \<open>array with component type and length\<close>
+    \<comment> \<open>| CStat qtname   the tag is irrelevant for a class object,
                            i.e. the static fields of a class,
                            since its type is given already by the reference to 
                            it (see below)\<close>
 
-type_synonym vn = "fspec + int"                 \<comment>\<open>variable name\<close>
+type_synonym vn = "fspec + int"                 \<comment> \<open>variable name\<close>
 record  obj  = 
-          tag :: "obj_tag"                      \<comment>\<open>generalized object\<close>
+          tag :: "obj_tag"                      \<comment> \<open>generalized object\<close>
           "values" :: "(vn, val) table"      
 
 translations 
@@ -130,7 +130,7 @@ done
 
 subsubsection "object references"
 
-type_synonym oref = "loc + qtname"         \<comment>\<open>generalized object reference\<close>
+type_synonym oref = "loc + qtname"         \<comment> \<open>generalized object reference\<close>
 syntax
   Heap  :: "loc   \<Rightarrow> oref"
   Stat  :: "qtname \<Rightarrow> oref"
@@ -213,7 +213,7 @@ done
 
 subsubsection "stores"
 
-type_synonym globs               \<comment>\<open>global variables: heap and static variables\<close>
+type_synonym globs               \<comment> \<open>global variables: heap and static variables\<close>
         = "(oref , obj) table"
 type_synonym heap
         = "(loc  , obj) table"
@@ -580,7 +580,7 @@ lemma absorb_Some_JumpD: "absorb j s = Some (Jump j') \<Longrightarrow> j'\<note
 subsubsection "full program state"
 
 type_synonym
-  state = "abopt \<times> st"          \<comment>\<open>state including abruption information\<close>
+  state = "abopt \<times> st"          \<comment> \<open>state including abruption information\<close>
 
 translations
   (type) "abopt" <= (type) "abrupt option"

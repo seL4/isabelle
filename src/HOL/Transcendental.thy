@@ -48,7 +48,7 @@ qed
 
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
-  assumes f: "(\<lambda>n. root n (norm (f n))) \<longlonglongrightarrow> x" \<comment> "could be weakened to lim sup"
+  assumes f: "(\<lambda>n. root n (norm (f n))) \<longlonglongrightarrow> x" \<comment> \<open>could be weakened to lim sup\<close>
     and "x < 1"
   shows "summable f"
 proof -

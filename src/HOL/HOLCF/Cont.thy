@@ -18,7 +18,7 @@ default_sort po
 
 subsection \<open>Definitions\<close>
 
-definition monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  \<comment> "monotonicity"
+definition monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  \<comment> \<open>monotonicity\<close>
   where "monofun f \<longleftrightarrow> (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
 definition cont :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"

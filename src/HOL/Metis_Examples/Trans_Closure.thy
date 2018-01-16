@@ -16,11 +16,11 @@ declare [[metis_new_skolem]]
 type_synonym addr = nat
 
 datatype val
-  = Unit        \<comment> "dummy result value of void expressions"
-  | Null        \<comment> "null reference"
-  | Bool bool   \<comment> "Boolean value"
-  | Intg int    \<comment> "integer value"
-  | Addr addr   \<comment> "addresses of objects in the heap"
+  = Unit        \<comment> \<open>dummy result value of void expressions\<close>
+  | Null        \<comment> \<open>null reference\<close>
+  | Bool bool   \<comment> \<open>Boolean value\<close>
+  | Intg int    \<comment> \<open>integer value\<close>
+  | Addr addr   \<comment> \<open>addresses of objects in the heap\<close>
 
 consts R :: "(addr \<times> addr) set"
 

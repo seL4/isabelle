@@ -236,14 +236,13 @@ AccAVar: "\<lbrakk>((v,vf),s') = avar G i a (Norm s)\<rbrakk>
 | InsInitFVar:
       "G\<turnstile>(\<langle>InsInitV Skip ({accC,statDeclC,stat}Lit a..fn)\<rangle>,Norm s) 
         \<mapsto>1 (\<langle>{accC,statDeclC,stat}Lit a..fn\<rangle>,Norm s)"
-\<comment>  \<open>Notice, that we do not have literal values for \<open>vars\<close>. 
+\<comment> \<open>Notice, that we do not have literal values for \<open>vars\<close>. 
 The rules for accessing variables (\<open>Acc\<close>) and assigning to variables 
 (\<open>Ass\<close>), test this with the predicate \<open>groundVar\<close>.  After 
 initialisation is done and the \<open>FVar\<close> is evaluated, we can't just 
 throw away the \<open>InsInitFVar\<close> term and return a literal value, as in the 
 cases of \<open>New\<close>  or \<open>NewC\<close>. Instead we just return the evaluated 
-\<open>FVar\<close> and test for initialisation in the rule \<open>FVar\<close>. 
-\<close>
+\<open>FVar\<close> and test for initialisation in the rule \<open>FVar\<close>.\<close>
 
 
 | AVarE1: "\<lbrakk>G\<turnstile>(\<langle>e1\<rangle>,Norm s) \<mapsto>1 (\<langle>e1'\<rangle>,s')\<rbrakk> 

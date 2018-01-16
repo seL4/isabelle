@@ -21,7 +21,7 @@ text\<open>The SET specs mention two signature keys for CAs - we only have one\<
 
 consts
   publicKey :: "[bool, agent] => key"
-    \<comment>\<open>the boolean is TRUE if a signing key\<close>
+    \<comment> \<open>the boolean is TRUE if a signing key\<close>
 
 abbreviation "pubEK == publicKey False"
 abbreviation "pubSK == publicKey True"
@@ -110,7 +110,7 @@ consts  pan :: "agent => nat"
 
 specification (pan)
   inj_pan: "inj pan"
-  \<comment>\<open>No two agents have the same PAN\<close>
+  \<comment> \<open>No two agents have the same PAN\<close>
 (*<*)
    apply (rule exI [of _ "nat_of_agent"]) 
    apply (simp add: inj_on_def inj_nat_of_agent [THEN inj_eq]) 
@@ -120,7 +120,7 @@ specification (pan)
 declare inj_pan [THEN inj_eq, iff]
 
 consts
-  XOR :: "nat*nat => nat"  \<comment>\<open>no properties are assumed of exclusive-or\<close>
+  XOR :: "nat*nat => nat"  \<comment> \<open>no properties are assumed of exclusive-or\<close>
 
 
 subsection\<open>Signature Primitives\<close>
@@ -170,19 +170,19 @@ abbreviation "authCode == Number (Suc (Suc 0))"
 subsection\<open>Encryption Primitives\<close>
 
 definition EXcrypt :: "[key,key,msg,msg] => msg" where
-  \<comment>\<open>Extra Encryption\<close>
+  \<comment> \<open>Extra Encryption\<close>
     (*K: the symmetric key   EK: the public encryption key*)
     "EXcrypt K EK M m =
        \<lbrace>Crypt K \<lbrace>M, Hash m\<rbrace>, Crypt EK \<lbrace>Key K, m\<rbrace>\<rbrace>"
 
 definition EXHcrypt :: "[key,key,msg,msg] => msg" where
-  \<comment>\<open>Extra Encryption with Hashing\<close>
+  \<comment> \<open>Extra Encryption with Hashing\<close>
     (*K: the symmetric key   EK: the public encryption key*)
     "EXHcrypt K EK M m =
        \<lbrace>Crypt K \<lbrace>M, Hash m\<rbrace>, Crypt EK \<lbrace>Key K, m, Hash M\<rbrace>\<rbrace>"
 
 definition Enc :: "[key,key,key,msg] => msg" where
-  \<comment>\<open>Simple Encapsulation with SIGNATURE\<close>
+  \<comment> \<open>Simple Encapsulation with SIGNATURE\<close>
     (*SK: the sender's signing key
       K: the symmetric key
       EK: the public encryption key*)
@@ -190,7 +190,7 @@ definition Enc :: "[key,key,key,msg] => msg" where
        \<lbrace>Crypt K (sign SK M), Crypt EK (Key K)\<rbrace>"
 
 definition EncB :: "[key,key,key,msg,msg] => msg" where
-  \<comment>\<open>Encapsulation with Baggage.  Keys as above, and baggage b.\<close>
+  \<comment> \<open>Encapsulation with Baggage.  Keys as above, and baggage b.\<close>
     "EncB SK K EK M b =
        \<lbrace>Enc SK K EK \<lbrace>M, Hash b\<rbrace>, b\<rbrace>"
 
@@ -386,7 +386,7 @@ by (blast intro!: initState_into_used)
 text\<open>Reverse the normal simplification of "image" to build up (not break down)
   the set of keys.  Based on \<open>analz_image_freshK_ss\<close>, but simpler.\<close>
 lemmas analz_image_keys_simps =
-       simp_thms mem_simps \<comment>\<open>these two allow its use with \<open>only:\<close>\<close>
+       simp_thms mem_simps \<comment> \<open>these two allow its use with \<open>only:\<close>\<close>
        image_insert [THEN sym] image_Un [THEN sym] 
        rangeI symKeys_neq_imp_neq
        insert_Key_singleton insert_Key_image Un_assoc [THEN sym]

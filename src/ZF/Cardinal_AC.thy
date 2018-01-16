@@ -222,7 +222,7 @@ proof -
   note lt_subset_trans [OF _ _ OU, trans]
   show ?thesis
     proof (cases "W=0")
-      case True  \<comment>\<open>solve the easy 0 case\<close>
+      case True  \<comment> \<open>solve the easy 0 case\<close>
       thus ?thesis by (simp add: CK Card_is_Ord Card_csucc Ord_0_lt_csucc)
     next
       case False

@@ -191,12 +191,12 @@ apply (unfold Reach_def)
 apply clarify
 apply simp
 apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
-\<comment>\<open>the changed edge is part of the path\<close>
+\<comment> \<open>the changed edge is part of the path\<close>
  apply(erule exE)
  apply(drule_tac P = "\<lambda>i. i<length path - 1 \<and> (fst(E!R),T)=(path!Suc i,path!i)" in Ex_first_occurrence)
  apply clarify
  apply(erule disjE)
-\<comment>\<open>T is NOT a root\<close>
+\<comment> \<open>T is NOT a root\<close>
   apply clarify
   apply(rule_tac x = "(take m path)@patha" in exI)
   apply(subgoal_tac "\<not>(length path\<le>m)")
@@ -240,7 +240,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
   apply(subgoal_tac "Suc (i - m)=(Suc i - m)" )
     prefer 2 apply arith
    apply simp
-\<comment>\<open>T is a root\<close>
+\<comment> \<open>T is a root\<close>
  apply(case_tac "m=0")
   apply force
  apply(rule_tac x = "take (Suc m) path" in exI)
@@ -253,7 +253,7 @@ apply(case_tac "\<exists>i<length path - 1. (fst(E!R),T)=(path!(Suc i),path!i)")
  apply(case_tac "R=j")
   apply(force simp add: nth_list_update)
  apply(force simp add: nth_list_update)
-\<comment>\<open>the changed edge is not part of the path\<close>
+\<comment> \<open>the changed edge is not part of the path\<close>
 apply(rule_tac x = "path" in exI)
 apply simp
 apply clarify
@@ -276,7 +276,7 @@ apply simp
 apply(erule disjE)
  prefer 2 apply force
 apply clarify
-\<comment>\<open>there exist a black node in the path to T\<close>
+\<comment> \<open>there exist a black node in the path to T\<close>
 apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(erule exE)
  apply(drule_tac P = "\<lambda>m. m<length path \<and> M!(path!m)=Black" in Ex_first_occurrence)
@@ -318,7 +318,7 @@ apply simp
 apply(erule disjE)
  prefer 2 apply force
 apply clarify
-\<comment>\<open>there exist a black node in the path to T\<close>
+\<comment> \<open>there exist a black node in the path to T\<close>
 apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(erule exE)
  apply(drule_tac P = "\<lambda>m. m<length path \<and> M!(path!m)=Black" in Ex_first_occurrence)

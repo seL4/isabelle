@@ -455,7 +455,7 @@ text_raw \<open>
 \<close>
 lemma True
 proof -
-  \<comment> "pretty trivial"
+  \<comment> \<open>pretty trivial\<close>
   show True by force
 qed
 text_raw \<open>

@@ -1544,7 +1544,7 @@ apply (cases x, cases y)
 apply (simp add: linorder_not_le [where 'a = real, symmetric] 
                  linorder_not_le [where 'a = preal] 
                   real_zero_def real_le real_mult)
-  \<comment>\<open>Reduce to the (simpler) \<open>\<le>\<close> relation\<close>
+  \<comment> \<open>Reduce to the (simpler) \<open>\<le>\<close> relation\<close>
 apply (auto dest!: less_add_left_Ex
      simp add: algebra_simps preal_self_less_add_left)
 done

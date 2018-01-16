@@ -18,7 +18,7 @@ abbreviation
 
 axiomatization where
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
-   \<comment>\<open>Tgs is secure --- we already know that Kas is secure\<close>
+   \<comment> \<open>Tgs is secure --- we already know that Kas is secure\<close>
 
 definition
  (* authKeys are those contained in an authTicket *)
@@ -1343,7 +1343,7 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (rule_tac [9] impI)+
-  \<comment>\<open>The Oops1 case is unusual: must simplify
+  \<comment> \<open>The Oops1 case is unusual: must simplify
     @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
    \<open>analz_mono_contra\<close> weaken it to
    @{term "Authkey \<notin> analz (spies evs)"},

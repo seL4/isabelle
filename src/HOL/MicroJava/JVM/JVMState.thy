@@ -22,11 +22,11 @@ type_synonym
           sig \<times>     
           p_count"
 
-  \<comment> "operand stack" 
-  \<comment> "local variables (including this pointer and method parameters)"
-  \<comment> "name of class where current method is defined"
-  \<comment> "method name + parameter types"
-  \<comment> "program counter within frame"
+  \<comment> \<open>operand stack\<close> 
+  \<comment> \<open>local variables (including this pointer and method parameters)\<close>
+  \<comment> \<open>name of class where current method is defined\<close>
+  \<comment> \<open>method name + parameter types\<close>
+  \<comment> \<open>program counter within frame\<close>
 
 
 subsection \<open>Exceptions\<close>
@@ -35,7 +35,7 @@ definition raise_system_xcpt :: "bool \<Rightarrow> xcpt \<Rightarrow> val optio
 
 subsection \<open>Runtime State\<close>
 type_synonym
-  jvm_state = "val option \<times> aheap \<times> frame list"  \<comment> "exception flag, heap, frames"
+  jvm_state = "val option \<times> aheap \<times> frame list"  \<comment> \<open>exception flag, heap, frames\<close>
 
 
 subsection \<open>Lemmas\<close>

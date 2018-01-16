@@ -20,7 +20,7 @@ definition
 
 definition
   mk_program :: "[i,i,i]=>i"  where
-  \<comment>\<open>The definition yields a program thanks to the coercions
+  \<comment> \<open>The definition yields a program thanks to the coercions
        init \<inter> state, acts \<inter> Pow(state*state), etc.\<close>
   "mk_program(init, acts, allowed) ==
     <init \<inter> state, cons(id(state), acts \<inter> Pow(state*state)),
@@ -70,7 +70,7 @@ definition
 
 definition "constrains" :: "[i, i] => i"  (infixl "co" 60)  where
   "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
-    \<comment>\<open>the condition @{term "st_set(A)"} makes the definition slightly
+    \<comment> \<open>the condition @{term "st_set(A)"} makes the definition slightly
          stronger than the HOL one\<close>
 
 definition unless :: "[i, i] => i"  (infixl "unless" 60)  where

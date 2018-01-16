@@ -13,7 +13,7 @@ begin
 
 definition
   exphr :: "real => hypreal" where
-    \<comment>\<open>define exponential function using standard part\<close>
+    \<comment> \<open>define exponential function using standard part\<close>
   "exphr x =  st(sumhr (0, whn, %n. inverse (fact n) * (x ^ n)))"
 
 definition
@@ -603,7 +603,7 @@ apply (auto simp add: Infinitesimal_approx_minus [symmetric]
 done
 
 lemma STAR_cos_Infinitesimal_approx2:
-  fixes x :: hypreal  \<comment>\<open>perhaps could be generalised, like many other hypreal results\<close>
+  fixes x :: hypreal  \<comment> \<open>perhaps could be generalised, like many other hypreal results\<close>
   shows "x \<in> Infinitesimal ==> ( *f* cos) x \<approx> 1 - (x\<^sup>2)/2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto intro: Infinitesimal_SReal_divide Infinitesimal_mult

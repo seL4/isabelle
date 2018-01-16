@@ -16,20 +16,20 @@ text \<open>
 \<close>
 
 definition
-  \<comment> "The program counter will always be inside the method:"
+  \<comment> \<open>The program counter will always be inside the method:\<close>
   check_bounded :: "instr list \<Rightarrow> exception_table \<Rightarrow> bool" where
   "check_bounded ins et \<longleftrightarrow>
   (\<forall>pc < length ins. \<forall>pc' \<in> set (succs (ins!pc) pc). pc' < length ins) \<and>
                      (\<forall>e \<in> set et. fst (snd (snd e)) < length ins)"
 
 definition
-  \<comment> "The method type only contains declared classes:"
+  \<comment> \<open>The method type only contains declared classes:\<close>
   check_types :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool" where
   "check_types G mxs mxr phi \<longleftrightarrow> set phi \<subseteq> states G mxs mxr"
 
 definition
-  \<comment> "An instruction is welltyped if it is applicable and its effect"
-  \<comment> "is compatible with the type at all successor instructions:"
+  \<comment> \<open>An instruction is welltyped if it is applicable and its effect\<close>
+  \<comment> \<open>is compatible with the type at all successor instructions:\<close>
   wt_instr :: "[instr,jvm_prog,ty,method_type,nat,p_count,
                 exception_table,p_count] \<Rightarrow> bool" where
   "wt_instr i G rT phi mxs max_pc et pc \<longleftrightarrow>
@@ -43,10 +43,10 @@ definition
   G \<turnstile> Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)) <=' phi!0"
 
 definition
-  \<comment> "A method is welltyped if the body is not empty, if execution does not"
-  \<comment> "leave the body, if the method type covers all instructions and mentions"
-  \<comment> "declared classes only, if the method calling convention is respected, and"
-  \<comment> "if all instructions are welltyped."
+  \<comment> \<open>A method is welltyped if the body is not empty, if execution does not\<close>
+  \<comment> \<open>leave the body, if the method type covers all instructions and mentions\<close>
+  \<comment> \<open>declared classes only, if the method calling convention is respected, and\<close>
+  \<comment> \<open>if all instructions are welltyped.\<close>
   wt_method :: "[jvm_prog,cname,ty list,ty,nat,nat,instr list,
                  exception_table,method_type] \<Rightarrow> bool" where
   "wt_method G C pTs rT mxs mxl ins et phi \<longleftrightarrow>
@@ -59,7 +59,7 @@ definition
   (\<forall>pc. pc<max_pc \<longrightarrow> wt_instr (ins!pc) G rT phi mxs max_pc et pc))"
 
 definition
-  \<comment> "A program is welltyped if it is wellformed and all methods are welltyped"
+  \<comment> \<open>A program is welltyped if it is wellformed and all methods are welltyped\<close>
   wt_jvm_prog :: "[jvm_prog,prog_type] \<Rightarrow> bool" where
   "wt_jvm_prog G phi \<longleftrightarrow>
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)).

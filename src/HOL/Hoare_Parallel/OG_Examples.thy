@@ -41,7 +41,7 @@ lemma Petersons_mutex_1:
   COEND
   \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1 \<and> \<acute>pr2=0 \<and> \<not>\<acute>in2\<rbrace>"
 apply oghoare
-\<comment>\<open>104 verification conditions.\<close>
+\<comment> \<open>104 verification conditions.\<close>
 apply auto
 done
 
@@ -89,7 +89,7 @@ lemma Busy_wait_mutex:
   COEND
   \<lbrace>False\<rbrace>"
 apply oghoare
-\<comment>\<open>122 vc\<close>
+\<comment> \<open>122 vc\<close>
 apply auto
 done
 
@@ -116,7 +116,7 @@ lemma Semaphores_mutex:
   COEND
   \<lbrace>False\<rbrace>"
 apply oghoare
-\<comment>\<open>38 vc\<close>
+\<comment> \<open>38 vc\<close>
 apply auto
 done
 
@@ -135,7 +135,7 @@ lemma Semaphores_parameterized_mutex:
  COEND
   \<lbrace>False\<rbrace>"
 apply oghoare
-\<comment>\<open>20 vc\<close>
+\<comment> \<open>20 vc\<close>
 apply auto
 done
 
@@ -167,40 +167,40 @@ lemma Ticket_mutex:
  COEND
   \<lbrace>False\<rbrace>"
 apply oghoare
-\<comment>\<open>35 vc\<close>
+\<comment> \<open>35 vc\<close>
 apply simp_all
-\<comment>\<open>16 vc\<close>
+\<comment> \<open>16 vc\<close>
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
-\<comment>\<open>11 vc\<close>
+\<comment> \<open>11 vc\<close>
 apply simp_all
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
-\<comment>\<open>10 subgoals left\<close>
+\<comment> \<open>10 subgoals left\<close>
 apply(erule less_SucE)
  apply simp
 apply simp
-\<comment>\<open>9 subgoals left\<close>
+\<comment> \<open>9 subgoals left\<close>
 apply(case_tac "i=k")
  apply force
 apply simp
 apply(case_tac "i=l")
  apply force
 apply force
-\<comment>\<open>8 subgoals left\<close>
+\<comment> \<open>8 subgoals left\<close>
 prefer 8
 apply force
 apply force
-\<comment>\<open>6 subgoals left\<close>
+\<comment> \<open>6 subgoals left\<close>
 prefer 6
 apply(erule_tac x=j in allE)
 apply fastforce
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 prefer 5
 apply(case_tac [!] "j=k")
-\<comment>\<open>10 subgoals left\<close>
+\<comment> \<open>10 subgoals left\<close>
 apply simp_all
 apply(erule_tac x=k in allE)
 apply force
-\<comment>\<open>9 subgoals left\<close>
+\<comment> \<open>9 subgoals left\<close>
 apply(case_tac "j=l")
  apply simp
  apply(erule_tac x=k in allE)
@@ -211,7 +211,7 @@ apply(erule_tac x=k in allE)
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply force
-\<comment>\<open>8 subgoals left\<close>
+\<comment> \<open>8 subgoals left\<close>
 apply force
 apply(case_tac "j=l")
  apply simp
@@ -220,21 +220,21 @@ apply(erule_tac x=l in allE)
 apply force
 apply force
 apply force
-\<comment>\<open>5 subgoals left\<close>
+\<comment> \<open>5 subgoals left\<close>
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply(case_tac "j=l")
  apply force
 apply force
 apply force
-\<comment>\<open>3 subgoals left\<close>
+\<comment> \<open>3 subgoals left\<close>
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply(case_tac "j=l")
  apply force
 apply force
 apply force
-\<comment>\<open>1 subgoals left\<close>
+\<comment> \<open>1 subgoals left\<close>
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply(case_tac "j=l")
@@ -294,9 +294,9 @@ lemma Zero_search:
   COEND
   \<lbrace>f(\<acute>x)=0 \<or> f(\<acute>y)=0\<rbrace>"
 apply oghoare
-\<comment>\<open>98 verification conditions\<close>
+\<comment> \<open>98 verification conditions\<close>
 apply auto
-\<comment>\<open>auto takes about 3 minutes !!\<close>
+\<comment> \<open>auto takes about 3 minutes !!\<close>
 done
 
 text \<open>Easier Version: without AWAIT.  Apt and Olderog. page 256:\<close>
@@ -327,9 +327,9 @@ lemma Zero_Search_2:
   COEND
   \<lbrace>f(\<acute>x)=0 \<or> f(\<acute>y)=0\<rbrace>"
 apply oghoare
-\<comment>\<open>20 vc\<close>
+\<comment> \<open>20 vc\<close>
 apply auto
-\<comment>\<open>auto takes aprox. 2 minutes.\<close>
+\<comment> \<open>auto takes aprox. 2 minutes.\<close>
 done
 
 subsection \<open>Producer/Consumer\<close>
@@ -429,19 +429,19 @@ lemma Producer_consumer:
  COEND
  \<lbrace> \<forall>k<length a. (a ! k)=(\<acute>b ! k)\<rbrace>"
 apply oghoare
-\<comment>\<open>138 vc\<close>
+\<comment> \<open>138 vc\<close>
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
-\<comment>\<open>112 subgoals left\<close>
+\<comment> \<open>112 subgoals left\<close>
 apply(simp_all (no_asm))
-\<comment>\<open>43 subgoals left\<close>
+\<comment> \<open>43 subgoals left\<close>
 apply(tactic \<open>ALLGOALS (conjI_Tac @{context} (K all_tac))\<close>)
-\<comment>\<open>419 subgoals left\<close>
+\<comment> \<open>419 subgoals left\<close>
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
-\<comment>\<open>99 subgoals left\<close>
+\<comment> \<open>99 subgoals left\<close>
 apply(simp_all only:length_0_conv [THEN sym])
-\<comment>\<open>20 subgoals left\<close>
+\<comment> \<open>20 subgoals left\<close>
 apply (simp_all del:length_0_conv length_greater_0_conv add: nth_list_update mod_lemma)
-\<comment>\<open>9 subgoals left\<close>
+\<comment> \<open>9 subgoals left\<close>
 apply (force simp add:less_Suc_eq)
 apply(hypsubst_thin, drule sym)
 apply (force simp add:less_Suc_eq)+

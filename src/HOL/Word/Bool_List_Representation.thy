@@ -75,14 +75,14 @@ primrec rbl_pred :: "bool list \<Rightarrow> bool list"
   | Cons: "rbl_pred (x # xs) = (if x then False # xs else True # rbl_pred xs)"
 
 primrec rbl_add :: "bool list \<Rightarrow> bool list \<Rightarrow> bool list"
-  where \<comment> "result is length of first arg, second arg may be longer"
+  where \<comment> \<open>result is length of first arg, second arg may be longer\<close>
     Nil: "rbl_add Nil x = Nil"
   | Cons: "rbl_add (y # ys) x =
       (let ws = rbl_add ys (tl x)
        in (y \<noteq> hd x) # (if hd x \<and> y then rbl_succ ws else ws))"
 
 primrec rbl_mult :: "bool list \<Rightarrow> bool list \<Rightarrow> bool list"
-  where \<comment> "result is length of first arg, second arg may be longer"
+  where \<comment> \<open>result is length of first arg, second arg may be longer\<close>
     Nil: "rbl_mult Nil x = Nil"
   | Cons: "rbl_mult (y # ys) x =
       (let ws = False # rbl_mult ys x

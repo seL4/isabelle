@@ -35,7 +35,7 @@ the matching private key, and vice versa:
 type_synonym key = nat
 consts invKey :: "key \<Rightarrow> key"
 (*<*)
-consts all_symmetric :: bool        \<comment>\<open>true if all keys are symmetric\<close>
+consts all_symmetric :: bool        \<comment> \<open>true if all keys are symmetric\<close>
 
 specification (invKey)
   invKey [simp]: "invKey (invKey K) = K"
@@ -88,7 +88,7 @@ translations
 
 
 definition keysFor :: "msg set => key set" where
-    \<comment>\<open>Keys useful to decrypt elements of a message set\<close>
+    \<comment> \<open>Keys useful to decrypt elements of a message set\<close>
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
 

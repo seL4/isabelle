@@ -73,7 +73,7 @@ where
                         Says A B X => parts {X} \<union> used evs
                       | Gets A X   => used evs
                       | Notes A X  => parts {X} \<union> used evs)"
-    \<comment>\<open>The case for @{term Gets} seems anomalous, but @{term Gets} always
+    \<comment> \<open>The case for @{term Gets} seems anomalous, but @{term Gets} always
         follows @{term Says} in real protocols.  Seems difficult to change.
         See @{text Gets_correct} in theory @{text "Guard/Extensions.thy"}.\<close>
 

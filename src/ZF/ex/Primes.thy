@@ -12,22 +12,22 @@ definition
     "m dvd n == m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
 
 definition
-  is_gcd  :: "[i,i,i]=>o"     \<comment>\<open>definition of great common divisor\<close>  where
+  is_gcd  :: "[i,i,i]=>o"     \<comment> \<open>definition of great common divisor\<close>  where
     "is_gcd(p,m,n) == ((p dvd m) & (p dvd n))   &
                        (\<forall>d\<in>nat. (d dvd m) & (d dvd n) \<longrightarrow> d dvd p)"
 
 definition
-  gcd     :: "[i,i]=>i"       \<comment>\<open>Euclid's algorithm for the gcd\<close>  where
+  gcd     :: "[i,i]=>i"       \<comment> \<open>Euclid's algorithm for the gcd\<close>  where
     "gcd(m,n) == transrec(natify(n),
                         %n f. \<lambda>m \<in> nat.
                                 if n=0 then m else f`(m mod n)`n) ` natify(m)"
 
 definition
-  coprime :: "[i,i]=>o"       \<comment>\<open>the coprime relation\<close>  where
+  coprime :: "[i,i]=>o"       \<comment> \<open>the coprime relation\<close>  where
     "coprime(m,n) == gcd(m,n) = 1"
   
 definition
-  prime   :: i                \<comment>\<open>the set of prime numbers\<close>  where
+  prime   :: i                \<comment> \<open>the set of prime numbers\<close>  where
    "prime == {p \<in> nat. 1<p & (\<forall>m \<in> nat. m dvd p \<longrightarrow> m=1 | m=p)}"
 
 

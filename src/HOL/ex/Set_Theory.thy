@@ -102,7 +102,7 @@ theorem Schroeder_Bernstein:
     \<Longrightarrow> \<exists>h:: 'a \<Rightarrow> 'b. inj h \<and> surj h"
   apply (rule decomposition [where f=f and g=g, THEN exE])
   apply (rule_tac x = "(\<lambda>z. if z \<in> x then f z else inv g z)" in exI) 
-    \<comment>\<open>The term above can be synthesized by a sufficiently detailed proof.\<close>
+    \<comment> \<open>The term above can be synthesized by a sufficiently detailed proof.\<close>
   apply (rule bij_if_then_else)
      apply (rule_tac [4] refl)
     apply (rule_tac [2] inj_on_inv_into)
@@ -179,7 +179,7 @@ lemma "P a \<Longrightarrow> \<exists>A. (\<forall>x \<in> A. P x) \<and> (\<exi
 
 lemma "a < b \<and> b < (c::int) \<Longrightarrow> \<exists>A. a \<notin> A \<and> b \<in> A \<and> c \<notin> A"
   \<comment> \<open>Example 4.\<close>
-  by auto \<comment>\<open>slow\<close>
+  by auto \<comment> \<open>slow\<close>
 
 lemma "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
   \<comment> \<open>Example 5, page 298.\<close>

@@ -274,7 +274,7 @@ lemma is_recfun_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma is_recfun_separation:
-     \<comment>\<open>for well-founded recursion\<close>
+     \<comment> \<open>for well-founded recursion\<close>
      "[| L(r); L(f); L(g); L(a); L(b) |]
      ==> separation(L,
             \<lambda>x. \<exists>xa[L]. \<exists>xb[L].

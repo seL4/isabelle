@@ -628,7 +628,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 
 lemma (in group) coset_join2:
      "\<lbrakk>x \<in> carrier(G);  subgroup(H,G);  x\<in>H\<rbrakk> \<Longrightarrow> H #> x = H"
-  \<comment>\<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
+  \<comment> \<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in group) r_coset_subset_G:
@@ -1021,7 +1021,7 @@ subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
   FactGroup :: "[i,i] => i" (infixl "Mod" 65) where
-    \<comment>\<open>Actually defined for groups rather than monoids\<close>
+    \<comment> \<open>Actually defined for groups rather than monoids\<close>
   "G Mod H ==
      <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"
 
@@ -1085,7 +1085,7 @@ text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
 
 definition
   kernel :: "[i,i,i] => i" where
-    \<comment>\<open>the kernel of a homomorphism\<close>
+    \<comment> \<open>the kernel of a homomorphism\<close>
   "kernel(G,H,h) == {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel(G,H,h), G)"
@@ -1215,7 +1215,7 @@ proof (simp add: surj_def FactGroup_contents_mem lam_type, clarify)
   hence "(\<Union>x\<in>kernel(G,H,h) #> g. {h ` x}) = {y}"
     by (auto simp add: y kernel_def r_coset_def)
   with g show "\<exists>x\<in>carrier(G Mod kernel(G, H, h)). contents(h `` x) = y"
-        \<comment>\<open>The witness is @{term "kernel(G,H,h) #> g"}\<close>
+        \<comment> \<open>The witness is @{term "kernel(G,H,h) #> g"}\<close>
     by (force simp add: FactGroup_def RCOSETS_def
            image_eq_UN [OF hom_is_fun] kernel_rcoset_subset)
 qed

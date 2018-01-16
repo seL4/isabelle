@@ -10,10 +10,10 @@ imports TypeRel Value
 begin
 
 type_synonym 
-  fields' = "(vname \<times> cname \<rightharpoonup> val)"  \<comment> "field name, defining class, value"
+  fields' = "(vname \<times> cname \<rightharpoonup> val)"  \<comment> \<open>field name, defining class, value\<close>
 
 type_synonym
-  obj = "cname \<times> fields'"    \<comment> "class instance with class name and fields"
+  obj = "cname \<times> fields'"    \<comment> \<open>class instance with class name and fields\<close>
 
 definition obj_ty :: "obj => ty" where
  "obj_ty obj  == Class (fst obj)"
@@ -22,10 +22,10 @@ definition init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)" wh
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
 
 type_synonym aheap = "loc \<rightharpoonup> obj"    \<comment> \<open>"\<open>heap\<close>" used in a translation below\<close>
-type_synonym locals = "vname \<rightharpoonup> val"  \<comment> "simple state, i.e. variable contents"
+type_synonym locals = "vname \<rightharpoonup> val"  \<comment> \<open>simple state, i.e. variable contents\<close>
 
-type_synonym state = "aheap \<times> locals"      \<comment> "heap, local parameter including This"
-type_synonym xstate = "val option \<times> state" \<comment> "state including exception information"
+type_synonym state = "aheap \<times> locals"      \<comment> \<open>heap, local parameter including This\<close>
+type_synonym xstate = "val option \<times> state" \<comment> \<open>state including exception information\<close>
 
 abbreviation (input)
   heap :: "state => aheap"

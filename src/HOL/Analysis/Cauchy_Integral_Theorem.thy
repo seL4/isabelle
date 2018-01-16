@@ -6151,7 +6151,7 @@ proof -
      apply (clarsimp simp del: divide_const_simps)
      apply (metis add.commute dist_commute le_less_trans mem_ball real_gt_half_sum w)
      done
-  \<comment>\<open>Replacing @{term r} and the original (weak) premises\<close>
+  \<comment> \<open>Replacing @{term r} and the original (weak) premises\<close>
   obtain r where "0 < r" and holfc: "f holomorphic_on cball z r" and w: "w \<in> ball z r"
     apply (rule that [of "(r + dist w z) / 2"])
       apply (simp_all add: fh')

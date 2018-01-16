@@ -35,8 +35,8 @@ by blast
 type_synonym key = nat
 
 consts
-  all_symmetric :: bool        \<comment>\<open>true if all keys are symmetric\<close>
-  invKey        :: "key=>key"  \<comment>\<open>inverse of a symmetric key\<close>
+  all_symmetric :: bool        \<comment> \<open>true if all keys are symmetric\<close>
+  invKey        :: "key=>key"  \<comment> \<open>inverse of a symmetric key\<close>
 
 specification (invKey)
   invKey [simp]: "invKey (invKey K) = K"
@@ -57,14 +57,14 @@ datatype
 
 text\<open>Messages\<close>
 datatype
-     msg = Agent  agent     \<comment>\<open>Agent names\<close>
-         | Number nat       \<comment>\<open>Ordinary integers, timestamps, ...\<close>
-         | Nonce  nat       \<comment>\<open>Unguessable nonces\<close>
-         | Pan    nat       \<comment>\<open>Unguessable Primary Account Numbers (??)\<close>
-         | Key    key       \<comment>\<open>Crypto keys\<close>
-         | Hash   msg       \<comment>\<open>Hashing\<close>
-         | MPair  msg msg   \<comment>\<open>Compound messages\<close>
-         | Crypt  key msg   \<comment>\<open>Encryption, public- or shared-key\<close>
+     msg = Agent  agent     \<comment> \<open>Agent names\<close>
+         | Number nat       \<comment> \<open>Ordinary integers, timestamps, ...\<close>
+         | Nonce  nat       \<comment> \<open>Unguessable nonces\<close>
+         | Pan    nat       \<comment> \<open>Unguessable Primary Account Numbers (??)\<close>
+         | Key    key       \<comment> \<open>Crypto keys\<close>
+         | Hash   msg       \<comment> \<open>Hashing\<close>
+         | MPair  msg msg   \<comment> \<open>Compound messages\<close>
+         | Crypt  key msg   \<comment> \<open>Encryption, public- or shared-key\<close>
 
 
 (*Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...*)
@@ -81,7 +81,7 @@ definition nat_of_agent :: "agent => nat" where
                                (curry prod_encode 2)
                                (curry prod_encode 3)
                                (prod_encode (4,0))"
-    \<comment>\<open>maps each agent to a unique natural number, for specifications\<close>
+    \<comment> \<open>maps each agent to a unique natural number, for specifications\<close>
 
 text\<open>The function is indeed injective\<close>
 lemma inj_nat_of_agent: "inj nat_of_agent"

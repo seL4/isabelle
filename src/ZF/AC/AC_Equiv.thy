@@ -124,7 +124,7 @@ locale AC18 =
   assumes AC18: "A\<noteq>0 & (\<forall>a \<in> A. B(a) \<noteq> 0) \<longrightarrow>
     ((\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a,b)) =   
       (\<Union>f \<in> \<Prod>a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a)))"
-  \<comment>"AC18 cannot be expressed within the object-logic"
+  \<comment> \<open>AC18 cannot be expressed within the object-logic\<close>
 
 definition
     "AC19 == \<forall>A. A\<noteq>0 & 0\<notin>A \<longrightarrow> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   

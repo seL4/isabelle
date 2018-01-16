@@ -160,7 +160,7 @@ proof -
       \<open>Refl m\<close> and \<open>x \<notin> Field m\<close>
       by (auto simp: I_def init_seg_of_def refl_on_def)
     ultimately
-    \<comment>\<open>This contradicts maximality of m:\<close>
+    \<comment> \<open>This contradicts maximality of m:\<close>
     show False using max and \<open>x \<notin> Field m\<close> unfolding Field_def by blast
   qed
   have "p \<subseteq> m"

@@ -10,21 +10,21 @@ imports "../UNITY_Main"
 begin
 
 record state =
-  floor :: "int"            \<comment>\<open>current position of the lift\<close>
-  "open" :: "bool"          \<comment>\<open>whether the door is opened at floor\<close>
-  stop  :: "bool"           \<comment>\<open>whether the lift is stopped at floor\<close>
-  req   :: "int set"        \<comment>\<open>for each floor, whether the lift is requested\<close>
-  up    :: "bool"           \<comment>\<open>current direction of movement\<close>
-  move  :: "bool"           \<comment>\<open>whether moving takes precedence over opening\<close>
+  floor :: "int"            \<comment> \<open>current position of the lift\<close>
+  "open" :: "bool"          \<comment> \<open>whether the door is opened at floor\<close>
+  stop  :: "bool"           \<comment> \<open>whether the lift is stopped at floor\<close>
+  req   :: "int set"        \<comment> \<open>for each floor, whether the lift is requested\<close>
+  up    :: "bool"           \<comment> \<open>current direction of movement\<close>
+  move  :: "bool"           \<comment> \<open>whether moving takes precedence over opening\<close>
 
 axiomatization
-  Min :: "int" and   \<comment>\<open>least and greatest floors\<close>
-  Max :: "int"       \<comment>\<open>least and greatest floors\<close>
+  Min :: "int" and   \<comment> \<open>least and greatest floors\<close>
+  Max :: "int"       \<comment> \<open>least and greatest floors\<close>
 where
   Min_le_Max [iff]: "Min \<le> Max"
   
   
-  \<comment>\<open>Abbreviations: the "always" part\<close>
+  \<comment> \<open>Abbreviations: the "always" part\<close>
   
 definition
   above :: "state set"
@@ -50,7 +50,7 @@ definition
   ready :: "state set"
   where "ready = {s. stop s & ~ open s & move s}"
  
-  \<comment>\<open>Further abbreviations\<close>
+  \<comment> \<open>Further abbreviations\<close>
 
 definition
   moving :: "state set"
@@ -65,7 +65,7 @@ definition
   where "opened = {s. stop s  &  open s  &  move s}"
 
 definition
-  closed :: "state set"  \<comment>\<open>but this is the same as ready!!\<close>
+  closed :: "state set"  \<comment> \<open>but this is the same as ready!!\<close>
   where "closed = {s. stop s  & ~ open s &  move s}"
 
 definition
@@ -78,7 +78,7 @@ definition
 
 
   
-  \<comment>\<open>The program\<close>
+  \<comment> \<open>The program\<close>
   
 definition
   request_act :: "(state*state) set"
@@ -128,7 +128,7 @@ definition
 
 definition
   button_press  :: "(state*state) set"
-      \<comment>\<open>This action is omitted from prior treatments, which therefore are
+      \<comment> \<open>This action is omitted from prior treatments, which therefore are
         unrealistic: nobody asks the lift to do anything!  But adding this
         action invalidates many of the existing progress arguments: various
         "ensures" properties fail. Maybe it should be constrained to only
@@ -141,7 +141,7 @@ definition
 
 definition
   Lift :: "state program"
-    \<comment>\<open>for the moment, we OMIT \<open>button_press\<close>\<close>
+    \<comment> \<open>for the moment, we OMIT \<open>button_press\<close>\<close>
   where "Lift = mk_total_program
                 ({s. floor s = Min & ~ up s & move s & stop s &
                           ~ open s & req s = {}},
@@ -150,7 +150,7 @@ definition
                  UNIV)"
 
 
-  \<comment>\<open>Invariants\<close>
+  \<comment> \<open>Invariants\<close>
 
 definition
   bounded :: "state set"

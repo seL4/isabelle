@@ -1726,7 +1726,7 @@ lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longri
   apply auto
   done
 
-lemma approachable_lt_le2:  \<comment>\<open>like the above, but pushes aside an extra formula\<close>
+lemma approachable_lt_le2:  \<comment> \<open>like the above, but pushes aside an extra formula\<close>
     "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
   apply auto
   apply (rule_tac x="d/2" in exI, auto)

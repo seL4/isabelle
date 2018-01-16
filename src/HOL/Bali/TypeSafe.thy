@@ -588,7 +588,7 @@ proof -
 qed
 
 corollary DynT_mheadsE [consumes 7]: 
-\<comment>\<open>Same as \<open>DynT_mheadsD\<close> but better suited for application in 
+\<comment> \<open>Same as \<open>DynT_mheadsD\<close> but better suited for application in 
 typesafety proof\<close>
  assumes invC_compatible: "G\<turnstile>mode\<rightarrow>invC\<preceq>statT" 
      and wf: "wf_prog G" 
@@ -1906,8 +1906,7 @@ proof -
           called type safe. To remedy the situation we would have to change
           the evaulation rule, so that it only has a type safe evaluation if
           we actually get a boolean value for the condition. That b is actually
-          a boolean value is part of @{term hyp_e}. See also Loop 
-\<close>
+          a boolean value is part of @{term hyp_e}. See also Loop\<close>
   next
     case (Loop s0 e b s1 c s2 l s3 L accC T A)
     note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1\<close>
@@ -2624,8 +2623,7 @@ proof -
           values of the expected types, and arbitrary if the inputs have 
           unexpected types. The proof can easily be adapted since we
           have the hypothesis that the values have a proper type.
-          This also applies to unary operations.
-\<close>
+          This also applies to unary operations.\<close>
     from eval_e1 have 
       s0_s1:"dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by (rule dom_locals_eval_mono_elim)

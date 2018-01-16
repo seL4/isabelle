@@ -519,7 +519,7 @@ lemma coset_subseteq_set_code [code]:
      (\<lambda>_. List.coset xs \<subseteq> set ys))"
 by simp
 
-notepad begin \<comment> "test code setup"
+notepad begin \<comment> \<open>test code setup\<close>
 have "List.coset [True] = set [False] \<and> 
       List.coset [] \<subseteq> List.set [True, False] \<and> 
       finite (List.coset [True])"

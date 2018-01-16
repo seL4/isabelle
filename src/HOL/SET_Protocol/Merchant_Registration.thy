@@ -20,26 +20,26 @@ inductive_set
   set_mr :: "event list set"
 where
 
-  Nil:    \<comment>\<open>Initial trace is empty\<close>
+  Nil:    \<comment> \<open>Initial trace is empty\<close>
            "[] \<in> set_mr"
 
 
-| Fake:    \<comment>\<open>The spy MAY say anything he CAN say.\<close>
+| Fake:    \<comment> \<open>The spy MAY say anything he CAN say.\<close>
            "[| evsf \<in> set_mr; X \<in> synth (analz (knows Spy evsf)) |]
             ==> Says Spy B X  # evsf \<in> set_mr"
         
 
-| Reception: \<comment>\<open>If A sends a message X to B, then B might receive it\<close>
+| Reception: \<comment> \<open>If A sends a message X to B, then B might receive it\<close>
              "[| evsr \<in> set_mr; Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_mr"
 
 
-| SET_MR1: \<comment>\<open>RegFormReq: M requires a registration form to a CA\<close>
+| SET_MR1: \<comment> \<open>RegFormReq: M requires a registration form to a CA\<close>
            "[| evs1 \<in> set_mr; M = Merchant k; Nonce NM1 \<notin> used evs1 |]
             ==> Says M (CA i) \<lbrace>Agent M, Nonce NM1\<rbrace> # evs1 \<in> set_mr"
 
 
-| SET_MR2: \<comment>\<open>RegFormRes: CA replies with the registration form and the 
+| SET_MR2: \<comment> \<open>RegFormRes: CA replies with the registration form and the 
                certificates for her keys\<close>
   "[| evs2 \<in> set_mr; Nonce NCA \<notin> used evs2;
       Gets (CA i) \<lbrace>Agent M, Nonce NM1\<rbrace> \<in> set evs2 |]
@@ -49,7 +49,7 @@ where
          # evs2 \<in> set_mr"
 
 | SET_MR3:
-         \<comment>\<open>CertReq: M submits the key pair to be certified.  The Notes
+         \<comment> \<open>CertReq: M submits the key pair to be certified.  The Notes
              event allows KM1 to be lost if M is compromised. Piero remarks
              that the agent mentioned inside the signature is not verified to
              correspond to M.  As in CR, each Merchant has fixed key pairs.  M
@@ -70,7 +70,7 @@ where
          # evs3 \<in> set_mr"
 
 | SET_MR4:
-         \<comment>\<open>CertRes: CA issues the certificates for merSK and merEK,
+         \<comment> \<open>CertRes: CA issues the certificates for merSK and merEK,
              while checking never to have certified the m even
              separately. NOTE: In Cardholder Registration the
              corresponding rule (6) doesn't use the "sign" primitive. "The
@@ -192,10 +192,10 @@ lemma new_keys_not_used [rule_format,simp]:
       ==> Key K \<notin> used evs --> K \<in> symKeys -->
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_mr.induct, simp_all)
-apply (force dest!: usedI keysFor_parts_insert)  \<comment>\<open>Fake\<close>
-apply force  \<comment>\<open>Message 2\<close>
-apply (blast dest: Gets_certificate_valid)  \<comment>\<open>Message 3\<close>
-apply force  \<comment>\<open>Message 4\<close>
+apply (force dest!: usedI keysFor_parts_insert)  \<comment> \<open>Fake\<close>
+apply force  \<comment> \<open>Message 2\<close>
+apply (blast dest: Gets_certificate_valid)  \<comment> \<open>Message 3\<close>
+apply force  \<comment> \<open>Message 4\<close>
 done
 
 
@@ -292,9 +292,9 @@ apply (simp_all del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps abbrev_simps analz_knows_absorb
               analz_knows_absorb2 analz_Key_image_insert_eq notin_image_iff
               Spy_analz_private_Key analz_image_priEK)
-  \<comment>\<open>5 seconds on a 1.6GHz machine\<close>
-apply spy_analz  \<comment>\<open>Fake\<close>
-apply auto  \<comment>\<open>Message 3\<close>
+  \<comment> \<open>5 seconds on a 1.6GHz machine\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
+apply auto  \<comment> \<open>Message 3\<close>
 done
 
 lemma symKey_secrecy [rule_format]:
@@ -312,9 +312,9 @@ apply (simp_all del: image_insert image_Un imp_disjL
               analz_knows_absorb2 analz_Key_image_insert_eq
               symKey_compromise notin_image_iff Spy_analz_private_Key
               analz_image_priEK)
-apply spy_analz  \<comment>\<open>Fake\<close>
-apply force  \<comment>\<open>Message 1\<close>
-apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)  \<comment>\<open>Message 3\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
+apply force  \<comment> \<open>Message 1\<close>
+apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)  \<comment> \<open>Message 3\<close>
 done
 
 subsection\<open>Unicity\<close>

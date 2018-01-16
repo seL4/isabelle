@@ -1993,7 +1993,7 @@ next
     assume P: "P Y s0 Z"
     show "(P'\<leftarrow>=False\<down>=\<diamondsuit>) \<diamondsuit> s3 Z \<and> s3\<Colon>\<preceq>(G,L)"
     proof -
-        \<comment>\<open>From the given hypothesises \<open>valid_e\<close> and \<open>valid_c\<close> 
+        \<comment> \<open>From the given hypothesises \<open>valid_e\<close> and \<open>valid_c\<close> 
            we can only reach the state after unfolding the loop once, i.e. 
            @{term "P \<diamondsuit> s2 Z"}, where @{term s2} is the state after executing
            @{term c}. To gain validity of the further execution of while, to
@@ -2002,8 +2002,7 @@ next
            too. We can achieve this, by performing induction on the 
            evaluation relation, with all
            the necessary preconditions to apply \<open>valid_e\<close> and 
-           \<open>valid_c\<close> in the goal.
-\<close>
+           \<open>valid_c\<close> in the goal.\<close>
       {
         fix t s s' v 
         assume "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"

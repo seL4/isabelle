@@ -2353,10 +2353,10 @@ proof -
     have realff: "(real w) * 2^m < (real v) * 2^n \<longleftrightarrow> w * 2^m < v * 2^n" for m n v w
       using of_nat_less_iff less_imp_of_nat_less by fastforce
     have *: "\<forall>v w. ?K0(m,v) \<subseteq> ?K0(n,w) \<or> ?K0(n,w) \<subseteq> ?K0(m,v) \<or> interior(?K0(m,v)) \<inter> interior(?K0(n,w)) = {}"
-      for m n \<comment>\<open>The symmetry argument requires a single HOL formula\<close>
+      for m n \<comment> \<open>The symmetry argument requires a single HOL formula\<close>
     proof (rule linorder_wlog [where a=m and b=n], intro allI impI)
       fix v w m and n::nat
-      assume "m \<le> n" \<comment>\<open>WLOG we can assume @{term"m \<le> n"}, when the first disjunct becomes impossible\<close>
+      assume "m \<le> n" \<comment> \<open>WLOG we can assume @{term"m \<le> n"}, when the first disjunct becomes impossible\<close>
       have "?K0(n,w) \<subseteq> ?K0(m,v) \<or> interior(?K0(m,v)) \<inter> interior(?K0(n,w)) = {}"
         apply (simp add: subset_box disjoint_interval)
         apply (rule ccontr)

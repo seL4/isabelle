@@ -29,13 +29,13 @@ declare gcd.simps [simp del]
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 lemma gcd_dvd_both: "(gcd m n dvd m) \<and> (gcd m n dvd n)"
 apply (induct_tac m n rule: gcd.induct)
-  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+  \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (case_tac "n=0")
 txt\<open>subgoals after the case tac
 @{subgoals[display,indent=0,margin=65]}
 \<close>
 apply (simp_all) 
-  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+  \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (blast dest: dvd_mod_imp_dvd)
 
 

@@ -449,7 +449,7 @@ theorem Zorn_po:
   shows "\<exists>m\<in>field(r). \<forall>a\<in>field(r). <m, a> \<in> r \<longrightarrow> a = m"
 proof -
   have "Preorder(r)" using po by (simp add: partial_order_on_def)
-  \<comment>\<open>Mirror r in the set of subsets below (wrt r) elements of A (?).\<close>
+  \<comment> \<open>Mirror r in the set of subsets below (wrt r) elements of A (?).\<close>
   let ?B = "\<lambda>x\<in>field(r). r -`` {x}" let ?S = "?B `` field(r)"
   have "\<forall>C\<in>chain(?S). \<exists>U\<in>?S. \<forall>A\<in>C. A \<subseteq> U"
   proof (clarsimp simp: chain_def Subset_rel_def bex_image_simp)

@@ -27,7 +27,7 @@ abbreviation
 abbreviation
   RESPECTS2 ::"[i=>i=>i, i] => o"  (infixr "respects2 " 80) where
   "f respects2 r == congruent2(r,r,f)"
-    \<comment>\<open>Abbreviation for the common case where the relations are identical\<close>
+    \<comment> \<open>Abbreviation for the common case where the relations are identical\<close>
 
 
 subsection\<open>Suppes, Theorem 70:

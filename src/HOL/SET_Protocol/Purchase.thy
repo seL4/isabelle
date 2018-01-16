@@ -54,30 +54,30 @@ passes the data back to the Merchant.
 consts
 
     CardSecret :: "nat => nat"
-     \<comment>\<open>Maps Cardholders to CardSecrets.
+     \<comment> \<open>Maps Cardholders to CardSecrets.
          A CardSecret of 0 means no cerificate, must use unsigned format.\<close>
 
     PANSecret :: "nat => nat"
-     \<comment>\<open>Maps Cardholders to PANSecrets.\<close>
+     \<comment> \<open>Maps Cardholders to PANSecrets.\<close>
 
 inductive_set
   set_pur :: "event list set"
 where
 
-  Nil:   \<comment>\<open>Initial trace is empty\<close>
+  Nil:   \<comment> \<open>Initial trace is empty\<close>
          "[] \<in> set_pur"
 
-| Fake:  \<comment>\<open>The spy MAY say anything he CAN say.\<close>
+| Fake:  \<comment> \<open>The spy MAY say anything he CAN say.\<close>
          "[| evsf \<in> set_pur;  X \<in> synth(analz(knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> set_pur"
 
 
-| Reception: \<comment>\<open>If A sends a message X to B, then B might receive it\<close>
+| Reception: \<comment> \<open>If A sends a message X to B, then B might receive it\<close>
              "[| evsr \<in> set_pur;  Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_pur"
 
 | Start: 
-      \<comment>\<open>Added start event which is out-of-band for SET: the Cardholder and
+      \<comment> \<open>Added start event which is out-of-band for SET: the Cardholder and
           the merchant agree on the amounts and uses \<open>LID_M\<close> as an
           identifier.
           This is suggested by the External Interface Guide. The Programmer's
@@ -94,7 +94,7 @@ where
        # evsStart \<in> set_pur"
 
 | PInitReq:
-     \<comment>\<open>Purchase initialization, page 72 of Formal Protocol Desc.\<close>
+     \<comment> \<open>Purchase initialization, page 72 of Formal Protocol Desc.\<close>
    "[|evsPIReq \<in> set_pur;
       Transaction = \<lbrace>Agent M, Agent C, Number OrderDesc, Number PurchAmt\<rbrace>;
       Nonce Chall_C \<notin> used evsPIReq;
@@ -103,7 +103,7 @@ where
     ==> Says C M \<lbrace>Number LID_M, Nonce Chall_C\<rbrace> # evsPIReq \<in> set_pur"
 
 | PInitRes:
-     \<comment>\<open>Merchant replies with his own label XID and the encryption
+     \<comment> \<open>Merchant replies with his own label XID and the encryption
          key certificate of his chosen Payment Gateway. Page 74 of Formal
          Protocol Desc. We use \<open>LID_M\<close> to identify Cardholder\<close>
    "[|evsPIRes \<in> set_pur;
@@ -121,7 +121,7 @@ where
           # evsPIRes \<in> set_pur"
 
 | PReqUns:
-      \<comment>\<open>UNSIGNED Purchase request (CardSecret = 0).
+      \<comment> \<open>UNSIGNED Purchase request (CardSecret = 0).
         Page 79 of Formal Protocol Desc.
         Merchant never sees the amount in clear. This holds of the real
         protocol, where XID identifies the transaction. We omit
@@ -150,7 +150,7 @@ where
           # evsPReqU \<in> set_pur"
 
 | PReqS:
-      \<comment>\<open>SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
+      \<comment> \<open>SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
           We could specify the equation
           @{term "PIReqSigned = \<lbrace> PIDualSigned, OIDualSigned \<rbrace>"}, since the
           Formal Desc. gives PIHead the same format in the unsigned case.
@@ -183,7 +183,7 @@ where
           # Notes C \<lbrace>Key KC2, Agent M\<rbrace>
           # evsPReqS \<in> set_pur"
 
-  \<comment>\<open>Authorization Request.  Page 92 of Formal Protocol Desc.
+  \<comment> \<open>Authorization Request.  Page 92 of Formal Protocol Desc.
     Sent in response to Purchase Request.\<close>
 | AuthReq:
    "[| evsAReq \<in> set_pur;
@@ -206,7 +206,7 @@ where
                \<lbrace>Number LID_M, Number XID, Hash OIData, HOD\<rbrace>   P_I)
           # evsAReq \<in> set_pur"
 
-  \<comment>\<open>Authorization Response has two forms: for UNSIGNED and SIGNED PIs.
+  \<comment> \<open>Authorization Response has two forms: for UNSIGNED and SIGNED PIs.
     Page 99 of Formal Protocol Desc.
     PI is a keyword (product!), so we call it \<open>P_I\<close>. The hashes HOD and
     HOIData occur independently in \<open>P_I\<close> and in M's message.
@@ -215,7 +215,7 @@ where
     optional items for split shipments, recurring payments, etc.\<close>
 
 | AuthResUns:
-    \<comment>\<open>Authorization Response, UNSIGNED\<close>
+    \<comment> \<open>Authorization Response, UNSIGNED\<close>
    "[| evsAResU \<in> set_pur;
        C = Cardholder k; M = Merchant i;
        Key KP \<notin> used evsAResU;  KP \<in> symKeys;
@@ -232,7 +232,7 @@ where
        # evsAResU \<in> set_pur"
 
 | AuthResS:
-    \<comment>\<open>Authorization Response, SIGNED\<close>
+    \<comment> \<open>Authorization Response, SIGNED\<close>
    "[| evsAResS \<in> set_pur;
        C = Cardholder k;
        Key KP \<notin> used evsAResS;  KP \<in> symKeys;
@@ -254,7 +254,7 @@ where
        # evsAResS \<in> set_pur"
 
 | PRes:
-    \<comment>\<open>Purchase response.\<close>
+    \<comment> \<open>Purchase response.\<close>
    "[| evsPRes \<in> set_pur;  KP \<in> symKeys;  M = Merchant i;
        Transaction = \<lbrace>Agent M, Agent C, Number OrderDesc, Number PurchAmt\<rbrace>;
        Gets M (EncB (priSK P) KP (pubEK M)
@@ -279,7 +279,7 @@ specification (CardSecret PANSecret)
   inj_CardSecret:  "inj CardSecret"
   inj_PANSecret:   "inj PANSecret"
   CardSecret_neq_PANSecret: "CardSecret k \<noteq> PANSecret k'"
-    \<comment>\<open>No CardSecret equals any PANSecret\<close>
+    \<comment> \<open>No CardSecret equals any PANSecret\<close>
   apply (rule_tac x="curry prod_encode 0" in exI)
   apply (rule_tac x="curry prod_encode 1" in exI)
   apply (simp add: prod_encode_eq inj_on_def)
@@ -414,7 +414,7 @@ lemma Spy_see_private_Key [simp]:
      "evs \<in> set_pur
       ==> (Key(invKey (publicKey b A)) \<in> parts(knows Spy evs)) = (A \<in> bad)"
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply auto
 done
 declare Spy_see_private_Key [THEN [2] rev_iffD1, dest!]
@@ -495,10 +495,10 @@ lemma new_keys_not_used [rule_format,simp]:
       ==> Key K \<notin> used evs --> K \<in> symKeys -->
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_pur.induct)
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
-apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment> \<open>PReqUns\<close>
 apply auto
-apply (force dest!: usedI keysFor_parts_insert) \<comment>\<open>Fake\<close>
+apply (force dest!: usedI keysFor_parts_insert) \<comment> \<open>Fake\<close>
 done
 
 lemma new_keys_not_analzd:
@@ -556,17 +556,17 @@ lemma symKey_compromise:
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Key_analz_image_Key_lemma, THEN impI])+
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
-apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment> \<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment> \<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  \<comment>\<open>8 seconds on a 1.6GHz machine\<close>
-apply spy_analz \<comment>\<open>Fake\<close>
-apply (blast elim!: ballE)+ \<comment>\<open>PReq: unsigned and signed\<close>
+  \<comment> \<open>8 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment> \<open>Fake\<close>
+apply (blast elim!: ballE)+ \<comment> \<open>PReq: unsigned and signed\<close>
 done
 
 
@@ -589,17 +589,17 @@ lemma Nonce_compromise [rule_format (no_asm)]:
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Nonce_analz_image_Key_lemma])+
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
-apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment> \<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment> \<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps symKey_compromise
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  \<comment>\<open>8 seconds on a 1.6GHz machine\<close>
-apply spy_analz \<comment>\<open>Fake\<close>
-apply (blast elim!: ballE) \<comment>\<open>PReqS\<close>
+  \<comment> \<open>8 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment> \<open>Fake\<close>
+apply (blast elim!: ballE) \<comment> \<open>PReqS\<close>
 done
 
 lemma PANSecret_notin_spies:
@@ -612,21 +612,21 @@ lemma PANSecret_notin_spies:
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies)
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps
               symKey_compromise pushes sign_def Nonce_compromise
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  \<comment>\<open>2.5 seconds on a 1.6GHz machine\<close>
+  \<comment> \<open>2.5 seconds on a 1.6GHz machine\<close>
 apply spy_analz
 apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])
 apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] 
                    Gets_imp_knows_Spy [THEN analz.Inj])
-apply (blast dest: Gets_imp_knows_Spy [THEN analz.Inj]) \<comment>\<open>PReqS\<close>
+apply (blast dest: Gets_imp_knows_Spy [THEN analz.Inj]) \<comment> \<open>PReqS\<close>
 apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] 
-                   Gets_imp_knows_Spy [THEN analz.Inj]) \<comment>\<open>PRes\<close>
+                   Gets_imp_knows_Spy [THEN analz.Inj]) \<comment> \<open>PRes\<close>
 done
 
 text\<open>This theorem is a bit silly, in that many CardSecrets are 0!
@@ -653,17 +653,17 @@ lemma analz_image_pan [rule_format (no_asm)]:
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI impI)+
 apply (rule_tac [!] analz_image_pan_lemma)+
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
-apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment> \<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment> \<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps
               symKey_compromise pushes sign_def
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  \<comment>\<open>7 seconds on a 1.6GHz machine\<close>
-apply spy_analz \<comment>\<open>Fake\<close>
+  \<comment> \<open>7 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment> \<open>Fake\<close>
 apply auto
 done
 
@@ -684,18 +684,18 @@ theorem pan_confidentiality_unsigned:
      P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
-apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment> \<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment> \<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff
               analz_insert_simps analz_image_priEK)
-  \<comment>\<open>3 seconds on a 1.6GHz machine\<close>
-apply spy_analz \<comment>\<open>Fake\<close>
-apply blast \<comment>\<open>PReqUns: unsigned\<close>
-apply force \<comment>\<open>PReqS: signed\<close>
+  \<comment> \<open>3 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment> \<open>Fake\<close>
+apply blast \<comment> \<open>PReqUns: unsigned\<close>
+apply force \<comment> \<open>PReqS: signed\<close>
 done
 
 text\<open>Confidentiality of the PAN, signed case.\<close>
@@ -708,18 +708,18 @@ theorem pan_confidentiality_signed:
        OIDualSign\<rbrace> \<in> set evs  &  P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
-apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
-apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment> \<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment> \<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff
               analz_insert_simps analz_image_priEK)
-  \<comment>\<open>3 seconds on a 1.6GHz machine\<close>
-apply spy_analz \<comment>\<open>Fake\<close>
-apply force \<comment>\<open>PReqUns: unsigned\<close>
-apply blast \<comment>\<open>PReqS: signed\<close>
+  \<comment> \<open>3 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment> \<open>Fake\<close>
+apply force \<comment> \<open>PReqUns: unsigned\<close>
+apply blast \<comment> \<open>PReqS: signed\<close>
 done
 
 text\<open>General goal: that C, M and PG agree on those details of the transaction
@@ -747,7 +747,7 @@ lemma goodM_gives_correct_PG:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply (blast intro: M_Notes_PG)+
 done
@@ -775,7 +775,7 @@ lemma C_verifies_PInitRes:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply (blast intro: M_Notes_PG)+
 done
@@ -841,7 +841,7 @@ theorem M_verifies_AuthRes:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply blast+
 done
@@ -862,7 +862,7 @@ lemma C_determines_EKj:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct, simp_all)
-apply (valid_certificate_tac [2]) \<comment>\<open>PReqUns\<close>
+apply (valid_certificate_tac [2]) \<comment> \<open>PReqUns\<close>
 apply auto
 apply (blast dest: Gets_imp_Says Says_C_PInitRes)
 done
@@ -899,7 +899,7 @@ lemma signed_imp_used:
          M \<notin> bad;  evs \<in> set_pur|] ==> parts {X} \<subseteq> used evs"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply safe
 apply blast+
@@ -911,7 +911,7 @@ lemma signed_Hash_imp_used:
          C \<notin> bad;  evs \<in> set_pur|] ==> parts {X} \<subseteq> used evs"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply safe
 apply blast+
@@ -945,7 +945,7 @@ apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply blast
 apply blast
@@ -994,7 +994,7 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct, analz_mono_contra)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply auto
 done
@@ -1041,7 +1041,7 @@ apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment> \<open>AuthReq\<close>
 apply simp_all
 apply blast
 apply (metis subsetD insert_subset parts.Fst parts_increasing signed_Hash_imp_used)

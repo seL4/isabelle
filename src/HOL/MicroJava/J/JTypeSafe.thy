@@ -198,15 +198,15 @@ theorem eval_evals_exec_type_sound:
 apply( rule eval_evals_exec_induct)
 apply( unfold c_hupd_def)
 
-\<comment> "several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??"
+\<comment> \<open>several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??\<close>
 apply( simp_all)
 apply( tactic "ALLGOALS (REPEAT o resolve_tac @{context} [impI, allI])")
 apply( tactic \<open>ALLGOALS (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
   THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context})))\<close>)
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (eresolve_tac @{context} [conjE]), REPEAT o hyp_subst_tac @{context}])")
 
-\<comment> "Level 7"
-\<comment> "15 NewC"
+\<comment> \<open>Level 7\<close>
+\<comment> \<open>15 NewC\<close>
 apply (drule sym)
 apply( drule new_AddrD)
 apply( erule disjE)
@@ -221,13 +221,13 @@ apply( rule conf_obj_AddrI)
 apply(  rule_tac [2] rtrancl.rtrancl_refl)
 apply( simp (no_asm))
 
-\<comment> "for Cast"
+\<comment> \<open>for Cast\<close>
 defer 1
 
-\<comment> "14 Lit"
+\<comment> \<open>14 Lit\<close>
 apply( erule conf_litval)
 
-\<comment> "13 BinOp"
+\<comment> \<open>13 BinOp\<close>
 apply (tactic "forward_hyp_tac @{context}")
 apply (tactic "forward_hyp_tac @{context}")
 apply( rule conjI, erule (1) hext_trans)
@@ -236,34 +236,34 @@ apply( clarsimp)
 apply( drule eval_no_xcpt)
 apply( simp split: binop.split)
 
-\<comment> "12 LAcc"
+\<comment> \<open>12 LAcc\<close>
 apply simp
 apply( fast elim: conforms_localD [THEN lconfD])
 
-\<comment> "for FAss"
+\<comment> \<open>for FAss\<close>
 apply( tactic \<open>EVERY'[eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
        THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (eresolve_tac @{context} [conjE]), hyp_subst_tac @{context}] 3\<close>)
 
-\<comment> "for if"
+\<comment> \<open>for if\<close>
 apply( tactic \<open>(Induct_Tacs.case_tac @{context} "the_Bool v" [] NONE THEN_ALL_NEW
   (asm_full_simp_tac @{context})) 7\<close>)
 
 apply (tactic "forward_hyp_tac @{context}")
 
-\<comment> "11+1 if"
+\<comment> \<open>11+1 if\<close>
 prefer 7
 apply(  fast intro: hext_trans)
 prefer 7
 apply(  fast intro: hext_trans)
 
-\<comment> "10 Expr"
+\<comment> \<open>10 Expr\<close>
 prefer 6
 apply( fast)
 
-\<comment> "9 ???"
+\<comment> \<open>9 ???\<close>
 apply( simp_all)
 
-\<comment> "8 Cast"
+\<comment> \<open>8 Cast\<close>
 prefer 8
 apply (rule conjI)
   apply (fast intro: conforms_xcpt_change xconf_raise_if)
@@ -275,7 +275,7 @@ apply (rule conjI)
   apply assumption+
 
 
-\<comment> "7 LAss"
+\<comment> \<open>7 LAss\<close>
 apply (fold fun_upd_def)
 apply( tactic \<open>(eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
                  THEN_ALL_NEW (full_simp_tac @{context})) 1\<close>)
@@ -284,13 +284,13 @@ apply (case_tac E)
 apply (simp)
 apply( blast intro: conforms_upd_local conf_widen)
 
-\<comment> "6 FAcc"
+\<comment> \<open>6 FAcc\<close>
 apply (rule conjI) 
   apply (simp add: np_def)
   apply (fast intro: conforms_xcpt_change xconf_raise_if)
 apply( fast elim!: FAcc_type_sound)
 
-\<comment> "5 While"
+\<comment> \<open>5 While\<close>
 prefer 5
 apply(erule_tac V = "a \<longrightarrow> b" for a b in thin_rl)
 apply(drule (1) ty_expr_ty_exprs_wt_stmt.Loop)
@@ -298,7 +298,7 @@ apply(force elim: hext_trans)
 
 apply (tactic "forward_hyp_tac @{context}")
 
-\<comment> "4 Cond"
+\<comment> \<open>4 Cond\<close>
 prefer 4
 apply (case_tac "the_Bool v")
 apply simp
@@ -306,31 +306,31 @@ apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
 apply simp
 apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
 
-\<comment> "3 ;;"
+\<comment> \<open>3 ;;\<close>
 prefer 3
 apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
 
 
-\<comment> "2 FAss"
+\<comment> \<open>2 FAss\<close>
 apply (subgoal_tac "(np a' x1, aa, ba) ::\<preceq> (G, lT)")
   prefer 2
   apply (simp add: np_def)
   apply (fast intro: conforms_xcpt_change xconf_raise_if)
 apply( case_tac "x2")
-  \<comment> "x2 = None"
+  \<comment> \<open>x2 = None\<close>
   apply (simp)
   apply (tactic "forward_hyp_tac @{context}", clarify)
   apply( drule eval_no_xcpt)
   apply( erule FAss_type_sound, rule HOL.refl, assumption+)
-  \<comment> "x2 = Some a"
+  \<comment> \<open>x2 = Some a\<close>
   apply (  simp (no_asm_simp))
   apply(  fast intro: hext_trans)
 
 
 apply( tactic "prune_params_tac @{context}")
-\<comment> "Level 52"
+\<comment> \<open>Level 52\<close>
 
-\<comment> "1 Call"
+\<comment> \<open>1 Call\<close>
 apply( case_tac "x")
 prefer 2
 apply(  clarsimp)

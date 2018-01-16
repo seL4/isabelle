@@ -170,7 +170,7 @@ lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  \<comment>"transfer the pfp'"
+  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  \<comment> \<open>transfer the pfp'\<close>
   proof(rule order_trans)
     show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' \<top> C)" by(rule step_step')
     show "... \<le> \<gamma>\<^sub>c C" by (metis mono_gamma_c[OF pfp'])

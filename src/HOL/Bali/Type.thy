@@ -14,21 +14,21 @@ simplifications:
 \end{itemize}
 \<close>
 
-datatype prim_ty        \<comment>\<open>primitive type, cf. 4.2\<close>
-        = Void          \<comment>\<open>result type of void methods\<close>
+datatype prim_ty        \<comment> \<open>primitive type, cf. 4.2\<close>
+        = Void          \<comment> \<open>result type of void methods\<close>
         | Boolean
         | Integer
 
 
-datatype ref_ty         \<comment>\<open>reference type, cf. 4.3\<close>
-        = NullT         \<comment>\<open>null type, cf. 4.1\<close>
-        | IfaceT qtname \<comment>\<open>interface type\<close>
-        | ClassT qtname \<comment>\<open>class type\<close>
-        | ArrayT ty     \<comment>\<open>array type\<close>
+datatype ref_ty         \<comment> \<open>reference type, cf. 4.3\<close>
+        = NullT         \<comment> \<open>null type, cf. 4.1\<close>
+        | IfaceT qtname \<comment> \<open>interface type\<close>
+        | ClassT qtname \<comment> \<open>class type\<close>
+        | ArrayT ty     \<comment> \<open>array type\<close>
 
-and ty                  \<comment>\<open>any type, cf. 4.1\<close>
-        = PrimT prim_ty \<comment>\<open>primitive type\<close>
-        | RefT  ref_ty  \<comment>\<open>reference type\<close>
+and ty                  \<comment> \<open>any type, cf. 4.1\<close>
+        = PrimT prim_ty \<comment> \<open>primitive type\<close>
+        | RefT  ref_ty  \<comment> \<open>reference type\<close>
 
 abbreviation "NT == RefT NullT"
 abbreviation "Iface I == RefT (IfaceT I)"

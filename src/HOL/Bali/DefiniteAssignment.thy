@@ -59,7 +59,7 @@ where
 | "jumpNestingOkS jmps (If(e) c1 Else c2) = (jumpNestingOkS jmps c1 \<and>  
                                              jumpNestingOkS jmps c2)"
 | "jumpNestingOkS jmps (l\<bullet> While(e) c) = jumpNestingOkS ({Cont l} \<union> jmps) c"
-\<comment>\<open>The label of the while loop only handles continue jumps. Breaks are only
+\<comment> \<open>The label of the while loop only handles continue jumps. Breaks are only
      handled by @{term Lab}\<close>
 | "jumpNestingOkS jmps (Jmp j) = (j \<in> jmps)"
 | "jumpNestingOkS jmps (Throw e) = True"
@@ -68,9 +68,9 @@ where
 | "jumpNestingOkS jmps (c1 Finally c2) = (jumpNestingOkS jmps c1 \<and> 
                                           jumpNestingOkS jmps c2)"
 | "jumpNestingOkS jmps (Init C) = True" 
- \<comment>\<open>wellformedness of the program must enshure that for all initializers 
+ \<comment> \<open>wellformedness of the program must enshure that for all initializers 
       jumpNestingOkS {} holds\<close> 
-\<comment>\<open>Dummy analysis for intermediate smallstep term @{term  FinA}\<close>
+\<comment> \<open>Dummy analysis for intermediate smallstep term @{term  FinA}\<close>
 | "jumpNestingOkS jmps (FinA a c) = False"
 
 
@@ -216,7 +216,7 @@ where
                                             | False\<Rightarrow> (case (constVal e1) of
                                                          None   \<Rightarrow> None
                                                        | Some v \<Rightarrow> constVal e2)))"
-\<comment>\<open>Note that \<open>constVal (Cond b e1 e2)\<close> is stricter as it could be.
+\<comment> \<open>Note that \<open>constVal (Cond b e1 e2)\<close> is stricter as it could be.
      It requires that all tree expressions are constant even if we can decide
      which branch to choose, provided the constant value of @{term b}\<close>
 | "constVal (Call accC statT mode objRef mn pTs args) = None"
@@ -282,10 +282,10 @@ to a specific boolean value. If the expression cannot evaluate to a
 constant false/true will also lead to UNIV.\<close>
 primrec assigns_if :: "bool \<Rightarrow> expr \<Rightarrow> lname set"
 where
-  "assigns_if b (NewC c)            = UNIV" \<comment>\<open>can never evaluate to Boolean\<close> 
-| "assigns_if b (NewA t e)          = UNIV" \<comment>\<open>can never evaluate to Boolean\<close>
+  "assigns_if b (NewC c)            = UNIV" \<comment> \<open>can never evaluate to Boolean\<close> 
+| "assigns_if b (NewA t e)          = UNIV" \<comment> \<open>can never evaluate to Boolean\<close>
 | "assigns_if b (Cast t e)          = assigns_if b e" 
-| "assigns_if b (Inst e r)          = assignsE e" \<comment>\<open>Inst has type Boolean but
+| "assigns_if b (Inst e r)          = assignsE e" \<comment> \<open>Inst has type Boolean but
                                                        e is a reference type\<close>
 | "assigns_if b (Lit val)           = (if val=Bool b then {} else UNIV)"  
 | "assigns_if b (UnOp unop e)       = (case constVal (UnOp unop e) of
@@ -311,7 +311,7 @@ where
                   else assignsE e1 \<union> assignsE e2))
        | Some v \<Rightarrow> (if v=Bool b then {} else UNIV))"
 
-| "assigns_if b (Super)      = UNIV" \<comment>\<open>can never evaluate to Boolean\<close>
+| "assigns_if b (Super)      = UNIV" \<comment> \<open>can never evaluate to Boolean\<close>
 | "assigns_if b (Acc v)      = (assignsV v)"
 | "assigns_if b (v := e)     = (assignsE (Ass v e))"
 | "assigns_if b (c? e1 : e2) = (assignsE c) \<union>
@@ -499,13 +499,13 @@ subsubsection "The rules of definite assignment"
 
  
 type_synonym breakass = "(label, lname) tables" 
-\<comment>\<open>Mapping from a break label, to the set of variables that will be assigned 
+\<comment> \<open>Mapping from a break label, to the set of variables that will be assigned 
      if the evaluation terminates with this break\<close>
     
 record assigned = 
-         nrm :: "lname set" \<comment>\<open>Definetly assigned variables 
+         nrm :: "lname set" \<comment> \<open>Definetly assigned variables 
                                  for normal completion\<close>
-         brk :: "breakass" \<comment>\<open>Definetly assigned variables for 
+         brk :: "breakass" \<comment> \<open>Definetly assigned variables for 
                                 abrupt completion with a break\<close>
 
 definition
@@ -556,7 +556,7 @@ where
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A"
 
-\<comment>\<open>Note that @{term E} is not further used, because we take the specialized
+\<comment> \<open>Note that @{term E} is not further used, because we take the specialized
      sets that also consider if the expression evaluates to true or false. 
      Inside of @{term e} there is no {\tt break} or {\tt finally}, so the break
      map of @{term E} will be the trivial one. So 
@@ -571,8 +571,7 @@ where
      maps will trivially map to @{term UNIV} and if a break occurs it will map
      to @{term UNIV} too, because @{term "assigns_if False e = UNIV"}. So
      in the intersection of the break maps the path @{term c2} will have no
-     contribution.
-\<close>
+     contribution.\<close>
 
 | Loop: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; 
           Env\<turnstile> (B \<union> assigns_if True e) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
@@ -580,7 +579,7 @@ where
           brk A = brk C\<rbrakk>  
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A"
-\<comment>\<open>The \<open>Loop\<close> rule resembles some of the ideas of the \<open>If\<close> rule.
+\<comment> \<open>The \<open>Loop\<close> rule resembles some of the ideas of the \<open>If\<close> rule.
      For the @{term "nrm A"} the set @{term "B \<union> assigns_if False e"} 
      will be @{term UNIV} if the condition is constantly true. To normally exit
      the while loop, we must consider the body @{term c} to be completed 
@@ -588,8 +587,7 @@ where
      the label @{term l} of the loop
      only handles continue labels, not break labels. The break label will be
      handled by an enclosing @{term Lab} statement. So we don't have to
-     handle the breaks specially. 
-\<close>
+     handle the breaks specially.\<close>
 
 | Jmp: "\<lbrakk>jump=Ret \<longrightarrow> Result \<in> B;
          nrm A = UNIV;
@@ -599,13 +597,12 @@ where
                   | Ret     \<Rightarrow> \<lambda> k. UNIV)\<rbrakk> 
         \<Longrightarrow> 
         Env\<turnstile> B \<guillemotright>\<langle>Jmp jump\<rangle>\<guillemotright> A"
-\<comment>\<open>In case of a break to label @{term l} the corresponding break set is all
+\<comment> \<open>In case of a break to label @{term l} the corresponding break set is all
      variables assigned before the break. The assigned variables for normal
      completion of the @{term Jmp} is @{term UNIV}, because the statement will
      never complete normally. For continue and return the break map is the 
      trivial one. In case of a return we enshure that the result value is
-     assigned.
-\<close>
+     assigned.\<close>
 
 | Throw: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; nrm A = UNIV; brk A = (\<lambda> l. UNIV)\<rbrakk> 
          \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Throw e\<rangle>\<guillemotright> A"
@@ -622,7 +619,7 @@ where
           brk A = ((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) \<Rightarrow>\<inter> (brk C2)\<rbrakk>  
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A" 
-\<comment>\<open>The set of assigned variables before execution @{term c2} are the same
+\<comment> \<open>The set of assigned variables before execution @{term c2} are the same
      as before execution @{term c1}, because @{term c1} could throw an exception
      and so we can't guarantee that any variable will be assigned in @{term c1}.
      The \<open>Finally\<close> statement completes
@@ -635,10 +632,9 @@ where
      break will appear in the overall result state. We don't know if 
      @{term c1} completed normally or abruptly (maybe with an exception not only
      a break) so @{term c1} has no contribution to the break map following this
-     path.
-\<close>
+     path.\<close>
 
-\<comment>\<open>Evaluation of expressions and the break sets of definite assignment:
+\<comment> \<open>Evaluation of expressions and the break sets of definite assignment:
      Thinking of a Java expression we assume that we can never have
      a break statement inside of a expression. So for all expressions the
      break sets could be set to the trivial one: @{term "\<lambda> l. UNIV"}. 
@@ -657,17 +653,15 @@ where
      right now. So we have decided to adjust the rules of definite assignment
      to fit to these circumstances. If an initialization is involved during
      evaluation of the expression (evaluation rules \<open>FVar\<close>, \<open>NewC\<close> 
-     and \<open>NewA\<close>
-\<close>
+     and \<open>NewA\<close>\<close>
 
 | Init: "Env\<turnstile> B \<guillemotright>\<langle>Init C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
-\<comment>\<open>Wellformedness of a program will ensure, that every static initialiser 
+\<comment> \<open>Wellformedness of a program will ensure, that every static initialiser 
      is definetly assigned and the jumps are nested correctly. The case here
      for @{term Init} is just for convenience, to get a proper precondition 
      for the induction hypothesis in various proofs, so that we don't have to
      expand the initialisation on every point where it is triggerred by the
-     evaluation rules.
-\<close>   
+     evaluation rules.\<close>   
 | NewC: "Env\<turnstile> B \<guillemotright>\<langle>NewC C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>" 
 
 | NewA: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
@@ -715,9 +709,8 @@ where
              nrm A = B; brk A = (\<lambda> k. UNIV)\<rbrakk> 
              \<Longrightarrow> 
              Env\<turnstile> B \<guillemotright>\<langle>Acc (LVar vn)\<rangle>\<guillemotright> A"
-\<comment>\<open>To properly access a local variable we have to test the definite 
-     assignment here. The variable must occur in the set @{term B} 
-\<close>
+\<comment> \<open>To properly access a local variable we have to test the definite 
+     assignment here. The variable must occur in the set @{term B}\<close>
 
 | Acc: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn;
          Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> A\<rbrakk>
@@ -773,8 +766,7 @@ where
       rules, and therefor we have to establish the definite assignment of the
       sub-evaluation during the type-safety proof. Note that well-typedness is
       also a precondition for type-safety and so we can omit some assertion 
-      that are already ensured by well-typedness. 
-\<close>
+      that are already ensured by well-typedness.\<close>
 | Methd: "\<lbrakk>methd (prg Env) D sig = Some m;
            Env\<turnstile> B \<guillemotright>\<langle>Body (declclass m) (stmt (mbody (mthd m)))\<rangle>\<guillemotright> A
           \<rbrakk>
@@ -796,8 +788,7 @@ where
       definite assignment only talks about normal completion and breaks. So
       for a return the @{term Jump} rule ensures that the result variable is
       set and then this information must be carried over to the @{term Body}
-      rule by the conformance predicate of the state.
-\<close>
+      rule by the conformance predicate of the state.\<close>
 | LVar: "Env\<turnstile> B \<guillemotright>\<langle>LVar vn\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
 
 | FVar: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 

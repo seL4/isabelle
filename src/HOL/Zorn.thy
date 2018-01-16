@@ -697,15 +697,15 @@ proof -
   qed
   then have 1: "\<forall>R \<in> Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I"
     by (subst FI) blast
-\<comment>\<open>Zorn's Lemma yields a maximal well-order \<open>m\<close>:\<close>
+\<comment> \<open>Zorn's Lemma yields a maximal well-order \<open>m\<close>:\<close>
   then obtain m :: "'a rel"
     where "Well_order m"
       and max: "\<forall>r. Well_order r \<and> (m, r) \<in> I \<longrightarrow> r = m"
     using Zorns_po_lemma[OF 0 1] unfolding FI by fastforce
-\<comment>\<open>Now show by contradiction that \<open>m\<close> covers the whole type:\<close>
+\<comment> \<open>Now show by contradiction that \<open>m\<close> covers the whole type:\<close>
   have False if "x \<notin> Field m" for x :: 'a
   proof -
-\<comment>\<open>Assuming that \<open>x\<close> is not covered and extend \<open>m\<close> at the top with \<open>x\<close>\<close>
+\<comment> \<open>Assuming that \<open>x\<close> is not covered and extend \<open>m\<close> at the top with \<open>x\<close>\<close>
     have "m \<noteq> {}"
     proof
       assume "m = {}"
@@ -717,14 +717,14 @@ proof -
     then have "Field m \<noteq> {}" by (auto simp: Field_def)
     moreover have "wf (m - Id)"
       using \<open>Well_order m\<close> by (simp add: well_order_on_def)
-\<comment>\<open>The extension of \<open>m\<close> by \<open>x\<close>:\<close>
+\<comment> \<open>The extension of \<open>m\<close> by \<open>x\<close>:\<close>
     let ?s = "{(a, x) | a. a \<in> Field m}"
     let ?m = "insert (x, x) m \<union> ?s"
     have Fm: "Field ?m = insert x (Field m)"
       by (auto simp: Field_def)
     have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
       using \<open>Well_order m\<close> by (simp_all add: order_on_defs)
-\<comment>\<open>We show that the extension is a well-order\<close>
+\<comment> \<open>We show that the extension is a well-order\<close>
     have "Refl ?m"
       using \<open>Refl m\<close> Fm unfolding refl_on_def by blast
     moreover have "trans ?m" using \<open>trans m\<close> and \<open>x \<notin> Field m\<close>
@@ -743,12 +743,12 @@ proof -
     qed
     ultimately have "Well_order ?m"
       by (simp add: order_on_defs)
-\<comment>\<open>We show that the extension is above \<open>m\<close>\<close>
+\<comment> \<open>We show that the extension is above \<open>m\<close>\<close>
     moreover have "(m, ?m) \<in> I"
       using \<open>Well_order ?m\<close> and \<open>Well_order m\<close> and \<open>x \<notin> Field m\<close>
       by (fastforce simp: I_def init_seg_of_def Field_def)
     ultimately
-\<comment>\<open>This contradicts maximality of \<open>m\<close>:\<close>
+\<comment> \<open>This contradicts maximality of \<open>m\<close>:\<close>
     show False
       using max and \<open>x \<notin> Field m\<close> unfolding Field_def by blast
   qed

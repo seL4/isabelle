@@ -16,7 +16,7 @@ text\<open>From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2
 subsection\<open>Definitions\<close>
 
 datatype pstate = Hungry | Eating | Thinking
-    \<comment>\<open>process states\<close>
+    \<comment> \<open>process states\<close>
 
 record state =
   token :: "nat"

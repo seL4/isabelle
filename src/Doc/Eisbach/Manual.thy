@@ -249,16 +249,16 @@ text \<open>
 \<close>
 
     lemmas [intros] =
-      conjI  \<comment>  \<open>@{thm conjI}\<close>
-      impI  \<comment>  \<open>@{thm impI}\<close>
-      disjCI  \<comment>  \<open>@{thm disjCI}\<close>
-      iffI  \<comment>  \<open>@{thm iffI}\<close>
-      notI  \<comment>  \<open>@{thm notI}\<close>
+      conjI  \<comment> \<open>@{thm conjI}\<close>
+      impI  \<comment> \<open>@{thm impI}\<close>
+      disjCI  \<comment> \<open>@{thm disjCI}\<close>
+      iffI  \<comment> \<open>@{thm iffI}\<close>
+      notI  \<comment> \<open>@{thm notI}\<close>
 
     lemmas [elims] =
-      impCE  \<comment>  \<open>@{thm impCE}\<close>
-      conjE  \<comment>  \<open>@{thm conjE}\<close>
-      disjE  \<comment>  \<open>@{thm disjE}\<close>
+      impCE  \<comment> \<open>@{thm impCE}\<close>
+      conjE  \<comment> \<open>@{thm conjE}\<close>
+      disjE  \<comment> \<open>@{thm disjE}\<close>
 
     lemma "(A \<or> B) \<and> (A \<longrightarrow> C) \<and> (B \<longrightarrow> C) \<longrightarrow> C"
       by prop_solver

@@ -26,7 +26,7 @@ definition
 
 definition
   Units :: "_ => 'a set"
-  \<comment>\<open>The set of invertible elements\<close>
+  \<comment> \<open>The set of invertible elements\<close>
   where "Units G = {y. y \<in> carrier G \<and> (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
@@ -98,7 +98,7 @@ proof -
   moreover from x y xinv yinv have "x \<otimes> (y \<otimes> y') \<otimes> x' = \<one>" by simp
   moreover note x y
   ultimately show ?thesis unfolding Units_def
-    \<comment> "Must avoid premature use of \<open>hyp_subst_tac\<close>."
+    \<comment> \<open>Must avoid premature use of \<open>hyp_subst_tac\<close>.\<close>
     apply (rule_tac CollectI)
     apply (rule)
     apply (fast)

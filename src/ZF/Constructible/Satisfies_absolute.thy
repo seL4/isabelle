@@ -176,7 +176,7 @@ subsection \<open>Absoluteness for the Function @{term satisfies}\<close>
 
 definition
   is_depth_apply :: "[i=>o,i,i,i] => o" where
-   \<comment>\<open>Merely a useful abbreviation for the sequel.\<close>
+   \<comment> \<open>Merely a useful abbreviation for the sequel.\<close>
   "is_depth_apply(M,h,p,z) ==
     \<exists>dp[M]. \<exists>sdp[M]. \<exists>hsdp[M]. 
         finite_ordinal(M,dp) & is_depth(M,p,dp) & successor(M,dp,sdp) &
@@ -216,7 +216,7 @@ definition
 
 definition
   satisfies_is_b :: "[i=>o,i,i,i,i]=>o" where
-   \<comment>\<open>We simplify the formula to have just @{term nx} rather than 
+   \<comment> \<open>We simplify the formula to have just @{term nx} rather than 
        introducing @{term ny} with  @{term "nx=ny"}\<close>
   "satisfies_is_b(M,A) == 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
@@ -259,7 +259,7 @@ definition
 
 definition
   satisfies_MH :: "[i=>o,i,i,i,i]=>o" where
-    \<comment>\<open>The variable @{term u} is unused, but gives @{term satisfies_MH} 
+    \<comment> \<open>The variable @{term u} is unused, but gives @{term satisfies_MH} 
         the correct arity.\<close>
   "satisfies_MH == 
     \<lambda>M A u f z. 
@@ -327,11 +327,11 @@ locale M_satisfies = M_eclose +
               pair(M,env,bo,z))"
  and
   formula_rec_replacement: 
-      \<comment>\<open>For the @{term transrec}\<close>
+      \<comment> \<open>For the @{term transrec}\<close>
    "[|n \<in> nat; M(A)|] ==> transrec_replacement(M, satisfies_MH(M,A), n)"
  and
   formula_rec_lambda_replacement:  
-      \<comment>\<open>For the \<open>\<lambda>-abstraction\<close> in the @{term transrec} body\<close>
+      \<comment> \<open>For the \<open>\<lambda>-abstraction\<close> in the @{term transrec} body\<close>
    "[|M(g); M(A)|] ==>
     strong_replacement (M, 
        \<lambda>x y. mem_formula(M,x) &
@@ -959,7 +959,7 @@ by (intro FOL_reflections function_reflections satisfies_MH_reflection
           is_wfrec_reflection) 
 
 lemma formula_rec_replacement: 
-      \<comment>\<open>For the @{term transrec}\<close>
+      \<comment> \<open>For the @{term transrec}\<close>
    "[|n \<in> nat; L(A)|] ==> transrec_replacement(L, satisfies_MH(L,A), n)"
 apply (rule transrec_replacementI, simp add: nat_into_M) 
 apply (rule strong_replacementI)
@@ -995,7 +995,7 @@ by (intro FOL_reflections function_reflections mem_formula_reflection
           satisfies_is_d_reflection)  
 
 lemma formula_rec_lambda_replacement: 
-      \<comment>\<open>For the @{term transrec}\<close>
+      \<comment> \<open>For the @{term transrec}\<close>
    "[|L(g); L(A)|] ==>
     strong_replacement (L, 
        \<lambda>x y. mem_formula(L,x) &

@@ -103,7 +103,7 @@ apply (subst def_wfrec[OF class_rec_def], auto)
 apply (subst cut_apply, auto intro: subcls1I)
 done
 
-\<comment>\<open>Methods of a class, with inheritance and hiding\<close>
+\<comment> \<open>Methods of a class, with inheritance and hiding\<close>
 definition "method" :: "cname => (mname \<rightharpoonup> methd)" where
   "method C \<equiv> class_rec C methods"
 
@@ -115,7 +115,7 @@ apply simp
 done
 
 
-\<comment>\<open>Fields of a class, with inheritance and hiding\<close>
+\<comment> \<open>Fields of a class, with inheritance and hiding\<close>
 definition field  :: "cname => (fname \<rightharpoonup> ty)" where
   "field C \<equiv> class_rec C flds"
 

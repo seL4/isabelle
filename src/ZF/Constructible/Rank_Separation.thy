@@ -46,7 +46,7 @@ lemma obase_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma obase_separation:
-     \<comment>\<open>part of the order type formalization\<close>
+     \<comment> \<open>part of the order type formalization\<close>
      "[| L(A); L(r) |]
       ==> separation(L, \<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
              ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &

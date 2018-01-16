@@ -17,11 +17,11 @@ definition
     "int == (nat*nat)//intrel"
 
 definition
-  int_of :: "i=>i" \<comment>\<open>coercion from nat to int\<close>    ("$# _" [80] 80)  where
+  int_of :: "i=>i" \<comment> \<open>coercion from nat to int\<close>    ("$# _" [80] 80)  where
     "$# m == intrel `` {<natify(m), 0>}"
 
 definition
-  intify :: "i=>i" \<comment>\<open>coercion from ANYTHING to int\<close>  where
+  intify :: "i=>i" \<comment> \<open>coercion from ANYTHING to int\<close>  where
     "intify(m) == if m \<in> int then m else $#0"
 
 definition
@@ -50,7 +50,7 @@ definition
 
 definition
   zmagnitude  ::      "i=>i"  where
-  \<comment>\<open>could be replaced by an absolute value function from int to int?\<close>
+  \<comment> \<open>could be replaced by an absolute value function from int to int?\<close>
     "zmagnitude(z) ==
      THE m. m\<in>nat & ((~ znegative(z) & z = $# m) |
                        (znegative(z) & $- z = $# m))"

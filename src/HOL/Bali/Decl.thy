@@ -70,14 +70,14 @@ proof
   fix x y z::acc_modi
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
     by (auto simp add: le_acc_def less_acc_def split: acc_modi.split) 
-  show "x \<le> x"                       \<comment> reflexivity
+  show "x \<le> x"                       \<comment> \<open>reflexivity\<close>
     by (auto simp add: le_acc_def)
   {
-    assume "x \<le> y" "y \<le> z"           \<comment> transitivity 
+    assume "x \<le> y" "y \<le> z"           \<comment> \<open>transitivity\<close> 
     then show "x \<le> z"
       by (auto simp add: le_acc_def less_acc_def split: acc_modi.split)
   next
-    assume "x \<le> y" "y \<le> x"           \<comment> antisymmetry
+    assume "x \<le> y" "y \<le> x"           \<comment> \<open>antisymmetry\<close>
     moreover have "\<forall> x y. x < (y::acc_modi) \<and> y < x \<longrightarrow> False"
       by (auto simp add: less_acc_def split: acc_modi.split)
     ultimately show "x = y" by (unfold le_acc_def) iprover
@@ -296,13 +296,13 @@ by (simp add: is_method_def)
 subsection \<open>Interface\<close>
 
 
-record  ibody = decl +  \<comment>\<open>interface body\<close>
-          imethods :: "(sig \<times> mhead) list" \<comment>\<open>method heads\<close>
+record  ibody = decl +  \<comment> \<open>interface body\<close>
+          imethods :: "(sig \<times> mhead) list" \<comment> \<open>method heads\<close>
 
-record  iface = ibody + \<comment>\<open>interface\<close>
-         isuperIfs:: "qtname list" \<comment>\<open>superinterface list\<close>
+record  iface = ibody + \<comment> \<open>interface\<close>
+         isuperIfs:: "qtname list" \<comment> \<open>superinterface list\<close>
 type_synonym
-        idecl           \<comment>\<open>interface declaration, cf. 9.1\<close>
+        idecl           \<comment> \<open>interface declaration, cf. 9.1\<close>
         = "qtname \<times> iface"
 
 translations
@@ -325,16 +325,16 @@ lemma imethods_ibody [simp]: "(imethods (ibody i)) = imethods i"
 by (simp add: ibody_def)
 
 subsection  \<open>Class\<close>
-record cbody = decl +          \<comment>\<open>class body\<close>
+record cbody = decl +          \<comment> \<open>class body\<close>
          cfields:: "fdecl list" 
          methods:: "mdecl list"
-         init   :: "stmt"       \<comment>\<open>initializer\<close>
+         init   :: "stmt"       \<comment> \<open>initializer\<close>
 
-record "class" = cbody +           \<comment>\<open>class\<close>
-        super   :: "qtname"      \<comment>\<open>superclass\<close>
-        superIfs:: "qtname list" \<comment>\<open>implemented interfaces\<close>
+record "class" = cbody +           \<comment> \<open>class\<close>
+        super   :: "qtname"      \<comment> \<open>superclass\<close>
+        superIfs:: "qtname list" \<comment> \<open>implemented interfaces\<close>
 type_synonym
-        cdecl           \<comment>\<open>class declaration, cf. 8.1\<close>
+        cdecl           \<comment> \<open>class declaration, cf. 8.1\<close>
         = "qtname \<times> class"
 
 translations
@@ -370,16 +370,16 @@ by (simp add: cbody_def)
 subsubsection "standard classes"
 
 consts
-  Object_mdecls  ::  "mdecl list" \<comment>\<open>methods of Object\<close>
-  SXcpt_mdecls   ::  "mdecl list" \<comment>\<open>methods of SXcpts\<close>
+  Object_mdecls  ::  "mdecl list" \<comment> \<open>methods of Object\<close>
+  SXcpt_mdecls   ::  "mdecl list" \<comment> \<open>methods of SXcpts\<close>
 
 definition
-  ObjectC ::         "cdecl"      \<comment>\<open>declaration  of root      class\<close> where
+  ObjectC ::         "cdecl"      \<comment> \<open>declaration  of root      class\<close> where
   "ObjectC = (Object,\<lparr>access=Public,cfields=[],methods=Object_mdecls,
                                   init=Skip,super=undefined,superIfs=[]\<rparr>)"
 
 definition
-  SXcptC  ::"xname \<Rightarrow> cdecl"      \<comment>\<open>declarations of throwable classes\<close> where
+  SXcptC  ::"xname \<Rightarrow> cdecl"      \<comment> \<open>declarations of throwable classes\<close> where
   "SXcptC xn = (SXcpt xn,\<lparr>access=Public,cfields=[],methods=SXcpt_mdecls,
                                    init=Skip,
                                    super=if xn = Throwable then Object 
@@ -448,11 +448,11 @@ by auto
 subsubsection "subinterface and subclass relation, in anticipation of TypeRel.thy"
 
 definition
-  subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment>\<open>direct subinterface\<close>
+  subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment> \<open>direct subinterface\<close>
   where "subint1 G = {(I,J). \<exists>i\<in>iface G I: J\<in>set (isuperIfs i)}"
 
 definition
-  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment>\<open>direct subclass\<close>
+  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment> \<open>direct subclass\<close>
   where "subcls1 G = {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
 
 abbreviation
@@ -815,7 +815,7 @@ done
 
 definition
   imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
-  \<comment>\<open>methods of an interface, with overriding and inheritance, cf. 9.2\<close>
+  \<comment> \<open>methods of an interface, with overriding and inheritance, cf. 9.2\<close>
   "imethds G I = iface_rec G I
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (set_option \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"

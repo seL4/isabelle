@@ -87,7 +87,7 @@ subsubsection\<open>Well-foundedness\<close>
 lemma wf_on_radd: "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>x\<in>A. Inl (x) \<in> Ba")
- \<comment>\<open>Proving the lemma, which is needed twice!\<close>
+ \<comment> \<open>Proving the lemma, which is needed twice!\<close>
  prefer 2
  apply (erule_tac V = "y \<in> A + B" in thin_rl)
  apply (rule_tac ballI)

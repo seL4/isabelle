@@ -23,31 +23,31 @@ From page 11 of
 
 inductive_set otway :: "event list set"
   where
-   Nil: \<comment>\<open>The empty trace\<close>
+   Nil: \<comment> \<open>The empty trace\<close>
         "[] \<in> otway"
 
- | Fake: \<comment>\<open>The Spy may say anything he can say.  The sender field is correct,
+ | Fake: \<comment> \<open>The Spy may say anything he can say.  The sender field is correct,
             but agents don't use that information.\<close>
          "[| evsf \<in> otway;  X \<in> synth (analz (knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> otway"
 
         
- | Reception: \<comment>\<open>A message that has been sent can be received by the
+ | Reception: \<comment> \<open>A message that has been sent can be received by the
                   intended recipient.\<close>
               "[| evsr \<in> otway;  Says A B X \<in>set evsr |]
                ==> Gets B X # evsr \<in> otway"
 
- | OR1:  \<comment>\<open>Alice initiates a protocol run\<close>
+ | OR1:  \<comment> \<open>Alice initiates a protocol run\<close>
          "evs1 \<in> otway
           ==> Says A B \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> # evs1 \<in> otway"
 
- | OR2:  \<comment>\<open>Bob's response to Alice's message.\<close>
+ | OR2:  \<comment> \<open>Bob's response to Alice's message.\<close>
          "[| evs2 \<in> otway;
              Gets B \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in>set evs2 |]
           ==> Says B Server \<lbrace>Agent A, Agent B, Nonce NA, Nonce NB\<rbrace>
                  # evs2 \<in> otway"
 
- | OR3:  \<comment>\<open>The Server receives Bob's message.  Then he sends a new
+ | OR3:  \<comment> \<open>The Server receives Bob's message.  Then he sends a new
            session key to Bob with a packet for forwarding to Alice.\<close>
          "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
              Gets Server \<lbrace>Agent A, Agent B, Nonce NA, Nonce NB\<rbrace>
@@ -57,7 +57,7 @@ inductive_set otway :: "event list set"
                  Crypt (shrK B) \<lbrace>Nonce NB, Agent A, Agent B, Key KAB\<rbrace>\<rbrace>
               # evs3 \<in> otway"
 
- | OR4:  \<comment>\<open>Bob receives the Server's (?) message and compares the Nonces with
+ | OR4:  \<comment> \<open>Bob receives the Server's (?) message and compares the Nonces with
              those in the message he previously sent the Server.
              Need @{term "B \<noteq> Server"} because we allow messages to self.\<close>
          "[| evs4 \<in> otway;  B \<noteq> Server;
@@ -66,7 +66,7 @@ inductive_set otway :: "event list set"
                \<in>set evs4 |]
           ==> Says B A X # evs4 \<in> otway"
 
- | Oops: \<comment>\<open>This message models possible leaks of session keys.  The nonces
+ | Oops: \<comment> \<open>This message models possible leaks of session keys.  The nonces
              identify the protocol run.\<close>
          "[| evso \<in> otway;
              Says Server B
@@ -185,7 +185,7 @@ lemma unique_session_keys:
         evs \<in> otway |]
      ==> A=A' & B=B' & NA=NA' & NB=NB'"
 apply (erule rev_mp, erule rev_mp, erule otway.induct, simp_all)
-apply blast+  \<comment>\<open>OR3 and OR4\<close>
+apply blast+  \<comment> \<open>OR3 and OR4\<close>
 done
 
 
@@ -201,7 +201,7 @@ lemma NA_Crypt_imp_Server_msg [rule_format]:
                     \<in> set evs)"
 apply (erule otway.induct, force)
 apply (simp_all add: ex_disj_distrib)
-apply blast+  \<comment>\<open>Fake, OR3\<close>
+apply blast+  \<comment> \<open>Fake, OR3\<close>
 done
 
 
@@ -232,8 +232,8 @@ apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (drule_tac [6] OR4_analz_knows_Spy)
 apply (simp_all add: analz_insert_eq analz_insert_freshK pushes)
-apply spy_analz  \<comment>\<open>Fake\<close>
-apply (blast dest: unique_session_keys)+  \<comment>\<open>OR3, OR4, Oops\<close>
+apply spy_analz  \<comment> \<open>Fake\<close>
+apply (blast dest: unique_session_keys)+  \<comment> \<open>OR3, OR4, Oops\<close>
 done
 
 
@@ -270,7 +270,7 @@ lemma NB_Crypt_imp_Server_msg [rule_format]:
                      Crypt (shrK B) \<lbrace>NB, Agent A, Agent B, Key K\<rbrace>\<rbrace>
                    \<in> set evs)"
 apply (erule otway.induct, force, simp_all add: ex_disj_distrib)
-apply blast+  \<comment>\<open>Fake, OR3\<close>
+apply blast+  \<comment> \<open>Fake, OR3\<close>
 done
 
 

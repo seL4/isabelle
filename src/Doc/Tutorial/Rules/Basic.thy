@@ -90,11 +90,11 @@ oops
 
 lemma "\<lbrakk>x = f x; triple (f x) (f x) x\<rbrakk> \<Longrightarrow> triple x x x"
 apply (erule ssubst) 
-  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-back \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+  \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+back \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply assumption
 done
 
@@ -148,9 +148,9 @@ negation
 
 lemma "\<lbrakk>\<not>(P\<longrightarrow>Q); \<not>(R\<longrightarrow>Q)\<rbrakk> \<Longrightarrow> R"
 apply (erule_tac Q="R\<longrightarrow>Q" in contrapos_np)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (intro impI)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (erule notE)
 
 text \<open>
@@ -160,11 +160,11 @@ text \<open>
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
 apply (intro disjCI conjI)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 
 apply (elim conjE disjE)
  apply assumption
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 
 by (erule contrapos_np, rule conjI)
 text\<open>
@@ -240,18 +240,18 @@ by (drule mp)
 text\<open>rename_tac\<close>
 lemma "x < y \<Longrightarrow> \<forall>x y. P x (f y)"
 apply (intro allI)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rename_tac v w)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule mp, assumption)
 apply (drule spec)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (drule mp)
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (f x); P a\<rbrakk> \<Longrightarrow> P(f (f a))"
@@ -275,11 +275,11 @@ instantiating quantifiers explicitly by rule_tac and erule_tac\<close>
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule mp, assumption)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule_tac x = "h a" in spec)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 by (drule mp)
 
 text \<open>
@@ -289,15 +289,15 @@ text \<open>
 
 lemma mult_dvd_mono: "\<lbrakk>i dvd m; j dvd n\<rbrakk> \<Longrightarrow> i*j dvd (m*n :: nat)"
 apply (simp add: dvd_def)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule exE) 
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule exE) 
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rename_tac l)
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule_tac x="k*l" in exI) 
-        \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+        \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply simp
 done
 
@@ -433,11 +433,11 @@ oops
 
 lemma "\<forall>y. R y y \<Longrightarrow> \<exists>x. \<forall>y. R x y"
 apply (rule exI) 
-  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+  \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule allI) 
-  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+  \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (drule spec) 
-  \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+  \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
 lemma "\<forall>x. \<exists>y. x=y"

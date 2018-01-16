@@ -32,18 +32,18 @@ definition
 
 definition
   wellfounded :: "[i=>o,i]=>o" where
-    \<comment>\<open>EVERY non-empty set has an \<open>r\<close>-minimal element\<close>
+    \<comment> \<open>EVERY non-empty set has an \<open>r\<close>-minimal element\<close>
     "wellfounded(M,r) == 
         \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 definition
   wellfounded_on :: "[i=>o,i,i]=>o" where
-    \<comment>\<open>every non-empty SUBSET OF \<open>A\<close> has an \<open>r\<close>-minimal element\<close>
+    \<comment> \<open>every non-empty SUBSET OF \<open>A\<close> has an \<open>r\<close>-minimal element\<close>
     "wellfounded_on(M,A,r) == 
         \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
 definition
   wellordered :: "[i=>o,i,i]=>o" where
-    \<comment>\<open>linear and wellfounded on \<open>A\<close>\<close>
+    \<comment> \<open>linear and wellfounded on \<open>A\<close>\<close>
     "wellordered(M,A,r) == 
         transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
 

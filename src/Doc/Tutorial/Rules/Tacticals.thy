@@ -22,18 +22,18 @@ by (drule mp, (intro conjI)?, assumption+)+
 text\<open>defer and prefer\<close>
 
 lemma "hard \<and> (P \<or> ~P) \<and> (Q\<longrightarrow>Q)"
-apply (intro conjI)   \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-defer 1   \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-apply blast+   \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+apply (intro conjI)   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+defer 1   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+apply blast+   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
 lemma "ok1 \<and> ok2 \<and> doubtful"
-apply (intro conjI)   \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
-prefer 3   \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+apply (intro conjI)   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
+prefer 3   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
 lemma "bigsubgoal1 \<and> bigsubgoal2 \<and> bigsubgoal3 \<and> bigsubgoal4 \<and> bigsubgoal5 \<and> bigsubgoal6"
-apply (intro conjI)   \<comment>\<open>@{subgoals[display,indent=0,margin=65]}\<close>
+apply (intro conjI)   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 txt\<open>@{subgoals[display,indent=0,margin=65]} 
 A total of 6 subgoals...
 \<close>

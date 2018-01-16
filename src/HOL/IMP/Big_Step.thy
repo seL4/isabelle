@@ -120,7 +120,7 @@ lemma assumes "(IF b THEN SKIP ELSE SKIP, s) \<Rightarrow> t"
 shows "t = s"
 proof-
   from assms show ?thesis
-  proof cases  \<comment>"inverting assms"
+  proof cases  \<comment> \<open>inverting assms\<close>
     case IfTrue thm IfTrue
     thus ?thesis by blast
   next
@@ -147,7 +147,7 @@ proof
   with c1
   show "(c1;; (c2;; c3), s) \<Rightarrow> s'" by (rule Seq)
 next
-  \<comment> "The other direction is analogous"
+  \<comment> \<open>The other direction is analogous\<close>
   assume "(c1;; (c2;; c3), s) \<Rightarrow> s'"
   thus "(c1;; c2;; c3, s) \<Rightarrow> s'" by auto
 qed
@@ -176,40 +176,40 @@ Warning: @{text"\<sim>"} is the symbol written \verb!\ < s i m >! (without space
 lemma unfold_while:
   "(WHILE b DO c) \<sim> (IF b THEN c;; WHILE b DO c ELSE SKIP)" (is "?w \<sim> ?iw")
 proof -
-  \<comment> "to show the equivalence, we look at the derivation tree for"
-  \<comment> "each side and from that construct a derivation tree for the other side"
+  \<comment> \<open>to show the equivalence, we look at the derivation tree for\<close>
+  \<comment> \<open>each side and from that construct a derivation tree for the other side\<close>
   have "(?iw, s) \<Rightarrow> t" if assm: "(?w, s) \<Rightarrow> t" for s t
   proof -
     from assm show ?thesis
-    proof cases \<comment>"rule inversion on \<open>(?w, s) \<Rightarrow> t\<close>"
+    proof cases \<comment> \<open>rule inversion on \<open>(?w, s) \<Rightarrow> t\<close>\<close>
       case WhileFalse
       thus ?thesis by blast
     next
       case WhileTrue
       from \<open>bval b s\<close> \<open>(?w, s) \<Rightarrow> t\<close> obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
-      \<comment> "now we can build a derivation tree for the @{text IF}"
-      \<comment> "first, the body of the True-branch:"
+      \<comment> \<open>now we can build a derivation tree for the @{text IF}\<close>
+      \<comment> \<open>first, the body of the True-branch:\<close>
       hence "(c;; ?w, s) \<Rightarrow> t" by (rule Seq)
-      \<comment> "then the whole @{text IF}"
+      \<comment> \<open>then the whole @{text IF}\<close>
       with \<open>bval b s\<close> show ?thesis by (rule IfTrue)
     qed
   qed
   moreover
-  \<comment> "now the other direction:"
+  \<comment> \<open>now the other direction:\<close>
   have "(?w, s) \<Rightarrow> t" if assm: "(?iw, s) \<Rightarrow> t" for s t
   proof -
     from assm show ?thesis
-    proof cases \<comment>"rule inversion on \<open>(?iw, s) \<Rightarrow> t\<close>"
+    proof cases \<comment> \<open>rule inversion on \<open>(?iw, s) \<Rightarrow> t\<close>\<close>
       case IfFalse
       hence "s = t" using \<open>(?iw, s) \<Rightarrow> t\<close> by blast
       thus ?thesis using \<open>\<not>bval b s\<close> by blast
     next
       case IfTrue
-      \<comment> "and for this, only the Seq-rule is applicable:"
+      \<comment> \<open>and for this, only the Seq-rule is applicable:\<close>
       from \<open>(c;; ?w, s) \<Rightarrow> t\<close> obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
-      \<comment> "with this information, we can build a derivation tree for @{text WHILE}"
+      \<comment> \<open>with this information, we can build a derivation tree for @{text WHILE}\<close>
       with \<open>bval b s\<close> show ?thesis by (rule WhileTrue)
     qed
   qed
@@ -267,14 +267,14 @@ text_raw\<open>\snip{BigStepDetLong}{0}{2}{%\<close>
 theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
 proof (induction arbitrary: t' rule: big_step.induct)
-  \<comment> "the only interesting case, @{text WhileTrue}:"
+  \<comment> \<open>the only interesting case, @{text WhileTrue}:\<close>
   fix b c s s\<^sub>1 t t'
-  \<comment> "The assumptions of the rule:"
+  \<comment> \<open>The assumptions of the rule:\<close>
   assume "bval b s" and "(c,s) \<Rightarrow> s\<^sub>1" and "(WHILE b DO c,s\<^sub>1) \<Rightarrow> t"
   \<comment> \<open>Ind.Hyp; note the @{text"\<And>"} because of arbitrary:\<close>
   assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s\<^sub>1"
   assume IHw: "\<And>t'. (WHILE b DO c,s\<^sub>1) \<Rightarrow> t' \<Longrightarrow> t' = t"
-  \<comment> "Premise of implication:"
+  \<comment> \<open>Premise of implication:\<close>
   assume "(WHILE b DO c,s) \<Rightarrow> t'"
   with \<open>bval b s\<close> obtain s\<^sub>1' where
       c: "(c,s) \<Rightarrow> s\<^sub>1'" and
@@ -282,7 +282,7 @@ proof (induction arbitrary: t' rule: big_step.induct)
     by auto
   from c IHc have "s\<^sub>1' = s\<^sub>1" by blast
   with w IHw show "t' = t" by blast
-qed blast+ \<comment> "prove the rest automatically"
+qed blast+ \<comment> \<open>prove the rest automatically\<close>
 text_raw\<open>}%endsnip\<close>
 
 end

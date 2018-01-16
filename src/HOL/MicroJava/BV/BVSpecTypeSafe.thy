@@ -136,23 +136,23 @@ lemma uncaught_xcpt_correct:
   \<Longrightarrow> G,phi \<turnstile>JVM (find_handler G (Some xcp) hp frs)\<surd>" 
   (is "\<And>f. \<lbrakk> ?wt; ?adr; ?hp; ?correct (None, hp, f#frs) \<rbrakk> \<Longrightarrow> ?correct (?find frs)")
 proof (induct frs) 
-  \<comment> "the base case is trivial, as it should be"
+  \<comment> \<open>the base case is trivial, as it should be\<close>
   show "?correct (?find [])" by (simp add: correct_state_def)
 
-  \<comment> "we will need both forms \<open>wt_jvm_prog\<close> and \<open>wf_prog\<close> later"
+  \<comment> \<open>we will need both forms \<open>wt_jvm_prog\<close> and \<open>wf_prog\<close> later\<close>
   assume wt: ?wt 
   then obtain mb where wf: "wf_prog mb G" by (simp add: wt_jvm_prog_def)
 
-  \<comment> "these two don't change in the induction:"
+  \<comment> \<open>these two don't change in the induction:\<close>
   assume adr: ?adr
   assume hp: ?hp
   
-  \<comment> "the assumption for the cons case:"
+  \<comment> \<open>the assumption for the cons case:\<close>
   fix f f' frs' 
   assume cr: "?correct (None, hp, f#f'#frs')" 
 
-  \<comment> "the induction hypothesis as produced by Isabelle, immediatly simplified
-    with the fixed assumptions above"
+  \<comment> \<open>the induction hypothesis as produced by Isabelle, immediatly simplified
+    with the fixed assumptions above\<close>
   assume "\<And>f. \<lbrakk> ?wt; ?adr; ?hp; ?correct (None, hp, f#frs') \<rbrakk> \<Longrightarrow> ?correct (?find frs')"  
   with wt adr hp 
   have IH: "\<And>f. ?correct (None, hp, f#frs') \<Longrightarrow> ?correct (?find frs')" by blast
@@ -355,7 +355,7 @@ proof -
       phi_pc': "phi C sig ! handler = Some (ST', LT')" and
       frame': "correct_frame G hp (ST',LT') maxl ins ?f'" 
     proof (cases "ins!pc")
-      case Return \<comment> "can't generate exceptions:"
+      case Return \<comment> \<open>can't generate exceptions:\<close>
       with xp' have False by (simp add: split_beta split: if_split_asm)
       thus ?thesis ..
     next
@@ -570,7 +570,7 @@ proof -
       }
       ultimately
       show ?thesis by (rule that)
-    qed (use xp' in auto) \<comment> "the other instructions don't generate exceptions"
+    qed (use xp' in auto) \<comment> \<open>the other instructions don't generate exceptions\<close>
 
     from state' meth hp_ok "class" frames phi_pc' frame' prehp
     have ?thesis by (unfold correct_state_def) simp

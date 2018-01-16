@@ -28,14 +28,14 @@ definition
 
 definition
   jump_cardinal :: "i=>i"  where
-    \<comment>\<open>This definition is more complex than Kunen's but it more easily proved to
+    \<comment> \<open>This definition is more complex than Kunen's but it more easily proved to
         be a cardinal\<close>
     "jump_cardinal(K) ==
          \<Union>X\<in>Pow(K). {z. r \<in> Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
 
 definition
   csucc         :: "i=>i"  where
-    \<comment>\<open>needed because @{term "jump_cardinal(K)"} might not be the successor
+    \<comment> \<open>needed because @{term "jump_cardinal(K)"} might not be the successor
         of @{term K}\<close>
     "csucc(K) == \<mu> L. Card(L) & K<L"
 

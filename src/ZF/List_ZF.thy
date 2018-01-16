@@ -98,7 +98,7 @@ definition
 
 definition
   nth :: "[i, i]=>i"  where
-  \<comment>\<open>returns the (n+1)th element of a list, or 0 if the
+  \<comment> \<open>returns the (n+1)th element of a list, or 0 if the
    list is too short.\<close>
   "nth(n, as) == list_rec(\<lambda>n\<in>nat. 0,
                           %a l r. \<lambda>n\<in>nat. nat_case(a, %m. r`m, n), as) ` n"

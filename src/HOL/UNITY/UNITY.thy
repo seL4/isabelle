@@ -54,7 +54,7 @@ definition invariant :: "'a set => 'a program set" where
     "invariant A == {F. Init F \<subseteq> A} \<inter> stable A"
 
 definition increasing :: "['a => 'b::{order}] => 'a program set" where
-    \<comment>\<open>Polymorphic in both states and the meaning of \<open>\<le>\<close>\<close>
+    \<comment> \<open>Polymorphic in both states and the meaning of \<open>\<le>\<close>\<close>
     "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
 

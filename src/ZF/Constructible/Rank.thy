@@ -15,7 +15,7 @@ assumes well_ord_iso_separation:
       ==> separation (M, \<lambda>x. x\<in>A \<longrightarrow> (\<exists>y[M]. (\<exists>p[M].
                      fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
   and obase_separation:
-     \<comment>\<open>part of the order type formalization\<close>
+     \<comment> \<open>part of the order type formalization\<close>
      "[| M(A); M(r) |]
       ==> separation(M, \<lambda>a. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M].
              ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
@@ -114,7 +114,7 @@ txt\<open>case @{term "j<i"} also yields a contradiction\<close>
 apply (frule restrict_ord_iso2, assumption+) 
 apply (frule ord_iso_sym [THEN ord_iso_is_bij, THEN bij_is_fun]) 
 apply (frule apply_type, blast intro: ltD) 
-  \<comment>\<open>thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}\<close>
+  \<comment> \<open>thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}\<close>
 apply (simp add: pred_iff) 
 apply (subgoal_tac
        "\<exists>h[M]. h \<in> ord_iso(Order.pred(A,y,r), r, 
@@ -137,20 +137,20 @@ done
 
 definition  
   obase :: "[i=>o,i,i] => i" where
-       \<comment>\<open>the domain of \<open>om\<close>, eventually shown to equal \<open>A\<close>\<close>
+       \<comment> \<open>the domain of \<open>om\<close>, eventually shown to equal \<open>A\<close>\<close>
    "obase(M,A,r) == {a\<in>A. \<exists>x[M]. \<exists>g[M]. Ord(x) & 
                           g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))}"
 
 definition
   omap :: "[i=>o,i,i,i] => o" where
-    \<comment>\<open>the function that maps wosets to order types\<close>
+    \<comment> \<open>the function that maps wosets to order types\<close>
    "omap(M,A,r,f) == 
         \<forall>z[M].
          z \<in> f \<longleftrightarrow> (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                         g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 
 definition
-  otype :: "[i=>o,i,i,i] => o" where \<comment>\<open>the order types themselves\<close>
+  otype :: "[i=>o,i,i,i] => o" where \<comment> \<open>the order types themselves\<close>
    "otype(M,A,r,i) == \<exists>f[M]. omap(M,A,r,f) & is_range(M,f,i)"
 
 
@@ -602,7 +602,7 @@ lemma (in M_ord_arith) the_omult_eqns_closed:
     "[| M(i); M(x); M(g); function(g) |] 
      ==> M(THE z. omult_eqns(i, x, g, z))"
 apply (case_tac "Ord(x)")
- prefer 2 apply (simp add: omult_eqns_Not) \<comment>\<open>trivial, non-Ord case\<close>
+ prefer 2 apply (simp add: omult_eqns_Not) \<comment> \<open>trivial, non-Ord case\<close>
 apply (erule Ord_cases) 
   apply (simp add: omult_eqns_0)
  apply (simp add: omult_eqns_succ apply_closed oadd_closed) 

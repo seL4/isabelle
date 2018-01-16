@@ -1295,7 +1295,7 @@ apply (rule subcpo_mkcpo)
 apply (simp add: Dinf_def [symmetric])
 apply (rule ballI)
 apply (simplesubst lub_iprod)
-  \<comment>\<open>Subst would rewrite the lhs. We want to change the rhs.\<close>
+  \<comment> \<open>Subst would rewrite the lhs. We want to change the rhs.\<close>
 apply (assumption | rule chain_Dinf emb_chain_cpo)+
 apply simp
 apply (subst Rp_cont [THEN cont_lub])
@@ -1736,7 +1736,7 @@ apply (rule_tac i = "succ (na) " and j = n in nat_linear_le)
    apply blast
   apply assumption
  apply (simplesubst eps_split_right_le)
-    \<comment>\<open>Subst would rewrite the lhs. We want to change the rhs.\<close>
+    \<comment> \<open>Subst would rewrite the lhs. We want to change the rhs.\<close>
        prefer 2 apply assumption
       apply simp
      apply (assumption | rule add_le_self nat_0I nat_succI)+

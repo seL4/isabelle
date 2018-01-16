@@ -123,7 +123,7 @@ definition
 
 definition
   is_range :: "[i=>o,i,i] => o" where
-    \<comment>\<open>the cleaner
+    \<comment> \<open>the cleaner
       @{term "\<exists>r'[M]. is_converse(M,r,r') & is_domain(M,r',z)"}
       unfortunately needs an instance of separation in order to prove
         @{term "M(converse(r))"}.\<close>
@@ -200,32 +200,32 @@ definition
 
 definition
   ordinal :: "[i=>o,i] => o" where
-     \<comment>\<open>an ordinal is a transitive set of transitive sets\<close>
+     \<comment> \<open>an ordinal is a transitive set of transitive sets\<close>
     "ordinal(M,a) == transitive_set(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> transitive_set(M,x))"
 
 definition
   limit_ordinal :: "[i=>o,i] => o" where
-    \<comment>\<open>a limit ordinal is a non-empty, successor-closed ordinal\<close>
+    \<comment> \<open>a limit ordinal is a non-empty, successor-closed ordinal\<close>
     "limit_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) &
         (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a & successor(M,x,y)))"
 
 definition
   successor_ordinal :: "[i=>o,i] => o" where
-    \<comment>\<open>a successor ordinal is any ordinal that is neither empty nor limit\<close>
+    \<comment> \<open>a successor ordinal is any ordinal that is neither empty nor limit\<close>
     "successor_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) & ~ limit_ordinal(M,a)"
 
 definition
   finite_ordinal :: "[i=>o,i] => o" where
-    \<comment>\<open>an ordinal is finite if neither it nor any of its elements are limit\<close>
+    \<comment> \<open>an ordinal is finite if neither it nor any of its elements are limit\<close>
     "finite_ordinal(M,a) ==
         ordinal(M,a) & ~ limit_ordinal(M,a) &
         (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))"
 
 definition
   omega :: "[i=>o,i] => o" where
-    \<comment>\<open>omega is a limit ordinal none of whose elements are limit\<close>
+    \<comment> \<open>omega is a limit ordinal none of whose elements are limit\<close>
     "omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))"
 
 definition
@@ -245,7 +245,7 @@ definition
 
 definition
   Relation1 :: "[i=>o, i, [i,i]=>o, i=>i] => o" where
-    \<comment>\<open>as above, but typed\<close>
+    \<comment> \<open>as above, but typed\<close>
     "Relation1(M,A,is_f,f) ==
         \<forall>x[M]. \<forall>y[M]. x\<in>A \<longrightarrow> is_f(x,y) \<longleftrightarrow> y = f(x)"
 
@@ -294,7 +294,7 @@ definition
 
 definition
   separation :: "[i=>o, i=>o] => o" where
-    \<comment>\<open>The formula \<open>P\<close> should only involve parameters
+    \<comment> \<open>The formula \<open>P\<close> should only involve parameters
         belonging to \<open>M\<close> and all its quantifiers must be relativized
         to \<open>M\<close>.  We do not have separation as a scheme; every instance
         that we need must be assumed (and later proved) separately.\<close>
@@ -515,7 +515,7 @@ definition
         \<forall>y[M]. y \<in> B \<longleftrightarrow> (\<exists>p[M]. p\<in>r & y \<in> A & pair(M,y,x,p))"
 
 definition
-  membership :: "[i=>o,i,i] => o" where \<comment>\<open>membership relation\<close>
+  membership :: "[i=>o,i,i] => o" where \<comment> \<open>membership relation\<close>
     "membership(M,A,r) ==
         \<forall>p[M]. p \<in> r \<longleftrightarrow> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
 
@@ -992,7 +992,7 @@ assumes Inter_separation:
                 pair(M,f,b,p) & pair(M,n,b,nb) & is_cons(M,nb,f,cnbf) &
                 upair(M,cnbf,cnbf,z))"
   and is_recfun_separation:
-     \<comment>\<open>for well-founded recursion: used to prove \<open>is_recfun_equal\<close>\<close>
+     \<comment> \<open>for well-founded recursion: used to prove \<open>is_recfun_equal\<close>\<close>
      "[| M(r); M(f); M(g); M(a); M(b) |]
      ==> separation(M,
             \<lambda>x. \<exists>xa[M]. \<exists>xb[M].
@@ -1428,12 +1428,12 @@ subsection\<open>Relativization and Absoluteness for List Operators\<close>
 
 definition
   is_Nil :: "[i=>o, i] => o" where
-     \<comment>\<open>because @{prop "[] \<equiv> Inl(0)"}\<close>
+     \<comment> \<open>because @{prop "[] \<equiv> Inl(0)"}\<close>
     "is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs)"
 
 definition
   is_Cons :: "[i=>o,i,i,i] => o" where
-     \<comment>\<open>because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}\<close>
+     \<comment> \<open>because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}\<close>
     "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
 
 
@@ -1461,13 +1461,13 @@ definition
 
 definition
   list_case' :: "[i, [i,i]=>i, i] => i" where
-    \<comment>\<open>A version of @{term list_case} that's always defined.\<close>
+    \<comment> \<open>A version of @{term list_case} that's always defined.\<close>
     "list_case'(a,b,xs) ==
        if quasilist(xs) then list_case(a,b,xs) else 0"
 
 definition
   is_list_case :: "[i=>o, i, [i,i,i]=>o, i, i] => o" where
-    \<comment>\<open>Returns 0 for non-lists\<close>
+    \<comment> \<open>Returns 0 for non-lists\<close>
     "is_list_case(M, a, is_b, xs, z) ==
        (is_Nil(M,xs) \<longrightarrow> z=a) &
        (\<forall>x[M]. \<forall>l[M]. is_Cons(M,x,l,xs) \<longrightarrow> is_b(x,l,z)) &
@@ -1475,17 +1475,17 @@ definition
 
 definition
   hd' :: "i => i" where
-    \<comment>\<open>A version of @{term hd} that's always defined.\<close>
+    \<comment> \<open>A version of @{term hd} that's always defined.\<close>
     "hd'(xs) == if quasilist(xs) then hd(xs) else 0"
 
 definition
   tl' :: "i => i" where
-    \<comment>\<open>A version of @{term tl} that's always defined.\<close>
+    \<comment> \<open>A version of @{term tl} that's always defined.\<close>
     "tl'(xs) == if quasilist(xs) then tl(xs) else 0"
 
 definition
   is_hd :: "[i=>o,i,i] => o" where
-     \<comment>\<open>@{term "hd([]) = 0"} no constraints if not a list.
+     \<comment> \<open>@{term "hd([]) = 0"} no constraints if not a list.
           Avoiding implication prevents the simplifier's looping.\<close>
     "is_hd(M,xs,H) ==
        (is_Nil(M,xs) \<longrightarrow> empty(M,H)) &
@@ -1494,7 +1494,7 @@ definition
 
 definition
   is_tl :: "[i=>o,i,i] => o" where
-     \<comment>\<open>@{term "tl([]) = []"}; see comments about @{term is_hd}\<close>
+     \<comment> \<open>@{term "tl([]) = []"}; see comments about @{term is_hd}\<close>
     "is_tl(M,xs,T) ==
        (is_Nil(M,xs) \<longrightarrow> T=xs) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &

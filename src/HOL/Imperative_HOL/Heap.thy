@@ -44,8 +44,8 @@ text \<open>
   but keeping them separate makes some later proofs simpler.
 \<close>
 
-type_synonym addr = nat \<comment> "untyped heap references"
-type_synonym heap_rep = nat \<comment> "representable values"
+type_synonym addr = nat \<comment> \<open>untyped heap references\<close>
+type_synonym heap_rep = nat \<comment> \<open>representable values\<close>
 
 record heap =
   arrays :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep list"
@@ -55,8 +55,8 @@ record heap =
 definition empty :: heap where
   "empty = \<lparr>arrays = (\<lambda>_ _. []), refs = (\<lambda>_ _. 0), lim = 0\<rparr>"
 
-datatype 'a array = Array addr \<comment> "note the phantom type 'a"
-datatype 'a ref = Ref addr \<comment> "note the phantom type 'a"
+datatype 'a array = Array addr \<comment> \<open>note the phantom type 'a\<close>
+datatype 'a ref = Ref addr \<comment> \<open>note the phantom type 'a\<close>
 
 primrec addr_of_array :: "'a array \<Rightarrow> addr" where
   "addr_of_array (Array x) = x"

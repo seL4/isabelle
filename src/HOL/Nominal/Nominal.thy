@@ -770,7 +770,7 @@ apply(simp add: at_prm_fresh[OF at] at_rev_pi[OF at])
 apply(rule at_prm_eq_refl)
 done
 
-\<comment>"there always exists an atom that is not being in a finite set"
+\<comment> \<open>there always exists an atom that is not being in a finite set\<close>
 lemma ex_in_inf:
   fixes   A::"'x set"
   assumes at: "at TYPE('x)"
@@ -833,7 +833,7 @@ proof -
   then show "\<exists>(b::'x). a\<noteq>b" by blast
 qed
 
-\<comment>"the at-props imply the pt-props"
+\<comment> \<open>the at-props imply the pt-props\<close>
 lemma at_pt_inst:
   assumes at: "at TYPE('x)"
   shows "pt TYPE('x) TYPE('x)"
@@ -1354,7 +1354,7 @@ apply(rule_tac x="(rev pi)\<bullet>x" in exI)
 apply(simp add: pt_pi_rev[OF pt, OF at])
 done
 
-\<comment> "some helper lemmas for the pt_perm_supp_ineq lemma"
+\<comment> \<open>some helper lemmas for the pt_perm_supp_ineq lemma\<close>
 lemma Collect_permI: 
   fixes pi :: "'x prm"
   and   x  :: "'a"
@@ -1672,7 +1672,7 @@ lemma pt_fresh_eqvt_ineq:
   shows "pi\<bullet>(c\<sharp>x) = (pi\<bullet>c)\<sharp>(pi\<bullet>x)"
 by (simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
 
-\<comment>"the co-set of a finite set is infinte"
+\<comment> \<open>the co-set of a finite set is infinte\<close>
 lemma finite_infinite:
   assumes a: "finite {b::'x. P b}"
   and     b: "infinite (UNIV::'x set)"        
@@ -2015,7 +2015,7 @@ lemma pt_fun_app_eq:
   by (simp add: perm_fun_def pt_rev_pi[OF pt, OF at])
 
 
-\<comment>"sometimes pt_fun_app_eq does too much; this lemma 'corrects it'"
+\<comment> \<open>sometimes pt_fun_app_eq does too much; this lemma 'corrects it'\<close>
 lemma pt_perm:
   fixes x  :: "'a"
   and   pi1 :: "'x prm"
@@ -2056,7 +2056,7 @@ next
   qed
 qed
 
-\<comment> "two helper lemmas for the equivariance of functions"
+\<comment> \<open>two helper lemmas for the equivariance of functions\<close>
 lemma pt_swap_eq_aux:
   fixes   y :: "'a"
   and    pi :: "'x prm"
@@ -2819,7 +2819,7 @@ next
   thus "fr1 = fr2" by force
 qed
 
-\<comment> "packaging the freshness lemma into a function"
+\<comment> \<open>packaging the freshness lemma into a function\<close>
 definition fresh_fun :: "('x\<Rightarrow>'a)\<Rightarrow>'a" where
   "fresh_fun (h) \<equiv> THE fr. (\<forall>(a::'x). a\<sharp>h \<longrightarrow> (h a) = fr)"
 
@@ -3068,7 +3068,7 @@ proof -
     show "?LHS=?RHS"
     proof -
       have "(c=a) \<or> (c=b) \<or> (c\<noteq>a \<and> c\<noteq>b)" by blast
-      moreover  \<comment>"case c=a"
+      moreover  \<comment> \<open>case c=a\<close>
       { have "nSome(x) = nSome([(a,b)]\<bullet>y)" using a2 by simp
         also have "\<dots> = nSome([(b,a)]\<bullet>y)" by (simp, rule pt3[OF pt], rule at_ds5[OF at])
         finally have "nSome(x) = nSome([(b,a)]\<bullet>y)" by simp
@@ -3076,7 +3076,7 @@ proof -
         assume "c=a"
         ultimately have "?LHS=?RHS" using a1 a3 by simp
       }
-      moreover  \<comment> "case c=b"
+      moreover  \<comment> \<open>case c=b\<close>
       { have a4: "y=[(a,b)]\<bullet>x" using a2 by (simp only: pt_swap_bij[OF pt, OF at])
         hence "a\<sharp>([(a,b)]\<bullet>x)" using a3 by simp
         hence "b\<sharp>x" by (simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
@@ -3084,7 +3084,7 @@ proof -
         assume "c=b"
         ultimately have "?LHS=?RHS" using a1 a4 by simp
       }
-      moreover  \<comment> "case c\<noteq>a \<and> c\<noteq>b"
+      moreover  \<comment> \<open>case c\<noteq>a \<and> c\<noteq>b\<close>
       { assume a5: "c\<noteq>a \<and> c\<noteq>b"
         moreover 
         have "c\<sharp>x = c\<sharp>y" using a2 a5 by (force simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])

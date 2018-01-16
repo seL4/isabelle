@@ -9,35 +9,35 @@ theory JVMInstructions imports JVMState begin
 
 
 datatype 
-  instr = Load nat                  \<comment> "load from local variable"
-        | Store nat                 \<comment> "store into local variable"
-        | LitPush val               \<comment> "push a literal (constant)"
-        | New cname                 \<comment> "create object"
-        | Getfield vname cname      \<comment> "Fetch field from object"
-        | Putfield vname cname      \<comment> "Set field in object    "
-        | Checkcast cname           \<comment> "Check whether object is of given type"
-        | Invoke cname mname "(ty list)"  \<comment> "inv. instance meth of an object"
-        | Return                    \<comment> "return from method"
-        | Pop                       \<comment> "pop top element from opstack"
-        | Dup                       \<comment> "duplicate top element of opstack"
-        | Dup_x1                    \<comment> "duplicate top element and push 2 down"
-        | Dup_x2                    \<comment> "duplicate top element and push 3 down"
-        | Swap                      \<comment> "swap top and next to top element"
-        | IAdd                      \<comment> "integer addition"
-        | Goto int                  \<comment> "goto relative address"
-        | Ifcmpeq int               \<comment> "branch if int/ref comparison succeeds"
-        | Throw                     \<comment> "throw top of stack as exception"
+  instr = Load nat                  \<comment> \<open>load from local variable\<close>
+        | Store nat                 \<comment> \<open>store into local variable\<close>
+        | LitPush val               \<comment> \<open>push a literal (constant)\<close>
+        | New cname                 \<comment> \<open>create object\<close>
+        | Getfield vname cname      \<comment> \<open>Fetch field from object\<close>
+        | Putfield vname cname      \<comment> \<open>Set field in object\<close>
+        | Checkcast cname           \<comment> \<open>Check whether object is of given type\<close>
+        | Invoke cname mname "(ty list)"  \<comment> \<open>inv. instance meth of an object\<close>
+        | Return                    \<comment> \<open>return from method\<close>
+        | Pop                       \<comment> \<open>pop top element from opstack\<close>
+        | Dup                       \<comment> \<open>duplicate top element of opstack\<close>
+        | Dup_x1                    \<comment> \<open>duplicate top element and push 2 down\<close>
+        | Dup_x2                    \<comment> \<open>duplicate top element and push 3 down\<close>
+        | Swap                      \<comment> \<open>swap top and next to top element\<close>
+        | IAdd                      \<comment> \<open>integer addition\<close>
+        | Goto int                  \<comment> \<open>goto relative address\<close>
+        | Ifcmpeq int               \<comment> \<open>branch if int/ref comparison succeeds\<close>
+        | Throw                     \<comment> \<open>throw top of stack as exception\<close>
 
 type_synonym
   bytecode = "instr list"
 type_synonym
   exception_entry = "p_count \<times> p_count \<times> p_count \<times> cname" 
-                  \<comment> "start-pc, end-pc, handler-pc, exception type"
+                  \<comment> \<open>start-pc, end-pc, handler-pc, exception type\<close>
 type_synonym
   exception_table = "exception_entry list"
 type_synonym
   jvm_method = "nat \<times> nat \<times> bytecode \<times> exception_table"
-   \<comment> "max stacksize, size of register set, instruction sequence, handler table"
+   \<comment> \<open>max stacksize, size of register set, instruction sequence, handler table\<close>
 type_synonym
   jvm_prog = "jvm_method prog" 
 

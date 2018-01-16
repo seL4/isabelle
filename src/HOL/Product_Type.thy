@@ -35,7 +35,7 @@ lemmas simps = bool.distinct bool.case bool.rec
 setup \<open>Sign.parent_path\<close>
 
 declare case_split [cases type: bool]
-  \<comment> "prefer plain propositional version"
+  \<comment> \<open>prefer plain propositional version\<close>
 
 lemma [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
   and [code]: "HOL.equal True P \<longleftrightarrow> P"

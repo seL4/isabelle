@@ -32,8 +32,8 @@ design issues:
 (*subclseq, by translation*)                 (* subclass + identity       *)
 
 definition
-  implmt1 :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment>\<open>direct implementation\<close>
-  \<comment>\<open>direct implementation, cf. 8.1.3\<close>
+  implmt1 :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment> \<open>direct implementation\<close>
+  \<comment> \<open>direct implementation, cf. 8.1.3\<close>
   where "implmt1 G = {(C,I). C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))}"
 
 
@@ -43,7 +43,7 @@ abbreviation
 
 abbreviation
   subint_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
-  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)^*" \<comment>\<open>cf. 9.1.3\<close>
+  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)^*" \<comment> \<open>cf. 9.1.3\<close>
 
 abbreviation
   implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
@@ -334,7 +334,7 @@ apply (unfold implmt1_def)
 apply auto
 done
 
-inductive \<comment>\<open>implementation, cf. 8.1.4\<close>
+inductive \<comment> \<open>implementation, cf. 8.1.4\<close>
   implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>_" [71,71,71] 70)
   for G :: prog
 where
@@ -369,13 +369,13 @@ done
 subsubsection "widening relation"
 
 inductive
- \<comment>\<open>widening, viz. method invocation conversion, cf. 5.3
+ \<comment> \<open>widening, viz. method invocation conversion, cf. 5.3
                             i.e. kind of syntactic subtyping\<close>
   widen :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>_" [71,71,71] 70)
   for G :: prog
 where
-  refl:    "G\<turnstile>T\<preceq>T" \<comment>\<open>identity conversion, cf. 5.1.1\<close>
-| subint:  "G\<turnstile>I\<preceq>I J  \<Longrightarrow> G\<turnstile>Iface I\<preceq> Iface J" \<comment>\<open>wid.ref.conv.,cf. 5.1.4\<close>
+  refl:    "G\<turnstile>T\<preceq>T" \<comment> \<open>identity conversion, cf. 5.1.1\<close>
+| subint:  "G\<turnstile>I\<preceq>I J  \<Longrightarrow> G\<turnstile>Iface I\<preceq> Iface J" \<comment> \<open>wid.ref.conv.,cf. 5.1.4\<close>
 | int_obj: "G\<turnstile>Iface I\<preceq> Class Object"
 | subcls:  "G\<turnstile>C\<preceq>\<^sub>C D  \<Longrightarrow> G\<turnstile>Class C\<preceq> Class D"
 | implmt:  "G\<turnstile>C\<leadsto>I   \<Longrightarrow> G\<turnstile>Class C\<preceq> Iface I"
@@ -594,7 +594,7 @@ rules
 *)
 
 (* more detailed than necessary for type-safety, see above rules. *)
-inductive \<comment>\<open>narrowing reference conversion, cf. 5.1.5\<close>
+inductive \<comment> \<open>narrowing reference conversion, cf. 5.1.5\<close>
   narrow :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<succ>_" [71,71,71] 70)
   for G :: prog
 where
@@ -645,7 +645,7 @@ by (ind_cases "G\<turnstile>S\<succ>PrimT Boolean")
 
 subsubsection "casting relation"
 
-inductive \<comment>\<open>casting conversion, cf. 5.5\<close>
+inductive \<comment> \<open>casting conversion, cf. 5.5\<close>
   cast :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>? _" [71,71,71] 70)
   for G :: prog
 where

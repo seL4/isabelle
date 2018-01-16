@@ -17,7 +17,7 @@ begin
 
 definition NSLIMSEQ :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool"
     ("((_)/ \<longlonglongrightarrow>\<^sub>N\<^sub>S (_))" [60, 60] 60) where
-    \<comment>\<open>Nonstandard definition of convergence of sequence\<close>
+    \<comment> \<open>Nonstandard definition of convergence of sequence\<close>
   "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L \<longleftrightarrow> (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
 definition nslim :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a"

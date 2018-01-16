@@ -828,7 +828,7 @@ qed
 
 subsection \<open>Derived Theorems\<close>
 
-\<comment>"A non-zero cring that has only the two trivial ideals is a field"
+\<comment> \<open>A non-zero cring that has only the two trivial ideals is a field\<close>
 lemma (in cring) trivialideals_fieldI:
   assumes carrnzero: "carrier R \<noteq> {\<zero>}"
     and haveideals: "{I. ideal I R} = {{\<zero>}, carrier R}"
@@ -921,7 +921,7 @@ proof -
   qed
 qed (simp add: zeroideal oneideal)
 
-\<comment>"Jacobson Theorem 2.2"
+\<comment> \<open>Jacobson Theorem 2.2\<close>
 lemma (in cring) trivialideals_eq_field:
   assumes carrnzero: "carrier R \<noteq> {\<zero>}"
   shows "({I. ideal I R} = {{\<zero>}, carrier R}) = field R"

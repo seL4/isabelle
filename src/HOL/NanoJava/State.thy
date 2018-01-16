@@ -14,8 +14,8 @@ text \<open>Locations, i.e.\ abstract references to objects\<close>
 typedecl loc 
 
 datatype val
-  = Null        \<comment>\<open>null reference\<close>
-  | Addr loc    \<comment>\<open>address, i.e. location of object\<close>
+  = Null        \<comment> \<open>null reference\<close>
+  | Addr loc    \<comment> \<open>address, i.e. location of object\<close>
 
 type_synonym fields
         = "(fname \<rightharpoonup> val)"
@@ -59,7 +59,7 @@ definition set_locs :: "state => state => state" where
 definition get_local     :: "state => vname => val" ("_<_>" [99,0] 99) where
  "get_local s x  \<equiv> the (locals s x)"
 
-\<comment>\<open>local function:\<close>
+\<comment> \<open>local function:\<close>
 definition get_obj       :: "state => loc => obj" where
  "get_obj s a \<equiv> the (heap s a)"
 
@@ -69,7 +69,7 @@ definition obj_class     :: "state => loc => cname" where
 definition get_field     :: "state => loc => fname => val" where
  "get_field s a f \<equiv> the (snd (get_obj s a) f)"
 
-\<comment>\<open>local function:\<close>
+\<comment> \<open>local function:\<close>
 definition hupd       :: "loc => obj => state => state"   ("hupd'(_\<mapsto>_')" [10,10] 1000) where
  "hupd a obj s \<equiv> s (| heap   := ((heap   s)(a\<mapsto>obj))|)"
 

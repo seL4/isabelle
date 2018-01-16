@@ -4387,7 +4387,7 @@ lemma compact_eq_seq_compact_metric:
   "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
   using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
 
-lemma compact_def: \<comment>\<open>this is the definition of compactness in HOL Light\<close>
+lemma compact_def: \<comment> \<open>this is the definition of compactness in HOL Light\<close>
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto
@@ -5036,7 +5036,7 @@ lemma continuous_at_imp_continuous_within:
 lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f \<longlongrightarrow> l) net"
   by simp
 
-lemmas continuous_on = continuous_on_def \<comment> "legacy theorem name"
+lemmas continuous_on = continuous_on_def \<comment> \<open>legacy theorem name\<close>
 
 lemma continuous_within_subset:
   "continuous (at x within s) f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous (at x within t) f"

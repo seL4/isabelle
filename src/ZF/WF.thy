@@ -287,7 +287,7 @@ apply (rename_tac a1)
 apply (rule_tac f = "\<lambda>y\<in>r-``{a1}. wftrec (r,y,H)" in is_the_recfun)
   apply typecheck
 apply (unfold is_recfun_def wftrec_def)
-  \<comment>\<open>Applying the substitution: must keep the quantified assumption!\<close>
+  \<comment> \<open>Applying the substitution: must keep the quantified assumption!\<close>
 apply (rule lam_cong [OF refl])
 apply (drule underD)
 apply (fold is_recfun_def)

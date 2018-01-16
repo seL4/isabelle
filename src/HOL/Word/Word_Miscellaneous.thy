@@ -63,7 +63,7 @@ lemma B1_ass_B0:
   apply (erule y)
   done
 
-\<comment> "simplifications for specific word lengths"
+\<comment> \<open>simplifications for specific word lengths\<close>
 lemmas n2s_ths [THEN eq_reflection] = add_2_eq_Suc add_2_eq_Suc'
 
 lemmas s2n_ths = n2s_ths [symmetric]

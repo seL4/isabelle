@@ -36,7 +36,7 @@ restrictions:
 \end{itemize}
 \<close>
 
-type_synonym  res = vals \<comment>\<open>result entry\<close>
+type_synonym  res = vals \<comment> \<open>result entry\<close>
 
 abbreviation (input)
   Val where "Val x == In1 x"
@@ -57,7 +57,7 @@ translations
   "\<lambda>Var:v . b"  == "(\<lambda>v. b) \<circ> CONST the_In2"
   "\<lambda>Vals:v. b"  == "(\<lambda>v. b) \<circ> CONST the_In3"
 
-  \<comment>\<open>relation on result values, state and auxiliary variables\<close>
+  \<comment> \<open>relation on result values, state and auxiliary variables\<close>
 type_synonym 'a assn = "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 translations
   (type) "'a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
@@ -496,7 +496,7 @@ where
 
 | Abrupt:  "G,A\<turnstile>{P\<leftarrow>(undefined3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
 
-  \<comment>\<open>variables\<close>
+  \<comment> \<open>variables\<close>
 | LVar:  " G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Var (lvar vn s))} LVar vn=\<succ> {P}"
 
 | FVar: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Q};
@@ -506,7 +506,7 @@ where
 | AVar:  "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
           \<forall>a. G,A\<turnstile>{Q\<leftarrow>Val a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e1.[e2]=\<succ> {R}"
-  \<comment>\<open>expressions\<close>
+  \<comment> \<open>expressions\<close>
 
 | NewC: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Alloc G (CInst C) Q}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} NewC C-\<succ> {Q}"
@@ -569,7 +569,7 @@ where
     \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} Body D c-\<succ> {R}"
   
-  \<comment>\<open>expression lists\<close>
+  \<comment> \<open>expression lists\<close>
 
 | Nil:                          "G,A\<turnstile>{Normal (P\<leftarrow>Vals [])} []\<doteq>\<succ> {P}"
 
@@ -577,7 +577,7 @@ where
           \<forall>v. G,A\<turnstile>{Q\<leftarrow>Val v} es\<doteq>\<succ> {\<lambda>Vals:vs:. R\<leftarrow>Vals (v#vs)}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e#es\<doteq>\<succ> {R}"
 
-  \<comment>\<open>statements\<close>
+  \<comment> \<open>statements\<close>
 
 | Skip:                         "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit>)} .Skip. {P}"
 
@@ -629,8 +629,7 @@ where
 
 \<comment> \<open>Some dummy rules for the intermediate terms \<open>Callee\<close>,
 \<open>InsInitE\<close>, \<open>InsInitV\<close>, \<open>FinA\<close> only used by the smallstep 
-semantics.
-\<close>
+semantics.\<close>
 | InsInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
 | InsInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
 | Callee:    " G,A\<turnstile>{Normal P} Callee l e-\<succ> {Q}"

@@ -330,7 +330,7 @@ instance ..
 
 end
 
-lemma ennreal_zero_less_one: "0 < (1::ennreal)" \<comment> \<open>TODO: remove \<close>
+lemma ennreal_zero_less_one: "0 < (1::ennreal)" \<comment> \<open>TODO: remove\<close>
   by transfer auto
 
 instance ennreal :: dioid

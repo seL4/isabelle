@@ -429,7 +429,7 @@ lemma "(\<forall>x y z. R(x,y) & R(y,z) --> R(x,z)) &
        (\<forall>x. \<exists>y. R(x,y)) -->
        ~ (\<forall>x. P x = (\<forall>y. R(x,y) --> ~ P y))"
 by (tactic\<open>Meson.safe_best_meson_tac @{context} 1\<close>)
-    \<comment>\<open>In contrast, \<open>meson\<close> is SLOW: 7.6s on griffon\<close>
+    \<comment> \<open>In contrast, \<open>meson\<close> is SLOW: 7.6s on griffon\<close>
 
 
 subsubsection\<open>Pelletier's examples\<close>
@@ -644,7 +644,7 @@ lemma "(\<forall>z. \<exists>w. \<forall>x. \<exists>y.
       (\<forall>x z. ~P x z --> (\<exists>y. Q y z)) &
       ((\<exists>x y. Q x y) --> (\<forall>x. R x x))
     --> (\<forall>x. \<exists>y. R x y)"
-by blast \<comment>\<open>causes unification tracing messages\<close>
+by blast \<comment> \<open>causes unification tracing messages\<close>
 
 
 text\<open>Problem 38\<close>  text\<open>Quite hard: 422 Horn clauses!!\<close>
@@ -723,7 +723,7 @@ lemma "(\<forall>x. wolf x \<longrightarrow> animal x) & (\<exists>x. wolf x) &
        (\<forall>x. (caterpillar x \<or> snail x) \<longrightarrow> (\<exists>y. plant y & eats x y))
        \<longrightarrow> (\<exists>x y. animal x & animal y & (\<exists>z. grain z & eats y z & eats x y))"
 by (tactic\<open>Meson.safe_best_meson_tac @{context} 1\<close>)
-    \<comment>\<open>Nearly twice as fast as \<open>meson\<close>,
+    \<comment> \<open>Nearly twice as fast as \<open>meson\<close>,
         which performs iterative deepening rather than best-first search\<close>
 
 text\<open>The Los problem. Circulated by John Harrison\<close>
@@ -803,13 +803,13 @@ begin
 lemma "\<forall>x. T(i x x)"
   using a b d by blast
 
-lemma "\<forall>x. T(i x (n(n x)))" \<comment>\<open>Problem 66\<close>
+lemma "\<forall>x. T(i x (n(n x)))" \<comment> \<open>Problem 66\<close>
   using a b c d by metis
 
-lemma "\<forall>x. T(i (n(n x)) x)" \<comment>\<open>Problem 67\<close>
-  using a b c d by meson \<comment>\<open>4.9s on griffon. 51061 inferences, depth 21\<close>
+lemma "\<forall>x. T(i (n(n x)) x)" \<comment> \<open>Problem 67\<close>
+  using a b c d by meson \<comment> \<open>4.9s on griffon. 51061 inferences, depth 21\<close>
 
-lemma "\<forall>x. T(i x (n(n x)))" \<comment>\<open>Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)\<close>
+lemma "\<forall>x. T(i x (n(n x)))" \<comment> \<open>Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)\<close>
   using a b c' d oops
 
 end

@@ -11,7 +11,7 @@ theory SchorrWaite imports HeapSyntax begin
 section \<open>Machinery for the Schorr-Waite proof\<close>
 
 definition
-  \<comment> "Relations induced by a mapping"
+  \<comment> \<open>Relations induced by a mapping\<close>
   rel :: "('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<times> 'a) set"
   where "rel m = {(x,y). m x = Ref y}"
 
@@ -83,7 +83,7 @@ apply (simp add:rel_defs fun_upd_apply)
 done
 
 definition
-  \<comment> "Restriction of a relation"
+  \<comment> \<open>Restriction of a relation\<close>
   restr ::"('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<times> 'a) set"       ("(_/ | _)" [50, 51] 50)
   where "restr r m = {(x,y). (x,y) \<in> r \<and> \<not> m x}"
 
@@ -115,7 +115,7 @@ apply (simp add:restr_def fun_upd_apply)
 done
 
 definition
-  \<comment> "A short form for the stack mapping function for List"
+  \<comment> \<open>A short form for the stack mapping function for List\<close>
   S :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref)"
   where "S c l r = (\<lambda>x. if c x then r x else l x)"
 
@@ -146,7 +146,7 @@ apply(induct_tac stack)
 done
 
 primrec
-  \<comment>"Recursive definition of what is means for a the graph/stack structure to be reconstructible"
+  \<comment> \<open>Recursive definition of what is means for a the graph/stack structure to be reconstructible\<close>
   stkOk :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow>'a list \<Rightarrow>  bool"
 where
   stkOk_nil:  "stkOk c l r iL iR t [] = True"
@@ -314,7 +314,7 @@ proof (vcg)
             with i3 have poI3: "R = reachable ?Rb ?B"  by (simp add:reachable_def) 
             moreover
 
-            \<comment> "If it is reachable and not marked, it is still reachable using..."
+            \<comment> \<open>If it is reachable and not marked, it is still reachable using...\<close>
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A"  =  ?I4        
             let "?Rb" = "relS {l, r(p \<rightarrow> t)} | m"
             let "?B" = "{p} \<union> set (map (r(p \<rightarrow> t)) stack_tl)"
@@ -331,7 +331,7 @@ proof (vcg)
                 by (clarsimp simp:restr_def relS_def) 
                   (fastforce simp add:rel_def Image_iff addrs_def dest:rel_upd1)
             qed
-            \<comment> "We now bring a term from the right to the left of the subset relation."
+            \<comment> \<open>We now bring a term from the right to the left of the subset relation.\<close>
             hence subset: "?Ra\<^sup>* `` addrs ?A - ?Rb\<^sup>* `` addrs ?T \<subseteq> ?Rb\<^sup>* `` addrs ?B"
               by blast
             have poI4: "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"
@@ -350,7 +350,7 @@ proof (vcg)
             qed
             moreover
 
-            \<comment> "If it is marked, then it is reachable"
+            \<comment> \<open>If it is marked, then it is reachable\<close>
             from i5 have poI5: "\<forall>x. m x \<longrightarrow> x \<in> R" .
             moreover
 
@@ -371,11 +371,11 @@ proof (vcg)
         }
         moreover
 
-        \<comment> "Proofs of the Swing and Push arm follow."
-        \<comment> "Since they are in principle simmilar to the Pop arm proof,"
-        \<comment> "we show fewer comments and use frequent pattern matching."
+        \<comment> \<open>Proofs of the Swing and Push arm follow.\<close>
+        \<comment> \<open>Since they are in principle simmilar to the Pop arm proof,\<close>
+        \<comment> \<open>we show fewer comments and use frequent pattern matching.\<close>
         {
-          \<comment> "Swing arm"
+          \<comment> \<open>Swing arm\<close>
           assume ifB1: "?ifB1" and nifB2: "\<not>?ifB2"
           from ifB1 whileB have pNotNull: "p \<noteq> Null" by clarsimp
           then obtain addr_p where addr_p_eq: "p = Ref addr_p" by clarsimp
@@ -419,7 +419,7 @@ proof (vcg)
             have swI3: "?swI3" by (simp add:reachable_def) 
             moreover
 
-            \<comment> "If it is reachable and not marked, it is still reachable using..."
+            \<comment> \<open>If it is reachable and not marked, it is still reachable using...\<close>
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?swI4
             let ?T = "{t}"
@@ -449,7 +449,7 @@ proof (vcg)
             qed
             moreover
             
-            \<comment> "If it is marked, then it is reachable"
+            \<comment> \<open>If it is marked, then it is reachable\<close>
             from i5
             have "?swI5" .
             moreover
@@ -472,7 +472,7 @@ proof (vcg)
         moreover
 
         {
-          \<comment> "Push arm"
+          \<comment> \<open>Push arm\<close>
           assume nifB1: "\<not>?ifB1"
           from nifB1 whileB have tNotNull: "t \<noteq> Null" by clarsimp
           then obtain addr_t where addr_t_eq: "t = Ref addr_t" by clarsimp
@@ -516,7 +516,7 @@ proof (vcg)
             have puI3: "?puI3" by (simp add:reachable_def) 
             moreover
             
-            \<comment> "If it is reachable and not marked, it is still reachable using..."
+            \<comment> \<open>If it is reachable and not marked, it is still reachable using...\<close>
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
             let "\<forall>x. x \<in> R \<and> \<not> ?new_m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?puI4
             let ?T = "{t}"
@@ -546,7 +546,7 @@ proof (vcg)
             qed  
             moreover
             
-            \<comment> "If it is marked, then it is reachable"
+            \<comment> \<open>If it is marked, then it is reachable\<close>
             from i5
             have "?puI5"
               by (auto simp:addrs_def i3 reachable_def addr_t_eq fun_upd_apply intro:self_reachable)

@@ -64,10 +64,10 @@ definition
 
 (** State definitions.  OUTPUT variables are locals **)
 locale merge =
-  fixes In   \<comment>\<open>merge's INPUT histories: streams to merge\<close>
-    and Out  \<comment>\<open>merge's OUTPUT history: merged items\<close>
-    and iOut \<comment>\<open>merge's OUTPUT history: origins of merged items\<close>
-    and A    \<comment>\<open>the type of items being merged\<close>
+  fixes In   \<comment> \<open>merge's INPUT histories: streams to merge\<close>
+    and Out  \<comment> \<open>merge's OUTPUT history: merged items\<close>
+    and iOut \<comment> \<open>merge's OUTPUT history: origins of merged items\<close>
+    and A    \<comment> \<open>the type of items being merged\<close>
     and M
  assumes var_assumes [simp]:
            "(\<forall>n. In(n):var) & Out \<in> var & iOut \<in> var"

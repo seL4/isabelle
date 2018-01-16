@@ -14,7 +14,7 @@ abbreviation
    SComplex  :: "hcomplex set" where
    "SComplex \<equiv> Standard"
 
-definition \<comment>\<open>standard part map\<close>
+definition \<comment> \<open>standard part map\<close>
   stc :: "hcomplex => hcomplex" where 
   "stc x = (SOME r. x \<in> HFinite \<and> r\<in>SComplex \<and> r \<approx> x)"
 

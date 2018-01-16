@@ -849,15 +849,15 @@ lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \
 
 subsubsection \<open>Intervals and numerals\<close>
 
-lemma lessThan_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
+lemma lessThan_nat_numeral:  \<comment> \<open>Evaluation for specific numerals\<close>
   "lessThan (numeral k :: nat) = insert (pred_numeral k) (lessThan (pred_numeral k))"
   by (simp add: numeral_eq_Suc lessThan_Suc)
 
-lemma atMost_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
+lemma atMost_nat_numeral:  \<comment> \<open>Evaluation for specific numerals\<close>
   "atMost (numeral k :: nat) = insert (numeral k) (atMost (pred_numeral k))"
   by (simp add: numeral_eq_Suc atMost_Suc)
 
-lemma atLeastLessThan_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
+lemma atLeastLessThan_nat_numeral:  \<comment> \<open>Evaluation for specific numerals\<close>
   "atLeastLessThan m (numeral k :: nat) =
      (if m \<le> (pred_numeral k) then insert (pred_numeral k) (atLeastLessThan m (pred_numeral k))
                  else {})"
@@ -2011,7 +2011,7 @@ proof (induct n)
   finally show ?case .
 qed simp
 
-corollary power_diff_sumr2: \<comment>\<open>\<open>COMPLEX_POLYFUN\<close> in HOL Light\<close>
+corollary power_diff_sumr2: \<comment> \<open>\<open>COMPLEX_POLYFUN\<close> in HOL Light\<close>
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
 using diff_power_eq_sum[of x "n - 1" y]

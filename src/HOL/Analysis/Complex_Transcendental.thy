@@ -2851,7 +2851,7 @@ lemma isCont_Arcsin' [simp]:
 lemma sin_Arcsin [simp]: "sin(Arcsin z) = z"
 proof -
   have "\<i>*z*2 + csqrt (1 - z\<^sup>2)*2 = 0 \<longleftrightarrow> (\<i>*z)*2 + csqrt (1 - z\<^sup>2)*2 = 0"
-    by (simp add: algebra_simps)  \<comment>\<open>Cancelling a factor of 2\<close>
+    by (simp add: algebra_simps)  \<comment> \<open>Cancelling a factor of 2\<close>
   moreover have "... \<longleftrightarrow> (\<i>*z) + csqrt (1 - z\<^sup>2) = 0"
     by (metis Arcsin_body_lemma distrib_right no_zero_divisors zero_neq_numeral)
   ultimately show ?thesis
@@ -3024,7 +3024,7 @@ lemma isCont_Arccos' [simp]:
 lemma cos_Arccos [simp]: "cos(Arccos z) = z"
 proof -
   have "z*2 + \<i> * (2 * csqrt (1 - z\<^sup>2)) = 0 \<longleftrightarrow> z*2 + \<i> * csqrt (1 - z\<^sup>2)*2 = 0"
-    by (simp add: algebra_simps)  \<comment>\<open>Cancelling a factor of 2\<close>
+    by (simp add: algebra_simps)  \<comment> \<open>Cancelling a factor of 2\<close>
   moreover have "... \<longleftrightarrow> z + \<i> * csqrt (1 - z\<^sup>2) = 0"
     by (metis distrib_right mult_eq_0_iff zero_neq_numeral)
   ultimately show ?thesis
