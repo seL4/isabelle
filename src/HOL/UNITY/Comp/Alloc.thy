@@ -47,7 +47,7 @@ record 'a systemState =
   dummy  :: 'a                    \<comment> \<open>dummy field for new variables\<close>
 
 
-\<comment> \<open>* Resource allocation system specification *\<close>
+subsubsection \<open>Resource allocation system specification\<close>
 
 definition
   \<comment> \<open>spec (1)\<close>
@@ -68,7 +68,8 @@ definition
   system_spec :: "'a systemState program set"
   where "system_spec = system_safety Int system_progress"
 
-\<comment> \<open>* Client specification (required) **\<close>
+
+subsubsection \<open>Client specification (required)\<close>
 
 definition
   \<comment> \<open>spec (3)\<close>
@@ -105,7 +106,8 @@ definition
   where "client_spec = client_increasing Int client_bounded Int client_progress
                     Int client_allowed_acts Int client_preserves"
 
-\<comment> \<open>* Allocator specification (required) *\<close>
+
+subsubsection \<open>Allocator specification (required)\<close>
 
 definition
   \<comment> \<open>spec (6)\<close>
@@ -168,7 +170,8 @@ definition
   where "alloc_spec = alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_allowed_acts Int alloc_preserves"
 
-\<comment> \<open>* Network specification *\<close>
+
+subsubsection \<open>Network specification\<close>
 
 definition
   \<comment> \<open>spec (9.1)\<close>
@@ -218,7 +221,8 @@ definition
                      network_preserves"
 
 
-\<comment> \<open>* State mappings *\<close>
+subsubsection \<open>State mappings\<close>
+
 definition
   sysOfAlloc :: "((nat => clientState) * 'a) allocState_d => 'a systemState"
   where "sysOfAlloc = (%s. let (cl,xtr) = allocState_d.dummy s

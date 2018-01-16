@@ -27,7 +27,7 @@ abbreviation "n == Var([0,0])"
 abbreviation "u == Var([0,1])"
 abbreviation "v == Var([1,0])"
 
-axiomatization where \<comment> \<open>* Type declarations  *\<close>
+axiomatization where \<comment> \<open>Type declarations\<close>
   p_type:  "type_of(p)=bool & default_val(p)=0" and
   m_type:  "type_of(m)=int  & default_val(m)=#0" and
   n_type:  "type_of(n)=int  & default_val(n)=#0" and
