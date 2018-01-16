@@ -206,6 +206,8 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
         (chapter, name)
         verbose;
 
+    val _ = Timing_Report.start_logging name
+
     val last_timing = get_timings (fold update_timings command_timings empty_timings);
 
     val res1 =
