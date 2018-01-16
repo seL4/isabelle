@@ -54,13 +54,11 @@ syntax
  "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
 
 (* FIXME does not handle "_idtdummy" *)
-ML\<open>
-(* free_tr takes care of free vars in the scope of sep. logic connectives:
-   they are implicitly applied to the heap *)
+ML \<open>
+\<comment> \<open>\<open>free_tr\<close> takes care of free vars in the scope of separation logic connectives:
+    they are implicitly applied to the heap\<close>
 fun free_tr(t as Free _) = t $ Syntax.free "H"
-(*
-  | free_tr((list as Free("List",_))$ p $ ps) = list $ Syntax.free "H" $ p $ ps
-*)
+\<^cancel>\<open>| free_tr((list as Free("List",_))$ p $ ps) = list $ Syntax.free "H" $ p $ ps\<close>
   | free_tr t = t
 
 fun emp_tr [] = Syntax.const @{const_syntax is_empty} $ Syntax.free "H"
@@ -109,9 +107,7 @@ local
 
 fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
   | strip (Abs(_,_,(t as Free _) $ Bound 0)) = t
-(*
-  | strip (Abs(_,_,((list as Const("List",_))$ Bound 0 $ p $ ps))) = list$p$ps
-*)
+\<^cancel>\<open>| strip (Abs(_,_,((list as Const("List",_))$ Bound 0 $ p $ ps))) = list$p$ps\<close>
   | strip (Abs(_,_,(t as Const("_var",_) $ Var _) $ Bound 0)) = t
   | strip (Abs(_,_,P)) = P
   | strip (Const(@{const_syntax is_empty},_)) = Syntax.const @{syntax_const "_emp"}

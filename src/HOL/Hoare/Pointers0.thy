@@ -188,19 +188,18 @@ lemma "VARS tl p q r
   {List tl q (rev Ps @ Qs)}"
 apply vcg_simp
   apply fastforce
- apply(fastforce intro:notin_List_update[THEN iffD2])
-(* explicily:
- apply clarify
- apply(rename_tac ps qs)
- apply clarsimp
- apply(rename_tac ps')
- apply(rule_tac x = ps' in exI)
- apply simp
- apply(rule_tac x = "p#qs" in exI)
- apply simp
-*)
-apply fastforce
-done
+  apply(fastforce intro:notin_List_update[THEN iffD2])
+  \<comment> \<open>explicit:\<close>
+  \<^cancel>\<open>apply clarify\<close>
+  \<^cancel>\<open>apply(rename_tac ps qs)\<close>
+  \<^cancel>\<open>apply clarsimp\<close>
+  \<^cancel>\<open>apply(rename_tac ps')\<close>
+  \<^cancel>\<open>apply(rule_tac x = ps' in exI)\<close>
+  \<^cancel>\<open>apply simp\<close>
+  \<^cancel>\<open>apply(rule_tac x = "p#qs" in exI)\<close>
+  \<^cancel>\<open>apply simp\<close>
+  apply fastforce
+  done
 
 
 text "A longer readable version:"

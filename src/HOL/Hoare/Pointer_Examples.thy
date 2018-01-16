@@ -24,20 +24,15 @@ lemma "VARS tl p q r
   {List tl q (rev Ps @ Qs)}"
 apply vcg_simp
   apply fastforce
- apply(fastforce intro:notin_List_update[THEN iffD2])
-(* explicit:
- apply clarify
- apply(rename_tac ps b qs)
- apply clarsimp
- apply(rename_tac ps')
- apply(fastforce intro:notin_List_update[THEN iffD2])
- apply(rule_tac x = ps' in exI)
- apply simp
- apply(rule_tac x = "b#qs" in exI)
- apply simp
-*)
-apply fastforce
-done
+  apply(fastforce intro:notin_List_update[THEN iffD2])
+  \<comment> \<open>explicit:\<close>
+  \<^cancel>\<open>apply clarify\<close>
+  \<^cancel>\<open>apply(rename_tac ps b qs)\<close>
+  \<^cancel>\<open>apply clarsimp\<close>
+  \<^cancel>\<open>apply(rename_tac ps')\<close>
+  \<^cancel>\<open>apply(fastforce intro:notin_List_update[THEN iffD2])\<close>
+  apply fastforce
+  done
 
 text\<open>And now with ghost variables @{term ps} and @{term qs}. Even
 ``more automatic''.\<close>
