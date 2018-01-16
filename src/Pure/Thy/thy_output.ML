@@ -355,11 +355,7 @@ fun present_thy thy command_results toks =
             (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
-      Scan.one is_black_comment >>
-        (fn tok => (NONE, (Basic_Token tok, ("", d)))) ||
-      (Parse.$$$ "--" || Parse.$$$ Symbol.comment) |--
-        Parse.!!!! (improper |-- Parse.document_source) >>
-        (fn source => (NONE, (Markup_Token ("cmt", source), ("", d)))));
+      Scan.one is_black_comment >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
 
     val other = Scan.peek (fn d =>
        Parse.not_eof >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));

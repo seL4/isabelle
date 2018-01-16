@@ -25,7 +25,6 @@ sig
   val parse: theory -> Position.T -> string -> Toplevel.transition list
   val parse_tokens: theory -> Token.T list -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
-  val side_comments: Token.T list -> Token.T list
   val command_reports: theory -> Token.T -> Position.report_text list
   val check_command: Proof.context -> command_keyword -> string
 end;
@@ -210,12 +209,8 @@ fun parse_command thy =
             in msg ^ quote (Markup.markup Markup.keyword1 name) end))
     end);
 
-val parse_cmt = (Parse.$$$ "--" || Parse.$$$ Symbol.comment) -- Parse.!!! Parse.document_source;
-
 fun commands_source thy =
   Token.source_proper #>
-  Source.source Token.stopper (Scan.bulk (parse_cmt >> K NONE || Parse.not_eof >> SOME)) #>
-  Source.map_filter I #>
   Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command thy) xs));
 
 in
@@ -267,26 +262,6 @@ in
 
 fun parse_spans toks =
   fold parse toks ([], [], []) |> flush |> rev;
-
-end;
-
-
-(* side-comments *)
-
-local
-
-fun is_cmt tok = Token.kind_of tok = Token.Comment (SOME Comment.Comment);
-
-fun cmts (t1 :: t2 :: toks) =
-      if Token.keyword_with (fn s => s = "--" orelse s = Symbol.comment) t1 then t2 :: cmts toks
-      else if is_cmt t1 then t1 :: cmts (t2 :: toks)
-      else cmts (t2 :: toks)
-  | cmts _ = [];
-
-in
-
-val side_comments =
-  cmts o filter_out (fn tok => Token.is_informal_comment tok orelse Token.is_space tok);
 
 end;
 

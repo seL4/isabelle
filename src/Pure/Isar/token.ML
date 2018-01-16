@@ -624,7 +624,7 @@ fun scan_token keywords = !!! "bad input"
     scan_verbatim >> token_range Verbatim ||
     scan_cartouche >> token_range Cartouche ||
     scan_comment >> token_range (Comment NONE) ||
-    (Comment.scan_cancel || Comment.scan_latex) >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
+    Comment.scan >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
     scan_space >> token Space ||
     (Scan.max token_leq
       (Scan.max token_leq

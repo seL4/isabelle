@@ -6,7 +6,7 @@ The Pure theory, with definitions of Isar commands and some lemmas.
 
 theory Pure
 keywords
-    "!!" "!" "+" "--" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
+    "!!" "!" "+" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "attach" "binder" "in" "infix" "infixl" "infixr" "is" "open" "output"
     "overloaded" "pervasive" "premises" "structure" "unchecked"
   and "private" "qualified" :: before_command

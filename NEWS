@@ -9,6 +9,11 @@ New in this Isabelle version
 
 *** General ***
 
+* Marginal comments need to be written exclusively in the new-style form
+"\<comment> \<open>text\<close>", old ASCII variants like "-- {* ... *}" are no longer
+supported. INCOMPATIBILITY, use the command-line tool "isabelle
+update_comments" to update existing theory files.
+
 * The "op <infix-op>" syntax for infix operators has been replaced by
 "(<infix-op>)". If <infix-op> begins or ends with a "*", there needs to
 be a space between the "*" and the corresponding parenthesis.

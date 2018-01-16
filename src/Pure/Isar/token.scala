@@ -48,9 +48,6 @@ object Token
 
   trait Parsers extends Scan.Parsers with Comment.Parsers
   {
-    private def comment_marker: Parser[Token] =
-      one(Symbol.is_comment) ^^ (x => Token(Token.Kind.KEYWORD, x))
-
     private def delimited_token: Parser[Token] =
     {
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
@@ -111,7 +108,7 @@ object Token
     }
 
     def token(keywords: Keyword.Keywords): Parser[Token] =
-      comment_marker | (delimited_token | other_token(keywords))
+      delimited_token | other_token(keywords)
 
     def token_line(keywords: Keyword.Keywords, ctxt: Scan.Line_Context)
       : Parser[(Token, Scan.Line_Context)] =

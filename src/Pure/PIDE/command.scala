@@ -396,11 +396,10 @@ object Command
 
   private def clean_tokens(tokens: List[Token]): List[(Token, Int)] =
   {
-    val markers = Set("%", "--", Symbol.comment, Symbol.comment_decoded)
     def clean(toks: List[(Token, Int)]): List[(Token, Int)] =
       toks match {
         case (t1, i1) :: (t2, i2) :: rest =>
-          if (t1.is_keyword && markers(t1.source)) clean(rest)
+          if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
           else (t1, i1) :: clean((t2, i2) :: rest)
         case _ => toks
       }
