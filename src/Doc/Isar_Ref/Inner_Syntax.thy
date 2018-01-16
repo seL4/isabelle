@@ -567,7 +567,6 @@ text \<open>
     @{syntax_def (inner) str_token} & = & \<^verbatim>\<open>''\<close> \<open>\<dots>\<close> \<^verbatim>\<open>''\<close> \\
     @{syntax_def (inner) string_token} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
     @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
-    @{syntax_def (inner) comment_cartouche} & = & @{verbatim "\<comment> \<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
   \end{supertabular}
   \end{center}
 
@@ -582,10 +581,8 @@ text \<open>
   (inner) float_const}, provide robust access to the respective tokens: the
   syntax tree holds a syntactic constant instead of a free variable.
 
-  A @{syntax (inner) comment_cartouche} resembles the outer syntax notation
-  for marginal @{syntax_ref comment} (\secref{sec:comments}), but is
-  syntactically more restrictive: only the symbol-form with \<^verbatim>\<open>\<comment>\<close> and text
-  cartouche is supported.
+  Formal document comments (\secref{sec:comments}) may be also used within the
+  inner syntax.
 \<close>
 
 

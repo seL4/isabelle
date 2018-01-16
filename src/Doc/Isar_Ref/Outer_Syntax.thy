@@ -230,21 +230,48 @@ text \<open>
 \<close>
 
 
-subsection \<open>Comments \label{sec:comments}\<close>
+subsection \<open>Document text\<close>
 
 text \<open>
-  Large chunks of plain @{syntax text} are usually given @{syntax verbatim},
-  i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>, or as @{syntax cartouche} \<open>\<open>\<dots>\<close>\<close>. For
-  convenience, any of the smaller text units conforming to @{syntax name} are
-  admitted as well. A marginal @{syntax comment} is of the form \<^verbatim>\<open>--\<close>~@{syntax
-  text} or \<^verbatim>\<open>\<comment>\<close>~@{syntax text}. Any number of these may occur within
-  Isabelle/Isar commands.
+  A chunk of document @{syntax text} is usually given as @{syntax cartouche}
+  \<open>\<open>\<dots>\<close>\<close> or @{syntax verbatim}, i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>. For
+  convenience, any of the smaller text unit that conforms to @{syntax name} is
+  admitted as well.
 
   @{rail \<open>
     @{syntax_def text}: @{syntax embedded} | @{syntax verbatim}
-    ;
-    @{syntax_def comment}: ('--' | @'\<comment>') @{syntax text}
   \<close>}
+
+  Typical uses are document markup commands, like \<^theory_text>\<open>chapter\<close>, \<^theory_text>\<open>section\<close> etc.
+  (\secref{sec:markup}).
+\<close>
+
+
+subsection \<open>Document comments \label{sec:comments}\<close>
+
+text \<open>
+  Formal comments are an integral part of the document, but are logically void
+  and removed from the resulting theory or term content. The output of
+  document preparation (\chref{ch:document-prep}) supports various styles,
+  according to the following kinds of comments.
+
+    \<^item> Marginal comment of the form \<^verbatim>\<open>\<comment>\<close>~\<open>\<open>text\<close>\<close> or \<open>\<comment> \<open>text\<close>\<close>, usually with a
+    single space between the comment symbol and the argument cartouche. The
+    given argument is typeset as regular text, with formal antiquotations
+    (\secref{sec:antiq}).
+
+    \<^item> Canceled text of the form \<^verbatim>\<open>\<^cancel>\<close>\<open>\<open>text\<close>\<close> (no white space between the
+    control symbol and the argument cartouche). The argument is typeset as
+    formal Isabelle source and overlaid with a ``strike-through'' pattern,
+    e.g. \<^theory_text>\<open>\<^cancel>\<open>bad\<close>\<close>.
+
+    \<^item> Raw {\LaTeX} source of the form \<^verbatim>\<open>\<^latex>\<close>\<open>\<open>argument\<close>\<close> (no white space
+    between the control symbol and the argument cartouche). This allows to
+    augment the generated {\TeX} source arbitrarily, without any sanity
+    checks!
+
+  These formal comments work uniformly in outer syntax, inner syntax (term
+  language), Isabelle/ML, and some other embedded languages of Isabelle.
 \<close>
 
 

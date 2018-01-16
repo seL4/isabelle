@@ -123,8 +123,14 @@ Isabelle/jEdit.
 
 *** Document preparation ***
 
-* \<^cancel>\<open>text\<close> cancels unused text within inner syntax: it is ignored within
-the formal language, but shown in the document with strike-out style.
+* Formal comments work uniformly in outer syntax, inner syntax (term
+language), Isabelle/ML and some other embedded languages of Isabelle.
+See also "Document comments" in the isar-ref manual. The following forms
+are supported:
+
+  - marginal text comment: \<comment> \<open>\<dots>\<close>
+  - canceled source: \<^cancel>\<open>\<dots>\<close>
+  - raw LaTeX: \<^latex>\<open>\<dots>\<close>
 
 * Embedded languages such as inner syntax and ML may contain formal
 comments of the form "\<comment> \<open>text\<close>". As in marginal comments of outer
