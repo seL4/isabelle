@@ -55,7 +55,7 @@ type 'a rewrites = (Attrib.binding * 'a) list
 
 local
 
-fun augment_with_def prep_term deps ((name, atts), ((b, mx), raw_rhs)) lthy =
+fun augment_with_def prep_term ((name, atts), ((b, mx), raw_rhs)) lthy =
   let
     val rhs = prep_term lthy raw_rhs;
     val lthy' = Variable.declare_term rhs lthy;
@@ -63,7 +63,7 @@ fun augment_with_def prep_term deps ((name, atts), ((b, mx), raw_rhs)) lthy =
       Local_Theory.define ((b, mx), ((Thm.def_binding_optional b name, atts), rhs)) lthy';
   in (def, lthy'') end;
 
-fun augment_with_defs prep_term [] deps ctxt = ([], ctxt)
+fun augment_with_defs _ [] _ ctxt = ([], ctxt)
       (*quasi-inhomogeneous type: definitions demand local theory rather than bare proof context*)
   | augment_with_defs prep_term raw_defs deps lthy =
       let
@@ -71,7 +71,7 @@ fun augment_with_defs prep_term [] deps ctxt = ([], ctxt)
           Local_Theory.open_target lthy
           ||> fold Locale.activate_declarations deps;
         val (inner_defs, inner_lthy') =
-          fold_map (augment_with_def prep_term deps) raw_defs inner_lthy;
+          fold_map (augment_with_def prep_term) raw_defs inner_lthy;
         val lthy' =
           inner_lthy'
           |> Local_Theory.close_target;
@@ -79,9 +79,11 @@ fun augment_with_defs prep_term [] deps ctxt = ([], ctxt)
           map (singleton (Proof_Context.export inner_lthy' lthy') o Thm.symmetric) inner_defs
       in (def_eqns, lthy') end;
 
-fun prep_eqns prep_props prep_attr [] deps ctxt = ([], [])
+fun prep_eqns _ _ [] _ _ = ([], [])
   | prep_eqns prep_props prep_attr raw_eqns deps ctxt =
       let
+        (* FIXME incompatibility, creating context for parsing rewrites equation may fail in
+           presence of replaces clause *)
         val ctxt' = fold Locale.activate_declarations deps ctxt;
         val eqns =
           (Variable.export_terms ctxt' ctxt o prep_props ctxt' o map snd) raw_eqns;
@@ -91,13 +93,13 @@ fun prep_eqns prep_props prep_attr [] deps ctxt = ([], [])
 fun prep_interpretation prep_expr prep_term prep_props prep_attr
   expression raw_defs raw_eqns initial_ctxt =
   let
-    val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
+    val ((propss, eq_propss, deps, eqnss, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val (def_eqns, def_ctxt) =
       augment_with_defs prep_term raw_defs deps expr_ctxt;
     val (eqns, attrss) = prep_eqns prep_props prep_attr raw_eqns deps def_ctxt;
     val goal_ctxt = fold Variable.auto_fixes eqns def_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
-  in (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) end;
+  in (((propss, eq_propss, deps, eqnss, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) end;
 
 in
 
@@ -119,13 +121,17 @@ local
 fun meta_rewrite eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register pos note activate deps witss def_eqns eqns attrss export export' ctxt =
+fun note_eqns_register pos note activate deps eqnss witss def_eqns thms attrss export export' ctxt =
   let
+    val (thmss, thms') = split_last (unflat ((map o map) fst eqnss @ [attrss]) thms);
+    val factss =
+      map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) fst eqnss) thmss;
+    val (eqnss', ctxt') = fold_map (fn facts => note Thm.theoremK facts #-> meta_rewrite) factss ctxt;
     val facts =
       (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]) ::
         map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])]))
-          attrss eqns;
-    val (eqns', ctxt') = ctxt
+          attrss thms';
+    val (eqns', ctxt'') = ctxt'
       |> note Thm.theoremK facts
       |-> meta_rewrite;
     val dep_morphs =
@@ -134,23 +140,23 @@ fun note_eqns_register pos note activate deps witss def_eqns eqns attrss export 
           $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
           $> Morphism.binding_morphism "position" (Binding.set_pos pos)
         in (dep, morph') end) deps witss;
-    fun activate' dep_morph ctxt =
+    fun activate' (dep_morph, eqns) ctxt =
       activate dep_morph
-        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns'))
+        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')))
         export ctxt;
-  in ctxt' |> fold activate' dep_morphs end;
+  in ctxt'' |> fold activate' (dep_morphs ~~ eqnss') end;
 
 in
 
 fun generic_interpretation prep_interpretation setup_proof note add_registration
     expression raw_defs raw_eqns initial_ctxt =
   let
-    val (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) =
+    val (((propss, eq_propss, deps, eqnss, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) =
       prep_interpretation expression raw_defs raw_eqns initial_ctxt;
     val pos = Position.thread_data ();
     fun after_qed witss eqns =
-      note_eqns_register pos note add_registration deps witss def_eqns eqns attrss export export';
-  in setup_proof after_qed propss eqns goal_ctxt end;
+      note_eqns_register pos note add_registration deps eqnss witss def_eqns eqns attrss export export';
+  in setup_proof after_qed propss (flat (eq_propss @ [eqns])) goal_ctxt end;
 
 end;
 

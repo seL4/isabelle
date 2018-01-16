@@ -10,7 +10,7 @@ keywords
     "\<subseteq>" "]" "attach" "binder" "in" "infix" "infixl" "infixr" "is" "open" "output"
     "overloaded" "pervasive" "premises" "structure" "unchecked"
   and "private" "qualified" :: before_command
-  and "assumes" "constrains" "defines" "fixes" "for" "if" "includes" "notes" "rewrites"
+  and "assumes" "constrains" "defines" "fixes" "for" "if" "includes" "notes" "replaces" "rewrites"
     "obtains" "shows" "when" "where" "|" :: quasi_command
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw

@@ -38,9 +38,9 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (Symtab.empty, Symtab.make param_map_inst);
     val typ_morph = Element.inst_morphism thy
       (Symtab.empty |> Symtab.update (Name.aT, TFree (Name.aT, [class])), Symtab.empty);
-    val (([raw_props], [(_, raw_inst_morph)], export_morph), _) = empty_ctxt
+    val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = empty_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
-           Expression.Named param_map_const))], []);
+           (Expression.Named param_map_const, [])))], []);
     val (props, inst_morph) =
       if null param_map
       then (raw_props |> map (Morphism.term typ_morph),
@@ -156,7 +156,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
     val raw_supexpr =
-      (map (fn sup => (sup, (("", false), Expression.Positional []))) sups, []);
+      (map (fn sup => (sup, (("", false), (Expression.Positional [], [])))) sups, []);
     val init_class_body =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
@@ -192,7 +192,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val supparam_names = map fst supparams;
     fun mk_param ((c, _), _) = Free (c, (the o AList.lookup (op =) supparams) c);
     val supexpr = (map (fn sup => (sup, (("", false),
-      Expression.Positional (map (SOME o mk_param) (Locale.params_of thy sup))))) sups,
+      (Expression.Positional (map (SOME o mk_param) (Locale.params_of thy sup)), [])))) sups,
         map (fn (c, T) => (Binding.name c, SOME T, NoSyn)) supparams);
 
   in (base_sort, supparam_names, supexpr, inferred_elems) end;
@@ -354,8 +354,8 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       | NONE => error "Not in a class target");
     val (sub, sup) = Axclass.cert_classrel thy (proto_sub, proto_sup);
 
-    val expr = ([(sup, (("", false), Expression.Positional []))], []);
-    val (([props], deps, export), goal_ctxt) =
+    val expr = ([(sup, (("", false), (Expression.Positional [], [])))], []);
+    val (([props], _, deps, _, export), goal_ctxt) =
       Expression.cert_goal_expression expr lthy;
     val some_prop = try the_single props;
     val some_dep_morph = try the_single (map snd deps);

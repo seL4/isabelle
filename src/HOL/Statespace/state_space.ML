@@ -324,7 +324,7 @@ fun statespace_definition state_type args name parents parent_comps components t
     val components' = map (fn (n,T) => (n,(T,full_name))) components;
 
     fun parent_expr (prefix, (_, n, rs)) =
-      (suffix namespaceN n, (prefix, Expression.Positional rs));
+      (suffix namespaceN n, (prefix, (Expression.Positional rs,[])));
     val parents_expr = map parent_expr parents;
     fun distinct_types Ts =
       let val tab = fold (fn T => fn tab => Typtab.update (T,()) tab) Ts Typtab.empty;
@@ -340,9 +340,9 @@ fun statespace_definition state_type args name parents parent_comps components t
     fun projectT T = valueT --> T;
     fun injectT T = T --> valueT;
     val locinsts = map (fn T => (project_injectL,
-                    ((encode_type T,false),Expression.Positional
+                    ((encode_type T,false),(Expression.Positional
                              [SOME (Free (project_name T,projectT T)),
-                              SOME (Free ((inject_name T,injectT T)))]))) Ts;
+                              SOME (Free ((inject_name T,injectT T)))],[])))) Ts;
     val locs = maps (fn T => [(Binding.name (project_name T),NONE,NoSyn),
                                      (Binding.name (inject_name T),NONE,NoSyn)]) Ts;
     val constrains = maps (fn T => [(project_name T,projectT T),(inject_name T,injectT T)]) Ts;
@@ -356,7 +356,7 @@ fun statespace_definition state_type args name parents parent_comps components t
         val pars = maps ((fn T => [project_name T,inject_name T]) o subst) types;
 
         val expr = ([(suffix valuetypesN name,
-                     (prefix, Expression.Positional (map SOME pars)))],[]);
+                     (prefix, (Expression.Positional (map SOME pars),[])))],[]);
       in
         prove_interpretation_in (fn ctxt => ALLGOALS (solve_tac ctxt (Assumption.all_prems_of ctxt)))
           (suffix valuetypesN name, expr) thy
@@ -364,7 +364,7 @@ fun statespace_definition state_type args name parents parent_comps components t
 
     fun interprete_parent (prefix, (_, pname, rs)) =
       let
-        val expr = ([(pname, (prefix, Expression.Positional rs))],[])
+        val expr = ([(pname, (prefix, (Expression.Positional rs,[])))],[])
       in prove_interpretation_in
            (fn ctxt => Locale.intro_locales_tac false ctxt [])
            (full_name, expr) end;
@@ -408,8 +408,8 @@ fun statespace_definition state_type args name parents parent_comps components t
      |> Proof_Context.theory_of
      |> fold interprete_parent_valuetypes parents
      |> add_locale_cmd name
-              ([(suffix namespaceN full_name ,(("",false),Expression.Named [])),
-                (suffix valuetypesN full_name,(("",false),Expression.Named  []))],[]) fixestate
+              ([(suffix namespaceN full_name ,(("",false),(Expression.Named [],[]))),
+                (suffix valuetypesN full_name,(("",false),(Expression.Named [],[])))],[]) fixestate
      |> Proof_Context.theory_of
      |> fold interprete_parent parents
      |> add_declaration full_name (declare_declinfo components')

@@ -111,9 +111,10 @@ val loc_element =
 fun plus1_unless test scan =
   scan ::: Scan.repeat (Parse.$$$ "+" |-- Scan.unless test (Parse.!!! scan));
 
-val instance = Parse.where_ |--
+val instance = Scan.optional (Parse.where_ |--
   Parse.and_list1 (Parse.name -- (Parse.$$$ "=" |-- Parse.term)) >> Expression.Named ||
-  Scan.repeat1 (Parse.maybe Parse.term) >> Expression.Positional;
+  Scan.repeat1 (Parse.maybe Parse.term) >> Expression.Positional) (Expression.Named []) --
+  (Scan.optional (Parse.$$$ "replaces" |-- Parse.and_list1 (opt_thm_name ":" -- Parse.prop)) []);
 
 in
 
@@ -133,7 +134,7 @@ val locale_expression =
     val expr2 = Parse.position Parse.name;
     val expr1 =
       locale_prefix -- expr2 --
-      Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)));
+      instance >> (fn ((p, l), i) => (l, (p, i)));
     val expr0 = plus1_unless locale_keyword expr1;
   in expr0 -- Scan.optional (Parse.$$$ "for" |-- Parse.!!! locale_fixes) [] end;
 
