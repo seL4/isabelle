@@ -126,6 +126,7 @@ ML_file "Concurrent/par_list.ML";
 
 ML_file "Concurrent/mailbox.ML";
 ML_file "Concurrent/cache.ML";
+ML_file "Concurrent/timing_report.ML";
 
 ML_file "PIDE/active.ML";
 

@@ -80,6 +80,7 @@ fun run_shutdown_hooks () =
 
 fun shutdown () =
  (Execution.shutdown ();
+  Timing_Report.shutdown ();
   Event_Timer.shutdown ();
   Future.shutdown ());
 
