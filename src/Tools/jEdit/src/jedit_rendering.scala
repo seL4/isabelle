@@ -68,7 +68,6 @@ object JEdit_Rendering
 
   def token_markup(syntax: Outer_Syntax, token: Token): Byte =
     if (token.is_command) command_style(syntax.keywords.kinds.getOrElse(token.content, ""))
-    else if (token.is_keyword && token.source == Symbol.comment_decoded) JEditToken.NULL
     else if (token.is_delimiter) JEditToken.OPERATOR
     else token_style(token.kind)
 
