@@ -14,16 +14,21 @@ object Update_Comments
 {
   def update_comments(path: Path)
   {
+    def make_comment(tok: Token): String =
+      Symbol.comment + Symbol.space + Symbol.cartouche(Symbol.trim_blanks(tok.content))
+
     @tailrec def update(toks: List[Token], result: List[String]): String =
     {
       toks match {
-        case tok :: rest if tok.source == "--" || tok.source == Symbol.comment =>
+        case tok :: rest
+        if tok.source == "--" || tok.source == Symbol.comment =>
           rest.dropWhile(_.is_space) match {
             case tok1 :: rest1 if tok1.is_text =>
-              val txt = Symbol.trim_blanks(tok1.content)
-              update(rest1, (Symbol.comment + Symbol.space + Symbol.cartouche(txt)) :: result)
+              update(rest1, make_comment(tok1) :: result)
             case _ => update(rest, tok.source :: result)
           }
+        case tok :: rest if tok.is_formal_comment && tok.source.startsWith(Symbol.comment) =>
+          update(rest, make_comment(tok) :: result)
         case tok :: rest => update(rest, tok.source :: result)
         case Nil => result.reverse.mkString
       }
