@@ -573,16 +573,12 @@ object Symbol
   /* formal comments */
 
   val comment: Symbol = "\\<comment>"
-  def comment_decoded: Symbol = symbols.comment_decoded
-  def is_comment(sym: Symbol): Boolean = sym == comment || sym == comment_decoded
-
   val cancel: Symbol = "\\<^cancel>"
-  def cancel_decoded: Symbol = symbols.cancel_decoded
-  def is_cancel(sym: Symbol): Boolean = sym == cancel || sym == cancel_decoded
-
   val latex: Symbol = "\\<^latex>"
+
+  def comment_decoded: Symbol = symbols.comment_decoded
+  def cancel_decoded: Symbol = symbols.cancel_decoded
   def latex_decoded: Symbol = symbols.latex_decoded
-  def is_latex(sym: Symbol): Boolean = sym == latex || sym == latex_decoded
 
 
   /* cartouches */

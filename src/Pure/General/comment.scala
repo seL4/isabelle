@@ -21,7 +21,8 @@ object Comment
       Symbol.cancel, Symbol.cancel_decoded,
       Symbol.latex, Symbol.latex_decoded)
 
-  def symbols_blanks(sym: Symbol.Symbol): Boolean = Symbol.is_comment(sym)
+  lazy val symbols_blanks: Set[Symbol.Symbol] =
+    Set(Symbol.comment, Symbol.comment_decoded)
 
   def content(source: String): String =
   {
