@@ -17,6 +17,8 @@ sig
   val output_ascii: string -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
+  val symbols: Symbol_Pos.T list -> text
+  val symbols_output: Symbol_Pos.T list -> text
   val begin_delim: string -> string
   val end_delim: string -> string
   val begin_tag: string -> string
@@ -197,6 +199,10 @@ fun output_symbols syms =
 val output_syms = output_symbols o Symbol.explode;
 
 end;
+
+fun symbols syms = text (Symbol_Pos.content syms, #1 (Symbol_Pos.range syms));
+fun symbols_output syms =
+  text (output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms));
 
 
 (* tags *)

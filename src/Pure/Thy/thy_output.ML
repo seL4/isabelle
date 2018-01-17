@@ -71,11 +71,7 @@ fun output_text ctxt {markdown} source =
 
 local
 
-fun output_latex syms =
-  [Latex.text (Symbol_Pos.content syms, #1 (Symbol_Pos.range syms))];
-
-fun output_symbols syms =
-  [Latex.text (Latex.output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms))];
+val output_symbols = single o Latex.symbols_output;
 
 val output_symbols_antiq =
   (fn Antiquote.Text syms => output_symbols syms
@@ -103,7 +99,7 @@ fun output_symbols_comment ctxt {antiq} (comment, syms) =
       output_symbols (Symbol_Pos.cartouche_content syms)
       |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
   | (SOME Comment.Latex, _) =>
-      output_latex (Symbol_Pos.cartouche_content syms));
+      [Latex.symbols (Symbol_Pos.cartouche_content syms)]);
 
 in
 
