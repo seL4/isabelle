@@ -1287,6 +1287,18 @@ lemma bot_less:
   "a \<noteq> \<bottom> \<longleftrightarrow> \<bottom> < a"
   by (fact bot.not_eq_extremum)
 
+lemma max_bot[simp]: "max bot x = x"
+by(simp add: max_def bot_unique)
+
+lemma max_bot2[simp]: "max x bot = x"
+by(simp add: max_def bot_unique)
+
+lemma min_bot[simp]: "min bot x = bot"
+by(simp add: min_def bot_unique)
+
+lemma min_bot2[simp]: "min x bot = bot"
+by(simp add: min_def bot_unique)
+
 end
 
 class top =
@@ -1314,6 +1326,18 @@ lemma not_top_less:
 lemma less_top:
   "a \<noteq> \<top> \<longleftrightarrow> a < \<top>"
   by (fact top.not_eq_extremum)
+
+lemma max_top[simp]: "max top x = top"
+by(simp add: max_def top_unique)
+
+lemma max_top2[simp]: "max x top = top"
+by(simp add: max_def top_unique)
+
+lemma min_top[simp]: "min top x = x"
+by(simp add: min_def top_unique)
+
+lemma min_top2[simp]: "min x top = x"
+by(simp add: min_def top_unique)
 
 end
 

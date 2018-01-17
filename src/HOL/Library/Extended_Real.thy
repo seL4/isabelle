@@ -1776,6 +1776,31 @@ proof
     using zero_neq_one by blast
 qed
 
+lemma min_PInf [simp]: "min (\<infinity>::ereal) x = x"
+by (metis min_top top_ereal_def)
+
+lemma min_PInf2 [simp]: "min x (\<infinity>::ereal) = x"
+by (metis min_top2 top_ereal_def)
+
+lemma max_PInf [simp]: "max (\<infinity>::ereal) x = \<infinity>"
+by (metis max_top top_ereal_def)
+
+lemma max_PInf2 [simp]: "max x (\<infinity>::ereal) = \<infinity>"
+by (metis max_top2 top_ereal_def)
+
+lemma min_MInf [simp]: "min (-\<infinity>::ereal) x = -\<infinity>"
+by (metis min_bot bot_ereal_def)
+
+lemma min_MInf2 [simp]: "min x (-\<infinity>::ereal) = -\<infinity>"
+by (metis min_bot2 bot_ereal_def)
+
+lemma max_MInf [simp]: "max (-\<infinity>::ereal) x = x"
+by (metis max_bot bot_ereal_def)
+
+lemma max_MInf2 [simp]: "max x (-\<infinity>::ereal) = x"
+by (metis max_bot2 bot_ereal_def)
+
+
 subsubsection "Topological space"
 
 instantiation ereal :: linear_continuum_topology

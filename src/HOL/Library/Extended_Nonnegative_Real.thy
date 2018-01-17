@@ -659,9 +659,6 @@ lemma sup_const_add_ennreal:
   subgoal for a b c
     apply (cases a b c rule: ereal3_cases)
     apply (auto simp: ereal_max[symmetric] simp del: ereal_max)
-    apply (auto simp: top_ereal_def[symmetric] sup_ereal_def[symmetric]
-                simp del: sup_ereal_def)
-    apply (auto simp add: top_ereal_def)
     done
   done
 
