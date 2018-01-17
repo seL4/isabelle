@@ -13,7 +13,6 @@ sig
   val thy_output_source: bool Config.T
   val thy_output_break: bool Config.T
   val thy_output_modes: string Config.T
-  val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
   val print_antiquotations: bool -> Proof.context -> unit
   val check: Proof.context -> xstring * Position.T -> string
   val check_option: Proof.context -> xstring * Position.T -> string
@@ -37,17 +36,6 @@ val thy_output_margin = Attrib.setup_option_int ("thy_output_margin", \<^here>);
 val thy_output_indent = Attrib.setup_option_int ("thy_output_indent", \<^here>);
 val thy_output_source = Attrib.setup_option_bool ("thy_output_source", \<^here>);
 val thy_output_modes = Attrib.setup_option_string ("thy_output_modes", \<^here>);
-
-
-structure Wrappers = Proof_Data
-(
-  type T = ((unit -> string) -> unit -> string) list;
-  fun init _ = [];
-);
-
-fun add_wrapper wrapper = Wrappers.map (cons wrapper);
-
-val wrap = Wrappers.get #> fold (fn wrapper => fn f => wrapper f);
 
 
 (* theory data *)
@@ -130,11 +118,8 @@ fun eval ctxt (opts, src) =
   let
     val preview_ctxt = fold option opts ctxt;
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
-
-    fun cmd ctxt = wrap ctxt (fn () => command src ctxt) ();
-    val _ = cmd preview_ctxt;
     val print_modes = space_explode "," (Config.get print_ctxt thy_output_modes) @ [Latex.latexN];
-  in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
+  in Print_Mode.with_modes print_modes (fn () => command src print_ctxt) () end;
 
 in
 
@@ -175,7 +160,7 @@ val _ = Theory.setup
   setup_option \<^binding>\<open>display\<close> (Config.put thy_output_display o boolean) #>
   setup_option \<^binding>\<open>break\<close> (Config.put thy_output_break o boolean) #>
   setup_option \<^binding>\<open>quotes\<close> (Config.put thy_output_quotes o boolean) #>
-  setup_option \<^binding>\<open>mode\<close> (add_wrapper o Print_Mode.with_modes o single) #>
+  setup_option \<^binding>\<open>mode\<close> (Config.put thy_output_modes) #>
   setup_option \<^binding>\<open>margin\<close> (Config.put thy_output_margin o integer) #>
   setup_option \<^binding>\<open>indent\<close> (Config.put thy_output_indent o integer) #>
   setup_option \<^binding>\<open>source\<close> (Config.put thy_output_source o boolean) #>
