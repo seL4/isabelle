@@ -570,10 +570,10 @@ lemma ennreal_mult_top: "a * top = (if a = 0 then 0 else top :: ennreal)"
 lemma enn2ereal_eq_top_iff[simp]: "enn2ereal x = \<infinity> \<longleftrightarrow> x = top"
   by transfer (simp add: top_ereal_def)
 
-lemma enn2ereal_top: "enn2ereal top = \<infinity>"
+lemma enn2ereal_top[simp]: "enn2ereal top = \<infinity>"
   by transfer (simp add: top_ereal_def)
 
-lemma e2ennreal_infty: "e2ennreal \<infinity> = top"
+lemma e2ennreal_infty[simp]: "e2ennreal \<infinity> = top"
   by (simp add: top_ennreal.abs_eq top_ereal_def)
 
 lemma ennreal_top_minus[simp]: "top - x = (top::ennreal)"
@@ -926,6 +926,9 @@ lemma enn2ereal_ennreal[simp]: "0 \<le> x \<Longrightarrow> enn2ereal (ennreal x
 lemma e2ennreal_enn2ereal[simp]: "e2ennreal (enn2ereal x) = x"
   by (simp add: e2ennreal_def max_absorb2 ennreal.enn2ereal_inverse)
 
+lemma e2ennreal_ereal [simp]: "e2ennreal (ereal x) = ennreal x"
+by (metis e2ennreal_def enn2ereal_inverse ennreal.rep_eq sup_ereal_def)
+
 lemma ennreal_0[simp]: "ennreal 0 = 0"
   by (simp add: ennreal_def max.absorb1 zero_ennreal.abs_eq)
 
@@ -1000,6 +1003,10 @@ lemma ennreal_minus: "0 \<le> q \<Longrightarrow> ennreal r - ennreal q = ennrea
 
 lemma ennreal_minus_top[simp]: "ennreal a - top = 0"
   by (simp add: minus_top_ennreal)
+
+lemma e2eenreal_enn2ereal_diff [simp]:
+  "e2ennreal(enn2ereal x - enn2ereal y) = x - y" for x y
+by (cases x, cases y, auto simp add: ennreal_minus e2ennreal_neg)
 
 lemma ennreal_mult: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> ennreal (a * b) = ennreal a * ennreal b"
   by transfer (simp add: max_absorb2)
@@ -1465,8 +1472,7 @@ proof (intro antisym top_greatest le_SUP_iff[THEN iffD2] allI impI)
     by (cases y rule: ennreal_cases) auto
   then show "\<exists>i\<in>UNIV. y < of_nat i"
     using reals_Archimedean2[of "max 1 r"] zero_less_one
-    by (auto simp: ennreal_of_nat_eq_real_of_nat ennreal_def less_ennreal.abs_eq eq_onp_def max.absorb2
-             dest!: one_less_of_natD intro: less_trans)
+    by (simp add: ennreal_Ex_less_of_nat)
 qed
 
 lemma ennreal_SUP_eq_top:
