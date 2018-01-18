@@ -196,6 +196,27 @@ lemma (in t0_space) separation_t0: "x \<noteq> y \<longleftrightarrow> (\<exists
   using t0_space [of x y] by blast
 
 
+text \<open>A classical separation axiom for topological space, the T3 axiom -- also called regularity:
+if a point is not in a closed set, then there are open sets separating them.\<close>
+
+class t3_space = t2_space +
+  assumes t3_space: "closed S \<Longrightarrow> y \<notin> S \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> y \<in> U \<and> S \<subseteq> V \<and> U \<inter> V = {}"
+
+text \<open>A classical separation axiom for topological space, the T4 axiom -- also called normality:
+if two closed sets are disjoint, then there are open sets separating them.\<close>
+
+class t4_space = t2_space +
+  assumes t4_space: "closed S \<Longrightarrow> closed T \<Longrightarrow> S \<inter> T = {} \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> S \<subseteq> U \<and> T \<subseteq> V \<and> U \<inter> V = {}"
+
+text \<open>T4 is stronger than T3, and weaker than metric.\<close>
+
+instance t4_space \<subseteq> t3_space
+proof
+  fix S and y::'a assume "closed S" "y \<notin> S"
+  then show "\<exists>U V. open U \<and> open V \<and> y \<in> U \<and> S \<subseteq> V \<and> U \<inter> V = {}"
+    using t4_space[of "{y}" S] by auto
+qed
+
 text \<open>A perfect space is a topological space with no isolated points.\<close>
 
 class perfect_space = topological_space +
