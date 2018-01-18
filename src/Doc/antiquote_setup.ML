@@ -73,9 +73,9 @@ fun ml_name txt =
 fun prep_ml source =
   (Input.source_content source, ML_Lex.read_source false source);
 
-fun index_ml name kind ml = Document_Antiquotation.setup name
+fun index_ml name kind ml = Thy_Output.antiquotation_raw name
   (Scan.lift (Args.text_input -- Scan.option (Args.colon |-- Args.text_input)))
-  (fn {context = ctxt, ...} => fn (source1, opt_source2) =>
+  (fn ctxt => fn (source1, opt_source2) =>
     let
       val (txt1, toks1) = prep_ml source1;
       val (txt2, toks2) =
@@ -98,8 +98,9 @@ fun index_ml name kind ml = Document_Antiquotation.setup name
           handle ERROR msg => error (msg ^ Position.here pos);
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
-      "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}" ^
-      (Thy_Output.verbatim_text ctxt txt')
+      Latex.block
+       [Latex.string ("\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}"),
+        Thy_Output.verbatim ctxt txt']
     end);
 
 in
@@ -119,29 +120,18 @@ end;
 (* named theorems *)
 
 val _ =
-  Theory.setup (Document_Antiquotation.setup @{binding named_thms}
+  Theory.setup (Thy_Output.antiquotation_raw @{binding named_thms}
     (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
-    (fn {context = ctxt, ...} =>
-      map (apfst (Thy_Output.pretty_thm ctxt))
-      #> (if Config.get ctxt Document_Antiquotation.thy_output_quotes
-          then map (apfst Pretty.quote) else I)
-      #> (if Config.get ctxt Document_Antiquotation.thy_output_display
-          then
-            map (fn (p, name) =>
-              Output.output
-                (Thy_Output.string_of_margin ctxt
-                  (Pretty.indent (Config.get ctxt Document_Antiquotation.thy_output_indent) p)) ^
-              "\\rulename{" ^
-              Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name)) ^ "}")
-            #> space_implode "\\par\\smallskip%\n"
-            #> Latex.environment "isabelle"
-          else
-            map (fn (p, name) =>
-              Output.output (Pretty.unformatted_string_of p) ^
-              "\\rulename{" ^
-              Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name)) ^ "}")
-            #> space_implode "\\par\\smallskip%\n"
-            #> enclose "\\isa{" "}")));
+    (fn ctxt =>
+      map (fn (thm, name) =>
+        Output.output
+          (Document_Antiquotation.format ctxt
+            (Document_Antiquotation.quote ctxt (Thy_Output.pretty_thm ctxt thm))) ^
+        enclose "\\rulename{" "}"
+          (Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name))))
+      #> space_implode "\\par\\smallskip%\n"
+      #> Latex.string #> single
+      #> Thy_Output.isabelle ctxt));
 
 
 (* Isabelle/Isar entities (with index) *)
@@ -161,11 +151,11 @@ fun check_system_option ctxt (name, pos) =
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup binding index =
-  Document_Antiquotation.setup
+  Thy_Output.antiquotation_raw
     (binding |> Binding.map_name (fn name => name ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref")))
     (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Parse.position Args.name))
-    (fn {context = ctxt, ...} => fn (logic, (name, pos)) =>
+    (fn ctxt => fn (logic, (name, pos)) =>
       let
         val kind = translate (fn "_" => " " | c => c) (Binding.name_of binding);
         val hyper_name =
@@ -180,12 +170,12 @@ fun entity check markup binding index =
               "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name);
         val _ =
           if Context_Position.is_reported ctxt pos then ignore (check ctxt (name, pos)) else ();
-      in
-        idx ^
-        (Output.output name
-          |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-          |> hyper o enclose "\\mbox{\\isa{" "}}")
-      end);
+        val latex =
+          idx ^
+          (Output.output name
+            |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
+            |> hyper o enclose "\\mbox{\\isa{" "}}");
+      in Latex.string latex end);
 
 fun entity_antiqs check markup kind =
   entity check markup kind NONE #>

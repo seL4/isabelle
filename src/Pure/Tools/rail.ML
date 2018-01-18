@@ -17,7 +17,7 @@ sig
     Terminal of bool * string |
     Antiquote of bool * Antiquote.antiq
   val read: Proof.context -> Input.source -> (string Antiquote.antiquote * rail) list
-  val output_rules: Proof.context -> (string Antiquote.antiquote * rail) list -> string
+  val output_rules: Proof.context -> (string Antiquote.antiquote * rail) list -> Latex.text
 end;
 
 structure Rail: RAIL =
@@ -339,7 +339,8 @@ in
 
 fun output_rules ctxt rules =
   let
-    val output_antiq = Document_Antiquotation.evaluate ctxt o Antiquote.Antiq;
+    val output_antiq =
+      Latex.output_text o Document_Antiquotation.evaluate ctxt o Antiquote.Antiq;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"
@@ -378,11 +379,11 @@ fun output_rules ctxt rules =
         output "" rail' ^
         "\\rail@end\n"
       end;
-  in Latex.environment "railoutput" (implode (map output_rule rules)) end;
+  in Latex.string (Latex.environment "railoutput" (implode (map output_rule rules))) end;
 
 val _ = Theory.setup
-  (Document_Antiquotation.setup \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
-    (fn {context = ctxt, ...} => output_rules ctxt o read ctxt));
+  (Thy_Output.antiquotation_raw \<^binding>\<open>rail\<close> (Scan.lift Args.text_input)
+    (fn ctxt => output_rules ctxt o read ctxt));
 
 end;
 

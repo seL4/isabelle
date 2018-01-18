@@ -4,23 +4,15 @@ imports Main
 begin
 
 setup \<open>
-  let
-    fun pretty_term_type_only ctxt (t, T) =
+  Thy_Output.antiquotation_pretty_source @{binding term_type_only} (Args.term -- Args.typ_abbrev)
+    (fn ctxt => fn (t, T) =>
       (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
        else error "term_type_only: type mismatch";
-       Syntax.pretty_typ ctxt T)
-  in
-    Document_Antiquotation.setup @{binding term_type_only}
-      (Args.term -- Args.typ_abbrev)
-      (fn {source, context = ctxt, ...} => fn arg =>
-        Thy_Output.output ctxt
-          (Thy_Output.maybe_pretty_source pretty_term_type_only ctxt source [arg]))
-  end
+       [Syntax.pretty_typ ctxt T]))
 \<close>
 setup \<open>
-  Document_Antiquotation.setup @{binding expanded_typ} (Args.typ >> single)
-    (fn {source, context, ...} => Thy_Output.output context o
-      Thy_Output.maybe_pretty_source Syntax.pretty_typ context source)
+  Thy_Output.antiquotation_pretty_source @{binding expanded_typ} Args.typ
+    (fn ctxt => fn T => [Syntax.pretty_typ ctxt T])
 \<close>
 (*>*)
 text\<open>

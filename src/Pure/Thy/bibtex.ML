@@ -41,11 +41,11 @@ val cite_macro = Attrib.setup_config_string \<^binding>\<open>cite_macro\<close>
 val _ =
   Theory.setup
    (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
-    Document_Antiquotation.setup \<^binding>\<open>cite\<close>
+    Thy_Output.antiquotation_raw \<^binding>\<open>cite\<close>
       (Scan.lift
         (Scan.option (Parse.verbatim || Parse.cartouche) --
          Parse.and_list1 (Parse.position Args.name)))
-      (fn {context = ctxt, ...} => fn (opt, citations) =>
+      (fn ctxt => fn (opt, citations) =>
         let
           val thy = Proof_Context.theory_of ctxt;
           val bibtex_entries = Present.get_bibtex_entries thy;
@@ -60,6 +60,6 @@ val _ =
               (map (fn (name, pos) => (pos, Markup.citation name)) citations);
           val opt_arg = (case opt of NONE => "" | SOME s => "[" ^ s ^ "]");
           val arg = "{" ^ space_implode "," (map #1 citations) ^ "}";
-        in "\\" ^ Config.get ctxt cite_macro ^ opt_arg ^ arg end));
+        in Latex.string ("\\" ^ Config.get ctxt cite_macro ^ opt_arg ^ arg) end));
 
 end;

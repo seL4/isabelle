@@ -13,15 +13,22 @@ sig
   val thy_output_source: bool Config.T
   val thy_output_break: bool Config.T
   val thy_output_modes: string Config.T
+  val trim_blanks: Proof.context -> string -> string
+  val trim_lines: Proof.context -> string -> string
+  val indent_lines: Proof.context -> string -> string
+  val quote: Proof.context -> Pretty.T -> Pretty.T
+  val indent: Proof.context -> Pretty.T -> Pretty.T
+  val format: Proof.context -> Pretty.T -> string
+  val output: Proof.context -> Pretty.T -> Output.output
   val print_antiquotations: bool -> Proof.context -> unit
   val check: Proof.context -> xstring * Position.T -> string
   val check_option: Proof.context -> xstring * Position.T -> string
   val setup: binding -> 'a context_parser ->
-    ({source: Token.src, context: Proof.context} -> 'a -> string) -> theory -> theory
+    ({context: Proof.context, source: Token.src, argument: 'a} -> Latex.text) -> theory -> theory
   val setup_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  val evaluate: Proof.context -> Antiquote.text_antiquote -> string
+  val evaluate: Proof.context -> Antiquote.text_antiquote -> Latex.text list
 end;
 
 structure Document_Antiquotation: DOCUMENT_ANTIQUOTATION =
@@ -38,12 +45,44 @@ val thy_output_source = Attrib.setup_option_bool ("thy_output_source", \<^here>)
 val thy_output_modes = Attrib.setup_option_string ("thy_output_modes", \<^here>);
 
 
+(* blanks *)
+
+fun trim_blanks ctxt =
+  not (Config.get ctxt thy_output_display) ? Symbol.trim_blanks;
+
+fun trim_lines ctxt =
+  if not (Config.get ctxt thy_output_display) then
+    split_lines #> map Symbol.trim_blanks #> space_implode " "
+  else I;
+
+fun indent_lines ctxt =
+  if Config.get ctxt thy_output_display then
+    prefix_lines (Symbol.spaces (Config.get ctxt thy_output_indent))
+  else I;
+
+
+(* output *)
+
+fun quote ctxt =
+  Config.get ctxt thy_output_quotes ? Pretty.quote;
+
+fun indent ctxt =
+  Config.get ctxt thy_output_display ? Pretty.indent (Config.get ctxt thy_output_indent);
+
+fun format ctxt =
+  if Config.get ctxt thy_output_display orelse Config.get ctxt thy_output_break
+  then Pretty.string_of_margin (Config.get ctxt thy_output_margin)
+  else Pretty.unformatted_string_of;
+
+fun output ctxt = quote ctxt #> indent ctxt #> format ctxt #> Output.output;
+
+
 (* theory data *)
 
 structure Data = Theory_Data
 (
   type T =
-    (Token.src -> Proof.context -> string) Name_Space.table *
+    (Token.src -> Proof.context -> Latex.text) Name_Space.table *
       (string -> Proof.context -> Proof.context) Name_Space.table;
   val empty : T =
     (Name_Space.empty_table Markup.document_antiquotationN,
@@ -73,7 +112,7 @@ fun setup name scan body thy =
   let
     fun cmd src ctxt =
       let val (x, ctxt') = Token.syntax scan src ctxt
-      in body {source = src, context = ctxt'} x end;
+      in body {context = ctxt', source = src, argument = x} end;
   in thy |> Data.map (apfst (Name_Space.define (Context.Theory thy) true (name, cmd) #> #2)) end;
 
 fun setup_option name opt thy = thy
@@ -119,11 +158,11 @@ fun eval ctxt (opts, src) =
     val preview_ctxt = fold option opts ctxt;
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
     val print_modes = space_explode "," (Config.get print_ctxt thy_output_modes) @ [Latex.latexN];
-  in Print_Mode.with_modes print_modes (fn () => command src print_ctxt) () end;
+  in [Print_Mode.with_modes print_modes (fn () => command src print_ctxt) ()] end;
 
 in
 
-fun evaluate _ (Antiquote.Text ss) = Symbol_Pos.content ss
+fun evaluate _ (Antiquote.Text ss) = [Latex.symbols ss]
   | evaluate ctxt (Antiquote.Control {name, body, ...}) =
       eval ctxt ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
   | evaluate ctxt (Antiquote.Antiq {range = (pos, _), body, ...}) =
@@ -138,13 +177,13 @@ end;
 fun boolean "" = true
   | boolean "true" = true
   | boolean "false" = false
-  | boolean s = error ("Bad boolean value: " ^ quote s);
+  | boolean s = error ("Bad boolean value: " ^ Library.quote s);
 
 fun integer s =
   let
     fun int ss =
       (case Library.read_int ss of (i, []) => i
-      | _ => error ("Bad integer value: " ^ quote s));
+      | _ => error ("Bad integer value: " ^ Library.quote s));
   in (case Symbol.explode s of "-" :: ss => ~ (int ss) | ss => int ss) end;
 
 val _ = Theory.setup

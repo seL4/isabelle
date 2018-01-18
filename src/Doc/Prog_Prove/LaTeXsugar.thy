@@ -43,20 +43,13 @@ syntax (IfThenNoBox output)
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("_ /\<^latex>\<open>{\\normalsize \\,\<close>and\<^latex>\<open>\\,}\<close>/ _")
   "_asm" :: "prop \<Rightarrow> asms" ("_")
 
-setup\<open>
-  let
-    fun pretty ctxt c =
-      let val tc = Proof_Context.read_const {proper = true, strict = false} ctxt c
-      in Pretty.block [Thy_Output.pretty_term ctxt tc, Pretty.str " ::",
-            Pretty.brk 1, Syntax.pretty_typ ctxt (fastype_of tc)]
-      end
-  in
-    Document_Antiquotation.setup @{binding "const_typ"}
-     (Scan.lift Args.embedded_inner_syntax)
-       (fn {source = src, context = ctxt, ...} => fn arg =>
-          Thy_Output.output ctxt
-            (Thy_Output.maybe_pretty_source pretty ctxt src [arg]))
-  end;
+setup \<open>
+  Thy_Output.antiquotation_pretty_source \<^binding>\<open>const_typ\<close> (Scan.lift Args.embedded_inner_syntax)
+    (fn ctxt => fn c =>
+      let val tc = Proof_Context.read_const {proper = true, strict = false} ctxt c in
+        [Pretty.block [Thy_Output.pretty_term ctxt tc, Pretty.str " ::",
+          Pretty.brk 1, Syntax.pretty_typ ctxt (fastype_of tc)]]
+      end)
 \<close>
 
 end

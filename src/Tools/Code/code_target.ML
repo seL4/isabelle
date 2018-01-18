@@ -510,14 +510,15 @@ val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$
 in
 
 val _ = Theory.setup
-  (Document_Antiquotation.setup @{binding code_stmts}
+  (Thy_Output.antiquotation_raw @{binding code_stmts}
     (parse_const_terms --
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
-    (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target_name, some_width)) =>
-        present_code ctxt (mk_cs ctxt)
+    (fn ctxt => fn ((mk_cs, mk_stmtss), (target_name, some_width)) =>
+      Latex.string
+        (present_code ctxt (mk_cs ctxt)
           (maps (fn f => f ctxt) mk_stmtss)
-          target_name some_width "Example" []));
+          target_name some_width "Example" [])));
 
 end;
 
