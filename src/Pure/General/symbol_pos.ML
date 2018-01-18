@@ -11,9 +11,6 @@ sig
   val symbol: T -> Symbol.symbol
   val content: T list -> string
   val range: T list -> Position.range
-  val split_lines: T list -> T list list
-  val trim_blanks: T list -> T list
-  val trim_lines: T list -> T list
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : Scan.message -> 'a scanner -> 'a scanner
@@ -67,23 +64,6 @@ fun range (syms as (_, pos) :: _) =
       let val pos' = List.last syms |-> Position.advance
       in Position.range (pos, pos') end
   | range [] = Position.no_range;
-
-
-(* lines and blanks *)
-
-fun split_lines [] = []
-  | split_lines (list: T list) =
-      let
-        fun split syms =
-          (case take_prefix (fn (s, _) => s <> "\n") syms of
-            (line, []) => [line]
-          | (line, _ :: rest) => line :: split rest);
-      in split list end;
-
-val trim_blanks = trim (Symbol.is_blank o symbol);
-
-val trim_lines =
-  split_lines #> map trim_blanks #> separate [(Symbol.space, Position.none)] #> flat;
 
 
 (* stopper *)
