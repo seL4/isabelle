@@ -1396,6 +1396,58 @@ proof -
   with assms show ?thesis by simp
 qed
 
+lemma infdist_pos_not_in_closed:
+  assumes "closed S" "S \<noteq> {}" "x \<notin> S"
+  shows "infdist x S > 0"
+using in_closed_iff_infdist_zero[OF assms(1) assms(2), of x] assms(3) infdist_nonneg le_less by fastforce
+
+text \<open>Every metric space is a T4 space:\<close>
+
+instance metric_space \<subseteq> t4_space
+proof
+  fix S T::"'a set" assume H: "closed S" "closed T" "S \<inter> T = {}"
+  consider "S = {}" | "T = {}" | "S \<noteq> {} \<and> T \<noteq> {}" by auto
+  then show "\<exists>U V. open U \<and> open V \<and> S \<subseteq> U \<and> T \<subseteq> V \<and> U \<inter> V = {}"
+  proof (cases)
+    case 1
+    show ?thesis
+      apply (rule exI[of _ "{}"], rule exI[of _ UNIV]) using 1 by auto
+  next
+    case 2
+    show ?thesis
+      apply (rule exI[of _ UNIV], rule exI[of _ "{}"]) using 2 by auto
+  next
+    case 3
+    define U where "U = (\<Union>x\<in>S. ball x ((infdist x T)/2))"
+    have A: "open U" unfolding U_def by auto
+    have "infdist x T > 0" if "x \<in> S" for x
+      using H that 3 by (auto intro!: infdist_pos_not_in_closed)
+    then have B: "S \<subseteq> U" unfolding U_def by auto
+    define V where "V = (\<Union>x\<in>T. ball x ((infdist x S)/2))"
+    have C: "open V" unfolding V_def by auto
+    have "infdist x S > 0" if "x \<in> T" for x
+      using H that 3 by (auto intro!: infdist_pos_not_in_closed)
+    then have D: "T \<subseteq> V" unfolding V_def by auto
+
+    have "(ball x ((infdist x T)/2)) \<inter> (ball y ((infdist y S)/2)) = {}" if "x \<in> S" "y \<in> T" for x y
+    proof (auto)
+      fix z assume H: "dist x z * 2 < infdist x T" "dist y z * 2 < infdist y S"
+      have "2 * dist x y \<le> 2 * dist x z + 2 * dist y z"
+        using dist_triangle[of x y z] by (auto simp add: dist_commute)
+      also have "... < infdist x T + infdist y S"
+        using H by auto
+      finally have "dist x y < infdist x T \<or> dist x y < infdist y S"
+        by auto
+      then show False
+        using infdist_le[OF \<open>x \<in> S\<close>, of y] infdist_le[OF \<open>y \<in> T\<close>, of x] by (auto simp add: dist_commute)
+    qed
+    then have E: "U \<inter> V = {}"
+      unfolding U_def V_def by auto
+    show ?thesis
+      apply (rule exI[of _ U], rule exI[of _ V]) using A B C D E by auto
+  qed
+qed
+
 lemma tendsto_infdist [tendsto_intros]:
   assumes f: "(f \<longlongrightarrow> l) F"
   shows "((\<lambda>x. infdist (f x) A) \<longlongrightarrow> infdist l A) F"
