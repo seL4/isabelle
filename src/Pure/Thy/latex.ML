@@ -11,6 +11,7 @@ sig
   val text: string * Position.T -> text
   val block: text list -> text
   val enclose_body: string -> string -> text list -> text list
+  val enclose_block: string -> string -> text list -> text
   val output_text: text list -> string
   val output_positions: Position.T -> text list -> string
   val output_name: string -> string
@@ -77,6 +78,8 @@ end;
 fun enclose_body bg en body =
   (if bg = "" then [] else [string bg]) @ body @
   (if en = "" then [] else [string en]);
+
+fun enclose_block bg en = block o enclose_body bg en;
 
 
 (* output name for LaTeX macros *)
