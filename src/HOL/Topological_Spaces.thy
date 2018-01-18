@@ -760,7 +760,7 @@ lemma (in order_topology) order_tendstoD:
     and "y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F"
   using assms by (auto simp: order_tendsto_iff)
 
-lemma (in linorder_topology) tendsto_max:
+lemma (in linorder_topology) tendsto_max[tendsto_intros]:
   assumes X: "(X \<longlongrightarrow> x) net"
     and Y: "(Y \<longlongrightarrow> y) net"
   shows "((\<lambda>x. max (X x) (Y x)) \<longlongrightarrow> max x y) net"
@@ -778,7 +778,7 @@ next
     by (auto simp: eventually_conj_iff)
 qed
 
-lemma (in linorder_topology) tendsto_min:
+lemma (in linorder_topology) tendsto_min[tendsto_intros]:
   assumes X: "(X \<longlongrightarrow> x) net"
     and Y: "(Y \<longlongrightarrow> y) net"
   shows "((\<lambda>x. min (X x) (Y x)) \<longlongrightarrow> min x y) net"
