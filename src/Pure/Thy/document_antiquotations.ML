@@ -290,15 +290,6 @@ val _ = Theory.setup
       in Latex.enclose_block "\\url{" "}" [Latex.string url] end));
 
 
-(* doc entries *)
-
-val _ = Theory.setup
-  (Thy_Output.antiquotation_pretty \<^binding>\<open>doc\<close> (Scan.lift (Parse.position Parse.embedded))
-    (fn ctxt => fn (name, pos) =>
-      let val _ = Context_Position.report ctxt pos (Markup.doc name)
-      in [Pretty.str name] end));
-
-
 (* formal entities *)
 
 local

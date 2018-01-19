@@ -129,6 +129,7 @@ object Sessions
 
   sealed case class Base(
     pos: Position.T = Position.none,
+    doc_names: List[String] = Nil,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     known: Known = Known.empty,
@@ -220,6 +221,8 @@ object Sessions
         }
       }
     }
+
+    val doc_names = Doc.doc_names()
 
     val session_bases =
       (Map.empty[String, Base] /: sessions_structure.imports_topological_order)({
@@ -328,6 +331,7 @@ object Sessions
             val base =
               Base(
                 pos = info.pos,
+                doc_names = doc_names,
                 global_theories = global_theories,
                 loaded_theories = dependencies.loaded_theories,
                 known = known,

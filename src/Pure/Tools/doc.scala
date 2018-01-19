@@ -77,6 +77,9 @@ object Doc
     examples() ::: release_notes() ::: main_contents
   }
 
+  def doc_names(): List[String] =
+    for (Doc(name, _, _) <- contents()) yield name
+
 
   /* view */
 

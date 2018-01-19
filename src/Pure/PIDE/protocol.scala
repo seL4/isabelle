@@ -343,6 +343,7 @@ trait Protocol
     val base = resources.session_base.standard_path
     protocol_command("Prover.init_session_base",
       encode_list(base.known.sessions.toList),
+      encode_list(base.doc_names),
       encode_table(base.global_theories.toList),
       encode_list(base.loaded_theories.keys),
       encode_table(base.dest_known_theories))

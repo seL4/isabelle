@@ -9,6 +9,7 @@ sig
   val default_qualifier: string
   val init_session_base:
     {sessions: string list,
+     doc_names: string list,
      global_theories: (string * string) list,
      loaded_theories: string list,
      known_theories: (string * string) list} -> unit
@@ -17,6 +18,7 @@ sig
   val loaded_theory: string -> bool
   val known_theory: string -> Path.T option
   val check_session: Proof.context -> string * Position.T -> string
+  val check_doc: Proof.context -> string * Position.T -> string
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -45,6 +47,7 @@ val default_qualifier = "Draft";
 
 val empty_session_base =
   {sessions = []: string list,
+   doc_names = []: string list,
    global_theories = Symtab.empty: string Symtab.table,
    loaded_theories = Symtab.empty: unit Symtab.table,
    known_theories = Symtab.empty: Path.T Symtab.table};
@@ -52,10 +55,11 @@ val empty_session_base =
 val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
-fun init_session_base {sessions, global_theories, loaded_theories, known_theories} =
+fun init_session_base {sessions, doc_names, global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
     (fn _ =>
       {sessions = sort_strings sessions,
+       doc_names = doc_names,
        global_theories = Symtab.make global_theories,
        loaded_theories = Symtab.make_set loaded_theories,
        known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
@@ -64,6 +68,7 @@ fun finish_session_base () =
   Synchronized.change global_session_base
     (fn {global_theories, loaded_theories, ...} =>
       {sessions = [],
+       doc_names = [],
        global_theories = global_theories,
        loaded_theories = loaded_theories,
        known_theories = #known_theories empty_session_base});
@@ -74,20 +79,24 @@ fun global_theory a = Symtab.lookup (get_session_base #global_theories) a;
 fun loaded_theory a = Symtab.defined (get_session_base #loaded_theories) a;
 fun known_theory a = Symtab.lookup (get_session_base #known_theories) a;
 
-fun check_session ctxt (name, pos) =
-  let val sessions = get_session_base #sessions in
-    if member (op =) sessions name then
-      (Context_Position.report ctxt pos (Markup.entity Markup.sessionN name); name)
+fun check_name which kind markup ctxt (name, pos) =
+  let val names = get_session_base which in
+    if member (op =) names name then
+      (Context_Position.report ctxt pos (markup name); name)
     else
       let
         val completion =
           Completion.make (name, pos) (fn completed =>
-              sessions
+              names
               |> filter completed
-              |> map (fn a => (a, (Markup.sessionN, a))));
+              |> map (fn a => (a, (kind, a))));
         val report = Markup.markup_report (Completion.reported_text completion);
-      in error ("Bad session " ^ quote name ^ Position.here pos ^ report) end
+      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ report) end
   end;
+
+val check_session = check_name #sessions "session" (Markup.entity Markup.sessionN);
+val check_doc = check_name #doc_names "documentation" Markup.doc;
+
 
 
 (* manage source files *)
@@ -258,6 +267,8 @@ in
 val _ = Theory.setup
  (Thy_Output.antiquotation_verbatim \<^binding>\<open>session\<close>
     (Scan.lift (Parse.position Parse.embedded)) check_session #>
+  Thy_Output.antiquotation_verbatim \<^binding>\<open>doc\<close>
+    (Scan.lift (Parse.position Parse.embedded)) check_doc #>
   Thy_Output.antiquotation_raw \<^binding>\<open>path\<close>
     (Scan.lift (Parse.position Parse.path)) (document_antiq check_path) #>
   Thy_Output.antiquotation_raw \<^binding>\<open>file\<close>
