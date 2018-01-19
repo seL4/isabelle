@@ -127,8 +127,7 @@ val _ =
         Output.output
           (Document_Antiquotation.format ctxt
             (Document_Antiquotation.quote ctxt (Thy_Output.pretty_thm ctxt thm))) ^
-        enclose "\\rulename{" "}"
-          (Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name))))
+        enclose "\\rulename{" "}" (Output.output name))
       #> space_implode "\\par\\smallskip%\n"
       #> Latex.string #> single
       #> Thy_Output.isabelle ctxt));
