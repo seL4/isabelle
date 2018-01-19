@@ -164,11 +164,19 @@ next
   thus "bdd_below (A \<union> B)" unfolding bdd_below_def ..
 qed
 
-lemma bdd_above_sup[simp]: "bdd_above ((\<lambda>x. sup (f x) (g x)) ` A) \<longleftrightarrow> bdd_above (f`A) \<and> bdd_above (g`A)"
-  by (auto simp: bdd_above_def intro: le_supI1 le_supI2)
+lemma bdd_above_image_sup[simp]:
+  "bdd_above ((\<lambda>x. sup (f x) (g x)) ` A) \<longleftrightarrow> bdd_above (f`A) \<and> bdd_above (g`A)"
+by (auto simp: bdd_above_def intro: le_supI1 le_supI2)
 
-lemma bdd_below_inf[simp]: "bdd_below ((\<lambda>x. inf (f x) (g x)) ` A) \<longleftrightarrow> bdd_below (f`A) \<and> bdd_below (g`A)"
-  by (auto simp: bdd_below_def intro: le_infI1 le_infI2)
+lemma bdd_below_image_inf[simp]:
+  "bdd_below ((\<lambda>x. inf (f x) (g x)) ` A) \<longleftrightarrow> bdd_below (f`A) \<and> bdd_below (g`A)"
+by (auto simp: bdd_below_def intro: le_infI1 le_infI2)
+
+lemma bdd_below_UN[simp]: "finite I \<Longrightarrow> bdd_below (\<Union>i\<in>I. A i) = (\<forall>i \<in> I. bdd_below (A i))"
+by (induction I rule: finite.induct) auto
+
+lemma bdd_above_UN[simp]: "finite I \<Longrightarrow> bdd_above (\<Union>i\<in>I. A i) = (\<forall>i \<in> I. bdd_above (A i))"
+by (induction I rule: finite.induct) auto
 
 end
 
