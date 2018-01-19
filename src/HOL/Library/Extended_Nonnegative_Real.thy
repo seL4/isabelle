@@ -923,6 +923,9 @@ lemma enn2ereal_ennreal[simp]: "0 \<le> x \<Longrightarrow> enn2ereal (ennreal x
 lemma e2ennreal_enn2ereal[simp]: "e2ennreal (enn2ereal x) = x"
   by (simp add: e2ennreal_def max_absorb2 ennreal.enn2ereal_inverse)
 
+lemma enn2ereal_e2ennreal: "x \<ge> 0 \<Longrightarrow> enn2ereal (e2ennreal x) = x"
+by (metis e2ennreal_enn2ereal ereal_ennreal_cases not_le)
+
 lemma e2ennreal_ereal [simp]: "e2ennreal (ereal x) = ennreal x"
 by (metis e2ennreal_def enn2ereal_inverse ennreal.rep_eq sup_ereal_def)
 

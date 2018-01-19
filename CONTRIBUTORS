@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* January 2018: Sebastien Gouezel
+  Various small additions to HOL-Analysis
+
 * December 2017: Jan Gilcher, Andreas Lochbihler, Dmitriy Traytel
   A new conditional parametricity prover.
 
