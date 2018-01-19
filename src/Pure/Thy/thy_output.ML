@@ -461,9 +461,6 @@ fun verbatim ctxt =
   then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
   else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
 
-
-(* pretty output *)
-
 fun pretty ctxt =
   map (Document_Antiquotation.output ctxt #> Latex.string) #> lines #> isabelle ctxt;
 
@@ -471,6 +468,9 @@ fun pretty_source ctxt src prts =
   if Config.get ctxt Document_Antiquotation.thy_output_source then
     pretty ctxt [pretty_text ctxt (space_implode " " (map Token.unparse (Token.args_of_src src)))]
   else pretty ctxt prts;
+
+
+(* antiquotation variants *)
 
 fun antiquotation_pretty name scan f =
   Document_Antiquotation.setup name scan
