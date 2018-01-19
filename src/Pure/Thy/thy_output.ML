@@ -99,8 +99,10 @@ fun output_symbols_comment ctxt {antiq} (comment, syms) =
       let
         val body = Symbol_Pos.cartouche_content syms;
         val source = Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body);
+        val ctxt' = ctxt
+          |> Config.put Document_Antiquotation.thy_output_display false;
       in
-        output_text ctxt {markdown = false} source
+        output_text ctxt' {markdown = false} source
         |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
       end
   | (SOME Comment.Cancel, _) =>
