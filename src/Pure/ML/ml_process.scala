@@ -103,6 +103,7 @@ object ML_Process
             ML_Syntax.print_list(ML_Syntax.print_string_bytes)(list)
           List("Resources.init_session_base" +
             " {sessions = " + print_list(base.known.sessions.toList) +
+            ", doc_names = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) +
             ", known_theories = " + print_table(base.dest_known_theories) + "}")

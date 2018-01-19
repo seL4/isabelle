@@ -73,11 +73,10 @@ val _ =
       >> (fn ((name, modes), t) => Toplevel.keep (value_cmd name modes t)));
 
 val _ = Theory.setup
-  (Document_Antiquotation.setup \<^binding>\<open>value\<close>
+  (Thy_Output.antiquotation_pretty_source \<^binding>\<open>value\<close>
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
-    (fn {source, context, ...} => fn ((name, style), t) => Thy_Output.output context
-      (Thy_Output.maybe_pretty_source Thy_Output.pretty_term context source
-        [style (value_select name context t)]))
+    (fn ctxt => fn ((name, style), t) =>
+      [Thy_Output.pretty_term ctxt (style (value_select name ctxt t))])
   #> add_evaluator (\<^binding>\<open>simp\<close>, Code_Simp.dynamic_value) #> snd
   #> add_evaluator (\<^binding>\<open>nbe\<close>, Nbe.dynamic_value) #> snd
   #> add_evaluator (\<^binding>\<open>code\<close>, Code_Evaluation.dynamic_value_strict) #> snd);

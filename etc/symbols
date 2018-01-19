@@ -410,6 +410,7 @@
 \<^plugin>              argument: cartouche
 \<^print>
 \<^prop>                argument: cartouche
+\<^session>             argument: cartouche
 \<^simproc>             argument: cartouche
 \<^sort>                argument: cartouche
 \<^syntax_const>        argument: cartouche

@@ -983,8 +983,8 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
   end;
 
 fun fp_antiquote_setup binding =
-  Document_Antiquotation.setup binding (Args.type_name {proper = true, strict = true})
-    (fn {source = src, context = ctxt, ...} => fn fcT_name =>
+  Thy_Output.antiquotation_pretty_source binding (Args.type_name {proper = true, strict = true})
+    (fn ctxt => fn fcT_name =>
        (case Ctr_Sugar.ctr_sugar_of ctxt fcT_name of
          NONE => error ("Not a known freely generated type name: " ^ quote fcT_name)
        | SOME {T = T0, ctrs = ctrs0, ...} =>
@@ -1002,9 +1002,6 @@ fun fp_antiquote_setup binding =
              Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
                Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
                flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)));
-         in
-           Thy_Output.output ctxt
-             (Thy_Output.maybe_pretty_source (K (K pretty_co_datatype)) ctxt src [()])
-         end));
+         in [pretty_co_datatype] end));
 
 end;

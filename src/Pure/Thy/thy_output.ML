@@ -10,17 +10,27 @@ sig
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val check_token_comments: Proof.context -> Token.T -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
+  val output_source: Proof.context -> string -> Latex.text list
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
     Token.T list -> Latex.text list
-  val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
-  val str_of_source: Token.src -> string
-  val maybe_pretty_source: (Proof.context -> 'a -> Pretty.T) -> Proof.context ->
-    Token.src -> 'a list -> Pretty.T list
-  val string_of_margin: Proof.context -> Pretty.T -> string
-  val output: Proof.context -> Pretty.T list -> string
-  val verbatim_text: Proof.context -> string -> string
+  val lines: Latex.text list -> Latex.text list
+  val isabelle: Proof.context -> Latex.text list -> Latex.text
+  val isabelle_typewriter: Proof.context -> Latex.text list -> Latex.text
+  val typewriter: Proof.context -> string -> Latex.text
+  val verbatim: Proof.context -> string -> Latex.text
+  val source: Proof.context -> Token.src -> Latex.text
+  val pretty: Proof.context -> Pretty.T list -> Latex.text
+  val pretty_source: Proof.context -> Token.src -> Pretty.T list -> Latex.text
+  val antiquotation_pretty:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T list) -> theory -> theory
+  val antiquotation_pretty_source:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T list) -> theory -> theory
+  val antiquotation_raw:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Latex.text) -> theory -> theory
+  val antiquotation_verbatim:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> string) -> theory -> theory
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -35,9 +45,7 @@ fun output_text ctxt {markdown} source =
 
     val _ = Context_Position.report ctxt pos (Markup.language_document (Input.is_delimited source));
 
-    val output_antiquotes =
-      map (fn ant =>
-        Latex.text (Document_Antiquotation.evaluate ctxt ant, #1 (Antiquote.range [ant])));
+    val output_antiquotes = maps (Document_Antiquotation.evaluate ctxt);
 
     fun output_line line =
       (if Markdown.line_is_item line then [Latex.string "\\item "] else []) @
@@ -60,7 +68,7 @@ fun output_text ctxt {markdown} source =
       in output_blocks blocks end
     else
       let
-        val ants = Antiquote.parse pos (Symbol_Pos.trim_blanks syms);
+        val ants = Antiquote.parse pos (trim (Symbol.is_blank o Symbol_Pos.symbol) syms);
         val reports = Antiquote.antiq_reports ants;
         val _ = Context_Position.reports ctxt (reports @ Markdown.text_reports ants);
       in output_antiquotes ants end
@@ -71,11 +79,7 @@ fun output_text ctxt {markdown} source =
 
 local
 
-fun output_latex syms =
-  [Latex.text (Symbol_Pos.content syms, #1 (Symbol_Pos.range syms))];
-
-fun output_symbols syms =
-  [Latex.text (Latex.output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms))];
+val output_symbols = single o Latex.symbols_output;
 
 val output_symbols_antiq =
   (fn Antiquote.Text syms => output_symbols syms
@@ -95,15 +99,17 @@ fun output_symbols_comment ctxt {antiq} (comment, syms) =
       let
         val body = Symbol_Pos.cartouche_content syms;
         val source = Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body);
+        val ctxt' = ctxt
+          |> Config.put Document_Antiquotation.thy_output_display false;
       in
-        output_text ctxt {markdown = false} source
+        output_text ctxt' {markdown = false} source
         |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
       end
   | (SOME Comment.Cancel, _) =>
       output_symbols (Symbol_Pos.cartouche_content syms)
       |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
   | (SOME Comment.Latex, _) =>
-      output_latex (Symbol_Pos.cartouche_content syms));
+      [Latex.symbols (Symbol_Pos.cartouche_content syms)]);
 
 in
 
@@ -129,6 +135,9 @@ and output_token ctxt tok =
     | Token.Cartouche => output false "{\\isacartoucheopen}" "{\\isacartoucheclose}"
     | _ => output false "" "")
   end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+
+fun output_source ctxt s =
+  output_body ctxt false "" "" (Symbol_Pos.explode (s, Position.none));
 
 fun check_comments ctxt =
   Comment.read_body #> (Option.app o List.app) (fn (comment, syms) =>
@@ -425,58 +434,66 @@ end;
 
 (** standard output operations **)
 
-(* basic pretty printing *)
+(* pretty printing *)
 
-fun perhaps_trim ctxt =
-  not (Config.get ctxt Document_Antiquotation.thy_output_display) ? Symbol.trim_blanks;
-
-fun pretty_text ctxt =
-  Pretty.chunks o map Pretty.str o map (perhaps_trim ctxt) o split_lines;
-
-fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
+fun pretty_term ctxt t =
+  Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 
 (* default output *)
 
-val str_of_source = space_implode " " o map Token.unparse o Token.args_of_src;
+val lines = separate (Latex.string "\\isasep\\isanewline%\n");
 
-fun maybe_pretty_source pretty ctxt src xs =
-  map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)
-  |> (if Config.get ctxt Document_Antiquotation.thy_output_source
-      then K [pretty_text ctxt (str_of_source src)] else I);
+fun isabelle ctxt body =
+  if Config.get ctxt Document_Antiquotation.thy_output_display
+  then Latex.environment_block "isabelle" body
+  else Latex.block (Latex.enclose_body "\\isa{" "}" body);
 
-fun string_of_margin ctxt =
-  Pretty.string_of_margin (Config.get ctxt Document_Antiquotation.thy_output_margin);
+fun isabelle_typewriter ctxt body =
+  if Config.get ctxt Document_Antiquotation.thy_output_display
+  then Latex.environment_block "isabellett" body
+  else Latex.block (Latex.enclose_body "\\isatt{" "}" body);
 
-fun output ctxt prts =
-  prts
-  |> Config.get ctxt Document_Antiquotation.thy_output_quotes ? map Pretty.quote
-  |> (if Config.get ctxt Document_Antiquotation.thy_output_display then
-        map (Pretty.indent (Config.get ctxt Document_Antiquotation.thy_output_indent)
-          #> string_of_margin ctxt #> Output.output)
-        #> space_implode "\\isasep\\isanewline%\n"
-        #> Latex.environment "isabelle"
-      else
-        map
-          ((if Config.get ctxt Document_Antiquotation.thy_output_break
-            then string_of_margin ctxt else Pretty.unformatted_string_of) #> Output.output)
-        #> space_implode "\\isasep\\isanewline%\n"
-        #> enclose "\\isa{" "}");
+fun typewriter ctxt s =
+  isabelle_typewriter ctxt [Latex.string (Latex.output_ascii s)];
+
+fun verbatim ctxt =
+  if Config.get ctxt Document_Antiquotation.thy_output_display
+  then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
+  else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
+
+fun source ctxt =
+  Token.args_of_src
+  #> map (Token.unparse #> Document_Antiquotation.prepare_lines ctxt)
+  #> space_implode " "
+  #> output_source ctxt
+  #> isabelle ctxt;
+
+fun pretty ctxt =
+  map (Document_Antiquotation.output ctxt #> Latex.string) #> lines #> isabelle ctxt;
+
+fun pretty_source ctxt src prts =
+  if Config.get ctxt Document_Antiquotation.thy_output_source
+  then source ctxt src else pretty ctxt prts;
 
 
-(* verbatim text *)
+(* antiquotation variants *)
 
-fun verbatim_text ctxt =
-  if Config.get ctxt Document_Antiquotation.thy_output_display then
-    split_lines #>
-    map (prefix (Symbol.spaces (Config.get ctxt Document_Antiquotation.thy_output_indent))) #>
-    cat_lines #>
-    Latex.output_ascii #> Latex.environment "isabellett"
-  else
-    split_lines #>
-    map (Latex.output_ascii #> enclose "\\isatt{" "}") #>
-    space_implode "\\isasep\\isanewline%\n";
+fun antiquotation_pretty name scan f =
+  Document_Antiquotation.setup name scan
+    (fn {context = ctxt, argument = x, ...} => pretty ctxt (f ctxt x));
+
+fun antiquotation_pretty_source name scan f =
+  Document_Antiquotation.setup name scan
+    (fn {context = ctxt, source = src, argument = x} => pretty_source ctxt src (f ctxt x));
+
+fun antiquotation_raw name scan f =
+  Document_Antiquotation.setup name scan
+    (fn {context = ctxt, argument = x, ...} => f ctxt x);
+
+fun antiquotation_verbatim name scan f =
+  antiquotation_raw name scan (fn ctxt => verbatim ctxt o f ctxt);
 
 end;

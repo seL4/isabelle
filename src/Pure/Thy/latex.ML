@@ -11,12 +11,15 @@ sig
   val text: string * Position.T -> text
   val block: text list -> text
   val enclose_body: string -> string -> text list -> text list
+  val enclose_block: string -> string -> text list -> text
   val output_text: text list -> string
   val output_positions: Position.T -> text list -> string
   val output_name: string -> string
   val output_ascii: string -> string
   val output_symbols: Symbol.symbol list -> string
   val output_syms: string -> string
+  val symbols: Symbol_Pos.T list -> text
+  val symbols_output: Symbol_Pos.T list -> text
   val begin_delim: string -> string
   val end_delim: string -> string
   val begin_tag: string -> string
@@ -75,6 +78,8 @@ end;
 fun enclose_body bg en body =
   (if bg = "" then [] else [string bg]) @ body @
   (if en = "" then [] else [string en]);
+
+fun enclose_block bg en = block o enclose_body bg en;
 
 
 (* output name for LaTeX macros *)
@@ -197,6 +202,10 @@ fun output_symbols syms =
 val output_syms = output_symbols o Symbol.explode;
 
 end;
+
+fun symbols syms = text (Symbol_Pos.content syms, #1 (Symbol_Pos.range syms));
+fun symbols_output syms =
+  text (output_symbols (map Symbol_Pos.symbol syms), #1 (Symbol_Pos.range syms));
 
 
 (* tags *)

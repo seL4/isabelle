@@ -10,7 +10,8 @@ sig
   type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list}
   datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq
   type text_antiquote = Symbol_Pos.T list antiquote
-  val range: text_antiquote list -> Position.range
+  val text_antiquote_range: text_antiquote -> Position.range
+  val text_range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: 'a antiquote list -> Position.report list
   val scan_control: control scanner
@@ -31,13 +32,14 @@ datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq;
 
 type text_antiquote = Symbol_Pos.T list antiquote;
 
-fun antiquote_range (Text ss) = Symbol_Pos.range ss
-  | antiquote_range (Control {range, ...}) = range
-  | antiquote_range (Antiq {range, ...}) = range;
+fun text_antiquote_range (Text ss) = Symbol_Pos.range ss
+  | text_antiquote_range (Control {range, ...}) = range
+  | text_antiquote_range (Antiq {range, ...}) = range;
 
-fun range ants =
+fun text_range ants =
   if null ants then Position.no_range
-  else Position.range (#1 (antiquote_range (hd ants)), #2 (antiquote_range (List.last ants)));
+  else
+    Position.range (#1 (text_antiquote_range (hd ants)), #2 (text_antiquote_range (List.last ants)));
 
 
 (* split lines *)
