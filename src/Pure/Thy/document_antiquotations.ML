@@ -150,51 +150,56 @@ end;
 
 local
 
+fun report_text ctxt text =
+  Context_Position.report ctxt (Input.pos_of text)
+    (Markup.language_text (Input.is_delimited text));
+
+fun prepare_text ctxt =
+  Input.source_content #> Document_Antiquotation.prepare_lines ctxt;
+
 fun text_antiquotation name =
   Thy_Output.antiquotation_raw name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
+        val _ = report_text ctxt text;
+      in
+        prepare_text ctxt text
+        |> Thy_Output.output_source ctxt
+        |> Thy_Output.isabelle ctxt
+      end);
+
+val theory_text_antiquotation =
+  Thy_Output.antiquotation_raw \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
+    (fn ctxt => fn text =>
+      let
+        val keywords = Thy_Header.get_keywords' ctxt;
+
+        val _ = report_text ctxt text;
         val _ =
-          Context_Position.report ctxt (Input.pos_of text)
-            (Markup.language_text (Input.is_delimited text));
-      in Thy_Output.pretty ctxt [Thy_Output.pretty_text ctxt (Input.source_content text)] end);
+          Input.source_explode text
+          |> Source.of_list
+          |> Token.source' true keywords
+          |> Source.exhaust
+          |> maps (Token.reports keywords)
+          |> Context_Position.reports_text ctxt;
+      in
+        prepare_text ctxt text
+        |> Token.explode keywords Position.none
+        |> maps (Thy_Output.output_token ctxt)
+        |> Thy_Output.isabelle ctxt
+      end);
 
 in
 
 val _ =
   Theory.setup
    (text_antiquotation \<^binding>\<open>text\<close> #>
-    text_antiquotation \<^binding>\<open>cartouche\<close>);
+    text_antiquotation \<^binding>\<open>cartouche\<close> #>
+    theory_text_antiquotation);
 
 end;
 
 
-(* theory text with tokens (unchecked) *)
-
-val _ =
-  Theory.setup
-    (Thy_Output.antiquotation_raw \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
-      (fn ctxt => fn text =>
-        let
-          val keywords = Thy_Header.get_keywords' ctxt;
-
-          val _ =
-            Context_Position.report ctxt (Input.pos_of text)
-              (Markup.language_Isar (Input.is_delimited text));
-          val _ =
-            Input.source_explode text
-            |> Source.of_list
-            |> Token.source' true keywords
-            |> Source.exhaust
-            |> maps (Token.reports keywords)
-            |> Context_Position.reports_text ctxt;
-
-          val toks =
-            Input.source_content text
-            |> Document_Antiquotation.trim_lines ctxt
-            |> Document_Antiquotation.indent_lines ctxt
-            |> Token.explode keywords Position.none;
-        in Thy_Output.isabelle ctxt (maps (Thy_Output.output_token ctxt) toks) end));
 
 
 (* goal state *)

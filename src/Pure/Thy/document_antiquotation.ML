@@ -16,6 +16,7 @@ sig
   val trim_blanks: Proof.context -> string -> string
   val trim_lines: Proof.context -> string -> string
   val indent_lines: Proof.context -> string -> string
+  val prepare_lines: Proof.context -> string -> string
   val quote: Proof.context -> Pretty.T -> Pretty.T
   val indent: Proof.context -> Pretty.T -> Pretty.T
   val format: Proof.context -> Pretty.T -> string
@@ -59,6 +60,8 @@ fun indent_lines ctxt =
   if Config.get ctxt thy_output_display then
     prefix_lines (Symbol.spaces (Config.get ctxt thy_output_indent))
   else I;
+
+fun prepare_lines ctxt = trim_lines ctxt #> indent_lines ctxt;
 
 
 (* output *)

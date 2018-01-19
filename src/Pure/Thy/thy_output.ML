@@ -10,9 +10,9 @@ sig
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val check_token_comments: Proof.context -> Token.T -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
+  val output_source: Proof.context -> string -> Latex.text list
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
     Token.T list -> Latex.text list
-  val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val lines: Latex.text list -> Latex.text list
@@ -20,6 +20,7 @@ sig
   val isabelle_typewriter: Proof.context -> Latex.text list -> Latex.text
   val typewriter: Proof.context -> string -> Latex.text
   val verbatim: Proof.context -> string -> Latex.text
+  val source: Proof.context -> Token.src -> Latex.text
   val pretty: Proof.context -> Pretty.T list -> Latex.text
   val pretty_source: Proof.context -> Token.src -> Pretty.T list -> Latex.text
   val antiquotation_pretty:
@@ -132,6 +133,9 @@ and output_token ctxt tok =
     | Token.Cartouche => output false "{\\isacartoucheopen}" "{\\isacartoucheclose}"
     | _ => output false "" "")
   end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
+
+fun output_source ctxt s =
+  output_body ctxt false "" "" (Symbol_Pos.explode (s, Position.none));
 
 fun check_comments ctxt =
   Comment.read_body #> (Option.app o List.app) (fn (comment, syms) =>
@@ -430,9 +434,6 @@ end;
 
 (* pretty printing *)
 
-fun pretty_text ctxt =
-  Pretty.chunks o map (Pretty.str o Document_Antiquotation.trim_blanks ctxt) o split_lines;
-
 fun pretty_term ctxt t =
   Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
@@ -461,13 +462,19 @@ fun verbatim ctxt =
   then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
   else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
 
+fun source ctxt =
+  Token.args_of_src
+  #> map (Token.unparse #> Document_Antiquotation.prepare_lines ctxt)
+  #> space_implode " "
+  #> output_source ctxt
+  #> isabelle ctxt;
+
 fun pretty ctxt =
   map (Document_Antiquotation.output ctxt #> Latex.string) #> lines #> isabelle ctxt;
 
 fun pretty_source ctxt src prts =
-  if Config.get ctxt Document_Antiquotation.thy_output_source then
-    pretty ctxt [pretty_text ctxt (space_implode " " (map Token.unparse (Token.args_of_src src)))]
-  else pretty ctxt prts;
+  if Config.get ctxt Document_Antiquotation.thy_output_source
+  then source ctxt src else pretty ctxt prts;
 
 
 (* antiquotation variants *)
