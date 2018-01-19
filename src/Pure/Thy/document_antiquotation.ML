@@ -131,7 +131,7 @@ val properties =
 
 in
 
-val antiq =
+val parse_antiq =
   Parse.!!!
     (Parse.token Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
   >> (fn ((name, props), args) => (props, name :: args));
@@ -162,12 +162,14 @@ fun eval ctxt (opts, src) =
 
 in
 
-fun evaluate _ (Antiquote.Text ss) = [Latex.symbols ss]
-  | evaluate ctxt (Antiquote.Control {name, body, ...}) =
+fun evaluate ctxt antiq =
+  (case antiq of
+    Antiquote.Text ss => [Latex.symbols ss]
+  | Antiquote.Control {name, body, ...} =>
       eval ctxt ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
-  | evaluate ctxt (Antiquote.Antiq {range = (pos, _), body, ...}) =
+  | Antiquote.Antiq {range = (pos, _), body, ...} =>
       let val keywords = Thy_Header.get_keywords' ctxt;
-      in eval ctxt (Token.read_antiq keywords antiq (body, pos)) end;
+      in eval ctxt (Token.read_antiq keywords parse_antiq (body, pos)) end);
 
 end;
 
