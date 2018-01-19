@@ -255,8 +255,8 @@ text \<open>
   document preparation (\chref{ch:document-prep}) supports various styles,
   according to the following kinds of comments.
 
-    \<^item> Marginal comment of the form \<^verbatim>\<open>\<comment>\<close>~\<open>\<open>text\<close>\<close> or \<open>\<comment> \<open>text\<close>\<close>, usually with a
-    single space between the comment symbol and the argument cartouche. The
+    \<^item> Marginal comment of the form \<^verbatim>\<open>\<comment>\<close>~\<open>\<open>text\<close>\<close> or \<open>\<comment>\<close>~\<open>\<open>text\<close>\<close>, usually with
+    a single space between the comment symbol and the argument cartouche. The
     given argument is typeset as regular text, with formal antiquotations
     (\secref{sec:antiq}).
 
