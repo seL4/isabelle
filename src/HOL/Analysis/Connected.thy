@@ -1292,7 +1292,7 @@ subsection \<open>Infimum Distance\<close>
 
 definition "infdist x A = (if A = {} then 0 else INF a:A. dist x a)"
 
-lemma bdd_below_infdist[intro, simp]: "bdd_below (dist x`A)"
+lemma bdd_below_image_dist[intro, simp]: "bdd_below (dist x ` A)"
   by (auto intro!: zero_le_dist)
 
 lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = (INF a:A. dist x a)"
