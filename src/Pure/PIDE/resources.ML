@@ -89,6 +89,7 @@ fun check_name which kind markup ctxt (name, pos) =
           Completion.make (name, pos) (fn completed =>
               names
               |> filter completed
+              |> sort_strings
               |> map (fn a => (a, (kind, a))));
         val report = Markup.markup_report (Completion.reported_text completion);
       in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ report) end
