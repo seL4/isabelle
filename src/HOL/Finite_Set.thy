@@ -1743,6 +1743,24 @@ next
   then show "\<exists>B. finite B \<and> card B = Suc n \<and> B \<subseteq> A" ..
 qed
 
+text \<open>Sometimes, to prove that a set is finite, it is convenient to work with finite subsets
+and to show that their cardinalities are uniformly bounded. This possibility is formalized in
+the next criterion.\<close>
+
+lemma finite_if_finite_subsets_card_bdd:
+  assumes "\<And>G. G \<subseteq> F \<Longrightarrow> finite G \<Longrightarrow> card G \<le> C"
+  shows "finite F \<and> card F \<le> C"
+proof (cases "finite F")
+  case False
+  obtain n::nat where n: "n > max C 0" by auto
+  obtain G where G: "G \<subseteq> F" "card G = n" using infinite_arbitrarily_large[OF False] by auto
+  hence "finite G" using \<open>n > max C 0\<close> using card_infinite gr_implies_not0 by blast
+  hence False using assms G n not_less by auto
+  thus ?thesis ..
+next
+  case True thus ?thesis using assms[of F] by auto
+qed
+
 
 subsubsection \<open>Cardinality of image\<close>
 
