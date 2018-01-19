@@ -132,8 +132,8 @@ fun block_lines (Par lines) = lines
 fun block_source (Par lines) = maps line_source lines
   | block_source (List {body, ...}) = maps line_source (maps block_lines body);
 
-fun block_range (Par lines) = Antiquote.range (maps line_content lines)
-  | block_range (List {body, ...}) = Antiquote.range (maps line_source (maps block_lines body));
+fun block_range (Par lines) = Antiquote.text_range (maps line_content lines)
+  | block_range (List {body, ...}) = Antiquote.text_range (maps line_source (maps block_lines body));
 
 fun block_indent (List {indent, ...}) = indent
   | block_indent (Par (Line {indent, ...} :: _)) = indent
@@ -204,7 +204,7 @@ val text_reports =
 local
 
 val block_pos = #1 o block_range;
-val item_pos = #1 o Antiquote.range o maps block_source;
+val item_pos = #1 o Antiquote.text_range o maps block_source;
 
 fun line_reports depth (Line {bullet_pos, content, ...}) =
   cons (bullet_pos, Markup.markdown_bullet depth) #> append (text_reports content);
