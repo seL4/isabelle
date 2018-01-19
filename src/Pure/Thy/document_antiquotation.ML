@@ -156,6 +156,8 @@ fun option ((xname, pos), s) ctxt =
 fun eval ctxt (opts, src) =
   let
     val preview_ctxt = fold option opts ctxt;
+    val _ = command src preview_ctxt;
+
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
     val print_modes = space_explode "," (Config.get print_ctxt thy_output_modes) @ [Latex.latexN];
   in [Print_Mode.with_modes print_modes (fn () => command src print_ctxt) ()] end;
