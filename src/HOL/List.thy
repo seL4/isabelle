@@ -360,7 +360,7 @@ text \<open>A class-based sorted predicate:\<close>
 
 context linorder
 begin
-
+(*
 inductive sorted :: "'a list \<Rightarrow> bool" where
   Nil [iff]: "sorted []"
 | Cons: "\<forall>y\<in>set xs. x \<le> y \<Longrightarrow> sorted xs \<Longrightarrow> sorted (x # xs)"
@@ -379,6 +379,18 @@ lemma [code]:
   "sorted [] \<longleftrightarrow> True"
   "sorted [x] \<longleftrightarrow> True"
 by simp_all
+*)
+
+fun sorted :: "'a list \<Rightarrow> bool" where
+"sorted [] = True" |
+"sorted [x] = True" |
+"sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
+
+lemma sorted_sorted_wrt: "sorted = sorted_wrt (\<le>)"
+proof (rule ext)
+  fix xs show "sorted xs = sorted_wrt (\<le>) xs"
+    by(induction xs rule: sorted.induct) auto
+qed
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
 "insort_key f x [] = [x]" |
@@ -4971,7 +4983,7 @@ lemma sorted_Cons: "sorted (x#xs) = (sorted xs \<and> (\<forall>y \<in> set xs. 
 apply(induction xs arbitrary: x)
  apply simp
 by simp (blast intro: order_trans)
-
+(*
 lemma sorted_iff_wrt: "sorted xs = sorted_wrt (\<le>) xs"
 proof
   assume "sorted xs" thus "sorted_wrt (\<le>) xs"
@@ -4979,7 +4991,7 @@ proof
     case (Cons xs x) thus ?case by (cases xs) simp_all
   qed simp
 qed (induct xs rule: induct_list012, simp_all)
-
+*)
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
 by (cases xs) (simp_all add: sorted_Cons)
@@ -5355,18 +5367,17 @@ apply(simp add:sorted_Cons)
 done
 
 lemma sorted_find_Min:
-  assumes "sorted xs"
-  assumes "\<exists>x \<in> set xs. P x"
-  shows "List.find P xs = Some (Min {x\<in>set xs. P x})"
-using assms proof (induct xs rule: sorted.induct)
+  "sorted xs \<Longrightarrow> \<exists>x \<in> set xs. P x \<Longrightarrow> List.find P xs = Some (Min {x\<in>set xs. P x})"
+proof (induct xs)
   case Nil then show ?case by simp
 next
-  case (Cons xs x) show ?case proof (cases "P x")
-    case True with Cons show ?thesis by (auto intro: Min_eqI [symmetric])
+  case (Cons x xs) show ?case proof (cases "P x")
+    case True
+    with Cons show ?thesis by (auto simp: sorted_Cons intro: Min_eqI [symmetric])
   next
     case False then have "{y. (y = x \<or> y \<in> set xs) \<and> P y} = {y \<in> set xs. P y}"
       by auto
-    with Cons False show ?thesis by simp_all
+    with Cons False show ?thesis by (simp_all add: sorted_Cons)
   qed
 qed
 
@@ -6261,7 +6272,7 @@ by unfold_locales(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp
 end
 
 lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
-  by (induct rule: sorted.induct) (auto dest!: insort_is_Cons)
+ by (induct xs) (auto dest!: insort_is_Cons simp: sorted_Cons)
 
 
 subsubsection \<open>Lexicographic combination of measure functions\<close>

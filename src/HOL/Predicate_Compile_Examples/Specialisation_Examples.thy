@@ -48,6 +48,7 @@ ML_val \<open>Core_Data.intros_of @{context} @{const_name specialised_max_natP}\
 
 values "{x. max_of_my_SucP x 6}"
 
+(* Sortedness is now expressed functionally.
 subsection \<open>Sorts\<close>
 
 declare sorted.Nil [code_pred_intro]
@@ -76,6 +77,7 @@ proof -
   qed
 qed
 thm sorted.equation
+*)
 
 section \<open>Specialisation in POPLmark theory\<close>
 
