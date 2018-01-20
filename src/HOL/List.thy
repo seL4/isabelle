@@ -4864,6 +4864,16 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma finite_lists_distinct_length_eq [intro]:
+  assumes "finite A"
+  shows "finite {xs. length xs = n \<and> distinct xs \<and> set xs \<subseteq> A}" (is "finite ?S")
+proof -
+  have "finite {xs. set xs \<subseteq> A \<and> length xs = n}"
+    using \<open>finite A\<close> by (rule finite_lists_length_eq)
+  moreover have "?S \<subseteq> {xs. set xs \<subseteq> A \<and> length xs = n}" by auto
+  ultimately show ?thesis using finite_subset by auto
+qed
+
 lemma card_lists_distinct_length_eq:
   assumes "finite A" "k \<le> card A"
   shows "card {xs. length xs = k \<and> distinct xs \<and> set xs \<subseteq> A} = \<Prod>{card A - k + 1 .. card A}"
