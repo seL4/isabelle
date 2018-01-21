@@ -73,8 +73,7 @@ lemma sorted_bubblesort: "sorted(bubblesort xs)"
 apply(induction xs rule: bubblesort.induct)
   apply simp
  apply simp
-apply (fastforce simp: set_bubblesort split: list.split if_splits
-  intro!: sorted.Cons dest: bubble_min_min)
+apply (fastforce simp: set_bubblesort sorted_Cons split: list.split if_splits dest: bubble_min_min)
 done
 
 end
