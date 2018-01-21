@@ -360,26 +360,6 @@ text \<open>A class-based sorted predicate:\<close>
 
 context linorder
 begin
-(*
-inductive sorted :: "'a list \<Rightarrow> bool" where
-  Nil [iff]: "sorted []"
-| Cons: "\<forall>y\<in>set xs. x \<le> y \<Longrightarrow> sorted xs \<Longrightarrow> sorted (x # xs)"
-
-lemma sorted_single [iff]: "sorted [x]"
-by (rule sorted.Cons) auto
-
-lemma sorted_many: "x \<le> y \<Longrightarrow> sorted (y # zs) \<Longrightarrow> sorted (x # y # zs)"
-by (rule sorted.Cons) (cases "y # zs" rule: sorted.cases, auto)
-
-lemma sorted_many_eq [simp, code]:
-  "sorted (x # y # zs) \<longleftrightarrow> x \<le> y \<and> sorted (y # zs)"
-by (auto intro: sorted_many elim: sorted.cases)
-
-lemma [code]:
-  "sorted [] \<longleftrightarrow> True"
-  "sorted [x] \<longleftrightarrow> True"
-by simp_all
-*)
 
 fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [] = True" |

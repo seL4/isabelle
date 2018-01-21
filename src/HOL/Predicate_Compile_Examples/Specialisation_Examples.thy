@@ -48,8 +48,21 @@ ML_val \<open>Core_Data.intros_of @{context} @{const_name specialised_max_natP}\
 
 values "{x. max_of_my_SucP x 6}"
 
-(* Sortedness is now expressed functionally.
 subsection \<open>Sorts\<close>
+
+inductive sorted :: "'a::linorder list \<Rightarrow> bool" where
+  Nil [simp]: "sorted []"
+| Cons: "\<forall>y\<in>set xs. x \<le> y \<Longrightarrow> sorted xs \<Longrightarrow> sorted (x # xs)"
+
+lemma sorted_single [simp]: "sorted [x]"
+by (rule sorted.Cons) auto
+
+lemma sorted_many: "x \<le> y \<Longrightarrow> sorted (y # zs) \<Longrightarrow> sorted (x # y # zs)"
+by (rule sorted.Cons) (cases "y # zs" rule: sorted.cases, auto)
+
+lemma sorted_many_eq [simp]:
+  "sorted (x # y # zs) \<longleftrightarrow> x \<le> y \<and> sorted (y # zs)"
+by (auto intro: sorted_many elim: sorted.cases)
 
 declare sorted.Nil [code_pred_intro]
   sorted_single [code_pred_intro]
@@ -77,7 +90,7 @@ proof -
   qed
 qed
 thm sorted.equation
-*)
+
 
 section \<open>Specialisation in POPLmark theory\<close>
 
