@@ -10,19 +10,6 @@ theory Conditionally_Complete_Lattices
 imports Finite_Set Lattices_Big Set_Interval
 begin
 
-context linorder
-begin
-  
-lemma Sup_fin_eq_Max:
-  "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup_fin X = Max X"
-  by (induct X rule: finite_ne_induct) (simp_all add: sup_max)
-
-lemma Inf_fin_eq_Min:
-  "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf_fin X = Min X"
-  by (induct X rule: finite_ne_induct) (simp_all add: inf_min)
-
-end
-
 context preorder
 begin
 
@@ -471,10 +458,10 @@ instance complete_linorder < conditionally_complete_linorder
   ..
 
 lemma cSup_eq_Max: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup X = Max X"
-  using cSup_eq_Sup_fin[of X] Sup_fin_eq_Max[of X] by simp
+  using cSup_eq_Sup_fin[of X] by (simp add: Sup_fin_Max)
 
 lemma cInf_eq_Min: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf X = Min X"
-  using cInf_eq_Inf_fin[of X] Inf_fin_eq_Min[of X] by simp
+  using cInf_eq_Inf_fin[of X] by (simp add: Inf_fin_Min)
 
 lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
   by (auto intro!: cSup_eq_non_empty intro: dense_le)
