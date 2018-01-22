@@ -331,9 +331,9 @@ proof (rule fmap_ext)
 qed
 
 lemma fmfilter_cong'[fundef_cong]:
-  assumes "\<And>x. x \<in> fmdom' m \<Longrightarrow> P x = Q x"
-  shows "fmfilter P m = fmfilter Q m"
-using assms
+  assumes "m = n" "\<And>x. x \<in> fmdom' m \<Longrightarrow> P x = Q x"
+  shows "fmfilter P m = fmfilter Q n"
+using assms(2) unfolding assms(1)
 by (rule fmfilter_cong) (metis fmdom'I)
 
 lemma fmfilter_upd[simp]:
