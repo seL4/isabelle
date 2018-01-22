@@ -137,7 +137,7 @@ object Latex
         "<everyeof>",
         "<write>").mkString("^(?:", "|", ") (.*)$").r
 
-    val Bad_File = """^! LaTeX Error: File `(.*)' not found\.$""".r
+    val Bad_File = """^! LaTeX Error: (File `.*' not found\.)$""".r
 
     val error_ignore =
       Set(
@@ -165,8 +165,7 @@ object Latex
           val pos = tex_file_position(file, line)
           val msg2 = error_suffix1(rest1) orElse error_suffix2(rest1) getOrElse ""
           filter(rest1, (Exn.cat_message(msg1, msg2), pos) :: result)
-        case Bad_File(file) :: rest =>
-          val msg = "File " + quote(file) + " not found"
+        case Bad_File(msg) :: rest =>
           filter(rest, (msg, Position.none) :: result)
         case _ :: rest => filter(rest, result)
         case Nil => result.reverse
