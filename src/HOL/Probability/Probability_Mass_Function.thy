@@ -530,11 +530,11 @@ lemma integral_map_pmf[simp]:
   by (simp add: integral_distr map_pmf_rep_eq)
 
 lemma pmf_abs_summable [intro]: "pmf p abs_summable_on A"
-  by (rule abs_summable_on_subset[OF _ subset_UNIV]) 
+  by (rule abs_summable_on_subset[OF _ subset_UNIV])
      (auto simp:  abs_summable_on_def integrable_iff_bounded nn_integral_pmf)
 
 lemma measure_pmf_conv_infsetsum: "measure (measure_pmf p) A = infsetsum (pmf p) A"
-  unfolding infsetsum_def by (simp add: integral_eq_nn_integral nn_integral_pmf measure_def)  
+  unfolding infsetsum_def by (simp add: integral_eq_nn_integral nn_integral_pmf measure_def)
 
 lemma infsetsum_pmf_eq_1:
   assumes "set_pmf p \<subseteq> A"
@@ -774,7 +774,7 @@ lemma integral_measure_pmf:
   apply (subst lebesgue_integral_count_space_finite_support)
   apply (auto intro!: finite_subset[OF _ \<open>finite A\<close>] sum.mono_neutral_left simp: pmf_eq_0_set_pmf)
   done
-    
+
 lemma expectation_return_pmf [simp]:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   shows "measure_pmf.expectation (return_pmf x) f = f x"
@@ -793,7 +793,7 @@ proof -
   proof (intro sum.cong refl, goal_cases)
     case (1 x)
     thus ?case
-      by (subst pmf_bind, subst integral_measure_pmf[of A]) 
+      by (subst pmf_bind, subst integral_measure_pmf[of A])
          (insert assms, auto simp: scaleR_sum_left)
   qed
   also have "\<dots> = (\<Sum>j\<in>A. pmf p j *\<^sub>R (\<Sum>i\<in>(\<Union>x\<in>A. set_pmf (f x)). pmf (f j) i *\<^sub>R h i))"
@@ -802,7 +802,7 @@ proof -
   proof (intro sum.cong refl, goal_cases)
     case (1 x)
     thus ?case
-      by (subst integral_measure_pmf[of "(\<Union>x\<in>A. set_pmf (f x))"]) 
+      by (subst integral_measure_pmf[of "(\<Union>x\<in>A. set_pmf (f x))"])
          (insert assms, auto simp: scaleR_sum_left)
   qed
   finally show ?thesis .
@@ -1648,7 +1648,7 @@ lemma transp_rel_pmf:
   shows "transp (rel_pmf R)"
   using assms by (fact pmf.rel_transp)
 
-    
+
 subsection \<open> Distributions \<close>
 
 context
@@ -1778,7 +1778,7 @@ lemma measure_pmf_of_set: "measure (measure_pmf pmf_of_set) A = card (S \<inter>
   by (simp add: measure_nonneg measure_pmf.emeasure_eq_measure)
 
 end
-  
+
 lemma pmf_expectation_bind_pmf_of_set:
   fixes A :: "'a set" and f :: "'a \<Rightarrow> 'b pmf"
     and  h :: "'b \<Rightarrow> 'c::{banach, second_countable_topology}"
@@ -2010,7 +2010,7 @@ lemma binomial_pmf_altdef:
         bind_return_pmf' binomial_pmf_0 intro!: bind_pmf_cong)
 
 
-subsection \<open>PMFs from assiciation lists\<close>
+subsection \<open>PMFs from association lists\<close>
 
 definition pmf_of_list ::" ('a \<times> real) list \<Rightarrow> 'a pmf" where
   "pmf_of_list xs = embed_pmf (\<lambda>x. sum_list (map snd (filter (\<lambda>z. fst z = x) xs)))"
@@ -2032,7 +2032,10 @@ private lemma pmf_of_list_aux:
 proof -
   have "(\<integral>\<^sup>+ x. ennreal (sum_list (map snd (filter (\<lambda>z. fst z = x) xs))) \<partial>count_space UNIV) =
             (\<integral>\<^sup>+ x. ennreal (sum_list (map (\<lambda>(x',p). indicator {x'} x * p) xs)) \<partial>count_space UNIV)"
-    by (intro nn_integral_cong ennreal_cong, subst sum_list_map_filter') (auto intro: sum_list_cong)
+    apply (intro nn_integral_cong ennreal_cong, subst sum_list_map_filter')
+    apply (rule arg_cong[where f = sum_list])
+    apply (auto cong: map_cong)
+    done
   also have "\<dots> = (\<Sum>(x',p)\<leftarrow>xs. (\<integral>\<^sup>+ x. ennreal (indicator {x'} x * p) \<partial>count_space UNIV))"
     using assms(1)
   proof (induction xs)
