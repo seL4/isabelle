@@ -133,7 +133,7 @@ lemma let_cong [fundef_cong]: "M = N \<Longrightarrow> (\<And>x. x = N \<Longrig
   unfolding Let_def by blast
 
 lemmas [fundef_cong] =
-  if_cong image_cong INF_cong SUP_cong
+  if_cong image_cong
   bex_cong ball_cong imp_cong map_option_cong Option.bind_cong
 
 lemma split_cong [fundef_cong]:
