@@ -30,7 +30,7 @@
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
     <runtimeBits>64</runtimeBits>
-    <opt>-Disabelle.root=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\contrib\cygwin&quot;</opt>
+    <opt>-Disabelle.root=&quot;%EXEDIR%&quot; -Djava.ext.dirs=&quot;%EXEDIR%\contrib\jdk\x86_64-windows\jre\lib\ext&quot; -Dcygwin.root=&quot;%EXEDIR%\contrib\cygwin&quot;</opt>
   </jre>
   <splash>
     <file>{SPLASH}</file>

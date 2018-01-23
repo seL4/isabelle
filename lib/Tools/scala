@@ -14,4 +14,5 @@ do
 done
 
 isabelle_scala scala "${SCALA_ARGS[@]}" \
+  "-Djava.ext.dirs=$(platform_path "$ISABELLE_JDK_HOME/jre/lib/ext")" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"

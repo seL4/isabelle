@@ -40,7 +40,7 @@ object Sessions
     val empty: Known = Known()
 
     def make(local_dir: Path, bases: List[Base],
-      sessions: List[String] = Nil,
+      sessions: List[(String, Position.T)] = Nil,
       theories: List[Document.Node.Name] = Nil,
       loaded_files: List[(String, List[Path])] = Nil): Known =
     {
@@ -57,7 +57,7 @@ object Sessions
       }
 
       val known_sessions =
-        (sessions.toSet /: bases)({ case (known, base) => known ++ base.known.sessions })
+        (sessions.toMap /: bases)({ case (known, base) => known ++ base.known.sessions })
 
       val known_theories =
         (Map.empty[String, Document.Node.Name] /: (bases_iterator(false) ++ theories.iterator))({
@@ -96,7 +96,7 @@ object Sessions
   }
 
   sealed case class Known(
-    sessions: Set[String] = Set.empty,
+    sessions: Map[String, Position.T] = Map.empty,
     theories: Map[String, Document.Node.Name] = Map.empty,
     theories_local: Map[String, Document.Node.Name] = Map.empty,
     files: Map[JFile, List[Document.Node.Name]] = Map.empty,
@@ -317,7 +317,7 @@ object Sessions
 
             val known =
               Known.make(info.dir, List(imports_base),
-                sessions = List(info.name),
+                sessions = List(info.name -> info.pos),
                 theories = dependencies.theories,
                 loaded_files = loaded_files)
 

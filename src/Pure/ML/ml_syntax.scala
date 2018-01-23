@@ -56,4 +56,10 @@ object ML_Syntax
 
   def print_list[A](f: A => String)(list: List[A]): String =
     "[" + commas(list.map(f)) + "]"
+
+
+  /* properties */
+
+  def print_properties(props: Properties.T): String =
+    print_list(print_pair(print_string_bytes(_), print_string_bytes(_))(_))(props)
 }
