@@ -8,34 +8,34 @@ begin
 
 locale monoid_list = monoid
 begin
- 
+
 definition F :: "'a list \<Rightarrow> 'a"
 where
   eq_foldr [code]: "F xs = foldr f xs \<^bold>1"
- 
+
 lemma Nil [simp]:
   "F [] = \<^bold>1"
   by (simp add: eq_foldr)
- 
+
 lemma Cons [simp]:
   "F (x # xs) = x \<^bold>* F xs"
   by (simp add: eq_foldr)
- 
+
 lemma append [simp]:
   "F (xs @ ys) = F xs \<^bold>* F ys"
   by (induct xs) (simp_all add: assoc)
- 
+
 end
 
 locale comm_monoid_list = comm_monoid + monoid_list
 begin
- 
+
 lemma rev [simp]:
   "F (rev xs) = F xs"
   by (simp add: eq_foldr foldr_fold  fold_rev fun_eq_iff assoc left_commute)
- 
+
 end
- 
+
 locale comm_monoid_list_set = list: comm_monoid_list + set: comm_monoid_set
 begin
 
@@ -58,7 +58,7 @@ begin
 sublocale sum_list: monoid_list plus 0
 defines
   sum_list = sum_list.F ..
- 
+
 end
 
 context comm_monoid_add
@@ -268,7 +268,7 @@ proof-
   finally show ?thesis by(simp add:sum_list_map_eq_sum_count)
 qed
 
-lemma sum_list_nonneg: 
+lemma sum_list_nonneg:
     "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> sum_list xs \<ge> 0"
   by (induction xs) simp_all
 
@@ -276,17 +276,7 @@ lemma (in monoid_add) sum_list_map_filter':
   "sum_list (map f (filter P xs)) = sum_list (map (\<lambda>x. if P x then f x else 0) xs)"
   by (induction xs) simp_all
 
-lemma sum_list_cong [fundef_cong]:
-  assumes "xs = ys"
-  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = g x"
-  shows    "sum_list (map f xs) = sum_list (map g ys)"
-proof -
-  from assms(2) have "sum_list (map f xs) = sum_list (map g xs)"
-    by (induction xs) simp_all
-  with assms(1) show ?thesis by simp
-qed
-
-text \<open>Summation of a strictly ascending sequence with length \<open>n\<close> 
+text \<open>Summation of a strictly ascending sequence with length \<open>n\<close>
   can be upper-bounded by summation over \<open>{0..<n}\<close>.\<close>
 
 lemma sorted_wrt_less_sum_mono_lowerbound:
@@ -299,17 +289,17 @@ proof (induction ns rule: rev_induct)
   then show ?case by simp
 next
   case (snoc n ns)
-  have "sum f {0..<length (ns @ [n])} 
-      = sum f {0..<length ns} + f (length ns)"    
+  have "sum f {0..<length (ns @ [n])}
+      = sum f {0..<length ns} + f (length ns)"
     by simp
   also have "sum f {0..<length ns} \<le> sum_list (map f ns)"
     using snoc by (auto simp: sorted_wrt_append)
   also have "length ns \<le> n"
-    using sorted_wrt_less_idx[OF snoc.prems(1), of "length ns"] by auto 
+    using sorted_wrt_less_idx[OF snoc.prems(1), of "length ns"] by auto
   finally have "sum f {0..<length (ns @ [n])} \<le> sum_list (map f ns) + f n"
     using mono add_mono by blast
   thus ?case by simp
-qed      
+qed
 
 
 subsection \<open>Further facts about @{const List.n_lists}\<close>
@@ -397,17 +387,7 @@ qed
 
 end
 
-lemma prod_list_cong [fundef_cong]:
-  assumes "xs = ys"
-  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = g x"
-  shows    "prod_list (map f xs) = prod_list (map g ys)"
-proof -
-  from assms(2) have "prod_list (map f xs) = prod_list (map g xs)"
-    by (induction xs) simp_all
-  with assms(1) show ?thesis by simp
-qed
-
-lemma prod_list_zero_iff: 
+lemma prod_list_zero_iff:
   "prod_list xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
   by (induction xs) simp_all
 

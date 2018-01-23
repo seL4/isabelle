@@ -2059,7 +2059,7 @@ proof -
   qed simp
   also have "\<dots> = (\<Sum>(x',p)\<leftarrow>xs. ennreal p * (\<integral>\<^sup>+ x. indicator {x'} x \<partial>count_space UNIV))"
     using assms(1)
-    by (intro sum_list_cong, simp only: case_prod_unfold, subst nn_integral_cmult [symmetric])
+    by (simp cong: map_cong only: case_prod_unfold, subst nn_integral_cmult [symmetric])
        (auto intro!: assms(1) simp: max_def times_ereal.simps [symmetric] mult_ac ereal_indicator
              simp del: times_ereal.simps)+
   also from assms have "\<dots> = sum_list (map snd xs)" by (simp add: case_prod_unfold sum_list_ennreal)
