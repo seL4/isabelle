@@ -338,11 +338,17 @@ trait Protocol
     Symbol.encode_yxml(list(string)(lst))
   }
 
+  private def encode_sessions(lst: List[(String, Position.T)]): String =
+  {
+    import XML.Encode._
+    Symbol.encode_yxml(list(pair(string, properties))(lst))
+  }
+
   def session_base(resources: Resources)
   {
     val base = resources.session_base.standard_path
     protocol_command("Prover.init_session_base",
-      encode_list(base.known.sessions.toList),
+      encode_sessions(base.known.sessions.toList),
       encode_list(base.doc_names),
       encode_table(base.global_theories.toList),
       encode_list(base.loaded_theories.keys),

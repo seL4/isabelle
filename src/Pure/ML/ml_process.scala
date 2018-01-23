@@ -101,8 +101,12 @@ object ML_Process
                 ML_Syntax.print_string_bytes, ML_Syntax.print_string_bytes))(table)
           def print_list(list: List[String]): String =
             ML_Syntax.print_list(ML_Syntax.print_string_bytes)(list)
+          def print_sessions(list: List[(String, Position.T)]): String =
+            ML_Syntax.print_list(
+              ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
+
           List("Resources.init_session_base" +
-            " {sessions = " + print_list(base.known.sessions.toList) +
+            " {sessions = " + print_sessions(base.known.sessions.toList) +
             ", doc_names = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) +

@@ -149,7 +149,7 @@ datatype args = Args of
   name: string,
   master_dir: Path.T,
   theories: (Options.T * (string * Position.T) list) list,
-  sessions: string list,
+  sessions: (string * Properties.T) list,
   doc_names: string list,
   global_theories: (string * string) list,
   loaded_theories: string list,
@@ -168,8 +168,9 @@ fun decode_args yxml =
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
-              (pair (list string) (pair (list string) (pair (list (pair string string)) (pair (list string)
-                (pair (list (pair string string)) (list string)))))))))))))))))
+              (pair (list (pair string properties)) (pair (list string)
+                (pair (list (pair string string)) (pair (list string)
+                  (pair (list (pair string string)) (list string)))))))))))))))))
       (YXML.parse_body yxml);
   in
     Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
@@ -190,7 +191,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
     val _ =
       Resources.init_session_base
         {sessions = sessions,
-         doc_names = doc_names,
+         docs = doc_names,
          global_theories = global_theories,
          loaded_theories = loaded_theories,
          known_theories = known_theories};

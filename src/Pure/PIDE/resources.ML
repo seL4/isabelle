@@ -8,8 +8,8 @@ signature RESOURCES =
 sig
   val default_qualifier: string
   val init_session_base:
-    {sessions: string list,
-     doc_names: string list,
+    {sessions: (string * Properties.T) list,
+     docs: string list,
      global_theories: (string * string) list,
      loaded_theories: string list,
      known_theories: (string * string) list} -> unit
@@ -45,9 +45,14 @@ struct
 
 val default_qualifier = "Draft";
 
+type entry = {pos: Position.T, serial: serial};
+
+fun make_entry props : entry =
+  {pos = Position.of_properties props, serial = serial ()};
+
 val empty_session_base =
-  {sessions = []: string list,
-   doc_names = []: string list,
+  {sessions = []: (string * entry) list,
+   docs = []: (string * entry) list,
    global_theories = Symtab.empty: string Symtab.table,
    loaded_theories = Symtab.empty: unit Symtab.table,
    known_theories = Symtab.empty: Path.T Symtab.table};
@@ -55,11 +60,11 @@ val empty_session_base =
 val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
-fun init_session_base {sessions, doc_names, global_theories, loaded_theories, known_theories} =
+fun init_session_base {sessions, docs, global_theories, loaded_theories, known_theories} =
   Synchronized.change global_session_base
     (fn _ =>
-      {sessions = sort_strings sessions,
-       doc_names = doc_names,
+      {sessions = sort_by #1 (map (apsnd make_entry) sessions),
+       docs = sort_by #1 (map (apsnd make_entry o rpair []) docs),
        global_theories = Symtab.make global_theories,
        loaded_theories = Symtab.make_set loaded_theories,
        known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
@@ -68,7 +73,7 @@ fun finish_session_base () =
   Synchronized.change global_session_base
     (fn {global_theories, loaded_theories, ...} =>
       {sessions = [],
-       doc_names = [],
+       docs = [],
        global_theories = global_theories,
        loaded_theories = loaded_theories,
        known_theories = #known_theories empty_session_base});
@@ -80,23 +85,28 @@ fun loaded_theory a = Symtab.defined (get_session_base #loaded_theories) a;
 fun known_theory a = Symtab.lookup (get_session_base #known_theories) a;
 
 fun check_name which kind markup ctxt (name, pos) =
-  let val names = get_session_base which in
-    if member (op =) names name then
-      (Context_Position.report ctxt pos (markup name); name)
-    else
-      let
-        val completion =
-          Completion.make (name, pos) (fn completed =>
-              names
-              |> filter completed
-              |> sort_strings
-              |> map (fn a => (a, (kind, a))));
-        val report = Markup.markup_report (Completion.reported_text completion);
-      in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ report) end
+  let val entries = get_session_base which in
+    (case AList.lookup (op =) entries name of
+      SOME entry => (Context_Position.report ctxt pos (markup name entry); name)
+    | NONE =>
+        let
+          val completion =
+            Completion.make (name, pos) (fn completed =>
+                entries
+                |> map #1
+                |> filter completed
+                |> sort_strings
+                |> map (fn a => (a, (kind, a))));
+          val report = Markup.markup_report (Completion.reported_text completion);
+        in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ report) end)
   end;
 
-val check_session = check_name #sessions "session" (Markup.entity Markup.sessionN);
-val check_doc = check_name #doc_names "documentation" Markup.doc;
+fun markup_session name {pos, serial} =
+  Markup.properties
+    (Position.entity_properties_of false serial pos) (Markup.entity Markup.sessionN name);
+
+val check_session = check_name #sessions "session" markup_session;
+val check_doc = check_name #docs "documentation" (fn name => fn _ => Markup.doc name);
 
 
 
