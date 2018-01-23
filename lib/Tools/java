@@ -10,4 +10,5 @@ eval "declare -a JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
 unset CLASSPATH
 
 isabelle_java java "${JAVA_ARGS[@]}" \
+  "-Djava.ext.dirs=$(platform_path "$ISABELLE_JDK_HOME/jre/lib/ext")" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"
