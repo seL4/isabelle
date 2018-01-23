@@ -20,11 +20,7 @@ source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 # Java runtime options
 
 ISABELLE_NAME="$(basename "$0" .run)"
-if [ -z "$ISABELLE_PLATFORM64" ]; then
-  declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/${ISABELLE_NAME}.options32"))
-else
-  declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/${ISABELLE_NAME}.options64"))
-fi
+declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/${ISABELLE_NAME}.options"))
 
 
 # main
@@ -32,9 +28,9 @@ fi
 #paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
 unset XMODIFIERS
 
-exec "$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/jre/bin/java" \
+exec "$ISABELLE_HOME/contrib/jdk/x86_64-linux/jre/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
-  "-Djava.ext.dirs=$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/jre/lib/ext" \
+  "-Djava.ext.dirs=$ISABELLE_HOME/contrib/jdk/x86_64-linux/jre/lib/ext" \
   -classpath "{CLASSPATH}" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
   isabelle.Main "$@"
