@@ -22,8 +22,8 @@ sig
   val local_theory_to_proof: command_keyword -> string ->
     (local_theory -> Proof.state) parser -> unit
   val bootstrap: bool Config.T
-  val parse: theory -> Position.T -> string -> Toplevel.transition list
   val parse_tokens: theory -> Token.T list -> Toplevel.transition list
+  val parse: theory -> Position.T -> string -> Toplevel.transition list
   val parse_spans: Token.T list -> Command_Span.span list
   val command_reports: theory -> Token.T -> Position.report_text list
   val check_command: Proof.context -> command_keyword -> string
@@ -209,23 +209,18 @@ fun parse_command thy =
             in msg ^ quote (Markup.markup Markup.keyword1 name) end))
     end);
 
-fun commands_source thy =
-  Token.source_proper #>
-  Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command thy) xs));
-
 in
 
-fun parse thy pos =
-  Symbol.explode
+fun parse_tokens thy =
+  filter Token.is_proper
   #> Source.of_list
-  #> Token.source (Thy_Header.get_keywords thy) pos
-  #> commands_source thy
+  #> Source.source Token.stopper (Scan.bulk (fn xs => Parse.!!! (parse_command thy) xs))
   #> Source.exhaust;
 
-fun parse_tokens thy =
-  Source.of_list
-  #> commands_source thy
-  #> Source.exhaust;
+fun parse thy pos text =
+  Symbol_Pos.explode (text, pos)
+  |> Token.tokenize (Thy_Header.get_keywords thy) {strict = false}
+  |> parse_tokens thy;
 
 end;
 
