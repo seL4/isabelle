@@ -92,7 +92,9 @@ sig
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   val read_cartouche: Symbol_Pos.T list -> T
+  val tokenize: Keyword.keywords -> Symbol_Pos.T list -> T list
   val explode: Keyword.keywords -> Position.T -> string -> T list
+  val explode0: Keyword.keywords -> string -> T list
   val print_name: Keyword.keywords -> string -> string
   val make: (int * int) * string -> Position.T -> T * Position.T
   val make_string: string * Position.T -> T
@@ -669,11 +671,13 @@ end;
 
 (* explode *)
 
-fun explode keywords pos =
-  Symbol.explode #>
-  Source.of_list #>
-  source keywords pos #>
-  Source.exhaust;
+fun tokenize keywords syms =
+  Source.of_list syms |> source' false keywords |> Source.exhaust;
+
+fun explode keywords pos text =
+  Symbol_Pos.explode (text, pos) |> tokenize keywords;
+
+fun explode0 keywords = explode keywords Position.none;
 
 
 (* print name in parsable form *)

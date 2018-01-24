@@ -184,7 +184,7 @@ val theory_text_antiquotation =
           |> Context_Position.reports_text ctxt;
       in
         prepare_text ctxt text
-        |> Token.explode keywords Position.none
+        |> Token.explode0 keywords
         |> maps (Thy_Output.output_token ctxt)
         |> Thy_Output.isabelle ctxt
       end);
