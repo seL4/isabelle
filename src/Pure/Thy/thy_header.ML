@@ -23,8 +23,8 @@ sig
   val is_base_name: string -> bool
   val import_name: string -> string
   val args: header parser
+  val read_tokens: Position.T -> Token.T list -> header
   val read: Position.T -> string -> header
-  val read_tokens: Token.T list -> header
 end;
 
 structure Thy_Header: THY_HEADER =
@@ -174,27 +174,35 @@ val heading =
     Parse.command_name text_rawN) --
   Parse.tags -- Parse.!!! Parse.document_source;
 
-val header =
+val parse_header =
   (Scan.repeat heading -- Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 
-fun token_source pos =
-  Symbol.explode
-  #> Source.of_list
-  #> Token.source_strict bootstrap_keywords pos;
+fun read_tokens pos toks =
+  filter Token.is_proper toks
+  |> Source.of_list
+  |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! parse_header)))
+  |> Source.get_single
+  |> (fn SOME (header, _) => header | NONE => error ("Unexpected end of input" ^ Position.here pos));
 
-fun read_source pos source =
-  let val res =
-    source
-    |> Token.source_proper
-    |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header)))
-    |> Source.get_single;
-  in
-    (case res of
-      SOME (h, _) => h
-    | NONE => error ("Unexpected end of input" ^ Position.here pos))
-  end;
+local
 
-fun read pos str = read_source pos (token_source pos str);
-fun read_tokens toks = read_source Position.none (Source.of_list toks);
+fun read_header pos text =
+  Symbol_Pos.explode (text, pos)
+  |> Token.tokenize bootstrap_keywords {strict = false}
+  |> read_tokens pos;
+
+val approx_length = 1024;
+
+in
+
+fun read pos text =
+  if size text <= approx_length then read_header pos text
+  else
+    let val approx_text = String.substring (text, 0, approx_length) in
+      if String.isSuffix "begin" approx_text then read_header pos text
+      else (read_header pos approx_text handle ERROR _ => read_header pos text)
+    end;
+
+end;
 
 end;

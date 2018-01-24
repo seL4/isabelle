@@ -131,7 +131,8 @@ fun read_header node span =
         | SOME id => Protocol_Message.command_positions_yxml id)
         |> error;
     val {name = (name, _), imports, ...} = header;
-    val {name = (_, pos), imports = imports', keywords} = Thy_Header.read_tokens span;
+    val {name = (_, pos), imports = imports', keywords} =
+      Thy_Header.read_tokens Position.none span;
     val imports'' = (map #1 imports ~~ map #2 imports') handle ListPair.UnequalLengths => imports;
   in Thy_Header.make (name, pos) imports'' keywords end;
 
