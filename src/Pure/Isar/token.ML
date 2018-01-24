@@ -93,7 +93,7 @@ sig
   val make_src: string * Position.T -> T list -> src
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
-  val read_no_commands: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a list
+  val read_body: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a list
   val read_antiq: Keyword.keywords -> 'a parser -> Symbol_Pos.T list * Position.T -> 'a
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
@@ -707,22 +707,21 @@ type 'a parser = T list -> 'a * T list;
 type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list);
 
 
-(* read antiquotation source *)
+(* read body -- e.g. antiquotation source *)
 
-fun read_no_commands keywords scan syms =
-  Source.of_list syms
-  |> make_source (Keyword.no_command_keywords keywords) {strict = true}
-  |> Source.filter is_proper
-  |> Source.source stopper (Scan.error (Scan.bulk scan))
-  |> Source.exhaust;
+fun read_body keywords scan =
+  tokenize (Keyword.no_command_keywords keywords) {strict = true}
+  #> filter is_proper
+  #> Source.of_list
+  #> Source.source stopper (Scan.error (Scan.bulk scan))
+  #> Source.exhaust;
 
 fun read_antiq keywords scan (syms, pos) =
-  let
-    fun err msg =
-      cat_error msg ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
-        "@{" ^ Symbol_Pos.content syms ^ "}");
-    val res = read_no_commands keywords scan syms handle ERROR msg => err msg;
-  in (case res of [x] => x | _ => err "") end;
+  (case read_body keywords scan syms of
+    [x] => x
+  | _ =>
+      error ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
+        "@{" ^ Symbol_Pos.content syms ^ "}"));
 
 
 (* wrapped syntax *)

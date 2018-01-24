@@ -777,9 +777,9 @@ fun read_closure ctxt src0 =
   in (text, src2) end;
 
 fun read_closure_input ctxt =
-  Input.source_explode #>
-  Token.read_no_commands (Thy_Header.get_keywords' ctxt) (Scan.one Token.not_eof) #>
-  read_closure ctxt;
+  Input.source_explode
+  #> Token.read_body (Thy_Header.get_keywords' ctxt) (Scan.one Token.not_eof)
+  #> read_closure ctxt;
 
 val text_closure =
   Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>
