@@ -82,13 +82,6 @@ sig
   val check_src: Proof.context -> (Proof.context -> 'a Name_Space.table) -> src -> src * 'a
   val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
-  val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
-  val source: Keyword.keywords ->
-    Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
-      (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
-  val source_strict: Keyword.keywords ->
-    Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
-      (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
   val read_cartouche: Symbol_Pos.T list -> T
   val tokenize: Keyword.keywords -> {strict: bool} -> Symbol_Pos.T list -> T list
   val explode: Keyword.keywords -> Position.T -> string -> T list
@@ -606,8 +599,6 @@ val scan_comment =
 
 (** token sources **)
 
-fun source_proper src = src |> Source.filter is_proper;
-
 local
 
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
@@ -655,12 +646,6 @@ fun make_source keywords {strict} =
     val scan_strict = Scan.bulk (scan_token keywords);
     val scan = if strict then scan_strict else Scan.recover scan_strict recover;
   in Source.source Symbol_Pos.stopper scan end;
-
-fun source keywords pos src =
-  Symbol_Pos.source pos src |> make_source keywords {strict = false};
-
-fun source_strict keywords pos src =
-  Symbol_Pos.source pos src |> make_source keywords {strict = true};
 
 fun read_cartouche syms =
   (case Scan.read Symbol_Pos.stopper (scan_cartouche >> token_range Cartouche) syms of
@@ -727,7 +712,7 @@ type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T l
 fun read_no_commands keywords scan syms =
   Source.of_list syms
   |> make_source (Keyword.no_command_keywords keywords) {strict = true}
-  |> source_proper
+  |> Source.filter is_proper
   |> Source.source stopper (Scan.error (Scan.bulk scan))
   |> Source.exhaust;
 
