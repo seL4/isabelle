@@ -126,10 +126,10 @@ fun thms_of_name ctxt name =
     val get = maps (Proof_Context.get_fact ctxt o fst)
     val keywords = Thy_Header.get_keywords' ctxt
   in
-    Symbol.explode name
+    Symbol_Pos.explode (name, Position.start)
+    |> Token.tokenize keywords {strict = false}
+    |> filter Token.is_proper
     |> Source.of_list
-    |> Token.source keywords Position.start
-    |> Token.source_proper
     |> Source.source Token.stopper (Parse.thms1 >> get)
     |> Source.exhaust
   end
