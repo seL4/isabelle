@@ -177,9 +177,7 @@ val theory_text_antiquotation =
         val _ = report_text ctxt text;
         val _ =
           Input.source_explode text
-          |> Source.of_list
-          |> Token.source' true keywords
-          |> Source.exhaust
+          |> Token.tokenize keywords {strict = true}
           |> maps (Token.reports keywords)
           |> Context_Position.reports_text ctxt;
       in
