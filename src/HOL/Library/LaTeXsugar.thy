@@ -100,8 +100,8 @@ setup \<open>
   Thy_Output.antiquotation_pretty_source \<^binding>\<open>const_typ\<close> (Scan.lift Args.embedded_inner_syntax)
     (fn ctxt => fn c =>
       let val tc = Proof_Context.read_const {proper = true, strict = false} ctxt c in
-        [Pretty.block [Thy_Output.pretty_term ctxt tc, Pretty.str " ::",
-          Pretty.brk 1, Syntax.pretty_typ ctxt (fastype_of tc)]]
+        Pretty.block [Thy_Output.pretty_term ctxt tc, Pretty.str " ::",
+          Pretty.brk 1, Syntax.pretty_typ ctxt (fastype_of tc)]
       end)
 \<close>
 

@@ -998,10 +998,10 @@ fun fp_antiquote_setup binding =
            fun pretty_ctr ctr =
              Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
                map pretty_typ_bracket (binder_types (fastype_of ctr))));
-           val pretty_co_datatype =
-             Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
-               Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
-               flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)));
-         in [pretty_co_datatype] end));
+         in
+           Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
+             Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
+             flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
+         end));
 
 end;

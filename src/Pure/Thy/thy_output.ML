@@ -15,18 +15,20 @@ sig
     Token.T list -> Latex.text list
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
-  val lines: Latex.text list -> Latex.text list
+  val items: Latex.text list -> Latex.text list
   val isabelle: Proof.context -> Latex.text list -> Latex.text
   val isabelle_typewriter: Proof.context -> Latex.text list -> Latex.text
   val typewriter: Proof.context -> string -> Latex.text
   val verbatim: Proof.context -> string -> Latex.text
   val source: Proof.context -> Token.src -> Latex.text
-  val pretty: Proof.context -> Pretty.T list -> Latex.text
-  val pretty_source: Proof.context -> Token.src -> Pretty.T list -> Latex.text
+  val pretty: Proof.context -> Pretty.T -> Latex.text
+  val pretty_source: Proof.context -> Token.src -> Pretty.T -> Latex.text
+  val pretty_items: Proof.context -> Pretty.T list -> Latex.text
+  val pretty_items_source: Proof.context -> Token.src -> Pretty.T list -> Latex.text
   val antiquotation_pretty:
-    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T list) -> theory -> theory
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
   val antiquotation_pretty_source:
-    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T list) -> theory -> theory
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
   val antiquotation_raw:
     binding -> 'a context_parser -> (Proof.context -> 'a -> Latex.text) -> theory -> theory
   val antiquotation_verbatim:
@@ -444,7 +446,7 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 (* default output *)
 
-val lines = separate (Latex.string "\\isasep\\isanewline%\n");
+val items = separate (Latex.string "\\isasep\\isanewline%\n");
 
 fun isabelle ctxt body =
   if Config.get ctxt Document_Antiquotation.thy_output_display
@@ -462,7 +464,7 @@ fun typewriter ctxt s =
 fun verbatim ctxt =
   if Config.get ctxt Document_Antiquotation.thy_output_display
   then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
-  else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
+  else split_lines #> map (typewriter ctxt) #> items #> Latex.block;
 
 fun source ctxt =
   Token.args_of_src
@@ -472,11 +474,18 @@ fun source ctxt =
   #> isabelle ctxt;
 
 fun pretty ctxt =
-  map (Document_Antiquotation.output ctxt #> Latex.string) #> lines #> isabelle ctxt;
+  Document_Antiquotation.output ctxt #> Latex.string #> single #> isabelle ctxt;
 
-fun pretty_source ctxt src prts =
+fun pretty_source ctxt src prt =
   if Config.get ctxt Document_Antiquotation.thy_output_source
-  then source ctxt src else pretty ctxt prts;
+  then source ctxt src else pretty ctxt prt;
+
+fun pretty_items ctxt =
+  map (Document_Antiquotation.output ctxt #> Latex.string) #> items #> isabelle ctxt;
+
+fun pretty_items_source ctxt src prts =
+  if Config.get ctxt Document_Antiquotation.thy_output_source
+  then source ctxt src else pretty_items ctxt prts;
 
 
 (* antiquotation variants *)

@@ -15,7 +15,7 @@ val _ =
       let
         val thy = Proof_Context.theory_of ctxt;
         val class = Sign.intern_class thy s;
-      in Class.pretty_specification thy class end));
+      in Pretty.chunks (Class.pretty_specification thy class) end));
 
 
 (* code theorem antiquotation *)
@@ -40,6 +40,6 @@ val _ =
           |> these
           |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
           |> map (holize o no_vars ctxt o Axclass.overload ctxt);
-      in map (Thy_Output.pretty_thm ctxt) thms end));
+      in Pretty.chunks (map (Thy_Output.pretty_thm ctxt) thms) end));
 
 end;

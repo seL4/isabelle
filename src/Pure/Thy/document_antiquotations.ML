@@ -16,8 +16,8 @@ type style = term -> term;
 fun pretty_term_style ctxt (style: style, t) =
   Thy_Output.pretty_term ctxt (style t);
 
-fun pretty_thm_style ctxt (style: style, th) =
-  Thy_Output.pretty_term ctxt (style (Thm.full_prop_of th));
+fun pretty_thms_style ctxt (style: style, ths) =
+  map (fn th => Thy_Output.pretty_term ctxt (style (Thm.full_prop_of th))) ths;
 
 fun pretty_term_typ ctxt (style: style, t) =
   let val t' = style t
@@ -62,20 +62,17 @@ fun pretty_prf full ctxt = Proof_Syntax.pretty_clean_proof_of ctxt full;
 
 fun pretty_theory ctxt (name, pos) = (Theory.check ctxt (name, pos); Pretty.str name);
 
+val basic_entity = Thy_Output.antiquotation_pretty_source;
+
 fun basic_entities name scan pretty =
-  Thy_Output.antiquotation_pretty_source name scan (map o pretty);
-
-fun basic_entities_style name scan pretty =
-  Thy_Output.antiquotation_pretty_source name scan
-    (fn ctxt => fn (style: style, xs) => map (fn x => pretty ctxt (style, x)) xs);
-
-fun basic_entity name scan = basic_entities name (scan >> single);
+  Document_Antiquotation.setup name scan
+    (fn {context = ctxt, source = src, argument = xs} =>
+      Thy_Output.pretty_items_source ctxt src (map (pretty ctxt) xs));
 
 in
 
 val _ = Theory.setup
- (basic_entities_style \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
-  basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
+ (basic_entity \<^binding>\<open>prop\<close> (Term_Style.parse -- Args.prop) pretty_term_style #>
   basic_entity \<^binding>\<open>term\<close> (Term_Style.parse -- Args.term) pretty_term_style #>
   basic_entity \<^binding>\<open>term_type\<close> (Term_Style.parse -- Args.term) pretty_term_typ #>
   basic_entity \<^binding>\<open>typeof\<close> (Term_Style.parse -- Args.term) pretty_term_typeof #>
@@ -85,9 +82,12 @@ val _ = Theory.setup
   basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.name)) pretty_locale #>
   basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
   basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded) pretty_type #>
+  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.name)) pretty_theory #>
   basic_entities \<^binding>\<open>prf\<close> Attrib.thms (pretty_prf false) #>
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
-  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.name)) pretty_theory);
+  Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
+    (fn {context = ctxt, source = src, argument = arg} =>
+      Thy_Output.pretty_items_source ctxt src (pretty_thms_style ctxt arg)));
 
 end;
 
@@ -207,9 +207,9 @@ local
 fun goal_state name main =
   Thy_Output.antiquotation_pretty name (Scan.succeed ())
     (fn ctxt => fn () =>
-      [Goal_Display.pretty_goal
+      Goal_Display.pretty_goal
         (Config.put Goal_Display.show_main_goal main ctxt)
-        (#goal (Proof.goal (Toplevel.proof_of (Toplevel.presentation_state ctxt))))]);
+        (#goal (Proof.goal (Toplevel.proof_of (Toplevel.presentation_state ctxt)))));
 
 in
 
@@ -237,7 +237,7 @@ val _ = Theory.setup
         val _ = ctxt
           |> Proof.theorem NONE (K I) [[(prop, [])]]
           |> Proof.global_terminal_proof (m1, m2);
-      in Thy_Output.pretty_source ctxt [hd src, prop_tok] [Thy_Output.pretty_term ctxt prop] end));
+      in Thy_Output.pretty_source ctxt [hd src, prop_tok] (Thy_Output.pretty_term ctxt prop) end));
 
 
 (* verbatim text *)

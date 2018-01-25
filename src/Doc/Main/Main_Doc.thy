@@ -8,11 +8,11 @@ setup \<open>
     (fn ctxt => fn (t, T) =>
       (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
        else error "term_type_only: type mismatch";
-       [Syntax.pretty_typ ctxt T]))
+       Syntax.pretty_typ ctxt T))
 \<close>
 setup \<open>
   Thy_Output.antiquotation_pretty_source @{binding expanded_typ} Args.typ
-    (fn ctxt => fn T => [Syntax.pretty_typ ctxt T])
+    Syntax.pretty_typ
 \<close>
 (*>*)
 text\<open>
