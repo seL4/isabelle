@@ -95,7 +95,8 @@ object ML_Lex
 
     private val str =
       one(character(c => c != '"' && c != '\\' && ' ' <= c && c <= '~')) |
-      one(s => Symbol.is_symbolic(s) | Symbol.is_control(s)) |
+      one(s =>
+        Symbol.is_open(s) || Symbol.is_close(s) || Symbol.is_symbolic(s) || Symbol.is_control(s)) |
       "\\" ~ escape ^^ { case x ~ y => x + y }
 
 
