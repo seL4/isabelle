@@ -217,7 +217,7 @@ public option spell_checker_dictionary : string = "en"
 public option spell_checker_include : string = "words,comment,inner_comment,ML_comment,SML_comment"
   -- "included markup elements for spell-checker (separated by commas)"
 
-public option spell_checker_exclude : string = "antiquoted"
+public option spell_checker_exclude : string = "no_words,antiquoted"
   -- "excluded markup elements for spell-checker (separated by commas)"
 
 

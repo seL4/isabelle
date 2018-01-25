@@ -7,7 +7,7 @@ Formal comments.
 signature COMMENT =
 sig
   datatype kind = Comment | Cancel | Latex
-  val markup: kind -> Markup.T
+  val markups: kind -> Markup.T list
   val scan_comment: (kind * Symbol_Pos.T list) scanner
   val scan_cancel: (kind * Symbol_Pos.T list) scanner
   val scan_latex: (kind * Symbol_Pos.T list) scanner
@@ -23,13 +23,19 @@ struct
 datatype kind = Comment | Cancel | Latex;
 
 val kinds =
-  [(Comment, {symbol = Symbol.comment, blanks = true, markup = Markup.language_document true}),
-   (Cancel, {symbol = Symbol.cancel, blanks = false, markup = Markup.language_text true}),
-   (Latex, {symbol = Symbol.latex, blanks = false, markup = Markup.language_latex true})];
+  [(Comment,
+     {symbol = Symbol.comment, blanks = true,
+      markups = [Markup.language_document true]}),
+   (Cancel,
+     {symbol = Symbol.cancel, blanks = false,
+      markups = [Markup.language_text true]}),
+   (Latex,
+     {symbol = Symbol.latex, blanks = false,
+      markups = [Markup.language_latex true, Markup.no_words]})];
 
 val get_kind = the o AList.lookup (op =) kinds;
 val print_kind = quote o #symbol o get_kind;
-val markup = #markup o get_kind;
+val markups = #markups o get_kind;
 
 fun is_symbol sym = exists (fn (_, {symbol, ...}) => symbol = sym) kinds;
 

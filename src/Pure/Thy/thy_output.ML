@@ -147,7 +147,7 @@ fun check_comments ctxt =
       val pos = #1 (Symbol_Pos.range syms);
       val _ =
         comment |> Option.app (fn kind =>
-          Context_Position.reports ctxt [(pos, Comment.markup kind), (pos, Markup.cartouche)]);
+          Context_Position.reports ctxt (map (pair pos) (Markup.cartouche :: Comment.markups kind)));
       val _ = output_symbols_comment ctxt {antiq = false} (comment, syms);
     in if comment = SOME Comment.Comment then check_comments ctxt syms else () end);
 
