@@ -776,10 +776,12 @@ fun read_closure ctxt src0 =
     val src2 = map Token.closure src1;
   in (text, src2) end;
 
-fun read_closure_input ctxt =
-  Input.source_explode
-  #> Token.read_body (Thy_Header.get_keywords' ctxt) (Scan.one Token.not_eof)
-  #> read_closure ctxt;
+fun read_closure_input ctxt input =
+  let val syms = Input.source_explode input in
+    (case Token.read_body (Thy_Header.get_keywords' ctxt) (Scan.many Token.not_eof) syms of
+      SOME res => read_closure ctxt res
+    | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)))
+  end;
 
 val text_closure =
   Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>
