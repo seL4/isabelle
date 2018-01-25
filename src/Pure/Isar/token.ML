@@ -719,9 +719,7 @@ fun read_body keywords scan =
 fun read_antiq keywords scan (syms, pos) =
   (case read_body keywords scan syms of
     [x] => x
-  | _ =>
-      error ("Malformed antiquotation" ^ Position.here pos ^ ":\n" ^
-        "@{" ^ Symbol_Pos.content syms ^ "}"));
+  | _ => error ("Malformed antiquotation" ^ Position.here pos));
 
 
 (* wrapped syntax *)
