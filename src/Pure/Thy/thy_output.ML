@@ -15,6 +15,7 @@ sig
     Token.T list -> Latex.text list
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
+  val lines: Latex.text list -> Latex.text list
   val items: Latex.text list -> Latex.text list
   val isabelle: Proof.context -> Latex.text list -> Latex.text
   val isabelle_typewriter: Proof.context -> Latex.text list -> Latex.text
@@ -446,6 +447,7 @@ fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 (* default output *)
 
+val lines = separate (Latex.string "\\isanewline%\n");
 val items = separate (Latex.string "\\isasep\\isanewline%\n");
 
 fun isabelle ctxt body =
@@ -464,7 +466,7 @@ fun typewriter ctxt s =
 fun verbatim ctxt =
   if Config.get ctxt Document_Antiquotation.thy_output_display
   then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
-  else split_lines #> map (typewriter ctxt) #> items #> Latex.block;
+  else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
 
 fun source ctxt =
   Token.args_of_src
