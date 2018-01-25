@@ -14,6 +14,10 @@ New in this Isabelle version
 supported. INCOMPATIBILITY, use the command-line tool "isabelle
 update_comments" to update existing theory files.
 
+* Old-style inner comments (* ... *) within the term language are legacy
+and will be discontinued soon: use formal comments "\<comment> \<open>...\<close>" or "\<^cancel>\<open>...\<close>"
+instead.
+
 * The "op <infix-op>" syntax for infix operators has been replaced by
 "(<infix-op>)". If <infix-op> begins or ends with a "*", there needs to
 be a space between the "*" and the corresponding parenthesis.
