@@ -136,11 +136,6 @@ are supported:
   - canceled source: \<^cancel>\<open>\<dots>\<close>
   - raw LaTeX: \<^latex>\<open>\<dots>\<close>
 
-* Embedded languages such as inner syntax and ML may contain formal
-comments of the form "\<comment> \<open>text\<close>". As in marginal comments of outer
-syntax, antiquotations are interpreted wrt. the presentation context of
-the enclosing command.
-
 * Outside of the inner theory body, the default presentation context is
 theory Pure. Thus elementary antiquotations may be used in markup
 commands (e.g. 'chapter', 'section', 'text') and formal comments.
