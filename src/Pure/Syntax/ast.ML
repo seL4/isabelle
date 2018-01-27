@@ -64,7 +64,7 @@ fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Appl asts) = Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
 fun pretty_rule (lhs, rhs) =
-  Pretty.block [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs];
+  Pretty.block [pretty_ast lhs, Pretty.str " \<leadsto>", Pretty.brk 1, pretty_ast rhs];
 
 val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_ast);
 
