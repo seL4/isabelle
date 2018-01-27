@@ -395,7 +395,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 fun pretty_gram (Gram {tags, prods, chains, ...}) =
   let
     val print_nt = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
-    fun print_pri p = if p < 0 then "" else Symbol.make_sup ("(" ^ signed_string_of_int p ^ ")");
+    fun print_pri p = if p < 0 then "" else Symbol.make_sup ("(" ^ string_of_int p ^ ")");
 
     fun pretty_symb (Terminal (Lexicon.Token (kind, s, _))) =
           if kind = Lexicon.Literal then Pretty.quote (Pretty.keyword1 s) else Pretty.str s
