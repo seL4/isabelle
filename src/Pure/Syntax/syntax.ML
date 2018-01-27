@@ -573,8 +573,9 @@ fun pretty_gram (Syntax (tabs, _)) =
     val {lexicon, prmodes, gram, ...} = tabs;
     val prmodes' = sort_strings (filter_out (fn s => s = "") prmodes);
   in
-    [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
-      Pretty.big_list "prods:" (Parser.pretty_gram (Lazy.force gram)),
+    [Pretty.block (Pretty.breaks
+      (Pretty.str "lexicon:" :: map (Pretty.quote o Pretty.keyword1) (Scan.dest_lexicon lexicon))),
+      Pretty.big_list "productions:" (Parser.pretty_gram (Lazy.force gram)),
       pretty_strs_qs "print modes:" prmodes']
   end;
 

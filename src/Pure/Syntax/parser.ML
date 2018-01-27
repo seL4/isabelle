@@ -402,34 +402,25 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
 fun pretty_gram (Gram {tags, prods, chains, ...}) =
   let
-    fun pretty_name name = [Pretty.str (name ^ " =")];
+    val print_nt = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
+    fun print_pri p = if p < 0 then "" else Symbol.make_sup ("(" ^ signed_string_of_int p ^ ")");
 
-    val nt_name = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
-
-    fun pretty_symb (Terminal (Lexicon.Token (Lexicon.Literal, s, _))) = Pretty.quote (Pretty.str s)
-      | pretty_symb (Terminal tok) = Pretty.str (Lexicon.str_of_token tok)
-      | pretty_symb (Nonterminal (tag, p)) =
-          Pretty.str (nt_name tag ^ "[" ^ signed_string_of_int p ^ "]");
+    fun pretty_symb (Terminal (Lexicon.Token (kind, s, _))) =
+          if kind = Lexicon.Literal then Pretty.quote (Pretty.keyword1 s) else Pretty.str s
+      | pretty_symb (Nonterminal (tag, p)) = Pretty.str (print_nt tag ^ print_pri p);
 
     fun pretty_const "" = []
-      | pretty_const c = [Pretty.str ("=> " ^ quote c)];
+      | pretty_const c = [Pretty.str ("\<^bold>\<Rightarrow> " ^ quote c)];
 
-    fun pretty_pri p = [Pretty.str ("(" ^ signed_string_of_int p ^ ")")];
+    fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
-    fun pretty_prod name (symbs, const, pri) =
-      Pretty.block (Pretty.breaks (pretty_name name @
-        map pretty_symb symbs @ pretty_const const @ pretty_pri pri));
-
-    fun pretty_nt (name, tag) =
-      let
-        fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
-
-        val nt_prods =
-          fold (union (op =) o snd) (snd (Vector.sub (prods, tag))) [] @
-            map prod_of_chain (these (AList.lookup (op =) chains tag));
-      in map (pretty_prod name) nt_prods end;
-
-  in maps pretty_nt (sort_by fst (Symtab.dest tags)) end;
+    fun pretty_prod (name, tag) =
+      (fold (union (op =) o #2) (#2 (Vector.sub (prods, tag))) [] @
+        map prod_of_chain (these (AList.lookup (op =) chains tag)))
+      |> map (fn (symbs, const, p) =>
+          Pretty.block (Pretty.breaks
+            (Pretty.str (name ^ print_pri p ^ " =") :: map pretty_symb symbs @ pretty_const const)));
+  in maps pretty_prod (sort_by #1 (Symtab.dest tags)) end;
 
 
 

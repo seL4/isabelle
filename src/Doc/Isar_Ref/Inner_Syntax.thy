@@ -850,12 +850,11 @@ text \<open>
     \<^descr> \<open>lexicon\<close> lists the delimiters of the inner token language; see
     \secref{sec:inner-lex}.
 
-    \<^descr> \<open>prods\<close> lists the productions of the underlying priority grammar; see
-    \secref{sec:priority-grammar}.
+    \<^descr> \<open>productions\<close> lists the productions of the underlying priority grammar;
+    see \secref{sec:priority-grammar}.
 
-    The nonterminal \<open>A\<^sup>(\<^sup>p\<^sup>)\<close> is rendered in plain text as \<open>A[p]\<close>; delimiters
-    are quoted. Many productions have an extra \<open>\<dots> => name\<close>. These names later
-    become the heads of parse trees; they also guide the pretty printer.
+    Many productions have an extra \<open>\<dots> \<^bold>\<Rightarrow> name\<close>. These names later become the
+    heads of parse trees; they also guide the pretty printer.
 
     Productions without such parse tree names are called \<^emph>\<open>copy productions\<close>.
     Their right-hand side must have exactly one nonterminal symbol (or named
@@ -866,8 +865,7 @@ text \<open>
     nonterminal without any delimiters, then it is called a \<^emph>\<open>chain
     production\<close>. Chain productions act as abbreviations: conceptually, they
     are removed from the grammar by adding new productions. Priority
-    information attached to chain productions is ignored; only the dummy value
-    \<open>-1\<close> is displayed.
+    information attached to chain productions is ignored.
 
     \<^descr> \<open>print modes\<close> lists the alternative print modes provided by this
     grammar; see \secref{sec:print-modes}.
