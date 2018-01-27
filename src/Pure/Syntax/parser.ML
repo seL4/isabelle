@@ -45,12 +45,12 @@ datatype gram =
    {nt_count: int,
     prod_count: int,
     tags: nt_tag Symtab.table,
-    chains: (nt_tag * nt_tag list) list,  (*[(to, [from])]*)
+    chains: unit Int_Graph.T,
     lambdas: nt_tag list,
     prods: nt_gram Vector.vector};
     (*"tags" is used to map NT names (i.e. strings) to tags;
      chain productions are not stored as normal productions
-     but instead as an entry in "chains";
+     but instead as an entry in "chains": from -> to;
      lambda productions are stored as normal productions
      and also as an entry in "lambdas"*)
 
@@ -64,41 +64,32 @@ val unknown_start = Lexicon.eof;
 fun get_start (tok :: _) = tok
   | get_start [] = unknown_start;
 
-(*get all NTs that are connected with a list of NTs*)
-fun connected_with _ ([]: nt_tag list) relatives = relatives
-  | connected_with chains (root :: roots) relatives =
-      let val branches = subtract (op =) relatives (these (AList.lookup (op =) chains root));
-      in connected_with chains (branches @ roots) (branches @ relatives) end;
-
 (*convert productions to grammar;
-  N.B. that the chains parameter has the form [(from, [to])];
   prod_count is of type "int option" and is only updated if it is <> NONE*)
 fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
   | add_prods prods chains lambdas prod_count ((lhs, new_prod as (rhs, _, pri)) :: ps) =
       let
-        val chain_from =
-          (case (pri, rhs) of
-            (~1, [Nonterminal (id, ~1)]) => SOME id
-          | _ => NONE);
-
         (*store chain if it does not already exist*)
-        val (new_chain, chains') =
-          (case chain_from of
-            NONE => (NONE, chains)
-          | SOME from =>
-              let val old_tos = these (AList.lookup (op =) chains from) in
-                if member (op =) old_tos lhs then (NONE, chains)
-                else (SOME from, AList.update (op =) (from, insert (op =) lhs old_tos) chains)
-              end);
+        val (chain, new_chain, chains') =
+          (case (pri, rhs) of
+            (~1, [Nonterminal (from, ~1)]) =>
+              if Int_Graph.is_edge chains (from, lhs)
+              then (SOME from, false, chains)
+              else (SOME from, true,
+                chains
+                |> Int_Graph.default_node (from, ())
+                |> Int_Graph.default_node (lhs, ())
+                |> Int_Graph.add_edge (from, lhs))
+          | _ => (NONE, false, chains |> Int_Graph.default_node (lhs, ())));
 
         (*propagate new chain in lookahead and lambda lists;
           added_starts is used later to associate existing
           productions with new starting tokens*)
         val (added_starts, lambdas') =
-          if is_none new_chain then ([], lambdas)
+          if not new_chain then ([], lambdas)
           else
             let (*lookahead of chain's source*)
-              val ((_, from_tks), _) = Array.sub (prods, the new_chain);
+              val ((_, from_tks), _) = Array.sub (prods, the chain);
 
               (*copy from's lookahead to chain's destinations*)
               fun copy_lookahead [] added = added
@@ -112,7 +103,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       copy_lookahead tos (if null new_tks then added else (to, new_tks) :: added)
                     end;
 
-              val tos = connected_with chains' [lhs] [lhs];
+              val tos = Int_Graph.all_succs chains' [lhs];
             in
               (copy_lookahead tos [],
                 union (op =) (if member (op =) lambdas lhs then tos else []) lambdas)
@@ -124,7 +115,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
           if forall
             (fn Nonterminal (id, _) => member (op =) lambdas' id
               | Terminal _ => false) rhs
-          then (true, union (op =) (connected_with chains' [lhs] [lhs]) lambdas')
+          then (true, union (op =) (Int_Graph.all_succs chains' [lhs]) lambdas')
           else (false, lambdas');
 
         (*list optional terminal and all nonterminals on which the lookahead
@@ -237,7 +228,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
         (*insert production into grammar*)
         val (added_starts', _) =
-          if is_some chain_from
+          if is_some chain
           then (added_starts', prod_count)  (*don't store chain production*)
           else
             let
@@ -308,7 +299,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                     end;
               val _ = add_nts start_nts;
             in
-              add_tks (connected_with chains' [lhs] [lhs]) [] prod_count
+              add_tks (Int_Graph.all_succs chains' [lhs]) [] prod_count
             end;
 
         (*associate productions with new lookaheads*)
@@ -417,7 +408,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
     fun pretty_prod (name, tag) =
       (fold (union (op =) o #2) (#2 (Vector.sub (prods, tag))) [] @
-        map prod_of_chain (these (AList.lookup (op =) chains tag)))
+        map prod_of_chain (Int_Graph.immediate_preds chains tag))
       |> map (fn (symbs, const, p) =>
           Pretty.block (Pretty.breaks
             (Pretty.str (name ^ print_pri p ^ " =") :: map pretty_symb symbs @ pretty_const const)));
@@ -431,20 +422,10 @@ val empty_gram =
   Gram
    {nt_count = 0,
     prod_count = 0,
-    tags = Symtab.empty, chains = [],
+    tags = Symtab.empty,
+    chains = Int_Graph.empty,
     lambdas = [],
     prods = Vector.fromList [(([], []), [])]};
-
-
-(*Invert list of chain productions*)
-fun inverse_chains [] result = result
-  | inverse_chains ((root, branches: nt_tag list) :: cs) result =
-      let
-        fun add ([]: nt_tag list) result = result
-          | add (id :: ids) result =
-              let val old = these (AList.lookup (op =) result id);
-              in add ids (AList.update (op =) (id, root :: old) result) end;
-      in inverse_chains cs (add branches result) end;
 
 
 (*Add productions to a grammar*)
@@ -501,13 +482,8 @@ fun extend_gram [] gram = gram
               else (([], []), []);
           in Array.tabulate (nt_count', get_prod) end;
 
-        val fromto_chains = inverse_chains chains [];
-
         (*Add new productions to old ones*)
-        val (fromto_chains', lambdas', _) =
-          add_prods prods' fromto_chains lambdas NONE xprods';
-
-        val chains' = inverse_chains fromto_chains' [];
+        val (chains', lambdas', _) = add_prods prods' chains lambdas NONE xprods';
       in
         Gram
          {nt_count = nt_count',
@@ -639,7 +615,7 @@ fun prods_for (Gram {prods, chains, ...}) include_none tk nts =
       | get_prods (nt :: nts) result =
           let val nt_prods = snd (Vector.sub (prods, nt));
           in get_prods nts (token_assoc (nt_prods, tk) @ result) end;
-  in get_prods (connected_with chains nts nts) [] end;
+  in get_prods (Int_Graph.all_preds chains nts) [] end;
 
 
 fun PROCESSS gram Estate i c states =
