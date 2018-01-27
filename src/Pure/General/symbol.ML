@@ -66,6 +66,12 @@ sig
   val trim_blanks: string -> string
   val bump_init: string -> string
   val bump_string: string -> string
+  val sub: symbol
+  val sup: symbol
+  val bold: symbol
+  val make_sub: string -> string
+  val make_sup: string -> string
+  val make_bold: string -> string
   val length: symbol list -> int
   val output: string -> Output.output * int
 end;
@@ -462,6 +468,20 @@ fun bump_string str =
     val (ss, qs) = apfst rev (take_suffix is_quasi (Symbol.explode str));
     val ss' = if symbolic_end ss then "'" :: ss else bump ss;
   in implode (rev ss' @ qs) end;
+
+
+(* styles *)
+
+val sub = "\092<^sub>";
+val sup = "\092<^sup>";
+val bold = "\092<^bold>";
+
+fun make_style sym =
+  Symbol.explode #> maps (fn s => [sym, s]) #> implode;
+
+val make_sub = make_style sub;
+val make_sup = make_style sup;
+val make_bold = make_style bold;
 
 
 
