@@ -476,7 +476,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = new_xprods @ input,
       lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
-      gram = Lazy.value (Parser.extend_gram new_xprods (Lazy.force gram)),
+      gram = if null new_xprods then gram else Lazy.map (Parser.extend_gram new_xprods) gram,
       consts = fold update_const consts2 consts1,
       prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
