@@ -485,6 +485,12 @@ lemma finite_set: "finite (UNIV :: 'a set set) \<longleftrightarrow> finite (UNI
 lemma finite_UnionD: "finite (\<Union>A) \<Longrightarrow> finite A"
   by (blast intro: finite_subset [OF subset_Pow_Union])
 
+lemma finite_bind:
+  assumes "finite S"
+  assumes "\<forall>x \<in> S. finite (f x)"
+  shows "finite (Set.bind S f)"
+using assms by (simp add: bind_UNION)
+
 lemma finite_set_of_finite_funs:
   assumes "finite A" "finite B"
   shows "finite {f. \<forall>x. (x \<in> A \<longrightarrow> f x \<in> B) \<and> (x \<notin> A \<longrightarrow> f x = d)}" (is "finite ?S")

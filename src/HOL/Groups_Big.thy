@@ -1027,6 +1027,43 @@ proof-
   finally show ?thesis by auto
 qed
 
+lemma sum_card_image:
+  assumes "finite A"
+  assumes "\<forall>s\<in>A. \<forall>t\<in>A. s \<noteq> t \<longrightarrow> (f s) \<inter> (f t) = {}"
+  shows "sum card (f ` A) = sum (\<lambda>a. card (f a)) A"
+using assms
+proof (induct A)
+  case empty
+  from this show ?case by simp
+next
+  case (insert a A)
+  show ?case
+  proof cases
+    assume "f a = {}"
+    from this insert show ?case
+      by (subst sum.mono_neutral_right[where S="f ` A"]) auto
+  next
+    assume "f a \<noteq> {}"
+    from this have "sum card (insert (f a) (f ` A)) = card (f a) + sum card (f ` A)"
+      using insert by (subst sum.insert) auto
+    from this insert show ?case by simp
+  qed
+qed
+
+lemma card_Union_image:
+  assumes "finite S"
+  assumes "\<forall>s\<in>f ` S. finite s"
+  assumes "\<forall>s\<in>S. \<forall>t\<in>S. s \<noteq> t \<longrightarrow> (f s) \<inter> (f t) = {}"
+  shows "card (\<Union>(f ` S)) = sum (\<lambda>x. card (f x)) S"
+proof -
+  have "\<forall>A\<in>f ` S. \<forall>B\<in>f ` S. A \<noteq> B \<longrightarrow> A \<inter> B = {}"
+    using assms(3) by (metis image_iff)
+  from this have "card (\<Union>(f ` S)) = sum card (f ` S)"
+    using assms(1, 2) by (subst card_Union_disjoint) auto
+  also have "... = sum (\<lambda>x. card (f x)) S"
+    using assms(1, 3) by (auto simp add: sum_card_image)
+  finally show ?thesis .
+qed
 
 subsubsection \<open>Cardinality of products\<close>
 
