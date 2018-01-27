@@ -61,6 +61,9 @@ val subtract_token = subtract Lexicon.matching_tokens;
   known yet are associated with this token*)
 val unknown_start = Lexicon.eof;
 
+fun get_start (tok :: _) = tok
+  | get_start [] = unknown_start;
+
 (*get all NTs that are connected with a list of NTs*)
 fun connected_with _ ([]: nt_tag list) relatives = relatives
   | connected_with chains (root :: roots) relatives =
@@ -199,9 +202,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                             (*existing productions whose lookahead may depend on l*)
                             val tk_prods =
-                              these
-                                (AList.lookup (op =) nt_prods
-                                  (SOME (hd l_starts handle List.Empty => unknown_start)));
+                              these (AList.lookup (op =) nt_prods (SOME (get_start l_starts)));
 
                             (*add_lambda is true if an existing production of the nt
                               produces lambda due to the new lambda NT l*)
