@@ -101,8 +101,8 @@ sig
   val burrow_fst: ('a list -> 'b list) -> ('a * 'c) list -> ('b * 'c) list
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val chop_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val chop_common_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
   val prefixes1: 'a list -> 'a list list
   val prefixes: 'a list -> 'a list list
   val suffixes1: 'a list -> 'a list list
@@ -540,14 +540,6 @@ fun take_prefix (pred : 'a -> bool)  (xs: 'a list) : 'a list * 'a list =
             if  pred x  then  take(x :: rxs, xs)  else  (rev rxs, x :: xs)
   in  take([], xs)  end;
 
-fun chop_prefix eq ([], ys) = ([], ([], ys))
-  | chop_prefix eq (xs, []) = ([], (xs, []))
-  | chop_prefix eq (xs as x :: xs', ys as y :: ys') =
-      if eq (x, y) then
-        let val (ps', xys'') = chop_prefix eq (xs', ys')
-        in (x :: ps', xys'') end
-      else ([], (xs, ys));
-
 (* [x1, ..., xi, ..., xn]  --->  ([x1, ..., xi], [x(i+1), ..., xn])
    where xi is the last element that does not satisfy the predicate*)
 fun take_suffix _ [] = ([], [])
@@ -555,6 +547,14 @@ fun take_suffix _ [] = ([], [])
       (case take_suffix pred xs of
         ([], sffx) => if pred x then ([], x :: sffx) else ([x], sffx)
       | (prfx, sffx) => (x :: prfx, sffx));
+
+fun chop_common_prefix eq ([], ys) = ([], ([], ys))
+  | chop_common_prefix eq (xs, []) = ([], (xs, []))
+  | chop_common_prefix eq (xs as x :: xs', ys as y :: ys') =
+      if eq (x, y) then
+        let val (ps', xys'') = chop_common_prefix eq (xs', ys')
+        in (x :: ps', xys'') end
+      else ([], (xs, ys));
 
 fun prefixes1 [] = []
   | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);

@@ -382,7 +382,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
         val (name_fragments, _) = prep_sym sym;
         val (name_fragments', _) = prep_sym sym';
         val (name_fragments_common, (diff, diff')) =
-          chop_prefix (op =) (name_fragments, name_fragments');
+          chop_common_prefix (op =) (name_fragments, name_fragments');
         val is_cross_module = not (null diff andalso null diff');
         val dep = apply2 hd (map Code_Symbol.Module diff @ [sym], map Code_Symbol.Module diff' @ [sym']);
         val add_edge = if is_cross_module andalso not cyclic_modules
@@ -432,7 +432,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
     fun deresolver prefix_fragments sym =
       let
         val (name_fragments, _) = prep_sym sym;
-        val (_, (_, remainder)) = chop_prefix (op =) (prefix_fragments, name_fragments);
+        val (_, (_, remainder)) = chop_common_prefix (op =) (prefix_fragments, name_fragments);
         val nodes = fold (fn name_fragment => fn nodes => case Code_Symbol.Graph.get_node nodes (Code_Symbol.Module name_fragment)
          of (_, Module (_, nodes)) => nodes) name_fragments hierarchical_program;
         val (base', _) = Code_Symbol.Graph.get_node nodes sym;
