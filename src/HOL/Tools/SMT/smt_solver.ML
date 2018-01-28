@@ -94,7 +94,7 @@ fun run_solver ctxt name mk_cmd input =
       SMT_Config.with_timeout ctxt (run ctxt name mk_cmd) input
     val _ = SMT_Config.trace_msg ctxt (pretty "Solver:") err
 
-    val output = fst (take_suffix (equal "") res)
+    val output = drop_suffix (equal "") res
     val _ = SMT_Config.trace_msg ctxt (pretty "Result:") output
 
     val _ = member (op =) normal_return_codes return_code orelse

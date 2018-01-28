@@ -33,7 +33,7 @@ fun is_blank_or_error_line "" = true
 fun on_first_line test_outcome solver_name lines =
   let
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
-    val (l, ls) = split_first (snd (take_prefix is_blank_or_error_line lines))
+    val (l, ls) = split_first (drop_prefix is_blank_or_error_line lines)
   in (test_outcome solver_name l, ls) end
 
 fun on_first_non_unsupported_line test_outcome solver_name lines =

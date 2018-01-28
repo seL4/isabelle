@@ -209,16 +209,16 @@ datatype span = Span of command * (source * source * source * source) * bool;
 
 fun make_span cmd src =
   let
-    fun take_newline (tok :: toks) =
+    fun chop_newline (tok :: toks) =
           if newline_token (fst tok) then ([tok], toks, true)
           else ([], tok :: toks, false)
-      | take_newline [] = ([], [], false);
+      | chop_newline [] = ([], [], false);
     val (((src_prefix, src_main), src_suffix1), (src_suffix2, src_appendix, newline)) =
       src
-      |> take_prefix (white_token o fst)
-      ||>> take_suffix (white_token o fst)
-      ||>> take_prefix (white_comment_token o fst)
-      ||> take_newline;
+      |> chop_prefix (white_token o fst)
+      ||>> chop_suffix (white_token o fst)
+      ||>> chop_prefix (white_comment_token o fst)
+      ||> chop_newline;
   in Span (cmd, (src_prefix, src_main, src_suffix1 @ src_suffix2, src_appendix), newline) end;
 
 
@@ -405,7 +405,7 @@ fun present_thy thy command_results toks =
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
     val spans = toks
-      |> take_suffix Token.is_space |> #1
+      |> drop_suffix Token.is_space
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))
       |> Source.source stopper (Scan.error (Scan.bulk span))

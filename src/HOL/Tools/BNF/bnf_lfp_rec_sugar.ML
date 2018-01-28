@@ -296,8 +296,8 @@ fun dissect_eqn ctxt fun_names eqn0 =
       handle TERM _ => ill_formed_equation_lhs_rhs ctxt [eqn];
     val (fun_name, args) = strip_comb lhs
       |>> (fn x => if is_Free x then fst (dest_Free x) else ill_formed_equation_head ctxt [eqn]);
-    val (left_args, rest) = take_prefix is_Free args;
-    val (nonfrees, right_args) = take_suffix is_Free rest;
+    val (left_args, rest) = chop_prefix is_Free args;
+    val (nonfrees, right_args) = chop_suffix is_Free rest;
     val num_nonfrees = length nonfrees;
     val _ = num_nonfrees = 1 orelse
       (if num_nonfrees = 0 then missing_pattern ctxt [eqn]

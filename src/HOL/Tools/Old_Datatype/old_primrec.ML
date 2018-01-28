@@ -49,8 +49,8 @@ fun process_eqn is_fixed spec rec_fns =
           else primrec_error "illegal head of function equation"
       | _ => primrec_error "illegal head of function equation");
 
-    val (ls', rest)  = take_prefix is_Free args;
-    val (middle, rs') = take_suffix is_Free rest;
+    val (ls', rest)  = chop_prefix is_Free args;
+    val (middle, rs') = chop_suffix is_Free rest;
     val rpos = length ls';
 
     val (constr, cargs') =

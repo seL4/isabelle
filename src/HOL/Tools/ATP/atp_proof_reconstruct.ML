@@ -696,7 +696,7 @@ fun rename_skolem_args t =
         (case strip_comb t of
           (Free (s, _), args as _ :: _) =>
           if String.isPrefix spass_skolem_prefix s then
-            insert (op =) (s, fst (take_prefix is_Var args))
+            insert (op =) (s, take_prefix is_Var args)
           else
             fold add_skolem_args args
         | (u, args as _ :: _) => fold add_skolem_args (u :: args)

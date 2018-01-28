@@ -128,7 +128,7 @@ fun make_block {markup, consistent, indent} body =
     val indent' = force_nat indent;
     fun body_length prts len =
       let
-        val (line, rest) = take_prefix (fn Break (true, _, _) => false | _ => true) prts;
+        val (line, rest) = chop_prefix (fn Break (true, _, _) => false | _ => true) prts;
         val len' = Int.max (fold (Integer.add o length) line 0, len);
       in
         (case rest of

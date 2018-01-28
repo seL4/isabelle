@@ -307,7 +307,7 @@ struct
       | NONE   => error ("token " ^ quote s ^ " in DIMACS CNF file is not a number")
     fun clauses xs =
       let
-        val (xs1, xs2) = take_prefix (fn i => i <> 0) xs
+        val (xs1, xs2) = chop_prefix (fn i => i <> 0) xs
       in
         case xs2 of
           []      => [xs1]

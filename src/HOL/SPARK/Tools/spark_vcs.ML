@@ -33,7 +33,7 @@ open Fdl_Parser;
 
 fun err_unfinished () = error "An unfinished SPARK environment is still open."
 
-val strip_number = apply2 implode o take_suffix Fdl_Lexer.is_digit o raw_explode;
+val strip_number = apply2 implode o chop_suffix Fdl_Lexer.is_digit o raw_explode;
 
 val name_ord = prod_ord string_ord (option_ord int_ord) o
   apply2 (strip_number ##> Int.fromString);

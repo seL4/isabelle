@@ -54,8 +54,7 @@ fun dest_elim prop =
   let
     val prems = Logic.strip_imp_prems prop;
     val concl = Logic.strip_imp_concl prop;
-    val (prems1, prems2) =
-      take_suffix (fn t => Logic.strip_assums_concl t = concl) prems;
+    val (prems1, prems2) = chop_suffix (fn t => Logic.strip_assums_concl t = concl) prems;
   in
     (prems1,
      if null prems2 then [([], [concl])]

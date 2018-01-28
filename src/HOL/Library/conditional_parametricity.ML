@@ -73,7 +73,7 @@ fun apply_Var_to_bounds t =
     (case t of
       Var (xi, _) =>
         let
-          val (bounds, tail) = take_prefix is_Bound ts;
+          val (bounds, tail) = chop_prefix is_Bound ts;
         in
           list_comb (Var (xi, fastype_of (betapplys (t, bounds))), map apply_Var_to_bounds tail)
         end

@@ -233,7 +233,7 @@ fun pretty_statement ctxt kind raw_th =
     val concl_term = Object_Logic.drop_judgment ctxt concl;
 
     val (assumes, cases) =
-      take_suffix (fn prem => is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
+      chop_suffix (fn prem => is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
     val is_thesis = if null cases then K false else fn v => v aconv concl_term;
     val fixes =
       rev (fold_aterms (fn v as Free (x, T) =>

@@ -75,7 +75,7 @@ fun mk_scheme' ctxt cases concl =
           val _ $ Pxs = Logic.strip_assums_concl conc
           val (P, _) = strip_comb Pxs
           val (cases', conds) =
-            take_prefix (Term.exists_subterm (curry op aconv P)) cases
+            chop_prefix (Term.exists_subterm (curry op aconv P)) cases
           val concl' = fold_rev (curry Logic.mk_implies) conds conc
         in
           ([mk_branch concl'], cases')
@@ -101,7 +101,7 @@ fun mk_scheme' ctxt cases concl =
         fun is_pred v = exists (fn SchemeBranch {P,...} => v aconv P) branches
 
         val (gs, rcprs) =
-          take_prefix (not o Term.exists_subterm is_pred) prems
+          chop_prefix (not o Term.exists_subterm is_pred) prems
       in
         SchemeCase {bidx=bidx P, qs=qs, oqnames=map fst qs(*FIXME*),
           gs=gs, lhs=lhs, rs=map mk_rcinfo rcprs}

@@ -49,7 +49,7 @@ fun split_lines input =
     fun add a (line, lines) = (a :: line, lines);
     fun flush (line, lines) = ([], rev line :: lines);
     fun split (a as Text ss) =
-          (case take_prefix (fn ("\n", _) => false | _ => true) ss of
+          (case chop_prefix (fn ("\n", _) => false | _ => true) ss of
             ([], []) => I
           | (_, []) => add a
           | ([], _ :: rest) => flush #> split (Text rest)

@@ -70,7 +70,7 @@ fun rlz_proc (Const ("realizes", Type (_, [Type ("Null", []), _])) $ _ $ t) = SO
   | rlz_proc _ = NONE;
 
 val unpack_ixn = apfst implode o apsnd (fst o read_int o tl) o
-  take_prefix (fn s => s <> ":") o raw_explode;
+  chop_prefix (fn s => s <> ":") o raw_explode;
 
 type rules =
   {next: int, rs: ((term * term) list * (term * term)) list,

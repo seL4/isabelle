@@ -99,9 +99,13 @@ sig
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val burrow_fst: ('a list -> 'b list) -> ('a * 'c) list -> ('b * 'c) list
+  val take_prefix: ('a -> bool) -> 'a list -> 'a list
+  val drop_prefix: ('a -> bool) -> 'a list -> 'a list
+  val chop_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val take_suffix: ('a -> bool) -> 'a list -> 'a list
+  val drop_suffix: ('a -> bool) -> 'a list -> 'a list
+  val chop_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
-  val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
   val chop_common_prefix: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list * ('a list * 'b list)
   val prefixes1: 'a list -> 'a list list
   val prefixes: 'a list -> 'a list list
@@ -526,27 +530,52 @@ val split_list = ListPair.unzip;
 fun burrow_fst f xs = split_list xs |>> f |> op ~~;
 
 
+(* take, drop, chop, trim according to predicate *)
+
+fun take_prefix pred list =
+  let
+    fun take res (x :: xs) = if pred x then take (x :: res) xs else rev res
+      | take res [] = rev res;
+  in take [] list end;
+
+fun drop_prefix pred list =
+  let
+    fun drop (x :: xs) = if pred x then drop xs else x :: xs
+      | drop [] = [];
+  in drop list end;
+
+fun chop_prefix pred list =
+  let
+    val prfx = take_prefix pred list;
+    val sffx = drop (length prfx) list;
+  in (prfx, sffx) end;
+
+fun take_suffix pred list =
+  let
+    fun take res (x :: xs) = if pred x then take (x :: res) xs else res
+      | take res [] = res;
+  in take [] (rev list) end;
+
+fun drop_suffix pred list =
+  let
+    fun drop (x :: xs) = if pred x then drop xs else rev (x :: xs)
+      | drop [] = [];
+  in drop (rev list) end;
+
+fun chop_suffix pred list =
+  let
+    val prfx = drop_suffix pred list;
+    val sffx = drop (length prfx) list;
+  in (prfx, sffx) end;
+
+fun trim pred = drop_prefix pred #> drop_suffix pred;
+
+
 (* prefixes, suffixes *)
 
 fun is_prefix _ [] _ = true
   | is_prefix eq (x :: xs) (y :: ys) = eq (x, y) andalso is_prefix eq xs ys
   | is_prefix eq _ _ = false;
-
-(* [x1, ..., xi, ..., xn]  --->  ([x1, ..., x(i-1)], [xi, ..., xn])
-   where xi is the first element that does not satisfy the predicate*)
-fun take_prefix (pred : 'a -> bool)  (xs: 'a list) : 'a list * 'a list =
-  let fun take (rxs, []) = (rev rxs, [])
-        | take (rxs, x :: xs) =
-            if  pred x  then  take(x :: rxs, xs)  else  (rev rxs, x :: xs)
-  in  take([], xs)  end;
-
-(* [x1, ..., xi, ..., xn]  --->  ([x1, ..., xi], [x(i+1), ..., xn])
-   where xi is the last element that does not satisfy the predicate*)
-fun take_suffix _ [] = ([], [])
-  | take_suffix pred (x :: xs) =
-      (case take_suffix pred xs of
-        ([], sffx) => if pred x then ([], x :: sffx) else ([x], sffx)
-      | (prfx, sffx) => (x :: prfx, sffx));
 
 fun chop_common_prefix eq ([], ys) = ([], ([], ys))
   | chop_common_prefix eq (xs, []) = ([], (xs, []))
@@ -563,8 +592,6 @@ fun prefixes xs = [] :: prefixes1 xs;
 
 fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
-
-fun trim pred = take_prefix pred #> #2 #> take_suffix pred #> #1;
 
 
 (** integers **)

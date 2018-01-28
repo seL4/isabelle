@@ -1943,7 +1943,7 @@ fun IDT_constructor_interpreter ctxt model args t =
                         else ()
                       (* split the constructors into those occurring before/after *)
                       (* 'Const (s, T)'                                          *)
-                      val (constrs1, constrs2) = take_prefix (fn (cname, ctypes) =>
+                      val (constrs1, constrs2) = chop_prefix (fn (cname, ctypes) =>
                         not (cname = s andalso Sign.typ_instance thy (T,
                           map (typ_of_dtyp descr typ_assoc) ctypes
                             ---> Type (s', Ts')))) constrs
@@ -2656,8 +2656,7 @@ fun List_append_interpreter ctxt model args t =
               (* go back up the stack until we find a level where we can go *)
               (* to the next sibling node                                   *)
               let
-                val offsets' = snd (take_prefix
-                  (fn off' => off' mod size_elem = size_elem - 1) offsets)
+                val offsets' = drop_prefix (fn off' => off' mod size_elem = size_elem - 1) offsets
               in
                 case offsets' of
                   [] =>

@@ -975,7 +975,7 @@ val is_var =
 
 fun implicit_vars props =
   let
-    val (var_props, _) = take_prefix is_var props;
+    val var_props = take_prefix is_var props;
     val explicit_vars = fold Term.add_vars var_props [];
     val vars = filter_out (member (op =) explicit_vars) (fold Term.add_vars props []);
   in map (Logic.mk_term o Var) vars end;

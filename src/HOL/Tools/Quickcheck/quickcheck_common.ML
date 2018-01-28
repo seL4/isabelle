@@ -202,7 +202,7 @@ fun test_term_with_cardinality (name, (size_matters_for, compile)) ctxt catch_co
                       (Pretty.string_of (Quickcheck.pretty_counterex ctxt false cex));
                     Quickcheck.message ctxt
                       "Quickcheck continues to find a genuine counterexample...";
-                    test true (snd (take_prefix (fn x => not (x = (card, size))) enum))
+                    test true (drop_prefix (fn x => not (x = (card, size))) enum)
                 end
             | NONE => ())
         in (test genuine_only enumeration_card_size; !current_result) end)

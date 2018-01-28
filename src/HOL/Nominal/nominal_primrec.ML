@@ -50,8 +50,8 @@ fun process_eqn lthy is_fixed spec rec_fns =
           else raise RecError "illegal head of function equation"
       | _ => raise RecError "illegal head of function equation";
 
-    val (ls', rest)  = take_prefix is_Free args;
-    val (middle, rs') = take_suffix is_Free rest;
+    val (ls', rest)  = chop_prefix is_Free args;
+    val (middle, rs') = chop_suffix is_Free rest;
     val rpos = length ls';
 
     val (constr, cargs') = if null middle then raise RecError "constructor missing"
@@ -296,7 +296,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     val rec_rewritess =
       unflat (map (fn (_, (_, _, constrs)) => constrs) descr) rec_rewrites;
     val fvars = rec_rewrites |> hd |> Thm.concl_of |> HOLogic.dest_Trueprop |>
-      HOLogic.dest_eq |> fst |> strip_comb |> snd |> take_prefix is_Var |> fst;
+      HOLogic.dest_eq |> fst |> strip_comb |> snd |> take_prefix is_Var;
     val (pvars, ctxtvars) = List.partition
       (equal HOLogic.boolT o body_type o snd)
       (subtract (op =)

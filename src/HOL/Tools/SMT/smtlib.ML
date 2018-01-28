@@ -40,7 +40,7 @@ datatype unfinished = None | String of string | Symbol of string
 (* utilities *)
 
 fun read_raw pred l cs =
-  (case take_prefix pred cs of
+  (case chop_prefix pred cs of
     ([], []) => raise PARSE (l, "empty token")
   | ([], c :: _) => raise PARSE (l, "unexpected character " ^ quote c)
   | x => x)

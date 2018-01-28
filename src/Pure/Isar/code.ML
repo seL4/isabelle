@@ -1380,7 +1380,7 @@ local
 
 fun subsumptive_add thy verbose (thm, proper) eqns =
   let
-    val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
+    val args_of = drop_prefix is_Var o rev o snd o strip_comb
       o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], [], Thm.maxidx_of thm + 1);

@@ -40,8 +40,8 @@ fun process_eqn thy (eq, rec_fn_opt) =
     val (fname, ftype) = dest_Const recfun handle TERM _ =>
       raise RecError "function is not declared as constant in theory";
 
-    val (ls_frees, rest)  = take_prefix is_Free args;
-    val (middle, rs_frees) = take_suffix is_Free rest;
+    val (ls_frees, rest)  = chop_prefix is_Free args;
+    val (middle, rs_frees) = chop_suffix is_Free rest;
 
     val (constr, cargs_frees) =
       if null middle then raise RecError "constructor missing"

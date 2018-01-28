@@ -199,7 +199,7 @@ val scan_ascii_id = Scan.one is_ascii_letter ^^ (Scan.many is_ascii_letdig >> im
 
 fun beginning n cs =
   let
-    val drop_blanks = #1 o take_suffix is_ascii_blank;
+    val drop_blanks = drop_suffix is_ascii_blank;
     val all_cs = drop_blanks cs;
     val dots = if length all_cs > n then " ..." else "";
   in
@@ -465,7 +465,7 @@ fun bump_string str =
           then chr (ord s + 1) :: ss
           else "a" :: s :: ss;
 
-    val (ss, qs) = apfst rev (take_suffix is_quasi (Symbol.explode str));
+    val (ss, qs) = apfst rev (chop_suffix is_quasi (Symbol.explode str));
     val ss' = if symbolic_end ss then "'" :: ss else bump ss;
   in implode (rev ss' @ qs) end;
 

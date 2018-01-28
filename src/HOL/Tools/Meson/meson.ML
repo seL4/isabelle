@@ -730,7 +730,7 @@ fun depth_meson_tac ctxt =
 (*This version does only one inference per call;
   having only one eq_assume_tac speeds it up!*)
 fun prolog_step_tac' ctxt horns =
-    let val (horn0s, _) = (*0 subgoals vs 1 or more*)
+    let val horn0s = (*0 subgoals vs 1 or more*)
             take_prefix Thm.no_prems horns
         val nrtac = resolve_from_net_tac ctxt (Tactic.build_net horns)
     in  fn i => eq_assume_tac i ORELSE

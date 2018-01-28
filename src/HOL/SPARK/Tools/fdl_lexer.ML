@@ -180,7 +180,7 @@ val newline = Scan.one (is_newline o symbol);
 
 fun beginning n cs =
   let
-    val drop_blanks = #1 o take_suffix is_whitespace;
+    val drop_blanks = drop_suffix is_whitespace;
     val all_cs = drop_blanks cs;
     val dots = if length all_cs > n then " ..." else "";
   in

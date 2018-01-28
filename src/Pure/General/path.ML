@@ -150,7 +150,7 @@ fun explode_path str =
       handle ERROR msg => cat_error msg ("The error(s) above occurred in " ^ quote str);
 
     val (roots, raw_elems) =
-      (case take_prefix (equal "") (space_explode "/" str) |>> length of
+      (case chop_prefix (equal "") (space_explode "/" str) |>> length of
         (0, es) => ([], es)
       | (1, es) => ([Root ""], es)
       | (_, []) => ([Root ""], [])
@@ -190,7 +190,7 @@ fun ext "" = I
   | ext e = split_path (fn (prfx, s) => append prfx (basic (s ^ "." ^ e)));
 
 val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
-  (case take_suffix (fn c => c <> ".") (raw_explode s) of
+  (case chop_suffix (fn c => c <> ".") (raw_explode s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (take (length cs - 1) cs))], implode e)));
 

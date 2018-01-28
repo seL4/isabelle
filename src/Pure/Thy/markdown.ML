@@ -90,7 +90,7 @@ val is_space = Symbol.is_space o Symbol_Pos.symbol;
 val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);
 
 fun strip_spaces (Antiquote.Text ss :: rest) =
-      let val (sp, ss') = take_prefix is_space ss
+      let val (sp, ss') = chop_prefix is_space ss
       in (length sp, if null ss' then rest else Antiquote.Text ss' :: rest) end
   | strip_spaces source = (0, source);
 
@@ -149,7 +149,7 @@ val is_item = fn Par (line :: _) => line_is_item line | _ => false;
 
 fun list_items [] = []
   | list_items (item :: rest) =
-      let val (item_rest, rest') = take_prefix (not o is_item) rest;
+      let val (item_rest, rest') = chop_prefix (not o is_item) rest;
       in (item :: item_rest) :: list_items rest' end;
 
 

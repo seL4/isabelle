@@ -406,7 +406,7 @@ fun read_float str =
   let
     val cs = Symbol.explode str;
     val (intpart, fracpart) =
-      (case take_prefix Symbol.is_digit cs of
+      (case chop_prefix Symbol.is_digit cs of
         (intpart, "." :: fracpart) => (intpart, fracpart)
       | _ => raise Fail "read_float");
   in

@@ -330,7 +330,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
              rotate_tac 1 1,
              REPEAT (eresolve_tac ctxt' [conjE] 1)])
           [] ctxt;
-        val (Ts1, _ :: Ts2) = take_prefix (not o equal T) (map snd sets);
+        val (Ts1, _ :: Ts2) = chop_prefix (not o equal T) (map snd sets);
         val pTs = map NominalAtoms.mk_permT (Ts1 @ Ts2);
         val (pis1, pis2) = chop (length Ts1)
           (map Bound (length pTs - 1 downto 0));
