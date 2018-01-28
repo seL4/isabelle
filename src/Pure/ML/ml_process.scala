@@ -107,7 +107,7 @@ object ML_Process
 
           List("Resources.init_session_base" +
             " {sessions = " + print_sessions(base.known.sessions.toList) +
-            ", doc_names = " + print_list(base.doc_names) +
+            ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) +
             ", known_theories = " + print_table(base.dest_known_theories) + "}")
