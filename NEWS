@@ -169,6 +169,13 @@ latex and bibtex process. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* Clarifed theorem names:
+
+  Min.antimono ~> Min.subset_imp
+  Max.antimono ~> Max.subset_imp
+
+Minor INCOMPATIBILITY.
+
 * A new command parametric_constant for proving parametricity of
 non-recursive definitions. For constants that are not fully parametric
 the command will infer conditions on relations (e.g., bi_unique,

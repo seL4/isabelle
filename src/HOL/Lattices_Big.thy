@@ -132,7 +132,7 @@ begin
 lemma bounded_iff:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<^bold>\<le> F A \<longleftrightarrow> (\<forall>a\<in>A. x \<^bold>\<le> a)"
-  using assms by (induct rule: finite_ne_induct) (simp_all add: bounded_iff)
+  using assms by (induct rule: finite_ne_induct) simp_all
 
 lemma boundedI:
   assumes "finite A"
@@ -162,7 +162,7 @@ proof -
   qed
 qed
 
-lemma antimono:
+lemma subset_imp:
   assumes "A \<subseteq> B" and "A \<noteq> {}" and "finite B"
   shows "F B \<^bold>\<le> F A"
 proof (cases "A = B")
@@ -256,7 +256,7 @@ begin
 lemma bounded_iff:
   assumes "finite A"
   shows "x \<^bold>\<le> F A \<longleftrightarrow> (\<forall>a\<in>A. x \<^bold>\<le> a)"
-  using assms by (induct A) (simp_all add: bounded_iff)
+  using assms by (induct A) simp_all
 
 lemma boundedI:
   assumes "finite A"
@@ -285,7 +285,7 @@ proof -
   qed
 qed
 
-lemma antimono:
+lemma subset_imp:
   assumes "A \<subseteq> B" and "finite B"
   shows "F B \<^bold>\<le> F A"
 proof (cases "A = B")
@@ -648,12 +648,12 @@ qed
 lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Min N \<le> Min M"
-  using assms by (fact Min.antimono)
+  using assms by (fact Min.subset_imp)
 
 lemma Max_mono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Max M \<le> Max N"
-  using assms by (fact Max.antimono)
+  using assms by (fact Max.subset_imp)
 
 end
 
