@@ -14,9 +14,9 @@
 \newcommand{\isastyleminor}{\UNDEF}
 \newcommand{\isastyleminortt}{\UNDEF}
 \newcommand{\isastylescript}{\UNDEF}
-\newcommand{\isastyletext}{\normalsize\rm}
-\newcommand{\isastyletxt}{\rm}
-\newcommand{\isastylecmt}{\rm}
+\newcommand{\isastyletext}{\normalsize\normalfont\rmfamily}
+\newcommand{\isastyletxt}{\normalfont\rmfamily}
+\newcommand{\isastylecmt}{\normalfont\rmfamily}
 
 \newcommand{\isaspacing}{%
   \sfcode 42 1000 % .
@@ -120,12 +120,12 @@
 % keyword and section markup
 
 \newcommand{\isakeyword}[1]
-{\emph{\bf\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
+{\emph{\normalfont\bfseries\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
 \def\isacharbraceleft{\{}\def\isacharbraceright{\}}#1}}
 \newcommand{\isacommand}[1]{\isakeyword{#1}}
 
 \newcommand{\isakeywordcontrol}[1]
-{\emph{\bf\itshape\def\isacharunderscore{\isacharunderscorekeyword}#1\,}}
+{\emph{\normalfont\bfseries\itshape\def\isacharunderscore{\isacharunderscorekeyword}#1\,}}
 
 \newcommand{\isamarkupheader}[1]{\section{#1}}
 \newcommand{\isamarkupchapter}[1]{\chapter{#1}}
@@ -149,30 +149,30 @@
 \def\isabellestyle#1{\csname isabellestyle#1\endcsname}
 
 \newcommand{\isabellestyledefault}{%
-\def\isastyle{\small\tt\slshape}%
-\def\isastylett{\small\tt}%
-\def\isastyleminor{\small\tt\slshape}%
-\def\isastyleminortt{\small\tt}%
-\def\isastylescript{\footnotesize\tt\slshape}%
+\def\isastyle{\small\normalfont\ttfamily\slshape}%
+\def\isastylett{\small\normalfont\ttfamily}%
+\def\isastyleminor{\small\normalfont\ttfamily\slshape}%
+\def\isastyleminortt{\small\normalfont\ttfamily}%
+\def\isastylescript{\footnotesize\normalfont\ttfamily\slshape}%
 \isachardefaults%
 }
 \isabellestyledefault
 
 \newcommand{\isabellestylett}{%
-\def\isastyle{\small\tt}%
-\def\isastylett{\small\tt}%
-\def\isastyleminor{\small\tt}%
-\def\isastyleminortt{\small\tt}%
-\def\isastylescript{\footnotesize\tt}%
+\def\isastyle{\small\normalfont\ttfamily}%
+\def\isastylett{\small\normalfont\ttfamily}%
+\def\isastyleminor{\small\normalfont\ttfamily}%
+\def\isastyleminortt{\small\normalfont\ttfamily}%
+\def\isastylescript{\footnotesize\normalfont\ttfamily}%
 \isachardefaults%
 }
 
 \newcommand{\isabellestyleit}{%
-\def\isastyle{\small\it}%
-\def\isastylett{\small\tt}%
-\def\isastyleminor{\it}%
-\def\isastyleminortt{\tt}%
-\def\isastylescript{\footnotesize\it}%
+\def\isastyle{\small\normalfont\itshape}%
+\def\isastylett{\small\normalfont\ttfamily}%
+\def\isastyleminor{\normalfont\itshape}%
+\def\isastyleminortt{\normalfont\ttfamily}%
+\def\isastylescript{\footnotesize\normalfont\itshape}%
 \isachardefaults%
 \def\isacharunderscorekeyword{\mbox{-}}%
 \def\isacharbang{\isamath{!}}%
@@ -228,11 +228,11 @@
 
 \newcommand{\isabellestylesl}{%
 \isabellestyleit%
-\def\isastyle{\small\sl}%
-\def\isastylett{\small\tt}%
-\def\isastyleminor{\sl}%
-\def\isastyleminortt{\tt}%
-\def\isastylescript{\footnotesize\sl}%
+\def\isastyle{\small\normalfont\slshape}%
+\def\isastylett{\small\normalfont\ttfamily}%
+\def\isastyleminor{\normalfont\slshape}%
+\def\isastyleminortt{\normalfont\ttfamily}%
+\def\isastylescript{\footnotesize\normalfont\slshape}%
 }
 
 
