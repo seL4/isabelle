@@ -236,7 +236,7 @@ text \<open>
                  (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)
     -P           use parent session image
     -R           open ROOT entry of logic session
-    -S NAME      edit specified logic session, same as -B -F -R -l NAME
+    -S NAME      edit specified logic session, abbreviates -B -F -R -l NAME
     -b           build only
     -d DIR       include session directory
     -f           fresh build

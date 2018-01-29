@@ -105,7 +105,7 @@ function usage()
   echo "                 (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
   echo "    -P           use parent session image"
   echo "    -R           open ROOT entry of logic session"
-  echo "    -S NAME      edit specified logic session, same as abbreviates -B -F -R -l NAME"
+  echo "    -S NAME      edit specified logic session, abbreviates -B -F -R -l NAME"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
