@@ -46,7 +46,7 @@ datatype gram =
     prod_count: int,
     tags: nt_tag Symtab.table,
     chains: unit Int_Graph.T,
-    lambdas: nt_tag list,
+    lambdas: Inttab.set,
     prods: nt_gram Vector.vector};
     (*"tags" is used to map NT names (i.e. strings) to tags;
      chain productions are not stored as normal productions
@@ -82,7 +82,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 |> Int_Graph.add_edge (from, lhs))
           | _ => (NONE, false, chains |> Int_Graph.default_node (lhs, ())));
 
-        (*propagate new chain in lookahead and lambda lists;
+        (*propagate new chain in lookahead and lambdas;
           added_starts is used later to associate existing
           productions with new starting tokens*)
         val (added_starts, lambdas') =
@@ -106,24 +106,25 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               val tos = Int_Graph.all_succs chains' [lhs];
             in
               (copy_lookahead tos [],
-                union (op =) (if member (op =) lambdas lhs then tos else []) lambdas)
+                lambdas |> Inttab.defined lambdas lhs ? fold Inttab.insert_set tos)
             end;
 
         (*test if new production can produce lambda
           (rhs must either be empty or only consist of lambda NTs)*)
-        val (new_lambda, lambdas') =
+        val new_lambdas =
           if forall
-            (fn Nonterminal (id, _) => member (op =) lambdas' id
+            (fn Nonterminal (id, _) => Inttab.defined lambdas' id
               | Terminal _ => false) rhs
-          then (true, union (op =) (Int_Graph.all_succs chains' [lhs]) lambdas')
-          else (false, lambdas');
+          then SOME (filter_out (Inttab.defined lambdas') (Int_Graph.all_succs chains' [lhs]))
+          else NONE;
+        val lambdas'' = fold Inttab.insert_set (these new_lambdas) lambdas';
 
         (*list optional terminal and all nonterminals on which the lookahead
           of a production depends*)
         fun lookahead_dependency _ [] nts = (NONE, nts)
           | lookahead_dependency _ (Terminal tk :: _) nts = (SOME tk, nts)
           | lookahead_dependency lambdas (Nonterminal (nt, _) :: symbs) nts =
-              if member (op =) lambdas nt then
+              if Inttab.defined lambdas nt then
                 lookahead_dependency lambdas symbs (nt :: nts)
               else (NONE, nt :: nts);
 
@@ -148,7 +149,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           let val (tk, nts) = lookahead_dependency lambdas rhs [] in
                             if member (op =) nts l then       (*update production's lookahead*)
                               let
-                                val new_lambda = is_none tk andalso subset (op =) (nts, lambdas);
+                                val new_lambda =
+                                  is_none tk andalso forall (Inttab.defined lambdas) nts;
 
                                 val new_tks =
                                   (if is_some tk then [the tk] else [])
@@ -202,9 +204,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                             val added_nts = subtract (op =) old_nts nt_dependencies;
 
-                            val added_lambdas' =
-                              if add_lambda then nt :: added_lambdas
-                              else added_lambdas;
+                            val added_lambdas' = added_lambdas |> add_lambda ? cons nt;
                             val _ =
                               Array.update
                                 (prods, nt, ((added_nts @ old_nts, old_tks @ added_tks), nt_prods'));
@@ -220,11 +220,16 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           end;
 
                     val (added_lambdas, added_starts') = process_nts dependent [] added_starts;
-                    val added_lambdas' = subtract (op =) lambdas added_lambdas;
+                    val added_lambdas' = filter_out (Inttab.defined lambdas) added_lambdas;
                   in
-                    propagate_lambda (ls @ added_lambdas') added_starts' (added_lambdas' @ lambdas)
+                    propagate_lambda (ls @ added_lambdas') added_starts'
+                      (fold Inttab.insert_set added_lambdas' lambdas)
                   end;
-          in propagate_lambda (subtract (op =) lambdas lambdas') added_starts lambdas' end;
+          in
+            propagate_lambda
+              (Inttab.fold (fn (l, ()) => not (Inttab.defined lambdas l) ? cons l) lambdas'' [])
+              added_starts lambdas''
+          end;
 
         (*insert production into grammar*)
         val (added_starts', _) =
@@ -241,7 +246,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 |> fold (union_token o starts_for_nt) start_nts;
 
               val opt_starts =
-               (if new_lambda then [NONE]
+               (if is_some new_lambdas then [NONE]
                 else if null start_tks then [SOME unknown_start]
                 else []) @ map SOME start_tks;
 
@@ -424,7 +429,7 @@ val empty_gram =
     prod_count = 0,
     tags = Symtab.empty,
     chains = Int_Graph.empty,
-    lambdas = [],
+    lambdas = Inttab.empty,
     prods = Vector.fromList [(([], []), [])]};
 
 
