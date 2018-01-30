@@ -126,7 +126,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                     let
                       val ((to_nts, to_tks), ps) = Array.sub (prods, to);
 
-                      val new_tks = subtract (op =) to_tks from_tks;  (*added lookahead tokens*)
+                      val new_tks = tokens_subtract to_tks from_tks;  (*added lookahead tokens*)
                       val _ = Array.update (prods, to, ((to_nts, to_tks @ new_tks), ps));
                     in
                       copy_lookahead tos (if null new_tks then added else (to, new_tks) :: added)
@@ -184,7 +184,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                 val new_tks =
                                   the_list tk
                                   |> fold (tokens_union o starts_for_nt) nts
-                                  |> subtract (op =) l_starts;
+                                  |> tokens_subtract l_starts;
 
                                 val added_tks' = tokens_union added_tks new_tks;
 
