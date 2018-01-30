@@ -26,6 +26,23 @@ struct
 
 (** datatype gram **)
 
+(* nonterminals *)
+
+(*production for the NTs are stored in a vector
+  so we can identify NTs by their index*)
+type nt = int;
+
+type nts = Inttab.set;
+val nts_empty: nts = Inttab.empty;
+val nts_merge: nts * nts -> nts = Inttab.merge (K true);
+fun nts_insert nt : nts -> nts = Inttab.insert_set nt;
+fun nts_member (nts: nts) = Inttab.defined nts;
+fun nts_fold f (nts: nts) = Inttab.fold (f o #1) nts;
+fun nts_subset (nts1: nts, nts2: nts) = Inttab.forall (nts_member nts2 o #1) nts1;
+fun nts_is_empty (nts: nts) = Inttab.is_empty nts;
+fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Inttab.is_single nts;
+
+
 (* tokens *)
 
 fun tokens_match toks =
@@ -52,23 +69,8 @@ val tokens_union = tokens_fold tokens_insert;
 val tokens_subtract = tokens_fold tokens_remove;
 fun tokens_find P (tokens: tokens) =
   Tokens.get_first (fn (tok, ()) => if P tok then SOME tok else NONE) tokens;
+fun tokens_add (nt: nt, tokens) = if tokens_is_empty tokens then I else cons (nt, tokens);
 
-
-(* nonterminals *)
-
-(*production for the NTs are stored in a vector
-  so we can identify NTs by their index*)
-type nt = int;
-
-type nts = Inttab.set;
-val nts_empty: nts = Inttab.empty;
-val nts_merge: nts * nts -> nts = Inttab.merge (K true);
-fun nts_insert nt : nts -> nts = Inttab.insert_set nt;
-fun nts_member (nts: nts) = Inttab.defined nts;
-fun nts_fold f (nts: nts) = Inttab.fold (f o #1) nts;
-fun nts_subset (nts1: nts, nts2: nts) = Inttab.forall (nts_member nts2 o #1) nts1;
-fun nts_is_empty (nts: nts) = Inttab.is_empty nts;
-fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Inttab.is_single nts;
 
 datatype symb =
   Terminal of Lexicon.token
@@ -155,14 +157,14 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               val ((_, from_tks), _) = Array.sub (prods, the chain);
 
               (*copy from's lookahead to chain's destinations*)
-              fun copy_lookahead to added =
+              fun copy_lookahead to =
                 let
                   val ((to_nts, to_tks), ps) = Array.sub (prods, to);
 
                   val new_tks = tokens_subtract to_tks from_tks;  (*added lookahead tokens*)
                   val to_tks' = tokens_merge (to_tks, new_tks);
                   val _ = Array.update (prods, to, ((to_nts, to_tks'), ps));
-                in if tokens_is_empty new_tks then added else (to, new_tks) :: added end;
+                in tokens_add (to, new_tks) end;
 
               val tos = chains_all_succs chains' [lhs];
             in
@@ -260,9 +262,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             is used to access existing
                             productions we have to add new
                             tokens at the _end_ of the list*)
-                        val added_starts' =
-                          if tokens_is_empty added_tks then added_starts
-                          else ((nt, added_tks) :: added_starts);
+                        val added_starts' = tokens_add (nt, added_tks) added_starts;
                       in (added_lambdas', added_starts') end;
 
                     val (added_lambdas, added_starts') =
@@ -344,11 +344,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         else
                           Array.update
                             (prods, nt, ((old_nts, tokens_merge (old_tks, new_tks)), nt_prods'));
-                    in
-                      add_tks nts
-                        (if tokens_is_empty new_tks then added else (nt, new_tks) :: added)
-                        prod_count'
-                    end;
+                    in add_tks nts (tokens_add (nt, new_tks) added) prod_count' end;
               val _ = nts_fold add_nts start_nts true;
             in
               add_tks (chains_all_succs chains' [lhs]) [] prod_count
@@ -404,9 +400,9 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           in update_prods ps result end;
 
                     (*copy existing productions for new starting tokens*)
-                    fun process_nts nt added =
+                    fun process_nts nt =
                       let
-                        val (lookahead as (old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
+                        val ((nts, tks), nt_prods) = Array.sub (prods, nt);
 
                         val tk_prods = prods_lookup nt_prods key;
 
@@ -418,16 +414,10 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             prods_update (key, tk_prods') nt_prods'
                           else nt_prods';
 
-                        val added_tks = tokens_subtract old_tks new_tks;
-                      in
-                        if tokens_is_empty added_tks then
-                          (Array.update (prods, nt, (lookahead, nt_prods''));
-                            added)
-                        else
-                          (Array.update
-                             (prods, nt, ((old_nts, tokens_merge (old_tks, added_tks)), nt_prods''));
-                            ((nt, added_tks) :: added))
-                      end;
+                        val added_tks = tokens_subtract tks new_tks;
+                        val tks' = tokens_merge (tks, added_tks);
+                        val _ = Array.update (prods, nt, ((nts, tks'), nt_prods''));
+                      in tokens_add (nt, added_tks) end;
 
                     val ((dependent, _), _) = Array.sub (prods, changed_nt);
                   in add_starts (starts @ nts_fold process_nts dependent []) end;
