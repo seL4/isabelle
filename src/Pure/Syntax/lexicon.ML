@@ -37,7 +37,6 @@ sig
   val literal_markup: string -> Markup.T
   val report_of_token: token -> Position.report
   val reported_token_range: Proof.context -> token -> string
-  val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
   val implode_string: Symbol.symbol list -> string
@@ -178,12 +177,6 @@ fun reported_token_range ctxt tok =
   if is_proper tok
   then Context_Position.reported_text ctxt (pos_of_token tok) Markup.token_range ""
   else "";
-
-
-(* matching_tokens *)
-
-fun matching_tokens (Token (Literal, x, _), Token (Literal, y, _)) = x = y
-  | matching_tokens (Token (k, _, _), Token (k', _, _)) = k = k';
 
 
 (* valued_token *)

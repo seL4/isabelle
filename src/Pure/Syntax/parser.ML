@@ -77,8 +77,13 @@ datatype gram =
      lambda productions are stored as normal productions
      and also as an entry in "lambdas"*)
 
-val union_token = union Lexicon.matching_tokens;
-val subtract_token = subtract Lexicon.matching_tokens;
+fun tokens_match toks =
+  (case apply2 Lexicon.kind_of_token toks of
+    (Lexicon.Literal, Lexicon.Literal) => op = (apply2 Lexicon.str_of_token toks)
+  | kinds => op = kinds);
+
+val tokens_union = union tokens_match;
+val tokens_subtract = subtract tokens_match;
 
 (*productions for which no starting token is
   known yet are associated with this token*)
@@ -173,10 +178,10 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                                 val new_tks =
                                   (if is_some tk then [the tk] else [])
-                                  |> fold (union_token o starts_for_nt) nts
+                                  |> fold (tokens_union o starts_for_nt) nts
                                   |> subtract (op =) l_starts;
 
-                                val added_tks' = union_token added_tks new_tks;
+                                val added_tks' = tokens_union added_tks new_tks;
 
                                 val nt_dependencies' = union (op =) nts nt_dependencies;
 
@@ -262,7 +267,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
               val start_tks =
                 (if is_some start_tk then [the start_tk] else [])
-                |> fold (union_token o starts_for_nt) start_nts;
+                |> fold (tokens_union o starts_for_nt) start_nts;
 
               val opt_starts =
                (if is_some new_lambdas then [NONE]
@@ -284,7 +289,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                     let
                       val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                      val new_tks = subtract_token old_tks start_tks;
+                      val new_tks = tokens_subtract old_tks start_tks;
 
                       (*store new production*)
                       fun store [] prods is_new =
@@ -398,7 +403,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                 AList.update (op =) (key, tk_prods') nt_prods'
                               else nt_prods';
 
-                            val added_tks = subtract_token old_tks new_tks;
+                            val added_tks = tokens_subtract old_tks new_tks;
                           in
                             if null added_tks then
                               (Array.update (prods, nt, (lookahead, nt_prods''));
@@ -629,7 +634,7 @@ fun prods_for (Gram {prods, chains, ...}) include_none tk nts =
       let
         fun assoc [] result = result
           | assoc ((keyi, pi) :: pairs) result =
-              if is_some keyi andalso Lexicon.matching_tokens (the keyi, key)
+              if is_some keyi andalso tokens_match (the keyi, key)
                  orelse include_none andalso is_none keyi then
                 assoc pairs (pi @ result)
               else assoc pairs result;
@@ -673,8 +678,7 @@ fun PROCESSS gram Estate i c states =
               end
           | (_, _, _, Terminal a :: _, _, _) => (*scanner operation*)
               processS used States
-                (S :: Si,
-                  if Lexicon.matching_tokens (a, c) then movedot_term c S :: Sii else Sii)
+                (S :: Si, if tokens_match (a, c) then movedot_term c S :: Sii else Sii)
           | (A, prec, ts, [], id, j) => (*completer operation*)
               let val tt = if id = "" then ts else [Node (id, rev ts)] in
                 if j = i then (*lambda production?*)
