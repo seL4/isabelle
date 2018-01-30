@@ -180,7 +180,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                   is_none tk andalso forall (nts_member lambdas) nts;
 
                                 val new_tks =
-                                  (if is_some tk then [the tk] else [])
+                                  the_list tk
                                   |> fold (tokens_union o starts_for_nt) nts
                                   |> subtract (op =) l_starts;
 
@@ -265,7 +265,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               val (start_tk, start_nts) = lookahead_dependency lambdas' rhs [];
 
               val start_tks =
-                (if is_some start_tk then [the start_tk] else [])
+                the_list start_tk
                 |> fold (tokens_union o starts_for_nt) start_nts;
 
               val opt_starts =
