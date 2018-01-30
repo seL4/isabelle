@@ -36,6 +36,9 @@ val nts_merge: nts * nts -> nts = Inttab.merge (K true);
 fun nts_insert nt : nts -> nts = Inttab.insert_set nt;
 fun nts_member (nts: nts) = Inttab.defined nts;
 fun nts_fold f (nts: nts) = Inttab.fold (f o #1) nts;
+fun nts_subset (nts1: nts, nts2: nts) = Inttab.forall (nts_member nts2 o #1) nts1;
+fun nts_is_empty (nts: nts) = Inttab.is_empty nts;
+fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Inttab.is_single nts;
 
 datatype symb =
   Terminal of Lexicon.token
@@ -154,8 +157,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
           | lookahead_dependency _ (Terminal tk :: _) nts = (SOME tk, nts)
           | lookahead_dependency lambdas (Nonterminal (nt, _) :: symbs) nts =
               if nts_member lambdas nt then
-                lookahead_dependency lambdas symbs (nt :: nts)
-              else (NONE, nt :: nts);
+                lookahead_dependency lambdas symbs (nts_insert nt nts)
+              else (NONE, nts_insert nt nts);
 
         (*get all known starting tokens for a nonterminal*)
         fun starts_for_nt nt = snd (fst (Array.sub (prods, nt)));
@@ -175,20 +178,20 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           (add_lambda, nt_dependencies, added_tks, nt_prods)
                       | examine_prods ((p as (rhs, _, _)) :: ps) add_lambda
                             nt_dependencies added_tks nt_prods =
-                          let val (tk, nts) = lookahead_dependency lambdas rhs [] in
-                            if member (op =) nts l then       (*update production's lookahead*)
+                          let val (tk, nts) = lookahead_dependency lambdas rhs nts_empty in
+                            if nts_member nts l then       (*update production's lookahead*)
                               let
                                 val new_lambda =
-                                  is_none tk andalso forall (nts_member lambdas) nts;
+                                  is_none tk andalso nts_subset (nts, lambdas);
 
                                 val new_tks =
                                   the_list tk
-                                  |> fold (tokens_union o starts_for_nt) nts
+                                  |> nts_fold (tokens_union o starts_for_nt) nts
                                   |> tokens_subtract l_starts;
 
                                 val added_tks' = tokens_union added_tks new_tks;
 
-                                val nt_dependencies' = fold nts_insert nts nt_dependencies;
+                                val nt_dependencies' = nts_merge (nt_dependencies, nts);
 
                                 (*associate production with new starting tokens*)
                                 fun copy ([]: Lexicon.token list) nt_prods = nt_prods
@@ -261,11 +264,11 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
             let
               (*lookahead tokens of new production and on which
                 NTs lookahead depends*)
-              val (start_tk, start_nts) = lookahead_dependency lambdas' rhs [];
+              val (start_tk, start_nts) = lookahead_dependency lambdas' rhs nts_empty;
 
               val start_tks =
                 the_list start_tk
-                |> fold (tokens_union o starts_for_nt) start_nts;
+                |> nts_fold (tokens_union o starts_for_nt) start_nts;
 
               val start_tks' =
                (if is_some new_lambdas then [token_none]
@@ -273,12 +276,13 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                 else []) @ start_tks;
 
               (*add lhs NT to list of dependent NTs in lookahead*)
-              fun add_nts [] = ()
-                | add_nts (nt :: _) =
-                    let val ((old_nts, old_tks), ps) = Array.sub (prods, nt) in
-                      if nts_member old_nts lhs then ()
-                      else Array.update (prods, nt, ((nts_insert lhs old_nts, old_tks), ps))
-                    end;
+              fun add_nts nt initial =
+                (if initial then
+                  let val ((old_nts, old_tks), ps) = Array.sub (prods, nt) in
+                    if nts_member old_nts lhs then ()
+                    else Array.update (prods, nt, ((nts_insert lhs old_nts, old_tks), ps))
+                  end
+                 else (); false);
 
               (*add new start tokens to chained NTs' lookahead list;
                 also store new production for lhs NT*)
@@ -324,7 +328,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       add_tks nts
                         (if null new_tks then added else (nt, new_tks) :: added) prod_count'
                     end;
-              val _ = add_nts start_nts;
+              val _ = nts_fold add_nts start_nts true;
             in
               add_tks (chains_all_succs chains' [lhs]) [] prod_count
             end;
@@ -350,16 +354,16 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             (tk_prods, nt_prods) =
                           let
                             (*lookahead dependency for production*)
-                            val (tk, depends) = lookahead_dependency lambdas' rhs [];
+                            val (tk, depends) = lookahead_dependency lambdas' rhs nts_empty;
 
                             (*test if this production has to be copied*)
-                            val update = member (op =) depends changed_nt;
+                            val update = nts_member depends changed_nt;
 
                             (*test if production could already be associated with
                               a member of new_tks*)
                             val lambda =
-                              length depends > 1 orelse
-                              not (null depends) andalso is_some tk
+                              not (nts_is_unique depends) orelse
+                              not (nts_is_empty depends) andalso is_some tk
                               andalso member (op =) new_tks (the tk);
 
                             (*associate production with new starting tokens*)
