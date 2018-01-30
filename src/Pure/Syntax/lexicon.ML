@@ -23,6 +23,7 @@ sig
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
     StrSy | StringSy | Cartouche | Space | Comment of Comment.kind option | EOF
+  val token_kind_ord: token_kind * token_kind -> order
   datatype token = Token of token_kind * string * Position.range
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
@@ -114,6 +115,28 @@ fun is_tid s =
 datatype token_kind =
   Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy | StrSy |
   StringSy | Cartouche | Space | Comment of Comment.kind option | EOF;
+
+val token_kind_index =
+  fn Literal => 0
+   | IdentSy => 1
+   | LongIdentSy => 2
+   | VarSy => 3
+   | TFreeSy => 4
+   | TVarSy => 5
+   | NumSy => 6
+   | FloatSy => 7
+   | StrSy => 8
+   | StringSy => 9
+   | Cartouche => 10
+   | Space => 11
+   | Comment NONE => 12
+   | Comment (SOME Comment.Comment) => 13
+   | Comment (SOME Comment.Cancel) => 14
+   | Comment (SOME Comment.Latex) => 15
+   | EOF => 16;
+
+val token_kind_ord = int_ord o apply2 token_kind_index;
+
 
 datatype token = Token of token_kind * string * Position.range;
 
