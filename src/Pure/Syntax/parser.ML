@@ -74,13 +74,20 @@ datatype symb =
   Terminal of Lexicon.token
 | Nonterminal of nt * int;  (*(tag, precedence)*)
 
+type prods = (symb list * string * int) list Tokens.table;  (*start_token ~> [(rhs, name, prio)]*)
+
+val prods_empty: prods = Tokens.empty;
+val prods_merge: prods * prods -> prods = Tokens.merge (op =);
+fun prods_lookup (prods: prods) = Tokens.lookup_list prods;
+fun prods_update entry : prods -> prods = Tokens.update entry;
+fun prods_content (prods: prods) = distinct (op =) (maps #2 (Tokens.dest prods));
+
 type nt_gram =
-  ((nts * tokens) *
-    (Lexicon.token * (symb list * string * int) list) list);
-  (*(([dependent_nts], [start_tokens]), [(start_token, [(rhs, name, prio)])])*)
+  ((nts * tokens) * prods);
+  (*(([dependent_nts], [start_tokens]), prods)*)
   (*depent_nts is a list of all NTs whose lookahead depends on this NT's lookahead*)
 
-val nt_gram_empty: nt_gram = ((nts_empty, tokens_empty), []);
+val nt_gram_empty: nt_gram = ((nts_empty, tokens_empty), prods_empty);
 
 type tags = nt Symtab.table;
 val tags_empty: tags = Symtab.empty;
@@ -217,9 +224,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                 val nt_dependencies' = nts_merge (nt_dependencies, nts);
 
                                 (*associate production with new starting tokens*)
-                                fun copy (tk: Lexicon.token) nt_prods =
-                                  let val old_prods = these (AList.lookup (op =) nt_prods tk);
-                                  in AList.update (op =) (tk, p :: old_prods) nt_prods end;
+                                fun copy tk nt_prods =
+                                  prods_update (tk, p :: prods_lookup nt_prods tk) nt_prods;
 
                                 val nt_prods' = nt_prods
                                   |> tokens_fold copy new_tks
@@ -238,8 +244,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
                         (*existing productions whose lookahead may depend on l*)
-                        val tk_prods =
-                          these (AList.lookup (op =) nt_prods (get_start l_starts));
+                        val tk_prods = prods_lookup nt_prods (get_start l_starts);
 
                         (*add_lambda is true if an existing production of the nt
                           produces lambda due to the new lambda NT l*)
@@ -315,7 +320,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       (*store new production*)
                       fun store tk (prods, is_new) =
                         let
-                          val tk_prods = these (AList.lookup (op =) prods tk);
+                          val tk_prods = prods_lookup prods tk;
 
                           (*if prod_count = NONE then we can assume that
                             grammar does not contain new production already*)
@@ -325,8 +330,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                               else (new_prod :: tk_prods, true)
                             else (new_prod :: tk_prods, true);
 
-                          val prods' = prods
-                            |> is_new' ? AList.update (op =) (tk, tk_prods');
+                          val prods' = prods |> is_new' ? prods_update (tk, tk_prods');
                         in (prods', is_new orelse is_new') end;
 
                       val (nt_prods', changed) = (nt_prods, false)
@@ -386,13 +390,13 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             (*associate production with new starting tokens*)
                             fun copy tk nt_prods =
                               let
-                                val tk_prods = these (AList.lookup (op =) nt_prods tk);
+                                val tk_prods = prods_lookup nt_prods tk;
                                 val tk_prods' =
                                   if not lambda then p :: tk_prods
                                   else insert (op =) p tk_prods;
                                    (*if production depends on lambda NT we
                                      have to look for duplicates*)
-                              in AList.update (op =) (tk, tk_prods') nt_prods end;
+                              in prods_update (tk, tk_prods') nt_prods end;
                             val result =
                               if update then (tk_prods, tokens_fold copy new_tks nt_prods)
                               else if key = unknown_start then (p :: tk_prods, nt_prods)
@@ -404,14 +408,14 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       let
                         val (lookahead as (old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                        val tk_prods = these (AList.lookup (op =) nt_prods key);
+                        val tk_prods = prods_lookup nt_prods key;
 
                         (*associate productions with new lookahead tokens*)
                         val (tk_prods', nt_prods') = update_prods tk_prods ([], nt_prods);
 
                         val nt_prods'' =
                           if key = unknown_start then
-                            AList.update (op =) (key, tk_prods') nt_prods'
+                            prods_update (key, tk_prods') nt_prods'
                           else nt_prods';
 
                         val added_tks = tokens_subtract old_tks new_tks;
@@ -448,8 +452,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
     fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
     fun pretty_prod (name, tag) =
-      (fold (union (op =) o #2) (#2 (Vector.sub (prods, tag))) [] @
-        map prod_of_chain (chains_preds chains tag))
+      (prods_content (#2 (Vector.sub (prods, tag))) @ map prod_of_chain (chains_preds chains tag))
       |> map (fn (symbs, const, p) =>
           Pretty.block (Pretty.breaks
             (Pretty.str (name ^ print_pri p ^ " =") :: map pretty_symb symbs @ pretty_const const)));
@@ -640,29 +643,17 @@ val branching_level =
 
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
-fun prods_for (Gram {prods, chains, ...}) include_none tk nts =
+fun prods_for (Gram {prods, chains, ...}) tk nt =
   let
-    fun token_assoc (list, key) =
-      let
-        fun assoc [] result = result
-          | assoc ((keyi, pi) :: pairs) result =
-              if keyi <> token_none andalso tokens_match (keyi, key)
-                 orelse include_none andalso keyi = token_none then
-                assoc pairs (pi @ result)
-              else assoc pairs result;
-      in assoc list [] end;
-
-    fun get_prods [] result = result
-      | get_prods (nt :: nts) result =
-          let val nt_prods = snd (Vector.sub (prods, nt));
-          in get_prods nts (token_assoc (nt_prods, tk) @ result) end;
-  in get_prods (chains_all_preds chains nts) [] end;
+    fun token_prods prods =
+      fold cons (prods_lookup prods tk) #>
+      fold cons (prods_lookup prods token_none);
+    fun nt_prods nt = #2 (Vector.sub (prods, nt));
+  in fold (token_prods o nt_prods) (chains_all_preds chains [nt]) [] end;
 
 
 fun PROCESSS gram Estate i c states =
   let
-    fun all_prods_for nt = prods_for gram true c [nt];
-
     fun processS _ [] (Si, Sii) = (Si, Sii)
       | processS used (S :: States) (Si, Sii) =
           (case S of
@@ -676,13 +667,13 @@ fun PROCESSS gram Estate i c states =
                         (used, movedot_lambda l S)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
-                          val tk_prods = all_prods_for nt;
+                          val tk_prods = prods_for gram c nt;
                           val States' =
                             mk_states i nt (get_RHS' min_prec used_prec tk_prods);
                         in (update_prec (nt, min_prec) used, movedot_lambda l S @ States') end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let
-                        val tk_prods = all_prods_for nt;
+                        val tk_prods = prods_for gram c nt;
                         val States' = mk_states i nt (get_RHS min_prec tk_prods);
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
               in
@@ -770,7 +761,7 @@ fun parse gram start toks =
 fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
   let
     fun freeze a = map_range (curry Vector.sub a) (Vector.length a);
-    val prods = maps snd (maps snd (freeze (#prods gram)));
+    val prods = maps (prods_content o #2) (freeze (#prods gram));
     fun guess (SOME ([Nonterminal (_, k),
             Terminal (Lexicon.Token (Lexicon.Literal, s, _)), Nonterminal (_, l)], _, j)) =
           if k = j andalso l = j + 1 then SOME (s, true, false, j)
