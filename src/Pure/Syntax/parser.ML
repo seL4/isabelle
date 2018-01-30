@@ -133,10 +133,8 @@ fun get_start tks =
     SOME (tk, _) => tk
   | NONE => unknown_start);
 
-(*convert productions to grammar;
-  prod_count is of type "int option" and is only updated if it is <> NONE*)
-fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
-  | add_prods prods chains lambdas prod_count ((lhs, new_prod as (rhs, _, pri)) :: ps) =
+fun add_prods _ chains lambdas [] = (chains, lambdas)
+  | add_prods prods chains lambdas ((lhs, new_prod as (rhs, _, pri)) :: ps) =
       let
         (*store chain if it does not already exist*)
         val (chain, new_chain, chains') =
@@ -279,9 +277,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
           end;
 
         (*insert production into grammar*)
-        val (added_starts', _) =
-          if is_some chain
-          then (added_starts', prod_count)  (*don't store chain production*)
+        val added_starts' =
+          if is_some chain then added_starts'  (*don't store chain production*)
           else
             let
               (*lookahead tokens of new production and on which
@@ -310,45 +307,31 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
               (*add new start tokens to chained NTs' lookahead list;
                 also store new production for lhs NT*)
-              fun add_tks [] added prod_count = (added, prod_count)
-                | add_tks (nt :: nts) added prod_count =
+              fun add_tks [] added = added
+                | add_tks (nt :: nts) added =
                     let
                       val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
                       val new_tks = tokens_subtract old_tks start_tks;
 
                       (*store new production*)
-                      fun store tk (prods, is_new) =
+                      fun store tk (prods, _) =
                         let
                           val tk_prods = prods_lookup prods tk;
-
-                          (*if prod_count = NONE then we can assume that
-                            grammar does not contain new production already*)
-                          val (tk_prods', is_new') =
-                            if is_some prod_count then
-                              if member (op =) tk_prods new_prod then (tk_prods, false)
-                              else (new_prod :: tk_prods, true)
-                            else (new_prod :: tk_prods, true);
-
-                          val prods' = prods |> is_new' ? prods_update (tk, tk_prods');
-                        in (prods', is_new orelse is_new') end;
+                          val tk_prods' = new_prod :: tk_prods;
+                          val prods' = prods_update (tk, tk_prods') prods;
+                        in (prods', true) end;
 
                       val (nt_prods', changed) = (nt_prods, false)
                         |> nt = lhs ? tokens_fold store start_tks';
-                      val prod_count' =
-                        if is_some prod_count andalso changed then
-                          Option.map (fn x => x + 1) prod_count
-                        else prod_count;
                       val _ =
                         if not changed andalso tokens_is_empty new_tks then ()
                         else
                           Array.update
                             (prods, nt, ((old_nts, tokens_merge (old_tks, new_tks)), nt_prods'));
-                    in add_tks nts (tokens_add (nt, new_tks) added) prod_count' end;
+                    in add_tks nts (tokens_add (nt, new_tks) added) end;
               val _ = nts_fold add_nts start_nts true;
-            in
-              add_tks (chains_all_succs chains' [lhs]) [] prod_count
-            end;
+            in add_tks (chains_all_succs chains' [lhs]) [] end;
 
         (*associate productions with new lookaheads*)
         val _ =
@@ -422,7 +405,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                     val ((dependent, _), _) = Array.sub (prods, changed_nt);
                   in add_starts (starts @ nts_fold process_nts dependent []) end;
           in add_starts added_starts' end;
-      in add_prods prods chains' lambdas' prod_count ps end;
+      in add_prods prods chains' lambdas' ps end;
 
 
 (* pretty_gram *)
@@ -517,7 +500,7 @@ fun extend_gram [] gram = gram
           in Array.tabulate (nt_count', get_prod) end;
 
         (*Add new productions to old ones*)
-        val (chains', lambdas', _) = add_prods prods' chains lambdas NONE xprods';
+        val (chains', lambdas') = add_prods prods' chains lambdas xprods';
       in
         Gram
          {nt_count = nt_count',
