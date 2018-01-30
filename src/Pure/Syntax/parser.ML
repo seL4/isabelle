@@ -79,7 +79,6 @@ datatype symb =
 type prods = (symb list * string * int) list Tokens.table;  (*start_token ~> [(rhs, name, prio)]*)
 
 val prods_empty: prods = Tokens.empty;
-val prods_merge: prods * prods -> prods = Tokens.merge (op =);
 fun prods_lookup (prods: prods) = Tokens.lookup_list prods;
 fun prods_update entry : prods -> prods = Tokens.update entry;
 fun prods_content (prods: prods) = distinct (op =) (maps #2 (Tokens.dest prods));
