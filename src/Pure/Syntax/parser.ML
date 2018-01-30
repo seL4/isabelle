@@ -28,19 +28,28 @@ struct
 
 (*production for the NTs are stored in a vector
   so we can identify NTs by their index*)
-type nt_tag = int;
+type nt = int;
+
+type nts = Inttab.set;
+val nts_empty: nts = Inttab.empty;
+val nts_merge: nts * nts -> nts = Inttab.merge (K true);
+fun nts_insert nt : nts -> nts = Inttab.insert_set nt;
+fun nts_member (nts: nts) = Inttab.defined nts;
+fun nts_fold f (nts: nts) = Inttab.fold (f o #1) nts;
 
 datatype symb =
   Terminal of Lexicon.token
-| Nonterminal of nt_tag * int;  (*(tag, precedence)*)
+| Nonterminal of nt * int;  (*(tag, precedence)*)
 
 type nt_gram =
-  ((nt_tag list * Lexicon.token list) *
+  ((nts * Lexicon.token list) *
     (Lexicon.token option * (symb list * string * int) list) list);
   (*(([dependent_nts], [start_tokens]), [(start_token, [(rhs, name, prio)])])*)
   (*depent_nts is a list of all NTs whose lookahead depends on this NT's lookahead*)
 
-type tags = nt_tag Symtab.table;
+val nt_gram_empty: nt_gram = ((nts_empty, []), []);
+
+type tags = nt Symtab.table;
 val tags_empty: tags = Symtab.empty;
 fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
 fun tags_lookup (tags: tags) = Symtab.lookup tags;
@@ -57,19 +66,13 @@ fun chains_declare nt : chains -> chains = Int_Graph.default_node (nt, ());
 fun chains_insert (from, to) =
   chains_declare from #> chains_declare to #> Int_Graph.add_edge (from, to);
 
-type lambdas = Inttab.set;
-val lambdas_empty: lambdas = Inttab.empty;
-fun lambdas_member (lambdas: lambdas) = Inttab.defined lambdas;
-fun lambdas_insert nt : lambdas -> lambdas = Inttab.insert_set nt;
-fun lambdas_fold f (lambdas: lambdas) = Inttab.fold (f o #1) lambdas;
-
 datatype gram =
   Gram of
    {nt_count: int,
     prod_count: int,
     tags: tags,
     chains: chains,
-    lambdas: lambdas,
+    lambdas: nts,
     prods: nt_gram Vector.vector};
     (*"tags" is used to map NT names (i.e. strings) to tags;
      chain productions are not stored as normal productions
@@ -130,25 +133,25 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               val tos = chains_all_succs chains' [lhs];
             in
               (copy_lookahead tos [],
-                lambdas |> lambdas_member lambdas lhs ? fold lambdas_insert tos)
+                lambdas |> nts_member lambdas lhs ? fold nts_insert tos)
             end;
 
         (*test if new production can produce lambda
           (rhs must either be empty or only consist of lambda NTs)*)
         val new_lambdas =
           if forall
-            (fn Nonterminal (id, _) => lambdas_member lambdas' id
+            (fn Nonterminal (id, _) => nts_member lambdas' id
               | Terminal _ => false) rhs
-          then SOME (filter_out (lambdas_member lambdas') (chains_all_succs chains' [lhs]))
+          then SOME (filter_out (nts_member lambdas') (chains_all_succs chains' [lhs]))
           else NONE;
-        val lambdas'' = fold lambdas_insert (these new_lambdas) lambdas';
+        val lambdas'' = fold nts_insert (these new_lambdas) lambdas';
 
         (*list optional terminal and all nonterminals on which the lookahead
           of a production depends*)
         fun lookahead_dependency _ [] nts = (NONE, nts)
           | lookahead_dependency _ (Terminal tk :: _) nts = (SOME tk, nts)
           | lookahead_dependency lambdas (Nonterminal (nt, _) :: symbs) nts =
-              if lambdas_member lambdas nt then
+              if nts_member lambdas nt then
                 lookahead_dependency lambdas symbs (nt :: nts)
               else (NONE, nt :: nts);
 
@@ -174,7 +177,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             if member (op =) nts l then       (*update production's lookahead*)
                               let
                                 val new_lambda =
-                                  is_none tk andalso forall (lambdas_member lambdas) nts;
+                                  is_none tk andalso forall (nts_member lambdas) nts;
 
                                 val new_tks =
                                   (if is_some tk then [the tk] else [])
@@ -183,7 +186,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                                 val added_tks' = tokens_union added_tks new_tks;
 
-                                val nt_dependencies' = union (op =) nts nt_dependencies;
+                                val nt_dependencies' = fold nts_insert nts nt_dependencies;
 
                                 (*associate production with new starting tokens*)
                                 fun copy ([]: Lexicon.token option list) nt_prods = nt_prods
@@ -211,47 +214,43 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           end;
 
                     (*check each NT whose lookahead depends on new lambda NT*)
-                    fun process_nts [] added_lambdas added_starts =
-                          (added_lambdas, added_starts)
-                      | process_nts (nt :: nts) added_lambdas added_starts =
-                          let
-                            val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
+                    fun process_nts nt (added_lambdas, added_starts) =
+                      let
+                        val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                            (*existing productions whose lookahead may depend on l*)
-                            val tk_prods =
-                              these (AList.lookup (op =) nt_prods (SOME (get_start l_starts)));
+                        (*existing productions whose lookahead may depend on l*)
+                        val tk_prods =
+                          these (AList.lookup (op =) nt_prods (SOME (get_start l_starts)));
 
-                            (*add_lambda is true if an existing production of the nt
-                              produces lambda due to the new lambda NT l*)
-                            val (add_lambda, nt_dependencies, added_tks, nt_prods') =
-                              examine_prods tk_prods false [] [] nt_prods;
+                        (*add_lambda is true if an existing production of the nt
+                          produces lambda due to the new lambda NT l*)
+                        val (add_lambda, nt_dependencies, added_tks, nt_prods') =
+                          examine_prods tk_prods false nts_empty [] nt_prods;
 
-                            val added_nts = subtract (op =) old_nts nt_dependencies;
+                        val new_nts = nts_merge (old_nts, nt_dependencies);
 
-                            val added_lambdas' = added_lambdas |> add_lambda ? cons nt;
-                            val _ =
-                              Array.update
-                                (prods, nt, ((added_nts @ old_nts, old_tks @ added_tks), nt_prods'));
-                              (*N.B. that because the tks component
-                                is used to access existing
-                                productions we have to add new
-                                tokens at the _end_ of the list*)
-                          in
-                            if null added_tks then
-                              process_nts nts added_lambdas' added_starts
-                            else
-                              process_nts nts added_lambdas' ((nt, added_tks) :: added_starts)
-                          end;
+                        val added_lambdas' = added_lambdas |> add_lambda ? cons nt;
+                        val _ =
+                          Array.update (prods, nt, ((new_nts, old_tks @ added_tks), nt_prods'));
+                          (*N.B. that because the tks component
+                            is used to access existing
+                            productions we have to add new
+                            tokens at the _end_ of the list*)
+                        val added_starts' =
+                          if null added_tks then added_starts
+                          else ((nt, added_tks) :: added_starts);
+                      in (added_lambdas', added_starts') end;
 
-                    val (added_lambdas, added_starts') = process_nts dependent [] added_starts;
-                    val added_lambdas' = filter_out (lambdas_member lambdas) added_lambdas;
+                    val (added_lambdas, added_starts') =
+                      nts_fold process_nts dependent ([], added_starts);
+                    val added_lambdas' = filter_out (nts_member lambdas) added_lambdas;
                   in
                     propagate_lambda (ls @ added_lambdas') added_starts'
-                      (fold lambdas_insert added_lambdas' lambdas)
+                      (fold nts_insert added_lambdas' lambdas)
                   end;
           in
             propagate_lambda
-              (lambdas_fold (fn l => not (lambdas_member lambdas l) ? cons l) lambdas'' [])
+              (nts_fold (fn l => not (nts_member lambdas l) ? cons l) lambdas'' [])
               added_starts lambdas''
           end;
 
@@ -278,8 +277,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               fun add_nts [] = ()
                 | add_nts (nt :: _) =
                     let val ((old_nts, old_tks), ps) = Array.sub (prods, nt) in
-                      if member (op =) old_nts lhs then ()
-                      else Array.update (prods, nt, ((lhs :: old_nts, old_tks), ps))
+                      if nts_member old_nts lhs then ()
+                      else Array.update (prods, nt, ((nts_insert lhs old_nts, old_tks), ps))
                     end;
 
               (*add new start tokens to chained NTs' lookahead list;
@@ -349,7 +348,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       if key = SOME unknown_start then tk_prods is used to hold
                       the productions not copied*)
                     fun update_prods [] result = result
-                      | update_prods ((p as (rhs, _: string, _: nt_tag)) :: ps)
+                      | update_prods ((p as (rhs, _: string, _: nt)) :: ps)
                             (tk_prods, nt_prods) =
                           let
                             (*lookahead dependency for production*)
@@ -388,33 +387,32 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                           in update_prods ps result end;
 
                     (*copy existing productions for new starting tokens*)
-                    fun process_nts [] added = added
-                      | process_nts (nt :: nts) added =
-                          let
-                            val (lookahead as (old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
+                    fun process_nts nt added =
+                      let
+                        val (lookahead as (old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                            val tk_prods = these (AList.lookup (op =) nt_prods key);
+                        val tk_prods = these (AList.lookup (op =) nt_prods key);
 
-                            (*associate productions with new lookahead tokens*)
-                            val (tk_prods', nt_prods') = update_prods tk_prods ([], nt_prods);
+                        (*associate productions with new lookahead tokens*)
+                        val (tk_prods', nt_prods') = update_prods tk_prods ([], nt_prods);
 
-                            val nt_prods'' =
-                              if key = SOME unknown_start then
-                                AList.update (op =) (key, tk_prods') nt_prods'
-                              else nt_prods';
+                        val nt_prods'' =
+                          if key = SOME unknown_start then
+                            AList.update (op =) (key, tk_prods') nt_prods'
+                          else nt_prods';
 
-                            val added_tks = tokens_subtract old_tks new_tks;
-                          in
-                            if null added_tks then
-                              (Array.update (prods, nt, (lookahead, nt_prods''));
-                                process_nts nts added)
-                            else
-                              (Array.update (prods, nt, ((old_nts, added_tks @ old_tks), nt_prods''));
-                                process_nts nts ((nt, added_tks) :: added))
-                          end;
+                        val added_tks = tokens_subtract old_tks new_tks;
+                      in
+                        if null added_tks then
+                          (Array.update (prods, nt, (lookahead, nt_prods''));
+                            added)
+                        else
+                          (Array.update (prods, nt, ((old_nts, added_tks @ old_tks), nt_prods''));
+                            ((nt, added_tks) :: added))
+                      end;
 
                     val ((dependent, _), _) = Array.sub (prods, changed_nt);
-                  in add_starts (starts @ process_nts dependent []) end;
+                  in add_starts (starts @ nts_fold process_nts dependent []) end;
           in add_starts added_starts' end;
       in add_prods prods chains' lambdas' prod_count ps end;
 
@@ -453,8 +451,8 @@ val empty_gram =
     prod_count = 0,
     tags = tags_empty,
     chains = chains_empty,
-    lambdas = lambdas_empty,
-    prods = Vector.fromList [(([], []), [])]};
+    lambdas = nts_empty,
+    prods = Vector.fromList [nt_gram_empty]};
 
 
 (*Add productions to a grammar*)
@@ -508,7 +506,7 @@ fun extend_gram [] gram = gram
           let
             fun get_prod i =
               if i < nt_count then Vector.sub (prods, i)
-              else (([], []), []);
+              else nt_gram_empty;
           in Array.tabulate (nt_count', get_prod) end;
 
         (*Add new productions to old ones*)
@@ -549,7 +547,7 @@ fun pretty_parsetree parsetree =
 (* parser state *)
 
 type state =
-  nt_tag * int *    (*identification and production precedence*)
+  nt * int *    (*identification and production precedence*)
   parsetree list *  (*already parsed nonterminals on rhs*)
   symb list *       (*rest of rhs*)
   string *          (*name of production*)
