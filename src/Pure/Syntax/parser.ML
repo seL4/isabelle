@@ -1,7 +1,8 @@
 (*  Title:      Pure/Syntax/parser.ML
-    Author:     Carsten Clasohm, Sonia Mahjoub, and Markus Wenzel, TU Muenchen
+    Author:     Carsten Clasohm, Sonia Mahjoub
+    Author:     Makarius
 
-General context-free parser for the inner syntax of terms, types, etc.
+General context-free parser for the inner syntax of terms and types.
 *)
 
 signature PARSER =
@@ -28,9 +29,15 @@ struct
 
 (* nonterminals *)
 
-(*production for the NTs are stored in a vector
-  so we can identify NTs by their index*)
+(*production for the NTs are stored in a vector, indexed by the NT tag*)
 type nt = int;
+
+type tags = nt Symtab.table;
+val tags_empty: tags = Symtab.empty;
+fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
+fun tags_lookup (tags: tags) = Symtab.lookup tags;
+fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
+fun tags_name (tags: tags) = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
 
 type nts = Inttab.set;
 val nts_empty: nts = Inttab.empty;
@@ -72,9 +79,11 @@ fun tokens_find P (tokens: tokens) =
 fun tokens_add (nt: nt, tokens) = if tokens_is_empty tokens then I else cons (nt, tokens);
 
 
+(* productions *)
+
 datatype symb =
-  Terminal of Lexicon.token
-| Nonterminal of nt * int;  (*(tag, precedence)*)
+  Terminal of Lexicon.token |
+  Nonterminal of nt * int;  (*(tag, prio)*)
 
 type prods = (symb list * string * int) list Tokens.table;  (*start_token ~> [(rhs, name, prio)]*)
 
@@ -83,19 +92,10 @@ fun prods_lookup (prods: prods) = Tokens.lookup_list prods;
 fun prods_update entry : prods -> prods = Tokens.update entry;
 fun prods_content (prods: prods) = distinct (op =) (maps #2 (Tokens.dest prods));
 
-type nt_gram =
-  ((nts * tokens) * prods);
-  (*(([dependent_nts], [start_tokens]), prods)*)
-  (*depent_nts is a list of all NTs whose lookahead depends on this NT's lookahead*)
+type nt_gram = (nts * tokens) * prods; (*dependent_nts, start_tokens, prods*)
+  (*depent_nts is a set of all NTs whose lookahead depends on this NT's lookahead*)
 
 val nt_gram_empty: nt_gram = ((nts_empty, tokens_empty), prods_empty);
-
-type tags = nt Symtab.table;
-val tags_empty: tags = Symtab.empty;
-fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
-fun tags_lookup (tags: tags) = Symtab.lookup tags;
-fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
-fun tags_name (tags: tags) = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
 
 type chains = unit Int_Graph.T;
 fun chains_preds (chains: chains) = Int_Graph.immediate_preds chains;
@@ -431,7 +431,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
 
 
-(** Operations on gramars **)
+(** operations on grammars **)
 
 val empty_gram =
   Gram
