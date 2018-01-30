@@ -114,11 +114,13 @@ object Pretty
     }
 
   private val margin_default = 76.0
+  private val breakgain_default = margin_default / 20
 
-  def formatted(input: XML.Body, margin: Double = margin_default,
+  def formatted(input: XML.Body,
+    margin: Double = margin_default,
+    breakgain: Double = breakgain_default,
     metric: Metric = Metric_Default): XML.Body =
   {
-    val breakgain = margin / 20
     val emergencypos = (margin / 2).round.toInt
 
     def make_tree(inp: XML.Body): List[Tree] =
@@ -177,7 +179,9 @@ object Pretty
     format(make_tree(input), 0, 0.0, Text()).content
   }
 
-  def string_of(input: XML.Body, margin: Double = margin_default,
+  def string_of(input: XML.Body,
+      margin: Double = margin_default,
+      breakgain: Double = breakgain_default,
       metric: Metric = Metric_Default): String =
-    XML.content(formatted(input, margin, metric))
+    XML.content(formatted(input, margin = margin, breakgain = breakgain, metric = metric))
 }

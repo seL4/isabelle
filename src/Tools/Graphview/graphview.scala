@@ -75,8 +75,9 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
     def node_text(node: Graph_Display.Node, content: XML.Body): String =
       if (show_content) {
         val s =
-          XML.content(Pretty.formatted(
-            content, options.int("graphview_content_margin").toDouble, metrics.Pretty_Metric))
+          XML.content(Pretty.formatted(content,
+            margin = options.int("graphview_content_margin").toDouble,
+            metric = metrics.Pretty_Metric))
         if (s.nonEmpty) s else node.toString
       }
       else node.toString

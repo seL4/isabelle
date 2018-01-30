@@ -259,7 +259,7 @@ class Pretty_Tooltip private(
         ((rendering.tooltip_margin * metric.average) min
           ((w_max - geometry.deco_width) / metric.unit).toInt) max 20
 
-      val formatted = Pretty.formatted(info.info, margin, metric)
+      val formatted = Pretty.formatted(info.info, margin = margin, metric = metric)
       val lines =
         XML.traverse_text(formatted)(if (XML.text_length(formatted) == 0) 0 else 1)(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)

@@ -129,7 +129,7 @@ class Pretty_Text_Area(
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
-      val formatted_body = Pretty.formatted(current_body, margin, metric)
+      val formatted_body = Pretty.formatted(current_body, margin = margin, metric = metric)
 
       future_refresh.map(_.cancel)
       future_refresh =
