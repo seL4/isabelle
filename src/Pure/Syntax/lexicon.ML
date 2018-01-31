@@ -28,6 +28,7 @@ sig
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
+  val tokens_match_ord: token * token -> order
   val is_proper: token -> bool
   val mk_eof: Position.T -> token
   val eof: token
@@ -143,6 +144,11 @@ datatype token = Token of token_kind * string * Position.range;
 fun kind_of_token (Token (k, _, _)) = k;
 fun str_of_token (Token (_, s, _)) = s;
 fun pos_of_token (Token (_, _, (pos, _))) = pos;
+
+fun tokens_match_ord toks =
+  (case apply2 kind_of_token toks of
+    (Literal, Literal) => fast_string_ord (apply2 str_of_token toks)
+  | kinds => token_kind_ord kinds);
 
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 

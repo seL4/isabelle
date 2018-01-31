@@ -52,17 +52,7 @@ fun nts_is_unique (nts: nts) = nts_is_empty nts orelse Inttab.is_single nts;
 
 (* tokens *)
 
-fun tokens_match toks =
-  (case apply2 Lexicon.kind_of_token toks of
-    (Lexicon.Literal, Lexicon.Literal) => op = (apply2 Lexicon.str_of_token toks)
-  | kinds => op = kinds);
-
-fun tokens_match_ord toks =
-  (case apply2 Lexicon.kind_of_token toks of
-    (Lexicon.Literal, Lexicon.Literal) => fast_string_ord (apply2 Lexicon.str_of_token toks)
-  | kinds => Lexicon.token_kind_ord kinds);
-
-structure Tokens = Table(type key = Lexicon.token val ord = tokens_match_ord);
+structure Tokens = Table(type key = Lexicon.token val ord = Lexicon.tokens_match_ord);
 
 type tokens = Tokens.set;
 val tokens_empty: tokens = Tokens.empty;
@@ -652,7 +642,8 @@ fun PROCESSS gram Estate i c states =
               end
           | (_, _, _, Terminal a :: _, _, _) => (*scanner operation*)
               processS used States
-                (S :: Si, if tokens_match (a, c) then movedot_term c S :: Sii else Sii)
+                (S :: Si,
+                  if Lexicon.tokens_match_ord (a, c) = EQUAL then movedot_term c S :: Sii else Sii)
           | (A, prec, ts, [], id, j) => (*completer operation*)
               let val tt = if id = "" then ts else [Node (id, rev ts)] in
                 if j = i then (*lambda production?*)
