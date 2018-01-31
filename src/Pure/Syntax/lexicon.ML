@@ -23,17 +23,16 @@ sig
   datatype token_kind =
     Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
     String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF
-  val token_kind_ord: token_kind * token_kind -> order
   eqtype token
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
   val end_pos_of_token: token -> Position.T
-  val tokens_match_ord: token * token -> order
-  val literal: string -> token
-  val is_literal: token -> bool
   val is_proper: token -> bool
   val dummy: token
+  val literal: string -> token
+  val is_literal: token -> bool
+  val tokens_match_ord: token * token -> order
   val mk_eof: Position.T -> token
   val eof: token
   val is_eof: token -> bool
@@ -115,61 +114,60 @@ fun is_tid s =
 
 
 
-(** datatype token **)
+(** tokens **)
+
+(* datatype token_kind *)
 
 datatype token_kind =
   Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
   String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF;
 
-val token_kind_index =
-  fn Literal => 0
-   | Ident => 1
-   | Long_Ident => 2
-   | Var => 3
-   | Type_Ident => 4
-   | Type_Var => 5
-   | Num => 6
-   | Float => 7
-   | Str => 8
-   | String => 9
-   | Cartouche => 10
-   | Space => 11
-   | Comment NONE => 12
-   | Comment (SOME Comment.Comment) => 13
-   | Comment (SOME Comment.Cancel) => 14
-   | Comment (SOME Comment.Latex) => 15
-   | Dummy => 16
-   | EOF => 17;
+val token_kinds =
+  Vector.fromList
+   [Literal, Ident, Long_Ident, Var, Type_Ident, Type_Var, Num, Float, Str,
+    String, Cartouche, Space, Comment NONE, Comment (SOME Comment.Comment),
+    Comment (SOME Comment.Cancel), Comment (SOME Comment.Latex), Dummy, EOF];
 
-val token_kind_ord = int_ord o apply2 token_kind_index;
+fun token_kind i = Vector.sub (token_kinds, i);
+fun token_kind_index k = #1 (the (Vector.findi (fn (_, k') => k = k') token_kinds));
 
 
-datatype token = Token of token_kind * string * Position.range;
+(* datatype token *)
 
-fun kind_of_token (Token (k, _, _)) = k;
+datatype token = Token of int * string * Position.range;
+
+fun index_of_token (Token (i, _, _)) = i;
+val kind_of_token = index_of_token #> token_kind;
 fun str_of_token (Token (_, s, _)) = s;
 fun pos_of_token (Token (_, _, (pos, _))) = pos;
 fun end_pos_of_token (Token (_, _, (_, end_pos))) = end_pos;
 
-fun tokens_match_ord toks =
-  (case apply2 kind_of_token toks of
-    (Literal, Literal) => fast_string_ord (apply2 str_of_token toks)
-  | kinds => token_kind_ord kinds);
-
-fun literal s = Token (Literal, s, Position.no_range);
-fun is_literal tok = kind_of_token tok = Literal;
-
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 
-val dummy = Token (Dummy, "", Position.no_range);
+val dummy = Token (token_kind_index Dummy, "", Position.no_range);
+
+
+(* literals *)
+
+val literal_index = token_kind_index Literal;
+fun literal s = Token (literal_index, s, Position.no_range);
+fun is_literal tok = index_of_token tok = literal_index;
+
+fun tokens_match_ord toks =
+  let val is = apply2 index_of_token toks in
+    (case int_ord is of
+      EQUAL => if #1 is = literal_index then fast_string_ord (apply2 str_of_token toks) else EQUAL
+    | ord => ord)
+  end;
 
 
 (* stopper *)
 
-fun mk_eof pos = Token (EOF, "", (pos, Position.none));
+val eof_index = token_kind_index EOF;
+fun mk_eof pos = Token (eof_index, "", (pos, Position.none));
 val eof = mk_eof Position.none;
 
-fun is_eof tok = kind_of_token tok = EOF;
+fun is_eof tok = index_of_token tok = eof_index;
 val stopper = Scan.stopper (K eof) is_eof;
 
 
@@ -209,9 +207,12 @@ val token_kind_markup =
   | Comment _ => Markup.inner_comment
   | _ => Markup.empty;
 
-fun report_of_token (Token (kind, s, (pos, _))) =
-  let val markup = if kind = Literal then literal_markup s else token_kind_markup kind
-  in (pos, markup) end;
+fun report_of_token tok =
+  let
+    val markup =
+      if is_literal tok then literal_markup (str_of_token tok)
+      else token_kind_markup (kind_of_token tok);
+  in (pos_of_token tok, markup) end;
 
 fun reported_token_range ctxt tok =
   if is_proper tok
@@ -221,15 +222,15 @@ fun reported_token_range ctxt tok =
 
 (* valued_token *)
 
-val valued_token =
-  kind_of_token #> (fn Literal => false | EOF => false | _ => true);
+fun valued_token tok =
+  not (is_literal tok orelse is_eof tok);
 
 
 (* predef_term *)
 
 fun predef_term s =
   (case AList.lookup (op =) terminal_kinds s of
-    SOME sy => SOME (Token (sy, s, Position.no_range))
+    SOME k => SOME (Token (token_kind_index k, s, Position.no_range))
   | NONE => NONE);
 
 
@@ -278,7 +279,10 @@ val explode_str = explode_literal scan_str_body;
 (** tokenize **)
 
 val token_leq = op <= o apply2 str_of_token;
-fun token kind ss = Token (kind, Symbol_Pos.content ss, Symbol_Pos.range ss);
+
+fun token kind =
+  let val i = token_kind_index kind
+  in fn ss => Token (i, Symbol_Pos.content ss, Symbol_Pos.range ss) end;
 
 fun tokenize lex xids syms =
   let
@@ -297,7 +301,7 @@ fun tokenize lex xids syms =
 
     val scan_lit = Scan.literal lex >> token Literal;
 
-    val scan_token =
+    val scan =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
       Symbol_Pos.scan_comment err_prefix >> token (Comment NONE) ||
       Comment.scan >> (fn (kind, ss) => token (Comment (SOME kind)) ss) ||
@@ -306,13 +310,11 @@ fun tokenize lex xids syms =
       scan_str >> token Str ||
       Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol) >> token Space;
   in
-    (case Scan.error
-        (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_token)) syms of
+    (case Scan.error (Scan.finite Symbol_Pos.stopper (Scan.repeat scan)) syms of
       (toks, []) => toks
     | (_, ss) =>
         error ("Inner lexical error" ^ Position.here (#1 (Symbol_Pos.range ss)) ^
           Markup.markup Markup.no_report ("\nat " ^ quote (Symbol_Pos.content ss))))
-
   end;
 
 
