@@ -710,7 +710,7 @@ fun parse gram start toks =
     val end_pos =
       (case try List.last toks of
         NONE => Position.none
-      | SOME (Lexicon.Token (_, _, (_, end_pos))) => end_pos);
+      | SOME tok => Lexicon.end_pos_of_token tok);
     val r =
       (case earley gram start (toks @ [Lexicon.mk_eof end_pos]) of
         [] => raise Fail "Inner syntax: no parse trees"

@@ -28,6 +28,7 @@ sig
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
+  val end_pos_of_token: token -> Position.T
   val tokens_match_ord: token * token -> order
   val is_proper: token -> bool
   val dummy: token
@@ -146,6 +147,7 @@ datatype token = Token of token_kind * string * Position.range;
 fun kind_of_token (Token (k, _, _)) = k;
 fun str_of_token (Token (_, s, _)) = s;
 fun pos_of_token (Token (_, _, (pos, _))) = pos;
+fun end_pos_of_token (Token (_, _, (_, end_pos))) = end_pos;
 
 fun tokens_match_ord toks =
   (case apply2 kind_of_token toks of
