@@ -22,7 +22,7 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
-    String | Cartouche | Space | Comment of Comment.kind option | EOF
+    String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF
   val token_kind_ord: token_kind * token_kind -> order
   datatype token = Token of token_kind * string * Position.range
   val kind_of_token: token -> token_kind
@@ -30,6 +30,7 @@ sig
   val pos_of_token: token -> Position.T
   val tokens_match_ord: token * token -> order
   val is_proper: token -> bool
+  val dummy: token
   val mk_eof: Position.T -> token
   val eof: token
   val is_eof: token -> bool
@@ -115,7 +116,7 @@ fun is_tid s =
 
 datatype token_kind =
   Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
-  String | Cartouche | Space | Comment of Comment.kind option | EOF;
+  String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF;
 
 val token_kind_index =
   fn Literal => 0
@@ -134,7 +135,8 @@ val token_kind_index =
    | Comment (SOME Comment.Comment) => 13
    | Comment (SOME Comment.Cancel) => 14
    | Comment (SOME Comment.Latex) => 15
-   | EOF => 16;
+   | Dummy => 16
+   | EOF => 17;
 
 val token_kind_ord = int_ord o apply2 token_kind_index;
 
@@ -151,6 +153,8 @@ fun tokens_match_ord toks =
   | kinds => token_kind_ord kinds);
 
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
+
+val dummy = Token (Dummy, "", Position.no_range);
 
 
 (* stopper *)

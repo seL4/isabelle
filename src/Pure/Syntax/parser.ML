@@ -111,8 +111,6 @@ datatype gram =
      lambda productions are stored as normal productions
      and also as an entry in "lambdas"*)
 
-val token_none = Lexicon.Token (Lexicon.Space, "", Position.no_range);
-
 (*productions for which no starting token is
   known yet are associated with this token*)
 val unknown_start = Lexicon.eof;
@@ -217,7 +215,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
 
                             val nt_prods' = nt_prods
                               |> tokens_fold copy new_tks
-                              |> new_lambda ? copy token_none;
+                              |> new_lambda ? copy Lexicon.dummy;
                           in
                             examine_prods ps (add_lambda orelse new_lambda)
                               nt_dependencies' added_tks' nt_prods'
@@ -280,7 +278,7 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
 
           val start_tks' =
             start_tks
-            |> (if is_some new_lambdas then tokens_insert token_none
+            |> (if is_some new_lambdas then tokens_insert Lexicon.dummy
                 else if tokens_is_empty start_tks then tokens_insert unknown_start
                 else I);
 
@@ -608,7 +606,7 @@ fun prods_for (Gram {prods, chains, ...}) tk nt =
   let
     fun token_prods prods =
       fold cons (prods_lookup prods tk) #>
-      fold cons (prods_lookup prods token_none);
+      fold cons (prods_lookup prods Lexicon.dummy);
     fun nt_prods nt = #2 (Vector.sub (prods, nt));
   in fold (token_prods o nt_prods) (chains_all_preds chains [nt]) [] end;
 
