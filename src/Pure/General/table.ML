@@ -170,6 +170,25 @@ fun forall pred = not o exists (not o pred);
 
 (* lookup *)
 
+fun lookup tab key =
+  let
+    fun look Empty = NONE
+      | look (Branch2 (left, (k, x), right)) =
+          (case Key.ord (key, k) of
+            LESS => look left
+          | EQUAL => SOME x
+          | GREATER => look right)
+      | look (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+          (case Key.ord (key, k1) of
+            LESS => look left
+          | EQUAL => SOME x1
+          | GREATER =>
+              (case Key.ord (key, k2) of
+                LESS => look mid
+              | EQUAL => SOME x2
+              | GREATER => look right));
+  in look tab end;
+
 fun lookup_key tab key =
   let
     fun look Empty = NONE
@@ -188,8 +207,6 @@ fun lookup_key tab key =
               | EQUAL => SOME (k2, x2)
               | GREATER => look right));
   in look tab end;
-
-fun lookup tab key = Option.map #2 (lookup_key tab key);
 
 fun defined tab key =
   let
