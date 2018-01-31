@@ -24,7 +24,7 @@ sig
     Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
     String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF
   val token_kind_ord: token_kind * token_kind -> order
-  datatype token = Token of token_kind * string * Position.range
+  eqtype token
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
