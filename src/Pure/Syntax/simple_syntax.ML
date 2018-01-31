@@ -38,13 +38,15 @@ fun $$ s =
 fun enum1 s scan = scan ::: Scan.repeat ($$ s |-- scan);
 fun enum2 s scan = scan ::: Scan.repeat1 ($$ s |-- scan);
 
-val tfree = Scan.some (fn Lexicon.Token (Lexicon.Type_Ident, s, _) => SOME s | _ => NONE);
-val ident = Scan.some (fn Lexicon.Token (Lexicon.Ident, s, _) => SOME s | _ => NONE);
+fun kind k =
+  Scan.some (fn tok =>
+    if Lexicon.kind_of_token tok = k then SOME (Lexicon.str_of_token tok) else NONE);
 
-val var = Scan.some (fn Lexicon.Token (Lexicon.Var, s, _) =>
-  SOME (Lexicon.read_indexname (unprefix "?" s)) | _ => NONE);
+val tfree = kind Lexicon.Type_Ident;
+val ident = kind Lexicon.Ident;
+val var = kind Lexicon.Var >> (Lexicon.read_indexname o unprefix "?");
+val long_ident = kind Lexicon.Long_Ident;
 
-val long_ident = Scan.some (fn Lexicon.Token (Lexicon.Long_Ident, s, _) => SOME s | _ => NONE);
 val const = long_ident || ident;
 
 
