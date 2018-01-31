@@ -21,8 +21,8 @@ sig
   val scan_tvar: Symbol_Pos.T list scanner
   val is_tid: string -> bool
   datatype token_kind =
-    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy |
-    StrSy | StringSy | Cartouche | Space | Comment of Comment.kind option | EOF
+    Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
+    String | Cartouche | Space | Comment of Comment.kind option | EOF
   val token_kind_ord: token_kind * token_kind -> order
   datatype token = Token of token_kind * string * Position.range
   val kind_of_token: token -> token_kind
@@ -113,20 +113,20 @@ fun is_tid s =
 (** datatype token **)
 
 datatype token_kind =
-  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | FloatSy | StrSy |
-  StringSy | Cartouche | Space | Comment of Comment.kind option | EOF;
+  Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
+  String | Cartouche | Space | Comment of Comment.kind option | EOF;
 
 val token_kind_index =
   fn Literal => 0
-   | IdentSy => 1
-   | LongIdentSy => 2
-   | VarSy => 3
-   | TFreeSy => 4
-   | TVarSy => 5
-   | NumSy => 6
-   | FloatSy => 7
-   | StrSy => 8
-   | StringSy => 9
+   | Ident => 1
+   | Long_Ident => 2
+   | Var => 3
+   | Type_Ident => 4
+   | Type_Var => 5
+   | Num => 6
+   | Float => 7
+   | Str => 8
+   | String => 9
    | Cartouche => 10
    | Space => 11
    | Comment NONE => 12
@@ -159,15 +159,15 @@ val stopper = Scan.stopper (K eof) is_eof;
 (* terminal arguments *)
 
 val terminal_kinds =
- [("id", IdentSy),
-  ("longid", LongIdentSy),
-  ("var", VarSy),
-  ("tid", TFreeSy),
-  ("tvar", TVarSy),
-  ("num_token", NumSy),
-  ("float_token", FloatSy),
-  ("str_token", StrSy),
-  ("string_token", StringSy),
+ [("id", Ident),
+  ("longid", Long_Ident),
+  ("var", Var),
+  ("tid", Type_Ident),
+  ("tvar", Type_Var),
+  ("num_token", Num),
+  ("float_token", Float),
+  ("str_token", Str),
+  ("string_token", String),
   ("cartouche", Cartouche)];
 
 val terminals = map #1 terminal_kinds;
@@ -182,12 +182,12 @@ fun literal_markup s =
   else Markup.delimiter;
 
 val token_kind_markup =
- fn TFreeSy => Markup.tfree
-  | TVarSy => Markup.tvar
-  | NumSy => Markup.numeral
-  | FloatSy => Markup.numeral
-  | StrSy => Markup.inner_string
-  | StringSy => Markup.inner_string
+ fn Type_Ident => Markup.tfree
+  | Type_Var => Markup.tvar
+  | Num => Markup.numeral
+  | Float => Markup.numeral
+  | Str => Markup.inner_string
+  | String => Markup.inner_string
   | Cartouche => Markup.inner_cartouche
   | Comment _ => Markup.inner_comment
   | _ => Markup.empty;
@@ -270,13 +270,13 @@ fun tokenize lex xids syms =
       $$$ "_" @@@ $$$ "_";
 
     val scan_val =
-      scan_tvar >> token TVarSy ||
-      scan_var >> token VarSy ||
-      scan_tid >> token TFreeSy ||
-      Symbol_Pos.scan_float >> token FloatSy ||
-      scan_num >> token NumSy ||
-      scan_longid >> token LongIdentSy ||
-      scan_xid >> token IdentSy;
+      scan_tvar >> token Type_Var ||
+      scan_var >> token Var ||
+      scan_tid >> token Type_Ident ||
+      Symbol_Pos.scan_float >> token Float ||
+      scan_num >> token Num ||
+      scan_longid >> token Long_Ident ||
+      scan_xid >> token Ident;
 
     val scan_lit = Scan.literal lex >> token Literal;
 
@@ -285,8 +285,8 @@ fun tokenize lex xids syms =
       Symbol_Pos.scan_comment err_prefix >> token (Comment NONE) ||
       Comment.scan >> (fn (kind, ss) => token (Comment (SOME kind)) ss) ||
       Scan.max token_leq scan_lit scan_val ||
-      scan_string >> token StringSy ||
-      scan_str >> token StrSy ||
+      scan_string >> token String ||
+      scan_str >> token Str ||
       Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol) >> token Space;
   in
     (case Scan.error
