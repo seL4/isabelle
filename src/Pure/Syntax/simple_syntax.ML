@@ -31,8 +31,9 @@ fun read scan s =
 
 (* basic scanners *)
 
-fun $$ s = Scan.some (fn Lexicon.Token (Lexicon.Literal, s', _) =>
-  if s = s' then SOME s else NONE | _ => NONE);
+fun $$ s =
+  Scan.some (fn tok =>
+    if Lexicon.is_literal tok andalso s = Lexicon.str_of_token tok then SOME s else NONE);
 
 fun enum1 s scan = scan ::: Scan.repeat ($$ s |-- scan);
 fun enum2 s scan = scan ::: Scan.repeat1 ($$ s |-- scan);

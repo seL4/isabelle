@@ -30,6 +30,8 @@ sig
   val pos_of_token: token -> Position.T
   val end_pos_of_token: token -> Position.T
   val tokens_match_ord: token * token -> order
+  val literal: string -> token
+  val is_literal: token -> bool
   val is_proper: token -> bool
   val dummy: token
   val mk_eof: Position.T -> token
@@ -153,6 +155,9 @@ fun tokens_match_ord toks =
   (case apply2 kind_of_token toks of
     (Literal, Literal) => fast_string_ord (apply2 str_of_token toks)
   | kinds => token_kind_ord kinds);
+
+fun literal s = Token (Literal, s, Position.no_range);
+fun is_literal tok = kind_of_token tok = Literal;
 
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 

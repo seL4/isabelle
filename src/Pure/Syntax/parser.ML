@@ -401,8 +401,10 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
     val print_nt = tags_name tags;
     fun print_pri p = if p < 0 then "" else Symbol.make_sup ("(" ^ string_of_int p ^ ")");
 
-    fun pretty_symb (Terminal (Lexicon.Token (kind, s, _))) =
-          if kind = Lexicon.Literal then Pretty.quote (Pretty.keyword1 s) else Pretty.str s
+    fun pretty_symb (Terminal tok) =
+          if Lexicon.is_literal tok
+          then Pretty.quote (Pretty.keyword1 (Lexicon.str_of_token tok))
+          else Pretty.str (Lexicon.str_of_token tok)
       | pretty_symb (Nonterminal (tag, p)) = Pretty.str (print_nt tag ^ print_pri p);
 
     fun pretty_const "" = []
@@ -446,8 +448,7 @@ fun extend_gram [] gram = gram
           nonterminals are converted to integer tags*)
         fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
           | symb_of (Syntax_Ext.Delim s :: ss) nt_count tags result =
-              symb_of ss nt_count tags
-                (Terminal (Lexicon.Token (Lexicon.Literal, s, Position.no_range)) :: result)
+              symb_of ss nt_count tags (Terminal (Lexicon.literal s) :: result)
           | symb_of (Syntax_Ext.Argument (s, p) :: ss) nt_count tags result =
               let
                 val (nt_count', tags', new_symb) =
@@ -722,11 +723,12 @@ fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
   let
     fun freeze a = map_range (curry Vector.sub a) (Vector.length a);
     val prods = maps (prods_content o #2) (freeze (#prods gram));
-    fun guess (SOME ([Nonterminal (_, k),
-            Terminal (Lexicon.Token (Lexicon.Literal, s, _)), Nonterminal (_, l)], _, j)) =
-          if k = j andalso l = j + 1 then SOME (s, true, false, j)
-          else if k = j + 1 then if l = j then SOME (s, false, true, j)
-            else if l = j + 1 then SOME (s, false, false, j)
+    fun guess (SOME ([Nonterminal (_, k), Terminal tok, Nonterminal (_, l)], _, j)) =
+          if Lexicon.is_literal tok then
+            if k = j andalso l = j + 1 then SOME (Lexicon.str_of_token tok, true, false, j)
+            else if k = j + 1 then if l = j then SOME (Lexicon.str_of_token tok, false, true, j)
+              else if l = j + 1 then SOME (Lexicon.str_of_token tok, false, false, j)
+              else NONE
             else NONE
           else NONE
       | guess _ = NONE;
