@@ -39,11 +39,11 @@ sig
   val stopper: token Scan.stopper
   val terminals: string list
   val is_terminal: string -> bool
+  val get_terminal: string -> token option
   val literal_markup: string -> Markup.T
   val report_of_token: token -> Position.report
   val reported_token_range: Proof.context -> token -> string
   val valued_token: token -> bool
-  val predef_term: string -> token option
   val implode_string: Symbol.symbol list -> string
   val explode_string: string * Position.T -> Symbol_Pos.T list
   val implode_str: Symbol.symbol list -> string
@@ -171,22 +171,28 @@ fun is_eof tok = index_of_token tok = eof_index;
 val stopper = Scan.stopper (K eof) is_eof;
 
 
-(* terminal arguments *)
+(* terminal symbols *)
 
-val terminal_kinds =
- [("id", Ident),
-  ("longid", Long_Ident),
-  ("var", Var),
-  ("tid", Type_Ident),
-  ("tvar", Type_Var),
-  ("num_token", Num),
-  ("float_token", Float),
-  ("str_token", Str),
-  ("string_token", String),
-  ("cartouche", Cartouche)];
+val terminal_symbols =
+  [("id", Ident),
+   ("longid", Long_Ident),
+   ("var", Var),
+   ("tid", Type_Ident),
+   ("tvar", Type_Var),
+   ("num_token", Num),
+   ("float_token", Float),
+   ("str_token", Str),
+   ("string_token", String),
+   ("cartouche", Cartouche)]
+  |> map (apsnd token_kind_index)
+  |> Symtab.make;
 
-val terminals = map #1 terminal_kinds;
-val is_terminal = member (op =) terminals;
+val terminals = Symtab.keys terminal_symbols;
+val is_terminal = Symtab.defined terminal_symbols;
+fun get_terminal s =
+  (case Symtab.lookup terminal_symbols s of
+    SOME i => SOME (Token (i, s, Position.no_range))
+  | NONE => NONE);
 
 
 (* markup *)
@@ -224,14 +230,6 @@ fun reported_token_range ctxt tok =
 
 fun valued_token tok =
   not (is_literal tok orelse is_eof tok);
-
-
-(* predef_term *)
-
-fun predef_term s =
-  (case AList.lookup (op =) terminal_kinds s of
-    SOME k => SOME (Token (token_kind_index k, s, Position.no_range))
-  | NONE => NONE);
 
 
 

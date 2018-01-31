@@ -452,7 +452,7 @@ fun extend_gram [] gram = gram
           | symb_of (Syntax_Ext.Argument (s, p) :: ss) nt_count tags result =
               let
                 val (nt_count', tags', new_symb) =
-                  (case Lexicon.predef_term s of
+                  (case Lexicon.get_terminal s of
                     NONE =>
                       let val (nt_count', tags', s_tag) = get_tag nt_count tags s;
                       in (nt_count', tags', Nonterminal (s_tag, p)) end
