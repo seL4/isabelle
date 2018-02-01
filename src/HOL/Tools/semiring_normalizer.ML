@@ -588,24 +588,26 @@ fun dest_varpow tm =
    (tm,(if is_semiring_constant tm then num_0 else num_1)));
 
 val morder =
- let fun lexorder l1 l2 =
-  case (l1,l2) of
+ let fun lexorder ls =
+  case ls of
     ([],[]) => 0
   | (_ ,[]) => ~1
   | ([], _) => 1
   | (((x1,n1)::vs1),((x2,n2)::vs2)) =>
-     if is_less (variable_ord (x1, x2)) then 1
-     else if is_less (variable_ord (x2, x1)) then ~1
-     else if n1 < n2 then ~1
-     else if n2 < n1 then 1
-     else lexorder vs1 vs2
+     (case variable_ord (x1, x2) of
+       LESS => 1
+     | GREATER => ~1
+     | EQUAL =>
+         if n1 < n2 then ~1
+         else if n2 < n1 then 1
+         else lexorder (vs1, vs2))
  in fn tm1 => fn tm2 =>
   let val vdegs1 = map dest_varpow (powervars tm1)
       val vdegs2 = map dest_varpow (powervars tm2)
       val deg1 = fold (Integer.add o snd) vdegs1 num_0
       val deg2 = fold (Integer.add o snd) vdegs2 num_0
   in if deg1 < deg2 then ~1 else if deg1 > deg2 then 1
-                            else lexorder vdegs1 vdegs2
+                            else lexorder (vdegs1, vdegs2)
   end
  end;
 
