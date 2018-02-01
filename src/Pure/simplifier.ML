@@ -56,7 +56,7 @@ sig
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
   val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
   val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_termless: (term * term -> bool) -> Proof.context -> Proof.context
+  val set_term_ord: (term * term -> order) -> Proof.context -> Proof.context
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   type trace_ops
   val set_trace_ops: trace_ops -> theory -> theory

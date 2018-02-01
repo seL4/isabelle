@@ -163,8 +163,7 @@ and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
 end;
 
 val num_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
-    |> Simplifier.set_termless (is_less o numterm_ord));
+  simpset_of (put_simpset HOL_basic_ss @{context} |> Simplifier.set_term_ord numterm_ord);
 
 (*Maps 1 to Numeral1 so that arithmetic isn't complicated by the abstract 1.*)
 val numeral_syms = [@{thm numeral_One} RS sym];

@@ -25,7 +25,6 @@ sig
   val var_ord: (indexname * typ) * (indexname * typ) -> order
   val term_ord: term * term -> order
   val hd_ord: term * term -> order
-  val termless: term * term -> bool
   val term_lpo: (term -> int) -> term * term -> order
   val term_cache: (term -> 'a) -> term -> 'a
 end;
@@ -162,8 +161,6 @@ and hd_ord (f, g) =
 and args_ord (f $ t, g $ u) =
       (case args_ord (f, g) of EQUAL => term_ord (t, u) | ord => ord)
   | args_ord _ = EQUAL;
-
-fun termless tu = (term_ord tu = LESS);
 
 end;
 

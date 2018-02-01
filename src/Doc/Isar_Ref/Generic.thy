@@ -634,7 +634,7 @@ text \<open>
 
   The default is lexicographic ordering of term structure, but this could be
   also changed locally for special applications via @{index_ML
-  Simplifier.set_termless} in Isabelle/ML.
+  Simplifier.set_term_ord} in Isabelle/ML.
 
   \<^medskip>
   Permutative rewrite rules are declared to the Simplifier just like other

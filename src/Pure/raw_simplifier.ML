@@ -82,7 +82,7 @@ sig
       mk_sym: Proof.context -> thm -> thm option,
       mk_eq_True: Proof.context -> thm -> thm option,
       reorient: Proof.context -> term list -> term -> term -> bool},
-    termless: term * term -> bool,
+    term_ord: term * term -> order,
     subgoal_tac: Proof.context -> int -> tactic,
     loop_tacs: (string * (Proof.context -> int -> tactic)) list,
     solvers: solver list * solver list}
@@ -100,7 +100,7 @@ sig
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
   val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
   val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_termless: (term * term -> bool) -> Proof.context -> Proof.context
+  val set_term_ord: (term * term -> order) -> Proof.context -> Proof.context
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   val solver: Proof.context -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
@@ -256,7 +256,7 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
       mk_cong: prepare congruence rules;
       mk_sym: turn == around;
       mk_eq_True: turn P into P == True;
-    termless: relation for ordered rewriting;*)
+    term_ord: for ordered rewriting;*)
 
 datatype simpset =
   Simpset of
@@ -271,7 +271,7 @@ datatype simpset =
       mk_sym: Proof.context -> thm -> thm option,
       mk_eq_True: Proof.context -> thm -> thm option,
       reorient: Proof.context -> term list -> term -> term -> bool},
-    termless: term * term -> bool,
+    term_ord: term * term -> order,
     subgoal_tac: Proof.context -> int -> tactic,
     loop_tacs: (string * (Proof.context -> int -> tactic)) list,
     solvers: solver list * solver list};
@@ -282,12 +282,12 @@ fun make_ss1 (rules, prems, depth) = {rules = rules, prems = prems, depth = dept
 
 fun map_ss1 f {rules, prems, depth} = make_ss1 (f (rules, prems, depth));
 
-fun make_ss2 (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =
-  {congs = congs, procs = procs, mk_rews = mk_rews, termless = termless,
+fun make_ss2 (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =
+  {congs = congs, procs = procs, mk_rews = mk_rews, term_ord = term_ord,
     subgoal_tac = subgoal_tac, loop_tacs = loop_tacs, solvers = solvers};
 
-fun map_ss2 f {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers} =
-  make_ss2 (f (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
+fun map_ss2 f {congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers} =
+  make_ss2 (f (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers));
 
 fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 
@@ -307,9 +307,9 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
 
 (* empty *)
 
-fun init_ss depth mk_rews termless subgoal_tac solvers =
+fun init_ss depth mk_rews term_ord subgoal_tac solvers =
   make_simpset ((Net.empty, [], depth),
-    (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
+    (([], []), Net.empty, mk_rews, term_ord, subgoal_tac, [], solvers));
 
 fun default_mk_sym _ th = SOME (th RS Drule.symmetric_thm);
 
@@ -320,7 +320,7 @@ val empty_ss =
       mk_sym = default_mk_sym,
       mk_eq_True = K (K NONE),
       reorient = default_reorient}
-    Term_Ord.termless (K (K no_tac)) ([], []);
+    Term_Ord.term_ord (K (K no_tac)) ([], []);
 
 
 (* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
@@ -330,10 +330,10 @@ fun merge_ss (ss1, ss2) =
   else
     let
       val Simpset ({rules = rules1, prems = prems1, depth = depth1},
-       {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
+       {congs = (congs1, weak1), procs = procs1, mk_rews, term_ord, subgoal_tac,
         loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
       val Simpset ({rules = rules2, prems = prems2, depth = depth2},
-       {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
+       {congs = (congs2, weak2), procs = procs2, mk_rews = _, term_ord = _, subgoal_tac = _,
         loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
 
       val rules' = Net.merge eq_rrule (rules1, rules2);
@@ -347,7 +347,7 @@ fun merge_ss (ss1, ss2) =
       val solvers' = merge eq_solver (solvers1, solvers2);
     in
       make_simpset ((rules', prems', depth'), ((congs', weak'), procs',
-        mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
+        mk_rews, term_ord, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
     end;
 
 
@@ -383,8 +383,8 @@ fun map_theory_simpset f thy =
 fun map_ss f = Context.mapping (map_theory_simpset (f o Context_Position.not_really)) f;
 
 val clear_simpset =
-  map_simpset (fn Simpset ({depth, ...}, {mk_rews, termless, subgoal_tac, solvers, ...}) =>
-    init_ss depth mk_rews termless subgoal_tac solvers);
+  map_simpset (fn Simpset ({depth, ...}, {mk_rews, term_ord, subgoal_tac, solvers, ...}) =>
+    init_ss depth mk_rews term_ord subgoal_tac solvers);
 
 
 (* simp depth *)
@@ -637,7 +637,7 @@ fun mk_cong ctxt =
 in
 
 fun add_eqcong thm ctxt = ctxt |> map_simpset2
-  (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+  (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", [thm]);
@@ -647,10 +647,10 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
       val (xs, weak) = congs;
       val xs' = AList.update (op =) (a, Thm.trim_context thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
-    in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
+    in ((xs', weak'), procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) end);
 
 fun del_eqcong thm ctxt = ctxt |> map_simpset2
-  (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+  (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", [thm]);
@@ -661,7 +661,7 @@ fun del_eqcong thm ctxt = ctxt |> map_simpset2
       val xs' = filter_out (fn (x : cong_name, _) => x = a) xs;
       val weak' = xs' |> map_filter (fn (a, thm) =>
         if is_full_cong thm then NONE else SOME a);
-    in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
+    in ((xs', weak'), procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) end);
 
 fun add_cong thm ctxt = add_eqcong (mk_cong ctxt thm) ctxt;
 fun del_cong thm ctxt = del_eqcong (mk_cong ctxt thm) ctxt;
@@ -696,18 +696,18 @@ fun add_proc (proc as Proc {name, lhs, ...}) ctxt =
  (cond_tracing ctxt (fn () =>
     print_term ctxt ("Adding simplification procedure " ^ quote name ^ " for") lhs);
   ctxt |> map_simpset2
-    (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
       (congs, Net.insert_term eq_proc (lhs, proc) procs,
-        mk_rews, termless, subgoal_tac, loop_tacs, solvers))
+        mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
   handle Net.INSERT =>
     (cond_warning ctxt (fn () => "Ignoring duplicate simplification procedure " ^ quote name);
       ctxt));
 
 fun del_proc (proc as Proc {name, lhs, ...}) ctxt =
   ctxt |> map_simpset2
-    (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
       (congs, Net.delete_term eq_proc (lhs, proc) procs,
-        mk_rews, termless, subgoal_tac, loop_tacs, solvers))
+        mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
   handle Net.DELETE =>
     (cond_warning ctxt (fn () => "Simplification procedure " ^ quote name ^ " not in simpset");
       ctxt);
@@ -728,14 +728,14 @@ end;
 local
 
 fun map_mk_rews f =
-  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     let
       val {mk, mk_cong, mk_sym, mk_eq_True, reorient} = mk_rews;
       val (mk', mk_cong', mk_sym', mk_eq_True', reorient') =
         f (mk, mk_cong, mk_sym, mk_eq_True, reorient);
       val mk_rews' = {mk = mk', mk_cong = mk_cong', mk_sym = mk_sym', mk_eq_True = mk_eq_True',
         reorient = reorient'};
-    in (congs, procs, mk_rews', termless, subgoal_tac, loop_tacs, solvers) end);
+    in (congs, procs, mk_rews', term_ord, subgoal_tac, loop_tacs, solvers) end);
 
 in
 
@@ -761,53 +761,53 @@ fun set_reorient reorient = map_mk_rews (fn (mk, mk_cong, mk_sym, mk_eq_True, _)
 end;
 
 
-(* termless *)
+(* term_ord *)
 
-fun set_termless termless =
+fun set_term_ord term_ord =
   map_simpset2 (fn (congs, procs, mk_rews, _, subgoal_tac, loop_tacs, solvers) =>
-   (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
+   (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers));
 
 
 (* tactics *)
 
 fun set_subgoaler subgoal_tac =
-  map_simpset2 (fn (congs, procs, mk_rews, termless, _, loop_tacs, solvers) =>
-   (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
+  map_simpset2 (fn (congs, procs, mk_rews, term_ord, _, loop_tacs, solvers) =>
+   (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers));
 
 fun ctxt setloop tac = ctxt |>
-  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, _, solvers) =>
-   (congs, procs, mk_rews, termless, subgoal_tac, [("", tac)], solvers));
+  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, _, solvers) =>
+   (congs, procs, mk_rews, term_ord, subgoal_tac, [("", tac)], solvers));
 
 fun ctxt addloop (name, tac) = ctxt |>
-  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    (congs, procs, mk_rews, termless, subgoal_tac,
+  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
+    (congs, procs, mk_rews, term_ord, subgoal_tac,
      AList.update (op =) (name, tac) loop_tacs, solvers));
 
 fun ctxt delloop name = ctxt |>
-  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
-    (congs, procs, mk_rews, termless, subgoal_tac,
+  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
+    (congs, procs, mk_rews, term_ord, subgoal_tac,
      (if AList.defined (op =) loop_tacs name then ()
       else cond_warning ctxt (fn () => "No such looper in simpset: " ^ quote name);
       AList.delete (op =) name loop_tacs), solvers));
 
 fun ctxt setSSolver solver = ctxt |> map_simpset2
-  (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
-    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, (unsafe_solvers, [solver])));
+  (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
+    (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, [solver])));
 
-fun ctxt addSSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, termless,
-  subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, termless,
+fun ctxt addSSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+  subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (unsafe_solvers, insert eq_solver solver solvers)));
 
-fun ctxt setSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, termless,
-  subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, termless,
+fun ctxt setSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+  subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, ([solver], solvers)));
 
-fun ctxt addSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, termless,
-  subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, termless,
+fun ctxt addSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+  subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (insert eq_solver solver unsafe_solvers, solvers)));
 
-fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
-  subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, termless,
+fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+  subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (solvers, solvers)));
 
 
@@ -924,7 +924,7 @@ fun cond_skel (args as (_, (lhs, rhs))) =
 fun rewritec (prover, maxt) ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val Simpset ({rules, ...}, {congs, procs, termless, ...}) = simpset_of ctxt;
+    val Simpset ({rules, ...}, {congs, procs, term_ord, ...}) = simpset_of ctxt;
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = Thm.rhs_of eta_thm;
     val eta_t = Thm.term_of eta_t';
@@ -947,7 +947,7 @@ fun rewritec (prover, maxt) ctxt t =
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop');
         val trace_args = {unconditional = unconditional, term = eta_t, thm = thm', rrule = rrule};
       in
-        if perm andalso not (termless (rhs', lhs'))
+        if perm andalso is_greater_equal (term_ord (rhs', lhs'))
         then
          (cond_tracing ctxt (fn () =>
             print_thm ctxt "Cannot apply permutative rewrite rule" (name, thm) ^ "\n" ^

@@ -283,7 +283,7 @@ fun canonize_term (Const (s, T) $ t $ u) comms =
    val t' = canonize_term t comms;
    val u' = canonize_term u comms;
  in 
-   if member (op =) comms s andalso Term_Ord.termless (u', t')
+   if member (op =) comms s andalso is_less (Term_Ord.term_ord (u', t'))
    then Const (s, T) $ u' $ t'
    else Const (s, T) $ t' $ u'
  end
