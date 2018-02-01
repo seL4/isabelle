@@ -890,9 +890,11 @@ interpretation class_dense_linordered_field: constr_dense_linorder
 
 declaration \<open>
 let
-  fun earlier [] x y = false
-    | earlier (h::t) x y =
-        if h aconvc y then false else if h aconvc x then true else earlier t x y;
+  fun earlier [] _ = false
+    | earlier (h::t) (x, y) =
+        if h aconvc y then false else if h aconvc x then true else earlier t (x, y);
+
+  val earlier_ord = make_ord o earlier;
 
 fun dest_frac ct =
   case Thm.term_of ct of
@@ -932,14 +934,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val th = Thm.implies_elim (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_lt} else @{thm pos_prod_sum_lt})) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
-                   (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
+                   (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
         val T = Thm.ctyp_of_cterm x
         val th = Thm.instantiate' [SOME T] [SOME x, SOME t] @{thm "sum_lt"}
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
        in  rth end
     | ("c*x",[c]) =>
        let
@@ -977,14 +979,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val th = Thm.implies_elim (Thm.instantiate' [SOME cT] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_le} else @{thm pos_prod_sum_le})) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
-                   (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
+                   (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
         val T = Thm.ctyp_of_cterm x
         val th = Thm.instantiate' [SOME T] [SOME x, SOME t] @{thm "sum_le"}
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
        in  rth end
     | ("c*x",[c]) =>
        let
@@ -1020,14 +1022,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val th = Thm.implies_elim
                  (Thm.instantiate' [SOME T] (map SOME [c,x,t]) @{thm nz_prod_sum_eq}) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
-                   (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
+                   (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
         val T = Thm.ctyp_of_cterm x
         val th = Thm.instantiate' [SOME T] [SOME x, SOME t] @{thm "sum_eq"}
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
        in  rth end
     | ("c*x",[c]) =>
        let
@@ -1057,7 +1059,7 @@ fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
        val th = Thm.instantiate' [SOME T] [SOME ca, SOME cb] less_iff_diff_less_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier_ord vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 | Const(@{const_name Orderings.less_eq},_)$a$b =>
@@ -1066,7 +1068,7 @@ fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
        val th = Thm.instantiate' [SOME T] [SOME ca, SOME cb] le_iff_diff_le_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier_ord vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 
@@ -1076,7 +1078,7 @@ fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
        val th = Thm.instantiate' [SOME T] [SOME ca, SOME cb] eq_iff_diff_eq_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier_ord vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 | @{term "Not"} $(Const(@{const_name HOL.eq},_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct

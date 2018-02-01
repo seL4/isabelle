@@ -375,13 +375,12 @@ end;
 local
  val rawrule = fconv_rule (arg_conv (rewr_conv @{thm real_eq_0_iff_le_ge_0}))
  fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
- fun simple_cterm_ord t u = is_less (Thm.term_ord (t, u));
   (* FIXME: Lookup in the context every time!!! Fix this !!!*)
  fun splitequation ctxt th acc =
   let
    val real_poly_neg_conv = #neg
        (Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
+        (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"})) Thm.term_ord)
    val (th1,th2) = conj_pair(rawrule th)
   in th1::fconv_rule (arg_conv (arg_conv (real_poly_neg_conv ctxt))) th2::acc
   end

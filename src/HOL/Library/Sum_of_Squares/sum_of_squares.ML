@@ -750,7 +750,6 @@ fun cterm_of_sos (pr,sqs) =
 local
   open Conv
   val concl = Thm.dest_arg o Thm.cprop_of
-  fun simple_cterm_ord t u = is_less (Thm.term_ord (t, u))
 in
 (* FIXME: Replace tryfind by get_first !! *)
 fun real_nonlinear_prover proof_method ctxt =
@@ -758,7 +757,7 @@ fun real_nonlinear_prover proof_method ctxt =
     val {add = _, mul = _, neg = _, pow = _, sub = _, main = real_poly_conv} =
       Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
         (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))
-        simple_cterm_ord
+        Thm.term_ord
     fun mainf cert_choice translator (eqs, les, lts) =
       let
         val eq0 = map (poly_of_term o Thm.dest_arg1 o concl) eqs
@@ -851,7 +850,6 @@ fun subst_conv eqs t =
 
 local
   open Conv
-  fun simple_cterm_ord t u = is_less (Thm.term_ord (t, u))
   val concl = Thm.dest_arg o Thm.cprop_of
   val shuffle1 =
     fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))"
@@ -894,7 +892,7 @@ fun real_nonlinear_subst_prover prover ctxt =
     val {add = _, mul = real_poly_mul_conv, neg = _, pow = _, sub = _, main = real_poly_conv} =
       Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
         (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))
-        simple_cterm_ord
+        Thm.term_ord
 
     fun make_substitution th =
       let

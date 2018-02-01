@@ -18,13 +18,13 @@ sig
     local_theory -> local_theory
 
   val semiring_normalize_conv: Proof.context -> conv
-  val semiring_normalize_ord_conv: Proof.context -> (cterm -> cterm -> bool) -> conv
+  val semiring_normalize_ord_conv: Proof.context -> (cterm * cterm -> order) -> conv
   val semiring_normalize_wrapper: Proof.context -> entry -> conv
   val semiring_normalize_ord_wrapper: Proof.context -> entry
-    -> (cterm -> cterm -> bool) -> conv
+    -> (cterm * cterm -> order) -> conv
   val semiring_normalizers_conv: cterm list -> cterm list * thm list
     -> cterm list * thm list -> cterm list * thm list ->
-      (cterm -> bool) * conv * conv * conv -> (cterm -> cterm -> bool) ->
+      (cterm -> bool) * conv * conv * conv -> (cterm * cterm -> order) ->
         {add: Proof.context -> conv,
          mul: Proof.context -> conv,
          neg: Proof.context -> conv,
@@ -32,7 +32,7 @@ sig
          pow: Proof.context -> conv,
          sub: Proof.context -> conv}
   val semiring_normalizers_ord_wrapper:  Proof.context -> entry ->
-    (cterm -> cterm -> bool) ->
+    (cterm * cterm -> order) ->
       {add: Proof.context -> conv,
        mul: Proof.context -> conv,
        neg: Proof.context -> conv,
@@ -327,7 +327,7 @@ val (divide_inverse, divide_tm, inverse_tm) =
      end
    | _ => (TrueI, true_tm, true_tm));
 
-in fn variable_order =>
+in fn variable_ord =>
  let
 
 (* Conversion for "x^n * x^m", with either x^n = x and/or x^m = x possible.  *)
@@ -438,7 +438,7 @@ in fn variable_order =>
     else
      if x aconvc one_tm then ~1
      else if y aconvc one_tm then 1
-      else if variable_order x y then ~1 else 1
+      else if is_less (variable_ord (x, y)) then ~1 else 1
    fun monomial_mul tm l r =
     ((let val (lx,ly) = dest_mul l val vl = powvar lx
       in
@@ -594,8 +594,8 @@ val morder =
   | (_ ,[]) => ~1
   | ([], _) => 1
   | (((x1,n1)::vs1),((x2,n2)::vs2)) =>
-     if variable_order x1 x2 then 1
-     else if variable_order x2 x1 then ~1
+     if is_less (variable_ord (x1, x2)) then 1
+     else if is_less (variable_ord (x2, x1)) then ~1
      else if n1 < n2 then ~1
      else if n2 < n1 then 1
      else lexorder vs1 vs2
@@ -851,13 +851,11 @@ val nat_exp_ss =
     addsimps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
     addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
 
-fun simple_cterm_ord t u = is_less (Thm.term_ord (t, u));
-
 
 (* various normalizing conversions *)
 
 fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal},
-                                     {conv, dest_const, mk_const, is_const}) ord =
+                                     {conv, dest_const, mk_const, is_const}) term_ord =
   let
     val pow_conv =
       Conv.arg_conv (Simplifier.rewrite (put_simpset nat_exp_ss ctxt))
@@ -865,21 +863,22 @@ fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, i
         (put_simpset HOL_basic_ss ctxt addsimps [nth (snd semiring) 31, nth (snd semiring) 34])
       then_conv conv ctxt
     val dat = (is_const, conv ctxt, conv ctxt, pow_conv)
-  in semiring_normalizers_conv vars semiring ring field dat ord end;
+  in semiring_normalizers_conv vars semiring ring field dat term_ord end;
 
-fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal}, {conv, dest_const, mk_const, is_const}) ord =
+fun semiring_normalize_ord_wrapper ctxt
+  ({vars, semiring, ring, field, idom, ideal}, {conv, dest_const, mk_const, is_const}) term_ord =
  #main (semiring_normalizers_ord_wrapper ctxt
   ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal},
-   {conv = conv, dest_const = dest_const, mk_const = mk_const, is_const = is_const}) ord) ctxt;
+   {conv = conv, dest_const = dest_const, mk_const = mk_const, is_const = is_const}) term_ord) ctxt;
 
 fun semiring_normalize_wrapper ctxt data =
-  semiring_normalize_ord_wrapper ctxt data simple_cterm_ord;
+  semiring_normalize_ord_wrapper ctxt data Thm.term_ord;
 
 fun semiring_normalize_ord_conv ctxt ord tm =
   (case match ctxt tm of
     NONE => Thm.reflexive tm
   | SOME res => semiring_normalize_ord_wrapper ctxt res ord tm);
 
-fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm_ord;
+fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt Thm.term_ord;
 
 end;
