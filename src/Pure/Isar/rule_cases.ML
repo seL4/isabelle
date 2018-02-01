@@ -415,7 +415,7 @@ fun params xss = Thm.rule_attribute [] (K (rename_params xss));
 local
 
 fun equal_cterms ts us =
-  is_equal (list_ord (Term_Ord.fast_term_ord o apply2 Thm.term_of) (ts, us));
+  is_equal (list_ord Thm.fast_term_ord (ts, us));
 
 fun prep_rule n th =
   let

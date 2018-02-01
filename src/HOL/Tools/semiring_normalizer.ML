@@ -851,7 +851,7 @@ val nat_exp_ss =
     addsimps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
     addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
 
-fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS;
+fun simple_cterm_ord t u = Thm.term_ord (t, u) = LESS;
 
 
 (* various normalizing conversions *)

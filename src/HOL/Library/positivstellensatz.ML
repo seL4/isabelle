@@ -63,22 +63,17 @@ structure Ratfunc = FuncFun(type key = Rat.rat val ord = Rat.ord);
 structure Intpairfunc = FuncFun(type key = int*int val ord = prod_ord int_ord int_ord);
 structure Symfunc = FuncFun(type key = string val ord = fast_string_ord);
 structure Termfunc = FuncFun(type key = term val ord = Term_Ord.fast_term_ord);
-
-val cterm_ord = Term_Ord.fast_term_ord o apply2 Thm.term_of
-
-structure Ctermfunc = FuncFun(type key = cterm val ord = cterm_ord);
+structure Ctermfunc = FuncFun(type key = cterm val ord = Thm.fast_term_ord);
 
 type monomial = int Ctermfunc.table;
-
-val monomial_ord = list_ord (prod_ord cterm_ord int_ord) o apply2 Ctermfunc.dest
-
+val monomial_ord = list_ord (prod_ord Thm.fast_term_ord int_ord) o apply2 Ctermfunc.dest
 structure Monomialfunc = FuncFun(type key = monomial val ord = monomial_ord)
 
 type poly = Rat.rat Monomialfunc.table;
 
 (* The ordering so we can create canonical HOL polynomials.                  *)
 
-fun dest_monomial mon = sort (cterm_ord o apply2 fst) (Ctermfunc.dest mon);
+fun dest_monomial mon = sort (Thm.fast_term_ord o apply2 fst) (Ctermfunc.dest mon);
 
 fun monomial_order (m1,m2) =
   if Ctermfunc.is_empty m2 then LESS
@@ -91,7 +86,7 @@ fun monomial_order (m1,m2) =
       val deg2 = fold (Integer.add o snd) mon2 0
     in if deg1 < deg2 then GREATER
        else if deg1 > deg2 then LESS
-       else list_ord (prod_ord cterm_ord int_ord) (mon1,mon2)
+       else list_ord (prod_ord Thm.fast_term_ord int_ord) (mon1,mon2)
     end;
 
 end
@@ -769,7 +764,7 @@ end;
 
 fun gen_prover_real_arith ctxt prover =
   let
-    fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS
+    fun simple_cterm_ord t u = Thm.term_ord (t, u) = LESS
     val {add, mul, neg, pow = _, sub = _, main} =
         Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
         (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))

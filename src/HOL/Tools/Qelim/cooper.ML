@@ -803,7 +803,7 @@ fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
    fun all x t =
     Thm.apply (Thm.cterm_of ctxt (Logic.all_const (Thm.typ_of_cterm x))) (Thm.lambda x t)
-   val ts = sort (fn (a, b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
+   val ts = sort Thm.fast_term_ord (f p)
    val p' = fold_rev all ts p
  in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 

@@ -646,8 +646,7 @@ fun grobify_equations tm =
   val cjs = conjs tm
   val  rawvars =
     fold_rev (fn eq => fn a => grobvars (Thm.dest_arg1 eq) (grobvars (Thm.dest_arg eq) a)) cjs []
-  val vars = sort (fn (x, y) => Term_Ord.term_ord (Thm.term_of x, Thm.term_of y))
-                  (distinct (op aconvc) rawvars)
+  val vars = sort Thm.term_ord (distinct (op aconvc) rawvars)
  in (vars,map (grobify_equation vars) cjs)
  end;
 
@@ -866,8 +865,7 @@ fun isolate_variables evs ps eq =
  let
   val vars = filter (fn v => free_in v eq) evs
   val (qs,p) = isolate_monomials vars eq
-  val rs = ideal (qs @ ps) p
-              (fn (s,t) => Term_Ord.term_ord (Thm.term_of s, Thm.term_of t))
+  val rs = ideal (qs @ ps) p Thm.term_ord
  in (eq, take (length qs) rs ~~ vars)
  end;
  fun subst_in_poly i p = Thm.rhs_of (ring_normalize_conv (vsubst i p));

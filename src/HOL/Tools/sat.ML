@@ -303,7 +303,7 @@ fun rawsat_thm ctxt clauses =
     (* Conjunction.intr_balanced and fold Thm.weaken below, is quadratic for *)
     (* terms sorted in descending order, while only linear for terms      *)
     (* sorted in ascending order                                          *)
-    val sorted_clauses = sort (Term_Ord.fast_term_ord o apply2 Thm.term_of) nontrivial_clauses
+    val sorted_clauses = sort Thm.fast_term_ord nontrivial_clauses
     val _ =
       cond_tracing ctxt (fn () =>
         "Sorted non-trivial clauses:\n" ^

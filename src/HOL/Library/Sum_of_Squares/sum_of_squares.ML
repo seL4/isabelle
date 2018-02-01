@@ -211,9 +211,9 @@ fun multidegree p =
   FuncUtil.Monomialfunc.fold (fn (m, _) => fn a => max (monomial_multidegree m) a) p 0;
 
 fun poly_variables p =
-  sort FuncUtil.cterm_ord
+  sort Thm.fast_term_ord
     (FuncUtil.Monomialfunc.fold_rev
-      (fn (m, _) => union (is_equal o FuncUtil.cterm_ord) (monomial_variables m)) p []);
+      (fn (m, _) => union (is_equal o Thm.fast_term_ord) (monomial_variables m)) p []);
 
 (* Conversion from HOL term.                                                 *)
 
@@ -750,7 +750,7 @@ fun cterm_of_sos (pr,sqs) =
 local
   open Conv
   val concl = Thm.dest_arg o Thm.cprop_of
-  fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS
+  fun simple_cterm_ord t u = Thm.term_ord (t, u) = LESS
 in
 (* FIXME: Replace tryfind by get_first !! *)
 fun real_nonlinear_prover proof_method ctxt =
@@ -851,7 +851,7 @@ fun subst_conv eqs t =
 
 local
   open Conv
-  fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LESS
+  fun simple_cterm_ord t u = Thm.term_ord (t, u) = LESS
   val concl = Thm.dest_arg o Thm.cprop_of
   val shuffle1 =
     fconv_rule (rewr_conv @{lemma "(a + x == y) == (x == y - (a::real))"
