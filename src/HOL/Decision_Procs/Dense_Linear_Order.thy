@@ -894,7 +894,8 @@ let
     | earlier (h::t) (x, y) =
         if h aconvc y then false else if h aconvc x then true else earlier t (x, y);
 
-  val earlier_ord = make_ord o earlier;
+  fun earlier_ord vs (x, y) =
+    if x aconvc y then EQUAL else make_ord (earlier vs) (x, y);
 
 fun dest_frac ct =
   case Thm.term_of ct of
