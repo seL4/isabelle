@@ -184,6 +184,10 @@ sig
 
   (*orders*)
   val is_equal: order -> bool
+  val is_less: order -> bool
+  val is_less_equal: order -> bool
+  val is_greater: order -> bool
+  val is_greater_equal: order -> bool
   val rev_order: order -> order
   val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
   val bool_ord: bool * bool -> order
@@ -883,8 +887,11 @@ fun submultiset _ ([], _)  = true
 
 (** orders **)
 
-fun is_equal EQUAL = true
-  | is_equal _ = false;
+fun is_equal ord = ord = EQUAL;
+fun is_less ord = ord = LESS;
+fun is_less_equal ord = ord = LESS orelse ord = EQUAL;
+fun is_greater ord = ord = GREATER;
+fun is_greater_equal ord = ord = GREATER orelse ord = EQUAL;
 
 fun rev_order LESS = GREATER
   | rev_order EQUAL = EQUAL

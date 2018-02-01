@@ -420,7 +420,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
             (case (num_chained, add_isar_steps (steps_of_isar_proof isar_proof) 0) of
               (0, 1) =>
               one_line_proof_text ctxt 0
-                (if play_outcome_ord (play_outcome, one_line_play) = LESS then
+                (if is_less (play_outcome_ord (play_outcome, one_line_play)) then
                    (case isar_proof of
                      Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
                      let

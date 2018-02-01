@@ -337,12 +337,12 @@ fun clasimpset_rule_table_of ctxt =
   end
 
 fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
-    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t else t0 $ t2 $ t1
+    if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then t else t0 $ t2 $ t1
   | normalize_eq (@{const Trueprop} $ (t as @{const Not}
       $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2))) =
-    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t else HOLogic.mk_not (t0 $ t2 $ t1)
+    if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then t else HOLogic.mk_not (t0 $ t2 $ t1)
   | normalize_eq (Const (@{const_name Pure.eq}, Type (_, [T, _])) $ t1 $ t2) =
-    (if Term_Ord.fast_term_ord (t1, t2) <> GREATER then (t1, t2) else (t2, t1))
+    (if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then (t1, t2) else (t2, t1))
     |> (fn (t1, t2) => HOLogic.eq_const T $ t1 $ t2)
   | normalize_eq t = t
 

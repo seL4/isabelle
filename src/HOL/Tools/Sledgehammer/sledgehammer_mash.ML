@@ -208,18 +208,18 @@ fun sort_array_suffix cmp needed a =
       let val i31 = i + i + i + 1 in
         if i31 + 2 < l then
           let val x = Unsynchronized.ref i31 in
-            if cmp (Array.sub (a, i31), Array.sub (a, i31 + 1)) = LESS then x := i31 + 1 else ();
-            if cmp (Array.sub (a, !x), Array.sub (a, i31 + 2)) = LESS then x := i31 + 2 else ();
+            if is_less (cmp (Array.sub (a, i31), Array.sub (a, i31 + 1))) then x := i31 + 1 else ();
+            if is_less (cmp (Array.sub (a, !x), Array.sub (a, i31 + 2))) then x := i31 + 2 else ();
             !x
           end
         else
-          if i31 + 1 < l andalso cmp (Array.sub (a, i31), Array.sub (a, i31 + 1)) = LESS
+          if i31 + 1 < l andalso is_less (cmp (Array.sub (a, i31), Array.sub (a, i31 + 1)))
           then i31 + 1 else if i31 < l then i31 else raise BOTTOM i
       end
 
     fun trickledown l i e =
       let val j = maxson l i in
-        if cmp (Array.sub (a, j), e) = GREATER then
+        if is_greater (cmp (Array.sub (a, j), e)) then
           (Array.update (a, i, Array.sub (a, j)); trickledown l j e)
         else
           Array.update (a, i, e)
@@ -237,7 +237,7 @@ fun sort_array_suffix cmp needed a =
 
     fun trickleup i e =
       let val father = (i - 1) div 3 in
-        if cmp (Array.sub (a, father), e) = LESS then
+        if is_less (cmp (Array.sub (a, father), e)) then
           (Array.update (a, i, Array.sub (a, father));
            if father > 0 then trickleup father e else Array.update (a, 0, e))
         else

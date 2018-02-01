@@ -65,7 +65,7 @@ val weight_ord = prod_ord int_ord int_ord
 
 fun weight_of vals t = fst (value_of vals t)
 
-fun less_than vals t1 t2 = weight_ord (weight_of vals t1, weight_of vals t2) = LESS
+fun less_than vals t1 t2 = is_less (weight_ord (weight_of vals t1, weight_of vals t2))
 
 fun rescale activity = activity div activity_rescale
 
@@ -163,7 +163,7 @@ fun with_term lit f = f (Argo_Lit.term_of lit)
 *)
 
 fun fix t (w, Some parent) (incr, vals) tree =
-      if weight_ord (weight_of vals parent, w) = LESS then
+      if is_less (weight_ord (weight_of vals parent, w)) then
         let val (tree1, tree2) = cut t (path_to vals parent []) tree
         in mk_heap' incr (merge tree1 tree2 (root t vals)) end
       else mk_heap incr vals tree

@@ -59,8 +59,8 @@ fun mul n (c, k) = (n * c, n * k)
 
 val erat_ord = prod_ord Rat.ord Rat.ord
 
-fun less_eq n1 n2 = (erat_ord (n1, n2) <> GREATER)
-fun less n1 n2 = (erat_ord (n1, n2) = LESS)
+fun less_eq n1 n2 = is_less_equal (erat_ord (n1, n2))
+fun less n1 n2 = is_less (erat_ord (n1, n2))
 
 
 (* term functions *)

@@ -199,7 +199,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
 
           fun pop_next_candidate [] = (NONE, [])
             | pop_next_candidate (cands as (cand :: cands')) =
-              fold (fn x => fn y => if cand_ord (x, y) = LESS then x else y) cands' cand
+              fold (fn x => fn y => if is_less (cand_ord (x, y)) then x else y) cands' cand
               |> (fn best => (SOME best, remove (op =) best cands))
 
           fun try_eliminate i l labels steps =

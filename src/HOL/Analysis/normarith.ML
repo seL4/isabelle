@@ -375,7 +375,7 @@ end;
 local
  val rawrule = fconv_rule (arg_conv (rewr_conv @{thm real_eq_0_iff_le_ge_0}))
  fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
- fun simple_cterm_ord t u = Thm.term_ord (t, u) = LESS;
+ fun simple_cterm_ord t u = is_less (Thm.term_ord (t, u));
   (* FIXME: Lookup in the context every time!!! Fix this !!!*)
  fun splitequation ctxt th acc =
   let

@@ -326,7 +326,7 @@ fun kodkodi_version () =
   |> map (the_default 0 o Int.fromString)
 
 fun is_kodkodi_too_old () =
-  dict_ord int_ord (kodkodi_version (), [1, 2, 14]) = LESS
+  is_less (dict_ord int_ord (kodkodi_version (), [1, 2, 14]))
 
 (** Auxiliary functions on Kodkod problems **)
 

@@ -80,7 +80,7 @@ fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
   | dynamic_entry_for_info incremental
         (name, Internal (JNI from_version, mode, ss)) =
     if (incremental andalso mode = Batch) orelse
-       dict_ord int_ord (kodkodi_version (), from_version) = LESS then
+       is_less (dict_ord int_ord (kodkodi_version (), from_version)) then
       NONE
     else
       let

@@ -47,7 +47,7 @@ fun struct_tac ctxt ((s, ts), simps) =
     val ops = map (fst o Term.strip_comb) ts;
     fun ord (Const (a, _)) = find_index (fn (Const (b, _)) => a=b | _ => false) ops
       | ord (Free (a, _)) = find_index (fn (Free (b, _)) => a=b | _ => false) ops;
-    fun less (a, b) = (Term_Ord.term_lpo ord (a, b) = LESS);
+    val less = is_less o Term_Ord.term_lpo ord;
   in asm_full_simp_tac (put_simpset HOL_ss ctxt addsimps simps |> Simplifier.set_termless less) end;
 
 fun algebra_tac ctxt =

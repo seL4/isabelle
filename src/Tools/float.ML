@@ -48,7 +48,7 @@ fun sign (a, b) = Integer.sign a;
 
 fun ord (r, s) = sign (sub r s);
 
-fun eq (r, s) = ord (r, s) = EQUAL;
+val eq = is_equal o ord;
 
 fun min r s = case ord (r, s) of LESS => r | _ => s;
 fun max r s = case ord (r, s) of LESS => s | _ => r;

@@ -764,7 +764,7 @@ end;
 
 fun gen_prover_real_arith ctxt prover =
   let
-    fun simple_cterm_ord t u = Thm.term_ord (t, u) = LESS
+    fun simple_cterm_ord t u = is_less (Thm.term_ord (t, u))
     val {add, mul, neg, pow = _, sub = _, main} =
         Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
         (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))

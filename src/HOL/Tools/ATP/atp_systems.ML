@@ -514,8 +514,8 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire 1.8 has TFF0 support, but the support was buggy until revision
    1435 (or shortly before). *)
-fun is_vampire_at_least_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") <> LESS
-fun is_vampire_beyond_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
+fun is_vampire_at_least_1_8 () = is_greater_equal (string_ord (getenv "VAMPIRE_VERSION", "1.8"))
+fun is_vampire_beyond_1_8 () = is_greater (string_ord (getenv "VAMPIRE_VERSION", "1.8"))
 
 val vampire_tff0 = TFF Monomorphic
 
