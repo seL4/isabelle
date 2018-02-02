@@ -845,6 +845,10 @@ lemma is_arg_min_linorder: fixes f :: "'a \<Rightarrow> 'b :: linorder"
 shows "is_arg_min f P x = (P x \<and> (\<forall>y. P y \<longrightarrow> f x \<le> f y))"
 by(auto simp add: is_arg_min_def)
 
+lemma is_arg_min_antimono: fixes f :: "'a \<Rightarrow> ('b::order)"
+shows "\<lbrakk> is_arg_min f P x; f y \<le> f x; P y \<rbrakk> \<Longrightarrow> is_arg_min f P y"
+by (simp add: order.order_iff_strict is_arg_min_def)
+
 lemma arg_minI:
   "\<lbrakk> P x;
     \<And>y. P y \<Longrightarrow> \<not> f y < f x;
