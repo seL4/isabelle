@@ -6,7 +6,7 @@ Theory document output.
 
 signature THY_OUTPUT =
 sig
-  val output_text: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
+  val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val check_token_comments: Proof.context -> Token.T -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
@@ -39,14 +39,12 @@ end;
 structure Thy_Output: THY_OUTPUT =
 struct
 
-(* output text *)
+(* output document source *)
 
-fun output_text ctxt {markdown} source =
+fun output_document ctxt {markdown} source =
   let
     val pos = Input.pos_of source;
     val syms = Input.source_explode source;
-
-    val _ = Context_Position.report ctxt pos (Markup.language_document (Input.is_delimited source));
 
     val output_antiquotes = maps (Document_Antiquotation.evaluate ctxt);
 
@@ -104,7 +102,7 @@ fun output_symbols_comment ctxt {antiq} (comment, syms) =
         val ctxt' = ctxt
           |> Config.put Document_Antiquotation.thy_output_display false;
       in
-        output_text ctxt' {markdown = false} source
+        output_document ctxt' {markdown = false} source
         |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
       end
   | (SOME Comment.Cancel, _) =>
@@ -192,11 +190,11 @@ fun present_token ctxt tok =
   | Basic_Token tok => output_token ctxt tok
   | Markup_Token (cmd, source) =>
       Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
-        (output_text ctxt {markdown = false} source)
+        (output_document ctxt {markdown = false} source)
   | Markup_Env_Token (cmd, source) =>
-      [Latex.environment_block ("isamarkup" ^ cmd) (output_text ctxt {markdown = true} source)]
+      [Latex.environment_block ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)]
   | Raw_Token source =>
-      Latex.string "%\n" :: output_text ctxt {markdown = true} source @ [Latex.string "\n"]);
+      Latex.string "%\n" :: output_document ctxt {markdown = true} source @ [Latex.string "\n"]);
 
 
 (* command spans *)

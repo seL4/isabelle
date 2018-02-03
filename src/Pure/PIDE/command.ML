@@ -207,7 +207,8 @@ fun check_cmts ctxt span tr =
         check_error (fn () => Thy_Output.check_token_comments ctxt tok))) @
       (span |> maps (fn tok =>
         if Token.kind_of tok = Token.Comment (SOME Comment.Comment) then
-          check_error (fn () => Thy_Output.output_text ctxt {markdown = false} (Token.input_of tok))
+          check_error (fn () =>
+            Thy_Output.output_document ctxt {markdown = false} (Token.input_of tok))
         else [])))
     ();
 

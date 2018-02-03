@@ -17,16 +17,22 @@ struct
 
 val semi = Scan.option (Parse.$$$ ";");
 
-fun document_command {markdown} (loc, txt) =
+fun output_document state markdown txt =
+  let
+    val ctxt = Toplevel.presentation_context state;
+    val _ =
+      Context_Position.report ctxt
+        (Input.pos_of txt) (Markup.language_document (Input.is_delimited txt));
+  in Thy_Output.output_document ctxt markdown txt end;
+
+fun document_command markdown (loc, txt) =
   Toplevel.keep (fn state =>
     (case loc of
-      NONE =>
-        ignore (Thy_Output.output_text
-          (Toplevel.presentation_context state) {markdown = markdown} txt)
+      NONE => ignore (output_document state markdown txt)
     | SOME (_, pos) =>
         error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
   Toplevel.present_local_theory loc (fn state =>
-    ignore (Thy_Output.output_text (Toplevel.presentation_context state) {markdown = markdown} txt));
+    ignore (output_document state markdown txt));
 
 val _ =
   Outer_Syntax.command ("chapter", \<^here>) "chapter heading"
