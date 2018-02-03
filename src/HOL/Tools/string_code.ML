@@ -21,7 +21,7 @@ fun decode_char_nonzero t =
     SOME n => if 0 < n andalso n < 256 then SOME n else NONE
   | _ => NONE;
 
-fun decode_char (IConst { sym = Code_Symbol.Constant @{const_name Groups.zero}, ... }) =
+fun decode_char (IConst { sym = Code_Symbol.Constant @{const_name String.zero_char_inst.zero_char}, ... }) =
      SOME 0
   | decode_char (IConst { sym = Code_Symbol.Constant @{const_name Char}, ... } `$ t) =
       decode_char_nonzero t
