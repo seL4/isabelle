@@ -250,7 +250,11 @@ object Isabelle_Cronjob
       for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy7")) }
       yield {
         List(Remote_Build("AFP", host = hosts.head, more_hosts = hosts.tail,
-          options = "-m32 -M1x2 -t AFP -P" + n,
+          options = "-m32 -M1x2 -t AFP -P" + n +
+            " -e ISABELLE_GHC=ghc" +
+            " -e ISABELLE_MLTON=mlton" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
+            " -e ISABELLE_SMLNJ=/home/smlnj/bin/sml",
           args = "-N -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
