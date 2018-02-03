@@ -13,7 +13,7 @@ sig
   val scan_cancel: (kind * Symbol_Pos.T list) scanner
   val scan_latex: (kind * Symbol_Pos.T list) scanner
   val scan: (kind * Symbol_Pos.T list) scanner
-  val read_body: Symbol_Pos.T list -> (kind option * Symbol_Pos.T list) list option
+  val read_body: Symbol_Pos.T list -> (kind option * Symbol_Pos.T list) list
 end;
 
 structure Comment: COMMENT =
@@ -76,9 +76,9 @@ val scan_body =
   scan_permissive Comment || scan_permissive Cancel || scan_permissive Latex;
 
 fun read_body syms =
-  if exists (is_symbol o Symbol_Pos.symbol) syms then
+  (if exists (is_symbol o Symbol_Pos.symbol) syms then
     Scan.read Symbol_Pos.stopper (Scan.repeat scan_body) syms
-  else NONE;
+  else NONE) |> the_default [(NONE, syms)];
 
 end;
 

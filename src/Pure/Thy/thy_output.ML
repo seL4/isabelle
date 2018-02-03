@@ -60,9 +60,7 @@ and output_comment_document ctxt (comment, syms) =
     SOME kind => output_comment ctxt (kind, syms)
   | NONE => [Latex.symbols syms])
 and output_document_text ctxt syms =
-  (case Comment.read_body syms of
-    SOME res => maps (output_comment_document ctxt) res
-  | NONE => [Latex.symbols syms])
+  Comment.read_body syms |> maps (output_comment_document ctxt)
 and output_document ctxt {markdown} source =
   let
     val pos = Input.pos_of source;
@@ -122,9 +120,9 @@ fun output_comment_symbols ctxt {antiq} (comment, syms) =
 in
 
 fun output_body ctxt antiq bg en syms =
-  (case Comment.read_body syms of
-    SOME res => maps (output_comment_symbols ctxt {antiq = antiq}) res
-  | NONE => output_symbols syms) |> Latex.enclose_body bg en
+  Comment.read_body syms
+  |> maps (output_comment_symbols ctxt {antiq = antiq})
+  |> Latex.enclose_body bg en
 and output_token ctxt tok =
   let
     fun output antiq bg en =
@@ -148,7 +146,7 @@ fun output_source ctxt s =
   output_body ctxt false "" "" (Symbol_Pos.explode (s, Position.none));
 
 fun check_comments ctxt =
-  Comment.read_body #> (Option.app o List.app) (fn (comment, syms) =>
+  Comment.read_body #> List.app (fn (comment, syms) =>
     let
       val pos = #1 (Symbol_Pos.range syms);
       val _ =
