@@ -8,7 +8,6 @@ signature THY_OUTPUT =
 sig
   val output_document: Proof.context -> {markdown: bool} -> Input.source -> Latex.text list
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
-  val check_token_comments: Proof.context -> Token.T -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
   val output_source: Proof.context -> string -> Latex.text list
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
@@ -148,9 +147,6 @@ fun check_comments ctxt =
           Context_Position.reports ctxt (map (pair pos) (Markup.cartouche :: Comment.markups kind)));
       val _ = output_symbols_comment ctxt {antiq = false} (comment, syms);
     in if comment = SOME Comment.Comment then check_comments ctxt syms else () end);
-
-fun check_token_comments ctxt tok =
-  check_comments ctxt (Input.source_explode (Token.input_of tok));
 
 end;
 

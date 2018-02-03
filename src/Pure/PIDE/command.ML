@@ -195,22 +195,14 @@ fun run keywords int tr st =
       (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;
 
-fun check_error e =
-  (e (); []) handle exn =>
-    if Exn.is_interrupt exn then Exn.reraise exn
-    else Runtime.exn_messages exn;
+fun check_token_comments ctxt tok =
+  (Thy_Output.check_comments ctxt (Input.source_explode (Token.input_of tok)); [])
+    handle exn =>
+      if Exn.is_interrupt exn then Exn.reraise exn
+      else Runtime.exn_messages exn;
 
-fun check_cmts ctxt span tr =
-  Toplevel.setmp_thread_position tr
-    (fn () =>
-      (span |> maps (fn tok =>
-        check_error (fn () => Thy_Output.check_token_comments ctxt tok))) @
-      (span |> maps (fn tok =>
-        if Token.kind_of tok = Token.Comment (SOME Comment.Comment) then
-          check_error (fn () =>
-            Thy_Output.output_document ctxt {markdown = false} (Token.input_of tok))
-        else [])))
-    ();
+fun check_span_comments ctxt span tr =
+  Toplevel.setmp_thread_position tr (fn () => maps (check_token_comments ctxt) span) ();
 
 fun report tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) ();
@@ -248,7 +240,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
       | SOME st' =>
           (case try Toplevel.presentation_context st' of
             NONE => []
-          | SOME ctxt' => check_cmts ctxt' span tr));
+          | SOME ctxt' => check_span_comments ctxt' span tr));
     val errs = errs1 @ errs2;
     val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
   in
