@@ -40,12 +40,36 @@ struct
 
 (* output document source *)
 
-fun output_document ctxt {markdown} source =
+val output_symbols = single o Latex.symbols_output;
+
+fun output_comment ctxt (kind, syms) =
+  (case kind of
+    Comment.Comment =>
+      Input.cartouche_content syms
+      |> output_document (ctxt |> Config.put Document_Antiquotation.thy_output_display false)
+          {markdown = false}
+      |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
+  | Comment.Cancel =>
+      Symbol_Pos.cartouche_content syms
+      |> output_symbols
+      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
+  | Comment.Latex =>
+      [Latex.symbols (Symbol_Pos.cartouche_content syms)])
+and output_comment_document ctxt (comment, syms) =
+  (case comment of
+    SOME kind => output_comment ctxt (kind, syms)
+  | NONE => [Latex.symbols syms])
+and output_document_text ctxt syms =
+  (case Comment.read_body syms of
+    SOME res => maps (output_comment_document ctxt) res
+  | NONE => [Latex.symbols syms])
+and output_document ctxt {markdown} source =
   let
     val pos = Input.pos_of source;
     val syms = Input.source_explode source;
 
-    val output_antiquotes = maps (Document_Antiquotation.evaluate ctxt);
+    val output_antiquotes =
+      maps (Document_Antiquotation.evaluate (output_document_text ctxt) ctxt);
 
     fun output_line line =
       (if Markdown.line_is_item line then [Latex.string "\\item "] else []) @
@@ -61,14 +85,14 @@ fun output_document ctxt {markdown} source =
     else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
     then
       let
-        val ants = Antiquote.parse pos syms;
+        val ants = Antiquote.parse_comments pos syms;
         val reports = Antiquote.antiq_reports ants;
         val blocks = Markdown.read_antiquotes ants;
         val _ = Context_Position.reports ctxt (reports @ Markdown.reports blocks);
       in output_blocks blocks end
     else
       let
-        val ants = Antiquote.parse pos (trim (Symbol.is_blank o Symbol_Pos.symbol) syms);
+        val ants = Antiquote.parse_comments pos (trim (Symbol.is_blank o Symbol_Pos.symbol) syms);
         val reports = Antiquote.antiq_reports ants;
         val _ = Context_Position.reports ctxt (reports @ Markdown.text_reports ants);
       in output_antiquotes ants end
@@ -79,8 +103,6 @@ fun output_document ctxt {markdown} source =
 
 local
 
-val output_symbols = single o Latex.symbols_output;
-
 val output_symbols_antiq =
   (fn Antiquote.Text syms => output_symbols syms
     | Antiquote.Control {name = (name, _), body, ...} =>
@@ -89,32 +111,19 @@ val output_symbols_antiq =
     | Antiquote.Antiq {body, ...} =>
         Latex.enclose_body "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n" (output_symbols body));
 
-fun output_symbols_comment ctxt {antiq} (comment, syms) =
+fun output_comment_symbols ctxt {antiq} (comment, syms) =
   (case (comment, antiq) of
     (NONE, false) => output_symbols syms
   | (NONE, true) =>
-      Antiquote.parse (#1 (Symbol_Pos.range syms)) syms
+      Antiquote.parse_comments (#1 (Symbol_Pos.range syms)) syms
       |> maps output_symbols_antiq
-  | (SOME Comment.Comment, _) =>
-      let
-        val source = Input.cartouche_content syms;
-        val ctxt' = ctxt
-          |> Config.put Document_Antiquotation.thy_output_display false;
-      in
-        output_document ctxt' {markdown = false} source
-        |> Latex.enclose_body "%\n\\isamarkupcmt{" "%\n}"
-      end
-  | (SOME Comment.Cancel, _) =>
-      output_symbols (Symbol_Pos.cartouche_content syms)
-      |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
-  | (SOME Comment.Latex, _) =>
-      [Latex.symbols (Symbol_Pos.cartouche_content syms)]);
+  | (SOME comment, _) => output_comment ctxt (comment, syms));
 
 in
 
 fun output_body ctxt antiq bg en syms =
   (case Comment.read_body syms of
-    SOME res => maps (output_symbols_comment ctxt {antiq = antiq}) res
+    SOME res => maps (output_comment_symbols ctxt {antiq = antiq}) res
   | NONE => output_symbols syms) |> Latex.enclose_body bg en
 and output_token ctxt tok =
   let
@@ -145,7 +154,7 @@ fun check_comments ctxt =
       val _ =
         comment |> Option.app (fn kind =>
           Context_Position.reports ctxt (map (pair pos) (Markup.cartouche :: Comment.markups kind)));
-      val _ = output_symbols_comment ctxt {antiq = false} (comment, syms);
+      val _ = output_comment_symbols ctxt {antiq = false} (comment, syms);
     in if comment = SOME Comment.Comment then check_comments ctxt syms else () end);
 
 end;

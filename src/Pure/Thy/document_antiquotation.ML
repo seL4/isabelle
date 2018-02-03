@@ -29,7 +29,8 @@ sig
   val setup_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  val evaluate: Proof.context -> Antiquote.text_antiquote -> Latex.text list
+  val evaluate: (Symbol_Pos.T list -> Latex.text list) -> Proof.context ->
+    Antiquote.text_antiquote -> Latex.text list
 end;
 
 structure Document_Antiquotation: DOCUMENT_ANTIQUOTATION =
@@ -167,9 +168,9 @@ fun eval ctxt (opts, src) =
 
 in
 
-fun evaluate ctxt antiq =
+fun evaluate eval_text ctxt antiq =
   (case antiq of
-    Antiquote.Text ss => [Latex.symbols ss]
+    Antiquote.Text ss => eval_text ss
   | Antiquote.Control {name, body, ...} =>
       eval ctxt ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
   | Antiquote.Antiq {range = (pos, _), body, ...} =>

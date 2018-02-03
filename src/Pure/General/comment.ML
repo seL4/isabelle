@@ -8,6 +8,7 @@ signature COMMENT =
 sig
   datatype kind = Comment | Cancel | Latex
   val markups: kind -> Markup.T list
+  val is_symbol: Symbol.symbol -> bool
   val scan_comment: (kind * Symbol_Pos.T list) scanner
   val scan_cancel: (kind * Symbol_Pos.T list) scanner
   val scan_latex: (kind * Symbol_Pos.T list) scanner

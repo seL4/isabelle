@@ -17,8 +17,9 @@ sig
   val scan_control: control scanner
   val scan_antiq: antiq scanner
   val scan_antiquote: text_antiquote scanner
-  val parse: Position.T -> Symbol_Pos.T list -> text_antiquote list
-  val read: Input.source -> text_antiquote list
+  val scan_antiquote_comments: text_antiquote scanner
+  val parse_comments: Position.T -> Symbol_Pos.T list -> text_antiquote list
+  val read_comments: Input.source -> text_antiquote list
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -79,14 +80,24 @@ local
 val err_prefix = "Antiquotation lexical error: ";
 
 val scan_nl = Scan.one (fn (s, _) => s = "\n") >> single;
+val scan_nl_opt = Scan.optional scan_nl [];
 
-val scan_txt =
-  scan_nl ||
-  Scan.repeats1
-   (Scan.many1 (fn (s, _) =>
-      not (Symbol.is_control s) andalso s <> Symbol.open_ andalso s <> "@" andalso
-        s <> "\n" andalso Symbol.not_eof s) ||
-    $$$ "@" --| Scan.ahead (~$$ "{")) @@@ Scan.optional scan_nl [];
+val scan_plain_txt =
+  Scan.many1 (fn (s, _) =>
+    not (Comment.is_symbol s) andalso
+    not (Symbol.is_control s) andalso
+    s <> Symbol.open_ andalso
+    s <> "@" andalso
+    s <> "\n" andalso
+    Symbol.not_eof s) ||
+  Scan.one (Comment.is_symbol o Symbol_Pos.symbol) >> single ||
+  $$$ "@" --| Scan.ahead (~$$ "{");
+
+val scan_text =
+  scan_nl || Scan.repeats1 scan_plain_txt @@@ scan_nl_opt;
+
+val scan_text_comments =
+  scan_nl || Scan.repeats1 (Comment.scan >> #2 || scan_plain_txt) @@@ scan_nl_opt;
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
@@ -122,21 +133,24 @@ val scan_antiq =
        body = body});
 
 val scan_antiquote =
-  scan_txt >> Text || scan_control >> Control || scan_antiq >> Antiq;
+  scan_text >> Text || scan_control >> Control || scan_antiq >> Antiq;
+
+val scan_antiquote_comments =
+  scan_text_comments >> Text || scan_control >> Control || scan_antiq >> Antiq;
 
 end;
 
 
-(* read *)
+(* parse and read (with formal comments) *)
 
-fun parse pos syms =
-  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
+fun parse_comments pos syms =
+  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote_comments) syms of
     SOME ants => ants
   | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
 
-fun read source =
+fun read_comments source =
   let
-    val ants = parse (Input.pos_of source) (Input.source_explode source);
+    val ants = parse_comments (Input.pos_of source) (Input.source_explode source);
     val _ = Position.reports (antiq_reports ants);
   in ants end;
 

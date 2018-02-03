@@ -340,7 +340,9 @@ in
 fun output_rules ctxt rules =
   let
     val output_antiq =
-      Latex.output_text o Document_Antiquotation.evaluate ctxt o Antiquote.Antiq;
+      Antiquote.Antiq #>
+      Document_Antiquotation.evaluate (single o Latex.symbols) ctxt #>
+      Latex.output_text;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"

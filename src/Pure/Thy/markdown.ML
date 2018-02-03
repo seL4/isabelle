@@ -191,7 +191,7 @@ val read_lines =
   the_default [] #> flat;
 
 val read_antiquotes = Antiquote.split_lines #> map make_line #> read_lines;
-val read_source = Antiquote.read #> read_antiquotes;
+val read_source = Antiquote.read_comments #> read_antiquotes;
 
 end;
 
