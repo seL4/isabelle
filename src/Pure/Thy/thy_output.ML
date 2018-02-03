@@ -100,8 +100,7 @@ fun output_symbols_comment ctxt {antiq} (comment, syms) =
       |> maps output_symbols_antiq
   | (SOME Comment.Comment, _) =>
       let
-        val body = Symbol_Pos.cartouche_content syms;
-        val source = Input.source true (Symbol_Pos.implode body) (Symbol_Pos.range body);
+        val source = Input.cartouche_content syms;
         val ctxt' = ctxt
           |> Config.put Document_Antiquotation.thy_output_display false;
       in

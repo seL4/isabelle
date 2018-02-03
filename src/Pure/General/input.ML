@@ -14,6 +14,7 @@ sig
   val source: bool -> Symbol_Pos.text -> Position.range -> source
   val empty: source
   val string: string -> source
+  val cartouche_content: Symbol_Pos.T list -> source
   val reset_pos: source -> source
   val source_explode: source -> Symbol_Pos.T list
   val source_content: source -> string
@@ -40,6 +41,12 @@ fun source delimited text range =
 val empty = source false "" Position.no_range;
 
 fun string text = source true text Position.no_range;
+
+fun cartouche_content syms =
+  let
+    val range = Symbol_Pos.range syms;
+    val (text, _) = Symbol_Pos.implode_range range (Symbol_Pos.cartouche_content syms);
+  in source true text range end;
 
 fun reset_pos (Source {delimited, text, ...}) = source delimited text Position.no_range;
 
