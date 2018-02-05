@@ -300,8 +300,8 @@ lemma transfer_neg_numeral [transfer_rule]:
   "rel_fun (=) pcr_float (- numeral :: _ \<Rightarrow> real) (- numeral :: _ \<Rightarrow> float)"
   by (simp add: rel_fun_def float.pcr_cr_eq cr_float_def)
 
-lemma float_of_numeral[simp]: "numeral k = float_of (numeral k)"
-  and float_of_neg_numeral[simp]: "- numeral k = float_of (- numeral k)"
+lemma float_of_numeral: "numeral k = float_of (numeral k)"
+  and float_of_neg_numeral: "- numeral k = float_of (- numeral k)"
   unfolding real_of_float_eq by simp_all
 
 
@@ -445,8 +445,8 @@ definition exponent :: "float \<Rightarrow> int"
     snd (SOME p::int \<times> int. (f = 0 \<and> fst p = 0 \<and> snd p = 0) \<or>
       (f \<noteq> 0 \<and> real_of_float f = real_of_int (fst p) * 2 powr real_of_int (snd p) \<and> \<not> 2 dvd fst p))"
 
-lemma exponent_0[simp]: "exponent (float_of 0) = 0" (is ?E)
-  and mantissa_0[simp]: "mantissa (float_of 0) = 0" (is ?M)
+lemma exponent_0[simp]: "exponent 0 = 0" (is ?E)
+  and mantissa_0[simp]: "mantissa 0 = 0" (is ?M)
 proof -
   have "\<And>p::int \<times> int. fst p = 0 \<and> snd p = 0 \<longleftrightarrow> p = (0, 0)"
     by auto
@@ -455,13 +455,13 @@ proof -
 qed
 
 lemma mantissa_exponent: "real_of_float f = mantissa f * 2 powr exponent f" (is ?E)
-  and mantissa_not_dvd: "f \<noteq> (float_of 0) \<Longrightarrow> \<not> 2 dvd mantissa f" (is "_ \<Longrightarrow> ?D")
+  and mantissa_not_dvd: "f \<noteq> 0 \<Longrightarrow> \<not> 2 dvd mantissa f" (is "_ \<Longrightarrow> ?D")
 proof cases
-  assume [simp]: "f \<noteq> float_of 0"
+  assume [simp]: "f \<noteq> 0"
   have "f = mantissa f * 2 powr exponent f \<and> \<not> 2 dvd mantissa f"
   proof (cases f rule: float_normed_cases)
     case zero
-    then show ?thesis by (simp add: zero_float_def)
+    then show ?thesis by simp
   next
     case (powr m e)
     then have "\<exists>p::int \<times> int. (f = 0 \<and> fst p = 0 \<and> snd p = 0) \<or>
@@ -469,13 +469,36 @@ proof cases
       by auto
     then show ?thesis
       unfolding exponent_def mantissa_def
-      by (rule someI2_ex) (simp add: zero_float_def)
+      by (rule someI2_ex) simp
   qed
   then show ?E ?D by auto
 qed simp
 
-lemma mantissa_noteq_0: "f \<noteq> float_of 0 \<Longrightarrow> mantissa f \<noteq> 0"
+lemma mantissa_noteq_0: "f \<noteq> 0 \<Longrightarrow> mantissa f \<noteq> 0"
   using mantissa_not_dvd[of f] by auto
+
+lemma mantissa_eq_zero_iff: "mantissa x = 0 \<longleftrightarrow> x = 0"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show ?rhs if ?lhs
+  proof -
+    from that have z: "0 = real_of_float x"
+      using mantissa_exponent by simp
+    show ?thesis
+      by (simp add: zero_float_def z)
+  qed
+  show ?lhs if ?rhs
+    using that by simp
+qed
+
+lemma mantissa_pos_iff: "0 < mantissa x \<longleftrightarrow> 0 < x"
+  by (auto simp: mantissa_exponent sign_simps)
+
+lemma mantissa_nonneg_iff: "0 \<le> mantissa x \<longleftrightarrow> 0 \<le> x"
+  by (auto simp: mantissa_exponent sign_simps zero_le_mult_iff)
+
+lemma mantissa_neg_iff: "0 > mantissa x \<longleftrightarrow> 0 > x"
+  by (auto simp: mantissa_exponent sign_simps zero_le_mult_iff)
 
 lemma
   fixes m e :: int
@@ -488,7 +511,7 @@ proof cases
   with dvd show "mantissa f = m" by auto
 next
   assume "m \<noteq> 0"
-  then have f_not_0: "f \<noteq> float_of 0" by (simp add: f_def)
+  then have f_not_0: "f \<noteq> 0" by (simp add: f_def zero_float_def)
   from mantissa_exponent[of f] have "m * 2 powr e = mantissa f * 2 powr exponent f"
     by (auto simp add: f_def)
   then show ?M ?E
@@ -509,8 +532,8 @@ lemma Float_cases [cases type: float]:
   by (atomize_elim) auto
 
 lemma denormalize_shift:
-  assumes f_def: "f \<equiv> Float m e"
-    and not_0: "f \<noteq> float_of 0"
+  assumes f_def: "f = Float m e"
+    and not_0: "f \<noteq> 0"
   obtains i where "m = mantissa f * 2 ^ i" "e = exponent f - i"
 proof
   from mantissa_exponent[of f] f_def
@@ -881,20 +904,20 @@ end
 
 lemma bitlen_Float:
   fixes m e
-  defines "f \<equiv> Float m e"
+  defines [THEN meta_eq_to_obj_eq]: "f \<equiv> Float m e"
   shows "bitlen \<bar>mantissa f\<bar> + exponent f = (if m = 0 then 0 else bitlen \<bar>m\<bar> + e)"
 proof (cases "m = 0")
   case True
-  then show ?thesis by (simp add: f_def bitlen_alt_def Float_def)
+  then show ?thesis by (simp add: f_def bitlen_alt_def)
 next
   case False
-  then have "f \<noteq> float_of 0"
+  then have "f \<noteq> 0"
     unfolding real_of_float_eq by (simp add: f_def)
   then have "mantissa f \<noteq> 0"
-    by (simp add: mantissa_noteq_0)
+    by (simp add: mantissa_eq_zero_iff)
   moreover
   obtain i where "m = mantissa f * 2 ^ i" "e = exponent f - int i"
-    by (rule f_def[THEN denormalize_shift, OF \<open>f \<noteq> float_of 0\<close>])
+    by (rule f_def[THEN denormalize_shift, OF \<open>f \<noteq> 0\<close>])
   ultimately show ?thesis by (simp add: abs_mult)
 qed
 
@@ -904,10 +927,7 @@ lemma float_gt1_scale:
 proof -
   have "0 < Float m e" using assms by auto
   then have "0 < m" using powr_gt_zero[of 2 e]
-    apply (auto simp: zero_less_mult_iff)
-    using not_le powr_ge_pzero
-    apply blast
-    done
+    by (auto simp: zero_less_mult_iff)
   then have "m \<noteq> 0" by auto
   show ?thesis
   proof (cases "0 \<le> e")
@@ -1875,20 +1895,6 @@ lemma mantissa_1: "mantissa 1 = 1"
 lemma bitlen_1: "bitlen 1 = 1"
   by (simp add: bitlen_alt_def)
 
-lemma mantissa_eq_zero_iff: "mantissa x = 0 \<longleftrightarrow> x = 0"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  show ?rhs if ?lhs
-  proof -
-    from that have z: "0 = real_of_float x"
-      using mantissa_exponent by simp
-    show ?thesis
-      by (simp add: zero_float_def z)
-  qed
-  show ?lhs if ?rhs
-    using that by (simp add: zero_float_def)
-qed
-
 lemma float_upper_bound: "x \<le> 2 powr (bitlen \<bar>mantissa x\<bar> + exponent x)"
 proof (cases "x = 0")
   case True
@@ -2104,7 +2110,7 @@ lemma truncate_up_mono: "x \<le> y \<Longrightarrow> truncate_up p x \<le> trunc
   by (simp add: truncate_up_eq_truncate_down truncate_down_mono)
 
 lemma Float_le_zero_iff: "Float a b \<le> 0 \<longleftrightarrow> a \<le> 0"
- by (auto simp: zero_float_def mult_le_0_iff) (simp add: not_less [symmetric])
+  by (auto simp: zero_float_def mult_le_0_iff)
 
 lemma real_of_float_pprt[simp]:
   fixes a :: float
@@ -2147,7 +2153,7 @@ lemma int_floor_fl: "real_of_int (int_floor_fl x) \<le> real_of_float x"
   by transfer simp
 
 lemma floor_pos_exp: "exponent (floor_fl x) \<ge> 0"
-proof (cases "floor_fl x = float_of 0")
+proof (cases "floor_fl x = 0")
   case True
   then show ?thesis
     by (simp add: floor_fl_def)
@@ -2156,7 +2162,7 @@ next
   have eq: "floor_fl x = Float \<lfloor>real_of_float x\<rfloor> 0"
     by transfer simp
   obtain i where "\<lfloor>real_of_float x\<rfloor> = mantissa (floor_fl x) * 2 ^ i" "0 = exponent (floor_fl x) - int i"
-    by (rule denormalize_shift[OF eq[THEN eq_reflection] False])
+    by (rule denormalize_shift[OF eq False])
   then show ?thesis
     by simp
 qed
@@ -2164,11 +2170,14 @@ qed
 lemma compute_mantissa[code]:
   "mantissa (Float m e) =
     (if m = 0 then 0 else if 2 dvd m then mantissa (normfloat (Float m e)) else m)"
-  by (auto simp: mantissa_float Float.abs_eq)
+  by (auto simp: mantissa_float Float.abs_eq zero_float_def[symmetric])
 
 lemma compute_exponent[code]:
   "exponent (Float m e) =
     (if m = 0 then 0 else if 2 dvd m then exponent (normfloat (Float m e)) else e)"
-  by (auto simp: exponent_float Float.abs_eq)
+  by (auto simp: exponent_float Float.abs_eq zero_float_def[symmetric])
+
+lifting_update Float.float.lifting
+lifting_forget Float.float.lifting
 
 end

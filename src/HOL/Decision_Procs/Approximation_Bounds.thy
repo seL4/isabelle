@@ -305,8 +305,7 @@ proof (induct n)
     case (Float m e)
     hence "0 < m"
       using assms
-      apply (auto simp: sign_simps)
-      by (meson not_less powr_ge_pzero)
+      by (auto simp: sign_simps)
     hence "0 < sqrt m" by auto
 
     have int_nat_bl: "(nat (bitlen m)) = bitlen m"
@@ -1190,7 +1189,7 @@ proof (cases "real_of_float x = 0")
 next
   case True
   hence "x = 0"
-    by transfer
+    by (simp add: real_of_float_eq)
   thus ?thesis
     using lb_sin_cos_aux_zero_le_one one_le_ub_sin_cos_aux
     by simp
@@ -1478,7 +1477,7 @@ proof -
         by auto
 
       have eq_4: "?x2 * Float 1 (- 1) = x * Float 1 (- 2)"
-        by transfer simp
+        by (auto simp: real_of_float_eq)
 
       have "(?lb x) \<le> ?cos x"
       proof -
@@ -2334,11 +2333,7 @@ next
     using \<open>real_of_float (float_divr prec 1 x) < 1\<close> by auto
 qed
 
-lemma float_pos_eq_mantissa_pos: "x > 0 \<longleftrightarrow> mantissa x > 0"
-  apply (subst Float_mantissa_exponent[of x, symmetric])
-  apply (auto simp add: zero_less_mult_iff zero_float_def  dest: less_zeroE)
-  apply (metis not_le powr_ge_pzero)
-  done
+lemmas float_pos_eq_mantissa_pos = mantissa_pos_iff[symmetric]
 
 lemma Float_pos_eq_mantissa_pos: "Float m e > 0 \<longleftrightarrow> m > 0"
   using powr_gt_zero[of 2 "e"]
@@ -2346,7 +2341,7 @@ lemma Float_pos_eq_mantissa_pos: "Float m e > 0 \<longleftrightarrow> m > 0"
 
 lemma Float_representation_aux:
   fixes m e
-  defines "x \<equiv> Float m e"
+  defines [THEN meta_eq_to_obj_eq]: "x \<equiv> Float m e"
   assumes "x > 0"
   shows "Float (exponent x + (bitlen (mantissa x) - 1)) 0 = Float (e + (bitlen m - 1)) 0" (is ?th1)
     and "Float (mantissa x) (- (bitlen (mantissa x) - 1)) = Float m ( - (bitlen m - 1))"  (is ?th2)
@@ -2356,9 +2351,10 @@ proof -
   thus ?th1
     using bitlen_Float[of m e] assms
     by (auto simp add: zero_less_mult_iff intro!: arg_cong2[where f=Float])
-  have "x \<noteq> float_of 0"
+  have "x \<noteq> 0"
     unfolding zero_float_def[symmetric] using \<open>0 < x\<close> by auto
-  from denormalize_shift[OF assms(1) this] guess i . note i = this
+  from denormalize_shift[OF x_def this] obtain i where
+    i: "m = mantissa x * 2 ^ i" "e = exponent x - int i" .
 
   have "2 powr (1 - (real_of_int (bitlen (mantissa x)) + real_of_int i)) =
     2 powr (1 - (real_of_int (bitlen (mantissa x)))) * inverse (2 powr (real i))"
@@ -2367,7 +2363,8 @@ proof -
     (real_of_int (mantissa x) * 2 ^ i) * 2 powr (1 - real_of_int (bitlen (mantissa x * 2 ^ i)))"
     using \<open>mantissa x > 0\<close> by (simp add: powr_realpow)
   then show ?th2
-    unfolding i by transfer auto
+    unfolding i
+    by (auto simp: real_of_float_eq)
 qed
 
 lemma compute_ln[code]:
@@ -2541,9 +2538,7 @@ next
     let ?x = "Float m (- (bitlen m - 1))"
 
     have "0 < m" and "m \<noteq> 0" using \<open>0 < x\<close> Float powr_gt_zero[of 2 e]
-      apply (auto simp add: zero_less_mult_iff)
-      using not_le powr_ge_pzero apply blast
-      done
+      by (auto simp add: zero_less_mult_iff)
     define bl where "bl = bitlen m - 1"
     hence "bl \<ge> 0"
       using \<open>m > 0\<close> by (simp add: bitlen_alt_def)

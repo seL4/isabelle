@@ -188,11 +188,11 @@ lemma float_minus:
 
 lemma zero_le_float:
   "(0 <= float (a,b)) = (0 <= a)"
-  by (simp add: float_def zero_le_mult_iff) (simp add: not_less [symmetric])
+  by (simp add: float_def zero_le_mult_iff)
 
 lemma float_le_zero:
   "(float (a,b) <= 0) = (a <= 0)"
-  by (simp add: float_def mult_le_0_iff) (simp add: not_less [symmetric])
+  by (simp add: float_def mult_le_0_iff)
 
 lemma float_abs:
   "\<bar>float (a,b)\<bar> = (if 0 <= a then (float (a,b)) else (float (-a,b)))"

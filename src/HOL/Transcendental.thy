@@ -2495,6 +2495,9 @@ lemma powr_ge_pzero [simp]: "0 \<le> x powr y"
   for x y :: real
   by (simp add: powr_def)
 
+lemma powr_non_neg[simp]: "\<not>a powr x < 0" for a x::real
+  using powr_ge_pzero[of a x] by arith
+
 lemma powr_divide: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> (x / y) powr a = (x powr a) / (y powr a)"
   for a b x :: real
   apply (simp add: divide_inverse positive_imp_inverse_positive powr_mult)
@@ -2605,6 +2608,10 @@ lemma log_divide: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x 
 lemma powr_gt_zero [simp]: "0 < x powr a \<longleftrightarrow> x \<noteq> 0"
   for a x :: real
   by (simp add: powr_def)
+
+lemma powr_nonneg_iff[simp]: "a powr x \<le> 0 \<longleftrightarrow> a = 0"
+  for a x::real
+  by (meson not_less powr_gt_zero)
 
 lemma log_add_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log b x + y = log b (x * b powr y)"
   and add_log_eq_powr: "0 < b \<Longrightarrow> b \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> y + log b x = log b (b powr y * x)"

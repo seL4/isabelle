@@ -200,8 +200,11 @@ definition bitlen :: "int \<Rightarrow> int" where "bitlen a = floorlog 2 (nat a
 lemma bitlen_alt_def: "bitlen a = (if a > 0 then \<lfloor>log 2 a\<rfloor> + 1 else 0)"
 by (simp add: bitlen_def floorlog_def)
 
+lemma bitlen_zero[simp]: "bitlen 0 = 0"
+  by (auto simp: bitlen_def floorlog_def)
+
 lemma bitlen_nonneg: "0 \<le> bitlen x"
-by (simp add: bitlen_def)
+  by (simp add: bitlen_def)
 
 lemma bitlen_bounds:
   assumes "x > 0"
