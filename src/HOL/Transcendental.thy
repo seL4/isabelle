@@ -6289,6 +6289,796 @@ lemma
   by (auto simp add: root_polyfun [OF assms(2)])
 
 
+subsection \<open>Hyperbolic functions\<close>
+
+definition sinh :: "'a :: {banach, real_normed_algebra_1} \<Rightarrow> 'a" where
+  "sinh x = (exp x - exp (-x)) /\<^sub>R 2"
+  
+definition cosh :: "'a :: {banach, real_normed_algebra_1} \<Rightarrow> 'a" where
+  "cosh x = (exp x + exp (-x)) /\<^sub>R 2"
+  
+definition tanh :: "'a :: {banach, real_normed_field} \<Rightarrow> 'a" where
+  "tanh x = sinh x / cosh x"
+
+definition arsinh :: "'a :: {banach, real_normed_algebra_1, ln} \<Rightarrow> 'a" where
+  "arsinh x = ln (x + (x^2 + 1) powr of_real (1/2))"
+
+definition arcosh :: "'a :: {banach, real_normed_algebra_1, ln} \<Rightarrow> 'a" where
+  "arcosh x = ln (x + (x^2 - 1) powr of_real (1/2))"
+
+definition artanh :: "'a :: {banach, real_normed_field, ln} \<Rightarrow> 'a" where
+  "artanh x = ln ((1 + x) / (1 - x)) / 2"
+
+lemma arsinh_0 [simp]: "arsinh 0 = 0"
+  by (simp add: arsinh_def)
+
+lemma arcosh_1 [simp]: "arcosh 1 = 0"
+  by (simp add: arcosh_def)
+
+lemma artanh_0 [simp]: "artanh 0 = 0"
+  by (simp add: artanh_def)
+
+lemma tanh_altdef:
+  "tanh x = (exp x - exp (-x)) / (exp x + exp (-x))"
+proof -
+  have "tanh x = (2 *\<^sub>R sinh x) / (2 *\<^sub>R cosh x)"
+    by (simp add: tanh_def scaleR_conv_of_real)
+  also have "2 *\<^sub>R sinh x = exp x - exp (-x)"
+    by (simp add: sinh_def)
+  also have "2 *\<^sub>R cosh x = exp x + exp (-x)"
+    by (simp add: cosh_def)
+  finally show ?thesis .
+qed
+
+lemma tanh_real_altdef: "tanh (x::real) = (1 - exp (- 2 * x)) / (1 + exp (- 2 * x))"
+proof -
+  have [simp]: "exp (2 * x) = exp x * exp x" "exp (x * 2) = exp x * exp x"
+    by (subst exp_add [symmetric]; simp)+
+  have "tanh x = (2 * exp (-x) * sinh x) / (2 * exp (-x) * cosh x)"
+    by (simp add: tanh_def)
+  also have "2 * exp (-x) * sinh x = 1 - exp (-2*x)"
+    by (simp add: exp_minus field_simps sinh_def)
+  also have "2 * exp (-x) * cosh x = 1 + exp (-2*x)"
+    by (simp add: exp_minus field_simps cosh_def)
+  finally show ?thesis .
+qed
+
+  
+lemma sinh_converges: "(\<lambda>n. if even n then 0 else x ^ n /\<^sub>R fact n) sums sinh x"
+proof -
+  have "(\<lambda>n. (x ^ n /\<^sub>R fact n - (-x) ^ n /\<^sub>R fact n) /\<^sub>R 2) sums sinh x"
+    unfolding sinh_def by (intro sums_scaleR_right sums_diff exp_converges)
+  also have "(\<lambda>n. (x ^ n /\<^sub>R fact n - (-x) ^ n /\<^sub>R fact n) /\<^sub>R 2) =
+               (\<lambda>n. if even n then 0 else x ^ n /\<^sub>R fact n)" by auto
+  finally show ?thesis .
+qed
+  
+lemma cosh_converges: "(\<lambda>n. if even n then x ^ n /\<^sub>R fact n else 0) sums cosh x"
+proof -
+  have "(\<lambda>n. (x ^ n /\<^sub>R fact n + (-x) ^ n /\<^sub>R fact n) /\<^sub>R 2) sums cosh x"
+    unfolding cosh_def by (intro sums_scaleR_right sums_add exp_converges)
+  also have "(\<lambda>n. (x ^ n /\<^sub>R fact n + (-x) ^ n /\<^sub>R fact n) /\<^sub>R 2) =
+               (\<lambda>n. if even n then x ^ n /\<^sub>R fact n else 0)" by auto
+  finally show ?thesis .
+qed
+
+lemma sinh_0 [simp]: "sinh 0 = 0"
+  by (simp add: sinh_def)
+    
+lemma cosh_0 [simp]: "cosh 0 = 1"
+proof -
+  have "cosh 0 = (1/2) *\<^sub>R (1 + 1)" by (simp add: cosh_def)
+  also have "\<dots> = 1" by (rule scaleR_half_double)
+  finally show ?thesis .
+qed
+
+lemma tanh_0 [simp]: "tanh 0 = 0"
+  by (simp add: tanh_def)
+
+lemma sinh_minus [simp]: "sinh (- x) = -sinh x"
+  by (simp add: sinh_def algebra_simps)
+
+lemma cosh_minus [simp]: "cosh (- x) = cosh x"
+  by (simp add: cosh_def algebra_simps)
+
+lemma tanh_minus [simp]: "tanh (-x) = -tanh x"
+  by (simp add: tanh_def)
+
+lemma sinh_ln_real: "x > 0 \<Longrightarrow> sinh (ln x :: real) = (x - inverse x) / 2"
+  by (simp add: sinh_def exp_minus)
+
+lemma cosh_ln_real: "x > 0 \<Longrightarrow> cosh (ln x :: real) = (x + inverse x) / 2"
+  by (simp add: cosh_def exp_minus)
+    
+lemma tanh_ln_real: "x > 0 \<Longrightarrow> tanh (ln x :: real) = (x ^ 2 - 1) / (x ^ 2 + 1)"
+  by (simp add: tanh_def sinh_ln_real cosh_ln_real divide_simps power2_eq_square)
+
+lemma has_field_derivative_scaleR_right [derivative_intros]:
+  "(f has_field_derivative D) F \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_field_derivative (c *\<^sub>R D)) F"
+  unfolding has_field_derivative_def
+  using has_derivative_scaleR_right[of f "\<lambda>x. D * x" F c]
+  by (simp add: mult_scaleR_left [symmetric] del: mult_scaleR_left)
+    
+lemma has_field_derivative_sinh [THEN DERIV_chain2, derivative_intros]: 
+  "(sinh has_field_derivative cosh x) (at (x :: 'a :: {banach, real_normed_field}))"
+  unfolding sinh_def cosh_def by (auto intro!: derivative_eq_intros)
+
+lemma has_field_derivative_cosh [THEN DERIV_chain2, derivative_intros]: 
+  "(cosh has_field_derivative sinh x) (at (x :: 'a :: {banach, real_normed_field}))"
+  unfolding sinh_def cosh_def by (auto intro!: derivative_eq_intros)
+
+lemma has_field_derivative_tanh [THEN DERIV_chain2, derivative_intros]: 
+  "cosh x \<noteq> 0 \<Longrightarrow> (tanh has_field_derivative 1 - tanh x ^ 2) 
+                     (at (x :: 'a :: {banach, real_normed_field}))"
+  unfolding tanh_def by (auto intro!: derivative_eq_intros simp: power2_eq_square divide_simps)
+
+lemma has_derivative_sinh [derivative_intros]:
+  fixes g :: "'a \<Rightarrow> ('a :: {banach, real_normed_field})"
+  assumes "(g has_derivative (\<lambda>x. Db * x)) (at x within s)"
+  shows   "((\<lambda>x. sinh (g x)) has_derivative (\<lambda>y. (cosh (g x) * Db) * y)) (at x within s)"
+proof -
+  have "((\<lambda>x. - g x) has_derivative (\<lambda>y. -(Db * y))) (at x within s)"
+    using assms by (intro derivative_intros)
+  also have "(\<lambda>y. -(Db * y)) = (\<lambda>x. (-Db) * x)" by (simp add: fun_eq_iff)
+  finally have "((\<lambda>x. sinh (g x)) has_derivative 
+    (\<lambda>y. (exp (g x) * Db * y - exp (-g x) * (-Db) * y) /\<^sub>R 2)) (at x within s)"
+    unfolding sinh_def by (intro derivative_intros assms)
+  also have "(\<lambda>y. (exp (g x) * Db * y - exp (-g x) * (-Db) * y) /\<^sub>R 2) = (\<lambda>y. (cosh (g x) * Db) * y)"
+    by (simp add: fun_eq_iff cosh_def algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma has_derivative_cosh [derivative_intros]:
+  fixes g :: "'a \<Rightarrow> ('a :: {banach, real_normed_field})"
+  assumes "(g has_derivative (\<lambda>y. Db * y)) (at x within s)"
+  shows   "((\<lambda>x. cosh (g x)) has_derivative (\<lambda>y. (sinh (g x) * Db) * y)) (at x within s)"
+proof -
+  have "((\<lambda>x. - g x) has_derivative (\<lambda>y. -(Db * y))) (at x within s)"
+    using assms by (intro derivative_intros)
+  also have "(\<lambda>y. -(Db * y)) = (\<lambda>y. (-Db) * y)" by (simp add: fun_eq_iff)
+  finally have "((\<lambda>x. cosh (g x)) has_derivative 
+    (\<lambda>y. (exp (g x) * Db * y + exp (-g x) * (-Db) * y) /\<^sub>R 2)) (at x within s)"
+    unfolding cosh_def by (intro derivative_intros assms)
+  also have "(\<lambda>y. (exp (g x) * Db * y + exp (-g x) * (-Db) * y) /\<^sub>R 2) = (\<lambda>y. (sinh (g x) * Db) * y)"
+    by (simp add: fun_eq_iff sinh_def algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma sinh_plus_cosh: "sinh x + cosh x = exp x"
+proof -
+  have "sinh x + cosh x = (1 / 2) *\<^sub>R (exp x + exp x)"
+    by (simp add: sinh_def cosh_def algebra_simps)
+  also have "\<dots> = exp x" by (rule scaleR_half_double)
+  finally show ?thesis .
+qed
+
+lemma cosh_plus_sinh: "cosh x + sinh x = exp x"
+  by (subst add.commute) (rule sinh_plus_cosh)
+
+lemma cosh_minus_sinh: "cosh x - sinh x = exp (-x)"
+proof -
+  have "cosh x - sinh x = (1 / 2) *\<^sub>R (exp (-x) + exp (-x))"
+    by (simp add: sinh_def cosh_def algebra_simps)
+  also have "\<dots> = exp (-x)" by (rule scaleR_half_double)
+  finally show ?thesis .
+qed
+
+lemma sinh_minus_cosh: "sinh x - cosh x = -exp (-x)"
+  using cosh_minus_sinh[of x] by (simp add: algebra_simps)
+
+
+context
+  fixes x :: "'a :: {real_normed_field, banach}"
+begin
+
+lemma sinh_zero_iff: "sinh x = 0 \<longleftrightarrow> exp x \<in> {1, -1}"
+  by (auto simp: sinh_def field_simps exp_minus power2_eq_square square_eq_1_iff)
+ 
+lemma cosh_zero_iff: "cosh x = 0 \<longleftrightarrow> exp x ^ 2 = -1"
+  by (auto simp: cosh_def exp_minus field_simps power2_eq_square eq_neg_iff_add_eq_0)
+
+lemma cosh_square_eq: "cosh x ^ 2 = sinh x ^ 2 + 1"
+  by (simp add: cosh_def sinh_def algebra_simps power2_eq_square exp_add [symmetric] 
+                scaleR_conv_of_real)
+
+lemma sinh_square_eq: "sinh x ^ 2 = cosh x ^ 2 - 1"
+  by (simp add: cosh_square_eq)
+
+lemma hyperbolic_pythagoras: "cosh x ^ 2 - sinh x ^ 2 = 1"
+  by (simp add: cosh_square_eq)
+
+lemma sinh_add: "sinh (x + y) = sinh x * cosh y + cosh x * sinh y"
+  by (simp add: sinh_def cosh_def algebra_simps scaleR_conv_of_real exp_add [symmetric])
+
+lemma sinh_diff: "sinh (x - y) = sinh x * cosh y - cosh x * sinh y"
+  by (simp add: sinh_def cosh_def algebra_simps scaleR_conv_of_real exp_add [symmetric])    
+
+lemma cosh_add: "cosh (x + y) = cosh x * cosh y + sinh x * sinh y"
+  by (simp add: sinh_def cosh_def algebra_simps scaleR_conv_of_real exp_add [symmetric])
+  
+lemma cosh_diff: "cosh (x - y) = cosh x * cosh y - sinh x * sinh y"
+  by (simp add: sinh_def cosh_def algebra_simps scaleR_conv_of_real exp_add [symmetric])
+
+lemma tanh_add: 
+  "cosh x \<noteq> 0 \<Longrightarrow> cosh y \<noteq> 0 \<Longrightarrow> tanh (x + y) = (tanh x + tanh y) / (1 + tanh x * tanh y)"
+  by (simp add: tanh_def sinh_add cosh_add divide_simps)
+
+lemma sinh_double: "sinh (2 * x) = 2 * sinh x * cosh x"
+  using sinh_add[of x] by simp
+
+lemma cosh_double: "cosh (2 * x) = cosh x ^ 2 + sinh x ^ 2"
+  using cosh_add[of x] by (simp add: power2_eq_square)
+
+end
+
+lemma sinh_field_def: "sinh z = (exp z - exp (-z)) / (2 :: 'a :: {banach, real_normed_field})"
+  by (simp add: sinh_def scaleR_conv_of_real)
+
+lemma cosh_field_def: "cosh z = (exp z + exp (-z)) / (2 :: 'a :: {banach, real_normed_field})"
+  by (simp add: cosh_def scaleR_conv_of_real)
+
+
+subsubsection \<open>More specific properties of the real functions\<close>
+
+lemma sinh_real_zero_iff [simp]: "sinh (x::real) = 0 \<longleftrightarrow> x = 0"
+proof -
+  have "(-1 :: real) < 0" by simp
+  also have "0 < exp x" by simp
+  finally have "exp x \<noteq> -1" by (intro notI) simp
+  thus ?thesis by (subst sinh_zero_iff) simp
+qed
+
+lemma plus_inverse_ge_2:
+  fixes x :: real
+  assumes "x > 0"
+  shows   "x + inverse x \<ge> 2"
+proof -
+  have "0 \<le> (x - 1) ^ 2" by simp
+  also have "\<dots> = x^2 - 2*x + 1" by (simp add: power2_eq_square algebra_simps)
+  finally show ?thesis using assms by (simp add: field_simps power2_eq_square)
+qed
+
+lemma sinh_real_nonneg_iff [simp]: "sinh (x :: real) \<ge> 0 \<longleftrightarrow> x \<ge> 0"
+  by (simp add: sinh_def)
+
+lemma sinh_real_pos_iff [simp]: "sinh (x :: real) > 0 \<longleftrightarrow> x > 0"
+  by (simp add: sinh_def)
+
+lemma sinh_real_nonpos_iff [simp]: "sinh (x :: real) \<le> 0 \<longleftrightarrow> x \<le> 0"
+  by (simp add: sinh_def)
+
+lemma sinh_real_neg_iff [simp]: "sinh (x :: real) < 0 \<longleftrightarrow> x < 0"
+  by (simp add: sinh_def)
+
+lemma cosh_real_ge_1: "cosh (x :: real) \<ge> 1"
+  using plus_inverse_ge_2[of "exp x"] by (simp add: cosh_def exp_minus)
+
+lemma cosh_real_pos [simp]: "cosh (x :: real) > 0"
+  using cosh_real_ge_1[of x] by simp
+  
+lemma cosh_real_nonneg[simp]: "cosh (x :: real) \<ge> 0"
+  using cosh_real_ge_1[of x] by simp
+
+lemma cosh_real_nonzero [simp]: "cosh (x :: real) \<noteq> 0"
+  using cosh_real_ge_1[of x] by simp
+
+lemma tanh_real_nonneg_iff [simp]: "tanh (x :: real) \<ge> 0 \<longleftrightarrow> x \<ge> 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_pos_iff [simp]: "tanh (x :: real) > 0 \<longleftrightarrow> x > 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_nonpos_iff [simp]: "tanh (x :: real) \<le> 0 \<longleftrightarrow> x \<le> 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_neg_iff [simp]: "tanh (x :: real) < 0 \<longleftrightarrow> x < 0"
+  by (simp add: tanh_def field_simps)
+
+lemma tanh_real_zero_iff [simp]: "tanh (x :: real) = 0 \<longleftrightarrow> x = 0"
+  by (simp add: tanh_def field_simps)
+
+lemma arsinh_real_def: "arsinh (x::real) = ln (x + sqrt (x^2 + 1))"
+  by (simp add: arsinh_def powr_half_sqrt)
+
+lemma arcosh_real_def: "x \<ge> 1 \<Longrightarrow> arcosh (x::real) = ln (x + sqrt (x^2 - 1))"
+  by (simp add: arcosh_def powr_half_sqrt)
+
+lemma arsinh_real_aux: "0 < x + sqrt (x ^ 2 + 1 :: real)"
+proof (cases "x < 0")
+  case True
+  have "(-x) ^ 2 = x ^ 2" by simp
+  also have "x ^ 2 < x ^ 2 + 1" by simp
+  finally have "sqrt ((-x) ^ 2) < sqrt (x ^ 2 + 1)"
+    by (rule real_sqrt_less_mono)
+  thus ?thesis using True by simp
+qed (auto simp: add_nonneg_pos)
+
+lemma arsinh_minus_real [simp]: "arsinh (-x::real) = -arsinh x"
+proof -
+  have "arsinh (-x) = ln (sqrt (x\<^sup>2 + 1) - x)"
+    by (simp add: arsinh_real_def)
+  also have "sqrt (x^2 + 1) - x = inverse (sqrt (x^2 + 1) + x)"
+    using arsinh_real_aux[of x] by (simp add: divide_simps algebra_simps power2_eq_square)
+  also have "ln \<dots> = -arsinh x"
+    using arsinh_real_aux[of x] by (simp add: arsinh_real_def ln_inverse)
+  finally show ?thesis .
+qed
+
+lemma artanh_minus_real [simp]:
+  assumes "abs x < 1"
+  shows   "artanh (-x::real) = -artanh x"
+  using assms by (simp add: artanh_def ln_div field_simps)
+
+lemma sinh_less_cosh_real: "sinh (x :: real) < cosh x"
+  by (simp add: sinh_def cosh_def)
+
+lemma sinh_le_cosh_real: "sinh (x :: real) \<le> cosh x"
+  by (simp add: sinh_def cosh_def)
+
+lemma tanh_real_lt_1: "tanh (x :: real) < 1"
+  by (simp add: tanh_def sinh_less_cosh_real)
+
+lemma tanh_real_gt_neg1: "tanh (x :: real) > -1"
+proof -
+  have "- cosh x < sinh x" by (simp add: sinh_def cosh_def divide_simps)
+  thus ?thesis by (simp add: tanh_def field_simps)
+qed
+
+lemma tanh_real_bounds: "tanh (x :: real) \<in> {-1<..<1}"
+  using tanh_real_lt_1 tanh_real_gt_neg1 by simp
+
+context
+  fixes x :: real
+begin
+  
+lemma arsinh_sinh_real: "arsinh (sinh x) = x"
+  by (simp add: arsinh_real_def powr_def sinh_square_eq sinh_plus_cosh)
+
+lemma arcosh_cosh_real: "x \<ge> 0 \<Longrightarrow> arcosh (cosh x) = x"
+  by (simp add: arcosh_real_def powr_def cosh_square_eq cosh_real_ge_1 cosh_plus_sinh)
+
+lemma artanh_tanh_real: "artanh (tanh x) = x"
+proof -
+  have "artanh (tanh x) = ln (cosh x * (cosh x + sinh x) / (cosh x * (cosh x - sinh x))) / 2"
+    by (simp add: artanh_def tanh_def divide_simps)
+  also have "cosh x * (cosh x + sinh x) / (cosh x * (cosh x - sinh x)) = 
+               (cosh x + sinh x) / (cosh x - sinh x)" by simp
+  also have "\<dots> = (exp x)^2" 
+    by (simp add: cosh_plus_sinh cosh_minus_sinh exp_minus field_simps power2_eq_square)
+  also have "ln ((exp x)^2) / 2 = x" by (simp add: ln_realpow)
+  finally show ?thesis .
+qed
+
+end
+
+(* TODO Move *)
+lemma pos_deriv_imp_strict_mono:
+  assumes "\<And>x. (f has_real_derivative f' x) (at x)"
+  assumes "\<And>x. f' x > 0"
+  shows   "strict_mono f"
+proof (rule strict_monoI)
+  fix x y :: real assume xy: "x < y"
+  from assms and xy have "\<exists>z>x. z < y \<and> f y - f x = (y - x) * f' z"
+    by (intro MVT2) (auto dest: connectedD_interval)
+  then obtain z where z: "z > x" "z < y" "f y - f x = (y - x) * f' z" by blast
+  note \<open>f y - f x = (y - x) * f' z\<close>
+  also have "(y - x) * f' z > 0" using xy assms by (intro mult_pos_pos) auto
+  finally show "f x < f y" by simp
+qed
+
+lemma sinh_real_strict_mono: "strict_mono (sinh :: real \<Rightarrow> real)"
+  by (rule pos_deriv_imp_strict_mono derivative_intros)+ auto
+
+lemma cosh_real_strict_mono:
+  assumes "0 \<le> x" and "x < (y::real)"
+  shows   "cosh x < cosh y"
+proof -
+  from assms have "\<exists>z>x. z < y \<and> cosh y - cosh x = (y - x) * sinh z"
+    by (intro MVT2) (auto dest: connectedD_interval intro!: derivative_eq_intros)
+  then obtain z where z: "z > x" "z < y" "cosh y - cosh x = (y - x) * sinh z" by blast
+  note \<open>cosh y - cosh x = (y - x) * sinh z\<close>
+  also from \<open>z > x\<close> and assms have "(y - x) * sinh z > 0" by (intro mult_pos_pos) auto
+  finally show "cosh x < cosh y" by simp
+qed
+
+lemma tanh_real_strict_mono: "strict_mono (tanh :: real \<Rightarrow> real)"
+proof -
+  have *: "tanh x ^ 2 < 1" for x :: real
+    using tanh_real_bounds[of x] by (simp add: abs_square_less_1 abs_if)
+  show ?thesis
+    by (rule pos_deriv_imp_strict_mono) (insert *, auto intro!: derivative_intros)
+qed
+
+lemma sinh_real_abs [simp]: "sinh (abs x :: real) = abs (sinh x)"
+  by (simp add: abs_if)
+
+lemma cosh_real_abs [simp]: "cosh (abs x :: real) = cosh x"
+  by (simp add: abs_if)
+
+lemma tanh_real_abs [simp]: "tanh (abs x :: real) = abs (tanh x)"
+  by (auto simp add: abs_if)
+
+lemma sinh_real_eq_iff [simp]: "sinh x = sinh y \<longleftrightarrow> x = (y :: real)"
+  using sinh_real_strict_mono by (simp add: strict_mono_eq)
+
+lemma tanh_real_eq_iff [simp]: "tanh x = tanh y \<longleftrightarrow> x = (y :: real)"
+  using tanh_real_strict_mono by (simp add: strict_mono_eq)
+
+lemma cosh_real_eq_iff [simp]: "cosh x = cosh y \<longleftrightarrow> abs x = abs (y :: real)"
+proof -
+  have "cosh x = cosh y \<longleftrightarrow> x = y" if "x \<ge> 0" "y \<ge> 0" for x y :: real
+    using cosh_real_strict_mono[of x y] cosh_real_strict_mono[of y x] that
+    by (cases x y rule: linorder_cases) auto
+  from this[of "abs x" "abs y"] show ?thesis by simp
+qed
+
+lemma sinh_real_le_iff [simp]: "sinh x \<le> sinh y \<longleftrightarrow> x \<le> (y::real)"
+  using sinh_real_strict_mono by (simp add: strict_mono_less_eq)
+
+lemma cosh_real_nonneg_le_iff: "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> cosh x \<le> cosh y \<longleftrightarrow> x \<le> (y::real)"
+  using cosh_real_strict_mono[of x y] cosh_real_strict_mono[of y x]
+  by (cases x y rule: linorder_cases) auto
+
+lemma cosh_real_nonpos_le_iff: "x \<le> 0 \<Longrightarrow> y \<le> 0 \<Longrightarrow> cosh x \<le> cosh y \<longleftrightarrow> x \<ge> (y::real)"
+  using cosh_real_nonneg_le_iff[of "-x" "-y"] by simp
+
+lemma tanh_real_le_iff [simp]: "tanh x \<le> tanh y \<longleftrightarrow> x \<le> (y::real)"
+  using tanh_real_strict_mono by (simp add: strict_mono_less_eq)
+
+
+lemma sinh_real_less_iff [simp]: "sinh x < sinh y \<longleftrightarrow> x < (y::real)"
+  using sinh_real_strict_mono by (simp add: strict_mono_less)
+
+lemma cosh_real_nonneg_less_iff: "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> cosh x < cosh y \<longleftrightarrow> x < (y::real)"
+  using cosh_real_strict_mono[of x y] cosh_real_strict_mono[of y x]
+  by (cases x y rule: linorder_cases) auto
+
+lemma cosh_real_nonpos_less_iff: "x \<le> 0 \<Longrightarrow> y \<le> 0 \<Longrightarrow> cosh x < cosh y \<longleftrightarrow> x > (y::real)"
+  using cosh_real_nonneg_less_iff[of "-x" "-y"] by simp
+
+lemma tanh_real_less_iff [simp]: "tanh x < tanh y \<longleftrightarrow> x < (y::real)"
+  using tanh_real_strict_mono by (simp add: strict_mono_less)
+
+
+subsubsection \<open>Limits\<close>
+
+lemma sinh_real_at_top: "filterlim (sinh :: real \<Rightarrow> real) at_top at_top"
+proof -
+  have *: "((\<lambda>x. - exp (- x)) \<longlongrightarrow> (-0::real)) at_top"
+    by (intro tendsto_minus filterlim_compose[OF exp_at_bot] filterlim_uminus_at_bot_at_top)
+  have "filterlim (\<lambda>x. (1 / 2) * (-exp (-x) + exp x) :: real) at_top at_top"
+    by (rule filterlim_tendsto_pos_mult_at_top[OF _ _ 
+               filterlim_tendsto_add_at_top[OF *]] tendsto_const)+ (auto simp: exp_at_top)
+  also have "(\<lambda>x. (1 / 2) * (-exp (-x) + exp x) :: real) = sinh"
+    by (simp add: fun_eq_iff sinh_def)
+  finally show ?thesis .
+qed
+
+lemma sinh_real_at_bot: "filterlim (sinh :: real \<Rightarrow> real) at_bot at_bot"
+proof -
+  have "filterlim (\<lambda>x. -sinh x :: real) at_bot at_top"
+    by (simp add: filterlim_uminus_at_top [symmetric] sinh_real_at_top)
+  also have "(\<lambda>x. -sinh x :: real) = (\<lambda>x. sinh (-x))" by simp
+  finally show ?thesis by (subst filterlim_at_bot_mirror)
+qed
+
+lemma cosh_real_at_top: "filterlim (cosh :: real \<Rightarrow> real) at_top at_top"
+proof -
+  have *: "((\<lambda>x. exp (- x)) \<longlongrightarrow> (0::real)) at_top"
+    by (intro filterlim_compose[OF exp_at_bot] filterlim_uminus_at_bot_at_top)
+  have "filterlim (\<lambda>x. (1 / 2) * (exp (-x) + exp x) :: real) at_top at_top"
+    by (rule filterlim_tendsto_pos_mult_at_top[OF _ _ 
+               filterlim_tendsto_add_at_top[OF *]] tendsto_const)+ (auto simp: exp_at_top)
+  also have "(\<lambda>x. (1 / 2) * (exp (-x) + exp x) :: real) = cosh"
+    by (simp add: fun_eq_iff cosh_def)
+  finally show ?thesis .
+qed
+
+lemma cosh_real_at_bot: "filterlim (cosh :: real \<Rightarrow> real) at_top at_bot"
+proof -
+  have "filterlim (\<lambda>x. cosh (-x) :: real) at_top at_top"
+    by (simp add: cosh_real_at_top)
+  thus ?thesis by (subst filterlim_at_bot_mirror)
+qed
+
+lemma tanh_real_at_top: "(tanh \<longlongrightarrow> (1::real)) at_top"
+proof -
+  have "((\<lambda>x::real. (1 - exp (- 2 * x)) / (1 + exp (- 2 * x))) \<longlongrightarrow> (1 - 0) / (1 + 0)) at_top"
+    by (intro tendsto_intros filterlim_compose[OF exp_at_bot]
+              filterlim_tendsto_neg_mult_at_bot[OF tendsto_const] filterlim_ident) auto
+  also have "(\<lambda>x::real. (1 - exp (- 2 * x)) / (1 + exp (- 2 * x))) = tanh"
+    by (rule ext) (simp add: tanh_real_altdef)
+  finally show ?thesis by simp
+qed
+
+lemma tanh_real_at_bot: "(tanh \<longlongrightarrow> (-1::real)) at_bot"
+proof -
+  have "((\<lambda>x::real. -tanh x) \<longlongrightarrow> -1) at_top"
+    by (intro tendsto_minus tanh_real_at_top)
+  also have "(\<lambda>x. -tanh x :: real) = (\<lambda>x. tanh (-x))" by simp
+  finally show ?thesis by (subst filterlim_at_bot_mirror)
+qed
+
+
+subsubsection \<open>Properties of the inverse hyperbolic functions\<close>
+
+lemma isCont_sinh: "isCont sinh (x :: 'a :: {real_normed_field, banach})"
+  unfolding sinh_def [abs_def] by (auto intro!: continuous_intros)
+
+lemma isCont_cosh: "isCont cosh (x :: 'a :: {real_normed_field, banach})"
+  unfolding cosh_def [abs_def] by (auto intro!: continuous_intros)
+
+lemma isCont_tanh: "cosh x \<noteq> 0 \<Longrightarrow> isCont tanh (x :: 'a :: {real_normed_field, banach})"
+  unfolding tanh_def [abs_def]
+  by (auto intro!: continuous_intros isCont_divide isCont_sinh isCont_cosh)
+
+lemma continuous_on_sinh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous_on A f"
+  shows   "continuous_on A (\<lambda>x. sinh (f x))"
+  unfolding sinh_def using assms by (intro continuous_intros) 
+
+lemma continuous_on_cosh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous_on A f"
+  shows   "continuous_on A (\<lambda>x. cosh (f x))"
+  unfolding cosh_def using assms by (intro continuous_intros)
+
+lemma continuous_sinh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous F f"
+  shows   "continuous F (\<lambda>x. sinh (f x))"
+  unfolding sinh_def using assms by (intro continuous_intros)
+
+lemma continuous_cosh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous F f"
+  shows   "continuous F (\<lambda>x. cosh (f x))"
+  unfolding cosh_def using assms by (intro continuous_intros)
+
+lemma continuous_on_tanh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous_on A f" "\<And>x. x \<in> A \<Longrightarrow> cosh (f x) \<noteq> 0"
+  shows   "continuous_on A (\<lambda>x. tanh (f x))"
+  unfolding tanh_def using assms by (intro continuous_intros) auto
+
+lemma continuous_at_within_tanh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous (at x within A) f" "cosh (f x) \<noteq> 0"
+  shows   "continuous (at x within A) (\<lambda>x. tanh (f x))"
+  unfolding tanh_def using assms by (intro continuous_intros continuous_divide) auto 
+
+lemma continuous_tanh [continuous_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  assumes "continuous F f" "cosh (f (Lim F (\<lambda>x. x))) \<noteq> 0"
+  shows   "continuous F (\<lambda>x. tanh (f x))"
+  unfolding tanh_def using assms by (intro continuous_intros continuous_divide) auto 
+
+lemma tendsto_sinh [tendsto_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. sinh (f x)) \<longlongrightarrow> sinh a) F"
+  by (rule isCont_tendsto_compose [OF isCont_sinh])
+
+lemma tendsto_cosh [tendsto_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. cosh (f x)) \<longlongrightarrow> cosh a) F"
+  by (rule isCont_tendsto_compose [OF isCont_cosh])
+
+lemma tendsto_tanh [tendsto_intros]:
+  fixes f :: "_ \<Rightarrow>'a::{real_normed_field,banach}"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> cosh a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. tanh (f x)) \<longlongrightarrow> tanh a) F"
+  by (rule isCont_tendsto_compose [OF isCont_tanh])
+
+
+lemma arsinh_real_has_field_derivative [derivative_intros]:
+  fixes x :: real
+  shows "(arsinh has_field_derivative (1 / (sqrt (x ^ 2 + 1)))) (at x within A)"
+proof -
+  have pos: "1 + x ^ 2 > 0" by (intro add_pos_nonneg) auto
+  from pos arsinh_real_aux[of x] show ?thesis unfolding arsinh_def [abs_def]
+    by (auto intro!: derivative_eq_intros simp: powr_minus powr_half_sqrt divide_simps)
+qed
+
+lemma arcosh_real_has_field_derivative [derivative_intros]:
+  fixes x :: real
+  assumes "x > 1"
+  shows   "(arcosh has_field_derivative (1 / (sqrt (x ^ 2 - 1)))) (at x within A)"
+proof -
+  from assms have "x + sqrt (x\<^sup>2 - 1) > 0" by (simp add: add_pos_pos)
+  thus ?thesis using assms unfolding arcosh_def [abs_def]
+    by (auto intro!: derivative_eq_intros 
+             simp: powr_minus powr_half_sqrt divide_simps power2_eq_1_iff)
+qed
+
+lemma artanh_real_has_field_derivative [derivative_intros]:
+  fixes x :: real
+  assumes "abs x < 1"
+  shows   "(artanh has_field_derivative (1 / (1 - x ^ 2))) (at x within A)"
+proof -
+  from assms have "x > -1" "x < 1" by linarith+
+  hence "(artanh has_field_derivative (4 - 4 * x) / ((1 + x) * (1 - x) * (1 - x) * 4)) 
+           (at x within A)" unfolding artanh_def [abs_def]
+    by (auto intro!: derivative_eq_intros simp: powr_minus powr_half_sqrt)
+  also have "(4 - 4 * x) / ((1 + x) * (1 - x) * (1 - x) * 4) = 1 / ((1 + x) * (1 - x))"
+    by (simp add: divide_simps)
+  also have "(1 + x) * (1 - x) = 1 - x ^ 2" by (simp add: algebra_simps power2_eq_square)
+  finally show ?thesis .
+qed
+
+lemma continuous_on_arsinh [continuous_intros]: "continuous_on A (arsinh :: real \<Rightarrow> real)"
+  by (rule DERIV_continuous_on derivative_intros)+
+
+lemma continuous_on_arcosh [continuous_intros]:
+  assumes "A \<subseteq> {1..}"
+  shows   "continuous_on A (arcosh :: real \<Rightarrow> real)"
+proof -
+  have pos: "x + sqrt (x ^ 2 - 1) > 0" if "x \<ge> 1" for x
+    using that by (intro add_pos_nonneg) auto
+  show ?thesis
+  unfolding arcosh_def [abs_def]
+  by (intro continuous_on_subset [OF _ assms] continuous_on_ln continuous_on_add
+               continuous_on_id continuous_on_powr')
+     (auto dest: pos simp: powr_half_sqrt intro!: continuous_intros)
+qed
+
+lemma continuous_on_artanh [continuous_intros]:
+  assumes "A \<subseteq> {-1<..<1}"
+  shows   "continuous_on A (artanh :: real \<Rightarrow> real)"
+  unfolding artanh_def [abs_def]
+  by (intro continuous_on_subset [OF _ assms]) (auto intro!: continuous_intros)
+
+lemma continuous_on_arsinh' [continuous_intros]:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "continuous_on A f"
+  shows   "continuous_on A (\<lambda>x. arsinh (f x))"
+  by (rule continuous_on_compose2[OF continuous_on_arsinh assms]) auto
+
+lemma continuous_on_arcosh' [continuous_intros]:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "continuous_on A f" "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> 1"
+  shows   "continuous_on A (\<lambda>x. arcosh (f x))"
+  by (rule continuous_on_compose2[OF continuous_on_arcosh assms(1) order.refl])
+     (use assms(2) in auto)
+
+lemma continuous_on_artanh' [continuous_intros]:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "continuous_on A f" "\<And>x. x \<in> A \<Longrightarrow> f x \<in> {-1<..<1}"
+  shows   "continuous_on A (\<lambda>x. artanh (f x))"
+  by (rule continuous_on_compose2[OF continuous_on_artanh assms(1) order.refl])
+     (use assms(2) in auto)
+
+lemma isCont_arsinh [continuous_intros]: "isCont arsinh (x :: real)"
+  using continuous_on_arsinh[of UNIV] by (auto simp: continuous_on_eq_continuous_at)
+
+lemma isCont_arcosh [continuous_intros]:
+  assumes "x > 1"
+  shows   "isCont arcosh (x :: real)"
+proof -
+  have "continuous_on {1::real<..} arcosh"
+    by (rule continuous_on_arcosh) auto
+  with assms show ?thesis by (auto simp: continuous_on_eq_continuous_at)
+qed
+
+lemma isCont_artanh [continuous_intros]:
+  assumes "x > -1" "x < 1"
+  shows   "isCont artanh (x :: real)"
+proof -
+  have "continuous_on {-1<..<(1::real)} artanh"
+    by (rule continuous_on_artanh) auto
+  with assms show ?thesis by (auto simp: continuous_on_eq_continuous_at)
+qed
+
+lemma tendsto_arsinh [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. arsinh (f x)) \<longlongrightarrow> arsinh a) F"
+  for f :: "_ \<Rightarrow> real"
+  by (rule isCont_tendsto_compose [OF isCont_arsinh])
+
+lemma tendsto_arcosh_strong [tendsto_intros]:
+  fixes f :: "_ \<Rightarrow> real"
+  assumes "(f \<longlongrightarrow> a) F" "a \<ge> 1" "eventually (\<lambda>x. f x \<ge> 1) F"
+  shows   "((\<lambda>x. arcosh (f x)) \<longlongrightarrow> arcosh a) F"
+  by (rule continuous_on_tendsto_compose[OF continuous_on_arcosh[OF order.refl]])
+     (use assms in auto)
+
+lemma tendsto_arcosh:
+  fixes f :: "_ \<Rightarrow> real"
+  assumes "(f \<longlongrightarrow> a) F" "a > 1"
+  shows "((\<lambda>x. arcosh (f x)) \<longlongrightarrow> arcosh a) F"
+  by (rule isCont_tendsto_compose [OF isCont_arcosh]) (use assms in auto)
+
+lemma tendsto_arcosh_at_left_1: "(arcosh \<longlongrightarrow> 0) (at_right (1::real))"
+proof -
+  have "(arcosh \<longlongrightarrow> arcosh 1) (at_right (1::real))"
+    by (rule tendsto_arcosh_strong) (auto simp: eventually_at intro!: exI[of _ 1])
+  thus ?thesis by simp
+qed
+
+lemma tendsto_artanh [tendsto_intros]: 
+  fixes f :: "'a \<Rightarrow> real"
+  assumes "(f \<longlongrightarrow> a) F" "a > -1" "a < 1"
+  shows   "((\<lambda>x. artanh (f x)) \<longlongrightarrow> artanh a) F"
+  by (rule isCont_tendsto_compose [OF isCont_artanh]) (use assms in auto)
+
+lemma continuous_arsinh [continuous_intros]:
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. arsinh (f x :: real))"
+  unfolding continuous_def by (rule tendsto_arsinh)
+
+(* TODO: This rule does not work for one-sided continuity at 1 *)
+lemma continuous_arcosh_strong [continuous_intros]:
+  assumes "continuous F f" "eventually (\<lambda>x. f x \<ge> 1) F"
+  shows   "continuous F (\<lambda>x. arcosh (f x :: real))"
+proof (cases "F = bot")
+  case False
+  show ?thesis
+    unfolding continuous_def
+  proof (intro tendsto_arcosh_strong)
+    show "1 \<le> f (Lim F (\<lambda>x. x))"
+      using assms False unfolding continuous_def by (rule tendsto_lowerbound)
+  qed (insert assms, auto simp: continuous_def)
+qed auto
+
+lemma continuous_arcosh:
+  "continuous F f \<Longrightarrow> f (Lim F (\<lambda>x. x)) > 1 \<Longrightarrow> continuous F (\<lambda>x. arcosh (f x :: real))"
+  unfolding continuous_def by (rule tendsto_arcosh) auto
+
+lemma continuous_artanh [continuous_intros]:
+  "continuous F f \<Longrightarrow> f (Lim F (\<lambda>x. x)) \<in> {-1<..<1} \<Longrightarrow> continuous F (\<lambda>x. artanh (f x :: real))"
+  unfolding continuous_def by (rule tendsto_artanh) auto
+
+lemma arsinh_real_at_top:
+  "filterlim (arsinh :: real \<Rightarrow> real) at_top at_top"
+proof (subst filterlim_cong[OF refl refl])
+  show "filterlim (\<lambda>x. ln (x + sqrt (1 + x\<^sup>2))) at_top at_top"
+    by (intro filterlim_compose[OF ln_at_top filterlim_at_top_add_at_top] filterlim_ident
+              filterlim_compose[OF sqrt_at_top] filterlim_tendsto_add_at_top[OF tendsto_const]
+              filterlim_pow_at_top) auto
+qed (auto intro!: eventually_mono[OF eventually_ge_at_top[of 1]] simp: arsinh_real_def add_ac)
+
+lemma arsinh_real_at_bot:
+  "filterlim (arsinh :: real \<Rightarrow> real) at_bot at_bot"
+proof -
+  have "filterlim (\<lambda>x::real. -arsinh x) at_bot at_top"
+    by (subst filterlim_uminus_at_top [symmetric]) (rule arsinh_real_at_top)
+  also have "(\<lambda>x::real. -arsinh x) = (\<lambda>x. arsinh (-x))" by simp
+  finally show ?thesis
+    by (subst filterlim_at_bot_mirror)
+qed
+
+lemma arcosh_real_at_top:
+  "filterlim (arcosh :: real \<Rightarrow> real) at_top at_top"
+proof (subst filterlim_cong[OF refl refl])
+  show "filterlim (\<lambda>x. ln (x + sqrt (-1 + x\<^sup>2))) at_top at_top"
+    by (intro filterlim_compose[OF ln_at_top filterlim_at_top_add_at_top] filterlim_ident
+              filterlim_compose[OF sqrt_at_top] filterlim_tendsto_add_at_top[OF tendsto_const]
+              filterlim_pow_at_top) auto
+qed (auto intro!: eventually_mono[OF eventually_ge_at_top[of 1]] simp: arcosh_real_def)
+
+lemma artanh_real_at_left_1:
+  "filterlim (artanh :: real \<Rightarrow> real) at_top (at_left 1)"
+proof -
+  have *: "filterlim (\<lambda>x::real. (1 + x) / (1 - x)) at_top (at_left 1)"
+    by (rule LIM_at_top_divide)
+       (auto intro!: tendsto_eq_intros eventually_mono[OF eventually_at_left_real[of 0]])
+  have "filterlim (\<lambda>x::real. (1/2) * ln ((1 + x) / (1 - x))) at_top (at_left 1)"
+    by (intro filterlim_tendsto_pos_mult_at_top[OF tendsto_const] *
+                 filterlim_compose[OF ln_at_top]) auto
+  also have "(\<lambda>x::real. (1/2) * ln ((1 + x) / (1 - x))) = artanh"
+    by (simp add: artanh_def [abs_def])
+  finally show ?thesis .
+qed
+
+lemma artanh_real_at_right_1:
+  "filterlim (artanh :: real \<Rightarrow> real) at_bot (at_right (-1))"
+proof -
+  have "?thesis \<longleftrightarrow> filterlim (\<lambda>x::real. -artanh x) at_top (at_right (-1))"
+    by (simp add: filterlim_uminus_at_bot)
+  also have "\<dots> \<longleftrightarrow> filterlim (\<lambda>x::real. artanh (-x)) at_top (at_right (-1))"
+    by (intro filterlim_cong refl eventually_mono[OF eventually_at_right_real[of "-1" "1"]]) auto
+  also have "\<dots> \<longleftrightarrow> filterlim (artanh :: real \<Rightarrow> real) at_top (at_left 1)"
+    by (simp add: filterlim_at_left_to_right)
+  also have \<dots> by (rule artanh_real_at_left_1)
+  finally show ?thesis .
+qed
+
 
 subsection \<open>Simprocs for root and power literals\<close>
 
