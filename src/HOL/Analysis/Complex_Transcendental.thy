@@ -120,7 +120,7 @@ lemma sin_exp_eq': "sin z = \<i> * (exp(-(\<i> * z)) - exp(\<i> * z)) / 2"
 lemma cos_exp_eq:  "cos z = (exp(\<i> * z) + exp(-(\<i> * z))) / 2"
   by (simp add: exp_Euler exp_minus_Euler)
 
-subsection\<open>Relationships between real and complex trig functions\<close>
+subsection\<open>Relationships between real and complex trigonometric and hyperbolic functions\<close>
 
 lemma real_sin_eq [simp]:
   fixes x::real
@@ -594,6 +594,37 @@ proof -
     apply (auto intro: mono)
     done
 qed
+
+lemma sinh_conv_sin: "sinh z = -\<i> * sin (\<i>*z)"
+  by (simp add: sinh_field_def sin_i_times exp_minus)
+
+lemma cosh_conv_cos: "cosh z = cos (\<i>*z)"
+  by (simp add: cosh_field_def cos_i_times exp_minus)
+
+lemma tanh_conv_tan: "tanh z = -\<i> * tan (\<i>*z)"
+  by (simp add: tanh_def sinh_conv_sin cosh_conv_cos tan_def)
+
+lemma sin_conv_sinh: "sin z = -\<i> * sinh (\<i>*z)"
+  by (simp add: sinh_conv_sin)
+
+lemma cos_conv_cosh: "cos z = cosh (\<i>*z)"
+  by (simp add: cosh_conv_cos)
+
+lemma tan_conv_tanh: "tan z = -\<i> * tanh (\<i>*z)"
+  by (simp add: tan_def sin_conv_sinh cos_conv_cosh tanh_def)
+
+lemma sinh_complex_eq_iff:
+  "sinh (z :: complex) = sinh w \<longleftrightarrow>
+      (\<exists>n\<in>\<int>. z = w - 2 * \<i> * of_real n * of_real pi \<or>
+              z = -(2 * complex_of_real n + 1) * \<i> * complex_of_real pi - w)" (is "_ = ?rhs")
+proof -
+  have "sinh z = sinh w \<longleftrightarrow> sin (\<i> * z) = sin (\<i> * w)"
+    by (simp add: sinh_conv_sin)
+  also have "\<dots> \<longleftrightarrow> ?rhs"
+    by (subst complex_sin_eq) (force simp: field_simps complex_eq_iff)
+  finally show ?thesis .
+qed
+
 
 subsection\<open>Taylor series for complex exponential, sine and cosine.\<close>
 
@@ -3498,6 +3529,15 @@ next
   with closed_real_abs_le [of 1] show ?thesis
     by (rule continuous_within_closed_nontrivial)
 qed
+
+lemma sinh_ln_complex: "x \<noteq> 0 \<Longrightarrow> sinh (ln x :: complex) = (x - inverse x) / 2"
+  by (simp add: sinh_def exp_minus scaleR_conv_of_real exp_of_real)
+
+lemma cosh_ln_complex: "x \<noteq> 0 \<Longrightarrow> cosh (ln x :: complex) = (x + inverse x) / 2"
+  by (simp add: cosh_def exp_minus scaleR_conv_of_real)
+
+lemma tanh_ln_complex: "x \<noteq> 0 \<Longrightarrow> tanh (ln x :: complex) = (x ^ 2 - 1) / (x ^ 2 + 1)"
+  by (simp add: tanh_def sinh_ln_complex cosh_ln_complex divide_simps power2_eq_square)
 
 
 subsection\<open>Roots of unity\<close>
