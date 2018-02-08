@@ -446,6 +446,11 @@ lemma case_prod_eta: "(\<lambda>(x, y). f (x, y)) = f"
   \<comment> \<open>Subsumes the old \<open>split_Pair\<close> when @{term f} is the identity function.\<close>
   by (simp add: fun_eq_iff split: prod.split)
 
+(* This looks like a sensible simp-rule but appears to do more harm than good:
+lemma case_prod_const [simp]: "(\<lambda>(_,_). c) = (\<lambda>_. c)"
+by(rule case_prod_eta)
+*)
+
 lemma case_prod_comp: "(case x of (a, b) \<Rightarrow> (f \<circ> g) a b) = f (g (fst x)) (snd x)"
   by (cases x) simp
 
