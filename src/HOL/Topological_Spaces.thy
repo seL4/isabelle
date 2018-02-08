@@ -3455,6 +3455,46 @@ lemma isCont_Pair [simp]: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrighta
   by (fact continuous_Pair)
 
 
+subsubsection \<open>Connectedness of products\<close>
+
+proposition connected_Times:
+  assumes S: "connected S" and T: "connected T"
+  shows "connected (S \<times> T)"
+proof (rule connectedI_const)
+  fix P::"'a \<times> 'b \<Rightarrow> bool"
+  assume P[THEN continuous_on_compose2, continuous_intros]: "continuous_on (S \<times> T) P"
+  have "continuous_on S (\<lambda>s. P (s, t))" if "t \<in> T" for t
+    by (auto intro!: continuous_intros that)
+  from connectedD_const[OF S this]
+  obtain c1 where c1: "\<And>s t. t \<in> T \<Longrightarrow> s \<in> S \<Longrightarrow> P (s, t) = c1 t"
+    by metis
+  moreover
+  have "continuous_on T (\<lambda>t. P (s, t))" if "s \<in> S" for s
+    by (auto intro!: continuous_intros that)
+  from connectedD_const[OF T this]
+  obtain c2 where "\<And>s t. t \<in> T \<Longrightarrow> s \<in> S \<Longrightarrow> P (s, t) = c2 s"
+    by metis
+  ultimately show "\<exists>c. \<forall>s\<in>S \<times> T. P s = c"
+    by auto
+qed
+
+corollary connected_Times_eq [simp]:
+   "connected (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> connected S \<and> connected T"  (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  show ?rhs
+  proof cases
+    assume "S \<noteq> {} \<and> T \<noteq> {}"
+    moreover
+    have "connected (fst ` (S \<times> T))" "connected (snd ` (S \<times> T))"
+      using continuous_on_fst continuous_on_snd continuous_on_id
+      by (blast intro: connected_continuous_image [OF _ L])+
+    ultimately show ?thesis
+      by auto
+  qed auto
+qed (auto simp: connected_Times)
+
+
 subsubsection \<open>Separation axioms\<close>
 
 instance prod :: (t0_space, t0_space) t0_space

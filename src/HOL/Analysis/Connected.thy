@@ -600,54 +600,6 @@ lemma connected_component_intermediate_subset:
   apply (simp add: connected_component_maximal connected_component_mono subset_antisym)
   using connected_component_eq_empty by blast
 
-proposition connected_Times:
-  assumes S: "connected S" and T: "connected T"
-  shows "connected (S \<times> T)"
-proof (clarsimp simp add: connected_iff_connected_component)
-  fix x y x' y'
-  assume xy: "x \<in> S" "y \<in> T" "x' \<in> S" "y' \<in> T"
-  with xy obtain U V where U: "connected U" "U \<subseteq> S" "x \<in> U" "x' \<in> U"
-                       and V: "connected V" "V \<subseteq> T" "y \<in> V" "y' \<in> V"
-    using S T \<open>x \<in> S\<close> \<open>x' \<in> S\<close> by blast+
-  show "connected_component (S \<times> T) (x, y) (x', y')"
-    unfolding connected_component_def
-  proof (intro exI conjI)
-    show "connected ((\<lambda>x. (x, y)) ` U \<union> Pair x' ` V)"
-    proof (rule connected_Un)
-      have "continuous_on U (\<lambda>x. (x, y))"
-        by (intro continuous_intros)
-      then show "connected ((\<lambda>x. (x, y)) ` U)"
-        by (rule connected_continuous_image) (rule \<open>connected U\<close>)
-      have "continuous_on V (Pair x')"
-        by (intro continuous_intros)
-      then show "connected (Pair x' ` V)"
-        by (rule connected_continuous_image) (rule \<open>connected V\<close>)
-    qed (use U V in auto)
-  qed (use U V in auto)
-qed
-
-corollary connected_Times_eq [simp]:
-   "connected (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> connected S \<and> connected T"  (is "?lhs = ?rhs")
-proof
-  assume L: ?lhs
-  show ?rhs
-  proof (cases "S = {} \<or> T = {}")
-    case True
-    then show ?thesis by auto
-  next
-    case False
-    have "connected (fst ` (S \<times> T))" "connected (snd ` (S \<times> T))"
-      using continuous_on_fst continuous_on_snd continuous_on_id
-      by (blast intro: connected_continuous_image [OF _ L])+
-    with False show ?thesis
-      by auto
-  qed
-next
-  assume ?rhs
-  then show ?lhs
-    by (auto simp: connected_Times)
-qed
-
 
 subsection \<open>The set of connected components of a set\<close>
 
