@@ -169,9 +169,18 @@ object Build_PolyML
       File.copy(Path.explode(file).expand_env(settings), target)
 
 
-    /* rpath */
+    /* built-in library path */
 
-    if (Platform.is_linux) bash(target, "chrpath -r '$ORIGIN' poly", echo = true).check
+    if (Platform.is_linux) {
+      bash(target, "chrpath -r '$ORIGIN' poly", echo = true).check
+    }
+    else if (Platform.is_macos) {
+      for (file <- ldd_files) {
+        bash(target,
+          """install_name_tool -change """ + Bash.string(file) + " " +
+            Bash.string("@executable_path/" + Path.explode(file).base_name) + " poly").check
+      }
+    }
   }
 
 
