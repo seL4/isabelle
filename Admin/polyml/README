@@ -12,16 +12,25 @@ which can be used in the polyml component directory as follows.
   $ isabelle build_polyml -m32 -s sha1 src --with-gmp
   $ isabelle build_polyml -m64 -s sha1 src --with-gmp
 
-* Mac OS X:
-
-  $ isabelle build_polyml -m32 -s sha1 src --without-gmp
-  $ isabelle build_polyml -m64 -s sha1 src --without-gmp
-
 * Windows (Cygwin shell)
 
   $ isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src --with-gmp
   $ isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src --with-gmp
 
+* Mac OS X:
+
+  $ isabelle build_polyml -m32 -s sha1 src --without-gmp
+  $ isabelle build_polyml -m64 -s sha1 src --with-gmp
+
+  The latter is based on libgmp for x86_64-darwin:
+
+  curl https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz | xz -dc | tar xf -
+  cd gmp-6.1.2
+  ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
+  make
+  make check
+  make install
+
 
         Makarius
-        27-Nov-2017
+        09-Feb-2018

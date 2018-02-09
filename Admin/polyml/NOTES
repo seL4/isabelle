@@ -6,14 +6,3 @@ Notes on building Poly/ML as Isabelle component
 
 * include full source (without symlink), for example:
   $ wget https://github.com/polyml/polyml/archive/master.zip
-
-* libgmp on x86_64-darwin:
-
-  https://github.com/Homebrew/homebrew-core/blob/master/Formula/gmp.rb
-  https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz
-
-  ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
-  make check
-  make install
-
-  isabelle build_polyml -m64 -s sha1 src --with-gmp LDFLAGS='-L/usr/local/lib' CPPFLAGS='-O3 -I/usr/local/include'
