@@ -165,7 +165,7 @@ object Build_PolyML
       entry <- File.read_dir(dir)
     } File.move(dir + Path.explode(entry), target)
 
-    for (file <- "~~/Admin/polyml/polyi" :: info.copy_files ::: ldd_files ::: sha1_files)
+    for (file <- info.copy_files ::: ldd_files ::: sha1_files)
       File.copy(Path.explode(file).expand_env(settings), target)
 
 
