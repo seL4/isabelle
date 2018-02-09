@@ -4,7 +4,6 @@
 
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
-export LD_LIBRARY_PATH="$THIS:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$THIS:$DYLD_LIBRARY_PATH"
 
 if type -p rlwrap > /dev/null

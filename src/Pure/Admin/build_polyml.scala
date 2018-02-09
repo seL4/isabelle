@@ -21,8 +21,12 @@ object Build_PolyML
     "x86-linux" ->
       Platform_Info(
         options_multilib =
-          List("--build=i386", "CFLAGS=-m32 -O3", "CXXFLAGS=-m32 -O3", "CCASFLAGS=-m32")),
-    "x86_64-linux" -> Platform_Info(),
+          List("--build=i386", "CFLAGS=-m32 -O3", "CXXFLAGS=-m32 -O3", "CCASFLAGS=-m32",
+            "LDFLAGS=-Wl,-rpath,_DUMMY_"),
+        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_")),
+    "x86_64-linux" ->
+      Platform_Info(
+        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_")),
     "x86-darwin" ->
       Platform_Info(
         options =
@@ -163,6 +167,11 @@ object Build_PolyML
 
     for (file <- "~~/Admin/polyml/polyi" :: info.copy_files ::: ldd_files ::: sha1_files)
       File.copy(Path.explode(file).expand_env(settings), target)
+
+
+    /* rpath */
+
+    if (Platform.is_linux) bash(target, "chrpath -r '$ORIGIN' poly", echo = true).check
   }
 
 
