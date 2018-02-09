@@ -144,16 +144,6 @@ object Isabelle_System
 
   def cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
 
-  def library_path(env: Map[String, String], elem: String): Map[String, String] =
-    if (Platform.is_windows) env
-    else {
-      val x = if (Platform.is_macos) "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"
-      env.getOrElse(x, "") match {
-        case "" => env + (x -> elem)
-        case y => env + (x -> (y + ":" + elem))
-      }
-    }
-
 
 
   /** file-system operations **/

@@ -146,9 +146,7 @@ object ML_Process
       "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
         Bash.strings(bash_args),
       cwd = cwd,
-      env =
-        Isabelle_System.library_path(env ++ env_options ++ env_tmp,
-          Isabelle_System.getenv_strict("ML_HOME")),
+      env = env ++ env_options ++ env_tmp,
       redirect = redirect,
       cleanup = () =>
         {
