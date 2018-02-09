@@ -169,7 +169,7 @@ object Build_PolyML
       File.copy(Path.explode(file).expand_env(settings), target)
 
 
-    /* built-in library path */
+    /* poly: library path */
 
     if (Platform.is_linux) {
       bash(target, "chrpath -r '$ORIGIN' poly", echo = true).check
@@ -180,6 +180,29 @@ object Build_PolyML
           """install_name_tool -change """ + Bash.string(file) + " " +
             Bash.string("@executable_path/" + Path.explode(file).base_name) + " poly").check
       }
+    }
+
+
+    /* polyc: directory prefix */
+
+    {
+      val polyc_path = target + Path.explode("polyc")
+      val polyc_patched =
+        split_lines(File.read(polyc_path)) match {
+          case a :: b :: rest
+          if "#! */bin/sh".r.pattern.matcher(a).matches && b.startsWith("prefix=") =>
+            val a1 = "#!/usr/bin/env bash"
+            val b1 = "prefix=\"$(cd \"$(dirname \"$0\")\"; pwd)\""
+            val rest1 =
+              rest.map(line =>
+                if (line.startsWith("BINDIR=")) "BINDIR=\"$prefix\""
+                else if (line.startsWith("LIBDIR=")) "LIBDIR=\"$prefix\""
+                else line)
+            cat_lines(a1 :: b1 :: rest1)
+          case lines =>
+            error(cat_lines("Cannot patch polyc -- undetected header:" :: lines.take(6)))
+        }
+      File.write(polyc_path, polyc_patched)
     }
   }
 
