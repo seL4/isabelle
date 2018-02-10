@@ -32,7 +32,7 @@ object Build_PolyML
         options =
           List("--build=i686-darwin", "CFLAGS=-arch i686 -O3 -I../libffi/include",
             "CXXFLAGS=-arch i686 -O3 -I../libffi/include", "CCASFLAGS=-arch i686 -O3",
-            "LDFLAGS=-segprot POLY rwx rwx"),
+            "LDFLAGS=-segprot POLY rwx rwx -L/usr/local/lib32"),
         setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
     "x86_64-darwin" ->
       Platform_Info(

@@ -19,18 +19,35 @@ which can be used in the polyml component directory as follows.
 
 * Mac OS X:
 
-  $ isabelle build_polyml -m32 -s sha1 src --without-gmp
+  $ isabelle build_polyml -m32 -s sha1 src --with-gmp
   $ isabelle build_polyml -m64 -s sha1 src --with-gmp
 
-  The latter is based on libgmp for x86_64-darwin:
 
-  curl https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz | xz -dc | tar xf -
-  cd gmp-6.1.2
-  ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
-  make
-  make check
-  make install
+Building libgmp on Mac OS X
+===========================
+
+The GNU Multiple Precision Arithmetic Library is not included in Mac OS X
+by default, but it can be built from sources as follows.
+
+* Download:
+
+  $ curl https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz | xz -dc | tar xf -
+  $ cd gmp-6.1.2
+
+* build x86-darwin:
+
+  $ make distclean
+  $ env ABI=32 ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)" --libdir=/usr/local/lib32
+  $ make && make check
+  $ sudo make install
+
+* build x86_64-darwin:
+
+  $ make distclean
+  $ ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
+  $ make && make check
+  $ sudo make install
 
 
         Makarius
-        09-Feb-2018
+        10-Feb-2018
