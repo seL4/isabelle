@@ -274,6 +274,10 @@ PIDE markup for identifier bindings.
 options for improved error reporting. Potential INCOMPATIBILITY with
 unusual LaTeX installations, may have to adapt these settings.
 
+* The bundled Poly/ML 5.7.1 now uses The GNU Multiple Precision
+Arithmetic Library (libgmp) on all platforms, notably Mac OS X with
+32/64 bit.
+
 
 
 New in Isabelle2017 (October 2017)
