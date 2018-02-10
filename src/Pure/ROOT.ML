@@ -1,3 +1,13 @@
+(*  Title:      Pure/ROOT.ML
+    Author:     Makarius
+
+Main entry point for the Isabelle/Pure bootstrap process.
+
+Note: When this file is open in the Prover IDE, the ML files of
+Isabelle/Pure can be explored interactively. This is a separate copy of
+Pure within Pure: it does not affect the running logic session.
+*)
+
 chapter "Isabelle/Pure bootstrap";
 
 ML_file "ML/ml_name_space.ML";
