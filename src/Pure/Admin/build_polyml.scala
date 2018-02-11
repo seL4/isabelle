@@ -225,8 +225,7 @@ object Build_PolyML
 
     sha1_root match {
       case Some(dir) =>
-        Mercurial.repository(dir).
-          archive(File.standard_path(component + dir + Path.explode("sha1")))
+        Mercurial.repository(dir).archive(File.standard_path(component + Path.explode("sha1")))
       case None =>
     }
   }
