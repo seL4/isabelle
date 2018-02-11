@@ -32,7 +32,8 @@ object Build_PolyML
         options =
           List("--build=i686-darwin", "CFLAGS=-arch i686 -O3 -I../libffi/include",
             "CXXFLAGS=-arch i686 -O3 -I../libffi/include", "CCASFLAGS=-arch i686 -O3",
-            "LDFLAGS=-segprot POLY rwx rwx -L/usr/local/lib32"),
+            "LDFLAGS=-segprot POLY rwx rwx -L/usr/local/lib32",
+            "--disable-shared"),
         setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
     "x86_64-darwin" ->
       Platform_Info(
@@ -110,10 +111,10 @@ object Build_PolyML
     /* configure and make */
 
     val configure_options =
+      List("--enable-shared", "--enable-intinf-as-int", "--with-gmp") :::
       (if (!arch_64 && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux")
         info.options_multilib
-       else info.options) :::
-      List("--enable-shared", "--enable-intinf-as-int", "--with-gmp") ::: options
+       else info.options) ::: options
 
     bash(root,
       info.setup + "\n" +
