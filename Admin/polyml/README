@@ -12,15 +12,15 @@ which can be used in the polyml component directory as follows.
   $ isabelle build_polyml -m32 -s sha1 src
   $ isabelle build_polyml -m64 -s sha1 src
 
-* Windows (Cygwin shell)
-
-  $ isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src
-  $ isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src
-
 * Mac OS X:
 
   $ isabelle build_polyml -m32 -s sha1 src
   $ isabelle build_polyml -m64 -s sha1 src
+
+* Windows (Cygwin shell)
+
+  $ isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src
+  $ isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src
 
 
 Building libgmp on Mac OS X
@@ -29,8 +29,8 @@ Building libgmp on Mac OS X
 The build_polyml invocations above implicitly use the GNU Multiple Precision
 Arithmetic Library (libgmp), but that is not available on Mac OS X by default.
 Appending "--without-gmp" to the command-line omits this library. Building
-libgmp properly works as follows (library headers and binaries will be placed
-in /usr/local).
+libgmp properly from sources works as follows (library headers and binaries
+will be placed in /usr/local).
 
 * Download:
 
