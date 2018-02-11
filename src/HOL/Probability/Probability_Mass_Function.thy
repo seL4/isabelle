@@ -1571,7 +1571,7 @@ text \<open>
   Proof that @{const rel_pmf} preserves orders.
   Antisymmetry proof follows Thm. 1 in N. Saheb-Djahromi, Cpo's of measures for nondeterminism,
   Theoretical Computer Science 12(1):19--37, 1980,
-  \<^url>\<open>http://dx.doi.org/10.1016/0304-3975(80)90003-1\<close>
+  \<^url>\<open>https://doi.org/10.1016/0304-3975(80)90003-1\<close>
 \<close>
 
 lemma

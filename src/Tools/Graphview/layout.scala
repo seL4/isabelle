@@ -7,7 +7,7 @@ DAG layout according to:
   Georg Sander, "Graph Layout through the VCG Tool", in: Graph Drawing,
   DIMACS International Workshop (GD'94), Springer LNCS 894, 1995.
 
-  http://dx.doi.org/10.1007/3-540-58950-3_371
+  https://doi.org/10.1007/3-540-58950-3_371
   ftp://ftp.cs.uni-sb.de/pub/graphics/vcg/doc/tr-A03-94.ps.gz
 */
 
