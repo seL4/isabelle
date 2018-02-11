@@ -112,7 +112,8 @@ object Build_PolyML
     val configure_options =
       (if (!arch_64 && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux")
         info.options_multilib
-       else info.options) ::: List("--enable-shared", "--enable-intinf-as-int") ::: options
+       else info.options) :::
+      List("--enable-shared", "--enable-intinf-as-int", "--with-gmp") ::: options
 
     bash(root,
       info.setup + "\n" +
@@ -248,7 +249,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
     -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
 
   Build Poly/ML in the ROOT directory of its sources, with additional
-  CONFIGURE_OPTIONS (e.g. --with-gmp).
+  CONFIGURE_OPTIONS (e.g. --without-gmp).
 """,
           "M:" -> (arg => msys_root = Some(Path.explode(arg))),
           "m:" ->

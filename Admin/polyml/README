@@ -9,25 +9,28 @@ which can be used in the polyml component directory as follows.
 
 * Linux:
 
-  $ isabelle build_polyml -m32 -s sha1 src --with-gmp
-  $ isabelle build_polyml -m64 -s sha1 src --with-gmp
+  $ isabelle build_polyml -m32 -s sha1 src
+  $ isabelle build_polyml -m64 -s sha1 src
 
 * Windows (Cygwin shell)
 
-  $ isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src --with-gmp
-  $ isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src --with-gmp
+  $ isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src
+  $ isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src
 
 * Mac OS X:
 
-  $ isabelle build_polyml -m32 -s sha1 src --with-gmp
-  $ isabelle build_polyml -m64 -s sha1 src --with-gmp
+  $ isabelle build_polyml -m32 -s sha1 src
+  $ isabelle build_polyml -m64 -s sha1 src
 
 
 Building libgmp on Mac OS X
 ===========================
 
-The GNU Multiple Precision Arithmetic Library is not included in Mac OS X
-by default, but it can be built from sources as follows.
+The build_polyml invocations above implicitly use the GNU Multiple Precision
+Arithmetic Library (libgmp), but that is not available on Mac OS X by default.
+Appending "--without-gmp" to the command-line omits this library. Building
+libgmp properly works as follows (library headers and binaries will be placed
+in /usr/local).
 
 * Download:
 
@@ -50,4 +53,4 @@ by default, but it can be built from sources as follows.
 
 
         Makarius
-        10-Feb-2018
+        11-Feb-2018
