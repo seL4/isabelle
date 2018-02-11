@@ -112,7 +112,7 @@ object Build_PolyML
     val configure_options =
       (if (!arch_64 && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux")
         info.options_multilib
-       else info.options) ::: List("--enable-intinf-as-int") ::: options
+       else info.options) ::: List("--enable-shared", "--enable-intinf-as-int") ::: options
 
     bash(root,
       info.setup + "\n" +
@@ -129,7 +129,7 @@ object Build_PolyML
     {
       val ldd_pattern =
         if (Platform.is_linux) Some(("ldd", """\s*libgmp.*=>\s*(\S+).*""".r))
-        else if (Platform.is_macos) Some(("otool -L", """\s*(\S+libgmp.*dylib).*""".r))
+        else if (Platform.is_macos) Some(("otool -L", """\s*(\S+lib(?:polyml|gmp).*dylib).*""".r))
         else None
       ldd_pattern match {
         case Some((ldd, pattern)) =>
@@ -159,14 +159,14 @@ object Build_PolyML
     Isabelle_System.rm_tree(target)
     Isabelle_System.mkdirs(target)
 
+    for (file <- info.copy_files ::: ldd_files ::: sha1_files)
+      File.copy(Path.explode(file).expand_env(settings), target)
+
     for {
       d <- List("target/bin", "target/lib")
       dir = root + Path.explode(d)
       entry <- File.read_dir(dir)
     } File.move(dir + Path.explode(entry), target)
-
-    for (file <- info.copy_files ::: ldd_files ::: sha1_files)
-      File.copy(Path.explode(file).expand_env(settings), target)
 
 
     /* poly: library path */
