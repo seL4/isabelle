@@ -45,7 +45,8 @@ object Build_PolyML
     "x86-windows" ->
       Platform_Info(
         options =
-          List("--host=i686-w32-mingw32", "CPPFLAGS=-I/mingw32/include", "--disable-windows-gui"),
+          List("--host=i686-w32-mingw32", "CPPFLAGS=-I/mingw32/include",
+            "--disable-windows-gui", "--disable-shared"),
         setup =
           """PATH=/usr/bin:/bin:/mingw32/bin
             export CONFIG_SITE=/etc/config.site""",
@@ -56,7 +57,8 @@ object Build_PolyML
     "x86_64-windows" ->
       Platform_Info(
         options =
-          List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
+          List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include",
+            "--disable-windows-gui", "--disable-shared"),
         setup =
           """PATH=/usr/bin:/bin:/mingw64/bin
             export CONFIG_SITE=/etc/config.site""",
