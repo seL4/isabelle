@@ -45,7 +45,7 @@ object Build_PolyML
         options =
           List("--build=x86_64-darwin", "CFLAGS=-arch x86_64 -O3 -I../libffi/include",
             "CXXFLAGS=-arch x86_64 -O3 -I../libffi/include", "CCASFLAGS=-arch x86_64",
-            "LDFLAGS=-segprot POLY rwx rwx", "--enable-shared"),
+            "LDFLAGS=-segprot POLY rwx rwx"),
         setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
     "x86-windows" ->
       Platform_Info(
