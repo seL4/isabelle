@@ -16,6 +16,12 @@ object Build_PolyML
     options_multilib: List[String] = Nil,
     setup: String = "",
     copy_files: List[String] = Nil)
+  {
+    def platform_options(arch_64: Boolean): List[String] =
+      if (!arch_64 && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux")
+        options_multilib
+      else options
+  }
 
   private val platform_info = Map(
     "x86-linux" ->
@@ -110,10 +116,7 @@ object Build_PolyML
     /* configure and make */
 
     val configure_options =
-      List("--enable-intinf-as-int", "--with-gmp") :::
-      (if (!arch_64 && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux")
-        info.options_multilib
-       else info.options) ::: options
+      List("--enable-intinf-as-int", "--with-gmp") ::: info.platform_options(arch_64) ::: options
 
     bash(root,
       info.setup + "\n" +
