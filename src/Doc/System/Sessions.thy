@@ -154,7 +154,7 @@ text \<open>
   although it uses relatively complex quasi-hierarchic naming conventions like
   \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to use unqualified
   names that are relatively long and descriptive, as in the Archive of Formal
-  Proofs (\<^url>\<open>http://afp.sourceforge.net\<close>), for example.
+  Proofs (\<^url>\<open>https://isa-afp.org\<close>), for example.
 \<close>
 
 
