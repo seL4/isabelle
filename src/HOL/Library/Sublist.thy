@@ -141,8 +141,11 @@ lemma take_is_prefix: "prefix (take n xs) xs"
 lemma prefixeq_butlast: "prefix (butlast xs) xs"
 by (simp add: butlast_conv_take take_is_prefix)
 
-lemma map_prefixI: "prefix xs ys \<Longrightarrow> prefix (map f xs) (map f ys)"
-  by (auto simp: prefix_def)
+lemma map_mono_prefix: "prefix xs ys \<Longrightarrow> prefix (map f xs) (map f ys)"
+by (auto simp: prefix_def)
+
+lemma filter_mono_prefix: "prefix xs ys \<Longrightarrow> prefix (filter P xs) (filter P ys)"
+by (auto simp: prefix_def)
 
 lemma prefix_length_less: "strict_prefix xs ys \<Longrightarrow> length xs < length ys"
   by (auto simp: strict_prefix_def prefix_def)
@@ -520,8 +523,8 @@ lemma suffix_appendD: "suffix (zs @ xs) ys \<Longrightarrow> suffix xs ys"
 lemma strict_suffix_set_subset: "strict_suffix xs ys \<Longrightarrow> set xs \<subseteq> set ys"
   by (auto simp: strict_suffix_def suffix_def)
 
-lemma suffix_set_subset: "suffix xs ys \<Longrightarrow> set xs \<subseteq> set ys"
-  by (auto simp: suffix_def)
+lemma set_mono_suffix: "suffix xs ys \<Longrightarrow> set xs \<subseteq> set ys"
+by (auto simp: suffix_def)
 
 lemma suffix_ConsD2: "suffix (x # xs) (y # ys) \<Longrightarrow> suffix xs ys"
 proof -
@@ -551,8 +554,11 @@ lemma strict_suffix_to_prefix [code]: "strict_suffix xs ys \<longleftrightarrow>
 lemma distinct_suffix: "distinct ys \<Longrightarrow> suffix xs ys \<Longrightarrow> distinct xs"
   by (clarsimp elim!: suffixE)
 
-lemma suffix_map: "suffix xs ys \<Longrightarrow> suffix (map f xs) (map f ys)"
-  by (auto elim!: suffixE intro: suffixI)
+lemma map_mono_suffix: "suffix xs ys \<Longrightarrow> suffix (map f xs) (map f ys)"
+by (auto elim!: suffixE intro: suffixI)
+
+lemma filter_mono_suffix: "suffix xs ys \<Longrightarrow> suffix (filter P xs) (filter P ys)"
+by (auto simp: suffix_def)
 
 lemma suffix_drop: "suffix (drop n as) as"
   unfolding suffix_def by (rule exI [where x = "take n as"]) simp

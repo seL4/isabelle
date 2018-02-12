@@ -5427,6 +5427,9 @@ next
   qed
 qed
 
+lemma sort_key_const: "sort_key (\<lambda>x. c) xs = xs"
+by (metis (mono_tags) filter_False filter_True sort_key_simps(1) sort_key_stable)
+
 
 subsubsection \<open>@{const transpose} on sorted lists\<close>
 
