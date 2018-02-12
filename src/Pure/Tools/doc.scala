@@ -15,9 +15,7 @@ object Doc
   /* dirs */
 
   def dirs(): List[Path] =
-    Path.split(Isabelle_System.getenv("ISABELLE_DOCS")).map(dir =>
-      if (dir.is_dir) dir
-      else error("Bad documentation directory: " + dir))
+    Path.split(Isabelle_System.getenv("ISABELLE_DOCS"))
 
 
   /* contents */
