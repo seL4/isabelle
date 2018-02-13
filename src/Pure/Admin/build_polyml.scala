@@ -28,11 +28,11 @@ object Build_PolyML
       Platform_Info(
         options_multilib =
           List("--build=i386", "CFLAGS=-m32 -O3", "CXXFLAGS=-m32 -O3", "CCASFLAGS=-m32",
-            "LDFLAGS=-Wl,-rpath,_DUMMY_", "--enable-shared", "--without-gmp"),
-        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_", "--enable-shared")),
+            "LDFLAGS=-Wl,-rpath,_DUMMY_", "--without-gmp"),
+        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_")),
     "x86_64-linux" ->
       Platform_Info(
-        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_", "--enable-shared")),
+        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_")),
     "x86-darwin" ->
       Platform_Info(
         options =
