@@ -170,6 +170,10 @@ object Isabelle_Cronjob
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("AFP", "lxbroy7",
+          args = "-N -X slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
       Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
         history_base = "37074e22e8be",
         options = "-m32 -B -M1x2,2 -t polyml-5.7 -i 'init_component /home/isabelle/contrib/polyml-5.7'",
