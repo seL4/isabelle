@@ -247,7 +247,7 @@ object Isabelle_Cronjob
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))),
     ) :::
     {
-      for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy7")) }
+      for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
       yield {
         List(Remote_Build("AFP", host = hosts.head, more_hosts = hosts.tail,
           options = "-m32 -M1x2 -t AFP -P" + n +
