@@ -34,6 +34,8 @@ session "HOL-Library" (main timing) in Library = HOL +
     Product_Lexorder
     Product_Order
     Subseq_Order
+    (*conflicting syntax*)
+    Datatype_Records
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
@@ -539,6 +541,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Computations
     Conditional_Parametricity_Examples
     Cubic_Quartic
+    Datatype_Record_Examples
     Dedekind_Real
     Erdoes_Szekeres
     Eval_Examples
