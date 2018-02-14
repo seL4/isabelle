@@ -576,6 +576,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Primrec
     Pythagoras
     Quicksort
+    Radix_Sort
     Records
     Reflection_Examples
     Refute_Examples

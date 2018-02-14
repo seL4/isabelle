@@ -147,6 +147,9 @@ by (auto simp: prefix_def)
 lemma filter_mono_prefix: "prefix xs ys \<Longrightarrow> prefix (filter P xs) (filter P ys)"
 by (auto simp: prefix_def)
 
+lemma sorted_antimono_prefix: "prefix xs ys \<Longrightarrow> sorted ys \<Longrightarrow> sorted xs"
+by (metis sorted_append prefix_def)
+
 lemma prefix_length_less: "strict_prefix xs ys \<Longrightarrow> length xs < length ys"
   by (auto simp: strict_prefix_def prefix_def)
 
@@ -525,6 +528,9 @@ lemma strict_suffix_set_subset: "strict_suffix xs ys \<Longrightarrow> set xs \<
 
 lemma set_mono_suffix: "suffix xs ys \<Longrightarrow> set xs \<subseteq> set ys"
 by (auto simp: suffix_def)
+
+lemma sorted_antimono_suffix: "suffix xs ys \<Longrightarrow> sorted ys \<Longrightarrow> sorted xs"
+by (metis sorted_append suffix_def)
 
 lemma suffix_ConsD2: "suffix (x # xs) (y # ys) \<Longrightarrow> suffix xs ys"
 proof -
