@@ -669,7 +669,7 @@ proof -
     from that have Ris: "R \<in> Chains init_seg_of"
       using mono_Chains [OF I_init] by blast
     have subch: "chain\<^sub>\<subseteq> R"
-      using \<open>R : Chains I\<close> I_init by (auto simp: init_seg_of_def chain_subset_def Chains_def)
+      using \<open>R \<in> Chains I\<close> I_init by (auto simp: init_seg_of_def chain_subset_def Chains_def)
     have "\<forall>r\<in>R. Refl r" and "\<forall>r\<in>R. trans r" and "\<forall>r\<in>R. antisym r"
       and "\<forall>r\<in>R. Total r" and "\<forall>r\<in>R. wf (r - Id)"
       using Chains_wo [OF \<open>R \<in> Chains I\<close>] by (simp_all add: order_on_defs)

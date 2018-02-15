@@ -134,7 +134,7 @@ lemma is_class_xcpt [simp]: "ws_prog G \<Longrightarrow> is_class G (Xcpt x)"
   apply (auto intro!: map_of_SomeI)
   done
 
-lemma subcls1_wfD: "[|G\<turnstile>C\<prec>C1D; ws_prog G|] ==> D \<noteq> C \<and> (D, C) \<notin> (subcls1 G)^+"
+lemma subcls1_wfD: "[|G\<turnstile>C\<prec>C1D; ws_prog G|] ==> D \<noteq> C \<and> (D, C) \<notin> (subcls1 G)\<^sup>+"
 apply( frule trancl.r_into_trancl [where r="subcls1 G"])
 apply( drule subcls1D)
 apply(clarify)
@@ -149,13 +149,13 @@ apply (unfold ws_cdecl_def)
 apply (auto split: option.split_asm)
 done
 
-lemma subcls_asym: "[|ws_prog G; (C, D) \<in> (subcls1 G)^+|] ==> (D, C) \<notin> (subcls1 G)^+"
+lemma subcls_asym: "[|ws_prog G; (C, D) \<in> (subcls1 G)\<^sup>+|] ==> (D, C) \<notin> (subcls1 G)\<^sup>+"
 apply(erule trancl.cases)
 apply(fast dest!: subcls1_wfD )
 apply(fast dest!: subcls1_wfD intro: trancl_trans)
 done
 
-lemma subcls_irrefl: "[|ws_prog G; (C, D) \<in> (subcls1 G)^+|] ==> C \<noteq> D"
+lemma subcls_irrefl: "[|ws_prog G; (C, D) \<in> (subcls1 G)\<^sup>+|] ==> C \<noteq> D"
 apply (erule trancl_trans_induct)
 apply  (auto dest: subcls1_wfD subcls_asym)
 done
@@ -165,7 +165,7 @@ apply (simp add: acyclic_def)
 apply (fast dest: subcls_irrefl)
 done
 
-lemma wf_subcls1: "ws_prog G ==> wf ((subcls1 G)^-1)"
+lemma wf_subcls1: "ws_prog G ==> wf ((subcls1 G)\<inverse>)"
 apply (rule finite_acyclic_wf)
 apply ( subst finite_converse)
 apply ( rule finite_subcls1)
@@ -174,7 +174,7 @@ apply (erule acyclic_subcls1)
 done
 
 lemma subcls_induct_struct: 
-"[|ws_prog G; !!C. \<forall>D. (C, D) \<in> (subcls1 G)^+ --> P D ==> P C|] ==> P C"
+"[|ws_prog G; !!C. \<forall>D. (C, D) \<in> (subcls1 G)\<^sup>+ --> P D ==> P C|] ==> P C"
 (is "?A \<Longrightarrow> PROP ?P \<Longrightarrow> _")
 proof -
   assume p: "PROP ?P"
@@ -189,7 +189,7 @@ done
 qed
 
 lemma subcls_induct: 
-"[|wf_prog wf_mb G; !!C. \<forall>D. (C, D) \<in> (subcls1 G)^+ --> P D ==> P C|] ==> P C"
+"[|wf_prog wf_mb G; !!C. \<forall>D. (C, D) \<in> (subcls1 G)\<^sup>+ --> P D ==> P C|] ==> P C"
 (is "?A \<Longrightarrow> PROP ?P \<Longrightarrow> _")
 by (fact subcls_induct_struct [OF wf_prog_ws_prog])
 
@@ -367,7 +367,7 @@ apply(auto dest!: widen_fields_defpl)
 done
 
 lemma fields_mono_lemma [rule_format (no_asm)]: 
-  "[|ws_prog G; (C', C) \<in> (subcls1 G)^*|] ==>  
+  "[|ws_prog G; (C', C) \<in> (subcls1 G)\<^sup>*|] ==>  
   x \<in> set (fields (G,C)) --> x \<in> set (fields (G,C'))"
 apply(erule converse_rtrancl_induct)
 apply( safe dest!: subcls1D)

@@ -173,7 +173,7 @@ apply (unfold ObjectC_def BaseC_def ExtC_def class_def)
 apply (simp (no_asm))
 done
 
-lemma not_Object_subcls [elim!]: "(Object, C) \<in> (subcls1 tprg)^+ ==> R"
+lemma not_Object_subcls [elim!]: "(Object, C) \<in> (subcls1 tprg)\<^sup>+ ==> R"
 apply (auto dest!: tranclD subcls1D)
 done
 
@@ -184,7 +184,7 @@ apply (drule subcls1D)
 apply auto
 done
 
-lemma not_Base_subcls_Ext [elim!]: "(Base, Ext) \<in> (subcls1 tprg)^+  ==> R"
+lemma not_Base_subcls_Ext [elim!]: "(Base, Ext) \<in> (subcls1 tprg)\<^sup>+  ==> R"
 apply (auto dest!: tranclD subcls1D)
 done
 
@@ -194,7 +194,7 @@ apply (unfold ObjectC_def ClassCastC_def NullPointerC_def OutOfMemoryC_def BaseC
 apply (auto split: if_split_asm simp add: map_of_Cons)
 done
 
-lemma not_class_subcls_class [elim!]: "(C, C) \<in> (subcls1 tprg)^+ ==> R"
+lemma not_class_subcls_class [elim!]: "(C, C) \<in> (subcls1 tprg)\<^sup>+ ==> R"
 apply (auto dest!: tranclD subcls1D)
 apply (frule class_tprgD)
 apply (auto dest!:)

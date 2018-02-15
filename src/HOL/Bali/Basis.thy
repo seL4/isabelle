@@ -121,7 +121,7 @@ lemma fst_splitE [elim!]:
   obtains x s where "s' = (x,s)" and "x = x'"
   using assms by (cases s') auto
 
-lemma fst_in_set_lemma: "(x, y) : set l \<Longrightarrow> x : fst ` set l"
+lemma fst_in_set_lemma: "(x, y) \<in> set l \<Longrightarrow> x \<in> fst ` set l"
   by (induct l) auto
 
 
@@ -246,7 +246,7 @@ lemma unique_append [rule_format (no_asm)]: "unique l' \<Longrightarrow> unique 
 lemma unique_map_inj: "unique l \<Longrightarrow> inj f \<Longrightarrow> unique (map (\<lambda>(k,x). (f k, g k x)) l)"
   by (induct l) (auto dest: fst_in_set_lemma simp add: inj_eq)
 
-lemma map_of_SomeI: "unique l \<Longrightarrow> (k, x) : set l \<Longrightarrow> map_of l k = Some x"
+lemma map_of_SomeI: "unique l \<Longrightarrow> (k, x) \<in> set l \<Longrightarrow> map_of l k = Some x"
   by (induct l) auto
 
 

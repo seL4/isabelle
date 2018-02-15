@@ -12,33 +12,33 @@ begin
 typedecl vertex
   
 definition symcl :: "(vertex*vertex)set=>(vertex*vertex)set" where
-  "symcl r == r \<union> (r^-1)"
+  "symcl r == r \<union> (r\<inverse>)"
     \<comment> \<open>symmetric closure: removes the orientation of a relation\<close>
 
 definition neighbors :: "[vertex, (vertex*vertex)set]=>vertex set" where
-  "neighbors i r == ((r \<union> r^-1)``{i}) - {i}"
+  "neighbors i r == ((r \<union> r\<inverse>)``{i}) - {i}"
     \<comment> \<open>Neighbors of a vertex i\<close>
 
 definition R :: "[vertex, (vertex*vertex)set]=>vertex set" where
   "R i r == r``{i}"
 
 definition A :: "[vertex, (vertex*vertex)set]=>vertex set" where
-  "A i r == (r^-1)``{i}"
+  "A i r == (r\<inverse>)``{i}"
 
 definition reach :: "[vertex, (vertex*vertex)set]=> vertex set" where
-  "reach i r == (r^+)``{i}"
+  "reach i r == (r\<^sup>+)``{i}"
     \<comment> \<open>reachable and above vertices: the original notation was R* and A*\<close>
 
 definition above :: "[vertex, (vertex*vertex)set]=> vertex set" where
-  "above i r == ((r^-1)^+)``{i}"  
+  "above i r == ((r\<inverse>)\<^sup>+)``{i}"  
 
 definition reverse :: "[vertex, (vertex*vertex) set]=>(vertex*vertex)set" where
-  "reverse i r == (r - {(x,y). x=i | y=i} \<inter> r) \<union> ({(x,y). x=i|y=i} \<inter> r)^-1"
+  "reverse i r == (r - {(x,y). x=i | y=i} \<inter> r) \<union> ({(x,y). x=i|y=i} \<inter> r)\<inverse>"
 
 definition derive1 :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" where
     \<comment> \<open>The original definition\<close>
   "derive1 i r q == symcl r = symcl q &
-                    (\<forall>k k'. k\<noteq>i & k'\<noteq>i -->((k,k'):r) = ((k,k'):q)) &
+                    (\<forall>k k'. k\<noteq>i & k'\<noteq>i -->((k,k') \<in> r) = ((k,k') \<in> q)) \<and>
                     A i r = {} & R i q = {}"
 
 definition derive :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" where
@@ -68,13 +68,13 @@ declare finite_subset [OF subset_UNIV finite_UNIV_Prod, iff]
 (* The equalities (above i r = {}) = (A i r = {}) 
    and (reach i r = {}) = (R i r) rely on the following theorem  *)
 
-lemma image0_trancl_iff_image0_r: "((r^+)``{i} = {}) = (r``{i} = {})"
+lemma image0_trancl_iff_image0_r: "((r\<^sup>+)``{i} = {}) = (r``{i} = {})"
 apply auto
 apply (erule trancl_induct, auto)
 done
 
 (* Another form usefull in some situation *)
-lemma image0_r_iff_image0_trancl: "(r``{i}={}) = (ALL x. ((i,x):r^+) = False)"
+lemma image0_r_iff_image0_trancl: "(r``{i}={}) = (\<forall>x. ((i,x) \<in> r\<^sup>+) = False)"
 apply auto
 apply (drule image0_trancl_iff_image0_r [THEN ssubst], auto)
 done
@@ -117,7 +117,7 @@ by (auto simp add: trancl_converse)
 
 (* Lemma 2 *)
 lemma maximal_converse_image0: 
-     "(z, i):r^+ ==> (\<forall>y. (y, z):r --> (y,i) \<notin> r^+) = ((r^-1)``{z}={})"
+     "(z, i) \<in> r\<^sup>+ \<Longrightarrow> (\<forall>y. (y, z) \<in> r \<longrightarrow> (y,i) \<notin> r\<^sup>+) = ((r\<inverse>)``{z}={})"
 apply auto
 apply (frule_tac r = r in trancl_into_trancl2, auto)
 done
@@ -125,7 +125,7 @@ done
 lemma above_lemma_a: 
      "acyclic r ==> A i r\<noteq>{}-->(\<exists>j \<in> above i r. A j r = {})"
 apply (simp add: acyclic_eq_wf wf_eq_minimal) 
-apply (drule_tac x = " ((r^-1) ^+) ``{i}" in spec)
+apply (drule_tac x = " ((r\<inverse>)\<^sup>+) ``{i}" in spec)
 apply auto
 apply (simp add: maximal_converse_image0 trancl_converse)
 done

@@ -1272,7 +1272,7 @@ proof -
     fix x :: "'a::euclidean_space"
     fix u
     assume as: "\<forall>x\<in>?D. 0 \<le> u x" "sum u ?D \<le> 1" "(\<Sum>x\<in>?D. u x *\<^sub>R x) = x"
-    have *: "\<forall>i\<in>Basis. i:d \<longrightarrow> u i = x\<bullet>i"
+    have *: "\<forall>i\<in>Basis. i \<in> d \<longrightarrow> u i = x\<bullet>i"
       and "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0)"
       using as(3)
       unfolding substdbasis_expansion_unique[OF assms]
@@ -1590,7 +1590,7 @@ proof -
           case True
           have "norm (x - y) < x\<bullet>i"
             using y[unfolded min_less_iff_conj dist_norm, THEN conjunct1]
-            using Min_gr_iff[of "(\<bullet>) x ` d" "norm (x - y)"] \<open>0 < card d\<close> \<open>i:d\<close>
+            using Min_gr_iff[of "(\<bullet>) x ` d" "norm (x - y)"] \<open>0 < card d\<close> \<open>i \<in> d\<close>
             by (simp add: card_gt_0_iff)
           then show "0 \<le> y\<bullet>i"
             using Basis_le_norm[OF i, of "x - y"] and as(1)[rule_format]
@@ -1833,7 +1833,7 @@ proof -
            then have e1: "e1 > 0" "e1 \<le> 1" "e1 * norm (x - a) \<le> e"
              using \<open>x \<noteq> a\<close> \<open>e > 0\<close> le_divide_eq[of e1 e "norm (x - a)"]
              by simp_all
-           then have *: "x - e1 *\<^sub>R (x - a) : rel_interior S"
+           then have *: "x - e1 *\<^sub>R (x - a) \<in> rel_interior S"
              using rel_interior_closure_convex_shrink[of S a x e1] assms x a e1_def
              by auto
            have "\<exists>y. y \<in> rel_interior S \<and> y \<noteq> x \<and> dist y x \<le> e"
@@ -2442,11 +2442,11 @@ qed
 
 subsubsection \<open>Relative interior and closure under common operations\<close>
 
-lemma rel_interior_inter_aux: "\<Inter>{rel_interior S |S. S : I} \<subseteq> \<Inter>I"
+lemma rel_interior_inter_aux: "\<Inter>{rel_interior S |S. S \<in> I} \<subseteq> \<Inter>I"
 proof -
   {
     fix y
-    assume "y \<in> \<Inter>{rel_interior S |S. S : I}"
+    assume "y \<in> \<Inter>{rel_interior S |S. S \<in> I}"
     then have y: "\<forall>S \<in> I. y \<in> rel_interior S"
       by auto
     {
@@ -2824,13 +2824,13 @@ next
       fix x
       assume "x \<in> f ` S"
       then obtain x1 where x1: "x1 \<in> S" "f x1 = x" by auto
-      then obtain e where e: "e > 1" "(1 - e) *\<^sub>R x1 + e *\<^sub>R z1 : S"
+      then obtain e where e: "e > 1" "(1 - e) *\<^sub>R x1 + e *\<^sub>R z1 \<in> S"
         using convex_rel_interior_iff[of S z1] \<open>convex S\<close> x1 z1 by auto
       moreover have "f ((1 - e) *\<^sub>R x1 + e *\<^sub>R z1) = (1 - e) *\<^sub>R x + e *\<^sub>R z"
         using x1 z1 \<open>linear f\<close> by (simp add: linear_add_cmul)
-      ultimately have "(1 - e) *\<^sub>R x + e *\<^sub>R z : f ` S"
+      ultimately have "(1 - e) *\<^sub>R x + e *\<^sub>R z \<in> f ` S"
         using imageI[of "(1 - e) *\<^sub>R x1 + e *\<^sub>R z1" S f] by auto
-      then have "\<exists>e. e > 1 \<and> (1 - e) *\<^sub>R x + e *\<^sub>R z : f ` S"
+      then have "\<exists>e. e > 1 \<and> (1 - e) *\<^sub>R x + e *\<^sub>R z \<in> f ` S"
         using e by auto
     }
     then have "z \<in> rel_interior (f ` S)"
@@ -2861,7 +2861,7 @@ proof -
   {
     fix z
     assume "z \<in> f -` (rel_interior S)"
-    then have z: "f z : rel_interior S"
+    then have z: "f z \<in> rel_interior S"
       by auto
     {
       fix x
@@ -3115,7 +3115,7 @@ proof -
       by (metis Domain_iff fst_eq_Domain)
     then have "y \<in> rel_interior {t. f t \<noteq> {}}"
       using h1 by auto
-    then have "y \<in> rel_interior {t. f t \<noteq> {}}" and "(z : rel_interior (f y))"
+    then have "y \<in> rel_interior {t. f t \<noteq> {}}" and "(z \<in> rel_interior (f y))"
       using h2 asm by auto
   }
   then show ?thesis using h2 by blast
@@ -3238,7 +3238,7 @@ proof -
   have "?lhs \<supseteq> ?rhs"
   proof
     fix x
-    assume "x : ?rhs"
+    assume "x \<in> ?rhs"
     then obtain c s where *: "sum (\<lambda>i. c i *\<^sub>R s i) I = x" "sum c I = 1"
       "(\<forall>i\<in>I. c i \<ge> 0) \<and> (\<forall>i\<in>I. s i \<in> S i)" by auto
     then have "\<forall>i\<in>I. s i \<in> convex hull (\<Union>(S ` I))"
@@ -3676,7 +3676,7 @@ next
       by auto
     define k where "k i = (c i, c i *\<^sub>R s i)" for i
     {
-      fix i assume "i:I"
+      fix i assume "i \<in> I"
       then have "k i \<in> rel_interior (K i)"
         using k_def K_def assms cs rel_interior_convex_cone[of "S i"]
         by auto

@@ -11,7 +11,7 @@ abbreviation
   "TTP == Server"
 
 abbreviation
-  RPwd :: "agent => key" where
+  RPwd :: "agent \<Rightarrow> key" where
   "RPwd == shrK"
 
  
@@ -24,7 +24,7 @@ consts
   BothAuth :: nat
 
 text\<open>We formalize a fixed way of computing responses.  Could be better.\<close>
-definition "response" :: "agent => agent => nat => msg" where
+definition "response" :: "agent \<Rightarrow> agent \<Rightarrow> nat \<Rightarrow> msg" where
    "response S R q == Hash \<lbrace>Agent S, Key (shrK R), Nonce q\<rbrace>"
 
 
@@ -129,9 +129,9 @@ lemmas CM2_S2TTP_parts_knows_Spy =
 
 lemma hr_form_lemma [rule_format]:
  "evs \<in> certified_mail
-  ==> hr \<notin> synth (analz (spies evs)) --> 
+  \<Longrightarrow> hr \<notin> synth (analz (spies evs)) \<longrightarrow>
       (\<forall>S2TTP. Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, pwd, hr\<rbrace>
-          \<in> set evs --> 
+          \<in> set evs \<longrightarrow>
       (\<exists>clt q S em. hr = Hash \<lbrace>Number clt, Nonce q, response S R q, em\<rbrace>))"
 apply (erule certified_mail.induct)
 apply (synth_analz_mono_contra, simp_all, blast+)
@@ -201,7 +201,7 @@ apply (metis parts_insertI)
 done
 
 lemma Spy_dont_know_RPwd [rule_format]:
-    "evs \<in> certified_mail ==> Key (RPwd A) \<in> parts(spies evs) --> A \<in> bad"
+    "evs \<in> certified_mail ==> Key (RPwd A) \<in> parts(spies evs) \<longrightarrow> A \<in> bad"
 apply (erule certified_mail.induct, simp_all) 
 txt\<open>Fake\<close>
 apply (blast dest: Fake_parts_insert_in_Un) 
@@ -247,8 +247,8 @@ subsection\<open>Proving Confidentiality Results\<close>
 
 lemma analz_image_freshK [rule_format]:
  "evs \<in> certified_mail ==>
-   \<forall>K KK. invKey (pubEK TTP) \<notin> KK -->
-          (Key K \<in> analz (Key`KK Un (spies evs))) =
+   \<forall>K KK. invKey (pubEK TTP) \<notin> KK \<longrightarrow>
+          (Key K \<in> analz (Key`KK \<union> (spies evs))) =
           (K \<in> KK | Key K \<in> analz (spies evs))"
 apply (erule certified_mail.induct)
 apply (drule_tac [6] A=TTP in symKey_neq_priEK) 
@@ -281,11 +281,11 @@ by (blast dest!: Notes_imp_used)
    isn't inductive: message 3 case can't be proved *)
 lemma S2TTP_sender_lemma [rule_format]:
  "evs \<in> certified_mail ==>
-    Key K \<notin> analz (spies evs) -->
+    Key K \<notin> analz (spies evs) \<longrightarrow>
     (\<forall>AO. Crypt (pubEK TTP)
-           \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace> \<in> used evs -->
+           \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace> \<in> used evs \<longrightarrow>
     (\<exists>m ctxt q. 
-        hs = Hash\<lbrace>Number ctxt, Nonce q, response S R q, Crypt K (Number m)\<rbrace> &
+        hs = Hash\<lbrace>Number ctxt, Nonce q, response S R q, Crypt K (Number m)\<rbrace> \<and>
         Says S R
            \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number ctxt, Nonce q,
@@ -314,7 +314,7 @@ lemma S2TTP_sender:
     Key K \<notin> analz (spies evs);
     evs \<in> certified_mail|]
   ==> \<exists>m ctxt q. 
-        hs = Hash\<lbrace>Number ctxt, Nonce q, response S R q, Crypt K (Number m)\<rbrace> &
+        hs = Hash\<lbrace>Number ctxt, Nonce q, response S R q, Crypt K (Number m)\<rbrace> \<and>
         Says S R
            \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number ctxt, Nonce q,
@@ -345,19 +345,19 @@ theorem for ciphertexts of the form @{term "Crypt K (Number m)"},
 where @{term K} is secure.\<close>
 lemma Key_unique_lemma [rule_format]:
      "evs \<in> certified_mail ==>
-       Key K \<notin> analz (spies evs) -->
+       Key K \<notin> analz (spies evs) \<longrightarrow>
        (\<forall>m cleartext q hs.
         Says S R
            \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number cleartext, Nonce q,
              Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>\<rbrace>
-          \<in> set evs -->
+          \<in> set evs \<longrightarrow>
        (\<forall>m' cleartext' q' hs'.
        Says S' R'
            \<lbrace>Agent S', Agent TTP, Crypt K (Number m'), Number AO',
              Number cleartext', Nonce q',
              Crypt (pubEK TTP) \<lbrace>Agent S', Number AO', Key K, Agent R', hs'\<rbrace>\<rbrace>
-          \<in> set evs --> R' = R & S' = S & AO' = AO & hs' = hs))" 
+          \<in> set evs \<longrightarrow> R' = R \<and> S' = S \<and> AO' = AO \<and> hs' = hs))" 
 apply (erule certified_mail.induct, analz_mono_contra, simp_all)
  prefer 2
  txt\<open>Message 1\<close>
@@ -380,7 +380,7 @@ lemma Key_unique:
           \<in> set evs;
          Key K \<notin> analz (spies evs);
          evs \<in> certified_mail|]
-       ==> R' = R & S' = S & AO' = AO & hs' = hs"
+       ==> R' = R \<and> S' = S \<and> AO' = AO \<and> hs' = hs"
 by (rule Key_unique_lemma, assumption+)
 
 
@@ -396,7 +396,7 @@ theorem S_fairness_bad_R:
          Key K \<in> analz (spies evs);
          evs \<in> certified_mail;
          S\<noteq>Spy|]
-      ==> R \<in> bad & Gets S (Crypt (priSK TTP) S2TTP) \<in> set evs"
+      ==> R \<in> bad \<and> Gets S (Crypt (priSK TTP) S2TTP) \<in> set evs"
 apply (erule rev_mp)
 apply (erule ssubst)
 apply (erule rev_mp)

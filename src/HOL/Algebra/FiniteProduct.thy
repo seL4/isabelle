@@ -22,7 +22,7 @@ inductive_set
   for D :: "'a set" and f :: "'b => 'a => 'a" and e :: 'a
   where
     emptyI [intro]: "e \<in> D ==> ({}, e) \<in> foldSetD D f e"
-  | insertI [intro]: "[| x ~: A; f x y \<in> D; (A, y) \<in> foldSetD D f e |] ==>
+  | insertI [intro]: "[| x \<notin> A; f x y \<in> D; (A, y) \<in> foldSetD D f e |] ==>
                       (insert x A, f x y) \<in> foldSetD D f e"
 
 inductive_cases empty_foldSetDE [elim!]: "({}, x) \<in> foldSetD D f e"
@@ -178,7 +178,7 @@ lemma (in LCD) foldD_insert_aux:
   done
 
 lemma (in LCD) foldD_insert:
-    "[| finite A; x ~: A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
+    "[| finite A; x \<notin> A; x \<in> B; e \<in> D; A \<subseteq> B |] ==>
      foldD D f e (insert x A) = f x (foldD D f e A)"
   apply (unfold foldD_def)
   apply (simp add: foldD_insert_aux)
@@ -423,13 +423,13 @@ proof -
       proof (intro finprod_insert)
         show "finite B" by fact
       next
-        show "x ~: B" by fact
+        show "x \<notin> B" by fact
       next
-        assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+        assume "x \<notin> B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
           "g \<in> insert x B \<rightarrow> carrier G"
         thus "f \<in> B \<rightarrow> carrier G" by fastforce
       next
-        assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+        assume "x \<notin> B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
           "g \<in> insert x B \<rightarrow> carrier G"
         thus "f x \<in> carrier G" by fastforce
       qed
@@ -491,8 +491,8 @@ lemma finprod_mult [simp]:
 (* The following two were contributed by Jeremy Avigad. *)
 
 lemma finprod_reindex:
-  "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
-        inj_on h A ==> finprod G f (h ` A) = finprod G (%x. f (h x)) A"
+  "f \<in> (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
+        inj_on h A \<Longrightarrow> finprod G f (h ` A) = finprod G (\<lambda>x. f (h x)) A"
 proof (induct A rule: infinite_finite_induct)
   case (infinite A)
   hence "\<not> finite (h ` A)"
@@ -501,8 +501,8 @@ proof (induct A rule: infinite_finite_induct)
 qed (auto simp add: Pi_def)
 
 lemma finprod_const:
-  assumes a [simp]: "a : carrier G"
-    shows "finprod G (%x. a) A = a [^] card A"
+  assumes a [simp]: "a \<in> carrier G"
+    shows "finprod G (\<lambda>x. a) A = a [^] card A"
 proof (induct A rule: infinite_finite_induct)
   case (insert b A)
   show ?case 

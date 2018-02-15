@@ -38,36 +38,36 @@ specification (authlife)
     by blast
 
 abbreviation
-  CT :: "event list=>nat" where
+  CT :: "event list \<Rightarrow> nat" where
   "CT == length "
 
 abbreviation
-  expiredK :: "[nat, event list] => bool" where
+  expiredK :: "[nat, event list] \<Rightarrow> bool" where
   "expiredK T evs == sesKlife + T < CT evs"
 
 abbreviation
-  expiredA :: "[nat, event list] => bool" where
+  expiredA :: "[nat, event list] \<Rightarrow> bool" where
   "expiredA T evs == authlife + T < CT evs"
 
 
 definition
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
-  Issues :: "[agent, agent, msg, event list] => bool"
+  Issues :: "[agent, agent, msg, event list] \<Rightarrow> bool"
              ("_ Issues _ with _ on _") where
    "A Issues B with X on evs =
-      (\<exists>Y. Says A B Y \<in> set evs & X \<in> parts {Y} &
-        X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs))))"
+      (\<exists>Y. Says A B Y \<in> set evs \<and> X \<in> parts {Y} \<and>
+        X \<notin> parts (spies (takeWhile (\<lambda>z. z  \<noteq> Says A B Y) (rev evs))))"
 
 definition
  (* Yields the subtrace of a given trace from its beginning to a given event *)
-  before :: "[event, event list] => event list" ("before _ on _")
-  where "before ev on evs = takeWhile (% z. z ~= ev) (rev evs)"
+  before :: "[event, event list] \<Rightarrow> event list" ("before _ on _")
+  where "before ev on evs = takeWhile (\<lambda>z. z \<noteq> ev) (rev evs)"
 
 definition
  (* States than an event really appears only once on a trace *)
-  Unique :: "[event, event list] => bool" ("Unique _ on _")
-  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
+  Unique :: "[event, event list] \<Rightarrow> bool" ("Unique _ on _")
+  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (\<lambda>z. z \<noteq> ev) evs)))"
 
 
 inductive_set bankerberos :: "event list set"
@@ -104,7 +104,7 @@ inductive_set bankerberos :: "event list set"
 
  | BK4:  "\<lbrakk> evs4 \<in> bankerberos;
              Says A' B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
-                         (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
+                         (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace> \<in> set evs4;
              \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
           \<Longrightarrow> Says B A (Crypt K (Number Ta)) # evs4
                 \<in> bankerberos"
@@ -150,7 +150,7 @@ apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =
-          (if A:bad then insert X (spies evs) else spies evs)"
+          (if A\<in>bad then insert X (spies evs) else spies evs)"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
@@ -165,7 +165,7 @@ done
 
 lemmas parts_spies_evs_revD2 = spies_evs_rev [THEN equalityD2, THEN parts_mono]
 
-lemma spies_takeWhile: "spies (takeWhile P evs) <=  spies evs"
+lemma spies_takeWhile: "spies (takeWhile P evs) \<subseteq> spies evs"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
@@ -211,7 +211,7 @@ apply (simp add: used_Notes_rev)
 done
 
 lemma used_takeWhile_used [rule_format]: 
-      "x : used (takeWhile P X) --> x : used X"
+      "x \<in> used (takeWhile P X) \<longrightarrow> x \<in> used X"
 apply (induct_tac "X")
 apply simp
 apply (rename_tac a b)
@@ -260,7 +260,7 @@ done
 
 lemma Spy_see_shrK_D [dest!]:
      "\<lbrakk> Key (shrK A) \<in> parts (spies evs);
-                evs \<in> bankerberos \<rbrakk> \<Longrightarrow> A:bad"
+                evs \<in> bankerberos \<rbrakk> \<Longrightarrow> A\<in>bad"
 apply (blast dest: Spy_see_shrK)
 done
 
@@ -287,11 +287,11 @@ text\<open>Describes the form of K, X and K' when the Server sends this message.
 lemma Says_Server_message_form:
      "\<lbrakk> Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
          \<in> set evs; evs \<in> bankerberos \<rbrakk>
-      \<Longrightarrow> K' = shrK A & K \<notin> range shrK &
-          Ticket = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>) &
+      \<Longrightarrow> K' = shrK A \<and> K \<notin> range shrK \<and>
+          Ticket = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>) \<and>
           Key K \<notin> used(before
                   Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
-                  on evs) &
+                  on evs) \<and>
           Tk = CT(before 
                   Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
                   on evs)"
@@ -343,7 +343,7 @@ lemma Says_S_message_form:
      "\<lbrakk> Says S A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>)
             \<in> set evs;
          evs \<in> bankerberos \<rbrakk>
- \<Longrightarrow> (K \<notin> range shrK & X = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>))
+ \<Longrightarrow> (K \<notin> range shrK \<and> X = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>))
           | X \<in> analz (spies evs)"
 apply (case_tac "A \<in> bad")
 apply (force dest!: Says_imp_spies [THEN analz.Inj])
@@ -367,7 +367,7 @@ text\<open>Session keys are not used to encrypt other session keys\<close>
 lemma analz_image_freshK [rule_format (no_asm)]:
      "evs \<in> bankerberos \<Longrightarrow>
    \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
-          (Key K \<in> analz (Key`KK Un (spies evs))) =
+          (Key K \<in> analz (Key`KK \<union> (spies evs))) =
           (K \<in> KK | Key K \<in> analz (spies evs))"
 apply (erule bankerberos.induct)
 apply (drule_tac [7] Says_Server_message_form)
@@ -388,7 +388,7 @@ lemma unique_session_keys:
            (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>) \<in> set evs;
          Says Server A'
           (Crypt (shrK A') \<lbrace>Number Tk', Agent B', Key K, X'\<rbrace>) \<in> set evs;
-         evs \<in> bankerberos \<rbrakk> \<Longrightarrow> A=A' & Tk=Tk' & B=B' & X = X'"
+         evs \<in> bankerberos \<rbrakk> \<Longrightarrow> A=A' \<and> Tk=Tk' \<and> B=B' \<and> X = X'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule bankerberos.induct)

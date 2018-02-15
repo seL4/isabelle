@@ -147,7 +147,7 @@ lemma move_subprop2:
 
 lemma move_subprop3:
   "is_ref_map f C A \<Longrightarrow> reachable C s \<Longrightarrow> (s, a, t) \<in> trans_of C \<Longrightarrow>
-     laststate (f s,@x. move A x (f s) a (f t)) = (f t)"
+     laststate (f s, SOME x. move A x (f s) a (f t)) = (f t)"
   apply (cut_tac move_is_move)
   defer
   apply assumption+

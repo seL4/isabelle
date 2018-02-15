@@ -153,7 +153,7 @@ apply(simp add: af_def)
 done
 
 text\<open>\noindent
-We assume the negation of the conclusion and prove @{term"s : lfp(af A)"}.
+We assume the negation of the conclusion and prove @{term"s \<in> lfp(af A)"}.
 Unfolding @{const lfp} once and
 simplifying with the definition of @{const af} finishes the proof.
 
@@ -214,14 +214,14 @@ apply(induct_tac i)
 txt\<open>\noindent
 After simplification, the base case boils down to
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-The conclusion looks exceedingly trivial: after all, @{term t} is chosen such that @{prop"(s,t):M"}
+The conclusion looks exceedingly trivial: after all, @{term t} is chosen such that @{prop"(s,t)\<in>M"}
 holds. However, we first have to show that such a @{term t} actually exists! This reasoning
 is embodied in the theorem @{thm[source]someI2_ex}:
 @{thm[display,eta_contract=false]someI2_ex}
 When we apply this theorem as an introduction rule, @{text"?P x"} becomes
-@{prop"(s, x) : M & Q x"} and @{text"?Q x"} becomes @{prop"(s,x) : M"} and we have to prove
-two subgoals: @{prop"EX a. (s, a) : M & Q a"}, which follows from the assumptions, and
-@{prop"(s, x) : M & Q x ==> (s,x) : M"}, which is trivial. Thus it is not surprising that
+@{prop"(s, x) \<in> M \<and> Q x"} and @{text"?Q x"} becomes @{prop"(s,x) \<in> M"} and we have to prove
+two subgoals: @{prop"\<exists>a. (s, a) \<in> M \<and> Q a"}, which follows from the assumptions, and
+@{prop"(s, x) \<in> M \<and> Q x \<Longrightarrow> (s,x) \<in> M"}, which is trivial. Thus it is not surprising that
 @{text fast} can prove the base case quickly:
 \<close>
 

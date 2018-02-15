@@ -157,7 +157,7 @@ text\<open>Describes the form of K and NA when the Server sends this message.  A
 lemma Says_Server_message_form:
      "[| Says Server B \<lbrace>NA, X, Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs;
          evs \<in> otway |]
-      ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
+      ==> K \<notin> range shrK \<and> (\<exists>i. NA = Nonce i) \<and> (\<exists>j. NB = Nonce j)"
 apply (erule rev_mp)
 apply (erule otway.induct, simp_all)
 done
@@ -178,8 +178,8 @@ text\<open>Session keys are not used to encrypt other session keys\<close>
 text\<open>The equality makes the induction hypothesis easier to apply\<close>
 lemma analz_image_freshK [rule_format]:
  "evs \<in> otway ==>
-   \<forall>K KK. KK <= -(range shrK) -->
-          (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
+   \<forall>K KK. KK \<subseteq> -(range shrK) \<longrightarrow>
+          (Key K \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule otway.induct)
 apply (frule_tac [8] Says_Server_message_form)
@@ -198,7 +198,7 @@ text\<open>The Key K uniquely identifies the Server's  message.\<close>
 lemma unique_session_keys:
      "[| Says Server B \<lbrace>NA, X, Crypt (shrK B) \<lbrace>NB, K\<rbrace>\<rbrace>   \<in> set evs;
          Says Server B' \<lbrace>NA',X',Crypt (shrK B') \<lbrace>NB',K\<rbrace>\<rbrace> \<in> set evs;
-         evs \<in> otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'"
+         evs \<in> otway |] ==> X=X' \<and> B=B' \<and> NA=NA' \<and> NB=NB'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule otway.induct, simp_all)
@@ -213,8 +213,8 @@ lemma secrecy_lemma:
  "[| A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
   ==> Says Server B
         \<lbrace>NA, Crypt (shrK A) \<lbrace>NA, Key K\<rbrace>,
-          Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs -->
-      Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs -->
+          Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs \<longrightarrow>
+      Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs \<longrightarrow>
       Key K \<notin> analz (knows Spy evs)"
 apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
@@ -243,7 +243,7 @@ text\<open>Only OR1 can have caused such a part of a message to appear. The prem
   up. Original Otway-Rees doesn't need it.\<close>
 lemma Crypt_imp_OR1 [rule_format]:
      "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
-      ==> Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace> \<in> parts (knows Spy evs) -->
+      ==> Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
           Says A B \<lbrace>NA, Agent A, Agent B,
                      Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace>\<rbrace>  \<in> set evs"
 by (erule otway.induct, force,
@@ -256,10 +256,10 @@ text\<open>Crucial property: If the encrypted message appears, and A has used NA
 text\<open>Only it is FALSE.  Somebody could make a fake message to Server
           substituting some other nonce NA' for NB.\<close>
 lemma "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
-       ==> Crypt (shrK A) \<lbrace>NA, Key K\<rbrace> \<in> parts (knows Spy evs) -->
+       ==> Crypt (shrK A) \<lbrace>NA, Key K\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
            Says A B \<lbrace>NA, Agent A, Agent B,
                       Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace>\<rbrace>
-            \<in> set evs -->
+            \<in> set evs \<longrightarrow>
            (\<exists>B NB. Says Server B
                 \<lbrace>NA,
                   Crypt (shrK A) \<lbrace>NA, Key K\<rbrace>,

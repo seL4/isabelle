@@ -44,7 +44,7 @@ qed auto
 abbreviation Big_step :: "com \<Rightarrow> com_den" where
 "Big_step c \<equiv> {(s,t). (c,s) \<Rightarrow> t}"
 
-lemma Big_step_if_D:  "(s,t) \<in> D(c) \<Longrightarrow> (s,t) : Big_step c"
+lemma Big_step_if_D:  "(s,t) \<in> D(c) \<Longrightarrow> (s,t) \<in> Big_step c"
 proof (induction c arbitrary: s t)
   case Seq thus ?case by fastforce
 next

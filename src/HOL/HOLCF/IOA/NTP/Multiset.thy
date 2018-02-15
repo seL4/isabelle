@@ -60,7 +60,7 @@ apply safe
 apply simp
 done
 
-lemma countm_props: "!!M. (!x. P(x) --> Q(x)) ==> (countm M P <= countm M Q)"
+lemma countm_props: "\<And>M. (\<forall>x. P(x) \<longrightarrow> Q(x)) \<Longrightarrow> (countm M P \<le> countm M Q)"
 apply (rule_tac M = "M" in Multiset.induction)
  apply (simp (no_asm) add: Multiset.countm_empty_def)
 apply (simp (no_asm) add: Multiset.countm_nonempty_def)

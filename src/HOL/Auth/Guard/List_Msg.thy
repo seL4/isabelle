@@ -37,7 +37,7 @@ fun len :: "msg => nat" where
 "len (cons x l) = Suc (len l)" |
 "len other = 0"
 
-lemma len_not_empty: "n < len l ==> EX x l'. l = cons x l'"
+lemma len_not_empty: "n < len l \<Longrightarrow> \<exists>x l'. l = cons x l'"
 by (cases l) auto
 
 subsubsection\<open>membership\<close>
@@ -113,36 +113,36 @@ abbreviation
 
 inductive_set agl :: "msg set"
 where
-  Nil[intro]: "nil:agl"
-| Cons[intro]: "[| A:agent; I:agl |] ==> cons (Agent A) I :agl"
+  Nil[intro]: "nil \<in> agl"
+| Cons[intro]: "[| A \<in> agent; I \<in> agl |] ==> cons (Agent A) I \<in> agl"
 
 subsubsection\<open>basic facts about agent lists\<close>
 
-lemma del_in_agl [intro]: "I:agl ==> del (a,I):agl"
+lemma del_in_agl [intro]: "I \<in> agl \<Longrightarrow> del (a,I) \<in> agl"
 by (erule agl.induct, auto)
 
-lemma app_in_agl [intro]: "[| I:agl; J:agl |] ==> app (I,J):agl"
+lemma app_in_agl [intro]: "[| I \<in> agl; J \<in> agl |] ==> app (I,J) \<in> agl"
 by (erule agl.induct, auto)
 
-lemma no_Key_in_agl: "I:agl ==> Key K ~:parts {I}"
+lemma no_Key_in_agl: "I \<in> agl \<Longrightarrow> Key K \<notin> parts {I}"
 by (erule agl.induct, auto)
 
-lemma no_Nonce_in_agl: "I:agl ==> Nonce n ~:parts {I}"
+lemma no_Nonce_in_agl: "I \<in> agl \<Longrightarrow> Nonce n \<notin> parts {I}"
 by (erule agl.induct, auto)
 
-lemma no_Key_in_appdel: "[| I:agl; J:agl |] ==>
-Key K ~:parts {app (J, del (Agent B, I))}"
+lemma no_Key_in_appdel: "[| I \<in> agl; J \<in> agl |] ==>
+Key K \<notin> parts {app (J, del (Agent B, I))}"
 by (rule no_Key_in_agl, auto)
 
-lemma no_Nonce_in_appdel: "[| I:agl; J:agl |] ==>
-Nonce n ~:parts {app (J, del (Agent B, I))}"
+lemma no_Nonce_in_appdel: "[| I \<in> agl; J \<in> agl |] ==>
+Nonce n \<notin> parts {app (J, del (Agent B, I))}"
 by (rule no_Nonce_in_agl, auto)
 
-lemma no_Crypt_in_agl: "I:agl ==> Crypt K X ~:parts {I}"
+lemma no_Crypt_in_agl: "I \<in> agl \<Longrightarrow> Crypt K X \<notin> parts {I}"
 by (erule agl.induct, auto)
 
-lemma no_Crypt_in_appdel: "[| I:agl; J:agl |] ==>
-Crypt K X ~:parts {app (J, del (Agent B,I))}"
+lemma no_Crypt_in_appdel: "[| I \<in> agl; J \<in> agl |] ==>
+Crypt K X \<notin> parts {app (J, del (Agent B,I))}"
 by (rule no_Crypt_in_agl, auto)
 
 end

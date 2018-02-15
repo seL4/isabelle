@@ -387,7 +387,7 @@ where "rtrancl_while = while_option rtrancl_while_test rtrancl_while_step ([x],{
 qualified fun rtrancl_while_invariant :: "'a list \<times> 'a set \<Rightarrow> bool"
 where "rtrancl_while_invariant (ws, Z) =
    (x \<in> Z \<and> set ws \<subseteq> Z \<and> distinct ws \<and> {(x,y). y \<in> set(f x)} `` (Z - set ws) \<subseteq> Z \<and>
-    Z \<subseteq> {(x,y). y \<in> set(f x)}^* `` {x} \<and> (\<forall>z\<in>Z - set ws. p z))"
+    Z \<subseteq> {(x,y). y \<in> set(f x)}\<^sup>* `` {x} \<and> (\<forall>z\<in>Z - set ws. p z))"
 
 qualified lemma rtrancl_while_invariant: 
   assumes inv: "rtrancl_while_invariant st" and test: "rtrancl_while_test st"
@@ -400,8 +400,8 @@ qed
 
 lemma rtrancl_while_Some: assumes "rtrancl_while = Some(ws,Z)"
 shows "if ws = []
-       then Z = {(x,y). y \<in> set(f x)}^* `` {x} \<and> (\<forall>z\<in>Z. p z)
-       else \<not>p(hd ws) \<and> hd ws \<in> {(x,y). y \<in> set(f x)}^* `` {x}"
+       then Z = {(x,y). y \<in> set(f x)}\<^sup>* `` {x} \<and> (\<forall>z\<in>Z. p z)
+       else \<not>p(hd ws) \<and> hd ws \<in> {(x,y). y \<in> set(f x)}\<^sup>* `` {x}"
 proof -
   have "rtrancl_while_invariant ([x],{x})" by simp
   with rtrancl_while_invariant have I: "rtrancl_while_invariant (ws,Z)"

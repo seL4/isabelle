@@ -16,7 +16,7 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = fun S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-lemma aval'_correct: "s : \<gamma>\<^sub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_correct: "s \<in> \<gamma>\<^sub>s S \<Longrightarrow> aval a s \<in> \<gamma>(aval' a S)"
 by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def)
 
 lemma gamma_Step_subcomm: fixes C1 C2 :: "'a::semilattice_sup acom"
@@ -26,7 +26,7 @@ lemma gamma_Step_subcomm: fixes C1 C2 :: "'a::semilattice_sup acom"
 proof(induction C arbitrary: S)
 qed (auto simp: assms intro!: mono_gamma_o sup_ge1 sup_ge2)
 
-lemma in_gamma_update: "\<lbrakk> s : \<gamma>\<^sub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^sub>s(update S x a)"
+lemma in_gamma_update: "\<lbrakk> s \<in> \<gamma>\<^sub>s S; i \<in> \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) \<in> \<gamma>\<^sub>s(update S x a)"
 by(simp add: \<gamma>_st_def)
 
 end
@@ -188,7 +188,7 @@ lemma m_s2_rep: assumes "finite(X)" and "S1 = S2 on -X" and "\<forall>x. S1 x \<
 shows "(\<Sum>x\<in>X. m (S2 x)) < (\<Sum>x\<in>X. m (S1 x))"
 proof-
   from assms(3) have 1: "\<forall>x\<in>X. m(S1 x) \<ge> m(S2 x)" by (simp add: m1)
-  from assms(2,3,4) have "EX x:X. S1 x < S2 x"
+  from assms(2,3,4) have "\<exists>x\<in>X. S1 x < S2 x"
     by(simp add: fun_eq_iff) (metis Compl_iff le_neq_trans)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S2 x)" by (metis m2)
   from sum_strict_mono_ex1[OF \<open>finite X\<close> 1 2]

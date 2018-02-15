@@ -155,7 +155,7 @@ lemma "{x. P x \<longrightarrow> Q x} = -{x. P x} \<union> {x. Q x}"
 by blast
 
 definition prime :: "nat set" where
-    "prime == {p. 1<p & (ALL m. m dvd p --> m=1 | m=p)}"
+    "prime == {p. 1<p & (\<forall>m. m dvd p \<longrightarrow> m=1 \<or> m=p)}"
 
 lemma "{p*q | p q. p\<in>prime \<and> q\<in>prime} =
        {z. \<exists>p q. z = p*q \<and> p\<in>prime \<and> q\<in>prime}"

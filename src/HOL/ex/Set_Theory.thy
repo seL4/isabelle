@@ -129,12 +129,12 @@ proof -
   have "finite A" using \<open>card A \<ge> 2\<close> by(auto intro:ccontr)
   have 0: "R `` A <= A" using \<open>sym R\<close> \<open>Domain R <= A\<close>
     unfolding Domain_unfold sym_def by blast
-  have h: "ALL a:A. R `` {a} <= A" using 0 by blast
-  hence 1: "ALL a:A. finite(R `` {a})" using \<open>finite A\<close>
+  have h: "\<forall>a\<in>A. R `` {a} <= A" using 0 by blast
+  hence 1: "\<forall>a\<in>A. finite(R `` {a})" using \<open>finite A\<close>
     by(blast intro: finite_subset)
   have sub: "?N ` A <= {0..<?n}"
   proof -
-    have "ALL a:A. R `` {a} - {a} < A" using h by blast
+    have "\<forall>a\<in>A. R `` {a} - {a} < A" using h by blast
     thus ?thesis using psubset_card_mono[OF \<open>finite A\<close>] by auto
   qed
   show "~ inj_on ?N A" (is "~ ?I")
@@ -143,8 +143,8 @@ proof -
     hence "?n = card(?N ` A)" by(rule card_image[symmetric])
     with sub \<open>finite A\<close> have 2[simp]: "?N ` A = {0..<?n}"
       using subset_card_intvl_is_intvl[of _ 0] by(auto)
-    have "0 : ?N ` A" and "?n - 1 : ?N ` A"  using \<open>card A \<ge> 2\<close> by simp+
-    then obtain a b where ab: "a:A" "b:A" and Na: "?N a = 0" and Nb: "?N b = ?n - 1"
+    have "0 \<in> ?N ` A" and "?n - 1 \<in> ?N ` A"  using \<open>card A \<ge> 2\<close> by simp+
+    then obtain a b where ab: "a\<in>A" "b\<in>A" and Na: "?N a = 0" and Nb: "?N b = ?n - 1"
       by (auto simp del: 2)
     have "a \<noteq> b" using Na Nb \<open>card A \<ge> 2\<close> by auto
     have "R `` {a} - {a} = {}" by (metis 1 Na ab card_eq_0_iff finite_Diff)

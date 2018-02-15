@@ -52,9 +52,9 @@ axiomatization
 where
         append:  "\<And>x xs ys zs. append  []    xs  xs    ..
                   append (x#xs) ys (x#zs) :- append xs ys zs" and
-        reverse: "\<And>L1 L2. reverse L1 L2 :- (!rev_aux.
-                  (!L.          rev_aux  []    L  L )..
-                  (!X L1 L2 L3. rev_aux (X#L1) L2 L3 :- rev_aux L1 L2 (X#L3))
+        reverse: "\<And>L1 L2. reverse L1 L2 :- (\<forall>rev_aux.
+                  (\<forall>L.          rev_aux  []    L  L )..
+                  (\<forall>X L1 L2 L3. rev_aux (X#L1) L2 L3 :- rev_aux L1 L2 (X#L3))
                   => rev_aux L1 L2 [])" and
 
         mappred: "\<And>x xs y ys P. mappred P  []     []    ..
@@ -70,7 +70,7 @@ where
 
 (* actual definitions of empty and add is hidden -> yields abstract data type *)
 
-        bag_appl: "\<And>A B X Y. bag_appl A B X Y:- (? S1 S2 S3 S4 S5.
+        bag_appl: "\<And>A B X Y. bag_appl A B X Y:- (\<exists>S1 S2 S3 S4 S5.
                                 empty    S1    &
                                 add A    S1 S2 &
                                 add B    S2 S3 &
@@ -92,7 +92,7 @@ schematic_goal "append [a,b] y ?L"
   apply (prolog prog_Test)
   done
 
-schematic_goal "!y. append [a,b] y (?L y)"
+schematic_goal "\<forall>y. append [a,b] y (?L y)"
   apply (prolog prog_Test)
   done
 
@@ -117,7 +117,7 @@ schematic_goal "mappred age ?x [23,24]"
   back
   done
 
-schematic_goal "mappred (%x y. ? z. age z y) ?x [23,24]"
+schematic_goal "mappred (\<lambda>x y. \<exists>z. age z y) ?x [23,24]"
   apply (prolog prog_Test)
   done
 
@@ -159,11 +159,11 @@ schematic_goal "age ?x 24 | age ?x 23"
   back
   done
 
-lemma "? x y. age x y"
+lemma "\<exists>x y. age x y"
   apply (prolog prog_Test)
   done
 
-lemma "!x y. append [] x x"
+lemma "\<forall>x y. append [] x x"
   apply (prolog prog_Test)
   done
 
@@ -181,18 +181,18 @@ lemma "age bob 25 :- age bob 24 => age bob 25"
   done
 (*reset trace_DEPTH_FIRST;*)
 
-schematic_goal "(!x. age x 25 :- age x 23) => age ?x 25 & age ?y 25"
+schematic_goal "(\<forall>x. age x 25 :- age x 23) => age ?x 25 & age ?y 25"
   apply (prolog prog_Test)
   back
   back
   back
   done
 
-lemma "!x. ? y. eq x y"
+lemma "\<forall>x. \<exists>y. eq x y"
   apply (prolog prog_Test)
   done
 
-schematic_goal "? P. P & eq P ?x"
+schematic_goal "\<exists>P. P \<and> eq P ?x"
   apply (prolog prog_Test)
 (*
   back
@@ -206,20 +206,20 @@ schematic_goal "? P. P & eq P ?x"
 *)
   done
 
-lemma "? P. eq P (True & True) & P"
+lemma "\<exists>P. eq P (True & True) \<and> P"
   apply (prolog prog_Test)
   done
 
-lemma "? P. eq P (|) & P k True"
+lemma "\<exists>P. eq P (\<or>) \<and> P k True"
   apply (prolog prog_Test)
   done
 
-lemma "? P. eq P (Q => True) & P"
+lemma "\<exists>P. eq P (Q => True) \<and> P"
   apply (prolog prog_Test)
   done
 
 (* P flexible: *)
-lemma "(!P k l. P k l :- eq P Q) => Q a b"
+lemma "(\<forall>P k l. P k l :- eq P Q) => Q a b"
   apply (prolog prog_Test)
   done
 (*
@@ -228,11 +228,11 @@ lemma "(!P k l. P k l :- eq P (%x y. x | y)) => a | b"
 *)
 
 (* implication and disjunction in atom: *)
-lemma "? Q. (!p q. R(q :- p) => R(Q p q)) & Q (t | s) (s | t)"
+lemma "\<exists>Q. (\<forall>p q. R(q :- p) => R(Q p q)) \<and> Q (t | s) (s | t)"
   by fast
 
 (* disjunction in atom: *)
-lemma "(!P. g P :- (P => b | a)) => g(a | b)"
+lemma "(\<forall>P. g P :- (P => b \<or> a)) => g(a \<or> b)"
   apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
   apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
   apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
@@ -247,21 +247,21 @@ lemma "(!P. g P :- (P => b | a)) => g(a | b)"
   by fast
 *)
 
-schematic_goal "!Emp Stk.(
+schematic_goal "\<forall>Emp Stk.(
                        empty    (Emp::'b) .. 
-         (!(X::nat) S. add    X (S::'b)         (Stk X S)) .. 
-         (!(X::nat) S. remove X ((Stk X S)::'b) S))
+         (\<forall>(X::nat) S. add    X (S::'b)         (Stk X S)) .. 
+         (\<forall>(X::nat) S. remove X ((Stk X S)::'b) S))
  => bag_appl 23 24 ?X ?Y"
   oops
 
-schematic_goal "!Qu. ( 
-          (!L.            empty    (Qu L L)) .. 
-          (!(X::nat) L K. add    X (Qu L (X#K)) (Qu L K)) ..
-          (!(X::nat) L K. remove X (Qu (X#L) K) (Qu L K)))
+schematic_goal "\<forall>Qu. ( 
+          (\<forall>L.            empty    (Qu L L)) .. 
+          (\<forall>(X::nat) L K. add    X (Qu L (X#K)) (Qu L K)) ..
+          (\<forall>(X::nat) L K. remove X (Qu (X#L) K) (Qu L K)))
  => bag_appl 23 24 ?X ?Y"
   oops
 
-lemma "D & (!y. E) :- (!x. True & True) :- True => D"
+lemma "D \<and> (\<forall>y. E) :- (\<forall>x. True \<and> True) :- True => D"
   apply (prolog prog_Test)
   done
 

@@ -49,8 +49,8 @@ inductive_set
   list :: "'a item set => 'a item set"
   for A :: "'a item set"
   where
-    NIL_I:  "NIL: list A"
-  | CONS_I: "[| a: A;  M: list A |] ==> CONS a M : list A"
+    NIL_I:  "NIL \<in> list A"
+  | CONS_I: "[| a \<in> A;  M \<in> list A |] ==> CONS a M \<in> list A"
 
 
 definition "List = list (range Leaf)"
@@ -68,7 +68,7 @@ definition
   
 definition
   List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b" where
-  "List_rec M c d = wfrec (pred_sexp^+)
+  "List_rec M c d = wfrec (pred_sexp\<^sup>+)
                            (%g. List_case c (%x y. d x y (g y))) M"
 
 
@@ -139,10 +139,10 @@ primrec take :: "['a list,nat] => 'a list" where
   take_0:  "take xs 0 = []"
 | take_Suc: "take xs (Suc n) = list_case [] (%x l. x # take l n) xs"
 
-lemma ListI: "x : list (range Leaf) ==> x : List"
+lemma ListI: "x \<in> list (range Leaf) \<Longrightarrow> x \<in> List"
 by (simp add: List_def)
 
-lemma ListD: "x : List ==> x : list (range Leaf)"
+lemma ListD: "x \<in> List \<Longrightarrow> x \<in> list (range Leaf)"
 by (simp add: List_def)
 
 lemma list_unfold: "list(A) = usum {Numb(0)} (uprod A (list(A)))"
@@ -225,10 +225,10 @@ done
 
 lemmas Cons_inject2 = Cons_Cons_eq [THEN iffD1, THEN conjE]
 
-lemma CONS_D: "CONS M N: list(A) ==> M: A & N: list(A)"
+lemma CONS_D: "CONS M N \<in> list(A) \<Longrightarrow> M \<in> A & N \<in> list(A)"
   by (induct L == "CONS M N" rule: list.induct) auto
 
-lemma sexp_CONS_D: "CONS M N: sexp ==> M: sexp & N: sexp"
+lemma sexp_CONS_D: "CONS M N \<in> sexp \<Longrightarrow> M \<in> sexp \<and> N \<in> sexp"
 apply (simp add: CONS_def In1_def)
 apply (fast dest!: Scons_D)
 done
@@ -237,14 +237,14 @@ done
 (*Reasoning about constructors and their freeness*)
 
 
-lemma not_CONS_self: "N: list(A) ==> !M. N ~= CONS M N"
+lemma not_CONS_self: "N \<in> list(A) \<Longrightarrow> \<forall>M. N \<noteq> CONS M N"
 apply (erule list.induct) apply simp_all done
 
-lemma not_Cons_self2: "\<forall>x. l ~= x#l"
+lemma not_Cons_self2: "\<forall>x. l \<noteq> x#l"
 by (induct l rule: list_induct) simp_all
 
 
-lemma neq_Nil_conv2: "(xs ~= []) = (\<exists>y ys. xs = y#ys)"
+lemma neq_Nil_conv2: "(xs \<noteq> []) = (\<exists>y ys. xs = y#ys)"
 by (induct xs rule: list_induct) auto
 
 (** Conversion rules for List_case: case analysis operator **)
@@ -262,8 +262,8 @@ by (simp add: List_case_def CONS_def)
    hold if pred_sexp^+ were changed to pred_sexp. *)
 
 lemma List_rec_unfold_lemma:
-     "(%M. List_rec M c d) == 
-      wfrec (pred_sexp^+) (%g. List_case c (%x y. d x y (g y)))"
+     "(\<lambda>M. List_rec M c d) \<equiv>
+      wfrec (pred_sexp\<^sup>+) (\<lambda>g. List_case c (\<lambda>x y. d x y (g y)))"
 by (simp add: List_rec_def)
 
 lemmas List_rec_unfold = 
@@ -273,16 +273,16 @@ lemmas List_rec_unfold =
 (** pred_sexp lemmas **)
 
 lemma pred_sexp_CONS_I1: 
-    "[| M: sexp;  N: sexp |] ==> (M, CONS M N) : pred_sexp^+"
+    "[| M \<in> sexp;  N \<in> sexp |] ==> (M, CONS M N) \<in> pred_sexp\<^sup>+"
 by (simp add: CONS_def In1_def)
 
 lemma pred_sexp_CONS_I2: 
-    "[| M: sexp;  N: sexp |] ==> (N, CONS M N) : pred_sexp^+"
+    "[| M \<in> sexp;  N \<in> sexp |] ==> (N, CONS M N) \<in> pred_sexp\<^sup>+"
 by (simp add: CONS_def In1_def)
 
 lemma pred_sexp_CONS_D: 
-    "(CONS M1 M2, N) : pred_sexp^+ ==>  
-     (M1,N) : pred_sexp^+ & (M2,N) : pred_sexp^+"
+    "(CONS M1 M2, N) \<in> pred_sexp\<^sup>+ \<Longrightarrow>
+     (M1,N) \<in> pred_sexp\<^sup>+ \<and> (M2,N) \<in> pred_sexp\<^sup>+"
 apply (frule pred_sexp_subset_Sigma [THEN trancl_subset_Sigma, THEN subsetD])
 apply (blast dest!: sexp_CONS_D intro: pred_sexp_CONS_I1 pred_sexp_CONS_I2 
                     trans_trancl [THEN transD])
@@ -297,7 +297,7 @@ apply (simp add: List_case_NIL)
 done
 
 lemma List_rec_CONS [simp]:
-     "[| M: sexp;  N: sexp |] 
+     "[| M \<in> sexp;  N \<in> sexp |] 
       ==> List_rec (CONS M N) c h = h M N (List_rec N c h)"
 apply (rule List_rec_unfold [THEN trans])
 apply (simp add: pred_sexp_CONS_I2)
@@ -322,11 +322,11 @@ by (simp add: list_rec_def ListI [THEN Abs_List_inverse] Cons_def
 
 (*Type checking.  Useful?*)
 lemma List_rec_type:
-     "[| M: list(A);      
+     "[| M \<in> list(A);      
          A<=sexp;         
-         c: C(NIL);       
-         !!x y r. [| x: A;  y: list(A);  r: C(y) |] ==> h x y r: C(CONS x y)  
-      |] ==> List_rec M c h : C(M :: 'a item)"
+         c \<in> C(NIL);       
+         \<And>x y r. [| x \<in> A;  y \<in> list(A);  r \<in> C(y) |] ==> h x y r \<in> C(CONS x y)  
+      |] ==> List_rec M c h \<in> C(M :: 'a item)"
 apply (erule list.induct, simp) 
 apply (insert list_subset_sexp) 
 apply (subst List_rec_CONS, blast+)
@@ -343,7 +343,7 @@ lemma Rep_map_Cons [simp]:
     "Rep_map f(x#xs) = CONS(f x)(Rep_map f xs)"
 by (simp add: Rep_map_def)
 
-lemma Rep_map_type: "(!!x. f(x): A) ==> Rep_map f xs: list(A)"
+lemma Rep_map_type: "(\<And>x. f(x) \<in> A) \<Longrightarrow> Rep_map f xs \<in> list(A)"
 apply (simp add: Rep_map_def)
 apply (rule list_induct, auto)
 done
@@ -352,17 +352,17 @@ lemma Abs_map_NIL [simp]: "Abs_map g NIL = Nil"
 by (simp add: Abs_map_def)
 
 lemma Abs_map_CONS [simp]: 
-    "[| M: sexp;  N: sexp |] ==> Abs_map g (CONS M N) = g(M) # Abs_map g N"
+    "[| M \<in> sexp;  N \<in> sexp |] ==> Abs_map g (CONS M N) = g(M) # Abs_map g N"
 by (simp add: Abs_map_def)
 
 (*Eases the use of primitive recursion.*)
 lemma def_list_rec_NilCons:
-    "[| !!xs. f(xs) = list_rec xs c h  |] 
-     ==> f [] = c & f(x#xs) = h x xs (f xs)"
+    "[| \<And>xs. f(xs) = list_rec xs c h  |] 
+     ==> f [] = c \<and> f(x#xs) = h x xs (f xs)"
 by simp 
 
 lemma Abs_map_inverse:
-     "[| M: list(A);  A<=sexp;  !!z. z: A ==> f(g(z)) = z |]  
+     "[| M \<in> list(A);  A<=sexp;  \<And>z. z \<in> A ==> f(g(z)) = z |]  
       ==> Rep_map f (Abs_map g M) = M"
 apply (erule list.induct, simp_all)
 apply (insert list_subset_sexp) 
@@ -383,7 +383,7 @@ declare def_list_rec_NilCons [OF list_case_def, simp]
 (** list_case **)
 
 lemma expand_list_case: 
- "P(list_case a f xs) = ((xs=[] --> P a ) & (!y ys. xs=y#ys --> P(f y ys)))"
+ "P(list_case a f xs) = ((xs=[] \<longrightarrow> P a ) \<and> (\<forall>y ys. xs=y#ys \<longrightarrow> P(f y ys)))"
 by (induct xs rule: list_induct) simp_all
 
 
@@ -394,8 +394,8 @@ declare def_list_rec_NilCons [OF map_def, simp]
 (** The functional "map" and the generalized functionals **)
 
 lemma Abs_Rep_map: 
-     "(!!x. f(x): sexp) ==>  
-        Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs"
+     "(\<And>x. f(x)\<in> sexp) ==>  
+        Abs_map g (Rep_map f xs) = map (\<lambda>t. g(f(t))) xs"
 apply (induct xs rule: list_induct)
 apply (simp_all add: Rep_map_type list_sexp [THEN subsetD])
 done

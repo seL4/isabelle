@@ -25,7 +25,7 @@ lemma sparse_row_matrix_empty [simp]: "sparse_row_matrix [] = 0"
 
 lemmas [code] = sparse_row_vector_empty [symmetric]
 
-lemma foldl_distrstart: "! a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> (foldl f (g x y) l = g x (foldl f y l))"
+lemma foldl_distrstart: "\<forall>a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> (foldl f (g x y) l = g x (foldl f y l))"
   by (induct l arbitrary: x y, auto)
 
 lemma sparse_row_vector_cons[simp]:
@@ -180,7 +180,7 @@ lemma addmult_spvec_empty1[simp]: "addmult_spvec y [] a = smult_spvec y a"
 lemma addmult_spvec_empty2[simp]: "addmult_spvec y a [] = a"
   by (induct a) auto
 
-lemma sparse_row_vector_map: "(! x y. f (x+y) = (f x) + (f y)) \<Longrightarrow> (f::'a\<Rightarrow>('a::lattice_ring)) 0 = 0 \<Longrightarrow> 
+lemma sparse_row_vector_map: "(\<forall>x y. f (x+y) = (f x) + (f y)) \<Longrightarrow> (f::'a\<Rightarrow>('a::lattice_ring)) 0 = 0 \<Longrightarrow> 
   sparse_row_vector (map (% x. (fst x, f (snd x))) a) = apply_matrix f (sparse_row_vector a)"
   apply (induct a)
   apply (simp_all add: apply_matrix_add)
@@ -417,7 +417,7 @@ lemmas [code] = sparse_row_vector_add [symmetric]
 
 lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr) brr = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
   proof - 
-    have "(! x ab a. x = (a,b)#arr \<longrightarrow> add_spvec x brr = (ab, bb) # list \<longrightarrow> (ab = a | (ab = fst (hd brr))))"
+    have "(\<forall>x ab a. x = (a,b)#arr \<longrightarrow> add_spvec x brr = (ab, bb) # list \<longrightarrow> (ab = a | (ab = fst (hd brr))))"
       by (induct brr rule: add_spvec.induct) (auto split:if_splits)
     then show ?thesis
       by (case_tac brr, auto)
@@ -425,7 +425,7 @@ lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr) brr = (ab, b
 
 lemma sorted_add_spmat_helper1[rule_format]: "add_spmat ((a,b)#arr) brr = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
   proof - 
-    have "(! x ab a. x = (a,b)#arr \<longrightarrow> add_spmat x brr = (ab, bb) # list \<longrightarrow> (ab = a | (ab = fst (hd brr))))"
+    have "(\<forall>x ab a. x = (a,b)#arr \<longrightarrow> add_spmat x brr = (ab, bb) # list \<longrightarrow> (ab = a | (ab = fst (hd brr))))"
       by (rule add_spmat.induct) (auto split:if_splits)
     then show ?thesis
       by (case_tac brr, auto)
@@ -559,7 +559,7 @@ where
 
 definition disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool" where
   "disj_matrices A B \<longleftrightarrow>
-    (! j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (! j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
+    (\<forall>j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (\<forall>j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
 
 declare [[simp_depth_limit = 6]]
 

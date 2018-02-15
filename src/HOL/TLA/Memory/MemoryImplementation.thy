@@ -33,15 +33,15 @@ consts
 definition
   (* auxiliary predicates *)
   MVOKBARF      :: "Vals \<Rightarrow> bool"
-  where "MVOKBARF v \<longleftrightarrow> (v : MemVal) | (v = OK) | (v = BadArg) | (v = RPCFailure)"
+  where "MVOKBARF v \<longleftrightarrow> (v \<in> MemVal) \<or> (v = OK) \<or> (v = BadArg) \<or> (v = RPCFailure)"
 
 definition
   MVOKBA        :: "Vals \<Rightarrow> bool"
-  where "MVOKBA v \<longleftrightarrow> (v : MemVal) | (v = OK) | (v = BadArg)"
+  where "MVOKBA v \<longleftrightarrow> (v \<in> MemVal) \<or> (v = OK) \<or> (v = BadArg)"
 
 definition
   MVNROKBA      :: "Vals \<Rightarrow> bool"
-  where "MVNROKBA v \<longleftrightarrow> (v : MemVal) | (v = NotAResult) | (v = OK) | (v = BadArg)"
+  where "MVNROKBA v \<longleftrightarrow> (v \<in> MemVal) \<or> (v = NotAResult) \<or> (v = OK) \<or> (v = BadArg)"
 
 definition
   (* tuples of state functions changed by the various components *)

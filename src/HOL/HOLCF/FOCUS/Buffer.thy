@@ -97,7 +97,7 @@ definition
   "BufSt = {f. \<exists>h\<in>BufSt_P. f = h \<currency>}"
 
 
-lemma set_cong: "!!X. A = B ==> (x:A) = (x:B)"
+lemma set_cong: "\<And>X. A = B \<Longrightarrow> (x\<in>A) = (x\<in>B)"
 by (erule subst, rule refl)
 
 
@@ -108,21 +108,21 @@ by (unfold mono_def BufEq_F_def, fast)
 
 lemmas BufEq_fix = mono_BufEq_F [THEN BufEq_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
-lemma BufEq_unfold: "(f:BufEq) = (!d. f\<cdot>(Md d\<leadsto><>) = <> &
-                 (!x. ? ff:BufEq. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>(ff\<cdot>x)))"
+lemma BufEq_unfold: "(f\<in>BufEq) = (\<forall>d. f\<cdot>(Md d\<leadsto><>) = <> \<and>
+                 (\<forall>x. \<exists>ff\<in>BufEq. f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>(ff\<cdot>x)))"
 apply (subst BufEq_fix [THEN set_cong])
 apply (unfold BufEq_F_def)
 apply (simp)
 done
 
-lemma Buf_f_empty: "f:BufEq \<Longrightarrow> f\<cdot><> = <>"
+lemma Buf_f_empty: "f\<in>BufEq \<Longrightarrow> f\<cdot><> = <>"
 by (drule BufEq_unfold [THEN iffD1], auto)
 
-lemma Buf_f_d: "f:BufEq \<Longrightarrow> f\<cdot>(Md d\<leadsto><>) = <>"
+lemma Buf_f_d: "f\<in>BufEq \<Longrightarrow> f\<cdot>(Md d\<leadsto><>) = <>"
 by (drule BufEq_unfold [THEN iffD1], auto)
 
 lemma Buf_f_d_req:
-        "f:BufEq \<Longrightarrow> \<exists>ff. ff:BufEq \<and> f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x"
+        "f\<in>BufEq \<Longrightarrow> \<exists>ff. ff\<in>BufEq \<and> f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x) = d\<leadsto>ff\<cdot>x"
 by (drule BufEq_unfold [THEN iffD1], auto)
 
 
@@ -134,21 +134,21 @@ by (unfold mono_def BufAC_Asm_F_def, fast)
 lemmas BufAC_Asm_fix =
   mono_BufAC_Asm_F [THEN BufAC_Asm_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
-lemma BufAC_Asm_unfold: "(s:BufAC_Asm) = (s = <> | (? d x. 
-        s = Md d\<leadsto>x & (x = <> | (ft\<cdot>x = Def \<bullet> & (rt\<cdot>x):BufAC_Asm))))"
+lemma BufAC_Asm_unfold: "(s\<in>BufAC_Asm) = (s = <> \<or> (\<exists>d x.
+        s = Md d\<leadsto>x \<and> (x = <> \<or> (ft\<cdot>x = Def \<bullet> \<and> (rt\<cdot>x)\<in>BufAC_Asm))))"
 apply (subst BufAC_Asm_fix [THEN set_cong])
 apply (unfold BufAC_Asm_F_def)
 apply (simp)
 done
 
-lemma BufAC_Asm_empty: "<>     :BufAC_Asm"
+lemma BufAC_Asm_empty: "<> \<in> BufAC_Asm"
 by (rule BufAC_Asm_unfold [THEN iffD2], auto)
 
-lemma BufAC_Asm_d: "Md d\<leadsto><>:BufAC_Asm"
+lemma BufAC_Asm_d: "Md d\<leadsto><> \<in> BufAC_Asm"
 by (rule BufAC_Asm_unfold [THEN iffD2], auto)
-lemma BufAC_Asm_d_req: "x:BufAC_Asm ==> Md d\<leadsto>\<bullet>\<leadsto>x:BufAC_Asm"
+lemma BufAC_Asm_d_req: "x \<in> BufAC_Asm \<Longrightarrow> Md d\<leadsto>\<bullet>\<leadsto>x \<in> BufAC_Asm"
 by (rule BufAC_Asm_unfold [THEN iffD2], auto)
-lemma BufAC_Asm_prefix2: "a\<leadsto>b\<leadsto>s:BufAC_Asm ==> s:BufAC_Asm"
+lemma BufAC_Asm_prefix2: "a\<leadsto>b\<leadsto>s \<in> BufAC_Asm ==> s \<in> BufAC_Asm"
 by (drule BufAC_Asm_unfold [THEN iffD1], auto)
 
 
@@ -160,31 +160,31 @@ by (unfold mono_def BufAC_Cmt_F_def, fast)
 lemmas BufAC_Cmt_fix =
   mono_BufAC_Cmt_F [THEN BufAC_Cmt_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
-lemma BufAC_Cmt_unfold: "((s,t):BufAC_Cmt) = (!d x. 
-     (s = <>       -->      t = <>) & 
-     (s = Md d\<leadsto><>  -->      t = <>) & 
-     (s = Md d\<leadsto>\<bullet>\<leadsto>x --> ft\<cdot>t = Def d & (x, rt\<cdot>t):BufAC_Cmt))"
+lemma BufAC_Cmt_unfold: "((s,t) \<in> BufAC_Cmt) = (\<forall>d x.
+     (s = <>       \<longrightarrow>      t = <>) \<and>
+     (s = Md d\<leadsto><>  \<longrightarrow>      t = <>) \<and>
+     (s = Md d\<leadsto>\<bullet>\<leadsto>x \<longrightarrow> ft\<cdot>t = Def d \<and> (x, rt\<cdot>t) \<in> BufAC_Cmt))"
 apply (subst BufAC_Cmt_fix [THEN set_cong])
 apply (unfold BufAC_Cmt_F_def)
 apply (simp)
 done
 
-lemma BufAC_Cmt_empty: "f:BufEq ==> (<>, f\<cdot><>):BufAC_Cmt"
+lemma BufAC_Cmt_empty: "f \<in> BufEq \<Longrightarrow> (<>, f\<cdot><>) \<in> BufAC_Cmt"
 by (rule BufAC_Cmt_unfold [THEN iffD2], auto simp add: Buf_f_empty)
 
-lemma BufAC_Cmt_d: "f:BufEq ==> (a\<leadsto>\<bottom>, f\<cdot>(a\<leadsto>\<bottom>)):BufAC_Cmt"
+lemma BufAC_Cmt_d: "f \<in> BufEq \<Longrightarrow> (a\<leadsto>\<bottom>, f\<cdot>(a\<leadsto>\<bottom>)) \<in> BufAC_Cmt"
 by (rule BufAC_Cmt_unfold [THEN iffD2], auto simp add: Buf_f_d)
 
 lemma BufAC_Cmt_d2:
- "(Md d\<leadsto>\<bottom>, f\<cdot>(Md d\<leadsto>\<bottom>)):BufAC_Cmt ==> f\<cdot>(Md d\<leadsto>\<bottom>) = \<bottom>"
+ "(Md d\<leadsto>\<bottom>, f\<cdot>(Md d\<leadsto>\<bottom>)) \<in> BufAC_Cmt \<Longrightarrow> f\<cdot>(Md d\<leadsto>\<bottom>) = \<bottom>"
 by (drule BufAC_Cmt_unfold [THEN iffD1], auto)
 
 lemma BufAC_Cmt_d3:
-"(Md d\<leadsto>\<bullet>\<leadsto>x, f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x)):BufAC_Cmt ==> (x, rt\<cdot>(f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x))):BufAC_Cmt"
+"(Md d\<leadsto>\<bullet>\<leadsto>x, f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x)) \<in> BufAC_Cmt \<Longrightarrow> (x, rt\<cdot>(f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x))) \<in> BufAC_Cmt"
 by (drule BufAC_Cmt_unfold [THEN iffD1], auto)
 
 lemma BufAC_Cmt_d32:
-"(Md d\<leadsto>\<bullet>\<leadsto>x, f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x)):BufAC_Cmt ==> ft\<cdot>(f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x)) = Def d"
+"(Md d\<leadsto>\<bullet>\<leadsto>x, f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x)) \<in> BufAC_Cmt \<Longrightarrow> ft\<cdot>(f\<cdot>(Md d\<leadsto>\<bullet>\<leadsto>x)) = Def d"
 by (drule BufAC_Cmt_unfold [THEN iffD1], auto)
 
 (**** BufAC *******************************************************************)
@@ -194,13 +194,13 @@ apply (unfold BufAC_def)
 apply (fast intro: BufAC_Cmt_d2 BufAC_Asm_d)
 done
 
-lemma ex_elim_lemma: "(? ff:B. (!x. f\<cdot>(a\<leadsto>b\<leadsto>x) = d\<leadsto>ff\<cdot>x)) = 
-    ((!x. ft\<cdot>(f\<cdot>(a\<leadsto>b\<leadsto>x)) = Def d) & (LAM x. rt\<cdot>(f\<cdot>(a\<leadsto>b\<leadsto>x))):B)"
+lemma ex_elim_lemma: "(\<exists>ff\<in>B. (\<forall>x. f\<cdot>(a\<leadsto>b\<leadsto>x) = d\<leadsto>ff\<cdot>x)) =
+    ((\<forall>x. ft\<cdot>(f\<cdot>(a\<leadsto>b\<leadsto>x)) = Def d) \<and> (LAM x. rt\<cdot>(f\<cdot>(a\<leadsto>b\<leadsto>x)))\<in>B)"
 (*  this is an instance (though unification cannot handle this) of
 lemma "(? ff:B. (!x. f\<cdot>x = d\<leadsto>ff\<cdot>x)) = \
    \((!x. ft\<cdot>(f\<cdot>x) = Def d) & (LAM x. rt\<cdot>(f\<cdot>x)):B)"*)
 apply safe
-apply (  rule_tac [2] P="(%x. x:B)" in ssubst)
+apply (  rule_tac [2] P="(\<lambda>x. x\<in>B)" in ssubst)
 prefer 3
 apply (   assumption)
 apply (  rule_tac [2] cfun_eqI)
@@ -236,19 +236,19 @@ by (unfold mono_def BufSt_F_def, fast)
 lemmas BufSt_P_fix =
   mono_BufSt_F [THEN BufSt_P_def [THEN eq_reflection, THEN def_gfp_unfold]]
 
-lemma BufSt_P_unfold: "(h:BufSt_P) = (!s. h s\<cdot><> = <> & 
-           (!d x. h \<currency>     \<cdot>(Md d\<leadsto>x)   =    h (Sd d)\<cdot>x & 
-      (? hh:BufSt_P. h (Sd d)\<cdot>(\<bullet>\<leadsto>x)   = d\<leadsto>(hh \<currency>    \<cdot>x))))"
+lemma BufSt_P_unfold: "(h\<in>BufSt_P) = (\<forall>s. h s\<cdot><> = <> \<and>
+           (\<forall>d x. h \<currency>     \<cdot>(Md d\<leadsto>x)   =    h (Sd d)\<cdot>x \<and>
+      (\<exists>hh\<in>BufSt_P. h (Sd d)\<cdot>(\<bullet>\<leadsto>x)   = d\<leadsto>(hh \<currency>    \<cdot>x))))"
 apply (subst BufSt_P_fix [THEN set_cong])
 apply (unfold BufSt_F_def)
 apply (simp)
 done
 
-lemma BufSt_P_empty: "h:BufSt_P ==> h s     \<cdot> <>       = <>"
+lemma BufSt_P_empty: "h \<in> BufSt_P \<Longrightarrow> h s     \<cdot> <>       = <>"
 by (drule BufSt_P_unfold [THEN iffD1], auto)
-lemma BufSt_P_d: "h:BufSt_P ==> h  \<currency>    \<cdot>(Md d\<leadsto>x) = h (Sd d)\<cdot>x"
+lemma BufSt_P_d: "h \<in> BufSt_P \<Longrightarrow> h  \<currency>    \<cdot>(Md d\<leadsto>x) = h (Sd d)\<cdot>x"
 by (drule BufSt_P_unfold [THEN iffD1], auto)
-lemma BufSt_P_d_req: "h:BufSt_P ==> \<exists>hh\<in>BufSt_P.
+lemma BufSt_P_d_req: "h \<in> BufSt_P ==> \<exists>hh\<in>BufSt_P.
                                           h (Sd d)\<cdot>(\<bullet>   \<leadsto>x) = d\<leadsto>(hh \<currency>    \<cdot>x)"
 by (drule BufSt_P_unfold [THEN iffD1], auto)
 

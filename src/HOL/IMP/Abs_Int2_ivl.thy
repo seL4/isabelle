@@ -229,7 +229,7 @@ begin
 definition uminus_rep :: "eint2 \<Rightarrow> eint2" where
 "uminus_rep p = (let (l,h) = p in (-h, -l))"
 
-lemma \<gamma>_uminus_rep: "i : \<gamma>_rep p \<Longrightarrow> -i \<in> \<gamma>_rep(uminus_rep p)"
+lemma \<gamma>_uminus_rep: "i \<in> \<gamma>_rep p \<Longrightarrow> -i \<in> \<gamma>_rep(uminus_rep p)"
 by(auto simp: uminus_rep_def \<gamma>_rep_def image_def uminus_le_Fin_iff Fin_uminus_le_iff
         split: prod.split)
 
@@ -240,7 +240,7 @@ by (auto simp: uminus_rep_def eq_ivl_def \<gamma>_rep_cases)
 instance ..
 end
 
-lemma \<gamma>_uminus: "i : \<gamma>_ivl iv \<Longrightarrow> -i \<in> \<gamma>_ivl(- iv)"
+lemma \<gamma>_uminus: "i \<in> \<gamma>_ivl iv \<Longrightarrow> -i \<in> \<gamma>_ivl(- iv)"
 by transfer (rule \<gamma>_uminus_rep)
 
 lemma uminus_nice: "-[l,h] = [-h,-l]"
@@ -276,7 +276,7 @@ by transfer
    (auto simp add: above_rep_def \<gamma>_rep_cases is_empty_rep_def
          split: extended.splits)
 
-lemma \<gamma>_belowI: "i : \<gamma>_ivl iv \<Longrightarrow> j \<le> i \<Longrightarrow> j : \<gamma>_ivl(below iv)"
+lemma \<gamma>_belowI: "i \<in> \<gamma>_ivl iv \<Longrightarrow> j \<le> i \<Longrightarrow> j \<in> \<gamma>_ivl(below iv)"
 by transfer 
    (auto simp add: below_rep_def \<gamma>_rep_cases is_empty_rep_def
          split: extended.splits)

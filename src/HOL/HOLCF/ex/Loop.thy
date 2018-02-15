@@ -75,7 +75,7 @@ done
 (* properties of while and iterations                                        *)
 (* ------------------------------------------------------------------------- *)
 
-lemma loop_lemma1: "\<lbrakk>EX y. b\<cdot>y = FF; iterate k\<cdot>(step\<cdot>b\<cdot>g)\<cdot>x = UU\<rbrakk>
+lemma loop_lemma1: "\<lbrakk>\<exists>y. b\<cdot>y = FF; iterate k\<cdot>(step\<cdot>b\<cdot>g)\<cdot>x = UU\<rbrakk>
      \<Longrightarrow> iterate(Suc k)\<cdot>(step\<cdot>b\<cdot>g)\<cdot>x = UU"
 apply (simp (no_asm))
 apply (rule trans)

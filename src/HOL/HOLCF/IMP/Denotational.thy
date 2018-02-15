@@ -11,9 +11,9 @@ subsection "Definition"
 
 definition
   dlift :: "(('a::type) discr -> 'b::pcpo) => ('a lift -> 'b)" where
-  "dlift f = (LAM x. case x of UU => UU | Def y => f\<cdot>(Discr y))"
+  "dlift f = (LAM x. case x of UU \<Rightarrow> UU | Def y \<Rightarrow> f\<cdot>(Discr y))"
 
-primrec D :: "com => state discr -> state lift"
+primrec D :: "com \<Rightarrow> state discr \<rightarrow> state lift"
 where
   "D(SKIP) = (LAM s. Def(undiscr s))"
 | "D(X ::= a) = (LAM s. Def((undiscr s)(X := aval a (undiscr s))))"
@@ -37,7 +37,7 @@ lemma dlift_is_Def [simp]:
     "(dlift f\<cdot>l = Def y) = (\<exists>x. l = Def x \<and> f\<cdot>(Discr x) = Def y)"
   by (simp add: dlift_def split: lift.split)
 
-lemma eval_implies_D: "(c,s) \<Rightarrow> t ==> D c\<cdot>(Discr s) = (Def t)"
+lemma eval_implies_D: "(c,s) \<Rightarrow> t \<Longrightarrow> D c\<cdot>(Discr s) = (Def t)"
 apply (induct rule: big_step_induct)
       apply (auto)
  apply (subst fix_eq)
@@ -46,7 +46,7 @@ apply (subst fix_eq)
 apply simp
 done
 
-lemma D_implies_eval: "!s t. D c\<cdot>(Discr s) = (Def t) --> (c,s) \<Rightarrow> t"
+lemma D_implies_eval: "\<forall>s t. D c\<cdot>(Discr s) = (Def t) \<longrightarrow> (c,s) \<Rightarrow> t"
 apply (induct c)
     apply fastforce
    apply fastforce

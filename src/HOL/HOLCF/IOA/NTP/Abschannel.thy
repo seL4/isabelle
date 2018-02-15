@@ -102,28 +102,28 @@ lemmas unfold_renaming =
   trans_of_def asig_projections
 
 lemma in_srch_asig: 
-     "S_msg(m) ~: actions(srch_asig)        &     
-       R_msg(m) ~: actions(srch_asig)        &     
-       S_pkt(pkt) : actions(srch_asig)    &     
-       R_pkt(pkt) : actions(srch_asig)    &     
-       S_ack(b) ~: actions(srch_asig)     &     
-       R_ack(b) ~: actions(srch_asig)     &     
-       C_m_s ~: actions(srch_asig)           &     
-       C_m_r ~: actions(srch_asig)           &     
-       C_r_s ~: actions(srch_asig)  & C_r_r(m) ~: actions(srch_asig)"
+     "S_msg(m) \<notin> actions(srch_asig)        \<and>
+       R_msg(m) \<notin> actions(srch_asig)        \<and>
+       S_pkt(pkt) \<in> actions(srch_asig)    \<and>
+       R_pkt(pkt) \<in> actions(srch_asig)    \<and>     
+       S_ack(b) \<notin> actions(srch_asig)     \<and>     
+       R_ack(b) \<notin> actions(srch_asig)     \<and>     
+       C_m_s \<notin> actions(srch_asig)           \<and>     
+       C_m_r \<notin> actions(srch_asig)           \<and>     
+       C_r_s \<notin> actions(srch_asig)  & C_r_r(m) \<notin> actions(srch_asig)"
   by (simp add: unfold_renaming)
 
 lemma in_rsch_asig: 
-      "S_msg(m) ~: actions(rsch_asig)         &  
-       R_msg(m) ~: actions(rsch_asig)         &  
-       S_pkt(pkt) ~: actions(rsch_asig)    &  
-       R_pkt(pkt) ~: actions(rsch_asig)    &  
-       S_ack(b) : actions(rsch_asig)       &  
-       R_ack(b) : actions(rsch_asig)       &  
-       C_m_s ~: actions(rsch_asig)            &  
-       C_m_r ~: actions(rsch_asig)            &  
-       C_r_s ~: actions(rsch_asig)            &  
-       C_r_r(m) ~: actions(rsch_asig)"
+      "S_msg(m) \<notin> actions(rsch_asig)         \<and>
+       R_msg(m) \<notin> actions(rsch_asig)         \<and>
+       S_pkt(pkt) \<notin> actions(rsch_asig)    \<and>
+       R_pkt(pkt) \<notin> actions(rsch_asig)    \<and>
+       S_ack(b) \<in> actions(rsch_asig)       \<and>
+       R_ack(b) \<in> actions(rsch_asig)       \<and>
+       C_m_s \<notin> actions(rsch_asig)            \<and>
+       C_m_r \<notin> actions(rsch_asig)            \<and>
+       C_r_s \<notin> actions(rsch_asig)            \<and>
+       C_r_r(m) \<notin> actions(rsch_asig)"
   by (simp add: unfold_renaming)
 
 lemma srch_ioa_thm: "srch_ioa =  

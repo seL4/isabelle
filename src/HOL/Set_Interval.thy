@@ -86,7 +86,7 @@ translations
 
 subsection \<open>Various equivalences\<close>
 
-lemma (in ord) lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
+lemma (in ord) lessThan_iff [iff]: "(i \<in> lessThan k) = (i<k)"
 by (simp add: lessThan_def)
 
 lemma Compl_lessThan [simp]:
@@ -97,7 +97,7 @@ done
 lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
 by auto
 
-lemma (in ord) greaterThan_iff [iff]: "(i: greaterThan k) = (k<i)"
+lemma (in ord) greaterThan_iff [iff]: "(i \<in> greaterThan k) = (k<i)"
 by (simp add: greaterThan_def)
 
 lemma Compl_greaterThan [simp]:
@@ -109,14 +109,14 @@ apply (subst Compl_greaterThan [symmetric])
 apply (rule double_complement)
 done
 
-lemma (in ord) atLeast_iff [iff]: "(i: atLeast k) = (k<=i)"
+lemma (in ord) atLeast_iff [iff]: "(i \<in> atLeast k) = (k<=i)"
 by (simp add: atLeast_def)
 
 lemma Compl_atLeast [simp]:
     "!!k:: 'a::linorder. -atLeast k = lessThan k"
   by (auto simp add: lessThan_def atLeast_def)
 
-lemma (in ord) atMost_iff [iff]: "(i: atMost k) = (i<=k)"
+lemma (in ord) atMost_iff [iff]: "(i \<in> atMost k) = (i<=k)"
 by (simp add: atMost_def)
 
 lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n Int atLeast n = {n}"
@@ -1084,8 +1084,7 @@ lemma finite_atLeastAtMost [iff]:
 by (simp add: atLeastAtMost_def)
 
 text \<open>A bounded set of natural numbers is finite.\<close>
-lemma bounded_nat_set_is_finite:
-  "(ALL i:N. i < (n::nat)) ==> finite N"
+lemma bounded_nat_set_is_finite: "(\<forall>i\<in>N. i < (n::nat)) \<Longrightarrow> finite N"
 apply (rule finite_subset)
  apply (rule_tac [2] finite_lessThan, auto)
 done
@@ -1153,11 +1152,11 @@ subsubsection \<open>Proving Inclusions and Equalities between Unions\<close>
 lemma UN_le_eq_Un0:
   "(\<Union>i\<le>n::nat. M i) = (\<Union>i\<in>{1..n}. M i) \<union> M 0" (is "?A = ?B")
 proof
-  show "?A <= ?B"
+  show "?A \<subseteq> ?B"
   proof
-    fix x assume "x : ?A"
-    then obtain i where i: "i\<le>n" "x : M i" by auto
-    show "x : ?B"
+    fix x assume "x \<in> ?A"
+    then obtain i where i: "i\<le>n" "x \<in> M i" by auto
+    show "x \<in> ?B"
     proof(cases i)
       case 0 with i show ?thesis by simp
     next
@@ -1165,18 +1164,18 @@ proof
     qed
   qed
 next
-  show "?B <= ?A" by fastforce
+  show "?B \<subseteq> ?A" by fastforce
 qed
 
 lemma UN_le_add_shift:
   "(\<Union>i\<le>n::nat. M(i+k)) = (\<Union>i\<in>{k..n+k}. M i)" (is "?A = ?B")
 proof
-  show "?A <= ?B" by fastforce
+  show "?A \<subseteq> ?B" by fastforce
 next
-  show "?B <= ?A"
+  show "?B \<subseteq> ?A"
   proof
-    fix x assume "x : ?B"
-    then obtain i where i: "i : {k..n+k}" "x : M(i)" by auto
+    fix x assume "x \<in> ?B"
+    then obtain i where i: "i \<in> {k..n+k}" "x \<in> M(i)" by auto
     hence "i-k\<le>n \<and> x \<in> M((i-k)+k)" by auto
     thus "x \<in> ?A" by blast
   qed
@@ -1731,7 +1730,7 @@ special form for @{term"{..<n}"}.\<close>
 
 text\<open>This congruence rule should be used for sums over intervals as
 the standard theorem @{text[source]sum.cong} does not work well
-with the simplifier who adds the unsimplified premise @{term"x:B"} to
+with the simplifier who adds the unsimplified premise @{term"x\<in>B"} to
 the context.\<close>
 
 lemmas sum_ivl_cong = sum.ivl_cong

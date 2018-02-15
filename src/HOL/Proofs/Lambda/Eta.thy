@@ -27,11 +27,11 @@ where
 
 abbreviation
   eta_reds :: "[dB, dB] => bool"   (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>*" 50) where
-  "s \<rightarrow>\<^sub>\<eta>\<^sup>* t == eta^** s t"
+  "s \<rightarrow>\<^sub>\<eta>\<^sup>* t == eta\<^sup>*\<^sup>* s t"
 
 abbreviation
   eta_red0 :: "[dB, dB] => bool"   (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>=" 50) where
-  "s \<rightarrow>\<^sub>\<eta>\<^sup>= t == eta^== s t"
+  "s \<rightarrow>\<^sub>\<eta>\<^sup>= t == eta\<^sup>=\<^sup>= s t"
 
 inductive_cases eta_cases [elim!]:
   "Abs s \<rightarrow>\<^sub>\<eta> z"
@@ -79,7 +79,7 @@ theorem lift_subst_dummy: "\<not> free s i \<Longrightarrow> lift (s[dummy/i]) i
 
 subsection \<open>Confluence of \<open>eta\<close>\<close>
 
-lemma square_eta: "square eta eta (eta^==) (eta^==)"
+lemma square_eta: "square eta eta (eta\<^sup>=\<^sup>=) (eta\<^sup>=\<^sup>=)"
   apply (unfold square_def id_def)
   apply (rule impI [THEN allI [THEN allI]])
   apply (erule eta.induct)
@@ -148,7 +148,7 @@ lemma rtrancl_eta_subst'':
   shows "u[s/i] \<rightarrow>\<^sub>\<eta>\<^sup>* u[t/i]" using eta
   by induct (iprover intro: rtrancl_eta_subst rtranclp_trans)+
 
-lemma square_beta_eta: "square beta eta (eta^**) (beta^==)"
+lemma square_beta_eta: "square beta eta (eta\<^sup>*\<^sup>*) (beta\<^sup>=\<^sup>=)"
   apply (unfold square_def)
   apply (rule impI [THEN allI [THEN allI]])
   apply (erule beta.induct)

@@ -74,7 +74,7 @@ lemma abelian_groupI:
     and a_comm:
       "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y = y \<oplus> x"
     and l_zero: "!!x. x \<in> carrier R ==> \<zero> \<oplus> x = x"
-    and l_inv_ex: "!!x. x \<in> carrier R ==> EX y : carrier R. y \<oplus> x = \<zero>"
+    and l_inv_ex: "\<And>x. x \<in> carrier R \<Longrightarrow> \<exists>y \<in> carrier R. y \<oplus> x = \<zero>"
   shows "abelian_group R"
   by (auto intro!: abelian_group.intro abelian_monoidI
       abelian_group_axioms.intro comm_monoidI comm_groupI

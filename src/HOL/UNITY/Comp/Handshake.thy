@@ -47,7 +47,7 @@ declare F_def [THEN def_prg_Init, simp]
         invFG_def [THEN def_set_simp, simp]
 
 
-lemma invFG: "(F \<squnion> G) : Always invFG"
+lemma invFG: "(F \<squnion> G) \<in> Always invFG"
 apply (rule AlwaysI)
 apply force
 apply (rule constrains_imp_Constrains [THEN StableI])
@@ -56,21 +56,21 @@ apply auto
 apply (unfold G_def, safety) 
 done
 
-lemma lemma2_1: "(F \<squnion> G) : ({s. NF s = k} - {s. BB s}) LeadsTo  
+lemma lemma2_1: "(F \<squnion> G) \<in> ({s. NF s = k} - {s. BB s}) LeadsTo  
                               ({s. NF s = k} Int {s. BB s})"
 apply (rule stable_Join_ensures1[THEN leadsTo_Basis, THEN leadsTo_imp_LeadsTo])
  apply (unfold F_def, safety) 
 apply (unfold G_def, ensures_tac "cmdG") 
 done
 
-lemma lemma2_2: "(F \<squnion> G) : ({s. NF s = k} Int {s. BB s}) LeadsTo 
+lemma lemma2_2: "(F \<squnion> G) \<in> ({s. NF s = k} Int {s. BB s}) LeadsTo 
                               {s. k < NF s}"
 apply (rule stable_Join_ensures2[THEN leadsTo_Basis, THEN leadsTo_imp_LeadsTo])
  apply (unfold F_def, ensures_tac "cmdF") 
 apply (unfold G_def, safety) 
 done
 
-lemma progress: "(F \<squnion> G) : UNIV LeadsTo {s. m < NF s}"
+lemma progress: "(F \<squnion> G) \<in> UNIV LeadsTo {s. m < NF s}"
 apply (rule LeadsTo_weaken_R)
 apply (rule_tac f = "NF" and l = "Suc m" and B = "{}" 
        in GreaterThan_bounded_induct)

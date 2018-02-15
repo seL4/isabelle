@@ -687,7 +687,7 @@ apply (rule subset_image_iff)
 done
 
 lemma weaken: 
- "G,(A::'a triple set)|\<turnstile>(ts'::'a triple set) \<Longrightarrow> !ts. ts \<subseteq> ts' \<longrightarrow> G,A|\<turnstile>ts"
+ "G,(A::'a triple set)|\<turnstile>(ts'::'a triple set) \<Longrightarrow> \<forall>ts. ts \<subseteq> ts' \<longrightarrow> G,A|\<turnstile>ts"
 apply (erule ax_derivs.induct)
 (*42 subgoals*)
 apply       (tactic "ALLGOALS (strip_tac @{context})")

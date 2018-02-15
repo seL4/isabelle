@@ -346,8 +346,8 @@ lemma lots_of_logic_expansions_meta [rule_format]:
   "(((A :: bool) = B) = True) == (((A \<longrightarrow> B) = True) & ((B \<longrightarrow> A) = True))"
   "((A :: bool) = B) = False == (((~A) | B) = False) | (((~B) | A) = False)"
 
-  "((F = G) = True) == (! x. (F x = G x)) = True"
-  "((F = G) = False) == (! x. (F x = G x)) = False"
+  "((F = G) = True) == (\<forall>x. (F x = G x)) = True"
+  "((F = G) = False) == (\<forall>x. (F x = G x)) = False"
 
   "(A | B) = True == (A = True) | (B = True)"
   "(A & B) = False == (A = False) | (B = False)"
@@ -403,7 +403,7 @@ lemma dec_commut_disj [rule_format]:
   "((A \<or> B) = (C \<or> D)) = False \<Longrightarrow> (B = C) = False \<or> (A = D) = False"
 by auto
 
-lemma extuni_func [rule_format]: "(F = G) = False \<Longrightarrow> (! X. (F X = G X)) = False" by auto
+lemma extuni_func [rule_format]: "(F = G) = False \<Longrightarrow> (\<forall>X. (F X = G X)) = False" by auto
 
 
 subsection "Emulation: tactics"
@@ -482,18 +482,18 @@ fun flip_conclusion_tac ctxt =
 subsection "Skolemisation"
 
 lemma skolemise [rule_format]:
-  "\<forall> P. (~ (! x. P x)) \<longrightarrow> ~ (P (SOME x. ~ P x))"
+  "\<forall> P. (\<not> (\<forall>x. P x)) \<longrightarrow> \<not> (P (SOME x. ~ P x))"
 proof -
-  have "\<And> P. (~ (! x. P x)) \<Longrightarrow> ~ (P (SOME x. ~ P x))"
+  have "\<And> P. (\<not> (\<forall>x. P x)) \<Longrightarrow> \<not> (P (SOME x. ~ P x))"
   proof -
     fix P
-    assume ption: "~ (! x. P x)"
-    hence a: "? x. ~ P x" by force
+    assume ption: "\<not> (\<forall>x. P x)"
+    hence a: "\<exists>x. \<not> P x" by force
 
-    have hilbert : "\<And> P. (? x. P x) \<Longrightarrow> (P (SOME x. P x))"
+    have hilbert : "\<And>P. (\<exists>x. P x) \<Longrightarrow> (P (SOME x. P x))"
     proof -
       fix P
-      assume "(? x. P x)"
+      assume "(\<exists>x. P x)"
       thus "(P (SOME x. P x))"
         apply auto
         apply (rule someI)
@@ -501,9 +501,9 @@ proof -
         done
     qed
 
-    from a show "~ P (SOME x. ~ P x)"
+    from a show "\<not> P (SOME x. \<not> P x)"
     proof -
-      assume "? x. ~ P x"
+      assume "\<exists>x. \<not> P x"
       hence "\<not> P (SOME x. \<not> P x)" by (rule hilbert)
       thus ?thesis .
     qed
@@ -512,13 +512,13 @@ proof -
 qed
 
 lemma polar_skolemise [rule_format]:
-  "\<forall> P. (! x. P x) = False \<longrightarrow> (P (SOME x. ~ P x)) = False"
+  "\<forall>P. (\<forall>x. P x) = False \<longrightarrow> (P (SOME x. \<not> P x)) = False"
 proof -
-  have "\<And> P. (! x. P x) = False \<Longrightarrow> (P (SOME x. ~ P x)) = False"
+  have "\<And>P. (\<forall>x. P x) = False \<Longrightarrow> (P (SOME x. \<not> P x)) = False"
   proof -
     fix P
-    assume ption: "(! x. P x) = False"
-    hence "\<not> (\<forall> x. P x)" by force
+    assume ption: "(\<forall>x. P x) = False"
+    hence "\<not> (\<forall>x. P x)" by force
     hence "\<not> All P" by force
     hence "\<not> (P (SOME x. \<not> P x))" by (rule skolemise)
     thus "(P (SOME x. \<not> P x)) = False" by force
@@ -527,12 +527,12 @@ proof -
 qed
 
 lemma leo2_skolemise [rule_format]:
-  "\<forall> P sk. (! x. P x) = False \<longrightarrow> (sk = (SOME x. ~ P x)) \<longrightarrow> (P sk) = False"
+  "\<forall>P sk. (\<forall>x. P x) = False \<longrightarrow> (sk = (SOME x. \<not> P x)) \<longrightarrow> (P sk) = False"
 by (clarify, rule polar_skolemise)
 
 lemma lift_forall [rule_format]:
-  "!! x. (! x. A x) = True ==> (A x) = True"
-  "!! x. (? x. A x) = False ==> (A x) = False"
+  "\<And>x. (\<forall>x. A x) = True \<Longrightarrow> (A x) = True"
+  "\<And>x. (\<exists>x. A x) = False \<Longrightarrow> (A x) = False"
 by auto
 lemma lift_exists [rule_format]:
   "\<lbrakk>(All P) = False; sk = (SOME x. \<not> P x)\<rbrakk> \<Longrightarrow> P sk = False"
@@ -975,7 +975,7 @@ fun ex_expander_tac ctxt i =
    let
      val simpset =
        empty_simpset ctxt (*NOTE for some reason, Bind exception gets raised if ctxt's simpset isn't emptied*)
-       |> Simplifier.add_simp @{lemma "Ex P == (~ (! x. ~ P x))" by auto}
+       |> Simplifier.add_simp @{lemma "Ex P == (\<not> (\<forall>x. \<not> P x))" by auto}
    in
      CHANGED (asm_full_simp_tac simpset i)
    end
@@ -1541,7 +1541,7 @@ fun forall_tac ctxt feats =
 subsubsection "Finite types"
 (*lift quantification from a singleton literal to a singleton clause*)
 lemma forall_pos_lift:
-"\<lbrakk>(! X. P X) = True; ! X. (P X = True) \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R" by auto
+"\<lbrakk>(\<forall>X. P X) = True; \<forall>X. (P X = True) \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R" by auto
 
 (*predicate over the type of the leading quantified variable*)
 
@@ -1750,10 +1750,10 @@ fun remove_redundant_quantification_ignore_skolems ctxt i =
 \<close>
 
 lemma drop_redundant_literal_qtfr:
-  "(! X. P) = True \<Longrightarrow> P = True"
-  "(? X. P) = True \<Longrightarrow> P = True"
-  "(! X. P) = False \<Longrightarrow> P = False"
-  "(? X. P) = False \<Longrightarrow> P = False"
+  "(\<forall>X. P) = True \<Longrightarrow> P = True"
+  "(\<exists>X. P) = True \<Longrightarrow> P = True"
+  "(\<forall>X. P) = False \<Longrightarrow> P = False"
+  "(\<exists>X. P) = False \<Longrightarrow> P = False"
 by auto
 
 ML \<open>
@@ -1952,11 +1952,11 @@ fun unfold_def_tac ctxt depends_on_defs = fn st =>
 subsection "Handling split 'preprocessing'"
 
 lemma split_tranfs:
-  "! x. P x & Q x \<equiv> (! x. P x) & (! x. Q x)"
-  "~ (~ A) \<equiv> A"
-  "? x. A \<equiv> A"
-  "(A & B) & C \<equiv> A & B & C"
-  "A = B \<equiv> (A --> B) & (B --> A)"
+  "\<forall>x. P x \<and> Q x \<equiv> (\<forall>x. P x) \<and> (\<forall>x. Q x)"
+  "\<not> (\<not> A) \<equiv> A"
+  "\<exists>x. A \<equiv> A"
+  "(A \<and> B) \<and> C \<equiv> A \<and> B \<and> C"
+  "A = B \<equiv> (A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
 by (rule eq_reflection, auto)+
 
 (*Same idiom as ex_expander_tac*)

@@ -20,25 +20,25 @@ abbreviation
 subsubsection\<open>agent associated to a key\<close>
 
 definition agt :: "key => agent" where
-"agt K == @A. K = shrK A"
+"agt K == SOME A. K = shrK A"
 
 lemma agt_shrK [simp]: "agt (shrK A) = A"
 by (simp add: agt_def)
 
 subsubsection\<open>basic facts about @{term initState}\<close>
 
-lemma no_Crypt_in_parts_init [simp]: "Crypt K X ~:parts (initState A)"
+lemma no_Crypt_in_parts_init [simp]: "Crypt K X \<notin> parts (initState A)"
 by (cases A, auto simp: initState.simps)
 
-lemma no_Crypt_in_analz_init [simp]: "Crypt K X ~:analz (initState A)"
+lemma no_Crypt_in_analz_init [simp]: "Crypt K X \<notin> analz (initState A)"
 by auto
 
-lemma no_shrK_in_analz_init [simp]: "A ~:bad
-==> Key (shrK A) ~:analz (initState Spy)"
+lemma no_shrK_in_analz_init [simp]: "A \<notin> bad
+\<Longrightarrow> Key (shrK A) \<notin> analz (initState Spy)"
 by (auto simp: initState.simps)
 
-lemma shrK_notin_initState_Friend [simp]: "A ~= Friend C
-==> Key (shrK A) ~: parts (initState (Friend C))"
+lemma shrK_notin_initState_Friend [simp]: "A \<noteq> Friend C
+\<Longrightarrow> Key (shrK A) \<notin> parts (initState (Friend C))"
 by (auto simp: initState.simps)
 
 lemma keyset_init [iff]: "keyset (initState A)"
@@ -47,9 +47,9 @@ by (cases A, auto simp: keyset_def initState.simps)
 subsubsection\<open>sets of symmetric keys\<close>
 
 definition shrK_set :: "key set => bool" where
-"shrK_set Ks == ALL K. K:Ks --> (EX A. K = shrK A)"
+"shrK_set Ks \<equiv> \<forall>K. K \<in> Ks \<longrightarrow> (\<exists>A. K = shrK A)"
 
-lemma in_shrK_set: "[| shrK_set Ks; K:Ks |] ==> EX A. K = shrK A"
+lemma in_shrK_set: "[| shrK_set Ks; K \<in> Ks |] ==> \<exists>A. K = shrK A"
 by (simp add: shrK_set_def)
 
 lemma shrK_set1 [iff]: "shrK_set {shrK A}"
@@ -60,16 +60,16 @@ by (simp add: shrK_set_def)
 
 subsubsection\<open>sets of good keys\<close>
 
-definition good :: "key set => bool" where
-"good Ks == ALL K. K:Ks --> agt K ~:bad"
+definition good :: "key set \<Rightarrow> bool" where
+"good Ks \<equiv> \<forall>K. K \<in> Ks \<longrightarrow> agt K \<notin> bad"
 
-lemma in_good: "[| good Ks; K:Ks |] ==> agt K ~:bad"
+lemma in_good: "[| good Ks; K \<in> Ks |] ==> agt K \<notin> bad"
 by (simp add: good_def)
 
-lemma good1 [simp]: "A ~:bad ==> good {shrK A}"
+lemma good1 [simp]: "A \<notin> bad \<Longrightarrow> good {shrK A}"
 by (simp add: good_def)
 
-lemma good2 [simp]: "[| A ~:bad; B ~:bad |] ==> good {shrK A, shrK B}"
+lemma good2 [simp]: "[| A \<notin> bad; B \<notin> bad |] ==> good {shrK A, shrK B}"
 by (simp add: good_def)
 
 
@@ -84,16 +84,16 @@ lemmas shrK_is_invKey_shrK_substI = shrK_is_invKey_shrK [THEN ssubst]
 
 lemmas invKey_invKey_substI = invKey [THEN ssubst]
 
-lemma "Nonce n:parts {X} ==> Crypt (shrK A) X:guard n {shrK A}"
+lemma "Nonce n \<in> parts {X} \<Longrightarrow> Crypt (shrK A) X \<in> guard n {shrK A}"
 apply (rule shrK_is_invKey_shrK_substI, rule invKey_invKey_substI)
 by (rule Guard_Nonce, simp+)
 
 subsubsection\<open>guardedness results on nonces\<close>
 
-lemma guard_ciph [simp]: "shrK A:Ks ==> Ciph A X:guard n Ks"
+lemma guard_ciph [simp]: "shrK A \<in> Ks \<Longrightarrow> Ciph A X \<in> guard n Ks"
 by (rule Guard_Nonce, simp)
 
-lemma guardK_ciph [simp]: "shrK A:Ks ==> Ciph A X:guardK n Ks"
+lemma guardK_ciph [simp]: "shrK A \<in> Ks \<Longrightarrow> Ciph A X \<in> guardK n Ks"
 by (rule Guard_Key, simp)
 
 lemma Guard_init [iff]: "Guard n Ks (initState B)"
@@ -103,45 +103,45 @@ lemma Guard_knows_max': "Guard n Ks (knows_max' C evs)
 ==> Guard n Ks (knows_max C evs)"
 by (simp add: knows_max_def)
 
-lemma Nonce_not_used_Guard_spies [dest]: "Nonce n ~:used evs
-==> Guard n Ks (spies evs)"
+lemma Nonce_not_used_Guard_spies [dest]: "Nonce n \<notin> used evs
+\<Longrightarrow> Guard n Ks (spies evs)"
 by (auto simp: Guard_def dest: not_used_not_known parts_sub)
 
-lemma Nonce_not_used_Guard [dest]: "[| evs:p; Nonce n ~:used evs;
+lemma Nonce_not_used_Guard [dest]: "[| evs \<in> p; Nonce n \<notin> used evs;
 Gets_correct p; one_step p |] ==> Guard n Ks (knows (Friend C) evs)"
 by (auto simp: Guard_def dest: known_used parts_trans)
 
-lemma Nonce_not_used_Guard_max [dest]: "[| evs:p; Nonce n ~:used evs;
+lemma Nonce_not_used_Guard_max [dest]: "[| evs \<in> p; Nonce n \<notin> used evs;
 Gets_correct p; one_step p |] ==> Guard n Ks (knows_max (Friend C) evs)"
 by (auto simp: Guard_def dest: known_max_used parts_trans)
 
-lemma Nonce_not_used_Guard_max' [dest]: "[| evs:p; Nonce n ~:used evs;
+lemma Nonce_not_used_Guard_max' [dest]: "[| evs \<in> p; Nonce n \<notin> used evs;
 Gets_correct p; one_step p |] ==> Guard n Ks (knows_max' (Friend C) evs)"
 apply (rule_tac H="knows_max (Friend C) evs" in Guard_mono)
 by (auto simp: knows_max_def)
 
 subsubsection\<open>guardedness results on keys\<close>
 
-lemma GuardK_init [simp]: "n ~:range shrK ==> GuardK n Ks (initState B)"
+lemma GuardK_init [simp]: "n \<notin> range shrK \<Longrightarrow> GuardK n Ks (initState B)"
 by (induct B, auto simp: GuardK_def initState.simps)
 
-lemma GuardK_knows_max': "[| GuardK n A (knows_max' C evs); n ~:range shrK |]
+lemma GuardK_knows_max': "[| GuardK n A (knows_max' C evs); n \<notin> range shrK |]
 ==> GuardK n A (knows_max C evs)"
 by (simp add: knows_max_def)
 
-lemma Key_not_used_GuardK_spies [dest]: "Key n ~:used evs
-==> GuardK n A (spies evs)"
+lemma Key_not_used_GuardK_spies [dest]: "Key n \<notin> used evs
+\<Longrightarrow> GuardK n A (spies evs)"
 by (auto simp: GuardK_def dest: not_used_not_known parts_sub)
 
-lemma Key_not_used_GuardK [dest]: "[| evs:p; Key n ~:used evs;
+lemma Key_not_used_GuardK [dest]: "[| evs \<in> p; Key n \<notin> used evs;
 Gets_correct p; one_step p |] ==> GuardK n A (knows (Friend C) evs)"
 by (auto simp: GuardK_def dest: known_used parts_trans)
 
-lemma Key_not_used_GuardK_max [dest]: "[| evs:p; Key n ~:used evs;
+lemma Key_not_used_GuardK_max [dest]: "[| evs \<in> p; Key n \<notin> used evs;
 Gets_correct p; one_step p |] ==> GuardK n A (knows_max (Friend C) evs)"
 by (auto simp: GuardK_def dest: known_max_used parts_trans)
 
-lemma Key_not_used_GuardK_max' [dest]: "[| evs:p; Key n ~:used evs;
+lemma Key_not_used_GuardK_max' [dest]: "[| evs \<in> p; Key n \<notin> used evs;
 Gets_correct p; one_step p |] ==> GuardK n A (knows_max' (Friend C) evs)"
 apply (rule_tac H="knows_max (Friend C) evs" in GuardK_mono)
 by (auto simp: knows_max_def)
@@ -149,18 +149,18 @@ by (auto simp: knows_max_def)
 subsubsection\<open>regular protocols\<close>
 
 definition regular :: "event list set => bool" where
-"regular p == ALL evs A. evs:p --> (Key (shrK A):parts (spies evs)) = (A:bad)"
+"regular p \<equiv> \<forall>evs A. evs \<in> p \<longrightarrow> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
 
-lemma shrK_parts_iff_bad [simp]: "[| evs:p; regular p |] ==>
-(Key (shrK A):parts (spies evs)) = (A:bad)"
+lemma shrK_parts_iff_bad [simp]: "[| evs \<in> p; regular p |] ==>
+(Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
 by (auto simp: regular_def)
 
-lemma shrK_analz_iff_bad [simp]: "[| evs:p; regular p |] ==>
-(Key (shrK A):analz (spies evs)) = (A:bad)"
+lemma shrK_analz_iff_bad [simp]: "[| evs \<in> p; regular p |] ==>
+(Key (shrK A) \<in> analz (spies evs)) = (A \<in> bad)"
 by auto
 
-lemma Guard_Nonce_analz: "[| Guard n Ks (spies evs); evs:p;
-shrK_set Ks; good Ks; regular p |] ==> Nonce n ~:analz (spies evs)"
+lemma Guard_Nonce_analz: "[| Guard n Ks (spies evs); evs \<in> p;
+shrK_set Ks; good Ks; regular p |] ==> Nonce n \<notin> analz (spies evs)"
 apply (clarify, simp only: knows_decomp)
 apply (drule Guard_invKey_keyset, simp+, safe)
 apply (drule in_good, simp)

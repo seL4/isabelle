@@ -137,7 +137,7 @@ lemma
    (\<exists>ys x zs. xs = ys @ x # zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
 by (metis split_list_last_prop[where P = P] in_set_conv_decomp)
 
-lemma ex_tl: "EX ys. tl ys = xs"
+lemma ex_tl: "\<exists>ys. tl ys = xs"
 using list.sel(3) by fast
 
 lemma "(\<exists>ys::nat list. tl ys = xs) \<and> (\<exists>bs::int list. tl bs = as)"

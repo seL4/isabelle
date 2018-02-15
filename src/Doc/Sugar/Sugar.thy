@@ -55,7 +55,7 @@ typically in \texttt{root.tex}. For a start, you should
 
 \subsection{Logic}
 
-The formula @{prop[source]"\<not>(\<exists>x. P x)"} is typeset as @{prop"~(EX x. P x)"}.
+The formula @{prop[source]"\<not>(\<exists>x. P x)"} is typeset as @{prop"\<not>(\<exists>x. P x)"}.
 
 The predefined constructs @{text"if"}, @{text"let"} and
 @{text"case"} are set in sans serif font to distinguish them from

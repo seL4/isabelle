@@ -284,7 +284,7 @@ lemma UP_l_zero [simp]:
 
 lemma UP_l_neg_ex:
   assumes R: "p \<in> carrier P"
-  shows "EX q : carrier P. q \<oplus>\<^bsub>P\<^esub> p = \<zero>\<^bsub>P\<^esub>"
+  shows "\<exists>q \<in> carrier P. q \<oplus>\<^bsub>P\<^esub> p = \<zero>\<^bsub>P\<^esub>"
 proof -
   let ?q = "\<lambda>i. \<ominus> (p i)"
   from R have closed: "?q \<in> carrier P"

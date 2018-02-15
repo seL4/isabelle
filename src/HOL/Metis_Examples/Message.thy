@@ -84,7 +84,7 @@ apply (erule parts.induct)
 by (metis parts.Body)
 
 text\<open>Equations hold because constructors are injective.\<close>
-lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x:A)"
+lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x\<in>A)"
 by (metis agent.inject image_iff)
 
 lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x \<in> A)"
@@ -324,7 +324,7 @@ inductive_set
   | Fst:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> X \<in> analz H"
   | Snd:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> Y \<in> analz H"
   | Decrypt [dest]:
-             "[|Crypt K X \<in> analz H; Key(invKey K): analz H|] ==> X \<in> analz H"
+             "[|Crypt K X \<in> analz H; Key(invKey K) \<in> analz H|] ==> X \<in> analz H"
 
 
 text\<open>Monotonicity; Lemma 1 of Lowe's paper\<close>
@@ -723,7 +723,7 @@ proof -
 qed
 
 lemma Fake_parts_insert_in_Un:
-     "[|Z \<in> parts (insert X H);  X: synth (analz H)|]
+     "[|Z \<in> parts (insert X H);  X \<in> synth (analz H)|]
       ==> Z \<in>  synth (analz H) \<union> parts H"
 by (blast dest: Fake_parts_insert [THEN subsetD, dest])
 

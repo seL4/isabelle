@@ -14,7 +14,7 @@ argument, the accumulator. Define\<close>
 
 text\<open>\noindent and prove\<close>
 (*<*)
-lemma [simp]: "!xs. flatten2 t xs = flatten t @ xs"
+lemma [simp]: "\<forall>xs. flatten2 t xs = flatten t @ xs"
 apply(induct_tac t)
 by(auto)
 (*>*)

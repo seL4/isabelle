@@ -41,34 +41,34 @@ quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
 
 lemma
-  "x > 2 --> (\<exists>y :: nat. x < y & y <= 2)"
+  "x > 2 \<longrightarrow> (\<exists>y :: nat. x < y \<and> y \<le> 2)"
 quickcheck[tester = narrowing, finite_types = false, size = 10]
 oops
 
 lemma
-  "\<forall> x. \<exists> y :: nat. x > 3 --> (y < x & y > 3)"
+  "\<forall>x. \<exists>y :: nat. x > 3 \<longrightarrow> (y < x \<and> y > 3)"
 quickcheck[tester = narrowing, finite_types = false, size = 7]
 oops
 
 text \<open>A false conjecture derived from an partial copy-n-paste of @{thm not_distinct_decomp}\<close>
 lemma
-  "~ distinct ws ==> EX xs ys zs y. ws = xs @ [y] @ ys @ [y]"
+  "\<not> distinct ws \<Longrightarrow> \<exists>xs ys zs y. ws = xs @ [y] @ ys @ [y]"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
 text \<open>A false conjecture derived from theorems @{thm split_list_first} and @{thm split_list_last}\<close>  
 lemma
-  "x : set xs ==> EX ys zs. xs = ys @ x # zs & x ~: set zs & x ~: set ys"
+  "x \<in> set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs \<and> x \<notin> set ys"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
 text \<open>A false conjecture derived from @{thm map_eq_Cons_conv} with a typo\<close>
 lemma
-  "(map f xs = y # ys) = (EX z zs. xs = z' # zs & f z = y & map f zs = ys)"
+  "(map f xs = y # ys) = (\<exists>z zs. xs = z' # zs & f z = y \<and> map f zs = ys)"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
-lemma "a # xs = ys @ [a] ==> EX zs. xs = zs @ [a] & ys = a#zs"
+lemma "a # xs = ys @ [a] \<Longrightarrow> \<exists>zs. xs = zs @ [a] \<and> ys = a#zs"
 quickcheck[narrowing, expect = counterexample]
 quickcheck[exhaustive, random, expect = no_counterexample]
 oops
@@ -216,7 +216,7 @@ lemma set_of':
 by (induct t) auto
 
 lemma is_ord_mkt:
-  "is_ord (MKT n l r h) = ((ALL n': set (set_of' l). n' < n) & (ALL n': set (set_of' r). n < n') & is_ord l & is_ord r)"
+  "is_ord (MKT n l r h) = ((\<forall>n' \<in> set (set_of' l). n' < n) \<and> (\<forall>n' \<in> set (set_of' r). n < n') \<and> is_ord l \<and> is_ord r)"
 by (simp add: set_of')
 
 declare is_ord.simps(1)[code] is_ord_mkt[code]

@@ -24,7 +24,7 @@ definition Rprg :: "state program"
   where "Rprg = mk_total_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
 
 definition reach_invariant :: "state set"
-  where "reach_invariant = {s. (\<forall>v. s v --> (init, v) \<in> edges^*) & s init}"
+  where "reach_invariant = {s. (\<forall>v. s v --> (init, v) \<in> edges\<^sup>*) & s init}"
 
 definition fixedpoint :: "state set"
   where "fixedpoint = {s. \<forall>(u,v)\<in>edges. s u --> s v}"
@@ -68,7 +68,7 @@ done
 
 (*If it reaches a fixedpoint, it has found a solution*)
 lemma fixedpoint_invariant_correct: 
-     "fixedpoint \<inter> reach_invariant = { %v. (init, v) \<in> edges^* }"
+     "fixedpoint \<inter> reach_invariant = { %v. (init, v) \<in> edges\<^sup>* }"
 apply (unfold fixedpoint_def)
 apply (rule equalityI)
 apply (auto intro!: ext)
@@ -152,7 +152,7 @@ apply (rule LessThan_induct, auto)
 apply (rule LeadsTo_Un_fixedpoint)
 done
 
-lemma LeadsTo_correct: "Rprg \<in> UNIV LeadsTo { %v. (init, v) \<in> edges^* }"
+lemma LeadsTo_correct: "Rprg \<in> UNIV LeadsTo { %v. (init, v) \<in> edges\<^sup>* }"
 apply (subst fixedpoint_invariant_correct [symmetric])
 apply (rule Always_LeadsTo_weaken [OF reach_invariant LeadsTo_fixedpoint], auto)
 done

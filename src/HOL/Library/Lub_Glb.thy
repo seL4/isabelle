@@ -11,24 +11,24 @@ begin
 text \<open>Thanks to suggestions by James Margetson\<close>
 
 definition setle :: "'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"  (infixl "*<=" 70)
-  where "S *<= x = (ALL y: S. y \<le> x)"
+  where "S *<= x = (\<forall>y\<in>S. y \<le> x)"
 
 definition setge :: "'a::ord \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "<=*" 70)
-  where "x <=* S = (ALL y: S. x \<le> y)"
+  where "x <=* S = (\<forall>y\<in>S. x \<le> y)"
 
 
 subsection \<open>Rules for the Relations \<open>*<=\<close> and \<open><=*\<close>\<close>
 
-lemma setleI: "ALL y: S. y \<le> x \<Longrightarrow> S *<= x"
+lemma setleI: "\<forall>y\<in>S. y \<le> x \<Longrightarrow> S *<= x"
   by (simp add: setle_def)
 
-lemma setleD: "S *<= x \<Longrightarrow> y: S \<Longrightarrow> y \<le> x"
+lemma setleD: "S *<= x \<Longrightarrow> y\<in>S \<Longrightarrow> y \<le> x"
   by (simp add: setle_def)
 
-lemma setgeI: "ALL y: S. x \<le> y \<Longrightarrow> x <=* S"
+lemma setgeI: "\<forall>y\<in>S. x \<le> y \<Longrightarrow> x <=* S"
   by (simp add: setge_def)
 
-lemma setgeD: "x <=* S \<Longrightarrow> y: S \<Longrightarrow> x \<le> y"
+lemma setgeD: "x <=* S \<Longrightarrow> y\<in>S \<Longrightarrow> x \<le> y"
   by (simp add: setge_def)
 
 
@@ -36,7 +36,7 @@ definition leastP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a::ord \<Rightarrow
   where "leastP P x = (P x \<and> x <=* Collect P)"
 
 definition isUb :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"
-  where "isUb R S x = (S *<= x \<and> x: R)"
+  where "isUb R S x = (S *<= x \<and> x \<in> R)"
 
 definition isLub :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"
   where "isLub R S x = leastP (isUb R S) x"
@@ -53,19 +53,19 @@ lemma leastPD1: "leastP P x \<Longrightarrow> P x"
 lemma leastPD2: "leastP P x \<Longrightarrow> x <=* Collect P"
   by (simp add: leastP_def)
 
-lemma leastPD3: "leastP P x \<Longrightarrow> y: Collect P \<Longrightarrow> x \<le> y"
+lemma leastPD3: "leastP P x \<Longrightarrow> y \<in> Collect P \<Longrightarrow> x \<le> y"
   by (blast dest!: leastPD2 setgeD)
 
 lemma isLubD1: "isLub R S x \<Longrightarrow> S *<= x"
   by (simp add: isLub_def isUb_def leastP_def)
 
-lemma isLubD1a: "isLub R S x \<Longrightarrow> x: R"
+lemma isLubD1a: "isLub R S x \<Longrightarrow> x \<in> R"
   by (simp add: isLub_def isUb_def leastP_def)
 
 lemma isLub_isUb: "isLub R S x \<Longrightarrow> isUb R S x"
   unfolding isUb_def by (blast dest: isLubD1 isLubD1a)
 
-lemma isLubD2: "isLub R S x \<Longrightarrow> y : S \<Longrightarrow> y \<le> x"
+lemma isLubD2: "isLub R S x \<Longrightarrow> y \<in> S \<Longrightarrow> y \<le> x"
   by (blast dest!: isLubD1 setleD)
 
 lemma isLubD3: "isLub R S x \<Longrightarrow> leastP (isUb R S) x"
@@ -77,16 +77,16 @@ lemma isLubI1: "leastP(isUb R S) x \<Longrightarrow> isLub R S x"
 lemma isLubI2: "isUb R S x \<Longrightarrow> x <=* Collect (isUb R S) \<Longrightarrow> isLub R S x"
   by (simp add: isLub_def leastP_def)
 
-lemma isUbD: "isUb R S x \<Longrightarrow> y : S \<Longrightarrow> y \<le> x"
+lemma isUbD: "isUb R S x \<Longrightarrow> y \<in> S \<Longrightarrow> y \<le> x"
   by (simp add: isUb_def setle_def)
 
 lemma isUbD2: "isUb R S x \<Longrightarrow> S *<= x"
   by (simp add: isUb_def)
 
-lemma isUbD2a: "isUb R S x \<Longrightarrow> x: R"
+lemma isUbD2a: "isUb R S x \<Longrightarrow> x \<in> R"
   by (simp add: isUb_def)
 
-lemma isUbI: "S *<= x \<Longrightarrow> x: R \<Longrightarrow> isUb R S x"
+lemma isUbI: "S *<= x \<Longrightarrow> x \<in> R \<Longrightarrow> isUb R S x"
   by (simp add: isUb_def)
 
 lemma isLub_le_isUb: "isLub R S x \<Longrightarrow> isUb R S y \<Longrightarrow> x \<le> y"
@@ -109,7 +109,7 @@ definition greatestP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a::ord \<Rightar
   where "greatestP P x = (P x \<and> Collect P *<=  x)"
 
 definition isLb :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"
-  where "isLb R S x = (x <=* S \<and> x: R)"
+  where "isLb R S x = (x <=* S \<and> x \<in> R)"
 
 definition isGlb :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"
   where "isGlb R S x = greatestP (isLb R S) x"
@@ -126,19 +126,19 @@ lemma greatestPD1: "greatestP P x \<Longrightarrow> P x"
 lemma greatestPD2: "greatestP P x \<Longrightarrow> Collect P *<= x"
   by (simp add: greatestP_def)
 
-lemma greatestPD3: "greatestP P x \<Longrightarrow> y: Collect P \<Longrightarrow> x \<ge> y"
+lemma greatestPD3: "greatestP P x \<Longrightarrow> y \<in> Collect P \<Longrightarrow> x \<ge> y"
   by (blast dest!: greatestPD2 setleD)
 
 lemma isGlbD1: "isGlb R S x \<Longrightarrow> x <=* S"
   by (simp add: isGlb_def isLb_def greatestP_def)
 
-lemma isGlbD1a: "isGlb R S x \<Longrightarrow> x: R"
+lemma isGlbD1a: "isGlb R S x \<Longrightarrow> x \<in> R"
   by (simp add: isGlb_def isLb_def greatestP_def)
 
 lemma isGlb_isLb: "isGlb R S x \<Longrightarrow> isLb R S x"
   unfolding isLb_def by (blast dest: isGlbD1 isGlbD1a)
 
-lemma isGlbD2: "isGlb R S x \<Longrightarrow> y : S \<Longrightarrow> y \<ge> x"
+lemma isGlbD2: "isGlb R S x \<Longrightarrow> y \<in> S \<Longrightarrow> y \<ge> x"
   by (blast dest!: isGlbD1 setgeD)
 
 lemma isGlbD3: "isGlb R S x \<Longrightarrow> greatestP (isLb R S) x"
@@ -150,16 +150,16 @@ lemma isGlbI1: "greatestP (isLb R S) x \<Longrightarrow> isGlb R S x"
 lemma isGlbI2: "isLb R S x \<Longrightarrow> Collect (isLb R S) *<= x \<Longrightarrow> isGlb R S x"
   by (simp add: isGlb_def greatestP_def)
 
-lemma isLbD: "isLb R S x \<Longrightarrow> y : S \<Longrightarrow> y \<ge> x"
+lemma isLbD: "isLb R S x \<Longrightarrow> y \<in> S \<Longrightarrow> y \<ge> x"
   by (simp add: isLb_def setge_def)
 
 lemma isLbD2: "isLb R S x \<Longrightarrow> x <=* S "
   by (simp add: isLb_def)
 
-lemma isLbD2a: "isLb R S x \<Longrightarrow> x: R"
+lemma isLbD2a: "isLb R S x \<Longrightarrow> x \<in> R"
   by (simp add: isLb_def)
 
-lemma isLbI: "x <=* S \<Longrightarrow> x: R \<Longrightarrow> isLb R S x"
+lemma isLbI: "x <=* S \<Longrightarrow> x \<in> R \<Longrightarrow> isLb R S x"
   by (simp add: isLb_def)
 
 lemma isGlb_le_isLb: "isGlb R S x \<Longrightarrow> isLb R S y \<Longrightarrow> x \<ge> y"

@@ -144,7 +144,7 @@ lemma inv_into_f_f [simp]: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightar
 lemma inv_f_f: "inj f \<Longrightarrow> inv f (f x) = x"
   by simp
 
-lemma f_inv_into_f: "y : f`A \<Longrightarrow> f (inv_into A f y) = y"
+lemma f_inv_into_f: "y \<in> f`A \<Longrightarrow> f (inv_into A f y) = y"
   by (simp add: inv_into_def) (fast intro: someI2)
 
 lemma inv_into_f_eq: "inj_on f A \<Longrightarrow> x \<in> A \<Longrightarrow> f x = y \<Longrightarrow> inv_into A f y = x"

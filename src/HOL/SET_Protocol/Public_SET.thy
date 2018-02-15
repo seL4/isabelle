@@ -20,7 +20,7 @@ text\<open>definitions influenced by the wish to assign asymmetric keys
 text\<open>The SET specs mention two signature keys for CAs - we only have one\<close>
 
 consts
-  publicKey :: "[bool, agent] => key"
+  publicKey :: "[bool, agent] \<Rightarrow> key"
     \<comment> \<open>the boolean is TRUE if a signing key\<close>
 
 abbreviation "pubEK == publicKey False"
@@ -35,7 +35,7 @@ text\<open>By freeness of agents, no two agents have the same key. Since
 
 specification (publicKey)
   injective_publicKey:
-    "publicKey b A = publicKey c A' ==> b=c & A=A'"
+    "publicKey b A = publicKey c A' \<Longrightarrow> b=c \<and> A=A'"
 (*<*)
    apply (rule exI [of _ "%b A. 2 * nat_of_agent A + (if b then 1 else 0)"]) 
    apply (auto simp add: inj_on_def inj_nat_of_agent [THEN inj_eq] split: agent.split) 
@@ -72,8 +72,8 @@ primrec initState where
 (*<*)
   initState_CA:
     "initState (CA i)  =
-       (if i=0 then Key ` ({priEK RCA, priSK RCA} Un
-                            pubEK ` (range CA) Un pubSK ` (range CA))
+       (if i=0 then Key ` ({priEK RCA, priSK RCA} \<union>
+                            pubEK ` (range CA) \<union> pubSK ` (range CA))
         else {Key (priEK (CA i)), Key (priSK (CA i)),
               Key (pubEK (CA i)), Key (pubSK (CA i)),
               Key (pubEK RCA), Key (pubSK RCA)})"
@@ -97,16 +97,16 @@ primrec initState where
         Key (pubEK RCA), Key (pubSK RCA)}"
 (*>*)
 | initState_Spy:
-    "initState Spy = Key ` (invKey ` pubEK ` bad Un
-                            invKey ` pubSK ` bad Un
-                            range pubEK Un range pubSK)"
+    "initState Spy = Key ` (invKey ` pubEK ` bad \<union>
+                            invKey ` pubSK ` bad \<union>
+                            range pubEK \<union> range pubSK)"
 
 end
 
 
 text\<open>Injective mapping from agents to PANs: an agent can have only one card\<close>
 
-consts  pan :: "agent => nat"
+consts  pan :: "agent \<Rightarrow> nat"
 
 specification (pan)
   inj_pan: "inj pan"
@@ -120,24 +120,24 @@ specification (pan)
 declare inj_pan [THEN inj_eq, iff]
 
 consts
-  XOR :: "nat*nat => nat"  \<comment> \<open>no properties are assumed of exclusive-or\<close>
+  XOR :: "nat*nat \<Rightarrow> nat"  \<comment> \<open>no properties are assumed of exclusive-or\<close>
 
 
 subsection\<open>Signature Primitives\<close>
 
 definition
  (* Signature = Message + signed Digest *)
-  sign :: "[key, msg]=>msg"
+  sign :: "[key, msg]\<Rightarrow>msg"
   where "sign K X = \<lbrace>X, Crypt K (Hash X) \<rbrace>"
 
 definition
  (* Signature Only = signed Digest Only *)
-  signOnly :: "[key, msg]=>msg"
+  signOnly :: "[key, msg]\<Rightarrow>msg"
   where "signOnly K X = Crypt K (Hash X)"
 
 definition
  (* Signature for Certificates = Message + signed Message *)
-  signCert :: "[key, msg]=>msg"
+  signCert :: "[key, msg]\<Rightarrow>msg"
   where "signCert K X = \<lbrace>X, Crypt K X \<rbrace>"
 
 definition
@@ -148,7 +148,7 @@ definition
     Should prove if signK=priSK RCA and C=CA i,
                   then Ka=pubEK i or pubSK i depending on T  ??
  *)
-  cert :: "[agent, key, msg, key] => msg"
+  cert :: "[agent, key, msg, key] \<Rightarrow> msg"
   where "cert A Ka T signK = signCert signK \<lbrace>Agent A, Key Ka, T\<rbrace>"
 
 definition
@@ -156,7 +156,7 @@ definition
     Contains a PAN, the certified key Ka, the PANSecret PS,
     a number specifying the target use for Ka, the signing key signK.
  *)
-  certC :: "[nat, key, nat, msg, key] => msg"
+  certC :: "[nat, key, nat, msg, key] \<Rightarrow> msg"
   where "certC PAN Ka PS T signK =
     signCert signK \<lbrace>Hash \<lbrace>Nonce PS, Pan PAN\<rbrace>, Key Ka, T\<rbrace>"
 
@@ -169,19 +169,19 @@ abbreviation "authCode == Number (Suc (Suc 0))"
 
 subsection\<open>Encryption Primitives\<close>
 
-definition EXcrypt :: "[key,key,msg,msg] => msg" where
+definition EXcrypt :: "[key,key,msg,msg] \<Rightarrow> msg" where
   \<comment> \<open>Extra Encryption\<close>
     (*K: the symmetric key   EK: the public encryption key*)
     "EXcrypt K EK M m =
        \<lbrace>Crypt K \<lbrace>M, Hash m\<rbrace>, Crypt EK \<lbrace>Key K, m\<rbrace>\<rbrace>"
 
-definition EXHcrypt :: "[key,key,msg,msg] => msg" where
+definition EXHcrypt :: "[key,key,msg,msg] \<Rightarrow> msg" where
   \<comment> \<open>Extra Encryption with Hashing\<close>
     (*K: the symmetric key   EK: the public encryption key*)
     "EXHcrypt K EK M m =
        \<lbrace>Crypt K \<lbrace>M, Hash m\<rbrace>, Crypt EK \<lbrace>Key K, m, Hash M\<rbrace>\<rbrace>"
 
-definition Enc :: "[key,key,key,msg] => msg" where
+definition Enc :: "[key,key,key,msg] \<Rightarrow> msg" where
   \<comment> \<open>Simple Encapsulation with SIGNATURE\<close>
     (*SK: the sender's signing key
       K: the symmetric key
@@ -189,7 +189,7 @@ definition Enc :: "[key,key,key,msg] => msg" where
     "Enc SK K EK M =
        \<lbrace>Crypt K (sign SK M), Crypt EK (Key K)\<rbrace>"
 
-definition EncB :: "[key,key,key,msg,msg] => msg" where
+definition EncB :: "[key,key,key,msg,msg] \<Rightarrow> msg" where
   \<comment> \<open>Encapsulation with Baggage.  Keys as above, and baggage b.\<close>
     "EncB SK K EK M b =
        \<lbrace>Enc SK K EK \<lbrace>M, Hash b\<rbrace>, b\<rbrace>"
@@ -198,11 +198,11 @@ definition EncB :: "[key,key,key,msg,msg] => msg" where
 subsection\<open>Basic Properties of pubEK, pubSK, priEK and priSK\<close>
 
 lemma publicKey_eq_iff [iff]:
-     "(publicKey b A = publicKey b' A') = (b=b' & A=A')"
+     "(publicKey b A = publicKey b' A') = (b=b' \<and> A=A')"
 by (blast dest: injective_publicKey)
 
 lemma privateKey_eq_iff [iff]:
-     "(invKey (publicKey b A) = invKey (publicKey b' A')) = (b=b' & A=A')"
+     "(invKey (publicKey b A) = invKey (publicKey b' A')) = (b=b' \<and> A=A')"
 by auto
 
 lemma not_symKeys_publicKey [iff]: "publicKey b A \<notin> symKeys"
@@ -211,28 +211,28 @@ by (simp add: symKeys_def)
 lemma not_symKeys_privateKey [iff]: "invKey (publicKey b A) \<notin> symKeys"
 by (simp add: symKeys_def)
 
-lemma symKeys_invKey_eq [simp]: "K \<in> symKeys ==> invKey K = K"
+lemma symKeys_invKey_eq [simp]: "K \<in> symKeys \<Longrightarrow> invKey K = K"
 by (simp add: symKeys_def)
 
 lemma symKeys_invKey_iff [simp]: "(invKey K \<in> symKeys) = (K \<in> symKeys)"
 by (unfold symKeys_def, auto)
 
 text\<open>Can be slow (or even loop) as a simprule\<close>
-lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) ==> K \<noteq> K'"
+lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) \<Longrightarrow> K \<noteq> K'"
 by blast
 
 text\<open>These alternatives to \<open>symKeys_neq_imp_neq\<close> don't seem any better
 in practice.\<close>
-lemma publicKey_neq_symKey: "K \<in> symKeys ==> publicKey b A \<noteq> K"
+lemma publicKey_neq_symKey: "K \<in> symKeys \<Longrightarrow> publicKey b A \<noteq> K"
 by blast
 
-lemma symKey_neq_publicKey: "K \<in> symKeys ==> K \<noteq> publicKey b A"
+lemma symKey_neq_publicKey: "K \<in> symKeys \<Longrightarrow> K \<noteq> publicKey b A"
 by blast
 
-lemma privateKey_neq_symKey: "K \<in> symKeys ==> invKey (publicKey b A) \<noteq> K"
+lemma privateKey_neq_symKey: "K \<in> symKeys \<Longrightarrow> invKey (publicKey b A) \<noteq> K"
 by blast
 
-lemma symKey_neq_privateKey: "K \<in> symKeys ==> K \<noteq> invKey (publicKey b A)"
+lemma symKey_neq_privateKey: "K \<in> symKeys \<Longrightarrow> K \<noteq> invKey (publicKey b A)"
 by blast
 
 lemma analz_symKeys_Decrypt:
@@ -248,11 +248,11 @@ by auto
 
 text\<open>holds because invKey is injective\<close>
 lemma publicKey_image_eq [iff]:
-     "(publicKey b A \<in> publicKey c ` AS) = (b=c & A\<in>AS)"
+     "(publicKey b A \<in> publicKey c ` AS) = (b=c \<and> A\<in>AS)"
 by auto
 
 lemma privateKey_image_eq [iff]:
-     "(invKey (publicKey b A) \<in> invKey ` publicKey c ` AS) = (b=c & A\<in>AS)"
+     "(invKey (publicKey b A) \<in> invKey ` publicKey c ` AS) = (b=c \<and> A\<in>AS)"
 by auto
 
 lemma privateKey_notin_image_publicKey [iff]:
@@ -308,7 +308,7 @@ declare knows_Spy_pubEK_i [THEN analz.Inj, iff]
 
 text\<open>Spy sees private keys of bad agents! [and obviously public keys too]\<close>
 lemma knows_Spy_bad_privateKey [intro!]:
-     "A \<in> bad ==> Key (invKey (publicKey b A)) \<in> knows Spy evs"
+     "A \<in> bad \<Longrightarrow> Key (invKey (publicKey b A)) \<in> knows Spy evs"
 by (rule initState_subset_knows [THEN subsetD], simp)
 
 
@@ -321,7 +321,7 @@ lemma Nonce_notin_used_empty [simp]: "Nonce N \<notin> used []"
 by (simp add: used_Nil)
 
 text\<open>In any trace, there is an upper bound N on the greatest nonce in use.\<close>
-lemma Nonce_supply_lemma: "\<exists>N. \<forall>n. N<=n --> Nonce n \<notin> used evs"
+lemma Nonce_supply_lemma: "\<exists>N. \<forall>n. N\<le>n \<longrightarrow> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
 apply (simp_all add: used_Cons split: event.split, safe)
@@ -331,7 +331,7 @@ done
 lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
 by (rule Nonce_supply_lemma [THEN exE], blast)
 
-lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
+lemma Nonce_supply: "Nonce (SOME N. Nonce N \<notin> used evs) \<notin> used evs"
 apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, fast)
 done
@@ -369,11 +369,11 @@ method_setup basic_possibility = \<open>
 
 subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
 
-lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} Un H"
+lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
 by blast
 
 lemma insert_Key_image:
-     "insert (Key K) (Key`KK Un C) = Key ` (insert K KK) Un C"
+     "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK) \<union> C"
 by blast
 
 text\<open>Needed for \<open>DK_fresh_not_KeyCryptKey\<close>\<close>
@@ -398,16 +398,16 @@ subsection\<open>Controlled Unfolding of Abbreviations\<close>
 
 text\<open>A set is expanded only if a relation is applied to it\<close>
 lemma def_abbrev_simp_relation:
-     "A = B ==> (A \<in> X) = (B \<in> X) &  
-                 (u = A) = (u = B) &  
+     "A = B \<Longrightarrow> (A \<in> X) = (B \<in> X) \<and>  
+                 (u = A) = (u = B) \<and>  
                  (A = u) = (B = u)"
 by auto
 
 text\<open>A set is expanded only if one of the given functions is applied to it\<close>
 lemma def_abbrev_simp_function:
      "A = B  
-      ==> parts (insert A X) = parts (insert B X) &  
-          analz (insert A X) = analz (insert B X) &  
+      \<Longrightarrow> parts (insert A X) = parts (insert B X) \<and>  
+          analz (insert A X) = analz (insert B X) \<and>  
           keysFor (insert A X) = keysFor (insert B X)"
 by auto
 
@@ -516,7 +516,7 @@ lemma Crypt_notin_image_Key: "Crypt K X \<notin> Key ` KK"
 by auto
 
 lemma fresh_notin_analz_knows_Spy:
-     "Key K \<notin> used evs ==> Key K \<notin> analz (knows Spy evs)"
+     "Key K \<notin> used evs \<Longrightarrow> Key K \<notin> analz (knows Spy evs)"
 by (auto dest: analz_into_parts)
 
 end

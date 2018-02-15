@@ -300,9 +300,9 @@ text\<open>Now it dawns on us that we do not need the list witness at all --- it
 suffices to talk about reachability, i.e.\ we can use relations directly.\<close>
 
 lemma "VARS tl p
-  {(p,X) \<in> {(x,y). y = tl x & x \<noteq> Null}^*}
+  {(p,X) \<in> {(x,y). y = tl x & x \<noteq> Null}\<^sup>*}
   WHILE p \<noteq> Null \<and> p \<noteq> X
-  INV {(p,X) \<in> {(x,y). y = tl x & x \<noteq> Null}^*}
+  INV {(p,X) \<in> {(x,y). y = tl x & x \<noteq> Null}\<^sup>*}
   DO p := p^.tl OD
   {p = X}"
 apply vcg_simp
@@ -337,7 +337,7 @@ lemma "VARS hd tl p q r s
  THEN r := p; p := p^.tl ELSE r := q; q := q^.tl FI;
  s := r;
  WHILE p \<noteq> Null \<or> q \<noteq> Null
- INV {EX rs ps qs. Path tl r rs s \<and> List tl p ps \<and> List tl q qs \<and>
+ INV {\<exists>rs ps qs. Path tl r rs s \<and> List tl p ps \<and> List tl q qs \<and>
       distinct(s # ps @ qs @ rs) \<and> s \<noteq> Null \<and>
       merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
       rs @ s # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>

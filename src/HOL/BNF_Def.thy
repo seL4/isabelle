@@ -105,16 +105,16 @@ definition csquare where
 lemma eq_alt: "(=) = Grp UNIV id"
   unfolding Grp_def by auto
 
-lemma leq_conversepI: "R = (=) \<Longrightarrow> R \<le> R^--1"
+lemma leq_conversepI: "R = (=) \<Longrightarrow> R \<le> R\<inverse>\<inverse>"
   by auto
 
 lemma leq_OOI: "R = (=) \<Longrightarrow> R \<le> R OO R"
   by auto
 
-lemma OO_Grp_alt: "(Grp A f)^--1 OO Grp A g = (\<lambda>x y. \<exists>z. z \<in> A \<and> f z = x \<and> g z = y)"
+lemma OO_Grp_alt: "(Grp A f)\<inverse>\<inverse> OO Grp A g = (\<lambda>x y. \<exists>z. z \<in> A \<and> f z = x \<and> g z = y)"
   unfolding Grp_def by auto
 
-lemma Grp_UNIV_id: "f = id \<Longrightarrow> (Grp UNIV f)^--1 OO Grp UNIV f = Grp UNIV f"
+lemma Grp_UNIV_id: "f = id \<Longrightarrow> (Grp UNIV f)\<inverse>\<inverse> OO Grp UNIV f = Grp UNIV f"
   unfolding Grp_def by auto
 
 lemma Grp_UNIV_idI: "x = y \<Longrightarrow> Grp UNIV id x y"
@@ -171,7 +171,7 @@ lemma snd_fst_flip: "snd xy = (fst \<circ> (%(x, y). (y, x))) xy"
 lemma fst_snd_flip: "fst xy = (snd \<circ> (%(x, y). (y, x))) xy"
   by (simp split: prod.split)
 
-lemma flip_pred: "A \<subseteq> Collect (case_prod (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (case_prod R)"
+lemma flip_pred: "A \<subseteq> Collect (case_prod (R \<inverse>\<inverse>)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (case_prod R)"
   by auto
 
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"

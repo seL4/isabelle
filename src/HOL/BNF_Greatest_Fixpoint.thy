@@ -31,7 +31,7 @@ lemma not_TrueE: "\<not> True \<Longrightarrow> P"
 lemma neq_eq_eq_contradict: "\<lbrakk>t \<noteq> u; s = t; s = u\<rbrakk> \<Longrightarrow> P"
   by fast
 
-lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
+lemma converse_Times: "(A \<times> B)\<inverse> = B \<times> A"
   by fast
 
 lemma equiv_proj:
@@ -56,7 +56,7 @@ lemma image2_eqI: "\<lbrakk>b = f x; c = g x; x \<in> A\<rbrakk> \<Longrightarro
 lemma IdD: "(a, b) \<in> Id \<Longrightarrow> a = b"
   by auto
 
-lemma image2_Gr: "image2 A f g = (Gr A f)^-1 O (Gr A g)"
+lemma image2_Gr: "image2 A f g = (Gr A f)\<inverse> O (Gr A g)"
   unfolding image2_def Gr_def by auto
 
 lemma GrD1: "(x, fx) \<in> Gr A f \<Longrightarrow> x \<in> A"
@@ -99,10 +99,10 @@ definition relInvImage where
   "relInvImage A R f \<equiv> {(a1, a2) | a1 a2. a1 \<in> A \<and> a2 \<in> A \<and> (f a1, f a2) \<in> R}"
 
 lemma relImage_Gr:
-  "\<lbrakk>R \<subseteq> A \<times> A\<rbrakk> \<Longrightarrow> relImage R f = (Gr A f)^-1 O R O Gr A f"
+  "\<lbrakk>R \<subseteq> A \<times> A\<rbrakk> \<Longrightarrow> relImage R f = (Gr A f)\<inverse> O R O Gr A f"
   unfolding relImage_def Gr_def relcomp_def by auto
 
-lemma relInvImage_Gr: "\<lbrakk>R \<subseteq> B \<times> B\<rbrakk> \<Longrightarrow> relInvImage A R f = Gr A f O R O (Gr A f)^-1"
+lemma relInvImage_Gr: "\<lbrakk>R \<subseteq> B \<times> B\<rbrakk> \<Longrightarrow> relInvImage A R f = Gr A f O R O (Gr A f)\<inverse>"
   unfolding Gr_def relcomp_def image_def relInvImage_def by auto
 
 lemma relImage_mono:

@@ -461,11 +461,11 @@ abbreviation
 
 abbreviation
   subclseq_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70) 
-  where "G\<turnstile>C \<preceq>\<^sub>C D == (C,D) \<in>(subcls1 G)^*" (* cf. 8.1.3 *)
+  where "G\<turnstile>C \<preceq>\<^sub>C D == (C,D) \<in>(subcls1 G)\<^sup>*" (* cf. 8.1.3 *)
 
 abbreviation
   subcls_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
-  where "G\<turnstile>C \<prec>\<^sub>C D == (C,D) \<in>(subcls1 G)^+"
+  where "G\<turnstile>C \<prec>\<^sub>C D == (C,D) \<in>(subcls1 G)\<^sup>+"
 
 notation (ASCII)
   subcls1_syntax  ("_|-_<:C1_" [71,71,71] 70) and
@@ -520,11 +520,11 @@ subsubsection "well-structured programs"
 
 definition
   ws_idecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname list \<Rightarrow> bool"
-  where "ws_idecl G I si = (\<forall>J\<in>set si.  is_iface G J   \<and> (J,I)\<notin>(subint1 G)^+)"
+  where "ws_idecl G I si = (\<forall>J\<in>set si.  is_iface G J   \<and> (J,I)\<notin>(subint1 G)\<^sup>+)"
   
 definition
   ws_cdecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
-  where "ws_cdecl G C sc = (C\<noteq>Object \<longrightarrow> is_class G sc \<and> (sc,C)\<notin>(subcls1 G)^+)"
+  where "ws_cdecl G C sc = (C\<noteq>Object \<longrightarrow> is_class G sc \<and> (sc,C)\<notin>(subcls1 G)\<^sup>+)"
   
 definition
   ws_prog  :: "prog \<Rightarrow> bool" where
@@ -534,9 +534,9 @@ definition
 
 lemma ws_progI: 
 "\<lbrakk>\<forall>(I,i)\<in>set (ifaces G). \<forall>J\<in>set (isuperIfs i). is_iface G J \<and> 
-                                                (J,I) \<notin> (subint1 G)^+; 
+                                                (J,I) \<notin> (subint1 G)\<^sup>+; 
   \<forall>(C,c)\<in>set (classes G). C\<noteq>Object \<longrightarrow> is_class G (super c) \<and> 
-                                        ((super c),C) \<notin> (subcls1 G)^+  
+                                        ((super c),C) \<notin> (subcls1 G)\<^sup>+  
  \<rbrakk> \<Longrightarrow> ws_prog G"
 apply (unfold ws_prog_def ws_idecl_def ws_cdecl_def)
 apply (erule_tac conjI)
@@ -545,7 +545,7 @@ done
 
 lemma ws_prog_ideclD: 
 "\<lbrakk>iface G I = Some i; J\<in>set (isuperIfs i); ws_prog G\<rbrakk> \<Longrightarrow>  
-  is_iface G J \<and> (J,I)\<notin>(subint1 G)^+"
+  is_iface G J \<and> (J,I)\<notin>(subint1 G)\<^sup>+"
 apply (unfold ws_prog_def ws_idecl_def)
 apply clarify
 apply (drule_tac map_of_SomeD)
@@ -554,7 +554,7 @@ done
 
 lemma ws_prog_cdeclD: 
 "\<lbrakk>class G C = Some c; C\<noteq>Object; ws_prog G\<rbrakk> \<Longrightarrow>  
-  is_class G (super c) \<and> (super c,C)\<notin>(subcls1 G)^+"
+  is_class G (super c) \<and> (super c,C)\<notin>(subcls1 G)\<^sup>+"
 apply (unfold ws_prog_def ws_cdecl_def)
 apply clarify
 apply (drule_tac map_of_SomeD)
@@ -590,12 +590,12 @@ apply  auto
 done
 
 lemma subint1_irrefl_lemma1: 
-  "ws_prog G \<Longrightarrow> (subint1 G)^-1 \<inter> (subint1 G)^+ = {}"
+  "ws_prog G \<Longrightarrow> (subint1 G)\<inverse> \<inter> (subint1 G)\<^sup>+ = {}"
 apply (force dest: subint1D ws_prog_ideclD conjunct2)
 done
 
 lemma subcls1_irrefl_lemma1: 
-  "ws_prog G \<Longrightarrow> (subcls1 G)^-1 \<inter> (subcls1 G)^+ = {}"
+  "ws_prog G \<Longrightarrow> (subcls1 G)\<inverse> \<inter> (subcls1 G)\<^sup>+ = {}"
 apply (force dest: subcls1D ws_prog_cdeclD conjunct2)
 done
 
@@ -778,7 +778,7 @@ where
                       else undefined)"
 by auto
 termination
-by (relation "inv_image (same_fst ws_prog (\<lambda>G. (subint1 G)^-1)) (%(x,y,z). (x,y))")
+by (relation "inv_image (same_fst ws_prog (\<lambda>G. (subint1 G)\<inverse>)) (%(x,y,z). (x,y))")
  (auto simp: wf_subint1 subint1I wf_same_fst)
 
 lemma iface_rec: 
@@ -803,7 +803,7 @@ where
 
 by auto
 termination
-by (relation "inv_image (same_fst ws_prog (\<lambda>G. (subcls1 G)^-1)) (%(x,y,z,w). (x,y))")
+by (relation "inv_image (same_fst ws_prog (\<lambda>G. (subcls1 G)\<inverse>)) (%(x,y,z,w). (x,y))")
  (auto simp: wf_subcls1 subcls1I wf_same_fst)
 
 lemma class_rec: "\<lbrakk>class G C = Some c; ws_prog G\<rbrakk> \<Longrightarrow>  

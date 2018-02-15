@@ -24,9 +24,9 @@ inductive_set
 definition
   sexp_case :: "['a=>'b, nat=>'b, ['a item, 'a item]=>'b, 
                 'a item] => 'b" where
-  "sexp_case c d e M = (THE z. (EX x.   M=Leaf(x) & z=c(x))  
-                             | (EX k.   M=Numb(k) & z=d(k))  
-                             | (EX N1 N2. M = Scons N1 N2  & z=e N1 N2))"
+  "sexp_case c d e M = (THE z. (\<exists>x.   M=Leaf(x) & z=c(x))  
+                             | (\<exists>k.   M=Numb(k) & z=d(k))  
+                             | (\<exists>N1 N2. M = Scons N1 N2  & z=e N1 N2))"
 
 definition
   pred_sexp :: "('a item * 'a item)set" where

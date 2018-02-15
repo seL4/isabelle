@@ -185,7 +185,7 @@ lemma ForallAorB_mksch [rule_format]:
   apply simp
   apply (rule Forall_Conc_impl [THEN mp])
   apply (simp add: intA_is_not_actB int_is_act)
-  apply (case_tac "a:act B")
+  apply (case_tac "a\<in>act B")
   text \<open>\<open>a \<notin> A\<close>, \<open>a \<in> B\<close>\<close>
   apply simp
   apply (rule Forall_Conc_impl [THEN mp])
@@ -604,7 +604,7 @@ lemma FilterAmksch_is_schA:
   apply (frule_tac y = "y2" in sym [THEN eq_imp_below, THEN divide_Seq])
   apply (erule conjE)+
   text \<open>assumption \<open>schA\<close>\<close>
-  apply (drule_tac x = "schA" and g = "Filter (%a. a:act A) \<cdot>rs" in subst_lemma2)
+  apply (drule_tac x = "schA" and g = "Filter (\<lambda>a. a\<in>act A) \<cdot>rs" in subst_lemma2)
   apply assumption
   apply (simp add: int_is_not_ext)
 
@@ -841,10 +841,10 @@ lemma FilterBmksch_is_schB:
   apply (simp add: intA_is_not_actB int_is_not_ext)
 
   text \<open>conclusions concerning \<open>LastActExtsch\<close>, cannot be rewritten, as \<open>LastActExtsmalli\<close> are looping\<close>
-  apply (drule_tac sch = "schB" and P = "%a. a:int B" in LastActExtsmall1)
+  apply (drule_tac sch = "schB" and P = "\<lambda>a. a\<in>int B" in LastActExtsmall1)
   apply (frule_tac ?sch1.0 = "x1" in LastActExtsmall2)
   apply assumption
-  apply (drule_tac sch = "x2" and P = "%a. a:int A" in LastActExtsmall1)
+  apply (drule_tac sch = "x2" and P = "\<lambda>a. a\<in>int A" in LastActExtsmall1)
 
   text \<open>assumption \<open>Forall schA\<close>, and \<open>Forall schA\<close> are performed by \<open>ForallTL\<close>, \<open>ForallDropwhile\<close>\<close>
   apply (simp add: ForallTL ForallDropwhile)

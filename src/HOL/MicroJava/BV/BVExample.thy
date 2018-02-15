@@ -433,7 +433,7 @@ proof -
 qed
 
 definition some_elem :: "'a set \<Rightarrow> 'a" where [code del]:
-  "some_elem = (%S. SOME x. x : S)"
+  "some_elem = (\<lambda>S. SOME x. x \<in> S)"
 code_printing
   constant some_elem \<rightharpoonup> (SML) "(case/ _ of/ Set/ xs/ =>/ hd/ xs)"
 
@@ -486,4 +486,3 @@ ML_val \<open>
 \<close>
 
 end
-

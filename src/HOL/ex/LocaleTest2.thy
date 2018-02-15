@@ -43,7 +43,7 @@ definition
   where "(x \<sqsubset> y) = (x \<sqsubseteq> y & x ~= y)"
 
 theorem abs_test:
-  "(\<sqsubset>) = (%x y. x \<sqsubset> y)"
+  "(\<sqsubset>) = (\<lambda>x y. x \<sqsubset> y)"
   by simp
 
 definition
@@ -57,8 +57,8 @@ definition
 end
 
 locale dlat = dpo +
-  assumes ex_inf: "EX inf. dpo.is_inf le x y inf"
-    and ex_sup: "EX sup. dpo.is_sup le x y sup"
+  assumes ex_inf: "\<exists>inf. dpo.is_inf le x y inf"
+    and ex_sup: "\<exists>sup. dpo.is_sup le x y sup"
 
 begin
 
@@ -436,11 +436,11 @@ sublocale dlo < dlat
 proof
   fix x y
   from total have "is_inf x y (if x \<sqsubseteq> y then x else y)" by (auto simp: is_inf_def)
-  then show "EX inf. is_inf x y inf" by blast
+  then show "\<exists>inf. is_inf x y inf" by blast
 next
   fix x y
   from total have "is_sup x y (if x \<sqsubseteq> y then y else x)" by (auto simp: is_sup_def)
-  then show "EX sup. is_sup x y sup" by blast
+  then show "\<exists>sup. is_sup x y sup" by blast
 qed
 
 sublocale dlo < ddlat
@@ -644,7 +644,7 @@ begin
 definition
   inv where "inv x = (THE y. x ** y = one & y ** x = one)"
 definition
-  unit where "unit x = (EX y. x ** y = one  & y ** x = one)"
+  unit where "unit x = (\<exists>y. x ** y = one  & y ** x = one)"
 
 lemma inv_unique:
   assumes eq: "y ** x = one" "x ** y' = one"
@@ -872,7 +872,7 @@ proof -
     then
     have inv: "f o Hilbert_Choice.inv f = id & Hilbert_Choice.inv f o f = id"
       by (simp add: bij_def surj_iff inj_iff)
-    show "EX g. f o g = id & g o f = id" by rule (rule inv)
+    show "\<exists>g. f \<circ> g = id \<and> g \<circ> f = id" by rule (rule inv)
   qed
 qed
 
@@ -896,7 +896,7 @@ apply (unfold Dmonoid.unit_def [OF Dmonoid])
 apply (insert unit_id)
 apply simp
 done
-  show "Dmonoid.inv (o) id f = inv (f :: unit => unit)"
+  show "Dmonoid.inv (o) id f = inv (f :: unit \<Rightarrow> unit)"
 apply (unfold Dmonoid.inv_def [OF Dmonoid])
 apply (insert unit_id)
 apply simp

@@ -50,20 +50,20 @@ subsection\<open>definition of the protocol\<close>
 inductive_set ya :: "event list set"
 where
 
-  Nil: "[]:ya"
+  Nil: "[] \<in> ya"
 
-| Fake: "[| evs:ya; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs:ya"
+| Fake: "[| evs \<in> ya; X \<in> synth (analz (spies evs)) |] ==> Says Spy B X # evs \<in> ya"
 
-| YA1: "[| evs1:ya; Nonce NA ~:used evs1 |] ==> ya1 A B NA # evs1:ya"
+| YA1: "[| evs1 \<in> ya; Nonce NA \<notin> used evs1 |] ==> ya1 A B NA # evs1 \<in> ya"
 
-| YA2: "[| evs2:ya; ya1' A' A B NA:set evs2; Nonce NB ~:used evs2 |]
-  ==> ya2 A B NA NB # evs2:ya"
+| YA2: "[| evs2 \<in> ya; ya1' A' A B NA \<in> set evs2; Nonce NB \<notin> used evs2 |]
+  ==> ya2 A B NA NB # evs2 \<in> ya"
 
-| YA3: "[| evs3:ya; ya2' B' A B NA NB:set evs3; Key K ~:used evs3 |]
-  ==> ya3 A B NA NB K # evs3:ya"
+| YA3: "[| evs3 \<in> ya; ya2' B' A B NA NB \<in> set evs3; Key K \<notin> used evs3 |]
+  ==> ya3 A B NA NB K # evs3 \<in> ya"
 
-| YA4: "[| evs4:ya; ya1 A B NA:set evs4; ya3' S Y A B NA NB K:set evs4 |]
-  ==> ya4 A B K NB Y # evs4:ya"
+| YA4: "[| evs4 \<in> ya; ya1 A B NA \<in> set evs4; ya3' S Y A B NA NB K \<in> set evs4 |]
+  ==> ya4 A B K NB Y # evs4 \<in> ya"
 
 subsection\<open>declarations for tactics\<close>
 
@@ -73,17 +73,17 @@ declare initState.simps [simp del]
 
 subsection\<open>general properties of ya\<close>
 
-lemma ya_has_no_Gets: "evs:ya ==> ALL A X. Gets A X ~:set evs"
+lemma ya_has_no_Gets: "evs \<in> ya \<Longrightarrow> \<forall>A X. Gets A X \<notin> set evs"
 by (erule ya.induct, auto)
 
 lemma ya_is_Gets_correct [iff]: "Gets_correct ya"
 by (auto simp: Gets_correct_def dest: ya_has_no_Gets)
 
 lemma ya_is_one_step [iff]: "one_step ya"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:ya" for ev evs, auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs \<in> ya" for ev evs, auto)
 
-lemma ya_has_only_Says' [rule_format]: "evs:ya ==>
-ev:set evs --> (EX A B X. ev=Says A B X)"
+lemma ya_has_only_Says' [rule_format]: "evs \<in> ya \<Longrightarrow>
+ev \<in> set evs \<longrightarrow> (\<exists>A B X. ev=Says A B X)"
 by (erule ya.induct, auto)
 
 lemma ya_has_only_Says [iff]: "has_only_Says ya"
@@ -96,8 +96,8 @@ by (auto dest: parts_sub)
 
 subsection\<open>guardedness of KAB\<close>
 
-lemma Guard_KAB [rule_format]: "[| evs:ya; A ~:bad; B ~:bad |] ==>
-ya3 A B NA NB K:set evs --> GuardK K {shrK A,shrK B} (spies evs)" 
+lemma Guard_KAB [rule_format]: "[| evs \<in> ya; A \<notin> bad; B \<notin> bad |] ==>
+ya3 A B NA NB K \<in> set evs \<longrightarrow> GuardK K {shrK A,shrK B} (spies evs)" 
 apply (erule ya.induct)
 (* Nil *)
 apply simp_all
@@ -117,55 +117,55 @@ by blast
 
 subsection\<open>session keys are not symmetric keys\<close>
 
-lemma KAB_isnt_shrK [rule_format]: "evs:ya ==>
-ya3 A B NA NB K:set evs --> K ~:range shrK"
+lemma KAB_isnt_shrK [rule_format]: "evs \<in> ya \<Longrightarrow>
+ya3 A B NA NB K \<in> set evs \<longrightarrow> K \<notin> range shrK"
 by (erule ya.induct, auto)
 
-lemma ya3_shrK: "evs:ya ==> ya3 A B NA NB (shrK C) ~:set evs"
+lemma ya3_shrK: "evs \<in> ya \<Longrightarrow> ya3 A B NA NB (shrK C) \<notin> set evs"
 by (blast dest: KAB_isnt_shrK)
 
 subsection\<open>ya2' implies ya1'\<close>
 
 lemma ya2'_parts_imp_ya1'_parts [rule_format]:
-     "[| evs:ya; B ~:bad |] ==>
-      Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>:parts (spies evs) -->
-      \<lbrace>Agent A, Nonce NA\<rbrace>:spies evs"
+     "[| evs \<in> ya; B \<notin> bad |] ==>
+      Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace> \<in> parts (spies evs) \<longrightarrow>
+      \<lbrace>Agent A, Nonce NA\<rbrace> \<in> spies evs"
 by (erule ya.induct, auto dest: Says_imp_spies intro: parts_parts)
 
-lemma ya2'_imp_ya1'_parts: "[| ya2' B' A B NA NB:set evs; evs:ya; B ~:bad |]
-==> \<lbrace>Agent A, Nonce NA\<rbrace>:spies evs"
+lemma ya2'_imp_ya1'_parts: "[| ya2' B' A B NA NB \<in> set evs; evs \<in> ya; B \<notin> bad |]
+==> \<lbrace>Agent A, Nonce NA\<rbrace> \<in> spies evs"
 by (blast dest: Says_imp_spies ya2'_parts_imp_ya1'_parts)
 
 subsection\<open>uniqueness of NB\<close>
 
-lemma NB_is_uniq_in_ya2'_parts [rule_format]: "[| evs:ya; B ~:bad; B' ~:bad |] ==>
-Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>:parts (spies evs) -->
-Ciph B' \<lbrace>Agent A', Nonce NA', Nonce NB\<rbrace>:parts (spies evs) -->
-A=A' & B=B' & NA=NA'"
+lemma NB_is_uniq_in_ya2'_parts [rule_format]: "[| evs \<in> ya; B \<notin> bad; B' \<notin> bad |] ==>
+Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace> \<in> parts (spies evs) \<longrightarrow>
+Ciph B' \<lbrace>Agent A', Nonce NA', Nonce NB\<rbrace> \<in> parts (spies evs) \<longrightarrow>
+A=A' \<and> B=B' \<and> NA=NA'"
 apply (erule ya.induct, simp_all, clarify)
 apply (drule Crypt_synth_insert, simp+)
 apply (drule Crypt_synth_insert, simp+, safe)
 apply (drule not_used_parts_false, simp+)+
 by (drule Says_not_parts, simp+)+
 
-lemma NB_is_uniq_in_ya2': "[| ya2' C A B NA NB:set evs;
-ya2' C' A' B' NA' NB:set evs; evs:ya; B ~:bad; B' ~:bad |]
-==> A=A' & B=B' & NA=NA'"
+lemma NB_is_uniq_in_ya2': "[| ya2' C A B NA NB \<in> set evs;
+ya2' C' A' B' NA' NB \<in> set evs; evs \<in> ya; B \<notin> bad; B' \<notin> bad |]
+==> A=A' \<and> B=B' \<and> NA=NA'"
 by (drule NB_is_uniq_in_ya2'_parts, auto dest: Says_imp_spies)
 
 subsection\<open>ya3' implies ya2'\<close>
 
-lemma ya3'_parts_imp_ya2'_parts [rule_format]: "[| evs:ya; A ~:bad |] ==>
-Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>:parts (spies evs)
---> Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>:parts (spies evs)"
+lemma ya3'_parts_imp_ya2'_parts [rule_format]: "[| evs \<in> ya; A \<notin> bad |] ==>
+Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace> \<in> parts (spies evs)"
 apply (erule ya.induct, simp_all)
 apply (clarify, drule Crypt_synth_insert, simp+)
 apply (blast intro: parts_sub, blast)
 by (auto dest: Says_imp_spies parts_parts)
 
-lemma ya3'_parts_imp_ya2' [rule_format]: "[| evs:ya; A ~:bad |] ==>
-Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>:parts (spies evs)
---> (EX B'. ya2' B' A B NA NB:set evs)"
+lemma ya3'_parts_imp_ya2' [rule_format]: "[| evs \<in> ya; A \<notin> bad |] ==>
+Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> (\<exists>B'. ya2' B' A B NA NB \<in> set evs)"
 apply (erule ya.induct, simp_all, safe)
 apply (drule Crypt_synth_insert, simp+)
 apply (drule Crypt_synth_insert, simp+, blast)
@@ -173,30 +173,30 @@ apply blast
 apply blast
 by (auto dest: Says_imp_spies2 parts_parts)
 
-lemma ya3'_imp_ya2': "[| ya3' S Y A B NA NB K:set evs; evs:ya; A ~:bad |]
-==> (EX B'. ya2' B' A B NA NB:set evs)"
+lemma ya3'_imp_ya2': "[| ya3' S Y A B NA NB K \<in> set evs; evs \<in> ya; A \<notin> bad |]
+==> (\<exists>B'. ya2' B' A B NA NB \<in> set evs)"
 by (drule ya3'_parts_imp_ya2', auto dest: Says_imp_spies)
 
 subsection\<open>ya3' implies ya3\<close>
 
-lemma ya3'_parts_imp_ya3 [rule_format]: "[| evs:ya; A ~:bad |] ==>
-Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>:parts(spies evs)
---> ya3 A B NA NB K:set evs"
+lemma ya3'_parts_imp_ya3 [rule_format]: "[| evs \<in> ya; A \<notin> bad |] ==>
+Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace> \<in> parts(spies evs)
+\<longrightarrow> ya3 A B NA NB K \<in> set evs"
 apply (erule ya.induct, simp_all, safe)
 apply (drule Crypt_synth_insert, simp+)
 by (blast dest: Says_imp_spies2 parts_parts)
 
-lemma ya3'_imp_ya3: "[| ya3' S Y A B NA NB K:set evs; evs:ya; A ~:bad |]
-==> ya3 A B NA NB K:set evs"
+lemma ya3'_imp_ya3: "[| ya3' S Y A B NA NB K \<in> set evs; evs \<in> ya; A \<notin> bad |]
+==> ya3 A B NA NB K \<in> set evs"
 by (blast dest: Says_imp_spies ya3'_parts_imp_ya3)
 
 subsection\<open>guardedness of NB\<close>
 
-definition ya_keys :: "agent => agent => nat => nat => event list => key set" where
-"ya_keys A B NA NB evs == {shrK A,shrK B} Un {K. ya3 A B NA NB K:set evs}"
+definition ya_keys :: "agent \<Rightarrow> agent \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> event list \<Rightarrow> key set" where
+"ya_keys A B NA NB evs \<equiv> {shrK A,shrK B} \<union> {K. ya3 A B NA NB K \<in> set evs}"
 
-lemma Guard_NB [rule_format]: "[| evs:ya; A ~:bad; B ~:bad |] ==>
-ya2 A B NA NB:set evs --> Guard NB (ya_keys A B NA NB evs) (spies evs)"
+lemma Guard_NB [rule_format]: "[| evs \<in> ya; A \<notin> bad; B \<notin> bad |] ==>
+ya2 A B NA NB \<in> set evs \<longrightarrow> Guard NB (ya_keys A B NA NB evs) (spies evs)"
 apply (erule ya.induct)
 (* Nil *)
 apply (simp_all add: ya_keys_def)

@@ -10,29 +10,29 @@ begin
 
 declare enat_0 [simp]
 
-lemma BufAC_Asm_d2: "a\<leadsto>s:BufAC_Asm ==> ? d. a=Md d"
+lemma BufAC_Asm_d2: "a\<leadsto>s \<in> BufAC_Asm \<Longrightarrow> \<exists>d. a=Md d"
 by (drule BufAC_Asm_unfold [THEN iffD1], auto)
 
 lemma BufAC_Asm_d3:
-    "a\<leadsto>b\<leadsto>s:BufAC_Asm ==> ? d. a=Md d & b=\<bullet> & s:BufAC_Asm"
+    "a\<leadsto>b\<leadsto>s \<in> BufAC_Asm \<Longrightarrow> \<exists>d. a=Md d \<and> b=\<bullet> \<and> s \<in> BufAC_Asm"
 by (drule BufAC_Asm_unfold [THEN iffD1], auto)
 
 lemma BufAC_Asm_F_def3:
- "(s:BufAC_Asm_F A) = (s=<> | 
-  (? d. ft\<cdot>s=Def(Md d)) & (rt\<cdot>s=<> | ft\<cdot>(rt\<cdot>s)=Def \<bullet> & rt\<cdot>(rt\<cdot>s):A))"
+ "(s \<in> BufAC_Asm_F A) = (s=<> \<or>
+  (\<exists>d. ft\<cdot>s=Def(Md d)) \<and> (rt\<cdot>s=<> \<or> ft\<cdot>(rt\<cdot>s)=Def \<bullet> \<and> rt\<cdot>(rt\<cdot>s) \<in> A))"
 by (unfold BufAC_Asm_F_def, auto)
 
 lemma cont_BufAC_Asm_F: "inf_continuous BufAC_Asm_F"
 by (auto simp add: inf_continuous_def BufAC_Asm_F_def3)
 
 lemma BufAC_Cmt_F_def3:
- "((s,t):BufAC_Cmt_F C) = (!d x.
-    (s = <>       --> t = <>                   ) & 
-    (s = Md d\<leadsto><>  --> t = <>                   ) & 
-    (s = Md d\<leadsto>\<bullet>\<leadsto>x --> ft\<cdot>t = Def d & (x,rt\<cdot>t):C))"
+ "((s,t) \<in> BufAC_Cmt_F C) = (\<forall>d x.
+    (s = <>       \<longrightarrow> t = <>                   ) \<and>
+    (s = Md d\<leadsto><>  \<longrightarrow> t = <>                   ) \<and>
+    (s = Md d\<leadsto>\<bullet>\<leadsto>x \<longrightarrow> ft\<cdot>t = Def d & (x,rt\<cdot>t) \<in> C))"
 apply (unfold BufAC_Cmt_F_def)
-apply (subgoal_tac "!d x. (s = Md d\<leadsto>\<bullet>\<leadsto>x --> (? y. t = d\<leadsto>y & (x,y):C)) = 
-                     (s = Md d\<leadsto>\<bullet>\<leadsto>x --> ft\<cdot>t = Def d & (x,rt\<cdot>t):C)")
+apply (subgoal_tac "\<forall>d x. (s = Md d\<leadsto>\<bullet>\<leadsto>x \<longrightarrow> (\<exists>y. t = d\<leadsto>y \<and> (x,y) \<in> C)) = 
+                     (s = Md d\<leadsto>\<bullet>\<leadsto>x \<longrightarrow> ft\<cdot>t = Def d \<and> (x,rt\<cdot>t) \<in> C)")
 apply (simp)
 apply (auto intro: surjectiv_scons [symmetric])
 done
@@ -45,12 +45,12 @@ by (auto simp add: inf_continuous_def BufAC_Cmt_F_def3)
 
 lemma BufAC_Asm_F_stream_monoP: "stream_monoP BufAC_Asm_F"
 apply (unfold BufAC_Asm_F_def stream_monoP_def)
-apply (rule_tac x="{x. (? d. x = Md d\<leadsto>\<bullet>\<leadsto><>)}" in exI)
+apply (rule_tac x="{x. (\<exists>d. x = Md d\<leadsto>\<bullet>\<leadsto><>)}" in exI)
 apply (rule_tac x="Suc (Suc 0)" in exI)
 apply (clarsimp)
 done
 
-lemma adm_BufAC_Asm: "adm (%x. x:BufAC_Asm)"
+lemma adm_BufAC_Asm: "adm (\<lambda>x. x \<in> BufAC_Asm)"
 apply (unfold BufAC_Asm_def)
 apply (rule cont_BufAC_Asm_F [THEN BufAC_Asm_F_stream_monoP [THEN fstream_gfp_admI]])
 done
@@ -61,7 +61,7 @@ done
 lemma BufAC_Asm_F_stream_antiP: "stream_antiP BufAC_Asm_F"
 apply (unfold stream_antiP_def BufAC_Asm_F_def)
 apply (intro strip)
-apply (rule_tac x="{x. (? d. x = Md d\<leadsto>\<bullet>\<leadsto><>)}" in exI)
+apply (rule_tac x="{x. (\<exists>d. x = Md d\<leadsto>\<bullet>\<leadsto><>)}" in exI)
 apply (rule_tac x="Suc (Suc 0)" in exI)
 apply (rule conjI)
 prefer 2
@@ -71,7 +71,7 @@ apply ( drule (1) order_trans)
 apply (force)+
 done
 
-lemma adm_non_BufAC_Asm: "adm (%u. u~:BufAC_Asm)"
+lemma adm_non_BufAC_Asm: "adm (\<lambda>u. u \<notin> BufAC_Asm)"
 apply (unfold BufAC_Asm_def)
 apply (rule cont_BufAC_Asm_F [THEN BufAC_Asm_F_stream_antiP [THEN fstream_non_gfp_admI]])
 done
@@ -79,7 +79,7 @@ done
 (**** adm_BufAC ***************************************************************)
 
 (*adm_non_BufAC_Asm*)
-lemma BufAC_Asm_cong [rule_format]: "!f ff. f:BufEq --> ff:BufEq --> s:BufAC_Asm --> f\<cdot>s = ff\<cdot>s"
+lemma BufAC_Asm_cong [rule_format]: "\<forall>f ff. f \<in> BufEq \<longrightarrow> ff \<in> BufEq \<longrightarrow> s \<in> BufAC_Asm \<longrightarrow> f\<cdot>s = ff\<cdot>s"
 apply (rule fstream_ind2)
 apply (simp add: adm_non_BufAC_Asm)
 apply   (force dest: Buf_f_empty)
@@ -92,7 +92,7 @@ done
 
 (*adm_non_BufAC_Asm,BufAC_Asm_cong*)
 lemma BufAC_Cmt_d_req:
-"!!X. [|f:BufEq; s:BufAC_Asm; (s, f\<cdot>s):BufAC_Cmt|] ==> (a\<leadsto>b\<leadsto>s, f\<cdot>(a\<leadsto>b\<leadsto>s)):BufAC_Cmt"
+"\<And>X. [|f \<in> BufEq; s \<in> BufAC_Asm; (s, f\<cdot>s) \<in> BufAC_Cmt|] ==> (a\<leadsto>b\<leadsto>s, f\<cdot>(a\<leadsto>b\<leadsto>s)) \<in> BufAC_Cmt"
 apply (rule BufAC_Cmt_unfold [THEN iffD2])
 apply (intro strip)
 apply (frule Buf_f_d_req)
@@ -116,9 +116,9 @@ apply ( force dest!: fstream_prefix
 done
 
 (*adm_BufAC_Asm,BufAC_Asm_antiton,adm_non_BufAC_Asm,BufAC_Asm_cong*)
-lemma BufAC_Cmt_2stream_monoP: "f:BufEq ==> ? l. !i x s. s:BufAC_Asm --> x << s --> enat (l i) < #x --> 
-                     (x,f\<cdot>x):(BufAC_Cmt_F ^^ i) top --> 
-                     (s,f\<cdot>s):(BufAC_Cmt_F ^^ i) top"
+lemma BufAC_Cmt_2stream_monoP: "f \<in> BufEq \<Longrightarrow> \<exists>l. \<forall>i x s. s \<in> BufAC_Asm \<longrightarrow> x << s \<longrightarrow> enat (l i) < #x \<longrightarrow>
+                     (x,f\<cdot>x) \<in> (BufAC_Cmt_F ^^ i) top \<longrightarrow>
+                     (s,f\<cdot>s) \<in> (BufAC_Cmt_F ^^ i) top"
 apply (rule_tac x="%i. 2*i" in exI)
 apply (rule allI)
 apply (induct_tac "i")
@@ -190,7 +190,7 @@ done
 
 (*adm_BufAC_Asm,BufAC_Asm_antiton,adm_non_BufAC_Asm,BufAC_Asm_cong,
   BufAC_Cmt_2stream_monoP*)
-lemma adm_BufAC: "f:BufEq ==> adm (%s. s:BufAC_Asm --> (s, f\<cdot>s):BufAC_Cmt)"
+lemma adm_BufAC: "f \<in> BufEq \<Longrightarrow> adm (\<lambda>s. s \<in> BufAC_Asm \<longrightarrow> (s, f\<cdot>s) \<in> BufAC_Cmt)"
 apply (rule flatstream_admI)
 apply (subst BufAC_Cmt_iterate_all)
 apply (drule BufAC_Cmt_2stream_monoP)

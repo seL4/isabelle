@@ -1273,7 +1273,7 @@ lemmas equiv_realrel_iff =
 declare equiv_realrel_iff [simp]
 
 
-lemma realrel_in_real [simp]: "realrel``{(x,y)}: Real"
+lemma realrel_in_real [simp]: "realrel``{(x,y)} \<in> Real"
 by (simp add: Real_def realrel_def quotient_def, blast)
 
 declare Abs_Real_inject [simp]
@@ -1283,7 +1283,7 @@ declare Abs_Real_inverse [simp]
 text\<open>Case analysis on the representation of a real number as an equivalence
       class of pairs of positive reals.\<close>
 lemma eq_Abs_Real [case_names Abs_Real, cases type: real]: 
-     "(!!x y. z = Abs_Real(realrel``{(x,y)}) ==> P) ==> P"
+     "(\<And>x y. z = Abs_Real(realrel``{(x,y)}) \<Longrightarrow> P) \<Longrightarrow> P"
 apply (rule Rep_Real [of z, unfolded Real_def, THEN quotientE])
 apply (drule arg_cong [where f=Abs_Real])
 apply (auto simp add: Rep_Real_inverse)

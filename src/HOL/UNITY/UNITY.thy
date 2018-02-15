@@ -15,7 +15,7 @@ theory UNITY imports Main begin
 definition
   "Program =
     {(init:: 'a set, acts :: ('a * 'a)set set,
-      allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}"
+      allowed :: ('a * 'a)set set). Id \<in> acts & Id \<in> allowed}"
 
 typedef 'a program = "Program :: ('a set * ('a * 'a) set set * ('a * 'a) set set) set"
   morphisms Rep_Program Abs_Program
@@ -127,12 +127,12 @@ by (blast intro: program_equalityI program_equalityE)
 subsubsection\<open>co\<close>
 
 lemma constrainsI: 
-    "(!!act s s'. [| act: Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s': A')  
+    "(!!act s s'. [| act \<in> Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s' \<in> A')  
      ==> F \<in> A co A'"
 by (simp add: constrains_def, blast)
 
 lemma constrainsD: 
-    "[| F \<in> A co A'; act: Acts F;  (s,s'): act;  s \<in> A |] ==> s': A'"
+    "[| F \<in> A co A'; act \<in> Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s' \<in> A'"
 by (unfold constrains_def, blast)
 
 lemma constrains_empty [iff]: "F \<in> {} co B"
@@ -351,7 +351,7 @@ text\<open>Needed for WF reasoning in WFair.thy\<close>
 lemma Image_less_than [simp]: "less_than `` {k} = greaterThan k"
 by blast
 
-lemma Image_inverse_less_than [simp]: "less_than^-1 `` {k} = lessThan k"
+lemma Image_inverse_less_than [simp]: "less_than\<inverse> `` {k} = lessThan k"
 by blast
 
 

@@ -38,11 +38,11 @@ definition is_back_forw_simulation ::
 
 definition is_history_relation :: "('s1 \<times> 's2) set \<Rightarrow> ('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"
   where "is_history_relation R C A \<longleftrightarrow>
-    is_simulation R C A \<and> is_ref_map (\<lambda>x. (SOME y. (x, y) \<in> R^-1)) A C"
+    is_simulation R C A \<and> is_ref_map (\<lambda>x. (SOME y. (x, y) \<in> R\<inverse>)) A C"
 
 definition is_prophecy_relation :: "('s1 \<times> 's2) set \<Rightarrow> ('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"
   where "is_prophecy_relation R C A \<longleftrightarrow>
-    is_backward_simulation R C A \<and> is_ref_map (\<lambda>x. (SOME y. (x, y) \<in> R^-1)) A C"
+    is_backward_simulation R C A \<and> is_ref_map (\<lambda>x. (SOME y. (x, y) \<in> R\<inverse>)) A C"
 
 
 lemma set_non_empty: "A \<noteq> {} \<longleftrightarrow> (\<exists>x. x \<in> A)"

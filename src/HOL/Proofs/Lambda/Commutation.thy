@@ -30,11 +30,11 @@ definition
 definition
   Church_Rosser :: "('a => 'a => bool) => bool" where
   "Church_Rosser R =
-    (\<forall>x y. (sup R (R^--1))^** x y --> (\<exists>z. R^** x z \<and> R^** y z))"
+    (\<forall>x y. (sup R (R\<inverse>\<inverse>))\<^sup>*\<^sup>* x y \<longrightarrow> (\<exists>z. R\<^sup>*\<^sup>* x z \<and> R\<^sup>*\<^sup>* y z))"
 
 abbreviation
   confluent :: "('a => 'a => bool) => bool" where
-  "confluent R == diamond (R^**)"
+  "confluent R == diamond (R\<^sup>*\<^sup>*)"
 
 
 subsection \<open>Basic lemmas\<close>
@@ -53,13 +53,13 @@ lemma square_subset:
   done
 
 lemma square_reflcl:
-    "[| square R S T (R^==); S \<le> T |] ==> square (R^==) S T (R^==)"
+    "[| square R S T (R\<^sup>=\<^sup>=); S \<le> T |] ==> square (R\<^sup>=\<^sup>=) S T (R\<^sup>=\<^sup>=)"
   apply (unfold square_def)
   apply (blast dest: predicate2D)
   done
 
 lemma square_rtrancl:
-    "square R S S T ==> square (R^**) S S (T^**)"
+    "square R S S T ==> square (R\<^sup>*\<^sup>*) S S (T\<^sup>*\<^sup>*)"
   apply (unfold square_def)
   apply (intro strip)
   apply (erule rtranclp_induct)
@@ -68,7 +68,7 @@ lemma square_rtrancl:
   done
 
 lemma square_rtrancl_reflcl_commute:
-    "square R S (S^**) (R^==) ==> commute (R^**) (S^**)"
+    "square R S (S\<^sup>*\<^sup>*) (R\<^sup>=\<^sup>=) ==> commute (R\<^sup>*\<^sup>*) (S\<^sup>*\<^sup>*)"
   apply (unfold commute_def)
   apply (fastforce dest: square_reflcl square_sym [THEN square_rtrancl])
   done
@@ -81,7 +81,7 @@ lemma commute_sym: "commute R S ==> commute S R"
   apply (blast intro: square_sym)
   done
 
-lemma commute_rtrancl: "commute R S ==> commute (R^**) (S^**)"
+lemma commute_rtrancl: "commute R S ==> commute (R\<^sup>*\<^sup>*) (S\<^sup>*\<^sup>*)"
   apply (unfold commute_def)
   apply (blast intro: square_rtrancl square_sym)
   done
@@ -107,19 +107,19 @@ lemma diamond_confluent: "diamond R ==> confluent R"
   done
 
 lemma square_reflcl_confluent:
-    "square R R (R^==) (R^==) ==> confluent R"
+    "square R R (R\<^sup>=\<^sup>=) (R\<^sup>=\<^sup>=) ==> confluent R"
   apply (unfold diamond_def)
   apply (fast intro: square_rtrancl_reflcl_commute elim: square_subset)
   done
 
 lemma confluent_Un:
-    "[| confluent R; confluent S; commute (R^**) (S^**) |] ==> confluent (sup R S)"
+    "[| confluent R; confluent S; commute (R\<^sup>*\<^sup>*) (S\<^sup>*\<^sup>*) |] ==> confluent (sup R S)"
   apply (rule rtranclp_sup_rtranclp [THEN subst])
   apply (blast dest: diamond_Un intro: diamond_confluent)
   done
 
 lemma diamond_to_confluence:
-    "[| diamond R; T \<le> R; R \<le> T^** |] ==> confluent T"
+    "[| diamond R; T \<le> R; R \<le> T\<^sup>*\<^sup>* |] ==> confluent T"
   apply (force intro: diamond_confluent
     dest: rtranclp_subset [symmetric])
   done

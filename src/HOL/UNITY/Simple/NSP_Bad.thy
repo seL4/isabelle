@@ -258,7 +258,7 @@ lemma Spy_not_see_NB:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
               {s. Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s &
-                  (ALL C. Says A C (Crypt (pubK C) (Nonce NB)) \<notin> set s)
+                  (\<forall>C. Says A C (Crypt (pubK C) (Nonce NB)) \<notin> set s)
                   --> Nonce NB \<notin> analz (spies s)}"
 apply ns_induct
 apply (simp_all (no_asm_simp) add: all_conj_distrib)

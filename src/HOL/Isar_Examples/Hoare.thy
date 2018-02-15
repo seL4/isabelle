@@ -101,7 +101,7 @@ proof
   assume cmd: "\<turnstile> P c Q"
   fix s s' :: 'a
   assume sem: "Sem c s s'"
-  assume "s : P'" with P'P have "s \<in> P" ..
+  assume "s \<in> P'" with P'P have "s \<in> P" ..
   with cmd sem have "s' \<in> Q" ..
   with QQ' show "s' \<in> Q'" ..
 qed
@@ -132,7 +132,7 @@ proof
     from case_nb show ?thesis
     proof
       from sem nb show "Sem c2 s s'" by simp
-      from s nb show "s : P \<inter> -b" by simp
+      from s nb show "s \<in> P \<inter> -b" by simp
     qed
   qed
 qed

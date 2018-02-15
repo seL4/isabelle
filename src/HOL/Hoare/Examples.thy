@@ -12,29 +12,29 @@ section \<open>ARITHMETIC\<close>
 subsection \<open>multiplication by successive addition\<close>
 
 lemma multiply_by_add: "VARS m s a b
-  {a=A & b=B}
+  {a=A \<and> b=B}
   m := 0; s := 0;
-  WHILE m~=a
-  INV {s=m*b & a=A & b=B}
+  WHILE m\<noteq>a
+  INV {s=m*b \<and> a=A \<and> b=B}
   DO s := s+b; m := m+(1::nat) OD
   {s = A*B}"
 by vcg_simp
 
 lemma multiply_by_add_time: "VARS m s a b t
-  {a=A & b=B & t=0}
+  {a=A \<and> b=B \<and> t=0}
   m := 0; t := t+1; s := 0; t := t+1;
-  WHILE m~=a
-  INV {s=m*b & a=A & b=B & t = 2*m + 2}
+  WHILE m\<noteq>a
+  INV {s=m*b \<and> a=A \<and> b=B \<and> t = 2*m + 2}
   DO s := s+b; t := t+1; m := m+(1::nat); t := t+1 OD
   {s = A*B \<and> t = 2*A + 2}"
 by vcg_simp
 
 lemma multiply_by_add2: "VARS M N P :: int
- {m=M & n=N}
+ {m=M \<and> n=N}
  IF M < 0 THEN M := -M; N := -N ELSE SKIP FI;
  P := 0;
  WHILE 0 < M
- INV {0 <= M & (EX p. p = (if m<0 then -m else m) & p*N = m*n & P = (p-M)*N)}
+ INV {0 \<le> M \<and> (\<exists>p. p = (if m<0 then -m else m) & p*N = m*n & P = (p-M)*N)}
  DO P := P+N; M := M - 1 OD
  {P = m*n}"
 apply vcg_simp
@@ -42,11 +42,11 @@ apply vcg_simp
 done
 
 lemma multiply_by_add2_time: "VARS M N P t :: int
- {m=M & n=N & t=0}
+ {m=M \<and> n=N \<and> t=0}
  IF M < 0 THEN M := -M; t := t+1; N := -N; t := t+1 ELSE SKIP FI;
  P := 0; t := t+1;
  WHILE 0 < M
- INV {0 \<le> M & (EX p. p = (if m<0 then -m else m) & p*N = m*n & P = (p-M)*N & t \<ge> 0 & t \<le> 2*(p-M)+3)}
+ INV {0 \<le> M & (\<exists>p. p = (if m<0 then -m else m) & p*N = m*n & P = (p-M)*N & t \<ge> 0 & t \<le> 2*(p-M)+3)}
  DO P := P+N; t := t+1; M := M - 1; t := t+1 OD
  {P = m*n & t \<le> 2*abs m + 3}"
 apply vcg_simp
@@ -283,11 +283,11 @@ subsection \<open>Search for a key\<close>
 lemma zero_search: "VARS A i
  {True}
  i := 0;
- WHILE i < length A & A!i ~= key
- INV {!j. j<i --> A!j ~= key}
+ WHILE i < length A & A!i \<noteq> key
+ INV {\<forall>j. j<i --> A!j \<noteq> key}
  DO i := i+1 OD
  {(i < length A --> A!i = key) &
-  (i = length A --> (!j. j < length A --> A!j ~= key))}"
+  (i = length A --> (\<forall>j. j < length A \<longrightarrow> A!j \<noteq> key))}"
 apply vcg_simp
 apply(blast elim!: less_SucE)
 done
@@ -295,11 +295,11 @@ done
 lemma zero_search_time: "VARS A i t
  {t=0}
  i := 0; t := t+1;
- WHILE i < length A & A!i ~= key
- INV {(\<forall>j. j<i --> A!j ~= key) & i \<le> length A & t = i+1}
+ WHILE i < length A \<and> A!i \<noteq> key
+ INV {(\<forall>j. j<i \<longrightarrow> A!j \<noteq> key) \<and> i \<le> length A \<and> t = i+1}
  DO i := i+1; t := t+1 OD
- {(i < length A --> A!i = key) &
-  (i = length A --> (!j. j < length A --> A!j ~= key)) & t \<le> length A + 1}"
+ {(i < length A \<longrightarrow> A!i = key) \<and>
+  (i = length A \<longrightarrow> (\<forall>j. j < length A --> A!j \<noteq> key)) \<and> t \<le> length A + 1}"
 apply vcg_simp
 apply(blast elim!: less_SucE)
 done
@@ -318,22 +318,22 @@ by arith
 
 
 lemma Partition:
-"[| leq == %A i. !k. k<i --> A!k <= pivot;
-    geq == %A i. !k. i<k & k<length A --> pivot <= A!k |] ==>
+"[| leq == \<lambda>A i. \<forall>k. k<i \<longrightarrow> A!k \<le> pivot;
+    geq == \<lambda>A i. \<forall>k. i<k \<and> k<length A \<longrightarrow> pivot \<le> A!k |] ==>
  VARS A u l
  {0 < length(A::('a::order)list)}
  l := 0; u := length A - Suc 0;
- WHILE l <= u
-  INV {leq A l & geq A u & u<length A & l<=length A}
-  DO WHILE l < length A & A!l <= pivot
-     INV {leq A l & geq A u & u<length A & l<=length A}
+ WHILE l \<le> u
+  INV {leq A l \<and> geq A u \<and> u<length A \<and> l\<le>length A}
+  DO WHILE l < length A \<and> A!l \<le> pivot
+     INV {leq A l & geq A u \<and> u<length A \<and> l\<le>length A}
      DO l := l+1 OD;
-     WHILE 0 < u & pivot <= A!u
-     INV {leq A l & geq A u  & u<length A & l<=length A}
+     WHILE 0 < u & pivot \<le> A!u
+     INV {leq A l & geq A u  \<and> u<length A \<and> l\<le>length A}
      DO u := u - 1 OD;
-     IF l <= u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI
+     IF l \<le> u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI
   OD
- {leq A u & (!k. u<k & k<l --> A!k = pivot) & geq A l}"
+ {leq A u & (\<forall>k. u<k \<and> k<l --> A!k = pivot) \<and> geq A l}"
 \<comment> \<open>expand and delete abbreviations first\<close>
 apply (simp)
 apply (erule thin_rl)+

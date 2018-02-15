@@ -34,7 +34,7 @@ definition sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a err 
 "sup f == lift2(%x y. OK(x +_f y))"
 
 definition err :: "'a set \<Rightarrow> 'a err set" where
-"err A == insert Err {x . ? y:A. x = OK y}"
+"err A == insert Err {x . \<exists>y\<in>A. x = OK y}"
 
 definition esl :: "'a sl \<Rightarrow> 'a esl" where
 "esl == %(A,r,f). (A,r, %x y. OK(f x y))"
@@ -68,7 +68,7 @@ lemma unfold_lesub_err:
   by (simp add: lesub_def)
 
 lemma le_err_refl:
-  "!x. x <=_r x \<Longrightarrow> e <=_(Err.le r) e"
+  "\<forall>x. x <=_r x \<Longrightarrow> e <=_(Err.le r) e"
 apply (unfold lesub_def Err.le_def)
 apply (simp split: err.split)
 done 
@@ -110,18 +110,18 @@ lemma Err_le_conv [iff]:
   by (simp add: unfold_lesub_err le_def  split: err.split)
 
 lemma le_OK_conv [iff]:
-  "e <=_(le r) OK x  =  (? y. e = OK y & y <=_r x)"
+  "e <=_(le r) OK x  =  (\<exists>y. e = OK y & y <=_r x)"
   by (simp add: unfold_lesub_err le_def split: err.split)
 
 lemma OK_le_conv:
- "OK x <=_(le r) e  =  (e = Err | (? y. e = OK y & x <=_r y))"
+ "OK x <=_(le r) e  =  (e = Err | (\<exists>y. e = OK y & x <=_r y))"
   by (simp add: unfold_lesub_err le_def split: err.split)
 
 lemma top_Err [iff]: "top (le r) Err"
   by (simp add: top_def)
 
 lemma OK_less_conv [rule_format, iff]:
-  "OK x <_(le r) e = (e=Err | (? y. e = OK y & x <_r y))"
+  "OK x <_(le r) e = (e=Err | (\<exists>y. e = OK y & x <_r y))"
   by (simp add: lesssub_def lesub_def le_def split: err.split)
 
 lemma not_Err_less [rule_format, iff]:
@@ -152,24 +152,24 @@ lemma acc_err [simp, intro!]:  "acc r \<Longrightarrow> acc(le r)"
 apply (unfold acc_def lesub_def le_def lesssub_def)
 apply (simp add: wf_eq_minimal split: err.split)
 apply clarify
-apply (case_tac "Err : Q")
+apply (case_tac "Err \<in> Q")
  apply blast
-apply (erule_tac x = "{a . OK a : Q}" in allE)
+apply (erule_tac x = "{a . OK a \<in> Q}" in allE)
 apply (case_tac "x")
  apply fast
 apply blast
 done 
 
-lemma Err_in_err [iff]: "Err : err A"
+lemma Err_in_err [iff]: "Err \<in> err A"
   by (simp add: err_def)
 
-lemma Ok_in_err [iff]: "(OK x : err A) = (x:A)"
+lemma Ok_in_err [iff]: "(OK x \<in> err A) = (x\<in>A)"
   by (auto simp add: err_def)
 
 subsection \<open>lift\<close>
 
 lemma lift_in_errI:
-  "\<lbrakk> e : err S; !x:S. e = OK x \<longrightarrow> f x : err S \<rbrakk> \<Longrightarrow> lift f e : err S"
+  "\<lbrakk> e \<in> err S; \<forall>x\<in>S. e = OK x \<longrightarrow> f x \<in> err S \<rbrakk> \<Longrightarrow> lift f e \<in> err S"
 apply (unfold lift_def)
 apply (simp split: err.split)
 apply blast
@@ -203,7 +203,7 @@ lemma Err_sup_OK [simp]:
   by (simp add: plussub_def Err.sup_def Err.lift2_def)
 
 lemma Err_sup_eq_OK_conv [iff]:
-  "(Err.sup f ex ey = OK z) = (? x y. ex = OK x & ey = OK y & f x y = z)"
+  "(Err.sup f ex ey = OK z) = (\<exists>x y. ex = OK x & ey = OK y & f x y = z)"
 apply (unfold Err.sup_def lift2_def plussub_def)
 apply (rule iffI)
  apply (simp split: err.split_asm)
@@ -220,17 +220,17 @@ done
 subsection \<open>semilat (err A) (le r) f\<close>
 
 lemma semilat_le_err_Err_plus [simp]:
-  "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> Err +_f x = Err"
+  "\<lbrakk> x \<in> err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> Err +_f x = Err"
   by (blast intro: Semilat.le_iff_plus_unchanged [OF Semilat.intro, THEN iffD1]
                    Semilat.le_iff_plus_unchanged2 [OF Semilat.intro, THEN iffD1])
 
 lemma semilat_le_err_plus_Err [simp]:
-  "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> x +_f Err = Err"
+  "\<lbrakk> x \<in> err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> x +_f Err = Err"
   by (blast intro: Semilat.le_iff_plus_unchanged [OF Semilat.intro, THEN iffD1]
                    Semilat.le_iff_plus_unchanged2 [OF Semilat.intro, THEN iffD1])
 
 lemma semilat_le_err_OK1:
-  "\<lbrakk> x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
+  "\<lbrakk> x \<in> A; y \<in> A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
   \<Longrightarrow> x <=_r z"
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
@@ -238,7 +238,7 @@ apply (simp add: Semilat.ub1 [OF Semilat.intro])
 done
 
 lemma semilat_le_err_OK2:
-  "\<lbrakk> x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
+  "\<lbrakk> x \<in> A; y \<in> A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
   \<Longrightarrow> y <=_r z"
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
@@ -252,11 +252,11 @@ apply blast
 done
 
 lemma OK_plus_OK_eq_Err_conv [simp]:
-  assumes "x:A" and "y:A" and "semilat(err A, le r, fe)"
-  shows "((OK x) +_fe (OK y) = Err) = (~(? z:A. x <=_r z & y <=_r z))"
+  assumes "x \<in> A" and "y \<in> A" and "semilat(err A, le r, fe)"
+  shows "((OK x) +_fe (OK y) = Err) = (\<not>(\<exists>z\<in>A. x <=_r z & y <=_r z))"
 proof -
   have plus_le_conv3: "\<And>A x y z f r. 
-    \<lbrakk> semilat (A,r,f); x +_f y <=_r z; x:A; y:A; z:A \<rbrakk> 
+    \<lbrakk> semilat (A,r,f); x +_f y <=_r z; x \<in> A; y \<in> A; z \<in> A \<rbrakk> 
     \<Longrightarrow> x <=_r z \<and> y <=_r z"
     by (rule Semilat.plus_le_conv [OF Semilat.intro, THEN iffD1])
   from assms show ?thesis
@@ -274,7 +274,7 @@ proof -
   apply (case_tac "(OK x) +_fe (OK y)")
    apply assumption
   apply (rename_tac z)
-  apply (subgoal_tac "OK z: err A")
+  apply (subgoal_tac "OK z \<in> err A")
   apply (drule eq_order_le)
     apply (erule Semilat.orderI [OF Semilat.intro])
    apply (blast dest: plus_le_conv3) 
@@ -287,12 +287,12 @@ subsection \<open>semilat (err (Union AS))\<close>
 
 (* FIXME? *)
 lemma all_bex_swap_lemma [iff]:
-  "(!x. (? y:A. x = f y) \<longrightarrow> P x) = (!y:A. P(f y))"
+  "(\<forall>x. (\<exists>y\<in>A. x = f y) \<longrightarrow> P x) = (\<forall>y\<in>A. P(f y))"
   by blast
 
 lemma closed_err_Union_lift2I: 
-  "\<lbrakk> !A:AS. closed (err A) (lift2 f); AS ~= {}; 
-      !A:AS.!B:AS. A~=B \<longrightarrow> (!a:A.!b:B. a +_f b = Err) \<rbrakk> 
+  "\<lbrakk> \<forall>A\<in>AS. closed (err A) (lift2 f); AS \<noteq> {}; 
+      \<forall>A\<in>AS. \<forall>B\<in>AS. A\<noteq>B \<longrightarrow> (\<forall>a\<in>A. \<forall>b\<in>B. a +_f b = Err) \<rbrakk> 
   \<Longrightarrow> closed (err (\<Union>AS)) (lift2 f)"
 apply (unfold closed_def err_def)
 apply simp
@@ -307,8 +307,8 @@ text \<open>
   which may not hold 
 \<close>
 lemma err_semilat_UnionI:
-  "\<lbrakk> !A:AS. err_semilat(A, r, f); AS ~= {}; 
-      !A:AS.!B:AS. A~=B \<longrightarrow> (!a:A.!b:B. ~ a <=_r b & a +_f b = Err) \<rbrakk> 
+  "\<lbrakk> \<forall>A\<in>AS. err_semilat(A, r, f); AS \<noteq> {}; 
+      \<forall>A\<in>AS. \<forall>B\<in>AS. A\<noteq>B \<longrightarrow> (\<forall>a\<in>A. \<forall>b\<in>B. \<not> a <=_r b & a +_f b = Err) \<rbrakk> 
   \<Longrightarrow> err_semilat (\<Union>AS, r, f)"
 apply (unfold semilat_def sl_def)
 apply (simp add: closed_err_Union_lift2I)

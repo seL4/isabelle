@@ -27,18 +27,18 @@ text \<open>
 \<close>
 
 lemma externals_lemma: 
- "a:externals(asig_of(Automata.restrict impl_ioa (externals spec_sig))) =  
+ "a\<in>externals(asig_of(Automata.restrict impl_ioa (externals spec_sig))) =  
   (case a of                   
-      S_msg(m) => True         
-    | R_msg(m) => True         
-    | S_pkt(pkt) => False   
-    | R_pkt(pkt) => False   
-    | S_ack(b) => False     
-    | R_ack(b) => False     
-    | C_m_s => False           
-    | C_m_r => False           
-    | C_r_s => False           
-    | C_r_r(m) => False)"
+      S_msg(m) \<Rightarrow> True         
+    | R_msg(m) \<Rightarrow> True         
+    | S_pkt(pkt) \<Rightarrow> False   
+    | R_pkt(pkt) \<Rightarrow> False   
+    | S_ack(b) \<Rightarrow> False     
+    | R_ack(b) \<Rightarrow> False     
+    | C_m_s \<Rightarrow> False           
+    | C_m_r \<Rightarrow> False           
+    | C_r_s \<Rightarrow> False           
+    | C_r_r(m) \<Rightarrow> False)"
  apply (simp (no_asm) add: externals_def restrict_def restrict_asig_def Spec.sig_def asig_projections)
 
   apply (induct_tac "a")

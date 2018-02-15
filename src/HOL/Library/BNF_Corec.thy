@@ -72,7 +72,7 @@ lemma self_bounded_weaken_left: "(a :: 'a :: semilattice_inf) \<le> inf a b \<Lo
 lemma self_bounded_weaken_right: "(a :: 'a :: semilattice_inf) \<le> inf b a \<Longrightarrow> a \<le> b"
   by (erule le_infE)
 
-lemma symp_iff: "symp R \<longleftrightarrow> R = R^--1"
+lemma symp_iff: "symp R \<longleftrightarrow> R = R\<inverse>\<inverse>"
   by (metis antisym conversep.cases conversep_le_swap predicate2I symp_def)
 
 lemma equivp_inf: "\<lbrakk>equivp R; equivp S\<rbrakk> \<Longrightarrow> equivp (inf R S)"

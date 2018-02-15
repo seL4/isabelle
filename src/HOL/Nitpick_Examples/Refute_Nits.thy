@@ -245,15 +245,15 @@ oops
 text \<open>``The transitive closure of an arbitrary relation is non-empty.''\<close>
 
 definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-"trans P \<equiv> (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
+"trans P \<equiv> (\<forall>x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
 
 definition
 "subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-"subset P Q \<equiv> (ALL x y. P x y \<longrightarrow> Q x y)"
+"subset P Q \<equiv> (\<forall>x y. P x y \<longrightarrow> Q x y)"
 
 definition
 "trans_closure" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-"trans_closure P Q \<equiv> (subset Q P) \<and> (trans P) \<and> (ALL R. subset Q R \<longrightarrow> trans R \<longrightarrow> subset P R)"
+"trans_closure P Q \<equiv> (subset Q P) \<and> (trans P) \<and> (\<forall>R. subset Q R \<longrightarrow> trans R \<longrightarrow> subset P R)"
 
 lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
 nitpick [expect = genuine]

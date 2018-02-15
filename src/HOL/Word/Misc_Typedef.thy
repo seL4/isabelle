@@ -124,7 +124,7 @@ lemma norm_Rep [simp]: "norm (Rep x) = Rep x"
 
 lemmas td = td_thm
 
-lemma set_iff_norm: "w : A \<longleftrightarrow> w = norm w"
+lemma set_iff_norm: "w \<in> A \<longleftrightarrow> w = norm w"
   by (auto simp: set_Rep_Abs eq_norm' eq_norm [symmetric])
 
 lemma inverse_norm: "Abs n = w \<longleftrightarrow> Rep w = norm n"

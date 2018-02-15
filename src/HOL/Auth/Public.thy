@@ -19,27 +19,27 @@ subsection\<open>Asymmetric Keys\<close>
 datatype keymode = Signature | Encryption
 
 consts
-  publicKey :: "[keymode,agent] => key"
+  publicKey :: "[keymode,agent] \<Rightarrow> key"
 
 abbreviation
-  pubEK :: "agent => key" where
+  pubEK :: "agent \<Rightarrow> key" where
   "pubEK == publicKey Encryption"
 
 abbreviation
-  pubSK :: "agent => key" where
+  pubSK :: "agent \<Rightarrow> key" where
   "pubSK == publicKey Signature"
 
 abbreviation
-  privateKey :: "[keymode, agent] => key" where
+  privateKey :: "[keymode, agent] \<Rightarrow> key" where
   "privateKey b A == invKey (publicKey b A)"
 
 abbreviation
   (*BEWARE!! priEK, priSK DON'T WORK with inj, range, image, etc.*)
-  priEK :: "agent => key" where
+  priEK :: "agent \<Rightarrow> key" where
   "priEK A == privateKey Encryption A"
 
 abbreviation
-  priSK :: "agent => key" where
+  priSK :: "agent \<Rightarrow> key" where
   "priSK A == privateKey Signature A"
 
 
@@ -47,11 +47,11 @@ text\<open>These abbreviations give backward compatibility.  They represent the
 simple situation where the signature and encryption keys are the same.\<close>
 
 abbreviation
-  pubK :: "agent => key" where
+  pubK :: "agent \<Rightarrow> key" where
   "pubK A == pubEK A"
 
 abbreviation
-  priK :: "agent => key" where
+  priK :: "agent \<Rightarrow> key" where
   "priK A == invKey (pubEK A)"
 
 
@@ -59,9 +59,9 @@ text\<open>By freeness of agents, no two agents have the same key.  Since
   @{term "True\<noteq>False"}, no agent has identical signing and encryption keys\<close>
 specification (publicKey)
   injective_publicKey:
-    "publicKey b A = publicKey c A' ==> b=c & A=A'"
+    "publicKey b A = publicKey c A' ==> b=c \<and> A=A'"
    apply (rule exI [of _ 
-       "%b A. 2 * case_agent 0 (\<lambda>n. n + 2) 1 A + case_keymode 0 1 b"])
+       "\<lambda>b A. 2 * case_agent 0 (\<lambda>n. n + 2) 1 A + case_keymode 0 1 b"])
    apply (auto simp add: inj_on_def split: agent.split keymode.split)
    apply presburger
    apply presburger
@@ -79,7 +79,7 @@ declare publicKey_neq_privateKey [iff]
 
 subsection\<open>Basic properties of @{term pubK} and @{term priK}\<close>
 
-lemma publicKey_inject [iff]: "(publicKey b A = publicKey c A') = (b=c & A=A')"
+lemma publicKey_inject [iff]: "(publicKey b A = publicKey c A') = (b=c \<and> A=A')"
 by (blast dest!: injective_publicKey) 
 
 lemma not_symKeys_pubK [iff]: "publicKey b A \<notin> symKeys"
@@ -111,14 +111,14 @@ by auto
 
 (*holds because invKey is injective*)
 lemma publicKey_image_eq [simp]:
-     "(publicKey b x \<in> publicKey c ` AA) = (b=c & x \<in> AA)"
+     "(publicKey b x \<in> publicKey c ` AA) = (b=c \<and> x \<in> AA)"
 by auto
 
 lemma privateKey_notin_image_publicKey [simp]: "privateKey b x \<notin> publicKey c ` AA"
 by auto
 
 lemma privateKey_image_eq [simp]:
-     "(privateKey b A \<in> invKey ` publicKey c ` AS) = (b=c & A\<in>AS)"
+     "(privateKey b A \<in> invKey ` publicKey c ` AS) = (b=c \<and> A\<in>AS)"
 by auto
 
 lemma publicKey_notin_image_privateKey [simp]: "publicKey b A \<notin> invKey ` publicKey c ` AS"
@@ -239,7 +239,7 @@ txt\<open>Base case\<close>
 apply (auto dest!: parts_cut simp add: used_Nil) 
 done
 
-lemma MPair_used_D: "\<lbrace>X,Y\<rbrace> \<in> used H ==> X \<in> used H & Y \<in> used H"
+lemma MPair_used_D: "\<lbrace>X,Y\<rbrace> \<in> used H ==> X \<in> used H \<and> Y \<in> used H"
 by (drule used_parts_subset_parts, simp, blast)
 
 text\<open>There was a similar theorem in Event.thy, so perhaps this one can
@@ -358,7 +358,7 @@ by (simp add: used_Nil)
 subsection\<open>Supply fresh nonces for possibility theorems\<close>
 
 text\<open>In any trace, there is an upper bound N on the greatest nonce in use\<close>
-lemma Nonce_supply_lemma: "EX N. ALL n. N<=n --> Nonce n \<notin> used evs"
+lemma Nonce_supply_lemma: "\<exists>N. \<forall>n. N\<le>n \<longrightarrow> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
 apply (simp_all (no_asm_simp) add: used_Cons split: event.split)
@@ -366,17 +366,17 @@ apply safe
 apply (rule msg_Nonce_supply [THEN exE], blast elim!: add_leE)+
 done
 
-lemma Nonce_supply1: "EX N. Nonce N \<notin> used evs"
+lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
 by (rule Nonce_supply_lemma [THEN exE], blast)
 
-lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
+lemma Nonce_supply: "Nonce (SOME N. Nonce N \<notin> used evs) \<notin> used evs"
 apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, fast)
 done
 
 subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
 
-lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} Un H"
+lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
 by blast
 
 lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK) \<union> C"
@@ -389,7 +389,7 @@ by (drule Crypt_imp_invKey_keysFor, simp)
 text\<open>Lemma for the trivial direction of the if-and-only-if of the 
 Session Key Compromise Theorem\<close>
 lemma analz_image_freshK_lemma:
-     "(Key K \<in> analz (Key`nE \<union> H)) --> (K \<in> nE | Key K \<in> analz H)  ==>  
+     "(Key K \<in> analz (Key`nE \<union> H)) \<longrightarrow> (K \<in> nE | Key K \<in> analz H)  ==>  
          (Key K \<in> analz (Key`nE \<union> H)) = (K \<in> nE | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 

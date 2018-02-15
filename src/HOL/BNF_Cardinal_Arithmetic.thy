@@ -689,7 +689,7 @@ by (simp add: cinfinite_def cardSuc_Card_order cardSuc_finite)
 
 lemma cardSuc_UNION_Cinfinite:
   assumes "Cinfinite r" "relChain (cardSuc r) As" "B \<le> (UN i : Field (cardSuc r). As i)" "|B| <=o r"
-  shows "EX i : Field (cardSuc r). B \<le> As i"
+  shows "\<exists>i \<in> Field (cardSuc r). B \<le> As i"
 using cardSuc_UNION assms unfolding cinfinite_def by blast
 
 end

@@ -76,7 +76,7 @@ lemma bag_of_nths_Un_disjoint:
 by (simp add: bag_of_nths_Un_Int [symmetric])
 
 lemma bag_of_nths_UN_disjoint [rule_format]:
-     "[| finite I; ALL i:I. ALL j:I. i~=j --> A i Int A j = {} |]  
+     "[| finite I; \<forall>i\<in>I. \<forall>j\<in>I. i\<noteq>j \<longrightarrow> A i Int A j = {} |]  
       ==> bag_of (nths l (UNION I A)) =   
           (\<Sum>i\<in>I. bag_of (nths l (A i)))"
 apply (auto simp add: bag_of_nths)

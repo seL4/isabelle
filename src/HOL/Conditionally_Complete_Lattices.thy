@@ -304,10 +304,10 @@ lemma cINF_lower2: "bdd_below (f ` A) \<Longrightarrow> x \<in> A \<Longrightarr
 lemma cSUP_upper2: "bdd_above (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> u \<le> f x \<Longrightarrow> u \<le> SUPREMUM A f"
   by (auto intro: cSUP_upper order_trans)
 
-lemma cSUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (SUP x:A. c) = c"
+lemma cSUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion>x\<in>A. c) = c"
   by (intro antisym cSUP_least) (auto intro: cSUP_upper)
 
-lemma cINF_const [simp]: "A \<noteq> {} \<Longrightarrow> (INF x:A. c) = c"
+lemma cINF_const [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter>x\<in>A. c) = c"
   by (intro antisym cINF_greatest) (auto intro: cINF_lower)
 
 lemma le_cINF_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> u \<le> INFIMUM A f \<longleftrightarrow> (\<forall>x\<in>A. u \<le> f x)"
@@ -316,10 +316,10 @@ lemma le_cINF_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrigh
 lemma cSUP_le_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> SUPREMUM A f \<le> u \<longleftrightarrow> (\<forall>x\<in>A. f x \<le> u)"
   by (metis cSUP_least cSUP_upper order_trans)
 
-lemma less_cINF_D: "bdd_below (f`A) \<Longrightarrow> y < (INF i:A. f i) \<Longrightarrow> i \<in> A \<Longrightarrow> y < f i"
+lemma less_cINF_D: "bdd_below (f`A) \<Longrightarrow> y < (\<Sqinter>i\<in>A. f i) \<Longrightarrow> i \<in> A \<Longrightarrow> y < f i"
   by (metis cINF_lower less_le_trans)
 
-lemma cSUP_lessD: "bdd_above (f`A) \<Longrightarrow> (SUP i:A. f i) < y \<Longrightarrow> i \<in> A \<Longrightarrow> f i < y"
+lemma cSUP_lessD: "bdd_above (f`A) \<Longrightarrow> (\<Squnion>i\<in>A. f i) < y \<Longrightarrow> i \<in> A \<Longrightarrow> f i < y"
   by (metis cSUP_upper le_less_trans)
 
 lemma cINF_insert: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> INFIMUM (insert a A) f = inf (f a) (INFIMUM A f)"
@@ -358,11 +358,11 @@ lemma cSup_union_distrib: "A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrig
 lemma cSUP_union: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_above (f`B) \<Longrightarrow> SUPREMUM (A \<union> B) f = sup (SUPREMUM A f) (SUPREMUM B f)"
   using cSup_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un [symmetric])
 
-lemma cINF_inf_distrib: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> bdd_below (g`A) \<Longrightarrow> inf (INFIMUM A f) (INFIMUM A g) = (INF a:A. inf (f a) (g a))"
+lemma cINF_inf_distrib: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> bdd_below (g`A) \<Longrightarrow> inf (INFIMUM A f) (INFIMUM A g) = (\<Sqinter>a\<in>A. inf (f a) (g a))"
   by (intro antisym le_infI cINF_greatest cINF_lower2)
      (auto intro: le_infI1 le_infI2 cINF_greatest cINF_lower le_infI)
 
-lemma SUP_sup_distrib: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> bdd_above (g`A) \<Longrightarrow> sup (SUPREMUM A f) (SUPREMUM A g) = (SUP a:A. sup (f a) (g a))"
+lemma SUP_sup_distrib: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> bdd_above (g`A) \<Longrightarrow> sup (SUPREMUM A f) (SUPREMUM A g) = (\<Squnion>a\<in>A. sup (f a) (g a))"
   by (intro antisym le_supI cSUP_least cSUP_upper2)
      (auto intro: le_supI1 le_supI2 cSUP_least cSUP_upper le_supI)
 
@@ -403,10 +403,10 @@ lemma less_cSup_iff:
 lemma cInf_less_iff: "X \<noteq> {} \<Longrightarrow> bdd_below X \<Longrightarrow> Inf X < y \<longleftrightarrow> (\<exists>x\<in>X. x < y)"
   by (rule iffI) (metis cInf_greatest not_less, metis cInf_lower le_less_trans)
 
-lemma cINF_less_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (INF i:A. f i) < a \<longleftrightarrow> (\<exists>x\<in>A. f x < a)"
+lemma cINF_less_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (\<Sqinter>i\<in>A. f i) < a \<longleftrightarrow> (\<exists>x\<in>A. f x < a)"
   using cInf_less_iff[of "f`A"] by auto
 
-lemma less_cSUP_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> a < (SUP i:A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
+lemma less_cSUP_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> a < (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
   using less_cSup_iff[of "f`A"] by auto
 
 lemma less_cSupE:
@@ -642,10 +642,10 @@ qed
 
 lemma cSUP_eq_cINF_D:
   fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
-  assumes eq: "(SUP x:A. f x) = (INF x:A. f x)"
+  assumes eq: "(\<Squnion>x\<in>A. f x) = (\<Sqinter>x\<in>A. f x)"
      and bdd: "bdd_above (f ` A)" "bdd_below (f ` A)"
      and a: "a \<in> A"
-  shows "f a = (INF x:A. f x)"
+  shows "f a = (\<Sqinter>x\<in>A. f x)"
 apply (rule antisym)
 using a bdd
 apply (auto simp: cINF_lower)
@@ -656,17 +656,17 @@ lemma cSUP_UNION:
   fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
   assumes ne: "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> B(x) \<noteq> {}"
       and bdd_UN: "bdd_above (\<Union>x\<in>A. f ` B x)"
-  shows "(SUP z : \<Union>x\<in>A. B x. f z) = (SUP x:A. SUP z:B x. f z)"
+  shows "(\<Squnion>z \<in> \<Union>x\<in>A. B x. f z) = (\<Squnion>x\<in>A. \<Squnion>z\<in>B x. f z)"
 proof -
   have bdd: "\<And>x. x \<in> A \<Longrightarrow> bdd_above (f ` B x)"
     using bdd_UN by (meson UN_upper bdd_above_mono)
   obtain M where "\<And>x y. x \<in> A \<Longrightarrow> y \<in> B(x) \<Longrightarrow> f y \<le> M"
     using bdd_UN by (auto simp: bdd_above_def)
-  then have bdd2: "bdd_above ((\<lambda>x. SUP z:B x. f z) ` A)"
+  then have bdd2: "bdd_above ((\<lambda>x. \<Squnion>z\<in>B x. f z) ` A)"
     unfolding bdd_above_def by (force simp: bdd cSUP_le_iff ne(2))
-  have "(SUP z:\<Union>x\<in>A. B x. f z) \<le> (SUP x:A. SUP z:B x. f z)"
+  have "(\<Squnion>z \<in> \<Union>x\<in>A. B x. f z) \<le> (\<Squnion>x\<in>A. \<Squnion>z\<in>B x. f z)"
     using assms by (fastforce simp add: intro!: cSUP_least intro: cSUP_upper2 simp: bdd2 bdd)
-  moreover have "(SUP x:A. SUP z:B x. f z) \<le> (SUP z:\<Union>x\<in>A. B x. f z)"
+  moreover have "(\<Squnion>x\<in>A. \<Squnion>z\<in>B x. f z) \<le> (\<Squnion> z \<in> \<Union>x\<in>A. B x. f z)"
     using assms by (fastforce simp add: intro!: cSUP_least intro: cSUP_upper simp: image_UN bdd_UN)
   ultimately show ?thesis
     by (rule order_antisym)
@@ -676,17 +676,17 @@ lemma cINF_UNION:
   fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
   assumes ne: "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> B(x) \<noteq> {}"
       and bdd_UN: "bdd_below (\<Union>x\<in>A. f ` B x)"
-  shows "(INF z : \<Union>x\<in>A. B x. f z) = (INF x:A. INF z:B x. f z)"
+  shows "(\<Sqinter>z \<in> \<Union>x\<in>A. B x. f z) = (\<Sqinter>x\<in>A. \<Sqinter>z\<in>B x. f z)"
 proof -
   have bdd: "\<And>x. x \<in> A \<Longrightarrow> bdd_below (f ` B x)"
     using bdd_UN by (meson UN_upper bdd_below_mono)
   obtain M where "\<And>x y. x \<in> A \<Longrightarrow> y \<in> B(x) \<Longrightarrow> f y \<ge> M"
     using bdd_UN by (auto simp: bdd_below_def)
-  then have bdd2: "bdd_below ((\<lambda>x. INF z:B x. f z) ` A)"
+  then have bdd2: "bdd_below ((\<lambda>x. \<Sqinter>z\<in>B x. f z) ` A)"
     unfolding bdd_below_def by (force simp: bdd le_cINF_iff ne(2))
-  have "(INF z:\<Union>x\<in>A. B x. f z) \<le> (INF x:A. INF z:B x. f z)"
+  have "(\<Sqinter>z \<in> \<Union>x\<in>A. B x. f z) \<le> (\<Sqinter>x\<in>A. \<Sqinter>z\<in>B x. f z)"
     using assms by (fastforce simp add: intro!: cINF_greatest intro: cINF_lower simp: bdd2 bdd)
-  moreover have "(INF x:A. INF z:B x. f z) \<le> (INF z:\<Union>x\<in>A. B x. f z)"
+  moreover have "(\<Sqinter>x\<in>A. \<Sqinter>z\<in>B x. f z) \<le> (\<Sqinter>z \<in> \<Union>x\<in>A. B x. f z)"
     using assms  by (fastforce simp add: intro!: cINF_greatest intro: cINF_lower2  simp: bdd bdd_UN bdd2)
   ultimately show ?thesis
     by (rule order_antisym)

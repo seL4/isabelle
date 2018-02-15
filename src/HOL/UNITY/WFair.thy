@@ -91,12 +91,12 @@ apply (blast intro!: rev_bexI)
 done
 
 lemma transientI: 
-    "[| act: Acts F;  act``A \<subseteq> -A |] ==> F \<in> transient A"
+    "[| act \<in> Acts F;  act``A \<subseteq> -A |] ==> F \<in> transient A"
 by (unfold transient_def, blast)
 
 lemma transientE: 
     "[| F \<in> transient A;   
-        !!act. [| act: Acts F;  act``A \<subseteq> -A |] ==> P |]  
+        \<And>act. [| act \<in> Acts F;  act``A \<subseteq> -A |] ==> P |]  
      ==> P"
 by (unfold transient_def, blast)
 
@@ -115,7 +115,7 @@ apply (blast intro!: rev_bexI)+
 done
 
 lemma totalize_transientI: 
-    "[| act: Acts F;  A \<subseteq> Domain act;  act``A \<subseteq> -A |] 
+    "[| act \<in> Acts F;  A \<subseteq> Domain act;  act``A \<subseteq> -A |] 
      ==> totalize F \<in> transient A"
 by (simp add: totalize_transient_iff, blast)
 
@@ -420,10 +420,10 @@ subsection\<open>Proving the induction rules\<close>
 lemma leadsTo_wf_induct_lemma:
      "[| wf r;      
          \<forall>m. F \<in> (A \<inter> f-`{m}) leadsTo                      
-                    ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+                    ((A \<inter> f-`(r\<inverse> `` {m})) \<union> B) |]  
       ==> F \<in> (A \<inter> f-`{m}) leadsTo B"
 apply (erule_tac a = m in wf_induct)
-apply (subgoal_tac "F \<in> (A \<inter> (f -` (r^-1 `` {x}))) leadsTo B")
+apply (subgoal_tac "F \<in> (A \<inter> (f -` (r\<inverse> `` {x}))) leadsTo B")
  apply (blast intro: leadsTo_cancel1 leadsTo_Un_duplicate)
 apply (subst vimage_eq_UN)
 apply (simp only: UN_simps [symmetric])
@@ -435,7 +435,7 @@ done
 lemma leadsTo_wf_induct:
      "[| wf r;      
          \<forall>m. F \<in> (A \<inter> f-`{m}) leadsTo                      
-                    ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+                    ((A \<inter> f-`(r\<inverse> `` {m})) \<union> B) |]  
       ==> F \<in> A leadsTo B"
 apply (rule_tac t = A in subst)
  defer 1
@@ -449,7 +449,7 @@ done
 lemma bounded_induct:
      "[| wf r;      
          \<forall>m \<in> I. F \<in> (A \<inter> f-`{m}) leadsTo                    
-                      ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+                      ((A \<inter> f-`(r\<inverse> `` {m})) \<union> B) |]  
       ==> F \<in> A leadsTo ((A - (f-`I)) \<union> B)"
 apply (erule leadsTo_wf_induct, safe)
 apply (case_tac "m \<in> I")

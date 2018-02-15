@@ -1944,7 +1944,7 @@ proof -
       using \<open>u + v = 1\<close> by auto
     ultimately have "a + (u *\<^sub>R x + v *\<^sub>R y) \<in> (\<lambda>x. a + x) ` S"
       using h1 by auto
-    then have "u *\<^sub>R x + v *\<^sub>R y : S" by auto
+    then have "u *\<^sub>R x + v *\<^sub>R y \<in> S" by auto
   }
   then show ?thesis unfolding affine_def by auto
 qed
@@ -2031,7 +2031,7 @@ proof -
   have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
   have "affine ((\<lambda>x. (-a)+x) ` S)"
     using  affine_translation assms by auto
-  moreover have "0 : ((\<lambda>x. (-a)+x) ` S)"
+  moreover have "0 \<in> ((\<lambda>x. (-a)+x) ` S)"
     using assms exI[of "(\<lambda>x. x\<in>S \<and> -a+x = 0)" a] by auto
   ultimately show ?thesis using subspace_affine by auto
 qed
@@ -2130,7 +2130,7 @@ lemma cone_hull_eq: "cone hull s = s \<longleftrightarrow> cone s"
 
 lemma mem_cone:
   assumes "cone S" "x \<in> S" "c \<ge> 0"
-  shows "c *\<^sub>R x : S"
+  shows "c *\<^sub>R x \<in> S"
   using assms cone_def[of S] by auto
 
 lemma cone_contains_0:
@@ -3409,7 +3409,7 @@ lemma affine_dependent_iff_dependent:
   assumes "a \<notin> S"
   shows "affine_dependent (insert a S) \<longleftrightarrow> dependent ((\<lambda>x. -a + x) ` S)"
 proof -
-  have "((+) (- a) ` S) = {x - a| x . x : S}" by auto
+  have "((+) (- a) ` S) = {x - a| x . x \<in> S}" by auto
   then show ?thesis
     using affine_dependent_translation_eq[of "(insert a S)" "-a"]
       affine_dependent_imp_dependent2 assms

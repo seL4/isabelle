@@ -31,11 +31,11 @@ inductive_set
   for CC :: "'a set set" and F :: "'a program"
  where
 
-   Basis:  "[| F : A ensures B;  A-B : (insert {} CC) |] ==> (A,B) : elt CC F"
+   Basis:  "[| F \<in> A ensures B;  A-B \<in> (insert {} CC) |] ==> (A,B) \<in> elt CC F"
 
- | Trans:  "[| (A,B) : elt CC F;  (B,C) : elt CC F |] ==> (A,C) : elt CC F"
+ | Trans:  "[| (A,B) \<in> elt CC F;  (B,C) \<in> elt CC F |] ==> (A,C) \<in> elt CC F"
 
- | Union:  "ALL A: S. (A,B) : elt CC F ==> (Union S, B) : elt CC F"
+ | Union:  "\<forall>A\<in>S. (A,B) \<in> elt CC F ==> (Union S, B) \<in> elt CC F"
 
 
 definition  
@@ -47,13 +47,13 @@ definition
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
                                         ("(3_/ leadsTo[_]/ _)" [80,0,80] 80)
-  where "leadsETo A CC B = {F. (A,B) : elt CC F}"
+  where "leadsETo A CC B = {F. (A,B) \<in> elt CC F}"
 
 definition
   LeadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
                                         ("(3_/ LeadsTo[_]/ _)" [80,0,80] 80)
   where "LeadsETo A CC B =
-      {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC] B}"
+      {F. F \<in> (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC] B}"
 
 
 (*** givenBy ***)
@@ -61,35 +61,35 @@ definition
 lemma givenBy_id [simp]: "givenBy id = UNIV"
 by (unfold givenBy_def, auto)
 
-lemma givenBy_eq_all: "(givenBy v) = {A. ALL x:A. ALL y. v x = v y --> y: A}"
+lemma givenBy_eq_all: "(givenBy v) = {A. \<forall>x\<in>A. \<forall>y. v x = v y \<longrightarrow> y \<in> A}"
 apply (unfold givenBy_def, safe)
 apply (rule_tac [2] x = "v ` _" in image_eqI, auto)
 done
 
-lemma givenByI: "(!!x y. [| x:A;  v x = v y |] ==> y: A) ==> A: givenBy v"
+lemma givenByI: "(\<And>x y. [| x \<in> A;  v x = v y |] ==> y \<in> A) ==> A \<in> givenBy v"
 by (subst givenBy_eq_all, blast)
 
-lemma givenByD: "[| A: givenBy v;  x:A;  v x = v y |] ==> y: A"
+lemma givenByD: "[| A \<in> givenBy v;  x \<in> A;  v x = v y |] ==> y \<in> A"
 by (unfold givenBy_def, auto)
 
-lemma empty_mem_givenBy [iff]: "{} : givenBy v"
+lemma empty_mem_givenBy [iff]: "{} \<in> givenBy v"
 by (blast intro!: givenByI)
 
-lemma givenBy_imp_eq_Collect: "A: givenBy v ==> EX P. A = {s. P(v s)}"
-apply (rule_tac x = "%n. EX s. v s = n & s : A" in exI)
+lemma givenBy_imp_eq_Collect: "A \<in> givenBy v ==> \<exists>P. A = {s. P(v s)}"
+apply (rule_tac x = "\<lambda>n. \<exists>s. v s = n \<and> s \<in> A" in exI)
 apply (simp (no_asm_use) add: givenBy_eq_all)
 apply blast
 done
 
-lemma Collect_mem_givenBy: "{s. P(v s)} : givenBy v"
+lemma Collect_mem_givenBy: "{s. P(v s)} \<in> givenBy v"
 by (unfold givenBy_def, best)
 
-lemma givenBy_eq_Collect: "givenBy v = {A. EX P. A = {s. P(v s)}}"
+lemma givenBy_eq_Collect: "givenBy v = {A. \<exists>P. A = {s. P(v s)}}"
 by (blast intro: Collect_mem_givenBy givenBy_imp_eq_Collect)
 
 (*preserving v preserves properties given by v*)
 lemma preserves_givenBy_imp_stable:
-     "[| F : preserves v;  D : givenBy v |] ==> F : stable D"
+     "[| F \<in> preserves v;  D \<in> givenBy v |] ==> F \<in> stable D"
 by (force simp add: preserves_subset_stable [THEN subsetD] givenBy_eq_Collect)
 
 lemma givenBy_o_subset: "givenBy (w o v) <= givenBy v"
@@ -98,7 +98,7 @@ apply best
 done
 
 lemma givenBy_DiffI:
-     "[| A : givenBy v;  B : givenBy v |] ==> A-B : givenBy v"
+     "[| A \<in> givenBy v;  B \<in> givenBy v |] ==> A-B \<in> givenBy v"
 apply (simp (no_asm_use) add: givenBy_eq_Collect)
 apply safe
 apply (rule_tac x = "%z. R z & ~ Q z" for R Q in exI)
@@ -110,13 +110,13 @@ done
 (** Standard leadsTo rules **)
 
 lemma leadsETo_Basis [intro]: 
-     "[| F: A ensures B;  A-B: insert {} CC |] ==> F : A leadsTo[CC] B"
+     "[| F \<in> A ensures B;  A-B \<in> insert {} CC |] ==> F \<in> A leadsTo[CC] B"
 apply (unfold leadsETo_def)
 apply (blast intro: elt.Basis)
 done
 
 lemma leadsETo_Trans: 
-     "[| F : A leadsTo[CC] B;  F : B leadsTo[CC] C |] ==> F : A leadsTo[CC] C"
+     "[| F \<in> A leadsTo[CC] B;  F \<in> B leadsTo[CC] C |] ==> F \<in> A leadsTo[CC] C"
 apply (unfold leadsETo_def)
 apply (blast intro: elt.Trans)
 done
@@ -124,33 +124,33 @@ done
 
 (*Useful with cancellation, disjunction*)
 lemma leadsETo_Un_duplicate:
-     "F : A leadsTo[CC] (A' Un A') ==> F : A leadsTo[CC] A'"
+     "F \<in> A leadsTo[CC] (A' \<union> A') \<Longrightarrow> F \<in> A leadsTo[CC] A'"
 by (simp add: Un_ac)
 
 lemma leadsETo_Un_duplicate2:
-     "F : A leadsTo[CC] (A' Un C Un C) ==> F : A leadsTo[CC] (A' Un C)"
+     "F \<in> A leadsTo[CC] (A' \<union> C \<union> C) ==> F \<in> A leadsTo[CC] (A' Un C)"
 by (simp add: Un_ac)
 
 (*The Union introduction rule as we should have liked to state it*)
 lemma leadsETo_Union:
-    "(!!A. A : S ==> F : A leadsTo[CC] B) ==> F : (\<Union>S) leadsTo[CC] B"
+    "(\<And>A. A \<in> S \<Longrightarrow> F \<in> A leadsTo[CC] B) \<Longrightarrow> F \<in> (\<Union>S) leadsTo[CC] B"
 apply (unfold leadsETo_def)
 apply (blast intro: elt.Union)
 done
 
 lemma leadsETo_UN:
-    "(!!i. i : I ==> F : (A i) leadsTo[CC] B)  
-     ==> F : (UN i:I. A i) leadsTo[CC] B"
+    "(\<And>i. i \<in> I \<Longrightarrow> F \<in> (A i) leadsTo[CC] B)  
+     ==> F \<in> (UN i:I. A i) leadsTo[CC] B"
 apply (blast intro: leadsETo_Union)
 done
 
 (*The INDUCTION rule as we should have liked to state it*)
 lemma leadsETo_induct:
-  "[| F : za leadsTo[CC] zb;   
-      !!A B. [| F : A ensures B;  A-B : insert {} CC |] ==> P A B;  
-      !!A B C. [| F : A leadsTo[CC] B; P A B; F : B leadsTo[CC] C; P B C |]  
+  "[| F \<in> za leadsTo[CC] zb;   
+      !!A B. [| F \<in> A ensures B;  A-B \<in> insert {} CC |] ==> P A B;  
+      !!A B C. [| F \<in> A leadsTo[CC] B; P A B; F \<in> B leadsTo[CC] C; P B C |]  
                ==> P A C;  
-      !!B S. ALL A:S. F : A leadsTo[CC] B & P A B ==> P (\<Union>S) B  
+      !!B S. \<forall>A\<in>S. F \<in> A leadsTo[CC] B & P A B ==> P (\<Union>S) B  
    |] ==> P za zb"
 apply (unfold leadsETo_def)
 apply (drule CollectD) 
@@ -169,13 +169,13 @@ apply blast
 done
 
 lemma leadsETo_Trans_Un:
-     "[| F : A leadsTo[CC] B;  F : B leadsTo[DD] C |]  
-      ==> F : A leadsTo[CC Un DD] C"
+     "[| F \<in> A leadsTo[CC] B;  F \<in> B leadsTo[DD] C |]  
+      ==> F \<in> A leadsTo[CC Un DD] C"
 by (blast intro: leadsETo_mono [THEN subsetD] leadsETo_Trans)
 
 lemma leadsETo_Union_Int:
- "(!!A. A : S ==> F : (A Int C) leadsTo[CC] B) 
-  ==> F : (\<Union>S Int C) leadsTo[CC] B"
+ "(!!A. A \<in> S ==> F \<in> (A Int C) leadsTo[CC] B) 
+  ==> F \<in> (\<Union>S Int C) leadsTo[CC] B"
 apply (unfold leadsETo_def)
 apply (simp only: Int_Union_Union)
 apply (blast intro: elt.Union)
@@ -183,16 +183,16 @@ done
 
 (*Binary union introduction rule*)
 lemma leadsETo_Un:
-     "[| F : A leadsTo[CC] C; F : B leadsTo[CC] C |] 
-      ==> F : (A Un B) leadsTo[CC] C"
+     "[| F \<in> A leadsTo[CC] C; F \<in> B leadsTo[CC] C |] 
+      ==> F \<in> (A Un B) leadsTo[CC] C"
   using leadsETo_Union [of "{A, B}" F CC C] by auto
 
 lemma single_leadsETo_I:
-     "(!!x. x : A ==> F : {x} leadsTo[CC] B) ==> F : A leadsTo[CC] B"
+     "(\<And>x. x \<in> A ==> F \<in> {x} leadsTo[CC] B) \<Longrightarrow> F \<in> A leadsTo[CC] B"
 by (subst UN_singleton [symmetric], rule leadsETo_UN, blast)
 
 
-lemma subset_imp_leadsETo: "A<=B ==> F : A leadsTo[CC] B"
+lemma subset_imp_leadsETo: "A<=B \<Longrightarrow> F \<in> A leadsTo[CC] B"
 by (simp add: subset_imp_ensures [THEN leadsETo_Basis] 
               Diff_eq_empty_iff [THEN iffD2])
 
@@ -203,73 +203,73 @@ lemmas empty_leadsETo = empty_subsetI [THEN subset_imp_leadsETo, simp]
 (** Weakening laws **)
 
 lemma leadsETo_weaken_R:
-     "[| F : A leadsTo[CC] A';  A'<=B' |] ==> F : A leadsTo[CC] B'"
+     "[| F \<in> A leadsTo[CC] A';  A'<=B' |] ==> F \<in> A leadsTo[CC] B'"
 by (blast intro: subset_imp_leadsETo leadsETo_Trans)
 
 lemma leadsETo_weaken_L:
-     "[| F : A leadsTo[CC] A'; B<=A |] ==> F : B leadsTo[CC] A'"
+     "[| F \<in> A leadsTo[CC] A'; B<=A |] ==> F \<in> B leadsTo[CC] A'"
 by (blast intro: leadsETo_Trans subset_imp_leadsETo)
 
 (*Distributes over binary unions*)
 lemma leadsETo_Un_distrib:
-     "F : (A Un B) leadsTo[CC] C  =   
-      (F : A leadsTo[CC] C & F : B leadsTo[CC] C)"
+     "F \<in> (A Un B) leadsTo[CC] C  =   
+      (F \<in> A leadsTo[CC] C \<and> F \<in> B leadsTo[CC] C)"
 by (blast intro: leadsETo_Un leadsETo_weaken_L)
 
 lemma leadsETo_UN_distrib:
-     "F : (UN i:I. A i) leadsTo[CC] B  =   
-      (ALL i : I. F : (A i) leadsTo[CC] B)"
+     "F \<in> (UN i:I. A i) leadsTo[CC] B  =   
+      (\<forall>i\<in>I. F \<in> (A i) leadsTo[CC] B)"
 by (blast intro: leadsETo_UN leadsETo_weaken_L)
 
 lemma leadsETo_Union_distrib:
-     "F : (\<Union>S) leadsTo[CC] B  =  (ALL A : S. F : A leadsTo[CC] B)"
+     "F \<in> (\<Union>S) leadsTo[CC] B  =  (\<forall>A\<in>S. F \<in> A leadsTo[CC] B)"
 by (blast intro: leadsETo_Union leadsETo_weaken_L)
 
 lemma leadsETo_weaken:
-     "[| F : A leadsTo[CC'] A'; B<=A; A'<=B';  CC' <= CC |]  
-      ==> F : B leadsTo[CC] B'"
+     "[| F \<in> A leadsTo[CC'] A'; B<=A; A'<=B';  CC' <= CC |]  
+      ==> F \<in> B leadsTo[CC] B'"
 apply (drule leadsETo_mono [THEN subsetD], assumption)
 apply (blast del: subsetCE 
              intro: leadsETo_weaken_R leadsETo_weaken_L leadsETo_Trans)
 done
 
 lemma leadsETo_givenBy:
-     "[| F : A leadsTo[CC] A';  CC <= givenBy v |]  
-      ==> F : A leadsTo[givenBy v] A'"
+     "[| F \<in> A leadsTo[CC] A';  CC <= givenBy v |]  
+      ==> F \<in> A leadsTo[givenBy v] A'"
 by (blast intro: leadsETo_weaken)
 
 
 (*Set difference*)
 lemma leadsETo_Diff:
-     "[| F : (A-B) leadsTo[CC] C; F : B leadsTo[CC] C |]  
-      ==> F : A leadsTo[CC] C"
+     "[| F \<in> (A-B) leadsTo[CC] C; F \<in> B leadsTo[CC] C |]  
+      ==> F \<in> A leadsTo[CC] C"
 by (blast intro: leadsETo_Un leadsETo_weaken)
 
 
 (*Binary union version*)
 lemma leadsETo_Un_Un:
-     "[| F : A leadsTo[CC] A';  F : B leadsTo[CC] B' |]  
-      ==> F : (A Un B) leadsTo[CC] (A' Un B')"
+     "[| F \<in> A leadsTo[CC] A';  F \<in> B leadsTo[CC] B' |]  
+      ==> F \<in> (A Un B) leadsTo[CC] (A' Un B')"
 by (blast intro: leadsETo_Un leadsETo_weaken_R)
 
 
 (** The cancellation law **)
 
 lemma leadsETo_cancel2:
-     "[| F : A leadsTo[CC] (A' Un B); F : B leadsTo[CC] B' |]  
-      ==> F : A leadsTo[CC] (A' Un B')"
+     "[| F \<in> A leadsTo[CC] (A' Un B); F \<in> B leadsTo[CC] B' |]  
+      ==> F \<in> A leadsTo[CC] (A' Un B')"
 by (blast intro: leadsETo_Un_Un subset_imp_leadsETo leadsETo_Trans)
 
 lemma leadsETo_cancel1:
-     "[| F : A leadsTo[CC] (B Un A'); F : B leadsTo[CC] B' |]  
-    ==> F : A leadsTo[CC] (B' Un A')"
+     "[| F \<in> A leadsTo[CC] (B Un A'); F \<in> B leadsTo[CC] B' |]  
+    ==> F \<in> A leadsTo[CC] (B' Un A')"
 apply (simp add: Un_commute)
 apply (blast intro!: leadsETo_cancel2)
 done
 
 lemma leadsETo_cancel_Diff1:
-     "[| F : A leadsTo[CC] (B Un A'); F : (B-A') leadsTo[CC] B' |]  
-    ==> F : A leadsTo[CC] (B' Un A')"
+     "[| F \<in> A leadsTo[CC] (B Un A'); F \<in> (B-A') leadsTo[CC] B' |]  
+    ==> F \<in> A leadsTo[CC] (B' Un A')"
 apply (rule leadsETo_cancel1)
  prefer 2 apply assumption
 apply simp_all
@@ -280,8 +280,8 @@ done
 
 (*Special case of PSP: Misra's "stable conjunction"*)
 lemma e_psp_stable: 
-   "[| F : A leadsTo[CC] A';  F : stable B;  ALL C:CC. C Int B : CC |]  
-    ==> F : (A Int B) leadsTo[CC] (A' Int B)"
+   "[| F \<in> A leadsTo[CC] A';  F \<in> stable B;  \<forall>C\<in>CC. C Int B \<in> CC |]  
+    ==> F \<in> (A Int B) leadsTo[CC] (A' Int B)"
 apply (unfold stable_def)
 apply (erule leadsETo_induct)
 prefer 3 apply (blast intro: leadsETo_Union_Int)
@@ -294,14 +294,14 @@ apply (blast intro: transient_strengthen constrains_Int)
 done
 
 lemma e_psp_stable2:
-     "[| F : A leadsTo[CC] A'; F : stable B;  ALL C:CC. C Int B : CC |]  
-      ==> F : (B Int A) leadsTo[CC] (B Int A')"
+     "[| F \<in> A leadsTo[CC] A'; F \<in> stable B;  \<forall>C\<in>CC. C Int B \<in> CC |]  
+      ==> F \<in> (B Int A) leadsTo[CC] (B Int A')"
 by (simp (no_asm_simp) add: e_psp_stable Int_ac)
 
 lemma e_psp:
-     "[| F : A leadsTo[CC] A'; F : B co B';   
-         ALL C:CC. C Int B Int B' : CC |]  
-      ==> F : (A Int B') leadsTo[CC] ((A' Int B) Un (B' - B))"
+     "[| F \<in> A leadsTo[CC] A'; F \<in> B co B';   
+         \<forall>C\<in>CC. C Int B Int B' \<in> CC |]  
+      ==> F \<in> (A Int B') leadsTo[CC] ((A' Int B) Un (B' - B))"
 apply (erule leadsETo_induct)
 prefer 3 apply (blast intro: leadsETo_Union_Int)
 (*Transitivity case has a delicate argument involving "cancellation"*)
@@ -318,9 +318,9 @@ apply auto
 done
 
 lemma e_psp2:
-     "[| F : A leadsTo[CC] A'; F : B co B';   
-         ALL C:CC. C Int B Int B' : CC |]  
-      ==> F : (B' Int A) leadsTo[CC] ((B Int A') Un (B' - B))"
+     "[| F \<in> A leadsTo[CC] A'; F \<in> B co B';   
+         \<forall>C\<in>CC. C Int B Int B' \<in> CC |]  
+      ==> F \<in> (B' Int A) leadsTo[CC] ((B Int A') Un (B' - B))"
 by (simp add: e_psp Int_ac)
 
 
@@ -328,9 +328,9 @@ by (simp add: e_psp Int_ac)
 
 (*??IS THIS NEEDED?? or is it just an example of what's provable??*)
 lemma gen_leadsETo_imp_Join_leadsETo:
-     "[| F: (A leadsTo[givenBy v] B);  G : preserves v;   
-         F\<squnion>G : stable C |]  
-      ==> F\<squnion>G : ((C Int A) leadsTo[(%D. C Int D) ` givenBy v] B)"
+     "[| F \<in> (A leadsTo[givenBy v] B);  G \<in> preserves v;   
+         F\<squnion>G \<in> stable C |]  
+      ==> F\<squnion>G \<in> ((C Int A) leadsTo[(%D. C Int D) ` givenBy v] B)"
 apply (erule leadsETo_induct)
   prefer 3
   apply (subst Int_Union) 
@@ -371,7 +371,7 @@ done
 
 lemma LeadsETo_eq_leadsETo: 
      "A LeadsTo[CC] B =  
-        {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC]  
+        {F. F \<in> (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC]  
         (reachable F Int B)}"
 apply (unfold LeadsETo_def)
 apply (blast dest: e_psp_stable2 intro: leadsETo_weaken)
@@ -380,38 +380,38 @@ done
 (*** Introduction rules: Basis, Trans, Union ***)
 
 lemma LeadsETo_Trans:
-     "[| F : A LeadsTo[CC] B;  F : B LeadsTo[CC] C |]  
-      ==> F : A LeadsTo[CC] C"
+     "[| F \<in> A LeadsTo[CC] B;  F \<in> B LeadsTo[CC] C |]  
+      ==> F \<in> A LeadsTo[CC] C"
 apply (simp add: LeadsETo_eq_leadsETo)
 apply (blast intro: leadsETo_Trans)
 done
 
 lemma LeadsETo_Union:
-     "(!!A. A : S ==> F : A LeadsTo[CC] B) ==> F : (\<Union>S) LeadsTo[CC] B"
+     "(\<And>A. A \<in> S \<Longrightarrow> F \<in> A LeadsTo[CC] B) \<Longrightarrow> F \<in> (\<Union>S) LeadsTo[CC] B"
 apply (simp add: LeadsETo_def)
 apply (subst Int_Union)
 apply (blast intro: leadsETo_UN)
 done
 
 lemma LeadsETo_UN:
-     "(!!i. i : I ==> F : (A i) LeadsTo[CC] B)  
-      ==> F : (UN i:I. A i) LeadsTo[CC] B"
+     "(\<And>i. i \<in> I \<Longrightarrow> F \<in> (A i) LeadsTo[CC] B)  
+      \<Longrightarrow> F \<in> (UN i:I. A i) LeadsTo[CC] B"
 apply (blast intro: LeadsETo_Union)
 done
 
 (*Binary union introduction rule*)
 lemma LeadsETo_Un:
-     "[| F : A LeadsTo[CC] C; F : B LeadsTo[CC] C |]  
-      ==> F : (A Un B) LeadsTo[CC] C"
+     "[| F \<in> A LeadsTo[CC] C; F \<in> B LeadsTo[CC] C |]  
+      ==> F \<in> (A Un B) LeadsTo[CC] C"
   using LeadsETo_Union [of "{A, B}" F CC C] by auto
 
 (*Lets us look at the starting state*)
 lemma single_LeadsETo_I:
-     "(!!s. s : A ==> F : {s} LeadsTo[CC] B) ==> F : A LeadsTo[CC] B"
+     "(\<And>s. s \<in> A ==> F \<in> {s} LeadsTo[CC] B) \<Longrightarrow> F \<in> A LeadsTo[CC] B"
 by (subst UN_singleton [symmetric], rule LeadsETo_UN, blast)
 
 lemma subset_imp_LeadsETo:
-     "A <= B ==> F : A LeadsTo[CC] B"
+     "A <= B \<Longrightarrow> F \<in> A LeadsTo[CC] B"
 apply (simp (no_asm) add: LeadsETo_def)
 apply (blast intro: subset_imp_leadsETo)
 done
@@ -419,21 +419,21 @@ done
 lemmas empty_LeadsETo = empty_subsetI [THEN subset_imp_LeadsETo]
 
 lemma LeadsETo_weaken_R:
-     "[| F : A LeadsTo[CC] A';  A' <= B' |] ==> F : A LeadsTo[CC] B'"
+     "[| F \<in> A LeadsTo[CC] A';  A' <= B' |] ==> F \<in> A LeadsTo[CC] B'"
 apply (simp add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken_R)
 done
 
 lemma LeadsETo_weaken_L:
-     "[| F : A LeadsTo[CC] A';  B <= A |] ==> F : B LeadsTo[CC] A'"
+     "[| F \<in> A LeadsTo[CC] A';  B <= A |] ==> F \<in> B LeadsTo[CC] A'"
 apply (simp add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken_L)
 done
 
 lemma LeadsETo_weaken:
-     "[| F : A LeadsTo[CC'] A';    
+     "[| F \<in> A LeadsTo[CC'] A';    
          B <= A;  A' <= B';  CC' <= CC |]  
-      ==> F : B LeadsTo[CC] B'"
+      ==> F \<in> B LeadsTo[CC] B'"
 apply (simp (no_asm_use) add: LeadsETo_def)
 apply (blast intro: leadsETo_weaken)
 done
@@ -445,12 +445,12 @@ done
 
 (*Postcondition can be strengthened to (reachable F Int B) *)
 lemma reachable_ensures:
-     "F : A ensures B ==> F : (reachable F Int A) ensures B"
+     "F \<in> A ensures B \<Longrightarrow> F \<in> (reachable F Int A) ensures B"
 apply (rule stable_ensures_Int [THEN ensures_weaken_R], auto)
 done
 
 lemma lel_lemma:
-     "F : A leadsTo B ==> F : (reachable F Int A) leadsTo[Pow(reachable F)] B"
+     "F \<in> A leadsTo B \<Longrightarrow> F \<in> (reachable F Int A) leadsTo[Pow(reachable F)] B"
 apply (erule leadsTo_induct)
   apply (blast intro: reachable_ensures)
  apply (blast dest: e_psp_stable2 intro: leadsETo_Trans leadsETo_weaken_L)
@@ -483,13 +483,13 @@ lemma givenBy_eq_extend_set: "givenBy f = range (extend_set h)"
 by (simp add: givenBy_eq_Collect, best)
 
 lemma extend_set_givenBy_I:
-     "D : givenBy v ==> extend_set h D : givenBy (v o f)"
+     "D \<in> givenBy v ==> extend_set h D \<in> givenBy (v o f)"
 apply (simp (no_asm_use) add: givenBy_eq_all, blast)
 done
 
 lemma leadsETo_imp_extend_leadsETo:
-     "F : A leadsTo[CC] B  
-      ==> extend h F : (extend_set h A) leadsTo[extend_set h ` CC]  
+     "F \<in> A leadsTo[CC] B  
+      ==> extend h F \<in> (extend_set h A) leadsTo[extend_set h ` CC]  
                        (extend_set h B)"
 apply (erule leadsETo_induct)
   apply (force intro: subset_imp_ensures 
@@ -502,11 +502,11 @@ done
 (*This version's stronger in the "ensures" precondition
   BUT there's no ensures_weaken_L*)
 lemma Join_project_ensures_strong:
-     "[| project h C G ~: transient (project_set h C Int (A-B)) |  
+     "[| project h C G \<notin> transient (project_set h C Int (A-B)) |  
            project_set h C Int (A - B) = {};   
-         extend h F\<squnion>G : stable C;   
-         F\<squnion>project h C G : (project_set h C Int A) ensures B |]  
-      ==> extend h F\<squnion>G : (C Int extend_set h A) ensures (extend_set h B)"
+         extend h F\<squnion>G \<in> stable C;   
+         F\<squnion>project h C G \<in> (project_set h C Int A) ensures B |]  
+      ==> extend h F\<squnion>G \<in> (C Int extend_set h A) ensures (extend_set h B)"
 apply (subst Int_extend_set_lemma [symmetric])
 apply (rule Join_project_ensures)
 apply (auto simp add: Int_Diff)
@@ -595,22 +595,22 @@ done
 
 (*Lemma for the Trans case*)
 lemma pli_lemma:
-     "[| extend h F\<squnion>G : stable C;     
+     "[| extend h F\<squnion>G \<in> stable C;     
          F\<squnion>project h C G     
-           : project_set h C Int project_set h A leadsTo project_set h B |]  
+           \<in> project_set h C Int project_set h A leadsTo project_set h B |]  
       ==> F\<squnion>project h C G     
-            : project_set h C Int project_set h A leadsTo     
+            \<in> project_set h C Int project_set h A leadsTo     
               project_set h C Int project_set h B"
 apply (rule psp_stable2 [THEN leadsTo_weaken_L])
 apply (auto simp add: project_stable_project_set extend_stable_project_set)
 done
 
 lemma project_leadsETo_I_lemma:
-     "[| extend h F\<squnion>G : stable C;   
-         extend h F\<squnion>G :  
+     "[| extend h F\<squnion>G \<in> stable C;   
+         extend h F\<squnion>G \<in>  
            (C Int A) leadsTo[(%D. C Int D)`givenBy f]  B |]   
   ==> F\<squnion>project h C G   
-    : (project_set h C Int project_set h (C Int A)) leadsTo (project_set h B)"
+    \<in> (project_set h C Int project_set h (C Int A)) leadsTo (project_set h B)"
 apply (erule leadsETo_induct)
   prefer 3
   apply (simp only: Int_UN_distrib project_set_Union)
@@ -622,22 +622,22 @@ apply (blast intro: ensures_extend_set_imp_project_ensures)
 done
 
 lemma project_leadsETo_I:
-     "extend h F\<squnion>G : (extend_set h A) leadsTo[givenBy f] (extend_set h B)
-      ==> F\<squnion>project h UNIV G : A leadsTo B"
+     "extend h F\<squnion>G \<in> (extend_set h A) leadsTo[givenBy f] (extend_set h B)
+      \<Longrightarrow> F\<squnion>project h UNIV G \<in> A leadsTo B"
 apply (rule project_leadsETo_I_lemma [THEN leadsTo_weaken], auto)
 done
 
 lemma project_LeadsETo_I:
-     "extend h F\<squnion>G : (extend_set h A) LeadsTo[givenBy f] (extend_set h B) 
-      ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G   
-           : A LeadsTo B"
+     "extend h F\<squnion>G \<in> (extend_set h A) LeadsTo[givenBy f] (extend_set h B) 
+      \<Longrightarrow> F\<squnion>project h (reachable (extend h F\<squnion>G)) G   
+           \<in> A LeadsTo B"
 apply (simp (no_asm_use) add: LeadsTo_def LeadsETo_def)
 apply (rule project_leadsETo_I_lemma [THEN leadsTo_weaken])
 apply (auto simp add: project_set_reachable_extend_eq [symmetric])
 done
 
 lemma projecting_leadsTo: 
-     "projecting (%G. UNIV) h F  
+     "projecting (\<lambda>G. UNIV) h F  
                  (extend_set h A leadsTo[givenBy f] extend_set h B)  
                  (A leadsTo B)"
 apply (unfold projecting_def)
@@ -645,7 +645,7 @@ apply (force dest: project_leadsETo_I)
 done
 
 lemma projecting_LeadsTo: 
-     "projecting (%G. reachable (extend h F\<squnion>G)) h F  
+     "projecting (\<lambda>G. reachable (extend h F\<squnion>G)) h F  
                  (extend_set h A LeadsTo[givenBy f] extend_set h B)  
                  (A LeadsTo B)"
 apply (unfold projecting_def)

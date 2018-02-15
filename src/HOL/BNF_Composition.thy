@@ -81,10 +81,10 @@ lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<
 lemma Collect_inj: "Collect P = Collect Q \<Longrightarrow> P = Q"
   by blast
 
-lemma Grp_fst_snd: "(Grp (Collect (case_prod R)) fst)^--1 OO Grp (Collect (case_prod R)) snd = R"
+lemma Grp_fst_snd: "(Grp (Collect (case_prod R)) fst)\<inverse>\<inverse> OO Grp (Collect (case_prod R)) snd = R"
   unfolding Grp_def fun_eq_iff relcompp.simps by auto
 
-lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)^--1 OO Grp A g = (Grp B f)^--1 OO Grp B g"
+lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)\<inverse>\<inverse> OO Grp A g = (Grp B f)\<inverse>\<inverse> OO Grp B g"
   by (rule arg_cong)
 
 lemma vimage2p_relcompp_mono: "R OO S \<le> T \<Longrightarrow>
@@ -145,7 +145,7 @@ proof safe
 qed blast
 
 lemma vimage2p_relcompp_converse:
-  "vimage2p f g (R^--1 OO S) = (vimage2p Rep f R)^--1 OO vimage2p Rep g S"
+  "vimage2p f g (R\<inverse>\<inverse> OO S) = (vimage2p Rep f R)\<inverse>\<inverse> OO vimage2p Rep g S"
   unfolding vimage2p_def relcompp.simps conversep.simps fun_eq_iff image_def
   by (auto simp: type_copy_ex_RepI)
 

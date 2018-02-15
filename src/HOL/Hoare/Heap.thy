@@ -12,10 +12,10 @@ subsection "References"
 
 datatype 'a ref = Null | Ref 'a
 
-lemma not_Null_eq [iff]: "(x ~= Null) = (EX y. x = Ref y)"
+lemma not_Null_eq [iff]: "(x \<noteq> Null) = (\<exists>y. x = Ref y)"
   by (induct x) auto
 
-lemma not_Ref_eq [iff]: "(ALL y. x ~= Ref y) = (x = Null)"
+lemma not_Ref_eq [iff]: "(\<forall>y. x \<noteq> Ref y) = (x = Null)"
   by (induct x) auto
 
 primrec addr :: "'a ref \<Rightarrow> 'a" where
@@ -68,12 +68,12 @@ be both @{term "[]"} and the non-repeating list of nodes in the
 cycle.\<close>
 
 lemma neq_dP: "p \<noteq> q \<Longrightarrow> Path h p Ps q \<Longrightarrow> distinct Ps \<Longrightarrow>
- EX a Qs. p = Ref a & Ps = a#Qs & a \<notin> set Qs"
+ \<exists>a Qs. p = Ref a \<and> Ps = a#Qs \<and> a \<notin> set Qs"
 by (case_tac Ps, auto)
 
 
 lemma neq_dP_disp: "\<lbrakk> p \<noteq> q; distPath h p Ps q \<rbrakk> \<Longrightarrow>
- EX a Qs. p = Ref a \<and> Ps = a#Qs \<and> a \<notin> set Qs"
+ \<exists>a Qs. p = Ref a \<and> Ps = a#Qs \<and> a \<notin> set Qs"
 apply (simp only:distPath_def)
 by (case_tac Ps, auto)
 

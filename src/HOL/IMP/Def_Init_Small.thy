@@ -28,7 +28,7 @@ where "x \<rightarrow>* y == star small_step x y"
 subsection "Soundness wrt Small Steps"
 
 theorem progress:
-  "D (dom s) c A' \<Longrightarrow> c \<noteq> SKIP \<Longrightarrow> EX cs'. (c,s) \<rightarrow> cs'"
+  "D (dom s) c A' \<Longrightarrow> c \<noteq> SKIP \<Longrightarrow> \<exists>cs'. (c,s) \<rightarrow> cs'"
 proof (induction c arbitrary: s A')
   case Assign thus ?case by auto (metis aval_Some small_step.Assign)
 next
@@ -38,7 +38,7 @@ next
     by(cases bv)(auto intro: small_step.IfTrue small_step.IfFalse)
 qed (fastforce intro: small_step.intros)+
 
-lemma D_mono:  "D A c M \<Longrightarrow> A \<subseteq> A' \<Longrightarrow> EX M'. D A' c M' & M <= M'"
+lemma D_mono:  "D A c M \<Longrightarrow> A \<subseteq> A' \<Longrightarrow> \<exists>M'. D A' c M' & M <= M'"
 proof (induction c arbitrary: A A' M)
   case Seq thus ?case by auto (metis D.intros(3))
 next
@@ -55,7 +55,7 @@ next
 qed (auto intro: D.intros)
 
 theorem D_preservation:
-  "(c,s) \<rightarrow> (c',s') \<Longrightarrow> D (dom s) c A \<Longrightarrow> EX A'. D (dom s') c' A' & A <= A'"
+  "(c,s) \<rightarrow> (c',s') \<Longrightarrow> D (dom s) c A \<Longrightarrow> \<exists>A'. D (dom s') c' A' & A <= A'"
 proof (induction arbitrary: A rule: small_step_induct)
   case (While b c s)
   then obtain A' where A': "vars b \<subseteq> dom s" "A = dom s" "D (dom s) c A'" by blast

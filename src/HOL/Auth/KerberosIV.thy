@@ -22,7 +22,7 @@ axiomatization where
 
 definition
  (* authKeys are those contained in an authTicket *)
-    authKeys :: "event list => key set" where
+    authKeys :: "event list \<Rightarrow> key set" where
     "authKeys evs = {authK. \<exists>A Peer Ta. Says Kas A
                         (Crypt (shrK A) \<lbrace>Key authK, Agent Peer, Number Ta,
                (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key authK, Number Ta\<rbrace>)
@@ -31,21 +31,21 @@ definition
 definition
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
-  Issues :: "[agent, agent, msg, event list] => bool"
+  Issues :: "[agent, agent, msg, event list] \<Rightarrow> bool"
              ("_ Issues _ with _ on _" [50, 0, 0, 50] 50) where
    "(A Issues B with X on evs) =
-      (\<exists>Y. Says A B Y \<in> set evs & X \<in> parts {Y} &
-        X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs))))"
+      (\<exists>Y. Says A B Y \<in> set evs \<and> X \<in> parts {Y} \<and>
+        X \<notin> parts (spies (takeWhile (\<lambda>z. z \<noteq> Says A B Y) (rev evs))))"
 
 definition
  (* Yields the subtrace of a given trace from its beginning to a given event *)
-  before :: "[event, event list] => event list" ("before _ on _" [0, 50] 50)
-  where "(before ev on evs) = takeWhile (% z. z ~= ev) (rev evs)"
+  before :: "[event, event list] \<Rightarrow> event list" ("before _ on _" [0, 50] 50)
+  where "(before ev on evs) = takeWhile (\<lambda>z. z \<noteq> ev) (rev evs)"
 
 definition
  (* States than an event really appears only once on a trace *)
-  Unique :: "[event, event list] => bool" ("Unique _ on _" [0, 50] 50)
-  where "(Unique ev on evs) = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
+  Unique :: "[event, event list] \<Rightarrow> bool" ("Unique _ on _" [0, 50] 50)
+  where "(Unique ev on evs) = (ev \<notin> set (tl (dropWhile (\<lambda>z. z \<noteq> ev) evs)))"
 
 
 consts
@@ -79,30 +79,30 @@ specification (replylife)
 
 abbreviation
   (*The current time is the length of the trace*)
-  CT :: "event list=>nat" where
+  CT :: "event list \<Rightarrow> nat" where
   "CT == length"
 
 abbreviation
-  expiredAK :: "[nat, event list] => bool" where
+  expiredAK :: "[nat, event list] \<Rightarrow> bool" where
   "expiredAK Ta evs == authKlife + Ta < CT evs"
 
 abbreviation
-  expiredSK :: "[nat, event list] => bool" where
+  expiredSK :: "[nat, event list] \<Rightarrow> bool" where
   "expiredSK Ts evs == servKlife + Ts < CT evs"
 
 abbreviation
-  expiredA :: "[nat, event list] => bool" where
+  expiredA :: "[nat, event list] \<Rightarrow> bool" where
   "expiredA T evs == authlife + T < CT evs"
 
 abbreviation
-  valid :: "[nat, nat] => bool" ("valid _ wrt _" [0, 50] 50) where
-  "valid T1 wrt T2 == T1 <= replylife + T2"
+  valid :: "[nat, nat] \<Rightarrow> bool" ("valid _ wrt _" [0, 50] 50) where
+  "valid T1 wrt T2 == T1 \<le> replylife + T2"
 
 (*---------------------------------------------------------------------*)
 
 
 (* Predicate formalising the association between authKeys and servKeys *)
-definition AKcryptSK :: "[key, key, event list] => bool" where
+definition AKcryptSK :: "[key, key, event list] \<Rightarrow> bool" where
   "AKcryptSK authK servK evs ==
      \<exists>A B Ts.
        Says Tgs A (Crypt authK
@@ -175,7 +175,7 @@ inductive_set kerbIV :: "event list set"
                 \<in> set evs4;
             \<not> expiredAK Ta evs4;
             \<not> expiredA T2 evs4;
-            servKlife + (CT evs4) <= authKlife + Ta
+            servKlife + (CT evs4) \<le> authKlife + Ta
          \<rbrakk>
           \<Longrightarrow> Says Tgs A
                 (Crypt authK \<lbrace>Key servK, Agent B, Number (CT evs4),
@@ -267,7 +267,7 @@ apply (induct_tac [2] a, auto)
 done
 
 lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =
-          (if A:bad then insert X (spies evs) else spies evs)"
+          (if A\<in>bad then insert X (spies evs) else spies evs)"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] a, auto)
@@ -282,7 +282,7 @@ done
 
 lemmas parts_spies_evs_revD2 = spies_evs_rev [THEN equalityD2, THEN parts_mono]
 
-lemma spies_takeWhile: "spies (takeWhile P evs) <=  spies evs"
+lemma spies_takeWhile: "spies (takeWhile P evs) \<subseteq> spies evs"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
@@ -341,7 +341,7 @@ by blast
 lemma Oops_range_spies1:
      "\<lbrakk> Says Kas A (Crypt KeyA \<lbrace>Key authK, Peer, Ta, authTicket\<rbrace>)
            \<in> set evs ;
-         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> authK \<notin> range shrK & authK \<in> symKeys"
+         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> authK \<notin> range shrK \<and> authK \<in> symKeys"
 apply (erule rev_mp)
 apply (erule kerbIV.induct, auto)
 done
@@ -355,7 +355,7 @@ by blast
 lemma Oops_range_spies2:
      "\<lbrakk> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Ts, servTicket\<rbrace>)
            \<in> set evs ;
-         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> servK \<notin> range shrK & servK \<in> symKeys"
+         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> servK \<notin> range shrK \<and> servK \<in> symKeys"
 apply (erule rev_mp)
 apply (erule kerbIV.induct, auto)
 done
@@ -379,7 +379,7 @@ lemma Spy_analz_shrK [simp]:
 by auto
 
 lemma Spy_see_shrK_D [dest!]:
-     "\<lbrakk> Key (shrK A) \<in> parts (spies evs);  evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A:bad"
+     "\<lbrakk> Key (shrK A) \<in> parts (spies evs);  evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A\<in>bad"
 by (blast dest: Spy_see_shrK)
 
 lemmas Spy_analz_shrK_D = analz_subset_parts [THEN subsetD, THEN Spy_see_shrK_D, dest!]
@@ -444,7 +444,7 @@ apply (simp add: used_Notes_rev)
 done
 
 lemma used_takeWhile_used [rule_format]: 
-      "x : used (takeWhile P X) --> x : used X"
+      "x \<in> used (takeWhile P X) \<longrightarrow> x \<in> used X"
 apply (induct_tac "X")
 apply simp
 apply (rename_tac a b)
@@ -469,12 +469,12 @@ lemma Says_Kas_message_form:
      "\<lbrakk> Says Kas A (Crypt K \<lbrace>Key authK, Agent Peer, Number Ta, authTicket\<rbrace>)
            \<in> set evs;
          evs \<in> kerbIV \<rbrakk> \<Longrightarrow>  
-  K = shrK A  & Peer = Tgs &
-  authK \<notin> range shrK & authK \<in> authKeys evs & authK \<in> symKeys & 
-  authTicket = (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>) &
+  K = shrK A \<and> Peer = Tgs \<and>
+  authK \<notin> range shrK \<and> authK \<in> authKeys evs \<and> authK \<in> symKeys \<and> 
+  authTicket = (Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>) \<and>
   Key authK \<notin> used(before 
            Says Kas A (Crypt K \<lbrace>Key authK, Agent Peer, Number Ta, authTicket\<rbrace>)
-                   on evs) &
+                   on evs) \<and>
   Ta = CT (before 
            Says Kas A (Crypt K \<lbrace>Key authK, Agent Peer, Number Ta, authTicket\<rbrace>)
            on evs)"
@@ -540,13 +540,13 @@ lemma Says_Tgs_message_form:
      "\<lbrakk> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
            \<in> set evs;
          evs \<in> kerbIV \<rbrakk>
-  \<Longrightarrow> B \<noteq> Tgs & 
-      authK \<notin> range shrK & authK \<in> authKeys evs & authK \<in> symKeys &
-      servK \<notin> range shrK & servK \<notin> authKeys evs & servK \<in> symKeys &
-      servTicket = (Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>) &
+  \<Longrightarrow> B \<noteq> Tgs \<and> 
+      authK \<notin> range shrK \<and> authK \<in> authKeys evs \<and> authK \<in> symKeys \<and>
+      servK \<notin> range shrK \<and> servK \<notin> authKeys evs \<and> servK \<in> symKeys \<and>
+      servTicket = (Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>) \<and>
       Key servK \<notin> used (before
         Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
-                        on evs) &
+                        on evs) \<and>
       Ts = CT(before 
         Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
               on evs) "
@@ -572,7 +572,7 @@ lemma authTicket_form:
            \<in> parts (spies evs);
          A \<notin> bad;
          evs \<in> kerbIV \<rbrakk>
-    \<Longrightarrow> authK \<notin> range shrK & authK \<in> symKeys & 
+    \<Longrightarrow> authK \<notin> range shrK \<and> authK \<in> symKeys \<and> 
         authTicket = Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Ta\<rbrace>"
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
@@ -587,7 +587,7 @@ lemma servTicket_form:
               \<in> parts (spies evs);
             Key authK \<notin> analz (spies evs);
             evs \<in> kerbIV \<rbrakk>
-         \<Longrightarrow> servK \<notin> range shrK & servK \<in> symKeys & 
+         \<Longrightarrow> servK \<notin> range shrK \<and> servK \<in> symKeys \<and> 
     (\<exists>A. servTicket = Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Ts\<rbrace>)"
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -601,7 +601,7 @@ lemma Says_kas_message_form:
      "\<lbrakk> Says Kas' A (Crypt (shrK A)
               \<lbrace>Key authK, Agent Tgs, Ta, authTicket\<rbrace>) \<in> set evs;
          evs \<in> kerbIV \<rbrakk>
-      \<Longrightarrow> authK \<notin> range shrK & authK \<in> symKeys & 
+      \<Longrightarrow> authK \<notin> range shrK \<and> authK \<in> symKeys \<and> 
           authTicket =
                   Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Ta\<rbrace>
           | authTicket \<in> analz (spies evs)"
@@ -612,7 +612,7 @@ lemma Says_tgs_message_form:
  "\<lbrakk> Says Tgs' A (Crypt authK \<lbrace>Key servK, Agent B, Ts, servTicket\<rbrace>)
        \<in> set evs;  authK \<in> symKeys;
      evs \<in> kerbIV \<rbrakk>
-  \<Longrightarrow> servK \<notin> range shrK &
+  \<Longrightarrow> servK \<notin> range shrK \<and>
       (\<exists>A. servTicket =
               Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Ts\<rbrace>)
        | servTicket \<in> analz (spies evs)"
@@ -718,7 +718,7 @@ lemma u_K4_imp_K2:
    \<Longrightarrow> \<exists>Ta. (Says Kas A (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
            Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>\<rbrace>)
              \<in> set evs
-          & servKlife + Ts <= authKlife + Ta)"
+          \<and> servKlife + Ts \<le> authKlife + Ta)"
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (frule_tac [7] K5_msg_in_parts_spies)
@@ -744,7 +744,7 @@ lemma u_servTicket_authentic_Kas:
   \<Longrightarrow> \<exists>authK Ta. Says Kas A (Crypt(shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
            Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>\<rbrace>)
              \<in> set evs
-           & servKlife + Ts <= authKlife + Ta"
+           \<and> servKlife + Ts \<le> authKlife + Ta"
 by (blast dest!: servTicket_authentic_Tgs u_K4_imp_K2)
 
 lemma servTicket_authentic:
@@ -755,7 +755,7 @@ lemma servTicket_authentic:
      Says Kas A (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
                    Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>\<rbrace>)
        \<in> set evs
-     & Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts,
+     \<and> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts,
                    Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>)
        \<in> set evs"
 by (blast dest: servTicket_authentic_Tgs K4_imp_K2)
@@ -768,14 +768,14 @@ lemma u_servTicket_authentic:
      (Says Kas A (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
                    Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>\<rbrace>)
        \<in> set evs
-     & Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts,
+     \<and> Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts,
                    Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>)
        \<in> set evs
-     & servKlife + Ts <= authKlife + Ta)"
+     \<and> servKlife + Ts \<le> authKlife + Ta)"
 by (blast dest: servTicket_authentic_Tgs u_K4_imp_K2)
 
 lemma u_NotexpiredSK_NotexpiredAK:
-     "\<lbrakk> \<not> expiredSK Ts evs; servKlife + Ts <= authKlife + Ta \<rbrakk>
+     "\<lbrakk> \<not> expiredSK Ts evs; servKlife + Ts \<le> authKlife + Ta \<rbrakk>
       \<Longrightarrow> \<not> expiredAK Ta evs"
   by (metis le_less_trans)
 
@@ -804,7 +804,7 @@ lemma Key_unique_SesKey:
          Crypt K' \<lbrace>Key SesKey,  Agent B', T', Ticket'\<rbrace>
            \<in> parts (spies evs);  Key SesKey \<notin> analz (spies evs);
          evs \<in> kerbIV \<rbrakk>
-      \<Longrightarrow> K=K' & B=B' & T=T' & Ticket=Ticket'"
+      \<Longrightarrow> K=K' \<and> B=B' \<and> T=T' \<and> Ticket=Ticket'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -870,7 +870,7 @@ lemma unique_CryptKey:
          Crypt (shrK B') \<lbrace>Agent A', Agent B', Key SesKey, T'\<rbrace>
            \<in> parts (spies evs);  Key SesKey \<notin> analz (spies evs);
          evs \<in> kerbIV \<rbrakk>
-      \<Longrightarrow> A=A' & B=B' & T=T'"
+      \<Longrightarrow> A=A' \<and> B=B' \<and> T=T'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -947,7 +947,7 @@ text\<open>The session key, if secure, uniquely identifies the Ticket
      \<Longrightarrow> Key Kc \<notin> analz (spies evs) \<longrightarrow>
            (\<exists>K' B' T' Ticket'. \<forall>K B T Ticket.
             Crypt Kc \<lbrace>Key K, Agent B, T, Ticket\<rbrace>
-             \<in> parts (spies evs) \<longrightarrow> K=K' & B=B' & T=T' & Ticket=Ticket')"
+             \<in> parts (spies evs) \<longrightarrow> K=K' \<and> B=B' \<and> T=T' \<and> Ticket=Ticket')"
 
   would fail on the K2 and K4 cases.
 *)
@@ -957,7 +957,7 @@ lemma unique_authKeys:
               (Crypt Ka \<lbrace>Key authK, Agent Tgs, Ta, X\<rbrace>) \<in> set evs;
          Says Kas A'
               (Crypt Ka' \<lbrace>Key authK, Agent Tgs, Ta', X'\<rbrace>) \<in> set evs;
-         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A=A' & Ka=Ka' & Ta=Ta' & X=X'"
+         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A=A' \<and> Ka=Ka' \<and> Ta=Ta' \<and> X=X'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
@@ -973,7 +973,7 @@ lemma unique_servKeys:
               (Crypt K \<lbrace>Key servK, Agent B, Ts, X\<rbrace>) \<in> set evs;
          Says Tgs A'
               (Crypt K' \<lbrace>Key servK, Agent B', Ts', X'\<rbrace>) \<in> set evs;
-         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A=A' & B=B' & K=K' & Ts=Ts' & X=X'"
+         evs \<in> kerbIV \<rbrakk> \<Longrightarrow> A=A' \<and> B=B' \<and> K=K' \<and> Ts=Ts' \<and> X=X'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbIV.induct)
@@ -1020,7 +1020,7 @@ done
 
 lemma AKcryptSK_Says [simp]:
    "AKcryptSK authK servK (Says S A X # evs) =
-     (Tgs = S &
+     (Tgs = S \<and>
       (\<exists>B Ts. X = Crypt authK
                 \<lbrace>Key servK, Agent B, Number Ts,
                   Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace> \<rbrace>)
@@ -1123,9 +1123,9 @@ text\<open>The only session keys that can be found with the help of session keys
 text\<open>We take some pains to express the property
   as a logical equivalence so that the simplifier can apply it.\<close>
 lemma Key_analz_image_Key_lemma:
-     "P \<longrightarrow> (Key K \<in> analz (Key`KK Un H)) \<longrightarrow> (K:KK | Key K \<in> analz H)
+     "P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) \<longrightarrow> (K\<in>KK | Key K \<in> analz H)
       \<Longrightarrow>
-      P \<longrightarrow> (Key K \<in> analz (Key`KK Un H)) = (K:KK | Key K \<in> analz H)"
+      P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) = (K\<in>KK | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN subsetD])
 
 
@@ -1137,7 +1137,7 @@ apply (drule Says_imp_spies [THEN analz.Inj, THEN analz_insertI], auto)
 done
 
 lemma authKeys_are_not_AKcryptSK:
-     "\<lbrakk> K \<in> authKeys evs Un range shrK;  evs \<in> kerbIV \<rbrakk>
+     "\<lbrakk> K \<in> authKeys evs \<union> range shrK;  evs \<in> kerbIV \<rbrakk>
       \<Longrightarrow> \<forall>SK. \<not> AKcryptSK SK K evs \<and> K \<in> symKeys"
 apply (simp add: authKeys_def AKcryptSK_def)
 apply (blast dest: Says_Kas_message_form Says_Tgs_message_form)
@@ -1170,9 +1170,9 @@ text\<open>Big simplification law for keys SK that are not crypted by keys in KK
  [simplified by LCP]\<close>
 lemma Key_analz_image_Key [rule_format (no_asm)]:
      "evs \<in> kerbIV \<Longrightarrow>
-      (\<forall>SK KK. SK \<in> symKeys & KK <= -(range shrK) \<longrightarrow>
+      (\<forall>SK KK. SK \<in> symKeys \<and> KK \<subseteq> -(range shrK) \<longrightarrow>
        (\<forall>K \<in> KK. \<not> AKcryptSK K SK evs)   \<longrightarrow>
-       (Key SK \<in> analz (Key`KK Un (spies evs))) =
+       (Key SK \<in> analz (Key`KK \<union> (spies evs))) =
        (SK \<in> KK | Key SK \<in> analz (spies evs)))"
 apply (erule kerbIV.induct)
 apply (frule_tac [10] Oops_range_spies2)
@@ -1213,7 +1213,7 @@ done
 text\<open>First simplification law for analz: no session keys encrypt
 authentication keys or shared keys.\<close>
 lemma analz_insert_freshK1:
-     "\<lbrakk> evs \<in> kerbIV;  K \<in> authKeys evs Un range shrK;
+     "\<lbrakk> evs \<in> kerbIV;  K \<in> authKeys evs \<union> range shrK;
         SesKey \<notin> range shrK \<rbrakk>
       \<Longrightarrow> (Key K \<in> analz (insert (Key SesKey) (spies evs))) =
           (K = SesKey | Key K \<in> analz (spies evs))"

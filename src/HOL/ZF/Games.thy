@@ -85,18 +85,18 @@ lemma option2elem: "(opt,g) \<in> is_option_of  \<Longrightarrow> \<exists> u v.
   apply (rule_tac x=r in exI, insert Elem_Opair_exists, blast) 
   done
 
-lemma is_option_of_subset_is_Elem_of: "is_option_of \<subseteq> (is_Elem_of^+)"
+lemma is_option_of_subset_is_Elem_of: "is_option_of \<subseteq> (is_Elem_of\<^sup>+)"
 proof -
   {
     fix opt
     fix g
     assume "(opt, g) \<in> is_option_of"
-    then have "\<exists> u v. (opt, u) \<in> (is_Elem_of^+) \<and> (u,v) \<in> (is_Elem_of^+) \<and> (v,g) \<in> (is_Elem_of^+)" 
+    then have "\<exists> u v. (opt, u) \<in> (is_Elem_of\<^sup>+) \<and> (u,v) \<in> (is_Elem_of\<^sup>+) \<and> (v,g) \<in> (is_Elem_of\<^sup>+)" 
       apply -
       apply (drule option2elem)
       apply (auto simp add: r_into_trancl' is_Elem_of_def)
       done
-    then have "(opt, g) \<in> (is_Elem_of^+)"
+    then have "(opt, g) \<in> (is_Elem_of\<^sup>+)"
       by (blast intro: trancl_into_rtrancl trancl_rtrancl_trancl)
   } 
   then show ?thesis by auto
@@ -104,7 +104,7 @@ qed
 
 lemma wfzf_is_option_of: "wfzf is_option_of"
 proof - 
-  have "wfzf (is_Elem_of^+)" by (simp add: wfzf_trancl wfzf_is_Elem_of)
+  have "wfzf (is_Elem_of\<^sup>+)" by (simp add: wfzf_trancl wfzf_is_Elem_of)
   then show ?thesis 
     apply (rule wfzf_subset)
     apply (rule is_option_of_subset_is_Elem_of)

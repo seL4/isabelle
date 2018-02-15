@@ -15,7 +15,7 @@ text \<open>
 type_synonym 's step_type = "nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list"
 
 definition stable :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> nat \<Rightarrow> bool" where
-"stable r step ss p == !(q,s'):set(step p (ss!p)). s' <=_r ss!q"
+"stable r step ss p == \<forall>(q,s')\<in>set(step p (ss!p)). s' <=_r ss!q"
 
 definition stables :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> bool" where
 "stables r step ss == !p<size ss. stable r step ss p"
@@ -27,8 +27,8 @@ definition wt_step ::
 
 definition is_bcv :: "'s ord \<Rightarrow> 's \<Rightarrow> 's step_type 
            \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> ('s list \<Rightarrow> 's list) \<Rightarrow> bool" where
-"is_bcv r T step n A bcv == !ss : list n A.
-   (!p<n. (bcv ss)!p ~= T) =
-   (? ts: list n A. ss <=[r] ts & wt_step r T step ts)"
+"is_bcv r T step n A bcv == \<forall>ss \<in> list n A.
+   (\<forall>p<n. (bcv ss)!p ~= T) =
+   (\<exists>ts \<in> list n A. ss <=[r] ts & wt_step r T step ts)"
 
 end

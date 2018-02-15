@@ -21,11 +21,11 @@ type_synonym
 
 consts
   all_symmetric :: bool        \<comment> \<open>true if all keys are symmetric\<close>
-  invKey        :: "key=>key"  \<comment> \<open>inverse of a symmetric key\<close>
+  invKey        :: "key\<Rightarrow>key"  \<comment> \<open>inverse of a symmetric key\<close>
 
 specification (invKey)
   invKey [simp]: "invKey (invKey K) = K"
-  invKey_symmetric: "all_symmetric --> invKey = id"
+  invKey_symmetric: "all_symmetric \<longrightarrow> invKey = id"
     by (rule exI [of _ id], auto)
 
 
@@ -56,11 +56,11 @@ translations
   "\<lbrace>x, y\<rbrace>" \<rightleftharpoons> "CONST MPair x y"
 
 
-definition HPair :: "[msg,msg] => msg" ("(4Hash[_] /_)" [0, 1000]) where
+definition HPair :: "[msg,msg] \<Rightarrow> msg" ("(4Hash[_] /_)" [0, 1000]) where
     \<comment> \<open>Message Y paired with a MAC computed with the help of X\<close>
     "Hash[X] Y == \<lbrace>Hash\<lbrace>X,Y\<rbrace>, Y\<rbrace>"
 
-definition keysFor :: "msg set => key set" where
+definition keysFor :: "msg set \<Rightarrow> key set" where
     \<comment> \<open>Keys useful to decrypt elements of a message set\<close>
   "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
@@ -68,7 +68,7 @@ definition keysFor :: "msg set => key set" where
 subsubsection\<open>Inductive Definition of All Parts" of a Message\<close>
 
 inductive_set
-  parts :: "msg set => msg set"
+  parts :: "msg set \<Rightarrow> msg set"
   for H :: "msg set"
   where
     Inj [intro]: "X \<in> H ==> X \<in> parts H"
@@ -86,7 +86,7 @@ done
 
 
 text\<open>Equations hold because constructors are injective.\<close>
-lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x:A)"
+lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x\<in>A)"
 by auto
 
 lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x\<in>A)"
@@ -310,7 +310,7 @@ lemma parts_image_Key [simp]: "parts (Key`N) = Key`N"
 by auto
 
 text\<open>In any message, there is an upper bound N on its greatest nonce.\<close>
-lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"
+lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n \<longrightarrow> Nonce n \<notin> parts {msg}"
 proof (induct msg)
   case (Nonce n)
     show ?case
@@ -328,14 +328,14 @@ text\<open>Inductive definition of "analz" -- what can be broken down from a set
     be taken apart; messages decrypted with known keys.\<close>
 
 inductive_set
-  analz :: "msg set => msg set"
+  analz :: "msg set \<Rightarrow> msg set"
   for H :: "msg set"
   where
     Inj [intro,simp]: "X \<in> H ==> X \<in> analz H"
   | Fst:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> X \<in> analz H"
   | Snd:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> Y \<in> analz H"
   | Decrypt [dest]: 
-             "[|Crypt K X \<in> analz H; Key(invKey K): analz H|] ==> X \<in> analz H"
+             "\<lbrakk>Crypt K X \<in> analz H; Key(invKey K) \<in> analz H\<rbrakk> \<Longrightarrow> X \<in> analz H"
 
 
 text\<open>Monotonicity; Lemma 1 of Lowe's paper\<close>
@@ -513,7 +513,7 @@ lemma analz_cut: "[| Y\<in> analz (insert X H);  X\<in> analz H |] ==> Y\<in> an
 by (erule analz_trans, blast)
 
 (*Cut can be proved easily by induction on
-   "Y: analz (insert X H) ==> X: analz H --> Y: analz H"
+   "Y: analz (insert X H) ==> X: analz H \<longrightarrow> Y: analz H"
 *)
 
 text\<open>This rewrite rule helps in the simplification of messages that involve
@@ -670,8 +670,8 @@ by (metis Un_commute analz_increasing insert_subset parts_analz parts_mono
           parts_synth synth_mono synth_subset_iff)
 
 lemma Fake_parts_insert_in_Un:
-     "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
-      ==> Z \<in>  synth (analz H) \<union> parts H"
+     "\<lbrakk>Z \<in> parts (insert X H);  X \<in> synth (analz H)\<rbrakk> 
+      \<Longrightarrow> Z \<in> synth (analz H) \<union> parts H"
 by (metis Fake_parts_insert set_mp)
 
 text\<open>@{term H} is sometimes @{term"Key ` KK \<union> spies evs"}, so can't put 
@@ -685,7 +685,7 @@ apply (blast intro: analz_mono [THEN [2] rev_subsetD] analz_mono [THEN synth_mon
 done
 
 lemma analz_conj_parts [simp]:
-     "(X \<in> analz H & X \<in> parts H) = (X \<in> analz H)"
+     "(X \<in> analz H \<and> X \<in> parts H) = (X \<in> analz H)"
 by (blast intro: analz_subset_parts [THEN subsetD])
 
 lemma analz_disj_parts [simp]:
@@ -696,7 +696,7 @@ text\<open>Without this equation, other rules for synth and analz would yield
   redundant cases\<close>
 lemma MPair_synth_analz [iff]:
      "(\<lbrace>X,Y\<rbrace> \<in> synth (analz H)) =  
-      (X \<in> synth (analz H) & Y \<in> synth (analz H))"
+      (X \<in> synth (analz H) \<and> Y \<in> synth (analz H))"
 by blast
 
 lemma Crypt_synth_analz:
@@ -715,22 +715,22 @@ subsection\<open>HPair: a combination of Hash and MPair\<close>
 
 subsubsection\<open>Freeness\<close>
 
-lemma Agent_neq_HPair: "Agent A ~= Hash[X] Y"
+lemma Agent_neq_HPair: "Agent A \<noteq> Hash[X] Y"
   unfolding HPair_def by simp
 
-lemma Nonce_neq_HPair: "Nonce N ~= Hash[X] Y"
+lemma Nonce_neq_HPair: "Nonce N \<noteq> Hash[X] Y"
   unfolding HPair_def by simp
 
-lemma Number_neq_HPair: "Number N ~= Hash[X] Y"
+lemma Number_neq_HPair: "Number N \<noteq> Hash[X] Y"
   unfolding HPair_def by simp
 
-lemma Key_neq_HPair: "Key K ~= Hash[X] Y"
+lemma Key_neq_HPair: "Key K \<noteq> Hash[X] Y"
   unfolding HPair_def by simp
 
-lemma Hash_neq_HPair: "Hash Z ~= Hash[X] Y"
+lemma Hash_neq_HPair: "Hash Z \<noteq> Hash[X] Y"
   unfolding HPair_def by simp
 
-lemma Crypt_neq_HPair: "Crypt K X' ~= Hash[X] Y"
+lemma Crypt_neq_HPair: "Crypt K X' \<noteq> Hash[X] Y"
   unfolding HPair_def by simp
 
 lemmas HPair_neqs = Agent_neq_HPair Nonce_neq_HPair Number_neq_HPair 
@@ -739,15 +739,15 @@ lemmas HPair_neqs = Agent_neq_HPair Nonce_neq_HPair Number_neq_HPair
 declare HPair_neqs [iff]
 declare HPair_neqs [symmetric, iff]
 
-lemma HPair_eq [iff]: "(Hash[X'] Y' = Hash[X] Y) = (X' = X & Y'=Y)"
+lemma HPair_eq [iff]: "(Hash[X'] Y' = Hash[X] Y) = (X' = X \<and> Y'=Y)"
 by (simp add: HPair_def)
 
 lemma MPair_eq_HPair [iff]:
-     "(\<lbrace>X',Y'\<rbrace> = Hash[X] Y) = (X' = Hash\<lbrace>X,Y\<rbrace> & Y'=Y)"
+     "(\<lbrace>X',Y'\<rbrace> = Hash[X] Y) = (X' = Hash\<lbrace>X,Y\<rbrace> \<and> Y'=Y)"
 by (simp add: HPair_def)
 
 lemma HPair_eq_MPair [iff]:
-     "(Hash[X] Y = \<lbrace>X',Y'\<rbrace>) = (X' = Hash\<lbrace>X,Y\<rbrace> & Y'=Y)"
+     "(Hash[X] Y = \<lbrace>X',Y'\<rbrace>) = (X' = Hash\<lbrace>X,Y\<rbrace> \<and> Y'=Y)"
 by (auto simp add: HPair_def)
 
 
@@ -769,7 +769,7 @@ by (simp add: HPair_def)
 lemma HPair_synth_analz [simp]:
      "X \<notin> synth (analz H)  
     ==> (Hash[X] Y \<in> synth (analz H)) =  
-        (Hash \<lbrace>X, Y\<rbrace> \<in> analz H & Y \<in> synth (analz H))"
+        (Hash \<lbrace>X, Y\<rbrace> \<in> analz H \<and> Y \<in> synth (analz H))"
 by (auto simp add: HPair_def)
 
 
@@ -897,12 +897,12 @@ by (metis Fake_analz_insert Un_absorb Un_absorb1 Un_commute
 
 text\<open>Two generalizations of \<open>analz_insert_eq\<close>\<close>
 lemma gen_analz_insert_eq [rule_format]:
-     "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G"
+     "X \<in> analz H \<Longrightarrow> \<forall>G. H \<subseteq> G \<longrightarrow> analz (insert X G) = analz G"
 by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])
 
 lemma synth_analz_insert_eq [rule_format]:
      "X \<in> synth (analz H) 
-      ==> ALL G. H \<subseteq> G --> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)"
+      \<Longrightarrow> \<forall>G. H \<subseteq> G \<longrightarrow> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)"
 apply (erule synth.induct) 
 apply (simp_all add: gen_analz_insert_eq subset_trans [OF _ subset_insertI]) 
 done

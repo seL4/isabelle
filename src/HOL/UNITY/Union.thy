@@ -36,7 +36,7 @@ definition SKIP :: "'a program"  ("\<bottom>")
   (*Characterizes safety properties.  Used with specifying Allowed*)
 definition
   safety_prop :: "'a program set => bool"
-  where "safety_prop X \<longleftrightarrow> SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
+  where "safety_prop X \<longleftrightarrow> SKIP \<in> X \<and> (\<forall>G. Acts G \<subseteq> UNION X Acts \<longrightarrow> G \<in> X)"
 
 syntax
   "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion>_./ _)" 10)

@@ -91,7 +91,7 @@ end
 (******************************************************************************)
 
 val case_UU_allI =
-    @{lemma "(!!x. x ~= UU ==> P x) ==> P UU ==> ALL x. P x" by metis}
+    @{lemma "(\<And>x. x \<noteq> UU \<Longrightarrow> P x) \<Longrightarrow> P UU \<Longrightarrow> \<forall>x. P x" by metis}
 
 fun prove_induction
     (comp_dbind : binding)

@@ -332,7 +332,7 @@ How to prove quantified formulas:
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
 \<close>
-(*<*)lemma "ALL x. P x" proof-(*>*)
+(*<*)lemma "\<forall>x. P x" proof-(*>*)
 show "\<forall>x. P(x)"
 proof
   fix x
@@ -346,7 +346,7 @@ text_raw \<open>}
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
 \<close>
-(*<*)lemma "EX x. P(x)" proof-(*>*)
+(*<*)lemma "\<exists>x. P(x)" proof-(*>*)
 show "\<exists>x. P(x)"
 proof
   text_raw\<open>\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}\<close>
@@ -370,7 +370,7 @@ term for which we can prove that it satisfies @{text P}.
 How to reason forward from \noquotes{@{prop[source] "\<exists>x. P(x)"}}:
 \end{isamarkuptext}%
 \<close>
-(*<*)lemma True proof- assume 1: "EX x. P x"(*>*)
+(*<*)lemma True proof- assume 1: "\<exists>x. P x"(*>*)
 have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw\<open>\ \isasymproof\\\<close>
 then obtain x where p: "P(x)" by blast
 (*<*)oops(*>*)
@@ -1066,7 +1066,7 @@ derive some fact. The name \conceptnoidx{rule inversion} emphasizes that we are
 reasoning backwards: by which rules could some given fact have been proved?
 For the inductive definition of @{const ev}, rule inversion can be summarized
 like this:
-@{prop[display]"ev n \<Longrightarrow> n = 0 \<or> (EX k. n = Suc(Suc k) \<and> ev k)"}
+@{prop[display]"ev n \<Longrightarrow> n = 0 \<or> (\<exists>k. n = Suc(Suc k) \<and> ev k)"}
 The realisation in Isabelle is a case analysis.
 A simple example is the proof that @{prop"ev n \<Longrightarrow> ev (n - 2)"}. We
 already went through the details informally in \autoref{sec:Logic:even}. This
@@ -1223,7 +1223,7 @@ required induction.
 
 \begin{exercise}
 Define a recursive function @{text "elems ::"} @{typ"'a list \<Rightarrow> 'a set"}
-and prove @{prop "x : elems xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> elems ys"}.
+and prove @{prop "x \<in> elems xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> elems ys"}.
 \end{exercise}
 
 \begin{exercise}

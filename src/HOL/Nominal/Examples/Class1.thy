@@ -5165,7 +5165,7 @@ text \<open>Transitive Closure\<close>
 abbreviation
  a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a* _" [100,100] 100)
 where
-  "M \<longrightarrow>\<^sub>a* M' \<equiv> (a_redu)^** M M'"
+  "M \<longrightarrow>\<^sub>a* M' \<equiv> (a_redu)\<^sup>*\<^sup>* M M'"
 
 lemma a_starI:
   assumes a: "M \<longrightarrow>\<^sub>a M'"

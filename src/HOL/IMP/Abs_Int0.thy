@@ -212,14 +212,14 @@ by (simp add: less_eq_acom_def mono_gamma_o size_annos anno_map_acom size_annos_
 
 text\<open>Correctness:\<close>
 
-lemma aval'_correct: "s : \<gamma>\<^sub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_correct: "s \<in> \<gamma>\<^sub>s S \<Longrightarrow> aval a s \<in> \<gamma>(aval' a S)"
 by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_fun_def)
 
-lemma in_gamma_update: "\<lbrakk> s : \<gamma>\<^sub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^sub>s(S(x := a))"
+lemma in_gamma_update: "\<lbrakk> s \<in> \<gamma>\<^sub>s S; i \<in> \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) \<in> \<gamma>\<^sub>s(S(x := a))"
 by(simp add: \<gamma>_fun_def)
 
 lemma gamma_Step_subcomm:
-  assumes "!!x e S. f1 x e (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (f2 x e S)"  "!!b S. g1 b (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (g2 b S)"
+  assumes "\<And>x e S. f1 x e (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (f2 x e S)"  "\<And>b S. g1 b (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (g2 b S)"
   shows "Step f1 g1 (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (Step f2 g2 S C)"
 by (induction C arbitrary: S) (auto simp: mono_gamma_o assms)
 
@@ -406,7 +406,7 @@ lemma m_s2_rep: assumes "finite(X)" and "S1 = S2 on -X" and "\<forall>x. S1 x \<
 shows "(\<Sum>x\<in>X. m (S2 x)) < (\<Sum>x\<in>X. m (S1 x))"
 proof-
   from assms(3) have 1: "\<forall>x\<in>X. m(S1 x) \<ge> m(S2 x)" by (simp add: m1)
-  from assms(2,3,4) have "EX x:X. S1 x < S2 x"
+  from assms(2,3,4) have "\<exists>x\<in>X. S1 x < S2 x"
     by(simp add: fun_eq_iff) (metis Compl_iff le_neq_trans)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S2 x)" by (metis m2)
   from sum_strict_mono_ex1[OF \<open>finite X\<close> 1 2]

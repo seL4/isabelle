@@ -94,7 +94,7 @@ apply (simp add: list_all2_conv_all_nth)
 done
 
 lemma le_list_refl:
-  "!x. x <=_r x \<Longrightarrow> xs <=[r] xs"
+  "\<forall>x. x <=_r x \<Longrightarrow> xs <=[r] xs"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
@@ -154,23 +154,23 @@ lemma le_listI:
   done
 
 lemma listI:
-  "\<lbrakk> length xs = n; set xs <= A \<rbrakk> \<Longrightarrow> xs : list n A"
+  "\<lbrakk> length xs = n; set xs <= A \<rbrakk> \<Longrightarrow> xs \<in> list n A"
 apply (unfold list_def)
 apply blast
 done
 
 lemma listE_length [simp]:
-   "xs : list n A \<Longrightarrow> length xs = n"
+   "xs \<in> list n A \<Longrightarrow> length xs = n"
 apply (unfold list_def)
 apply blast
 done 
 
 lemma less_lengthI:
-  "\<lbrakk> xs : list n A; p < n \<rbrakk> \<Longrightarrow> p < length xs"
+  "\<lbrakk> xs \<in> list n A; p < n \<rbrakk> \<Longrightarrow> p < length xs"
   by simp
 
 lemma listE_set [simp]:
-  "xs : list n A \<Longrightarrow> set xs <= A"
+  "xs \<in> list n A \<Longrightarrow> set xs <= A"
 apply (unfold list_def)
 apply blast
 done 
@@ -182,19 +182,19 @@ apply auto
 done 
 
 lemma in_list_Suc_iff: 
-  "(xs : list (Suc n) A) = (\<exists>y\<in> A. \<exists>ys\<in> list n A. xs = y#ys)"
+  "(xs \<in> list (Suc n) A) = (\<exists>y\<in> A. \<exists>ys\<in> list n A. xs = y#ys)"
 apply (unfold list_def)
 apply (case_tac "xs")
 apply auto
 done 
 
 lemma Cons_in_list_Suc [iff]:
-  "(x#xs : list (Suc n) A) = (x\<in> A & xs : list n A)"
+  "(x#xs \<in> list (Suc n) A) = (x\<in> A & xs \<in> list n A)"
 apply (simp add: in_list_Suc_iff)
 done 
 
 lemma list_not_empty:
-  "\<exists>a. a\<in> A \<Longrightarrow> \<exists>xs. xs : list n A"
+  "\<exists>a. a\<in> A \<Longrightarrow> \<exists>xs. xs \<in> list n A"
 apply (induct "n")
  apply simp
 apply (simp add: in_list_Suc_iff)
@@ -203,14 +203,14 @@ done
 
 
 lemma nth_in [rule_format, simp]:
-  "!i n. length xs = n \<longrightarrow> set xs <= A \<longrightarrow> i < n \<longrightarrow> (xs!i) : A"
+  "\<forall>i n. length xs = n \<longrightarrow> set xs <= A \<longrightarrow> i < n \<longrightarrow> (xs!i) \<in> A"
 apply (induct "xs")
  apply simp
 apply (simp add: nth_Cons split: nat.split)
 done
 
 lemma listE_nth_in:
-  "\<lbrakk> xs : list n A; i < n \<rbrakk> \<Longrightarrow> (xs!i) : A"
+  "\<lbrakk> xs \<in> list n A; i < n \<rbrakk> \<Longrightarrow> (xs!i) \<in> A"
   by auto
 
 
@@ -245,7 +245,7 @@ qed
 
 
 lemma listt_update_in_list [simp, intro!]:
-  "\<lbrakk> xs : list n A; x\<in> A \<rbrakk> \<Longrightarrow> xs[i := x] : list n A"
+  "\<lbrakk> xs \<in> list n A; x\<in> A \<rbrakk> \<Longrightarrow> xs[i := x] \<in> list n A"
 apply (unfold list_def)
 apply simp
 done 
@@ -261,7 +261,7 @@ lemma plus_list_Cons [simp]:
   by (simp add: plussub_def map2_def split: list.split)
 
 lemma length_plus_list [rule_format, simp]:
-  "!ys. length(xs +[f] ys) = min(length xs) (length ys)"
+  "\<forall>ys. length(xs +[f] ys) = min(length xs) (length ys)"
 apply (induct xs)
  apply simp
 apply clarify
@@ -269,7 +269,7 @@ apply (simp (no_asm_simp) split: list.split)
 done
 
 lemma nth_plus_list [rule_format, simp]:
-  "!xs ys i. length xs = n \<longrightarrow> length ys = n \<longrightarrow> i<n \<longrightarrow> 
+  "\<forall>xs ys i. length xs = n \<longrightarrow> length ys = n \<longrightarrow> i<n \<longrightarrow> 
   (xs +[f] ys)!i = (xs!i) +_f (ys!i)"
 apply (induct n)
  apply simp
@@ -295,7 +295,7 @@ apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
 lemma (in Semilat) plus_list_lub [rule_format]:
-shows "!xs ys zs. set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> set zs <= A 
+shows "\<forall>xs ys zs. set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> set zs <= A 
   \<longrightarrow> size xs = n & size ys = n \<longrightarrow> 
   xs <=[r] zs & ys <=[r] zs \<longrightarrow> xs +[f] ys <=[r] zs"
 apply (unfold unfold_lesub_list)
@@ -304,7 +304,7 @@ done
 
 lemma (in Semilat) list_update_incr [rule_format]:
  "x\<in> A \<Longrightarrow> set xs <= A \<longrightarrow> 
-  (!i. i<size xs \<longrightarrow> xs <=[r] xs[i := x +_f xs!i])"
+  (\<forall>i. i<size xs \<longrightarrow> xs <=[r] xs[i := x +_f xs!i])"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 apply (induct xs)
@@ -342,7 +342,7 @@ apply (case_tac "\<exists>x xs. size xs = k \<and> x#xs \<in> M")
  apply (erule thin_rl)
  apply (erule thin_rl)
  apply blast
-apply (erule_tac x = "{a. \<exists>xs. size xs = k \<and> a#xs:M}" in allE)
+apply (erule_tac x = "{a. \<exists>xs. size xs = k \<and> a#xs \<in> M}" in allE)
 apply (erule impE)
  apply blast
 apply (thin_tac "\<exists>x xs. P x xs" for P)
@@ -394,7 +394,7 @@ lemma Listn_sl: "\<And>L. semilat L \<Longrightarrow> semilat (Listn.sl n L)"
  by(simp add: Listn_sl_aux split_tupled_all)
 
 lemma coalesce_in_err_list [rule_format]:
-  "!xes. xes : list n (err A) \<longrightarrow> coalesce xes : err(list n A)"
+  "\<forall>xes. xes \<in> list n (err A) \<longrightarrow> coalesce xes \<in> err(list n A)"
 apply (induct n)
  apply simp
 apply clarify
@@ -409,8 +409,8 @@ lemma lem: "\<And>x xs. x +_(#) xs = x#xs"
 
 lemma coalesce_eq_OK1_D [rule_format]:
   "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
-  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
-  (!zs. coalesce (xs +[f] ys) = OK zs \<longrightarrow> xs <=[r] zs))"
+  \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>ys. ys \<in> list n A \<longrightarrow> 
+  (\<forall>zs. coalesce (xs +[f] ys) = OK zs \<longrightarrow> xs <=[r] zs))"
 apply (induct n)
   apply simp
 apply clarify
@@ -422,8 +422,8 @@ done
 
 lemma coalesce_eq_OK2_D [rule_format]:
   "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
-  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
-  (!zs. coalesce (xs +[f] ys) = OK zs \<longrightarrow> ys <=[r] zs))"
+  \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>ys. ys \<in> list n A \<longrightarrow> 
+  (\<forall>zs. coalesce (xs +[f] ys) = OK zs \<longrightarrow> ys <=[r] zs))"
 apply (induct n)
  apply simp
 apply clarify
@@ -447,9 +447,9 @@ done
 
 lemma coalesce_eq_OK_ub_D [rule_format]:
   "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
-  !xs. xs : list n A \<longrightarrow> (!ys. ys : list n A \<longrightarrow> 
-  (!zs us. coalesce (xs +[f] ys) = OK zs & xs <=[r] us & ys <=[r] us 
-           & us : list n A \<longrightarrow> zs <=[r] us))"
+  \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>ys. ys \<in> list n A \<longrightarrow> 
+  (\<forall>zs us. coalesce (xs +[f] ys) = OK zs \<and> xs <=[r] us \<and> ys <=[r] us 
+           \<and> us \<in> list n A \<longrightarrow> zs <=[r] us))"
 apply (induct n)
  apply simp
 apply clarify
@@ -470,9 +470,9 @@ lemma lift2_eq_ErrD:
 
 lemma coalesce_eq_Err_D [rule_format]:
   "\<lbrakk> semilat(err A, Err.le r, lift2 f) \<rbrakk> 
-  \<Longrightarrow> !xs. xs\<in> list n A \<longrightarrow> (!ys. ys\<in> list n A \<longrightarrow> 
+  \<Longrightarrow> \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>ys. ys \<in> list n A \<longrightarrow> 
       coalesce (xs +[f] ys) = Err \<longrightarrow> 
-      ~(\<exists>zs\<in> list n A. xs <=[r] zs & ys <=[r] zs))"
+      \<not>(\<exists>zs\<in> list n A. xs <=[r] zs \<and> ys <=[r] zs))"
 apply (induct n)
  apply simp
 apply clarify
@@ -483,15 +483,15 @@ apply (simp split: err.split_asm add: lem Err.sup_def lift2_def)
 done 
 
 lemma closed_err_lift2_conv:
-  "closed (err A) (lift2 f) = (\<forall>x\<in> A. \<forall>y\<in> A. x +_f y : err A)"
+  "closed (err A) (lift2 f) = (\<forall>x\<in> A. \<forall>y\<in> A. x +_f y \<in> err A)"
 apply (unfold closed_def)
 apply (simp add: err_def)
 done 
 
 lemma closed_map2_list [rule_format]:
   "closed (err A) (lift2 f) \<Longrightarrow> 
-  \<forall>xs. xs : list n A \<longrightarrow> (\<forall>ys. ys : list n A \<longrightarrow> 
-  map2 f xs ys : list n (err A))"
+  \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>ys. ys \<in> list n A \<longrightarrow> 
+  map2 f xs ys \<in> list n (err A))"
 apply (unfold map2_def)
 apply (induct n)
  apply simp

@@ -53,7 +53,7 @@ lemma check_bounded_is_bounded:
   by (unfold bounded_def) (blast dest: check_boundedD)
 
 lemma special_ex_swap_lemma [iff]: 
-  "(? X. (? n. X = A n & P n) & Q X) = (? n. Q(A n) & P n)"
+  "(\<exists>X. (\<exists>n. X = A n \<and> P n) & Q X) = (\<exists>n. Q(A n) \<and> P n)"
   by blast
 
 lemmas [iff del] = not_None_eq

@@ -34,14 +34,14 @@ datatype 'a triple =
 definition
   triple_valid :: "nat => 'a triple     => bool" ( "|=_:_" [0 , 58] 57) where
   "|=n:t = (case t of {P}.c.{Q} =>
-             !Z s. P Z s --> (!s'. <c,s> -n-> s' --> Q Z s'))"
+             \<forall>Z s. P Z s \<longrightarrow> (\<forall>s'. <c,s> -n-> s' \<longrightarrow> Q Z s'))"
 abbreviation
   triples_valid :: "nat => 'a triple set => bool" ("||=_:_" [0 , 58] 57) where
   "||=n:G == Ball G (triple_valid n)"
 
 definition
   hoare_valids :: "'a triple set => 'a triple set => bool" ("_||=_"  [58, 58] 57) where
-  "G||=ts = (!n. ||=n:G --> ||=n:ts)"
+  "G||=ts = (\<forall>n. ||=n:G --> ||=n:ts)"
 abbreviation
   hoare_valid :: "'a triple set => 'a triple     => bool" ("_|=_"   [58, 58] 57) where
   "G |=t == G||={t}"
@@ -68,8 +68,8 @@ where
 
 | weaken: "[| G||-ts' ; ts <= ts' |] ==> G||-ts"
 
-| conseq: "!Z s. P  Z  s --> (? P' Q'. G|-{P'}.c.{Q'} &
-                                   (!s'. (!Z'. P' Z' s --> Q' Z' s') --> Q Z s'))
+| conseq: "\<forall>Z s. P  Z  s \<longrightarrow> (\<exists>P' Q'. G|-{P'}.c.{Q'} \<and>
+                                   (\<forall>s'. (\<forall>Z'. P' Z' s \<longrightarrow> Q' Z' s') \<longrightarrow> Q Z s'))
           ==> G|-{P}.c.{Q}"
 
 
@@ -108,7 +108,7 @@ where
 section \<open>Soundness and relative completeness of Hoare rules wrt operational semantics\<close>
 
 lemma single_stateE:
-  "state_not_singleton ==> !t. (!s::state. s = t) --> False"
+  "state_not_singleton \<Longrightarrow> \<forall>t. (\<forall>s::state. s = t) \<longrightarrow> False"
 apply (unfold state_not_singleton_def)
 apply clarify
 apply (case_tac "ta = t")
@@ -122,7 +122,7 @@ declare peek_and_def [simp]
 subsection "validity"
 
 lemma triple_valid_def2:
-  "|=n:{P}.c.{Q} = (!Z s. P Z s --> (!s'. <c,s> -n-> s' --> Q Z s'))"
+  "|=n:{P}.c.{Q} = (\<forall>Z s. P Z s \<longrightarrow> (\<forall>s'. <c,s> -n-> s' \<longrightarrow> Q Z s'))"
 apply (unfold triple_valid_def)
 apply auto
 done
@@ -152,26 +152,26 @@ done
 
 subsection "derived rules"
 
-lemma conseq12: "[| G|-{P'}.c.{Q'}; !Z s. P Z s -->
-                         (!s'. (!Z'. P' Z' s --> Q' Z' s') --> Q Z s') |]
+lemma conseq12: "[| G|-{P'}.c.{Q'}; \<forall>Z s. P Z s \<longrightarrow>
+                         (\<forall>s'. (\<forall>Z'. P' Z' s \<longrightarrow> Q' Z' s') --> Q Z s') |]
        ==> G|-{P}.c.{Q}"
 apply (rule hoare_derivs.conseq)
 apply blast
 done
 
-lemma conseq1: "[| G|-{P'}.c.{Q}; !Z s. P Z s --> P' Z s |] ==> G|-{P}.c.{Q}"
+lemma conseq1: "[| G|-{P'}.c.{Q}; \<forall>Z s. P Z s \<longrightarrow> P' Z s |] ==> G|-{P}.c.{Q}"
 apply (erule conseq12)
 apply fast
 done
 
-lemma conseq2: "[| G|-{P}.c.{Q'}; !Z s. Q' Z s --> Q Z s |] ==> G|-{P}.c.{Q}"
+lemma conseq2: "[| G|-{P}.c.{Q'}; \<forall>Z s. Q' Z s \<longrightarrow> Q Z s |] ==> G|-{P}.c.{Q}"
 apply (erule conseq12)
 apply fast
 done
 
-lemma Body1: "[| G Un (%p. {P p}.      BODY p  .{Q p})`Procs
-          ||- (%p. {P p}. the (body p) .{Q p})`Procs;
-    pn:Procs |] ==> G|-{P pn}. BODY pn .{Q pn}"
+lemma Body1: "[| G Un (\<lambda>p. {P p}.      BODY p  .{Q p})`Procs
+          ||- (\<lambda>p. {P p}. the (body p) .{Q p})`Procs;
+    pn \<in> Procs |] ==> G|-{P pn}. BODY pn .{Q pn}"
 apply (drule hoare_derivs.Body)
 apply (erule hoare_derivs.weaken)
 apply fast
@@ -184,17 +184,17 @@ apply (rule_tac [2] singletonI)
 apply clarsimp
 done
 
-lemma escape: "[| !Z s. P Z s --> G|-{%Z s'. s'=s}.c.{%Z'. Q Z} |] ==> G|-{P}.c.{Q}"
+lemma escape: "[| \<forall>Z s. P Z s \<longrightarrow> G|-{\<lambda>Z s'. s'=s}.c.{\<lambda>Z'. Q Z} |] ==> G|-{P}.c.{Q}"
 apply (rule hoare_derivs.conseq)
 apply fast
 done
 
-lemma "constant": "[| C ==> G|-{P}.c.{Q} |] ==> G|-{%Z s. P Z s & C}.c.{Q}"
+lemma "constant": "[| C ==> G|-{P}.c.{Q} |] ==> G|-{\<lambda>Z s. P Z s & C}.c.{Q}"
 apply (rule hoare_derivs.conseq)
 apply fast
 done
 
-lemma LoopF: "G|-{%Z s. P Z s & ~b s}.WHILE b DO c.{P}"
+lemma LoopF: "G|-{\<lambda>Z s. P Z s \<and> \<not>b s}.WHILE b DO c.{P}"
 apply (rule hoare_derivs.Loop [THEN conseq2])
 apply  (simp_all (no_asm))
 apply (rule hoare_derivs.conseq)
@@ -207,7 +207,7 @@ by (etac hoare_derivs.cut 1);
 by (etac hoare_derivs.asm 1);
 qed "thin";
 *)
-lemma thin [rule_format]: "G'||-ts ==> !G. G' <= G --> G||-ts"
+lemma thin [rule_format]: "G'||-ts \<Longrightarrow> \<forall>G. G' <= G \<longrightarrow> G||-ts"
 apply (erule hoare_derivs.induct)
 apply                (tactic \<open>ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac @{context} 1])\<close>)
 apply (rule hoare_derivs.empty)
@@ -232,7 +232,7 @@ apply (fast intro: hoare_derivs.weaken)
 done
 
 lemma finite_pointwise [rule_format (no_asm)]: "[| finite U;
-  !p. G |-     {P' p}.c0 p.{Q' p}       --> G |-     {P p}.c0 p.{Q p} |] ==>
+  \<forall>p. G |-     {P' p}.c0 p.{Q' p}       --> G |-     {P p}.c0 p.{Q p} |] ==>
       G||-(%p. {P' p}.c0 p.{Q' p}) ` U --> G||-(%p. {P p}.c0 p.{Q p}) ` U"
 apply (erule finite_induct)
 apply simp
@@ -251,7 +251,7 @@ lemma Loop_sound_lemma:
 apply (unfold hoare_valids_def)
 apply (simp (no_asm_use) add: triple_valid_def2)
 apply (rule allI)
-apply (subgoal_tac "!d s s'. <d,s> -n-> s' --> d = WHILE b DO c --> ||=n:G --> (!Z. P Z s --> P Z s' & ~b s') ")
+apply (subgoal_tac "\<forall>d s s'. <d,s> -n-> s' --> d = WHILE b DO c --> ||=n:G --> (\<forall>Z. P Z s --> P Z s' & ~b s') ")
 apply  (erule thin_rl, fast)
 apply ((rule allI)+, rule impI)
 apply (erule evaln.induct)
@@ -302,16 +302,16 @@ section "completeness"
 (* Both versions *)
 
 (*unused*)
-lemma MGT_alternI: "G|-MGT c ==>
-  G|-{%Z s0. !s1. <c,s0> -c-> s1 --> Z=s1}. c .{%Z s1. Z=s1}"
+lemma MGT_alternI: "G|-MGT c \<Longrightarrow>
+  G|-{\<lambda>Z s0. \<forall>s1. <c,s0> -c-> s1 \<longrightarrow> Z=s1}. c .{\<lambda>Z s1. Z=s1}"
 apply (unfold MGT_def)
 apply (erule conseq12)
 apply auto
 done
 
 (* requires com_det *)
-lemma MGT_alternD: "state_not_singleton ==>
-  G|-{%Z s0. !s1. <c,s0> -c-> s1 --> Z=s1}. c .{%Z s1. Z=s1} ==> G|-MGT c"
+lemma MGT_alternD: "state_not_singleton \<Longrightarrow>
+  G|-{\<lambda>Z s0. \<forall>s1. <c,s0> -c-> s1 \<longrightarrow> Z=s1}. c .{\<lambda>Z s1. Z=s1} \<Longrightarrow> G|-MGT c"
 apply (unfold MGT_def)
 apply (erule conseq12)
 apply auto
@@ -332,8 +332,8 @@ done
 declare WTs_elim_cases [elim!]
 declare not_None_eq [iff]
 (* requires com_det, escape (i.e. hoare_derivs.conseq) *)
-lemma MGF_lemma1 [rule_format (no_asm)]: "state_not_singleton ==>
-  !pn:dom body. G|-{=}.BODY pn.{->} ==> WT c --> G|-{=}.c.{->}"
+lemma MGF_lemma1 [rule_format (no_asm)]: "state_not_singleton \<Longrightarrow>
+  \<forall>pn \<in> dom body. G|-{=}.BODY pn.{->} \<Longrightarrow> WT c --> G|-{=}.c.{->}"
 apply (induct_tac c)
 apply        (tactic \<open>ALLGOALS (clarsimp_tac @{context})\<close>)
 prefer 7 apply        (fast intro: domI)
@@ -362,10 +362,10 @@ done
 lemma nesting_lemma [rule_format]:
   assumes "!!G ts. ts <= G ==> P G ts"
     and "!!G pn. P (insert (mgt_call pn) G) {mgt(the(body pn))} ==> P G {mgt_call pn}"
-    and "!!G c. [| wt c; !pn:U. P G {mgt_call pn} |] ==> P G {mgt c}"
-    and "!!pn. pn : U ==> wt (the (body pn))"
+    and "!!G c. [| wt c; \<forall>pn\<in>U. P G {mgt_call pn} |] ==> P G {mgt c}"
+    and "!!pn. pn \<in> U ==> wt (the (body pn))"
   shows "finite U ==> uG = mgt_call`U ==>
-  !G. G <= uG --> n <= card uG --> card G = card uG - n --> (!c. wt c --> P G {mgt c})"
+  \<forall>G. G <= uG --> n <= card uG --> card G = card uG - n --> (\<forall>c. wt c --> P G {mgt c})"
 apply (induct_tac n)
 apply  (tactic \<open>ALLGOALS (clarsimp_tac @{context})\<close>)
 apply  (subgoal_tac "G = mgt_call ` U")
@@ -378,7 +378,7 @@ apply  (rule assms) (*hoare_derivs.asm*)
 apply  fast
 apply (erule assms(3-)) (*MGF_lemma1*)
 apply (rule ballI)
-apply (case_tac "mgt_call pn : G")
+apply (case_tac "mgt_call pn \<in> G")
 apply  (rule assms) (*hoare_derivs.asm*)
 apply  fast
 apply (rule assms(2-)) (*MGT_BodyN*)
@@ -484,7 +484,7 @@ apply (rule hoare_derivs.conseq)
 apply (fast elim: conseq12)
 done (* analogue conj non-derivable *)
 
-lemma hoare_SkipI: "(!Z s. P Z s --> Q Z s) ==> G|-{P}. SKIP .{Q}"
+lemma hoare_SkipI: "(\<forall>Z s. P Z s \<longrightarrow> Q Z s) \<Longrightarrow> G|-{P}. SKIP .{Q}"
 apply (rule conseq12)
 apply (rule hoare_derivs.Skip)
 apply fast
@@ -504,7 +504,7 @@ apply auto
 done
 
 
-lemma weak_Local: "[| G|-{P}. c .{Q}; !k Z s. Q Z s --> Q Z (s[Loc Y::=k]) |] ==>
+lemma weak_Local: "[| G|-{P}. c .{Q}; \<forall>k Z s. Q Z s --> Q Z (s[Loc Y::=k]) |] ==>
     G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{Q}"
 apply (rule export_s)
 apply (rule hoare_derivs.Local)

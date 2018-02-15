@@ -10,16 +10,16 @@ type_synonym
   'msg packet = "bool * 'msg"
 
 definition
-  hdr :: "'msg packet => bool" where
-  "hdr == fst"
+  hdr :: "'msg packet \<Rightarrow> bool" where
+  "hdr \<equiv> fst"
 
 definition
-  msg :: "'msg packet => 'msg" where
-  "msg == snd"
+  msg :: "'msg packet \<Rightarrow> 'msg" where
+  "msg \<equiv> snd"
 
 
 text \<open>Instantiation of a tautology?\<close>
-lemma eq_packet_imp_eq_hdr: "!x. x = packet --> hdr(x) = hdr(packet)"
+lemma eq_packet_imp_eq_hdr: "\<forall>x. x = packet \<longrightarrow> hdr(x) = hdr(packet)"
   by simp
 
 declare hdr_def [simp] msg_def [simp]

@@ -8,17 +8,17 @@ begin
 
 subsubsection \<open>Logic\<close>
 
-lemma neg_flip: "(X = (~ Y)) = ((~X) = Y)"
+lemma neg_flip: "(X = (\<not> Y)) = ((\<not>X) = Y)"
   by blast
 
 
 subsection \<open>Sets\<close>
 
 lemma set_lemmas:
-  "f(x) : (UN x. {f(x)})"
-  "f x y : (UN x y. {f x y})"
-  "!!a. (!x. a ~= f(x)) ==> a ~: (UN x. {f(x)})"
-  "!!a. (!x y. a ~= f x y) ==> a ~: (UN x y. {f x y})"
+  "f(x) \<in> (\<Union>x. {f(x)})"
+  "f x y \<in> (\<Union>x y. {f x y})"
+  "\<And>a. (\<forall>x. a \<noteq> f(x)) \<Longrightarrow> a \<notin> (\<Union>x. {f(x)})"
+  "\<And>a. (\<forall>x y. a \<noteq> f x y) \<Longrightarrow> a \<notin> (\<Union>x y. {f x y})"
   by auto
 
 

@@ -22,7 +22,7 @@ subsection\<open>Defining the Predicate Transformers @{term wp},
 
 definition wp :: "[('a*'a) set, 'a set] => 'a set" where  
     \<comment> \<open>Dijkstra's weakest-precondition operator (for an individual command)\<close>
-    "wp act B == - (act^-1 `` (-B))"
+    "wp act B == - (act\<inverse> `` (-B))"
 
 definition awp :: "['a program, 'a set] => 'a set" where
     \<comment> \<open>Dijkstra's weakest-precondition operator (for a program)\<close>

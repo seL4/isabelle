@@ -61,7 +61,7 @@ lemma Collect_code [code]:
   by (simp add: enum_UNIV)
 
 lemma vimage_code [code]:
-  "f -` B = set (filter (%x. f x : B) enum_class.enum)"
+  "f -` B = set (filter (\<lambda>x. f x \<in> B) enum_class.enum)"
   unfolding vimage_def Collect_code ..
 
 definition card_UNIV :: "'a itself \<Rightarrow> nat"
@@ -208,8 +208,8 @@ lemma acc_subseteq_bacc:
   shows "Wellfounded.acc r \<subseteq> (\<Union>n. bacc r n)"
 proof
   fix x
-  assume "x : Wellfounded.acc r"
-  then have "\<exists> n. x : bacc r n"
+  assume "x \<in> Wellfounded.acc r"
+  then have "\<exists>n. x \<in> bacc r n"
   proof (induct x arbitrary: rule: acc.induct)
     case (accI x)
     then have "\<forall>y. \<exists> n. (y, x) \<in> r \<longrightarrow> y \<in> bacc r n" by simp
@@ -217,16 +217,16 @@ proof
     obtain n where "\<And>y. (y, x) \<in> r \<Longrightarrow> y \<in> bacc r n"
     proof
       fix y assume y: "(y, x) \<in> r"
-      with n have "y : bacc r (n y)" by auto
+      with n have "y \<in> bacc r (n y)" by auto
       moreover have "n y <= Max ((\<lambda>(y, x). n y) ` r)"
         using y \<open>finite r\<close> by (auto intro!: Max_ge)
       note bacc_mono[OF this, of r]
-      ultimately show "y : bacc r (Max ((\<lambda>(y, x). n y) ` r))" by auto
+      ultimately show "y \<in> bacc r (Max ((\<lambda>(y, x). n y) ` r))" by auto
     qed
     then show ?case
       by (auto simp add: Let_def intro!: exI[of _ "Suc n"])
   qed
-  then show "x : (UN n. bacc r n)" by auto
+  then show "x \<in> (\<Union>n. bacc r n)" by auto
 qed
 
 lemma acc_bacc_eq:

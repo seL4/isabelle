@@ -714,9 +714,9 @@ definition contour_integrable_on
   where "f contour_integrable_on g \<equiv> \<exists>i. (f has_contour_integral i) g"
 
 definition contour_integral
-  where "contour_integral g f \<equiv> @i. (f has_contour_integral i) g \<or> ~ f contour_integrable_on g \<and> i=0"
+  where "contour_integral g f \<equiv> SOME i. (f has_contour_integral i) g \<or> \<not> f contour_integrable_on g \<and> i=0"
 
-lemma not_integrable_contour_integral: "~ f contour_integrable_on g \<Longrightarrow> contour_integral g f = 0"
+lemma not_integrable_contour_integral: "\<not> f contour_integrable_on g \<Longrightarrow> contour_integral g f = 0"
   unfolding contour_integrable_on_def contour_integral_def by blast
 
 lemma contour_integral_unique: "(f has_contour_integral i) g \<Longrightarrow> contour_integral g f = i"
@@ -3327,7 +3327,7 @@ subsection\<open>Winding Numbers\<close>
 
 definition winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow> complex" where
   "winding_number \<gamma> z \<equiv>
-    @n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
+    SOME n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
                     pathstart p = pathstart \<gamma> \<and>
                     pathfinish p = pathfinish \<gamma> \<and>
                     (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>

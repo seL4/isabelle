@@ -86,9 +86,9 @@ lemma wf_lprod[simp,intro]:
   assumes wf_R: "wf R"
   shows "wf (lprod R)"
 proof -
-  have subset: "lprod (R^+) \<subseteq> inv_image (mult (R^+)) mset"
+  have subset: "lprod (R\<^sup>+) \<subseteq> inv_image (mult (R\<^sup>+)) mset"
     by (auto simp add: lprod_implies_mult trans_trancl)
-  note lprodtrancl = wf_subset[OF wf_inv_image[where r="mult (R^+)" and f="mset", 
+  note lprodtrancl = wf_subset[OF wf_inv_image[where r="mult (R\<^sup>+)" and f="mset", 
     OF wf_mult[OF wf_trancl[OF wf_R]]], OF subset]
   note lprod = wf_subset[OF lprodtrancl, where p="lprod R", OF lprod_subset, simplified]
   show ?thesis by (auto intro: lprod)

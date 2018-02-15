@@ -59,7 +59,7 @@ definition Lim :: "('b => ('a, 'b) dtree) => ('a, 'b) dtree"
 definition ndepth :: "('a, 'b) node => nat"
   where "ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)"
 definition ntrunc :: "[nat, ('a, 'b) dtree] => ('a, 'b) dtree"
-  where "ntrunc k N == {n. n:N \<and> ndepth(n)<k}"
+  where "ntrunc k N == {n. n\<in>N \<and> ndepth(n)<k}"
 
 (*products and sums for the "universe"*)
 definition uprod :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set"
@@ -115,10 +115,10 @@ lemmas Abs_Node_inj = Abs_Node_inject [THEN [2] rev_iffD1]
 
 (*** Introduction rules for Node ***)
 
-lemma Node_K0_I: "(%k. Inr 0, a) : Node"
+lemma Node_K0_I: "(\<lambda>k. Inr 0, a) \<in> Node"
 by (simp add: Node_def)
 
-lemma Node_Push_I: "p: Node ==> apfst (Push i) p : Node"
+lemma Node_Push_I: "p \<in> Node \<Longrightarrow> apfst (Push i) p \<in> Node"
 apply (simp add: Node_def Push_def) 
 apply (fast intro!: apfst_conv nat.case(2)[THEN trans])
 done
@@ -299,35 +299,35 @@ subsection\<open>Set Constructions\<close>
 
 (*** Cartesian Product ***)
 
-lemma uprodI [intro!]: "[| M:A;  N:B |] ==> Scons M N : uprod A B"
+lemma uprodI [intro!]: "\<lbrakk>M\<in>A; N\<in>B\<rbrakk> \<Longrightarrow> Scons M N \<in> uprod A B"
 by (simp add: uprod_def)
 
 (*The general elimination rule*)
 lemma uprodE [elim!]:
-    "[| c : uprod A B;   
-        !!x y. [| x:A;  y:B;  c = Scons x y |] ==> P  
-     |] ==> P"
+    "\<lbrakk>c \<in> uprod A B;   
+        \<And>x y. \<lbrakk>x \<in> A; y \<in> B; c = Scons x y\<rbrakk> \<Longrightarrow> P  
+     \<rbrakk> \<Longrightarrow> P"
 by (auto simp add: uprod_def) 
 
 
 (*Elimination of a pair -- introduces no eigenvariables*)
-lemma uprodE2: "[| Scons M N : uprod A B;  [| M:A;  N:B |] ==> P |] ==> P"
+lemma uprodE2: "\<lbrakk>Scons M N \<in> uprod A B; \<lbrakk>M \<in> A; N \<in> B\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (auto simp add: uprod_def)
 
 
 (*** Disjoint Sum ***)
 
-lemma usum_In0I [intro]: "M:A ==> In0(M) : usum A B"
+lemma usum_In0I [intro]: "M \<in> A \<Longrightarrow> In0(M) \<in> usum A B"
 by (simp add: usum_def)
 
-lemma usum_In1I [intro]: "N:B ==> In1(N) : usum A B"
+lemma usum_In1I [intro]: "N \<in> B \<Longrightarrow> In1(N) \<in> usum A B"
 by (simp add: usum_def)
 
 lemma usumE [elim!]: 
-    "[| u : usum A B;   
-        !!x. [| x:A;  u=In0(x) |] ==> P;  
-        !!y. [| y:B;  u=In1(y) |] ==> P  
-     |] ==> P"
+    "\<lbrakk>u \<in> usum A B;   
+        \<And>x. \<lbrakk>x \<in> A; u=In0(x)\<rbrakk> \<Longrightarrow> P;  
+        \<And>y. \<lbrakk>y \<in> B; u=In1(y)\<rbrakk> \<Longrightarrow> P  
+     \<rbrakk> \<Longrightarrow> P"
 by (auto simp add: usum_def)
 
 
@@ -440,31 +440,31 @@ by (simp add: In1_def Scons_UN1_y)
 (*** Equality for Cartesian Product ***)
 
 lemma dprodI [intro!]: 
-    "[| (M,M'):r;  (N,N'):s |] ==> (Scons M N, Scons M' N') : dprod r s"
+    "\<lbrakk>(M,M') \<in> r; (N,N') \<in> s\<rbrakk> \<Longrightarrow> (Scons M N, Scons M' N') \<in> dprod r s"
 by (auto simp add: dprod_def)
 
 (*The general elimination rule*)
 lemma dprodE [elim!]: 
-    "[| c : dprod r s;   
-        !!x y x' y'. [| (x,x') : r;  (y,y') : s;  
-                        c = (Scons x y, Scons x' y') |] ==> P  
-     |] ==> P"
+    "\<lbrakk>c \<in> dprod r s;   
+        \<And>x y x' y'. \<lbrakk>(x,x') \<in> r; (y,y') \<in> s;  
+                        c = (Scons x y, Scons x' y')\<rbrakk> \<Longrightarrow> P  
+     \<rbrakk> \<Longrightarrow> P"
 by (auto simp add: dprod_def)
 
 
 (*** Equality for Disjoint Sum ***)
 
-lemma dsum_In0I [intro]: "(M,M'):r ==> (In0(M), In0(M')) : dsum r s"
+lemma dsum_In0I [intro]: "(M,M') \<in> r \<Longrightarrow> (In0(M), In0(M')) \<in> dsum r s"
 by (auto simp add: dsum_def)
 
-lemma dsum_In1I [intro]: "(N,N'):s ==> (In1(N), In1(N')) : dsum r s"
+lemma dsum_In1I [intro]: "(N,N') \<in> s \<Longrightarrow> (In1(N), In1(N')) \<in> dsum r s"
 by (auto simp add: dsum_def)
 
 lemma dsumE [elim!]: 
-    "[| w : dsum r s;   
-        !!x x'. [| (x,x') : r;  w = (In0(x), In0(x')) |] ==> P;  
-        !!y y'. [| (y,y') : s;  w = (In1(y), In1(y')) |] ==> P  
-     |] ==> P"
+    "\<lbrakk>w \<in> dsum r s;   
+        \<And>x x'. \<lbrakk> (x,x') \<in> r;  w = (In0(x), In0(x')) \<rbrakk> \<Longrightarrow> P;  
+        \<And>y y'. \<lbrakk> (y,y') \<in> s;  w = (In1(y), In1(y')) \<rbrakk> \<Longrightarrow> P  
+     \<rbrakk> \<Longrightarrow> P"
 by (auto simp add: dsum_def)
 
 

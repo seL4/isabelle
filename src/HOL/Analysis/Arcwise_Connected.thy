@@ -21,12 +21,12 @@ proof -
     where "inj B" "\<And>n. open(B n)" and open_cov: "\<And>S. open S \<Longrightarrow> \<exists>K. S = \<Union>(B ` K)"
       by (metis Setcompr_eq_image that univ_second_countable_sequence)
   define A where "A \<equiv> rec_nat S (\<lambda>n a. if \<exists>U. U \<subseteq> a \<and> closed U \<and> \<phi> U \<and> U \<inter> (B n) = {}
-                                        then @U. U \<subseteq> a \<and> closed U \<and> \<phi> U \<and> U \<inter> (B n) = {}
+                                        then SOME U. U \<subseteq> a \<and> closed U \<and> \<phi> U \<and> U \<inter> (B n) = {}
                                         else a)"
   have [simp]: "A 0 = S"
     by (simp add: A_def)
   have ASuc: "A(Suc n) = (if \<exists>U. U \<subseteq> A n \<and> closed U \<and> \<phi> U \<and> U \<inter> (B n) = {}
-                          then @U. U \<subseteq> A n \<and> closed U \<and> \<phi> U \<and> U \<inter> (B n) = {}
+                          then SOME U. U \<subseteq> A n \<and> closed U \<and> \<phi> U \<and> U \<inter> (B n) = {}
                           else A n)" for n
     by (auto simp: A_def)
   have sub: "\<And>n. A(Suc n) \<subseteq> A n"
@@ -1801,7 +1801,7 @@ proof -
     and peq: "\<And>x y. \<lbrakk>x \<in> T; y \<in> T; open_segment x y \<inter> T = {}\<rbrakk> \<Longrightarrow> p x = p y"
     unfolding \<phi>_def by metis+
   then have "T \<noteq> {}" by auto
-  define h where "h \<equiv> \<lambda>x. p(@y. y \<in> T \<and> open_segment x y \<inter> T = {})"
+  define h where "h \<equiv> \<lambda>x. p(SOME y. y \<in> T \<and> open_segment x y \<inter> T = {})"
   have "p y = p z" if "y \<in> T" "z \<in> T" and xyT: "open_segment x y \<inter> T = {}" and xzT: "open_segment x z \<inter> T = {}"
     for x y z
   proof (cases "x \<in> T")

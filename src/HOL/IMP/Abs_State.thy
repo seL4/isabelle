@@ -157,7 +157,7 @@ lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^sub>c C1 \<le> \<g
 by (simp add: less_eq_acom_def mono_gamma_o size_annos anno_map_acom size_annos_same[of C1 C2])
 
 lemma in_gamma_option_iff:
-  "x : \<gamma>_option r u \<longleftrightarrow> (\<exists>u'. u = Some u' \<and> x : r u')"
+  "x \<in> \<gamma>_option r u \<longleftrightarrow> (\<exists>u'. u = Some u' \<and> x \<in> r u')"
 by (cases u) auto
 
 end

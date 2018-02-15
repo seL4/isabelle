@@ -80,7 +80,7 @@ inductive_cases WTs_elim_cases:
 
 definition
   WT_bodies :: bool where
-  "WT_bodies = (!(pn,b):set bodies. WT b)"
+  "WT_bodies = (\<forall>(pn,b) \<in> set bodies. WT b)"
 
 
 ML \<open>

@@ -35,7 +35,7 @@ assumes inter_gamma_subset_gamma_inf:
 and gamma_bot[simp]: "\<gamma> \<bottom> = {}"
 begin
 
-lemma in_gamma_inf: "x : \<gamma> a1 \<Longrightarrow> x : \<gamma> a2 \<Longrightarrow> x : \<gamma>(a1 \<sqinter> a2)"
+lemma in_gamma_inf: "x \<in> \<gamma> a1 \<Longrightarrow> x \<in> \<gamma> a2 \<Longrightarrow> x \<in> \<gamma>(a1 \<sqinter> a2)"
 by (metis IntI inter_gamma_subset_gamma_inf set_mp)
 
 lemma gamma_inf: "\<gamma>(a1 \<sqinter> a2) = \<gamma> a1 \<inter> \<gamma> a2"
@@ -50,11 +50,11 @@ locale Val_inv = Val_lattice_gamma where \<gamma> = \<gamma>
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and inv_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and inv_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
-assumes test_num': "test_num' i a = (i : \<gamma> a)"
+assumes test_num': "test_num' i a = (i \<in> \<gamma> a)"
 and inv_plus': "inv_plus' a a1 a2 = (a\<^sub>1',a\<^sub>2') \<Longrightarrow>
-  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma> a \<Longrightarrow> i1 : \<gamma> a\<^sub>1' \<and> i2 : \<gamma> a\<^sub>2'"
+  i1 \<in> \<gamma> a1 \<Longrightarrow> i2 \<in> \<gamma> a2 \<Longrightarrow> i1+i2 \<in> \<gamma> a \<Longrightarrow> i1 \<in> \<gamma> a\<^sub>1' \<and> i2 \<in> \<gamma> a\<^sub>2'"
 and inv_less': "inv_less' (i1<i2) a1 a2 = (a\<^sub>1',a\<^sub>2') \<Longrightarrow>
-  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> a\<^sub>1' \<and> i2 : \<gamma> a\<^sub>2'"
+  i1 \<in> \<gamma> a1 \<Longrightarrow> i2 \<in> \<gamma> a2 \<Longrightarrow> i1 \<in> \<gamma> a\<^sub>1' \<and> i2 \<in> \<gamma> a\<^sub>2'"
 
 
 locale Abs_Int_inv = Val_inv where \<gamma> = \<gamma>
@@ -62,14 +62,14 @@ locale Abs_Int_inv = Val_inv where \<gamma> = \<gamma>
 begin
 
 lemma in_gamma_sup_UpI:
-  "s : \<gamma>\<^sub>o S1 \<or> s : \<gamma>\<^sub>o S2 \<Longrightarrow> s : \<gamma>\<^sub>o(S1 \<squnion> S2)"
+  "s \<in> \<gamma>\<^sub>o S1 \<or> s \<in> \<gamma>\<^sub>o S2 \<Longrightarrow> s \<in> \<gamma>\<^sub>o(S1 \<squnion> S2)"
 by (metis (hide_lams, no_types) sup_ge1 sup_ge2 mono_gamma_o subsetD)
 
 fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |
 "aval'' e (Some S) = aval' e S"
 
-lemma aval''_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
+lemma aval''_correct: "s \<in> \<gamma>\<^sub>o S \<Longrightarrow> aval a s \<in> \<gamma>(aval'' a S)"
 by(cases S)(auto simp add: aval'_correct split: option.splits)
 
 subsubsection "Backward analysis"
@@ -103,16 +103,16 @@ fun inv_bval' :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarr
   (let (a1,a2) = inv_less' res (aval'' e1 S) (aval'' e2 S)
    in inv_aval' e1 a1 (inv_aval' e2 a2 S))"
 
-lemma inv_aval'_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^sub>o (inv_aval' e a S)"
+lemma inv_aval'_correct: "s \<in> \<gamma>\<^sub>o S \<Longrightarrow> aval e s \<in> \<gamma> a \<Longrightarrow> s \<in> \<gamma>\<^sub>o (inv_aval' e a S)"
 proof(induction e arbitrary: a S)
   case N thus ?case by simp (metis test_num')
 next
   case (V x)
-  obtain S' where "S = Some S'" and "s : \<gamma>\<^sub>s S'" using \<open>s : \<gamma>\<^sub>o S\<close>
+  obtain S' where "S = Some S'" and "s \<in> \<gamma>\<^sub>s S'" using \<open>s \<in> \<gamma>\<^sub>o S\<close>
     by(auto simp: in_gamma_option_iff)
-  moreover hence "s x : \<gamma> (fun S' x)"
+  moreover hence "s x \<in> \<gamma> (fun S' x)"
     by(simp add: \<gamma>_st_def)
-  moreover have "s x : \<gamma> a" using V(2) by simp
+  moreover have "s x \<in> \<gamma> a" using V(2) by simp
   ultimately show ?case
     by(simp add: Let_def \<gamma>_st_def)
       (metis mono_gamma emptyE in_gamma_inf gamma_bot subset_empty)
@@ -122,7 +122,7 @@ next
     by (auto split: prod.split)
 qed
 
-lemma inv_bval'_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^sub>o(inv_bval' b bv S)"
+lemma inv_bval'_correct: "s \<in> \<gamma>\<^sub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s \<in> \<gamma>\<^sub>o(inv_bval' b bv S)"
 proof(induction b arbitrary: S bv)
   case Bc thus ?case by simp
 next

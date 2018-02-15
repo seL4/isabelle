@@ -10,21 +10,21 @@ section\<open>Fixed Point of a Program\<close>
 theory FP imports UNITY begin
 
 definition FP_Orig :: "'a program => 'a set" where
-    "FP_Orig F == \<Union>{A. ALL B. F : stable (A Int B)}"
+    "FP_Orig F == \<Union>{A. \<forall>B. F \<in> stable (A \<inter> B)}"
 
 definition FP :: "'a program => 'a set" where
-    "FP F == {s. F : stable {s}}"
+    "FP F == {s. F \<in> stable {s}}"
 
-lemma stable_FP_Orig_Int: "F : stable (FP_Orig F Int B)"
+lemma stable_FP_Orig_Int: "F \<in> stable (FP_Orig F Int B)"
 apply (simp only: FP_Orig_def stable_def Int_Union2)
 apply (blast intro: constrains_UN)
 done
 
 lemma FP_Orig_weakest:
-    "(!!B. F : stable (A Int B)) ==> A <= FP_Orig F"
+    "(\<And>B. F \<in> stable (A \<inter> B)) \<Longrightarrow> A <= FP_Orig F"
 by (simp add: FP_Orig_def stable_def, blast)
 
-lemma stable_FP_Int: "F : stable (FP F Int B)"
+lemma stable_FP_Int: "F \<in> stable (FP F \<inter> B)"
 apply (subgoal_tac "FP F Int B = (UN x:B. FP F Int {x}) ")
 prefer 2 apply blast
 apply (simp (no_asm_simp) add: Int_insert_right)
@@ -42,7 +42,7 @@ apply (simp add: Int_insert_right)
 done
 
 lemma FP_weakest:
-    "(!!B. F : stable (A Int B)) ==> A <= FP F"
+    "(\<And>B. F \<in> stable (A Int B)) \<Longrightarrow> A <= FP F"
 by (simp add: FP_equivalence FP_Orig_weakest)
 
 lemma Compl_FP: 

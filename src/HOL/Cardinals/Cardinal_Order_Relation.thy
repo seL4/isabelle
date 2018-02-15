@@ -71,18 +71,18 @@ declare
 
 subsection \<open>Cardinal of a set\<close>
 
-lemma card_of_inj_rel: assumes INJ: "!! x y y'. \<lbrakk>(x,y) : R; (x,y') : R\<rbrakk> \<Longrightarrow> y = y'"
-shows "|{y. EX x. (x,y) : R}| <=o |{x. EX y. (x,y) : R}|"
+lemma card_of_inj_rel: assumes INJ: "\<And>x y y'. \<lbrakk>(x,y) \<in> R; (x,y') \<in> R\<rbrakk> \<Longrightarrow> y = y'"
+shows "|{y. \<exists>x. (x,y) \<in> R}| <=o |{x. \<exists>y. (x,y) \<in> R}|"
 proof-
-  let ?Y = "{y. EX x. (x,y) : R}"  let ?X = "{x. EX y. (x,y) : R}"
-  let ?f = "% y. SOME x. (x,y) : R"
+  let ?Y = "{y. \<exists>x. (x,y) \<in> R}"  let ?X = "{x. \<exists>y. (x,y) \<in> R}"
+  let ?f = "\<lambda>y. SOME x. (x,y) \<in> R"
   have "?f ` ?Y <= ?X" by (auto dest: someI)
   moreover have "inj_on ?f ?Y"
   unfolding inj_on_def proof(auto)
     fix y1 x1 y2 x2
     assume *: "(x1, y1) \<in> R" "(x2, y2) \<in> R" and **: "?f y1 = ?f y2"
-    hence "(?f y1,y1) : R" using someI[of "% x. (x,y1) : R"] by auto
-    moreover have "(?f y2,y2) : R" using * someI[of "% x. (x,y2) : R"] by auto
+    hence "(?f y1,y1) \<in> R" using someI[of "\<lambda>x. (x,y1) \<in> R"] by auto
+    moreover have "(?f y2,y2) \<in> R" using * someI[of "\<lambda>x. (x,y2) \<in> R"] by auto
     ultimately show "y1 = y2" using ** INJ by auto
   qed
   ultimately show "|?Y| <=o |?X|" using card_of_ordLeq by blast
@@ -1629,7 +1629,7 @@ and cardB: "|B| <o r"
 shows "\<exists> i \<in> Field r. \<forall> b \<in> B. P i b"
 proof-
   let ?As = "\<lambda>i. {b \<in> B. P i b}"
-  have "EX i : Field r. B \<le> ?As i"
+  have "\<exists>i \<in> Field r. B \<le> ?As i"
   apply(rule regularCard_UNION) using assms unfolding relChain_def by auto
   thus ?thesis by auto
 qed

@@ -49,7 +49,7 @@ inductive_set
   | Fst:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> X \<in> analz H"
   | Snd:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> Y \<in> analz H"
   | Decrypt [dest]: 
-             "[|Crypt K X \<in> analz H; Key(invKey K): analz H|] ==> X \<in> analz H"
+             "[|Crypt K X \<in> analz H; Key(invKey K) \<in> analz H|] ==> X \<in> analz H"
 
 inductive_set
   synth :: "msg set => msg set"
@@ -168,7 +168,7 @@ subsection \<open>Derived equations for analz, parts and synth\<close>
 
 lemma [code]:
   "analz H = (let
-     H' = H \<union> (\<Union>((%m. case m of \<lbrace>X, Y\<rbrace> => {X, Y} | Crypt K X => if Key (invKey K) : H then {X} else {} | _ => {}) ` H))
+     H' = H \<union> (\<Union>((%m. case m of \<lbrace>X, Y\<rbrace> => {X, Y} | Crypt K X => if Key (invKey K) \<in> H then {X} else {} | _ => {}) ` H))
    in if H' = H then H else analz H')"
 sorry
 
@@ -180,7 +180,7 @@ sorry
 
 definition synth' :: "msg set => msg => bool"
 where
-  "synth' H m = (m : synth H)"
+  "synth' H m = (m \<in> synth H)"
 
 lemmas [code_pred_intro] = synth.intros[folded synth'_def]
 

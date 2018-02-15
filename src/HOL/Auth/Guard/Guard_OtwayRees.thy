@@ -59,20 +59,20 @@ subsection\<open>definition of the protocol\<close>
 inductive_set or :: "event list set"
 where
 
-  Nil: "[]:or"
+  Nil: "[] \<in> or"
 
-| Fake: "[| evs:or; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs:or"
+| Fake: "[| evs \<in> or; X \<in> synth (analz (spies evs)) |] ==> Says Spy B X # evs \<in> or"
 
-| OR1: "[| evs1:or; Nonce NA ~:used evs1 |] ==> or1 A B NA # evs1:or"
+| OR1: "[| evs1 \<in> or; Nonce NA \<notin> used evs1 |] ==> or1 A B NA # evs1 \<in> or"
 
-| OR2: "[| evs2:or; or1' A' A B NA X:set evs2; Nonce NB ~:used evs2 |]
-  ==> or2 A B NA NB X # evs2:or"
+| OR2: "[| evs2 \<in> or; or1' A' A B NA X \<in> set evs2; Nonce NB \<notin> used evs2 |]
+  ==> or2 A B NA NB X # evs2 \<in> or"
 
-| OR3: "[| evs3:or; or2' B' A B NA NB:set evs3; Key K ~:used evs3 |]
-  ==> or3 A B NA NB K # evs3:or"
+| OR3: "[| evs3 \<in> or; or2' B' A B NA NB \<in> set evs3; Key K \<notin> used evs3 |]
+  ==> or3 A B NA NB K # evs3 \<in> or"
 
-| OR4: "[| evs4:or; or2 A B NA NB X:set evs4; or3' S Y A B NA NB K:set evs4 |]
-  ==> or4 A B NA X # evs4:or"
+| OR4: "[| evs4 \<in> or; or2 A B NA NB X \<in> set evs4; or3' S Y A B NA NB K \<in> set evs4 |]
+  ==> or4 A B NA X # evs4 \<in> or"
 
 subsection\<open>declarations for tactics\<close>
 
@@ -82,17 +82,17 @@ declare initState.simps [simp del]
 
 subsection\<open>general properties of or\<close>
 
-lemma or_has_no_Gets: "evs:or ==> ALL A X. Gets A X ~:set evs"
+lemma or_has_no_Gets: "evs \<in> or \<Longrightarrow> \<forall>A X. Gets A X \<notin> set evs"
 by (erule or.induct, auto)
 
 lemma or_is_Gets_correct [iff]: "Gets_correct or"
 by (auto simp: Gets_correct_def dest: or_has_no_Gets)
 
 lemma or_is_one_step [iff]: "one_step or"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:or" for ev evs, auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs \<in> or" for ev evs, auto)
 
-lemma or_has_only_Says' [rule_format]: "evs:or ==>
-ev:set evs --> (EX A B X. ev=Says A B X)"
+lemma or_has_only_Says' [rule_format]: "evs \<in> or \<Longrightarrow>
+ev \<in> set evs \<longrightarrow> (\<exists>A B X. ev=Says A B X)"
 by (erule or.induct, auto)
 
 lemma or_has_only_Says [iff]: "has_only_Says or"
@@ -100,16 +100,16 @@ by (auto simp: has_only_Says_def dest: or_has_only_Says')
 
 subsection\<open>or is regular\<close>
 
-lemma or1'_parts_spies [dest]: "or1' A' A B NA X:set evs
-==> X:parts (spies evs)"
+lemma or1'_parts_spies [dest]: "or1' A' A B NA X \<in> set evs
+\<Longrightarrow> X \<in> parts (spies evs)"
 by blast
 
-lemma or2_parts_spies [dest]: "or2 A B NA NB X:set evs
-==> X:parts (spies evs)"
+lemma or2_parts_spies [dest]: "or2 A B NA NB X \<in> set evs
+\<Longrightarrow> X \<in> parts (spies evs)"
 by blast
 
-lemma or3_parts_spies [dest]: "Says S B \<lbrace>NA, Y, Ciph B \<lbrace>NB, K\<rbrace>\<rbrace>:set evs
-==> K:parts (spies evs)"
+lemma or3_parts_spies [dest]: "Says S B \<lbrace>NA, Y, Ciph B \<lbrace>NB, K\<rbrace>\<rbrace> \<in> set evs
+\<Longrightarrow> K \<in> parts (spies evs)"
 by blast
 
 lemma or_is_regular [iff]: "regular or"
@@ -119,8 +119,8 @@ by (auto dest: parts_sub)
 
 subsection\<open>guardedness of KAB\<close>
 
-lemma Guard_KAB [rule_format]: "[| evs:or; A ~:bad; B ~:bad |] ==>
-or3 A B NA NB K:set evs --> GuardK K {shrK A,shrK B} (spies evs)" 
+lemma Guard_KAB [rule_format]: "[| evs \<in> or; A \<notin> bad; B \<notin> bad |] ==>
+or3 A B NA NB K \<in> set evs \<longrightarrow> GuardK K {shrK A,shrK B} (spies evs)" 
 apply (erule or.induct)
 (* Nil *)
 apply simp_all
@@ -140,8 +140,8 @@ by (blast dest: Says_imp_spies in_GuardK_kparts)
 
 subsection\<open>guardedness of NB\<close>
 
-lemma Guard_NB [rule_format]: "[| evs:or; B ~:bad |] ==>
-or2 A B NA NB X:set evs --> Guard NB {shrK B} (spies evs)" 
+lemma Guard_NB [rule_format]: "[| evs \<in> or; B \<notin> bad |] ==>
+or2 A B NA NB X \<in> set evs \<longrightarrow> Guard NB {shrK B} (spies evs)" 
 apply (erule or.induct)
 (* Nil *)
 apply simp_all

@@ -9,20 +9,20 @@ theory Solve
 imports IOA
 begin
 
-definition is_weak_pmap :: "['c => 'a, ('action,'c)ioa,('action,'a)ioa] => bool" where
-  "is_weak_pmap f C A ==
-   (!s:starts_of(C). f(s):starts_of(A)) &
-   (!s t a. reachable C s &
-            (s,a,t):trans_of(C)
-            --> (if a:externals(asig_of(C)) then
-                   (f(s),a,f(t)):trans_of(A)
+definition is_weak_pmap :: "['c \<Rightarrow> 'a, ('action,'c)ioa,('action,'a)ioa] \<Rightarrow> bool" where
+  "is_weak_pmap f C A \<equiv>
+   (\<forall>s\<in>starts_of(C). f(s)\<in>starts_of(A)) \<and>
+   (\<forall>s t a. reachable C s \<and>
+            (s,a,t)\<in>trans_of(C)
+            \<longrightarrow> (if a\<in>externals(asig_of(C)) then
+                   (f(s),a,f(t))\<in>trans_of(A)
                  else f(s)=f(t)))"
 
 declare mk_trace_thm [simp] trans_in_actions [simp]
 
 lemma trace_inclusion: 
   "[| IOA(C); IOA(A); externals(asig_of(C)) = externals(asig_of(A));  
-           is_weak_pmap f C A |] ==> traces(C) <= traces(A)"
+           is_weak_pmap f C A |] ==> traces(C) \<subseteq> traces(A)"
   apply (unfold is_weak_pmap_def traces_def)
 
   apply (simp (no_asm) add: has_trace_def)
@@ -34,7 +34,7 @@ lemma trace_inclusion:
   apply simp
 
   (* give execution of abstract automata *)
-  apply (rule_tac x = "(mk_trace A ex1,%i. f (ex2 i))" in bexI)
+  apply (rule_tac x = "(mk_trace A ex1,\<lambda>i. f (ex2 i))" in bexI)
 
   (* Traces coincide *)
    apply (simp (no_asm_simp) add: mk_trace_def filter_oseq_idemp)
@@ -62,16 +62,16 @@ lemma trace_inclusion:
 
 (* Lemmata *)
 
-lemma imp_conj_lemma: "(P ==> Q-->R) ==> P&Q --> R"
+lemma imp_conj_lemma: "(P \<Longrightarrow> Q\<longrightarrow>R) \<Longrightarrow> P\<and>Q \<longrightarrow> R"
   by blast
 
 
 (* fist_order_tautology of externals_of_par *)
 lemma externals_of_par_extra:
-  "a:externals(asig_of(A1||A2)) =     
-   (a:externals(asig_of(A1)) & a:externals(asig_of(A2)) |   
-   a:externals(asig_of(A1)) & a~:externals(asig_of(A2)) |   
-   a~:externals(asig_of(A1)) & a:externals(asig_of(A2)))"
+  "a\<in>externals(asig_of(A1||A2)) =     
+   (a\<in>externals(asig_of(A1)) \<and> a\<in>externals(asig_of(A2)) \<or>
+   a\<in>externals(asig_of(A1)) \<and> a\<notin>externals(asig_of(A2)) \<or>
+   a\<notin>externals(asig_of(A1)) \<and> a\<in>externals(asig_of(A2)))"
   apply (auto simp add: externals_def asig_of_par asig_comp_def asig_inputs_def asig_outputs_def)
   done
 
@@ -79,7 +79,7 @@ lemma comp1_reachable: "[| reachable (C1||C2) s |] ==> reachable C1 (fst s)"
   apply (simp add: reachable_def)
   apply (erule bexE)
   apply (rule_tac x =
-    "(filter_oseq (%a. a:actions (asig_of (C1))) (fst ex) , %i. fst (snd ex i))" in bexI)
+    "(filter_oseq (\<lambda>a. a\<in>actions (asig_of (C1))) (fst ex) , \<lambda>i. fst (snd ex i))" in bexI)
 (* fst(s) is in projected execution *)
   apply force
 (* projected execution is indeed an execution *)
@@ -96,7 +96,7 @@ lemma comp2_reachable: "[| reachable (C1||C2) s|] ==> reachable C2 (snd s)"
   apply (simp add: reachable_def)
   apply (erule bexE)
   apply (rule_tac x =
-    "(filter_oseq (%a. a:actions (asig_of (C2))) (fst ex) , %i. snd (snd ex i))" in bexI)
+    "(filter_oseq (\<lambda>a. a\<in>actions (asig_of (C2))) (fst ex) , \<lambda>i. snd (snd ex i))" in bexI)
 (* fst(s) is in projected execution *)
   apply force
 (* projected execution is indeed an execution *)
@@ -115,7 +115,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
          is_weak_pmap g C2 A2;   
          externals(asig_of(A2))=externals(asig_of(C2));  
          compat_ioas C1 C2; compat_ioas A1 A2  |]      
-   ==> is_weak_pmap (%p.(f(fst(p)),g(snd(p)))) (C1||C2) (A1||A2)"
+   ==> is_weak_pmap (\<lambda>p.(f(fst(p)),g(snd(p)))) (C1||C2) (A1||A2)"
   apply (unfold is_weak_pmap_def)
   apply (rule conjI)
 (* start_states *)
@@ -139,7 +139,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
   apply (simp add: comp1_reachable comp2_reachable ext_is_act ext1_ext2_is_not_act1)
 (* case 4      a:~e(A1) | a~:e(A2) *)
   apply (rule impI)
-  apply (subgoal_tac "a~:externals (asig_of (A1)) & a~:externals (asig_of (A2))")
+  apply (subgoal_tac "a\<notin>externals (asig_of (A1)) & a\<notin>externals (asig_of (A2))")
 (* delete auxiliary subgoal *)
   prefer 2
   apply force
@@ -153,7 +153,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
 lemma reachable_rename_ioa: "[| reachable (rename C g) s |] ==> reachable C s"
   apply (simp add: reachable_def)
   apply (erule bexE)
-  apply (rule_tac x = "((%i. case (fst ex i) of None => None | Some (x) => g x) ,snd ex)" in bexI)
+  apply (rule_tac x = "((\<lambda>i. case (fst ex i) of None \<Rightarrow> None | Some (x) => g x) ,snd ex)" in bexI)
   apply (simp (no_asm))
 (* execution is indeed an execution of C *)
   apply (simp add: executions_def is_execution_fragment_def par_def

@@ -182,14 +182,14 @@ lemma Gets_certificate_valid:
      "[| Gets A \<lbrace> X, cert (CA i) EKi onlyEnc (priSK RCA),
                       cert (CA i) SKi onlySig (priSK RCA)\<rbrace> \<in> set evs;
          evs \<in> set_mr |]
-      ==> EKi = pubEK (CA i) & SKi = pubSK (CA i)"
+      ==> EKi = pubEK (CA i) \<and> SKi = pubSK (CA i)"
 by (blast dest: certificate_valid_pubEK certificate_valid_pubSK)
 
 
 text\<open>Nobody can have used non-existent keys!\<close>
 lemma new_keys_not_used [rule_format,simp]:
      "evs \<in> set_mr
-      ==> Key K \<notin> used evs --> K \<in> symKeys -->
+      ==> Key K \<notin> used evs \<longrightarrow> K \<in> symKeys \<longrightarrow>
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_mr.induct, simp_all)
 apply (force dest!: usedI keysFor_parts_insert)  \<comment> \<open>Fake\<close>
@@ -203,13 +203,13 @@ subsubsection\<open>New Versions: As Above, but Generalized with the Kk Argument
 
 lemma gen_new_keys_not_used [rule_format]:
      "evs \<in> set_mr
-      ==> Key K \<notin> used evs --> K \<in> symKeys -->
-          K \<notin> keysFor (parts (Key`KK Un knows Spy evs))"
+      ==> Key K \<notin> used evs \<longrightarrow> K \<in> symKeys \<longrightarrow>
+          K \<notin> keysFor (parts (Key`KK \<union> knows Spy evs))"
 by auto
 
 lemma gen_new_keys_not_analzd:
      "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> set_mr |]
-      ==> K \<notin> keysFor (analz (Key`KK Un knows Spy evs))"
+      ==> K \<notin> keysFor (analz (Key`KK \<union> knows Spy evs))"
 by (blast intro: keysFor_mono [THEN [2] rev_subsetD]
           dest: gen_new_keys_not_used)
 
@@ -236,14 +236,14 @@ text\<open>Rewriting rule for private encryption keys.  Analogous rewriting rule
 for other keys aren't needed.\<close>
 
 lemma parts_image_priEK:
-     "[|Key (priEK (CA i)) \<in> parts (Key`KK Un (knows Spy evs));
+     "[|Key (priEK (CA i)) \<in> parts (Key`KK \<union> (knows Spy evs));
         evs \<in> set_mr|] ==> priEK (CA i) \<in> KK | CA i \<in> bad"
 by auto
 
 text\<open>trivial proof because (priEK (CA i)) never appears even in (parts evs)\<close>
 lemma analz_image_priEK:
      "evs \<in> set_mr ==>
-          (Key (priEK (CA i)) \<in> analz (Key`KK Un (knows Spy evs))) =
+          (Key (priEK (CA i)) \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (priEK (CA i) \<in> KK | CA i \<in> bad)"
 by (blast dest!: parts_image_priEK intro: analz_mono [THEN [2] rev_subsetD])
 
@@ -266,22 +266,22 @@ lemma msg4_priEK_disj:
                  Y\<rbrace> \<in> set evs;
         evs \<in> set_mr|]
   ==> (Key merSK \<in> analz (knows Spy evs) | merSK \<notin> range(\<lambda>C. priEK C))
-   &  (Key merEK \<in> analz (knows Spy evs) | merEK \<notin> range(\<lambda>C. priEK C))"
+   \<and>  (Key merEK \<in> analz (knows Spy evs) | merEK \<notin> range(\<lambda>C. priEK C))"
 apply (unfold sign_def)
 apply (blast dest: merK_neq_priEK)
 done
 
 
 lemma Key_analz_image_Key_lemma:
-     "P --> (Key K \<in> analz (Key`KK Un H)) --> (K\<in>KK | Key K \<in> analz H)
+     "P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) \<longrightarrow> (K\<in>KK | Key K \<in> analz H)
       ==>
-      P --> (Key K \<in> analz (Key`KK Un H)) = (K\<in>KK | Key K \<in> analz H)"
+      P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) = (K\<in>KK | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 lemma symKey_compromise:
      "evs \<in> set_mr ==>
-      (\<forall>SK KK. SK \<in> symKeys \<longrightarrow> (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) -->
-               (Key SK \<in> analz (Key`KK Un (knows Spy evs))) =
+      (\<forall>SK KK. SK \<in> symKeys \<longrightarrow> (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) \<longrightarrow>
+               (Key SK \<in> analz (Key`KK \<union> (knows Spy evs))) =
                (SK \<in> KK | Key SK \<in> analz (knows Spy evs)))"
 apply (erule set_mr.induct)
 apply (safe del: impI intro!: Key_analz_image_Key_lemma [THEN impI])
@@ -299,9 +299,9 @@ done
 
 lemma symKey_secrecy [rule_format]:
      "[|CA i \<notin> bad; K \<in> symKeys;  evs \<in> set_mr|]
-      ==> \<forall>X m. Says (Merchant m) (CA i) X \<in> set evs -->
-                Key K \<in> parts{X} -->
-                Merchant m \<notin> bad -->
+      ==> \<forall>X m. Says (Merchant m) (CA i) X \<in> set evs \<longrightarrow>
+                Key K \<in> parts{X} \<longrightarrow>
+                Merchant m \<notin> bad \<longrightarrow>
                 Key K \<notin> analz (knows Spy evs)"
 apply (erule set_mr.induct)
 apply (drule_tac [7] msg4_priEK_disj)
@@ -326,7 +326,7 @@ lemma msg4_Says_imp_Notes:
                     cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
     evs \<in> set_mr |]
   ==> Notes (CA i) (Key merSK) \<in> set evs
-   &  Notes (CA i) (Key merEK) \<in> set evs"
+   \<and>  Notes (CA i) (Key merEK) \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_mr.induct)
 apply (simp_all (no_asm_simp))
@@ -343,7 +343,7 @@ lemma merSK_unicity:
                     cert  M'      merSK    onlySig (priSK (CA i)),
                     cert  M'      merEK'    onlyEnc (priSK (CA i)),
                     cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
-    evs \<in> set_mr |] ==> M=M' & NM2=NM2' & merEK=merEK'"
+    evs \<in> set_mr |] ==> M=M' \<and> NM2=NM2' \<and> merEK=merEK'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_mr.induct)
@@ -363,7 +363,7 @@ lemma merEK_unicity:
                      cert  M'      merEK    onlyEnc (priSK (CA i)),
                      cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
     evs \<in> set_mr |] 
-  ==> M=M' & NM2=NM2' & merSK=merSK'"
+  ==> M=M' \<and> NM2=NM2' \<and> merSK=merSK'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_mr.induct)

@@ -73,7 +73,7 @@ inductive_set yahalom :: "event list set"
           \<Longrightarrow> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> yahalom"
 
 
-definition KeyWithNonce :: "[key, nat, event list] => bool" where
+definition KeyWithNonce :: "[key, nat, event list] \<Rightarrow> bool" where
   "KeyWithNonce K NB evs ==
      \<exists>A B na X. 
        Says Server A \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, na, Nonce NB\<rbrace>, X\<rbrace>
@@ -191,8 +191,8 @@ text\<open>Session keys are not used to encrypt other session keys\<close>
 
 lemma analz_image_freshK [rule_format]:
  "evs \<in> yahalom \<Longrightarrow>
-   \<forall>K KK. KK <= - (range shrK) -->
-          (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
+   \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+          (Key K \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule yahalom.induct,
        drule_tac [7] YM4_analz_knows_Spy, analz_freshK, spy_analz, blast)
@@ -214,7 +214,7 @@ lemma unique_session_keys:
         Says Server A'
           \<lbrace>Crypt (shrK A') \<lbrace>Agent B', Key K, na', nb'\<rbrace>, X'\<rbrace> \<in> set evs;
         evs \<in> yahalom\<rbrakk>
-     \<Longrightarrow> A=A' & B=B' & na=na' & nb=nb'"
+     \<Longrightarrow> A=A' \<and> B=B' \<and> na=na' \<and> nb=nb'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule yahalom.induct, simp_all)
 txt\<open>YM3, by freshness, and YM4\<close>
@@ -228,8 +228,8 @@ lemma secrecy_lemma:
       \<Longrightarrow> Says Server A
             \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, na, nb\<rbrace>,
               Crypt (shrK B) \<lbrace>Agent A, Key K\<rbrace>\<rbrace>
-           \<in> set evs -->
-          Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs -->
+           \<in> set evs \<longrightarrow>
+          Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs \<longrightarrow>
           Key K \<notin> analz (knows Spy evs)"
 apply (erule yahalom.induct, force,
        drule_tac [6] YM4_analz_knows_Spy)
@@ -336,7 +336,7 @@ by (unfold KeyWithNonce_def, blast)
 
 lemma KeyWithNonce_Says [simp]:
    "KeyWithNonce K NB (Says S A X # evs) =
-      (Server = S &
+      (Server = S \<and>
        (\<exists>B n X'. X = \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, n, Nonce NB\<rbrace>, X'\<rbrace>)
       | KeyWithNonce K NB evs)"
 by (simp add: KeyWithNonce_def, blast)
@@ -353,7 +353,7 @@ by (simp add: KeyWithNonce_def)
 text\<open>A fresh key cannot be associated with any nonce
   (with respect to a given trace).\<close>
 lemma fresh_not_KeyWithNonce:
-     "Key K \<notin> used evs \<Longrightarrow> ~ KeyWithNonce K NB evs"
+     "Key K \<notin> used evs \<Longrightarrow> \<not> KeyWithNonce K NB evs"
 by (unfold KeyWithNonce_def, blast)
 
 text\<open>The Server message associates K with NB' and therefore not with any
@@ -362,7 +362,7 @@ lemma Says_Server_KeyWithNonce:
  "\<lbrakk>Says Server A \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, na, Nonce NB'\<rbrace>, X\<rbrace>
        \<in> set evs;
      NB \<noteq> NB';  evs \<in> yahalom\<rbrakk>
-  \<Longrightarrow> ~ KeyWithNonce K NB evs"
+  \<Longrightarrow> \<not> KeyWithNonce K NB evs"
 by (unfold KeyWithNonce_def, blast dest: unique_session_keys)
 
 
@@ -374,15 +374,15 @@ text\<open>The only nonces that can be found with the help of session keys are
 text\<open>As with \<open>analz_image_freshK\<close>, we take some pains to express the 
   property as a logical equivalence so that the simplifier can apply it.\<close>
 lemma Nonce_secrecy_lemma:
-     "P --> (X \<in> analz (G Un H)) --> (X \<in> analz H)  \<Longrightarrow>
-      P --> (X \<in> analz (G Un H)) = (X \<in> analz H)"
+     "P \<longrightarrow> (X \<in> analz (G \<union> H)) \<longrightarrow> (X \<in> analz H)  \<Longrightarrow>
+      P \<longrightarrow> (X \<in> analz (G \<union> H)) = (X \<in> analz H)"
 by (blast intro: analz_mono [THEN subsetD])
 
 lemma Nonce_secrecy:
      "evs \<in> yahalom \<Longrightarrow>
-      (\<forall>KK. KK <= - (range shrK) -->
-           (\<forall>K \<in> KK. K \<in> symKeys --> ~ KeyWithNonce K NB evs)   -->
-           (Nonce NB \<in> analz (Key`KK Un (knows Spy evs))) =
+      (\<forall>KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+           (\<forall>K \<in> KK. K \<in> symKeys \<longrightarrow> \<not> KeyWithNonce K NB evs)   \<longrightarrow>
+           (Nonce NB \<in> analz (Key`KK \<union> (knows Spy evs))) =
            (Nonce NB \<in> analz (knows Spy evs)))"
 apply (erule yahalom.induct,
        frule_tac [7] YM4_analz_knows_Spy)
@@ -394,7 +394,7 @@ apply (simp_all del: image_insert image_Un
             imp_disj_not1               (*Moves NBa\<noteq>NB to the front*)
             Says_Server_KeyWithNonce)
 txt\<open>For Oops, simplification proves @{prop "NBa\<noteq>NB"}.  By
-  @{term Says_Server_KeyWithNonce}, we get @{prop "~ KeyWithNonce K NB
+  @{term Says_Server_KeyWithNonce}, we get @{prop "\<not> KeyWithNonce K NB
   evs"}; then simplification can apply the induction hypothesis with
   @{term "KK = {K}"}.\<close>
   subgoal \<comment> \<open>Fake\<close> by spy_analz
@@ -427,7 +427,7 @@ lemma unique_NB:
      "\<lbrakk>Crypt (shrK B) \<lbrace>Agent A, Nonce NA, nb\<rbrace> \<in> parts (knows Spy evs);
          Crypt (shrK B') \<lbrace>Agent A', Nonce NA', nb\<rbrace> \<in> parts (knows Spy evs);
         evs \<in> yahalom;  B \<notin> bad;  B' \<notin> bad\<rbrakk>
-      \<Longrightarrow> NA' = NA & A' = A & B' = B"
+      \<Longrightarrow> NA' = NA \<and> A' = A \<and> B' = B"
 apply (erule rev_mp, erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
@@ -444,7 +444,7 @@ lemma Says_unique_NB:
          Gets S' \<lbrace>X', Crypt (shrK B') \<lbrace>Agent A', Nonce NA', nb\<rbrace>\<rbrace>
            \<in> set evs;
          nb \<notin> analz (knows Spy evs);  evs \<in> yahalom\<rbrakk>
-      \<Longrightarrow> NA' = NA & A' = A & B' = B"
+      \<Longrightarrow> NA' = NA \<and> A' = A \<and> B' = B"
 by (blast dest!: Gets_imp_Says Crypt_Spy_analz_bad
           dest: Says_imp_spies unique_NB parts.Inj analz.Inj)
 
@@ -548,7 +548,7 @@ text\<open>The encryption in message YM2 tells us it cannot be faked.\<close>
 lemma B_Said_YM2 [rule_format]:
      "\<lbrakk>Crypt (shrK B) \<lbrace>Agent A, Nonce NA, nb\<rbrace> \<in> parts (knows Spy evs);
         evs \<in> yahalom\<rbrakk>
-      \<Longrightarrow> B \<notin> bad -->
+      \<Longrightarrow> B \<notin> bad \<longrightarrow>
           Says B Server \<lbrace>Agent B, Crypt (shrK B) \<lbrace>Agent A, Nonce NA, nb\<rbrace>\<rbrace>
             \<in> set evs"
 apply (erule rev_mp, erule yahalom.induct, force,
@@ -561,7 +561,7 @@ text\<open>If the server sends YM3 then B sent YM2\<close>
 lemma YM3_auth_B_to_A_lemma:
      "\<lbrakk>Says Server A \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA, nb\<rbrace>, X\<rbrace>
        \<in> set evs;  evs \<in> yahalom\<rbrakk>
-      \<Longrightarrow> B \<notin> bad -->
+      \<Longrightarrow> B \<notin> bad \<longrightarrow>
           Says B Server \<lbrace>Agent B, Crypt (shrK B) \<lbrace>Agent A, Nonce NA, nb\<rbrace>\<rbrace>
             \<in> set evs"
 apply (erule rev_mp, erule yahalom.induct, simp_all)
@@ -588,10 +588,10 @@ text\<open>Assuming the session key is secure, if both certificates are present 
   NB matters for freshness.\<close>
 theorem A_Said_YM3_lemma [rule_format]:
      "evs \<in> yahalom
-      \<Longrightarrow> Key K \<notin> analz (knows Spy evs) -->
-          Crypt K (Nonce NB) \<in> parts (knows Spy evs) -->
-          Crypt (shrK B) \<lbrace>Agent A, Key K\<rbrace> \<in> parts (knows Spy evs) -->
-          B \<notin> bad -->
+      \<Longrightarrow> Key K \<notin> analz (knows Spy evs) \<longrightarrow>
+          Crypt K (Nonce NB) \<in> parts (knows Spy evs) \<longrightarrow>
+          Crypt (shrK B) \<lbrace>Agent A, Key K\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
+          B \<notin> bad \<longrightarrow>
           (\<exists>X. Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> \<in> set evs)"
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)

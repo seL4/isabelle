@@ -110,7 +110,7 @@ lemma collinear_inv_rotation:
   using assms 
   by (algebra add: collinear_def split_def fst_conv snd_conv)
 
-lemma "EX (d::int). a*y - a*x = n*d \<Longrightarrow> EX u v. a*u + n*v = 1 \<Longrightarrow> EX e. y - x = n*e"
+lemma "\<exists>(d::int). a*y - a*x = n*d \<Longrightarrow> \<exists>u v. a*u + n*v = 1 \<Longrightarrow> \<exists>e. y - x = n*e"
   by algebra
 
 end

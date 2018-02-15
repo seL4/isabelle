@@ -18,7 +18,7 @@ primrec plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow>
 | "(x#xs) ++_f y = xs ++_f (x +_f y)"
 
 definition bounded :: "'s step_type \<Rightarrow> nat \<Rightarrow> bool" where
-"bounded step n == !p<n. !s. !(q,t):set(step p s). q<n"  
+"bounded step n == \<forall>p<n. \<forall>s. \<forall>(q,t)\<in>set(step p s). q<n"  
 
 definition pres_type :: "'s step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool" where
 "pres_type step n A == \<forall>s\<in>A. \<forall>p<n. \<forall>(q,s')\<in>set (step p s). s' \<in> A"
@@ -36,7 +36,7 @@ lemma monoD:
   by (unfold mono_def, blast)
 
 lemma boundedD: 
-  "\<lbrakk> bounded step n; p < n; (q,t) : set (step p xs) \<rbrakk> \<Longrightarrow> q < n" 
+  "\<lbrakk> bounded step n; p < n; (q,t) \<in> set (step p xs) \<rbrakk> \<Longrightarrow> q < n" 
   by (unfold bounded_def, blast)
 
 lemma lesubstep_type_refl [simp, intro]:

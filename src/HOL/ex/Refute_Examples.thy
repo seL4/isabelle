@@ -247,13 +247,13 @@ oops
 text \<open>"The transitive closure 'T' of an arbitrary relation 'P' is non-empty."\<close>
 
 definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "trans P == (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
+  "trans P \<equiv> (\<forall>x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
 
 definition "subset" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "subset P Q == (ALL x y. P x y \<longrightarrow> Q x y)"
+  "subset P Q \<equiv> (\<forall>x y. P x y \<longrightarrow> Q x y)"
 
 definition "trans_closure" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "trans_closure P Q == (subset Q P) & (trans P) & (ALL R. subset Q R \<longrightarrow> trans R \<longrightarrow> subset P R)"
+  "trans_closure P Q \<equiv> (subset Q P) \<and> (trans P) \<and> (\<forall>R. subset Q R \<longrightarrow> trans R \<longrightarrow> subset P R)"
 
 lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
 refute [expect = genuine]
@@ -372,15 +372,15 @@ lemma "{x. P x} = {y. P y}"
 refute
 by simp
 
-lemma "x : {x. P x}"
+lemma "x \<in> {x. P x}"
 refute
 oops
 
-lemma "P (:)"
+lemma "P (\<in>)"
 refute
 oops
 
-lemma "P ((:) x)"
+lemma "P ((\<in>) x)"
 refute
 oops
 
@@ -388,11 +388,11 @@ lemma "P Collect"
 refute
 oops
 
-lemma "A Un B = A Int B"
+lemma "A \<union> B = A \<inter> B"
 refute
 oops
 
-lemma "(A Int B) Un C = (A Un C) Int B"
+lemma "(A \<inter> B) \<union> C = (A \<union> C) \<inter> B"
 refute
 oops
 

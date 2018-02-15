@@ -268,7 +268,7 @@ done
 
 lemma wf_idecl_supD: 
 "\<lbrakk>wf_idecl G (I,i); J \<in> set (isuperIfs i)\<rbrakk> 
- \<Longrightarrow> is_acc_iface G (pid I) J \<and> (J, I) \<notin> (subint1 G)^+"
+ \<Longrightarrow> is_acc_iface G (pid I) J \<and> (J, I) \<notin> (subint1 G)\<^sup>+"
 apply (unfold wf_idecl_def ws_idecl_def)
 apply auto
 done
@@ -451,7 +451,7 @@ done
 
 lemma wf_cdecl_supD: 
 "\<lbrakk>wf_cdecl G (C,c); C \<noteq> Object\<rbrakk> \<Longrightarrow>  
-  is_acc_class G (pid C) (super c) \<and> (super c,C) \<notin> (subcls1 G)^+ \<and> 
+  is_acc_class G (pid C) (super c) \<and> (super c,C) \<notin> (subcls1 G)\<^sup>+ \<and> 
    (table_of (map (\<lambda> (s,m). (s,C,m)) (methods c)) 
     entails (\<lambda> new. \<forall> old sig. 
                  (G,sig\<turnstile>new overrides\<^sub>S old 

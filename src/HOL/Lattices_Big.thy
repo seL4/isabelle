@@ -711,7 +711,7 @@ proof (induct rule: finite_psubset_induct)
     let ?A = "insert (Max A) ?B"
     have "finite ?B" using \<open>finite A\<close> by simp
     assume "A \<noteq> {}"
-    with \<open>finite A\<close> have "Max A : A" by auto
+    with \<open>finite A\<close> have "Max A \<in> A" by auto
     then have A: "?A = A" using insert_Diff_single insert_absorb by auto
     then have "P ?B" using \<open>P {}\<close> step IH [of ?B] by blast
     moreover 
@@ -905,7 +905,7 @@ lemma ex_min_if_finite:
 by(induction rule: finite.induct) (auto intro: order.strict_trans)
 
 lemma ex_is_arg_min_if_finite: fixes f :: "'a \<Rightarrow> 'b :: order"
-shows "\<lbrakk> finite S; S \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists>x. is_arg_min f (\<lambda>x. x : S) x"
+shows "\<lbrakk> finite S; S \<noteq> {} \<rbrakk> \<Longrightarrow> \<exists>x. is_arg_min f (\<lambda>x. x \<in> S) x"
 unfolding is_arg_min_def
 using ex_min_if_finite[of "f ` S"]
 by auto

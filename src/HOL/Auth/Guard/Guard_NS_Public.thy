@@ -37,17 +37,17 @@ subsection\<open>definition of the protocol\<close>
 inductive_set nsp :: "event list set"
 where
 
-  Nil: "[]:nsp"
+  Nil: "[] \<in> nsp"
 
-| Fake: "[| evs:nsp; X:synth (analz (spies evs)) |] ==> Says Spy B X # evs : nsp"
+| Fake: "[| evs \<in> nsp; X \<in> synth (analz (spies evs)) |] ==> Says Spy B X # evs \<in> nsp"
 
-| NS1: "[| evs1:nsp; Nonce NA ~:used evs1 |] ==> ns1 A B NA # evs1 : nsp"
+| NS1: "[| evs1 \<in> nsp; Nonce NA \<notin> used evs1 |] ==> ns1 A B NA # evs1 \<in> nsp"
 
-| NS2: "[| evs2:nsp; Nonce NB ~:used evs2; ns1' A' A B NA:set evs2 |] ==>
-  ns2 B A NA NB # evs2:nsp"
+| NS2: "[| evs2 \<in> nsp; Nonce NB \<notin> used evs2; ns1' A' A B NA \<in> set evs2 |] ==>
+  ns2 B A NA NB # evs2 \<in> nsp"
 
-| NS3: "!!A B B' NA NB evs3. [| evs3:nsp; ns1 A B NA:set evs3; ns2' B' B A NA NB:set evs3 |] ==>
-  ns3 A B NB # evs3:nsp"
+| NS3: "\<And>A B B' NA NB evs3. [| evs3 \<in> nsp; ns1 A B NA \<in> set evs3; ns2' B' B A NA NB \<in> set evs3 |] ==>
+  ns3 A B NB # evs3 \<in> nsp"
 
 subsection\<open>declarations for tactics\<close>
 
@@ -57,17 +57,17 @@ declare initState.simps [simp del]
 
 subsection\<open>general properties of nsp\<close>
 
-lemma nsp_has_no_Gets: "evs:nsp ==> ALL A X. Gets A X ~:set evs"
+lemma nsp_has_no_Gets: "evs \<in> nsp \<Longrightarrow> \<forall>A X. Gets A X \<notin> set evs"
 by (erule nsp.induct, auto)
 
 lemma nsp_is_Gets_correct [iff]: "Gets_correct nsp"
 by (auto simp: Gets_correct_def dest: nsp_has_no_Gets)
 
 lemma nsp_is_one_step [iff]: "one_step nsp"
-by (unfold one_step_def, clarify, ind_cases "ev#evs:nsp" for ev evs, auto)
+by (unfold one_step_def, clarify, ind_cases "ev#evs \<in> nsp" for ev evs, auto)
 
-lemma nsp_has_only_Says' [rule_format]: "evs:nsp ==>
-ev:set evs --> (EX A B X. ev=Says A B X)"
+lemma nsp_has_only_Says' [rule_format]: "evs \<in> nsp \<Longrightarrow>
+ev \<in> set evs \<longrightarrow> (\<exists>A B X. ev=Says A B X)"
 by (erule nsp.induct, auto)
 
 lemma nsp_has_only_Says [iff]: "has_only_Says nsp"
@@ -79,37 +79,37 @@ by (erule nsp.induct, auto simp: initState.simps knows.simps)
 
 subsection\<open>nonce are used only once\<close>
 
-lemma NA_is_uniq [rule_format]: "evs:nsp ==>
-Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs)
---> Crypt (pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace>:parts (spies evs)
---> Nonce NA ~:analz (spies evs) --> A=A' & B=B'"
+lemma NA_is_uniq [rule_format]: "evs \<in> nsp \<Longrightarrow>
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Crypt (pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Nonce NA \<notin> analz (spies evs) \<longrightarrow> A=A' \<and> B=B'"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
-lemma no_Nonce_NS1_NS2 [rule_format]: "evs:nsp ==>
-Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace>:parts (spies evs)
---> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs)
---> Nonce NA:analz (spies evs)"
+lemma no_Nonce_NS1_NS2 [rule_format]: "evs \<in> nsp \<Longrightarrow>
+Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Nonce NA \<in> analz (spies evs)"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
 lemma no_Nonce_NS1_NS2' [rule_format]:
-"[| Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace>:parts (spies evs);
-Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs); evs:nsp |]
-==> Nonce NA:analz (spies evs)"
+"[| Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace> \<in> parts (spies evs);
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs); evs \<in> nsp |]
+==> Nonce NA \<in> analz (spies evs)"
 by (rule no_Nonce_NS1_NS2, auto)
  
-lemma NB_is_uniq [rule_format]: "evs:nsp ==>
-Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>:parts (spies evs)
---> Crypt (pubK A') \<lbrace>Nonce NA', Nonce NB, Agent B'\<rbrace>:parts (spies evs)
---> Nonce NB ~:analz (spies evs) --> A=A' & B=B' & NA=NA'"
+lemma NB_is_uniq [rule_format]: "evs \<in> nsp \<Longrightarrow>
+Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Crypt (pubK A') \<lbrace>Nonce NA', Nonce NB, Agent B'\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Nonce NB \<notin> analz (spies evs) \<longrightarrow> A=A' \<and> B=B' \<and> NA=NA'"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
 subsection\<open>guardedness of NA\<close>
 
-lemma ns1_imp_Guard [rule_format]: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
-ns1 A B NA:set evs --> Guard NA {priK A,priK B} (spies evs)"
+lemma ns1_imp_Guard [rule_format]: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==>
+ns1 A B NA \<in> set evs \<longrightarrow> Guard NA {priK A,priK B} (spies evs)"
 apply (erule nsp.induct)
 (* Nil *)
 apply simp_all
@@ -135,8 +135,8 @@ by (drule no_Nonce_NS1_NS2, auto)
 
 subsection\<open>guardedness of NB\<close>
 
-lemma ns2_imp_Guard [rule_format]: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
-ns2 B A NA NB:set evs --> Guard NB {priK A,priK B} (spies evs)" 
+lemma ns2_imp_Guard [rule_format]: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==>
+ns2 B A NA NB \<in> set evs \<longrightarrow> Guard NB {priK A,priK B} (spies evs)" 
 apply (erule nsp.induct)
 (* Nil *)
 apply simp_all
@@ -165,15 +165,15 @@ done
 
 subsection\<open>Agents' Authentication\<close>
 
-lemma B_trusts_NS1: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
-Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs)
---> Nonce NA ~:analz (spies evs) --> ns1 A B NA:set evs"
+lemma B_trusts_NS1: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==>
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> Nonce NA \<notin> analz (spies evs) \<longrightarrow> ns1 A B NA \<in> set evs"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
-lemma A_trusts_NS2: "[| evs:nsp; A ~:bad; B ~:bad |] ==> ns1 A B NA:set evs
---> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>:parts (spies evs)
---> ns2 B A NA NB:set evs"
+lemma A_trusts_NS2: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==> ns1 A B NA \<in> set evs
+\<longrightarrow> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace> \<in> parts (spies evs)
+\<longrightarrow> ns2 B A NA NB \<in> set evs"
 apply (erule nsp.induct, simp_all, safe)
 apply (frule_tac B=B in ns1_imp_Guard, simp+)
 apply (drule Guard_Nonce_analz, simp+, blast)
@@ -182,8 +182,8 @@ apply (drule Guard_Nonce_analz, simp+, blast)
 apply (frule_tac B=B in ns1_imp_Guard, simp+)
 by (drule Guard_Nonce_analz, simp+, blast+)
 
-lemma B_trusts_NS3: "[| evs:nsp; A ~:bad; B ~:bad |] ==> ns2 B A NA NB:set evs
---> Crypt (pubK B) (Nonce NB):parts (spies evs) --> ns3 A B NB:set evs"
+lemma B_trusts_NS3: "[| evs \<in> nsp; A \<notin> bad; B \<notin> bad |] ==> ns2 B A NA NB \<in> set evs
+\<longrightarrow> Crypt (pubK B) (Nonce NB) \<in> parts (spies evs) \<longrightarrow> ns3 A B NB \<in> set evs"
 apply (erule nsp.induct, simp_all, safe)
 apply (frule_tac B=B in ns2_imp_Guard, simp+)
 apply (drule Guard_Nonce_analz, simp+, blast)

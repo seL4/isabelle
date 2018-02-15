@@ -295,7 +295,7 @@ lemma Longest_common_prefix_ex: "L \<noteq> {} \<Longrightarrow>
   (is "_ \<Longrightarrow> \<exists>ps. ?P L ps")
 proof(induction "LEAST n. \<exists>xs \<in>L. n = length xs" arbitrary: L)
   case 0
-  have "[] : L" using "0.hyps" LeastI[of "\<lambda>n. \<exists>xs\<in>L. n = length xs"] \<open>L \<noteq> {}\<close>
+  have "[] \<in> L" using "0.hyps" LeastI[of "\<lambda>n. \<exists>xs\<in>L. n = length xs"] \<open>L \<noteq> {}\<close>
     by auto
   hence "?P L []" by(auto)
   thus ?case ..

@@ -194,12 +194,12 @@ proof
     hence "P 0" using P Pmod by simp
     moreover have "P 0 = P(0 - (-1)*d)" using modd by blast
     ultimately have "P d" by simp
-    moreover have "d : {1..d}" using dpos by simp
+    moreover have "d \<in> {1..d}" using dpos by simp
     ultimately show ?RHS ..
   next
     assume not0: "x mod d \<noteq> 0"
     have "P(x mod d)" using dpos P Pmod by simp
-    moreover have "x mod d : {1..d}"
+    moreover have "x mod d \<in> {1..d}"
     proof -
       from dpos have "0 \<le> x mod d" by(rule pos_mod_sign)
       moreover from dpos have "x mod d < d" by(rule pos_mod_bound)

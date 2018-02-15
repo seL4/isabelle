@@ -34,11 +34,11 @@ subsubsection \<open>Code generation\<close>
 code_datatype Rel
 
 lemma [code]:
-  "member (x, y) (Rel X R) = ((x = y \<and> x : X) \<or> (x, y) : R)"
+  "member (x, y) (Rel X R) = ((x = y \<and> x \<in> X) \<or> (x, y) \<in> R)"
 by transfer auto
 
 lemma [code]:
-  "converse (Rel X R) = Rel X (R^-1)"
+  "converse (Rel X R) = Rel X (R\<inverse>)"
 by transfer auto
 
 lemma [code]:
@@ -46,11 +46,11 @@ lemma [code]:
 by transfer auto
 
 lemma [code]:
-   "relcomp (Rel X R) (Rel Y S) = Rel (X Int Y) (Set.filter (%(x, y). y : Y) R Un (Set.filter (%(x, y). x : X) S Un R O S))"
+   "relcomp (Rel X R) (Rel Y S) = Rel (X \<inter> Y) (Set.filter (\<lambda>(x, y). y \<in> Y) R \<union> (Set.filter (\<lambda>(x, y). x \<in> X) S \<union> R O S))"
 by transfer (auto simp add: Id_on_eqI relcomp.simps)
 
 lemma [code]:
-  "rtrancl (Rel X R) = Rel UNIV (R^+)"
+  "rtrancl (Rel X R) = Rel UNIV (R\<^sup>+)"
 apply transfer
 apply auto
 apply (metis Id_on_iff Un_commute UNIV_I rtrancl_Un_separatorE rtrancl_eq_or_trancl)

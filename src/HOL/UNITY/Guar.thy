@@ -85,8 +85,8 @@ lemma ex1:
   done
 
 lemma ex2: 
-     "\<forall>GG. finite GG & GG \<inter> X \<noteq> {} --> OK GG (%G. G) -->(\<Squnion>G \<in> GG. G):X 
-      ==> ex_prop X"
+     "\<forall>GG. finite GG & GG \<inter> X \<noteq> {} \<longrightarrow> OK GG (\<lambda>G. G) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X 
+      \<Longrightarrow> ex_prop X"
 apply (unfold ex_prop_def, clarify)
 apply (drule_tac x = "{F,G}" in spec)
 apply (auto dest: ok_sym simp add: OK_iff_ok)
@@ -140,7 +140,7 @@ done
 (*Chandy & Sanders take this as a definition*)
 lemma uv_prop_finite:
      "uv_prop X = 
-      (\<forall>GG. finite GG & GG \<subseteq> X & OK GG (%G. G) --> (\<Squnion>G \<in> GG. G): X)"
+      (\<forall>GG. finite GG \<and> GG \<subseteq> X \<and> OK GG (\<lambda>G. G) \<longrightarrow> (\<Squnion>G \<in> GG. G) \<in> X)"
 by (blast intro: uv1 uv2)
 
 subsection\<open>Guarantees\<close>
@@ -403,8 +403,8 @@ lemma component_of_wg: "F component_of H ==> (H \<in> wg F X) = (H \<in> X)"
 by (simp add: wg_equiv)
 
 lemma wg_finite: 
-    "\<forall>FF. finite FF & FF \<inter> X \<noteq> {} --> OK FF (%F. F)  
-          --> (\<forall>F\<in>FF. ((\<Squnion>F \<in> FF. F): wg F X) = ((\<Squnion>F \<in> FF. F):X))"
+    "\<forall>FF. finite FF \<and> FF \<inter> X \<noteq> {} \<longrightarrow> OK FF (\<lambda>F. F)
+          \<longrightarrow> (\<forall>F\<in>FF. ((\<Squnion>F \<in> FF. F) \<in> wg F X) = ((\<Squnion>F \<in> FF. F) \<in> X))"
 apply clarify
 apply (subgoal_tac "F component_of (\<Squnion>F \<in> FF. F) ")
 apply (drule_tac X = X in component_of_wg, simp)

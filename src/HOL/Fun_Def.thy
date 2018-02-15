@@ -198,7 +198,7 @@ lemma rp_inv_image_rp: "reduction_pair P \<Longrightarrow> reduction_pair (rp_in
 subsection \<open>Concrete orders for SCNP termination proofs\<close>
 
 definition "pair_less = less_than <*lex*> less_than"
-definition "pair_leq = pair_less^="
+definition "pair_leq = pair_less\<^sup>="
 definition "max_strict = max_ext pair_less"
 definition "max_weak = max_ext pair_leq \<union> {({}, {})}"
 definition "min_strict = min_ext pair_less"
