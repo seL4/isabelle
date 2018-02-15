@@ -50,6 +50,7 @@ sig
   val subthy: theory * theory -> bool
   val finish_thy: theory -> theory
   val begin_thy: string -> theory list -> theory
+  val theory_data_size: theory -> (Position.T * int) list
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
   (*certificate*)
@@ -265,6 +266,7 @@ fun invoke name f k x =
 
 in
 
+fun invoke_pos k = invoke "" (K o #pos) k ();
 fun invoke_empty k = invoke "" (K o #empty) k ();
 val invoke_extend = invoke "extend" #extend;
 fun invoke_merge thys = invoke "merge" (fn kind => #merge kind thys);
@@ -369,7 +371,16 @@ fun get k dest thy =
 
 fun put k mk x = update_thy (Datatab.update (k, mk x));
 
+fun obj_size k thy =
+  Datatab.lookup (data_of thy) k |> Option.map ML_Heap.obj_size;
+
 end;
+
+fun theory_data_size thy =
+  (data_of thy, []) |-> Datatab.fold_rev (fn (k, _) =>
+    (case Theory_Data.obj_size k thy of
+      NONE => I
+    | SOME n => (cons (invoke_pos k, n))));
 
 
 
