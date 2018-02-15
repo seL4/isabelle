@@ -104,7 +104,8 @@ fun operations Theory =
        declaration = Generic_Target.locale_declaration locale,
        theory_registration = fn _ => error "Not possible in locale target",
        locale_dependency = Generic_Target.locale_dependency locale,
-       pretty = fn ctxt => Locale.pretty_locale (Proof_Context.theory_of ctxt) false locale}
+       pretty = fn ctxt =>
+        [Pretty.block (Locale.pretty_locale (Proof_Context.theory_of ctxt) false locale)]}
   | operations (Class class) =
       {define = Generic_Target.define (class_foundation class),
        notes = Generic_Target.notes (Generic_Target.locale_target_notes class),
