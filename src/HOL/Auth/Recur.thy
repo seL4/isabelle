@@ -17,7 +17,7 @@ abbreviation
   Perhaps the two session keys could be bundled into a single message.
 *)
 inductive_set (*Server's response to the nested message*)
-  respond :: "event list => (msg*msg*key)set"
+  respond :: "event list \<Rightarrow> (msg*msg*key)set"
   for evs :: "event list"
   where
    One:  "Key KAB \<notin> used evs
@@ -232,11 +232,11 @@ by (blast dest: Spy_see_shrK)
   satisfying the inductive hypothesis.*)
 lemma resp_analz_image_freshK_lemma:
      "[| RB \<in> responses evs;
-         \<forall>K KK. KK \<subseteq> - (range shrK) -->
-                   (Key K \<in> analz (Key`KK Un H)) =
+         \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+                   (Key K \<in> analz (Key`KK \<union> H)) =
                    (K \<in> KK | Key K \<in> analz H) |]
-     ==> \<forall>K KK. KK \<subseteq> - (range shrK) -->
-                   (Key K \<in> analz (insert RB (Key`KK Un H))) =
+     ==> \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+                   (Key K \<in> analz (insert RB (Key`KK \<union> H))) =
                    (K \<in> KK | Key K \<in> analz (insert RB H))"
 apply (erule responses.induct)
 apply (simp_all del: image_insert
@@ -247,8 +247,8 @@ done
 text\<open>Version for the protocol.  Proof is easy, thanks to the lemma.\<close>
 lemma raw_analz_image_freshK:
  "evs \<in> recur ==>
-   \<forall>K KK. KK \<subseteq> - (range shrK) -->
-          (Key K \<in> analz (Key`KK Un (spies evs))) =
+   \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+          (Key K \<in> analz (Key`KK \<union> (spies evs))) =
           (K \<in> KK | Key K \<in> analz (spies evs))"
 apply (erule recur.induct)
 apply (drule_tac [4] RA2_analz_spies,
@@ -261,8 +261,8 @@ done
 
 (*Instance of the lemma with H replaced by (spies evs):
    [| RB \<in> responses evs;  evs \<in> recur; |]
-   ==> KK \<subseteq> - (range shrK) -->
-       Key K \<in> analz (insert RB (Key`KK Un spies evs)) =
+   ==> KK \<subseteq> - (range shrK) \<longrightarrow>
+       Key K \<in> analz (insert RB (Key`KK \<union> spies evs)) =
        (K \<in> KK | Key K \<in> analz (insert RB (spies evs)))
 *)
 lemmas resp_analz_image_freshK =  
@@ -302,7 +302,7 @@ lemma unique_NA:
   "[| Hash \<lbrace>Key(shrK A), Agent A, B, NA, P\<rbrace> \<in> parts (spies evs);
       Hash \<lbrace>Key(shrK A), Agent A, B',NA, P'\<rbrace> \<in> parts (spies evs);
       evs \<in> recur;  A \<notin> bad |]
-    ==> B=B' & P=P'"
+    ==> B=B' \<and> P=P'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule recur.induct,
        drule_tac [5] respond_imp_responses)
@@ -322,7 +322,7 @@ done
 
 lemma shrK_in_analz_respond [simp]:
      "[| RB \<in> responses evs;  evs \<in> recur |]
-  ==> (Key (shrK B) \<in> analz (insert RB (spies evs))) = (B:bad)"
+  ==> (Key (shrK B) \<in> analz (insert RB (spies evs))) = (B\<in>bad)"
 apply (erule responses.induct)
 apply (simp_all del: image_insert
                 add: analz_image_freshK_simps resp_analz_image_freshK, auto) 
@@ -331,8 +331,8 @@ done
 
 lemma resp_analz_insert_lemma:
      "[| Key K \<in> analz (insert RB H);
-         \<forall>K KK. KK \<subseteq> - (range shrK) -->
-                   (Key K \<in> analz (Key`KK Un H)) =
+         \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+                   (Key K \<in> analz (Key`KK \<union> H)) =
                    (K \<in> KK | Key K \<in> analz H);
          RB \<in> responses evs |]
      ==> (Key K \<in> parts{RB} | Key K \<in> analz H)"
@@ -361,9 +361,9 @@ done
   the quantifiers appear to be necessary.*)
 lemma unique_lemma [rule_format]:
      "(PB,RB,KXY) \<in> respond evs ==>
-      \<forall>A B N. Crypt (shrK A) \<lbrace>Key K, Agent B, N\<rbrace> \<in> parts {RB} -->
-      (\<forall>A' B' N'. Crypt (shrK A') \<lbrace>Key K, Agent B', N'\<rbrace> \<in> parts {RB} -->
-      (A'=A & B'=B) | (A'=B & B'=A))"
+      \<forall>A B N. Crypt (shrK A) \<lbrace>Key K, Agent B, N\<rbrace> \<in> parts {RB} \<longrightarrow>
+      (\<forall>A' B' N'. Crypt (shrK A') \<lbrace>Key K, Agent B', N'\<rbrace> \<in> parts {RB} \<longrightarrow>
+      (A'=A \<and> B'=B) | (A'=B \<and> B'=A))"
 apply (erule respond.induct)
 apply (simp_all add: all_conj_distrib)
 apply (blast dest: respond_certificate)
@@ -373,7 +373,7 @@ lemma unique_session_keys:
      "[| Crypt (shrK A) \<lbrace>Key K, Agent B, N\<rbrace> \<in> parts {RB};
          Crypt (shrK A') \<lbrace>Key K, Agent B', N'\<rbrace> \<in> parts {RB};
          (PB,RB,KXY) \<in> respond evs |]
-      ==> (A'=A & B'=B) | (A'=B & B'=A)"
+      ==> (A'=A \<and> B'=B) | (A'=B \<and> B'=A)"
 by (rule unique_lemma, auto)
 
 
@@ -383,8 +383,8 @@ by (rule unique_lemma, auto)
 
 lemma respond_Spy_not_see_session_key [rule_format]:
      "[| (PB,RB,KAB) \<in> respond evs;  evs \<in> recur |]
-      ==> \<forall>A A' N. A \<notin> bad & A' \<notin> bad -->
-          Crypt (shrK A) \<lbrace>Key K, Agent A', N\<rbrace> \<in> parts{RB} -->
+      ==> \<forall>A A' N. A \<notin> bad \<and> A' \<notin> bad \<longrightarrow>
+          Crypt (shrK A) \<lbrace>Key K, Agent A', N\<rbrace> \<in> parts{RB} \<longrightarrow>
           Key K \<notin> analz (insert RB (spies evs))"
 apply (erule respond.induct)
 apply (frule_tac [2] respond_imp_responses)
@@ -464,7 +464,7 @@ text\<open>Certificates can only originate with the Server.\<close>
 lemma Cert_imp_Server_msg:
      "[| Crypt (shrK A) Y \<in> parts (spies evs);
          A \<notin> bad;  evs \<in> recur |]
-      ==> \<exists>C RC. Says Server C RC \<in> set evs  &
+      ==> \<exists>C RC. Says Server C RC \<in> set evs  \<and>
                    Crypt (shrK A) Y \<in> parts {RC}"
 apply (erule rev_mp, erule recur.induct, simp_all)
 txt\<open>Fake\<close>

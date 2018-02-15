@@ -257,7 +257,7 @@ lemmas H_elem_map_carrier = H_elem_map [THEN someI_ex, THEN conjunct1]
 lemmas H_elem_map_eq = H_elem_map [THEN someI_ex, THEN conjunct2]
 
 lemma rcosets_H_funcset_M:
-  "(\<lambda>C \<in> rcosets H. M1 #> (@g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
+  "(\<lambda>C \<in> rcosets H. M1 #> (SOME g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
   apply (simp add: RCOSETS_def)
   apply (fast intro: someI2
       intro!: M1_in_M in_quotient_imp_closed [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])

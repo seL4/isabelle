@@ -27,12 +27,12 @@ qed
 definition steps :: "state \<Rightarrow> com \<Rightarrow> nat \<Rightarrow> state set acom" where
 "steps s c n = ((step {})^^n) (step {s} (annotate (\<lambda>p. {}) c))"
 
-lemma steps_approx_fix_step: assumes "step S cs = cs" and "s:S"
+lemma steps_approx_fix_step: assumes "step S cs = cs" and "s \<in> S"
 shows "steps s (strip cs) n \<le> cs"
 proof-
   let ?bot = "annotate (\<lambda>p. {}) (strip cs)"
   have "?bot \<le> cs" by(induction cs) auto
-  from step_preserves_le[OF assms(1)_ this, of "{s}"] \<open>s:S\<close>
+  from step_preserves_le[OF assms(1)_ this, of "{s}"] \<open>s \<in> S\<close>
   have 1: "step {s} ?bot \<le> cs" by simp
   from steps_empty_preserves_le[OF assms(1) 1]
   show ?thesis by(simp add: steps_def)

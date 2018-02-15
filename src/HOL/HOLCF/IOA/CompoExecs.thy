@@ -213,8 +213,8 @@ lemma lemma_1_2:
 
 theorem compositionality_ex:
   "ex \<in> executions (A \<parallel> B) \<longleftrightarrow>
-    Filter_ex (asig_of A) (ProjA ex) : executions A \<and>
-    Filter_ex (asig_of B) (ProjB ex) : executions B \<and>
+    Filter_ex (asig_of A) (ProjA ex) \<in> executions A \<and>
+    Filter_ex (asig_of B) (ProjB ex) \<in> executions B \<and>
     stutter (asig_of A) (ProjA ex) \<and>
     stutter (asig_of B) (ProjB ex) \<and>
     Forall (\<lambda>x. fst x \<in> act (A \<parallel> B)) (snd ex)"

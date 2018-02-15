@@ -129,7 +129,7 @@ induction theorem @{thm[source]rtrancl_induct}: it works in the
 forward direction. Fortunately the converse induction theorem
 @{thm[source]converse_rtrancl_induct} already exists:
 @{thm[display,margin=60]converse_rtrancl_induct[no_vars]}
-It says that if @{prop"(a,b):r\<^sup>*"} and we know @{prop"P b"} then we can infer
+It says that if @{prop"(a,b)\<in>r\<^sup>*"} and we know @{prop"P b"} then we can infer
 @{prop"P a"} provided each step backwards from a predecessor @{term z} of
 @{term b} preserves @{term P}.
 \<close>
@@ -176,7 +176,7 @@ text\<open>
 \footnote{We cannot use the customary @{text EX}: it is reserved
 as the \textsc{ascii}-equivalent of @{text"\<exists>"}.}
 with the intended semantics
-@{prop[display]"(s \<Turnstile> EN f) = (EX t. (s,t) : M & t \<Turnstile> f)"}
+@{prop[display]"(s \<Turnstile> EN f) = (\<exists>t. (s,t) \<in> M \<and> t \<Turnstile> f)"}
 Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?
 
 Show that the semantics for @{term EF} satisfies the following recursion equation:
@@ -190,7 +190,7 @@ apply(induct_tac f)
 apply(auto simp add: EF_lemma)
 done
 
-lemma aux: "s \<Turnstile> f = (s : mc f)"
+lemma aux: "s \<Turnstile> f = (s \<in> mc f)"
 apply(simp add: main)
 done
 

@@ -42,7 +42,7 @@ inductive_cases [elim!]:
   "Sem (IF b THEN c1 ELSE c2 FI) s s'"
 
 definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
-  "Valid p c q == \<forall>s s'. Sem c s s' \<longrightarrow> s : Some ` p \<longrightarrow> s' : Some ` q"
+  "Valid p c q \<equiv> \<forall>s s'. Sem c s s' \<longrightarrow> s \<in> Some ` p \<longrightarrow> s' \<in> Some ` q"
 
 
 syntax
@@ -101,7 +101,7 @@ by(auto simp:Valid_def)
 
 subsection \<open>Derivation of the proof rules and, most importantly, the VCG tactic\<close>
 
-lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
+lemma Compl_Collect: "-(Collect b) = {x. \<not>(b x)}"
   by blast
 
 ML_file "hoare_tac.ML"

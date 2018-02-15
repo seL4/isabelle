@@ -317,10 +317,10 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
     using 2 by auto
     with Field_def[of r] obtain b where
     3: "b \<in> Field r" and 4: "b' = f b" by auto
-    have "(b,a): r"
+    have "(b,a) \<in> r"
     proof-
       {assume "(a,b) \<in> r"
-       with ** 4 have "(f a, b'): r'"
+       with ** 4 have "(f a, b') \<in> r'"
        by (auto simp add: compat_def)
        with ***** Antisym' have "f a = b'"
        by(auto simp add: under_def antisym_def)
@@ -799,7 +799,7 @@ assumes WELL: "Well_order r" and WELL': "Well_order r'" and
 shows "a \<in> Field r \<longrightarrow> f a = g a"
 proof(rule wo_rel.well_order_induct[of r], auto simp add: WELL wo_rel_def)
   fix a
-  assume IH: "\<forall>b. b \<noteq> a \<and> (b,a): r \<longrightarrow> b \<in> Field r \<longrightarrow> f b = g b" and
+  assume IH: "\<forall>b. b \<noteq> a \<and> (b,a) \<in> r \<longrightarrow> b \<in> Field r \<longrightarrow> f b = g b" and
          *: "a \<in> Field r"
   hence "\<forall>b \<in> underS r a. f b = g b"
   unfolding underS_def by (auto simp add: Field_def)
@@ -1071,7 +1071,7 @@ next
     fix a b assume **: "a \<in> Field r" "b \<in> Field r" and
                   ***: "(f a, f b) \<in> r'"
     {assume "(b,a) \<in> r \<or> b = a"
-     hence "(b,a): r"using Well ** wo_rel.REFL[of r] refl_on_def[of _ r] by blast
+     hence "(b,a) \<in> r"using Well ** wo_rel.REFL[of r] refl_on_def[of _ r] by blast
      hence "(f b, f a) \<in> r'" using * unfolding compat_def by auto
      hence "f a = f b"
      using Well *** wo_rel.ANTISYM[of r'] antisym_def[of r'] by blast

@@ -223,7 +223,7 @@ text \<open>
 \<close>
 
 lemma simulation_starts:
-  "is_simulation R C A \<Longrightarrow> s:starts_of C \<Longrightarrow>
+  "is_simulation R C A \<Longrightarrow> s\<in>starts_of C \<Longrightarrow>
     let S' = SOME s'. (s, s') \<in> R \<and> s' \<in> starts_of A
     in (s, S') \<in> R \<and> S' \<in> starts_of A"
   apply (simp add: is_simulation_def corresp_ex_sim_def Int_non_empty Image_def)

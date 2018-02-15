@@ -84,13 +84,13 @@ lemma Component_neighbors_stable: "Component i \<in> stable {s. neighbors k s = 
 by (simp add: Component_def, safety, auto)
 
 text\<open>property 4\<close>
-lemma Component_waits_priority: "Component i: {s. ((i,j):s) = b} Int (- Highest i) co {s. ((i,j):s)=b}"
+lemma Component_waits_priority: "Component i \<in> {s. ((i,j) \<in> s) = b} \<inter> (- Highest i) co {s. ((i,j) \<in> s)=b}"
 by (simp add: Component_def, safety)
 
 text\<open>property 5: charpentier and Chandy mistakenly express it as
  'transient Highest i'. Consider the case where i has neighbors\<close>
 lemma Component_yields_priority: 
- "Component i: {s. neighbors i s \<noteq> {}} Int Highest i  
+ "Component i \<in> {s. neighbors i s \<noteq> {}} Int Highest i  
                ensures - Highest i"
 apply (simp add: Component_def)
 apply (ensures_tac "act i", blast+) 
@@ -107,7 +107,7 @@ lemma Component_well_behaves: "Component i \<in> Highest i co Highest i Un Lowes
 by (simp add: Component_def, safety, fast)
 
 text\<open>property 7: local axiom\<close>
-lemma locality: "Component i \<in> stable {s. \<forall>j k. j\<noteq>i & k\<noteq>i--> ((j,k):s) = b j k}"
+lemma locality: "Component i \<in> stable {s. \<forall>j k. j\<noteq>i & k\<noteq>i--> ((j,k) \<in> s) = b j k}"
 by (simp add: Component_def, safety)
 
 

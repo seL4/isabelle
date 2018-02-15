@@ -96,7 +96,7 @@ by (blast intro!: gcd_greatest intro: dvd_trans)
 
 definition is_gcd :: "[nat,nat,nat] \<Rightarrow> bool" where        (*gcd as a relation*)
     "is_gcd p m n == p dvd m  \<and>  p dvd n  \<and>
-                     (ALL d. d dvd m \<and> d dvd n \<longrightarrow> d dvd p)"
+                     (\<forall>d. d dvd m \<and> d dvd n \<longrightarrow> d dvd p)"
 
 (*Function gcd yields the Greatest Common Divisor*)
 lemma is_gcd: "is_gcd (gcd m n) m n"

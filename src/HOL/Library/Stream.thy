@@ -457,7 +457,7 @@ lemma flat_snth: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow> fla
 lemma sset_flat[simp]: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow>
   sset (flat s) = (\<Union>xs \<in> sset s. set xs)" (is "?P \<Longrightarrow> ?L = ?R")
 proof safe
-  fix x assume ?P "x : ?L"
+  fix x assume ?P "x \<in> ?L"
   then obtain m where "x = flat s !! m" by (metis image_iff sset_range)
   with \<open>?P\<close> obtain n m' where "x = s !! n ! m'" "m' < length (s !! n)"
   proof (atomize_elim, induct m arbitrary: s rule: less_induct)

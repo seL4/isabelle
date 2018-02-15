@@ -1780,7 +1780,7 @@ lemma Least_mono: "mono f \<Longrightarrow> \<exists>x\<in>S. \<forall>y\<in>S. 
   for f :: "'a::order \<Rightarrow> 'b::order"
   \<comment> \<open>Courtesy of Stephan Merz\<close>
   apply clarify
-  apply (erule_tac P = "\<lambda>x. x : S" in LeastI2_order)
+  apply (erule_tac P = "\<lambda>x. x \<in> S" in LeastI2_order)
    apply fast
   apply (rule LeastI2_order)
     apply (auto elim: monoD intro!: order_antisym)

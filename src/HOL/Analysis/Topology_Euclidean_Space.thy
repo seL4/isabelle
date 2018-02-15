@@ -2353,7 +2353,7 @@ next
     by (meson Int_mono closure_mono closure_subset order_refl)
 qed
 
-lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
+lemma islimpt_in_closure: "(x islimpt S) = (x\<in>closure(S-{x}))"
   unfolding closure_def using islimpt_punctured by blast
 
 lemma connected_imp_connected_closure: "connected S \<Longrightarrow> connected (closure S)"

@@ -392,11 +392,11 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma INF_inf_const1: "I \<noteq> {} \<Longrightarrow> (INF i:I. inf x (f i)) = inf x (INF i:I. f i)"
+lemma INF_inf_const1: "I \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>I. inf x (f i)) = inf x (\<Sqinter>i\<in>I. f i)"
   by (intro antisym INF_greatest inf_mono order_refl INF_lower)
      (auto intro: INF_lower2 le_infI2 intro!: INF_mono)
 
-lemma INF_inf_const2: "I \<noteq> {} \<Longrightarrow> (INF i:I. inf (f i) x) = inf (INF i:I. f i) x"
+lemma INF_inf_const2: "I \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>I. inf (f i) x) = inf (\<Sqinter>i\<in>I. f i) x"
   using INF_inf_const1[of I x f] by (simp add: inf_commute)
 
 lemma INF_constant: "(\<Sqinter>y\<in>A. c) = (if A = {} then \<top> else c)"
@@ -514,10 +514,10 @@ lemma mono_Inf: "f (\<Sqinter>A) \<le> (\<Sqinter>x\<in>A. f x)"
 lemma mono_Sup: "(\<Squnion>x\<in>A. f x) \<le> f (\<Squnion>A)"
   using \<open>mono f\<close> by (auto intro: complete_lattice_class.SUP_least Sup_upper dest: monoD)
 
-lemma mono_INF: "f (INF i : I. A i) \<le> (INF x : I. f (A x))"
+lemma mono_INF: "f (\<Sqinter>i\<in>I. A i) \<le> (\<Sqinter>x\<in>I. f (A x))"
   by (intro complete_lattice_class.INF_greatest monoD[OF \<open>mono f\<close>] INF_lower)
 
-lemma mono_SUP: "(SUP x : I. f (A x)) \<le> f (SUP i : I. A i)"
+lemma mono_SUP: "(\<Squnion>x\<in>I. f (A x)) \<le> f (\<Squnion>i\<in>I. A i)"
   by (intro complete_lattice_class.SUP_least monoD[OF \<open>mono f\<close>] SUP_upper)
 
 end
@@ -1250,7 +1250,7 @@ lemma Un_INT_distrib2: "(\<Inter>i\<in>I. A i) \<union> (\<Inter>j\<in>J. B j) =
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
   by (fact Sup_inf_eq_bot_iff)
 
-lemma SUP_UNION: "(SUP x:(UN y:A. g y). f x) = (SUP y:A. SUP x:g y. f x :: _ :: complete_lattice)"
+lemma SUP_UNION: "(\<Squnion>x\<in>(\<Union>y\<in>A. g y). f x) = (\<Squnion>y\<in>A. \<Squnion>x\<in>g y. f x :: _ :: complete_lattice)"
   by (rule order_antisym) (blast intro: SUP_least SUP_upper2)+
 
 

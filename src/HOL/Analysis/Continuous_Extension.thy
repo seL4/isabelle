@@ -309,7 +309,7 @@ theorem Dugundji:
                   "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 proof (cases "S = {}")
   case True then show thesis
-    apply (rule_tac g="\<lambda>x. @y. y \<in> C" in that)
+    apply (rule_tac g="\<lambda>x. SOME y. y \<in> C" in that)
       apply (rule continuous_intros)
      apply (meson all_not_in_conv \<open>C \<noteq> {}\<close> image_subsetI someI_ex, simp)
     done

@@ -12,7 +12,7 @@ imports Event All_Symmetric
 begin
 
 consts
-  shrK    :: "agent => key"  (*symmetric keys*)
+  shrK    :: "agent \<Rightarrow> key"  (*symmetric keys*)
 
 specification (shrK)
   inj_shrK: "inj shrK"
@@ -76,13 +76,13 @@ by (metis Crypt_imp_invKey_keysFor invKey_K)
 subsection\<open>Function "knows"\<close>
 
 (*Spy sees shared keys of agents!*)
-lemma Spy_knows_Spy_bad [intro!]: "A: bad ==> Key (shrK A) \<in> knows Spy evs"
+lemma Spy_knows_Spy_bad [intro!]: "A \<in> bad \<Longrightarrow> Key (shrK A) \<in> knows Spy evs"
 apply (induct_tac "evs")
 apply (simp_all (no_asm_simp) add: imageI knows_Cons split: event.split)
 done
 
 (*For case analysis on whether or not an agent is compromised*)
-lemma Crypt_Spy_analz_bad: "[| Crypt (shrK A) X \<in> analz (knows Spy evs);  A: bad |]  
+lemma Crypt_Spy_analz_bad: "[| Crypt (shrK A) X \<in> analz (knows Spy evs);  A \<in> bad |]  
       ==> X \<in> analz (knows Spy evs)"
 by (metis Spy_knows_Spy_bad analz.Inj analz_Decrypt')
 
@@ -120,7 +120,7 @@ by (simp add: used_Nil)
 subsection\<open>Supply fresh nonces for possibility theorems.\<close>
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
-lemma Nonce_supply_lemma: "\<exists>N. ALL n. N<=n --> Nonce n \<notin> used evs"
+lemma Nonce_supply_lemma: "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
 apply (simp_all (no_asm_simp) add: used_Cons split: event.split)
@@ -130,14 +130,14 @@ done
 lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
 by (metis Nonce_supply_lemma order_eq_iff)
 
-lemma Nonce_supply2: "\<exists>N N'. Nonce N \<notin> used evs & Nonce N' \<notin> used evs' & N \<noteq> N'"
+lemma Nonce_supply2: "\<exists>N N'. Nonce N \<notin> used evs \<and> Nonce N' \<notin> used evs' \<and> N \<noteq> N'"
 apply (cut_tac evs = evs in Nonce_supply_lemma)
 apply (cut_tac evs = "evs'" in Nonce_supply_lemma, clarify)
 apply (metis Suc_n_not_le_n nat_le_linear)
 done
 
-lemma Nonce_supply3: "\<exists>N N' N''. Nonce N \<notin> used evs & Nonce N' \<notin> used evs' &  
-                    Nonce N'' \<notin> used evs'' & N \<noteq> N' & N' \<noteq> N'' & N \<noteq> N''"
+lemma Nonce_supply3: "\<exists>N N' N''. Nonce N \<notin> used evs \<and> Nonce N' \<notin> used evs' \<and>  
+                    Nonce N'' \<notin> used evs'' \<and> N \<noteq> N' \<and> N' \<noteq> N'' \<and> N \<noteq> N''"
 apply (cut_tac evs = evs in Nonce_supply_lemma)
 apply (cut_tac evs = "evs'" in Nonce_supply_lemma)
 apply (cut_tac evs = "evs''" in Nonce_supply_lemma, clarify)
@@ -147,13 +147,13 @@ apply (rule_tac x = "Suc (Suc (N+Na+Nb))" in exI)
 apply (simp (no_asm_simp) add: less_not_refl3 le_add1 le_add2 less_Suc_eq_le)
 done
 
-lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
+lemma Nonce_supply: "Nonce (SOME N. Nonce N \<notin> used evs) \<notin> used evs"
 apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, blast)
 done
 
 text\<open>Unlike the corresponding property of nonces, we cannot prove
-    @{term "finite KK ==> \<exists>K. K \<notin> KK & Key K \<notin> used evs"}.
+    @{term "finite KK ==> \<exists>K. K \<notin> KK \<and> Key K \<notin> used evs"}.
     We have infinitely many agents and there is nothing to stop their
     long-term keys from exhausting all the natural numbers.  Instead,
     possibility theorems must assume the existence of a few keys.\<close>
@@ -161,7 +161,7 @@ text\<open>Unlike the corresponding property of nonces, we cannot prove
 
 subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
 
-lemma subset_Compl_range: "A <= - (range shrK) ==> shrK x \<notin> A"
+lemma subset_Compl_range: "A \<subseteq> - (range shrK) \<Longrightarrow> shrK x \<notin> A"
 by blast
 
 lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
@@ -184,7 +184,7 @@ lemmas analz_image_freshK_simps =
 
 (*Lemma for the trivial direction of the if-and-only-if*)
 lemma analz_image_freshK_lemma:
-     "(Key K \<in> analz (Key`nE \<union> H)) --> (K \<in> nE | Key K \<in> analz H)  ==>  
+     "(Key K \<in> analz (Key`nE \<union> H)) \<longrightarrow> (K \<in> nE | Key K \<in> analz H)  ==>  
          (Key K \<in> analz (Key`nE \<union> H)) = (K \<in> nE | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
@@ -250,7 +250,7 @@ method_setup basic_possibility = \<open>
     Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.basic_possibility_tac ctxt))\<close>
     "for proving possibility theorems"
 
-lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"
+lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
 by (cases e) (auto simp: knows_Cons)
 
 end

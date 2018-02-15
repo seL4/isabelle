@@ -109,7 +109,7 @@ qed
 
 subsubsection "Collecting semantics"
 
-definition "step = Step (\<lambda>x e S. {s(x := aval e s) |s. s : S}) (\<lambda>b S. {s:S. bval b s})"
+definition "step = Step (\<lambda>x e S. {s(x := aval e s) |s. s \<in> S}) (\<lambda>b S. {s:S. bval b s})"
 
 definition CS :: "com \<Rightarrow> state set acom" where
 "CS c = lfp c (step UNIV)"
@@ -195,7 +195,7 @@ next
     by (auto simp: step_def post_def)
   have "step {s \<in> I. bval b s} C' \<le> C'"
     by (rule order_trans[OF mono2_step[OF order_refl \<open>{s \<in> I. bval b s} \<le> P\<close>] \<open>step P C' \<le> C'\<close>])
-  have "s1: {s:I. bval b s}" using \<open>s1 \<in> S\<close> \<open>S \<subseteq> I\<close> \<open>bval b s1\<close> by auto
+  have "s1 \<in> {s\<in>I. bval b s}" using \<open>s1 \<in> S\<close> \<open>S \<subseteq> I\<close> \<open>bval b s1\<close> by auto
   note s2_in_post_C' = WhileTrue.IH(1)[OF \<open>strip C' = c'\<close> this \<open>step {s \<in> I. bval b s} C' \<le> C'\<close>]
   from WhileTrue.IH(2)[OF WhileTrue.prems(1) s2_in_post_C' \<open>step (post C') C \<le> C\<close>]
   show ?case .
@@ -207,7 +207,7 @@ qed
 lemma big_step_lfp: "\<lbrakk> (c,s) \<Rightarrow> t;  s \<in> S \<rbrakk> \<Longrightarrow> t \<in> post(lfp c (step S))"
 by(auto simp add: post_lfp intro: big_step_post_step)
 
-lemma big_step_CS: "(c,s) \<Rightarrow> t \<Longrightarrow> t : post(CS c)"
+lemma big_step_CS: "(c,s) \<Rightarrow> t \<Longrightarrow> t \<in> post(CS c)"
 by(simp add: CS_def big_step_lfp)
 
 end

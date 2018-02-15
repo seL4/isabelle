@@ -13,14 +13,14 @@ typedecl ty
 axiomatization
   bool    :: ty and
   nat     :: ty and
-  arrow   :: "ty => ty => ty"       (infixr "->" 20) and
-  typeof  :: "[tm, ty] => bool" and
+  arrow   :: "ty \<Rightarrow> ty \<Rightarrow> ty"       (infixr "->" 20) and
+  typeof  :: "[tm, ty] \<Rightarrow> bool" and
   anyterm :: tm
 where common_typeof:   "
-typeof (app M N) B       :- typeof M (A -> B) & typeof N A..
+typeof (app M N) B       :- typeof M (A -> B) \<and> typeof N A..
 
-typeof (cond C L R) A :- typeof C bool & typeof L A & typeof R A..
-typeof (fix F)   A       :- (!x. typeof x A => typeof (F  x) A)..
+typeof (cond C L R) A :- typeof C bool \<and> typeof L A \<and> typeof R A..
+typeof (fix F)   A       :- (\<forall>x. typeof x A => typeof (F  x) A)..
 
 typeof true  bool..
 typeof false bool..
@@ -35,7 +35,7 @@ typeof (M - N) nat :- typeof M nat & typeof N nat..
 typeof (M * N) nat :- typeof M nat & typeof N nat"
 
 axiomatization where good_typeof:     "
-typeof (abs Bo) (A -> B) :- (!x. typeof x A => typeof (Bo x) B)"
+typeof (abs Bo) (A -> B) :- (\<forall>x. typeof x A => typeof (Bo x) B)"
 
 axiomatization where bad1_typeof:     "
 typeof (abs Bo) (A -> B) :- (typeof varterm A => typeof (Bo varterm) B)"

@@ -1324,7 +1324,7 @@ proof (clarsimp simp: completion.null_sets_outer)
         using pairwise_subset [OF pw \<open>\<D>' \<subseteq> \<D>\<close>] unfolding pairwise_def apply force+
         done
       have le_meaT: "measure lebesgue (\<Union>\<D>') \<le> measure lebesgue T"
-      proof (rule measure_mono_fmeasurable [OF _ _ \<open>T : lmeasurable\<close>])
+      proof (rule measure_mono_fmeasurable [OF _ _ \<open>T \<in> lmeasurable\<close>])
         show "(\<Union>\<D>') \<in> sets lebesgue"
           using div lmeasurable_division by auto
         have "\<Union>\<D>' \<subseteq> \<Union>\<D>"

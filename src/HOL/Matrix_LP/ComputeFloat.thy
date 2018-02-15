@@ -16,7 +16,7 @@ definition int_of_real :: "real \<Rightarrow> int"
   where "int_of_real x = (SOME y. real_of_int y = x)"
 
 definition real_is_int :: "real \<Rightarrow> bool"
-  where "real_is_int x = (EX (u::int). x = real_of_int u)"
+  where "real_is_int x = (\<exists>(u::int). x = real_of_int u)"
 
 lemma real_is_int_def2: "real_is_int x = (x = real_of_int (int_of_real x))"
   by (auto simp add: real_is_int_def int_of_real_def)

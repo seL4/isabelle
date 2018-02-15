@@ -20,18 +20,18 @@ inductive_set
   genPrefix :: "('a * 'a)set => ('a list * 'a list)set"
   for r :: "('a * 'a)set"
  where
-   Nil:     "([],[]) : genPrefix(r)"
+   Nil:     "([],[]) \<in> genPrefix(r)"
 
- | prepend: "[| (xs,ys) : genPrefix(r);  (x,y) : r |] ==>
-             (x#xs, y#ys) : genPrefix(r)"
+ | prepend: "[| (xs,ys) \<in> genPrefix(r);  (x,y) \<in> r |] ==>
+             (x#xs, y#ys) \<in> genPrefix(r)"
 
- | append:  "(xs,ys) : genPrefix(r) ==> (xs, ys@zs) : genPrefix(r)"
+ | append:  "(xs,ys) \<in> genPrefix(r) ==> (xs, ys@zs) \<in> genPrefix(r)"
 
 instantiation list :: (type) ord 
 begin
 
 definition
-  prefix_def:        "xs <= zs \<longleftrightarrow>  (xs, zs) : genPrefix Id"
+  prefix_def:        "xs <= zs \<longleftrightarrow>  (xs, zs) \<in> genPrefix Id"
 
 definition
   strict_prefix_def: "xs < zs  \<longleftrightarrow>  xs \<le> zs \<and> \<not> zs \<le> (xs :: 'a list)"
@@ -50,37 +50,37 @@ definition  Ge :: "(nat*nat) set" where
 
 abbreviation
   pfixLe :: "[nat list, nat list] => bool"  (infixl "pfixLe" 50)  where
-  "xs pfixLe ys == (xs,ys) : genPrefix Le"
+  "xs pfixLe ys == (xs,ys) \<in> genPrefix Le"
 
 abbreviation
   pfixGe :: "[nat list, nat list] => bool"  (infixl "pfixGe" 50)  where
-  "xs pfixGe ys == (xs,ys) : genPrefix Ge"
+  "xs pfixGe ys == (xs,ys) \<in> genPrefix Ge"
 
 
 subsection\<open>preliminary lemmas\<close>
 
-lemma Nil_genPrefix [iff]: "([], xs) : genPrefix r"
+lemma Nil_genPrefix [iff]: "([], xs) \<in> genPrefix r"
 by (cut_tac genPrefix.Nil [THEN genPrefix.append], auto)
 
-lemma genPrefix_length_le: "(xs,ys) : genPrefix r ==> length xs <= length ys"
+lemma genPrefix_length_le: "(xs,ys) \<in> genPrefix r \<Longrightarrow> length xs <= length ys"
 by (erule genPrefix.induct, auto)
 
 lemma cdlemma:
-     "[| (xs', ys'): genPrefix r |]  
-      ==> (ALL x xs. xs' = x#xs --> (EX y ys. ys' = y#ys & (x,y) : r & (xs, ys) : genPrefix r))"
+     "[| (xs', ys') \<in> genPrefix r |]  
+      ==> (\<forall>x xs. xs' = x#xs \<longrightarrow> (\<exists>y ys. ys' = y#ys & (x,y) \<in> r & (xs, ys) \<in> genPrefix r))"
 apply (erule genPrefix.induct, blast, blast)
 apply (force intro: genPrefix.append)
 done
 
 (*As usual converting it to an elimination rule is tiresome*)
 lemma cons_genPrefixE [elim!]: 
-     "[| (x#xs, zs): genPrefix r;   
-         !!y ys. [| zs = y#ys;  (x,y) : r;  (xs, ys) : genPrefix r |] ==> P  
+     "[| (x#xs, zs) \<in> genPrefix r;   
+         !!y ys. [| zs = y#ys;  (x,y) \<in> r;  (xs, ys) \<in> genPrefix r |] ==> P  
       |] ==> P"
 by (drule cdlemma, simp, blast)
 
 lemma Cons_genPrefix_Cons [iff]:
-     "((x#xs,y#ys) : genPrefix r) = ((x,y) : r & (xs,ys) : genPrefix r)"
+     "((x#xs,y#ys) \<in> genPrefix r) = ((x,y) \<in> r \<and> (xs,ys) \<in> genPrefix r)"
 by (blast intro: genPrefix.prepend)
 
 
@@ -93,7 +93,7 @@ prefer 2 apply (blast intro: genPrefix.prepend)
 apply (blast intro: genPrefix.Nil)
 done
 
-lemma genPrefix_refl [simp]: "refl r ==> (l,l) : genPrefix r"
+lemma genPrefix_refl [simp]: "refl r \<Longrightarrow> (l,l) \<in> genPrefix r"
 by (erule refl_onD [OF refl_genPrefix UNIV_I])
 
 lemma genPrefix_mono: "r<=s ==> genPrefix r <= genPrefix s"
@@ -107,13 +107,13 @@ done
 
 (*A lemma for proving genPrefix_trans_O*)
 lemma append_genPrefix:
-     "(xs @ ys, zs) : genPrefix r \<Longrightarrow> (xs, zs) : genPrefix r"
+     "(xs @ ys, zs) \<in> genPrefix r \<Longrightarrow> (xs, zs) \<in> genPrefix r"
   by (induct xs arbitrary: zs) auto
 
 (*Lemma proving transitivity and more*)
 lemma genPrefix_trans_O:
-  assumes "(x, y) : genPrefix r"
-  shows "\<And>z. (y, z) : genPrefix s \<Longrightarrow> (x, z) : genPrefix (r O s)"
+  assumes "(x, y) \<in> genPrefix r"
+  shows "\<And>z. (y, z) \<in> genPrefix s \<Longrightarrow> (x, z) \<in> genPrefix (r O s)"
   apply (atomize (full))
   using assms
   apply induct
@@ -123,22 +123,22 @@ lemma genPrefix_trans_O:
   done
 
 lemma genPrefix_trans:
-  "(x, y) : genPrefix r \<Longrightarrow> (y, z) : genPrefix r \<Longrightarrow> trans r
-    \<Longrightarrow> (x, z) : genPrefix r"
+  "(x, y) \<in> genPrefix r \<Longrightarrow> (y, z) \<in> genPrefix r \<Longrightarrow> trans r
+    \<Longrightarrow> (x, z) \<in> genPrefix r"
   apply (rule trans_O_subset [THEN genPrefix_mono, THEN subsetD])
    apply assumption
   apply (blast intro: genPrefix_trans_O)
   done
 
 lemma prefix_genPrefix_trans:
-  "[| x<=y;  (y,z) : genPrefix r |] ==> (x, z) : genPrefix r"
+  "[| x<=y;  (y,z) \<in> genPrefix r |] ==> (x, z) \<in> genPrefix r"
 apply (unfold prefix_def)
 apply (drule genPrefix_trans_O, assumption)
 apply simp
 done
 
 lemma genPrefix_prefix_trans:
-  "[| (x,y) : genPrefix r;  y<=z |] ==> (x,z) : genPrefix r"
+  "[| (x,y) \<in> genPrefix r;  y<=z |] ==> (x,z) \<in> genPrefix r"
 apply (unfold prefix_def)
 apply (drule genPrefix_trans_O, assumption)
 apply simp
@@ -151,9 +151,9 @@ by (blast intro: transI genPrefix_trans)
 (** Antisymmetry **)
 
 lemma genPrefix_antisym:
-  assumes 1: "(xs, ys) : genPrefix r"
+  assumes 1: "(xs, ys) \<in> genPrefix r"
     and 2: "antisym r"
-    and 3: "(ys, xs) : genPrefix r"
+    and 3: "(ys, xs) \<in> genPrefix r"
   shows "xs = ys"
   using 1 3
 proof induct
@@ -178,29 +178,29 @@ lemma antisym_genPrefix: "antisym r ==> antisym (genPrefix r)"
 
 subsection\<open>recursion equations\<close>
 
-lemma genPrefix_Nil [simp]: "((xs, []) : genPrefix r) = (xs = [])"
+lemma genPrefix_Nil [simp]: "((xs, []) \<in> genPrefix r) = (xs = [])"
   by (induct xs) auto
 
 lemma same_genPrefix_genPrefix [simp]: 
-    "refl r ==> ((xs@ys, xs@zs) : genPrefix r) = ((ys,zs) : genPrefix r)"
+    "refl r \<Longrightarrow> ((xs@ys, xs@zs) \<in> genPrefix r) = ((ys,zs) \<in> genPrefix r)"
   by (induct xs) (simp_all add: refl_on_def)
 
 lemma genPrefix_Cons:
-     "((xs, y#ys) : genPrefix r) =  
-      (xs=[] | (EX z zs. xs=z#zs & (z,y) : r & (zs,ys) : genPrefix r))"
+     "((xs, y#ys) \<in> genPrefix r) =  
+      (xs=[] | (\<exists>z zs. xs=z#zs & (z,y) \<in> r & (zs,ys) \<in> genPrefix r))"
   by (cases xs) auto
 
 lemma genPrefix_take_append:
-     "[| refl r;  (xs,ys) : genPrefix r |]  
-      ==>  (xs@zs, take (length xs) ys @ zs) : genPrefix r"
+     "[| refl r;  (xs,ys) \<in> genPrefix r |]  
+      ==>  (xs@zs, take (length xs) ys @ zs) \<in> genPrefix r"
 apply (erule genPrefix.induct)
 apply (frule_tac [3] genPrefix_length_le)
 apply (simp_all (no_asm_simp) add: diff_is_0_eq [THEN iffD2])
 done
 
 lemma genPrefix_append_both:
-     "[| refl r;  (xs,ys) : genPrefix r;  length xs = length ys |]  
-      ==>  (xs@zs, ys @ zs) : genPrefix r"
+     "[| refl r;  (xs,ys) \<in> genPrefix r;  length xs = length ys |]  
+      ==>  (xs@zs, ys @ zs) \<in> genPrefix r"
 apply (drule genPrefix_take_append, assumption)
 apply simp
 done
@@ -211,8 +211,8 @@ lemma append_cons_eq: "xs @ y # ys = (xs @ [y]) @ ys"
 by auto
 
 lemma aolemma:
-     "[| (xs,ys) : genPrefix r;  refl r |]  
-      ==> length xs < length ys --> (xs @ [ys ! length xs], ys) : genPrefix r"
+     "[| (xs,ys) \<in> genPrefix r;  refl r |]  
+      ==> length xs < length ys \<longrightarrow> (xs @ [ys ! length xs], ys) \<in> genPrefix r"
 apply (erule genPrefix.induct)
   apply blast
  apply simp
@@ -226,15 +226,15 @@ apply (subst append_cons_eq, fast intro: genPrefix_append_both genPrefix.append)
 done
 
 lemma append_one_genPrefix:
-     "[| (xs,ys) : genPrefix r;  length xs < length ys;  refl r |]  
-      ==> (xs @ [ys ! length xs], ys) : genPrefix r"
+     "[| (xs,ys) \<in> genPrefix r;  length xs < length ys;  refl r |]  
+      ==> (xs @ [ys ! length xs], ys) \<in> genPrefix r"
 by (blast intro: aolemma [THEN mp])
 
 
 (** Proving the equivalence with Charpentier's definition **)
 
 lemma genPrefix_imp_nth:
-    "i < length xs \<Longrightarrow> (xs, ys) : genPrefix r \<Longrightarrow> (xs ! i, ys ! i) : r"
+    "i < length xs \<Longrightarrow> (xs, ys) \<in> genPrefix r \<Longrightarrow> (xs ! i, ys ! i) \<in> r"
   apply (induct xs arbitrary: i ys)
    apply auto
   apply (case_tac i)
@@ -243,8 +243,8 @@ lemma genPrefix_imp_nth:
 
 lemma nth_imp_genPrefix:
   "length xs <= length ys \<Longrightarrow>
-     (\<forall>i. i < length xs --> (xs ! i, ys ! i) : r) \<Longrightarrow>
-     (xs, ys) : genPrefix r"
+     (\<forall>i. i < length xs \<longrightarrow> (xs ! i, ys ! i) \<in> r) \<Longrightarrow>
+     (xs, ys) \<in> genPrefix r"
   apply (induct xs arbitrary: ys)
    apply (simp_all add: less_Suc_eq_0_disj all_conj_distrib)
   apply (case_tac ys)
@@ -252,8 +252,8 @@ lemma nth_imp_genPrefix:
   done
 
 lemma genPrefix_iff_nth:
-     "((xs,ys) : genPrefix r) =  
-      (length xs <= length ys & (ALL i. i < length xs --> (xs!i, ys!i) : r))"
+     "((xs,ys) \<in> genPrefix r) =  
+      (length xs <= length ys & (\<forall>i. i < length xs \<longrightarrow> (xs!i, ys!i) \<in> r))"
 apply (blast intro: genPrefix_length_le genPrefix_imp_nth nth_imp_genPrefix)
 done
 
@@ -315,7 +315,7 @@ apply (erule genPrefix.append)
 done
 
 lemma prefix_Cons: 
-   "(xs <= y#ys) = (xs=[] | (? zs. xs=y#zs & zs <= ys))"
+   "(xs <= y#ys) = (xs=[] | (\<exists>zs. xs=y#zs \<and> zs <= ys))"
 by (simp add: prefix_def genPrefix_Cons)
 
 lemma append_one_prefix: 
@@ -343,7 +343,7 @@ lemma mono_length: "mono length"
 by (blast intro: monoI prefix_length_le)
 
 (*Equivalence to the definition used in Lex/Prefix.thy*)
-lemma prefix_iff: "(xs <= zs) = (EX ys. zs = xs@ys)"
+lemma prefix_iff: "(xs <= zs) = (\<exists>ys. zs = xs@ys)"
 apply (unfold prefix_def)
 apply (auto simp add: genPrefix_iff_nth nth_append)
 apply (rule_tac x = "drop (length xs) zs" in exI)
@@ -363,7 +363,7 @@ apply (rule iffI)
 done
 
 lemma prefix_append_iff:
-     "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))"
+     "(xs <= ys@zs) = (xs <= ys | (\<exists>us. xs = ys@us & us <= zs))"
 apply (rule_tac xs = zs in rev_induct)
  apply force
 apply (simp del: append_assoc add: append_assoc [symmetric], force)

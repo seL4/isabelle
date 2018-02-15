@@ -42,7 +42,7 @@ section\<open>The TLS Protocol: Transport Layer Security\<close>
 
 theory TLS imports Public "HOL-Library.Nat_Bijection" begin
 
-definition certificate :: "[agent,key] => msg" where
+definition certificate :: "[agent,key] \<Rightarrow> msg" where
     "certificate A KA == Crypt (priSK Server) \<lbrace>Agent A, Key KA\<rbrace>"
 
 text\<open>TLS apparently does not require separate keypairs for encryption and
@@ -53,27 +53,27 @@ datatype role = ClientRole | ServerRole
 
 consts
   (*Pseudo-random function of Section 5*)
-  PRF  :: "nat*nat*nat => nat"
+  PRF  :: "nat*nat*nat \<Rightarrow> nat"
 
   (*Client, server write keys are generated uniformly by function sessionK
     to avoid duplicating their properties.  They are distinguished by a
     tag (not a bool, to avoid the peculiarities of if-and-only-if).
     Session keys implicitly include MAC secrets.*)
-  sessionK :: "(nat*nat*nat) * role => key"
+  sessionK :: "(nat*nat*nat) * role \<Rightarrow> key"
 
 abbreviation
-  clientK :: "nat*nat*nat => key" where
+  clientK :: "nat*nat*nat \<Rightarrow> key" where
   "clientK X == sessionK(X, ClientRole)"
 
 abbreviation
-  serverK :: "nat*nat*nat => key" where
+  serverK :: "nat*nat*nat \<Rightarrow> key" where
   "serverK X == sessionK(X, ServerRole)"
 
 
 specification (PRF)
   inj_PRF: "inj PRF"
   \<comment> \<open>the pseudo-random function is collision-free\<close>
-   apply (rule exI [of _ "%(x,y,z). prod_encode(x, prod_encode(y,z))"])
+   apply (rule exI [of _ "\<lambda>(x,y,z). prod_encode(x, prod_encode(y,z))"])
    apply (simp add: inj_on_def prod_encode_eq)
    done
 
@@ -81,7 +81,7 @@ specification (sessionK)
   inj_sessionK: "inj sessionK"
   \<comment> \<open>sessionK is collision-free; also, no clientK clashes with any serverK.\<close>
    apply (rule exI [of _ 
-         "%((x,y,z), r). prod_encode(case_role 0 1 r, 
+         "\<lambda>((x,y,z), r). prod_encode(case_role 0 1 r, 
                            prod_encode(x, prod_encode(y,z)))"])
    apply (simp add: inj_on_def prod_encode_eq split: role.split) 
    done
@@ -108,7 +108,7 @@ inductive_set tls :: "event list set"
  | SpyKeys: \<comment> \<open>The spy may apply @{term PRF} and @{term sessionK}
                 to available nonces\<close>
          "[| evsSK \<in> tls;
-             {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
+             {Nonce NA, Nonce NB, Nonce M} \<subseteq> analz (spies evsSK) |]
           ==> Notes Spy \<lbrace> Nonce (PRF(M,NA,NB)),
                            Key (sessionK((NA,NB,M),role))\<rbrace> # evsSK \<in> tls"
 
@@ -240,7 +240,7 @@ inductive_set tls :: "event list set"
          \<comment> \<open>If A recalls the \<open>SESSION_ID\<close>, then she sends a FINISHED
              message using the new nonces and stored MASTER SECRET.\<close>
          "[| evsCR \<in> tls;
-             Says A  B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>: set evsCR;
+             Says A  B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace> \<in> set evsCR;
              Says B' A \<lbrace>Nonce NB, Number SID, Number PB\<rbrace> \<in> set evsCR;
              Notes A \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> \<in> set evsCR |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
@@ -253,7 +253,7 @@ inductive_set tls :: "event list set"
          \<comment> \<open>Resumption (7.3):  If B finds the \<open>SESSION_ID\<close> then he can 
              send a FINISHED message using the recovered MASTER SECRET\<close>
          "[| evsSR \<in> tls;
-             Says A' B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>: set evsSR;
+             Says A' B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace> \<in> set evsSR;
              Says B  A \<lbrace>Nonce NB, Number SID, Number PB\<rbrace> \<in> set evsSR;
              Notes B \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> \<in> set evsSR |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
@@ -331,7 +331,7 @@ end.  Four paths and 12 rules are considered.\<close>
 
 
 text\<open>Possibility property ending with ClientAccepts.\<close>
-lemma "[| \<forall>evs. (@ N. Nonce N \<notin> used evs) \<notin> range PRF;  A \<noteq> B |]
+lemma "[| \<forall>evs. (SOME N. Nonce N \<notin> used evs) \<notin> range PRF;  A \<noteq> B |]
       ==> \<exists>SID M. \<exists>evs \<in> tls.
             Notes A \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> \<in> set evs"
 apply (intro exI bexI)
@@ -344,7 +344,7 @@ done
 
 
 text\<open>And one for ServerAccepts.  Either FINISHED message may come first.\<close>
-lemma "[| \<forall>evs. (@ N. Nonce N \<notin> used evs) \<notin> range PRF; A \<noteq> B |]
+lemma "[| \<forall>evs. (SOME N. Nonce N \<notin> used evs) \<notin> range PRF; A \<noteq> B |]
       ==> \<exists>SID NA PA NB PB M. \<exists>evs \<in> tls.
            Notes B \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> \<in> set evs"
 apply (intro exI bexI)
@@ -357,7 +357,7 @@ done
 
 
 text\<open>Another one, for CertVerify (which is optional)\<close>
-lemma "[| \<forall>evs. (@ N. Nonce N \<notin> used evs) \<notin> range PRF;  A \<noteq> B |]
+lemma "[| \<forall>evs. (SOME N. Nonce N \<notin> used evs) \<notin> range PRF;  A \<noteq> B |]
        ==> \<exists>NB PMS. \<exists>evs \<in> tls.
               Says A B (Crypt (priK A) (Hash\<lbrace>Nonce NB, Agent B, Nonce PMS\<rbrace>)) 
                 \<in> set evs"
@@ -374,13 +374,13 @@ text\<open>Another one, for session resumption (both ServerResume and ClientResu
 lemma "[| evs0 \<in> tls;
           Notes A \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> \<in> set evs0;
           Notes B \<lbrace>Number SID, Agent A, Agent B, Nonce M\<rbrace> \<in> set evs0;
-          \<forall>evs. (@ N. Nonce N \<notin> used evs) \<notin> range PRF;
+          \<forall>evs. (SOME N. Nonce N \<notin> used evs) \<notin> range PRF;
           A \<noteq> B |]
       ==> \<exists>NA PA NB PB X. \<exists>evs \<in> tls.
                 X = Hash\<lbrace>Number SID, Nonce M,
                           Nonce NA, Number PA, Agent A,
-                          Nonce NB, Number PB, Agent B\<rbrace>  &
-                Says A B (Crypt (clientK(NA,NB,M)) X) \<in> set evs  &
+                          Nonce NB, Number PB, Agent B\<rbrace>  \<and>
+                Says A B (Crypt (clientK(NA,NB,M)) X) \<in> set evs  \<and>
                 Says B A (Crypt (serverK(NA,NB,M)) X) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] tls.ClientHello
@@ -548,7 +548,7 @@ lemma Notes_unique_PMS:
      "[| Notes A  \<lbrace>Agent B,  Nonce PMS\<rbrace> \<in> set evs;
          Notes A' \<lbrace>Agent B', Nonce PMS\<rbrace> \<in> set evs;
          evs \<in> tls |]
-      ==> A=A' & B=B'"
+      ==> A=A' \<and> B=B'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule tls.induct, force, simp_all)
 txt\<open>ClientKeyExch\<close>
@@ -562,7 +562,7 @@ text\<open>Key compromise lemma needed to prove @{term analz_image_keys}.
   No collection of keys can help the spy get new private keys.\<close>
 lemma analz_image_priK [rule_format]:
      "evs \<in> tls
-      ==> \<forall>KK. (Key(priK B) \<in> analz (Key`KK Un (spies evs))) =
+      ==> \<forall>KK. (Key(priK B) \<in> analz (Key`KK \<union> (spies evs))) =
           (priK B \<in> KK | B \<in> bad)"
 apply (erule tls.induct)
 apply (simp_all (no_asm_simp)
@@ -576,25 +576,25 @@ done
 
 text\<open>slightly speeds up the big simplification below\<close>
 lemma range_sessionkeys_not_priK:
-     "KK <= range sessionK ==> priK B \<notin> KK"
+     "KK \<subseteq> range sessionK \<Longrightarrow> priK B \<notin> KK"
 by blast
 
 
 text\<open>Lemma for the trivial direction of the if-and-only-if\<close>
 lemma analz_image_keys_lemma:
-     "(X \<in> analz (G Un H)) --> (X \<in> analz H)  ==>
-      (X \<in> analz (G Un H))  =  (X \<in> analz H)"
+     "(X \<in> analz (G \<union> H)) \<longrightarrow> (X \<in> analz H)  ==>
+      (X \<in> analz (G \<union> H))  =  (X \<in> analz H)"
 by (blast intro: analz_mono [THEN subsetD])
 
 (** Strangely, the following version doesn't work:
-\<forall>Z. (Nonce N \<in> analz (Key`(sessionK`Z) Un (spies evs))) =
+\<forall>Z. (Nonce N \<in> analz (Key`(sessionK`Z) \<union> (spies evs))) =
     (Nonce N \<in> analz (spies evs))"
 **)
 
 lemma analz_image_keys [rule_format]:
      "evs \<in> tls ==>
-      \<forall>KK. KK <= range sessionK -->
-              (Nonce N \<in> analz (Key`KK Un (spies evs))) =
+      \<forall>KK. KK \<subseteq> range sessionK \<longrightarrow>
+              (Nonce N \<in> analz (Key`KK \<union> (spies evs))) =
               (Nonce N \<in> analz (spies evs))"
 apply (erule tls.induct, frule_tac [7] CX_KB_is_pubKB)
 apply (safe del: iffI)
@@ -631,7 +631,7 @@ lemma PMS_lemma:
      "[| Nonce PMS \<notin> parts (spies evs);
          K = sessionK((Na, Nb, PRF(PMS,NA,NB)), role);
          evs \<in> tls |]
-   ==> Key K \<notin> parts (spies evs) & (\<forall>Y. Crypt K Y \<notin> parts (spies evs))"
+   ==> Key K \<notin> parts (spies evs) \<and> (\<forall>Y. Crypt K Y \<notin> parts (spies evs))"
 apply (erule rev_mp, erule ssubst)
 apply (erule tls.induct, frule_tac [7] CX_KB_is_pubKB) 
 apply (force, simp_all (no_asm_simp))
@@ -809,9 +809,9 @@ lemma TrustServerFinished [rule_format]:
                       Nonce Nb, Number PB, Agent B\<rbrace>);
          M = PRF(PMS,NA,NB);
          evs \<in> tls;  A \<notin> bad;  B \<notin> bad |]
-      ==> Says B Spy (Key(serverK(Na,Nb,M))) \<notin> set evs -->
-          Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> \<in> set evs -->
-          X \<in> parts (spies evs) --> Says B A X \<in> set evs"
+      ==> Says B Spy (Key(serverK(Na,Nb,M))) \<notin> set evs \<longrightarrow>
+          Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> \<in> set evs \<longrightarrow>
+          X \<in> parts (spies evs) \<longrightarrow> Says B A X \<in> set evs"
 apply (erule ssubst)+
 apply (erule tls.induct, frule_tac [7] CX_KB_is_pubKB)
 apply (force, simp_all (no_asm_simp))
@@ -828,9 +828,9 @@ text\<open>This version refers not to ServerFinished but to any message from B.
   to bind A's identity with PMS, then we could replace A' by A below.\<close>
 lemma TrustServerMsg [rule_format]:
      "[| M = PRF(PMS,NA,NB);  evs \<in> tls;  A \<notin> bad;  B \<notin> bad |]
-      ==> Says B Spy (Key(serverK(Na,Nb,M))) \<notin> set evs -->
-          Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> \<in> set evs -->
-          Crypt (serverK(Na,Nb,M)) Y \<in> parts (spies evs)  -->
+      ==> Says B Spy (Key(serverK(Na,Nb,M))) \<notin> set evs \<longrightarrow>
+          Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> \<in> set evs \<longrightarrow>
+          Crypt (serverK(Na,Nb,M)) Y \<in> parts (spies evs)  \<longrightarrow>
           (\<exists>A'. Says B A' (Crypt (serverK(Na,Nb,M)) Y) \<in> set evs)"
 apply (erule ssubst)
 apply (erule tls.induct, frule_tac [7] CX_KB_is_pubKB)
@@ -854,9 +854,9 @@ text\<open>ASSUMING that A chose PMS.  Authentication is
 
 lemma TrustClientMsg [rule_format]:
      "[| M = PRF(PMS,NA,NB);  evs \<in> tls;  A \<notin> bad;  B \<notin> bad |]
-      ==> Says A Spy (Key(clientK(Na,Nb,M))) \<notin> set evs -->
-          Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> \<in> set evs -->
-          Crypt (clientK(Na,Nb,M)) Y \<in> parts (spies evs) -->
+      ==> Says A Spy (Key(clientK(Na,Nb,M))) \<notin> set evs \<longrightarrow>
+          Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> \<in> set evs \<longrightarrow>
+          Crypt (clientK(Na,Nb,M)) Y \<in> parts (spies evs) \<longrightarrow>
           Says A B (Crypt (clientK(Na,Nb,M)) Y) \<in> set evs"
 apply (erule ssubst)
 apply (erule tls.induct, frule_tac [7] CX_KB_is_pubKB)

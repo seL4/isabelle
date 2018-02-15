@@ -728,7 +728,7 @@ proof -
   define g where "g = (\<lambda>x. if x \<in> S then f x else 0)"
   define A where "A = Abs_multiset g"
   have "{x. g x > 0} \<subseteq> S" by (auto simp: g_def)
-  from finite_subset[OF this assms(1)] have [simp]: "g :  multiset"
+  from finite_subset[OF this assms(1)] have [simp]: "g \<in> multiset"
     by (simp add: multiset_def)
   from assms have count_A: "count A x = g x" for x unfolding A_def
     by simp

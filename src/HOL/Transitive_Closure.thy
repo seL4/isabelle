@@ -243,7 +243,7 @@ theorem rtranclp_converseI:
 
 lemmas rtrancl_converseI = rtranclp_converseI [to_set]
 
-lemma rtrancl_converse: "(r^-1)\<^sup>* = (r\<^sup>*)^-1"
+lemma rtrancl_converse: "(r\<inverse>)\<^sup>* = (r\<^sup>*)\<inverse>"
   by (fast dest!: rtrancl_converseD intro!: rtrancl_converseI)
 
 lemma sym_rtrancl: "sym r \<Longrightarrow> sym (r\<^sup>*)"

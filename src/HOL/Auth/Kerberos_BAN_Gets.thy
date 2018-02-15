@@ -40,27 +40,27 @@ specification (authlife)
 
 
 abbreviation
-  CT :: "event list=>nat" where
+  CT :: "event list \<Rightarrow> nat" where
   "CT == length"
 
 abbreviation
-  expiredK :: "[nat, event list] => bool" where
+  expiredK :: "[nat, event list] \<Rightarrow> bool" where
   "expiredK T evs == sesKlife + T < CT evs"
 
 abbreviation
-  expiredA :: "[nat, event list] => bool" where
+  expiredA :: "[nat, event list] \<Rightarrow> bool" where
   "expiredA T evs == authlife + T < CT evs"
 
 
 definition
  (* Yields the subtrace of a given trace from its beginning to a given event *)
-  before :: "[event, event list] => event list" ("before _ on _")
-  where "before ev on evs = takeWhile (% z. z ~= ev) (rev evs)"
+  before :: "[event, event list] \<Rightarrow> event list" ("before _ on _")
+  where "before ev on evs = takeWhile (\<lambda>z. z \<noteq> ev) (rev evs)"
 
 definition
  (* States than an event really appears only once on a trace *)
-  Unique :: "[event, event list] => bool" ("Unique _ on _")
-  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
+  Unique :: "[event, event list] \<Rightarrow> bool" ("Unique _ on _")
+  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (\<lambda>z. z \<noteq> ev) evs)))"
 
 
 inductive_set bankerb_gets :: "event list set"
@@ -99,7 +99,7 @@ inductive_set bankerb_gets :: "event list set"
 
  | BK4:  "\<lbrakk> evs4 \<in> bankerb_gets;
              Gets B \<lbrace>(Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>),
-                         (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace>: set evs4;
+                         (Crypt K \<lbrace>Agent A, Number Ta\<rbrace>) \<rbrace> \<in> set evs4;
              \<not> expiredK Tk evs4;  \<not> expiredA Ta evs4 \<rbrakk>
           \<Longrightarrow> Says B A (Crypt K (Number Ta)) # evs4
                 \<in> bankerb_gets"
@@ -200,7 +200,7 @@ apply (simp add: used_Notes_rev)
 done
 
 lemma used_takeWhile_used [rule_format]: 
-      "x : used (takeWhile P X) --> x : used X"
+      "x \<in> used (takeWhile P X) \<longrightarrow> x \<in> used X"
 apply (induct_tac "X")
 apply simp
 apply (rename_tac a b)
@@ -249,7 +249,7 @@ by auto
 
 lemma Spy_see_shrK_D [dest!]:
      "\<lbrakk> Key (shrK A) \<in> parts (knows Spy evs);
-                evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> A:bad"
+                evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> A\<in>bad"
 by (blast dest: Spy_see_shrK)
 
 lemmas Spy_analz_shrK_D = analz_subset_parts [THEN subsetD, THEN Spy_see_shrK_D,  dest!]
@@ -275,11 +275,11 @@ text\<open>Describes the form of K, X and K' when the Server sends this message.
 lemma Says_Server_message_form:
      "\<lbrakk> Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
          \<in> set evs; evs \<in> bankerb_gets \<rbrakk>
-      \<Longrightarrow> K' = shrK A & K \<notin> range shrK &
-          Ticket = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>) &
+      \<Longrightarrow> K' = shrK A \<and> K \<notin> range shrK \<and>
+          Ticket = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>) \<and>
           Key K \<notin> used(before
                   Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
-                  on evs) &
+                  on evs) \<and>
           Tk = CT(before 
                   Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
                   on evs)"
@@ -337,7 +337,7 @@ lemma Gets_Server_message_form:
      "\<lbrakk> Gets A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>)
             \<in> set evs;
          evs \<in> bankerb_gets \<rbrakk>
- \<Longrightarrow> (K \<notin> range shrK & X = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>))
+ \<Longrightarrow> (K \<notin> range shrK \<and> X = (Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>))
           | X \<in> analz (knows Spy evs)"
 apply (case_tac "A \<in> bad")
 apply (force dest!: Gets_imp_knows_Spy [THEN analz.Inj])
@@ -398,7 +398,7 @@ text\<open>Session keys are not used to encrypt other session keys\<close>
 lemma analz_image_freshK [rule_format (no_asm)]:
      "evs \<in> bankerb_gets \<Longrightarrow>
    \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
-          (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
+          (Key K \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule bankerb_gets.induct)
 apply (drule_tac [8] Says_Server_message_form)
@@ -419,7 +419,7 @@ lemma unique_session_keys:
            (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>) \<in> set evs;
          Says Server A'
           (Crypt (shrK A') \<lbrace>Number Tk', Agent B', Key K, X'\<rbrace>) \<in> set evs;
-         evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> A=A' & Tk=Tk' & B=B' & X = X'"
+         evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> A=A' \<and> Tk=Tk' \<and> B=B' \<and> X = X'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule bankerb_gets.induct)
@@ -434,7 +434,7 @@ lemma unique_session_keys_Gets:
            (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>) \<in> set evs;
         Gets A
           (Crypt (shrK A) \<lbrace>Number Tk', Agent B', Key K, X'\<rbrace>) \<in> set evs;
-        A \<notin> bad; evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> Tk=Tk' & B=B' & X = X'"
+        A \<notin> bad; evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> Tk=Tk' \<and> B=B' \<and> X = X'"
 apply (blast dest!: Kab_authentic unique_session_keys)
 done
 

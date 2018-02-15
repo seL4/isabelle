@@ -90,7 +90,7 @@ ML \<open>none 1 @{prop "fst (a, b) = b"}\<close>
 ML \<open>genuine 2 @{prop "fst (a, b) = b"}\<close>
 ML \<open>genuine 2 @{prop "fst (a, b) \<noteq> b"}\<close>
 ML \<open>genuine 2 @{prop "f ((x, z), y) = (x, z)"}\<close>
-ML \<open>none 2 @{prop "(ALL x. f x = fst x) \<longrightarrow> f ((x, z), y) = (x, z)"}\<close>
+ML \<open>none 2 @{prop "(\<forall>x. f x = fst x) \<longrightarrow> f ((x, z), y) = (x, z)"}\<close>
 ML \<open>none 4 @{prop "snd (a, b) = b"}\<close>
 ML \<open>none 1 @{prop "snd (a, b) = a"}\<close>
 ML \<open>genuine 2 @{prop "snd (a, b) = a"}\<close>

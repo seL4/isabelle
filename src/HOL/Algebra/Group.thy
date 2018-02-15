@@ -435,7 +435,7 @@ lemma (in group) int_pow_mult:
   "x \<in> carrier G \<Longrightarrow> x [^] (i + j::int) = x [^] i \<otimes> x [^] j"
 proof -
   have [simp]: "-i - j = -j - i" by simp
-  assume "x : carrier G" then
+  assume "x \<in> carrier G" then
   show ?thesis
     by (auto simp add: int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult )
 qed

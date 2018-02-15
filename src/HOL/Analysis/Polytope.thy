@@ -3201,7 +3201,7 @@ definition simplicial_complex where
         finite \<C> \<and>
         (\<forall>S \<in> \<C>. \<exists>n. n simplex S) \<and>
         (\<forall>F S. S \<in> \<C> \<and> F face_of S \<longrightarrow> F \<in> \<C>) \<and>
-        (!S S'. S \<in> \<C> \<and> S' \<in> \<C>
+        (\<forall>S S'. S \<in> \<C> \<and> S' \<in> \<C>
                 \<longrightarrow> (S \<inter> S') face_of S \<and> (S \<inter> S') face_of S')"
 
 definition triangulation where
@@ -3350,7 +3350,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
       and convex\<N>: "\<And>C. C \<in> \<N> \<Longrightarrow> convex C"
       and closed\<N>: "\<And>C. C \<in> \<N> \<Longrightarrow> closed C"
       by (auto simp: \<N>_def poly\<M> polytope_imp_convex polytope_imp_closed)
-    have in_rel_interior: "(@z. z \<in> rel_interior C) \<in> rel_interior C" if "C \<in> \<N>" for C
+    have in_rel_interior: "(SOME z. z \<in> rel_interior C) \<in> rel_interior C" if "C \<in> \<N>" for C
         using that poly\<M> polytope_imp_convex rel_interior_aff_dim some_in_eq by (fastforce simp: \<N>_def)
     have *: "\<exists>T. ~affine_dependent T \<and> card T \<le> n \<and> aff_dim K < n \<and> K = convex hull T"
       if "K \<in> \<U>" for K
@@ -3396,7 +3396,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
         by fastforce
     qed
     let ?\<T> = "(\<Union>C \<in> \<N>. \<Union>K \<in> \<U> \<inter> Pow (rel_frontier C).
-                     {convex hull (insert (@z. z \<in> rel_interior C) K)})"
+                     {convex hull (insert (SOME z. z \<in> rel_interior C) K)})"
     have "\<exists>\<T>. simplicial_complex \<T> \<and>
               (\<forall>K \<in> \<T>. aff_dim K \<le> of_nat n) \<and>
               (\<forall>C \<in> \<M>. \<exists>F. F \<subseteq> \<T> \<and> C = \<Union>F) \<and>
@@ -3415,9 +3415,9 @@ proof (induction n arbitrary: \<M> rule: less_induct)
             using S face\<U> that by blast
           moreover have "F \<in> \<U> \<union> ?\<T>"
             if "F face_of S" "C \<in> \<N>" "K \<in> \<U>" and "K \<subseteq> rel_frontier C"
-              and S: "S = convex hull insert (@z. z \<in> rel_interior C) K" for C K
+              and S: "S = convex hull insert (SOME z. z \<in> rel_interior C) K" for C K
           proof -
-            let ?z = "@z. z \<in> rel_interior C"
+            let ?z = "SOME z. z \<in> rel_interior C"
             have "?z \<in> rel_interior C"
               by (simp add: in_rel_interior \<open>C \<in> \<N>\<close>)
             moreover
@@ -3490,13 +3490,13 @@ proof (induction n arbitrary: \<M> rule: less_induct)
             proof -
               obtain C K
                 where "C \<in> \<N>" "K \<in> \<U>" "K \<subseteq> rel_frontier C"
-                and Y: "Y = convex hull insert (@z. z \<in> rel_interior C) K"
+                and Y: "Y = convex hull insert (SOME z. z \<in> rel_interior C) K"
                 using XY by blast
               have "convex C"
                 by (simp add: \<open>C \<in> \<N>\<close> convex\<N>)
               have "K \<subseteq> C"
                 by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed rel_frontier_def subset_iff)
-              let ?z = "(@z. z \<in> rel_interior C)"
+              let ?z = "(SOME z. z \<in> rel_interior C)"
               have z: "?z \<in> rel_interior C"
                 using \<open>C \<in> \<N>\<close> in_rel_interior by blast
               obtain D where "D \<in> \<S>" "X \<subseteq> D"
@@ -3533,11 +3533,11 @@ proof (induction n arbitrary: \<M> rule: less_induct)
             proof -
               obtain C K D L
                 where "C \<in> \<N>" "K \<in> \<U>" "K \<subseteq> rel_frontier C"
-                and X: "X = convex hull insert (@z. z \<in> rel_interior C) K"
+                and X: "X = convex hull insert (SOME z. z \<in> rel_interior C) K"
                 and "D \<in> \<N>" "L \<in> \<U>" "L \<subseteq> rel_frontier D"
-                and Y: "Y = convex hull insert (@z. z \<in> rel_interior D) L"
+                and Y: "Y = convex hull insert (SOME z. z \<in> rel_interior D) L"
                 using XY by blast
-              let ?z = "(@z. z \<in> rel_interior C)"
+              let ?z = "(SOME z. z \<in> rel_interior C)"
               have z: "?z \<in> rel_interior C"
                 using \<open>C \<in> \<N>\<close> in_rel_interior by blast
               have "convex C"
@@ -3564,7 +3564,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
                   by (metis DiffE \<open>C \<in> \<N>\<close> \<open>K \<subseteq> rel_frontier C\<close> closed\<N> closure_closed rel_frontier_def subset_eq)
                 have "L \<subseteq> D"
                   by (metis DiffE \<open>D \<in> \<N>\<close> \<open>L \<subseteq> rel_frontier D\<close> closed\<N> closure_closed rel_frontier_def subset_eq)
-                let ?w = "(@w. w \<in> rel_interior D)"
+                let ?w = "(SOME w. w \<in> rel_interior D)"
                 have w: "?w \<in> rel_interior D"
                   using \<open>D \<in> \<N>\<close> in_rel_interior by blast
                 have "C \<inter> rel_interior D = (D \<inter> C) \<inter> rel_interior D"
@@ -3663,7 +3663,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
         case False
         then have "C \<in> \<N>"
           by (simp add: \<N>_def \<S>_def aff\<M> less_le that)
-        let ?z = "@z. z \<in> rel_interior C"
+        let ?z = "SOME z. z \<in> rel_interior C"
         have z: "?z \<in> rel_interior C"
           using \<open>C \<in> \<N>\<close> in_rel_interior by blast
         let ?F = "\<Union>K \<in> \<U> \<inter> Pow (rel_frontier C). {convex hull (insert ?z K)}"
@@ -3726,7 +3726,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
       next
         assume "L \<in> ?\<T>"
         then obtain C K where "C \<in> \<N>"
-          and L: "L = convex hull insert (@z. z \<in> rel_interior C) K"
+          and L: "L = convex hull insert (SOME z. z \<in> rel_interior C) K"
           and K: "K \<in> \<U>" "K \<subseteq> rel_frontier C"
           by auto
         then have "convex hull C = C"

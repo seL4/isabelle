@@ -30,7 +30,7 @@ inductive_cases par_beta_cases [elim!]:
 
 subsection \<open>Inclusions\<close>
 
-text \<open>\<open>beta \<subseteq> par_beta \<subseteq> beta^*\<close> \medskip\<close>
+text \<open>\<open>beta \<subseteq> par_beta \<subseteq> beta\<^sup>*\<close> \medskip\<close>
 
 lemma par_beta_varL [simp]:
     "(Var n => t) = (t = Var n)"
@@ -45,7 +45,7 @@ lemma beta_subset_par_beta: "beta <= par_beta"
      apply (blast intro!: par_beta_refl)+
   done
 
-lemma par_beta_subset_beta: "par_beta <= beta^**"
+lemma par_beta_subset_beta: "par_beta \<le> beta\<^sup>*\<^sup>*"
   apply (rule predicate2I)
   apply (erule par_beta.induct)
      apply blast

@@ -28,7 +28,7 @@ inductive_set
   and ctrans :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c*\<rightarrow> _" [81,81] 80)
 where
   "P -c\<rightarrow> Q \<equiv> (P,Q) \<in> ctran"
-| "P -c*\<rightarrow> Q \<equiv> (P,Q) \<in> ctran^*"
+| "P -c*\<rightarrow> Q \<equiv> (P,Q) \<in> ctran\<^sup>*"
 
 | Basic:  "(Some(Basic f), s) -c\<rightarrow> (None, f s)"
 

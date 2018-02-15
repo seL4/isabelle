@@ -64,7 +64,7 @@ proof (induction t rule: update.induct)
 qed simp
 
 lemma lvl_update_incr_iff: "(lvl(update a b t) = lvl t + 1) \<longleftrightarrow>
-  (EX l x r. update a b t = Node (lvl t + 1) l x r \<and> lvl l = lvl r)"
+  (\<exists>l x r. update a b t = Node (lvl t + 1) l x r \<and> lvl l = lvl r)"
 apply(cases t)
 apply(auto simp add: skew_case split_case split: if_splits)
 apply(auto split: tree.splits if_splits)

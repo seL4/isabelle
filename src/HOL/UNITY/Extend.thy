@@ -49,7 +49,7 @@ definition
   where "project h C F =
        mk_program (project_set h (Init F),
                    project_act h ` Restrict C ` Acts F,
-                   {act. Restrict (project_set h C) act :
+                   {act. Restrict (project_set h C) act \<in>
                          project_act h ` Restrict C ` AllowedActs F})"
 
 locale Extend =
@@ -70,7 +70,7 @@ locale Extend =
 subsection\<open>Restrict\<close>
 (*MOVE to Relation.thy?*)
 
-lemma Restrict_iff [iff]: "((x,y): Restrict A r) = ((x,y): r & x \<in> A)"
+lemma Restrict_iff [iff]: "((x,y) \<in> Restrict A r) = ((x,y) \<in> r & x \<in> A)"
 by (unfold Restrict_def, blast)
 
 lemma Restrict_UNIV [simp]: "Restrict UNIV = id"

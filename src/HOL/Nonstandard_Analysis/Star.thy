@@ -231,7 +231,7 @@ lemma starfun_inverse2: "\<And>x. inverse (( *f* f) x) = ( *f* (\<lambda>x. inve
   by transfer (rule refl)
 
 text \<open>General lemma/theorem needed for proofs in elementary topology of the reals.\<close>
-lemma starfun_mem_starset: "\<And>x. ( *f* f) x : *s* A \<Longrightarrow> x \<in> *s* {x. f x \<in> A}"
+lemma starfun_mem_starset: "\<And>x. ( *f* f) x \<in> *s* A \<Longrightarrow> x \<in> *s* {x. f x \<in> A}"
   by transfer simp
 
 text \<open>Alternative definition for \<open>hrabs\<close> with \<open>rabs\<close> function applied

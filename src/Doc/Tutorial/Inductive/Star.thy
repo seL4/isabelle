@@ -77,7 +77,7 @@ is @{term"(x,y) \<in> r*"} rather than @{term"(y,z) \<in> r*"}. Although that
 is what we want, it is merely due to the order in which the assumptions occur
 in the subgoal, which it is not good practice to rely on. As a result,
 @{text"?xb"} becomes @{term x}, @{text"?xa"} becomes
-@{term y} and @{text"?P"} becomes @{term"%u v. (u,z) : r*"}, thus
+@{term y} and @{text"?P"} becomes @{term"\<lambda>u v. (u,z) \<in> r*"}, thus
 yielding the above subgoal. So what went wrong?
 
 When looking at the instantiation of @{text"?P"} we see that it does not
@@ -85,7 +85,7 @@ depend on its second parameter at all. The reason is that in our original
 goal, of the pair @{term"(x,y)"} only @{term x} appears also in the
 conclusion, but not @{term y}. Thus our induction statement is too
 general. Fortunately, it can easily be specialized:
-transfer the additional premise @{prop"(y,z):r*"} into the conclusion:\<close>
+transfer the additional premise @{prop"(y,z)\<in>r*"} into the conclusion:\<close>
 (*<*)oops(*>*)
 lemma rtc_trans[rule_format]:
   "(x,y) \<in> r* \<Longrightarrow> (y,z) \<in> r* \<longrightarrow> (x,z) \<in> r*"
@@ -157,7 +157,7 @@ Hence @{term rtc} is the definition of choice.
 
 \begin{exercise}\label{ex:converse-rtc-step}
 Show that the converse of @{thm[source]rtc_step} also holds:
-@{prop[display]"[| (x,y) : r*; (y,z) : r |] ==> (x,z) : r*"}
+@{prop[display]"[| (x,y) \<in> r*; (y,z) \<in> r |] ==> (x,z) \<in> r*"}
 \end{exercise}
 \begin{exercise}
 Repeat the development of this section, but starting with a definition of
@@ -166,7 +166,7 @@ in exercise~\ref{ex:converse-rtc-step}.
 \end{exercise}
 \<close>
 (*<*)
-lemma rtc_step2[rule_format]: "(x,y) : r* \<Longrightarrow> (y,z) : r --> (x,z) : r*"
+lemma rtc_step2[rule_format]: "(x,y) \<in> r* \<Longrightarrow> (y,z) \<in> r \<longrightarrow> (x,z) \<in> r*"
 apply(erule rtc.induct)
  apply blast
 apply(blast intro: rtc_step)

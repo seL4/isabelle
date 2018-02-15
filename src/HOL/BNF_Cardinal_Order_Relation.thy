@@ -290,7 +290,7 @@ using assms unfolding Card_order_iff_ordLeq_card_of
 using ordLeq_iff_ordLess_Restr card_of_Well_order by blast
 
 lemma card_of_underS:
-assumes r: "Card_order r" and a: "a : Field r"
+assumes r: "Card_order r" and a: "a \<in> Field r"
 shows "|underS r a| <o r"
 proof-
   let ?A = "underS r a"  let ?r' = "Restr r ?A"
@@ -878,8 +878,8 @@ qed
 
 lemma infinite_Card_order_limit:
 assumes r: "Card_order r" and "\<not>finite (Field r)"
-and a: "a : Field r"
-shows "EX b : Field r. a \<noteq> b \<and> (a,b) : r"
+and a: "a \<in> Field r"
+shows "\<exists>b \<in> Field r. a \<noteq> b \<and> (a,b) \<in> r"
 proof-
   have "Field r \<noteq> under r a"
   using assms Card_order_infinite_not_under by blast
@@ -891,7 +891,7 @@ proof-
   moreover have ba: "b \<noteq> a"
   using 1 r unfolding card_order_on_def well_order_on_def
   linear_order_on_def partial_order_on_def preorder_on_def refl_on_def by auto
-  ultimately have "(a,b) : r"
+  ultimately have "(a,b) \<in> r"
   using a r unfolding card_order_on_def well_order_on_def linear_order_on_def
   total_on_def by blast
   thus ?thesis using 1 ba by auto
@@ -1506,7 +1506,7 @@ subsection \<open>Regular cardinals\<close>
 
 definition cofinal where
 "cofinal A r \<equiv>
- ALL a : Field r. EX b : A. a \<noteq> b \<and> (a,b) : r"
+ \<forall>a \<in> Field r. \<exists>b \<in> A. a \<noteq> b \<and> (a,b) \<in> r"
 
 definition regularCard where
 "regularCard r \<equiv>
@@ -1521,21 +1521,21 @@ assumes r: "Card_order r"   "regularCard r"
 and As: "relChain r As"
 and Bsub: "B \<le> (UN i : Field r. As i)"
 and cardB: "|B| <o r"
-shows "EX i : Field r. B \<le> As i"
+shows "\<exists>i \<in> Field r. B \<le> As i"
 proof-
   let ?phi = "\<lambda>b j. j \<in> Field r \<and> b \<in> As j"
   have "\<forall>b\<in>B. \<exists>j. ?phi b j" using Bsub by blast
-  then obtain f where f: "!! b. b : B \<Longrightarrow> ?phi b (f b)"
+  then obtain f where f: "\<And>b. b \<in> B \<Longrightarrow> ?phi b (f b)"
   using bchoice[of B ?phi] by blast
   let ?K = "f ` B"
   {assume 1: "\<And>i. i \<in> Field r \<Longrightarrow> \<not> B \<le> As i"
    have 2: "cofinal ?K r"
    unfolding cofinal_def proof auto
-     fix i assume i: "i : Field r"
-     with 1 obtain b where b: "b : B \<and> b \<notin> As i" by blast
+     fix i assume i: "i \<in> Field r"
+     with 1 obtain b where b: "b \<in> B \<and> b \<notin> As i" by blast
      hence "i \<noteq> f b \<and> \<not> (f b,i) \<in> r"
      using As f unfolding relChain_def by auto
-     hence "i \<noteq> f b \<and> (i, f b) : r" using r
+     hence "i \<noteq> f b \<and> (i, f b) \<in> r" using r
      unfolding card_order_on_def well_order_on_def linear_order_on_def
      total_on_def using i f b by auto
      with b show "\<exists>b\<in>B. i \<noteq> f b \<and> (i, f b) \<in> r" by blast
@@ -1576,11 +1576,11 @@ proof-
      hence "|K| <=o r" using r' card_of_Card_order[of K] by blast
      hence "|K| \<le>o |?J|" using rJ ordLeq_ordIso_trans by blast
      moreover
-     {have "ALL j : K. |underS ?r' j| <o ?r'"
+     {have "\<forall>j\<in>K. |underS ?r' j| <o ?r'"
       using r' 1 by (auto simp: card_of_underS)
-      hence "ALL j : K. |underS ?r' j| \<le>o r"
+      hence "\<forall>j\<in>K. |underS ?r' j| \<le>o r"
       using r' card_of_Card_order by blast
-      hence "ALL j : K. |underS ?r' j| \<le>o |?J|"
+      hence "\<forall>j\<in>K. |underS ?r' j| \<le>o |?J|"
       using rJ ordLeq_ordIso_trans by blast
      }
      ultimately have "|?L| \<le>o |?J|"
@@ -1608,7 +1608,7 @@ assumes r: "Card_order r" and "\<not>finite (Field r)"
 and As: "relChain (cardSuc r) As"
 and Bsub: "B \<le> (UN i : Field (cardSuc r). As i)"
 and cardB: "|B| <=o r"
-shows "EX i : Field (cardSuc r). B \<le> As i"
+shows "\<exists>i \<in> Field (cardSuc r). B \<le> As i"
 proof-
   let ?r' = "cardSuc r"
   have "Card_order ?r' \<and> |B| <o ?r'"

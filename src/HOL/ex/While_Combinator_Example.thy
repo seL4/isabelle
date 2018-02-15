@@ -41,9 +41,9 @@ back into equality.\<close>
 theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) =
   P {0, 4, 2}"
 proof -
-  have seteq: "!!A B. (A = B) = ((!a : A. a:B) & (!b:B. b:A))"
+  have seteq: "\<And>A B. (A = B) = ((\<forall>a \<in> A. a\<in>B) \<and> (\<forall>b\<in>B. b\<in>A))"
     by blast
-  have aux: "!!f A B. {f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
+  have aux: "\<And>f A B. {f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
     apply blast
     done
   show ?thesis

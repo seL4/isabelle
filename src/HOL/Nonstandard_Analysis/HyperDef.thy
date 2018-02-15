@@ -138,7 +138,7 @@ subsection \<open>Properties of @{term starrel}\<close>
 lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
   by (simp add: starrel_def)
 
-lemma starrel_in_hypreal [simp]: "starrel``{x}:star"
+lemma starrel_in_hypreal [simp]: "starrel``{x}\<in>star"
   by (simp add: star_def starrel_def quotient_def, blast)
 
 declare Abs_star_inject [simp] Abs_star_inverse [simp]

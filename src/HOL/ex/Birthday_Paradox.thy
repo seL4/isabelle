@@ -36,10 +36,10 @@ next
   } note finite_delete = this
   from insert have hyps: "\<forall>y \<in> T. card ({g. g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}) = fact (card T - 1) div fact ((card T - 1) - card S)"(is "\<forall> _ \<in> T. _ = ?k") by auto
   from extensional_funcset_extend_domain_inj_on_eq[OF \<open>x \<notin> S\<close>]
-  have "card {f. f : extensional_funcset (insert x S) T & inj_on f (insert x S)} =
-    card ((%(y, g). g(x := y)) ` {(y, g). y : T & g : extensional_funcset S (T - {y}) & inj_on g S})"
+  have "card {f. f \<in> extensional_funcset (insert x S) T \<and> inj_on f (insert x S)} =
+    card ((\<lambda>(y, g). g(x := y)) ` {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S})"
     by metis
-  also from extensional_funcset_extend_domain_inj_onI[OF \<open>x \<notin> S\<close>, of T] have "... =  card {(y, g). y : T & g : extensional_funcset S (T - {y}) & inj_on g S}"
+  also from extensional_funcset_extend_domain_inj_onI[OF \<open>x \<notin> S\<close>, of T] have "\<dots> =  card {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}"
     by (simp add: card_image)
   also have "card {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S} =
     card {(y, g). y \<in> T \<and> g \<in> {f \<in> extensional_funcset S (T - {y}). inj_on f S}}" by auto

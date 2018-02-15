@@ -203,7 +203,7 @@ shows "\<lbrakk>pres_type step n A; bounded step n;
      q \<notin> w \<or> q = p \<rbrakk> 
   \<Longrightarrow> stable r step (merges f (step p (ss!p)) ss) q"
   apply (unfold stable_def)
-  apply (subgoal_tac "\<forall>s'. (q,s') \<in> set (step p (ss!p)) \<longrightarrow> s' : A")
+  apply (subgoal_tac "\<forall>s'. (q,s') \<in> set (step p (ss!p)) \<longrightarrow> s' \<in> A")
    prefer 2
    apply clarify
    apply (erule pres_typeD)

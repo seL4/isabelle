@@ -79,7 +79,7 @@ definition
 definition
   \<comment> \<open>spec (4)\<close>
   client_bounded :: "'a clientState_d program set"
-  where "client_bounded = UNIV guarantees  Always {s. ALL elt : set (ask s). elt \<le> NbT}"
+  where "client_bounded = UNIV guarantees  Always {s. \<forall>elt \<in> set (ask s). elt \<le> NbT}"
 
 definition
   \<comment> \<open>spec (5)\<close>
@@ -132,8 +132,8 @@ definition
          (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
                                      Increasing (sub i o allocRel))
          Int
-         Always {s. ALL i<Nclients.
-                     ALL elt : set ((sub i o allocAsk) s). elt \<le> NbT}
+         Always {s. \<forall>i<Nclients.
+                     \<forall>elt \<in> set ((sub i o allocAsk) s). elt \<le> NbT}
          Int
          (INT i : lessThan Nclients.
           INT h. {s. h \<le> (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
@@ -242,13 +242,13 @@ definition
                                  systemState.dummy = allocState_d.dummy al|))"
 
 axiomatization Alloc :: "'a allocState_d program"
-  where Alloc: "Alloc : alloc_spec"
+  where Alloc: "Alloc \<in> alloc_spec"
 
 axiomatization Client :: "'a clientState_d program"
-  where Client: "Client : client_spec"
+  where Client: "Client \<in> client_spec"
 
 axiomatization Network :: "'a systemState program"
-  where Network: "Network : network_spec"
+  where Network: "Network \<in> network_spec"
 
 definition System  :: "'a systemState program"
   where "System = rename sysOfAlloc Alloc \<squnion> Network \<squnion>
@@ -735,22 +735,22 @@ method_setup rename_client_map = \<open>
 \<close>
 
 text\<open>Lifting \<open>Client_Increasing\<close> to @{term systemState}\<close>
-lemma rename_Client_Increasing: "i : I
-      ==> rename sysOfClient (plam x: I. rename client_map Client) :
+lemma rename_Client_Increasing: "i \<in> I
+      ==> rename sysOfClient (plam x: I. rename client_map Client) \<in>
             UNIV  guarantees
             Increasing (ask o sub i o client) Int
             Increasing (rel o sub i o client)"
   by rename_client_map
 
-lemma preserves_sub_fst_lift_map: "[| F : preserves w; i ~= j |]
-      ==> F : preserves (sub i o fst o lift_map j o funPair v w)"
+lemma preserves_sub_fst_lift_map: "[| F \<in> preserves w; i \<noteq> j |]
+      ==> F \<in> preserves (sub i o fst o lift_map j o funPair v w)"
   apply (auto simp add: lift_map_def split_def linorder_neq_iff o_def)
   apply (drule_tac [!] subset_preserves_o [THEN [2] rev_subsetD])
   apply (auto simp add: o_def)
   done
 
 lemma client_preserves_giv_oo_client_map: "[| i < Nclients; j < Nclients |]
-      ==> Client : preserves (giv o sub i o fst o lift_map j o client_map)"
+      ==> Client \<in> preserves (giv o sub i o fst o lift_map j o client_map)"
   apply (cases "i=j")
   apply (simp, simp add: o_def non_dummy_def)
   apply (drule Client_preserves_dummy [THEN preserves_sub_fst_lift_map])
@@ -784,7 +784,7 @@ declare
   rename_sysOfAlloc_ok_Network [THEN ok_sym]
 
 lemma System_Increasing: "i < Nclients
-      ==> System : Increasing (ask o sub i o client) Int
+      ==> System \<in> Increasing (ask o sub i o client) Int
                    Increasing (rel o sub i o client)"
   apply (rule component_guaranteesD [OF rename_Client_Increasing Client_component_System])
   apply auto
@@ -803,7 +803,7 @@ lemmas rename_Alloc_Increasing =
                 allocGiv_o_inv_sysOfAlloc_eq']
 
 lemma System_Increasing_allocGiv:
-     "i < Nclients ==> System : Increasing (sub i o allocGiv)"
+     "i < Nclients \<Longrightarrow> System \<in> Increasing (sub i o allocGiv)"
   apply (unfold System_def)
   apply (simp add: o_def)
   apply (rule rename_Alloc_Increasing [THEN guarantees_Join_I1, THEN guaranteesD])
@@ -822,19 +822,19 @@ text\<open>Follows consequences.
     and allows it to be combined using \<open>Always_Int_rule\<close> below.\<close>
 
 lemma System_Follows_rel:
-  "i < Nclients ==> System : ((sub i o allocRel) Fols (rel o sub i o client))"
+  "i < Nclients ==> System \<in> ((sub i o allocRel) Fols (rel o sub i o client))"
   apply (auto intro!: Network_Rel [THEN component_guaranteesD])
   apply (simp add: ok_commute [of Network])
   done
 
 lemma System_Follows_ask:
-  "i < Nclients ==> System : ((sub i o allocAsk) Fols (ask o sub i o client))"
+  "i < Nclients ==> System \<in> ((sub i o allocAsk) Fols (ask o sub i o client))"
   apply (auto intro!: Network_Ask [THEN component_guaranteesD])
   apply (simp add: ok_commute [of Network])
   done
 
 lemma System_Follows_allocGiv:
-  "i < Nclients ==> System : (giv o sub i o client) Fols (sub i o allocGiv)"
+  "i < Nclients ==> System \<in> (giv o sub i o client) Fols (sub i o allocGiv)"
   apply (auto intro!: Network_Giv [THEN component_guaranteesD]
     rename_Alloc_Increasing [THEN component_guaranteesD])
   apply (simp_all add: o_def non_dummy_def ok_commute [of Network])
@@ -842,21 +842,21 @@ lemma System_Follows_allocGiv:
   done
 
 
-lemma Always_giv_le_allocGiv: "System : Always (INT i: lessThan Nclients.
+lemma Always_giv_le_allocGiv: "System \<in> Always (INT i: lessThan Nclients.
                        {s. (giv o sub i o client) s \<le> (sub i o allocGiv) s})"
   apply auto
   apply (erule System_Follows_allocGiv [THEN Follows_Bounded])
   done
 
 
-lemma Always_allocAsk_le_ask: "System : Always (INT i: lessThan Nclients.
+lemma Always_allocAsk_le_ask: "System \<in> Always (INT i: lessThan Nclients.
                        {s. (sub i o allocAsk) s \<le> (ask o sub i o client) s})"
   apply auto
   apply (erule System_Follows_ask [THEN Follows_Bounded])
   done
 
 
-lemma Always_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.
+lemma Always_allocRel_le_rel: "System \<in> Always (INT i: lessThan Nclients.
                        {s. (sub i o allocRel) s \<le> (rel o sub i o client) s})"
   by (auto intro!: Follows_Bounded System_Follows_rel)
 
@@ -875,7 +875,7 @@ lemmas System_Increasing_allocRel = System_Follows_rel [THEN Follows_Increasing1
 
 text\<open>safety (1), step 3\<close>
 lemma System_sum_bounded:
-    "System : Always {s. (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocGiv) s)
+    "System \<in> Always {s. (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocGiv) s)
             \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocRel) s)}"
   apply (simp add: o_apply)
   apply (insert Alloc_Safety [THEN rename_guarantees_sysOfAlloc_I])
@@ -886,14 +886,14 @@ lemma System_sum_bounded:
 
 text\<open>Follows reasoning\<close>
 
-lemma Always_tokens_giv_le_allocGiv: "System : Always (INT i: lessThan Nclients.
+lemma Always_tokens_giv_le_allocGiv: "System \<in> Always (INT i: lessThan Nclients.
                           {s. (tokens o giv o sub i o client) s
                            \<le> (tokens o sub i o allocGiv) s})"
   apply (rule Always_giv_le_allocGiv [THEN Always_weaken])
   apply (auto intro: tokens_mono_prefix simp add: o_apply)
   done
 
-lemma Always_tokens_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.
+lemma Always_tokens_allocRel_le_rel: "System \<in> Always (INT i: lessThan Nclients.
                           {s. (tokens o sub i o allocRel) s
                            \<le> (tokens o rel o sub i o client) s})"
   apply (rule Always_allocRel_le_rel [THEN Always_weaken])
@@ -901,7 +901,7 @@ lemma Always_tokens_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.
   done
 
 text\<open>safety (1), step 4 (final result!)\<close>
-theorem System_safety: "System : system_safety"
+theorem System_safety: "System \<in> system_safety"
   apply (unfold system_safety_def)
   apply (tactic \<open>resolve_tac @{context} [Always_Int_rule [@{thm System_sum_bounded},
     @{thm Always_tokens_giv_le_allocGiv}, @{thm Always_tokens_allocRel_le_rel}] RS
@@ -924,27 +924,27 @@ text\<open>progress (2), step 2; see also \<open>System_Increasing_allocRel\<clo
 lemmas System_Increasing_allocAsk =  System_Follows_ask [THEN Follows_Increasing1]
 
 text\<open>progress (2), step 3: lifting \<open>Client_Bounded\<close> to systemState\<close>
-lemma rename_Client_Bounded: "i : I
-    ==> rename sysOfClient (plam x: I. rename client_map Client) :
+lemma rename_Client_Bounded: "i \<in> I
+    ==> rename sysOfClient (plam x: I. rename client_map Client) \<in>
           UNIV  guarantees
-          Always {s. ALL elt : set ((ask o sub i o client) s). elt \<le> NbT}"
+          Always {s. \<forall>elt \<in> set ((ask o sub i o client) s). elt \<le> NbT}"
   by rename_client_map
 
 
 lemma System_Bounded_ask: "i < Nclients
-      ==> System : Always
-                    {s. ALL elt : set ((ask o sub i o client) s). elt \<le> NbT}"
+      ==> System \<in> Always
+                    {s. \<forall>elt \<in> set ((ask o sub i o client) s). elt \<le> NbT}"
   apply (rule component_guaranteesD [OF rename_Client_Bounded Client_component_System])
   apply auto
   done
 
-lemma Collect_all_imp_eq: "{x. ALL y. P y --> Q x y} = (INT y: {y. P y}. {x. Q x y})"
+lemma Collect_all_imp_eq: "{x. \<forall>y. P y \<longrightarrow> Q x y} = (INT y: {y. P y}. {x. Q x y})"
   apply blast
   done
 
 text\<open>progress (2), step 4\<close>
-lemma System_Bounded_allocAsk: "System : Always {s. ALL i<Nclients.
-                          ALL elt : set ((sub i o allocAsk) s). elt \<le> NbT}"
+lemma System_Bounded_allocAsk: "System \<in> Always {s. ALL i<Nclients.
+                          \<forall>elt \<in> set ((sub i o allocAsk) s). elt \<le> NbT}"
   apply (auto simp add: Collect_all_imp_eq)
   apply (tactic \<open>resolve_tac @{context} [Always_Int_rule [@{thm Always_allocAsk_le_ask},
     @{thm System_Bounded_ask}] RS @{thm Always_weaken}] 1\<close>)
@@ -958,9 +958,9 @@ text\<open>progress (2), step 6\<close>
 lemmas System_Increasing_giv =  System_Follows_allocGiv [THEN Follows_Increasing1]
 
 
-lemma rename_Client_Progress: "i: I
+lemma rename_Client_Progress: "i \<in> I
    ==> rename sysOfClient (plam x: I. rename client_map Client)
-        : Increasing (giv o sub i o client)
+        \<in> Increasing (giv o sub i o client)
           guarantees
           (INT h. {s. h \<le> (giv o sub i o client) s &
                             h pfixGe (ask o sub i o client) s}
@@ -972,7 +972,7 @@ lemma rename_Client_Progress: "i: I
 
 text\<open>progress (2), step 7\<close>
 lemma System_Client_Progress:
-  "System : (INT i : (lessThan Nclients).
+  "System \<in> (INT i : (lessThan Nclients).
             INT h. {s. h \<le> (giv o sub i o client) s &
                        h pfixGe (ask o sub i o client) s}
                 LeadsTo {s. tokens h \<le> (tokens o rel o sub i o client) s})"
@@ -998,7 +998,7 @@ lemmas System_lemma2 =
 
 
 lemma System_lemma3: "i < Nclients
-      ==> System : {s. h \<le> (sub i o allocGiv) s &
+      ==> System \<in> {s. h \<le> (sub i o allocGiv) s &
                        h pfixGe (sub i o allocAsk) s}
                    LeadsTo
                    {s. h \<le> (giv o sub i o client) s &
@@ -1013,7 +1013,7 @@ lemma System_lemma3: "i < Nclients
 
 text\<open>progress (2), step 8: Client i's "release" action is visible system-wide\<close>
 lemma System_Alloc_Client_Progress: "i < Nclients
-      ==> System : {s. h \<le> (sub i o allocGiv) s &
+      ==> System \<in> {s. h \<le> (sub i o allocGiv) s &
                        h pfixGe (sub i o allocAsk) s}
                    LeadsTo {s. tokens h \<le> (tokens o sub i o allocRel) s}"
   apply (rule LeadsTo_Trans)
@@ -1033,7 +1033,7 @@ text\<open>Lifting \<open>Alloc_Progress\<close> up to the level of systemState\
 
 text\<open>progress (2), step 9\<close>
 lemma System_Alloc_Progress:
- "System : (INT i : (lessThan Nclients).
+ "System \<in> (INT i : (lessThan Nclients).
             INT h. {s. h \<le> (sub i o allocAsk) s}
                    LeadsTo {s. h pfixLe (sub i o allocGiv) s})"
   apply (simp only: o_apply sub_def)
@@ -1048,7 +1048,7 @@ lemma System_Alloc_Progress:
   done
 
 text\<open>progress (2), step 10 (final result!)\<close>
-lemma System_Progress: "System : system_progress"
+lemma System_Progress: "System \<in> system_progress"
   apply (unfold system_progress_def)
   apply (cut_tac System_Alloc_Progress)
   apply auto
@@ -1058,7 +1058,7 @@ lemma System_Progress: "System : system_progress"
   done
 
 
-theorem System_correct: "System : system_spec"
+theorem System_correct: "System \<in> system_spec"
   apply (unfold system_spec_def)
   apply (blast intro: System_safety System_Progress)
   done
@@ -1083,7 +1083,7 @@ lemma preserves_non_dummy_eq: "(preserves non_dummy) =
   done
 
 text\<open>Could go to Extend.ML\<close>
-lemma bij_fst_inv_inv_eq: "bij f ==> fst (inv (%(x, u). inv f x) z) = f z"
+lemma bij_fst_inv_inv_eq: "bij f \<Longrightarrow> fst (inv (%(x, u). inv f x) z) = f z"
   apply (rule fst_inv_equalityI)
    apply (rule_tac f = "%z. (f z, h z)" for h in surjI)
    apply (simp add: bij_is_inj inv_f_f)

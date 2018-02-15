@@ -52,7 +52,7 @@ apply (unfold fscons_def)
 apply (simp)
 done
 
-lemma fstream_exhaust: "x = UU |  (? a y. x = a~> y)"
+lemma fstream_exhaust: "x = UU \<or> (\<exists>a y. x = a~> y)"
 apply (simp add: fscons_def2)
 apply (cut_tac stream.nchotomy)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
@@ -65,20 +65,20 @@ apply fast
 apply fast
 done
 
-lemma fstream_exhaust_eq: "(x ~= UU) = (? a y. x = a~> y)"
+lemma fstream_exhaust_eq: "(x \<noteq> UU) = (\<exists>a y. x = a~> y)"
 apply (simp add: fscons_def2 stream_exhaust_eq)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done
 
 
-lemma fscons_not_empty [simp]: "a~> s ~= <>"
+lemma fscons_not_empty [simp]: "a~> s \<noteq> <>"
 by (simp add: fscons_def2)
 
 
-lemma fscons_inject [simp]: "(a~> s = b~> t) = (a = b &  s = t)"
+lemma fscons_inject [simp]: "(a~> s = b~> t) = (a = b \<and> s = t)"
 by (simp add: fscons_def2)
 
-lemma fstream_prefix: "a~> s << t ==> ? tt. t = a~> tt &  s << tt"
+lemma fstream_prefix: "a~> s << t ==> \<exists>tt. t = a~> tt \<and> s << tt"
 apply (cases t)
 apply (cut_tac fscons_not_empty)
 apply (fast dest: bottomI)
@@ -86,7 +86,7 @@ apply (simp add: fscons_def2)
 done
 
 lemma fstream_prefix' [simp]:
-        "x << a~> z = (x = <> |  (? y. x = a~> y &  y << z))"
+        "x << a~> z = (x = <> \<or> (\<exists>y. x = a~> y \<and> y << z))"
 apply (simp add: fscons_def2 lift.distinct(2) [THEN stream_prefix'])
 apply (safe)
 apply (erule_tac [!] contrapos_np)
@@ -110,7 +110,7 @@ lemmas rt_empty = stream.sel_rews (2)
 lemma rt_fscons [simp]: "rt\<cdot>(m~> s) = s"
 by (simp add: fscons_def)
 
-lemma ft_eq [simp]: "(ft\<cdot>s = Def a) = (? t. s = a~> t)"
+lemma ft_eq [simp]: "(ft\<cdot>s = Def a) = (\<exists>t. s = a~> t)"
 apply (unfold fscons_def)
 apply (simp)
 apply (safe)
@@ -144,13 +144,13 @@ lemma slen_fscons: "#(m~> s) = eSuc (#s)"
 by (simp add: fscons_def)
 
 lemma slen_fscons_eq:
-        "(enat (Suc n) < #x) = (? a y. x = a~> y & enat n < #y)"
+        "(enat (Suc n) < #x) = (\<exists>a y. x = a~> y \<and> enat n < #y)"
 apply (simp add: fscons_def2 slen_scons_eq)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done
 
 lemma slen_fscons_eq_rev:
-        "(#x < enat (Suc (Suc n))) = (!a y. x ~= a~> y | #y < enat (Suc n))"
+        "(#x < enat (Suc (Suc n))) = (\<forall>a y. x \<noteq> a~> y \<or> #y < enat (Suc n))"
 apply (simp add: fscons_def2 slen_scons_eq_rev)
 apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
 apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
@@ -201,7 +201,7 @@ apply (rule sfilter_empty)
 done
 
 lemma fsfilter_fscons:
-        "A(C)x~> xs = (if x:A then x~> (A(C)xs) else A(C)xs)"
+        "A(C)x~> xs = (if x\<in>A then x~> (A(C)xs) else A(C)xs)"
 apply (unfold fsfilter_def)
 apply (simp add: fscons_def2 If_and_if)
 done
@@ -237,10 +237,10 @@ apply (force)
 done
 
 lemma fstream_lub_lemma:
-      "\<lbrakk>chain Y; (\<Squnion>i. Y i) = a\<leadsto>s\<rbrakk> \<Longrightarrow> (\<exists>j t. Y j = a\<leadsto>t) & (\<exists>X. chain X & (!i. ? j. Y j = a\<leadsto>X i) & (\<Squnion>i. X i) = s)"
+      "\<lbrakk>chain Y; (\<Squnion>i. Y i) = a\<leadsto>s\<rbrakk> \<Longrightarrow> (\<exists>j t. Y j = a\<leadsto>t) \<and> (\<exists>X. chain X \<and> (\<forall>i. \<exists>j. Y j = a\<leadsto>X i) \<and> (\<Squnion>i. X i) = s)"
 apply (frule (1) fstream_lub_lemma1)
 apply (clarsimp)
-apply (rule_tac x="%i. rt\<cdot>(Y(i+j))" in exI)
+apply (rule_tac x="\<lambda>i. rt\<cdot>(Y(i+j))" in exI)
 apply (rule conjI)
 apply  (erule chain_shift [THEN chain_monofun])
 apply safe

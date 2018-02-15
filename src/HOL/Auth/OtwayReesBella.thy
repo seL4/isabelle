@@ -166,7 +166,7 @@ text\<open>Describes the form of K and NA when the Server sends this message.  A
 lemma Says_Server_message_form: 
 "\<lbrakk>Says Server B  \<lbrace>Nonce M, Crypt (shrK B) \<lbrace>X, Nonce Nb, Key K\<rbrace>\<rbrace> \<in> set evs;  
      evs \<in> orb\<rbrakk>                                            
- \<Longrightarrow> K \<notin> range shrK & (\<exists> A Na. X=(Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>))"
+ \<Longrightarrow> K \<notin> range shrK \<and> (\<exists> A Na. X=(Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>))"
 by (erule rev_mp, erule orb.induct, simp_all)
 
 lemma Says_Server_imp_Gets: 
@@ -212,19 +212,19 @@ done
 lemma Gets_Server_message_form: 
 "\<lbrakk>Gets B \<lbrace>Nonce M, Crypt (shrK B) \<lbrace>X, Nonce Nb, Key K\<rbrace>\<rbrace> \<in> set evs;  
     evs \<in> orb\<rbrakk>                                              
- \<Longrightarrow> (K \<notin> range shrK & (\<exists> A Na. X = (Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>)))    
+ \<Longrightarrow> (K \<notin> range shrK \<and> (\<exists> A Na. X = (Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>)))    
              | X \<in> analz (knows Spy evs)"
 by (metis B_trusts_OR3 Crypt_Spy_analz_bad Gets_imp_Says MPair_analz MPair_parts
           Says_Server_message_form Says_imp_analz_Spy Says_imp_parts_knows_Spy)
 
 lemma unique_Na: "\<lbrakk>Says A B  \<lbrace>Nonce M, Agent A, Agent B, Crypt (shrK A) \<lbrace>Nonce Na, Nonce M, Agent A, Agent B\<rbrace>\<rbrace> \<in> set evs;   
          Says A B' \<lbrace>Nonce M', Agent A, Agent B', Crypt (shrK A) \<lbrace>Nonce Na, Nonce M', Agent A, Agent B'\<rbrace>\<rbrace> \<in> set evs;  
-    A \<notin> bad; evs \<in> orb\<rbrakk> \<Longrightarrow> B=B' & M=M'"
+    A \<notin> bad; evs \<in> orb\<rbrakk> \<Longrightarrow> B=B' \<and> M=M'"
 by (erule rev_mp, erule rev_mp, erule orb.induct, simp_all, blast+)
 
 lemma unique_Nb: "\<lbrakk>Says B Server \<lbrace>Nonce M, Agent A, Agent B, X, Crypt (shrK B) \<lbrace>Nonce Nb, Nonce M, Nonce M, Agent A, Agent B\<rbrace>\<rbrace> \<in> set evs;   
          Says B Server \<lbrace>Nonce M', Agent A', Agent B, X', Crypt (shrK B) \<lbrace>Nonce Nb,Nonce M', Nonce M', Agent A', Agent B\<rbrace>\<rbrace> \<in> set evs;   
-    B \<notin> bad; evs \<in> orb\<rbrakk> \<Longrightarrow>   M=M' & A=A' & X=X'"
+    B \<notin> bad; evs \<in> orb\<rbrakk> \<Longrightarrow>   M=M' \<and> A=A' \<and> X=X'"
 by (erule rev_mp, erule rev_mp, erule orb.induct, simp_all, blast+)
 
 lemma analz_image_freshCryptK_lemma:
@@ -342,7 +342,7 @@ done
 lemma Gets_Server_message_form': 
 "\<lbrakk>Gets B \<lbrace>Nonce M, Crypt (shrK B) \<lbrace>X, Nonce Nb, Key K\<rbrace>\<rbrace>  \<in> set evs;  
    B \<notin> bad; evs \<in> orb\<rbrakk>                              
-  \<Longrightarrow> K \<notin> range shrK & (\<exists> A Na. X = (Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>))"
+  \<Longrightarrow> K \<notin> range shrK \<and> (\<exists> A Na. X = (Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>))"
 by (blast dest!: B_trusts_OR3 Says_Server_message_form)
 
 

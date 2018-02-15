@@ -8,37 +8,37 @@ begin
 
 subsection \<open>Logic\<close>
 
-lemma and_de_morgan_and_absorbe: "(~(A&B)) = ((~A)&B| ~B)"
+lemma and_de_morgan_and_absorbe: "(\<not>(A\<and>B)) = ((\<not>A)\<and>B\<or> \<not>B)"
   by blast
 
-lemma bool_if_impl_or: "(if C then A else B) --> (A|B)"
+lemma bool_if_impl_or: "(if C then A else B) \<longrightarrow> (A\<or>B)"
   by auto
 
-lemma exis_elim: "(? x. x=P & Q(x)) = Q(P)"
+lemma exis_elim: "(\<exists>x. x=P \<and> Q(x)) = Q(P)"
   by blast
 
 
 subsection \<open>Sets\<close>
 
 lemma set_lemmas:
-    "f(x) : (UN x. {f(x)})"
-    "f x y : (UN x y. {f x y})"
-    "!!a. (!x. a ~= f(x)) ==> a ~: (UN x. {f(x)})"
-    "!!a. (!x y. a ~= f x y) ==> a ~: (UN x y. {f x y})"
+    "f(x) \<in> (\<Union>x. {f(x)})"
+    "f x y \<in> (\<Union>x y. {f x y})"
+    "\<And>a. (\<forall>x. a \<noteq> f(x)) \<Longrightarrow> a \<notin> (\<Union>x. {f(x)})"
+    "\<And>a. (\<forall>x y. a \<noteq> f x y) ==> a \<notin> (\<Union>x y. {f x y})"
   by auto
 
 text \<open>2 Lemmas to add to \<open>set_lemmas\<close>, used also for action handling, 
    namely for Intersections and the empty list (compatibility of IOA!).\<close>
-lemma singleton_set: "(UN b.{x. x=f(b)})= (UN b.{f(b)})"
+lemma singleton_set: "(\<Union>b.{x. x=f(b)}) = (\<Union>b.{f(b)})"
   by blast
 
-lemma de_morgan: "((A|B)=False) = ((~A)&(~B))"
+lemma de_morgan: "((A\<or>B)=False) = ((\<not>A)\<and>(\<not>B))"
   by blast
 
 
 subsection \<open>Lists\<close>
 
-lemma cons_not_nil: "l ~= [] --> (? x xs. l = (x#xs))"
+lemma cons_not_nil: "l \<noteq> [] \<longrightarrow> (\<exists>x xs. l = (x#xs))"
   by (induct l) simp_all
 
 end

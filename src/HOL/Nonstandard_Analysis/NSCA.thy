@@ -57,13 +57,13 @@ lemma inv_hcomplex_of_complex_image: "inv hcomplex_of_complex `SComplex = UNIV"
 by (auto simp add: Standard_def image_def) (metis inj_star_of inv_f_f)
 
 lemma SComplex_hcomplex_of_complex_image: 
-      "[| \<exists>x. x: P; P \<le> SComplex |] ==> \<exists>Q. P = hcomplex_of_complex ` Q"
+      "\<lbrakk>\<exists>x. x \<in> P; P \<le> SComplex\<rbrakk> \<Longrightarrow> \<exists>Q. P = hcomplex_of_complex ` Q"
 apply (simp add: Standard_def, blast)
 done
 
 lemma SComplex_SReal_dense:
-     "[| x \<in> SComplex; y \<in> SComplex; hcmod x < hcmod y  
-      |] ==> \<exists>r \<in> Reals. hcmod x< r \<and> r < hcmod y"
+     "\<lbrakk>x \<in> SComplex; y \<in> SComplex; hcmod x < hcmod y  
+      \<rbrakk> \<Longrightarrow> \<exists>r \<in> Reals. hcmod x< r \<and> r < hcmod y"
 apply (auto intro: SReal_dense simp add: SReal_hcmod_SComplex)
 done
 
@@ -78,7 +78,7 @@ lemma HFinite_hcmod_iff: "(x \<in> HFinite) = (hcmod x \<in> HFinite)"
 by (simp add: HFinite_def)
 
 lemma HFinite_bounded_hcmod:
-  "[|x \<in> HFinite; y \<le> hcmod x; 0 \<le> y |] ==> y: HFinite"
+  "\<lbrakk>x \<in> HFinite; y \<le> hcmod x; 0 \<le> y\<rbrakk> \<Longrightarrow> y \<in> HFinite"
 by (auto intro: HFinite_bounded simp add: HFinite_hcmod_iff)
 
 
@@ -343,14 +343,14 @@ lemma Standard_HComplex:
 by (simp add: HComplex_def)
 
 (* Here we go - easy proof now!! *)
-lemma stc_part_Ex: "x:HFinite ==> \<exists>t \<in> SComplex. x \<approx> t"
+lemma stc_part_Ex: "x \<in> HFinite \<Longrightarrow> \<exists>t \<in> SComplex. x \<approx> t"
 apply (simp add: hcomplex_HFinite_iff hcomplex_approx_iff)
 apply (rule_tac x="HComplex (st (hRe x)) (st (hIm x))" in bexI)
 apply (simp add: st_approx_self [THEN approx_sym])
 apply (simp add: Standard_HComplex st_SReal [unfolded Reals_eq_Standard])
 done
 
-lemma stc_part_Ex1: "x\<in>HFinite \<Longrightarrow> \<exists>!t. t \<in> SComplex \<and> x \<approx> t"
+lemma stc_part_Ex1: "x \<in> HFinite \<Longrightarrow> \<exists>!t. t \<in> SComplex \<and> x \<approx> t"
 apply (drule stc_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_complex)
@@ -362,7 +362,7 @@ lemmas hcomplex_of_complex_approx_inverse =
 
 subsection\<open>Theorems About Monads\<close>
 
-lemma monad_zero_hcmod_iff: "(x \<in> monad 0) = (hcmod x:monad 0)"
+lemma monad_zero_hcmod_iff: "(x \<in> monad 0) = (hcmod x \<in> monad 0)"
 by (simp add: Infinitesimal_monad_zero_iff [symmetric] Infinitesimal_hcmod_iff)
 
 

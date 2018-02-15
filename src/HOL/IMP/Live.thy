@@ -176,23 +176,23 @@ by (auto simp: fun_eq_iff[symmetric])
 text\<open>Now the opposite direction.\<close>
 
 lemma SKIP_bury[simp]:
-  "SKIP = bury c X \<longleftrightarrow> c = SKIP | (EX x a. c = x::=a & x \<notin> X)"
+  "SKIP = bury c X \<longleftrightarrow> c = SKIP | (\<exists>x a. c = x::=a & x \<notin> X)"
 by (cases c) auto
 
-lemma Assign_bury[simp]: "x::=a = bury c X \<longleftrightarrow> c = x::=a & x : X"
+lemma Assign_bury[simp]: "x::=a = bury c X \<longleftrightarrow> c = x::=a \<and> x \<in> X"
 by (cases c) auto
 
 lemma Seq_bury[simp]: "bc\<^sub>1;;bc\<^sub>2 = bury c X \<longleftrightarrow>
-  (EX c\<^sub>1 c\<^sub>2. c = c\<^sub>1;;c\<^sub>2 & bc\<^sub>2 = bury c\<^sub>2 X & bc\<^sub>1 = bury c\<^sub>1 (L c\<^sub>2 X))"
+  (\<exists>c\<^sub>1 c\<^sub>2. c = c\<^sub>1;;c\<^sub>2 & bc\<^sub>2 = bury c\<^sub>2 X & bc\<^sub>1 = bury c\<^sub>1 (L c\<^sub>2 X))"
 by (cases c) auto
 
 lemma If_bury[simp]: "IF b THEN bc1 ELSE bc2 = bury c X \<longleftrightarrow>
-  (EX c1 c2. c = IF b THEN c1 ELSE c2 &
+  (\<exists>c1 c2. c = IF b THEN c1 ELSE c2 &
      bc1 = bury c1 X & bc2 = bury c2 X)"
 by (cases c) auto
 
 lemma While_bury[simp]: "WHILE b DO bc' = bury c X \<longleftrightarrow>
-  (EX c'. c = WHILE b DO c' & bc' = bury c' (L (WHILE b DO c') X))"
+  (\<exists>c'. c = WHILE b DO c' & bc' = bury c' (L (WHILE b DO c') X))"
 by (cases c) auto
 
 theorem bury_correct2:

@@ -740,7 +740,7 @@ theorem compiler_correctness:
 
                     (* case NewC *)
                     apply clarify
-                    apply (frule wf_prog_ws_prog [THEN wf_subcls1]) (* establish  wf ((subcls1 G)^-1) *)
+                    apply (frule wf_prog_ws_prog [THEN wf_subcls1]) (* establish  wf ((subcls1 G)\<inverse>) *)
                     apply (simp add: c_hupd_hp_invariant)
                     apply (rule progression_one_step)
                     apply (rotate_tac 1, drule sym) (* reverse equation (a, None) = new_Addr (fst s) *)

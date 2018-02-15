@@ -303,7 +303,7 @@ oops
 
 (* FIXME: some dramatic performance decrease after changing the code equation of the ntrancl *)
 lemma
-  "(x, z) : rtrancl (R Un S) ==> \<exists> y. (x, y) : rtrancl R & (y, z) : rtrancl S"
+  "(x, z) \<in> rtrancl (R Un S) \<Longrightarrow> \<exists>y. (x, y) \<in> rtrancl R \<and> (y, z) \<in> rtrancl S"
 (*quickcheck[exhaustive, expect = counterexample]*)
 oops
 

@@ -52,9 +52,9 @@ definition par_scheds :: "'a schedule_module \<Rightarrow> 'a schedule_module \<
       schA = fst SchedsA; sigA = snd SchedsA;
       schB = fst SchedsB; sigB = snd SchedsB
      in
-      ({sch. Filter (%a. a:actions sigA)\<cdot>sch : schA} \<inter>
-       {sch. Filter (%a. a:actions sigB)\<cdot>sch : schB} \<inter>
-       {sch. Forall (%x. x:(actions sigA Un actions sigB)) sch},
+      ({sch. Filter (\<lambda>a. a\<in>actions sigA)\<cdot>sch \<in> schA} \<inter>
+       {sch. Filter (\<lambda>a. a\<in>actions sigB)\<cdot>sch \<in> schB} \<inter>
+       {sch. Forall (\<lambda>x. x\<in>(actions sigA Un actions sigB)) sch},
         asig_comp sigA sigB))"
 
 

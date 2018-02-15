@@ -24,12 +24,12 @@ definition
       us @ z' # vs)"
 
 
-lemma step1_converse [simp]: "step1 (r^--1) = (step1 r)^--1"
+lemma step1_converse [simp]: "step1 (r\<inverse>\<inverse>) = (step1 r)\<inverse>\<inverse>"
   apply (unfold step1_def)
   apply (blast intro!: order_antisym)
   done
 
-lemma in_step1_converse [iff]: "(step1 (r^--1) x y) = ((step1 r)^--1 x y)"
+lemma in_step1_converse [iff]: "(step1 (r\<inverse>\<inverse>) x y) = ((step1 r)\<inverse>\<inverse> x y)"
   apply auto
   done
 

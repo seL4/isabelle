@@ -152,8 +152,8 @@ subsection\<open>Session keys are not used to encrypt other session keys\<close>
 
 lemma analz_image_freshK [rule_format]:
  "evs \<in> yahalom ==>
-   \<forall>K KK. KK <= - (range shrK) -->
-          (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
+   \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+          (Key K \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 by (erule yahalom.induct, 
     drule_tac [7] YM4_analz_knows_Spy, analz_freshK, spy_analz, blast) 
@@ -172,7 +172,7 @@ lemma unique_session_keys:
         Says Server A'
           \<lbrace>Crypt (shrK A') \<lbrace>Agent B', Key K, na', nb'\<rbrace>, X'\<rbrace> \<in> set evs;
         evs \<in> yahalom |]
-     ==> A=A' & B=B' & na=na' & nb=nb'"
+     ==> A=A' \<and> B=B' \<and> na=na' \<and> nb=nb'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule yahalom.induct, simp_all)
 txt\<open>YM3, by freshness, and YM4\<close>
@@ -186,7 +186,7 @@ lemma secrecy_lemma:
       ==> Says Server A
             \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K, na, nb\<rbrace>,
               Crypt (shrK B) \<lbrace>Agent A, Key K\<rbrace>\<rbrace>
-           \<in> set evs -->
+           \<in> set evs \<longrightarrow>
           Key K \<notin> analz (knows Spy evs)"
 apply (erule yahalom.induct, force, drule_tac [6] YM4_analz_knows_Spy)
 apply (simp_all add: pushes analz_insert_eq analz_insert_freshK, spy_analz)  (*Fake*)
@@ -260,7 +260,7 @@ text\<open>B knows, by the second part of A's message, that the Server distribut
   the secrecy of NB.\<close>
 lemma B_trusts_YM4_newK [rule_format]:
      "[|Key K \<notin> analz (knows Spy evs);  evs \<in> yahalom|]
-      ==> Crypt K (Nonce NB) \<in> parts (knows Spy evs) -->
+      ==> Crypt K (Nonce NB) \<in> parts (knows Spy evs) \<longrightarrow>
           (\<exists>A B NA. Says Server A
                       \<lbrace>Crypt (shrK A) \<lbrace>Agent B, Key K,
                                 Nonce NA, Nonce NB\<rbrace>,
@@ -323,10 +323,10 @@ text\<open>Assuming the session key is secure, if both certificates are present 
   NB matters for freshness.\<close>
 lemma A_Said_YM3_lemma [rule_format]:
      "evs \<in> yahalom
-      ==> Key K \<notin> analz (knows Spy evs) -->
-          Crypt K (Nonce NB) \<in> parts (knows Spy evs) -->
-          Crypt (shrK B) \<lbrace>Agent A, Key K\<rbrace> \<in> parts (knows Spy evs) -->
-          B \<notin> bad -->
+      ==> Key K \<notin> analz (knows Spy evs) \<longrightarrow>
+          Crypt K (Nonce NB) \<in> parts (knows Spy evs) \<longrightarrow>
+          Crypt (shrK B) \<lbrace>Agent A, Key K\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
+          B \<notin> bad \<longrightarrow>
           (\<exists>X. Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> \<in> set evs)"
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)

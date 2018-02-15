@@ -1565,7 +1565,7 @@ done
 lemma imethds_declI: "\<lbrakk>m \<in> imethds G I sig; ws_prog G; is_iface G I\<rbrakk> \<Longrightarrow> 
   (\<exists>i. iface G (decliface m) = Some i \<and> 
   table_of (imethods i) sig = Some (mthd m)) \<and>  
-  (I,decliface m) \<in> (subint1 G)^* \<and> m \<in> imethds G (decliface m) sig"
+  (I,decliface m) \<in> (subint1 G)\<^sup>* \<and> m \<in> imethds G (decliface m) sig"
 apply (erule rev_mp)
 apply (rule ws_subint1_induct, assumption, assumption)
 apply (subst imethds_rec, erule conjunct1, assumption)

@@ -148,9 +148,9 @@ suffices to talk about reachability, i.e.\ we can use relations directly. The
 first version uses a relation on @{typ"'a ref"}:\<close>
 
 lemma "VARS tl p
-  {(p,X) \<in> {(Ref x,tl x) |x. True}^*}
+  {(p,X) \<in> {(Ref x,tl x) |x. True}\<^sup>*}
   WHILE p \<noteq> Null \<and> p \<noteq> X
-  INV {(p,X) \<in> {(Ref x,tl x) |x. True}^*}
+  INV {(p,X) \<in> {(Ref x,tl x) |x. True}\<^sup>*}
   DO p := p^.tl OD
   {p = X}"
 apply vcg_simp
@@ -164,9 +164,9 @@ done
 text\<open>Finally, a version based on a relation on type @{typ 'a}:\<close>
 
 lemma "VARS tl p
-  {p \<noteq> Null \<and> (addr p,X) \<in> {(x,y). tl x = Ref y}^*}
+  {p \<noteq> Null \<and> (addr p,X) \<in> {(x,y). tl x = Ref y}\<^sup>*}
   WHILE p \<noteq> Null \<and> p \<noteq> Ref X
-  INV {p \<noteq> Null \<and> (addr p,X) \<in> {(x,y). tl x = Ref y}^*}
+  INV {p \<noteq> Null \<and> (addr p,X) \<in> {(x,y). tl x = Ref y}\<^sup>*}
   DO p := p^.tl OD
   {p = Ref X}"
 apply vcg_simp
@@ -241,7 +241,7 @@ lemma "VARS hd tl p q r s
  THEN r := p; p := p^.tl ELSE r := q; q := q^.tl FI;
  s := r;
  WHILE p \<noteq> Null \<or> q \<noteq> Null
- INV {EX rs ps qs a. Path tl r rs s \<and> List tl p ps \<and> List tl q qs \<and>
+ INV {\<exists>rs ps qs a. Path tl r rs s \<and> List tl p ps \<and> List tl q qs \<and>
       distinct(a # ps @ qs @ rs) \<and> s = Ref a \<and>
       merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
       rs @ a # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>
@@ -367,15 +367,15 @@ lemma [simp]: "islist f p \<Longrightarrow> distinct (list f p)"
 by (rule unproven)
 
 lemma "VARS hd tl p q r s
- {islist tl p & Ps = list tl p \<and> islist tl q & Qs = list tl q \<and>
+ {islist tl p \<and> Ps = list tl p \<and> islist tl q \<and> Qs = list tl q \<and>
   set Ps \<inter> set Qs = {} \<and>
   (p \<noteq> Null \<or> q \<noteq> Null)}
  IF cor (q = Null) (cand (p \<noteq> Null) (p^.hd \<le> q^.hd))
  THEN r := p; p := p^.tl ELSE r := q; q := q^.tl FI;
  s := r;
  WHILE p \<noteq> Null \<or> q \<noteq> Null
- INV {EX rs ps qs a. ispath tl r s & rs = path tl r s \<and>
-      islist tl p & ps = list tl p \<and> islist tl q & qs = list tl q \<and>
+ INV {\<exists>rs ps qs a. ispath tl r s \<and> rs = path tl r s \<and>
+      islist tl p \<and> ps = list tl p \<and> islist tl q \<and> qs = list tl q \<and>
       distinct(a # ps @ qs @ rs) \<and> s = Ref a \<and>
       merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
       rs @ a # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>

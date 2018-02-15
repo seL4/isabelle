@@ -15,7 +15,7 @@ definition le :: "'a ord \<Rightarrow> 'a option ord" where
                                                   | Some x \<Rightarrow> x <=_r y)"
 
 definition opt :: "'a set \<Rightarrow> 'a option set" where
-"opt A == insert None {x . ? y:A. x = Some y}"
+"opt A == insert None {x. \<exists>y\<in>A. x = Some y}"
 
 definition sup :: "'a ebinop \<Rightarrow> 'a option ebinop" where
 "sup f o1 o2 ==  
@@ -63,7 +63,7 @@ apply (simp split: option.split)
 done 
 
 lemma Some_le [iff]:
-  "(Some x <=_(le r) ox) = (? y. ox = Some y & x <=_r y)"
+  "(Some x <=_(le r) ox) = (\<exists>y. ox = Some y \<and> x <=_r y)"
 apply (unfold lesub_def le_def)
 apply (simp split: option.split)
 done 
@@ -89,11 +89,11 @@ lemma sup_None2 [iff]:
 
 
 lemma None_in_opt [iff]:
-  "None : opt A"
+  "None \<in> opt A"
 by (simp add: opt_def)
 
 lemma Some_in_opt [iff]:
-  "(Some x : opt A) = (x:A)"
+  "(Some x \<in> opt A) = (x\<in>A)"
 apply (unfold opt_def)
 apply auto
 done 
@@ -132,34 +132,34 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
   have "closed ?A ?f"
   proof (unfold closed_def, intro strip)
     fix x y    
-    assume x: "x : ?A" 
-    assume y: "y : ?A" 
+    assume x: "x \<in> ?A" 
+    assume y: "y \<in> ?A" 
 
     { fix a b
       assume ab: "x = OK a" "y = OK b"
       
       with x 
-      have a: "\<And>c. a = Some c \<Longrightarrow> c : A"
+      have a: "\<And>c. a = Some c \<Longrightarrow> c \<in> A"
         by (clarsimp simp add: opt_def)
 
       from ab y
-      have b: "\<And>d. b = Some d \<Longrightarrow> d : A"
+      have b: "\<And>d. b = Some d \<Longrightarrow> d \<in> A"
         by (clarsimp simp add: opt_def)
       
       { fix c d assume "a = Some c" "b = Some d"
         with ab x y
-        have "c:A & d:A"
+        have "c \<in> A \<and> d \<in> A"
           by (simp add: err_def opt_def Bex_def)
         with clo
-        have "f c d : err A"
+        have "f c d \<in> err A"
           by (simp add: closed_def plussub_def err_def lift2_def)
         moreover
         fix z assume "f c d = OK z"
         ultimately
-        have "z : A" by simp
+        have "z \<in> A" by simp
       } note f_closed = this    
 
-      have "sup f a b : ?A"
+      have "sup f a b \<in> ?A"
       proof (cases a)
         case None
         thus ?thesis
@@ -171,7 +171,7 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
       qed
     }
 
-    thus "x +_?f y : ?A"
+    thus "x +_?f y \<in> ?A"
       by (simp add: plussub_def lift2_def split: err.split)
   qed
     
@@ -209,7 +209,7 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
   have "\<forall>x\<in>?A. \<forall>y\<in>?A. \<forall>z\<in>?A. x <=_?r z \<and> y <=_?r z \<longrightarrow> x +_?f y <=_?r z"
   proof (intro strip, elim conjE)
     fix x y z
-    assume xyz: "x : ?A" "y : ?A" "z : ?A"
+    assume xyz: "x \<in> ?A" "y \<in> ?A" "z \<in> ?A"
     assume xz: "x <=_?r z"
     assume yz: "y <=_?r z"
 
@@ -220,7 +220,7 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
         assume some: "a = Some d" "b = Some e" "c = Some g"
         
         with ok xyz
-        obtain "OK d:err A" "OK e:err A" "OK g:err A"
+        obtain "OK d \<in> err A" "OK e \<in> err A" "OK g \<in> err A"
           by simp
         with lub
         have "\<lbrakk> (OK d) <=_(Err.le r) (OK g); (OK e) <=_(Err.le r) (OK g) \<rbrakk>
@@ -272,8 +272,8 @@ lemma acc_le_optI [intro!]:
 apply (unfold acc_def lesub_def le_def lesssub_def)
 apply (simp add: wf_eq_minimal split: option.split)
 apply clarify
-apply (case_tac "? a. Some a : Q")
- apply (erule_tac x = "{a . Some a : Q}" in allE)
+apply (case_tac "\<exists>a. Some a \<in> Q")
+ apply (erule_tac x = "{a. Some a \<in> Q}" in allE)
  apply blast
 apply (case_tac "x")
  apply blast
@@ -281,8 +281,8 @@ apply blast
 done 
 
 lemma option_map_in_optionI:
-  "\<lbrakk> ox : opt S; !x:S. ox = Some x \<longrightarrow> f x : S \<rbrakk> 
-  \<Longrightarrow> map_option f ox : opt S"
+  "\<lbrakk> ox \<in> opt S; \<forall>x\<in>S. ox = Some x \<longrightarrow> f x \<in> S \<rbrakk> 
+  \<Longrightarrow> map_option f ox \<in> opt S"
 apply (unfold map_option_case)
 apply (simp split: option.split)
 apply blast

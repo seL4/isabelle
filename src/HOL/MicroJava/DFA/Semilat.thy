@@ -238,7 +238,7 @@ lemma is_ubD:
 
 
 lemma is_lub_bigger1 [iff]:  
-  "is_lub (r^* ) x y y = ((x,y)\<in>r^* )"
+  "is_lub (r\<^sup>*) x y y = ((x,y)\<in>r\<^sup>*)"
 (*<*)
 apply (unfold is_lub_def is_ub_def)
 apply blast
@@ -246,7 +246,7 @@ done
 (*>*)
 
 lemma is_lub_bigger2 [iff]:
-  "is_lub (r^* ) x y x = ((y,x)\<in>r^* )"
+  "is_lub (r\<^sup>*) x y x = ((y,x)\<in>r\<^sup>*)"
 (*<*)
 apply (unfold is_lub_def is_ub_def)
 apply blast 
@@ -254,12 +254,12 @@ done
 (*>*)
 
 lemma extend_lub:
-  "\<lbrakk> single_valued r; is_lub (r^* ) x y u; (x',x) \<in> r \<rbrakk> 
-  \<Longrightarrow> EX v. is_lub (r^* ) x' y v"
+  "\<lbrakk> single_valued r; is_lub (r\<^sup>*) x y u; (x',x) \<in> r \<rbrakk> 
+  \<Longrightarrow> \<exists>v. is_lub (r\<^sup>*) x' y v"
 (*<*)
 apply (unfold is_lub_def is_ub_def)
-apply (case_tac "(y,x) \<in> r^*")
- apply (case_tac "(y,x') \<in> r^*")
+apply (case_tac "(y,x) \<in> r\<^sup>*")
+ apply (case_tac "(y,x') \<in> r\<^sup>*")
   apply blast
  apply (blast elim: converse_rtranclE dest: single_valuedD)
 apply (rule exI)
@@ -271,8 +271,8 @@ done
 (*>*)
 
 lemma single_valued_has_lubs [rule_format]:
-  "\<lbrakk> single_valued r; (x,u) \<in> r^* \<rbrakk> \<Longrightarrow> (\<forall>y. (y,u) \<in> r^* \<longrightarrow> 
-  (EX z. is_lub (r^* ) x y z))"
+  "\<lbrakk>single_valued r; (x,u) \<in> r\<^sup>*\<rbrakk> \<Longrightarrow> (\<forall>y. (y,u) \<in> r\<^sup>* \<longrightarrow>
+  (\<exists>z. is_lub (r\<^sup>*) x y z))"
 (*<*)
 apply (erule converse_rtrancl_induct)
  apply clarify
@@ -284,7 +284,7 @@ done
 (*>*)
 
 lemma some_lub_conv:
-  "\<lbrakk> acyclic r; is_lub (r^* ) x y u \<rbrakk> \<Longrightarrow> some_lub (r^* ) x y = u"
+  "\<lbrakk>acyclic r; is_lub (r\<^sup>*) x y u\<rbrakk> \<Longrightarrow> some_lub (r\<^sup>*) x y = u"
 (*<*)
 apply (unfold some_lub_def is_lub_def)
 apply (rule someI2)
@@ -294,8 +294,8 @@ done
 (*>*)
 
 lemma is_lub_some_lub:
-  "\<lbrakk> single_valued r; acyclic r; (x,u)\<in>r^*; (y,u)\<in>r^* \<rbrakk> 
-  \<Longrightarrow> is_lub (r^* ) x y (some_lub (r^* ) x y)"
+  "\<lbrakk>single_valued r; acyclic r; (x,u)\<in>r\<^sup>*; (y,u)\<in>r\<^sup>*\<rbrakk> 
+  \<Longrightarrow> is_lub (r\<^sup>*) x y (some_lub (r\<^sup>*) x y)"
   (*<*) by (fastforce dest: single_valued_has_lubs simp add: some_lub_conv) (*>*)
 
 subsection\<open>An executable lub-finder\<close>
@@ -331,7 +331,7 @@ lemma exec_lub_conv:
 (*<*)
 apply(unfold exec_lub_def)
 apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup>*" and
-               r = "(r \<inter> {(a,b). (y,a) \<in> r\<^sup>* \<and> (b,u) \<in> r\<^sup>*})^-1" in while_rule)
+               r = "(r \<inter> {(a,b). (y,a) \<in> r\<^sup>* \<and> (b,u) \<in> r\<^sup>*})\<inverse>" in while_rule)
     apply(blast dest: is_lubD is_ubD)
    apply(erule conjE)
    apply(erule_tac z = u in converse_rtranclE)
@@ -363,8 +363,8 @@ done
 (*>*)
 
 lemma is_lub_exec_lub:
-  "\<lbrakk> single_valued r; acyclic r; (x,u):r^*; (y,u):r^*; \<forall>x y. (x,y) \<in> r \<longrightarrow> f x = y \<rbrakk>
-  \<Longrightarrow> is_lub (r^* ) x y (exec_lub r f x y)"
+  "\<lbrakk> single_valued r; acyclic r; (x,u)\<in>r\<^sup>*; (y,u)\<in>r\<^sup>*; \<forall>x y. (x,y) \<in> r \<longrightarrow> f x = y \<rbrakk>
+  \<Longrightarrow> is_lub (r\<^sup>*) x y (exec_lub r f x y)"
   (*<*) by (fastforce dest: single_valued_has_lubs simp add: exec_lub_conv) (*>*)
 
 end

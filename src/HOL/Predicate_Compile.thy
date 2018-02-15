@@ -32,10 +32,10 @@ text \<open>
 \<close>
 
 definition contains :: "'a set => 'a => bool"
-where "contains A x \<longleftrightarrow> x : A"
+where "contains A x \<longleftrightarrow> x \<in> A"
 
 definition contains_pred :: "'a set => 'a => unit Predicate.pred"
-where "contains_pred A x = (if x : A then Predicate.single () else bot)"
+where "contains_pred A x = (if x \<in> A then Predicate.single () else bot)"
 
 lemma pred_of_setE:
   assumes "Predicate.eval (pred_of_set A) x"
@@ -52,7 +52,7 @@ lemma containsI: "x \<in> A ==> contains A x"
 by(simp add: contains_def)
 
 lemma containsE: assumes "contains A x"
-  obtains A' x' where "A = A'" "x = x'" "x : A"
+  obtains A' x' where "A = A'" "x = x'" "x \<in> A"
 using assms by(simp add: contains_def)
 
 lemma contains_predI: "contains A x ==> Predicate.eval (contains_pred A x) ()"

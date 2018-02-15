@@ -2755,17 +2755,17 @@ lemma \<beta>_int: assumes lp: "iszlfm p bs"
   shows "\<forall> b\<in> set (\<beta> p). isint b bs"
 using lp by (induct p rule: iszlfm.induct) (auto simp add: isint_neg isint_sub)
 
-lemma cpmi_eq: "0 < D \<Longrightarrow> (EX z::int. ALL x. x < z --> (P x = P1 x))
-==> ALL x.~(EX (j::int) : {1..D}. EX (b::int) : B. P(b+j)) --> P (x) --> P (x - D)
-==> (ALL (x::int). ALL (k::int). ((P1 x)= (P1 (x-k*D))))
-==> (EX (x::int). P(x)) = ((EX (j::int) : {1..D} . (P1(j))) | (EX (j::int) : {1..D}. EX (b::int) : B. P (b+j)))"
+lemma cpmi_eq: "0 < D \<Longrightarrow> (\<exists>z::int. \<forall>x. x < z \<longrightarrow> (P x = P1 x))
+\<Longrightarrow> \<forall>x. \<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P(b+j)) \<longrightarrow> P (x) \<longrightarrow> P (x - D)
+\<Longrightarrow> (\<forall>(x::int). \<forall>(k::int). ((P1 x)= (P1 (x-k*D))))
+\<Longrightarrow> (\<exists>(x::int). P(x)) = ((\<exists>(j::int) \<in> {1..D} . (P1(j))) | (\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P (b+j)))"
 apply(rule iffI)
 prefer 2
 apply(drule minusinfinity)
 apply assumption+
 apply(fastforce)
 apply clarsimp
-apply(subgoal_tac "!!k. 0<=k \<Longrightarrow> !x. P x \<longrightarrow> P (x - k*D)")
+apply(subgoal_tac "\<And>k. 0<=k \<Longrightarrow> \<forall>x. P x \<longrightarrow> P (x - k*D)")
 apply(frule_tac x = x and z=z in decr_lemma)
 apply(subgoal_tac "P1(x - (\<bar>x - z\<bar> + 1) * D)")
 prefer 2
@@ -5710,4 +5710,3 @@ lemma "\<forall>(x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \
   by mir
 
 end
-

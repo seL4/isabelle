@@ -133,25 +133,25 @@ apply(auto simp: anno_def nth_append nth_Cons' size_annos)
 done
 
 lemma strip_eq_SKIP:
-  "strip C = SKIP \<longleftrightarrow> (EX P. C = SKIP {P})"
+  "strip C = SKIP \<longleftrightarrow> (\<exists>P. C = SKIP {P})"
 by (cases C) simp_all
 
 lemma strip_eq_Assign:
-  "strip C = x::=e \<longleftrightarrow> (EX P. C = x::=e {P})"
+  "strip C = x::=e \<longleftrightarrow> (\<exists>P. C = x::=e {P})"
 by (cases C) simp_all
 
 lemma strip_eq_Seq:
-  "strip C = c1;;c2 \<longleftrightarrow> (EX C1 C2. C = C1;;C2 & strip C1 = c1 & strip C2 = c2)"
+  "strip C = c1;;c2 \<longleftrightarrow> (\<exists>C1 C2. C = C1;;C2 & strip C1 = c1 & strip C2 = c2)"
 by (cases C) simp_all
 
 lemma strip_eq_If:
   "strip C = IF b THEN c1 ELSE c2 \<longleftrightarrow>
-  (EX P1 P2 C1 C2 Q. C = IF b THEN {P1} C1 ELSE {P2} C2 {Q} & strip C1 = c1 & strip C2 = c2)"
+  (\<exists>P1 P2 C1 C2 Q. C = IF b THEN {P1} C1 ELSE {P2} C2 {Q} & strip C1 = c1 & strip C2 = c2)"
 by (cases C) simp_all
 
 lemma strip_eq_While:
   "strip C = WHILE b DO c1 \<longleftrightarrow>
-  (EX I P C1 Q. C = {I} WHILE b DO {P} C1 {Q} & strip C1 = c1)"
+  (\<exists>I P C1 Q. C = {I} WHILE b DO {P} C1 {Q} & strip C1 = c1)"
 by (cases C) simp_all
 
 lemma [simp]: "shift (\<lambda>p. a) n = (\<lambda>p. a)"

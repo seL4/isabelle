@@ -33,7 +33,7 @@ definition subtype :: "'c prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> b
 
 definition is_ty :: "'c prog \<Rightarrow> ty \<Rightarrow> bool" where
   "is_ty G T == case T of PrimT P \<Rightarrow> True | RefT R \<Rightarrow>
-               (case R of NullT \<Rightarrow> True | ClassT C \<Rightarrow> (C, Object) \<in> (subcls1 G)^*)"
+               (case R of NullT \<Rightarrow> True | ClassT C \<Rightarrow> (C, Object) \<in> (subcls1 G)\<^sup>*)"
 
 abbreviation "types G == Collect (is_type G)"
 
@@ -102,16 +102,16 @@ lemma order_widen:
   done
 
 lemma wf_converse_subcls1_impl_acc_subtype:
-  "wf ((subcls1 G)^-1) \<Longrightarrow> acc (subtype G)"
+  "wf ((subcls1 G)\<inverse>) \<Longrightarrow> acc (subtype G)"
 apply (unfold Semilat.acc_def lesssub_def)
-apply (drule_tac p = "((subcls1 G)^-1) - Id" in wf_subset)
+apply (drule_tac p = "((subcls1 G)\<inverse>) - Id" in wf_subset)
  apply auto
 apply (drule wf_trancl)
 apply (simp add: wf_eq_minimal)
 apply clarify
 apply (unfold lesub_def subtype_def)
 apply (rename_tac M T) 
-apply (case_tac "EX C. Class C : M")
+apply (case_tac "\<exists>C. Class C \<in> M")
  prefer 2
  apply (case_tac T)
   apply (fastforce simp add: PrimT_PrimT2)
@@ -131,7 +131,7 @@ apply (case_tac "EX C. Class C : M")
  apply (case_tac ref_ty)
   apply simp
  apply simp
-apply (erule_tac x = "{C. Class C : M}" in allE)
+apply (erule_tac x = "{C. Class C \<in> M}" in allE)
 apply auto
 apply (rename_tac D)
 apply (rule_tac x = "Class D" in bexI)
@@ -148,7 +148,7 @@ apply simp
 apply (erule rtrancl.cases)
  apply blast
 apply (drule rtrancl_converseI)
-apply (subgoal_tac "(subcls1 G - Id)^-1 = (subcls1 G)^-1 - Id")
+apply (subgoal_tac "(subcls1 G - Id)\<inverse> = (subcls1 G)\<inverse> - Id")
  prefer 2
  apply (simp add: converse_Int) apply safe[1]
 apply simp
@@ -185,7 +185,7 @@ proof -
       by (blast intro: subcls_C_Object)
     with ws_prog single_valued
     obtain u where
-      "is_lub ((subcls1 G)^* ) c1 c2 u"
+      "is_lub ((subcls1 G)\<^sup>*) c1 c2 u"
       by (blast dest: single_valued_has_lubs)
     moreover
     note acyclic
@@ -226,7 +226,7 @@ proof -
       by (blast intro: subcls_C_Object)
     with ws_prog single_valued
     obtain u where
-      lub: "is_lub ((subcls1 G)^*) c1 c2 u"
+      lub: "is_lub ((subcls1 G)\<^sup>*) c1 c2 u"
       by (blast dest: single_valued_has_lubs)   
     with acyclic
     have "exec_lub (subcls1 G) (super G) c1 c2 = u"

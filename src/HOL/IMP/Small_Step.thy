@@ -173,7 +173,7 @@ by(metis big_to_small small_to_big)
 
 subsection "Final configurations and infinite reductions"
 
-definition "final cs \<longleftrightarrow> \<not>(EX cs'. cs \<rightarrow> cs')"
+definition "final cs \<longleftrightarrow> \<not>(\<exists>cs'. cs \<rightarrow> cs')"
 
 lemma finalD: "final (c,s) \<Longrightarrow> c = SKIP"
 apply(simp add: final_def)
@@ -188,7 +188,7 @@ text\<open>Now we can show that @{text"\<Rightarrow>"} yields a final state iff 
 terminates:\<close>
 
 lemma big_iff_small_termination:
-  "(EX t. cs \<Rightarrow> t) \<longleftrightarrow> (EX cs'. cs \<rightarrow>* cs' \<and> final cs')"
+  "(\<exists>t. cs \<Rightarrow> t) \<longleftrightarrow> (\<exists>cs'. cs \<rightarrow>* cs' \<and> final cs')"
 by(simp add: big_iff_small final_iff_SKIP)
 
 text\<open>This is the same as saying that the absence of a big step result is

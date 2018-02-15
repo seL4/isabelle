@@ -76,7 +76,7 @@ by satx
 
 text \<open>eta-Equivalence\<close>
 
-lemma "(ALL x. P x) | ~ All P"
+lemma "(\<forall>x. P x) \<or> \<not> All P"
 by sat
 
 declare [[sat_trace = false]]

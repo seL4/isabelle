@@ -21,7 +21,7 @@ and the rewriting is very sensitive to the set of rewrite rules given.\<close>
 
 subsection\<open>Predicate Formalizing the Encryption Association between Keys\<close>
 
-primrec KeyCryptKey :: "[key, key, event list] => bool"
+primrec KeyCryptKey :: "[key, key, event list] \<Rightarrow> bool"
 where
   KeyCryptKey_Nil:
     "KeyCryptKey DK K [] = False"
@@ -35,18 +35,18 @@ where
     "KeyCryptKey DK K (ev # evs) =
      (KeyCryptKey DK K evs |
       (case ev of
-        Says A B Z =>
-         ((\<exists>N X Y. A \<noteq> Spy &
-                 DK \<in> symKeys &
+        Says A B Z \<Rightarrow>
+         ((\<exists>N X Y. A \<noteq> Spy \<and>
+                 DK \<in> symKeys \<and>
                  Z = \<lbrace>Crypt DK \<lbrace>Agent A, Nonce N, Key K, X\<rbrace>, Y\<rbrace>) |
           (\<exists>C. DK = priEK C))
-      | Gets A' X => False
-      | Notes A' X => False))"
+      | Gets A' X \<Rightarrow> False
+      | Notes A' X \<Rightarrow> False))"
 
 
 subsection\<open>Predicate formalizing the association between keys and nonces\<close>
 
-primrec KeyCryptNonce :: "[key, key, event list] => bool"
+primrec KeyCryptNonce :: "[key, key, event list] \<Rightarrow> bool"
 where
   KeyCryptNonce_Nil:
     "KeyCryptNonce EK K [] = False"
@@ -63,25 +63,25 @@ where
   "KeyCryptNonce DK N (ev # evs) =
    (KeyCryptNonce DK N evs |
     (case ev of
-      Says A B Z =>
-       A \<noteq> Spy &
-       ((\<exists>X Y. DK \<in> symKeys &
+      Says A B Z \<Rightarrow>
+       A \<noteq> Spy \<and>
+       ((\<exists>X Y. DK \<in> symKeys \<and>
                Z = (EXHcrypt DK X \<lbrace>Agent A, Nonce N\<rbrace> Y)) |
-        (\<exists>X Y. DK \<in> symKeys &
+        (\<exists>X Y. DK \<in> symKeys \<and>
                Z = \<lbrace>Crypt DK \<lbrace>Agent A, Nonce N, X\<rbrace>, Y\<rbrace>) |
         (\<exists>K i X Y.
-          K \<in> symKeys &
-          Z = Crypt K \<lbrace>sign (priSK (CA i)) \<lbrace>Agent B, Nonce N, X\<rbrace>, Y\<rbrace> &
+          K \<in> symKeys \<and>
+          Z = Crypt K \<lbrace>sign (priSK (CA i)) \<lbrace>Agent B, Nonce N, X\<rbrace>, Y\<rbrace> \<and>
           (DK=K | KeyCryptKey DK K evs)) |
         (\<exists>K C NC3 Y.
-          K \<in> symKeys &
+          K \<in> symKeys \<and>
           Z = Crypt K
                 \<lbrace>sign (priSK C) \<lbrace>Agent B, Nonce NC3, Agent C, Nonce N\<rbrace>,
-                  Y\<rbrace> &
+                  Y\<rbrace> \<and>
           (DK=K | KeyCryptKey DK K evs)) |
         (\<exists>C. DK = priEK C))
-    | Gets A' X => False
-    | Notes A' X => False))"
+    | Gets A' X \<Rightarrow> False
+    | Notes A' X \<Rightarrow> False))"
 
 
 subsection\<open>Formal protocol definition\<close>
@@ -329,7 +329,7 @@ lemma Gets_certificate_valid:
      "[| Gets A \<lbrace> X, cert C EKi onlyEnc (priSK RCA),
                       cert C SKi onlySig (priSK RCA)\<rbrace> \<in> set evs;
          evs \<in> set_cr |]
-      ==> EKi = pubEK C & SKi = pubSK C"
+      ==> EKi = pubEK C \<and> SKi = pubSK C"
 by (blast dest: certificate_valid_pubEK certificate_valid_pubSK)
 
 text\<open>Nobody can have used non-existent keys!\<close>
@@ -350,13 +350,13 @@ subsection\<open>New versions: as above, but generalized to have the KK argument
 
 lemma gen_new_keys_not_used:
      "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> set_cr |]
-      ==> Key K \<notin> used evs --> K \<in> symKeys -->
-          K \<notin> keysFor (parts (Key`KK Un knows Spy evs))"
+      ==> Key K \<notin> used evs \<longrightarrow> K \<in> symKeys \<longrightarrow>
+          K \<notin> keysFor (parts (Key`KK \<union> knows Spy evs))"
 by (auto simp add: new_keys_not_used)
 
 lemma gen_new_keys_not_analzd:
      "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> set_cr |]
-      ==> K \<notin> keysFor (analz (Key`KK Un knows Spy evs))"
+      ==> K \<notin> keysFor (analz (Key`KK \<union> knows Spy evs))"
 by (blast intro: keysFor_mono [THEN [2] rev_subsetD]
           dest: gen_new_keys_not_used)
 
@@ -459,14 +459,14 @@ text\<open>Rewriting rule for private encryption keys.  Analogous rewriting rule
 for other keys aren't needed.\<close>
 
 lemma parts_image_priEK:
-     "[|Key (priEK C) \<in> parts (Key`KK Un (knows Spy evs));
+     "[|Key (priEK C) \<in> parts (Key`KK \<union> (knows Spy evs));
         evs \<in> set_cr|] ==> priEK C \<in> KK | C \<in> bad"
 by auto
 
 text\<open>trivial proof because (priEK C) never appears even in (parts evs)\<close>
 lemma analz_image_priEK:
      "evs \<in> set_cr ==>
-          (Key (priEK C) \<in> analz (Key`KK Un (knows Spy evs))) =
+          (Key (priEK C) \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (priEK C \<in> KK | C \<in> bad)"
 by (blast dest!: parts_image_priEK intro: analz_mono [THEN [2] rev_subsetD])
 
@@ -478,7 +478,7 @@ subsubsection\<open>Lemmas about the predicate KeyCryptKey\<close>
 text\<open>A fresh DK cannot be associated with any other
   (with respect to a given trace).\<close>
 lemma DK_fresh_not_KeyCryptKey:
-     "[| Key DK \<notin> used evs; evs \<in> set_cr |] ==> ~ KeyCryptKey DK K evs"
+     "[| Key DK \<notin> used evs; evs \<in> set_cr |] ==> \<not> KeyCryptKey DK K evs"
 apply (erule rev_mp)
 apply (erule set_cr.induct)
 apply (simp_all (no_asm_simp))
@@ -489,7 +489,7 @@ text\<open>A fresh K cannot be associated with any other.  The assumption that
   DK isn't a private encryption key may be an artifact of the particular
   definition of KeyCryptKey.\<close>
 lemma K_fresh_not_KeyCryptKey:
-     "[|\<forall>C. DK \<noteq> priEK C; Key K \<notin> used evs|] ==> ~ KeyCryptKey DK K evs"
+     "[|\<forall>C. DK \<noteq> priEK C; Key K \<notin> used evs|] ==> \<not> KeyCryptKey DK K evs"
 apply (induct evs)
 apply (auto simp add: parts_insert2 split: event.split)
 done
@@ -499,17 +499,17 @@ text\<open>This holds because if (priEK (CA i)) appears in any traffic then it m
   be known to the Spy, by @{term Spy_see_private_Key}\<close>
 lemma cardSK_neq_priEK:
      "[|Key cardSK \<notin> analz (knows Spy evs);
-        Key cardSK : parts (knows Spy evs);
+        Key cardSK \<in> parts (knows Spy evs);
         evs \<in> set_cr|] ==> cardSK \<noteq> priEK C"
 by blast
 
 lemma not_KeyCryptKey_cardSK [rule_format (no_asm)]:
      "[|cardSK \<notin> symKeys;  \<forall>C. cardSK \<noteq> priEK C;  evs \<in> set_cr|] ==>
-      Key cardSK \<notin> analz (knows Spy evs) --> ~ KeyCryptKey cardSK K evs"
+      Key cardSK \<notin> analz (knows Spy evs) \<longrightarrow> \<not> KeyCryptKey cardSK K evs"
 by (erule set_cr.induct, analz_mono_contra, auto)
 
 text\<open>Lemma for message 5: pubSK C is never used to encrypt Keys.\<close>
-lemma pubSK_not_KeyCryptKey [simp]: "~ KeyCryptKey (pubSK C) K evs"
+lemma pubSK_not_KeyCryptKey [simp]: "\<not> KeyCryptKey (pubSK C) K evs"
 apply (induct_tac "evs")
 apply (auto simp add: parts_insert2 split: event.split)
 done
@@ -523,14 +523,14 @@ lemma msg6_KeyCryptKey_disj:
           \<in> set evs;
         cardSK \<notin> symKeys;  evs \<in> set_cr|]
       ==> Key cardSK \<in> analz (knows Spy evs) |
-          (\<forall>K. ~ KeyCryptKey cardSK K evs)"
+          (\<forall>K. \<not> KeyCryptKey cardSK K evs)"
 by (blast dest: not_KeyCryptKey_cardSK intro: cardSK_neq_priEK)
 
 text\<open>As usual: we express the property as a logical equivalence\<close>
 lemma Key_analz_image_Key_lemma:
-     "P --> (Key K \<in> analz (Key`KK Un H)) --> (K \<in> KK | Key K \<in> analz H)
+     "P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) \<longrightarrow> (K \<in> KK | Key K \<in> analz H)
       ==>
-      P --> (Key K \<in> analz (Key`KK Un H)) = (K \<in> KK | Key K \<in> analz H)"
+      P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) = (K \<in> KK | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 method_setup valid_certificate_tac = \<open>
@@ -545,8 +545,8 @@ text\<open>The \<open>(no_asm)\<close> attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.\<close>
 lemma symKey_compromise [rule_format (no_asm)]:
      "evs \<in> set_cr ==>
-      (\<forall>SK KK. SK \<in> symKeys \<longrightarrow> (\<forall>K \<in> KK. ~ KeyCryptKey K SK evs)   -->
-               (Key SK \<in> analz (Key`KK Un (knows Spy evs))) =
+      (\<forall>SK KK. SK \<in> symKeys \<longrightarrow> (\<forall>K \<in> KK. \<not> KeyCryptKey K SK evs)   \<longrightarrow>
+               (Key SK \<in> analz (Key`KK \<union> (knows Spy evs))) =
                (SK \<in> KK | Key SK \<in> analz (knows Spy evs)))"
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI) +
@@ -572,9 +572,9 @@ text\<open>The remaining quantifiers seem to be essential.
   wrong!!\<close>
 lemma symKey_secrecy [rule_format]:
      "[|CA i \<notin> bad;  K \<in> symKeys;  evs \<in> set_cr|]
-      ==> \<forall>X c. Says (Cardholder c) (CA i) X \<in> set evs -->
-                Key K \<in> parts{X} -->
-                Cardholder c \<notin> bad -->
+      ==> \<forall>X c. Says (Cardholder c) (CA i) X \<in> set evs \<longrightarrow>
+                Key K \<in> parts{X} \<longrightarrow>
+                Cardholder c \<notin> bad \<longrightarrow>
                 Key K \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct)
 apply (frule_tac [8] Gets_certificate_valid) \<comment> \<open>for message 5\<close>
@@ -629,7 +629,7 @@ by (force dest!: Gets_imp_knows_Spy [THEN parts.Inj, THEN parts.Body]
 
 lemma Hash_imp_parts [rule_format]:
      "evs \<in> set_cr
-      ==> Hash\<lbrace>X, Nonce N\<rbrace> \<in> parts (knows Spy evs) -->
+      ==> Hash\<lbrace>X, Nonce N\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
           Nonce N \<in> parts (knows Spy evs)"
 apply (erule set_cr.induct, force)
 apply (simp_all (no_asm_simp))
@@ -638,8 +638,8 @@ done
 
 lemma Hash_imp_parts2 [rule_format]:
      "evs \<in> set_cr
-      ==> Hash\<lbrace>X, Nonce M, Y, Nonce N\<rbrace> \<in> parts (knows Spy evs) -->
-          Nonce M \<in> parts (knows Spy evs) & Nonce N \<in> parts (knows Spy evs)"
+      ==> Hash\<lbrace>X, Nonce M, Y, Nonce N\<rbrace> \<in> parts (knows Spy evs) \<longrightarrow>
+          Nonce M \<in> parts (knows Spy evs) \<and> Nonce N \<in> parts (knows Spy evs)"
 apply (erule set_cr.induct, force)
 apply (simp_all (no_asm_simp))
 apply (blast intro: parts_mono [THEN [2] rev_subsetD])
@@ -654,7 +654,7 @@ text\<open>A fresh DK cannot be associated with any other
   (with respect to a given trace).\<close>
 lemma DK_fresh_not_KeyCryptNonce:
      "[| DK \<in> symKeys; Key DK \<notin> used evs; evs \<in> set_cr |]
-      ==> ~ KeyCryptNonce DK K evs"
+      ==> \<not> KeyCryptNonce DK K evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_cr.induct)
@@ -667,7 +667,7 @@ done
 text\<open>A fresh N cannot be associated with any other
       (with respect to a given trace).\<close>
 lemma N_fresh_not_KeyCryptNonce:
-     "\<forall>C. DK \<noteq> priEK C ==> Nonce N \<notin> used evs --> ~ KeyCryptNonce DK N evs"
+     "\<forall>C. DK \<noteq> priEK C ==> Nonce N \<notin> used evs \<longrightarrow> \<not> KeyCryptNonce DK N evs"
 apply (induct_tac "evs")
 apply (rename_tac [2] a evs')
 apply (case_tac [2] "a")
@@ -676,7 +676,7 @@ done
 
 lemma not_KeyCryptNonce_cardSK [rule_format (no_asm)]:
      "[|cardSK \<notin> symKeys;  \<forall>C. cardSK \<noteq> priEK C;  evs \<in> set_cr|] ==>
-      Key cardSK \<notin> analz (knows Spy evs) --> ~ KeyCryptNonce cardSK N evs"
+      Key cardSK \<notin> analz (knows Spy evs) \<longrightarrow> \<not> KeyCryptNonce cardSK N evs"
 apply (erule set_cr.induct, analz_mono_contra, simp_all)
 apply (blast dest: not_KeyCryptKey_cardSK)  \<comment> \<open>6\<close>
 done
@@ -686,7 +686,7 @@ subsubsection\<open>Lemmas for message 5 and 6:
   or else cardSK hasn't been used to encrypt K.\<close>
 
 text\<open>Lemma for message 5: pubSK C is never used to encrypt Nonces.\<close>
-lemma pubSK_not_KeyCryptNonce [simp]: "~ KeyCryptNonce (pubSK C) N evs"
+lemma pubSK_not_KeyCryptNonce [simp]: "\<not> KeyCryptNonce (pubSK C) N evs"
 apply (induct_tac "evs")
 apply (auto simp add: parts_insert2 split: event.split)
 done
@@ -698,16 +698,16 @@ lemma msg6_KeyCryptNonce_disj:
           \<in> set evs;
         cardSK \<notin> symKeys;  evs \<in> set_cr|]
       ==> Key cardSK \<in> analz (knows Spy evs) |
-          ((\<forall>K. ~ KeyCryptKey cardSK K evs) &
-           (\<forall>N. ~ KeyCryptNonce cardSK N evs))"
+          ((\<forall>K. \<not> KeyCryptKey cardSK K evs) \<and>
+           (\<forall>N. \<not> KeyCryptNonce cardSK N evs))"
 by (blast dest: not_KeyCryptKey_cardSK not_KeyCryptNonce_cardSK
           intro: cardSK_neq_priEK)
 
 
 text\<open>As usual: we express the property as a logical equivalence\<close>
 lemma Nonce_analz_image_Key_lemma:
-     "P --> (Nonce N \<in> analz (Key`KK Un H)) --> (Nonce N \<in> analz H)
-      ==> P --> (Nonce N \<in> analz (Key`KK Un H)) = (Nonce N \<in> analz H)"
+     "P \<longrightarrow> (Nonce N \<in> analz (Key`KK \<union> H)) \<longrightarrow> (Nonce N \<in> analz H)
+      ==> P \<longrightarrow> (Nonce N \<in> analz (Key`KK \<union> H)) = (Nonce N \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 
@@ -715,8 +715,8 @@ text\<open>The \<open>(no_asm)\<close> attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.\<close>
 lemma Nonce_compromise [rule_format (no_asm)]:
      "evs \<in> set_cr ==>
-      (\<forall>N KK. (\<forall>K \<in> KK. ~ KeyCryptNonce K N evs)   -->
-               (Nonce N \<in> analz (Key`KK Un (knows Spy evs))) =
+      (\<forall>N KK. (\<forall>K \<in> KK. \<not> KeyCryptNonce K N evs)   \<longrightarrow>
+               (Nonce N \<in> analz (Key`KK \<union> (knows Spy evs))) =
                (Nonce N \<in> analz (knows Spy evs)))"
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI)+
@@ -766,9 +766,9 @@ lemma KC2_secure_lemma [rule_format]:
      "[|U = Crypt KC3 \<lbrace>Agent C, Nonce N, Key KC2, X\<rbrace>;
         U \<in> parts (knows Spy evs);
         evs \<in> set_cr|]
-  ==> Nonce N \<notin> analz (knows Spy evs) -->
-      (\<exists>k i W. Says (Cardholder k) (CA i) \<lbrace>U,W\<rbrace> \<in> set evs & 
-               Cardholder k \<notin> bad & CA i \<notin> bad)"
+  ==> Nonce N \<notin> analz (knows Spy evs) \<longrightarrow>
+      (\<exists>k i W. Says (Cardholder k) (CA i) \<lbrace>U,W\<rbrace> \<in> set evs \<and> 
+               Cardholder k \<notin> bad \<and> CA i \<notin> bad)"
 apply (erule_tac P = "U \<in> H" for H in rev_mp)
 apply (erule set_cr.induct)
 apply (valid_certificate_tac [8])  \<comment> \<open>for message 5\<close>
@@ -791,9 +791,9 @@ by (force dest!: refl [THEN KC2_secure_lemma] symKey_secrecy)
 text\<open>Inductive version\<close>
 lemma CardSecret_secrecy_lemma [rule_format]:
      "[|CA i \<notin> bad;  evs \<in> set_cr|]
-      ==> Key K \<notin> analz (knows Spy evs) -->
+      ==> Key K \<notin> analz (knows Spy evs) \<longrightarrow>
           Crypt (pubEK (CA i)) \<lbrace>Key K, Pan p, Nonce CardSecret\<rbrace>
-             \<in> parts (knows Spy evs) -->
+             \<in> parts (knows Spy evs) \<longrightarrow>
           Nonce CardSecret \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
 apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
@@ -854,12 +854,12 @@ done
 text\<open>Inductive version\<close>
 lemma NonceCCA_secrecy_lemma [rule_format]:
      "[|CA i \<notin> bad;  evs \<in> set_cr|]
-      ==> Key K \<notin> analz (knows Spy evs) -->
+      ==> Key K \<notin> analz (knows Spy evs) \<longrightarrow>
           Crypt K
             \<lbrace>sign (priSK (CA i))
                    \<lbrace>Agent C, Nonce N, Agent(CA i), Nonce NonceCCA\<rbrace>,
               X, Y\<rbrace>
-             \<in> parts (knows Spy evs) -->
+             \<in> parts (knows Spy evs) \<longrightarrow>
           Nonce NonceCCA \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
 apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
@@ -921,14 +921,14 @@ lemma msg6_cardSK_disj:
 by auto
 
 lemma analz_image_pan_lemma:
-     "(Pan P \<in> analz (Key`nE Un H)) --> (Pan P \<in> analz H)  ==>
-      (Pan P \<in> analz (Key`nE Un H)) =   (Pan P \<in> analz H)"
+     "(Pan P \<in> analz (Key`nE \<union> H)) \<longrightarrow> (Pan P \<in> analz H)  ==>
+      (Pan P \<in> analz (Key`nE \<union> H)) =   (Pan P \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 lemma analz_image_pan [rule_format]:
      "evs \<in> set_cr ==>
-       \<forall>KK. KK <= - invKey ` pubEK ` range CA -->
-            (Pan P \<in> analz (Key`KK Un (knows Spy evs))) =
+       \<forall>KK. KK \<subseteq> - invKey ` pubEK ` range CA \<longrightarrow>
+            (Pan P \<in> analz (Key`KK \<union> (knows Spy evs))) =
             (Pan P \<in> analz (knows Spy evs))"
 apply (erule set_cr.induct)
 apply (rule_tac [!] allI impI)+
@@ -957,11 +957,11 @@ text\<open>Confidentiality of the PAN\@.  Maybe we could combine the statements 
   this theorem with @{term analz_image_pan}, requiring a single induction but
   a much more difficult proof.\<close>
 lemma pan_confidentiality:
-     "[| Pan (pan C) \<in> analz(knows Spy evs); C \<noteq>Spy; evs :set_cr|]
+     "[| Pan (pan C) \<in> analz(knows Spy evs); C \<noteq>Spy; evs \<in> set_cr|]
     ==> \<exists>i X K HN.
         Says C (CA i) \<lbrace>X, Crypt (pubEK (CA i)) \<lbrace>Key K, Pan (pan C), HN\<rbrace> \<rbrace>
            \<in> set evs
-      & (CA i) \<in> bad"
+      \<and> (CA i) \<in> bad"
 apply (erule rev_mp)
 apply (erule set_cr.induct)
 apply (valid_certificate_tac [8]) \<comment> \<open>for message 5\<close>
@@ -1006,7 +1006,7 @@ lemma cardholder_key_unicity:
             certC (pan C') cardSK X' onlySig (priSK (CA i)),
             cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>)
           \<in> set evs;
-        evs \<in> set_cr |] ==> C=C' & NC3=NC3' & X=X' & KC2=KC2' & Y=Y'"
+        evs \<in> set_cr |] ==> C=C' \<and> NC3=NC3' \<and> X=X' \<and> KC2=KC2' \<and> Y=Y'"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_cr.induct)
@@ -1022,7 +1022,7 @@ lemma unique_KC1:
           \<in> set evs;
         Says C B' \<lbrace>Crypt KC1 X', Crypt EK' \<lbrace>Key KC1, Y'\<rbrace>\<rbrace>
           \<in> set evs;
-        C \<notin> bad;  evs \<in> set_cr|] ==> B'=B & Y'=Y"
+        C \<notin> bad;  evs \<in> set_cr|] ==> B'=B \<and> Y'=Y"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_cr.induct, auto)
@@ -1032,7 +1032,7 @@ text\<open>UNUSED unicity result\<close>
 lemma unique_KC2:
      "[|Says C B \<lbrace>Crypt K \<lbrace>Agent C, nn, Key KC2, X\<rbrace>, Y\<rbrace> \<in> set evs;
         Says C B' \<lbrace>Crypt K' \<lbrace>Agent C, nn', Key KC2, X'\<rbrace>, Y'\<rbrace> \<in> set evs;
-        C \<notin> bad;  evs \<in> set_cr|] ==> B'=B & X'=X"
+        C \<notin> bad;  evs \<in> set_cr|] ==> B'=B \<and> X'=X"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_cr.induct, auto)

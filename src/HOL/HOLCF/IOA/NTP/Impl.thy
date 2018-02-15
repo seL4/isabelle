@@ -28,9 +28,9 @@ definition
 
 (* Lemma 5.1 *)
 definition
-  "inv1(s) ==
-     (!b. count (rsent(rec s)) b = count (srcvd(sen s)) b + count (rsch s) b)
-   & (!b. count (ssent(sen s)) b
+  "inv1(s) \<equiv>
+     (\<forall>b. count (rsent(rec s)) b = count (srcvd(sen s)) b + count (rsch s) b)
+   \<and> (\<forall>b. count (ssent(sen s)) b
           = hdr_sum (rrcvd(rec s)) b + hdr_sum (srch s) b)"
 
 (* Lemma 5.2 *)
@@ -48,12 +48,12 @@ definition
 
 (* Lemma 5.3 *)
 definition
-  "inv3(s) ==
+  "inv3(s) \<equiv>
    rbit(rec(s)) = sbit(sen(s))
-   --> (!m. sq(sen(s))=[] | m ~= hd(sq(sen(s)))
-        -->  count (rrcvd(rec s)) (sbit(sen(s)),m)
+   \<longrightarrow> (\<forall>m. sq(sen(s))=[] | m \<noteq> hd(sq(sen(s)))
+        \<longrightarrow>  count (rrcvd(rec s)) (sbit(sen(s)),m)
              + count (srch s) (sbit(sen(s)),m)
-            <= count (rsent(rec s)) (~sbit(sen s)))"
+            \<le> count (rsent(rec s)) (~sbit(sen s)))"
 
 (* Lemma 5.4 *)
 definition "inv4(s) == rbit(rec(s)) = (~sbit(sen(s))) --> sq(sen(s)) ~= []"
@@ -85,10 +85,10 @@ lemma [simp]:
   by (simp_all add: sen_def rec_def srch_def rsch_def)
 
 lemma [simp]:
-  "a:actions(sender_asig)
-  | a:actions(receiver_asig)
-  | a:actions(srch_asig)
-  | a:actions(rsch_asig)"
+  "a\<in>actions(sender_asig)
+  \<or> a\<in>actions(receiver_asig)
+  \<or> a\<in>actions(srch_asig)
+  \<or> a\<in>actions(rsch_asig)"
   by (induct a) simp_all
 
 declare split_paired_All [simp del]

@@ -24,14 +24,14 @@ declare Timer_def [THEN def_prg_Init, simp]
 declare count_def [simp] decr_def [simp]
 
 (*Demonstrates induction, but not used in the following proof*)
-lemma Timer_leadsTo_zero: "Timer : UNIV leadsTo {s. count s = 0}"
+lemma Timer_leadsTo_zero: "Timer \<in> UNIV leadsTo {s. count s = 0}"
 apply (rule_tac f = count in lessThan_induct, simp)
 apply (case_tac "m")
  apply (force intro!: subset_imp_leadsTo)
 apply (unfold Timer_def, ensures_tac "decr")
 done
 
-lemma Timer_preserves_snd [iff]: "Timer : preserves snd"
+lemma Timer_preserves_snd [iff]: "Timer \<in> preserves snd"
 apply (rule preservesI)
 apply (unfold Timer_def, safety)
 done
@@ -41,8 +41,8 @@ declare PLam_stable [simp]
 
 lemma TimerArray_leadsTo_zero:
      "finite I  
-      ==> (plam i: I. Timer) : UNIV leadsTo {(s,uu). ALL i:I. s i = 0}"
-apply (erule_tac A'1 = "%i. lift_set i ({0} \<times> UNIV)" 
+      \<Longrightarrow> (plam i: I. Timer) \<in> UNIV leadsTo {(s,uu). \<forall>i\<in>I. s i = 0}"
+apply (erule_tac A'1 = "\<lambda>i. lift_set i ({0} \<times> UNIV)" 
        in finite_stable_completion [THEN leadsTo_weaken])
 apply auto
 (*Safety property, already reduced to the single Timer case*)

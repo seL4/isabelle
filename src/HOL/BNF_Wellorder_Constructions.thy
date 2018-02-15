@@ -838,7 +838,7 @@ definition ord_to_filter :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a set"
 where "ord_to_filter r0 r \<equiv> (SOME f. embed r r0 f) ` (Field r)"
 
 lemma ord_to_filter_compat:
-"compat (ordLess Int (ordLess^-1``{r0} \<times> ordLess^-1``{r0}))
+"compat (ordLess Int (ordLess\<inverse>``{r0} \<times> ordLess\<inverse>``{r0}))
         (ofilterIncl r0)
         (ord_to_filter r0)"
 proof(unfold compat_def ord_to_filter_def, clarify)
@@ -859,7 +859,7 @@ proof-
   {fix r0 :: "('a \<times> 'a) set"
    (* need to annotate here!*)
    let ?ordLess = "ordLess::('d rel * 'd rel) set"
-   let ?R = "?ordLess Int (?ordLess^-1``{r0} \<times> ?ordLess^-1``{r0})"
+   let ?R = "?ordLess Int (?ordLess\<inverse>``{r0} \<times> ?ordLess\<inverse>``{r0})"
    {assume Case1: "Well_order r0"
     hence "wf ?R"
     using wf_ofilterIncl[of r0]
@@ -934,7 +934,7 @@ proof(unfold trans_def, auto)
   hence "b1 \<in> Field r \<and> b2 \<in> Field r"
   unfolding Field_def by auto
   hence "b1 = b2" using 1 INJ unfolding inj_on_def by auto
-  hence "(a,c): r" using 2 TRANS unfolding trans_def by blast
+  hence "(a,c) \<in> r" using 2 TRANS unfolding trans_def by blast
   thus "(a',c') \<in> dir_image r f"
   unfolding dir_image_def using 1 by auto
 qed

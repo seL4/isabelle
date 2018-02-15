@@ -299,7 +299,7 @@ apply (cut_tac evs = evs'' and a1 = Na and a2 = N in finite.emptyI [THEN finite.
 apply blast
 done
 
-lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
+lemma Nonce_supply: "Nonce (SOME N. Nonce N \<notin> used evs) \<notin> used evs"
 apply (rule finite.emptyI [THEN Nonce_supply_ax, THEN exE])
 apply (rule someI, blast)
 done

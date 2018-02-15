@@ -42,7 +42,7 @@ fun pre :: "acom \<Rightarrow> assn2 \<Rightarrow> assn2" where
 "pre (C\<^sub>1;; C\<^sub>2) Q = pre C\<^sub>1 (pre C\<^sub>2 Q)" |
 "pre (IF b THEN C\<^sub>1 ELSE C\<^sub>2) Q =
   (\<lambda>l s. if bval b s then pre C\<^sub>1 Q l s else pre C\<^sub>2 Q l s)" |
-"pre ({I/x} WHILE b DO C) Q = (\<lambda>l s. EX n. I (l(x:=n)) s)"
+"pre ({I/x} WHILE b DO C) Q = (\<lambda>l s. \<exists>n. I (l(x:=n)) s)"
 
 text\<open>Verification condition:\<close>
 

@@ -19,7 +19,7 @@ abbreviation
   where "C \<prec>C1 D == (C,D) \<in> subcls1"
 abbreviation
   subcls_syntax  :: "[cname, cname] => bool" ("_ \<preceq>C _"  [71,71] 70)
-  where "C \<preceq>C D == (C,D) \<in> subcls1^*"
+  where "C \<preceq>C D \<equiv> (C,D) \<in> subcls1\<^sup>*"
 
 
 subsection "Declarations and properties not used in the meta theory"
@@ -59,20 +59,20 @@ done
 
 definition ws_prog :: "bool" where
  "ws_prog \<equiv> \<forall>(C,c)\<in>set Prog. C\<noteq>Object \<longrightarrow> 
-                              is_class (super c) \<and> (super c,C)\<notin>subcls1^+"
+                              is_class (super c) \<and> (super c,C)\<notin>subcls1\<^sup>+"
 
 lemma ws_progD: "\<lbrakk>class C = Some c; C\<noteq>Object; ws_prog\<rbrakk> \<Longrightarrow>  
-  is_class (super c) \<and> (super c,C)\<notin>subcls1^+"
+  is_class (super c) \<and> (super c,C)\<notin>subcls1\<^sup>+"
 apply (unfold ws_prog_def class_def)
 apply (drule_tac map_of_SomeD)
 apply auto
 done
 
-lemma subcls1_irrefl_lemma1: "ws_prog \<Longrightarrow> subcls1^-1 \<inter> subcls1^+ = {}"
+lemma subcls1_irrefl_lemma1: "ws_prog \<Longrightarrow> subcls1\<inverse> \<inter> subcls1\<^sup>+ = {}"
 by (fast dest: subcls1D ws_progD)
 
 (* irrefl_tranclI in Transitive_Closure.thy is more general *)
-lemma irrefl_tranclI': "r^-1 Int r^+ = {} ==> !x. (x, x) ~: r^+"
+lemma irrefl_tranclI': "r\<inverse> \<inter> r\<^sup>+ = {} \<Longrightarrow> \<forall>x. (x, x) \<notin> r\<^sup>+"
 by(blast elim: tranclE dest: trancl_into_rtrancl)
 
 

@@ -103,7 +103,7 @@ declare evalc_elim_cases [elim!]
 declare evaln_elim_cases [elim!]
 
 (* evaluation of com is deterministic *)
-lemma com_det [rule_format (no_asm)]: "<c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)"
+lemma com_det [rule_format (no_asm)]: "<c,s> -c-> t \<Longrightarrow> (\<forall>u. <c,s> -c-> u \<longrightarrow> u=t)"
 apply (erule evalc.induct)
 apply (erule_tac [8] V = "<c,s1> -c-> s2" for c in thin_rl)
 apply (blast elim: evalc_WHILE_case)+
@@ -121,7 +121,7 @@ apply (frule Suc_le_D)
 apply blast
 done
 
-lemma evaln_nonstrict [rule_format]: "<c,s> -n-> t ==> !m. n<=m --> <c,s> -m-> t"
+lemma evaln_nonstrict [rule_format]: "<c,s> -n-> t \<Longrightarrow> \<forall>m. n<=m \<longrightarrow> <c,s> -m-> t"
 apply (erule evaln.induct)
 apply (auto elim!: Suc_le_D_lemma)
 done
@@ -132,12 +132,12 @@ apply auto
 done
 
 lemma evaln_max2: "[| <c1,s1> -n1-> t1;  <c2,s2> -n2-> t2 |] ==>  
-    ? n. <c1,s1> -n -> t1 & <c2,s2> -n -> t2"
+    \<exists>n. <c1,s1> -n -> t1 \<and> <c2,s2> -n -> t2"
 apply (cut_tac m = "n1" and n = "n2" in nat_le_linear)
 apply (blast dest: evaln_nonstrict)
 done
 
-lemma evalc_evaln: "<c,s> -c-> t ==> ? n. <c,s> -n-> t"
+lemma evalc_evaln: "<c,s> -c-> t \<Longrightarrow> \<exists>n. <c,s> -n-> t"
 apply (erule evalc.induct)
 apply (tactic \<open>ALLGOALS (REPEAT o eresolve_tac @{context} [exE])\<close>)
 apply (tactic \<open>TRYALL (EVERY' [dresolve_tac @{context} @{thms evaln_max2}, assume_tac @{context},
@@ -147,7 +147,7 @@ apply (tactic
     resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW assume_tac @{context})\<close>)
 done
 
-lemma eval_eq: "<c,s> -c-> t = (? n. <c,s> -n-> t)"
+lemma eval_eq: "<c,s> -c-> t = (\<exists>n. <c,s> -n-> t)"
 apply (fast elim: evalc_evaln evaln_evalc)
 done
 

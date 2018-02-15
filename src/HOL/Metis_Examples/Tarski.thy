@@ -23,35 +23,35 @@ record 'a potype =
   order :: "('a * 'a) set"
 
 definition monotone :: "['a => 'a, 'a set, ('a *'a)set] => bool" where
-  "monotone f A r == \<forall>x\<in>A. \<forall>y\<in>A. (x, y): r --> ((f x), (f y)) : r"
+  "monotone f A r == \<forall>x\<in>A. \<forall>y\<in>A. (x, y) \<in> r --> ((f x), (f y)) \<in> r"
 
 definition least :: "['a => bool, 'a potype] => 'a" where
-  "least P po == @ x. x: pset po & P x &
-                       (\<forall>y \<in> pset po. P y --> (x,y): order po)"
+  "least P po \<equiv> SOME x. x \<in> pset po \<and> P x \<and>
+                       (\<forall>y \<in> pset po. P y \<longrightarrow> (x,y) \<in> order po)"
 
 definition greatest :: "['a => bool, 'a potype] => 'a" where
-  "greatest P po == @ x. x: pset po & P x &
-                          (\<forall>y \<in> pset po. P y --> (y,x): order po)"
+  "greatest P po \<equiv> SOME x. x \<in> pset po \<and> P x \<and>
+                          (\<forall>y \<in> pset po. P y \<longrightarrow> (y,x) \<in> order po)"
 
 definition lub  :: "['a set, 'a potype] => 'a" where
-  "lub S po == least (\<lambda>x. \<forall>y\<in>S. (y,x): order po) po"
+  "lub S po == least (\<lambda>x. \<forall>y\<in>S. (y,x) \<in> order po) po"
 
 definition glb  :: "['a set, 'a potype] => 'a" where
-  "glb S po == greatest (\<lambda>x. \<forall>y\<in>S. (x,y): order po) po"
+  "glb S po \<equiv> greatest (\<lambda>x. \<forall>y\<in>S. (x,y) \<in> order po) po"
 
 definition isLub :: "['a set, 'a potype, 'a] => bool" where
-  "isLub S po == \<lambda>L. (L: pset po & (\<forall>y\<in>S. (y,L): order po) &
-                   (\<forall>z\<in>pset po. (\<forall>y\<in>S. (y,z): order po) --> (L,z): order po))"
+  "isLub S po \<equiv> \<lambda>L. (L \<in> pset po \<and> (\<forall>y\<in>S. (y,L) \<in> order po) \<and>
+                   (\<forall>z\<in>pset po. (\<forall>y\<in>S. (y,z) \<in> order po) \<longrightarrow> (L,z) \<in> order po))"
 
 definition isGlb :: "['a set, 'a potype, 'a] => bool" where
-  "isGlb S po == \<lambda>G. (G: pset po & (\<forall>y\<in>S. (G,y): order po) &
-                 (\<forall>z \<in> pset po. (\<forall>y\<in>S. (z,y): order po) --> (z,G): order po))"
+  "isGlb S po \<equiv> \<lambda>G. (G \<in> pset po \<and> (\<forall>y\<in>S. (G,y) \<in> order po) \<and>
+                 (\<forall>z \<in> pset po. (\<forall>y\<in>S. (z,y) \<in> order po) \<longrightarrow> (z,G) \<in> order po))"
 
 definition "fix"    :: "[('a => 'a), 'a set] => 'a set" where
-  "fix f A  == {x. x: A & f x = x}"
+  "fix f A  \<equiv> {x. x \<in> A \<and> f x = x}"
 
 definition interval :: "[('a*'a) set,'a, 'a ] => 'a set" where
-  "interval r a b == {x. (a,x): r & (x,b): r}"
+  "interval r a b == {x. (a,x) \<in> r & (x,b) \<in> r}"
 
 definition Bot :: "'a potype => 'a" where
   "Bot po == least (\<lambda>x. True) po"
@@ -64,22 +64,22 @@ definition PartialOrder :: "('a potype) set" where
                        trans (order P)}"
 
 definition CompleteLattice :: "('a potype) set" where
-  "CompleteLattice == {cl. cl: PartialOrder &
-                        (\<forall>S. S \<subseteq> pset cl --> (\<exists>L. isLub S cl L)) &
-                        (\<forall>S. S \<subseteq> pset cl --> (\<exists>G. isGlb S cl G))}"
+  "CompleteLattice == {cl. cl \<in> PartialOrder \<and>
+                        (\<forall>S. S \<subseteq> pset cl \<longrightarrow> (\<exists>L. isLub S cl L)) \<and>
+                        (\<forall>S. S \<subseteq> pset cl \<longrightarrow> (\<exists>G. isGlb S cl G))}"
 
 definition induced :: "['a set, ('a * 'a) set] => ('a *'a)set" where
-  "induced A r == {(a,b). a : A & b: A & (a,b): r}"
+  "induced A r \<equiv> {(a,b). a \<in> A \<and> b \<in> A \<and> (a,b) \<in> r}"
 
 definition sublattice :: "('a potype * 'a set)set" where
-  "sublattice ==
-      SIGMA cl: CompleteLattice.
-          {S. S \<subseteq> pset cl &
-           (| pset = S, order = induced S (order cl) |): CompleteLattice }"
+  "sublattice \<equiv>
+      SIGMA cl : CompleteLattice.
+          {S. S \<subseteq> pset cl \<and>
+           \<lparr>pset = S, order = induced S (order cl)\<rparr> \<in> CompleteLattice}"
 
 abbreviation
   sublattice_syntax :: "['a set, 'a potype] => bool" ("_ <<= _" [51, 50] 50)
-  where "S <<= cl \<equiv> S : sublattice `` {cl}"
+  where "S <<= cl \<equiv> S \<in> sublattice `` {cl}"
 
 definition dual :: "'a potype => 'a potype" where
   "dual po == (| pset = pset po, order = converse (order po) |)"
@@ -88,21 +88,21 @@ locale PO =
   fixes cl :: "'a potype"
     and A  :: "'a set"
     and r  :: "('a * 'a) set"
-  assumes cl_po:  "cl : PartialOrder"
+  assumes cl_po:  "cl \<in> PartialOrder"
   defines A_def: "A == pset cl"
      and  r_def: "r == order cl"
 
 locale CL = PO +
-  assumes cl_co:  "cl : CompleteLattice"
+  assumes cl_co:  "cl \<in> CompleteLattice"
 
 definition CLF_set :: "('a potype * ('a => 'a)) set" where
   "CLF_set = (SIGMA cl: CompleteLattice.
-            {f. f: pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)})"
+            {f. f \<in> pset cl \<rightarrow> pset cl \<and> monotone f (pset cl) (order cl)})"
 
 locale CLF = CL +
   fixes f :: "'a => 'a"
     and P :: "'a set"
-  assumes f_cl:  "(cl,f) : CLF_set" (*was the equivalent "f : CLF``{cl}"*)
+  assumes f_cl:  "(cl,f) \<in> CLF_set" (*was the equivalent "f : CLF``{cl}"*)
   defines P_def: "P == fix f A"
 
 locale Tarski = CLF +
@@ -113,9 +113,9 @@ locale Tarski = CLF +
     Y_ss: "Y \<subseteq> P"
   defines
     intY1_def: "intY1 == interval r (lub Y cl) (Top cl)"
-    and v_def: "v == glb {x. ((\<lambda>x \<in> intY1. f x) x, x): induced intY1 r &
-                             x: intY1}
-                      (| pset=intY1, order=induced intY1 r|)"
+    and v_def: "v == glb {x. ((\<lambda>x \<in> intY1. f x) x, x) \<in> induced intY1 r \<and>
+                             x \<in> intY1}
+                      \<lparr>pset=intY1, order=induced intY1 r\<rparr>"
 
 subsection \<open>Partial Order\<close>
 
@@ -362,8 +362,8 @@ lemma (in CL) isLub_least:
 by (simp add: isLub_def A_def r_def)
 
 lemma (in CL) isLubI:
-     "[| L \<in> A; \<forall>y \<in> S. (y, L) \<in> r;
-         (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z):r) --> (L, z) \<in> r)|] ==> isLub S cl L"
+     "\<lbrakk>L \<in> A; \<forall>y \<in> S. (y, L) \<in> r;
+         (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z) \<in> r) \<longrightarrow> (L, z) \<in> r)\<rbrakk> \<Longrightarrow> isLub S cl L"
 by (simp add: isLub_def A_def r_def)
 
 subsection \<open>glb\<close>
@@ -402,7 +402,7 @@ text \<open>
 declare (in CLF) f_cl [simp]
 
 lemma (in CLF) [simp]:
-    "f: pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)"
+    "f \<in> pset cl \<rightarrow> pset cl \<and> monotone f (pset cl) (order cl)"
 proof -
   have "\<forall>u v. (v, u) \<in> CLF_set \<longrightarrow> u \<in> {R \<in> pset v \<rightarrow> pset v. monotone R (pset v) (order v)}"
     unfolding CLF_set_def using SigmaE2 by blast

@@ -37,7 +37,7 @@ lemma Restr_Int:
 "Restr (Restr r A) B = Restr r (A Int B)"
 by blast
 
-lemma Restr_iff: "(a,b) : Restr r A = (a : A \<and> b : A \<and> (a,b) : r)"
+lemma Restr_iff: "(a,b) \<in> Restr r A = (a \<in> A \<and> b \<in> A \<and> (a,b) \<in> r)"
 by (auto simp add: Field_def)
 
 lemma Restr_subset1: "Restr r A \<le> r"
@@ -281,7 +281,7 @@ text \<open>The correct phrasing would be ``a maxim of ...", as \<open>\<le>o\<c
 
 definition isOmax :: "'a rel set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
-"isOmax  R r == r \<in> R \<and> (ALL r' : R. r' \<le>o r)"
+"isOmax  R r \<equiv> r \<in> R \<and> (\<forall>r' \<in> R. r' \<le>o r)"
 
 definition omax :: "'a rel set \<Rightarrow> 'a rel"
 where
@@ -405,8 +405,8 @@ and LEQ: "\<forall> p \<in> P. \<exists> r \<in> R. p \<le>o r"
 shows "omax P \<le>o omax R"
 proof-
   let ?mp = "omax P"  let ?mr = "omax R"
-  {fix p assume "p : P"
-   then obtain r where r: "r : R" and "p \<le>o r"
+  {fix p assume "p \<in> P"
+   then obtain r where r: "r \<in> R" and "p \<le>o r"
    using LEQ by blast
    moreover have "r <=o ?mr"
    using r R Well_R omax_maxim by blast
@@ -424,8 +424,8 @@ and LEQ: "\<forall> p \<in> P. \<exists> r \<in> R. p <o r"
 shows "omax P <o omax R"
 proof-
   let ?mp = "omax P"  let ?mr = "omax R"
-  {fix p assume "p : P"
-   then obtain r where r: "r : R" and "p <o r"
+  {fix p assume "p \<in> P"
+   then obtain r where r: "r \<in> R" and "p <o r"
    using LEQ by blast
    moreover have "r <=o ?mr"
    using r R Well_R omax_maxim by blast

@@ -70,8 +70,8 @@ where
   "hotel []  = True"
 | "hotel (e # s) = (hotel s & (case e of
   Check_in g r (k,k') \<Rightarrow> k = currk s r \<and> k' \<notin> issued s |
-  Enter g r (k,k') \<Rightarrow> (k,k') : cards s g & (roomk s r : {k, k'}) |
-  Exit g r \<Rightarrow> g : isin s r))"
+  Enter g r (k,k') \<Rightarrow> (k,k') \<in> cards s g & (roomk s r \<in> {k, k'}) |
+  Exit g r \<Rightarrow> g \<in> isin s r))"
 
 definition no_Check_in :: "event list \<Rightarrow> room \<Rightarrow> bool" where(*>*)
 [code del]: "no_Check_in s r \<equiv> \<not>(\<exists>g c. Check_in g r c \<in> set s)"

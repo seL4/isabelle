@@ -266,7 +266,7 @@ lemma countable_funpow:
 by(induction n)(simp_all add: assms)
 
 lemma countable_rtrancl:
-  "(\<And>Y. countable Y \<Longrightarrow> countable (X `` Y)) \<Longrightarrow> countable Y \<Longrightarrow> countable (X^* `` Y)"
+  "(\<And>Y. countable Y \<Longrightarrow> countable (X `` Y)) \<Longrightarrow> countable Y \<Longrightarrow> countable (X\<^sup>* `` Y)"
   unfolding rtrancl_is_UN_relpow UN_Image by (intro countable_UN countableI_type countable_relpow)
 
 lemma countable_lists[intro, simp]:

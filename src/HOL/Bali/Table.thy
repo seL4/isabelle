@@ -364,10 +364,10 @@ by (simp (no_asm))
 primrec atleast_free :: "('a \<rightharpoonup> 'b) => nat => bool"
 where
   "atleast_free m 0 = True"
-| atleast_free_Suc: "atleast_free m (Suc n) = (\<exists>a. m a = None & (!b. atleast_free (m(a|->b)) n))"
+| atleast_free_Suc: "atleast_free m (Suc n) = (\<exists>a. m a = None \<and> (\<forall>b. atleast_free (m(a\<mapsto>b)) n))"
 
 lemma atleast_free_weaken [rule_format (no_asm)]: 
-  "!m. atleast_free m (Suc n) \<longrightarrow> atleast_free m n"
+  "\<forall>m. atleast_free m (Suc n) \<longrightarrow> atleast_free m n"
 apply (induct_tac "n")
 apply (simp (no_asm))
 apply clarify
@@ -377,13 +377,13 @@ apply fast
 done
 
 lemma atleast_free_SucI: 
-"[| h a = None; !obj. atleast_free (h(a|->obj)) n |] ==> atleast_free h (Suc n)"
+"[| h a = None; \<forall>obj. atleast_free (h(a|->obj)) n |] ==> atleast_free h (Suc n)"
 by force
 
 declare fun_upd_apply [simp del]
 lemma atleast_free_SucD_lemma [rule_format (no_asm)]: 
-" !m a. m a = None --> (!c. atleast_free (m(a|->c)) n) -->  
-  (!b d. a ~= b --> atleast_free (m(b|->d)) n)"
+"\<forall>m a. m a = None \<longrightarrow> (\<forall>c. atleast_free (m(a\<mapsto>c)) n) \<longrightarrow>
+  (\<forall>b d. a \<noteq> b \<longrightarrow> atleast_free (m(b\<mapsto>d)) n)"
 apply (induct_tac "n")
 apply  auto
 apply (rule_tac x = "a" in exI)

@@ -300,7 +300,7 @@ by (simp add: ax_valids2_def triple_valid2_def2) fast
    cases. Auto will then solve premise 6 and 7.
 *)
 
-lemma all_empty: "(!x. P) = P"
+lemma all_empty: "(\<forall>x. P) = P"
 by simp
 
 corollary evaln_type_sound:

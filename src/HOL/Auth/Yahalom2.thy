@@ -172,8 +172,8 @@ by (erule rev_mp, erule yahalom.induct, simp_all)
 
 lemma analz_image_freshK [rule_format]:
  "evs \<in> yahalom \<Longrightarrow>
-   \<forall>K KK. KK <= - (range shrK) -->
-          (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
+   \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
+          (Key K \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule yahalom.induct)
 apply (frule_tac [8] Says_Server_message_form)
@@ -194,7 +194,7 @@ lemma unique_session_keys:
         Says Server A'
           \<lbrace>nb', Crypt (shrK A') \<lbrace>Agent B', Key K, na'\<rbrace>, X'\<rbrace> \<in> set evs;
         evs \<in> yahalom\<rbrakk>
-     \<Longrightarrow> A=A' & B=B' & na=na' & nb=nb'"
+     \<Longrightarrow> A=A' \<and> B=B' \<and> na=na' \<and> nb=nb'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule yahalom.induct, simp_all)
 txt\<open>YM3, by freshness\<close>
@@ -209,8 +209,8 @@ lemma secrecy_lemma:
       \<Longrightarrow> Says Server A
             \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>,
                   Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, nb\<rbrace>\<rbrace>
-           \<in> set evs -->
-          Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs -->
+           \<in> set evs \<longrightarrow>
+          Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs \<longrightarrow>
           Key K \<notin> analz (knows Spy evs)"
 apply (erule yahalom.induct, force, frule_tac [7] Says_Server_message_form,
        drule_tac [6] YM4_analz_knows_Spy)
@@ -384,18 +384,18 @@ lemma secure_unique_session_keys:
      "\<lbrakk>Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace> \<in> analz (spies evs);
          Crypt (shrK A') \<lbrace>Agent B', Key K, na'\<rbrace> \<in> analz (spies evs);
          Key K \<notin> analz (knows Spy evs);  evs \<in> yahalom\<rbrakk>
-     \<Longrightarrow> A=A' & B=B'"
+     \<Longrightarrow> A=A' \<and> B=B'"
 by (blast dest!: A_trusts_YM3 dest: unique_session_keys Crypt_Spy_analz_bad)
 
 
 lemma Auth_A_to_B_lemma [rule_format]:
      "evs \<in> yahalom
-      \<Longrightarrow> Key K \<notin> analz (knows Spy evs) -->
-          K \<in> symKeys -->
-          Crypt K (Nonce NB) \<in> parts (knows Spy evs) -->
+      \<Longrightarrow> Key K \<notin> analz (knows Spy evs) \<longrightarrow>
+          K \<in> symKeys \<longrightarrow>
+          Crypt K (Nonce NB) \<in> parts (knows Spy evs) \<longrightarrow>
           Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>
-            \<in> parts (knows Spy evs) -->
-          B \<notin> bad -->
+            \<in> parts (knows Spy evs) \<longrightarrow>
+          B \<notin> bad \<longrightarrow>
           (\<exists>X. Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> \<in> set evs)"
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)

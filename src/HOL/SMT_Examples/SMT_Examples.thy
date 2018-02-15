@@ -242,7 +242,7 @@ lemma
 lemma
   assumes "(\<forall>x y. P x y = x)"
   and "(\<forall>x. \<exists>y. P x y) = (\<forall>x. P x c)"
-  shows "(EX y. P x y) = P x c"
+  shows "(\<exists>y. P x y) = P x c"
   using assms by smt
 
 lemma
@@ -345,8 +345,8 @@ lemma "\<forall>x y::int. x < y \<longrightarrow> (2 * x + 1) < (2 * y)" by smt
 lemma "\<forall>x y::int. (2 * x + 1) \<noteq> (2 * y)" by smt
 lemma "\<forall>x y::int. x + y > 2 \<or> x + y = 2 \<or> x + y < 2" by smt
 lemma "\<forall>x::int. if x > 0 then x + 1 > 0 else 1 > x" by smt
-lemma "if (ALL x::int. x < 0 \<or> x > 0) then False else True" by smt
-lemma "(if (ALL x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt
+lemma "if (\<forall>x::int. x < 0 \<or> x > 0) then False else True" by smt
+lemma "(if (\<forall>x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt
 lemma "~ (\<exists>x y z::int. 4 * x + -6 * y = (1::int))" by smt
 lemma "\<exists>x::int. \<forall>x y. 0 < x \<and> 0 < y \<longrightarrow> (0::int) < x + y" by smt
 lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrightarrow> -1 < x" by smt
@@ -437,7 +437,7 @@ lemma
 lemma True using let_rsp by smt
 lemma "le = (\<le>) \<Longrightarrow> le (3::int) 42" by smt
 lemma "map (\<lambda>i::int. i + 1) [0, 1] = [1, 2]" by (smt list.map)
-lemma "(ALL x. P x) \<or> ~ All P" by smt
+lemma "(\<forall>x. P x) \<or> \<not> All P" by smt
 
 fun dec_10 :: "int \<Rightarrow> int" where
   "dec_10 n = (if n < 10 then n else dec_10 (n - 10))"

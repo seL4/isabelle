@@ -120,8 +120,8 @@ text\<open>This rule looks unsatisfactory because it refers to @{term lift}.
   something like \<open>lift_preserves_sub\<close> to rewrite the third.  However
   there's no obvious alternative for the third premise.\<close>
 lemma guarantees_PLam_I:
-    "[| lift i (F i): X guarantees Y;  i \<in> I;
-        OK I (%i. lift i (F i)) |]
+    "[| lift i (F i) \<in> X guarantees Y;  i \<in> I;
+        OK I (\<lambda>i. lift i (F i)) |]
      ==> (PLam I F) \<in> X guarantees Y"
 apply (unfold PLam_def)
 apply (simp add: guarantees_JN_I)

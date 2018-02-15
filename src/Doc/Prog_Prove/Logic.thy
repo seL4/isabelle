@@ -97,7 +97,7 @@ involving a proper term @{text t} must be written
 \noquotes{@{term[source] "{t | x y. P}"}}\index{$IMP042@@{text"{t |x. P}"}},
 where @{text "x y"} are those free variables in @{text t}
 that occur in @{text P}.
-This is just a shorthand for @{term"{v. EX x y. v = t \<and> P}"}, where
+This is just a shorthand for @{term"{v. \<exists>x y. v = t \<and> P}"}, where
 @{text v} is a new variable. For example, @{term"{x+y|x. x \<in> A}"}
 is short for \noquotes{@{term[source]"{v. \<exists>x. v = x+y \<and> x \<in> A}"}}.
 \end{warn}
@@ -111,8 +111,8 @@ Here are the ASCII representations of the mathematical symbols:
 @{text "\<inter>"} & \texttt{\char`\\\char`\<inter>} & \texttt{Int}
 \end{tabular}
 \end{center}
-Sets also allow bounded quantifications @{prop"ALL x : A. P"} and
-@{prop"EX x : A. P"}.
+Sets also allow bounded quantifications @{prop"\<forall>x \<in> A. P"} and
+@{prop"\<exists>x \<in> A. P"}.
 
 For the more ambitious, there are also @{text"\<Union>"}\index{$HOLSet6@\isasymUnion}
 and @{text"\<Inter>"}\index{$HOLSet7@\isasymInter}:
@@ -703,7 +703,7 @@ The reflexive transitive closure, called @{text star} below, is a function
 that maps a binary predicate to another binary predicate: if @{text r} is of
 type @{text"\<tau> \<Rightarrow> \<tau> \<Rightarrow> bool"} then @{term "star r"} is again of type @{text"\<tau> \<Rightarrow>
 \<tau> \<Rightarrow> bool"}, and @{prop"star r x y"} means that @{text x} and @{text y} are in
-the relation @{term"star r"}. Think @{term"r^*"} when you see @{term"star
+the relation @{term"star r"}. Think @{term"r\<^sup>*"} when you see @{term"star
 r"}, because @{text"star r"} is meant to be the reflexive transitive closure.
 That is, @{prop"star r x y"} is meant to be true if from @{text x} we can
 reach @{text y} in finitely many @{text r} steps. This concept is naturally

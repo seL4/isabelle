@@ -185,18 +185,18 @@ lemma comp_ws_prog: "ws_prog (comp G) = ws_prog G"
 
 
 lemma comp_class_rec: 
-  "wf ((subcls1 G)^-1) \<Longrightarrow> 
+  "wf ((subcls1 G)\<inverse>) \<Longrightarrow> 
   class_rec (comp G) C t f =
   class_rec G C t (\<lambda> C' fs' ms' r'. f C' fs' (map (compMethod G C') ms') r')"
   apply (rule_tac a = C in  wf_induct)
    apply assumption
-  apply (subgoal_tac "wf ((subcls1 (comp G))^-1)")
+  apply (subgoal_tac "wf ((subcls1 (comp G))\<inverse>)")
    apply (subgoal_tac "(class G x = None) \<or> (\<exists> D fs ms. (class G x = Some (D, fs, ms)))")
     apply (erule disjE)
 
      (* case class G x = None *)
      apply (simp (no_asm_simp) add: class_rec_def comp_subcls1 
-                                    wfrec [where R="(subcls1 G)^-1", simplified])
+                                    wfrec [where R="(subcls1 G)\<inverse>", simplified])
      apply (simp add: comp_class_None)
 
     (* case \<exists> D fs ms. (class G x = Some (D, fs, ms)) *)
@@ -220,11 +220,11 @@ lemma comp_class_rec:
   apply (simp add: comp_subcls1)
   done
 
-lemma comp_fields: "wf ((subcls1 G)^-1) \<Longrightarrow> 
+lemma comp_fields: "wf ((subcls1 G)\<inverse>) \<Longrightarrow> 
   fields (comp G,C) = fields (G,C)" 
   by (simp add: fields_def comp_class_rec)
 
-lemma comp_field: "wf ((subcls1 G)^-1) \<Longrightarrow> 
+lemma comp_field: "wf ((subcls1 G)\<inverse>) \<Longrightarrow> 
   field (comp G,C) = field (G,C)" 
   by (simp add: TypeRel.field_def comp_fields)
 
@@ -233,7 +233,7 @@ lemma class_rec_relation [rule_format (no_asm)]: "\<lbrakk>  ws_prog G;
   \<forall>fs ms. R (f1 Object fs ms t1) (f2 Object fs ms t2);
    \<forall>C fs ms r1 r2. (R r1 r2) \<longrightarrow> (R (f1 C fs ms r1) (f2 C fs ms r2)) \<rbrakk>
   \<Longrightarrow> ((class G C) \<noteq> None) \<longrightarrow>  R (class_rec G C t1 f1) (class_rec G C t2 f2)"
-  apply (frule wf_subcls1) (* establish wf ((subcls1 G)^-1) *)
+  apply (frule wf_subcls1) (* establish wf ((subcls1 G)\<inverse>) *)
   apply (rule_tac a = C in wf_induct)
    apply assumption
   apply (intro strip)

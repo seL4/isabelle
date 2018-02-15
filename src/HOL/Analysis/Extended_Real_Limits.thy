@@ -159,7 +159,7 @@ proof (rule ccontr)
     then obtain b where b: "Inf S - e < b" "b < Inf S"
       using fin ereal_between[of "Inf S" e] dense[of "Inf S - e"]
       by auto
-    then have "b: {Inf S - e <..< Inf S + e}"
+    then have "b \<in> {Inf S - e <..< Inf S + e}"
       using e fin ereal_between[of "Inf S" e]
       by auto
     then have "b \<in> S"

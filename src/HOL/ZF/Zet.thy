@@ -17,7 +17,7 @@ typedef 'a zet = "zet :: 'a set set"
 definition zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zin x A == x \<in> (Rep_zet A)"
 
-lemma zet_ext_eq: "(A = B) = (! x. zin x A = zin x B)"
+lemma zet_ext_eq: "(A = B) = (\<forall>x. zin x A = zin x B)"
   by (auto simp add: Rep_zet_inject[symmetric] zin_def)
 
 definition zimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a zet \<Rightarrow> 'b zet" where
@@ -32,7 +32,7 @@ lemma zet_def': "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A = explode z
   apply (auto simp add: explode_def Sep)
   done
 
-lemma image_zet_rep: "A \<in> zet \<Longrightarrow> ? z . g ` A = explode z"
+lemma image_zet_rep: "A \<in> zet \<Longrightarrow> \<exists>z . g ` A = explode z"
   apply (auto simp add: zet_def')
   apply (rule_tac x="Repl z (g o (inv_into A f))" in exI)
   apply (simp add: explode_Repl_eq)
@@ -44,7 +44,7 @@ lemma zet_image_mem:
   assumes Azet: "A \<in> zet"
   shows "g ` A \<in> zet"
 proof -
-  from Azet have "? (f :: _ \<Rightarrow> ZF). inj_on f A" 
+  from Azet have "\<exists>(f :: _ \<Rightarrow> ZF). inj_on f A" 
     by (auto simp add: zet_def')
   then obtain f where injf: "inj_on (f :: _ \<Rightarrow> ZF) A"  
     by auto
@@ -70,7 +70,7 @@ lemma Rep_zimage_eq: "Rep_zet (zimage f A) = image f (Rep_zet A)"
   apply (simp_all add: Rep_zet zet_image_mem)
   done
 
-lemma zimage_iff: "zin y (zimage f A) = (? x. zin x A & y = f x)"
+lemma zimage_iff: "zin y (zimage f A) = (\<exists>x. zin x A \<and> y = f x)"
   by (auto simp add: zin_def Rep_zimage_eq)
 
 definition zimplode :: "ZF zet \<Rightarrow> ZF" where
@@ -79,7 +79,7 @@ definition zimplode :: "ZF zet \<Rightarrow> ZF" where
 definition zexplode :: "ZF \<Rightarrow> ZF zet" where
   "zexplode z == Abs_zet (explode z)"
 
-lemma Rep_zet_eq_explode: "? z. Rep_zet A = explode z"
+lemma Rep_zet_eq_explode: "\<exists>z. Rep_zet A = explode z"
   by (rule image_zet_rep[where g="\<lambda> x. x",OF Rep_zet, simplified])
 
 lemma zexplode_zimplode: "zexplode (zimplode A) = A"
@@ -117,7 +117,7 @@ definition zunion :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> 'a zet" where
   "zunion a b \<equiv> Abs_zet ((Rep_zet a) \<union> (Rep_zet b))"
 
 definition zsubset :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> bool" where
-  "zsubset a b \<equiv> ! x. zin x a \<longrightarrow> zin x b"
+  "zsubset a b \<equiv> \<forall>x. zin x a \<longrightarrow> zin x b"
 
 lemma explode_union: "explode (union a b) = (explode a) \<union> (explode b)"
   apply (rule set_eqI)
@@ -126,13 +126,13 @@ lemma explode_union: "explode (union a b) = (explode a) \<union> (explode b)"
 
 lemma Rep_zet_zunion: "Rep_zet (zunion a b) = (Rep_zet a) \<union> (Rep_zet b)"
 proof -
-  from Rep_zet[of a] have "? f z. inj_on f (Rep_zet a) \<and> f ` (Rep_zet a) = explode z"
+  from Rep_zet[of a] have "\<exists>f z. inj_on f (Rep_zet a) \<and> f ` (Rep_zet a) = explode z"
     by (auto simp add: zet_def')
   then obtain fa za where a:"inj_on fa (Rep_zet a) \<and> fa ` (Rep_zet a) = explode za"
     by blast
   from a have fa: "inj_on fa (Rep_zet a)" by blast
   from a have za: "fa ` (Rep_zet a) = explode za" by blast
-  from Rep_zet[of b] have "? f z. inj_on f (Rep_zet b) \<and> f ` (Rep_zet b) = explode z"
+  from Rep_zet[of b] have "\<exists>f z. inj_on f (Rep_zet b) \<and> f ` (Rep_zet b) = explode z"
     by (auto simp add: zet_def')
   then obtain fb zb where b:"inj_on fb (Rep_zet b) \<and> fb ` (Rep_zet b) = explode zb"
     by blast

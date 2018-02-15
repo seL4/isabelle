@@ -84,7 +84,7 @@ theorem termi_implies_IT: "termip beta r ==> IT r"
    apply (erule mp)
    apply clarify
    apply (drule_tac r=beta in conversepI)
-   apply (drule_tac r="beta^--1" in ex_step1I, assumption)
+   apply (drule_tac r="beta\<inverse>\<inverse>" in ex_step1I, assumption)
    apply clarify
    apply (rename_tac us)
    apply (erule_tac x = "Var n \<degree>\<degree> us" in allE)

@@ -39,8 +39,8 @@ lemma ring_hom_ringI:
   assumes "ring R" "ring S"
   assumes (* morphism: "h \<in> carrier R \<rightarrow> carrier S" *)
           hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
-      and compatible_mult: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
-      and compatible_add: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
+      and compatible_mult: "\<And>x y. [| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
+      and compatible_add: "\<And>x y. [| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
 proof -
@@ -72,7 +72,7 @@ qed
 lemma ring_hom_ringI3:
   fixes R (structure) and S (structure)
   assumes "abelian_group_hom R S h" "ring R" "ring S" 
-  assumes compatible_mult: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
+  assumes compatible_mult: "\<And>x y. [| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
 proof -

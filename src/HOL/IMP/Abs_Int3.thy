@@ -466,7 +466,7 @@ fixes m :: "'a::wn acom \<Rightarrow> nat"
 assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
 and P_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \<nabla> C2)"
 and m_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> ~ C2 \<le> C1 \<Longrightarrow> m(C1 \<nabla> C2) < m C1"
-and "P C" shows "EX C'. iter_widen f C = Some C'"
+and "P C" shows "\<exists>C'. iter_widen f C = Some C'"
 proof(simp add: iter_widen_def,
       rule measure_while_option_Some[where P = P and f=m])
   show "P C" by(rule \<open>P C\<close>)
@@ -481,7 +481,7 @@ assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
 and P_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \<triangle> C2)"
 and mono: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> f C1 \<le> f C2"
 and n_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n(C1 \<triangle> C2) < n C1"
-and init: "P C" "f C \<le> C" shows "EX C'. iter_narrow f C = Some C'"
+and init: "P C" "f C \<le> C" shows "\<exists>C'. iter_narrow f C = Some C'"
 proof(simp add: iter_narrow_def,
       rule measure_while_option_Some[where f=n and P = "%C. P C \<and> f C \<le> C"])
   show "P C \<and> f C \<le> C" using init by blast

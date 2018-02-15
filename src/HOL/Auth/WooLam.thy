@@ -142,7 +142,7 @@ by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
   But A may have sent the nonce to some other agent and it could have reached
   the Server via the Spy.*)
 lemma B_trusts_WL5:
-     "[| Says S B (Crypt (shrK B) \<lbrace>Agent A, Nonce NB\<rbrace>): set evs;
+     "[| Says S B (Crypt (shrK B) \<lbrace>Agent A, Nonce NB\<rbrace>) \<in> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> woolam  |]
       ==> \<exists>B. Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
 by (blast dest!: NB_Crypt_imp_Server_msg)
@@ -157,9 +157,9 @@ by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 (**CANNOT be proved because A doesn't know where challenges come from...*)
 lemma "[| A \<notin> bad;  B \<noteq> Spy;  evs \<in> woolam |]
-  ==> Crypt (shrK A) (Nonce NB) \<in> parts (spies evs) &
+  ==> Crypt (shrK A) (Nonce NB) \<in> parts (spies evs) \<and>
       Says B A (Nonce NB) \<in> set evs
-      --> Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
+      \<longrightarrow> Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
 apply (erule rev_mp, erule woolam.induct, force, simp_all, blast, auto)
 oops
 

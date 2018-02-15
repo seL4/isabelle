@@ -43,7 +43,7 @@ abbreviation
 
 abbreviation
   subint_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
-  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)^*" \<comment> \<open>cf. 9.1.3\<close>
+  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)\<^sup>*" \<comment> \<open>cf. 9.1.3\<close>
 
 abbreviation
   implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
@@ -116,7 +116,7 @@ apply (drule (1) subcls_ObjectI)
 apply (auto intro: rtrancl_into_trancl3)
 done
 
-lemma subcls_is_class: "(C,D) \<in> (subcls1 G)^+ \<Longrightarrow> is_class G C"
+lemma subcls_is_class: "(C,D) \<in> (subcls1 G)\<^sup>+ \<Longrightarrow> is_class G C"
 apply (erule trancl_trans_induct)
 apply (auto dest!: subcls1D)
 done

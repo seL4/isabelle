@@ -69,12 +69,12 @@ lemma unfold_plussub_lift2:
 
 
 lemma plus_eq_Err_conv [simp]:
-  assumes "x:A" and "y:A"
+  assumes "x \<in> A" and "y \<in> A"
     and "semilat(err A, Err.le r, lift2 f)"
-  shows "(x +_f y = Err) = (~(? z:A. x <=_r z & y <=_r z))"
+  shows "(x +_f y = Err) = (\<not>(\<exists>z\<in>A. x <=_r z & y <=_r z))"
 proof -
   have plus_le_conv2:
-    "\<And>r f z. \<lbrakk> z : err A; semilat (err A, r, f); OK x : err A; OK y : err A;
+    "\<And>r f z. \<lbrakk> z \<in> err A; semilat (err A, r, f); OK x \<in> err A; OK y \<in> err A;
                  OK x +_f OK y <=_r z\<rbrakk> \<Longrightarrow> OK x <=_r z \<and> OK y <=_r z"
     by (rule Semilat.plus_le_conv [OF Semilat.intro, THEN iffD1])
   from assms show ?thesis
@@ -92,7 +92,7 @@ proof -
   apply (case_tac "x +_f y")
    apply assumption
   apply (rename_tac "z")
-  apply (subgoal_tac "OK z: err A")
+  apply (subgoal_tac "OK z \<in> err A")
   apply (frule plus_le_conv2)
        apply assumption
       apply simp

@@ -29,7 +29,7 @@ axiomatization where
   (* basic assumptions about the above constants and predicates *)
   BadArgNoMemVal:    "BadArg \<notin> MemVal" and
   MemFailNoMemVal:   "MemFailure \<notin> MemVal" and
-  InitValMemVal:     "InitVal : MemVal" and
+  InitValMemVal:     "InitVal \<in> MemVal" and
   NotAResultNotVal:  "NotAResult \<notin> MemVal" and
   NotAResultNotOK:   "NotAResult \<noteq> OK" and
   NotAResultNotBA:   "NotAResult \<noteq> BadArg" and

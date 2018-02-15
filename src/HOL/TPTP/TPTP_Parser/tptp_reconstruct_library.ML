@@ -264,13 +264,13 @@ local
     | try_dest_All t = t
 
   val _ = @{assert}
-    ((@{term "! x. (! y. P) = True"}
+    ((@{term "\<forall>x. (\<forall>y. P) = True"}
       |> try_dest_All
       |> Term.strip_abs_vars)
      = [("x", @{typ "'a"})])
 
   val _ = @{assert}
-    ((@{prop "! x. (! y. P) = True"}
+    ((@{prop "\<forall>x. (\<forall>y. P) = True"}
       |> try_dest_All
       |> Term.strip_abs_vars)
      = [("x", @{typ "'a"})])
@@ -306,7 +306,7 @@ val _ =
          Free ("x", @{typ "'a"})))
   in
     @{assert}
-      ((@{term "! x. All ((=) x)"}
+      ((@{term "\<forall>x. All ((=) x)"}
         |> strip_top_All_vars)
        = answer)
   end
@@ -642,7 +642,7 @@ fun dist_all_and_tac ctxt i =
      val simpset =
        empty_simpset ctxt
        |> Simplifier.add_simp
-           @{lemma "! x. P x & Q x \<equiv> (! x. P x) & (! x. Q x)"
+           @{lemma "\<forall>x. P x \<and> Q x \<equiv> (\<forall>x. P x) \<and> (\<forall>x. Q x)"
               by (rule eq_reflection, auto)}
    in
      CHANGED (asm_full_simp_tac simpset i)

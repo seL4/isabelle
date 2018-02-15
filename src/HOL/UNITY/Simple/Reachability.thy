@@ -296,7 +296,7 @@ done
 lemma Leadsto_reachability_AND_nmsg_0:
      "[| v \<in> V; w \<in> V |]  
       ==> F \<in> UNIV LeadsTo  
-             ((reachable v <==> {s. (root,v): REACHABLE}) \<inter> nmsg_eq 0 (v,w))"
+             ((reachable v <==> {s. (root,v) \<in> REACHABLE}) \<inter> nmsg_eq 0 (v,w))"
 apply (rule LeadsTo_Reachability [THEN LeadsTo_Trans], blast)
 apply (subgoal_tac
          "F \<in> (reachable v <==> {s. (root,v) \<in> REACHABLE}) \<inter> 
@@ -355,7 +355,7 @@ apply (rule Stable_eq)
  apply simp
 apply (subgoal_tac 
         "({s. (s \<in> reachable v) = ((root,v) \<in> REACHABLE) }) = 
-         ({s. (s \<in> reachable v) = ( (root,v) \<in> REACHABLE) } Int
+         ({s. (s \<in> reachable v) = ( (root,v) \<in> REACHABLE) } \<inter>
               (- {} \<union> nmsg_eq 0 (v,w)))")
 apply blast+
 done

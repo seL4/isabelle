@@ -385,7 +385,7 @@ lemma isLub_least: "\<lbrakk>isLub S cl L; z \<in> A; \<forall>y \<in> S. (y, z)
   by (simp add: isLub_def A_def r_def)
 
 lemma isLubI:
-  "\<lbrakk>L \<in> A; \<forall>y \<in> S. (y, L) \<in> r; (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z):r) \<longrightarrow> (L, z) \<in> r)\<rbrakk> \<Longrightarrow> isLub S cl L"
+  "\<lbrakk>L \<in> A; \<forall>y \<in> S. (y, L) \<in> r; (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z)\<in>r) \<longrightarrow> (L, z) \<in> r)\<rbrakk> \<Longrightarrow> isLub S cl L"
   by (simp add: isLub_def A_def r_def)
 
 end

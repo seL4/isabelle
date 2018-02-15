@@ -10,7 +10,7 @@ primrec add :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 
 text\<open>\noindent and prove\<close>
 (*<*)
-lemma [simp]: "!m. add m n = m+n"
+lemma [simp]: "\<forall>m. add m n = m+n"
 apply(induct_tac n)
 by(auto)
 (*>*)

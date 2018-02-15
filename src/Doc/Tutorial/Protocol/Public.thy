@@ -32,7 +32,7 @@ primrec initState where
 | initState_Friend:  "initState (Friend i) =    
                          insert (Key (priK (Friend i))) (Key ` range pubK)"
 | initState_Spy:     "initState Spy        =    
-                         (Key`invKey`pubK`bad) Un (Key ` range pubK)"
+                         (Key`invKey`pubK`bad) \<union> (Key ` range pubK)"
 
 end
 (*>*)
@@ -77,14 +77,14 @@ lemma analz_symKeys_Decrypt: "[| Crypt K X \<in> analz H;  K \<in> symKeys;  Key
 
 (** "Image" equations that hold for injective functions **)
 
-lemma invKey_image_eq[simp]: "(invKey x : invKey`A) = (x:A)"
+lemma invKey_image_eq[simp]: "(invKey x \<in> invKey`A) = (x\<in>A)"
   by auto
 
 (*holds because invKey is injective*)
-lemma pubK_image_eq[simp]: "(pubK x : pubK`A) = (x:A)"
+lemma pubK_image_eq[simp]: "(pubK x \<in> pubK`A) = (x\<in>A)"
   by auto
 
-lemma priK_pubK_image_eq[simp]: "(priK x ~: pubK`A)"
+lemma priK_pubK_image_eq[simp]: "(priK x \<notin> pubK`A)"
   by auto
 
 
@@ -101,15 +101,15 @@ lemma keysFor_parts_initState[simp]: "keysFor (parts (initState C)) = {}"
 (*** Function "spies" ***)
 
 (*Agents see their own private keys!*)
-lemma priK_in_initState[iff]: "Key (priK A) : initState A"
+lemma priK_in_initState[iff]: "Key (priK A) \<in> initState A"
   by (induct A) auto
 
 (*All public keys are visible*)
-lemma spies_pubK[iff]: "Key (pubK A) : spies evs"
+lemma spies_pubK[iff]: "Key (pubK A) \<in> spies evs"
   by (induct evs) (simp_all add: imageI knows_Cons split: event.split)
 
 (*Spy sees private keys of bad agents!*)
-lemma Spy_spies_bad[intro!]: "A: bad ==> Key (priK A) : spies evs"
+lemma Spy_spies_bad[intro!]: "A \<in> bad \<Longrightarrow> Key (priK A) \<in> spies evs"
   by (induct evs) (simp_all add: imageI knows_Cons split: event.split)
 
 lemmas [iff] = spies_pubK [THEN analz.Inj]
@@ -117,17 +117,17 @@ lemmas [iff] = spies_pubK [THEN analz.Inj]
 
 (*** Fresh nonces ***)
 
-lemma Nonce_notin_initState[iff]: "Nonce N ~: parts (initState B)"
+lemma Nonce_notin_initState[iff]: "Nonce N \<notin> parts (initState B)"
   by (induct B) auto
 
-lemma Nonce_notin_used_empty[simp]: "Nonce N ~: used []"
+lemma Nonce_notin_used_empty[simp]: "Nonce N \<notin> used []"
   by (simp add: used_Nil)
 
 
 (*** Supply fresh nonces for possibility theorems. ***)
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
-lemma Nonce_supply_lemma: "EX N. ALL n. N<=n --> Nonce n \<notin> used evs"
+lemma Nonce_supply_lemma: "\<exists>N. \<forall>n. N\<le>n \<longrightarrow> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
 apply (simp_all (no_asm_simp) add: used_Cons split: event.split)
@@ -135,10 +135,10 @@ apply safe
 apply (rule msg_Nonce_supply [THEN exE], blast elim!: add_leE)+
 done
 
-lemma Nonce_supply1: "EX N. Nonce N \<notin> used evs"
+lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
 by (rule Nonce_supply_lemma [THEN exE], blast)
 
-lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
+lemma Nonce_supply: "Nonce (SOME N. Nonce N \<notin> used evs) \<notin> used evs"
 apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, fast)
 done
@@ -146,10 +146,10 @@ done
 
 (*** Specialized rewriting for the analz_image_... theorems ***)
 
-lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} Un H"
+lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
   by blast
 
-lemma insert_Key_image: "insert (Key K) (Key`KK Un C) = Key ` (insert K KK) Un C"
+lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK) \<union> C"
   by blast
 
 

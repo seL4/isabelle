@@ -86,12 +86,12 @@ lemma "((P=Q) --> P&Q&R&S&T) &
 ***)
 
 (*Problem 1.1*)
-lemma "(ALL x. EX y. ALL z. p(x) & q(y) & r(z)) =
-       (ALL z. EX y. ALL x. p(x) & q(y) & r(z))"
+lemma "(\<forall>x. \<exists>y. \<forall>z. p(x) \<and> q(y) \<and> r(z)) =
+       (\<forall>z. \<exists>y. \<forall>x. p(x) \<and> q(y) \<and> r(z))"
   by (iprover del: allE elim 2: allE')
 
 (*Problem 3.1*)
-lemma "~ (EX x. ALL y. p y x = (~ p x x))"
+lemma "\<not> (\<exists>x. \<forall>y. p y x = (\<not> p x x))"
   by iprover
 
 
@@ -177,19 +177,19 @@ lemma "(P&Q) = (P = (Q = (P|Q)))"
 
 (* The converse is classical in the following implications... *)
 
-lemma "(EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q"
+lemma "(\<exists>x. P(x)\<longrightarrow>Q)  \<longrightarrow>  (\<forall>x. P(x)) \<longrightarrow> Q"
   by iprover
 
-lemma "((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)"
+lemma "((\<forall>x. P(x))\<longrightarrow>Q) \<longrightarrow> \<not> (\<forall>x. P(x) \<and> \<not>Q)"
   by iprover
 
-lemma "((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))"
+lemma "((\<forall>x. \<not>P(x))\<longrightarrow>Q)  \<longrightarrow>  \<not> (\<forall>x. \<not> (P(x)\<or>Q))"
   by iprover
 
-lemma "(ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)"
+lemma "(\<forall>x. P(x)) \<or> Q  \<longrightarrow>  (\<forall>x. P(x) \<or> Q)"
   by iprover 
 
-lemma "(EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))"
+lemma "(\<exists>x. P \<longrightarrow> Q(x)) \<longrightarrow> (P \<longrightarrow> (\<exists>x. Q(x)))"
   by iprover
 
 
@@ -199,130 +199,130 @@ lemma "(EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))"
   Some will require quantifier duplication -- not currently available*)
 
 (* Problem ~~19 *)
-lemma "~~(EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x)))"
+lemma "\<not>\<not>(\<exists>x. \<forall>y z. (P(y)\<longrightarrow>Q(z)) \<longrightarrow> (P(x)\<longrightarrow>Q(x)))"
   by iprover
 
 (* Problem 20 *)
-lemma "(ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))
-    --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))"
+lemma "(\<forall>x y. \<exists>z. \<forall>w. (P(x)\<and>Q(y)\<longrightarrow>R(z)\<and>S(w)))
+    \<longrightarrow> (\<exists>x y. P(x) \<and> Q(y)) \<longrightarrow> (\<exists>z. R(z))"
   by iprover
 
 (* Problem 21 *)
-lemma "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P=Q(x))"
+lemma "(\<exists>x. P\<longrightarrow>Q(x)) \<and> (\<exists>x. Q(x)\<longrightarrow>P) \<longrightarrow> \<not>\<not>(\<exists>x. P=Q(x))"
   by iprover
 
 (* Problem 22 *)
-lemma "(ALL x. P = Q(x))  -->  (P = (ALL x. Q(x)))"
+lemma "(\<forall>x. P = Q(x))  \<longrightarrow>  (P = (\<forall>x. Q(x)))"
   by iprover
 
 (* Problem ~~23 *)
-lemma "~~ ((ALL x. P | Q(x))  =  (P | (ALL x. Q(x))))"
+lemma "\<not>\<not> ((\<forall>x. P \<or> Q(x))  =  (P \<or> (\<forall>x. Q(x))))"
   by iprover
 
 (* Problem 25 *)
-lemma "(EX x. P(x)) &
-       (ALL x. L(x) --> ~ (M(x) & R(x))) &
-       (ALL x. P(x) --> (M(x) & L(x))) &
-       ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))
-   --> (EX x. Q(x)&P(x))"
+lemma "(\<exists>x. P(x)) \<and>
+       (\<forall>x. L(x) \<longrightarrow> \<not> (M(x) \<and> R(x))) \<and>
+       (\<forall>x. P(x) \<longrightarrow> (M(x) \<and> L(x))) \<and>
+       ((\<forall>x. P(x)\<longrightarrow>Q(x)) \<or> (\<exists>x. P(x)\<and>R(x)))
+   \<longrightarrow> (\<exists>x. Q(x)\<and>P(x))"
   by iprover
 
 (* Problem 27 *)
-lemma "(EX x. P(x) & ~Q(x)) &
-             (ALL x. P(x) --> R(x)) &
-             (ALL x. M(x) & L(x) --> P(x)) &
-             ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))
-         --> (ALL x. M(x) --> ~L(x))"
+lemma "(\<exists>x. P(x) \<and> \<not>Q(x)) \<and>
+             (\<forall>x. P(x) \<longrightarrow> R(x)) \<and>
+             (\<forall>x. M(x) \<and> L(x) \<longrightarrow> P(x)) \<and>
+             ((\<exists>x. R(x) \<and> \<not> Q(x)) \<longrightarrow> (\<forall>x. L(x) \<longrightarrow> \<not> R(x)))
+         \<longrightarrow> (\<forall>x. M(x) \<longrightarrow> \<not>L(x))"
   by iprover
 
 (* Problem ~~28.  AMENDED *)
-lemma "(ALL x. P(x) --> (ALL x. Q(x))) &
-       (~~(ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &
-       (~~(EX x. S(x)) --> (ALL x. L(x) --> M(x)))
-   --> (ALL x. P(x) & L(x) --> M(x))"
+lemma "(\<forall>x. P(x) \<longrightarrow> (\<forall>x. Q(x))) \<and>
+       (\<not>\<not>(\<forall>x. Q(x)\<or>R(x)) \<longrightarrow> (\<exists>x. Q(x)&S(x))) \<and>
+       (\<not>\<not>(\<exists>x. S(x)) \<longrightarrow> (\<forall>x. L(x) \<longrightarrow> M(x)))
+   \<longrightarrow> (\<forall>x. P(x) \<and> L(x) \<longrightarrow> M(x))"
   by iprover
 
 (* Problem 29.  Essentially the same as Principia Mathematica *11.71 *)
-lemma "(((EX x. P(x)) & (EX y. Q(y))) -->
-   (((ALL x. (P(x) --> R(x))) & (ALL y. (Q(y) --> S(y)))) =
-    (ALL x y. ((P(x) & Q(y)) --> (R(x) & S(y))))))"
+lemma "(((\<exists>x. P(x)) \<and> (\<exists>y. Q(y))) \<longrightarrow>
+   (((\<forall>x. (P(x) \<longrightarrow> R(x))) \<and> (\<forall>y. (Q(y) \<longrightarrow> S(y)))) =
+    (\<forall>x y. ((P(x) \<and> Q(y)) \<longrightarrow> (R(x) \<and> S(y))))))"
   by iprover
 
 (* Problem ~~30 *)
-lemma "(ALL x. (P(x) | Q(x)) --> ~ R(x)) &
-       (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))
-   --> (ALL x. ~~S(x))"
+lemma "(\<forall>x. (P(x) \<or> Q(x)) \<longrightarrow> \<not> R(x)) \<and>
+       (\<forall>x. (Q(x) \<longrightarrow> \<not> S(x)) \<longrightarrow> P(x) \<and> R(x))
+   \<longrightarrow> (\<forall>x. \<not>\<not>S(x))"
   by iprover
 
 (* Problem 31 *)
-lemma "~(EX x. P(x) & (Q(x) | R(x))) & 
-        (EX x. L(x) & P(x)) &
-        (ALL x. ~ R(x) --> M(x))
-    --> (EX x. L(x) & M(x))"
+lemma "\<not>(\<exists>x. P(x) \<and> (Q(x) \<or> R(x))) \<and>
+        (\<exists>x. L(x) \<and> P(x)) \<and>
+        (\<forall>x. \<not> R(x) \<longrightarrow> M(x))
+    \<longrightarrow> (\<exists>x. L(x) \<and> M(x))"
   by iprover
 
 (* Problem 32 *)
-lemma "(ALL x. P(x) & (Q(x)|R(x))-->S(x)) &
-       (ALL x. S(x) & R(x) --> L(x)) &
-       (ALL x. M(x) --> R(x))
-   --> (ALL x. P(x) & M(x) --> L(x))"
+lemma "(\<forall>x. P(x) \<and> (Q(x)|R(x))\<longrightarrow>S(x)) \<and>
+       (\<forall>x. S(x) \<and> R(x) \<longrightarrow> L(x)) \<and>
+       (\<forall>x. M(x) \<longrightarrow> R(x))
+   \<longrightarrow> (\<forall>x. P(x) \<and> M(x) \<longrightarrow> L(x))"
   by iprover
 
 (* Problem ~~33 *)
-lemma "(ALL x. ~~(P(a) & (P(x)-->P(b))-->P(c)))  =
-       (ALL x. ~~((~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c))))"
+lemma "(\<forall>x. \<not>\<not>(P(a) \<and> (P(x)\<longrightarrow>P(b))\<longrightarrow>P(c)))  =
+       (\<forall>x. \<not>\<not>((\<not>P(a) \<or> P(x) \<or> P(c)) \<and> (\<not>P(a) \<or> \<not>P(b) \<or> P(c))))"
   oops
 
 (* Problem 36 *)
 lemma
-     "(ALL x. EX y. J x y) &
-      (ALL x. EX y. G x y) &
-      (ALL x y. J x y | G x y --> (ALL z. J y z | G y z --> H x z))
-  --> (ALL x. EX y. H x y)"
+     "(\<forall>x. \<exists>y. J x y) \<and>
+      (\<forall>x. \<exists>y. G x y) \<and>
+      (\<forall>x y. J x y \<or> G x y \<longrightarrow> (\<forall>z. J y z \<or> G y z \<longrightarrow> H x z))
+  \<longrightarrow> (\<forall>x. \<exists>y. H x y)"
   by iprover
 
 (* Problem 39 *)
-lemma "~ (EX x. ALL y. F y x = (~F y y))"
+lemma "\<not> (\<exists>x. \<forall>y. F y x = (\<not>F y y))"
   by iprover
 
 (* Problem 40.  AMENDED *)
-lemma "(EX y. ALL x. F x y = F x x) -->
-             ~(ALL x. EX y. ALL z. F z y = (~ F z x))"
+lemma "(\<exists>y. \<forall>x. F x y = F x x) \<longrightarrow>
+             \<not>(\<forall>x. \<exists>y. \<forall>z. F z y = (\<not> F z x))"
   by iprover
 
 (* Problem 44 *)
-lemma "(ALL x. f(x) -->
-             (EX y. g(y) & h x y & (EX y. g(y) & ~ h x y)))  &
-             (EX x. j(x) & (ALL y. g(y) --> h x y))
-             --> (EX x. j(x) & ~f(x))"
+lemma "(\<forall>x. f(x) \<longrightarrow>
+             (\<exists>y. g(y) \<and> h x y \<and> (\<exists>y. g(y) \<and> ~ h x y)))  \<and>
+             (\<exists>x. j(x) \<and> (\<forall>y. g(y) \<longrightarrow> h x y))
+             \<longrightarrow> (\<exists>x. j(x) \<and> \<not>f(x))"
   by iprover
 
 (* Problem 48 *)
-lemma "(a=b | c=d) & (a=c | b=d) --> a=d | b=c"
+lemma "(a=b \<or> c=d) \<and> (a=c \<or> b=d) \<longrightarrow> a=d \<or> b=c"
   by iprover
 
 (* Problem 51 *)
-lemma "((EX z w. (ALL x y. (P x y = ((x = z) & (y = w))))) -->
-  (EX z. (ALL x. (EX w. ((ALL y. (P x y = (y = w))) = (x = z))))))"
+lemma "((\<exists>z w. (\<forall>x y. (P x y = ((x = z) \<and> (y = w))))) \<longrightarrow>
+  (\<exists>z. (\<forall>x. (\<exists>w. ((\<forall>y. (P x y = (y = w))) = (x = z))))))"
   by iprover
 
 (* Problem 52 *)
 (*Almost the same as 51. *)
-lemma "((EX z w. (ALL x y. (P x y = ((x = z) & (y = w))))) -->
-   (EX w. (ALL y. (EX z. ((ALL x. (P x y = (x = z))) = (y = w))))))"
+lemma "((\<exists>z w. (\<forall>x y. (P x y = ((x = z) \<and> (y = w))))) \<longrightarrow>
+   (\<exists>w. (\<forall>y. (\<exists>z. ((\<forall>x. (P x y = (x = z))) = (y = w))))))"
   by iprover
 
 (* Problem 56 *)
-lemma "(ALL x. (EX y. P(y) & x=f(y)) --> P(x)) = (ALL x. P(x) --> P(f(x)))"
+lemma "(\<forall>x. (\<exists>y. P(y) \<and> x=f(y)) \<longrightarrow> P(x)) = (\<forall>x. P(x) \<longrightarrow> P(f(x)))"
   by iprover
 
 (* Problem 57 *)
-lemma "P (f a b) (f b c) & P (f b c) (f a c) &
-     (ALL x y z. P x y & P y z --> P x z) --> P (f a b) (f a c)"
+lemma "P (f a b) (f b c) & P (f b c) (f a c) \<and>
+     (\<forall>x y z. P x y \<and> P y z \<longrightarrow> P x z) \<longrightarrow> P (f a b) (f a c)"
   by iprover
 
 (* Problem 60 *)
-lemma "ALL x. P x (f x) = (EX y. (ALL z. P z y --> P z (f x)) & P x y)"
+lemma "\<forall>x. P x (f x) = (\<exists>y. (\<forall>z. P z y \<longrightarrow> P z (f x)) \<and> P x y)"
   by iprover
 
 end

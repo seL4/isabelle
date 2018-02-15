@@ -19,7 +19,7 @@ inductive_set
          (*Initial trace is empty*)
     Init:  "s \<in> init ==> (s,[]) \<in> traces init acts"
 
-  | Acts:  "[| act: acts;  (s,evs) \<in> traces init acts;  (s,s'): act |]
+  | Acts:  "[| act \<in> acts;  (s,evs) \<in> traces init acts;  (s,s') \<in> act |]
             ==> (s', s#evs) \<in> traces init acts"
 
 
@@ -29,7 +29,7 @@ inductive_set
   where
     Init:  "s \<in> Init F ==> s \<in> reachable F"
 
-  | Acts:  "[| act: Acts F;  s \<in> reachable F;  (s,s'): act |]
+  | Acts:  "[| act \<in> Acts F;  s \<in> reachable F;  (s,s') \<in> act |]
             ==> s' \<in> reachable F"
 
 definition Constrains :: "['a set, 'a set] => 'a program set" (infixl "Co" 60) where
@@ -106,7 +106,7 @@ apply (erule constrains_imp_Constrains)
 done
 
 lemma ConstrainsI: 
-    "(!!act s s'. [| act: Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s': A')  
+    "(!!act s s'. [| act \<in> Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s' \<in> A')  
      ==> F \<in> A Co A'"
 apply (rule constrains_imp_Constrains)
 apply (blast intro: constrainsI)

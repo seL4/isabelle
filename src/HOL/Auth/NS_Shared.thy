@@ -16,11 +16,11 @@ From page 247 of
 definition
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
-  Issues :: "[agent, agent, msg, event list] => bool"
+  Issues :: "[agent, agent, msg, event list] \<Rightarrow> bool"
              ("_ Issues _ with _ on _") where
    "A Issues B with X on evs =
-      (\<exists>Y. Says A B Y \<in> set evs & X \<in> parts {Y} &
-        X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs))))"
+      (\<exists>Y. Says A B Y \<in> set evs \<and> X \<in> parts {Y} \<and>
+        X \<notin> parts (spies (takeWhile (\<lambda>z. z  \<noteq> Says A B Y) (rev evs))))"
 
 
 inductive_set ns_shared :: "event list set"
@@ -395,7 +395,7 @@ apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =
-          (if A:bad then insert X (spies evs) else spies evs)"
+          (if A\<in>bad then insert X (spies evs) else spies evs)"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
@@ -410,7 +410,7 @@ done
 
 lemmas parts_spies_evs_revD2 = spies_evs_rev [THEN equalityD2, THEN parts_mono]
 
-lemma spies_takeWhile: "spies (takeWhile P evs) <=  spies evs"
+lemma spies_takeWhile: "spies (takeWhile P evs) \<subseteq> spies evs"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)

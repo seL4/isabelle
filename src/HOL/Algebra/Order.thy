@@ -379,7 +379,7 @@ lemma least_UpperI:
 proof -
   have "Upper L A \<subseteq> carrier L" by simp
   moreover from above L have "s \<in> Upper L A" by (simp add: Upper_def)
-  moreover from below have "ALL x : Upper L A. s \<sqsubseteq> x" by fast
+  moreover from below have "\<forall>x \<in> Upper L A. s \<sqsubseteq> x" by fast
   ultimately show ?thesis by (simp add: least_def)
 qed
 
@@ -439,7 +439,7 @@ lemma greatest_LowerI:
 proof -
   have "Lower L A \<subseteq> carrier L" by simp
   moreover from below L have "i \<in> Lower L A" by (simp add: Lower_def)
-  moreover from above have "ALL x : Lower L A. x \<sqsubseteq> i" by fast
+  moreover from above have "\<forall>x \<in> Lower L A. x \<sqsubseteq> i" by fast
   ultimately show ?thesis by (simp add: greatest_def)
 qed
 

@@ -65,7 +65,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
 
 abbreviation
   beta_reds :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50) where
-  "s \<rightarrow>\<^sub>\<beta>\<^sup>* t == beta^** s t"
+  "s \<rightarrow>\<^sub>\<beta>\<^sup>* t == beta\<^sup>*\<^sup>* s t"
 
 inductive_cases beta_cases [elim!]:
   "Var i \<rightarrow>\<^sub>\<beta> t"

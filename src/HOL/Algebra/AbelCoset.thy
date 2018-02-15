@@ -554,7 +554,7 @@ lemma (in abelian_group_hom) is_abelian_group_hom:
   ..
 
 lemma (in abelian_group_hom) hom_add [simp]:
-  "[| x : carrier G; y : carrier G |]
+  "[| x \<in> carrier G; y \<in> carrier G |]
         ==> h (x \<oplus>\<^bsub>G\<^esub> y) = h x \<oplus>\<^bsub>H\<^esub> h y"
 by (rule group_hom.hom_mult[OF a_group_hom,
     simplified ring_record_simps])

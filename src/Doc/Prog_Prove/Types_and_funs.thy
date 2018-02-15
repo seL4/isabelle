@@ -525,7 +525,7 @@ because both @{prop"A \<longrightarrow> (A & B) = B"} and @{prop"~A \<longrighta
 simplify to @{const True}.
 
 We can split case-expressions similarly. For @{text nat} the rule looks like this:
-@{prop[display,margin=65,indent=4]"P(case e of 0 \<Rightarrow> a | Suc n \<Rightarrow> b n) = ((e = 0 \<longrightarrow> P a) & (ALL n. e = Suc n \<longrightarrow> P(b n)))"}
+@{prop[display,margin=65,indent=4]"P(case e of 0 \<Rightarrow> a | Suc n \<Rightarrow> b n) = ((e = 0 \<longrightarrow> P a) \<and> (\<forall>n. e = Suc n \<longrightarrow> P(b n)))"}
 Case expressions are not split automatically by @{text simp}, but @{text simp}
 can be instructed to do so:
 \begin{quote}

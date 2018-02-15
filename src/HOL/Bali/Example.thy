@@ -287,30 +287,30 @@ definition
 
 subsubsection "well-structuredness"
 
-lemma not_Object_subcls_any [elim!]: "(Object, C) \<in> (subcls1 tprg)^+ \<Longrightarrow> R"
+lemma not_Object_subcls_any [elim!]: "(Object, C) \<in> (subcls1 tprg)\<^sup>+ \<Longrightarrow> R"
 apply (auto dest!: tranclD subcls1D)
 done
 
 lemma not_Throwable_subcls_SXcpt [elim!]: 
-  "(SXcpt Throwable, SXcpt xn) \<in> (subcls1 tprg)^+ \<Longrightarrow> R"
+  "(SXcpt Throwable, SXcpt xn) \<in> (subcls1 tprg)\<^sup>+ \<Longrightarrow> R"
 apply (auto dest!: tranclD subcls1D) 
 apply (simp add: Object_def SXcpt_def)
 done
 
 lemma not_SXcpt_n_subcls_SXcpt_n [elim!]: 
-  "(SXcpt xn, SXcpt xn)  \<in> (subcls1 tprg)^+ \<Longrightarrow> R"
+  "(SXcpt xn, SXcpt xn)  \<in> (subcls1 tprg)\<^sup>+ \<Longrightarrow> R"
 apply (auto dest!: tranclD subcls1D)
 apply (drule rtranclD)
 apply auto
 done
 
-lemma not_Base_subcls_Ext [elim!]: "(Base, Ext) \<in> (subcls1 tprg)^+  \<Longrightarrow> R"
+lemma not_Base_subcls_Ext [elim!]: "(Base, Ext) \<in> (subcls1 tprg)\<^sup>+  \<Longrightarrow> R"
 apply (auto dest!: tranclD subcls1D simp add: BaseCl_def)
 done
 
 lemma not_TName_n_subcls_TName_n [rule_format (no_asm), elim!]: 
   "(\<lparr>pid=java_lang,tid=TName tn\<rparr>, \<lparr>pid=java_lang,tid=TName tn\<rparr>) 
-   \<in> (subcls1 tprg)^+ \<longrightarrow> R"
+   \<in> (subcls1 tprg)\<^sup>+ \<longrightarrow> R"
 apply (rule_tac n1 = "tn" in surj_tnam' [THEN exE])
 apply (erule ssubst)
 apply (rule tnam'.induct)

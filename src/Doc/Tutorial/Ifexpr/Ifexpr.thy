@@ -201,7 +201,7 @@ primrec normal2 :: "ifex => bool" where
      (case b of CIF b => False | VIF x => True | IF x y z => False))"
 
 lemma [simp]:
-  "ALL t e. valif (normif2 b t e) env = valif (IF b t e) env"
+  "\<forall>t e. valif (normif2 b t e) env = valif (IF b t e) env"
 apply(induct b)
 by(auto)
 
@@ -209,7 +209,7 @@ theorem "valif (norm2 b) env = valif b env"
 apply(induct b)
 by(auto)
 
-lemma [simp]: "ALL t e. normal2 t & normal2 e --> normal2(normif2 b t e)"
+lemma [simp]: "\<forall>t e. normal2 t & normal2 e --> normal2(normif2 b t e)"
 apply(induct b)
 by(auto)
 

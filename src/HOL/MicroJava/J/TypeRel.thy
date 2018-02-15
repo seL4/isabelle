@@ -20,7 +20,7 @@ where
 
 abbreviation
   subcls  :: "'c prog => cname \<Rightarrow> cname => bool" ("_ \<turnstile> _ \<preceq>C _"  [71,71,71] 70)
-  where "G \<turnstile> C \<preceq>C D \<equiv> (C, D) \<in> (subcls1 G)^*"
+  where "G \<turnstile> C \<preceq>C D \<equiv> (C, D) \<in> (subcls1 G)\<^sup>*"
 
 lemma subcls1D: 
   "G\<turnstile>C\<prec>C1D \<Longrightarrow> C \<noteq> Object \<and> (\<exists>fs ms. class G C = Some (D,fs,ms))"
@@ -40,7 +40,7 @@ apply(rule_tac B = "{fst (the (class G C))}" in finite_subset)
 apply  auto
 done
 
-lemma subcls_is_class: "(C, D) \<in> (subcls1 G)^+  ==> is_class G C"
+lemma subcls_is_class: "(C, D) \<in> (subcls1 G)\<^sup>+  \<Longrightarrow> is_class G C"
 apply (unfold is_class_def)
 apply(erule trancl_trans_induct)
 apply (auto dest!: subcls1D)
@@ -56,21 +56,21 @@ done
 
 definition class_rec :: "'c prog \<Rightarrow> cname \<Rightarrow> 'a \<Rightarrow>
     (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "class_rec G == wfrec ((subcls1 G)^-1)
+  "class_rec G == wfrec ((subcls1 G)\<inverse>)
     (\<lambda>r C t f. case class G C of
          None \<Rightarrow> undefined
        | Some (D,fs,ms) \<Rightarrow> 
            f C fs ms (if C = Object then t else r D t f))"
 
 lemma class_rec_lemma:
-  assumes wf: "wf ((subcls1 G)^-1)"
+  assumes wf: "wf ((subcls1 G)\<inverse>)"
     and cls: "class G C = Some (D, fs, ms)"
   shows "class_rec G C t f = f C fs ms (if C=Object then t else class_rec G D t f)"
   by (subst wfrec_def_adm[OF class_rec_def])
      (auto simp: assms adm_wf_def fun_eq_iff subcls1I split: option.split)
 
 definition
-  "wf_class G = wf ((subcls1 G)^-1)"
+  "wf_class G = wf ((subcls1 G)\<inverse>)"
 
 
 
@@ -89,7 +89,7 @@ code_pred
   subcls1 
   .
 
-definition subcls' where "subcls' G = (subcls1p G)^**"
+definition subcls' where "subcls' G = (subcls1p G)\<^sup>*\<^sup>*"
 
 code_pred
   (modes: i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool, i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool)
@@ -98,7 +98,7 @@ code_pred
   .
 
 lemma subcls_conv_subcls' [code_unfold]:
-  "(subcls1 G)^* = {(C, D). subcls' G C D}"
+  "(subcls1 G)\<^sup>* = {(C, D). subcls' G C D}"
 by(simp add: subcls'_def subcls1_def rtrancl_def)
 
 lemma class_rec_code [code]:
@@ -126,8 +126,8 @@ lemma wf_class_code [code]:
   "wf_class G \<longleftrightarrow> (\<forall>(C, rest) \<in> set G. C \<noteq> Object \<longrightarrow> \<not> G \<turnstile> fst (the (class G C)) \<preceq>C C)"
 proof
   assume "wf_class G"
-  hence wf: "wf (((subcls1 G)^+)^-1)" unfolding wf_class_def by(rule wf_converse_trancl)
-  hence acyc: "acyclic ((subcls1 G)^+)" by(auto dest: wf_acyclic)
+  hence wf: "wf (((subcls1 G)\<^sup>+)\<inverse>)" unfolding wf_class_def by(rule wf_converse_trancl)
+  hence acyc: "acyclic ((subcls1 G)\<^sup>+)" by(auto dest: wf_acyclic)
   show "\<forall>(C, rest) \<in> set G. C \<noteq> Object \<longrightarrow> \<not> G \<turnstile> fst (the (class G C)) \<preceq>C C"
   proof(safe)
     fix C D fs ms
@@ -138,9 +138,9 @@ proof
       where "class": "class G C = Some (D', fs', ms')"
       unfolding class_def by(auto dest!: weak_map_of_SomeI)
     hence "G \<turnstile> C \<prec>C1 D'" using \<open>C \<noteq> Object\<close> ..
-    hence *: "(C, D') \<in> (subcls1 G)^+" ..
+    hence *: "(C, D') \<in> (subcls1 G)\<^sup>+" ..
     also from * acyc have "C \<noteq> D'" by(auto simp add: acyclic_def)
-    with subcls "class" have "(D', C) \<in> (subcls1 G)^+" by(auto dest: rtranclD)
+    with subcls "class" have "(D', C) \<in> (subcls1 G)\<^sup>+" by(auto dest: rtranclD)
     finally show False using acyc by(auto simp add: acyclic_def)
   qed
 next
@@ -189,7 +189,7 @@ definition fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times>
 definition field :: "'c prog \<times> cname => (vname \<rightharpoonup> cname \<times> ty)"
   where [code]: "field == map_of o (map (\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
 
-lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
+lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)\<inverse>)|] ==>
   method (G,C) = (if C = Object then empty else method (G,D)) ++  
   map_of (map (\<lambda>(s,m). (s,(C,m))) ms)"
 apply (unfold method_def)
@@ -198,7 +198,7 @@ apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done
 
-lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
+lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)\<inverse>)|] ==>
  fields (G,C) = 
   map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ (if C = Object then [] else fields (G,D))"
 apply (unfold fields_def)

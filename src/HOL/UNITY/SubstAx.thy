@@ -304,7 +304,7 @@ subsection\<open>Induction rules\<close>
 lemma LeadsTo_wf_induct:
      "[| wf r;      
          \<forall>m. F \<in> (A \<inter> f-`{m}) LeadsTo                      
-                    ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+                    ((A \<inter> f-`(r\<inverse> `` {m})) \<union> B) |]  
       ==> F \<in> A LeadsTo B"
 apply (simp add: LeadsTo_eq_leadsTo)
 apply (erule leadsTo_wf_induct)
@@ -315,7 +315,7 @@ done
 lemma Bounded_induct:
      "[| wf r;      
          \<forall>m \<in> I. F \<in> (A \<inter> f-`{m}) LeadsTo                    
-                      ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+                      ((A \<inter> f-`(r\<inverse> `` {m})) \<union> B) |]  
       ==> F \<in> A LeadsTo ((A - (f-`I)) \<union> B)"
 apply (erule LeadsTo_wf_induct, safe)
 apply (case_tac "m \<in> I")

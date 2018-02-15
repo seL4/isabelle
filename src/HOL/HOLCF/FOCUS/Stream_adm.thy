@@ -56,15 +56,15 @@ done
 
 lemma flatstream_adm_lemma:
   assumes 1: "Porder.chain Y"
-  assumes 2: "!i. P (Y i)"
-  assumes 3: "(!!Y. [| Porder.chain Y; !i. P (Y i); !k. ? j. enat k < #((Y j)::'a::flat stream)|]
+  assumes 2: "\<forall>i. P (Y i)"
+  assumes 3: "(\<And>Y. [| Porder.chain Y; \<forall>i. P (Y i); \<forall>k. \<exists>j. enat k < #((Y j)::'a::flat stream)|]
   ==> P(LUB i. Y i))"
   shows "P(LUB i. Y i)"
 apply (rule increasing_chain_adm_lemma [OF 1 2])
 apply (erule 3, assumption)
 apply (erule thin_rl)
 apply (rule allI)
-apply (case_tac "!j. stream_finite (Y j)")
+apply (case_tac "\<forall>j. stream_finite (Y j)")
 apply ( rule chain_incr)
 apply ( rule allI)
 apply ( drule spec)
@@ -78,8 +78,8 @@ apply (metis enat_ord_code(4) slen_infinite)
 done
 
 (* should be without reference to stream length? *)
-lemma flatstream_admI: "[|(!!Y. [| Porder.chain Y; !i. P (Y i); 
- !k. ? j. enat k < #((Y j)::'a::flat stream)|] ==> P(LUB i. Y i))|]==> adm P"
+lemma flatstream_admI: "[|(\<And>Y. [| Porder.chain Y; \<forall>i. P (Y i); 
+ \<forall>k. \<exists>j. enat k < #((Y j)::'a::flat stream)|] ==> P(LUB i. Y i))|]==> adm P"
 apply (unfold adm_def)
 apply (intro strip)
 apply (erule (1) flatstream_adm_lemma)
@@ -92,8 +92,8 @@ lemma ile_lemma: "enat (i + j) <= x ==> enat i <= x"
   by (rule order_trans) auto
 
 lemma stream_monoP2I:
-"!!X. stream_monoP F ==> !i. ? l. !x y. 
-  enat l <= #x --> (x::'a::flat stream) << y --> x:(F ^^ i) top --> y:(F ^^ i) top"
+"\<And>X. stream_monoP F \<Longrightarrow> \<forall>i. \<exists>l. \<forall>x y.
+  enat l \<le> #x \<longrightarrow> (x::'a::flat stream) << y --> x \<in> (F ^^ i) top \<longrightarrow> y \<in> (F ^^ i) top"
 apply (unfold stream_monoP_def)
 apply (safe)
 apply (rule_tac x="i*ia" in exI)
@@ -119,9 +119,9 @@ apply (drule (1) mp)
 apply (assumption)
 done
 
-lemma stream_monoP2_gfp_admI: "[| !i. ? l. !x y. 
- enat l <= #x --> (x::'a::flat stream) << y --> x:(F ^^ i) top --> y:(F ^^ i) top;
-    inf_continuous F |] ==> adm (%x. x:gfp F)"
+lemma stream_monoP2_gfp_admI: "[| \<forall>i. \<exists>l. \<forall>x y.
+ enat l \<le> #x \<longrightarrow> (x::'a::flat stream) << y \<longrightarrow> x \<in> (F ^^ i) top \<longrightarrow> y \<in> (F ^^ i) top;
+    inf_continuous F |] ==> adm (\<lambda>x. x \<in> gfp F)"
 apply (erule inf_continuous_gfp[of F, THEN ssubst])
 apply (simp (no_asm))
 apply (rule adm_lemmas)
@@ -143,8 +143,8 @@ done
 lemmas fstream_gfp_admI = stream_monoP2I [THEN stream_monoP2_gfp_admI]
 
 lemma stream_antiP2I:
-"!!X. [|stream_antiP (F::(('a::flat stream)set => ('a stream set)))|]
-  ==> !i x y. x << y --> y:(F ^^ i) top --> x:(F ^^ i) top"
+"\<And>X. [|stream_antiP (F::(('a::flat stream)set => ('a stream set)))|]
+  ==> \<forall>i x y. x << y \<longrightarrow> y \<in> (F ^^ i) top \<longrightarrow> x \<in> (F ^^ i) top"
 apply (unfold stream_antiP_def)
 apply (rule allI)
 apply (induct_tac "i")
@@ -170,8 +170,8 @@ apply (assumption)
 done
 
 lemma stream_antiP2_non_gfp_admI:
-"!!X. [|!i x y. x << y --> y:(F ^^ i) top --> x:(F ^^ i) top; inf_continuous F |] 
-  ==> adm (%u. ~ u:gfp F)"
+"\<And>X. [|\<forall>i x y. x << y \<longrightarrow> y \<in> (F ^^ i) top \<longrightarrow> x \<in> (F ^^ i) top; inf_continuous F |]
+  ==> adm (\<lambda>u. \<not> u \<in> gfp F)"
 apply (unfold adm_def)
 apply (simp add: inf_continuous_gfp)
 apply (fast dest!: is_ub_thelub)
@@ -185,17 +185,17 @@ lemmas fstream_non_gfp_admI = stream_antiP2I [THEN stream_antiP2_non_gfp_admI]
 
 section "antitonP"
 
-lemma antitonPD: "[| antitonP P; y:P; x<<y |] ==> x:P"
+lemma antitonPD: "[| antitonP P; y \<in> P; x<<y |] ==> x \<in> P"
 apply (unfold antitonP_def)
 apply auto
 done
 
-lemma antitonPI: "!x y. y:P --> x<<y --> x:P ==> antitonP P"
+lemma antitonPI: "\<forall>x y. y \<in> P \<longrightarrow> x<<y --> x \<in> P \<Longrightarrow> antitonP P"
 apply (unfold antitonP_def)
 apply (fast)
 done
 
-lemma antitonP_adm_non_P: "antitonP P ==> adm (%u. u~:P)"
+lemma antitonP_adm_non_P: "antitonP P \<Longrightarrow> adm (\<lambda>u. u \<notin> P)"
 apply (unfold adm_def)
 apply (auto dest: antitonPD elim: is_ub_thelub)
 done
@@ -210,7 +210,7 @@ apply (fast)
 done
 
 lemma adm_set:
-"{\<Squnion>i. Y i |Y. Porder.chain Y & (\<forall>i. Y i \<in> P)} \<subseteq> P \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
+"{\<Squnion>i. Y i |Y. Porder.chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> P \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
 apply (unfold adm_def)
 apply (fast)
 done

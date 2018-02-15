@@ -361,7 +361,7 @@ by (cases x) (auto simp add: enat_0 eSuc_enat[THEN sym])
 lemma slen_empty_eq: "(#x = 0) = (x = \<bottom>)"
 by (cases x) auto
 
-lemma slen_scons_eq: "(enat (Suc n) < #x) = (? a y. x = a && y \<and> a \<noteq> \<bottom> \<and> enat n < #y)"
+lemma slen_scons_eq: "(enat (Suc n) < #x) = (\<exists>a y. x = a && y \<and> a \<noteq> \<bottom> \<and> enat n < #y)"
 apply (auto, case_tac "x=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (case_tac "#y") apply simp_all

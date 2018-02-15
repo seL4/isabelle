@@ -55,7 +55,7 @@ lemma "P (\<lambda>x. x)"
 nitpick [card = 1, expect = genuine]
 oops
 
-lemma "{(a::'a\<times>'a, b::'b)}^-1 = {(b, a)}"
+lemma "{(a::'a\<times>'a, b::'b)}\<inverse> = {(b, a)}"
 nitpick [card = 1-12, expect = none]
 by auto
 

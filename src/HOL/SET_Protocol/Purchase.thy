@@ -53,11 +53,11 @@ passes the data back to the Merchant.
 
 consts
 
-    CardSecret :: "nat => nat"
+    CardSecret :: "nat \<Rightarrow> nat"
      \<comment> \<open>Maps Cardholders to CardSecrets.
          A CardSecret of 0 means no cerificate, must use unsigned format.\<close>
 
-    PANSecret :: "nat => nat"
+    PANSecret :: "nat \<Rightarrow> nat"
      \<comment> \<open>Maps Cardholders to PANSecrets.\<close>
 
 inductive_set
@@ -192,7 +192,7 @@ where
        HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace>;
        OIData = \<lbrace>Number LID_M, Number XID, Nonce Chall_C, HOD,
                   Nonce Chall_M\<rbrace>;
-       CardSecret k \<noteq> 0 -->
+       CardSecret k \<noteq> 0 \<longrightarrow>
          P_I = \<lbrace>sign (priSK C) \<lbrace>HPIData, Hash OIData\<rbrace>, encPANData\<rbrace>;
        Gets M \<lbrace>P_I, OIData, HPIData\<rbrace> \<in> set evsAReq;
        Says M C (sign (priSK M) \<lbrace>Number LID_M, Number XID,
@@ -427,7 +427,7 @@ declare Spy_analz_private_Key [THEN [2] rev_iffD1, dest!]
 
 text\<open>rewriting rule for priEK's\<close>
 lemma parts_image_priEK:
-     "[|Key (priEK C) \<in> parts (Key`KK Un (knows Spy evs));
+     "[|Key (priEK C) \<in> parts (Key`KK \<union> (knows Spy evs));
         evs \<in> set_pur|] ==> priEK C \<in> KK | C \<in> bad"
 by auto
 
@@ -435,7 +435,7 @@ text\<open>trivial proof because @{term"priEK C"} never appears even in
   @{term "parts evs"}.\<close>
 lemma analz_image_priEK:
      "evs \<in> set_pur ==>
-          (Key (priEK C) \<in> analz (Key`KK Un (knows Spy evs))) =
+          (Key (priEK C) \<in> analz (Key`KK \<union> (knows Spy evs))) =
           (priEK C \<in> KK | C \<in> bad)"
 by (blast dest!: parts_image_priEK intro: analz_mono [THEN [2] rev_subsetD])
 
@@ -492,7 +492,7 @@ subsection\<open>Proofs on Symmetric Keys\<close>
 text\<open>Nobody can have used non-existent keys!\<close>
 lemma new_keys_not_used [rule_format,simp]:
      "evs \<in> set_pur
-      ==> Key K \<notin> used evs --> K \<in> symKeys -->
+      ==> Key K \<notin> used evs \<longrightarrow> K \<in> symKeys \<longrightarrow>
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_pur.induct)
 apply (valid_certificate_tac [8]) \<comment> \<open>PReqS\<close>
@@ -522,13 +522,13 @@ text\<open>New versions: as above, but generalized to have the KK argument\<clos
 
 lemma gen_new_keys_not_used:
      "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> set_pur |]
-      ==> Key K \<notin> used evs --> K \<in> symKeys -->
-          K \<notin> keysFor (parts (Key`KK Un knows Spy evs))"
+      ==> Key K \<notin> used evs \<longrightarrow> K \<in> symKeys \<longrightarrow>
+          K \<notin> keysFor (parts (Key`KK \<union> knows Spy evs))"
 by auto
 
 lemma gen_new_keys_not_analzd:
      "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> set_pur |]
-      ==> K \<notin> keysFor (analz (Key`KK Un knows Spy evs))"
+      ==> K \<notin> keysFor (analz (Key`KK \<union> knows Spy evs))"
 by (blast intro: keysFor_mono [THEN subsetD] dest: gen_new_keys_not_used)
 
 lemma analz_Key_image_insert_eq:
@@ -541,9 +541,9 @@ by (simp add: gen_new_keys_not_analzd)
 subsection\<open>Secrecy of Symmetric Keys\<close>
 
 lemma Key_analz_image_Key_lemma:
-     "P --> (Key K \<in> analz (Key`KK Un H)) --> (K\<in>KK | Key K \<in> analz H)
+     "P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) \<longrightarrow> (K\<in>KK | Key K \<in> analz H)
       ==>
-      P --> (Key K \<in> analz (Key`KK Un H)) = (K\<in>KK | Key K \<in> analz H)"
+      P \<longrightarrow> (Key K \<in> analz (Key`KK \<union> H)) = (K\<in>KK | Key K \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 
@@ -575,15 +575,15 @@ subsection\<open>Secrecy of Nonces\<close>
 
 text\<open>As usual: we express the property as a logical equivalence\<close>
 lemma Nonce_analz_image_Key_lemma:
-     "P --> (Nonce N \<in> analz (Key`KK Un H)) --> (Nonce N \<in> analz H)
-      ==> P --> (Nonce N \<in> analz (Key`KK Un H)) = (Nonce N \<in> analz H)"
+     "P \<longrightarrow> (Nonce N \<in> analz (Key`KK \<union> H)) \<longrightarrow> (Nonce N \<in> analz H)
+      ==> P \<longrightarrow> (Nonce N \<in> analz (Key`KK \<union> H)) = (Nonce N \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 text\<open>The \<open>(no_asm)\<close> attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.\<close>
 lemma Nonce_compromise [rule_format (no_asm)]:
      "evs \<in> set_pur ==>
-      (\<forall>N KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C))   -->
+      (\<forall>N KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C))   \<longrightarrow>
               (Nonce N \<in> analz (Key`KK \<union> (knows Spy evs))) =
               (Nonce N \<in> analz (knows Spy evs)))"
 apply (erule set_pur.induct)
@@ -639,16 +639,16 @@ by (erule set_pur.induct, auto)
 subsection\<open>Confidentiality of PAN\<close>
 
 lemma analz_image_pan_lemma:
-     "(Pan P \<in> analz (Key`nE Un H)) --> (Pan P \<in> analz H)  ==>
-      (Pan P \<in> analz (Key`nE Un H)) =   (Pan P \<in> analz H)"
+     "(Pan P \<in> analz (Key`nE \<union> H)) \<longrightarrow> (Pan P \<in> analz H)  ==>
+      (Pan P \<in> analz (Key`nE \<union> H)) =   (Pan P \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 text\<open>The \<open>(no_asm)\<close> attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.\<close>
 lemma analz_image_pan [rule_format (no_asm)]:
      "evs \<in> set_pur ==>
-       \<forall>KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) -->
-            (Pan P \<in> analz (Key`KK Un (knows Spy evs))) =
+       \<forall>KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) \<longrightarrow>
+            (Pan P \<in> analz (Key`KK \<union> (knows Spy evs))) =
             (Pan P \<in> analz (knows Spy evs))"
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI impI)+
@@ -680,7 +680,7 @@ theorem pan_confidentiality_unsigned:
          CardSecret k = 0;  evs \<in> set_pur|]
     ==> \<exists>P M KC1 K X Y.
      Says C M \<lbrace>EXHcrypt KC1 (pubEK P) X (Pan (pan C)), Y\<rbrace>
-          \<in> set evs  &
+          \<in> set evs  \<and>
      P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
@@ -705,7 +705,7 @@ theorem pan_confidentiality_signed:
   ==> \<exists>P M KC2 PIDualSign_1 PIDualSign_2 other OIDualSign.
       Says C M \<lbrace>\<lbrace>PIDualSign_1, 
                    EXcrypt KC2 (pubEK P) PIDualSign_2 \<lbrace>Pan (pan C), other\<rbrace>\<rbrace>, 
-       OIDualSign\<rbrace> \<in> set evs  &  P \<in> bad"
+       OIDualSign\<rbrace> \<in> set evs  \<and>  P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment> \<open>AReq\<close>
@@ -742,7 +742,7 @@ lemma goodM_gives_correct_PG:
          Crypt (priSK M) (Hash MsgPInitRes) \<in> parts (knows Spy evs);
          evs \<in> set_pur; M \<notin> bad |]
       ==> \<exists>j trans.
-            P = PG j &
+            P = PG j \<and>
             Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
@@ -757,8 +757,8 @@ lemma C_gets_correct_PG:
                               cert P EKj onlyEnc (priSK RCA)\<rbrace>) \<in> set evs;
          evs \<in> set_pur;  M \<notin> bad|]
       ==> \<exists>j trans.
-            P = PG j &
-            Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs &
+            P = PG j \<and>
+            Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs \<and>
             EKj = pubEK P"
 by (rule refl [THEN goodM_gives_correct_PG, THEN exE], auto)
 
@@ -769,8 +769,8 @@ lemma C_verifies_PInitRes:
      Crypt (priSK M) (Hash MsgPInitRes) \<in> parts (knows Spy evs);
      evs \<in> set_pur;  M \<notin> bad|]
   ==> \<exists>j trans.
-         Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs &
-         P = PG j &
+         Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs \<and>
+         P = PG j \<and>
          EKj = pubEK P"
 apply clarify
 apply (erule rev_mp)
@@ -788,8 +788,8 @@ lemma Says_C_PInitRes:
                         cert P EKj onlyEnc (priSK RCA)\<rbrace>)
            \<in> set evs;  M \<notin> bad;  evs \<in> set_pur|]
       ==> \<exists>j trans.
-           Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs &
-           P = PG j &
+           Notes M \<lbrace>Number LID_M, Agent P, trans\<rbrace> \<in> set evs \<and>
+           P = PG j \<and>
            EKj = pubEK (PG j)"
 apply (frule Says_certificate_valid)
 apply (auto simp add: sign_def)
@@ -805,8 +805,8 @@ lemma P_verifies_AuthReq:
            \<in> parts (knows Spy evs);
          evs \<in> set_pur;  M \<notin> bad|]
       ==> \<exists>j trans KM OIData HPIData.
-            Notes M \<lbrace>Number LID_M, Agent (PG j), trans\<rbrace> \<in> set evs &
-            Gets M \<lbrace>P_I, OIData, HPIData\<rbrace> \<in> set evs &
+            Notes M \<lbrace>Number LID_M, Agent (PG j), trans\<rbrace> \<in> set evs \<and>
+            Gets M \<lbrace>P_I, OIData, HPIData\<rbrace> \<in> set evs \<and>
             Says M (PG j) (EncB (priSK M) KM (pubEK (PG j)) AuthReqData P_I)
               \<in> set evs"
 apply clarify
@@ -833,7 +833,7 @@ theorem M_verifies_AuthRes:
         Gets (PG j)
            (EncB (priSK M) KM (pubEK (PG j))
                     \<lbrace>Number LID_M, Number XID, HOIData, HOD\<rbrace>
-                    P_I) \<in> set evs &
+                    P_I) \<in> set evs \<and>
         Says (PG j) M
              (EncB (priSK (PG j)) KP (pubEK M)
               \<lbrace>Number LID_M, Number XID, Number PurchAmt\<rbrace>
@@ -857,7 +857,7 @@ lemma C_determines_EKj:
          PIHead = \<lbrace>Number LID_M, Trans_details\<rbrace>;
          evs \<in> set_pur;  C = Cardholder k;  M \<notin> bad|]
   ==> \<exists>trans j.
-               Notes M \<lbrace>Number LID_M, Agent (PG j), trans \<rbrace> \<in> set evs &
+               Notes M \<lbrace>Number LID_M, Agent (PG j), trans \<rbrace> \<in> set evs \<and>
                EKj = pubEK (PG j)"
 apply clarify
 apply (erule rev_mp)
@@ -874,7 +874,7 @@ lemma unique_LID_M:
         Notes C \<lbrace>Number LID_M, Agent M, Agent C, Number OD,
              Number PA\<rbrace> \<in> set evs;
         evs \<in> set_pur|]
-      ==> M = Merchant i & Trans = \<lbrace>Agent M, Agent C, Number OD, Number PA\<rbrace>"
+      ==> M = Merchant i \<and> Trans = \<lbrace>Agent M, Agent C, Number OD, Number PA\<rbrace>"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct, simp_all)
@@ -935,11 +935,11 @@ lemma C_verifies_PRes_lemma:
          evs \<in> set_pur;  M \<notin> bad|]
   ==> \<exists>j KP.
         Notes M \<lbrace>Number LID_M, Agent (PG j), Trans \<rbrace>
-          \<in> set evs &
+          \<in> set evs \<and>
         Gets M (EncB (priSK (PG j)) KP (pubEK M)
                 \<lbrace>Number LID_M, Number XID, Number PurchAmt\<rbrace>
                 authCode)
-          \<in> set evs &
+          \<in> set evs \<and>
         Says M C (sign (priSK M) MsgPRes) \<in> set evs"
 apply clarify
 apply (erule rev_mp)
@@ -965,10 +965,10 @@ theorem C_verifies_PRes:
                    Number PurchAmt\<rbrace> \<in> set evs;
          evs \<in> set_pur;  M \<notin> bad|]
   ==> \<exists>P KP trans.
-        Notes M \<lbrace>Number LID_M,Agent P, trans\<rbrace> \<in> set evs &
+        Notes M \<lbrace>Number LID_M,Agent P, trans\<rbrace> \<in> set evs \<and>
         Gets M (EncB (priSK P) KP (pubEK M)
                 \<lbrace>Number LID_M, Number XID, Number PurchAmt\<rbrace>
-                authCode)  \<in>  set evs &
+                authCode)  \<in>  set evs \<and>
         Says M C (sign (priSK M) MsgPRes) \<in> set evs"
 apply (rule C_verifies_PRes_lemma [THEN exE])
 apply (auto simp add: sign_def)
@@ -1034,7 +1034,7 @@ theorem M_verifies_Signed_PReq:
      Notes M \<lbrace>Number LID_M, Agent P, extras\<rbrace> \<in> set evs;
      M = Merchant i;  C = Cardholder k;  C \<notin> bad;  evs \<in> set_pur|]
   ==> \<exists>PIData PICrypt.
-        HPIData = Hash PIData &
+        HPIData = Hash PIData \<and>
         Says C M \<lbrace>\<lbrace>sign (priSK C) MsgDualSign, PICrypt\<rbrace>, OIData, Hash PIData\<rbrace>
           \<in> set evs"
 apply clarify
@@ -1061,9 +1061,9 @@ theorem P_verifies_Signed_PReq:
          Crypt (priSK C) (Hash MsgDualSign) \<in> parts (knows Spy evs);
          evs \<in> set_pur;  C \<notin> bad;  M \<notin> bad|]
     ==> \<exists>OIData OrderDesc K j trans.
-          HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace> &
-          HOIData = Hash OIData &
-          Notes M \<lbrace>Number LID_M, Agent (PG j), trans\<rbrace> \<in> set evs &
+          HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace> \<and>
+          HOIData = Hash OIData \<and>
+          Notes M \<lbrace>Number LID_M, Agent (PG j), trans\<rbrace> \<in> set evs \<and>
           Says C M \<lbrace>\<lbrace>sign (priSK C) MsgDualSign,
                      EXcrypt K (pubEK (PG j))
                                 \<lbrace>PIHead, Hash OIData\<rbrace> PANData\<rbrace>,
@@ -1081,7 +1081,7 @@ lemma C_determines_EKj_signed:
          PIHead = \<lbrace>Number LID_M, Number XID, W\<rbrace>;
          C = Cardholder k;  evs \<in> set_pur;  M \<notin> bad|]
   ==> \<exists> trans j.
-         Notes M \<lbrace>Number LID_M, Agent (PG j), trans\<rbrace> \<in> set evs &
+         Notes M \<lbrace>Number LID_M, Agent (PG j), trans\<rbrace> \<in> set evs \<and>
          EKj = pubEK (PG j)"
 apply clarify
 apply (erule rev_mp)
@@ -1094,7 +1094,7 @@ lemma M_Says_AuthReq:
          sign (priSK M) \<lbrace>AuthReqData, Hash P_I\<rbrace> \<in> parts (knows Spy evs);
          evs \<in> set_pur;  M \<notin> bad|]
    ==> \<exists>j trans KM.
-           Notes M \<lbrace>Number LID_M, Agent (PG j), trans \<rbrace> \<in> set evs &
+           Notes M \<lbrace>Number LID_M, Agent (PG j), trans \<rbrace> \<in> set evs \<and>
              Says M (PG j)
                (EncB (priSK M) KM (pubEK (PG j)) AuthReqData P_I)
               \<in> set evs"
@@ -1151,14 +1151,14 @@ theorem P_sees_CM_agreement:
                     TransStain\<rbrace>;
          evs \<in> set_pur;  C \<notin> bad;  M \<notin> bad|]
   ==> \<exists>OIData OrderDesc KM' trans j' KC' KC'' P_I' P_I''.
-           HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace> &
-           HOIData = Hash OIData &
-           Notes M \<lbrace>Number LID_M, Agent (PG j'), trans\<rbrace> \<in> set evs &
-           Says C M \<lbrace>P_I', OIData, Hash PIData\<rbrace> \<in> set evs &
+           HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace> \<and>
+           HOIData = Hash OIData \<and>
+           Notes M \<lbrace>Number LID_M, Agent (PG j'), trans\<rbrace> \<in> set evs \<and>
+           Says C M \<lbrace>P_I', OIData, Hash PIData\<rbrace> \<in> set evs \<and>
            Says M (PG j') (EncB (priSK M) KM' (pubEK (PG j'))
-                           AuthReqData P_I'')  \<in>  set evs &
+                           AuthReqData P_I'')  \<in>  set evs \<and>
            P_I' = \<lbrace>PI_sign,
-             EXcrypt KC' (pubEK (PG j')) \<lbrace>PIHead, Hash OIData\<rbrace> PANData\<rbrace> &
+             EXcrypt KC' (pubEK (PG j')) \<lbrace>PIHead, Hash OIData\<rbrace> PANData\<rbrace> \<and>
            P_I'' = \<lbrace>PI_sign,
              EXcrypt KC'' (pubEK (PG j)) \<lbrace>PIHead, Hash OIData\<rbrace> PANData\<rbrace>"
 apply clarify

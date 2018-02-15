@@ -456,7 +456,7 @@ proof (induction h arbitrary: x t)
   { case 2 with Suc.IH(1) show ?case by auto }
 qed auto
 
-lemma tree_type: "t \<in> T (h+1) \<Longrightarrow> tree t : B (h+1) \<union> B h"
+lemma tree_type: "t \<in> T (h+1) \<Longrightarrow> tree t \<in> B (h+1) \<union> B h"
 by(auto)
 
 lemma delete_type: "t \<in> B h \<Longrightarrow> delete x t \<in> B h \<union> B(h-1)"

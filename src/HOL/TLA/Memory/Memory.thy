@@ -197,7 +197,7 @@ lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarr
 
 lemma ReadInner_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarrow>
       \<turnstile> Calling ch p \<and> (arg<ch!p> = #(read l)) \<longrightarrow> Enabled (ReadInner ch mm rs p l)"
-  apply (case_tac "l : MemLoc")
+  apply (case_tac "l \<in> MemLoc")
   apply (force simp: ReadInner_def GoodRead_def BadRead_def RdRequest_def
     intro!: exI elim!: base_enabled [temp_use])+
   done
@@ -205,7 +205,7 @@ lemma ReadInner_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarr
 lemma WriteInner_enabled: "\<And>p. basevars (mm!l, rtrner ch ! p, rs!p) \<Longrightarrow>
       \<turnstile> Calling ch p \<and> (arg<ch!p> = #(write l v))
          \<longrightarrow> Enabled (WriteInner ch mm rs p l v)"
-  apply (case_tac "l:MemLoc & v:MemVal")
+  apply (case_tac "l \<in> MemLoc \<and> v \<in> MemVal")
   apply (force simp: WriteInner_def GoodWrite_def BadWrite_def WrRequest_def
     intro!: exI elim!: base_enabled [temp_use])+
   done

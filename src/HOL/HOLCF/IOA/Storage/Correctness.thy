@@ -16,7 +16,7 @@ definition
                             k = fst c;   b = snd c;
                             used = fst a; c = snd a
                         in
-                        (! l:used. l < k) & b=c}"
+                        (\<forall>l\<in>used. l < k) \<and> b=c}"
 
 declare split_paired_Ex [simp del]
 

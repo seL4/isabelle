@@ -81,7 +81,7 @@ done
 
 (*unused*)
 lemma classic_Local_valid: 
-"!v. G|={%Z s. P Z (s[Loc Y::=v]) & s<Y> = a (s[Loc Y::=v])}.  
+"\<forall>v. G|={%Z s. P Z (s[Loc Y::=v]) & s<Y> = a (s[Loc Y::=v])}.  
   c .{%Z s. Q Z (s[Loc Y::=v])} ==> G|={P}. LOCAL Y:=a IN c .{Q}"
 apply (unfold hoare_valids_def)
 apply (simp (no_asm_use) add: triple_valid_def2)
@@ -96,7 +96,7 @@ apply (tactic "smp_tac @{context} 1 1")
 apply simp
 done
 
-lemma classic_Local: "!v. G|-{%Z s. P Z (s[Loc Y::=v]) & s<Y> = a (s[Loc Y::=v])}.  
+lemma classic_Local: "\<forall>v. G|-{%Z s. P Z (s[Loc Y::=v]) & s<Y> = a (s[Loc Y::=v])}.  
   c .{%Z s. Q Z (s[Loc Y::=v])} ==> G|-{P}. LOCAL Y:=a IN c .{Q}"
 apply (rule export_s)
 apply (rule hoare_derivs.Local [THEN conseq1])

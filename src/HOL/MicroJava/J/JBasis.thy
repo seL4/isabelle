@@ -21,17 +21,17 @@ definition unique :: "('a \<times> 'b) list => bool" where
   "unique == distinct \<circ> map fst"
 
 
-lemma fst_in_set_lemma: "(x, y) : set xys ==> x : fst ` set xys"
+lemma fst_in_set_lemma: "(x, y) \<in> set xys \<Longrightarrow> x \<in> fst ` set xys"
   by (induct xys) auto
 
 lemma unique_Nil [simp]: "unique []"
   by (simp add: unique_def)
 
-lemma unique_Cons [simp]: "unique ((x,y)#l) = (unique l & (!y. (x,y) ~: set l))"
+lemma unique_Cons [simp]: "unique ((x,y)#l) = (unique l & (\<forall>y. (x,y) \<notin> set l))"
   by (auto simp: unique_def dest: fst_in_set_lemma)
 
-lemma unique_append: "unique l' ==> unique l ==>
-    (!(x,y):set l. !(x',y'):set l'. x' ~= x) ==> unique (l @ l')"
+lemma unique_append: "unique l' \<Longrightarrow> unique l \<Longrightarrow>
+    (\<forall>(x,y) \<in> set l. \<forall>(x',y') \<in> set l'. x' \<noteq> x) \<Longrightarrow> unique (l @ l')"
   by (induct l) (auto dest: fst_in_set_lemma)
 
 lemma unique_map_inj: "unique l ==> inj f ==> unique (map (%(k,x). (f k, g k x)) l)"
@@ -40,7 +40,7 @@ lemma unique_map_inj: "unique l ==> inj f ==> unique (map (%(k,x). (f k, g k x))
 
 subsection "More about Maps"
 
-lemma map_of_SomeI: "unique l ==> (k, x) : set l ==> map_of l k = Some x"
+lemma map_of_SomeI: "unique l \<Longrightarrow> (k, x) \<in> set l \<Longrightarrow> map_of l k = Some x"
   by (induct l) auto
 
 lemma Ball_set_table: "(\<forall>(x,y)\<in>set l. P x y) ==> (\<forall>x. \<forall>y. map_of l x = Some y --> P x y)"
