@@ -1368,65 +1368,267 @@ lemma filterlim_filtercomap [intro]: "filterlim f F (filtercomap f F)"
 
 subsection \<open>Setup @{typ "'a filter"} for lifting and transfer\<close>
 
-context includes lifting_syntax
-begin
-
-definition rel_filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> 'b filter \<Rightarrow> bool"
-where "rel_filter R F G = ((R ===> (=)) ===> (=)) (Rep_filter F) (Rep_filter G)"
-
-lemma rel_filter_eventually:
-  "rel_filter R F G \<longleftrightarrow>
-  ((R ===> (=)) ===> (=)) (\<lambda>P. eventually P F) (\<lambda>P. eventually P G)"
-by(simp add: rel_filter_def eventually_def)
-
 lemma filtermap_id [simp, id_simps]: "filtermap id = id"
 by(simp add: fun_eq_iff id_def filtermap_ident)
 
 lemma filtermap_id' [simp]: "filtermap (\<lambda>x. x) = (\<lambda>F. F)"
 using filtermap_id unfolding id_def .
 
-lemma Quotient_filter [quot_map]:
-  assumes Q: "Quotient R Abs Rep T"
-  shows "Quotient (rel_filter R) (filtermap Abs) (filtermap Rep) (rel_filter T)"
-unfolding Quotient_alt_def
-proof(intro conjI strip)
-  from Q have *: "\<And>x y. T x y \<Longrightarrow> Abs x = y"
-    unfolding Quotient_alt_def by blast
+context includes lifting_syntax
+begin
+
+definition map_filter_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> 'b filter" where
+  "map_filter_on X f F = Abs_filter (\<lambda>P. eventually (\<lambda>x. P (f x) \<and> x \<in> X) F)"
+
+lemma is_filter_map_filter_on:
+  "is_filter (\<lambda>P. \<forall>\<^sub>F x in F. P (f x) \<and> x \<in> X) \<longleftrightarrow> eventually (\<lambda>x. x \<in> X) F"
+proof(rule iffI; unfold_locales)
+  show "\<forall>\<^sub>F x in F. True \<and> x \<in> X" if "eventually (\<lambda>x. x \<in> X) F" using that by simp
+  show "\<forall>\<^sub>F x in F. (P (f x) \<and> Q (f x)) \<and> x \<in> X" if "\<forall>\<^sub>F x in F. P (f x) \<and> x \<in> X" "\<forall>\<^sub>F x in F. Q (f x) \<and> x \<in> X" for P Q
+    using eventually_conj[OF that] by(auto simp add: conj_ac cong: conj_cong)
+  show "\<forall>\<^sub>F x in F. Q (f x) \<and> x \<in> X" if "\<forall>x. P x \<longrightarrow> Q x" "\<forall>\<^sub>F x in F. P (f x) \<and> x \<in> X" for P Q
+    using that(2) by(rule eventually_mono)(use that(1) in auto)
+  show "eventually (\<lambda>x. x \<in> X) F" if "is_filter (\<lambda>P. \<forall>\<^sub>F x in F. P (f x) \<and> x \<in> X)"
+    using is_filter.True[OF that] by simp
+qed
+
+lemma eventually_map_filter_on: "eventually P (map_filter_on X f F) = (\<forall>\<^sub>F x in F. P (f x) \<and> x \<in> X)"
+  if "eventually (\<lambda>x. x \<in> X) F"
+  by(simp add: is_filter_map_filter_on map_filter_on_def eventually_Abs_filter that)
+
+lemma map_filter_on_UNIV: "map_filter_on UNIV = filtermap"
+  by(simp add: map_filter_on_def filtermap_def fun_eq_iff)
+
+lemma map_filter_on_comp: "map_filter_on X f (map_filter_on Y g F) = map_filter_on Y (f \<circ> g) F"
+  if "g ` Y \<subseteq> X" and "eventually (\<lambda>x. x \<in> Y) F"
+  unfolding map_filter_on_def using that(1)
+  by(auto simp add: eventually_Abs_filter that(2) is_filter_map_filter_on intro!: arg_cong[where f=Abs_filter] arg_cong2[where f=eventually])
+
+inductive rel_filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> 'b filter \<Rightarrow> bool" for R F G where
+  "rel_filter R F G" if "eventually (case_prod R) Z" "map_filter_on {(x, y). R x y} fst Z = F" "map_filter_on {(x, y). R x y} snd Z = G"
+
+lemma rel_filter_eq [relator_eq]: "rel_filter (=) = (=)"
+proof(intro ext iffI)+
+  show "F = G" if "rel_filter (=) F G" for F G using that
+    by cases(clarsimp simp add: filter_eq_iff eventually_map_filter_on split_def cong: rev_conj_cong)
+  show "rel_filter (=) F G" if "F = G" for F G unfolding \<open>F = G\<close>
+  proof
+    let ?Z = "map_filter_on UNIV (\<lambda>x. (x, x)) G"
+    have [simp]: "range (\<lambda>x. (x, x)) \<subseteq> {(x, y). x = y}" by auto
+    show "map_filter_on {(x, y). x = y} fst ?Z = G" and "map_filter_on {(x, y). x = y} snd ?Z = G"
+      by(simp_all add: map_filter_on_comp)(simp_all add: map_filter_on_UNIV o_def)
+    show "\<forall>\<^sub>F (x, y) in ?Z. x = y" by(simp add: eventually_map_filter_on)
+  qed
+qed
+
+lemma rel_filter_mono [relator_mono]: "rel_filter A \<le> rel_filter B" if le: "A \<le> B"
+proof(clarify elim!: rel_filter.cases)
+  show "rel_filter B (map_filter_on {(x, y). A x y} fst Z) (map_filter_on {(x, y). A x y} snd Z)"
+    (is "rel_filter _ ?X ?Y") if "\<forall>\<^sub>F (x, y) in Z. A x y" for Z
+  proof
+    let ?Z = "map_filter_on {(x, y). A x y} id Z"
+    show "\<forall>\<^sub>F (x, y) in ?Z. B x y" using le that
+      by(simp add: eventually_map_filter_on le_fun_def split_def conj_commute cong: conj_cong)
+    have [simp]: "{(x, y). A x y} \<subseteq> {(x, y). B x y}" using le by auto
+    show "map_filter_on {(x, y). B x y} fst ?Z = ?X" "map_filter_on {(x, y). B x y} snd ?Z = ?Y"
+      using le that by(simp_all add: le_fun_def map_filter_on_comp)
+  qed
+qed
+
+lemma rel_filter_conversep: "rel_filter A\<inverse>\<inverse> = (rel_filter A)\<inverse>\<inverse>"
+proof(safe intro!: ext elim!: rel_filter.cases)
+  show *: "rel_filter A (map_filter_on {(x, y). A\<inverse>\<inverse> x y} snd Z) (map_filter_on {(x, y). A\<inverse>\<inverse> x y} fst Z)"
+    (is "rel_filter _ ?X ?Y") if "\<forall>\<^sub>F (x, y) in Z. A\<inverse>\<inverse> x y" for A Z
+  proof
+    let ?Z = "map_filter_on {(x, y). A y x} prod.swap Z"
+    show "\<forall>\<^sub>F (x, y) in ?Z. A x y" using that by(simp add: eventually_map_filter_on)
+    have [simp]: "prod.swap ` {(x, y). A y x} \<subseteq> {(x, y). A x y}" by auto
+    show "map_filter_on {(x, y). A x y} fst ?Z = ?X" "map_filter_on {(x, y). A x y} snd ?Z = ?Y"
+      using that by(simp_all add: map_filter_on_comp o_def)
+  qed
+  show "rel_filter A\<inverse>\<inverse> (map_filter_on {(x, y). A x y} snd Z) (map_filter_on {(x, y). A x y} fst Z)"
+    if "\<forall>\<^sub>F (x, y) in Z. A x y" for Z using *[of "A\<inverse>\<inverse>" Z] that by simp
+qed
+
+lemma rel_filter_distr [relator_distr]:
+  "rel_filter A OO rel_filter B = rel_filter (A OO B)"
+proof(safe intro!: ext elim!: rel_filter.cases)
+  let ?AB = "{(x, y). (A OO B) x y}"
+  show "(rel_filter A OO rel_filter B)
+     (map_filter_on {(x, y). (A OO B) x y} fst Z) (map_filter_on {(x, y). (A OO B) x y} snd Z)"
+    (is "(_ OO _) ?F ?H") if "\<forall>\<^sub>F (x, y) in Z. (A OO B) x y" for Z
+  proof
+    let ?G = "map_filter_on ?AB (\<lambda>(x, y). SOME z. A x z \<and> B z y) Z"
+    show "rel_filter A ?F ?G"
+    proof
+      let ?Z = "map_filter_on ?AB (\<lambda>(x, y). (x, SOME z. A x z \<and> B z y)) Z"
+      show "\<forall>\<^sub>F (x, y) in ?Z. A x y" using that
+        by(auto simp add: eventually_map_filter_on split_def elim!: eventually_mono intro: someI2)
+      have [simp]: "(\<lambda>p. (fst p, SOME z. A (fst p) z \<and> B z (snd p))) ` {p. (A OO B) (fst p) (snd p)} \<subseteq> {p. A (fst p) (snd p)}" by(auto intro: someI2)
+      show "map_filter_on {(x, y). A x y} fst ?Z = ?F" "map_filter_on {(x, y). A x y} snd ?Z = ?G"
+        using that by(simp_all add: map_filter_on_comp split_def o_def)
+    qed
+    show "rel_filter B ?G ?H"
+    proof
+      let ?Z = "map_filter_on ?AB (\<lambda>(x, y). (SOME z. A x z \<and> B z y, y)) Z"
+      show "\<forall>\<^sub>F (x, y) in ?Z. B x y" using that
+        by(auto simp add: eventually_map_filter_on split_def elim!: eventually_mono intro: someI2)
+      have [simp]: "(\<lambda>p. (SOME z. A (fst p) z \<and> B z (snd p), snd p)) ` {p. (A OO B) (fst p) (snd p)} \<subseteq> {p. B (fst p) (snd p)}" by(auto intro: someI2)
+      show "map_filter_on {(x, y). B x y} fst ?Z = ?G" "map_filter_on {(x, y). B x y} snd ?Z = ?H"
+        using that by(simp_all add: map_filter_on_comp split_def o_def)
+    qed
+  qed
 
   fix F G
-  assume "rel_filter T F G"
-  thus "filtermap Abs F = G" unfolding filter_eq_iff
-    by(auto simp add: eventually_filtermap rel_filter_eventually * rel_funI del: iffI elim!: rel_funD)
-next
-  from Q have *: "\<And>x. T (Rep x) x" unfolding Quotient_alt_def by blast
+  assume F: "\<forall>\<^sub>F (x, y) in F. A x y" and G: "\<forall>\<^sub>F (x, y) in G. B x y"
+    and eq: "map_filter_on {(x, y). B x y} fst G = map_filter_on {(x, y). A x y} snd F" (is "?Y2 = ?Y1")
+  let ?X = "map_filter_on {(x, y). A x y} fst F"
+    and ?Z = "(map_filter_on {(x, y). B x y} snd G)"
+  have step: "\<exists>P'\<le>P. \<exists>Q' \<le> Q. eventually P' F \<and> eventually Q' G \<and> {y. \<exists>x. P' (x, y)} = {y. \<exists>z. Q' (y, z)}"
+    if P: "eventually P F" and Q: "eventually Q G" for P Q
+  proof -
+    let ?P = "\<lambda>(x, y). P (x, y) \<and> A x y" and ?Q = "\<lambda>(y, z). Q (y, z) \<and> B y z"
+    define P' where "P' \<equiv> \<lambda>(x, y). ?P (x, y) \<and> (\<exists>z. ?Q (y, z))"
+    define Q' where "Q' \<equiv> \<lambda>(y, z). ?Q (y, z) \<and> (\<exists>x. ?P (x, y))"
+    have "P' \<le> P" "Q' \<le> Q" "{y. \<exists>x. P' (x, y)} = {y. \<exists>z. Q' (y, z)}"
+      by(auto simp add: P'_def Q'_def)
+    moreover
+    from P Q F G have P': "eventually ?P F" and Q': "eventually ?Q G" 
+      by(simp_all add: eventually_conj_iff split_def)
+    from P' F have "\<forall>\<^sub>F y in ?Y1. \<exists>x. P (x, y) \<and> A x y"
+      by(auto simp add: eventually_map_filter_on elim!: eventually_mono)
+    from this[folded eq] obtain Q'' where Q'': "eventually Q'' G"
+      and Q''P: "{y. \<exists>z. Q'' (y, z)} \<subseteq> {y. \<exists>x. ?P (x, y)}"
+      using G by(fastforce simp add: eventually_map_filter_on)
+    have "eventually (inf Q'' ?Q) G" using Q'' Q' by(auto intro: eventually_conj simp add: inf_fun_def)
+    then have "eventually Q' G" using Q''P  by(auto elim!: eventually_mono simp add: Q'_def)
+    moreover
+    from Q' G have "\<forall>\<^sub>F y in ?Y2. \<exists>z. Q (y, z) \<and> B y z"
+      by(auto simp add: eventually_map_filter_on elim!: eventually_mono)
+    from this[unfolded eq] obtain P'' where P'': "eventually P'' F"
+      and P''Q: "{y. \<exists>x. P'' (x, y)} \<subseteq> {y. \<exists>z. ?Q (y, z)}"
+      using F by(fastforce simp add: eventually_map_filter_on)
+    have "eventually (inf P'' ?P) F" using P'' P' by(auto intro: eventually_conj simp add: inf_fun_def)
+    then have "eventually P' F" using P''Q  by(auto elim!: eventually_mono simp add: P'_def)
+    ultimately show ?thesis by blast
+  qed
 
-  fix F
-  show "rel_filter T (filtermap Rep F) F"
-    by(auto elim: rel_funD intro: * intro!: ext arg_cong[where f="\<lambda>P. eventually P F"] rel_funI
-            del: iffI simp add: eventually_filtermap rel_filter_eventually)
-qed(auto simp add: map_fun_def o_def eventually_filtermap filter_eq_iff fun_eq_iff rel_filter_eventually
-         fun_quotient[OF fun_quotient[OF Q identity_quotient] identity_quotient, unfolded Quotient_alt_def])
+  show "rel_filter (A OO B) ?X ?Z"
+  proof
+    let ?Y = "\<lambda>Y. \<exists>X Z. eventually X ?X \<and> eventually Z ?Z \<and> (\<lambda>(x, z). X x \<and> Z z \<and> (A OO B) x z) \<le> Y"
+    have Y: "is_filter ?Y"
+    proof
+      show "?Y (\<lambda>_. True)" by(auto simp add: le_fun_def intro: eventually_True)
+      show "?Y (\<lambda>x. P x \<and> Q x)" if "?Y P" "?Y Q" for P Q using that
+        apply clarify
+        apply(intro exI conjI; (elim eventually_rev_mp; fold imp_conjL; intro always_eventually allI; rule imp_refl)?)
+        apply auto
+        done
+      show "?Y Q" if "?Y P" "\<forall>x. P x \<longrightarrow> Q x" for P Q using that by blast
+    qed
+    define Y where "Y = Abs_filter ?Y"
+    have eventually_Y: "eventually P Y \<longleftrightarrow> ?Y P" for P
+      using eventually_Abs_filter[OF Y, of P] by(simp add: Y_def)
+    show YY: "\<forall>\<^sub>F (x, y) in Y. (A OO B) x y" using F G
+      by(auto simp add: eventually_Y eventually_map_filter_on eventually_conj_iff intro!: eventually_True)
+    have "?Y (\<lambda>(x, z). P x \<and> (A OO B) x z) \<longleftrightarrow> (\<forall>\<^sub>F (x, y) in F. P x \<and> A x y)" (is "?lhs = ?rhs") for P
+    proof
+      show ?lhs if ?rhs using G F that
+        by(auto 4 3 intro: exI[where x="\<lambda>_. True"] simp add: eventually_map_filter_on split_def)
+      assume ?lhs
+      then obtain X Z where "\<forall>\<^sub>F (x, y) in F. X x \<and> A x y"
+        and "\<forall>\<^sub>F (x, y) in G. Z y \<and> B x y"
+        and "(\<lambda>(x, z). X x \<and> Z z \<and> (A OO B) x z) \<le> (\<lambda>(x, z). P x \<and> (A OO B) x z)"
+        using F G by(auto simp add: eventually_map_filter_on split_def)
+      from step[OF this(1, 2)] this(3)
+      show ?rhs by(clarsimp elim!: eventually_rev_mp simp add: le_fun_def)(fastforce intro: always_eventually)
+    qed
+    then show "map_filter_on ?AB fst Y = ?X"
+      by(simp add: filter_eq_iff YY eventually_map_filter_on)(simp add: eventually_Y eventually_map_filter_on F G; simp add: split_def)
+
+    have "?Y (\<lambda>(x, z). P z \<and> (A OO B) x z) \<longleftrightarrow> (\<forall>\<^sub>F (x, y) in G. P y \<and> B x y)" (is "?lhs = ?rhs") for P
+    proof
+      show ?lhs if ?rhs using G F that
+        by(auto 4 3 intro: exI[where x="\<lambda>_. True"] simp add: eventually_map_filter_on split_def)
+      assume ?lhs
+      then obtain X Z where "\<forall>\<^sub>F (x, y) in F. X x \<and> A x y"
+        and "\<forall>\<^sub>F (x, y) in G. Z y \<and> B x y"
+        and "(\<lambda>(x, z). X x \<and> Z z \<and> (A OO B) x z) \<le> (\<lambda>(x, z). P z \<and> (A OO B) x z)"
+        using F G by(auto simp add: eventually_map_filter_on split_def)
+      from step[OF this(1, 2)] this(3)
+      show ?rhs by(clarsimp elim!: eventually_rev_mp simp add: le_fun_def)(fastforce intro: always_eventually)
+    qed
+    then show "map_filter_on ?AB snd Y = ?Z"
+      by(simp add: filter_eq_iff YY eventually_map_filter_on)(simp add: eventually_Y eventually_map_filter_on F G; simp add: split_def)
+  qed
+qed
+
+lemma filtermap_parametric: "((A ===> B) ===> rel_filter A ===> rel_filter B) filtermap filtermap"
+proof(intro rel_funI; erule rel_filter.cases; hypsubst)
+  fix f g Z
+  assume fg: "(A ===> B) f g" and Z: "\<forall>\<^sub>F (x, y) in Z. A x y"
+  have "rel_filter B (map_filter_on {(x, y). A x y} (f \<circ> fst) Z) (map_filter_on {(x, y). A x y} (g \<circ> snd) Z)"
+    (is "rel_filter _ ?F ?G")
+  proof
+    let ?Z = "map_filter_on {(x, y). A x y} (map_prod f g) Z"
+    show "\<forall>\<^sub>F (x, y) in ?Z. B x y" using fg Z
+      by(auto simp add: eventually_map_filter_on split_def elim!: eventually_mono rel_funD)
+    have [simp]: "map_prod f g ` {p. A (fst p) (snd p)} \<subseteq> {p. B (fst p) (snd p)}"
+      using fg by(auto dest: rel_funD)
+    show "map_filter_on {(x, y). B x y} fst ?Z = ?F" "map_filter_on {(x, y). B x y} snd ?Z = ?G"
+      using Z by(auto simp add: map_filter_on_comp split_def)
+  qed
+  thus "rel_filter B (filtermap f (map_filter_on {(x, y). A x y} fst Z)) (filtermap g (map_filter_on {(x, y). A x y} snd Z))"
+    using Z by(simp add: map_filter_on_UNIV[symmetric] map_filter_on_comp)
+qed
+
+lemma rel_filter_Grp: "rel_filter (Grp UNIV f) = Grp UNIV (filtermap f)"
+proof((intro antisym predicate2I; (elim GrpE; hypsubst)?), rule GrpI[OF _ UNIV_I])
+  fix F G
+  assume "rel_filter (Grp UNIV f) F G"
+  hence "rel_filter (=) (filtermap f F) (filtermap id G)"
+    by(rule filtermap_parametric[THEN rel_funD, THEN rel_funD, rotated])(simp add: Grp_def rel_fun_def)
+  thus "filtermap f F = G" by(simp add: rel_filter_eq)
+next
+  fix F :: "'a filter"
+  have "rel_filter (=) F F" by(simp add: rel_filter_eq)
+  hence "rel_filter (Grp UNIV f) (filtermap id F) (filtermap f F)"
+    by(rule filtermap_parametric[THEN rel_funD, THEN rel_funD, rotated])(simp add: Grp_def rel_fun_def)
+  thus "rel_filter (Grp UNIV f) F (filtermap f F)" by simp
+qed
+
+lemma Quotient_filter [quot_map]:
+  "Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_filter R) (filtermap Abs) (filtermap Rep) (rel_filter T)"
+  unfolding Quotient_alt_def5 rel_filter_eq[symmetric] rel_filter_Grp[symmetric]
+  by(simp add: rel_filter_distr[symmetric] rel_filter_conversep[symmetric] rel_filter_mono)
+
+lemma left_total_rel_filter [transfer_rule]: "left_total A \<Longrightarrow> left_total (rel_filter A)"
+unfolding left_total_alt_def rel_filter_eq[symmetric] rel_filter_conversep[symmetric] rel_filter_distr
+by(rule rel_filter_mono)
+
+lemma right_total_rel_filter [transfer_rule]: "right_total A \<Longrightarrow> right_total (rel_filter A)"
+using left_total_rel_filter[of "A\<inverse>\<inverse>"] by(simp add: rel_filter_conversep)
+
+lemma bi_total_rel_filter [transfer_rule]: "bi_total A \<Longrightarrow> bi_total (rel_filter A)"
+unfolding bi_total_alt_def by(simp add: left_total_rel_filter right_total_rel_filter)
+
+lemma left_unique_rel_filter [transfer_rule]: "left_unique A \<Longrightarrow> left_unique (rel_filter A)"
+unfolding left_unique_alt_def rel_filter_eq[symmetric] rel_filter_conversep[symmetric] rel_filter_distr
+by(rule rel_filter_mono)
+
+lemma right_unique_rel_filter [transfer_rule]:
+  "right_unique A \<Longrightarrow> right_unique (rel_filter A)"
+using left_unique_rel_filter[of "A\<inverse>\<inverse>"] by(simp add: rel_filter_conversep)
+
+lemma bi_unique_rel_filter [transfer_rule]: "bi_unique A \<Longrightarrow> bi_unique (rel_filter A)"
+by(simp add: bi_unique_alt_def left_unique_rel_filter right_unique_rel_filter)
 
 lemma eventually_parametric [transfer_rule]:
   "((A ===> (=)) ===> rel_filter A ===> (=)) eventually eventually"
-by(simp add: rel_fun_def rel_filter_eventually)
+by(auto 4 4 intro!: rel_funI elim!: rel_filter.cases simp add: eventually_map_filter_on dest: rel_funD intro: always_eventually elim!: eventually_rev_mp)
 
-lemma frequently_parametric [transfer_rule]:
-  "((A ===> (=)) ===> rel_filter A ===> (=)) frequently frequently"
+lemma frequently_parametric [transfer_rule]: "((A ===> (=)) ===> rel_filter A ===> (=)) frequently frequently"
   unfolding frequently_def[abs_def] by transfer_prover
-
-lemma rel_filter_eq [relator_eq]: "rel_filter (=) = (=)"
-by(auto simp add: rel_filter_eventually rel_fun_eq fun_eq_iff filter_eq_iff)
-
-lemma rel_filter_mono [relator_mono]:
-  "A \<le> B \<Longrightarrow> rel_filter A \<le> rel_filter B"
-unfolding rel_filter_eventually[abs_def]
-by(rule le_funI)+(intro fun_mono fun_mono[THEN le_funD, THEN le_funD] order.refl)
-
-lemma rel_filter_conversep [simp]: "rel_filter A\<inverse>\<inverse> = (rel_filter A)\<inverse>\<inverse>"
-apply (simp add: rel_filter_eventually fun_eq_iff rel_fun_def)
-apply (safe; metis)
-done
 
 lemma is_filter_parametric_aux:
   assumes "is_filter F"
@@ -1474,104 +1676,75 @@ apply (simp_all add: rel_fun_def)
 apply metis
 done
 
-lemma left_total_rel_filter [transfer_rule]:
-  assumes [transfer_rule]: "bi_total A" "bi_unique A"
-  shows "left_total (rel_filter A)"
-proof(rule left_totalI)
-  fix F :: "'a filter"
-  from bi_total_fun[OF bi_unique_fun[OF \<open>bi_total A\<close> bi_unique_eq] bi_total_eq]
-  obtain G where [transfer_rule]: "((A ===> (=)) ===> (=)) (\<lambda>P. eventually P F) G"
-    unfolding  bi_total_def by blast
-  moreover have "is_filter (\<lambda>P. eventually P F) \<longleftrightarrow> is_filter G" by transfer_prover
-  hence "is_filter G" by(simp add: eventually_def is_filter_Rep_filter)
-  ultimately have "rel_filter A F (Abs_filter G)"
-    by(simp add: rel_filter_eventually eventually_Abs_filter)
-  thus "\<exists>G. rel_filter A F G" ..
+lemma top_filter_parametric [transfer_rule]: "rel_filter A top top" if "bi_total A"
+proof
+  let ?Z = "principal {(x, y). A x y}"
+  show "\<forall>\<^sub>F (x, y) in ?Z. A x y" by(simp add: eventually_principal)
+  show "map_filter_on {(x, y). A x y} fst ?Z = top" "map_filter_on {(x, y). A x y} snd ?Z = top"
+    using that by(auto simp add: filter_eq_iff eventually_map_filter_on eventually_principal bi_total_def)
 qed
 
-lemma right_total_rel_filter [transfer_rule]:
-  "\<lbrakk> bi_total A; bi_unique A \<rbrakk> \<Longrightarrow> right_total (rel_filter A)"
-using left_total_rel_filter[of "A\<inverse>\<inverse>"] by simp
-
-lemma bi_total_rel_filter [transfer_rule]:
-  assumes "bi_total A" "bi_unique A"
-  shows "bi_total (rel_filter A)"
-unfolding bi_total_alt_def using assms
-by(simp add: left_total_rel_filter right_total_rel_filter)
-
-lemma left_unique_rel_filter [transfer_rule]:
-  assumes "left_unique A"
-  shows "left_unique (rel_filter A)"
-proof(rule left_uniqueI)
-  fix F F' G
-  assume [transfer_rule]: "rel_filter A F G" "rel_filter A F' G"
-  show "F = F'"
-    unfolding filter_eq_iff
-  proof
-    fix P :: "'a \<Rightarrow> bool"
-    obtain P' where [transfer_rule]: "(A ===> (=)) P P'"
-      using left_total_fun[OF assms left_total_eq] unfolding left_total_def by blast
-    have "eventually P F = eventually P' G"
-      and "eventually P F' = eventually P' G" by transfer_prover+
-    thus "eventually P F = eventually P F'" by simp
-  qed
+lemma bot_filter_parametric [transfer_rule]: "rel_filter A bot bot"
+proof
+  show "\<forall>\<^sub>F (x, y) in bot. A x y" by simp
+  show "map_filter_on {(x, y). A x y} fst bot = bot" "map_filter_on {(x, y). A x y} snd bot = bot"
+    by(simp_all add: filter_eq_iff eventually_map_filter_on)
 qed
 
-lemma right_unique_rel_filter [transfer_rule]:
-  "right_unique A \<Longrightarrow> right_unique (rel_filter A)"
-using left_unique_rel_filter[of "A\<inverse>\<inverse>"] by simp
-
-lemma bi_unique_rel_filter [transfer_rule]:
-  "bi_unique A \<Longrightarrow> bi_unique (rel_filter A)"
-by(simp add: bi_unique_alt_def left_unique_rel_filter right_unique_rel_filter)
-
-lemma top_filter_parametric [transfer_rule]:
-  "bi_total A \<Longrightarrow> (rel_filter A) top top"
-by(simp add: rel_filter_eventually All_transfer)
-
-lemma bot_filter_parametric [transfer_rule]: "(rel_filter A) bot bot"
-by(simp add: rel_filter_eventually rel_fun_def)
+lemma principal_parametric [transfer_rule]: "(rel_set A ===> rel_filter A) principal principal"
+proof(rule rel_funI rel_filter.intros)+
+  fix S S'
+  assume *: "rel_set A S S'"
+  define SS' where "SS' = S \<times> S' \<inter> {(x, y). A x y}"
+  have SS': "SS' \<subseteq> {(x, y). A x y}" and [simp]: "S = fst ` SS'" "S' = snd ` SS'"
+    using * by(auto 4 3 dest: rel_setD1 rel_setD2 intro: rev_image_eqI simp add: SS'_def)
+  let ?Z = "principal SS'"
+  show "\<forall>\<^sub>F (x, y) in ?Z. A x y" using SS' by(auto simp add: eventually_principal)
+  then show "map_filter_on {(x, y). A x y} fst ?Z = principal S"
+    and "map_filter_on {(x, y). A x y} snd ?Z = principal S'"
+    by(auto simp add: filter_eq_iff eventually_map_filter_on eventually_principal)
+qed
 
 lemma sup_filter_parametric [transfer_rule]:
   "(rel_filter A ===> rel_filter A ===> rel_filter A) sup sup"
-by(fastforce simp add: rel_filter_eventually[abs_def] eventually_sup dest: rel_funD)
-
-lemma Sup_filter_parametric [transfer_rule]:
-  "(rel_set (rel_filter A) ===> rel_filter A) Sup Sup"
-proof(rule rel_funI)
-  fix S T
-  assume [transfer_rule]: "rel_set (rel_filter A) S T"
-  show "rel_filter A (Sup S) (Sup T)"
-    by(simp add: rel_filter_eventually eventually_Sup) transfer_prover
+proof(intro rel_funI; elim rel_filter.cases; hypsubst)
+  show "rel_filter A
+    (map_filter_on {(x, y). A x y} fst FG \<squnion> map_filter_on {(x, y). A x y} fst FG')
+    (map_filter_on {(x, y). A x y} snd FG \<squnion> map_filter_on {(x, y). A x y} snd FG')"
+    (is "rel_filter _ (sup ?F ?G) (sup ?F' ?G')")
+    if "\<forall>\<^sub>F (x, y) in FG. A x y" "\<forall>\<^sub>F (x, y) in FG'. A x y" for FG FG'
+  proof
+    let ?Z = "sup FG FG'"
+    show "\<forall>\<^sub>F (x, y) in ?Z. A x y" by(simp add: eventually_sup that)
+    then show "map_filter_on {(x, y). A x y} fst ?Z = sup ?F ?G" 
+      and "map_filter_on {(x, y). A x y} snd ?Z = sup ?F' ?G'"
+      by(simp_all add: filter_eq_iff eventually_map_filter_on eventually_sup)
+  qed
 qed
 
-lemma principal_parametric [transfer_rule]:
-  "(rel_set A ===> rel_filter A) principal principal"
+lemma Sup_filter_parametric [transfer_rule]: "(rel_set (rel_filter A) ===> rel_filter A) Sup Sup"
 proof(rule rel_funI)
   fix S S'
-  assume [transfer_rule]: "rel_set A S S'"
-  show "rel_filter A (principal S) (principal S')"
-    by(simp add: rel_filter_eventually eventually_principal) transfer_prover
+  define SS' where "SS' = S \<times> S' \<inter> {(F, G). rel_filter A F G}"
+  assume "rel_set (rel_filter A) S S'"
+  then have SS': "SS' \<subseteq> {(F, G). rel_filter A F G}" and [simp]: "S = fst ` SS'" "S' = snd ` SS'"
+    by(auto 4 3 dest: rel_setD1 rel_setD2 intro: rev_image_eqI simp add: SS'_def)
+  from SS' obtain Z where Z: "\<And>F G. (F, G) \<in> SS' \<Longrightarrow>
+    (\<forall>\<^sub>F (x, y) in Z F G. A x y) \<and>
+    id F = map_filter_on {(x, y). A x y} fst (Z F G) \<and>
+    id G = map_filter_on {(x, y). A x y} snd (Z F G)"
+    unfolding rel_filter.simps by atomize_elim((rule choice allI)+; auto)
+  have id: "eventually P F = eventually P (id F)" "eventually Q G = eventually Q (id G)"
+    if "(F, G) \<in> SS'" for P Q F G by simp_all
+  show "rel_filter A (Sup S) (Sup S')"
+  proof
+    let ?Z = "SUP (F, G):SS'. Z F G"
+    show *: "\<forall>\<^sub>F (x, y) in ?Z. A x y" using Z by(auto simp add: eventually_Sup)
+    show "map_filter_on {(x, y). A x y} fst ?Z = Sup S" "map_filter_on {(x, y). A x y} snd ?Z = Sup S'"
+      unfolding filter_eq_iff
+      by(auto 4 4 simp add: id eventually_Sup eventually_map_filter_on *[simplified eventually_Sup] simp del: id_apply dest: Z)
+  qed
 qed
-  
-lemma filtermap_parametric [transfer_rule]:
-  "((A ===> B) ===> rel_filter A ===> rel_filter B) filtermap filtermap"
-proof (intro rel_funI)
-  fix f g F G assume [transfer_rule]: "(A ===> B) f g" "rel_filter A F G"
-  show "rel_filter B (filtermap f F) (filtermap g G)"
-    unfolding rel_filter_eventually eventually_filtermap by transfer_prover
-qed
-
-(* TODO: Are those assumptions needed? *)
-lemma filtercomap_parametric [transfer_rule]:
-  assumes [transfer_rule]: "bi_unique B" "bi_total A"
-  shows   "((A ===> B) ===> rel_filter B ===> rel_filter A) filtercomap filtercomap"
-proof (intro rel_funI)
-  fix f g F G assume [transfer_rule]: "(A ===> B) f g" "rel_filter B F G"
-  show "rel_filter A (filtercomap f F) (filtercomap g G)"
-    unfolding rel_filter_eventually eventually_filtercomap by transfer_prover
-qed
-    
 
 context
   fixes A :: "'a \<Rightarrow> 'b \<Rightarrow> bool"

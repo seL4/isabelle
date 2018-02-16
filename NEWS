@@ -210,6 +210,9 @@ interpretation of abstract locales. INCOMPATIBILITY.
 * Predicate pairwise_coprime abolished, use "pairwise coprime" instead.
 INCOMPATIBILITY.
 
+* The relator rel_filter on filters has been strengthened to its 
+canonical categorical definition with better properties. INCOMPATIBILITY.
+
 * HOL-Algebra: renamed (^) to [^]
 
 * Session HOL-Analysis: Moebius functions and the Riemann mapping
