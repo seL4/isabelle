@@ -420,7 +420,7 @@ fun add_arity raw_th thy =
 
     val args = Name.invent_names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
-    val std_vars = map (fn (a, S) => SOME (Thm.global_ctyp_of thy' (TVar ((a, 0), [])))) args;
+    val std_vars = map (fn (a, _) => SOME (Thm.global_ctyp_of thy' (TVar ((a, 0), [])))) args;
 
     val missing_params = Sign.complete_sort thy' [c]
       |> maps (these o Option.map #params o try (get_info thy'))
@@ -456,7 +456,6 @@ fun prove_arity raw_arity tac thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val arity = Proof_Context.cert_arity ctxt raw_arity;
-    val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
     val ths =
       Goal.prove_common ctxt NONE [] [] props
@@ -597,9 +596,6 @@ fun add_axioms prep mk name add raw_args thy =
     |> fold_map Thm.add_axiom_global (map Binding.name names ~~ specs)
     |-> fold (add o Drule.export_without_context o snd)
   end;
-
-fun class_const c =
-  (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
 
 fun class_const_dep c =
   ((Defs.Const, Logic.const_of_class c), [Term.aT []]);
