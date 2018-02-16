@@ -6,15 +6,13 @@ Main entry points to the function package.
 
 signature FUNCTION =
 sig
-  include FUNCTION_DATA
-
   val add_function: (binding * typ option * mixfix) list ->
     Specification.multi_specs -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> local_theory -> info * local_theory
+    (Proof.context -> tactic) -> local_theory -> Function_Common.info * local_theory
 
   val add_function_cmd: (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> bool -> local_theory -> info * local_theory
+    (Proof.context -> tactic) -> bool -> local_theory -> Function_Common.info * local_theory
 
   val function: (binding * typ option * mixfix) list ->
     Specification.multi_specs -> Function_Common.function_config ->
@@ -25,16 +23,16 @@ sig
     bool -> local_theory -> Proof.state
 
   val prove_termination: term option -> tactic -> local_theory ->
-    info * local_theory
+    Function_Common.info * local_theory
   val prove_termination_cmd: string option -> tactic -> local_theory ->
-    info * local_theory
+    Function_Common.info * local_theory
 
   val termination : term option -> local_theory -> Proof.state
   val termination_cmd : string option -> local_theory -> Proof.state
 
   val get_congs : Proof.context -> thm list
 
-  val get_info : Proof.context -> term -> info
+  val get_info : Proof.context -> term -> Function_Common.info
 end
 
 
@@ -266,7 +264,7 @@ val _ = Theory.setup (Old_Datatype_Data.interpretation (K (fold add_case_cong)))
 
 val get_congs = Function_Context_Tree.get_function_congs
 
-fun get_info ctxt t = Item_Net.retrieve (get_functions ctxt) t
+fun get_info ctxt t = Function_Common.retrieve_function_data ctxt t
   |> the_single |> snd
 
 

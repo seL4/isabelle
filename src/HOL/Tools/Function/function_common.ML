@@ -4,7 +4,7 @@
 Common definitions and other infrastructure for the function package.
 *)
 
-signature FUNCTION_DATA =
+signature FUNCTION_COMMON =
 sig
   type info =
    {is_partial : bool,
@@ -26,37 +26,6 @@ sig
     cases : thm list,
     pelims: thm list list,
     elims: thm list list option}
-end
-
-structure Function_Data : FUNCTION_DATA =
-struct
-
-type info =
- {is_partial : bool,
-  defname : binding,
-    (*contains no logical entities: invariant under morphisms:*)
-  add_simps : (binding -> binding) -> string -> (binding -> binding) ->
-    Token.src list -> thm list -> local_theory -> thm list * local_theory,
-  fnames : binding list,
-  case_names : string list,
-  fs : term list,
-  R : term,
-  dom: term,
-  psimps: thm list,
-  pinducts: thm list,
-  simps : thm list option,
-  inducts : thm list option,
-  termination : thm,
-  totality : thm option,
-  cases : thm list,
-  pelims : thm list list,
-  elims : thm list list option}
-
-end
-
-signature FUNCTION_COMMON =
-sig
-  include FUNCTION_DATA
   val profile : bool Unsynchronized.ref
   val PROFILE : string -> ('a -> 'b) -> 'a -> 'b
   val mk_acc : typ -> term -> term
@@ -78,7 +47,7 @@ sig
     preproc
   val termination_rule_tac : Proof.context -> int -> tactic
   val store_termination_rule : thm -> Context.generic -> Context.generic
-  val get_functions : Proof.context -> (term * info) Item_Net.T
+  val retrieve_function_data : Proof.context -> term -> (term * info) list
   val add_function_data : info -> Context.generic -> Context.generic
   val termination_prover_tac : bool -> Proof.context -> tactic
   val set_termination_prover : (bool -> Proof.context -> tactic) -> Context.generic ->
@@ -107,9 +76,46 @@ end
 structure Function_Common : FUNCTION_COMMON =
 struct
 
-open Function_Data
-
 local open Function_Lib in
+
+(* info *)
+
+type info =
+ {is_partial : bool,
+  defname : binding,
+    (*contains no logical entities: invariant under morphisms:*)
+  add_simps : (binding -> binding) -> string -> (binding -> binding) ->
+    Token.src list -> thm list -> local_theory -> thm list * local_theory,
+  fnames : binding list,
+  case_names : string list,
+  fs : term list,
+  R : term,
+  dom: term,
+  psimps: thm list,
+  pinducts: thm list,
+  simps : thm list option,
+  inducts : thm list option,
+  termination : thm,
+  totality : thm option,
+  cases : thm list,
+  pelims : thm list list,
+  elims : thm list list option}
+
+fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
+  simps, inducts, termination, totality, defname, is_partial, cases, pelims, elims} : info) =
+    let
+      val term = Morphism.term phi
+      val thm = Morphism.thm phi
+      val fact = Morphism.fact phi
+    in
+      { add_simps = add_simps, case_names = case_names, fnames = fnames,
+        fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
+        pinducts = fact pinducts, simps = Option.map fact simps,
+        inducts = Option.map fact inducts, termination = thm termination,
+        totality = Option.map thm totality, defname = Morphism.binding phi defname,
+        is_partial = is_partial, cases = fact cases,
+        elims = Option.map (map fact) elims, pelims = map fact pelims }
+    end
 
 
 (* profiling *)
@@ -267,9 +273,17 @@ fun termination_rule_tac ctxt = resolve_tac ctxt (#1 (Data.get (Context.Proof ct
 val store_termination_rule = Data.map o @{apply 4(1)} o cons o Thm.trim_context
 
 val get_functions = #2 o Data.get o Context.Proof
-fun add_function_data (info : info as {fs, termination, ...}) =
-  (Data.map o @{apply 4(2)}) (fold (fn f => Item_Net.update (f, info)) fs)
-  #> store_termination_rule termination
+
+fun retrieve_function_data ctxt t =
+  Item_Net.retrieve (get_functions ctxt) t
+  |> (map o apsnd)
+      (transform_function_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)));
+
+val add_function_data =
+  transform_function_data Morphism.trim_context_morphism #>
+  (fn info as {fs, termination, ...} =>
+    (Data.map o @{apply 4(2)}) (fold (fn f => Item_Net.update (f, info)) fs)
+    #> store_termination_rule termination)
 
 fun termination_prover_tac quiet ctxt = #3 (Data.get (Context.Proof ctxt)) quiet ctxt
 val set_termination_prover = Data.map o @{apply 4(3)} o K
@@ -292,22 +306,6 @@ datatype function_result = FunctionResult of
   termination : thm,
   domintros : thm list option}
 
-fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
-  simps, inducts, termination, totality, defname, is_partial, cases, pelims, elims} : info) =
-    let
-      val term = Morphism.term phi
-      val thm = Morphism.thm phi
-      val fact = Morphism.fact phi
-    in
-      { add_simps = add_simps, case_names = case_names, fnames = fnames,
-        fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
-        pinducts = fact pinducts, simps = Option.map fact simps,
-        inducts = Option.map fact inducts, termination = thm termination,
-        totality = Option.map thm totality, defname = Morphism.binding phi defname,
-        is_partial = is_partial, cases = fact cases,
-        elims = Option.map (map fact) elims, pelims = map fact pelims }
-    end
-
 fun lift_morphism ctxt f =
   let
     fun term t = Thm.term_of (Drule.cterm_rule f (Thm.cterm_of ctxt t))
@@ -328,7 +326,7 @@ fun import_function_data t ctxt =
       SOME (transform_function_data (inst_morph (Thm.match (Thm.cterm_of ctxt trm, ct))) data)
         handle Pattern.MATCH => NONE
   in
-    get_first match (Item_Net.retrieve (get_functions ctxt) t)
+    get_first match (retrieve_function_data ctxt t)
   end
 
 fun import_last_function ctxt =
