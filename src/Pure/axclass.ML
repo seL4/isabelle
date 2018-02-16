@@ -152,7 +152,11 @@ val inst_params_of = #inst_params o rep_data;
 
 fun get_info thy c =
   (case Symtab.lookup (axclasses_of thy) c of
-    SOME info => info
+    SOME {def, intro, axioms, params} =>
+      {def = Thm.transfer thy def,
+       intro = Thm.transfer thy intro,
+       axioms = map (Thm.transfer thy) axioms,
+       params = params}
   | NONE => error ("No such axclass: " ^ quote c));
 
 fun all_params_of thy S =
@@ -169,8 +173,6 @@ val arity_prefix = "arity_";
 
 fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
 
-
-val update_classrel = map_proven_classrels o Symreltab.update;
 
 val is_classrel = Symreltab.defined o proven_classrels_of;
 
@@ -189,10 +191,11 @@ fun complete_classrels thy =
           else
             (false,
               thy2
-              |> update_classrel ((c1, c2),
+              |> (map_proven_classrels o Symreltab.update) ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
                 |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
-                |> Thm.close_derivation));
+                |> Thm.close_derivation
+                |> Thm.trim_context));
 
         val proven = is_classrel thy1;
         val preds = Graph.Keys.fold (fn c1 => proven (c1, c) ? cons c1) all_preds [];
@@ -235,7 +238,8 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
         val th1 =
           (th RS the_classrel thy (c, c1))
           |> Thm.instantiate' std_vars []
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> Thm.trim_context;
       in ((th1, thy_name), c1) end);
 
     val finished' = finished andalso null completions;
@@ -243,7 +247,7 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
   in (finished', arities') end;
 
 fun put_arity_completion ((t, Ss, c), th) thy =
-  let val ar = ((c, Ss), (th, Context.theory_name thy)) in
+  let val ar = ((c, Ss), (Thm.trim_context th, Context.theory_name thy)) in
     thy
     |> map_proven_arities
       (Symtab.insert_list (eq_fst op =) (t, ar) #>
@@ -274,12 +278,13 @@ val _ =
 
 fun get_inst_param thy (c, tyco) =
   (case Symtab.lookup (the_default Symtab.empty (Symtab.lookup (#1 (inst_params_of thy)) c)) tyco of
-    SOME c' => c'
+    SOME (a, th) => (a, Thm.transfer thy th)
   | NONE => error ("No instance parameter for constant " ^ quote c ^ " on type " ^ quote tyco));
 
-fun add_inst_param (c, tyco) inst =
-  (map_inst_params o apfst o Symtab.map_default (c, Symtab.empty)) (Symtab.update_new (tyco, inst))
-  #> (map_inst_params o apsnd) (Symtab.update_new (#1 inst, (c, tyco)));
+fun add_inst_param (c, tyco) (a, th) =
+  (map_inst_params o apfst o Symtab.map_default (c, Symtab.empty))
+    (Symtab.update_new (tyco, (a, Thm.trim_context th)))
+  #> (map_inst_params o apsnd) (Symtab.update_new (a, (c, tyco)));
 
 val inst_of_param = Symtab.lookup o #2 o inst_params_of;
 val param_of_inst = #1 oo get_inst_param;
@@ -392,7 +397,8 @@ fun add_classrel raw_th thy =
     val (th', thy') = Global_Theory.store_thm (binding, th) thy;
     val th'' = th'
       |> Thm.unconstrainT
-      |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
+      |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy' (TVar ((Name.aT, 0), [])))] []
+      |> Thm.trim_context;
   in
     thy'
     |> Sign.primitive_classrel (c1, c2)
@@ -556,11 +562,14 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 
     (* result *)
 
-    val axclass = make_axclass (def, intro, axioms, params);
+    val axclass =
+      make_axclass
+        (Thm.trim_context def, Thm.trim_context intro, map Thm.trim_context axioms, params);
     val result_thy =
       facts_thy
       |> map_proven_classrels
-          (fold2 (fn c => fn th => Symreltab.update ((class, c), th)) super classrel)
+          (fold2 (fn c => fn th => Symreltab.update ((class, c), Thm.trim_context th))
+            super classrel)
       |> perhaps complete_classrels
       |> Sign.qualified_path false bconst
       |> Global_Theory.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms))
