@@ -335,22 +335,14 @@ fun equiv_relation_chk ctxt (rty, qty) =
 exception CODE_GEN of string
 
 fun get_quot_thm ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    (case Quotient_Info.lookup_quotients ctxt s of
-      SOME {quot_thm, ...} => Thm.transfer thy quot_thm
-    | NONE => raise CODE_GEN ("No quotient type " ^ quote s ^ " found."))
-  end
+  (case Quotient_Info.lookup_quotients ctxt s of
+    SOME {quot_thm, ...} => quot_thm
+  | NONE => raise CODE_GEN ("No quotient type " ^ quote s ^ " found."));
 
 fun get_rel_quot_thm ctxt s =
-   let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    (case Quotient_Info.lookup_quotmaps ctxt s of
-      SOME {quot_thm, ...} => Thm.transfer thy quot_thm
-    | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"))
-  end
+  (case Quotient_Info.lookup_quotmaps ctxt s of
+    SOME {quot_thm, ...} => quot_thm
+  | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"));
 
 fun is_id_quot thm = Thm.eq_thm_prop (thm, @{thm identity_quotient3})
 
