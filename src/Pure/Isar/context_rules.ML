@@ -193,7 +193,7 @@ val wrap = gen_wrap #2;
 (* add and del rules *)
 
 
-val rule_del = Thm.declaration_attribute (fn th => Rules.map (del_rule th));
+val rule_del = Thm.declaration_attribute (Rules.map o del_rule);
 
 fun rule_add k view opt_w =
   Thm.declaration_attribute (fn th => Rules.map (add_rule k opt_w (view th) o del_rule th));
