@@ -349,10 +349,12 @@ fun add thm thy =
     val thms = Simplifier.mksimps (Proof_Context.init_global thy) thm;
   in
     thy
-    |> Computation_Preproc_Data.map (union Thm.eq_thm_prop thms)
+    |> Computation_Preproc_Data.map (fold (insert Thm.eq_thm_prop o Thm.trim_context) thms)
   end;
 
-fun get ctxt = Computation_Preproc_Data.get (Proof_Context.theory_of ctxt);
+fun get ctxt =
+  Computation_Preproc_Data.get (Proof_Context.theory_of ctxt)
+  |> map (Thm.transfer (Proof_Context.theory_of ctxt))
 
 in
 
