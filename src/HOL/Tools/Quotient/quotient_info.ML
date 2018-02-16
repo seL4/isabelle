@@ -111,9 +111,9 @@ val _ =
         (Scan.lift @{keyword "("} |--
           Args.const {proper = true, strict = true} --| Scan.lift @{keyword ","} --
           Attrib.thm --| Scan.lift @{keyword ")"}) >>
-        (fn (tyname, (relname, qthm)) =>
-          let val minfo = {relmap = relname, quot_thm = qthm}
-          in Thm.declaration_attribute (fn _ => map_quotmaps (Symtab.update (tyname, minfo))) end))
+        (fn (tyname, (relmap, quot_thm)) =>
+          let val minfo = {relmap = relmap, quot_thm = quot_thm}
+          in Thm.declaration_attribute (K (map_quotmaps (Symtab.update (tyname, minfo)))) end))
       "declaration of map information")
 
 fun print_quotmaps ctxt =
@@ -201,8 +201,8 @@ fun dest_quotconsts_global thy =
 fun lookup_quotconsts_global thy t =
   let
     val (name, qty) = dest_Const t
-    fun matches (x: quotconsts) =
-      let val (name', qty') = dest_Const (#qconst x);
+    fun matches ({qconst, ...}: quotconsts) =
+      let val (name', qty') = dest_Const qconst;
       in name = name' andalso Sign.typ_instance thy (qty, qty') end
   in
     (case Symtab.lookup (get_quotconsts (Context.Theory thy)) name of

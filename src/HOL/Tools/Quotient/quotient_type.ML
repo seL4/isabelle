@@ -141,17 +141,18 @@ fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
     val (_ $ rel $ abs $ rep) = (HOLogic.dest_Trueprop o Thm.prop_of) quot_thm
     val (qtyp, rtyp) = (dest_funT o fastype_of) rep
     val qty_full_name = (fst o dest_Type) qtyp
-    val quotients = {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm,
-      quot_thm = quot_thm }
-    fun quot_info phi = Quotient_Info.transform_quotients phi quotients
-    val abs_rep = {abs = abs, rep = rep}
-    fun abs_rep_info phi = Quotient_Info.transform_abs_rep phi abs_rep
+    fun quotients phi =
+      Quotient_Info.transform_quotients phi
+        {qtyp = qtyp, rtyp = rtyp, equiv_rel = rel, equiv_thm = equiv_thm,
+          quot_thm = quot_thm}
+    fun abs_rep phi =
+      Quotient_Info.transform_abs_rep phi {abs = abs, rep = rep}
   in
     lthy
-      |> Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Quotient_Info.update_quotients (qty_full_name, quot_info phi)
-          #> Quotient_Info.update_abs_rep (qty_full_name, abs_rep_info phi))
-      |> setup_lifting_package quot_thm equiv_thm opt_par_thm
+    |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
+        Quotient_Info.update_quotients (qty_full_name, quotients phi) #>
+        Quotient_Info.update_abs_rep (qty_full_name, abs_rep phi))
+    |> setup_lifting_package quot_thm equiv_thm opt_par_thm
   end
 
 (* main function for constructing a quotient type *)

@@ -61,11 +61,11 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
     val (_, prop') = Local_Defs.cert_def lthy (K []) prop
     val (_, newrhs) = Local_Defs.abs_def prop'
 
-    val ((trm, (_ , def_thm)), lthy') =
+    val ((qconst, (_ , def)), lthy') =
       Local_Theory.define (var, ((Thm.def_binding_optional (#1 var) name, atts), newrhs)) lthy
 
-    (* data storage *)
-    val qconst_data = {qconst = trm, rconst = rhs, def = def_thm}
+    fun qconst_data phi =
+      Quotient_Info.transform_quotconsts phi {qconst = qconst, rconst = rhs, def = def}
 
     fun qualify defname suffix = Binding.name suffix
       |> Binding.qualify true defname
@@ -76,14 +76,14 @@ fun add_quotient_def ((var, (name, atts)), (lhs, rhs)) rsp_thm lthy =
     val lthy'' = lthy'
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi =>
-          (case Quotient_Info.transform_quotconsts phi qconst_data of
+          (case qconst_data phi of
             qcinfo as {qconst = Const (c, _), ...} =>
               Quotient_Info.update_quotconsts (c, qcinfo)
           | _ => I))
       |> (snd oo Local_Theory.note)
         ((rsp_thm_name, @{attributes [quot_respect]}), [rsp_thm])
   in
-    (qconst_data, lthy'')
+    (qconst_data Morphism.identity, lthy'')
   end
 
 fun mk_readable_rsp_thm_eq tm lthy =

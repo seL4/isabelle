@@ -154,7 +154,6 @@ val regularize_simproc =
 
 fun regularize_tac ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt
     val simpset =
       mk_minimal_simpset ctxt
       addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
