@@ -85,8 +85,12 @@ structure Lin_Arith_Data = Generic_Data
 
 val get_arith_data = Lin_Arith_Data.get o Context.Proof;
 
+fun get_splits ctxt =
+  #splits (get_arith_data ctxt)
+  |> map (Thm.transfer (Proof_Context.theory_of ctxt));
+
 fun add_split thm = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
-  {splits = update Thm.eq_thm_prop thm splits,
+  {splits = update Thm.eq_thm_prop (Thm.trim_context thm) splits,
    inj_consts = inj_consts, discrete = discrete});
 
 fun add_discrete_type d = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
@@ -418,7 +422,7 @@ let
   (* where ti' = HOLogic.dest_Trueprop ti                                    *)
   fun REPEAT_DETERM_etac_rev_mp tms =
     fold (curry HOLogic.mk_imp) (map HOLogic.dest_Trueprop tms) \<^term>\<open>False\<close>
-  val split_thms  = filter (is_split_thm ctxt) (#splits (get_arith_data ctxt))
+  val split_thms  = filter (is_split_thm ctxt) (get_splits ctxt)
   val cmap        = Splitter.cmap_of_split_thms split_thms
   val goal_tm     = REPEAT_DETERM_etac_rev_mp terms
   val splits      = Splitter.split_posns cmap thy Ts goal_tm
@@ -819,7 +823,7 @@ end;  (* local *)
 
 fun pre_tac ctxt i =
   let
-    val split_thms = filter (is_split_thm ctxt) (#splits (get_arith_data ctxt))
+    val split_thms = filter (is_split_thm ctxt) (get_splits ctxt)
     fun is_relevant t = is_some (decomp ctxt t)
   in
     DETERM (
@@ -940,7 +944,7 @@ fun raw_tac ctxt =
     (* split_limit may trigger.                                           *)
     (* Therefore splitting outside of simple_tac may allow us to prove    *)
     (* some goals that simple_tac alone would fail on.                    *)
-    (REPEAT_DETERM o split_tac ctxt (#splits (get_arith_data ctxt)))
+    (REPEAT_DETERM o split_tac ctxt (get_splits ctxt))
     (Fast_Arith.lin_arith_tac ctxt);
 
 in
