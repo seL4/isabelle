@@ -1,9 +1,30 @@
+(*  Title:      HOL/Library/Datatype_Records.thy
+    Author:     Lars Hupel
+*)
+
 section \<open>Records based on BNF/datatype machinery\<close>
 
 theory Datatype_Records
 imports Main
 keywords "datatype_record" :: thy_decl
 begin
+
+text \<open>
+  This theory provides an alternative, stripped-down implementation of records based on the
+  machinery of the @{command datatype} package.
+
+  It supports:
+  \<^item> similar declaration syntax as records
+  \<^item> record creation and update syntax (using \<open>\<lparr> ... \<rparr>\<close> brackets)
+  \<^item> regular datatype features (e.g. dead type variables etc.)
+  \<^item> ``after-the-fact'' registration of single-free-constructor types as records
+\<close>
+
+text \<open>
+  Caveats:
+  \<^item> there is no compatibility layer; importing this theory will disrupt existing syntax
+  \<^item> extensible records are not supported
+\<close>
 
 no_syntax
   "_constify"           :: "id => ident"                        ("_")
