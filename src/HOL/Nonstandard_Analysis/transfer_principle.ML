@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nonstandard_Analysis/transfer.ML
+(*  Title:      HOL/Nonstandard_Analysis/transfer_principle.ML
     Author:     Brian Huffman
 
 Transfer principle tactic for nonstandard analysis.
