@@ -189,7 +189,7 @@ fun print_rules ctxt =
     (map (Thm.pretty_thm_item ctxt) (Rules.get (Context.Proof ctxt))));
 
 val defn_add = Thm.declaration_attribute (Rules.map o Thm.add_thm o Thm.trim_context);
-val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm o Thm.trim_context);
+val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm);
 
 
 (* meta rewrite rules *)
