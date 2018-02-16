@@ -6,13 +6,15 @@ Main entry points to the function package.
 
 signature FUNCTION =
 sig
+  type info = Function_Common.info
+
   val add_function: (binding * typ option * mixfix) list ->
     Specification.multi_specs -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> local_theory -> Function_Common.info * local_theory
+    (Proof.context -> tactic) -> local_theory -> info * local_theory
 
   val add_function_cmd: (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> bool -> local_theory -> Function_Common.info * local_theory
+    (Proof.context -> tactic) -> bool -> local_theory -> info * local_theory
 
   val function: (binding * typ option * mixfix) list ->
     Specification.multi_specs -> Function_Common.function_config ->
@@ -23,16 +25,16 @@ sig
     bool -> local_theory -> Proof.state
 
   val prove_termination: term option -> tactic -> local_theory ->
-    Function_Common.info * local_theory
+    info * local_theory
   val prove_termination_cmd: string option -> tactic -> local_theory ->
-    Function_Common.info * local_theory
+    info * local_theory
 
   val termination : term option -> local_theory -> Proof.state
   val termination_cmd : string option -> local_theory -> Proof.state
 
   val get_congs : Proof.context -> thm list
 
-  val get_info : Proof.context -> term -> Function_Common.info
+  val get_info : Proof.context -> term -> info
 end
 
 
