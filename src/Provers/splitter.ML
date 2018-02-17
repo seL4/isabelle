@@ -438,12 +438,15 @@ fun split_name (name, T) asm = "split " ^
 fun gen_add_split bang split ctxt =
   let
     val (name, asm) = split_thm_info split
+    val split0 = Thm.trim_context split
     fun tac ctxt' =
-      (if asm then split_asm_tac ctxt' [split]
-       else if bang
-            then split_tac ctxt' [split] THEN_ALL_NEW
-                 TRY o (SELECT_GOAL (Data.safe_tac ctxt'))
-            else split_tac ctxt' [split])
+      let val split' = Thm.transfer (Proof_Context.theory_of ctxt') split0 in
+        (if asm then split_asm_tac ctxt' [split']
+         else if bang
+              then split_tac ctxt' [split'] THEN_ALL_NEW
+                   TRY o (SELECT_GOAL (Data.safe_tac ctxt'))
+              else split_tac ctxt' [split'])
+      end
   in Simplifier.addloop (ctxt, (split_name name asm, tac)) end;
 
 val add_split = gen_add_split false;
