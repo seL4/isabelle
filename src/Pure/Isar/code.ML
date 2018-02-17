@@ -90,6 +90,11 @@ struct
 
 (** auxiliary **)
 
+(* close theorem for storage *)
+
+val close = Thm.trim_context o Thm.close_derivation;
+
+
 (* printing *)
 
 fun string_of_typ thy =
@@ -391,11 +396,11 @@ end; (*local*)
 local
 
 type data = Any.T Datatab.table;
-fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory) option);
+fun empty_dataref () = Synchronized.var "code data" (NONE : (data * Context.theory_id) option);
 
 structure Code_Data = Theory_Data
 (
-  type T = specs * (data * theory) option Synchronized.var;
+  type T = specs * (data * Context.theory_id) option Synchronized.var;
   val empty = (empty_specs, empty_dataref ());
   val extend : T -> T = apsnd (K (empty_dataref ()));
   fun merge ((specs1, _), (specs2, _)) =
@@ -417,18 +422,18 @@ fun modify_specs f = Code_Data.map (fn (specs, _) => (f specs, empty_dataref ())
 fun change_yield_data (kind, mk, dest) theory f =
   let
     val dataref = (snd o Code_Data.get) theory;
-    val (datatab, thy) = case Synchronized.value dataref
-     of SOME (datatab, thy) =>
-        if Context.eq_thy (theory, thy)
-          then (datatab, thy)
-          else (Datatab.empty, theory)
-      | NONE => (Datatab.empty, theory)
+    val (datatab, thy_id) = case Synchronized.value dataref
+     of SOME (datatab, thy_id) =>
+        if Context.eq_thy_id (Context.theory_id theory, thy_id)
+          then (datatab, thy_id)
+          else (Datatab.empty, Context.theory_id theory)
+      | NONE => (Datatab.empty, Context.theory_id theory)
     val data = case Datatab.lookup datatab kind
      of SOME data => data
       | NONE => invoke_init kind;
     val result as (_, data') = f (dest data);
     val _ = Synchronized.change dataref
-      ((K o SOME) (Datatab.update (kind, mk data') datatab, thy));
+      ((K o SOME) (Datatab.update (kind, mk data') datatab, thy_id));
   in result end;
 
 end; (*local*)
@@ -1381,7 +1386,8 @@ local
 fun subsumptive_add thy verbose (thm, proper) eqns =
   let
     val args_of = drop_prefix is_Var o rev o snd o strip_comb
-      o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
+      o Term.map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of
+      o Thm.transfer thy;
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], [], Thm.maxidx_of thm + 1);
     fun matches_args args' =
@@ -1396,11 +1402,10 @@ fun subsumptive_add thy verbose (thm, proper) eqns =
         (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
             Thm.string_of_thm_global thy thm') else (); true)
       else false;
-  in (thm, proper) :: filter_out drop eqns end;
+  in (close thm, proper) :: filter_out drop eqns end;
 
 fun add_eqn_for (c, eqn) thy =
-  thy |> modify_specs (modify_pending_eqns c
-    (subsumptive_add thy true (apfst Thm.close_derivation eqn)));
+  thy |> modify_specs (modify_pending_eqns c (subsumptive_add thy true eqn));
 
 fun add_eqns_for default (c, proto_eqns) thy =
   thy |> modify_specs (fn specs =>
@@ -1408,8 +1413,7 @@ fun add_eqns_for default (c, proto_eqns) thy =
     then
       let
         val eqns = []
-          |> fold_rev (subsumptive_add thy (not default)) proto_eqns
-          |> (map o apfst) Thm.close_derivation;
+          |> fold_rev (subsumptive_add thy (not default)) proto_eqns;
       in specs |> register_fun_spec c (Eqns (default, eqns)) end
     else specs);
 
