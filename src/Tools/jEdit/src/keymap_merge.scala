@@ -253,7 +253,7 @@ object Keymap_Merge
     no_shortcut_conflicts.foreach(_.set(keymap))
 
     keymap.save()
-    keymap_manager.reload()
     jEdit.saveSettings()
+    jEdit.propertiesChanged()
   }
 }
