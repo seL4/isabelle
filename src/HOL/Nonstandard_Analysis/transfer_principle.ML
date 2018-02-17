@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nonstandard_Analysis/transfer.ML
+(*  Title:      HOL/Nonstandard_Analysis/transfer_principle.ML
     Author:     Brian Huffman
 
 Transfer principle tactic for nonstandard analysis.
@@ -108,13 +108,13 @@ fun map_refolds f = Data.map
     {intros=intros, unfolds=unfolds, refolds=f refolds, consts=consts})
 in
 
-val intro_add = Thm.declaration_attribute (map_intros o Thm.add_thm);
+val intro_add = Thm.declaration_attribute (map_intros o Thm.add_thm o Thm.trim_context);
 val intro_del = Thm.declaration_attribute (map_intros o Thm.del_thm);
 
-val unfold_add = Thm.declaration_attribute (map_unfolds o Thm.add_thm);
+val unfold_add = Thm.declaration_attribute (map_unfolds o Thm.add_thm o Thm.trim_context);
 val unfold_del = Thm.declaration_attribute (map_unfolds o Thm.del_thm);
 
-val refold_add = Thm.declaration_attribute (map_refolds o Thm.add_thm);
+val refold_add = Thm.declaration_attribute (map_refolds o Thm.add_thm o Thm.trim_context);
 val refold_del = Thm.declaration_attribute (map_refolds o Thm.del_thm);
 
 end

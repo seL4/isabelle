@@ -48,8 +48,11 @@ sig
   val proper_subthy: theory * theory -> bool
   val subthy_id: theory_id * theory_id -> bool
   val subthy: theory * theory -> bool
-  val finish_thy: theory -> theory
+  val trace_theories: bool Unsynchronized.ref
+  val theories_trace: unit -> {active: int, all: int}
   val begin_thy: string -> theory list -> theory
+  val finish_thy: theory -> theory
+  val theory_data_size: theory -> (Position.T * int) list
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
   (*certificate*)
@@ -125,7 +128,9 @@ datatype theory_id =
 
 datatype theory =
   Theory of
-   theory_id *
+   (*identity*)
+   {theory_id: theory_id,
+    token: unit Unsynchronized.ref} *
    (*ancestry*)
    {parents: theory list,         (*immediate predecessors*)
     ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
@@ -137,7 +142,8 @@ exception THEORY of string * theory list;
 fun rep_theory_id (Theory_Id args) = args;
 fun rep_theory (Theory args) = args;
 
-val theory_id = #1 o rep_theory;
+val theory_identity = #1 o rep_theory;
+val theory_id = #theory_id o theory_identity;
 
 val identity_of_id = #1 o rep_theory_id;
 val identity_of = identity_of_id o theory_id;
@@ -202,12 +208,12 @@ fun this_theory thy name =
 
 fun insert_id id ids = Inttab.update (id, ()) ids;
 
-fun merge_ids
-    (Theory (Theory_Id ({id = id1, ids = ids1, ...}, _), _, _))
-    (Theory (Theory_Id ({id = id2, ids = ids2, ...}, _), _, _)) =
-  Inttab.merge (K true) (ids1, ids2)
-  |> insert_id id1
-  |> insert_id id2;
+val merge_ids =
+  apply2 theory_id #>
+  (fn (Theory_Id ({id = id1, ids = ids1, ...}, _), Theory_Id ({id = id2, ids = ids2, ...}, _)) =>
+    Inttab.merge (K true) (ids1, ids2)
+    |> insert_id id1
+    |> insert_id id2);
 
 
 (* equality and inclusion *)
@@ -265,6 +271,7 @@ fun invoke name f k x =
 
 in
 
+fun invoke_pos k = invoke "" (K o #pos) k ();
 fun invoke_empty k = invoke "" (K o #empty) k ();
 val invoke_extend = invoke "extend" #extend;
 fun invoke_merge thys = invoke "merge" (fn kind => #merge kind thys);
@@ -285,10 +292,44 @@ end;
 
 (** build theories **)
 
-(* primitives *)
+(* create theory *)
+
+val trace_theories = Unsynchronized.ref false;
+
+local
+
+val theories =
+  Synchronized.var "theory_tokens" ([]: unit Unsynchronized.ref option Unsynchronized.ref list);
+
+val dummy_token = Unsynchronized.ref ();
+
+fun make_token () =
+  if ! trace_theories then
+    let
+      val token = Unsynchronized.ref ();
+      val _ = Synchronized.change theories (cons (Weak.weak (SOME token)));
+    in token end
+  else dummy_token;
+
+in
+
+fun theories_trace () =
+  let
+    val trace = Synchronized.value theories;
+    val _ = ML_Heap.full_gc ();
+    val active = fold (fn Unsynchronized.ref NONE => I | _ => Integer.add 1) trace 0;
+  in {all = length trace, active = active} end;
 
 fun create_thy ids history ancestry data =
-  Theory (Theory_Id (make_identity (serial ()) ids, history), ancestry, data);
+  let
+    val theory_id = Theory_Id (make_identity (serial ()) ids, history);
+    val token = make_token ();
+  in Theory ({theory_id = theory_id, token = token}, ancestry, data) end;
+
+end;
+
+
+(* primitives *)
 
 val pre_pure_thy =
   create_thy Inttab.empty (make_history PureN 0) (make_ancestry [] []) Datatab.empty;
@@ -297,7 +338,8 @@ local
 
 fun change_thy finish f thy =
   let
-    val Theory (Theory_Id ({id, ids}, {name, stage}), ancestry, data) = thy;
+    val Theory_Id ({id, ids}, {name, stage}) = theory_id thy;
+    val Theory (_, ancestry, data) = thy;
     val (ancestry', data') =
       if stage = finished then
         (make_ancestry [thy] (extend_ancestors thy (ancestors_of thy)), extend_data data)
@@ -320,12 +362,12 @@ end;
 
 local
 
-fun merge_thys (thy1, thy2) =
+fun merge_thys thys =
   let
-    val ids = merge_ids thy1 thy2;
+    val ids = merge_ids thys;
     val history = make_history "" 0;
     val ancestry = make_ancestry [] [];
-    val data = merge_data (thy1, thy2) (data_of thy1, data_of thy2);
+    val data = merge_data thys (apply2 data_of thys);
   in create_thy ids history ancestry data end;
 
 fun maximal_thys thys =
@@ -342,15 +384,16 @@ fun begin_thy name imports =
         Library.foldl merge_ancestors ([], map ancestors_of parents)
         |> fold extend_ancestors parents;
 
-      val Theory (Theory_Id ({ids, ...}, _), _, data) =
+      val thy0 =
         (case parents of
           [] => error "Missing theory imports"
         | [thy] => extend_thy thy
         | thy :: thys => Library.foldl merge_thys (thy, thys));
+      val Theory_Id ({ids, ...}, _) = theory_id thy0;
 
       val history = make_history name 0;
       val ancestry = make_ancestry parents ancestors;
-    in create_thy ids history ancestry data end;
+    in create_thy ids history ancestry (data_of thy0) end;
 
 end;
 
@@ -369,7 +412,16 @@ fun get k dest thy =
 
 fun put k mk x = update_thy (Datatab.update (k, mk x));
 
+fun obj_size k thy =
+  Datatab.lookup (data_of thy) k |> Option.map ML_Heap.obj_size;
+
 end;
+
+fun theory_data_size thy =
+  (data_of thy, []) |-> Datatab.fold_rev (fn (k, _) =>
+    (case Theory_Data.obj_size k thy of
+      NONE => I
+    | SOME n => (cons (invoke_pos k, n))));
 
 
 

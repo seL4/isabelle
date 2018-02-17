@@ -87,10 +87,12 @@ fun make_class_data ((consts, base_sort, base_morph, export_morph, assm_intro, o
   Class_Data {consts = consts, base_sort = base_sort,
     base_morph = base_morph, export_morph = export_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs, operations = operations};
+
 fun map_class_data f (Class_Data {consts, base_sort, base_morph, export_morph, assm_intro,
     of_class, axiom, defs, operations}) =
   make_class_data (f ((consts, base_sort, base_morph, export_morph, assm_intro, of_class, axiom),
     (defs, operations)));
+
 fun merge_class_data _ (Class_Data {consts = consts,
     base_sort = base_sort, base_morph = base_morph, export_morph = export_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs1, operations = operations1},

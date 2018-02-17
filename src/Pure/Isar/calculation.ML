@@ -98,8 +98,11 @@ fun update_calculation calc state =
 
 (* add/del rules *)
 
-val trans_add = Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.update);
-val trans_del = Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.remove);
+val trans_add =
+  Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.update o Thm.trim_context);
+
+val trans_del =
+  Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.remove);
 
 val sym_add =
   Thm.declaration_attribute (fn th =>
@@ -108,7 +111,7 @@ val sym_add =
 
 val sym_del =
   Thm.declaration_attribute (fn th =>
-    (Data.map o apfst o apsnd) (Thm.del_thm (Thm.trim_context th)) #>
+    (Data.map o apfst o apsnd) (Thm.del_thm th) #>
     Thm.attribute_declaration Context_Rules.rule_del th);
 
 

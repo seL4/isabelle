@@ -83,7 +83,7 @@ fun get_rty_qty ctxt s =
     val thy = Proof_Context.theory_of ctxt
   in
     (case Quotient_Info.lookup_quotients_global thy s of
-      SOME qdata => (#rtyp qdata, #qtyp qdata)
+      SOME {rtyp, qtyp, ...} => (rtyp, qtyp)
     | NONE => raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found."))
   end
 
@@ -104,12 +104,9 @@ fun absrep_const ctxt flag qty_str =
       | mk_dummyT (Free (c, _)) = Free (c, dummyT)
       | mk_dummyT _ = error "Expecting abs/rep term to be a constant or a free variable"     
   in
-    case Quotient_Info.lookup_abs_rep ctxt qty_str of
-      SOME abs_rep => 
-        mk_dummyT (case flag of
-          AbsF => #abs abs_rep
-        | RepF => #rep abs_rep)
-      | NONE => error ("No abs/rep terms for " ^ quote qty_str)
+    (case Quotient_Info.lookup_abs_rep ctxt qty_str of
+      SOME {abs, rep} => mk_dummyT (case flag of AbsF => abs | RepF => rep)
+    | NONE => error ("No abs/rep terms for " ^ quote qty_str))
   end
   
 (* Lets Nitpick represent elements of quotient types as elements of the raw type *)
@@ -273,14 +270,14 @@ fun is_eq (Const (@{const_name HOL.eq}, _)) = true
 fun mk_rel_compose (trm1, trm2) =
   Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
 
-fun get_relmap thy s =
-  (case Quotient_Info.lookup_quotmaps thy s of
-    SOME map_data => Const (#relmap map_data, dummyT)
+fun get_relmap ctxt s =
+  (case Quotient_Info.lookup_quotmaps ctxt s of
+    SOME {relmap, ...} => Const (relmap, dummyT)
   | NONE => raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")"))
 
-fun get_equiv_rel thy s =
-  (case Quotient_Info.lookup_quotients thy s of
-    SOME qdata => #equiv_rel qdata
+fun get_equiv_rel ctxt s =
+  (case Quotient_Info.lookup_quotients ctxt s of
+    SOME {equiv_rel, ...} => equiv_rel
   | NONE => raise LIFT_MATCH ("get_equiv_rel (no quotient found for type " ^ s ^ ")"))
 
 fun equiv_match_err ctxt ty_pat ty =
@@ -338,22 +335,14 @@ fun equiv_relation_chk ctxt (rty, qty) =
 exception CODE_GEN of string
 
 fun get_quot_thm ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    (case Quotient_Info.lookup_quotients ctxt s of
-      SOME qdata => Thm.transfer thy (#quot_thm qdata)
-    | NONE => raise CODE_GEN ("No quotient type " ^ quote s ^ " found."))
-  end
+  (case Quotient_Info.lookup_quotients ctxt s of
+    SOME {quot_thm, ...} => quot_thm
+  | NONE => raise CODE_GEN ("No quotient type " ^ quote s ^ " found."));
 
 fun get_rel_quot_thm ctxt s =
-   let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    (case Quotient_Info.lookup_quotmaps ctxt s of
-      SOME map_data => Thm.transfer thy (#quot_thm map_data)
-    | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"))
-  end
+  (case Quotient_Info.lookup_quotmaps ctxt s of
+    SOME {quot_thm, ...} => quot_thm
+  | NONE => raise CODE_GEN ("get_relmap (no relation map function found for type " ^ s ^ ")"));
 
 fun is_id_quot thm = Thm.eq_thm_prop (thm, @{thm identity_quotient3})
 
@@ -497,7 +486,7 @@ fun matches_typ ctxt rT qT =
             else forall (fn x => x = true) (map2 (matches_typ ctxt) rtys qtys)
           else
             (case Quotient_Info.lookup_quotients_global thy qs of
-              SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
+              SOME {rtyp, ...} => Sign.typ_instance thy (rT, rtyp)
             | NONE => false)
       | _ => false)
   end
@@ -626,7 +615,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
           let
             val rtrm' =
               (case Quotient_Info.lookup_quotconsts_global thy qtrm of
-                SOME qconst_info => #rconst qconst_info
+                SOME {rconst, ...} => rconst
               | NONE => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm)
           in
             if Pattern.matches thy (rtrm', rtrm)
@@ -857,6 +846,5 @@ fun derive_rtyp ctxt qtys qty =
 
 fun derive_rtrm ctxt qtys qtrm =
   subst_trm ctxt (mk_ty_subst qtys true ctxt) (mk_trm_subst qtys true ctxt) qtrm
-
 
 end;

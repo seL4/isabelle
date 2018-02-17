@@ -6,7 +6,7 @@ Main entry points to the function package.
 
 signature FUNCTION =
 sig
-  include FUNCTION_DATA
+  type info = Function_Common.info
 
   val add_function: (binding * typ option * mixfix) list ->
     Specification.multi_specs -> Function_Common.function_config ->
@@ -266,7 +266,7 @@ val _ = Theory.setup (Old_Datatype_Data.interpretation (K (fold add_case_cong)))
 
 val get_congs = Function_Context_Tree.get_function_congs
 
-fun get_info ctxt t = Item_Net.retrieve (get_functions ctxt) t
+fun get_info ctxt t = Function_Common.retrieve_function_data ctxt t
   |> the_single |> snd
 
 

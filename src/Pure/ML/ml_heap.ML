@@ -7,6 +7,7 @@ ML heap operations.
 signature ML_HEAP =
 sig
   val obj_size: 'a -> int
+  val full_gc: unit -> unit
   val share_common_data: unit -> unit
   val save_child: string -> unit
 end;
@@ -15,6 +16,8 @@ structure ML_Heap: ML_HEAP =
 struct
 
 val obj_size = PolyML.objSize;
+
+val full_gc = PolyML.fullGC;
 
 fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 

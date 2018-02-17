@@ -29,6 +29,7 @@ sig
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
   type thms = (thm list * Token.src list) list
+  val trim_context: thms -> thms
   val global_notes: string -> (Attrib.binding * thms) list ->
     theory -> (string * thm list) list * theory
   val local_notes: string -> (Attrib.binding * thms) list ->
@@ -180,6 +181,8 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 (* fact expressions *)
 
 type thms = (thm list * Token.src list) list;
+
+val trim_context: thms -> thms = (map o apfst o map) Thm.trim_context;
 
 fun global_notes kind facts thy = thy |>
   Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);

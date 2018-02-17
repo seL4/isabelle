@@ -285,9 +285,9 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
                      warning ("Ignoring conversion rule for operator " ^ s')
                     else (); tab)
                  else
-                   {to_set_simps = thm :: to_set_simps,
+                   {to_set_simps = Thm.trim_context thm :: to_set_simps,
                     to_pred_simps =
-                      mk_to_pred_eq ctxt h fs fs' T' thm :: to_pred_simps,
+                      Thm.trim_context (mk_to_pred_eq ctxt h fs fs' T' thm) :: to_pred_simps,
                     set_arities = Symtab.insert_list op = (s',
                       (T', (map (AList.lookup op = fs) ts', fs'))) set_arities,
                     pred_arities = Symtab.insert_list op = (s,
@@ -347,7 +347,8 @@ fun to_pred thms context thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
-      [to_pred_simproc (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: to_pred_simps)]) |>
+      [to_pred_simproc
+        (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: map (Thm.transfer thy) to_pred_simps)]) |>
     eta_contract_thm ctxt (is_pred pred_arities) |>
     Rule_Cases.save thm
   end;
