@@ -244,7 +244,7 @@ fun apply_transaction f g node =
   let
     val cont_node = reset_presentation node;
     val context = cases_node I (Context.Proof o Proof.context_of) cont_node;
-    fun state_error e nd = (State (SOME nd, SOME node), e);
+    fun state_error e nd = (State (SOME nd, SOME cont_node), e);
 
     val (result, err) =
       cont_node
