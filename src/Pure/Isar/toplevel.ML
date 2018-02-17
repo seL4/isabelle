@@ -178,15 +178,18 @@ structure Presentation_State = Proof_Data
   fun init _ = NONE;
 );
 
-fun presentation_context state =
+fun presentation_context0 state =
   (case try node_of state of
     SOME (Theory (_, SOME ctxt)) => ctxt
   | SOME node => cases_node Context.proof_of Proof.context_of node
   | NONE =>
       (case try Theory.get_pure () of
         SOME thy => Proof_Context.init_global thy
-      | NONE => raise UNDEF))
-  |> Presentation_State.put (SOME state);
+      | NONE => raise UNDEF));
+
+fun presentation_context (state as State (current, _)) =
+  presentation_context0 state
+  |> Presentation_State.put (SOME (State (current, NONE)));
 
 fun presentation_state ctxt =
   (case Presentation_State.get ctxt of
@@ -596,7 +599,7 @@ in
 fun transition int tr st =
   let
     val (st', opt_err) =
-      Context.setmp_generic_context (try (Context.Proof o presentation_context) st)
+      Context.setmp_generic_context (try (Context.Proof o presentation_context0) st)
         (fn () => app int tr st) ();
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info
@@ -720,7 +723,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
                       val (result, result_state) =
                         State (SOME (Proof (prf', (finish, orig_gthy))), prev)
                         |> fold_map (element_result keywords) body_elems ||> command end_tr;
-                    in (Result_List result, presentation_context result_state) end))
+                    in (Result_List result, presentation_context0 result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
 
             val forked_proof =
@@ -733,7 +736,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
               |> command (head_tr |> reset_trans |> forked_proof);
             val end_result = Result (end_tr, st'');
             val result =
-              Result_List [head_result, Result.get (presentation_context st''), end_result];
+              Result_List [head_result, Result.get (presentation_context0 st''), end_result];
           in (result, st'') end
       end;
 
