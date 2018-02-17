@@ -49,7 +49,7 @@ sig
   val subthy_id: theory_id * theory_id -> bool
   val subthy: theory * theory -> bool
   val trace_theories: bool Unsynchronized.ref
-  val theories_trace: unit -> {active: int, all: int}
+  val theories_trace: unit -> {active_positions: Position.T list, active: int, total: int}
   val begin_thy: string -> theory list -> theory
   val finish_thy: theory -> theory
   val theory_data_size: theory -> (Position.T * int) list
@@ -130,7 +130,7 @@ datatype theory =
   Theory of
    (*identity*)
    {theory_id: theory_id,
-    token: unit Unsynchronized.ref} *
+    token: Position.T Unsynchronized.ref} *
    (*ancestry*)
    {parents: theory list,         (*immediate predecessors*)
     ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
@@ -299,14 +299,15 @@ val trace_theories = Unsynchronized.ref false;
 local
 
 val theories =
-  Synchronized.var "theory_tokens" ([]: unit Unsynchronized.ref option Unsynchronized.ref list);
+  Synchronized.var "theory_tokens"
+    ([]: Position.T Unsynchronized.ref option Unsynchronized.ref list);
 
-val dummy_token = Unsynchronized.ref ();
+val dummy_token = Unsynchronized.ref Position.none;
 
 fun make_token () =
   if ! trace_theories then
     let
-      val token = Unsynchronized.ref ();
+      val token = Unsynchronized.ref (Position.thread_data ());
       val _ = Synchronized.change theories (cons (Weak.weak (SOME token)));
     in token end
   else dummy_token;
@@ -317,8 +318,13 @@ fun theories_trace () =
   let
     val trace = Synchronized.value theories;
     val _ = ML_Heap.full_gc ();
-    val active = fold (fn Unsynchronized.ref NONE => I | _ => Integer.add 1) trace 0;
-  in {all = length trace, active = active} end;
+    val active_positions =
+      fold (fn Unsynchronized.ref (SOME pos) => cons (! pos) | _ => I) trace [];
+  in
+    {active_positions = active_positions,
+     active = length active_positions,
+     total = length trace}
+  end;
 
 fun create_thy ids history ancestry data =
   let
