@@ -279,8 +279,8 @@ fun apply_tr _ (Init f) (State (NONE, _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
       Runtime.controlled_execution (try generic_theory_of state) (fn x => tap (f int) x) state
-  | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
-      apply_transaction (fn x => f int x) g state
+  | apply_tr int (Transaction (f, g)) (State (SOME node, _)) =
+      apply_transaction (fn x => f int x) g node
   | apply_tr _ _ _ = raise UNDEF;
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
