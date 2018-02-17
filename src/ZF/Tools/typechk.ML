@@ -50,7 +50,7 @@ structure Data = Generic_Data
 
 val TC_add =
   Thm.declaration_attribute (fn thm => fn context =>
-    Data.map (add_rule (Context.proof_of context) thm) context);
+    Data.map (add_rule (Context.proof_of context) (Thm.trim_context thm)) context);
 
 val TC_del =
   Thm.declaration_attribute (fn thm => fn context =>
