@@ -583,28 +583,23 @@ fun add_dependency loc (name, morph) mixin export thy =
 
 (*** Storing results ***)
 
-(* Theorems *)
-
 fun add_facts loc kind facts ctxt =
   if null facts then ctxt
   else
     let
-      val stored_notes = ((kind, map Attrib.trim_context_fact facts), serial ());
+      val notes = ((kind, map Attrib.trim_context_fact facts), serial ());
 
       fun global_notes morph thy = thy
-        |> (snd o Attrib.global_notes kind
-            (Attrib.transform_facts (Morphism.transfer_morphism thy $> morph) facts));
-      fun registrations thy =
+        |> Attrib.global_notes kind
+            (Attrib.transform_facts (Morphism.transfer_morphism thy $> morph) facts) |> #2;
+      fun apply_registrations thy =
         fold_rev (global_notes o #2) (registrations_of (Context.Theory thy) loc) thy;
     in
       ctxt
-      |> Attrib.local_notes kind facts |> snd
+      |> Attrib.local_notes kind facts |> #2
       |> Proof_Context.background_theory
-        ((change_locale loc o apfst o apsnd) (cons stored_notes) #> registrations)
+        ((change_locale loc o apfst o apsnd) (cons notes) #> apply_registrations)
     end;
-
-
-(* Declarations *)
 
 fun add_declaration loc syntax decl =
   syntax ?
