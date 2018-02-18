@@ -17,6 +17,11 @@ signature MORPHISM =
 sig
   include BASIC_MORPHISM
   exception MORPHISM of string * exn
+  val morphism: string ->
+   {binding: (binding -> binding) list,
+    typ: (typ -> typ) list,
+    term: (term -> term) list,
+    fact: (thm list -> thm list) list} -> morphism
   val pretty: morphism -> Pretty.T
   val binding: morphism -> binding -> binding
   val typ: morphism -> typ -> typ
@@ -24,11 +29,10 @@ sig
   val fact: morphism -> thm list -> thm list
   val thm: morphism -> thm -> thm
   val cterm: morphism -> cterm -> cterm
-  val morphism: string ->
-   {binding: (binding -> binding) list,
-    typ: (typ -> typ) list,
-    term: (term -> term) list,
-    fact: (thm list -> thm list) list} -> morphism
+  val identity: morphism
+  val compose: morphism -> morphism -> morphism
+  val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
+  val form: (morphism -> 'a) -> 'a
   val binding_morphism: string -> (binding -> binding) -> morphism
   val typ_morphism: string -> (typ -> typ) -> morphism
   val term_morphism: string -> (term -> term) -> morphism
@@ -36,10 +40,6 @@ sig
   val thm_morphism: string -> (thm -> thm) -> morphism
   val transfer_morphism: theory -> morphism
   val trim_context_morphism: morphism
-  val identity: morphism
-  val compose: morphism -> morphism -> morphism
-  val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
-  val form: (morphism -> 'a) -> 'a
 end;
 
 structure Morphism: MORPHISM =
@@ -69,6 +69,14 @@ datatype morphism = Morphism of
 
 type declaration = morphism -> Context.generic -> Context.generic;
 
+fun morphism a {binding, typ, term, fact} =
+  Morphism {
+    names = if a = "" then [] else [a],
+    binding = map (pair a) binding,
+    typ = map (pair a) typ,
+    term = map (pair a) term,
+    fact = map (pair a) fact};
+
 fun pretty (Morphism {names, ...}) = Pretty.enum ";" "{" "}" (map Pretty.str (rev names));
 
 val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
@@ -81,26 +89,9 @@ val thm = singleton o fact;
 val cterm = Drule.cterm_rule o thm;
 
 
-fun morphism a {binding, typ, term, fact} =
-  Morphism {
-    names = if a = "" then [] else [a],
-    binding = map (pair a) binding,
-    typ = map (pair a) typ,
-    term = map (pair a) term,
-    fact = map (pair a) fact};
-
-fun binding_morphism a binding = morphism a {binding = [binding], typ = [], term = [], fact = []};
-fun typ_morphism a typ = morphism a {binding = [], typ = [typ], term = [], fact = []};
-fun term_morphism a term = morphism a {binding = [], typ = [], term = [term], fact = []};
-fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [fact]};
-fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
-val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
-val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
+(* morphism combinators *)
 
 val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
-
-
-(* morphism combinators *)
 
 fun compose
     (Morphism {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1})
@@ -116,6 +107,18 @@ fun phi1 $> phi2 = compose phi2 phi1;
 
 fun transform phi f = fn psi => f (phi $> psi);
 fun form f = f identity;
+
+
+(* concrete morphisms *)
+
+fun binding_morphism a binding = morphism a {binding = [binding], typ = [], term = [], fact = []};
+fun typ_morphism a typ = morphism a {binding = [], typ = [typ], term = [], fact = []};
+fun term_morphism a term = morphism a {binding = [], typ = [], term = [term], fact = []};
+fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [fact]};
+fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
+
+val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
+val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
 
 end;
 
