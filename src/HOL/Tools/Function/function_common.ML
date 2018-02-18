@@ -306,25 +306,13 @@ datatype function_result = FunctionResult of
   termination : thm,
   domintros : thm list option}
 
-fun lift_morphism ctxt f =
-  let
-    fun term t = Thm.term_of (Drule.cterm_rule f (Thm.cterm_of ctxt t))
-  in
-    Morphism.morphism "lift_morphism"
-      {binding = [],
-       typ = [Logic.type_map term],
-       term = [term],
-       fact = [map f]}
-  end
-
 fun import_function_data t ctxt =
   let
     val ct = Thm.cterm_of ctxt t
-    val inst_morph = lift_morphism ctxt o Thm.instantiate
-
-    fun match (trm, data) =
-      SOME (transform_function_data (inst_morph (Thm.match (Thm.cterm_of ctxt trm, ct))) data)
-        handle Pattern.MATCH => NONE
+    fun inst_morph u =
+      Morphism.instantiate_morphism (Thm.match (Thm.cterm_of ctxt u, ct))
+    fun match (u, data) =
+      SOME (transform_function_data (inst_morph u) data) handle Pattern.MATCH => NONE
   in
     get_first match (retrieve_function_data ctxt t)
   end

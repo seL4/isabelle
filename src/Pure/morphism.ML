@@ -40,6 +40,8 @@ sig
   val thm_morphism: string -> (thm -> thm) -> morphism
   val transfer_morphism: theory -> morphism
   val trim_context_morphism: morphism
+  val instantiate_morphism:
+    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list -> morphism
 end;
 
 structure Morphism: MORPHISM =
@@ -119,6 +121,19 @@ fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [
 
 val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
 val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
+
+fun instantiate_morphism ([], []) = identity
+  | instantiate_morphism (cinstT, cinst) =
+      let
+        val instT = map (apsnd Thm.typ_of) cinstT;
+        val inst = map (apsnd Thm.term_of) cinst;
+      in
+        morphism "instantiate"
+          {binding = [],
+           typ = if null instT then [] else [Term_Subst.instantiateT instT],
+           term = [Term_Subst.instantiate (instT, inst)],
+           fact = [map (Thm.instantiate (cinstT, cinst))]}
+      end;
 
 end;
 
