@@ -55,7 +55,7 @@ sig
   val specification_of: theory -> string -> term option * term list
 
   (* Storing results *)
-  val add_thmss: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
+  val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
@@ -585,7 +585,7 @@ fun add_dependency loc (name, morph) mixin export thy =
 
 (* Theorems *)
 
-fun add_thmss loc kind facts ctxt =
+fun add_facts loc kind facts ctxt =
   if null facts then ctxt
   else
     let
@@ -609,7 +609,7 @@ fun add_thmss loc kind facts ctxt =
 fun add_declaration loc syntax decl =
   syntax ?
     Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
-  #> add_thmss loc "" [(Binding.empty_atts, Attrib.internal_declaration decl)];
+  #> add_facts loc "" [(Binding.empty_atts, Attrib.internal_declaration decl)];
 
 
 (*** Reasoning about locales ***)

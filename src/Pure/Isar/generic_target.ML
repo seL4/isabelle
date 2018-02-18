@@ -383,7 +383,7 @@ fun locale_target_notes locale kind global_facts local_facts =
     (Attrib.global_notes kind (Attrib.map_facts (K []) global_facts) #> snd) #>
   (fn lthy => lthy |>
     Local_Theory.target (fn ctxt => ctxt |>
-      Locale.add_thmss locale kind (standard_facts lthy ctxt local_facts))) #>
+      Locale.add_facts locale kind (standard_facts lthy ctxt local_facts))) #>
   standard_notes (fn (this, other) => other <> 0 andalso this <> other) kind local_facts;
 
 fun locale_target_declaration locale syntax decl lthy = lthy
