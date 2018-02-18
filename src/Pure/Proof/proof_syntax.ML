@@ -244,7 +244,7 @@ fun proof_syntax prf =
 
 fun proof_of ctxt full raw_thm =
   let
-    val thm = Thm.transfer (Proof_Context.theory_of ctxt) raw_thm;
+    val thm = Thm.transfer' ctxt raw_thm;
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
     val prf' =

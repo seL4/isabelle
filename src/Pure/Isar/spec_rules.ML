@@ -57,7 +57,7 @@ val get_global = get_generic o Context.Theory;
 
 fun retrieve_generic context =
   Item_Net.retrieve (Rules.get context)
-  #> (map o apsnd o apsnd o map) (Thm.transfer (Context.theory_of context));
+  #> (map o apsnd o apsnd o map) (Thm.transfer'' context);
 
 val retrieve = retrieve_generic o Context.Proof;
 val retrieve_global = retrieve_generic o Context.Theory;

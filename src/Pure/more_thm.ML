@@ -617,7 +617,7 @@ fun mixed_attribute f (x, th) =
   let val (x', th') = f (x, th) in (SOME x', SOME th') end;
 
 fun apply_attribute (att: attribute) th x =
-  let val (x', th') = att (x, check_hyps x (Thm.transfer (Context.theory_of x) th))
+  let val (x', th') = att (x, check_hyps x (Thm.transfer'' x th))
   in (the_default th th', the_default x x') end;
 
 fun attribute_declaration att th x = #2 (apply_attribute att th x);
@@ -685,7 +685,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
     val show_hyps = Config.get ctxt show_hyps;
 
     val th = raw_th
-      |> perhaps (try (Thm.transfer (Proof_Context.theory_of ctxt)))
+      |> perhaps (try (Thm.transfer' ctxt))
       |> perhaps (try Thm.strip_shyps);
 
     val hyps = if show_hyps then Thm.hyps_of th else undeclared_hyps (Context.Proof ctxt) th;

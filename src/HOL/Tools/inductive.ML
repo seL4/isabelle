@@ -276,7 +276,7 @@ fun put_inductives info =
 
 fun get_monos ctxt =
   #monos (rep_data ctxt)
-  |> map (Thm.transfer (Proof_Context.theory_of ctxt));
+  |> map (Thm.transfer' ctxt);
 
 fun mk_mono ctxt thm =
   let
@@ -314,7 +314,7 @@ val _ =
 
 fun retrieve_equations ctxt =
   Item_Net.retrieve (#equations (rep_data ctxt))
-  #> map (Thm.transfer (Proof_Context.theory_of ctxt));
+  #> map (Thm.transfer' ctxt);
 
 val equation_add_permissive =
   Thm.declaration_attribute (fn thm =>

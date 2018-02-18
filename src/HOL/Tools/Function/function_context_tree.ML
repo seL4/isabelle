@@ -53,7 +53,7 @@ structure FunctionCongs = Generic_Data
 
 fun get_function_congs ctxt =
   FunctionCongs.get (Context.Proof ctxt)
-  |> map (Thm.transfer (Proof_Context.theory_of ctxt));
+  |> map (Thm.transfer' ctxt);
 
 val add_function_cong = FunctionCongs.map o Thm.add_thm o Thm.trim_context;
 

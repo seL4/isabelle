@@ -87,7 +87,7 @@ val get_arith_data = Lin_Arith_Data.get o Context.Proof;
 
 fun get_splits ctxt =
   #splits (get_arith_data ctxt)
-  |> map (Thm.transfer (Proof_Context.theory_of ctxt));
+  |> map (Thm.transfer' ctxt);
 
 fun add_split thm = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
   {splits = update Thm.eq_thm_prop (Thm.trim_context thm) splits,

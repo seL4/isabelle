@@ -457,7 +457,7 @@ fun get_parametricity_theorems ctxt =
       Option.filter (is_parametricity_theorem andf (not o curry Term.could_unify
         (Thm.full_prop_of @{thm is_equality_Rel})) o Thm.full_prop_of) o preprocess_theorem ctxt;
   in
-    map_filter (parametricity_thm_map_filter o Thm.transfer (Proof_Context.theory_of ctxt))
+    map_filter (parametricity_thm_map_filter o Thm.transfer' ctxt)
       (Transfer.get_transfer_raw ctxt)
   end;
 

@@ -648,8 +648,7 @@ structure Thms = Generic_Data
 );
 
 fun get_thms which ctxt =
-  map (Thm.transfer (Proof_Context.theory_of ctxt))
-    (which (Thms.get (Context.Proof ctxt)));
+  map (Thm.transfer' ctxt) (which (Thms.get (Context.Proof ctxt)));
 
 val get_witnesses = get_thms #1;
 val get_intros = get_thms #2;

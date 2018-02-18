@@ -354,7 +354,7 @@ fun add thm thy =
 
 fun get ctxt =
   Computation_Preproc_Data.get (Proof_Context.theory_of ctxt)
-  |> map (Thm.transfer (Proof_Context.theory_of ctxt))
+  |> map (Thm.transfer' ctxt)
 
 in
 

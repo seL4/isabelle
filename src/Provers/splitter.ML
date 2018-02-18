@@ -440,7 +440,7 @@ fun gen_add_split bang split ctxt =
     val (name, asm) = split_thm_info split
     val split0 = Thm.trim_context split
     fun tac ctxt' =
-      let val split' = Thm.transfer (Proof_Context.theory_of ctxt') split0 in
+      let val split' = Thm.transfer' ctxt' split0 in
         (if asm then split_asm_tac ctxt' [split']
          else if bang
               then split_tac ctxt' [split'] THEN_ALL_NEW

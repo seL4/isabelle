@@ -149,7 +149,7 @@ structure Data = Generic_Data
 val map_data = Data.map;
 val get_data = Data.get o Context.Proof;
 
-fun get_neqE ctxt = map (Thm.transfer (Proof_Context.theory_of ctxt)) (#neqE (get_data ctxt));
+fun get_neqE ctxt = map (Thm.transfer' ctxt) (#neqE (get_data ctxt));
 
 fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = f inj_thms,

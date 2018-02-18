@@ -1105,7 +1105,7 @@ fun rewrite_eqn conv ctxt =
   singleton (Variable.trade (K (map (Conv.fconv_rule (conv (Simplifier.rewrite ctxt))))) ctxt)
 
 fun preprocess conv ctxt =
-  Thm.transfer (Proof_Context.theory_of ctxt)
+  Thm.transfer' ctxt
   #> rewrite_eqn conv ctxt
   #> Axclass.unoverload ctxt;
 

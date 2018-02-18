@@ -277,11 +277,11 @@ local
 
 fun lookup_rule which ctxt =
   AList.lookup (op =) (Item_Net.content (which (get_local ctxt)))
-  #> Option.map (Thm.transfer (Proof_Context.theory_of ctxt));
+  #> Option.map (Thm.transfer' ctxt);
 
 fun find_rules which how ctxt x =
   Item_Net.retrieve (which (get_local ctxt)) (how x)
-  |> map (Thm.transfer (Proof_Context.theory_of ctxt) o snd);
+  |> map (Thm.transfer' ctxt o snd);
 
 in
 

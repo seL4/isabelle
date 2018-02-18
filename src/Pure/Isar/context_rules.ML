@@ -161,7 +161,7 @@ in
 
 fun find_rules_netpair ctxt weighted facts goal (inet, enet) =
   find_erules weighted facts enet @ find_irules weighted goal inet
-  |> map (Thm.transfer (Proof_Context.theory_of ctxt));
+  |> map (Thm.transfer' ctxt);
 
 fun find_rules ctxt weighted facts goal =
   map (find_rules_netpair ctxt weighted facts goal) (netpairs ctxt);

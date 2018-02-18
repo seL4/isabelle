@@ -52,7 +52,7 @@ fun map_entry name f context =
 fun member ctxt = Item_Net.member o the_entry (Context.Proof ctxt);
 
 fun content context =
-  rev o map (Thm.transfer (Context.theory_of context)) o Item_Net.content o the_entry context;
+  rev o map (Thm.transfer'' context) o Item_Net.content o the_entry context;
 
 val get = content o Context.Proof;
 

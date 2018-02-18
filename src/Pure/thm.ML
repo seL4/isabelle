@@ -79,6 +79,8 @@ sig
   val trim_context: thm -> thm
   val transfer_cterm: theory -> cterm -> cterm
   val transfer: theory -> thm -> thm
+  val transfer': Proof.context -> thm -> thm
+  val transfer'': Context.generic -> thm -> thm
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
@@ -456,6 +458,9 @@ fun transfer thy' th =
         tpairs = tpairs,
         prop = prop})
   end;
+
+val transfer' = transfer o Proof_Context.theory_of;
+val transfer'' = transfer o Context.theory_of;
 
 
 (* matching *)

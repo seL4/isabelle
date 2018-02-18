@@ -757,7 +757,7 @@ fun get_field_simps ctxt optcT t =
   (case get_matching_rules ctxt (Field_Simps.get (Context.Proof ctxt)) t of
      SOME (ths1, ths2, ths3, th4, th) =>
        let val tr =
-         Thm.transfer (Proof_Context.theory_of ctxt) #>
+         Thm.transfer' ctxt #>
          (case optcT of NONE => I | SOME cT => inst [cT] [] #> norm)
        in (map tr ths1, map tr ths2, map tr ths3, tr th4, tr th) end
    | NONE => error "get_field_simps: lookup failed");

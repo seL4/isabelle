@@ -737,7 +737,7 @@ fun get_ring_simps ctxt optcT t =
   (case get_matching_rules ctxt (Ring_Simps.get (Context.Proof ctxt)) t of
      SOME (ths1, ths2, ths3, ths4, th5, th) =>
        let val tr =
-         Thm.transfer (Proof_Context.theory_of ctxt) #>
+         Thm.transfer' ctxt #>
          (case optcT of NONE => I | SOME cT => inst [cT] [] #> norm)
        in (map tr ths1, map tr ths2, map tr ths3, map tr ths4, tr th5, tr th) end
    | NONE => error "get_ring_simps: lookup failed");

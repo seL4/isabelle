@@ -579,8 +579,7 @@ fun mk_rrules ctxt thms =
 local
 
 fun comb_simps ctxt comb mk_rrule thms =
-  let
-    val rews = extract_rews ctxt (map (Thm.transfer (Proof_Context.theory_of ctxt)) thms);
+  let val rews = extract_rews ctxt (map (Thm.transfer' ctxt) thms);
   in fold (fold comb o mk_rrule) rews ctxt end;
 
 in
@@ -1388,7 +1387,7 @@ fun fold_goals_tac ctxt defs = EVERY (map (rewrite_goals_tac ctxt) (rev_defs def
 local
 
 fun gen_norm_hhf ss ctxt =
-  Thm.transfer (Proof_Context.theory_of ctxt) #>
+  Thm.transfer' ctxt #>
   (fn th =>
     if Drule.is_norm_hhf (Thm.prop_of th) then th
     else

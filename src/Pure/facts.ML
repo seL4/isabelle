@@ -195,7 +195,7 @@ fun retrieve context facts (xname, pos) =
   in
    {name = name,
     dynamic = dynamic,
-    thms = map (Thm.transfer (Context.theory_of context)) thms}
+    thms = map (Thm.transfer'' context) thms}
   end;
 
 

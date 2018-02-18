@@ -332,7 +332,7 @@ val prop_of' = Envir.beta_eta_contract oo prop_of0;
 val prop_of = prop_of' [];
 
 fun proof_of ctxt raw_thm =
-  let val thm = Thm.transfer (Proof_Context.theory_of ctxt) raw_thm
+  let val thm = Thm.transfer' ctxt raw_thm
   in reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
 
 
