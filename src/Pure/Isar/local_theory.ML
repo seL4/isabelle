@@ -11,6 +11,7 @@ structure Attrib =
 struct
   type binding = binding * Token.src list;
   type thms = (thm list * Token.src list) list;
+  type fact = binding * thms;
 end;
 
 signature LOCAL_THEORY =
@@ -47,9 +48,8 @@ sig
   val define_internal: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
-  val notes: (Attrib.binding * Attrib.thms) list -> local_theory ->
-    (string * thm list) list * local_theory
-  val notes_kind: string -> (Attrib.binding * Attrib.thms) list -> local_theory ->
+  val notes: Attrib.fact list -> local_theory -> (string * thm list) list * local_theory
+  val notes_kind: string -> Attrib.fact list -> local_theory ->
     (string * thm list) list * local_theory
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
@@ -87,8 +87,7 @@ struct
 type operations =
  {define: bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
-  notes: string -> (Attrib.binding * Attrib.thms) list -> local_theory ->
-    (string * thm list) list * local_theory,
+  notes: string -> Attrib.fact list -> local_theory -> (string * thm list) list * local_theory,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory,

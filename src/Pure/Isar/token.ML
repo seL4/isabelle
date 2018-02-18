@@ -70,6 +70,7 @@ sig
   val get_name: T -> name_value option
   val declare_maxidx: T -> Proof.context -> Proof.context
   val map_facts: (string option -> thm list -> thm list) -> T -> T
+  val trim_context_src: src -> src
   val transform: morphism -> T -> T
   val init_assignable: T -> T
   val assign: value option -> T -> T
@@ -424,6 +425,8 @@ fun map_facts f =
       Source src => Source (map (map_facts f) src)
     | Fact (a, ths) => Fact (a, f a ths)
     | _ => v));
+
+val trim_context_src = (map o map_facts) (K (map Thm.trim_context));
 
 
 (* transform *)

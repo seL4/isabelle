@@ -6,6 +6,8 @@ Symbolic representation of attributes -- with name and syntax.
 
 signature ATTRIB =
 sig
+  type thms = Attrib.thms
+  type fact = Attrib.fact
   val print_attributes: bool -> Proof.context -> unit
   val define_global: binding -> (Token.src -> attribute) -> string -> theory -> string * theory
   val define: binding -> (Token.src -> attribute) -> string -> local_theory -> string * local_theory
@@ -28,14 +30,15 @@ sig
   val map_facts_refs: ('a list -> 'att list) -> ('b -> 'fact) ->
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
-  type thms = (thm list * Token.src list) list
-  val trim_context: thms -> thms
-  val global_notes: string -> (Attrib.binding * thms) list ->
-    theory -> (string * thm list) list * theory
-  val local_notes: string -> (Attrib.binding * thms) list ->
-    Proof.context -> (string * thm list) list * Proof.context
-  val generic_notes: string -> (Attrib.binding * thms) list ->
-    Context.generic -> (string * thm list) list * Context.generic
+  val trim_context_binding: Attrib.binding -> Attrib.binding
+  val trim_context_thms: thms -> thms
+  val trim_context_fact: fact -> fact
+  val global_notes: string -> fact list -> theory ->
+    (string * thm list) list * theory
+  val local_notes: string -> fact list -> Proof.context ->
+    (string * thm list) list * Proof.context
+  val generic_notes: string -> fact list -> Context.generic ->
+    (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * Token.src list) list -> thm list
   val attribute_syntax: attribute context_parser -> Token.src -> attribute
   val setup: binding -> attribute context_parser -> string -> theory -> theory
@@ -49,9 +52,8 @@ sig
   val thm: thm context_parser
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
-  val transform_facts: morphism -> (Attrib.binding * thms) list -> (Attrib.binding * thms) list
-  val partial_evaluation: Proof.context ->
-    (Attrib.binding * thms) list -> (Attrib.binding * thms) list
+  val transform_facts: morphism -> fact list -> fact list
+  val partial_evaluation: Proof.context -> fact list -> fact list
   val print_options: bool -> Proof.context -> unit
   val config_bool: binding -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
   val config_int: binding -> (Context.generic -> int) -> int Config.T * (theory -> theory)
@@ -79,7 +81,7 @@ end;
 structure Attrib: sig type binding = Attrib.binding include ATTRIB end =
 struct
 
-type binding = Attrib.binding;
+open Attrib;
 
 
 
@@ -180,9 +182,9 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 (* fact expressions *)
 
-type thms = (thm list * Token.src list) list;
-
-val trim_context: thms -> thms = (map o apfst o map) Thm.trim_context;
+val trim_context_binding: Attrib.binding -> Attrib.binding = apsnd (map Token.trim_context_src);
+val trim_context_thms: thms -> thms = (map o apfst o map) Thm.trim_context;
+fun trim_context_fact (binding, thms) = (trim_context_binding binding, trim_context_thms thms);
 
 fun global_notes kind facts thy = thy |>
   Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);

@@ -40,7 +40,7 @@ sig
     thm option * thm option -> thm list ->
     Element.context_i list ->
     declaration list ->
-    (string * (Attrib.binding * Attrib.thms) list) list ->
+    (string * Attrib.fact list) list ->
     (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
@@ -55,8 +55,7 @@ sig
   val specification_of: theory -> string -> term option * term list
 
   (* Storing results *)
-  val add_thmss: string -> string -> (Attrib.binding * Attrib.thms) list ->
-    Proof.context -> Proof.context
+  val add_thmss: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
@@ -141,7 +140,7 @@ datatype locale = Loc of {
   (*syntax declarations*)
   syntax_decls: (declaration * serial) list,
   (*theorem declarations*)
-  notes: ((string * (Attrib.binding * Attrib.thms) list) * serial) list,
+  notes: ((string * Attrib.fact list) * serial) list,
   (*locale dependencies (sublocale relation) in reverse order*)
   dependencies: ((string * (morphism * morphism)) * serial) list,
   (*mixin part of dependencies*)
@@ -592,21 +591,11 @@ fun add_dependency loc (name, morph) mixin export thy =
 
 (* Theorems *)
 
-local
-
-val trim_fact = map Thm.trim_context;
-val trim_srcs = (map o map o Token.map_facts) (K trim_fact);
-
-fun trim_context_facts facts = facts |> map (fn ((b, atts), args) =>
-  ((b, trim_srcs atts), map (fn (a, more_atts) => (trim_fact a, trim_srcs more_atts)) args));
-
-in
-
 fun add_thmss loc kind facts ctxt =
   if null facts then ctxt
   else
     let
-      val stored_notes = ((kind, trim_context_facts facts), serial ());
+      val stored_notes = ((kind, map Attrib.trim_context_fact facts), serial ());
 
       fun global_notes morph thy = thy
         |> (snd o Attrib.global_notes kind
@@ -620,8 +609,6 @@ fun add_thmss loc kind facts ctxt =
       |> Proof_Context.background_theory
         ((change_locale loc o apfst o apsnd) (cons stored_notes) #> registrations)
     end;
-
-end;
 
 
 (* Declarations *)

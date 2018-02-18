@@ -57,7 +57,7 @@ fun get_bundle_cmd ctxt = get_bundle ctxt o check ctxt;
 
 fun define_bundle (b, bundle) context =
   let
-    val bundle' = Attrib.trim_context bundle;
+    val bundle' = Attrib.trim_context_thms bundle;
     val (name, bundles') = Name_Space.define context true (b, bundle') (get_bundles_generic context);
     val context' = (Data.map o apfst o K) bundles' context;
   in (name, context') end;
@@ -71,7 +71,7 @@ fun the_target thy =
   | NONE => error "Missing bundle target");
 
 val reset_target = (Context.theory_map o Data.map o apsnd o K) NONE;
-val set_target = Context.theory_map o Data.map o apsnd o K o SOME o Attrib.trim_context;
+val set_target = Context.theory_map o Data.map o apsnd o K o SOME o Attrib.trim_context_thms;
 
 fun augment_target thms =
   Local_Theory.background_theory (fn thy => set_target (the_target thy @ thms) thy);
