@@ -82,7 +82,6 @@ sig
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> Context.generic -> Context.generic
   val registrations_of: Context.generic -> string -> (string * morphism) list
-  val all_registrations_of: Context.generic -> (string * morphism) list
   val add_dependency: string -> string * morphism -> (morphism * bool) option ->
     morphism -> theory -> theory
 
@@ -393,17 +392,12 @@ fun collect_mixins context (name, morph) =
     |> compose_mixins
   end;
 
-fun get_registrations context select =
-  Registrations.get context
-  |>> Idtab.dest |>> select
+fun registrations_of context loc =
+  Idtab.fold_rev (fn ((name, _), (reg, _)) => name = loc ? cons (name, reg))
+    (#1 (Registrations.get context)) []
   (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
-    (name, base $> (collect_mixins context (name, base $> export)) $> export)) regs);
-
-fun registrations_of context name =
-  get_registrations context (filter (curry (op =) name o fst o fst));
-
-fun all_registrations_of context = get_registrations context I;
+  |> map (fn (name, (base, export)) =>
+      (name, base $> (collect_mixins context (name, base $> export)) $> export));
 
 
 (*** Activate context elements of locale ***)
@@ -601,8 +595,7 @@ fun add_thmss loc kind facts ctxt =
         |> (snd o Attrib.global_notes kind
             (Attrib.transform_facts (Morphism.transfer_morphism thy $> morph) facts));
       fun registrations thy =
-        fold_rev (fn (_, morph) => global_notes morph)
-          (registrations_of (Context.Theory thy) loc) thy;
+        fold_rev (global_notes o #2) (registrations_of (Context.Theory thy) loc) thy;
     in
       ctxt
       |> Attrib.local_notes kind facts |> snd
