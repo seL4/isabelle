@@ -1062,30 +1062,29 @@ fun add_thms_dynamic arg ctxt =
 
 local
 
-fun add_thms flags arg ctxt =
-  ctxt |> map_facts_result (Facts.add_static (Context.Proof ctxt) flags arg);
+fun add_facts {index} arg ctxt = ctxt
+  |> map_facts_result (Facts.add_static (Context.Proof ctxt) {strict = false, index = index} arg);
 
-fun update_thms flags (b, SOME ths) ctxt = ctxt |> add_thms flags (b, Lazy.value ths) |> #2
-  | update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b));
+fun update_facts flags (b, SOME ths) ctxt = ctxt |> add_facts flags (b, Lazy.value ths) |> #2
+  | update_facts _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b));
 
 in
 
-fun note_thmss kind = fold_map (fn ((b, more_atts), raw_facts) => fn ctxt =>
+fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn ctxt =>
   let
     val name = full_name ctxt b;
-    val facts = Global_Theory.name_thmss false name raw_facts;
+    val facts' = Global_Theory.name_thmss false name facts;
     fun app (ths, atts) =
       fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
-    val (res, ctxt') = fold_map app facts ctxt;
+    val (res, ctxt') = fold_map app facts' ctxt;
     val thms = Global_Theory.name_thms false false name (flat res);
-    val index = is_stmt ctxt;
-    val (_, ctxt'') = ctxt' |> add_thms {strict = false, index = index} (b, Lazy.value thms);
+    val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms);
   in ((name, thms), ctxt'') end);
 
 fun put_thms index thms ctxt = ctxt
   |> map_naming (K Name_Space.local_naming)
   |> Context_Position.set_visible false
-  |> update_thms {strict = false, index = index} (apfst Binding.name thms)
+  |> update_facts {index = index} (apfst Binding.name thms)
   |> Context_Position.restore_visible ctxt
   |> restore_naming ctxt;
 
