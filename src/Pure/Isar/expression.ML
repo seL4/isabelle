@@ -239,7 +239,8 @@ fun extract_elem (Fixes fixes) = map (#2 #> the_list #> map mk_type) fixes
   | extract_elem (Constrains csts) = map (#2 #> single #> map mk_type) csts
   | extract_elem (Assumes asms) = map (#2 #> map mk_propp) asms
   | extract_elem (Defines defs) = map (fn (_, (t, ps)) => [mk_propp (t, ps)]) defs
-  | extract_elem (Notes _) = [];
+  | extract_elem (Notes _) = []
+  | extract_elem (Lazy_Notes _) = [];
 
 fun restore_elem (Fixes fixes, css) =
       (fixes ~~ css) |> map (fn ((x, _, mx), cs) =>
@@ -251,7 +252,8 @@ fun restore_elem (Fixes fixes, css) =
       (asms ~~ css) |> map (fn ((b, _), cs) => (b, map dest_propp cs)) |> Assumes
   | restore_elem (Defines defs, css) =
       (defs ~~ css) |> map (fn ((b, _), [c]) => (b, dest_propp c)) |> Defines
-  | restore_elem (Notes notes, _) = Notes notes;
+  | restore_elem (elem as Notes _, _) = elem
+  | restore_elem (elem as Lazy_Notes _, _) = elem;
 
 fun prep (_, pats) (ctxt, t :: ts) =
   let val ctxt' = Variable.auto_fixes t ctxt
@@ -298,7 +300,8 @@ fun declare_elem prep_var (Fixes fixes) ctxt =
       ctxt |> fold_map (fn (x, T) => prep_var (Binding.name x, SOME T, NoSyn)) csts |> snd
   | declare_elem _ (Assumes _) ctxt = ctxt
   | declare_elem _ (Defines _) ctxt = ctxt
-  | declare_elem _ (Notes _) ctxt = ctxt;
+  | declare_elem _ (Notes _) ctxt = ctxt
+  | declare_elem _ (Lazy_Notes _) ctxt = ctxt;
 
 
 (** Finish locale elements **)
@@ -346,7 +349,8 @@ fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
   | finish_elem _ _ _ (Constrains _) = Constrains []
   | finish_elem ctxts parms do_close (Assumes asms) = closeup ctxts parms do_close (Assumes asms)
   | finish_elem ctxts parms do_close (Defines defs) = closeup ctxts parms do_close (Defines defs)
-  | finish_elem _ _ _ (Notes facts) = Notes facts;
+  | finish_elem _ _ _ (elem as Notes _) = elem
+  | finish_elem _ _ _ (elem as Lazy_Notes _) = elem;
 
 end;
 
@@ -592,7 +596,8 @@ fun eval_text _ _ (Fixes _) text = text
       in (spec', (fold Term.add_frees ts' xs, env, defs)) end
   | eval_text ctxt _ (Defines defs) (spec, binds) =
       (spec, fold (bind_def ctxt o #1 o #2) defs binds)
-  | eval_text _ _ (Notes _) text = text;
+  | eval_text _ _ (Notes _) text = text
+  | eval_text _ _ (Lazy_Notes _) text = text;
 
 fun eval_inst ctxt (loc, morph) text =
   let

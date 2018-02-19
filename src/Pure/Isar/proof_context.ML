@@ -129,6 +129,7 @@ sig
   val restore_stmt: Proof.context -> Proof.context -> Proof.context
   val add_thms_dynamic: binding * (Context.generic -> thm list) ->
     Proof.context -> string * Proof.context
+  val add_thms_lazy: string -> (binding * thm list lazy) -> Proof.context -> Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
@@ -1069,6 +1070,13 @@ fun update_facts flags (b, SOME ths) ctxt = ctxt |> add_facts flags (b, Lazy.val
   | update_facts _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b));
 
 in
+
+fun add_thms_lazy kind (b, ths) ctxt =
+  let
+    val name = full_name ctxt b;
+    val ths' = Lazy.map (Global_Theory.name_thms true false name #> map (Thm.kind_rule kind)) ths;
+    val (_, ctxt') = add_facts {index = is_stmt ctxt} (b, ths') ctxt;
+  in ctxt' end;
 
 fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn ctxt =>
   let

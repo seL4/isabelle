@@ -39,6 +39,7 @@ sig
     (string * thm list) list * Proof.context
   val generic_notes: string -> fact list -> Context.generic ->
     (string * thm list) list * Context.generic
+  val lazy_notes: string -> binding * thm list lazy -> Context.generic -> Context.generic
   val eval_thms: Proof.context -> (Facts.ref * Token.src list) list -> thm list
   val attribute_syntax: attribute context_parser -> Token.src -> attribute
   val setup: binding -> attribute context_parser -> string -> theory -> theory
@@ -194,6 +195,9 @@ fun local_notes kind facts ctxt = ctxt |>
 
 fun generic_notes kind facts context = context |>
   Context.mapping_result (global_notes kind facts) (local_notes kind facts);
+
+fun lazy_notes kind arg =
+  Context.mapping (Global_Theory.add_thms_lazy kind arg) (Proof_Context.add_thms_lazy kind arg);
 
 fun eval_thms ctxt srcs = ctxt
   |> Proof_Context.note_thmss ""
