@@ -18,6 +18,7 @@ sig
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val force_list: 'a lazy list -> 'a list
+  val forced: 'a lazy -> 'a lazy
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
   val future: Future.params -> 'a lazy -> 'a future
 end;
@@ -51,6 +52,8 @@ fun pending (Value _) = false
         Expr _ => true
       | Result _ => false);
 
+fun is_value (Value _) = true
+  | is_value (Lazy _) = false;
 
 
 (* status *)
@@ -108,6 +111,8 @@ fun force x = Exn.release (force_result x);
 fun force_list xs =
   (List.app (fn x => if pending x then ignore (force_result x) else ()) xs;
    map force xs);
+
+fun forced x = if is_value x then x else value (force x);
 
 fun map f x = lazy_name "Lazy.map" (fn () => f (force x));
 
