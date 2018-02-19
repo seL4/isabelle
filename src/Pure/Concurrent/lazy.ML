@@ -23,6 +23,7 @@ sig
   val trim_value: 'a lazy -> 'a lazy
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
   val map_finished: ('a -> 'b) -> 'a lazy -> 'b lazy
+  val consolidate: 'a lazy list -> 'a lazy list
   val future: Future.params -> 'a lazy -> 'a future
 end;
 
@@ -124,6 +125,19 @@ fun trim_value x = if is_pending x then x else force_value x;
 fun map f x = lazy_name "Lazy.map" (fn () => f (force x));
 
 fun map_finished f x = if is_finished x then value (f (force x)) else map f x;
+
+
+(* consolidate in parallel *)
+
+fun consolidate xs =
+  let
+    val pending =
+      xs |> map_filter (fn x => if is_pending x then SOME (fn () => force_result x) else NONE);
+    val _ =
+      if Multithreading.relevant pending then
+        ignore (Future.forked_results {name = "Lazy.consolidate", deps = []} pending)
+      else List.app (fn e => ignore (e ())) pending;
+  in xs end;
 
 
 (* future evaluation *)

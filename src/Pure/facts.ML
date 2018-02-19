@@ -206,16 +206,12 @@ local
 fun fold_static_lazy f =
   Name_Space.fold_table (fn (a, Static ths) => f (a, ths) | _ => I) o facts_of;
 
-fun force facts =
+fun consolidate facts =
   let
     val pending =
-      (facts, []) |-> fold_static_lazy (fn (_, ths) =>
-        if Lazy.is_pending ths then cons (fn () => Lazy.force_result ths) else I);
-  in
-    if Multithreading.relevant pending then
-      ignore (Future.forked_results {name = "Facts.force", deps = []} pending)
-    else List.app (fn e => ignore (e ())) pending
-  end;
+      (facts, []) |-> fold_static_lazy (fn (_, ths) => if Lazy.is_pending ths then cons ths else I);
+    val _ = Lazy.consolidate pending;
+  in facts end;
 
 fun included verbose prev_facts facts name =
   not (exists (fn prev => defined prev name) prev_facts orelse
@@ -224,14 +220,14 @@ fun included verbose prev_facts facts name =
 in
 
 fun fold_static f facts =
-  fold_static_lazy (f o apsnd Lazy.force) (tap force facts);
+  fold_static_lazy (f o apsnd Lazy.force) (consolidate facts);
 
 fun dest_static verbose prev_facts facts =
   fold_static (fn (a, ths) => included verbose prev_facts facts a ? cons (a, ths)) facts []
   |> sort_by #1;
 
 fun dest_all context verbose prev_facts facts =
-  (facts_of (tap force facts), [])
+  (facts_of (consolidate facts), [])
   |-> Name_Space.fold_table (fn (a, fact) =>
     let val ths = (case fact of Static ths => Lazy.force ths | Dynamic f => f context)
     in included verbose prev_facts facts a ? cons (a, ths) end)
