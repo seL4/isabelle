@@ -2407,6 +2407,9 @@ lemma sum_eq_empty_iff:
 lemma Union_mset_empty_conv[simp]: "\<Union># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"
   by (induction M) auto
 
+lemma Union_image_single_mset[simp]: "\<Union># (image_mset (\<lambda>x. {#x#}) m) = m"
+by(induction m) auto
+
 
 context comm_monoid_mult
 begin
