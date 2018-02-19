@@ -135,7 +135,8 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
       val (thms', thy') = app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
       val thms'' = map (Thm.transfer thy') thms';
       val thy'' = thy' |> Data.map
-        (Facts.add_static (Context.Theory thy') {strict = true, index = false} (b, thms'') #> snd);
+        (Facts.add_static (Context.Theory thy') {strict = true, index = false}
+          (b, Lazy.value thms'') #> snd);
     in (thms'', thy'') end;
 
 

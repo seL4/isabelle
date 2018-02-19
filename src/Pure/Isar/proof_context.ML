@@ -1062,9 +1062,11 @@ fun add_thms_dynamic arg ctxt =
 
 local
 
-fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b))
-  | update_thms flags (b, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add_static (Context.Proof ctxt) flags (b, ths) #> snd);
+fun add_thms flags arg ctxt =
+  ctxt |> map_facts_result (Facts.add_static (Context.Proof ctxt) flags arg);
+
+fun update_thms flags (b, SOME ths) ctxt = ctxt |> add_thms flags (b, Lazy.value ths) |> #2
+  | update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b));
 
 in
 
@@ -1077,7 +1079,8 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), raw_facts) => fn ctxt =>
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = Global_Theory.name_thms false false name (flat res);
     val index = is_stmt ctxt;
-  in ((name, thms), ctxt' |> update_thms {strict = false, index = index} (b, SOME thms)) end);
+    val (_, ctxt'') = ctxt' |> add_thms {strict = false, index = index} (b, Lazy.value thms);
+  in ((name, thms), ctxt'') end);
 
 fun put_thms index thms ctxt = ctxt
   |> map_naming (K Name_Space.local_naming)
