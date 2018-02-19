@@ -133,11 +133,10 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
     let
       val name = Sign.full_name thy b;
       val (thms', thy') = app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
-      val thms'' = map (Thm.transfer thy') thms';
       val thy'' = thy' |> Data.map
         (Facts.add_static (Context.Theory thy') {strict = true, index = false}
-          (b, Lazy.value thms'') #> snd);
-    in (thms'', thy'') end;
+          (b, Lazy.value thms') #> snd);
+    in (map (Thm.transfer thy'') thms', thy'') end;
 
 
 (* store_thm(s) *)
