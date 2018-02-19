@@ -106,7 +106,7 @@ val map_quotconsts = Data.map o @{apply 4(4)}
 
 fun lookup_quotmaps_generic context name =
   Symtab.lookup (get_quotmaps context) name
-  |> Option.map (transform_quotmaps (Morphism.transfer_morphism (Context.theory_of context)))
+  |> Option.map (transform_quotmaps (Morphism.transfer_morphism'' context))
 
 val lookup_quotmaps = lookup_quotmaps_generic o Context.Proof
 val lookup_quotmaps_global = lookup_quotmaps_generic o Context.Theory
@@ -172,7 +172,7 @@ fun print_abs_rep ctxt =
 
 fun lookup_quotients_generic context name =
   Symtab.lookup (get_quotients context) name
-  |> Option.map (transform_quotients (Morphism.transfer_morphism (Context.theory_of context)))
+  |> Option.map (transform_quotients (Morphism.transfer_morphism'' context))
 
 val lookup_quotients = lookup_quotients_generic o Context.Proof
 val lookup_quotients_global = lookup_quotients_generic o Context.Theory
@@ -211,7 +211,7 @@ val update_quotconsts =
 
 fun dest_quotconsts_generic context =
   maps #2 (Symtab.dest (get_quotconsts context))
-  |> map (transform_quotconsts (Morphism.transfer_morphism (Context.theory_of context)))
+  |> map (transform_quotconsts (Morphism.transfer_morphism'' context))
 
 val dest_quotconsts = dest_quotconsts_generic o Context.Proof
 val dest_quotconsts_global = dest_quotconsts_generic o Context.Theory

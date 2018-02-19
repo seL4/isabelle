@@ -468,7 +468,7 @@ fun activate_facts export dep context =
   |> Context_Position.set_visible_generic false
   |> pair (Idents.get context)
   |> roundup (Context.theory_of context)
-      (activate_notes Element.init' (Morphism.transfer_morphism o Context.theory_of) context export)
+      (activate_notes Element.init' Morphism.transfer_morphism'' context export)
       (the_default Morphism.identity export) dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context;
@@ -481,7 +481,7 @@ fun init name thy =
     context
     |> Context_Position.set_visible_generic false
     |> pair empty_idents
-    |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of)
+    |> activate_all name thy Element.init' Morphism.transfer_morphism''
     |-> (fn marked' => Idents.put (merge_idents (marked, marked')))
     |> Context_Position.restore_visible_generic context
     |> Context.proof_of
