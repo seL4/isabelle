@@ -59,8 +59,8 @@ sig
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
-  val activate_declarations: string * morphism -> Proof.context -> Proof.context
   val activate_facts: morphism option -> string * morphism -> Context.generic -> Context.generic
+  val activate_declarations: string * morphism -> Proof.context -> Proof.context
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
@@ -455,14 +455,6 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 
 (** Public activation functions **)
 
-fun activate_declarations dep = Context.proof_map (fn context =>
-  context
-  |> Context_Position.set_visible_generic false
-  |> pair (Idents.get context)
-  |> roundup (Context.theory_of context) activate_syntax_decls Morphism.identity dep
-  |-> Idents.put
-  |> Context_Position.restore_visible_generic context);
-
 fun activate_facts export dep context =
   context
   |> Context_Position.set_visible_generic false
@@ -472,6 +464,14 @@ fun activate_facts export dep context =
       (the_default Morphism.identity export) dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context;
+
+fun activate_declarations dep = Context.proof_map (fn context =>
+  context
+  |> Context_Position.set_visible_generic false
+  |> pair (Idents.get context)
+  |> roundup (Context.theory_of context) activate_syntax_decls Morphism.identity dep
+  |-> Idents.put
+  |> Context_Position.restore_visible_generic context);
 
 fun init name thy =
   let
