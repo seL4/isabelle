@@ -409,6 +409,14 @@ fun activate_err msg (name, morph) context =
 
 (* Declarations, facts and entire locale content *)
 
+fun init_element elem context =
+  context
+  |> Context.mapping I (Thm.unchecked_hyps #> Context_Position.not_really)
+  |> Element.init elem
+  |> Context.mapping I (fn ctxt =>
+      let val ctxt0 = Context.proof_of context
+      in ctxt |> Context_Position.restore_visible ctxt0 |> Thm.restore_hyps ctxt0 end);
+
 fun activate_syntax_decls (name, morph) context =
   let
     val thy = Context.theory_of context;
@@ -460,7 +468,7 @@ fun activate_facts export dep context =
   |> Context_Position.set_visible_generic false
   |> pair (Idents.get context)
   |> roundup (Context.theory_of context)
-      (activate_notes Element.init' Morphism.transfer_morphism'' context export)
+      (activate_notes init_element Morphism.transfer_morphism'' context export)
       (the_default Morphism.identity export) dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context;
@@ -481,7 +489,7 @@ fun init name thy =
     context
     |> Context_Position.set_visible_generic false
     |> pair empty_idents
-    |> activate_all name thy Element.init' Morphism.transfer_morphism''
+    |> activate_all name thy init_element Morphism.transfer_morphism''
     |-> (fn marked' => Idents.put (merge_idents (marked, marked')))
     |> Context_Position.restore_visible_generic context
     |> Context.proof_of

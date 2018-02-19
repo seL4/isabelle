@@ -51,7 +51,6 @@ sig
   val satisfy_morphism: witness list -> morphism
   val eq_morphism: theory -> thm list -> morphism option
   val init: context_i -> Context.generic -> Context.generic
-  val init': context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
 end;
@@ -501,14 +500,6 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
           |> Proof_Context.add_assms Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2;
-
-fun init' elem context =
-  context
-  |> Context.mapping I (Thm.unchecked_hyps #> Context_Position.not_really)
-  |> init elem
-  |> Context.mapping I (fn ctxt =>
-      let val ctxt0 = Context.proof_of context
-      in ctxt |> Context_Position.restore_visible ctxt0 |> Thm.restore_hyps ctxt0 end);
 
 
 (* activate *)
