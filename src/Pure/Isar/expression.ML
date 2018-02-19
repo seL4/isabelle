@@ -772,9 +772,7 @@ fun defines_to_notes ctxt (Defines defs) =
           [(Attrib.internal o K) Locale.witness_add])])) defs)
   | defines_to_notes _ e = e;
 
-fun is_hyp (elem as Assumes asms) = true
-  | is_hyp (elem as Defines defs) = true
-  | is_hyp _ = false;
+val is_hyp = fn Assumes _ => true | Defines _ => true | _ => false;
 
 fun gen_add_locale prep_decl
     binding raw_predicate_binding raw_import raw_body thy =
