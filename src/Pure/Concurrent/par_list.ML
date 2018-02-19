@@ -29,9 +29,9 @@ structure Par_List: PAR_LIST =
 struct
 
 fun forked_results name f xs =
-  if null xs orelse null (tl xs) orelse not (Multithreading.enabled ())
-  then map (Exn.capture f) xs
-  else Future.forked_results {name = name, deps = []} (map (fn x => fn () => f x) xs);
+  if Multithreading.relevant xs
+  then Future.forked_results {name = name, deps = []} (map (fn x => fn () => f x) xs)
+  else map (Exn.capture f) xs;
 
 fun map_name name f xs = Par_Exn.release_first (forked_results name f xs);
 fun map f = map_name "Par_List.map" f;
