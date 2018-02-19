@@ -9,6 +9,7 @@ sig
   val max_threads: unit -> int
   val max_threads_update: int -> unit
   val enabled: unit -> bool
+  val relevant: 'a list -> bool
   val sync_wait: Time.time option -> ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
@@ -40,6 +41,8 @@ in
 fun max_threads () = ! max_threads_state;
 fun max_threads_update m = max_threads_state := max_threads_result m;
 fun enabled () = max_threads () > 1;
+
+val relevant = (fn [] => false | [_] => false | _ => enabled ());
 
 end;
 

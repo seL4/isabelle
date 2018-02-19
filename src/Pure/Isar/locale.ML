@@ -59,8 +59,8 @@ sig
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
   (* Activation *)
-  val activate_declarations: string * morphism -> Proof.context -> Proof.context
   val activate_facts: morphism option -> string * morphism -> Context.generic -> Context.generic
+  val activate_declarations: string * morphism -> Proof.context -> Proof.context
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
@@ -407,6 +407,34 @@ fun activate_err msg (name, morph) context =
     (pretty_reg (Context.proof_of context) Morphism.identity (name, morph) |>
       Pretty.string_of));
 
+fun init_element elem context =
+  context
+  |> Context.mapping I (Thm.unchecked_hyps #> Context_Position.not_really)
+  |> Element.init elem
+  |> Context.mapping I (fn ctxt =>
+      let val ctxt0 = Context.proof_of context
+      in ctxt |> Context_Position.restore_visible ctxt0 |> Thm.restore_hyps ctxt0 end);
+
+
+(* Potentially lazy notes *)
+
+fun lazy_notes thy loc =
+  rev (#notes (the_locale thy loc)) |> maps (fn ((kind, notes), _) =>
+    notes |> map (fn ((b, atts), facts) =>
+      if null atts andalso forall (null o #2) facts andalso false (* FIXME *)
+      then Lazy_Notes (kind, (b, Lazy.value (maps #1 facts)))
+      else Notes (kind, [((b, atts), facts)])));
+
+fun consolidate_notes elems =
+  (elems
+    |> map_filter (fn Lazy_Notes (_, (_, ths)) => SOME ths | _ => NONE)
+    |> Lazy.consolidate;
+   elems);
+
+fun force_notes (Lazy_Notes (kind, (b, ths))) = Notes (kind, [((b, []), [(Lazy.force ths, [])])])
+  | force_notes elem = elem;
+
+
 (* Declarations, facts and entire locale content *)
 
 fun activate_syntax_decls (name, morph) context =
@@ -427,15 +455,11 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
         NONE => Morphism.identity
       | SOME export => collect_mixins context (name, morph $> export) $> export);
     val morph' = transfer input $> morph $> mixin;
-    val notes' =
-      grouped 100 Par_List.map
-        (Element.transform_ctxt morph' o Notes o #1) (#notes (the_locale thy name));
+    val notes' = grouped 100 Par_List.map (Element.transform_ctxt morph') (lazy_notes thy name);
   in
-    input
-    |> fold_rev
-        (fn elem => fn res => activ_elem (Element.transform_ctxt (transfer res) elem) res) notes'
-      handle ERROR msg => activate_err msg (name, morph) context
-  end;
+    (notes', input) |-> fold (fn elem => fn res =>
+      activ_elem (Element.transform_ctxt (transfer res) elem) res)
+  end handle ERROR msg => activate_err msg (name, morph) context;
 
 fun activate_all name thy activ_elem transfer (marked, input) =
   let
@@ -455,6 +479,16 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 
 (** Public activation functions **)
 
+fun activate_facts export dep context =
+  context
+  |> Context_Position.set_visible_generic false
+  |> pair (Idents.get context)
+  |> roundup (Context.theory_of context)
+      (activate_notes init_element Morphism.transfer_morphism'' context export)
+      (the_default Morphism.identity export) dep
+  |-> Idents.put
+  |> Context_Position.restore_visible_generic context;
+
 fun activate_declarations dep = Context.proof_map (fn context =>
   context
   |> Context_Position.set_visible_generic false
@@ -462,16 +496,6 @@ fun activate_declarations dep = Context.proof_map (fn context =>
   |> roundup (Context.theory_of context) activate_syntax_decls Morphism.identity dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context);
-
-fun activate_facts export dep context =
-  context
-  |> Context_Position.set_visible_generic false
-  |> pair (Idents.get context)
-  |> roundup (Context.theory_of context)
-      (activate_notes Element.init' (Morphism.transfer_morphism o Context.theory_of) context export)
-      (the_default Morphism.identity export) dep
-  |-> Idents.put
-  |> Context_Position.restore_visible_generic context;
 
 fun init name thy =
   let
@@ -481,7 +505,7 @@ fun init name thy =
     context
     |> Context_Position.set_visible_generic false
     |> pair empty_idents
-    |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of)
+    |> activate_all name thy init_element Morphism.transfer_morphism''
     |-> (fn marked' => Idents.put (merge_idents (marked, marked')))
     |> Context_Position.restore_visible_generic context
     |> Context.proof_of
@@ -674,10 +698,13 @@ fun pretty_locale thy show_facts name =
   let
     val locale_ctxt = init name thy;
     fun cons_elem (elem as Notes _) = show_facts ? cons elem
+      | cons_elem (elem as Lazy_Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
     val elems =
       activate_all name thy cons_elem (K (Morphism.transfer_morphism thy)) (empty_idents, [])
-      |> snd |> rev;
+      |> snd |> rev
+      |> consolidate_notes
+      |> map force_notes;
   in
     Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
       maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems

@@ -24,6 +24,7 @@ sig
   val name_thm: bool -> bool -> string -> thm -> thm
   val name_thms: bool -> bool -> string -> thm list -> thm list
   val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
+  val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thms: binding * thm list -> theory -> thm list * theory
   val store_thm: binding * thm -> theory -> thm * theory
   val store_thm_open: binding * thm -> theory -> thm * theory
@@ -124,19 +125,28 @@ fun name_thmss official name fact =
 
 (* enter_thms *)
 
-fun register_proofs thms thy = (thms, Thm.register_proofs thms thy);
+fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
-fun enter_thms pre_name post_name app_att (b, thms) thy =
-  if Binding.is_empty b
-  then app_att thms thy |-> register_proofs
+fun add_facts arg thy =
+  thy |> Data.map (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2);
+
+fun add_thms_lazy kind (b, thms) thy =
+  if Binding.is_empty b then Thm.register_proofs thms thy
   else
     let
       val name = Sign.full_name thy b;
-      val (thms', thy') = app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
-      val thms'' = map (Thm.transfer thy') thms';
-      val thy'' = thy' |> Data.map
-        (Facts.add_static (Context.Theory thy') {strict = true, index = false} (b, thms'') #> snd);
-    in (thms'', thy'') end;
+      val thms' = Lazy.map_finished (name_thms true true name #> map (Thm.kind_rule kind)) thms;
+    in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
+
+fun enter_thms pre_name post_name app_att (b, thms) thy =
+  if Binding.is_empty b then app_att thms thy |-> register_proofs
+  else
+    let
+      val name = Sign.full_name thy b;
+      val (thms', thy') =
+        app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
+      val thy'' = thy' |> add_facts (b, Lazy.value thms');
+    in (map (Thm.transfer thy'') thms', thy'') end;
 
 
 (* store_thm(s) *)

@@ -13,12 +13,16 @@ sig
   val lazy_name: string -> (unit -> 'a) -> 'a lazy
   val lazy: (unit -> 'a) -> 'a lazy
   val peek: 'a lazy -> 'a Exn.result option
+  val is_pending: 'a lazy -> bool
   val is_running: 'a lazy -> bool
   val is_finished: 'a lazy -> bool
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
-  val force_list: 'a lazy list -> 'a list
+  val force_value: 'a lazy -> 'a lazy
+  val trim_value: 'a lazy -> 'a lazy
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
+  val map_finished: ('a -> 'b) -> 'a lazy -> 'b lazy
+  val consolidate: 'a lazy list -> 'a lazy list
   val future: Future.params -> 'a lazy -> 'a future
 end;
 
@@ -45,15 +49,17 @@ fun peek (Value a) = SOME (Exn.Res a)
         Expr _ => NONE
       | Result res => Future.peek res);
 
-fun pending (Value _) = false
-  | pending (Lazy var) =
+
+(* status *)
+
+fun is_value (Value _) = true
+  | is_value (Lazy _) = false;
+
+fun is_pending (Value _) = false
+  | is_pending (Lazy var) =
       (case Synchronized.value var of
         Expr _ => true
       | Result _ => false);
-
-
-
-(* status *)
 
 fun is_running (Value _) = false
   | is_running (Lazy var) =
@@ -105,11 +111,28 @@ end;
 
 fun force x = Exn.release (force_result x);
 
-fun force_list xs =
-  (List.app (fn x => if pending x then ignore (force_result x) else ()) xs;
-   map force xs);
+fun force_value x = if is_value x then x else value (force x);
+fun trim_value x = if is_pending x then x else force_value x;
+
+
+(* map *)
 
 fun map f x = lazy_name "Lazy.map" (fn () => f (force x));
+
+fun map_finished f x = if is_finished x then value (f (force x)) else map f x;
+
+
+(* consolidate in parallel *)
+
+fun consolidate xs =
+  let
+    val pending =
+      xs |> map_filter (fn x => if is_pending x then SOME (fn () => force_result x) else NONE);
+    val _ =
+      if Multithreading.relevant pending then
+        ignore (Future.forked_results {name = "Lazy.consolidate", deps = []} pending)
+      else List.app (fn e => ignore (e ())) pending;
+  in xs end;
 
 
 (* future evaluation *)

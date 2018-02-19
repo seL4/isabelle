@@ -72,7 +72,7 @@ structure Data = Generic_Data
 
 fun get_info_generic context =
   Symtab.lookup_list (Data.get context) #>
-  map (transform_info (Morphism.transfer_morphism (Context.theory_of context)));
+  map (transform_info (Morphism.transfer_morphism'' context));
 
 val get_info = get_info_generic o Context.Proof;
 val get_info_global = get_info_generic o Context.Theory;

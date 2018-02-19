@@ -60,7 +60,7 @@ val known_modes = Symtab.keys o Modes.get o Context.Proof;
 
 fun lookup_mode ctxt =
   Symtab.lookup (Modes.get (Context.Proof ctxt))
-  #> Option.map (transform_setup_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)));
+  #> Option.map (transform_setup_data (Morphism.transfer_morphism' ctxt));
 
 
 (*** Automated monotonicity proofs ***)

@@ -31,6 +31,8 @@ sig
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
   val join: 'a future -> 'a
+  val forked_results: {name: string, deps: Task_Queue.task list} ->
+    (unit -> 'a) list -> 'a Exn.result list
   val task_context: string -> group -> ('a -> 'b) -> 'a -> 'b
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
@@ -537,6 +539,24 @@ end;
 fun join_result x = singleton join_results x;
 fun joins xs = Par_Exn.release_all (join_results xs);
 fun join x = Exn.release (join_result x);
+
+
+(* forked results: nested parallel evaluation *)
+
+fun forked_results {name, deps} es =
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
+    let
+      val (group, pri) =
+        (case worker_task () of
+          SOME task =>
+            (new_group (SOME (Task_Queue.group_of_task task)), Task_Queue.pri_of_task task)
+        | NONE => (new_group NONE, 0));
+      val futures =
+        forks {name = name, group = SOME group, deps = deps, pri = pri, interrupts = true} es;
+    in
+      restore_attributes join_results futures
+        handle exn => (if Exn.is_interrupt exn then cancel_group group else (); Exn.reraise exn)
+    end) ();
 
 
 (* task context for running thread *)

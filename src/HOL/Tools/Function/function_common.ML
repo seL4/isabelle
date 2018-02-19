@@ -276,8 +276,7 @@ val get_functions = #2 o Data.get o Context.Proof
 
 fun retrieve_function_data ctxt t =
   Item_Net.retrieve (get_functions ctxt) t
-  |> (map o apsnd)
-      (transform_function_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)));
+  |> (map o apsnd) (transform_function_data (Morphism.transfer_morphism' ctxt));
 
 val add_function_data =
   transform_function_data Morphism.trim_context_morphism #>

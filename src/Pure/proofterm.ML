@@ -199,7 +199,7 @@ fun join_thms (thms: pthm list) =
 
 val consolidate =
   maps (fn PBody {thms, ...} => map (thm_node_consolidate o #2) thms)
-  #> Lazy.force_list #> ignore;
+  #> Lazy.consolidate #> map Lazy.force #> ignore;
 
 fun make_thm_node name prop body =
   Thm_Node {name = name, prop = prop, body = body,
