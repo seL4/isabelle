@@ -1849,6 +1849,27 @@ lemma metric_LIMSEQ_D: "X \<longlonglongrightarrow> L \<Longrightarrow> 0 < r \<
   for L :: "'a::metric_space"
   by (simp add: lim_sequentially)
 
+lemma LIMSEQ_norm_0:
+  assumes  "\<And>n::nat. norm (f n) < 1 / real (Suc n)"
+  shows "f \<longlonglongrightarrow> 0"
+proof (rule metric_LIMSEQ_I)
+  fix \<epsilon> :: "real"
+  assume "\<epsilon> > 0"
+  then obtain N::nat where "\<epsilon> > inverse N" "N > 0"
+    by (metis neq0_conv real_arch_inverse)
+  then have "norm (f n) < \<epsilon>" if "n \<ge> N" for n
+  proof -
+    have "1 / (Suc n) \<le> 1 / N"
+      using \<open>0 < N\<close> inverse_of_nat_le le_SucI that by blast
+    also have "\<dots> < \<epsilon>"
+      by (metis (no_types) \<open>inverse (real N) < \<epsilon>\<close> inverse_eq_divide)
+    finally show ?thesis
+      by (meson assms less_eq_real_def not_le order_trans)
+  qed
+  then show "\<exists>no. \<forall>n\<ge>no. dist (f n) 0 < \<epsilon>"
+    by auto
+qed
+
 
 subsubsection \<open>Limits of Functions\<close>
 

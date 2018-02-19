@@ -1398,6 +1398,12 @@ lemma eq_cong2:
 lemma if_distrib: "f (if c then x else y) = (if c then f x else f y)"
   by simp
 
+lemma all_if_distrib: "(\<forall>x. if x = a then P x else Q x) \<longleftrightarrow> P a \<and> (\<forall>x. x\<noteq>a \<longrightarrow> Q x)"
+  by auto
+
+lemma ex_if_distrib: "(\<exists>x. if x = a then P x else Q x) \<longleftrightarrow> P a \<or> (\<exists>x. x\<noteq>a \<and> Q x)"
+  by auto
+
 text \<open>As a simplification rule, it replaces all function equalities by
   first-order equalities.\<close>
 lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"

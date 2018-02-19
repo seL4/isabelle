@@ -1849,7 +1849,7 @@ text \<open>Misc\<close>
 definition pairwise :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
   where "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. x \<noteq> y \<longrightarrow> R x y)"
 
-lemma pairwiseI:
+lemma pairwiseI [intro?]:
   "pairwise R S" if "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y"
   using that by (simp add: pairwise_def)
 
@@ -1871,8 +1871,8 @@ lemma pairwise_insert:
 lemma pairwise_subset: "pairwise P S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> pairwise P T"
   by (force simp: pairwise_def)
 
-lemma pairwise_mono: "\<lbrakk>pairwise P A; \<And>x y. P x y \<Longrightarrow> Q x y\<rbrakk> \<Longrightarrow> pairwise Q A"
-  by (auto simp: pairwise_def)
+lemma pairwise_mono: "\<lbrakk>pairwise P A; \<And>x y. P x y \<Longrightarrow> Q x y; B \<subseteq> A\<rbrakk> \<Longrightarrow> pairwise Q B"
+  by (fastforce simp: pairwise_def)
 
 lemma pairwise_imageI:
   "pairwise P (f ` A)"

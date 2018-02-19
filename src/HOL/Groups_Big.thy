@@ -360,6 +360,30 @@ lemma delta' [simp]:
   shows "F (\<lambda>k. if a = k then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
   using delta [OF fin, of a b, symmetric] by (auto intro: cong)
 
+lemma delta_remove:
+  assumes fS: "finite S"
+  shows "F (\<lambda>k. if k = a then b k else c k) S = (if a \<in> S then b a \<^bold>* F c (S-{a}) else F c (S-{a}))"
+proof -
+  let ?f = "(\<lambda>k. if k = a then b k else c k)"
+  show ?thesis
+  proof (cases "a \<in> S")
+    case False
+    then have "\<forall>k\<in>S. ?f k = c k" by simp
+    with False show ?thesis by simp
+  next
+    case True
+    let ?A = "S - {a}"
+    let ?B = "{a}"
+    from True have eq: "S = ?A \<union> ?B" by blast
+    have dj: "?A \<inter> ?B = {}" by simp
+    from fS have fAB: "finite ?A" "finite ?B" by auto
+    have "F ?f S = F ?f ?A \<^bold>* F ?f ?B"
+      using union_disjoint [OF fAB dj, of ?f, unfolded eq [symmetric]] by simp
+    with True show ?thesis
+      using comm_monoid_set.remove comm_monoid_set_axioms fS by fastforce
+  qed
+qed
+
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
   assumes fin: "finite A"
@@ -1303,11 +1327,11 @@ lemma (in linordered_semidom) prod_pos: "(\<forall>a\<in>A. 0 < f a) \<Longright
   by (induct A rule: infinite_finite_induct) simp_all
 
 lemma (in linordered_semidom) prod_mono:
-  "\<forall>i\<in>A. 0 \<le> f i \<and> f i \<le> g i \<Longrightarrow> prod f A \<le> prod g A"
-  by (induct A rule: infinite_finite_induct) (auto intro!: prod_nonneg mult_mono)
+  "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> g i) \<Longrightarrow> prod f A \<le> prod g A"
+  by (induct A rule: infinite_finite_induct) (force intro!: prod_nonneg mult_mono)+
 
 lemma (in linordered_semidom) prod_mono_strict:
-  assumes "finite A" "\<forall>i\<in>A. 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
+  assumes "finite A" "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
   shows "prod f A < prod g A"
   using assms
 proof (induct A rule: finite_induct)

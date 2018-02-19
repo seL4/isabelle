@@ -727,6 +727,9 @@ syntax (ASCII)
   "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _>=_./ _)" [0, 0, 10] 10)
   "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3EX _>=_./ _)" [0, 0, 10] 10)
 
+  "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3ALL _~=_./ _)"  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3EX _~=_./ _)"  [0, 0, 10] 10)
+
 syntax
   "_All_less" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
   "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
@@ -738,11 +741,16 @@ syntax
   "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
   "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
 
+  "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<noteq>_./ _)"  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<noteq>_./ _)"  [0, 0, 10] 10)
+
 syntax (input)
   "_All_less" :: "[idt, 'a, bool] => bool"    ("(3! _<_./ _)"  [0, 0, 10] 10)
   "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3? _<_./ _)"  [0, 0, 10] 10)
   "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3! _<=_./ _)" [0, 0, 10] 10)
   "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3? _<=_./ _)" [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3! _~=_./ _)"  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3? _~=_./ _)"  [0, 0, 10] 10)
 
 translations
   "\<forall>x<y. P" \<rightharpoonup> "\<forall>x. x < y \<longrightarrow> P"
@@ -753,6 +761,8 @@ translations
   "\<exists>x>y. P" \<rightharpoonup> "\<exists>x. x > y \<and> P"
   "\<forall>x\<ge>y. P" \<rightharpoonup> "\<forall>x. x \<ge> y \<longrightarrow> P"
   "\<exists>x\<ge>y. P" \<rightharpoonup> "\<exists>x. x \<ge> y \<and> P"
+  "\<forall>x\<noteq>y. P" \<rightharpoonup> "\<forall>x. x \<noteq> y \<longrightarrow> P"
+  "\<exists>x\<noteq>y. P" \<rightharpoonup> "\<exists>x. x \<noteq> y \<and> P"
 
 print_translation \<open>
 let

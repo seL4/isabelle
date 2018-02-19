@@ -54,7 +54,7 @@ lemma product_permute_nat_interval:
 
 text \<open>Basic determinant properties.\<close>
 
-lemma det_transpose: "det (transpose A) = det (A::'a::comm_ring_1 ^'n^'n)"
+lemma det_transpose [simp]: "det (transpose A) = det (A::'a::comm_ring_1 ^'n^'n)"
 proof -
   let ?di = "\<lambda>A i j. A$i$j"
   let ?U = "(UNIV :: 'n set)"
@@ -193,33 +193,10 @@ proof -
     unfolding det_def by (simp add: sign_id)
 qed
 
-lemma det_I: "det (mat 1 :: 'a::comm_ring_1^'n^'n) = 1"
-proof -
-  let ?A = "mat 1 :: 'a::comm_ring_1^'n^'n"
-  let ?U = "UNIV :: 'n set"
-  let ?f = "\<lambda>i j. ?A$i$j"
-  {
-    fix i
-    assume i: "i \<in> ?U"
-    have "?f i i = 1"
-      using i by (vector mat_def)
-  }
-  then have th: "prod (\<lambda>i. ?f i i) ?U = prod (\<lambda>x. 1) ?U"
-    by (auto intro: prod.cong)
-  {
-    fix i j
-    assume i: "i \<in> ?U" and j: "j \<in> ?U" and ij: "i \<noteq> j"
-    have "?f i j = 0" using i j ij
-      by (vector mat_def)
-  }
-  then have "det ?A = prod (\<lambda>i. ?f i i) ?U"
-    using det_diagonal by blast
-  also have "\<dots> = 1"
-    unfolding th prod.neutral_const ..
-  finally show ?thesis .
-qed
+lemma det_I [simp]: "det (mat 1 :: 'a::comm_ring_1^'n^'n) = 1"
+  by (simp add: det_diagonal mat_def)
 
-lemma det_0: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
+lemma det_0 [simp]: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
   by (simp add: det_def prod_zero)
 
 lemma det_permute_rows:
@@ -486,6 +463,21 @@ proof -
     apply (rule x)
     done
 qed
+
+lemma matrix_id_mat_1: "matrix id = mat 1"
+  by (simp add: mat_def matrix_def axis_def)
+
+lemma matrix_id [simp]: "det (matrix id) = 1"
+  by (simp add: matrix_id_mat_1)
+
+lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
+  by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
+
+lemma det_matrix_scaleR [simp]: "det (matrix ((( *\<^sub>R) r)) :: real^'n^'n) = r ^ CARD('n::finite)"
+  apply (subst det_diagonal)
+   apply (auto simp: matrix_def mat_def prod_constant)
+  apply (simp add: cart_eq_inner_axis inner_axis_axis)
+  done
 
 text \<open>
   May as well do this, though it's a bit unsatisfactory since it ignores
@@ -788,7 +780,7 @@ lemma invertible_left_inverse:
   shows "invertible A \<longleftrightarrow> (\<exists>(B::real^'n^'n). B** A = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
 
-lemma invertible_righ_inverse:
+lemma invertible_right_inverse:
   fixes A :: "real^'n^'n"
   shows "invertible A \<longleftrightarrow> (\<exists>(B::real^'n^'n). A** B = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
@@ -800,7 +792,7 @@ proof -
   {
     assume "invertible A"
     then obtain B :: "real ^'n^'n" where B: "A ** B = mat 1"
-      unfolding invertible_righ_inverse by blast
+      unfolding invertible_right_inverse by blast
     then have "det (A ** B) = det (mat 1 :: real ^'n^'n)"
       by simp
     then have "det A \<noteq> 0"
@@ -815,7 +807,7 @@ proof -
     from H obtain c i where c: "sum (\<lambda>i. c i *s row i A) ?U = 0"
       and iU: "i \<in> ?U"
       and ci: "c i \<noteq> 0"
-      unfolding invertible_righ_inverse
+      unfolding invertible_right_inverse
       unfolding matrix_right_invertible_independent_rows
       by blast
     have *: "\<And>(a::real^'n) b. a + b = 0 \<Longrightarrow> -a = b"
@@ -903,7 +895,7 @@ proof -
   have *: "\<And>c. sum (\<lambda>i. c i *s row i (transpose A)) ?U = sum (\<lambda>i. c i *s column i A) ?U"
     by (auto simp add: row_transpose intro: sum.cong)
   show ?thesis
-    unfolding matrix_mult_vsum
+    unfolding matrix_mult_sum
     unfolding cramer_lemma_transpose[of k x "transpose A", unfolded det_transpose, symmetric]
     unfolding *[of "\<lambda>i. x$i"]
     apply (subst det_transpose[symmetric])

@@ -469,6 +469,12 @@ lemma Chains_alt_def:
   shows "Chains r = {C. pred_on.chain UNIV (\<lambda>x y. (x, y) \<in> r) C}"
   using assms Chains_subset Chains_subset' by blast
 
+lemma pairwise_chain_Union:
+  assumes P: "\<And>S. S \<in> \<C> \<Longrightarrow> pairwise R S" and "chain\<^sub>\<subseteq> \<C>"
+  shows "pairwise R (\<Union>\<C>)"
+  using \<open>chain\<^sub>\<subseteq> \<C>\<close> unfolding pairwise_def chain_subset_def
+  by (blast intro: P [unfolded pairwise_def, rule_format])
+
 lemma Zorn_Lemma: "\<forall>C\<in>chains A. \<Union>C \<in> A \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
   using subset_Zorn' [of A] by (force simp: chains_alt_def)
 

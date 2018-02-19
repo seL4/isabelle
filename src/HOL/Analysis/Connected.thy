@@ -3016,28 +3016,6 @@ proof -
     using compact_closed_sums[OF compact_sing[of a] assms] by auto
 qed
 
-lemma translation_Compl:
-  fixes a :: "'a::ab_group_add"
-  shows "(\<lambda>x. a + x) ` (- t) = - ((\<lambda>x. a + x) ` t)"
-  apply (auto simp: image_iff)
-  apply (rule_tac x="x - a" in bexI, auto)
-  done
-
-lemma translation_UNIV:
-  fixes a :: "'a::ab_group_add"
-  shows "range (\<lambda>x. a + x) = UNIV"
-  by (fact surj_plus)
-
-lemma translation_diff:
-  fixes a :: "'a::ab_group_add"
-  shows "(\<lambda>x. a + x) ` (s - t) = ((\<lambda>x. a + x) ` s) - ((\<lambda>x. a + x) ` t)"
-  by auto
-
-lemma translation_Int:
-  fixes a :: "'a::ab_group_add"
-  shows "(\<lambda>x. a + x) ` (s \<inter> t) = ((\<lambda>x. a + x) ` s) \<inter> ((\<lambda>x. a + x) ` t)"
-  by auto
-
 lemma closure_translation:
   fixes a :: "'a::real_normed_vector"
   shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"

@@ -497,7 +497,7 @@ lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
   by (vector matrix_matrix_mult_def sum.distrib[symmetric] field_simps)
 
-lemma matrix_mul_lid:
+lemma matrix_mul_lid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "mat 1 ** A = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
@@ -507,7 +507,7 @@ lemma matrix_mul_lid:
   done
 
 
-lemma matrix_mul_rid:
+lemma matrix_mul_rid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "A ** mat 1 = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
@@ -529,7 +529,7 @@ lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply simp
   done
 
-lemma matrix_vector_mul_lid: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
+lemma matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
   apply (simp add: if_distrib cond_application_beta sum.delta' cong del: if_weak_cong)
   done
@@ -560,18 +560,18 @@ lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
   apply simp
   done
 
-lemma transpose_mat: "transpose (mat n) = mat n"
+lemma transpose_mat [simp]: "transpose (mat n) = mat n"
   by (vector transpose_def mat_def)
 
 lemma transpose_transpose: "transpose(transpose A) = A"
   by (vector transpose_def)
 
-lemma row_transpose:
+lemma row_transpose [simp]:
   fixes A:: "'a::semiring_1^_^_"
   shows "row i (transpose A) = column i A"
   by (simp add: row_def column_def transpose_def vec_eq_iff)
 
-lemma column_transpose:
+lemma column_transpose [simp]:
   fixes A:: "'a::semiring_1^_^_"
   shows "column i (transpose A) = row i A"
   by (simp add: row_def column_def transpose_def vec_eq_iff)
@@ -582,12 +582,22 @@ lemma rows_transpose: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
 lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A"
   by (metis transpose_transpose rows_transpose)
 
+lemma matrix_mult_transpose_dot_column:
+  fixes A :: "real^'n^'n"
+  shows "transpose A ** A = (\<chi> i j. (column i A) \<bullet> (column j A))"
+  by (simp add: matrix_matrix_mult_def vec_eq_iff transpose_def column_def inner_vec_def)
+
+lemma matrix_mult_transpose_dot_row:
+  fixes A :: "real^'n^'n"
+  shows "A ** transpose A = (\<chi> i j. (row i A) \<bullet> (row j A))"
+  by (simp add: matrix_matrix_mult_def vec_eq_iff transpose_def row_def inner_vec_def)
+
 text\<open>Two sometimes fruitful ways of looking at matrix-vector multiplication.\<close>
 
 lemma matrix_mult_dot: "A *v x = (\<chi> i. A$i \<bullet> x)"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
-lemma matrix_mult_vsum:
+lemma matrix_mult_sum:
   "(A::'a::comm_semiring_1^'n^'m) *v x = sum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult.commute)
 
@@ -632,6 +642,37 @@ lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
   by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
       field_simps sum_distrib_left sum.distrib)
 
+lemma matrix_vector_mult_add_distrib [algebra_simps]:
+  fixes A :: "real^'n^'m"
+  shows "A *v (x + y) = A *v x + A *v y"
+  using matrix_vector_mul_linear [of A]  by (simp add: linear_add)
+
+lemma matrix_vector_mult_diff_distrib [algebra_simps]:
+  fixes A :: "real^'n^'m"
+  shows "A *v (x - y) = A *v x - A *v y"
+  using matrix_vector_mul_linear [of A]  by (simp add: linear_diff)
+
+lemma matrix_vector_mult_scaleR[algebra_simps]:
+  fixes A :: "real^'n^'m"
+  shows "A *v (c *\<^sub>R x) = c *\<^sub>R (A *v x)"
+  using linear_iff matrix_vector_mul_linear by blast
+
+lemma matrix_vector_mult_0_right [simp]: "A *v 0 = 0"
+  by (simp add: matrix_vector_mult_def vec_eq_iff)
+
+lemma matrix_vector_mult_0 [simp]: "0 *v w = 0"
+  by (simp add: matrix_vector_mult_def vec_eq_iff)
+
+lemma matrix_vector_mult_add_rdistrib [algebra_simps]:
+  fixes A :: "real^'n^'m"
+  shows "(A + B) *v x = (A *v x) + (B *v x)"
+  by (simp add: vec_eq_iff inner_add_left matrix_vector_mul_component)
+
+lemma matrix_vector_mult_diff_rdistrib [algebra_simps]:
+  fixes A :: "real^'n^'m"
+  shows "(A - B) *v x = (A *v x) - (B *v x)"
+  by (simp add: vec_eq_iff inner_diff_left matrix_vector_mul_component)
+
 lemma matrix_works:
   assumes lf: "linear f"
   shows "matrix f *v x = f (x::real ^ 'n)"
@@ -641,7 +682,7 @@ lemma matrix_works:
 lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::real ^ 'n))"
   by (simp add: ext matrix_works)
 
-lemma matrix_of_matrix_vector_mul: "matrix(\<lambda>x. A *v (x :: real ^ 'n)) = A"
+lemma matrix_of_matrix_vector_mul [simp]: "matrix(\<lambda>x. A *v (x :: real ^ 'n)) = A"
   by (simp add: matrix_eq matrix_vector_mul_linear matrix_works)
 
 lemma matrix_compose:
@@ -768,7 +809,7 @@ proof -
       let ?x = "\<chi> i. c i"
       have th0:"A *v ?x = 0"
         using c
-        unfolding matrix_mult_vsum vec_eq_iff
+        unfolding matrix_mult_sum vec_eq_iff
         by auto
       from k[rule_format, OF th0] i
       have "c i = 0" by (vector vec_eq_iff)}
@@ -777,7 +818,7 @@ proof -
   { assume H: ?rhs
     { fix x assume x: "A *v x = 0"
       let ?c = "\<lambda>i. ((x$i ):: real)"
-      from H[rule_format, of ?c, unfolded matrix_mult_vsum[symmetric], OF x]
+      from H[rule_format, of ?c, unfolded matrix_mult_sum[symmetric], OF x]
       have "x = 0" by vector }
   }
   ultimately show ?thesis unfolding matrix_left_invertible_ker by blast
@@ -798,7 +839,7 @@ proof -
   let ?U = "UNIV :: 'm set"
   have fU: "finite ?U" by simp
   have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::real^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y)"
-    unfolding matrix_right_invertible_surjective matrix_mult_vsum surj_def
+    unfolding matrix_right_invertible_surjective matrix_mult_sum surj_def
     apply (subst eq_commute)
     apply rule
     done
@@ -1002,7 +1043,7 @@ lemma interval_cart:
     and "cbox a b = {x::real^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
   by (auto simp add: set_eq_iff less_vec_def less_eq_vec_def mem_box Basis_vec_def inner_axis)
 
-lemma mem_interval_cart:
+lemma mem_box_cart:
   fixes a :: "real^'n"
   shows "x \<in> box a b \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
     and "x \<in> cbox a b \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
@@ -1014,7 +1055,7 @@ lemma interval_eq_empty_cart:
     and "(cbox a b = {} \<longleftrightarrow> (\<exists>i. b$i < a$i))" (is ?th2)
 proof -
   { fix i x assume as:"b$i \<le> a$i" and x:"x\<in>box a b"
-    hence "a $ i < x $ i \<and> x $ i < b $ i" unfolding mem_interval_cart by auto
+    hence "a $ i < x $ i \<and> x $ i < b $ i" unfolding mem_box_cart by auto
     hence "a$i < b$i" by auto
     hence False using as by auto }
   moreover
@@ -1025,11 +1066,11 @@ proof -
       hence "a$i < ((1/2) *\<^sub>R (a+b)) $ i" "((1/2) *\<^sub>R (a+b)) $ i < b$i"
         unfolding vector_smult_component and vector_add_component
         by auto }
-    hence "box a b \<noteq> {}" using mem_interval_cart(1)[of "?x" a b] by auto }
+    hence "box a b \<noteq> {}" using mem_box_cart(1)[of "?x" a b] by auto }
   ultimately show ?th1 by blast
 
   { fix i x assume as:"b$i < a$i" and x:"x\<in>cbox a b"
-    hence "a $ i \<le> x $ i \<and> x $ i \<le> b $ i" unfolding mem_interval_cart by auto
+    hence "a $ i \<le> x $ i \<and> x $ i \<le> b $ i" unfolding mem_box_cart by auto
     hence "a$i \<le> b$i" by auto
     hence False using as by auto }
   moreover
@@ -1040,7 +1081,7 @@ proof -
       hence "a$i \<le> ((1/2) *\<^sub>R (a+b)) $ i" "((1/2) *\<^sub>R (a+b)) $ i \<le> b$i"
         unfolding vector_smult_component and vector_add_component
         by auto }
-    hence "cbox a b \<noteq> {}" using mem_interval_cart(2)[of "?x" a b] by auto  }
+    hence "cbox a b \<noteq> {}" using mem_box_cart(2)[of "?x" a b] by auto  }
   ultimately show ?th2 by blast
 qed
 
@@ -1057,7 +1098,7 @@ lemma subset_interval_imp_cart:
     and "(\<forall>i. a$i < c$i \<and> d$i < b$i) \<Longrightarrow> cbox c d \<subseteq> box a b"
     and "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> box c d \<subseteq> cbox a b"
     and "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> box c d \<subseteq> box a b"
-  unfolding subset_eq[unfolded Ball_def] unfolding mem_interval_cart
+  unfolding subset_eq[unfolded Ball_def] unfolding mem_box_cart
   by (auto intro: order_trans less_le_trans le_less_trans less_imp_le) (* BH: Why doesn't just "auto" work here? *)
 
 lemma interval_sing:
@@ -1410,7 +1451,7 @@ lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"
   "cbox a b \<inter> {x. x$k \<ge> c} = {(\<chi> i. if i = k then max (a$k) c else a$i) .. b}"
   apply (rule_tac[!] set_eqI)
-  unfolding Int_iff mem_interval_cart mem_Collect_eq interval_cbox_cart
+  unfolding Int_iff mem_box_cart mem_Collect_eq interval_cbox_cart
   unfolding vec_lambda_beta
   by auto
 

@@ -19,9 +19,6 @@ lemma inv_swap_id: "inv (Fun.swap a b id) = Fun.swap a b id"
 lemma swap_id_eq: "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
   by (simp add: Fun.swap_def)
 
-lemma bij_inv_eq_iff: "bij p \<Longrightarrow> x = inv p y \<longleftrightarrow> p x = y"
-  using surj_f_inv_f[of p] by (auto simp add: bij_def)
-
 lemma bij_swap_comp:
   assumes "bij p"
   shows "Fun.swap a b id \<circ> p = Fun.swap (inv p a) (inv p b) p"

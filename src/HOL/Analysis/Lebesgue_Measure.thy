@@ -1134,4 +1134,12 @@ proof -
   qed
 qed
 
+lemma lebesgue_openin:
+   "\<lbrakk>openin (subtopology euclidean S) T; S \<in> sets lebesgue\<rbrakk> \<Longrightarrow> T \<in> sets lebesgue"
+  by (metis borel_open openin_open sets.Int sets_completionI_sets sets_lborel)
+
+lemma lebesgue_closedin:
+   "\<lbrakk>closedin (subtopology euclidean S) T; S \<in> sets lebesgue\<rbrakk> \<Longrightarrow> T \<in> sets lebesgue"
+  by (metis borel_closed closedin_closed sets.Int sets_completionI_sets sets_lborel)
+
 end

@@ -1099,6 +1099,9 @@ print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
+lemma disjoint_UN_iff: "disjnt A (\<Union>i\<in>I. B i) \<longleftrightarrow> (\<forall>i\<in>I. disjnt A (B i))"
+  by (auto simp: disjnt_def)
+
 lemma UNION_eq: "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
   by (auto intro!: SUP_eqI)
 
@@ -1157,6 +1160,9 @@ lemma UN_subset_iff: "((\<Union>i\<in>I. A i) \<subseteq> B) = (\<forall>i\<in>I
 
 lemma UN_constant [simp]: "(\<Union>y\<in>A. c) = (if A = {} then {} else c)"
   by (fact SUP_constant)
+
+lemma UNION_singleton_eq_range: "(\<Union>x\<in>A. {f x}) = f ` A"
+  by blast
 
 lemma image_Union: "f ` \<Union>S = (\<Union>x\<in>S. f ` x)"
   by blast

@@ -185,6 +185,9 @@ lemma inj_imp_surj_inv: "inj f \<Longrightarrow> surj (inv f)"
 lemma surj_f_inv_f: "surj f \<Longrightarrow> f (inv f y) = y"
   by (simp add: f_inv_into_f)
 
+lemma bij_inv_eq_iff: "bij p \<Longrightarrow> x = inv p y \<longleftrightarrow> p x = y"
+  using surj_f_inv_f[of p] by (auto simp add: bij_def)
+
 lemma inv_into_injective:
   assumes eq: "inv_into A f x = inv_into A f y"
     and x: "x \<in> f`A"

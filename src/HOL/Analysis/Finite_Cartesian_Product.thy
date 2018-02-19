@@ -18,6 +18,8 @@ subsection \<open>Finite Cartesian products, with indexing and lambdas.\<close>
 typedef ('a, 'b) vec = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..
 
+declare vec_lambda_inject [simplified, simp]
+
 notation
   vec_nth (infixl "$" 90) and
   vec_lambda (binder "\<chi>" 10)
@@ -54,7 +56,7 @@ lemma vec_lambda_beta [simp]: "vec_lambda g $ i = g i"
 lemma vec_lambda_unique: "(\<forall>i. f$i = g i) \<longleftrightarrow> vec_lambda g = f"
   by (auto simp add: vec_eq_iff)
 
-lemma vec_lambda_eta: "(\<chi> i. (g$i)) = g"
+lemma vec_lambda_eta [simp]: "(\<chi> i. (g$i)) = g"
   by (simp add: vec_eq_iff)
 
 subsection \<open>Cardinality of vectors\<close>

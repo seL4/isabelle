@@ -1749,6 +1749,10 @@ qed
 lemma fmeasurable_Diff: "A \<in> fmeasurable M \<Longrightarrow> B \<in> sets M \<Longrightarrow> A - B \<in> fmeasurable M"
   using fmeasurableI2[of A M "A - B"] by auto
 
+lemma fmeasurable_Int_fmeasurable:
+   "\<lbrakk>S \<in> fmeasurable M; T \<in> sets M\<rbrakk> \<Longrightarrow> (S \<inter> T) \<in> fmeasurable M"
+  by (meson fmeasurableD fmeasurableI2 inf_le1 sets.Int)
+
 lemma fmeasurable_UN:
   assumes "countable I" "\<And>i. i \<in> I \<Longrightarrow> F i \<subseteq> A" "\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets M" "A \<in> fmeasurable M"
   shows "(\<Union>i\<in>I. F i) \<in> fmeasurable M"

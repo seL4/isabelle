@@ -190,14 +190,37 @@ lemma bij_betw_add [simp]:
 
 end
 
+text \<open>Translation lemmas\<close>
+
 context ab_group_add
 begin
 
-lemma surj_plus [simp]:
-  "surj (plus a)"
+lemma surj_plus [simp]: "surj (plus a)"
   by (auto intro: range_eqI [of b "plus a" "b - a" for b] simp add: algebra_simps)
 
 end
+
+lemma translation_Compl:
+  fixes a :: "'a::ab_group_add"
+  shows "(\<lambda>x. a + x) ` (- t) = - ((\<lambda>x. a + x) ` t)"
+  apply (auto simp: image_iff)
+  apply (rule_tac x="x - a" in bexI, auto)
+  done
+
+lemma translation_UNIV:
+  fixes a :: "'a::ab_group_add"
+  shows "range (\<lambda>x. a + x) = UNIV"
+  by (fact surj_plus)
+
+lemma translation_diff:
+  fixes a :: "'a::ab_group_add"
+  shows "(\<lambda>x. a + x) ` (s - t) = ((\<lambda>x. a + x) ` s) - ((\<lambda>x. a + x) ` t)"
+  by auto
+
+lemma translation_Int:
+  fixes a :: "'a::ab_group_add"
+  shows "(\<lambda>x. a + x) ` (s \<inter> t) = ((\<lambda>x. a + x) ` s) \<inter> ((\<lambda>x. a + x) ` t)"
+  by auto
 
 context semidom_divide
 begin

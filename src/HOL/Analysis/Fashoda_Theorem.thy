@@ -118,7 +118,7 @@ proof (rule ccontr)
   let ?F = "\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w"
   have *: "\<And>i. (\<lambda>x::real^2. x $ i) ` cbox (- 1) 1 = {-1 .. 1}"
     apply (rule set_eqI)
-    unfolding image_iff Bex_def mem_interval_cart interval_cbox_cart
+    unfolding image_iff Bex_def mem_box_cart interval_cbox_cart
     apply rule
     defer
     apply (rule_tac x="vec x" in exI)
@@ -133,7 +133,7 @@ proof (rule ccontr)
       unfolding image_iff ..
     then have "x \<noteq> 0"
       using as[of "w$1" "w$2"]
-      unfolding mem_interval_cart atLeastAtMost_iff
+      unfolding mem_box_cart atLeastAtMost_iff
       by auto
   } note x0 = this
   have 21: "\<And>i::2. i \<noteq> 1 \<Longrightarrow> i = 2"
@@ -187,7 +187,7 @@ proof (rule ccontr)
       unfolding *[symmetric] y o_def
       by (rule lem1[rule_format])
     then show "x \<in> cbox (-1) 1"
-      unfolding mem_interval_cart interval_cbox_cart infnorm_2
+      unfolding mem_box_cart interval_cbox_cart infnorm_2
       apply -
       apply rule
     proof -
@@ -241,7 +241,7 @@ proof (rule ccontr)
   qed
   note lem3 = this[rule_format]
   have x1: "x $ 1 \<in> {- 1..1::real}" "x $ 2 \<in> {- 1..1::real}"
-    using x(1) unfolding mem_interval_cart by auto
+    using x(1) unfolding mem_box_cart by auto
   then have nz: "f (x $ 1) - g (x $ 2) \<noteq> 0"
     unfolding right_minus_eq
     apply -
@@ -274,7 +274,7 @@ proof (rule ccontr)
       apply auto
       done
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart
+      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
       apply (erule_tac x=1 in allE)
       apply auto
       done
@@ -293,7 +293,7 @@ proof (rule ccontr)
       apply auto
       done
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart
+      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
       apply (erule_tac x=1 in allE)
       apply auto
       done
@@ -312,7 +312,7 @@ proof (rule ccontr)
       apply auto
       done
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart
+      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
       apply (erule_tac x=2 in allE)
       apply auto
       done
@@ -331,7 +331,7 @@ proof (rule ccontr)
       apply auto
       done
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_interval_cart
+      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
       apply (erule_tac x=2 in allE)
       apply auto
       done
@@ -426,7 +426,7 @@ next
     apply (rule pathfinish_in_path_image)
     unfolding assms using assms(3)[unfolded path_image_def subset_eq,rule_format,of "f 0"]
     unfolding pathstart_def
-    apply (auto simp add: less_eq_vec_def mem_interval_cart)
+    apply (auto simp add: less_eq_vec_def mem_box_cart)
     done
   then obtain z :: "real^2" where z: "z \<in> path_image g" "z $ 2 = pathstart f $ 2" ..
   have "z \<in> cbox a b"
@@ -436,8 +436,8 @@ next
   then have "z = f 0"
     unfolding vec_eq_iff forall_2
     unfolding z(2) pathstart_def
-    using assms(3)[unfolded path_image_def subset_eq mem_interval_cart,rule_format,of "f 0" 1]
-    unfolding mem_interval_cart
+    using assms(3)[unfolded path_image_def subset_eq mem_box_cart,rule_format,of "f 0" 1]
+    unfolding mem_box_cart
     apply (erule_tac x=1 in allE)
     using as
     apply auto
@@ -458,7 +458,7 @@ next
     unfolding assms
     using assms(4)[unfolded path_image_def subset_eq,rule_format,of "g 0"]
     unfolding pathstart_def
-    apply (auto simp add: less_eq_vec_def mem_interval_cart)
+    apply (auto simp add: less_eq_vec_def mem_box_cart)
     done
   then obtain z where z: "z \<in> path_image f" "z $ 1 = pathstart g $ 1" ..
   have "z \<in> cbox a b"
@@ -468,8 +468,8 @@ next
   then have "z = g 0"
     unfolding vec_eq_iff forall_2
     unfolding z(2) pathstart_def
-    using assms(4)[unfolded path_image_def subset_eq mem_interval_cart,rule_format,of "g 0" 2]
-    unfolding mem_interval_cart
+    using assms(4)[unfolded path_image_def subset_eq mem_box_cart,rule_format,of "g 0" 2]
+    unfolding mem_box_cart
     apply (erule_tac x=2 in allE)
     using as
     apply auto
@@ -745,7 +745,7 @@ proof -
     using pathstart_in_path_image pathfinish_in_path_image
     using assms(3-4)
     by auto
-  note startfin = this[unfolded mem_interval_cart forall_2]
+  note startfin = this[unfolded mem_box_cart forall_2]
   let ?P1 = "linepath (vector[a$1 - 2, a$2 - 2]) (vector[(pathstart f)$1,a$2 - 2]) +++
      linepath(vector[(pathstart f)$1,a$2 - 2])(pathstart f) +++ f +++
      linepath(pathfinish f)(vector[(pathfinish f)$1,a$2 - 2]) +++
@@ -791,7 +791,7 @@ proof -
       apply (rule Un_least)+
       defer 3
       apply (rule_tac[1-4] convex_box(1)[unfolded convex_contains_segment,rule_format])
-      unfolding mem_interval_cart forall_2 vector_2
+      unfolding mem_box_cart forall_2 vector_2
       using ab startfin abab assms(3)
       using assms(9-)
       unfolding assms
@@ -803,7 +803,7 @@ proof -
       apply (rule Un_least)+
       defer 2
       apply (rule_tac[1-4] convex_box(1)[unfolded convex_contains_segment,rule_format])
-      unfolding mem_interval_cart forall_2 vector_2
+      unfolding mem_box_cart forall_2 vector_2
       using ab startfin abab assms(4)
       using assms(9-)
       unfolding assms
@@ -833,7 +833,7 @@ proof -
       have "pathfinish f \<in> cbox a b"
         using assms(3) pathfinish_in_path_image[of f] by auto
       then have "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
-        unfolding mem_interval_cart forall_2 by auto
+        unfolding mem_box_cart forall_2 by auto
       then have "z$1 \<noteq> pathfinish f$1"
         using prems(2)
         using assms ab
@@ -842,7 +842,7 @@ proof -
         using assms(3) pathstart_in_path_image[of f]
         by auto
       then have "1 + b $ 1 \<le> pathstart f $ 1 \<Longrightarrow> False"
-        unfolding mem_interval_cart forall_2
+        unfolding mem_box_cart forall_2
         by auto
       then have "z$1 \<noteq> pathstart f$1"
         using prems(2) using assms ab
@@ -857,7 +857,7 @@ proof -
       moreover have "pathstart g \<in> cbox a b"
         using assms(4) pathstart_in_path_image[of g]
         by auto
-      note this[unfolded mem_interval_cart forall_2]
+      note this[unfolded mem_box_cart forall_2]
       then have "z$1 \<noteq> pathstart g$1"
         using prems(1)
         using assms ab
@@ -880,7 +880,7 @@ proof -
       by auto
     with z' show "z \<in> path_image f"
       using z(1)
-      unfolding Un_iff mem_interval_cart forall_2
+      unfolding Un_iff mem_box_cart forall_2
       apply -
       apply (simp only: segment_vertical segment_horizontal vector_2)
       unfolding assms
@@ -892,7 +892,7 @@ proof -
       by auto
     with z' show "z \<in> path_image g"
       using z(2)
-      unfolding Un_iff mem_interval_cart forall_2
+      unfolding Un_iff mem_box_cart forall_2
       apply (simp only: segment_vertical segment_horizontal vector_2)
       unfolding assms
       apply auto

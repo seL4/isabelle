@@ -646,6 +646,12 @@ lemma tendsto_sum [tendsto_intros]:
   shows "(\<And>i. i \<in> I \<Longrightarrow> (f i \<longlongrightarrow> a i) F) \<Longrightarrow> ((\<lambda>x. \<Sum>i\<in>I. f i x) \<longlongrightarrow> (\<Sum>i\<in>I. a i)) F"
   by (induct I rule: infinite_finite_induct) (simp_all add: tendsto_add)
 
+lemma tendsto_null_sum:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_add"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> ((\<lambda>x. f x i) \<longlongrightarrow> 0) F"
+  shows "((\<lambda>i. sum (f i) I) \<longlongrightarrow> 0) F"
+  using tendsto_sum [of I "\<lambda>x y. f y x" "\<lambda>x. 0"] assms by simp
+
 lemma continuous_sum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
   shows "(\<And>i. i \<in> I \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>I. f i x)"

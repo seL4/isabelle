@@ -52,14 +52,6 @@ lemmas lessThan_empty_iff = Iio_eq_empty_iff_nat
 lemmas Zero_notin_Suc = zero_notin_Suc_image
 lemmas atMost_Suc_eq_insert_0 = Iic_Suc_eq_insert_0
 
-lemma sum_union_disjoint':
-  assumes "finite A"
-    and "finite B"
-    and "A \<inter> B = {}"
-    and "A \<union> B = C"
-  shows "sum g C = sum g A + sum g B"
-  using sum.union_disjoint[OF assms(1-3)] and assms(4) by auto
-
 lemma pointwise_minimal_pointwise_maximal:
   fixes s :: "(nat \<Rightarrow> nat) set"
   assumes "finite s"
