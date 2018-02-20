@@ -309,8 +309,7 @@ fun declare_elem prep_var (Fixes fixes) ctxt =
 fun finish_inst ctxt (loc, (prfx, inst)) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
-    val (morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst) ctxt;
+    val (morph, _) = inst_morphism (Locale.params_types_of thy loc) (prfx, inst) ctxt;
   in (loc, morph) end;
 
 fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
@@ -371,7 +370,7 @@ fun prep_full_context_statement
 
     fun prep_insts_cumulative (loc, (prfx, (inst, eqns))) (i, insts, eqnss, ctxt) =
       let
-        val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
+        val (parm_names, parm_types) = Locale.params_types_of thy loc;
         val inst' = prep_inst ctxt parm_names inst;
         val eqns' = map (apsnd (parse_eqn ctxt)) eqns;
         val parm_types' = parm_types
