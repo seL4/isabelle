@@ -474,7 +474,7 @@ lemma union_Set [code]:
 proof -
   interpret comp_fun_idem Set.insert
     by (fact comp_fun_idem_insert)
-  from finite_fold_fold_keys[OF \<open>comp_fun_commute Set.insert\<close>]
+  from finite_fold_fold_keys[OF comp_fun_commute_axioms]
   show ?thesis by (auto simp add: union_fold_insert)
 qed
 
@@ -487,7 +487,7 @@ lemma minus_Set [code]:
 proof -
   interpret comp_fun_idem Set.remove
     by (fact comp_fun_idem_remove)
-  from finite_fold_fold_keys[OF \<open>comp_fun_commute Set.remove\<close>]
+  from finite_fold_fold_keys[OF comp_fun_commute_axioms]
   show ?thesis by (auto simp add: minus_fold_remove)
 qed
 

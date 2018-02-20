@@ -1088,7 +1088,7 @@ proof -
     interpret bounded_linear "(f' ?u)"
       using u by (auto intro!: has_derivative_bounded_linear assms(2)[rule_format] *)
     have "norm (f' ?u (y - x)) \<le> onorm (f' ?u) * norm (y - x)"
-      by (rule onorm) fact
+      by (rule onorm) (rule bounded_linear)
     also have "onorm (f' ?u) \<le> B"
       using u by (auto intro!: assms(3)[rule_format] *)
     finally have "norm ((f' ?u) (y - x)) \<le> B * norm (x - y)"

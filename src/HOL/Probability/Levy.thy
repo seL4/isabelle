@@ -219,7 +219,7 @@ proof -
     { fix \<epsilon> :: real
       assume "\<epsilon> > 0"
       have "(?D \<longlongrightarrow> 0) at_bot"
-        using \<open>(cdf M1 \<longlongrightarrow> 0) at_bot\<close> \<open>(cdf M2 \<longlongrightarrow> 0) at_bot\<close> by (intro tendsto_eq_intros) auto
+        using M1.cdf_lim_at_bot M2.cdf_lim_at_bot by (intro tendsto_eq_intros) auto
       then have "eventually (\<lambda>y. ?D y < \<epsilon> / 2 \<and> y \<le> x) at_bot"
         using \<open>\<epsilon> > 0\<close> by (simp only: tendsto_iff dist_real_def diff_0_right eventually_conj eventually_le_at_bot abs_idempotent)
       then obtain M where "\<And>y. y \<le> M \<Longrightarrow> ?D y < \<epsilon> / 2" "M \<le> x"

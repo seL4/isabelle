@@ -423,8 +423,8 @@ lemma finite_deflation_lower_map:
   assumes "finite_deflation d" shows "finite_deflation (lower_map\<cdot>d)"
 proof (rule finite_deflation_intro)
   interpret d: finite_deflation d by fact
-  have "deflation d" by fact
-  thus "deflation (lower_map\<cdot>d)" by (rule deflation_lower_map)
+  from d.deflation_axioms show "deflation (lower_map\<cdot>d)"
+    by (rule deflation_lower_map)
   have "finite (range (\<lambda>x. d\<cdot>x))" by (rule d.finite_range)
   hence "finite (Rep_compact_basis -` range (\<lambda>x. d\<cdot>x))"
     by (rule finite_vimageI, simp add: inj_on_def Rep_compact_basis_inject)

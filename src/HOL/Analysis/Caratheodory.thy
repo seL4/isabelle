@@ -854,7 +854,7 @@ proof -
     { fix i assume "i \<in> I" then show "\<mu>' (G i) = \<mu> i"
       using \<mu>' by (auto intro!: inj sel) }
     show "G ` I \<subseteq> Pow \<Omega>"
-      by fact
+      by (rule space_closed)
     then show "positive (sets M) \<mu>'" "countably_additive (sets M) \<mu>'"
       using \<mu>' by (simp_all add: M sets_extend_measure measure_space_def)
   qed fact

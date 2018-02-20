@@ -92,8 +92,7 @@ lemma finite_deflation_cfun_map:
 proof (rule finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  then show "deflation (cfun_map\<cdot>d1\<cdot>d2)"
+  from d1.deflation_axioms d2.deflation_axioms show "deflation (cfun_map\<cdot>d1\<cdot>d2)"
     by (rule deflation_cfun_map)
   have "finite (range (\<lambda>f. cfun_map\<cdot>d1\<cdot>d2\<cdot>f))"
     using d1.finite_range d2.finite_range
@@ -158,8 +157,8 @@ lemma finite_deflation_prod_map:
 proof (rule finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  then show "deflation (prod_map\<cdot>d1\<cdot>d2)" by (rule deflation_prod_map)
+  from d1.deflation_axioms d2.deflation_axioms show "deflation (prod_map\<cdot>d1\<cdot>d2)"
+    by (rule deflation_prod_map)
   have "{p. prod_map\<cdot>d1\<cdot>d2\<cdot>p = p} \<subseteq> {x. d1\<cdot>x = x} \<times> {y. d2\<cdot>y = y}"
     by auto
   then show "finite {p. prod_map\<cdot>d1\<cdot>d2\<cdot>p = p}"
@@ -204,8 +203,7 @@ lemma finite_deflation_u_map:
   shows "finite_deflation (u_map\<cdot>d)"
 proof (rule finite_deflation_intro)
   interpret d: finite_deflation d by fact
-  have "deflation d" by fact
-  then show "deflation (u_map\<cdot>d)"
+  from d.deflation_axioms show "deflation (u_map\<cdot>d)"
     by (rule deflation_u_map)
   have "{x. u_map\<cdot>d\<cdot>x = x} \<subseteq> insert \<bottom> ((\<lambda>x. up\<cdot>x) ` {x. d\<cdot>x = x})"
     by (rule subsetI, case_tac x, simp_all)
@@ -284,8 +282,7 @@ lemma finite_deflation_sprod_map:
 proof (rule finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  then show "deflation (sprod_map\<cdot>d1\<cdot>d2)"
+  from d1.deflation_axioms d2.deflation_axioms show "deflation (sprod_map\<cdot>d1\<cdot>d2)"
     by (rule deflation_sprod_map)
   have "{x. sprod_map\<cdot>d1\<cdot>d2\<cdot>x = x} \<subseteq>
       insert \<bottom> ((\<lambda>(x, y). (:x, y:)) ` ({x. d1\<cdot>x = x} \<times> {y. d2\<cdot>y = y}))"
@@ -369,8 +366,7 @@ lemma finite_deflation_ssum_map:
 proof (rule finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  then show "deflation (ssum_map\<cdot>d1\<cdot>d2)"
+  from d1.deflation_axioms d2.deflation_axioms show "deflation (ssum_map\<cdot>d1\<cdot>d2)"
     by (rule deflation_ssum_map)
   have "{x. ssum_map\<cdot>d1\<cdot>d2\<cdot>x = x} \<subseteq>
         (\<lambda>x. sinl\<cdot>x) ` {x. d1\<cdot>x = x} \<union>
@@ -442,8 +438,7 @@ lemma finite_deflation_sfun_map:
 proof (intro finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  then show "deflation (sfun_map\<cdot>d1\<cdot>d2)"
+  from d1.deflation_axioms d2.deflation_axioms show "deflation (sfun_map\<cdot>d1\<cdot>d2)"
     by (rule deflation_sfun_map)
   from assms have "finite_deflation (cfun_map\<cdot>d1\<cdot>d2)"
     by (rule finite_deflation_cfun_map)

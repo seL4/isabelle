@@ -941,8 +941,8 @@ proof cases
       for i j
     interpret b: kuhn_simplex p n base ?upd "f' ` {.. n}"
     proof
-      show "base \<in> {..<n} \<rightarrow> {..<p}" by fact
-      { fix i assume "n \<le> i" then show "base i = p" by fact }
+      show "base \<in> {..<n} \<rightarrow> {..<p}" by (rule base)
+      { fix i assume "n \<le> i" then show "base i = p" by (rule base_out) }
       show "bij_betw ?upd {..<n} {..<n}" by fact
     qed (simp add: f'_def)
     have f': "b.enum = f'" unfolding f'_def b.enum_def[abs_def] ..
