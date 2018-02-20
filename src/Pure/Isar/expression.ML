@@ -374,19 +374,22 @@ fun prep_full_context_statement
         val inst' = prep_inst ctxt parm_names inst;
         val eqns' = map (apsnd (parse_eqn ctxt)) eqns;
         val parm_types' = parm_types
-          |> map (Type_Infer.paramify_vars o
-              Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
+          |> map (Logic.varifyT_global #>
+              Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) #>
+              Type_Infer.paramify_vars);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
         val eqnss' = eqnss @ [eqns'];
         val ((insts'', eqnss'', _, _), _) = check_autofix insts' eqnss' [] [] ctxt;
-        val inst''' = insts'' |> List.last |> snd |> snd;
-        val eqns'' = eqnss'' |> List.last;
-        val (inst_morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst''') ctxt;
-        val rewrite_morph = eqns'' |> map (snd #> Thm.cterm_of ctxt #> Thm.assume #> Local_Defs.abs_def_rule ctxt) |>
-           Element.eq_morphism (Proof_Context.theory_of ctxt) |> the_default Morphism.identity;
-        val ctxt'' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
-      in (i + 1, insts', eqnss', ctxt'') end;
+        val (inst_morph, _) =
+          inst_morphism (parm_names, parm_types) (prfx, #2 (#2 (List.last insts''))) ctxt;
+        val rewrite_morph =
+          List.last eqnss''
+          |> map (snd #> Thm.cterm_of ctxt #> Thm.assume #> Local_Defs.abs_def_rule ctxt)
+          |> Element.eq_morphism (Proof_Context.theory_of ctxt)
+          |> the_default Morphism.identity;
+        val ctxt' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
+      in (i + 1, insts', eqnss', ctxt') end;
 
     fun prep_elem raw_elem ctxt =
       let
