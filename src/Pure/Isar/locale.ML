@@ -457,7 +457,7 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
         NONE => Morphism.identity
       | SOME export => collect_mixins context (name, morph $> export) $> export);
     val morph' = transfer input $> morph $> mixin;
-    val notes' = grouped 100 Par_List.map (Element.transform_ctxt morph') (lazy_notes thy name);
+    val notes' = map (Element.transform_ctxt morph') (lazy_notes thy name);
   in
     (notes', input) |-> fold (fn elem => fn res =>
       activ_elem (Element.transform_ctxt (transfer res) elem) res)
