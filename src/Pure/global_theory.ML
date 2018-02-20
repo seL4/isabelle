@@ -116,8 +116,8 @@ fun name_thm pre official name thm = thm
   |> (if name = "" orelse pre andalso Thm.has_name_hint thm then I
       else Thm.put_name_hint name);
 
-fun name_thms pre official name xs =
-  map (uncurry (name_thm pre official)) (name_multi name xs);
+fun name_thms pre official name thms =
+  map (uncurry (name_thm pre official)) (name_multi name thms);
 
 fun name_thmss official name fact =
   burrow_fact (name_thms true official name) fact;
