@@ -20,7 +20,8 @@ sig
     Constrains of (string * 'typ) list |
     Assumes of (Attrib.binding * ('term * 'term list) list) list |
     Defines of (Attrib.binding * ('term * 'term list)) list |
-    Notes of string * (Attrib.binding * ('fact * Token.src list) list) list
+    Notes of string * (Attrib.binding * ('fact * Token.src list) list) list |
+    Lazy_Notes of string * (binding * 'fact lazy)
   type context = (string, string, Facts.ref) ctxt
   type context_i = (typ, term, thm list) ctxt
   val map_ctxt: {binding: binding -> binding, typ: 'typ -> 'a, term: 'term -> 'b,
@@ -51,7 +52,6 @@ sig
   val satisfy_morphism: witness list -> morphism
   val eq_morphism: theory -> thm list -> morphism option
   val init: context_i -> Context.generic -> Context.generic
-  val init': context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
 end;
@@ -82,7 +82,8 @@ datatype ('typ, 'term, 'fact) ctxt =
   Constrains of (string * 'typ) list |
   Assumes of (Attrib.binding * ('term * 'term list) list) list |
   Defines of (Attrib.binding * ('term * 'term list)) list |
-  Notes of string * (Attrib.binding * ('fact * Token.src list) list) list;
+  Notes of string * (Attrib.binding * ('fact * Token.src list) list) list |
+  Lazy_Notes of string * (binding * 'fact lazy);
 
 type context = (string, string, Facts.ref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
@@ -96,7 +97,8 @@ fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
       ((binding a, map attrib atts), (term t, map pattern ps))))
    | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
-      ((binding a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
+      ((binding a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))))
+   | Lazy_Notes (kind, (a, ths)) => Lazy_Notes (kind, (binding a, Lazy.map fact ths));
 
 fun map_ctxt_attrib attrib =
   map_ctxt {binding = I, typ = I, term = I, pattern = I, fact = I, attrib = attrib};
@@ -180,13 +182,17 @@ fun gen_pretty_ctxt show_attribs ctxt =
 
     fun prt_note (a, ths) =
       Pretty.block (Pretty.breaks (flat (prt_binding a " =" :: map prt_fact ths)));
+
+    fun notes_kind "" = "notes"
+      | notes_kind kind = "notes " ^ kind;
   in
     fn Fixes fixes => pretty_items "fixes" "and" (map prt_fix fixes)
      | Constrains xs => pretty_items "constrains" "and" (map prt_constrain xs)
      | Assumes asms => pretty_items "assumes" "and" (map prt_asm asms)
      | Defines defs => pretty_items "defines" "and" (map prt_def defs)
-     | Notes ("", facts) => pretty_items "notes" "and" (map prt_note facts)
-     | Notes (kind, facts) => pretty_items ("notes " ^ kind) "and" (map prt_note facts)
+     | Notes (kind, facts) => pretty_items (notes_kind kind) "and" (map prt_note facts)
+     | Lazy_Notes (kind, (a, ths)) =>
+        pretty_items (notes_kind kind) "and" [prt_note ((a, []), [(Lazy.force ths, [])])]
   end;
 
 val pretty_ctxt = gen_pretty_ctxt true;
@@ -500,15 +506,8 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
           |> fold Variable.auto_fixes (map #1 asms)
           |> Proof_Context.add_assms Local_Defs.def_export (map #2 asms);
       in ctxt' end)
-  | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2;
-
-fun init' elem context =
-  context
-  |> Context.mapping I (Thm.unchecked_hyps #> Context_Position.not_really)
-  |> init elem
-  |> Context.mapping I (fn ctxt =>
-      let val ctxt0 = Context.proof_of context
-      in ctxt |> Context_Position.restore_visible ctxt0 |> Thm.restore_hyps ctxt0 end);
+  | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2
+  | init (Lazy_Notes (kind, ths)) = Attrib.lazy_notes kind ths;
 
 
 (* activate *)

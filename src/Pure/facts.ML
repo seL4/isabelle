@@ -40,7 +40,7 @@ sig
   val could_unify: T -> term -> (thm * Position.T) list
   val merge: T * T -> T
   val add_static: Context.generic -> {strict: bool, index: bool} ->
-    binding * thm list -> T -> string * T
+    binding * thm list lazy -> T -> string * T
   val add_dynamic: Context.generic -> binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
@@ -130,7 +130,7 @@ fun selections (name, [th]) = [(Named ((name, Position.none), NONE), th)]
 
 (* datatypes *)
 
-datatype fact = Static of thm list | Dynamic of Context.generic -> thm list;
+datatype fact = Static of thm list lazy | Dynamic of Context.generic -> thm list;
 
 datatype T = Facts of
  {facts: fact Name_Space.table,
@@ -178,7 +178,7 @@ fun is_dynamic facts name =
 fun lookup context facts name =
   (case Name_Space.lookup (facts_of facts) name of
     NONE => NONE
-  | SOME (Static ths) => SOME {dynamic = false, thms = ths}
+  | SOME (Static ths) => SOME {dynamic = false, thms = Lazy.force ths}
   | SOME (Dynamic f) => SOME {dynamic = true, thms = f context});
 
 fun retrieve context facts (xname, pos) =
@@ -203,23 +203,34 @@ fun retrieve context facts (xname, pos) =
 
 local
 
+fun fold_static_lazy f =
+  Name_Space.fold_table (fn (a, Static ths) => f (a, ths) | _ => I) o facts_of;
+
+fun consolidate facts =
+  let
+    val pending =
+      (facts, []) |-> fold_static_lazy (fn (_, ths) => if Lazy.is_pending ths then cons ths else I);
+    val _ = Lazy.consolidate pending;
+  in facts end;
+
 fun included verbose prev_facts facts name =
   not (exists (fn prev => defined prev name) prev_facts orelse
     not verbose andalso is_concealed facts name);
 
 in
 
-fun fold_static f =
-  Name_Space.fold_table (fn (a, Static ths) => f (a, ths) | _ => I) o facts_of;
+fun fold_static f facts =
+  fold_static_lazy (f o apsnd Lazy.force) (consolidate facts);
 
 fun dest_static verbose prev_facts facts =
   fold_static (fn (a, ths) => included verbose prev_facts facts a ? cons (a, ths)) facts []
   |> sort_by #1;
 
 fun dest_all context verbose prev_facts facts =
-  Name_Space.fold_table (fn (a, fact) =>
-    let val ths = (case fact of Static ths => ths | Dynamic f => f context)
-    in included verbose prev_facts facts a ? cons (a, ths) end) (facts_of facts) []
+  (facts_of (consolidate facts), [])
+  |-> Name_Space.fold_table (fn (a, fact) =>
+    let val ths = (case fact of Static ths => Lazy.force ths | Dynamic f => f context)
+    in included verbose prev_facts facts a ? cons (a, ths) end)
   |> sort_by #1;
 
 end;
@@ -245,23 +256,22 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
   in make_facts facts' props' end;
 
 
-(* add static entries *)
+(* add entries *)
+
+fun add_prop pos th =
+  Net.insert_term (K false) (Thm.full_prop_of th, (th, pos));
 
 fun add_static context {strict, index} (b, ths) (Facts {facts, props}) =
   let
-    val ths' = map Thm.trim_context ths;
-    val pos = Binding.pos_of (Binding.default_pos b);
-
+    val ths' = ths
+      |> index ? Lazy.force_value
+      |> Lazy.map_finished (map Thm.trim_context);
     val (name, facts') =
       if Binding.is_empty b then ("", facts)
       else Name_Space.define context strict (b, Static ths') facts;
-
     val props' = props
-      |> index ? fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, (th, pos))) ths';
+      |> index ? fold (add_prop (Binding.pos_of (Binding.default_pos b))) (Lazy.force ths');
   in (name, make_facts facts' props') end;
-
-
-(* add dynamic entries *)
 
 fun add_dynamic context (b, f) (Facts {facts, props}) =
   let val (name, facts') = Name_Space.define context true (b, Dynamic f) facts;

@@ -41,20 +41,22 @@ fun retrofit st' =
 in
 
 fun PARALLEL_GOALS tac st =
-  if not (Multithreading.enabled ()) orelse Thm.nprems_of st <= 1 then DETERM tac st
-  else
-    let val subgoals = map (Thm.adjust_maxidx_cterm ~1) (Drule.strip_imp_prems (Thm.cprop_of st)) in
-      if exists (fn sg => Thm.maxidx_of_cterm sg >= 0) subgoals then DETERM tac st
-      else
-        let
-          fun try_tac g =
-            (case SINGLE tac g of
-              NONE => raise FAILED ()
-            | SOME g' => g');
-          val results = Par_List.map (try_tac o Goal.init) subgoals;
-        in EVERY (map retrofit (rev results)) st end
-        handle FAILED () => Seq.empty
-    end;
+  let
+    val goals =
+      Drule.strip_imp_prems (Thm.cprop_of st)
+      |> map (Thm.adjust_maxidx_cterm ~1);
+  in
+    if Multithreading.relevant goals andalso forall (fn g => Thm.maxidx_of_cterm g = ~1) goals then
+      let
+        fun try_goal g =
+          (case SINGLE tac (Goal.init g) of
+            NONE => raise FAILED ()
+          | SOME st' => st');
+        val results = Par_List.map try_goal goals;
+      in EVERY (map retrofit (rev results)) st
+      end handle FAILED () => Seq.empty
+    else DETERM tac st
+  end;
 
 end;
 

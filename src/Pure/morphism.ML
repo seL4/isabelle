@@ -39,6 +39,8 @@ sig
   val fact_morphism: string -> (thm list -> thm list) -> morphism
   val thm_morphism: string -> (thm -> thm) -> morphism
   val transfer_morphism: theory -> morphism
+  val transfer_morphism': Proof.context -> morphism
+  val transfer_morphism'': Context.generic -> morphism
   val trim_context_morphism: morphism
   val instantiate_morphism:
     ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list -> morphism
@@ -120,6 +122,9 @@ fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact =
 fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
 
 val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
+val transfer_morphism' = transfer_morphism o Proof_Context.theory_of;
+val transfer_morphism'' = transfer_morphism o Context.theory_of;
+
 val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
 
 fun instantiate_morphism ([], []) = identity

@@ -174,6 +174,8 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       | filter_element (Element.Defines _) =
           error ("\"defines\" element not allowed in class specification.")
       | filter_element (Element.Notes _) =
+          error ("\"notes\" element not allowed in class specification.")
+      | filter_element (Element.Lazy_Notes _) =
           error ("\"notes\" element not allowed in class specification.");
     val inferred_elems = map_filter filter_element raw_inferred_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs

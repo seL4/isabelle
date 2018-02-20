@@ -162,13 +162,12 @@ fun print ({name, pos, pri}: params) e =
 fun fork_prints exec_id =
   (case Inttab.lookup (#2 (get_state ())) exec_id of
     SOME (_, prints) =>
-      if null prints orelse null (tl prints) orelse not (Multithreading.enabled ())
-      then List.app (fn {body, ...} => body ()) (rev prints)
-      else
+      if Multithreading.relevant prints then
         let val pos = Position.thread_data () in
           List.app (fn {name, pri, body} =>
             ignore (fork {name = name, pos = pos, pri = pri} body)) (rev prints)
         end
+      else List.app (fn {body, ...} => body ()) (rev prints)
   | NONE => raise Fail (unregistered exec_id));
 
 

@@ -868,7 +868,7 @@ fun morph_pred_data phi =
   end
 
 fun lookup_pred_data ctxt type_name = Symtab.lookup (get_pred_data ctxt) type_name
-  |> Option.map (morph_pred_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))
+  |> Option.map (morph_pred_data (Morphism.transfer_morphism' ctxt))
 
 fun update_pred_data type_name qinfo ctxt =
   Data.map (map_pred_data (Symtab.update (type_name, qinfo))) ctxt

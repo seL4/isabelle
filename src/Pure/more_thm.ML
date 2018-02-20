@@ -112,7 +112,7 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
-  val register_proofs: thm list -> theory -> theory
+  val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
   val show_consts_raw: Config.raw
   val show_consts: bool Config.T
@@ -643,17 +643,21 @@ fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 structure Proofs = Theory_Data
 (
-  type T = thm list;
+  type T = thm list lazy list;
   val empty = [];
   fun extend _ = empty;
   fun merge _ = empty;
 );
 
-fun register_proofs more_thms =
-  Proofs.map (fold (cons o Thm.trim_context) more_thms);
+fun register_proofs ths =
+  (Proofs.map o cons) (Lazy.map_finished (map Thm.trim_context) ths);
 
 fun consolidate_theory thy =
-  Thm.consolidate (map (Thm.transfer thy) (rev (Proofs.get thy)));
+  let
+    val proofs = Proofs.get thy;
+    val pending = fold (fn ths => if Lazy.is_pending ths then cons ths else I) [] proofs;
+    val _ = Lazy.consolidate pending;
+  in Thm.consolidate (maps (map (Thm.transfer thy) o Lazy.force) (rev proofs)) end;
 
 
 

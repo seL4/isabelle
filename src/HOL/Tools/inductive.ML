@@ -257,14 +257,14 @@ fun print_inductives verbose ctxt =
 fun the_inductive ctxt term =
   Item_Net.retrieve (#infos (rep_data ctxt)) term
   |> the_single
-  |> apsnd (transform_result (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))
+  |> apsnd (transform_result (Morphism.transfer_morphism' ctxt))
 
 fun the_inductive_global ctxt name =
   #infos (rep_data ctxt)
   |> Item_Net.content
   |> filter (fn ({names, ...}, _) => member op = names name)
   |> the_single
-  |> apsnd (transform_result (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))
+  |> apsnd (transform_result (Morphism.transfer_morphism' ctxt))
 
 fun put_inductives info =
   map_data (fn (infos, monos, equations) =>
