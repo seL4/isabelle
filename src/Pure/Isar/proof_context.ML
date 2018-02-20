@@ -125,6 +125,7 @@ sig
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
+  val is_stmt: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val restore_stmt: Proof.context -> Proof.context -> Proof.context
   val add_thms_dynamic: binding * (Context.generic -> thm list) ->
