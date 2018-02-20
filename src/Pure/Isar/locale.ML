@@ -418,18 +418,20 @@ fun init_element elem context =
 
 (* Potentially lazy notes *)
 
+fun make_notes kind = map (fn ((b, atts), facts) =>
+  if null atts andalso forall (null o #2) facts
+  then Lazy_Notes (kind, (b, Lazy.value (maps #1 facts)))
+  else Notes (kind, [((b, atts), facts)]));
+
 fun lazy_notes thy loc =
-  rev (#notes (the_locale thy loc)) |> maps (fn ((kind, notes), _) =>
-    notes |> map (fn ((b, atts), facts) =>
-      if null atts andalso forall (null o #2) facts andalso false (* FIXME *)
-      then Lazy_Notes (kind, (b, Lazy.value (maps #1 facts)))
-      else Notes (kind, [((b, atts), facts)])));
+  rev (#notes (the_locale thy loc))
+  |> maps (fn ((kind, notes), _) => make_notes kind notes);
 
 fun consolidate_notes elems =
-  (elems
-    |> map_filter (fn Lazy_Notes (_, (_, ths)) => SOME ths | _ => NONE)
-    |> Lazy.consolidate;
-   elems);
+  elems
+  |> map_filter (fn Lazy_Notes (_, (_, ths)) => SOME ths | _ => NONE)
+  |> Lazy.consolidate
+  |> ignore;
 
 fun force_notes (Lazy_Notes (kind, (b, ths))) = Notes (kind, [((b, []), [(Lazy.force ths, [])])])
   | force_notes elem = elem;
@@ -611,18 +613,19 @@ fun add_facts loc kind facts ctxt =
   if null facts then ctxt
   else
     let
-      val notes = ((kind, map Attrib.trim_context_fact facts), serial ());
+      val stored_notes = ((kind, map Attrib.trim_context_fact facts), serial ());
+      val applied_notes = make_notes kind facts;
 
-      fun global_notes morph thy = thy
-        |> Attrib.global_notes kind
-            (Attrib.transform_facts (Morphism.transfer_morphism thy $> morph) facts) |> #2;
-      fun apply_registrations thy =
-        fold_rev (global_notes o #2) (registrations_of (Context.Theory thy) loc) thy;
+      fun apply_notes morph = applied_notes |> fold (fn elem => fn context =>
+        let val elem' = Element.transform_ctxt (Morphism.transfer_morphism'' context $> morph) elem
+        in Element.init elem' context end);
+      val apply_registrations = Context.theory_map (fn context =>
+        fold_rev (apply_notes o #2) (registrations_of context loc) context);
     in
       ctxt
       |> Attrib.local_notes kind facts |> #2
       |> Proof_Context.background_theory
-        ((change_locale loc o apfst o apsnd) (cons notes) #> apply_registrations)
+        ((change_locale loc o apfst o apsnd) (cons stored_notes) #> apply_registrations)
     end;
 
 fun add_declaration loc syntax decl =
@@ -703,7 +706,7 @@ fun pretty_locale thy show_facts name =
     val elems =
       activate_all name thy cons_elem (K (Morphism.transfer_morphism thy)) (empty_idents, [])
       |> snd |> rev
-      |> consolidate_notes
+      |> tap consolidate_notes
       |> map force_notes;
   in
     Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
