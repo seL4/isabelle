@@ -169,22 +169,27 @@ end;
 fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
   let
     (* parameters *)
-    val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
+    val type_parms = fold Term.add_tfreesT parm_types [];
 
-    (* type inference and contexts *)
+    (* type inference and context *)
     val parm_types' = map (Type_Infer.paramify_vars o Logic.varifyT_global) parm_types;
-    val type_parms = fold Term.add_tvarsT parm_types' [] |> map (Logic.mk_type o TVar);
-    val arg = type_parms @ map2 Type.constraint parm_types' insts';
-    val res = Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt) arg;
-    val ctxt' = ctxt |> fold Variable.auto_fixes res;
+    val type_parms' = fold Term.add_tvarsT parm_types' [];
+    val checked =
+      (map (Logic.mk_type o TVar) type_parms' @ map2 Type.constraint parm_types' insts')
+      |> Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt)
+    val (type_parms'', insts'') = chop (length type_parms') checked;
+
+    val ctxt' = ctxt |> fold Variable.auto_fixes checked;
 
     (* instantiation *)
-    val (type_parms'', res') = chop (length type_parms) res;
-    val insts'' = (parm_names ~~ res') |> map_filter
-      (fn inst as (x, Free (y, _)) => if x = y then NONE else SOME inst
-        | inst => SOME inst);
-    val instT = Symtab.make (type_parm_names ~~ map Logic.dest_type type_parms'');
-    val inst = Symtab.make insts'';
+    val instT =
+      (type_parms ~~ map Logic.dest_type type_parms'')
+      |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (#1 v, T))
+      |> Symtab.make;
+    val inst =
+      (parm_names ~~ insts'')
+      |> filter (fn (a, Free (b, _)) => a <> b | _ => true)
+      |> Symtab.make;
   in
     (Element.inst_morphism (Proof_Context.theory_of ctxt) (instT, inst) $>
       Morphism.binding_morphism "Expression.inst" (Binding.prefix mandatory prfx), ctxt')
