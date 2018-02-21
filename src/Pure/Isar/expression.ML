@@ -171,7 +171,7 @@ fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     (* parameters *)
     val type_parms = fold Term.add_tfreesT parm_types [];
 
-    (* type inference and context *)
+    (* type inference *)
     val parm_types' = map (Type_Infer.paramify_vars o Logic.varifyT_global) parm_types;
     val type_parms' = fold Term.add_tvarsT parm_types' [];
     val checked =
@@ -179,19 +179,20 @@ fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
       |> Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt)
     val (type_parms'', insts'') = chop (length type_parms') checked;
 
-    val ctxt' = ctxt |> fold Variable.auto_fixes checked;
+    (* context *)
+    val ctxt' = fold Variable.auto_fixes checked ctxt;
+    val certT = Thm.trim_context_ctyp o Thm.ctyp_of ctxt';
+    val cert = Thm.trim_context_cterm o Thm.cterm_of ctxt';
 
     (* instantiation *)
     val instT =
       (type_parms ~~ map Logic.dest_type type_parms'')
-      |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (#1 v, T))
-      |> Symtab.make;
-    val inst =
-      (parm_names ~~ insts'')
-      |> filter (fn (a, Free (b, _)) => a <> b | _ => true)
-      |> Symtab.make;
+      |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (v, T));
+    val cert_inst =
+      ((parm_names ~~ map (Term_Subst.instantiateT_frees instT) parm_types) ~~ insts'')
+      |> map_filter (fn (v, t) => if Free v = t then NONE else SOME (v, cert t));
   in
-    (Element.inst_morphism (Proof_Context.theory_of ctxt) (instT, inst) $>
+    (Element.instantiate_normalize_morphism (map (apsnd certT) instT, cert_inst) $>
       Morphism.binding_morphism "Expression.inst" (Binding.prefix mandatory prfx), ctxt')
   end;
 

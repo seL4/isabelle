@@ -29,15 +29,19 @@ fun calculate thy class sups base_sort param_map assm_axiom =
   let
     val empty_ctxt = Proof_Context.init_global thy;
 
+    val certT = Thm.trim_context_ctyp o Thm.global_ctyp_of thy;
+    val cert = Thm.trim_context_cterm o Thm.global_cterm_of thy;
+
     (* instantiation of canonical interpretation *)
-    val aT = TFree (Name.aT, base_sort);
+    val a_tfree = (Name.aT, base_sort);
+    val a_type = TFree a_tfree;
     val param_map_const = (map o apsnd) Const param_map;
-    val param_map_inst = (map o apsnd)
-      (Const o apsnd (map_atyps (K aT))) param_map;
-    val const_morph = Element.inst_morphism thy
-      (Symtab.empty, Symtab.make param_map_inst);
-    val typ_morph = Element.inst_morphism thy
-      (Symtab.empty |> Symtab.update (Name.aT, TFree (Name.aT, [class])), Symtab.empty);
+    val param_map_inst = param_map |> map (fn (x, (c, T)) =>
+      let val T' = map_atyps (K a_type) T in ((x, T'), cert (Const (c, T'))) end);
+    val const_morph =
+      Element.instantiate_normalize_morphism ([], param_map_inst);
+    val typ_morph =
+      Element.instantiate_normalize_morphism ([(a_tfree, certT (TFree (Name.aT, [class])))], [])
     val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = empty_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            (Expression.Named param_map_const, [])))], []);
@@ -84,16 +88,16 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val some_assm_intro = Option.map prove_assm_intro (fst (Locale.intros_of thy class));
 
     (* of_class *)
-    val of_class_prop_concl = Logic.mk_of_class (aT, class);
+    val of_class_prop_concl = Logic.mk_of_class (a_type, class);
     val of_class_prop =
       (case some_prop of
         NONE => of_class_prop_concl
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
-          ((map_types o map_atyps) (K aT) prop), of_class_prop_concl));
+          ((map_types o map_atyps) (K a_type) prop), of_class_prop_concl));
     val sup_of_classes = map (snd o Class.rules thy) sups;
     val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
     val axclass_intro = #intro (Axclass.get_info thy class);
-    val base_sort_trivs = Thm.of_sort (Thm.global_ctyp_of thy aT, base_sort);
+    val base_sort_trivs = Thm.of_sort (Thm.global_ctyp_of thy a_type, base_sort);
     fun tac ctxt =
       REPEAT (SOMEGOAL
         (match_tac ctxt (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)

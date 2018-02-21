@@ -47,8 +47,8 @@ sig
   val transform_witness: morphism -> witness -> witness
   val conclude_witness: Proof.context -> witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
-  val instT_morphism: theory -> typ Symtab.table -> morphism
-  val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
+  val instantiate_normalize_morphism:
+    ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> morphism
   val satisfy_morphism: witness list -> morphism
   val eq_morphism: theory -> thm list -> morphism option
   val init: context_i -> Context.generic -> Context.generic
@@ -344,115 +344,12 @@ fun pretty_witness ctxt witn =
   end;
 
 
-(* derived rules *)
+(* instantiate frees, with beta normalization *)
 
-fun instantiate_tfrees thy subst th =
-  let
-    val idx = Thm.maxidx_of th + 1;
-    fun cert_inst (a, (S, T)) = (((a, idx), S), Thm.global_ctyp_of thy T);
-
-    fun add_inst (a, S) insts =
-      if AList.defined (op =) insts a then insts
-      else (case AList.lookup (op =) subst a of NONE => insts | SOME T => (a, (S, T)) :: insts);
-    val insts =
-      (Term.fold_types o Term.fold_atyps) (fn TFree v => add_inst v | _ => I)
-        (Thm.full_prop_of th) [];
-  in
-    th
-    |> Thm.generalize (map fst insts, []) idx
-    |> Thm.instantiate (map cert_inst insts, [])
-  end;
-
-fun instantiate_frees thy subst =
-  Drule.forall_intr_list (map (Thm.global_cterm_of thy o Free o fst) subst) #>
-  Drule.forall_elim_list (map (Thm.global_cterm_of thy o snd) subst);
-
-fun hyps_rule rule th =
-  let val hyps = Thm.chyps_of th in
-    Drule.implies_elim_list
-      (rule (Drule.implies_intr_list hyps th))
-      (map (Thm.assume o Drule.cterm_rule rule) hyps)
-  end;
-
-
-(* instantiate types *)
-
-fun instT_type_same env =
-  if Symtab.is_empty env then Same.same
-  else
-    Term_Subst.map_atypsT_same
-      (fn TFree (a, _) => (case Symtab.lookup env a of SOME T => T | NONE => raise Same.SAME)
-        | _ => raise Same.SAME);
-
-fun instT_term_same env =
-  if Symtab.is_empty env then Same.same
-  else Term_Subst.map_types_same (instT_type_same env);
-
-val instT_type = Same.commit o instT_type_same;
-val instT_term = Same.commit o instT_term_same;
-
-fun instT_subst env th =
-  (Thm.fold_terms o Term.fold_types o Term.fold_atyps)
-    (fn T as TFree (a, _) =>
-      let val T' = the_default T (Symtab.lookup env a)
-      in if T = T' then I else insert (eq_fst (op =)) (a, T') end
-    | _ => I) th [];
-
-fun instT_thm thy env th =
-  if Symtab.is_empty env then th
-  else
-    let val subst = instT_subst env th
-    in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
-
-fun instT_morphism thy env =
-  Morphism.morphism "Element.instT"
-   {binding = [],
-    typ = [instT_type env],
-    term = [instT_term env],
-    fact = [map (instT_thm thy env)]};
-
-
-(* instantiate types and terms *)
-
-fun inst_term (envT, env) =
-  if Symtab.is_empty env then instT_term envT
-  else
-    instT_term envT #>
-    Same.commit (Term_Subst.map_aterms_same
-      (fn Free (x, _) => (case Symtab.lookup env x of SOME t => t | NONE => raise Same.SAME)
-        | _ => raise Same.SAME)) #>
-    Envir.beta_norm;
-
-fun inst_subst (envT, env) th =
-  (Thm.fold_terms o Term.fold_aterms)
-    (fn Free (x, T) =>
-      let
-        val T' = instT_type envT T;
-        val t = Free (x, T');
-        val t' = the_default t (Symtab.lookup env x);
-      in if t aconv t' then I else insert (eq_fst (op =)) ((x, T'), t') end
-    | _ => I) th [];
-
-fun inst_thm thy (envT, env) th =
-  if Symtab.is_empty env then instT_thm thy envT th
-  else
-    let
-      val substT = instT_subst envT th;
-      val subst = inst_subst (envT, env) th;
-    in
-      if null substT andalso null subst then th
-      else th |> hyps_rule
-       (instantiate_tfrees thy substT #>
-        instantiate_frees thy subst #>
-        Conv.fconv_rule (Thm.beta_conversion true))
-    end;
-
-fun inst_morphism thy (envT, env) =
-  Morphism.morphism "Element.inst"
-   {binding = [],
-    typ = [instT_type envT],
-    term = [inst_term (envT, env)],
-    fact = [map (inst_thm thy (envT, env))]};
+fun instantiate_normalize_morphism insts =
+  Morphism.instantiate_frees_morphism insts $>
+  Morphism.term_morphism "beta_norm" Envir.beta_norm $>
+  Morphism.thm_morphism "beta_conversion" (Conv.fconv_rule (Thm.beta_conversion true));
 
 
 (* satisfy hypotheses *)
