@@ -277,14 +277,22 @@ lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
   by (simp add: vec_eq_iff)
 
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
+
+lemma norm_axis_1 [simp]: "norm (axis m (1::real)) = 1"
+  by (simp add: inner_axis' norm_eq_1)
+
 lemma vector_mul_eq_0[simp]: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
   by vector
+
 lemma vector_mul_lcancel[simp]: "a *s x = a *s y \<longleftrightarrow> a = (0::real) \<or> x = y"
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_ssub_ldistrib)
+
 lemma vector_mul_rcancel[simp]: "a *s x = b *s x \<longleftrightarrow> (a::real) = b \<or> x = 0"
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_sub_rdistrib)
+
 lemma vector_mul_lcancel_imp: "a \<noteq> (0::real) ==>  a *s x = a *s y ==> (x = y)"
   by (metis vector_mul_lcancel)
+
 lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b *s x ==> a = b"
   by (metis vector_mul_rcancel)
 
@@ -563,7 +571,7 @@ lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
 lemma transpose_mat [simp]: "transpose (mat n) = mat n"
   by (vector transpose_def mat_def)
 
-lemma transpose_transpose: "transpose(transpose A) = A"
+lemma transpose_transpose [simp]: "transpose(transpose A) = A"
   by (vector transpose_def)
 
 lemma row_transpose [simp]:
@@ -576,10 +584,10 @@ lemma column_transpose [simp]:
   shows "column i (transpose A) = row i A"
   by (simp add: row_def column_def transpose_def vec_eq_iff)
 
-lemma rows_transpose: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
+lemma rows_transpose [simp]: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
   by (auto simp add: rows_def columns_def row_transpose intro: set_eqI)
 
-lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A"
+lemma columns_transpose [simp]: "columns(transpose (A::'a::semiring_1^_^_)) = rows A"
   by (metis transpose_transpose rows_transpose)
 
 lemma matrix_mult_transpose_dot_column:
@@ -642,6 +650,12 @@ lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
   by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
       field_simps sum_distrib_left sum.distrib)
 
+lemma
+  fixes A :: "real^'n^'m"
+  shows matrix_vector_mult_linear_continuous_at [continuous_intros]: "isCont (( *v) A) z"
+    and matrix_vector_mult_linear_continuous_on [continuous_intros]: "continuous_on S (( *v) A)"
+  by (simp_all add: linear_linear linear_continuous_at linear_continuous_on matrix_vector_mul_linear)
+
 lemma matrix_vector_mult_add_distrib [algebra_simps]:
   fixes A :: "real^'n^'m"
   shows "A *v (x + y) = A *v x + A *v y"
@@ -681,6 +695,8 @@ lemma matrix_works:
 
 lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::real ^ 'n))"
   by (simp add: ext matrix_works)
+
+declare matrix_vector_mul [symmetric, simp]
 
 lemma matrix_of_matrix_vector_mul [simp]: "matrix(\<lambda>x. A *v (x :: real ^ 'n)) = A"
   by (simp add: matrix_eq matrix_vector_mul_linear matrix_works)

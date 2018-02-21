@@ -10,6 +10,9 @@ begin
 
 definition "indicator S x = (if x \<in> S then 1 else 0)"
 
+text\<open>Type constrained version\<close>
+abbreviation indicat_real :: "'a set \<Rightarrow> 'a \<Rightarrow> real" where "indicat_real S \<equiv> indicator S"
+
 lemma indicator_simps[simp]:
   "x \<in> S \<Longrightarrow> indicator S x = 1"
   "x \<notin> S \<Longrightarrow> indicator S x = 0"

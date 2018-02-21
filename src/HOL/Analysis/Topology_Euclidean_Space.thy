@@ -3487,11 +3487,25 @@ proof -
     using assms by (fastforce simp: bounded_iff)
 qed
 
+lemma bounded_plus:
+  fixes S ::"'a::real_normed_vector set"
+  assumes "bounded S" "bounded T"
+  shows "bounded ((\<lambda>(x,y). x + y) ` (S \<times> T))"
+  using bounded_plus_comp [of fst "S \<times> T" snd] assms
+  by (auto simp: split_def split: if_split_asm)
+
 lemma bounded_minus_comp:
   "bounded (f ` S) \<Longrightarrow> bounded (g ` S) \<Longrightarrow> bounded ((\<lambda>x. f x - g x) ` S)"
   for f g::"'a \<Rightarrow> 'b::real_normed_vector"
   using bounded_plus_comp[of "f" S "\<lambda>x. - g x"]
   by auto
+
+lemma bounded_minus:
+  fixes S ::"'a::real_normed_vector set"
+  assumes "bounded S" "bounded T"
+  shows "bounded ((\<lambda>(x,y). x - y) ` (S \<times> T))"
+  using bounded_minus_comp [of fst "S \<times> T" snd] assms
+  by (auto simp: split_def split: if_split_asm)
 
 
 subsection \<open>Compactness\<close>
@@ -3848,7 +3862,6 @@ lemma openin_delete:
   shows "openin (subtopology euclidean u) s
          \<Longrightarrow> openin (subtopology euclidean u) (s - {a})"
 by (metis Int_Diff open_delete openin_open)
-
 
 text\<open>Compactness expressed with filters\<close>
 
@@ -4478,6 +4491,27 @@ lemma not_compact_UNIV[simp]:
   shows "~ compact (UNIV::'a set)"
     by (simp add: compact_eq_bounded_closed)
 
+text\<open>Representing sets as the union of a chain of compact sets.\<close>
+lemma closed_Union_compact_subsets:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes "closed S"
+  obtains F where "\<And>n. compact(F n)" "\<And>n. F n \<subseteq> S" "\<And>n. F n \<subseteq> F(Suc n)"
+                  "(\<Union>n. F n) = S" "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>N. \<forall>n \<ge> N. K \<subseteq> F n"
+proof
+  show "compact (S \<inter> cball 0 (of_nat n))" for n
+    using assms compact_eq_bounded_closed by auto
+next
+  show "(\<Union>n. S \<inter> cball 0 (real n)) = S"
+    by (auto simp: real_arch_simple)
+next
+  fix K :: "'a set"
+  assume "compact K" "K \<subseteq> S"
+  then obtain N where "K \<subseteq> cball 0 N"
+    by (meson bounded_pos mem_cball_0 compact_imp_bounded subsetI)
+  then show "\<exists>N. \<forall>n\<ge>N. K \<subseteq> S \<inter> cball 0 (real n)"
+    by (metis of_nat_le_iff Int_subset_iff \<open>K \<subseteq> S\<close> real_arch_simple subset_cball subset_trans)
+qed auto
+
 instance real :: heine_borel
 proof
   fix f :: "nat \<Rightarrow> real"
@@ -4897,10 +4931,7 @@ text\<open>Derive the epsilon-delta forms, which we often use as "definitions"\<
 
 lemma continuous_within_eps_delta:
   "continuous (at x within s) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'\<in> s.  dist x' x < d --> dist (f x') (f x) < e)"
-  unfolding continuous_within and Lim_within
-  apply auto
-  apply (metis dist_nz dist_self, blast)
-  done
+  unfolding continuous_within and Lim_within  by fastforce
 
 corollary continuous_at_eps_delta:
   "continuous (at x) f \<longleftrightarrow> (\<forall>e > 0. \<exists>d > 0. \<forall>x'. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"

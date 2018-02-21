@@ -332,34 +332,6 @@ proof -
     by (intro reindex_bij_betw_not_neutral[OF _ _ bij]) auto
 qed
 
-lemma delta [simp]:
-  assumes fS: "finite S"
-  shows "F (\<lambda>k. if k = a then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
-proof -
-  let ?f = "(\<lambda>k. if k = a then b k else \<^bold>1)"
-  show ?thesis
-  proof (cases "a \<in> S")
-    case False
-    then have "\<forall>k\<in>S. ?f k = \<^bold>1" by simp
-    with False show ?thesis by simp
-  next
-    case True
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    from True have eq: "S = ?A \<union> ?B" by blast
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto
-    have "F ?f S = F ?f ?A \<^bold>* F ?f ?B"
-      using union_disjoint [OF fAB dj, of ?f, unfolded eq [symmetric]] by simp
-    with True show ?thesis by simp
-  qed
-qed
-
-lemma delta' [simp]:
-  assumes fin: "finite S"
-  shows "F (\<lambda>k. if a = k then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
-  using delta [OF fin, of a b, symmetric] by (auto intro: cong)
-
 lemma delta_remove:
   assumes fS: "finite S"
   shows "F (\<lambda>k. if k = a then b k else c k) S = (if a \<in> S then b a \<^bold>* F c (S-{a}) else F c (S-{a}))"
@@ -383,6 +355,16 @@ proof -
       using comm_monoid_set.remove comm_monoid_set_axioms fS by fastforce
   qed
 qed
+
+lemma delta [simp]:
+  assumes fS: "finite S"
+  shows "F (\<lambda>k. if k = a then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
+  by (simp add: delta_remove [OF assms])
+
+lemma delta' [simp]:
+  assumes fin: "finite S"
+  shows "F (\<lambda>k. if a = k then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
+  using delta [OF fin, of a b, symmetric] by (auto intro: cong)
 
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"

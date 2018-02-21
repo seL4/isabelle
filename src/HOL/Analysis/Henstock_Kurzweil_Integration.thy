@@ -5136,7 +5136,7 @@ lemma has_integral_Union:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes \<T>: "finite \<T>"
     and int: "\<And>S. S \<in> \<T> \<Longrightarrow> (f has_integral (i S)) S"
-    and neg: "\<And>S S'. \<lbrakk>S \<in> \<T>; S' \<in> \<T>; S \<noteq> S'\<rbrakk> \<Longrightarrow> negligible (S \<inter> S')"
+    and neg: "pairwise (\<lambda>S S'. negligible (S \<inter> S')) \<T>"
   shows "(f has_integral (sum i \<T>)) (\<Union>\<T>)"
 proof -
   let ?\<U> = "((\<lambda>(a,b). a \<inter> b) ` {(a,b). a \<in> \<T> \<and> b \<in> {y. y \<in> \<T> \<and> a \<noteq> y}})"
@@ -5151,7 +5151,7 @@ proof -
       ultimately show "finite ?\<U>"
         by (blast intro: finite_subset[of _ "\<T> \<times> \<T>"])
       show "\<And>t. t \<in> ?\<U> \<Longrightarrow> negligible t"
-        using neg by auto
+        using neg unfolding pairwise_def by auto
     qed
   next
     show "(if x \<in> \<Union>\<T> then f x else 0) = (\<Sum>A\<in>\<T>. if x \<in> A then f x else 0)"
@@ -5162,7 +5162,7 @@ proof -
         using that by blast
       ultimately show "f x = (\<Sum>A\<in>\<T>. if x \<in> A then f x else 0)"
         by (simp add: sum.delta[OF \<T>])
-    qed 
+    qed
   next
     show "((\<lambda>x. \<Sum>A\<in>\<T>. if x \<in> A then f x else 0) has_integral (\<Sum>A\<in>\<T>. i A)) UNIV"
       apply (rule has_integral_sum [OF \<T>])
@@ -5192,7 +5192,7 @@ proof -
   qed
   show ?thesis
     unfolding \<D>(6)[symmetric]
-    by (auto intro: \<D> neg assms has_integral_Union)
+    by (auto intro: \<D> neg assms has_integral_Union pairwiseI)
 qed
 
 lemma integral_combine_division_bottomup:

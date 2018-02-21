@@ -4687,6 +4687,21 @@ proof -
     by (simp add: \<open>countable \<F>'\<close> countable_subset)
 qed
 
+lemma countable_disjoint_nonempty_interior_subsets:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes pw: "pairwise disjnt \<F>" and int: "\<And>S. \<lbrakk>S \<in> \<F>; interior S = {}\<rbrakk> \<Longrightarrow> S = {}"
+  shows "countable \<F>"
+proof (rule countable_image_inj_on)
+  have "disjoint (interior ` \<F>)"
+    using pw by (simp add: disjoint_image_subset interior_subset)
+  then show "countable (interior ` \<F>)"
+    by (auto intro: countable_disjoint_open_subsets)
+  show "inj_on interior \<F>"
+    using pw apply (clarsimp simp: inj_on_def pairwise_def)
+    apply (metis disjnt_def disjnt_subset1 inf.orderE int interior_subset)
+    done
+qed
+
 lemma closedin_compact:
    "\<lbrakk>compact S; closedin (subtopology euclidean S) T\<rbrakk> \<Longrightarrow> compact T"
 by (metis closedin_closed compact_Int_closed)

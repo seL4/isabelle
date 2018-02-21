@@ -7261,6 +7261,66 @@ proof -
   with assms show ?thesis by auto
 qed
 
+lemma vector_in_orthogonal_spanningset:
+  fixes a :: "'a::euclidean_space"
+  obtains S where "a \<in> S" "pairwise orthogonal S" "span S = UNIV"
+  by (metis UNIV_I Un_iff empty_iff insert_subset orthogonal_extension pairwise_def pairwise_orthogonal_insert span_UNIV subsetI subset_antisym)
+
+lemma vector_in_orthogonal_basis:
+  fixes a :: "'a::euclidean_space"
+  assumes "a \<noteq> 0"
+  obtains S where "a \<in> S" "0 \<notin> S" "pairwise orthogonal S" "independent S" "finite S"
+                  "span S = UNIV" "card S = DIM('a)"
+proof -
+  obtain S where S: "a \<in> S" "pairwise orthogonal S" "span S = UNIV"
+    using vector_in_orthogonal_spanningset .
+  show thesis
+  proof
+    show "pairwise orthogonal (S - {0})"
+      using pairwise_mono S(2) by blast
+    show "independent (S - {0})"
+      by (simp add: \<open>pairwise orthogonal (S - {0})\<close> pairwise_orthogonal_independent)
+    show "finite (S - {0})"
+      using \<open>independent (S - {0})\<close> independent_finite by blast
+    show "card (S - {0}) = DIM('a)"
+      using span_delete_0 [of S] S
+      by (simp add: \<open>independent (S - {0})\<close> indep_card_eq_dim_span)
+  qed (use S \<open>a \<noteq> 0\<close> in auto)
+qed
+
+lemma vector_in_orthonormal_basis:
+  fixes a :: "'a::euclidean_space"
+  assumes "norm a = 1"
+  obtains S where "a \<in> S" "pairwise orthogonal S" "\<And>x. x \<in> S \<Longrightarrow> norm x = 1"
+    "independent S" "card S = DIM('a)" "span S = UNIV"
+proof -
+  have "a \<noteq> 0"
+    using assms by auto
+  then obtain S where "a \<in> S" "0 \<notin> S" "finite S"
+          and S: "pairwise orthogonal S" "independent S" "span S = UNIV" "card S = DIM('a)"
+    by (metis vector_in_orthogonal_basis)
+  let ?S = "(\<lambda>x. x /\<^sub>R norm x) ` S"
+  show thesis
+  proof
+    show "a \<in> ?S"
+      using \<open>a \<in> S\<close> assms image_iff by fastforce
+  next
+    show "pairwise orthogonal ?S"
+      using \<open>pairwise orthogonal S\<close> by (auto simp: pairwise_def orthogonal_def)
+    show "\<And>x. x \<in> (\<lambda>x. x /\<^sub>R norm x) ` S \<Longrightarrow> norm x = 1"
+      using \<open>0 \<notin> S\<close> by (auto simp: divide_simps)
+    then show "independent ?S"
+      by (metis \<open>pairwise orthogonal ((\<lambda>x. x /\<^sub>R norm x) ` S)\<close> norm_zero pairwise_orthogonal_independent zero_neq_one)
+    have "inj_on (\<lambda>x. x /\<^sub>R norm x) S"
+      unfolding inj_on_def
+      by (metis (full_types) S(1) \<open>0 \<notin> S\<close> inverse_nonzero_iff_nonzero norm_eq_zero orthogonal_scaleR orthogonal_self pairwise_def)
+    then show "card ?S = DIM('a)"
+      by (simp add: card_image S)
+    show "span ?S = UNIV"
+      by (metis (no_types) \<open>0 \<notin> S\<close> \<open>finite S\<close> \<open>span S = UNIV\<close> field_class.field_inverse_zero inverse_inverse_eq less_irrefl span_image_scale zero_less_norm_iff)
+  qed
+qed
+
 proposition dim_orthogonal_sum:
   fixes A :: "'a::euclidean_space set"
   assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"

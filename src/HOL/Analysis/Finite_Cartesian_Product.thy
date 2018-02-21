@@ -134,6 +134,28 @@ proof (cases "finite (UNIV :: 'a set)")
   qed
 qed (simp_all add: infinite_UNIV_vec)
 
+lemma countable_vector:
+  fixes B:: "'n::finite \<Rightarrow> 'a set"
+  assumes "\<And>i. countable (B i)"
+  shows "countable {V. \<forall>i::'n::finite. V $ i \<in> B i}"
+proof -
+  have "f \<in> ($) ` {V. \<forall>i. V $ i \<in> B i}" if "f \<in> Pi\<^sub>E UNIV B" for f
+  proof -
+    have "\<exists>W. (\<forall>i. W $ i \<in> B i) \<and> ($) W = f"
+      by (metis that PiE_iff UNIV_I vec_lambda_inverse)
+    then show "f \<in> ($) ` {v. \<forall>i. v $ i \<in> B i}"
+      by blast
+  qed
+  then have "Pi\<^sub>E UNIV B = vec_nth ` {V. \<forall>i::'n. V $ i \<in> B i}"
+    by blast
+  then have "countable (vec_nth ` {V. \<forall>i. V $ i \<in> B i})"
+    by (metis finite_class.finite_UNIV countable_PiE assms)
+  then have "countable (vec_lambda ` vec_nth ` {V. \<forall>i. V $ i \<in> B i})"
+    by auto
+  then show ?thesis
+    by (simp add: image_comp o_def vec_nth_inverse)
+qed
+
 subsection \<open>Group operations and class instances\<close>
 
 instantiation vec :: (zero, finite) zero
@@ -590,6 +612,9 @@ lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
   apply simp_all
   apply (simp add: axis_def)
   done
+
+lemma inner_axis': "inner(axis i y) x = inner y (x $ i)"
+  by (simp add: inner_axis inner_commute)
 
 instantiation vec :: (euclidean_space, finite) euclidean_space
 begin
