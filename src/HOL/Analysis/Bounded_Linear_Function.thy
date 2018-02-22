@@ -8,7 +8,34 @@ theory Bounded_Linear_Function
 imports
   Topology_Euclidean_Space
   Operator_Norm
+  Uniform_Limit
 begin
+
+lemma onorm_componentwise:
+  assumes "bounded_linear f"
+  shows "onorm f \<le> (\<Sum>i\<in>Basis. norm (f i))"
+proof -
+  {
+    fix i::'a
+    assume "i \<in> Basis"
+    hence "onorm (\<lambda>x. (x \<bullet> i) *\<^sub>R f i) \<le> onorm (\<lambda>x. (x \<bullet> i)) * norm (f i)"
+      by (auto intro!: onorm_scaleR_left_lemma bounded_linear_inner_left)
+    also have "\<dots> \<le>  norm i * norm (f i)"
+      by (rule mult_right_mono)
+        (auto simp: ac_simps Cauchy_Schwarz_ineq2 intro!: onorm_le)
+    finally have "onorm (\<lambda>x. (x \<bullet> i) *\<^sub>R f i) \<le> norm (f i)" using \<open>i \<in> Basis\<close>
+      by simp
+  } hence "onorm (\<lambda>x. \<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<le> (\<Sum>i\<in>Basis. norm (f i))"
+    by (auto intro!: order_trans[OF onorm_sum_le] bounded_linear_scaleR_const
+      sum_mono bounded_linear_inner_left)
+  also have "(\<lambda>x. \<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) = (\<lambda>x. f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i))"
+    by (simp add: linear_sum bounded_linear.linear assms linear_simps)
+  also have "\<dots> = f"
+    by (simp add: euclidean_representation)
+  finally show ?thesis .
+qed
+
+lemmas onorm_componentwise_le = order_trans[OF onorm_componentwise]
 
 subsection \<open>Intro rules for @{term bounded_linear}\<close>
 
@@ -447,6 +474,15 @@ lemma
   shows "continuous F f"
   using assms by (auto simp: continuous_def intro!: tendsto_componentwise1)
 
+lemma
+  continuous_on_blinfun_componentwise:
+  fixes f:: "'d::t2_space \<Rightarrow> 'e::euclidean_space \<Rightarrow>\<^sub>L 'f::real_normed_vector"
+  assumes "\<And>i. i \<in> Basis \<Longrightarrow> continuous_on s (\<lambda>x. f x i)"
+  shows "continuous_on s f"
+  using assms
+  by (auto intro!: continuous_at_imp_continuous_on intro!: tendsto_componentwise1
+    simp: continuous_on_eq_continuous_within continuous_def)
+
 lemma bounded_linear_blinfun_matrix: "bounded_linear (\<lambda>x. (x::_\<Rightarrow>\<^sub>L _) j \<bullet> i)"
   by (auto intro!: bounded_linearI' bounded_linear_intros)
 
@@ -691,5 +727,10 @@ lemmas [simp] = blinfun_mult_left.rep_eq
 
 lemma bounded_linear_blinfun_mult_left[bounded_linear]: "bounded_linear blinfun_mult_left"
   by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_mult])
+
+lemmas bounded_linear_function_uniform_limit_intros[uniform_limit_intros] =
+  bounded_linear.uniform_limit[OF bounded_linear_apply_blinfun]
+  bounded_linear.uniform_limit[OF bounded_linear_blinfun_apply]
+  bounded_linear.uniform_limit[OF bounded_linear_blinfun_matrix]
 
 end

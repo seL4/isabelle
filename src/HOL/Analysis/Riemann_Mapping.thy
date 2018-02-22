@@ -489,7 +489,7 @@ next
     let ?g = "\<lambda>z. (SOME g. polynomial_function g \<and> path_image g \<subseteq> S \<and> pathstart g = a \<and> pathfinish g = z)"
     show "((\<lambda>z. contour_integral (?g z) f) has_field_derivative f x)
           (at x)"
-    proof (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right, rule Lim_transform)
+    proof (simp add: has_field_derivative_def has_derivative_at2 bounded_linear_mult_right, rule Lim_transform)
       show "(\<lambda>y. inverse(norm(y - x)) *\<^sub>R (contour_integral(linepath x y) f - f x * (y - x))) \<midarrow>x\<rightarrow> 0"
       proof (clarsimp simp add: Lim_at)
         fix e::real assume "e > 0"

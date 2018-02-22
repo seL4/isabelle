@@ -1,7 +1,7 @@
 section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space.\<close>
 
 theory Cartesian_Euclidean_Space
-imports Finite_Cartesian_Product Derivative 
+imports Finite_Cartesian_Product Derivative
 begin
 
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
@@ -1454,5 +1454,10 @@ lemma interval_split_cart:
   unfolding Int_iff mem_box_cart mem_Collect_eq interval_cbox_cart
   unfolding vec_lambda_beta
   by auto
+
+lemmas cartesian_euclidean_space_uniform_limit_intros[uniform_limit_intros] =
+  bounded_linear.uniform_limit[OF blinfun.bounded_linear_right]
+  bounded_linear.uniform_limit[OF bounded_linear_vec_nth]
+  bounded_linear.uniform_limit[OF bounded_linear_component_cart]
 
 end

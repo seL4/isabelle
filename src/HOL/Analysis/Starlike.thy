@@ -13,8 +13,86 @@ theory Starlike
 
 begin
 
+subsection \<open>Midpoint\<close>
+
 definition midpoint :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a"
   where "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
+
+lemma midpoint_idem [simp]: "midpoint x x = x"
+  unfolding midpoint_def
+  unfolding scaleR_right_distrib
+  unfolding scaleR_left_distrib[symmetric]
+  by auto
+
+lemma midpoint_sym: "midpoint a b = midpoint b a"
+  unfolding midpoint_def by (auto simp add: scaleR_right_distrib)
+
+lemma midpoint_eq_iff: "midpoint a b = c \<longleftrightarrow> a + b = c + c"
+proof -
+  have "midpoint a b = c \<longleftrightarrow> scaleR 2 (midpoint a b) = scaleR 2 c"
+    by simp
+  then show ?thesis
+    unfolding midpoint_def scaleR_2 [symmetric] by simp
+qed
+
+lemma
+  fixes a::real
+  assumes "a \<le> b" shows ge_midpoint_1: "a \<le> midpoint a b"
+                    and le_midpoint_1: "midpoint a b \<le> b"
+  by (simp_all add: midpoint_def assms)
+
+lemma dist_midpoint:
+  fixes a b :: "'a::real_normed_vector" shows
+  "dist a (midpoint a b) = (dist a b) / 2" (is ?t1)
+  "dist b (midpoint a b) = (dist a b) / 2" (is ?t2)
+  "dist (midpoint a b) a = (dist a b) / 2" (is ?t3)
+  "dist (midpoint a b) b = (dist a b) / 2" (is ?t4)
+proof -
+  have *: "\<And>x y::'a. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2"
+    unfolding equation_minus_iff by auto
+  have **: "\<And>x y::'a. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2"
+    by auto
+  note scaleR_right_distrib [simp]
+  show ?t1
+    unfolding midpoint_def dist_norm
+    apply (rule **)
+    apply (simp add: scaleR_right_diff_distrib)
+    apply (simp add: scaleR_2)
+    done
+  show ?t2
+    unfolding midpoint_def dist_norm
+    apply (rule *)
+    apply (simp add: scaleR_right_diff_distrib)
+    apply (simp add: scaleR_2)
+    done
+  show ?t3
+    unfolding midpoint_def dist_norm
+    apply (rule *)
+    apply (simp add: scaleR_right_diff_distrib)
+    apply (simp add: scaleR_2)
+    done
+  show ?t4
+    unfolding midpoint_def dist_norm
+    apply (rule **)
+    apply (simp add: scaleR_right_diff_distrib)
+    apply (simp add: scaleR_2)
+    done
+qed
+
+lemma midpoint_eq_endpoint [simp]:
+  "midpoint a b = a \<longleftrightarrow> a = b"
+  "midpoint a b = b \<longleftrightarrow> a = b"
+  unfolding midpoint_eq_iff by auto
+
+lemma midpoint_plus_self [simp]: "midpoint a b + midpoint a b = a + b"
+  using midpoint_eq_iff by metis
+
+lemma midpoint_linear_image:
+   "linear f \<Longrightarrow> midpoint(f a)(f b) = f(midpoint a b)"
+by (simp add: linear_iff midpoint_def)
+
+
+subsection \<open>Line segments\<close>
 
 definition closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set"
   where "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
@@ -106,86 +184,6 @@ lemma of_real_open_segment [simp]:
   apply (auto simp: in_segment scaleR_conv_of_real elim!: ex_forward del: exE)
   using of_real_eq_iff by fastforce
 
-lemma midpoint_idem [simp]: "midpoint x x = x"
-  unfolding midpoint_def
-  unfolding scaleR_right_distrib
-  unfolding scaleR_left_distrib[symmetric]
-  by auto
-
-lemma midpoint_sym: "midpoint a b = midpoint b a"
-  unfolding midpoint_def by (auto simp add: scaleR_right_distrib)
-
-lemma midpoint_eq_iff: "midpoint a b = c \<longleftrightarrow> a + b = c + c"
-proof -
-  have "midpoint a b = c \<longleftrightarrow> scaleR 2 (midpoint a b) = scaleR 2 c"
-    by simp
-  then show ?thesis
-    unfolding midpoint_def scaleR_2 [symmetric] by simp
-qed
-
-lemma
-  fixes a::real
-  assumes "a \<le> b" shows ge_midpoint_1: "a \<le> midpoint a b"
-                    and le_midpoint_1: "midpoint a b \<le> b"
-  by (simp_all add: midpoint_def assms)
-
-lemma dist_midpoint:
-  fixes a b :: "'a::real_normed_vector" shows
-  "dist a (midpoint a b) = (dist a b) / 2" (is ?t1)
-  "dist b (midpoint a b) = (dist a b) / 2" (is ?t2)
-  "dist (midpoint a b) a = (dist a b) / 2" (is ?t3)
-  "dist (midpoint a b) b = (dist a b) / 2" (is ?t4)
-proof -
-  have *: "\<And>x y::'a. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2"
-    unfolding equation_minus_iff by auto
-  have **: "\<And>x y::'a. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2"
-    by auto
-  note scaleR_right_distrib [simp]
-  show ?t1
-    unfolding midpoint_def dist_norm
-    apply (rule **)
-    apply (simp add: scaleR_right_diff_distrib)
-    apply (simp add: scaleR_2)
-    done
-  show ?t2
-    unfolding midpoint_def dist_norm
-    apply (rule *)
-    apply (simp add: scaleR_right_diff_distrib)
-    apply (simp add: scaleR_2)
-    done
-  show ?t3
-    unfolding midpoint_def dist_norm
-    apply (rule *)
-    apply (simp add: scaleR_right_diff_distrib)
-    apply (simp add: scaleR_2)
-    done
-  show ?t4
-    unfolding midpoint_def dist_norm
-    apply (rule **)
-    apply (simp add: scaleR_right_diff_distrib)
-    apply (simp add: scaleR_2)
-    done
-qed
-
-lemma midpoint_eq_endpoint [simp]:
-  "midpoint a b = a \<longleftrightarrow> a = b"
-  "midpoint a b = b \<longleftrightarrow> a = b"
-  unfolding midpoint_eq_iff by auto
-
-lemma midpoint_plus_self [simp]: "midpoint a b + midpoint a b = a + b"
-  using midpoint_eq_iff by metis
-
-lemma midpoint_linear_image:
-   "linear f \<Longrightarrow> midpoint(f a)(f b) = f(midpoint a b)"
-by (simp add: linear_iff midpoint_def)
-
-subsection\<open>Starlike sets\<close>
-
-definition "starlike S \<longleftrightarrow> (\<exists>a\<in>S. \<forall>x\<in>S. closed_segment a x \<subseteq> S)"
-
-lemma starlike_UNIV [simp]: "starlike UNIV"
-  by (simp add: starlike_def)
-
 lemma convex_contains_segment:
   "convex S \<longleftrightarrow> (\<forall>a\<in>S. \<forall>b\<in>S. closed_segment a b \<subseteq> S)"
   unfolding convex_alt closed_segment_def by auto
@@ -196,10 +194,6 @@ lemma closed_segment_subset: "\<lbrakk>x \<in> S; y \<in> S; convex S\<rbrakk> \
 lemma closed_segment_subset_convex_hull:
     "\<lbrakk>x \<in> convex hull S; y \<in> convex hull S\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> convex hull S"
   using convex_contains_segment by blast
-
-lemma convex_imp_starlike:
-  "convex S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> starlike S"
-  unfolding convex_contains_segment starlike_def by auto
 
 lemma segment_convex_hull:
   "closed_segment a b = convex hull {a,b}"
@@ -349,7 +343,7 @@ proof (intro conjI)
   proof -
     have "norm ((1 - 1 * u) *\<^sub>R (a - b)) = (1 - 1 * u) * norm (a - b)"
       using \<open>u \<le> 1\<close> by force
-    then show ?thesis                     
+    then show ?thesis
       by (simp add: dist_norm real_vector.scale_right_diff_distrib)
   qed
   also have "... \<le> dist a b"
@@ -581,13 +575,39 @@ proof -
     by (metis image_comp convex_translation)
 qed
 
-
 lemmas convex_segment = convex_closed_segment convex_open_segment
 
 lemma connected_segment [iff]:
   fixes x :: "'a :: real_normed_vector"
   shows "connected (closed_segment x y)"
   by (simp add: convex_connected)
+
+lemma is_interval_closed_segment_1[intro, simp]: "is_interval (closed_segment a b)" for a b::real
+  by (auto simp: is_interval_convex_1)
+
+lemma IVT'_closed_segment_real:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "y \<in> closed_segment (f a) (f b)"
+  assumes "continuous_on (closed_segment a b) f"
+  shows "\<exists>x \<in> closed_segment a b. f x = y"
+  using IVT'[of f a y b]
+    IVT'[of "-f" a "-y" b]
+    IVT'[of f b y a]
+    IVT'[of "-f" b "-y" a] assms
+  by (cases "a \<le> b"; cases "f b \<ge> f a") (auto simp: closed_segment_eq_real_ivl continuous_on_minus)
+
+
+subsection\<open>Starlike sets\<close>
+
+definition "starlike S \<longleftrightarrow> (\<exists>a\<in>S. \<forall>x\<in>S. closed_segment a x \<subseteq> S)"
+
+lemma starlike_UNIV [simp]: "starlike UNIV"
+  by (simp add: starlike_def)
+
+lemma convex_imp_starlike:
+  "convex S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> starlike S"
+  unfolding convex_contains_segment starlike_def by auto
+
 
 lemma affine_hull_closed_segment [simp]:
      "affine hull (closed_segment a b) = affine hull {a,b}"

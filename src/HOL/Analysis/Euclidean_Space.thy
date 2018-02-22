@@ -84,6 +84,10 @@ lemma (in euclidean_space) euclidean_representation_sum':
 lemma (in euclidean_space) euclidean_representation: "(\<Sum>b\<in>Basis. inner x b *\<^sub>R b) = x"
   unfolding euclidean_representation_sum by simp
 
+lemma (in euclidean_space) euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (inner x b) * (inner y b))"
+  by (subst (1 2) euclidean_representation [symmetric])
+    (simp add: inner_sum_right inner_Basis ac_simps)
+
 lemma (in euclidean_space) choice_Basis_iff:
   fixes P :: "'a \<Rightarrow> real \<Rightarrow> bool"
   shows "(\<forall>i\<in>Basis. \<exists>x. P i x) \<longleftrightarrow> (\<exists>x. \<forall>i\<in>Basis. P i (inner x i))"

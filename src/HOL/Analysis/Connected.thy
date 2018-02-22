@@ -1095,6 +1095,43 @@ next
   qed
 qed
 
+text \<open>Hence some handy theorems on distance, diameter etc. of/from a set.\<close>
+
+lemma distance_attains_sup:
+  assumes "compact s" "s \<noteq> {}"
+  shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a y \<le> dist a x"
+proof (rule continuous_attains_sup [OF assms])
+  {
+    fix x
+    assume "x\<in>s"
+    have "(dist a \<longlongrightarrow> dist a x) (at x within s)"
+      by (intro tendsto_dist tendsto_const tendsto_ident_at)
+  }
+  then show "continuous_on s (dist a)"
+    unfolding continuous_on ..
+qed
+
+text \<open>For \emph{minimal} distance, we only need closure, not compactness.\<close>
+
+lemma distance_attains_inf:
+  fixes a :: "'a::heine_borel"
+  assumes "closed s" and "s \<noteq> {}"
+  obtains x where "x\<in>s" "\<And>y. y \<in> s \<Longrightarrow> dist a x \<le> dist a y"
+proof -
+  from assms obtain b where "b \<in> s" by auto
+  let ?B = "s \<inter> cball a (dist b a)"
+  have "?B \<noteq> {}" using \<open>b \<in> s\<close>
+    by (auto simp: dist_commute)
+  moreover have "continuous_on ?B (dist a)"
+    by (auto intro!: continuous_at_imp_continuous_on continuous_dist continuous_ident continuous_const)
+  moreover have "compact ?B"
+    by (intro closed_Int_compact \<open>closed s\<close> compact_cball)
+  ultimately obtain x where "x \<in> ?B" "\<forall>y\<in>?B. dist a x \<le> dist a y"
+    by (metis continuous_attains_inf)
+  with that show ?thesis by fastforce
+qed
+
+
 subsection\<open>Relations among convergence and absolute convergence for power series.\<close>
 
 lemma summable_imp_bounded:
@@ -1353,6 +1390,24 @@ lemma infdist_pos_not_in_closed:
   shows "infdist x S > 0"
 using in_closed_iff_infdist_zero[OF assms(1) assms(2), of x] assms(3) infdist_nonneg le_less by fastforce
 
+lemma
+  infdist_attains_inf:
+  fixes X::"'a::heine_borel set"
+  assumes "closed X"
+  assumes "X \<noteq> {}"
+  obtains x where "x \<in> X" "infdist y X = dist y x"
+proof -
+  have "bdd_below (dist y ` X)"
+    by auto
+  from distance_attains_inf[OF assms, of y]
+  obtain x where INF: "x \<in> X" "\<And>z. z \<in> X \<Longrightarrow> dist y x \<le> dist y z" by auto
+  have "infdist y X = dist y x"
+    by (auto simp: infdist_def assms
+      intro!: antisym cINF_lower[OF _ \<open>x \<in> X\<close>] cINF_greatest[OF assms(2) INF(2)])
+  with \<open>x \<in> X\<close> show ?thesis ..
+qed
+
+
 text \<open>Every metric space is a T4 space:\<close>
 
 instance metric_space \<subseteq> t4_space
@@ -1422,6 +1477,36 @@ lemma continuous_infdist[continuous_intros]:
   assumes "continuous F f"
   shows "continuous F (\<lambda>x. infdist (f x) A)"
   using assms unfolding continuous_def by (rule tendsto_infdist)
+
+lemma compact_infdist_le:
+  fixes A::"'a::heine_borel set"
+  assumes "A \<noteq> {}"
+  assumes "compact A"
+  assumes "e > 0"
+  shows "compact {x. infdist x A \<le> e}"
+proof -
+  from continuous_closed_vimage[of "{0..e}" "\<lambda>x. infdist x A"]
+    continuous_infdist[OF continuous_ident, of _ UNIV A]
+  have "closed {x. infdist x A \<le> e}" by (auto simp: vimage_def infdist_nonneg)
+  moreover
+  from assms obtain x0 b where b: "\<And>x. x \<in> A \<Longrightarrow> dist x0 x \<le> b" "closed A"
+    by (auto simp: compact_eq_bounded_closed bounded_def)
+  {
+    fix y
+    assume le: "infdist y A \<le> e"
+    from infdist_attains_inf[OF \<open>closed A\<close> \<open>A \<noteq> {}\<close>, of y]
+    obtain z where z: "z \<in> A" "infdist y A = dist y z" by blast
+    have "dist x0 y \<le> dist y z + dist x0 z"
+      by (metis dist_commute dist_triangle)
+    also have "dist y z \<le> e" using le z by simp
+    also have "dist x0 z \<le> b" using b z by simp
+    finally have "dist x0 y \<le> b + e" by arith
+  } then
+  have "bounded {x. infdist x A \<le> e}"
+    by (auto simp: bounded_any_center[where a=x0] intro!: exI[where x="b + e"])
+  ultimately show "compact {x. infdist x A \<le> e}"
+    by (simp add: compact_eq_bounded_closed)
+qed
 
 subsection \<open>Equality of continuous functions on closure and related results.\<close>
 
@@ -2209,6 +2294,13 @@ proof -
     by (metis assms continuous_open_vimage vimage_def)
 qed
 
+lemma open_neg_translation:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "open s"
+  shows "open((\<lambda>x. a - x) ` s)"
+  using open_translation[OF open_negations[OF assms], of a]
+  by (auto simp: image_image)
+
 lemma open_affinity:
   fixes S :: "'a::real_normed_vector set"
   assumes "open S"  "c \<noteq> 0"
@@ -2391,42 +2483,6 @@ lemma continuous_on_real_range:
   shows "continuous_on s f \<longleftrightarrow>
     (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d \<longrightarrow> \<bar>f x' - f x\<bar> < e))"
   unfolding continuous_on_iff dist_norm by simp
-
-text \<open>Hence some handy theorems on distance, diameter etc. of/from a set.\<close>
-
-lemma distance_attains_sup:
-  assumes "compact s" "s \<noteq> {}"
-  shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a y \<le> dist a x"
-proof (rule continuous_attains_sup [OF assms])
-  {
-    fix x
-    assume "x\<in>s"
-    have "(dist a \<longlongrightarrow> dist a x) (at x within s)"
-      by (intro tendsto_dist tendsto_const tendsto_ident_at)
-  }
-  then show "continuous_on s (dist a)"
-    unfolding continuous_on ..
-qed
-
-text \<open>For \emph{minimal} distance, we only need closure, not compactness.\<close>
-
-lemma distance_attains_inf:
-  fixes a :: "'a::heine_borel"
-  assumes "closed s" and "s \<noteq> {}"
-  obtains x where "x\<in>s" "\<And>y. y \<in> s \<Longrightarrow> dist a x \<le> dist a y"
-proof -
-  from assms obtain b where "b \<in> s" by auto
-  let ?B = "s \<inter> cball a (dist b a)"
-  have "?B \<noteq> {}" using \<open>b \<in> s\<close>
-    by (auto simp: dist_commute)
-  moreover have "continuous_on ?B (dist a)"
-    by (auto intro!: continuous_at_imp_continuous_on continuous_dist continuous_ident continuous_const)
-  moreover have "compact ?B"
-    by (intro closed_Int_compact \<open>closed s\<close> compact_cball)
-  ultimately obtain x where "x \<in> ?B" "\<forall>y\<in>?B. dist a x \<le> dist a y"
-    by (metis continuous_attains_inf)
-  with that show ?thesis by fastforce
-qed
 
 
 subsection \<open>Cartesian products\<close>
@@ -2909,6 +2965,38 @@ proof -
     using assms(3) by auto
   show ?thesis
     using separate_compact_closed[OF assms(2,1) *] by (force simp: dist_commute)
+qed
+
+lemma compact_in_open_separated:
+  fixes A::"'a::heine_borel set"
+  assumes "A \<noteq> {}"
+  assumes "compact A"
+  assumes "open B"
+  assumes "A \<subseteq> B"
+  obtains e where "e > 0" "{x. infdist x A \<le> e} \<subseteq> B"
+proof atomize_elim
+  have "closed (- B)" "compact A" "- B \<inter> A = {}"
+    using assms by (auto simp: open_Diff compact_eq_bounded_closed)
+  from separate_closed_compact[OF this]
+  obtain d'::real where d': "d'>0" "\<And>x y. x \<notin> B \<Longrightarrow> y \<in> A \<Longrightarrow> d' \<le> dist x y"
+    by auto
+  define d where "d = d' / 2"
+  hence "d>0" "d < d'" using d' by auto
+  with d' have d: "\<And>x y. x \<notin> B \<Longrightarrow> y \<in> A \<Longrightarrow> d < dist x y"
+    by force
+  show "\<exists>e>0. {x. infdist x A \<le> e} \<subseteq> B"
+  proof (rule ccontr)
+    assume "\<nexists>e. 0 < e \<and> {x. infdist x A \<le> e} \<subseteq> B"
+    with \<open>d > 0\<close> obtain x where x: "infdist x A \<le> d" "x \<notin> B"
+      by auto
+    from assms have "closed A" "A \<noteq> {}" by (auto simp: compact_eq_bounded_closed)
+    from infdist_attains_inf[OF this]
+    obtain y where y: "y \<in> A" "infdist x A = dist x y"
+      by auto
+    have "dist x y \<le> d" using x y by simp
+    also have "\<dots> < dist x y" using y d x by auto
+    finally show False by simp
+  qed
 qed
 
 
@@ -4220,6 +4308,14 @@ proof -
   ultimately show ?thesis
     using \<open>x\<in>s\<close> by blast
 qed
+
+lemma banach_fix_type:
+  fixes f::"'a::complete_space\<Rightarrow>'a"
+  assumes c:"0 \<le> c" "c < 1"
+      and lipschitz:"\<forall>x. \<forall>y. dist (f x) (f y) \<le> c * dist x y"
+  shows "\<exists>!x. (f x = x)"
+  using assms banach_fix[OF complete_UNIV UNIV_not_empty assms(1,2) subset_UNIV, of f]
+  by auto
 
 
 subsection \<open>Edelstein fixed point theorem\<close>

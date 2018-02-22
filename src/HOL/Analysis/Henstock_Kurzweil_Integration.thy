@@ -621,6 +621,11 @@ next
   with False show ?thesis by (simp add: not_integrable_integral)
 qed
 
+lemma integral_mult:
+  fixes K::real
+  shows "f integrable_on X \<Longrightarrow> K * integral X f = integral X (\<lambda>x. K * f x)"
+  unfolding real_scaleR_def[symmetric] integral_cmul ..
+
 lemma integral_neg [simp]: "integral S (\<lambda>x. - f x) = - integral S f"
 proof (cases "f integrable_on S")
   case True then show ?thesis
@@ -2549,6 +2554,13 @@ lemma integrable_continuous_interval:
 
 lemmas integrable_continuous_real = integrable_continuous_interval[where 'b=real]
 
+lemma integrable_continuous_closed_segment:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "continuous_on (closed_segment a b) f"
+  shows "f integrable_on (closed_segment a b)"
+  using assms
+  by (auto intro!: integrable_continuous_interval simp: closed_segment_eq_real_ivl)
+
 
 subsection \<open>Specialization of additivity to one dimension.\<close>
 
@@ -2722,6 +2734,32 @@ by (metis atLeastatMost_empty_iff integrable_on_def has_integral_empty ident_has
 
 subsection \<open>Taylor series expansion\<close>
 
+lemma mvt_integral:
+  fixes f::"'a::real_normed_vector\<Rightarrow>'b::banach"
+  assumes f'[derivative_intros]:
+    "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
+  assumes line_in: "\<And>t. t \<in> {0..1} \<Longrightarrow> x + t *\<^sub>R y \<in> S"
+  shows "f (x + y) - f x = integral {0..1} (\<lambda>t. f' (x + t *\<^sub>R y) y)" (is ?th1)
+proof -
+  from assms have subset: "(\<lambda>xa. x + xa *\<^sub>R y) ` {0..1} \<subseteq> S" by auto
+  note [derivative_intros] =
+    has_derivative_subset[OF _ subset]
+    has_derivative_in_compose[where f="(\<lambda>xa. x + xa *\<^sub>R y)" and g = f]
+  note [continuous_intros] =
+    continuous_on_compose2[where f="(\<lambda>xa. x + xa *\<^sub>R y)"]
+    continuous_on_subset[OF _ subset]
+  have "\<And>t. t \<in> {0..1} \<Longrightarrow>
+    ((\<lambda>t. f (x + t *\<^sub>R y)) has_vector_derivative f' (x + t *\<^sub>R y) y)
+    (at t within {0..1})"
+    using assms
+    by (auto simp: has_vector_derivative_def
+        linear_cmul[OF has_derivative_linear[OF f'], symmetric]
+      intro!: derivative_eq_intros)
+  from fundamental_theorem_of_calculus[rule_format, OF _ this]
+  show ?th1
+    by (auto intro!: integral_unique[symmetric])
+qed
+
 lemma (in bounded_bilinear) sum_prod_derivatives_has_vector_derivative:
   assumes "p>0"
   and f0: "Df 0 = f"
@@ -2833,7 +2871,6 @@ proof goal_cases
     by (metis (lifting) add.commute diff_eq_eq integral_unique)
   case 3 show ?case using c by force
 qed
-
 
 
 subsection \<open>Only need trivial subintervals if the interval itself is trivial.\<close>
@@ -3024,6 +3061,21 @@ lemma integrable_combine:
   unfolding integrable_on_def
   by (auto intro!: has_integral_combine)
 
+lemma integral_minus_sets:
+  fixes f::"real \<Rightarrow> 'a::banach"
+  shows "c \<le> a \<Longrightarrow> c \<le> b \<Longrightarrow> f integrable_on {c .. max a b} \<Longrightarrow>
+    integral {c .. a} f - integral {c .. b} f =
+    (if a \<le> b then - integral {a .. b} f else integral {b .. a} f)"
+  using integral_combine[of c a b f]  integral_combine[of c b a f]
+  by (auto simp: algebra_simps max_def)
+
+lemma integral_minus_sets':
+  fixes f::"real \<Rightarrow> 'a::banach"
+  shows "c \<ge> a \<Longrightarrow> c \<ge> b \<Longrightarrow> f integrable_on {min a b .. c} \<Longrightarrow>
+    integral {a .. c} f - integral {b .. c} f =
+    (if a \<le> b then integral {a .. b} f else - integral {b .. a} f)"
+  using integral_combine[of b a c f] integral_combine[of a b c f]
+  by (auto simp: algebra_simps min_def)
 
 subsection \<open>Reduce integrability to "local" integrability.\<close>
 
@@ -3129,12 +3181,18 @@ lemma integral_has_vector_derivative:
 using assms integral_has_vector_derivative_continuous_at [OF integrable_continuous_real]
   by (fastforce simp: continuous_on_eq_continuous_within)
 
+lemma integral_has_real_derivative:
+  assumes "continuous_on {a..b} g"
+  assumes "t \<in> {a..b}"
+  shows "((\<lambda>x. integral {a..x} g) has_real_derivative g t) (at t within {a..b})"
+  using integral_has_vector_derivative[of a b g t] assms
+  by (auto simp: has_field_derivative_iff_has_vector_derivative)
+
 lemma antiderivative_continuous:
   fixes q b :: real
   assumes "continuous_on {a..b} f"
   obtains g where "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_vector_derivative (f x::_::banach)) (at x within {a..b})"
   using integral_has_vector_derivative[OF assms] by auto
-
 
 subsection \<open>Combined fundamental theorem of calculus.\<close>
 
@@ -3149,7 +3207,8 @@ proof -
   have "(f has_integral g v - g u) {u..v}" if "u \<in> {a..b}" "v \<in> {a..b}" "u \<le> v" for u v
   proof -
     have "\<And>x. x \<in> cbox u v \<Longrightarrow> (g has_vector_derivative f x) (at x within cbox u v)"
-      by (meson g has_vector_derivative_within_subset interval_subset_is_interval is_interval_closed_interval subsetCE that(1) that(2))
+      by (metis atLeastAtMost_iff atLeastatMost_subset_iff box_real(2) g
+          has_vector_derivative_within_subset subsetCE that(1,2))
     then show ?thesis
       by (metis box_real(2) that(3) fundamental_theorem_of_calculus)
   qed
@@ -4125,6 +4184,28 @@ proof -
     by (rule continuous_on_eq) (auto intro!: continuous_intros indefinite_integral_continuous_1 assms)
 qed
 
+theorem integral_has_vector_derivative':
+  fixes f :: "real \<Rightarrow> 'b::banach"
+  assumes "continuous_on {a..b} f"
+    and "x \<in> {a..b}"
+  shows "((\<lambda>u. integral {u..b} f) has_vector_derivative - f x) (at x within {a..b})"
+proof -
+  have *: "integral {x..b} f = integral {a .. b} f - integral {a .. x} f" if "a \<le> x" "x \<le> b" for x
+    using integral_combine[of a x b for x, OF that integrable_continuous_real[OF assms(1)]]
+    by (simp add: algebra_simps)
+  show ?thesis
+    using \<open>x \<in> _\<close> *
+    by (rule has_vector_derivative_transform)
+      (auto intro!: derivative_eq_intros assms integral_has_vector_derivative)
+qed
+
+lemma integral_has_real_derivative':
+  assumes "continuous_on {a..b} g"
+  assumes "t \<in> {a..b}"
+  shows "((\<lambda>x. integral {x..b} g) has_real_derivative -g t) (at t within {a..b})"
+  using integral_has_vector_derivative'[OF assms]
+  by (auto simp: has_field_derivative_iff_has_vector_derivative)
+
 
 subsection \<open>This doesn't directly involve integration, but that gives an easy proof.\<close>
 
@@ -4660,6 +4741,10 @@ lemma integrable_spike_set_eq:
   assumes "negligible ((S - T) \<union> (T - S))"
   shows "f integrable_on S \<longleftrightarrow> f integrable_on T"
   by (blast intro: integrable_spike_set assms negligible_subset)
+
+lemma integrable_on_insert_iff: "f integrable_on (insert x X) \<longleftrightarrow> f integrable_on X"
+  for f::"_ \<Rightarrow> 'a::banach"
+  by (rule integrable_spike_set_eq) (auto simp: insert_Diff_if)
 
 lemma has_integral_interior:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
@@ -6049,6 +6134,26 @@ proof -
   qed
 qed
 
+lemma continuous_on_imp_absolutely_integrable_on:
+  fixes f::"real \<Rightarrow> 'a::banach"
+  shows "continuous_on {a..b} f \<Longrightarrow>
+    norm (integral {a..b} f) \<le> integral {a..b} (\<lambda>x. norm (f x))"
+  by (intro integral_norm_bound_integral integrable_continuous_real continuous_on_norm) auto
+
+lemma integral_bound:
+  fixes f::"real \<Rightarrow> 'a::banach"
+  assumes "a \<le> b"
+  assumes "continuous_on {a .. b} f"
+  assumes "\<And>t. t \<in> {a .. b} \<Longrightarrow> norm (f t) \<le> B"
+  shows "norm (integral {a .. b} f) \<le> B * (b - a)"
+proof -
+  note continuous_on_imp_absolutely_integrable_on[OF assms(2)]
+  also have "integral {a..b} (\<lambda>x. norm (f x)) \<le> integral {a..b} (\<lambda>_. B)"
+    by (rule integral_le)
+      (auto intro!: integrable_continuous_real continuous_intros assms)
+  also have "\<dots> = B * (b - a)" using assms by simp
+  finally show ?thesis .
+qed
 
 lemma integral_norm_bound_integral_component:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"

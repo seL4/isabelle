@@ -2987,10 +2987,6 @@ text \<open>Prove that it differs only up to a bound from Euclidean norm.\<close
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
   by (simp add: Basis_le_norm infnorm_Max)
 
-lemma (in euclidean_space) euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
-  by (subst (1 2) euclidean_representation [symmetric])
-    (simp add: inner_sum_right inner_Basis ac_simps)
-
 lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"
   shows "norm x \<le> sqrt DIM('a) * infnorm x"

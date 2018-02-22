@@ -7,7 +7,7 @@
 section \<open>Elementary topology in Euclidean space.\<close>
 
 theory Topology_Euclidean_Space
-imports                                                         
+imports
   "HOL-Library.Indicator_Function"
   "HOL-Library.Countable_Set"
   "HOL-Library.FuncSet"
@@ -1112,6 +1112,9 @@ lemma centre_in_cball [simp]: "x \<in> cball x e \<longleftrightarrow> 0 \<le> e
 lemma ball_subset_cball [simp, intro]: "ball x e \<subseteq> cball x e"
   by (simp add: subset_eq)
 
+lemma mem_ball_imp_mem_cball: "x \<in> ball y e \<Longrightarrow> x \<in> cball y e"
+  by (auto simp: mem_ball mem_cball)
+
 lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
   by force
 
@@ -1123,6 +1126,22 @@ lemma subset_ball[intro]: "d \<le> e \<Longrightarrow> ball x d \<subseteq> ball
 
 lemma subset_cball[intro]: "d \<le> e \<Longrightarrow> cball x d \<subseteq> cball x e"
   by (simp add: subset_eq)
+
+lemma mem_ball_leI: "x \<in> ball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> ball y f"
+  by (auto simp: mem_ball mem_cball)
+
+lemma mem_cball_leI: "x \<in> cball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> cball y f"
+  by (auto simp: mem_ball mem_cball)
+
+lemma cball_trans: "y \<in> cball z b \<Longrightarrow> x \<in> cball y a \<Longrightarrow> x \<in> cball z (b + a)"
+  unfolding mem_cball
+proof -
+  have "dist z x \<le> dist z y + dist y x"
+    by (rule dist_triangle)
+  also assume "dist z y \<le> b"
+  also assume "dist y x \<le> a"
+  finally show "dist z x \<le> b + a" by arith
+qed
 
 lemma ball_max_Un: "ball a (max r s) = ball a r \<union> ball a s"
   by (simp add: set_eq_iff) arith
@@ -1253,6 +1272,17 @@ lemma euclidean_dist_l2:
   unfolding dist_norm norm_eq_sqrt_inner L2_set_def
   by (subst euclidean_inner) (simp add: power2_eq_square inner_diff_left)
 
+lemma norm_nth_le: "norm (x \<bullet> i) \<le> norm x" if "i \<in> Basis"
+proof -
+  have "(x \<bullet> i)\<^sup>2 = (\<Sum>i\<in>{i}. (x \<bullet> i)\<^sup>2)"
+    by simp
+  also have "\<dots> \<le> (\<Sum>i\<in>Basis. (x \<bullet> i)\<^sup>2)"
+    by (intro sum_mono2) (auto simp: that)
+  finally show ?thesis
+    unfolding norm_conv_dist euclidean_dist_l2[of x] L2_set_def
+    by (auto intro!: real_le_rsqrt)
+qed
+
 lemma eventually_nhds_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>x. x \<in> ball z d) (nhds z)"
   by (rule eventually_nhds_in_open) simp_all
 
@@ -1261,6 +1291,20 @@ lemma eventually_at_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>t. t \<i
 
 lemma eventually_at_ball': "d > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z d \<and> t \<noteq> z \<and> t \<in> A) (at z within A)"
   unfolding eventually_at by (intro exI[of _ d]) (simp_all add: dist_commute)
+
+lemma at_within_ball: "e > 0 \<Longrightarrow> dist x y < e \<Longrightarrow> at y within ball x e = at y"
+  by (subst at_within_open) auto
+
+lemma atLeastAtMost_eq_cball:
+  fixes a b::real
+  shows "{a .. b} = cball ((a + b)/2) ((b - a)/2)"
+  by (auto simp: dist_real_def field_simps mem_cball)
+
+lemma greaterThanLessThan_eq_ball:
+  fixes a b::real
+  shows "{a <..< b} = ball ((a + b)/2) ((b - a)/2)"
+  by (auto simp: dist_real_def field_simps mem_ball)
+
 
 subsection \<open>Boxes\<close>
 
@@ -1834,6 +1878,14 @@ text \<open>Intervals in general, including infinite and mixtures of open and cl
 definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
 
+lemma is_interval_1:
+  "is_interval (s::real set) \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall> x. a \<le> x \<and> x \<le> b \<longrightarrow> x \<in> s)"
+  unfolding is_interval_def by auto
+
+lemma is_interval_inter: "is_interval X \<Longrightarrow> is_interval Y \<Longrightarrow> is_interval (X \<inter> Y)"
+  unfolding is_interval_def
+  by blast
+
 lemma is_interval_cbox [simp]: "is_interval (cbox a (b::'a::euclidean_space))" (is ?th1)
   and is_interval_box [simp]: "is_interval (box a b)" (is ?th2)
   unfolding is_interval_def mem_box Ball_def atLeastAtMost_iff
@@ -1915,6 +1967,88 @@ next
   with \<open>?rhs\<close> show ?lhs
     by blast
 qed
+
+lemma is_real_interval_union:
+  "is_interval (X \<union> Y)"
+  if X: "is_interval X" and Y: "is_interval Y" and I: "(X \<noteq> {} \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> X \<inter> Y \<noteq> {})"
+  for X Y::"real set"
+proof -
+  consider "X \<noteq> {}" "Y \<noteq> {}" | "X = {}" | "Y = {}" by blast
+  then show ?thesis
+  proof cases
+    case 1
+    then obtain r where "r \<in> X \<or> X \<inter> Y = {}" "r \<in> Y \<or> X \<inter> Y = {}"
+      by blast
+    then show ?thesis
+      using I 1 X Y unfolding is_interval_1
+      by (metis (full_types) Un_iff le_cases)
+  qed (use that in auto)
+qed
+
+lemma is_interval_translationI:
+  assumes "is_interval X"
+  shows "is_interval ((+) x ` X)"
+  unfolding is_interval_def
+proof safe
+  fix b d e
+  assume "b \<in> X" "d \<in> X"
+    "\<forall>i\<in>Basis. (x + b) \<bullet> i \<le> e \<bullet> i \<and> e \<bullet> i \<le> (x + d) \<bullet> i \<or>
+       (x + d) \<bullet> i \<le> e \<bullet> i \<and> e \<bullet> i \<le> (x + b) \<bullet> i"
+  hence "e - x \<in> X"
+    by (intro mem_is_intervalI[OF assms \<open>b \<in> X\<close> \<open>d \<in> X\<close>, of "e - x"])
+      (auto simp: algebra_simps)
+  thus "e \<in> (+) x ` X" by force
+qed
+
+lemma is_interval_uminusI:
+  assumes "is_interval X"
+  shows "is_interval (uminus ` X)"
+  unfolding is_interval_def
+proof safe
+  fix b d e
+  assume "b \<in> X" "d \<in> X"
+    "\<forall>i\<in>Basis. (- b) \<bullet> i \<le> e \<bullet> i \<and> e \<bullet> i \<le> (- d) \<bullet> i \<or>
+       (- d) \<bullet> i \<le> e \<bullet> i \<and> e \<bullet> i \<le> (- b) \<bullet> i"
+  hence "- e \<in> X"
+    by (intro mem_is_intervalI[OF assms \<open>b \<in> X\<close> \<open>d \<in> X\<close>, of "- e"])
+      (auto simp: algebra_simps)
+  thus "e \<in> uminus ` X" by force
+qed
+
+lemma is_interval_uminus[simp]: "is_interval (uminus ` x) = is_interval x"
+  using is_interval_uminusI[of x] is_interval_uminusI[of "uminus ` x"]
+  by (auto simp: image_image)
+
+lemma is_interval_neg_translationI:
+  assumes "is_interval X"
+  shows "is_interval ((-) x ` X)"
+proof -
+  have "(-) x ` X = (+) x ` uminus ` X"
+    by (force simp: algebra_simps)
+  also have "is_interval \<dots>"
+    by (metis is_interval_uminusI is_interval_translationI assms)
+  finally show ?thesis .
+qed
+
+lemma is_interval_translation[simp]:
+  "is_interval ((+) x ` X) = is_interval X"
+  using is_interval_neg_translationI[of "(+) x ` X" x]
+  by (auto intro!: is_interval_translationI simp: image_image)
+
+lemma is_interval_minus_translation[simp]:
+  shows "is_interval ((-) x ` X) = is_interval X"
+proof -
+  have "(-) x ` X = (+) x ` uminus ` X"
+    by (force simp: algebra_simps)
+  also have "is_interval \<dots> = is_interval X"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma is_interval_minus_translation'[simp]:
+  shows "is_interval ((\<lambda>x. x - c) ` X) = is_interval X"
+  using is_interval_translation[of "-c" X]
+  by (metis image_cong uminus_add_conv_diff)
 
 
 subsection \<open>Limit points\<close>
@@ -2629,6 +2763,15 @@ lemma trivial_limit_at_infinity:
 lemma not_trivial_limit_within: "\<not> trivial_limit (at x within S) = (x \<in> closure (S - {x}))"
   using islimpt_in_closure by (metis trivial_limit_within)
 
+lemma not_in_closure_trivial_limitI:
+  "x \<notin> closure s \<Longrightarrow> trivial_limit (at x within s)"
+  using not_trivial_limit_within[of x s]
+  by safe (metis Diff_empty Diff_insert0 closure_subset contra_subsetD)
+
+lemma filterlim_at_within_closure_implies_filterlim: "filterlim f l (at x within s)"
+  if "x \<in> closure s \<Longrightarrow> filterlim f l (at x within s)"
+  by (metis bot.extremum filterlim_filtercomap filterlim_mono not_in_closure_trivial_limitI that)
+
 lemma at_within_eq_bot_iff: "at c within A = bot \<longleftrightarrow> c \<notin> closure (A - {c})"
   using not_trivial_limit_within[of c A] by blast
 
@@ -3227,6 +3370,28 @@ proof
       using not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"]
       by auto
   qed
+qed
+
+lemma tendsto_If_within_closures:
+  assumes f: "x \<in> s \<union> (closure s \<inter> closure t) \<Longrightarrow>
+      (f \<longlongrightarrow> l x) (at x within s \<union> (closure s \<inter> closure t))"
+  assumes g: "x \<in> t \<union> (closure s \<inter> closure t) \<Longrightarrow>
+      (g \<longlongrightarrow> l x) (at x within t \<union> (closure s \<inter> closure t))"
+  assumes "x \<in> s \<union> t"
+  shows "((\<lambda>x. if x \<in> s then f x else g x) \<longlongrightarrow> l x) (at x within s \<union> t)"
+proof -
+  have *: "(s \<union> t) \<inter> {x. x \<in> s} = s" "(s \<union> t) \<inter> {x. x \<notin> s} = t - s"
+    by auto
+  have "(f \<longlongrightarrow> l x) (at x within s)"
+    by (rule filterlim_at_within_closure_implies_filterlim)
+       (use \<open>x \<in> _\<close> in \<open>auto simp: inf_commute closure_def intro: tendsto_within_subset[OF f]\<close>)
+  moreover
+  have "(g \<longlongrightarrow> l x) (at x within t - s)"
+    by (rule filterlim_at_within_closure_implies_filterlim)
+      (use \<open>x \<in> _\<close> in
+        \<open>auto intro!: tendsto_within_subset[OF g] simp: closure_def intro: islimpt_subset\<close>)
+  ultimately show ?thesis
+    by (intro filterlim_at_within_If) (simp_all only: *)
 qed
 
 
