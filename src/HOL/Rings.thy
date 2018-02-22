@@ -2245,7 +2245,8 @@ subclass ordered_cancel_comm_semiring ..
 
 end
 
-class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linorder + zero_less_one
+class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linorder + zero_less_one +
+  assumes add_mono1: "a < b \<Longrightarrow> a + 1 < b + 1"
 begin
 
 subclass zero_neq_one
@@ -2278,7 +2279,15 @@ class linordered_semidom = semidom + linordered_comm_semiring_strict + zero_less
   assumes le_add_diff_inverse2 [simp]: "b \<le> a \<Longrightarrow> a - b + b = a"
 begin
 
-subclass linordered_nonzero_semiring ..
+subclass linordered_nonzero_semiring 
+proof
+  show "a + 1 < b + 1" if "a < b" for a b
+  proof (rule ccontr, simp add: not_less)
+    assume "b \<le> a"
+    with that show False
+      by (simp add: )
+  qed
+qed
 
 text \<open>Addition is the inverse of subtraction.\<close>
 
