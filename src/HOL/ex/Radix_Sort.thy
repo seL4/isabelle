@@ -56,7 +56,7 @@ qed
 lemma sorted_from_radix_sort_step:
   "\<lbrakk> cols xss n; i < n; sorted_from (Suc i) xss \<rbrakk> \<Longrightarrow> sorted_from i (sort_key (\<lambda>xs. xs ! i) xss)"
 apply (rule sorted_from_Suc2)
-apply (auto simp add: sort_key_stable[of _ xss "%xs. xs!i"] sorted_filter cols_def)
+apply (auto simp add: sort_key_stable sorted_filter cols_def)
 done
 
 lemma sorted_from_radix_sort:
