@@ -306,12 +306,28 @@ proof (rule has_derivativeI_sandwich[of 1])
     by (simp add: norm_Pair divide_right_mono order_trans [OF sqrt_add_le_add_sqrt])
 qed simp
 
+lemma differentiable_Pair [simp, derivative_intros]:
+  "f differentiable at x within s \<Longrightarrow> g differentiable at x within s \<Longrightarrow>
+    (\<lambda>x. (f x, g x)) differentiable at x within s"
+  unfolding differentiable_def by (blast intro: has_derivative_Pair)
+
 lemmas has_derivative_fst [derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_fst]
 lemmas has_derivative_snd [derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_snd]
 
 lemma has_derivative_split [derivative_intros]:
   "((\<lambda>p. f (fst p) (snd p)) has_derivative f') F \<Longrightarrow> ((\<lambda>(a, b). f a b) has_derivative f') F"
   unfolding split_beta' .
+
+
+subsubsection \<open>Vector derivatives involving pairs\<close>
+
+lemma has_vector_derivative_Pair[derivative_intros]:
+  assumes "(f has_vector_derivative f') (at x within s)"
+    "(g has_vector_derivative g') (at x within s)"
+  shows "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros)
+
 
 subsection \<open>Product is an inner product space\<close>
 
@@ -367,5 +383,10 @@ lemma norm_fst_le: "norm x \<le> norm (x,y)"
 
 lemma norm_snd_le: "norm y \<le> norm (x,y)"
   by (metis dist_snd_le snd_conv snd_zero norm_conv_dist)
+
+lemma norm_Pair_le:
+  shows "norm (x, y) \<le> norm x + norm y"
+  unfolding norm_Pair
+  by (metis norm_ge_zero sqrt_sum_squares_le_sum)
 
 end

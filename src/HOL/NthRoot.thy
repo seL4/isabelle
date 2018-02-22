@@ -480,6 +480,9 @@ qed
 lemma sqrt_le_D: "sqrt x \<le> y \<Longrightarrow> x \<le> y\<^sup>2"
   by (meson not_le real_less_rsqrt)
 
+lemma sqrt_ge_absD: "\<bar>x\<bar> \<le> sqrt y \<Longrightarrow> x\<^sup>2 \<le> y"
+  using real_sqrt_le_iff[of "x\<^sup>2"] by simp
+
 lemma sqrt_even_pow2:
   assumes n: "even n"
   shows "sqrt (2 ^ n) = 2 ^ (n div 2)"
@@ -537,6 +540,8 @@ lemma DERIV_real_sqrt: "0 < x \<Longrightarrow> DERIV sqrt x :> inverse (sqrt x)
 declare
   DERIV_real_sqrt_generic[THEN DERIV_chain2, derivative_intros]
   DERIV_real_root_generic[THEN DERIV_chain2, derivative_intros]
+
+lemmas has_derivative_real_sqrt[derivative_intros] = DERIV_real_sqrt[THEN DERIV_compose_FDERIV]
 
 lemma not_real_square_gt_zero [simp]: "\<not> 0 < x * x \<longleftrightarrow> x = 0"
   for x :: real
@@ -657,6 +662,13 @@ lemma real_sqrt_ge_abs2 [simp]: "\<bar>y\<bar> \<le> sqrt (x\<^sup>2 + y\<^sup>2
 
 lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
   by (simp add: power2_eq_square [symmetric])
+
+lemma sqrt_sum_squares_le_sum:
+  "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) \<le> x + y"
+  apply (rule power2_le_imp_le)
+  apply (simp add: power2_sum)
+  apply simp
+  done
 
 lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<^sup>2 + (b + d)\<^sup>2) \<le> sqrt (a\<^sup>2 + b\<^sup>2) + sqrt (c\<^sup>2 + d\<^sup>2)"

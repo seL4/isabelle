@@ -1389,6 +1389,8 @@ lemma DERIV_exp [simp]: "DERIV exp x :> exp x"
 declare DERIV_exp[THEN DERIV_chain2, derivative_intros]
   and DERIV_exp[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
+lemmas has_derivative_exp[derivative_intros] = DERIV_exp[THEN DERIV_compose_FDERIV]
+
 lemma norm_exp: "norm (exp x) \<le> exp (norm x)"
 proof -
   from summable_norm[OF summable_norm_exp, of x]
@@ -1882,6 +1884,8 @@ lemma DERIV_ln_divide: "0 < x \<Longrightarrow> DERIV ln x :> 1 / x"
 
 declare DERIV_ln_divide[THEN DERIV_chain2, derivative_intros]
   and DERIV_ln_divide[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
+
+lemmas has_derivative_ln[derivative_intros] = DERIV_ln[THEN DERIV_compose_FDERIV]
 
 lemma ln_series:
   assumes "0 < x" and "x < 2"
@@ -3094,24 +3098,33 @@ lemma tendsto_powr2:
   shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
   using tendsto_powr'[of f a F g b] assms by auto
 
+lemma has_derivative_powr[derivative_intros]:
+  assumes g[derivative_intros]: "(g has_derivative g') (at x within X)"
+    and f[derivative_intros]:"(f has_derivative f') (at x within X)"
+  assumes pos: "0 < g x" and "x \<in> X"
+  shows "((\<lambda>x. g x powr f x::real) has_derivative (\<lambda>h. (g x powr f x) * (f' h * ln (g x) + g' h * f x / g x))) (at x within X)"
+proof -
+  have "\<forall>\<^sub>F x in at x within X. g x > 0"
+    by (rule order_tendstoD[OF _ pos])
+      (rule has_derivative_continuous[OF g, unfolded continuous_within])
+  then obtain d where "d > 0" and pos': "\<And>x'. x' \<in> X \<Longrightarrow> dist x' x < d \<Longrightarrow> 0 < g x'"
+    using pos unfolding eventually_at by force
+  have "((\<lambda>x. exp (f x * ln (g x))) has_derivative
+    (\<lambda>h. (g x powr f x) * (f' h * ln (g x) + g' h * f x / g x))) (at x within X)"
+    using pos
+    by (auto intro!: derivative_eq_intros simp: divide_simps powr_def)
+  then show ?thesis
+    by (rule has_derivative_transform_within[OF _ \<open>d > 0\<close> \<open>x \<in> X\<close>]) (auto simp: powr_def dest: pos')
+qed
+
 lemma DERIV_powr:
   fixes r :: real
   assumes g: "DERIV g x :> m"
     and pos: "g x > 0"
     and f: "DERIV f x :> r"
   shows "DERIV (\<lambda>x. g x powr f x) x :> (g x powr f x) * (r * ln (g x) + m * f x / g x)"
-proof -
-  have "DERIV (\<lambda>x. exp (f x * ln (g x))) x :> (g x powr f x) * (r * ln (g x) + m * f x / g x)"
-    using pos
-    by (auto intro!: derivative_eq_intros g pos f simp: powr_def field_simps exp_diff)
-  then show ?thesis
-  proof (rule DERIV_cong_ev[OF refl _ refl, THEN iffD1, rotated])
-    from DERIV_isCont[OF g] pos have "\<forall>\<^sub>F x in at x. 0 < g x"
-      unfolding isCont_def by (rule order_tendstoD(1))
-    with pos show "\<forall>\<^sub>F x in nhds x. exp (f x * ln (g x)) = g x powr f x"
-      by (auto simp: eventually_at_filter powr_def elim: eventually_mono)
-  qed
-qed
+  using assms
+  by (auto intro!: derivative_eq_intros ext simp: has_field_derivative_def algebra_simps)
 
 lemma DERIV_fun_powr:
   fixes r :: real
@@ -3344,6 +3357,8 @@ lemma DERIV_sin [simp]: "DERIV sin x :> cos x"
 declare DERIV_sin[THEN DERIV_chain2, derivative_intros]
   and DERIV_sin[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
+lemmas has_derivative_sin[derivative_intros] = DERIV_sin[THEN DERIV_compose_FDERIV]
+
 lemma DERIV_cos [simp]: "DERIV cos x :> - sin x"
   for x :: "'a::{real_normed_field,banach}"
   unfolding sin_def cos_def scaleR_conv_of_real
@@ -3358,6 +3373,8 @@ lemma DERIV_cos [simp]: "DERIV cos x :> - sin x"
 
 declare DERIV_cos[THEN DERIV_chain2, derivative_intros]
   and DERIV_cos[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
+
+lemmas has_derivative_cos[derivative_intros] = DERIV_cos[THEN DERIV_compose_FDERIV]
 
 lemma isCont_sin: "isCont sin x"
   for x :: "'a::{real_normed_field,banach}"
@@ -4598,6 +4615,8 @@ lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inver
   unfolding tan_def
   by (auto intro!: derivative_eq_intros, simp add: divide_inverse power2_eq_square)
 
+lemmas has_derivative_tan[derivative_intros] = DERIV_tan[THEN DERIV_compose_FDERIV]
+
 lemma isCont_tan: "cos x \<noteq> 0 \<Longrightarrow> isCont tan x"
   for x :: "'a::{real_normed_field,banach}"
   by (rule DERIV_tan [THEN DERIV_isCont])
@@ -5264,6 +5283,10 @@ declare
   DERIV_arccos[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
   DERIV_arctan[THEN DERIV_chain2, derivative_intros]
   DERIV_arctan[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
+
+lemmas has_derivative_arctan[derivative_intros] = DERIV_arctan[THEN DERIV_compose_FDERIV]
+  and has_derivative_arccos[derivative_intros] = DERIV_arccos[THEN DERIV_compose_FDERIV]
+  and has_derivative_arcsin[derivative_intros] = DERIV_arcsin[THEN DERIV_compose_FDERIV]
 
 lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- (pi/2)))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])

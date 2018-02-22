@@ -20,9 +20,19 @@ typedef ('a, 'b) vec = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
 
 declare vec_lambda_inject [simplified, simp]
 
+bundle vec_syntax begin
 notation
   vec_nth (infixl "$" 90) and
   vec_lambda (binder "\<chi>" 10)
+end
+
+bundle no_vec_syntax begin
+no_notation
+  vec_nth (infixl "$" 90) and
+  vec_lambda (binder "\<chi>" 10)
+end
+
+unbundle vec_syntax
 
 (*
   Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n has already more than

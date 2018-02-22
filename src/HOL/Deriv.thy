@@ -26,6 +26,13 @@ text \<open>
   most cases @{term s} is either a variable or @{term UNIV}.
 \<close>
 
+text \<open>These are the only cases we'll care about, probably.\<close>
+
+lemma has_derivative_within: "(f has_derivative f') (at x within s) \<longleftrightarrow>
+    bounded_linear f' \<and> ((\<lambda>y. (1 / norm(y - x)) *\<^sub>R (f y - (f x + f' (y - x)))) \<longlongrightarrow> 0) (at x within s)"
+  unfolding has_derivative_def tendsto_iff
+  by (subst eventually_Lim_ident_at) (auto simp add: field_simps)
+
 lemma has_derivative_eq_rhs: "(f has_derivative f') F \<Longrightarrow> f' = g' \<Longrightarrow> (f has_derivative g') F"
   by simp
 
@@ -189,6 +196,52 @@ lemma has_derivative_subset:
 
 lemmas has_derivative_within_subset = has_derivative_subset
 
+lemma has_derivative_within_singleton_iff:
+  "(f has_derivative g) (at x within {x}) \<longleftrightarrow> bounded_linear g"
+  by (auto intro!: has_derivativeI_sandwich[where e=1] has_derivative_bounded_linear)
+
+
+subsubsection \<open>Limit transformation for derivatives\<close>
+
+lemma has_derivative_transform_within:
+  assumes "(f has_derivative f') (at x within s)"
+    and "0 < d"
+    and "x \<in> s"
+    and "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
+  shows "(g has_derivative f') (at x within s)"
+  using assms
+  unfolding has_derivative_within
+  by (force simp add: intro: Lim_transform_within)
+
+lemma has_derivative_transform_within_open:
+  assumes "(f has_derivative f') (at x within t)"
+    and "open s"
+    and "x \<in> s"
+    and "\<And>x. x\<in>s \<Longrightarrow> f x = g x"
+  shows "(g has_derivative f') (at x within t)"
+  using assms unfolding has_derivative_within
+  by (force simp add: intro: Lim_transform_within_open)
+
+lemma has_derivative_transform:
+  assumes "x \<in> s" "\<And>x. x \<in> s \<Longrightarrow> g x = f x"
+  assumes "(f has_derivative f') (at x within s)"
+  shows "(g has_derivative f') (at x within s)"
+  using assms
+  by (intro has_derivative_transform_within[OF _ zero_less_one, where g=g]) auto
+
+lemma has_derivative_transform_eventually:
+  assumes "(f has_derivative f') (at x within s)"
+    "(\<forall>\<^sub>F x' in at x within s. f x' = g x')"
+  assumes "f x = g x" "x \<in> s"
+  shows "(g has_derivative f') (at x within s)"
+  using assms
+proof -
+  from assms(2,3) obtain d where "d > 0" "\<And>x'. x' \<in> s \<Longrightarrow> dist x' x < d \<Longrightarrow> f x' = g x'"
+    by (force simp: eventually_at)
+  from has_derivative_transform_within[OF assms(1) this(1) assms(4) this(2)]
+  show ?thesis .
+qed
+
 
 subsection \<open>Continuity\<close>
 
@@ -294,6 +347,14 @@ lemma has_derivative_compose:
   "(f has_derivative f') (at x within s) \<Longrightarrow> (g has_derivative g') (at (f x)) \<Longrightarrow>
   ((\<lambda>x. g (f x)) has_derivative (\<lambda>x. g' (f' x))) (at x within s)"
   by (blast intro: has_derivative_in_compose has_derivative_subset)
+
+lemma has_derivative_in_compose2:
+  assumes "\<And>x. x \<in> t \<Longrightarrow> (g has_derivative g' x) (at x within t)"
+  assumes "f ` s \<subseteq> t" "x \<in> s"
+  assumes "(f has_derivative f') (at x within s)"
+  shows "((\<lambda>x. g (f x)) has_derivative (\<lambda>y. g' (f x) (f' y))) (at x within s)"
+  using assms
+  by (auto intro: has_derivative_within_subset intro!: has_derivative_in_compose[of f f' x s g])
 
 lemma (in bounded_bilinear) FDERIV:
   assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
@@ -467,6 +528,10 @@ This can not generally shown for @{const has_derivative}, as we need to approach
 all directions. There is a proof in \<open>Analysis\<close> for \<open>euclidean_space\<close>.
 \<close>
 
+lemma has_derivative_at2: "(f has_derivative f') (at x) \<longleftrightarrow>
+    bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) \<longlongrightarrow> 0) (at x)"
+  using has_derivative_within [of f f' x UNIV]
+  by simp
 lemma has_derivative_zero_unique:
   assumes "((\<lambda>x. 0) has_derivative F) (at x)"
   shows "F = (\<lambda>h. 0)"
@@ -542,9 +607,18 @@ lemma differentiable_compose:
     (\<lambda>x. f (g x)) differentiable (at x within s)"
   by (blast intro: differentiable_in_compose differentiable_subset)
 
-lemma differentiable_sum [simp, derivative_intros]:
+lemma differentiable_add [simp, derivative_intros]:
   "f differentiable F \<Longrightarrow> g differentiable F \<Longrightarrow> (\<lambda>x. f x + g x) differentiable F"
   unfolding differentiable_def by (blast intro: has_derivative_add)
+
+lemma differentiable_sum[simp, derivative_intros]:
+  assumes "finite s" "\<forall>a\<in>s. (f a) differentiable net"
+  shows "(\<lambda>x. sum (\<lambda>a. f a x) s) differentiable net"
+proof -
+  from bchoice[OF assms(2)[unfolded differentiable_def]]
+  show ?thesis
+    by (auto intro!: has_derivative_sum simp: differentiable_def)
+qed
 
 lemma differentiable_minus [simp, derivative_intros]:
   "f differentiable F \<Longrightarrow> (\<lambda>x. - f x) differentiable F"
@@ -650,6 +724,14 @@ lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) -
 lemma mult_commute_abs: "(\<lambda>x. x * c) = ( * ) c"
   for c :: "'a::ab_semigroup_mult"
   by (simp add: fun_eq_iff mult.commute)
+
+lemma DERIV_compose_FDERIV:
+  fixes f::"real\<Rightarrow>real"
+  assumes "DERIV f (g x) :> f'"
+  assumes "(g has_derivative g') (at x within s)"
+  shows "((\<lambda>x. f (g x)) has_derivative (\<lambda>x. g' x * f')) (at x within s)"
+  using assms has_derivative_compose[of g g' x s f "( * ) f'"]
+  by (auto simp: has_field_derivative_def ac_simps)
 
 
 subsection \<open>Vector derivative\<close>
@@ -998,6 +1080,8 @@ proof (subst DERIV_cong_ev[OF refl _ refl])
     by eventually_elim auto
 qed
 
+lemmas has_derivative_floor[derivative_intros] =
+  floor_has_real_derivative[THEN DERIV_compose_FDERIV]
 
 text \<open>Caratheodory formulation of derivative at a point\<close>
 

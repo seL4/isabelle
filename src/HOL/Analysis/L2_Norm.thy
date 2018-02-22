@@ -98,13 +98,6 @@ next
   qed
 qed
 
-lemma sqrt_sum_squares_le_sum:
-  "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) \<le> x + y"
-  apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum)
-  apply simp
-  done
-
 lemma L2_set_le_sum [rule_format]:
   "(\<forall>i\<in>A. 0 \<le> f i) \<longrightarrow> L2_set f A \<le> sum f A"
   apply (cases "finite A")

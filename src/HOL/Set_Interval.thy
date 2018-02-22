@@ -222,6 +222,10 @@ lemma (in order) atLeastLessThan_eq_atLeastAtMost_diff:
   "{a..<b} = {a..b} - {b}"
   by (auto simp add: atLeastLessThan_def atLeastAtMost_def)
 
+lemma (in order) greaterThanAtMost_eq_atLeastAtMost_diff:
+  "{a<..b} = {a..b} - {a}"
+  by (auto simp add: greaterThanAtMost_def atLeastAtMost_def)
+
 end
 
 subsubsection\<open>Emptyness, singletons, subset\<close>
@@ -869,6 +873,19 @@ subsubsection \<open>Image\<close>
 context linordered_semidom
 begin
 
+lemma image_add_atLeast[simp]: "plus k ` {i..} = {k + i..}"
+proof -
+  have "n = k + (n - k)" if "i + k \<le> n" for n
+  proof -
+    have "n = (n - (k + i)) + (k + i)" using that
+      by (metis add_commute le_add_diff_inverse)
+    then show "n = k + (n - k)"
+      by (metis local.add_diff_cancel_left' add_assoc add_commute)
+  qed
+  then show ?thesis
+    by (fastforce simp: add_le_imp_le_diff add.commute)
+qed
+
 lemma image_add_atLeastAtMost [simp]:
   "plus k ` {i..j} = {i + k..j + k}" (is "?A = ?B")
 proof
@@ -911,111 +928,10 @@ lemma image_add_atLeastLessThan' [simp]:
   "(\<lambda>n. n + k) ` {i..<j} = {i + k..<j + k}"
   by (simp add: add.commute [of _ k])
 
+lemma image_add_greaterThanAtMost[simp]: "(+) c ` {a<..b} = {c + a<..c + b}"
+  by (simp add: image_set_diff greaterThanAtMost_eq_atLeastAtMost_diff ac_simps)
+
 end
-
-lemma image_Suc_atLeastAtMost [simp]:
-  "Suc ` {i..j} = {Suc i..Suc j}"
-  using image_add_atLeastAtMost [of 1 i j]
-    by (simp only: plus_1_eq_Suc) simp
-
-lemma image_Suc_atLeastLessThan [simp]:
-  "Suc ` {i..<j} = {Suc i..<Suc j}"
-  using image_add_atLeastLessThan [of 1 i j]
-    by (simp only: plus_1_eq_Suc) simp
-
-corollary image_Suc_atMost:
-  "Suc ` {..n} = {1..Suc n}"
-  by (simp add: atMost_atLeast0 atLeastLessThanSuc_atLeastAtMost)
-
-corollary image_Suc_lessThan:
-  "Suc ` {..<n} = {1..n}"
-  by (simp add: lessThan_atLeast0 atLeastLessThanSuc_atLeastAtMost)
-  
-lemma image_diff_atLeastAtMost [simp]:
-  fixes d::"'a::linordered_idom" shows "((-) d ` {a..b}) = {d-b..d-a}"
-  apply auto
-  apply (rule_tac x="d-x" in rev_image_eqI, auto)
-  done
-
-lemma image_mult_atLeastAtMost [simp]:
-  fixes d::"'a::linordered_field"
-  assumes "d>0" shows "(( * ) d ` {a..b}) = {d*a..d*b}"
-  using assms
-  by (auto simp: field_simps mult_le_cancel_right intro: rev_image_eqI [where x="x/d" for x])
-
-lemma image_affinity_atLeastAtMost:
-  fixes c :: "'a::linordered_field"
-  shows "((\<lambda>x. m*x + c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 \<le> m then {m*a + c .. m *b + c}
-            else {m*b + c .. m*a + c})"
-  apply (case_tac "m=0", auto simp: mult_le_cancel_left)
-  apply (rule_tac x="inverse m*(x-c)" in rev_image_eqI, auto simp: field_simps)
-  apply (rule_tac x="inverse m*(x-c)" in rev_image_eqI, auto simp: field_simps)
-  done
-
-lemma image_affinity_atLeastAtMost_diff:
-  fixes c :: "'a::linordered_field"
-  shows "((\<lambda>x. m*x - c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 \<le> m then {m*a - c .. m*b - c}
-            else {m*b - c .. m*a - c})"
-  using image_affinity_atLeastAtMost [of m "-c" a b]
-  by simp
-
-lemma image_affinity_atLeastAtMost_div:
-  fixes c :: "'a::linordered_field"
-  shows "((\<lambda>x. x/m + c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 \<le> m then {a/m + c .. b/m + c}
-            else {b/m + c .. a/m + c})"
-  using image_affinity_atLeastAtMost [of "inverse m" c a b]
-  by (simp add: field_class.field_divide_inverse algebra_simps)
-
-lemma image_affinity_atLeastAtMost_div_diff:
-  fixes c :: "'a::linordered_field"
-  shows "((\<lambda>x. x/m - c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 \<le> m then {a/m - c .. b/m - c}
-            else {b/m - c .. a/m - c})"
-  using image_affinity_atLeastAtMost_diff [of "inverse m" c a b]
-  by (simp add: field_class.field_divide_inverse algebra_simps)
-
-lemma atLeast1_lessThan_eq_remove0:
-  "{Suc 0..<n} = {..<n} - {0}"
-  by auto
-
-lemma atLeast1_atMost_eq_remove0:
-  "{Suc 0..n} = {..n} - {0}"
-  by auto
-
-lemma image_add_int_atLeastLessThan:
-    "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
-  apply (auto simp add: image_def)
-  apply (rule_tac x = "x - l" in bexI)
-  apply auto
-  done
-
-lemma image_minus_const_atLeastLessThan_nat:
-  fixes c :: nat
-  shows "(\<lambda>i. i - c) ` {x ..< y} =
-      (if c < y then {x - c ..< y - c} else if x < y then {0} else {})"
-    (is "_ = ?right")
-proof safe
-  fix a assume a: "a \<in> ?right"
-  show "a \<in> (\<lambda>i. i - c) ` {x ..< y}"
-  proof cases
-    assume "c < y" with a show ?thesis
-      by (auto intro!: image_eqI[of _ _ "a + c"])
-  next
-    assume "\<not> c < y" with a show ?thesis
-      by (auto intro!: image_eqI[of _ _ x] split: if_split_asm)
-  qed
-qed auto
-
-lemma image_int_atLeastLessThan:
-  "int ` {a..<b} = {int a..<int b}"
-  by (auto intro!: image_eqI [where x = "nat x" for x])
-
-lemma image_int_atLeastAtMost:
-  "int ` {a..b} = {int a..int b}"
-  by (auto intro!: image_eqI [where x = "nat x" for x])
 
 context ordered_ab_group_add
 begin
@@ -1057,7 +973,183 @@ lemma
   and image_uminus_greaterThanLessThan[simp]: "uminus ` {x<..<y} = {-y<..<-x}"
   by (simp_all add: atLeastAtMost_def greaterThanAtMost_def atLeastLessThan_def
       greaterThanLessThan_def image_Int[OF inj_uminus] Int_commute)
+
+lemma image_add_atMost[simp]: "(+) c ` {..a} = {..c + a}"
+  by (auto intro!: image_eqI[where x="x - c" for x] simp: algebra_simps)
+
 end
+
+lemma image_Suc_atLeastAtMost [simp]:
+  "Suc ` {i..j} = {Suc i..Suc j}"
+  using image_add_atLeastAtMost [of 1 i j]
+    by (simp only: plus_1_eq_Suc) simp
+
+lemma image_Suc_atLeastLessThan [simp]:
+  "Suc ` {i..<j} = {Suc i..<Suc j}"
+  using image_add_atLeastLessThan [of 1 i j]
+    by (simp only: plus_1_eq_Suc) simp
+
+corollary image_Suc_atMost:
+  "Suc ` {..n} = {1..Suc n}"
+  by (simp add: atMost_atLeast0 atLeastLessThanSuc_atLeastAtMost)
+
+corollary image_Suc_lessThan:
+  "Suc ` {..<n} = {1..n}"
+  by (simp add: lessThan_atLeast0 atLeastLessThanSuc_atLeastAtMost)
+
+lemma image_diff_atLeastAtMost [simp]:
+  fixes d::"'a::linordered_idom" shows "((-) d ` {a..b}) = {d-b..d-a}"
+  apply auto
+  apply (rule_tac x="d-x" in rev_image_eqI, auto)
+  done
+
+lemma image_diff_atLeastLessThan [simp]:
+  fixes a b c::"'a::linordered_idom"
+  shows "(-) c ` {a..<b} = {c - b<..c - a}"
+proof -
+  have "(-) c ` {a..<b} = (+) c ` uminus ` {a ..<b}"
+    unfolding image_image by simp
+  also have "\<dots> = {c - b<..c - a}" by simp
+  finally show ?thesis by simp
+qed
+
+lemma image_minus_const_greaterThanAtMost_real[simp]:
+  fixes a b c::"'a::linordered_idom"
+  shows "(-) c ` {a<..b} = {c - b..<c - a}"
+proof -
+  have "(-) c ` {a<..b} = (+) c ` uminus ` {a<..b}"
+    unfolding image_image by simp
+  also have "\<dots> = {c - b..<c - a}" by simp
+  finally show ?thesis by simp
+qed
+
+lemma image_minus_const_atLeast_real[simp]:
+  fixes a c::"'a::linordered_idom"
+  shows "(-) c ` {a..} = {..c - a}"
+proof -
+  have "(-) c ` {a..} = (+) c ` uminus ` {a ..}"
+    unfolding image_image by simp
+  also have "\<dots> = {..c - a}" by simp
+  finally show ?thesis by simp
+qed
+
+lemma image_minus_const_AtMost_real[simp]:
+  fixes b c::"'a::linordered_idom"
+  shows "(-) c ` {..b} = {c - b..}"
+proof -
+  have "(-) c ` {..b} = (+) c ` uminus ` {..b}"
+    unfolding image_image by simp
+  also have "\<dots> = {c - b..}" by simp
+  finally show ?thesis by simp
+qed
+
+context linordered_field begin
+
+lemma image_mult_atLeastAtMost [simp]:
+  "(( * ) d ` {a..b}) = {d*a..d*b}" if "d>0"
+  using that
+  by (auto simp: field_simps mult_le_cancel_right intro: rev_image_eqI [where x="x/d" for x])
+
+lemma image_mult_atLeastAtMost_if:
+  "( * ) c ` {x .. y} =
+    (if c > 0 then {c * x .. c * y} else if x \<le> y then {c * y .. c * x} else {})"
+proof -
+  consider "c < 0" "x \<le> y" | "c = 0" "x \<le> y" | "c > 0" "x \<le> y" | "x > y"
+    using local.antisym_conv3 local.leI by blast
+  then show ?thesis
+  proof cases
+    case 1
+    have "( * ) c ` {x .. y} = uminus ` ( * ) (- c) ` {x .. y}"
+      by (simp add: image_image)
+    also have "\<dots> = {c * y .. c * x}"
+      using \<open>c < 0\<close>
+      by simp
+    finally show ?thesis
+      using \<open>c < 0\<close> by auto
+  qed (auto simp: not_le local.mult_less_cancel_left_pos)
+qed
+
+lemma image_mult_atLeastAtMost_if':
+  "(\<lambda>x. x * c) ` {x..y} =
+    (if x \<le> y then if c > 0 then {x * c .. y * c} else {y * c .. x * c} else {})"
+  by (subst mult.commute)
+    (simp add: image_mult_atLeastAtMost_if mult.commute mult_le_cancel_left_pos)
+
+lemma image_affinity_atLeastAtMost:
+  "((\<lambda>x. m*x + c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {m*a + c .. m *b + c}
+            else {m*b + c .. m*a + c})"
+proof -
+  have "(\<lambda>x. m*x + c) = ((\<lambda>x. x + c) o ( * ) m)"
+    unfolding image_comp[symmetric]
+    by (simp add: o_def)
+  then show ?thesis
+    by (auto simp add: image_comp[symmetric] image_mult_atLeastAtMost_if mult_le_cancel_left)
+qed
+
+lemma image_affinity_atLeastAtMost_diff:
+  "((\<lambda>x. m*x - c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {m*a - c .. m*b - c}
+            else {m*b - c .. m*a - c})"
+  using image_affinity_atLeastAtMost [of m "-c" a b]
+  by simp
+
+lemma image_affinity_atLeastAtMost_div:
+  "((\<lambda>x. x/m + c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {a/m + c .. b/m + c}
+            else {b/m + c .. a/m + c})"
+  using image_affinity_atLeastAtMost [of "inverse m" c a b]
+  by (simp add: field_class.field_divide_inverse algebra_simps inverse_eq_divide)
+
+lemma image_affinity_atLeastAtMost_div_diff:
+  "((\<lambda>x. x/m - c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {a/m - c .. b/m - c}
+            else {b/m - c .. a/m - c})"
+  using image_affinity_atLeastAtMost_diff [of "inverse m" c a b]
+  by (simp add: field_class.field_divide_inverse algebra_simps inverse_eq_divide)
+
+end
+
+lemma atLeast1_lessThan_eq_remove0:
+  "{Suc 0..<n} = {..<n} - {0}"
+  by auto
+
+lemma atLeast1_atMost_eq_remove0:
+  "{Suc 0..n} = {..n} - {0}"
+  by auto
+
+lemma image_add_int_atLeastLessThan:
+    "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
+  apply (auto simp add: image_def)
+  apply (rule_tac x = "x - l" in bexI)
+  apply auto
+  done
+
+lemma image_minus_const_atLeastLessThan_nat:
+  fixes c :: nat
+  shows "(\<lambda>i. i - c) ` {x ..< y} =
+      (if c < y then {x - c ..< y - c} else if x < y then {0} else {})"
+    (is "_ = ?right")
+proof safe
+  fix a assume a: "a \<in> ?right"
+  show "a \<in> (\<lambda>i. i - c) ` {x ..< y}"
+  proof cases
+    assume "c < y" with a show ?thesis
+      by (auto intro!: image_eqI[of _ _ "a + c"])
+  next
+    assume "\<not> c < y" with a show ?thesis
+      by (auto intro!: image_eqI[of _ _ x] split: if_split_asm)
+  qed
+qed auto
+
+lemma image_int_atLeastLessThan:
+  "int ` {a..<b} = {int a..<int b}"
+  by (auto intro!: image_eqI [where x = "nat x" for x])
+
+lemma image_int_atLeastAtMost:
+  "int ` {a..b} = {int a..int b}"
+  by (auto intro!: image_eqI [where x = "nat x" for x])
+
 
 subsubsection \<open>Finiteness\<close>
 

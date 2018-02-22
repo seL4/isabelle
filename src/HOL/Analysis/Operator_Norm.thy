@@ -235,4 +235,13 @@ lemma onorm_triangle_lt:
   shows "onorm (\<lambda>x. f x + g x) < e"
   using assms by (rule onorm_triangle [THEN order_le_less_trans])
 
+lemma onorm_sum:
+  assumes "finite S"
+  assumes "\<And>s. s \<in> S \<Longrightarrow> bounded_linear (f s)"
+  shows "onorm (\<lambda>x. sum (\<lambda>s. f s x) S) \<le> sum (\<lambda>s. onorm (f s)) S"
+  using assms
+  by (induction) (auto simp: onorm_zero intro!: onorm_triangle_le bounded_linear_sum)
+
+lemmas onorm_sum_le = onorm_sum[THEN order_trans]
+
 end

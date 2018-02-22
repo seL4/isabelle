@@ -609,7 +609,6 @@ lemma (in topological_space) filterlim_at_If:
     and "filterlim g G (at x within {x. \<not>P x})"
   shows "filterlim (\<lambda>x. if P x then f x else g x) G (at x)"
   using assms by (intro filterlim_at_within_If) simp_all
-
 lemma (in linorder_topology) at_within_order:
   assumes "UNIV \<noteq> {x}"
   shows "at x within s =
@@ -692,7 +691,18 @@ lemma eventually_filtercomap_at_topological:
      (\<exists>S. open S \<and> A \<in> S \<and> (\<forall>x. f x \<in> S \<inter> B - {A} \<longrightarrow> P x))" (is "?lhs = ?rhs")
   unfolding at_within_def filtercomap_inf eventually_inf_principal filtercomap_principal 
           eventually_filtercomap_nhds eventually_principal by blast
-    
+
+lemma eventually_at_right_field:
+  "eventually P (at_right x) \<longleftrightarrow> (\<exists>b>x. \<forall>y>x. y < b \<longrightarrow> P y)"
+  for x :: "'a::{linordered_field, linorder_topology}"
+  using linordered_field_no_ub[rule_format, of x]
+  by (auto simp: eventually_at_right)
+
+lemma eventually_at_left_field:
+  "eventually P (at_left x) \<longleftrightarrow> (\<exists>b<x. \<forall>y>b. y < x \<longrightarrow> P y)"
+  for x :: "'a::{linordered_field, linorder_topology}"
+  using linordered_field_no_lb[rule_format, of x]
+  by (auto simp: eventually_at_left)
 
 
 subsubsection \<open>Tendsto\<close>
@@ -762,9 +772,11 @@ lemma tendsto_bot [simp]: "(f \<longlongrightarrow> a) bot"
 
 end
 
-lemma tendsto_within_subset:
-  "(f \<longlongrightarrow> l) (at x within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f \<longlongrightarrow> l) (at x within T)"
-  by (blast intro: tendsto_mono at_le)
+lemma (in topological_space) filterlim_within_subset:
+  "filterlim f l (at x within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> filterlim f l (at x within T)"
+  by (blast intro: filterlim_mono at_le)
+
+lemmas tendsto_within_subset = filterlim_within_subset
 
 lemma (in order_topology) order_tendsto_iff:
   "(f \<longlongrightarrow> x) F \<longleftrightarrow> (\<forall>l<x. eventually (\<lambda>x. l < f x) F) \<and> (\<forall>u>x. eventually (\<lambda>x. f x < u) F)"
@@ -962,6 +974,11 @@ lemma tendsto_Lim: "\<not> trivial_limit net \<Longrightarrow> (f \<longlongrigh
 
 lemma Lim_ident_at: "\<not> trivial_limit (at x within s) \<Longrightarrow> Lim (at x within s) (\<lambda>x. x) = x"
   by (rule tendsto_Lim[OF _ tendsto_ident_at]) auto
+
+lemma eventually_Lim_ident_at:
+  "(\<forall>\<^sub>F y in at x within X. P (Lim (at x within X) (\<lambda>x. x)) y) \<longleftrightarrow>
+    (\<forall>\<^sub>F y in at x within X. P x y)" for x::"'a::t2_space"
+  by (cases "at x within X = bot") (auto simp: Lim_ident_at)
 
 lemma filterlim_at_bot_at_right:
   fixes f :: "'a::linorder_topology \<Rightarrow> 'b::linorder"
@@ -2612,6 +2629,37 @@ proof -
     by (metis less_le)
 qed
 
+lemma (in linorder_topology) not_in_connected_cases:
+  assumes conn: "connected S"
+  assumes nbdd: "x \<notin> S"
+  assumes ne: "S \<noteq> {}"
+  obtains "bdd_above S" "\<And>y. y \<in> S \<Longrightarrow> x \<ge> y" | "bdd_below S" "\<And>y. y \<in> S \<Longrightarrow> x \<le> y"
+proof -
+  obtain s where "s \<in> S" using ne by blast
+  {
+    assume "s \<le> x"
+    have "False" if "x \<le> y" "y \<in> S" for y
+      using connectedD_interval[OF conn \<open>s \<in> S\<close> \<open>y \<in> S\<close> \<open>s \<le> x\<close> \<open>x \<le> y\<close>] \<open>x \<notin> S\<close>
+      by simp
+    then have wit: "y \<in> S \<Longrightarrow> x \<ge> y" for y
+      using le_cases by blast
+    then have "bdd_above S"
+      by (rule local.bdd_aboveI)
+    note this wit
+  } moreover {
+    assume "x \<le> s"
+    have "False" if "x \<ge> y" "y \<in> S" for y
+      using connectedD_interval[OF conn \<open>y \<in> S\<close> \<open>s \<in> S\<close> \<open>x \<ge> y\<close> \<open>s \<ge> x\<close> ] \<open>x \<notin> S\<close>
+      by simp
+    then have wit: "y \<in> S \<Longrightarrow> x \<le> y" for y
+      using le_cases by blast
+    then have "bdd_below S"
+      by (rule bdd_belowI)
+    note this wit
+  } ultimately show ?thesis
+    by (meson le_cases that)
+qed
+
 lemma connected_continuous_image:
   assumes *: "continuous_on s f"
     and "connected s"
@@ -3453,6 +3501,15 @@ lemma isCont_snd [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. snd (
 
 lemma isCont_Pair [simp]: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
   by (fact continuous_Pair)
+
+lemma continuous_on_compose_Pair:
+  assumes f: "continuous_on (Sigma A B) (\<lambda>(a, b). f a b)"
+  assumes g: "continuous_on C g"
+  assumes h: "continuous_on C h"
+  assumes subset: "\<And>c. c \<in> C \<Longrightarrow> g c \<in> A" "\<And>c. c \<in> C \<Longrightarrow> h c \<in> B (g c)"
+  shows "continuous_on C (\<lambda>c. f (g c) (h c))"
+  using continuous_on_compose2[OF f continuous_on_Pair[OF g h]] subset
+  by auto
 
 
 subsubsection \<open>Connectedness of products\<close>

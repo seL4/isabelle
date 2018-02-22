@@ -242,6 +242,11 @@ lemma closed_contains_Sup:
   shows "S \<noteq> {} \<Longrightarrow> bdd_above S \<Longrightarrow> closed S \<Longrightarrow> Sup S \<in> S"
   by (subst closure_closed[symmetric], assumption, rule closure_contains_Sup)
 
+lemma closed_subset_contains_Sup:
+  fixes A C :: "real set"
+  shows "closed C \<Longrightarrow> A \<subseteq> C \<Longrightarrow> A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> Sup A \<in> C"
+  by (metis closure_contains_Sup closure_minimal subset_eq)
+
 lemma deriv_nonneg_imp_mono:
   assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
   assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
