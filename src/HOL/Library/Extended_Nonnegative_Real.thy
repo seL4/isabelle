@@ -11,7 +11,7 @@ begin
 lemma ereal_ineq_diff_add:
   assumes "b \<noteq> (-\<infinity>::ereal)" "a \<ge> b"
   shows "a = b + (a-b)"
-by (metis add.commute assms(1) assms(2) ereal_eq_minus_iff ereal_minus_le_iff ereal_plus_eq_PInfty)
+by (metis add.commute assms ereal_eq_minus_iff ereal_minus_le_iff ereal_plus_eq_PInfty)
 
 lemma Limsup_const_add:
   fixes c :: "'a::{complete_linorder, linorder_topology, topological_monoid_add, ordered_ab_semigroup_add}"
@@ -345,7 +345,11 @@ instance ennreal :: ordered_comm_semiring
      (transfer ; auto intro: add_mono mult_mono mult_ac ereal_left_distrib ereal_mult_left_mono)+
 
 instance ennreal :: linordered_nonzero_semiring
-  proof qed (transfer; simp)
+proof
+  fix a b::ennreal
+  show "a < b \<Longrightarrow> a + 1 < b + 1"
+    by transfer (simp add: add_right_mono ereal_add_cancel_right less_le)
+qed (transfer; simp)
 
 instance ennreal :: strict_ordered_ab_semigroup_add
 proof

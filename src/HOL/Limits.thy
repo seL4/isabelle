@@ -52,6 +52,9 @@ lemma filterlim_at_top_imp_at_infinity: "filterlim f at_top F \<Longrightarrow> 
   for f :: "_ \<Rightarrow> real"
   by (rule filterlim_mono[OF _ at_top_le_at_infinity order_refl])
 
+lemma filterlim_real_at_infinity_sequentially: "filterlim real at_infinity sequentially"
+  by (simp add: filterlim_at_top_imp_at_infinity filterlim_real_sequentially)
+
 lemma lim_infinity_imp_sequentially: "(f \<longlongrightarrow> l) at_infinity \<Longrightarrow> ((\<lambda>n. f(n)) \<longlongrightarrow> l) sequentially"
   by (simp add: filterlim_at_top_imp_at_infinity filterlim_compose filterlim_real_sequentially)
 
@@ -1256,6 +1259,20 @@ lemma eventually_at_right_to_0:
   for a :: real
   unfolding at_right_to_0[of a] by (simp add: eventually_filtermap)
 
+lemma at_to_0: "at a = filtermap (\<lambda>x. x + a) (at 0)"
+  for a :: "'a::real_normed_vector"
+  using filtermap_at_shift[of "-a" 0] by simp
+
+lemma filterlim_at_to_0:
+  "filterlim f F (at a) \<longleftrightarrow> filterlim (\<lambda>x. f (x + a)) F (at 0)"
+  for a :: "'a::real_normed_vector"
+  unfolding filterlim_def filtermap_filtermap at_to_0[of a] ..
+
+lemma eventually_at_to_0:
+  "eventually P (at a) \<longleftrightarrow> eventually (\<lambda>x. P (x + a)) (at 0)"
+  for a ::  "'a::real_normed_vector"
+  unfolding at_to_0[of a] by (simp add: eventually_filtermap)
+
 lemma filtermap_at_minus: "filtermap (\<lambda>x. - x) (at a) = at (- a)"
   for a :: "'a::real_normed_vector"
   by (simp add: filter_eq_iff eventually_filtermap eventually_at_filter filtermap_nhds_minus[symmetric])
@@ -1267,6 +1284,7 @@ lemma at_left_minus: "at_left a = filtermap (\<lambda>x. - x) (at_right (- a))"
 lemma at_right_minus: "at_right a = filtermap (\<lambda>x. - x) (at_left (- a))"
   for a :: real
   by (simp add: filter_eq_iff eventually_filtermap eventually_at_filter filtermap_nhds_minus[symmetric])
+
 
 lemma filterlim_at_left_to_right:
   "filterlim f F (at_left a) \<longleftrightarrow> filterlim (\<lambda>x. f (- x)) F (at_right (-a))"
@@ -1485,6 +1503,36 @@ lemma mult_nat_left_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. c * 
 lemma mult_nat_right_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. x * c) at_top sequentially"
   for c :: nat
   by (rule filterlim_subseq) (auto simp: strict_mono_def)
+
+lemma filterlim_times_pos:
+  "LIM x F1. c * f x :> at_right l"
+  if "filterlim f (at_right p) F1" "0 < c" "l = c * p"
+  for c::"'a::{linordered_field, linorder_topology}"
+  unfolding filterlim_iff
+proof safe
+  fix P
+  assume "\<forall>\<^sub>F x in at_right l. P x"
+  then obtain d where "c * p < d" "\<And>y. y > c * p \<Longrightarrow> y < d \<Longrightarrow> P y"
+    unfolding \<open>l = _ \<close> eventually_at_right_field
+    by auto
+  then have "\<forall>\<^sub>F a in at_right p. P (c * a)"
+    by (auto simp: eventually_at_right_field \<open>0 < c\<close> field_simps intro!: exI[where x="d/c"])
+  from that(1)[unfolded filterlim_iff, rule_format, OF this]
+  show "\<forall>\<^sub>F x in F1. P (c * f x)" .
+qed
+
+lemma filtermap_nhds_times: "c \<noteq> 0 \<Longrightarrow> filtermap (times c) (nhds a) = nhds (c * a)"
+  for a c :: "'a::real_normed_field"
+  by (rule filtermap_fun_inverse[where g="\<lambda>x. inverse c * x"])
+    (auto intro!: tendsto_eq_intros filterlim_ident)
+
+lemma filtermap_times_pos_at_right:
+  fixes c::"'a::{linordered_field, linorder_topology}"
+  assumes "c > 0"
+  shows "filtermap (times c) (at_right p) = at_right (c * p)"
+  using assms
+  by (intro filtermap_fun_inverse[where g="\<lambda>x. inverse c * x"])
+    (auto intro!: filterlim_ident filterlim_times_pos)
 
 lemma at_to_infinity: "(at (0::'a::{real_normed_field,field})) = filtermap inverse at_infinity"
 proof (rule antisym)
@@ -1943,6 +1991,10 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult: "(\<lambda>n. r * (1 + - invers
 
 lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
   using lim_1_over_n by (simp add: inverse_eq_divide)
+
+lemma lim_inverse_n': "((\<lambda>n. 1 / n) \<longlongrightarrow> 0) sequentially"
+  using lim_inverse_n
+  by (simp add: inverse_eq_divide)
 
 lemma LIMSEQ_Suc_n_over_n: "(\<lambda>n. of_nat (Suc n) / of_nat n :: 'a :: real_normed_field) \<longlonglongrightarrow> 1"
 proof (rule Lim_transform_eventually)

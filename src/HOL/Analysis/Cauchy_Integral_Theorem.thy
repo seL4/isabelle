@@ -1199,7 +1199,7 @@ done
 
 lemma vector_derivative_linepath_within:
     "x \<in> {0..1} \<Longrightarrow> vector_derivative (linepath a b) (at x within {0..1}) = b - a"
-  apply (rule vector_derivative_within_closed_interval [of 0 "1::real", simplified])
+  apply (rule vector_derivative_within_cbox [of 0 "1::real", simplified])
   apply (auto simp: has_vector_derivative_linepath_within)
   done
 
@@ -2695,7 +2695,7 @@ proof -
   then have *: "(\<lambda>y. (?pathint x y - f x * (y - x)) /\<^sub>R cmod (y - x)) \<midarrow>x\<rightarrow> 0"
     by (simp add: Lim_at dist_norm inverse_eq_divide)
   show ?thesis
-    apply (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right)
+    apply (simp add: has_field_derivative_def has_derivative_at2 bounded_linear_mult_right)
     apply (rule Lim_transform [OF * Lim_eventually])
     apply (simp add: inverse_eq_divide [symmetric] eventually_at)
     using \<open>open s\<close> x
@@ -3573,7 +3573,7 @@ proof -
       if "x \<in> {0..1} - S" for x
     proof -
       have "vector_derivative (uminus \<circ> \<gamma>) (at x within cbox 0 1) = - vector_derivative \<gamma> (at x within cbox 0 1)"
-        apply (rule vector_derivative_within_closed_interval)
+        apply (rule vector_derivative_within_cbox)
         using that
           apply (auto simp: o_def)
         apply (rule has_vector_derivative_minus)

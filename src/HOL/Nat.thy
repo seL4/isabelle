@@ -1774,7 +1774,7 @@ end
 
 class ring_char_0 = ring_1 + semiring_char_0
 
-context linordered_semidom
+context linordered_nonzero_semiring
 begin
 
 lemma of_nat_0_le_iff [simp]: "0 \<le> of_nat n"
@@ -1783,8 +1783,21 @@ lemma of_nat_0_le_iff [simp]: "0 \<le> of_nat n"
 lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < 0"
   by (simp add: not_less)
 
+lemma of_nat_mono[simp]: "i \<le> j \<Longrightarrow> of_nat i \<le> of_nat j"
+  by (auto simp: le_iff_add intro!: add_increasing2)
+
 lemma of_nat_less_iff [simp]: "of_nat m < of_nat n \<longleftrightarrow> m < n"
-  by (induct m n rule: diff_induct) (simp_all add: add_pos_nonneg)
+proof(induct m n rule: diff_induct)
+  case (1 m) then show ?case
+    by auto
+next
+  case (2 n) then show ?case
+    by (simp add: add_pos_nonneg)
+next
+  case (3 m n)
+  then show ?case
+    by (auto simp: add_commute [of 1] add_mono1 not_less add_right_mono leD)
+qed
 
 lemma of_nat_le_iff [simp]: "of_nat m \<le> of_nat n \<longleftrightarrow> m \<le> n"
   by (simp add: not_less [symmetric] linorder_not_less [symmetric])
@@ -1795,7 +1808,7 @@ lemma less_imp_of_nat_less: "m < n \<Longrightarrow> of_nat m < of_nat n"
 lemma of_nat_less_imp_less: "of_nat m < of_nat n \<Longrightarrow> m < n"
   by simp
 
-text \<open>Every \<open>linordered_semidom\<close> has characteristic zero.\<close>
+text \<open>Every \<open>linordered_nonzero_semiring\<close> has characteristic zero.\<close>
 
 subclass semiring_char_0
   by standard (auto intro!: injI simp add: eq_iff)
@@ -1809,6 +1822,14 @@ lemma of_nat_0_less_iff [simp]: "0 < of_nat n \<longleftrightarrow> 0 < n"
   by (rule of_nat_less_iff [of 0, simplified])
 
 end
+
+
+context linordered_semidom
+begin
+subclass linordered_nonzero_semiring ..
+subclass semiring_char_0 ..
+end
+
 
 context linordered_idom
 begin

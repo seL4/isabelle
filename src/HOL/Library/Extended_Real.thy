@@ -1800,8 +1800,176 @@ by (metis max_bot bot_ereal_def)
 lemma max_MInf2 [simp]: "max x (-\<infinity>::ereal) = x"
 by (metis max_bot2 bot_ereal_def)
 
+subsection \<open>Extended real intervals\<close>
 
-subsubsection "Topological space"
+lemma real_greaterThanLessThan_infinity_eq:
+  "real_of_ereal ` {N::ereal<..<\<infinity>} =
+    (if N = \<infinity> then {} else if N = -\<infinity> then UNIV else {real_of_ereal N<..})"
+proof -
+  {
+    fix x::real
+    have "x \<in> real_of_ereal ` {- \<infinity><..<\<infinity>::ereal}"
+      by (auto intro!: image_eqI[where x="ereal x"])
+  } moreover {
+    fix x::ereal
+    assume "N \<noteq> - \<infinity>" "N < x" "x \<noteq> \<infinity>"
+    then have "real_of_ereal N < real_of_ereal x"
+      by (cases N; cases x; simp)
+  } moreover {
+    fix x::real
+    assume "N \<noteq> \<infinity>" "real_of_ereal N < x"
+    then have "x \<in> real_of_ereal ` {N<..<\<infinity>}"
+      by (cases N) (auto intro!: image_eqI[where x="ereal x"])
+  } ultimately show ?thesis by auto
+qed
+
+lemma real_greaterThanLessThan_minus_infinity_eq:
+  "real_of_ereal ` {-\<infinity><..<N::ereal} =
+    (if N = \<infinity> then UNIV else if N = -\<infinity> then {} else {..<real_of_ereal N})"
+proof -
+  have "real_of_ereal ` {-\<infinity><..<N::ereal} = uminus ` real_of_ereal ` {-N<..<\<infinity>}"
+    by (auto simp: ereal_uminus_less_reorder intro!: image_eqI[where x="-x" for x])
+  also note real_greaterThanLessThan_infinity_eq
+  finally show ?thesis by (auto intro!: image_eqI[where x="-x" for x])
+qed
+
+lemma real_greaterThanLessThan_inter:
+  "real_of_ereal ` {N<..<M::ereal} = real_of_ereal ` {-\<infinity><..<M} \<inter> real_of_ereal ` {N<..<\<infinity>}"
+  apply safe
+  subgoal by force
+  subgoal by force
+  subgoal for x y z
+    by (cases y; cases z) (auto intro!: image_eqI[where x=z] simp: )
+  done
+
+lemma real_atLeastGreaterThan_eq: "real_of_ereal ` {N<..<M::ereal} =
+   (if N = \<infinity> then {} else
+   if N = -\<infinity> then
+    (if M = \<infinity> then UNIV
+    else if M = -\<infinity> then {}
+    else {..< real_of_ereal M})
+  else if M = - \<infinity> then {}
+  else if M = \<infinity> then {real_of_ereal N<..}
+  else {real_of_ereal N <..< real_of_ereal M})"
+  apply (subst real_greaterThanLessThan_inter)
+  apply (subst real_greaterThanLessThan_minus_infinity_eq)
+  apply (subst real_greaterThanLessThan_infinity_eq)
+  apply auto
+  done
+
+lemma real_image_ereal_ivl:
+  fixes a b::ereal
+  shows
+  "real_of_ereal ` {a<..<b} =
+  (if a < b then (if a = - \<infinity> then if b = \<infinity> then UNIV else {..<real_of_ereal b}
+  else if b = \<infinity> then {real_of_ereal a<..} else {real_of_ereal a <..< real_of_ereal b}) else {})"
+  by (cases a; cases b; simp add: real_atLeastGreaterThan_eq not_less)
+
+lemma fixes a b c::ereal
+  shows not_inftyI: "a < b \<Longrightarrow> b < c \<Longrightarrow> abs b \<noteq> \<infinity>"
+  by force
+
+lemma
+  interval_neqs:
+  fixes r s t::real
+  shows "{r<..<s} \<noteq> {t<..}"
+    and "{r<..<s} \<noteq> {..<t}"
+    and "{r<..<ra} \<noteq> UNIV"
+    and "{r<..} \<noteq> {..<s}"
+    and "{r<..} \<noteq> UNIV"
+    and "{..<r} \<noteq> UNIV"
+    and "{} \<noteq> {r<..}"
+    and "{} \<noteq> {..<r}"
+  subgoal
+    by (metis dual_order.strict_trans greaterThanLessThan_iff greaterThan_iff gt_ex not_le order_refl)
+  subgoal
+    by (metis (no_types, hide_lams) greaterThanLessThan_empty_iff greaterThanLessThan_iff gt_ex
+        lessThan_iff minus_minus neg_less_iff_less not_less order_less_irrefl)
+  subgoal by force
+  subgoal
+    by (metis greaterThanLessThan_empty_iff greaterThanLessThan_eq greaterThan_iff inf.idem
+        lessThan_iff lessThan_non_empty less_irrefl not_le)
+  subgoal by force
+  subgoal by force
+  subgoal using greaterThan_non_empty by blast
+  subgoal using lessThan_non_empty by blast
+  done
+
+lemma greaterThanLessThan_eq_iff:
+  fixes r s t u::real
+  shows "({r<..<s} = {t<..<u}) = (r \<ge> s \<and> u \<le> t \<or> r = t \<and> s = u)"
+  by (metis cInf_greaterThanLessThan cSup_greaterThanLessThan greaterThanLessThan_empty_iff not_le)
+
+lemma real_of_ereal_image_greaterThanLessThan_iff:
+  "real_of_ereal ` {a <..< b} = real_of_ereal ` {c <..< d} \<longleftrightarrow> (a \<ge> b \<and> c \<ge> d \<or> a = c \<and> b = d)"
+  unfolding real_atLeastGreaterThan_eq
+  by (cases a; cases b; cases c; cases d;
+    simp add: greaterThanLessThan_eq_iff interval_neqs interval_neqs[symmetric])
+
+lemma uminus_image_real_of_ereal_image_greaterThanLessThan:
+  "uminus ` real_of_ereal ` {l <..< u} = real_of_ereal ` {-u <..< -l}"
+  by (force simp: algebra_simps ereal_less_uminus_reorder
+    ereal_uminus_less_reorder intro: image_eqI[where x="-x" for x])
+
+lemma add_image_real_of_ereal_image_greaterThanLessThan:
+  "(+) c ` real_of_ereal ` {l <..< u} = real_of_ereal ` {c + l <..< c + u}"
+  apply safe
+  subgoal for x
+    using ereal_less_add[of c]
+    by (force simp: real_of_ereal_add add.commute)
+  subgoal for _ x
+    by (force simp: add.commute real_of_ereal_minus ereal_minus_less ereal_less_minus
+      intro: image_eqI[where x="x - c"])
+  done
+
+lemma add2_image_real_of_ereal_image_greaterThanLessThan:
+  "(\<lambda>x. x + c) ` real_of_ereal ` {l <..< u} = real_of_ereal ` {l + c <..< u + c}"
+  using add_image_real_of_ereal_image_greaterThanLessThan[of c l u]
+  by (metis add.commute image_cong)
+
+lemma minus_image_real_of_ereal_image_greaterThanLessThan:
+  "(-) c ` real_of_ereal ` {l <..< u} = real_of_ereal ` {c - u <..< c - l}"
+  (is "?l = ?r")
+proof -
+  have "?l = (+) c ` uminus ` real_of_ereal ` {l <..< u}" by auto
+  also note uminus_image_real_of_ereal_image_greaterThanLessThan
+  also note add_image_real_of_ereal_image_greaterThanLessThan
+  finally show ?thesis by (simp add: minus_ereal_def)
+qed
+
+lemma real_ereal_bound_lemma_up:
+  assumes "s \<in> real_of_ereal ` {a<..<b}"
+  assumes "t \<notin> real_of_ereal ` {a<..<b}"
+  assumes "s \<le> t"
+  shows "b \<noteq> \<infinity>"
+  using assms
+  apply (cases b)
+  subgoal by force
+  subgoal by (metis PInfty_neq_ereal(2) assms dual_order.strict_trans1 ereal_infty_less(1)
+    ereal_less_ereal_Ex greaterThanLessThan_empty_iff greaterThanLessThan_iff greaterThan_iff
+    image_eqI less_imp_le linordered_field_no_ub not_less order_trans
+    real_greaterThanLessThan_infinity_eq real_image_ereal_ivl real_of_ereal.simps(1))
+  subgoal by force
+  done
+
+lemma real_ereal_bound_lemma_down:
+  assumes "s \<in> real_of_ereal ` {a<..<b}"
+  assumes "t \<notin> real_of_ereal ` {a<..<b}"
+  assumes "t \<le> s"
+  shows "a \<noteq> - \<infinity>"
+  using assms
+  apply (cases b)
+  subgoal
+    apply safe
+    using assms(1)
+    apply (auto simp: real_greaterThanLessThan_minus_infinity_eq)
+    done
+  subgoal by (auto simp: real_greaterThanLessThan_minus_infinity_eq)
+  subgoal by auto
+  done
+
+
+subsection "Topological space"
 
 instantiation ereal :: linear_continuum_topology
 begin
@@ -2469,6 +2637,21 @@ proof (induct rule: generate_topology.induct)
      by auto
 qed (auto simp add: image_Union image_Int)
 
+lemma open_image_real_of_ereal:
+  fixes X::"ereal set"
+  assumes "open X"
+  assumes "\<infinity> \<notin> X"
+  assumes "-\<infinity> \<notin> X"
+  shows "open (real_of_ereal ` X)"
+proof -
+  have "real_of_ereal ` X = ereal -` X"
+    apply safe
+    subgoal by (metis assms(2) assms(3) real_of_ereal.elims vimageI)
+    subgoal using image_iff by fastforce
+    done
+  thus ?thesis
+    by (auto intro!: open_ereal_vimage assms)
+qed
 
 lemma eventually_finite:
   fixes x :: ereal

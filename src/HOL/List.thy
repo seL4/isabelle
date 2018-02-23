@@ -388,6 +388,10 @@ abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
 abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
 abbreviation "insort_insert \<equiv> insort_insert_key (\<lambda>x. x)"
 
+definition stable_sort_key :: "(('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list) \<Rightarrow> bool" where
+"stable_sort_key sk =
+   (\<forall>f xs k. filter (\<lambda>y. f y = k) (sk f xs) = filter (\<lambda>y. f y = k) xs)"
+
 end
 
 
@@ -5375,61 +5379,35 @@ qed
 lemma sorted_enumerate [simp]: "sorted (map fst (enumerate n xs))"
 by (simp add: enumerate_eq_zip)
 
-text \<open>Stability of function @{const sort_key}:\<close>
+text \<open>Stability of @{const sort_key}:\<close>
 
-lemma sort_key_stable:
-  "x \<in> set xs \<Longrightarrow> [y <- sort_key f xs. f y = f x] = [y <- xs. f y = f x]"
-proof (induction xs arbitrary: x)
+lemma sort_key_stable: "[y <- sort_key f xs. f y = k] = [y <- xs. f y = k]"
+proof (induction xs)
   case Nil thus ?case by simp
 next
   case (Cons a xs)
   thus ?case
-  proof (cases "x \<in> set xs")
-    case True
-    thus ?thesis
-    proof (cases "f a = f x")
-      case False thus ?thesis
-        using Cons.IH by (metis (mono_tags) True filter.simps(2) filter_sort)
-    next
-      case True
-      hence ler: "[y <- (a # xs). f y = f x] = a # [y <- xs. f y = f a]" by simp
-      have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
-      hence "insort_key f a (sort_key f [y <- xs. f y = f a])
-              = a # (sort_key f [y <- xs. f y = f a])"
-        by (simp add: insort_is_Cons)
-      hence lel: "[y <- sort_key f (a # xs). f y = f x] = a # [y <- sort_key f xs. f y = f a]"
-        by (metis True filter_sort ler sort_key_simps(2))
-      from lel ler show ?thesis using Cons.IH \<open>x \<in> set xs\<close> by (metis True filter_sort)
-    qed
+  proof (cases "f a = k")
+    case False thus ?thesis
+      using Cons.IH by (metis (mono_tags) filter.simps(2) filter_sort)
   next
-    case False
-    from Cons.prems have "x = a" by (metis False set_ConsD)
-    have ler: "[y <- (a # xs). f y = f a] = a # [y <- xs. f y = f a]" by simp
+    case True
+    hence ler: "[y <- (a # xs). f y = k] = a # [y <- xs. f y = f a]" by simp
     have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
     hence "insort_key f a (sort_key f [y <- xs. f y = f a])
-           = a # (sort_key f [y <- xs. f y = f a])"
+            = a # (sort_key f [y <- xs. f y = f a])"
       by (simp add: insort_is_Cons)
-    hence lel: "[y <- sort_key f (a # xs). f y = f a] = a # [y <- sort_key f xs. f y = f a]"
-      by (metis (mono_tags) filter.simps(2) filter_sort sort_key_simps(2))
-    show ?thesis (is "?l = ?r")
-    proof (cases "f a \<in> set (map f xs)")
-      case False
-      hence "\<forall>y \<in> set xs. f y \<noteq> f a" by (metis image_eqI set_map)
-      hence R: "?r = [a]" using ler \<open>x=a\<close> by simp
-      have L: "?l = [a]" using lel \<open>x=a\<close> by (metis R filter_sort insort_key.simps(1) sort_key_simps)
-      from L R show ?thesis ..
-    next
-      case True
-      then obtain z where Z: "z \<in> set xs \<and> f z = f a" by auto
-      hence L: "[y <- sort_key f xs. f y = f z] = [y <- sort_key f xs. f y = f a]" by simp
-      from Z have R: "[y <- xs. f y = f z] = [y <- xs. f y = f a]" by simp
-      from L R Z show ?thesis using Cons.IH ler lel \<open>x=a\<close> by metis
-    qed
+    hence lel: "[y <- sort_key f (a # xs). f y = k] = a # [y <- sort_key f xs. f y = f a]"
+      by (metis True filter_sort ler sort_key_simps(2))
+    from lel ler show ?thesis using Cons.IH True by (auto)
   qed
 qed
 
+corollary stable_sort_key_sort_key: "stable_sort_key sort_key"
+by(simp add: stable_sort_key_def sort_key_stable)
+
 lemma sort_key_const: "sort_key (\<lambda>x. c) xs = xs"
-by (metis (mono_tags) filter_False filter_True sort_key_simps(1) sort_key_stable)
+by (metis (mono_tags) filter_True sort_key_stable)
 
 
 subsubsection \<open>@{const transpose} on sorted lists\<close>

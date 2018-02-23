@@ -438,6 +438,7 @@ lemmas bounded_linear_uniform_limit_intros[uniform_limit_intros] =
   bounded_linear.uniform_limit[OF bounded_linear_mult_right]
   bounded_linear.uniform_limit[OF bounded_linear_scaleR_left]
 
+
 lemmas uniform_limit_uminus[uniform_limit_intros] =
   bounded_linear.uniform_limit[OF bounded_linear_minus[OF bounded_linear_ident]]
 
@@ -727,6 +728,8 @@ lemma powser_continuous_sums:
   shows "continuous_on (cball \<xi> r) f"
 apply (rule continuous_on_cong [THEN iffD1, OF refl _ powser_continuous_suminf [OF r]])
 using sm sums_unique by fastforce
+
+lemmas uniform_limit_subset_union = uniform_limit_on_subset[OF uniform_limit_on_Union]
 
 end
 

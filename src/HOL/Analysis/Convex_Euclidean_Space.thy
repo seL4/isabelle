@@ -6659,9 +6659,13 @@ lemma connected_imp_perfect_aff_dim:
 
 subsection \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent.\<close>
 
-lemma is_interval_1:
-  "is_interval (s::real set) \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall> x. a \<le> x \<and> x \<le> b \<longrightarrow> x \<in> s)"
-  unfolding is_interval_def by auto
+lemma mem_is_interval_1_I:
+  fixes a b c::real
+  assumes "is_interval S"
+  assumes "a \<in> S" "c \<in> S"
+  assumes "a \<le> b" "b \<le> c"
+  shows "b \<in> S"
+  using assms is_interval_1 by blast
 
 lemma is_interval_connected_1:
   fixes s :: "real set"
@@ -6708,6 +6712,9 @@ lemma is_interval_convex_1:
   shows "is_interval s \<longleftrightarrow> convex s"
   by (metis is_interval_convex convex_connected is_interval_connected_1)
 
+lemma is_interval_ball_real: "is_interval (ball a b)" for a b::real
+  by (metis connected_ball is_interval_connected_1)
+
 lemma connected_compact_interval_1:
      "connected S \<and> compact S \<longleftrightarrow> (\<exists>a b. S = {a..b::real})"
   by (auto simp: is_interval_connected_1 [symmetric] is_interval_compact)
@@ -6730,6 +6737,10 @@ proof -
   then show ?thesis
     by (metis connected_convex_1 convex_linear_vimage linf convex_connected connected_linear_image)
 qed
+
+lemma is_interval_cball_1[intro, simp]: "is_interval (cball a b)" for a b::real
+  by (auto simp: is_interval_convex_1 convex_cball)
+
 
 subsection \<open>Another intermediate value theorem formulation\<close>
 
