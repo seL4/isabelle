@@ -49,7 +49,6 @@ sig
   val pretty_name: Proof.context -> string -> Pretty.T
   val defined: theory -> string -> bool
   val params_of: theory -> string -> ((string * typ) * mixfix) list
-  val params_types_of: theory -> string -> string list * typ list
   val intros_of: theory -> string -> thm option * thm option
   val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> morphism -> term list
@@ -213,7 +212,6 @@ fun change_locale name =
 (** Primitive operations **)
 
 fun params_of thy = snd o #parameters o the_locale thy;
-fun params_types_of thy loc = split_list (map #1 (params_of thy loc));
 
 fun intros_of thy = (apply2 o Option.map) (Thm.transfer thy) o #intros o the_locale thy;
 
