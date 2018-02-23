@@ -396,7 +396,6 @@ fun is_forall t =
   (Const(\<^const_name>\<open>All\<close>,_)$Abs(_,_,_)) => true
 | _ => false;
 
-val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
 val nnf_simps = @{thms nnf_simps};
 
 fun weak_dnf_conv ctxt =
@@ -687,7 +686,7 @@ fun refute ctxt tm =
       val (l,_) = conc |> dest_eq
     in Thm.implies_intr (Thm.apply cTrp tm)
                     (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th2))
-                           (Thm.reflexive l |> mk_object_eq))
+                           (HOLogic.mk_obj_eq (Thm.reflexive l)))
     end
    else
    let
@@ -720,14 +719,14 @@ fun refute ctxt tm =
               (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
-    val th3 = HOLogic.conj_intr ctxt (mk_add (Thm.symmetric th1) th2 |> mk_object_eq) noteqth
+    val th3 = HOLogic.conj_intr ctxt (HOLogic.mk_obj_eq (mk_add (Thm.symmetric th1) th2)) noteqth
     val th4 =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
     val (l, _) = dest_eq(Thm.dest_arg(concl th4))
    in Thm.implies_intr (Thm.apply cTrp tm)
                         (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th4))
-                   (Thm.reflexive l |> mk_object_eq))
+                   (HOLogic.mk_obj_eq (Thm.reflexive l)))
    end
   end) handle ERROR _ => raise CTERM ("Groebner-refute: unable to refute",[tm]))
 
@@ -748,14 +747,14 @@ fun ring ctxt tm =
     val th1a = weak_dnf_conv ctxt bod
     val boda = concl th1a
     val th2a = refute_disj (refute ctxt) boda
-    val th2b = [mk_object_eq th1a, (th2a COMP notI) COMP PFalse'] MRS trans
+    val th2b = [HOLogic.mk_obj_eq th1a, (th2a COMP notI) COMP PFalse'] MRS trans
     val th2 = fold (fn v => fn th => (Thm.forall_intr v th) COMP allI) evs (th2b RS PFalse)
     val th3 =
       Thm.equal_elim
         (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [not_ex RS sym])
           (th2 |> Thm.cprop_of)) th2
     in specl avs
-             ([[[mk_object_eq th1, th3 RS PFalse'] MRS trans] MRS PFalse] MRS notnotD)
+             ([[[HOLogic.mk_obj_eq th1, th3 RS PFalse'] MRS trans] MRS PFalse] MRS notnotD)
    end
  end
 fun ideal tms tm ord =
