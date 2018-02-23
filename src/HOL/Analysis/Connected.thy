@@ -155,6 +155,13 @@ proof (rule islimptI)
     by fast
 qed
 
+lemma at_within_ball_bot_iff:
+  fixes x y :: "'a::{real_normed_vector,perfect_space}"
+  shows "at x within ball y r = bot \<longleftrightarrow> (r=0 \<or> x \<notin> cball y r)"
+  unfolding trivial_limit_within 
+apply (auto simp add:trivial_limit_within islimpt_ball )
+by (metis le_less_trans less_eq_real_def zero_le_dist)
+
 lemma closure_ball [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "0 < e \<Longrightarrow> closure (ball x e) = cball x e"

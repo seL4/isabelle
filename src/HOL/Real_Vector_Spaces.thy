@@ -1768,6 +1768,10 @@ lemma eventually_at: "eventually P (at a within S) \<longleftrightarrow> (\<exis
   for a :: "'a :: metric_space"
   by (auto simp: eventually_at_filter eventually_nhds_metric)
 
+lemma frequently_at: "frequently P (at a within S) \<longleftrightarrow> (\<forall>d>0. \<exists>x\<in>S. x \<noteq> a \<and> dist x a < d \<and> P x)"
+  for a :: "'a :: metric_space"
+  unfolding frequently_def eventually_at by auto
+
 lemma eventually_at_le: "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<and> dist x a \<le> d \<longrightarrow> P x)"
   for a :: "'a::metric_space"
   apply (simp only: eventually_at_filter eventually_nhds_metric)

@@ -954,6 +954,24 @@ lemma (in linorder_topology) tendsto_upperbound:
   shows "a \<ge> x"
   by (rule tendsto_le [OF F tendsto_const x ev])
 
+lemma filterlim_at_within_not_equal:
+  fixes f::"'a \<Rightarrow> 'b::t2_space"
+  assumes "filterlim f (at a within s) F"
+  shows "eventually (\<lambda>w. f w\<in>s \<and> f w \<noteq>b) F"
+proof (cases "a=b")
+  case True
+  then show ?thesis using assms by (simp add: filterlim_at)
+next
+  case False
+  from hausdorff[OF this] obtain U V where UV:"open U" "open V" "a \<in> U" "b \<in> V" "U \<inter> V = {}"
+    by auto  
+  have "(f \<longlongrightarrow> a) F" using assms filterlim_at by auto
+  then have "\<forall>\<^sub>F x in F. f x \<in> U" using UV unfolding tendsto_def by auto
+  moreover have  "\<forall>\<^sub>F x in F. f x \<in> s \<and> f x\<noteq>a" using assms filterlim_at by auto
+  ultimately show ?thesis 
+    apply eventually_elim
+    using UV by auto
+qed
 
 subsubsection \<open>Rules about @{const Lim}\<close>
 

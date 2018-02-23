@@ -1846,6 +1846,14 @@ proof (rule Lim_transform_eventually)
     by fact
 qed
 
+lemma filterlim_transform_within:
+  assumes "filterlim g G (at x within S)"
+  assumes "G \<le> F" "0<d" "(\<And>x'. x' \<in> S \<Longrightarrow> 0 < dist x' x \<Longrightarrow> dist x' x < d \<Longrightarrow> f x' = g x') "
+  shows "filterlim f F (at x within S)"
+  using assms
+  apply (elim filterlim_mono_eventually)
+  unfolding eventually_at by auto
+
 text \<open>Common case assuming being away from some crucial point like 0.\<close>
 lemma Lim_transform_away_within:
   fixes a b :: "'a::t1_space"

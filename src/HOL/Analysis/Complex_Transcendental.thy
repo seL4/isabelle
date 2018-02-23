@@ -1861,6 +1861,12 @@ lemma powr_of_real:
   shows "0 \<le> x \<Longrightarrow> of_real x powr (of_real y::complex) = of_real (x powr y)"
   by (simp_all add: powr_def exp_eq_polar)
 
+lemma powr_of_int:
+  fixes z::complex and n::int
+  assumes "z\<noteq>(0::complex)"
+  shows "z powr of_int n = (if n\<ge>0 then z^nat n else inverse (z^nat (-n)))"
+  by (metis assms not_le of_int_of_nat powr_complexpow powr_minus)
+
 lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x \<ge> 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
   by (metis not_le of_real_Re powr_of_real)
 
@@ -1909,6 +1915,97 @@ lemma has_field_derivative_powr:
 
 declare has_field_derivative_powr[THEN DERIV_chain2, derivative_intros]
 
+lemma has_field_derivative_powr_of_int:
+  fixes z :: complex 
+  assumes gderiv:"(g has_field_derivative gd) (at z within s)" and "g z\<noteq>0"
+  shows "((\<lambda>z. g z powr of_int n) has_field_derivative (n * g z powr (of_int n - 1) * gd)) (at z within s)"
+proof -
+  define dd where "dd = of_int n * g z powr (of_int (n - 1)) * gd"
+  obtain e where "e>0" and e_dist:"\<forall>y\<in>s. dist z y < e \<longrightarrow> g y \<noteq> 0"
+    using DERIV_continuous[OF gderiv,THEN continuous_within_avoid] \<open>g z\<noteq>0\<close> by auto
+  have ?thesis when "n\<ge>0"
+  proof -
+    define dd' where "dd' = of_int n * g z ^ (nat n - 1) * gd"
+    have "dd=dd'"
+    proof (cases "n=0")
+      case False
+      then have "n-1 \<ge>0" using \<open>n\<ge>0\<close> by auto
+      then have "g z powr (of_int (n - 1)) = g z ^ (nat n - 1)"
+        using powr_of_int[OF \<open>g z\<noteq>0\<close>,of "n-1"] by (simp add: nat_diff_distrib') 
+      then show ?thesis unfolding dd_def dd'_def by simp
+    qed (simp add:dd_def dd'_def)
+    then have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)
+                \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative dd') (at z within s)"
+      by simp
+    also have "... \<longleftrightarrow> ((\<lambda>z. g z ^ nat n) has_field_derivative dd') (at z within s)"
+      apply (rule has_field_derivative_cong_eventually)
+      subgoal unfolding eventually_at
+        apply (rule exI[where x=e])
+        using powr_of_int that \<open>e>0\<close> e_dist by (simp add: dist_commute)
+      subgoal using powr_of_int \<open>g z\<noteq>0\<close> that by simp
+      done
+    also have "..." unfolding dd'_def using gderiv that
+      by (auto intro!: derivative_eq_intros)
+    finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)" .
+    then show ?thesis unfolding dd_def by simp
+  qed
+  moreover have ?thesis when "n<0"
+  proof -
+    define dd' where "dd' = of_int n / g z ^ (nat (1 - n)) * gd"
+    have "dd=dd'"
+    proof -
+      have "g z powr of_int (n - 1) = inverse (g z ^ nat (1-n))"
+        using powr_of_int[OF \<open>g z\<noteq>0\<close>,of "n-1"] that by auto
+      then show ?thesis
+        unfolding dd_def dd'_def by (simp add: divide_inverse)
+    qed
+    then have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)
+                \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative dd') (at z within s)"
+      by simp
+    also have "... \<longleftrightarrow> ((\<lambda>z. inverse (g z ^ nat (-n))) has_field_derivative dd') (at z within s)"
+      apply (rule has_field_derivative_cong_eventually)
+      subgoal unfolding eventually_at
+        apply (rule exI[where x=e])
+        using powr_of_int that \<open>e>0\<close> e_dist by (simp add: dist_commute)
+      subgoal using powr_of_int \<open>g z\<noteq>0\<close> that by simp
+      done
+    also have "..." unfolding dd'_def using gderiv that \<open>g z\<noteq>0\<close>
+      apply (auto intro!: derivative_eq_intros)
+      apply (simp add:divide_simps power_add[symmetric])
+      apply (subgoal_tac "nat (- n) + nat (1 - n) - Suc 0 = nat (- n) + nat (- n)")
+      by auto
+    finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)" .
+    then show ?thesis unfolding dd_def by simp
+  qed
+  ultimately show ?thesis by force
+qed
+
+lemma field_differentiable_powr_of_int:
+  fixes z :: complex 
+  assumes gderiv:"g field_differentiable (at z within s)" and "g z\<noteq>0"
+  shows "(\<lambda>z. g z powr of_int n) field_differentiable (at z within s)"
+using has_field_derivative_powr_of_int assms(2) field_differentiable_def gderiv by blast
+
+lemma holomorphic_on_powr_of_int [holomorphic_intros]:
+  assumes "f holomorphic_on s" "\<forall>z\<in>s. f z\<noteq>0"
+  shows "(\<lambda>z. (f z) powr of_int n) holomorphic_on s"
+proof (cases "n\<ge>0")
+  case True
+  then have "?thesis \<longleftrightarrow> (\<lambda>z. (f z) ^ nat n) holomorphic_on s"
+    apply (rule_tac holomorphic_cong)
+    using assms(2) by (auto simp add:powr_of_int)
+  moreover have "(\<lambda>z. (f z) ^ nat n) holomorphic_on s"
+    using assms(1) by (auto intro:holomorphic_intros)    
+  ultimately show ?thesis by auto
+next
+  case False
+  then have "?thesis \<longleftrightarrow> (\<lambda>z. inverse (f z) ^ nat (-n)) holomorphic_on s"
+    apply (rule_tac holomorphic_cong)
+    using assms(2) by (auto simp add:powr_of_int power_inverse)
+  moreover have "(\<lambda>z. inverse (f z) ^ nat (-n)) holomorphic_on s"
+    using assms by (auto intro!:holomorphic_intros) 
+  ultimately show ?thesis by auto
+qed
 
 lemma has_field_derivative_powr_right [derivative_intros]:
     "w \<noteq> 0 \<Longrightarrow> ((\<lambda>z. w powr z) has_field_derivative Ln w * w powr z) (at z)"

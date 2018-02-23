@@ -2501,8 +2501,28 @@ proof -
     by (simp add: g_def)
 qed
 
+lemma residue_holomorphic_over_power:
+  assumes "open A" "z0 \<in> A" "f holomorphic_on A"
+  shows   "residue (\<lambda>z. f z / (z - z0) ^ Suc n) z0 = (deriv ^^ n) f z0 / fact n"
+proof -
+  let ?f = "\<lambda>z. f z / (z - z0) ^ Suc n"
+  from assms(1,2) obtain r where r: "r > 0" "cball z0 r \<subseteq> A"
+    by (auto simp: open_contains_cball)
+  have "(?f has_contour_integral 2 * pi * \<i> * residue ?f z0) (circlepath z0 r)"
+    using r assms by (intro base_residue[of A]) (auto intro!: holomorphic_intros)
+  moreover have "(?f has_contour_integral 2 * pi * \<i> / fact n * (deriv ^^ n) f z0) (circlepath z0 r)"
+    using assms r
+    by (intro Cauchy_has_contour_integral_higher_derivative_circlepath)
+       (auto intro!: holomorphic_on_subset[OF assms(3)] holomorphic_on_imp_continuous_on)
+  ultimately have "2 * pi * \<i> * residue ?f z0 = 2 * pi * \<i> / fact n * (deriv ^^ n) f z0"  
+    by (rule has_contour_integral_unique)
+  thus ?thesis by (simp add: field_simps)
+qed
 
-
+lemma residue_holomorphic_over_power':
+  assumes "open A" "0 \<in> A" "f holomorphic_on A"
+  shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
+  using residue_holomorphic_over_power[OF assms] by simp
 
 subsubsection \<open>Cauchy's residue theorem\<close>
 
@@ -2951,10 +2971,20 @@ proof -
   finally show ?thesis unfolding c_def .
 qed
 
-subsection \<open>The argument principle\<close>
+subsection \<open>Non-essential singular points\<close>
 
 definition is_pole :: "('a::topological_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool" where
   "is_pole f a =  (LIM x (at a). f x :> at_infinity)"
+
+lemma is_pole_cong:
+  assumes "eventually (\<lambda>x. f x = g x) (at a)" "a=b"
+  shows "is_pole f a \<longleftrightarrow> is_pole g b"
+  unfolding is_pole_def using assms by (intro filterlim_cong,auto)
+
+lemma is_pole_transform:
+  assumes "is_pole f a" "eventually (\<lambda>x. f x = g x) (at a)" "a=b"
+  shows "is_pole g b"
+  using is_pole_cong assms by auto
 
 lemma is_pole_tendsto:
   fixes f::"('a::topological_space \<Rightarrow> 'b::real_normed_div_algebra)"
@@ -3002,1049 +3032,6 @@ proof -
     using not_tendsto_and_filterlim_at_infinity[of "at x" f "f x"] by auto
 qed
 
-
-(*order of the zero of f at z*)
-definition zorder::"(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> nat" where
-  "zorder f z = (THE n. n>0 \<and> (\<exists>h r. r>0 \<and> h holomorphic_on cball z r
-                    \<and> (\<forall>w\<in>cball z r. f w =  h w * (w-z)^n \<and> h w \<noteq>0)))"
-
-definition zer_poly::"[complex \<Rightarrow> complex,complex]\<Rightarrow>complex \<Rightarrow> complex" where
-  "zer_poly f z = (SOME h. \<exists>r . r>0 \<and> h holomorphic_on cball z r
-                    \<and> (\<forall>w\<in>cball z r. f w =  h w * (w-z)^(zorder f z) \<and> h w \<noteq>0))"
-
-(*order of the pole of f at z*)
-definition porder::"(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> nat" where
-  "porder f z = (let f'=(\<lambda>x. if x=z then 0 else inverse (f x)) in zorder f' z)"
-
-definition pol_poly::"[complex \<Rightarrow> complex,complex]\<Rightarrow>complex \<Rightarrow> complex" where
-  "pol_poly f z = (let f'=(\<lambda> x. if x=z then 0 else inverse (f x))
-      in inverse o zer_poly f' z)"
-
-
-lemma holomorphic_factor_zero_unique:
-  fixes f::"complex \<Rightarrow> complex" and z::complex and r::real
-  assumes "r>0"
-    and asm:"\<forall>w\<in>ball z r. f w = (w-z)^n * g w \<and> g w\<noteq>0 \<and> f w = (w - z)^m * h w \<and> h w\<noteq>0"
-    and g_holo:"g holomorphic_on ball z r" and h_holo:"h holomorphic_on ball z r"
-  shows "n=m"
-proof -
-  have "n>m \<Longrightarrow> False"
-    proof -
-      assume "n>m"
-      have "(h \<longlongrightarrow> 0) (at z within ball z r)"
-        proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) ^ (n - m) * g w"])
-          have "\<forall>w\<in>ball z r. w\<noteq>z \<longrightarrow> h w = (w-z)^(n-m) * g w" using \<open>n>m\<close> asm
-            by (auto simp add:field_simps power_diff)
-          then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk>
-            \<Longrightarrow> (x' - z) ^ (n - m) * g x' = h x'" for x' by auto
-        next
-          define F where "F \<equiv> at z within ball z r"
-          define f' where "f' \<equiv> \<lambda>x. (x - z) ^ (n-m)"
-          have "f' z=0" using \<open>n>m\<close> unfolding f'_def by auto
-          moreover have "continuous F f'" unfolding f'_def F_def
-            by (intro continuous_intros)
-          ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
-            by (simp add: continuous_within)
-          moreover have "(g \<longlongrightarrow> g z) F"
-            using holomorphic_on_imp_continuous_on[OF g_holo,unfolded continuous_on_def] \<open>r>0\<close>
-            unfolding F_def by auto
-          ultimately show " ((\<lambda>w. f' w * g w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
-        qed
-      moreover have "(h \<longlongrightarrow> h z) (at z within ball z r)"
-        using holomorphic_on_imp_continuous_on[OF h_holo]
-        by (auto simp add:continuous_on_def \<open>r>0\<close>)
-      moreover have "at z within ball z r \<noteq> bot" using \<open>r>0\<close>
-        by (auto simp add:trivial_limit_within islimpt_ball)
-      ultimately have "h z=0" by (auto intro: tendsto_unique)
-      thus False using asm \<open>r>0\<close> by auto
-    qed
-  moreover have "m>n \<Longrightarrow> False"
-    proof -
-      assume "m>n"
-      have "(g \<longlongrightarrow> 0) (at z within ball z r)"
-        proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) ^ (m - n) * h w"])
-          have "\<forall>w\<in>ball z r. w\<noteq>z \<longrightarrow> g w = (w-z)^(m-n) * h w" using \<open>m>n\<close> asm
-            by (auto simp add:field_simps power_diff)
-          then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk>
-            \<Longrightarrow> (x' - z) ^ (m - n) * h x' = g x'" for x' by auto
-        next
-          define F where "F \<equiv> at z within ball z r"
-          define f' where "f' \<equiv>\<lambda>x. (x - z) ^ (m-n)"
-          have "f' z=0" using \<open>m>n\<close> unfolding f'_def by auto
-          moreover have "continuous F f'" unfolding f'_def F_def
-            by (intro continuous_intros)
-          ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
-            by (simp add: continuous_within)
-          moreover have "(h \<longlongrightarrow> h z) F"
-            using holomorphic_on_imp_continuous_on[OF h_holo,unfolded continuous_on_def] \<open>r>0\<close>
-            unfolding F_def by auto
-          ultimately show " ((\<lambda>w. f' w * h w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
-        qed
-      moreover have "(g \<longlongrightarrow> g z) (at z within ball z r)"
-        using holomorphic_on_imp_continuous_on[OF g_holo]
-        by (auto simp add:continuous_on_def \<open>r>0\<close>)
-      moreover have "at z within ball z r \<noteq> bot" using \<open>r>0\<close>
-        by (auto simp add:trivial_limit_within islimpt_ball)
-      ultimately have "g z=0" by (auto intro: tendsto_unique)
-      thus False using asm \<open>r>0\<close> by auto
-    qed
-  ultimately show "n=m" by fastforce
-qed
-
-
-lemma holomorphic_factor_zero_Ex1:
-  assumes "open s" "connected s" "z \<in> s" and
-        holf: "f holomorphic_on s"
-        and f: "f z = 0" "\<exists>w\<in>s. f w \<noteq> 0"
-  shows "\<exists>!n. \<exists>g r. 0 < n \<and> 0 < r \<and>
-                g holomorphic_on cball z r
-                \<and> (\<forall>w\<in>cball z r. f w = (w-z)^n * g w \<and> g w\<noteq>0)"
-proof (rule ex_ex1I)
-  have "\<not> f constant_on s"
-    by (metis \<open>z\<in>s\<close> constant_on_def f)
-  then obtain g r n where "0 < n" "0 < r" "ball z r \<subseteq> s" and
-          g:"g holomorphic_on ball z r"
-          "\<And>w. w \<in> ball z r \<Longrightarrow> f w = (w - z) ^ n * g w"
-          "\<And>w. w \<in> ball z r \<Longrightarrow> g w \<noteq> 0"
-    by (blast intro: holomorphic_factor_zero_nonconstant[OF holf \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> \<open>f z=0\<close>])
-  define r' where "r' \<equiv> r/2"
-  have "cball z r' \<subseteq> ball z r" unfolding r'_def by (simp add: \<open>0 < r\<close> cball_subset_ball_iff)
-  hence "cball z r' \<subseteq> s" "g holomorphic_on cball z r'"
-      "(\<forall>w\<in>cball z r'. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0)"
-    using g \<open>ball z r \<subseteq> s\<close> by auto
-  moreover have "r'>0" unfolding r'_def using \<open>0<r\<close> by auto
-  ultimately show "\<exists>n g r. 0 < n \<and> 0 < r  \<and> g holomorphic_on cball z r
-          \<and> (\<forall>w\<in>cball z r. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0)"
-    apply (intro exI[of _ n] exI[of _ g] exI[of _ r'])
-    by (simp add:\<open>0 < n\<close>)
-next
-  fix m n
-  define fac where "fac \<equiv> \<lambda>n g r. \<forall>w\<in>cball z r. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0"
-  assume n_asm:"\<exists>g r1. 0 < n \<and> 0 < r1 \<and> g holomorphic_on cball z r1 \<and> fac n g r1"
-     and m_asm:"\<exists>h r2. 0 < m \<and> 0 < r2  \<and> h holomorphic_on cball z r2 \<and> fac m h r2"
-  obtain g r1 where "0 < n" "0 < r1" and g_holo: "g holomorphic_on cball z r1"
-    and "fac n g r1" using n_asm by auto
-  obtain h r2 where "0 < m" "0 < r2" and h_holo: "h holomorphic_on cball z r2"
-    and "fac m h r2" using m_asm by auto
-  define r where "r \<equiv> min r1 r2"
-  have "r>0" using \<open>r1>0\<close> \<open>r2>0\<close> unfolding r_def by auto
-  moreover have "\<forall>w\<in>ball z r. f w = (w-z)^n * g w \<and> g w\<noteq>0 \<and> f w = (w - z)^m * h w \<and> h w\<noteq>0"
-    using \<open>fac m h r2\<close> \<open>fac n g r1\<close>   unfolding fac_def r_def
-    by fastforce
-  ultimately show "m=n" using g_holo h_holo
-    apply (elim holomorphic_factor_zero_unique[of r z f n g m h,symmetric,rotated])
-    by (auto simp add:r_def)
-qed
-
-lemma zorder_exist:
-  fixes f::"complex \<Rightarrow> complex" and z::complex
-  defines "n\<equiv>zorder f z" and "h\<equiv>zer_poly f z"
-  assumes  "open s" "connected s" "z\<in>s"
-    and holo: "f holomorphic_on s"
-    and  "f z=0" "\<exists>w\<in>s. f w\<noteq>0"
-  shows "\<exists>r. n>0 \<and> r>0 \<and> cball z r \<subseteq> s \<and> h holomorphic_on cball z r
-    \<and> (\<forall>w\<in>cball z r. f w  = h w * (w-z)^n \<and> h w \<noteq>0) "
-proof -
-  define P where "P \<equiv> \<lambda>h r n. r>0 \<and> h holomorphic_on cball z r
-    \<and> (\<forall>w\<in>cball z r. ( f w  = h w * (w-z)^n) \<and> h w \<noteq>0)"
-  have "(\<exists>!n. n>0 \<and> (\<exists> h r. P h r n))"
-    proof -
-      have "\<exists>!n. \<exists>h r. n>0 \<and> P h r n"
-        using holomorphic_factor_zero_Ex1[OF \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> holo \<open>f z=0\<close>
-          \<open>\<exists>w\<in>s. f w\<noteq>0\<close>] unfolding P_def
-        apply (subst mult.commute)
-        by auto
-      thus ?thesis by auto
-    qed
-  moreover have n:"n=(THE n. n>0 \<and> (\<exists>h r. P h r n))"
-    unfolding n_def zorder_def P_def by simp
-  ultimately have "n>0 \<and> (\<exists>h r. P h r n)"
-    apply (drule_tac theI')
-    by simp
-  then have "n>0" and "\<exists>h r. P h r n" by auto
-  moreover have "h=(SOME h. \<exists>r. P h r n)"
-    unfolding h_def P_def zer_poly_def[of f z,folded n_def P_def] by simp
-  ultimately have "\<exists>r. P h r n"
-    apply (drule_tac someI_ex)
-    by simp
-  then obtain r1 where "P h r1 n" by auto
-  obtain r2 where "r2>0" "cball z r2 \<subseteq> s"
-    using assms(3) assms(5) open_contains_cball_eq by blast
-  define r3 where "r3 \<equiv> min r1 r2"
-  have "P h r3 n" using \<open>P h r1 n\<close> \<open>r2>0\<close> unfolding P_def r3_def
-    by auto
-  moreover have "cball z r3 \<subseteq> s" using \<open>cball z r2 \<subseteq> s\<close> unfolding r3_def by auto
-  ultimately show ?thesis using \<open>n>0\<close> unfolding P_def by auto
-qed
-
-lemma zorder_eqI:
-  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0" "n > 0"
-  assumes "\<And>w. w \<in> s \<Longrightarrow> f w = g w * (w - z) ^ n"
-  shows   "zorder f z = n"
-proof -
-  have "continuous_on s g" by (rule holomorphic_on_imp_continuous_on) fact
-  moreover have "open (-{0::complex})" by auto
-  ultimately have "open ((g -` (-{0})) \<inter> s)"
-    unfolding continuous_on_open_vimage[OF \<open>open s\<close>] by blast
-  moreover from assms have "z \<in> (g -` (-{0})) \<inter> s" by auto
-  ultimately obtain r where r: "r > 0" "cball z r \<subseteq> (g -` (-{0})) \<inter> s"
-    unfolding open_contains_cball by blast
-
-  have "n > 0 \<and> r > 0 \<and> g holomorphic_on cball z r \<and> 
-        (\<forall>w\<in>cball z r. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0)" (is "?P g r n")
-    using r assms(3,5,6) by auto
-  hence ex: "\<exists>g r. ?P g r n" by blast
-  have unique: "\<exists>!n. \<exists>g r. ?P g r n"
-  proof (rule holomorphic_factor_zero_Ex1)
-    from r have "(\<lambda>w. g w * (w - z) ^ n) holomorphic_on ball z r"
-      by (intro holomorphic_intros holomorphic_on_subset[OF assms(3)]) auto
-    also have "?this \<longleftrightarrow> f holomorphic_on ball z r"
-      using r assms by (intro holomorphic_cong refl) (auto simp: cball_def subset_iff)
-    finally show \<dots> .
-  next
-    let ?w = "z + of_real r / 2"
-    have "?w \<in> ball z r"
-      using r by (auto simp: dist_norm)
-    moreover from this and r have "g ?w \<noteq> 0" and "?w \<in> s" 
-      by (auto simp: cball_def ball_def subset_iff)
-    with assms have "f ?w \<noteq> 0" using \<open>r > 0\<close> by auto
-    ultimately show "\<exists>w\<in>ball z r. f w \<noteq> 0" by blast
-  qed (insert assms r, auto)
-  from unique and ex have "(THE n. \<exists>g r. ?P g r n) = n"
-    by (rule the1_equality)
-  also have "(THE n. \<exists>g r. ?P g r n) = zorder f z"
-    by (simp add: zorder_def mult.commute)
-  finally show ?thesis .
-qed
-
-lemma simple_zeroI:
-  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0"
-  assumes "\<And>w. w \<in> s \<Longrightarrow> f w = g w * (w - z)"
-  shows   "zorder f z = 1"
-  using assms(1-4) by (rule zorder_eqI) (use assms(5) in auto)
-
-lemma higher_deriv_power:
-  shows   "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) w = 
-             pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j)"
-proof (induction j arbitrary: w)
-  case 0
-  thus ?case by auto
-next
-  case (Suc j w)
-  have "(deriv ^^ Suc j) (\<lambda>w. (w - z) ^ n) w = deriv ((deriv ^^ j) (\<lambda>w. (w - z) ^ n)) w"
-    by simp
-  also have "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) = 
-               (\<lambda>w. pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j))"
-    using Suc by (intro Suc.IH ext)
-  also {
-    have "(\<dots> has_field_derivative of_nat (n - j) *
-               pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - Suc j)) (at w)"
-      using Suc.prems by (auto intro!: derivative_eq_intros)
-    also have "of_nat (n - j) * pochhammer (of_nat (Suc n - j)) j = 
-                 pochhammer (of_nat (Suc n - Suc j)) (Suc j)"
-      by (cases "Suc j \<le> n", subst pochhammer_rec) 
-         (insert Suc.prems, simp_all add: algebra_simps Suc_diff_le pochhammer_0_left)
-    finally have "deriv (\<lambda>w. pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j)) w =
-                    \<dots> * (w - z) ^ (n - Suc j)"
-      by (rule DERIV_imp_deriv)
-  }
-  finally show ?case .
-qed
-
-lemma zorder_eqI':
-  assumes "open s" "connected s" "z \<in> s" "f holomorphic_on s"
-  assumes zero: "\<And>i. i < n' \<Longrightarrow> (deriv ^^ i) f z = 0"
-  assumes nz: "(deriv ^^ n') f z \<noteq> 0" and n: "n' > 0"
-  shows   "zorder f z = n'"
-proof -
-  {
-    assume *: "\<And>w. w \<in> s \<Longrightarrow> f w = 0"
-    hence "eventually (\<lambda>u. u \<in> s) (nhds z)"
-      using assms by (intro eventually_nhds_in_open) auto
-    hence "eventually (\<lambda>u. f u = 0) (nhds z)"
-      by eventually_elim (simp_all add: *)
-    hence "(deriv ^^ n') f z = (deriv ^^ n') (\<lambda>_. 0) z"
-      by (intro higher_deriv_cong_ev) auto
-    also have "(deriv ^^ n') (\<lambda>_. 0) z = 0"
-      by (induction n') simp_all
-    finally have False using nz by contradiction
-  }
-  hence nz': "\<exists>w\<in>s. f w \<noteq> 0" by blast
-
-  from zero[of 0] and n have [simp]: "f z = 0" by simp
-
-  define n g where "n = zorder f z" and "g = zer_poly f z"
-  from zorder_exist[OF assms(1-4) \<open>f z = 0\<close> nz']
-    obtain r where r: "n > 0" "r > 0" "cball z r \<subseteq> s" "g holomorphic_on cball z r"
-                      "\<forall>w\<in>cball z r. f w = g w * (w - z) ^ n \<and> g w \<noteq> 0"
-    unfolding n_def g_def by blast
-
-  define A where "A = (\<lambda>i. of_nat (i choose n) * fact n * (deriv ^^ (i - n)) g z)"
-  {
-    fix i :: nat
-    have "eventually (\<lambda>w. w \<in> ball z r) (nhds z)"
-      using r by (intro eventually_nhds_in_open) auto
-    hence "eventually (\<lambda>w. f w = (w - z) ^ n * g w) (nhds z)"
-      by eventually_elim (use r in auto)
-    hence "(deriv ^^ i) f z = (deriv ^^ i) (\<lambda>w. (w - z) ^ n * g w) z"
-      by (intro higher_deriv_cong_ev) auto
-    also have "\<dots> = (\<Sum>j=0..i. of_nat (i choose j) *
-                       (deriv ^^ j) (\<lambda>w. (w - z) ^ n) z * (deriv ^^ (i - j)) g z)"
-      using r by (intro higher_deriv_mult[of _ "ball z r"]) (auto intro!: holomorphic_intros)
-    also have "\<dots> = (\<Sum>j=0..i. if j = n then of_nat (i choose n) * fact n * (deriv ^^ (i - n)) g z 
-                                 else 0)"
-    proof (intro sum.cong refl, goal_cases)
-      case (1 j)
-      have "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) z = 
-              pochhammer (of_nat (Suc n - j)) j * 0 ^ (n - j)"
-        by (subst higher_deriv_power) auto
-      also have "\<dots> = (if j = n then fact j else 0)"
-        by (auto simp: not_less pochhammer_0_left pochhammer_fact)
-      also have "of_nat (i choose j) * \<dots> * (deriv ^^ (i - j)) g z = 
-                   (if j = n then of_nat (i choose n) * fact n * (deriv ^^ (i - n)) g z else 0)"
-        by simp
-      finally show ?case .
-    qed
-    also have "\<dots> = (if i \<ge> n then A i else 0)"
-      by (auto simp: A_def)
-    finally have "(deriv ^^ i) f z = \<dots>" .
-  } note * = this
-
-  from *[of n] and r have "(deriv ^^ n) f z \<noteq> 0"
-    by (simp add: A_def)
-  with zero[of n] have "n \<ge> n'" by (cases "n \<ge> n'") auto
-  with nz show "n = n'"
-    by (auto simp: * split: if_splits)
-qed
-
-lemma simple_zeroI':
-  assumes "open s" "connected s" "z \<in> s" 
-  assumes "\<And>z. z \<in> s \<Longrightarrow> (f has_field_derivative f' z) (at z)"
-  assumes "f z = 0" "f' z \<noteq> 0"
-  shows   "zorder f z = 1"
-proof -
-  have "deriv f z = f' z" if "z \<in> s" for z
-    using that by (intro DERIV_imp_deriv assms) auto
-  moreover from assms have "f holomorphic_on s"
-    by (subst holomorphic_on_open) auto
-  ultimately show ?thesis using assms
-    by (intro zorder_eqI'[of s]) auto
-qed
-
-lemma porder_exist:
-  fixes f::"complex \<Rightarrow> complex" and z::complex
-  defines "n \<equiv> porder f z" and "h \<equiv> pol_poly f z"
-  assumes "open s" "z \<in> s"
-    and holo:"f holomorphic_on s-{z}"
-    and "is_pole f z"
-  shows "\<exists>r. n>0 \<and> r>0 \<and> cball z r \<subseteq> s \<and> h holomorphic_on cball z r
-    \<and> (\<forall>w\<in>cball z r. (w\<noteq>z \<longrightarrow> f w  = h w / (w-z)^n) \<and> h w \<noteq>0)"
-proof -
-  obtain e where "e>0" and e_ball:"ball z e \<subseteq> s"and e_def: "\<forall>x\<in>ball z e-{z}. f x\<noteq>0"
-    proof -
-      have "\<forall>\<^sub>F z in at z. f z \<noteq> 0"
-        using \<open>is_pole f z\<close> filterlim_at_infinity_imp_eventually_ne unfolding is_pole_def
-        by auto
-      then obtain e1 where "e1>0" and e1_def: "\<forall>x. x \<noteq> z \<and> dist x z < e1 \<longrightarrow> f x \<noteq> 0"
-        using eventually_at[of "\<lambda>x. f x\<noteq>0" z,simplified] by auto
-      obtain e2 where "e2>0" and "ball z e2 \<subseteq>s" using \<open>open s\<close> \<open>z\<in>s\<close> openE by auto
-      define e where "e \<equiv> min e1 e2"
-      have "e>0" using \<open>e1>0\<close> \<open>e2>0\<close> unfolding e_def by auto
-      moreover have "ball z e \<subseteq> s" unfolding e_def using \<open>ball z e2 \<subseteq> s\<close> by auto
-      moreover have "\<forall>x\<in>ball z e-{z}. f x\<noteq>0" using e1_def \<open>e1>0\<close> \<open>e2>0\<close> unfolding e_def
-        by (simp add: DiffD1 DiffD2 dist_commute singletonI)
-      ultimately show ?thesis using that by auto
-    qed
-  define g where "g \<equiv> \<lambda>x. if x=z then 0 else inverse (f x)"
-  define zo where "zo \<equiv> zorder g z"
-  define zp where "zp \<equiv> zer_poly g z"
-  have "\<exists>w\<in>ball z e. g w \<noteq> 0"
-    proof -
-      obtain w where w:"w\<in>ball z e-{z}" using \<open>0 < e\<close>
-        by (metis open_ball all_not_in_conv centre_in_ball insert_Diff_single
-          insert_absorb not_open_singleton)
-      hence "w\<noteq>z" "f w\<noteq>0" using e_def[rule_format,of w] mem_ball
-        by (auto simp add:dist_commute)
-      then show ?thesis unfolding g_def using w by auto
-    qed
-  moreover have "g holomorphic_on ball z e"
-    apply (intro is_pole_inverse_holomorphic[of "ball z e",OF _ _ \<open>is_pole f z\<close> e_def,folded g_def])
-    using holo e_ball by auto
-  moreover have "g z=0" unfolding g_def by auto
-  ultimately obtain r where "0 < zo" "0 < r" "cball z r \<subseteq> ball z e"
-      and zp_holo: "zp holomorphic_on cball z r" and
-      zp_fac: "\<forall>w\<in>cball z r. g w = zp w * (w - z) ^ zo \<and> zp w \<noteq> 0"
-    using zorder_exist[of "ball z e" z g,simplified,folded zo_def zp_def] \<open>e>0\<close>
-    by auto
-  have n:"n=zo" and h:"h=inverse o zp"
-    unfolding n_def zo_def porder_def h_def zp_def pol_poly_def g_def by simp_all
-  have "h holomorphic_on cball z r"
-    using zp_holo zp_fac holomorphic_on_inverse  unfolding h comp_def by blast
-  moreover have "\<forall>w\<in>cball z r. (w\<noteq>z \<longrightarrow> f w  = h w / (w-z)^n) \<and> h w \<noteq>0"
-    using zp_fac unfolding h n comp_def g_def
-    by (metis divide_inverse_commute field_class.field_inverse_zero inverse_inverse_eq
-      inverse_mult_distrib mult.commute)
-  moreover have "0 < n" unfolding n using \<open>zo>0\<close> by simp
-  ultimately show ?thesis using \<open>0 < r\<close> \<open>cball z r \<subseteq> ball z e\<close> e_ball by auto
-qed
-
-lemma residue_porder:
-  fixes f::"complex \<Rightarrow> complex" and z::complex
-  defines "n \<equiv> porder f z" and "h \<equiv> pol_poly f z"
-  assumes "open s" "z \<in> s"
-    and holo:"f holomorphic_on s - {z}"
-    and pole:"is_pole f z"
-  shows "residue f z = ((deriv ^^ (n - 1)) h z / fact (n-1))"
-proof -
-  define g where "g \<equiv> \<lambda>x. if x=z then 0 else inverse (f x)"
-  obtain r where "0 < n" "0 < r" and r_cball:"cball z r \<subseteq> s" and h_holo: "h holomorphic_on cball z r"
-      and h_divide:"(\<forall>w\<in>cball z r. (w\<noteq>z \<longrightarrow> f w = h w / (w - z) ^ n) \<and> h w \<noteq> 0)"
-    using porder_exist[OF \<open>open s\<close> \<open>z \<in> s\<close> holo pole, folded n_def h_def] by blast
-  have r_nonzero:"\<And>w. w \<in> ball z r - {z} \<Longrightarrow> f w \<noteq> 0"
-    using h_divide by simp
-  define c where "c \<equiv> 2 * pi * \<i>"
-  define der_f where "der_f \<equiv> ((deriv ^^ (n - 1)) h z / fact (n-1))"
-  define h' where "h' \<equiv> \<lambda>u. h u / (u - z) ^ n"
-  have "(h' has_contour_integral c / fact (n - 1) * (deriv ^^ (n - 1)) h z) (circlepath z r)"
-    unfolding h'_def
-    proof (rule Cauchy_has_contour_integral_higher_derivative_circlepath[of z r h z "n-1",
-        folded c_def Suc_pred'[OF \<open>n>0\<close>]])
-      show "continuous_on (cball z r) h" using holomorphic_on_imp_continuous_on h_holo by simp
-      show "h holomorphic_on ball z r" using h_holo by auto
-      show " z \<in> ball z r" using \<open>r>0\<close> by auto
-    qed
-  then have "(h' has_contour_integral c * der_f) (circlepath z r)" unfolding der_f_def by auto
-  then have "(f has_contour_integral c * der_f) (circlepath z r)"
-    proof (elim has_contour_integral_eq)
-      fix x assume "x \<in> path_image (circlepath z r)"
-      hence "x\<in>cball z r - {z}" using \<open>r>0\<close> by auto
-      then show "h' x = f x" using h_divide unfolding h'_def by auto
-    qed
-  moreover have "(f has_contour_integral c * residue f z) (circlepath z r)"
-    using base_residue[OF \<open>open s\<close> \<open>z\<in>s\<close> \<open>r>0\<close> holo r_cball,folded c_def] .
-  ultimately have "c * der_f =  c * residue f z" using has_contour_integral_unique by blast
-  hence "der_f = residue f z" unfolding c_def by auto
-  thus ?thesis unfolding der_f_def by auto
-qed
-
-theorem argument_principle:
-  fixes f::"complex \<Rightarrow> complex" and poles s:: "complex set"
-  defines "zeros\<equiv>{p. f p=0} - poles"
-  assumes "open s" and
-          "connected s" and
-          f_holo:"f holomorphic_on s-poles" and
-          h_holo:"h holomorphic_on s" and
-          "valid_path g" and
-          loop:"pathfinish g = pathstart g" and
-          path_img:"path_image g \<subseteq> s - (zeros \<union> poles)" and
-          homo:"\<forall>z. (z \<notin> s) \<longrightarrow> winding_number g z = 0" and
-          finite:"finite (zeros \<union> poles)" and
-          poles:"\<forall>p\<in>poles. is_pole f p"
-  shows "contour_integral g (\<lambda>x. deriv f x * h x / f x) = 2 * pi * \<i> *
-          ((\<Sum>p\<in>zeros. winding_number g p * h p * zorder f p)
-           - (\<Sum>p\<in>poles. winding_number g p * h p * porder f p))"
-    (is "?L=?R")
-proof -
-  define c where "c \<equiv> 2 * complex_of_real pi * \<i> "
-  define ff where "ff \<equiv> (\<lambda>x. deriv f x * h x / f x)"
-  define cont_pole where "cont_pole \<equiv> \<lambda>ff p e. (ff has_contour_integral - c  * porder f p * h p) (circlepath p e)"
-  define cont_zero where "cont_zero \<equiv> \<lambda>ff p e. (ff has_contour_integral c * zorder f p * h p ) (circlepath p e)"
-  define avoid where "avoid \<equiv> \<lambda>p e. \<forall>w\<in>cball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> zeros \<union> poles)"
-  have "\<exists>e>0. avoid p e \<and> (p\<in>poles \<longrightarrow> cont_pole ff p e) \<and> (p\<in>zeros \<longrightarrow> cont_zero ff p e)"
-      when "p\<in>s" for p
-    proof -
-      obtain e1 where "e1>0" and e1_avoid:"avoid p e1"
-        using finite_cball_avoid[OF \<open>open s\<close> finite] \<open>p\<in>s\<close> unfolding avoid_def by auto
-      have "\<exists>e2>0. cball p e2 \<subseteq> ball p e1 \<and> cont_pole ff p e2"
-        when "p\<in>poles"
-        proof -
-          define po where "po \<equiv> porder f p"
-          define pp where "pp \<equiv> pol_poly f p"
-          define f' where "f' \<equiv> \<lambda>w. pp w / (w - p) ^ po"
-          define ff' where "ff' \<equiv> (\<lambda>x. deriv f' x * h x / f' x)"
-          have "f holomorphic_on ball p e1 - {p}"
-            apply (intro holomorphic_on_subset[OF f_holo])
-            using e1_avoid \<open>p\<in>poles\<close> unfolding avoid_def by auto
-          then obtain r where
-              "0 < po" "r>0"
-              "cball p r \<subseteq> ball p e1" and
-              pp_holo:"pp holomorphic_on cball p r" and
-              pp_po:"(\<forall>w\<in>cball p r. (w\<noteq>p \<longrightarrow> f w = pp w / (w - p) ^ po) \<and> pp w \<noteq> 0)"
-            using porder_exist[of "ball p e1" p f,simplified,OF \<open>e1>0\<close>] poles \<open>p\<in>poles\<close>
-            unfolding po_def pp_def
-            by auto
-          define e2 where "e2 \<equiv> r/2"
-          have "e2>0" using \<open>r>0\<close> unfolding e2_def by auto
-          define anal where "anal \<equiv> \<lambda>w. deriv pp w * h w / pp w"
-          define prin where "prin \<equiv> \<lambda>w. - of_nat po * h w / (w - p)"
-          have "((\<lambda>w.  prin w + anal w) has_contour_integral - c * po * h p) (circlepath p e2)"
-            proof (rule  has_contour_integral_add[of _ _ _ _ 0,simplified])
-              have "ball p r \<subseteq> s"
-                using \<open>cball p r \<subseteq> ball p e1\<close> avoid_def ball_subset_cball e1_avoid by blast
-              then have "cball p e2 \<subseteq> s"
-                using \<open>r>0\<close> unfolding e2_def by auto
-              then have "(\<lambda>w. - of_nat po * h w) holomorphic_on cball p e2"
-                using h_holo
-                by (auto intro!: holomorphic_intros)
-              then show "(prin has_contour_integral - c * of_nat po * h p ) (circlepath p e2)"
-                using Cauchy_integral_circlepath_simple[folded c_def, of "\<lambda>w. - of_nat po * h w"]
-                  \<open>e2>0\<close>
-                unfolding prin_def
-                by (auto simp add: mult.assoc)
-              have "anal holomorphic_on ball p r" unfolding anal_def
-                using pp_holo h_holo pp_po \<open>ball p r \<subseteq> s\<close>
-                by (auto intro!: holomorphic_intros)
-              then show "(anal has_contour_integral 0) (circlepath p e2)"
-                using e2_def \<open>r>0\<close>
-                by (auto elim!: Cauchy_theorem_disc_simple)
-            qed
-          then have "cont_pole ff' p e2" unfolding cont_pole_def po_def
-            proof (elim has_contour_integral_eq)
-              fix w assume "w \<in> path_image (circlepath p e2)"
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
-              define wp where "wp \<equiv> w-p"
-              have "wp\<noteq>0" and "pp w \<noteq>0"
-                unfolding wp_def using \<open>w\<noteq>p\<close> \<open>w\<in>ball p r\<close> pp_po by auto
-              moreover have der_f':"deriv f' w = - po * pp w / (w-p)^(po+1) + deriv pp w / (w-p)^po"
-                proof (rule DERIV_imp_deriv)
-                  define der where "der \<equiv> - po * pp w / (w-p)^(po+1) + deriv pp w / (w-p)^po"
-                  have po:"po = Suc (po - Suc 0) " using \<open>po>0\<close> by auto
-                  have "(pp has_field_derivative (deriv pp w)) (at w)"
-                    using DERIV_deriv_iff_has_field_derivative pp_holo \<open>w\<noteq>p\<close>
-                      by (meson open_ball \<open>w \<in> ball p r\<close> ball_subset_cball holomorphic_derivI holomorphic_on_subset)
-                  then show "(f' has_field_derivative  der) (at w)"
-                    using \<open>w\<noteq>p\<close> \<open>po>0\<close> unfolding der_def f'_def
-                    apply (auto intro!: derivative_eq_intros simp add:field_simps)
-                    apply (subst (4) po)
-                    apply (subst power_Suc)
-                    by (auto simp add:field_simps)
-                qed
-              ultimately show "prin w + anal w = ff' w"
-                unfolding ff'_def prin_def anal_def
-                apply simp
-                apply (unfold f'_def)
-                apply (fold wp_def)
-                by (auto simp add:field_simps)
-            qed
-          then have "cont_pole ff p e2" unfolding cont_pole_def
-            proof (elim has_contour_integral_eq)
-              fix w assume "w \<in> path_image (circlepath p e2)"
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
-              have "deriv f' w =  deriv f w"
-                proof (rule complex_derivative_transform_within_open[where s="ball p r - {p}"])
-                  show "f' holomorphic_on ball p r - {p}" unfolding f'_def using pp_holo
-                    by (auto intro!: holomorphic_intros)
-                next
-                  have "ball p e1 - {p} \<subseteq> s - poles"
-                    using avoid_def ball_subset_cball e1_avoid
-                    by auto
-                  then have "ball p r - {p} \<subseteq> s - poles" using \<open>cball p r \<subseteq> ball p e1\<close>
-                    using ball_subset_cball by blast
-                  then show "f holomorphic_on ball p r - {p}" using f_holo
-                    by auto
-                next
-                  show "open (ball p r - {p})" by auto
-                next
-                  show "w \<in> ball p r - {p}" using \<open>w\<in>ball p r\<close> \<open>w\<noteq>p\<close> by auto
-                next
-                  fix x assume "x \<in> ball p r - {p}"
-                  then show "f' x = f x"
-                    using pp_po unfolding f'_def by auto
-                qed
-              moreover have " f' w  =  f w "
-                using \<open>w \<in> ball p r\<close> ball_subset_cball subset_iff pp_po \<open>w\<noteq>p\<close>
-                unfolding f'_def by auto
-              ultimately show "ff' w = ff w"
-                unfolding ff'_def ff_def by simp
-            qed
-          moreover have "cball p e2 \<subseteq> ball p e1"
-            using \<open>0 < r\<close> \<open>cball p r \<subseteq> ball p e1\<close> e2_def by auto
-          ultimately show ?thesis using \<open>e2>0\<close> by auto
-        qed
-      then obtain e2 where e2:"p\<in>poles \<longrightarrow> e2>0 \<and> cball p e2 \<subseteq> ball p e1 \<and> cont_pole ff p e2"
-        by auto
-      have "\<exists>e3>0. cball p e3 \<subseteq> ball p e1 \<and> cont_zero ff p e3"
-        when "p\<in>zeros"
-        proof -
-          define zo where "zo \<equiv> zorder f p"
-          define zp where "zp \<equiv> zer_poly f p"
-          define f' where "f' \<equiv> \<lambda>w. zp w * (w - p) ^ zo"
-          define ff' where "ff' \<equiv> (\<lambda>x. deriv f' x * h x / f' x)"
-          have "f holomorphic_on ball p e1"
-            proof -
-              have "ball p e1 \<subseteq> s - poles"
-                using avoid_def ball_subset_cball e1_avoid that zeros_def by fastforce
-              thus ?thesis using f_holo by auto
-            qed
-          moreover have "f p = 0" using \<open>p\<in>zeros\<close>
-            using DiffD1 mem_Collect_eq zeros_def by blast
-          moreover have "\<exists>w\<in>ball p e1. f w \<noteq> 0"
-            proof -
-              define p' where "p' \<equiv> p+e1/2"
-              have "p' \<in> ball p e1" and "p'\<noteq>p" using \<open>e1>0\<close> unfolding p'_def by (auto simp add:dist_norm)
-              then show "\<exists>w\<in>ball p e1. f w \<noteq> 0" using e1_avoid unfolding avoid_def
-                apply (rule_tac x=p' in bexI)
-                by (auto simp add:zeros_def)
-            qed
-          ultimately obtain r where
-              "0 < zo" "r>0"
-              "cball p r \<subseteq> ball p e1" and
-              pp_holo:"zp holomorphic_on cball p r" and
-              pp_po:"(\<forall>w\<in>cball p r. f w = zp w * (w - p) ^ zo \<and> zp w \<noteq> 0)"
-            using zorder_exist[of "ball p e1" p f,simplified,OF \<open>e1>0\<close>] unfolding zo_def zp_def
-            by auto
-          define e2 where "e2 \<equiv> r/2"
-          have "e2>0" using \<open>r>0\<close> unfolding e2_def by auto
-          define anal where "anal \<equiv> \<lambda>w. deriv zp w * h w / zp w"
-          define prin where "prin \<equiv> \<lambda>w. of_nat zo * h w / (w - p)"
-          have "((\<lambda>w.  prin w + anal w) has_contour_integral c * zo * h p) (circlepath p e2)"
-            proof (rule  has_contour_integral_add[of _ _ _ _ 0,simplified])
-              have "ball p r \<subseteq> s"
-                using \<open>cball p r \<subseteq> ball p e1\<close> avoid_def ball_subset_cball e1_avoid by blast
-              then have "cball p e2 \<subseteq> s"
-                using \<open>r>0\<close> unfolding e2_def by auto
-              then have "(\<lambda>w. of_nat zo * h w) holomorphic_on cball p e2"
-                using h_holo
-                by (auto intro!: holomorphic_intros)
-              then show "(prin has_contour_integral c * of_nat zo * h p ) (circlepath p e2)"
-                using Cauchy_integral_circlepath_simple[folded c_def, of "\<lambda>w. of_nat zo * h w"]
-                  \<open>e2>0\<close>
-                unfolding prin_def
-                by (auto simp add: mult.assoc)
-              have "anal holomorphic_on ball p r" unfolding anal_def
-                using pp_holo h_holo pp_po \<open>ball p r \<subseteq> s\<close>
-                by (auto intro!: holomorphic_intros)
-              then show "(anal has_contour_integral 0) (circlepath p e2)"
-                using e2_def \<open>r>0\<close>
-                by (auto elim!: Cauchy_theorem_disc_simple)
-            qed
-          then have "cont_zero ff' p e2" unfolding cont_zero_def zo_def
-            proof (elim has_contour_integral_eq)
-              fix w assume "w \<in> path_image (circlepath p e2)"
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
-              define wp where "wp \<equiv> w-p"
-              have "wp\<noteq>0" and "zp w \<noteq>0"
-                unfolding wp_def using \<open>w\<noteq>p\<close> \<open>w\<in>ball p r\<close> pp_po by auto
-              moreover have der_f':"deriv f' w = zo * zp w * (w-p)^(zo-1) + deriv zp w * (w-p)^zo"
-                proof (rule DERIV_imp_deriv)
-                  define der where "der \<equiv> zo * zp w * (w-p)^(zo-1) + deriv zp w * (w-p)^zo"
-                  have po:"zo = Suc (zo - Suc 0) " using \<open>zo>0\<close> by auto
-                  have "(zp has_field_derivative (deriv zp w)) (at w)"
-                    using DERIV_deriv_iff_has_field_derivative pp_holo
-                    by (meson open_ball \<open>w \<in> ball p r\<close> ball_subset_cball holomorphic_derivI holomorphic_on_subset)
-                  then show "(f' has_field_derivative  der) (at w)"
-                    using \<open>w\<noteq>p\<close> \<open>zo>0\<close> unfolding der_def f'_def
-                    by (auto intro!: derivative_eq_intros simp add:field_simps)
-                qed
-              ultimately show "prin w + anal w = ff' w"
-                unfolding ff'_def prin_def anal_def
-                apply simp
-                apply (unfold f'_def)
-                apply (fold wp_def)
-                apply (auto simp add:field_simps)
-                by (metis Suc_diff_Suc minus_nat.diff_0 power_Suc)
-            qed
-          then have "cont_zero ff p e2" unfolding cont_zero_def
-            proof (elim has_contour_integral_eq)
-              fix w assume "w \<in> path_image (circlepath p e2)"
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
-              have "deriv f' w =  deriv f w"
-                proof (rule complex_derivative_transform_within_open[where s="ball p r - {p}"])
-                  show "f' holomorphic_on ball p r - {p}" unfolding f'_def using pp_holo
-                    by (auto intro!: holomorphic_intros)
-                next
-                  have "ball p e1 - {p} \<subseteq> s - poles"
-                    using avoid_def ball_subset_cball e1_avoid by auto
-                  then have "ball p r - {p} \<subseteq> s - poles" using \<open>cball p r \<subseteq> ball p e1\<close>
-                    using ball_subset_cball by blast
-                  then show "f holomorphic_on ball p r - {p}" using f_holo
-                    by auto
-                next
-                  show "open (ball p r - {p})" by auto
-                next
-                  show "w \<in> ball p r - {p}" using \<open>w\<in>ball p r\<close> \<open>w\<noteq>p\<close> by auto
-                next
-                  fix x assume "x \<in> ball p r - {p}"
-                  then show "f' x = f x"
-                    using pp_po unfolding f'_def by auto
-                qed
-              moreover have " f' w  =  f w "
-                using \<open>w \<in> ball p r\<close> ball_subset_cball subset_iff pp_po unfolding f'_def by auto
-              ultimately show "ff' w = ff w"
-                unfolding ff'_def ff_def by simp
-            qed
-          moreover have "cball p e2 \<subseteq> ball p e1"
-            using \<open>0 < r\<close> \<open>cball p r \<subseteq> ball p e1\<close> e2_def by auto
-          ultimately show ?thesis using \<open>e2>0\<close> by auto
-        qed
-      then obtain e3 where e3:"p\<in>zeros \<longrightarrow> e3>0 \<and> cball p e3 \<subseteq> ball p e1 \<and> cont_zero ff p e3"
-        by auto
-      define e4 where "e4 \<equiv> if p\<in>poles then e2 else if p\<in>zeros then e3 else e1"
-      have "e4>0" using e2 e3 \<open>e1>0\<close> unfolding e4_def by auto
-      moreover have "avoid p e4" using e2 e3 \<open>e1>0\<close> e1_avoid unfolding e4_def avoid_def by auto
-      moreover have "p\<in>poles \<longrightarrow> cont_pole ff p e4" and "p\<in>zeros \<longrightarrow> cont_zero ff p e4"
-        by (auto simp add: e2 e3 e4_def zeros_def)
-      ultimately show ?thesis by auto
-    qed
-  then obtain get_e where get_e:"\<forall>p\<in>s. get_e p>0 \<and> avoid p (get_e p)
-      \<and> (p\<in>poles \<longrightarrow> cont_pole ff p (get_e p)) \<and> (p\<in>zeros \<longrightarrow> cont_zero ff p (get_e p))"
-    by metis
-  define cont where "cont \<equiv> \<lambda>p. contour_integral (circlepath p (get_e p)) ff"
-  define w where "w \<equiv> \<lambda>p. winding_number g p"
-  have "contour_integral g ff = (\<Sum>p\<in>zeros \<union> poles. w p * cont p)"
-    unfolding cont_def w_def
-    proof (rule Cauchy_theorem_singularities[OF \<open>open s\<close> \<open>connected s\<close> finite _ \<open>valid_path g\<close> loop
-        path_img homo])
-      have "open (s - (zeros \<union> poles))" using open_Diff[OF _ finite_imp_closed[OF finite]] \<open>open s\<close> by auto
-      then show "ff holomorphic_on s - (zeros \<union> poles)" unfolding ff_def using f_holo h_holo
-        by (auto intro!: holomorphic_intros simp add:zeros_def)
-    next
-      show "\<forall>p\<in>s. 0 < get_e p \<and> (\<forall>w\<in>cball p (get_e p). w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> zeros \<union> poles))"
-        using get_e using avoid_def by blast
-    qed
-  also have "... = (\<Sum>p\<in>zeros. w p * cont p) + (\<Sum>p\<in>poles. w p * cont p)"
-    using finite
-    apply (subst sum.union_disjoint)
-    by (auto simp add:zeros_def)
-  also have "... = c * ((\<Sum>p\<in>zeros. w p *  h p * zorder f p) - (\<Sum>p\<in>poles. w p *  h p * porder f p))"
-    proof -
-      have "(\<Sum>p\<in>zeros. w p * cont p) = (\<Sum>p\<in>zeros. c * w p *  h p * zorder f p)"
-        proof (rule sum.cong[of zeros zeros,simplified])
-          fix p assume "p \<in> zeros"
-          show "w p * cont p = c * w p * h p * (zorder f p)"
-            proof (cases "p\<in>s")
-              assume "p \<in> s"
-              have "cont p = c * h p * (zorder f p)" unfolding cont_def
-                apply (rule contour_integral_unique)
-                using get_e \<open>p\<in>s\<close> \<open>p\<in>zeros\<close> unfolding cont_zero_def
-                by (metis mult.assoc mult.commute)
-              thus ?thesis by auto
-            next
-              assume "p\<notin>s"
-              then have "w p=0" using homo unfolding w_def by auto
-              then show ?thesis by auto
-            qed
-        qed
-      then have "(\<Sum>p\<in>zeros. w p * cont p) = c * (\<Sum>p\<in>zeros.  w p *  h p * zorder f p)"
-        apply (subst sum_distrib_left)
-        by (simp add:algebra_simps)
-      moreover have "(\<Sum>p\<in>poles. w p * cont p) = (\<Sum>p\<in>poles.  - c * w p *  h p * porder f p)"
-        proof (rule sum.cong[of poles poles,simplified])
-          fix p assume "p \<in> poles"
-          show "w p * cont p = - c * w p * h p * (porder f p)"
-            proof (cases "p\<in>s")
-              assume "p \<in> s"
-              have "cont p = - c * h p * (porder f p)" unfolding cont_def
-                apply (rule contour_integral_unique)
-                using get_e \<open>p\<in>s\<close> \<open>p\<in>poles\<close> unfolding cont_pole_def
-                by (metis mult.assoc mult.commute)
-              thus ?thesis by auto
-            next
-              assume "p\<notin>s"
-              then have "w p=0" using homo unfolding w_def by auto
-              then show ?thesis by auto
-            qed
-        qed
-      then have "(\<Sum>p\<in>poles. w p * cont p) = - c * (\<Sum>p\<in>poles. w p *  h p * porder f p)"
-        apply (subst sum_distrib_left)
-        by (simp add:algebra_simps)
-      ultimately show ?thesis by (simp add: right_diff_distrib)
-    qed
-  finally show ?thesis unfolding w_def ff_def c_def by auto
-qed
-
-subsection \<open>Rouche's theorem \<close>
-
-theorem Rouche_theorem:
-  fixes f g::"complex \<Rightarrow> complex" and s:: "complex set"
-  defines "fg\<equiv>(\<lambda>p. f p+ g p)"
-  defines "zeros_fg\<equiv>{p. fg p =0}" and "zeros_f\<equiv>{p. f p=0}"
-  assumes
-    "open s" and "connected s" and
-    "finite zeros_fg" and
-    "finite zeros_f" and
-    f_holo:"f holomorphic_on s" and
-    g_holo:"g holomorphic_on s" and
-    "valid_path \<gamma>" and
-    loop:"pathfinish \<gamma> = pathstart \<gamma>" and
-    path_img:"path_image \<gamma> \<subseteq> s " and
-    path_less:"\<forall>z\<in>path_image \<gamma>. cmod(f z) > cmod(g z)" and
-    homo:"\<forall>z. (z \<notin> s) \<longrightarrow> winding_number \<gamma> z = 0"
-  shows "(\<Sum>p\<in>zeros_fg. winding_number \<gamma> p * zorder fg p)
-          = (\<Sum>p\<in>zeros_f. winding_number \<gamma> p * zorder f p)"
-proof -
-  have path_fg:"path_image \<gamma> \<subseteq> s - zeros_fg"
-    proof -
-      have False when "z\<in>path_image \<gamma>" and "f z + g z=0" for z
-        proof -
-          have "cmod (f z) > cmod (g z)" using \<open>z\<in>path_image \<gamma>\<close> path_less by auto
-          moreover have "f z = - g z"  using \<open>f z + g z =0\<close> by (simp add: eq_neg_iff_add_eq_0)
-          then have "cmod (f z) = cmod (g z)" by auto
-          ultimately show False by auto
-        qed
-      then show ?thesis unfolding zeros_fg_def fg_def using path_img by auto
-    qed
-  have path_f:"path_image \<gamma> \<subseteq> s - zeros_f"
-    proof -
-      have False when "z\<in>path_image \<gamma>" and "f z =0" for z
-        proof -
-          have "cmod (g z) < cmod (f z) " using \<open>z\<in>path_image \<gamma>\<close> path_less by auto
-          then have "cmod (g z) < 0" using \<open>f z=0\<close> by auto
-          then show False by auto
-        qed
-      then show ?thesis unfolding zeros_f_def using path_img by auto
-    qed
-  define w where "w \<equiv> \<lambda>p. winding_number \<gamma> p"
-  define c where "c \<equiv> 2 * complex_of_real pi * \<i>"
-  define h where "h \<equiv> \<lambda>p. g p / f p + 1"
-  obtain spikes
-    where "finite spikes" and spikes: "\<forall>x\<in>{0..1} - spikes. \<gamma> differentiable at x"
-    using \<open>valid_path \<gamma>\<close>
-    by (auto simp: valid_path_def piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
-  have h_contour:"((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"
-    proof -
-      have outside_img:"0 \<in> outside (path_image (h o \<gamma>))"
-        proof -
-          have "h p \<in> ball 1 1" when "p\<in>path_image \<gamma>" for p
-            proof -
-              have "cmod (g p/f p) <1" using path_less[rule_format,OF that]
-                apply (cases "cmod (f p) = 0")
-                by (auto simp add: norm_divide)
-              then show ?thesis unfolding h_def by (auto simp add:dist_complex_def)
-            qed
-          then have "path_image (h o \<gamma>) \<subseteq> ball 1 1"
-            by (simp add: image_subset_iff path_image_compose)
-          moreover have " (0::complex) \<notin> ball 1 1" by (simp add: dist_norm)
-          ultimately show "?thesis"
-            using  convex_in_outside[of "ball 1 1" 0] outside_mono by blast
-        qed
-      have valid_h:"valid_path (h \<circ> \<gamma>)"
-        proof (rule valid_path_compose_holomorphic[OF \<open>valid_path \<gamma>\<close> _ _ path_f])
-          show "h holomorphic_on s - zeros_f"
-            unfolding h_def using f_holo g_holo
-            by (auto intro!: holomorphic_intros simp add:zeros_f_def)
-        next
-          show "open (s - zeros_f)" using \<open>finite zeros_f\<close> \<open>open s\<close> finite_imp_closed
-            by auto
-        qed
-      have "((\<lambda>z. 1/z) has_contour_integral 0) (h \<circ> \<gamma>)"
-        proof -
-          have "0 \<notin> path_image (h \<circ> \<gamma>)" using outside_img by (simp add: outside_def)
-          then have "((\<lambda>z. 1/z) has_contour_integral c * winding_number (h \<circ> \<gamma>) 0) (h \<circ> \<gamma>)"
-            using has_contour_integral_winding_number[of "h o \<gamma>" 0,simplified] valid_h
-            unfolding c_def by auto
-          moreover have "winding_number (h o \<gamma>) 0 = 0"
-            proof -
-              have "0 \<in> outside (path_image (h \<circ> \<gamma>))" using outside_img .
-              moreover have "path (h o \<gamma>)"
-                using valid_h  by (simp add: valid_path_imp_path)
-              moreover have "pathfinish (h o \<gamma>) = pathstart (h o \<gamma>)"
-                by (simp add: loop pathfinish_compose pathstart_compose)
-              ultimately show ?thesis using winding_number_zero_in_outside by auto
-            qed
-          ultimately show ?thesis by auto
-        qed
-      moreover have "vector_derivative (h \<circ> \<gamma>) (at x) = vector_derivative \<gamma> (at x) * deriv h (\<gamma> x)"
-          when "x\<in>{0..1} - spikes" for x
-        proof (rule vector_derivative_chain_at_general)
-          show "\<gamma> differentiable at x" using that \<open>valid_path \<gamma>\<close> spikes by auto
-        next
-          define der where "der \<equiv> \<lambda>p. (deriv g p * f p - g p * deriv f p)/(f p * f p)"
-          define t where "t \<equiv> \<gamma> x"
-          have "f t\<noteq>0" unfolding zeros_f_def t_def
-            by (metis DiffD1 image_eqI norm_not_less_zero norm_zero path_defs(4) path_less that)
-          moreover have "t\<in>s"
-            using contra_subsetD path_image_def path_fg t_def that by fastforce
-          ultimately have "(h has_field_derivative der t) (at t)"
-            unfolding h_def der_def using g_holo f_holo \<open>open s\<close>
-            by (auto intro!: holomorphic_derivI derivative_eq_intros)
-          then show "h field_differentiable at (\<gamma> x)" 
-            unfolding t_def field_differentiable_def by blast
-        qed
-      then have " ((/) 1 has_contour_integral 0) (h \<circ> \<gamma>)
-          = ((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"
-        unfolding has_contour_integral
-        apply (intro has_integral_spike_eq[OF negligible_finite, OF \<open>finite spikes\<close>])
-        by auto
-      ultimately show ?thesis by auto
-    qed
-  then have "contour_integral \<gamma> (\<lambda>x. deriv h x / h x) = 0"
-    using  contour_integral_unique by simp
-  moreover have "contour_integral \<gamma> (\<lambda>x. deriv fg x / fg x) = contour_integral \<gamma> (\<lambda>x. deriv f x / f x)
-      + contour_integral \<gamma> (\<lambda>p. deriv h p / h p)"
-    proof -
-      have "(\<lambda>p. deriv f p / f p) contour_integrable_on \<gamma>"
-        proof (rule contour_integrable_holomorphic_simple[OF _ _ \<open>valid_path \<gamma>\<close> path_f])
-          show "open (s - zeros_f)" using finite_imp_closed[OF \<open>finite zeros_f\<close>] \<open>open s\<close>
-            by auto
-          then show "(\<lambda>p. deriv f p / f p) holomorphic_on s - zeros_f"
-            using f_holo
-            by (auto intro!: holomorphic_intros simp add:zeros_f_def)
-        qed
-      moreover have "(\<lambda>p. deriv h p / h p) contour_integrable_on \<gamma>"
-        using h_contour
-        by (simp add: has_contour_integral_integrable)
-      ultimately have "contour_integral \<gamma> (\<lambda>x. deriv f x / f x + deriv h x / h x) =
-          contour_integral \<gamma> (\<lambda>p. deriv f p / f p) + contour_integral \<gamma> (\<lambda>p. deriv h p / h p)"
-        using contour_integral_add[of "(\<lambda>p. deriv f p / f p)" \<gamma> "(\<lambda>p. deriv h p / h p)" ]
-        by auto
-      moreover have "deriv fg p / fg p =  deriv f p / f p + deriv h p / h p"
-          when "p\<in> path_image \<gamma>" for p
-        proof -
-          have "fg p\<noteq>0" and "f p\<noteq>0" using path_f path_fg that unfolding zeros_f_def zeros_fg_def
-            by auto
-          have "h p\<noteq>0"
-            proof (rule ccontr)
-              assume "\<not> h p \<noteq> 0"
-              then have "g p / f p= -1" unfolding h_def by (simp add: add_eq_0_iff2)
-              then have "cmod (g p/f p) = 1" by auto
-              moreover have "cmod (g p/f p) <1" using path_less[rule_format,OF that]
-                apply (cases "cmod (f p) = 0")
-                by (auto simp add: norm_divide)
-              ultimately show False by auto
-            qed
-          have der_fg:"deriv fg p =  deriv f p + deriv g p" unfolding fg_def
-            using f_holo g_holo holomorphic_on_imp_differentiable_at[OF _  \<open>open s\<close>] path_img that
-            by auto
-          have der_h:"deriv h p = (deriv g p * f p - g p * deriv f p)/(f p * f p)"
-            proof -
-              define der where "der \<equiv> \<lambda>p. (deriv g p * f p - g p * deriv f p)/(f p * f p)"
-              have "p\<in>s" using path_img that by auto
-              then have "(h has_field_derivative der p) (at p)"
-                unfolding h_def der_def using g_holo f_holo \<open>open s\<close> \<open>f p\<noteq>0\<close>
-                by (auto intro!: derivative_eq_intros holomorphic_derivI)
-              then show ?thesis unfolding der_def using DERIV_imp_deriv by auto
-            qed
-          show ?thesis
-            apply (simp only:der_fg der_h)
-            apply (auto simp add:field_simps \<open>h p\<noteq>0\<close> \<open>f p\<noteq>0\<close> \<open>fg p\<noteq>0\<close>)
-            by (auto simp add:field_simps h_def \<open>f p\<noteq>0\<close> fg_def)
-        qed
-      then have "contour_integral \<gamma> (\<lambda>p. deriv fg p / fg p)
-          = contour_integral \<gamma> (\<lambda>p. deriv f p / f p + deriv h p / h p)"
-        by (elim contour_integral_eq)
-      ultimately show ?thesis by auto
-    qed
-  moreover have "contour_integral \<gamma> (\<lambda>x. deriv fg x / fg x) = c * (\<Sum>p\<in>zeros_fg. w p * zorder fg p)"
-    unfolding c_def zeros_fg_def w_def
-    proof (rule argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo
-        , of _ "{}" "\<lambda>_. 1",simplified])
-      show "fg holomorphic_on s" unfolding fg_def using f_holo g_holo holomorphic_on_add by auto
-      show "path_image \<gamma> \<subseteq> s - {p. fg p = 0}" using path_fg unfolding zeros_fg_def .
-      show " finite {p. fg p = 0}" using \<open>finite zeros_fg\<close> unfolding zeros_fg_def .
-    qed
-  moreover have "contour_integral \<gamma> (\<lambda>x. deriv f x / f x) = c * (\<Sum>p\<in>zeros_f. w p * zorder f p)"
-    unfolding c_def zeros_f_def w_def
-    proof (rule argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo
-        , of _ "{}" "\<lambda>_. 1",simplified])
-      show "f holomorphic_on s" using f_holo g_holo holomorphic_on_add by auto
-      show "path_image \<gamma> \<subseteq> s - {p. f p = 0}" using path_f unfolding zeros_f_def .
-      show " finite {p. f p = 0}" using \<open>finite zeros_f\<close> unfolding zeros_f_def .
-    qed
-  ultimately have " c* (\<Sum>p\<in>zeros_fg. w p * (zorder fg p)) = c* (\<Sum>p\<in>zeros_f. w p * (zorder f p))"
-    by auto
-  then show ?thesis unfolding c_def using w_def by auto
-qed
-
-
-subsection \<open>More facts about poles and residues\<close>
-
-lemma zorder_cong:
-  assumes "eventually (\<lambda>z. f z = g z) (nhds z)" "z = z'"
-  shows   "zorder f z = zorder g z'"
-proof -
-  let ?P = "(\<lambda>f n h r. 0 < r \<and> h holomorphic_on cball z r \<and>
-              (\<forall>w\<in>cball z r. f w = h w * (w - z) ^ n \<and> h w \<noteq> 0))"
-  have "(\<lambda>n. n > 0 \<and> (\<exists>h r. ?P f n h r)) = (\<lambda>n. n > 0 \<and> (\<exists>h r. ?P g n h r))"
-  proof (intro ext conj_cong refl iff_exI[where ?'a = "complex \<Rightarrow> complex"], goal_cases)
-    case (1 n h)
-    have *: "\<exists>r. ?P g n h r" if "\<exists>r. ?P f n h r" and "eventually (\<lambda>x. f x = g x) (nhds z)" for f g
-    proof -
-      from that(1) obtain r where "?P f n h r" by blast
-      moreover from that(2) obtain r' where "r' > 0" "\<And>w. dist w z < r' \<Longrightarrow> f w = g w"
-        by (auto simp: eventually_nhds_metric)
-      hence "\<forall>w\<in>cball z (r'/2). f w = g w" by (auto simp: dist_commute)
-      ultimately show ?thesis using \<open>r' > 0\<close>
-        by (intro exI[of _ "min r (r'/2)"]) (auto simp: cball_def)
-    qed
-    from assms have eq': "eventually (\<lambda>z. g z = f z) (nhds z)"
-      by (simp add: eq_commute)
-    show ?case
-      by (rule iffI[OF *[OF _ assms(1)] *[OF _ eq']])
-  qed
-  with assms(2) show ?thesis unfolding zorder_def by simp
-qed
-
-lemma porder_cong:
-  assumes "eventually (\<lambda>z. f z = g z) (at z)" "z = z'"
-  shows   "porder f z = porder g z'"
-proof -
-  from assms(1) have *: "eventually (\<lambda>w. w \<noteq> z \<longrightarrow> f w = g w) (nhds z)"
-    by (auto simp: eventually_at_filter)
-  from assms(2) show ?thesis
-    unfolding porder_def Let_def
-    by (intro zorder_cong eventually_mono [OF *]) auto
-qed
-
-lemma zer_poly_cong:
-  assumes "eventually (\<lambda>z. f z = g z) (nhds z)" "z = z'"
-  shows   "zer_poly f z = zer_poly g z'"
-  unfolding zer_poly_def
-proof (rule Eps_cong, goal_cases)
-  case (1 h)
-  let ?P = "\<lambda>w f. f w = h w * (w - z) ^ zorder f z \<and> h w \<noteq> 0"
-  from assms have eq': "eventually (\<lambda>z. g z = f z) (nhds z)"
-    by (simp add: eq_commute)
-  have "\<exists>r>0. h holomorphic_on cball z r \<and> (\<forall>w\<in>cball z r. ?P w g)"
-    if "r > 0" "h holomorphic_on cball z r" "\<And>w. w \<in> cball z r \<Longrightarrow> ?P w f"
-       "eventually (\<lambda>z. f z = g z) (nhds z)" for f g r
-  proof -
-    from that have [simp]: "zorder f z = zorder g z"
-      by (intro zorder_cong) auto
-    from that(4) obtain r' where r': "r' > 0" "\<And>w. w \<in> ball z r' \<Longrightarrow> g w = f w"
-      by (auto simp: eventually_nhds_metric ball_def dist_commute)
-    define R where "R = min r (r' / 2)"
-    have "R > 0" "cball z R \<subseteq> cball z r" "cball z R \<subseteq> ball z r'"
-      using that(1) r' by (auto simp: R_def)
-    with that(1,2,3) r'
-    have "R > 0" "h holomorphic_on cball z R" "\<forall>w\<in>cball z R. ?P w g" 
-      by force+
-    thus ?thesis by blast
-  qed
-  from this[of _ f g] and this[of _ g f] and assms and eq'
-    show ?case by blast
-qed
-      
-lemma pol_poly_cong:
-  assumes "eventually (\<lambda>z. f z = g z) (at z)" "z = z'"
-  shows   "pol_poly f z = pol_poly g z'"
-proof -
-  from assms have *: "eventually (\<lambda>w. w \<noteq> z \<longrightarrow> f w = g w) (nhds z)"
-    by (auto simp: eventually_at_filter)
-  have "zer_poly (\<lambda>x. if x = z then 0 else inverse (f x)) z =
-          zer_poly (\<lambda>x. if x = z' then 0 else inverse (g x)) z"
-    by (intro zer_poly_cong eventually_mono[OF *] refl) (auto simp: assms(2))
-  thus "pol_poly f z = pol_poly g z'"
-    by (simp add: pol_poly_def Let_def o_def fun_eq_iff assms(2))
-qed
-
-lemma porder_nonzero_div_power:
-  assumes "open s" "z \<in> s" "f holomorphic_on s" "f z \<noteq> 0" "n > 0"
-  shows   "porder (\<lambda>w. f w / (w - z) ^ n) z = n"
-proof -
-  let ?s' = "(f -` (-{0}) \<inter> s)"
-  have "continuous_on s f"
-    by (rule holomorphic_on_imp_continuous_on) fact
-  moreover have "open (-{0::complex})" by auto
-  ultimately have s': "open ?s'"
-    unfolding continuous_on_open_vimage[OF \<open>open s\<close>] by blast
-  show ?thesis unfolding Let_def porder_def
-  proof (rule zorder_eqI)
-    show "(\<lambda>x. inverse (f x)) holomorphic_on ?s'"
-      using assms by (auto intro!: holomorphic_intros)
-  qed (insert assms s', auto simp: field_simps)
-qed
-
 lemma is_pole_inverse_power: "n > 0 \<Longrightarrow> is_pole (\<lambda>z::complex. 1 / (z - a) ^ n) a"
   unfolding is_pole_def inverse_eq_divide [symmetric]
   by (intro filterlim_compose[OF filterlim_inverse_at_infinity] tendsto_intros)
@@ -4083,30 +3070,1500 @@ lemma is_pole_basic':
   shows   "is_pole (\<lambda>w. f w / w ^ n) 0"
   using is_pole_basic[of f A 0] assms by simp
 
-lemma zer_poly_eq:
-  assumes "open s" "connected s" "z \<in> s" "f holomorphic_on s" "f z = 0" "\<exists>w\<in>s. f w \<noteq> 0"
-  shows "eventually (\<lambda>w. zer_poly f z w = f w / (w - z) ^ zorder f z) (at z)"
+text \<open>The proposition 
+              @{term "\<exists>x. ((f::complex\<Rightarrow>complex) \<longlongrightarrow> x) (at z) \<or> is_pole f z"} 
+can be interpreted as the complex function @{term f} has a non-essential singularity at @{term z} 
+(i.e. the singularity is either removable or a pole).\<close> 
+definition not_essential::"[complex \<Rightarrow> complex, complex] \<Rightarrow> bool" where
+  "not_essential f z = (\<exists>x. f\<midarrow>z\<rightarrow>x \<or> is_pole f z)"
+
+definition isolated_singularity_at::"[complex \<Rightarrow> complex, complex] \<Rightarrow> bool" where
+  "isolated_singularity_at f z = (\<exists>r>0. f analytic_on ball z r-{z})"
+
+named_theorems singularity_intros "introduction rules for singularities"
+
+lemma holomorphic_factor_unique:
+  fixes f::"complex \<Rightarrow> complex" and z::complex and r::real and m n::int
+  assumes "r>0" "g z\<noteq>0" "h z\<noteq>0"
+    and asm:"\<forall>w\<in>ball z r-{z}. f w = g w * (w-z) powr n \<and> g w\<noteq>0 \<and> f w =  h w * (w - z) powr m \<and> h w\<noteq>0"
+    and g_holo:"g holomorphic_on ball z r" and h_holo:"h holomorphic_on ball z r"
+  shows "n=m"
 proof -
-  from zorder_exist [OF assms] obtain r where r: "r > 0" 
-    and "\<forall>w\<in>cball z r. f w = zer_poly f z w * (w - z) ^ zorder f z" by blast
-  hence *: "\<forall>w\<in>ball z r - {z}. zer_poly f z w = f w / (w - z) ^ zorder f z" 
+  have [simp]:"at z within ball z r \<noteq> bot" using \<open>r>0\<close>
+      by (auto simp add:at_within_ball_bot_iff)
+  have False when "n>m"
+  proof -
+    have "(h \<longlongrightarrow> 0) (at z within ball z r)"
+    proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) powr (n - m) * g w"])
+      have "\<forall>w\<in>ball z r-{z}. h w = (w-z)powr(n-m) * g w"
+        using \<open>n>m\<close> asm \<open>r>0\<close>
+        apply (auto simp add:field_simps powr_diff)
+        by force
+      then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk>
+            \<Longrightarrow> (x' - z) powr (n - m) * g x' = h x'" for x' by auto
+    next
+      define F where "F \<equiv> at z within ball z r"
+      define f' where "f' \<equiv> \<lambda>x. (x - z) powr (n-m)"
+      have "f' z=0" using \<open>n>m\<close> unfolding f'_def by auto
+      moreover have "continuous F f'" unfolding f'_def F_def continuous_def
+        apply (subst netlimit_within)
+        using \<open>n>m\<close> by (auto intro!:tendsto_powr_complex_0 tendsto_eq_intros)  
+      ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
+        by (simp add: continuous_within)
+      moreover have "(g \<longlongrightarrow> g z) F"
+        using holomorphic_on_imp_continuous_on[OF g_holo,unfolded continuous_on_def] \<open>r>0\<close>
+        unfolding F_def by auto
+      ultimately show " ((\<lambda>w. f' w * g w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
+    qed
+    moreover have "(h \<longlongrightarrow> h z) (at z within ball z r)"
+      using holomorphic_on_imp_continuous_on[OF h_holo]
+      by (auto simp add:continuous_on_def \<open>r>0\<close>)
+    ultimately have "h z=0" by (auto intro!: tendsto_unique)
+    thus False using \<open>h z\<noteq>0\<close> by auto
+  qed
+  moreover have False when "m>n"
+  proof -
+    have "(g \<longlongrightarrow> 0) (at z within ball z r)"
+    proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) powr (m - n) * h w"])
+      have "\<forall>w\<in>ball z r -{z}. g w = (w-z) powr (m-n) * h w" using \<open>m>n\<close> asm
+        apply (auto simp add:field_simps powr_diff)
+        by force
+      then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk>
+            \<Longrightarrow> (x' - z) powr (m - n) * h x' = g x'" for x' by auto
+    next
+      define F where "F \<equiv> at z within ball z r"
+      define f' where "f' \<equiv>\<lambda>x. (x - z) powr (m-n)"
+      have "f' z=0" using \<open>m>n\<close> unfolding f'_def by auto
+      moreover have "continuous F f'" unfolding f'_def F_def continuous_def
+        apply (subst netlimit_within)
+        using \<open>m>n\<close> by (auto intro!:tendsto_powr_complex_0 tendsto_eq_intros)
+      ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
+        by (simp add: continuous_within)
+      moreover have "(h \<longlongrightarrow> h z) F"
+        using holomorphic_on_imp_continuous_on[OF h_holo,unfolded continuous_on_def] \<open>r>0\<close>
+        unfolding F_def by auto
+      ultimately show " ((\<lambda>w. f' w * h w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
+    qed
+    moreover have "(g \<longlongrightarrow> g z) (at z within ball z r)"
+      using holomorphic_on_imp_continuous_on[OF g_holo]
+      by (auto simp add:continuous_on_def \<open>r>0\<close>)
+    ultimately have "g z=0" by (auto intro!: tendsto_unique)
+    thus False using \<open>g z\<noteq>0\<close> by auto
+  qed
+  ultimately show "n=m" by fastforce
+qed
+
+lemma holomorphic_factor_puncture:
+  assumes f_iso:"isolated_singularity_at f z"   
+      and "not_essential f z" \<comment> \<open>@{term f} has either a removable singularity or a pole at @{term z}\<close>
+      and non_zero:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0" \<comment> \<open>@{term f} will not be constantly zero in a neighbour of @{term z}\<close>
+  shows "\<exists>!n::int. \<exists>g r. 0 < r \<and> g holomorphic_on cball z r \<and> g z\<noteq>0
+          \<and> (\<forall>w\<in>cball z r-{z}. f w = g w * (w-z) powr n \<and> g w\<noteq>0)"
+proof -
+  define P where "P = (\<lambda>f n g r. 0 < r \<and> g holomorphic_on cball z r \<and> g z\<noteq>0
+          \<and> (\<forall>w\<in>cball z r - {z}. f w = g w * (w-z) powr (of_int n)  \<and> g w\<noteq>0))"
+  have imp_unique:"\<exists>!n::int. \<exists>g r. P f n g r" when "\<exists>n g r. P f n g r" 
+  proof (rule ex_ex1I[OF that])
+    fix n1 n2 :: int
+    assume g1_asm:"\<exists>g1 r1. P f n1 g1 r1" and g2_asm:"\<exists>g2 r2. P f n2 g2 r2"
+    define fac where "fac \<equiv> \<lambda>n g r. \<forall>w\<in>cball z r-{z}. f w = g w * (w - z) powr (of_int n) \<and> g w \<noteq> 0"
+    obtain g1 r1 where "0 < r1" and g1_holo: "g1 holomorphic_on cball z r1" and "g1 z\<noteq>0"
+        and "fac n1 g1 r1" using g1_asm unfolding P_def fac_def by auto
+    obtain g2 r2 where "0 < r2" and g2_holo: "g2 holomorphic_on cball z r2" and "g2 z\<noteq>0"
+        and "fac n2 g2 r2" using g2_asm unfolding P_def fac_def by auto
+    define r where "r \<equiv> min r1 r2"
+    have "r>0" using \<open>r1>0\<close> \<open>r2>0\<close> unfolding r_def by auto
+    moreover have "\<forall>w\<in>ball z r-{z}. f w = g1 w * (w-z) powr n1 \<and> g1 w\<noteq>0 
+        \<and> f w = g2 w * (w - z) powr n2  \<and> g2 w\<noteq>0"
+      using \<open>fac n1 g1 r1\<close> \<open>fac n2 g2 r2\<close>   unfolding fac_def r_def
+      by fastforce
+    ultimately show "n1=n2" using g1_holo g2_holo \<open>g1 z\<noteq>0\<close> \<open>g2 z\<noteq>0\<close>
+      apply (elim holomorphic_factor_unique)
+      by (auto simp add:r_def) 
+  qed
+
+  have P_exist:"\<exists> n g r. P h n g r" when 
+      "\<exists>z'. (h \<longlongrightarrow> z') (at z)" "isolated_singularity_at h z"  "\<exists>\<^sub>Fw in (at z). h w\<noteq>0" 
+    for h
+  proof -
+    from that(2) obtain r where "r>0" "h analytic_on ball z r - {z}"
+      unfolding isolated_singularity_at_def by auto
+    obtain z' where "(h \<longlongrightarrow> z') (at z)" using \<open>\<exists>z'. (h \<longlongrightarrow> z') (at z)\<close> by auto
+    define h' where "h'=(\<lambda>x. if x=z then z' else h x)"
+    have "h' holomorphic_on ball z r"
+      apply (rule no_isolated_singularity'[of "{z}"]) 
+      subgoal by (metis LIM_equal Lim_at_imp_Lim_at_within \<open>h \<midarrow>z\<rightarrow> z'\<close> empty_iff h'_def insert_iff)
+      subgoal using \<open>h analytic_on ball z r - {z}\<close> analytic_imp_holomorphic h'_def holomorphic_transform 
+        by fastforce
+      by auto
+    have ?thesis when "z'=0"
+    proof - 
+      have "h' z=0" using that unfolding h'_def by auto
+      moreover have "\<not> h' constant_on ball z r" 
+        using \<open>\<exists>\<^sub>Fw in (at z). h w\<noteq>0\<close> unfolding constant_on_def frequently_def eventually_at h'_def
+        apply simp
+        by (metis \<open>0 < r\<close> centre_in_ball dist_commute mem_ball that)
+      moreover note \<open>h' holomorphic_on ball z r\<close>
+      ultimately obtain g r1 n where "0 < n" "0 < r1" "ball z r1 \<subseteq> ball z r" and
+          g:"g holomorphic_on ball z r1"
+          "\<And>w. w \<in> ball z r1 \<Longrightarrow> h' w = (w - z) ^ n * g w"
+          "\<And>w. w \<in> ball z r1 \<Longrightarrow> g w \<noteq> 0" 
+        using holomorphic_factor_zero_nonconstant[of _ "ball z r" z thesis,simplified,
+                OF \<open>h' holomorphic_on ball z r\<close> \<open>r>0\<close> \<open>h' z=0\<close> \<open>\<not> h' constant_on ball z r\<close>] 
+        by (auto simp add:dist_commute)
+      define rr where "rr=r1/2"
+      have "P h' n g rr"
+        unfolding P_def rr_def
+        using \<open>n>0\<close> \<open>r1>0\<close> g by (auto simp add:powr_nat)
+      then have "P h n g rr"
+        unfolding h'_def P_def by auto
+      then show ?thesis unfolding P_def by blast
+    qed
+    moreover have ?thesis when "z'\<noteq>0"
+    proof -
+      have "h' z\<noteq>0" using that unfolding h'_def by auto
+      obtain r1 where "r1>0" "cball z r1 \<subseteq> ball z r" "\<forall>x\<in>cball z r1. h' x\<noteq>0"
+      proof -
+        have "isCont h' z" "h' z\<noteq>0"
+          by (auto simp add: Lim_cong_within \<open>h \<midarrow>z\<rightarrow> z'\<close> \<open>z'\<noteq>0\<close> continuous_at h'_def)
+        then obtain r2 where r2:"r2>0" "\<forall>x\<in>ball z r2. h' x\<noteq>0"
+          using continuous_at_avoid[of z h' 0 ] unfolding ball_def by auto
+        define r1 where "r1=min r2 r / 2"
+        have "0 < r1" "cball z r1 \<subseteq> ball z r" 
+          using \<open>r2>0\<close> \<open>r>0\<close> unfolding r1_def by auto
+        moreover have "\<forall>x\<in>cball z r1. h' x \<noteq> 0" 
+          using r2 unfolding r1_def by simp
+        ultimately show ?thesis using that by auto
+      qed
+      then have "P h' 0 h' r1" using \<open>h' holomorphic_on ball z r\<close> unfolding P_def by auto
+      then have "P h 0 h' r1" unfolding P_def h'_def by auto
+      then show ?thesis unfolding P_def by blast
+    qed
+    ultimately show ?thesis by auto
+  qed
+
+  have ?thesis when "\<exists>x. (f \<longlongrightarrow> x) (at z)"
+    apply (rule_tac imp_unique[unfolded P_def])
+    using P_exist[OF that(1) f_iso non_zero] unfolding P_def .
+  moreover have ?thesis when "is_pole f z"
+  proof (rule imp_unique[unfolded P_def])
+    obtain e where [simp]:"e>0" and e_holo:"f holomorphic_on ball z e - {z}" and e_nz: "\<forall>x\<in>ball z e-{z}. f x\<noteq>0"
+    proof -
+      have "\<forall>\<^sub>F z in at z. f z \<noteq> 0"
+        using \<open>is_pole f z\<close> filterlim_at_infinity_imp_eventually_ne unfolding is_pole_def
+        by auto
+      then obtain e1 where e1:"e1>0" "\<forall>x\<in>ball z e1-{z}. f x\<noteq>0"
+        using that eventually_at[of "\<lambda>x. f x\<noteq>0" z UNIV,simplified] by (auto simp add:dist_commute)
+      obtain e2 where e2:"e2>0" "f holomorphic_on ball z e2 - {z}"
+        using f_iso analytic_imp_holomorphic unfolding isolated_singularity_at_def by auto
+      define e where "e=min e1 e2"
+      show ?thesis
+        apply (rule that[of e])
+        using  e1 e2 unfolding e_def by auto
+    qed
+    
+    define h where "h \<equiv> \<lambda>x. inverse (f x)"
+
+    have "\<exists>n g r. P h n g r"
+    proof -
+      have "h \<midarrow>z\<rightarrow> 0" 
+        using Lim_transform_within_open assms(2) h_def is_pole_tendsto that by fastforce
+      moreover have "\<exists>\<^sub>Fw in (at z). h w\<noteq>0"
+        using non_zero 
+        apply (elim frequently_rev_mp)
+        unfolding h_def eventually_at by (auto intro:exI[where x=1])
+      moreover have "isolated_singularity_at h z"
+        unfolding isolated_singularity_at_def h_def
+        apply (rule exI[where x=e])
+        using e_holo e_nz \<open>e>0\<close> by (metis Topology_Euclidean_Space.open_ball analytic_on_open 
+            holomorphic_on_inverse open_delete)
+      ultimately show ?thesis
+        using P_exist[of h] by auto
+    qed
+    then obtain n g r
+      where "0 < r" and
+            g_holo:"g holomorphic_on cball z r" and "g z\<noteq>0" and
+            g_fac:"(\<forall>w\<in>cball z r-{z}. h w = g w * (w - z) powr of_int n  \<and> g w \<noteq> 0)"
+      unfolding P_def by auto
+    have "P f (-n) (inverse o g) r"
+    proof -
+      have "f w = inverse (g w) * (w - z) powr of_int (- n)" when "w\<in>cball z r - {z}" for w
+        using g_fac[rule_format,of w] that unfolding h_def 
+        apply (auto simp add:powr_minus )
+        by (metis inverse_inverse_eq inverse_mult_distrib)
+      then show ?thesis 
+        unfolding P_def comp_def
+        using \<open>r>0\<close> g_holo g_fac \<open>g z\<noteq>0\<close> by (auto intro:holomorphic_intros)
+    qed
+    then show "\<exists>x g r. 0 < r \<and> g holomorphic_on cball z r \<and> g z \<noteq> 0 
+                  \<and> (\<forall>w\<in>cball z r - {z}. f w = g w * (w - z) powr of_int x  \<and> g w \<noteq> 0)"
+      unfolding P_def by blast
+  qed
+  ultimately show ?thesis using \<open>not_essential f z\<close> unfolding not_essential_def  by presburger
+qed
+
+lemma not_essential_transform:
+  assumes "not_essential g z"
+  assumes "\<forall>\<^sub>F w in (at z). g w = f w"
+  shows "not_essential f z" 
+  using assms unfolding not_essential_def
+  by (simp add: filterlim_cong is_pole_cong)
+
+lemma isolated_singularity_at_transform:
+  assumes "isolated_singularity_at g z"
+  assumes "\<forall>\<^sub>F w in (at z). g w = f w"
+  shows "isolated_singularity_at f z" 
+proof -
+  obtain r1 where "r1>0" and r1:"g analytic_on ball z r1 - {z}"
+    using assms(1) unfolding isolated_singularity_at_def by auto
+  obtain r2 where "r2>0" and r2:" \<forall>x. x \<noteq> z \<and> dist x z < r2 \<longrightarrow> g x = f x"
+    using assms(2) unfolding eventually_at by auto
+  define r3 where "r3=min r1 r2"
+  have "r3>0" unfolding r3_def using \<open>r1>0\<close> \<open>r2>0\<close> by auto
+  moreover have "f analytic_on ball z r3 - {z}"
+  proof -
+    have "g holomorphic_on ball z r3 - {z}"
+      using r1 unfolding r3_def by (subst (asm) analytic_on_open,auto)
+    then have "f holomorphic_on ball z r3 - {z}"
+      using r2 unfolding r3_def 
+      by (auto simp add:dist_commute elim!:holomorphic_transform)
+    then show ?thesis by (subst analytic_on_open,auto)  
+  qed
+  ultimately show ?thesis unfolding isolated_singularity_at_def by auto
+qed
+
+lemma not_essential_powr[singularity_intros]:
+  assumes "LIM w (at z). f w :> (at x)"
+  shows "not_essential (\<lambda>w. (f w) powr (of_int n)) z"
+proof -
+  define fp where "fp=(\<lambda>w. (f w) powr (of_int n))"
+  have ?thesis when "n>0"
+  proof -
+    have "(\<lambda>w.  (f w) ^ (nat n)) \<midarrow>z\<rightarrow> x ^ nat n" 
+      using that assms unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
+    then have "fp \<midarrow>z\<rightarrow> x ^ nat n" unfolding fp_def      
+      apply (elim Lim_transform_within[where d=1],simp)
+      by (metis less_le powr_0 powr_of_int that zero_less_nat_eq zero_power)
+    then show ?thesis unfolding not_essential_def fp_def by auto
+  qed
+  moreover have ?thesis when "n=0"
+  proof -
+    have "fp \<midarrow>z\<rightarrow> 1 " 
+      apply (subst tendsto_cong[where g="\<lambda>_.1"])
+      using that filterlim_at_within_not_equal[OF assms,of 0] unfolding fp_def by auto
+    then show ?thesis unfolding fp_def not_essential_def by auto
+  qed
+  moreover have ?thesis when "n<0"
+  proof (cases "x=0")
+    case True
+    have "LIM w (at z). inverse ((f w) ^ (nat (-n))) :> at_infinity"
+      apply (subst filterlim_inverse_at_iff[symmetric],simp)
+      apply (rule filterlim_atI)
+      subgoal using assms True that unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
+      subgoal using filterlim_at_within_not_equal[OF assms,of 0] 
+        by (eventually_elim,insert that,auto)
+      done
+    then have "LIM w (at z). fp w :> at_infinity"
+    proof (elim filterlim_mono_eventually)
+      show "\<forall>\<^sub>F x in at z. inverse (f x ^ nat (- n)) = fp x"
+        using filterlim_at_within_not_equal[OF assms,of 0] unfolding fp_def
+        apply eventually_elim
+        using powr_of_int that by auto
+    qed auto
+    then show ?thesis unfolding fp_def not_essential_def is_pole_def by auto
+  next
+    case False
+    let ?xx= "inverse (x ^ (nat (-n)))"
+    have "(\<lambda>w. inverse ((f w) ^ (nat (-n)))) \<midarrow>z\<rightarrow>?xx"
+      using assms False unfolding filterlim_at by (auto intro!:tendsto_eq_intros)
+    then have "fp \<midarrow>z\<rightarrow>?xx"
+      apply (elim Lim_transform_within[where d=1],simp)
+      unfolding fp_def by (metis inverse_zero nat_mono_iff nat_zero_as_int neg_0_less_iff_less 
+          not_le power_eq_0_iff powr_0 powr_of_int that)
+    then show ?thesis unfolding fp_def not_essential_def by auto
+  qed
+  ultimately show ?thesis by linarith
+qed
+
+lemma isolated_singularity_at_powr[singularity_intros]:
+  assumes "isolated_singularity_at f z" "\<forall>\<^sub>F w in (at z). f w\<noteq>0"
+  shows "isolated_singularity_at (\<lambda>w. (f w) powr (of_int n)) z"
+proof -
+  obtain r1 where "r1>0" "f analytic_on ball z r1 - {z}"
+    using assms(1) unfolding isolated_singularity_at_def by auto
+  then have r1:"f holomorphic_on ball z r1 - {z}"
+    using analytic_on_open[of "ball z r1-{z}" f] by blast
+  obtain r2 where "r2>0" and r2:"\<forall>w. w \<noteq> z \<and> dist w z < r2 \<longrightarrow> f w \<noteq> 0"
+    using assms(2) unfolding eventually_at by auto
+  define r3 where "r3=min r1 r2"
+  have "(\<lambda>w. (f w) powr of_int n) holomorphic_on ball z r3 - {z}"
+    apply (rule holomorphic_on_powr_of_int)
+    subgoal unfolding r3_def using r1 by auto
+    subgoal unfolding r3_def using r2 by (auto simp add:dist_commute)
+    done
+  moreover have "r3>0" unfolding r3_def using \<open>0 < r1\<close> \<open>0 < r2\<close> by linarith
+  ultimately show ?thesis unfolding isolated_singularity_at_def
+    apply (subst (asm) analytic_on_open[symmetric])
+    by auto
+qed
+
+lemma non_zero_neighbour:
+  assumes f_iso:"isolated_singularity_at f z"   
+      and f_ness:"not_essential f z" 
+      and f_nconst:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0"
+    shows "\<forall>\<^sub>F w in (at z). f w\<noteq>0"
+proof -
+  obtain fn fp fr where [simp]:"fp z \<noteq> 0" and "fr > 0"
+          and fr: "fp holomorphic_on cball z fr" 
+                  "\<forall>w\<in>cball z fr - {z}. f w = fp w * (w - z) powr of_int fn \<and> fp w \<noteq> 0"
+    using holomorphic_factor_puncture[OF f_iso f_ness f_nconst,THEN ex1_implies_ex] by auto
+  have "f w \<noteq> 0" when " w \<noteq> z" "dist w z < fr" for w
+  proof -
+    have "f w = fp w * (w - z) powr of_int fn" "fp w \<noteq> 0"
+      using fr(2)[rule_format, of w] using that by (auto simp add:dist_commute)
+    moreover have "(w - z) powr of_int fn \<noteq>0"
+      unfolding powr_eq_0_iff using \<open>w\<noteq>z\<close> by auto
+    ultimately show ?thesis by auto
+  qed
+  then show ?thesis using \<open>fr>0\<close> unfolding eventually_at by auto
+qed
+
+lemma non_zero_neighbour_pole:
+  assumes "is_pole f z"
+  shows "\<forall>\<^sub>F w in (at z). f w\<noteq>0"
+  using assms filterlim_at_infinity_imp_eventually_ne[of f "at z" 0]  
+  unfolding is_pole_def by auto
+
+lemma non_zero_neighbour_alt:
+  assumes holo: "f holomorphic_on S"
+      and "open S" "connected S" "z \<in> S"  "\<beta> \<in> S" "f \<beta> \<noteq> 0"
+    shows "\<forall>\<^sub>F w in (at z). f w\<noteq>0 \<and> w\<in>S"
+proof (cases "f z = 0")
+  case True
+  from isolated_zeros[OF holo \<open>open S\<close> \<open>connected S\<close> \<open>z \<in> S\<close> True \<open>\<beta> \<in> S\<close> \<open>f \<beta> \<noteq> 0\<close>] 
+  obtain r where "0 < r" "ball z r \<subseteq> S" "\<forall>w \<in> ball z r - {z}.f w \<noteq> 0" by metis 
+  then show ?thesis unfolding eventually_at 
+    apply (rule_tac x=r in exI)
+    by (auto simp add:dist_commute)
+next
+  case False
+  obtain r1 where r1:"r1>0" "\<forall>y. dist z y < r1 \<longrightarrow> f y \<noteq> 0"
+    using continuous_at_avoid[of z f, OF _ False] assms(2,4) continuous_on_eq_continuous_at 
+      holo holomorphic_on_imp_continuous_on by blast
+  obtain r2 where r2:"r2>0" "ball z r2 \<subseteq> S" 
+    using assms(2) assms(4) openE by blast
+  show ?thesis unfolding eventually_at 
+    apply (rule_tac x="min r1 r2" in exI)
+    using r1 r2 by (auto simp add:dist_commute)
+qed
+
+lemma not_essential_times[singularity_intros]:
+  assumes f_ness:"not_essential f z" and g_ness:"not_essential g z"
+  assumes f_iso:"isolated_singularity_at f z" and g_iso:"isolated_singularity_at g z"
+  shows "not_essential (\<lambda>w. f w * g w) z"
+proof -
+  define fg where "fg = (\<lambda>w. f w * g w)"
+  have ?thesis when "\<not> ((\<exists>\<^sub>Fw in (at z). f w\<noteq>0) \<and> (\<exists>\<^sub>Fw in (at z). g w\<noteq>0))"
+  proof -
+    have "\<forall>\<^sub>Fw in (at z). fg w=0" 
+      using that[unfolded frequently_def, simplified] unfolding fg_def
+      by (auto elim: eventually_rev_mp)
+    from tendsto_cong[OF this] have "fg \<midarrow>z\<rightarrow>0" by auto
+    then show ?thesis unfolding not_essential_def fg_def by auto
+  qed
+  moreover have ?thesis when f_nconst:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0" and g_nconst:"\<exists>\<^sub>Fw in (at z). g w\<noteq>0"
+  proof -
+    obtain fn fp fr where [simp]:"fp z \<noteq> 0" and "fr > 0"
+          and fr: "fp holomorphic_on cball z fr" 
+                  "\<forall>w\<in>cball z fr - {z}. f w = fp w * (w - z) powr of_int fn \<and> fp w \<noteq> 0"
+      using holomorphic_factor_puncture[OF f_iso f_ness f_nconst,THEN ex1_implies_ex] by auto
+    obtain gn gp gr where [simp]:"gp z \<noteq> 0" and "gr > 0"
+          and gr: "gp holomorphic_on cball z gr" 
+                  "\<forall>w\<in>cball z gr - {z}. g w = gp w * (w - z) powr of_int gn \<and> gp w \<noteq> 0"
+      using holomorphic_factor_puncture[OF g_iso g_ness g_nconst,THEN ex1_implies_ex] by auto
+  
+    define r1 where "r1=(min fr gr)"
+    have "r1>0" unfolding r1_def using  \<open>fr>0\<close> \<open>gr>0\<close> by auto
+    have fg_times:"fg w = (fp w * gp w) * (w - z) powr (of_int (fn+gn))" and fgp_nz:"fp w*gp w\<noteq>0"
+      when "w\<in>ball z r1 - {z}" for w
+    proof -
+      have "f w = fp w * (w - z) powr of_int fn" "fp w\<noteq>0"
+        using fr(2)[rule_format,of w] that unfolding r1_def by auto
+      moreover have "g w = gp w * (w - z) powr of_int gn" "gp w \<noteq> 0"
+        using gr(2)[rule_format, of w] that unfolding r1_def by auto
+      ultimately show "fg w = (fp w * gp w) * (w - z) powr (of_int (fn+gn))" "fp w*gp w\<noteq>0"
+        unfolding fg_def by (auto simp add:powr_add)
+    qed
+
+    have [intro]: "fp \<midarrow>z\<rightarrow>fp z" "gp \<midarrow>z\<rightarrow>gp z"
+        using fr(1) \<open>fr>0\<close> gr(1) \<open>gr>0\<close>
+        by (meson Topology_Euclidean_Space.open_ball ball_subset_cball centre_in_ball 
+            continuous_on_eq_continuous_at continuous_within holomorphic_on_imp_continuous_on 
+            holomorphic_on_subset)+
+    have ?thesis when "fn+gn>0" 
+    proof -
+      have "(\<lambda>w. (fp w * gp w) * (w - z) ^ (nat (fn+gn))) \<midarrow>z\<rightarrow>0" 
+        using that by (auto intro!:tendsto_eq_intros)
+      then have "fg \<midarrow>z\<rightarrow> 0"
+        apply (elim Lim_transform_within[OF _ \<open>r1>0\<close>])
+        by (metis (no_types, hide_lams) Diff_iff cball_trivial dist_commute dist_self 
+              eq_iff_diff_eq_0 fg_times less_le linorder_not_le mem_ball mem_cball powr_of_int 
+              that)
+      then show ?thesis unfolding not_essential_def fg_def by auto
+    qed
+    moreover have ?thesis when "fn+gn=0" 
+    proof -
+      have "(\<lambda>w. fp w * gp w) \<midarrow>z\<rightarrow>fp z*gp z" 
+        using that by (auto intro!:tendsto_eq_intros)
+      then have "fg \<midarrow>z\<rightarrow> fp z*gp z"
+        apply (elim Lim_transform_within[OF _ \<open>r1>0\<close>])
+        apply (subst fg_times)
+        by (auto simp add:dist_commute that)
+      then show ?thesis unfolding not_essential_def fg_def by auto
+    qed
+    moreover have ?thesis when "fn+gn<0" 
+    proof -
+      have "LIM w (at z). fp w * gp w / (w-z)^nat (-(fn+gn)) :> at_infinity"
+        apply (rule filterlim_divide_at_infinity)
+        apply (insert that, auto intro!:tendsto_eq_intros filterlim_atI)
+        using eventually_at_topological by blast
+      then have "is_pole fg z" unfolding is_pole_def
+        apply (elim filterlim_transform_within[OF _ _ \<open>r1>0\<close>],simp)
+        apply (subst fg_times,simp add:dist_commute)
+        apply (subst powr_of_int)
+        using that by (auto simp add:divide_simps)
+      then show ?thesis unfolding not_essential_def fg_def by auto
+    qed
+    ultimately show ?thesis unfolding not_essential_def fg_def by fastforce
+  qed
+  ultimately show ?thesis by auto
+qed
+
+lemma not_essential_inverse[singularity_intros]:
+  assumes f_ness:"not_essential f z"
+  assumes f_iso:"isolated_singularity_at f z"
+  shows "not_essential (\<lambda>w. inverse (f w)) z"
+proof -
+  define vf where "vf = (\<lambda>w. inverse (f w))"
+  have ?thesis when "\<not>(\<exists>\<^sub>Fw in (at z). f w\<noteq>0)"
+  proof -
+    have "\<forall>\<^sub>Fw in (at z). f w=0" 
+      using that[unfolded frequently_def, simplified] by (auto elim: eventually_rev_mp)
+    then have "\<forall>\<^sub>Fw in (at z). vf w=0"
+      unfolding vf_def by auto
+    from tendsto_cong[OF this] have "vf \<midarrow>z\<rightarrow>0" unfolding vf_def by auto
+    then show ?thesis unfolding not_essential_def vf_def by auto
+  qed
+  moreover have ?thesis when "is_pole f z"
+  proof -
+    have "vf \<midarrow>z\<rightarrow>0"
+      using that filterlim_at filterlim_inverse_at_iff unfolding is_pole_def vf_def by blast
+    then show ?thesis unfolding not_essential_def vf_def by auto
+  qed
+  moreover have ?thesis when "\<exists>x. f\<midarrow>z\<rightarrow>x " and f_nconst:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0"
+  proof -
+    from that obtain fz where fz:"f\<midarrow>z\<rightarrow>fz" by auto
+    have ?thesis when "fz=0"
+    proof -
+      have "(\<lambda>w. inverse (vf w)) \<midarrow>z\<rightarrow>0"
+        using fz that unfolding vf_def by auto
+      moreover have "\<forall>\<^sub>F w in at z. inverse (vf w) \<noteq> 0"
+        using non_zero_neighbour[OF f_iso f_ness f_nconst]
+        unfolding vf_def by auto
+      ultimately have "is_pole vf z"
+        using filterlim_inverse_at_iff[of vf "at z"] unfolding filterlim_at is_pole_def by auto
+      then show ?thesis unfolding not_essential_def vf_def by auto
+    qed
+    moreover have ?thesis when "fz\<noteq>0"
+    proof -
+      have "vf \<midarrow>z\<rightarrow>inverse fz"
+        using fz that unfolding vf_def by (auto intro:tendsto_eq_intros)
+      then show ?thesis unfolding not_essential_def vf_def by auto
+    qed
+    ultimately show ?thesis by auto
+  qed
+  ultimately show ?thesis using f_ness unfolding not_essential_def by auto
+qed
+
+lemma isolated_singularity_at_inverse[singularity_intros]:
+  assumes f_iso:"isolated_singularity_at f z"
+      and f_ness:"not_essential f z"
+  shows "isolated_singularity_at (\<lambda>w. inverse (f w)) z"
+proof -
+  define vf where "vf = (\<lambda>w. inverse (f w))"
+  have ?thesis when "\<not>(\<exists>\<^sub>Fw in (at z). f w\<noteq>0)"
+  proof -
+    have "\<forall>\<^sub>Fw in (at z). f w=0" 
+      using that[unfolded frequently_def, simplified] by (auto elim: eventually_rev_mp)
+    then have "\<forall>\<^sub>Fw in (at z). vf w=0"
+      unfolding vf_def by auto
+    then obtain d1 where "d1>0" and d1:"\<forall>x. x \<noteq> z \<and> dist x z < d1 \<longrightarrow> vf x = 0"
+      unfolding eventually_at by auto
+    then have "vf holomorphic_on ball z d1-{z}"
+      apply (rule_tac holomorphic_transform[of "\<lambda>_. 0"])
+      by (auto simp add:dist_commute)
+    then have "vf analytic_on ball z d1 - {z}"
+      by (simp add: analytic_on_open open_delete)
+    then show ?thesis using \<open>d1>0\<close> unfolding isolated_singularity_at_def vf_def by auto
+  qed
+  moreover have ?thesis when f_nconst:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0"
+  proof -
+    have "\<forall>\<^sub>F w in at z. f w \<noteq> 0" using non_zero_neighbour[OF f_iso f_ness f_nconst] .
+    then obtain d1 where d1:"d1>0" "\<forall>x. x \<noteq> z \<and> dist x z < d1 \<longrightarrow> f x \<noteq> 0"
+      unfolding eventually_at by auto
+    obtain d2 where "d2>0" and d2:"f analytic_on ball z d2 - {z}"
+      using f_iso unfolding isolated_singularity_at_def by auto
+    define d3 where "d3=min d1 d2"
+    have "d3>0" unfolding d3_def using \<open>d1>0\<close> \<open>d2>0\<close> by auto
+    moreover have "vf analytic_on ball z d3 - {z}"
+      unfolding vf_def
+      apply (rule analytic_on_inverse)
+      subgoal using d2 unfolding d3_def by (elim analytic_on_subset) auto
+      subgoal for w using d1 unfolding d3_def by (auto simp add:dist_commute)
+      done
+    ultimately show ?thesis unfolding isolated_singularity_at_def vf_def by auto
+  qed
+  ultimately show ?thesis by auto
+qed
+
+lemma not_essential_divide[singularity_intros]:
+  assumes f_ness:"not_essential f z" and g_ness:"not_essential g z"
+  assumes f_iso:"isolated_singularity_at f z" and g_iso:"isolated_singularity_at g z"
+  shows "not_essential (\<lambda>w. f w / g w) z"
+proof -
+  have "not_essential (\<lambda>w. f w * inverse (g w)) z"
+    apply (rule not_essential_times[where g="\<lambda>w. inverse (g w)"])
+    using assms by (auto intro: isolated_singularity_at_inverse not_essential_inverse)
+  then show ?thesis by (simp add:field_simps)
+qed
+
+lemma 
+  assumes f_iso:"isolated_singularity_at f z"
+      and g_iso:"isolated_singularity_at g z"
+    shows isolated_singularity_at_times[singularity_intros]:
+              "isolated_singularity_at (\<lambda>w. f w * g w) z" and
+          isolated_singularity_at_add[singularity_intros]:
+              "isolated_singularity_at (\<lambda>w. f w + g w) z"
+proof -
+  obtain d1 d2 where "d1>0" "d2>0" 
+      and d1:"f analytic_on ball z d1 - {z}" and d2:"g analytic_on ball z d2 - {z}"
+    using f_iso g_iso unfolding isolated_singularity_at_def by auto
+  define d3 where "d3=min d1 d2"
+  have "d3>0" unfolding d3_def using \<open>d1>0\<close> \<open>d2>0\<close> by auto
+  
+  have "(\<lambda>w. f w * g w) analytic_on ball z d3 - {z}"
+    apply (rule analytic_on_mult)
+    using d1 d2 unfolding d3_def by (auto elim:analytic_on_subset)
+  then show "isolated_singularity_at (\<lambda>w. f w * g w) z" 
+    using \<open>d3>0\<close> unfolding isolated_singularity_at_def by auto
+  have "(\<lambda>w. f w + g w) analytic_on ball z d3 - {z}"
+    apply (rule analytic_on_add)
+    using d1 d2 unfolding d3_def by (auto elim:analytic_on_subset)
+  then show "isolated_singularity_at (\<lambda>w. f w + g w) z" 
+    using \<open>d3>0\<close> unfolding isolated_singularity_at_def by auto
+qed
+
+lemma isolated_singularity_at_uminus[singularity_intros]:
+  assumes f_iso:"isolated_singularity_at f z"
+  shows "isolated_singularity_at (\<lambda>w. - f w) z"
+  using assms unfolding isolated_singularity_at_def using analytic_on_neg by blast
+
+lemma isolated_singularity_at_id[singularity_intros]:
+     "isolated_singularity_at (\<lambda>w. w) z"
+  unfolding isolated_singularity_at_def by (simp add: gt_ex)
+
+lemma isolated_singularity_at_minus[singularity_intros]:
+  assumes f_iso:"isolated_singularity_at f z"
+      and g_iso:"isolated_singularity_at g z"
+    shows "isolated_singularity_at (\<lambda>w. f w - g w) z"
+  using isolated_singularity_at_uminus[THEN isolated_singularity_at_add[OF f_iso,of "\<lambda>w. - g w"]
+        ,OF g_iso] by simp
+
+lemma isolated_singularity_at_divide[singularity_intros]:
+  assumes f_iso:"isolated_singularity_at f z"
+      and g_iso:"isolated_singularity_at g z"
+      and g_ness:"not_essential g z"
+    shows "isolated_singularity_at (\<lambda>w. f w / g w) z"
+  using isolated_singularity_at_inverse[THEN isolated_singularity_at_times[OF f_iso,
+          of "\<lambda>w. inverse (g w)"],OF g_iso g_ness] by (simp add:field_simps)
+
+lemma isolated_singularity_at_const[singularity_intros]:
+    "isolated_singularity_at (\<lambda>w. c) z"
+  unfolding isolated_singularity_at_def by (simp add: gt_ex)
+
+lemma isolated_singularity_at_holomorphic:
+  assumes "f holomorphic_on s-{z}" "open s" "z\<in>s"
+  shows "isolated_singularity_at f z"
+  using assms unfolding isolated_singularity_at_def 
+  by (metis analytic_on_holomorphic centre_in_ball insert_Diff openE open_delete subset_insert_iff)
+
+subsubsection \<open>The order of non-essential singularities (i.e. removable singularities or poles)\<close>
+
+definition zorder :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> int" where
+  "zorder f z = (THE n. (\<exists>h r. r>0 \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
+                   \<and> (\<forall>w\<in>cball z r - {z}. f w =  h w * (w-z) powr (of_int n) \<and> h w \<noteq>0)))"
+
+definition zor_poly::"[complex \<Rightarrow> complex,complex]\<Rightarrow>complex \<Rightarrow> complex" where
+  "zor_poly f z = (SOME h. \<exists>r . r>0 \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
+                   \<and> (\<forall>w\<in>cball z r-{z}. f w =  h w * (w-z) powr (zorder f z) \<and> h w \<noteq>0))"
+
+lemma zorder_exist:
+  fixes f::"complex \<Rightarrow> complex" and z::complex
+  defines "n\<equiv>zorder f z" and "g\<equiv>zor_poly f z"
+  assumes f_iso:"isolated_singularity_at f z" 
+      and f_ness:"not_essential f z" 
+      and f_nconst:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0"
+  shows "g z\<noteq>0 \<and> (\<exists>r. r>0 \<and> g holomorphic_on cball z r
+    \<and> (\<forall>w\<in>cball z r - {z}. f w  = g w * (w-z) powr n  \<and> g w \<noteq>0))"
+proof -
+  define P where "P = (\<lambda>n g r. 0 < r \<and> g holomorphic_on cball z r \<and> g z\<noteq>0
+          \<and> (\<forall>w\<in>cball z r - {z}. f w = g w * (w-z) powr (of_int n) \<and> g w\<noteq>0))"
+  have "\<exists>!n. \<exists>g r. P n g r" 
+    using holomorphic_factor_puncture[OF assms(3-)] unfolding P_def by auto
+  then have "\<exists>g r. P n g r"
+    unfolding n_def P_def zorder_def
+    by (drule_tac theI',argo)
+  then have "\<exists>r. P n g r"
+    unfolding P_def zor_poly_def g_def n_def
+    by (drule_tac someI_ex,argo)
+  then obtain r1 where "P n g r1" by auto
+  then show ?thesis unfolding P_def by auto
+qed
+
+lemma 
+  fixes f::"complex \<Rightarrow> complex" and z::complex
+  assumes f_iso:"isolated_singularity_at f z" 
+      and f_ness:"not_essential f z"  
+      and f_nconst:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0"
+    shows zorder_inverse: "zorder (\<lambda>w. inverse (f w)) z = - zorder f z"
+      and zor_poly_inverse: "\<forall>\<^sub>Fw in (at z). zor_poly (\<lambda>w. inverse (f w)) z w 
+                                                = inverse (zor_poly f z w)"
+proof -
+  define vf where "vf = (\<lambda>w. inverse (f w))"
+  define fn vfn where 
+    "fn = zorder f z"  and "vfn = zorder vf z"
+  define fp vfp where 
+    "fp = zor_poly f z" and "vfp = zor_poly vf z"
+
+  obtain fr where [simp]:"fp z \<noteq> 0" and "fr > 0"
+          and fr: "fp holomorphic_on cball z fr" 
+                  "\<forall>w\<in>cball z fr - {z}. f w = fp w * (w - z) powr of_int fn \<and> fp w \<noteq> 0"
+    using zorder_exist[OF f_iso f_ness f_nconst,folded fn_def fp_def]
+    by auto
+  have fr_inverse: "vf w = (inverse (fp w)) * (w - z) powr (of_int (-fn))" 
+        and fr_nz: "inverse (fp w)\<noteq>0"
+    when "w\<in>ball z fr - {z}" for w
+  proof -
+    have "f w = fp w * (w - z) powr of_int fn" "fp w\<noteq>0"
+      using fr(2)[rule_format,of w] that by auto
+    then show "vf w = (inverse (fp w)) * (w - z) powr (of_int (-fn))" "inverse (fp w)\<noteq>0"
+      unfolding vf_def by (auto simp add:powr_minus)
+  qed
+  obtain vfr where [simp]:"vfp z \<noteq> 0" and "vfr>0" and vfr:"vfp holomorphic_on cball z vfr" 
+      "(\<forall>w\<in>cball z vfr - {z}. vf w = vfp w * (w - z) powr of_int vfn \<and> vfp w \<noteq> 0)"
+  proof -
+    have "isolated_singularity_at vf z" 
+      using isolated_singularity_at_inverse[OF f_iso f_ness] unfolding vf_def . 
+    moreover have "not_essential vf z" 
+      using not_essential_inverse[OF f_ness f_iso] unfolding vf_def .
+    moreover have "\<exists>\<^sub>F w in at z. vf w \<noteq> 0" 
+      using f_nconst unfolding vf_def by (auto elim:frequently_elim1)
+    ultimately show ?thesis using zorder_exist[of vf z, folded vfn_def vfp_def] that by auto
+  qed
+
+
+  define r1 where "r1 = min fr vfr"
+  have "r1>0" using \<open>fr>0\<close> \<open>vfr>0\<close> unfolding r1_def by simp
+  show "vfn = - fn"
+    apply (rule holomorphic_factor_unique[of r1 vfp z "\<lambda>w. inverse (fp w)" vf])
+    subgoal using \<open>r1>0\<close> by simp
+    subgoal by simp
+    subgoal by simp
+    subgoal
+    proof (rule ballI)
+      fix w assume "w \<in> ball z r1 - {z}"
+      then have "w \<in> ball z fr - {z}" "w \<in> cball z vfr - {z}"  unfolding r1_def by auto
+      from fr_inverse[OF this(1)] fr_nz[OF this(1)] vfr(2)[rule_format,OF this(2)] 
+      show "vf w = vfp w * (w - z) powr of_int vfn \<and> vfp w \<noteq> 0 
+              \<and> vf w = inverse (fp w) * (w - z) powr of_int (- fn) \<and> inverse (fp w) \<noteq> 0" by auto
+    qed
+    subgoal using vfr(1) unfolding r1_def by (auto intro!:holomorphic_intros) 
+    subgoal using fr unfolding r1_def by (auto intro!:holomorphic_intros)
+    done
+
+  have "vfp w = inverse (fp w)" when "w\<in>ball z r1-{z}" for w
+  proof -
+    have "w \<in> ball z fr - {z}" "w \<in> cball z vfr - {z}"  "w\<noteq>z" using that unfolding r1_def by auto
+    from fr_inverse[OF this(1)] fr_nz[OF this(1)] vfr(2)[rule_format,OF this(2)] \<open>vfn = - fn\<close> \<open>w\<noteq>z\<close>
+    show ?thesis by auto
+  qed
+  then show "\<forall>\<^sub>Fw in (at z). vfp w = inverse (fp w)"
+    unfolding eventually_at using \<open>r1>0\<close>
+    apply (rule_tac x=r1 in exI)
+    by (auto simp add:dist_commute)
+qed
+
+
+lemma 
+  fixes f g::"complex \<Rightarrow> complex" and z::complex
+  assumes f_iso:"isolated_singularity_at f z" and g_iso:"isolated_singularity_at g z"  
+      and f_ness:"not_essential f z" and g_ness:"not_essential g z" 
+      and fg_nconst: "\<exists>\<^sub>Fw in (at z). f w * g w\<noteq> 0"
+  shows zorder_times:"zorder (\<lambda>w. f w * g w) z = zorder f z + zorder g z" and
+        zor_poly_times:"\<forall>\<^sub>Fw in (at z). zor_poly (\<lambda>w. f w * g w) z w 
+                                                  = zor_poly f z w *zor_poly g z w"
+proof -
+  define fg where "fg = (\<lambda>w. f w * g w)"
+  define fn gn fgn where 
+    "fn = zorder f z" and "gn = zorder g z" and "fgn = zorder fg z"
+  define fp gp fgp where 
+    "fp = zor_poly f z" and "gp = zor_poly g z" and "fgp = zor_poly fg z"
+  have f_nconst:"\<exists>\<^sub>Fw in (at z). f w \<noteq> 0" and g_nconst:"\<exists>\<^sub>Fw in (at z).g w\<noteq> 0"
+    using fg_nconst by (auto elim!:frequently_elim1)
+  obtain fr where [simp]:"fp z \<noteq> 0" and "fr > 0" 
+          and fr: "fp holomorphic_on cball z fr" 
+                  "\<forall>w\<in>cball z fr - {z}. f w = fp w * (w - z) powr of_int fn \<and> fp w \<noteq> 0"
+    using zorder_exist[OF f_iso f_ness f_nconst,folded fp_def fn_def] by auto
+  obtain gr where [simp]:"gp z \<noteq> 0" and "gr > 0"  
+          and gr: "gp holomorphic_on cball z gr" 
+                  "\<forall>w\<in>cball z gr - {z}. g w = gp w * (w - z) powr of_int gn \<and> gp w \<noteq> 0"
+    using zorder_exist[OF g_iso g_ness g_nconst,folded gn_def gp_def] by auto
+  define r1 where "r1=min fr gr"
+  have "r1>0" unfolding r1_def using \<open>fr>0\<close> \<open>gr>0\<close> by auto
+  have fg_times:"fg w = (fp w * gp w) * (w - z) powr (of_int (fn+gn))" and fgp_nz:"fp w*gp w\<noteq>0"
+    when "w\<in>ball z r1 - {z}" for w
+  proof -
+    have "f w = fp w * (w - z) powr of_int fn" "fp w\<noteq>0"
+      using fr(2)[rule_format,of w] that unfolding r1_def by auto
+    moreover have "g w = gp w * (w - z) powr of_int gn" "gp w \<noteq> 0"
+      using gr(2)[rule_format, of w] that unfolding r1_def by auto
+    ultimately show "fg w = (fp w * gp w) * (w - z) powr (of_int (fn+gn))" "fp w*gp w\<noteq>0"
+      unfolding fg_def by (auto simp add:powr_add)
+  qed
+
+  obtain fgr where [simp]:"fgp z \<noteq> 0" and "fgr > 0"
+          and fgr: "fgp holomorphic_on cball z fgr" 
+                  "\<forall>w\<in>cball z fgr - {z}. fg w = fgp w * (w - z) powr of_int fgn \<and> fgp w \<noteq> 0"
+  proof -
+    have "fgp z \<noteq> 0 \<and> (\<exists>r>0. fgp holomorphic_on cball z r 
+            \<and> (\<forall>w\<in>cball z r - {z}. fg w = fgp w * (w - z) powr of_int fgn \<and> fgp w \<noteq> 0))"
+      apply (rule zorder_exist[of fg z, folded fgn_def fgp_def])
+      subgoal unfolding fg_def using isolated_singularity_at_times[OF f_iso g_iso] .
+      subgoal unfolding fg_def using not_essential_times[OF f_ness g_ness f_iso g_iso] .
+      subgoal unfolding fg_def using fg_nconst .
+      done
+    then show ?thesis using that by blast
+  qed
+  define r2 where "r2 = min fgr r1"
+  have "r2>0" using \<open>r1>0\<close> \<open>fgr>0\<close> unfolding r2_def by simp
+  show "fgn = fn + gn "
+    apply (rule holomorphic_factor_unique[of r2 fgp z "\<lambda>w. fp w * gp w" fg])
+    subgoal using \<open>r2>0\<close> by simp
+    subgoal by simp
+    subgoal by simp
+    subgoal
+    proof (rule ballI)
+      fix w assume "w \<in> ball z r2 - {z}"
+      then have "w \<in> ball z r1 - {z}" "w \<in> cball z fgr - {z}"  unfolding r2_def by auto
+      from fg_times[OF this(1)] fgp_nz[OF this(1)] fgr(2)[rule_format,OF this(2)] 
+      show "fg w = fgp w * (w - z) powr of_int fgn \<and> fgp w \<noteq> 0 
+              \<and> fg w = fp w * gp w * (w - z) powr of_int (fn + gn) \<and> fp w * gp w \<noteq> 0" by auto
+    qed
+    subgoal using fgr(1) unfolding r2_def r1_def by (auto intro!:holomorphic_intros) 
+    subgoal using fr(1) gr(1) unfolding r2_def r1_def by (auto intro!:holomorphic_intros)
+    done
+
+  have "fgp w = fp w *gp w" when "w\<in>ball z r2-{z}" for w
+  proof -
+    have "w \<in> ball z r1 - {z}" "w \<in> cball z fgr - {z}" "w\<noteq>z" using that  unfolding r2_def by auto
+    from fg_times[OF this(1)] fgp_nz[OF this(1)] fgr(2)[rule_format,OF this(2)] \<open>fgn = fn + gn\<close> \<open>w\<noteq>z\<close>
+    show ?thesis by auto
+  qed
+  then show "\<forall>\<^sub>Fw in (at z). fgp w = fp w * gp w" 
+    using \<open>r2>0\<close> unfolding eventually_at by (auto simp add:dist_commute)
+qed
+
+lemma 
+  fixes f g::"complex \<Rightarrow> complex" and z::complex
+  assumes f_iso:"isolated_singularity_at f z" and g_iso:"isolated_singularity_at g z"  
+      and f_ness:"not_essential f z" and g_ness:"not_essential g z" 
+      and fg_nconst: "\<exists>\<^sub>Fw in (at z). f w * g w\<noteq> 0"
+  shows zorder_divide:"zorder (\<lambda>w. f w / g w) z = zorder f z - zorder g z" and
+        zor_poly_divide:"\<forall>\<^sub>Fw in (at z). zor_poly (\<lambda>w. f w / g w) z w 
+                                                  = zor_poly f z w  / zor_poly g z w"
+proof -
+  have f_nconst:"\<exists>\<^sub>Fw in (at z). f w \<noteq> 0" and g_nconst:"\<exists>\<^sub>Fw in (at z).g w\<noteq> 0"
+    using fg_nconst by (auto elim!:frequently_elim1)
+  define vg where "vg=(\<lambda>w. inverse (g w))"
+  have "zorder (\<lambda>w. f w * vg w) z = zorder f z + zorder vg z"
+    apply (rule zorder_times[OF f_iso _ f_ness,of vg])
+    subgoal unfolding vg_def using isolated_singularity_at_inverse[OF g_iso g_ness] .
+    subgoal unfolding vg_def using not_essential_inverse[OF g_ness g_iso] .
+    subgoal unfolding vg_def using fg_nconst by (auto elim!:frequently_elim1)
+    done
+  then show "zorder (\<lambda>w. f w / g w) z = zorder f z - zorder g z"
+    using zorder_inverse[OF g_iso g_ness g_nconst,folded vg_def] unfolding vg_def 
+    by (auto simp add:field_simps)
+
+  have "\<forall>\<^sub>F w in at z. zor_poly (\<lambda>w. f w * vg w) z w = zor_poly f z w * zor_poly vg z w"
+    apply (rule zor_poly_times[OF f_iso _ f_ness,of vg])
+    subgoal unfolding vg_def using isolated_singularity_at_inverse[OF g_iso g_ness] .
+    subgoal unfolding vg_def using not_essential_inverse[OF g_ness g_iso] .
+    subgoal unfolding vg_def using fg_nconst by (auto elim!:frequently_elim1)
+    done
+  then show "\<forall>\<^sub>Fw in (at z). zor_poly (\<lambda>w. f w / g w) z w = zor_poly f z w  / zor_poly g z w"
+    using zor_poly_inverse[OF g_iso g_ness g_nconst,folded vg_def] unfolding vg_def
+    apply eventually_elim
+    by (auto simp add:field_simps)
+qed
+
+lemma zorder_exist_zero:
+  fixes f::"complex \<Rightarrow> complex" and z::complex
+  defines "n\<equiv>zorder f z" and "g\<equiv>zor_poly f z"
+  assumes  holo: "f holomorphic_on s" and 
+          "open s" "connected s" "z\<in>s"
+      and non_const: "\<exists>w\<in>s. f w \<noteq> 0"
+  shows "(if f z=0 then n > 0 else n=0) \<and> (\<exists>r. r>0 \<and> cball z r \<subseteq> s \<and> g holomorphic_on cball z r
+    \<and> (\<forall>w\<in>cball z r. f w  = g w * (w-z) ^ nat n  \<and> g w \<noteq>0))"
+proof -
+  obtain r where "g z \<noteq> 0" and r: "r>0" "cball z r \<subseteq> s" "g holomorphic_on cball z r" 
+            "(\<forall>w\<in>cball z r - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0)"
+  proof -
+    have "g z \<noteq> 0 \<and> (\<exists>r>0. g holomorphic_on cball z r 
+            \<and> (\<forall>w\<in>cball z r - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0))"
+    proof (rule zorder_exist[of f z,folded g_def n_def])
+      show "isolated_singularity_at f z" unfolding isolated_singularity_at_def
+        using holo assms(4,6)
+        by (meson Diff_subset open_ball analytic_on_holomorphic holomorphic_on_subset openE)
+      show "not_essential f z" unfolding not_essential_def 
+        using assms(4,6) at_within_open continuous_on holo holomorphic_on_imp_continuous_on 
+        by fastforce
+      have "\<forall>\<^sub>F w in at z. f w \<noteq> 0 \<and> w\<in>s"
+      proof -
+        obtain w where "w\<in>s" "f w\<noteq>0" using non_const by auto
+        then show ?thesis 
+          by (rule non_zero_neighbour_alt[OF holo \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close>])
+      qed
+      then show "\<exists>\<^sub>F w in at z. f w \<noteq> 0"
+        apply (elim eventually_frequentlyE)
+        by auto
+    qed
+    then obtain r1 where "g z \<noteq> 0" "r1>0" and r1:"g holomorphic_on cball z r1"
+            "(\<forall>w\<in>cball z r1 - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0)"
+      by auto
+    obtain r2 where r2: "r2>0" "cball z r2 \<subseteq> s" 
+      using assms(4,6) open_contains_cball_eq by blast
+    define r3 where "r3=min r1 r2"
+    have "r3>0" "cball z r3 \<subseteq> s" using \<open>r1>0\<close> r2 unfolding r3_def by auto
+    moreover have "g holomorphic_on cball z r3" 
+      using r1(1) unfolding r3_def by auto
+    moreover have "(\<forall>w\<in>cball z r3 - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0)" 
+      using r1(2) unfolding r3_def by auto
+    ultimately show ?thesis using that[of r3] \<open>g z\<noteq>0\<close> by auto 
+  qed
+
+  have if_0:"if f z=0 then n > 0 else n=0" 
+  proof -
+    have "f\<midarrow> z \<rightarrow> f z"
+      by (metis assms(4,6,7) at_within_open continuous_on holo holomorphic_on_imp_continuous_on)
+    then have "(\<lambda>w. g w * (w - z) powr of_int n) \<midarrow>z\<rightarrow> f z"
+      apply (elim Lim_transform_within_open[where s="ball z r"])
+      using r by auto
+    moreover have "g \<midarrow>z\<rightarrow>g z"
+      by (metis (mono_tags, lifting) Topology_Euclidean_Space.open_ball at_within_open_subset 
+          ball_subset_cball centre_in_ball continuous_on holomorphic_on_imp_continuous_on r(1,3) subsetCE)
+    ultimately have "(\<lambda>w. (g w * (w - z) powr of_int n) / g w) \<midarrow>z\<rightarrow> f z/g z"
+      apply (rule_tac tendsto_divide)
+      using \<open>g z\<noteq>0\<close> by auto
+    then have powr_tendsto:"(\<lambda>w. (w - z) powr of_int n) \<midarrow>z\<rightarrow> f z/g z"
+      apply (elim Lim_transform_within_open[where s="ball z r"])
+      using r by auto
+
+    have ?thesis when "n\<ge>0" "f z=0" 
+    proof -
+      have "(\<lambda>w. (w - z) ^ nat n) \<midarrow>z\<rightarrow> f z/g z"
+        using powr_tendsto 
+        apply (elim Lim_transform_within[where d=r])
+        by (auto simp add: powr_of_int \<open>n\<ge>0\<close> \<open>r>0\<close>)
+      then have *:"(\<lambda>w. (w - z) ^ nat n) \<midarrow>z\<rightarrow> 0" using \<open>f z=0\<close> by simp
+      moreover have False when "n=0"
+      proof -
+        have "(\<lambda>w. (w - z) ^ nat n) \<midarrow>z\<rightarrow> 1"
+          using \<open>n=0\<close> by auto
+        then show False using * using LIM_unique zero_neq_one by blast
+      qed
+      ultimately show ?thesis using that by fastforce
+    qed
+    moreover have ?thesis when "n\<ge>0" "f z\<noteq>0" 
+    proof -
+      have False when "n>0"
+      proof -
+        have "(\<lambda>w. (w - z) ^ nat n) \<midarrow>z\<rightarrow> f z/g z"
+          using powr_tendsto 
+          apply (elim Lim_transform_within[where d=r])
+          by (auto simp add: powr_of_int \<open>n\<ge>0\<close> \<open>r>0\<close>)
+        moreover have "(\<lambda>w. (w - z) ^ nat n) \<midarrow>z\<rightarrow> 0"
+          using \<open>n>0\<close> by (auto intro!:tendsto_eq_intros)
+        ultimately show False using \<open>f z\<noteq>0\<close> \<open>g z\<noteq>0\<close> using LIM_unique divide_eq_0_iff by blast
+      qed
+      then show ?thesis using that by force
+    qed
+    moreover have False when "n<0"
+    proof -
+      have "(\<lambda>w. inverse ((w - z) ^ nat (- n))) \<midarrow>z\<rightarrow> f z/g z"
+           "(\<lambda>w.((w - z) ^ nat (- n))) \<midarrow>z\<rightarrow> 0"
+        subgoal  using powr_tendsto powr_of_int that
+          by (elim Lim_transform_within_open[where s=UNIV],auto)
+        subgoal using that by (auto intro!:tendsto_eq_intros)
+        done
+      from tendsto_mult[OF this,simplified] 
+      have "(\<lambda>x. inverse ((x - z) ^ nat (- n)) * (x - z) ^ nat (- n)) \<midarrow>z\<rightarrow> 0" .
+      then have "(\<lambda>x. 1::complex) \<midarrow>z\<rightarrow> 0" 
+        by (elim Lim_transform_within_open[where s=UNIV],auto)
+      then show False using LIM_const_eq by fastforce
+    qed
+    ultimately show ?thesis by fastforce
+  qed
+  moreover have "f w  = g w * (w-z) ^ nat n  \<and> g w \<noteq>0" when "w\<in>cball z r" for w
+  proof (cases "w=z")
+    case True
+    then have "f \<midarrow>z\<rightarrow>f w" 
+      using assms(4,6) at_within_open continuous_on holo holomorphic_on_imp_continuous_on by fastforce
+    then have "(\<lambda>w. g w * (w-z) ^ nat n) \<midarrow>z\<rightarrow>f w"
+    proof (elim Lim_transform_within[OF _ \<open>r>0\<close>])
+      fix x assume "0 < dist x z" "dist x z < r"
+      then have "x \<in> cball z r - {z}" "x\<noteq>z"
+        unfolding cball_def by (auto simp add: dist_commute)
+      then have "f x = g x * (x - z) powr of_int n"
+        using r(4)[rule_format,of x] by simp
+      also have "... = g x * (x - z) ^ nat n"
+        apply (subst powr_of_int)
+        using if_0 \<open>x\<noteq>z\<close> by (auto split:if_splits)
+      finally show "f x = g x * (x - z) ^ nat n" .
+    qed
+    moreover have "(\<lambda>w. g w * (w-z) ^ nat n) \<midarrow>z\<rightarrow> g w * (w-z) ^ nat n"
+      using True apply (auto intro!:tendsto_eq_intros)
+      by (metis open_ball at_within_open_subset ball_subset_cball centre_in_ball 
+          continuous_on holomorphic_on_imp_continuous_on r(1) r(3) that)
+    ultimately have "f w = g w * (w-z) ^ nat n" using LIM_unique by blast
+    then show ?thesis using \<open>g z\<noteq>0\<close> True by auto
+  next
+    case False
+    then have "f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0"
+      using r(4) that by auto
+    then show ?thesis using False if_0 powr_of_int by (auto split:if_splits)
+  qed
+  ultimately show ?thesis using r by auto
+qed
+
+lemma zorder_exist_pole:
+  fixes f::"complex \<Rightarrow> complex" and z::complex
+  defines "n\<equiv>zorder f z" and "g\<equiv>zor_poly f z"
+  assumes  holo: "f holomorphic_on s-{z}" and 
+          "open s" "z\<in>s"
+      and "is_pole f z"
+  shows "n < 0 \<and> g z\<noteq>0 \<and> (\<exists>r. r>0 \<and> cball z r \<subseteq> s \<and> g holomorphic_on cball z r
+    \<and> (\<forall>w\<in>cball z r - {z}. f w  = g w / (w-z) ^ nat (- n) \<and> g w \<noteq>0))"
+proof -
+  obtain r where "g z \<noteq> 0" and r: "r>0" "cball z r \<subseteq> s" "g holomorphic_on cball z r" 
+            "(\<forall>w\<in>cball z r - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0)"
+  proof -
+    have "g z \<noteq> 0 \<and> (\<exists>r>0. g holomorphic_on cball z r 
+            \<and> (\<forall>w\<in>cball z r - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0))"
+    proof (rule zorder_exist[of f z,folded g_def n_def])
+      show "isolated_singularity_at f z" unfolding isolated_singularity_at_def
+        using holo assms(4,5)
+        by (metis analytic_on_holomorphic centre_in_ball insert_Diff openE open_delete subset_insert_iff)
+      show "not_essential f z" unfolding not_essential_def 
+        using assms(4,6) at_within_open continuous_on holo holomorphic_on_imp_continuous_on 
+        by fastforce
+      from non_zero_neighbour_pole[OF \<open>is_pole f z\<close>] show "\<exists>\<^sub>F w in at z. f w \<noteq> 0"
+        apply (elim eventually_frequentlyE)
+        by auto
+    qed
+    then obtain r1 where "g z \<noteq> 0" "r1>0" and r1:"g holomorphic_on cball z r1"
+            "(\<forall>w\<in>cball z r1 - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0)"
+      by auto
+    obtain r2 where r2: "r2>0" "cball z r2 \<subseteq> s" 
+      using assms(4,5) open_contains_cball_eq by metis
+    define r3 where "r3=min r1 r2"
+    have "r3>0" "cball z r3 \<subseteq> s" using \<open>r1>0\<close> r2 unfolding r3_def by auto
+    moreover have "g holomorphic_on cball z r3" 
+      using r1(1) unfolding r3_def by auto
+    moreover have "(\<forall>w\<in>cball z r3 - {z}. f w = g w * (w - z) powr of_int n \<and> g w \<noteq> 0)" 
+      using r1(2) unfolding r3_def by auto
+    ultimately show ?thesis using that[of r3] \<open>g z\<noteq>0\<close> by auto 
+  qed
+
+  have "n<0"
+  proof (rule ccontr)
+    assume " \<not> n < 0"
+    define c where "c=(if n=0 then g z else 0)"
+    have [simp]:"g \<midarrow>z\<rightarrow> g z" 
+      by (metis Topology_Euclidean_Space.open_ball at_within_open ball_subset_cball centre_in_ball 
+            continuous_on holomorphic_on_imp_continuous_on holomorphic_on_subset r(1) r(3) )
+    have "\<forall>\<^sub>F x in at z. f x = g x * (x - z) ^ nat n"
+      unfolding eventually_at_topological
+      apply (rule_tac exI[where x="ball z r"])
+      using r powr_of_int \<open>\<not> n < 0\<close> by auto
+    moreover have "(\<lambda>x. g x * (x - z) ^ nat n) \<midarrow>z\<rightarrow>c"
+    proof (cases "n=0")
+      case True
+      then show ?thesis unfolding c_def by simp
+    next
+      case False
+      then have "(\<lambda>x. (x - z) ^ nat n) \<midarrow>z\<rightarrow> 0" using \<open>\<not> n < 0\<close>
+        by (auto intro!:tendsto_eq_intros)
+      from tendsto_mult[OF _ this,of g "g z",simplified] 
+      show ?thesis unfolding c_def using False by simp
+    qed
+    ultimately have "f \<midarrow>z\<rightarrow>c" using tendsto_cong by fast
+    then show False using \<open>is_pole f z\<close> at_neq_bot not_tendsto_and_filterlim_at_infinity 
+      unfolding is_pole_def by blast
+  qed
+  moreover have "\<forall>w\<in>cball z r - {z}. f w  = g w / (w-z) ^ nat (- n) \<and> g w \<noteq>0"
+    using r(4) \<open>n<0\<close> powr_of_int 
+    by (metis Diff_iff divide_inverse eq_iff_diff_eq_0 insert_iff linorder_not_le)
+  ultimately show ?thesis using r(1-3) \<open>g z\<noteq>0\<close> by auto
+qed
+
+lemma zorder_eqI:
+  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0"
+  assumes fg_eq:"\<And>w. \<lbrakk>w \<in> s;w\<noteq>z\<rbrakk> \<Longrightarrow> f w = g w * (w - z) powr n"
+  shows   "zorder f z = n"
+proof -
+  have "continuous_on s g" by (rule holomorphic_on_imp_continuous_on) fact
+  moreover have "open (-{0::complex})" by auto
+  ultimately have "open ((g -` (-{0})) \<inter> s)"
+    unfolding continuous_on_open_vimage[OF \<open>open s\<close>] by blast
+  moreover from assms have "z \<in> (g -` (-{0})) \<inter> s" by auto
+  ultimately obtain r where r: "r > 0" "cball z r \<subseteq>  s \<inter> (g -` (-{0}))"
+    unfolding open_contains_cball by blast
+
+  let ?gg= "(\<lambda>w. g w * (w - z) powr n)"
+  define P where "P = (\<lambda>n g r. 0 < r \<and> g holomorphic_on cball z r \<and> g z\<noteq>0
+          \<and> (\<forall>w\<in>cball z r - {z}. f w = g w * (w-z) powr (of_int n) \<and> g w\<noteq>0))"
+  have "P n g r"
+    unfolding P_def using r assms(3,4,5) by auto
+  then have "\<exists>g r. P n g r" by auto
+  moreover have unique: "\<exists>!n. \<exists>g r. P n g r" unfolding P_def
+  proof (rule holomorphic_factor_puncture)
+    have "ball z r-{z} \<subseteq> s" using r using ball_subset_cball by blast
+    then have "?gg holomorphic_on ball z r-{z}"
+      using \<open>g holomorphic_on s\<close> r by (auto intro!: holomorphic_intros)
+    then have "f holomorphic_on ball z r - {z}"
+      apply (elim holomorphic_transform)
+      using fg_eq \<open>ball z r-{z} \<subseteq> s\<close> by auto
+    then show "isolated_singularity_at f z" unfolding isolated_singularity_at_def
+      using analytic_on_open open_delete r(1) by blast
+  next
+    have "not_essential ?gg z"
+    proof (intro singularity_intros)
+      show "not_essential g z" 
+        by (meson \<open>continuous_on s g\<close> assms(1) assms(2) continuous_on_eq_continuous_at 
+            isCont_def not_essential_def)
+      show " \<forall>\<^sub>F w in at z. w - z \<noteq> 0" by (simp add: eventually_at_filter)
+      then show "LIM w at z. w - z :> at 0" 
+        unfolding filterlim_at by (auto intro:tendsto_eq_intros)
+      show "isolated_singularity_at g z" 
+        by (meson Diff_subset Topology_Euclidean_Space.open_ball analytic_on_holomorphic 
+            assms(1,2,3) holomorphic_on_subset isolated_singularity_at_def openE)
+    qed
+    then show "not_essential f z"
+      apply (elim not_essential_transform)
+      unfolding eventually_at using assms(1,2) assms(5)[symmetric] 
+      by (metis dist_commute mem_ball openE subsetCE)
+    show "\<exists>\<^sub>F w in at z. f w \<noteq> 0" unfolding frequently_at 
+    proof (rule,rule)
+      fix d::real assume "0 < d"
+      define z' where "z'=z+min d r / 2"
+      have "z' \<noteq> z" " dist z' z < d "
+        unfolding z'_def using \<open>d>0\<close> \<open>r>0\<close> 
+        by (auto simp add:dist_norm)
+      moreover have "f z' \<noteq> 0"  
+      proof (subst fg_eq[OF _ \<open>z'\<noteq>z\<close>])
+        have "z' \<in> cball z r" unfolding z'_def using \<open>r>0\<close> \<open>d>0\<close> by (auto simp add:dist_norm)
+        then show " z' \<in> s" using r(2) by blast
+        show "g z' * (z' - z) powr of_int n \<noteq> 0" 
+          using P_def \<open>P n g r\<close> \<open>z' \<in> cball z r\<close> calculation(1) by auto
+      qed
+      ultimately show "\<exists>x\<in>UNIV. x \<noteq> z \<and> dist x z < d \<and> f x \<noteq> 0" by auto
+    qed
+  qed
+  ultimately have "(THE n. \<exists>g r. P n g r) = n"
+    by (rule_tac the1_equality)
+  then show ?thesis unfolding zorder_def P_def by blast
+qed
+
+lemma residue_pole_order:
+  fixes f::"complex \<Rightarrow> complex" and z::complex
+  defines "n \<equiv> nat (- zorder f z)" and "h \<equiv> zor_poly f z"
+  assumes f_iso:"isolated_singularity_at f z"
+    and pole:"is_pole f z"
+  shows "residue f z = ((deriv ^^ (n - 1)) h z / fact (n-1))"
+proof -
+  define g where "g \<equiv> \<lambda>x. if x=z then 0 else inverse (f x)"
+  obtain e where [simp]:"e>0" and f_holo:"f holomorphic_on ball z e - {z}"
+    using f_iso analytic_imp_holomorphic unfolding isolated_singularity_at_def by blast
+  obtain r where "0 < n" "0 < r" and r_cball:"cball z r \<subseteq> ball z e" and h_holo: "h holomorphic_on cball z r"
+      and h_divide:"(\<forall>w\<in>cball z r. (w\<noteq>z \<longrightarrow> f w = h w / (w - z) ^ n) \<and> h w \<noteq> 0)"
+  proof -
+    obtain r where r:"zorder f z < 0" "h z \<noteq> 0" "r>0" "cball z r \<subseteq> ball z e" "h holomorphic_on cball z r" 
+        "(\<forall>w\<in>cball z r - {z}. f w = h w / (w - z) ^ n \<and> h w \<noteq> 0)"
+      using zorder_exist_pole[OF f_holo,simplified,OF \<open>is_pole f z\<close>,folded n_def h_def] by auto
+    have "n>0" using \<open>zorder f z < 0\<close> unfolding n_def by simp
+    moreover have "(\<forall>w\<in>cball z r. (w\<noteq>z \<longrightarrow> f w = h w / (w - z) ^ n) \<and> h w \<noteq> 0)"
+      using \<open>h z\<noteq>0\<close> r(6) by blast
+    ultimately show ?thesis using r(3,4,5) that by blast
+  qed
+  have r_nonzero:"\<And>w. w \<in> ball z r - {z} \<Longrightarrow> f w \<noteq> 0"
+    using h_divide by simp
+  define c where "c \<equiv> 2 * pi * \<i>"
+  define der_f where "der_f \<equiv> ((deriv ^^ (n - 1)) h z / fact (n-1))"
+  define h' where "h' \<equiv> \<lambda>u. h u / (u - z) ^ n"
+  have "(h' has_contour_integral c / fact (n - 1) * (deriv ^^ (n - 1)) h z) (circlepath z r)"
+    unfolding h'_def
+    proof (rule Cauchy_has_contour_integral_higher_derivative_circlepath[of z r h z "n-1",
+        folded c_def Suc_pred'[OF \<open>n>0\<close>]])
+      show "continuous_on (cball z r) h" using holomorphic_on_imp_continuous_on h_holo by simp
+      show "h holomorphic_on ball z r" using h_holo by auto
+      show " z \<in> ball z r" using \<open>r>0\<close> by auto
+    qed
+  then have "(h' has_contour_integral c * der_f) (circlepath z r)" unfolding der_f_def by auto
+  then have "(f has_contour_integral c * der_f) (circlepath z r)"
+    proof (elim has_contour_integral_eq)
+      fix x assume "x \<in> path_image (circlepath z r)"
+      hence "x\<in>cball z r - {z}" using \<open>r>0\<close> by auto
+      then show "h' x = f x" using h_divide unfolding h'_def by auto
+    qed
+  moreover have "(f has_contour_integral c * residue f z) (circlepath z r)"
+    using base_residue[of \<open>ball z e\<close> z,simplified,OF \<open>r>0\<close> f_holo r_cball,folded c_def] 
+    unfolding c_def by simp
+  ultimately have "c * der_f =  c * residue f z" using has_contour_integral_unique by blast
+  hence "der_f = residue f z" unfolding c_def by auto
+  thus ?thesis unfolding der_f_def by auto
+qed
+
+lemma simple_zeroI:
+  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0"
+  assumes "\<And>w. w \<in> s \<Longrightarrow> f w = g w * (w - z)"
+  shows   "zorder f z = 1"
+  using assms(1-4) by (rule zorder_eqI) (use assms(5) in auto)
+
+lemma higher_deriv_power:
+  shows   "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) w = 
+             pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j)"
+proof (induction j arbitrary: w)
+  case 0
+  thus ?case by auto
+next
+  case (Suc j w)
+  have "(deriv ^^ Suc j) (\<lambda>w. (w - z) ^ n) w = deriv ((deriv ^^ j) (\<lambda>w. (w - z) ^ n)) w"
+    by simp
+  also have "(deriv ^^ j) (\<lambda>w. (w - z) ^ n) = 
+               (\<lambda>w. pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j))"
+    using Suc by (intro Suc.IH ext)
+  also {
+    have "(\<dots> has_field_derivative of_nat (n - j) *
+               pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - Suc j)) (at w)"
+      using Suc.prems by (auto intro!: derivative_eq_intros)
+    also have "of_nat (n - j) * pochhammer (of_nat (Suc n - j)) j = 
+                 pochhammer (of_nat (Suc n - Suc j)) (Suc j)"
+      by (cases "Suc j \<le> n", subst pochhammer_rec) 
+         (insert Suc.prems, simp_all add: algebra_simps Suc_diff_le pochhammer_0_left)
+    finally have "deriv (\<lambda>w. pochhammer (of_nat (Suc n - j)) j * (w - z) ^ (n - j)) w =
+                    \<dots> * (w - z) ^ (n - Suc j)"
+      by (rule DERIV_imp_deriv)
+  }
+  finally show ?case .
+qed
+
+lemma zorder_zero_eqI:
+  assumes  f_holo:"f holomorphic_on s" and "open s" "z \<in> s"
+  assumes zero: "\<And>i. i < nat n \<Longrightarrow> (deriv ^^ i) f z = 0"
+  assumes nz: "(deriv ^^ nat n) f z \<noteq> 0" and "n\<ge>0"
+  shows   "zorder f z = n"
+proof -
+  obtain r where [simp]:"r>0" and "ball z r \<subseteq> s"
+    using \<open>open s\<close> \<open>z\<in>s\<close> openE by blast
+  have nz':"\<exists>w\<in>ball z r. f w \<noteq> 0"
+  proof (rule ccontr)
+    assume "\<not> (\<exists>w\<in>ball z r. f w \<noteq> 0)"
+    then have "eventually (\<lambda>u. f u = 0) (nhds z)"
+      using \<open>r>0\<close> unfolding eventually_nhds 
+      apply (rule_tac x="ball z r" in exI)
+      by auto
+    then have "(deriv ^^ nat n) f z = (deriv ^^ nat n) (\<lambda>_. 0) z"
+      by (intro higher_deriv_cong_ev) auto
+    also have "(deriv ^^ nat n) (\<lambda>_. 0) z = 0"
+      by (induction n) simp_all
+    finally show False using nz by contradiction
+  qed
+
+  define zn g where "zn = zorder f z" and "g = zor_poly f z"
+  obtain e where e_if:"if f z = 0 then 0 < zn else zn = 0" and
+            [simp]:"e>0" and "cball z e \<subseteq> ball z r" and
+            g_holo:"g holomorphic_on cball z e" and
+            e_fac:"(\<forall>w\<in>cball z e. f w = g w * (w - z) ^ nat zn \<and> g w \<noteq> 0)"
+  proof -
+    have "f holomorphic_on ball z r"
+      using f_holo \<open>ball z r \<subseteq> s\<close> by auto
+    from that zorder_exist_zero[of f "ball z r" z,simplified,OF this nz',folded zn_def g_def]
+    show ?thesis by blast
+  qed
+  from this(1,2,5) have "zn\<ge>0" "g z\<noteq>0"
+    subgoal by (auto split:if_splits) 
+    subgoal using \<open>0 < e\<close> ball_subset_cball centre_in_ball e_fac by blast
+    done
+
+  define A where "A = (\<lambda>i. of_nat (i choose (nat zn)) * fact (nat zn) * (deriv ^^ (i - nat zn)) g z)"
+  have deriv_A:"(deriv ^^ i) f z = (if zn \<le> int i then A i else 0)" for i
+  proof -
+    have "eventually (\<lambda>w. w \<in> ball z e) (nhds z)"
+      using \<open>cball z e \<subseteq> ball z r\<close> \<open>e>0\<close> by (intro eventually_nhds_in_open) auto
+    hence "eventually (\<lambda>w. f w = (w - z) ^ (nat zn) * g w) (nhds z)"
+      apply eventually_elim 
+      by (use e_fac in auto)
+    hence "(deriv ^^ i) f z = (deriv ^^ i) (\<lambda>w. (w - z) ^ nat zn * g w) z"
+      by (intro higher_deriv_cong_ev) auto
+    also have "\<dots> = (\<Sum>j=0..i. of_nat (i choose j) *
+                       (deriv ^^ j) (\<lambda>w. (w - z) ^ nat zn) z * (deriv ^^ (i - j)) g z)"
+      using g_holo \<open>e>0\<close> 
+      by (intro higher_deriv_mult[of _ "ball z e"]) (auto intro!: holomorphic_intros)
+    also have "\<dots> = (\<Sum>j=0..i. if j = nat zn then 
+                    of_nat (i choose nat zn) * fact (nat zn) * (deriv ^^ (i - nat zn)) g z else 0)"
+    proof (intro sum.cong refl, goal_cases)
+      case (1 j)
+      have "(deriv ^^ j) (\<lambda>w. (w - z) ^ nat zn) z = 
+              pochhammer (of_nat (Suc (nat zn) - j)) j * 0 ^ (nat zn - j)"
+        by (subst higher_deriv_power) auto
+      also have "\<dots> = (if j = nat zn then fact j else 0)"
+        by (auto simp: not_less pochhammer_0_left pochhammer_fact)
+      also have "of_nat (i choose j) * \<dots> * (deriv ^^ (i - j)) g z = 
+                   (if j = nat zn then of_nat (i choose (nat zn)) * fact (nat zn) 
+                        * (deriv ^^ (i - nat zn)) g z else 0)"
+        by simp
+      finally show ?case .
+    qed
+    also have "\<dots> = (if i \<ge> zn then A i else 0)"
+      by (auto simp: A_def)
+    finally show "(deriv ^^ i) f z = \<dots>" .
+  qed
+
+  have False when "n<zn"
+  proof -
+    have "(deriv ^^ nat n) f z = 0"
+      using deriv_A[of "nat n"] that \<open>n\<ge>0\<close> by auto 
+    with nz show False by auto
+  qed
+  moreover have "n\<le>zn"
+  proof -
+    have "g z \<noteq> 0" using e_fac[rule_format,of z] \<open>e>0\<close> by simp 
+    then have "(deriv ^^ nat zn) f z \<noteq> 0"
+      using deriv_A[of "nat zn"] by(auto simp add:A_def)
+    then have "nat zn \<ge> nat n" using zero[of "nat zn"] by linarith
+    moreover have "zn\<ge>0" using e_if by (auto split:if_splits)
+    ultimately show ?thesis using nat_le_eq_zle by blast
+  qed
+  ultimately show ?thesis unfolding zn_def by fastforce
+qed
+
+lemma 
+  assumes "eventually (\<lambda>z. f z = g z) (at z)" "z = z'"
+  shows zorder_cong:"zorder f z = zorder g z'" and zor_poly_cong:"zor_poly f z = zor_poly g z'"
+proof -
+  define P where "P = (\<lambda>ff n h r. 0 < r \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
+                    \<and> (\<forall>w\<in>cball z r - {z}. ff w = h w * (w-z) powr (of_int n) \<and> h w\<noteq>0))"
+  have "(\<exists>r. P f n h r) = (\<exists>r. P g n h r)" for n h 
+  proof -
+    have *: "\<exists>r. P g n h r" if "\<exists>r. P f n h r" and "eventually (\<lambda>x. f x = g x) (at z)" for f g 
+    proof -
+      from that(1) obtain r1 where r1_P:"P f n h r1" by auto
+      from that(2) obtain r2 where "r2>0" and r2_dist:"\<forall>x. x \<noteq> z \<and> dist x z \<le> r2 \<longrightarrow> f x = g x"
+        unfolding eventually_at_le by auto
+      define r where "r=min r1 r2"
+      have "r>0" "h z\<noteq>0" using r1_P \<open>r2>0\<close> unfolding r_def P_def by auto
+      moreover have "h holomorphic_on cball z r"
+        using r1_P unfolding P_def r_def by auto
+      moreover have "g w = h w * (w - z) powr of_int n \<and> h w \<noteq> 0" when "w\<in>cball z r - {z}" for w
+      proof -
+        have "f w = h w * (w - z) powr of_int n \<and> h w \<noteq> 0"
+          using r1_P that unfolding P_def r_def by auto
+        moreover have "f w=g w" using r2_dist[rule_format,of w] that unfolding r_def 
+          by (simp add: dist_commute) 
+        ultimately show ?thesis by simp
+      qed
+      ultimately show ?thesis unfolding P_def by auto
+    qed
+    from assms have eq': "eventually (\<lambda>z. g z = f z) (at z)"
+      by (simp add: eq_commute)
+    show ?thesis
+      by (rule iffI[OF *[OF _ assms(1)] *[OF _ eq']])
+  qed
+  then show "zorder f z = zorder g z'" "zor_poly f z = zor_poly g z'"  
+      using \<open>z=z'\<close> unfolding P_def zorder_def zor_poly_def by auto
+qed
+
+lemma zorder_nonzero_div_power:
+  assumes "open s" "z \<in> s" "f holomorphic_on s" "f z \<noteq> 0" "n > 0"
+  shows  "zorder (\<lambda>w. f w / (w - z) ^ n) z = - n"
+  apply (rule zorder_eqI[OF \<open>open s\<close> \<open>z\<in>s\<close> \<open>f holomorphic_on s\<close> \<open>f z\<noteq>0\<close>])
+  apply (subst powr_of_int)
+  using \<open>n>0\<close> by (auto simp add:field_simps)
+
+lemma zor_poly_eq:
+  assumes "isolated_singularity_at f z" "not_essential f z" "\<exists>\<^sub>F w in at z. f w \<noteq> 0"
+  shows "eventually (\<lambda>w. zor_poly f z w = f w * (w - z) powr - zorder f z) (at z)"
+proof -
+  obtain r where r:"r>0" 
+       "(\<forall>w\<in>cball z r - {z}. f w = zor_poly f z w * (w - z) powr of_int (zorder f z))"
+    using zorder_exist[OF assms] by blast
+  then have *: "\<forall>w\<in>ball z r - {z}. zor_poly f z w = f w * (w - z) powr - zorder f z" 
+    by (auto simp: field_simps powr_minus)
+  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
+    using r eventually_at_ball'[of r z UNIV] by auto
+  thus ?thesis by eventually_elim (insert *, auto)
+qed
+
+lemma zor_poly_zero_eq:
+  assumes "f holomorphic_on s" "open s" "connected s" "z \<in> s" "\<exists>w\<in>s. f w \<noteq> 0"
+  shows "eventually (\<lambda>w. zor_poly f z w = f w / (w - z) ^ nat (zorder f z)) (at z)"
+proof -
+  obtain r where r:"r>0" 
+       "(\<forall>w\<in>cball z r - {z}. f w = zor_poly f z w * (w - z) ^ nat (zorder f z))"
+    using zorder_exist_zero[OF assms] by auto
+  then have *: "\<forall>w\<in>ball z r - {z}. zor_poly f z w = f w / (w - z) ^ nat (zorder f z)" 
+    by (auto simp: field_simps powr_minus)
+  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
+    using r eventually_at_ball'[of r z UNIV] by auto
+  thus ?thesis by eventually_elim (insert *, auto)
+qed
+
+lemma zor_poly_pole_eq:
+  assumes f_iso:"isolated_singularity_at f z" "is_pole f z"
+  shows "eventually (\<lambda>w. zor_poly f z w = f w * (w - z) ^ nat (- zorder f z)) (at z)"
+proof -
+  obtain e where [simp]:"e>0" and f_holo:"f holomorphic_on ball z e - {z}"
+    using f_iso analytic_imp_holomorphic unfolding isolated_singularity_at_def by blast
+  obtain r where r:"r>0" 
+       "(\<forall>w\<in>cball z r - {z}. f w = zor_poly f z w / (w - z) ^ nat (- zorder f z))"
+    using zorder_exist_pole[OF f_holo,simplified,OF \<open>is_pole f z\<close>] by auto
+  then have *: "\<forall>w\<in>ball z r - {z}. zor_poly f z w = f w * (w - z) ^ nat (- zorder f z)" 
     by (auto simp: field_simps)
   have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
     using r eventually_at_ball'[of r z UNIV] by auto
   thus ?thesis by eventually_elim (insert *, auto)
 qed
 
-lemma pol_poly_eq:
-  assumes "open s" "z \<in> s" "f holomorphic_on s - {z}" "is_pole f z" "\<exists>w\<in>s. f w \<noteq> 0"
-  shows "eventually (\<lambda>w. pol_poly f z w = f w * (w - z) ^ porder f z) (at z)"
+lemma zor_poly_eqI:
+  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
+  defines "n \<equiv> zorder f z0"
+  assumes "isolated_singularity_at f z0" "not_essential f z0" "\<exists>\<^sub>F w in at z0. f w \<noteq> 0"
+  assumes lim: "((\<lambda>x. f (g x) * (g x - z0) powr - n) \<longlongrightarrow> c) F"
+  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
+  shows   "zor_poly f z0 z0 = c"
 proof -
-  from porder_exist[OF assms(1-4)] obtain r where r: "r > 0" 
-    and "\<forall>w\<in>cball z r. w \<noteq> z \<longrightarrow> f w = pol_poly f z w / (w - z) ^ porder f z" by blast
-  hence *: "\<forall>w\<in>ball z r - {z}. pol_poly f z w = f w * (w - z) ^ porder f z" 
-    by (auto simp: field_simps)
-  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
-    using r eventually_at_ball'[of r z UNIV] by auto
-  thus ?thesis by eventually_elim (insert *, auto)
+  from zorder_exist[OF assms(2-4)] obtain r where
+    r: "r > 0" "zor_poly f z0 holomorphic_on cball z0 r"
+       "\<And>w. w \<in> cball z0 r - {z0} \<Longrightarrow> f w = zor_poly f z0 w * (w - z0) powr n"
+    unfolding n_def by blast
+  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
+    using eventually_at_ball'[of r z0 UNIV] by auto
+  hence "eventually (\<lambda>w. zor_poly f z0 w = f w * (w - z0) powr - n) (at z0)"
+    by eventually_elim (insert r, auto simp: field_simps powr_minus)
+  moreover have "continuous_on (ball z0 r) (zor_poly f z0)"
+    using r by (intro holomorphic_on_imp_continuous_on) auto
+  with r(1,2) have "isCont (zor_poly f z0) z0"
+    by (auto simp: continuous_on_eq_continuous_at)
+  hence "(zor_poly f z0 \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
+    unfolding isCont_def .
+  ultimately have "((\<lambda>w. f w * (w - z0) powr - n) \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
+    by (rule Lim_transform_eventually)
+  hence "((\<lambda>x. f (g x) * (g x - z0) powr - n) \<longlongrightarrow> zor_poly f z0 z0) F"
+    by (rule filterlim_compose[OF _ g])
+  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
+qed
+
+lemma zor_poly_zero_eqI:
+  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
+  defines "n \<equiv> zorder f z0"
+  assumes "f holomorphic_on A" "open A" "connected A" "z0 \<in> A" "\<exists>z\<in>A. f z \<noteq> 0"
+  assumes lim: "((\<lambda>x. f (g x) / (g x - z0) ^ nat n) \<longlongrightarrow> c) F"
+  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
+  shows   "zor_poly f z0 z0 = c"
+proof -
+  from zorder_exist_zero[OF assms(2-6)] obtain r where
+    r: "r > 0" "cball z0 r \<subseteq> A" "zor_poly f z0 holomorphic_on cball z0 r"
+       "\<And>w. w \<in> cball z0 r \<Longrightarrow> f w = zor_poly f z0 w * (w - z0) ^ nat n"
+    unfolding n_def by blast
+  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
+    using eventually_at_ball'[of r z0 UNIV] by auto
+  hence "eventually (\<lambda>w. zor_poly f z0 w = f w / (w - z0) ^ nat n) (at z0)"
+    by eventually_elim (insert r, auto simp: field_simps)
+  moreover have "continuous_on (ball z0 r) (zor_poly f z0)"
+    using r by (intro holomorphic_on_imp_continuous_on) auto
+  with r(1,2) have "isCont (zor_poly f z0) z0"
+    by (auto simp: continuous_on_eq_continuous_at)
+  hence "(zor_poly f z0 \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
+    unfolding isCont_def .
+  ultimately have "((\<lambda>w. f w / (w - z0) ^ nat n) \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
+    by (rule Lim_transform_eventually)
+  hence "((\<lambda>x. f (g x) / (g x - z0) ^ nat n) \<longlongrightarrow> zor_poly f z0 z0) F"
+    by (rule filterlim_compose[OF _ g])
+  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
+qed
+
+lemma zor_poly_pole_eqI:
+  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
+  defines "n \<equiv> zorder f z0"
+  assumes f_iso:"isolated_singularity_at f z0" and "is_pole f z0"
+  assumes lim: "((\<lambda>x. f (g x) * (g x - z0) ^ nat (-n)) \<longlongrightarrow> c) F"
+  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
+  shows   "zor_poly f z0 z0 = c"
+proof -
+  obtain r where r: "r > 0"  "zor_poly f z0 holomorphic_on cball z0 r"
+  proof -   
+    have "\<exists>\<^sub>F w in at z0. f w \<noteq> 0" 
+      using non_zero_neighbour_pole[OF \<open>is_pole f z0\<close>] by (auto elim:eventually_frequentlyE)
+    moreover have "not_essential f z0" unfolding not_essential_def using \<open>is_pole f z0\<close> by simp
+    ultimately show ?thesis using that zorder_exist[OF f_iso,folded n_def] by auto
+  qed
+  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
+    using eventually_at_ball'[of r z0 UNIV] by auto
+  have "eventually (\<lambda>w. zor_poly f z0 w = f w * (w - z0) ^ nat (-n)) (at z0)"
+    using zor_poly_pole_eq[OF f_iso \<open>is_pole f z0\<close>] unfolding n_def .
+  moreover have "continuous_on (ball z0 r) (zor_poly f z0)"
+    using r by (intro holomorphic_on_imp_continuous_on) auto
+  with r(1,2) have "isCont (zor_poly f z0) z0"
+    by (auto simp: continuous_on_eq_continuous_at)
+  hence "(zor_poly f z0 \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
+    unfolding isCont_def .
+  ultimately have "((\<lambda>w. f w * (w - z0) ^ nat (-n)) \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
+    by (rule Lim_transform_eventually)
+  hence "((\<lambda>x. f (g x) * (g x - z0) ^ nat (-n)) \<longlongrightarrow> zor_poly f z0 z0) F"
+    by (rule filterlim_compose[OF _ g])
+  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
+qed
+
+lemma residue_simple_pole:
+  assumes "isolated_singularity_at f z0" 
+  assumes "is_pole f z0" "zorder f z0 = - 1"
+  shows   "residue f z0 = zor_poly f z0 z0"
+  using assms by (subst residue_pole_order) simp_all
+
+lemma residue_simple_pole_limit:
+  assumes "isolated_singularity_at f z0" 
+  assumes "is_pole f z0" "zorder f z0 = - 1"
+  assumes "((\<lambda>x. f (g x) * (g x - z0)) \<longlongrightarrow> c) F"
+  assumes "filterlim g (at z0) F" "F \<noteq> bot"
+  shows   "residue f z0 = c"
+proof -
+  have "residue f z0 = zor_poly f z0 z0"
+    by (rule residue_simple_pole assms)+
+  also have "\<dots> = c"
+    apply (rule zor_poly_pole_eqI)
+    using assms by auto
+  finally show ?thesis .
 qed
 
 lemma lhopital_complex_simple:
@@ -4126,271 +4583,491 @@ proof -
   with assms show ?thesis by simp
 qed
 
-lemma porder_eqI:
-  assumes "open s" "z \<in> s" "g holomorphic_on s" "g z \<noteq> 0" "n > 0"
-  assumes "\<And>w. w \<in> s - {z} \<Longrightarrow> f w = g w / (w - z) ^ n"
-  shows   "porder f z = n"
-proof -
-  define f' where "f' = (\<lambda>x. if x = z then 0 else inverse (f x))"
-  define g' where "g' = (\<lambda>x. inverse (g x))"
-  define s' where "s' = (g -` (-{0}) \<inter> s)"
-  have "continuous_on s g"
-    by (intro holomorphic_on_imp_continuous_on) fact
-  hence "open s'"
-    unfolding s'_def using assms by (subst (asm) continuous_on_open_vimage) blast+
-  have s': "z \<in> s'" "g' holomorphic_on s'" "g' z \<noteq> 0" using assms 
-    by (auto simp: s'_def g'_def intro!: holomorphic_intros)
-  have f'_g': "f' w = g' w * (w - z) ^ n" if "w \<in> s'" for w
-    unfolding f'_def g'_def using that \<open>n > 0\<close>
-    by (auto simp: assms(6) field_simps s'_def)
-  have "porder f z = zorder f' z"
-    by (simp add: porder_def f'_def)
-  also have "\<dots> = n" using assms f'_g' 
-    by (intro zorder_eqI[OF \<open>open s'\<close> s']) (auto simp: f'_def g'_def field_simps s'_def)
-  finally show ?thesis .
-qed
-
-lemma simple_poleI':
-  assumes "open s" "connected s" "z \<in> s"
-  assumes "\<And>w. w \<in> s - {z} \<Longrightarrow> 
-             ((\<lambda>w. inverse (f w)) has_field_derivative f' w) (at w)"
-  assumes "f holomorphic_on s - {z}" "f' holomorphic_on s" "is_pole f z" "f' z \<noteq> 0"
-  shows   "porder f z = 1"
-proof -
-  define g where "g = (\<lambda>w. if w = z then 0 else inverse (f w))"
-  from \<open>is_pole f z\<close> have "eventually (\<lambda>w. f w \<noteq> 0) (at z)"
-    unfolding is_pole_def using filterlim_at_infinity_imp_eventually_ne by blast
-  then obtain s'' where s'': "open s''" "z \<in> s''" "\<forall>w\<in>s''-{z}. f w \<noteq> 0"
-    by (auto simp: eventually_at_topological)
-  from assms(1) and s''(1) have "open (s \<inter> s'')" by auto
-  then obtain r where r: "r > 0" "ball z r \<subseteq> s \<inter> s''"
-    using assms(3) s''(2) by (subst (asm) open_contains_ball) blast
-  define s' where "s' = ball z r"
-  hence s': "open s'" "connected s'" "z \<in> s'" "s' \<subseteq> s" "\<forall>w\<in>s'-{z}. f w \<noteq> 0"
-    using r s'' by (auto simp: s'_def)
-  have s'_ne: "s' - {z} \<noteq> {}"
-    using r unfolding s'_def by (intro ball_minus_countable_nonempty) auto
-
-  have "porder f z = zorder g z"
-    by (simp add: porder_def g_def)
-  also have "\<dots> = 1"
-  proof (rule simple_zeroI')
-    fix w assume w: "w \<in> s'"
-    have [holomorphic_intros]: "g holomorphic_on s'" unfolding g_def using assms s'
-      by (intro is_pole_inverse_holomorphic holomorphic_on_subset[OF assms(5)]) auto
-    hence "(g has_field_derivative deriv g w) (at w)"
-      using w s' by (intro holomorphic_derivI)
-    also have deriv_g: "deriv g w = f' w" if "w \<in> s' - {z}" for w
-    proof -
-      from that have ne: "eventually (\<lambda>w. w \<noteq> z) (nhds w)"
-        by (intro t1_space_nhds) auto
-      have "deriv g w = deriv (\<lambda>w. inverse (f w)) w"
-        by (intro deriv_cong_ev refl eventually_mono [OF ne]) (auto simp: g_def)
-      also from assms(4)[of w] that s' have "\<dots> = f' w"
-        by (auto dest: DERIV_imp_deriv)
-      finally show ?thesis .
-    qed
-    have "deriv g w = f' w"
-      by (rule analytic_continuation_open[of "s' - {z}" s' "deriv g" f'])
-         (insert s' assms s'_ne deriv_g w, 
-          auto intro!: holomorphic_intros holomorphic_on_subset[OF assms(6)])
-    finally show "(g has_field_derivative f' w) (at w)" .
-  qed (insert assms s', auto simp: g_def)
-  finally show ?thesis .
-qed
-
-lemma residue_holomorphic_over_power:
-  assumes "open A" "z0 \<in> A" "f holomorphic_on A"
-  shows   "residue (\<lambda>z. f z / (z - z0) ^ Suc n) z0 = (deriv ^^ n) f z0 / fact n"
-proof -
-  let ?f = "\<lambda>z. f z / (z - z0) ^ Suc n"
-  from assms(1,2) obtain r where r: "r > 0" "cball z0 r \<subseteq> A"
-    by (auto simp: open_contains_cball)
-  have "(?f has_contour_integral 2 * pi * \<i> * residue ?f z0) (circlepath z0 r)"
-    using r assms by (intro base_residue[of A]) (auto intro!: holomorphic_intros)
-  moreover have "(?f has_contour_integral 2 * pi * \<i> / fact n * (deriv ^^ n) f z0) (circlepath z0 r)"
-    using assms r
-    by (intro Cauchy_has_contour_integral_higher_derivative_circlepath)
-       (auto intro!: holomorphic_on_subset[OF assms(3)] holomorphic_on_imp_continuous_on)
-  ultimately have "2 * pi * \<i> * residue ?f z0 = 2 * pi * \<i> / fact n * (deriv ^^ n) f z0"  
-    by (rule has_contour_integral_unique)
-  thus ?thesis by (simp add: field_simps)
-qed
-
-lemma residue_holomorphic_over_power':
-  assumes "open A" "0 \<in> A" "f holomorphic_on A"
-  shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
-  using residue_holomorphic_over_power[OF assms] by simp
-
-lemma zer_poly_eqI:
-  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
-  defines "n \<equiv> zorder f z0"
-  assumes "open A" "connected A" "z0 \<in> A" "f holomorphic_on A" "f z0 = 0" "\<exists>z\<in>A. f z \<noteq> 0"
-  assumes lim: "((\<lambda>x. f (g x) / (g x - z0) ^ n) \<longlongrightarrow> c) F"
-  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
-  shows   "zer_poly f z0 z0 = c"
-proof -
-  from zorder_exist[OF assms(2-7)] obtain r where
-    r: "r > 0" "cball z0 r \<subseteq> A" "zer_poly f z0 holomorphic_on cball z0 r"
-       "\<And>w. w \<in> cball z0 r \<Longrightarrow> f w = zer_poly f z0 w * (w - z0) ^ n"
-    unfolding n_def by blast
-  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
-    using eventually_at_ball'[of r z0 UNIV] by auto
-  hence "eventually (\<lambda>w. zer_poly f z0 w = f w / (w - z0) ^ n) (at z0)"
-    by eventually_elim (insert r, auto simp: field_simps)
-  moreover have "continuous_on (ball z0 r) (zer_poly f z0)"
-    using r by (intro holomorphic_on_imp_continuous_on) auto
-  with r(1,2) have "isCont (zer_poly f z0) z0"
-    by (auto simp: continuous_on_eq_continuous_at)
-  hence "(zer_poly f z0 \<longlongrightarrow> zer_poly f z0 z0) (at z0)"
-    unfolding isCont_def .
-  ultimately have "((\<lambda>w. f w / (w - z0) ^ n) \<longlongrightarrow> zer_poly f z0 z0) (at z0)"
-    by (rule Lim_transform_eventually)
-  hence "((\<lambda>x. f (g x) / (g x - z0) ^ n) \<longlongrightarrow> zer_poly f z0 z0) F"
-    by (rule filterlim_compose[OF _ g])
-  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
-qed
-
-lemma pol_poly_eqI:
-  fixes f :: "complex \<Rightarrow> complex" and z0 :: complex
-  defines "n \<equiv> porder f z0"
-  assumes "open A" "z0 \<in> A" "f holomorphic_on A-{z0}" "is_pole f z0"
-  assumes lim: "((\<lambda>x. f (g x) * (g x - z0) ^ n) \<longlongrightarrow> c) F"
-  assumes g: "filterlim g (at z0) F" and "F \<noteq> bot"
-  shows   "pol_poly f z0 z0 = c"
-proof -
-  from porder_exist[OF assms(2-5)] obtain r where
-    r: "r > 0" "cball z0 r \<subseteq> A" "pol_poly f z0 holomorphic_on cball z0 r"
-       "\<And>w. w \<in> cball z0 r - {z0} \<Longrightarrow> f w = pol_poly f z0 w / (w - z0) ^ n"
-    unfolding n_def by blast
-  from r(1) have "eventually (\<lambda>w. w \<in> ball z0 r \<and> w \<noteq> z0) (at z0)"
-    using eventually_at_ball'[of r z0 UNIV] by auto
-  hence "eventually (\<lambda>w. pol_poly f z0 w = f w * (w - z0) ^ n) (at z0)"
-    by eventually_elim (insert r, auto simp: field_simps)
-  moreover have "continuous_on (ball z0 r) (pol_poly f z0)"
-    using r by (intro holomorphic_on_imp_continuous_on) auto
-  with r(1,2) have "isCont (pol_poly f z0) z0"
-    by (auto simp: continuous_on_eq_continuous_at)
-  hence "(pol_poly f z0 \<longlongrightarrow> pol_poly f z0 z0) (at z0)"
-    unfolding isCont_def .
-  ultimately have "((\<lambda>w. f w * (w - z0) ^ n) \<longlongrightarrow> pol_poly f z0 z0) (at z0)"
-    by (rule Lim_transform_eventually)
-  hence "((\<lambda>x. f (g x) * (g x - z0) ^ n) \<longlongrightarrow> pol_poly f z0 z0) F"
-    by (rule filterlim_compose[OF _ g])
-  from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
-qed
-
-lemma residue_simple_pole:
-  assumes "open A" "z0 \<in> A" "f holomorphic_on A - {z0}" 
-  assumes "is_pole f z0" "porder f z0 = 1"
-  shows   "residue f z0 = pol_poly f z0 z0"
-  using assms by (subst residue_porder[of A]) simp_all
-
-lemma residue_simple_pole_limit:
-  assumes "open A" "z0 \<in> A" "f holomorphic_on A - {z0}" 
-  assumes "is_pole f z0" "porder f z0 = 1"
-  assumes "((\<lambda>x. f (g x) * (g x - z0)) \<longlongrightarrow> c) F"
-  assumes "filterlim g (at z0) F" "F \<noteq> bot"
-  shows   "residue f z0 = c"
-proof -
-  have "residue f z0 = pol_poly f z0 z0"
-    by (rule residue_simple_pole assms)+
-  also have "\<dots> = c"
-    using assms by (intro pol_poly_eqI[of A z0 f g c F]) auto
-  finally show ?thesis .
-qed
-
-(* TODO: This is a mess and could be done much more easily if we had
-   a nice compositional theory of poles and zeros *)
 lemma
-  assumes "open s" "connected s" "z \<in> s" "f holomorphic_on s" "g holomorphic_on s"
-  assumes "(g has_field_derivative g') (at z)"
+  assumes f_holo:"f holomorphic_on s" and g_holo:"g holomorphic_on s" 
+          and "open s" "connected s" "z \<in> s" 
+  assumes g_deriv:"(g has_field_derivative g') (at z)"
   assumes "f z \<noteq> 0" "g z = 0" "g' \<noteq> 0"
-  shows   porder_simple_pole_deriv: "porder (\<lambda>w. f w / g w) z = 1"
+  shows   porder_simple_pole_deriv: "zorder (\<lambda>w. f w / g w) z = - 1"
     and   residue_simple_pole_deriv: "residue (\<lambda>w. f w / g w) z = f z / g'"
 proof -
-  have "\<exists>w\<in>s. g w \<noteq> 0"
+  have [simp]:"isolated_singularity_at f z" "isolated_singularity_at g z"
+    using isolated_singularity_at_holomorphic[OF _ \<open>open s\<close> \<open>z\<in>s\<close>] f_holo g_holo
+    by (meson Diff_subset holomorphic_on_subset)+
+  have [simp]:"not_essential f z" "not_essential g z"
+    unfolding not_essential_def using f_holo g_holo assms(3,5)
+    by (meson continuous_on_eq_continuous_at continuous_within holomorphic_on_imp_continuous_on)+
+  have g_nconst:"\<exists>\<^sub>F w in at z. g w \<noteq>0 " 
   proof (rule ccontr)
-    assume *: "\<not>(\<exists>w\<in>s. g w \<noteq> 0)"
-    have **: "eventually (\<lambda>w. w \<in> s) (nhds z)"
-      by (intro eventually_nhds_in_open assms)
-    from * have "deriv g z = deriv (\<lambda>_. 0) z"
-      by (intro deriv_cong_ev eventually_mono [OF **]) auto
-    also have "\<dots> = 0" by simp
-    also from assms have "deriv g z = g'" by (auto dest: DERIV_imp_deriv)
-    finally show False using \<open>g' \<noteq> 0\<close> by contradiction
+    assume "\<not> (\<exists>\<^sub>F w in at z. g w \<noteq> 0)"
+    then have "\<forall>\<^sub>F w in nhds z. g w = 0"
+      unfolding eventually_at eventually_nhds frequently_at using \<open>g z = 0\<close> 
+      by (metis Topology_Euclidean_Space.open_ball UNIV_I centre_in_ball dist_commute mem_ball)
+    then have "deriv g z = deriv (\<lambda>_. 0) z"
+      by (intro deriv_cong_ev) auto
+    then have "deriv g z = 0" by auto
+    then have "g' = 0" using g_deriv DERIV_imp_deriv by blast
+    then show False using \<open>g'\<noteq>0\<close> by auto
   qed
-  then obtain w where w: "w \<in> s" "g w \<noteq> 0" by blast
-  from isolated_zeros[OF assms(5) assms(1-3,8) w]
-  obtain r where r: "r > 0" "ball z r \<subseteq> s" "\<And>w. w \<in> ball z r - {z} \<Longrightarrow> g w \<noteq> 0"
-    by blast
-  from assms r have holo: "(\<lambda>w. f w / g w) holomorphic_on ball z r - {z}"
-    by (auto intro!: holomorphic_intros)
-
-  have "eventually (\<lambda>w. w \<in> ball z r - {z}) (at z)"
-    using eventually_at_ball'[OF r(1), of z UNIV] by auto
-  hence "eventually (\<lambda>w. g w \<noteq> 0) (at z)"
-    by eventually_elim (use r in auto)
-  moreover have "continuous_on s g" 
-    by (intro holomorphic_on_imp_continuous_on) fact
-  with assms have "isCont g z"
-    by (auto simp: continuous_on_eq_continuous_at)
-  ultimately have "filterlim g (at 0) (at z)"
-    using \<open>g z = 0\<close> by (auto simp: filterlim_at isCont_def)
-  moreover have "continuous_on s f" by (intro holomorphic_on_imp_continuous_on) fact
-  with assms have "isCont f z"
-    by (auto simp: continuous_on_eq_continuous_at)
-  ultimately have pole: "is_pole (\<lambda>w. f w / g w) z" 
-    unfolding is_pole_def using \<open>f z \<noteq> 0\<close>
-    by (intro filterlim_divide_at_infinity[of _ "f z"]) (auto simp: isCont_def)
-
-  have "continuous_on s f" by (intro holomorphic_on_imp_continuous_on) fact
-  moreover have "open (-{0::complex})" by auto
-  ultimately have "open (f -` (-{0}) \<inter> s)" using \<open>open s\<close>
-    by (subst (asm) continuous_on_open_vimage) blast+
-  moreover have "z \<in> f -` (-{0}) \<inter> s" using assms by auto
-  ultimately obtain r' where r': "r' > 0" "ball z r' \<subseteq> f -` (-{0}) \<inter> s"
-    unfolding open_contains_ball by blast
-
-  let ?D = "\<lambda>w. (f w * deriv g w - g w * deriv f w) / f w ^ 2"
-  show "porder (\<lambda>w. f w / g w) z = 1"
-  proof (rule simple_poleI')
-    show "open (ball z (min r r'))" "connected (ball z (min r r'))" "z \<in> ball z (min r r')"
-      using r'(1) r(1) by auto
-  next
-    fix w assume "w \<in> ball z (min r r') - {z}"
-    with r' have "w \<in> s" "f w \<noteq> 0" by auto
-    have "((\<lambda>w. g w / f w) has_field_derivative ?D w) (at w)"
-      by (rule derivative_eq_intros holomorphic_derivI[OF assms(4)] 
-            holomorphic_derivI[OF assms(5)] | fact)+ 
-         (simp_all add: algebra_simps power2_eq_square)
-    thus "((\<lambda>w. inverse (f w / g w)) has_field_derivative ?D w) (at w)"
-      by (simp add: divide_simps)
-  next
-    from r' show "?D holomorphic_on ball z (min r r')"
-      by (intro holomorphic_intros holomorphic_on_subset[OF assms(4)]
-                holomorphic_on_subset[OF assms(5)]) auto
-  next
-    from assms have "deriv g z = g'"
-      by (auto dest: DERIV_imp_deriv)
-    with assms r' show "(f z * deriv g z - g z * deriv f z) / (f z)\<^sup>2 \<noteq> 0"
-      by simp
-  qed (insert pole holo, auto)
-
+  
+  have "zorder (\<lambda>w. f w / g w) z = zorder f z - zorder g z"
+  proof -
+    have "\<forall>\<^sub>F w in at z. f w \<noteq>0 \<and> w\<in>s" 
+      apply (rule non_zero_neighbour_alt)
+      using assms by auto
+    with g_nconst have "\<exists>\<^sub>F w in at z. f w * g w \<noteq> 0" 
+      by (elim frequently_rev_mp eventually_rev_mp,auto)
+    then show ?thesis using zorder_divide[of f z g] by auto
+  qed
+  moreover have "zorder f z=0"
+    apply (rule zorder_zero_eqI[OF f_holo \<open>open s\<close> \<open>z\<in>s\<close>])
+    using \<open>f z\<noteq>0\<close> by auto
+  moreover have "zorder g z=1"
+    apply (rule zorder_zero_eqI[OF g_holo \<open>open s\<close> \<open>z\<in>s\<close>])
+    subgoal using assms(8) by auto
+    subgoal using DERIV_imp_deriv assms(9) g_deriv by auto
+    subgoal by simp
+    done
+  ultimately show "zorder (\<lambda>w. f w / g w) z = - 1" by auto
+  
   show "residue (\<lambda>w. f w / g w) z = f z / g'"
-  proof (rule residue_simple_pole_limit)
-    show "porder (\<lambda>w. f w / g w) z = 1" by fact
-    from r show "open (ball z r)" "z \<in> ball z r" by auto
-    
+  proof (rule residue_simple_pole_limit[where g=id and F="at z",simplified])
+    show "zorder (\<lambda>w. f w / g w) z = - 1" by fact
+    show "isolated_singularity_at (\<lambda>w. f w / g w) z" 
+      by (auto intro: singularity_intros)
+    show "is_pole (\<lambda>w. f w / g w) z" 
+    proof (rule is_pole_divide)
+      have "\<forall>\<^sub>F x in at z. g x \<noteq> 0" 
+        apply (rule non_zero_neighbour)
+        using g_nconst by auto
+      moreover have "g \<midarrow>z\<rightarrow> 0" 
+        using DERIV_isCont assms(8) continuous_at g_deriv by force
+      ultimately show "filterlim g (at 0) (at z)" unfolding filterlim_at by simp
+      show "isCont f z" 
+        using assms(3,5) continuous_on_eq_continuous_at f_holo holomorphic_on_imp_continuous_on 
+        by auto
+      show "f z \<noteq> 0" by fact
+    qed
+    show "filterlim id (at z) (at z)" by (simp add: filterlim_iff)
     have "((\<lambda>w. (f w * (w - z)) / g w) \<longlongrightarrow> f z / g') (at z)"
     proof (rule lhopital_complex_simple)
       show "((\<lambda>w. f w * (w - z)) has_field_derivative f z) (at z)"
-        using assms by (auto intro!: derivative_eq_intros holomorphic_derivI[OF assms(4)])
+        using assms by (auto intro!: derivative_eq_intros holomorphic_derivI[OF f_holo])
       show "(g has_field_derivative g') (at z)" by fact
     qed (insert assms, auto)
-    thus "((\<lambda>w. (f w / g w) * (w - z)) \<longlongrightarrow> f z / g') (at z)"
+    then show "((\<lambda>w. (f w / g w) * (w - z)) \<longlongrightarrow> f z / g') (at z)"
       by (simp add: divide_simps)
-  qed (insert holo pole, auto simp: filterlim_ident)
+  qed
+qed
+
+subsection \<open>The argument principle\<close>
+
+theorem argument_principle:
+  fixes f::"complex \<Rightarrow> complex" and poles s:: "complex set"
+  defines "pz \<equiv> {w. f w = 0 \<or> w \<in> poles}" \<comment> \<open>@{term "pz"} is the set of poles and zeros\<close>
+  assumes "open s" and
+          "connected s" and
+          f_holo:"f holomorphic_on s-poles" and
+          h_holo:"h holomorphic_on s" and
+          "valid_path g" and
+          loop:"pathfinish g = pathstart g" and
+          path_img:"path_image g \<subseteq> s - pz" and
+          homo:"\<forall>z. (z \<notin> s) \<longrightarrow> winding_number g z = 0" and
+          finite:"finite pz" and
+          poles:"\<forall>p\<in>poles. is_pole f p"
+  shows "contour_integral g (\<lambda>x. deriv f x * h x / f x) = 2 * pi * \<i> *
+          (\<Sum>p\<in>pz. winding_number g p * h p * zorder f p)"
+    (is "?L=?R")
+proof -
+  define c where "c \<equiv> 2 * complex_of_real pi * \<i> "
+  define ff where "ff \<equiv> (\<lambda>x. deriv f x * h x / f x)"
+  define cont where "cont \<equiv> \<lambda>ff p e. (ff has_contour_integral c * zorder f p * h p ) (circlepath p e)"
+  define avoid where "avoid \<equiv> \<lambda>p e. \<forall>w\<in>cball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pz)"
+
+  have "\<exists>e>0. avoid p e \<and> (p\<in>pz \<longrightarrow> cont ff p e)" when "p\<in>s" for p
+  proof -
+    obtain e1 where "e1>0" and e1_avoid:"avoid p e1"
+      using finite_cball_avoid[OF \<open>open s\<close> finite] \<open>p\<in>s\<close> unfolding avoid_def by auto
+    have "\<exists>e2>0. cball p e2 \<subseteq> ball p e1 \<and> cont ff p e2" when "p\<in>pz"
+    proof -
+      define po where "po \<equiv> zorder f p"
+      define pp where "pp \<equiv> zor_poly f p"
+      define f' where "f' \<equiv> \<lambda>w. pp w * (w - p) powr po"
+      define ff' where "ff' \<equiv> (\<lambda>x. deriv f' x * h x / f' x)"
+      obtain r where "pp p\<noteq>0" "r>0" and
+          "r<e1" and
+          pp_holo:"pp holomorphic_on cball p r" and
+          pp_po:"(\<forall>w\<in>cball p r-{p}. f w = pp w * (w - p) powr po \<and> pp w \<noteq> 0)"
+      proof -
+        have "isolated_singularity_at f p"
+        proof -
+          have "f holomorphic_on ball p e1 - {p}"
+            apply (intro holomorphic_on_subset[OF f_holo])
+            using e1_avoid \<open>p\<in>pz\<close> unfolding avoid_def pz_def by force
+          then show ?thesis unfolding isolated_singularity_at_def 
+            using \<open>e1>0\<close> analytic_on_open open_delete by blast
+        qed
+        moreover have "not_essential f p"  
+        proof (cases "is_pole f p")
+          case True
+          then show ?thesis unfolding not_essential_def by auto
+        next
+          case False
+          then have "p\<in>s-poles" using \<open>p\<in>s\<close> poles unfolding pz_def by auto
+          moreover have "open (s-poles)"
+            using \<open>open s\<close> 
+            apply (elim open_Diff)
+            apply (rule finite_imp_closed)
+            using finite unfolding pz_def by simp
+          ultimately have "isCont f p"
+            using holomorphic_on_imp_continuous_on[OF f_holo] continuous_on_eq_continuous_at
+            by auto
+          then show ?thesis unfolding isCont_def not_essential_def by auto
+        qed  
+        moreover have "\<exists>\<^sub>F w in at p. f w \<noteq> 0 "
+        proof (rule ccontr)
+          assume "\<not> (\<exists>\<^sub>F w in at p. f w \<noteq> 0)"
+          then have "\<forall>\<^sub>F w in at p. f w= 0" unfolding frequently_def by auto
+          then obtain rr where "rr>0" "\<forall>w\<in>ball p rr - {p}. f w =0"
+            unfolding eventually_at by (auto simp add:dist_commute)
+          then have "ball p rr - {p} \<subseteq> {w\<in>ball p rr-{p}. f w=0}" by blast
+          moreover have "infinite (ball p rr - {p})" using \<open>rr>0\<close> using finite_imp_not_open by fastforce
+          ultimately have "infinite {w\<in>ball p rr-{p}. f w=0}" using infinite_super by blast
+          then have "infinite pz"
+            unfolding pz_def infinite_super by auto
+          then show False using \<open>finite pz\<close> by auto
+        qed
+        ultimately obtain r where "pp p \<noteq> 0" and r:"r>0" "pp holomorphic_on cball p r" 
+                  "(\<forall>w\<in>cball p r - {p}. f w = pp w * (w - p) powr of_int po \<and> pp w \<noteq> 0)"
+          using zorder_exist[of f p,folded po_def pp_def] by auto
+        define r1 where "r1=min r e1 / 2"
+        have "r1<e1" unfolding r1_def using \<open>e1>0\<close> \<open>r>0\<close> by auto
+        moreover have "r1>0" "pp holomorphic_on cball p r1" 
+                  "(\<forall>w\<in>cball p r1 - {p}. f w = pp w * (w - p) powr of_int po \<and> pp w \<noteq> 0)"
+          unfolding r1_def using \<open>e1>0\<close> r by auto
+        ultimately show ?thesis using that \<open>pp p\<noteq>0\<close> by auto
+      qed
+      
+      define e2 where "e2 \<equiv> r/2"
+      have "e2>0" using \<open>r>0\<close> unfolding e2_def by auto
+      define anal where "anal \<equiv> \<lambda>w. deriv pp w * h w / pp w"
+      define prin where "prin \<equiv> \<lambda>w. po * h w / (w - p)"
+      have "((\<lambda>w.  prin w + anal w) has_contour_integral c * po * h p) (circlepath p e2)"
+      proof (rule has_contour_integral_add[of _ _ _ _ 0,simplified])
+        have "ball p r \<subseteq> s"
+          using \<open>r<e1\<close> avoid_def ball_subset_cball e1_avoid by (simp add: subset_eq)
+        then have "cball p e2 \<subseteq> s"
+          using \<open>r>0\<close> unfolding e2_def by auto
+        then have "(\<lambda>w. po * h w) holomorphic_on cball p e2"
+          using h_holo by (auto intro!: holomorphic_intros)
+        then show "(prin has_contour_integral c * po * h p ) (circlepath p e2)"
+          using Cauchy_integral_circlepath_simple[folded c_def, of "\<lambda>w. po * h w"] \<open>e2>0\<close>
+          unfolding prin_def by (auto simp add: mult.assoc)
+        have "anal holomorphic_on ball p r" unfolding anal_def
+          using pp_holo h_holo pp_po \<open>ball p r \<subseteq> s\<close> \<open>pp p\<noteq>0\<close>
+          by (auto intro!: holomorphic_intros)
+        then show "(anal has_contour_integral 0) (circlepath p e2)"
+          using e2_def \<open>r>0\<close>
+          by (auto elim!: Cauchy_theorem_disc_simple)
+      qed
+      then have "cont ff' p e2" unfolding cont_def po_def
+      proof (elim has_contour_integral_eq)
+        fix w assume "w \<in> path_image (circlepath p e2)"
+        then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
+        define wp where "wp \<equiv> w-p"
+        have "wp\<noteq>0" and "pp w \<noteq>0"
+          unfolding wp_def using \<open>w\<noteq>p\<close> \<open>w\<in>ball p r\<close> pp_po by auto
+        moreover have der_f':"deriv f' w = po * pp w * (w-p) powr (po - 1) + deriv pp w * (w-p) powr po"
+        proof (rule DERIV_imp_deriv)
+          have "(pp has_field_derivative (deriv pp w)) (at w)"
+            using DERIV_deriv_iff_has_field_derivative pp_holo \<open>w\<noteq>p\<close>
+            by (meson open_ball \<open>w \<in> ball p r\<close> ball_subset_cball holomorphic_derivI holomorphic_on_subset)
+          then show " (f' has_field_derivative of_int po * pp w * (w - p) powr of_int (po - 1) 
+                  + deriv pp w * (w - p) powr of_int po) (at w)"
+            unfolding f'_def using \<open>w\<noteq>p\<close>
+            apply (auto intro!: derivative_eq_intros(35) DERIV_cong[OF has_field_derivative_powr_of_int])
+            by (auto intro: derivative_eq_intros)
+        qed
+        ultimately show "prin w + anal w = ff' w"
+          unfolding ff'_def prin_def anal_def
+          apply simp
+          apply (unfold f'_def)
+          apply (fold wp_def)
+          apply (auto simp add:field_simps)
+          by (metis (no_types, lifting) diff_add_cancel mult.commute powr_add powr_to_1)
+      qed
+      then have "cont ff p e2" unfolding cont_def
+      proof (elim has_contour_integral_eq)
+        fix w assume "w \<in> path_image (circlepath p e2)"
+        then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
+        have "deriv f' w =  deriv f w"
+        proof (rule complex_derivative_transform_within_open[where s="ball p r - {p}"])
+          show "f' holomorphic_on ball p r - {p}" unfolding f'_def using pp_holo
+            by (auto intro!: holomorphic_intros)
+        next
+          have "ball p e1 - {p} \<subseteq> s - poles"
+            using ball_subset_cball e1_avoid[unfolded avoid_def] unfolding pz_def
+            by auto
+          then have "ball p r - {p} \<subseteq> s - poles" 
+            apply (elim dual_order.trans)
+            using \<open>r<e1\<close> by auto
+          then show "f holomorphic_on ball p r - {p}" using f_holo
+            by auto
+        next
+          show "open (ball p r - {p})" by auto
+          show "w \<in> ball p r - {p}" using \<open>w\<in>ball p r\<close> \<open>w\<noteq>p\<close> by auto
+        next
+          fix x assume "x \<in> ball p r - {p}"
+          then show "f' x = f x"
+            using pp_po unfolding f'_def by auto
+        qed
+        moreover have " f' w  =  f w "
+          using \<open>w \<in> ball p r\<close> ball_subset_cball subset_iff pp_po \<open>w\<noteq>p\<close>
+          unfolding f'_def by auto
+        ultimately show "ff' w = ff w"
+          unfolding ff'_def ff_def by simp
+      qed
+      moreover have "cball p e2 \<subseteq> ball p e1"
+        using \<open>0 < r\<close> \<open>r<e1\<close> e2_def by auto
+      ultimately show ?thesis using \<open>e2>0\<close> by auto
+    qed
+    then obtain e2 where e2:"p\<in>pz \<longrightarrow> e2>0 \<and> cball p e2 \<subseteq> ball p e1 \<and> cont ff p e2"
+      by auto
+    define e4 where "e4 \<equiv> if p\<in>pz then e2 else  e1"
+    have "e4>0" using e2 \<open>e1>0\<close> unfolding e4_def by auto
+    moreover have "avoid p e4" using e2 \<open>e1>0\<close> e1_avoid unfolding e4_def avoid_def by auto
+    moreover have "p\<in>pz \<longrightarrow> cont ff p e4"
+      by (auto simp add: e2 e4_def)
+    ultimately show ?thesis by auto
+  qed
+  then obtain get_e where get_e:"\<forall>p\<in>s. get_e p>0 \<and> avoid p (get_e p)
+      \<and> (p\<in>pz \<longrightarrow> cont ff p (get_e p))"
+    by metis
+  define ci where "ci \<equiv> \<lambda>p. contour_integral (circlepath p (get_e p)) ff"
+  define w where "w \<equiv> \<lambda>p. winding_number g p"
+  have "contour_integral g ff = (\<Sum>p\<in>pz. w p * ci p)" unfolding ci_def w_def
+  proof (rule Cauchy_theorem_singularities[OF \<open>open s\<close> \<open>connected s\<close> finite _ \<open>valid_path g\<close> loop
+        path_img homo])
+    have "open (s - pz)" using open_Diff[OF _ finite_imp_closed[OF finite]] \<open>open s\<close> by auto
+    then show "ff holomorphic_on s - pz" unfolding ff_def using f_holo h_holo
+      by (auto intro!: holomorphic_intros simp add:pz_def)
+  next
+    show "\<forall>p\<in>s. 0 < get_e p \<and> (\<forall>w\<in>cball p (get_e p). w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pz))"
+      using get_e using avoid_def by blast
+  qed
+  also have "... = (\<Sum>p\<in>pz. c * w p * h p * zorder f p)"
+  proof (rule sum.cong[of pz pz,simplified])
+    fix p assume "p \<in> pz"
+    show "w p * ci p = c * w p * h p * (zorder f p)"
+    proof (cases "p\<in>s")
+      assume "p \<in> s"
+      have "ci p = c * h p * (zorder f p)" unfolding ci_def
+        apply (rule contour_integral_unique)
+        using get_e \<open>p\<in>s\<close> \<open>p\<in>pz\<close> unfolding cont_def by (metis mult.assoc mult.commute)
+      thus ?thesis by auto
+    next
+      assume "p\<notin>s"
+      then have "w p=0" using homo unfolding w_def by auto
+      then show ?thesis by auto
+    qed
+  qed
+  also have "... = c*(\<Sum>p\<in>pz. w p * h p * zorder f p)"
+    unfolding sum_distrib_left by (simp add:algebra_simps)
+  finally have "contour_integral g ff = c * (\<Sum>p\<in>pz. w p * h p * of_int (zorder f p))" .
+  then show ?thesis unfolding ff_def c_def w_def by simp
+qed
+
+subsection \<open>Rouche's theorem \<close>
+
+theorem Rouche_theorem:
+  fixes f g::"complex \<Rightarrow> complex" and s:: "complex set"
+  defines "fg\<equiv>(\<lambda>p. f p+ g p)"
+  defines "zeros_fg\<equiv>{p. fg p =0}" and "zeros_f\<equiv>{p. f p=0}"
+  assumes
+    "open s" and "connected s" and
+    "finite zeros_fg" and
+    "finite zeros_f" and
+    f_holo:"f holomorphic_on s" and
+    g_holo:"g holomorphic_on s" and
+    "valid_path \<gamma>" and
+    loop:"pathfinish \<gamma> = pathstart \<gamma>" and
+    path_img:"path_image \<gamma> \<subseteq> s " and
+    path_less:"\<forall>z\<in>path_image \<gamma>. cmod(f z) > cmod(g z)" and
+    homo:"\<forall>z. (z \<notin> s) \<longrightarrow> winding_number \<gamma> z = 0"
+  shows "(\<Sum>p\<in>zeros_fg. winding_number \<gamma> p * zorder fg p)
+          = (\<Sum>p\<in>zeros_f. winding_number \<gamma> p * zorder f p)"
+proof -
+  have path_fg:"path_image \<gamma> \<subseteq> s - zeros_fg"
+  proof -
+    have False when "z\<in>path_image \<gamma>" and "f z + g z=0" for z
+    proof -
+      have "cmod (f z) > cmod (g z)" using \<open>z\<in>path_image \<gamma>\<close> path_less by auto
+      moreover have "f z = - g z"  using \<open>f z + g z =0\<close> by (simp add: eq_neg_iff_add_eq_0)
+      then have "cmod (f z) = cmod (g z)" by auto
+      ultimately show False by auto
+    qed
+    then show ?thesis unfolding zeros_fg_def fg_def using path_img by auto
+  qed
+  have path_f:"path_image \<gamma> \<subseteq> s - zeros_f"
+  proof -
+    have False when "z\<in>path_image \<gamma>" and "f z =0" for z
+    proof -
+      have "cmod (g z) < cmod (f z) " using \<open>z\<in>path_image \<gamma>\<close> path_less by auto
+      then have "cmod (g z) < 0" using \<open>f z=0\<close> by auto
+      then show False by auto
+    qed
+    then show ?thesis unfolding zeros_f_def using path_img by auto
+  qed
+  define w where "w \<equiv> \<lambda>p. winding_number \<gamma> p"
+  define c where "c \<equiv> 2 * complex_of_real pi * \<i>"
+  define h where "h \<equiv> \<lambda>p. g p / f p + 1"
+  obtain spikes
+    where "finite spikes" and spikes: "\<forall>x\<in>{0..1} - spikes. \<gamma> differentiable at x"
+    using \<open>valid_path \<gamma>\<close>
+    by (auto simp: valid_path_def piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
+  have h_contour:"((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"
+  proof -
+    have outside_img:"0 \<in> outside (path_image (h o \<gamma>))"
+    proof -
+      have "h p \<in> ball 1 1" when "p\<in>path_image \<gamma>" for p
+      proof -
+        have "cmod (g p/f p) <1" using path_less[rule_format,OF that]
+          apply (cases "cmod (f p) = 0")
+          by (auto simp add: norm_divide)
+        then show ?thesis unfolding h_def by (auto simp add:dist_complex_def)
+      qed
+      then have "path_image (h o \<gamma>) \<subseteq> ball 1 1"
+        by (simp add: image_subset_iff path_image_compose)
+      moreover have " (0::complex) \<notin> ball 1 1" by (simp add: dist_norm)
+      ultimately show "?thesis"
+        using  convex_in_outside[of "ball 1 1" 0] outside_mono by blast
+    qed
+    have valid_h:"valid_path (h \<circ> \<gamma>)"
+    proof (rule valid_path_compose_holomorphic[OF \<open>valid_path \<gamma>\<close> _ _ path_f])
+      show "h holomorphic_on s - zeros_f"
+        unfolding h_def using f_holo g_holo
+        by (auto intro!: holomorphic_intros simp add:zeros_f_def)
+    next
+      show "open (s - zeros_f)" using \<open>finite zeros_f\<close> \<open>open s\<close> finite_imp_closed
+        by auto
+    qed
+    have "((\<lambda>z. 1/z) has_contour_integral 0) (h \<circ> \<gamma>)"
+    proof -
+      have "0 \<notin> path_image (h \<circ> \<gamma>)" using outside_img by (simp add: outside_def)
+      then have "((\<lambda>z. 1/z) has_contour_integral c * winding_number (h \<circ> \<gamma>) 0) (h \<circ> \<gamma>)"
+        using has_contour_integral_winding_number[of "h o \<gamma>" 0,simplified] valid_h
+        unfolding c_def by auto
+      moreover have "winding_number (h o \<gamma>) 0 = 0"
+      proof -
+        have "0 \<in> outside (path_image (h \<circ> \<gamma>))" using outside_img .
+        moreover have "path (h o \<gamma>)"
+          using valid_h  by (simp add: valid_path_imp_path)
+        moreover have "pathfinish (h o \<gamma>) = pathstart (h o \<gamma>)"
+          by (simp add: loop pathfinish_compose pathstart_compose)
+        ultimately show ?thesis using winding_number_zero_in_outside by auto
+      qed
+      ultimately show ?thesis by auto
+    qed
+    moreover have "vector_derivative (h \<circ> \<gamma>) (at x) = vector_derivative \<gamma> (at x) * deriv h (\<gamma> x)"
+      when "x\<in>{0..1} - spikes" for x
+    proof (rule vector_derivative_chain_at_general)
+      show "\<gamma> differentiable at x" using that \<open>valid_path \<gamma>\<close> spikes by auto
+    next
+      define der where "der \<equiv> \<lambda>p. (deriv g p * f p - g p * deriv f p)/(f p * f p)"
+      define t where "t \<equiv> \<gamma> x"
+      have "f t\<noteq>0" unfolding zeros_f_def t_def
+        by (metis DiffD1 image_eqI norm_not_less_zero norm_zero path_defs(4) path_less that)
+      moreover have "t\<in>s"
+        using contra_subsetD path_image_def path_fg t_def that by fastforce
+      ultimately have "(h has_field_derivative der t) (at t)"
+        unfolding h_def der_def using g_holo f_holo \<open>open s\<close>
+        by (auto intro!: holomorphic_derivI derivative_eq_intros)
+      then show "h field_differentiable at (\<gamma> x)" 
+        unfolding t_def field_differentiable_def by blast
+    qed
+    then have " ((/) 1 has_contour_integral 0) (h \<circ> \<gamma>)
+                  = ((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"
+      unfolding has_contour_integral
+      apply (intro has_integral_spike_eq[OF negligible_finite, OF \<open>finite spikes\<close>])
+      by auto
+    ultimately show ?thesis by auto
+  qed
+  then have "contour_integral \<gamma> (\<lambda>x. deriv h x / h x) = 0"
+    using  contour_integral_unique by simp
+  moreover have "contour_integral \<gamma> (\<lambda>x. deriv fg x / fg x) = contour_integral \<gamma> (\<lambda>x. deriv f x / f x)
+      + contour_integral \<gamma> (\<lambda>p. deriv h p / h p)"
+  proof -
+    have "(\<lambda>p. deriv f p / f p) contour_integrable_on \<gamma>"
+    proof (rule contour_integrable_holomorphic_simple[OF _ _ \<open>valid_path \<gamma>\<close> path_f])
+      show "open (s - zeros_f)" using finite_imp_closed[OF \<open>finite zeros_f\<close>] \<open>open s\<close>
+        by auto
+      then show "(\<lambda>p. deriv f p / f p) holomorphic_on s - zeros_f"
+        using f_holo
+        by (auto intro!: holomorphic_intros simp add:zeros_f_def)
+    qed
+    moreover have "(\<lambda>p. deriv h p / h p) contour_integrable_on \<gamma>"
+      using h_contour
+      by (simp add: has_contour_integral_integrable)
+    ultimately have "contour_integral \<gamma> (\<lambda>x. deriv f x / f x + deriv h x / h x) =
+                        contour_integral \<gamma> (\<lambda>p. deriv f p / f p) + contour_integral \<gamma> (\<lambda>p. deriv h p / h p)"
+      using contour_integral_add[of "(\<lambda>p. deriv f p / f p)" \<gamma> "(\<lambda>p. deriv h p / h p)" ]
+      by auto
+    moreover have "deriv fg p / fg p =  deriv f p / f p + deriv h p / h p"
+                      when "p\<in> path_image \<gamma>" for p
+    proof -
+      have "fg p\<noteq>0" and "f p\<noteq>0" using path_f path_fg that unfolding zeros_f_def zeros_fg_def
+        by auto
+      have "h p\<noteq>0"
+      proof (rule ccontr)
+        assume "\<not> h p \<noteq> 0"
+        then have "g p / f p= -1" unfolding h_def by (simp add: add_eq_0_iff2)
+        then have "cmod (g p/f p) = 1" by auto
+        moreover have "cmod (g p/f p) <1" using path_less[rule_format,OF that]
+          apply (cases "cmod (f p) = 0")
+          by (auto simp add: norm_divide)
+        ultimately show False by auto
+      qed
+      have der_fg:"deriv fg p =  deriv f p + deriv g p" unfolding fg_def
+        using f_holo g_holo holomorphic_on_imp_differentiable_at[OF _  \<open>open s\<close>] path_img that
+        by auto
+      have der_h:"deriv h p = (deriv g p * f p - g p * deriv f p)/(f p * f p)"
+      proof -
+        define der where "der \<equiv> \<lambda>p. (deriv g p * f p - g p * deriv f p)/(f p * f p)"
+        have "p\<in>s" using path_img that by auto
+        then have "(h has_field_derivative der p) (at p)"
+          unfolding h_def der_def using g_holo f_holo \<open>open s\<close> \<open>f p\<noteq>0\<close>
+          by (auto intro!: derivative_eq_intros holomorphic_derivI)
+        then show ?thesis unfolding der_def using DERIV_imp_deriv by auto
+      qed
+      show ?thesis
+        apply (simp only:der_fg der_h)
+        apply (auto simp add:field_simps \<open>h p\<noteq>0\<close> \<open>f p\<noteq>0\<close> \<open>fg p\<noteq>0\<close>)
+        by (auto simp add:field_simps h_def \<open>f p\<noteq>0\<close> fg_def)
+    qed
+    then have "contour_integral \<gamma> (\<lambda>p. deriv fg p / fg p)
+                  = contour_integral \<gamma> (\<lambda>p. deriv f p / f p + deriv h p / h p)"
+      by (elim contour_integral_eq)
+    ultimately show ?thesis by auto
+  qed
+  moreover have "contour_integral \<gamma> (\<lambda>x. deriv fg x / fg x) = c * (\<Sum>p\<in>zeros_fg. w p * zorder fg p)"
+    unfolding c_def zeros_fg_def w_def
+  proof (rule argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo
+        , of _ "{}" "\<lambda>_. 1",simplified])
+    show "fg holomorphic_on s" unfolding fg_def using f_holo g_holo holomorphic_on_add by auto
+    show "path_image \<gamma> \<subseteq> s - {p. fg p = 0}" using path_fg unfolding zeros_fg_def .
+    show " finite {p. fg p = 0}" using \<open>finite zeros_fg\<close> unfolding zeros_fg_def .
+  qed
+  moreover have "contour_integral \<gamma> (\<lambda>x. deriv f x / f x) = c * (\<Sum>p\<in>zeros_f. w p * zorder f p)"
+    unfolding c_def zeros_f_def w_def
+  proof (rule argument_principle[OF \<open>open s\<close> \<open>connected s\<close> _ _ \<open>valid_path \<gamma>\<close> loop _ homo
+        , of _ "{}" "\<lambda>_. 1",simplified])
+    show "f holomorphic_on s" using f_holo g_holo holomorphic_on_add by auto
+    show "path_image \<gamma> \<subseteq> s - {p. f p = 0}" using path_f unfolding zeros_f_def .
+    show " finite {p. f p = 0}" using \<open>finite zeros_f\<close> unfolding zeros_f_def .
+  qed
+  ultimately have " c* (\<Sum>p\<in>zeros_fg. w p * (zorder fg p)) = c* (\<Sum>p\<in>zeros_f. w p * (zorder f p))"
+    by auto
+  then show ?thesis unfolding c_def using w_def by auto
 qed
 
 end

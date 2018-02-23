@@ -401,6 +401,16 @@ lemma eventually_frequently: "F \<noteq> bot \<Longrightarrow> eventually P F \<
   using eventually_conj[of P F "\<lambda>x. \<not> P x"]
   by (auto simp add: frequently_def eventually_False)
 
+lemma eventually_frequentlyE:
+  assumes "eventually P F"
+  assumes "eventually (\<lambda>x. \<not> P x \<or> Q x) F" "F\<noteq>bot"
+  shows "frequently Q F"
+proof -
+  have "eventually Q F"
+    using eventually_conj[OF assms(1,2),simplified] by (auto elim:eventually_mono)
+  then show ?thesis using eventually_frequently[OF \<open>F\<noteq>bot\<close>] by auto
+qed
+
 lemma eventually_const_iff: "eventually (\<lambda>x. P) F \<longleftrightarrow> P \<or> F = bot"
   by (cases P) (auto simp: eventually_False)
 

@@ -969,6 +969,14 @@ proof (rule filterlim_cong)
     by eventually_elim (auto simp: assms \<open>f y = g y\<close>)
 qed (simp_all add: assms)
 
+lemma has_field_derivative_cong_eventually:
+  assumes "eventually (\<lambda>x. f x = g x) (at x within s)" "f x=g x"
+  shows "(f has_field_derivative u) (at x within s) = (g has_field_derivative u) (at x within s)"
+  unfolding DERIV_iff2
+  apply (rule tendsto_cong)
+  apply (insert assms)
+  by (auto elim: eventually_mono)
+
 lemma DERIV_cong_ev:
   "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
     DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
