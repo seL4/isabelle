@@ -25,7 +25,6 @@ sig
   val name_thms: bool -> bool -> string -> thm list -> thm list
   val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
-  val store_thms: binding * thm list -> theory -> thm list * theory
   val store_thm: binding * thm -> theory -> thm * theory
   val store_thm_open: binding * thm -> theory -> thm * theory
   val add_thms: ((binding * thm) * attribute list) list -> theory -> thm list * theory
@@ -34,8 +33,10 @@ sig
   val add_thms_dynamic': Context.generic -> binding * (Context.generic -> thm list) ->
     theory -> string * theory
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
-  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
-    -> theory -> (string * thm list) list * theory
+  val note_thms: string -> Thm.binding * (thm list * attribute list) list -> theory ->
+    (string * thm list) * theory
+  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list -> theory ->
+    (string * thm list) list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
@@ -149,12 +150,10 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
     in (map (Thm.transfer thy'') thms', thy'') end;
 
 
-(* store_thm(s) *)
+(* store_thm *)
 
-fun store_thms (b, thms) =
-  enter_thms (name_thms true true) (name_thms false true) pair (b, thms);
-
-fun store_thm (b, th) = store_thms (b, [th]) #>> the_single;
+fun store_thm (b, th) =
+  enter_thms (name_thms true true) (name_thms false true) pair (b, [th]) #>> the_single;
 
 fun store_thm_open (b, th) =
   enter_thms (name_thms true false) (name_thms false false) pair (b, [th]) #>> the_single;
@@ -188,7 +187,7 @@ fun add_thms_dynamic arg thy =
 
 (* note_thmss *)
 
-fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
+fun note_thms kind ((b, more_atts), facts) thy =
   let
     val name = Sign.full_name thy b;
     fun app (ths, atts) =
@@ -196,7 +195,9 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
     val (thms, thy') =
       enter_thms (name_thmss true) (name_thms false true) (apfst flat oo fold_map app)
         (b, facts) thy;
-  in ((name, thms), thy') end);
+  in ((name, thms), thy') end;
+
+val note_thmss = fold_map o note_thms;
 
 
 (* old-style defs *)

@@ -781,7 +781,7 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
     val co_recs = @{map 2} (fn name => fn resT =>
       Const (name, co_rec_argTs ---> resT)) co_rec_names co_rec_resTs;
     val co_rec_defs = map (fn def =>
-      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) co_rec_def_frees;
+      mk_unabs_def n (HOLogic.mk_obj_eq (Morphism.thm phi def))) co_rec_def_frees;
 
     val xtor_un_fold_xtor_thms =
       mk_xtor_un_fold_xtor_thms lthy fp (map (Term.subst_atomic_types (Xs ~~ Ts)) un_folds)

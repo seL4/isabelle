@@ -83,7 +83,7 @@ fun mk_code_tac ctxt num_args fpsig_nesting_maps ssig_map eval pre_map_def abs_i
   let
     val fun_def' =
       if null inner_fp_simps andalso num_args > 0 then
-        fun_def RS meta_eq_to_obj_eq RS (mk_curry_uncurryN_balanced ctxt num_args RS iffD2) RS sym
+        HOLogic.mk_obj_eq fun_def RS (mk_curry_uncurryN_balanced ctxt num_args RS iffD2) RS sym
       else
         fun_def;
     val case_trivial' = unfold_thms ctxt (case_eq_ifs @ ctr_defs @ shared_simps) case_trivial;

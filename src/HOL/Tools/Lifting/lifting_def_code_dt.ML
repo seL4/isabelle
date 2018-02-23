@@ -301,8 +301,8 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
                 SELECT_GOAL (Local_Defs.unfold0_tac ctxt [id_apply]), rtac ctxt refl] i;
             val rep_isom_transfer = transfer_of_rep_isom_data rep_isom_data
             val (_, transfer_lthy) =
-              Proof_Context.note_thmss ""
-                [(Binding.empty_atts, [([rep_isom_transfer], [Transfer.transfer_add])])] lthy
+              Proof_Context.note_thms ""
+                (Binding.empty_atts, [([rep_isom_transfer], [Transfer.transfer_add])]) lthy
             val f_alt_def = Goal.prove_sorry transfer_lthy [] [] f_alt_def_goal
               (fn {context = ctxt, prems = _} => HEADGOAL (f_alt_def_tac ctxt))
               |> Thm.close_derivation
@@ -451,9 +451,10 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
          rtac ctxt TrueI] i;
 
     val (_, transfer_lthy) =
-      Proof_Context.note_thmss "" [(Binding.empty_atts,
-        [(@{thms right_total_UNIV_transfer},[Transfer.transfer_add]),
-         (@{thms Domain_eq_top}, [Transfer.transfer_domain_add])])] lthy;
+      Proof_Context.note_thms ""
+        (Binding.empty_atts,
+          [(@{thms right_total_UNIV_transfer}, [Transfer.transfer_add]),
+           (@{thms Domain_eq_top}, [Transfer.transfer_domain_add])]) lthy;
 
     val quot_thm_isom = Goal.prove_sorry transfer_lthy [] [] typedef_goal
       (fn {context = ctxt, prems = _} => typ_isom_tac ctxt 1)

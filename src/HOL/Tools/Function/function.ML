@@ -235,13 +235,13 @@ fun gen_termination prep_term raw_term_opt lthy =
     val (goal, afterqed, termination) = prepare_termination_proof prep_term raw_term_opt lthy
   in
     lthy
-    |> Proof_Context.note_thmss ""
-       [((Binding.empty, [Context_Rules.rule_del]), [([allI], [])])] |> snd
-    |> Proof_Context.note_thmss ""
-       [((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
-    |> Proof_Context.note_thmss ""
-       [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
-         [([Goal.norm_result lthy termination], [])])] |> snd
+    |> Proof_Context.note_thms ""
+       ((Binding.empty, [Context_Rules.rule_del]), [([allI], [])]) |> snd
+    |> Proof_Context.note_thms ""
+       ((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])]) |> snd
+    |> Proof_Context.note_thms ""
+       ((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
+         [([Goal.norm_result lthy termination], [])]) |> snd
     |> Proof.theorem NONE (snd oo afterqed) [[(goal, [])]]
   end
 

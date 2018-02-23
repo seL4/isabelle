@@ -270,7 +270,7 @@ fun mk_replacement_lemma ctxt h ih_elim clause =
     val (eql, _) =
       Function_Context_Tree.rewrite_by_tree ctxt h ih_elim_case (Ris ~~ h_assums) tree
 
-    val replace_lemma = (eql RS meta_eq_to_obj_eq)
+    val replace_lemma = HOLogic.mk_obj_eq eql
       |> Thm.implies_intr (Thm.cprop_of case_hyp)
       |> fold_rev (Thm.implies_intr o Thm.cprop_of) h_assums
       |> fold_rev (Thm.implies_intr o Thm.cprop_of) ags

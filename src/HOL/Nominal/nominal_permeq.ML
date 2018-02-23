@@ -238,7 +238,7 @@ fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);
 (*     %x. pi o (f ((rev pi) o x)) = rhs      *)
 fun unfold_perm_fun_def_tac ctxt i =
     ("unfolding of permutations on functions",
-      resolve_tac ctxt [perm_fun_def RS meta_eq_to_obj_eq RS trans] i)
+      resolve_tac ctxt [HOLogic.mk_obj_eq perm_fun_def RS trans] i)
 
 (* applies the ext-rule such that      *)
 (*                                     *)

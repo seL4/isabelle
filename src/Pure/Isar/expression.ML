@@ -166,9 +166,10 @@ end;
 
 (* Instantiation morphism *)
 
-fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
+fun inst_morphism params ((prfx, mandatory), insts') ctxt =
   let
     (* parameters *)
+    val parm_types = map #2 params;
     val type_parms = fold Term.add_tfreesT parm_types [];
 
     (* type inference *)
@@ -189,7 +190,7 @@ fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
       (type_parms ~~ map Logic.dest_type type_parms'')
       |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (v, T));
     val cert_inst =
-      ((parm_names ~~ map (Term_Subst.instantiateT_frees instT) parm_types) ~~ insts'')
+      ((map #1 params ~~ map (Term_Subst.instantiateT_frees instT) parm_types) ~~ insts'')
       |> map_filter (fn (v, t) => if Free v = t then NONE else SOME (v, cert t));
   in
     (Element.instantiate_normalize_morphism (map (apsnd certT) instT, cert_inst) $>
@@ -315,7 +316,7 @@ fun declare_elem prep_var (Fixes fixes) ctxt =
 fun finish_inst ctxt (loc, (prfx, inst)) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (morph, _) = inst_morphism (Locale.params_types_of thy loc) (prfx, inst) ctxt;
+    val (morph, _) = inst_morphism (map #1 (Locale.params_of thy loc)) (prfx, inst) ctxt;
   in (loc, morph) end;
 
 fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
@@ -376,19 +377,18 @@ fun prep_full_context_statement
 
     fun prep_insts_cumulative (loc, (prfx, (inst, eqns))) (i, insts, eqnss, ctxt) =
       let
-        val (parm_names, parm_types) = Locale.params_types_of thy loc;
-        val inst' = prep_inst ctxt parm_names inst;
+        val params = map #1 (Locale.params_of thy loc);
+        val inst' = prep_inst ctxt (map #1 params) inst;
         val eqns' = map (apsnd (parse_eqn ctxt)) eqns;
-        val parm_types' = parm_types
-          |> map (Logic.varifyT_global #>
+        val parm_types' =
+          params |> map (#2 #> Logic.varifyT_global #>
               Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) #>
               Type_Infer.paramify_vars);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
         val eqnss' = eqnss @ [eqns'];
         val ((insts'', eqnss'', _, _), _) = check_autofix insts' eqnss' [] [] ctxt;
-        val (inst_morph, _) =
-          inst_morphism (parm_names, parm_types) (prfx, #2 (#2 (List.last insts''))) ctxt;
+        val (inst_morph, _) = inst_morphism params (prfx, #2 (#2 (List.last insts''))) ctxt;
         val rewrite_morph =
           List.last eqnss''
           |> map (snd #> Thm.cterm_of ctxt #> Thm.assume #> Local_Defs.abs_def_rule ctxt)
@@ -743,8 +743,8 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val (_, thy'') =
             thy'
             |> Sign.qualified_path true abinding
-            |> Global_Theory.note_thmss ""
-              [((Binding.name introN, []), [([intro], [Locale.unfold_add])])]
+            |> Global_Theory.note_thms ""
+              ((Binding.name introN, []), [([intro], [Locale.unfold_add])])
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =

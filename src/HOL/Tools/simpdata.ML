@@ -50,7 +50,7 @@ fun mk_eq th =
   | _ => th RS @{thm Eq_TrueI})
 
 fun mk_eq_True (_: Proof.context) r =
-  SOME (r RS @{thm meta_eq_to_obj_eq} RS @{thm Eq_TrueI}) handle Thm.THM _ => NONE;
+  SOME (HOLogic.mk_obj_eq r RS @{thm Eq_TrueI}) handle Thm.THM _ => NONE;
 
 (* Produce theorems of the form
   (P1 =simp=> ... =simp=> Pn => x == y) ==> (P1 =simp=> ... =simp=> Pn => x = y)

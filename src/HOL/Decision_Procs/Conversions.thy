@@ -24,8 +24,6 @@ attribute_setup meta =
   \<open>convert equality to meta equality\<close>
 
 ML \<open>
-fun mk_obj_eq th = th RS @{thm meta_eq_to_obj_eq};
-
 fun strip_app ct = ct |> Drule.strip_comb |>> Thm.term_of |>> dest_Const |>> fst;
 
 fun inst cTs cts th =

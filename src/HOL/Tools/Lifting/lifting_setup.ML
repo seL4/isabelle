@@ -157,7 +157,7 @@ in
           val thm = 
             pcr_cr_eq
             |> Conv.fconv_rule (Conv.arg_conv (Conv.rewr_conv eq_OO_meta))
-            |> mk_HOL_eq
+            |> HOLogic.mk_obj_eq
             |> singleton (Variable.export lthy orig_lthy)
           val lthy = (#notes config ? (Local_Theory.note 
               ((Binding.qualify_name true qty_name "pcr_cr_eq", []), [thm]) #> snd)) lthy

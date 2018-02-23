@@ -153,7 +153,7 @@ fun mk_case_distinct_ctrs_tac ctxt distincts =
 
 fun mk_case_tac ctxt n k case_def injects distinctss =
   let
-    val case_def' = mk_unabs_def (n + 1) (case_def RS meta_eq_to_obj_eq);
+    val case_def' = mk_unabs_def (n + 1) (HOLogic.mk_obj_eq case_def);
     val ks = 1 upto n;
   in
     HEADGOAL (rtac ctxt (case_def' RS trans) THEN' rtac ctxt @{thm the_equality} THEN'

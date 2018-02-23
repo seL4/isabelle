@@ -751,7 +751,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
     val ctrAs = map (mk_ctr As) ctrs;
     val ctrBs = map (mk_ctr Bs) ctrs;
 
-    val ctr_defs' = map2 (fn m => fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) ms ctr_defs;
+    val ctr_defs' =
+      map2 (fn m => fn def => mk_unabs_def m (HOLogic.mk_obj_eq def)) ms ctr_defs;
 
     val ABfs = live_AsBs ~~ fs;
 
