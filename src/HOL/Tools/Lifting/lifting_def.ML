@@ -187,7 +187,7 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
           let
             val [rty, rty'] = binder_types typ
           in
-            if Term.is_TVar rty andalso is_Type rty' then
+            if Term.is_TVar rty andalso Term.is_Type rty' then
               (xi, Thm.cterm_of ctxt (HOLogic.eq_const rty')) :: subst
             else
               subst
@@ -472,7 +472,7 @@ local
     if same_type_constrs (rty, qty) then
       forall (no_no_code ctxt) (Targs rty ~~ Targs qty)
     else
-      if is_Type qty then
+      if Term.is_Type qty then
         if Lifting_Info.is_no_code_type ctxt (Tname qty) then false
         else
           let
