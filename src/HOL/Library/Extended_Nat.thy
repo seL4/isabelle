@@ -383,6 +383,8 @@ proof
     by (simp split: enat.splits)
   show "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d" for a b c d :: enat
     by (cases a b c d rule: enat2_cases[case_product enat2_cases]) auto
+  show "a < b \<Longrightarrow> a + 1 < b + 1"
+    by (metis add_right_mono eSuc_minus_1 eSuc_plus_1 less_le)
 qed (simp add: zero_enat_def one_enat_def)
 
 (* BH: These equations are already proven generally for any type in
