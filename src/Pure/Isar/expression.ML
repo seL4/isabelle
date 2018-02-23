@@ -169,24 +169,30 @@ end;
 fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
   let
     (* parameters *)
-    val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
+    val type_parms = fold Term.add_tfreesT parm_types [];
 
-    (* type inference and contexts *)
+    (* type inference *)
     val parm_types' = map (Type_Infer.paramify_vars o Logic.varifyT_global) parm_types;
-    val type_parms = fold Term.add_tvarsT parm_types' [] |> map (Logic.mk_type o TVar);
-    val arg = type_parms @ map2 Type.constraint parm_types' insts';
-    val res = Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt) arg;
-    val ctxt' = ctxt |> fold Variable.auto_fixes res;
+    val type_parms' = fold Term.add_tvarsT parm_types' [];
+    val checked =
+      (map (Logic.mk_type o TVar) type_parms' @ map2 Type.constraint parm_types' insts')
+      |> Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt)
+    val (type_parms'', insts'') = chop (length type_parms') checked;
+
+    (* context *)
+    val ctxt' = fold Variable.auto_fixes checked ctxt;
+    val certT = Thm.trim_context_ctyp o Thm.ctyp_of ctxt';
+    val cert = Thm.trim_context_cterm o Thm.cterm_of ctxt';
 
     (* instantiation *)
-    val (type_parms'', res') = chop (length type_parms) res;
-    val insts'' = (parm_names ~~ res') |> map_filter
-      (fn inst as (x, Free (y, _)) => if x = y then NONE else SOME inst
-        | inst => SOME inst);
-    val instT = Symtab.make (type_parm_names ~~ map Logic.dest_type type_parms'');
-    val inst = Symtab.make insts'';
+    val instT =
+      (type_parms ~~ map Logic.dest_type type_parms'')
+      |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (v, T));
+    val cert_inst =
+      ((parm_names ~~ map (Term_Subst.instantiateT_frees instT) parm_types) ~~ insts'')
+      |> map_filter (fn (v, t) => if Free v = t then NONE else SOME (v, cert t));
   in
-    (Element.inst_morphism (Proof_Context.theory_of ctxt) (instT, inst) $>
+    (Element.instantiate_normalize_morphism (map (apsnd certT) instT, cert_inst) $>
       Morphism.binding_morphism "Expression.inst" (Binding.prefix mandatory prfx), ctxt')
   end;
 
@@ -309,8 +315,7 @@ fun declare_elem prep_var (Fixes fixes) ctxt =
 fun finish_inst ctxt (loc, (prfx, inst)) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
-    val (morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst) ctxt;
+    val (morph, _) = inst_morphism (Locale.params_types_of thy loc) (prfx, inst) ctxt;
   in (loc, morph) end;
 
 fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
@@ -371,23 +376,26 @@ fun prep_full_context_statement
 
     fun prep_insts_cumulative (loc, (prfx, (inst, eqns))) (i, insts, eqnss, ctxt) =
       let
-        val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
+        val (parm_names, parm_types) = Locale.params_types_of thy loc;
         val inst' = prep_inst ctxt parm_names inst;
         val eqns' = map (apsnd (parse_eqn ctxt)) eqns;
         val parm_types' = parm_types
-          |> map (Type_Infer.paramify_vars o
-              Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT_global);
+          |> map (Logic.varifyT_global #>
+              Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) #>
+              Type_Infer.paramify_vars);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
         val eqnss' = eqnss @ [eqns'];
         val ((insts'', eqnss'', _, _), _) = check_autofix insts' eqnss' [] [] ctxt;
-        val inst''' = insts'' |> List.last |> snd |> snd;
-        val eqns'' = eqnss'' |> List.last;
-        val (inst_morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst''') ctxt;
-        val rewrite_morph = eqns'' |> map (snd #> Thm.cterm_of ctxt #> Thm.assume #> Local_Defs.abs_def_rule ctxt) |>
-           Element.eq_morphism (Proof_Context.theory_of ctxt) |> the_default Morphism.identity;
-        val ctxt'' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
-      in (i + 1, insts', eqnss', ctxt'') end;
+        val (inst_morph, _) =
+          inst_morphism (parm_names, parm_types) (prfx, #2 (#2 (List.last insts''))) ctxt;
+        val rewrite_morph =
+          List.last eqnss''
+          |> map (snd #> Thm.cterm_of ctxt #> Thm.assume #> Local_Defs.abs_def_rule ctxt)
+          |> Element.eq_morphism (Proof_Context.theory_of ctxt)
+          |> the_default Morphism.identity;
+        val ctxt' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
+      in (i + 1, insts', eqnss', ctxt') end;
 
     fun prep_elem raw_elem ctxt =
       let

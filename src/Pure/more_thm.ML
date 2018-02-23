@@ -72,6 +72,7 @@ sig
   val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
+  val instantiate_frees: ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val forall_intr_frees: thm -> thm
   val unvarify_global: theory -> thm -> thm
@@ -404,6 +405,29 @@ fun forall_elim_var i th =
   in forall_elim_vars_list vars i th end;
 
 end;
+
+
+(* instantiate frees *)
+
+fun instantiate_frees ([], []) th = th
+  | instantiate_frees (instT, inst) th =
+      let
+        val idx = Thm.maxidx_of th + 1;
+        fun index ((a, A), b) = (((a, idx), A), b);
+        val insts = (map index instT, map index inst);
+        val frees = (map (#1 o #1) instT, map (#1 o #1) inst);
+
+        val hyps = Thm.chyps_of th;
+        val inst_cterm =
+          Thm.generalize_cterm frees idx #>
+          Thm.instantiate_cterm insts;
+      in
+        th
+        |> fold_rev Thm.implies_intr hyps
+        |> Thm.generalize frees idx
+        |> Thm.instantiate insts
+        |> fold (elim_implies o Thm.assume o inst_cterm) hyps
+      end;
 
 
 (* instantiate by left-to-right occurrence of variables *)

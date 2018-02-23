@@ -42,6 +42,8 @@ sig
   val transfer_morphism': Proof.context -> morphism
   val transfer_morphism'': Context.generic -> morphism
   val trim_context_morphism: morphism
+  val instantiate_frees_morphism:
+    ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> morphism
   val instantiate_morphism:
     ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list -> morphism
 end;
@@ -126,6 +128,22 @@ val transfer_morphism' = transfer_morphism o Proof_Context.theory_of;
 val transfer_morphism'' = transfer_morphism o Context.theory_of;
 
 val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
+
+
+(* instantiate *)
+
+fun instantiate_frees_morphism ([], []) = identity
+  | instantiate_frees_morphism (cinstT, cinst) =
+      let
+        val instT = map (apsnd Thm.typ_of) cinstT;
+        val inst = map (apsnd Thm.term_of) cinst;
+      in
+        morphism "instantiate_frees"
+          {binding = [],
+           typ = if null instT then [] else [Term_Subst.instantiateT_frees instT],
+           term = [Term_Subst.instantiate_frees (instT, inst)],
+           fact = [map (Thm.instantiate_frees (cinstT, cinst))]}
+      end;
 
 fun instantiate_morphism ([], []) = identity
   | instantiate_morphism (cinstT, cinst) =

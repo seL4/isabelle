@@ -175,10 +175,14 @@ fun gen_interpret prep_interpretation expression raw_eqns state =
     fun setup_proof after_qed propss eqns goal_ctxt =
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
         propss eqns goal_ctxt state;
+    fun add_registration reg mixin export ctxt = ctxt
+      |> Proof_Context.set_stmt false
+      |> Context.proof_map (Locale.add_registration reg mixin export)
+      |> Proof_Context.restore_stmt ctxt;
   in
     Proof.context_of state
     |> generic_interpretation prep_interpretation setup_proof
-      Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression [] raw_eqns
+      Attrib.local_notes add_registration expression [] raw_eqns
   end;
 
 in

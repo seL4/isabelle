@@ -38,9 +38,6 @@ fun mk_Domainp P =
 
 fun type_name_of_bnf bnf = T_of_bnf bnf |> dest_Type |> fst
 
-fun is_Type (Type _) = true
-  | is_Type _ = false
-
 fun bnf_only_type_ctr f bnf = if is_Type (T_of_bnf bnf) then f bnf else I
 
 fun bnf_of_fp_sugar (fp_sugar:fp_sugar) = nth (#bnfs (#fp_res fp_sugar)) (#fp_res_index fp_sugar)

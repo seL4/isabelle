@@ -75,7 +75,7 @@ val show_type_emphasis =
 fun type_emphasis ctxt T =
   T <> dummyT andalso
     (Config.get ctxt show_types orelse Config.get ctxt show_markup orelse
-      Config.get ctxt show_type_emphasis andalso not (can dest_Type T));
+      Config.get ctxt show_type_emphasis andalso not (is_Type T));
 
 
 
