@@ -475,7 +475,7 @@ fun conv ctxt t =
     val t'' = Thm.term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac context fm 1)
-    fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
+    fun unfold th = th RS (HOLogic.mk_obj_eq prep_eq RS @{thm trans})
     val post =
       Conv.fconv_rule
         (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (unfold_conv post_thms)))

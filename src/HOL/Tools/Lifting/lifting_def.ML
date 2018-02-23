@@ -386,7 +386,7 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
     val unabs_def = unabs_all_def ctxt unfolded_def
   in
     if body_type rty = body_type qty then
-      SOME (simplify_code_eq ctxt (unabs_def RS @{thm meta_eq_to_obj_eq}))
+      SOME (simplify_code_eq ctxt (HOLogic.mk_obj_eq unabs_def))
     else
       let
         val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
@@ -398,8 +398,8 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
             let
               val rep_abs_eq = mono_eq_thm RS rep_abs_thm
               val rep = Thm.cterm_of ctxt (quot_thm_rep quot_thm)
-              val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
-              val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
+              val rep_refl = HOLogic.mk_obj_eq (Thm.reflexive rep)
+              val repped_eq = [rep_refl, HOLogic.mk_obj_eq unabs_def] MRSL @{thm cong}
               val code_cert = [repped_eq, rep_abs_eq] MRSL trans
             in
               SOME (simplify_code_eq ctxt code_cert)

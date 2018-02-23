@@ -904,8 +904,8 @@ fun field_tac in_prem ctxt =
                 (K (feval_conv rls cxs ce)) (K (feval_conv rls cxs ce')))
              (Conv.arg1_conv (K (peval_conv rls cxs n))))))
         ([mkic xs,
-          mk_obj_eq fnorm,
-          mk_obj_eq (nonzero_conv rls cxs c) RS @{thm iffD2}] MRS
+          HOLogic.mk_obj_eq fnorm,
+          HOLogic.mk_obj_eq (nonzero_conv rls cxs c) RS @{thm iffD2}] MRS
          feval_eq);
       val th' = Drule.rotate_prems 1
         (th RS (if in_prem then @{thm iffD1} else @{thm iffD2}));

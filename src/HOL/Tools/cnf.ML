@@ -253,9 +253,6 @@ fun make_nnf_thm thy (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ x $ y) 
       end
   | make_nnf_thm thy t = inst_thm thy [t] iff_refl;
 
-val meta_eq_to_obj_eq = @{thm meta_eq_to_obj_eq}
-val eq_reflection = @{thm eq_reflection}
-
 fun make_under_quantifiers ctxt make t =
   let
     fun conv ctxt ct =
@@ -263,8 +260,8 @@ fun make_under_quantifiers ctxt make t =
         Const _ $ Abs _ => Conv.comb_conv (conv ctxt) ct
       | Abs _ => Conv.abs_conv (conv o snd) ctxt ct
       | Const _ => Conv.all_conv ct
-      | t => make t RS eq_reflection)
-  in conv ctxt (Thm.cterm_of ctxt t) RS meta_eq_to_obj_eq end
+      | t => make t RS @{thm eq_reflection})
+  in HOLogic.mk_obj_eq (conv ctxt (Thm.cterm_of ctxt t)) end
 
 fun make_nnf_thm_under_quantifiers ctxt =
   make_under_quantifiers ctxt (make_nnf_thm (Proof_Context.theory_of ctxt))

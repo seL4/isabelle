@@ -10,6 +10,7 @@ sig
   val mk_comp: term * term -> term
   val boolN: string
   val boolT: typ
+  val mk_obj_eq: thm -> thm
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
@@ -186,6 +187,8 @@ fun dest_mem (Const ("Set.member", _) $ x $ A) = (x, A)
 
 
 (* logic *)
+
+fun mk_obj_eq th = th RS @{thm meta_eq_to_obj_eq};
 
 val Trueprop = Const (\<^const_name>\<open>Trueprop\<close>, boolT --> propT);
 

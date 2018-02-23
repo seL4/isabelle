@@ -928,7 +928,7 @@ fun dest_thm thm =
  *        Equality (one step)
  *---------------------------------------------------------------------------*)
 
-fun REFL tm = Thm.reflexive tm RS meta_eq_to_obj_eq
+fun REFL tm = HOLogic.mk_obj_eq (Thm.reflexive tm)
   handle THM (msg, _, _) => raise RULES_ERR "REFL" msg;
 
 fun SYM thm = thm RS sym
@@ -1234,7 +1234,7 @@ fun SUBS ctxt thl =
 val rew_conv = Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE));
 
 fun simpl_conv ctxt thl ctm =
- rew_conv (ctxt addsimps thl) ctm RS meta_eq_to_obj_eq;
+  HOLogic.mk_obj_eq (rew_conv (ctxt addsimps thl) ctm);
 
 
 fun RIGHT_ASSOC ctxt = rewrite_rule ctxt @{thms tfl_disj_assoc};
@@ -1471,7 +1471,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                        handle Utils.ERR _ => Thm.reflexive lhs
                      val _ = print_thms ctxt' "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
-                     val lhs_eeq_lhs2 = lhs_eq_lhs2 RS meta_eq_to_obj_eq
+                     val lhs_eeq_lhs2 = HOLogic.mk_obj_eq lhs_eq_lhs2
                   in
                   lhs_eeq_lhs2 COMP thm
                   end
@@ -1495,11 +1495,11 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                   val Q2eeqQ3 = Thm.symmetric(pbeta_reduce Q3 RS eq_reflection)
                   val thA = Thm.transitive(QeqQ1 RS eq_reflection) Q1eeqQ2
                   val QeeqQ3 = Thm.transitive thA Q2eeqQ3 handle THM _ =>
-                               ((Q2eeqQ3 RS meta_eq_to_obj_eq)
-                                RS ((thA RS meta_eq_to_obj_eq) RS trans))
+                               (HOLogic.mk_obj_eq Q2eeqQ3
+                                RS (HOLogic.mk_obj_eq thA RS trans))
                                 RS eq_reflection
                   val impth = implies_intr_list ants1 QeeqQ3
-                  val impth1 = impth RS meta_eq_to_obj_eq
+                  val impth1 = HOLogic.mk_obj_eq impth
                   (* Need to abstract *)
                   val ant_th = Utils.itlist2 (PGEN ctxt' tych) args vstrl impth1
               in ant_th COMP thm
@@ -1517,7 +1517,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                         (false,true,false) (prover used') ctxt' (tych Q)
                       handle Utils.ERR _ => Thm.reflexive (tych Q)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
-                     val lhs_eq_lhs2 = lhs_eeq_lhs2 RS meta_eq_to_obj_eq
+                     val lhs_eq_lhs2 = HOLogic.mk_obj_eq lhs_eeq_lhs2
                      val ant_th = forall_intr_list(map tych vlist)lhs_eq_lhs2
                  in
                  ant_th COMP thm
@@ -2612,7 +2612,7 @@ val spec'=
 fun simplify_defn ctxt strict congs wfs pats def0 =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val def = Thm.unvarify_global thy def0 RS meta_eq_to_obj_eq
+    val def = HOLogic.mk_obj_eq (Thm.unvarify_global thy def0)
     val {rules, rows, TCs, full_pats_TCs} = Prim.post_definition ctxt congs (def, pats)
     val {lhs=f,rhs} = USyntax.dest_eq (concl def)
     val (_,[R,_]) = USyntax.strip_comb rhs

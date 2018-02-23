@@ -249,11 +249,11 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
            ##> Local_Theory.exit_global);
 
       val size_defs' =
-        map (mk_unabs_def (num_As + 1) o (fn thm => thm RS meta_eq_to_obj_eq)) size_defs;
+        map (mk_unabs_def (num_As + 1) o HOLogic.mk_obj_eq) size_defs;
       val size_defs_unused_0 =
-        map (mk_unabs_def_unused_0 (num_As + 1) o (fn thm => thm RS meta_eq_to_obj_eq)) size_defs;
+        map (mk_unabs_def_unused_0 (num_As + 1) o HOLogic.mk_obj_eq) size_defs;
       val overloaded_size_defs' =
-        map (mk_unabs_def 1 o (fn thm => thm RS meta_eq_to_obj_eq)) overloaded_size_defs;
+        map (mk_unabs_def 1 o HOLogic.mk_obj_eq) overloaded_size_defs;
 
       val nested_size_maps =
         map (mk_pointful lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;

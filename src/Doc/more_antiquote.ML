@@ -33,13 +33,12 @@ val _ =
         val thy = Proof_Context.theory_of ctxt;
         val const = Code.check_const thy raw_const;
         val { eqngr, ... } = Code_Preproc.obtain true { ctxt = ctxt, consts = [const], terms = [] };
-        fun holize thm = @{thm meta_eq_to_obj_eq} OF [thm];
         val thms = Code_Preproc.cert eqngr const
           |> Code.equations_of_cert thy
           |> snd
           |> these
           |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
-          |> map (holize o no_vars ctxt o Axclass.overload ctxt);
+          |> map (HOLogic.mk_obj_eq o no_vars ctxt o Axclass.overload ctxt);
       in Pretty.chunks (map (Thy_Output.pretty_thm ctxt) thms) end));
 
 end;

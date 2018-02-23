@@ -30,7 +30,6 @@ sig
   val Tname: typ -> string
   val is_rel_fun: term -> bool
   val relation_types: typ -> typ * typ
-  val mk_HOL_eq: thm -> thm
   val safe_HOL_meta_eq: thm -> thm
   val map_interrupt: ('a -> 'b option) -> 'a list -> 'b list option
   val conceal_naming_result: (local_theory -> 'a * local_theory) -> local_theory -> 'a * local_theory
@@ -122,9 +121,7 @@ fun relation_types typ =
     ([typ1, typ2], @{typ bool}) => (typ1, typ2)
     | _ => error "relation_types: not a relation"
 
-fun mk_HOL_eq r = r RS @{thm meta_eq_to_obj_eq}
-
-fun safe_HOL_meta_eq r = mk_HOL_eq r handle Thm.THM _ => r
+fun safe_HOL_meta_eq r = HOLogic.mk_obj_eq r handle Thm.THM _ => r
 
 fun map_interrupt f l =
   let

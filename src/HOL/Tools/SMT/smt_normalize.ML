@@ -53,7 +53,7 @@ fun norm_def thm =
   (case Thm.prop_of thm of
     \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ Abs _) =>
       norm_def (thm RS @{thm fun_cong})
-  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ Abs _ => norm_def (thm RS @{thm meta_eq_to_obj_eq})
+  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ Abs _ => norm_def (HOLogic.mk_obj_eq thm)
   | _ => thm)
 
 

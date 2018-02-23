@@ -242,7 +242,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val alg = fst (Term.dest_Const (Morphism.term phi alg_free));
-    val alg_def = mk_unabs_def (2 * n) (Morphism.thm phi alg_def_free RS meta_eq_to_obj_eq);
+    val alg_def = mk_unabs_def (2 * n) (HOLogic.mk_obj_eq (Morphism.thm phi alg_def_free));
 
     fun mk_alg Bs ss =
       let
@@ -334,7 +334,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val mor = fst (Term.dest_Const (Morphism.term phi mor_free));
-    val mor_def = mk_unabs_def (5 * n) (Morphism.thm phi mor_def_free RS meta_eq_to_obj_eq);
+    val mor_def = mk_unabs_def (5 * n) (HOLogic.mk_obj_eq (Morphism.thm phi mor_def_free));
 
     fun mk_mor Bs1 ss1 Bs2 ss2 fs =
       let
@@ -477,7 +477,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
           val phi = Proof_Context.export_morphism lthy_old lthy;
 
-          val sbd_def = Morphism.thm phi sbd_def_free RS meta_eq_to_obj_eq;
+          val sbd_def = HOLogic.mk_obj_eq (Morphism.thm phi sbd_def_free);
           val sbd = Const (fst (Term.dest_Const (Morphism.term phi sbd_free)), mk_relT (`I sbdT));
 
           val Abs_sbdT_inj = mk_Abs_inj_thm (#Abs_inject sbdT_loc_info);
@@ -670,7 +670,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val min_algs = map (fst o Term.dest_Const o Morphism.term phi) min_alg_frees;
     val min_alg_defs = map (fn def =>
-      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) min_alg_def_frees;
+      mk_unabs_def n (HOLogic.mk_obj_eq (Morphism.thm phi def))) min_alg_def_frees;
 
     fun mk_min_alg ss i =
       let
@@ -806,7 +806,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         str_init_frees;
 
     val str_init_defs = map (fn def =>
-      mk_unabs_def 2 (Morphism.thm phi def RS meta_eq_to_obj_eq)) str_init_def_frees;
+      mk_unabs_def 2 (HOLogic.mk_obj_eq (Morphism.thm phi def))) str_init_def_frees;
 
     val car_inits = map (mk_min_alg str_inits) ks;
 
@@ -966,7 +966,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         Morphism.term phi) ctor_frees;
     val ctors = mk_ctors passiveAs;
     val ctor's = mk_ctors passiveBs;
-    val ctor_defs = map (fn def => Morphism.thm phi def RS meta_eq_to_obj_eq) ctor_def_frees;
+    val ctor_defs = map (fn def => HOLogic.mk_obj_eq (Morphism.thm phi def)) ctor_def_frees;
 
     val (mor_Rep_thm, mor_Abs_thm) =
       let
@@ -1022,7 +1022,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     fun mk_fold Ts ss i = Term.list_comb (Const (nth fold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
     val fold_defs = map (fn def =>
-      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) fold_def_frees;
+      mk_unabs_def n (HOLogic.mk_obj_eq (Morphism.thm phi def))) fold_def_frees;
 
     (* algebra copies *)
 
@@ -1134,7 +1134,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       map (Term.subst_atomic_types (map (Morphism.typ phi) params' ~~ params) o Morphism.term phi)
         dtor_frees;
     val dtors = mk_dtors params';
-    val dtor_defs = map (fn def => Morphism.thm phi def RS meta_eq_to_obj_eq) dtor_def_frees;
+    val dtor_defs = map (fn def => HOLogic.mk_obj_eq (Morphism.thm phi def)) dtor_def_frees;
 
     val ctor_o_dtor_thms = map2 (Local_Defs.fold lthy o single) dtor_defs ctor_o_fold_thms;
 
@@ -1404,7 +1404,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
               val phi = Proof_Context.export_morphism lthy_old lthy;
 
-              val sbd0_def = Morphism.thm phi sbd0_def_free RS meta_eq_to_obj_eq;
+              val sbd0_def = HOLogic.mk_obj_eq (Morphism.thm phi sbd0_def_free);
               val sbd0 = Const (fst (Term.dest_Const (Morphism.term phi sbd0_free)),
                 mk_relT (`I sbd0T));
 
@@ -1461,8 +1461,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         val (mk_Imaps_Ds, mk_It_Ds, _, mk_Irels_Ds, mk_Ipreds_Ds, _, _) =
           @{split_list 7} mk_Iconsts;
 
-        val Irel_unabs_defs = map (fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) Irel_defs;
-        val Ipred_unabs_defs = map (fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) Ipred_defs;
+        val Irel_unabs_defs = map (fn def => mk_unabs_def m (HOLogic.mk_obj_eq def)) Irel_defs;
+        val Ipred_unabs_defs = map (fn def => mk_unabs_def m (HOLogic.mk_obj_eq def)) Ipred_defs;
         val Iset_defs = flat Iset_defss;
 
         fun mk_Imaps As Bs = map (fn mk => mk deads As Bs) mk_Imaps_Ds;

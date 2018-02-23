@@ -272,7 +272,7 @@ fun rewrite_by_tree ctxt h ih x tr =
               val (subeq, x') =
                 rewrite_help (fix @ fixes) (h_as @ assumes') x st
               val subeq_exp =
-                export_thm ctxt (fixes, assumes) (subeq RS meta_eq_to_obj_eq)
+                export_thm ctxt (fixes, assumes) (HOLogic.mk_obj_eq subeq)
             in
               (subeq_exp, x')
             end

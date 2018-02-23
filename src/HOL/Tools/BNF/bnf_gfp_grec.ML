@@ -1152,7 +1152,7 @@ fun derive_eval_core_flat ctxt Y Z preT ssig_T dead_pre_map dead_ssig_map flat e
   end;
 
 fun derive_eval_thm ctxt dtor_inject dtor_unfold_thm eval_def =
-  (trans OF [iffD2 OF [dtor_inject, eval_def RS meta_eq_to_obj_eq RS fun_cong], dtor_unfold_thm])
+  (trans OF [iffD2 OF [dtor_inject, HOLogic.mk_obj_eq eval_def RS fun_cong], dtor_unfold_thm])
   |> unfold_thms ctxt [o_apply, eval_def RS symmetric_thm];
 
 fun derive_eval_flat ctxt Y Z fpT ssig_T dead_ssig_map flat eval x dead_pre_map_comp0
@@ -1712,7 +1712,7 @@ fun derive_Sig_natural_etc ctxt live live_AsBs Y Z preT fpT k_or_fpT sig_T ssig_
     val Lam_natural_pointful = mk_pointful ctxt Lam_natural;
     val Lam_pointful_natural = Lam_natural_pointful RS sym;
     val eval_core_pointful_natural = mk_pointful ctxt eval_core_natural RS sym;
-    val cutSsig_def_pointful_natural = mk_pointful ctxt (cutSsig_def RS meta_eq_to_obj_eq) RS sym;
+    val cutSsig_def_pointful_natural = mk_pointful ctxt (HOLogic.mk_obj_eq cutSsig_def) RS sym;
 
     val flat_VLeaf = derive_flat_VLeaf ctxt Y Z ssig_T x VLeaf dead_ssig_map flat ssig_induct
       fp_map_id sig_map_cong sig_map_ident sig_map_comp ssig_map_thms flat_simps;
@@ -1997,7 +1997,7 @@ fun derive_cong_step fp_b version fpT dead_ssig_bnf dead_pre_bnf eval eval_thm e
         Retr_coinduct eval_thm eval_core_transfer lthy;
 
     val cong_alg_intro =
-      k_as_ssig_transfer RS rel_funD RS mk_cong_rho (algrho_def RS meta_eq_to_obj_eq);
+      k_as_ssig_transfer RS rel_funD RS mk_cong_rho (HOLogic.mk_obj_eq algrho_def);
 
     val gen_cong_emb =
       (@{thm gen_cong_emb} OF [old_cong_locale, cong_locale, eval_embL, embL_transfer])
