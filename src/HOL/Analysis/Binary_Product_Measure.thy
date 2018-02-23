@@ -759,18 +759,20 @@ proof (rule measure_eqI)
   with A B have fin_Pair: "\<And>x. finite (Pair x -` X)"
     by (intro finite_subset[OF _ B]) auto
   have fin_X: "finite X" using X_subset by (rule finite_subset) (auto simp: A B)
-  have pos_card: "(0::ennreal) < of_nat (card (Pair x -` X)) \<longleftrightarrow> Pair x -` X \<noteq> {}" for x
-    by (auto simp: card_eq_0_iff fin_Pair) blast
-
-  show "emeasure ?P X = emeasure ?C X"
-    using X_subset A fin_Pair fin_X
-    apply (subst B.emeasure_pair_measure_alt[OF X])
+  have card: "0 < card (Pair a -` X)" if "(a, b) \<in> X" for a b
+    using card_gt_0_iff fin_Pair that by auto
+  then have "emeasure ?P X = \<integral>\<^sup>+ x. emeasure (count_space B) (Pair x -` X)
+            \<partial>count_space A"
+    by (simp add: B.emeasure_pair_measure_alt X)
+  also have "... = emeasure ?C X"
     apply (subst emeasure_count_space)
-    apply (auto simp add: emeasure_count_space nn_integral_count_space
-                          pos_card of_nat_sum[symmetric] card_SigmaI[symmetric]
-                simp del: of_nat_sum card_SigmaI
+    using card X_subset A fin_Pair fin_X
+    apply (auto simp add: nn_integral_count_space
+                           of_nat_sum[symmetric] card_SigmaI[symmetric]
+                simp del:  card_SigmaI
                 intro!: arg_cong[where f=card])
     done
+  finally show "emeasure ?P X = emeasure ?C X" .
 qed
 
 
