@@ -114,8 +114,14 @@ fun mk_inst_of_lift_def qty lift_def = Vartab.empty |> Type.raw_match (qty_of_li
 fun mk_lift_const_of_lift_def qty lift_def = Envir.subst_term_types (mk_inst_of_lift_def qty lift_def)
   (lift_const_of_lift_def lift_def)
 
-fun inst_of_lift_def ctxt qty lift_def =  mk_inst_of_lift_def qty lift_def
-  |> instT_morphism ctxt |> (fn phi => morph_lift_def phi lift_def)
+fun inst_of_lift_def ctxt qty lift_def =
+  let
+    val instT =
+      Vartab.fold (fn (a, (S, T)) => cons ((a, S), Thm.ctyp_of ctxt T))
+        (mk_inst_of_lift_def qty lift_def) []
+    val phi = Morphism.instantiate_morphism (instT, [])
+  in morph_lift_def phi lift_def end
+
 
 (* Config *)
 
