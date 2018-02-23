@@ -8,7 +8,6 @@ signature LIFTING_UTIL =
 sig
   val MRSL: thm list * thm -> thm
   val option_fold: 'b -> ('a -> 'b) -> 'a option -> 'b
-  val map_snd: ('b -> 'c) -> ('a * 'b) list -> ('a * 'c) list
   val dest_Quotient: term -> term * term * term * term
 
   val quot_thm_rel: thm -> term
@@ -30,7 +29,6 @@ sig
   val Tname: typ -> string
   val is_rel_fun: term -> bool
   val relation_types: typ -> typ * typ
-  val safe_HOL_meta_eq: thm -> thm
   val map_interrupt: ('a -> 'b option) -> 'a list -> 'b list option
   val conceal_naming_result: (local_theory -> 'a * local_theory) -> local_theory -> 'a * local_theory
 end
@@ -45,8 +43,6 @@ fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 
 fun option_fold a _ NONE = a
   | option_fold _ f (SOME x) = f x
-
-fun map_snd f xs = map (fn (a, b) => (a, f b)) xs
 
 fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
       = (rel, abs, rep, cr)
@@ -120,8 +116,6 @@ fun relation_types typ =
   case strip_type typ of
     ([typ1, typ2], @{typ bool}) => (typ1, typ2)
     | _ => error "relation_types: not a relation"
-
-fun safe_HOL_meta_eq r = HOLogic.mk_obj_eq r handle Thm.THM _ => r
 
 fun map_interrupt f l =
   let
