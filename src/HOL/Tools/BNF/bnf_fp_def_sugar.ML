@@ -849,10 +849,9 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 |> infer_instantiate' lthy (replicate live NONE @
                   [SOME (Thm.cterm_of lthy (ctorA $ y))])
                 |> unfold_thms lthy [dtor_ctor];
-
-              val map_ctor_thm0 = fp_map_thm' RS ctor_cong RS (ctor_dtor RS sym RS trans);
             in
-              Thm.generalize ([], [y_s]) (Thm.maxidx_of map_ctor_thm0 + 1) map_ctor_thm0
+              (fp_map_thm' RS ctor_cong RS (ctor_dtor RS sym RS trans))
+              |> Drule.generalize ([], [y_s])
             end;
 
         val map_thms =
@@ -926,13 +925,12 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
               val ((y as Free (y_s, _), z as Free (z_s, _)), _) = lthy
                 |> yield_singleton (mk_Frees "y") y_T
                 ||>> yield_singleton (mk_Frees "z") z_T;
-
-              val rel_ctor_thm0 = fp_rel_thm
-                |> infer_instantiate' lthy (replicate live NONE @
-                  [SOME (Thm.cterm_of lthy (ctorA $ y)), SOME (Thm.cterm_of lthy (ctorB $ z))])
-                |> unfold_thms lthy [dtor_ctor];
             in
-              Thm.generalize ([], [y_s, z_s]) (Thm.maxidx_of rel_ctor_thm0 + 1) rel_ctor_thm0
+              fp_rel_thm
+              |> infer_instantiate' lthy (replicate live NONE @
+                [SOME (Thm.cterm_of lthy (ctorA $ y)), SOME (Thm.cterm_of lthy (ctorB $ z))])
+              |> unfold_thms lthy [dtor_ctor]
+              |> Drule.generalize ([], [y_s, z_s])
             end;
 
         val rel_inject_thms =

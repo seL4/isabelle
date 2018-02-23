@@ -34,14 +34,16 @@ sig
   val no_dummyT: typ -> typ
   val --> : typ * typ -> typ
   val ---> : typ list * typ -> typ
+  val is_Type: typ -> bool
+  val is_TFree: typ -> bool
+  val is_TVar: typ -> bool
   val dest_Type: typ -> string * typ list
-  val dest_TVar: typ -> indexname * sort
   val dest_TFree: typ -> string * sort
+  val dest_TVar: typ -> indexname * sort
   val is_Bound: term -> bool
   val is_Const: term -> bool
   val is_Free: term -> bool
   val is_Var: term -> bool
-  val is_TVar: typ -> bool
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
@@ -246,12 +248,29 @@ fun S --> T = Type("fun",[S,T]);
 (*handy for multiple args: [T1,...,Tn]--->T  gives  T1-->(T2--> ... -->T)*)
 val op ---> = Library.foldr (op -->);
 
+
+(** Discriminators **)
+
+fun is_Type (Type _) = true
+  | is_Type _ = false;
+
+fun is_TFree (TFree _) = true
+  | is_TFree _ = false;
+
+fun is_TVar (TVar _) = true
+  | is_TVar _ = false;
+
+
+(** Destructors **)
+
 fun dest_Type (Type x) = x
   | dest_Type T = raise TYPE ("dest_Type", [T], []);
-fun dest_TVar (TVar x) = x
-  | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
+
 fun dest_TFree (TFree x) = x
   | dest_TFree T = raise TYPE ("dest_TFree", [T], []);
+
+fun dest_TVar (TVar x) = x
+  | dest_TVar T = raise TYPE ("dest_TVar", [T], []);
 
 
 (** Discriminators **)
@@ -267,9 +286,6 @@ fun is_Free (Free _) = true
 
 fun is_Var (Var _) = true
   | is_Var _ = false;
-
-fun is_TVar (TVar _) = true
-  | is_TVar _ = false;
 
 
 (** Destructors **)

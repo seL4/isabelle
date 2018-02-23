@@ -83,7 +83,6 @@ sig
   val const_match : theory -> (string * typ) * (string * typ) -> bool
   val term_match : theory -> term * term -> bool
   val frac_from_term_pair : typ -> term -> term -> term
-  val is_TFree : typ -> bool
   val is_fun_type : typ -> bool
   val is_set_type : typ -> bool
   val is_fun_or_set_type : typ -> bool
@@ -477,9 +476,6 @@ fun frac_from_term_pair T t1 t2 =
             1 => HOLogic.mk_number T n1
           | n2 => Const (@{const_name divide}, T --> T --> T)
                   $ HOLogic.mk_number T n1 $ HOLogic.mk_number T n2
-
-fun is_TFree (TFree _) = true
-  | is_TFree _ = false
 
 fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false

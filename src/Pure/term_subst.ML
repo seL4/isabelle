@@ -17,6 +17,12 @@ sig
   val instantiate_maxidx:
     ((indexname * sort) * (typ * int)) list * ((indexname * typ) * (term * int)) list ->
     term -> int -> term * int
+  val instantiateT_frees_same: ((string * sort) * typ) list -> typ Same.operation
+  val instantiate_frees_same: ((string * sort) * typ) list * ((string * typ) * term) list ->
+    term Same.operation
+  val instantiateT_frees: ((string * sort) * typ) list -> typ -> typ
+  val instantiate_frees: ((string * sort) * typ) list * ((string * typ) * term) list ->
+    term -> term
   val instantiateT_same: ((indexname * sort) * typ) list -> typ Same.operation
   val instantiate_same: ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
     term Same.operation
@@ -90,6 +96,42 @@ fun generalize_same ([], []) _ _ = raise Same.SAME
 
 fun generalizeT names i ty = Same.commit (generalizeT_same names i) ty;
 fun generalize names i tm = Same.commit (generalize_same names i) tm;
+
+
+(* instantiation of free variables (types before terms) *)
+
+fun instantiateT_frees_same [] _ = raise Same.SAME
+  | instantiateT_frees_same instT ty =
+      let
+        fun subst (Type (a, Ts)) = Type (a, Same.map subst Ts)
+          | subst (TFree v) =
+              (case AList.lookup (op =) instT v of
+                SOME T => T
+              | NONE => raise Same.SAME)
+          | subst _ = raise Same.SAME;
+      in subst ty end;
+
+fun instantiate_frees_same ([], []) _ = raise Same.SAME
+  | instantiate_frees_same (instT, inst) tm =
+      let
+        val substT = instantiateT_frees_same instT;
+        fun subst (Const (c, T)) = Const (c, substT T)
+          | subst (Free (x, T)) =
+              let val (T', same) = (substT T, false) handle Same.SAME => (T, true) in
+                (case AList.lookup (op =) inst (x, T') of
+                   SOME t => t
+                 | NONE => if same then raise Same.SAME else Free (x, T'))
+              end
+          | subst (Var (xi, T)) = Var (xi, substT T)
+          | subst (Bound _) = raise Same.SAME
+          | subst (Abs (x, T, t)) =
+              (Abs (x, substT T, Same.commit subst t)
+                handle Same.SAME => Abs (x, T, subst t))
+          | subst (t $ u) = (subst t $ Same.commit subst u handle Same.SAME => t $ subst u);
+      in subst tm end;
+
+fun instantiateT_frees instT ty = Same.commit (instantiateT_frees_same instT) ty;
+fun instantiate_frees inst tm = Same.commit (instantiate_frees_same inst) tm;
 
 
 (* instantiation of schematic variables (types before terms) -- recomputes maxidx *)

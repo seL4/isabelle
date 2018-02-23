@@ -167,6 +167,15 @@ Isabelle/Scala, with simplified arguments and explicit errors from the
 latex and bibtex process. Minor INCOMPATIBILITY.
 
 
+*** Isar ***
+
+* Command 'interpret' no longer exposes resulting theorems as literal
+facts, notably for the \<open>prop\<close> notation or the "fact" proof method. This
+improves modularity of proofs and scalability of locale interpretation.
+Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
+(e.g. use 'find_theorems' or 'try' to figure this out).
+
+
 *** HOL ***
 
 * Clarifed theorem names:

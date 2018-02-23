@@ -75,6 +75,7 @@ sig
   exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option
   val theory_of_cterm: cterm -> theory
   val theory_of_thm: thm -> theory
+  val trim_context_ctyp: ctyp -> ctyp
   val trim_context_cterm: cterm -> cterm
   val trim_context: thm -> thm
   val transfer_cterm: theory -> cterm -> cterm
@@ -118,6 +119,8 @@ sig
   val equal_elim: thm -> thm -> thm
   val flexflex_rule: Proof.context option -> thm -> thm Seq.seq
   val generalize: string list * string list -> int -> thm -> thm
+  val generalize_cterm: string list * string list -> int -> cterm -> cterm
+  val generalize_ctyp: string list -> int -> ctyp -> ctyp
   val instantiate: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
   val instantiate_cterm: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
@@ -409,6 +412,13 @@ fun theory_of_cterm (ct as Cterm {cert, ...}) =
 fun theory_of_thm th =
   Context.certificate_theory (cert_of th)
     handle ERROR msg => raise CONTEXT (msg, [], [], [th], NONE);
+
+fun trim_context_ctyp cT =
+  (case cT of
+    Ctyp {cert = Context.Certificate_Id _, ...} => cT
+  | Ctyp {cert = Context.Certificate thy, T, maxidx, sorts} =>
+      Ctyp {cert = Context.Certificate_Id (Context.theory_id thy),
+        T = T, maxidx = maxidx, sorts = sorts});
 
 fun trim_context_cterm ct =
   (case ct of
@@ -1151,6 +1161,23 @@ fun generalize ([], []) _ th = th
           tpairs = tpairs',
           prop = prop'})
       end;
+
+fun generalize_cterm ([], []) _ ct = ct
+  | generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts}) =
+      if idx <= maxidx then raise CTERM ("generalize_cterm: bad index", [ct])
+      else
+        Cterm {cert = cert, sorts = sorts,
+          T = Term_Subst.generalizeT tfrees idx T,
+          t = Term_Subst.generalize (tfrees, frees) idx t,
+          maxidx = Int.max (maxidx, idx)};
+
+fun generalize_ctyp [] _ cT = cT
+  | generalize_ctyp tfrees idx (Ctyp {cert, T, maxidx, sorts}) =
+      if idx <= maxidx then raise CTERM ("generalize_ctyp: bad index", [])
+      else
+        Ctyp {cert = cert, sorts = sorts,
+          T = Term_Subst.generalizeT tfrees idx T,
+          maxidx = Int.max (maxidx, idx)};
 
 
 (*Instantiation of schematic variables
