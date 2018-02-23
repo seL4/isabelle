@@ -321,18 +321,6 @@ fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt =
 
 end;
 
-
-fun compose_witness (Witness (_, th)) r =
-  let
-    val th' = Goal.conclude th;
-    val A = Thm.cprem_of r 1;
-  in
-    Thm.implies_elim
-      (Conv.gconv_rule Drule.beta_eta_conversion 1 r)
-      (Conv.fconv_rule Drule.beta_eta_conversion
-        (Thm.instantiate (Thm.match (Thm.cprop_of th', A)) th'))
-  end;
-
 fun conclude_witness ctxt (Witness (_, th)) =
   Thm.close_derivation (Raw_Simplifier.norm_hhf_protect ctxt (Goal.conclude th));
 
@@ -354,13 +342,41 @@ fun instantiate_normalize_morphism insts =
 
 (* satisfy hypotheses *)
 
+local
+
+val norm_term = Envir.beta_eta_contract;
+val norm_conv = Drule.beta_eta_conversion;
+val norm_cterm = Thm.rhs_of o norm_conv;
+
+fun find_witness witns hyp =
+  (case find_first (fn Witness (t, _) => hyp aconv t) witns of
+    NONE =>
+      let val hyp' = norm_term hyp
+      in find_first (fn Witness (t, _) => hyp' aconv norm_term t) witns end
+  | some => some);
+
+fun compose_witness (Witness (_, th)) r =
+  let
+    val th' = Goal.conclude th;
+    val A = Thm.cprem_of r 1;
+  in
+    Thm.implies_elim
+      (Conv.gconv_rule norm_conv 1 r)
+      (Conv.fconv_rule norm_conv
+        (Thm.instantiate (Thm.match (apply2 norm_cterm (Thm.cprop_of th', A))) th'))
+  end;
+
+in
+
 fun satisfy_thm witns thm =
-  thm |> fold (fn hyp =>
-    (case find_first (fn Witness (t, _) => Thm.term_of hyp aconv t) witns of
+  (Thm.chyps_of thm, thm) |-> fold (fn hyp =>
+    (case find_witness witns (Thm.term_of hyp) of
       NONE => I
-    | SOME w => Thm.implies_intr hyp #> compose_witness w)) (Thm.chyps_of thm);
+    | SOME w => Thm.implies_intr hyp #> compose_witness w));
 
 val satisfy_morphism = Morphism.thm_morphism "Element.satisfy" o satisfy_thm;
+
+end;
 
 
 (* rewriting with equalities *)
