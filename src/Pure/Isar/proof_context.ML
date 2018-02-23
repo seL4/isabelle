@@ -131,6 +131,8 @@ sig
   val add_thms_dynamic: binding * (Context.generic -> thm list) ->
     Proof.context -> string * Proof.context
   val add_thms_lazy: string -> (binding * thm list lazy) -> Proof.context -> Proof.context
+  val note_thms: string -> Thm.binding * (thm list * attribute list) list ->
+    Proof.context -> (string * thm list) * Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
@@ -1079,7 +1081,7 @@ fun add_thms_lazy kind (b, ths) ctxt =
     val (_, ctxt') = add_facts {index = is_stmt ctxt} (b, ths') ctxt;
   in ctxt' end;
 
-fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn ctxt =>
+fun note_thms kind ((b, more_atts), facts) ctxt =
   let
     val name = full_name ctxt b;
     val facts' = Global_Theory.name_thmss false name facts;
@@ -1088,7 +1090,9 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn ctxt =>
     val (res, ctxt') = fold_map app facts' ctxt;
     val thms = Global_Theory.name_thms false false name (flat res);
     val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms);
-  in ((name, thms), ctxt'') end);
+  in ((name, thms), ctxt'') end;
+
+val note_thmss = fold_map o note_thms;
 
 fun put_thms index thms ctxt = ctxt
   |> map_naming (K Name_Space.local_naming)

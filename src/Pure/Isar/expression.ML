@@ -743,8 +743,8 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val (_, thy'') =
             thy'
             |> Sign.qualified_path true abinding
-            |> Global_Theory.note_thmss ""
-              [((Binding.name introN, []), [([intro], [Locale.unfold_add])])]
+            |> Global_Theory.note_thms ""
+              ((Binding.name introN, []), [([intro], [Locale.unfold_add])])
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =

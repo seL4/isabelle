@@ -1059,8 +1059,8 @@ fun local_goal print_results prep_statement prep_att strict_asm
             val ctxt'' =
               ctxt'
               |> not (null assumes_propss) ?
-                (snd o Proof_Context.note_thmss ""
-                  [((Binding.name Auto_Bind.thatN, []), [(prems, [])])])
+                (snd o Proof_Context.note_thms ""
+                  ((Binding.name Auto_Bind.thatN, []), [(prems, [])]))
               |> (snd o Proof_Context.note_thmss ""
                   (assumes_bindings ~~ map (map (fn th => ([th], []))) premss))
           in (prems, ctxt'') end);

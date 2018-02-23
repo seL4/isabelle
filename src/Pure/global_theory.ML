@@ -34,8 +34,10 @@ sig
   val add_thms_dynamic': Context.generic -> binding * (Context.generic -> thm list) ->
     theory -> string * theory
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
-  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
-    -> theory -> (string * thm list) list * theory
+  val note_thms: string -> Thm.binding * (thm list * attribute list) list -> theory ->
+    (string * thm list) * theory
+  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list -> theory ->
+    (string * thm list) list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
@@ -188,7 +190,7 @@ fun add_thms_dynamic arg thy =
 
 (* note_thmss *)
 
-fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
+fun note_thms kind ((b, more_atts), facts) thy =
   let
     val name = Sign.full_name thy b;
     fun app (ths, atts) =
@@ -196,7 +198,9 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
     val (thms, thy') =
       enter_thms (name_thmss true) (name_thms false true) (apfst flat oo fold_map app)
         (b, facts) thy;
-  in ((name, thms), thy') end);
+  in ((name, thms), thy') end;
+
+val note_thmss = fold_map o note_thms;
 
 
 (* old-style defs *)
