@@ -1716,7 +1716,7 @@ by(cases xs) simp_all
 
 
 lemma list_eq_iff_nth_eq:
-  "(xs = ys) = (length xs = length ys \<and> (ALL i<length xs. xs!i = ys!i))"
+  "(xs = ys) = (length xs = length ys \<and> (\<forall>i<length xs. xs!i = ys!i))"
 apply(induct xs arbitrary: ys)
  apply force
 apply(case_tac ys)
@@ -1772,7 +1772,7 @@ lemma nth_mem [simp]: "n < length xs \<Longrightarrow> xs!n \<in> set xs"
 by (auto simp add: set_conv_nth)
 
 lemma all_nth_imp_all_set:
-  "\<lbrakk>!i < length xs. P(xs!i); x \<in> set xs\<rbrakk> \<Longrightarrow> P x"
+  "\<lbrakk>\<forall>i < length xs. P(xs!i); x \<in> set xs\<rbrakk> \<Longrightarrow> P x"
 by (auto simp add: set_conv_nth)
 
 lemma all_set_conv_all_nth:
@@ -3150,7 +3150,7 @@ apply blast
 done
 
 lemma nth_equalityI:
-  "[| length xs = length ys; ALL i < length xs. xs!i = ys!i |] ==> xs = ys"
+  "[| length xs = length ys; \<forall>i < length xs. xs!i = ys!i |] ==> xs = ys"
 by (frule nth_take_lemma [OF le_refl eq_imp_le]) simp_all
 
 lemma map_nth:

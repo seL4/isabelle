@@ -18,12 +18,12 @@ definition stable :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<
 "stable r step ss p == \<forall>(q,s')\<in>set(step p (ss!p)). s' <=_r ss!q"
 
 definition stables :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> bool" where
-"stables r step ss == !p<size ss. stable r step ss p"
+"stables r step ss == \<forall>p<size ss. stable r step ss p"
 
 definition wt_step ::
 "'s ord \<Rightarrow> 's \<Rightarrow> 's step_type \<Rightarrow> 's list \<Rightarrow> bool" where
 "wt_step r T step ts ==
- !p<size(ts). ts!p ~= T & stable r step ts p"
+ \<forall>p<size(ts). ts!p ~= T & stable r step ts p"
 
 definition is_bcv :: "'s ord \<Rightarrow> 's \<Rightarrow> 's step_type 
            \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> ('s list \<Rightarrow> 's list) \<Rightarrow> bool" where

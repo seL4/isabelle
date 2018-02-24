@@ -943,7 +943,7 @@ lemma Collect_all_imp_eq: "{x. \<forall>y. P y \<longrightarrow> Q x y} = (INT y
   done
 
 text\<open>progress (2), step 4\<close>
-lemma System_Bounded_allocAsk: "System \<in> Always {s. ALL i<Nclients.
+lemma System_Bounded_allocAsk: "System \<in> Always {s. \<forall>i<Nclients.
                           \<forall>elt \<in> set ((sub i o allocAsk) s). elt \<le> NbT}"
   apply (auto simp add: Collect_all_imp_eq)
   apply (tactic \<open>resolve_tac @{context} [Always_Int_rule [@{thm Always_allocAsk_le_ask},

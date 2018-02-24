@@ -68,7 +68,7 @@ proof -
   define k where "k = (LEAST k. \<not> b ((c ^^ k) s))"
   from assms have t: "t = (c ^^ k) s"
     by (simp add: while_option_def k_def split: if_splits)    
-  have 1: "ALL i<k. b ((c ^^ i) s)"
+  have 1: "\<forall>i<k. b ((c ^^ i) s)"
     by (auto simp: k_def dest: not_less_Least)
 
   { fix i assume "i \<le> k" then have "P ((c ^^ i) s)"
