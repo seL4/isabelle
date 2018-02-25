@@ -94,15 +94,9 @@ keywords
   and "named_theorems" :: thy_decl
 abbrevs "===>" = "===>"  (*prevent replacement of very long arrows*)
   and "--->" = "\<midarrow>\<rightarrow>"
-  and "default_sort" = ""
-  and "simproc_setup" = ""
-  and "hence" = ""
+  and "hence" "thus" "default_sort" "simproc_setup" "apply_end" "realizers" "realizability" = ""
   and "hence" = "then have"
-  and "thus" = ""
   and "thus" = "then show"
-  and "apply_end" = ""
-  and "realizers" = ""
-  and "realizability" = ""
 begin
 
 section \<open>Isar commands\<close>

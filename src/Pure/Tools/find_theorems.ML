@@ -245,7 +245,7 @@ fun matches_subterm thy (pat, obj) =
   constants that may be subject to beta-reduction after substitution
   of frees should not be included for LHS set because they could be
   thrown away by the substituted function.  E.g. for (?F 1 2) do not
-  include 1 or 2, if it were possible for ?F to be (%x y. 3).  The
+  include 1 or 2, if it were possible for ?F to be (\<lambda>x y. 3).  The
   largest possible set should always be included on the RHS.*)
 
 fun filter_pattern ctxt pat =

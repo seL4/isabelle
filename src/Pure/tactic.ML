@@ -107,8 +107,8 @@ fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
 fun compose_tac ctxt arg i =
   PRIMSEQ (Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = false} arg i);
 
-(*Converts a "destruct" rule like P&Q==>P to an "elimination" rule
-  like [| P&Q; P==>R |] ==> R *)
+(*Converts a "destruct" rule like P \<and> Q \<Longrightarrow> P to an "elimination" rule
+  like \<lbrakk>P \<and> Q; P \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R *)
 fun make_elim rl = zero_var_indexes (rl RS revcut_rl);
 
 (*Attack subgoal i by resolution, using flags to indicate elimination rules*)

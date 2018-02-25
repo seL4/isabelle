@@ -34,7 +34,7 @@ type export = bool -> cterm list -> (thm -> thm) * (term -> term);
      :
      B
   --------
-  #A ==> B
+  #A \<Longrightarrow> B
 *)
 fun assume_export is_goal asms =
   (if is_goal then Drule.implies_intr_protected asms else Drule.implies_intr_list asms, fn t => t);
@@ -44,7 +44,7 @@ fun assume_export is_goal asms =
      :
      B
   -------
-  A ==> B
+  A \<Longrightarrow> B
 *)
 fun presume_export _ = assume_export false;
 
@@ -60,7 +60,7 @@ fun assume_hyps ct ctxt =
 (** local context data **)
 
 datatype data = Data of
- {assms: (export * cterm list) list,    (*assumes: A ==> _*)
+ {assms: (export * cterm list) list,    (*assumes: A \<Longrightarrow> _*)
   prems: thm list};                     (*prems: A |- norm_hhf A*)
 
 fun make_data (assms, prems) = Data {assms = assms, prems = prems};

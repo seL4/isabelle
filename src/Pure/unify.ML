@@ -243,7 +243,7 @@ fun head_norm_dpair context (env, (rbinder, t, u)) : dpair * Envir.env =
 (*flexflex: the flex-flex pairs,  flexrigid: the flex-rigid pairs
   Does not perform assignments for flex-flex pairs:
     may create nonrigid paths, which prevent other assignments.
-  Does not even identify Vars in dpairs such as ?a =?= ?b; an attempt to
+  Does not even identify Vars in dpairs such as ?a \<equiv>\<^sup>? ?b; an attempt to
     do so caused numerous problems with no compensating advantage.
 *)
 fun SIMPL0 context dp0 (env,flexflex,flexrigid) : Envir.env * dpair list * dpair list =
@@ -426,7 +426,7 @@ fun ff_assign context (env, rbinder, t, u) : Envir.env =
 
 (*If an argument contains a banned Bound, then it should be deleted.
   But if the only path is flexible, this is difficult; the code gives up!
-  In  %x y.?a(x) =?= %x y.?b(?c(y)) should we instantiate ?b or ?c *)
+  In \<lambda>x y. ?a x \<equiv>\<^sup>? \<lambda>x y. ?b (?c y) should we instantiate ?b or ?c *)
 exception CHANGE_FAIL;   (*flexible occurrence of banned variable, or other reason to quit*)
 
 
@@ -570,7 +570,7 @@ fun add_ffpair context (rbinder,t0,u0) (env,tpairs) : Envir.env * (term * term) 
 
 
 (*Print a tracing message + list of dpairs.
-  In t==u print u first because it may be rigid or flexible --
+  In t \<equiv> u print u first because it may be rigid or flexible --
     t is always flexible.*)
 fun print_dpairs context msg (env, dpairs) =
   if Context_Position.is_visible_generic context then
@@ -580,7 +580,7 @@ fun print_dpairs context msg (env, dpairs) =
           val ctxt = Context.proof_of context;
           fun termT t =
             Syntax.pretty_term ctxt (Envir.norm_term env (Logic.rlist_abs (rbinder, t)));
-          val prt = Pretty.blk (0, [termT u, Pretty.str " =?=", Pretty.brk 1, termT t]);
+          val prt = Pretty.blk (0, [termT u, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, termT t]);
         in tracing (Pretty.string_of prt) end;
     in tracing msg; List.app pdp dpairs end
   else ();
@@ -636,12 +636,12 @@ fun var_head_of (env,t) : indexname * typ =
 
 
 (*Eliminate a flex-flex pair by the trivial substitution, see Huet (1975)
-  Unifies ?f(t1...rm) with ?g(u1...un) by ?f -> %x1...xm.?a, ?g -> %x1...xn.?a
-  Unfortunately, unifies ?f(t,u) with ?g(t,u) by ?f, ?g -> %(x,y)?a,
+  Unifies ?f t1 ... rm with ?g u1 ... un by ?f -> \<lambda>x1...xm. ?a, ?g -> \<lambda>x1...xn. ?a
+  Unfortunately, unifies ?f t u with ?g t u by ?f, ?g -> \<lambda>x y. ?a,
   though just ?g->?f is a more general unifier.
   Unlike Huet (1975), does not smash together all variables of same type --
     requires more work yet gives a less general unifier (fewer variables).
-  Handles ?f(t1...rm) with ?f(u1...um) to avoid multiple updates. *)
+  Handles ?f t1 ... rm with ?f u1 ... um to avoid multiple updates. *)
 fun smash_flexflex1 (t, u) env : Envir.env =
   let
     val vT as (v, T) = var_head_of (env, t)

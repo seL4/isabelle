@@ -40,10 +40,10 @@ val add_syntax =
     [(Binding.make ("Type", \<^here>), 0, NoSyn),
      (Binding.make ("Null", \<^here>), 0, NoSyn)]
   #> Sign.add_consts
-    [(Binding.make ("typeof", \<^here>), typ "'b => Type", NoSyn),
-     (Binding.make ("Type", \<^here>), typ "'a itself => Type", NoSyn),
+    [(Binding.make ("typeof", \<^here>), typ "'b \<Rightarrow> Type", NoSyn),
+     (Binding.make ("Type", \<^here>), typ "'a itself \<Rightarrow> Type", NoSyn),
      (Binding.make ("Null", \<^here>), typ "Null", NoSyn),
-     (Binding.make ("realizes", \<^here>), typ "'a => 'b => 'b", NoSyn)];
+     (Binding.make ("realizes", \<^here>), typ "'a \<Rightarrow> 'b \<Rightarrow> 'b", NoSyn)];
 
 val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);
@@ -430,45 +430,45 @@ val _ = Theory.setup
   (add_types [("prop", ([], NONE))] #>
 
    add_typeof_eqns
-     ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
-    \  (typeof (PROP Q)) == (Type (TYPE('Q))) ==>  \
-    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE('Q)))",
+     ["(typeof (PROP P)) \<equiv> (Type (TYPE(Null))) \<Longrightarrow>  \
+    \  (typeof (PROP Q)) \<equiv> (Type (TYPE('Q))) \<Longrightarrow>  \
+    \    (typeof (PROP P \<Longrightarrow> PROP Q)) \<equiv> (Type (TYPE('Q)))",
 
-      "(typeof (PROP Q)) == (Type (TYPE(Null))) ==>  \
-    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE(Null)))",
+      "(typeof (PROP Q)) \<equiv> (Type (TYPE(Null))) \<Longrightarrow>  \
+    \    (typeof (PROP P \<Longrightarrow> PROP Q)) \<equiv> (Type (TYPE(Null)))",
 
-      "(typeof (PROP P)) == (Type (TYPE('P))) ==>  \
-    \  (typeof (PROP Q)) == (Type (TYPE('Q))) ==>  \
-    \    (typeof (PROP P ==> PROP Q)) == (Type (TYPE('P => 'Q)))",
+      "(typeof (PROP P)) \<equiv> (Type (TYPE('P))) \<Longrightarrow>  \
+    \  (typeof (PROP Q)) \<equiv> (Type (TYPE('Q))) \<Longrightarrow>  \
+    \    (typeof (PROP P \<Longrightarrow> PROP Q)) \<equiv> (Type (TYPE('P \<Rightarrow> 'Q)))",
 
-      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE(Null))) ==>  \
-    \    (typeof (!!x. PROP P (x))) == (Type (TYPE(Null)))",
+      "(\<lambda>x. typeof (PROP P (x))) \<equiv> (\<lambda>x. Type (TYPE(Null))) \<Longrightarrow>  \
+    \    (typeof (\<And>x. PROP P (x))) \<equiv> (Type (TYPE(Null)))",
 
-      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE('P))) ==>  \
-    \    (typeof (!!x::'a. PROP P (x))) == (Type (TYPE('a => 'P)))",
+      "(\<lambda>x. typeof (PROP P (x))) \<equiv> (\<lambda>x. Type (TYPE('P))) \<Longrightarrow>  \
+    \    (typeof (\<And>x::'a. PROP P (x))) \<equiv> (Type (TYPE('a \<Rightarrow> 'P)))",
 
-      "(%x. typeof (f (x))) == (%x. Type (TYPE('f))) ==>  \
-    \    (typeof (f)) == (Type (TYPE('f)))"] #>
+      "(\<lambda>x. typeof (f (x))) \<equiv> (\<lambda>x. Type (TYPE('f))) \<Longrightarrow>  \
+    \    (typeof (f)) \<equiv> (Type (TYPE('f)))"] #>
 
    add_realizes_eqns
-     ["(typeof (PROP P)) == (Type (TYPE(Null))) ==>  \
-    \    (realizes (r) (PROP P ==> PROP Q)) ==  \
-    \    (PROP realizes (Null) (PROP P) ==> PROP realizes (r) (PROP Q))",
+     ["(typeof (PROP P)) \<equiv> (Type (TYPE(Null))) \<Longrightarrow>  \
+    \    (realizes (r) (PROP P \<Longrightarrow> PROP Q)) \<equiv>  \
+    \    (PROP realizes (Null) (PROP P) \<Longrightarrow> PROP realizes (r) (PROP Q))",
 
-      "(typeof (PROP P)) == (Type (TYPE('P))) ==>  \
-    \  (typeof (PROP Q)) == (Type (TYPE(Null))) ==>  \
-    \    (realizes (r) (PROP P ==> PROP Q)) ==  \
-    \    (!!x::'P. PROP realizes (x) (PROP P) ==> PROP realizes (Null) (PROP Q))",
+      "(typeof (PROP P)) \<equiv> (Type (TYPE('P))) \<Longrightarrow>  \
+    \  (typeof (PROP Q)) \<equiv> (Type (TYPE(Null))) \<Longrightarrow>  \
+    \    (realizes (r) (PROP P \<Longrightarrow> PROP Q)) \<equiv>  \
+    \    (\<And>x::'P. PROP realizes (x) (PROP P) \<Longrightarrow> PROP realizes (Null) (PROP Q))",
 
-      "(realizes (r) (PROP P ==> PROP Q)) ==  \
-    \  (!!x. PROP realizes (x) (PROP P) ==> PROP realizes (r (x)) (PROP Q))",
+      "(realizes (r) (PROP P \<Longrightarrow> PROP Q)) \<equiv>  \
+    \  (\<And>x. PROP realizes (x) (PROP P) \<Longrightarrow> PROP realizes (r (x)) (PROP Q))",
 
-      "(%x. typeof (PROP P (x))) == (%x. Type (TYPE(Null))) ==>  \
-    \    (realizes (r) (!!x. PROP P (x))) ==  \
-    \    (!!x. PROP realizes (Null) (PROP P (x)))",
+      "(\<lambda>x. typeof (PROP P (x))) \<equiv> (\<lambda>x. Type (TYPE(Null))) \<Longrightarrow>  \
+    \    (realizes (r) (\<And>x. PROP P (x))) \<equiv>  \
+    \    (\<And>x. PROP realizes (Null) (PROP P (x)))",
 
-      "(realizes (r) (!!x. PROP P (x))) ==  \
-    \  (!!x. PROP realizes (r (x)) (PROP P (x)))"] #>
+      "(realizes (r) (\<And>x. PROP P (x))) \<equiv>  \
+    \  (\<And>x. PROP realizes (r (x)) (PROP P (x)))"] #>
 
    Attrib.setup \<^binding>\<open>extraction_expand\<close> (Scan.succeed (extraction_expand false))
      "specify theorems to be expanded during extraction" #>

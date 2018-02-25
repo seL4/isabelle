@@ -171,7 +171,7 @@ and goal =
    {statement: (string * Position.T) * term list list * term,
       (*goal kind and statement (starting with vars), initial proposition*)
     using: thm list,                      (*goal facts*)
-    goal: thm,                            (*subgoals ==> statement*)
+    goal: thm,                            (*subgoals \<Longrightarrow> statement*)
     before_qed: Method.text option,
     after_qed:
       (context * thm list list -> state -> state) *

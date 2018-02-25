@@ -642,7 +642,7 @@ val tradeT = gen_trade importT exportT;
 val trade = gen_trade (import true) export;
 
 
-(* focus on outermost parameters: !!x y z. B *)
+(* focus on outermost parameters: \<And>x y z. B *)
 
 val bound_focus =
   Config.bool (Config.declare ("bound_focus", \<^here>) (K (Config.Bool false)));

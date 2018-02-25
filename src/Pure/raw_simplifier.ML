@@ -208,7 +208,7 @@ fun default_reorient ctxt prems lhs rhs =
   null prems andalso Pattern.matches (Proof_Context.theory_of ctxt) (lhs, rhs)
     (*the condition "null prems" is necessary because conditional rewrites
       with extra variables in the conditions may terminate although
-      the rhs is an instance of the lhs; example: ?m < ?n ==> f(?n) == f(?m)*)
+      the rhs is an instance of the lhs; example: ?m < ?n \<Longrightarrow> f ?n \<equiv> f ?m *)
     orelse
   is_Const lhs andalso not (is_Const rhs);
 
@@ -254,8 +254,8 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
     mk_rews:
       mk: turn simplification thms into rewrite rules;
       mk_cong: prepare congruence rules;
-      mk_sym: turn == around;
-      mk_eq_True: turn P into P == True;
+      mk_sym: turn \<equiv> around;
+      mk_eq_True: turn P into P \<equiv> True;
     term_ord: for ordered rewriting;*)
 
 datatype simpset =
@@ -1146,7 +1146,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                           NONE => appc ()
                         | SOME cong =>
      (*post processing: some partial applications h t1 ... tj, j <= length ts,
-       may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
+       may be a redex. Example: map (\<lambda>x. x) = (\<lambda>xs. xs) wrt map_cong*)
                            (let
                               val thm = congc (prover ctxt) ctxt maxidx cong t0;
                               val t = the_default t0 (Option.map Thm.rhs_of thm);
@@ -1290,14 +1290,14 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
   in try_botc end;
 
 
-(* Meta-rewriting: rewrites t to u and returns the theorem t==u *)
+(* Meta-rewriting: rewrites t to u and returns the theorem t \<equiv> u *)
 
 (*
   Parameters:
     mode = (simplify A,
             use A in simplifying B,
             use prems of B (if B is again a meta-impl.) to simplify A)
-           when simplifying A ==> B
+           when simplifying A \<Longrightarrow> B
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
@@ -1369,7 +1369,7 @@ fun term_depth (Abs (_, _, t)) = 1 + term_depth t
 
 val lhs_of_thm = #1 o Logic.dest_equals o Thm.prop_of;
 
-(*folding should handle critical pairs!  E.g. K == Inl(0),  S == Inr(Inl(0))
+(*folding should handle critical pairs!  E.g. K \<equiv> Inl 0,  S \<equiv> Inr (Inl 0)
   Returns longest lhs first to avoid folding its subexpressions.*)
 fun sort_lhs_depths defs =
   let val keylist = AList.make (term_depth o lhs_of_thm) defs
@@ -1382,7 +1382,7 @@ fun fold_rule ctxt defs = fold (rewrite_rule ctxt) (rev_defs defs);
 fun fold_goals_tac ctxt defs = EVERY (map (rewrite_goals_tac ctxt) (rev_defs defs));
 
 
-(* HHF normal form: !! before ==>, outermost !! generalized *)
+(* HHF normal form: \<And> before \<Longrightarrow>, outermost \<And> generalized *)
 
 local
 
