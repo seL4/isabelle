@@ -724,7 +724,7 @@ text \<open>
     & \<open>|\<close> & \<^verbatim>\<open>[\<close> \<open>type\<close> \<^verbatim>\<open>,\<close> \<open>\<dots>\<close> \<^verbatim>\<open>,\<close> \<open>type\<close> \<^verbatim>\<open>]\<close> \<open>\<Rightarrow>\<close> \<open>type\<close> & \<open>(0)\<close> \\
   @{syntax_def (inner) type_name} & = & \<open>id  |  longid\<close> \\\\
 
-  @{syntax_def (inner) sort} & = & @{syntax class_name}~~\<open>|\<close>~~\<^verbatim>\<open>{}\<close> \\
+  @{syntax_def (inner) sort} & = & @{syntax class_name}~~\<open>|\<close>~~\<^verbatim>\<open>_\<close>~~\<open>|\<close>~~\<^verbatim>\<open>{}\<close> \\
     & \<open>|\<close> & \<^verbatim>\<open>{\<close> @{syntax class_name} \<^verbatim>\<open>,\<close> \<open>\<dots>\<close> \<^verbatim>\<open>,\<close> @{syntax class_name} \<^verbatim>\<open>}\<close> \\
   @{syntax_def (inner) class_name} & = & \<open>id  |  longid\<close> \\
   \end{supertabular}
@@ -802,6 +802,9 @@ text \<open>
 
   \<^item> Dummy variables (written as underscore) may occur in different
   roles.
+
+    \<^descr> A sort ``\<open>_\<close>'' refers to a vacuous constraint for type variables, which
+    is effectively ignored in type-inference.
 
     \<^descr> A type ``\<open>_\<close>'' or ``\<open>_ :: sort\<close>'' acts like an anonymous inference
     parameter, which is filled-in according to the most general type produced

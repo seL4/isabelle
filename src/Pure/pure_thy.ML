@@ -105,6 +105,7 @@ val _ = Theory.setup
     ("",            typ "class_name => sort",          Mixfix.mixfix "_"),
     ("_class_name", typ "id => class_name",            Mixfix.mixfix "_"),
     ("_class_name", typ "longid => class_name",        Mixfix.mixfix "_"),
+    ("_dummy_sort", typ "sort",                        Mixfix.mixfix "'_"),
     ("_topsort",    typ "sort",                        Mixfix.mixfix "{}"),
     ("_sort",       typ "classes => sort",             Mixfix.mixfix "{_}"),
     ("",            typ "class_name => classes",       Mixfix.mixfix "_"),

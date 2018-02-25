@@ -176,6 +176,12 @@ Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
 (e.g. use 'find_theorems' or 'try' to figure this out).
 
 
+*** Pure ***
+
+* The inner syntax category "sort" now includes notation "_" for the
+dummy sort: it is effectively ignored in type-inference.
+
+
 *** HOL ***
 
 * Clarifed theorem names:

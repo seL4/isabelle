@@ -106,7 +106,8 @@ fun decode_sort tm =
       | classes (Const ("_classes", _) $ Const (s, _) $ cs) = class s :: classes cs
       | classes _ = err ();
 
-    fun sort (Const ("_topsort", _)) = []
+    fun sort (Const ("_dummy_sort", _)) = dummyS
+      | sort (Const ("_topsort", _)) = []
       | sort (Const ("_sort", _) $ cs) = classes cs
       | sort (Const (s, _)) = [class s]
       | sort _ = err ();
@@ -506,10 +507,12 @@ fun term_of_sort S =
     fun classes [c] = class c
       | classes (c :: cs) = Syntax.const "_classes" $ class c $ classes cs;
   in
-    (case S of
-      [] => Syntax.const "_topsort"
-    | [c] => class c
-    | cs => Syntax.const "_sort" $ classes cs)
+    if S = dummyS then Syntax.const "_dummy_sort"
+    else
+      (case S of
+        [] => Syntax.const "_topsort"
+      | [c] => class c
+      | cs => Syntax.const "_sort" $ classes cs)
   end;
 
 
