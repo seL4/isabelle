@@ -46,7 +46,7 @@ proof -
   have "(n-1)^2 \<le> n^2 - 1"
     using assms by (simp add: algebra_simps power2_eq_square)
   then have "real (n - 1) \<le> sqrt (real (n\<^sup>2 - 1))"
-    by (metis Extended_Nonnegative_Real.of_nat_le_iff of_nat_power real_le_rsqrt)
+    by (metis of_nat_le_iff of_nat_power real_le_rsqrt)
   then have "n-1 \<le> sqrt(real n ^ 2 - 1)"
     by (simp add: Suc_leI assms of_nat_diff)
   then show ?thesis

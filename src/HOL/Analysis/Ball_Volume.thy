@@ -17,8 +17,11 @@ text \<open>
 definition unit_ball_vol :: "real \<Rightarrow> real" where
   "unit_ball_vol n = pi powr (n / 2) / Gamma (n / 2 + 1)"
 
+lemma unit_ball_vol_pos [simp]: "n \<ge> 0 \<Longrightarrow> unit_ball_vol n > 0"
+  by (force simp: unit_ball_vol_def intro: divide_nonneg_pos)
+
 lemma unit_ball_vol_nonneg [simp]: "n \<ge> 0 \<Longrightarrow> unit_ball_vol n \<ge> 0"
-  by (auto simp add: unit_ball_vol_def intro!: divide_nonneg_pos Gamma_real_pos)
+  by (simp add: dual_order.strict_implies_order)
 
 text \<open>
   We first need the value of the following integral, which is at the core of
