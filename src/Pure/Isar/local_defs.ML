@@ -82,7 +82,7 @@ val head_of_def =
 
 
 (*
-  [x, x == a]
+  [x, x \<equiv> a]
        :
       B x
   -----------
@@ -133,7 +133,7 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
 (* specific export -- result based on educated guessing *)
 
 (*
-  [xs, xs == as]
+  [xs, xs \<equiv> as]
         :
        B xs
   --------------
@@ -158,11 +158,11 @@ fun export inner outer th =
   in (apply2 (map #1) (List.partition #2 defs_asms), Assumption.export false inner outer th) end;
 
 (*
-  [xs, xs == as]
+  [xs, xs \<equiv> as]
         :
      TERM b xs
   --------------  and  --------------
-     TERM b as          b xs == b as
+     TERM b as          b xs \<equiv> b as
 *)
 fun export_cterm inner outer ct =
   export inner outer (Drule.mk_term ct) ||> Drule.dest_term;

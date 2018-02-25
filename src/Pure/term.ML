@@ -598,11 +598,11 @@ val a_itselfT = itselfT (TFree (Name.aT, []));
 
 val propT : typ = Type ("prop",[]);
 
-(*maps  !!x1...xn. t   to   t*)
+(*maps  \<And>x1...xn. t   to   t*)
 fun strip_all_body (Const ("Pure.all", _) $ Abs (_, _, t)) = strip_all_body t
   | strip_all_body t = t;
 
-(*maps  !!x1...xn. t   to   [x1, ..., xn]*)
+(*maps  \<And>x1...xn. t   to   [x1, ..., xn]*)
 fun strip_all_vars (Const ("Pure.all", _) $ Abs (a, T, t)) = (a, T) :: strip_all_vars t
   | strip_all_vars t = [];
 
@@ -672,7 +672,7 @@ fun is_dependent t = loose_bvar1 (t, 0);
 
 (*Substitute arguments for loose bound variables.
   Beta-reduction of arg(n-1)...arg0 into t replacing (Bound i) with (argi).
-  Note that for ((%x y. c) a b), the bound vars in c are x=1 and y=0
+  Note that for ((\<lambda>x y. c) a b), the bound vars in c are x=1 and y=0
         and the appropriate call is  subst_bounds([b,a], c) .
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.

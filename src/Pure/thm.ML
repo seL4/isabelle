@@ -769,7 +769,7 @@ fun assume raw_ct =
      :
      B
   -------
-  A ==> B
+  A \<Longrightarrow> B
 *)
 fun implies_intr
     (ct as Cterm {t = A, T, maxidx = maxidxA, sorts, ...})
@@ -788,7 +788,7 @@ fun implies_intr
 
 
 (*Implication elimination
-  A ==> B    A
+  A \<Longrightarrow> B    A
   ------------
         B
 *)
@@ -819,7 +819,7 @@ fun implies_elim thAB thA =
      :
      A
   ------
-  !!x. A
+  \<And>x. A
 *)
 fun forall_intr
     (ct as Cterm {t = x, T, sorts, ...})
@@ -846,7 +846,7 @@ fun forall_intr
   end;
 
 (*Forall elimination
-  !!x. A
+  \<And>x. A
   ------
   A[t/x]
 *)
@@ -872,7 +872,7 @@ fun forall_elim
 (* Equality *)
 
 (*Reflexivity
-  t == t
+  t \<equiv> t
 *)
 fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
   Thm (deriv_rule0 Proofterm.reflexive,
@@ -885,9 +885,9 @@ fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
     prop = Logic.mk_equals (t, t)});
 
 (*Symmetry
-  t == u
+  t \<equiv> u
   ------
-  u == t
+  u \<equiv> t
 *)
 fun symmetric (th as Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
@@ -903,9 +903,9 @@ fun symmetric (th as Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, ...})) 
     | _ => raise THM ("symmetric", 0, [th]));
 
 (*Transitivity
-  t1 == u    u == t2
+  t1 \<equiv> u    u \<equiv> t2
   ------------------
-       t1 == t2
+       t1 \<equiv> t2
 *)
 fun transitive th1 th2 =
   let
@@ -931,7 +931,7 @@ fun transitive th1 th2 =
   end;
 
 (*Beta-conversion
-  (%x. t)(u) == t[u/x]
+  (\<lambda>x. t) u \<equiv> t[u/x]
   fully beta-reduces the term if full = true
 *)
 fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
@@ -973,9 +973,9 @@ fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
 
 (*The abstraction rule.  The Free or Var x must not be free in the hypotheses.
   The bound variable will be named "a" (since x will be something like x320)
-      t == u
+      t \<equiv> u
   --------------
-  %x. t == %x. u
+  \<lambda>x. t \<equiv> \<lambda>x. u
 *)
 fun abstract_rule a
     (Cterm {t = x, T, sorts, ...})
@@ -1005,9 +1005,9 @@ fun abstract_rule a
   end;
 
 (*The combination rule
-  f == g  t == u
-  --------------
-    f t == g u
+  f \<equiv> g  t \<equiv> u
+  -------------
+    f t \<equiv> g u
 *)
 fun combination th1 th2 =
   let
@@ -1039,9 +1039,9 @@ fun combination th1 th2 =
   end;
 
 (*Equality introduction
-  A ==> B  B ==> A
+  A \<Longrightarrow> B  B \<Longrightarrow> A
   ----------------
-       A == B
+       A \<equiv> B
 *)
 fun equal_intr th1 th2 =
   let
@@ -1067,7 +1067,7 @@ fun equal_intr th1 th2 =
   end;
 
 (*The equal propositions rule
-  A == B  A
+  A \<equiv> B  A
   ---------
       B
 *)
@@ -1110,7 +1110,7 @@ fun flexflex_rule opt_ctxt (th as Thm (der, {cert, maxidx, shyps, hyps, tpairs, 
         else
           let
             val tpairs' = tpairs |> map (apply2 (Envir.norm_term env))
-              (*remove trivial tpairs, of the form t==t*)
+              (*remove trivial tpairs, of the form t \<equiv> t*)
               |> filter_out (op aconv);
             val der' = deriv_rule1 (Proofterm.norm_proof' env) der;
             val prop' = Envir.norm_term env prop;
@@ -1269,7 +1269,7 @@ fun instantiate_cterm ([], []) ct = ct
 end;
 
 
-(*The trivial implication A ==> A, justified by assume and forall rules.
+(*The trivial implication A \<Longrightarrow> A, justified by assume and forall rules.
   A can contain Vars, not so for assume!*)
 fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
   if T <> propT then
@@ -1673,7 +1673,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
      and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
      val (context, cert) =
        make_context_certificate [state, orule] opt_ctxt (join_certificate2 (state, orule));
-     (*Add new theorem with prop = '[| Bs; As |] ==> C' to thq*)
+     (*Add new theorem with prop = "\<lbrakk>Bs; As\<rbrakk> \<Longrightarrow> C" to thq*)
      fun addth A (As, oldAs, rder', n) ((env, tpairs), thq) =
        let val normt = Envir.norm_term env;
            (*perform minimal copying here by examining env*)

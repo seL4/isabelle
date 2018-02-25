@@ -173,19 +173,19 @@ fun dest_implies (Const ("Pure.imp", _) $ A $ B) = (A, B)
 
 (** nested implications **)
 
-(* [A1,...,An], B  goes to  A1==>...An==>B  *)
+(* [A1,...,An], B  goes to  A1\<Longrightarrow>...An\<Longrightarrow>B  *)
 fun list_implies ([], B) = B
   | list_implies (A::As, B) = implies $ A $ list_implies(As,B);
 
-(* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
+(* A1\<Longrightarrow>...An\<Longrightarrow>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems (Const("Pure.imp", _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
-(* A1==>...An==>B  goes to B, where B is not an implication *)
+(* A1\<Longrightarrow>...An\<Longrightarrow>B  goes to B, where B is not an implication *)
 fun strip_imp_concl (Const("Pure.imp", _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
 
-(*Strip and return premises: (i, [], A1==>...Ai==>B)
+(*Strip and return premises: (i, [], A1\<Longrightarrow>...Ai\<Longrightarrow>B)
     goes to   ([Ai, A(i-1),...,A1] , B)         (REVERSED)
   if  i<0 or else i too big then raises  TERM*)
 fun strip_prems (0, As, B) = (As, B)
@@ -197,13 +197,13 @@ fun strip_prems (0, As, B) = (As, B)
 fun count_prems (Const ("Pure.imp", _) $ _ $ B) = 1 + count_prems B
   | count_prems _ = 0;
 
-(*Select Ai from A1 ==>...Ai==>B*)
+(*Select Ai from A1\<Longrightarrow>...Ai\<Longrightarrow>B*)
 fun nth_prem (1, Const ("Pure.imp", _) $ A $ _) = A
   | nth_prem (i, Const ("Pure.imp", _) $ _ $ B) = nth_prem (i - 1, B)
   | nth_prem (_, A) = raise TERM ("nth_prem", [A]);
 
 (*strip a proof state (Horn clause):
-  B1 ==> ... Bn ==> C   goes to   ([B1, ..., Bn], C)    *)
+  B1 \<Longrightarrow> ... Bn \<Longrightarrow> C   goes to   ([B1, ..., Bn], C) *)
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 
@@ -406,7 +406,7 @@ fun close_form A = fold (all o Free) (Term.add_frees A []) A;
 fun combound (t, n, k) =
     if  k>0  then  combound (t,n+1,k-1) $ (Bound n)  else  t;
 
-(* ([xn,...,x1], t)   ======>   (x1,...,xn)t *)
+(* ([xn,...,x1], t)   goes to   \<lambda>x1 ... xn. t *)
 fun rlist_abs ([], body) = body
   | rlist_abs ((a,T)::pairs, body) = rlist_abs(pairs, Abs(a, T, body));
 
@@ -529,11 +529,11 @@ fun list_rename_params cs (Const ("Pure.imp", _) $ A $ B) =
    HS = [Hn,...,H1],   params = [xm,...,x1], and B,
   where x1...xm are the parameters. This version (21.1.2005) REQUIRES
   the the parameters to be flattened, but it allows erule to work on
-  assumptions of the form !!x. phi. Any !! after the outermost string
+  assumptions of the form \<And>x. phi. Any \<And> after the outermost string
   will be regarded as belonging to the conclusion, and left untouched.
   Used ONLY by assum_pairs.
       Unless nasms<0, it can terminate the recursion early; that allows
-  erule to work on assumptions of the form P==>Q.*)
+  erule to work on assumptions of the form P\<Longrightarrow>Q.*)
 fun strip_assums_imp (0, Hs, B) = (Hs, B)  (*recursion terminated by nasms*)
   | strip_assums_imp (nasms, Hs, Const("Pure.imp", _) $ H $ B) =
       strip_assums_imp (nasms-1, H::Hs, B)
@@ -546,9 +546,9 @@ fun strip_assums_all (params, Const("Pure.all",_)$Abs(a,T,t)) =
 
 (*Produces disagreement pairs, one for each assumption proof, in order.
   A is the first premise of the lifted rule, and thus has the form
-    H1 ==> ... Hk ==> B   and the pairs are (H1,B),...,(Hk,B).
+    H1 \<Longrightarrow> ... Hk \<Longrightarrow> B   and the pairs are (H1,B),...,(Hk,B).
   nasms is the number of assumptions in the original subgoal, needed when B
-    has the form B1 ==> B2: it stops B1 from being taken as an assumption. *)
+    has the form B1 \<Longrightarrow> B2: it stops B1 from being taken as an assumption. *)
 fun assum_pairs(nasms,A) =
   let val (params, A') = strip_assums_all ([],A)
       val (Hs,B) = strip_assums_imp (nasms,[],A')

@@ -60,21 +60,21 @@ struct
 
 (*
   -------- (init)
-  C ==> #C
+  C \<Longrightarrow> #C
 *)
 fun init C = Thm.instantiate ([], [((("A", 0), propT), C)]) Drule.protectI;
 
 (*
-  A1 ==> ... ==> An ==> C
+  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> C
   ------------------------ (protect n)
-  A1 ==> ... ==> An ==> #C
+  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> #C
 *)
 fun protect n th = Drule.comp_no_flatten (th, n) 1 Drule.protectI;
 
 (*
-  A ==> ... ==> #C
+  A \<Longrightarrow> ... \<Longrightarrow> #C
   ---------------- (conclude)
-  A ==> ... ==> C
+  A \<Longrightarrow> ... \<Longrightarrow> C
 *)
 fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
 

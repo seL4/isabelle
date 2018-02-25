@@ -72,7 +72,7 @@ local
 val A = read_prop "A" and vA = (("A", 0), propT);
 val B = read_prop "B" and vB = (("B", 0), propT);
 val C = read_prop "C";
-val ABC = read_prop "A ==> B ==> C";
+val ABC = read_prop "A \<Longrightarrow> B \<Longrightarrow> C";
 val A_B = read_prop "A &&& B";
 
 val conjunction_def =
@@ -155,9 +155,9 @@ fun comp_rule th rule =
 in
 
 (*
-  A1 &&& ... &&& An ==> B
+  A1 &&& ... &&& An \<Longrightarrow> B
   -----------------------
-  A1 ==> ... ==> An ==> B
+  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B
 *)
 fun curry_balanced n th =
   if n < 2 then th
@@ -172,9 +172,9 @@ fun curry_balanced n th =
     end;
 
 (*
-  A1 ==> ... ==> An ==> B
+  A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B
   -----------------------
-  A1 &&& ... &&& An ==> B
+  A1 &&& ... &&& An \<Longrightarrow> B
 *)
 fun uncurry_balanced n th =
   if n < 2 then th

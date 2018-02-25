@@ -144,11 +144,11 @@ end;
 (** consider: generalized elimination and cases rule **)
 
 (*
-  consider (a) x where "A x" | (b) y where "B y" | ... ==
+  consider (a) x where "A x" | (b) y where "B y" | ... \<equiv>
 
   have thesis
-    if a [intro?]: "!!x. A x ==> thesis"
-    and b [intro?]: "!!y. B y ==> thesis"
+    if a [intro?]: "\<And>x. A x \<Longrightarrow> thesis"
+    and b [intro?]: "\<And>y. B y \<Longrightarrow> thesis"
     and ...
     for thesis
     apply (insert that)
@@ -185,9 +185,9 @@ end;
 (** obtain: augmented context based on generalized existence rule **)
 
 (*
-  obtain (a) x where "A x" <proof> ==
+  obtain (a) x where "A x" <proof> \<equiv>
 
-  have thesis if a [intro?]: "!!x. A x ==> thesis" for thesis
+  have thesis if a [intro?]: "\<And>x. A x \<Longrightarrow> thesis" for thesis
     apply (insert that)
     <proof>
   fix x assm <<obtain_export>> "A x"
@@ -279,15 +279,15 @@ fun result tac facts ctxt =
 
 (*
   <chain_facts>
-  guess x <proof body> <proof end> ==
+  guess x <proof body> <proof end> \<equiv>
 
   {
     fix thesis
     <chain_facts> have "PROP ?guess"
-      apply magic      -- {* turn goal into "thesis ==> #thesis" *}
+      apply magic      \<comment> \<open>turn goal into \<open>thesis \<Longrightarrow> #thesis\<close>\<close>
       <proof body>
-      apply_end magic  -- {* turn final "(!!x. P x ==> thesis) ==> #thesis" into
-        "#((!!x. A x ==> thesis) ==> thesis)" which is a finished goal state *}
+      apply_end magic  \<comment> \<open>turn final \<open>(\<And>x. P x \<Longrightarrow> thesis) \<Longrightarrow> #thesis\<close> into\<close>
+        \<comment> \<open>\<open>#((\<And>x. A x \<Longrightarrow> thesis) \<Longrightarrow> thesis)\<close> which is a finished goal state\<close>
       <proof end>
   }
   fix x assm <<obtain_export>> "A x"

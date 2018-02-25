@@ -176,20 +176,20 @@ fun rewrs_conv rules = first_conv (map rewr_conv rules);
 
 (* conversions on HHF rules *)
 
-(*rewrite B in !!x1 ... xn. B*)
+(*rewrite B in \<And>x1 ... xn. B*)
 fun params_conv n cv ctxt ct =
   if n <> 0 andalso Logic.is_all (Thm.term_of ct)
   then arg_conv (abs_conv (params_conv (n - 1) cv o #2) ctxt) ct
   else cv ctxt ct;
 
-(*rewrite the A's in A1 ==> ... ==> An ==> B*)
+(*rewrite the A's in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun prems_conv 0 _ ct = all_conv ct
   | prems_conv n cv ct =
       (case try Thm.dest_implies ct of
         NONE => all_conv ct
       | SOME (A, B) => Drule.imp_cong_rule (cv A) (prems_conv (n - 1) cv B));
 
-(*rewrite B in A1 ==> ... ==> An ==> B*)
+(*rewrite B in A1 \<Longrightarrow> ... \<Longrightarrow> An \<Longrightarrow> B*)
 fun concl_conv 0 cv ct = cv ct
   | concl_conv n cv ct =
       (case try Thm.dest_implies ct of

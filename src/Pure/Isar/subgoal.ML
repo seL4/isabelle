@@ -108,9 +108,9 @@ fun lift_import idx params th ctxt =
 (*
        [x, A x]
           :
-       B x ==> C
+       B x \<Longrightarrow> C
   ------------------
-  [!!x. A x ==> B x]
+  [\<And>x. A x \<Longrightarrow> B x]
           :
           C
 *)

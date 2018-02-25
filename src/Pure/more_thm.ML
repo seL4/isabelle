@@ -350,7 +350,7 @@ val weaken_sorts' = Thm.weaken_sorts o #shyps o Hyps.get;
 (** basic derived rules **)
 
 (*Elimination of implication
-  A    A ==> B
+  A    A \<Longrightarrow> B
   ------------
         B
 *)

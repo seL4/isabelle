@@ -23,7 +23,7 @@ fun term_kind (Const _) = "existing constant "
   | term_kind (Bound _) = "bound variable "
   | term_kind _ = "";
 
-(*c x == t[x] to !!x. c x == t[x]*)
+(*c x \<equiv> t[x] to \<And>x. c x \<equiv> t[x]*)
 fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
   let
     fun err msg = raise TERM (msg, [eq]);
@@ -72,7 +72,7 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
         fold_rev close_arg args (Logic.list_all (eq_vars, (Logic.mk_equals (lhs, rhs)))))
   end;
 
-(*!!x. c x == t[x] to c == %x. t[x]*)
+(*\<And>x. c x \<equiv> t[x] to c \<equiv> \<lambda>x. t[x]*)
 fun abs_def eq =
   let
     val body = Term.strip_all_body eq;
