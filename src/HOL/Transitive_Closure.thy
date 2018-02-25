@@ -7,6 +7,9 @@ section \<open>Reflexive and Transitive closure of a relation\<close>
 
 theory Transitive_Closure
   imports Relation
+  abbrevs "^*" = "\<^sup>*" "\<^sup>*\<^sup>*"
+    and "^+" = "\<^sup>+" "\<^sup>+\<^sup>+"
+    and "^=" = "\<^sup>=" "\<^sup>=\<^sup>="
 begin
 
 ML_file "~~/src/Provers/trancl.ML"
