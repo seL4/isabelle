@@ -1404,6 +1404,9 @@ lemma all_if_distrib: "(\<forall>x. if x = a then P x else Q x) \<longleftrighta
 lemma ex_if_distrib: "(\<exists>x. if x = a then P x else Q x) \<longleftrightarrow> P a \<or> (\<exists>x. x\<noteq>a \<and> Q x)"
   by auto
 
+lemma if_if_eq_conj: "(if P then if Q then x else y else y) = (if P \<and> Q then x else y)"
+  by simp
+
 text \<open>As a simplification rule, it replaces all function equalities by
   first-order equalities.\<close>
 lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"

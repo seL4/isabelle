@@ -7,19 +7,6 @@ begin
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
   by (simp add: subspace_def)
 
-lemma delta_mult_idempotent:
-  "(if k=a then 1 else (0::'a::semiring_1)) * (if k=a then 1 else 0) = (if k=a then 1 else 0)"
-  by simp
-
-(*move up?*)
-lemma sum_UNIV_sum:
-  fixes g :: "'a::finite + 'b::finite \<Rightarrow> _"
-  shows "(\<Sum>x\<in>UNIV. g x) = (\<Sum>x\<in>UNIV. g (Inl x)) + (\<Sum>x\<in>UNIV. g (Inr x))"
-  apply (subst UNIV_Plus_UNIV [symmetric])
-  apply (subst sum.Plus)
-  apply simp_all
-  done
-
 lemma sum_mult_product:
   "sum h {..<A * B :: nat} = (\<Sum>i\<in>{..<A}. \<Sum>j\<in>{..<B}. h (j + i * B))"
   unfolding sum_nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
@@ -632,7 +619,7 @@ proof -
     by simp
 qed
 
-text\<open>Inverse matrices  (not necessarily square)\<close>
+subsection\<open>Inverse matrices  (not necessarily square)\<close>
 
 definition
   "invertible(A::'a::semiring_1^'n^'m) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
@@ -728,9 +715,86 @@ lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   done
 
 
-subsection \<open>lambda skolemization on cartesian products\<close>
+subsection\<open>Some bounds on components etc. relative to operator norm.\<close>
 
-(* FIXME: rename do choice_cart *)
+lemma norm_column_le_onorm:
+  fixes A :: "real^'n^'m"
+  shows "norm(column i A) \<le> onorm(( *v) A)"
+proof -
+  have bl: "bounded_linear (( *v) A)"
+    by (simp add: linear_linear matrix_vector_mul_linear)
+  have "norm (\<chi> j. A $ j $ i) \<le> norm (A *v axis i 1)"
+    by (simp add: matrix_mult_dot cart_eq_inner_axis)
+  also have "\<dots> \<le> onorm (( *v) A)"
+    using onorm [OF bl, of "axis i 1"] by (auto simp: axis_in_Basis)
+  finally have "norm (\<chi> j. A $ j $ i) \<le> onorm (( *v) A)" .
+  then show ?thesis
+    unfolding column_def .
+qed
+
+lemma matrix_component_le_onorm:
+  fixes A :: "real^'n^'m"
+  shows "\<bar>A $ i $ j\<bar> \<le> onorm(( *v) A)"
+proof -
+  have "\<bar>A $ i $ j\<bar> \<le> norm (\<chi> n. (A $ n $ j))"
+    by (metis (full_types, lifting) component_le_norm_cart vec_lambda_beta)
+  also have "\<dots> \<le> onorm (( *v) A)"
+    by (metis (no_types) column_def norm_column_le_onorm)
+  finally show ?thesis .
+qed
+
+lemma component_le_onorm:
+  fixes f :: "real^'m \<Rightarrow> real^'n"
+  shows "linear f \<Longrightarrow> \<bar>matrix f $ i $ j\<bar> \<le> onorm f"
+  by (metis matrix_component_le_onorm matrix_vector_mul)
+
+lemma onorm_le_matrix_component_sum:
+  fixes A :: "real^'n^'m"
+  shows "onorm(( *v) A) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar>)"
+proof (rule onorm_le)
+  fix x
+  have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
+    by (rule norm_le_l1_cart)
+  also have "\<dots> \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar> * norm x)"
+  proof (rule sum_mono)
+    fix i
+    have "\<bar>(A *v x) $ i\<bar> \<le> \<bar>\<Sum>j\<in>UNIV. A $ i $ j * x $ j\<bar>"
+      by (simp add: matrix_vector_mult_def)
+    also have "\<dots> \<le> (\<Sum>j\<in>UNIV. \<bar>A $ i $ j * x $ j\<bar>)"
+      by (rule sum_abs)
+    also have "\<dots> \<le> (\<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar> * norm x)"
+      by (rule sum_mono) (simp add: abs_mult component_le_norm_cart mult_left_mono)
+    finally show "\<bar>(A *v x) $ i\<bar> \<le> (\<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar> * norm x)" .
+  qed
+  finally show "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar>) * norm x"
+    by (simp add: sum_distrib_right)
+qed
+
+lemma onorm_le_matrix_component:
+  fixes A :: "real^'n^'m"
+  assumes "\<And>i j. abs(A$i$j) \<le> B"
+  shows "onorm(( *v) A) \<le> real (CARD('m)) * real (CARD('n)) * B"
+proof (rule onorm_le)
+  fix x :: "(real, 'n) vec"
+  have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
+    by (rule norm_le_l1_cart)
+  also have "\<dots> \<le> (\<Sum>i::'m \<in>UNIV. real (CARD('n)) * B * norm x)"
+  proof (rule sum_mono)
+    fix i
+    have "\<bar>(A *v x) $ i\<bar> \<le> norm(A $ i) * norm x"
+      by (simp add: matrix_mult_dot Cauchy_Schwarz_ineq2)
+    also have "\<dots> \<le> (\<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar>) * norm x"
+      by (simp add: mult_right_mono norm_le_l1_cart)
+    also have "\<dots> \<le> real (CARD('n)) * B * norm x"
+      by (simp add: assms sum_bounded_above mult_right_mono)
+    finally show "\<bar>(A *v x) $ i\<bar> \<le> real (CARD('n)) * B * norm x" .
+  qed
+  also have "\<dots> \<le> CARD('m) * real (CARD('n)) * B * norm x"
+    by simp
+  finally show "norm (A *v x) \<le> CARD('m) * real (CARD('n)) * B * norm x" .
+qed
+
+subsection \<open>lambda skolemization on cartesian products\<close>
 
 lemma lambda_skolem: "(\<forall>i. \<exists>x. P i x) \<longleftrightarrow>
    (\<exists>x::'a ^ 'n. \<forall>i. P i (x $ i))" (is "?lhs \<longleftrightarrow> ?rhs")
@@ -749,6 +813,32 @@ proof -
     hence "\<forall>i. P i (?x$i)" by metis
     hence ?rhs by metis }
   ultimately show ?thesis by metis
+qed
+
+lemma rational_approximation:
+  assumes "e > 0"
+  obtains r::real where "r \<in> \<rat>" "\<bar>r - x\<bar> < e"
+  using Rats_dense_in_real [of "x - e/2" "x + e/2"] assms by auto
+
+lemma matrix_rational_approximation:
+  fixes A :: "real^'n^'m"
+  assumes "e > 0"
+  obtains B where "\<And>i j. B$i$j \<in> \<rat>" "onorm(\<lambda>x. (A - B) *v x) < e"
+proof -
+  have "\<forall>i j. \<exists>q \<in> \<rat>. \<bar>q - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
+    using assms by (force intro: rational_approximation [of "e / (2 * CARD('m) * CARD('n))"])
+  then obtain B where B: "\<And>i j. B$i$j \<in> \<rat>" and Bclo: "\<And>i j. \<bar>B$i$j - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
+    by (auto simp: lambda_skolem Bex_def)
+  show ?thesis
+  proof
+    have "onorm (( *v) (A - B)) \<le> real CARD('m) * real CARD('n) *
+    (e / (2 * real CARD('m) * real CARD('n)))"
+      apply (rule onorm_le_matrix_component)
+      using Bclo by (simp add: abs_minus_commute less_imp_le)
+    also have "\<dots> < e"
+      using \<open>0 < e\<close> by (simp add: divide_simps)
+    finally show "onorm (( *v) (A - B)) < e" .
+  qed (use B in auto)
 qed
 
 lemma vector_sub_project_orthogonal_cart: "(b::real^'n) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *s b) = 0"
@@ -1139,7 +1229,7 @@ lemma disjoint_interval_cart:
     and "box a b \<inter> box c d = {} \<longleftrightarrow> (\<exists>i. (b$i \<le> a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th4)
   using disjoint_interval[of a b c d] by (simp_all add: Basis_vec_def inner_axis)
 
-lemma inter_interval_cart:
+lemma Int_interval_cart:
   fixes a :: "real^'n"
   shows "cbox a b \<inter> cbox c d =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
   unfolding Int_interval
@@ -1224,6 +1314,11 @@ proof -
     using dim_substandard[of "?a ` d"] card_image[of ?a d]
     by (auto simp: axis_eq_axis inj_on_def *)
 qed
+
+lemma dim_subset_UNIV_cart:
+  fixes S :: "(real^'n) set"
+  shows "dim S \<le> CARD('n)"
+  by (metis dim_subset_UNIV DIM_cart DIM_real mult.right_neutral)
 
 lemma affinity_inverses:
   assumes m0: "m \<noteq> (0::'a::field)"
@@ -1430,13 +1525,7 @@ lemma vector_3:
   unfolding vector_def by simp_all
 
 lemma forall_vector_1: "(\<forall>v::'a::zero^1. P v) \<longleftrightarrow> (\<forall>x. P(vector[x]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (subgoal_tac "vector [v$1] = v")
-  apply simp
-  apply (vector vector_def)
-  apply simp
-  done
+  by (metis vector_1 vector_one)
 
 lemma forall_vector_2: "(\<forall>v::'a::zero^2. P v) \<longleftrightarrow> (\<forall>x y. P(vector[x, y]))"
   apply auto

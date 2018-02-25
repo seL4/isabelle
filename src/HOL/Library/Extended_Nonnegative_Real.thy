@@ -158,17 +158,6 @@ lemma continuous_on_cmult_ereal:
   using tendsto_cmult_ereal[of c f "f x" "at x within A" for x]
   by (auto simp: continuous_on_def simp del: tendsto_cmult_ereal)
 
-context linordered_nonzero_semiring
-begin
-
-lemma of_nat_nonneg [simp]: "0 \<le> of_nat n"
-  by (induct n) simp_all
-
-lemma of_nat_mono[simp]: "i \<le> j \<Longrightarrow> of_nat i \<le> of_nat j"
-  by (auto simp add: le_iff_add intro!: add_increasing2)
-
-end
-
 lemma real_of_nat_Sup:
   assumes "A \<noteq> {}" "bdd_above A"
   shows "of_nat (Sup A) = (SUP a:A. of_nat a :: real)"
@@ -179,21 +168,6 @@ proof (intro antisym)
     unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
   then show "of_nat (Sup A) \<le> (SUP a:A. of_nat a::real)"
     by (intro cSUP_upper bdd_above_image_mono assms) (auto simp: mono_def)
-qed
-
-\<comment> \<open>These generalise their counterparts in \<open>Nat.linordered_semidom_class\<close>\<close>
-lemma of_nat_less[simp]:
-  "m < n \<Longrightarrow> of_nat m < (of_nat n::'a::{linordered_nonzero_semiring, semiring_char_0})"
-  by (auto simp: less_le)
-
-lemma of_nat_le_iff[simp]:
-  "of_nat m \<le> (of_nat n::'a::{linordered_nonzero_semiring, semiring_char_0}) \<longleftrightarrow> m \<le> n"
-proof (safe intro!: of_nat_mono)
-  assume "of_nat m \<le> (of_nat n::'a)" then show "m \<le> n"
-  proof (intro leI notI)
-    assume "n < m" from less_le_trans[OF of_nat_less[OF this] \<open>of_nat m \<le> of_nat n\<close>] show False
-      by blast
-  qed
 qed
 
 lemma (in complete_lattice) SUP_sup_const1:

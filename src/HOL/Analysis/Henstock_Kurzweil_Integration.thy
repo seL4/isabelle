@@ -46,6 +46,14 @@ lemma content_cbox': "cbox a b \<noteq> {} \<Longrightarrow> content (cbox a b) 
 lemma content_cbox_if: "content (cbox a b) = (if cbox a b = {} then 0 else \<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
   by (simp add: content_cbox')
 
+lemma content_cbox_cart:
+   "cbox a b \<noteq> {} \<Longrightarrow> content(cbox a b) = prod (\<lambda>i. b$i - a$i) UNIV"
+  by (simp add: content_cbox_if Basis_vec_def cart_eq_inner_axis axis_eq_axis prod.UNION_disjoint)
+
+lemma content_cbox_if_cart:
+   "content(cbox a b) = (if cbox a b = {} then 0 else prod (\<lambda>i. b$i - a$i) UNIV)"
+  by (simp add: content_cbox_cart)
+
 lemma content_division_of:
   assumes "K \<in> \<D>" "\<D> division_of S"
   shows "content K = (\<Prod>i \<in> Basis. interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)"
@@ -356,6 +364,9 @@ qed
 lemma integral_unique [intro]: "(f has_integral y) k \<Longrightarrow> integral k f = y"
   unfolding integral_def
   by (rule some_equality) (auto intro: has_integral_unique)
+
+lemma has_integral_iff: "(f has_integral i) S \<longleftrightarrow> (f integrable_on S \<and> integral S f = i)"
+  by blast
 
 lemma eq_integralD: "integral k f = y \<Longrightarrow> (f has_integral y) k \<or> ~ f integrable_on k \<and> y=0"
   unfolding integral_def integrable_on_def
@@ -3005,7 +3016,6 @@ lemma integrable_subinterval_real:
   shows "f integrable_on {c..d}"
   by (metis assms box_real(2) integrable_subinterval)
 
-
 subsection \<open>Combining adjacent intervals in 1 dimension.\<close>
 
 lemma has_integral_combine:
@@ -4673,6 +4683,46 @@ proof -
     using as by auto
 qed
 
+subsection\<open>Integrals on set differences\<close>
+
+lemma has_integral_setdiff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes S: "(f has_integral i) S" and T: "(f has_integral j) T"
+    and neg: "negligible (T - S)"
+  shows "(f has_integral (i - j)) (S - T)"
+proof -
+  show ?thesis
+    unfolding has_integral_restrict_UNIV [symmetric, of f]
+  proof (rule has_integral_spike [OF neg])
+    have eq: "(\<lambda>x. (if x \<in> S then f x else 0) - (if x \<in> T then f x else 0)) =
+            (\<lambda>x. if x \<in> T - S then - f x else if x \<in> S - T then f x else 0)"
+      by (force simp add: )
+    have "((\<lambda>x. if x \<in> S then f x else 0) has_integral i) UNIV"
+      "((\<lambda>x. if x \<in> T then f x else 0) has_integral j) UNIV"
+      using S T has_integral_restrict_UNIV by auto
+    from has_integral_diff [OF this]
+    show "((\<lambda>x. if x \<in> T - S then - f x else if x \<in> S - T then f x else 0)
+                   has_integral i-j) UNIV"
+      by (simp add: eq)
+  qed force
+qed
+
+lemma integral_setdiff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes "f integrable_on S" "f integrable_on T" "negligible(T - S)"
+ shows "integral (S - T) f = integral S f - integral T f"
+  by (rule integral_unique) (simp add: assms has_integral_setdiff integrable_integral)
+
+lemma integrable_setdiff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes "(f has_integral i) S" "(f has_integral j) T" "negligible (T - S)"
+  shows "f integrable_on (S - T)"
+  using has_integral_setdiff [OF assms]
+  by (simp add: has_integral_iff)
+
+lemma negligible_setdiff [simp]: "T \<subseteq> S \<Longrightarrow> negligible (T - S)"
+  by (metis Diff_eq_empty_iff negligible_empty)
+
 lemma negligible_on_intervals: "negligible s \<longleftrightarrow> (\<forall>a b. negligible(s \<inter> cbox a b))" (is "?l \<longleftrightarrow> ?r")
 proof
   assume ?r
@@ -4757,9 +4807,7 @@ lemma has_integral_interior:
 lemma has_integral_closure:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
   shows "negligible(frontier S) \<Longrightarrow> (f has_integral y) (closure S) \<longleftrightarrow> (f has_integral y) S"
-  apply (rule has_integral_spike_set_eq)
-  apply (auto simp: Un_Diff closure_Un_frontier negligible_diff)
-  by (simp add: Diff_eq closure_Un_frontier)
+  by (rule has_integral_spike_set_eq) (simp add: Un_Diff closure_Un_frontier negligible_diff)
 
 lemma has_integral_open_interval:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
@@ -5343,9 +5391,6 @@ qed
 
 
 subsection \<open>Also tagged divisions\<close>
-
-lemma has_integral_iff: "(f has_integral i) S \<longleftrightarrow> (f integrable_on S \<and> integral S f = i)"
-  by blast
 
 lemma has_integral_combine_tagged_division:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
