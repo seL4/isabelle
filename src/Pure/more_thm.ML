@@ -705,7 +705,7 @@ fun pretty_tag (name, arg) = Pretty.strs [name, quote arg];
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block
-  [Syntax.pretty_term ctxt t, Pretty.str " =?=", Pretty.brk 1, Syntax.pretty_term ctxt u];
+  [Syntax.pretty_term ctxt t, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, Syntax.pretty_term ctxt u];
 
 fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
   let

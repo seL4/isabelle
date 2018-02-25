@@ -243,7 +243,7 @@ fun head_norm_dpair context (env, (rbinder, t, u)) : dpair * Envir.env =
 (*flexflex: the flex-flex pairs,  flexrigid: the flex-rigid pairs
   Does not perform assignments for flex-flex pairs:
     may create nonrigid paths, which prevent other assignments.
-  Does not even identify Vars in dpairs such as ?a =?= ?b; an attempt to
+  Does not even identify Vars in dpairs such as ?a \<equiv>\<^sup>? ?b; an attempt to
     do so caused numerous problems with no compensating advantage.
 *)
 fun SIMPL0 context dp0 (env,flexflex,flexrigid) : Envir.env * dpair list * dpair list =
@@ -426,7 +426,7 @@ fun ff_assign context (env, rbinder, t, u) : Envir.env =
 
 (*If an argument contains a banned Bound, then it should be deleted.
   But if the only path is flexible, this is difficult; the code gives up!
-  In \<lambda>x y. ?a x =?= \<lambda>x y. ?b (?c y) should we instantiate ?b or ?c *)
+  In \<lambda>x y. ?a x \<equiv>\<^sup>? \<lambda>x y. ?b (?c y) should we instantiate ?b or ?c *)
 exception CHANGE_FAIL;   (*flexible occurrence of banned variable, or other reason to quit*)
 
 
@@ -580,7 +580,7 @@ fun print_dpairs context msg (env, dpairs) =
           val ctxt = Context.proof_of context;
           fun termT t =
             Syntax.pretty_term ctxt (Envir.norm_term env (Logic.rlist_abs (rbinder, t)));
-          val prt = Pretty.blk (0, [termT u, Pretty.str " =?=", Pretty.brk 1, termT t]);
+          val prt = Pretty.blk (0, [termT u, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, termT t]);
         in tracing (Pretty.string_of prt) end;
     in tracing msg; List.app pdp dpairs end
   else ();
