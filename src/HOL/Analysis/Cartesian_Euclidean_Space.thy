@@ -644,14 +644,13 @@ lemma
   by (simp_all add: linear_linear linear_continuous_at linear_continuous_on matrix_vector_mul_linear)
 
 lemma matrix_vector_mult_add_distrib [algebra_simps]:
-  fixes A :: "real^'n^'m"
-  shows "A *v (x + y) = A *v x + A *v y"
-  using matrix_vector_mul_linear [of A]  by (simp add: linear_add)
+  "A *v (x + y) = A *v x + A *v y"
+  by (vector matrix_vector_mult_def sum.distrib distrib_left)
 
 lemma matrix_vector_mult_diff_distrib [algebra_simps]:
-  fixes A :: "real^'n^'m"
+  fixes A :: "'a::ring_1^'n^'m"
   shows "A *v (x - y) = A *v x - A *v y"
-  using matrix_vector_mul_linear [of A]  by (simp add: linear_diff)
+  by (vector matrix_vector_mult_def sum_subtractf right_diff_distrib)
 
 lemma matrix_vector_mult_scaleR[algebra_simps]:
   fixes A :: "real^'n^'m"
@@ -665,14 +664,13 @@ lemma matrix_vector_mult_0 [simp]: "0 *v w = 0"
   by (simp add: matrix_vector_mult_def vec_eq_iff)
 
 lemma matrix_vector_mult_add_rdistrib [algebra_simps]:
-  fixes A :: "real^'n^'m"
-  shows "(A + B) *v x = (A *v x) + (B *v x)"
-  by (simp add: vec_eq_iff inner_add_left matrix_vector_mul_component)
+  "(A + B) *v x = (A *v x) + (B *v x)"
+  by (vector matrix_vector_mult_def sum.distrib distrib_right)
 
 lemma matrix_vector_mult_diff_rdistrib [algebra_simps]:
-  fixes A :: "real^'n^'m"
+  fixes A :: "'a :: ring_1^'n^'m"
   shows "(A - B) *v x = (A *v x) - (B *v x)"
-  by (simp add: vec_eq_iff inner_diff_left matrix_vector_mul_component)
+  by (vector matrix_vector_mult_def sum_subtractf left_diff_distrib)
 
 lemma matrix_works:
   assumes lf: "linear f"
