@@ -268,6 +268,11 @@ lemma nth_default_eq_dflt_iff:
   "nth_default dflt xs k = dflt \<longleftrightarrow> (k < length xs \<longrightarrow> xs ! k = dflt)"
   by (simp add: nth_default_def)
 
+lemma nth_default_take_eq:
+  "nth_default dflt (take m xs) n =
+    (if n < m then nth_default dflt xs n else dflt)"
+  by (simp add: nth_default_def)
+
 lemma in_enumerate_iff_nth_default_eq:
   "x \<noteq> dflt \<Longrightarrow> (n, x) \<in> set (enumerate 0 xs) \<longleftrightarrow> nth_default dflt xs n = x"
   by (auto simp add: nth_default_def in_set_conv_nth enumerate_eq_zip)

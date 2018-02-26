@@ -352,6 +352,21 @@ lemma [code nbe]:
   shows "HOL.equal s s \<longleftrightarrow> True"
   by (simp add: equal)
 
+instantiation literal :: zero
+begin
+
+lift_definition zero_literal :: "literal"
+  is "[]"
+  .
+
+instance ..
+
+end
+
+lemma [code]:
+  "0 = STR ''''"
+  by (fact zero_literal.abs_eq)
+
 instantiation literal :: plus
 begin
 
@@ -367,6 +382,9 @@ lemma [code]:
   "s + t = String.implode (String.explode s @ String.explode t)"
   using plus_literal.abs_eq [of "String.explode s" "String.explode t"]
   by (simp add: explode_inverse implode_def)
+
+instance literal :: monoid_add
+  by standard (transfer; simp)+
 
 lifting_update literal.lifting
 lifting_forget literal.lifting
