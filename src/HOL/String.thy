@@ -352,6 +352,22 @@ lemma [code nbe]:
   shows "HOL.equal s s \<longleftrightarrow> True"
   by (simp add: equal)
 
+instantiation literal :: plus
+begin
+
+lift_definition plus_literal :: "literal \<Rightarrow> literal \<Rightarrow> literal"
+  is "(@)"
+  .
+
+instance ..
+
+end
+
+lemma [code]:
+  "s + t = String.implode (String.explode s @ String.explode t)"
+  using plus_literal.abs_eq [of "String.explode s" "String.explode t"]
+  by (simp add: explode_inverse implode_def)
+
 lifting_update literal.lifting
 lifting_forget literal.lifting
 
@@ -411,6 +427,11 @@ code_printing constant Code.abort \<rightharpoonup>
     and (OCaml) "failwith"
     and (Haskell) "!(error/ ::/ forall a./ String -> (() -> a) -> a)"
     and (Scala) "!{/ sys.error((_));/  ((_)).apply(())/ }"
+| constant "(+) :: literal \<Rightarrow> literal \<Rightarrow> literal" \<rightharpoonup>
+    (SML) infixl 18 "^"
+    and (OCaml) infixr 6 "@"
+    and (Haskell) infixr 5 "++"
+    and (Scala) infixl 7 "+"
 
 hide_type (open) literal
 
