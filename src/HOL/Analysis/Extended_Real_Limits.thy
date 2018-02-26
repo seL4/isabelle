@@ -936,6 +936,18 @@ qed
 
 subsubsection \<open>Further limits\<close>
 
+text \<open>The assumptions of @{thm tendsto_diff_ereal} are too strong, we weaken them here.\<close>
+
+lemma tendsto_diff_ereal_general [tendsto_intros]:
+  fixes u v::"'a \<Rightarrow> ereal"
+  assumes "(u \<longlongrightarrow> l) F" "(v \<longlongrightarrow> m) F" "\<not>((l = \<infinity> \<and> m = \<infinity>) \<or> (l = -\<infinity> \<and> m = -\<infinity>))"
+  shows "((\<lambda>n. u n - v n) \<longlongrightarrow> l - m) F"
+proof -
+  have "((\<lambda>n. u n + (-v n)) \<longlongrightarrow> l + (-m)) F"
+    apply (intro tendsto_intros assms) using assms by (auto simp add: ereal_uminus_eq_reorder)
+  then show ?thesis by (simp add: minus_ereal_def)
+qed
+
 lemma id_nat_ereal_tendsto_PInf [tendsto_intros]:
   "(\<lambda> n::nat. real n) \<longlonglongrightarrow> \<infinity>"
 by (simp add: filterlim_real_sequentially tendsto_PInfty_eq_at_top)
@@ -1089,6 +1101,62 @@ proof (cases "finite S")
   assume "finite S" then show ?thesis using assms
     by (induct, simp, simp add: tendsto_add_ereal_general2 assms)
 qed(simp)
+
+
+lemma continuous_ereal_abs:
+  "continuous_on (UNIV::ereal set) abs"
+proof -
+  have "continuous_on ({..0} \<union> {(0::ereal)..}) abs"
+    apply (rule continuous_on_closed_Un, auto)
+    apply (rule iffD1[OF continuous_on_cong, of "{..0}" _ "\<lambda>x. -x"])
+    using less_eq_ereal_def apply (auto simp add: continuous_uminus_ereal)
+    apply (rule iffD1[OF continuous_on_cong, of "{0..}" _ "\<lambda>x. x"])
+      apply (auto simp add: continuous_on_id)
+    done
+  moreover have "(UNIV::ereal set) = {..0} \<union> {(0::ereal)..}" by auto
+  ultimately show ?thesis by auto
+qed
+
+lemmas continuous_on_compose_ereal_abs[continuous_intros] =
+  continuous_on_compose2[OF continuous_ereal_abs _ subset_UNIV]
+
+lemma tendsto_abs_ereal [tendsto_intros]:
+  assumes "(u \<longlongrightarrow> (l::ereal)) F"
+  shows "((\<lambda>n. abs(u n)) \<longlongrightarrow> abs l) F"
+using continuous_ereal_abs assms by (metis UNIV_I continuous_on tendsto_compose)
+
+lemma ereal_minus_real_tendsto_MInf [tendsto_intros]:
+  "(\<lambda>x. ereal (- real x)) \<longlonglongrightarrow> - \<infinity>"
+by (subst uminus_ereal.simps(1)[symmetric], intro tendsto_intros)
+
+
+subsection \<open>Extended-Nonnegative-Real.thy\<close>
+
+lemma tendsto_diff_ennreal_general [tendsto_intros]:
+  fixes u v::"'a \<Rightarrow> ennreal"
+  assumes "(u \<longlongrightarrow> l) F" "(v \<longlongrightarrow> m) F" "\<not>(l = \<infinity> \<and> m = \<infinity>)"
+  shows "((\<lambda>n. u n - v n) \<longlongrightarrow> l - m) F"
+proof -
+  have "((\<lambda>n. e2ennreal(enn2ereal(u n) - enn2ereal(v n))) \<longlongrightarrow> e2ennreal(enn2ereal l - enn2ereal m)) F"
+    apply (intro tendsto_intros) using assms by  auto
+  then show ?thesis by auto
+qed
+
+lemma tendsto_mult_ennreal [tendsto_intros]:
+  fixes l m::ennreal
+  assumes "(u \<longlongrightarrow> l) F" "(v \<longlongrightarrow> m) F" "\<not>((l = 0 \<and> m = \<infinity>) \<or> (l = \<infinity> \<and> m = 0))"
+  shows "((\<lambda>n. u n * v n) \<longlongrightarrow> l * m) F"
+proof -
+  have "((\<lambda>n. e2ennreal(enn2ereal (u n) * enn2ereal (v n))) \<longlongrightarrow> e2ennreal(enn2ereal l * enn2ereal m)) F"
+    apply (intro tendsto_intros) using assms apply auto
+    using enn2ereal_inject zero_ennreal.rep_eq by fastforce+
+  moreover have "e2ennreal(enn2ereal (u n) * enn2ereal (v n)) = u n * v n" for n
+    by (subst times_ennreal.abs_eq[symmetric], auto simp add: eq_onp_same_args)
+  moreover have "e2ennreal(enn2ereal l * enn2ereal m)  = l * m"
+    by (subst times_ennreal.abs_eq[symmetric], auto simp add: eq_onp_same_args)
+  ultimately show ?thesis
+    by auto
+qed
 
 
 subsection \<open>monoset\<close>

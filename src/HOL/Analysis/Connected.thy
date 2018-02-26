@@ -2727,6 +2727,13 @@ lemma diameter_bounded:
   using diameter_bounded_bound[of s] diameter_lower_bounded[of s] assms
   by auto
 
+lemma bounded_two_points:
+  "bounded S \<longleftrightarrow> (\<exists>e. \<forall>x\<in>S. \<forall>y\<in>S. dist x y \<le> e)"
+  apply (rule iffI)
+  subgoal using diameter_bounded(1) by auto
+  subgoal using bounded_any_center[of S] by meson
+  done
+
 lemma diameter_compact_attained:
   assumes "compact s"
     and "s \<noteq> {}"
@@ -3795,6 +3802,14 @@ proposition homeomorphic_ball_UNIV:
   fixes a ::"'a::real_normed_vector"
   assumes "0 < r" shows "ball a r homeomorphic (UNIV:: 'a set)"
   using assms homeomorphic_ball01_UNIV homeomorphic_balls(1) homeomorphic_trans zero_less_one by blast
+
+
+text \<open>Connectedness is invariant under homeomorphisms.\<close>
+
+lemma homeomorphic_connectedness:
+  assumes "s homeomorphic t"
+  shows "connected s \<longleftrightarrow> connected t"
+using assms unfolding homeomorphic_def homeomorphism_def by (metis connected_continuous_image)
 
 
 subsection\<open>Inverse function property for open/closed maps\<close>

@@ -2527,6 +2527,14 @@ lemma connected_closed_set:
     \<Longrightarrow> connected S \<longleftrightarrow> (\<nexists>A B. closed A \<and> closed B \<and> A \<noteq> {} \<and> B \<noteq> {} \<and> A \<union> B = S \<and> A \<inter> B = {})"
   unfolding connected_closedin_eq closedin_closed_eq connected_closedin_eq by blast
 
+text \<open>If a connnected set is written as the union of two nonempty closed sets, then these sets
+have to intersect.\<close>
+
+lemma connected_as_closed_union:
+  assumes "connected C" "C = A \<union> B" "closed A" "closed B" "A \<noteq> {}" "B \<noteq> {}"
+  shows "A \<inter> B \<noteq> {}"
+by (metis assms closed_Un connected_closed_set)
+
 lemma closedin_subset_trans:
   "closedin (subtopology euclidean U) S \<Longrightarrow> S \<subseteq> T \<Longrightarrow> T \<subseteq> U \<Longrightarrow>
     closedin (subtopology euclidean T) S"
@@ -3284,6 +3292,11 @@ lemma closure_approachable_le:
   shows "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x \<le> e)"
   unfolding closure_approachable
   using dense by force
+
+lemma closure_approachableD:
+  assumes "x \<in> closure S" "e>0"
+  shows "\<exists>y\<in>S. dist x y < e"
+  using assms unfolding closure_approachable by (auto simp add: dist_commute)
 
 lemma closed_approachable:
   fixes S :: "'a::metric_space set"
@@ -5249,38 +5262,48 @@ lemma continuous_on_eq:
 
 text \<open>Characterization of various kinds of continuity in terms of sequences.\<close>
 
+lemma continuous_within_sequentiallyI:
+  fixes f :: "'a::{first_countable_topology, t2_space} \<Rightarrow> 'b::topological_space"
+  assumes "\<And>u::nat \<Rightarrow> 'a. u \<longlonglongrightarrow> a \<Longrightarrow> (\<forall>n. u n \<in> s) \<Longrightarrow> (\<lambda>n. f (u n)) \<longlonglongrightarrow> f a"
+  shows "continuous (at a within s) f"
+  using assms unfolding continuous_within tendsto_def[where l = "f a"]
+  by (auto intro!: sequentially_imp_eventually_within)
+
+lemma continuous_within_tendsto_compose:
+  fixes f::"'a::t2_space \<Rightarrow> 'b::topological_space"
+  assumes "continuous (at a within s) f"
+          "eventually (\<lambda>n. x n \<in> s) F"
+          "(x \<longlongrightarrow> a) F "
+  shows "((\<lambda>n. f (x n)) \<longlongrightarrow> f a) F"
+proof -
+  have *: "filterlim x (inf (nhds a) (principal s)) F"
+    using assms(2) assms(3) unfolding at_within_def filterlim_inf by (auto simp add: filterlim_principal eventually_mono)
+  show ?thesis
+    by (auto simp add: assms(1) continuous_within[symmetric] tendsto_at_within_iff_tendsto_nhds[symmetric] intro!: filterlim_compose[OF _ *])
+qed
+
+lemma continuous_within_tendsto_compose':
+  fixes f::"'a::t2_space \<Rightarrow> 'b::topological_space"
+  assumes "continuous (at a within s) f"
+    "\<And>n. x n \<in> s"
+    "(x \<longlongrightarrow> a) F "
+  shows "((\<lambda>n. f (x n)) \<longlongrightarrow> f a) F"
+  by (auto intro!: continuous_within_tendsto_compose[OF assms(1)] simp add: assms)
+
 lemma continuous_within_sequentially:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
+  fixes f :: "'a::{first_countable_topology, t2_space} \<Rightarrow> 'b::topological_space"
   shows "continuous (at a within s) f \<longleftrightarrow>
     (\<forall>x. (\<forall>n::nat. x n \<in> s) \<and> (x \<longlongrightarrow> a) sequentially
          \<longrightarrow> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
-  (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  {
-    fix x :: "nat \<Rightarrow> 'a"
-    assume x: "\<forall>n. x n \<in> s" "\<forall>e>0. eventually (\<lambda>n. dist (x n) a < e) sequentially"
-    fix T :: "'b set"
-    assume "open T" and "f a \<in> T"
-    with \<open>?lhs\<close> obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> f x \<in> T"
-      unfolding continuous_within tendsto_def eventually_at by auto
-    have "eventually (\<lambda>n. dist (x n) a < d) sequentially"
-      using x(2) \<open>d>0\<close> by simp
-    then have "eventually (\<lambda>n. (f \<circ> x) n \<in> T) sequentially"
-    proof eventually_elim
-      case (elim n)
-      then show ?case
-        using d x(1) \<open>f a \<in> T\<close> by auto
-    qed
-  }
-  then show ?rhs
-    unfolding tendsto_iff tendsto_def by simp
-next
-  assume ?rhs
-  then show ?lhs
-    unfolding continuous_within tendsto_def [where l="f a"]
-    by (simp add: sequentially_imp_eventually_within)
-qed
+  using continuous_within_tendsto_compose'[of a s f _ sequentially]
+    continuous_within_sequentiallyI[of a s f]
+  by (auto simp: o_def)
+
+lemma continuous_at_sequentiallyI:
+  fixes f :: "'a::{first_countable_topology, t2_space} \<Rightarrow> 'b::topological_space"
+  assumes "\<And>u. u \<longlonglongrightarrow> a \<Longrightarrow> (\<lambda>n. f (u n)) \<longlonglongrightarrow> f a"
+  shows "continuous (at a) f"
+  using continuous_within_sequentiallyI[of a UNIV f] assms by auto
 
 lemma continuous_at_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
@@ -5288,12 +5311,19 @@ lemma continuous_at_sequentially:
     (\<forall>x. (x \<longlongrightarrow> a) sequentially --> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
   using continuous_within_sequentially[of a UNIV f] by simp
 
+lemma continuous_on_sequentiallyI:
+  fixes f :: "'a::{first_countable_topology, t2_space} \<Rightarrow> 'b::topological_space"
+  assumes "\<And>u a. (\<forall>n. u n \<in> s) \<Longrightarrow> a \<in> s \<Longrightarrow> u \<longlonglongrightarrow> a \<Longrightarrow> (\<lambda>n. f (u n)) \<longlonglongrightarrow> f a"
+  shows "continuous_on s f"
+  using assms unfolding continuous_on_eq_continuous_within
+  using continuous_within_sequentiallyI[of _ s f] by auto
+
 lemma continuous_on_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous_on s f \<longleftrightarrow>
     (\<forall>x. \<forall>a \<in> s. (\<forall>n. x(n) \<in> s) \<and> (x \<longlongrightarrow> a) sequentially
       --> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
-  (is "?lhs = ?rhs")
+    (is "?lhs = ?rhs")
 proof
   assume ?rhs
   then show ?lhs

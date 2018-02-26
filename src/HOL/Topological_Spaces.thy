@@ -1289,6 +1289,9 @@ lemma filterlim_subseq: "strict_mono f \<Longrightarrow> filterlim f sequentiall
 lemma strict_mono_o: "strict_mono r \<Longrightarrow> strict_mono s \<Longrightarrow> strict_mono (r \<circ> s)"
   unfolding strict_mono_def by simp
 
+lemma strict_mono_compose: "strict_mono r \<Longrightarrow> strict_mono s \<Longrightarrow> strict_mono (\<lambda>x. r (s x))"
+  using strict_mono_o[of r s] by (simp add: o_def)
+
 lemma incseq_imp_monoseq:  "incseq X \<Longrightarrow> monoseq X"
   by (simp add: incseq_def monoseq_def)
 
@@ -1883,6 +1886,14 @@ lemma continuous_on_open_Un:
 lemma continuous_on_closed_Un:
   "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
   by (auto simp add: continuous_on_closed_vimage closed_Un Int_Un_distrib)
+
+lemma continuous_on_closed_Union:
+  assumes "finite I"
+    "\<And>i. i \<in> I \<Longrightarrow> closed (U i)"
+    "\<And>i. i \<in> I \<Longrightarrow> continuous_on (U i) f"
+  shows "continuous_on (\<Union> i \<in> I. U i) f"
+  using assms
+  by (induction I) (auto intro!: continuous_on_closed_Un)
 
 lemma continuous_on_If:
   assumes closed: "closed s" "closed t"

@@ -1751,6 +1751,10 @@ qed (auto intro!: exI[of _ "{y. dist x y < e}" for e] open_ball simp: dist_commu
 lemma (in metric_space) tendsto_iff: "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   unfolding nhds_metric filterlim_INF filterlim_principal by auto
 
+lemma tendsto_dist_iff:
+  "((f \<longlongrightarrow> l) F) \<longleftrightarrow> (((\<lambda>x. dist (f x) l) \<longlongrightarrow> 0) F)"
+  unfolding tendsto_iff by simp
+
 lemma (in metric_space) tendstoI [intro?]:
   "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F) \<Longrightarrow> (f \<longlongrightarrow> l) F"
   by (auto simp: tendsto_iff)
@@ -2168,6 +2172,40 @@ lemma Cauchy_convergent_iff: "Cauchy X \<longleftrightarrow> convergent X"
   for X :: "nat \<Rightarrow> 'a::complete_space"
   by (blast intro: Cauchy_convergent convergent_Cauchy)
 
+text \<open>To prove that a Cauchy sequence converges, it suffices to show that a subsequence converges.\<close>
+
+lemma Cauchy_converges_subseq:
+  fixes u::"nat \<Rightarrow> 'a::metric_space"
+  assumes "Cauchy u"
+    "strict_mono r"
+    "(u o r) \<longlonglongrightarrow> l"
+  shows "u \<longlonglongrightarrow> l"
+proof -
+  have *: "eventually (\<lambda>n. dist (u n) l < e) sequentially" if "e > 0" for e
+  proof -
+    have "e/2 > 0" using that by auto
+    then obtain N1 where N1: "\<And>m n. m \<ge> N1 \<Longrightarrow> n \<ge> N1 \<Longrightarrow> dist (u m) (u n) < e/2"
+      using \<open>Cauchy u\<close> unfolding Cauchy_def by blast
+    obtain N2 where N2: "\<And>n. n \<ge> N2 \<Longrightarrow> dist ((u o r) n) l < e / 2"
+      using order_tendstoD(2)[OF iffD1[OF tendsto_dist_iff \<open>(u o r) \<longlonglongrightarrow> l\<close>] \<open>e/2 > 0\<close>]
+      unfolding eventually_sequentially by auto
+    have "dist (u n) l < e" if "n \<ge> max N1 N2" for n
+    proof -
+      have "dist (u n) l \<le> dist (u n) ((u o r) n) + dist ((u o r) n) l"
+        by (rule dist_triangle)
+      also have "... < e/2 + e/2"
+        apply (intro add_strict_mono)
+        using N1[of n "r n"] N2[of n] that unfolding comp_def
+        by (auto simp add: less_imp_le) (meson assms(2) less_imp_le order.trans seq_suble)
+      finally show ?thesis by simp
+    qed 
+    then show ?thesis unfolding eventually_sequentially by blast
+  qed
+  have "(\<lambda>n. dist (u n) l) \<longlonglongrightarrow> 0"
+    apply (rule order_tendstoI)
+    using * by auto (meson eventually_sequentiallyI less_le_trans zero_le_dist)
+  then show ?thesis using tendsto_dist_iff by auto
+qed
 
 subsection \<open>The set of real numbers is a complete metric space\<close>
 

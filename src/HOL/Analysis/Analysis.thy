@@ -23,6 +23,7 @@ imports
   Generalised_Binomial_Theorem
   Gamma_Function
   Ball_Volume
+  Lipschitz
 begin
 
 end

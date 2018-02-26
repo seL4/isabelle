@@ -1013,7 +1013,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma image_minus_const_greaterThanAtMost_real[simp]:
+lemma image_minus_const_greaterThanAtMost[simp]:
   fixes a b c::"'a::linordered_idom"
   shows "(-) c ` {a<..b} = {c - b..<c - a}"
 proof -
@@ -1023,7 +1023,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma image_minus_const_atLeast_real[simp]:
+lemma image_minus_const_atLeast[simp]:
   fixes a c::"'a::linordered_idom"
   shows "(-) c ` {a..} = {..c - a}"
 proof -
@@ -1033,7 +1033,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma image_minus_const_AtMost_real[simp]:
+lemma image_minus_const_AtMost[simp]:
   fixes b c::"'a::linordered_idom"
   shows "(-) c ` {..b} = {c - b..}"
 proof -
@@ -1042,6 +1042,10 @@ proof -
   also have "\<dots> = {c - b..}" by simp
   finally show ?thesis by simp
 qed
+
+lemma image_minus_const_atLeastAtMost' [simp]:
+  "(\<lambda>t. t-d)`{a..b} = {a-d..b-d}" for d::"'a::linordered_idom"
+  by (metis (no_types, lifting) diff_conv_add_uminus image_add_atLeastAtMost' image_cong)
 
 context linordered_field begin
 

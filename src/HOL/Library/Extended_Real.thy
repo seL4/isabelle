@@ -4297,6 +4297,14 @@ proof -
     by (simp add: x' y' cong: filterlim_cong)
 qed
 
+lemma continuous_on_diff_ereal:
+  "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>) \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> \<bar>g x\<bar> \<noteq> \<infinity>) \<Longrightarrow> continuous_on A (\<lambda>z. f z - g z::ereal)"
+  apply (auto simp: continuous_on_def)
+  apply (intro tendsto_diff_ereal)
+  apply metis+
+  done
+
+
 subsubsection \<open>Tests for code generator\<close>
 
 text \<open>A small list of simple arithmetic expressions.\<close>

@@ -2910,13 +2910,8 @@ lemma log_base_powr: "a \<noteq> 0 \<Longrightarrow> log (a powr b) x = log a x 
 lemma log_base_root: "n > 0 \<Longrightarrow> b > 0 \<Longrightarrow> log (root n b) x = n * (log b x)"
   by (simp add: log_def ln_root)
 
-lemma ln_bound: "1 \<le> x \<Longrightarrow> ln x \<le> x"
-  for x :: real
-  apply (subgoal_tac "ln (1 + (x - 1)) \<le> x - 1")
-   apply simp
-  apply (rule ln_add_one_self_le_self)
-  apply simp
-  done
+lemma ln_bound: "0 < x \<Longrightarrow> ln x \<le> x" for x :: real
+  using ln_le_minus_one by force
 
 lemma powr_mono: "a \<le> b \<Longrightarrow> 1 \<le> x \<Longrightarrow> x powr a \<le> x powr b"
   for x :: real

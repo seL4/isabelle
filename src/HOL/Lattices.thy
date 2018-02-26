@@ -757,6 +757,11 @@ lemma max_of_mono: "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)" for 
 
 end
 
+lemma max_of_antimono: "antimono f \<Longrightarrow> max (f x) (f y) = f (min x y)"
+  and min_of_antimono: "antimono f \<Longrightarrow> min (f x) (f y) = f (max x y)"
+  for f::"'a::linorder \<Rightarrow> 'b::linorder"
+  by (auto simp: antimono_def Orderings.max_def min_def intro!: antisym)
+
 lemma inf_min: "inf = (min :: 'a::{semilattice_inf,linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (auto intro: antisym simp add: min_def fun_eq_iff)
 

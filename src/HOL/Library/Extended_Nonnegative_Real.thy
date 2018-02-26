@@ -1547,10 +1547,31 @@ lemma ennreal_tendsto_cmult:
   by (rule continuous_on_tendsto_compose[where g=f, OF ennreal_continuous_on_cmult, where s=UNIV])
      (auto simp: continuous_on_id)
 
-lemma tendsto_ennrealI[intro, simp]:
+lemma tendsto_ennrealI[intro, simp, tendsto_intros]:
   "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. ennreal (f x)) \<longlongrightarrow> ennreal x) F"
   by (auto simp: ennreal_def
            intro!: continuous_on_tendsto_compose[OF continuous_on_e2ennreal[of UNIV]] tendsto_max)
+
+lemma tendsto_enn2erealI [tendsto_intros]:
+  assumes "(f \<longlongrightarrow> l) F"
+  shows "((\<lambda>i. enn2ereal(f i)) \<longlongrightarrow> enn2ereal l) F"
+using tendsto_enn2ereal_iff assms by auto
+
+lemma tendsto_e2ennrealI [tendsto_intros]:
+  assumes "(f \<longlongrightarrow> l) F"
+  shows "((\<lambda>i. e2ennreal(f i)) \<longlongrightarrow> e2ennreal l) F"
+proof -
+  have *: "e2ennreal (max x 0) = e2ennreal x" for x
+    by (simp add: e2ennreal_def max.commute)
+  have "((\<lambda>i. max (f i) 0) \<longlongrightarrow> max l 0) F"
+    apply (intro tendsto_intros) using assms by auto
+  then have "((\<lambda>i. enn2ereal(e2ennreal (max (f i) 0))) \<longlongrightarrow> enn2ereal (e2ennreal (max l 0))) F"
+    by (subst enn2ereal_e2ennreal, auto)+
+  then have "((\<lambda>i. e2ennreal (max (f i) 0)) \<longlongrightarrow> e2ennreal (max l 0)) F"
+    using tendsto_enn2ereal_iff by auto
+  then show ?thesis
+    unfolding * by auto
+qed
 
 lemma ennreal_suminf_minus:
   fixes f g :: "nat \<Rightarrow> ennreal"
@@ -1914,6 +1935,18 @@ lemma ennreal_minus_cancel_iff:
   shows "a - b = a - c \<longleftrightarrow> (b = c \<or> (a \<le> b \<and> a \<le> c) \<or> a = top)"
   by (cases a; cases b; cases c) (auto simp: ennreal_minus_if)
 
+text \<open>The next lemma is wrong for $a = top$, for $b = c = 1$ for instance.\<close>
+
+lemma ennreal_right_diff_distrib:
+  fixes a b c::ennreal
+  assumes "a \<noteq> top"
+  shows "a * (b - c) = a * b - a * c"
+  apply (cases a, cases b, cases c, auto simp add: assms)
+  apply (metis (mono_tags, lifting) ennreal_minus ennreal_mult' linordered_field_class.sign_simps(38) split_mult_pos_le)
+  apply (metis ennreal_minus_zero ennreal_mult_cancel_left ennreal_top_eq_mult_iff minus_top_ennreal mult_eq_0_iff top_neq_ennreal)
+  apply (metis ennreal_minus_eq_top ennreal_minus_zero ennreal_mult_eq_top_iff mult_eq_0_iff)
+  done
+
 lemma SUP_diff_ennreal:
   "c < top \<Longrightarrow> (SUP i:I. f i - c :: ennreal) = (SUP i:I. f i) - c"
   by (auto intro!: SUP_eqI ennreal_minus_mono SUP_least intro: SUP_upper
@@ -1950,14 +1983,7 @@ qed
 lemma enn2real_eq_0_iff: "enn2real x = 0 \<longleftrightarrow> x = 0 \<or> x = top"
   by (cases x) auto
 
-lemma (in -) continuous_on_diff_ereal:
-  "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>) \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> \<bar>g x\<bar> \<noteq> \<infinity>) \<Longrightarrow> continuous_on A (\<lambda>z. f z - g z::ereal)"
-  apply (auto simp: continuous_on_def)
-  apply (intro tendsto_diff_ereal)
-  apply metis+
-  done
-
-lemma (in -) continuous_on_diff_ennreal:
+lemma continuous_on_diff_ennreal:
   "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> top) \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> g x \<noteq> top) \<Longrightarrow> continuous_on A (\<lambda>z. f z - g z::ennreal)"
   including ennreal.lifting
 proof (transfer fixing: A, simp add: top_ereal_def)
@@ -1967,10 +1993,20 @@ proof (transfer fixing: A, simp add: top_ereal_def)
     by (intro continuous_on_max continuous_on_const continuous_on_diff_ereal) auto
 qed
 
-lemma (in -) tendsto_diff_ennreal:
+lemma tendsto_diff_ennreal:
   "(f \<longlongrightarrow> x) F \<Longrightarrow> (g \<longlongrightarrow> y) F \<Longrightarrow> x \<noteq> top \<Longrightarrow> y \<noteq> top \<Longrightarrow> ((\<lambda>z. f z - g z::ennreal) \<longlongrightarrow> x - y) F"
   using continuous_on_tendsto_compose[where f="\<lambda>x. fst x - snd x::ennreal" and s="{(x, y). x \<noteq> top \<and> y \<noteq> top}" and g="\<lambda>x. (f x, g x)" and l="(x, y)" and F="F",
     OF continuous_on_diff_ennreal]
   by (auto simp: tendsto_Pair eventually_conj_iff less_top order_tendstoD continuous_on_fst continuous_on_snd continuous_on_id)
+
+declare lim_real_of_ereal [tendsto_intros]
+
+lemma tendsto_enn2real [tendsto_intros]:
+  assumes "(u \<longlongrightarrow> ennreal l) F" "l \<ge> 0"
+  shows "((\<lambda>n. enn2real (u n)) \<longlongrightarrow> l) F"
+  unfolding enn2real_def
+  apply (intro tendsto_intros)
+  apply (subst enn2ereal_ennreal[symmetric])
+  by (intro tendsto_intros assms)+
 
 end
