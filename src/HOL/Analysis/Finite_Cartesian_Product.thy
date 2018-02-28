@@ -39,7 +39,7 @@ text \<open>
     \<^item> \<open>'a^'b\<close> becomes \<open>('a, 'b::finite) vec\<close>
     \<^item> \<open>'a^'b::_\<close> becomes \<open>('a, 'b) vec\<close> without extra sort-constraint
 \<close>
-syntax "_finite_vec" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)" [15, 16] 15)
+syntax "_vec_type" :: "type \<Rightarrow> type \<Rightarrow> type" (infixl "^" 15)
 parse_translation \<open>
   let
     fun vec t u = Syntax.const @{type_syntax vec} $ t $ u;
@@ -52,7 +52,7 @@ parse_translation \<open>
           else vec t u
       | _ => vec t u)
   in
-    [(@{syntax_const "_finite_vec"}, K finite_vec_tr)]
+    [(@{syntax_const "_vec_type"}, K finite_vec_tr)]
   end
 \<close>
 
