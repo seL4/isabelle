@@ -360,9 +360,9 @@ lemma interior_halfspace_ge [simp]:
 using interior_halfspace_le [of "-a" "-b"] by simp
 
 lemma interior_halfspace_component_le [simp]:
-     "interior {x. x$k \<le> a} = {x :: (real,'n::finite) vec. x$k < a}" (is "?LE")
+     "interior {x. x$k \<le> a} = {x :: (real^'n). x$k < a}" (is "?LE")
   and interior_halfspace_component_ge [simp]:
-     "interior {x. x$k \<ge> a} = {x :: (real,'n::finite) vec. x$k > a}" (is "?GE")
+     "interior {x. x$k \<ge> a} = {x :: (real^'n). x$k > a}" (is "?GE")
 proof -
   have "axis k (1::real) \<noteq> 0"
     by (simp add: axis_def vec_eq_iff)
@@ -389,9 +389,9 @@ lemma closure_halfspace_gt [simp]:
 using closure_halfspace_lt [of "-a" "-b"] by simp
 
 lemma closure_halfspace_component_lt [simp]:
-     "closure {x. x$k < a} = {x :: (real,'n::finite) vec. x$k \<le> a}" (is "?LE")
+     "closure {x. x$k < a} = {x :: (real^'n). x$k \<le> a}" (is "?LE")
   and closure_halfspace_component_gt [simp]:
-     "closure {x. x$k > a} = {x :: (real,'n::finite) vec. x$k \<ge> a}" (is "?GE")
+     "closure {x. x$k > a} = {x :: (real^'n). x$k \<ge> a}" (is "?GE")
 proof -
   have "axis k (1::real) \<noteq> 0"
     by (simp add: axis_def vec_eq_iff)
@@ -453,7 +453,7 @@ next
 qed
 
 lemma interior_standard_hyperplane:
-   "interior {x :: (real,'n::finite) vec. x$k = a} = {}"
+   "interior {x :: (real^'n). x$k = a} = {}"
 proof -
   have "axis k (1::real) \<noteq> 0"
     by (simp add: axis_def vec_eq_iff)
@@ -773,7 +773,7 @@ lemma onorm_le_matrix_component:
   assumes "\<And>i j. abs(A$i$j) \<le> B"
   shows "onorm(( *v) A) \<le> real (CARD('m)) * real (CARD('n)) * B"
 proof (rule onorm_le)
-  fix x :: "(real, 'n) vec"
+  fix x :: "real^'n::_"
   have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
     by (rule norm_le_l1_cart)
   also have "\<dots> \<le> (\<Sum>i::'m \<in>UNIV. real (CARD('n)) * B * norm x)"
