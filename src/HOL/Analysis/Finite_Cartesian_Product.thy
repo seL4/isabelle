@@ -15,7 +15,7 @@ begin
 
 subsection \<open>Finite Cartesian products, with indexing and lambdas.\<close>
 
-typedef ('a, 'b) vec = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
+typedef ('a, 'b) vec = "UNIV :: ('b::finite \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..
 
 declare vec_lambda_inject [simplified, simp]
@@ -34,13 +34,12 @@ end
 
 unbundle vec_syntax
 
-(*
-  Translate "'b ^ 'n" into "'b ^ ('n :: finite)". When 'n has already more than
-  the finite type class write "vec 'b 'n"
-*)
-
+text \<open>
+  Concrete syntax for \<open>('a, 'b) vec\<close>:
+    \<^item> \<open>'a^'b\<close> becomes \<open>('a, 'b::finite) vec\<close>
+    \<^item> \<open>'a^'b::_\<close> becomes \<open>('a, 'b) vec\<close> without extra sort-constraint
+\<close>
 syntax "_finite_vec" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)" [15, 16] 15)
-
 parse_translation \<open>
   let
     fun vec t u = Syntax.const @{type_syntax vec} $ t $ u;
@@ -107,7 +106,7 @@ qed
 
 lemma infinite_UNIV_vec:
   assumes "infinite (UNIV :: 'a set)"
-  shows   "infinite (UNIV :: ('a, 'b :: finite) vec set)"
+  shows   "infinite (UNIV :: ('a^'b) set)"
 proof (subst bij_betw_finite)
   show "bij_betw vec_nth UNIV (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
     by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
@@ -127,7 +126,7 @@ proof (subst bij_betw_finite)
 qed
 
 lemma CARD_vec [simp]:
-  "CARD(('a,'b::finite) vec) = CARD('a) ^ CARD('b)"
+  "CARD('a^'b) = CARD('a) ^ CARD('b)"
 proof (cases "finite (UNIV :: 'a set)")
   case True
   show ?thesis
@@ -385,7 +384,7 @@ instantiation vec :: (metric_space, finite) uniformity_dist
 begin
 
 definition [code del]:
-  "(uniformity :: (('a, 'b) vec \<times> ('a, 'b) vec) filter) =
+  "(uniformity :: (('a^'b::_) \<times> ('a^'b::_)) filter) =
     (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
 instance
