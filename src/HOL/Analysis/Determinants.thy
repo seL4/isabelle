@@ -934,7 +934,7 @@ subsection \<open>Orthogonality of a transformation and matrix.\<close>
 definition "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 
 lemma orthogonal_transformation:
-  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>(v::real ^_). norm (f v) = norm v)"
+  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v. norm (f v) = norm v)"
   unfolding orthogonal_transformation_def
   apply auto
   apply (erule_tac x=v in allE)+
@@ -957,8 +957,7 @@ lemma orthogonal_transformation_compose:
   by (simp add: orthogonal_transformation_def linear_compose)
 
 lemma orthogonal_transformation_neg:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
+  "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
   by (auto simp: orthogonal_transformation_def dest: linear_compose_neg)
 
 lemma orthogonal_transformation_linear:
@@ -966,28 +965,27 @@ lemma orthogonal_transformation_linear:
   by (simp add: orthogonal_transformation_def)
 
 lemma orthogonal_transformation_inj:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<Longrightarrow> inj f"
-  unfolding orthogonal_transformation_def inj_on_def by (metis euclidean_eqI)
+  "orthogonal_transformation f \<Longrightarrow> inj f"
+  unfolding orthogonal_transformation_def inj_on_def
+  by (metis vector_eq)
 
 lemma orthogonal_transformation_surj:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<Longrightarrow> surj f"
+  "orthogonal_transformation f \<Longrightarrow> surj f"
+  for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (simp add: linear_injective_imp_surjective orthogonal_transformation_inj orthogonal_transformation_linear)
 
 lemma orthogonal_transformation_bij:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<Longrightarrow> bij f"
+  "orthogonal_transformation f \<Longrightarrow> bij f"
+  for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (simp add: bij_def orthogonal_transformation_inj orthogonal_transformation_surj)
 
 lemma orthogonal_transformation_inv:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<Longrightarrow> orthogonal_transformation (inv f)"
+  "orthogonal_transformation f \<Longrightarrow> orthogonal_transformation (inv f)"
+  for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (metis (no_types, hide_lams) bijection.inv_right bijection_def inj_linear_imp_inv_linear orthogonal_transformation orthogonal_transformation_bij orthogonal_transformation_inj)
 
 lemma orthogonal_transformation_norm:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<Longrightarrow> norm (f x) = norm x"
+  "orthogonal_transformation f \<Longrightarrow> norm (f x) = norm x"
   by (metis orthogonal_transformation)
 
 lemma orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n) \<longleftrightarrow> transpose Q ** Q = mat 1"
@@ -1092,7 +1090,7 @@ lemma orthogonal_transformation_det [simp]:
 subsection \<open>Linearity of scaling, and hence isometry, that preserves origin.\<close>
 
 lemma scaling_linear:
-  fixes f :: "real ^'n \<Rightarrow> real ^'n"
+  fixes f :: "'a::real_inner \<Rightarrow> 'a::real_inner"
   assumes f0: "f 0 = 0"
     and fd: "\<forall>x y. dist (f x) (f y) = c * dist x y"
   shows "linear f"
@@ -1109,18 +1107,18 @@ proof -
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
   show ?thesis
-    unfolding linear_iff vector_eq[where 'a="real^'n"] scalar_mult_eq_scaleR
+    unfolding linear_iff vector_eq[where 'a="'a"] scalar_mult_eq_scaleR
     by (simp add: inner_add fc field_simps)
 qed
 
 lemma isometry_linear:
-  "f (0:: real^'n) = (0:: real^'n) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y \<Longrightarrow> linear f"
+  "f (0::'a::real_inner) = (0::'a) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y \<Longrightarrow> linear f"
   by (rule scaling_linear[where c=1]) simp_all
 
 text \<open>Hence another formulation of orthogonal transformation.\<close>
 
 lemma orthogonal_transformation_isometry:
-  "orthogonal_transformation f \<longleftrightarrow> f(0::real^'n) = (0::real^'n) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
+  "orthogonal_transformation f \<longleftrightarrow> f(0::'a::real_inner) = (0::'a) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
   unfolding orthogonal_transformation
   apply (auto simp: linear_0 isometry_linear)
    apply (metis (no_types, hide_lams) dist_norm linear_diff)
@@ -1128,7 +1126,7 @@ lemma orthogonal_transformation_isometry:
 
 
 lemma image_orthogonal_transformation_ball:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
   assumes "orthogonal_transformation f"
   shows "f ` ball x r = ball (f x) r"
 proof (intro equalityI subsetI)
@@ -1144,7 +1142,7 @@ next
 qed
 
 lemma image_orthogonal_transformation_cball:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
   assumes "orthogonal_transformation f"
   shows "f ` cball x r = cball (f x) r"
 proof (intro equalityI subsetI)
@@ -1234,7 +1232,7 @@ lemma orthogonal_transformation_exists:
 proof (cases "a = 0 \<or> b = 0")
   case True
   with assms show ?thesis
-    using orthogonal_transformation_isometry that by fastforce
+    using that by force
 next
   case False
   then obtain f where f: "orthogonal_transformation f" and eq: "f (a /\<^sub>R norm a) = (b /\<^sub>R norm b)"
@@ -1256,13 +1254,13 @@ qed
 subsection \<open>Can extend an isometry from unit sphere.\<close>
 
 lemma isometry_sphere_extend:
-  fixes f:: "real ^'n \<Rightarrow> real ^'n"
+  fixes f:: "'a::real_inner \<Rightarrow> 'a"
   assumes f1: "\<forall>x. norm x = 1 \<longrightarrow> norm (f x) = 1"
     and fd1: "\<forall> x y. norm x = 1 \<longrightarrow> norm y = 1 \<longrightarrow> dist (f x) (f y) = dist x y"
   shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
 proof -
   {
-    fix x y x' y' x0 y0 x0' y0' :: "real ^'n"
+    fix x y x' y' x0 y0 x0' y0' :: "'a"
     assume H:
       "x = norm x *\<^sub>R x0"
       "y = norm y *\<^sub>R y0"
@@ -1286,7 +1284,7 @@ proof -
   note th0 = this
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"
   {
-    fix x:: "real ^'n"
+    fix x:: "'a"
     assume nx: "norm x = 1"
     have "?g x = f x"
       using nx by auto
@@ -1296,7 +1294,7 @@ proof -
   have g0: "?g 0 = 0"
     by simp
   {
-    fix x y :: "real ^'n"
+    fix x y :: "'a"
     {
       assume "x = 0" "y = 0"
       then have "dist (?g x) (?g y) = dist x y"
