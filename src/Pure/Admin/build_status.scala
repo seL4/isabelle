@@ -96,6 +96,46 @@ object Build_Status
         entry.maximum_heap > 0 ||
         entry.average_heap > 0 ||
         entry.stored_heap > 0)
+
+    def make_csv: CSV.File =
+    {
+      val header =
+        List("session_name",
+          "chapter",
+          "pull_date",
+          "isabelle_version",
+          "afp_version",
+          "timing_elapsed",
+          "timing_cpu",
+          "timing_gc",
+          "ml_timing_elapsed",
+          "ml_timing_cpu",
+          "ml_timing_gc",
+          "maximum_heap",
+          "average_heap",
+          "stored_heap",
+          "status")
+      val date_format = Date.Format("uuuu-MM-dd HH:mm:ss")
+      val records =
+        for (entry <- entries) yield {
+          CSV.Record(name,
+            entry.chapter,
+            date_format(entry.pull_date),
+            entry.isabelle_version,
+            entry.afp_version,
+            entry.timing.elapsed.ms,
+            entry.timing.cpu.ms,
+            entry.timing.gc.ms,
+            entry.ml_timing.elapsed.ms,
+            entry.ml_timing.cpu.ms,
+            entry.ml_timing.gc.ms,
+            entry.maximum_heap,
+            entry.average_heap,
+            entry.stored_heap,
+            entry.status)
+        }
+      CSV.File(name, header, records)
+    }
   }
   sealed case class Entry(
     chapter: String,
@@ -319,6 +359,13 @@ object Build_Status
       val dir = target_dir + Path.basic(clean_name(data_name))
       Isabelle_System.mkdirs(dir)
 
+      val data_files =
+        (for (session <- data_entry.sessions) yield {
+          val csv_file = session.make_csv
+          csv_file.write(dir)
+          session.name -> csv_file
+        }).toMap
+
       val session_plots =
         Par_List.map((session: Session) =>
           Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
@@ -450,6 +497,8 @@ plot [] """ + range + " " +
             HTML.par(
               HTML.description(
                 List(
+                  HTML.text("data:") ->
+                    List(HTML.link(data_files(session.name).file_name, HTML.text("CSV"))),
                   HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
                   HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
                 print_heap(session.head.maximum_heap).map(s =>
