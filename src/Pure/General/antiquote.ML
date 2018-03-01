@@ -102,6 +102,9 @@ val scan_text_comments =
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
   Symbol_Pos.scan_cartouche err_prefix ||
+  Comment.scan --
+    Symbol_Pos.!!! (fn () => err_prefix ^ "bad formal comment in antiquote body") Scan.fail
+    >> K [] ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.not_eof s) >> single;
 
 fun control_name sym = (case Symbol.decode sym of Symbol.Control name => name);
