@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/json.scala
     Author:     Makarius
 
-Support for JSON parsing.
+Support for JSON.
 */
 
 package isabelle
