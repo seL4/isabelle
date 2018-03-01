@@ -46,6 +46,7 @@ declare -a SOURCES=(
   General/codepoint.scala
   General/comment.scala
   General/completion.scala
+  General/csv.scala
   General/date.scala
   General/exn.scala
   General/file.scala
