@@ -79,15 +79,13 @@ object Build_Status
   {
     require(entries.nonEmpty)
 
-    lazy val sorted_entries: List[Entry] =
-      entries.sortBy(entry => - entry.pull_date.unix_epoch)
+    lazy val sorted_entries: List[Entry] = entries.sortBy(entry => - entry.date)
 
     def head: Entry = sorted_entries.head
     def order: Long = - head.timing.elapsed.ms
 
     def finished_entries: List[Entry] = sorted_entries.filter(_.finished)
-    def finished_entries_size: Int =
-      finished_entries.map(entry => entry.pull_date.unix_epoch).toSet.size
+    def finished_entries_size: Int = finished_entries.map(_.date).toSet.size
 
     def check_timing: Boolean = finished_entries_size >= 3
     def check_heap: Boolean =
@@ -103,6 +101,7 @@ object Build_Status
         List("session_name",
           "chapter",
           "pull_date",
+          "afp_pull_date",
           "isabelle_version",
           "afp_version",
           "timing_elapsed",
@@ -121,6 +120,7 @@ object Build_Status
           CSV.Record(name,
             entry.chapter,
             date_format(entry.pull_date),
+            entry.afp_pull_date match { case Some(date) => date_format(date) case None => "" },
             entry.isabelle_version,
             entry.afp_version,
             entry.timing.elapsed.ms,
@@ -140,6 +140,7 @@ object Build_Status
   sealed case class Entry(
     chapter: String,
     pull_date: Date,
+    afp_pull_date: Option[Date],
     isabelle_version: String,
     afp_version: String,
     timing: Timing,
@@ -150,6 +151,8 @@ object Build_Status
     status: Build_Log.Session_Status.Value,
     errors: List[String])
   {
+    val date: Long = (afp_pull_date getOrElse pull_date).unix_epoch
+
     def finished: Boolean = status == Build_Log.Session_Status.finished
     def failed: Boolean = status == Build_Log.Session_Status.failed
 
@@ -202,7 +205,8 @@ object Build_Status
         val afp = profile.afp
         val columns =
           List(
-            Build_Log.Data.pull_date(afp),
+            Build_Log.Data.pull_date(afp = false),
+            Build_Log.Data.pull_date(afp = true),
             Build_Log.Prop.build_host,
             Build_Log.Prop.isabelle_version,
             Build_Log.Prop.afp_version,
@@ -269,7 +273,9 @@ object Build_Status
             val entry =
               Entry(
                 chapter = chapter,
-                pull_date = res.date(Build_Log.Data.pull_date(afp)),
+                pull_date = res.date(Build_Log.Data.pull_date(afp = false)),
+                afp_pull_date =
+                  if (afp) res.get_date(Build_Log.Data.pull_date(afp = true)) else None,
                 isabelle_version = isabelle_version,
                 afp_version = afp_version,
                 timing =
@@ -376,7 +382,7 @@ object Build_Status
               File.write(data_file,
                 cat_lines(
                   session.finished_entries.map(entry =>
-                    List(entry.pull_date.unix_epoch,
+                    List(entry.date,
                       entry.timing.elapsed.minutes,
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
