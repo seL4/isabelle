@@ -10,5 +10,5 @@ source "$HOME/.bashrc"
 cd "$HOME/cronjob"
 mkdir -p run log
 
-hg -R isabelle pull "http://isabelle.in.tum.de/repos/isabelle" -q || echo "self_update pull failed"
+hg -R isabelle pull "https://isabelle.in.tum.de/repos/isabelle" -q || echo "self_update pull failed"
 hg -R isabelle update -C -q || echo "self_update update failed"

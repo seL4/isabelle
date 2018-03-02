@@ -114,6 +114,10 @@ object Isabelle_Cronjob
     host: String,
     user: String = "",
     port: Int = 0,
+    ssh_host: String = "",
+    proxy_host: String = "",
+    proxy_user: String = "",
+    proxy_port: Int = 0,
     shared_home: Boolean = true,
     historic: Boolean = false,
     history: Int = 0,
@@ -282,7 +286,9 @@ object Isabelle_Cronjob
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
       {
-        using(logger.ssh_context.open_session(host = r.host, user = r.user, port = r.port))(
+        using(logger.ssh_context.open_session(
+            host = proper_string(r.ssh_host) getOrElse r.host, user = r.user, port = r.port,
+            proxy_host = r.proxy_host, proxy_user = r.proxy_user, proxy_port = r.proxy_port))(
           ssh =>
             {
               val self_update = !r.shared_home

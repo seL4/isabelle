@@ -12,7 +12,7 @@ Quick start in 30min
 
 2. Clone repository (bash shell commands):
 
-    hg clone http://isabelle.in.tum.de/repos/isabelle
+    hg clone https://isabelle.in.tum.de/repos/isabelle
 
     cd isabelle
 
@@ -86,7 +86,7 @@ Initial configuration
 
 The main Isabelle repository can be cloned like this:
 
-  hg clone http://isabelle.in.tum.de/repos/isabelle
+  hg clone https://isabelle.in.tum.de/repos/isabelle
 
 This will create a local directory "isabelle", unless an alternative
 name is specified.  The full repository meta-data and history of
@@ -128,7 +128,7 @@ and provides the "glog" command:
 Shared pull/push access
 -----------------------
 
-The entry point http://isabelle.in.tum.de/repos/isabelle is world
+The entry point https://isabelle.in.tum.de/repos/isabelle is world
 readable, both via plain web browsing and the hg client as described
 above.  Anybody can produce a clone, change it locally, and then use
 regular mechanisms of Mercurial to report changes upstream, say via
@@ -273,7 +273,7 @@ changesets that are meant to be published at some point.
     Isabelle changesets can be more spontaneous, growing from the
     bottom-up.
 
-    The web style of http://isabelle.in.tum.de/repos/isabelle/
+    The web style of https://isabelle.in.tum.de/repos/isabelle
     accommodates the Isabelle changelog format.  Note that multiple
     lines will sometimes display as a single paragraph in HTML, so
     some terminating punctuation is required.  Do not squeeze multiple

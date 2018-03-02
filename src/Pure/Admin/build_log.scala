@@ -1101,7 +1101,10 @@ object Build_Log
             }
           })
 
-      for (file_group <- files.filter(file => status.exists(_.required(file))).grouped(100)) {
+      for (file_group <-
+            files.filter(file => status.exists(_.required(file))).
+              grouped(options.int("build_log_transaction_size") max 1))
+      {
         val log_files = Par_List.map[JFile, Log_File](Log_File.apply _, file_group)
         db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
       }

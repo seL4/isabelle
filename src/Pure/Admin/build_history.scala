@@ -504,7 +504,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     ssh: SSH.Session,
     isabelle_repos_self: Path,
     isabelle_repos_other: Path,
-    isabelle_repos_source: String = "http://isabelle.in.tum.de/repos/isabelle",
+    isabelle_repos_source: String = "https://isabelle.in.tum.de/repos/isabelle",
     afp_repos_source: String = AFP.repos_source,
     isabelle_identifier: String = "remote_build_history",
     self_update: Boolean = false,

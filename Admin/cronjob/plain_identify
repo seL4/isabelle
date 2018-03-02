@@ -10,7 +10,7 @@ source "$HOME/.bashrc"
 LANG=C
 
 REPOS_DIR="$HOME/cronjob/plain_identify_repos"
-ISABELLE_REPOS_SOURCE="http://isabelle.in.tum.de/repos/isabelle"
+ISABELLE_REPOS_SOURCE="https://isabelle.in.tum.de/repos/isabelle"
 AFP_REPOS_SOURCE="https://bitbucket.org/isa-afp/afp-devel"
 
 function setup_repos ()
