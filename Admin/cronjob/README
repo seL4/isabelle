@@ -12,3 +12,62 @@ Administrative Isabelle cronjob at TUM
 - $HOME/cronjob/run/ -- run-time state
 
 - $HOME/cronjob/log/ -- cumulative log area
+
+
+Build Log Database Server
+=========================
+
+- Ubuntu 16.04 LTS Linux Server standard installation (e.g. on virtual host)
+  https://help.ubuntu.com/lts/serverguide
+
+- apt install unattended-upgrades
+
+- special user account:
+  useradd -m -s /bin/bash isatest
+
+- SSH access for jsch (on each client):
+  LOCALHOST$ ssh-keyscan -t rsa DBSERVER
+  >> ~/.ssh/known_hosts
+
+- PostgreSQL:
+
+  $ apt install postgresql
+  $ apt install postgresql-client
+
+  $ sudo -u postgres psql template1
+  ALTER USER postgres with encrypted password '***';
+
+  $ edit /etc/postgresql/9.5/main/pg_hba.conf
+  local all postgres md5
+  local all all md5
+
+  $ systemctl restart postgresql.service
+
+  $ createuser -U postgres --interactive isatest
+  ALTER USER isatest with encrypted password '***';
+
+  $ createdb -E UTF8 -T template0 --locale=en_US.utf8 -U postgres -O isatest isatest
+
+- Database backup or migration:
+  https://www.postgresql.org/docs/9.5/static/backup-dump.html
+
+     pg_dump -U postgres -Fc -v -d isatest > db.dump
+  pg_restore -U postgres -Fc -v -d isatest < db.dump
+
+
+Build Status Charts
+===================
+
+- Gentoo Linux might require gnuplot from original source
+  (to avoid bad data interpolation)
+
+  http://gnuplot.sourceforge.net/
+  https://sourceforge.net/projects/gnuplot/files/gnuplot/5.0.6/
+
+  $ cd gnuplot-5.0.6
+  $ ./configure
+  $ make
+
+  edit $ISABELLE_HOME_USER/etc/settings
+
+  ISABELLE_GNUPLOT=".../src/gnuplot"
