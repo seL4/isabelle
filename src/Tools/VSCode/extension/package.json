@@ -14,7 +14,7 @@
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
-        "url": "http://isabelle.in.tum.de/repos/isabelle"
+        "url": "https://isabelle.in.tum.de/repos/isabelle"
     },
     "engines": {
         "vscode": "^1.8.0"

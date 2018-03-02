@@ -23,7 +23,7 @@ text \<open>
   explanations should help to understand how proper Isabelle/ML is to be read
   and written, and to get access to the wealth of experience that is expressed
   in the source text and its history of changes.\<^footnote>\<open>See
-  \<^url>\<open>http://isabelle.in.tum.de/repos/isabelle\<close> for the full Mercurial history.
+  \<^url>\<open>https://isabelle.in.tum.de/repos/isabelle\<close> for the full Mercurial history.
   There are symbolic tags to refer to official Isabelle releases, as opposed
   to arbitrary \<^emph>\<open>tip\<close> versions that merely reflect snapshots that are never
   really up-to-date.\<close>

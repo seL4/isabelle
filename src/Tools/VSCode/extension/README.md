@@ -8,7 +8,7 @@ with many add-ons that are specific to VSCode and Isabelle/PIDE.
 
 See also:
 
-  * <http://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
+  * <https://isabelle.in.tum.de/repos/isabelle/file/tip/src/Tools/VSCode>
   * <https://github.com/Microsoft/language-server-protocol>
 
 
