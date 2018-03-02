@@ -180,6 +180,11 @@ expression syntax, where they are part of locale instances.  Keyword
 'for' now needs to occur after, not before 'rewrites'.
 Minor INCOMPATIBILITY.
 
+* For rewrites clauses in locale expressions, if activating a locale
+instance fails, fall back to reading the clause first.  This helps
+avoiding qualified locale instances where the qualifier's sole purpose
+is avoiding duplicate constant declarations.
+
 
 *** Pure ***
 

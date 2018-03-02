@@ -394,7 +394,9 @@ fun prep_full_context_statement
         val ((insts'', _, _, _), ctxt2) = check_autofix insts' [] [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (inst_morph, _) = inst_morphism params (prfx, inst''') ctxt;
-        val ctxt' = Locale.activate_declarations (loc, inst_morph) ctxt2; (* may fail *)
+        val ctxt' = Locale.activate_declarations (loc, inst_morph) ctxt2
+          handle ERROR msg => if null eqns then error msg else
+            (writeln (msg ^ "\nFalling back to reading rewrites clause first."); ctxt2);
 
         val attrss = map (apsnd (map (prep_attr ctxt)) o fst) eqns;
         val eqns' = (prep_eqns ctxt' o map snd) eqns;
@@ -405,7 +407,8 @@ fun prep_full_context_statement
           |> Variable.export_terms ctxt' ctxt
           |> Element.eq_term_morphism (Proof_Context.theory_of ctxt)
           |> the_default Morphism.identity;
-       val ctxt'' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
+       val ctxt'' = if null eqns then ctxt' else 
+         Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
        val eqnss' = eqnss @ [attrss ~~ Variable.export_terms ctxt' ctxt eqns'];
       in (i + 1, insts', eqnss', ctxt'') end;
 
