@@ -49,7 +49,7 @@ struct
 (** common interpretation machinery **)
 
 type 'a defines = (Attrib.binding * ((binding * mixfix) * 'a)) list
-type 'a rewrites = (Attrib.binding * 'a) list
+type 'a rewrites = 'a Expression.rewrites
 
 (* reading of locale expressions with rewrite morphisms *)
 
@@ -83,7 +83,7 @@ fun prep_eqns _ _ [] _ _ = ([], [])
   | prep_eqns prep_props prep_attr raw_eqns deps ctxt =
       let
         (* FIXME incompatibility, creating context for parsing rewrites equation may fail in
-           presence of replaces clause *)
+           presence of rewrites clause in expression *)
         val ctxt' = fold Locale.activate_declarations deps ctxt;
         val eqns =
           (Variable.export_terms ctxt' ctxt o prep_props ctxt' o map snd) raw_eqns;

@@ -114,7 +114,7 @@ fun plus1_unless test scan =
 val instance = Scan.optional (Parse.where_ |--
   Parse.and_list1 (Parse.name -- (Parse.$$$ "=" |-- Parse.term)) >> Expression.Named ||
   Scan.repeat1 (Parse.maybe Parse.term) >> Expression.Positional) (Expression.Named []) --
-  (Scan.optional (Parse.$$$ "replaces" |-- Parse.and_list1 (opt_thm_name ":" -- Parse.prop)) []);
+  (Scan.optional (Parse.$$$ "rewrites" |-- Parse.and_list1 (opt_thm_name ":" -- Parse.prop)) []);
 
 in
 

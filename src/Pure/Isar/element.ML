@@ -50,6 +50,7 @@ sig
   val instantiate_normalize_morphism:
     ((string * sort) * ctyp) list * ((string * typ) * cterm) list -> morphism
   val satisfy_morphism: witness list -> morphism
+  val eq_term_morphism: theory -> term list -> morphism option
   val eq_morphism: theory -> thm list -> morphism option
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
@@ -380,6 +381,26 @@ end;
 
 
 (* rewriting with equalities *)
+
+(* for activating declarations only *)
+fun eq_term_morphism _ [] = NONE
+  | eq_term_morphism thy props =
+      let
+        fun decomp_simp prop =
+          let
+            val ctxt = Proof_Context.init_global thy;
+            val _ = Logic.count_prems prop = 0 orelse
+              error ("Bad conditional rewrite rule " ^ Syntax.string_of_term ctxt prop);
+            val lhsrhs = Logic.dest_equals prop
+              handle TERM _ => error ("Rewrite rule not a meta-equality " ^ Syntax.string_of_term ctxt prop);
+          in lhsrhs end;
+        val phi =
+          Morphism.morphism "Element.eq_term_morphism"
+           {binding = [],
+            typ = [],
+            term = [Pattern.rewrite_term thy (map decomp_simp props) []],
+            fact = [fn _ => error "Illegal application of Element.eq_term_morphism"]};
+      in SOME phi end;
 
 fun eq_morphism _ [] = NONE
   | eq_morphism thy thms =

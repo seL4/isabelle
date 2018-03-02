@@ -8,7 +8,8 @@ signature EXPRESSION =
 sig
   (* Locale expressions *)
   datatype 'term map = Positional of 'term option list | Named of (string * 'term) list
-  type ('name, 'term) expr = ('name * ((string * bool) * ('term map * (Attrib.binding * 'term) list))) list
+  type 'term rewrites = (Attrib.binding * 'term) list
+  type ('name, 'term) expr = ('name * ((string * bool) * ('term map * 'term rewrites))) list
   type expression_i = (string, term) expr * (binding * typ option * mixfix) list
   type expression = (xstring * Position.T, string) expr * (binding * string option * mixfix) list
 
@@ -58,7 +59,9 @@ datatype 'term map =
   Positional of 'term option list |
   Named of (string * 'term) list;
 
-type ('name, 'term) expr = ('name * ((string * bool) * ('term map * (Attrib.binding * 'term) list))) list;
+type 'term rewrites = (Attrib.binding * 'term) list;
+
+type ('name, 'term) expr = ('name * ((string * bool) * ('term map * 'term rewrites))) list;
 
 type expression_i = (string, term) expr * (binding * typ option * mixfix) list;
 type expression = (xstring * Position.T, string) expr * (binding * string option * mixfix) list;
@@ -367,8 +370,11 @@ end;
 
 local
 
+fun abs_def ctxt =
+  Thm.cterm_of ctxt #> Assumption.assume ctxt #> Local_Defs.abs_def_rule ctxt #> Thm.prop_of;
+
 fun prep_full_context_statement
-    parse_typ parse_prop prep_obtains prep_var_elem prep_inst parse_eqn prep_var_inst prep_expr
+    parse_typ parse_prop prep_obtains prep_var_elem prep_inst prep_eqns prep_attr prep_var_inst prep_expr
     {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_stmt ctxt1 =
   let
     val thy = Proof_Context.theory_of ctxt1;
@@ -379,23 +385,29 @@ fun prep_full_context_statement
       let
         val params = map #1 (Locale.params_of thy loc);
         val inst' = prep_inst ctxt (map #1 params) inst;
-        val eqns' = map (apsnd (parse_eqn ctxt)) eqns;
         val parm_types' =
           params |> map (#2 #> Logic.varifyT_global #>
               Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) #>
               Type_Infer.paramify_vars);
         val inst'' = map2 Type.constraint parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
-        val eqnss' = eqnss @ [eqns'];
-        val ((insts'', eqnss'', _, _), _) = check_autofix insts' eqnss' [] [] ctxt;
-        val (inst_morph, _) = inst_morphism params (prfx, #2 (#2 (List.last insts''))) ctxt;
-        val rewrite_morph =
-          List.last eqnss''
-          |> map (snd #> Thm.cterm_of ctxt #> Thm.assume #> Local_Defs.abs_def_rule ctxt)
-          |> Element.eq_morphism (Proof_Context.theory_of ctxt)
+        val ((insts'', _, _, _), ctxt2) = check_autofix insts' [] [] [] ctxt;
+        val inst''' = insts'' |> List.last |> snd |> snd;
+        val (inst_morph, _) = inst_morphism params (prfx, inst''') ctxt;
+        val ctxt' = Locale.activate_declarations (loc, inst_morph) ctxt2; (* may fail *)
+
+        val attrss = map (apsnd (map (prep_attr ctxt)) o fst) eqns;
+        val eqns' = (prep_eqns ctxt' o map snd) eqns;
+        val eqnss' = [attrss ~~ eqns'];
+        val ((_, [eqns''], _, _), _) = check_autofix insts'' eqnss' [] [] ctxt';
+        val rewrite_morph = eqns'
+          |> map (abs_def ctxt')
+          |> Variable.export_terms ctxt' ctxt
+          |> Element.eq_term_morphism (Proof_Context.theory_of ctxt)
           |> the_default Morphism.identity;
-        val ctxt' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
-      in (i + 1, insts', eqnss', ctxt') end;
+       val ctxt'' = Locale.activate_declarations (loc, inst_morph $> rewrite_morph) ctxt;
+       val eqnss' = eqnss @ [attrss ~~ Variable.export_terms ctxt' ctxt eqns'];
+      in (i + 1, insts', eqnss', ctxt'') end;
 
     fun prep_elem raw_elem ctxt =
       let
@@ -411,7 +423,7 @@ fun prep_full_context_statement
     val (_, insts', eqnss', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], [], ctxt2);
 
     fun prep_stmt elems ctxt =
-      check_autofix insts' eqnss' elems (prepare_stmt parse_prop prep_obtains ctxt raw_stmt) ctxt;
+      check_autofix insts' [] elems (prepare_stmt parse_prop prep_obtains ctxt raw_stmt) ctxt;
 
     val _ =
       if fixed_frees then ()
@@ -421,7 +433,7 @@ fun prep_full_context_statement
         | frees => error ("Illegal free variables in expression: " ^
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
 
-    val ((insts, eqnss, elems', concl), ctxt4) = ctxt3
+    val ((insts, _, elems', concl), ctxt4) = ctxt3
       |> init_body
       |> fold_map prep_elem raw_elems
       |-> prep_stmt;
@@ -438,21 +450,21 @@ fun prep_full_context_statement
     val deps = map (finish_inst ctxt5) insts;
     val elems'' = map (finish_elem (ctxt1, ctxt5) parms do_close) elems';
 
-  in ((fixed, deps, eqnss, elems'', concl), (parms, ctxt5)) end;
+  in ((fixed, deps, eqnss', elems'', concl), (parms, ctxt5)) end;
 
 in
 
 fun cert_full_context_statement x =
   prep_full_context_statement (K I) (K I) Obtain.cert_obtains
-    Proof_Context.cert_var make_inst (K I) Proof_Context.cert_var (K I) x;
+    Proof_Context.cert_var make_inst Syntax.check_props (K I) Proof_Context.cert_var (K I) x;
 
 fun cert_read_full_context_statement x =
   prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Obtain.parse_obtains
-    Proof_Context.read_var make_inst (K I) Proof_Context.cert_var (K I) x;
+    Proof_Context.read_var make_inst Syntax.check_props (K I) Proof_Context.cert_var (K I) x;
 
 fun read_full_context_statement x =
   prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Obtain.parse_obtains
-    Proof_Context.read_var parse_inst (Syntax.parse_prop) Proof_Context.read_var check_expr x;
+    Proof_Context.read_var parse_inst Syntax.read_props Attrib.check_src Proof_Context.read_var check_expr x;
 
 end;
 
@@ -492,7 +504,7 @@ fun prep_declaration prep activate raw_import init_body raw_elems ctxt =
     val ((fixed, deps, eqnss, elems, _), (parms, ctxt0)) =
       prep {strict = false, do_close = true, fixed_frees = false}
         raw_import init_body raw_elems (Element.Shows []) ctxt;
-    val _ = null (flat eqnss) orelse error "Illegal replaces clause(s) in declaration of locale";
+    val _ = null (flat eqnss) orelse error "Illegal rewrites clause(s) in declaration of locale";
     (* Declare parameters and imported facts *)
     val ctxt' = ctxt
       |> fix_params fixed
@@ -537,7 +549,7 @@ fun prep_goal_expression prep expression ctxt =
 
     val goal_ctxt = ctxt
       |> fix_params fixed
-      |> (fold o fold) Variable.auto_fixes propss;
+      |> (fold o fold) Variable.auto_fixes (propss @ eq_propss);
 
     val export = Variable.export_morphism goal_ctxt ctxt;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;

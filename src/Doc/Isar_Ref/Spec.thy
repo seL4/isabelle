@@ -460,17 +460,20 @@ text \<open>
   @{rail \<open>
     @{syntax_def locale_expr}: (instance + '+') @{syntax for_fixes}
     ;
-    instance: (qualifier ':')? @{syntax name} (pos_insts | named_insts)
+    instance: (qualifier ':')? @{syntax name} (pos_insts | named_insts) rewrites?
     ;
     qualifier: @{syntax name} ('?')?
     ;
     pos_insts: ('_' | @{syntax term})*
     ;
     named_insts: @'where' (@{syntax name} '=' @{syntax term} + @'and')
+    ;
+    rewrites: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
   A locale instance consists of a reference to a locale and either positional
-  or named parameter instantiations. Identical instantiations (that is, those
+  or named parameter instantiations optionally followed by rewrites clauses.
+  Identical instantiations (that is, those
   that instantiate a parameter by itself) may be omitted. The notation ``\<open>_\<close>''
   enables to omit the instantiation for a parameter inside a positional
   instantiation.
@@ -487,6 +490,11 @@ text \<open>
   ``\<^verbatim>\<open>?\<close>''). Non-mandatory means that the qualifier may be omitted on input.
   Qualifiers only affect name spaces; they play no role in determining whether
   one locale instance subsumes another.
+
+  Rewrite clauses amend instances with equations that act as rewrite rules.
+  This is particularly useful for changing concepts introduced through
+  definitions. Rewrite clauses are available only in interpretation commands
+  (see \secref{sec:locale-interpretation} below) and must be proved the user.
 \<close>
 
 
@@ -622,7 +630,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Locale interpretation\<close>
+subsection \<open>Locale interpretation \label{sec:locale-interpretation}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
@@ -642,15 +650,15 @@ text \<open>
   into locales (\<^theory_text>\<open>sublocale\<close>).
 
   @{rail \<open>
-    @@{command interpretation} @{syntax locale_expr} equations?
+    @@{command interpretation} @{syntax locale_expr}
     ;
-    @@{command interpret} @{syntax locale_expr} equations?
+    @@{command interpret} @{syntax locale_expr}
     ;
     @@{command global_interpretation} @{syntax locale_expr} \<newline>
-      definitions? equations?
+      (definitions rewrites?)?
     ;
     @@{command sublocale} (@{syntax name} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
-      definitions? equations?
+      (definitions rewrites?)?
     ;
     @@{command print_dependencies} '!'? @{syntax locale_expr}
     ;
@@ -659,8 +667,6 @@ text \<open>
 
     definitions: @'defines' (@{syntax thmdecl}? @{syntax name} \<newline>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
-
-    equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
   The core of each interpretation command is a locale expression \<open>expr\<close>; the
@@ -675,13 +681,14 @@ text \<open>
   to simplify the proof obligations according to existing interpretations use
   methods @{method intro_locales} or @{method unfold_locales}.
 
-  Given equations \<open>eqns\<close> amend the morphism through which \<open>expr\<close> is
-  interpreted, adding rewrite rules. This is particularly useful for
-  interpreting concepts introduced through definitions. The equations must be
-  proved the user.
+  Rewrites clauses \<^theory_text>\<open>rewrites eqns\<close> can occur within expressions or, for
+  some commands, as part of the command itself.  They amend the morphism
+  through which a locale instance or expression \<open>expr\<close> is interpreted with
+  rewrite rules. This is particularly useful for interpreting concepts
+  introduced through definitions. The equations must be proved the user.
 
   Given definitions \<open>defs\<close> produce corresponding definitions in the local
-  theory's underlying target \<^emph>\<open>and\<close> amend the morphism with the equations
+  theory's underlying target \<^emph>\<open>and\<close> amend the morphism with rewrite rules
   stemming from the symmetric of those definitions. Hence these need not be
   proved explicitly the user. Such rewrite definitions are a even more useful
   device for interpreting concepts introduced through definitions, but they
@@ -690,7 +697,7 @@ text \<open>
   the suggestive \<^theory_text>\<open>and\<close> connective, \<open>defs\<close>
   are processed sequentially without mutual recursion.
 
-  \<^descr> \<^theory_text>\<open>interpretation expr rewrites eqns\<close> interprets \<open>expr\<close> into a local theory
+  \<^descr> \<^theory_text>\<open>interpretation expr\<close> interprets \<open>expr\<close> into a local theory
   such that its lifetime is limited to the current context block (e.g. a
   locale or unnamed context). At the closing @{command end} of the block the
   interpretation and its declarations disappear. Hence facts based on
@@ -702,7 +709,7 @@ text \<open>
   context block, hence \<^theory_text>\<open>interpretation\<close> behaves identically to
   \<^theory_text>\<open>global_interpretation\<close> then.
 
-  \<^descr> \<^theory_text>\<open>interpret expr rewrites eqns\<close> interprets \<open>expr\<close> into a proof context:
+  \<^descr> \<^theory_text>\<open>interpret expr\<close> interprets \<open>expr\<close> into a proof context:
   the interpretation and its declarations disappear when closing the current
   proof block. Note that for \<^theory_text>\<open>interpret\<close> the \<open>eqns\<close> should be explicitly
   universally quantified.
@@ -720,7 +727,7 @@ text \<open>
   free variable whose name is already bound in the context --- for example,
   because a constant of that name exists --- add it to the \<^theory_text>\<open>for\<close> clause.
 
-  \<^descr> \<^theory_text>\<open>sublocale name \<subseteq> defines defs expr rewrites eqns\<close> interprets \<open>expr\<close>
+  \<^descr> \<^theory_text>\<open>sublocale name \<subseteq> expr defines defs rewrites eqns\<close> interprets \<open>expr\<close>
   into the locale \<open>name\<close>. A proof that the specification of \<open>name\<close> implies the
   specification of \<open>expr\<close> is required. As in the localized version of the
   theorem command, the proof is in the context of \<open>name\<close>. After the proof
@@ -737,8 +744,8 @@ text \<open>
   adds interpretations for \<open>expr\<close> as well, with the same qualifier, although
   only for fragments of \<open>expr\<close> that are not interpreted in the theory already.
 
-  Using equations \<open>eqns\<close> or rewrite definitions \<open>defs\<close> can help break infinite
-  chains induced by circular \<^theory_text>\<open>sublocale\<close> declarations.
+  Using rewrite rules \<open>eqns\<close> or rewrite definitions \<open>defs\<close> can help break
+  infinite chains induced by circular \<^theory_text>\<open>sublocale\<close> declarations.
 
   In a named context block the \<^theory_text>\<open>sublocale\<close> command may also be used, but the
   locale argument must be omitted. The command then refers to the locale (or

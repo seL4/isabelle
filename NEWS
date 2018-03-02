@@ -175,6 +175,11 @@ improves modularity of proofs and scalability of locale interpretation.
 Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
 (e.g. use 'find_theorems' or 'try' to figure this out).
 
+* Rewrites clauses (keyword 'rewrites') were moved into the locale
+expression syntax, where they are part of locale instances.  Keyword
+'for' now needs to occur after, not before 'rewrites'.
+Minor INCOMPATIBILITY.
+
 
 *** Pure ***
 

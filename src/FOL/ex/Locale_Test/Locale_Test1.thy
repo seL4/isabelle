@@ -523,7 +523,7 @@ thm lor_triv [where z = True] (* Check strict prefix. *)
 
 subsection \<open>Rewrite morphisms in expressions\<close>
 
-interpretation y: logic_o "(\<or>)" "Not" replaces bool_logic_o2: "logic_o.lor_o((\<or>), Not, x, y) \<longleftrightarrow> x \<and> y"
+interpretation y: logic_o "(\<or>)" "Not" rewrites bool_logic_o2: "logic_o.lor_o((\<or>), Not, x, y) \<longleftrightarrow> x \<and> y"
 proof -
   show bool_logic_o: "PROP logic_o((\<or>), Not)" by unfold_locales fast+
   show "logic_o.lor_o((\<or>), Not, x, y) \<longleftrightarrow> x \<and> y" unfolding logic_o.lor_o_def [OF bool_logic_o] by fast
