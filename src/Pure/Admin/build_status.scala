@@ -116,7 +116,7 @@ object Build_Status
           "status")
       val date_format = Date.Format("uuuu-MM-dd HH:mm:ss")
       val records =
-        for (entry <- entries) yield {
+        for (entry <- sorted_entries) yield {
           CSV.Record(name,
             entry.chapter,
             date_format(entry.pull_date),
