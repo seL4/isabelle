@@ -508,7 +508,6 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     afp_repos_source: String = AFP.repos_source,
     isabelle_identifier: String = "remote_build_history",
     self_update: Boolean = false,
-    push_isabelle_home: Boolean = false,
     progress: Progress = No_Progress,
     rev: String = "",
     afp_rev: Option[String] = None,
@@ -517,7 +516,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
   {
     /* Isabelle self repository */
 
-    val isabelle_hg =
+    val self_hg =
       Mercurial.setup_repository(isabelle_repos_source, isabelle_repos_self, ssh = ssh)
 
     def execute(cmd: String, args: String, echo: Boolean = false, strict: Boolean = true): Unit =
@@ -529,18 +528,11 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         strict = strict).check
 
     if (self_update) {
-      val self_rev =
-        if (push_isabelle_home) {
-          val isabelle_home_hg = Mercurial.repository(Path.explode("~~"))
-          val self_rev = isabelle_home_hg.id()
-          isabelle_home_hg.push(isabelle_hg.root_url, rev = self_rev, force = true)
-          self_rev
-        }
-        else {
-          isabelle_hg.pull()
-          isabelle_hg.id()
-        }
-      isabelle_hg.update(rev = self_rev, clean = true)
+      val hg = Mercurial.repository(Path.explode("~~"))
+      val self_rev = hg.id()
+      hg.push(self_hg.root_url, rev = self_rev, force = true)
+      self_hg.update(rev = self_rev, clean = true)
+
       execute("bin/isabelle", "components -I")
       execute("bin/isabelle", "components -a", echo = true)
       execute("Admin/build", "jars_fresh")
