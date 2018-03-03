@@ -114,6 +114,8 @@ object Mercurial
     def log(rev: String = "", template: String = "", options: String = ""): String =
       hg.command("log", opt_rev(rev) + opt_template(template), options).check.out
 
+    def parent(): String = log(rev = "p1()", template = "{node|short}")
+
     def push(remote: String = "", rev: String = "", force: Boolean = false, options: String = "")
     {
       hg.command("push", opt_rev(rev) + opt_flag("--force", force) + optional(remote), options).
