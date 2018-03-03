@@ -130,6 +130,10 @@ object Isabelle_Cronjob
     detect: SQL.Source = "",
     active: Boolean = true)
   {
+    def ssh_session(context: SSH.Context): SSH.Session =
+      context.open_session(host = proper_string(ssh_host) getOrElse host, user = user, port = port,
+        proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port)
+
     def sql: SQL.Source =
       Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
       SQL.member(Build_Log.Prop.build_host.ident, host :: more_hosts) +
@@ -286,33 +290,30 @@ object Isabelle_Cronjob
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
       {
-        using(logger.ssh_context.open_session(
-            host = proper_string(r.ssh_host) getOrElse r.host, user = r.user, port = r.port,
-            proxy_host = r.proxy_host, proxy_user = r.proxy_user, proxy_port = r.proxy_port))(
-          ssh =>
-            {
-              val self_update = !r.shared_home
-              val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
+        using(r.ssh_session(logger.ssh_context))(ssh =>
+          {
+            val self_update = !r.shared_home
+            val push_isabelle_home = self_update && Mercurial.is_repository(Path.explode("~~"))
 
-              val results =
-                Build_History.remote_build_history(ssh,
-                  isabelle_repos,
-                  isabelle_repos.ext(r.host),
-                  isabelle_identifier = "cronjob_build_history",
-                  self_update = self_update,
-                  push_isabelle_home = push_isabelle_home,
-                  rev = rev,
-                  afp_rev = afp_rev,
-                  options =
-                    " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                    " -f " + r.options,
-                  args = "-o timeout=10800 " + r.args)
+            val results =
+              Build_History.remote_build_history(ssh,
+                isabelle_repos,
+                isabelle_repos.ext(r.host),
+                isabelle_identifier = "cronjob_build_history",
+                self_update = self_update,
+                push_isabelle_home = push_isabelle_home,
+                rev = rev,
+                afp_rev = afp_rev,
+                options =
+                  " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
+                  " -f " + r.options,
+                args = "-o timeout=10800 " + r.args)
 
-              for ((log_name, bytes) <- results) {
-                logger.log(Date.now(), log_name)
-                Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
-              }
-            })
+            for ((log_name, bytes) <- results) {
+              logger.log(Date.now(), log_name)
+              Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+            }
+          })
       })
   }
 
