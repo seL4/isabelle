@@ -31,10 +31,10 @@ object Isabelle_Cronjob
 
   /** particular tasks **/
 
-  /* identify Isabelle + AFP repository snapshots and build release */
+  /* init and identify Isabelle + AFP repository snapshots */
 
-  private val build_release =
-    Logger_Task("build_release", logger =>
+  private val init =
+    Logger_Task("init", logger =>
       {
         Isabelle_Devel.make_index()
 
@@ -43,6 +43,16 @@ object Isabelle_Cronjob
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
+      })
+
+
+  /* build release */
+
+  private val build_release =
+    Logger_Task("build_release", logger =>
+      {
+        val rev = Mercurial.repository(isabelle_repos).id()
+        val afp_rev = Mercurial.repository(afp_repos).id()
 
         Isabelle_Devel.release_snapshot(rev = rev, afp_rev = afp_rev,
           parallel_jobs = 4, remote_mac = "macbroy31")
@@ -475,7 +485,7 @@ object Isabelle_Cronjob
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
         run_now(
-          SEQ(List(build_release, build_history_base,
+          SEQ(List(init, build_release, build_history_base,
             PAR(List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
                 PAR(remote_builds.map(_.filter(_.active)).map(seq =>
