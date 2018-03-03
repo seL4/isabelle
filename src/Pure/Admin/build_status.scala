@@ -75,7 +75,8 @@ object Build_Status
       sessions.filter(_.head.failed).sortBy(_.name)
   }
   sealed case class Session(
-    name: String, threads: Int, entries: List[Entry], ml_statistics: ML_Statistics)
+    name: String, threads: Int, entries: List[Entry],
+    ml_statistics: ML_Statistics, ml_statistics_date: Long)
   {
     require(entries.nonEmpty)
 
@@ -295,8 +296,16 @@ object Build_Status
                 errors = Build_Log.uncompress_errors(res.bytes(Build_Log.Data.errors)))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
-            val entries = sessions.get(session_name).map(_.entries) getOrElse Nil
-            val session = Session(session_name, threads, entry :: entries, ml_stats)
+            val session =
+              sessions.get(session_name) match {
+                case None =>
+                  Session(session_name, threads, List(entry), ml_stats, entry.date)
+                case Some(old) =>
+                  val (ml_stats1, ml_stats1_date) =
+                    if (entry.date > old.ml_statistics_date) (ml_stats, entry.date)
+                    else (old.ml_statistics, old.ml_statistics_date)
+                  Session(session_name, threads, entry :: old.entries, ml_stats1, ml_stats1_date)
+              }
 
             if ((!afp || chapter == "AFP") && (!profile.slow || groups.contains("slow"))) {
               data_entries += (data_name -> (sessions + (session_name -> session)))
