@@ -29,11 +29,14 @@ object Isabelle_Cronjob
 
 
 
-  /** particular tasks **/
+  /** logger tasks **/
+
+  sealed case class Logger_Task(name: String = "", body: Logger => Unit)
+
 
   /* init and identify Isabelle + AFP repository snapshots */
 
-  private val init =
+  val init =
     Logger_Task("init", logger =>
       {
         Isabelle_Devel.make_index()
@@ -48,7 +51,7 @@ object Isabelle_Cronjob
 
   /* build release */
 
-  private val build_release =
+  val build_release =
     Logger_Task("build_release", logger =>
       {
         val rev = Mercurial.repository(isabelle_repos).id()
@@ -61,7 +64,7 @@ object Isabelle_Cronjob
 
   /* integrity test of build_history vs. build_history_base */
 
-  private val build_history_base =
+  val build_history_base =
     Logger_Task("build_history_base", logger =>
       {
         val hg =
@@ -294,8 +297,8 @@ object Isabelle_Cronjob
           slow = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
 
-  private def remote_build_history(
-    rev: String, afp_rev: Option[String], i: Int, r: Remote_Build): Logger_Task =
+  def remote_build_history(rev: String, afp_rev: Option[String], i: Int, r: Remote_Build)
+    : Logger_Task =
   {
     val task_name = "build_history-" + r.host
     Logger_Task(task_name, logger =>
@@ -334,9 +337,13 @@ object Isabelle_Cronjob
 
   /** task logging **/
 
-  sealed case class Logger_Task(name: String = "", body: Logger => Unit)
+  object Log_Service
+  {
+    def apply(options: Options, progress: Progress = No_Progress): Log_Service =
+      new Log_Service(SSH.init_context(options), progress)
+  }
 
-  class Log_Service private[Isabelle_Cronjob](progress: Progress, val ssh_context: SSH.Context)
+  class Log_Service private(val ssh_context: SSH.Context, progress: Progress)
   {
     current_log.file.delete
 
@@ -433,7 +440,7 @@ object Isabelle_Cronjob
 
     /* log service */
 
-    val log_service = new Log_Service(progress, SSH.init_context(Options.init()))
+    val log_service = Log_Service(Options.init(), progress = progress)
 
     def run(start_date: Date, task: Logger_Task) { log_service.run_task(start_date, task) }
 
