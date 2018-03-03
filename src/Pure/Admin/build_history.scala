@@ -529,9 +529,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 
     if (self_update) {
       val hg = Mercurial.repository(Path.explode("~~"))
-      val self_rev = hg.id()
-      hg.push(self_hg.root_url, rev = self_rev, force = true)
-      self_hg.update(rev = self_rev, clean = true)
+      hg.push(self_hg.root_url, force = true)
+      self_hg.update(rev = hg.parent(), clean = true)
 
       execute("bin/isabelle", "components -I")
       execute("bin/isabelle", "components -a", echo = true)
