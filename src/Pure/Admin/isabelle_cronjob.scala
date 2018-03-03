@@ -59,7 +59,7 @@ object Isabelle_Cronjob
     Logger_Task("build_release", logger =>
       {
         Isabelle_Devel.release_snapshot(
-          rev = get_rev(), afp_rev = get_afp_rev(), remote_mac = "macbroy31")
+          rev = get_rev(), afp_rev = get_afp_rev(), remote_mac = "macbroy30")
       })
 
 
