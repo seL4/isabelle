@@ -132,7 +132,7 @@ object Isabelle_Cronjob
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
-    shared_home: Boolean = true,
+    remote_home: Boolean = false,
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
@@ -257,14 +257,14 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(
-        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, remote_home = true,
           options = "-m32 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
-        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, shared_home = false,
+        Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, remote_home = true,
           options = "-m64 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
@@ -291,7 +291,7 @@ object Isabelle_Cronjob
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP slow", "lrzcloud1", shared_home = false,
+        Remote_Build("AFP slow", "lrzcloud1", remote_home = true,
           options = "-m64 -M6 -U30000 -s10 -t AFP",
           args = "-g slow",
           afp = true,
@@ -311,7 +311,7 @@ object Isabelle_Cronjob
                 isabelle_repos,
                 isabelle_repos.ext(r.host),
                 isabelle_identifier = "cronjob_build_history",
-                self_update = !r.shared_home,
+                self_update = r.remote_home,
                 rev = rev,
                 afp_rev = afp_rev,
                 options =
