@@ -398,8 +398,9 @@ case "$PLATFORM_FAMILY" in
   windows)
     (
       cd "$TMP"
-      rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
-      7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
+      rm -f "$TMP/${ISABELLE_NAME}.7z"
+      7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME"
+      [ -f "$TMP/${ISABELLE_NAME}.7z" ] || exit 2
 
       echo "application for $PLATFORM_FAMILY"
       (
