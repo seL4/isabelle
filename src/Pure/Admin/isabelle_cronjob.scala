@@ -20,6 +20,7 @@ object Isabelle_Cronjob
   val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log = main_dir + Path.explode("log/main.log")  // owned by log service
 
+  val isabelle_repos_source = "https://isabelle.in.tum.de/repos/isabelle"
   val isabelle_repos = main_dir + Path.explode("isabelle")
   val isabelle_repos_test = main_dir + Path.explode("isabelle-test")
   val afp_repos = main_dir + Path.explode("AFP")
@@ -36,16 +37,19 @@ object Isabelle_Cronjob
 
   /* init and identify Isabelle + AFP repository snapshots */
 
+  def get_rev(): String = Mercurial.repository(isabelle_repos).id()
+  def get_afp_rev(): String = Mercurial.repository(afp_repos).id()
+
   val init =
     Logger_Task("init", logger =>
       {
         Isabelle_Devel.make_index()
 
-        val rev = Mercurial.repository(isabelle_repos).id()
-        val afp_rev = Mercurial.setup_repository(AFP.repos_source, afp_repos).id()
+        Mercurial.setup_repository(isabelle_repos_source, isabelle_repos)
+        Mercurial.setup_repository(AFP.repos_source, afp_repos)
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
-          Build_Log.Identify.content(logger.start_date, Some(rev), Some(afp_rev)))
+          Build_Log.Identify.content(logger.start_date, Some(get_rev()), Some(get_afp_rev())))
       })
 
 
@@ -54,10 +58,7 @@ object Isabelle_Cronjob
   val build_release =
     Logger_Task("build_release", logger =>
       {
-        val rev = Mercurial.repository(isabelle_repos).id()
-        val afp_rev = Mercurial.repository(afp_repos).id()
-
-        Isabelle_Devel.release_snapshot(rev = rev, afp_rev = afp_rev,
+        Isabelle_Devel.release_snapshot(rev = get_rev(), afp_rev = get_afp_rev(),
           parallel_jobs = 4, remote_mac = "macbroy31")
       })
 
@@ -160,7 +161,7 @@ object Isabelle_Cronjob
       rev: String = "",
       filter: Item => Boolean = _ => true): Option[(String, Option[String])] =
     {
-      val afp_rev = if (afp) Some(Mercurial.repository(afp_repos).id()) else None
+      val afp_rev = if (afp) Some(get_afp_rev()) else None
 
       val store = Build_Log.store(options)
       using(store.open_database())(db =>
