@@ -57,9 +57,14 @@ object Build_Status
     ml_statistics: Boolean = false,
     image_size: (Int, Int) = default_image_size)
   {
+    val ml_statistics_domain =
+      Iterator(ML_Statistics.heap_fields, ML_Statistics.tasks_fields, ML_Statistics.workers_fields).
+        flatMap(_._2).toSet
+
     val data =
       read_data(options, progress = progress, profiles = profiles,
-        only_sessions = only_sessions, ml_statistics = ml_statistics, verbose = verbose)
+        only_sessions = only_sessions, verbose = verbose,
+        ml_statistics = ml_statistics, ml_statistics_domain = ml_statistics_domain)
 
     present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
   }
@@ -187,6 +192,7 @@ object Build_Status
     profiles: List[Profile] = default_profiles,
     only_sessions: Set[String] = Set.empty,
     ml_statistics: Boolean = false,
+    ml_statistics_domain: String => Boolean = (key: String) => true,
     verbose: Boolean = false): Data =
   {
     val date = Date.now()
@@ -269,6 +275,7 @@ object Build_Status
                 if (ml_statistics)
                   Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
                 else Nil,
+                domain = ml_statistics_domain,
                 heading = session_name + print_version(isabelle_version, afp_version, chapter))
 
             val entry =

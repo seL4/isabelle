@@ -79,7 +79,8 @@ object ML_Statistics
 
   val empty: ML_Statistics = apply(Nil)
 
-  def apply(ml_statistics: List[Properties.T], heading: String = ""): ML_Statistics =
+  def apply(ml_statistics: List[Properties.T], heading: String = "",
+    domain: String => Boolean = (key: String) => true): ML_Statistics =
   {
     require(ml_statistics.forall(props => Now.unapply(props).isDefined))
 
@@ -88,8 +89,10 @@ object ML_Statistics
 
     val fields =
       SortedSet.empty[String] ++
-        (for (props <- ml_statistics.iterator; (x, _) <- props.iterator if x != Now.name)
-          yield x)
+        (for {
+          props <- ml_statistics.iterator
+          (x, _) <- props.iterator
+          if x != Now.name && domain(x) } yield x)
 
     val content =
     {
@@ -101,24 +104,32 @@ object ML_Statistics
 
         // rising edges -- relative speed
         val speeds =
-          for ((key, value) <- props; a <- Library.try_unprefix("time", key)) yield {
+          (for {
+            (key, value) <- props.iterator
+            a <- Library.try_unprefix("time", key)
+            b = "speed" + a if domain(b)
+          }
+          yield {
             val (x0, y0, s0) = last_edge.getOrElse(a, (0.0, 0.0, 0.0))
 
             val x1 = time
             val y1 = java.lang.Double.parseDouble(value)
             val s1 = if (x1 == x0) 0.0 else (y1 - y0) / (x1 - x0)
 
-            val b = ("speed" + a).intern
-            if (y1 > y0) { last_edge += (a -> (x1, y1, s1)); (b, s1) } else (b, s0)
-          }
+            if (y1 > y0) {
+              last_edge += (a -> (x1, y1, s1))
+              (b, s1.toString)
+            }
+            else (b, s0.toString)
+          }).toList
 
         val data =
-          SortedMap.empty[String, Double] ++ speeds ++
-            (for ((x, y) <- props.iterator if x != Now.name)
-             yield {
-               val z = java.lang.Double.parseDouble(y)
-              (x.intern, if (heap_fields._2.contains(x)) heap_scale(z) else z)
-            })
+          SortedMap.empty[String, Double] ++
+            (for {
+              (x, y) <- props.iterator ++ speeds.iterator
+              if x != Now.name && domain(x)
+              z = java.lang.Double.parseDouble(y) if z != 0.0
+            } yield { (x.intern, if (heap_fields._2.contains(x)) heap_scale(z) else z) })
 
         result += ML_Statistics.Entry(time, data)
       }
@@ -170,7 +181,7 @@ final class ML_Statistics private(
       field <- selected_fields.iterator
       series = new XYSeries(field)
     } {
-      content.foreach(entry => series.add(entry.time, entry.data(field)))
+      content.foreach(entry => series.add(entry.time, entry.get(field)))
       data.addSeries(series)
     }
   }
