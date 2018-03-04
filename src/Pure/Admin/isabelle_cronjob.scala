@@ -15,6 +15,7 @@ object Isabelle_Cronjob
 {
   /* global resources: owned by main cronjob */
 
+  val backup = "lxbroy10:cronjob"
   val main_dir = Path.explode("~/cronjob")
   val main_state_file = main_dir + Path.explode("run/main.state")
   val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
@@ -35,7 +36,7 @@ object Isabelle_Cronjob
   sealed case class Logger_Task(name: String = "", body: Logger => Unit)
 
 
-  /* init and identify Isabelle + AFP repository snapshots */
+  /* init and exit */
 
   def get_rev(): String = Mercurial.repository(isabelle_repos).id()
   def get_afp_rev(): String = Mercurial.repository(afp_repos).id()
@@ -50,6 +51,18 @@ object Isabelle_Cronjob
 
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           Build_Log.Identify.content(logger.start_date, Some(get_rev()), Some(get_afp_rev())))
+
+        Isabelle_System.bash(
+          """rsync -a --include="*/" --include="plain_identify*" --exclude="*" """ +
+            Bash.string(backup + "/log") + " " + File.bash_path(main_dir)).check
+      })
+
+  val exit =
+    Logger_Task("exit", logger =>
+      {
+        Isabelle_System.bash(
+          "rsync -a " + File.bash_path(main_dir + Path.explode("log")) + " " +
+            Bash.string(backup + "/cronjob/log")).check
       })
 
 
@@ -132,7 +145,7 @@ object Isabelle_Cronjob
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
-    remote_home: Boolean = false,
+    remote_home: Boolean = true,  // false for lxbroy/homebroy
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
@@ -489,8 +502,11 @@ object Isabelle_Cronjob
     run(main_start_date,
       Logger_Task("isabelle_cronjob", logger =>
         run_now(
-          SEQ(List(init, build_release, build_history_base,
-            PAR(List(remote_builds1, remote_builds2).map(remote_builds =>
+          SEQ(List(
+            init,
+            PAR(
+              SEQ(List(build_release, build_history_base)) ::
+              List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
                 PAR(remote_builds.map(_.filter(_.active)).map(seq =>
                   SEQ(
@@ -503,7 +519,8 @@ object Isabelle_Cronjob
                 Logger_Task("build_log_database",
                   logger => Isabelle_Devel.build_log_database(logger.options, build_log_dirs)),
                 Logger_Task("build_status",
-                  logger => Isabelle_Devel.build_status(logger.options)))))))))))
+                  logger => Isabelle_Devel.build_status(logger.options)))))),
+            exit)))))
 
     log_service.shutdown()
 

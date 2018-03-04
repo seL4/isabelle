@@ -1,5 +1,9 @@
-Administrative Isabelle cronjob at TUM
-======================================
+Administrative Isabelle cronjob
+===============================
+
+- main server: virtual machine with cronjob and build_log database
+- backup file-system (for cumulative log files): isatest@lxbroy10:cronjob
+- backup identify job: isatest@lxbroy5
 
 - jobs: manual installation on target directory:
     cp "$ISABELLE_HOME/Admin/cronjob/self_update "$HOME/cronjob/self_update"
@@ -17,7 +21,7 @@ Administrative Isabelle cronjob at TUM
 Build Log Database Server
 =========================
 
-- Ubuntu 16.04 LTS Linux Server standard installation (e.g. on virtual host)
+- Ubuntu 16.04 LTS Linux Server standard installation
   https://help.ubuntu.com/lts/serverguide
 
 - apt install unattended-upgrades
@@ -53,21 +57,3 @@ Build Log Database Server
 
      pg_dump -U postgres -Fc -v -d isatest > db.dump
   pg_restore -U postgres -Fc -v -d isatest < db.dump
-
-
-Build Status Charts
-===================
-
-- Gentoo Linux might require gnuplot from original source
-  (to avoid bad data interpolation)
-
-  http://gnuplot.sourceforge.net/
-  https://sourceforge.net/projects/gnuplot/files/gnuplot/5.0.6/
-
-  $ cd gnuplot-5.0.6
-  $ ./configure
-  $ make
-
-  edit $ISABELLE_HOME_USER/etc/settings
-
-  ISABELLE_GNUPLOT=".../src/gnuplot"
