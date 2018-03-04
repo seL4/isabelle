@@ -16,6 +16,22 @@ Cygwin
   http://isabelle.in.tum.de/cygwin_2016-1  (Isabelle2016-1)
   http://isabelle.in.tum.de/cygwin_2017  (Isabelle2017)
 
+* Apache2 redirects for virtual host isabelle.conf:
+  Redirect /cygwin/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/release
+  Redirect /cygwin_2013/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/release
+  Redirect /cygwin_2013-1/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/release
+  Redirect /cygwin_2013-1/x86/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2014/x86/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2015/x86/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2015/x86_64/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
+  Redirect /cygwin_2016/x86/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2016/x86_64/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
+  Redirect /cygwin_2016-1/x86/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2016-1/noarch/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
+  Redirect /cygwin_2017/x86/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2017/x86_64/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
+  Redirect /cygwin_2017/noarch/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
+
 * Quasi-component: "isabelle build_cygwin" (as Administrator)
 
 * SSH server:
