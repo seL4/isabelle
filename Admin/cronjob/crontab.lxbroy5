@@ -1,4 +1,4 @@
 SHELL=/bin/bash
 MAILTO=wenzelm
 
-47 00 * * *       $HOME/cronjob/plain_identify
+20 00 * * *       $HOME/cronjob/plain_identify
