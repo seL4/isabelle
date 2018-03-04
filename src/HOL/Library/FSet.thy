@@ -751,8 +751,8 @@ end
 context comm_monoid_add begin
 
 sublocale fsum: comm_monoid_fset plus 0
-  defines fsum = fsum.F
   rewrites "comm_monoid_set.F plus 0 = sum"
+  defines fsum = fsum.F
 proof -
   show "comm_monoid_fset (+) 0" by standard
 
@@ -797,8 +797,8 @@ end
 context linorder begin
 
 sublocale fMin: semilattice_order_fset min less_eq less
-  defines fMin = fMin.F
   rewrites "semilattice_set.F min = Min"
+  defines fMin = fMin.F
 proof -
   show "semilattice_order_fset min (\<le>) (<)" by standard
 
@@ -806,8 +806,8 @@ proof -
 qed
 
 sublocale fMax: semilattice_order_fset max greater_eq greater
-  defines fMax = fMax.F
   rewrites "semilattice_set.F max = Max"
+  defines fMax = fMax.F
 proof -
   show "semilattice_order_fset max (\<ge>) (>)"
     by standard

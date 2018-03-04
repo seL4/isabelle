@@ -622,9 +622,8 @@ val _ =
 val interpretation_args_with_defs =
   Parse.!!! Parse_Spec.locale_expression --
     (Scan.optional (\<^keyword>\<open>defines\<close> |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
-      -- ((Parse.binding -- Parse.opt_mixfix') --| \<^keyword>\<open>=\<close> -- Parse.term))
-      -- Scan.optional (\<^keyword>\<open>rewrites\<close> |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
-        -- Parse.prop)) []) ([], []));
+      -- ((Parse.binding -- Parse.opt_mixfix') --| \<^keyword>\<open>=\<close> -- Parse.term)) >>
+      (fn x => (x, []))) ([], []));
 
 val _ =
   Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>global_interpretation\<close>

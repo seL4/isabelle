@@ -176,14 +176,14 @@ Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
 (e.g. use 'find_theorems' or 'try' to figure this out).
 
 * Rewrites clauses (keyword 'rewrites') were moved into the locale
-expression syntax, where they are part of locale instances.  Keyword
-'for' now needs to occur after, not before 'rewrites'.
-Minor INCOMPATIBILITY.
+expression syntax, where they are part of locale instances.  In
+interpretation commands rewrites clauses now need to occur before
+'for' and 'defines'.  Minor INCOMPATIBILITY.
 
-* For rewrites clauses in locale expressions, if activating a locale
-instance fails, fall back to reading the clause first.  This helps
-avoiding qualified locale instances where the qualifier's sole purpose
-is avoiding duplicate constant declarations.
+* For rewrites clauses, if activating a locale instance fails, fall
+back to reading the clause first.  This helps avoid qualification of
+locale instances where the qualifier's sole purpose is avoiding
+duplicate constant declarations.
 
 
 *** Pure ***
