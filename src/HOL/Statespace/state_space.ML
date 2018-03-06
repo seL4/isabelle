@@ -127,7 +127,7 @@ fun expression_no_pos (expr, fixes) : Expression.expression =
 
 fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
-   |> Interpretation.global_sublocale_cmd (name, Position.none) (expression_no_pos expr) [] []
+   |> Interpretation.global_sublocale_cmd (name, Position.none) (expression_no_pos expr) []
    |> Proof.global_terminal_proof
          ((Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), Position.no_range), NONE)
    |> Proof_Context.theory_of

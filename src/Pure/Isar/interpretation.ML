@@ -8,39 +8,34 @@ Locale interpretation.
 signature INTERPRETATION =
 sig
   type 'a defines = (Attrib.binding * ((binding * mixfix) * 'a)) list
-  type 'a rewrites = (Attrib.binding * 'a) list
 
   (*interpretation in proofs*)
-  val interpret: Expression.expression_i -> term rewrites -> Proof.state -> Proof.state
-  val interpret_cmd: Expression.expression -> string rewrites -> Proof.state -> Proof.state
+  val interpret: Expression.expression_i -> Proof.state -> Proof.state
+  val interpret_cmd: Expression.expression -> Proof.state -> Proof.state
 
   (*interpretation in local theories*)
-  val interpretation: Expression.expression_i ->
-    term rewrites -> local_theory -> Proof.state
-  val interpretation_cmd: Expression.expression ->
-    string rewrites -> local_theory -> Proof.state
+  val interpretation: Expression.expression_i -> local_theory -> Proof.state
+  val interpretation_cmd: Expression.expression -> local_theory -> Proof.state
 
   (*interpretation into global theories*)
   val global_interpretation: Expression.expression_i ->
-    term defines -> term rewrites -> local_theory -> Proof.state
+    term defines -> local_theory -> Proof.state
   val global_interpretation_cmd: Expression.expression ->
-    string defines -> string rewrites -> local_theory -> Proof.state
+    string defines -> local_theory -> Proof.state
 
   (*interpretation between locales*)
   val sublocale: Expression.expression_i ->
-    term defines -> term rewrites -> local_theory -> Proof.state
+    term defines -> local_theory -> Proof.state
   val sublocale_cmd: Expression.expression ->
-    string defines -> string rewrites -> local_theory -> Proof.state
+    string defines -> local_theory -> Proof.state
   val global_sublocale: string -> Expression.expression_i ->
-    term defines -> term rewrites -> theory -> Proof.state
+    term defines -> theory -> Proof.state
   val global_sublocale_cmd: xstring * Position.T -> Expression.expression ->
-    string defines -> string rewrites -> theory -> Proof.state
+    string defines -> theory -> Proof.state
 
   (*mixed Isar interface*)
-  val isar_interpretation: Expression.expression_i ->
-    term rewrites -> local_theory -> Proof.state
-  val isar_interpretation_cmd: Expression.expression ->
-    string rewrites -> local_theory -> Proof.state
+  val isar_interpretation: Expression.expression_i -> local_theory -> Proof.state
+  val isar_interpretation_cmd: Expression.expression -> local_theory -> Proof.state
 end;
 
 structure Interpretation : INTERPRETATION =
@@ -49,7 +44,6 @@ struct
 (** common interpretation machinery **)
 
 type 'a defines = (Attrib.binding * ((binding * mixfix) * 'a)) list
-type 'a rewrites = 'a Expression.rewrites
 
 (* reading of locale expressions with rewrite morphisms *)
 
@@ -79,37 +73,22 @@ fun augment_with_defs _ [] _ ctxt = ([], ctxt)
           map (singleton (Proof_Context.export inner_lthy' lthy') o Thm.symmetric) inner_defs
       in (def_eqns, lthy') end;
 
-fun prep_eqns _ _ [] _ _ = ([], [])
-  | prep_eqns prep_props prep_attr raw_eqns deps ctxt =
-      let
-        (* FIXME incompatibility, creating context for parsing rewrites equation may fail in
-           presence of rewrites clause in expression *)
-        val ctxt' = fold Locale.activate_declarations deps ctxt;
-        val eqns =
-          (Variable.export_terms ctxt' ctxt o prep_props ctxt' o map snd) raw_eqns;
-        val attrss = map (apsnd (map (prep_attr ctxt)) o fst) raw_eqns;
-      in (eqns, attrss) end;
-
-fun prep_interpretation prep_expr prep_term prep_props prep_attr
-  expression raw_defs raw_eqns initial_ctxt =
+fun prep_interpretation prep_expr prep_term
+  expression raw_defs initial_ctxt =
   let
     val ((propss, eq_propss, deps, eqnss, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val (def_eqns, def_ctxt) =
       augment_with_defs prep_term raw_defs deps expr_ctxt;
-    val (eqns, attrss) = prep_eqns prep_props prep_attr raw_eqns deps def_ctxt;
-    val goal_ctxt = fold Variable.auto_fixes eqns def_ctxt;
-    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
-  in (((propss, eq_propss, deps, eqnss, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) end;
+    val export' = Variable.export_morphism def_ctxt expr_ctxt;
+  in (((propss, eq_propss, deps, eqnss, export, export'), def_eqns), def_ctxt) end;
 
 in
 
 fun cert_interpretation expression =
-  prep_interpretation Expression.cert_goal_expression Syntax.check_term
-    Syntax.check_props (K I) expression;
+  prep_interpretation Expression.cert_goal_expression Syntax.check_term expression;
 
 fun read_interpretation expression =
-  prep_interpretation Expression.read_goal_expression Syntax.read_term
-    Syntax.read_props Attrib.check_src expression;
+  prep_interpretation Expression.read_goal_expression Syntax.read_term expression;
 
 end;
 
@@ -121,18 +100,15 @@ local
 fun meta_rewrite eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register pos note activate deps eqnss witss def_eqns thms attrss export export' ctxt =
+fun note_eqns_register pos note activate deps eqnss witss def_eqns thms export export' ctxt =
   let
-    val (thmss, thms') = split_last (unflat ((map o map) fst eqnss @ [attrss]) thms);
+    val thmss = unflat ((map o map) fst eqnss) thms;
     val factss =
       map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) fst eqnss) thmss;
     val (eqnss', ctxt') = fold_map (fn facts => note Thm.theoremK facts #-> meta_rewrite) factss ctxt;
-    val facts =
-      (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]) ::
-        map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])]))
-          attrss thms';
+    val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);
     val (eqns', ctxt'') = ctxt'
-      |> note Thm.theoremK facts
+      |> note Thm.theoremK [defs]
       |-> meta_rewrite;
     val dep_morphs =
       map2 (fn (dep, morph) => fn wits =>
@@ -149,14 +125,14 @@ fun note_eqns_register pos note activate deps eqnss witss def_eqns thms attrss e
 in
 
 fun generic_interpretation prep_interpretation setup_proof note add_registration
-    expression raw_defs raw_eqns initial_ctxt =
+    expression raw_defs initial_ctxt =
   let
-    val (((propss, eq_propss, deps, eqnss, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) =
-      prep_interpretation expression raw_defs raw_eqns initial_ctxt;
+    val (((propss, eq_propss, deps, eqnss, export, export'), def_eqns), goal_ctxt) =
+      prep_interpretation expression raw_defs initial_ctxt;
     val pos = Position.thread_data ();
     fun after_qed witss eqns =
-      note_eqns_register pos note add_registration deps eqnss witss def_eqns eqns attrss export export';
-  in setup_proof after_qed propss (flat (eq_propss @ [eqns])) goal_ctxt end;
+      note_eqns_register pos note add_registration deps eqnss witss def_eqns eqns export export';
+  in setup_proof after_qed propss (flat eq_propss) goal_ctxt end;
 
 end;
 
@@ -167,7 +143,7 @@ end;
 
 local
 
-fun gen_interpret prep_interpretation expression raw_eqns state =
+fun gen_interpret prep_interpretation expression state =
   let
     val _ = Proof.assert_forward_or_chain state;
     fun lift_after_qed after_qed witss eqns =
@@ -182,7 +158,7 @@ fun gen_interpret prep_interpretation expression raw_eqns state =
   in
     Proof.context_of state
     |> generic_interpretation prep_interpretation setup_proof
-      Attrib.local_notes add_registration expression [] raw_eqns
+      Attrib.local_notes add_registration expression []
   end;
 
 in
@@ -228,7 +204,7 @@ fun sublocale_cmd expression =
 local
 
 fun gen_global_sublocale prep_loc prep_interpretation
-    raw_locale expression raw_defs raw_eqns thy =
+    raw_locale expression raw_defs thy =
   let
     val lthy = Named_Target.init (prep_loc thy raw_locale) thy;
     fun setup_proof after_qed =
@@ -237,7 +213,7 @@ fun gen_global_sublocale prep_loc prep_interpretation
   in
     lthy |>
       generic_interpretation prep_interpretation setup_proof
-        Local_Theory.notes_kind Local_Theory.locale_dependency expression raw_defs raw_eqns
+        Local_Theory.notes_kind Local_Theory.locale_dependency expression raw_defs
   end;
 
 in
@@ -260,9 +236,9 @@ fun register_or_activate lthy =
   then Local_Theory.theory_registration
   else Locale.activate_fragment;
 
-fun gen_isar_interpretation prep_interpretation expression raw_eqns lthy =
+fun gen_isar_interpretation prep_interpretation expression lthy =
   generic_interpretation prep_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind (register_or_activate lthy) expression [] raw_eqns lthy;
+    Local_Theory.notes_kind (register_or_activate lthy) expression [] lthy;
 
 in
 

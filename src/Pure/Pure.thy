@@ -617,35 +617,34 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>interpret\<close>
     "prove interpretation of locale expression in proof context"
     (Parse.!!! Parse_Spec.locale_expression >> (fn expr =>
-      Toplevel.proof (Interpretation.interpret_cmd expr [])));
+      Toplevel.proof (Interpretation.interpret_cmd expr)));
 
 val interpretation_args_with_defs =
   Parse.!!! Parse_Spec.locale_expression --
     (Scan.optional (\<^keyword>\<open>defines\<close> |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
-      -- ((Parse.binding -- Parse.opt_mixfix') --| \<^keyword>\<open>=\<close> -- Parse.term)) >>
-      (fn x => (x, []))) ([], []));
+      -- ((Parse.binding -- Parse.opt_mixfix') --| \<^keyword>\<open>=\<close> -- Parse.term))) ([]));
 
 val _ =
   Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>global_interpretation\<close>
     "prove interpretation of locale expression into global theory"
-    (interpretation_args_with_defs >> (fn (expr, (defs, equations)) =>
-      Interpretation.global_interpretation_cmd expr defs equations));
+    (interpretation_args_with_defs >> (fn (expr, defs) =>
+      Interpretation.global_interpretation_cmd expr defs));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sublocale\<close>
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.name --| (\<^keyword>\<open>\<subseteq>\<close> || \<^keyword>\<open><\<close>) --
-      interpretation_args_with_defs >> (fn (loc, (expr, (defs, equations))) =>
-        Toplevel.theory_to_proof (Interpretation.global_sublocale_cmd loc expr defs equations)))
-    || interpretation_args_with_defs >> (fn (expr, (defs, equations)) =>
-        Toplevel.local_theory_to_proof NONE NONE (Interpretation.sublocale_cmd expr defs equations)));
+      interpretation_args_with_defs >> (fn (loc, (expr, defs)) =>
+        Toplevel.theory_to_proof (Interpretation.global_sublocale_cmd loc expr defs)))
+    || interpretation_args_with_defs >> (fn (expr, defs) =>
+        Toplevel.local_theory_to_proof NONE NONE (Interpretation.sublocale_cmd expr defs)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>interpretation\<close>
     "prove interpretation of locale expression in local theory or into global theory"
     (Parse.!!! Parse_Spec.locale_expression >> (fn expr =>
       Toplevel.local_theory_to_proof NONE NONE
-        (Interpretation.isar_interpretation_cmd expr [])));
+        (Interpretation.isar_interpretation_cmd expr)));
 
 in end\<close>
 
