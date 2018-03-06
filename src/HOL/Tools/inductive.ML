@@ -1194,7 +1194,6 @@ fun gen_add_inductive_i mk_def
     val ps = map Free pnames;
 
     val (_, ctxt2) = lthy |> Variable.add_fixes (map (Binding.name_of o fst o fst) cnames_syn');
-    val _ = map (fn abbr => Local_Defs.fixed_abbrev abbr ctxt2) abbrevs;
     val ctxt3 = ctxt2 |> fold (snd oo Local_Defs.fixed_abbrev) abbrevs;
     val expand = Assumption.export_term ctxt3 lthy #> Proof_Context.cert_term lthy;
 
