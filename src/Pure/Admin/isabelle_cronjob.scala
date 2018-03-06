@@ -61,8 +61,8 @@ object Isabelle_Cronjob
     Logger_Task("exit", logger =>
       {
         Isabelle_System.bash(
-          "rsync -a " + File.bash_path(main_dir + Path.explode("log")) + " " +
-            Bash.string(backup + "/cronjob/log")).check
+          "rsync -a " + File.bash_path(main_dir + Path.explode("log")) + " " + Bash.string(backup))
+            .check
       })
 
 
