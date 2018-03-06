@@ -75,9 +75,11 @@ object SSH
   }
 
   def open_session(options: Options, host: String, user: String = "", port: Int = 0,
-      proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0): Session =
+      proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
+      permissive: Boolean = false): Session =
     init_context(options).open_session(host = host, user = user, port = port,
-      proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port)
+      proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
+      permissive = permissive)
 
   class Context private[SSH](val options: Options, val jsch: JSch)
   {
