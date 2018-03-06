@@ -23,7 +23,6 @@ object Isabelle_Cronjob
 
   val isabelle_repos_source = "https://isabelle.in.tum.de/repos/isabelle"
   val isabelle_repos = main_dir + Path.explode("isabelle")
-  val isabelle_repos_test = main_dir + Path.explode("isabelle-test")
   val afp_repos = main_dir + Path.explode("AFP")
 
   val build_log_dirs =
@@ -81,17 +80,22 @@ object Isabelle_Cronjob
   val build_history_base =
     Logger_Task("build_history_base", logger =>
       {
-        val hg =
-          Mercurial.setup_repository(
-            File.standard_path(isabelle_repos), isabelle_repos_test)
-        for {
-          (result, log_path) <-
-            Build_History.build_history(logger.options, isabelle_repos_test,
-              rev = "build_history_base", fresh = true, build_args = List("HOL"))
-        } {
-          result.check
-          File.move(log_path, logger.log_dir + log_path.base)
-        }
+        using(logger.ssh_context.open_session("lxbroy10"))(ssh =>
+          {
+            val results =
+              Build_History.remote_build_history(ssh,
+                isabelle_repos,
+                isabelle_repos.ext("build_history_base"),
+                isabelle_identifier = "cronjob_build_history",
+                self_update = true,
+                rev = "build_history_base",
+                options = "-f",
+                args = "HOL")
+
+            for ((log_name, bytes) <- results) {
+              Bytes.write(logger.log_dir + Path.explode(log_name), bytes)
+            }
+          })
       })
 
 
@@ -146,7 +150,7 @@ object Isabelle_Cronjob
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
-    remote_home: Boolean = true,  // false for lxbroy/homebroy
+    remote_home: Boolean = false,
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
@@ -508,8 +512,9 @@ object Isabelle_Cronjob
         run_now(
           SEQ(List(
             init,
+            build_history_base,
             PAR(
-              SEQ(List(build_release, build_history_base)) ::
+              build_release ::
               List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
                 PAR(remote_builds.map(_.filter(_.active)).map(seq =>
