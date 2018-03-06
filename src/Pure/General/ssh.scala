@@ -84,7 +84,9 @@ object SSH
     def update_options(new_options: Options): Context = new Context(new_options, jsch)
 
     def connect_session(host: String, user: String = "", port: Int = 0,
-      host_key_alias: String = "", on_close: () => Unit = () => ()): Session =
+      host_key_permissive: Boolean = false,
+      host_key_alias: String = "",
+      on_close: () => Unit = () => ()): Session =
     {
       val session = jsch.getSession(proper_string(user) getOrElse null, host, make_port(port))
 
@@ -92,6 +94,7 @@ object SSH
       session.setServerAliveInterval(alive_interval(options))
       session.setServerAliveCountMax(alive_count_max(options))
       session.setConfig("MaxAuthTries", "3")
+      if (host_key_permissive) session.setConfig("StrictHostKeyChecking", "no")
       if (host_key_alias != "") session.setHostKeyAlias(host_key_alias)
 
       if (options.bool("ssh_compression")) {
@@ -104,7 +107,8 @@ object SSH
     }
 
     def open_session(host: String, user: String = "", port: Int = 0,
-      proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0): Session =
+      proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
+      permissive: Boolean = false): Session =
     {
       if (proxy_host == "") connect_session(host = host, user = user, port = port)
       else {
@@ -115,7 +119,8 @@ object SSH
           catch { case exn: Throwable => proxy.close; throw exn }
 
         try {
-          connect_session(host = fw.local_host, port = fw.local_port, host_key_alias = host,
+          connect_session(host = fw.local_host, port = fw.local_port,
+            host_key_permissive = permissive, host_key_alias = host,
             user = user, on_close = () => { fw.close; proxy.close })
         }
         catch { case exn: Throwable => fw.close; proxy.close; throw exn }
