@@ -537,6 +537,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
       execute("Admin/build", "jars_fresh")
     }
 
+    val rev_id = self_hg.id(rev)
+
 
     /* Isabelle other + AFP repository */
 
@@ -545,7 +547,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     }
     val other_hg =
       Mercurial.clone_repository(
-        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev, ssh = ssh)
+        ssh.bash_path(isabelle_repos_self), isabelle_repos_other, rev = rev_id, ssh = ssh)
 
     val afp_options =
       if (afp_rev.isEmpty) ""
@@ -564,7 +566,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 
       execute("Admin/build_history",
         "-o " + ssh.bash_path(output_file) +
-          (if (rev == "") "" else " -r " + Bash.string(rev)) + " " +
+          (if (rev == "") "" else " -r " + Bash.string(rev_id)) + " " +
           options + afp_options + " " + ssh.bash_path(isabelle_repos_other) + " " + args,
         echo = true, strict = false)
 
