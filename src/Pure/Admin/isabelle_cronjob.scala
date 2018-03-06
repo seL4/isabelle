@@ -142,6 +142,7 @@ object Isabelle_Cronjob
     user: String = "",
     port: Int = 0,
     ssh_host: String = "",
+    ssh_permissive: Boolean = false,
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
@@ -159,7 +160,8 @@ object Isabelle_Cronjob
   {
     def ssh_session(context: SSH.Context): SSH.Session =
       context.open_session(host = proper_string(ssh_host) getOrElse host, user = user, port = port,
-        proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port)
+        proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
+        permissive = ssh_permissive)
 
     def sql: SQL.Source =
       Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
@@ -305,6 +307,8 @@ object Isabelle_Cronjob
     List(
       List(
         Remote_Build("AFP slow", "lrzcloud1", remote_home = true,
+          proxy_host = "lxbroy10", proxy_user = "isatest",
+          ssh_host = "10.155.208.96", ssh_permissive = true,
           options = "-m64 -M6 -U30000 -s10 -t AFP",
           args = "-g slow",
           afp = true,
