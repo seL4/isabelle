@@ -677,11 +677,9 @@ fun register_proofs ths =
   (Proofs.map o cons) (Lazy.map_finished (map Thm.trim_context) ths);
 
 fun consolidate_theory thy =
-  let
-    val proofs = Proofs.get thy;
-    val pending = fold (fn ths => if Lazy.is_pending ths then cons ths else I) [] proofs;
-    val _ = Lazy.consolidate pending;
-  in Thm.consolidate (maps (map (Thm.transfer thy) o Lazy.force) (rev proofs)) end;
+  rev (Proofs.get thy)
+  |> maps (map (Thm.transfer thy) o Lazy.force)
+  |> Thm.consolidate;
 
 
 
