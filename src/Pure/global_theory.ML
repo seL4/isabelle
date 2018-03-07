@@ -136,7 +136,8 @@ fun add_thms_lazy kind (b, thms) thy =
   else
     let
       val name = Sign.full_name thy b;
-      val thms' = Lazy.map_finished (name_thms true true name #> map (Thm.kind_rule kind)) thms;
+      val thms' = thms
+        |> Lazy.map_finished (name_thms true true name #> map (Thm.kind_rule kind));
     in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
