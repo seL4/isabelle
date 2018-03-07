@@ -8,7 +8,8 @@ The datatype of "maps"; strongly resembles maps in VDM.
 section \<open>Maps\<close>
 
 theory Map
-imports List
+  imports List
+  abbrevs "(=" = "\<subseteq>\<^sub>m"
 begin
 
 type_synonym ('a, 'b) "map" = "'a \<Rightarrow> 'b option" (infixr "\<rightharpoonup>" 0)

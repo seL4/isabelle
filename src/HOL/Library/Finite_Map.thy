@@ -6,6 +6,7 @@ section \<open>Type of finite maps defined as a subtype of maps\<close>
 
 theory Finite_Map
   imports FSet AList
+  abbrevs "(=" = "\<subseteq>\<^sub>f"
 begin
 
 subsection \<open>Auxiliary constants and lemmas over @{type map}\<close>
