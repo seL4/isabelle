@@ -116,7 +116,8 @@ object Build_PolyML
     /* configure and make */
 
     val configure_options =
-      List("--enable-intinf-as-int", "--with-gmp") ::: info.platform_options(arch_64) ::: options
+      List("--disable-shared", "--enable-intinf-as-int", "--with-gmp") :::
+        info.platform_options(arch_64) ::: options
 
     bash(root,
       info.setup + "\n" +
