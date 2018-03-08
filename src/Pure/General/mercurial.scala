@@ -151,10 +151,11 @@ object Mercurial
   }
 
 
-  /* unknown files */
+  /* check files */
 
-  def unknown_files(files: List[Path], ssh: SSH.System = SSH.Local): List[Path] =
+  def check_files(files: List[Path], ssh: SSH.System = SSH.Local): (List[Path], List[Path]) =
   {
+    val outside = new mutable.ListBuffer[Path]
     val unknown = new mutable.ListBuffer[Path]
 
     @tailrec def check(paths: List[Path])
@@ -162,7 +163,7 @@ object Mercurial
       paths match {
         case path :: rest =>
           find_repository(path, ssh) match {
-            case None => unknown += path; check(rest)
+            case None => outside += path; check(rest)
             case Some(hg) =>
               val known =
                 hg.known_files().iterator.map(name =>
@@ -175,6 +176,6 @@ object Mercurial
     }
 
     check(files)
-    unknown.toList
+    (outside.toList, unknown.toList)
   }
 }

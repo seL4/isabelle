@@ -438,10 +438,10 @@ object Build
         } yield path).toList
       val exclude_files = List(Path.explode("$POLYML_EXE")).map(_.canonical_file)
       val unknown_files =
-        Mercurial.unknown_files(source_files).
+        Mercurial.check_files(source_files)._2.
           filterNot(path => exclude_files.contains(path.canonical_file))
       if (unknown_files.nonEmpty) {
-        progress.echo_warning("Unknown files (not part of a Mercurial repository):" +
+        progress.echo_warning("Unknown files (not part of the underlying Mercurial repository):" +
           unknown_files.map(path => path.expand.implode).sorted.mkString("\n  ", "\n  ", ""))
       }
     }
