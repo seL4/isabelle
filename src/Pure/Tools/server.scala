@@ -175,8 +175,6 @@ class Server private(_port: Int)
     def reply_error_message(message: String, more: (String, JSON.T)*): Unit =
       reply_error(Map("message" -> message) ++ more)
 
-    val Command_Line = """^(\S+)\s*(.*)$""".r
-
     reader.readLine() match {
       case null =>
       case bad if bad != password => reply_error("Bad password -- connection closed")
@@ -185,9 +183,11 @@ class Server private(_port: Int)
         while (!finished) {
           reader.readLine() match {
             case null => finished = true
-            case Command_Line(cmd, input) =>
+            case line =>
+              val cmd = line.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
+              val input = line.substring(cmd.length).dropWhile(Symbol.is_ascii_blank(_))
               Server.commands.get(cmd) match {
-                case None => reply_error("Unknown command " + quote(cmd))
+                case None => reply_error("Bad command " + quote(cmd))
                 case Some(body) =>
                   proper_string(input) getOrElse "{}" match {
                     case JSON.Format(arg) =>
