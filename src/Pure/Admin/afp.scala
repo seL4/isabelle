@@ -85,7 +85,7 @@ class AFP private(options: Options, val base_dir: Path)
 
   /* partition sessions */
 
-  val force_partition1: List[String] = List("Category3")
+  val force_partition1: List[String] = List("Category3", "Network_Security_Policy_Verification")
 
   def partition(n: Int): List[String] =
     n match {
