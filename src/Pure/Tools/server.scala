@@ -16,6 +16,13 @@ object Server
 {
   /* protocol */
 
+  def split_line(line: String): (String, String) =
+  {
+    val head = line.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
+    val rest = line.substring(head.length).dropWhile(Symbol.is_ascii_blank(_))
+    (head, proper_string(rest) getOrElse "{}")
+  }
+
   val commands: Map[String, PartialFunction[(Server, JSON.T), JSON.T]] =
     Map(
       "echo" -> { case (_, t) => t },
@@ -224,12 +231,11 @@ class Server private(_port: Int)
           connection.read_line() match {
             case None => finished = true
             case Some(line) =>
-              val cmd = line.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
-              val input = line.substring(cmd.length).dropWhile(Symbol.is_ascii_blank(_))
+              val (cmd, input) = Server.split_line(line)
               Server.commands.get(cmd) match {
                 case None => connection.reply_error("Bad command " + quote(cmd))
                 case Some(body) =>
-                  proper_string(input) getOrElse "{}" match {
+                  input match {
                     case JSON.Format(arg) =>
                       if (body.isDefinedAt((server, arg))) {
                         try { connection.reply_ok(body(server, arg)) }
