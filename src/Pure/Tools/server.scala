@@ -31,7 +31,7 @@ object Server
 
   object Reply extends Enumeration
   {
-    val OK, ERROR = Value
+    val OK, ERROR, NOTE = Value
 
     def unapply(line: String): Option[(Reply.Value, JSON.T)] =
     {
@@ -90,6 +90,10 @@ object Server
     def reply_error(t: JSON.T) { reply(Server.Reply.ERROR, t) }
     def reply_error_message(message: String, more: (String, JSON.T)*): Unit =
       reply_error(Map("message" -> message) ++ more)
+
+    def notify(t: JSON.T) { reply(Server.Reply.NOTE, t) }
+    def notify_message(message: String, more: (String, JSON.T)*): Unit =
+      notify(Map("message" -> message) ++ more)
   }
 
 
@@ -258,7 +262,9 @@ class Server private(_port: Int)
         while (!finished) {
           connection.read_line() match {
             case None => finished = true
-            case Some(line) if line != "" =>
+            case Some("") =>
+              connection.notify_message("Command 'help' provides list of commands")
+            case Some(line) =>
               val (cmd, input) = Server.split_line(line)
               Server.commands.get(cmd) match {
                 case None => connection.reply_error("Bad command " + quote(cmd))
@@ -278,7 +284,6 @@ class Server private(_port: Int)
                         "Malformed command-line", "command" -> cmd, "input" -> input)
                   }
               }
-            case _ =>
           }
         }
       case _ =>
