@@ -230,7 +230,7 @@ class Server private(_port: Int)
         while (!finished) {
           connection.read_line() match {
             case None => finished = true
-            case Some(line) =>
+            case Some(line) if line != "" =>
               val (cmd, input) = Server.split_line(line)
               Server.commands.get(cmd) match {
                 case None => connection.reply_error("Bad command " + quote(cmd))
