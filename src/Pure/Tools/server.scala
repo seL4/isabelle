@@ -134,6 +134,7 @@ object Server
               stmt.execute()
             })
 
+            server.start
             (entry, Some(server))
         }
       })
@@ -257,6 +258,8 @@ class Server private(_port: Int)
         }
       }
     }
+
+  def start { server_thread }
 
   def join { server_thread.join; shutdown() }
 
