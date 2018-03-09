@@ -7,9 +7,6 @@ The raw ML process in interactive mode.
 package isabelle
 
 
-import java.io.{IOException, BufferedReader, InputStreamReader}
-
-
 object ML_Console
 {
   /* command line entry point */
@@ -76,59 +73,14 @@ Usage: isabelle console [OPTIONS]
           session_base =
             if (raw_ml_system) None
             else Some(Sessions.base_info(options, logic, dirs = dirs).check_base))
-      val process_output = Future.thread[Unit]("process_output") {
-        try {
-          var result = new StringBuilder(100)
-          var finished = false
-          while (!finished) {
-            var c = -1
-            var done = false
-            while (!done && (result.length == 0 || process.stdout.ready)) {
-              c = process.stdout.read
-              if (c >= 0) result.append(c.asInstanceOf[Char])
-              else done = true
-            }
-            if (result.length > 0) {
-              System.out.print(result.toString)
-              System.out.flush()
-              result.length = 0
-            }
-            else {
-              process.stdout.close()
-              finished = true
-            }
-          }
-        }
-        catch { case e: IOException => case Exn.Interrupt() => }
-      }
-      val process_input = Future.thread[Unit]("process_input") {
-        val reader = new BufferedReader(new InputStreamReader(System.in))
-        POSIX_Interrupt.handler { process.interrupt } {
-          try {
-            var finished = false
-            while (!finished) {
-              reader.readLine() match {
-                case null =>
-                  process.stdin.close()
-                  finished = true
-                case line =>
-                  process.stdin.write(line)
-                  process.stdin.write("\n")
-                  process.stdin.flush()
-              }
-            }
-          }
-          catch { case e: IOException => case Exn.Interrupt() => }
-        }
-      }
+
+      val tty_loop = new TTY_Loop(process.stdin, process.stdout, process.interrupt _)
       val process_result = Future.thread[Int]("process_result") {
         val rc = process.join
-        process_input.cancel
+        tty_loop.cancel
         rc
       }
-
-      process_output.join
-      process_input.join
+      tty_loop.join
       process_result.join
     }
   }
