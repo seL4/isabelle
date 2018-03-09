@@ -223,9 +223,8 @@ class Server private(_port: Int)
   private def handle(connection: Server.Connection)
   {
     connection.read_line() match {
-      case None =>
-      case Some(line) if line != password => connection.reply_error("Bad protocol")
-      case _ =>
+      case Some(line) if line == password =>
+        connection.reply_ok(JSON.empty)
         var finished = false
         while (!finished) {
           connection.read_line() match {
@@ -253,6 +252,7 @@ class Server private(_port: Int)
             case _ =>
           }
         }
+      case _ =>
     }
   }
 
