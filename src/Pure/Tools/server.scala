@@ -110,7 +110,7 @@ object Server
         try {
           using(connection())(connection =>
             {
-              connection.socket.setSoTimeout(500)
+              connection.socket.setSoTimeout(2000)
               connection.read_line() == Some(Reply.OK.toString)
             })
         }
