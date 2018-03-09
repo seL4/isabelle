@@ -215,8 +215,7 @@ class Server private(_port: Int)
   {
     connection.read_line() match {
       case None =>
-      case Some(line) if line != password =>
-        connection.reply_error("Bad password -- connection closed")
+      case Some(line) if line != password => connection.reply_error("Bad protocol")
       case _ =>
         var finished = false
         while (!finished) {
