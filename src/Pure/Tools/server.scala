@@ -73,6 +73,9 @@ object Server
 
   /* per-user servers */
 
+  def print(port: Int, password: String): String =
+    "127.0.0.1:" + port + " (password " + quote(password) + ")"
+
   object Data
   {
     val database = Path.explode("$ISABELLE_HOME_USER/servers.db")
@@ -84,8 +87,8 @@ object Server
 
     sealed case class Entry(name: String, port: Int, password: String)
     {
-      def print: String =
-        "server " + quote(name) + " = 127.0.0.1:" + port + " (password " + quote(password) + ")"
+      override def toString: String =
+        "server " + quote(name) + " = " + print(port, password)
 
       def connection(): Connection =
         Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
@@ -184,11 +187,11 @@ Usage: isabelle server [OPTIONS]
 
       if (operation_list) {
         for (entry <- using(SQLite.open_database(Data.database))(list(_)) if entry.active)
-          Output.writeln(entry.print, stdout = true)
+          Output.writeln(entry.toString, stdout = true)
       }
       else {
         val (entry, server) = start(name, port)
-        Output.writeln(entry.print, stdout = true)
+        Output.writeln(entry.toString, stdout = true)
         server.foreach(_.join)
       }
     })
@@ -200,8 +203,9 @@ class Server private(_port: Int)
 
   private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
   def port: Int = server_socket.getLocalPort
-
   val password: String = Library.UUID()
+
+  override def toString: String = Server.print(port, password)
 
   private def handle(connection: Server.Connection)
   {
