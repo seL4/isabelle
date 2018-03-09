@@ -32,6 +32,19 @@ object Server
   object Reply extends Enumeration
   {
     val OK, ERROR = Value
+
+    def unapply(line: String): Option[(Reply.Value, JSON.T)] =
+    {
+      if (line == "") None
+      else {
+        val (reply, output) = split_line(line)
+        try { Some((withName(reply), JSON.parse(output, strict = false))) }
+        catch {
+          case _: NoSuchElementException => None
+          case Exn.ERROR(_) => None
+        }
+      }
+    }
   }
 
 
