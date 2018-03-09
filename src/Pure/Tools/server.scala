@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   IOException}
-import java.net.{Socket, SocketException, ServerSocket, InetAddress}
+import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
 
 
 object Server
@@ -65,7 +65,7 @@ object Server
       require(split_lines(msg).length <= 1)
       writer.write(msg)
       writer.newLine()
-      writer.flush()
+      try { writer.flush() } catch { case _: SocketException => }
     }
 
     def reply(r: Server.Reply.Value, t: JSON.T)
@@ -100,11 +100,25 @@ object Server
         "server " + quote(name) + " = " + print(port, password)
 
       def connection(): Connection =
-        Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
+      {
+        val connection = Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
+        connection.write_line(password)
+        connection
+      }
 
       def active(): Boolean =
-        try { connection().close; true }
-        catch { case _: IOException => false }
+        try {
+          using(connection())(connection =>
+            {
+              connection.socket.setSoTimeout(500)
+              connection.read_line() == Some(Reply.OK.toString)
+            })
+        }
+        catch {
+          case _: IOException => false
+          case _: SocketException => false
+          case _: SocketTimeoutException => false
+        }
     }
   }
 
@@ -155,12 +169,8 @@ object Server
       db.transaction {
         find(db, name) match {
           case Some(entry) =>
-            using(entry.connection())(connection =>
-              {
-                connection.write_line(entry.password)
-                connection.write_line("shutdown")
-              })
-            while(entry.active) { Thread.sleep(100) }
+            using(entry.connection())(_.write_line("shutdown"))
+            while(entry.active) { Thread.sleep(50) }
             true
           case None => false
         }
