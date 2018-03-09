@@ -36,7 +36,7 @@ object Server
       new Connection(socket)
   }
 
-  class Connection private(socket: Socket)
+  class Connection private(val socket: Socket)
   {
     override def toString: String = socket.toString
 
