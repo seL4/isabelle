@@ -20,7 +20,7 @@ object Server
     Map(
       "echo" -> { case (_, t) => t },
       "help" -> { case (_, JSON.empty) => commands.keySet.toList.sorted },
-      "shutdown" -> { case (server, JSON.empty) => server.shutdown(); JSON.empty })
+      "shutdown" -> { case (server, JSON.empty) => server.close(); JSON.empty })
 
   object Reply extends Enumeration
   {
@@ -203,6 +203,9 @@ class Server private(_port: Int)
   server =>
 
   private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
+
+  def close() { server_socket.close }
+
   def port: Int = server_socket.getLocalPort
   val password: String = Library.UUID()
 
@@ -261,7 +264,5 @@ class Server private(_port: Int)
 
   def start { server_thread }
 
-  def join { server_thread.join; shutdown() }
-
-  def shutdown() { server_socket.close }
+  def join { server_thread.join; close() }
 }
