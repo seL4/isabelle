@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   IOException}
-import java.net.{Socket, ServerSocket, InetAddress}
+import java.net.{Socket, SocketException, ServerSocket, InetAddress}
 
 
 object Server
@@ -46,9 +46,11 @@ object Server
     val writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream, UTF8.charset))
 
     def read_line(): Option[String] =
-      reader.readLine() match {
-        case null => None
-        case line => Some(line)
+      Exn.capture { reader.readLine() } match {
+        case Exn.Res(null) => None
+        case Exn.Res(line) => Some(line)
+        case Exn.Exn(_: SocketException) => None
+        case Exn.Exn(exn) => throw exn
       }
 
     def write_line(msg: String)
