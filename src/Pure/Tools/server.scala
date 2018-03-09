@@ -139,26 +139,32 @@ object Server
   def init(name: String = "", port: Int = 0): (Data.Entry, Option[Server]) =
   {
     using(SQLite.open_database(Data.database))(db =>
-      db.transaction {
-        find(db, name) match {
-          case Some(entry) => (entry, None)
-          case None =>
-            val server = new Server(port)
-            val entry = Data.Entry(name, server.port, server.password)
+      {
+        db.transaction {
+          Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
+          db.create_table(Data.table)
+          list(db).filterNot(_.active).foreach(entry =>
+            db.using_statement(Data.table.delete(Data.name.where_equal(entry.name)))(_.execute))
+        }
+        db.transaction {
+          find(db, name) match {
+            case Some(entry) => (entry, None)
+            case None =>
+              val server = new Server(port)
+              val entry = Data.Entry(name, server.port, server.password)
 
-            Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
-            db.create_table(Data.table)
-            db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
-            db.using_statement(Data.table.insert())(stmt =>
-            {
-              stmt.string(1) = entry.name
-              stmt.int(2) = entry.port
-              stmt.string(3) = entry.password
-              stmt.execute()
-            })
+              db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
+              db.using_statement(Data.table.insert())(stmt =>
+              {
+                stmt.string(1) = entry.name
+                stmt.int(2) = entry.port
+                stmt.string(3) = entry.password
+                stmt.execute()
+              })
 
-            server.start
-            (entry, Some(server))
+              server.start
+              (entry, Some(server))
+          }
         }
       })
   }
