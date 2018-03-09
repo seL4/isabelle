@@ -113,7 +113,7 @@ object Server
   def find(db: SQLite.Database, name: String): Option[Data.Entry] =
     list(db).find(entry => entry.name == name && entry.active)
 
-  def start(name: String = "", port: Int = 0): (Data.Entry, Option[Server]) =
+  def init(name: String = "", port: Int = 0): (Data.Entry, Option[Server]) =
   {
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
@@ -139,7 +139,7 @@ object Server
       })
   }
 
-  def stop(name: String = ""): Boolean =
+  def exit(name: String = ""): Boolean =
   {
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
@@ -190,7 +190,7 @@ Usage: isabelle server [OPTIONS]
           Output.writeln(entry.toString, stdout = true)
       }
       else {
-        val (entry, server) = start(name, port)
+        val (entry, server) = init(name, port)
         Output.writeln(entry.toString, stdout = true)
         server.foreach(_.join)
       }
