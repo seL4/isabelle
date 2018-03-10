@@ -2,6 +2,15 @@
     Author:     Makarius
 
 Resident Isabelle servers.
+
+Message formats:
+
+  - short message (single line):
+      NAME ARGUMENT
+
+  - long message (multiple lines):
+      BYTE_LENGTH
+      NAME ARGUMENT
 */
 
 package isabelle
@@ -16,10 +25,10 @@ object Server
 {
   /* protocol */
 
-  def split_line(line: String): (String, String) =
+  def split_message(msg: String): (String, String) =
   {
-    val head = line.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
-    val rest = line.substring(head.length).dropWhile(Symbol.is_ascii_blank(_))
+    val head = msg.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
+    val rest = msg.substring(head.length).dropWhile(Symbol.is_ascii_blank(_))
     (head, proper_string(rest) getOrElse "{}")
   }
 
@@ -33,11 +42,11 @@ object Server
   {
     val OK, ERROR, NOTE = Value
 
-    def unapply(line: String): Option[(Reply.Value, JSON.T)] =
+    def unapply(msg: String): Option[(Reply.Value, JSON.T)] =
     {
-      if (line == "") None
+      if (msg == "") None
       else {
-        val (reply, output) = split_line(line)
+        val (reply, output) = split_message(msg)
         try { Some((withName(reply), JSON.parse(output, strict = false))) }
         catch {
           case _: NoSuchElementException => None
@@ -65,21 +74,31 @@ object Server
     val in = new BufferedInputStream(socket.getInputStream)
     val out = new BufferedOutputStream(socket.getOutputStream)
 
-    def read_line(): Option[String] =
-      try { Bytes.read_line(in).map(_.text) }
+    def read_message(): Option[String] =
+      try {
+        Bytes.read_line(in).map(_.text) match {
+          case Some(Value.Int(n)) =>
+            Bytes.read_block(in, n).map(bytes => Library.trim_line(bytes.text))
+          case res => res
+        }
+      }
       catch { case _: SocketException => None }
 
-    def write_line(msg: String)
+    def write_message(msg: String)
     {
-      require(split_lines(msg).length <= 1)
-      out.write(UTF8.bytes(msg))
+      val b = UTF8.bytes(msg)
+      if (b.length > 100 || b.contains(10)) {
+        out.write(UTF8.bytes((b.length + 1).toString))
+        out.write(10)
+      }
+      out.write(b)
       out.write(10)
       try { out.flush() } catch { case _: SocketException => }
     }
 
     def reply(r: Server.Reply.Value, t: JSON.T)
     {
-      write_line(if (t == JSON.empty) r.toString else r.toString + " " + JSON.Format(t))
+      write_message(if (t == JSON.empty) r.toString else r.toString + " " + JSON.Format(t))
     }
 
     def reply_ok(t: JSON.T) { reply(Server.Reply.OK, t) }
@@ -103,7 +122,7 @@ object Server
     def connection(): Connection =
     {
       val connection = Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
-      connection.write_line(password)
+      connection.write_message(password)
       connection
     }
 
@@ -112,7 +131,7 @@ object Server
         using(connection())(connection =>
           {
             connection.socket.setSoTimeout(2000)
-            connection.read_line() == Some(Reply.OK.toString)
+            connection.read_message() == Some(Reply.OK.toString)
           })
       }
       catch {
@@ -204,7 +223,7 @@ object Server
       db.transaction {
         find(db, name) match {
           case Some(server_info) =>
-            using(server_info.connection())(_.write_line("shutdown"))
+            using(server_info.connection())(_.write_message("shutdown"))
             while(server_info.active) { Thread.sleep(50) }
             true
           case None => false
@@ -273,17 +292,17 @@ class Server private(_port: Int)
 
   private def handle(connection: Server.Connection)
   {
-    connection.read_line() match {
-      case Some(line) if line == password =>
+    connection.read_message() match {
+      case Some(msg) if msg == password =>
         connection.reply_ok(JSON.empty)
         var finished = false
         while (!finished) {
-          connection.read_line() match {
+          connection.read_message() match {
             case None => finished = true
             case Some("") =>
               connection.notify_message("Command 'help' provides list of commands")
-            case Some(line) =>
-              val (cmd, input) = Server.split_line(line)
+            case Some(msg) =>
+              val (cmd, input) = Server.split_message(msg)
               Server.commands.get(cmd) match {
                 case None => connection.reply_error("Bad command " + quote(cmd))
                 case Some(body) =>
@@ -299,7 +318,7 @@ class Server private(_port: Int)
                       }
                     case _ =>
                       connection.reply_error_message(
-                        "Malformed command-line", "command" -> cmd, "input" -> input)
+                        "Malformed message", "command" -> cmd, "input" -> input)
                   }
               }
           }
