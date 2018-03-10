@@ -93,6 +93,48 @@ object Server
   }
 
 
+  /* server info */
+
+  sealed case class Info(name: String, port: Int, password: String)
+  {
+    override def toString: String =
+      "server " + quote(name) + " = " + print(port, password)
+
+    def connection(): Connection =
+    {
+      val connection = Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
+      connection.write_line(password)
+      connection
+    }
+
+    def active(): Boolean =
+      try {
+        using(connection())(connection =>
+          {
+            connection.socket.setSoTimeout(2000)
+            connection.read_line() == Some(Reply.OK.toString)
+          })
+      }
+      catch {
+        case _: IOException => false
+        case _: SocketException => false
+        case _: SocketTimeoutException => false
+      }
+
+    def console()
+    {
+      using(connection())(connection =>
+        {
+          val tty_loop =
+            new TTY_Loop(
+              new BufferedWriter(new OutputStreamWriter(connection.socket.getOutputStream)),
+              new BufferedReader(new InputStreamReader(connection.socket.getInputStream)))
+          tty_loop.join
+        })
+    }
+  }
+
+
   /* per-user servers */
 
   def print(port: Int, password: String): String =
@@ -106,89 +148,51 @@ object Server
     val port = SQL.Column.int("port")
     val password = SQL.Column.string("password")
     val table = SQL.Table("isabelle_servers", List(name, port, password))
-
-    sealed case class Entry(name: String, port: Int, password: String)
-    {
-      override def toString: String =
-        "server " + quote(name) + " = " + print(port, password)
-
-      def connection(): Connection =
-      {
-        val connection = Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
-        connection.write_line(password)
-        connection
-      }
-
-      def active(): Boolean =
-        try {
-          using(connection())(connection =>
-            {
-              connection.socket.setSoTimeout(2000)
-              connection.read_line() == Some(Reply.OK.toString)
-            })
-        }
-        catch {
-          case _: IOException => false
-          case _: SocketException => false
-          case _: SocketTimeoutException => false
-        }
-
-      def console()
-      {
-        using(connection())(connection =>
-          {
-            val tty_loop =
-              new TTY_Loop(
-                new BufferedWriter(new OutputStreamWriter(connection.socket.getOutputStream)),
-                new BufferedReader(new InputStreamReader(connection.socket.getInputStream)))
-            tty_loop.join
-          })
-      }
-    }
   }
 
-  def list(db: SQLite.Database): List[Data.Entry] =
+  def list(db: SQLite.Database): List[Info] =
     if (db.tables.contains(Data.table.name)) {
       db.using_statement(Data.table.select())(stmt =>
         stmt.execute_query().iterator(res =>
-          Data.Entry(
+          Info(
             res.string(Data.name),
             res.int(Data.port),
             res.string(Data.password))).toList.sortBy(_.name))
     }
     else Nil
 
-  def find(db: SQLite.Database, name: String): Option[Data.Entry] =
-    list(db).find(entry => entry.name == name && entry.active)
+  def find(db: SQLite.Database, name: String): Option[Info] =
+    list(db).find(server_info => server_info.name == name && server_info.active)
 
-  def init(name: String = "", port: Int = 0): (Data.Entry, Option[Server]) =
+  def init(name: String = "", port: Int = 0): (Info, Option[Server]) =
   {
     using(SQLite.open_database(Data.database))(db =>
       {
         db.transaction {
           Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
           db.create_table(Data.table)
-          list(db).filterNot(_.active).foreach(entry =>
-            db.using_statement(Data.table.delete(Data.name.where_equal(entry.name)))(_.execute))
+          list(db).filterNot(_.active).foreach(server_info =>
+            db.using_statement(Data.table.delete(Data.name.where_equal(server_info.name)))(
+              _.execute))
         }
         db.transaction {
           find(db, name) match {
-            case Some(entry) => (entry, None)
+            case Some(server_info) => (server_info, None)
             case None =>
               val server = new Server(port)
-              val entry = Data.Entry(name, server.port, server.password)
+              val server_info = Info(name, server.port, server.password)
 
               db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
               db.using_statement(Data.table.insert())(stmt =>
               {
-                stmt.string(1) = entry.name
-                stmt.int(2) = entry.port
-                stmt.string(3) = entry.password
+                stmt.string(1) = server_info.name
+                stmt.int(2) = server_info.port
+                stmt.string(3) = server_info.password
                 stmt.execute()
               })
 
               server.start
-              (entry, Some(server))
+              (server_info, Some(server))
           }
         }
       })
@@ -199,9 +203,9 @@ object Server
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
         find(db, name) match {
-          case Some(entry) =>
-            using(entry.connection())(_.write_line("shutdown"))
-            while(entry.active) { Thread.sleep(50) }
+          case Some(server_info) =>
+            using(server_info.connection())(_.write_line("shutdown"))
+            while(server_info.active) { Thread.sleep(50) }
             true
           case None => false
         }
@@ -240,13 +244,15 @@ Usage: isabelle server [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
       if (operation_list) {
-        for (entry <- using(SQLite.open_database(Data.database))(list(_)) if entry.active)
-          Output.writeln(entry.toString, stdout = true)
+        for {
+          server_info <- using(SQLite.open_database(Data.database))(list(_))
+          if server_info.active
+        } Output.writeln(server_info.toString, stdout = true)
       }
       else {
-        val (entry, server) = init(name, port)
-        Output.writeln(entry.toString, stdout = true)
-        if (console) entry.console()
+        val (server_info, server) = init(name, port)
+        Output.writeln(server_info.toString, stdout = true)
+        if (console) server_info.console()
         server.foreach(_.join)
       }
     })
