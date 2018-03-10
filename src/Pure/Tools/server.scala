@@ -183,7 +183,8 @@ object Server
   def find(db: SQLite.Database, name: String): Option[Info] =
     list(db).find(server_info => server_info.name == name && server_info.active)
 
-  def init(name: String = "", port: Int = 0): (Info, Option[Server]) =
+  def init(name: String = "", port: Int = 0, existing_server: Boolean = false)
+    : (Info, Option[Server]) =
   {
     using(SQLite.open_database(Data.database))(db =>
       {
@@ -198,6 +199,11 @@ object Server
           find(db, name) match {
             case Some(server_info) => (server_info, None)
             case None =>
+              if (existing_server) {
+                if (name == "") error("Isabelle server not running")
+                else error("Isabelle server " + quote(name) + " not running")
+              }
+
               val server = new Server(port)
               val server_info = Info(name, server.port, server.password)
 
@@ -241,6 +247,7 @@ object Server
       var operation_list = false
       var name = ""
       var port = 0
+      var existing_server = false
 
       val getopts =
         Getopts("""
@@ -251,13 +258,15 @@ Usage: isabelle server [OPTIONS]
     -L           list servers only
     -n NAME      explicit server name
     -p PORT      explicit server port
+    -s           assume existing server, no implicit startup
 
   Manage resident Isabelle servers.
 """,
           "C" -> (_ => console = true),
           "L" -> (_ => operation_list = true),
           "n:" -> (arg => name = arg),
-          "p:" -> (arg => port = Value.Int.parse(arg)))
+          "p:" -> (arg => port = Value.Int.parse(arg)),
+          "s" -> (_ => existing_server = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -269,7 +278,7 @@ Usage: isabelle server [OPTIONS]
         } Output.writeln(server_info.toString, stdout = true)
       }
       else {
-        val (server_info, server) = init(name, port)
+        val (server_info, server) = init(name, port = port, existing_server = existing_server)
         Output.writeln(server_info.toString, stdout = true)
         if (console) server_info.console()
         server.foreach(_.join)

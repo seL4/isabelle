@@ -62,8 +62,8 @@ shift $(($OPTIND - 1))
 
 if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
 then
-  exec "$ISABELLE_LINE_EDITOR" isabelle server -C "${SERVER_OPTS[@]}"
+  exec "$ISABELLE_LINE_EDITOR" isabelle server -s -C "${SERVER_OPTS[@]}"
 else
   echo "### No line editor: \"$ISABELLE_LINE_EDITOR\""
-  exec isabelle server -C "${SERVER_OPTS[@]}"
+  exec isabelle server -s -C "${SERVER_OPTS[@]}"
 fi
