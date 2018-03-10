@@ -117,7 +117,7 @@ object Server
   sealed case class Info(name: String, port: Int, password: String)
   {
     override def toString: String =
-      "server " + quote(name) + " = " + print(port, password)
+      "server " + print_name_space(name) + "= " + print(port, password)
 
     def connection(): Connection =
     {
@@ -155,6 +155,9 @@ object Server
 
 
   /* per-user servers */
+
+  def print_name_space(name: String): String =
+    if (name == "") "" else quote(name) + " "
 
   def print(port: Int, password: String): String =
     "127.0.0.1:" + port + " (password " + quote(password) + ")"
@@ -200,8 +203,7 @@ object Server
             case Some(server_info) => (server_info, None)
             case None =>
               if (existing_server) {
-                if (name == "") error("Isabelle server not running")
-                else error("Isabelle server " + quote(name) + " not running")
+                  error("Isabelle server " + print_name_space(name) + "not running")
               }
 
               val server = new Server(port)
