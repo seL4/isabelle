@@ -1929,6 +1929,24 @@ lemma nat_diff_sum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
   by (subst sum_subtractf_nat) auto
 
+lemma bit_take_sum_nat:
+  "bit_take n m = (\<Sum>k = 0..<n. bit_push k (of_bool (odd (bit_drop k m))))"
+  for n m :: nat
+proof (induction n arbitrary: m)
+  case 0
+  then show ?case
+    by simp
+next
+  case (Suc n)
+  have "(\<Sum>k = 0..<Suc n. bit_push k (of_bool (odd (bit_drop k m)))) = 
+    of_bool (odd m) + (\<Sum>k = Suc 0..<Suc n. bit_push k (of_bool (odd (bit_drop k m))))"
+    by (simp add: sum_head_upt_Suc ac_simps)
+  also have "(\<Sum>k = Suc 0..<Suc n. bit_push k (of_bool (odd (bit_drop k m))))
+    = (\<Sum>k = 0..<n. bit_push k (of_bool (odd (bit_drop k (m div 2))))) * (2::nat)"
+    by (simp only: sum.atLeast_Suc_lessThan_Suc_shift) (simp add: sum_distrib_right bit_push_double)
+  finally show ?case
+    using Suc [of "m div 2"] by simp
+qed    
 
 subsubsection \<open>Shifting bounds\<close>
 
