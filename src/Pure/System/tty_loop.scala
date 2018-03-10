@@ -13,7 +13,7 @@ import java.io.{IOException, BufferedReader, BufferedWriter, InputStreamReader}
 class TTY_Loop(
   process_writer: BufferedWriter,
   process_reader: BufferedReader,
-  process_interrupt: () => Unit = () => ())
+  process_interrupt: Option[() => Unit] = None)
 {
   private val console_output = Future.thread[Unit]("console_output") {
     try {
@@ -43,7 +43,8 @@ class TTY_Loop(
 
   private val console_input = Future.thread[Unit]("console_input") {
     val console_reader = new BufferedReader(new InputStreamReader(System.in))
-    POSIX_Interrupt.handler { process_interrupt() } {
+    def body
+    {
       try {
         var finished = false
         while (!finished) {
@@ -59,6 +60,11 @@ class TTY_Loop(
         }
       }
       catch { case e: IOException => case Exn.Interrupt() => }
+    }
+    process_interrupt match {
+      case None => body
+      case Some(interrupt) =>
+        POSIX_Interrupt.handler { interrupt() } { body }
     }
   }
 

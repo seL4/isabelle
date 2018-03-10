@@ -74,7 +74,7 @@ Usage: isabelle console [OPTIONS]
             if (raw_ml_system) None
             else Some(Sessions.base_info(options, logic, dirs = dirs).check_base))
 
-      val tty_loop = new TTY_Loop(process.stdin, process.stdout, process.interrupt _)
+      val tty_loop = new TTY_Loop(process.stdin, process.stdout, Some(process.interrupt _))
       val process_result = Future.thread[Int]("process_result") {
         val rc = process.join
         tty_loop.cancel  // FIXME does not quite work, cannot interrupt blocking read on System.in
