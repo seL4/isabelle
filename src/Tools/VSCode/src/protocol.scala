@@ -616,7 +616,7 @@ object Protocol
     {
       val entries =
         for ((sym, code) <- Symbol.codes)
-        yield Map("symbol" -> sym, "name" -> Symbol.names(sym), "code" -> code)
+        yield Map("symbol" -> sym, "name" -> Symbol.names(sym)._1, "code" -> code)
       Notification("PIDE/symbols", Map("entries" -> entries))
     }
   }
