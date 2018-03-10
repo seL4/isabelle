@@ -7,7 +7,8 @@ Resident Isabelle servers.
 package isabelle
 
 
-import java.io.{BufferedInputStream, BufferedOutputStream, IOException}
+import java.io.{BufferedInputStream, BufferedOutputStream, BufferedReader, BufferedWriter,
+  InputStreamReader, OutputStreamWriter, IOException}
 import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
 
 
@@ -131,6 +132,18 @@ object Server
           case _: SocketException => false
           case _: SocketTimeoutException => false
         }
+
+      def console()
+      {
+        using(connection())(connection =>
+          {
+            val tty_loop =
+              new TTY_Loop(
+                new BufferedWriter(new OutputStreamWriter(connection.socket.getOutputStream)),
+                new BufferedReader(new InputStreamReader(connection.socket.getInputStream)))
+            tty_loop.join
+          })
+      }
     }
   }
 
@@ -201,6 +214,7 @@ object Server
   val isabelle_tool =
     Isabelle_Tool("server", "manage resident Isabelle servers", args =>
     {
+      var console = false
       var operation_list = false
       var name = ""
       var port = 0
@@ -210,12 +224,14 @@ object Server
 Usage: isabelle server [OPTIONS]
 
   Options are:
-    -L           list servers
+    -C           console interaction with specified server
+    -L           list servers only
     -n NAME      explicit server name
     -p PORT      explicit server port
 
   Manage resident Isabelle servers.
 """,
+          "C" -> (_ => console = true),
           "L" -> (_ => operation_list = true),
           "n:" -> (arg => name = arg),
           "p:" -> (arg => port = Value.Int.parse(arg)))
@@ -230,6 +246,7 @@ Usage: isabelle server [OPTIONS]
       else {
         val (entry, server) = init(name, port)
         Output.writeln(entry.toString, stdout = true)
+        if (console) entry.console()
         server.foreach(_.join)
       }
     })
