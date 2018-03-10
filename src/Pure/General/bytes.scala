@@ -56,6 +56,27 @@ object Bytes
       new Bytes(out.toByteArray, 0, out.size)
     }
 
+  def read_block(stream: InputStream, length: Int): Option[Bytes] =
+  {
+    val bytes = read_stream(stream, limit = length)
+    if (bytes.length == length) Some(bytes) else None
+  }
+
+  def read_line(stream: InputStream): Option[Bytes] =
+  {
+    val out = new ByteArrayOutputStream(100)
+    var c = 0
+    while ({ c = stream.read; c != -1 && c != 10 }) out.write(c)
+
+    if (c == -1 && out.size == 0) None
+    else {
+      val a = out.toByteArray
+      val n = a.length
+      val b = if (n > 0 && a(n - 1) == 13) a.take(n - 1) else a
+      Some(new Bytes(b, 0, b.length))
+    }
+  }
+
   def read(file: JFile): Bytes =
     using(new FileInputStream(file))(read_stream(_, file.length.toInt))
 

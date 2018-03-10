@@ -21,12 +21,10 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
   private val Content_Length = """^\s*Content-Length:\s*(\d+)\s*$""".r
 
   private def read_line(): String =
-  {
-    val buffer = new ByteArrayOutputStream(100)
-    var c = 0
-    while ({ c = in.read; c != -1 && c != 10 }) buffer.write(c)
-    Library.trim_line(buffer.toString(UTF8.charset_name))
-  }
+    Bytes.read_line(in) match {
+      case Some(bytes) => bytes.text
+      case None => ""
+    }
 
   private def read_header(): List[String] =
   {
@@ -38,17 +36,9 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
 
   private def read_content(n: Int): String =
   {
-    val buffer = new Array[Byte](n)
-    var i = 0
-    var m = 0
-    do {
-      m = in.read(buffer, i, n - i)
-      if (m != -1) i += m
-    }
-    while (m != -1 && n > i)
-
-    if (i == n) new String(buffer, UTF8.charset)
-    else error("Bad message content (unexpected EOF after " + i + " of " + n + " bytes)")
+    val bytes = Bytes.read_stream(in, limit = n)
+    if (bytes.length == n) bytes.text
+    else error("Bad message content (unexpected EOF after " + bytes.length + " of " + n + " bytes)")
   }
 
   def read(): Option[JSON.T] =

@@ -7,8 +7,7 @@ Resident Isabelle servers.
 package isabelle
 
 
-import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
-  IOException}
+import java.io.{BufferedInputStream, BufferedOutputStream, IOException}
 import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
 
 
@@ -62,23 +61,19 @@ object Server
 
     def close() { socket.close }
 
-    val reader = new BufferedReader(new InputStreamReader(socket.getInputStream, UTF8.charset))
-    val writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream, UTF8.charset))
+    val in = new BufferedInputStream(socket.getInputStream)
+    val out = new BufferedOutputStream(socket.getOutputStream)
 
     def read_line(): Option[String] =
-      Exn.capture { reader.readLine() } match {
-        case Exn.Res(null) => None
-        case Exn.Res(line) => Some(line)
-        case Exn.Exn(_: SocketException) => None
-        case Exn.Exn(exn) => throw exn
-      }
+      try { Bytes.read_line(in).map(_.text) }
+      catch { case _: SocketException => None }
 
     def write_line(msg: String)
     {
       require(split_lines(msg).length <= 1)
-      writer.write(msg)
-      writer.newLine()
-      try { writer.flush() } catch { case _: SocketException => }
+      out.write(UTF8.bytes(msg))
+      out.write(10)
+      try { out.flush() } catch { case _: SocketException => }
     }
 
     def reply(r: Server.Reply.Value, t: JSON.T)
