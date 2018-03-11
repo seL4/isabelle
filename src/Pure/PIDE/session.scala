@@ -412,7 +412,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
       def accumulate(state_id: Document_ID.Generic, message: XML.Elem)
       {
         try {
-          val st = global_state.change_result(_.accumulate(state_id, message))
+          val st = global_state.change_result(_.accumulate(state_id, message, xml_cache))
           change_buffer.invoke(false, List(st.command))
         }
         catch {

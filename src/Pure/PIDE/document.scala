@@ -660,17 +660,18 @@ object Document
       (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
         graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id) })
 
-    def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
+    def accumulate(id: Document_ID.Generic, message: XML.Elem, xml_cache: XML.Cache)
+      : (Command.State, State) =
     {
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st.accumulate(self_id(st), other_id _, message)
+          val new_st = st.accumulate(self_id(st), other_id _, message, xml_cache)
           val execs1 = execs + (id -> new_st)
           (new_st, copy(execs = execs1, commands_redirection = redirection(new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st.accumulate(self_id(st), other_id _, message)
+              val new_st = st.accumulate(self_id(st), other_id _, message, xml_cache)
               val commands1 = commands + (id -> new_st)
               (new_st, copy(commands = commands1, commands_redirection = redirection(new_st)))
             case None => fail

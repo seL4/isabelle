@@ -264,7 +264,8 @@ object Command
     def accumulate(
         self_id: Document_ID.Generic => Boolean,
         other_id: Document_ID.Generic => Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
-        message: XML.Elem): State =
+        message: XML.Elem,
+        xml_cache: XML.Cache): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -297,8 +298,8 @@ object Command
                       target_chunk.incorporate(symbol_range) match {
                         case Some(range) =>
                           val props = Position.purge(atts)
-                          val info = Text.Info(range, XML.Elem(Markup(name, props), args))
-                          state.add_markup(false, target_name, info)
+                          val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
+                          state.add_markup(false, target_name, Text.Info(range, elem))
                         case None => bad(); state
                       }
                     case _ =>
@@ -310,8 +311,8 @@ object Command
                 if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
                   val range = command.proper_range
                   val props = Position.purge(atts)
-                  val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                  state.add_markup(false, Symbol.Text_Chunk.Default, info)
+                  val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
+                  state.add_markup(false, Symbol.Text_Chunk.Default, Text.Info(range, elem))
 
                 case _ => bad(); state
               }
@@ -319,8 +320,10 @@ object Command
         case XML.Elem(Markup(name, props), body) =>
           props match {
             case Markup.Serial(i) =>
-              val markup_message = XML.Elem(Markup(Markup.message(name), props), body)
-              val message_markup = XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL)))
+              val markup_message =
+                xml_cache.elem(XML.Elem(Markup(Markup.message(name), props), body))
+              val message_markup =
+                xml_cache.elem(XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL))))
 
               var st = copy(results = results + (i -> markup_message))
               if (Protocol.is_inlined(message)) {
