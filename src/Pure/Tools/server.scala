@@ -4,13 +4,16 @@
 Resident Isabelle servers.
 
 Message formats:
-
   - short message (single line):
       NAME ARGUMENT
-
   - long message (multiple lines):
       BYTE_LENGTH
       NAME ARGUMENT
+
+Argument formats:
+  - Unit as empty string
+  - XML.Elem in YXML notation
+  - JSON.T in standard notation
 */
 
 package isabelle
@@ -23,35 +26,68 @@ import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, 
 
 object Server
 {
-  /* protocol */
+  /* message argument */
 
-  def split_message(msg: String): (String, String) =
+  object Argument
   {
-    val head = msg.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
-    val rest = msg.substring(head.length).dropWhile(Symbol.is_ascii_blank(_))
-    (head, proper_string(rest) getOrElse "{}")
+    def split(msg: String): (String, String) =
+    {
+      val name = msg.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
+      val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank(_))
+      (name, argument)
+    }
+
+    def print(arg: Any): String =
+      arg match {
+        case () => ""
+        case t: XML.Elem => YXML.string_of_tree(t)
+        case t: JSON.T => JSON.Format(t)
+      }
+
+    def parse(argument: String): Any =
+      if (argument == "") ()
+      else if (YXML.detect_elem(argument)) YXML.parse_elem(argument)
+      else JSON.parse(argument, strict = false)
+
+    def unapply(argument: String): Option[Any] =
+      try { Some(parse(argument)) }
+      catch { case ERROR(_) => None }
   }
 
-  val commands: Map[String, PartialFunction[(Server, JSON.T), JSON.T]] =
-    Map(
-      "echo" -> { case (_, t) => t },
-      "help" -> { case (_, JSON.empty) => commands.keySet.toList.sorted },
-      "shutdown" -> { case (server, JSON.empty) => server.close(); JSON.empty })
+
+  /* input command */
+
+  object Command
+  {
+    type T = PartialFunction[(Server, Any), Any]
+
+    private val table: Map[String, T] =
+      Map(
+        "echo" -> { case (_, t) => t },
+        "help" -> { case (_, ()) => table.keySet.toList.sorted },
+        "shutdown" -> { case (server, ()) => server.close(); () })
+
+    def unapply(name: String): Option[T] = table.get(name)
+  }
+
+
+  /* output reply */
 
   object Reply extends Enumeration
   {
     val OK, ERROR, NOTE = Value
 
-    def unapply(msg: String): Option[(Reply.Value, JSON.T)] =
+    def unapply(msg: String): Option[(Reply.Value, Any)] =
     {
       if (msg == "") None
       else {
-        val (reply, output) = split_message(msg)
-        try { Some((withName(reply), JSON.parse(output, strict = false))) }
-        catch {
-          case _: NoSuchElementException => None
-          case Exn.ERROR(_) => None
-        }
+        val (name, argument) = Argument.split(msg)
+        for {
+          reply <-
+            try { Some(withName(name)) }
+            catch { case _: NoSuchElementException => None }
+          arg <- Argument.unapply(argument)
+        } yield (reply, arg)
       }
     }
   }
@@ -96,17 +132,18 @@ object Server
       try { out.flush() } catch { case _: SocketException => }
     }
 
-    def reply(r: Server.Reply.Value, t: JSON.T)
+    def reply(r: Server.Reply.Value, arg: Any)
     {
-      write_message(if (t == JSON.empty) r.toString else r.toString + " " + JSON.Format(t))
+      val argument = Argument.print(arg)
+      write_message(if (argument == "") r.toString else r.toString + " " + argument)
     }
 
-    def reply_ok(t: JSON.T) { reply(Server.Reply.OK, t) }
-    def reply_error(t: JSON.T) { reply(Server.Reply.ERROR, t) }
+    def reply_ok(arg: Any) { reply(Server.Reply.OK, arg) }
+    def reply_error(arg: Any) { reply(Server.Reply.ERROR, arg) }
     def reply_error_message(message: String, more: (String, JSON.T)*): Unit =
       reply_error(Map("message" -> message) ++ more)
 
-    def notify(t: JSON.T) { reply(Server.Reply.NOTE, t) }
+    def notify(arg: Any) { reply(Server.Reply.NOTE, arg) }
     def notify_message(message: String, more: (String, JSON.T)*): Unit =
       notify(Map("message" -> message) ++ more)
   }
@@ -305,7 +342,7 @@ class Server private(_port: Int)
   {
     connection.read_message() match {
       case Some(msg) if msg == password =>
-        connection.reply_ok(JSON.empty)
+        connection.reply_ok(())
         var finished = false
         while (!finished) {
           connection.read_message() match {
@@ -313,24 +350,29 @@ class Server private(_port: Int)
             case Some("") =>
               connection.notify_message("Command 'help' provides list of commands")
             case Some(msg) =>
-              val (cmd, input) = Server.split_message(msg)
-              Server.commands.get(cmd) match {
-                case None => connection.reply_error("Bad command " + quote(cmd))
-                case Some(body) =>
-                  input match {
-                    case JSON.Format(arg) =>
-                      if (body.isDefinedAt((server, arg))) {
-                        try { connection.reply_ok(body(server, arg)) }
-                        catch { case ERROR(msg) => connection.reply_error(msg) }
+              val (name, argument) = Server.Argument.split(msg)
+              name match {
+                case Server.Command(cmd) =>
+                  argument match {
+                    case Server.Argument(arg) =>
+                      if (cmd.isDefinedAt((server, arg))) {
+                        Exn.capture { cmd((server, arg)) } match {
+                          case Exn.Res(res) => connection.reply_ok(res)
+                          case Exn.Exn(ERROR(msg)) => connection.reply_error(msg)
+                          case Exn.Exn(exn) => throw exn
+                        }
                       }
                       else {
                         connection.reply_error_message(
-                          "Bad argument for command", "command" -> cmd, "argument" -> arg)
+                          "Bad argument for command " + Library.single_quote(name),
+                          "argument" -> argument)
                       }
                     case _ =>
                       connection.reply_error_message(
-                        "Malformed message", "command" -> cmd, "input" -> input)
+                        "Malformed argument for command " + Library.single_quote(name),
+                        "argument" -> argument)
                   }
+                case _ => connection.reply_error("Bad command " + Library.single_quote(name))
               }
           }
         }

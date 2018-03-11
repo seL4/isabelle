@@ -150,6 +150,8 @@ object Library
 
   /* quote */
 
+  def single_quote(s: String): String = "'" + s + "'"
+
   def quote(s: String): String = "\"" + s + "\""
 
   def try_unquote(s: String): Option[String] =

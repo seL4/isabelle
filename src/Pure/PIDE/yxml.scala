@@ -23,8 +23,10 @@ object YXML
 
   val X_string = X.toString
   val Y_string = Y.toString
+  val XY_string = X_string + Y_string
 
   def detect(s: String): Boolean = s.exists(c => c == X || c == Y)
+  def detect_elem(s: String): Boolean = s.startsWith(XY_string)
 
 
   /* string representation */  // FIXME byte array version with pseudo-utf-8 (!?)
@@ -116,7 +118,13 @@ object YXML
     parse_body(source) match {
       case List(result) => result
       case Nil => XML.Text("")
-      case _ => err("multiple results")
+      case _ => err("multiple XML trees")
+    }
+
+  def parse_elem(source: CharSequence): XML.Tree =
+    parse_body(source) match {
+      case List(elem: XML.Elem) => elem
+      case _ => err("single XML element expected")
     }
 
 
