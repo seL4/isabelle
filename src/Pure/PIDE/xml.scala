@@ -62,6 +62,16 @@ object XML
       }
   }
 
+  object Root_Elem
+  {
+    def apply(body: Body): XML.Elem = XML.Elem(Markup(XML_ELEM, Nil), body)
+    def unapply(tree: Tree): Option[Body] =
+      tree match {
+        case XML.Elem(Markup(XML_ELEM, Nil), body) => Some(body)
+        case _ => None
+      }
+  }
+
 
   /* traverse text */
 
