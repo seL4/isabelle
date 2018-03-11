@@ -281,6 +281,7 @@ object Server
     {
       var console = false
       var operation_list = false
+      var operation_exit = false
       var name = default_name
       var port = 0
       var existing_server = false
@@ -291,7 +292,8 @@ Usage: isabelle server [OPTIONS]
 
   Options are:
     -C           console interaction with specified server
-    -L           list servers only
+    -L           list servers (exclusive operation)
+    -X           exit specified server (exclusive operation)
     -n NAME      explicit server name (default: """ + default_name + """)
     -p PORT      explicit server port
     -s           assume existing server, no implicit startup
@@ -300,6 +302,7 @@ Usage: isabelle server [OPTIONS]
 """,
           "C" -> (_ => console = true),
           "L" -> (_ => operation_list = true),
+          "X" -> (_ => operation_exit = true),
           "n:" -> (arg => name = arg),
           "p:" -> (arg => port = Value.Int.parse(arg)),
           "s" -> (_ => existing_server = true))
@@ -312,6 +315,10 @@ Usage: isabelle server [OPTIONS]
           server_info <- using(SQLite.open_database(Data.database))(list(_))
           if server_info.active
         } Output.writeln(server_info.toString, stdout = true)
+      }
+      else if (operation_exit) {
+        val ok = Server.exit(name)
+        sys.exit(if (ok) 0 else 1)
       }
       else {
         val (server_info, server) = init(name, port = port, existing_server = existing_server)
