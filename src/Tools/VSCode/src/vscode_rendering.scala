@@ -134,13 +134,17 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
   def diagnostics: List[Text.Info[Command.Results]] =
     snapshot.cumulate[Command.Results](
-      model.content.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements, _ =>
-      {
-        case (res, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(i)), body)))
-        if body.nonEmpty => Some(res + (i -> msg))
+      model.content.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements,
+        command_states =>
+          {
+            case (res, Text.Info(_, msg @ XML.Elem(Markup(Markup.BAD, Markup.Serial(i)), body)))
+            if body.nonEmpty => Some(res + (i -> msg))
 
-        case _ => None
-      }).filterNot(info => info.info.is_empty)
+            case (res, Text.Info(_, msg)) =>
+              Command.State.get_result_proper(command_states, msg.markup.properties).map(res + _)
+
+            case _ => None
+          }).filterNot(info => info.info.is_empty)
 
   def diagnostics_output(results: List[Text.Info[Command.Results]]): List[Protocol.Diagnostic] =
   {

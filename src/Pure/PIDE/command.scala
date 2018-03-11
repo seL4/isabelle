@@ -162,6 +162,16 @@ object Command
 
   object State
   {
+    def get_result(states: List[State], serial: Long): Option[XML.Tree] =
+      states.find(st => st.results.defined(serial)).map(st => st.results.get(serial).get)
+
+    def get_result_proper(states: List[State], props: Properties.T): Option[Results.Entry] =
+      for {
+        serial <- Markup.Serial.unapply(props)
+        tree @ XML.Elem(_, body) <- get_result(states, serial)
+        if body.nonEmpty
+      } yield (serial -> tree)
+
     def merge_results(states: List[State]): Results =
       Results.merge(states.map(_.results))
 
@@ -309,16 +319,16 @@ object Command
         case XML.Elem(Markup(name, props), body) =>
           props match {
             case Markup.Serial(i) =>
-              val message1 = XML.Elem(Markup(Markup.message(name), props), body)
-              val message2 = XML.Elem(Markup(name, props), body)
+              val markup_message = XML.Elem(Markup(Markup.message(name), props), body)
+              val message_markup = XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL)))
 
-              var st = copy(results = results + (i -> message1))
+              var st = copy(results = results + (i -> markup_message))
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
                   range <- Protocol_Message.positions(
                     self_id, command.span.position, chunk_name, chunk, message)
-                } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
+                } st = st.add_markup(false, chunk_name, Text.Info(range, message_markup))
               }
               st
 

@@ -549,13 +549,17 @@ abstract class Rendering(
   def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Tree]]] =
   {
     val results =
-      snapshot.cumulate[Tooltip_Info](range, Tooltip_Info(range), elements, _ =>
+      snapshot.cumulate[Tooltip_Info](range, Tooltip_Info(range), elements, command_states =>
         {
           case (info, Text.Info(_, XML.Elem(Markup.Timing(t), _))) => Some(info + t)
 
-          case (info, Text.Info(r0, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
-          if Rendering.tooltip_message_elements(name) && body.nonEmpty =>
-            Some(info + (r0, serial, XML.Elem(Markup(Markup.message(name), props), body)))
+          case (info, Text.Info(r0, msg @ XML.Elem(Markup(Markup.BAD, Markup.Serial(i)), body)))
+          if body.nonEmpty => Some(info + (r0, i, msg))
+
+          case (info, Text.Info(r0, XML.Elem(Markup(name, props), _)))
+          if Rendering.tooltip_message_elements(name) =>
+            for ((i, tree) <- Command.State.get_result_proper(command_states, props))
+            yield (info + (r0, i, tree))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Entity(kind, name), _)))
           if kind != "" && kind != Markup.ML_DEF =>
