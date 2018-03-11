@@ -85,17 +85,17 @@ class AFP private(options: Options, val base_dir: Path)
 
   /* partition sessions */
 
-  val force_partition1: List[String] = List("Category3", "Formula_Derivatives")
+  val force_partition1: List[String] = List("Category3", "HOL-ODE")
 
   def partition(n: Int): List[String] =
     n match {
       case 0 => Nil
       case 1 | 2 =>
         val graph = sessions_structure.build_graph.restrict(sessions.toSet)
-        val force_part1 = graph.all_succs(force_partition1.filter(graph.defined(_))).toSet
-        val (isolated_sessions, connected_sessions) =
-          graph.keys.partition(a => graph.is_isolated(a) || force_part1.contains(a))
-        if (n == 1) isolated_sessions else connected_sessions
+        val force_part1 =
+          graph.all_preds(graph.all_succs(force_partition1.filter(graph.defined(_)))).toSet
+        val (part1, part2) = graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
+        if (n == 1) part1 else part2
       case _ => error("Bad AFP partition: " + n + " (should be 0, 1, 2)")
     }
 }
