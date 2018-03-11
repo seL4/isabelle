@@ -178,7 +178,8 @@ object XML
     }
 
     private def cache_string(x: String): String =
-      if (x == "true") "true"
+      if (x == "") ""
+      else if (x == "true") "true"
       else if (x == "false") "false"
       else if (x == "0.0") "0.0"
       else if (Library.is_small_int(x)) Library.signed_string_of_int(Integer.parseInt(x))
