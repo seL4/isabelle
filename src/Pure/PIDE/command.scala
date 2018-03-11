@@ -251,6 +251,9 @@ object Command
     private def add_status(st: Markup): State =
       copy(status = st :: status)
 
+    private def add_result(entry: Results.Entry): State =
+      copy(results = results + entry)
+
     private def add_markup(
       status: Boolean, chunk_name: Symbol.Text_Chunk.Name, m: Text.Markup): State =
     {
@@ -325,7 +328,7 @@ object Command
               val message_markup =
                 xml_cache.elem(XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL))))
 
-              var st = copy(results = results + (i -> markup_message))
+              var st = add_result(i -> markup_message)
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
