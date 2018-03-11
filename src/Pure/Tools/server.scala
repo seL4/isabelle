@@ -193,6 +193,8 @@ object Server
 
   /* per-user servers */
 
+  val default_name = "isabelle"
+
   def print(port: Int, password: String): String =
     "127.0.0.1:" + port + " (password " + quote(password) + ")"
 
@@ -220,7 +222,7 @@ object Server
   def find(db: SQLite.Database, name: String): Option[Info] =
     list(db).find(server_info => server_info.name == name && server_info.active)
 
-  def init(name: String = "", port: Int = 0, existing_server: Boolean = false)
+  def init(name: String = default_name, port: Int = 0, existing_server: Boolean = false)
     : (Info, Option[Server]) =
   {
     using(SQLite.open_database(Data.database))(db =>
@@ -257,7 +259,7 @@ object Server
       })
   }
 
-  def exit(name: String = ""): Boolean =
+  def exit(name: String = default_name): Boolean =
   {
     using(SQLite.open_database(Data.database))(db =>
       db.transaction {
@@ -279,7 +281,7 @@ object Server
     {
       var console = false
       var operation_list = false
-      var name = ""
+      var name = default_name
       var port = 0
       var existing_server = false
 
@@ -290,7 +292,7 @@ Usage: isabelle server [OPTIONS]
   Options are:
     -C           console interaction with specified server
     -L           list servers only
-    -n NAME      explicit server name
+    -n NAME      explicit server name (default: """ + default_name + """)
     -p PORT      explicit server port
     -s           assume existing server, no implicit startup
 
