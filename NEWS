@@ -9,16 +9,6 @@ New in this Isabelle version
 
 *** General ***
 
-* New, more general, axiomatization of complete_distrib_lattice. 
-The former axioms:
-"sup x (Inf X) = Inf (sup x ` X)" and "inf x (Sup X) = Sup (inf x ` X)"
-are replaced by 
-"Inf (Sup ` A) <= Sup (Inf ` {f ` A | f . (! Y \<in> A . f Y \<in> Y)})"
-The instantiations of sets and functions as complete_distrib_lattice 
-are moved to Hilbert_Choice.thy because their proofs need the Hilbert
-choice operator. The dual of this property is also proved in 
-Hilbert_Choice.thy.
-
 * Marginal comments need to be written exclusively in the new-style form
 "\<comment> \<open>text\<close>", old ASCII variants like "-- {* ... *}" are no longer
 supported. INCOMPATIBILITY, use the command-line tool "isabelle
@@ -203,6 +193,16 @@ dummy sort: it is effectively ignored in type-inference.
 
 
 *** HOL ***
+
+* New, more general, axiomatization of complete_distrib_lattice. 
+The former axioms:
+"sup x (Inf X) = Inf (sup x ` X)" and "inf x (Sup X) = Sup (inf x ` X)"
+are replaced by 
+"Inf (Sup ` A) <= Sup (Inf ` {f ` A | f . (! Y \<in> A . f Y \<in> Y)})"
+The instantiations of sets and functions as complete_distrib_lattice 
+are moved to Hilbert_Choice.thy because their proofs need the Hilbert
+choice operator. The dual of this property is also proved in 
+Hilbert_Choice.thy.
 
 * Clarifed theorem names:
 

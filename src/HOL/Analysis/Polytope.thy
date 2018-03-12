@@ -735,11 +735,7 @@ proof -
   show ?thesis
   proof (cases "Q = {}")
     case True then show ?thesis
-      sledgehammer
       by (metis IntQ Inter_UNIV_conv(2) assms(1) assms(2) ex_in_conv)
-(*
-      by (metis Inf_empty Inf_lower IntQ assms ex_in_conv subset_antisym top_greatest)
-*)
   next
     case False
     have "Q \<subseteq> {T. T exposed_face_of S}"

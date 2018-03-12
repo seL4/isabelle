@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2018: Viorel Preoteasa
+  Generalisation of complete_distrib_lattice
+
 * January 2018: Sebastien Gouezel
   Various small additions to HOL-Analysis
 
