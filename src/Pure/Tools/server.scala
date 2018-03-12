@@ -184,11 +184,6 @@ object Server
         case _: SocketException => false
         case _: SocketTimeoutException => false
       }
-
-    def console(interrupt: Option[() => Unit] = None)
-    {
-      using(connection())(connection => connection.tty_loop(interrupt = interrupt).join)
-    }
   }
 
 
@@ -324,7 +319,9 @@ Usage: isabelle server [OPTIONS]
       else {
         val (server_info, server) = init(name, port = port, existing_server = existing_server)
         Output.writeln(server_info.toString, stdout = true)
-        if (console) server_info.console()
+        if (console) {
+          using(server_info.connection())(connection => connection.tty_loop().join)
+        }
         server.foreach(_.join)
       }
     })
