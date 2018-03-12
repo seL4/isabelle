@@ -155,8 +155,6 @@ object Server
       reply_error(Map("message" -> message) ++ more)
 
     def notify(arg: Any) { reply(Server.Reply.NOTE, arg) }
-    def notify_message(kind: String, msg: String, more: (String, JSON.T)*): Unit =
-      notify(Map(Markup.KIND -> kind, "message" -> msg) ++ more)
   }
 
 
@@ -168,8 +166,9 @@ object Server
 
     def shutdown() { server.close() }
 
+    def notify(arg: Any) { connection.notify(arg) }
     def message(kind: String, msg: String, more: (String, JSON.T)*): Unit =
-      connection.notify_message(kind, msg, more:_*)
+      notify(Map(Markup.KIND -> kind, "message" -> msg) ++ more)
     def writeln(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WRITELN, msg, more:_*)
     def warning(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WARNING, msg, more:_*)
     def error_message(msg: String, more: (String, JSON.T)*): Unit =
@@ -398,7 +397,7 @@ class Server private(_port: Int)
         while (!finished) {
           connection.read_message() match {
             case None => finished = true
-            case Some("") => context.writeln("Command 'help' provides list of commands")
+            case Some("") => context.notify("Command 'help' provides list of commands")
             case Some(msg) =>
               val (name, argument) = Server.Argument.split(msg)
               name match {
