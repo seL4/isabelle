@@ -10,7 +10,9 @@ package isabelle
 import java.io.{IOException, Writer, Reader, InputStreamReader, BufferedReader}
 
 
-class TTY_Loop(writer: Writer, reader: Reader, interrupt: Option[() => Unit] = None)
+class TTY_Loop(writer: Writer, reader: Reader,
+  writer_lock: AnyRef = new Object,
+  interrupt: Option[() => Unit] = None)
 {
   private val console_output = Future.thread[Unit]("console_output") {
     try {
@@ -50,9 +52,11 @@ class TTY_Loop(writer: Writer, reader: Reader, interrupt: Option[() => Unit] = N
               writer.close()
               finished = true
             case line =>
-              writer.write(line)
-              writer.write("\n")
-              writer.flush()
+              writer_lock.synchronized {
+                writer.write(line)
+                writer.write("\n")
+                writer.flush()
+              }
           }
         }
       }
