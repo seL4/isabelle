@@ -101,14 +101,22 @@ object Server
       new Connection(socket)
   }
 
-  class Connection private(val socket: Socket)
+  class Connection private(socket: Socket)
   {
     override def toString: String = socket.toString
 
     def close() { socket.close }
 
-    val in = new BufferedInputStream(socket.getInputStream)
-    val out = new BufferedOutputStream(socket.getOutputStream)
+    def set_timeout(t: Time) { socket.setSoTimeout(t.ms.toInt) }
+
+    def tty_loop(process_interrupt: Option[() => Unit] = None): TTY_Loop =
+      new TTY_Loop(
+        new BufferedWriter(new OutputStreamWriter(socket.getOutputStream)),
+        new BufferedReader(new InputStreamReader(socket.getInputStream)),
+        process_interrupt = process_interrupt)
+
+    private val in = new BufferedInputStream(socket.getInputStream)
+    private val out = new BufferedOutputStream(socket.getOutputStream)
 
     def read_message(): Option[String] =
       try {
@@ -167,7 +175,7 @@ object Server
       try {
         using(connection())(connection =>
           {
-            connection.socket.setSoTimeout(2000)
+            connection.set_timeout(Time.seconds(2.0))
             connection.read_message() == Some(Reply.OK.toString)
           })
       }
@@ -177,16 +185,10 @@ object Server
         case _: SocketTimeoutException => false
       }
 
-    def console()
+    def console(process_interrupt: Option[() => Unit] = None)
     {
       using(connection())(connection =>
-        {
-          val tty_loop =
-            new TTY_Loop(
-              new BufferedWriter(new OutputStreamWriter(connection.socket.getOutputStream)),
-              new BufferedReader(new InputStreamReader(connection.socket.getInputStream)))
-          tty_loop.join
-        })
+        connection.tty_loop(process_interrupt = process_interrupt).join)
     }
   }
 
