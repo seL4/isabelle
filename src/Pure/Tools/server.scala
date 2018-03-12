@@ -109,11 +109,11 @@ object Server
 
     def set_timeout(t: Time) { socket.setSoTimeout(t.ms.toInt) }
 
-    def tty_loop(process_interrupt: Option[() => Unit] = None): TTY_Loop =
+    def tty_loop(interrupt: Option[() => Unit] = None): TTY_Loop =
       new TTY_Loop(
         new BufferedWriter(new OutputStreamWriter(socket.getOutputStream)),
         new BufferedReader(new InputStreamReader(socket.getInputStream)),
-        process_interrupt = process_interrupt)
+        interrupt = interrupt)
 
     private val in = new BufferedInputStream(socket.getInputStream)
     private val out = new BufferedOutputStream(socket.getOutputStream)
@@ -185,10 +185,9 @@ object Server
         case _: SocketTimeoutException => false
       }
 
-    def console(process_interrupt: Option[() => Unit] = None)
+    def console(interrupt: Option[() => Unit] = None)
     {
-      using(connection())(connection =>
-        connection.tty_loop(process_interrupt = process_interrupt).join)
+      using(connection())(connection => connection.tty_loop(interrupt = interrupt).join)
     }
   }
 
