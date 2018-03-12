@@ -8,12 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.io.{BufferedInputStream, FileInputStream,
-  BufferedReader, InputStreamReader, IOException}
-import java.util.zip.GZIPInputStream
-
 import scala.collection.SortedSet
-import scala.collection.mutable
 import scala.annotation.tailrec
 
 

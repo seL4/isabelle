@@ -8,7 +8,7 @@ Prover process wrapping.
 package isabelle
 
 
-import java.io.{InputStream, OutputStream, BufferedReader, BufferedOutputStream, IOException}
+import java.io.{InputStream, OutputStream, BufferedOutputStream, IOException}
 
 
 object Prover
