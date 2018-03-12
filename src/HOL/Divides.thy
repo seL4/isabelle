@@ -901,9 +901,6 @@ proof -
     by simp
 qed
 
-instance int :: semiring_bits
-  by standard (simp_all add: pos_zmod_mult_2 pos_zdiv_mult_2 zdiv_zmult2_eq zmod_zmult2_eq)
-
   
 subsubsection \<open>Quotients of Signs\<close>
 

@@ -357,6 +357,52 @@ lemma coprime_right_2_iff_odd [simp]:
   "coprime a 2 \<longleftrightarrow> odd a"
   using coprime_left_2_iff_odd [of a] by (simp add: ac_simps)
 
+lemma div_mult2_eq':
+  "a div (of_nat m * of_nat n) = a div of_nat m div of_nat n"
+proof (cases a "of_nat m * of_nat n" rule: divmod_cases)
+  case (divides q)
+  then show ?thesis
+    using nonzero_mult_div_cancel_right [of "of_nat m" "q * of_nat n"]
+    by (simp add: ac_simps)
+next
+  case (remainder q r)
+  then have "division_segment r = 1"
+    using division_segment_of_nat [of "m * n"] by simp
+  with division_segment_euclidean_size [of r]
+  have "of_nat (euclidean_size r) = r"
+    by simp
+  then have "r div of_nat m = of_nat (euclidean_size r) div of_nat m"
+    by simp
+  also have "\<dots> = of_nat (euclidean_size r div m)"
+    by (simp add: of_nat_div)
+  finally have "r div of_nat m = of_nat (euclidean_size r div m)"
+    .
+  with remainder(1-3) have "r div of_nat m div of_nat n = 0"
+    by (auto intro!: div_eqI [of _ "of_nat (euclidean_size r div m)"])
+      (simp add: division_segment_mult euclidean_size_mult ac_simps less_mult_imp_div_less )
+  with remainder(1)
+  have "q = (r div of_nat m + q * of_nat n * of_nat m div of_nat m) div of_nat n"
+    by simp
+  with remainder(5-7) show ?thesis
+    using div_plus_div_distrib_dvd_right [of "of_nat m" "q * (of_nat m * of_nat n)" r]
+    by (simp add: ac_simps)
+next
+  case by0
+  then show ?thesis
+    by auto
+qed
+
+lemma mod_mult2_eq':
+  "a mod (of_nat m * of_nat n) = of_nat m * (a div of_nat m mod of_nat n) + a mod of_nat m"
+proof -
+  have "a div (of_nat m * of_nat n) * (of_nat m * of_nat n) + a mod (of_nat m * of_nat n) = a div of_nat m div of_nat n * of_nat n * of_nat m + (a div of_nat m mod of_nat n * of_nat m + a mod of_nat m)"
+    by (simp add: combine_common_factor div_mult_mod_eq)
+  moreover have "a div of_nat m div of_nat n * of_nat n * of_nat m = of_nat n * of_nat m * (a div of_nat m div of_nat n)"
+    by (simp add: ac_simps)
+  ultimately show ?thesis
+    by (simp add: div_mult2_eq' mult_commute)
+qed
+
 end
 
 class ring_parity = ring + semiring_parity
@@ -613,11 +659,9 @@ lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarr
   by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
 
 
-class semiring_bits = semiring_parity +
-  assumes div_mult2_eq': "a div (of_nat m * of_nat n) = a div of_nat m div of_nat n"
-    and mod_mult2_eq': "a mod (of_nat m * of_nat n) = of_nat m * (a div of_nat m mod of_nat n) + a mod of_nat m"
-  \<comment> \<open>maybe this specifications can be simplified,
-   or even derived (partially) in @{class unique_euclidean_semiring}\<close>
+subsection \<open>Abstract bit operations\<close>
+
+context semiring_parity
 begin
 
 text \<open>The primary purpose of the following operations is
@@ -762,8 +806,5 @@ next
 qed
 
 end
-
-instance nat :: semiring_bits
-  by standard (simp_all add: mod_Suc Suc_double_not_eq_double div_mult2_eq mod_mult2_eq)
 
 end
