@@ -678,10 +678,9 @@ proof
 qed(auto simp add: less_eq_finite_2_def less_finite_2_def inf_finite_2_def sup_finite_2_def Inf_finite_2_def Sup_finite_2_def)
 end
 
-instance finite_2 :: complete_distrib_lattice
-  by standard (auto simp add: sup_finite_2_def inf_finite_2_def Inf_finite_2_def Sup_finite_2_def)
-
 instance finite_2 :: complete_linorder ..
+
+instance finite_2 :: complete_distrib_lattice ..
 
 instantiation finite_2 :: "{field, idom_abs_sgn, idom_modulo}" begin
 definition [simp]: "0 = a\<^sub>1"
@@ -783,7 +782,101 @@ proof(rule wf_wellorderI)
   from this[symmetric] show "wf \<dots>" by simp
 qed intro_classes
 
-instantiation finite_3 :: complete_lattice
+class finite_lattice = finite +  lattice + Inf + Sup  + bot + top +
+  assumes Inf_finite_empty: "Inf {} = Sup UNIV"
+  assumes Inf_finite_insert: "Inf (insert a A) = a \<sqinter> Inf A"
+  assumes Sup_finite_empty: "Sup {} = Inf UNIV"
+  assumes Sup_finite_insert: "Sup (insert a A) = a \<squnion> Sup A"
+  assumes bot_finite_def: "bot = Inf UNIV"
+  assumes top_finite_def: "top = Sup UNIV"
+begin
+
+subclass complete_lattice
+proof
+  fix x A
+  show "x \<in> A \<Longrightarrow> \<Sqinter>A \<le> x"
+    by (cut_tac A = A and a = x in Inf_finite_insert, simp add: insert_absorb inf.absorb_iff2)
+  show "x \<in> A \<Longrightarrow> x \<le> \<Squnion>A"
+    by (cut_tac A = A and a = x in Sup_finite_insert, simp add: insert_absorb sup.absorb_iff2)
+next
+  fix A z
+  show "(\<And>x. x \<in> A \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> \<Sqinter>A"
+    apply (cut_tac F = A and P = "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A" in finite_induct, simp_all add: Inf_finite_empty Inf_finite_insert)
+    by(cut_tac A = UNIV and a = z in Sup_finite_insert, simp add: insert_UNIV local.sup.absorb_iff2)
+
+  show " (\<And>x. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> \<Squnion>A \<le> z"
+    apply (cut_tac F = A and  P = "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> x \<le> z) \<longrightarrow> \<Squnion>A \<le> z" in finite_induct, simp_all add: Sup_finite_empty Sup_finite_insert)
+    by(cut_tac A = UNIV and a = z in Inf_finite_insert, simp add: insert_UNIV local.inf.absorb_iff2)
+next
+  show "\<Sqinter>{} = \<top>"
+    by (simp add: Inf_finite_empty top_finite_def)
+  show " \<Squnion>{} = \<bottom>"
+    by (simp add: Sup_finite_empty bot_finite_def)
+qed
+end
+
+class finite_distrib_lattice = finite_lattice + distrib_lattice 
+begin
+lemma finite_inf_Sup: "a \<sqinter> (Sup A) = Sup {a \<sqinter> b | b . b \<in> A}"
+proof (cut_tac F = A and P = "\<lambda> A . a \<sqinter> (Sup A) = Sup {a \<sqinter> b | b . b \<in> A}" in finite_induct, simp_all)
+  fix x::"'a"
+  fix F
+  assume "x \<notin> F"
+  assume A: "a \<sqinter> \<Squnion>F = \<Squnion>{a \<sqinter> b |b. b \<in> F}"
+
+  have [simp]: " insert (a \<sqinter> x) {a \<sqinter> b |b. b \<in> F} = {a \<sqinter> b |b. b = x \<or> b \<in> F}"
+    by auto
+
+  have "a \<sqinter> (x \<squnion> \<Squnion>F) = a \<sqinter> x \<squnion> a \<sqinter> \<Squnion>F"
+    by (simp add: inf_sup_distrib1)
+  also have "... = a \<sqinter> x \<squnion> \<Squnion>{a \<sqinter> b |b. b \<in> F}"
+    by (simp add: A)
+  also have "... = \<Squnion>{a \<sqinter> b |b. b = x \<or> b \<in> F}"
+    by (unfold Sup_insert[THEN sym], simp)
+
+  finally show "a \<sqinter> (x \<squnion> \<Squnion>F) = \<Squnion>{a \<sqinter> b |b. b = x \<or> b \<in> F}"
+    by simp
+qed
+
+lemma finite_Inf_Sup: "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+proof (cut_tac F = A and P = "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf" in finite_induct, simp_all add: finite_UnionD)
+  fix x::"'a set"
+  fix F
+  assume "x \<notin> F"
+  have [simp]: "{\<Squnion>x \<sqinter> b |b . b \<in> Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} } = {\<Squnion>x \<sqinter> (Inf (f ` F)) |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
+    by auto
+  have [simp]:" \<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> \<exists>fa. insert b (f ` (F \<inter> {Y. Y \<noteq> x})) = insert (fa x) (fa ` F) \<and> fa x \<in> x \<and> (\<forall>Y\<in>F. fa Y \<in> Y)"
+     apply (rule_tac x = "(\<lambda> Y . (if Y = x then b else f Y))" in exI)
+    by auto
+  have [simp]: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> (\<Sqinter>x\<in>F. f x) \<sqinter> b \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+    apply (rule_tac i = "(\<lambda> Y . (if Y = x then b else f Y)) ` ({x} \<union> F)" in SUP_upper2, simp)
+    apply (subst inf_commute)
+    by (simp add: INF_greatest Inf_lower inf.coboundedI2)
+
+  assume "INFIMUM F Sup \<le> SUPREMUM {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} Inf"
+
+  from this have "\<Squnion>x \<sqinter> INFIMUM F Sup \<le> \<Squnion>x \<sqinter> SUPREMUM {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} Inf"
+    apply simp
+    using inf.coboundedI2 by blast
+  also have "... = Sup {\<Squnion>x \<sqinter> (Inf (f ` F)) |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
+    by (simp add: finite_inf_Sup)
+
+  also have "... = Sup {Sup {Inf (f ` F) \<sqinter> b | b . b \<in> x} |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
+    apply (subst inf_commute)
+    by (simp add: finite_inf_Sup)
+
+  also have "... \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+    by (rule Sup_least, clarsimp, rule Sup_least, clarsimp)
+
+  finally show "\<Squnion>x \<sqinter> INFIMUM F Sup \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+    by simp
+qed
+
+subclass complete_distrib_lattice
+  by (standard, rule finite_Inf_Sup)
+end
+
+instantiation finite_3 :: finite_lattice
 begin
 
 definition "\<Sqinter>A = (if a\<^sub>1 \<in> A then a\<^sub>1 else if a\<^sub>2 \<in> A then a\<^sub>2 else a\<^sub>3)"
@@ -795,38 +888,16 @@ definition [simp]: "sup = (max :: finite_3 \<Rightarrow> _)"
 
 instance
 proof
-  fix x :: finite_3 and A
-  assume "x \<in> A"
-  then show "\<Sqinter>A \<le> x" "x \<le> \<Squnion>A"
-    by(case_tac [!] x)(auto simp add: Inf_finite_3_def Sup_finite_3_def less_eq_finite_3_def less_finite_3_def)
-next
-  fix A and z :: finite_3
-  assume "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
-  then show "z \<le> \<Sqinter>A"
-    by(cases z)(auto simp add: Inf_finite_3_def less_eq_finite_3_def less_finite_3_def)
-next
-  fix A and z :: finite_3
-  assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
-  show "\<Squnion>A \<le> z"
-    by(auto simp add: Sup_finite_3_def less_eq_finite_3_def less_finite_3_def dest: *)
-qed(auto simp add: Inf_finite_3_def Sup_finite_3_def)
+qed (auto simp add: Inf_finite_3_def Sup_finite_3_def max_def min_def less_eq_finite_3_def less_finite_3_def split: finite_3.split)
 end
 
-instance finite_3 :: complete_distrib_lattice
-proof
-  fix a :: finite_3 and B
-  show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
-  proof(cases a "\<Sqinter>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
-    case a\<^sub>2_a\<^sub>3
-    then have "\<And>x. x \<in> B \<Longrightarrow> x = a\<^sub>3"
-      by(case_tac x)(auto simp add: Inf_finite_3_def split: if_split_asm)
-    then show ?thesis using a\<^sub>2_a\<^sub>3
-      by(auto simp add: Inf_finite_3_def max_def less_eq_finite_3_def less_finite_3_def split: if_split_asm)
-  qed (auto simp add: Inf_finite_3_def max_def less_finite_3_def less_eq_finite_3_def split: if_split_asm)
-  show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
-    by (cases a "\<Squnion>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
-      (auto simp add: Sup_finite_3_def min_def less_finite_3_def less_eq_finite_3_def split: if_split_asm)
-qed
+instance finite_3 :: complete_lattice ..
+
+instance finite_3 :: finite_distrib_lattice
+proof 
+qed (auto simp add: min_def max_def)
+
+instance finite_3 :: complete_distrib_lattice ..
 
 instance finite_3 :: complete_linorder ..
 
@@ -910,7 +981,7 @@ qed (simp_all only: enum_finite_4_def enum_all_finite_4_def enum_ex_finite_4_def
 
 end
 
-instantiation finite_4 :: complete_lattice begin
+instantiation finite_4 :: finite_distrib_lattice begin
 
 text \<open>@{term a\<^sub>1} $<$ @{term a\<^sub>2},@{term a\<^sub>3} $<$ @{term a\<^sub>4},
   but @{term a\<^sub>2} and @{term a\<^sub>3} are incomparable.\<close>
@@ -947,38 +1018,22 @@ definition
   | (a\<^sub>3, _) \<Rightarrow> a\<^sub>3 | (_, a\<^sub>3) \<Rightarrow> a\<^sub>3
   | _ \<Rightarrow> a\<^sub>1)"
 
-instance
-proof
-  fix A and z :: finite_4
-  assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
-  show "\<Squnion>A \<le> z"
-    by(auto simp add: Sup_finite_4_def less_eq_finite_4_def dest!: * split: finite_4.splits)
-next
-  fix A and z :: finite_4
-  assume *: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
-  show "z \<le> \<Sqinter>A"
-    by(auto simp add: Inf_finite_4_def less_eq_finite_4_def dest!: * split: finite_4.splits)
-qed(auto simp add: less_finite_4_def less_eq_finite_4_def Inf_finite_4_def Sup_finite_4_def inf_finite_4_def sup_finite_4_def split: finite_4.splits)
-
+instance proof
+qed(auto simp add: less_finite_4_def less_eq_finite_4_def Inf_finite_4_def Sup_finite_4_def 
+    inf_finite_4_def sup_finite_4_def split: finite_4.splits)
 end
 
-instance finite_4 :: complete_distrib_lattice
-proof
-  fix a :: finite_4 and B
-  show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
-    by(cases a "\<Sqinter>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
-      (auto simp add: sup_finite_4_def Inf_finite_4_def split: finite_4.splits if_split_asm)
-  show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
-    by(cases a "\<Squnion>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
-      (auto simp add: inf_finite_4_def Sup_finite_4_def split: finite_4.splits if_split_asm)
-qed
+instance finite_4 :: complete_lattice ..
+
+instance finite_4 :: complete_distrib_lattice ..
 
 instantiation finite_4 :: complete_boolean_algebra begin
 definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>4 | a\<^sub>2 \<Rightarrow> a\<^sub>3 | a\<^sub>3 \<Rightarrow> a\<^sub>2 | a\<^sub>4 \<Rightarrow> a\<^sub>1)"
 definition "x - y = x \<sqinter> - (y :: finite_4)"
 instance
 by intro_classes
-  (simp_all add: inf_finite_4_def sup_finite_4_def uminus_finite_4_def minus_finite_4_def split: finite_4.splits)
+  (simp_all add: inf_finite_4_def sup_finite_4_def uminus_finite_4_def minus_finite_4_def 
+    split: finite_4.splits)
 end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
@@ -1013,7 +1068,7 @@ qed (simp_all only: enum_finite_5_def enum_all_finite_5_def enum_ex_finite_5_def
 
 end
 
-instantiation finite_5 :: complete_lattice
+instantiation finite_5 :: finite_lattice
 begin
 
 text \<open>The non-distributive pentagon lattice $N_5$\<close>
@@ -1065,19 +1120,14 @@ definition
    | _ \<Rightarrow> a\<^sub>1)"
 
 instance 
-proof intro_classes
-  fix A and z :: finite_5
-  assume *: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
-  show "z \<le> \<Sqinter>A"
-    by(auto simp add: less_eq_finite_5_def Inf_finite_5_def split: finite_5.splits if_split_asm dest!: *)
-next
-  fix A and z :: finite_5
-  assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
-  show "\<Squnion>A \<le> z"
-    by(auto simp add: less_eq_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm dest!: *)
-qed(auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def Inf_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm)
-
+proof
+qed (auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def 
+    Inf_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm)
 end
+
+
+instance  finite_5 :: complete_lattice ..
+
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4 a\<^sub>5
 

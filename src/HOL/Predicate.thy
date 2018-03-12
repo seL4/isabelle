@@ -102,6 +102,18 @@ lemma eval_minus [simp]:
   by (simp add: minus_pred_def)
 
 instance proof
+  fix A::"'a pred set set"
+  show "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+  proof (simp add: less_eq_pred_def Sup_fun_def Inf_fun_def, safe)
+    fix w
+    assume A: "\<forall>x\<in>A. \<exists>f\<in>x. eval f w"
+    define F where "F = (\<lambda> x . SOME f . f \<in> x \<and> eval f w)"
+    have [simp]: "(\<forall>f\<in> (F ` A). eval f w)"
+      by (metis (no_types, lifting) A F_def image_iff some_eq_ex)
+    show "\<exists>x. (\<exists>f. x = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>f\<in>x. eval f w)"
+      apply (rule_tac x = "F ` A" in exI, simp)
+      using A by (metis (no_types, lifting) F_def someI)+
+  qed
 qed (auto intro!: pred_eqI)
 
 end

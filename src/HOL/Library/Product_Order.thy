@@ -233,14 +233,10 @@ subsection \<open>Complete distributive lattices\<close>
 (* Contribution: Alessandro Coglio *)
 
 instance prod :: (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
-proof (standard, goal_cases)
-  case 1
-  then show ?case
-    by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF comp_def)
-next
-  case 2
-  then show ?case
-    by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP comp_def)
+proof
+  fix A::"('a\<times>'b) set set"
+  show "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+    by (simp add: Sup_prod_def Inf_prod_def INF_SUP_set)
 qed
 
 subsection \<open>Bekic's Theorem\<close>

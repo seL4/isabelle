@@ -167,11 +167,21 @@ lemma finite_distrib_lattice_complete_inf_Sup:
   "inf (x::'a::finite_distrib_lattice_complete) (Sup A) = (SUP y:A. inf x y)"
   using finite [of A] by induct (simp_all add: inf_sup_distrib1)
 
-instance finite_distrib_lattice_complete \<subseteq> complete_distrib_lattice
-proof
-qed (auto simp:
-  finite_distrib_lattice_complete_sup_Inf
-  finite_distrib_lattice_complete_inf_Sup)
+context finite_distrib_lattice_complete
+begin
+subclass finite_distrib_lattice
+  apply standard
+  apply (simp_all add: Inf_def Sup_def bot_def top_def)
+       apply (metis (mono_tags) insert_UNIV local.Sup_fin.eq_fold local.bot_def local.finite_UNIV local.top_def) 
+      apply (simp add: comp_fun_idem.fold_insert_idem local.comp_fun_idem_inf) 
+     apply (metis (mono_tags) insert_UNIV local.Inf_fin.eq_fold local.finite_UNIV) 
+    apply (simp add: comp_fun_idem.fold_insert_idem local.comp_fun_idem_sup)
+  apply (metis (mono_tags) insert_UNIV local.Inf_fin.eq_fold local.finite_UNIV) 
+  apply (metis (mono_tags) insert_UNIV local.Sup_fin.eq_fold local.finite_UNIV)
+  done
+end
+
+instance finite_distrib_lattice_complete \<subseteq> complete_distrib_lattice ..
 
 text \<open>The product of two finite distributive lattices
 is already a finite distributive lattice.\<close>
@@ -188,7 +198,6 @@ already form a finite distributive lattice.\<close>
 instance "fun" ::
   (finite, finite_distrib_lattice_complete) finite_distrib_lattice_complete
   ..
-
 
 subsection \<open>Linear Orders\<close>
 

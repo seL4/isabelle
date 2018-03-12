@@ -149,8 +149,7 @@ lift_definition uminus_fset :: "'a fset \<Rightarrow> 'a fset" is uminus
   parametric right_total_Compl_transfer Compl_transfer by simp
 
 instance
-  by (standard; transfer) (simp_all add: Diff_eq)
-
+  by (standard; transfer) (simp_all add: Inf_Sup Diff_eq)
 end
 
 abbreviation fUNIV :: "'a::finite fset" where "fUNIV \<equiv> top"

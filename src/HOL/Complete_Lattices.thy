@@ -3,6 +3,7 @@
     Author:     Lawrence C Paulson
     Author:     Markus Wenzel
     Author:     Florian Haftmann
+    Author:     Viorel Preoteasa (Complete Distributive Lattices)     
 *)
 
 section \<open>Complete lattices\<close>
@@ -453,56 +454,43 @@ lemma SUP_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrig
 
 end
 
-class complete_distrib_lattice = complete_lattice +
-  assumes sup_Inf: "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
-    and inf_Sup: "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
+context complete_lattice
 begin
+lemma Sup_Inf_le: "Sup (Inf ` {f ` A | f . (\<forall> Y \<in> A . f Y \<in> Y)}) \<le> Inf (Sup ` A)"
+  by (rule SUP_least, clarify, rule INF_greatest, simp add: INF_lower2 Sup_upper)
+end 
 
-lemma sup_INF: "a \<squnion> (\<Sqinter>b\<in>B. f b) = (\<Sqinter>b\<in>B. a \<squnion> f b)"
-  by (simp add: sup_Inf)
-
-lemma inf_SUP: "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<sqinter> f b)"
-  by (simp add: inf_Sup)
-
-lemma dual_complete_distrib_lattice:
-  "class.complete_distrib_lattice Sup Inf sup (\<ge>) (>) inf \<top> \<bottom>"
-  apply (rule class.complete_distrib_lattice.intro)
-   apply (fact dual_complete_lattice)
-  apply (rule class.complete_distrib_lattice_axioms.intro)
-   apply (simp_all add: inf_Sup sup_Inf)
-  done
+class complete_distrib_lattice = complete_lattice +
+  assumes Inf_Sup_le: "Inf (Sup ` A) \<le> Sup (Inf ` {f ` A | f . (\<forall> Y \<in> A . f Y \<in> Y)})"
+begin
+  
+lemma Inf_Sup: "Inf (Sup ` A) = Sup (Inf ` {f ` A | f . (\<forall> Y \<in> A . f Y \<in> Y)})"
+  by (rule antisym, rule Inf_Sup_le, rule Sup_Inf_le)
 
 subclass distrib_lattice
 proof
   fix a b c
-  have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" by (rule sup_Inf)
-  then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by simp
+  show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)"
+  proof (rule antisym, simp_all, safe)
+    show "b \<sqinter> c \<le> a \<squnion> b"
+      by (rule le_infI1, simp)
+    show "b \<sqinter> c \<le> a \<squnion> c"
+      by (rule le_infI2, simp)
+    have [simp]: "a \<sqinter> c \<le> a \<squnion> b \<sqinter> c"
+      by (rule le_infI1, simp)
+    have [simp]: "b \<sqinter> a \<le> a \<squnion> b \<sqinter> c"
+      by (rule le_infI2, simp)
+    have " INFIMUM {{a, b}, {a, c}} Sup = SUPREMUM {f ` {{a, b}, {a, c}} |f. \<forall>Y\<in>{{a, b}, {a, c}}. f Y \<in> Y} Inf"
+      by (rule Inf_Sup)
+    from this show "(a \<squnion> b) \<sqinter> (a \<squnion> c) \<le> a \<squnion> b \<sqinter> c"
+      apply simp
+      by (rule SUP_least, safe, simp_all)
+  qed
 qed
+end
 
-lemma Inf_sup: "\<Sqinter>B \<squnion> a = (\<Sqinter>b\<in>B. b \<squnion> a)"
-  by (simp add: sup_Inf sup_commute)
-
-lemma Sup_inf: "\<Squnion>B \<sqinter> a = (\<Squnion>b\<in>B. b \<sqinter> a)"
-  by (simp add: inf_Sup inf_commute)
-
-lemma INF_sup: "(\<Sqinter>b\<in>B. f b) \<squnion> a = (\<Sqinter>b\<in>B. f b \<squnion> a)"
-  by (simp add: sup_INF sup_commute)
-
-lemma SUP_inf: "(\<Squnion>b\<in>B. f b) \<sqinter> a = (\<Squnion>b\<in>B. f b \<sqinter> a)"
-  by (simp add: inf_SUP inf_commute)
-
-lemma Inf_sup_eq_top_iff: "(\<Sqinter>B \<squnion> a = \<top>) \<longleftrightarrow> (\<forall>b\<in>B. b \<squnion> a = \<top>)"
-  by (simp only: Inf_sup INF_top_conv)
-
-lemma Sup_inf_eq_bot_iff: "(\<Squnion>B \<sqinter> a = \<bottom>) \<longleftrightarrow> (\<forall>b\<in>B. b \<sqinter> a = \<bottom>)"
-  by (simp only: Sup_inf SUP_bot_conv)
-
-lemma INF_sup_distrib2: "(\<Sqinter>a\<in>A. f a) \<squnion> (\<Sqinter>b\<in>B. g b) = (\<Sqinter>a\<in>A. \<Sqinter>b\<in>B. f a \<squnion> g b)"
-  by (subst INF_commute) (simp add: sup_INF INF_sup)
-
-lemma SUP_inf_distrib2: "(\<Squnion>a\<in>A. f a) \<sqinter> (\<Squnion>b\<in>B. g b) = (\<Squnion>a\<in>A. \<Squnion>b\<in>B. f a \<sqinter> g b)"
-  by (subst SUP_commute) (simp add: inf_SUP SUP_inf)
-
+context complete_lattice
+begin
 context
   fixes f :: "'a \<Rightarrow> 'b::complete_lattice"
   assumes "mono f"
@@ -526,12 +514,6 @@ end
 
 class complete_boolean_algebra = boolean_algebra + complete_distrib_lattice
 begin
-
-lemma dual_complete_boolean_algebra:
-  "class.complete_boolean_algebra Sup Inf sup (\<ge>) (>) inf \<top> \<bottom> (\<lambda>x y. x \<squnion> - y) uminus"
-  by (rule class.complete_boolean_algebra.intro,
-      rule dual_complete_distrib_lattice,
-      rule dual_boolean_algebra)
 
 lemma uminus_Inf: "- (\<Sqinter>A) = \<Squnion>(uminus ` A)"
 proof (rule antisym)
@@ -639,17 +621,7 @@ qed (auto elim!: allE[of _ "\<Squnion>A"] simp add: not_le[symmetric] Sup_upper)
 lemma le_SUP_iff: "x \<le> SUPREMUM A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
   using le_Sup_iff [of _ "f ` A"] by simp
 
-subclass complete_distrib_lattice
-proof
-  fix a and B
-  show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)" and "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
-    by (safe intro!: INF_eqI [symmetric] sup_mono Inf_lower SUP_eqI [symmetric] inf_mono Sup_upper)
-      (auto simp: not_less [symmetric] Inf_less_iff less_Sup_iff
-        le_max_iff_disj complete_linorder_sup_max min_le_iff_disj complete_linorder_inf_min)
-qed
-
 end
-
 
 subsection \<open>Complete lattice on @{typ bool}\<close>
 
@@ -678,8 +650,7 @@ lemma SUP_bool_eq [simp]: "SUPREMUM = Bex"
   by (simp add: fun_eq_iff)
 
 instance bool :: complete_boolean_algebra
-  by standard (auto intro: bool_induct)
-
+  by (standard, fastforce)
 
 subsection \<open>Complete lattice on @{typ "_ \<Rightarrow> _"}\<close>
 
@@ -720,12 +691,6 @@ lemma INF_apply [simp]: "(\<Sqinter>y\<in>A. f y) x = (\<Sqinter>y\<in>A. f y x)
 
 lemma SUP_apply [simp]: "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
   using Sup_apply [of "f ` A"] by (simp add: comp_def)
-
-instance "fun" :: (type, complete_distrib_lattice) complete_distrib_lattice
-  by standard (auto simp add: inf_Sup sup_Inf fun_eq_iff image_image)
-
-instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
-
 
 subsection \<open>Complete lattice on unary and binary predicates\<close>
 
@@ -819,10 +784,6 @@ instance
   by standard (auto simp add: less_eq_set_def Inf_set_def Sup_set_def le_fun_def)
 
 end
-
-instance "set" :: (type) complete_boolean_algebra
-  by standard (auto simp add: Inf_set_def Sup_set_def image_def)
-
 
 subsubsection \<open>Inter\<close>
 
@@ -1218,13 +1179,13 @@ lemma inj_on_image: "inj_on f (\<Union>A) \<Longrightarrow> inj_on ((`) f) A"
 subsubsection \<open>Distributive laws\<close>
 
 lemma Int_Union: "A \<inter> \<Union>B = (\<Union>C\<in>B. A \<inter> C)"
-  by (fact inf_Sup)
+  by blast
 
 lemma Un_Inter: "A \<union> \<Inter>B = (\<Inter>C\<in>B. A \<union> C)"
-  by (fact sup_Inf)
+  by blast
 
 lemma Int_Union2: "\<Union>B \<inter> A = (\<Union>C\<in>B. C \<inter> A)"
-  by (fact Sup_inf)
+  by blast
 
 lemma INT_Int_distrib: "(\<Inter>i\<in>I. A i \<inter> B i) = (\<Inter>i\<in>I. A i) \<inter> (\<Inter>i\<in>I. B i)"
   by (rule sym) (rule INF_inf_distrib)
@@ -1241,20 +1202,20 @@ lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<u
   by (simp add: UN_Un_distrib)
 
 lemma Un_INT_distrib: "B \<union> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. B \<union> A i)"
-  by (fact sup_INF)
+  by blast
 
 lemma Int_UN_distrib: "B \<inter> (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. B \<inter> A i)"
   \<comment> \<open>Halmos, Naive Set Theory, page 35.\<close>
-  by (fact inf_SUP)
+  by blast
 
 lemma Int_UN_distrib2: "(\<Union>i\<in>I. A i) \<inter> (\<Union>j\<in>J. B j) = (\<Union>i\<in>I. \<Union>j\<in>J. A i \<inter> B j)"
-  by (fact SUP_inf_distrib2)
+  by blast
 
 lemma Un_INT_distrib2: "(\<Inter>i\<in>I. A i) \<union> (\<Inter>j\<in>J. B j) = (\<Inter>i\<in>I. \<Inter>j\<in>J. A i \<union> B j)"
-  by (fact INF_sup_distrib2)
+  by blast
 
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
-  by (fact Sup_inf_eq_bot_iff)
+  by blast
 
 lemma SUP_UNION: "(\<Squnion>x\<in>(\<Union>y\<in>A. g y). f x) = (\<Squnion>y\<in>A. \<Squnion>x\<in>g y. f x :: _ :: complete_lattice)"
   by (rule order_antisym) (blast intro: SUP_least SUP_upper2)+
@@ -1354,11 +1315,10 @@ qed
 subsubsection \<open>Complement\<close>
 
 lemma Compl_INT [simp]: "- (\<Inter>x\<in>A. B x) = (\<Union>x\<in>A. -B x)"
-  by (fact uminus_INF)
+  by blast
 
 lemma Compl_UN [simp]: "- (\<Union>x\<in>A. B x) = (\<Inter>x\<in>A. -B x)"
-  by (fact uminus_SUP)
-
+  by blast
 
 subsubsection \<open>Miniscoping and maxiscoping\<close>
 
