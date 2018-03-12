@@ -17,8 +17,18 @@ object JSON
   type T = Any
   type S = String
 
-  type Object = Map[String, T]
-  val empty: Object = Map.empty
+  object Object
+  {
+    type T = Map[String, JSON.T]
+    val empty: T = Map.empty
+
+    def unapply(obj: T): Option[Object.T] =
+      obj match {
+        case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
+          Some(m.asInstanceOf[Object.T])
+        case _ => None
+      }
+  }
 
 
   /* lexer */
@@ -120,7 +130,7 @@ object JSON
     def string: Parser[String] = elem("string", _.is_string) ^^ (_.text)
     def number: Parser[Double] = elem("number", _.is_number) ^^ (tok => tok.text.toDouble)
 
-    def json_object: Parser[Object] =
+    def json_object: Parser[Object.T] =
       $$$("{") ~>
         repsep(string ~ ($$$(":") ~> json_value) ^^ { case a ~ b => (a, b) }, $$$(",")) <~
       $$$("}") ^^ (_.toMap)
@@ -188,7 +198,7 @@ object JSON
         result += ']'
       }
 
-      def object_(obj: Object)
+      def object_(obj: Object.T)
       {
         result += '{'
         Library.separate(None, obj.toList.map(Some(_))).foreach({
@@ -210,8 +220,7 @@ object JSON
             val i = n.toLong
             result ++= (if (i.toDouble == n) i.toString else n.toString)
           case s: String => string(s)
-          case obj: Map[_, _] if obj.keySet.forall(_.isInstanceOf[String]) =>
-            object_(obj.asInstanceOf[Object])
+          case Object(m) => object_(m)
           case list: List[T] => array(list)
           case _ => error("Bad JSON value: " + x.toString)
         }
@@ -261,16 +270,15 @@ object JSON
 
   /* object values */
 
-  def optional(entry: (String, Option[T])): Object =
+  def optional(entry: (String, Option[T])): Object.T =
     entry match {
       case (name, Some(x)) => Map(name -> x)
-      case (_, None) => empty
+      case (_, None) => Object.empty
     }
 
   def value(obj: T, name: String): Option[T] =
     obj match {
-      case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
-        m.asInstanceOf[Object].get(name)
+      case Object(m) => m.get(name)
       case _ => None
     }
 
