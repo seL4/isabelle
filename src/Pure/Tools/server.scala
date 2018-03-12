@@ -19,8 +19,8 @@ Argument formats:
 package isabelle
 
 
-import java.io.{BufferedInputStream, BufferedOutputStream, BufferedReader, BufferedWriter,
-  InputStreamReader, OutputStreamWriter, IOException}
+import java.io.{BufferedInputStream, BufferedOutputStream, InputStreamReader, OutputStreamWriter,
+  IOException}
 import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
 
 
@@ -109,14 +109,11 @@ object Server
 
     def set_timeout(t: Time) { socket.setSoTimeout(t.ms.toInt) }
 
-    def tty_loop(interrupt: Option[() => Unit] = None): TTY_Loop =
-      new TTY_Loop(
-        new BufferedWriter(new OutputStreamWriter(socket.getOutputStream)),
-        new BufferedReader(new InputStreamReader(socket.getInputStream)),
-        interrupt = interrupt)
-
     private val in = new BufferedInputStream(socket.getInputStream)
     private val out = new BufferedOutputStream(socket.getOutputStream)
+
+    def tty_loop(interrupt: Option[() => Unit] = None): TTY_Loop =
+      new TTY_Loop(new OutputStreamWriter(out), new InputStreamReader(in), interrupt = interrupt)
 
     def read_message(): Option[String] =
       try {
