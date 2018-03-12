@@ -7,13 +7,10 @@ Line-oriented TTY loop.
 package isabelle
 
 
-import java.io.{IOException, BufferedReader, BufferedWriter, InputStreamReader}
+import java.io.{IOException, Writer, Reader, InputStreamReader, BufferedReader}
 
 
-class TTY_Loop(
-  writer: BufferedWriter,
-  reader: BufferedReader,
-  interrupt: Option[() => Unit] = None)
+class TTY_Loop(writer: Writer, reader: Reader, interrupt: Option[() => Unit] = None)
 {
   private val console_output = Future.thread[Unit]("console_output") {
     try {
