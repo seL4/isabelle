@@ -23,11 +23,9 @@ object Protocol
 
     def log(prefix: String, json: JSON.T, logger: Logger, verbose: Boolean)
     {
-      val header: Map[String, Any] =
+      val header =
         json match {
-          case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
-            val obj = m.asInstanceOf[Map[String, JSON.T]]
-            obj -- (obj.keySet - "method" - "id")
+          case JSON.Object(obj) => obj -- (obj.keySet - "method" - "id")
           case _ => JSON.Object.empty
         }
       if (verbose || header.isEmpty) logger(prefix + "\n" + JSON.Format(json))
