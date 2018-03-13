@@ -156,7 +156,7 @@ object Server
     def reply_ok(arg: Any) { reply(Server.Reply.OK, arg) }
     def reply_error(arg: Any) { reply(Server.Reply.ERROR, arg) }
     def reply_error_message(message: String, more: (String, JSON.T)*): Unit =
-      reply_error(Map("message" -> message) ++ more)
+      reply_error(JSON.Object("message" -> message) ++ more)
 
     def notify(arg: Any) { reply(Server.Reply.NOTE, arg) }
   }
@@ -172,7 +172,7 @@ object Server
 
     def notify(arg: Any) { connection.notify(arg) }
     def message(kind: String, msg: String, more: (String, JSON.T)*): Unit =
-      notify(Map(Markup.KIND -> kind, "message" -> msg) ++ more)
+      notify(JSON.Object(Markup.KIND -> kind, "message" -> msg) ++ more)
     def writeln(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WRITELN, msg, more:_*)
     def warning(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WARNING, msg, more:_*)
     def error_message(msg: String, more: (String, JSON.T)*): Unit =

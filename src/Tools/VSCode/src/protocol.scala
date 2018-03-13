@@ -19,7 +19,7 @@ object Protocol
 
   object Message
   {
-    val empty: Map[String, JSON.T] = Map("jsonrpc" -> "2.0")
+    val empty: JSON.Object.T = JSON.Object("jsonrpc" -> "2.0")
 
     def log(prefix: String, json: JSON.T, logger: Logger, verbose: Boolean)
     {
@@ -28,7 +28,7 @@ object Protocol
           case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
             val obj = m.asInstanceOf[Map[String, JSON.T]]
             obj -- (obj.keySet - "method" - "id")
-          case _ => Map.empty
+          case _ => JSON.Object.empty
         }
       if (verbose || header.isEmpty) logger(prefix + "\n" + JSON.Format(json))
       else logger(prefix + " " + JSON.Format(header))
@@ -131,7 +131,7 @@ object Protocol
   sealed case class ResponseError(code: Int, message: String, data: Option[JSON.T] = None)
   {
     def json: JSON.T =
-      Map("code" -> code, "message" -> message) ++ JSON.optional("data" -> data)
+      JSON.Object("code" -> code, "message" -> message) ++ JSON.optional("data" -> data)
   }
 
   object ErrorCodes
@@ -151,15 +151,16 @@ object Protocol
   object Initialize extends Request0("initialize")
   {
     def reply(id: Id, error: String): JSON.T =
-      ResponseMessage.strict(id, Some(Map("capabilities" -> ServerCapabilities.json)), error)
+      ResponseMessage.strict(
+        id, Some(JSON.Object("capabilities" -> ServerCapabilities.json)), error)
   }
 
   object ServerCapabilities
   {
     val json: JSON.T =
-      Map(
+      JSON.Object(
         "textDocumentSync" -> 2,
-        "completionProvider" -> Map("resolveProvider" -> false, "triggerCharacters" -> Nil),
+        "completionProvider" -> JSON.Object("resolveProvider" -> false, "triggerCharacters" -> Nil),
         "hoverProvider" -> true,
         "definitionProvider" -> true,
         "documentHighlightProvider" -> true)
@@ -181,7 +182,7 @@ object Protocol
   object Position
   {
     def apply(pos: Line.Position): JSON.T =
-      Map("line" -> pos.line, "character" -> pos.column)
+      JSON.Object("line" -> pos.line, "character" -> pos.column)
 
     def unapply(json: JSON.T): Option[Line.Position] =
       for {
@@ -196,7 +197,7 @@ object Protocol
       List(range.start.line, range.start.column, range.stop.line, range.stop.column)
 
     def apply(range: Line.Range): JSON.T =
-      Map("start" -> Position(range.start), "end" -> Position(range.stop))
+      JSON.Object("start" -> Position(range.start), "end" -> Position(range.stop))
 
     def unapply(json: JSON.T): Option[Line.Range] =
       (JSON.value(json, "start"), JSON.value(json, "end")) match {
@@ -208,7 +209,7 @@ object Protocol
   object Location
   {
     def apply(loc: Line.Node_Range): JSON.T =
-      Map("uri" -> Url.print_file_name(loc.name), "range" -> Range(loc.range))
+      JSON.Object("uri" -> Url.print_file_name(loc.name), "range" -> Range(loc.range))
 
     def unapply(json: JSON.T): Option[Line.Node_Range] =
       for {
@@ -234,7 +235,7 @@ object Protocol
 
   sealed case class MarkedString(text: String, language: String = "plaintext")
   {
-    def json: JSON.T = Map("language" -> language, "value" -> text)
+    def json: JSON.T = JSON.Object("language" -> language, "value" -> text)
   }
 
   object MarkedStrings
@@ -262,7 +263,7 @@ object Protocol
   {
     def apply(message_type: Int, message: String, show: Boolean = true): JSON.T =
       Notification(if (show) "window/showMessage" else "window/logMessage",
-        Map("type" -> message_type, "message" -> message))
+        JSON.Object("type" -> message_type, "message" -> message))
   }
 
 
@@ -271,7 +272,7 @@ object Protocol
   sealed case class Command(title: String, command: String, arguments: List[JSON.T] = Nil)
   {
     def json: JSON.T =
-      Map("title" -> title, "command" -> command, "arguments" -> arguments)
+      JSON.Object("title" -> title, "command" -> command, "arguments" -> arguments)
   }
 
 
@@ -336,13 +337,14 @@ object Protocol
 
   sealed case class TextEdit(range: Line.Range, new_text: String)
   {
-    def json: JSON.T = Map("range" -> Range(range), "newText" -> new_text)
+    def json: JSON.T = JSON.Object("range" -> Range(range), "newText" -> new_text)
   }
 
   sealed case class TextDocumentEdit(file: JFile, version: Long, edits: List[TextEdit])
   {
     def json: JSON.T =
-      Map("textDocument" -> Map("uri" -> Url.print_file(file), "version" -> version),
+      JSON.Object(
+        "textDocument" -> JSON.Object("uri" -> Url.print_file(file), "version" -> version),
         "edits" -> edits.map(_.json))
   }
 
@@ -350,7 +352,7 @@ object Protocol
   {
     def apply(edits: List[TextDocumentEdit]): JSON.T =
       RequestMessage(Id.empty, "workspace/applyEdit",
-        Map("edit" -> Map("documentChanges" -> edits.map(_.json))))
+        JSON.Object("edit" -> JSON.Object("documentChanges" -> edits.map(_.json))))
   }
 
 
@@ -366,7 +368,7 @@ object Protocol
     command: Option[Command] = None)
   {
     def json: JSON.T =
-      Map("label" -> label) ++
+      JSON.Object("label" -> label) ++
       JSON.optional("kind" -> kind) ++
       JSON.optional("detail" -> detail) ++
       JSON.optional("documentation" -> documentation) ++
@@ -420,8 +422,10 @@ object Protocol
       val res =
         result match {
           case Some((range, contents)) =>
-            Map("contents" -> MarkedStrings.json(contents).getOrElse(Nil), "range" -> Range(range))
-          case None => Map("contents" -> Nil)
+            JSON.Object(
+              "contents" -> MarkedStrings.json(contents).getOrElse(Nil),
+              "range" -> Range(range))
+          case None => JSON.Object("contents" -> Nil)
         }
       ResponseMessage(id, Some(res))
     }
@@ -450,8 +454,8 @@ object Protocol
   {
     def json: JSON.T =
       kind match {
-        case None => Map("range" -> Range(range))
-        case Some(k) => Map("range" -> Range(range), "kind" -> k)
+        case None => JSON.Object("range" -> Range(range))
+        case Some(k) => JSON.Object("range" -> Range(range), "kind" -> k)
       }
   }
 
@@ -486,7 +490,7 @@ object Protocol
   {
     def apply(file: JFile, diagnostics: List[Diagnostic]): JSON.T =
       Notification("textDocument/publishDiagnostics",
-        Map("uri" -> Url.print_file(file), "diagnostics" -> diagnostics.map(_.json)))
+        JSON.Object("uri" -> Url.print_file(file), "diagnostics" -> diagnostics.map(_.json)))
   }
 
 
@@ -495,7 +499,7 @@ object Protocol
   sealed case class DecorationOpts(range: Line.Range, hover_message: List[MarkedString])
   {
     def json: JSON.T =
-      Map("range" -> Range.compact(range)) ++
+      JSON.Object("range" -> Range.compact(range)) ++
       JSON.optional("hover_message" -> MarkedStrings.json(hover_message))
   }
 
@@ -503,7 +507,7 @@ object Protocol
   {
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
-        Map("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
+        JSON.Object("uri" -> Url.print_file(file), "type" -> typ, "content" -> content.map(_.json)))
   }
 
 
@@ -513,7 +517,8 @@ object Protocol
   {
     def apply(node_pos: Line.Node_Position, focus: Boolean): JSON.T =
       Notification("PIDE/caret_update",
-        Map("uri" -> Url.print_file_name(node_pos.name),
+        JSON.Object(
+          "uri" -> Url.print_file_name(node_pos.name),
           "line" -> node_pos.pos.line,
           "character" -> node_pos.pos.column,
           "focus" -> focus))
@@ -538,7 +543,7 @@ object Protocol
   object Dynamic_Output
   {
     def apply(content: String): JSON.T =
-      Notification("PIDE/dynamic_output", Map("content" -> content))
+      Notification("PIDE/dynamic_output", JSON.Object("content" -> content))
   }
 
 
@@ -547,7 +552,7 @@ object Protocol
   object State_Output
   {
     def apply(id: Counter.ID, content: String): JSON.T =
-      Notification("PIDE/state_output", Map("id" -> id, "content" -> content))
+      Notification("PIDE/state_output", JSON.Object("id" -> id, "content" -> content))
   }
 
   class State_Id_Notification(name: String)
@@ -598,7 +603,7 @@ object Protocol
   {
     def apply(file: JFile, column: Int, label: String, content: String): JSON.T =
       Notification("PIDE/preview_response",
-        Map(
+        JSON.Object(
           "uri" -> Url.print_file(file),
           "column" -> column,
           "label" -> label,
@@ -616,8 +621,8 @@ object Protocol
     {
       val entries =
         for ((sym, code) <- Symbol.codes)
-        yield Map("symbol" -> sym, "name" -> Symbol.names(sym)._1, "code" -> code)
-      Notification("PIDE/symbols", Map("entries" -> entries))
+        yield JSON.Object("symbol" -> sym, "name" -> Symbol.names(sym)._1, "code" -> code)
+      Notification("PIDE/symbols", JSON.Object("entries" -> entries))
     }
   }
 }

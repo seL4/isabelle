@@ -64,7 +64,7 @@ object Server_Commands
           infos = base_info.infos,
           sessions = List(args.session))
 
-      (Map("rc" -> results.rc), base_info, results)
+      (JSON.Object("rc" -> results.rc), base_info, results)
     }
   }
 }

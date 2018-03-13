@@ -20,7 +20,9 @@ object JSON
   object Object
   {
     type T = Map[String, JSON.T]
-    val empty: T = Map.empty
+    val empty: Object.T = Map.empty
+
+    def apply(entries: (String, JSON.T)*): Object.T = Map(entries:_*)
 
     def unapply(obj: T): Option[Object.T] =
       obj match {
@@ -299,7 +301,7 @@ object JSON
 
   def optional(entry: (String, Option[T])): Object.T =
     entry match {
-      case (name, Some(x)) => Map(name -> x)
+      case (name, Some(x)) => Object(name -> x)
       case (_, None) => Object.empty
     }
 
