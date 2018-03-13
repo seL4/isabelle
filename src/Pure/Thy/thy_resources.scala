@@ -13,6 +13,7 @@ object Thy_Resources
 
   def start_session(
     options: Options,
+    progress: Progress = No_Progress,
     session_name: String,
     session_dirs: List[Path] = Nil,
     session_base: Option[Sessions.Base] = None,
@@ -21,7 +22,7 @@ object Thy_Resources
   {
     val base =
       session_base getOrElse
-        Sessions.base_info(options, session_name, dirs = session_dirs).check_base
+      Sessions.base_info(options, session_name, progress = progress, dirs = session_dirs).check_base
     val resources = new Thy_Resources(base, log = log)
     val session = new Session(options, resources)
 

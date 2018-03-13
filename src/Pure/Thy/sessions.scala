@@ -369,6 +369,7 @@ object Sessions
 
   def base_info(options: Options,
     session: String,
+    progress: Progress = No_Progress,
     dirs: List[Path] = Nil,
     ancestor_session: Option[String] = None,
     all_known: Boolean = false,
@@ -385,7 +386,7 @@ object Sessions
 
     val (session1, infos1) =
       if (required_session && ancestor.isDefined) {
-        val deps = Sessions.deps(selected_sessions, global_theories)
+        val deps = Sessions.deps(selected_sessions, global_theories, progress = progress)
         val base = deps(session)
 
         val ancestor_loaded =
@@ -439,7 +440,7 @@ object Sessions
       full_sessions1.selection(Selection(sessions = select_sessions1))
 
     val sessions1 = if (all_known) full_sessions1 else selected_sessions1
-    val deps1 = Sessions.deps(sessions1, global_theories)
+    val deps1 = Sessions.deps(sessions1, global_theories, progress = progress)
     val base1 = if (all_known) deps1(session1).copy(known = deps1.all_known) else deps1(session1)
 
     Base_Info(session1, sessions1, deps1.errors, base1, infos1)

@@ -415,8 +415,8 @@ object Build
         val selected_sessions =
           full_sessions.selection(Sessions.Selection(sessions = outdated))
         val deps =
-          Sessions.deps(selected_sessions, full_sessions.global_theories, inlined_files = true)
-            .check_errors
+          Sessions.deps(selected_sessions, full_sessions.global_theories,
+            progress = progress, inlined_files = true).check_errors
         (selected_sessions, deps)
       }
       else (selected_sessions0, deps0)

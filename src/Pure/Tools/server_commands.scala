@@ -48,6 +48,7 @@ object Server_Commands
       val base_info =
         Sessions.base_info(options,
           args.session,
+          progress = progress,
           dirs = dirs,
           ancestor_session = proper_string(args.ancestor_session),
           all_known = args.all_known,
