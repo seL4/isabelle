@@ -20,7 +20,8 @@ object Server_Commands
       all_known: Boolean = false,
       focus_session: Boolean = false,
       required_session: Boolean = false,
-      system_mode: Boolean = false)
+      system_mode: Boolean = false,
+      verbose: Boolean = false)
 
     def unapply(json: JSON.T): Option[Args] =
       for {
@@ -33,11 +34,12 @@ object Server_Commands
         focus_session <- JSON.bool_default(json, "focus_session")
         required_session <- JSON.bool_default(json, "required_session")
         system_mode <- JSON.bool_default(json, "system_mode")
+        verbose <- JSON.bool_default(json, "verbose")
       }
       yield {
         Args(session, prefs = prefs, opts = opts, dirs = dirs, ancestor_session = ancestor_session,
           all_known = all_known, focus_session = focus_session, required_session = required_session,
-          system_mode = system_mode)
+          system_mode = system_mode, verbose = verbose)
       }
 
     def command(progress: Progress, args: Args): (JSON.T, Sessions.Base_Info, Build.Results) =
@@ -63,6 +65,7 @@ object Server_Commands
           system_mode = args.system_mode,
           dirs = dirs,
           infos = base_info.infos,
+          verbose = args.verbose,
           sessions = List(args.session))
 
       (JSON.Object("rc" -> results.rc), base_info, results)
