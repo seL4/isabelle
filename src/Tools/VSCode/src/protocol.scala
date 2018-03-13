@@ -309,7 +309,7 @@ object Protocol
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
             version <- JSON.long(doc, "version")
-            changes <- JSON.array(params, "contentChanges", unapply_change _)
+            changes <- JSON.list(params, "contentChanges", unapply_change _)
           } yield (Url.absolute_file(uri), version, changes)
         case _ => None
       }

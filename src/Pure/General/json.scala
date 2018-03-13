@@ -232,7 +232,7 @@ object JSON
   }
 
 
-  /* values */
+  /* typed values */
 
   object Value
   {
@@ -281,6 +281,17 @@ object JSON
           case _ => None
         }
     }
+
+    object List
+    {
+      def unapply[A](json: T, unapply: T => Option[A]): Option[List[A]] =
+        json match {
+          case xs: List[T] =>
+            val ys = xs.map(unapply)
+            if (ys.forall(_.isDefined)) Some(ys.map(_.get)) else None
+          case _ => None
+        }
+    }
   }
 
 
@@ -310,25 +321,39 @@ object JSON
       case _ => None
     }
 
-  def array[A](obj: T, name: String, unapply: T => Option[A]): Option[List[A]] =
-    for {
-      a0 <- array(obj, name)
-      a = a0.map(unapply(_))
-      if a.forall(_.isDefined)
-    } yield a.map(_.get)
+  def value_default[A](obj: T, name: String, unapply: T => Option[A], default: A): Option[A] =
+    value(obj, name) match {
+      case None => Some(default)
+      case Some(json) => unapply(json)
+    }
 
   def string(obj: T, name: String): Option[String] =
     value(obj, name, Value.String.unapply)
+  def string_default(obj: T, name: String, default: String = ""): Option[String] =
+    value_default(obj, name, Value.String.unapply, default)
 
   def double(obj: T, name: String): Option[Double] =
     value(obj, name, Value.Double.unapply)
+  def double_default(obj: T, name: String, default: Double = 0.0): Option[Double] =
+    value_default(obj, name, Value.Double.unapply, default)
 
   def long(obj: T, name: String): Option[Long] =
     value(obj, name, Value.Long.unapply)
+  def long_default(obj: T, name: String, default: Long = 0): Option[Long] =
+    value_default(obj, name, Value.Long.unapply, default)
 
   def int(obj: T, name: String): Option[Int] =
     value(obj, name, Value.Int.unapply)
+  def int_default(obj: T, name: String, default: Int = 0): Option[Int] =
+    value_default(obj, name, Value.Int.unapply, default)
 
   def bool(obj: T, name: String): Option[Boolean] =
     value(obj, name, Value.Boolean.unapply)
+  def bool_default(obj: T, name: String, default: Boolean = false): Option[Boolean] =
+    value_default(obj, name, Value.Boolean.unapply, default)
+
+  def list[A](obj: T, name: String, unapply: T => Option[A]): Option[List[A]] =
+    value(obj, name, Value.List.unapply(_, unapply))
+  def list_default[A](obj: T, name: String, unapply: T => Option[A], default: List[A] = Nil)
+    : Option[List[A]] = value_default(obj, name, Value.List.unapply(_, unapply), default)
 }
