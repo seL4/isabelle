@@ -147,6 +147,7 @@ declare -a SOURCES=(
   Tools/print_operation.scala
   Tools/profiling_report.scala
   Tools/server.scala
+  Tools/server_commands.scala
   Tools/simplifier_trace.scala
   Tools/spell_checker.scala
   Tools/task_statistics.scala

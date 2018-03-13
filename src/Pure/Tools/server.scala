@@ -64,9 +64,13 @@ object Server
 
     private val table: Map[String, T] =
       Map(
-        "echo" -> { case (_, t) => t },
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
-        "shutdown" -> { case (context, ()) => context.shutdown(); () })
+        "echo" -> { case (_, t) => t },
+        "shutdown" -> { case (context, ()) => context.shutdown(); () },
+        "session_build" ->
+          { case (context, Server_Commands.Session_Build(args)) =>
+             Server_Commands.Session_Build.command(context.progress(), args)._1
+          })
 
     def unapply(name: String): Option[T] = table.get(name)
   }
